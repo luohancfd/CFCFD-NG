@@ -37,7 +37,7 @@ LUA_INCLUDE_DIR := $(LUA)/include
 LUALINK         := -ldl
 ZLIB            := ../../../extern/zlib-1.2.3
 LIBZLIB         := $(ZLIB)/libz.a
-CEA2            := ../../../alt_app/cea2
+CEA2            := ../../../extern/cea2
 
 #---------------------------------------
 # File name variables
@@ -55,7 +55,7 @@ TEST_EXECUTABLES := user-defined-gas-model-test.x \
 # 	noble-abel-gas-EOS-test.x \
 
 TOOL_EXECUTABLES := gasfile
-ifeq ($(shell [ -d ../../../alt_app/cea2 ] && echo "true"), true)
+ifeq ($(shell [ -d ../../../extern/cea2 ] && echo "true"), true)
   TOOL_EXECUTABLES += build-cea-lut cea2 thermo.inp trans.inp
   CEA2_MSG := "CEA2 has been included in the build."
 else
