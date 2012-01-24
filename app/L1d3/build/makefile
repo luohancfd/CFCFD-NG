@@ -111,6 +111,7 @@ clean:
 	- cd $(GAS)/build; make clean
 	- cd $(NM)/build; make clean
 	- cd $(PLOT)/build; make clean
+	- cd $(UTIL)/build; make clean
 	- cd $(UTIL)/iniparser; make clean
 	- cd $(LUA); make clean
 
