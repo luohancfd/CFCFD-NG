@@ -1752,6 +1752,10 @@ int FV_Cell::viscous_source_vector(void)
     Q->momentum.y = 0.0;
     Q->momentum.z = 0.0;
     Q->total_energy = 0.0;
+    
+    for ( size_t isp = 0; isp < Q->massf.size(); ++isp ) Q->massf[isp] = 0.0;
+    for ( size_t imode = 0; imode < Q->energies.size(); ++imode )
+	Q->energies[imode] = 0.0;
 
     dudx = 0.25 * (vtx[0]->dudx + vtx[1]->dudx + vtx[2]->dudx + vtx[3]->dudx);
     dvdy = 0.25 * (vtx[0]->dvdy + vtx[1]->dvdy + vtx[2]->dvdy + vtx[3]->dvdy);
