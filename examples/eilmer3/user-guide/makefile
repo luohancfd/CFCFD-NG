@@ -31,8 +31,7 @@ eilmer3-user-guide.pdf: eilmer3-user-guide.tex \
 		turbo-sc10.tex \
 		turbo-sc10-parametric.tex \
 		udf.tex \
-		vortex.tex \
-		../../../lib/gas_models2/tex/scriptnoneq.tex
+		vortex.tex
 	export BIBINPUTS=$HOME/papers/bibtex/
 	pdflatex eilmer3-user-guide
 	- bibtex eilmer3-user-guide
