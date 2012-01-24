@@ -1,0 +1,25 @@
+I think I've successfully used cell arrays instead of cell lists here, and am
+in the process of removing vertex lists altogether.
+
+Here on 6/5/05 -
+
+The next level up from Octvce1, which I hope to incorporate code for 
+parallelization using OpenMP, and also
+
+- 1st order reconstruction
+- greater efficiencies
+- better modularity
+- better naming conventions
+- geometry engine for arbitrary polyhedrons - including parallel I/O using
+  VTK XML formats
+- capability to read and write VTK XML formats
+- use of a 'global' data structure so I don't have to hunt for global variables
+- use of inline functions (simple ones) where possible esp. for finding 
+  directions
+- correction to my non-reflecting BCs
+- new BC capability on boundary faces
+- better adaptation criteria
+
+So basically, I hope this to be the last major version I need to do, because
+I need to move on.
+

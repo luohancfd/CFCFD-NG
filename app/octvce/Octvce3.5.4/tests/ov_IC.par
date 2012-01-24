@@ -1,0 +1,19 @@
+INITIAL CONDITION DATA
+----------------------
+
+Ambient conditions
+------------------
+Pressure: 101325 
+Density: 1.18472745130136
+U: 0 
+V: 0
+W: 0
+
+Products conditions
+-------------------
+Pressure: 1.18623322568660e+10 
+Density: 1.65058278219220e+03 
+U: 0
+V: 0
+W: 0
+File: ic.vtp

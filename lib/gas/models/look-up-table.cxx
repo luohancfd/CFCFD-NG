@@ -1,0 +1,398 @@
+// Author: Rowan J. Gollan
+// Date: 07-Nov-2008
+//       14-Jun-2010 (PJ) small variable change to fix bug
+//                        and eliminate ambiguity
+// Place: Hampton, Virginia, USA
+//        Lisbon, Portugal
+// Note:
+//   This is a port of PJs look-up table
+//   implementation with some cosmetic changes:
+//     - gzipped text files, instead of binary format
+//     - vector storage instead of arrays
+//     - reworked to fit in new class framework
+//
+
+#include <iostream>
+
+#include "../../util/source/useful.h"
+#include "../../util/source/lua_service.hh"
+#include "physical_constants.hh"
+#include "look-up-table.hh"
+
+using namespace std;
+
+Look_up_table::
+Look_up_table(string cfile)
+    : Gas_model()
+{
+    set_number_of_species(1);
+    set_number_of_modes(1);
+    s_names_.resize(1);
+    s_names_[0] = "LUT";
+
+    // Read lua file and populate LUT
+    lua_State *L = initialise_lua_State();
+    
+    if ( do_gzfile(L, cfile) != 0 ) {
+	ostringstream ost;
+	ost << "Look_up_table():\n";
+	ost << "    Error in look-up table input file: " << cfile << endl;
+	ost << "    Something is wrong with the Lua script itself." << endl;
+	input_error(ost);
+    }
+
+    int ie, ir;
+
+    iesteps_ = get_positive_int(L, LUA_GLOBALSINDEX, "iesteps");
+    irsteps_ = get_positive_int(L, LUA_GLOBALSINDEX, "irsteps");
+    emin_ = get_number(L, LUA_GLOBALSINDEX, "emin");
+    de_ = get_positive_number(L, LUA_GLOBALSINDEX, "de");
+    lrmin_ = get_number(L, LUA_GLOBALSINDEX, "lrmin");
+    dlr_ = get_positive_number(L, LUA_GLOBALSINDEX, "dlr");
+
+    emax_ = emin_ + de_ * iesteps_;
+    lrmax_ = lrmin_ + dlr_ * irsteps_;
+    
+    lua_getglobal(L, "data");
+    if ( !lua_istable(L, -1) ) {
+	ostringstream ost;
+	ost << "Look_up_table():\n";
+	ost << "    Error in look-up table input file: " << cfile << endl;
+	ost << "    A table of 'data' is expected, but not found.\n";
+	input_error(ost);
+    }
+
+    int ne = lua_objlen(L, -1);
+    if ( ne != iesteps_ + 1 ) {
+	ostringstream ost;
+	ost << "Look_up_table():\n"
+	    << "    Error in look-up table input file: " << cfile << endl
+	    << "    Inconsistent numbers for energy steps: "
+	    << "points=" << ne << " steps=" << iesteps_ << endl;
+	input_error(ost);
+    }
+    Cv_hat_.resize(ne);
+    Cv_.resize(ne);
+    R_hat_.resize(ne);
+    g_hat_.resize(ne);
+    mu_hat_.resize(ne);
+    k_hat_.resize(ne);
+
+    lua_rawgeti(L, -1, 1);
+    int nr = lua_objlen(L, -1);
+    lua_pop(L, 1);
+    if ( nr != irsteps_ + 1 ) {
+	ostringstream ost;
+	ost << "Look_up_table():\n"
+	    << "    Error in look-up table input file: " << cfile << endl
+	    << "    Inconsistent numbers for density steps: "
+	    << "points=" << nr << " steps=" << irsteps_ << endl;
+	input_error(ost);
+    }
+
+    for ( ie = 0; ie < ne; ++ie ) {
+	Cv_hat_[ie].resize(nr);
+	Cv_[ie].resize(nr);
+	R_hat_[ie].resize(nr);
+	g_hat_[ie].resize(nr);
+	mu_hat_[ie].resize(nr);
+	k_hat_[ie].resize(nr);
+
+	lua_rawgeti(L, -1, ie+1);
+	for ( ir = 0; ir < nr; ++ir ) {
+	    lua_rawgeti(L, -1, ir+1);
+
+	    lua_rawgeti(L, -1, 1);
+	    Cv_hat_[ie][ir] = luaL_checknumber(L, -1);
+	    lua_pop(L, 1);
+
+	    lua_rawgeti(L, -1, 2);
+	    Cv_[ie][ir] = luaL_checknumber(L, -1);
+	    lua_pop(L, 1);
+
+	    lua_rawgeti(L, -1, 3);
+	    R_hat_[ie][ir] = luaL_checknumber(L, -1);
+	    lua_pop(L, 1);
+
+	    lua_rawgeti(L, -1, 4);
+	    g_hat_[ie][ir] = luaL_checknumber(L, -1);
+	    lua_pop(L, 1);
+
+	    lua_rawgeti(L, -1, 5);
+	    mu_hat_[ie][ir] = luaL_checknumber(L, -1);
+	    lua_pop(L, 1);
+	    
+	    lua_rawgeti(L, -1, 6);
+	    k_hat_[ie][ir] = luaL_checknumber(L, -1);
+	    lua_pop(L, 1);
+
+	    lua_pop(L, 1); // pop data[ie][ir] off.
+	}
+	lua_pop(L, 1); // pop data[ie] off.
+    }
+
+    lua_pop(L, 1); // pop data off.
+
+    lua_close(L);
+}
+
+Look_up_table::
+~Look_up_table() {}
+
+int
+Look_up_table::
+determine_interpolants(const Gas_data &Q, int &ir, int &ie, double &lrfrac, double &efrac)
+{
+    if ( Q.rho <= 0.0 ) {
+	cout << "Look_up_table::determine_interpolants(): density= " << Q.rho 
+	     << " is zero or negative\n";
+	cout << "   Supplied Q:" << endl;
+	Q.print_values();
+	return VALUE_ERROR;
+    }
+
+    // Find the enclosing cell. 
+    double logrho = log10(Q.rho);
+    ir = (int) ((logrho - lrmin_) / dlr_);
+    ie = (int) ((Q.e[0] - emin_) / de_);
+    // cout << "ir= " << ir << " ie= " << ie << endl;
+    // cout << "dlr= " << dlr_ << " de= " << de_ << endl;
+    // cout << "lrmin= " << lrmin_ << endl;
+    // cout << "emin= " << emin_ << endl;
+    
+    // Make sure that we don't try to access data outside the
+    // actual arrays.
+    if ( ir < 0 ) ir = 0;
+    if ( ir > (irsteps_ - 1) ) ir = irsteps_ - 1;
+    if ( ie < 0 ) ie = 0;
+    if ( ie > (iesteps_ - 1) ) ie = iesteps_ - 1;
+
+    // Calculate bilinear interpolation(/extrapolation) fractions.
+    lrfrac = (logrho - (lrmin_ + ir * dlr_)) / dlr_;
+    efrac  = (Q.e[0] - (emin_ + ie * de_)) / de_;
+    // cout << "desired lrfrac= " << lrfrac << " efrac= " << efrac << endl;
+    // Limit the extrapolation to small distances.
+#   define EXTRAP_MARGIN (0.2)
+    lrfrac = (lrfrac < -EXTRAP_MARGIN) ? -(EXTRAP_MARGIN): lrfrac;
+    lrfrac = (lrfrac > 1.0+EXTRAP_MARGIN) ? 1.0+EXTRAP_MARGIN: lrfrac;
+    efrac = (efrac < -0.2)? -EXTRAP_MARGIN: efrac;
+    efrac = (efrac > 1.0+EXTRAP_MARGIN) ? 1.0+EXTRAP_MARGIN: efrac;
+    // cout << "actual lrfrac= " << lrfrac << " efrac= " << efrac << endl;
+
+    return (SUCCESS);
+}
+
+int
+Look_up_table::
+s_eval_thermo_state_rhoe(Gas_data &Q)
+{
+    double efrac, lrfrac, Cv_eff, R_eff, g_eff;
+    int    ir, ie;
+
+    if ( determine_interpolants(Q, ir, ie, lrfrac, efrac) != SUCCESS ) {
+	cout << "Bailing out!\n";
+	exit(1);
+    }
+
+    Cv_eff = (1.0 - efrac) * (1.0 - lrfrac) * Cv_hat_[ie][ir] +
+	efrac         * (1.0 - lrfrac) * Cv_hat_[ie+1][ir] +
+	efrac         * lrfrac         * Cv_hat_[ie+1][ir+1] +
+	(1.0 - efrac) * lrfrac         * Cv_hat_[ie][ir+1];
+   
+    R_eff  = (1.0 - efrac) * (1.0 - lrfrac) * R_hat_[ie][ir] +
+	efrac         * (1.0 - lrfrac) * R_hat_[ie+1][ir] +
+	efrac         * lrfrac         * R_hat_[ie+1][ir+1] +
+	(1.0 - efrac) * lrfrac         * R_hat_[ie][ir+1];
+
+    g_eff  = (1.0 - efrac) * (1.0 - lrfrac) * g_hat_[ie][ir] +
+	efrac         * (1.0 - lrfrac) * g_hat_[ie+1][ir] +
+	efrac         * lrfrac         * g_hat_[ie+1][ir+1] +
+	(1.0 - efrac) * lrfrac         * g_hat_[ie][ir+1];
+
+    // Reconstruct the thermodynamic properties.
+    Q.T[0] = Q.e[0] / Cv_eff;
+    Q.p = Q.rho*R_eff*Q.T[0];
+    Q.a = sqrt(g_eff*R_eff*Q.T[0]);
+    if ( Q.T[0] < gas_Tmin() ) {
+	cout << "Look_up_table::eval_thermo_state_rhoe(): Low temperature: rho= " << Q.rho
+	    << " e= " << Q.e[0]
+	    << " T= " << Q.T[0] << endl;
+	cout << "   Supplied Q:" << endl;
+       Q.print_values();
+       return BAD_TEMPERATURE_ERROR;
+   }
+
+   // Fix meaningless values if they arise
+   if ( Q.p < 0.0 ) Q.p = 0.0;
+   if ( Q.T[0] < 0.0 ) Q.T[0] = 0.0;
+   if ( Q.a < 0.0 ) Q.a = 0.0;
+
+   return (SUCCESS);
+}
+
+int
+Look_up_table::
+s_eval_transport_coefficients(Gas_data &Q)
+{
+    double efrac, lrfrac;
+    double mu_eff, k_eff;
+    int    ir, ie;
+
+    if ( determine_interpolants(Q, ir, ie, lrfrac, efrac) != SUCCESS ) {
+	cout << "Bailing out!\n";
+	exit(1);
+    }
+
+    mu_eff = (1.0 - efrac) * (1.0 - lrfrac) * mu_hat_[ie][ir] +
+	efrac         * (1.0 - lrfrac) * mu_hat_[ie+1][ir] +
+	efrac         * lrfrac         * mu_hat_[ie+1][ir+1] +
+	(1.0 - efrac) * lrfrac         * mu_hat_[ie][ir+1];
+
+    k_eff = (1.0 - efrac) * (1.0 - lrfrac) * k_hat_[ie][ir] +
+	efrac         * (1.0 - lrfrac) * k_hat_[ie+1][ir] +
+	efrac         * lrfrac         * k_hat_[ie+1][ir+1] +
+	(1.0 - efrac) * lrfrac         * k_hat_[ie][ir+1];
+   
+
+    Q.mu = mu_eff;
+    Q.k[0] = k_eff;
+
+    return (SUCCESS);
+}
+
+int
+Look_up_table::
+s_eval_diffusion_coefficients(Gas_data &Q)
+{
+    // These have no meaning for an equilibrium gas.
+    Q.D_AB[0][0] = 0.0;
+    return (SUCCESS);
+}
+
+double
+Look_up_table::
+s_molecular_weight(int isp)
+{
+    // This method is not very meaningful for an equilibrium
+    // gas.  The molecular weight is best obtained from
+    // the mixture molecular weight methods which IS a function
+    // of gas composition and thermodynamic state.
+    return 0.0;
+}
+
+double
+Look_up_table::
+s_internal_energy(const Gas_data &Q, int isp)
+{
+    UNUSED_VARIABLE(isp);
+    // This method should never be called.
+    // This implementation is here to keep C++ happy that
+    // all of the methods are implemented as required.
+
+    return 0.0;
+}
+
+double
+Look_up_table::
+s_enthalpy(const Gas_data &Q, int isp)
+{
+    UNUSED_VARIABLE(isp);
+    // This method should never be called.
+    // This implementation is here to keep C++ happy that
+    // all of the methods are implemented as required.
+
+    return 0.0;
+}
+
+double
+Look_up_table::
+s_entropy(const Gas_data &Q, int isp)
+{
+    UNUSED_VARIABLE(isp);
+    // This method should never be called.
+    // It is a utility for the finite-rate chemistry,
+    // and an equilibrium gas should not be part of the
+    // the finite-rate chemistry model by definition.
+    // This implementation is here to keep C++ happy that
+    // all of the methods are implemented as required.
+
+    return 0.0;
+}
+
+double
+Look_up_table::
+s_dedT_const_v(const Gas_data &Q, int &status)
+{
+    double efrac, lrfrac;
+    int    ir, ie;
+    double Cv_actual;
+
+    if ( determine_interpolants(Q, ir, ie, lrfrac, efrac) != SUCCESS ) {
+	cout << "Bailing out!\n";
+	exit(1);
+    }
+
+    Cv_actual = (1.0 - efrac) * (1.0 - lrfrac) * Cv_[ie][ir] +
+	efrac         * (1.0 - lrfrac) * Cv_[ie+1][ir] +
+	efrac         * lrfrac         * Cv_[ie+1][ir+1] +
+	(1.0 - efrac) * lrfrac         * Cv_[ie][ir+1];
+
+    status = SUCCESS;
+    return Cv_actual;
+
+}
+
+double
+Look_up_table::
+s_dhdT_const_p(const Gas_data &Q, int &status)
+{
+    double efrac, lrfrac;
+    int    ir, ie;
+    double Cv_actual, R_eff;
+
+    if ( determine_interpolants(Q, ir, ie, lrfrac, efrac) != SUCCESS ) {
+	cout << "Bailing out!\n";
+	exit(1);
+    }
+
+    Cv_actual = (1.0 - efrac) * (1.0 - lrfrac) * Cv_[ie][ir] +
+	efrac         * (1.0 - lrfrac) * Cv_[ie+1][ir] +
+	efrac         * lrfrac         * Cv_[ie+1][ir+1] +
+	(1.0 - efrac) * lrfrac         * Cv_[ie][ir+1];
+
+    R_eff  = (1.0 - efrac) * (1.0 - lrfrac) * R_hat_[ie][ir] +
+	efrac         * (1.0 - lrfrac) * R_hat_[ie+1][ir] +
+	efrac         * lrfrac         * R_hat_[ie+1][ir+1] +
+	(1.0 - efrac) * lrfrac         * R_hat_[ie][ir+1];
+
+    status = SUCCESS;
+    return (Cv_actual + R_eff);
+
+}
+
+double
+Look_up_table::
+s_gas_constant(const Gas_data &Q, int &status)
+{
+    double efrac, lrfrac;
+    int    ir, ie;
+    double R_eff;
+
+    if ( determine_interpolants(Q, ir, ie, lrfrac, efrac) != SUCCESS ) {
+	cout << "Bailing out!\n";
+	exit(1);
+    }
+
+    R_eff  = (1.0 - efrac) * (1.0 - lrfrac) * R_hat_[ie][ir] +
+	efrac         * (1.0 - lrfrac) * R_hat_[ie+1][ir] +
+	efrac         * lrfrac         * R_hat_[ie+1][ir+1] +
+	(1.0 - efrac) * lrfrac         * R_hat_[ie][ir+1];
+
+    status = SUCCESS;
+    return R_eff;
+}
+
+Gas_model* create_look_up_table_gas_model(string cfile)
+{
+    return new Look_up_table(cfile);
+}

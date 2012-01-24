@@ -1,0 +1,63 @@
+<HTML>
+<!-- Don't bother editing this file; it is machine generated. -->
+<HEAD>
+<TITLE> Documentation extracted from  ../source/moc_bezier.c </TITLE>
+</HEAD>
+<BODY>
+<H2> ../source/moc_bezier.c </H2>
+<P>\file moc_bezier.c 
+* \ingroup imoc 
+* \brief Functions for handling Bezier curves of third order. 
+* 
+* These routines provide support for Bezier curves in three 
+* dimensions. Common uses are CAD and font outlines. 
+* The IMOC user should not need to call these procedures directly. 
+* 
+* \author PA Jacobs 
+* 38 Ellington St 
+* Ekibin, Qld 4121 
+* AUSTRALIA 
+* 
+* \verbatim 
+* Version... 
+* ------- 
+* 1.0 : basic routines for third-order curves 
+* 1.1 : 06-nov-92 : full function prototypes 
+* 1.2 : 15-nov-92 : trap underflow in eval_bezier_3_poly() 
+* 1.3 : 18-nov-92 : fix the polyline evaluation routine so that the 
+* t_star array is never addressed incorrectly 
+* (when we have only one segment in the polyline) 
+* 1.4 : 22-Jan-93 : add slope calculation deriv_bezier_3() 
+* 1.5 : 25-May-93 : Changed location_3D to point_3D. 
+* 2.0 : 21-Feb-95 : Added N-degree Bezier curves 
+* 2.1 : 11-Mar-95 : Compute the length of the Bezier segments by evaluating 
+* points along the segment (rather than summing the control 
+* point segments). 
+* 2.2 : 05-Jul-98 : Cubic spline added. 
+* 3.0 : 04-Jan-2000 : adapted for use in I-MOC program. 
+* Added n_max to the Bezier polyline and allowed the 
+* number of segments to be less than that originally 
+* allocated. 
+* 
+* References... 
+* ---------- 
+* Rogers and Adams (1990) 
+* Mathematical Elements for Computer Graphics. 2nd ed 
+* McGraw Hill 
+* 
+* G. Farin (1990) 
+* Curves and surfaces for computer aided Geometric design. 2nd ed 
+* Academic Press 
+* 
+* Fujio Yamaguchi (1988) 
+* Curves and surfaces in computer aided geometric design. 
+* Springer-Verlag 
+* \endverbatim 
+* 
+</P>
+<HR>
+<ADDRESS>
+    Extracted by <B>docgen.awk</B>  Mon Aug 09 23:28:59 EST 2004
+</ADDRESS>
+</BODY>
+</HTML>

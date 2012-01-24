@@ -1,0 +1,193 @@
+<HTML>
+<!-- Don't bother editing this file; it is machine generated. -->
+<HEAD>
+<TITLE> Documentation extracted from  ../source/moc_unitproc.c </TITLE>
+</HEAD>
+<BODY>
+<H2> ../source/moc_unitproc.c </H2>
+<P>\file moc_unitproc.c 
+* \ingroup imoc 
+* \brief Basic Unit Processes. 
+* 
+* Basic unit processes implemented in C. 
+* Each function computes the data for a new node based on information 
+* from other nodes. 
+* The functions are computationally intensive and access the internals of 
+* the node data structure directly. 
+* Thus, we believe that the implementation is faster and tidier than a pure 
+* Tcl implementation -- at least we hope so. 
+</P>
+<P>Most of these functions involve some iteration. 
+The parameters for convergence check are: <BR> 
+max_iteration = 15 <BR> 
+position_tolerance = 1.0e-5 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+int InteriorNode( int node1, int node2, int node4 ) </B> </CODE> </P> 
+<P>Purpose: Calculate an interior point from two initial points. <BR> 
+Input : <BR> 
+node1 : index of initial point along C- characteristic <BR> 
+node2 : index of initial point along C+ characteristic <BR> 
+node4 : index of solution point (may have a value of -1) <BR> 
+If -1 is specified as the index for node4, a new node will be 
+created for the solution point. <BR> 
+Output : <BR> 
+Returns the index of the solution point or a value of -1 
+if there has been a failure. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+int InsertNode( int node1, int node2, int node4, double alpha ) </B> </CODE> </P> 
+<P>Purpose: Insert a node (node4) in between two initial 
+nodes (node1 and node2). <BR> 
+If node1 and node2 are adjacent nodes along a characteristic line, 
+node4 will be connected in between. <BR> 
+Input : <BR> 
+node1 : index of initial point 1 <BR> 
+node2 : index of initial point 2 <BR> 
+node4 : index of solution point (may have a value of -1) <BR> 
+If -1 is specified as the index for node4, a new node will be 
+created for the solution point. <BR> 
+alpha : fraction that node4 is like node2; 
+n4.value = alpha n2.value + (1-alpha) n1.value <BR> 
+Output : <BR> 
+Returns the index of the solution point or a value of -1 
+if there has been a failure. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+int CMinusWallNode( int iw, int node1, int node4 ) </B> </CODE> </P> 
+<P>Purpose: Calculate a wall point from one initial (C-) point. <BR> 
+Input : <BR> 
+iw : Index of selected wall. <BR> 
+node1 : index of initial point along C- characteristic <BR> 
+node4 : index of solution point (may have a value of -1) <BR> 
+If -1 is specified as the index for node4, a new node will be 
+created for the solution point. <BR> 
+Output : <BR> 
+Returns the index of the solution point or a value of -1 
+if there has been a failure. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+int CPlusWallNode( int iw, int node2, int node4 ) </B> </CODE> </P> 
+<P>Purpose: Calculate a wall point from one upstream (C+) point. <BR> 
+Input : <BR> 
+iw : index of the wall <BR> 
+node2 : index of initial point along C+ characteristic <BR> 
+node4 : index of solution point (may have a value of -1) <BR> 
+If -1 is specified as the index for node4, a new node will be 
+created for the solution point. <BR> 
+Output : <BR> 
+Returns the index of the solution point or a value of -1 
+if there has been a failure. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+int CPlusFreeBndyNode( int node0, int node2, int node4 ) </B> </CODE> </P> 
+<P>Purpose: Calculate a free-boundary point from one point (node0) 
+already on the boundary and one point (node2) 
+on a C+ characteristic. <BR> 
+Input : <BR> 
+node0 : index of initial point along C0 streamline <BR> 
+node2 : index of initial point along C+ characteristic <BR> 
+node4 : index of solution point (may have a value of -1) <BR> 
+If -1 is specified as the index for node4, a new node will be 
+created for the solution point. <BR> 
+Output : <BR> 
+Returns the index of the solution point or a value of -1 
+if there has been a failure. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+int CMinusFreeBndyNode( int node0, int node1, int node4 ) </B> </CODE> </P> 
+<P>Purpose: Calculate a free-boundary point from one point (node0) 
+already on the boundary and one point (node1) 
+on a C- characteristic. <BR> 
+Input : <BR> 
+node0 : index of initial point along C0 streamline <BR> 
+node1 : index of initial point along C- characteristic <BR> 
+node4 : index of solution point (may have a value of -1) <BR> 
+If -1 is specified as the index for node4, a new node will be 
+created for the solution point. <BR> 
+Output : <BR> 
+Returns the index of the solution point or a value of -1 
+if there has been a failure. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+int AddStreamNode( int node0, int node1, int node2, int node4, 
+int test_only ) </B> </CODE> </P> 
+<P>Purpose: Calculate a new streamline node, extending the streamline 
+to the line joining nodeA and nodeB. <BR> 
+Input : <BR> 
+node0 : index of initial point on the streamline <BR> 
+node1 : index of first initial interpolation point <BR> 
+node2 : index of second initial interpolation point <BR> 
+node4 : index of solution point (may have a value of -1) <BR> 
+If -1 is specified as the index for node4, a new node will be 
+created for the solution point. <BR> 
+test_only : flag to indicate whether we want to test for intersection only 
+or if we actually want to add the node to the streamline <BR> 
+test_only == 0 : add the node <BR> 
+test_only == 1 : test for intersection only <BR> 
+Output : <BR> 
+if test_only == 0 : 
+returns the index of the solution point or a value of 0 
+if there has been a failure. <BR> 
+if test_only == 1 : 
+returns 1 if intersection occurred between nodes 1 and 2. 
+A value of 0 indicates that intersection did not occur 
+between nodes 1 and 2. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+int StepStreamNode( int node0, int node4, double dL ) </B> </CODE> </P> 
+<P>Purpose: Calculate a new streamline node, extending the streamline 
+by length dL <BR> 
+Input : <BR> 
+node0 : index of initial point on the streamline <BR> 
+node4 : index of solution point (may have a value of -1) <BR> 
+dL : step-size along streamline; 
+A positive value will step downstream while a negative 
+value will step upstream. <BR> 
+If -1 is specified as the index for node4, a new node will be 
+created for the solution point. <BR> 
+Output : <BR> 
+Returns the index of the solution point or a value of -1 
+if there has been a failure. One possible failure is that 
+there are no nodes close enough to include in the interpolation phase. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+int InterpolateNode( double x_point, double y_point, double R, int node4 ) </B> </CODE> </P> 
+<P>Purpose: Locate a new node at coordinates (x,y), interpolating 
+the node's properties from other near-by nodes. <BR> 
+Input : <BR> 
+x_point, 
+y_point : coordinates of the new node <BR> 
+R : radius-of-influence for the Shepard interpolation <BR> 
+node4 : index of solution point (may have a value of -1) <BR> 
+If -1 is specified as the index for node4, a new node will be 
+created for the solution point. <BR> 
+Output : <BR> 
+Returns the index of the solution point or a value of -1 
+if there has been a failure. One possible failure is that 
+there are no nodes close enough to include in the interpolation. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<HR>
+<ADDRESS>
+    Extracted by <B>docgen.awk</B>  Mon Aug 09 23:28:59 EST 2004
+</ADDRESS>
+</BODY>
+</HTML>

@@ -1,0 +1,95 @@
+# nozzle.test
+# Functional test for axisymmetric T4 Mach 4 nozzle flow,
+# The condition tested is that of Rainer's 5MJ/kg nozzle 
+# survey conducted in 2007 (Shots 9459 - 9462).
+#
+# Peter Jacobs, Luke Doherty and Wilson Chan, 19-Oct-2011
+
+package require tcltest 2.0
+namespace import ::tcltest::*
+configure -verbose {start body error}
+
+test nenzfr {Prepare and run nenzfr.} -body {
+    exec nenzfr.py --gas=air --T1=300 --p1=125.0e3 --Vs=2414 --pe=34.376e6 --nni=600 --nnj=40 --by=1.02 --nbi=60 --max-time=1.0e-3  > LOGFILE_MAIN
+} -result {} -returnCodes {0}
+
+test nozzle-exit-temperature {The nozzle exit temperature should be 1259 K.} -body {
+    # The reference value was extracted from the solution data file nozzle-exit.stats
+    # as it was computed on Wilson's netbook 19-Oct-2011.
+    set temperature_ref 1259
+    set temperature 0
+    #
+    # Reads nozzle-exit.stats file.
+    set fp [open nozzle-exit.stats r]
+    set contents [read $fp]
+    close $fp  
+    #  
+    # Searches lines for variable name and variable value.
+    foreach line [split $contents "\n"] {
+	if {[string first "T" $line] >= 0} {
+            # Split line ..
+            set tmp [split $line]
+            # .. and remove all unnecessary spaces ..
+            set tmp2 [regsub -all ({}\ )+ $tmp ""]
+            # .. and read the variable value.
+	    set temperature [lindex [split $tmp2] 1]
+	}
+    }
+    # The temperature should be within 5% of the expected.
+    list [expr abs($temperature - $temperature_ref) < (0.05 * $temperature_ref)]
+} -result {1}
+
+test nozzle-exit-x-velocity {The nozzle exit x-velocity should be 2961 m/s.} -body {
+    # The reference value was extracted from the solution data file nozzle-exit.stats
+    # as it was computed on Wilson's netbook 19-Oct-2011.
+    set velocity_ref 2961
+    set velocity 0
+    #
+    # Reads nozzle-exit.stats file.
+    set fp [open nozzle-exit.stats r]
+    set contents [read $fp]
+    close $fp  
+    #  
+    # Searches lines for variable name and variable value.
+    foreach line [split $contents "\n"] {
+	if {[string first "vel.x" $line] >= 0} {
+            # Split line ..
+            set tmp [split $line]
+            # .. and remove all unnecessary spaces ..
+            set tmp2 [regsub -all ({}\ )+ $tmp ""]
+            # .. and read the variable value.
+	    set velocity [lindex [split $tmp2] 1]
+	}
+    }
+    # The velocity should be within 5% of the expected.
+    list [expr abs($velocity - $velocity_ref) < (0.05 * $velocity_ref)]
+} -result {1}
+
+test nozzle-exit-density {The nozzle exit density should be 0.2377 kg/m^3.} -body {
+    # The reference value was extracted from the solution data file nozzle-exit.stats
+    # as it was computed on Wilson's netbook 19-Oct-2011.
+    set density_ref 0.2377
+    set density 0
+    #
+    # Reads nozzle-exit.stats file.
+    set fp [open nozzle-exit.stats r]
+    set contents [read $fp]
+    close $fp  
+    #  
+    # Searches lines for variable name and variable value.
+    foreach line [split $contents "\n"] {
+	if {[string first "rho" $line] >= 0} {
+            # Split line ..
+            set tmp [split $line]
+            # .. and remove all unnecessary spaces ..
+            set tmp2 [regsub -all ({}\ )+ $tmp ""]
+            # .. and read the variable value.
+	    set density [lindex [split $tmp2] 1]
+	}
+    }
+    puts "density is $density"
+    # The density should be within 5% of the expected.
+    list [expr abs($density - $density_ref) < (0.05 * $density_ref)]
+} -result {1}
+
+cleanupTests

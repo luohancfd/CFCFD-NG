@@ -1,0 +1,2626 @@
+icc  -c -O3 -openmp -ip -mcpu=itanium2 -parallel -ipo20 -Wall  ../source/octvce.c -o octvce.o
+../source/octvce.c(24): remark #1419: external declaration in primary source file
+  extern State_vector **IC_states;
+                        ^
+ 
+../source/octvce.c(26): remark #1419: external declaration in primary source file
+  extern Cart_cell Root;
+                   ^
+ 
+../source/octvce.c(27): remark #1419: external declaration in primary source file
+  extern List_leaf Leaves;
+                   ^
+ 
+../source/octvce.c(28): remark #1419: external declaration in primary source file
+  extern List_leaf Leaves_tail;
+                   ^
+ 
+../source/octvce.c(29): remark #1419: external declaration in primary source file
+  extern List_leaf * Leaf_heads;
+                     ^
+ 
+../source/octvce.c(30): remark #1419: external declaration in primary source file
+  extern List_leaf * Leaf_tails;
+                     ^
+ 
+../source/octvce.c(31): remark #1419: external declaration in primary source file
+  extern List_vtx_glob * Vtx_heads;
+                         ^
+ 
+../source/octvce.c(32): remark #1419: external declaration in primary source file
+  extern List_vtx_glob * Vtx_tails;
+                         ^
+ 
+../source/octvce.c(33): remark #1419: external declaration in primary source file
+  extern double *min_dt;
+                 ^
+ 
+../source/octvce.c(34): remark #1419: external declaration in primary source file
+  extern int * num_cells_per_thread;
+               ^
+ 
+../source/octvce.c(35): remark #1419: external declaration in primary source file
+  extern Point_tnode ADT2Dpoint;
+                     ^
+ 
+../source/octvce.c(36): remark #1419: external declaration in primary source file
+  extern Point_tnode ADT3Dpoint;
+                     ^
+ 
+../source/octvce.c(37): remark #1419: external declaration in primary source file
+  extern short int min_intersect_refine_level;
+                   ^
+ 
+../source/octvce.c(38): remark #1419: external declaration in primary source file
+  extern short int num_times_refine_root;
+                   ^
+ 
+../source/octvce.c(39): remark #1419: external declaration in primary source file
+  extern short int min_refinement_level;
+                   ^
+ 
+../source/octvce.c(40): remark #1419: external declaration in primary source file
+  extern short int max_refinement_level;
+                   ^
+ 
+../source/octvce.c(41): remark #1419: external declaration in primary source file
+  extern short int min_intersect_refine_level;
+                   ^
+ 
+../source/octvce.c(42): remark #1419: external declaration in primary source file
+  extern short int IC_level;
+                   ^
+ 
+../source/octvce.c(43): remark #1419: external declaration in primary source file
+  extern short int refining_root_now;
+                   ^
+ 
+../source/octvce.c(44): remark #1419: external declaration in primary source file
+  extern short int set_global_dt;
+                   ^
+ 
+../source/octvce.c(45): remark #1419: external declaration in primary source file
+  extern State_vector IC_ambient;
+                      ^
+ 
+../source/octvce.c(46): remark #1419: external declaration in primary source file
+  extern Gas_dat gas_data;
+                 ^
+ 
+../source/octvce.c(47): remark #1419: external declaration in primary source file
+  extern Jwlb_coeff JWLB_coeffs;
+                    ^
+ 
+../source/octvce.c(48): remark #1419: external declaration in primary source file
+  extern Cfl_dat CFL_data;
+                 ^
+ 
+../source/octvce.c(49): remark #1419: external declaration in primary source file
+  extern double root_scale;
+                ^
+ 
+../source/octvce.c(50): remark #1419: external declaration in primary source file
+  extern int number_of_threads;
+             ^
+ 
+../source/octvce.c(51): remark #1419: external declaration in primary source file
+  extern IC_heat ICheat;
+                 ^
+ 
+../source/octvce.c(53): remark #1419: external declaration in primary source file
+  extern double root_3D_bbox[2][3];
+                ^
+ 
+../source/octvce.c(54): remark #1419: external declaration in primary source file
+  extern Body_tnode ADTbody;
+                    ^
+ 
+../source/octvce.c(94): remark #1682: implicit conversion of a 64-bit integral type to a smaller integral type (potential portability problem)
+        number_of_threads = strtol(argv[i+1], NULL, 10);
+                          ^
+ 
+../source/octvce.c(235): remark #981: operands are evaluated in unspecified order
+        Root -> cell_volume = CALC_CELL_FLUID_VOL(Root);
+                              ^
+ 
+../source/octvce.c(235): remark #981: operands are evaluated in unspecified order
+        Root -> cell_volume = CALC_CELL_FLUID_VOL(Root);
+                              ^
+ 
+../source/octvce.c(58): remark #177: variable "L" was declared but never referenced
+    List_leaf L,Dummy_list;
+              ^
+ 
+icc  -c -O3 -openmp -ip -mcpu=itanium2 -parallel -ipo20 -Wall  ../source/ov_adts.c -o ov_adts.o
+../source/ov_adts.c(12): remark #1419: external declaration in primary source file
+  extern Point_tnode ADT2Dpoint;
+                     ^
+ 
+../source/ov_adts.c(13): remark #1419: external declaration in primary source file
+  extern Point_tnode ADT3Dpoint;
+                     ^
+ 
+../source/ov_adts.c(14): remark #1419: external declaration in primary source file
+  extern short int area_subcell_num;
+                   ^
+ 
+../source/ov_adts.c(15): remark #1419: external declaration in primary source file
+  extern short int volume_subcell_num;
+                   ^
+ 
+../source/ov_adts.c(16): remark #1419: external declaration in primary source file
+  extern double root_shift[3];
+                ^
+ 
+../source/ov_adts.c(17): remark #1419: external declaration in primary source file
+  extern double root_scale;
+                ^
+ 
+../source/ov_adts.c(19): remark #1419: external declaration in primary source file
+  extern double root_bbox[2][3];
+                ^
+ 
+icc  -c -O3 -openmp -ip -mcpu=itanium2 -parallel -ipo20 -Wall  ../source/ov_adapt.c -o ov_adapt.o
+../source/ov_adapt.c(27): remark #1419: external declaration in primary source file
+  extern int atime;
+             ^
+ 
+../source/ov_adapt.c(28): remark #1418: external definition with no prior declaration
+  Flux_vector sflx = NULL;
+              ^
+ 
+../source/ov_adapt.c(29): remark #1419: external declaration in primary source file
+  extern int stepnow;
+             ^
+ 
+../source/ov_adapt.c(32): remark #1419: external declaration in primary source file
+  extern short int max_refinement_level;
+                   ^
+ 
+../source/ov_adapt.c(33): remark #1419: external declaration in primary source file
+  extern short int IC_level;
+                   ^
+ 
+../source/ov_adapt.c(34): remark #1419: external declaration in primary source file
+  extern double root_shift[3];
+                ^
+ 
+../source/ov_adapt.c(35): remark #1419: external declaration in primary source file
+  extern List_leaf Leaves;
+                   ^
+ 
+../source/ov_adapt.c(36): remark #1419: external declaration in primary source file
+  extern List_leaf Leaves_tail;
+                   ^
+ 
+../source/ov_adapt.c(37): remark #1419: external declaration in primary source file
+  extern List_leaf * Leaf_heads;
+                     ^
+ 
+../source/ov_adapt.c(38): remark #1419: external declaration in primary source file
+  extern List_leaf * Leaf_tails;
+                     ^
+ 
+../source/ov_adapt.c(39): remark #1419: external declaration in primary source file
+  extern List_vtx_glob Vtxlist;
+                       ^
+ 
+../source/ov_adapt.c(40): remark #1419: external declaration in primary source file
+  extern List_vtx_glob Vtxlist_tail;
+                       ^
+ 
+../source/ov_adapt.c(41): remark #1419: external declaration in primary source file
+  extern List_vtx_glob * Vtx_heads;
+                         ^
+ 
+../source/ov_adapt.c(42): remark #1419: external declaration in primary source file
+  extern List_vtx_glob * Vtx_tails;
+                         ^
+ 
+../source/ov_adapt.c(43): remark #1419: external declaration in primary source file
+  extern short int refining_root_now;
+                   ^
+ 
+../source/ov_adapt.c(44): remark #1419: external declaration in primary source file
+  extern short int want_to_adapt;
+                   ^
+ 
+../source/ov_adapt.c(45): remark #1419: external declaration in primary source file
+  extern double adapt_param;
+                ^
+ 
+../source/ov_adapt.c(46): remark #1419: external declaration in primary source file
+  extern short int adapt_in_parallel;
+                   ^
+ 
+../source/ov_adapt.c(47): remark #1419: external declaration in primary source file
+  extern int number_of_threads;
+             ^
+ 
+../source/ov_adapt.c(55): remark #177: variable "j" was declared but never referenced
+    short int i,j;
+                ^
+ 
+../source/ov_adapt.c(607): remark #810: conversion from "int" to "short" may lose significant bits
+      return(num_refine);
+            ^
+ 
+../source/ov_adapt.c(670): remark #810: conversion from "int" to "short" may lose significant bits
+                          k = 2*j+1; break; /*kth child cell for this quadrant*/
+                            ^
+ 
+../source/ov_adapt.c(672): remark #810: conversion from "int" to "short" may lose significant bits
+                          k = 2*j; break;
+                            ^
+ 
+../source/ov_adapt.c(675): remark #810: conversion from "int" to "short" may lose significant bits
+                            k = j+2;
+                              ^
+ 
+../source/ov_adapt.c(676): remark #810: conversion from "int" to "short" may lose significant bits
+                          else k = j+4;
+                                 ^
+ 
+../source/ov_adapt.c(681): remark #810: conversion from "int" to "short" may lose significant bits
+                          else k = j+2; break;
+                                 ^
+ 
+../source/ov_adapt.c(685): remark #810: conversion from "int" to "short" may lose significant bits
+                          k = j+4; break;
+                            ^
+ 
+../source/ov_adapt.c(743): remark #810: conversion from "int" to "short" may lose significant bits
+      return(num_coarsen);
+            ^
+ 
+../source/ov_adapt.c(833): remark #981: operands are evaluated in unspecified order
+                     ((set_IC == FALSE) || (ROUND(C -> children[i] -> IC_flag) == C -> children[i] -> IC_flag) ||
+                                            ^
+ 
+../source/ov_adapt.c(833): remark #1572: floating-point equality and inequality comparisons are unreliable
+                     ((set_IC == FALSE) || (ROUND(C -> children[i] -> IC_flag) == C -> children[i] -> IC_flag) ||
+                                                                                  ^
+ 
+../source/ov_adapt.c(850): remark #981: operands are evaluated in unspecified order
+                              ((set_IC == TRUE) && (ROUND(C -> children[i] -> IC_flag) != C -> children[i] -> IC_flag) &&                                                                                                                         
+                                                    ^
+ 
+../source/ov_adapt.c(850): remark #1572: floating-point equality and inequality comparisons are unreliable
+                              ((set_IC == TRUE) && (ROUND(C -> children[i] -> IC_flag) != C -> children[i] -> IC_flag) &&                                                                                                                         
+                                                                                          ^
+ 
+../source/ov_adapt.c(859): remark #810: conversion from "int" to "short" may lose significant bits
+                            if(refine(C -> children[i], MAX(1, C -> children[i] -> additional_refine_times),
+                                                        ^
+ 
+../source/ov_adapt.c(925): remark #981: operands are evaluated in unspecified order
+                      ((set_IC == TRUE) && (ROUND(C -> children[i] -> IC_flag) != C -> children[i] -> IC_flag) &&
+                                            ^
+ 
+../source/ov_adapt.c(925): remark #1572: floating-point equality and inequality comparisons are unreliable
+                      ((set_IC == TRUE) && (ROUND(C -> children[i] -> IC_flag) != C -> children[i] -> IC_flag) &&
+                                                                                  ^
+ 
+../source/ov_adapt.c(927): remark #810: conversion from "int" to "short" may lose significant bits
+                    if(refine(C -> children[i], MAX(1, C -> children[i] -> additional_refine_times),
+                                                ^
+ 
+../source/ov_adapt.c(1166): remark #810: conversion from "int" to "short" may lose significant bits
+              C -> children[i] -> cell_level = (C -> cell_level) + 1;
+                                             ^
+ 
+icc  -c -O3 -openmp -ip -mcpu=itanium2 -parallel -ipo20 -Wall  ../source/ov_connect.c -o ov_connect.o
+../source/ov_connect.c(15): remark #1418: external definition with no prior declaration
+  int atime = 0;
+      ^
+ 
+../source/ov_connect.c(16): remark #1419: external declaration in primary source file
+  extern int stepnow;
+             ^
+ 
+../source/ov_connect.c(19): remark #1419: external declaration in primary source file
+  extern short int min_refinement_level;
+                   ^
+ 
+../source/ov_connect.c(20): remark #1419: external declaration in primary source file
+  extern short int refining_root_now;
+                   ^
+ 
+../source/ov_connect.c(21): remark #1419: external declaration in primary source file
+  extern double root_scale;
+                ^
+ 
+../source/ov_connect.c(22): remark #1419: external declaration in primary source file
+  extern List_vtx_glob Vtxlist;
+                       ^
+ 
+../source/ov_connect.c(23): remark #1419: external declaration in primary source file
+  extern List_vtx_glob Vtxlist_tail;
+                       ^
+ 
+../source/ov_connect.c(24): remark #1419: external declaration in primary source file
+  extern List_vtx_glob *Vtx_heads;
+                        ^
+ 
+../source/ov_connect.c(25): remark #1419: external declaration in primary source file
+  extern List_vtx_glob *Vtx_tails;
+                        ^
+ 
+../source/ov_connect.c(26): remark #1419: external declaration in primary source file
+  extern List_leaf Leaves;
+                   ^
+ 
+../source/ov_connect.c(27): remark #1419: external declaration in primary source file
+  extern short int adapt_in_parallel;
+                   ^
+ 
+../source/ov_connect.c(28): remark #1419: external declaration in primary source file
+  extern int number_of_threads;
+             ^
+ 
+../source/ov_connect.c(73): remark #810: conversion from "int" to "short" may lose significant bits
+                  y = 2*j+1; z = y-1; break; /*z is the 'opposite' direction from y*/
+                    ^
+ 
+../source/ov_connect.c(73): remark #810: conversion from "int" to "short" may lose significant bits
+                  y = 2*j+1; z = y-1; break; /*z is the 'opposite' direction from y*/
+                               ^
+ 
+../source/ov_connect.c(75): remark #810: conversion from "int" to "short" may lose significant bits
+                  y = 2*j; z = y+1; break;
+                    ^
+ 
+../source/ov_connect.c(75): remark #810: conversion from "int" to "short" may lose significant bits
+                  y = 2*j; z = y+1; break;
+                             ^
+ 
+../source/ov_connect.c(78): remark #810: conversion from "int" to "short" may lose significant bits
+                    y = j+2;
+                      ^
+ 
+../source/ov_connect.c(79): remark #810: conversion from "int" to "short" may lose significant bits
+                  else y = j+4;
+                         ^
+ 
+../source/ov_connect.c(80): remark #810: conversion from "int" to "short" may lose significant bits
+                  z = y-2; break;
+                    ^
+ 
+../source/ov_connect.c(84): remark #810: conversion from "int" to "short" may lose significant bits
+                  else y = j+2;
+                         ^
+ 
+../source/ov_connect.c(85): remark #810: conversion from "int" to "short" may lose significant bits
+                  z = y+2; break;
+                    ^
+ 
+../source/ov_connect.c(87): remark #810: conversion from "int" to "short" may lose significant bits
+                  y = j; z = y+4; break;
+                           ^
+ 
+../source/ov_connect.c(89): remark #810: conversion from "int" to "short" may lose significant bits
+                  y = j+4; z = y-4; break;
+                    ^
+ 
+../source/ov_connect.c(89): remark #810: conversion from "int" to "short" may lose significant bits
+                  y = j+4; z = y-4; break;
+                             ^
+ 
+../source/ov_connect.c(131): remark #810: conversion from "int" to "short" may lose significant bits
+                  y = 2*j+1; break;
+                    ^
+ 
+../source/ov_connect.c(133): remark #810: conversion from "int" to "short" may lose significant bits
+                  y = 2*j; break;
+                    ^
+ 
+../source/ov_connect.c(136): remark #810: conversion from "int" to "short" may lose significant bits
+                    y = j+2;
+                      ^
+ 
+../source/ov_connect.c(137): remark #810: conversion from "int" to "short" may lose significant bits
+                  else y = j+4;
+                         ^
+ 
+../source/ov_connect.c(142): remark #810: conversion from "int" to "short" may lose significant bits
+                  else y = j+2;
+                         ^
+ 
+../source/ov_connect.c(147): remark #810: conversion from "int" to "short" may lose significant bits
+                  y = j+4; break;
+                    ^
+ 
+../source/ov_connect.c(162): remark #810: conversion from "int" to "short" may lose significant bits
+                  y = 2*j+1; break;
+                    ^
+ 
+../source/ov_connect.c(164): remark #810: conversion from "int" to "short" may lose significant bits
+                  y = 2*j; break;
+                    ^
+ 
+../source/ov_connect.c(167): remark #810: conversion from "int" to "short" may lose significant bits
+                    y = j+2;
+                      ^
+ 
+../source/ov_connect.c(168): remark #810: conversion from "int" to "short" may lose significant bits
+                  else y = j+4;
+                         ^
+ 
+../source/ov_connect.c(173): remark #810: conversion from "int" to "short" may lose significant bits
+                  else y = j+2;
+                         ^
+ 
+../source/ov_connect.c(178): remark #810: conversion from "int" to "short" may lose significant bits
+                  y = j+4; break;
+                    ^
+ 
+../source/ov_connect.c(196): remark #810: conversion from "int" to "short" may lose significant bits
+                  y = 2*j+1; break;
+                    ^
+ 
+../source/ov_connect.c(198): remark #810: conversion from "int" to "short" may lose significant bits
+                  y = 2*j; break;
+                    ^
+ 
+../source/ov_connect.c(201): remark #810: conversion from "int" to "short" may lose significant bits
+                    y = j+2;
+                      ^
+ 
+../source/ov_connect.c(202): remark #810: conversion from "int" to "short" may lose significant bits
+                  else y = j+4;
+                         ^
+ 
+../source/ov_connect.c(207): remark #810: conversion from "int" to "short" may lose significant bits
+                  else y = j+2;
+                         ^
+ 
+../source/ov_connect.c(212): remark #810: conversion from "int" to "short" may lose significant bits
+                  y = j+4; break;
+                    ^
+ 
+../source/ov_connect.c(231): remark #810: conversion from "int" to "short" may lose significant bits
+                          z = 2*k; break; /*This is the opposite direction to north*/
+                            ^
+ 
+../source/ov_connect.c(233): remark #810: conversion from "int" to "short" may lose significant bits
+                          z = 2*k+1; break;
+                            ^
+ 
+../source/ov_connect.c(237): remark #810: conversion from "int" to "short" may lose significant bits
+                          else z = k+2;
+                                 ^
+ 
+../source/ov_connect.c(241): remark #810: conversion from "int" to "short" may lose significant bits
+                            z = k+2;
+                              ^
+ 
+../source/ov_connect.c(242): remark #810: conversion from "int" to "short" may lose significant bits
+                          else z = k+4;
+                                 ^
+ 
+../source/ov_connect.c(245): remark #810: conversion from "int" to "short" may lose significant bits
+                          z = k+4; break;
+                            ^
+ 
+../source/ov_connect.c(356): remark #810: conversion from "int" to "short" may lose significant bits
+                  k = 2*j+1; break;
+                    ^
+ 
+../source/ov_connect.c(358): remark #810: conversion from "int" to "short" may lose significant bits
+                  k = 2*j; break;
+                    ^
+ 
+../source/ov_connect.c(361): remark #810: conversion from "int" to "short" may lose significant bits
+                    k = j+2;
+                      ^
+ 
+../source/ov_connect.c(362): remark #810: conversion from "int" to "short" may lose significant bits
+                  else k = j+4;
+                         ^
+ 
+../source/ov_connect.c(367): remark #810: conversion from "int" to "short" may lose significant bits
+                  else k = j+2;
+                         ^
+ 
+../source/ov_connect.c(372): remark #810: conversion from "int" to "short" may lose significant bits
+                  k = j+4; break;
+                    ^
+ 
+../source/ov_connect.c(449): remark #1572: floating-point equality and inequality comparisons are unreliable
+              if((C -> flux_area[dir][0] != 0) || (C -> flux_area[dir][1] != 0) || (C -> flux_area[dir][2] != 0) ||
+                                            ^
+ 
+../source/ov_connect.c(449): remark #1572: floating-point equality and inequality comparisons are unreliable
+              if((C -> flux_area[dir][0] != 0) || (C -> flux_area[dir][1] != 0) || (C -> flux_area[dir][2] != 0) ||
+                                                                             ^
+ 
+../source/ov_connect.c(449): remark #1572: floating-point equality and inequality comparisons are unreliable
+              if((C -> flux_area[dir][0] != 0) || (C -> flux_area[dir][1] != 0) || (C -> flux_area[dir][2] != 0) ||
+                                                                                                              ^
+ 
+../source/ov_connect.c(450): remark #1572: floating-point equality and inequality comparisons are unreliable
+                 (C -> flux_area[dir][3] != 0))
+                                            ^
+ 
+../source/ov_connect.c(468): remark #1572: floating-point equality and inequality comparisons are unreliable
+              if((C -> flux_area[dir][0] != 0) || (C -> flux_area[dir][1] != 0) || (C -> flux_area[dir][2] != 0) ||
+                                            ^
+ 
+../source/ov_connect.c(468): remark #1572: floating-point equality and inequality comparisons are unreliable
+              if((C -> flux_area[dir][0] != 0) || (C -> flux_area[dir][1] != 0) || (C -> flux_area[dir][2] != 0) ||
+                                                                             ^
+ 
+../source/ov_connect.c(468): remark #1572: floating-point equality and inequality comparisons are unreliable
+              if((C -> flux_area[dir][0] != 0) || (C -> flux_area[dir][1] != 0) || (C -> flux_area[dir][2] != 0) ||
+                                                                                                              ^
+ 
+../source/ov_connect.c(469): remark #1572: floating-point equality and inequality comparisons are unreliable
+                 (C -> flux_area[dir][3] != 0))
+                                            ^
+ 
+../source/ov_connect.c(530): remark #810: conversion from "int" to "short" may lose significant bits
+                      k = 2*j+1; break;
+                        ^
+ 
+../source/ov_connect.c(532): remark #810: conversion from "int" to "short" may lose significant bits
+                      k = 2*j; break;
+                        ^
+ 
+../source/ov_connect.c(535): remark #810: conversion from "int" to "short" may lose significant bits
+                        k = j+2;
+                          ^
+ 
+../source/ov_connect.c(536): remark #810: conversion from "int" to "short" may lose significant bits
+                      else k = j+4;
+                             ^
+ 
+../source/ov_connect.c(541): remark #810: conversion from "int" to "short" may lose significant bits
+                      else k = j+2;
+                             ^
+ 
+../source/ov_connect.c(546): remark #810: conversion from "int" to "short" may lose significant bits
+                      k = j+4; break;
+                        ^
+ 
+../source/ov_connect.c(631): remark #810: conversion from "int" to "short" may lose significant bits
+            child = i+2;
+                  ^
+ 
+../source/ov_connect.c(632): remark #810: conversion from "int" to "short" may lose significant bits
+          else child = i+4;
+                     ^
+ 
+../source/ov_connect.c(637): remark #810: conversion from "int" to "short" may lose significant bits
+          else child = i+2;
+                     ^
+ 
+../source/ov_connect.c(640): remark #810: conversion from "int" to "short" may lose significant bits
+          child = 2*i+1; break;
+                ^
+ 
+../source/ov_connect.c(642): remark #810: conversion from "int" to "short" may lose significant bits
+          child = 2*i; break;
+                ^
+ 
+../source/ov_connect.c(644): remark #810: conversion from "int" to "short" may lose significant bits
+          child = i+4; break;
+                ^
+ 
+../source/ov_connect.c(717): remark #810: conversion from "int" to "short" may lose significant bits
+          dir = 2*i; /*All 'positive' directions*/
+              ^
+ 
+../source/ov_connect.c(779): remark #810: conversion from "int" to "short" may lose significant bits
+                      child = j+2; /*Child on this face*/
+                            ^
+ 
+../source/ov_connect.c(780): remark #810: conversion from "int" to "short" may lose significant bits
+                      mid_vertex = 7-j; /*Corresponding vertex no.*/
+                                 ^
+ 
+../source/ov_connect.c(784): remark #810: conversion from "int" to "short" may lose significant bits
+                      child = j+4;
+                            ^
+ 
+../source/ov_connect.c(791): remark #810: conversion from "int" to "short" may lose significant bits
+                  child = 2*j+1;
+                        ^
+ 
+../source/ov_connect.c(792): remark #810: conversion from "int" to "short" may lose significant bits
+                  mid_vertex = 7-2*j;
+                             ^
+ 
+../source/ov_connect.c(795): remark #810: conversion from "int" to "short" may lose significant bits
+                  child = j+4;
+                        ^
+ 
+../source/ov_connect.c(796): remark #810: conversion from "int" to "short" may lose significant bits
+                  mid_vertex = 7-j;
+                             ^
+ 
+../source/ov_connect.c(1025): remark #810: conversion from "int" to "short" may lose significant bits
+          dir = 2*i + 1; /*All 'negative' directions*/
+              ^
+ 
+../source/ov_connect.c(1088): remark #810: conversion from "int" to "short" may lose significant bits
+                      mid_vertex = 5-j;
+                                 ^
+ 
+../source/ov_connect.c(1092): remark #810: conversion from "int" to "short" may lose significant bits
+                      child = j+2;
+                            ^
+ 
+../source/ov_connect.c(1099): remark #810: conversion from "int" to "short" may lose significant bits
+                  child = 2*j;
+                        ^
+ 
+../source/ov_connect.c(1100): remark #810: conversion from "int" to "short" may lose significant bits
+                  mid_vertex = 6-2*j;
+                             ^
+ 
+../source/ov_connect.c(1104): remark #810: conversion from "int" to "short" may lose significant bits
+                  mid_vertex = 3-j;
+                             ^
+ 
+../source/ov_connect.c(1784): remark #810: conversion from "int" to "short" may lose significant bits
+          dir = 2*i;
+              ^
+ 
+../source/ov_connect.c(1902): remark #810: conversion from "int" to "short" may lose significant bits
+          dir = 2*i + 1;
+              ^
+ 
+../source/ov_connect.c(2164): remark #981: operands are evaluated in unspecified order
+    vtxs_per_thread = ROUND(((double) num_vtxs)/((double) number_of_threads));
+                      ^
+ 
+../source/ov_connect.c(2211): remark #1572: floating-point equality and inequality comparisons are unreliable
+          if((C -> centroid[0] == centroid[0]) && (C -> centroid[1] == centroid[1]) && (C -> centroid[2] == centroid[2]))                                  ^
+ 
+../source/ov_connect.c(2211): remark #1572: floating-point equality and inequality comparisons are unreliable
+          if((C -> centroid[0] == centroid[0]) && (C -> centroid[1] == centroid[1]) && (C -> centroid[2] == centroid[2]))                                                                       ^
+ 
+../source/ov_connect.c(2211): remark #1572: floating-point equality and inequality comparisons are unreliable
+          if((C -> centroid[0] == centroid[0]) && (C -> centroid[1] == centroid[1]) && (C -> centroid[2] == centroid[2]))                                                                                                            ^
+ 
+../source/ov_connect.c(2227): remark #1572: floating-point equality and inequality comparisons are unreliable
+                        ((C->centroid[0] != centroid[0]) || (C->centroid[1] != centroid[1]) || (C->centroid[2] != centroid[2])))
+                                            ^
+ 
+../source/ov_connect.c(2227): remark #1572: floating-point equality and inequality comparisons are unreliable
+                        ((C->centroid[0] != centroid[0]) || (C->centroid[1] != centroid[1]) || (C->centroid[2] != centroid[2])))
+                                                                               ^
+ 
+../source/ov_connect.c(2227): remark #1572: floating-point equality and inequality comparisons are unreliable
+                        ((C->centroid[0] != centroid[0]) || (C->centroid[1] != centroid[1]) || (C->centroid[2] != centroid[2])))
+                                                                                                                  ^
+ 
+../source/ov_connect.c(2331): remark #810: conversion from "int" to "short" may lose significant bits
+                                    j = ((C -> child_num)-1)/2; break;
+                                      ^
+ 
+../source/ov_connect.c(2334): remark #810: conversion from "int" to "short" may lose significant bits
+                                    j = (C -> child_num)/2; break;
+                                      ^
+ 
+../source/ov_connect.c(2337): remark #810: conversion from "int" to "short" may lose significant bits
+                                      j = (C -> child_num)-2;
+                                        ^
+ 
+../source/ov_connect.c(2338): remark #810: conversion from "int" to "short" may lose significant bits
+                                    else j = (C -> child_num)-4; /*Cells 6 and 7*/
+                                           ^
+ 
+../source/ov_connect.c(2343): remark #810: conversion from "int" to "short" may lose significant bits
+                                    else j = (C -> child_num)-2;
+                                           ^
+ 
+../source/ov_connect.c(2348): remark #810: conversion from "int" to "short" may lose significant bits
+                                    j = (C -> child_num)-4; break;
+                                      ^
+ 
+../source/ov_connect.c(2418): remark #981: operands are evaluated in unspecified order
+        double child_quad_area = CALC_CELL_FLUID_AREA(child_cells[0])/MAX_NUM_NEIGHBOURS;
+                                 ^
+ 
+../source/ov_connect.c(2500): remark #810: conversion from "int" to "short" may lose significant bits
+                      child = 2*j+1; break;
+                            ^
+ 
+../source/ov_connect.c(2502): remark #810: conversion from "int" to "short" may lose significant bits
+                      child = 2*j; break;
+                            ^
+ 
+../source/ov_connect.c(2505): remark #810: conversion from "int" to "short" may lose significant bits
+                        child = j+2;
+                              ^
+ 
+../source/ov_connect.c(2506): remark #810: conversion from "int" to "short" may lose significant bits
+                      else child = j+4;
+                                 ^
+ 
+../source/ov_connect.c(2511): remark #810: conversion from "int" to "short" may lose significant bits
+                      else child = j+2;
+                                 ^
+ 
+../source/ov_connect.c(2516): remark #810: conversion from "int" to "short" may lose significant bits
+                      child = j+4; break;
+                            ^
+ 
+../source/ov_connect.c(2558): remark #810: conversion from "int" to "short" may lose significant bits
+                  child = 2*j+1; break;
+                        ^
+ 
+../source/ov_connect.c(2560): remark #810: conversion from "int" to "short" may lose significant bits
+                  child = 2*j; break;
+                        ^
+ 
+../source/ov_connect.c(2563): remark #810: conversion from "int" to "short" may lose significant bits
+                    child = j+2;
+                          ^
+ 
+../source/ov_connect.c(2564): remark #810: conversion from "int" to "short" may lose significant bits
+                  else child = j+4;
+                             ^
+ 
+../source/ov_connect.c(2569): remark #810: conversion from "int" to "short" may lose significant bits
+                  else child = j+2;
+                             ^
+ 
+../source/ov_connect.c(2574): remark #810: conversion from "int" to "short" may lose significant bits
+                  child = j+4; break;
+                        ^
+ 
+../source/ov_connect.c(2613): remark #981: operands are evaluated in unspecified order
+    double parent_quad_area = CALC_CELL_FLUID_AREA(Parent)/MAX_NUM_NEIGHBOURS;
+                              ^
+ 
+../source/ov_connect.c(2687): remark #810: conversion from "int" to "short" may lose significant bits
+                  else child = j+2;
+                             ^
+ 
+../source/ov_connect.c(2690): remark #810: conversion from "int" to "short" may lose significant bits
+                  child = 2*j; break;
+                        ^
+ 
+../source/ov_connect.c(2739): remark #810: conversion from "int" to "short" may lose significant bits
+                  child = 2*j+1; break;
+                        ^
+ 
+../source/ov_connect.c(2741): remark #810: conversion from "int" to "short" may lose significant bits
+                  child = 2*j; break;
+                        ^
+ 
+../source/ov_connect.c(2744): remark #810: conversion from "int" to "short" may lose significant bits
+                    child = j+2;
+                          ^
+ 
+../source/ov_connect.c(2745): remark #810: conversion from "int" to "short" may lose significant bits
+                  else child = j+4;
+                             ^
+ 
+../source/ov_connect.c(2750): remark #810: conversion from "int" to "short" may lose significant bits
+                  else child = j+2;
+                             ^
+ 
+../source/ov_connect.c(2755): remark #810: conversion from "int" to "short" may lose significant bits
+                  child = j+4; break;
+                        ^
+ 
+../source/ov_connect.c(2804): remark #810: conversion from "int" to "short" may lose significant bits
+                  child = 2*j+1; break;
+                        ^
+ 
+../source/ov_connect.c(2806): remark #810: conversion from "int" to "short" may lose significant bits
+                  child = 2*j; break;
+                        ^
+ 
+../source/ov_connect.c(2809): remark #810: conversion from "int" to "short" may lose significant bits
+                    child = j+2;
+                          ^
+ 
+../source/ov_connect.c(2810): remark #810: conversion from "int" to "short" may lose significant bits
+                  else child = j+4;
+                             ^
+ 
+../source/ov_connect.c(2815): remark #810: conversion from "int" to "short" may lose significant bits
+                  else child = j+2;
+                             ^
+ 
+../source/ov_connect.c(2820): remark #810: conversion from "int" to "short" may lose significant bits
+                  child = j+4; break;
+                        ^
+ 
+icc  -c -O3 -openmp -ip -mcpu=itanium2 -parallel -ipo20 -Wall  ../source/ov_setgeom.c -o ov_setgeom.o
+../source/ov_setgeom.c(13): remark #1419: external declaration in primary source file
+  extern short int use_geom_engine_always;
+                   ^
+ 
+../source/ov_setgeom.c(14): remark #1419: external declaration in primary source file
+  extern short int level_before_can_interrogate;
+                   ^
+ 
+../source/ov_setgeom.c(15): remark #1419: external declaration in primary source file
+  extern short int refining_root_now;
+                   ^
+ 
+../source/ov_setgeom.c(16): remark #1419: external declaration in primary source file
+  extern short int allow_multiple_refinements;
+                   ^
+ 
+../source/ov_setgeom.c(17): remark #1419: external declaration in primary source file
+  extern short int area_subcell_num;
+                   ^
+ 
+../source/ov_setgeom.c(18): remark #1419: external declaration in primary source file
+  extern short int volume_subcell_num;
+                   ^
+ 
+../source/ov_setgeom.c(23): remark #1419: external declaration in primary source file
+  extern Body *IC_regions;
+               ^
+ 
+../source/ov_setgeom.c(24): remark #1419: external declaration in primary source file
+  extern double ***IC_bboxes;
+                   ^
+ 
+../source/ov_setgeom.c(25): remark #1419: external declaration in primary source file
+  extern int num_ICs;
+             ^
+ 
+../source/ov_setgeom.c(28): remark #1419: external declaration in primary source file
+  extern Point_tnode ADT2Dpoint;
+                     ^
+ 
+../source/ov_setgeom.c(29): remark #1419: external declaration in primary source file
+  extern Point_tnode ADT3Dpoint;
+                     ^
+ 
+../source/ov_setgeom.c(30): remark #1419: external declaration in primary source file
+  extern short int num_times_refine_root;
+                   ^
+ 
+../source/ov_setgeom.c(31): remark #1419: external declaration in primary source file
+  extern short int min_refinement_level;
+                   ^
+ 
+../source/ov_setgeom.c(32): remark #1419: external declaration in primary source file
+  extern short int min_intersect_refine_level;
+                   ^
+ 
+../source/ov_setgeom.c(33): remark #1419: external declaration in primary source file
+  extern short int allow_multiple_refinements;
+                   ^
+ 
+../source/ov_setgeom.c(34): remark #1419: external declaration in primary source file
+  extern double root_shift[3];
+                ^
+ 
+../source/ov_setgeom.c(35): remark #1419: external declaration in primary source file
+  extern double root_scale;
+                ^
+ 
+../source/ov_setgeom.c(37): remark #1419: external declaration in primary source file
+  extern Body_tnode ADTbody;
+                    ^
+ 
+../source/ov_setgeom.c(46): remark #810: conversion from "int" to "short" may lose significant bits
+    short int level = (C -> cell_level)+1;
+                      ^
+ 
+../source/ov_setgeom.c(92): remark #810: conversion from "int" to "short" may lose significant bits
+    short int level = (C -> cell_level)+1;
+                      ^
+ 
+../source/ov_setgeom.c(166): remark #981: operands are evaluated in unspecified order
+          double child_fluid_volume = CALC_CELL_FLUID_VOL(child_cells[0]);
+                                      ^
+ 
+../source/ov_setgeom.c(166): remark #981: operands are evaluated in unspecified order
+          double child_fluid_volume = CALC_CELL_FLUID_VOL(child_cells[0]);
+                                      ^
+ 
+../source/ov_setgeom.c(242): remark #810: conversion from "int" to "short" may lose significant bits
+                          else child_cells[i] -> additional_refine_times = min_refinement_level - child_level;
+                                                                         ^
+ 
+../source/ov_setgeom.c(274): remark #981: operands are evaluated in unspecified order
+          double child_face_area = CALC_CELL_FLUID_AREA(child_cells[0]);
+                                   ^
+ 
+../source/ov_setgeom.c(370): remark #1572: floating-point equality and inequality comparisons are unreliable
+                          if(child_cells[i] -> flux_area[j][0] == UNKNOWN)
+                                                                  ^
+ 
+../source/ov_setgeom.c(381): remark #810: conversion from "int" to "short" may lose significant bits
+                                            quadrant_num = i-2;
+                                                         ^
+ 
+../source/ov_setgeom.c(382): remark #810: conversion from "int" to "short" may lose significant bits
+                                          else quadrant_num = i-4;
+                                                            ^
+ 
+../source/ov_setgeom.c(387): remark #810: conversion from "int" to "short" may lose significant bits
+                                          else quadrant_num = i-2;
+                                                            ^
+ 
+../source/ov_setgeom.c(390): remark #810: conversion from "int" to "short" may lose significant bits
+                                          quadrant_num = (i-1)/2; break;
+                                                       ^
+ 
+../source/ov_setgeom.c(392): remark #810: conversion from "int" to "short" may lose significant bits
+                                          quadrant_num = i/2; break;
+                                                       ^
+ 
+../source/ov_setgeom.c(394): remark #810: conversion from "int" to "short" may lose significant bits
+                                          quadrant_num = i-4; break;
+                                                       ^
+ 
+../source/ov_setgeom.c(399): remark #1572: floating-point equality and inequality comparisons are unreliable
+                                      if(child_cells[i] -> face_neighbours[j][0] -> flux_area[opp_dir][quadrant_num] == 0)
+                                                                                                                        ^ 
+../source/ov_setgeom.c(407): remark #1572: floating-point equality and inequality comparisons are unreliable
+                                              child_face_area)
+                                              ^
+ 
+../source/ov_setgeom.c(418): remark #1572: floating-point equality and inequality comparisons are unreliable
+                                          && (child_cells[i] -> face_neighbours[j][0] -> flux_area[opp_dir][0] != UNKNOWN))
+                                                                                                                  ^
+ 
+../source/ov_setgeom.c(435): remark #1572: floating-point equality and inequality comparisons are unreliable
+                                          if(child_cells[i] -> face_neighbours[j][k] -> flux_area[opp_dir][0] != UNKNOWN)                                                                                                                 ^
+ 
+../source/ov_setgeom.c(458): remark #810: conversion from "int" to "short" may lose significant bits
+                                  quadrant_num = (i-1)/2; break;
+                                               ^
+ 
+../source/ov_setgeom.c(460): remark #810: conversion from "int" to "short" may lose significant bits
+                                  quadrant_num = i/2; break;
+                                               ^
+ 
+../source/ov_setgeom.c(463): remark #810: conversion from "int" to "short" may lose significant bits
+                                    quadrant_num = i-2;
+                                                 ^
+ 
+../source/ov_setgeom.c(464): remark #810: conversion from "int" to "short" may lose significant bits
+                                  else quadrant_num = i-4;
+                                                    ^
+ 
+../source/ov_setgeom.c(469): remark #810: conversion from "int" to "short" may lose significant bits
+                                  else quadrant_num = i-2;
+                                                    ^
+ 
+../source/ov_setgeom.c(474): remark #810: conversion from "int" to "short" may lose significant bits
+                                  quadrant_num = i-4; break;
+                                               ^
+ 
+../source/ov_setgeom.c(477): remark #1572: floating-point equality and inequality comparisons are unreliable
+                              if(Parent -> flux_area[j][quadrant_num] == 0) /*So parent's quadrant is fully obstructed*/
+                                                                         ^
+ 
+../source/ov_setgeom.c(484): remark #1572: floating-point equality and inequality comparisons are unreliable
+                              else if(Parent -> flux_area[j][quadrant_num] == child_face_area)
+                                                                              ^
+ 
+../source/ov_setgeom.c(517): remark #1572: floating-point equality and inequality comparisons are unreliable
+                          if(child_cells[i] -> flux_area[j][0] != UNKNOWN)
+                                                                  ^
+ 
+../source/ov_setgeom.c(520): remark #1572: floating-point equality and inequality comparisons are unreliable
+                          if((face_set == FALSE) && (child_cells[i] -> face_neighbours[j][0] -> flux_area[opp_dir][0] != UNKNOWN))
+                                                                                                                          ^
+ 
+../source/ov_setgeom.c(605): remark #981: operands are evaluated in unspecified order
+    double child_fluid_volume = CALC_CELL_FLUID_VOL(child_cells[0]);
+                                ^
+ 
+../source/ov_setgeom.c(605): remark #981: operands are evaluated in unspecified order
+    double child_fluid_volume = CALC_CELL_FLUID_VOL(child_cells[0]);
+                                ^
+ 
+../source/ov_setgeom.c(617): remark #1572: floating-point equality and inequality comparisons are unreliable
+        if(Parent -> cell_volume == 0)
+                                    ^
+ 
+../source/ov_setgeom.c(619): remark #1572: floating-point equality and inequality comparisons are unreliable
+        else if(Parent -> cell_volume == MAX_NUM_CHILDREN*child_fluid_volume)
+                                         ^
+ 
+../source/ov_setgeom.c(680): remark #810: conversion from "int" to "short" may lose significant bits
+              else Parent -> additional_refine_times = min_refinement_level - child_level;
+                                                     ^
+ 
+../source/ov_setgeom.c(723): remark #810: conversion from "int" to "short" may lose significant bits
+              k = 2*j+1; break; /*kth child cell for this quadrant*/
+                ^
+ 
+../source/ov_setgeom.c(725): remark #810: conversion from "int" to "short" may lose significant bits
+              k = 2*j; break;
+                ^
+ 
+../source/ov_setgeom.c(728): remark #810: conversion from "int" to "short" may lose significant bits
+                k = j+2;
+                  ^
+ 
+../source/ov_setgeom.c(729): remark #810: conversion from "int" to "short" may lose significant bits
+              else k = j+4;
+                     ^
+ 
+../source/ov_setgeom.c(734): remark #810: conversion from "int" to "short" may lose significant bits
+              else k = j+2; break;
+                     ^
+ 
+../source/ov_setgeom.c(738): remark #810: conversion from "int" to "short" may lose significant bits
+              k = j+4; break;
+                ^
+ 
+../source/ov_setgeom.c(879): remark #810: conversion from "int" to "short" may lose significant bits
+        else n[0] = min_refinement_level - level;
+                  ^
+ 
+../source/ov_setgeom.c(887): remark #810: conversion from "int" to "short" may lose significant bits
+        else n[1] = min_intersect_refine_level - level;
+                  ^
+ 
+../source/ov_setgeom.c(863): remark #869: parameter "Intersected_bbox" was never referenced
+  short int set_cell_additional_refine_times(Cart_cell C, List_bbox *Intersected_bbox, Body Solid)
+                                                                     ^
+ 
+../source/ov_setgeom.c(863): remark #869: parameter "Solid" was never referenced
+  short int set_cell_additional_refine_times(Cart_cell C, List_bbox *Intersected_bbox, Body Solid)
+                                                                                            ^
+ 
+../source/ov_setgeom.c(1048): remark #1572: floating-point equality and inequality comparisons are unreliable
+          else if(num_subcells_inside[j] == ((double) (SQR(area_subcell_num)))/MAX_NUM_NEIGHBOURS) /*All subcells immersed*/
+                                            ^
+ 
+../source/ov_setgeom.c(1091): remark #1572: floating-point equality and inequality comparisons are unreliable
+      if(child_cells[i] -> IC_flag == UNKNOWN) {
+                                      ^
+ 
+../source/ov_setgeom.c(1094): remark #1572: floating-point equality and inequality comparisons are unreliable
+        else if(Parent -> IC_flag == OUTSIDE)
+                                     ^
+ 
+../source/ov_setgeom.c(1096): remark #981: operands are evaluated in unspecified order
+        else if((Parent -> IC_flag >= 0) && (ROUND(Parent -> IC_flag) == (Parent -> IC_flag)))
+                                             ^
+ 
+../source/ov_setgeom.c(1096): remark #1572: floating-point equality and inequality comparisons are unreliable
+        else if((Parent -> IC_flag >= 0) && (ROUND(Parent -> IC_flag) == (Parent -> IC_flag)))
+                                                                         ^
+ 
+../source/ov_setgeom.c(1171): remark #810: conversion from "int" to "short" may lose significant bits
+        k = (i-1)/2; /*k is the corresponding quadrant of the neighbour in direction dir for cell i*/
+          ^
+ 
+../source/ov_setgeom.c(1174): remark #810: conversion from "int" to "short" may lose significant bits
+        k = i/2; break;
+          ^
+ 
+../source/ov_setgeom.c(1177): remark #810: conversion from "int" to "short" may lose significant bits
+        k = i-2;
+          ^
+ 
+../source/ov_setgeom.c(1178): remark #810: conversion from "int" to "short" may lose significant bits
+        else k = i-4;
+               ^
+ 
+../source/ov_setgeom.c(1183): remark #810: conversion from "int" to "short" may lose significant bits
+        else k = i-2;
+               ^
+ 
+../source/ov_setgeom.c(1188): remark #810: conversion from "int" to "short" may lose significant bits
+        k = i-4; break;
+          ^
+ 
+../source/ov_setgeom.c(1207): remark #1572: floating-point equality and inequality comparisons are unreliable
+        if((C -> flux_area[dir][k] == (child_face_area/MAX_NUM_NEIGHBOURS)) || (C -> flux_area[dir][k] == 0)) {
+                                      ^
+ 
+../source/ov_setgeom.c(1207): remark #1572: floating-point equality and inequality comparisons are unreliable
+        if((C -> flux_area[dir][k] == (child_face_area/MAX_NUM_NEIGHBOURS)) || (C -> flux_area[dir][k] == 0)) {
+                                                                                                          ^
+ 
+icc  -c -O3 -openmp -ip -mcpu=itanium2 -parallel -ipo20 -Wall  ../source/ov_icbc.c -o ov_icbc.o
+../source/ov_icbc.c(19): remark #1419: external declaration in primary source file
+  extern State_vector IC_ambient;
+                      ^
+ 
+../source/ov_icbc.c(20): remark #1419: external declaration in primary source file
+  extern State_vector **IC_states;
+                        ^
+ 
+../source/ov_icbc.c(23): remark #1419: external declaration in primary source file
+  extern double root_scale;
+                ^
+ 
+../source/ov_icbc.c(24): remark #1419: external declaration in primary source file
+  extern Gas_dat gas_data;
+                 ^
+ 
+../source/ov_icbc.c(25): remark #1419: external declaration in primary source file
+  extern Jwlb_coeff JWLB_coeffs;
+                    ^
+ 
+../source/ov_icbc.c(26): remark #1419: external declaration in primary source file
+  extern BC_data BC_est;
+                 ^
+ 
+../source/ov_icbc.c(27): remark #1419: external declaration in primary source file
+  extern BC_data BC_wst;
+                 ^
+ 
+../source/ov_icbc.c(28): remark #1419: external declaration in primary source file
+  extern BC_data BC_nth;
+                 ^
+ 
+../source/ov_icbc.c(29): remark #1419: external declaration in primary source file
+  extern BC_data BC_sth;
+                 ^
+ 
+../source/ov_icbc.c(30): remark #1419: external declaration in primary source file
+  extern BC_data BC_upr;
+                 ^
+ 
+../source/ov_icbc.c(31): remark #1419: external declaration in primary source file
+  extern BC_data BC_lwr;
+                 ^
+ 
+../source/ov_icbc.c(111): remark #1572: floating-point equality and inequality comparisons are unreliable
+              (strtod(BC_now->stat[BC_now->step][0], NULL) == time)))
+                                                              ^
+ 
+../source/ov_icbc.c(125): remark #1572: floating-point equality and inequality comparisons are unreliable
+              (strtod(BC_now->stat[BC_now->step][0], NULL) == time)))
+                                                              ^
+ 
+../source/ov_icbc.c(144): remark #1572: floating-point equality and inequality comparisons are unreliable
+          if(T != 0) /*Temperature isn't extrapolated i.e. it's fixed*/
+                  ^
+ 
+../source/ov_icbc.c(208): remark #1572: floating-point equality and inequality comparisons are unreliable
+              (strtod(BC_now->stat[BC_now->step][0], NULL) == time)))
+                                                              ^
+ 
+../source/ov_icbc.c(214): remark #1572: floating-point equality and inequality comparisons are unreliable
+              (strtod(BC_now->stat[BC_now->step][0], NULL) == time)))
+                                                              ^
+ 
+../source/ov_icbc.c(220): remark #1572: floating-point equality and inequality comparisons are unreliable
+              (strtod(BC_now->stat[BC_now->step][0], NULL) == time)))
+                                                              ^
+ 
+../source/ov_icbc.c(259): remark #1572: floating-point equality and inequality comparisons are unreliable
+          if((BC_now->rhof_stat[0] == EXTRAPOLATED) || (BC_now->pres_stat[0] == EXTRAPOLATED) || (BC_now->T_stat[0] == EXTRAPOLATED) ||
+                                      ^
+ 
+../source/ov_icbc.c(259): remark #1572: floating-point equality and inequality comparisons are unreliable
+          if((BC_now->rhof_stat[0] == EXTRAPOLATED) || (BC_now->pres_stat[0] == EXTRAPOLATED) || (BC_now->T_stat[0] == EXTRAPOLATED) ||
+                                                                                ^
+ 
+../source/ov_icbc.c(259): remark #1572: floating-point equality and inequality comparisons are unreliable
+          if((BC_now->rhof_stat[0] == EXTRAPOLATED) || (BC_now->pres_stat[0] == EXTRAPOLATED) || (BC_now->T_stat[0] == EXTRAPOLATED) ||
+                                                                                                                       ^
+ 
+../source/ov_icbc.c(260): remark #1572: floating-point equality and inequality comparisons are unreliable
+             (BC_now->U_stat[0] == EXTRAPOLATED) || (BC_now->V_stat[0] == EXTRAPOLATED) || (BC_now->W_stat[0] == EXTRAPOLATED))
+                                   ^
+ 
+../source/ov_icbc.c(260): remark #1572: floating-point equality and inequality comparisons are unreliable
+             (BC_now->U_stat[0] == EXTRAPOLATED) || (BC_now->V_stat[0] == EXTRAPOLATED) || (BC_now->W_stat[0] == EXTRAPOLATED))
+                                                                          ^
+ 
+../source/ov_icbc.c(260): remark #1572: floating-point equality and inequality comparisons are unreliable
+             (BC_now->U_stat[0] == EXTRAPOLATED) || (BC_now->V_stat[0] == EXTRAPOLATED) || (BC_now->W_stat[0] == EXTRAPOLATED))
+                                                                                                                 ^
+ 
+../source/ov_icbc.c(276): remark #1572: floating-point equality and inequality comparisons are unreliable
+          if(BC_now -> rhof_stat[0] == FIXED)
+                                       ^
+ 
+../source/ov_icbc.c(279): remark #1572: floating-point equality and inequality comparisons are unreliable
+          if(BC_now -> pres_stat[0] == FIXED)
+                                       ^
+ 
+../source/ov_icbc.c(290): remark #1572: floating-point equality and inequality comparisons are unreliable
+          if(BC_now -> T_stat[0] == FIXED)
+                                    ^
+ 
+../source/ov_icbc.c(299): remark #1572: floating-point equality and inequality comparisons are unreliable
+                      if(BC_now -> rhof_stat[0] == UNKNOWN)
+                                                   ^
+ 
+../source/ov_icbc.c(301): remark #1572: floating-point equality and inequality comparisons are unreliable
+                      else if(BC_now -> pres_stat[0] == UNKNOWN)
+                                                        ^
+ 
+../source/ov_icbc.c(347): remark #1572: floating-point equality and inequality comparisons are unreliable
+          if(BC_now -> U_stat[0] == FIXED)
+                                    ^
+ 
+../source/ov_icbc.c(351): remark #1572: floating-point equality and inequality comparisons are unreliable
+          if(BC_now -> V_stat[0] == FIXED)
+                                    ^
+ 
+../source/ov_icbc.c(355): remark #1572: floating-point equality and inequality comparisons are unreliable
+          if(BC_now -> W_stat[0] == FIXED)
+                                    ^
+ 
+../source/ov_icbc.c(401): remark #810: conversion from "double" to "short" may lose significant bits
+              vel = (sve->RhoU)/(sve->Rhof);
+                  ^
+ 
+../source/ov_icbc.c(406): remark #810: conversion from "double" to "short" may lose significant bits
+              vel = (sve->RhoV)/(sve->Rhof);
+                  ^
+ 
+../source/ov_icbc.c(411): remark #810: conversion from "double" to "short" may lose significant bits
+              vel = (sve->RhoW)/(sve->Rhof);
+                  ^
+ 
+../source/ov_icbc.c(601): remark #1572: floating-point equality and inequality comparisons are unreliable
+      if((ICh -> heat[step][0]) == time)
+                                   ^
+ 
+../source/ov_icbc.c(672): remark #1572: floating-point equality and inequality comparisons are unreliable
+      if(strtod(BC_dat -> stat[step][0], NULL) == time) {
+                                                  ^
+ 
+../source/ov_icbc.c(695): remark #981: operands are evaluated in unspecified order
+        ((strtod(BC_dat->stat[step+1][1], NULL) - strtod(BC_dat->stat[step][1], NULL))/
+                                                ^
+ 
+../source/ov_icbc.c(696): remark #981: operands are evaluated in unspecified order
+         (strtod(BC_dat->stat[step+1][0], NULL) - strtod(BC_dat->stat[step][0], NULL)))*(time - strtod(BC_dat->stat[step][0], NULL));
+                                                ^
+ 
+../source/ov_icbc.c(695): remark #981: operands are evaluated in unspecified order
+        ((strtod(BC_dat->stat[step+1][1], NULL) - strtod(BC_dat->stat[step][1], NULL))/
+                                                                                      ^
+ 
+../source/ov_icbc.c(696): remark #981: operands are evaluated in unspecified order
+         (strtod(BC_dat->stat[step+1][0], NULL) - strtod(BC_dat->stat[step][0], NULL)))*(time - strtod(BC_dat->stat[step][0], NULL));
+                                                                                       ^
+ 
+../source/ov_icbc.c(694): remark #981: operands are evaluated in unspecified order
+        q = strtod(BC_dat->stat[step][1], NULL) +
+                                                ^
+ 
+../source/ov_icbc.c(706): remark #981: operands are evaluated in unspecified order
+        ((strtod(BC_dat->stat[step+1][2], NULL) - strtod(BC_dat->stat[step][2], NULL))/
+                                                ^
+ 
+../source/ov_icbc.c(707): remark #981: operands are evaluated in unspecified order
+         (strtod(BC_dat->stat[step+1][0], NULL) - strtod(BC_dat->stat[step][0], NULL)))*(time - strtod(BC_dat->stat[step][0], NULL));
+                                                ^
+ 
+../source/ov_icbc.c(706): remark #981: operands are evaluated in unspecified order
+        ((strtod(BC_dat->stat[step+1][2], NULL) - strtod(BC_dat->stat[step][2], NULL))/
+                                                                                      ^
+ 
+../source/ov_icbc.c(707): remark #981: operands are evaluated in unspecified order
+         (strtod(BC_dat->stat[step+1][0], NULL) - strtod(BC_dat->stat[step][0], NULL)))*(time - strtod(BC_dat->stat[step][0], NULL));
+                                                                                       ^
+ 
+../source/ov_icbc.c(705): remark #981: operands are evaluated in unspecified order
+        q = strtod(BC_dat->stat[step][2], NULL) +
+                                                ^
+ 
+../source/ov_icbc.c(717): remark #981: operands are evaluated in unspecified order
+        ((strtod(BC_dat->stat[step+1][3], NULL) - strtod(BC_dat->stat[step][3], NULL))/
+                                                ^
+ 
+../source/ov_icbc.c(718): remark #981: operands are evaluated in unspecified order
+         (strtod(BC_dat->stat[step+1][0], NULL) - strtod(BC_dat->stat[step][0], NULL)))*(time - strtod(BC_dat->stat[step][0], NULL));
+                                                ^
+ 
+../source/ov_icbc.c(717): remark #981: operands are evaluated in unspecified order
+        ((strtod(BC_dat->stat[step+1][3], NULL) - strtod(BC_dat->stat[step][3], NULL))/
+                                                                                      ^
+ 
+../source/ov_icbc.c(718): remark #981: operands are evaluated in unspecified order
+         (strtod(BC_dat->stat[step+1][0], NULL) - strtod(BC_dat->stat[step][0], NULL)))*(time - strtod(BC_dat->stat[step][0], NULL));
+                                                                                       ^
+ 
+../source/ov_icbc.c(716): remark #981: operands are evaluated in unspecified order
+        u = strtod(BC_dat->stat[step][3], NULL) +
+                                                ^
+ 
+../source/ov_icbc.c(721): remark #981: operands are evaluated in unspecified order
+        ((strtod(BC_dat->stat[step+1][4], NULL) - strtod(BC_dat->stat[step][4], NULL))/
+                                                ^
+ 
+../source/ov_icbc.c(722): remark #981: operands are evaluated in unspecified order
+         (strtod(BC_dat->stat[step+1][0], NULL) - strtod(BC_dat->stat[step][0], NULL)))*(time - strtod(BC_dat->stat[step][0], NULL));
+                                                ^
+ 
+../source/ov_icbc.c(721): remark #981: operands are evaluated in unspecified order
+        ((strtod(BC_dat->stat[step+1][4], NULL) - strtod(BC_dat->stat[step][4], NULL))/
+                                                                                      ^
+ 
+../source/ov_icbc.c(722): remark #981: operands are evaluated in unspecified order
+         (strtod(BC_dat->stat[step+1][0], NULL) - strtod(BC_dat->stat[step][0], NULL)))*(time - strtod(BC_dat->stat[step][0], NULL));
+                                                                                       ^
+ 
+../source/ov_icbc.c(720): remark #981: operands are evaluated in unspecified order
+        v = strtod(BC_dat->stat[step][4], NULL) +
+                                                ^
+ 
+../source/ov_icbc.c(725): remark #981: operands are evaluated in unspecified order
+        ((strtod(BC_dat->stat[step+1][5], NULL) - strtod(BC_dat->stat[step][5], NULL))/
+                                                ^
+ 
+../source/ov_icbc.c(726): remark #981: operands are evaluated in unspecified order
+         (strtod(BC_dat->stat[step+1][0], NULL) - strtod(BC_dat->stat[step][0], NULL)))*(time - strtod(BC_dat->stat[step][0], NULL));
+                                                ^
+ 
+../source/ov_icbc.c(725): remark #981: operands are evaluated in unspecified order
+        ((strtod(BC_dat->stat[step+1][5], NULL) - strtod(BC_dat->stat[step][5], NULL))/
+                                                                                      ^
+ 
+../source/ov_icbc.c(726): remark #981: operands are evaluated in unspecified order
+         (strtod(BC_dat->stat[step+1][0], NULL) - strtod(BC_dat->stat[step][0], NULL)))*(time - strtod(BC_dat->stat[step][0], NULL));
+                                                                                       ^
+ 
+../source/ov_icbc.c(724): remark #981: operands are evaluated in unspecified order
+        w = strtod(BC_dat->stat[step][5], NULL) +
+                                                ^
+ 
+../source/ov_icbc.c(743): remark #1572: floating-point equality and inequality comparisons are unreliable
+    if((C -> IC_flag == OUTSIDE) || (C -> IC_flag == UNKNOWN)) {
+                        ^
+ 
+../source/ov_icbc.c(743): remark #1572: floating-point equality and inequality comparisons are unreliable
+    if((C -> IC_flag == OUTSIDE) || (C -> IC_flag == UNKNOWN)) {
+                                                     ^
+ 
+icc  -c -O3 -openmp -ip -mcpu=itanium2 -parallel -ipo20 -Wall  ../source/ov_io.c -o ov_io.o
+../source/ov_io.c(25): remark #1419: external declaration in primary source file
+  extern Cart_cell Root;
+                   ^
+ 
+../source/ov_io.c(26): remark #1419: external declaration in primary source file
+  extern short int only_get_boundary_cells_flow;
+                   ^
+ 
+../source/ov_io.c(27): remark #1419: external declaration in primary source file
+  extern int num_timesteps_dump_data;
+             ^
+ 
+../source/ov_io.c(28): remark #1419: external declaration in primary source file
+  extern short int num_times_refine_root;
+                   ^
+ 
+../source/ov_io.c(29): remark #1419: external declaration in primary source file
+  extern short int min_refinement_level;
+                   ^
+ 
+../source/ov_io.c(30): remark #1419: external declaration in primary source file
+  extern short int max_refinement_level;
+                   ^
+ 
+../source/ov_io.c(31): remark #1419: external declaration in primary source file
+  extern short int min_intersect_refine_level;
+                   ^
+ 
+../source/ov_io.c(32): remark #1419: external declaration in primary source file
+  extern short int IC_level;
+                   ^
+ 
+../source/ov_io.c(33): remark #1419: external declaration in primary source file
+  extern short int allow_multiple_refinements;
+                   ^
+ 
+../source/ov_io.c(34): remark #1419: external declaration in primary source file
+  extern short int want_to_adapt;
+                   ^
+ 
+../source/ov_io.c(35): remark #1419: external declaration in primary source file
+  extern short int adapt_type;
+                   ^
+ 
+../source/ov_io.c(36): remark #1419: external declaration in primary source file
+  extern double adapt_param;
+                ^
+ 
+../source/ov_io.c(37): remark #1419: external declaration in primary source file
+  extern double refine_param;
+                ^
+ 
+../source/ov_io.c(38): remark #1419: external declaration in primary source file
+  extern double coarsen_param;
+                ^
+ 
+../source/ov_io.c(39): remark #1419: external declaration in primary source file
+  extern double adapt_noise;
+                ^
+ 
+../source/ov_io.c(40): remark #1419: external declaration in primary source file
+  extern int num_timesteps_adapt;
+             ^
+ 
+../source/ov_io.c(41): remark #1419: external declaration in primary source file
+  extern short int use_geom_engine_always;
+                   ^
+ 
+../source/ov_io.c(42): remark #1419: external declaration in primary source file
+  extern short int level_before_can_interrogate;
+                   ^
+ 
+../source/ov_io.c(43): remark #1419: external declaration in primary source file
+  extern short int area_subcell_num;
+                   ^
+ 
+../source/ov_io.c(44): remark #1419: external declaration in primary source file
+  extern short int volume_subcell_num;
+                   ^
+ 
+../source/ov_io.c(45): remark #1419: external declaration in primary source file
+  extern double root_shift[3];
+                ^
+ 
+../source/ov_io.c(46): remark #1419: external declaration in primary source file
+  extern double root_scale;
+                ^
+ 
+../source/ov_io.c(47): remark #1419: external declaration in primary source file
+  extern Gas_dat gas_data;
+                 ^
+ 
+../source/ov_io.c(48): remark #1419: external declaration in primary source file
+  extern History_loc Histories;
+                     ^
+ 
+../source/ov_io.c(49): remark #1419: external declaration in primary source file
+  extern Jwlb_coeff JWLB_coeffs;
+                    ^
+ 
+../source/ov_io.c(50): remark #1419: external declaration in primary source file
+  extern Cfl_dat CFL_data;
+                 ^
+ 
+../source/ov_io.c(51): remark #1419: external declaration in primary source file
+  extern double global_dt;
+                ^
+ 
+../source/ov_io.c(52): remark #1419: external declaration in primary source file
+  extern int number_of_threads;
+             ^
+ 
+../source/ov_io.c(53): remark #1419: external declaration in primary source file
+  extern short int adapt_in_parallel;
+                   ^
+ 
+../source/ov_io.c(54): remark #1419: external declaration in primary source file
+  extern short int set_global_dt;
+                   ^
+ 
+../source/ov_io.c(55): remark #1419: external declaration in primary source file
+  extern int num_timesteps_run;
+             ^
+ 
+../source/ov_io.c(62): remark #1419: external declaration in primary source file
+  extern State_vector IC_ambient;
+                      ^
+ 
+../source/ov_io.c(63): remark #1419: external declaration in primary source file
+  extern State_vector **IC_states;
+                        ^
+ 
+../source/ov_io.c(64): remark #1419: external declaration in primary source file
+  extern Body *IC_regions;
+               ^
+ 
+../source/ov_io.c(65): remark #1419: external declaration in primary source file
+  extern double ***IC_bboxes;
+                   ^
+ 
+../source/ov_io.c(66): remark #1419: external declaration in primary source file
+  extern int num_ICs;
+             ^
+ 
+../source/ov_io.c(69): remark #1419: external declaration in primary source file
+  extern List_leaf Leaves;
+                   ^
+ 
+../source/ov_io.c(70): remark #1419: external declaration in primary source file
+  extern List_leaf Leaves_tail;
+                   ^
+ 
+../source/ov_io.c(71): remark #1419: external declaration in primary source file
+  extern List_leaf *Leaf_heads;
+                    ^
+ 
+../source/ov_io.c(72): remark #1419: external declaration in primary source file
+  extern List_leaf *Leaf_tails;
+                    ^
+ 
+../source/ov_io.c(73): remark #1419: external declaration in primary source file
+  extern int * num_cells_per_thread;
+               ^
+ 
+../source/ov_io.c(74): remark #1419: external declaration in primary source file
+  extern List_vtx_glob Vtxlist;
+                       ^
+ 
+../source/ov_io.c(75): remark #1419: external declaration in primary source file
+  extern List_vtx_glob Vtxlist_tail;
+                       ^
+ 
+../source/ov_io.c(76): remark #1419: external declaration in primary source file
+  extern IC_heat ICheat;
+                 ^
+ 
+../source/ov_io.c(77): remark #1419: external declaration in primary source file
+  extern BC_data BC_est;
+                 ^
+ 
+../source/ov_io.c(78): remark #1419: external declaration in primary source file
+  extern BC_data BC_wst;
+                 ^
+ 
+../source/ov_io.c(79): remark #1419: external declaration in primary source file
+  extern BC_data BC_nth;
+                 ^
+ 
+../source/ov_io.c(80): remark #1419: external declaration in primary source file
+  extern BC_data BC_sth;
+                 ^
+ 
+../source/ov_io.c(81): remark #1419: external declaration in primary source file
+  extern BC_data BC_upr;
+                 ^
+ 
+../source/ov_io.c(82): remark #1419: external declaration in primary source file
+  extern BC_data BC_lwr;
+                 ^
+ 
+../source/ov_io.c(85): remark #1419: external declaration in primary source file
+  extern int stepnow;
+             ^
+ 
+../source/ov_io.c(158): remark #1572: floating-point equality and inequality comparisons are unreliable
+    if((dt == 0) && (CFL_data.CFL_max < 0.0))
+              ^
+ 
+../source/ov_io.c(909): remark #1572: floating-point equality and inequality comparisons are unreliable
+              if(rho == 0) {
+                        ^
+ 
+../source/ov_io.c(936): remark #1572: floating-point equality and inequality comparisons are unreliable
+              if(p == 0) {
+                      ^
+ 
+../source/ov_io.c(963): remark #1572: floating-point equality and inequality comparisons are unreliable
+              if(T == 0) {
+                      ^
+ 
+../source/ov_io.c(1144): remark #1572: floating-point equality and inequality comparisons are unreliable
+            if(rho == 0)
+                      ^
+ 
+../source/ov_io.c(1146): remark #1572: floating-point equality and inequality comparisons are unreliable
+            else if(p == 0)
+                         ^
+ 
+../source/ov_io.c(1182): remark #1572: floating-point equality and inequality comparisons are unreliable
+              if(rho == 0)
+                        ^
+ 
+../source/ov_io.c(1184): remark #1572: floating-point equality and inequality comparisons are unreliable
+              else if(p == 0)
+                           ^
+ 
+../source/ov_io.c(1188): remark #1572: floating-point equality and inequality comparisons are unreliable
+              if(rho == 0) {
+                        ^
+ 
+../source/ov_io.c(1192): remark #1572: floating-point equality and inequality comparisons are unreliable
+              else if(p == 0) {
+                           ^
+ 
+../source/ov_io.c(1205): remark #981: operands are evaluated in unspecified order
+                term3 = (JWLB_coeffs.C)*(1.0 - R*(comp_JWLB_q(v))/(JWLB_coeffs.omega))*pow(v, -(JWLB_coeffs.omega)-1.0);
+                                                                                      ^
+ 
+../source/ov_io.c(1708): remark #1572: floating-point equality and inequality comparisons are unreliable
+              if((gas_data.eos_prod == JWLB) && (BC_dat -> rhof_stat[0] == UNKNOWN)) {
+                                                                           ^
+ 
+../source/ov_io.c(1788): remark #1572: floating-point equality and inequality comparisons are unreliable
+        if(ICh -> heat[0][0] != 0) {
+                                ^
+ 
+../source/ov_io.c(1745): remark #177: variable "j" was declared but never referenced
+    int i, j;
+           ^
+ 
+../source/ov_io.c(1746): remark #177: variable "str_length" was declared but never referenced
+    int str_length = 72;
+        ^
+ 
+../source/ov_io.c(1748): remark #177: variable "temp1" was declared but never referenced
+    char temp1[30], temp2[30];
+         ^
+ 
+../source/ov_io.c(1748): remark #177: variable "temp2" was declared but never referenced
+    char temp1[30], temp2[30];
+                    ^
+ 
+../source/ov_io.c(1928): remark #1572: floating-point equality and inequality comparisons are unreliable
+        if(t != 0) {
+                ^
+ 
+../source/ov_io.c(2346): remark #810: conversion from "int" to "short" may lose significant bits
+                  reconstruct_flow(Vl -> vtx_loc -> Leaf_cells[i], IRRELEVANT, IRRELEVANT, 7-i, 1, 'P', &q, NULL);
+                                                                                           ^
+ 
+../source/ov_io.c(2372): remark #810: conversion from "int" to "short" may lose significant bits
+                  reconstruct_flow(Vl -> vtx_loc -> Leaf_cells[i], IRRELEVANT, IRRELEVANT, 7-i, 1, 'R', &q, NULL);
+                                                                                           ^
+ 
+../source/ov_io.c(2150): remark #177: variable "q2" was declared but never referenced
+    double avg, q, q2, q3, prod_m_frac;
+                   ^
+ 
+../source/ov_io.c(2150): remark #177: variable "q3" was declared but never referenced
+    double avg, q, q2, q3, prod_m_frac;
+                       ^
+ 
+../source/ov_io.c(2744): remark #981: operands are evaluated in unspecified order
+          basis_quad = CALC_CELL_FLUID_AREA(C)/MAX_NUM_NEIGHBOURS;
+                       ^
+ 
+icc  -c -O3 -openmp -ip -mcpu=itanium2 -parallel -ipo20 -Wall  ../source/ov_lists.c -o ov_lists.o
+../source/ov_lists.c(9): remark #1419: external declaration in primary source file
+  extern int number_of_threads;
+             ^
+ 
+../source/ov_lists.c(10): remark #1419: external declaration in primary source file
+  extern int stepnow;
+             ^
+ 
+../source/ov_lists.c(399): remark #1572: floating-point equality and inequality comparisons are unreliable
+        if((Vtx2->loc[0] == cen[0]) && (Vtx2->loc[1] == cen[1]) && (Vtx2->loc[2] == cen[2])) {
+                            ^
+ 
+../source/ov_lists.c(399): remark #1572: floating-point equality and inequality comparisons are unreliable
+        if((Vtx2->loc[0] == cen[0]) && (Vtx2->loc[1] == cen[1]) && (Vtx2->loc[2] == cen[2])) {
+                                                        ^
+ 
+../source/ov_lists.c(399): remark #1572: floating-point equality and inequality comparisons are unreliable
+        if((Vtx2->loc[0] == cen[0]) && (Vtx2->loc[1] == cen[1]) && (Vtx2->loc[2] == cen[2])) {
+                                                                                    ^
+ 
+../source/ov_lists.c(349): remark #869: parameter "Vtxtail" was never referenced
+  void count_deletable_verticies(List_vtx_glob *Vtxhead, List_vtx_glob *Vtxtail, int thread_num, int step)
+                                                                        ^
+ 
+../source/ov_lists.c(349): remark #869: parameter "thread_num" was never referenced
+  void count_deletable_verticies(List_vtx_glob *Vtxhead, List_vtx_glob *Vtxtail, int thread_num, int step)
+                                                                                     ^
+ 
+../source/ov_lists.c(349): remark #869: parameter "step" was never referenced
+  void count_deletable_verticies(List_vtx_glob *Vtxhead, List_vtx_glob *Vtxtail, int thread_num, int step)
+                                                                                                     ^
+ 
+../source/ov_lists.c(351): remark #177: variable "i" was declared but never referenced
+    int i,count, count2;
+        ^
+ 
+../source/ov_lists.c(351): remark #593: variable "count2" was set but never used
+    int i,count, count2;
+                 ^
+ 
+../source/ov_lists.c(352): remark #177: variable "fname" was declared but never referenced
+    char fname[64];
+         ^
+ 
+../source/ov_lists.c(443): remark #1572: floating-point equality and inequality comparisons are unreliable
+        if((C2->centroid[0] == cen[0]) && (C2->centroid[1] == cen[1]) && (C2->centroid[2] == cen[2]) && (C2 -> cell_level == level)) {
+                               ^
+ 
+../source/ov_lists.c(443): remark #1572: floating-point equality and inequality comparisons are unreliable
+        if((C2->centroid[0] == cen[0]) && (C2->centroid[1] == cen[1]) && (C2->centroid[2] == cen[2]) && (C2 -> cell_level == level)) {
+                                                              ^
+ 
+../source/ov_lists.c(443): remark #1572: floating-point equality and inequality comparisons are unreliable
+        if((C2->centroid[0] == cen[0]) && (C2->centroid[1] == cen[1]) && (C2->centroid[2] == cen[2]) && (C2 -> cell_level == level)) {
+                                                                                             ^
+ 
+../source/ov_lists.c(415): remark #869: parameter "Tail" was never referenced
+  void check_duplicate_cells(List_leaf Head, List_leaf Tail, int thread_num, int step)
+                                                       ^
+ 
+../source/ov_lists.c(415): remark #869: parameter "thread_num" was never referenced
+  void check_duplicate_cells(List_leaf Head, List_leaf Tail, int thread_num, int step)
+                                                                 ^
+ 
+../source/ov_lists.c(415): remark #869: parameter "step" was never referenced
+  void check_duplicate_cells(List_leaf Head, List_leaf Tail, int thread_num, int step)
+                                                                                 ^
+ 
+../source/ov_lists.c(417): remark #177: variable "i" was declared but never referenced
+    int i,count, count2;
+        ^
+ 
+../source/ov_lists.c(417): remark #177: variable "count2" was declared but never referenced
+    int i,count, count2;
+                 ^
+ 
+../source/ov_lists.c(419): remark #177: variable "fname" was declared but never referenced
+    char fname[64];
+         ^
+ 
+../source/ov_lists.c(457): remark #869: parameter "Tail" was never referenced
+  void check_flux_connect(List_leaf Head, List_leaf Tail, int thread_num)
+                                                    ^
+ 
+../source/ov_lists.c(461): remark #177: variable "j" was declared but never referenced
+  short int i,j;
+              ^
+ 
+../source/ov_lists.c(550): remark #1572: floating-point equality and inequality comparisons are unreliable
+          if(((C->flux_area[i][0]+C->flux_area[i][1]+C->flux_area[i][2]+C->flux_area[i][3]) == 0) &&
+                                                                                               ^
+ 
+../source/ov_lists.c(598): remark #1572: floating-point equality and inequality comparisons are unreliable
+          if((flag!=REALLY_COARSEN) && ((C->flux_area[i][0]+C->flux_area[i][1]+C->flux_area[i][2]+C->flux_area[i][3]) == 0) &&
+                                                                                                                          ^
+ 
+../source/ov_lists.c(649): remark #1572: floating-point equality and inequality comparisons are unreliable
+            if((flag!=REALLY_COARSEN) && (C->flux_area[i][j] == 0) && (C->Flow_data.Face_fluxes[i][j] != NULL) &&
+                                                                ^
+ 
+../source/ov_lists.c(661): remark #1572: floating-point equality and inequality comparisons are unreliable
+        if((C->verticies[i]->loc[0] != loc[0]) || (C->verticies[i]->loc[1] != loc[1]) || (C->verticies[i]->loc[2] != loc[2])) {
+                                       ^
+ 
+../source/ov_lists.c(661): remark #1572: floating-point equality and inequality comparisons are unreliable
+        if((C->verticies[i]->loc[0] != loc[0]) || (C->verticies[i]->loc[1] != loc[1]) || (C->verticies[i]->loc[2] != loc[2])) {
+                                                                              ^
+ 
+../source/ov_lists.c(661): remark #1572: floating-point equality and inequality comparisons are unreliable
+        if((C->verticies[i]->loc[0] != loc[0]) || (C->verticies[i]->loc[1] != loc[1]) || (C->verticies[i]->loc[2] != loc[2])) {
+                                                                                                                     ^
+ 
+../source/ov_lists.c(483): remark #177: variable "k" was declared but never referenced
+    short int i,j,k,opp;
+                  ^
+ 
+icc  -c -O3 -openmp -ip -mcpu=itanium2 -parallel -ipo20 -Wall  ../source/ov_flow.c -o ov_flow.o
+../source/ov_flow.c(26): remark #1419: external declaration in primary source file
+  extern History_loc Histories;
+                     ^
+ 
+../source/ov_flow.c(27): remark #1419: external declaration in primary source file
+  extern Gas_dat gas_data;
+                 ^
+ 
+../source/ov_flow.c(28): remark #1419: external declaration in primary source file
+  extern Jwlb_coeff JWLB_coeffs;
+                    ^
+ 
+../source/ov_flow.c(29): remark #1419: external declaration in primary source file
+  extern State_vector IC_ambient;
+                      ^
+ 
+../source/ov_flow.c(30): remark #1419: external declaration in primary source file
+  extern Cfl_dat CFL_data;
+                 ^
+ 
+../source/ov_flow.c(31): remark #1419: external declaration in primary source file
+  extern double global_dt;
+                ^
+ 
+../source/ov_flow.c(32): remark #1419: external declaration in primary source file
+  extern short int set_global_dt;
+                   ^
+ 
+../source/ov_flow.c(33): remark #1419: external declaration in primary source file
+  extern int number_of_threads;
+             ^
+ 
+../source/ov_flow.c(34): remark #1419: external declaration in primary source file
+  extern int num_timesteps_run;
+             ^
+ 
+../source/ov_flow.c(35): remark #1419: external declaration in primary source file
+  extern short int min_refinement_level;
+                   ^
+ 
+../source/ov_flow.c(36): remark #1419: external declaration in primary source file
+  extern short int max_refinement_level;
+                   ^
+ 
+../source/ov_flow.c(37): remark #1419: external declaration in primary source file
+  extern double root_scale;
+                ^
+ 
+../source/ov_flow.c(38): remark #1419: external declaration in primary source file
+  extern List_leaf Leaves;
+                   ^
+ 
+../source/ov_flow.c(39): remark #1419: external declaration in primary source file
+  extern List_leaf Leaves_tail;
+                   ^
+ 
+../source/ov_flow.c(40): remark #1419: external declaration in primary source file
+  extern List_leaf * Leaf_heads;
+                     ^
+ 
+../source/ov_flow.c(41): remark #1419: external declaration in primary source file
+  extern List_leaf * Leaf_tails;
+                     ^
+ 
+../source/ov_flow.c(42): remark #1419: external declaration in primary source file
+  extern double * min_dt;
+                  ^
+ 
+../source/ov_flow.c(43): remark #1419: external declaration in primary source file
+  extern int * num_cells_per_thread;
+               ^
+ 
+../source/ov_flow.c(44): remark #1419: external declaration in primary source file
+  extern List_vtx_glob Vtxlist;
+                       ^
+ 
+../source/ov_flow.c(45): remark #1419: external declaration in primary source file
+  extern short int only_get_boundary_cells_flow;
+                   ^
+ 
+../source/ov_flow.c(46): remark #1419: external declaration in primary source file
+  extern short int want_to_adapt;
+                   ^
+ 
+../source/ov_flow.c(47): remark #1419: external declaration in primary source file
+  extern short int adapt_type;
+                   ^
+ 
+../source/ov_flow.c(48): remark #1419: external declaration in primary source file
+  extern int num_timesteps_adapt;
+             ^
+ 
+../source/ov_flow.c(49): remark #1419: external declaration in primary source file
+  extern int num_timesteps_dump_data;
+             ^
+ 
+../source/ov_flow.c(50): remark #1419: external declaration in primary source file
+  extern double adapt_param;
+                ^
+ 
+../source/ov_flow.c(51): remark #1419: external declaration in primary source file
+  extern double refine_param;
+                ^
+ 
+../source/ov_flow.c(52): remark #1419: external declaration in primary source file
+  extern double coarsen_param;
+                ^
+ 
+../source/ov_flow.c(53): remark #1419: external declaration in primary source file
+  extern double adapt_noise;
+                ^
+ 
+../source/ov_flow.c(54): remark #1419: external declaration in primary source file
+  extern IC_heat ICheat;
+                 ^
+ 
+../source/ov_flow.c(55): remark #1419: external declaration in primary source file
+  extern BC_data BC_est;
+                 ^
+ 
+../source/ov_flow.c(56): remark #1419: external declaration in primary source file
+  extern BC_data BC_wst;
+                 ^
+ 
+../source/ov_flow.c(57): remark #1419: external declaration in primary source file
+  extern BC_data BC_nth;
+                 ^
+ 
+../source/ov_flow.c(58): remark #1419: external declaration in primary source file
+  extern BC_data BC_sth;
+                 ^
+ 
+../source/ov_flow.c(59): remark #1419: external declaration in primary source file
+  extern BC_data BC_upr;
+                 ^
+ 
+../source/ov_flow.c(60): remark #1419: external declaration in primary source file
+  extern BC_data BC_lwr;
+                 ^
+ 
+../source/ov_flow.c(62): remark #1419: external declaration in primary source file
+  extern int stepnow;
+             ^
+ 
+../source/ov_flow.c(65): remark #1419: external declaration in primary source file
+  extern int atime;
+             ^
+ 
+../source/ov_flow.c(66): remark #1419: external declaration in primary source file
+  extern Flux_vector sflx;
+                     ^
+ 
+../source/ov_flow.c(67): remark #1418: external definition with no prior declaration
+  List_leaf this_cell;
+            ^
+ 
+../source/ov_flow.c(68): remark #1418: external definition with no prior declaration
+  int RK;
+      ^
+ 
+../source/ov_flow.c(69): remark #1418: external definition with no prior declaration
+  short int checking;
+            ^
+ 
+../source/ov_flow.c(89): remark #177: variable "i" was declared but never referenced
+    short int i, j;
+              ^
+ 
+../source/ov_flow.c(89): remark #177: variable "j" was declared but never referenced
+    short int i, j;
+                 ^
+ 
+../source/ov_flow.c(90): remark #177: variable "L" was declared but never referenced
+    List_leaf L;
+              ^
+ 
+../source/ov_flow.c(91): remark #177: variable "C" was declared but never referenced
+    Cart_cell C;
+              ^
+ 
+../source/ov_flow.c(92): remark #177: variable "Lv" was declared but never referenced
+    List_vtx_glob Lv;
+                  ^
+ 
+../source/ov_flow.c(93): remark #593: variable "tmp" was set but never used
+    int tmp;
+        ^
+ 
+../source/ov_flow.c(94): remark #177: variable "nvtxs" was declared but never referenced
+    int nvtxs = 0;
+        ^
+ 
+../source/ov_flow.c(297): remark #981: operands are evaluated in unspecified order
+        int cells_per_thread = ROUND(((double) num_cells)/((double) number_of_threads));
+                               ^
+ 
+../source/ov_flow.c(374): remark #279: controlling expression is constant
+        while(1)
+              ^
+ 
+../source/ov_flow.c(397): remark #279: controlling expression is constant
+        while(1)
+              ^
+ 
+../source/ov_flow.c(429): remark #177: variable "L" was declared but never referenced
+    List_leaf L;
+              ^
+ 
+../source/ov_flow.c(430): remark #177: variable "C" was declared but never referenced
+    Cart_cell C;
+              ^
+ 
+../source/ov_flow.c(830): remark #810: conversion from "int" to "short" may lose significant bits
+                  i = j*2; /*'Positive' directions along the 3 axes*/
+                    ^
+ 
+../source/ov_flow.c(831): remark #810: conversion from "int" to "short" may lose significant bits
+                  opp_dir = i+1; /*'Negative' directions along the 3 axes*/
+                          ^
+ 
+../source/ov_flow.c(984): remark #810: conversion from "int" to "short" may lose significant bits
+                              i = j*2;
+                                ^
+ 
+../source/ov_flow.c(985): remark #810: conversion from "int" to "short" may lose significant bits
+                              opp_dir = i+1;
+                                      ^
+ 
+../source/ov_flow.c(752): remark #177: variable "temp_neighb" was declared but never referenced
+    Cart_cell temp_neighb;
+              ^
+ 
+../source/ov_flow.c(753): remark #177: variable "num_smalls" was declared but never referenced
+    int num_smalls;
+        ^
+ 
+../source/ov_flow.c(754): remark #177: variable "found" was declared but never referenced
+    short int found = 0;
+              ^
+ 
+../source/ov_flow.c(755): remark #177: variable "tmp1" was declared but never referenced
+    double tmp1, tmp2;
+           ^
+ 
+../source/ov_flow.c(755): remark #177: variable "tmp2" was declared but never referenced
+    double tmp1, tmp2;
+                 ^
+ 
+../source/ov_flow.c(1733): remark #810: conversion from "int" to "short" may lose significant bits
+                        Rstate = reconstruct_flow(C -> face_neighbours[dir[i]][0], opp_dir, (C->child_num)-2,
+                                                                                            ^
+ 
+../source/ov_flow.c(1735): remark #810: conversion from "int" to "short" may lose significant bits
+                      else Rstate = reconstruct_flow(C -> face_neighbours[dir[i]][0], opp_dir, (C->child_num)-4,
+                                                                                               ^
+ 
+../source/ov_flow.c(1739): remark #810: conversion from "int" to "short" may lose significant bits
+                      Rstate = reconstruct_flow(C -> face_neighbours[dir[i]][0], opp_dir, ((C->child_num)-1)/2,
+                                                                                          ^
+ 
+../source/ov_flow.c(1743): remark #810: conversion from "int" to "short" may lose significant bits
+                      Rstate = reconstruct_flow(C -> face_neighbours[dir[i]][0], opp_dir, (C->child_num)-4,
+                                                                                          ^
+ 
+../source/ov_flow.c(2253): remark #1572: floating-point equality and inequality comparisons are unreliable
+        if((det == 0) && (C -> Merge_data != NULL)) { /*Couldn't use any acceptable cells to get the spatial gradient - try small cells?*/
+                   ^
+ 
+../source/ov_flow.c(2261): remark #1572: floating-point equality and inequality comparisons are unreliable
+            if(det != 0) /*We could use this small cell to compute the gradients*/
+                      ^
+ 
+../source/ov_flow.c(2269): remark #1572: floating-point equality and inequality comparisons are unreliable
+        if(det == 0) { /*No choice - no reconstruction will be employed for this cell/merged cluster*/
+                  ^
+ 
+../source/ov_flow.c(2391): remark #1572: floating-point equality and inequality comparisons are unreliable
+    if(det == 0)
+              ^
+ 
+../source/ov_flow.c(2554): remark #810: conversion from "int" to "short" may lose significant bits
+        j = 2*i; /*'Positive' directions i.e. east, north, upper (depends on macro definitions)*/
+          ^
+ 
+../source/ov_flow.c(2555): remark #810: conversion from "int" to "short" may lose significant bits
+        k = 2*i + 1; /*Corresponding 'negative' directions*/
+          ^
+ 
+../source/ov_flow.c(2425): remark #177: variable "opp_dir" was declared but never referenced
+    short int i, j, k, num_neighbs, opp_dir;
+                                    ^
+ 
+../source/ov_flow.c(3485): remark #981: operands are evaluated in unspecified order
+        q += (AL/RL)*exp(-RL*v) + BL*mu*exp(-RL)*
+                                ^
+ 
+icc  -c -O3 -openmp -ip -mcpu=itanium2 -parallel -ipo20 -Wall  ../source/ov_merge.c -o ov_merge.o
+../source/ov_merge.c(12): remark #1419: external declaration in primary source file
+  extern List_leaf Leaves;
+                   ^
+ 
+../source/ov_merge.c(13): remark #1419: external declaration in primary source file
+  extern List_leaf Leaves_tail;
+                   ^
+ 
+../source/ov_merge.c(162): remark #810: conversion from "int" to "short" may lose significant bits
+                          j = ((C -> child_num)-1)/2; break;
+                            ^
+ 
+../source/ov_merge.c(165): remark #810: conversion from "int" to "short" may lose significant bits
+                          j = (C -> child_num)/2; break;
+                            ^
+ 
+../source/ov_merge.c(168): remark #810: conversion from "int" to "short" may lose significant bits
+                            j = (C -> child_num)-2;
+                              ^
+ 
+../source/ov_merge.c(169): remark #810: conversion from "int" to "short" may lose significant bits
+                          else j = (C -> child_num)-4; /*Cells 6 and 7*/
+                                 ^
+ 
+../source/ov_merge.c(174): remark #810: conversion from "int" to "short" may lose significant bits
+                          else j = (C -> child_num)-2;
+                                 ^
+ 
+../source/ov_merge.c(179): remark #810: conversion from "int" to "short" may lose significant bits
+                          j = (C -> child_num)-4; break;
+                            ^
+ 
+../source/ov_merge.c(260): remark #810: conversion from "int" to "short" may lose significant bits
+                      j = ((C -> child_num)-1)/2; break;
+                        ^
+ 
+../source/ov_merge.c(262): remark #810: conversion from "int" to "short" may lose significant bits
+                      j = (C -> child_num)/2; break;
+                        ^
+ 
+../source/ov_merge.c(265): remark #810: conversion from "int" to "short" may lose significant bits
+                        j = (C -> child_num)-2;
+                          ^
+ 
+../source/ov_merge.c(266): remark #810: conversion from "int" to "short" may lose significant bits
+                      else j = (C -> child_num)-4;
+                             ^
+ 
+../source/ov_merge.c(271): remark #810: conversion from "int" to "short" may lose significant bits
+                      else j = (C -> child_num)-2;
+                             ^
+ 
+../source/ov_merge.c(276): remark #810: conversion from "int" to "short" may lose significant bits
+                      j = (C -> child_num)-4; break;
+                        ^
+ 
+../source/ov_merge.c(382): remark #810: conversion from "int" to "short" may lose significant bits
+                          j = ((C -> child_num)-1)/2; break;
+                            ^
+ 
+../source/ov_merge.c(384): remark #810: conversion from "int" to "short" may lose significant bits
+                          j = (C -> child_num)/2; break;
+                            ^
+ 
+../source/ov_merge.c(387): remark #810: conversion from "int" to "short" may lose significant bits
+                            j = (C -> child_num)-2;
+                              ^
+ 
+../source/ov_merge.c(388): remark #810: conversion from "int" to "short" may lose significant bits
+                          else j = (C -> child_num)-4;
+                                 ^
+ 
+../source/ov_merge.c(393): remark #810: conversion from "int" to "short" may lose significant bits
+                          else j = (C -> child_num)-2;
+                                 ^
+ 
+../source/ov_merge.c(398): remark #810: conversion from "int" to "short" may lose significant bits
+                          j = (C -> child_num)-4; break;
+                            ^
+ 
+../source/ov_merge.c(453): remark #810: conversion from "int" to "short" may lose significant bits
+                          j = ((C -> child_num)-1)/2; break;
+                            ^
+ 
+../source/ov_merge.c(455): remark #810: conversion from "int" to "short" may lose significant bits
+                          j = (C -> child_num)/2; break;
+                            ^
+ 
+../source/ov_merge.c(458): remark #810: conversion from "int" to "short" may lose significant bits
+                            j = (C -> child_num)-2;
+                              ^
+ 
+../source/ov_merge.c(459): remark #810: conversion from "int" to "short" may lose significant bits
+                          else j = (C -> child_num)-4;
+                                 ^
+ 
+../source/ov_merge.c(464): remark #810: conversion from "int" to "short" may lose significant bits
+                          else j = (C -> child_num)-2;
+                                 ^
+ 
+../source/ov_merge.c(469): remark #810: conversion from "int" to "short" may lose significant bits
+                          j = (C -> child_num)-4; break;
+                            ^
+ 
+icc  -c -O3 -openmp -ip -mcpu=itanium2 -parallel -ipo20 -Wall  ../source/time_keeper.c -o time_keeper.o
+icc  -c -O3 -openmp -ip -mcpu=itanium2 -parallel -ipo20 -Wall  ../source/ov_kernel.c -o ov_kernel.o
+../source/ov_kernel.c(7): remark #1418: external definition with no prior declaration
+  int stepnow;
+      ^
+ 
+../source/ov_kernel.c(10): remark #1418: external definition with no prior declaration
+  Cart_cell Root = NULL;
+            ^
+ 
+../source/ov_kernel.c(13): remark #1418: external definition with no prior declaration
+  Point_tnode ADT2Dpoint = NULL; /**< ADT of points in 2D (to determine partial areas)*/
+              ^
+ 
+../source/ov_kernel.c(14): remark #1418: external definition with no prior declaration
+  Point_tnode ADT3Dpoint = NULL; /**< ADT of points in 3D (to determine partial volumes)*/
+              ^
+ 
+../source/ov_kernel.c(17): remark #1418: external definition with no prior declaration
+  List_leaf Leaves = NULL;
+            ^
+ 
+../source/ov_kernel.c(18): remark #1418: external definition with no prior declaration
+  List_leaf Leaves_tail = NULL;
+            ^
+ 
+../source/ov_kernel.c(19): remark #1418: external definition with no prior declaration
+  List_vtx_glob Vtxlist = NULL;
+                ^
+ 
+../source/ov_kernel.c(20): remark #1418: external definition with no prior declaration
+  List_vtx_glob Vtxlist_tail = NULL;
+                ^
+ 
+../source/ov_kernel.c(21): remark #1418: external definition with no prior declaration
+  List_leaf *Leaf_heads; /**< Will contain an array of pointers to heads of leaf cell sublists*/
+             ^
+ 
+../source/ov_kernel.c(22): remark #1418: external definition with no prior declaration
+  List_leaf *Leaf_tails; /**< Pointers to list tails*/
+             ^
+ 
+../source/ov_kernel.c(23): remark #1418: external definition with no prior declaration
+  List_vtx_glob *Vtx_heads;
+                 ^
+ 
+../source/ov_kernel.c(24): remark #1418: external definition with no prior declaration
+  List_vtx_glob *Vtx_tails;
+                 ^
+ 
+../source/ov_kernel.c(25): remark #1418: external definition with no prior declaration
+  double * min_dt; /**< Array of minimum timesteps*/
+           ^
+ 
+../source/ov_kernel.c(26): remark #1418: external definition with no prior declaration
+  int *num_cells_per_thread; /**< No. of cells for each thread*/
+       ^
+ 
+../source/ov_kernel.c(29): remark #1418: external definition with no prior declaration
+  short int num_times_refine_root; /**< No. times root is to be refined during initial grid generation*/
+            ^
+ 
+../source/ov_kernel.c(30): remark #1418: external definition with no prior declaration
+  short int min_refinement_level; /**< Minimum level of refinement of root cell*/
+            ^
+ 
+../source/ov_kernel.c(31): remark #1418: external definition with no prior declaration
+  short int max_refinement_level; /**< Maximum level of refinement of root cell*/
+            ^
+ 
+../source/ov_kernel.c(32): remark #1418: external definition with no prior declaration
+  short int min_intersect_refine_level; /**< Minimum level of refinement an intersected cell*/
+            ^
+ 
+../source/ov_kernel.c(33): remark #1418: external definition with no prior declaration
+  short int IC_level; /**< Minimum level of refinement of cell that intersects IC volume*/
+            ^
+ 
+../source/ov_kernel.c(35): remark #1418: external definition with no prior declaration
+  short int want_to_adapt = TRUE; /**< Turn adaptation on/off*/
+            ^
+ 
+../source/ov_kernel.c(36): remark #1418: external definition with no prior declaration
+  short int adapt_type = 1; /**< '1' uses velocity differences, '2' uses density derivatives*/
+            ^
+ 
+../source/ov_kernel.c(37): remark #1418: external definition with no prior declaration
+  double adapt_param = 0.05; /**< Adaptation threshold for compression tolerance*/
+         ^
+ 
+../source/ov_kernel.c(38): remark #1418: external definition with no prior declaration
+  double adapt_noise = 0.05; /**< Noise filter value for indicator type 2*/
+         ^
+ 
+../source/ov_kernel.c(39): remark #1418: external definition with no prior declaration
+  double refine_param = 0.3; /**< Threshold for refinement (Petrie's criterion)*/
+         ^
+ 
+../source/ov_kernel.c(40): remark #1418: external definition with no prior declaration
+  double coarsen_param = 0.1; /**< Threshold for coarsening (Petrie's criterion)*/
+         ^
+ 
+../source/ov_kernel.c(42): remark #1418: external definition with no prior declaration
+  int num_timesteps_adapt = 10; /**< Adapt every set no. of time steps*/
+      ^
+ 
+../source/ov_kernel.c(45): remark #1418: external definition with no prior declaration
+  double root_shift[3] = {0, 0, 0}; /**< Translation factors (shift of root's centroid from origin of global co-ord system)*/
+         ^
+ 
+../source/ov_kernel.c(46): remark #1418: external definition with no prior declaration
+  double root_scale = 1.0; /**< Scale factor of root cell's edge lengths compared to unity*/
+         ^
+ 
+../source/ov_kernel.c(49): remark #1418: external definition with no prior declaration
+  Gas_dat gas_data;
+          ^
+ 
+../source/ov_kernel.c(52): remark #1418: external definition with no prior declaration
+  History_loc Histories;
+              ^
+ 
+../source/ov_kernel.c(55): remark #1418: external definition with no prior declaration
+  Jwlb_coeff JWLB_coeffs;
+             ^
+ 
+../source/ov_kernel.c(58): remark #1418: external definition with no prior declaration
+  Cfl_dat CFL_data;
+          ^
+ 
+../source/ov_kernel.c(61): remark #1418: external definition with no prior declaration
+  short int set_global_dt = FALSE; /*Fixes global timestep*/
+            ^
+ 
+../source/ov_kernel.c(62): remark #1418: external definition with no prior declaration
+  double global_dt; /*Global minimum timestep*/
+         ^
+ 
+../source/ov_kernel.c(63): remark #1418: external definition with no prior declaration
+  int num_timesteps_run = 100; /*Run simulation for how many timesteps?*/
+      ^
+ 
+../source/ov_kernel.c(66): remark #1418: external definition with no prior declaration
+  int number_of_threads = 1;
+      ^
+ 
+../source/ov_kernel.c(67): remark #1418: external definition with no prior declaration
+  short int adapt_in_parallel = FALSE;
+            ^
+ 
+../source/ov_kernel.c(70): remark #1418: external definition with no prior declaration
+  short int use_geom_engine_always  = TRUE; /**< Interrogate geometry engine at each stage of cell refinement?  TRUE/FALSE*/
+            ^
+ 
+../source/ov_kernel.c(72): remark #1418: external definition with no prior declaration
+  short int level_before_can_interrogate = 0; /**< Interrogate geometry engine (use VCE) after root refined
+            ^
+ 
+../source/ov_kernel.c(76): remark #1418: external definition with no prior declaration
+  short int refining_root_now = UNKNOWN; /**< Let's geometry engine know if root is currently being refined (initially)*/            ^
+ 
+../source/ov_kernel.c(78): remark #1418: external definition with no prior declaration
+  short int allow_multiple_refinements = FALSE; /**< Allow geometry engine to tell refine() that a cell should be refined more than
+            ^
+ 
+../source/ov_kernel.c(81): remark #1418: external definition with no prior declaration
+  short int area_subcell_num = 20; /**< No. subcells along a face edge to determine partial areas (must be even)*/
+            ^
+ 
+../source/ov_kernel.c(83): remark #1418: external definition with no prior declaration
+  short int volume_subcell_num = 10; /**< No. subcells along a cell edge to determine partial volumes (should be even)*/
+            ^
+ 
+../source/ov_kernel.c(86): remark #1418: external definition with no prior declaration
+  State_vector IC_ambient = {1.29, 0.0, 0.0, 0.0, 230227.272727, 101300.0, 0};
+               ^
+ 
+../source/ov_kernel.c(87): remark #1418: external definition with no prior declaration
+  State_vector **IC_states = NULL; /**< An array describing all IC states*/
+                 ^
+ 
+../source/ov_kernel.c(88): remark #1418: external definition with no prior declaration
+  Body *IC_regions = NULL; /**< Array of IC regions*/
+        ^
+ 
+../source/ov_kernel.c(89): remark #1418: external definition with no prior declaration
+  double ***IC_bboxes; /**< Array of bounding boxes in 3D*/
+            ^
+ 
+../source/ov_kernel.c(90): remark #1418: external definition with no prior declaration
+  int num_ICs = 0; /**< No. of specific IC conditions (except for ambient)*/
+      ^
+ 
+../source/ov_kernel.c(93): remark #1418: external definition with no prior declaration
+  IC_heat ICheat;
+          ^
+ 
+../source/ov_kernel.c(96): remark #1418: external definition with no prior declaration
+  BC_data BC_est;
+          ^
+ 
+../source/ov_kernel.c(97): remark #1418: external definition with no prior declaration
+  BC_data BC_wst;
+          ^
+ 
+../source/ov_kernel.c(98): remark #1418: external definition with no prior declaration
+  BC_data BC_nth;
+          ^
+ 
+../source/ov_kernel.c(99): remark #1418: external definition with no prior declaration
+  BC_data BC_sth;
+          ^
+ 
+../source/ov_kernel.c(100): remark #1418: external definition with no prior declaration
+  BC_data BC_upr;
+          ^
+ 
+../source/ov_kernel.c(101): remark #1418: external definition with no prior declaration
+  BC_data BC_lwr;
+          ^
+ 
+../source/ov_kernel.c(104): remark #1418: external definition with no prior declaration
+  short int only_get_boundary_cells_flow = FALSE; /**< When writing flow soln, only display boundary cells or not*/
+            ^
+ 
+../source/ov_kernel.c(105): remark #1418: external definition with no prior declaration
+  int num_timesteps_dump_data = 100; /**< How many timesteps before writing flow solns, meshes*/
+      ^
+ 
+icc  -c -O3 -openmp -ip -mcpu=itanium2 -parallel -ipo20 -Wall  ../../Geomio/source/gio_kernel.c -o gio_kernel.o
+../../Geomio/source/gio_kernel.c(28): remark #1418: external definition with no prior declaration
+  Body_tnode ADTbody = NULL; /**< ADT of bodies (initialized to NULL - if NULL, no bodies)*/
+             ^
+ 
+../../Geomio/source/gio_kernel.c(29): remark #1418: external definition with no prior declaration
+  double root_3D_bbox[2][3] = {{-1e20,-1e20,-1e20}, {1e20,1e20,1e20}}; /*Bounding box of root domain (of body ADT)*/
+         ^
+ 
+../../Geomio/source/gio_kernel.c(30): remark #1418: external definition with no prior declaration
+  int body_count = 0; /*No. bodies read so far*/
+      ^
+ 
+../../Geomio/source/gio_kernel.c(104): remark #1572: floating-point equality and inequality comparisons are unreliable
+    if((Edge->start[0] != Edge->end[0]) &&
+                          ^
+ 
+../../Geomio/source/gio_kernel.c(108): remark #1572: floating-point equality and inequality comparisons are unreliable
+        if((Edge -> start[0] == point[0]) || (Edge -> end[0] == point[0]))
+                                ^
+ 
+../../Geomio/source/gio_kernel.c(108): remark #1572: floating-point equality and inequality comparisons are unreliable
+        if((Edge -> start[0] == point[0]) || (Edge -> end[0] == point[0]))
+                                                                ^
+ 
+../../Geomio/source/gio_kernel.c(114): remark #1572: floating-point equality and inequality comparisons are unreliable
+        if(nDist == 0)
+                    ^
+ 
+../../Geomio/source/gio_kernel.c(141): remark #1572: floating-point equality and inequality comparisons are unreliable
+    sign = SGN(p[0]*(Poly->norm[0]) + p[1]*(Poly->norm[1]) + p[2]*(Poly->norm[2]));
+           ^
+ 
+../../Geomio/source/gio_kernel.c(204): remark #1572: floating-point equality and inequality comparisons are unreliable
+    if(SGN(Poly -> norm[2]) == 0)
+       ^
+ 
+../../Geomio/source/gio_kernel.c(204): remark #1572: floating-point equality and inequality comparisons are unreliable
+    if(SGN(Poly -> norm[2]) == 0)
+                               ^
+ 
+../../Geomio/source/gio_kernel.c(207): remark #1572: floating-point equality and inequality comparisons are unreliable
+    if(SGN(Poly -> norm[2]) < 0) /*Polygon is oriented 'downward', so edges on xy plane are traversed clockwise*/
+       ^
+ 
+../../Geomio/source/gio_kernel.c(208): remark #1572: floating-point equality and inequality comparisons are unreliable
+      angle = ABS(PI + SGN(norm)*acos((u[0]*v[0]+u[1]*v[1])/((LENGTH2(u))*(LENGTH2(v))))); /*Use dot product as sine is ambiguous*/
+              ^
+ 
+../../Geomio/source/gio_kernel.c(208): remark #981: operands are evaluated in unspecified order
+      angle = ABS(PI + SGN(norm)*acos((u[0]*v[0]+u[1]*v[1])/((LENGTH2(u))*(LENGTH2(v))))); /*Use dot product as sine is ambiguous*/
+              ^
+ 
+../../Geomio/source/gio_kernel.c(208): remark #1572: floating-point equality and inequality comparisons are unreliable
+      angle = ABS(PI + SGN(norm)*acos((u[0]*v[0]+u[1]*v[1])/((LENGTH2(u))*(LENGTH2(v))))); /*Use dot product as sine is ambiguous*/
+              ^
+ 
+../../Geomio/source/gio_kernel.c(208): remark #981: operands are evaluated in unspecified order
+      angle = ABS(PI + SGN(norm)*acos((u[0]*v[0]+u[1]*v[1])/((LENGTH2(u))*(LENGTH2(v))))); /*Use dot product as sine is ambiguous*/
+              ^
+ 
+../../Geomio/source/gio_kernel.c(208): remark #1572: floating-point equality and inequality comparisons are unreliable
+      angle = ABS(PI + SGN(norm)*acos((u[0]*v[0]+u[1]*v[1])/((LENGTH2(u))*(LENGTH2(v))))); /*Use dot product as sine is ambiguous*/
+              ^
+ 
+../../Geomio/source/gio_kernel.c(208): remark #981: operands are evaluated in unspecified order
+      angle = ABS(PI + SGN(norm)*acos((u[0]*v[0]+u[1]*v[1])/((LENGTH2(u))*(LENGTH2(v))))); /*Use dot product as sine is ambiguous*/
+              ^
+ 
+../../Geomio/source/gio_kernel.c(209): remark #1572: floating-point equality and inequality comparisons are unreliable
+    else angle = ABS(-PI + SGN(norm)*acos((u[0]*v[0]+u[1]*v[1])/((LENGTH2(u))*(LENGTH2(v)))));
+                 ^
+ 
+../../Geomio/source/gio_kernel.c(209): remark #981: operands are evaluated in unspecified order
+    else angle = ABS(-PI + SGN(norm)*acos((u[0]*v[0]+u[1]*v[1])/((LENGTH2(u))*(LENGTH2(v)))));
+                 ^
+ 
+../../Geomio/source/gio_kernel.c(209): remark #1572: floating-point equality and inequality comparisons are unreliable
+    else angle = ABS(-PI + SGN(norm)*acos((u[0]*v[0]+u[1]*v[1])/((LENGTH2(u))*(LENGTH2(v)))));
+                 ^
+ 
+../../Geomio/source/gio_kernel.c(209): remark #981: operands are evaluated in unspecified order
+    else angle = ABS(-PI + SGN(norm)*acos((u[0]*v[0]+u[1]*v[1])/((LENGTH2(u))*(LENGTH2(v)))));
+                 ^
+ 
+../../Geomio/source/gio_kernel.c(209): remark #1572: floating-point equality and inequality comparisons are unreliable
+    else angle = ABS(-PI + SGN(norm)*acos((u[0]*v[0]+u[1]*v[1])/((LENGTH2(u))*(LENGTH2(v)))));
+                 ^
+ 
+../../Geomio/source/gio_kernel.c(209): remark #981: operands are evaluated in unspecified order
+    else angle = ABS(-PI + SGN(norm)*acos((u[0]*v[0]+u[1]*v[1])/((LENGTH2(u))*(LENGTH2(v)))));
+                 ^
+ 
+../../Geomio/source/gio_kernel.c(233): remark #1572: floating-point equality and inequality comparisons are unreliable
+    if(SQR(u[0]*v[0] + u[1]*v[1] + u[2]*v[2]) == (SQR(u[0])+SQR(u[1])+SQR(u[2]))*(SQR(v[0])+SQR(v[1])+SQR(v[2])))
+                                                 ^
+ 
+icc  -c -O3 -openmp -ip -mcpu=itanium2 -parallel -ipo20 -Wall  ../../Geomio/source/gio_adts.c -o gio_adts.o
+../../Geomio/source/gio_adts.c(13): remark #1419: external declaration in primary source file
+  extern Body_tnode ADTbody;
+                    ^
+ 
+../../Geomio/source/gio_adts.c(14): remark #1419: external declaration in primary source file
+  extern double root_3D_bbox[2][3];
+                ^
+ 
+../../Geomio/source/gio_adts.c(38): remark #593: variable "root_lb" was set but never used
+    double root_lb[6]; double root_ub[6];
+           ^
+ 
+../../Geomio/source/gio_adts.c(38): remark #593: variable "root_ub" was set but never used
+    double root_lb[6]; double root_ub[6];
+                              ^
+ 
+../../Geomio/source/gio_adts.c(435): remark #1572: floating-point equality and inequality comparisons are unreliable
+                  if(point[0] == (tnode -> Edge -> start[0])) /*Point is at start of edge (enough to compare x co-ordinates)*/
+                                 ^
+ 
+../../Geomio/source/gio_adts.c(521): remark #1572: floating-point equality and inequality comparisons are unreliable
+              if((j == 0) && (tnode -> Poly -> norm[2] != 0))  /*Point is on a surface facet - ignore projections
+                       ^
+ 
+../../Geomio/source/gio_adts.c(521): remark #1572: floating-point equality and inequality comparisons are unreliable
+              if((j == 0) && (tnode -> Poly -> norm[2] != 0))  /*Point is on a surface facet - ignore projections
+                                                          ^
+ 
+icc  -c -O3 -openmp -ip -mcpu=itanium2 -parallel -ipo20 -Wall  ../../Geomio/source/gio_io.c -o gio_io.o
+../../Geomio/source/gio_io.c(11): remark #1419: external declaration in primary source file
+  extern Body_tnode ADTbody;
+                    ^
+ 
+../../Geomio/source/gio_io.c(12): remark #1419: external declaration in primary source file
+  extern double root_3D_bbox[2][3];
+                ^
+ 
+../../Geomio/source/gio_io.c(13): remark #1419: external declaration in primary source file
+  extern int body_count;
+             ^
+ 
+../../Geomio/source/gio_io.c(488): remark #1683: explicit conversion of a 64-bit integral type to a smaller integral type (potential portability problem)
+        num_points = (int) strtol(temp2, NULL, 10);
+                     ^
+ 
+../../Geomio/source/gio_io.c(489): remark #1683: explicit conversion of a 64-bit integral type to a smaller integral type (potential portability problem)
+        else num_polys = (int) strtol(temp2, NULL, 10);
+                         ^
+ 
+../../Geomio/source/gio_io.c(720): remark #1683: explicit conversion of a 64-bit integral type to a smaller integral type (potential portability problem)
+            face_array[i] = (int) strtol(temp1, NULL, 10);
+                            ^
+ 
+../../Geomio/source/gio_io.c(793): remark #1683: explicit conversion of a 64-bit integral type to a smaller integral type (potential portability problem)
+            offsets[i] = (int) strtol(temp1, NULL, 10);
+                         ^
+ 
+../../Geomio/source/gio_io.c(228): remark #593: variable "connect_length" was set but never used
+    int i, j, k, num_points, num_polys, connect_length, avg_face_size;
+                                        ^
+ 
+icc  -c -O3 -openmp -ip -mcpu=itanium2 -parallel -ipo20 -Wall  ../../Geomio/source/gio_lists.c -o gio_lists.o
+icc  -O1 -openmp -ip -mcpu=itanium2 -parallel -ipo20 -Wall  octvce.o ov_adts.o ov_adapt.o ov_connect.o ov_setgeom.o \
+ov_icbc.o ov_io.o ov_lists.o ov_flow.o ov_merge.o time_keeper.o ov_kernel.o \
+gio_kernel.o gio_adts.o gio_io.o gio_lists.o -o ../tests/octvce.exe -lm
+IPO: performing multi-file optimizations
+IPO: generating object file /tmp/ipo_iccfjUagR.o
+IPO: starting multi-object compilation
+IPO: generating object file /tmp/ipo_iccfjUagR1.o
+IPO: starting multi-object compilation
+IPO: generating object file /tmp/ipo_iccfjUagR2.o
+IPO: starting multi-object compilation
+IPO: generating object file /tmp/ipo_iccfjUagR3.o
+IPO: starting multi-object compilation
+IPO: generating object file /tmp/ipo_iccfjUagR4.o
+IPO: starting multi-object compilation
+IPO: generating object file /tmp/ipo_iccfjUagR5.o
+IPO: starting multi-object compilation
+IPO: generating object file /tmp/ipo_iccfjUagR6.o
+IPO: starting multi-object compilation
+IPO: generating object file /tmp/ipo_iccfjUagR7.o
+IPO: starting multi-object compilation
+IPO: generating object file /tmp/ipo_iccfjUagR8.o
+../source/ov_flow.c(333) : (col. 4) remark: LOOP WAS AUTO-PARALLELIZED.
+../source/ov_flow.c(333) : (col. 4) remark: LOOP WAS AUTO-PARALLELIZED.
+../source/ov_flow.c(362) : (col. 7) remark: OpenMP DEFINED REGION WAS PARALLELIZED.
+../source/ov_flow.c(468) : (col. 7) remark: OpenMP DEFINED REGION WAS PARALLELIZED.
+IPO: starting multi-object compilation
+IPO: generating object file /tmp/ipo_iccfjUagR9.o
+../source/ov_io.c(1979) : (col. 4) remark: OpenMP DEFINED REGION WAS PARALLELIZED.
+../source/ov_io.c(2026) : (col. 4) remark: OpenMP DEFINED REGION WAS PARALLELIZED.
+IPO: starting multi-object compilation
+IPO: generating object file /tmp/ipo_iccfjUagR10.o
+IPO: starting multi-object compilation
+IPO: generating object file /tmp/ipo_iccfjUagR11.o
+IPO: starting multi-object compilation
+IPO: generating object file /tmp/ipo_iccfjUagR12.o
+IPO: starting multi-object compilation
+IPO: generating object file /tmp/ipo_iccfjUagR13.o
+IPO: starting multi-object compilation
+IPO: generating object file /tmp/ipo_iccfjUagR14.o
+../source/ov_adapt.c(201) : (col. 7) remark: OpenMP DEFINED REGION WAS PARALLELIZED.
+IPO: starting multi-object compilation
+IPO: generating object file /tmp/ipo_iccfjUagR15.o
+ld: no input files
+

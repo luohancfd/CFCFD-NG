@@ -1,0 +1,143 @@
+# rhyflx.moc
+# Script to generate a nozzle contour for Rhyfl-X
+# PJ 27-Sep-00, 22-Feb-01, 26-March-01, 01-Apr-01
+#
+# ----------------------------------------------------
+package require imoc
+source $gd(IMOC_HOME)/lib/cfan.moc
+source $gd(IMOC_HOME)/lib/wait_a_moment.tcl
+source $gd(IMOC_HOME)/lib/deg_to_rad.tcl
+source $gd(IMOC_HOME)/lib/streamdata.moc
+source $gd(IMOC_HOME)/lib/extendstream.moc
+
+# -----------------------------------------------------
+puts ""
+puts "Rhyfl-X axisymmetric  nozzle"
+
+LoadIMOCKernel
+SetAxiFlag 1
+SetGamma 1.4
+
+InitGUI
+setXYRanges 0.0 0.0 24.0 2.0
+setXYTics 2.0 0.2
+
+# Put in a wall along the X-axis
+WallAddPoint 0 0.0 0.0
+WallAddPoint 0 30.0 0.0
+
+puts "Create a centered expansion fan at (0.0 0.1)"
+set x0 0.0
+set y0 0.1
+set theta0 0.0
+set caseID 4
+if { $caseID == 0 } {
+    set M0 5.0;         # inlet Mach number
+    set M1 5.90;        # end of initial fan
+    set dL 0.3;         # spacing for new nodes on Mach cone
+    set y_max 1.5;      # maximum radial position for Mach cone
+} elseif { $caseID == 1 } {
+    set M0 4.28
+    set M1 4.48;   # Mcone=6.0
+    set dL 0.1
+    set y_max 0.5
+} elseif { $caseID == 2 } {
+    set M0 8.5
+    set M1 9.11;   # Mcone=14
+    set dL 0.1
+    set y_max 1.2
+} elseif { $caseID == 3 } {
+    set M0 10.0
+    set M1 10.855; # Mcone=18
+    set dL 0.2
+    set y_max 1.5
+} elseif { $caseID == 4 } {
+    set M0 7.5
+    set M1 8.35;   # Mcone=16
+    set dL 0.1
+    set y_max 1.2
+}; # end if
+set pm0 [ NuFromM $M0 [GetGamma] ]
+set pmEnd [ NuFromM $M1 [GetGamma] ]
+set nfan 10
+set fan_nodes [ makeCFan $x0 $y0 $theta0 $pm0 $pmEnd $nfan ]
+set startStreamNode [ lindex $fan_nodes [expr [llength $fan_nodes] - 1] ]
+
+puts "Compute the starting characteristic line radiating from "
+puts "the first node in the fan."
+set nline 12
+set dy [expr $y0 / $nline]
+set Mach_angle [expr asin(1.0/$M0)]
+set dx [expr $dy / tan($Mach_angle)]
+set old_node [lindex $fan_nodes 0]
+set line_nodes {}
+for {set i 1} {$i <= $nline} {incr i} {
+    set new_node [CreateNode -1]
+    set x [expr $x0 + $i * $dx]
+    set y [expr $y0 - $i * $dy]
+    puts "New node at ($x, $y)"
+    SetNodeData $new_node X $x Y $y Mach $M0 Theta 0.0 CMinusUp $old_node
+    SetNodeData $old_node CMinusDown $new_node
+    lappend line_nodes $new_node
+    set old_node $new_node
+}; # end for
+refreshDisplay; wait_a_moment
+
+puts "Compute the rest of the fan radiating down to the wall."
+set old_node [lindex $line_nodes 0]
+for {set i 1} {$i <= $nfan} {incr i} {
+   set new_node [lindex $fan_nodes $i]
+   set nodelist [MarchAlongCMinus $old_node $new_node down]
+   set last_node [lindex $nodelist [expr [llength $nodelist] - 1 ] ]
+   set axis_node [CMinusWallNode 0 $last_node -1]
+   set old_node [lindex $nodelist 1]
+   refreshDisplay; wait_a_moment
+}; # end for
+
+set x_cone [GetNodeDataValue $axis_node X]
+set M_cone [GetNodeDataValue $axis_node Mach]
+puts "Mach cone starts at x = $x_cone with M = $M_cone"
+
+puts "Put down a number of nodes along the Mach cone with constant M."
+puts "Work back upstream from each of these nodes."
+set x $x_cone
+set y 0.0
+set Mach_angle [expr asin(1.0/$M_cone)]
+set old $last_node
+set old_edge $axis_node
+set oldStreamNode $startStreamNode
+set machConeList [list $startStreamNode]
+
+while { $y < $y_max } {
+    # Put down a new node along the Mach cone of the uniform test flow.
+    set new_edge [CreateNode -1]
+    set dx [expr $dL * cos($Mach_angle)]
+    set dy [expr $dL * sin($Mach_angle)]
+    set x [expr $x + $dx]
+    set y [expr $y + $dy]
+    puts "New node at ($x, $y)"
+    SetNodeData $new_edge X $x Y $y Mach $M_cone Theta 0.0 CPlusUp $old_edge
+    SetNodeData $old_edge CPlusDown $new_edge
+    lappend machConeList $new_edge
+
+    # March upstream from the new point, creating a list of nodes
+    # along a C- characteristic.  Extend the streamline defining 
+    # the nozzle wall to this new characteristic.
+    set nodelist [MarchAlongCMinus $old $new_edge up]
+    set newStreamNode [ExtendStreamLineToGivenLine $oldStreamNode $nodelist]
+    refreshDisplay; wait_a_moment
+    if { $newStreamNode == -1 } break
+
+    # Step along to the new nodes in preparation for doing it all again.
+    set old [lindex $nodelist 1]
+    set old_edge $new_edge
+    set oldStreamNode $newStreamNode
+    # Gradually increase the spacing of the new characteristics.
+    set dL [expr $dL * 1.10]
+}; # end for
+ 
+# Extend streamline to the Mach cone, assuming that the last extension
+# caused the while-loop to break
+ExtendStreamLineToGivenLine $oldStreamNode $machConeList
+refreshDisplay
+PrintStreamData $startStreamNode

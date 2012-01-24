@@ -1,0 +1,19 @@
+The file describing what our ICs are - both ambient and explosion products (within
+some region).  If no. species is 2, will assume products gas species within specific regions.
+
+Ambient conditions
+------------------
+Pressure: 1e4 
+Density: 0.1
+U: 0 
+V: 0
+W: 0
+
+Products conditions
+-------------------
+Pressure: 1.544665149e5
+Density: 4.368043607e-1
+U: 1.055428867e3
+V: 0
+W: 0
+File: ic.vtp

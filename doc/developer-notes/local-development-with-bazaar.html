@@ -1,0 +1,763 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.2.7" />
+<style type="text/css">
+/* Debug borders */
+p, li, dt, dd, div, pre, h1, h2, h3, h4, h5, h6 {
+/*
+  border: 1px solid red;
+*/
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+tt {
+  color: navy;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  font-family: sans-serif;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+
+div.sectionbody {
+  font-family: serif;
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+
+pre {
+  padding: 0;
+  margin: 0;
+}
+
+span#author {
+  color: #527bbd;
+  font-family: sans-serif;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+span#email {
+}
+span#revision {
+  font-family: sans-serif;
+}
+
+div#footer {
+  font-family: sans-serif;
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+div#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+div#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+div#preamble,
+div.tableblock, div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-right: 10%;
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.5em;
+  margin-bottom: 2.5em;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-family: sans-serif;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid silver;
+  padding: 0.5em;
+}
+
+div.listingblock {
+  margin-right: 0%;
+}
+div.listingblock > div.content {
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+div.quoteblock {
+  padding-left: 2.0em;
+}
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock {
+  padding-left: 2.0em;
+}
+div.verseblock > div.content {
+  white-space: pre;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 2px solid silver;
+}
+
+div.exampleblock > div.content {
+  border-left: 2px solid silver;
+  padding: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+div.imageblock img { border: 1px solid silver; }
+span.image img { border-style: none; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+div.olist > ol {
+  list-style-type: decimal;
+}
+div.olist2 > ol {
+  list-style-type: lower-alpha;
+}
+
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead {
+  font-family: sans-serif;
+  font-weight: bold;
+}
+tfoot {
+  font-weight: bold;
+}
+
+div.hlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hlist td {
+  padding-bottom: 15px;
+}
+td.hlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+}
+td.hlist2 {
+  vertical-align: top;
+}
+
+@media print {
+  div#footer-badges { display: none; }
+}
+
+div#toctitle {
+  color: #527bbd;
+  font-family: sans-serif;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+/* Workarounds for IE6's broken and incomplete CSS2. */
+
+div.sidebar-content {
+  background: #ffffee;
+  border: 1px solid silver;
+  padding: 0.5em;
+}
+div.sidebar-title, div.image-title {
+  color: #527bbd;
+  font-family: sans-serif;
+  font-weight: bold;
+  margin-top: 0.0em;
+  margin-bottom: 0.5em;
+}
+
+div.listingblock div.content {
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+div.quoteblock-attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock-content {
+  white-space: pre;
+}
+div.verseblock-attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+
+div.exampleblock-content {
+  border-left: 2px solid silver;
+  padding-left: 0.5em;
+}
+
+/* IE6 sets dynamically generated links as visited. */
+div#toc a:visited { color: blue; }
+
+/* Because IE6 child selector is broken. */
+div.olist2 ol {
+  list-style-type: lower-alpha;
+}
+div.olist2 div.olist ol {
+  list-style-type: decimal;
+}
+</style>
+<title>Working in the Bazaar: Using bazaar for version control of the cfcfd2 repository</title>
+</head>
+<body>
+<div id="header">
+<h1>Working in the Bazaar: Using bazaar for version control of the cfcfd2 repository</h1>
+<span id="author">Rowan J. Gollan</span><br />
+<span id="email"><tt>&lt;<a href="mailto:r.gollan@uq.edu.au">r.gollan@uq.edu.au</a>&gt;</tt></span><br />
+<span id="revision">version 0.1,</span>
+31 March 2008
+</div>
+<h2 id="_purpose">Purpose</h2>
+<div class="sectionbody">
+<div class="para"><p>Well we had our flirt with danger, git, and got burnt once
+or twice.
+So in a classic case of greener-grassism, it's time
+we tried a different distributed version control system,
+and the choice is bazaar.
+This note should help you with the basics of daily
+work.
+If all goes well, you should never need anything more than these
+basics.</p></div>
+</div>
+<h2 id="_getting_started_initial_steps">Getting started: initial steps</h2>
+<div class="sectionbody">
+<div class="para"><p>You will need to install a version of bazaar that is 1.0 or later.
+Version 1.3 is installed on triton.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">In all of the examples that follow, you will be introduced to a
+number of bazaar commands (all of the form <tt>bzr &#8230;</tt>).
+I encourage you to learn about them as you first use them
+by using the in-built help, for example. to get help on the
+<tt>branch</tt> command:</td>
+</tr></table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&gt; bzr help branch</tt></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">First up, you probably want to get rid of your old git repository,
+or at least move it.</td>
+</tr></table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&gt; mv cfcfd2 cfcfd2-git</tt></pre>
+</div></div>
+<div class="para"><p>In bazaar, the basic unit is the branch and most commands operate
+on the branch.
+A repository, in bazaar, is actually just a collection of branches.
+Our central repository will have just one branch.
+Let's grab a copy of this branch so that we work on our
+local system.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&gt; bzr branch bzr+ssh://git@triton/archive1/git/cfcfd2 cfcfd2</tt></pre>
+</div></div>
+<div class="para"><p>You can see from the URL, that the bazaar repository effectively lives
+in the same place that our git repository did.
+Also <tt>clone</tt> may be used as an alias for <tt>branch</tt>, but if you are looking
+at the bazaar docs you will see <tt>branch</tt> used most often.</p></div>
+<div class="para"><p>Bazzar only supports full path names with the <tt>bzr+ssh://</tt>
+type of URL.
+For example, I would do the following at home to make a branch
+based on my development branch on triton. (This assumes my <tt>.ssh/config</tt>
+file is configured with the appropriate entry for <tt>triton</tt>.)</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&gt; bzr branch bzr+ssh://triton/home1/gollan/cfcfd2 cfcfd2</tt></pre>
+</div></div>
+<div class="para"><p>One last thing we need to do once only is configure our name and
+email address.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&gt; bzr whoami "Rowan J. Gollan &lt;r.gollan@uq.edu.au&gt;"</tt></pre>
+</div></div>
+<div class="para"><p>You will need to do this on each of the machines you work on.</p></div>
+</div>
+<h2 id="_coding_developing_and_working_with_the_mainline">Coding, developing and working with the mainline</h2>
+<div class="sectionbody">
+<h3 id="_local_personal_development">Local (personal) development</h3><div style="clear:left"></div>
+<div class="para"><p>You can think of you local development work almost like
+working on your own subversion repository.
+The workflow is identical: you make some edits, and, when you are
+happy, you commit them.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">Unlike git, there is no staging area.  By default, bazaar will
+commit all modified files, exactly like subversion would. Also like subversion,
+you can commit selected files by listing them on the command line.</td>
+</tr></table>
+</div>
+<div class="para"><p>So after some edits, I might check the status, and if I'm happy,
+make a commit.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&gt; bzr status
+&gt; bzr commit</tt></pre>
+</div></div>
+<div class="para"><p>Alternatively, I might only want to commit one file at this stage, eg. <tt>new.txt</tt>.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&gt; bzr commit new.txt</tt></pre>
+</div></div>
+<div class="para"><p>Also, just like subversion, if you have added a new file in the working
+area that you want to put under version control, you need to add
+it before committing.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&gt; bzr add new-file
+&gt; bzr commit</tt></pre>
+</div></div>
+<div class="para"><p>And like subversion, bazaar will recursively add an entire directory if
+you give it a directory name instead of a file.</p></div>
+<div class="para"><p>So that's local development: it's as if you had a personal subversion repository
+with full revision history.</p></div>
+<h3 id="_publishing_changes_to_the_main_line">Publishing changes to the main line</h3><div style="clear:left"></div>
+<div class="para"><p>Now after 1 minute, 1 hour, 1 day or 1 week, you might want to publish your
+changes to the main branch: <tt>bzr+ssh://<a href="mailto:git@localhost">git@localhost</a>/archive1/git/cfcfd2</tt>.
+There are a couple of concepts involved with keeping branches in sync,
+but once you get that, it is relatively painless.
+In the examples that follow, I'm going to consider that all of my commits
+are in my branch on my triton account and I wish to publish to/share with the main branch,
+also on triton.
+Let me give an overview of the steps and then return to the details.</p></div>
+<div class="olist"><ol>
+<li>
+<p>
+Check status against main branch.
+</p>
+</li>
+<li>
+<p>
+Organise local branch so that it is in sync with the main branch.
+</p>
+</li>
+<li>
+<p>
+Optionally, squash some intermediary commits.
+</p>
+</li>
+<li>
+<p>
+Publish: pull changes into the main branch.
+</p>
+</li>
+</ol></div>
+<h4 id="_1_check_status_against_main_branch">1. Check status against main branch</h4>
+<div class="para"><p>The first thing to do when publishing your changes
+is to check if you are out of sync with the main branch
+(or in bazaar terminology, check if the branches have diverged).
+The branches will have divereged if you have done some
+work locally, and someone else has published work on the
+main branch since you last updated from the main branch.
+So to check if the main branch has commits that you are
+missing:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&gt; bzr missing</tt></pre>
+</div></div>
+<div class="para"><p>If nothing has changed, then you'll get some output like:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>Using last location: /home/gollan/cfcfd2/
+Branches are up to date.</tt></pre>
+</div></div>
+<div class="para"><p>If, however, there has been some activity on the
+main branch, then the output might look like:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>Using last location: /home/gollan/cfcfd2/
+You are missing 1 revision(s):
+------------------------------------------------------------
+revno: 76
+committer: Rowan J. Gollan &lt;r.gollan@uq.edu.au&gt;
+branch nick: cfcfd2
+timestamp: Mon 2008-03-31 16:10:04 +1000
+message:
+  Demo commit.</tt></pre>
+</div></div>
+<div class="para"><p>So in this case, I am missing one revision from the main branch.</p></div>
+<div class="para"><p>Now that we are aware of the status, we can make a decision
+about how to proceed with organising our own branch.</p></div>
+<h4 id="_2_organise_local_branch_so_that_it_is_in_sync_with_the_main_branch">2. Organise local branch so that it is in sync with the main branch</h4>
+<div class="para"><p>We are working on the assumtion that you definitely have local
+commits.
+If there is nothing <tt>missing</tt> from the main branch then you
+are ready to proceed to Step 3.</p></div>
+<div class="para"><p>If there are changes on the main branch, you need to consider
+how you want to organise your local branch.
+So let's assume our two branches look like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>
+  A -- B -- C -- D ---------- E - F ----- G    ::: main branch
+              \
+               \
+                \----- D'-- E'------- F'       ::: my branch</tt></pre>
+</div></div>
+<div class="para"><p>So there are two choices to organise your own
+branch.</p></div>
+<div class="olist"><ol>
+<li>
+<p>
+merge
+</p>
+</li>
+<li>
+<p>
+rebase
+</p>
+</li>
+</ol></div>
+<div class="para"><p>I strongly favour <tt>rebase</tt>.
+So what happens if we were to do a merge.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&gt; bzr merge</tt></pre>
+</div></div>
+<div class="para"><p>The branch history will end up looking like:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>
+  A -- B -- C -------- D'-- E'------- F'---- H
+
+                                       where H contains:
+                                             |
+                                             D--E--F--G</tt></pre>
+</div></div>
+<div class="para"><p>So you have to do a new commit <tt>H</tt> which contains <tt>D-E-F-G</tt>.
+Bazaar helps you do this.</p></div>
+<div class="para"><p>What I prefer is the result of a rebase.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&gt; bzr rebase</tt></pre>
+</div></div>
+<div class="para"><p>This basically does all of the upstream commits,
+in this case, <tt>D-E-F-G</tt>, followed by your own
+local commits <tt>D'-E'-F'</tt>.
+If there are conflicts along the way, bazaar will
+stop and ask you to merge before proceeding.
+The result is a history like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>
+  A -- B -- C -- D ---------- E - F ----- G -- D'-- E'-- F'</tt></pre>
+</div></div>
+<div class="para"><p>I find this conceptually easier to follow, and it's
+easier to review the logs.
+At this point, after a rebase, you could do <tt>bzr pull</tt> from
+the git account to publish your work (but don't just yet, please read on).
+Effectively, this will take <tt>D'-E'-F'</tt> and place them
+onto the top of the main branch.</p></div>
+<div class="para"><p>What if you don't want the world to see, D' and E'?
+How could we <em>squash</em> the commits?
+That's the topic of the next section.</p></div>
+<h4 id="_3_optionally_squash_some_intermediary_commits">3. Optionally, squash some intermediary commits</h4>
+<div class="para"><p>Ok, we have to apply a little trick to coax bazaar into doing
+what we'd like here.
+I'd like my three commits <tt>D'-E'-F'</tt> to appear as one single
+piece of work, let's say, <tt>X'</tt>.
+If using git, we could use <tt>git rebase -i</tt>.
+Unfortunately, bazaar doesn't have an equivalent so we will
+trick it into doing what we want.
+This operation is a little dangerous, so let's first
+make a copy of our local branch before we do anyting else.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&gt; bzr branch cfcfd2 cfcfd2-backup</tt></pre>
+</div></div>
+<div class="para"><p>So if we completely mess things up, we still have <tt>cfcfd2-backup</tt>
+available.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">As you are first getting used to bazaar, it might be worth it
+to make backups before you try various operations (like push, pull, rebase).
+At least that way you'll have a fallback.
+Once you learn the ropes, it shouldn't be necessary.
+I still always recommend a backup before a <em>squash</em> though
+because we are going to use the <tt>uncommit</tt> command.
+I don't know if this trick will continue to scale if
+the repository becomes very large.  At the moment,
+the above <tt>branch</tt> command just chewed up an additional 337Mb.
+Hopefully disk size will continue to grow quicker than we can write
+lines of code! (I read about new 750Gb disks the other day. Isn't
+that a whole lot of data to lose at once if the disk crashes? Ouch!)</td>
+</tr></table>
+</div>
+<div class="para"><p>For example, assume that commit <tt>G</tt> is revision 80 in my local
+branch after the rebase.  Commit <tt>G</tt> is the latest from the main branch;
+all of my local commits are sitting on top because of the rebase I did earlier.
+We are going to create a revision 81 that contains <tt>X'</tt>, that is, the cumulative
+result of the commits <tt>D'-E'-F'</tt>.</p></div>
+<div class="para"><p>The steps are:</p></div>
+<div class="olist"><ol>
+<li>
+<p>
+Make sure your working tree is clean (no outstanding commits)
+   and that there are no merges pending.  If your working tree is clean, <tt>bzr status</tt> should return
+   nothing to stdout.
+</p>
+</li>
+<li>
+<p>
+Make a copy of your intermediary commit messages, that is, from
+   message 81 onwards.
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&gt; bzr log -r 81.. &gt; my_messages.save</tt></pre>
+</div></div>
+<div class="para"><p>You may or may not want to use them later, but at least you have a copy.
+(Plus they are still available in <tt>cfcfd2-backup</tt>.)</p></div>
+</li>
+<li>
+<p>
+Here's the bit that will make you whince:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&gt; bzr uncommit -r 80</tt></pre>
+</div></div>
+<div class="para"><p>That will, take out changes 81,82,83 == <tt>D'</tt>,<tt>E'</tt>,<tt>F'</tt> from the
+branch <strong>but</strong> the uncommit <em>does not change</em> the working tree.</p></div>
+</li>
+<li>
+<p>
+And here's the trick.
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&gt; bzr commit</tt></pre>
+</div></div>
+<div class="para"><p>This will pick up all of your local modifications that
+were in the working tree at the time of <tt>F'</tt>. So we now
+have a single commit with all the modifications up to
+<tt>F'</tt>. You can look at the text in <tt>my_messages.save</tt> to
+get some inspiration for your new commit message.</p></div>
+</li>
+</ol></div>
+<div class="para"><p>The process is not so dangerous if you stop to consider what you are doing
+and remember to make a backup.
+A better question is why you might want to <em>squash</em> some commits.
+One reason is to avoid committing code to the main branch that does not
+compile or pass the tests.
+Another is to minimise junk in the main branch.</p></div>
+<div class="para"><p>The crucial point is the first step: making sure your working tree is clean.
+You can see that if it isn't clean, then step 4 is going to
+commit something other than what you intended.
+If, at setp 1, you have uncommited work (that is, the working tree is not clean),
+you might need to save it out of the way while you do this manoeuvre.
+(Have a look at the <tt>shelve</tt> command.)</p></div>
+<div class="para"><p>Finally, we should have something ready to publish.</p></div>
+<h4 id="_4_publish_pull_changes_into_the_main_branch">4. Publish: pull changes into the main branch</h4>
+<div class="para"><p>After getting the branch organised, and optionally squashing
+some commits, you are ready to pull your changes into the main branch.
+This should be a simple step after having tidied your local branch.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&gt; ssh git@localhost
+&gt; bzr pull bzr+ssh://gollan@localhost/home1/gollan/cfcfd2</tt></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">If you have the <tt>git</tt> user as part of your personal group
+and have the appropriate permissions set, you could
+substitute the <tt>bzr+ssh://</tt> URL with something like
+<tt>file:///home1/gollan/cfcfd2</tt>.
+This requires that <tt>git</tt> have read permissions
+for files owned by <tt>gollan</tt>.
+Ask a sys admin to help you add <tt>git</tt> to your group if you'd like
+to do things this way.</td>
+</tr></table>
+</div>
+<h3 id="_working_with_subversion">Working with subversion</h3><div style="clear:left"></div>
+<div class="para"><p>TODO:
+Add notes, but exactly the same process as with git.</p></div>
+</div>
+<h2 id="_some_random_thoughts_questions_you_might_have">Some random thoughts, questions you might have</h2>
+<div class="sectionbody">
+<div class="qlist"><ol>
+<li>
+<p><em>
+I'm confused, I just want to update my code: when do I <tt>pull</tt>, <tt>merge</tt> or <tt>rebase</tt>?
+</em></p>
+<p>
+        If you haven't been doing any local development and just want to
+        keep up-to-date, then just use pull: <tt>bzr pull</tt>.
+        If you have been doing local development, then you need to use
+        <tt>merge</tt> or <tt>rebase</tt>; if you tried to pull when it;s inappropriate bazaar will recommend that
+        you <tt>merge</tt>.  As mentioned earlier, I'd encourage you to
+        forget <tt>merge</tt> altogether and just use <tt>rebase</tt>.  Remember that <tt>bzr missing</tt> will
+        give you the hint as to what status your branch is at.
+</p>
+</li>
+</ol></div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version 0.1<br />
+Last updated 2009-10-04 22:05:45 EST
+</div>
+</div>
+</body>
+</html>

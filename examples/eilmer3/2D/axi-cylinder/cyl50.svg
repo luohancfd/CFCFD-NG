@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="566.93"
+   height="566.93"
+   version="1.0"
+   id="svg2"
+   sodipodi:version="0.32"
+   inkscape:version="0.46"
+   sodipodi:docname="cyl50.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape">
+  <metadata
+     id="metadata93">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs91">
+    <marker
+       inkscape:stockid="Arrow1Send"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Send"
+       style="overflow:visible;">
+      <path
+         id="path3258"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt;marker-start:none;"
+         transform="scale(0.2) rotate(180) translate(6,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Mend"
+       style="overflow:visible;">
+      <path
+         id="path3252"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt;marker-start:none;"
+         transform="scale(0.4) rotate(180) translate(10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow2Lend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow2Lend"
+       style="overflow:visible;">
+      <path
+         id="path3264"
+         style="font-size:12.0;fill-rule:evenodd;stroke-width:0.62500000;stroke-linejoin:round;"
+         d="M 8.7185878,4.0337352 L -2.2072895,0.016013256 L 8.7185884,-4.0017078 C 6.9730900,-1.6296469 6.9831476,1.6157441 8.7185878,4.0337352 z "
+         transform="scale(1.1) rotate(180) translate(1,0)" />
+    </marker>
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 283.465 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="566.92999 : 283.465 : 1"
+       inkscape:persp3d-origin="283.465 : 188.97666 : 1"
+       id="perspective95" />
+  </defs>
+  <sodipodi:namedview
+     inkscape:window-height="907"
+     inkscape:window-width="1434"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     guidetolerance="10.0"
+     gridtolerance="10.0"
+     objecttolerance="10.0"
+     borderopacity="1.0"
+     bordercolor="#666666"
+     pagecolor="#ffffff"
+     id="base"
+     showgrid="false"
+     inkscape:zoom="1.1906232"
+     inkscape:cx="283.465"
+     inkscape:cy="283.465"
+     inkscape:window-x="10"
+     inkscape:window-y="73"
+     inkscape:current-layer="svg2" />
+  <title
+     id="title4">Mach 2 flow along the axis of a 5mm cylinder.</title>
+  <desc
+     id="desc6">SVG file written by e3prep.py</desc>
+<!-- drawing begins here -->  <line
+     x1="141.73"
+     y1="442.20"
+     x2="481.89"
+     y2="442.20"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line8" />
+  <text
+     x="311.81"
+     y="467.72"
+     style="font-size:10;text-anchor:start;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text10">x</text>
+  <line
+     x1="141.73"
+     y1="442.20"
+     x2="141.73"
+     y2="436.54"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line12" />
+  <text
+     x="141.73"
+     y="456.38"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text14">0</text>
+  <line
+     x1="209.76"
+     y1="442.20"
+     x2="209.76"
+     y2="436.54"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line16" />
+  <text
+     x="209.76"
+     y="456.38"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text18">0.2</text>
+  <line
+     x1="277.80"
+     y1="442.20"
+     x2="277.80"
+     y2="436.54"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line20" />
+  <text
+     x="277.80"
+     y="456.38"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text22">0.4</text>
+  <line
+     x1="345.83"
+     y1="442.20"
+     x2="345.83"
+     y2="436.54"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line24" />
+  <text
+     x="345.83"
+     y="456.38"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text26">0.6</text>
+  <line
+     x1="413.86"
+     y1="442.20"
+     x2="413.86"
+     y2="436.54"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line28" />
+  <text
+     x="413.86"
+     y="456.38"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text30">0.8</text>
+  <line
+     x1="481.89"
+     y1="442.20"
+     x2="481.89"
+     y2="436.54"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line32" />
+  <text
+     x="481.89"
+     y="456.38"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text34">1</text>
+  <line
+     x1="128.13"
+     y1="425.20"
+     x2="128.13"
+     y2="85.04"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line36" />
+  <text
+     x="105.45"
+     y="255.12"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text38">y</text>
+  <line
+     x1="128.13"
+     y1="425.20"
+     x2="133.80"
+     y2="425.20"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line40" />
+  <text
+     x="119.62"
+     y="425.20"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text42">0</text>
+  <line
+     x1="128.13"
+     y1="357.17"
+     x2="133.80"
+     y2="357.17"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line44" />
+  <text
+     x="119.62"
+     y="357.17"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text46">0.2</text>
+  <line
+     x1="128.13"
+     y1="289.13"
+     x2="133.80"
+     y2="289.13"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line48" />
+  <text
+     x="119.62"
+     y="289.13"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text50">0.4</text>
+  <line
+     x1="128.13"
+     y1="221.10"
+     x2="133.80"
+     y2="221.10"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line52" />
+  <text
+     x="119.62"
+     y="221.10"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text54">0.6</text>
+  <line
+     x1="128.13"
+     y1="153.07"
+     x2="133.80"
+     y2="153.07"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line56" />
+  <text
+     x="119.62"
+     y="153.07"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text58">0.8</text>
+  <line
+     x1="128.13"
+     y1="85.04"
+     x2="133.80"
+     y2="85.04"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line60" />
+  <text
+     x="119.62"
+     y="85.04"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text62">1</text>
+<!-- There are 4 nodes
+ -->  <circle
+     cx="141.73"
+     cy="423.50"
+     r="2.83"
+     style="fill:black"
+     id="circle64" />
+  <circle
+     cx="481.89"
+     cy="423.50"
+     r="2.83"
+     style="fill:black"
+     id="circle66" />
+  <circle
+     cx="481.89"
+     cy="187.09"
+     r="2.83"
+     style="fill:black"
+     id="circle68" />
+  <circle
+     cx="141.73"
+     cy="404.79"
+     r="2.83"
+     style="fill:black"
+     id="circle70" />
+<!-- There are 1 blocks
+ --><!-- Render block 0
+ -->  <text
+     x="353.58347"
+     y="347.26105"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text72">blk-0</text>
+  <text
+     x="97.704033"
+     y="411.83701"
+     transform="matrix(0.8422643,-0.5390648,0.5390648,0.8422643,0,0)"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text74">SUP_IN</text>
+  <path
+     d="M 141.73,404.79 L 148.54,400.43 L 155.34,396.08 L 162.14,391.73 L 168.94,387.37 L 175.75,383.02 L 182.55,378.66 L 189.35,374.31 L 196.16,369.96 L 202.96,365.60 L 209.76,361.25 L 216.57,356.89 L 223.37,352.54 L 230.17,348.19 L 236.98,343.83 L 243.78,339.48 L 250.58,335.12 L 257.39,330.77 L 264.19,326.42 L 270.99,322.06 L 277.80,317.71 L 284.60,313.35 L 291.40,309.00 L 298.20,304.65 L 305.01,300.29 L 311.81,295.94 L 318.61,291.58 L 325.42,287.23 L 332.22,282.87 L 339.02,278.52 L 345.83,274.17 L 352.63,269.81 L 359.43,265.46 L 366.24,261.10 L 373.04,256.75 L 379.84,252.40 L 386.65,248.04 L 393.45,243.69 L 400.25,239.33 L 407.06,234.98 L 413.86,230.63 L 420.66,226.27 L 427.46,221.92 L 434.27,217.56 L 441.07,213.21 L 447.87,208.86 L 454.68,204.50 L 461.48,200.15 L 468.28,195.79 L 475.09,191.44 L 481.89,187.09"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path76" />
+  <text
+     x="-316.26691"
+     y="496.33334"
+     transform="matrix(0,-1,1,0,0,0)"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text78">EXTRAPOLATE_OUT</text>
+  <path
+     d="M 481.89,423.50 L 481.89,418.77 L 481.89,414.04 L 481.89,409.31 L 481.89,404.58 L 481.89,399.86 L 481.89,395.13 L 481.89,390.40 L 481.89,385.67 L 481.89,380.94 L 481.89,376.21 L 481.89,371.49 L 481.89,366.76 L 481.89,362.03 L 481.89,357.30 L 481.89,352.57 L 481.89,347.85 L 481.89,343.12 L 481.89,338.39 L 481.89,333.66 L 481.89,328.93 L 481.89,324.20 L 481.89,319.48 L 481.89,314.75 L 481.89,310.02 L 481.89,305.29 L 481.89,300.56 L 481.89,295.83 L 481.89,291.11 L 481.89,286.38 L 481.89,281.65 L 481.89,276.92 L 481.89,272.19 L 481.89,267.47 L 481.89,262.74 L 481.89,258.01 L 481.89,253.28 L 481.89,248.55 L 481.89,243.82 L 481.89,239.10 L 481.89,234.37 L 481.89,229.64 L 481.89,224.91 L 481.89,220.18 L 481.89,215.46 L 481.89,210.73 L 481.89,206.00 L 481.89,201.27 L 481.89,196.54 L 481.89,191.81 L 481.89,187.09"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path80" />
+  <text
+     x="311.50949"
+     y="416.77728"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text82">FIXED_T</text>
+  <path
+     d="M 141.73,423.50 L 148.54,423.50 L 155.34,423.50 L 162.14,423.50 L 168.94,423.50 L 175.75,423.50 L 182.55,423.50 L 189.35,423.50 L 196.16,423.50 L 202.96,423.50 L 209.76,423.50 L 216.57,423.50 L 223.37,423.50 L 230.17,423.50 L 236.98,423.50 L 243.78,423.50 L 250.58,423.50 L 257.39,423.50 L 264.19,423.50 L 270.99,423.50 L 277.80,423.50 L 284.60,423.50 L 291.40,423.50 L 298.20,423.50 L 305.01,423.50 L 311.81,423.50 L 318.61,423.50 L 325.42,423.50 L 332.22,423.50 L 339.02,423.50 L 345.83,423.50 L 352.63,423.50 L 359.43,423.50 L 366.24,423.50 L 373.04,423.50 L 379.84,423.50 L 386.65,423.50 L 393.45,423.50 L 400.25,423.50 L 407.06,423.50 L 413.86,423.50 L 420.66,423.50 L 427.46,423.50 L 434.27,423.50 L 441.07,423.50 L 447.87,423.50 L 454.68,423.50 L 461.48,423.50 L 468.28,423.50 L 475.09,423.50 L 481.89,423.50"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path84" />
+  <text
+     x="-363.10141"
+     y="150.82918"
+     transform="matrix(0,-1,1,0,0,0)"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text86">SUP_IN</text>
+  <path
+     d="M 141.73,423.50 L 141.73,423.12 L 141.73,422.75 L 141.73,422.37 L 141.73,422.00 L 141.73,421.63 L 141.73,421.25 L 141.73,420.88 L 141.73,420.50 L 141.73,420.13 L 141.73,419.75 L 141.73,419.38 L 141.73,419.01 L 141.73,418.63 L 141.73,418.26 L 141.73,417.88 L 141.73,417.51 L 141.73,417.14 L 141.73,416.76 L 141.73,416.39 L 141.73,416.01 L 141.73,415.64 L 141.73,415.26 L 141.73,414.89 L 141.73,414.52 L 141.73,414.14 L 141.73,413.77 L 141.73,413.39 L 141.73,413.02 L 141.73,412.65 L 141.73,412.27 L 141.73,411.90 L 141.73,411.52 L 141.73,411.15 L 141.73,410.77 L 141.73,410.40 L 141.73,410.03 L 141.73,409.65 L 141.73,409.28 L 141.73,408.90 L 141.73,408.53 L 141.73,408.15 L 141.73,407.78 L 141.73,407.41 L 141.73,407.03 L 141.73,406.66 L 141.73,406.28 L 141.73,405.91 L 141.73,405.54 L 141.73,405.16 L 141.73,404.79"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path88" />
+<!-- end of drawing -->  <path
+     style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Send);stroke-miterlimit:4;stroke-dasharray:none"
+     d="M 141.29802,381.14021 C 141.29802,381.14021 131.81561,397.85575 133.14935,405.42326 C 133.78948,409.05531 140.8091,415.03869 140.8091,415.03869"
+     id="path2468"
+     sodipodi:nodetypes="csc" />
+</svg>

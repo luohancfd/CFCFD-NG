@@ -1,0 +1,7 @@
+-- Input file for generalised-Arrhenius-test.x
+
+test_rate = {
+     A = 7.0e15,  
+     E_a = 1.56290e-18,
+     n = -1.6
+}

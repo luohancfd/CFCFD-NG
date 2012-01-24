@@ -1,0 +1,126 @@
+% code.tex
+
+\newpage
+\section{Code}
+\label{code}
+
+The following is the space marching solver code extracted directly out of the \textit{main.cxx} file from eilmer3.
+
+{\scriptsize
+\begin{verbatim}
+int integrate_blocks_in_sequence( void )
+// This procedure integrates the blocks one-at-a-time in sequence.
+//
+// The idea is to approximate the space-marching approach of sm_3d
+// and, hopefully, achieve a significant speed-up over integration
+// of the full array of blocks.
+//
+// It is assumed that we have the restricted case 
+// of all the blocks making a single line (west to east) with
+// supersonic flow at the west face of block 0 and 
+// extrapolate_out on the east face of the final block.
+//
+// The above assumptions still stand but the code has been modified
+// such that the calcluation now does two active blocks at a time.
+// The calculation initially does blocks 0 and 1, and then moves over
+// one block for the next step calculating blocks 1 and 2 next.
+// This process is then repeated for the full calculation
+
+{
+    global_data &G = *get_global_data_ptr();
+    Block *bdp;
+    double time_slice = G.max_time / G.nblock;
+    BoundaryCondition *bcp_save;
+
+    // Initially deactivate all blocks
+    for ( int jb = 0; jb < G.nblock; ++jb ) {
+	bdp = get_block_data_ptr(jb);
+	bdp->active = 0;
+    }
+
+    cout << "Integrate Block 0 and Block 1" << endl;
+
+    // Start by setting up block 0
+
+    // Activate block 0
+    bdp = get_block_data_ptr(0);
+    bdp->active = 1;
+    // Apply the assumed SupINBC to the west face and propogate across the block
+    bdp->bcp[WEST]->apply_inviscid(0.0);
+    bdp->propagate_data_west_to_east( G.dimensions );
+    bdp->apply( &FV_Cell::encode_conserved, bdp->omegaz, "encode_conserved" );
+    // Even though the following call appears redundant at this point,
+    // fills in some gas properties such as Prandtl number that is
+    // needed for both the cfd_check and the BLomax turbulence model.
+    bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode_conserved" );
+
+    // Now set up block 1
+
+    // Activate block 1
+    bdp = get_block_data_ptr(1);
+    bdp->active = 1;
+
+    // Save the original east boundary condition and apply the temporary
+    // ExtrapolateOutBC for the calculation
+    bcp_save = bdp->bcp[EAST];
+    bdp->bcp[EAST] = new ExtrapolateOutBC(*bdp, EAST, 0);
+
+    // Read in data from block 0 and propogate across the block
+    exchange_shared_boundary_data( 1, COPY_FLOW_STATE);
+    bdp->propagate_data_west_to_east( G.dimensions );
+    bdp->apply( &FV_Cell::encode_conserved, bdp->omegaz, "encode_conserved" );
+    bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode_conserved" );
+
+    // Integrate just the first two blocks in time, hopefully to steady state.
+    set_block_range(0,1);
+    integrate_in_time( time_slice );
+
+
+    // The rest of the blocks.
+    for ( int jb = 2; jb < (G.nblock); ++jb ) {
+	// jb-2, jb-1, jb
+	// jb-2 is the block to be deactivated, jb-1 has been iterated and now
+	// becomes the left most block and jb is the new block to be iterated
+	cout << "Integrate Block " << jb << endl;
+	// Make the block jb-2 inactive.
+	bdp = get_block_data_ptr(jb-2);
+	bdp->active = 0;
+
+	// block jb-1 - reinstate the previous boundary condition on east face
+	// but leave the block active
+	bdp = get_block_data_ptr(jb-1);
+	delete bdp->bcp[EAST];
+	bdp->bcp[EAST] = bcp_save;
+
+	// Set up new block jb to be integrated
+	bdp = get_block_data_ptr(jb);
+	bdp->active = 1;
+
+	if ( jb < G.nblock-1 ) {
+	    // Cut off the east boundary of the current block 
+	    // from the downstream blocks if there are any.
+	    bcp_save = bdp->bcp[EAST];
+	    bdp->bcp[EAST] = new ExtrapolateOutBC(*bdp, EAST, 0);
+	}
+	// Now copy the starting data into the WEST ghost cells
+	// and propagate it across the current block.
+	exchange_shared_boundary_data( jb, COPY_FLOW_STATE );
+	bdp->propagate_data_west_to_east( G.dimensions );
+	bdp->apply( &FV_Cell::encode_conserved, bdp->omegaz, "encode_conserved" );
+	bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode_conserved" );
+	// Integrate just the two currently active blocks in time,
+	// hopefully to steady state.
+	set_block_range(jb-1, jb);
+	integrate_in_time( (jb+1)*time_slice );
+    }
+    // Before leaving, we want all blocks active for output.
+    for ( int jb = 0; jb < G.nblock; ++jb ) {
+	bdp = get_block_data_ptr(jb);
+	bdp->active = 1;
+    }
+    set_block_range(0, G.nblock - 1);
+    return SUCCESS;
+} // end integrate_blocks_in_sequence()
+}
+\end{verbatim}
+}

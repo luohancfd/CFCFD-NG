@@ -1,0 +1,101 @@
+# turb_flat_plate.test
+# Functional test for a 2D turbulent flat-plate flow.
+#
+# This exercises the turbulent portions of the 2D code.
+#
+# Wilson Chan, 11-Jul-2011, 
+# as per cone20.test by PJ, 11-Jan-2011
+# Note that later tests below depend on earlier ones,
+# just as we shouldn't do.  Should fix this some day.
+
+package require tcltest 2.0
+namespace import ::tcltest::*
+configure -verbose {start body error}
+
+test run-preprocessor {Run the preprocessing stage.} -body {
+    exec e3prep.py --job=turb_flat_plate > LOGFILE_PREP
+} -result {} -returnCodes {0}
+
+test run-simulation {Run the shared-memory simulation code.} -body {
+    exec mpirun -np 16 e3mpi.exe --job=turb_flat_plate --run --verbose > LOGFILE_MAIN
+} -result {} -returnCodes {0}
+
+test number-of-steps {The main simulation takes a certain number of steps.} -body {
+    set fp [open LOGFILE_MAIN r]
+    set contents [read $fp]
+    close $fp
+    set final_steps 0
+    foreach line [split $contents "\n"] {
+	if {[string first "Total number of steps" $line] >= 0} {
+	    set final_steps [lindex [split $line] 5]
+	}
+    }
+    set final_steps
+} -result {122315}
+
+test boundary-layer-thickness {The boundary layer thickness should be close to 4.85 mm at x = 0.367 m.} -body {
+    # The reference value for boundary layer thickness was extracted from the 
+    # solution as it was computed on Wilson's computer 11-Jul-2011.
+    set boundary_layer_thickness_ref 0.0048471
+    set boundary_layer_thickness 0
+    exec e3post.py --job=turb_flat_plate --output-file=turb_flat_plate-x-368mm.dat \
+                   --slice-list=12:15,26,:,0
+    set boundary_layer_thickness 0
+    if { [catch {exec /usr/bin/env python estimate-bl-thickness.py} results] } {
+        puts "specialized postprocessing command failed"
+    } else {
+       foreach line [split $results "\n"] {
+           if {[string first boundary_layer_thickness_metres $line] >= 0} {
+               set boundary_layer_thickness [lindex [split $line] 1]
+           }
+       }
+    }
+    # The boundary layer thickness should be within 0.0001 m of the expected
+    list [expr abs($boundary_layer_thickness - $boundary_layer_thickness_ref) < 0.0001]
+} -result {1}
+
+test integral-thickness {At x = 0.367 m, the displacement thickness should be ~0.00248 and momentum thickness ~0.00103.} -body {
+    # The reference values for integral thickness were extracted from the
+    # solution as it was computed on Wilson's computer 11-Jul-2011.
+    set displacement_thickness_ref 0.00247969
+    set momentum_thickness_ref 0.00102846
+    set displacement_thickness 0
+    set momentum_thickness 0
+    if { [catch {exec /usr/bin/env awk -f integral-thicknesses.awk turb_flat_plate-x-368mm.dat} results] } {
+        puts "specialized postprocessing command failed"
+    } else {
+       foreach line [split $results "\n"] {
+           if {[string first displacement_thickness_metres $line] >= 0} {
+               set displacement_thickness [lindex [split $line] 1]
+           }
+           if {[string first momentum_thickness_metres $line] >= 0} {
+               set momentum_thickness [lindex [split $line] 1]
+           }
+       }
+    }
+    # The boundary layer thickness should be within 0.0001 m of the expected
+    list [expr abs($displacement_thickness - $displacement_thickness_ref) < 0.0001] \
+         [expr abs($momentum_thickness - $momentum_thickness_ref) < 0.0001]
+} -result {1 1}
+
+test skin-friction-coefficient {The skin friction coefficient should be close to 0.001115 at x = 0.367 m.} -body {
+    # The reference value for skin friction coefficient was extracted from the
+    # solution as it was computed on Wilson's computer 11-Jul-2011.
+    set skin_friction_coefficient_ref 0.00115017077345
+    set skin_friction_coefficient 0
+    exec e3post.py --job=turb_flat_plate --output-file=turb_flat_plate-y-wall.dat \
+                   --slice-list=15,:,-1,:
+    if { [catch {exec /usr/bin/env python compute_viscous_data_simple.py} results] } {
+        puts "specialized postprocessing command failed"
+    } else {
+       foreach line [split $results "\n"] {
+           if {[string first skin_friction_coefficient_at_367mm $line] >= 0} {
+               set skin_friction_coefficient [lindex [split $line] 1]
+           }
+       }
+    }
+    # The skin friction coefficient should be within 10% of the expected
+    list [expr abs($skin_friction_coefficient - $skin_friction_coefficient_ref) < (0.1 * $skin_friction_coefficient_ref)]
+} -result {1}
+
+cleanupTests

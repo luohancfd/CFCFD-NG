@@ -1,0 +1,15 @@
+For simulating two-dimensional flow fields, we use the code \verb mbcns2 ~\cite{jacobs_96a}
+is an extension of the single-block Navier--Stokes integrator \verb CNS4U ~\cite{jacobs_91d} to structured multiple-block domains.
+The name \verb mbcns2  is an acronym for Multiple-Block Compressible Navier-Stokes solver, second version.  
+The code solves the compressible Navier--Stokes equations via a cell-centred time-dependent finite-volume formulation.
+The governing equations are expressed in integral form over arbitrary quadrilateral cells, 
+with the time rate of change of conserved quantities in each cell specified as a summation of 
+the mass, momentum and energy flux through the cell interfaces.  
+The code is capable of considering both planar and axisymmetric two-dimensional geometries and the thermochemistry
+module can handle gases in chemical equilibrium or nonequilibrium.
+When simulating gases with finite-rate chemistry and radiation energy exchange, 
+these physical processes are treated with an operator-split approach. 
+The computational core of \verb mbcns2  is written in a combination of C and C++, 
+with the option for user-defined functions such as boundary conditions provided as Lua scripts.
+Preprocessing (\textit{i.e.} grid generation) and postprocessing is handled by a collection of Python programs.
+

@@ -1,0 +1,84 @@
+<HTML>
+<!-- Don't bother editing this file; it is machine generated. -->
+<HEAD>
+<TITLE> Documentation extracted from  ../source/moc_plot.tcl </TITLE>
+</HEAD>
+<BODY>
+<H2> ../source/moc_plot.tcl </H2>
+<P>Routines to initialize and close the display canvas 
+and to render the nodes onto the canvas. 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc initDisplay {} { 
+</B> </CODE> </P> 
+<P>The main window contains a display (canvas), 
+a couple of scroll bars for that canvas and 
+a status/hints line below the display. <BR> 
+This procedure also sets the bindings for the canvas 
+so that left-clicking a node will select it and 
+right-clicking a node will display its properties in 
+a dialogue window. 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc closeDisplay {} { 
+</B> </CODE> </P> 
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc showStatusMsg { msg } { 
+</B> </CODE> </P> 
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc displayCoordinates { vportX vportY } { 
+</B> </CODE> </P> 
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc eraseCursors {} { 
+</B> </CODE> </P> 
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc plotAxes {} { 
+</B> </CODE> </P> 
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc eraseAxes {} { 
+</B> </CODE> </P> 
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc plotWalls {} { 
+</B> </CODE> </P> 
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc eraseWalls {} { 
+</B> </CODE> </P> 
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc coordinatesAreBad { x y } { 
+</B> </CODE> </P> 
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc plotMesh {} { 
+</B> </CODE> </P> 
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc eraseMesh {} { 
+</B> </CODE> </P> 
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc refreshDisplay {} { 
+</B> </CODE> </P> 
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc pickSomething { vportX vportY } { 
+</B> </CODE> </P> 
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc startZoomWindow {} { 
+</B> </CODE> </P> 
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc findNodeBoundingBox {} { 
+</B> </CODE> </P> 
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc selectNode { vportX vportY } { 
+</B> </CODE> </P> 
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc selectNodeDialog { listOfNodes } { 
+</B> </CODE> </P> 
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc recolourNode { nid } { 
+</B> </CODE> </P> 
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc plotPSFile { filename } { 
+</B> </CODE> </P> 
+<HR>
+<ADDRESS>
+    Extracted by <B>doctcl.awk</B>  Mon Aug 09 23:56:05 EST 2004
+</ADDRESS>
+</BODY>
+</HTML>

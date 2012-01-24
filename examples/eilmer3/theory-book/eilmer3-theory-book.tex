@@ -1,0 +1,215 @@
+% eilmer3-theory-book.tex
+% PJ, March 2007 -- elmer2 version
+%     September 2008 -- eilmer3 version
+%     May 2010 -- theory book adaption
+%
+\documentclass[12pt,a4paper,twoside]{article}
+\usepackage[body={16cm,24.5cm}]{geometry}
+\usepackage{times}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{pstricks}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{lscape}
+\usepackage{longtable}
+\lstset{basicstyle=\ttfamily\scriptsize,identifierstyle=,keywordstyle=}
+
+%------------------------------------------------------------------
+% a couple horizontal bars to delimit embedded code
+% the width suits the page size set above and
+% the mathmode eliminates spaces between the three elements
+\newcommand{\topbar}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule[2.0mm]{159.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+\newcommand{\bottombar}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule{159.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+\newcommand{\topbarshort}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule[2.0mm]{149.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+\newcommand{\bottombarshort}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule{149.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+%------------------------------------------------------------------
+
+\title{
+    Eilmer's Theory Book: Basic Models for Gas Dynamics and Thermochemistry.
+}
+\author{
+    Mechanical Engineering Report 2010/09\\
+    P. A. Jacobs\thanks{Queensland Geothermal Energy Centre of Excellence, The University of Queensland, Brisbane, Australia.}, 
+    R. J. Gollan\thanks{Centre for Hypersonics, The University of Queensland, Brisbane, Australia.},
+    A. J. Denman, B. T. O'Flaherty, \\
+    D. F. Potter, P. J. Petrie-Repar and I. A. Johnston.
+}
+% \date{May 2010}
+\makeindex
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\texttt{Eilmer3} is an integrated collection of programs for the simulation of transient
+compressible flow in two and three spatial dimensions.
+It is based on a finite-volume formulation of the mass, momentum, energy and species conservation equations
+and is implemented on block-structured grids.
+Starting from an initial flow state with boundary conditions, state quantities in each finite-volume cell 
+are updated in time to provide a simulation of the evolving flow field.
+\end{abstract}
+
+\clearpage
+
+\tableofcontents
+
+%------------------------------------------------------------------
+\newpage
+\section*{Nomenclature, Units}
+%
+\begin{tabular}{ll}
+$A$	& : cell area, m$^2$ \\
+$a$	& : speed of sound, m/s \\
+$C_v$	& : specific heat at constant volume, $\rm J/kg \cdot K$ \\
+$C_p$	& : specific heat at constant pressure, $\rm J/kg \cdot K$ \\
+$E$	& : total energy per unit mass $e + \frac{1}{2} u^2$, J/kg \\
+$e$	& : specific internal energy, J/kg \\
+$\overline{F}$ & : array of flux terms \\
+$f$            & : species mass fraction \\
+$H$	& : total enthalpy, J/kg \\
+$h$            & : specific enthalpy, J/kg \\
+$\hat{i}, 
+ \hat{j},
+ \hat{k}$      & : unit vectors for the cartesian coordinates \\
+$i,j,k$	& : cell index \\
+$k$            & : coefficient of thermal conductivity \\
+$M$	& : Mach number \\
+$MW$	& : molecular weight \\
+$n$            & : direction cosine \\
+$\hat{n}, 
+ \hat{p},
+ \hat{q}$      & : unit vectors for the cell interface \\
+$P, p$	& : pressure, Pa \\
+$Pr$	& : Prandtl number \\
+$Q$	& : source vector in the gas-dynamic equations \\
+$q$     & : heat flux, W/m$^2$ \\
+$R$	& : gas constant, $\rm J/kg \cdot K$ \\
+$R_0$	& : universal gas constant, $\rm 8.314~J/mole \cdot K$ \\
+$Re$	& : Reynolds number \\
+$r$            & : radial coordinate, m \\
+$S$            & : control surface of the cell \\
+$T$	& : temperature, K \\
+$t$	& : time, s \\
+$U$	& : state vector in the gas-dynamic equations \\
+$u$            & : velocity, m/s \\
+$V$            & : cell volume, m$^3$ \\
+$x, y, z$      & : cartesian coordinates, m \\
+\end{tabular}
+
+\begin{tabular}{ll}
+$\alpha$	& : weighting parameter \\
+$\Delta\pm$     & : intermediate variable for interpolation \\
+$\lambda$ & : second coefficients of viscosity, Pa.s \\
+$\mu$		& : viscosity, Pa.s; friction coefficient \\
+$\rho$         & : density, kg/m$^3$ \\
+$\gamma$       & : ratio of specific heats \\
+$\tau$		& : wall shear stress, Pa \\
+\end{tabular}
+
+
+\subsection*{Subscripts}
+\begin{tabular}{ll}
+$i$     & : cell index, inviscid \\
+$j,k$	& : cell indices \\
+$L,~R$	& : left and right states for the Riemann solver or flux calculator \\
+$max$	& : maximum value \\
+$n$        & : normal to the cell interface \\
+$p,q$      & : tangent to the cell interface \\
+$s$	& ~~/ species index \\
+$v$        & : viscous \\
+$x,y,z$  & : coordinate directions \\
+\end{tabular}
+
+
+\subsection*{Superscripts}
+\begin{tabular}{ll}
+$\overline{(\cdot\cdot\cdot)}$ & : cell average \\
+\end{tabular}
+
+
+%------------------------------------------------------------------
+\clearpage
+\baselineskip = 1.5pc
+
+\section{Introduction}
+%
+\texttt{Eilmer3} is a derivative of the code \texttt{mbcns2}, 
+an acronym for Multiple-Block Compressible Navier-Stokes solver, second version.  
+The code solves the compressible Navier--Stokes equations in order to provide simulations 
+of transient compressible flow in two- and three-dimensions.
+The governing equations are expressed in integral form over cell-centred, finite-volume cells, 
+with the time rate of change of conserved quantities in each cell specified as a summation of 
+the mass, momentum and energy flux through the cell interfaces.  
+
+\medskip
+The \texttt{mbcns2} code was an experiment in writing the \texttt{mb\_cns} code in C++.
+\texttt{mb\_cns} (written in C) was derived from \texttt{cns4u}, 
+a code written at ICASE in 1990-91 to simulate high-performance shock tunnels and expansion tubes.
+The finite-difference codes of the 1980s did not do a good job of capturing the strong
+shocks that processed the gas in these machines so we started work on a new code, 
+using (what was at the time) the recently-proven upwinding approach.
+
+\medskip
+From the beginning, the code was intended to run on a parallel computer with 
+blocks of finite-volume cells being allocated to the compute nodes of the Intel Hypercube computer
+that had been acquired by ICASE in 1990.
+However, in 1991, the code remained as a single-block code and was run on the 
+Cray vector supercomputers at Langley to compute ideal gas flows in expansion tubes.
+The code was used and further developed at UQ through the 1990s and into the 2000s.
+Enhancements included:
+\begin{itemize}
+ \item more general thermochemistry, including look-up tables for gas in chemical equilibrium;
+ \item multiple-block capability with an MPI parallel implementation;
+ \item a parametric and programmable front-end for specifying geometry and grids;
+ \item three-dimensional geometry; 
+ \item programmable boundary conditions; and
+ \item finite-rate chemistry.
+\end{itemize}
+
+\medskip
+Once it was determined that there were clear benefits in using C++ \texttt{mb\_cns2},
+our three-dimensional flow code Elmer was then reworked in C++ as \texttt{Elmer2}.
+Of course, these codes being experiments in C++, we soon decided that it could all be done
+much more cleanly be made much more versatile if we just reworked some of the basic modules.
+Thus, the thermo-chemistry was reworked and the separate 2- and 3-dimensional codes merged
+into Eilmer3.
+The name change from \texttt{Elmer} to \texttt{Eilmer} is to a void a naming clash with the Elmer finite-element code 
+from Finland.\footnote{http://www.csc.fi/elmer} 
+
+\medskip
+\texttt{Eilmer3} is actually an integrated collection of programs that includes a preparation program 
+that can be used to set up a database of simulation parameters, 
+a block-structured grid defining the flow domain and an initial flow field.
+These items are then used as a starting point for the main simulation program
+which computes a series of snapshots of the evolving flow.
+
+\medskip 
+The following sections describe the formulation of the code in terms of the basic gas dynamic model
+and the thermochemical model for a multiple-species gas with finite-rate chemical kinetics.
+There is a companion report \cite{jacobs_gollan_2010a} that desctibes the use of the code and provides 
+a number of case studies.
+
+
+%--------------------------------------------------------------------
+
+% \clearpage
+\input{gas-dynamics}
+
+% \clearpage
+\input{thermochem}
+
+%--------------------------------------------------------------------
+\clearpage
+\bibliographystyle{unsrt}
+\bibliography{../user-guide/bibtex/pj,../user-guide/bibtex/computing,../user-guide/bibtex/upwind,../user-guide/bibtex/gas_dynamic,../user-guide/bibtex/adm,../user-guide/bibtex/gas,../user-guide/bibtex/dan,../user-guide/bibtex/parallel,../user-guide/bibtex/rg-thesis,../user-guide/bibtex/shocktube}
+
+\end{document}

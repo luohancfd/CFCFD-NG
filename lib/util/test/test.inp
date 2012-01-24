@@ -1,0 +1,14 @@
+[global]
+test_str        = Hello
+test_str_vector = Hello World
+test_int        = 7
+test_int_vector = 9 7 5 5 3
+# Let's include a comment.
+test_dbl        = 8.9
+test_dbl_vector = 9.4 5.78 1.0e-7 5.399
+
+[subsection]
+sub_str = Hello
+sub_dbl_vector = 3.1415 3.98e7
+
+

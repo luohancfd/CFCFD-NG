@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<VTKFile type="PPolyData" version="0.1" byte_order="LittleEndian">
+<PPolyData GhostLevel="0">
+<PPoints>
+<PDataArray type="Float32" NumberOfComponents="3"/>
+</PPoints>
+<Piece Source="trycube.vtp"/>
+<Piece Source="trycube2.vtp"/>
+</PPolyData>
+</VTKFile>

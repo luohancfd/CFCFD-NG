@@ -1,0 +1,3 @@
+Hopefully, what this module contains are basically a set of interrogation routines
+to determine if a point is inside/outside a polygon/polyhedron.
+

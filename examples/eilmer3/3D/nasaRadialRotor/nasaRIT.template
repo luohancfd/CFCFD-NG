@@ -1,0 +1,144 @@
+# nasaRIT.template
+# Nasa Rotor with thickness
+# Authors: Paul Petrie-Repar, Carlos Ventura, Peter J.
+# Starting Date: 26/3/2010
+# Adpative template: 19-Apr-2010
+
+stage = $stage
+jobName = '$jobName'
+gdata.title = "Nasa Radial Inflow Turbine, Mesh Created by Axcent"
+print gdata.title
+sameGrid =$sameGrid
+
+select_gas_model(model='ideal gas', species=['Ar'])
+gdata.dimensions = 3
+gdata.dt = $dt_init
+gdata.flux_calc = ADAPTIVE
+gdata.t_order = 2
+gdata.x_order = 2
+gdata.cfl=$cfl
+gdata.viscous_flag = 0
+gdata.turbulence_flag = 0
+gdata.max_time = 0.1 # Seconds
+gdata.max_step = $max_step
+gdata.dt_plot = 0.01
+
+# Angular velocity of rotor  
+omega_z_rpm = -38500.0        
+omega_z_rad = omega_z_rpm / 60 * 2.0 * math.pi
+print "Rotor Angular Velocity", omega_z_rad, "(rad/s)"
+
+def stator_initialCond(x, y, z):
+    """
+    Initial gas state in stator has some swirl.
+    """
+    initMach = 0.3
+    speedSound = 526.0
+    #
+    velMag = initMach * speedSound
+    r = sqrt( x * x + y * y)
+    alpha = -62.0 * 2.0 * math.pi / 360.0
+    #
+    vel_t = velMag * math.sin(alpha)
+    vel_r = -velMag * math.cos(alpha)
+    #
+    vel_x = (-y * vel_t + x * vel_r) / r    # x-velocity [m/s]
+    vel_y = (x * vel_t + y * vel_r) / r     # y-velocity [m/s]
+    # Note that this function returns a dictionary of flow properties.
+    return FlowCondition (p=70000.0, u = vel_x, v=vel_y, T=800.0, add_to_list =0).to_dict()
+
+rotor_initialCond = FlowCondition(p=60000.0, u=0.0 ,T=900.0)
+
+# Initial flow conditions for each stage depend...
+if stage == 0:
+    # Start with a clean slate
+    fc_stator = stator_initialCond
+    fc_rotor = rotor_initialCond
+else:
+    # Pick up data from the previous stage of the simulation.
+    if sameGrid == 0:
+        fc_stator = ExistingSolution(jobName + str(stage-1), '.', 6, 9999)
+    else:
+        fc_stator = ExistingSolution(jobName + str(stage-1), '.', 6, 9999, assume_same_grid=1)
+    fc_rotor = fc_stator
+
+
+
+# Set up the blocks from imported grids.
+stator_nijk = $stator_nijk
+rotor_nijk = $rotor_nijk
+stator_blks = []
+for ib in range(3):
+    pvol = MeshVolume("stator-"+ str(ib)+".vtk")
+    blk = Block3D(nni=stator_nijk[ib]['i'], 
+                  nnj=stator_nijk[ib]['j'],
+                  nnk=stator_nijk[ib]['k'], 
+                  parametric_volume=pvol,
+                  fill_condition=fc_stator)
+    stator_blks.append(blk)
+rotor_blks = []
+
+#cluster cells in diffuser to save computation effort
+cluster_i0 = RobertsClusterFunction(1, 0, $diffuse_beta) 
+cflist_cluster = [cluster_i0, None]*4 + [None,]*4;
+cflist_no_cluster = [None]*12;
+
+for ib in range(3):
+    pvol = MeshVolume("rotor-"+ str(ib)+".vtk")
+    if ib == 2:
+        cflist = cflist_cluster
+    else:
+        cflist = cflist_no_cluster
+    blk = Block3D(nni=rotor_nijk[ib]['i'],
+                  nnj=rotor_nijk[ib]['j'],
+                  nnk=rotor_nijk[ib]['k'],
+                  parametric_volume=pvol,
+                  cf_list = cflist,
+                  fill_condition=fc_rotor,
+                  omegaz=omega_z_rad)
+    rotor_blks.append(blk)
+
+identify_block_connections()
+
+# Apply boundary conditions.
+# The appropriate surfaces were determined by loading each block
+# with MayaVi, then putting on a gridplane, and fiddling with the
+# index directions to find out which surface was which.
+
+#Stator Inlet
+stator_blks[0].set_BC("WEST", USER_DEFINED, filename="udf-subsonic-in-bc.lua")
+#Stator Periodic Boundary 
+stator_blks[0].set_BC("NORTH", USER_DEFINED, filename="udf-stator-periodic-bc.lua")
+stator_blks[0].set_BC("SOUTH", USER_DEFINED, filename="udf-stator-periodic-bc.lua")
+stator_blks[2].set_BC("NORTH", USER_DEFINED, filename="udf-stator-periodic-bc.lua")
+stator_blks[2].set_BC("SOUTH", USER_DEFINED, filename="udf-stator-periodic-bc.lua")
+#Rotor Periodic Boundary 
+rotor_blks[0].set_BC("NORTH", USER_DEFINED, filename="udf-rotor-periodic-bc.lua")
+rotor_blks[0].set_BC("SOUTH", USER_DEFINED, filename="udf-rotor-periodic-bc.lua")
+rotor_blks[2].set_BC("NORTH", USER_DEFINED, filename="udf-rotor-periodic-bc.lua")
+rotor_blks[2].set_BC("SOUTH", USER_DEFINED, filename="udf-rotor-periodic-bc.lua")
+#Rotor Exit 
+rotor_blks[2].set_BC("EAST", USER_DEFINED, filename="udf-subsonic-out-bc.lua")
+#Mixing planes
+stator_blks[2].set_BC("EAST", USER_DEFINED, filename="udf-mp-stator-exit.lua")
+rotor_blks[0].set_BC("WEST", USER_DEFINED,  filename="udf-mp-rotor-inlet.lua")   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

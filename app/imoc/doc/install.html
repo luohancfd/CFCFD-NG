@@ -1,0 +1,115 @@
+<HTML>
+<HEAD>
+<TITLE>IMOC Installation.</TITLE>
+</HEAD>
+
+<BODY>
+<H2>IMOC Installation</H2>
+<P>
+Since IMOC is provided as a loadable module and set of Tcl scripts,
+you need to have Tcl/Tk (Version 8.x) up and running on your system.
+To get started with Tcl/Tk, 
+more information can be found at the URL
+<A HREF="http://www.tcl.tk">The Tcl Developer Xchange</A>.
+</P>
+
+<H3>MS-Windows (Defunct)</H3>
+<P>
+The <CODE><A HREF="../../../web_archives/imoc.zip">imoc.zip</A></CODE> file 
+includes prebuilt DLLs for both Tcl 8.0 and 8.3.
+Just unzip the package somewhere convenient and run 
+the <CODE>Setup.exe</CODE>.
+This is an InstallShield setup program, so just follow the prompts.
+</P>
+
+<P>
+By default, the Tcl scripts and the DLLs are installed into 
+an <CODE>imoc</CODE> directory within 
+your <CODE>"Program Files/"</CODE> directory.
+Also, a <CODE>moc_startup</CODE> entry is added to 
+the <CODE>Programs</CODE> menu under the Start button.
+Starting the program this way will result in the wish interpreter 
+not accepting input from the console.
+This may not be a bother if you intend using only the GUI for
+interaction with IMOC.
+However, if you wish to be able to type commands directly into the 
+console window, start the wish interpreter alone and then source
+<CODE>moc_startup.tcl</CODE> to load the IMOC program scripts.
+You can find a copy of this startup script in 
+the <CODE>"Program Files/imoc/source/"</CODE> directory.
+Depending on which version of Tcl/Tk you have installed,
+your wish interpreter may be called <CODE>wish83.exe</CODE>.
+It should be found in 
+the Tcl directory <CODE>"Program Files/Tcl/bin/"</CODE>.
+</P>
+
+<P>
+If you have IMOC as source code only, you will need to build the DLLs.
+On Win32 systems, the IMOC library presently needs to be linked against 
+a particular Tcl library.
+There is a makefile for the Borland C/C++ compiler and the DLLs 
+for both Tcl versions 8.0 and 8.3 can be built in the directory 
+<code>imoc/borland</code>.
+The makefile assumes that Tcl/Tk was installed on drive <CODE>C:</CODE>
+(as per my system).
+If you need to use the makefile, you may need to edit it to suit your system.
+This will probably involve changing the drive where Tcl is installed and/or
+the removal of one of the DLL targets.
+</P>
+
+<H3>UNIX/Linux (Updated April 2007)</H3>
+<P>
+For Linux/UNIX, unpack the gzipped tar file 
+<CODE><A HREF="../../../web_archives/imoc.tar.gz">imoc.tar.gz</A></CODE> 
+within a convenient directory.
+The source and documentation files should end up within this directory
+<CODE>cfcfd2/app/imoc</CODE>.
+Note that the makefile depends on <code>systems.mk</code> in the directory
+<code>cfcfd2/lib/util/source</code> so you may need to unpack the 
+<code>cfd_util.tar.gz</code> file also.
+</P>
+
+<P>
+Build the loadable library by running <BR>
+<CODE>make</CODE> <BR>
+followed by <BR>
+<CODE>make install</CODE> <BR>
+in the <code>imoc/unix</code> directory.
+The makefile will try to install the run-time files in
+<CODE>$HOME/imoc_bin</CODE>.
+After installation <CODE>$HOME/imoc_bin/source</CODE> contains 
+the Tcl files and the shared object file,
+<CODE>$HOME/imoc_bin/doc</CODE> contains the HTML documentation
+and <CODE>$HOME/imoc_bin/demo</CODE> contains some sample
+IMOC scripts. 
+</P>
+
+<P>
+Before running the IMOC program, ensure that you have:
+<UL> 
+   <LI> the environment variable <CODE>IMOC_HOME</CODE> set to
+        <CODE>$HOME/imoc_bin</CODE>;
+   <LI> the environment variable <CODE>BROWSER</CODE> set to point 
+        to your favourite HTML browser </LI>.
+</UL> 
+To run IMOC with the graphical user interface, 
+start up the <CODE>wish</CODE> (Tcl with Tk) interpreter 
+and source the script <CODE>$IMOC_HOME/source/moc_startup.tcl</CODE>. 
+This will leave the interpreter console able to accept command input.
+Alternatively, one could start with the command <BR>
+<CODE>wish -f $IMOC_HOME/source/moc_startup.tcl</CODE> <BR>
+but, in this latter case, the wish interpreter will no longer accept
+typed commands from the console.
+Starting with the command <BR>
+<code>./moc_startup.tcl</code> <BR>
+has the same effect, bringing the GUI up and leaving the Tcl console 
+to show output but not accept input.
+</P>
+
+<HR>
+<ADDRESS>
+PJ, 02-Feb-2000, updated 27-May-2001, 21-Apr-2007.
+</ADDRESS>
+</BODY>
+
+</HTML>

@@ -1,0 +1,61 @@
+# moc_synonyms.table
+# Column 1 is the original name, other colums are nick names.
+#
+SetDebugLevel         setdebuglevel setDebugLevel
+GetDebugLevel         getdebuglevel getDebugLevel
+SetGamma              setgamma setGamma
+GetGamma              getgamma getGamma
+SetAxiFlag            setaxiflag setAxiFlag
+GetAxiFlag            getaxiflag getAxiFlag
+InitMOC               initmoc initMoc
+GetNumberOfNodes      getnumberofnodes getNumberOfNodes
+ValidNode             validnode validNode
+CreateNode            createnode createNode
+DeleteNode            deletenode deleteNode
+SetNodeData           setnodedata setNodeData
+GetNodeData           getnodedata getNodeData
+GetNextNodeId         getnextnodeid getNextNodeId
+ListNodesNear         listnodesnear listNodesNear
+FindNodesNear         findnodesnear findNodesNear
+SaveNodes             savenodes saveNodes
+LoadNodes             loadnodes loadNodes
+GetNodeDataValue      getnodedatavalue getNodeDataValue
+DeleteAll             deleteall deleteAll
+#
+T0_T                  t0_t
+P0_P                  p0_p
+NuFromM               nufromm nuFromM pmfunction
+MFromNu               mfromnu mFromNu machnumber machNumber
+MachAngle             machangle machAngle
+#
+InitWall              initwall initWall
+WallIsPresent         wallispresent wallIsPresent
+WallGetNumberOfPoints wallgetnumberofpoints wallGetNumberOfPoints
+WallGetPointX         wallgetpointx wallGetPointX
+WallGetPointY         wallgetpointy wallGetPointY
+WallDeletePoints      walldeletepoints wallDeletePoints
+WallAddPoint          walladdpoint wallAddPoint
+WallPosX              wallposX wallPosX
+WallPosY              wallposY wallPosY
+WallSlope             wallslope wallSlope
+WallFindT             wallfindt wallFindT
+SaveWall              savewall saveWall
+LoadWall              loadwall loadWall
+#
+InteriorNode          interiornode interiorNode
+InsertNode            insertnode insertNode
+CMinusWallNode        cminuswallnode cMinusWallNode
+CPlusWallNode         cpluswallnode cPlusWallNode
+CPlusFreeBndyNode     cplusfreebndynode cPlusFreeBndyNode
+CMinusFreeBndyNode    cminusfreebndynode cMinusFreeBndyNode
+AddStreamNode         addstreamnode addStreamNode
+StepStreamNode        stepstreamnode stepStreamNode
+InterpolateNode       interpolatenode interpolateNode
+#
+MarchAlongCMinus      marchalongcminus marchAlongCMinus
+MarchAlongCPlus       marchalongcplus marchAlongCPlus
+#
+setXYRanges           setxyranges SetXYRanges
+setXYTics             setxytics SetXYTics
+#
+# -------------- end of list -------------------------

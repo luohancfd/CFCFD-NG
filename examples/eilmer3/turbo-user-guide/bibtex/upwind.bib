@@ -1,0 +1,1880 @@
+@string {arfm = "Annual Review of Fluid Mechanics"}
+@string {jfm  = "Journal of Fluid Mechanics"}
+@string {jcp  = "Journal of Computational Physics"}
+
+@string {pf  = "The Physics of Fluids"}
+@string {pfa = "The Physics of Fluids (A)"}
+@string {pfb = "The Physics of Fluids (B)"}
+
+@string {caf   = "Computers and Fluids"}
+@string {cmame = " Computer Methods in Applied Mechanics and Engineering"}
+
+@string {taj   = "The Aeronautical Journal"}
+
+@string {aiaaj     = "A.I.A.A. Journal"}
+@string {aiaajsr   = "A.I.A.A. Journal of Spacecraft and Rockets"}
+@string {aiaajpp   = "A.I.A.A. Journal of Propulsion and Power"}
+@string {aiaaja    = "A.I.A.A. Journal of Aircraft"}
+@string {aiaajtpht = "A.I.A.A. Journal of Thermophysics and Heat Transfer"}
+
+@string {ijnmf = "International Journal for Numerical Methods in Fluids"}
+@string {ijnme = "International Journal for Numerical Methods in Engineering"}
+@string {ijhff = "International Journal for Heat and Fluid Flow"}
+
+@string {siamssc = "SIAM Journal on Scientific and Statistical Computing"}
+@string {siamna  = "SIAM Journal on Numerical Analysis"}
+
+@string {nasatp = "NASA Technical Paper"}
+@string {nasatm = "NASA Technical Memorandum"}
+@string {nasacr = "NASA Contractor Report"}
+
+-aa-
+
+@ARTICLE {abgrall_91b,
+   AUTHOR = {Abgrall, R.},
+   TITLE = {An extension of {Roe's} upwind scheme to algebraic
+	equilibrium real gas models.},
+   JOURNAL = caf,
+   YEAR = {1991},
+   VOLUME = {19},
+   NUMBER = {2},
+   PAGES = {171--182},
+   ANNOTE = {}
+   }
+
+@ARTICLE {abgrall_etal_91,
+   AUTHOR = {Abgrall, R. and Fezoui, L. and Talandier, J.},
+   TITLE = {An extension of {Osher's} {Riemann} solver for chemical and
+	vibrational nonequilibrium gas flows.},
+   JOURNAL = {Int. J. for Numerical Methods in Fluids},
+   YEAR = {1991},
+   VOLUME = {Submitted},
+   NUMBER = {},
+   PAGES = {},
+   ANNOTE = {* approximate Riemann invariants used
+	* they show a glitch at the base of the expansion fan in
+	the 1D shock tube test case
+	* they claim that the Osher solver is more robust than
+	the Roe solver as it does not require an entropy fix.
+	}
+   }
+
+@INPROCEEDINGS {abgrall_93a,
+   AUTHOR = { Abgrall, R. },
+   TITLE = { A third order {E.N.O.} scheme on unstructured meshes:
+         application to shock wave calculations. },
+   BOOKTITLE = { 19th International Symposium on Shock Waves,
+             Marseille, France. },
+   YEAR = {1993},
+   PAGES = {},
+   PUBLISHER = {},
+   ANNOTE = {}
+   }
+
+@INPROCEEDINGS { abgrall_92a,
+   AUTHOR = { Abgrall, R. },
+   TITLE = { An essentially non-oscillatory reconstruction procedure
+         on finite-element type meshes, application to compressible
+         flows. },
+   BOOKTITLE = { ICOSAHOM },
+   YEAR = {1992 },
+   PAGES = {},
+   PUBLISHER = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {vanalbada_etal_81,
+   AUTHOR = {van Albada, G. D. and van Leer, B. and Roberts, W. W.},
+   TITLE = {A comparative study of computational methods in cosmic
+	gas dynamics.},
+   INSTITUTION = {},
+   YEAR = {1981},
+   TYPE = {ICASE Report},
+   NUMBER = {81-24},
+   ADDRESS = {},
+   ANNOTE = {* schemes investigated Godunov 1st order, flux-split 2nd
+	order, MacCormacks, flux-corrected transport.
+	* 2nd order flux split looks good
+	* flux-corrected transport stuffed-up the phase information
+	* any first order upwinding method can be made second order
+	in time by first advancing the cell-interface values to be 
+	used in the flux function and source terms to an intermediate
+	time level.  The way in which this is done doesn't seem to
+	matter.}
+   }
+
+-bb-
+
+@TECHREPORT {barth_jespersen_89,
+   AUTHOR = {Barth, T. J. and Jespersen, D. C.},
+   TITLE = {The design and application of upwind schemes on
+	unstructured meshes.},
+   INSTITUTION = {},
+   YEAR = {1989},
+   TYPE = {AIAA Paper},
+   NUMBER = {89-0366},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {batina_90,
+   AUTHOR = {Batina, J. T.},
+   TITLE = {Implicit flux-split {Euler} schemes for unsteady
+	aerodynamic analysis involving unstructured dynamic meshes.},
+   INSTITUTION = {},
+   YEAR = {1990},
+   TYPE = {AIAA Paper},
+   NUMBER = {90-0936},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {batina_90b,
+   AUTHOR = {Batina, J. T.},
+   TITLE = {Three-dimensional flux-split {Euler} schemes
+	involving unstructured dynamic meshes.},
+   INSTITUTION = {},
+   YEAR = {1990},
+   TYPE = {AIAA Paper},
+   NUMBER = {90-1649},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@INPROCEEDINGS {bell_etal_??,
+   AUTHOR = {Bell, J. and Colella, P. and Trangenstein, J. and
+	Welcome, M.},
+   TITLE = {{Godunov} methods and adaptive algorithms for unsteady
+	fluid dynamics.},
+   BOOKTITLE = {10th International Conference on Numerical Methods
+	in Fluid Mechanics},
+   YEAR = {},
+   PAGES = {},
+   PUBLISHER = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {benartzi_falcovitz_84,
+   AUTHOR = {Ben-Artzi, M. and Falcovitz, J.},
+   TITLE = {A second-order {Godunov}-type scheme for compressible
+	fluid dynamics.},
+   JOURNAL = jcp,
+   YEAR = {1984},
+   VOLUME = {55},
+   NUMBER = {},
+   PAGES = {1--32},
+   ANNOTE = {}
+   }
+
+@ARTICLE {benartzi_89,
+   AUTHOR = {Ben-Artzi, M.},
+   TITLE = {The generalized {Riemann} problem for reactive flows.},
+   JOURNAL = jcp,
+   YEAR = {1989},
+   VOLUME = {81},
+   NUMBER = {1},
+   PAGES = {70--101},
+   ANNOTE = {* solution of Riemann problem is not self similar in time.}
+   }
+
+@INPROCEEDINGS {benartzi_birman_85,
+   AUTHOR = {Ben-Artzi, M. and Birman, A.},
+   TITLE = {Application of the generalized {Riemann} problem
+	method for 1-D compressible flow with material
+	interfaces.},
+   BOOKTITLE = {Shock Waves and Shock Tubes},
+   YEAR = {1985},
+   PAGES = {447--452},
+   PUBLISHER = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {benartzi_birman_90,
+   AUTHOR = {Ben-Artzi, M. and Birman, A.},
+   TITLE = {Computation of reactive duct flows in external fields.},
+   JOURNAL = jcp,
+   YEAR = {1990},
+   VOLUME = {86},
+   NUMBER = {1},
+   PAGES = {225--255},
+   ANNOTE = {* present address for Ben-Artzi
+	Institute of Mathematics
+	Hebrew University
+	Jerusalem, 91904
+	ISRAEL.
+	}
+   }
+
+@ARTICLE {bergamini_cinnella_94,
+   AUTHOR = { Bergamini, L. and Cinnella, P. },
+   TITLE = { Using the {Liou}-{Steffen} algorithm for {Euler} and
+         {Navier}-{Stokes} equations. },
+   JOURNAL = aiaaj,
+   YEAR = { 1994 },
+   VOLUME = { 32 },
+   NUMBER = { 3 },
+   PAGES = { 657--659 },
+   ANNOTE = {}
+   }
+
+@ARTICLE {bogdanoff_brackett_89,
+   AUTHOR = {Bogdanoff, D. W. and Brackett, D. C.},
+   TITLE = {{Godunov} computational fluid dynamics method for extreme
+	flow velocities and any equation of state.},
+   JOURNAL = aiaaj,
+   YEAR = {1989},
+   VOLUME = {27},
+   NUMBER = {7},
+   PAGES = {909--917},
+   ANNOTE = {* high speed reacting gas calculations}
+   }
+
+@TECHREPORT {buell_84,
+   AUTHOR = {Buell, J. C.},
+   TITLE = {Three-dimensional simulation of {STS} ignition 
+	overpressure.},
+   INSTITUTION = {},
+   YEAR = {1984},
+   TYPE = {AIAA Paper},
+   NUMBER = {84-1629},
+   ADDRESS = {},
+   ANNOTE = {* real engineering calculation done with a 
+	Godunov method}
+   }
+
+@ARTICLE {busnaina_etal_91,
+   AUTHOR = {Busniana, A. A. and Zheng, X. and Sharif, M. A. R.},
+   TITLE = {A modified skew upwind scheme for fluid flow and heat
+	transfer computations.},
+   JOURNAL = {Applied Mathematical Modelling},
+   YEAR = {1991},
+   VOLUME = {15},
+   NUMBER = {},
+   PAGES = {425--432},
+   ANNOTE = {}
+   }
+
+-cc-
+
+@TECHREPORT {casper_90,
+   AUTHOR = {Casper, J.},
+   TITLE = {An extension of essentially non-oscillatory
+	shock-capturing schemes to multi-dimensional syetems
+	of conservation laws.},
+   INSTITUTION = {Old Dominion University},
+   YEAR = {1990},
+   TYPE = {{Ph.D.} {Dissertation}},
+   NUMBER = {},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {casper_91,
+   AUTHOR = {Casper, J.},
+   TITLE = {Finite-volume application of high-order {ENO} schemes
+	to two-dimensional boundary-value problems.},
+   INSTITUTION = {},
+   YEAR = {1991},
+   TYPE = {AIAA Paper},
+   NUMBER = {91-0631},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {chakravarthy_osher_83,
+   AUTHOR = {Chakravarthy, S. R. and Osher, S.},
+   TITLE = {Numerical experiments with the {Osher} upwind scheme
+	for the {Euler} equations.},
+   JOURNAL = aiaaj,
+   YEAR = {1983},
+   VOLUME = {21},
+   NUMBER = {9},
+   PAGES = {1241--1248},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {chakravarthy_87,
+   AUTHOR = {Chakravarthy, S. R.},
+   TITLE = {Development of upwind schemes for the {Euler} equations.},
+   INSTITUTION = {},
+   YEAR = {1987},
+   TYPE = {NASA Contractor Report},
+   NUMBER = {4043},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {chakravarthy_90,
+   AUTHOR = {Chakravarthy, S. R.},
+   TITLE = {Some aspects of essentially nonoscillatory ({ENO})
+	formulations for the {Euler} equations.},
+   INSTITUTION = {},
+   YEAR = {1990},
+   TYPE = {NASA Contractor Report},
+   NUMBER = {4285},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {chamberlain_90,
+   AUTHOR = {Chamberlain, R.},
+   TITLE = {Influence of flux limiting on the calculation of
+	supersonic separated flows using {Roe's} scheme.},
+   INSTITUTION = {},
+   YEAR = {1990},
+   TYPE = {AIAA Paper},
+   NUMBER = {90-0588},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {chorin_76,
+   AUTHOR = {Chorin, A. J.},
+   TITLE = {Random choice solution of hyperbolic systems.},
+   JOURNAL = jcp,
+   YEAR = {1976},
+   VOLUME = {22},
+   NUMBER = {},
+   PAGES = {517--533},
+   ANNOTE = {* good description of Chorin's "improved"
+	iterative scheme
+	* average pressure initial guess
+	* limiting of the intermediate iterates
+	* perturbation if the solution has not converged
+	  after 20 iterations
+	}
+   }
+
+@INPROCEEDINGS {clarke_singh_89,
+   AUTHOR = {Clarke, J. F. and Singh, G.},
+   TITLE = {A numerical simulation of shock generated ignition
+	using the random choice method.},
+   BOOKTITLE = {Numerical Combustion, Lecture Notes on Physics 351.},
+   YEAR = {1989},
+   PAGES = {22--35},
+   PUBLISHER = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {colella_82,
+   AUTHOR = {Colella, P.},
+   TITLE = {Glimm's method for gas dynamics.},
+   JOURNAL = {SIAM J. Sci. Stat. Comput.},
+   YEAR = {1982},
+   VOLUME = {3},
+   NUMBER = {1},
+   PAGES = {76--110},
+   ANNOTE = {* the two-shock approximate Riemann solver
+	(iterative)
+	}
+   }
+
+@ARTICLE {colella_85,
+   AUTHOR = {Colella, P.},
+   TITLE = {A direct {Eulerian} {MUSCL} scheme for gas dynamics.},
+   JOURNAL = {SIAM Journal of Scientific and Statistical Computing},
+   YEAR = {1985},
+   VOLUME = {6},
+   NUMBER = {1},
+   PAGES = {104--117},
+   ANNOTE = {* two shock approximation for the wave relations}
+   }
+
+@ARTICLE {collella_glaz_85,
+   AUTHOR = {Colella, P. and Glaz, H. M},
+   TITLE = {Efficient solution algorithms for the {Riemann}
+	problem for real gases.},
+   JOURNAL = jcp,
+   YEAR = {1985},
+   VOLUME = {59},
+   NUMBER = {},
+   PAGES = {264--289},
+   ANNOTE = {* this seems to be the classic for real gas solvers
+	* exact solution procedure described here
+	}
+   }
+
+-dd-
+
+@ARTICLE {dadone_grossman_92,
+   AUTHOR = {Dadone, A. and Grossman, B.},
+   TITLE = {Characteristic-based, rotated upwind scheme for the
+	{Euler} equations.},
+   JOURNAL = aiaaj,
+   YEAR = {1992},
+   VOLUME = {30},
+   NUMBER = {9},
+   PAGES = {2219},
+   ANNOTE = {}
+   }
+
+@ARTICLE {deconinck_etal_93,
+   AUTHOR = {Deconinck, H. and Paillere, H. and Struijs, R. and
+          Roe, P. L. },
+   TITLE = { Multidimensional upwind schemes based on
+         fluctuation-splitting for systems of conservation laws. },
+   JOURNAL = {Computational Mechanics},
+   YEAR = {1993},
+   VOLUME = {11},
+   NUMBER = {5/6},
+   PAGES = {323--340},
+   ANNOTE = {}
+   }
+
+@ARTICLE {dedesh_91,
+   AUTHOR = {Dedesh, V. V.},
+   TITLE = { A method of constructing schemes of {Godunov} type. },
+   JOURNAL = {Soviet Physics Doklady},
+   YEAR = {1991},
+   VOLUME = {36},
+   NUMBER = {11},
+   PAGES = {733--734},
+   ANNOTE = {}
+   }
+
+@ARTICLE {devore_90,
+   AUTHOR = {DeVore, C. R.},
+   TITLE = {Flux-corrected transport techniques for multidimensional
+	compressible magnetohydrodynamics.},
+   JOURNAL = jcp,
+   YEAR = {1990},
+   VOLUME = {},
+   NUMBER = {},
+   PAGES = {},
+   ANNOTE = {* to appear
+	* magnetic field components at the interface locations
+	on the finite difference grid}
+   }
+
+@ARTICLE {dick_90,
+   AUTHOR = {Dick, E.},
+   TITLE = {Multigrid formulation of polynomial flux-difference
+	splitting for steady {Euler} equations.},
+   JOURNAL = jcp,
+   YEAR = {1990},
+   VOLUME = {91},
+   NUMBER = {},
+   PAGES = {161--173},
+   ANNOTE = {}
+   }
+
+@ARTICLE {drikakis_tsangaris_93,
+   AUTHOR = { Drikakis, D. and Tsangaris, S. },
+   TITLE = { On the solution of the compressible {Navier}-{Stokes}
+         equations using improved flux vector splitting methods. },
+   JOURNAL = {Applied Mathematical Modelling},
+   YEAR = {1993},
+   VOLUME = {17},
+   NUMBER = {},
+   PAGES = {282},
+   ANNOTE = {}
+   }
+
+@ARTICLE {dukowicz_85,
+   AUTHOR = {Dukowicz, J. K.},
+   TITLE = {A general, non-iterative {Riemann} solver for {Godunov's}
+	method.},
+   JOURNAL = jcp,
+   YEAR = {1985},
+   VOLUME = {61},
+   NUMBER = {1},
+   PAGES = {119--137},
+   ANNOTE = {}
+   }
+
+@ARTICLE {dukowicz_etal_89,
+   AUTHOR = {Dukowicz, J. K. and Cline, M. C. and Addessio, F. L.},
+   TITLE = {A general topology {Godunov} method.},
+   JOURNAL = jcp,
+   YEAR = {1989},
+   VOLUME = {82},
+   NUMBER = {1},
+   PAGES = {29--63},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {dutt_86,
+   AUTHOR = {Dutt, P.},
+   TITLE = {A {Riemann} solver based on a global existence proof
+	for the {Riemann} problem.},
+   INSTITUTION = {},
+   YEAR = {1986},
+   TYPE = {ICASE Report},
+   NUMBER = {86-3},
+   ADDRESS = {},
+   ANNOTE = {* iterative solver based on parameterized
+	wave relations
+	}
+   }
+
+-ee-
+
+@ARTICLE {edwards_thomas_89,
+   AUTHOR = {Edwards, J. W. and Thomas, J. L.},
+   TITLE = {Computation methods for unsteady transonic flows.},
+   JOURNAL = {Progress in Astronautics and Aeronautics},
+   YEAR = {1989},
+   VOLUME = {120},
+   NUMBER = {},
+   PAGES = {211--261},
+   ANNOTE = {}
+   }
+
+@ARTICLE {eidelman_86,
+   AUTHOR = {Eidelman, S.},
+   TITLE = {Local cell orientation method.},
+   JOURNAL = aiaaj,
+   YEAR = {1986},
+   VOLUME = {24},
+   NUMBER = {3},
+   PAGES = {530--531},
+   ANNOTE = {}
+   }
+
+@ARTICLE {eidelman_etal_84,
+   AUTHOR = {Eidelman, S. and Colella, P. and Shreeve, R. P.},
+   TITLE = {Application of the {Godunov} method and its second-order
+	extension to cascade flow modelling.},
+   JOURNAL = aiaaj,
+   YEAR = {1984},
+   VOLUME = {22},
+   NUMBER = {11},
+   PAGES = {1609--1615},
+   ANNOTE = {}
+   }
+
+@INPROCEEDINGS {einfeldt_87,
+   AUTHOR = {Einfeldt, B.},
+   TITLE = {On {Godunov} type methods for the {Euler} equations
+	with a general equation of state.},
+   BOOKTITLE = {Shock Tubes and Waves},
+   YEAR = {1987},
+   PAGES = {671--676},
+   PUBLISHER = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {einfeldt_88,
+   AUTHOR = {Einfeldt, B.},
+   TITLE = {On {Godunov}-type methods for gas dynamics.},
+   JOURNAL = siamjna,
+   YEAR = {1988},
+   VOLUME = {25},
+   NUMBER = {2},
+   PAGES = {294--318},
+   ANNOTE = {}
+   }
+
+@ARTICLE {einfeldt_etal_90,
+   AUTHOR = {Einfeldt, B. and Roe, P.L. and Munz, C. D. and
+	Sjogreen, B.},
+   TITLE = {On {Godunov}-type methods near low densities.},
+   JOURNAL = jcp,
+   YEAR = {1991},
+   VOLUME = {92},
+   NUMBER = {},
+   PAGES = {273--295},
+   ANNOTE = {* to appear
+	* large flow kinetic energy may cause some schemes to 
+	compute unphysical states
+	* here is a fix for the Roe type solvers}
+   }
+
+-ff-
+-gg-
+
+@TECHREPORT {giles_etal_89,
+   AUTHOR = {Giles, M. and Anderson, W. K. and Roberts, T. W.},
+   TITLE = {The upwind control volume scheme for unstructured
+	triangular grids.},
+   INSTITUTION = {},
+   YEAR = {1989},
+   TYPE = {NASA Technical Memorandum},
+   NUMBER = {101664},
+   ADDRESS = {},
+   ANNOTE = {* looks to be only 1st order for time evolution}
+   }
+
+@ARTICLE {glaister_89,
+   AUTHOR = {Glaister, P.},
+   TITLE = {An efficient algorithm for compressible flows with
+	real gases.},
+   JOURNAL = {International Journal for Numerical Methods in Fluids.},
+   YEAR = {1989},
+   VOLUME = {9},
+   NUMBER = {},
+   PAGES = {1269--1283},
+   ANNOTE = {* approximate Riemann solver}
+   }
+
+@ARTICLE {glaister_90,
+   AUTHOR = {Glaister, P.},
+   TITLE = {An algorithm for isentropic flow.},
+   JOURNAL = {International Journal for Numerical Methods in Fluids.},
+   YEAR = {1990},
+   VOLUME = {11},
+   NUMBER = {},
+   PAGES = {169--175},
+   ANNOTE = {* approximate Riemann solver}
+   }
+
+@INPROCEEDINGS {glaz_87,
+   AUTHOR = {Glaz, H. M.},
+   TITLE = {Numerical computations in gas dynamics with high 
+	resolution schemes.},
+   BOOKTITLE = {Shock Tubes and Waves},
+   YEAR = {1987},
+   PAGES = {75--88},
+   PUBLISHER = {},
+   ANNOTE = {* multi-scale grids}
+   }
+
+@ARTICLE {glaz_etal_88,
+   AUTHOR = {Glaz, H. M. and Colella, P. and Collins, J. P. and
+	Furguson, R. E.},
+   TITLE = {Nonequilibrium effects in oblique shock-wave reflection.},
+   JOURNAL = aiaaj,
+   YEAR = {1988},
+   VOLUME = {26},
+   NUMBER = {6},
+   PAGES = {689--705},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {gnoffo_89,
+   AUTHOR = {Gnoffo, P. A.},
+   TITLE = {Upwind-biased, point-implicit relaxation strategies for
+	viscous, hypersonic flows.},
+   INSTITUTION = {},
+   YEAR = {1989},
+   TYPE = {AIAA Paper},
+   NUMBER = {89-1972-CP},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {goodman_leveque_88,
+   AUTHOR = {Goodman, J. B. and LeVeque, R. J.},
+   TITLE = {A geometric approach to high resolution {TVD} schemes.},
+   JOURNAL = siamjna,
+   YEAR = {1988},
+   VOLUME = {25},
+   NUMBER = {2},
+   PAGES = {268--293},
+   ANNOTE = {}
+   }
+
+@BOOK {godunov_76,
+   AUTHOR = {Godunov (Ed), S. K.},
+   TITLE = {Numerical Solution of Multidimensional Problems in
+	Gasdynamics.},
+   PUBLISHER = {Nauka},
+   ADDRESS = {Moscow},
+   YEAR = {1976},
+   ANNOTE = {* The explicit solution for the Riemann problem using
+	two isentropic waves (approximate solution).
+	* Newton iterations for the exact solver
+	}
+   }
+
+@ARTICLE {gottlieb_groth_88,
+   AUTHOR = {Gottlieb, J. J. and Groth, C. P. T.},
+   TITLE = {Assessment of {Riemann} solvers for unsteady
+	one-dimensional inviscid flows of perfect gases.},
+   JOURNAL = jcp,
+   YEAR = {1988},
+   VOLUME = {78},
+   NUMBER = {2},
+   PAGES = {437--458},
+   ANNOTE = {* took the finite wave expressions from here
+	* useful as an initial guess also
+	}
+   }
+
+@TECHREPORT {goodman_leveque_84,
+   AUTHOR = {Goodman, J. B. and LeVeque, R. J.},
+   TITLE = {A geometric approach to high resolution {TVD} schemes.},
+   INSTITUTION = {},
+   YEAR = {1984},
+   TYPE = {ICASE Report},
+   NUMBER = {84-55},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {grossman_walters_87,
+   AUTHOR = {Grossman, B. and Walters, R. W.},
+   TITLE = {Analysis of flux-split algorithms for {Euler's} equations
+	with real gases.},
+   INSTITUTION = {},
+   YEAR = {1987},
+   TYPE = {AIAA Paper},
+   NUMBER = {87-1117},
+   ADDRESS = {},
+   ANNOTE = {* see grossman and walters 1989a}
+   }
+
+@ARTICLE {grossman_walters_89a,
+   AUTHOR = {Grossman, B. and Walters, R. W.},
+   TITLE = {Analysis of flux-split algorithms for {Euler's} equations
+	with real gases.},
+   JOURNAL = aiaaj,
+   YEAR = {1989},
+   VOLUME = {27},
+   NUMBER = {5},
+   PAGES = {524--531},
+   ANNOTE = {* flux-vector splitting and Roe type flux-difference 
+	splitting
+	* high temperature 1-d shock tube problem
+	* supersonic wedge problem
+	* blunt body problem as an example.
+	* real gases via the equilibrium air fits of tannehill etc
+	* see also AIAA Paper 87-1117}
+   }
+
+@ARTICLE {grossman_walters_89b,
+   AUTHOR = {Grossman, B. and Walters, R. W.},
+   TITLE = {Flux-split algorithms for the multi-dimensional {Euler}
+	equations with real gases.},
+   JOURNAL = {Computers and Fluids},
+   YEAR = {1989},
+   VOLUME = {17},
+   NUMBER = {1},
+   PAGES = {99--112},
+   ANNOTE = {*hypersonic winged body as example}
+   }
+
+-hh-
+
+@ARTICLE {harten_etal_83,
+   AUTHOR = {Harten, A. and Lax, P. D. and van Leer, B.},
+   TITLE = {On upstream differencing and {Godunov}-type schemes for
+	hyperbolic conservation laws.},
+   JOURNAL = {SIAM Review},
+   YEAR = {1983},
+   VOLUME = {25},
+   NUMBER = {1},
+   PAGES = {35--61},
+   ANNOTE = {}
+   }
+
+@ARTICLE {harten_89,
+   AUTHOR = {Harten, A.},
+   TITLE = {ENO schemes with subcell resolution},
+   JOURNAL = jcp,
+   YEAR = {1989},
+   VOLUME = {83},
+   NUMBER = {1},
+   PAGES = {148--184},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {harten_etal_82,
+   AUTHOR = {Harten, A. and Lax, P. D. and van Leer, B.},
+   TITLE = {On upstream differencing and {Godunov}-type schemes
+	for hyperbolic conservation laws.},
+   INSTITUTION = {},
+   YEAR = {1982},
+   TYPE = {ICASE Report},
+   NUMBER = {82-5},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {harten_etal_86,
+   AUTHOR = {Harten, A. and Engquist, B. and Osher, S. and 
+	Chakravarthy, S. R.},
+   TITLE = {Uniformly high order accurate essentially 
+	non-oscillatory schemes III.},
+   INSTITUTION = {},
+   YEAR = {1986},
+   TYPE = {ICASE Report},
+   NUMBER = {86-22},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {hung_barth_88,
+   AUTHOR = {Hung, C. M. and Barth, T. J.},
+   TITLE = {Computation of hypersonic flow through a narrow
+	expansion slot.},
+   INSTITUTION = {},
+   YEAR = {1988},
+   TYPE = {AIAA Paper},
+   NUMBER = {88-0232},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+-ii-
+-jj-
+-kk-
+
+@TECHREPORT {krispin_etal_91,
+   AUTHOR = {Krispin, J. and Collins, J. and Glaz, H.},
+   TITLE = {High-order {Godunov} type solutions for materials
+	having a nonconvex equation of state.},
+   INSTITUTION = {},
+   YEAR = {1991},
+   TYPE = {AIAA Paper},
+   NUMBER = {91-1576},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+-ll-
+
+@TECHREPORT {lafon_osher_90,
+   AUTHOR = {Lafon, F. and Osher, S.},
+   TITLE = {High order filtering methods for approximating
+	hyperbolic systems of conservation laws.},
+   INSTITUTION = {},
+   YEAR = {1990},
+   TYPE = {ICASE Report},
+   NUMBER = {90-25},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {vonlavante_90,
+   AUTHOR = {von Lavante, E.},
+   TITLE = {Accuracy of upwind schemes applied to the 
+	{Navier}-{Stokes} equations.},
+   JOURNAL = aiaaj,
+   YEAR = {1990},
+   VOLUME = {28},
+   NUMBER = {7},
+   PAGES = {1312--1314},
+   ANNOTE = {}
+   }
+
+@ARTICLE {vanleer_79,
+   AUTHOR = {van Leer, B.},
+   TITLE = {Towards the ultimate conservative difference scheme.
+	V. A second-order sequel to {Godunov's} method.},
+   JOURNAL = jcp,
+   YEAR = {1979},
+   VOLUME = {32},
+   NUMBER = {},
+   PAGES = {101--136},
+   ANNOTE = {}
+   }
+
+@ARTICLE {vanleer_84,
+   AUTHOR = {van Leer, B.},
+   TITLE = {On the relation between the upwind-differencing
+	schemes of {Godunov}, {Engquist}-{Osher} and {Roe}.},
+   JOURNAL = {SIAM J. Sci. Stat. Comput.},
+   YEAR = {1984},
+   VOLUME = {5},
+   NUMBER = {1},
+   PAGES = {1--20},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {vanleer_etal_87,
+   AUTHOR = {van Leer, B. and Thomas, J. L. and Roe, P. L. and
+	Newsome, R. W.},
+   TITLE = {A comparison of numerical flux formulas for the {Euler}
+	and {Navier}-{Stokes} equations.},
+   INSTITUTION = {},
+   YEAR = {1987},
+   TYPE = {AIAA Paper},
+   NUMBER = {87-1104},
+   ADDRESS = {},
+   ANNOTE = {* flux-difference splitting has least dissipation
+	* net result -- upwinding is more accurate than central
+	difference plus artificial diffusion
+	}
+   }
+
+@TECHREPORT {vanleer_etal_89,
+   AUTHOR = {van Leer, B. and Lee, W. -T. and Powell, K. G.},
+   TITLE = {Sonic-point capturing.},
+   INSTITUTION = {},
+   YEAR = {1989},
+   TYPE = {AIAA Paper},
+   NUMBER = {89-1945-CP},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {vanleer_92,
+   AUTHOR = {van Leer, B.},
+   TITLE = {Progress in multi-dimensional upwind differencing.},
+   INSTITUTION = {Institute for Computer Applications in Science
+               and Engineering},
+   YEAR = {1992},
+   TYPE = {ICASE Report},
+   NUMBER = {92-43},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {leonard_88,
+   AUTHOR = {Leonard, B. P.},
+   TITLE = {Universal limiter for the transient interpolation modeling
+	of the advective transport equations: The ULTIMATE
+	conservative difference scheme.},
+   INSTITUTION = {},
+   YEAR = {1988},
+   TYPE = {NASA Technical Memorandum},
+   NUMBER = {100916},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {leonard_niknafs_90,
+   AUTHOR = {Leonard, B. P. and Niknafs, H. S.},
+   TITLE = {Cost-effective accurate coarse-grid method for highly
+	convective multidimensional unsteady flows.},
+   INSTITUTION = {},
+   YEAR = {1990},
+   TYPE = {AIAA Paper},
+   NUMBER = {90-????},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {leonard_niknafs_91,
+   AUTHOR = {Leonard, B. P. and Niknafs, H. S.},
+   TITLE = {Sharp monotonic resolution of discontinuities without
+	clipping of narrow extrema.},
+   JOURNAL = caf,
+   YEAR = {1991},
+   VOLUME = {19},
+   NUMBER = {1},
+   PAGES = {141--154},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {leveque_87,
+   AUTHOR = {LeVeque, R. J.},
+   TITLE = {High resolution finite volume methods on arbitrary grids
+	via wave propagation.},
+   INSTITUTION = {},
+   YEAR = {1987},
+   TYPE = {ICASE Report},
+   NUMBER = {87-68},
+   ADDRESS = {},
+   ANNOTE = {* later appeared as jcp article}
+   }
+
+@ARTICLE {leveque_yee_90,
+   AUTHOR = {LeVeque, R. J. and Yee, H. C.},
+   TITLE = {A study of numerical methods for hyperbolic
+            conservation laws with stiff source terms.},
+   JOURNAL = jcp,
+   YEAR = {1990},
+   VOLUME = {86},
+   NUMBER = {1},
+   PAGES = {187--210},
+   ANNOTE = {nonequilibrium gas dynamics
+             splitting schemes for the chemistry}
+   }
+
+@TECHREPORT {levy_etal_89,
+   AUTHOR = {Levy, D. W. and Powell, K. G. and van Leer, B.},
+   TITLE = {An implementation of a grid-independent upwind scheme
+	for the {Euler} equations.},
+   INSTITUTION = {},
+   YEAR = {1989},
+   TYPE = {AIAA Paper},
+   NUMBER = {89-1931-CP},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {levy_etal_93,
+   AUTHOR = {Levy, D. W. and Powell, K. G. and van Leer, B. },
+   TITLE = { Use of a rotated {Riemann} solver for the two-dimensional
+         {Euler} equations. },
+   JOURNAL = jcp,
+   YEAR = {1993},
+   VOLUME = {106},
+   NUMBER = {},
+   PAGES = {201--214},
+   ANNOTE = {}
+   }
+
+@ARTICLE {li_93,
+   AUTHOR = { Li, C. P. },
+   TITLE = { Implicit finite volume methods and application to a
+         delta wing problem. },
+   JOURNAL = {Computational Mechanics},
+   YEAR = {1993},
+   VOLUME = {11},
+   NUMBER = {5/6},
+   PAGES = {408},
+   ANNOTE = {* high order MUSCL reconstruction }
+   }
+
+@TECHREPORT {lin_chin_90,
+   AUTHOR = {Lin, S. -Y. and Chin, Y. -S.},
+   TITLE = {An upwind finite-volume scheme with a triangular mesh
+	for conservation laws.},
+   INSTITUTION = {Institute for Mathematics and its Applications},
+   YEAR = {1990},
+   TYPE = {Preprint},
+   NUMBER = {726},
+   ADDRESS = {},
+   ANNOTE = {* second order interpolation for the interface 
+	properties}
+   }
+
+@TECHREPORT {liou_hsu_89,
+   AUTHOR = {Liou, M. -S. and Hsu, A. T.},
+   TITLE = {A time accurate finite volume high resolution scheme for
+	three dimensional {Navier}-{Stokes} equations.},
+   INSTITUTION = {},
+   YEAR = {1989},
+   TYPE = {AIAA Paper},
+   NUMBER = {89-1994-CP},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {liou_etal_90,
+   AUTHOR = {Liou, M. _S. and van Leer, B. and Shuen, J. -S.},
+   TITLE = {Splitting of inviscid fluxes for real gases.},
+   JOURNAL = jcp,
+   YEAR = {1990},
+   VOLUME = {87},
+   NUMBER = {1},
+   PAGES = {1--24},
+   ANNOTE = {generalization of Roe's scheme to chemically reacting gas
+	* use of a different set of basis functions for the
+	equilibrium EOS as Tannehill's fits had higher order
+	discontinuities and were more cpu intensive}
+   }
+
+@INPROCEEDINGS {liou_steffen_91a,
+   AUTHOR = {Liou, M. -S. and Steffen, C. J.},
+   TITLE = {Development of a new flux splitting scheme.},
+   BOOKTITLE = {AIAA 10th Computational Fluid Dynamics Conference},
+   YEAR = {1991},
+   PAGES = {967--968},
+   PUBLISHER = {},
+   ANNOTE = {* addresses problems with Roe scheme}
+   }
+
+@TECHREPORT {liou_steffen_91b,
+   AUTHOR = {Liou, M. -S. and Steffen, C. J.},
+   TITLE = {A new flux splitting scheme.},
+   INSTITUTION = {},
+   YEAR = {1991},
+   TYPE = {NASA Technical Memorandum},
+   NUMBER = {104404},
+   ADDRESS = {},
+   ANNOTE = {* cheap and effective flux calculator}
+   }
+
+@INPROCEEDINGS {liou_92,
+   AUTHOR = {Liou, M. -S.},
+   TITLE = {On a new class of flux splittings.},
+   BOOKTITLE = {Thirteenth International Conference on Numerical
+             Methods in Fluid Dynamics},
+   YEAR = {1992},
+   PAGES = {115--119},
+   PUBLISHER = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {liou_steffen_93,
+   AUTHOR = { Liou, M. -S. and Steffen, C. J. },
+   TITLE = { A new flux splitting scheme. },
+   JOURNAL = jcp,
+   YEAR = {1993},
+   VOLUME = {107},
+   NUMBER = {1},
+   PAGES = {23--39},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {lombard_etal_82,
+   AUTHOR = {Lombard, C. K. and Oliger, J. and Yang, J. Y.},
+   TITLE = {A natural conservative flux difference splitting for
+	the hyperbolic systems of gasdynamics.},
+   INSTITUTION = {},
+   YEAR = {1982},
+   TYPE = {AIAA Paper},
+   NUMBER = {82-0976},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+-mm-
+
+@ARTICLE {macrossan_89,
+   AUTHOR = {Macrossan, M. N.},
+   TITLE = {The equilibrium flux method for the calculation of flows
+	with non-equilibrium chemical reactions.},
+   JOURNAL = jcp,
+   YEAR = {1989},
+   VOLUME = {80},
+   NUMBER = {1},
+   PAGES = {204--231},
+   ANNOTE = {decoupling of the gas-dynamics and the chemistry}
+   }
+
+@INPROCEEDINGS {macrossan_etal_91,
+   AUTHOR = {Macrossan, M. N. and Mallet, E. R. and Pullin, D. I.},
+   TITLE = {Flow calculations for the {Hermes} {Delta} wing at an 
+	angle of attack using a second order kinetic theory based
+	{Euler} solver.},
+   BOOKTITLE = {Workshop on Hypersonic Flows for Reentry Problems.
+	Part II.},
+   YEAR = {1991},
+   PAGES = {85--90},
+   PUBLISHER = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {mao_91,
+   AUTHOR = {Mao, D. -K.},
+   TITLE = {A treatment of discontinuities in shock-capturing
+	finite difference methods.},
+   JOURNAL = jcp,
+   YEAR = {1991},
+   VOLUME = {92},
+   NUMBER = {},
+   PAGES = {422--455},
+   ANNOTE = {* seems to be about the location of the shock within
+	the cell
+	}
+   }
+
+@ARTICLE {masson_taylor_69,
+   AUTHOR = {Masson, B. S. and Taylor, T. D.},
+   TITLE = {Application of {Godunov's} method to blunt-body 
+	calculations.},
+   JOURNAL = aiaaj,
+   YEAR = {1969},
+   VOLUME = {7},
+   NUMBER = {4},
+   PAGES = {694--698},
+   ANNOTE = {}
+   }
+
+@ARTICLE {montagne_etal_89,
+   AUTHOR = {Montagne, J. -L. and Yee, H. and Vinokur, M.},
+   TITLE = {Comparative study of high-resolution shock-capturing
+	schemes for a real gas.},
+   JOURNAL = aiaaj,
+   YEAR = {1989},
+   VOLUME = {27},
+   NUMBER = {10},
+   PAGES = {1332--1346},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {morrison_90,
+   AUTHOR = {Morrison, J.},
+   TITLE = {Flux difference split scheme for turbulent transport
+	equations.},
+   INSTITUTION = {},
+   YEAR = {1990},
+   TYPE = {AIAA Paper},
+   NUMBER = {90-5251},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {muller_89,
+   AUTHOR = {Muller, B.},
+   TITLE = {Simple improvements of an upwind {TVD} scheme for
+	hypersonic flow.},
+   INSTITUTION = {},
+   YEAR = {1989},
+   TYPE = {AIAA Paper},
+   NUMBER = {89-1977-CP},
+   ADDRESS = {},
+   ANNOTE = {* additions to scheme to avoid stair-casing}
+   }
+
+@ARTICLE {murman_74,
+   AUTHOR = {Murman, E. M.},
+   TITLE = {Analysis of embedded shock waves calculated by
+	relaxation methods.},
+   JOURNAL = aiaaj,
+   YEAR = {1974},
+   VOLUME = {12},
+   NUMBER = {5},
+   PAGES = {626--633},
+   ANNOTE = {* seems to have been the inspiration for Roe's solver
+	}
+   }
+
+-nn-
+-oo-
+
+@ARTICLE { obayashi_wada_94,
+   AUTHOR  = { Obayashi, S. and Wada, Y. },
+   TITLE   = { Practical formulation of a positively conservative scheme. },
+   JOURNAL = aiaaj,
+   YEAR    = { 1994 },
+   VOLUME  = { 32 },
+   NUMBER  = { 5 },
+   PAGES   = { 1093--1095 },
+   ANNOTE  = {}
+   }
+
+@ARTICLE {osher_solomon_82,
+   AUTHOR = {Osher, S. and Solomon, F.},
+   TITLE = {Upwind difference schemes for hyperbolic systems of
+	conservation laws.},
+   JOURNAL = {Mathematics of Computation},
+   YEAR = {1982},
+   VOLUME = {38},
+   NUMBER = {158},
+   PAGES = {339--374},
+   ANNOTE = {}
+   }
+
+@ARTICLE {osher_chakravarthy_83,
+   AUTHOR = {Osher, S. and Chakravarthy, S.},
+   TITLE = {Upwind schemes and boundary conditions with
+	applications to {Euler} equations in general geometries.},
+   JOURNAL = jcp,
+   YEAR = {1983},
+   VOLUME = {50},
+   NUMBER = {},
+   PAGES = {447--481},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {osher_shu_90,
+   AUTHOR = {Osher, S. and Shu, C. -H.},
+   TITLE = {High order essentially non-oscillatory schemes for
+	Hamilton-Jacobi equations.},
+   INSTITUTION = {},
+   YEAR = {1990},
+   TYPE = {ICASE Report},
+   NUMBER = {90-13},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+-pp-
+
+@ARTICLE {palmer_90,
+   AUTHOR = {Palmer, G.},
+   TITLE = {Improved flux-split algorithm applied to hypersonic
+	flows in chemical equilibrium.},
+   JOURNAL = aiaaj,
+   YEAR = {1990},
+   VOLUME = {28},
+   NUMBER = {7},
+   PAGES = {1153--1154},
+   ANNOTE = {}
+   }
+
+@ARTICLE {pandolfi_84,
+   AUTHOR = {Pandolfi, M.},
+   TITLE = {A contribution to the numerical prediction of unsteady 
+	flows.},
+   JOURNAL = aiaa,
+   YEAR = {1984},
+   VOLUME = {22},
+   NUMBER = {5},
+   PAGES = {602--610},
+   ANNOTE = {}
+   }
+
+@INPROCEEDINGS {pandolfi_borrelli_91,
+   AUTHOR = {Pandolfi, M. and Borrelli, S.},
+   TITLE = {An upwind formulation for hypersonic nonequilibrium 
+	flows.},
+   BOOKTITLE = {Modern Research Topics in Aerospace Propulsion},
+   YEAR = {1991},
+   PAGES = {213--226},
+   PUBLISHER = {Springer-Verlag},
+   ANNOTE = {}
+   }
+
+@ARTICLE {pike_93,
+   AUTHOR = { Pike, J. },
+   TITLE = { Riemann solvers for perfect and near-perfect gases. },
+   JOURNAL = aiaaj,
+   YEAR = { 1993 },
+   VOLUME = { 31 },
+   NUMBER = { 10 },
+   PAGES = { 1801--1808 },
+   ANNOTE = {}
+   }
+
+@ARTICLE { pullin_80,
+   AUTHOR  = { Pullin, D. I. },
+   TITLE   = { Direct simulation methods for compressible
+               inviscid ideal-gas flow. },
+   JOURNAL = jcp,
+   YEAR    = { 1980 },
+   VOLUME  = { 34 },
+   NUMBER  = { 2 },
+   PAGES   = { 231--244 },
+   ANNOTE  = { EFM original paper }
+   }
+
+-qq-
+
+@TECHREPORT {quirk_92b,
+   AUTHOR = {Quirk, J. J.},
+   TITLE = {A contribution to the great {Riemann} solver debate.},
+   INSTITUTION = {Institute for Computer Applications in Science
+               and Engineering},
+   YEAR = {1992},
+   TYPE = {ICASE Report},
+   NUMBER = {92-64},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE { quirk_94a,
+   AUTHOR  = { Quirk, J. J. },
+   TITLE   = { A contribution to the great {Riemann} solver debate. },
+   JOURNAL = ijnmf,
+   YEAR    = { 1994 },
+   VOLUME  = { 18 },
+   NUMBER  = { 6 },
+   PAGES   = { 555--574 },
+   ANNOTE  = {}
+   }
+
+-rr-
+
+@ARTICLE {rai_chakravarthy_86,
+   AUTHOR = {Rai, M. M. and Chakravarthy, S.},
+   TITLE = {An implicit form for the {Osher} upwind scheme.},
+   JOURNAL = aiaaj,
+   YEAR = {1986},
+   VOLUME = {24},
+   NUMBER = {5},
+   PAGES = {735--743},
+   ANNOTE = {used by Edwards (1988) scramjet study}
+   }
+
+@TECHREPORT {rider_93,
+   AUTHOR      = { Rider, W. J. },
+   TITLE       = { On improvements to symmetric {TVD} algorithms:
+               method development. },
+   INSTITUTION = {},
+   ADDRESS     = {},
+   YEAR        = { 1993 },
+   MONTH       = { July },
+   TYPE        = { AIAA Paper },
+   NUMBER      = { 93-3300-CP },
+   ANNOTE      = { * geometrical interpretation of TVD formulations }
+   }
+
+@ARTICLE {roberts_90,
+   AUTHOR = {Roberts, T. W.},
+   TITLE = {The behaviour of flux difference splitting schemes
+	near slowly moving shock waves.},
+   JOURNAL = jcp,
+   YEAR = {1990},
+   VOLUME = {90},
+   NUMBER = {},
+   PAGES = {141--160},
+   ANNOTE = {* in some condition seems to suggest that Osher's 
+	scheme is better than Roe's
+	* however results are sensitive to the ordering of the waves??
+	}
+   }
+
+@ARTICLE {roe_81,
+   AUTHOR = {Roe, P. L.},
+   TITLE = {Approximate {Riemann} solvers, parameter vectors,
+	and difference schemes.},
+   JOURNAL = jcp,
+   YEAR = {1981},
+   VOLUME = {43},
+   NUMBER = {},
+   PAGES = {357--372},
+   ANNOTE = {* this is the one that started it all
+	}
+   }
+
+@INPROCEEDINGS {roe_85,
+   AUTHOR = {Roe, P. L.},
+   TITLE = {Some contributions to the modelling of discontinuous
+	flows.},
+   BOOKTITLE = {Lectures in Applied Mathematics, Volume 22.},
+   YEAR = {1985},
+   PAGES = {163--193},
+   PUBLISHER = {},
+   ANNOTE = {* example of the expansion shock for the unfixed scheme}
+   }
+
+@ARTICLE {roe_86a,
+   AUTHOR = {Roe, P. L.},
+   TITLE = {Discrete models for the numerical analysis of time-
+	dependent multidimensional gas dynamics.},
+   JOURNAL = jcp,
+   YEAR = {1986},
+   VOLUME = {63},
+   NUMBER = {},
+   PAGES = {458--476},
+   ANNOTE = {}
+   }
+
+@ARTICLE {roe_86b,
+   AUTHOR = {Roe, P. L.},
+   TITLE = {Characteristic-based schemes for the {Euler} equations.},
+   JOURNAL = {Annual Review of Fluid Mechanics},
+   YEAR = {1986},
+   VOLUME = {18},
+   NUMBER = {},
+   PAGES = {337--365},
+   ANNOTE = {* flow in a variable area duct is also discussed
+	* and the example of a spherical shock is shown
+	}
+   }
+
+@INPROCEEDINGS {roe_??,
+   AUTHOR = {Roe, P. L.},
+   TITLE = {A survey of upwind differencing techniques.},
+   BOOKTITLE = {10th Int. CNMFD},
+   YEAR = {},
+   PAGES = {},
+   PUBLISHER = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {roe_92,
+   AUTHOR = {Roe, P. L.},
+   TITLE = {Sonic flux formulae.},
+   JOURNAL = siamssc,
+   YEAR = {1992},
+   VOLUME = {13},
+   NUMBER = {2},
+   PAGES = {611--630},
+   ANNOTE = {* test case for Euler solvers which will show an 
+	expansion shock for some schemes.}
+   }
+
+-ss-
+
+@TECHREPORT {sandham_yee_89,
+   AUTHOR = {Sandham, N. D. and Yee, H. C.},
+   TITLE = {A numerical study of a class of {TVD} schemes for 
+	compressible mixing layers.},
+   INSTITUTION = {},
+   YEAR = {1989},
+   TYPE = {NASA Technical Memorandum},
+   NUMBER = {102194},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {shu_90a,
+   AUTHOR = {Shu, C. -W.},
+   TITLE = {Numerical experiments on the accuracy of ENO and
+	modified ENO schemes.},
+   INSTITUTION = {},
+   YEAR = {1990},
+   TYPE = {ICASE Report},
+   NUMBER = {90-55},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {shu_90b,
+   AUTHOR = {Shu, C. -W.},
+   TITLE = {Numerical methods for systems of conservation laws
+	of mixed type using flux splitting.},
+   INSTITUTION = {},
+   YEAR = {1990},
+   TYPE = {ICASE Report},
+   NUMBER = {90-56},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {shu_etal_91,
+   AUTHOR = {Shu, C. -W. and Erlebacher, G. and Zang, T. A. and
+	Whitaker, D. and Osher, S.},
+   TITLE = {High-order {ENO} schemes applied to two- and
+	three-dimensional compressible flow.},
+   INSTITUTION = {},
+   YEAR = {1991},
+   TYPE = {ICASE Report},
+   NUMBER = {91-38},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {shu_92,
+   AUTHOR = {Shu, C. -W.},
+   TITLE = {A numerical method for systems of conservation laws of mixed
+	type admitting hyperbolic flux splitting.},
+   JOURNAL = jcp,
+   YEAR = {1992},
+   VOLUME = {100},
+   NUMBER = {2},
+   PAGES = {424--429},
+   ANNOTE = {}
+   }
+
+@ARTICLE {shuen_etal_90,
+   AUTHOR = {Shuen, J. -S. and Liou, M, -S. and van Leer, B.},
+   TITLE = {Inviscid flux-splitting algorithms for real gases with
+	non-equilibrium chemistry.},
+   JOURNAL = jcp,
+   YEAR = {1991},
+   VOLUME = {90},
+   NUMBER = {},
+   PAGES = {371--395},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {simpson_whittfield_89,
+   AUTHOR = {Simpson, L. B. and Whittfield, D. L.},
+   TITLE = {A flux-difference split algorithm for unsteady thin-layer
+	{Navier}-{Stokes} solutions.},
+   INSTITUTION = {},
+   YEAR = {1989},
+   TYPE = {AIAA Paper},
+   NUMBER = {89-1995-CP},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {spekreijse_87,
+   AUTHOR = {Spekreijse, S. P.},
+   TITLE = {Multigrid solution of the steady {Euler} equations.},
+   INSTITUTION = {Deft University of Technology},
+   YEAR = {1987},
+   TYPE = {Doctoral Thesis},
+   NUMBER = {},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {speziale_etal_91,
+   AUTHOR = {Speziale, C. G. and Gatski, T. B. and Fitzmaurice, N.},
+   TITLE = {An analysis of {RNG} based turbulence models for
+	homogenous shear flow.},
+   INSTITUTION = {},
+   YEAR = {1991},
+   TYPE = {ICASE Report},
+   NUMBER = {91-37},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {suresh_liou_91,
+   AUTHOR = {Suresh, A. and Liou, M. -S.},
+   TITLE = {Osher's scheme for real gases.},
+   JOURNAL = aiaaj,
+   YEAR = {1991},
+   VOLUME = {29},
+   NUMBER = {6},
+   PAGES = {920--926},
+   ANNOTE = {}
+   }
+
+@TECHREPORT {swanson_turkel_90,
+   AUTHOR = {Swanson, R. C. and Turkel, E.},
+   TITLE = {On central-difference and upwind schemes.},
+   INSTITUTION = {},
+   YEAR = {1990},
+   TYPE = {ICASE Report},
+   NUMBER = {90-44},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {sweby_84,
+   AUTHOR = {Sweby, P. K.},
+   TITLE = {High resolution schemes using flux limiters for
+	hyperbolic conservation laws.},
+   JOURNAL = {SIAM J. Numer. Anal.},
+   YEAR = {1984},
+   VOLUME = {21},
+   NUMBER = {},
+   PAGES = {995--1010},
+   ANNOTE = {}
+   }
+
+-tt-
+
+@ARTICLE {tamura_fujii_93,
+   AUTHOR = {Tamura, Y. and Fujii, K.},
+   TITLE = {A multi-dimensional upwind scheme for the {Euler}
+         equations on structured grids. },
+   JOURNAL = caf,
+   YEAR = {1993},
+   VOLUME = {22},
+   NUMBER = {2/3},
+   PAGES = {125--137},
+   ANNOTE = {}
+   }
+
+@ARTICLE {taylor_lin_81,
+   AUTHOR = {Taylor, T. D. and Lin, T. C.},
+   TITLE = {Numerical model for muzzle blast flowfields.},
+   JOURNAL = aiaaj,
+   YEAR = {1981},
+   VOLUME = {19},
+   NUMBER = {3},
+   PAGES = {346--349},
+   ANNOTE = {}
+   }
+
+@ARTICLE {taylor_masson_70,
+   AUTHOR = {Taylor, T. D. and Masson, B. S.},
+   TITLE = {Application of the unsteady numerical method of {Godunov}
+	to computation of supersonic flows past bell-shaped bodies.},
+   JOURNAL = jcp,
+   YEAR = {1970},
+   VOLUME = {5},
+   NUMBER = {},
+   PAGES = {443--454},
+   ANNOTE = {}
+   }
+
+@ARTICLE {taylor_73,
+   AUTHOR = {Taylor, T. D.},
+   TITLE = {An evaluation of cell type difference methods for
+	solving viscous flow problems.},
+   JOURNAL = {Computers and Fluids},
+   YEAR = {1973},
+   VOLUME = {1},
+   NUMBER = {},
+   PAGES = {3--18},
+   ANNOTE = {* includes Godunov scheme.}
+   }
+
+@INPROCEEDINGS {toro_roe_87,
+   AUTHOR = {Toro, E. F. and Roe, P. L.},
+   TITLE = {A hybridized higher-order random choice method for
+	quasi-linear hyperbolic systems.},
+   BOOKTITLE = {Shock Tubes and Waves.},
+   YEAR = {1987},
+   PAGES = {701--707},
+   PUBLISHER = {},
+   ANNOTE = {}
+   }
+
+@INPROCEEDINGS {toro_89a,
+   AUTHOR = {Toro, E. F.},
+   TITLE = {{Riemann}-problem-based techniques for computing
+	reactive two-phase flows.},
+   BOOKTITLE = {Numerical Combustion, Lecture Notes on Physics 351.},
+   YEAR = {1989},
+   PAGES = {472--481},
+   PUBLISHER = {},
+   ANNOTE = {}
+   }
+
+@ARTICLE {toro_89b,
+   AUTHOR = {Toro, E. F.},
+   TITLE = {A weighted average flux method for hyperbolic
+	conservation laws.},
+   JOURNAL = {Proc. R. Soc. Lond. A},
+   YEAR = {1989},
+   VOLUME = {423},
+   NUMBER = {},
+   PAGES = {401--418},
+   ANNOTE = {}
+   }
+
+@ARTICLE {toro_89c,
+   AUTHOR = {Toro, E. F.},
+   TITLE = {A CFL condition for characteristic based methods.},
+   JOURNAL = {Appl. Math. Lett.},
+   YEAR = {1989},
+   VOLUME = {2},
+   NUMBER = {1},
+   PAGES = {57--60},
+   ANNOTE = {}
+   }
+
+@ARTICLE {toro_89d,
+   AUTHOR = {Toro, E. F.},
+   TITLE = {A fast {Riemann} solver with constant covolume applied
+	to the random choice method.},
+   JOURNAL = {International J. for Numerical Methods in Fluids},
+   YEAR = {1989},
+   VOLUME = {9},
+   NUMBER = {},
+   PAGES = {1145--1164},
+   ANNOTE = {}
+   }
+
+@ARTICLE {trangenstein_pember_91,
+   AUTHOR = {Trangenstein, J. A. and Pember, R. B.},
+   TITLE = {The {Riemann} problem for longitudinal motion in an 
+	elastic-plastic bar.},
+   JOURNAL = {SIAM J. Scientific and Statistical Computing},
+   YEAR = {1991},
+   VOLUME = {12},
+   NUMBER = {3},
+   PAGES = {180--207},
+   ANNOTE = {* may be useful for powder compaction
+	* may also be useful for the shock-tunnel drag balance
+	where the elastic dynamics of the model needs to be
+	known
+	}
+   }
+
+-uu-
+-vv-
+
+@ARTICLE {venkatakrishnan_90,
+   AUTHOR = {Venkatakrishnan, V.},
+   TITLE = {Viscous computations using a direct solver.},
+   JOURNAL = {Computers and Fluids},
+   YEAR = {1990},
+   VOLUME = {18},
+   NUMBER = {2},
+   PAGES = {191--204},
+   ANNOTE = {}
+   }
+
+@ARTICLE {vinokur_montagne_90,
+   AUTHOR = {Vinokur, M. and Montagne, J. -L.},
+   TITLE = {Generalized flux-vector splitting and {Roe} average
+	for an equilibrium real gas.},
+   JOURNAL = jcp,
+   YEAR = {1990},
+   VOLUME = {89},
+   NUMBER = {2},
+   PAGES = {276--300},
+   ANNOTE = {}
+   }
+
+-ww-
+
+@TECHREPORT { wada_liou_94a,
+   AUTHOR      = { Wada, Y. and Liou, M. -S. },
+   TITLE       = { A flux splitting scheme with high-resolution and
+                   robustness for discontinuities. },
+   INSTITUTION = {},
+   ADDRESS     = {},
+   YEAR        = { 1994 },
+   MONTH       = { January },
+   TYPE        = { AIAA Paper },
+   NUMBER      = { 94-0083 },
+   ANNOTE      = { * used this paper for the implementation of AUSMDV }
+   }
+
+@ARTICLE {wang_widhopf_89,
+   AUTHOR = {Wang, J. C. T. and Widhopf, G. F.},
+   TITLE = {A high resolution {TVD} finite volume scheme
+	for the {Euler} equations in conservation form.},
+   JOURNAL = jcp,
+   YEAR = {1989},
+   VOLUME = {84},
+   NUMBER = {1},
+   PAGES = {145--173},
+   ANNOTE = {* sophisticated time dependent test cases including
+	a reflected shock tube with undertailored conditions
+	* a two-dimensional steady reflected shock problem
+	* muzzle blast wave }
+   }
+
+@TECHREPORT {whitaker_etal_89,
+   AUTHOR = {Whitaker, D. L. and Grossman, B. and Lohner, R.},
+   TITLE = {Two-dimensional {Euler} computations on a triangular
+	mesh using an upwind, finite-volume scheme.},
+   INSTITUTION = {},
+   YEAR = {1989},
+   TYPE = {AIAA Paper},
+   NUMBER = {89-0470},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+-xx-
+-yy-
+
+@ARTICLE {yamamoto_daiguji_93,
+   AUTHOR = {Yamamoto, S. and Daiguji, H.},
+   TITLE = {Higher-order-accurate upwind schemes for solving the
+         compressible {Euler} and {Navier}-{Stokes} equations. },
+   JOURNAL = caf,
+   YEAR = {1993},
+   VOLUME = {22},
+   NUMBER = {2/3},
+   PAGES = {259--270},
+   ANNOTE = {}
+   }
+
+@ARTICLE {yee_harten_87,
+   AUTHOR = {Yee, H. C. and Harten, A.},
+   TITLE = {Implicit {TVD} schemes for hyperbolic conservation laws
+	in curvilinear coordinates.},
+   JOURNAL = aiaaj,
+   YEAR = {1987},
+   VOLUME = {25},
+   NUMBER = {2},
+   PAGES = {266--274},
+   ANNOTE = {* also AIAA Paper 85-1513}
+   }
+
+@ARTICLE {yee_87,
+   AUTHOR = {Yee, H.},
+   TITLE = {Construction of explicit and implicit symmetric {TVD}
+	 schemes and their applications.},
+   JOURNAL = jcp,
+   YEAR = {1987},
+   VOLUME = {68},
+   NUMBER = {},
+   PAGES = {151--179},
+   ANNOTE = {* also NASA TM-86775}
+   }
+
+@TECHREPORT {yee_shinn_87,
+   AUTHOR = {Yee, H. C. and Shinn, J. L.},
+   TITLE = {Semi-implicit and fully implicit shock-capturing methods
+	for hyperbolic conservation laws with stiff source terms.},
+   INSTITUTION = {},
+   YEAR = {1987},
+   TYPE = {AIAA Paper},
+   NUMBER = {87-1116},
+   ADDRESS = {},
+   ANNOTE = {}
+   }
+
+@TECHREPORT { yee_etal_88,
+   AUTHOR = {Yee, H. C. and Klopfer, G. H. and Montagne, J. -L.},
+   TITLE = {High-resolution shock-capturing schemes for inviscid
+            and viscous hypersonic flows.},
+   INSTITUTION = {},
+   YEAR = {1988},
+   TYPE = {NASA Technical Memorandum},
+   NUMBER = {100097},
+   ADDRESS = {},
+   ANNOTE = {improvements for hypersonic flows
+             equilibrium curve fits for air - Tannehill
+             viscous effects as well -- needed for hypersonic
+	* see also J. Comput. Phys, 88(), 31--61, 1990}
+   }
+
+@TECHREPORT {yee_89,
+   AUTHOR = {Yee, H.},
+   TITLE = {A class of high-resolution explicit and implicit
+	shock-capturing methods.},
+   INSTITUTION = {},
+   YEAR = {1989},
+   TYPE = {NASA Technical Memorandum},
+   NUMBER = {101088},
+   ADDRESS = {},
+   ANNOTE = {* seems to have just about everything!}
+   }
+
+@ARTICLE {yee_shinn_89,
+   AUTHOR = {Yee, H. and Shinn, J. L.},
+   TITLE = {Semi-implicit and fully implicit shock-capturing methods 
+	for nonequilibrium flows.},
+   JOURNAL = aiaaj,
+   YEAR = {1989},
+   VOLUME = {27},
+   NUMBER = {3},
+   PAGES = {299--307},
+   ANNOTE = {}
+   }
+
+-zz-
+

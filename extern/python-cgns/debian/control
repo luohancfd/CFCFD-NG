@@ -1,0 +1,13 @@
+Source: python-cgns
+Section: python
+Priority: optional
+Maintainer: Oliver Borm <oli.borm@web.de>
+Build-Depends: cdbs, debhelper (>= 7), python-dev, python-support, swig, libcgns-dev
+Standards-Version: 3.8.4
+
+Package: python-cgns
+Architecture: any
+Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends}
+Provides: ${python:Provides}
+Description: Python language bindings for the CGNS library
+ These are python language bindings for the CGNS library, generated with swig

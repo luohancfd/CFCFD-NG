@@ -1,0 +1,74 @@
+# contour-t4-m6.data
+# tab-delimited file with data points defining the Mach 6 nozzle contour.
+#
+# The first pair define a straight line while the rest are 
+# the interpolation points of a spline.
+#
+# This file has been built from Rainer Kirchhartz' m6contour.csv file.
+#    PeterJ, 14-March-2011
+#
+# The coordinates of Rainer have been fixed to match the original values. 
+# Additionally, the last two original coordinates were removed and 
+# replaced by a single coordinate. This single data point matches the exit 
+# diameter as measured by Keith Richards/Mel Suraweera. The axial location 
+# of this last coordinate has been adjusted to match the trend established 
+# by the original data points.
+#
+# An additional 5 points were also added in order to ensure that Eilmer3
+# is able to create a smooth spline. These points were added at axial 
+# locations: 0.353991, 0.371940, 0.607695, 0.622300, 0.636905 m. See 
+# NENZF-r user manual for more information.
+#    Luke Doherty, 19-August-2011
+# 
+# X [m]		R [m]
+0.000000	0.012500
+0.139954	0.047625
+0.147320	0.049403
+0.155448	0.051384
+0.164592	0.053594
+0.174498	0.055880
+0.184912	0.058318
+0.195834	0.060782
+0.209804	0.063779
+0.220726	0.066116
+0.232410	0.068580
+0.244602	0.070968
+0.257556	0.073482
+0.271018	0.076048
+0.285496	0.078664
+0.300482	0.081331
+0.316484	0.084023
+0.336042	0.087097
+0.353991	0.089842
+0.371940	0.092559
+0.389890	0.095199
+0.406146	0.097434
+0.421132	0.099390
+0.432054	0.100813
+0.443484	0.102235
+0.456438	0.103810
+0.467360	0.105054
+0.482600	0.106807
+0.492252	0.107874
+0.509270	0.109703
+0.518668	0.110668
+0.532384	0.112065
+0.546608	0.113436
+0.561086	0.114808
+0.574040	0.115976
+0.583438	0.116815
+0.593090	0.117627
+0.607695	0.118793
+0.622300	0.119964
+0.636905	0.121142
+0.651510	0.122276
+0.661670	0.123012
+0.674116	0.123876
+0.691896	0.125095
+0.712470	0.126390
+0.729234	0.127432
+0.743712	0.128270
+0.754126	0.128854
+0.768350	0.129642
+0.788924	0.130683
+0.797028	0.131080

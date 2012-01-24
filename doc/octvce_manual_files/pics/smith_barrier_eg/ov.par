@@ -1,0 +1,83 @@
+INPUT PARAMETERS FOR OCTVCE SIMULATION
+--------------------------------------
+
+
+Octree root spatial properties
+------------------------------
+
+Centroid location: 0.525 0.525 0.525 
+Edge length scale: 1.05 
+
+
+Run parameters
+--------------
+
+Type of flux solver: AUSM
+Use multiple limiters? n
+Global timestep (set to 0 if don't want it fixed): 0
+Max CFL (must be between 0 and 1): 0.5
+Finish time (choose one and make the other '0') -
+  By timestep: 0
+  By flow time: 4e-3
+
+
+Parallel processing
+-------------------
+
+Adapt in parallel? y
+
+
+Adaptation parameters
+---------------------
+
+Adapt every how many time steps (enter '0' for no adaptation): 5
+Type of error indicator: 2
+
+  If error indicator type is 1 or 3 - compression threshold: 0.05
+
+  If error indicator type is 2 or 3 ...
+  -------------------------------------	
+    Refinement threshold: 0.3
+    Coarsening threshold: 0.1	
+    Noise filter value: 0.013
+
+
+Octree refinement parameters
+----------------------------
+
+No. times to refine root initially: 5
+Max refinement level: 10
+Min refinement level: 5
+Min intersect refinement level: 5
+Level of cell IC intersection: 10
+
+
+Geometry engine parameters
+--------------------------
+
+Interrogate geometry engine only after what level: 5
+No. area subcells along edge (must be even): 64
+No. volume subcells along edge (must be even): 10
+Wall representation ('0' for staircased, '1' for smoothed): 1
+
+
+Visualization
+-------------
+
+Write flow soln of only intersected cells? n
+Write data frequency (choose one and make the other '0') -
+  By timestep: 0
+  By flow time: 1e-3
+Base solution file name: Smith_2D_L10
+
+
+History files
+-------------
+
+No. history locations: 1
+Dump history locations every how many time steps: 5
+Base history file name: Smith_2D_L10_
+
+History locations
+-----------------
+0.3 1.05 0

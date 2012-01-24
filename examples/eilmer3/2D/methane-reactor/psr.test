@@ -1,0 +1,73 @@
+# psr.test
+# Functional test for Brendan's GRI-Mech3.0 reaction scheme in Eilmer3.
+#
+# This exercises the finite-rate chemistry coupled to the gas-dynamics.
+#
+# PJ, 05-Sep-2011
+# Note that later tests below depend on earlier ones,
+# just as we shouldn't do.  Should fix this some day.
+
+package require tcltest 2.0
+namespace import ::tcltest::*
+configure -verbose {start body error}
+
+test run-preprocessor {Run the preprocessing stage.} -body {
+    exec ./prep.sh > LOGFILE_PREP
+} -result {} -returnCodes {0}
+
+test run-simulation {Run the shared-memory simulation code.} -body {
+    exec e3shared.exe --job=psr --run --verbose > LOGFILE_MAIN
+} -result {} -returnCodes {0}
+
+test number-of-steps {Iteration of the final block in a certain number of steps.} -body {
+    set fp [open LOGFILE_MAIN r]
+    set contents [read $fp]
+    close $fp
+    set final_steps 0
+    foreach line [split $contents "\n"] {
+	if {[string first "Total number of steps" $line] >= 0} {
+	    set final_steps [lindex [split $line] 5]
+	}
+    }
+    set final_steps
+} -result {955}
+
+test combustion-products {Combustion should have produced water by the end of the duct.} -body {
+    # The following values were extracted from the solution
+    # as it was computed on PJ's computer 21-Jun-2011.
+    set rho_ref 0.1683763
+    set p_ref 1.656104e5
+    set T_ref 3022.78
+    set massf_O_ref 9.51093e-3
+    set massf_H2O_ref 8.39097e-2
+    # Probe the solution near the end of the duct
+    # and pull a few values from the line of data
+    # that is produced by e3post.
+    if { [catch {exec e3post.py --gmodel-file=thermally-perfect-grimech30.lua --job=psr --tindx=9999 --probe=0.0,0.0,0.0} results] } {
+        puts "specialized postprocessing command failed"
+        puts $results
+	set rho 0
+	set p 0
+	set T 0
+	set massf_O   0
+	set massf_H2O 0
+    } else {
+	set line_of_data [string trim [lindex [split $results "\n"] end-1]]
+	# puts $line_of_data
+	set items [split $line_of_data]
+	set rho [lindex $items 4]; # remember that index starts at 0
+	set p [lindex $items 8]
+	set T [lindex $items 72]
+	set massf_O [lindex $items 19]
+	set massf_H2O [lindex $items 22]
+	# puts "rho=$rho p=$p T=$T massf O=$massf_O H2O=$massf_H2O"
+    }
+    # The differences with respect to the reference values should be small. 
+    list [expr abs($rho - $rho_ref)/$rho_ref < 1.0e-3] \
+    	 [expr abs($p - $p_ref)/$p_ref < 1.0e-3] \
+    	 [expr abs($T - $T_ref)/$T_ref < 1.0e-3] \
+    	 [expr abs($massf_O - $massf_O_ref)/$massf_O_ref < 1.0e-3] \
+    	 [expr abs($massf_H2O - $massf_H2O_ref)/$massf_H2O_ref < 1.0e-3]
+} -result {1 1 1 1 1}
+
+cleanupTests

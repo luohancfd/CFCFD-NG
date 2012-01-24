@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<VTKFile type="PPolyData" version="0.1" byte_order="LittleEndian">
+<PPolyData GhostLevel="0">
+<PPoints>
+<PDataArray type="Float32" NumberOfComponents="3"/>
+</PPoints>
+<Piece Source="body1.vtp"/>
+<Piece Source="body2.vtp"/>
+<Piece Source="body3.vtp"/>
+<Piece Source="body4.vtp"/>
+</PPolyData>
+</VTKFile>

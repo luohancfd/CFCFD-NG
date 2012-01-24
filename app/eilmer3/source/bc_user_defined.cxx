@@ -1,0 +1,777 @@
+// bc_user_defined.cxx
+
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <iostream>
+#include <vector>
+#include <valarray>
+
+#include <stdio.h>
+#include <math.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
+#include <vector>
+
+extern "C" {
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
+}
+
+#include "../../../lib/util/source/useful.h"
+#include "../../../lib/gas/models/gas_data.hh"
+#include "../../../lib/gas/models/gas-model.hh"
+#include "../../../lib/gas/models/physical_constants.hh"
+#include "block.hh"
+#include "kernel.hh"
+#include "bc.hh"
+#include "bc_user_defined.hh"
+#include "bc_menter_correction.hh"
+
+//----------------------------------------------------------------------------
+
+UserDefinedBC::UserDefinedBC( Block &bdp, int which_boundary,
+			      const std::string filename,
+			      bool is_wall, bool use_udf_flux )
+    : BoundaryCondition(bdp, which_boundary, USER_DEFINED, "UserDefinedBC",
+			is_wall, use_udf_flux),
+      filename(filename)
+{
+    // Set up an instance of the Lua interpreter and run the specified script file
+    // to define the flow() and wall() functions.
+    gmodel = get_gas_model_ptr();
+    nsp = gmodel->get_number_of_species();
+    nmodes = gmodel->get_number_of_modes();
+
+#   if ECHO_ALL
+    cout << "UserDefinedBC(): start a Lua interpreter on file " << filename << endl;
+#   endif
+    L = luaL_newstate();
+    luaL_openlibs(L); // load the standard libraries
+
+    // Set up some global variables that might be handy in 
+    // the Lua environment.
+    lua_pushinteger(L, bdp.id);  // we may need the id for the current block
+    lua_setglobal(L, "block_id");
+    lua_pushinteger(L, nsp);
+    lua_setglobal(L, "nsp");
+    lua_pushinteger(L, nmodes);
+    lua_setglobal(L, "nmodes");
+    lua_pushinteger(L, bdp.nni);
+    lua_setglobal(L, "nni");
+    lua_pushinteger(L, bdp.nnj);
+    lua_setglobal(L, "nnj");
+    lua_pushinteger(L, bdp.nnk);
+    lua_setglobal(L, "nnk");
+    lua_pushinteger(L, NORTH);
+    lua_setglobal(L, "NORTH");
+    lua_pushinteger(L, EAST);
+    lua_setglobal(L, "EAST");
+    lua_pushinteger(L, SOUTH);
+    lua_setglobal(L, "SOUTH");
+    lua_pushinteger(L, WEST);
+    lua_setglobal(L, "WEST");
+    lua_pushinteger(L, TOP);
+    lua_setglobal(L, "TOP");
+    lua_pushinteger(L, BOTTOM);
+    lua_setglobal(L, "BOTTOM");
+
+    // Register functions so that they are accessible 
+    // from the Lua environment.
+    lua_pushcfunction(L, luafn_sample_flow);
+    lua_setglobal(L, "sample_flow");
+    lua_pushcfunction(L, luafn_locate_cell);
+    lua_setglobal(L, "locate_cell");
+    lua_pushcfunction(L, luafn_compute_diffusion_coefficient);
+    lua_setglobal(L, "compute_diffusion_coefficient");
+
+    // Presume that the user-defined functions are in the specified file.
+    if ( luaL_loadfile(L, filename.c_str()) || lua_pcall(L, 0, 0, 0) ) {
+	handle_lua_error(L, "Could not run user file: %s", lua_tostring(L, -1));
+    }
+    lua_settop(L, 0); // clear the stack
+} // end constructor
+
+UserDefinedBC::UserDefinedBC( const UserDefinedBC &bc )
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
+			bc.is_wall_flag, bc.use_udf_flux_flag,
+			bc.neighbour_block, bc.neighbour_face,
+			bc.neighbour_orientation),
+      filename(bc.filename) 
+{
+    cerr << "UserDefinedBC() copy constructor is not implemented. FIX-ME." << endl;
+    exit( NOT_IMPLEMENTED_ERROR );
+}
+
+UserDefinedBC::~UserDefinedBC() 
+{
+    lua_close(L);
+}
+
+int UserDefinedBC::apply_inviscid( double t )
+{
+    int i, j, k;
+    FV_Cell *cell, *dest_cell;
+    FV_Interface *IFace;
+
+    switch ( which_boundary ) {
+    case NORTH:
+	j = bdp.jmax;
+        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
+	    for (i = bdp.imin; i <= bdp.imax; ++i) {
+		cell = bdp.get_cell(i,j,k);
+		IFace = cell->iface[NORTH];
+		dest_cell = bdp.get_cell(i,j+1,k);
+		eval_inviscid_udf( t, i, j, k, IFace );
+		if ( use_udf_flux_flag ) {
+		    eval_flux_udf( t, i, j, k, IFace );
+		}
+		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
+		dest_cell = bdp.get_cell(i,j+2,k);
+		if ( fdata2 ) dest_cell->copy_values_from(*fdata2);
+		// Clean up memory allocated fdata1 and fdata2. 
+		// This allocation was done inside unpack_flow_table()
+		// which was called by eval_flux_udf().
+		delete fdata1;
+		delete fdata2;
+	    } // end i loop
+	} // for k
+	break;
+    case EAST:
+	i = bdp.imax;
+        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
+	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
+		cell = bdp.get_cell(i,j,k);
+		IFace = cell->iface[EAST];
+		dest_cell = bdp.get_cell(i+1,j,k);
+		eval_inviscid_udf( t, i, j, k, IFace );
+		if ( use_udf_flux_flag ) {
+		    eval_flux_udf( t, i, j, k, IFace );
+		}
+		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
+		dest_cell = bdp.get_cell(i+2,j,k);
+		if ( fdata2 ) dest_cell->copy_values_from(*fdata2);
+		delete fdata1;
+		delete fdata2;
+	    } // end j loop
+	} // for k
+	break;
+    case SOUTH:
+	j = bdp.jmin;
+        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
+	    for (i = bdp.imin; i <= bdp.imax; ++i) {
+		cell = bdp.get_cell(i,j,k);
+		IFace = cell->iface[SOUTH];
+		dest_cell = bdp.get_cell(i,j-1,k);
+		eval_inviscid_udf( t, i, j, k, IFace );
+		if ( use_udf_flux_flag ) {
+		    eval_flux_udf( t, i, j, k, IFace );
+		}
+		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
+		dest_cell = bdp.get_cell(i,j-2,k);
+		if ( fdata2 ) dest_cell->copy_values_from(*fdata2);
+		delete fdata1;
+		delete fdata2;
+	    } // end i loop
+	} // for k
+	break;
+    case WEST:
+	i = bdp.imin;
+        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
+	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
+		cell = bdp.get_cell(i,j,k);
+		IFace = cell->iface[WEST];
+		dest_cell = bdp.get_cell(i-1,j,k);
+		eval_inviscid_udf( t, i, j, k, IFace );
+		if ( use_udf_flux_flag ) {
+		    eval_flux_udf( t, i, j, k, IFace );
+		}
+		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
+		dest_cell = bdp.get_cell(i-2,j,k);
+		if ( fdata2 ) dest_cell->copy_values_from(*fdata2);
+		delete fdata1;
+		delete fdata2;
+	    } // end j loop
+	} // for k
+ 	break;
+    case TOP:
+	k = bdp.kmax;
+        for (i = bdp.imin; i <= bdp.imax; ++i) {
+	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
+		cell = bdp.get_cell(i,j,k);
+		IFace = cell->iface[TOP];
+		dest_cell = bdp.get_cell(i,j,k+1);
+		eval_inviscid_udf( t, i, j, k, IFace );
+		if ( use_udf_flux_flag ) {
+		    eval_flux_udf( t, i, j, k, IFace );
+		}
+		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
+		dest_cell = bdp.get_cell(i,j,k+2);
+		if ( fdata2 ) dest_cell->copy_values_from(*fdata2);
+		delete fdata1;
+		delete fdata2;
+	    } // end j loop
+	} // for i
+	break;
+    case BOTTOM:
+	k = bdp.kmin;
+        for (i = bdp.imin; i <= bdp.imax; ++i) {
+	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
+		cell = bdp.get_cell(i,j,k);
+		IFace = cell->iface[BOTTOM];
+		dest_cell = bdp.get_cell(i,j,k-1);
+		eval_inviscid_udf( t, i, j, k, IFace );
+		if ( use_udf_flux_flag ) {
+		    eval_flux_udf( t, i, j, k, IFace );
+		}
+		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
+		dest_cell = bdp.get_cell(i,j,k-2);
+		if ( fdata2 ) dest_cell->copy_values_from(*fdata2);
+		delete fdata1;
+		delete fdata2;
+	    } // end j loop
+	} // for i
+ 	break;
+    default:
+	printf( "Error: apply_inviscid not implemented for boundary %d\n", 
+		which_boundary );
+	return NOT_IMPLEMENTED_ERROR;
+    } // end switch
+
+    return SUCCESS;
+} // end apply_inviscid()
+
+int UserDefinedBC::apply_viscous( double t )
+{
+    int i, j, k;
+    FV_Cell *cell;
+    FV_Interface *IFace;
+
+    switch ( which_boundary ) {
+    case NORTH:
+	j = bdp.jmax;
+	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
+	    for (i = bdp.imin; i <= bdp.imax; ++i) {
+		cell = bdp.get_cell(i,j,k);
+		IFace = cell->iface[NORTH];
+		eval_viscous_udf( t, i, j, k, IFace, cell );
+	    } // end i loop
+	} // for k
+	break;
+    case EAST:
+	i = bdp.imax;
+	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
+	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
+		cell = bdp.get_cell(i,j,k);
+		IFace = cell->iface[EAST];
+		eval_viscous_udf( t, i, j, k, IFace, cell );
+	    } // end j loop
+	} // for k
+	break;
+    case SOUTH:
+	j = bdp.jmin;
+	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
+	    for (i = bdp.imin; i <= bdp.imax; ++i) {
+		cell = bdp.get_cell(i,j,k);
+		IFace = cell->iface[SOUTH];
+		eval_viscous_udf( t, i, j, k, IFace, cell );
+	    } // end i loop
+	} // for k
+	break;
+    case WEST:
+	i = bdp.imin;
+	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
+	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
+		cell = bdp.get_cell(i,j,k);
+		IFace = cell->iface[WEST];
+		eval_viscous_udf( t, i, j, k, IFace, cell );
+	    } // end j loop
+	} // for k
+ 	break;
+    case BOTTOM:
+	k = bdp.kmin;
+	for (i = bdp.imin; i <= bdp.imax; ++i) {
+	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
+		cell = bdp.get_cell(i,j,k);
+		IFace = cell->iface[BOTTOM];
+		eval_viscous_udf( t, i, j, k, IFace, cell );
+	    } // end j loop
+	} // for k
+ 	break;
+    case TOP:
+	k = bdp.kmax;
+	for (i = bdp.imin; i <= bdp.imax; ++i) {
+	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
+		cell = bdp.get_cell(i,j,k);
+		IFace = cell->iface[TOP];
+		eval_viscous_udf( t, i, j, k, IFace, cell );
+	    } // end j loop
+	} // for k
+ 	break;
+    default:
+	printf( "Error: apply_viscous not implemented for boundary %d\n", 
+		which_boundary );
+	return NOT_IMPLEMENTED_ERROR;
+    }
+    return SUCCESS;
+} // end UserDefinedBC::apply_viscous()
+
+int UserDefinedBC::eval_flux_udf( double t, int i, int j, int k, FV_Interface *IFace )
+{
+    // Call the user-defined function which returns a table 
+    // of fluxes of conserved quantities.
+    // This give the user complete control over what happens at the boundary.
+    // cout << "UserDefinedBC::eval_flux_udf() Begin" << endl;
+    double x = IFace->pos.x; 
+    double y = IFace->pos.y;
+    double z = IFace->pos.z;
+    double csX = IFace->n.x; 
+    double csY = IFace->n.y;
+    double csZ = IFace->n.z;
+
+    lua_getglobal(L, "flux");  // function to be called
+    lua_newtable(L); // creates a table that is now at the TOS
+    lua_pushnumber(L, t); lua_setfield(L, -2, "t");
+    lua_pushnumber(L, x); lua_setfield(L, -2, "x");
+    lua_pushnumber(L, y); lua_setfield(L, -2, "y");
+    lua_pushnumber(L, z); lua_setfield(L, -2, "z");
+    lua_pushnumber(L, csX); lua_setfield(L, -2, "csX");
+    lua_pushnumber(L, csY); lua_setfield(L, -2, "csY");
+    lua_pushnumber(L, csZ); lua_setfield(L, -2, "csZ");
+    lua_pushinteger(L, i); lua_setfield(L, -2, "i");
+    lua_pushinteger(L, j); lua_setfield(L, -2, "j");
+    lua_pushinteger(L, k); lua_setfield(L, -2, "k");
+    lua_pushinteger(L, which_boundary); lua_setfield(L, -2, "which_boundary");
+    int number_args = 1; // table of {t x y z csX csY csZ i j k which_boundary}
+    int number_results = 1; // one table of results returned on the stack.
+    if ( lua_pcall(L, number_args, number_results, 0) != 0 ) {
+	handle_lua_error(L, "error running user flow function: %s\n",
+			 lua_tostring(L, -1));
+    }
+    ConservedQuantities &F = *(IFace->F);
+    // Assume that there is a single table at the TOS
+    // cout << "Table of fluxes of mass fractions" << endl;
+    lua_getfield(L, -1, "species"); // put mass-fraction table at TOS 
+    for ( int isp = 0; isp < nsp; ++isp ) {
+	lua_pushinteger(L, isp);
+	lua_gettable(L, -2);
+	F.massf[isp] = lua_tonumber(L, -1);
+	lua_pop(L, 1); // remove the number to leave the table at TOS
+    }
+    lua_pop(L, 1); // remove F_species table from top-of-stack
+    lua_getfield(L, -1, "renergies"); // put individual-energies table at TOS 
+    for ( int imode = 0; imode < nmodes; ++imode ) {
+	lua_pushinteger(L, imode);
+	lua_gettable(L, -2);
+	F.energies[imode] = lua_tonumber(L, -1);
+	lua_pop(L, 1); // remove the number to leave the table at TOS
+    }
+    lua_pop(L, 1); // remove F_species table from top-of-stack
+    // cout << "Now get mass, momentum and energy fluxes." << endl;
+    lua_getfield(L, -1, "mass"); F.mass = lua_tonumber(L, -1); lua_pop(L, 1);
+    lua_getfield(L, -1, "momentum_x"); F.momentum.x = lua_tonumber(L, -1); lua_pop(L, 1);
+    lua_getfield(L, -1, "momentum_y"); F.momentum.y = lua_tonumber(L, -1); lua_pop(L, 1);
+    lua_getfield(L, -1, "momentum_z"); F.momentum.z = lua_tonumber(L, -1); lua_pop(L, 1);
+    lua_getfield(L, -1, "total_energy"); F.total_energy = lua_tonumber(L, -1); lua_pop(L, 1);
+    lua_getfield(L, -1, "romega"); F.omega = lua_tonumber(L, -1); lua_pop(L, 1);
+    lua_getfield(L, -1, "rtke"); F.tke = lua_tonumber(L, -1); lua_pop(L, 1);
+    lua_settop(L, 0); // clear the stack
+    //cout << "End of eval_flux_udf()" << endl;
+    return SUCCESS;
+} // end eval_flux_udf()
+
+int UserDefinedBC::eval_inviscid_udf( double t, int i, int j, int k, 
+				      FV_Interface *IFace )
+{
+    // Call the user-defined function which returns two tables 
+    // of flow conditions that can be copied into the ghost cells.
+
+    double x = IFace->pos.x; 
+    double y = IFace->pos.y;
+    double z = IFace->pos.z;
+    double csX = IFace->n.x; 
+    double csY = IFace->n.y;
+    double csZ = IFace->n.z;
+    // cout << "UserDefinedBC::eval_inviscid_udf() Begin" << endl;
+
+    lua_getglobal(L, "ghost_cell");  // function to be called
+    lua_newtable(L); // creates a table that is now at the TOS
+    lua_pushnumber(L, t); lua_setfield(L, -2, "t");
+    lua_pushnumber(L, x); lua_setfield(L, -2, "x");
+    lua_pushnumber(L, y); lua_setfield(L, -2, "y");
+    lua_pushnumber(L, z); lua_setfield(L, -2, "z");
+    lua_pushnumber(L, csX); lua_setfield(L, -2, "csX");
+    lua_pushnumber(L, csY); lua_setfield(L, -2, "csY");
+    lua_pushnumber(L, csZ); lua_setfield(L, -2, "csZ");
+    lua_pushinteger(L, i); lua_setfield(L, -2, "i");
+    lua_pushinteger(L, j); lua_setfield(L, -2, "j");
+    lua_pushinteger(L, k); lua_setfield(L, -2, "k");
+    lua_pushinteger(L, which_boundary); lua_setfield(L, -2, "which_boundary");
+    int number_args = 1; // table of {t x y z csX csY csZ i j k which_boundary}
+    int number_results = 2;
+    // We are expecting two tables of results returned on the stack,
+    // one for each ghost cell.
+    // Instead of either table, the user-defined function may have
+    // returned nil to indicate that the original ghost-cell data
+    // should be left alone.  It may have come from an ealrier exchange.
+    if ( lua_pcall(L, number_args, number_results, 0) != 0 ) {
+	handle_lua_error(L, "error running user flow function: %s\n",
+			 lua_tostring(L, -1));
+    }
+    // get function results off the stack (in reverse-order)
+    if ( lua_isnil(L, -1) ) {
+	// The user-defined function has returned nil so
+	// we don't want to interfere with the data that
+	// may have bee set up elsewhere.
+	fdata2 = 0;
+    } else {
+	fdata2 = unpack_flow_table(); // TOS has the second flow table
+    }
+    lua_pop(L, 1); // remove the second flow table to leave the first at TOS
+    if ( lua_isnil(L, -1) ) {
+	// The user-defined function has returned nil so
+	// we don't want to interfere with the data that
+	// may have bee set up elsewhere.
+	fdata1 = 0;
+    } else {
+	fdata1 = unpack_flow_table();
+    }
+    lua_settop(L, 0); // clear the stack
+    // cout << "UserDefinedBC::eval_inviscid_udf() End" << endl;
+    return SUCCESS;
+} // end eval_inviscid_udf()
+
+CFlowCondition * UserDefinedBC::unpack_flow_table( void )
+{
+    // Unpack the table at TOS
+    // This table (with named fields) represents the flow condition 
+    // for a ghost cell {p u v w T massf tke omega mu_t k_t S}
+    // where massf is a table of mass-fractions indexed from 0
+    // cout << "UserDefinedBC::unpack_flow_table() Begin" << endl;
+    std::vector<double> T;
+    // cout << "Table of individual-energy-mode temperatures" << endl;
+    lua_getfield(L, -1, "T"); 
+    for ( int imode = 0; imode < nmodes; ++imode ) {
+	lua_pushinteger(L, imode);
+	lua_gettable(L, -2);
+	T.push_back( lua_tonumber(L, -1) );
+	lua_pop(L, 1); // remove the number to leave the table at TOS
+    }
+    lua_pop(L, 1); // remove T table from top-of-stack
+    // cout << "Table of mass fractions" << endl;
+    std::vector<double> massf;
+    lua_getfield(L, -1, "massf"); // put mass-fraction table at TOS 
+    for ( int isp = 0; isp < nsp; ++isp ) {
+	lua_pushinteger(L, isp);
+	lua_gettable(L, -2);
+	massf.push_back( lua_tonumber(L, -1) );
+	lua_pop(L, 1); // remove the number to leave the table at TOS
+    }
+    lua_pop(L, 1); // remove mf table from top-of-stack
+    // cout << "Now get p, u, v, tke, etc..." << endl;
+    lua_getfield(L, -1, "p"); double p = lua_tonumber(L, -1); lua_pop(L, 1);
+    lua_getfield(L, -1, "u"); double u = lua_tonumber(L, -1); lua_pop(L, 1);
+    lua_getfield(L, -1, "v"); double v = lua_tonumber(L, -1); lua_pop(L, 1);
+    lua_getfield(L, -1, "w"); double w = lua_tonumber(L, -1); lua_pop(L, 1);
+    lua_getfield(L, -1, "tke"); double tke = lua_tonumber(L, -1); lua_pop(L, 1);
+    lua_getfield(L, -1, "omega"); double omega = lua_tonumber(L, -1); lua_pop(L, 1);
+    lua_getfield(L, -1, "mu_t"); double mu_t = lua_tonumber(L, -1); lua_pop(L, 1);
+    lua_getfield(L, -1, "k_t"); double k_t = lua_tonumber(L, -1); lua_pop(L, 1);
+    lua_getfield(L, -1, "S"); int S = lua_tointeger(L, -1); lua_pop(L, 1);
+    if ( omega == 0.0 ) omega = 1.0;
+    CFlowCondition *cfc = new CFlowCondition( gmodel, p, u, v, w, T, massf, "", 
+					      tke, omega, mu_t, k_t, S);
+    // cout << "CFlowCondition= " << *cfc << endl;
+    // cout << "UserDefinedBC::unpack_flow_table() End" << endl;
+    return cfc;
+} // end unpack_flow_table()
+
+int UserDefinedBC::eval_viscous_udf( double t, int i, int j, int k, 
+				     FV_Interface *IFace,
+				     FV_Cell *cell )
+{
+    double x = IFace->pos.x; 
+    double y = IFace->pos.y;
+    double z = IFace->pos.z;
+    double csX = IFace->n.x; 
+    double csY = IFace->n.y;
+    double csZ = IFace->n.z;
+    FlowState &fs = *(IFace->fs);
+    // cout << "UserDefinedBC::eval_viscous_udf() Begin" << endl;
+
+    // Call the user-defined function which leaves a table of wall conditions
+    // at the top of the stack.
+    lua_getglobal(L, "interface");  // function to be called
+    lua_newtable(L); // creates a table that is now at the TOS
+    lua_pushnumber(L, t); lua_setfield(L, -2, "t");
+    lua_pushnumber(L, x); lua_setfield(L, -2, "x");
+    lua_pushnumber(L, y); lua_setfield(L, -2, "y");
+    lua_pushnumber(L, z); lua_setfield(L, -2, "z");
+    lua_pushnumber(L, csX); lua_setfield(L, -2, "csX");
+    lua_pushnumber(L, csY); lua_setfield(L, -2, "csY");
+    lua_pushnumber(L, csZ); lua_setfield(L, -2, "csZ");
+    lua_pushinteger(L, i); lua_setfield(L, -2, "i");
+    lua_pushinteger(L, j); lua_setfield(L, -2, "j");
+    lua_pushinteger(L, k); lua_setfield(L, -2, "k");
+    lua_pushinteger(L, which_boundary); lua_setfield(L, -2, "which_boundary");
+    int number_args = 1; // table of {t x y z csX csY csZ i j k which_boundary}
+    int number_results = 1; // table of at least {u v w T_wall massf} or nil
+    if ( lua_pcall(L, number_args, number_results, 0) != 0 ) {
+	handle_lua_error(L, "error running user flow function: %s\n",
+			 lua_tostring(L, -1));
+    }
+    if ( lua_isnil(L, -1) ) {
+	// The user-defined function has returned nil so
+	// we don't want to interfere with the data that
+	// may have bee set up elsewhere.
+    } else {
+	// Assume that there is a single table at the TOS
+	// cout << "Table of mass fractions" << endl;
+	lua_getfield(L, -1, "massf"); // put mass-fraction table at TOS 
+	for ( int isp = 0; isp < nsp; ++isp ) {
+	    lua_pushinteger(L, isp);
+	    lua_gettable(L, -2);
+	    fs.gas->massf[isp] = lua_tonumber(L, -1);
+	    lua_pop(L, 1); // remove the number to leave the table at TOS
+	}
+	lua_pop(L, 1); // remove mf table from top-of-stack
+	// cout << "Now get T, v, u, w, tke, omega" << endl;
+	double T_wall;
+	lua_getfield(L, -1, "T_wall"); T_wall = lua_tonumber(L, -1); lua_pop(L, 1);
+	for ( int imode = 0; imode < nmodes; ++imode ) fs.gas->T[imode] = T_wall;
+	lua_getfield(L, -1, "u"); fs.vel.x = lua_tonumber(L, -1); lua_pop(L, 1);
+	lua_getfield(L, -1, "v"); fs.vel.y = lua_tonumber(L, -1); lua_pop(L, 1);
+	lua_getfield(L, -1, "w"); fs.vel.z = lua_tonumber(L, -1); lua_pop(L, 1);
+	lua_getfield(L, -1, "tke"); fs.tke = lua_tonumber(L, -1); lua_pop(L, 1);
+	lua_getfield(L, -1, "omega"); fs.omega = lua_tonumber(L, -1); lua_pop(L, 1);
+    }
+
+    lua_settop(L, 0); // clear the stack
+    // cout << "UserDefinedBC::eval_viscous_udf() End" << endl;
+    return SUCCESS;
+} // end eval_viscous_udf()
+
+
+void UserDefinedBC::handle_lua_error(lua_State *L, const char *fmt, ...)
+{
+    va_list argp;
+    va_start(argp, fmt);
+    fprintf(stderr, "Error in UserDefinedBC or AdjacentPlusUDFBC: block %d, face %d\n",
+	    bdp.id, which_boundary);
+    vfprintf(stderr, fmt, argp);
+    fprintf(stderr, "\n");
+    va_end(argp);
+    lua_close(L);
+    exit(LUA_ERROR);
+}
+
+//-----------------------------------------------------------------------
+// Functions that provide information to the Lua interpreter
+// and need access to the global_data and array of Block structures.
+
+int luafn_sample_flow(lua_State *L)
+{
+    // Get arguments from stack.
+    int jb = lua_tointeger(L, 1);
+    int i = lua_tointeger(L, 2);
+    int j = lua_tointeger(L, 3);
+    int k = lua_tointeger(L, 4);
+
+    Gas_model *gmodel = get_gas_model_ptr();
+    Block *bdp = get_block_data_ptr(jb);
+    FV_Cell *cell = bdp->get_cell(i,j,k);
+    FlowState &fs = *(cell->fs);
+
+    // Return the interesting data in a table with named fields.
+    lua_newtable(L); // creates a table that is now at the TOS
+    lua_pushnumber(L, cell->pos.x); lua_setfield(L, -2, "x");
+    lua_pushnumber(L, cell->pos.y); lua_setfield(L, -2, "y");
+    lua_pushnumber(L, cell->pos.z); lua_setfield(L, -2, "z");
+    lua_pushnumber(L, cell->volume); lua_setfield(L, -2, "vol");
+    lua_pushnumber(L, fs.gas->p); lua_setfield(L, -2, "p");
+    lua_pushnumber(L, fs.gas->T[0]); lua_setfield(L, -2, "T_wall");
+    lua_pushnumber(L, fs.gas->rho); lua_setfield(L, -2, "rho"); 
+    lua_pushnumber(L, fs.vel.x); lua_setfield(L, -2, "u"); 
+    lua_pushnumber(L, fs.vel.y); lua_setfield(L, -2, "v");
+    lua_pushnumber(L, fs.vel.z); lua_setfield(L, -2, "w");
+    lua_pushnumber(L, fs.gas->a); lua_setfield(L, -2, "a");
+    lua_pushnumber(L, fs.mu_t); lua_setfield(L, -2, "mu_t");
+    lua_pushnumber(L, fs.k_t); lua_setfield(L, -2, "k_t");
+    lua_pushnumber(L, fs.tke); lua_setfield(L, -2, "tke");
+    lua_pushnumber(L, fs.omega); lua_setfield(L, -2, "omega");
+    lua_pushnumber(L, fs.S); lua_setfield(L, -2, "S");
+    lua_newtable(L); // A table for the individual temperatures
+    int nmodes = gmodel->get_number_of_modes();
+    for ( int imode = 0; imode < nmodes; ++imode ) {
+	lua_pushinteger(L, imode);
+	lua_pushnumber(L, fs.gas->T[imode]);
+	lua_settable(L, -3);
+    }
+    // At this point, the table of temperatures should be TOS.
+    lua_setfield(L, -2, "T");
+    lua_newtable(L); // Another table for the mass fractions
+    int nsp = gmodel->get_number_of_species();
+    for ( int isp = 0; isp < nsp; ++isp ) {
+	lua_pushinteger(L, isp);
+	lua_pushnumber(L, fs.gas->massf[isp]);
+	lua_settable(L, -3);
+    }
+    // At this point, the table of mass fractions should be TOS.
+    lua_setfield(L, -2, "massf");
+    // Parameters for computing density and energy residuals
+    lua_pushnumber(L, cell->U_old->mass); lua_setfield(L, -2, "rho_old");
+    lua_pushnumber(L, cell->U->total_energy); lua_setfield(L, -2, "rE");
+    lua_pushnumber(L, cell->U_old->total_energy); lua_setfield(L, -2, "rE_old");
+    
+    return 1; // Just the one table is left on Lua stack
+}
+
+int luafn_locate_cell(lua_State *L)
+{
+    double x = lua_tonumber(L, 1);
+    double y = lua_tonumber(L, 2);
+    double z = 0.0;
+    global_data *gdp = get_global_data_ptr();
+    if ( gdp->dimensions == 3 ) {
+	z = lua_tonumber(L, 3);
+    }
+    int jb, i, j, k, found_cell;
+    found_cell = locate_cell(x, y, z, &jb, &i, &j, &k);
+    if ( !found_cell ) {
+	found_cell = find_nearest_cell(x, y, z, &jb, &i, &j, &k);
+	if ( !found_cell ) {
+	    printf("luafn_locate_cell(): no cells near pos=(%g,%g,%g)", x, y, z);
+	}
+    }
+    lua_pushinteger(L, jb);
+    lua_pushinteger(L, i);
+    lua_pushinteger(L, j);
+    lua_pushinteger(L, k);
+    lua_pushinteger(L, found_cell);
+    return 5; // We leave jb, i, j, k and found_cell on the stack.
+}
+
+// static gas_data Q;
+// static vector<double> x;
+
+int luafn_compute_diffusion_coefficient(lua_State *L)
+{
+    // Author: R. Gollan
+    //
+    // This function makes some strong assumptions:
+    // 1. We are using a thermally perfect gas mix, and
+    // 2. A diffusion model has been initialised.
+    //
+//     int nsp = get_number_of_species();
+//     if( Q.f.size() != size_t(nsp) ) {
+// 	set_array_sizes_in_gas_data(Q, nsp,
+// 				    get_number_of_vibrational_species());
+// 	x.resize(nsp);
+//     }
+
+    // Accept a call from Lua of the form
+    // compute_diffusion_coefficient(p, T, mf, "name")
+    // where:
+    // p      -- pressure in Pa (number)
+    // T      -- temperature in K (number)
+    // mf     -- mass fractiona (array, indexed from 0)
+    // "name" -- name of the species of interest (string) 
+    // Get arguments from stack
+//     Q.p = luaL_checknumber(L, 1);
+//     Q.T = luaL_checknumber(L, 2);
+
+//     if( !lua_istable(L, 3) ) {
+// 	cout << "Error in Lua script, problem with call to:\n"
+// 	     << "compute_diffusion_coefficient()\n"
+// 	     << "An array of mass fractions is expected as the 3rd argument.\n"
+// 	     << "Bailing out!\n";
+// 	exit(LUA_ERROR);
+//     }
+
+//     for( size_t i = 0; i < Q.f.size(); ++i ) {
+// 	lua_rawgeti(L, 3, i);
+// 	Q.f[i] = luaL_checknumber(L, -1);
+// 	lua_pop(L, 1);
+//     }
+//     const char* sp_name = luaL_checkstring(L, 4);
+    // FIX-ME
+    // Need to cast gas_model as a ThermallyPerfectGasMix
+    // ThermallyPerfectGasMix *tpgm = dynamic_cast<ThermallyPerfectGasMix*>(get_gas_model_pointer());
+//     if( tpgm == 0 ) {
+// 	ostringstream ost;
+// 	ost << "error in call to compute_diffusion_coefficient():\n"
+// 	    << "   This function is only appropriate with the \"perf_gas_mix\" gas model.\n"
+// 	    << "Bailing out!\n";
+// 	luaL_error(L, ost.str().c_str());
+// 	exit(1);
+//     }
+//     int idx = tpgm->species_index(string(sp_name));
+//     if( idx == -1 ) {
+// 	ostringstream ost;
+// 	ost << "error in call to compute_diffusion_coefficient():\n"
+// 	    << "   The species name: " << sp_name << " could not be found in the species mix.\n"
+// 	    << "Bailing out!\n";
+// 	luaL_error(L, ost.str().c_str());
+// 	exit(1);
+//     }
+
+    // Call equation of state to fill in values
+    // of all binary diffusion coefficients.
+//     EOS_pT(Q, true, true);
+
+    // Compute averaged diffusion coefficients.
+    // This code is copy-n-pasted from FicksFirstLaw class in cns_diffusion.cxx
+    // (In other words, it is duplicated BUT it's easier than instantiating
+    // a dummy FicksFirstLaw object.)
+
+    // Compute mole fractions
+//     for( int isp = 0; isp < nsp; ++isp ) {
+// 	x[isp] = Q.c[isp] / Q.c_tot;
+//     }
+
+//     double sum = 0.0;
+//     for( int jsp = 0; jsp < nsp; ++jsp ) {
+// 	if( idx == jsp ) continue;
+// 	sum += x[jsp] / Q.D_AB.get(idx,jsp);
+//     }
+
+//     double D = 0.0;
+//     if( sum > 0.0 ) 
+// 	D = (1.0 - x[idx]) / sum;
+    
+//     // Finally return a single number to the
+//     // caller
+//     lua_pushnumber(L, D);
+    return 1;
+}
+
+//------------------------------------------------------------------------
+
+AdjacentPlusUDFBC::AdjacentPlusUDFBC( Block &bdp, int which_boundary, 
+				      int other_block, int other_face,
+				      int _neighbour_orientation,
+				      const std::string filename,
+				      bool is_wall, bool use_udf_flux)
+    : UserDefinedBC(bdp, which_boundary, filename, is_wall, use_udf_flux)
+{
+    type_code = ADJACENT_PLUS_UDF; // Needs to overwrite UserDefinedBC entry.
+    neighbour_block = other_block; 
+    neighbour_face = other_face;
+    neighbour_orientation = _neighbour_orientation;
+}
+
+AdjacentPlusUDFBC::AdjacentPlusUDFBC( const AdjacentPlusUDFBC &bc )
+    : UserDefinedBC(bc.bdp, bc.which_boundary, bc.filename, 
+		    bc.is_wall_flag, bc.use_udf_flux_flag)
+{
+    type_code = bc.type_code;
+    neighbour_block = bc.neighbour_block; 
+    neighbour_face = bc.neighbour_face;
+    neighbour_orientation = bc.neighbour_orientation;
+    cerr << "AdjacentPlusUDFBC() copy constructor is not implemented FIX-ME." << endl;
+    exit( NOT_IMPLEMENTED_ERROR );
+}
+
+AdjacentPlusUDFBC::~AdjacentPlusUDFBC() {}

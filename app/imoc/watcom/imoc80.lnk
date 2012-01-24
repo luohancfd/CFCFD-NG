@@ -1,0 +1,20 @@
+# imoc80.lnk
+# Watcom linker directive file.
+#
+# Build a Win32 DLL for Tcl 8.0.x
+system  nt_dll initinstance terminstance
+
+# Seems that we need to export only the initialization function
+export Imoc_Init
+
+# Compiled Object files
+file imoc_wrap.obj, moc_kernel.obj, moc_gasdynamic.obj
+file moc_wall.obj, moc_bezier.obj, moc_unitproc.obj
+
+# Need to resolve calls into the Tcl library
+library tcl80_import
+
+# Name of the finished DLL is "imoc80.dll"
+name  imoc80
+
+

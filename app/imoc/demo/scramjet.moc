@@ -1,0 +1,82 @@
+# scramjet.moc
+# Script to calculate the expanding exhaust stream of a scramjet.
+# PJ 23-Feb-2000
+#
+#-----------------------------------------------------------------
+package require imoc
+
+proc wait_a_moment {} {
+    # Wait for a little while still processing events.
+    after 200 [list set done 1]
+    vwait done
+}; # end proc
+
+proc deg_to_rad { angle_in_deg } {
+    return [expr $angle_in_deg / 180.0 * 3.1415927]
+}; # end proc
+
+#------------------------------------------------------------------
+
+puts ""
+puts "Scramjet Nozzle Calculation"
+
+LoadIMOCKernel
+SetGamma 1.4
+InitGUI
+setXYRanges 0.0 -1.0 5.0 1.0
+setXYTics 0.5 0.5
+
+# Defining geometry
+set ramp_angle [deg_to_rad 20.0]
+set x1 0.0
+set y1 0.9181
+set x2 20.0
+set y2 [expr $y1 - (tan($ramp_angle) * ($x2 - $x1)) ]
+
+# Put in a wall for the thrust surface
+WallAddPoint 0 $x1 $y1
+WallAddPoint 0 $x2 $y2
+# Upper wall is the cowl
+WallAddPoint 1 $x1 1.0
+WallAddPoint 1 $x2 1.0
+
+puts "Create a centered expansion fan at (0.0 0.9181)"
+set M1 2.7226
+set nu1 [NuFromM $M1 1.4]
+set nfan 10
+set dt [expr $ramp_angle / $nfan]
+
+for {set i 0} {$i <= $nfan} {incr i} {
+    set fan($i) [CreateNode $i]
+    set theta [expr $i * -$dt]
+    set nu [expr $nu1 - $theta]
+    SetNodeData $fan($i) X 0.0 Y 0.9181 Nu $nu Theta $theta
+}; # end for
+
+puts "Compute the cowl node radiating from the fan."
+set old [CPlusWallNode 1 $fan(0) -1]
+
+puts "Compute the rest of the fan radiating up to the wall."
+for {set i 1} {$i <= $nfan} {incr i} {
+    set new $fan($i)
+    set nodelist [MarchAlongCPlus $old $new down]
+    set last_interior_node [lindex $nodelist [expr [llength $nodelist] - 1 ] ]
+    set cowl_node [CPlusWallNode 1 $last_interior_node -1]
+    set old [lindex $nodelist 1]
+    refreshDisplay; wait_a_moment
+}; # end if
+
+puts "Compute net down to the thrust surface."
+set cplus_node_list $nodelist
+set old [lindex $cplus_node_list 1]
+set first_wall_node [CMinusWallNode 0 $old -1]
+set old $first_wall_node
+
+puts "Compute the rest of the fan radiating down to the wall."
+foreach start_node [lreplace $cplus_node_list 0 1] {
+    set nodelist [MarchAlongCMinus $old $start_node down]
+    set last_node [lindex $nodelist [expr [llength $nodelist] - 1 ] ]
+    set wall_node [CMinusWallNode 0 $last_node -1]
+    set old [lindex $nodelist 1]
+    refreshDisplay; wait_a_moment
+}; # end if

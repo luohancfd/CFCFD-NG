@@ -1,0 +1,78 @@
+<HTML>
+<!-- Don't bother editing this file; it is machine generated. -->
+<HEAD>
+<TITLE> Documentation extracted from  ../source/moc_kernel.tcl </TITLE>
+</HEAD>
+<BODY>
+<H2> ../source/moc_kernel.tcl </H2>
+<P>Tcl part of the IMOC kernel. 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc LoadIMOCKernel {} { 
+</B> </CODE> </P> 
+<P>Loads the MOC computational kernel as an extension to 
+the Tcl interpreter. 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc SetGamma { { gamma 1.4 } } { 
+</B> </CODE> </P> 
+<P>Is a wrapper for SetGamma_C() 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc SetAxiFlag { { axi_flag 0 } } { 
+</B> </CODE> </P> 
+<P>Is a wrapper for SetAxiFlag_C() 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc SetDebugLevel { { dbg_level 0 } } { 
+</B> </CODE> </P> 
+<P>Is a wrapper for SetDebugLevel_C() 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc GetNodeData { id args } { 
+</B> </CODE> </P> 
+<P>Gets all of the data values for a specified node. <BR> 
+<BR> 
+Input: <BR> 
+id : Node index <BR> 
+args : names of the requested fields <BR> 
+<BR> 
+Returns: <BR> 
+(1) an empty string if the node doesn't exist OR <BR> 
+(2) All field names and values if args is empty OR <BR> 
+(3) The specific fields requested in name-value pairs. <BR> 
+<BR> 
+The returned string is suitable for sending to SetNodeData 
+so long as a suitable argument list is built from it and 
+eval is used to concatenate the arguments into a single list. 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc SetNodeData { id args } { 
+</B> </CODE> </P> 
+<P>Gets the data values for a specified node. <BR> 
+<BR> 
+Input: <BR> 
+id : Node index <BR> 
+args : a list of names of the fields and values to be set <BR> 
+These data are assumed to be in field-value pairs. <BR> 
+<BR> 
+Returns: <BR> 
+0 if all was OK <BR> 
+-1 on failure <BR> 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc GetNodeDataValue { id field } { 
+</B> </CODE> </P> 
+<P>Gets the data for one particular field. 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> proc DeleteAll {} { 
+</B> </CODE> </P> 
+<P>Deletes all nodes and walls. (Effectively starting anew.) 
+</P>
+<HR>
+<ADDRESS>
+    Extracted by <B>doctcl.awk</B>  Mon Aug 09 23:56:05 EST 2004
+</ADDRESS>
+</BODY>
+</HTML>

@@ -1,0 +1,55 @@
+# mms_euler.test
+# Rowan's manufactured-solution test for 2D, inviscid flow.
+#
+# This exercises quite a few of the basic functions of the 2D code.
+#
+# PJ, 13-Jan-2011
+
+package require tcltest 2.0
+namespace import ::tcltest::*
+configure -verbose {start body error}
+
+test run-preprocessor {Run the preprocessing stage.} -body {
+    exec e3prep.py --job=euler_manufactured > LOGFILE_PREP
+} -result {} -returnCodes {0}
+
+test run-simulation {Run the shared-memory simulation code.} -body {
+    exec e3shared.exe --job=euler_manufactured --run > LOGFILE_MAIN
+} -result {} -returnCodes {0}
+
+test run-postprocessor {Run the postprocessing stage.} -body {
+    exec e3post.py --job=euler_manufactured --tindx=20 \
+	--ref-function=euler_wrapper.py \
+	--per-block-norm-list=0,rho,L2\;0,rho,L1 \
+	--global-norm-list=rho,L2 > LOGFILE_POST
+} -result {} -returnCodes {0}
+
+test number-of-steps {The main simulation takes a certain number of steps.} -body {
+    set fp [open LOGFILE_MAIN r]
+    set contents [read $fp]
+    close $fp
+    set final_steps 0
+    foreach line [split $contents "\n"] {
+	if {[string first "Total number of steps" $line] >= 0} {
+	    set final_steps [lindex [split $line] 5]
+	}
+    }
+    set final_steps
+} -result {1092}
+
+test check-density {The density difference with respect to the analytic solution.} -body {
+    set L2_density_error 0
+    # We're looking for a line with something like the content:
+    # rho L2 0.004759187408
+    set fp [open LOGFILE_POST r]
+    set results [read $fp]
+    close $fp
+    foreach line [split $results "\n"] {
+	if {[string first "rho L2 " $line] == 0} {
+	    set L2_density_error [lindex [split $line] 2]
+	}
+    }
+    expr abs($L2_density_error - 0.0047)/0.0047 < 1.0e-2
+} -result {1}
+
+cleanupTests

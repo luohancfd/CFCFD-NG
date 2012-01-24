@@ -1,0 +1,26 @@
+/** \mainpage libgeom2: A geometry library for generating block-structured grids.
+
+\section intro Introduction
+
+Typically, most of the effort required to set up a CFD simulation goes into defining
+the geometry of the flow domain. 
+Libgeom2 is a collection of classes designed to ease the process of geometry definition, 
+at least for the CFCFD simulation codes.
+The foundation is a set of C++ classes that are wrapped by SWIG to make them available
+as an extension to the Python interpreter.
+This combination makes it very easy to algorithmically construct complex 
+and precise meshes.
+As a bonus, the user's script can form complete and readable documentation 
+on how the mesh is assembled. 
+
+The basic approach is to describe the flow domain by its boundaries.  
+These boudaries are constructed from simpler entities, starting with Nodes 
+(points in 3D space) and combining these into Paths, Surfaces and Volumes.
+
+For the two-dimensional flow code, mb_cns, the hierarchy stops at Paths 
+with each block being defined by 4 bounding Paths.
+When building 3D volumes for Elmer and sm_3d, 
+each block is considered to be a hexahedral volume with 6 bounding faces.
+
+*/
+

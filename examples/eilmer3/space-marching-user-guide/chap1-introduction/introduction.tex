@@ -1,0 +1,39 @@
+% introduction.tex
+
+\newpage
+\section{Introduction}
+\label{chapter-introduction}
+%
+This report provides the basic outline on using space marching in Eilmer3. Eilmer3 is an integrated collection of programs for the simulation of transient compressible flow in two- and three-dimensions. Detailed descriptions of Eilmer3 can be found in the reports by Jacobs et al. \cite{Jacobs2008,Jacobs2010}.
+
+The space marching solver in Eilmer3 is a subset of the time-dependent solver implemented to reduce computational time. Computational time savings of up to 85\% have been demonstrated in some test cases. This report details some specific information in regards to what can and cannot be done with space marching and provides an example of space marching in use with comparisons to the time-dependent solver (see section \ref{chapter3-axi-scramjet}).
+
+\subsection{Solver Description}
+%\label{}
+
+The original space marching solver implemented in Eilmer3 considered each block in the domain individually and solved them sequentially with the time-dependent solver. The time computed for each block was the total simulation time divided by the number of blocks. This functioned reasonably well as a first run for any particular case however the data exchange between each of the blocks caused inaccuracies to accumulate in a downstream direction. The code has recently been updated to remove this error source by solving two blocks at a time and then moving downstream in one-block increments. This has provided a large improvement in the results as demonstrated by some of the results shown in section \ref{chapter3-axi-scramjet}.
+
+The current space marching solver computes individual blocks using the time-dependent solver in sequence. It does this in two block increments in order to avoid block-boundary data-transfer errors. Blocks \textit{n} and \textit{n+1} are solved to time \textit{dt} (\textit{dt} is the total time divided by the number of blocks). The solver then moves forward one block and solves blocks \textit{n+1} and \textit{n+2} and continues this process until all the blocks have been solved. Each set of two blocks is considered as an independent problem where the inflow is defined by the ghost cells of the previous block and the outflow is considered an ExtrapolateOutBC() (see the user guide for a description of this boundary condition \cite{Jacobs2008}). As the solver moves along the blocks the previous ExtrapolateOutBC() is converted back to a block boundary exchange condition which is solved accurately in the next step. This process of solving across the block boundaries removes any errors that may have been introduced by the applied boundary conditions in the individual block computations. The new code that has been implemented into Eilmer3 can be found in Appendix \ref{code}.
+
+The time dependent solver code has also been modified so that when solving individual space marching components the time step used is carried over from block to block. This is a recent modification to the code that removes a large number of computational steps compared with the old code where the time stepping was restarted for each block.
+
+\subsection{Current Limitations}
+%\label{}
+
+When using the space marching solver, there are some limitations the user should be aware of: (a) there are limitations with regards to physical modelling; and (b) there are limitations associated with the coding implementation.
+
+The physical modelling restriction with all space marching solvers is that the flow must travel only downstream, predominantly supersonically. This means that separation/recirculation areas and any other regions causing upstream flow must be avoided. The only exception to this is if the separation zone is small enough to be contained within a single block. As all the individual blocks are solved using the time resolved solver if the area is contained with a single block this will be modelled properly.
+
+In terms of implementation the solver is currently limited to only one row of blocks. This means that the geometry must be sufficiently simple so that it can be modelled in this fashion with each block situated downstream of the previous block. This also means that the solver runs on a single CPU only however the `real time' taken for the computation is still significantly less than than a MPI process (depending on the number of processors used) justifying the use of this solver. These limitations could be removed at a later date if necessary.
+
+\subsection{Recommended guidelines for using the space marching solver in Eilmer3}
+%\label{}
+
+Setting up Eilmer3 to run the space marching solver is done by configuring the \textit{sequence\_blocks} value. This is done with \newline
+\centerline{\textit{gdata.sequence\_blocks $=$ 1}}
+\newline
+At this point the space marching is activated however the efficiency of the computation is dependent on the rest of the model being configured appropriately. 
+
+The easiest way to set up the blocks within Eilmer3 is to use the SuperBlock construction method ( see reference \cite{Jacobs2008}). If multiple SuperBlocks are used then they can only be joined on the east-west boundaries. When specifying the divisions of SuperBlocks the \textit{nbj} value must be set to 1 and the block can be split into any number of sub-blocks in the \textit{nbi} direction. The more blocks there are the quicker the solver will reach completion however some caution must be taken not to make the blocks too thin in the flow direction. Commonly there have been 100 blocks used with 20 cells per block however the exact numbers used will also be affected by the cell spacing.
+
+The space marching solver does not give intermediate results (unlike the time resolved solver) and therefore there is currently no real check for time-convergence. Previous experience has shown that the result is well converged after approximately 3 flow lengths (see section \ref{chapter3-axi-scramjet}) however this is something that should be considered carefully when specifying the total simulation time.

@@ -1,0 +1,70 @@
+<HTML>
+<HEAD>
+<TITLE>IMOC documentation: Modes of Interaction.</TITLE>
+</HEAD>
+
+<BODY>
+<H2>Modes of Interaction</H2>
+
+<H3>Program Startup</H3>
+<P>
+Start up the <CODE>wish</CODE> interpreter and source 
+the <CODE>moc_startup.tcl</CODE> script.
+This gets the IMOC module loaded and the GUI components 
+started.
+Alternatively, a user's script can have the same introductory commands
+and then continue on to do other things.
+</P>
+
+<H3>Command-Line</H3>
+<P>
+When <CODE>wish</CODE> starts up, there are two windows, one for graphical
+elements and one (the console) for the Tcl command line.
+All of the house-keeping and computational functionality of IMOC is
+available from the Tcl command line.
+Each C function that has been wrapped by SWIG and each Tcl procedure
+that has been sourced as part of the IMOC package is available as a 
+command.
+</P>
+
+<P>
+Commands that operate on specific nodes accept arguments specifying the
+<EM>index</EM> of each node.
+This index is used to look up the node data via an array of pointers in
+the moc_kernel.c module.
+Valid index values are in the range 0..MAX_NODE-1.
+For convenience, many commands return the index of the solution node.
+This value may be saved to a variable for later referencei but it
+should be checked as the commands will typically return a value of
+-1 if the procedure has failed in some way.
+On failure, the procedures usually write some information to the standard
+output device (usually the console from which wish was started).
+</P>
+
+<P>
+Once you have established what you want to calculate, it is easy to
+automate the calculation either as a Tcl procedure 
+(see, for example, the <CODE>PrintStreamData</CODE> procedure in 
+<A HREF="../lib/streamdata.moc">streamdata.moc</A>)
+or as a script which does an entire problem
+(see e.g. <A HREF="../demo/anderson_11p1.moc">anderson_11p1.moc</A>).
+</P>
+
+<H3>Point-and-Click</H3>
+<P>
+Once the GUI is started (by calling the procedure initGUI), 
+most of the functionality is also available via the pull-down menus.
+Procedures that require node indices are satisfied by getting node
+indices from the <EM>selectedNodeList</EM>.
+To get nodes into this list, click on them with the left mouse button.
+Right clicking on a node will bring up a dialog window displaying the 
+node's properties.
+</P>
+
+<HR>
+<ADDRESS>
+PJ, 01-Feb-2000, Updated 25-Apr-2000
+</ADDRESS>
+</BODY>
+
+</HTML>

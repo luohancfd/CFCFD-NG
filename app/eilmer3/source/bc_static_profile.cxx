@@ -1,0 +1,245 @@
+// bc_static_profile.cxx
+
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <iostream>
+#include <vector>
+#include <valarray>
+
+#include <stdio.h>
+#include <math.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
+#include <vector>
+
+#include "../../../lib/util/source/useful.h"
+#include "../../../lib/gas/models/gas_data.hh"
+#include "../../../lib/gas/models/gas-model.hh"
+#include "../../../lib/gas/models/physical_constants.hh"
+#include "block.hh"
+#include "bc.hh"
+#include "bc_static_profile.hh"
+#include "kernel.hh"
+
+//------------------------------------------------------------------------
+
+StaticProfileBC::StaticProfileBC( Block &bdp, int which_boundary,
+				  const std::string filename )
+    : BoundaryCondition(bdp, which_boundary, STATIC_PROF, "StaticProfileBC",
+			false, false, -1, -1, 0),
+      filename(filename)
+{
+    // Reads the flow state data from a previously written profile file.
+    //
+    // The format expected of this file is that written by the Python
+    // code found in e3_flow.py, as used by the postprocessing program e3_post.py.
+    // Look for the functions variable_list_for_cell() and write_cell_data().
+    // Also look at variable_list_for_cell() in cell.cxx.
+    //
+    // The first line in the file specifies the variable names on the 
+    // remaining lines.  The elements on all lines are space separated.
+    //
+    char line[512], token[512];
+    double x, y, z, volume, rho, u, v, w, p, a, mu, k,mu_t, k_t;
+    int S;
+    double Q_rad_org, f_rad_org, Q_rE_rad, tke, omega, dt_chem, dt_therm;
+    std::vector<double> massf, e, T;
+    int ncell;
+    int ncell_for_profile = 0;
+    FILE *fp;
+    global_data *G = get_global_data_ptr();
+    //---------------------------------------------------------------------------
+    // FIX-ME: Update this BC for 3D, using C++ tokenizing stream and something 
+    // like the usual block indexing for the storage order.
+    if ( G->dimensions == 3 ) {
+	cerr << "StaticProfileBC is not implemented for 3D." << endl;
+	exit(NOT_IMPLEMENTED_ERROR);
+    }
+    //--------------------------------------------------------------------------
+    Gas_model *gmodel = get_gas_model_ptr();
+    nsp = gmodel->get_number_of_species();
+    massf.resize(nsp);
+    nmodes = gmodel->get_number_of_modes();
+    e.resize(nmodes);
+    T.resize(nmodes);
+        
+    fp = fopen(filename.c_str(), "r");
+    if (fp == NULL) {
+        cerr << "StaticProfileBC() constructor:"
+	     << " cannot open file " << filename;
+	exit(FILE_ERROR);
+    }
+    // Read and ignore the comment line containing the variable names.
+    if ( fgets(line, sizeof(line), fp) == NULL ) {
+	cerr << "StaticProfileBC(): failure of fgets()" << endl;
+	cerr << "    Had expected to read a line of variable names." << endl;
+	cerr << "    Quitting program." << endl;
+	exit(FILE_ERROR);
+    }
+    // For data each line in the file, store the flow state data.
+    while ( 1 ) {
+	if ( fgets(line, sizeof(line), fp) == NULL ) break;
+	/* Pull the line apart with the string tokenizer. */
+	strcpy(token, strtok(line, " ")); sscanf(token, "%lf", &x);
+	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &y);
+	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &z);
+	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &volume);
+	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &rho);
+	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &u);
+	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &v);
+	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &w);
+	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &p);
+	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &a);
+	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &mu);
+	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &k); // labelled as k[0], only one present
+	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &mu_t);
+	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &k_t);
+	strcpy(token, strtok(NULL, " ")); sscanf(token, "%d", &S);
+	if ( get_radiation_flag() == 1 ) {
+	    strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &Q_rad_org);
+	    strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &f_rad_org);
+	    strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &Q_rE_rad);
+	}
+	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &tke);
+	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &omega);
+        if ( nsp == 1 ) {
+	    strcpy( token, strtok(NULL, " ") ); massf[0] = 1.0;
+	    // ignore the mass-fraction value in the file.
+        } else {
+	    for ( int isp = 0; isp < nsp; ++isp ) {
+		strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &(massf[isp]));
+	    }
+        }
+	if ( nsp > 1 ) {
+	    strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &dt_chem );
+	} else {
+	    dt_chem = -1.0;
+	}
+	for ( int imode = 0; imode < nmodes; ++imode ) {
+	    strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &(e[imode]));
+	    strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &(T[imode]));
+	}
+	if ( nmodes > 1 ) {
+	    strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &dt_therm );
+	} else {
+	    dt_therm = -1.0;
+	}
+#       if 1
+	cout << "x=" << x << " y=" << y << " z=" << z 
+	     << " volume=" << volume << " rho=" << rho 
+	     << " u=" << u << " v=" << v << " w=" << w 
+	     << " p=" << p << " a=" << a << " mu=" << mu << " k=" << k 
+	     << " mu_t=" << mu_t << " k_t=" << k_t << " S=" << S 
+	     << " tke=" << tke << " omega=" << omega 
+	     << " dt_chem=" << dt_chem << " e[0]=" << e[0] << " T[0]=" << T[0] << endl;
+#       endif
+	flow_profile.push_back(new CFlowCondition(gmodel, p, u, v, w, T, massf, "", tke, omega, mu_t, k_t, S));
+	++ncell_for_profile;
+    } // end while
+#   if ECHO_ALL
+    cout << "StaticProfileBC() constructor: read " << ncell_for_profile << " cells." << endl; 
+#   endif
+    // Check for that the number of cells is appropriate for this boundary
+    if ( which_boundary == NORTH || which_boundary == SOUTH ) {
+	ncell = bdp.nni;
+    } else {
+	ncell = bdp.nnj;
+    }
+    if ( ncell != ncell_for_profile ) {
+        cerr << "StaticProfileBC() constructor:" << endl 
+	     << "    Inconsistent numbers of cells: ncell=" << ncell
+	     << ", ncell_for_profile=" << ncell_for_profile << endl;
+        exit(BAD_INPUT_ERROR);
+    }
+    massf.resize(0);
+    e.resize(0);
+    T.resize(0);
+#   if ECHO_ALL
+    cout << "StaticProfileBC() constructor: done." << endl;
+#   endif
+}
+
+StaticProfileBC::StaticProfileBC( const StaticProfileBC &bc )
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
+			bc.is_wall_flag, bc.use_udf_flux_flag,
+			bc.neighbour_block, bc.neighbour_face),
+      filename(bc.filename) 
+{
+    cerr << "StaticProfileBC() copy constructor is not implemented." << endl;
+    exit( NOT_IMPLEMENTED_ERROR );
+}
+
+StaticProfileBC::~StaticProfileBC() 
+{
+    for ( size_t i = 0; i < flow_profile.size(); ++i ) {
+	delete flow_profile[i];
+    }
+    flow_profile.resize(0);
+}
+
+int StaticProfileBC::apply_inviscid( double t )
+{
+    int i, ifirst, ilast, j, jfirst, jlast;
+    FV_Cell *dest_cell;
+    CFlowCondition *gsp;
+
+    switch ( which_boundary ) {
+    case NORTH:
+	j = bdp.jmax;
+	ifirst = bdp.imin;
+	ilast = bdp.imax;
+        for (i = ifirst; i <= ilast; ++i) {
+            gsp = flow_profile[i - ifirst];
+            dest_cell = bdp.get_cell(i,j+1);
+            dest_cell->copy_values_from(*gsp);
+            dest_cell = bdp.get_cell(i,j+2);
+            dest_cell->copy_values_from(*gsp);
+        } // end i loop
+	break;
+    case EAST:
+	i = bdp.imax;
+	jfirst = bdp.jmin;
+	jlast = bdp.jmax;
+        for (j = jfirst; j <= jlast; ++j) {
+            gsp = flow_profile[j - jfirst];
+            dest_cell = bdp.get_cell(i + 1,j);
+            dest_cell->copy_values_from(*gsp);
+            dest_cell = bdp.get_cell(i + 2,j);
+            dest_cell->copy_values_from(*gsp);
+	} // end j loop
+	break;
+    case SOUTH:
+	j = bdp.jmin;
+	ifirst = bdp.imin;
+	ilast = bdp.imax;
+        for (i = ifirst; i <= ilast; ++i) {
+            gsp = flow_profile[i - ifirst];
+            dest_cell = bdp.get_cell(i,j-1);
+            dest_cell->copy_values_from(*gsp);
+            dest_cell = bdp.get_cell(i,j-2);
+            dest_cell->copy_values_from(*gsp);
+        } // end i loop
+	break;
+    case WEST:
+	i = bdp.imin;
+	jfirst = bdp.jmin;
+	jlast = bdp.jmax;
+        for (j = jfirst; j <= jlast; ++j) {
+            gsp = flow_profile[j - jfirst];
+            dest_cell = bdp.get_cell(i-1,j);
+            dest_cell->copy_values_from(*gsp);
+            dest_cell = bdp.get_cell(i-2,j);
+            dest_cell->copy_values_from(*gsp);
+        } // end j loop
+ 	break;
+    // TODO: the TOP and BOTTOM boundaries.
+    default:
+	printf( "Error: apply_inviscid not implemented for boundary %d\n", 
+		which_boundary );
+	return NOT_IMPLEMENTED_ERROR;
+    } // end switch
+
+    return SUCCESS;
+}

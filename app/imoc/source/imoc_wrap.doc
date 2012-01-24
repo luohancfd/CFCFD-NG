@@ -1,0 +1,136 @@
+imoc_wrap.c
+
+
+
+SetDebugLevel_C value 
+        [ returns int  ]
+
+GetDebugLevel 
+        [ returns int  ]
+
+SetGamma_C value 
+        [ returns int  ]
+
+GetGamma 
+        [ returns double  ]
+
+SetAxiFlag_C value 
+        [ returns int  ]
+
+GetAxiFlag 
+        [ returns int  ]
+
+GetNumberOfNodes 
+        [ returns int  ]
+
+ValidNode id 
+        [ returns int  ]
+
+InitMOC 
+        [ returns int  ]
+
+CreateNode id 
+        [ returns int  ]
+
+DeleteNode id 
+        [ returns int  ]
+
+SetNodeData_C id parameter valueString 
+        [ returns int  ]
+
+GetNodeData_C id parameter 
+        [ returns char * ]
+
+GetNextNodeId idStart 
+        [ returns int  ]
+
+ListNodesNear x y tol 
+        [ returns char * ]
+
+SaveNodes FileName 
+        [ returns int  ]
+
+LoadNodes FileName 
+        [ returns int  ]
+
+T0_T M g 
+        [ returns double  ]
+
+P0_P M g 
+        [ returns double  ]
+
+NuFromM M g 
+        [ returns double  ]
+
+MFromNu Nu g 
+        [ returns double  ]
+
+MachAngle M 
+        [ returns double  ]
+
+InteriorNode node1 node2 node4 
+        [ returns int  ]
+
+InsertNode node1 node2 node4 alpha 
+        [ returns int  ]
+
+CMinusWallNode iw node1 node4 
+        [ returns int  ]
+
+CPlusWallNode iw node2 node4 
+        [ returns int  ]
+
+CPlusFreeBndyNode node0 node2 node4 
+        [ returns int  ]
+
+CMinusFreeBndyNode node0 node1 node4 
+        [ returns int  ]
+
+AddStreamNode node0 node1 node2 node4 test_only 
+        [ returns int  ]
+
+StepStreamNode node0 node4 dL 
+        [ returns int  ]
+
+InterpolateNode x y R node4 
+        [ returns int  ]
+
+InitWall 
+        [ returns int  ]
+
+WallIsPresent iw 
+        [ returns int  ]
+
+WallGetNumberOfPoints iw 
+        [ returns int  ]
+
+WallGetPointX iw ip 
+        [ returns double  ]
+
+WallGetPointY iw ip 
+        [ returns double  ]
+
+WallDeletePoints iw 
+        [ returns int  ]
+
+WallAddPoint iw x y 
+        [ returns int  ]
+
+WallPosX iw t 
+        [ returns double  ]
+
+WallPosY iw t 
+        [ returns double  ]
+
+WallSlope iw t 
+        [ returns double  ]
+
+WallFindT iw x0 y0 cos_th sin_th 
+        [ returns double  ]
+
+SaveWall iw FileName 
+        [ returns int  ]
+
+LoadWall iw FileName 
+        [ returns int  ]
+

@@ -1,0 +1,82 @@
+# anderson_11p1.moc
+# Script for Exercise 11.1 in J.D.Anderson Modern Compressible Flow
+# PJ 08-Jan-2000
+#
+package require imoc
+source $gd(IMOC_HOME)/lib/wait_a_moment.tcl
+
+puts ""
+puts "Exercise 11.1: Minimum-length 2D nozzle"
+
+LoadIMOCKernel
+SetGamma 1.4
+InitGUI
+
+# Put in a wall along the X-axis
+WallAddPoint 0 0.0 0.0
+WallAddPoint 0 1.0 0.0
+
+puts "Create a centered expansion fan at (0.0 0.1)"
+for {set i 1} {$i <= 7} {incr i} {
+    set id [expr 100 + $i]
+    set fan($i) [CreateNode $id]
+    set tpmvalue [expr (0.375 + ($i-1)*3.0)/180.0 * 3.14159]
+    SetNodeData $fan($i) X 0.0 Y 0.1 Nu $tpmvalue Theta $tpmvalue
+}; # end for
+
+puts "Compute the first wall node radiating from the fan."
+set old [CMinusWallNode 0 $fan(1) -1]
+
+puts "Compute the rest of the fan radiating down to the wall."
+for {set i 2} {$i <= 7} {incr i} {
+    set new $fan($i)
+    set nodelist [MarchAlongCMinus $old $new down]
+    set last_node [lindex $nodelist [expr [llength $nodelist] - 1 ] ]
+    set axis_node [CMinusWallNode 0 $last_node -1]
+    set old [lindex $nodelist 1]
+    refreshDisplay; wait_a_moment
+}; # end if
+
+
+set x_cone [GetNodeDataValue $axis_node X]
+set M_cone [GetNodeDataValue $axis_node Mach]
+puts "Mach cone starts at x = $x_cone with M = $M_cone"
+
+puts "Put down a number of nodes along the x-axis with constant M."
+puts "Work back upstream from each of these nodes."
+set dL 0.05
+set Mach_angle [expr asin(1.0/$M_cone)]
+set dx [expr $dL * cos($Mach_angle)]
+set dy [expr $dL * sin($Mach_angle)]
+set old $last_node
+set old_edge $axis_node
+for {set i 1} {$i < 12} {incr i} {
+    set new_edge [CreateNode -1]
+    set x [expr $x_cone + $i * $dx]
+    set y [expr $i * $dy]
+    SetNodeData $new_edge X $x Y $y Mach $M_cone Theta 0.0 CPlusUp $old_edge
+    SetNodeData $old_edge CPlusDown $new_edge
+    set nodelist [MarchAlongCMinus $old $new_edge up]
+    set old [lindex $nodelist 1]
+    set old_edge $new_edge
+    refreshDisplay; wait_a_moment
+}; # end for
+
+puts "Start at the last node on the fan and step along a streamline"
+puts "until either (1) we cross the characteristic defining the start"
+puts "of the uniform flow region or (2) the Shepard interpolation fails."
+set slope [expr $dy / $dx]
+set i 0
+set sn($i) [StepStreamNode $fan(7) -1 0.05]
+set x [GetNodeDataValue $sn($i) X]
+set y [GetNodeDataValue $sn($i) Y]
+set y_cone [expr $slope * ($x - $x_cone)]
+while { $y > $y_cone && $sn($i) != -1 } {
+    incr i
+    set sn($i) [StepStreamNode $sn([expr $i-1]) -1 0.05]
+    set x [GetNodeDataValue $sn($i) X]
+    set y [GetNodeDataValue $sn($i) Y]
+    set y_cone [expr $slope * ($x - $x_cone)]
+}; # end while
+
+refreshDisplay; wait_a_moment

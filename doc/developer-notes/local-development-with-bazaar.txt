@@ -1,0 +1,386 @@
+Working in the Bazaar: Using bazaar for version control of the cfcfd2 repository
+=================================================================================
+Rowan J. Gollan
+v0.1, 31 March 2008
+:author initials: RJG
+:email: r.gollan@uq.edu.au
+
+Purpose
+--------
+Well we had our flirt with danger, git, and got burnt once
+or twice.
+So in a classic case of greener-grassism, it's time
+we tried a different distributed version control system,
+and the choice is bazaar.
+This note should help you with the basics of daily 
+work.
+If all goes well, you should never need anything more than these
+basics.
+
+Getting started: initial steps
+------------------------------
+You will need to install a version of bazaar that is 1.0 or later.
+Version 1.3 is installed on triton.
+
+[TIP]
+In all of the examples that follow, you will be introduced to a
+number of bazaar commands (all of the form `bzr ...`).
+I encourage you to learn about them as you first use them
+by using the in-built help, for example. to get help on the
+`branch` command:
+--------
+> bzr help branch
+-------
+
+[NOTE]
+First up, you probably want to get rid of your old git repository,
+or at least move it.
+--------
+> mv cfcfd2 cfcfd2-git
+--------
+
+In bazaar, the basic unit is the branch and most commands operate
+on the branch.
+A repository, in bazaar, is actually just a collection of branches.
+Our central repository will have just one branch.
+Let's grab a copy of this branch so that we work on our
+local system.
+
+--------
+> bzr branch bzr+ssh://git@triton/archive1/git/cfcfd2 cfcfd2
+--------
+
+You can see from the URL, that the bazaar repository effectively lives
+in the same place that our git repository did.
+Also `clone` may be used as an alias for `branch`, but if you are looking
+at the bazaar docs you will see `branch` used most often.
+
+
+Bazzar only supports full path names with the `bzr+ssh://`
+type of URL.
+For example, I would do the following at home to make a branch
+based on my development branch on triton. (This assumes my `.ssh/config`
+file is configured with the appropriate entry for `triton`.)
+
+--------
+> bzr branch bzr+ssh://triton/home1/gollan/cfcfd2 cfcfd2
+--------
+
+One last thing we need to do once only is configure our name and
+email address.
+--------
+> bzr whoami "Rowan J. Gollan <r.gollan@uq.edu.au>"
+--------
+You will need to do this on each of the machines you work on.
+
+
+Coding, developing and working with the mainline
+------------------------------------------------
+
+Local (personal) development
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can think of you local development work almost like
+working on your own subversion repository.
+The workflow is identical: you make some edits, and, when you are
+happy, you commit them.
+
+[NOTE]
+Unlike git, there is no staging area.  By default, bazaar will
+commit all modified files, exactly like subversion would. Also like subversion,
+you can commit selected files by listing them on the command line.
+
+So after some edits, I might check the status, and if I'm happy,
+make a commit.
+-------
+> bzr status
+> bzr commit
+-------
+
+Alternatively, I might only want to commit one file at this stage, eg. `new.txt`.
+
+--------
+> bzr commit new.txt
+--------
+
+Also, just like subversion, if you have added a new file in the working
+area that you want to put under version control, you need to add
+it before committing.
+
+---------
+> bzr add new-file
+> bzr commit
+---------
+
+And like subversion, bazaar will recursively add an entire directory if
+you give it a directory name instead of a file.
+
+So that's local development: it's as if you had a personal subversion repository
+with full revision history.
+
+
+Publishing changes to the main line
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Now after 1 minute, 1 hour, 1 day or 1 week, you might want to publish your
+changes to the main branch: `bzr+ssh://git@localhost/archive1/git/cfcfd2`.
+There are a couple of concepts involved with keeping branches in sync,
+but once you get that, it is relatively painless.
+In the examples that follow, I'm going to consider that all of my commits
+are in my branch on my triton account and I wish to publish to/share with the main branch,
+also on triton.
+Let me give an overview of the steps and then return to the details.
+
+1. Check status against main branch.
+2. Organise local branch so that it is in sync with the main branch.
+3. Optionally, squash some intermediary commits.
+4. Publish: pull changes into the main branch.
+
+
+1. Check status against main branch
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The first thing to do when publishing your changes
+is to check if you are out of sync with the main branch
+(or in bazaar terminology, check if the branches have diverged).
+The branches will have divereged if you have done some
+work locally, and someone else has published work on the
+main branch since you last updated from the main branch.
+So to check if the main branch has commits that you are
+missing:
+---------
+> bzr missing
+---------
+
+If nothing has changed, then you'll get some output like:
+
+.......................................................
+Using last location: /home/gollan/cfcfd2/
+Branches are up to date.
+.......................................................
+
+If, however, there has been some activity on the 
+main branch, then the output might look like:
+
+.......................................................
+Using last location: /home/gollan/cfcfd2/
+You are missing 1 revision(s):
+------------------------------------------------------------
+revno: 76
+committer: Rowan J. Gollan <r.gollan@uq.edu.au>
+branch nick: cfcfd2
+timestamp: Mon 2008-03-31 16:10:04 +1000
+message:
+  Demo commit.
+.......................................................
+
+So in this case, I am missing one revision from the main branch.
+
+Now that we are aware of the status, we can make a decision
+about how to proceed with organising our own branch.
+
+2. Organise local branch so that it is in sync with the main branch
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We are working on the assumtion that you definitely have local
+commits.
+If there is nothing `missing` from the main branch then you
+are ready to proceed to Step 3.
+
+If there are changes on the main branch, you need to consider
+how you want to organise your local branch.
+So let's assume our two branches look like this:
+----------
+
+  A -- B -- C -- D ---------- E - F ----- G    ::: main branch
+              \
+               \
+                \----- D'-- E'------- F'       ::: my branch
+----------
+
+So there are two choices to organise your own
+branch.
+
+1. merge
+2. rebase
+
+I strongly favour `rebase`.
+So what happens if we were to do a merge.
+---------
+> bzr merge
+---------
+The branch history will end up looking like:
+
+-----------
+
+  A -- B -- C -------- D'-- E'------- F'---- H
+                                             
+                                       where H contains:
+                                             |
+                                             D--E--F--G
+-----------
+So you have to do a new commit `H` which contains `D-E-F-G`.
+Bazaar helps you do this.
+
+What I prefer is the result of a rebase.
+--------
+> bzr rebase
+--------
+This basically does all of the upstream commits,
+in this case, `D-E-F-G`, followed by your own 
+local commits `D'-E'-F'`.
+If there are conflicts along the way, bazaar will
+stop and ask you to merge before proceeding.
+The result is a history like this:
+
+------------
+
+  A -- B -- C -- D ---------- E - F ----- G -- D'-- E'-- F'
+
+------------
+
+I find this conceptually easier to follow, and it's
+easier to review the logs.
+At this point, after a rebase, you could do `bzr pull` from
+the git account to publish your work (but don't just yet, please read on).
+Effectively, this will take `D'-E'-F'` and place them
+onto the top of the main branch.
+
+What if you don't want the world to see, D' and E'?
+How could we 'squash' the commits?
+That's the topic of the next section.
+
+
+3. Optionally, squash some intermediary commits
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ok, we have to apply a little trick to coax bazaar into doing
+what we'd like here.
+I'd like my three commits `D'-E'-F'` to appear as one single
+piece of work, let's say, `X'`.
+If using git, we could use `git rebase -i`.
+Unfortunately, bazaar doesn't have an equivalent so we will
+trick it into doing what we want.
+This operation is a little dangerous, so let's first
+make a copy of our local branch before we do anyting else.
+-----------
+> bzr branch cfcfd2 cfcfd2-backup
+-----------
+So if we completely mess things up, we still have `cfcfd2-backup`
+available.
+
+[TIP]
+As you are first getting used to bazaar, it might be worth it
+to make backups before you try various operations (like push, pull, rebase).
+At least that way you'll have a fallback.
+Once you learn the ropes, it shouldn't be necessary.
+I still always recommend a backup before a 'squash' though
+because we are going to use the `uncommit` command.
+I don't know if this trick will continue to scale if
+the repository becomes very large.  At the moment,
+the above `branch` command just chewed up an additional 337Mb.
+Hopefully disk size will continue to grow quicker than we can write
+lines of code! (I read about new 750Gb disks the other day. Isn't
+that a whole lot of data to lose at once if the disk crashes? Ouch!)
+
+For example, assume that commit `G` is revision 80 in my local
+branch after the rebase.  Commit `G` is the latest from the main branch;
+all of my local commits are sitting on top because of the rebase I did earlier.
+We are going to create a revision 81 that contains `X'`, that is, the cumulative
+result of the commits `D'-E'-F'`.
+
+The steps are:
+
+1. Make sure your working tree is clean (no outstanding commits)
+   and that there are no merges pending.  If your working tree is clean, `bzr status` should return
+   nothing to stdout.
+
+2. Make a copy of your intermediary commit messages, that is, from
+   message 81 onwards.
++
+----------
+> bzr log -r 81.. > my_messages.save
+----------
++
+You may or may not want to use them later, but at least you have a copy.
+(Plus they are still available in `cfcfd2-backup`.)
+
+3. Here's the bit that will make you whince:
++
+----------
+> bzr uncommit -r 80
+----------
++
+That will, take out changes 81,82,83 == `D'`,`E'`,`F'` from the
+branch *but* the uncommit 'does not change' the working tree.
+
+4. And here's the trick.
++
+----------
+> bzr commit
+----------
++
+This will pick up all of your local modifications that
+were in the working tree at the time of `F'`. So we now
+have a single commit with all the modifications up to
+`F'`. You can look at the text in `my_messages.save` to
+get some inspiration for your new commit message.
+
+
+The process is not so dangerous if you stop to consider what you are doing
+and remember to make a backup.
+A better question is why you might want to 'squash' some commits.
+One reason is to avoid committing code to the main branch that does not
+compile or pass the tests.
+Another is to minimise junk in the main branch.
+
+The crucial point is the first step: making sure your working tree is clean.
+You can see that if it isn't clean, then step 4 is going to
+commit something other than what you intended.
+If, at setp 1, you have uncommited work (that is, the working tree is not clean),
+you might need to save it out of the way while you do this manoeuvre.
+(Have a look at the `shelve` command.)
+
+Finally, we should have something ready to publish.
+
+
+4. Publish: pull changes into the main branch
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+After getting the branch organised, and optionally squashing
+some commits, you are ready to pull your changes into the main branch.
+This should be a simple step after having tidied your local branch.
+---------
+> ssh git@localhost
+> bzr pull bzr+ssh://gollan@localhost/home1/gollan/cfcfd2
+---------
+
+
+[NOTE]
+If you have the `git` user as part of your personal group
+and have the appropriate permissions set, you could
+substitute the `bzr+ssh://` URL with something like
+`file:///home1/gollan/cfcfd2`.
+This requires that `git` have read permissions
+for files owned by `gollan`.
+Ask a sys admin to help you add `git` to your group if you'd like
+to do things this way.
+
+
+Working with subversion
+~~~~~~~~~~~~~~~~~~~~~~~
+
+TODO:
+Add notes, but exactly the same process as with git.
+
+              
+Some random thoughts, questions you might have
+---------------------------------------------
+
+I'm confused, I just want to update my code: when do I `pull`, `merge` or `rebase`???
+        If you haven't been doing any local development and just want to
+        keep up-to-date, then just use pull: `bzr pull`.
+        If you have been doing local development, then you need to use
+        `merge` or `rebase`; if you tried to pull when it;s inappropriate bazaar will recommend that
+        you `merge`.  As mentioned earlier, I'd encourage you to
+        forget `merge` altogether and just use `rebase`.  Remember that `bzr missing` will
+        give you the hint as to what status your branch is at.

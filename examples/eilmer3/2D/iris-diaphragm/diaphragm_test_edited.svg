@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="566.93"
+   height="566.93"
+   version="1.0"
+   id="svg2"
+   inkscape:version="0.47 r22583"
+   sodipodi:docname="diaphragm_test_edited.pdf">
+  <metadata
+     id="metadata164">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>Various diaphragm configuration test cases.</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs162">
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Mend"
+       style="overflow:visible;">
+      <path
+         id="path3758"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt;marker-start:none;"
+         transform="scale(0.4) rotate(180) translate(10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Lend"
+       style="overflow:visible;">
+      <path
+         id="path3752"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt;marker-start:none;"
+         transform="scale(0.8) rotate(180) translate(12.5,0)" />
+    </marker>
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 283.465 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="566.92999 : 283.465 : 1"
+       inkscape:persp3d-origin="283.465 : 188.97666 : 1"
+       id="perspective166" />
+    <inkscape:perspective
+       id="perspective4390"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective4390-0"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective2899"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective2921"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Mend-2"
+       style="overflow:visible">
+      <path
+         id="path3758-1"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;marker-start:none"
+         transform="matrix(-0.4,0,0,-0.4,-4,0)" />
+    </marker>
+  </defs>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1290"
+     inkscape:window-height="893"
+     id="namedview160"
+     showgrid="false"
+     inkscape:zoom="3.074784"
+     inkscape:cx="292.52634"
+     inkscape:cy="152.55662"
+     inkscape:window-x="0"
+     inkscape:window-y="24"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg2" />
+  <title
+     id="title4">Various diaphragm configuration test cases.</title>
+  <desc
+     id="desc6">SVG file written by e3prep.py</desc>
+  <!-- drawing begins here -->
+  <line
+     x1="141.73"
+     y1="445.61"
+     x2="481.89"
+     y2="445.61"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line8" />
+  <text
+     x="311.81"
+     y="471.12"
+     style="font-size:10;text-anchor:start;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text10">x</text>
+  <line
+     x1="141.73"
+     y1="445.61"
+     x2="141.73"
+     y2="439.94"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line12" />
+  <text
+     x="141.73"
+     y="459.78"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text14">0</text>
+  <line
+     x1="209.76"
+     y1="445.61"
+     x2="209.76"
+     y2="439.94"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line16" />
+  <text
+     x="209.76"
+     y="459.78"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text18">0.2</text>
+  <line
+     x1="277.80"
+     y1="445.61"
+     x2="277.80"
+     y2="439.94"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line20" />
+  <text
+     x="277.80"
+     y="459.78"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text22">0.4</text>
+  <line
+     x1="345.83"
+     y1="445.61"
+     x2="345.83"
+     y2="439.94"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line24" />
+  <text
+     x="345.83"
+     y="459.78"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text26">0.6</text>
+  <line
+     x1="413.86"
+     y1="445.61"
+     x2="413.86"
+     y2="439.94"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line28" />
+  <text
+     x="413.86"
+     y="459.78"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text30">0.8</text>
+  <line
+     x1="481.89"
+     y1="445.61"
+     x2="481.89"
+     y2="439.94"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line32" />
+  <text
+     x="481.89"
+     y="459.78"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text34">1</text>
+  <line
+     x1="128.13"
+     y1="425.20"
+     x2="128.13"
+     y2="357.17"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line36" />
+  <text
+     x="105.45"
+     y="391.18"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text38">y</text>
+  <line
+     x1="128.13"
+     y1="425.20"
+     x2="133.80"
+     y2="425.20"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line40" />
+  <text
+     x="119.62"
+     y="425.20"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text42">0</text>
+  <line
+     x1="128.13"
+     y1="357.17"
+     x2="133.80"
+     y2="357.17"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line44" />
+  <text
+     x="119.62"
+     y="357.17"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text46">0.2</text>
+  <!-- There are 10 nodes
+ -->
+  <circle
+     cx="141.73"
+     cy="425.20"
+     r="2.83"
+     style="fill:black"
+     id="circle48" />
+  <text
+     x="141.4052"
+     y="435.88089"
+     style="font-size:10px;font-weight:normal;text-anchor:end;fill:#000000;stroke:none;font-family:sanserif"
+     id="text50">n1</text>
+  <circle
+     cx="141.73"
+     cy="410.74"
+     r="2.83"
+     style="fill:black"
+     id="circle52" />
+  <text
+     x="141.73"
+     y="406.49"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text54">n2</text>
+  <circle
+     cx="175.75"
+     cy="425.20"
+     r="2.83"
+     style="fill:black"
+     id="circle56" />
+  <text
+     x="173.80119"
+     y="435.88089"
+     style="font-size:10px;font-weight:normal;text-anchor:end;fill:#000000;stroke:none;font-family:sanserif"
+     id="text58">n3</text>
+  <circle
+     cx="175.75"
+     cy="410.74"
+     r="2.83"
+     style="fill:black"
+     id="circle60" />
+  <text
+     x="175.75"
+     y="406.49"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text62">n4</text>
+  <circle
+     cx="277.80"
+     cy="425.20"
+     r="2.83"
+     style="fill:black"
+     id="circle64" />
+  <text
+     x="277.15039"
+     y="436.53049"
+     style="font-size:10px;font-weight:normal;text-anchor:end;fill:#000000;stroke:none;font-family:sanserif"
+     id="text66">n5</text>
+  <circle
+     cx="277.80"
+     cy="410.74"
+     r="2.83"
+     style="fill:black"
+     id="circle68" />
+  <text
+     x="277.80"
+     y="406.49"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text70">n6</text>
+  <circle
+     cx="379.84"
+     cy="425.20"
+     r="2.83"
+     style="fill:black"
+     id="circle72" />
+  <text
+     x="379.1904"
+     y="436.53049"
+     style="font-size:10px;font-weight:normal;text-anchor:end;fill:#000000;stroke:none;font-family:sanserif"
+     id="text74">n7</text>
+  <circle
+     cx="379.84"
+     cy="410.74"
+     r="2.83"
+     style="fill:black"
+     id="circle76" />
+  <text
+     x="379.84"
+     y="406.49"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text78">n8</text>
+  <circle
+     cx="481.89"
+     cy="425.20"
+     r="2.83"
+     style="fill:black"
+     id="circle80" />
+  <text
+     x="481.89001"
+     y="437.18008"
+     style="font-size:10px;font-weight:normal;text-anchor:end;fill:#000000;stroke:none;font-family:sanserif"
+     id="text82">n9</text>
+  <circle
+     cx="481.89"
+     cy="410.74"
+     r="2.83"
+     style="fill:black"
+     id="circle84" />
+  <text
+     x="481.89"
+     y="406.49"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text86">n10</text>
+  <!-- There are 4 blocks
+ -->
+  <!-- Render block 0
+ -->
+  <text
+     x="175.9545"
+     y="484.36801"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text88">pri_driver</text>
+  <path
+     d="M 141.73,410.74 L 143.43,410.74 L 145.13,410.74 L 146.83,410.74 L 148.54,410.74 L 150.24,410.74 L 151.94,410.74 L 153.64,410.74 L 155.34,410.74 L 157.04,410.74 L 158.74,410.74 L 160.44,410.74 L 162.14,410.74 L 163.84,410.74 L 165.54,410.74 L 167.24,410.74 L 168.94,410.74 L 170.65,410.74 L 172.35,410.74 L 174.05,410.74 L 175.75,410.74"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path92" />
+  <path
+     d="M 175.75,425.20 L 175.75,424.47 L 175.75,423.75 L 175.75,423.03 L 175.75,422.31 L 175.75,421.58 L 175.75,420.86 L 175.75,420.14 L 175.75,419.41 L 175.75,418.69 L 175.75,417.97 L 175.75,417.25 L 175.75,416.52 L 175.75,415.80 L 175.75,415.08 L 175.75,414.35 L 175.75,413.63 L 175.75,412.91 L 175.75,412.19 L 175.75,411.46 L 175.75,410.74"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path96" />
+  <path
+     d="M 141.73,425.20 L 143.43,425.20 L 145.13,425.20 L 146.83,425.20 L 148.54,425.20 L 150.24,425.20 L 151.94,425.20 L 153.64,425.20 L 155.34,425.20 L 157.04,425.20 L 158.74,425.20 L 160.44,425.20 L 162.14,425.20 L 163.84,425.20 L 165.54,425.20 L 167.24,425.20 L 168.94,425.20 L 170.65,425.20 L 172.35,425.20 L 174.05,425.20 L 175.75,425.20"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path100" />
+  <text
+     x="-376.39539"
+     y="144.65321"
+     transform="matrix(0,-1,1,0,0,0)"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text102">FIXED_T</text>
+  <path
+     d="M 141.73,425.20 L 141.73,424.47 L 141.73,423.75 L 141.73,423.03 L 141.73,422.31 L 141.73,421.58 L 141.73,420.86 L 141.73,420.14 L 141.73,419.41 L 141.73,418.69 L 141.73,417.97 L 141.73,417.25 L 141.73,416.52 L 141.73,415.80 L 141.73,415.08 L 141.73,414.35 L 141.73,413.63 L 141.73,412.91 L 141.73,412.19 L 141.73,411.46 L 141.73,410.74"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path104" />
+  <!-- Render block 1
+ -->
+  <text
+     x="225.79559"
+     y="420.38205"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text106">sec_driver</text>
+  <text
+     x="225.79559"
+     y="405.21835"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text108">FIXED_T</text>
+  <path
+     d="M 175.75,410.74 L 177.45,410.74 L 179.15,410.74 L 180.85,410.74 L 182.55,410.74 L 184.25,410.74 L 185.95,410.74 L 187.65,410.74 L 189.35,410.74 L 191.06,410.74 L 192.76,410.74 L 194.46,410.74 L 196.16,410.74 L 197.86,410.74 L 199.56,410.74 L 201.26,410.74 L 202.96,410.74 L 204.66,410.74 L 206.36,410.74 L 208.06,410.74 L 209.76,410.74 L 211.46,410.74 L 213.17,410.74 L 214.87,410.74 L 216.57,410.74 L 218.27,410.74 L 219.97,410.74 L 221.67,410.74 L 223.37,410.74 L 225.07,410.74 L 226.77,410.74 L 228.47,410.74 L 230.17,410.74 L 231.87,410.74 L 233.57,410.74 L 235.28,410.74 L 236.98,410.74 L 238.68,410.74 L 240.38,410.74 L 242.08,410.74 L 243.78,410.74 L 245.48,410.74 L 247.18,410.74 L 248.88,410.74 L 250.58,410.74 L 252.28,410.74 L 253.98,410.74 L 255.69,410.74 L 257.39,410.74 L 259.09,410.74 L 260.79,410.74 L 262.49,410.74 L 264.19,410.74 L 265.89,410.74 L 267.59,410.74 L 269.29,410.74 L 270.99,410.74 L 272.69,410.74 L 274.39,410.74 L 276.09,410.74 L 277.80,410.74"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path110" />
+  <text
+     x="-338.06326"
+     y="271.96078"
+     transform="matrix(0,-1,1,0,0,0)"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text112">Secondary diaphragm</text>
+  <path
+     d="M 277.80,425.20 L 277.80,424.47 L 277.80,423.75 L 277.80,423.03 L 277.80,422.31 L 277.80,421.58 L 277.80,420.86 L 277.80,420.14 L 277.80,419.41 L 277.80,418.69 L 277.80,417.97 L 277.80,417.25 L 277.80,416.52 L 277.80,415.80 L 277.80,415.08 L 277.80,414.35 L 277.80,413.63 L 277.80,412.91 L 277.80,412.19 L 277.80,411.46 L 277.80,410.74"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path114" />
+  <path
+     d="M 175.75,425.20 L 177.45,425.20 L 179.15,425.20 L 180.85,425.20 L 182.55,425.20 L 184.25,425.20 L 185.95,425.20 L 187.65,425.20 L 189.35,425.20 L 191.06,425.20 L 192.76,425.20 L 194.46,425.20 L 196.16,425.20 L 197.86,425.20 L 199.56,425.20 L 201.26,425.20 L 202.96,425.20 L 204.66,425.20 L 206.36,425.20 L 208.06,425.20 L 209.76,425.20 L 211.46,425.20 L 213.17,425.20 L 214.87,425.20 L 216.57,425.20 L 218.27,425.20 L 219.97,425.20 L 221.67,425.20 L 223.37,425.20 L 225.07,425.20 L 226.77,425.20 L 228.47,425.20 L 230.17,425.20 L 231.87,425.20 L 233.57,425.20 L 235.28,425.20 L 236.98,425.20 L 238.68,425.20 L 240.38,425.20 L 242.08,425.20 L 243.78,425.20 L 245.48,425.20 L 247.18,425.20 L 248.88,425.20 L 250.58,425.20 L 252.28,425.20 L 253.98,425.20 L 255.69,425.20 L 257.39,425.20 L 259.09,425.20 L 260.79,425.20 L 262.49,425.20 L 264.19,425.20 L 265.89,425.20 L 267.59,425.20 L 269.29,425.20 L 270.99,425.20 L 272.69,425.20 L 274.39,425.20 L 276.09,425.20 L 277.80,425.20"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path118" />
+  <text
+     x="-338.71201"
+     y="182.90115"
+     transform="matrix(0,-1,1,0,0,0)"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text120">ADJACENT_PLUS_UDF</text>
+  <path
+     d="M 175.75,425.20 L 175.75,424.47 L 175.75,423.75 L 175.75,423.03 L 175.75,422.31 L 175.75,421.58 L 175.75,420.86 L 175.75,420.14 L 175.75,419.41 L 175.75,418.69 L 175.75,417.97 L 175.75,417.25 L 175.75,416.52 L 175.75,415.80 L 175.75,415.08 L 175.75,414.35 L 175.75,413.63 L 175.75,412.91 L 175.75,412.19 L 175.75,411.46 L 175.75,410.74"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path122" />
+  <!-- Render block 2
+ -->
+  <text
+     x="328.82001"
+     y="420.70685"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text124">shock_tube</text>
+  <text
+     x="327.52081"
+     y="404.89355"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text126">FIXED_T</text>
+  <path
+     d="M 277.80,410.74 L 279.50,410.74 L 281.20,410.74 L 282.90,410.74 L 284.60,410.74 L 286.30,410.74 L 288.00,410.74 L 289.70,410.74 L 291.40,410.74 L 293.10,410.74 L 294.80,410.74 L 296.50,410.74 L 298.20,410.74 L 299.91,410.74 L 301.61,410.74 L 303.31,410.74 L 305.01,410.74 L 306.71,410.74 L 308.41,410.74 L 310.11,410.74 L 311.81,410.74 L 313.51,410.74 L 315.21,410.74 L 316.91,410.74 L 318.61,410.74 L 320.31,410.74 L 322.02,410.74 L 323.72,410.74 L 325.42,410.74 L 327.12,410.74 L 328.82,410.74 L 330.52,410.74 L 332.22,410.74 L 333.92,410.74 L 335.62,410.74 L 337.32,410.74 L 339.02,410.74 L 340.72,410.74 L 342.43,410.74 L 344.13,410.74 L 345.83,410.74 L 347.53,410.74 L 349.23,410.74 L 350.93,410.74 L 352.63,410.74 L 354.33,410.74 L 356.03,410.74 L 357.73,410.74 L 359.43,410.74 L 361.13,410.74 L 362.83,410.74 L 364.54,410.74 L 366.24,410.74 L 367.94,410.74 L 369.64,410.74 L 371.34,410.74 L 373.04,410.74 L 374.74,410.74 L 376.44,410.74 L 378.14,410.74 L 379.84,410.74"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path128" />
+  <path
+     d="M 379.84,425.20 L 379.84,424.47 L 379.84,423.75 L 379.84,423.03 L 379.84,422.31 L 379.84,421.58 L 379.84,420.86 L 379.84,420.14 L 379.84,419.41 L 379.84,418.69 L 379.84,417.97 L 379.84,417.25 L 379.84,416.52 L 379.84,415.80 L 379.84,415.08 L 379.84,414.35 L 379.84,413.63 L 379.84,412.91 L 379.84,412.19 L 379.84,411.46 L 379.84,410.74"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path132" />
+  <path
+     d="M 277.80,425.20 L 279.50,425.20 L 281.20,425.20 L 282.90,425.20 L 284.60,425.20 L 286.30,425.20 L 288.00,425.20 L 289.70,425.20 L 291.40,425.20 L 293.10,425.20 L 294.80,425.20 L 296.50,425.20 L 298.20,425.20 L 299.91,425.20 L 301.61,425.20 L 303.31,425.20 L 305.01,425.20 L 306.71,425.20 L 308.41,425.20 L 310.11,425.20 L 311.81,425.20 L 313.51,425.20 L 315.21,425.20 L 316.91,425.20 L 318.61,425.20 L 320.31,425.20 L 322.02,425.20 L 323.72,425.20 L 325.42,425.20 L 327.12,425.20 L 328.82,425.20 L 330.52,425.20 L 332.22,425.20 L 333.92,425.20 L 335.62,425.20 L 337.32,425.20 L 339.02,425.20 L 340.72,425.20 L 342.43,425.20 L 344.13,425.20 L 345.83,425.20 L 347.53,425.20 L 349.23,425.20 L 350.93,425.20 L 352.63,425.20 L 354.33,425.20 L 356.03,425.20 L 357.73,425.20 L 359.43,425.20 L 361.13,425.20 L 362.83,425.20 L 364.54,425.20 L 366.24,425.20 L 367.94,425.20 L 369.64,425.20 L 371.34,425.20 L 373.04,425.20 L 374.74,425.20 L 376.44,425.20 L 378.14,425.20 L 379.84,425.20"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path136" />
+  <text
+     x="-340.66464"
+     y="284.30493"
+     transform="matrix(0,-1,1,0,0,0)"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text138">ADJACENT_PLUS_UDF</text>
+  <path
+     d="M 277.80,425.20 L 277.80,424.47 L 277.80,423.75 L 277.80,423.03 L 277.80,422.31 L 277.80,421.58 L 277.80,420.86 L 277.80,420.14 L 277.80,419.41 L 277.80,418.69 L 277.80,417.97 L 277.80,417.25 L 277.80,416.52 L 277.80,415.80 L 277.80,415.08 L 277.80,414.35 L 277.80,413.63 L 277.80,412.91 L 277.80,412.19 L 277.80,411.46 L 277.80,410.74"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path140" />
+  <!-- Render block 3
+ -->
+  <text
+     x="430.87"
+     y="420.05722"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text142">accel_tube</text>
+  <text
+     x="430.2204"
+     y="405.21835"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text144">FIXED_T</text>
+  <path
+     d="M 379.84,410.74 L 381.54,410.74 L 383.24,410.74 L 384.94,410.74 L 386.65,410.74 L 388.35,410.74 L 390.05,410.74 L 391.75,410.74 L 393.45,410.74 L 395.15,410.74 L 396.85,410.74 L 398.55,410.74 L 400.25,410.74 L 401.95,410.74 L 403.65,410.74 L 405.35,410.74 L 407.06,410.74 L 408.76,410.74 L 410.46,410.74 L 412.16,410.74 L 413.86,410.74 L 415.56,410.74 L 417.26,410.74 L 418.96,410.74 L 420.66,410.74 L 422.36,410.74 L 424.06,410.74 L 425.76,410.74 L 427.46,410.74 L 429.17,410.74 L 430.87,410.74 L 432.57,410.74 L 434.27,410.74 L 435.97,410.74 L 437.67,410.74 L 439.37,410.74 L 441.07,410.74 L 442.77,410.74 L 444.47,410.74 L 446.17,410.74 L 447.87,410.74 L 449.57,410.74 L 451.28,410.74 L 452.98,410.74 L 454.68,410.74 L 456.38,410.74 L 458.08,410.74 L 459.78,410.74 L 461.48,410.74 L 463.18,410.74 L 464.88,410.74 L 466.58,410.74 L 468.28,410.74 L 469.98,410.74 L 471.69,410.74 L 473.39,410.74 L 475.09,410.74 L 476.79,410.74 L 478.49,410.74 L 480.19,410.74 L 481.89,410.74"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path146" />
+  <text
+     x="-375.74576"
+     y="482.86441"
+     transform="matrix(0,-1,1,0,0,0)"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text148">FIXED_T</text>
+  <path
+     d="M 481.89,425.20 L 481.89,424.47 L 481.89,423.75 L 481.89,423.03 L 481.89,422.31 L 481.89,421.58 L 481.89,420.86 L 481.89,420.14 L 481.89,419.41 L 481.89,418.69 L 481.89,417.97 L 481.89,417.25 L 481.89,416.52 L 481.89,415.80 L 481.89,415.08 L 481.89,414.35 L 481.89,413.63 L 481.89,412.91 L 481.89,412.19 L 481.89,411.46 L 481.89,410.74"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path150" />
+  <path
+     d="M 379.84,425.20 L 381.54,425.20 L 383.24,425.20 L 384.94,425.20 L 386.65,425.20 L 388.35,425.20 L 390.05,425.20 L 391.75,425.20 L 393.45,425.20 L 395.15,425.20 L 396.85,425.20 L 398.55,425.20 L 400.25,425.20 L 401.95,425.20 L 403.65,425.20 L 405.35,425.20 L 407.06,425.20 L 408.76,425.20 L 410.46,425.20 L 412.16,425.20 L 413.86,425.20 L 415.56,425.20 L 417.26,425.20 L 418.96,425.20 L 420.66,425.20 L 422.36,425.20 L 424.06,425.20 L 425.76,425.20 L 427.46,425.20 L 429.17,425.20 L 430.87,425.20 L 432.57,425.20 L 434.27,425.20 L 435.97,425.20 L 437.67,425.20 L 439.37,425.20 L 441.07,425.20 L 442.77,425.20 L 444.47,425.20 L 446.17,425.20 L 447.87,425.20 L 449.57,425.20 L 451.28,425.20 L 452.98,425.20 L 454.68,425.20 L 456.38,425.20 L 458.08,425.20 L 459.78,425.20 L 461.48,425.20 L 463.18,425.20 L 464.88,425.20 L 466.58,425.20 L 468.28,425.20 L 469.98,425.20 L 471.69,425.20 L 473.39,425.20 L 475.09,425.20 L 476.79,425.20 L 478.49,425.20 L 480.19,425.20 L 481.89,425.20"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path154" />
+  <text
+     x="-339.03809"
+     y="386.01843"
+     transform="matrix(0,-1,1,0,0,0)"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text156">ADJACENT_PLUS_UDF</text>
+  <path
+     d="M 379.84,425.20 L 379.84,424.47 L 379.84,423.75 L 379.84,423.03 L 379.84,422.31 L 379.84,421.58 L 379.84,420.86 L 379.84,420.14 L 379.84,419.41 L 379.84,418.69 L 379.84,417.97 L 379.84,417.25 L 379.84,416.52 L 379.84,415.80 L 379.84,415.08 L 379.84,414.35 L 379.84,413.63 L 379.84,412.91 L 379.84,412.19 L 379.84,411.46 L 379.84,410.74"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path158" />
+  <!-- end of drawing -->
+  <path
+     style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Mend)"
+     d="m 155.25526,475.33588 -0.3248,-57.81472"
+     id="path2972" />
+  <text
+     x="-343.40201"
+     y="170.25023"
+     transform="matrix(0,-1,1,0,0,0)"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text112-2">Primary diaphragm</text>
+  <text
+     x="-344.05246"
+     y="373.51654"
+     transform="matrix(0,-1,1,0,0,0)"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text112-0">Tertiary diaphragm</text>
+  <text
+     x="416.43692"
+     y="482.88568"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text108-4">SLIP_WALL</text>
+  <path
+     style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Mend)"
+     d="m 393.16422,472.95165 4.2e-4,-46.10658"
+     id="path2972-0"
+     sodipodi:nodetypes="cc" />
+</svg>

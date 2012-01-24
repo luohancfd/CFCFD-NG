@@ -1,0 +1,44 @@
+[peterj@triton thermo]$ ./lab_co2_cycle.exe
+# Supercritical CO2 Brayton Cycle.
+# (using Hal's pressures and temperatures to anchor cycle)
+# Pressure in MPa, T in degrees K, enthalpy in kJ/kg, entropy in kJ/kg.K
+
+# [0] Inlet to compressor as used by Hal.
+# [0] p=8 T=320 h=348.132 s=1.21861
+# [1] Outlet from compressor.
+# [1] p=13.39 T=359.743 h=367.405 s=1.21861
+# [11] imperfect compressor: efficiency=0.7
+# [11] p=13.39 T=363.308 h=375.666 s=1.24146
+# [2] Bottom of bore (no change in elevation in lab).
+# [2] p=13.39 T=359.743 h=367.405 s=1.21861
+# [3] End of hot reservoir, entry to upward bore.
+# [3] p=13.39 T=444 h=504.09 s=1.56345
+# [4] Exit of bore at surface, inlet to turbine.
+# [4] p=13.39 T=444 h=504.09 s=1.56345
+# [5] Exit of turbine.
+# [5] p=8 T=395.324 h=469.366 s=1.56345
+# [15] imperfect turbine: efficiency=0.7
+# [15] p=8 T=403.811 h=479.783 s=1.58952
+------------------------------
+With ideal turbomachinery:
+# work-from-turbine=34.7238 kJ/kg
+# heat-added=136.684 kJ/kg
+# geothermal-efficiency=0.254044
+# cycle-thermal-efficiency=0.113035
+# work-done-by-pump=19.2737 kJ/kg
+# work-done-down-well=0 kJ/kg
+# work-done-up-well=0 kJ/kg
+# heat-rejected=121.234 kJ/kg
+------------------------------
+With imperfect turbomachinery:
+# work-from-turbine=24.3067 kJ/kg
+# heat-added=128.424 kJ/kg
+# geothermal-efficiency=0.189268
+# cycle-thermal-efficiency=-0.0251296
+# work-done-by-pump=27.5339 kJ/kg
+# work-done-down-well=0 kJ/kg
+# work-done-up-well=0 kJ/kg
+# heat-rejected=131.651 kJ/kg
+# Done.
+[peterj@triton thermo]$
+

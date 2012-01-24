@@ -1,0 +1,106 @@
+# russ.moc
+# T-ADFA conical nozzle flow into an axisymmetric flow adjuster.
+# The target flow has a specifiec Mach number (hence pressure) distribution
+# along the axis.
+#
+# PJ, 14-Apr-07
+#
+#-----------------------------------------------------------------
+package require imoc
+source $gd(IMOC_HOME)/lib/wait_a_moment.tcl
+source $gd(IMOC_HOME)/lib/deg_to_rad.tcl
+source $gd(IMOC_HOME)/lib/streamdata.moc
+source $gd(IMOC_HOME)/lib/extendstream.moc
+
+#------------------------------------------------------------------
+
+puts ""
+puts "Axisymmetric Nozzle Calculation"
+
+LoadIMOCKernel
+SetAxiFlag 1
+SetGamma 1.4
+
+InitGUI
+setXYRanges 0.0 0.0 3.0 0.3
+setXYTics 0.5 0.1
+
+puts "Put in a wall for the axis of symmetry."
+WallAddPoint 0  0.0 0.0
+WallAddPoint 0 10.0 0.0
+
+puts "Establish an initial value line."
+set Mcone 8.0;  # Mach number at the conical nozzle exit
+set rth   1.0;  # effective radius of source flow
+set yth   0.10; # radial height of the starting point
+set nline 8;    # number of characteristic lines to radiate down to the x-axis
+set theta [expr asin($yth/$rth)]
+puts "theta = $theta"
+set dtheta [expr $theta / $nline]
+set xorigin [expr -1 * cos($theta) * $rth]
+for {set i 0} {$i <= $nline} {incr i} {
+    set lineid($i) [CreateNode -1]
+    set theta [expr $dtheta * $i]
+    set y   [expr $rth * sin($theta)]
+    set x   [expr $rth * cos($theta) + $xorigin]
+    eval SetNodeData $lineid($i) X $x Y $y Mach $Mcone Theta $theta P0 1.0 T0 1.0
+}; # end for
+refreshDisplay; wait_a_moment;
+
+# The top node at (0.0, yth) is the start of the streamline that will be
+# interpolated later.
+set startStreamNode $nline
+
+puts "Compute flow in the initial conical-flow region."
+for {set i 1} {$i <= $nline} {incr i} {
+    set old_first $lineid([expr $i - 1])
+    set new_first $lineid($i)
+    set node_list [MarchAlongCMinus $old_first $new_first down]
+    set last_node [lindex $node_list [expr [llength $node_list] - 1]]
+    set axis_node [CMinusWallNode 0 $last_node -1]
+    refreshDisplay; wait_a_moment;
+}; # end for
+
+set x_core [GetNodeDataValue $axis_node X]
+set M_core [GetNodeDataValue $axis_node Mach]
+puts "Core flow starts at x = $x_core with M = $M_core"
+
+# Russ, here is where you need to specify the desired distribution
+# of pressure (and thus Mach number) along the axis.
+# For the moment, I have just specified dPdx = 0.
+
+puts "Put down a number of nodes along the axis with constant M."
+puts "Work back upstream from each of these nodes."
+set x $x_core
+set y_tiny 0.001; # small with respect to overall scale
+# This nonzero value of y_tiny is needed because the calculation 
+# of axisymmteric flow cannot cope with both nodes being on the axis.
+set dL 0.2
+set x_max [expr $x_core + 4.0]
+set old $axis_node
+set oldStreamNode $startStreamNode
+
+while { $x < $x_max } {
+    # Put down a new node along the Mach cone of the uniform test flow.
+    set axis_node [CreateNode -1]
+    set x [expr $x + $dL]
+    puts "New node at ($x, $y_tiny)"
+    SetNodeData $axis_node X $x Y $y_tiny Mach $M_core Theta 0.0
+
+    # March upstream from the new point, creating a list of nodes
+    # along a C- characteristic.  Extend the streamline defining 
+    # the nozzle wall to this new characteristic.
+    set nodelist [MarchAlongCMinus $old $axis_node up]
+    set newStreamNode [ExtendStreamLineToGivenLine $oldStreamNode $nodelist]
+    refreshDisplay; wait_a_moment
+    if { $newStreamNode == -1 } break
+
+    # Step along to the new nodes in preparation for doing it all again.
+    set old $axis_node
+    set oldStreamNode $newStreamNode
+    # Gradually increase the spacing of the new characteristics.
+    set dL [expr $dL * 1.10]
+}; # end for
+
+refreshDisplay
+PrintStreamData $startStreamNode

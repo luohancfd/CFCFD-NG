@@ -1,0 +1,104 @@
+% elmer3-turbulence-model-validation.tex
+% Overall LaTeX format adapted from PJ's elmer3 user guide
+% 
+% Wilson Chan, November 2008
+%
+
+\documentclass[12pt,a4paper]{article}
+\usepackage[body={16cm,24.5cm}]{geometry}
+\usepackage{pstricks}
+\usepackage{graphicx}
+\usepackage{listings}
+\lstset{basicstyle=\scriptsize,identifierstyle=,keywordstyle=}
+
+%------------------------------------------------------------------
+% a couple horizontal bars to delimit embedded code
+% the width suits the page size set above and
+% the mathmode eliminates spaces between the three elements
+\newcommand{\topbar}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule[2.0mm]{159.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+\newcommand{\bottombar}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule{159.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+\newcommand{\topbarshort}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule[2.0mm]{149.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+\newcommand{\bottombarshort}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule{149.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+%------------------------------------------------------------------
+
+\title{
+    The $k$-$\omega$ turbulence model in Eilmer3: \\
+    User guide and test cases
+}
+\author{
+    The University of Queensland \\
+    School of Mechanical \& Mining Engineering \\
+    Research Report Number 2010/01 
+    \vspace{0.5cm} \\
+    W. Y. K. Chan, \thanks{Centre for Hypersonics, The University of 
+     Queensland, Brisbane, Australia.}, 
+    P. A. Jacobs, \thanks{Queensland Geothermal Energy Centre of 
+     Excellence, The University of Queensland, Brisbane, Australia.}, 
+    J. P. Nap\thanks{Engineering Fluid Dynamics Group, University of Twente, Netherlands.}, \\ 
+    D. J. Mee\thanks{School of Mechanical \& Mining Engineering, 
+     The University of Queensland, Brisbane, Australia.} and 
+    R. M. Kirchhartz\thanks{Centre for Hypersonics, The University of
+     Queensland, Brisbane, Australia.} \\
+}
+% \date{November 2008}
+
+\usepackage{subfigure}   % Adds capability to input sub-figures
+
+\begin{document}
+\maketitle
+
+% For some reason, the abstract environment causes the labelling in
+% the metapost figures to disappear; strange!
+% \begin{abstract}
+% \end{abstract}
+\centerline{\textbf{Abstract}}
+\medskip
+This report provides details on the use and validation of Wilcox's
+2006 $k$-$\omega$ turbulence model in Eilmer3. Eilmer3 is an integrated
+collection of programs for the simulation of transient compressible flow
+in two- and three-dimensions\cite{Jacobs2008,Jacobs2010}. The two-dimensional 
+version of the $k$-$\omega$ model in Eilmer3 has been verified and
+validated against four test cases. These cases include a two-dimensional 
+flat plate case, an axisymmetric cylinder case, a backward-facing step
+case and a coaxial-jets mixing case. The implementation and validation of
+the three-dimensional version of this turbulence model is still in
+progress. Since guidelines with regards to the setting up of grids in the
+near-wall regions and specification of freestream turbulence properties 
+for turbulent CFD simulations are rather scattered in literature, this 
+report provides a compilation and, more importantly, a review of these 
+recommended guidelines. 
+\newpage
+\tableofcontents
+
+%-------------------------------------------------------------------
+\include{./chap1-introduction/introduction}
+
+% 2D examples
+\include{./chap2-flat-plate/flat-plate}
+\include{./chap3-mallinson-cylinder/mallinson-cylinder}
+\include{./chap4-backward-facing-step/backward-facing-step}
+\include{./chap5-coaxial-jets/coaxial-jets}
+\include{./chap6-conclusion/conclusion}
+
+% 3D examples
+
+%--------------------------------------------------------------------
+
+\newpage
+\bibliographystyle{unsrt}
+%\bibliography{bibtex/pj,bibtex/computing,bibtex/gas_dynamic,bibtex/adm}
+\bibliography{./bibliography/phd_bibliography}
+%\bibliographystyle{newapa}
+
+\newpage
+\appendix
+
+\end{document}

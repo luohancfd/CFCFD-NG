@@ -1,0 +1,12 @@
+/* sample_analytic_solution.mac
+ * Evaluate the analytic solution at a sample point.
+ *
+ * PJ, 28-May-2011
+ */
+case: 1;
+batch("analytic_solution.mac");
+x:0.5; y:0.5;
+rho, numer;
+u, numer;
+v, numer;
+p, numer;

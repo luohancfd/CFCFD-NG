@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<VTKFile type="PPolyData" version="0.1" byte_order="LittleEndian">
+<PPolyData GhostLevel="0">
+<PPoints>
+<PDataArray type="Float32" NumberOfComponents="3"/>
+</PPoints>
+<Piece Source="cone_20.vtp"/>
+<Piece Source="right_wall.vtp"/>
+<Piece Source="ceiling.vtp"/>
+<Piece Source="floor.vtp"/>
+</PPolyData>
+</VTKFile>

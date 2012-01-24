@@ -1,0 +1,45 @@
+# dn2.test
+# Functional test for the Drummond tunnel simulation.
+#
+# This exercises a few more of the basic functions of the L1d3 code.
+#
+# PJ, 19-Feb-2011 (adapted from piston.test)
+# Note that later tests below depend on earlier ones,
+# just as we shouldn't do.  Should fix this some day.
+
+package require tcltest 2.0
+namespace import ::tcltest::*
+configure -verbose {start body error}
+
+test run-preprocessor {Run the preprocessing stage.} -body {
+    exec l_script.py -f dn2 > LOGFILE_SCRIPT
+    exec l_prep.exe -f dn2 > LOGFILE_PREP
+} -result {} -returnCodes {0}
+
+test run-simulation {Run the L1d3 simulation code.} -body {
+    exec l1d.exe -f dn2 > LOGFILE_MAIN
+} -result {} -returnCodes {0}
+
+test end-state {Check final_steps and trigger_time for Diaphragm[0].} -body {
+    set fp [open LOGFILE_MAIN r]
+    set contents [read $fp]
+    close $fp
+    set final_steps 0
+    set trigger_time 0.0
+    foreach line [split $contents "\n"] {
+	if {[string first "Total number of steps" $line] >= 0} {
+	    set final_steps [lindex [split $line] 5]
+	}
+	if {[string first "Diaph\[0\]" $line] >= 0} {
+	    set trigger_time [lindex [split $line] 5]
+	}
+    }
+    # puts "final_steps= $final_steps"
+    # puts "trigger_time= $trigger_time"
+    set result [list [expr abs($final_steps - 19490) <= 10] \
+		    [expr abs($trigger_time - 3.787e-3)/3.787e-3 < 0.001]]
+    set result
+} -result {1 1}
+
+
+cleanupTests

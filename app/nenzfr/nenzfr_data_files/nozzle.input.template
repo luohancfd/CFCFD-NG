@@ -1,0 +1,524 @@
+# nozzle.input.template
+# Supersonic part of a shock tunnel nozzle.
+# Which particular nozzle is determined by the contour file.
+#
+# PJ, 14-Mar-2011, 19-Apr-2011,
+# adapted from Rainer Kirchhartz 2009 simulation files.
+# 
+# LukeD June-2011, modifications include
+# - a second call to estcj to produce an output summary file (requires
+#   a modified version of estcj.py)
+# - the option/ability to import a PointWise plot3d grid (requires a
+#   modified version of e3_grid.py)
+# - automatic selection of the appropriate cea-lut based on $gasName
+# - automatic selection of the area_ratio for the estcj calculation 
+#   based on $areaRatio
+# - implementation of frozen and non-equilibrium gas models
+# - introduction of air5species gas
+# - adjustment of the mass fractions that are read in from CEA to ensure
+#   they sum one (scale by their summation)
+# - modification of the commands used to build the nozzle geometry to 
+#   be appropriate for the M10 nozzle contour file
+# LukeD August-2011, modifications include
+# - altered how we construct the grid for the Mach 4, 6 and 8 nozzles 
+#   in order to ensure that the sharp corner at the end of the throat/
+#   start of the divergence section is properly captured. Number of 
+#   cells and clustering in the throat block is automatically selected
+#   based on the values for the divergence section.
+#---------------------------------------------------------------------
+import string, fileinput
+from estcj import reflected_shock_tube_calculation as rstc
+from cfpylib.gasdyn.cea2_gas import Gas
+from operator import indexOf
+from cfpylib.nm.zero_solvers import secant
+from string import upper
+from numpy import arange
+from cfpylib.nm.roberts import roberts
+
+#---------------------------------------------------------------------
+# Utility functions
+def round_list(list, precision):
+    for k in range(len(list)):
+        list[k] = round(list[k], precision)
+    return list
+
+def massFraction_check(massf):
+    # The mass fractions we get from CEA do not always sum to one within
+    # the tolerance expected by Eilmer3. When this is the case, and the
+    # difference from one is not too great, we scale the mass fractions
+    # by their summation.
+    pass_flag = 0
+    massf_error = abs(1.0-sum(massf))
+    if massf_error<=1.0e-6:
+        pass_flag = 1
+    elif 1.0e-6 < massf_error <= 1.0e-4:
+        totalMass = sum(massf)
+        massf = [x/totalMass for x in massf]
+        pass_flag = 1
+    else:
+        print "Mass fractions DO NOT sum to one. Error is >1.0e-4"
+    if pass_flag == 1:
+        return massf
+    else:
+        return 0
+
+#--------------------------------------------------------------------
+gdata.title = "Flow through a shock tunnel nozzle."
+
+DEBUG_flag = 0
+
+# Shock tube conditions define flow condition at the nozzle throat.
+# This throat condition is used as the input to the simulation of
+# the nozzle expansion.
+estc_result = rstc($gasName, $p1, $T1, $Vs, $pe, None, area_ratio=$areaRatio, task='stn')
+throat = estc_result['state6']
+throat_V = estc_result['V6']
+print "Flow condition at nozzle throat:"
+throat.write_state(sys.stdout)
+
+# Estimate turbulence quantities for free stream
+# by specifying the intensity as 0.05 and estimating the
+# turbulence viscosity as 100 times the laminar viscosity.
+throat_tke = 1.5 * (throat_V * 0.05)**2
+throat_mu_t = 100.0 * throat.mu
+throat_omega = throat.rho * throat_tke / throat_mu_t
+print "Inflow turbulence: tke=", throat_tke, "omega=", throat_omega
+
+
+gastype = $gasName
+if gastype in ['n2', 'N2']:
+    gastype = upper(gastype)
+if DEBUG_flag:
+    print "Test gas is "+gastype
+
+
+if gastype in ['air', 'Air']:
+    #
+    # Test gas is Air (CEA species)
+    #
+
+    # Equilibrium...
+    if $chemModel in ['eq']:
+        print 60*'-'
+        print "Nozzle expansion uses Equilibrium Air (CEA)"
+        print 60*'-'
+
+        select_gas_model(fname="cea-lut-air.lua.gz")
+        throat_massf = [1.,]
+        initial_massf = [1.,]
+    
+    # Non-equilibrium or Frozen...
+    elif $chemModel in ['neq','frz','frz1']:  
+        # Assume Air = 79% N2, 21% O2 by mole fraction. We give mass fractions
+        # when defining the gasState
+        gasState = Gas('mix',['N2','O2','N','O','NO'],\
+                       [0.767082, 0.232918, 0.0, 0.0, 0.0])
+        gasState.set_from_pAndT(p=throat.p, T=throat.T)
+        
+        #
+        # The species have changed across the throat due to CEA air considering a wider
+        # range of species than the 5 we must now consider for the nozzle calculation. 
+        # Therefore assume that the pressure is constant and adjust the temperature at 
+        # the throat to conserve the mass, momentum and energy fluxes.
+        #
+        print "Changing from CEA air to 5-species air mixture for nozzle calculation."
+        print "Adjusting throat temperature to conserve mass, momentum and energy."
+        def enthalpy_error(x, p1=throat.p, h1=throat.h, a1=throat.a, state=gasState):
+            state.set_from_pAndT(p=p1, T=x)
+            return state.e + a1**2/state.gam - h1
+        new_T = secant(enthalpy_error, 0.9*throat.T, 1.1*throat.T, tol=0.05/100*throat.h)
+        if new_T == 'FAIL':
+            print "Failed to find throat temperature for which the 5-species mixture conserves mass, momentum and energy"
+            new_T = throat.T
+        print 'New throat temperature: ', new_T
+        gasState.set_from_pAndT(p=throat.p, T=new_T)
+        
+        print 'Enthalpy CEA air: ', throat.h
+        print 'Enthalpy 5-species air: ', gasState.h
+        print 'Enthalpy error: ', gasState.h - throat.h
+        print 'Enthalpy percent error: ', (gasState.h - throat.h)/throat.h*100
+        print 'Mass flux CEA air: ', throat.rho*throat.a
+        print 'Mass flux 5-species air: ', gasState.rho*gasState.a
+        print 'Mass flux error: ', gasState.rho*gasState.a - throat.rho*throat.a
+        print 'Mass flux percent error: ', (gasState.rho*gasState.a - throat.rho*throat.a)/(throat.rho*throat.a)*100
+        print 'Momentum flux CEA air: ', throat.p + throat.rho*throat.a**2
+        print 'Momentum flux 5-species air: ', gasState.p + gasState.rho*gasState.a**2
+        print 'Momentum flux error: ', gasState.p + gasState.rho*gasState.a**2 - throat.p - throat.rho*throat.a**2
+        print 'Momentum flux percent error: ', (gasState.p + gasState.rho*gasState.a**2 - throat.p - throat.rho*throat.a**2)/\
+                                 (throat.p + throat.rho*throat.a**2)*100
+
+        select_gas_model(model='thermally perfect gas', species=gasState.species)
+        if $chemModel in ['frz']:
+            print 60*"-"
+            print "Nozzle expansion uses Frozen Air (5 species)"
+            print 60*"-"
+        else:
+            print 60*"-"
+            print "Nozzle expansion uses Non-Equilibrium Air (5 species)"
+            print 60*"-"
+            set_reaction_update('gupta_etal_air_reactions.lua')
+        
+        print "Flow species at nozzle throat"
+        print "Note that if required, the equilibrium massf values have been scaled by their summation"
+        gasState.write_state(sys.stdout)
+        
+        throat_massf = massFraction_check(gasState.eq_massf)
+        initial_massf = gasState.massf
+    
+    # Frozen-2...    
+    elif $chemModel in ['frz2']:
+        # Use CEA species present at the throat and perform a frozen calculation
+        
+        gasState = Gas('air')
+        gasState.set_from_pAndT(p=throat.p, T=throat.T)
+        
+        print 60*"-"
+        print "Nozzle expansion uses Frozen Air (CEA species)"
+        print 60*"-"
+        print "Flow species at nozzle throat"
+        gasState.write_state(sys.stdout)
+
+        # Read the "tmp.out" file to get species present and their mass-fractions
+        # at the throat...
+        linestart = 1000;   linefinish = 1000
+        throatSpecies = [];   eqMassf = []
+        for line in fileinput.input('tmp.out',mode='r'):
+            if line == ' MASS FRACTIONS\n':
+                linestart = fileinput.filelineno() + 2
+            elif line == '  * THERMODYNAMIC PROPERTIES FITTED TO 20000.K\n':
+                linefinish = fileinput.filelineno() - 2
+            tempdata = string.split(string.lstrip(line,' *'))
+            if fileinput.filelineno()>=linestart and fileinput.filelineno()<=linefinish\
+                and len(tempdata)>0:
+                throatSpecies += [tempdata[0]]
+                eqMassf += [float(tempdata[1])]
+        fileinput.close()
+        #
+        # At standard conditions air is assumed to be formed from those species
+        # given in the basicSpecies list. We compare basicSpecies to throatSpecies and
+        # add missing species.
+        #
+        basicSpecies = ['N2','O2','Ar','CO2']
+        basicMassf = [0.755184, 0.231416, 0.012916, 0.000484]
+        indx = []; addSpecies = []
+
+        #from operator import indexOf
+        allSpecies = throatSpecies;   alleqMassf = eqMassf;   allMassf = [0.0]*(len(eqMassf)) 
+        for kk in basicSpecies:
+            if kk not in throatSpecies:
+                allSpecies += [kk];   alleqMassf += [0.0]
+                allMassf += [basicMassf[indexOf(basicSpecies,kk)]]
+            else:
+                allMassf[indexOf(throatSpecies,kk)] = basicMassf[indexOf(basicSpecies,kk)]
+
+        print "Species being considered:"
+        print allSpecies
+        print "Mass Fractions at Equilibrium Throat:"
+        print alleqMassf
+        print "Mass Fractions at Standard temperature and pressure condition (consistent with CEA):"
+        print allMassf
+        print "Note that if required, the equilibrium massf values have been scaled by their summation"
+
+        select_gas_model(model='thermally perfect gas', species=allSpecies)
+        throat_massf = massFraction_check(alleqMassf)
+        initial_massf = allMassf
+
+
+elif gastype in ['air5species']:
+    #
+    # Test gas is 5-species Air
+    #
+    
+    # Frozen or Non-equilibrium...
+    if $chemModel not in ['eq']:
+        gasState = Gas('mix',['N2','O2','N','O','NO'],[0.767082,0.232918,0.0,0.0,0.0])
+        gasState.set_from_pAndT(p=throat.p, T=throat.T)
+        
+        select_gas_model(model='thermally perfect gas', species=gasState.species)
+        
+        if $chemModel in ['frz','frz2']:
+            print 60*"-"
+            print "Nozzle expansion uses Frozen Air (5-species)"
+            print 60*"-"
+        else: 
+            print 60*"-"
+            print "Nozzle expansion uses Non-equilibrium Air (5-species)"
+            print 60*"-"
+            set_reaction_update('gupta_etal_air_reactions.lua')
+        
+        print "Flow species at nozzle throat"
+        print "Note that if required, the equilibrium massf values have been scaled by their summation"
+        gasState.write_state(sys.stdout)
+
+        throat_massf = massFraction_check(gasState.eq_massf)
+        initial_massf = gasState.massf
+    
+    # Equilibrium
+    else:
+        print 60*"-"
+        print "Nozzle expansion uses Equilibrium Air (5-species LUT)"
+        print 60*"-"
+        
+        select_gas_model(fname="cea-lut-"+gastype+".lua.gz")
+        throat_massf = [1.,]
+        initial_massf = [1.,]  
+
+elif gastype in ['N2']:
+    #
+    # Test gas is Nitrogen
+    #
+    # NB. For simplicity the test-section is assumed to be filled with
+    #     low pressure nitrogen.
+    #
+
+    # Frozen or Non-equilibrium...
+    if $chemModel not in ['eq']:
+        gasState = Gas('mix',['N2','N'],[1.0,0.0])
+        gasState.set_from_pAndT(p=throat.p, T=throat.T)
+        
+        select_gas_model(model='thermally perfect gas', species=gasState.species)
+        
+        if $chemModel in ['frz','frz2']:
+            print 60*"-"
+            print "Nozzle expansion uses Frozen Nitrogen (2-species)"
+            print 60*"-"
+        else:
+            print 60*"-"
+            print "Nozzle expansion uses Non-equilibrium Nitrogen (2-species)"
+            print 60*"-"
+            set_reaction_update('nitrogen-5sp-6r.lua')
+        
+        print "Flow species at nozzle throat"
+        print "Note that if required, the equilibrium massf values have been scaled by their summation"
+        gasState.write_state(sys.stdout)
+        
+        throat_massf = massFraction_check(gasState.eq_massf)
+        initial_massf = gasState.massf
+    
+    # Equilibrium...
+    else:
+        print 60*"-"
+        print "Nozzle expansion uses Equilibrium Nitrogen (CEA)"
+        print 60*"-"
+        
+        select_gas_model(fname="cea-lut-"+gastype+".lua.gz")
+        throat_massf = [1.,]
+        initial_massf = [1.,]
+
+else:
+    print "Unknown gas type specified"
+
+
+# Now set the inflow and intial flow conditions
+inflow=FlowCondition(p=throat.p, u=throat_V, v=0.0, T=throat.T,
+                       massf=throat_massf, tke=throat_tke,
+                       omega=throat_omega)
+initial=FlowCondition(p=106.4, u=0.0, v=0.0, T=300.0,
+                       massf=initial_massf, tke=0.0, omega=1.0,
+                       label="initial")
+
+
+# When no gridFileName is given we use the provided (or default) contourFile
+if $gridFileName in ['None']:
+    # Read in contour file for the particular nozzle.
+    x_c = []; y_c = []
+    fp = open($contourFileName, 'r')
+    for line in fp.readlines():
+        items = line.strip().split()
+        if len(items) == 0: continue  # skip blank lines
+        if items[0] == '#': continue  # skip header lines
+        x_c.append(float(items[0]))
+        y_c.append(float(items[1]))
+    area_ratio = (y_c[-1]/y_c[0])**2
+    print "nozzle area ratio=", area_ratio
+    
+    
+    # Define the nodes, which make up the nozzle contour in the simulation. 
+    dlist = [Vector(x_c[i],y_c[i]) for i in range(len(x_c))]
+    # The Mach 10 nozzle contour file has a smooth lead in to the divergence
+    # section which is different to the other nozzles. We account for this
+    # when creating the geometry
+    if $contourFileName not in ['contour-t4-m10.data']:
+        # Define nodes for rest of nozzle geometry.
+        # The throat is a bit of straight section before onset of expansion.
+        throat_centre = Node(-y_c[0],0.0) 
+        throat_wall = Node(-y_c[0],y_c[0])
+        # Start expansion at x=0.
+        divergence_centre = Node(0.0,0.0)
+        divergence_wall = Node(0.0,y_c[0])
+        end_of_cone = Node(x_c[1],y_c[1])
+        nozzle_end_centre = Node(x_c[-1],0.0)
+        nozzle_end_wall = Node(x_c[-1],y_c[-1])
+        
+        # Define the lines making up the patch for the throat section
+        n0_south = Line(throat_centre, divergence_centre)
+        n0_north = Line(throat_wall, divergence_wall)
+        n0_west = Line(throat_centre, throat_wall)
+        n0_east = Line(divergence_centre, divergence_wall)
+        # Define the lines making up the patch for the divergence section
+        n_south = Line(divergence_centre, nozzle_end_centre)
+        n_north = Polyline([Line(divergence_wall, end_of_cone), 
+		            Spline(dlist[1:len(dlist)])])
+        n_west = Line(divergence_centre, divergence_wall)
+        n_east = Line(nozzle_end_centre, nozzle_end_wall)
+    else:
+        throat_centre = Node(0.0,0.0)
+        throat_wall = Node(x_c[0],y_c[0])
+        # Start of expansion
+        divergence_wall = Node(x_c[1],y_c[1])
+        nozzle_end_centre = Node(x_c[-1],0.0)
+        nozzle_end_wall = Node(x_c[-1],y_c[-1])
+        
+        # Define the lines making up the patch
+        n_south = Line(throat_centre, nozzle_end_centre)
+        n_north = Polyline([Line(throat_wall, divergence_wall), 
+                            Spline(dlist[1:len(dlist)])])
+        n_west = Line(throat_centre, throat_wall)
+        n_east = Line(nozzle_end_centre, nozzle_end_wall)
+    
+    expansion_region = make_patch(n_north, n_east, n_south, n_west)
+
+    # Boundary conditions
+    Twall = 300
+    bc_list = [FixedTBC(Twall), ExtrapolateOutBC(), SlipWallBC(), SupInBC(inflow)]
+
+    # Define the clustering and grid resolution parameters for the "nozzle_blk". 
+    # We define these here like this as they may be needed to define the 
+    # "throat_blk" for the Mach 4, 6 and 8 nozzles
+    nnj = $nnj   # number of radial cells
+    nni = $nni   # number of axial cells
+    nbi = $nbi   # number of axial blocks for the divergence section (nozzle_blk)
+    bx = $bx     # clustering in the axial direction
+    by = $by     # clustering in the radial direction
+    
+    x_clust = RobertsClusterFunction(1, 1, bx)
+    y_clust = RobertsClusterFunction(0, 1, by)
+    cf_list = [x_clust, y_clust, x_clust, y_clust]
+
+
+    # For the Mach 4, 6 and 8 nozzles we must also make a block for the throat 
+    # region. We must define this block here BEFORE the "nozzle_blk" in order to 
+    # ensure that the blocks are numbered in sequence in order to allow space-
+    # marching in the simulation.
+    #
+    # The number of cells in the axial direction and clustering for
+    # this block are automatically calculated based on the clustering and 
+    # resolution of "nozzle_blk" as specified above. We try to ensure that the 
+    # spacing across the interface of the "throat_blk" and "nozzle_blk" is even
+    # and an appropriate number of cells/blocks are used in the throat.
+    #     Luke D. 21-Aug-2011
+    if $contourFileName not in ['contour-t4-m10.data']:
+        throat_region = make_patch(n0_north, n0_east, n0_south, n0_west)
+        
+        # We need to know the axial spacing of the first grid point in 
+        # "nozzle_blk" in order to calculate the required clustering. 
+        # The following code isn't very elegant but it works.
+        delta = 1.0/float(nni) # Intial uniform spacing
+        # Non-uniform spacing in logical space for the SOUTH boundary of 
+        # "nozzle_blk"
+        logical_noz = roberts(arange(0.0, 1.+delta, delta), 0.5, bx)
+        # Acutal grid points
+        actual_noz = x_c[-1] * logical_noz
+        diff = actual_noz[1] - actual_noz[0]
+        
+        # Calculate the number of cells required on the NORTH/SOUTH 
+        # boundaries of the "throat_blk" based on how many cells there
+        # are in the "nozzle_blk" over the same physical length. NB. If 
+        # you are clustering very strongly in the x-direction (x_clust, bx
+        # specified above) you may want to include a factor here to reduce
+        # the number of cells in the throat region.
+        nni_throat = [indexOf(actual_noz, x) for x in actual_noz \
+                      if x < y_c[0]][-1] + 1
+        delta2 = 1./nni_throat # Intial uniform spacing
+        logical_throat = arange(0.0, 1.+delta2, delta2)
+        
+        # Define a function which calculates the difference in the grid
+        # spacing on either side of the "throat_blk"/"nozzle_blk" boundary
+        def spacing_error(x, L=y_c[0], diff=diff, orig=logical_throat):
+            new = L * roberts(orig, 0.5, x)
+            return (new[1]-new[0] - diff)/diff
+        bx_throat = secant(spacing_error, 1.0001, 1.002, tol=1.0e-2,\
+                          limits=[1.0001,5])
+        if bx_throat == 'Fail':
+            print "Failed to find throat clustering parameter"
+            print "Setting bx_throat == bx"
+            bx_throat = bx
+        # Infer the number of blocks from how many we set for "nozzle_blk"
+        nbi_throat = int(round(float(nbi)/float(nni)*float(nni_throat)))
+        if nbi_throat > 1:
+            nbi_throat = nbi_throat - 1
+
+        # Display the calculated data
+        print "nni_throat=",nni_throat
+        print "nbi_throat=",nbi_throat
+        print "Clustering, bx_throat=",bx_throat 
+
+        # Now set the clustering and define the "throat_blk"
+        x_clust_throat = RobertsClusterFunction(1, 1, bx_throat)
+        cf_list_throat = [x_clust_throat, y_clust, x_clust_throat, y_clust]
+
+        # Now define the block
+        throat_blk = SuperBlock2D(throat_region, nni=nni_throat, nnj=nnj,
+                                  nbi=nbi_throat, nbj=1, 
+                                  bc_list=bc_list, cf_list=cf_list_throat, 
+                                  fill_condition=initial, label="throat")
+    
+    # Finally, define the main nozzle block
+    nozzle_blk = SuperBlock2D(expansion_region, nni=nni, nnj=nnj,
+                              nbi=nbi, nbj=1,
+                              bc_list=bc_list, cf_list = cf_list,
+                              fill_condition=initial, label="nozzle")
+    
+    if $contourFileName not in ['contour-t4-m10.data']:
+        identify_block_connections()
+    
+        
+
+else:
+    print "Importing specified grid...." 
+    scaleFactor = 1000.0 # Use this to alter the dimensions of your grid
+    importedGrid = read_plot3d_grid_from_pointwise($gridFileName, 3, scaleFactor)
+    nblocks =  len(importedGrid)
+    print "Finished importing grids."
+    print "Sanity check .. number of block = ", nblocks
+    
+    # Define the blocks, boundary conditions
+    blockList = []
+    
+    Twall = 300.0
+    for count in range(nblocks):
+       blk = Block2D(nni=importedGrid[count].ni-1, nnj=importedGrid[count].nj-1,
+                     # minus 1 for nni because nni=number-of-cell-centres & ni=number-of-nodes
+                     fill_condition=initial, label="block-"+str(count), 
+                     grid=importedGrid[count],
+                     bc_list=[FixedTBC(Twall), SlipWallBC(), # NORTH, EAST, SOUTH, WEST
+                              SlipWallBC(), SlipWallBC()])
+       # Attach 1 block of the imported multi-block grid
+       #blk.attach_grid(importedGrid[count])
+       # Append block to list of blocks
+       blockList.append(blk)
+    blockList[0].bc_list[WEST] = SupInBC(inflow)
+    blockList[nblocks-1].bc_list[EAST] = ExtrapolateOutBC()
+     
+    identify_block_connections()
+    
+    
+# Attributes for the space-marching simulation.
+gdata.dimensions = 2
+gdata.sequence_blocks = 1
+gdata.axisymmetric_flag = 1
+gdata.viscous_flag = 1
+gdata.flux_calc = ADAPTIVE
+gdata.max_time = $max_time  # seconds
+gdata.max_step = $max_step
+gdata.dt = 0.2e-9
+gdata.cfl = 0.4
+gdata.cfl_count = 5
+gdata.dt_plot = 0.04e-3
+gdata.dt_history = 10.0e-6
+gdata.turbulence_flag = 0
+gdata.turbulence_model = 'k_omega'
+
+sketch.xaxis(0.0, 1.2, 0.1, 0.)
+sketch.yaxis(0.0, 0.4, 0.1, 0.)
+sketch.window(0.0, 0.0, 1.0, 1.0, 0.015, 0.015, 0.15, 0.15)

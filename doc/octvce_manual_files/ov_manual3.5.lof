@@ -1,0 +1,45 @@
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {1.1}{\ignorespaces VCE method}}{5}
+\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {`Subcells' illustration}}}{5}
+\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Staircased surface}}}{5}
+\contentsline {subfigure}{\numberline {(c)}{\ignorespaces {Planar surface}}}{5}
+\contentsline {figure}{\numberline {1.2}{\ignorespaces Octree illustration}}{5}
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces General parameters file}}{13}
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Example VTP file of a cube}}{14}
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Example PVTP environment definition}}{15}
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Boundary-aligned wall}}{15}
+\contentsline {figure}{\numberline {3.5}{\ignorespaces Initial condition file (2 species)}}{17}
+\contentsline {figure}{\numberline {3.6}{\ignorespaces Gas model file}}{19}
+\contentsline {figure}{\numberline {3.7}{\ignorespaces Example domain boundary condition file}}{20}
+\contentsline {figure}{\numberline {3.8}{\ignorespaces Fields for inlet and outlet BCs}}{21}
+\contentsline {figure}{\numberline {3.9}{\ignorespaces Example detonation input file}}{22}
+\contentsline {figure}{\numberline {3.10}{\ignorespaces View from $yz$ plane}}{22}
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {A.1}{\ignorespaces IC input file for 1D code}}{29}
+\contentsline {figure}{\numberline {A.2}{\ignorespaces General parameters file for 1D code}}{30}
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {B.1}{\ignorespaces Geometry for cone simulation}}{32}
+\contentsline {figure}{\numberline {B.2}{\ignorespaces Running the cone simulation}}{33}
+\contentsline {figure}{\numberline {B.3}{\ignorespaces Some screen output from cone simulation}}{33}
+\contentsline {figure}{\numberline {B.4}{\ignorespaces Density contours}}{34}
+\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Initial solution}}}{34}
+\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Density contours at 0.5 ms}}}{34}
+\contentsline {subfigure}{\numberline {(c)}{\ignorespaces {Steady-state result}}}{34}
+\contentsline {figure}{\numberline {B.5}{\ignorespaces Geometry for blast barrier simulation}}{35}
+\contentsline {figure}{\numberline {B.6}{\ignorespaces Running the blast barrier simulation}}{35}
+\contentsline {figure}{\numberline {B.7}{\ignorespaces Energy counting results for blast wall simulation}}{36}
+\contentsline {figure}{\numberline {B.8}{\ignorespaces Blast wall results}}{37}
+\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Initial grid}}}{37}
+\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Density contours at 1 ms}}}{37}
+\contentsline {subfigure}{\numberline {(c)}{\ignorespaces {Grid and schlieren at 1 ms}}}{37}
+\contentsline {subfigure}{\numberline {(d)}{\ignorespaces {Density contours at 2 ms}}}{37}
+\contentsline {subfigure}{\numberline {(e)}{\ignorespaces {Pressure trace}}}{37}
+\contentsline {figure}{\numberline {B.9}{\ignorespaces Running the 3D obstruction simulation}}{39}
+\contentsline {figure}{\numberline {B.10}{\ignorespaces 3D obstruction results}}{40}
+\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Trace at gauge 1}}}{40}
+\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Trace at gauge 2}}}{40}
+\contentsline {subfigure}{\numberline {(c)}{\ignorespaces {Density contours}}}{40}

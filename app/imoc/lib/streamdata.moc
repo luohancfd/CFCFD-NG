@@ -1,0 +1,22 @@
+# streamdata.moc
+# Example of a user-defined procedure
+
+proc PrintStreamData { start_node_id } {
+    # Given the idex of a starting node, step along a streamline and
+    # write out some of the flow quantities at each of the nodes.
+
+    puts "# -------------- begin streamline ----------------"
+    puts "#   id          X          Y          M      Theta"
+
+    set id $start_node_id
+    while { $id > -1 } {
+        set x [GetNodeDataValue $id X]
+        set y [GetNodeDataValue $id Y]
+        set M [GetNodeDataValue $id Mach]
+        set th [GetNodeDataValue $id Theta]
+        puts [format "%6d %10g %10g %10g %10g" $id $x $y $M $th]
+        set id [GetNodeDataValue $id CZeroDown]
+    }; # end while
+
+    puts "# -------------- end of streamline ---------------"
+}; # end proc

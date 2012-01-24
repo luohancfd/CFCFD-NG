@@ -1,0 +1,25 @@
+/* [wxMaxima batch file version 1] [ DO NOT EDIT BY HAND! ]*/
+/* [ Created with wxMaxima version 0.8.2 ] */
+
+/* [wxMaxima: input   start ] */
+e1: S1*a0 + Sx*ax + Sy*ay + Sz*az = Sf;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+e2: Sx*a0 + Sxx*ax + Syx*ay + Szx*az = Sfx;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+e3: Sy*a0 + Syx*ax + Syy*ay + Szy*az = Sfy;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+e4: Sz*a0 + Szx*ax + Szy*ay + Szz*az = Sfz;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+solve([e1,e2,e3,e4], [a0,ax,ay,az]);
+/* [wxMaxima: input   end   ] */
+
+/* Maxima can't load/batch files which end with a comment! */
+"Created with wxMaxima"$

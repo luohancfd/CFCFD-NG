@@ -1,0 +1,49 @@
+This is pdfTeX, Version 3.14159-1.10b (Web2C 7.4.5) (format=pdflatex 2004.3.25)  29 AUG 2006 18:24
+**ov_manual3.5.t
+(/usr/share/texmf/tex/latex/tools/.tex{/usr/share/texmf/pdftex/config/pdftex.cf
+g}
+! Interruption.
+<to be read again> 
+                   \begingroup 
+l.1 
+    %%
+? 
+LaTeX2e <2001/06/01>
+Babel <v3.7h> and hyphenation patterns for american, french, german, ngerman, n
+ohyphenation, loaded.
+File ignored)
+*X
+
+! LaTeX Error: Missing \begin{document}.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+<*> X
+     
+? 
+Missing character: There is no X in font nullfont!
+
+*q
+Missing character: There is no q in font nullfont!
+
+*
+! Emergency stop.
+<*> q
+     
+End of file on the terminal!
+
+ 
+Here is how much of TeX's memory you used:
+ 7 strings out of 95437
+ 135 string characters out of 1188125
+ 44508 words of memory out of 1000001
+ 3103 multiletter control sequences out of 10000+50000
+ 3640 words of font info for 14 fonts, out of 500000 for 1000
+ 14 hyphenation exceptions out of 1000
+ 5i,0n,4p,94b,14s stack positions out of 1500i,500n,5000p,200000b,5000s
+ 0 PDF objects out of 300000
+ 0 named destinations out of 131072
+ 0 words of extra memory for PDF output out of 65536
+No pages of output.

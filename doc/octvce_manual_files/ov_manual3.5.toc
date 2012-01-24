@@ -1,0 +1,60 @@
+\contentsline {chapter}{\numberline {1}Introduction}{4}
+\contentsline {section}{\numberline {1.1}Scope and formulation}{4}
+\contentsline {section}{\numberline {1.2}VCE method}{4}
+\contentsline {section}{\numberline {1.3}Octree domains}{5}
+\contentsline {section}{\numberline {1.4}Initializing explosions}{5}
+\contentsline {subsection}{\numberline {1.4.1}Initial conditions for JWL or JWLB equations of state}{6}
+\contentsline {section}{\numberline {1.5}The JWL and JWLB equations of state}{7}
+\contentsline {chapter}{\numberline {2}Code compilation}{8}
+\contentsline {chapter}{\numberline {3}Setting up a simulation}{9}
+\contentsline {section}{\numberline {3.1}General simulation parameters input file}{9}
+\contentsline {section}{\numberline {3.2}Solid geometry definition}{14}
+\contentsline {subsection}{\numberline {3.2.1}A note on flushed surfaces}{15}
+\contentsline {section}{\numberline {3.3}IC input file}{15}
+\contentsline {section}{\numberline {3.4}Gas model input file}{17}
+\contentsline {section}{\numberline {3.5}Domain BC input file}{20}
+\contentsline {subsection}{\numberline {3.5.1}Non-reflecting BCs}{20}
+\contentsline {subsection}{\numberline {3.5.2}Inflow and outflow BCs}{21}
+\contentsline {section}{\numberline {3.6}`Detonation' data input file}{21}
+\contentsline {section}{\numberline {3.7}Two-dimensional simulation}{22}
+\contentsline {subsection}{\numberline {3.7.1}Making gaps and axes}{22}
+\contentsline {subsection}{\numberline {3.7.2}Caution on axisymmetric computation}{23}
+\contentsline {subsection}{\numberline {3.7.3}Appropriate area subcell number}{23}
+\contentsline {chapter}{\numberline {4}Running a simulation}{24}
+\contentsline {section}{\numberline {4.1}Memory usage}{26}
+\contentsline {section}{\numberline {4.2}Grid convergence and/or error estimation}{26}
+\contentsline {chapter}{\numberline {5}Post-processing}{27}
+\contentsline {section}{\numberline {5.1}Solution file format}{27}
+\contentsline {section}{\numberline {5.2}Visualizing solution files}{27}
+\contentsline {subsection}{\numberline {5.2.1}A note on displaying 2D solutions}{27}
+\contentsline {section}{\numberline {5.3}Pressure trace format}{28}
+\contentsline {chapter}{\numberline {A}A useful 1D code}{29}
+\contentsline {chapter}{\numberline {B}Example simulations}{31}
+\contentsline {section}{\numberline {B.1}Supersonic conical flow}{31}
+\contentsline {subsection}{\numberline {B.1.1}Cone geometry}{31}
+\contentsline {subsection}{\numberline {B.1.2}Input files for cone simulation}{31}
+\contentsline {subsubsection}{General simulation parameters file}{32}
+\contentsline {subsubsection}{IC input file}{32}
+\contentsline {subsubsection}{Gas model input file}{32}
+\contentsline {subsubsection}{Domain BC input file}{32}
+\contentsline {subsection}{\numberline {B.1.3}Running the cone simulation}{33}
+\contentsline {subsection}{\numberline {B.1.4}Some results for cone simulation}{33}
+\contentsline {section}{\numberline {B.2}Shock diffraction over blast wall}{34}
+\contentsline {subsection}{\numberline {B.2.1}Blast barrier geometry}{34}
+\contentsline {subsection}{\numberline {B.2.2}Input files for blast barrier simulation}{34}
+\contentsline {subsubsection}{General simulation parameters file}{34}
+\contentsline {subsubsection}{IC input file}{35}
+\contentsline {subsubsection}{Gas model input file}{35}
+\contentsline {subsubsection}{Domain BC input file}{35}
+\contentsline {subsection}{\numberline {B.2.3}Running the blast barrier simulation}{35}
+\contentsline {subsection}{\numberline {B.2.4}Some results for blast wall simulation}{36}
+\contentsline {section}{\numberline {B.3}Blast over 3D obstructions}{38}
+\contentsline {subsection}{\numberline {B.3.1}Obstruction geometries}{38}
+\contentsline {subsection}{\numberline {B.3.2}Input files for 3D obstruction simulation}{38}
+\contentsline {subsubsection}{General simulation parameters file}{38}
+\contentsline {subsubsection}{IC input file}{38}
+\contentsline {subsubsection}{Gas model input file}{39}
+\contentsline {subsubsection}{Domain BC input file}{39}
+\contentsline {subsection}{\numberline {B.3.3}Running the 3D obstruction simulation}{39}
+\contentsline {subsection}{\numberline {B.3.4}Some results for 3D obstruction simulation}{39}
+\contentsline {chapter}{Bibliography}{39}

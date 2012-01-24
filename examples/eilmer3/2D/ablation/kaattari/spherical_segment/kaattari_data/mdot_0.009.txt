@@ -1,0 +1,17 @@
+# Data obtained via digitization with 'GraphClick' from:
+# Kattari. G. "Effects of Mass Addition and Nose Bluntness on Boundary-Layer Transition and Heat Transfer", NASA TP-1139, 1978
+# Column 1: s (cm)
+# Column 2: q/q0 where q0 = ???
+0.000	0.274
+1.770	0.253
+3.549	0.135
+4.885	0.103
+5.190	0.083
+5.785	0.083
+6.222	0.059
+6.246	0.063
+6.268	0.059
+6.582	0.061
+7.088   0.062
+7.490   0.078
+7.983   0.103

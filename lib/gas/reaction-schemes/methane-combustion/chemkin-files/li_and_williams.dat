@@ -1,0 +1,34 @@
+ELEMENTS
+H C O N
+END
+SPECIES
+H2 H O O2 OH H2O HO2 H2O2 CH2 CH3 CH4 CO HCO CH2O CH3O C2H6 N2 AR
+END
+REACTIONS                     KJOULES/MOLE
+CH4+O2<=>HO2+CH3      3.98E+13  0.00 238.0
+CH4+HO2<=>H2O2+CH3    9.04E+12  0.00 103.1
+CH4+OH<=>H2O+CH3      1.60E+07  1.83  11.6
+CH3+O2<=>CH2O+OH      3.30E+11  0.00  37.4
+CH2O+OH<=>HCO+H2O     3.90E+10  0.89   1.7
+HCO+O2<=>CO+HO2       3.00E+12  0.00   0.0
+HCO+M<=>CO+H+M        1.86E+17 -1.00  71.1
+H+O2+M<=>HO2+M        6.76E+19 -1.40   0.0
+H2O2+M<=>2OH+M        1.20E+17  0.00 190.4
+CH4(+M)<=>CH3+H(+M)   2.22E+16  0.00 439.0
+ LOW               / 6.59E+25 -1.80 439.0/
+CH4+H<=>H2+CH3        1.30E+04  3.00  33.6
+CH4+O<=>CH3+OH        1.90E+09  1.44  36.3
+CH3+O2<=>CH3O+O       1.33E+14  0.00 131.4
+CH3+O<=>CH2O+H        8.43E+13  0.00   0.0
+CH3+HO2<=>CH3O+OH     2.00E+13  0.00   0.0
+2CH3(+M)<=>C2H6(+M)   1.81E+13  0.00   0.0
+ LOW               / 1.27E+41 -7.00  11.6/
+CH3O+O2<=>CH2O+HO2    4.28E-13  7.60 -14.8
+CH3O+M<=>CH2O+H+M     1.00E+13  0.00  56.5
+CH2O+H<=>HCO+H2       1.26E+08  1.62   9.1
+CH2O+O<=>HCO+OH       3.50E+13  0.00  14.7
+H+O2<=>OH+O           3.52E+16 -0.70  71.4
+H2+O<=>OH+H           5.06E+04  2.67  26.3
+H2+OH<=>H2O+H         1.17E+09  1.30  15.2
+H2O+O<=>2OH           7.60E+00  3.84  53.5
+END

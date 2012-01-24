@@ -1,0 +1,26 @@
+# little_test.moc
+#
+package require imoc
+
+puts ""
+puts "Little Exercise"
+
+LoadIMOCKernel
+SetGamma 1.4
+
+puts "Create a few nodes to test InteriorNode"
+set n3 [CreateNode 3]
+set n9 [CreateNode 9]
+
+SetNodeData $n3 X 0.10 Y 0.1 Mach 1.31 Theta [expr 6.375/180.0 * 3.14159]
+SetNodeData $n9 X 0.12 Y 0.0 Mach 1.32 Theta 0.0
+set n10 [InteriorNode $n3 $n9 -1]
+GetNodeData $n10
+
+# Put in a wall along the X-axis
+WallAddPoint 0 0.0 0.0
+WallAddPoint 0 5.0 0.0
+
+# Make a new node on that wall
+set n16 [CMinusWallNode 0 $n10 -1]
+GetNodeData $n16

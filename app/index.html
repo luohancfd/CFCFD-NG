@@ -1,0 +1,200 @@
+<HTML>
+<HEAD>
+<TITLE>CFD Contents Page</TITLE>
+</HEAD>
+<BODY>
+<Center>
+  <H2> CFD Archive for The Uni of Queensland Hypersonics Group. </H2>
+</Center>
+
+<UL>
+   <LI> <A HREF="#research_codes">Research Codes</A>
+   <LI> <A HREF="#archived_codes">Archived Codes</A>
+   <LI> <A HREF="#reports">Reports and Documentation</A>
+</UL>
+
+<P>
+This archive contains source code, example files and documentation for 
+a number of compressible-flow simulation codes.
+It is intended for use by members of the UQ Hypersonics Group and the
+Australian Centre for Hypersonics.
+If you are browsing this archive via our web server, not all of the 
+directories will be complete.
+</P>
+
+<HR>
+
+<A NAME="research_codes"><H3>Research Codes</H3></A>
+<P>
+<OL>
+   <LI> The following codes are subject to continuing development: 
+      <UL>
+         <LI> <A HREF="./tds/">TDS</A>
+              Shock Tunnel Data Server and Browser</LI>
+         <LI> <A HREF="./imoc/doc/">IMOC</A> 
+              Method-of-Characteristics for two-dimensional supersonic flow. </LI>
+         <LI> <A HREF="./L1d/doc/">L1d</A> 
+              Lagrangian 1-D flow simulation program. </LI>
+         <LI> <A HREF="./newt/">Newt</A>
+              Kevin's Newtonian flow program. </LI>
+         <LI> <A HREF="./mb_cns/doc/">MB_CNS</A>
+              Multi-block Navier-Stokes solver. </LI>
+         <LI> <A HREF="./pamela_who/">PAMELA</A>
+              Andrew's parallel Navier-Stokes program. </LI>
+         <LI> <A HREF="./sm_3d_plus/">SM_3D+</A>
+              Chris' space-marching program.
+              This supercedes SM_3D listed below. </LI>
+         <LI> <A HREF="./sf3d_v4.1/">sf3d_v4.1</A>
+              Ian's 3-D shock-fitting code. </LI>
+         <LI> <A HREF="./u2de/">U2DE</A>
+              Paul's unstructured grid code for 2-D flows. </LI>
+         <LI> <A HREF="./gas_models/source/estcj.py">ESTCj</A> 
+	      A Python program for the calculation of shock-tube conditions
+	      assuming chemical equilibrium. 
+	      (Needs the NASA Lewis CEA software as an executable code.)</LI>
+      </UL>
+   <LI> Common components for the Research codes.
+      <UL>
+         <LI> <A HREF="./gas_models/">Code for thermodynamic models</A> </LI>
+         <LI> <A HREF="./plot/">Graphics and Plotting Codes</A> </LI>
+         <LI> <A HREF="./util/">Utility code</A> </LI>
+         <LI> <A HREF="./nm/">Numerical Methods</A> </LI>
+      </UL>
+   <LI> Tar-balls for some of the code.
+      <UL> 
+         <LI> <A HREF="../web_archives/mb_cns.tar.gz">mb_cns.tar.gz</A> </LI>
+         <LI> <A HREF="../web_archives/cfd_util.tar.gz">cfd_util.tar.gz</A> 
+	 (Includes the gas-model code that is needed by L1d and mb_cns.)</LI>
+         <LI> <A HREF="../web_archives/cfd_plot.tar.gz">cfd_plot.tar.gz</A> </LI>
+         <LI> <A HREF="../web_archives/L1d.tar.gz">L1d.tar.gz</A> </LI>
+         <LI> <A HREF="../web_archives/imoc.tar.gz">imoc.tar.gz</A> </LI>
+         <LI> <A HREF="../web_archives/imoc.zip">imoc.zip</A> </LI>
+         <LI> <A HREF="../web_archives/tds.tar.gz">tds.tar.gz</A> </LI>
+         <LI> <A HREF="../web_archives/tds_w32.exe">tds_w32.exe</A> 
+	 (Self-extracting archive for Windows.)</LI>
+      </UL>
+</OL>
+</P>
+
+<HR>
+
+<A NAME="reports"><H3>Reports and Documentation for Codes</H3></A>
+<P>
+The most of the following reports are stored as compressed postscript files:
+<UL>
+   <LI> <A HREF="./doc/cns4u.ps.gz">ICASE Interim Report 18 (1991)</A> 
+        on the Navier-Stokes solver CNS4U.
+        CNS4U was eventually superceded by MB_CNS, 
+        however, this report
+        continues to serve as the primary document for 
+        much of the current formulation. </LI>
+   <LI> <A HREF="./doc/mb_cns.ps.gz">Report 10/96</A>
+        on MB_CNS updates the documentation on the multiple-block
+        version of the Navier-Stokes code. </LI>
+   <LI> <A HREF="./mb_cns/doc/mb_cns.html">Report 7/98</A> 
+        (also on MB_CNS) is now in hypertext format and describes
+        the new user interface to the program.
+        This document will evolve (slowly) with the actual program. </LI>
+   <LI> <A HREF="./doc/newt.ps.gz">Report 5/96</A>
+        is the documentation for Kevin's Newtonian flow solver. </LI>
+   <LI> <A HREF="./doc/sm_3d_plus.ps.gz">Report 6/98</A> on
+        the space-marching solver SM_3D+.
+        Chris' additions include a finite-rate chemistry model and
+        (parabolized) terms for the viscous stresses. </LI>
+   <LI> <A HREF="./doc/l1d_98.ps.gz">Report 13/98</A> 
+        is the documentation for theory behind the Lagrangian 1-D program. </LI>
+   <LI> <A HREF="./L1d/doc/l1d.html">Report 1/99</A> describes the
+        user interface to the Lagrangian 1-D programs.
+        This document will evolve (slowly) with the actual program. </LI>
+   <LI> <A HREF="./imoc/doc/index.html">Report 3/00</A> describes the
+        user interface to the Interactive Method-of-Characteristics program.
+        This document will evolve (slowly) with the actual program. </LI>
+   <LI> <A HREF="./doc/tds_03.ps.gz">Report 2003/06</A> describes the
+        server-side of the shock-tunnel data archive. </LI>
+</UL>
+</P>
+
+<HR>
+
+<A NAME="archived_codes"><H3>Other Archived Codes</H3></A>
+<P>
+   These are in various states of repair and are not being updated.
+   However, they continue to be useful for the odd shock tunnel job.
+   <UL>
+      <LI> <A HREF="./others/monc_v4.8/">MONC Version 4.8</A>
+           Allan Paull's data acquisition and display program. </LI>
+      <LI> <A HREF="./sm_3d_95/">SM_3D</A>
+           Space Marching Code as per Report 2/95. </LI>
+      <LI> <A HREF="./others/moc_87/">MOC_87</A>
+           Interactive Turbo-Pascal-3 program for 
+           the Method of Characteristics (1987) </LI>
+      <LI> <A HREF="./others/moc_eang_95/">MOC_95</A> 
+           Peter Eang's (incomplete) work on MOC (1995).
+           I think that we'll finish this job with one of
+           the newer scripting languages such as Python or Tcl/Tk. 
+           See IMOC above. </LI>
+      <LI> <A HREF="./others/maccoll_89/">ConeFlow</A>
+           Simon Sanderson's cone flow code.
+           Includes FORTRAN source code with DOS executable from 1989. </LI>
+      <LI> <A HREF="./others/estc_90/">ESTC</A>
+           Malcolm McIntosh's Equilibrium Shock Tube Conditions code.
+           Includes FORTRAN source code with DOS executable 
+           from some date between 1968 and 1990. 
+	   (Use ESTCj instead if you have a Python interpreter 
+	   and the CEA software.)</LI>
+      <LI> <A HREF="./others/nenzf_88/">NENZF</A>
+           Nonequilibrium nozzle flow code from Lordi et.al. 
+           Includes FORTRAN source code with DOS executable from 1988. 
+           This is another old code which has been updated to run on PC's. </LI>
+      <LI> <A HREF="./others/shock_88/">SHOCK</A>
+           A replacement for ESTC at low temperatures.
+           Originally written by Richard Morgan and Rob Casey in BASIC.
+           Updated for fortran on an IBM 3081 by Craig Brescianini, 1988. </LI>
+      <LI> <A HREF="./others/stn_95/">STN</A>
+           A replacement for ESTC and NENZF for equilibrium air and nitrogen.
+           Written in FORTRAN-77 by Rob Krek and PJ, 1993.
+           Updated 1995. </LI>
+      <LI> <A HREF="./others/crek_92/">EQSTATE/CREK</A>
+           Generalised one dimensional flow with finite-rate chemical reactions.
+           FORTRAN code that used to be run on an IBM 3081.
+           There seems to be a DOS version also.  
+           Bob Bakos might know some more about this program. </LI>
+      <LI> <A HREF="./others/sharc_91/">SHARC</A>
+           Craig Brescianini's finite difference code; developed for his PhD 
+           work on scramjet simulations. </LI>
+      <LI> <A HREF="./others/nasa_moc/">NASA MOC</A>
+           This neat Method of Characteristics program 
+           was written by J. M. Forster.
+           Updated for DOS compilers by PJ, May 1997.
+           See the beginning of the source code for more information. </LI>
+      <LI> <A HREF="./others/tube_gary_91">Gary's Tube code</A> 
+           A program (in C) for shock tube simulations; derived from MNM's
+           FORTRAN program. </LI>
+   </UL>
+</P>
+
+<HR>
+
+<Address>
+   The Compressible-Flow CFD Group <BR>
+   P. A. Jacobs, M.N. Macrossan, <BR>
+   P.J. Petrie-Repar, C.S. Craddock, <BR>
+   A.M. McGhee, I.A. Johnston, K.J. Austin, <BR>
+   R. Goozee, J. M. Faddy, V. Wheatley, <BR>
+   R. Gollan, M. Scott, T. Gardner <BR>
+   B. Stewart, A. Denman <BR>
+   Department of Mechanical Engineering <BR>
+   The University of Queensland <BR>
+   St Lucia, Qld 4072, AUSTRALIA <BR>
+   <BR>
+   peterj@mech.uq.edu.au <BR>
+   Last Updated 11-Oct-2003 <BR>
+</Address>
+
+<META NAME="keywords" CONTENT="CFD, shock tube, compressible flow, simulation">
+<META NAME="keywords" CONTENT="Navier-Stokes">
+<META NAME="keywords" CONTENT="method of characteristics">
+
+</BODY>
+</HTML>
+

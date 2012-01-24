@@ -1,0 +1,31 @@
+Begin test of Noble-Abel gas model.
+p= 500000000.0 T= 2000.0 b= 0.001
+
+Noble-Abel gas:
+Noble-Abel gas model: setting covolume directly to 0.001
+rho= 428.045382097 p= 500000000.000 p_e= 0.00000000000 a= 1581.71179449
+T[0]= 2000.00000000 
+e[0]= 2969335.29753 
+mu= 6.18958166698e-05
+k[0]= 0.101718119551 
+D_AB[0][0]= 0.00000000000 
+massf[0]= 1.00000000000 
+ideal gas model selected
+R= 334.050220972 Cv= 1484.66764877 Cp= 1818.71786974 gamma= 1.225
+expected density= 428.045382097 percent-difference= 0.0
+expected internal energy= 2969335.29753 percent-difference= 0.0
+
+Ideal gas:
+rho= 748.390464381 p= 500000000.000 p_e= 0.00000000000 a= 904.667365048
+T[0]= 2000.00000000 
+e[0]= 2969335.29753 
+mu= 6.18958166698e-05
+k[0]= 0.101718119551 
+D_AB[0][0]= 0.00000000000 
+massf[0]= 1.00000000000 
+
+Differences with respect to Noble-Abel gas:
+density= 42.8045382097
+sound speed= 42.8045382097
+internal energy= 0.0
+Done.

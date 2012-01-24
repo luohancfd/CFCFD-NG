@@ -1,0 +1,123 @@
+% stream-tube.tex
+
+\newpage
+\section{Stream Tube}
+\label{chap2-stream-tube}
+%
+
+The first example used to show the space marching solver in use is a simple stream-tube geometry. This case was initially used to verify some of the chemistry schemes being used in Eilmer3 and also demonstrates the use of the space marching solver very nicely. This model comprised of 20000 cells and the simulation was run on a 1.86GHz desktop in 19 mins on a Barrine CPU. This is quite a reduction in wall-clock time when compared to the 2 hours 44 mins that the simulation needed on 40 Barrine CPU's for a time-dependent solution.
+
+The inflow conditions used were taken from a Bittker and Scullin report\cite{Bittker_Scullin72} in order to check the chemistry behaviour of the code. The conditions used were: \[ u = 4500.0m/s, \quad p = 97.0kPa, \quad T = 1560.0K \] Figure \ref{fig:stream_tube_OH} shows the development of OH down the length of the stream tube which is an indicator of the combustion development.
+
+\begin{figure}[h]
+ \centering
+ \includegraphics[width=0.9\linewidth]{./chap2-stream-tube/stream_tube.pdf}
+ % stream_tube.pdf: 0x0 pixel, 300dpi, 0.00x0.00 cm, bb=
+ \caption{OH development down the length of the tube}
+ \label{fig:stream_tube_OH}
+\end{figure}
+
+\newpage
+\subsection{Input script}
+
+{\scriptsize
+\begin{verbatim}
+## \file hydrogen_validation.py
+## \brief Eilmer3 job-spec file of a stream-tube
+## \author Fabian Zander, 26th Oct 2010
+##
+##
+## A test case to see if the hydrogen comubstion scheme is working
+## This example is trying to match test case 3 from the Bittker-Scullin code 
+## ( A Nasa report - NASA TN D-6586)
+
+job_title = "Hydrogen-Air Combustion Validation"
+print job_title
+
+from math import sin, cos, pi, atan, sqrt
+
+# Global data
+gdata.dimensions = 2
+gdata.title = job_title
+gdata.axisymmetric_flag = 1
+gdata.stringent_cfl = 1
+
+# Gas model - thermally perfect gas - air
+select_gas_model(model='thermally perfect gas', 
+                 species=['O', 'O2', 'N2', 'H', 'H2', 'H2O', 'HO2', 'OH', 'H2O2'])
+
+set_reaction_scheme("Bittker_Scullin.lua", reacting_flag=1)
+
+gmodel = get_gas_model_ptr()
+
+# Initial mixture taken from Bittker Scullin example on page 85 in mol fraction
+
+mf_H2 = 0.2958
+mf_O2 = 0.1480
+mf_N2 = 0.5562
+
+mf_initial = {'O':0.000, 'O2':mf_O2, 'N2':mf_N2, 'H':0.000, 'H2':mf_H2, 
+	      'H2O':0.000, 'HO2':0.000, 'OH':0.000, 'H2O2':0.000}
+mf = {'O':0.000, 'O2':mf_O2, 'N2':mf_N2, 'H':0.000, 'H2':mf_H2, 
+      'H2O':0.000, 'HO2':0.000, 'OH':0.000, 'H2O2':0.000}
+
+# Input inital flow conditions
+# These are values taken from test case 3 in Bittker and Scullin
+
+initial = FlowCondition(p=96.87e3, u=4551.73, v=0.0, T=1559.00, massf=gmodel.to_massf(mf_initial))
+inflow = FlowCondition(p=96.87e3, u=4551.73, v=0.0, T=1559.00, massf=gmodel.to_massf(mf))
+
+# Setting up the geometry
+
+a = Node(0.0000, 0.0000, label="a")
+b = Node(0.1000, 0.0000, label="b")
+c = Node(0.1000, 0.0100, label="c")
+d = Node(0.0000, 0.0100, label="d")
+
+blk_0_north = Line(d,c)
+blk_0_east = Line(b,c)
+blk_0_south = Line(a,b)
+blk_0_west = Line(a,d)
+
+# Define the block, boundary conditions etc.
+
+nx0 = 10000
+ny0 = 2
+
+patch0 = make_patch(blk_0_north, blk_0_east, blk_0_south, blk_0_west)
+nbi_0 = 100
+nbj_0 = 1
+blk_0 = SuperBlock2D(patch0, nni=nx0, nnj=ny0, nbi=nbi_0, nbj=nbj_0,
+		fill_condition=initial, label="Block-0")
+
+print 'Block 0 has %s elements and each sub-block has %s elements' % (nx0*ny0, nx0*ny0/(nbi_0*nbj_0))
+
+identify_block_connections()
+
+for ib_0 in range(nbi_0):
+    blk_0.blks[ib_0][-1].bc_list[NORTH] = FixedTBC(323.0)
+
+for jb_0 in range(nbj_0):
+    blk_0.blks[0][jb_0].bc_list[WEST] = SupInBC(inflow)
+    blk_0.blks[-1][jb_0].bc_list[EAST] = ExtrapolateOutBC(sponge_flag=0)
+
+
+# Do extra setup stuff
+
+gdata.sequence_blocks = 1
+gdata.turbulence_flag = 0
+gdata.turbulence_model = 'k_omega'
+gdata.viscous_flag = 0
+gdata.flux_calc = ADAPTIVE
+gdata.t_order = 2
+gdata.max_time = 5.0e-5
+gdata.max_step = 1000000
+gdata.dt = 1.0e-10
+gdata.dt_plot = 5.0e-6
+gdata.dt_history = 10.0e-5
+
+sketch.xaxis(0.0, 0.35, 0.05, -0.02)
+sketch.yaxis(0.0, 0.1, 0.05, -0.02)
+sketch.window(0.0, 0.0, 0.3, 0.3, 0.05, 0.05, 0.17, 0.17)
+\end{verbatim}
+}

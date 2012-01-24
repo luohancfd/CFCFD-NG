@@ -1,0 +1,81 @@
+% elmer3-space-marching.tex
+% Overall LaTeX format adapted from PJ's elmer3 user guide
+% and copied here from Wilson's k-w Turbulence Guide
+% 
+% Fabian Zander, Mar 10 2011
+%
+
+\documentclass[12pt,a4paper]{article}
+\usepackage[body={16cm,24.5cm}]{geometry}
+\usepackage{pstricks}
+\usepackage{graphicx}
+\usepackage{listings}
+\lstset{basicstyle=\scriptsize,identifierstyle=,keywordstyle=}
+
+%------------------------------------------------------------------
+% a couple horizontal bars to delimit embedded code
+% the width suits the page size set above and
+% the mathmode eliminates spaces between the three elements
+\newcommand{\topbar}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule[2.0mm]{159.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+\newcommand{\bottombar}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule{159.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+\newcommand{\topbarshort}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule[2.0mm]{149.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+\newcommand{\bottombarshort}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule{149.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+%------------------------------------------------------------------
+
+\title{
+    Space Marching in Eilmer3: \\
+    User guide and test cases
+}
+\author{
+    The University of Queensland \\
+    School of Mechanical \& Mining Engineering \\
+    Research Report Number 2011/03 
+    \vspace{0.5cm} \\
+    F. Zander, 
+    P. A. Jacobs\thanks{Queensland Geothermal Energy Centre of 
+     Excellence, The University of Queensland, Brisbane, Australia.},
+    R. J. Gollan, 
+    W.Y.K. Chan and 
+    R. M. Kirchhartz\\
+    {Centre for Hypersonics, The University of 
+     Queensland, Brisbane, Australia.}
+\\
+}
+
+\usepackage{subfigure}   % Adds capability to input sub-figures
+
+\begin{document}
+\maketitle
+
+\centerline{\textbf{Abstract}}
+\medskip
+This report provides a basic outline on the use of space marching in Eilmer3. Space marching offers a computationally cheap method of conducting CFD calculations of simple geometries and flows. This report details the use and some of the limitations of the space marching solver and gives two examples of the solver being used. The first example is a simple stream tube case and the second is a sample scramjet geometry. The intention of this report is that it will lead to further computational experiments with space marching, particularly for shock tunnel simulations.
+\newpage
+\tableofcontents
+
+%-------------------------------------------------------------------
+\include{./chap1-introduction/introduction}
+
+\include{./chap2-stream-tube/stream-tube}
+\include{./chap3-axi-scramjet/axi-scramjet}
+
+%--------------------------------------------------------------------
+
+\newpage
+\bibliographystyle{unsrt}
+\bibliography{./bibtex/pj,./bibtex/computing,./bibtex/gas_dynamic,./bibtex/adm,./bibliography/phd_bibliography}
+
+\newpage
+\appendix
+
+\include{./appendix1-code/code}
+
+\end{document}

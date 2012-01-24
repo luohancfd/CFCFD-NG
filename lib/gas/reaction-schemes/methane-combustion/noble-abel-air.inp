@@ -1,0 +1,2 @@
+model = "Noble-Abel gas"
+species = {'O2', 'N2'}

@@ -1,0 +1,37 @@
+BORDER BOUNDARY CONDITIONS - ANY VALUES ARE IN SI UNITS
+-------------------------------------------------------
+
+East boundary
+-------------
+BC type: Specific
+Pressure: Extrapolated 
+Density: Extrapolated
+U: Extrapolated
+V: Extrapolated
+W: Extrapolated 
+
+West boundary
+-------------
+BC type: Specific
+Pressure: 1.544665149e5 
+Density: 4.368043607e-1
+U: 1.055428867e3 
+V: 0
+W: 0 
+
+North boundary
+--------------
+BC type: Non-reflecting
+
+South boundary
+--------------
+BC type: Non-reflecting
+
+Upper boundary
+--------------
+BC type: Non-reflecting
+
+Lower boundary
+--------------
+BC type: Non-reflecting
+

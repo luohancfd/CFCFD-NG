@@ -1,0 +1,333 @@
+As explained in Section~\ref{thermo-flow-sec}, most users
+can select a gas model by a call to \texttt{select\_gas\_model}
+using the \texttt{model} and \texttt{species} keyword arguments.
+For more advanced uses of the gas models, a configuration file
+created directly by the user is required.
+This section discusses the creation of that file.
+
+The configuration file has a Lua-style format, meaning
+that the statements and expressions in the file must conform
+to proper Lua syntax.
+Do not be concerned with the need to learn Lua in order to
+build a configuration file: nearly all of the statements
+you will require can be taken from the following examples.
+Besides, Lua has been designed from the outset as an embedded
+language for configuration purposes, and, with that aim in mind,
+it has a simple syntax suitable for non-programmers~\cite{ierusalimschy_etal_1996}.
+The following subsections explain the requirements of configuration
+files for specific gas models.
+
+\subsection{User-defined gas model}\index{gas model!user-defined}
+The user may define her own gas model by providing
+callable functions that implement the desired behaviour.
+There is a minimal (read mandatory) set of functions
+that the user must provide in the configuration file.
+There are also some optional functions.
+When the optional functions are not provided, the
+underlying C++ code will provide a default implementation.
+For example, if the user does not provide a function \texttt{dT\_dp\_const\_rho}
+then the default implementation will use a numerical differentiation
+technique to compute this value when required.
+In addition to providing some mandatory functions, the user's
+configuration file needs to set three global variables:
+\begin{itemize}
+ \item \texttt{model}: set as \texttt{'user-defined'}
+ \item \texttt{nsp}: the number of species in the gas model
+ \item \texttt{nmodes}: the number of thermal modes in the gas model
+\end{itemize}
+
+Each of the functions which the user specifies has certain rules
+that they must conform to: they must accept a distinct set of arguments
+in the correct order; and they must return the expected number of results
+of the correct type and in correct order.\footnote{This statement about received function
+arguments is not strictly true.  If the user is familiar with how Lua treats missing
+and or extra arguments, then (s)he will be aware that the implementation may still
+function even if not all arguments are present.  In practice and for ease of understanding
+the code, it is best to stick to the documented function signatures.}
+The job of the function will be to compute the required results
+based on the input arguments.
+The set of functions recognised by a `user-defined' gas model, 
+along with their arguments lists and return value lists, are given
+in Table~\ref{tab:user-defined-gas-model}.
+The mandatory functions are listed first, followed by the optional functions.
+A majority of the functions accept a \texttt{gas\_data} table as an argument
+and also return a \texttt{gas\_data} table.
+As a pre-condition to the function calls, certain data members in the
+\texttt{gas\_data} table may be assumed to be present and correct.
+As a post-condition to the function calls, certain data members in the
+\texttt{gas\_data} table should be correctly set upon return.
+These pre- and post-conditions for the \texttt{gas\_data} table
+are also shown in Table~\ref{tab:user-defined-gas-model}.
+Finally, Table~\ref{tab:gas-data} describes the entry
+in a \texttt{gas\_data} table.
+
+\begin{landscape}
+\begin{center}
+\setlength{\LTcapwidth}{15cm}
+\begin{longtable}{p{5.5cm}p{4.5cm}p{4.5cm}p{6.5cm}}
+\caption{User-defined functions for specification of gas model behaviour \label{tab:user-defined-gas-model}}\\
+\hline \hline Function & Arguments & Return values & Description \\ \hline
+\endfirsthead
+\hline \hline Function & Arguments & Return values & Description \\ \hline
+\endhead
+\hline
+\endfoot
+\multicolumn{4}{c}{\emph{Mandatory functions}} \\
+\texttt{eval\_thermo\_state\_rhoe} & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                  \textit{pre-conditions}: \texttt{rho}, \texttt{e} and \texttt{massf} are set}
+                                   & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                  \textit{post-conditions}: set all other thermodynamic variables} 
+                                   &   Given density, the internal energy (vector) and mass fractions,
+                                       compute the rest of the thermodynamic state. \\
+\texttt{eval\_transport\_properties} & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                   \textit{pre-conditions}: thermodynamic state is up-to-date} 
+                                    & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                   \textit{post-conditions}: transport data set, i.e., \texttt{mu} and
+                                                   \texttt{k}}
+                                    & Given an up-to-date thermodynamic state, compute the transport properties:
+                                      viscosity and thermal conductivity (in all thermal modes as appropriate). \\
+\texttt{eval\_diffusion\_coefficients} & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                      \textit{pre-conditions}: thermodynamic state is up-to-date} 
+                                       & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                      \textit{post-conditions}: all binary diffusion coefficients set, \texttt{D\_AB}}
+                                       & Given an up-to-date thermodynamic state, compute the binary diffusion coefficients for
+                                         all species interaction pairs in the mixture. \\
+\texttt{molecular\_weight}             & \raggedright{\textbf{isp}: species index, \texttt{integer}} 
+                                       & \raggedright{\textbf{MW}: molecular weight of species \textit{isp}, \texttt{float}}
+                                       & Returns the molecular weight, g/mol, for species \textit{isp}. \\ \hline
+\multicolumn{4}{c}{\emph{Optional functions}} \\
+\texttt{eval\_thermo\_state\_pT} & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                \textit{pre-conditions}: \texttt{p}, \texttt{T} and \texttt{massf} are set}
+                                 & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                  \textit{post-conditions}: set all other thermodynamic variables} 
+                                   &   Given pressure, temperature(s), and mass fractions,
+                                       compute the rest of the thermodynamic state. \\
+\texttt{eval\_thermo\_state\_rhoT} & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                \textit{pre-conditions}: \texttt{rho}, \texttt{T} and \texttt{massf} are set}
+                                 & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                  \textit{post-conditions}: set all other thermodynamic variables} 
+                                   &   Given density, temperature(s), and mass fractions,
+                                       compute the rest of the thermodynamic state. \\
+\texttt{eval\_thermo\_state\_rhop} & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                \textit{pre-conditions}: \texttt{rho}, \texttt{p} and \texttt{massf} are set}
+                                 & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                  \textit{post-conditions}: set all other thermodynamic variables} 
+                                   &   Given density, pressure, and mass fractions,
+                                       compute the rest of the thermodynamic state. \\
+\texttt{encode\_conserved\_energy} & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                  \textit{pre-conditions}: \texttt{rho}, \texttt{e} and \texttt{massf} are set} 
+                                   & \raggedright{\textbf{rhoe}: table of \texttt{float} values \\
+                                                  \textit{post-conditions}: table has dimension \texttt{nmodes} and stores
+                                                  the conserved energy quantities} 
+                                   & Given the primary variables, encode the conserved energy quantities. \\
+\texttt{decode\_conserved\_energy} & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                  \textbf{rhoe}: table of \texttt{float} values
+                                                  \textit{pre-conditions}: \texttt{rho} and \texttt{massf} are set} 
+                                   & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                  \textit{post-conditions}: the vector member \texttt{e} is up-to-date (decoded)} 
+                                   & Given density and the vector of conserved energies, set the specific energies. \\
+\texttt{update\_massf\_mode}       & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                  \textit{pre-condition}: \texttt{massf} are set}
+                                   & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                  \textit{post-condition}: \texttt{massf\_mode} are set}
+                                   & Given the mass fractions, update the vector \texttt{massf\_mode} which
+                                     stores the mass fraction associated with each thermal mode. \\
+\texttt{dTdp\_const\_rho}          & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                  \textit{pre-condition}: thermodynamic state variables are up-to-date}
+                                   & \raggedright{\textbf{dTdp}: \texttt{float}}
+                                   & Return $\left(\frac{\partial T}{\partial p}\right)_{\rho}$. \\
+\texttt{dTdrho\_const\_p}          & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                  \textit{pre-condition}: thermodynamic state variables are up-to-date}
+                                   & \raggedright{\textbf{dTdrho}: \texttt{float}}
+                                   & Return $\left(\frac{\partial T}{\partial \rho}\right)_{p}$. \\
+\texttt{dpdrho\_const\_T}          & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                  \textit{pre-condition}: thermodynamic state variables are up-to-date}
+                                   & \raggedright{\textbf{dpdrho}: \texttt{float}}
+                                   & Return $\left(\frac{\partial p}{\partial \rho}\right)_{T}$. \\
+\texttt{dedT\_const\_v}            & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                  \textit{pre-condition}: thermodynamic state variables are up-to-date}
+                                   & \raggedright{\textbf{dedT}: \texttt{float}}
+                                   & Return $\left(\frac{\partial e}{\partial T}\right)_{v}$: $C_v$, the specific
+                                     heat capacity at constant volume. \\
+\texttt{dhdT\_const\_p}            & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                  \textit{pre-condition}: thermodynamic state variables are up-to-date}
+                                   & \raggedright{\textbf{dhdT}: \texttt{float}}
+                                   & Return $\left(\frac{\partial h}{\partial T}\right)_{p}$: $C_p$, the specific
+                                     heat capacity at constant volume. \\
+\texttt{gas\_constant}             & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
+                                                  \textit{pre-condition}: thermodynamic state variables are up-to-date}
+                                   & \raggedright{\textbf{R}: \texttt{float}}
+                                   & Return $R$, the specific gas constant. \\
+\end{longtable}
+\end{center}
+\end{landscape}
+
+\begin{table}
+ \begin{center}
+  \caption{Description of fields in \texttt{gas\_data} table}
+  \label{tab:gas-data}
+\begin{tabular}{llp{6cm}}
+ \hline \hline
+ Field        & Type            &  Description \\ \hline
+\multicolumn{3}{c}{\emph{Thermodynamic properties}} \\
+\texttt{rho}  & \textit{float}  &  density, kg/m$^3$ \\
+\texttt{p}    & \textit{float}  &  pressure, Pa \\
+\texttt{a}    & \textit{float}  &  sound speed, m/s \\
+\texttt{e}    & vector of \textit{floats} & specific internal energies, J/kg \\
+\texttt{T}    & vector of \textit{floats} & temperatures, K \\
+              &                           &                 \\
+\multicolumn{3}{c}{\emph{Transport properties}} \\
+\texttt{mu}   & \textit{float}  &  kinematic viscosity, Pa.s \\
+\texttt{k}    & vector of \textit{floats} & thermal conductivities (for each mode), W/(m.K) \\
+\texttt{D\_AB} & matrix of \textit{floats} & binary diffusion coefficients, m$^2$/s \\
+              &                 &             \\
+\multicolumn{3}{c}{\emph{Composition}} \\
+\texttt{massf} & vector of \textit{floats} & species mass fractions \\
+\texttt{massf\_mode} & vector of \textit{floats} & mass fraction associated with specific thermal modes \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\subsubsection{An example minimal user-defined gas model}\index{gas model!user-defined!minimal example}
+The following code listing shows the minimum requirements to specify
+a user-defined gas model.
+This is a concrete example to complement the abstract discussion presented
+previously.
+This particular example implements ideal air.
+This is a trivial example for the sake of demonstration, and one would not use the slow user-defined gas model
+for ideal air when an internally implemented model already exists.
+The intended use for the user-defined gas models is for more exotic gases or rapid prototyping
+of a new gas model.
+
+\noindent
+\topbar
+\lstinputlisting[language={}]{../../../lib/gas/test/ideal-air-minimal-udm.lua}
+\bottombar
+
+\subsection{Equilibrium gas based on a look-up table}
+\index{gas model!look-up table}
+\index{gas model!equilibrium chemistry|see{look-up table}}
+The properties of a gas mixture in thermochemical equilibrium can be computed using the 
+CEA program~\cite{gordon_mcbride_1994, mcbride_gordon_1996}.
+By pre-computing the properties for a range of densities and internal energies,
+a look-up table can be created.
+The use of a look-up table is much more efficient to use than calling out to the CEA program during 
+simulation execution; there is some small sacrifice in accuracy using the look-up table.
+
+\subsubsection{Selecting a look-up table for the gas model}
+A number of pre-built look-up tables are provided as par the code collection.
+After installing Elmer3, the pre-built look-up tables are provided in \texttt{\$HOME/e3bin/cea-cases/}.
+A list of these tables and a description of what gas mixture they model is given in 
+Table~\ref{tab:lut}.
+
+\begin{table}[ht]
+\begin{center}
+\caption{Description of pre-built look-up tables distributed with Elmer3}
+\label{tab:lut}
+\begin{tabular}{lp{8cm}}
+ \hline \hline
+Pre-built table & Description \\
+\hline
+\texttt{cea-lut-air.lua.gz} & Equilibrium air with ionisation. Useful for Earth reentry problems. \\
+\texttt{cea-lua-CO2.lua.gz} & Pure carbon dioxide in equilibrium with ionisation. \\
+\texttt{cea-lua-Jupiter-like.lua.gz} & A H$_2$-Ne mixture used to simulate the Jovian H$_2$-He atmosphere
+                                       in expansion tube work. \\
+\texttt{cea-lut-Kr.lua.gz} & Pure Kryton with ionisation allowed. \\
+\texttt{cea-lut-Mars-basic.lua.gz} & A basic Martian atmosphere, without trace species.  The included species
+                                     are CO$_2$ (97\% by weight) and N$_2$ (3\% by weight).  No ionisation is considered. \\
+\texttt{cea-lut-Mars-trace.lua.gz} & A Martian atmosphere which includes the trace species O$_2$ and Ar. No ionisation is considered. \\
+\texttt{cea-lut-Mars-trace-with-ions.lua.gz} & A Martian atmosphere incluing trace species and ionisation. \\
+\texttt{cea-lut-N2.lua.gz} & Pure nitrogen in equilibrium with ionisation. \\
+\texttt{cea-lut-Titan-like-no-ions.lua.gz} & A Titan-like atmosphere (N$_2$ and CH$_4$, no trace species). No ionisation is considered. \\
+\texttt{cea-lut-Titan-like-with-ions.lua.gz} & A Titan-like atmosphere which includes ionisation. \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+The steps to using a look-up table in your simulation are:
+\begin{enumerate}
+ \item Copy a pre-built table to your working directory.
+ \item Specify the name of thie pre-built table in your call to \texttt{select\_gas\_model} in your
+       simulation setup script.
+\end{enumerate}
+As an example, suppose that we wish to run a simulation with CO$_2$ in equilibrium.
+Then as per above the sequence of steps is (assuming your are in your working directory):
+\begin{enumerate}
+ \item \texttt{cp \$HOME/e3bin/cea-cases/cea-lut-CO2.lua.gz .}
+ \item Add the following function call to your script:\\
+       \texttt{select\_gas\_model(fname='cea-lua-CO2.lua.gz')}
+\end{enumerate}
+
+\subsubsection{Building your own look-up table}
+Of course, you might have a gas mixture you wish to simulate that is not listed in Table~\ref{tab:lut}.
+The tool \texttt{build-cea-lut} is provided as part of the code collection to aid in building a 
+look-up table of the appropriate format.
+You will need access to the \texttt{cea2} program~\cite{gordon_mcbride_1994, mcbride_gordon_1996}, and have that setup in your working area
+\footnote{By setup, I mean
+that the \texttt{thermo.inp} and \texttt{trans.inp} files have been processed and the corresponding \texttt{.lib} files
+are available in the working directory.
+Also, the program \texttt{cea2} needs to be available as an executable in your \texttt{\$PATH}.}.
+
+The first step is to build a ``template'' file.
+This file specifies the composition of the gas model and some other options appropriate to the modelling.
+Here is an example template file to build a look-up table for a Mars-like atmosphere with no ionisation but
+includes trace species. 
+
+\noindent
+\topbar
+\lstinputlisting[language={}]{../../../lib/gas/cea-cases/Mars-trace.lua}
+\bottombar
+
+\noindent
+The list of expected parameters are given in Table~\ref{tab:lut-template}
+\begin{table}[ht]
+\begin{center}
+\caption{Description of parameters required to build a template file for \texttt{build-cea-lut}}
+\label{tab:lut-template}
+\begin{tabular}{llp{8cm}}
+\hline \hline
+Parameter & Type & Description \\ \hline
+\texttt{fname} & \textit{string} & A name for the look-up table.  Usually just specifed as
+                                   \texttt{some\_name.lua}.  The program will add a trailing
+                                   \texttt{.gz} when it zips up the look-up table. \\
+\texttt{units} & \textit{string} & This denotes the units for specifying the relative amount of reactants.
+                                   The choices are:
+                                   \begin{itemize}
+                                      \item \texttt{'moles'} \textit{(default if not specified)} to specify by molar composition
+                                      \item \texttt{'massf'} to specify by mass (weight) composition 
+                                   \end{itemize} \\
+\texttt{reactants} & \textit{table} & This table lists the reactants in the mixture.  The keys are the species names as
+                                      recognised by CEA and the values are the composition. \\
+\texttt{with\_ions} & \textit{boolean} & If true, allow ionisation (by specifying \texttt{'ions'} in the CEA input files.
+                                         If false, ionisation is not allowed \textit{(default)}. \\
+\texttt{only\_list} & \textit{string} & This string restricts the allowable species in gas mixture computation.  The format for
+                                        the string is a space separated list of species.  This item is optional: if omitted, 
+                                        the CEA program is free to choose which species are considered according to its
+                                        own internal algorithm. \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+For more examples, the template files for all of the pre-built tables listed in Table~\ref{tab:lut} are available in
+\texttt{\$HOME/e3bin/cea-cases/}.
+
+Once you have created a template file, the \texttt{build-cea-lut} tool can be called.
+Supposing your template file is called \texttt{Venus-atmosphere.lua}, then issue
+the following command in your working directory:\\
+\topbar\\
+\texttt{> build-cea-lut --user-defined=Venus-atmosphere.lua} \\
+\bottombar\\
+You may use the \texttt{--extrapolate} flag to fill in the edges
+of the look-up table by linear interpolation where no data is available, however, this option
+is not presently recommended.
+If this flag is omitted, a smaller table is built that does not extrapolate at the edges.
+Note that this flag only controls extrapolation during the \textit{construction} of the table; in 
+the actual use of the table during \textit{simulation}, the values are always extrapolated
+if they exceed the limits of the table.
+Upon succesful execution of the \texttt{build-cea-lut}, you will have a compressed (gzipped)
+file in your working directory.
+This file (not the template file) can be used to select an equilibrium gas in the
+same manner as using a pre-built table, as was discussed in the preceding section. 
+

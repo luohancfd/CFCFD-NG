@@ -1,0 +1,78 @@
+# back_fig2.moc
+# Script to calculate the expanding flow in a conical nozzle.
+# This corresponds to the experimantal data shown in Fig. 2
+# L. H. Back et al. AIAA J. Vol.3 No.2 pp1606-1614 (1965)
+#
+# PJ 30-Apr-2000
+#
+#-----------------------------------------------------------------
+package require imoc
+source $gd(IMOC_HOME)/lib/wait_a_moment.tcl
+source $gd(IMOC_HOME)/lib/deg_to_rad.tcl
+
+#------------------------------------------------------------------
+
+puts ""
+puts "Axisymmetric Nozzle Calculation"
+
+LoadIMOCKernel
+SetAxiFlag 1
+SetGamma 1.4
+
+InitGUI
+setXYRanges 0.0 0.0 3.0 1.5
+setXYTics 0.5 0.5
+
+puts "Put in a wall for the axis of symmetry."
+WallAddPoint 0  0.0 0.0
+WallAddPoint 0 10.0 0.0
+puts "Upper wall is a circular arc tangent to a 15 degree line."
+WallAddPoint 1 0.0     0.775   ; # nozzle throat
+WallAddPoint 1 0.13509 0.78090 ; # circular arc approximation
+WallAddPoint 1 0.26915 0.79855
+WallAddPoint 1 0.40117 0.82781 ; # point of tangency
+WallAddPoint 1 0.54639 0.86672 ; # straight-line segemnts
+WallAddPoint 1 0.76422 0.92509
+WallAddPoint 1 1.20    1.04186
+WallAddPoint 1 1.633   1.15800
+WallAddPoint 1 2.066   1.27390
+WallAddPoint 1 2.50    1.39020 ; # exit of nozzle
+
+puts "Establish an initial value line."
+source $gd(IMOC_HOME)/lib/ivline.moc
+set rth   1.55
+set yth   0.775
+set nline 8
+set dy    [expr $yth / $nline]
+for {set i 1} {$i <= $nline} {incr i} {
+    set lineid($i) [CreateNode -1]
+    set y   [expr $i * $dy]
+    eval SetNodeData $lineid($i) [initialValueLine $y $yth $rth [GetGamma] 1]
+}; # end for
+refreshDisplay; wait_a_moment;
+
+puts "Compute flow in the initial region."
+set wall_node [CMinusWallNode 0 $lineid(1) -1]
+for {set i 2} {$i <= $nline} {incr i} {
+    set old_first $lineid([expr $i - 1])
+    set new_first $lineid($i)
+    set node_list [MarchAlongCMinus $old_first $new_first down]
+    set last_node [lindex $node_list [expr [llength $node_list] - 1]]
+    set wall_node [CMinusWallNode 0 $last_node -1]
+    refreshDisplay; wait_a_moment;
+}; # end for
+
+
+puts "Compute flow in the rest of the nozzle."
+puts "First put a new node on the upper wall,"
+puts "then propagate a C- characteristic down to the axis."
+# Note that we make use of the previous node_list.
+for {set i 1} {$i <= 15} {incr i} {
+    set new_first [CPlusWallNode 1 [lindex $node_list 1] -1]
+    set old_first [lindex $node_list 2]
+    set node_list [MarchAlongCMinus $old_first $new_first down]
+    set last_node [lindex $node_list [expr [llength $node_list] - 1]]
+    set wall_node [CMinusWallNode 0 $last_node -1]
+    refreshDisplay; wait_a_moment;
+}; # end for
+

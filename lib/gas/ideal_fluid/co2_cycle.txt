@@ -1,0 +1,26 @@
+peterj@boltzmann:~/work/thermo$ ./co2_cycle.exe 
+# Supercritical CO2 Brayton Cycle.
+# (using Hal's pressures and temperatures to anchor cycle)
+# Pressure in MPa, T in degrees K, enthalpy in kJ/kg, entropy in kJ/kg.K
+
+# [0] Inlet to compressor as used by Pruess.
+# [0] p=8 T=320 h=348.132 s=1.21861
+# [1] Outlet from compressor (no action) and inlet to bore.
+# [1] p=8 T=320 h=348.132 s=1.21861
+# [2] Bottom of bore.
+# [2] p=25.01 T=408.395 h=396.891 s=1.21861
+# [3] End of hot reservoir, entry to upward bore.
+# [3] p=25.01 T=508 h=553.351 s=1.56344
+# [4] Exit of bore at surface, inlet to turbine.
+# [4] p=13.39 T=443.998 h=504.088 s=1.56344
+# [5] Exit of turbine.
+# [5] p=8 T=395.323 h=469.364 s=1.56344
+# work-from-turbine=34.7236 kJ/kg
+# heat-added=156.459 kJ/kg
+# thermal-efficiency=0.221933
+# work-done-by-pump=0 kJ/kg
+# work-done-down-well=48.7596 kJ/kg
+# work-done-up-well=-49.263 kJ/kg
+# heat-rejected=121.232 kJ/kg
+# Done.
+peterj@boltzmann:~/work/thermo$ 

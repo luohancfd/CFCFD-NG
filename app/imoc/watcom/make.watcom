@@ -1,0 +1,59 @@
+# make.watcom
+#
+# This makefile assumes that SWIG has done its
+# job of generating the wrapper-interface files.
+# It also assumes that Tcl has been installed on
+# the same drive in directory "\Program Files\Tcl"
+#
+# Invoke with
+# wmake -f make.watcom
+# to build the DLL file.
+#
+# PJ
+
+all: imoc80.dll imoc83.dll .SYMBOLIC
+        echo "Should have rebuilt the imoc80.DLL and imoc83.DLL files."
+
+imoc80.dll : imoc_wrap.obj moc_kernel.obj moc_gasdynamic.obj moc_unitproc.obj moc_wall.obj moc_bezier.obj tcl80_import.lib
+        wlink @imoc80
+
+imoc83.dll : imoc_wrap.obj moc_kernel.obj moc_gasdynamic.obj moc_unitproc.obj moc_wall.obj moc_bezier.obj tcl83_import.lib
+        wlink @imoc83
+
+# One of the extra tasks on Win32 is to generate an import library
+# so that the object files can be linked against it.
+tcl80_import.lib : \progra~1\Tcl\bin\tcl80.dll
+        wlib tcl80_import +\progra~1\Tcl\bin\tcl80.dll
+
+tcl83_import.lib : \progra~1\Tcl\bin\tcl83.dll
+        wlib tcl83_import +\progra~1\Tcl\bin\tcl83.dll
+
+imoc_wrap.obj : imoc_wrap.c moc_kernel.h moc_wall.h moc_gasdynamic.h moc_unitproc.h
+        wcc386 -bd -3s -d__WIN32__ -i=\Progra~1\Tcl\Include imoc_wrap.c
+
+moc_wall.obj : moc_wall.c moc_wall.h moc_bezier.h
+        wcc386 -bd -3s moc_wall.c
+
+moc_bezier.obj : moc_bezier.c moc_bezier.h
+        wcc386 -bd -3s moc_bezier.c
+
+moc_gasdynamic.obj : moc_gasdynamic.c moc_gasdynamic.h
+        wcc386 -bd -3s moc_gasdynamic.c
+
+moc_unitproc.obj : moc_unitproc.c moc_unitproc.h moc_gasdynamic.h moc_kernel.h
+        wcc386 -bd -3s moc_unitproc.c
+
+moc_kernel.obj : moc_kernel.c moc_kernel.h moc_gasdynamic.h
+        wcc386 -bd -3s moc_kernel.c
+
+# pkgIndex.tcl : moc_kernel.tcl moc_gui.tcl moc_plot.tcl \
+#         moc_menu.tcl moc_placard.tcl moc_nodelist.tcl \
+#         moc_scales.tcl moc_unitproc.tcl make_index.tcl
+#         tclsh make_index.tcl
+
+clean : .SYMBOLIC
+        - del *.dll
+        - del *.obj
+        - del *.lib
+
+

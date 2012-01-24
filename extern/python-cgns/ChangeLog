@@ -1,0 +1,21 @@
+2011-02-09 Oliver Borm <oli.borm@web.de>
+* src/cgnslib.i : major updates, contributed from Lionel Gamet
+* tutorial/* : New tutorial to read cgns files (ADF or HDF5 based); updated tutorial to write cgns files
+* tutorial/cgnsTest.py: renamed to Test_write_grid_results_structured.py
+
+2009-10-30 Oliver Borm <oli.borm@web.de>
+ * setup.py: Installationspfad von tutorials angepasst
+
+2009-10-30 Oliver Borm <oli.borm@web.de>
+ * setup.py: Erstes release erstellt und auf pypi.python.org veröffentlicht
+
+2009-08-25 Oliver Borm <oli.borm@web.de>
+ * trunk/pythonCGNS/tutorial/cgnsTest.py: some changes
+ * trunk/pythonCGNS/src/cgnslib.i: minor modifications
+
+2009-05-26 Oliver Borm <oli.borm@web.de>
+ *cgnslib.i: Changes from Franz added
+ *tutorial/cgnsTest.py: Changes from Franz added
+
+2009-04-21 Steve Walter <steve.walter@mytum.de>
+ * Erste SVN-Version hochgeladen

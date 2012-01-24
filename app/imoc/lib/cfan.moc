@@ -1,0 +1,48 @@
+# cfan.moc
+# Create a centred expansion fan.
+
+proc makeCFan { 
+    x y thetaStart pmStart pmEnd nStep 
+    {rightRunningWaves 1} {nidFirst -1} } {
+
+    puts "Make centred fan at ($x, $y)."
+    puts "Initial flow angle: $thetaStart"
+    puts "Prandtl-Meyer expansion from $pmStart to $pmEnd in $nStep steps."
+    if {$rightRunningWaves == 1} {
+        puts "Waves are right-running."
+    } else {
+        puts "Waves are left-running."
+    }; # end if
+    if { $nidFirst >= 0 } {
+        puts "Node numbers start at $nidFirst"
+    } elseif { $nidFirst == -1} {
+        puts "Node numbers generated internally."
+    } else {
+        puts "Invalid entry for nidFirst: $nidFirst"
+    }; # end if
+
+    set fanNodes {}
+    set nid $nidFirst
+    set dpm [expr ($pmEnd - $pmStart) / $nStep]
+    for {set i 0} {$i <= $nStep} {incr i} {
+        set pm [expr $pmStart + ($i * $dpm)]
+        if { $rightRunningWaves == 1 } {
+            set theta [expr $thetaStart + ($i * $dpm)]
+        } else {
+            set theta [expr $thetaStart - ($i * $dpm)]
+        }; # end if
+        if { $nidFirst == -1 } {
+            set nid [CreateNode -1]
+        } else {
+            set nid [CreateNode $nid]
+        }; # end if
+        lappend fanNodes $nid
+        SetNodeData $nid X $x Y $y Nu $pm Theta $theta
+
+        # If we have specified a starting node,
+        # continue to generate ids in order.
+        if { $nidFirst >= 0 } { incr nid }
+    }; # end for
+
+    return $fanNodes
+}; # end proc makeCFan

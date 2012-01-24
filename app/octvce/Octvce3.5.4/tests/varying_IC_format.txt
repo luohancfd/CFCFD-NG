@@ -1,0 +1,6 @@
+No. points: <No. points for varying rates>
+<time> <fuel consumption rate> <energy release rate> <ignition temperature>
+# .
+# . Continue until some finish time (set to large value for all fuel to be consumed)
+# .
+<finish time> <consumption rate> <energy release rate> <ignition temperature>

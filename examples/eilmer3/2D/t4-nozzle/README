@@ -1,0 +1,19 @@
+examples/eilmer3/2D/t4-nozzle/
+
+This example is a proof-of-concept showing that the aging ESTC and NENZF codes
+can be replaced by something with more up-to-date chemistry and with a better
+approximation to the multi-dimensional expansion that processes the test gas.
+
+The request was for a calculation yielding single numbers for each flow variable
+and a run time that was not too long.  The equilibrium-air calculation for air
+through the Mach 4 nozzle using Katsu's shot 9378 operating conditions takes
+a bit under 500 seconds on a 3GHz HP desktop computer and about 1300 seconds
+on a slower Toshiba laptop.
+
+The new program is called nenzfr.py and may be invoked (minimally) as
+./nenzfr.py --T1=300 --p1=160.0e3 --Vs=2707 --pe=38.0e6
+
+PJ, 14-March-2011, 19-Apr-2011
+
+p.s. nenzfr.py and supporting files have been moved to the cfcfd2/app/nenzfr/ 
+directory (30-Sep-2011)

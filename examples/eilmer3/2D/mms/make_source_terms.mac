@@ -1,0 +1,56 @@
+/* make_source_terms.mac
+ * Evaluate the source terms by substituting the analytic solution
+ * into the governing equations then write them into fortran-90 text.
+ *
+ * PJ, 28-May-2011
+ *
+ * case 1 inviscid supersonic flow
+ *      2 subsonic flow with large absolute viscosity
+ */
+
+case: 1;
+
+/* Gas properties for an ideal gas like air but very viscous. */
+Rgas: 287.1; 
+g: 1.4;
+Prandtl: 1.0;
+Cv: Rgas/(g-1);
+Cp: g*Cv;
+/* viscosity in Ns/m^2 */
+if case = 1 then mu: 0.0 else mu: 1.0e1;
+/* gas conductivity */
+k: Cp*mu/Prandtl;
+
+batch("analytic_solution.mac");
+
+/* Thermodynamic behaviour, equation of state. */
+T: e/Cv;
+e: p/rho/(g-1);
+et: e + u*u/2 + v*v/2;
+
+/* Heat flux */
+qx: -k*diff(T,x,1);
+qy: -k*diff(T,y,1);
+
+/* Shear stress */
+tauxx: 2/3*mu*(2*diff(u,x,1) - diff(v,y,1));
+tauyy: 2/3*mu*(2*diff(v,y,1) - diff(u,x,1));
+tauxy: mu*(diff(u,y,1) + diff(v,x,1));
+
+/* Navier-Stokes equations in conservative form */
+fmass: diff(rho, time, 1) + diff(rho*u, x, 1) + diff(rho*v, y, 1);
+fxmom: diff(rho*u, time, 1) + diff(rho*u*u+p-tauxx, x, 1) + 
+       diff(rho*u*v-tauxy, y, 1);
+fymom: diff(rho*v, time, 1) + diff(rho*v*u-tauxy, x, 1) + 
+       diff(rho*v*v+p-tauyy, y, 1);
+fe   : diff(rho*et, time, 1) +
+       diff(rho*u*et+p*u-u*tauxx-v*tauxy+qx, x, 1) +
+       diff(rho*v*et+p*v-u*tauxy-v*tauyy+qy, y, 1);
+
+/* Write out the source terms in fortran for later translation to Lua. */
+load(f90);
+with_stdout("source_terms.f90",
+    f90('fmass = fmass),
+    f90('fxmom = fxmom),
+    f90('fymom = fymom),
+    f90('fe = fe));

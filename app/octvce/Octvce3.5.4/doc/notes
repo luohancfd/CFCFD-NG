@@ -1,0 +1,222 @@
+On 9/5/07 corrected some errors and improved compile messages.  Errors were to do with the nonreflecting BC and how
+because I don't employ limiters at boundary (say for the velocity gradients), my extrapolated pressure based on
+these gradients (from the nonreflecting condition) would go -ve and stuff things up.  Thus include velocity limiters
+to give a stable code.
+Also, if there exists a thin wall (say thinner than the minimum cell level), I ran into problems in ov_merge.c where
+there might be a cell with nonzero volume/area but that has no neighbours it can flux with.  I ensured that 
+when/if this happens, the cell is flagged to be a 'solid' cell.
+Finally it's curious that on a -pedantic -Wall flags with -O3 or no optimization can produce more or less warnings.
+Turns out that my not initializing 'qcen' in compute_limiter() has some very adverse effects when run on my
+computer under gcc -O3.  Valgrind and running exact same code on Triton/Gemini/Gust didn't produce any problem
+however.  Thus I use gcc -O3 -pedantic -Wall and ensure no warning messages (except for ignored
+pragmas) exist.  Code then ran.  Something's up with uninitialized variables under O3 setting.
+
+On 28/2/07 corrected yet another error with axisymmetric representation.  Turns out that I calculate face_r_centroids slightly wrongly (and thus wall radial coordinate) because in ov_setgeom.c and ov_adts.c I also count those subcells obstructed by the 'right_wall' (which exists to have only 1 layer of cells in 2D plane).  By counting these subcells and also those obstructed by true 2D geometries I miscalculate slightly what the true coordinates should be.  
+
+So I ensure that I only count those subcells that are within the thickness i.e. if their coords are < twoD_thickness I count them only.
+
+On 23/2/07 as a result of some axisymmetric simulations corrected temperature calculation
+within 2 and 1 species code - coz (a) in refining children I don't calc temperature for 1 specis and (b) in get_mixture_pres() I don't calculate temperature if gas below JWLB cutoff value.
+
+On 8/2/07 in compute_adapt_param() in ov_adapt.c implement 'buffer zone' where if a cell is marked for refinement
+and is at max level, then its neighbours will also be refined.  However they'll only be refined if there's flow
+into them i.e. this is a sorta 'directional' refinement procedure to produce buffer zones.  Coz I saw that if a
+shock went str8 into a coarse mesh there will be a precursor 'pressure rise' which is really crap.
+
+On 6/2/07 decided to revert back to using gnuplot representation to output history file (.dat files)
+
+On 2/2/07 I've decided to add in command line arguments when a switch from 1st to 2nd order scheme is desired.
+
+On 8/1/07 I found that unlimited reconstruction with adaptive meshes on sod test case was stuffed if nonref BC is desired (at the 
+subsonic inflow end), though it worked fine for fixed meshes.  So I will (in the interests of time) now do
+a quick-fix where I don't use unlimited recon if I use adaptive mesh.  It's really the only option I have.
+
+On 5/1/07 corrected a number of errors and also introduced slightly new methodologies in this 3.5.4 kernel.
+1.  In ov_io.c 'param' is now initialized, as previously if ADAPTIVE flux was used basically the code
+computed EFM everywhere because adapt_param was 0
+2. In ov_icbc.c when using 2 species with SPECIFIC ensured gas constant 'R' is initialized.
+3. For border cells use unlimited reconstruction - as this shouldn't matter anyway with supersonic flow, and
+it helps the nonreflecting BC
+4. For border cells and cells beside border cells ensure that EFM is always used as this helps the
+reflections after the nonreflecting BC
+5. In nonreflecting BC when supersonic flow use svc and not sve, i.e. 0th order extrapolation
+6. Although implemented in Octvce3_supvortx, but not in 3.5.3, in here 3.5.4 I also use 0th order extrapolation when BC is SPECIFIC 
+
+On 11/12/06 - ensured limiters are initialized to 0, and corrected temperature printing.  In this
+Octvce3.5.3 folder I wanna try and eliminate all 'unused' variables to give 'clean' compilation (except for pragmas).
+Velocities and temperatures are now also printed out.
+
+On 16/11/06 - switched off reconstruction for intersected cells.  Also if count-energy is active also counts the volume occupied by the IC cells, so that we can get complete energy match if desired by changing IC energy to be such that the J/m^3 multiplied by the volume gives right joules.
+
+On 14/11/06 - slightly changed macros "NO_PRINT_VEL" and "NO_PRINT_TEMP" to "PRINT_VEL" and "PRINT_TEMP" in ov_io.c, and fixed the temperature output should these macros be set to 1.
+
+On 26/10/06 this 3.5.2 kernel applies only 1 limiter (from minimum of limiters) when CFL is not CFL_max (if 1 limiter was chosen), else many limiters (even if 1 limiter chosen in ov.par)
+
+On 19/10/06 turned off (in ov_io.c) level_interrogation = min refine level for 2D adaptive modes
+
+On 18/10/06 hopefully fixed another flaw with Thompson BCs - based on 1D success, some extrapolated quantities weren't 'fully' extrapolated, so must set limiters to 1.0 when doing these BCs.  Thus had to add extra argument in reconstruct_flow
+
+On 13/10/06 hopefully fixed a flaw with Thompson BCs
+
+On 10/10/06 I also used MUSCL reconstruction to children cells from parent centres.
+
+On 6/10/06 this version Octvce3.5.1 tried to use Rose's fix for AUSMDV at sonic expansion point.
+
+On 28/8/06 done a revised correction to that of 24/8/06.  Treat corner cells as staircased representation ONLY FOR 2D axisymmetric flows, as 3D won't suffer because it ain't got no source term like axisymmetric.  Also noticed that sometimes area differences very small (like < 1e-14) and solid boundary conditions being applied for cells which aren't actually intersected.  Thus introduce a cutoff like 1e-12 smaller than which the area difference regarded as 0.
+
+On 25/8/06 a small addition - now I compute temperature everywhere even for 1 species gas, and no longer does R_univ exist in gas_data structure.
+
+On 24/8/06 I've done a small correction that treats corner cells (fluid cells with normal vectors that aren't axis unit vectors) as staircased representation.  As in axisymmetric formulation the corner cell is represented by a 45 deg surface which doesn't actually cancel out fluxes in y direction (as though surface is 45 deg, nonetheless fluid is square - not physically realistic situation).
+
+On 8/8/06 in Octvce3.5 I'm gonna try to incorporate solution splitting where the entire grid and solution can
+be output into a file then simulation stopped and pick up again using this file instead of starting from beginning
+again.  The chief motivation is to ensure job completion on APAC, but this is of general interest too.
+Obviously there's much work to be done.
+
+On 28/7/06 I've made a very important (though relatively minor) correction to the axisymmetric
+VCE formulation.
+
+On 3/7/06 I've noticed that using multiple limiters may not be so good for explosion problems (esp. in early stages) because it failed for the Smith barrier.  In this kernel 3.4.7 I give 1 extra option in ov.par - type of flux solver?  This is the only way things differ from 3.4.6 kernel
+
+On 30/6/06 I've noticed that using multiple limiters (in the shock-cylinder case) seems 2b better than using 1 only (probably expected).  So I've switched this on.
+
+On 29/6/06 I also recompute gradients after each RK step (not just step 1) - though I don't think this makes much difference.
+
+On 29/6/06 I hope I've arrived at final version of code (kernel 3.4.6) - bcos of odd-even decoupling issues with my trials on shocks over cylinders, I've seen that using EFM flux at shocks is the only way to get rid of that noise.  I hope that this EFM will work well for real gases, so I'll have to test the code on say Smith's barrier.
+
+On 22/6/06 corrected a VERY SERIOUS defect with single species code - when coarsening cell used get_mixture_Pres to calculate pressure although it works only for 2 species.  Thus dealt with single species cases too.
+
+For the moment I make FINE_IC macro in ov_setgeom.c to be 0.
+
+On 15/6/06 I also 'expand' the cell slightly when finding a history loc thru traversal, because it sometimes is
+frustrating when a point aligns with a grid line and can't be detected.
+
+On 12/6/06 this differs from Octvce3.4.2 only in that in ov_setgeom.c I do my set_flux_area for children before set_additional_refine_times (since in 2D axisymmetric mode the status of a cell is really only known after set_flux_area anyway).
+
+On 3/5/06 I've split my c files even more for better modularity (Octvce3.4), and in here I want to see if I can improve upon my adaptation indicator.  Using a combined Jacobs-Petrie criterion actually seems best.
+
+On 27/3/06 In this Octvce3.3 folder I do the FULL axisymmetric version that tries to find the y_if and y_cell.
+
+On 14/2/06 In this Octvce3.2 folder I'll try an axisymmetric code version.  It'll be much the same in principle for detonations modelling.
+
+On 23/1/06 I've successfully (methinks) done finite detonations modelling, and much has been done on Blackhole simulations leading to little code modifications that are now in this 'patch' level Octvce3.1.
+
+On 29/11/05 I've decided (incredibly) to do finite detonation problems of the simplest variety - instantaneous.  I think
+this is about as much as I ever would want to do.  Also I'm about to restructure march_soln() so that count_cells()
+and merge_all_cells() must be done only when I've just adapted.  Also, I need to correct my afterburning so that
+fuel is actually consumed instead of energy simply being added until a preset time.
+
+Also, at time 0, methinks I should merge cells before compute gradients or fluxes.  It makes more sense that way it seems.
+
+On 25/11/05 I've found a number of stupid little mistakes to do with data type conversions etc.  These are -
+1. In ov_flow.c, march_soln - no need to count cells unless want to adapt
+2. In ov_flow.c, march_soln - no need to merge cells again unless want 2 adapt
+3. In ov_adapt.c - par_refine() and par_coarsen() should return int and not short int
+4. In octvce.c around line 97 - should have explicit conversion from long to int i.e. (int) strtol ...
+5. In ov_icbc.c, set_boundary_state() - variable 'vel' is puzzlingly 'short int' when it should be 'double'
+6. In ov_io.c, write_oct_flow_soln() - variable 'i' should be short int and used that way only (bcos of
+it being used in arguments for reconstruct_flow())
+7. In ov_setgeom.c, about line 1161, num_subcells_inside read in a converted double instead of a converted int.
+
+Now I also know the troubles that can exist with floating point equality conversions.  Perhaps later I'll do
+a more safer and stable check on floating point equality (equal to within a limited range).  As icc returns
+so many stupid remarks, it might be better to have every 'short int' converted to 'int' as another trial. 
+
+I've gone through all occasions of floating point comparisons, and have judged where I should use the more
+stable form of comparison or where I can let it stand.  I've checked Geomio too, but there's nothing there
+that I feel necessary to change.  With a simple macro switch I can switch between using the more safer
+floating point comparison, or the standard one (i.e. using '==' by itself).
+
+On 15/11/05 I've coded a new way to compute wall fluxes based on the surface normal, that makes walls a lot 'smoother'
+than my previously 'staircased' representation.  There's an option though, to used a staircased representation.
+
+On 4/9/05 I'm going to implement the JWLB EOS from Goozee.  Then maybe I'll implement new code to get history files
+at certain locations.  I've realized that I did my and I've corrected it.
+
+On 21/8/05 I've attempted implementing the heat addition, but I've treated the balloon gas density pretty much 
+independent of total density, and this proved bad because I suspect from reconstruction there could exist cases where
+the balloon density is > total density.  Perhaps a better way would be to reconstruct just the total density then use
+the cell-centered mass fraction to get balloon density.  Since balloon density is convected at exactly same rate as
+total density, I should then not expect at any point in the flow a greater balloon density.  Octvce3b has my code before
+I realized this mistake.
+
+On 20/8/05 it appears that heat addition isn't so easy.  In Octvce3a is my code before the necessary modifications for
+proper heat addition.  I must actually incorporate gas species into my equation so that cells with the balloon 'driver'
+gas have heat added in.  This is far better than trying to resolve where the contact surface is etc.  I think for
+simplicity's sake we just use 2 species (1 balloon, 1 ambient), because in most cases we're just interested in 1 explosion.
+
+On 16/8/05 I've decided to add heat addition, since it should be relatively easy.  If I understood Timofeev and Ritzel
+correctly, adding heat simply means for all cells within the balloon volume we add this source term.
+
+On 15/8/05 hopefully finished debugging in my most horrid debugging exercise to date.  Turned out that in alloc_fluxes
+I didn't allocate fluxes to small cells after a merged cluster is destroyed, because sometimes the normal cell isn't
+flagged for refinement because it actually needs it but because it's neighbour to another refinement cell.  But then flux vectors need to exist between small cells.  For a more coarse-grained computing, I flagged the cells for coarsening 
+immediately after flagging for refining, so this means computing the areas of the parent twice, but this is probably
+better.
+                                                                                                              
+On 12/8/05 my program is still failing and I've no idea what to do.  It appears to be bad memory mangagement on my
+part (invokations to malloc, or sometimes the assigning of a variable inexplicably don't work or change the value of
+another completely unrelated variable).  I've got a list of output files that document what happen to cells before and
+after adaptation, but as a last resort I shall not flag cells for coarsening after refining but implement my previous
+strategy, except now I set parental flux areas twice for any cells that are coarsened to ensure area matchup.
+                                                                                                                           
+On 9/8/05 I've realized that flagging cells for refinement and coarsening B4 actually refining may be a dangerous thing
+in parallel, because when I flag a cell for coarsening I reset the parent's flux areas, but after I refine a same-level neighbouring cell the flux areas might change due to area degeneracy.  The simplest solution is to flag cells for caorsening after refining any cells that need it, so I must modify my code.
+                                                                                                                           
+On 9/8/05 fixed spurious refinement due to reconstruction after coarsening - which previously did not average a quantity as I'd hoped because the original parental volume wasn't the same as the more accurate children's volume.
+
+On 29/7/05 I've fixed a very silly mistake on my part in ov_merge.c which took about 6 horrid hours for me to debug.
+For some reason my code still isn't working as it ought because I'm getting refinement in places where the shock
+hasn't even passed yet (with my new non-axis-aligned geometries, particularly the rectangular prism at 45 deg in XY plane).
+
+Also, I'm getting in time_integrate small residual numbers slightly greater than eps when I increment a quantity, say
+sum_mss, but though it should rightly be 0 it's ~1e-14 for some reason.  The memory-intensive fix would be to initialize 24 variables for all possible interfaces then sum them, for I've noticed this works at least.  Perhaps this error is related to what I'm getting when refinement exists where it ought not.
+
+On 16/7/05 I'm about to remove the plane-wave non-reflecting BCs from the code after their seeming failure to perform at all.  Perhaps I should've known given that no one references them.  I'll try to implement Thompson's when I've got time.  In Octvce_justb4_planewave_del they're kept in.
+
+On 2/7/05 I believe I've implemented my new and improved geometry engine for arbitrary polyhedrons.  I want to
+incorporate this into my IC capability (which can only accept axis-oriented hexahedrons for the moment).  Then I
+want to improve my BC input (allowing for time-varying BCs).  Then we'll see about implementing reconstruction.  Then
+we'll try and improve my adaptation criterion.
+
+On 31/5/05 I'm heading for better modularity and casting my functions into forms amenable to parallelization
+for adaptation.  However as I'm now adding/deleting verticies from the vertex list in a different order, it
+will be difficult to use 'diff' to compare with older vtk files.  I can only hope that Mayavi will show
+the files to contain the same info.
+
+On 28/5/05 left the flow solver alone as it actually may be correct from the beginning.  Now have parallelized flow solver and from blackhole indicates only good speedup for large no.'s of cells, by ~ 1.5.  So seems to work properly.
+
+On 25/5/05 I'm about to change my flux calculation.  In here it is as it was.
+
+On 18/5/05 I've decided not to remove vertex lists after all, since it's possible to write parallel VTK output files though still using a global vertex list.
+
+On 16/5/05 I'm removing individual vertex lists of cells and replacing them by the array definition.  Also automatic indenting of whole regions can be achieved via C-A-q - put the cursor next to a bracket denoting a region I wanna indent.
+
+On 11/5/05 I've increased my modularity and naming conventions - I'm currently working on ov_adapt.c and deciding how to make finding the opposite direction into a macro.
+
+Minimizing calls to pow()
+-------------------------
+
+I should pass the value of the basis cartesian area/volume along to functions
+that require it rather than have them execute it themselves.  That way I can
+minimize how much calling to pow() there is.
+
+Improving face ADT interrogation
+--------------------------------
+
+Firstly, I should preprocess the 3D bounding box projections onto their
+respective planes.  Then in more general fashion test the intersection of the
+planes (in 3D) rather than the special case of 2D projection checking, as
+there's relatively little overhead.
+
+In fact there's actually no need to project bounding boxes - just do all tests
+in 3D since I'm going with 3 face ADTs anyway.
+
+Actually I must transform the points on the face ADT to 3D anyway.  If I
+precalculate variables like shift2D, normal_direction and plane_loc (i.e.
+let them be arguments to functions) I need not use 3 face ADTs.  Maybe having
+3 face ADTs is pretty useless anyway, since I must still go down a 2D ADT, 
+which means some sort of transformation somewhere.
+
+I've implemented this improvement but there don't seem to be significant 
+improvmement. 10/9/05

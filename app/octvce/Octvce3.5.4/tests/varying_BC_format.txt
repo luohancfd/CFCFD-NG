@@ -1,0 +1,13 @@
+<no. points>
+<gas variable 1> <gas variable 2>
+<0> <gas variable 1> <gas variable 2> <u> <v> <w> # Time 0
+# .
+# . Continue for no. points - 1 lines
+# .
+<finish time> <gas variable 1> <gas variable 2> <u> <v> <w>
+# Final table values will be used permanently
+
+# Not a good idea to mix explosions with actual products mass fractions with varying
+# or fixed BC conditions (except for extrapolated) - because I always use mass
+# fractions anyway (so say for inflow, this could mean adding species gases where
+# there are none)

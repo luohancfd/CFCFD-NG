@@ -1,0 +1,47 @@
+# ivline.moc
+
+proc initialValueLine { y yt radiust g delta } {
+    # Purpose:
+    # Compute points along the line with v' = 0 using
+    # Sauer's approximate method for computing the flow
+    # in the throat region of a converging-diverging nozzle.
+    # See Zucrow & Hoffman Vol 2, Section 15-5.
+    #
+    # Input:
+    # y       : y-coordinate of the point of interest
+    # yt      : height of throat
+    # radiust : radius of curvature of throat in (x,y)-plane
+    # g       : ratio of specific heats
+    # delta   : 0 for 2D planar flow
+    #           1 for axisymmetric flow
+    #
+    # Output:
+    # The (x,y)-coordinate of the point with zero vertical velocity
+    # and the Mach number of that point.
+    #
+    # PJ, 29-Apr-2000
+
+    # puts "y= $y, yt= $yt, radiust= $radiust"
+    # puts "delta= $delta, gamma = $g"
+
+    set gp1 [expr $g + 1.0]
+    set alpha [expr sqrt( (1+$delta) / ($gp1*($radiust * $yt)) )]
+    set epsilon [expr -$gp1*($alpha * $yt * $yt)/2.0/(3.0 + $delta) ]
+    # puts "alpha= $alpha, epsilon= $epsilon"
+
+    # Compute x for the given y position.
+    set x [expr -($g + 1)*($alpha * $y * $y)/2.0/(3.0 + $delta) ]
+
+    # Compute the x-component of the perturbation velocity
+    # and then the Mach number at the (x,y) location.
+    set udash [expr $alpha*$x + $gp1*$alpha*$alpha*$y*$y*0.5/(1+$delta) ]
+    set udp1 [expr $udash + 1.0]
+    set Msq [expr 2.0/$gp1*$udp1*$udp1 / (1.0-($g-1)/$gp1*$udp1*$udp1) ]
+    set M [expr sqrt($Msq) ]
+    # puts "udash= $udash, M= $M"
+
+    # Shift the origin to be at the throat.
+    set x [expr $x - $epsilon]
+
+    return "X $x Y $y Mach $M Theta 0.0"
+}; # end proc

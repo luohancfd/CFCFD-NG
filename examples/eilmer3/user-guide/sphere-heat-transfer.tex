@@ -1,0 +1,170 @@
+% sphere-heat-transfer.tex
+
+\newpage
+\section{Heat transfer to a sphere in equilibrium air}
+\label{sphere-heat-transfer-sec}
+\index{gas model!look-up table!example of use}
+%
+This example continues the modelling of hypersonic flow over blunt bodies 
+and looks at the heat transfer to a spherical probe \cite{rose_stark_58} in high temperature equilibrium air. 
+It takes use of the Python language further by automating the process of running 
+a simulation, adjusting the grid and then running a subsequent simulation on the
+the adjusted grid.
+The specific input file for each stage of the overall simulation is constructed from a template
+in which a few parameters are left unspecified.
+Most of the effort has gone into the coordinating script which has functions
+for running stages of the simulation as subprocesses and also has functions
+which fit a Bezier curve to the shock located in the flow field.
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=10cm,viewport=23 70 296 351,clip=true]{../2D/sphere-heat-transfer/sphere0-layout.pdf}
+\end{center}
+\caption{Schematic diagram of the geometry for a sphere wrapped by a SuperBlock2D grid.}
+\label{sphere-heat-transfer-geometry-fig}
+\end{figure}
+
+\medskip
+The original experiments used a probe with a spherical nose, located in a small shock tube.
+The free-stream flow was initiated with the arrival of a strong shock and the useful test period 
+in the experiments was terminated with the arrival of driver gas.
+From Figure\,12 in Rose and Detra's paper \cite{rose_stark_58}, we choose the point corresponding to
+$p_1 = 1$\,cm Hg (1.33\,kPa) and $M_s$=8 which has a stagnation-point heat transfer of $30\pm2.0\,{\rm MW/m}^2$.
+To keep the grid resolution requirements small,
+we will start with an initial test gas pressure $p_1 = 6.7$\,Pa much lower 
+than that used in the original experiments.  
+Assuming that the chemistry doesn't change too much with the change in pressure, we can scale the stagnation-point
+heat transfer as $\dot{q}_{s-sim} = \left( \frac{p_{1-sim}}{p_{1-expt}} \right)^{0.5} \dot{q}_{s-expt}$ 
+to get an expected value of $2.212\pm0.14\,{\rm MW/m}^2$ for our low-pressure simulation.
+
+\medskip
+For a $M_s = 8$ incident shock in air at 296\,K, the post-shock, free-stream conditions
+are $p_{\infty} = 535.6$\,kPa, $T_{\infty} = 2573.5$\,K, and $u_{\infty} = 2436.5$\,m/s.
+This assumes fully-equilibrium chemistry for the gas.
+The snap-shots of results for the staged simulation are shown in Figures \ref{sphere-heat-transfer-stage-0-fig} through
+\ref{sphere-heat-transfer-stage-4-fig} which show the temperature field at the end of each stage
+and the mesh used for that stage. 
+
+\begin{figure}[htbp]
+\begin{center}
+\mbox{
+\includegraphics[width=0.4\textwidth]{../2D/sphere-heat-transfer/sphere0-T-field.png}
+\includegraphics[width=0.4\textwidth]{../2D/sphere-heat-transfer/sphere0-mesh.png}
+}
+\end{center}
+\caption{Temperature field and mesh for stage 0.  
+  The control points for the Bezier curve have been set so as to accommodate 
+  a shock in ideal (nonreacting) air and the clustering is fairly strong so that
+  the boundary layer on the sphere surface may be resolved.
+  The wall-clock time required to run this simulation 10 body lengths (27$\mu$s) is 23 seconds 
+  on 4 processors of \texttt{geyser}.
+  10103 time steps were made and the size of the time step at the end of the simulation is 2.479\,ns.
+  At the end of the simulation, the estimated value of stagnation-point heat transfer is
+  $\dot{q}_s=2.156\,{\rm MW/m}^2$ and the cell Reynolds number at the stagnation point is
+  ${\rm Re}_{wall} = {{\rho_{wall} a_{wall} \Delta x} \over {\mu_{wall}}} = 3.85$.
+  Here $\Delta x$ is the width of the cell out from the wall.}
+\label{sphere-heat-transfer-stage-0-fig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{center}
+\mbox{
+\includegraphics[width=0.4\textwidth]{../2D/sphere-heat-transfer/sphere1-T-field.png}
+\includegraphics[width=0.4\textwidth]{../2D/sphere-heat-transfer/sphere1-mesh.png}
+}
+\end{center}
+\caption{Temperature field and mesh for stage 1.
+  The Bezier points have been adapted to the shock from stage 0 but the number of cells
+  in each direction remains at 20$\times$20, as for stage 0.
+  With the finer cells, the size of the time step decreased and this stage required 55 seconds of wall-clock time
+  to extend the simulation a further 10 body lengths in 23125 time steps.
+  $\dot{q}_s=2.260\,{\rm MW/m}^2$ and ${\rm Re}_{wall} =2.94$}
+\label{sphere-heat-transfer-stage-1-fig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{center}
+\mbox{
+\includegraphics[width=0.4\textwidth]{../2D/sphere-heat-transfer/sphere2-T-field.png}
+\includegraphics[width=0.4\textwidth]{../2D/sphere-heat-transfer/sphere2-mesh.png}
+}
+\end{center}
+\caption{Temperature field and mesh for stage 2.
+  The Bezier points have not been adapted further for this stage but the number of cells
+  has been increased to 30$\times$30.
+  The size of the time step decreased further and this stage required 130 seconds of wall-clock time
+  to extend the simulation only 5 body lengths (13.5\,$\mu$s) in 24293 time steps.
+  $\dot{q}_s=2.257\,{\rm MW/m}^2$ and ${\rm Re}_{wall} =2.39$}
+\label{sphere-heat-transfer-stage-2-fig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{center}
+\mbox{
+\includegraphics[width=0.4\textwidth]{../2D/sphere-heat-transfer/sphere3-T-field.png}
+\includegraphics[width=0.4\textwidth]{../2D/sphere-heat-transfer/sphere3-mesh.png}
+}
+\end{center}
+\caption{Temperature field and mesh for stage 3.
+  The Bezier points have been adapted to the shock from stage 2 
+  and the cells have been increased to 40$\times$40.
+  The size of the time step is now 0.319\,ns and this stage required 469 seconds of wall-clock time
+  to extend the simulation only 5 body lengths (13.5\,$\mu$s) in 42660 time steps.
+  $\dot{q}_s = 2.260\,{\rm MW/m}^2$ and ${\rm Re}_{wall} =1.99$}.
+\label{sphere-heat-transfer-stage-3-fig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{center}
+\mbox{
+\includegraphics[width=0.4\textwidth]{../2D/sphere-heat-transfer/sphere4-T-field.png}
+\includegraphics[width=0.4\textwidth]{../2D/sphere-heat-transfer/sphere4-mesh.png}
+}
+\end{center}
+\caption{Temperature field and mesh for stage 4.
+  The Bezier points have not been further adapted but the number of cells has been
+  increased to 80$\times$80 to test the sensitivity of the heat transfer estimate.
+  The size of the time step is now 0.086\,ns and this stage required 8950 seconds of wall-clock time
+  to extend the simulation a further 5 body lengths (13.5\,$\mu$s) in 157420 time steps.
+  $\dot{q}_s =2 .217\,{\rm MW/m}^2$ and ${\rm Re}_{wall} = 1.25$}.
+\label{sphere-heat-transfer-stage-4-fig}
+\end{figure}
+
+Figure \ref{sphere-norm-heat-transfer-fig} shows the distribution of heat transfer around the nose
+compared with the experimental data reported Kemp, Rose and Detra \cite{kemp_etal_1959}.
+In the simulation data, there are small distrubances at the corners of blocks 
+(at approximately 20 degrees and then again approaching 90 degrees) but they are quite small.
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=12cm]{../2D/sphere-heat-transfer/sphere_norm_heat_transfer.pdf}
+\end{center}
+\caption{Temperature around the sphere for stage 4.  
+   The experimental data is from Kemp, Rose and Detra \cite{kemp_etal_1959}.}.
+\label{sphere-norm-heat-transfer-fig}
+\end{figure}
+
+\clearpage
+
+\subsection{Template input script (.py)}\index{ExistingSolution!example of use}\index{univariate function!RobertsClusterFunction!example of use}
+\topbar
+\lstinputlisting[language={}]{../2D/sphere-heat-transfer/sphere.input.template}
+\bottombar
+
+\subsection{Coordinating script (.py)}
+\topbar
+\lstinputlisting[language={}]{../2D/sphere-heat-transfer/run_adaptive_simulation.py}
+\bottombar
+
+\newpage
+\subsection{Shell script for postprocessing}
+\topbar
+\lstinputlisting[language={}]{../2D/sphere-heat-transfer/plot_heat_transfer.sh}
+\bottombar
+
+\newpage
+\subsection{Notes}
+\begin{itemize}
+\item The look-up table for the equilibrium air equation of state is set up 
+   as for the Sawada sphere example.
+\end{itemize}

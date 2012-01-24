@@ -1,0 +1,210 @@
+
+ *******************************************************************************
+
+         NASA-GLENN CHEMICAL EQUILIBRIUM PROGRAM CEA, OCTOBER 17, 2000
+                   BY  BONNIE MCBRIDE AND SANFORD GORDON
+      REFS: NASA RP-1311, PART I, 1994 AND NASA RP-1311, PART II, 1996
+
+ *******************************************************************************
+
+
+
+ reac name N2 wt%=0.78 t(k)=300.0
+      name O2 wt%=0.22 t(k)=300.0
+  
+  
+ problem p,mmhg=1.0, shock mach=12.28
+         inc fr eq ions
+ omit O+ O- O2+
+  
+ end
+
+ OPTIONS: TP=F  HP=F  SP=F  TV=F  UV=F  SV=F  DETN=F  SHOCK=T  REFL=F  INCD=T
+ RKT=F  FROZ=T  EQL=T  IONS=T  SIUNIT=T  DEBUGF=F  SHKDBG=F  DETDBG=F  TRNSPT=F
+
+ TRACE= 0.00E+00  S/R= 0.000000E+00  H/R= 0.000000E+00  U/R= 0.000000E+00
+
+ P,BAR =     0.001333
+
+    REACTANT          WT.FRAC   (ENERGY/R),K   TEMP,K  DENSITY
+        EXPLODED FORMULA
+ N: N2               0.780000   0.648034E+01   300.00  0.0000
+          N  2.00000
+ N: O2               0.220000   0.653777E+01   300.00  0.0000
+          O  2.00000
+
+  SPECIES BEING CONSIDERED IN THIS SYSTEM
+ (CONDENSED PHASE MAY HAVE NAME LISTED SEVERAL TIMES)
+  LAST thermo.inp UPDATE:    9/ 5/01
+
+  g12/98  *e-              g 5/97  *N               g 6/97  *N+            
+  j12/82  *N-              tpis89  *NO              tpis89  *NO+           
+  g 4/99  NO2              tpis89  NO2-             j12/64  NO3            
+  tpis89  NO3-             tpis78  *N2              tpis89  *N2+           
+  j 9/77  *N2-             g 4/99  N2O              j12/70  N2O+           
+  g 4/99  N2O3             tpis89  N2O4             g 4/99  N2O5           
+  tpis89  N3               g 5/97  *O               tpis89  *O2            
+  g11/99  O2-              tpis89  O3             
+
+   *** INPUT FOR SHOCK PROBLEMS ***
+
+ INCDEQ = T   REFLEQ = F   INCDFZ = T    REFLFZ = F
+
+ U1 =    0.000000E+00
+
+ MACH1 = 1.228000E+01
+
+ O/F =   0.000000
+
+                       EFFECTIVE FUEL     EFFECTIVE OXIDANT        MIXTURE
+ ENTHALPY                  h(2)/R              h(1)/R               h0/R
+ (KG-MOL)(K)/KG        0.22538568E+00      0.00000000E+00      0.22538568E+00
+
+ KG-FORM.WT./KG             bi(2)               bi(1)               b0i
+  *N                   0.55687476E-01      0.00000000E+00      0.55687476E-01
+  *O                   0.13750516E-01      0.00000000E+00      0.13750516E-01
+  *e-                  0.00000000E+00      0.00000000E+00      0.00000000E+00
+
+
+
+
+                         SHOCK WAVE PARAMETERS ASSUMING
+
+                 EQUILIBRIUM COMPOSITION FOR INCIDENT SHOCKED CONDITIONS
+
+
+ CASE =                
+
+             REACTANT                    WT FRACTION      ENERGY      TEMP
+                                          (SEE NOTE)     KJ/KG-MOL      K  
+ NAME        N2                           0.7800000        53.881    300.000
+ NAME        O2                           0.2200000        54.358    300.000
+
+ O/F=    0.00000  %FUEL=  0.000000  R,EQ.RATIO= 0.000000  PHI,EQ.RATIO= 0.000000
+
+ INITIAL GAS (1)
+ MACH NUMBER1     12.2800
+ U1, M/SEC        4273.64
+ P, BAR           0.00133
+ T, K              300.00
+ RHO, KG/CU M    1.5395-3
+ H, KJ/KG          1.8740
+ U, KJ/KG         -84.727
+ G, KJ/KG        -2640.09
+ S, KJ/(KG)(K)     8.8066
+
+ M, (1/n)          28.803
+ Cp, KJ/(KG)(K)    1.0130
+ GAMMAs            1.3985
+ SON VEL,M/SEC      348.0
+
+ SHOCKED GAS (2)--INCIDENT--EQUILIBRIUM
+ U2, M/SEC         404.23
+ P, BAR           0.25591
+ T, K             4547.91
+ RHO, KG/CU M    1.6276-2
+ H, KJ/KG         9052.17
+ U, KJ/KG         7479.83
+ G, KJ/KG        -43775.5
+ S, KJ/(KG)(K)    11.6158
+
+ M, (1/n)          24.049
+ (dLV/dLP)t      -1.00905
+ (dLV/dLT)p        1.1587
+ Cp, KJ/(KG)(K)    2.4974
+ GAMMAs            1.2148
+ SON VEL,M/SEC     1382.1
+
+ P2/P1            191.952
+ T2/T1             15.160
+ M2/M1             0.8350
+ RHO2/RHO1        10.5723
+ V2, M/SEC        3869.41
+
+ MOLE FRACTIONS
+
+ *e-             2.2170-5
+ *N              1.6497-2
+ *NO             1.3614-2
+ *NO+            2.2169-5
+ NO2             1.8623-7
+ *N2             6.5455-1
+ N2O             4.0392-7
+ *O              3.1353-1
+ *O2             1.7606-3
+
+  * THERMODYNAMIC PROPERTIES FITTED TO 20000.K
+
+    PRODUCTS WHICH WERE CONSIDERED BUT WHOSE MOLE FRACTIONS
+    WERE LESS THAN 5.000000E-09 FOR ALL ASSIGNED CONDITIONS
+
+ *N+             *N-             NO2-            NO3             NO3-           
+ *N2+            *N2-            N2O+            N2O3            N2O4           
+ N2O5            N3              O2-             O3             
+
+ NOTE. WEIGHT FRACTION OF FUEL IN TOTAL FUELS AND OF OXIDANT IN TOTAL OXIDANTS
+
+
+
+
+                         SHOCK WAVE PARAMETERS ASSUMING
+
+                  FROZEN COMPOSITION FOR INCIDENT SHOCKED CONDITI1ONS
+
+
+ CASE =                
+
+             REACTANT                    WT FRACTION      ENERGY      TEMP
+                                          (SEE NOTE)     KJ/KG-MOL      K  
+ NAME        N2                           0.7800000        53.881    300.000
+ NAME        O2                           0.2200000        54.358    300.000
+
+ O/F=    0.00000  %FUEL=  0.000000  R,EQ.RATIO= 0.000000  PHI,EQ.RATIO= 0.000000
+
+ INITIAL GAS (1)
+ MACH NUMBER1     12.2800
+ U1, M/SEC        4273.64
+ P, BAR           0.00133
+ T, K              300.00
+ RHO, KG/CU M    1.5395-3
+ H, KJ/KG          1.8740
+ U, KJ/KG         -84.727
+ G, KJ/KG        -2640.09
+ S, KJ/(KG)(K)     8.8066
+
+ M, (1/n)          28.803
+ Cp, KJ/(KG)(K)    1.0130
+ GAMMAs            1.3985
+ SON VEL,M/SEC      348.0
+
+ SHOCKED GAS (2)--INCIDENT--FROZEN
+ U2, M/SEC         558.17
+ P, BAR           0.24578
+ T, K             7223.36
+ RHO, KG/CU M    1.1787-2
+ H, KJ/KG         8978.09
+ U, KJ/KG         6892.91
+ G, KJ/KG        -71351.5
+ S, KJ/(KG)(K)    11.1208
+
+ M, (1/n)          28.803
+ Cp, KJ/(KG)(K)    1.4093
+ GAMMAs            1.2576
+ SON VEL,M/SEC     1619.4
+
+ P2/P1            184.352
+ T2/T1             24.078
+ M2/M1             1.0000
+ RHO2/RHO1         7.6565
+ V2, M/SEC        3715.47
+
+ MOLE FRACTIONS
+
+  *N2             0.80197
+  *O2             0.19803
+
+
+
+  
+  
+  

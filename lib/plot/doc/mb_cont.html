@@ -1,0 +1,161 @@
+<HTML>
+<HEAD>
+<TITLE>Plotting with mb_cont</TITLE>
+</HEAD>
+<BODY>
+
+<UL>
+<LI> <A HREF="#mb_cont">Plotting with mb_cont</A>
+<LI> <A HREF="./mb_view.html#mb_view">Plotting with mb_view</A>
+<LI> <A HREF="#data_format">Format for the data file</A>
+</UL>
+
+<HR>
+
+<H4><A NAME="mb_cont">Plotting with mb_cont</A></H4>
+
+<P>
+If the data dumped by mb_post is in GENERIC format, 
+the contouring program <EM>mb_cont</EM> can be used to produce a 
+picture of the data in either postscript or GIF format.
+<PRE>
+% mb_cont.exe [<B>-fi</B> <EM>data_file</EM>] 
+              [<B>-fo</B> <EM>output_file</EM>] [<B>-gif|-ps|-hpgl</B>] 
+              [<B>-var</B> <EM>index</EM>] 
+              [<B>-levels</B> <EM>vmin</EM> <EM>vmax</EM> <EM>dv</EM>]
+              [<B>-xrange</B> <EM>xmin</EM> <EM>xmax</EM> <EM>dx</EM>] 
+              [<B>-yrange</B> <EM>ymin</EM> <EM>ymax</EM> <EM>dy</EM>]
+              [<B>-mirror</B>] [<B>-notrueshape</B>] [<B>-fill</B>]
+              [<B>-nolabel</B>] [<B>-noaxes</B>] [<B>-notable</B>] 
+              [<B>-edge</B>] [<B>-mesh</B>] [<B>-ixskip</B> <EM>i</EM>] [<B>-iyskip</B> <EM>i</EM>] 
+</PRE>
+The command-line options include...
+<DL>
+<DT> <B>-fi</B> <EM>data_file</EM>
+<DD> Input data file.
+     Default is "default.gen".
+<DT> <B>-fo</B> <EM>output_file</EM>
+<DD> Output (plot) file.
+     The default name is "default.ps".
+<DT> <B>-gif|-ps|-hpgl</B>
+<DD> Select one of these for the plot format.
+     The default is postscript.
+<DT> <B>-var</B> <EM>index</EM>
+<DD> Specify the index of the variable to be plotted.
+     For a complete list, see the head of the GENERIC data
+     file.  Each of the variables is listed, starting with
+     x and y as variables 0 and 1.
+     The default index is <EM>2</EM> which is usually 
+     density.
+<DT> <B>-levels</B> <EM>vmin</EM> <EM>vmax</EM> <EM>dv</EM>
+<DD> Specify the minimum, maximum and increment for the
+     plotted contours.
+     If not specified by the user, the program will search
+     the data for appropriate values and will plot 16 contours
+     between the minimum and maximum values.
+<DT> <B>-xrange</B> <EM>xmin</EM> <EM>xmax</EM> <EM>dx</EM>
+<DD> Specify the minimum, maximum and increment for the
+     plotted range of the x-coordinate.
+     If not specified by the user, the program will search
+     the data for appropriate values.
+<DT> <B>-yrange</B> <EM>ymin</EM> <EM>ymax</EM> <EM>dy</EM>
+<DD> Specify the minimum, maximum and increment for the
+     plotted range of the y-coordinate.
+     If not specified by the user, the program will search
+     the data for appropriate values.
+<DT> <B>-nolabel</B>
+<DD> Suppress the addition of labels to the top of the plot.
+     The default action is to write the data file name, 
+     the variable name, the title of the simulation and
+     the ranges of the variables above the plot.
+<DT> <B>-noaxes</B>
+<DD> Suppress the drawing of x and y-axes.
+<DT> <B>-notable</B>
+<DD> Do not draw the table of colour values for
+     colour contour and filled plots.
+<DT> <B>-mirror</B>
+<DD> As well as plotting the original data, 
+     plot the mirror image of the data in the y-axis.
+     Default action is to not mirror the data.
+<DT> <B>-notrueshape</B>
+<DD> Suppress rescaling of the data to achieve a true-shape plot.
+     The default action is to plot the x and y scales with
+     a 1:1 ratio so that geometric shapes are true.
+<DT> <B>-colour</B>
+<DD> Use colour scale to indicate magnitudes of the displayed
+     variable.
+     The default action is to plot black/greyscale on a 
+     white background.
+<DT> <B>-fill</B>
+<DD> Use filled cells rather than contours to indicate the
+     magnitude of the plotted variable.
+     The default action is to use contours.
+<DT> <B>-edge</B>
+<DD> Plot a line denoting the edges of each block.
+<DT> <B>-mesh</B>
+<DD> Plot the mesh for each block.  
+     The mesh displayed is constructed by joining cell
+     centres rather than (correctly) joining the cell
+     vertices.
+     Despite this flaw, it gives a fair idea of the shape
+     and distribution of the true mesh.
+<DT> <B>-ixskip</B> <EM>i</EM>
+<DD> Plot every <EM>i</EM>-th grid line counting in the ix direction.
+<DT> <B>-iyskip</B> <EM>i</EM>
+<DD> Plot every <EM>i</EM>-th grid line counting in the iy direction.
+</DL>
+</P>
+
+<HR>
+<H4><A NAME="data_format">Format for the data file</A></H4>
+
+<P>
+The format for the data file can be inferred from 
+the code fragment which reads the data.
+This code looks like:
+<PRE>
+/* The first contains a title string. */
+fgets (title, NCHAR, dfp);
+printf ("\nTitle: %s\n", title);
+
+/* The second line contains the number of variables. */
+fgets (txt, NCHAR, dfp);
+sscanf (txt, "%d", &nvar);
+
+/* The variable names follow, one per line. */
+for (ivar = 0; ivar < nvar; ++ivar) {
+   fgets (txt, NCHAR, dfp);
+   sscanf (txt, "%s", VarName[ivar]);
+   }
+
+/* NOTE : from this point on,
+ * we start reading file without discarding line ends.
+ * After the variable names, read the number of blocks. */
+fscanf (dfp, "%d", &nblock);
+
+/* For each block... */
+for (jb = 0; jb < nblock; ++jb) {
+   /* Read the number of points in the y- and x-index directions. */
+   fscanf (dfp, "%d %d", &nny[jb], &nnx[jb] );
+
+   /* Read the data for all points. */
+   for (ix = 0; ix < nnx[jb]; ++ix)
+      for (iy = 0; iy < nny[jb]; ++iy) {
+         /* For each point, read all of the variables. */
+         for (ivar = 0; ivar < nvar; ++ivar) {
+	    fscanf (dfp, "%lf", &Var[jb][ivar][ix][iy]);
+	    } /* end of ivar loop */
+         } /* end of iy loop */
+   }  /* end of jb loop */
+</PRE>
+</P>
+
+<HR>
+<Address>
+   MB_CNS (C) P. A. Jacobs <BR>
+   Last Updated 24-Feb-2000.
+</Address>
+
+</BODY>
+</HTML>
+

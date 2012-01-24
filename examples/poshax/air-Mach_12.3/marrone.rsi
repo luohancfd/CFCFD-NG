@@ -1,0 +1,150 @@
+# marrone.rsi 
+# auto-created by script_noneq.py based on input file: air-7sp-10r.py
+#
+# This file provides a chemical kinetic description
+# of air chemistry typical of re-entry type problems
+#
+# Reference:
+# Marrone, P.V. (1963)
+# Inviscid, nonequilibrium flow behind bow and normal shock
+# waves, Part I. General analysis and numerical examples
+# CAL Report No. QM-16260A012 (I)
+#
+# Time of file creation: 09-May-2006 09:06:12 
+
+[reaction_scheme]
+number_of_reactions        = 10
+err_tol                    = 0.1 %
+T_trigger                  = 0
+method                     = ode
+
+[ode_method]
+step_routine               = qss
+max_step_attempts          = 4
+max_increase_factor        = 1.15
+max_decrease_factor        = 0.01
+decrease_factor            = 0.333
+
+[reac-0]
+equation                   = O2 + O <=> O + O + O
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 2.10000e+12  -0.500000  8.19830e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = Dissociation
+AB                         = 0
+A                          = 3
+B                          = 3
+C                          = 3
+
+[reac-1]
+equation                   = O2 + O2 <=> O + O + O2
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 3.60000e+15  -1.50000  8.19830e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = Dissociation
+AB                         = 0
+A                          = 3
+B                          = 3
+C                          = 0
+
+[reac-2]
+equation                   = O2 + M <=> O + O + M
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 1.19000e+15  -1.50000  8.19830e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = ThirdBodyReaction
+f_index                    = 0 
+f_coeffs                   = 1 
+b_index                    = 3 3 
+b_coeffs                   = 1 1 
+efficiencies               = 0.00000 1.00000 1.00000 0.00000 1.00000 1.00000 1.00000 
+
+[reac-3]
+equation                   = N2 + N <=> N + N + N
+forward_rate_coeff_model   = FromEqConst
+backward_rate_coeff_model  = GeneralisedArrhenius
+k_b                        = 7.50000e+08  -1.50000  0.00000
+equilibrium_constant_model = EqConstThermo
+type                       = Dissociation
+AB                         = 1
+A                          = 4
+B                          = 4
+C                          = 4
+
+[reac-4]
+equation                   = N2 + N2 <=> N + N + N2
+forward_rate_coeff_model   = FromEqConst
+backward_rate_coeff_model  = GeneralisedArrhenius
+k_b                        = 1.50000e+08  -1.50000  0.00000
+equilibrium_constant_model = EqConstThermo
+type                       = Dissociation
+AB                         = 1
+A                          = 4
+B                          = 4
+C                          = 1
+
+[reac-5]
+equation                   = N2 + M <=> N + N + M
+forward_rate_coeff_model   = FromEqConst
+backward_rate_coeff_model  = GeneralisedArrhenius
+k_b                        = 5.00000e+07  -1.50000  0.00000
+equilibrium_constant_model = EqConstThermo
+type                       = ThirdBodyReaction
+f_index                    = 1 
+f_coeffs                   = 1 
+b_index                    = 4 4 
+b_coeffs                   = 1 1 
+efficiencies               = 1.00000 0.00000 1.00000 1.00000 0.00000 1.00000 1.00000 
+
+[reac-6]
+equation                   = NO + M <=> N + O  + M
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 5.18000e+15  -1.50000  1.04225e-18
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = ThirdBodyReaction
+f_index                    = 2 
+f_coeffs                   = 1 
+b_index                    = 4 3 
+b_coeffs                   = 1 1 
+simple_third_body          = yes
+
+[reac-7]
+equation                   = N + O2 <=> NO + O
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 1.00000e+06  0.500000  4.30763e-20
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 4 0 
+f_coeffs                   = 1 1 
+b_index                    = 2 3 
+b_coeffs                   = 1 1 
+
+[reac-8]
+equation                   = O + N2 <=> NO + N
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 5.00000e+07  0.00000  5.24868e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 3 1 
+f_coeffs                   = 1 1 
+b_index                    = 2 4 
+b_coeffs                   = 1 1 
+
+[reac-9]
+equation                   = N + O <=> NO+ + e-
+forward_rate_coeff_model   = FromEqConst
+backward_rate_coeff_model  = GeneralisedArrhenius
+k_b                        = 1.80000e+15  -1.50000  0.00000
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 4 3 
+f_coeffs                   = 1 1 
+b_index                    = 5 6 
+b_coeffs                   = 1 1 
+

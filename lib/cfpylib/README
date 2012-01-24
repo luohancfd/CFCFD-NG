@@ -1,0 +1,6 @@
+cfpylib: a package of modules for the Compressible Flow codes
+
+To install, copy the top-level directory and all of its contents to 
+the desired destination:
+$ cp -p -r cfpylib $DESTINATION
+

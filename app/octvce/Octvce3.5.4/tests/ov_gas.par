@@ -1,0 +1,48 @@
+GAS PROPERTIES
+--------------
+
+No. species: 2
+Ambient gas Cv: 717.5
+Ambient gas gamma: 1.4
+
+  If no. species > 1 ...
+  ----------------------
+  EOS type for products: JWLB 
+  Products gas Cv: 858.4798936 
+
+    If EOS is perfect gas ...
+    -------------------------
+    Products gas gamma: 1.66
+  
+    If EOS is JWLB - want to treat low products density as air? y 
+    ----------------------------------------------------------- 
+    If EOS is JWLB - EOS coefficients are
+    -------------------------------------
+    A1: 5.24229e11 
+    A2: 0.076783e11 
+    A3: 0
+    A4: 0 
+    A5: 0
+    R1: 4.2 
+    R2: 1.1 
+    R3: 0 
+    R4: 0
+    R5: 0
+    AL1: 0 
+    AL2: 0 
+    AL3: 0
+    AL4: 0
+    AL5: 0
+    BL1: 0 
+    BL2: 0 
+    BL3: 0
+    BL4: 0
+    BL5: 0
+    RL1: 0 
+    RL2: 0 
+    RL3: 0
+    RL4: 0
+    RL5: 0
+    C: 0.006651e11 
+    OMEGA: 0.34
+    v0: 6.05846620229409e-04 

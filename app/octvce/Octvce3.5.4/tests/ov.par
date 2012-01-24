@@ -1,0 +1,83 @@
+INPUT PARAMETERS FOR OCTVCE SIMULATION
+--------------------------------------
+
+
+Octree root spatial properties
+------------------------------
+
+Centroid location: 2 2 2 
+Edge length scale: 4 
+
+
+Run parameters
+--------------
+
+Type of flux solver: ADAPTIVE
+Use multiple limiters? n
+Global timestep (set to 0 if don't want it fixed): 0
+Max CFL (must be between 0 and 1): 0.5
+Finish time (choose one and make the other '0') - 
+  By timestep: 
+  By flow time:
+
+
+Parallel processing
+-------------------
+
+Adapt in parallel? n
+
+
+Adaptation parameters
+---------------------
+
+Adapt every how many time steps (enter '0' for no adaptation): 5
+Type of error indicator: 2
+
+  If error indicator type is 1 or 3 - compression threshold: 0.05
+
+  If error indicator type is 2 or 3 ...
+  -------------------------------------	
+    Refinement threshold: 0.3
+    Coarsening threshold: 0.1	
+    Noise filter value: 0.05
+
+
+Octree refinement parameters
+----------------------------
+
+No. times to refine root initially: 5
+Max refinement level: 9
+Min refinement level: 5
+Min intersect refinement level: 5
+Level of cell IC intersection: 9
+
+
+Geometry engine parameters
+--------------------------
+
+Interrogate geometry engine only after what level: 5
+No. area subcells along edge (must be even): 64
+No. volume subcells along edge (must be even): 10
+Wall representation ('0' for staircased, '1' for smoothed): 0
+
+
+Visualization
+-------------
+
+Write flow soln of only intersected cells? n
+Write data frequency (choose one and make the other '0') -
+  By timestep:
+  By flow time:
+Base solution file name:
+
+
+History files
+-------------
+
+No. history locations: 0
+Dump history locations every how many time steps: 5
+Base history file name:
+
+History locations
+-----------------
+1 1.01 0

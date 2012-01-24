@@ -1,0 +1,63 @@
+# file: sphere.input.template
+#
+# Sphere in equilibrium air modelling the Kemp Rose and Detra experiment.
+# This input file template is specialized for each stage of the simulation.
+# The $$name items seen below will be substituted with specific values.
+#
+# PJ, 22-Feb-2010
+jobName = '$jobName'; stage = $stage; np = $np
+
+# For equilibrium chemistry, use the look-up-table.
+select_gas_model(fname='cea-lut-air.lua.gz')
+inflow = FlowCondition(p=$p_inf, u=$u_inf, T=$T_inf)
+initial = FlowCondition(p=$p_init, T=$T_inf)
+
+# Job-control information
+t_final = $body_lengths * $R / $u_inf  # allow time to settle at nose
+t_plot = t_final / 5.0           # plot several times
+gdata.title = "Spherical Blunt Body: R=" + str($R) + \
+            ", p=" + str($p_inf) + ", v=" + str($u_inf) + \
+            ", T=" + str($T_inf) + ", viscous=" + str($viscous_flag)
+gdata.viscous_flag = $viscous_flag
+gdata.viscous_delay = $viscous_delay
+gdata.viscous_factor_increment = 0.02
+gdata.axisymmetric_flag = 1
+gdata.flux_calc = ADAPTIVE
+gdata.max_time = t_final
+gdata.max_step = 800000
+gdata.dt = 1.0e-10
+gdata.cfl = 0.30
+gdata.dt_plot = t_plot
+gdata.dt_history = 1.0e-6
+ 
+# Begin geometry details for a single region around a spherical nose.
+# The node coordinates are scaled with the body radius.
+a = Node(0.0, 0.0, label="a")
+b = Node(-1.0*$R, 0.0, label="b")
+c = Node(0.0, $R, label="c")
+# The inflow boundary is a Bezier curve.
+d = []; x_d = $x_d; y_d = $y_d
+for i in range(len(x_d)):
+    d.append(Node(x_d[i], y_d[i], label="d[%d]"%i))
+# order of boundaries: N, E, S, W
+flow_domain0 = make_patch(Line(d[-1],c), Arc(b,c,a), Line(d[0],b), Bezier(d))
+cluster_functions0 = [RobertsClusterFunction(0, 1, 1.02), RobertsClusterFunction(1, 0, 1.06),
+                      RobertsClusterFunction(0, 1, 1.02), RobertsClusterFunction(1, 0, 1.05)]
+boundary_conditions0 = [ExtrapolateOutBC(), FixedTBC($T_body),
+                        SlipWallBC(), SupInBC(inflow)]
+if stage == 0:
+    # We start from scratch.
+    fill_condition0 = initial
+else:
+    # We start with the previous solution.
+    rootName = jobName + str(stage-1)
+    fill_condition0 = ExistingSolution(rootName, '.', np, 9999)
+blk = SuperBlock2D(psurf=flow_domain0, fill_condition=fill_condition0,
+                   nni=$ni, nnj=$nj, nbi=$nbi, nbj=$nbj,
+                   cf_list=cluster_functions0, bc_list=boundary_conditions0,
+                   label="blk")
+
+sketch.xaxis(-15.0e-3, 5.0e-3, 5.0e-3, -0.002)
+sketch.yaxis(0.0, 20.0e-3, 5.0e-3, 0.0)
+sketch.window(-1.5*$R, 0.0, 1.5*$R, 3.0*$R, 0.05, 0.05, 0.15, 0.15)
+

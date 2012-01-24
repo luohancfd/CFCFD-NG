@@ -1,0 +1,186 @@
+% udf.tex
+User-defined functions (UDFs) are callable for both specialized boundary conditions and 
+for the addition of custom source terms.\footnote{Note that the following information 
+is likely to become dated with code changes,
+so it is best to refer to the actual source code to see what is expected.
+Look in \texttt{bc\_user\_defined.cxx} for the boundary condition functions and \texttt{main.cxx} for the 
+functions related to source terms.}
+
+\subsection{Boundary conditions}
+\index{boundary conditions!user defined}
+%
+When the user's (Python) input script calls up a \texttt{UserDefinedBC()} boundary condition,
+a Lua file is specified.
+This file is run at the time of boundary-condition instantiation and it needs to define the
+Lua functions \texttt{ghost\_cell(args)} and \texttt{interface(args)} at a minumum.
+These functions are later called, every time the boundary condition is applied during the simulation.
+As well as providing the \textit{expected} functions, the Lua file may contain whatever else
+the user wishes.
+It may start up external processes, read data files, or any other suitable activity that
+sets up data for later use in the boundary condition functions.
+
+\medskip
+The Lua execution environment provided to the file includes the following data:\\
+\vspace{1mm}
+\begin{tabular}{ll} 
+ \hline \noalign{\smallskip}
+ \texttt{block\_id} & \parbox{10cm}{index of the current block. 
+                                   Boundary conditions exist in the context a block.
+                                   This means that the information accessible from the UDFs is limited
+                                   to that contained within the block plus a little bit of global data.
+                                   This is particularly important for parallel (MPI) simulations
+                                   because blocks exist is separate processes and the data in one
+                                   block is not generally available in another.} \\ \hline
+ \texttt{nsp} & number of species \\
+ \texttt{nmodes} & number of energy storage modes (and temperatures) \\
+ \texttt{nni,nnj,nnk} &  number of cells in each index direction for the current block \\
+ \noalign{\smallskip} \hline \noalign{\smallskip}
+ \texttt{NORTH} & \parbox{10cm}{index of the ``North'' boundary.
+                               This index (and the following indices) will be handy for deciding which boundary we are
+                               working on when the \texttt{ghost\_cell(args)} and \texttt{interface(args)} 
+                               are called.}\\
+ \texttt{EAST,SOUTH,WEST} &  \\
+ \texttt{TOP,BOTTOM} &  \\
+ \noalign{\smallskip} \hline \noalign{\smallskip}
+\end{tabular}
+
+\noindent
+As well as the data, there are a couple of functions that can be called to get more information about
+the flow at specific locations:\\
+\begin{tabular}{ll} 
+ \noalign{\smallskip} \hline \noalign{\smallskip}
+ \texttt{sample\_flow(jb,i,j,k)} & \parbox{10cm}{a function that returns a table of 
+                                      the flow state for a particular cell.  The data is the same as that
+                                      listed for the \texttt{ghost\_cell} tables with the addition of \texttt{vol},
+                                      the cell volume.  This function is not likely to work for a MPI simulation,
+                                      where only one block is visible to the curent process.} \\
+ \noalign{\smallskip} \hline \noalign{\smallskip}
+ \texttt{locate\_cell(x,y,z)} & \parbox{10cm}{a function that will search for the cell nearest 
+                                      the specified coordinates and return the cell indices
+                                      and the index of the containing block.  This function 
+                                      is not likely to work for a MPI simulation,
+                                      where only one block is visible to the curent process.} \\
+ \noalign{\smallskip} \hline \noalign{\smallskip}
+\end{tabular}
+
+\noindent
+There is also a function \texttt{compute\_diffusion\_coefficient} which can be called upon
+to get the actual diffusion coefficients at the boundary conditions.
+
+\medskip
+On being called at run time, the function \texttt{ghost\_cell(args)} returns two Lua tables. 
+The first contains the flow state in the ghost cell nearest the boundary face, 
+and the second contains the flow state for the ghost cell further away from the boundary face.
+Items to appear in the returned tables are:\\
+\begin{tabular}{ll}
+ \texttt{p} &  gas pressure \\
+ \texttt{u,v,w} & velocity components in x,y,z-directions \\
+ \texttt{massf} & \parbox{12cm}{table of \texttt{nsp} mass fractions. The zero entry, at least, must be specified.} \\
+ \texttt{T} &  \parbox{12cm}{table of \texttt{nmodes} temperatures. The zero entry, at least, must be specified.} \\
+ \texttt{tke} &  turbulent kinetic energy \\
+ \texttt{omega} &  $\omega$ for the $k-\omega$ turbulence model \\
+ \texttt{mu\_t} &  turbulence viscosity \\
+ \texttt{k\_t} &  turbulent heat conduction coefficient \\
+ \texttt{sigma\_T} & variance of the local temperature (for Henrik's reacting flow) \\
+ \texttt{sigma\_c} & variance of the local concentration (for Henrik's reacting flow) \\
+ \texttt{S} & shock-detector value (1 or 0) \\
+\end{tabular}\\
+and the input \texttt{args} table contains:\\
+\begin{tabular}{ll}
+ \texttt{t} &  the current simulation time, in seconds \\
+ \texttt{x,y,z} &  coordinates of the midpoint of the interface\\
+ \texttt{csX,csY,csZ} &  direction cosines for the interface\\
+ \texttt{i,j,k} &  indices of the cell adjacent to the interface\\
+ \texttt{which\_boundary} & index of the boundary (\texttt{NORTH},...) \\
+\end{tabular}
+
+\medskip
+If viscous effects are active, the Lua function \texttt{interface(args)} is called to
+get a few properties right at the bounding interface.
+These properties are to be returned in a table containing:\\
+\begin{tabular}{ll}
+ \texttt{T\_wall} & \parbox{12cm}{static temperature at the interface, possibly a wall.
+                                  All mode temperatures are set to this value.} \\
+ \texttt{u,v,w} & flow velocity at the interface \\
+ \texttt{tke} &  turbulent kinetic energy \\
+ \texttt{omega} &  $\omega$ for the $k-\omega$ turbulence model \\
+\end{tabular}\\
+On entry to the function, \texttt{args} contains the same attributes as for the call
+to the \texttt{ghost\_cell} function.
+
+\medskip
+The functions are evaluated in the Lua interpreter environment that was set up
+when the boundary condition was instantiated so any data that was stored then is
+available to the functions now, possibly via global variables.
+
+\medskip
+The user may also provide a function \texttt{flux(args)} that returns a table specifying the interface fluxes
+that can be used instead of the internally computed fluxes.
+The table of fluxes returned contains the following entries:\\
+\begin{tabular}{ll}
+ \texttt{mass} &  mass flux per unit area of the interface \\
+ \texttt{momentum\_x} & x-direction momentum flux per unit area \\
+ \texttt{momentum\_y} & y-direction momentum flux per unit area \\
+ \texttt{momentum\_z} & z-direction momentum flux per unit area \\
+ \texttt{total\_energy } & flux of energy per unit area \\
+ \texttt{romega} & flux of $\omega$ for the $k-\omega$ turbulence model \\
+ \texttt{rtke} & flux of turbulent kinetic energy \\
+ \texttt{species} & \parbox{12cm}{table of \texttt{nsp} species mass fluxes. The zero entry, at least, must be specified.} \\
+ \texttt{renergies} & \parbox{12cm}{table of \texttt{nmodes} energy fluxes. The zero entry, at least, must be specified.} \\
+\end{tabular}\\
+and the input \texttt{args} table contains:\\
+\begin{tabular}{ll}
+ \texttt{t} &  the current simulation time, in seconds \\
+ \texttt{x,y,z} &  coordinates of the midpoint of the interface\\
+ \texttt{csX,csY,csZ} &  direction cosines for the interface\\
+ \texttt{i,j,k} &  indices of the cell adjacent to the interface\\
+ \texttt{which\_boundary} & index of the boundary (\texttt{NORTH},...) \\
+\end{tabular}
+
+
+\subsection{Source terms}
+\index{source terms!user defined}
+%
+The Python input script can also specify the filename for a Lua file that contains functions
+that can be called to specify additional source terms for each step of the simulation.
+The functions \textit{expected} to be defined are \texttt{source\_vector(t, cell)},
+\texttt{at\_timestep\_start(args)} and \texttt{at\_timestep\_end(args)}.
+If you don't have any useful work for the latter two, just define them to return \texttt{nil}. 
+The Lua execution environment provided provided to the file includes the following data:\\
+\begin{tabular}{ll}
+ \texttt{nsp} & number of species \\
+ \texttt{nmodes} & number of energy storage modes (and temperatures) \\
+ \texttt{sample\_flow} & \parbox{12cm}{a function that returns a table of 
+                                      the flow state for a particular cell} \\
+ \texttt{locate\_cell} & \parbox{12cm}{a function that will search for the cell nearest 
+                                      the specified coordinates and return the cell indices
+                                      and the index of the containing block} 
+\end{tabular}
+ 
+\bigskip
+When activated, the function \texttt{source\_vector(t, cell)} will be called at each time step.
+The first argument, \texttt{t}, is the current simulation time, in seconds.
+The table \texttt{cell} contains:\\
+\begin{tabular}{ll}
+ \texttt{x,y,x} & coordinates of the cell centre \\
+ \texttt{vol} & cell volume \\
+ \texttt{p} & gas pressure \\
+ \texttt{rho} & gas density \\
+ \texttt{u,v,w} & gas velocity components \\
+ \texttt{a} & speed of sound in gas \\
+ \texttt{T} & table of \texttt{nmodes} temperatures \\
+ \texttt{massf} & table of \texttt{nsp} mass fractions \\
+\end{tabular}\\
+On return, the table of source terms should contain:\\
+\begin{tabular}{ll}
+ \texttt{mass} &  rate of mass addition per unit volume\\
+ \texttt{momentum\_x} & rate of x-momentum addition per unit volume\\
+ \texttt{momentum\_y} & rate of y-momentum addition per unit volume\\
+ \texttt{momentum\_z} & rate of z-momentum addition per unit volume\\
+ \texttt{total\_energy} & rate of energy addition per unit volume\\
+ \texttt{romega} & $d\omega/dt$ addition per unit volume\\
+ \texttt{rtke} & rate of turbulent kinetic-energy addition per unit volume\\
+ \texttt{radiation} & rate of energy addition via radiation per unit volume\\
+ \texttt{species} & table of \texttt{nsp} values\\
+ \texttt{energies} & table of \texttt{nmodes} values\\
+\end{tabular}\\

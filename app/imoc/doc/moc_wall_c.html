@@ -1,0 +1,162 @@
+<HTML>
+<!-- Don't bother editing this file; it is machine generated. -->
+<HEAD>
+<TITLE> Documentation extracted from  ../source/moc_wall.c </TITLE>
+</HEAD>
+<BODY>
+<H2> ../source/moc_wall.c </H2>
+<P>\file moc_wall.c 
+* \ingroup imoc 
+* \brief Wall functions for Method-of-Characteristics program. 
+* 
+* This set of functions forms part of the computational and 
+* data storage kernel for the MOC program. 
+* Interaction with the user is handled by the set of 
+* Tcl/Tk functions. 
+* 
+* \author PA Jacobs 
+* 
+* \version 04-Jan-2000 : Initial hack 
+* \version 26-Jan-2000 : Add more functions to access wall data. 
+* 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+int InitWall( void ) </B> </CODE> </P> 
+<P>Purpose: Initialize the wall data structures. <BR> 
+Input: None <BR> 
+Output: Returns 0 indicating success. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+int WallIsPresent( int iw ) </B> </CODE> </P> 
+<P>Returns 1 if the wall is present and can be used. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+int WallGetNumberOfPoints( int iw ) </B> </CODE> </P> 
+<P>Returns number of points defining the wall. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+double WallGetPointX( int iw, int ip ) </B> </CODE> </P> 
+<P>Returns the X-coordinate of the ip-th point defining the wall. <BR> 
+0 <= ip < npoint[iw]. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+double WallGetPointY( int iw, int ip ) </B> </CODE> </P> 
+<P>Returns the Y-coordinate of the ip-th point defining the wall. <BR> 
+0 <= ip < npoint[iw]. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+int WallDeletePoints( int iw ) </B> </CODE> </P> 
+<P>Purpose: Set all of the data back to scratch. <BR> 
+Input: iw is the index of the Wall to be reset. <BR> 
+Output: Returns 0 indicating success or -1 on failure. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+int WallAddPoint( int iw, double x, double y ) </B> </CODE> </P> 
+<P>Purpose: Add an interpolation point to the specified wall. <BR> 
+Input: <BR> 
+iw : specifies the wall <BR> 
+x, y : coordinates of the point. <BR> 
+Output: <BR> 
+Returns the index of the point if successfully added, 
+or -1 on failure. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+double WallPosX( int iw, double t ) </B> </CODE> </P> 
+<P>Purpose: Evaluate the X-value of the spline for parameter value t. <BR> 
+Input : <BR> 
+iw : specified wall <BR> 
+t : parametric distance 0 <= t <= 1 <BR> 
+Output : <BR> 
+Returns the X-value. 
+If anything goes wrong, a value of zero is returned. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+double WallPosY( int iw, double t ) </B> </CODE> </P> 
+<P>Purpose: Evaluate the Y-value of the spline for parameter value t. <BR> 
+Input : <BR> 
+iw : specified wall <BR> 
+t : parametric distance 0 <= t <= 1 <BR> 
+Output : <BR> 
+Returns the Y-value. 
+If anything goes wrong, a value of zero is returned. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+double WallSlope( int iw, double t ) </B> </CODE> </P> 
+<P>Purpose: Evaluate the slope (in the x,y-plane) 
+of the spline for parameter value t. <BR> 
+Input : <BR> 
+iw : specified wall <BR> 
+t : parametric distance 0 <= t <= 1 <BR> 
+Output : <BR> 
+Returns the slope. 
+If anything goes wrong, a value of zero is returned. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+double WallFindT( int iw, 
+double xp, double yp, double cos_th, double sin_th ) </B> </CODE> </P> 
+<P>Purpose: Given a line (specified by a point and a slope) 
+find the intersection point along the spline. 
+It is assumed that the wall is not too far from 
+being a straight line, itself. <BR> 
+Input : <BR> 
+iw : specified wall <BR> 
+xp,yp : a point on the straight line. <BR> 
+sin_th 
+cos_th: Slope of the line specified as sin(theta) 
+and cos(theta). <BR> 
+Output : <BR> 
+Returns the (parametric) t-coordinatei of the 
+intersection, 0.0 <= t <= 1.0. 
+If anything goes wrong a value of -1.0 is returned. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+int SaveWall( int iw, char *FileName ) </B> </CODE> </P> 
+<P>Purpose: Write the interpolation points for the specified wall. <BR> 
+Input : <BR> 
+iw : index specifying the wall <BR> 
+FileName : pointer to the filename string. <BR> 
+Output : <BR> 
+Returns 0 if successful, -1 on failure. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+int LoadWall( int iw, char *FileName ) </B> </CODE> </P> 
+<P>Purpose: Read the interpolation points for the specified wall 
+and set up the spline ready for evaluation. <BR> 
+Input : <BR> 
+iw : index specifying the wall <BR> 
+FileName : pointer to the filename string. <BR> 
+Output : <BR> 
+Returns the number of points if successful, -1 on failure. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<HR>
+<ADDRESS>
+    Extracted by <B>docgen.awk</B>  Mon Aug 09 23:28:59 EST 2004
+</ADDRESS>
+</BODY>
+</HTML>

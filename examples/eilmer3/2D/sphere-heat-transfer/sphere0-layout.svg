@@ -1,0 +1,467 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="566.93"
+   height="566.93"
+   version="1.0"
+   id="svg2"
+   inkscape:version="0.47pre4 r22446"
+   sodipodi:docname="sphere0.svg">
+  <metadata
+     id="metadata144">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>Spherical Blunt Body: R=0.0066, p=535.6, v=2436.5, T=2573.5, viscous=1</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs142">
+    <marker
+       inkscape:stockid="Arrow1Send"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Send"
+       style="overflow:visible;">
+      <path
+         id="path3744"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt;marker-start:none;"
+         transform="scale(0.2) rotate(180) translate(6,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Mend"
+       style="overflow:visible;">
+      <path
+         id="path3738"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt;marker-start:none;"
+         transform="scale(0.4) rotate(180) translate(10,0)" />
+    </marker>
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 283.465 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="566.92999 : 283.465 : 1"
+       inkscape:persp3d-origin="283.465 : 188.97666 : 1"
+       id="perspective146" />
+    <inkscape:perspective
+       id="perspective4398"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <marker
+       inkscape:stockid="Arrow1Send"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Send-2"
+       style="overflow:visible">
+      <path
+         id="path3744-6"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;marker-start:none"
+         transform="matrix(-0.2,0,0,-0.2,-1.2,0)" />
+    </marker>
+  </defs>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1301"
+     inkscape:window-height="816"
+     id="namedview140"
+     showgrid="false"
+     inkscape:zoom="1.605365"
+     inkscape:cx="198.94714"
+     inkscape:cy="262.93953"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg2" />
+  <title
+     id="title4">Spherical Blunt Body: R=0.0066, p=535.6, v=2436.5, T=2573.5, viscous=1</title>
+  <desc
+     id="desc6">SVG file written by e3prep.py</desc>
+  <!-- drawing begins here -->
+  <line
+     x1="68.72"
+     y1="453.83"
+     x2="355.05"
+     y2="453.83"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line8" />
+  <text
+     x="211.88"
+     y="479.34"
+     style="font-size:10;text-anchor:start;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text10">x</text>
+  <line
+     x1="68.72"
+     y1="453.83"
+     x2="68.72"
+     y2="448.16"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line12" />
+  <text
+     x="68.72"
+     y="468.00"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text14">-0.015</text>
+  <line
+     x1="140.30"
+     y1="453.83"
+     x2="140.30"
+     y2="448.16"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line16" />
+  <text
+     x="140.30"
+     y="468.00"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text18">-0.01</text>
+  <line
+     x1="211.88"
+     y1="453.83"
+     x2="211.88"
+     y2="448.16"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line20" />
+  <text
+     x="211.88"
+     y="468.00"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text22">-0.005</text>
+  <line
+     x1="283.46"
+     y1="453.83"
+     x2="283.46"
+     y2="448.16"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line24" />
+  <text
+     x="283.46"
+     y="468.00"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text26">0</text>
+  <line
+     x1="355.05"
+     y1="453.83"
+     x2="355.05"
+     y2="448.16"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line28" />
+  <text
+     x="355.05"
+     y="468.00"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text30">0.005</text>
+  <line
+     x1="68.72"
+     y1="425.20"
+     x2="68.72"
+     y2="138.87"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line32" />
+  <text
+     x="35.017136"
+     y="246.65871"
+     style="font-size:10px;font-weight:normal;text-anchor:end;fill:#000000;stroke:none;font-family:sanserif"
+     id="text34">y</text>
+  <line
+     x1="68.72"
+     y1="425.20"
+     x2="74.39"
+     y2="425.20"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line36" />
+  <text
+     x="60.21"
+     y="425.20"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text38">0</text>
+  <line
+     x1="68.72"
+     y1="353.61"
+     x2="74.39"
+     y2="353.61"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line40" />
+  <text
+     x="60.21"
+     y="353.61"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text42">0.005</text>
+  <line
+     x1="68.72"
+     y1="282.03"
+     x2="74.39"
+     y2="282.03"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line44" />
+  <text
+     x="60.21"
+     y="282.03"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text46">0.01</text>
+  <line
+     x1="68.72"
+     y1="210.45"
+     x2="74.39"
+     y2="210.45"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line48" />
+  <text
+     x="60.21"
+     y="210.45"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text50">0.015</text>
+  <line
+     x1="68.72"
+     y1="138.87"
+     x2="74.39"
+     y2="138.87"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line52" />
+  <text
+     x="60.21"
+     y="138.87"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text54">0.02</text>
+  <!-- There are 7 nodes
+ -->
+  <circle
+     cx="283.46"
+     cy="425.20"
+     r="2.83"
+     style="fill:black"
+     id="circle56" />
+  <text
+     x="283.46"
+     y="420.94"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text58">a</text>
+  <circle
+     cx="188.98"
+     cy="425.20"
+     r="2.83"
+     style="fill:black"
+     id="circle60" />
+  <text
+     x="200.4379"
+     y="428.6778"
+     style="font-size:10px;font-weight:normal;text-anchor:end;fill:#000000;stroke:none;font-family:sanserif"
+     id="text62">b</text>
+  <circle
+     cx="283.46"
+     cy="330.71"
+     r="2.83"
+     style="fill:black"
+     id="circle64" />
+  <text
+     x="293.45001"
+     y="328.83566"
+     style="font-size:10px;font-weight:normal;text-anchor:end;fill:#000000;stroke:none;font-family:sanserif"
+     id="text66">c</text>
+  <circle
+     cx="141.73"
+     cy="425.20"
+     r="2.83"
+     style="fill:black"
+     id="circle68" />
+  <text
+     x="137.41469"
+     y="427.63617"
+     style="font-size:10px;font-weight:normal;text-anchor:end;fill:#000000;stroke:none;font-family:sanserif"
+     id="text70">d[0]</text>
+  <circle
+     cx="141.73"
+     cy="330.71"
+     r="2.83"
+     style="fill:black"
+     id="circle72" />
+  <text
+     x="139.55298"
+     y="326.30069"
+     style="font-size:10px;font-weight:normal;text-anchor:end;fill:#000000;stroke:none;font-family:sanserif"
+     id="text74">d[1]</text>
+  <circle
+     cx="188.98"
+     cy="236.22"
+     r="2.83"
+     style="fill:black"
+     id="circle76" />
+  <text
+     x="186.35164"
+     y="231.67796"
+     style="font-size:10px;font-weight:normal;text-anchor:end;fill:#000000;stroke:none;font-family:sanserif"
+     id="text78">d[2]</text>
+  <circle
+     cx="283.46"
+     cy="141.73"
+     r="2.83"
+     style="fill:black"
+     id="circle80" />
+  <text
+     x="281.59787"
+     y="136.23859"
+     style="font-size:10px;font-weight:normal;text-anchor:end;fill:#000000;stroke:none;font-family:sanserif"
+     id="text82">d[3]</text>
+  <!-- There are 4 blocks
+ -->
+  <!-- Render block 0
+ -->
+  <text
+     x="163.71469"
+     y="400.8399"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text84">blk-0-0</text>
+  <path
+     d="M 149.47,358.96 L 154.89,362.54 L 160.16,366.05 L 165.17,369.40 L 169.81,372.51 L 174.01,375.33 L 177.75,377.83 L 181.00,380.00 L 183.80,381.86 L 186.17,383.42 L 188.16,384.72"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none;stroke-dasharray: 5.67 5.67"
+     id="path86" />
+  <path
+     d="M 181.20,425.20 L 181.21,423.39 L 181.26,421.26 L 181.37,418.74 L 181.57,415.76 L 181.89,412.28 L 182.40,408.20 L 183.17,403.47 L 184.30,398.01 L 185.91,391.77 L 188.16,384.72"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none;stroke-dasharray: 5.67 5.67"
+     id="path88" />
+  <text
+     x="164.95761"
+     y="437.99716"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text90">SLIP_WALL</text>
+  <path
+     d="M 141.73,425.20 L 147.27,425.20 L 152.66,425.20 L 157.78,425.20 L 162.52,425.20 L 166.81,425.20 L 170.62,425.20 L 173.94,425.20 L 176.78,425.20 L 179.19,425.20 L 181.20,425.20"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path92" />
+  <text
+     x="-380.86661"
+     y="159.07834"
+     transform="matrix(0.06209375,-0.99807032,0.99807032,0.06209375,0,0)"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text94">SUP_IN</text>
+  <path
+     d="M 141.73,425.20 L 141.75,422.39 L 141.80,419.04 L 141.91,415.06 L 142.12,410.34 L 142.47,404.77 L 143.02,398.19 L 143.86,390.48 L 145.10,381.48 L 146.91,371.02 L 149.47,358.96"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path96" />
+  <!-- Render block 1
+ -->
+  <text
+     x="215.87"
+     y="299.43"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text98">blk-0-1</text>
+  <text
+     x="241.5956"
+     y="-294.27084"
+     transform="matrix(0,1,-1,0,0,0)"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text100">EXTRAPOLATE_OUT</text>
+  <path
+     d="M 283.46,141.73 L 283.46,163.87 L 283.46,185.44 L 283.46,205.91 L 283.46,224.87 L 283.46,242.04 L 283.46,257.28 L 283.46,270.55 L 283.46,281.93 L 283.46,291.55 L 283.46,299.60"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path102" />
+  <path
+     d="M 188.16,384.72 L 191.25,376.85 L 195.37,368.22 L 200.77,358.93 L 207.65,349.17 L 216.20,339.22 L 226.53,329.42 L 238.63,320.17 L 252.37,311.88 L 267.45,304.93 L 283.46,299.60"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none;stroke-dasharray: 5.67 5.67"
+     id="path104" />
+  <path
+     d="M 149.47,358.96 L 154.89,362.54 L 160.16,366.05 L 165.17,369.40 L 169.81,372.51 L 174.01,375.33 L 177.75,377.83 L 181.00,380.00 L 183.80,381.86 L 186.17,383.42 L 188.16,384.72"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none;stroke-dasharray: 5.67 5.67"
+     id="path106" />
+  <text
+     x="-161.10793"
+     y="279.83466"
+     transform="matrix(0.45212339,-0.8919554,0.8919554,0.45212339,0,0)"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text108">SUP_IN</text>
+  <path
+     d="M 149.47,358.96 L 153.03,345.15 L 157.89,329.48 L 164.39,311.86 L 172.90,292.27 L 183.80,270.76 L 197.46,247.45 L 214.17,222.55 L 234.09,196.37 L 257.25,169.29 L 283.46,141.73"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path110" />
+  <!-- Render block 2
+ -->
+  <text
+     x="237.20123"
+     y="414.26141"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text112">blk-1-0</text>
+  <path
+     d="M 188.16,384.72 L 189.82,385.78 L 191.19,386.63 L 192.31,387.31 L 193.23,387.85 L 193.98,388.26 L 194.59,388.58 L 195.09,388.81 L 195.50,388.98 L 195.84,389.10 L 196.12,389.17"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none;stroke-dasharray: 5.67 5.67"
+     id="path114" />
+  <path
+     d="M 188.98,425.20 L 188.99,423.53 L 189.05,421.57 L 189.16,419.26 L 189.37,416.56 L 189.71,413.41 L 190.25,409.75 L 191.04,405.53 L 192.20,400.71 L 193.84,395.26 L 196.12,389.17"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path118" />
+  <path
+     d="M 181.20,425.20 L 182.86,425.20 L 184.23,425.20 L 185.35,425.20 L 186.26,425.20 L 186.99,425.20 L 187.58,425.20 L 188.05,425.20 L 188.43,425.20 L 188.73,425.20 L 188.98,425.20"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path122" />
+  <path
+     d="M 181.20,425.20 L 181.21,423.39 L 181.26,421.26 L 181.37,418.74 L 181.57,415.76 L 181.89,412.28 L 182.40,408.20 L 183.17,403.47 L 184.30,398.01 L 185.91,391.77 L 188.16,384.72"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none;stroke-dasharray: 5.67 5.67"
+     id="path124" />
+  <!-- Render block 3
+ -->
+  <text
+     x="269.64438"
+     y="362.73312"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text126"
+     transform="matrix(0.99939083,-0.03489951,0.03489951,0.99939083,0,0)">blk-1-1</text>
+  <path
+     d="M 283.46,299.60 L 283.46,306.26 L 283.46,311.74 L 283.46,316.20 L 283.46,319.83 L 283.46,322.76 L 283.46,325.11 L 283.46,327.01 L 283.46,328.53 L 283.46,329.74 L 283.46,330.71"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path130" />
+  <text
+     x="-117.37836"
+     y="417.71304"
+     transform="matrix(0.68352862,-0.72992372,0.72992372,0.68352862,0,0)"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text132">FIXED_T</text>
+  <path
+     d="M 196.12,389.17 L 199.19,382.47 L 203.25,375.25 L 208.50,367.68 L 215.11,359.96 L 223.21,352.41 L 232.84,345.41 L 243.95,339.37 L 256.32,334.69 L 269.64,331.73 L 283.46,330.71"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path134" />
+  <path
+     d="M 188.16,384.72 L 189.82,385.78 L 191.19,386.63 L 192.31,387.31 L 193.23,387.85 L 193.98,388.26 L 194.59,388.58 L 195.09,388.81 L 195.50,388.98 L 195.84,389.10 L 196.12,389.17"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none;stroke-dasharray: 5.67 5.67"
+     id="path136" />
+  <path
+     d="M 188.16,384.72 L 191.25,376.85 L 195.37,368.22 L 200.77,358.93 L 207.65,349.17 L 216.20,339.22 L 226.53,329.42 L 238.63,320.17 L 252.37,311.88 L 267.45,304.93 L 283.46,299.60"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none;stroke-dasharray: 5.67 5.67"
+     id="path138" />
+  <!-- end of drawing -->
+  <path
+     style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Send)"
+     d="m 218.52899,410.54063 -28.80401,-4.61646"
+     id="path2952"
+     sodipodi:nodetypes="cc" />
+  <path
+     style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Send)"
+     d="M 261.52919,350.10556 235.83974,335.52252"
+     id="path2952-9"
+     sodipodi:nodetypes="cc" />
+</svg>

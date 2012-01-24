@@ -1,0 +1,38 @@
+# extendstream.moc
+# PJ, 26-March-01
+
+proc ExtendStreamLineToGivenLine { oldStreamNode listOfNodes } {
+    # Extends streamline (specified as the node oldStreamNode) to
+    # the line represented by the listOfNodes.
+    # If successful, the id of the new streamline node is returned.
+    # If there is a failure, -1 is returned.
+
+    set listLength [llength $listOfNodes]
+    if { $listLength < 2 } {
+        puts "There are not enough nodes in the given list: $listOfNodes"
+        return -1
+    }; # end if
+
+    # Search the line segments specified by the list of nodes
+    # until a valid intersection is found.
+    set intersectionFound 0
+    for {set a 0} {$a <= [expr $listLength - 2]} {incr a} {
+        set b [expr $a + 1]
+        set nodeA [lindex $listOfNodes $a]
+        set nodeB [lindex $listOfNodes $b]
+        set validIntersection \
+           [AddStreamNode $oldStreamNode $nodeA $nodeB -1 1]
+        if { $validIntersection == 1 } {
+           set newStreamNode \
+               [AddStreamNode $oldStreamNode $nodeA $nodeB -1 0]
+           set intersectionFound 1
+           break
+        }; # end if
+    }; # end for 
+
+    if { $intersectionFound == 1 } {
+        return $newStreamNode
+    } else {
+        return -1
+    }; # end if
+}; # end proc

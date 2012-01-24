@@ -1,0 +1,438 @@
+# Goecken_04.rsi 
+# auto-created by script_noneq.py based on input file: Goecken_04.py
+
+# Time of file creation: 10-May-2006 10:27:28 
+
+[reaction_scheme]
+number_of_reactions        = 34
+err_tol                    = 0.1 %
+T_trigger                  = 0
+method                     = ode
+
+[ode_method]
+step_routine               = qss
+max_step_attempts          = 4
+max_increase_factor        = 1.15
+max_decrease_factor        = 0.01
+decrease_factor            = 0.333
+
+[reac-0]
+equation                   = N2 + M <=> N + N + M
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 7.00000e+15  -1.60000  1.56290e-18
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = ThirdBodyReaction
+f_index                    = 0 
+f_coeffs                   = 1 
+b_index                    = 10 10 
+b_coeffs                   = 1 1 
+efficiencies               = 1.00000 1.00000 1.00000 1.00000 1.00000 1.00000 1.00000 1.00000 1.00000 1.00000 4.28570 4.28570 4.28570 1.00000 1.00000 1.00000 1.00000 1.00000 428.570 
+
+[reac-1]
+equation                   = CH4 + M <=> CH3 + H + M
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 4.70000e+41  -8.20000  8.17345e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = ThirdBodyReaction
+f_index                    = 1 
+f_coeffs                   = 1 
+b_index                    = 2 12 
+b_coeffs                   = 1 1 
+simple_third_body          = yes
+
+[reac-2]
+equation                   = CH3 + M <=> CH2 + H + M
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 1.02000e+10  0.00000  6.29577e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = ThirdBodyReaction
+f_index                    = 2 
+f_coeffs                   = 1 
+b_index                    = 3 12 
+b_coeffs                   = 1 1 
+simple_third_body          = yes
+
+[reac-3]
+equation                   = CH3 + M <=> CH + H2 + M
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 5.00000e+09  0.00000  5.90918e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = ThirdBodyReaction
+f_index                    = 2 
+f_coeffs                   = 1 
+b_index                    = 4 6 
+b_coeffs                   = 1 1 
+simple_third_body          = yes
+
+[reac-4]
+equation                   = CH2 + M <=> CH + H + M
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 4.00000e+09  0.00000  5.77112e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = ThirdBodyReaction
+f_index                    = 3 
+f_coeffs                   = 1 
+b_index                    = 4 12 
+b_coeffs                   = 1 1 
+simple_third_body          = yes
+
+[reac-5]
+equation                   = CH2 + M <=> C + H2 + M
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 1.30000e+08  0.00000  4.10053e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = ThirdBodyReaction
+f_index                    = 3 
+f_coeffs                   = 1 
+b_index                    = 11 6 
+b_coeffs                   = 1 1 
+simple_third_body          = yes
+
+[reac-6]
+equation                   = CH + M <=> C + H + M
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 1.90000e+08  0.00000  4.65279e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = ThirdBodyReaction
+f_index                    = 4 
+f_coeffs                   = 1 
+b_index                    = 11 12 
+b_coeffs                   = 1 1 
+simple_third_body          = yes
+
+[reac-7]
+equation                   = C2 + M <=> C + C + M
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 1.50000e+10  0.00000  9.88546e-18
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = ThirdBodyReaction
+f_index                    = 5 
+f_coeffs                   = 1 
+b_index                    = 11 11 
+b_coeffs                   = 1 1 
+simple_third_body          = yes
+
+[reac-8]
+equation                   = H2 + M <=> H + H + M
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 2.23000e+08  0.00000  6.67545e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = ThirdBodyReaction
+f_index                    = 6 
+f_coeffs                   = 1 
+b_index                    = 12 12 
+b_coeffs                   = 1 1 
+simple_third_body          = yes
+
+[reac-9]
+equation                   = CN + M <=> C + N + M
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 2.53000e+08  0.00000  9.80262e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = ThirdBodyReaction
+f_index                    = 7 
+f_coeffs                   = 1 
+b_index                    = 11 10 
+b_coeffs                   = 1 1 
+simple_third_body          = yes
+
+[reac-10]
+equation                   = NH + M <=> N + H + M
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 1.80000e+08  0.00000  5.19125e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = ThirdBodyReaction
+f_index                    = 8 
+f_coeffs                   = 1 
+b_index                    = 10 12 
+b_coeffs                   = 1 1 
+simple_third_body          = yes
+
+[reac-11]
+equation                   = HCN + M <=> CN + H + M
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 3.57000e+20  -2.60000  8.67670e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = ThirdBodyReaction
+f_index                    = 9 
+f_coeffs                   = 1 
+b_index                    = 7 12 
+b_coeffs                   = 1 1 
+simple_third_body          = yes
+
+[reac-12]
+equation                   = CH3 + N <=> HCN + H + H
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 7.00000e+07  0.00000  0.00000
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 2 10 
+f_coeffs                   = 1 1 
+b_index                    = 9 12 12 
+b_coeffs                   = 1 1 1 
+
+[reac-13]
+equation                   = CH3 + H <=> CH2 + H2
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 6.03000e+07  0.00000  1.04929e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 2 12 
+f_coeffs                   = 1 1 
+b_index                    = 3 6 
+b_coeffs                   = 1 1 
+
+[reac-14]
+equation                   = CH2 + N2 <=> HCN + NH
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 4.82000e+06  0.00000  2.48517e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 3 0 
+f_coeffs                   = 1 1 
+b_index                    = 9 8 
+b_coeffs                   = 1 1 
+
+[reac-15]
+equation                   = CH2 + N <=> HCN + H
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 5.00000e+07  0.00000  0.00000
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 3 10 
+f_coeffs                   = 1 1 
+b_index                    = 9 12 
+b_coeffs                   = 1 1 
+
+[reac-16]
+equation                   = CH2 + H <=> CH + H2
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 6.03000e+06  0.00000  -1.24259e-20
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 3 12 
+f_coeffs                   = 1 1 
+b_index                    = 4 6 
+b_coeffs                   = 1 1 
+
+[reac-17]
+equation                   = CH + N2 <=> HCN + N
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 4.40000e+06  0.00000  1.52700e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 4 0 
+f_coeffs                   = 1 1 
+b_index                    = 9 10 
+b_coeffs                   = 1 1 
+
+[reac-18]
+equation                   = CH + C <=> C2 + H
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 2.00000e+08  0.00000  0.00000
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 4 11 
+f_coeffs                   = 1 1 
+b_index                    = 5 12 
+b_coeffs                   = 1 1 
+
+[reac-19]
+equation                   = C2 + N2 <=> CN + CN
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 1.50000e+07  0.00000  2.89937e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 5 0 
+f_coeffs                   = 1 1 
+b_index                    = 7 7 
+b_coeffs                   = 1 1 
+
+[reac-20]
+equation                   = CN + H2 <=> HCN + H
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 0.295000  0.00000  1.56014e-20
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 7 6 
+f_coeffs                   = 1 1 
+b_index                    = 9 12 
+b_coeffs                   = 1 1 
+
+[reac-21]
+equation                   = CN + C <=> C2 + N
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 5.00000e+07  0.00000  1.79485e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 7 11 
+f_coeffs                   = 1 1 
+b_index                    = 5 10 
+b_coeffs                   = 1 1 
+
+[reac-22]
+equation                   = N + H2 <=> NH + H
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 1.60000e+08  0.00000  1.74652e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 10 6 
+f_coeffs                   = 1 1 
+b_index                    = 8 12 
+b_coeffs                   = 1 1 
+
+[reac-23]
+equation                   = C + N2 <=> CN + N
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 5.24000e+07  0.00000  3.12027e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 11 0 
+f_coeffs                   = 1 1 
+b_index                    = 7 10 
+b_coeffs                   = 1 1 
+
+[reac-24]
+equation                   = C + H2 <=> CH + H
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 4.00000e+08  0.00000  1.61536e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 11 6 
+f_coeffs                   = 1 1 
+b_index                    = 4 12 
+b_coeffs                   = 1 1 
+
+[reac-25]
+equation                   = H + N2 <=> NH + N
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 3.00000e+06  0.500000  9.85784e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 12 0 
+f_coeffs                   = 1 1 
+b_index                    = 8 10 
+b_coeffs                   = 1 1 
+
+[reac-26]
+equation                   = H + CH4 <=> CH3 + H2
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 0.0132000  3.00000  5.58473e-20
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 12 1 
+f_coeffs                   = 1 1 
+b_index                    = 2 6 
+b_coeffs                   = 1 1 
+
+[reac-27]
+equation                   = N + N <=> N2+ + e-
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 44.0000  1.50000  9.31939e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 10 10 
+f_coeffs                   = 1 1 
+b_index                    = 13 18 
+b_coeffs                   = 1 1 
+
+[reac-28]
+equation                   = C + N <=> CN+ + e-
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 1.00000e+09  1.50000  2.26979e-18
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 11 10 
+f_coeffs                   = 1 1 
+b_index                    = 14 18 
+b_coeffs                   = 1 1 
+
+[reac-29]
+equation                   = N + e- <=> N+ + e- + e-
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 2.50000e+28  -3.82000  2.32778e-18
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 10 18 
+f_coeffs                   = 1 1 
+b_index                    = 15 18 18 
+b_coeffs                   = 1 1 1 
+
+[reac-30]
+equation                   = C + e- <=> C+ + e- + e-
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 3.70000e+25  -3.00000  1.80479e-18
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 11 18 
+f_coeffs                   = 1 1 
+b_index                    = 16 18 18 
+b_coeffs                   = 1 1 1 
+
+[reac-31]
+equation                   = H + e- <=> H+ + e- + e-
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 2.20000e+24  -2.80000  2.17867e-18
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 12 18 
+f_coeffs                   = 1 1 
+b_index                    = 17 18 18 
+b_coeffs                   = 1 1 1 
+
+[reac-32]
+equation                   = CN+ + N <=> CN + N+
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 9.80000e+06  0.00000  5.61925e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 14 10 
+f_coeffs                   = 1 1 
+b_index                    = 7 15 
+b_coeffs                   = 1 1 
+
+[reac-33]
+equation                   = C+ + N2 <=> N2+ + C
+forward_rate_coeff_model   = GeneralisedArrhenius
+k_f                        = 1.11000e+08  -0.110000  6.90325e-19
+backward_rate_coeff_model  = FromEqConst
+equilibrium_constant_model = EqConstThermo
+type                       = GeneralReaction
+f_index                    = 16 0 
+f_coeffs                   = 1 1 
+b_index                    = 13 11 
+b_coeffs                   = 1 1 
+

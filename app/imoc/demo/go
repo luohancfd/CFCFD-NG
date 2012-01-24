@@ -1,0 +1,3 @@
+# go
+source $env(IMOC_HOME)/source/moc_startup.tcl
+

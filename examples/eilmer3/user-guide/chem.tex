@@ -1,0 +1,315 @@
+% chem.tex
+\index{chemical reaction!reaction scheme file}
+The chemical reactions which may take place in a reacting flow
+simulation are described in a Lua input file.
+This input file, prepared by the user, is read directly by the
+main simulation code at run time.
+There is no pre-processing step for this input file.
+As the input file is Lua-based, the user has access to the 
+full extent of the Lua scripting language when
+preparing her files.
+Do not be concerned if you do not know the Lua syntax; the instructions
+and examples given here should be ample to get you started building
+reaction schemes.\footnote{If you are worried about needing to ``learn Lua'' just
+to get started, then don't be.  First, you may just look at this as an input
+format for the chemistry, and forget that it has anything to do with Lua altogether.
+Second, Lua was designed with non-programmers in mind and so it uses a simple syntax, 
+specifically so that those non-programmers could quickly use Lua
+as a configuration language.}
+
+Let's proceed by looking at an example input file and discussing
+the keywords and syntax.
+Listed here is an input file which describes the simple thermal
+dissociation of nitrogen.
+There are only two participating species, N$_2$ and N, and
+only two reactions.\\
+\topbar\\
+\lstinputlisting[language={},firstline=13]{../2D/n90/nitrogen-2sp-2r.lua}
+\bottombar\\
+The first reaction is the dissocation of N$_2$ by collision with other
+N$_2$ molecules.
+The forward reaction rate coefficient is computed with a generalised
+Arrhenius model, and the parameters for that model are specified.
+Similarly the backward reaction rate coefficient is computed using
+the Arrhenius expression.
+
+More generally, each reaction is specified within a \texttt{reaction} table.
+The table is delimited by the opening and closing braces (\{ \}).
+The first entry in the table is always a string.
+That string is the chemical equation for the reaction.
+The remaining items in the table are denoted by key-value pairs (of the form \texttt{key=val}),  and may appear
+in any order.
+Each item in the table is separated by a comma.\footnote{Lua also permits the use
+of semi-colons instead of commas to delimit table entries.}
+This example file contained two \texttt{reaction} tables, hence two reactions
+are treated in the reaction scheme.
+
+Some final notes before discussing the input file in further depth.
+There is no explicit mention of the participating species in the reaction file.
+The participating species are taken from the species that are present in
+the gas model file for the same flow simulation.
+In other words, if you list species in the reaction scheme that are not
+present in the gas model, then you will get an error message.
+
+\subsection{Overview of input file format}
+By leveraging Lua as the input data description language,
+the input file is almost self-describing, in my opinion.
+This provides an excellent record of what modelling was used when
+you performed a simulation.
+A valid reaction input file will conform to the following rules.
+\begin{enumerate}
+ \item Any legal Lua code is acceptable, but you must not
+       rename the following the pre-defined functions:
+       \begin{itemize}
+        \item \texttt{reaction}
+        \item \texttt{remove\_reactions\_by\_label}
+        \item \texttt{remove\_reactions\_by\_number}
+        \item \texttt{select\_reactions\_by\_label}
+        \item \texttt{select\_reactions\_by\_number}
+       \end{itemize}
+ \item Reactions are declared in \texttt{reaction} tables.
+ \item Comments in the file begin when two dashes (\texttt{--}) are encountered
+       and proceed to the end of the line. (This is a repetition of Item 1 in that
+       comments are legal Lua code.)
+\end{enumerate}
+
+As the the reactions are listed, they are numbered internally beginning from 1.
+In some cases, it is convenient to list all reactions in a scheme but then 
+only use some of the reactions.
+This is quite common if you wish to use a reduced mechanism or if you believe
+that one of the species is inert at your flow conditions of interest, and
+so would want to remove all reactions involving the transformation of that species.
+Two convenience functions are provided so that you do not have to 
+hack into your input file to remove the unwanted reactions:
+\begin{itemize}
+ \item \texttt{remove\_reactions\_by\_label}
+ \item \texttt{remove\_reactions\_by\_number}
+\end{itemize}
+Both functions will take a single item or an array of items.
+An array is a special form of Lua table which is bracketed
+with braces (\texttt{\{ \}}).
+The first function accepts strings which correspond to the labels
+of reactions.
+The labelling of reactions is explained in the next section.
+The second function accepts integers which correspond to the
+internal numbering.
+The convenience functions must be called \emph{after} the declaration
+of the associated reactions.
+Typically, the user would place the calls to these functions at the end of his input
+file.
+Two examples follow.\\
+%
+\topbar\\
+\texttt{remove\_reactions\_by\_label(\{'r3', 'r5'\})}\\
+\bottombar\\
+This call would remove the reactions labelled \texttt{'r3'} and \texttt{'r5'}\\
+from the list of participating reactions.\\
+\topbar\\
+\texttt{remove\_reactions\_by\_number(13)}\\
+\bottombar\\
+In this call, the 13th listed reaction is removed from the list (because
+we all know that 13 is unlucky, right?)\footnote{Actually, unlike the Americans and their buildings, you don't get rid of 13 that easily.
+If you have more than 13 reactions, the higher numbered reactions will shuffle up one spot
+so that the numbering remains continuous from 1.  This all happens internally.}
+
+Similarly, there are two complementary convenience functions that allow for the selection
+of only certain reactions from the full set:
+\begin{itemize}
+ \item \texttt{select\_reactions\_by\_label}
+ \item \texttt{select\_reactions\_by\_number}
+\end{itemize}
+They work in reverse to the \texttt{remove} functions: these functions
+will only select those reactions listed in their arguments for inclusion in the chemistry scheme.
+
+Note, it is not advisable to mix and match the use of the \texttt{remove} and \texttt{select} functions in the one reaction script.
+The behaviour is untested.
+Now on to the details of the \texttt{reaction} table.
+
+\subsection{Details of the \texttt{reaction} table}
+The \texttt{reaction} table accepts a number of items; some are mandatory, most are not.
+The full list of items is shown here, and each item is described below.
+\begin{verbatim}
+reaction{
+   'equation string',
+   fr={...},
+   br={...},
+   ec='model name',
+   efficiencies={...},
+   label='r1'
+}
+\end{verbatim}
+
+\begin{description}
+  \item[\texttt{'equation string'}] \textit{(mandatory)} \\
+    As mentioned earlier, this string must appear first in the table and has no key associated with it.
+    This string represents the reaction equation.
+    As an example, dissociation of nitrogen may be written as
+\begin{verbatim}
+'N2 + N2 <=> N + N + N2'
+\end{verbatim}
+    If the reaction involves a collision with a general third body,
+    then this is strictly denoted as species \texttt{'M'}.
+    For example, the formation of hydroperoxyl from oxygen and
+    monatomic hydrogen requires the presence of a third body.
+    This reaction is written as
+\begin{verbatim}
+'H + O2 + M <=> HO2 + M'.
+\end{verbatim}
+   The reactants and products are delimited by direction arrows.
+   The use of \texttt{<=>} indicates that the reaction proceeds
+   in both directions, while \texttt{=>} will mean that the reaction
+   proceeds in the forward direction only (no backward
+   rate of conversion will be computed).
+
+\item[\texttt{fr}] \textit{(optional, if \texttt{br} supplied)} \\
+    The \texttt{fr} key is used to specify the forward
+    reaction rate coefficient and expects a table value.
+    The format of the table is a string naming the model followed
+    by key-value pairs giving the parameters for the model.
+    The currently implemented reaction rate coefficient models
+    are listed in Table~\ref{tab:rr_coeffs}, along with their
+    input format.
+\item[\texttt{br}] \textit{(optional, if \texttt{fr} supplied)} \\
+   The \texttt{br} key is used to specify the backward reaction
+   rate coefficient.  It is used in the same manner as the forward
+   rate key (\texttt{fr}).
+\item[\texttt{ec}] \textit{(optional)} \\
+   The \texttt{ec} key is used to specify the model for computing
+   the equilibrium constant.  It accepts a string naming the model.
+   Currently, there is only one model implemented, \texttt{'from thermo'},
+   which calculates the equilibrium constant based on thermodynamic principles.
+   For reversible reactions, if only one of \texttt{fr} or \texttt{br} is specified,
+   then the use of the equilibrium constant is assumed and does not need
+   to be declared. 
+\item[\texttt{efficiencies}] \textit{(optional)} \\
+   If declaring a third body reaction, all species in the mixture are assumed
+   to react with an efficiency of 1.0.
+   The \texttt{efficiencies} key accepts a list of \emph{exceptions} to
+   that assumption of a value of 1.0.
+   The list contains the key-value pairs of the type \texttt{species=efficiency\_value}.
+   For example, to denote that N$_2$ has a 6-fold efficiency value and O$_2$ a value
+   of 3.5, the list would be:
+\begin{verbatim}
+efficiencies={N2=6.0, O2=3.5}
+\end{verbatim}
+  Remember that all species are assumed to have a value of 1.0 unless otherwise
+  noted in the list.
+  If you have a species that does \emph{not} participate as a third body, then
+  be sure to set its efficiency value to 0.0 (e.g. \texttt{H=0.0}).
+\item[\texttt{label}] \textit{(optional)} \\
+  The \texttt{label} accepts a string allowing the user to give the reaction
+  a name.
+  This is useful if one wishes to later remove certain reactions based on
+  their labels using the \texttt{remove\_reactions\_by\_label} convenience
+  function.
+\end{description}
+
+Note that if you specify all three of \texttt{fr}, \texttt{br} and
+\texttt{ec}, you have overspecified the modelling of
+reaction rate coefficients.
+In this case, no error is given.
+Instead, the \texttt{ec} model is ignored.
+
+\begin{table}
+\begin{center}
+ \caption{Reaction rate coefficient models input format}
+ \label{tab:rr_coeffs}
+\begin{tabular}{|p{5cm}|p{9cm}|}
+\hline \hline 
+Model & Format \\ \hline
+generalised Arrhenius
+\[ k = A T^n \exp(-T_a/T) \]
+ & \texttt{\{'Arrhenius', A=..., n=..., T\_a=...\}}
+                         \begin{itemize}
+                          \item \texttt{'Arrhenius'} appears first to name the model
+                          \item \texttt{A=...} is the pre-exponential coefficient given 
+                                               in `cgs' units (because they are most common
+                                               in the chemistry reaction rate literature).
+                          \item \texttt{n=...} is the non-dimensional power for T
+                          \item \texttt{T\_a=...} is the activation temperature in Kelvin.
+                         \end{itemize}
+                         Do not get confused by the appearance of a negative sign in the 
+                         formula; you are required to input the activation barrier temperature
+                         which in the majority of cases is a \emph{positive} value.
+                         On occasion, the activation temperature is negative.
+                         This will be given in the reaction scheme you are following.
+      \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\subsection{Extra control of the chemistry scheme}
+There are a number of details to do with solving the finite-rate chemistry
+problem that are set by default for the user.
+However, all of these parameters may be controlled by the user by setting values in the input file.
+
+Let's first describe the \texttt{scheme} table.
+The user may set values in this table that pertain to the chemistry scheme as a whole.
+In the example input snippet below, the lower temperature limit is set to 300\,K
+and the upper limit is set to 50\,000\,K.
+This value is used to control the temperature limits at which reactions are
+``turned off'', that is, a chemistry increment is not computed in cells where the
+temperature is lower or higher thatn these limits, as the case may be.
+Note that these values are set as part of a subtable, \texttt{temperature\_limits}.\\
+%
+\topbar\\
+\begin{verbatim}
+scheme{
+   temperature_limits = {lower = 300.0,
+                         upper = 50000.0}
+}
+\end{verbatim}
+\bottombar\\
+%
+The \texttt{scheme} table is currently only a container for the temperature limits.
+In future implementations it is planned to contain other options.
+For example, the \texttt{scheme} table will contain options for setting parameters related
+to multi-temperature chemistry schemes.
+
+The other table presently offered to the user is the \texttt{ode\_solver} table which,
+unsuprisingly, contains parameters that allow the user to select details
+about the ODE method used to solve the chemistry system.
+Let's look at an example of its use.\\
+%
+\topbar\\
+\begin{verbatim}
+ode_solver{
+   step_routine = 'qss',
+   max_step_attempts = 4,
+   max_increase_factor = 1.15,
+   max_decrease_factor = 0.01,
+   decrease_factor = 0.333
+}
+\end{verbatim}
+\bottombar\\
+%
+The various parameters in the \texttt{ode\_solver} table are described
+in the list below.
+As an aside, the values shown in the example above are actually the default
+values used when the user does not specify any \texttt{ode\_solver} table.
+\begin{description}
+\item[\texttt{step\_routine}] \hspace{1cm} \\
+   This string sets the ODE stepping method. The available stepping methods are: \\
+   \begin{tabular}{lll}
+    \texttt{'qss'} & : & Mott's $\alpha$-QSS method~\cite{mott_99a} \\
+    \texttt{'rkf'} & : & Runge-Kutta-Fehlberg method~\cite{fehlberg_69a} \\
+    \texttt{'euler'} & : & Euler stepping \\
+   \end{tabular}
+\item[\texttt{max\_step\_attempts}] \hspace{1cm} \\
+    This integer value sets the maximum number of retry attempts the stepping
+    routine will attempt on a single step if the ODE system indicates failure.
+\item[\texttt{max\_increase\_factor}] \hspace{1cm} \\
+    This value is used to control the maximum factor the chemistry timestep
+    will increase when the step is successful.  The \texttt{'qss'} and \texttt{'rkf'}
+    methods can suggest their own timestep increase. However, the increase will
+    be calculated as \texttt{MIN(suggestion, max\_increase\_factor)}.
+\item[\texttt{max\_decrease\_factor}] \hspace{1cm} \\
+    This value is used to control the maximum amount of decrease or reduction
+    in timestep that occurs.  It is computed as \texttt{MAX(suggestion, max\_decrease\_factor)}.
+\item[\texttt{decrease\_factor}] \hspace{1cm} \\
+    Occasionally, the step fails and yet the step routines suggests using a \emph{larger}
+    timestep for the retry.  In this case, the \texttt{decrease\_factor} is used to reduce
+    the timestep size for the retry attempt.
+\end{description}
+
+

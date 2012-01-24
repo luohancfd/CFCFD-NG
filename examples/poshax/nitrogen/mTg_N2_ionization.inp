@@ -1,0 +1,89 @@
+[global]
+
+number_of_species = 5
+species = N2 N N2+ N+ e-
+
+[N2]
+type = diatomic nonpolar
+oscillator_type = truncated
+h_f = 0.0
+mol_weight = 28.0134000e-3
+theta_v = 3354.0
+g_es     = 1    3
+theta_es = 0.0 72213.6
+r0      = 4.2e-10
+eps0    = 1.101765084e-21
+#r0       = 3.749e-10
+r_eq    = 1.10e-10
+f_m     = 1.0
+polarizability = 1.09
+Np = 34
+
+[N]
+type = atom
+h_f  = 33746706.9
+mol_weight = 14.0067000e-3
+g_es     = 4    10
+theta_es = 0.0  27664.7
+
+[N2+]
+type = diatomic nonpolar
+oscillator_type = truncated
+h_f = 53886282.49
+mol_weight = 28.0128514e-3
+theta_v = 3129.2
+Np = 35
+g_es     = 2   4
+theta_es = 0.0 13190.0
+# The following values are just taken from N2
+# they aren't important as SSH theory is not
+# being used to calculate vibrational relaxation
+# times assoaciated with N2+
+eps0    = 1.101765084e-21
+r0       = 3.749e-10
+r_eq    = 1.116e-10 # correct value from Gurvich et al.
+f_m     = 1.0
+polarizability = 1.09
+
+[N+]
+type = atom
+h_f = 134378643.3
+mol_weight = 14.0061514e-3
+g_es = 1 3
+theta_es = 0.0 70.068
+
+[e-]
+type = electron
+mol_weight = 0.000548579903e-3
+h_f = 0.0
+
+[energy_exchange]
+vibrational_species = N2 N2+
+ode_method = rkf
+
+[energy_exchange/N2]
+no_mechanisms = 2
+
+[energy_exchange/N2/0]
+# N2-N VT
+type = VT_exchange
+relaxation_time = VT_curve_fit2
+p = N2
+ip = 0
+iq = 1
+B = 70.3
+C = 24.35
+
+[energy_exchange/N2/1]
+# N2-N2 VT
+type = VT_exchange
+relaxation_time = VT_SSH
+p = N2
+q = N2
+
+[energy_exchange/N2+]
+no_mechanisms = 0
+equilibriated_with = 0
+
+
+

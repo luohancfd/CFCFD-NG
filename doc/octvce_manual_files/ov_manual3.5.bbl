@@ -1,0 +1,143 @@
+\begin{thebibliography}{10}
+
+\bibitem{Anderson:ao}
+J~G Anderson, G~Katselis, and C~Caputo.
+\newblock Analysis of a {G}eneric {W}arhead {P}art {I}: {E}xperimental and
+  {C}omputational {A}ssessment of {F}ree {F}ield {O}verpressure, 2002.
+\newblock {DSTO} {W}eapons {S}ystems {D}ivision, {A}ustralia, {DSTO}-{TR}-1313.
+
+\bibitem{book:vtkmanual}
+L~S Avila.
+\newblock {\em The {VTK} user's guide}.
+\newblock Kitware, Inc., Clifton Park, NY, 2004.
+
+\bibitem{Baker:io}
+E~L Baker and D~L Littlefield.
+\newblock {I}mplementation of a {H}igh {E}xplosive {E}quation of {S}tate into
+  an {E}ulerian {H}ydrocode.
+\newblock In {\em AIP Conference Proceedings}, volume 706, pages 375--378,
+  2004.
+
+\bibitem{Baker:im}
+E~L Baker and L~I Stiel.
+\newblock {I}mproved {Q}uantitative {E}xplosive {P}erformance {P}rediction
+  {U}sing {J}aguar.
+\newblock In {\em Insensitive Munitions and Energetic Materials Technology
+  Symposium, Tampa, FL}, 1997.
+
+\bibitem{Barth:ou}
+T~J Barth.
+\newblock On {U}nstructured {G}rids and {S}olvers, 1990.
+\newblock von {K}arman {I}nstitute for {F}luid {D}ynamics, {L}ecture {S}eries
+  1990--03.
+
+\bibitem{openmp:manual}
+Open{MP} Architecture~Review Board.
+\newblock Open{MP} {C} and {C}++ {A}pplication {P}rogram {I}nterface, 2002.
+\newblock Version 2.0.
+
+\bibitem{Chapman:bw}
+T~C Chapman, T~A Rose, and P~D Smith.
+\newblock Blast wave simulation using {AUTODYN2D}: a parametric study.
+\newblock {\em International Journal of Impact Engineering}, 16(5/6):777--787,
+  1995.
+
+\bibitem{charl:ao}
+E~F Charlton.
+\newblock {\em An Octree Solution to Conservation--laws over Arbitrary Regions
+  (OSCAR) with Applications to Aircraft Aerodynamics}.
+\newblock PhD thesis, The University of Michigan, 1997.
+
+\bibitem{Landsberg:tv}
+A~M Landsberg and J~P Boris.
+\newblock The {V}irtual {C}ell {E}mbedding method: a simple approach for
+  gridding complex geometries, 1997.
+\newblock AIAA--97--1982.
+
+\bibitem{Lee:ae}
+E~L Lee, H~C Horning, and J~W Kury.
+\newblock Adiabatic {E}xpansion of {H}igh {E}xplosive {D}etonation {P}roducts,
+  1968.
+\newblock University of California Report No. UCRL--50422.
+
+\bibitem{Liou:an}
+M~S Liou and C~J Steffen.
+\newblock A new flux splitting scheme.
+\newblock {\em Journal of Computational Physics}, 107:23--39, 1993.
+
+\bibitem{Mader:book}
+C~L Mader.
+\newblock {\em Numerical modeling of explosives and propellants}.
+\newblock CRC Press, Boca Raton, 1998.
+
+\bibitem{Pullin:ds}
+D~I Pullin.
+\newblock Direct {S}imulation {M}ethods for {C}ompressible {I}nviscid
+  {I}deal-{G}as {F}low.
+\newblock {\em Journal of Computational Physics}, 34(2):231--244, 1980.
+
+\bibitem{Quirk:ac2}
+J~J Quirk.
+\newblock A {C}ontribution to the {G}reat {R}iemann {S}olver {D}ebate.
+\newblock {\em International Journal for Numerical Methods in Fluids},
+  18(6):555--574, 1994.
+
+\bibitem{Roache:book}
+P~J Roache.
+\newblock {\em Verification and Validation in Computational Science and
+  Engineering}.
+\newblock Hermosa Publishers, Albuquerque, New Mexico, 1998.
+
+\bibitem{Rose:thesis}
+T~A Rose.
+\newblock {\em An Approach to the Evaluation of Blast Loads on Finite and
+  Semi-Infinite Structures}.
+\newblock PhD thesis, Cranfield University, Engineering Systems Department,
+  2001.
+
+\bibitem{Roy:ro}
+C~J Roy.
+\newblock Review of code and solution verification procedures for computational
+  simulation.
+\newblock {\em Journal of Computational Physics}, 205:131--156, 2005.
+
+\bibitem{Rigas:cs}
+S~Sklavounos and F~Rigas.
+\newblock Computer simulation of shock waves transmission in obstructed
+  terrains.
+\newblock {\em Journal of Loss Prevention in the Process Industries},
+  17:407--417, 2004.
+
+\bibitem{Tang:asm}
+J~Tang.
+\newblock A simple axisymmetric extension to {V}irtual {C}ell {E}mbedding,
+  2007.
+\newblock Submitted to the International Journal for Numerical Methods in
+  Fluids.
+
+\bibitem{Tang:tm}
+J~Tang.
+\newblock Theory manual to {O}ct{VCE} -- a cartesian cell {CFD} code with
+  special application to blast wave problems, 2007.
+\newblock University of Queensland Mechanical Engineering Report 2007/12.
+
+\bibitem{Thompson:bcs}
+K~W Thompson.
+\newblock {T}ime-{D}ependent {B}oundary {C}onditions for {H}yperbolic
+  {S}ystems, {II}.
+\newblock {\em Journal of Computational Physics}, 89(2):439--461, 1990.
+
+\bibitem{Timofeev:au}
+E~Timofeev, P~Voinovich, and K~Takayama.
+\newblock {A}daptive {U}nstructured {S}imulation of {T}hree--{D}imensional
+  {B}last waves with {G}round {S}urface {E}ffect.
+\newblock In {\em 36th Aerospace Sciences Meeting and Exhibit}, 1998.
+\newblock AIAA 98--0544.
+
+\bibitem{Wada:af}
+Y~Wada and M~S Liou.
+\newblock A {F}lux {S}plitting {S}cheme with {H}igh-{R}esolution and
+  {R}obustness for {D}iscontinuities, 1994.
+\newblock AIAA 94--0083.
+
+\end{thebibliography}

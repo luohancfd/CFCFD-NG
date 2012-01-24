@@ -1,0 +1,104 @@
+% sawada-sphere.tex
+
+\newpage
+\section{Flow of equilibrium air over a sphere}
+\index{gas model!look-up table!example of use}
+%
+This example is a good starting-point for the modelling of 
+hypersonic flow over blunt bodies. 
+It shows the use of arcs and the use of a look-up table 
+as the equation of state for a gas in chemical equilibrium but
+it remains geometrically simple by using a single-block grid.
+Also, the .py file makes use of the Python language to parameterize
+the simulation's specification.
+
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=10cm,viewport=41 69 346 388,clip=true]{../2D/sawada_sphere/ss3-layout.pdf}
+\end{center}
+\caption{Schematic diagram of the geometry for a sphere 
+         wrapped by a single-block grid.}
+\label{sawada-geometry-fig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=12cm]{../2D/sawada_sphere/ss3-mesh.png}
+\end{center}
+\caption{Mesh for flow over a sphere.}
+\label{sawada-mesh-fig}
+\end{figure}
+
+\medskip
+The free-stream condition ($p_{\infty} = 20$\,kPa, $T_{\infty} = 296$\,K,
+$u_{\infty} = 4.68$\,km/s) corresponds to Case 3 in 
+Ref.~\cite{sawada_dendou_2001a} with $M_{\infty} = 13.6$.
+According to Sawada \& Dendou  \cite{sawada_dendou_2001a}, the air is close
+to being in chemical equilibrium and there is a very thin boundary layer. 
+The results show that the inviscid simulation does indeed capture some 
+of the high-temperature chemistry influence.
+Ideal stagnation temperature would be 11204\,K whereas the simulated
+temperature along the stagnation line rises to only 6081\,K. 
+Secondly, the stand-off distance for an ideal gas is expected to be
+approximately 4.63\,mm.
+In Fig.~\ref{sawada-T-field-fig} the simulated shock 
+stand-off distance is 2.66\,mm near the stagnation point.
+This is within 3\% of the experimental value obtained by D.\,Reda in
+Sandia's Ballistics Range (see \cite{sawada_dendou_2001a}).
+
+\begin{figure}[htbp]
+\begin{center}
+\mbox{
+\includegraphics[width=0.5\textwidth]{../2D/sawada_sphere/ss3-T-field.png}
+\includegraphics[width=0.5\textwidth]{../2D/sawada_sphere/ss3-S-field.png}
+}
+\end{center}
+\caption{Temperature field and shock-detector (S) for equilibrium-air flow over a sphere.}
+\label{sawada-T-field-fig}
+\end{figure}
+
+
+\subsection{Input script (.py)}
+\topbar
+\lstinputlisting[language={}]{../2D/sawada_sphere/ss3.py}
+\bottombar
+
+\newpage
+\subsection{Shell scripts}
+\label{sawada-sh-files}
+The \texttt{ss3\_setup\_lut.sh} script assumes a ``standard'' location
+for the \texttt{e3bin} directories in order to find the files for the look-up-table gas model.
+The first form of the look-up-table has been generated as a regular array 
+of sample points over ranges of density and temperature.
+When reformatting the table to have a regular array of data points over
+density and internal-energy, there is an option \texttt{--extrapolate} to instruct
+the program to extrapolate when necessary.
+When this option is not given, the final table covers smaller ranges
+of density and internal-energy that fall completely within the original sampled data.\\
+\topbar
+\lstinputlisting[language={}]{../2D/sawada_sphere/ss3_setup_lut.sh}
+\bottombar
+
+\noindent
+\topbar
+\lstinputlisting[language={}]{../2D/sawada_sphere/ss3_run_py.sh}
+\bottombar
+
+\noindent
+\topbar
+\lstinputlisting[language={}]{../2D/sawada_sphere/ss3_post.sh}
+\bottombar
+
+\newpage
+\subsection{Notes}
+\begin{itemize}
+\item Going back a couple of years, the mbcns2 simulation finished at 
+      a final time of 67.95\,$\mu$s in 4548 steps and,
+      on a Pentium-M 1.73\,Ghz system, this took 5\,min, 6\,s of CPU time.
+      Eilmer3 is a bit slower, requiring 8\,min, 38\,s of CPU time
+      on a Pentium E2140 (1.6\,GHz) for 4556 steps.
+\item Awk script for extracting the shock location from the stagnation-line
+      flow data.
+      \lstinputlisting[language={}]{../2D/sawada_sphere/locate_shock.awk}
+\end{itemize}

@@ -1,0 +1,92 @@
+% evaluation_template.tex
+
+\newpage
+\section{Evaluation template}
+%
+Use this evaluation template for all test cases.
+
+%------------------------------------------------------------------
+\subsection{Details of flow problem}
+%\label{}
+%
+Details of (or references to) the specific flow problem should include:
+\begin{itemize}
+\item Flowfield physical and computational geometry
+\item Relevant physics, eg. ideal gas vs thermochemistry
+\item Boundary conditions (inflow, outflow, solid wall, incoming boundary
+      layer thickness, freestream turbulence intensities, freestream
+      dissipation rate, etc.)
+\item Fully laminar, transitional or full turbulent flow
+\item Measurement techniques for obtaining experimental data
+\item Type of experimental or theoretical data available for comparisons
+      and their respective errors
+\end{itemize}
+
+%------------------------------------------------------------------
+\subsection{Turbulence models examined}
+%\label{}
+%
+Full details of turbulence model used. Should also include:
+\begin{itemize}
+\item Which form is the model in? Low-Reynolds form?
+\item What is treatment for near wall regions?
+      Integration to wall or wall functions?
+\end{itemize}
+
+\medskip
+This should already be mentioned in the introduction section.
+
+%------------------------------------------------------------------
+\subsection{Model implementation issues}
+%\label{}
+%
+Should include:
+\begin{itemize}
+\item Form of governing equations used (Full Navier-Stokes, parabolised
+      Navier-Stokes, or ??)
+\item Boundary conditions employed (for both flow and turbulence
+      properties)
+\item Any limiting of turbulence quantities (eg. ratio of production-to-
+      dissipation of turbulence kinetic energy)?
+\item Any realisability constraints on turbulence variables and/or
+      normal turbulent stresses?
+\end{itemize}
+
+\medskip
+This should already be mentioned in the introduction section.
+
+%-----------------------------------------------------------------
+\subsection{Efforts to establish numerical accuracy}
+%\label{}
+%
+Should include:
+\begin{itemize}
+\item First and foremost - code verification.
+\item Assess errors due to incomplete iterative convergence (for steady-
+      state cases only)
+\item Assess grid convergence errors
+\end{itemize}
+
+%------------------------------------------------------------------
+\subsection{Turbulence model sensitivities}
+%\label{}
+%
+Should include:
+\begin{itemize}
+\item Sensitivity to y+ values
+\item Sensitivity to freestream turbulence values (inflow turbulence 
+      intensity and inflow turbulent-to-laminar-viscosity-ratio)
+\end{itemize}
+
+%------------------------------------------------------------------
+\subsection{Turbulence model validation results}
+%\label{}
+%
+Should include:
+\begin{itemize}
+\item Results to be presented in a quantitative, rather than a 
+      qualitative manner. (eg. \% error stated or plotted explicitly)
+\item Experimental error bounds should be plotted for validation
+\end{itemize}
+
+%------------------------------------------------------------------

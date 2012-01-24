@@ -1,0 +1,72 @@
+Eilmer3 FAQ
+===========
+:Author: Peter_Jacobs and Rowan_Gollan
+:Email: peterj@mech.uq.edu.au 
+
+A catch-all for notes and emails that contain answers which haven't 
+made it into the main documents... yet.
+
+Flow Solver
+-----------
+*Q:* I have N blocks in my simulation and I wish to run parallel.  What happens if:
+ (a) I use less than N processes in my MPI request? is that OK?
+ (b) I use more than N processes in my MPI request?
+
+*A:* The MPI version of the code assigns one MPI process to each block so
+ (a) using fewer processes is asking for trouble and a failed simulation;
+ (b) starting more processes is also going to get trouble because the extra
+ processes will not have valid data to work with and we'll probably have
+ array over runs, etc.
+
+If, however, you reserve more process slots than necerssary in a batch job
+on barrine but do start the MPI run with the correct number of processes for 
+the number of blocks, the job should run fine.
+Of course, the HPCU people will be less than impressed with the waste of their
+machine resources. *(PJ)*
+
+
+Postprocessing
+--------------
+*Q:* How do I get the value for thermal conductivity at the wall?
+
+*A:* You can use the value in the adjacent cell.  
+If you have sufficient resolution of the boundary layer, 
+the value in the adjacent cell should be accurate 
+for a heat transfer calculation. *(RJG)*
+
+Chemistry
+---------
+*Q:* How does the chemistry module choose a timestep and why is its 
+behaviour somewhat erratic?
+
+*A:* It's erratic in an attempt to be both efficient and robust.
+
+In each fluid dynamic cell, the chemistry problem is computed with its 
+own, often much smaller, timestep.  That chemistry timestep is recorded 
+at the end of the update for use in the next iteration. In the next 
+fluid dynamic timestep, the flow has moved on so the old recorded 
+chemistry timestep may not be entirely appropriate. For the majority of 
+cells, and for the majority of the simulation, the old timestep is a 
+GOOD guess.  However, when the flow has changed a lot between timesteps 
+(think shocks or strong waves), the old timestep may be entirely 
+inappropriate.  In these instances, when the chemistry fails, it drops 
+the timestep a lot in order to be robust.  This however adds to the 
+simulation time.
+
+Also, whenever the chemistry is successful it tries to increase the 
+chemistry timestep.  It will keep pushing it up and up and up, then at 
+some point it fails and will drop by an order of magnitude or so.  So 
+sometimes when you restart a simulation, you may have cells that were on 
+that cusp of allowable chemistry step and then drop back to a small 
+timestep because the chemistry ODE problem failed in that step.
+
+Rowan has spent a lot of 
+time tweaking the behaviour of that chemistry timestep selection that 
+would give a good balance of efficiency and robustness.  Note this is 
+all to do with the chemistry timestep.  This is not something that the 
+user controls (or would want to control).
+
+By the way, all of this holds true for the thermal timestep if you have 
+multi-temperature simulations. *(RJG)*
+
+

@@ -1,0 +1,467 @@
+This is pdfTeX, Version 3.14159-1.10b (Web2C 7.4.5) (format=pdflatex 2004.3.25)  9 AUG 2007 15:53
+**ov_manual3.5.tex
+(./ov_manual3.5.tex{/usr/share/texmf/pdftex/config/pdftex.cfg}
+LaTeX2e <2001/06/01>
+Babel <v3.7h> and hyphenation patterns for american, french, german, ngerman, n
+ohyphenation, loaded.
+(/usr/share/texmf/tex/latex/base/report.cls
+Document Class: report 2001/04/21 v1.4e Standard LaTeX document class
+(/usr/share/texmf/tex/latex/base/size12.clo
+File: size12.clo 2001/04/21 v1.4e Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@chapter=\count80
+\c@section=\count81
+\c@subsection=\count82
+\c@subsubsection=\count83
+\c@paragraph=\count84
+\c@subparagraph=\count85
+\c@figure=\count86
+\c@table=\count87
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+(/usr/share/texmf/tex/latex/graphics/graphicx.sty
+Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texmf/tex/latex/graphics/keyval.sty
+Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
+\KV@toks@=\toks14
+)
+(/usr/share/texmf/tex/latex/graphics/graphics.sty
+Package: graphics 2001/07/07 v1.0n Standard LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texmf/tex/latex/graphics/trig.sty
+Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
+)
+(/usr/share/texmf/tex/latex/config/graphics.cfg
+File: graphics.cfg 2001/08/31 v1.1 graphics configuration of teTeX/TeXLive
+)
+Package graphics Info: Driver file: pdftex.def on input line 80.
+
+(/usr/share/texmf/tex/latex/graphics/pdftex.def
+File: pdftex.def 2002/06/19 v0.03k graphics/color for pdftex
+\Gread@gobject=\count88
+))
+\Gin@req@height=\dimen103
+\Gin@req@width=\dimen104
+)
+(/usr/share/texmf/tex/latex/amsmath/amsmath.sty
+Package: amsmath 2000/07/18 v2.13 AMS math features
+\@mathmargin=\skip43
+
+For additional information on amsmath, use the `?' option.
+(/usr/share/texmf/tex/latex/amsmath/amstext.sty
+Package: amstext 2000/06/29 v2.01
+
+(/usr/share/texmf/tex/latex/amsmath/amsgen.sty
+File: amsgen.sty 1999/11/30 v2.0
+\@emptytoks=\toks15
+\ex@=\dimen105
+))
+(/usr/share/texmf/tex/latex/amsmath/amsbsy.sty
+Package: amsbsy 1999/11/29 v1.2d
+\pmbraise@=\dimen106
+)
+(/usr/share/texmf/tex/latex/amsmath/amsopn.sty
+Package: amsopn 1999/12/14 v2.01 operator names
+)
+\inf@bad=\count89
+LaTeX Info: Redefining \frac on input line 211.
+\uproot@=\count90
+\leftroot@=\count91
+LaTeX Info: Redefining \overline on input line 307.
+\classnum@=\count92
+\DOTSCASE@=\count93
+LaTeX Info: Redefining \ldots on input line 379.
+LaTeX Info: Redefining \dots on input line 382.
+LaTeX Info: Redefining \cdots on input line 467.
+\Mathstrutbox@=\box26
+\strutbox@=\box27
+\big@size=\dimen107
+LaTeX Font Info:    Redeclaring font encoding OML on input line 567.
+LaTeX Font Info:    Redeclaring font encoding OMS on input line 568.
+\macc@depth=\count94
+\c@MaxMatrixCols=\count95
+\dotsspace@=\muskip10
+\c@parentequation=\count96
+\dspbrk@lvl=\count97
+\tag@help=\toks16
+\row@=\count98
+\column@=\count99
+\maxfields@=\count100
+\andhelp@=\toks17
+\eqnshift@=\dimen108
+\alignsep@=\dimen109
+\tagshift@=\dimen110
+\tagwidth@=\dimen111
+\totwidth@=\dimen112
+\lineht@=\dimen113
+\@envbody=\toks18
+\multlinegap=\skip44
+\multlinetaggap=\skip45
+\mathdisplay@stack=\toks19
+LaTeX Info: Redefining \[ on input line 2666.
+LaTeX Info: Redefining \] on input line 2667.
+)
+(/usr/share/texmf/tex/latex/misc/subfigure.sty
+Package: subfigure 2002/07/30 v2.1.4 subfigure package
+\subfigtopskip=\skip46
+\subfigcapskip=\skip47
+\subfigcaptopadj=\dimen114
+\subfigbottomskip=\skip48
+\subfigcapmargin=\dimen115
+\subfiglabelskip=\skip49
+\c@subfigure=\count101
+\c@lofdepth=\count102
+\c@subtable=\count103
+\c@lotdepth=\count104
+\subfig@top=\skip50
+\subfig@bottom=\skip51
+)
+(/usr/share/texmf/tex/latex/misc/geometry.sty
+Package: geometry 2002/07/08 v3.2 Page Geometry
+\Gm@cnth=\count105
+\Gm@cntv=\count106
+\c@Gm@tempcnt=\count107
+\Gm@bindingoffset=\dimen116
+\Gm@wd@mp=\dimen117
+\Gm@odd@mp=\dimen118
+\Gm@even@mp=\dimen119
+\Gm@dimlist=\toks20
+
+(/usr/share/texmf/tex/latex/config/geometry.cfg
+File: geometry.cfg 2001/06/05 v1.0 teTeX (uncustomised setup)
+)) (./ov_manual3.5.aux)
+\openout1 = `ov_manual3.5.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+
+(/usr/share/texmf/tex/context/base/supp-pdf.tex
+(/usr/share/texmf/tex/context/base/supp-mis.tex
+loading : Context Support Macros / Missing
+\protectiondepth=\count108
+\scratchcounter=\count109
+\scratchtoks=\toks21
+\scratchdimen=\dimen120
+\scratchskip=\skip52
+\scratchmuskip=\muskip11
+\scratchbox=\box28
+\scratchread=\read1
+\scratchwrite=\write3
+\zeropoint=\dimen121
+\minusone=\count110
+\thousandpoint=\dimen122
+\emptytoks=\toks22
+\nextbox=\box29
+\nextdepth=\dimen123
+\everyline=\toks23
+\!!counta=\count111
+\!!countb=\count112
+\recursecounter=\count113
+)
+loading : Context Support Macros / PDF
+\nofMPsegments=\count114
+\nofMParguments=\count115
+\everyMPtoPDFconversion=\toks24
+)
+-------------------- Geometry parameters
+paper: a4paper
+landscape: --
+twocolumn: --
+twoside: --
+asymmetric: --
+h-parts: 56.90552pt, 483.69684pt, 56.90552pt
+v-parts: 64.87228pt, 682.86613pt, 97.30843pt
+hmarginratio: 1:1
+vmarginratio: 2:3
+lines: --
+heightrounded: --
+bindingoffset: 0.0pt
+truedimen: --
+includehead: --
+includefoot: --
+includemp: --
+driver: pdftex
+-------------------- Page layout dimensions and switches
+\paperwidth  597.50787pt
+\paperheight 845.04684pt
+\textwidth  483.69684pt
+\textheight 682.86613pt
+\oddsidemargin  -15.36447pt
+\evensidemargin -15.36447pt
+\topmargin  -44.3977pt
+\headheight 12.0pt
+\headsep    25.0pt
+\footskip   30.0pt
+\marginparwidth 35.0pt
+\marginparsep   10.0pt
+\columnsep  10.0pt
+\skip\footins  10.8pt plus 4.0pt minus 2.0pt
+\hoffset 0.0pt
+\voffset 0.0pt
+\mag 1000
+
+(1in=72.27pt, 1cm=28.45pt)
+-----------------------
+ [1
+
+{/usr/share/texmf/dvips/config/pdftex.map}] [1] (./ov_manual3.5.toc
+[1
+
+])
+\tf@toc=\write4
+\openout4 = `ov_manual3.5.toc'.
+
+ [2] (./ov_manual3.5.lof)
+\tf@lof=\write5
+\openout5 = `ov_manual3.5.lof'.
+
+ [3
+
+]
+Chapter 1.
+[4
+
+]
+<../../paper_2006/pics/VCE_subcell_eg.jpg, id=38, 1995.455pt x 1495.5875pt>
+File: ../../paper_2006/pics/VCE_subcell_eg.jpg Graphic file (type jpg)
+
+<use ../../paper_2006/pics/VCE_subcell_eg.jpg>
+<pics/VCE_staircase.jpg, id=39, 885.3075pt x 741.77126pt>
+File: pics/VCE_staircase.jpg Graphic file (type jpg)
+
+<use pics/VCE_staircase.jpg>
+<pics/VCE_smooth.jpg, id=40, 673.51625pt x 522.95375pt>
+File: pics/VCE_smooth.jpg Graphic file (type jpg)
+
+<use pics/VCE_smooth.jpg>
+<pics/octree_diag.jpg, id=41, 1297.84875pt x 565.11125pt>
+File: pics/octree_diag.jpg Graphic file (type jpg)
+
+<use pics/octree_diag.jpg> [5 <../../paper_2006/pics/VCE_subcell_eg.jpg> <./pic
+s/VCE_staircase.jpg> <./pics/VCE_smooth.jpg> <./pics/octree_diag.jpg>] [6]
+[7]
+Chapter 2.
+
+Overfull \hbox (1.64435pt too wide) in paragraph at lines 190--193
+/cmr12/OctVCE works best un-der a Unix or Linux sys-tem. To com-pile OctVCE, bo
+th the []/cmtt12/Octvce3.5.$/cmmi12/?$[]/cmtt12//
+ []
+
+[8
+
+]
+Chapter 3.
+[9
+
+]
+Overfull \hbox (3.66585pt too wide) in paragraph at lines 294--296
+[][]/cmtt12/Adapt every how many time steps (enter '0' for no adaptation): /cmr
+12/-- if adap-
+ []
+
+
+Overfull \hbox (2.1392pt too wide) in paragraph at lines 302--304
+[][]/cmtt12/If error indicator type is 1 or 3 - compression threshold: /cmr12/-
+- a value from
+ []
+
+[10] [11]
+Overfull \hbox (0.54623pt too wide) in paragraph at lines 356--358
+[][]/cmtt12/Wall representation ('0' for staircased, '1' for smoothed): /cmr12/
+-- as writ-ten,
+ []
+
+<pics/ov_par_template.jpg, id=92, 1409.265pt x 2860.6875pt>
+File: pics/ov_par_template.jpg Graphic file (type jpg)
+
+<use pics/ov_par_template.jpg> [12] [13 <./pics/ov_par_template.jpg>]
+<pics/VTP_cube_file.jpg, id=99, 2010.51125pt x 1249.66875pt>
+File: pics/VTP_cube_file.jpg Graphic file (type jpg)
+
+<use pics/VTP_cube_file.jpg>
+<pics/PVTP_file.jpg, id=100, 1986.42125pt x 592.2125pt>
+File: pics/PVTP_file.jpg Graphic file (type jpg)
+
+<use pics/PVTP_file.jpg> [14 <./pics/VTP_cube_file.jpg>]
+<pics/flush_wall.jpg, id=107, 1231.60126pt x 1233.60875pt>
+File: pics/flush_wall.jpg Graphic file (type jpg)
+
+<use pics/flush_wall.jpg> [15 <./pics/PVTP_file.jpg> <./pics/flush_wall.jpg>]
+<pics/ov_IC_template.jpg, id=111, 1848.9075pt x 1940.24875pt>
+File: pics/ov_IC_template.jpg Graphic file (type jpg)
+
+<use pics/ov_IC_template.jpg> [16] [17 <./pics/ov_IC_template.jpg>]
+<pics/ov_gas_template.jpg, id=119, 2018.54124pt x 2464.20625pt>
+File: pics/ov_gas_template.jpg Graphic file (type jpg)
+
+<use pics/ov_gas_template.jpg> [18] [19 <./pics/ov_gas_template.jpg>]
+<pics/ov_BC_template.jpg, id=126, 1683.28876pt x 2336.73pt>
+File: pics/ov_BC_template.jpg Graphic file (type jpg)
+
+<use pics/ov_BC_template.jpg> [20 <./pics/ov_BC_template.jpg>]
+<pics/ov_BC_template2.jpg, id=130, 1444.39626pt x 2154.0475pt>
+File: pics/ov_BC_template2.jpg Graphic file (type jpg)
+
+<use pics/ov_BC_template2.jpg>
+<pics/deton_template.jpg, id=131, 1934.22626pt x 1050.92625pt>
+File: pics/deton_template.jpg Graphic file (type jpg)
+
+<use pics/deton_template.jpg> [21 <./pics/ov_BC_template2.jpg>]
+<pics/twoD_thickness.jpg, id=135, 1326.9575pt x 1526.70375pt>
+File: pics/twoD_thickness.jpg Graphic file (type jpg)
+
+<use pics/twoD_thickness.jpg> [22 <./pics/deton_template.jpg> <./pics/twoD_thic
+kness.jpg>] [23]
+Chapter 4.
+[24
+
+] [25] [26]
+Chapter 5.
+[27
+
+] [28]
+Appendix A.
+<pics/b1d_ic_template.jpg, id=158, 892.33376pt x 845.1575pt>
+File: pics/b1d_ic_template.jpg Graphic file (type jpg)
+
+<use pics/b1d_ic_template.jpg> [29
+
+ <./pics/b1d_ic_template.jpg>]
+<pics/b1d_par_template.jpg, id=163, 2014.52625pt x 1239.63126pt>
+File: pics/b1d_par_template.jpg Graphic file (type jpg)
+
+<use pics/b1d_par_template.jpg>
+Overfull \hbox (3.03764pt too wide) in paragraph at lines 949--950
+[][]/cmtt12/Dump history locations every how many time steps =  /cmr12/-- how o
+f-ten should the pres-
+ []
+
+[30 <./pics/b1d_par_template.jpg>]
+Appendix B.
+<pics/cone_eg/geom.jpg, id=167, 602.25pt x 510.90875pt>
+File: pics/cone_eg/geom.jpg Graphic file (type jpg)
+
+<use pics/cone_eg/geom.jpg> [31
+
+] [32 <./pics/cone_eg/geom.jpg>]
+<pics/cmd_exe_cone.jpg, id=174, 1960.32375pt x 142.5325pt>
+File: pics/cmd_exe_cone.jpg Graphic file (type jpg)
+
+<use pics/cmd_exe_cone.jpg>
+<pics/cone_output.jpg, id=175, 1921.1775pt x 575.14874pt>
+File: pics/cone_output.jpg Graphic file (type jpg)
+
+<use pics/cone_output.jpg>
+<pics/cone_eg/cone0.jpg, id=176, 602.25pt x 510.90875pt>
+File: pics/cone_eg/cone0.jpg Graphic file (type jpg)
+
+<use pics/cone_eg/cone0.jpg>
+<../../paper_axisym_2006/pics/cone64-1_5.jpg, id=177, 618.31pt x 564.1075pt>
+File: ../../paper_axisym_2006/pics/cone64-1_5.jpg Graphic file (type jpg)
+
+<use ../../paper_axisym_2006/pics/cone64-1_5.jpg>
+<../../paper_axisym_2006/pics/cone64-1_5_final.jpg, id=178, 515.9275pt x 564.10
+75pt>
+File: ../../paper_axisym_2006/pics/cone64-1_5_final.jpg Graphic file (type jpg)
+
+ <use ../../paper_axisym_2006/pics/cone64-1_5_final.jpg> [33 <./pics/cmd_exe_co
+ne.jpg> <./pics/cone_output.jpg>]
+<pics/smith_barrier_eg/sgeom.jpg, id=182, 602.25pt x 510.90875pt>
+File: pics/smith_barrier_eg/sgeom.jpg Graphic file (type jpg)
+
+<use pics/smith_barrier_eg/sgeom.jpg> [34 <./pics/cone_eg/cone0.jpg> <../../pap
+er_axisym_2006/pics/cone64-1_5.jpg> <../../paper_axisym_2006/pics/cone64-1_5_fi
+nal.jpg>] <pics/cmd_exe_barrier1.jpg, id=186, 1930.21124pt x 184.69pt>
+File: pics/cmd_exe_barrier1.jpg Graphic file (type jpg)
+
+<use pics/cmd_exe_barrier1.jpg>
+<pics/barrier_output.jpg, id=187, 1970.36125pt x 555.07375pt>
+File: pics/barrier_output.jpg Graphic file (type jpg)
+
+<use pics/barrier_output.jpg> [35 <./pics/smith_barrier_eg/sgeom.jpg> <./pics/c
+md_exe_barrier1.jpg>]
+<../../Simulation_pics/smith_grid0.jpg, id=192, 662.475pt x 529.98pt>
+File: ../../Simulation_pics/smith_grid0.jpg Graphic file (type jpg)
+
+<use ../../Simulation_pics/smith_grid0.jpg>
+<../../Simulation_pics/smith_r_cont1.jpg, id=193, 531.9875pt x 529.98pt>
+File: ../../Simulation_pics/smith_r_cont1.jpg Graphic file (type jpg)
+
+<use ../../Simulation_pics/smith_r_cont1.jpg>
+<../../Simulation_pics/smith_grid1.jpg, id=194, 531.9875pt x 529.98pt>
+File: ../../Simulation_pics/smith_grid1.jpg Graphic file (type jpg)
+
+<use ../../Simulation_pics/smith_grid1.jpg>
+<../../Simulation_pics/smith_r_cont2b_nonreflect.jpg, id=195, 642.4pt x 564.107
+5pt>
+File: ../../Simulation_pics/smith_r_cont2b_nonreflect.jpg Graphic file (type jp
+g)
+ <use ../../Simulation_pics/smith_r_cont2b_nonreflect.jpg>
+<../../Simulation_pics/Smith_barrier.jpg, id=196, 772.5663pt x 555.7563pt>
+File: ../../Simulation_pics/Smith_barrier.jpg Graphic file (type jpg)
+
+<use ../../Simulation_pics/Smith_barrier.jpg> [36 <./pics/barrier_output.jpg>]
+[37 <../../Simulation_pics/smith_grid0.jpg> <../../Simulation_pics/smith_r_cont
+1.jpg> <../../Simulation_pics/smith_grid1.jpg> <../../Simulation_pics/smith_r_c
+ont2b_nonreflect.jpg> <../../Simulation_pics/Smith_barrier.jpg>] [38]
+<pics/cmd_exe_rigas.jpg, id=206, 1953.2975pt x 129.48375pt>
+File: pics/cmd_exe_rigas.jpg Graphic file (type jpg)
+
+<use pics/cmd_exe_rigas.jpg>
+<../../Simulation_pics/Rigas0b.jpg, id=207, 772.5663pt x 555.7563pt>
+File: ../../Simulation_pics/Rigas0b.jpg Graphic file (type jpg)
+
+<use ../../Simulation_pics/Rigas0b.jpg>
+<../../Simulation_pics/Rigas1b.jpg, id=208, 772.5663pt x 555.7563pt>
+File: ../../Simulation_pics/Rigas1b.jpg Graphic file (type jpg)
+
+<use ../../Simulation_pics/Rigas1b.jpg>
+<../../paper_2006/pics/Rigas_r_cont.jpg, id=209, 533.995pt x 529.98pt>
+File: ../../paper_2006/pics/Rigas_r_cont.jpg Graphic file (type jpg)
+
+<use ../../paper_2006/pics/Rigas_r_cont.jpg> (./ov_manual3.5.bbl [39 <./pics/cm
+d_exe_rigas.jpg>] [40 <../../Simulation_pics/Rigas0b.jpg> <../../Simulation_pic
+s/Rigas1b.jpg> <../../paper_2006/pics/Rigas_r_cont.jpg>] [41
+
+]) [42]
+(./ov_manual3.5.aux) ) 
+Here is how much of TeX's memory you used:
+ 2317 strings out of 95437
+ 31542 string characters out of 1188125
+ 81834 words of memory out of 1000001
+ 5283 multiletter control sequences out of 10000+50000
+ 11282 words of font info for 41 fonts, out of 500000 for 1000
+ 14 hyphenation exceptions out of 1000
+ 27i,8n,31p,576b,457s stack positions out of 1500i,500n,5000p,200000b,5000s
+ 222 PDF objects out of 300000
+ 0 named destinations out of 131072
+ 170 words of extra memory for PDF output out of 65536
+{/usr/share/texmf/dvips/tetex/f7b6d320.enc}</usr/share/te
+xmf/fonts/type1/bluesky/cm/cmr7.pfb>{/usr/share/texmf/dvips/tetex/09fbbfac.enc}
+</usr/share/texmf/fonts/type1/bluesky/cm/cmtt12.pfb></usr/share/texmf/fonts/typ
+e1/bluesky/cm/cmr6.pfb></usr/share/texmf/fonts/type1/public/tt2001/fmex8.pfb>{/
+usr/share/texmf/dvips/tetex/aae443f0.enc}</usr/share/texmf/fonts/type1/bluesky/
+cm/cmmi6.pfb>{/usr/share/texmf/dvips/tetex/bbad153f.enc}</usr/share/texmf/fonts
+/type1/bluesky/cm/cmsy8.pfb></usr/share/texmf/fonts/type1/bluesky/cm/cmex10.pfb
+></usr/share/texmf/fonts/type1/bluesky/cm/cmr8.pfb></usr/share/texmf/fonts/type
+1/bluesky/cm/cmmi8.pfb></usr/share/texmf/fonts/type1/bluesky/cm/cmr10.pfb>{/usr
+/share/texmf/dvips/tetex/74afc74c.enc}</usr/share/texmf/fonts/type1/bluesky/cm/
+cmti12.pfb></usr/share/texmf/fonts/type1/bluesky/cm/cmsy10.pfb></usr/share/texm
+f/fonts/type1/bluesky/cm/cmmi12.pfb></usr/share/texmf/fonts/type1/bluesky/cm/cm
+bx12.pfb></usr/share/texmf/fonts/type1/bluesky/cm/cmr12.pfb></usr/share/texmf/f
+onts/type1/bluesky/cm/cmr17.pfb>
+Output written on ov_manual3.5.pdf (44 pages, 8179350 bytes).

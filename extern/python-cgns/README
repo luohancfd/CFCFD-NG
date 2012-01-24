@@ -1,0 +1,42 @@
+PythonCGNS
+
+PythonCGNS is a simple Python language binding for the CGNS library, created
+with the SWIG utility.
+It consists of several Python Extensions, which provides methods for
+reading, writing and manipulation of cgns files.
+
+Dependency
+==========
+Swig 1.3
+Python 2.*
+Tested with libcgns-2.5.4 (http://sourceforge.net/projects/cgns/)
+
+Installation
+============
+Unpack the cgns package and type (with administrator rights)
+in the root directory of the cgns package:
+
+python setup.py install
+
+For additional information, please have a look at the python documentation for
+Distutils.
+
+Source Files
+============
+
+The wrapping of the python binding was done with Swig. You will find all
+swig interface files in the src sub directory.
+
+Examples
+========
+These examples are shipped with the PythonCGNS package:
+
+cgnsTest.py
+
+License
+=======
+The PythonCGNS extension is distributed under the GNU GPL Version 3,
+which can be found in the file 'LICENSE'.
+
+Oliver Borm
+oli.borm@web.de

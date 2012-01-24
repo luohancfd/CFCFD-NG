@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<VTKFile type="PPolyData" version="0.1" byte_order="LittleEndian">
+<PPolyData GhostLevel="0">
+<PPoints>
+<PDataArray type="Float32" NumberOfComponents="3"/>
+</PPoints>
+<Piece Source="right_wall.vtp"/>
+<Piece Source="floor.vtp"/>
+<Piece Source="back_wall.vtp"/>
+<Piece Source="obstacle1.vtp"/>
+<Piece Source="obstacle2.vtp"/>
+<Piece Source="obstacle3.vtp"/>
+<Piece Source="left_blocker.vtp"/>
+<Piece Source="ceiling.vtp"/>
+</PPolyData>
+</VTKFile>

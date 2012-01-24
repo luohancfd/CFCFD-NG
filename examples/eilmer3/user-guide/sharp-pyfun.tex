@@ -1,0 +1,37 @@
+% sharp-pyfun.tex
+
+\section{Sharp-nosed 2D body -- PyFun version}
+%
+This is the same flow specifications as for the previous example
+but we directly use the functional form of the sharp body as supplied
+by Ref.\,\cite{anderson_89}.
+$$
+\frac{y}{y_e} = -0.008333 + 0.609425 \left( \frac{x}{y_e} \right)
+                - 0.092593 \left( \frac{x}{y_e} \right)^2
+$$
+where $y_e = 1.0$.
+In the input script, the path is defined as a \texttt{PyFunctionPath} object that
+receives a function \texttt{xypath}.
+The function \texttt{xypath} accepts a parameter value $0.0 \le t \le 1.0$ and returns a 
+corresponding point along the path as the Python tuple $(x(t), y(t), z(t))$.
+Note that it is \textit{not} a \texttt{Vector} object as most of the other geometry objects expect.
+
+\bigskip
+\subsection{Input script (.py)}\index{geometric element!PyFunctionPath!example of use}
+\topbar
+\lstinputlisting[language={}]{../2D/sharp-pyfun/sharp.py}
+\bottombar
+
+\subsection{Notes on using Python for the input script}
+\begin{itemize}
+ \item The script runs in the context set up by the \texttt{e3prep.py} program.
+  This means that data elements such as \texttt{gdata} are available for manipulation
+  by the user's script.
+ \item Comments can be used in the script as a form of documentation on the simulation.
+ \item We can get intermediate results printed as the script is processed.  
+  This is useful for debugging and for documentation of the situation.
+ \item It is often convenient to set up small functions that get passed as arguments to
+  other functions.  For example, the function \texttt{y} (brought over from the previous
+  simulation) is passed into \texttt{xypath} which is, in turn, passed in to PyFunctionPath
+  to construct a Path element. 
+\end{itemize}

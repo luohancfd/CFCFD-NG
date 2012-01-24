@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="566.93"
+   height="566.93"
+   id="svg2"
+   sodipodi:version="0.32"
+   inkscape:version="0.46"
+   sodipodi:docname="n90.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape">
+  <metadata
+     id="metadata141">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs139">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 283.465 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="566.92999 : 283.465 : 1"
+       inkscape:persp3d-origin="283.465 : 188.97666 : 1"
+       id="perspective143" />
+  </defs>
+  <sodipodi:namedview
+     inkscape:window-height="726"
+     inkscape:window-width="1317"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     guidetolerance="10.0"
+     gridtolerance="10.0"
+     objecttolerance="10.0"
+     borderopacity="1.0"
+     bordercolor="#666666"
+     pagecolor="#ffffff"
+     id="base"
+     showgrid="false"
+     inkscape:zoom="1.1127332"
+     inkscape:cx="293.17764"
+     inkscape:cy="324.02593"
+     inkscape:window-x="0"
+     inkscape:window-y="120"
+     inkscape:current-layer="svg2" />
+  <title
+     id="title4">Cylinder in Mach 10 nitrogen flow</title>
+  <desc
+     id="desc6">SVG file written by e3prep.py</desc>
+<!-- drawing begins here -->  <line
+     x1="141.73"
+     y1="439.37"
+     x2="481.89"
+     y2="439.37"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line8" />
+  <text
+     x="311.81"
+     y="464.88"
+     style="font-size:10;text-anchor:start;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text10">x</text>
+  <line
+     x1="141.73"
+     y1="439.37"
+     x2="141.73"
+     y2="433.70"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line12" />
+  <text
+     x="141.73"
+     y="453.54"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text14">-0.02</text>
+  <line
+     x1="198.43"
+     y1="439.37"
+     x2="198.43"
+     y2="433.70"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line16" />
+  <text
+     x="198.43"
+     y="453.54"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text18">0</text>
+  <line
+     x1="255.12"
+     y1="439.37"
+     x2="255.12"
+     y2="433.70"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line20" />
+  <text
+     x="255.12"
+     y="453.54"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text22">0.02</text>
+  <line
+     x1="311.81"
+     y1="439.37"
+     x2="311.81"
+     y2="433.70"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line24" />
+  <text
+     x="311.81"
+     y="453.54"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text26">0.04</text>
+  <line
+     x1="368.50"
+     y1="439.37"
+     x2="368.50"
+     y2="433.70"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line28" />
+  <text
+     x="368.50"
+     y="453.54"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text30">0.06</text>
+  <line
+     x1="425.20"
+     y1="439.37"
+     x2="425.20"
+     y2="433.70"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line32" />
+  <text
+     x="425.20"
+     y="453.54"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text34">0.08</text>
+  <line
+     x1="481.89"
+     y1="439.37"
+     x2="481.89"
+     y2="433.70"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line36" />
+  <text
+     x="481.89"
+     y="453.54"
+     style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text38">0.1</text>
+  <line
+     x1="127.56"
+     y1="425.20"
+     x2="127.56"
+     y2="28.35"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line40" />
+  <text
+     x="104.88"
+     y="226.77"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text42">y</text>
+  <line
+     x1="127.56"
+     y1="425.20"
+     x2="133.23"
+     y2="425.20"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line44" />
+  <text
+     x="119.06"
+     y="425.20"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text46">0</text>
+  <line
+     x1="127.56"
+     y1="368.50"
+     x2="133.23"
+     y2="368.50"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line48" />
+  <text
+     x="119.06"
+     y="368.50"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text50">0.02</text>
+  <line
+     x1="127.56"
+     y1="311.81"
+     x2="133.23"
+     y2="311.81"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line52" />
+  <text
+     x="119.06"
+     y="311.81"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text54">0.04</text>
+  <line
+     x1="127.56"
+     y1="255.12"
+     x2="133.23"
+     y2="255.12"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line56" />
+  <text
+     x="119.06"
+     y="255.12"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text58">0.06</text>
+  <line
+     x1="127.56"
+     y1="198.43"
+     x2="133.23"
+     y2="198.43"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line60" />
+  <text
+     x="119.06"
+     y="198.43"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text62">0.08</text>
+  <line
+     x1="127.56"
+     y1="141.73"
+     x2="133.23"
+     y2="141.73"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line64" />
+  <text
+     x="119.06"
+     y="141.73"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text66">0.1</text>
+  <line
+     x1="127.56"
+     y1="85.04"
+     x2="133.23"
+     y2="85.04"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line68" />
+  <text
+     x="119.06"
+     y="85.04"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text70">0.12</text>
+  <line
+     x1="127.56"
+     y1="28.35"
+     x2="133.23"
+     y2="28.35"
+     style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none"
+     id="line72" />
+  <text
+     x="119.06"
+     y="28.35"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text74">0.14</text>
+<!-- There are 11 nodes
+ -->  <circle
+     cx="325.98"
+     cy="425.20"
+     r="2.83"
+     style="fill:black"
+     id="circle76" />
+  <text
+     x="325.98"
+     y="420.94"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text78">a</text>
+  <circle
+     cx="198.43"
+     cy="425.20"
+     r="2.83"
+     style="fill:black"
+     id="circle80" />
+  <text
+     x="196.05678"
+     y="421.33554"
+     style="font-size:10px;font-weight:normal;text-anchor:end;fill:#000000;stroke:none;font-family:sanserif"
+     id="text82">b</text>
+  <circle
+     cx="235.79"
+     cy="335.00"
+     r="2.83"
+     style="fill:black"
+     id="circle84" />
+  <text
+     x="235.79"
+     y="330.75"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text86">c</text>
+  <circle
+     cx="325.98"
+     cy="297.64"
+     r="2.83"
+     style="fill:black"
+     id="circle88" />
+  <text
+     x="325.98"
+     y="293.39"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text90">d</text>
+  <circle
+     cx="389.76"
+     cy="314.73"
+     r="2.83"
+     style="fill:black"
+     id="circle92" />
+  <text
+     x="389.76"
+     y="310.47"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text94">e</text>
+  <circle
+     cx="141.73"
+     cy="425.20"
+     r="2.83"
+     style="fill:black"
+     id="circle96" />
+  <text
+     x="138.86235"
+     y="420.84113"
+     style="font-size:10px;font-weight:normal;text-anchor:end;fill:#000000;stroke:none;font-family:sanserif"
+     id="text98">f</text>
+  <circle
+     cx="141.73"
+     cy="281.69"
+     r="2.83"
+     style="fill:black"
+     id="circle100" />
+  <text
+     x="140.68646"
+     y="275.80017"
+     style="font-size:10px;font-weight:normal;text-anchor:end;fill:#000000;stroke:none;font-family:sanserif"
+     id="text102">g</text>
+  <circle
+     cx="150.59"
+     cy="122.24"
+     r="2.83"
+     style="fill:black"
+     id="circle104" />
+  <text
+     x="150.59"
+     y="117.99"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text106">h</text>
+  <circle
+     cx="325.98"
+     cy="42.52"
+     r="2.83"
+     style="fill:black"
+     id="circle108" />
+  <text
+     x="325.98"
+     y="38.27"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text110">i</text>
+  <circle
+     cx="421.65"
+     cy="154.13"
+     r="2.83"
+     style="fill:black"
+     id="circle112" />
+  <text
+     x="420.10498"
+     y="148.57268"
+     style="font-size:10px;font-weight:normal;text-anchor:end;fill:#000000;stroke:none;font-family:sanserif"
+     id="text114">j</text>
+  <circle
+     cx="437.60"
+     cy="233.86"
+     r="2.83"
+     style="fill:black"
+     id="circle116" />
+  <text
+     x="437.60"
+     y="229.61"
+     style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif"
+     id="text118">k</text>
+<!-- There are 1 blocks
+ --><!-- Render block 0
+ -->  <text
+     x="273.6723"
+     y="211.48625"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text120">blk-0</text>
+  <text
+     x="274.67764"
+     y="-272.70627"
+     transform="matrix(0.5115931,0.8592278,-0.8592278,0.5115931,0,0)"
+     style="font-size:10.00000191px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text122">EXTRAPOLATE_OUT</text>
+  <path
+     d="M 325.98 42.52, L 330.70 48.07, L 335.29 53.58, L 339.74 59.03, L 344.06 64.43, L 348.25 69.78, L 352.31 75.08, L 356.24 80.33, L 360.04 85.54, L 363.71 90.70, L 367.25 95.82, L 370.66 100.90, L 373.95 105.93, L 377.10 110.91, L 380.13 115.86, L 383.04 120.77, L 385.81 125.63, L 388.47 130.46, L 390.99 135.25, L 393.39 140.01, L 395.67 144.73, L 397.82 149.41, L 399.85 154.06, L 401.76 158.68, L 403.54 163.26, L 405.20 167.82, L 406.74 172.34, L 408.16 176.84, L 409.46 181.30, L 410.63 185.74, L 411.69 190.15, L 412.62 194.54, L 413.44 198.90, L 414.14 203.24, L 414.72 207.55, L 415.19 211.85, L 415.53 216.12, L 415.76 220.37, L 415.87 224.60, L 415.87 228.82, L 415.75 233.02, L 415.51 237.20, L 415.16 241.36, L 414.70 245.51, L 414.12 249.65, L 413.43 253.77, L 412.63 257.89, L 411.71 261.99, L 410.68 266.08, L 409.54 270.16, L 408.29 274.23, L 406.93 278.30, L 405.46 282.36, L 403.88 286.42, L 402.18 290.47, L 400.38 294.51, L 398.48 298.56, L 396.46 302.60, L 394.33 306.64, L 392.10 310.68, L 389.76 314.73"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path124" />
+  <text
+     x="116.4345"
+     y="409.3486"
+     transform="matrix(0.9063078,-0.4226183,0.4226183,0.9063078,0,0)"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text126">SLIP_WALL</text>
+  <path
+     d="M 198.43 425.20, L 198.60 418.52, L 199.13 411.86, L 200.00 405.24, L 201.21 398.68, L 202.77 392.18, L 204.67 385.78, L 206.90 379.48, L 209.45 373.31, L 212.33 367.29, L 215.52 361.42, L 219.01 355.72, L 222.79 350.22, L 226.85 344.92, L 231.19 339.84, L 235.79 335.00, L 240.63 330.40, L 245.71 326.06, L 251.01 322.00, L 256.51 318.22, L 262.21 314.73, L 268.07 311.54, L 274.10 308.67, L 280.27 306.11, L 286.57 303.88, L 292.97 301.98, L 299.46 300.43, L 306.03 299.21, L 312.65 298.34, L 319.31 297.81, L 325.98 297.64, L 332.66 297.81, L 339.32 298.33, L 345.94 299.21, L 352.51 300.42, L 359.00 301.98, L 365.40 303.88, L 371.70 306.11, L 377.87 308.66, L 383.89 311.54, L 389.76 314.73"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path128" />
+  <text
+     x="169.68446"
+     y="433.11075"
+     style="font-size:8px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+     id="text130"
+     sodipodi:linespacing="125%">SLIP_WALL</text>
+  <path
+     d="M 141.73 425.20, L 142.68 425.20, L 143.62 425.20, L 144.57 425.20, L 145.51 425.20, L 146.46 425.20, L 147.40 425.20, L 148.35 425.20, L 149.29 425.20, L 150.24 425.20, L 151.18 425.20, L 152.13 425.20, L 153.07 425.20, L 154.02 425.20, L 154.96 425.20, L 155.91 425.20, L 156.85 425.20, L 157.80 425.20, L 158.74 425.20, L 159.69 425.20, L 160.63 425.20, L 161.58 425.20, L 162.52 425.20, L 163.47 425.20, L 164.41 425.20, L 165.35 425.20, L 166.30 425.20, L 167.24 425.20, L 168.19 425.20, L 169.13 425.20, L 170.08 425.20, L 171.02 425.20, L 171.97 425.20, L 172.91 425.20, L 173.86 425.20, L 174.80 425.20, L 175.75 425.20, L 176.69 425.20, L 177.64 425.20, L 178.58 425.20, L 179.53 425.20, L 180.47 425.20, L 181.42 425.20, L 182.36 425.20, L 183.31 425.20, L 184.25 425.20, L 185.20 425.20, L 186.14 425.20, L 187.09 425.20, L 188.03 425.20, L 188.98 425.20, L 189.92 425.20, L 190.87 425.20, L 191.81 425.20, L 192.76 425.20, L 193.70 425.20, L 194.65 425.20, L 195.59 425.20, L 196.54 425.20, L 197.48 425.20, L 198.43 425.20"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path132" />
+  <text
+     x="-139.36371"
+     y="223.88293"
+     transform="matrix(0.3366023,-0.9416469,0.9416469,0.3366023,0,0)"
+     style="font-size:10px;font-weight:normal;text-anchor:middle;fill:#000000;stroke:none;font-family:sanserif"
+     id="text134">SUP_IN</text>
+  <path
+     d="M 141.73 425.20, L 141.75 414.41, L 141.82 403.56, L 141.95 392.68, L 142.16 381.76, L 142.46 370.82, L 142.86 359.87, L 143.39 348.91, L 144.06 337.95, L 144.87 327.00, L 145.86 316.07, L 147.02 305.18, L 148.38 294.32, L 149.95 283.51, L 151.75 272.76, L 153.78 262.07, L 156.08 251.46, L 158.64 240.93, L 161.48 230.50, L 164.63 220.16, L 168.09 209.94, L 171.87 199.84, L 176.00 189.86, L 180.49 180.02, L 185.36 170.33, L 190.61 160.80, L 196.26 151.43, L 202.33 142.23, L 208.84 133.21, L 215.79 124.39, L 223.20 115.77, L 231.09 107.35, L 239.47 99.16, L 248.36 91.19, L 257.77 83.45, L 267.71 75.97, L 278.20 68.73, L 289.26 61.76, L 300.90 55.06, L 313.14 48.65, L 325.98 42.52"
+     style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"
+     id="path136" />
+<!-- end of drawing --></svg>

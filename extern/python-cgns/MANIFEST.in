@@ -1,0 +1,9 @@
+include LICENSE README MANIFEST.in
+include setup.py
+include src/__init__.py
+include src/cgnslib.i
+include tutorial/boite_CGNSADF.pgeo
+include tutorial/boite_CGNSHDF5.pgeo
+include tutorial/Test_read_grid_structured.py
+include tutorial/Test_write_grid_results_structured.py
+recursive-include debian *

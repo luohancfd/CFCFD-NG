@@ -1,0 +1,39 @@
+// Two forms of the 4x4 solution.
+
+denom = xa*(yb*(zd-zc)-yc*zd+yd*zc+(yc-yd)*zb)+xb*(yc*zd-yd*zc)
+    +ya*(xc*zd+xb*(zc-zd)-xd*zc+(xd-xc)*zb)+yb*(xd*zc-xc*zd)
+    +(xc*yd-xd*yc)*zb+(xb*(yd-yc)-xc*yd+xd*yc+(xc-xd)*yb)*za;
+dfdx = (fa*(yb*(zd-zc)-yc*zd+yd*zc+(yc-yd)*zb)+fb*(yc*zd-yd*zc)
+    +ya*(fc*zd+fb*(zc-zd)-fd*zc+(fd-fc)*zb)+yb*(fd*zc-fc*zd)
+    +(fc*yd-fd*yc)*zb+(fb*(yd-yc)-fc*yd+fd*yc+(fc-fd)*yb)*za) / denom;
+dfdy = -(fa*(xb*(zd-zc)-xc*zd+xd*zc+(xc-xd)*zb)+fb*(xc*zd-xd*zc)
+    +xa*(fc*zd+fb*(zc-zd)-fd*zc+(fd-fc)*zb)+xb*(fd*zc-fc*zd)
+    +(fc*xd-fd*xc)*zb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*za) / denom;
+dfdz = (fa*(xb*(yd-yc)-xc*yd+xd*yc+(xc-xd)*yb)+fb*(xc*yd-xd*yc)
+    +xa*(fc*yd+fb*(yc-yd)-fd*yc+(fd-fc)*yb)+xb*(fd*yc-fc*yd)
+    +(fc*xd-fd*xc)*yb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*ya) / denom;
+
+// Least-squares eqns for model p(x,y,z) = a0 + ax * x + ay * y + az * z
+// in matrix form
+// [S1 Sx  Sy  Sz ][a0]    [Sf ]
+// [Sx Sxx Syx Szx][ax]  = [Sfx]
+// [Sy Syx Syy Szy][ay]    [Sfy]
+// [Sz Szx Szy Szz][az]    [Sfz]
+denom=(Sxx*(Szy^2-Syy*Szz)+Syx^2*Szz-2*Syx*Szx*Szy+Syy*Szx^2)*S1+Sx^2*
+(Syy*Szz-Szy^2)+Sx*Sy*(2*Szx*Szy-2*Syx*Szz)+Sy^2*(Sxx*Szz-Szx^2)+Sz*
+(Sx*(2*Syx*Szy-2*Syy*Szx)+Sy*(2*Syx*Szx-2*Sxx*Szy))+(Sxx*Syy-Syx^2)*Sz^2;
+ax=-((Sfx*(Syy*Szz-Szy^2)+Syx*(Sfz*Szy-Sfy*Szz)+Szx*(Sfy*Szy-Sfz*Syy))*S1
+    +Sy*(Sf*(Syx*Szz-Szx*Szy)+Sx*(Sfy*Szz-Sfz*Szy))
+    +Sf*Sx*(Szy^2-Syy*Szz)+Sy^2*(Sfz*Szx-Sfx*Szz)
+    +Sz*(Sf*(Syy*Szx-Syx*Szy)+Sx*(Sfz*Syy-Sfy*Szy)
+    +Sy*(2*Sfx*Szy-Sfy*Szx-Sfz*Syx))+(Sfy*Syx-Sfx*Syy)*Sz^2) / denom;
+ay=((Sxx*(Sfz*Szy-Sfy*Szz)+Sfx*Syx*Szz+Szx*(-Sfx*Szy-Sfz*Syx)+Sfy*Szx^2)*S1
+    +Sy*(Sf*(Sxx*Szz-Szx^2)+Sx*(Sfz*Szx-Sfx*Szz))
+    +Sf*Sx*(Szx*Szy-Syx*Szz)+Sx^2*(Sfy*Szz-Sfz*Szy)
+    +Sz*(Sf*(Syx*Szx-Sxx*Szy)+Sx*(Sfx*Szy-2*Sfy*Szx+Sfz*Syx)+Sy*(Sfx*Szx-Sfz*Sxx))
+    +(Sfy*Sxx-Sfx*Syx)*Sz^2) / denom;
+az=-((Sxx*(Sfz*Syy-Sfy*Szy)+Sfx*Syx*Szy+(Sfy*Syx-Sfx*Syy)*Szx-Sfz*Syx^2)*S1
+    +Sy*(Sf*(Sxx*Szy-Syx*Szx)+Sx*(-Sfx*Szy-Sfy*Szx+2*Sfz*Syx))
+    +Sf*Sx*(Syy*Szx-Syx*Szy)+Sx^2*(Sfy*Szy-Sfz*Syy)+Sy^2*(Sfx*Szx-Sfz*Sxx)
+    +(Sf*(Syx^2-Sxx*Syy)+Sx*(Sfx*Syy-Sfy*Syx)+Sy*(Sfy*Sxx-Sfx*Syx))*Sz) / denom;
+

@@ -1,0 +1,6 @@
+README text file for examples/eilmer3/3D/turbo_sc10
+
+This is a work in progress (because the flow field still looks wrong!).
+
+The Lua periodic boundary condition is now the 3D version
+which cares for the curved 3D geometry about the rotor axis.

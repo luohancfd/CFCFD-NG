@@ -1,0 +1,89 @@
+<HTML>
+<!-- Don't bother editing this file; it is machine generated. -->
+<HEAD>
+<TITLE> Documentation extracted from  ../source/moc_gasdynamic.c </TITLE>
+</HEAD>
+<BODY>
+<H2> ../source/moc_gasdynamic.c </H2>
+<P>\file moc_gasdynamic.c 
+* \ingroup imoc 
+* \brief Basic Gas-Dynamic relations. 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+double T0_T(double M, double g) </B> </CODE> </P> 
+<P>Purpose: Isentropic flow relations. <BR> 
+Input : <BR> 
+M : Mach number <BR> 
+g : ratio of specific heats <BR> 
+Output : <BR> 
+Returns ratio of total T over static T. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+double P0_P(double M, double g) </B> </CODE> </P> 
+<P>Purpose: Isentropic flow relations. <BR> 
+Input : <BR> 
+M : Mach number <BR> 
+g : ratio of specific heats <BR> 
+Output : <BR> 
+Returns ratio of total P over static P. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+double NuFromM(double M, double g) </B> </CODE> </P> 
+<P>Purpose: Calculate the Prandtl-Meyer function given Mach number. <BR> 
+See equation 4.21b in Liepmann and Roshko 1957. <BR> 
+Input : <BR> 
+M : Mach number <BR> 
+g : ratio of specific heats <BR> 
+Output : <BR> 
+Returns Prandtl-Meyer function (Nu) or 0.0 on failure. <BR> 
+Note that Nu = 0.0 when M = 1.0 <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+double MFromNu( double Nu, double g ) </B> </CODE> </P> 
+<P>Purpose: Compute Mach number given Prandtl Meyer function. <BR> 
+Input : <BR> 
+Nu : Parndtl-Meyer function (radians) <BR> 
+g : ratio of specific heats <BR> 
+Output : <BR> 
+Returns Mach number (>= 1.0) or a value of 0.0 on failure. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+double MFromNu_approximate( double Nu, double g ) </B> </CODE> </P> 
+<P>Purpose: Compute Mach number given Prandtl Meyer function. <BR> 
+Use the polynomial approximation from <BR> 
+S. M. Fraser (1975) <BR> 
+Calculation of Mach number from given turning angle in 
+supersonic flow. <BR> 
+The Aeronautical Journal, February 1975. <BR> 
+For large Mach numbers, use an asymptotic expansion. <BR> 
+Input : <BR> 
+Nu : Parndtl-Meyer function (radians) <BR> 
+g : ratio of specific heats <BR> 
+Output : <BR> 
+Returns Mach number (>= 1.0) or a value of 0.0 on failure. 
+</P>
+<!-- --------------------------------------------- --> <HR>
+<P> <CODE> <B> 
+double MachAngle( double M ) </B> </CODE> </P> 
+<P>Purpose: Compute Mach Angle from Mach number <BR> 
+Input : <BR> 
+M : Mach number (M >= 1.0) <BR> 
+Output : <BR> 
+Returns Mach Angle or a value of 0.0 on failure. <BR> 
+(Available from the Tcl interpreter.) 
+</P>
+<HR>
+<ADDRESS>
+    Extracted by <B>docgen.awk</B>  Mon Aug 09 23:28:59 EST 2004
+</ADDRESS>
+</BODY>
+</HTML>

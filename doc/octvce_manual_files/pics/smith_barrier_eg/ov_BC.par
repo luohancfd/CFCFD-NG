@@ -1,0 +1,29 @@
+BORDER BOUNDARY CONDITIONS - ANY VALUES ARE IN SI UNITS
+-------------------------------------------------------
+
+No support for multiple species inflow supported at this time.
+
+East boundary
+-------------
+BC type: Non-reflecting 
+
+West boundary
+-------------
+BC type: Non-reflecting 
+
+North boundary
+--------------
+BC type: Non-reflecting 
+
+South boundary
+--------------
+BC type: Non-reflecting 
+
+Upper boundary
+--------------
+BC type: Non-reflecting
+
+Lower boundary
+--------------
+BC type: Non-reflecting
+

@@ -1,0 +1,58 @@
+<HTML>
+<HEAD>
+<TITLE>Plotting with mb_view</TITLE>
+</HEAD>
+<BODY>
+
+<UL>
+<LI> <A HREF="#mb_view">Plotting with mb_view</A>
+<LI> <A HREF="./mb_cont.html#mb_cont">Plotting with mb_cont</A>
+</UL>
+
+<HR>
+
+<H4><A NAME="mb_view">Plotting with mb_view</A></H4>
+
+<P>
+<B>mb_view</B> is a graphical front-end for 
+the contouring program <B>mb_cont</B>.
+The program is written as a Tcl/Tk (Version 8.0) script which sets 
+up a viewing window with command menus.
+</P>
+
+<P>
+The menus provide an easy way to set file names and plotting options
+if values other than the defaults are required.
+On selection of the <EM>Plot|Generate-GIF-Image</EM> menu item,
+a command-line is assembled and <B>mb_cont</B> is invoked
+to do the actual work of reading the data file and generating
+a GIF image.
+The image is written to a file and can be subsequently
+displayed in the viewing window via 
+the <EM>Plot|Refresh-Display</EM> menu item. 
+The displayed image is not automatically refreshed.
+</P>
+
+<P>
+There are a number of options that include 
+selection of the contoured variable,
+ranges and features such as flood filling.
+These should be fairly self-evident but further information can be
+gleaned from 
+<A HREF="./mb_cont.html#mb_cont">the documentation for mb_cont</A>.
+</P>
+
+<P>
+When you are happy with the plotting options,
+a Postscript image can be generated and written to a file.
+</P>
+
+<HR>
+<Address>
+   MB_CNS (C) P. A. Jacobs <BR>
+   Last Updated 27-Nov-1998.
+</Address>
+
+</BODY>
+</HTML>
+

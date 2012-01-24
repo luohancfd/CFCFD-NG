@@ -1,0 +1,784 @@
+// Author: Daniel F Potter
+// Version: 21-Sep-2009
+//          Initial coding.
+//
+
+#include <iostream>
+#include <cmath>
+
+#include "../../util/source/useful.h"
+#include "../../util/source/lua_service.hh"
+
+#include "chemical-species.hh"
+#include "physical_constants.hh"
+#include "gas-model.hh"
+#include "CEA-Cp-functor.hh"
+#include "CEA-h-functor.hh"
+#include "CEA-s-functor.hh"
+
+using namespace std;
+
+/* ------- Chemical species ------- */
+
+Chemical_species * new_chemical_species_from_file( string name, string inFile )
+{
+    lua_State *L = initialise_lua_State();
+    
+    if( do_gzfile(L, inFile) != 0 ) {
+	ostringstream ost;
+	ost << "new_chemical_species_from_file():\n";
+	ost << "Error in input file: " << inFile << endl;
+	input_error(ost);
+    }
+    
+    lua_getglobal(L, name.c_str());
+    string species_type = get_string( L, -1, "species_type" );
+    cout << "- Creating " << name << " as a new " << species_type << " species" << endl;
+    Chemical_species * X = 0;
+    if ( species_type.find("monatomic")!=string::npos )
+	X = new Atomic_species( string(name), species_type, 0, 0.0, L );
+    else if ( species_type.find("diatomic")!=string::npos )
+	X = new Diatomic_species( string(name), species_type, 0, 0.0, L );
+    else if ( species_type.find("free electron")!=string::npos )
+	X = new Free_electron_species( string(name), species_type, 0, 0.0, L );
+    else {
+	ostringstream ost;
+	ost << "new_chemical_species_from_file():\n";
+	ost << "Could not decode type label for species " << name << ": " << species_type << endl;
+	input_error(ost);
+    }
+    
+    return X;
+}
+
+Chemical_species::Chemical_species( string name, string type, int isp, double min_massf, lua_State * L )
+ : name_( name ), type_( type), isp_( isp ), min_massf_( min_massf )
+{
+    M_ = get_positive_value( L, -1, "M" );	// now kg/mol
+    R_   = PC_R_u/M_;
+    s_0_ = get_value( L, -1, "s_0" );
+    h_f_ = get_value( L, -1, "h_f" );
+    I_   = get_value( L, -1, "I" );
+    Z_   = (int) get_value( L, -1, "Z" );
+    // LJ parameters
+    // NOTE: using eps0 to test presence of this data
+    lua_getfield(L, -1, "eps0");
+    if ( !lua_istable(L, -1) ) {
+	cout << "Chemical_species::Chemical_species()\n";
+	cout << "Could not find 'eps0' table" << endl;
+	cout << "Initialising all LJ parameters to zero" << endl;
+	eps0_ = 0.0; sigma_ = 0.0;
+	lua_pop(L,1);
+    }
+    else {
+    	lua_pop(L,1);
+	eps0_ = get_positive_value( L, -1, "eps0" );
+	sigma_ = get_positive_value( L, -1, "sigma" );
+    }
+    
+    // Create the CEA h and s segmented functors
+    vector<Univariate_functor*> Cp;
+    vector<Univariate_functor*> h;
+    vector<Univariate_functor*> s;
+    vector<double> breaks;
+    double T_low, T_high;
+
+    lua_getfield(L, -1, "CEA_coeffs");
+    if ( !lua_istable(L, -1) ) {
+	ostringstream ost;
+	ost << "Chemical_species::Chemical_species():\n";
+	ost << "Error locating 'CEA_coeffs' table for species: " << name_ << endl;
+	input_error(ost);
+    }
+    for ( size_t i = 1; i <= lua_objlen(L, -1); ++i ) {
+	lua_rawgeti(L, -1, i);
+	T_low = get_positive_number(L, -1, "T_low");
+	T_high = get_positive_number(L, -1, "T_high");
+	Cp.push_back(new CEA_Cp_functor(L, R_));
+	h.push_back(new CEA_h_functor(L, (*Cp.back())(T_low), (*Cp.back())(T_high), R_));
+	s.push_back(new CEA_s_functor(L, (*Cp.back())(T_low), (*Cp.back())(T_high), R_));
+	breaks.push_back(T_low);
+	lua_pop(L, 1);
+    }
+    breaks.push_back(T_high);
+    lua_pop(L, 1); // pop coeffs
+    h_ = new Segmented_functor(h, breaks);
+    s_ = new Segmented_functor(s, breaks);
+    
+    for ( size_t i = 0; i < Cp.size(); ++i ) {
+	delete Cp[i];
+	delete h[i];
+	delete s[i];
+    } 
+}
+
+Chemical_species::~Chemical_species()
+{
+    for ( size_t iem=0; iem<modes_.size(); ++iem )
+    	delete modes_[iem];
+    
+    delete h_;
+    delete s_;
+}
+
+Species_energy_mode*
+Chemical_species::get_mode_pointer_from_type( string type )
+{
+    for ( size_t iem=0; iem<modes_.size(); ++iem ) {
+    	if ( modes_[iem]->get_type()==type ) return modes_[iem];
+    }
+    
+    cout << "Chemical_species::get_mode_pointer_from_type()" << endl
+    	 << "mode type: " << type << " not found." << endl
+    	 << "Bailing out!" << endl;
+    exit( BAD_INPUT_ERROR );
+}
+
+int
+Chemical_species::
+get_element_count( string X )
+{
+    // 0. Create neutral name for base-element searching
+    string neutral_name = name_;
+    if      ( Z_== 1 ) neutral_name.assign( name_, 0, name_.size()-5 );
+    else if ( Z_==-1 ) neutral_name.assign( name_, 0, name_.size()-6 );
+    
+    // 1. Search for the requested base element
+    int beta = 0;
+    string::size_type loc = neutral_name.find( X );
+    if ( loc!=string::npos ) {
+    	// it is present, but how many?
+    	if ( loc!=(neutral_name.size()-X.size()) ) {
+    	    if ( neutral_name.compare(loc+X.size(),1,"2")==0 )
+    	    	beta = 2;
+    	    else if ( neutral_name.compare(loc+X.size(),1,"3")==0 )
+    	    	beta = 3;
+    	    else if ( neutral_name.compare(loc+X.size(),1,"4")==0 )
+    	    	beta = 4;
+    	    // else -> beta already set to zero
+    	}
+    	else {
+    	    beta = 1;
+    	}
+    }
+    // else -> beta already set to zero
+    
+    return beta;
+}
+
+const string base_elements[] = { "Ar", "He", "C", "H", "N", "O" };
+const int nbe = 6;
+
+void
+Chemical_species::
+partial_equilibrium_participants( vector<int> &betas,
+    				  vector<string> &participants )
+{
+    // If this is an electron we don't need to do anything
+    if ( name_=="e_minus" ) return;
+    
+    // 0. Create neutral name for base-element searching
+    string neutral_name = name_;
+    if      ( Z_== 1 ) neutral_name.assign( name_, 0, name_.size()-5 );
+    else if ( Z_==-1 ) neutral_name.assign( name_, 0, name_.size()-6 );
+    
+    // 1. Search for base-elements and create as reactants
+    while ( neutral_name.size()>0 ) {
+        for ( int ib=0; ib<nbe; ++ib ) {
+            string::size_type loc = neutral_name.find( base_elements[ib] );
+            if ( loc!=string::npos ) {
+                participants.push_back( base_elements[ib] );
+                betas.push_back( -1 );
+                if ( loc!=(neutral_name.size()-base_elements[ib].size()) ) {
+                    if ( neutral_name.compare(loc+base_elements[ib].size(),1,"2")==0 ) {
+                        betas.back() = -2;
+                        neutral_name.erase( loc+base_elements[ib].size(), 1 );
+                    }
+                    else if ( neutral_name.compare(loc+base_elements[ib].size(),1,"3")==0 ) {
+                        betas.back() = -3;
+                        neutral_name.erase( loc+base_elements[ib].size(), 1 );
+                    }
+                    else if ( neutral_name.compare(loc+base_elements[ib].size(),1,"4")==0 ) {
+                        betas.back() = -4;
+                        neutral_name.erase( loc+base_elements[ib].size(), 1 );
+                    }
+                    // else -> beta already set to -1
+                }
+                neutral_name.erase( loc, base_elements[ib].size() );
+            }
+        }
+    }
+    
+    // 2. Create products from this species and electrons if not neutral
+    betas.push_back(1);
+    participants.push_back( name_ );
+    if ( Z_!=0 ) {
+    	betas.push_back( Z_ );
+    	participants.push_back( "e_minus" );
+    }
+    
+#   if 0
+    // FIXME: Remove these print statements after testing
+    cout << "species: " << name_ << " has betas: ";
+    for ( size_t ip = 0; ip < betas.size(); ++ip ) 
+	cout << betas[ip] << ", ";
+    cout << "\n";
+    cout << "species: " << name_ << " has participants: ";
+    for ( size_t ip = 0; ip < participants.size(); ++ip ) 
+	cout << participants[ip] << ", ";
+    cout << "\n";
+#   endif
+
+    return;
+}
+
+double Chemical_species::s_eval_energy(const Gas_data &Q)
+{
+    // 1. Heat of formation
+    double e = h_f_;
+    
+    // 2. Thermal energy modes
+    for ( size_t iem=0; iem<modes_.size(); ++iem )
+    	e += modes_[iem]->eval_energy(Q);
+    
+    return e;
+}
+
+double Chemical_species::s_eval_modal_energy(double T, int itm)
+{
+    // 1. Initialise h
+    //    CHECK-ME: Omitt Heat of formation?
+    double h = 0.0;
+    
+    // 2. Look for itm in thermal energy modes and add contribution
+    //    FIXME: need a more efficient method eventually, but only used for
+    //           diffusion at present
+    for ( size_t iem=0; iem<modes_.size(); ++iem ) {
+    	if ( modes_[iem]->get_iT()==itm )
+    	    h += modes_[iem]->eval_energy_from_T(T);
+    }
+    
+    return h;
+}
+
+double Chemical_species::s_eval_enthalpy(const Gas_data &Q)
+{
+    // 1. Heat of formation
+    double h = h_f_;
+    
+    // 2. Thermal energy modes
+    for ( size_t iem=0; iem<modes_.size(); ++iem )
+    	h += modes_[iem]->eval_enthalpy(Q);
+    
+    return h;
+}
+
+double
+Chemical_species::
+s_eval_CEA_enthalpy(const Gas_data &Q)
+{
+    // NOTE: returning enthalpy in units of J/kg-of-this-species
+    double h = (*h_)(Q.T[0]);	// eval the CEA h functor
+    
+    return h;
+}
+
+double Chemical_species::s_eval_modal_enthalpy(double T, int itm)
+{
+    // 1. Initialise h
+    //    CHECK-ME: Omitt Heat of formation?
+    double h = 0.0;
+    
+    // 2. Look for itm in thermal energy modes and add contribution
+    //    FIXME: need a more efficient method eventually, but only used for
+    //           diffusion at present
+    for ( size_t iem=0; iem<modes_.size(); ++iem ) {
+    	if ( modes_[iem]->get_iT()==itm )
+    	    h += modes_[iem]->eval_enthalpy_from_T(T);
+    }
+    
+    return h;
+}
+
+double Chemical_species::s_eval_entropy(const Gas_data &Q)
+{
+    // NOTE: Standard state entropy (s_0_) is included implicitly in calculation
+    double s = 0.0;
+    
+    for ( size_t iem=0; iem<modes_.size(); ++iem ) {
+    	s += modes_[iem]->eval_entropy(Q);
+    }
+    
+    return s;
+}
+
+double Chemical_species::s_eval_Cv(const Gas_data &Q)
+{
+    double Cv = 0.0;
+    for ( size_t iem=0; iem<modes_.size(); ++iem )
+    	Cv += modes_[iem]->eval_Cv(Q);
+    
+    return Cv;
+}
+
+double Chemical_species::s_eval_Cp(const Gas_data &Q)
+{
+    double Cp = 0.0;
+    for ( size_t iem=0; iem<modes_.size(); ++iem )
+    	Cp += modes_[iem]->eval_Cp(Q);
+    
+    return Cp;
+}
+
+double
+Chemical_species::
+s_eval_gibbs_free_energy( double T )
+{
+    // NOTE: returning Gibbs free energy in units of J/kg-of-this-species
+    double g = h_f_;
+    for ( size_t iem=0; iem<modes_.size(); ++iem )
+    	g += modes_[iem]->eval_enthalpy_from_T(T) - T*modes_[iem]->eval_entropy_from_T(T);
+    
+    return g;
+}
+
+double
+Chemical_species::
+s_eval_CEA_Gibbs_free_energy( double T )
+{
+    // NOTE: returning Gibbs free energy in units of J/kg-of-this-species
+    double h = (*h_)(T);	// eval the CEA h functor
+    double s = (*s_)(T);	// eval the CEA s functor
+    double g = h - T*s;
+    
+    return g;
+}
+
+/* ------- Atomic species ------- */
+
+Atomic_species::Atomic_species( string name, string type, int isp, double min_massf, lua_State * L )
+ : Chemical_species( name, type, isp, min_massf, L )
+{
+    lua_getfield(L, -1, "electronic_levels");
+    if ( !lua_istable(L, -1) ) {
+	ostringstream ost;
+	ost << "Atomic_species::Atomic_species()\n";
+	ost << "Error locating 'level_data' table" << endl;
+	input_error(ost);
+    }
+    
+    int nlevs = get_int(L, -1, "n_levels");
+    if ( nlevs < 1 ) {
+    	ostringstream ost;
+    	ost << "Atomic_species::Atomic_species()\n";
+    	ost << "Require at least 1 electronic level - only " << nlevs << " present.\n";
+    	input_error(ost);
+    }
+    
+    // Get electronic level data
+    vector<double> lev_data, theta_vec;
+    vector<int> g_vec;
+    
+    for ( int ilev=0; ilev<nlevs; ++ilev ) {
+    	ostringstream lev_oss;
+    	lev_oss << "ilev_" << ilev;
+    	lua_getfield(L, -1, lev_oss.str().c_str());
+    	lev_data.clear();
+	for ( size_t i=0; i<lua_objlen(L, -1); ++i ) {
+	    lua_rawgeti(L, -1, i+1);
+	    lev_data.push_back( luaL_checknumber(L, -1) );
+	    lua_pop(L, 1 );
+	}
+	lua_pop(L,1);	// pop ilev
+	g_vec.push_back( int(lev_data[2]) );
+	theta_vec.push_back( lev_data[1]*PC_c*PC_h_SI/PC_k_SI );	// cm-1 -> K
+    }
+    
+    lua_pop(L,1);	// pop 'electronic_levels'
+    
+    // Create energy modes
+    // [0] Translation
+    modes_.push_back( new Fully_excited_translation( isp_, R_, min_massf_ ) );
+    // [1] Electronic
+    if ( nlevs==1 ) 
+    	modes_.push_back( new One_level_electronic( isp_, R_, min_massf_, g_vec[0], theta_vec[0] ) );
+    else if ( nlevs==2 )
+    	modes_.push_back( new Two_level_electronic( isp_, R_, min_massf_, g_vec[0], theta_vec[0], g_vec[1], theta_vec[1] ) );
+    else 
+    	modes_.push_back( new Multi_level_electronic( isp_, R_, min_massf_, g_vec, theta_vec ) );
+}
+
+Atomic_species::~Atomic_species()
+{
+    // NOTE: energy modes are cleared by ~Chemical_species()
+}
+
+/* ------- Diatomic species ------- */
+
+Diatomic_species::Diatomic_species( string name, string type, int isp, double min_massf, lua_State * L )
+ : Chemical_species( name, type, isp, min_massf, L )
+{
+    // polarity flag
+    if ( type.find("nonpolar")!=string::npos )
+    	polar_flag_ = false;
+    else
+    	polar_flag_ = true;
+    
+    // SSH theory parameters
+    // NOTE: using r0 to test presence of this data
+    lua_getfield(L, -1, "r0");
+    if ( !lua_istable(L, -1) ) {
+	cout << "Diatomic_species::Diatomic_species()\n";
+	cout << "Could not find 'r0' table" << endl;
+	cout << "Initialising all SSH related parameters to zero" << endl;
+	r0_ = 0.0; r_eq_ = 0.0; f_m_ = 0.0;
+	mu_ = 0.0; alpha_ = 0.0; mu_B_ = 0.0;
+	lua_pop(L,1);
+    }
+    else {
+    	lua_pop(L,1);
+	r0_ = get_positive_value( L, -1, "r0" );
+	r_eq_ = get_positive_value( L, -1, "r_eq" );
+	f_m_ = get_positive_value( L, -1, "f_m" );
+	mu_ = get_positive_value( L, -1, "mu" );
+	alpha_ = get_positive_value( L, -1, "alpha" );
+	mu_B_ = get_positive_value( L, -1, "mu_B" );
+    }
+    
+    lua_getfield(L, -1, "electronic_levels");
+    if ( !lua_istable(L, -1) ) {
+	ostringstream ost;
+	ost << "Diatomic_species::Diatomic_species()\n";
+	ost << "Error locating 'level_data' table" << endl;
+	input_error(ost);
+    }
+    
+    int nlevs = get_int(L, -1, "n_levels");
+    if ( nlevs < 1 ) {
+    	ostringstream ost;
+    	ost << "Diatomic_species::Diatomic_species()\n";
+    	ost << "Require at least 1 electronic level - only " << nlevs << " present.\n";
+    	input_error(ost);
+    }
+    
+    // Get electronic level data
+    vector<double> lev_data, theta_el_vec;
+    vector<int> g_el_vec;
+    
+    // Ground state - outside of loop to get vibration and rotation constants
+    string lev_str = "ilev_0";
+    lua_getfield(L, -1, lev_str.c_str());
+    for ( size_t i=0; i<lua_objlen(L, -1); ++i ) {
+	lua_rawgeti(L, -1, i+1);
+	lev_data.push_back( luaL_checknumber(L, -1) );
+	lua_pop(L, 1 );
+    }
+    lua_pop(L,1);	// pop ilev0
+    g_el_vec.push_back( int(lev_data[2]) );
+    theta_el_vec.push_back( lev_data[0]*PC_c*PC_h_SI/PC_k_SI );	// cm-1 -> K
+    double theta_v = lev_data[4]*PC_c*PC_h_SI/PC_k_SI;
+    double theta_r = lev_data[8]*PC_c*PC_h_SI/PC_k_SI;
+    double theta_D = lev_data[3]*PC_c*PC_h_SI/PC_k_SI;
+    // Check that a usable dissociation energy is present
+    if ( theta_D < 0.0 && lev_data[5] > 0.0 ) {
+    	// use D ~ omega_e**2 / ( 4*xomega_e )
+    	theta_D = ( lev_data[4]*lev_data[4] / ( 4*lev_data[5] ) ) * PC_c*PC_h_SI/PC_k_SI;
+    }
+    else if ( theta_D < 0.0 ) {
+        // set to 164,000K (just above H2 dissociation limit)
+        theta_D = 1.64e5;
+    }
+    // Set the characteristic vibrational temperature in kelvin
+    theta_v_ = theta_v;
+    
+    // Excited states - electron degeneracy and energy only
+    for ( int ilev=1; ilev<nlevs; ++ilev ) {
+    	ostringstream lev_oss;
+    	lev_oss << "ilev_" << ilev;
+    	lua_getfield(L, -1, lev_oss.str().c_str());
+    	lev_data.clear();
+	for ( size_t i=0; i<lua_objlen(L, -1); ++i ) {
+	    lua_rawgeti(L, -1, i+1);
+	    lev_data.push_back( luaL_checknumber(L, -1) );
+	    lua_pop(L, 1 );
+	}
+	lua_pop(L,1);	// pop ilev
+	g_el_vec.push_back( int(lev_data[2]) );
+	theta_el_vec.push_back( lev_data[0]*PC_c*PC_h_SI/PC_k_SI );	// cm-1 -> K
+    }
+    
+    // Rotational homonuclear factor
+    int sigma = 1;
+    // sigma is 2 for homonuclear diatoms
+    if ( name.find("2")!=string::npos ) sigma = 2;
+    
+    lua_pop(L,1);	// pop 'electronic_levels'
+    
+    // Vibrational oscillator type
+    oscillator_type_ = get_string( L, -1, "oscillator_type" );
+    
+    // Create energy modes
+    // [0] Translation
+    modes_.push_back( new Fully_excited_translation( isp_, R_, min_massf_ ) );
+    // [1] Electronic
+    if ( nlevs==1 ) 
+    	modes_.push_back( new One_level_electronic( isp_, R_, min_massf_, g_el_vec[0], theta_el_vec[0] ) );
+    else if ( nlevs==2 )
+    	modes_.push_back( new Two_level_electronic( isp_, R_, min_massf_, g_el_vec[0], theta_el_vec[0], g_el_vec[1], theta_el_vec[1] ) );
+    else 
+    	modes_.push_back( new Multi_level_electronic( isp_, R_, min_massf_, g_el_vec, theta_el_vec ) );
+    // [2] Rotation
+    modes_.push_back( new Fully_excited_rotation( isp_, R_, min_massf_, theta_r, sigma ) );
+    // [3] Vibration
+    if ( oscillator_type_=="harmonic" ) 
+    	modes_.push_back( new Harmonic_vibration( isp_, R_, min_massf_, theta_v ) );
+    else if ( oscillator_type_=="truncated harmonic" ) 
+    	modes_.push_back( new Truncated_harmonic_vibration( isp_, R_, min_massf_, theta_v, theta_D ) );
+    else {
+    	ostringstream oss;
+    	oss << "Diatomic_species::Diatomic_species()" << endl
+    	    << name_ << " oscillator_type: " << oscillator_type_ << " not available" << endl;
+    	input_error( oss );
+    }
+}
+
+Diatomic_species::~Diatomic_species()
+{
+    // NOTE: energy modes are cleared by ~Chemical_species()
+}
+
+/* ------- Diatomic species with fully coupled internal modes ------- */
+
+Fully_coupled_diatomic_species::
+Fully_coupled_diatomic_species( string name, string type, int isp, double min_massf, lua_State * L )
+ : Chemical_species( name, type, isp, min_massf, L )
+{
+    // polarity flag
+    if ( type.find("nonpolar")!=string::npos )
+    	polar_flag_ = false;
+    else
+    	polar_flag_ = true;
+    
+    // SSH theory parameters
+    // NOTE: using r0 to test presence of this data
+    lua_getfield(L, -1, "r0");
+    if ( !lua_istable(L, -1) ) {
+	cout << "Fully_coupled_diatomic_species::Fully_coupled_diatomic_species()\n";
+	cout << "Could not find 'r0' table" << endl;
+	cout << "Initialising all SSH related parameters to zero" << endl;
+	r0_ = 0.0; r_eq_ = 0.0; f_m_ = 0.0;
+	mu_ = 0.0; alpha_ = 0.0; mu_B_ = 0.0;
+	lua_pop(L,1);
+    }
+    else {
+    	lua_pop(L,1);
+	r0_ = get_positive_value( L, -1, "r0" );
+	r_eq_ = get_positive_value( L, -1, "r_eq" );
+	f_m_ = get_positive_value( L, -1, "f_m" );
+	mu_ = get_positive_value( L, -1, "mu" );
+	alpha_ = get_positive_value( L, -1, "alpha" );
+	mu_B_ = get_positive_value( L, -1, "mu_B" );
+    }
+    
+    lua_getfield(L, -1, "electronic_levels");
+    if ( !lua_istable(L, -1) ) {
+	ostringstream ost;
+	ost << "Fully_coupled_diatomic_species::Fully_coupled_diatomic_species()\n";
+	ost << "Error locating 'level_data' table" << endl;
+	input_error(ost);
+    }
+    
+    int nlevs = get_int(L, -1, "n_levels");
+    if ( nlevs < 1 ) {
+    	ostringstream ost;
+    	ost << "Fully_coupled_diatomic_species::Fully_coupled_diatomic_species()\n";
+    	ost << "Require at least 1 electronic level - only " << nlevs << " present.\n";
+    	input_error(ost);
+    }
+    
+    // Get electronic level data
+    vector< vector<double> > lev_data(nlevs);
+    
+    for ( int ilev=0; ilev<nlevs; ++ilev ) {
+    	ostringstream lev_oss;
+    	lev_oss << "ilev_" << ilev;
+    	lua_getfield(L, -1, lev_oss.str().c_str());
+	for ( size_t i=0; i<lua_objlen(L, -1); ++i ) {
+	    lua_rawgeti(L, -1, i+1);
+	    lev_data[ilev].push_back( luaL_checknumber(L, -1) );
+	    lua_pop(L, 1 );
+	}
+	lua_pop(L,1);	// pop ilev
+    }
+    
+    // Rotational modes, temperature and sigma
+    // int r_modes = 2;		// always 2 rot modes for diatoms
+    int sigma_r = 1;
+    // sigma is 2 for homonuclear diatoms
+    if ( name.find("2")!=string::npos ) sigma_r = 2;
+    
+    lua_pop(L,1);	// pop 'electronic_levels'
+    
+    // Check the vibrational oscillator type
+    oscillator_type_ = get_string( L, -1, "oscillator_type" );
+    if ( oscillator_type_ != "truncated anharmonic" ) {
+    	ostringstream ost;
+    	ost << "Fully_coupled_diatomic_species::Fully_coupled_diatomic_species()\n";
+    	ost << "The oscillator type is required to be 'truncated anharmonic' for this species.\n";
+    	input_error(ost);
+    }
+    
+    // Create energy modes
+    modes_.push_back( new Fully_excited_translation( isp_, R_, min_massf_ ) );
+    modes_.push_back( new Fully_coupled_diatom_internal( isp_, R_, min_massf_, sigma_r, lev_data ) );
+}
+
+Fully_coupled_diatomic_species::~Fully_coupled_diatomic_species()
+{
+    // NOTE: energy modes are cleared by ~Chemical_species()
+}
+
+/* ------- Polyatomic species ------- */
+
+Polyatomic_species::Polyatomic_species( string name, string type, int isp, double min_massf, lua_State * L )
+ : Chemical_species( name, type, isp, min_massf, L )
+{
+    lua_getfield(L, -1, "electronic_levels");
+    if ( !lua_istable(L, -1) ) {
+	ostringstream ost;
+	ost << "Polyatomic_species::Polyatomic_species()\n";
+	ost << "Error locating 'level_data' table" << endl;
+	input_error(ost);
+    }
+    
+    int nlevs = get_int(L, -1, "n_levels");
+    if ( nlevs < 1 ) {
+    	ostringstream ost;
+    	ost << "Polyatomic_species::Polyatomic_species()\n";
+    	ost << "Require at least 1 electronic level - only " << nlevs << " present.\n";
+    	input_error(ost);
+    }
+    
+    // Get electronic level data
+    vector<double> lev_data, theta_el_vec, theta_v_vec;
+    vector<int> g_el_vec;
+    
+    // Ground state - outside of loop to get vibration and rotation constants
+    string lev_str = "ilev_0";
+    lua_getfield(L, -1, lev_str.c_str());
+    for ( size_t i=0; i<lua_objlen(L, -1); ++i ) {
+	lua_rawgeti(L, -1, i+1);
+	lev_data.push_back( luaL_checknumber(L, -1) );
+	lua_pop(L, 1 );
+    }
+    lua_pop(L,1);	// pop ilev0
+    theta_el_vec.push_back( lev_data[0]*PC_c*PC_h_SI/PC_k_SI );	// cm-1 -> K
+    g_el_vec.push_back( int(lev_data[2]) );
+    double theta_D = lev_data[3]*PC_c*PC_h_SI/PC_k_SI;
+    double theta_A0 = lev_data[4]*PC_c*PC_h_SI/PC_k_SI;
+    double theta_B0 = lev_data[5]*PC_c*PC_h_SI/PC_k_SI;
+    double theta_C0 = lev_data[6]*PC_c*PC_h_SI/PC_k_SI;
+    int sigma = int(lev_data[7]);
+    int sigma_r = int(lev_data[8]);
+    for ( size_t i=9; i<lev_data.size(); ++i )
+    	theta_v_vec.push_back( lev_data[i]*PC_c*PC_h_SI/PC_k_SI );
+    // Set the primary characteristic vibrational temperature in kelvin
+    theta_v_ = theta_v_vec[0];
+    // Currently sigma_r is not being used
+    UNUSED_VARIABLE(sigma_r);
+    
+    // Excited states - electron degeneracy and energy only
+    for ( int ilev=0; ilev<nlevs; ++ilev ) {
+    	ostringstream lev_oss;
+    	lev_oss << "ilev_" << ilev;
+    	lua_getfield(L, -1, lev_oss.str().c_str());
+    	lev_data.clear();
+	for ( size_t i=0; i<lua_objlen(L, -1); ++i ) {
+	    lua_rawgeti(L, -1, i+1);
+	    lev_data.push_back( luaL_checknumber(L, -1) );
+	    lua_pop(L, 1 );
+	}
+	lua_pop(L,1);	// pop ilev
+	theta_el_vec.push_back( lev_data[0]*PC_c*PC_h_SI/PC_k_SI );	// cm-1 -> K
+	g_el_vec.push_back( int(lev_data[2]) );
+    }
+    
+    lua_pop(L,1);	// pop 'electronic_levels'
+    
+    // Create energy modes
+    // [0] Translation
+    modes_.push_back( new Fully_excited_translation( isp_, R_, min_massf_ ) );
+    // [1] Electronic
+    if ( nlevs==1 ) 
+    	modes_.push_back( new One_level_electronic( isp_, R_, min_massf_, g_el_vec[0], theta_el_vec[0] ) );
+    else if ( nlevs==2 )
+    	modes_.push_back( new Two_level_electronic( isp_, R_, min_massf_, g_el_vec[0], theta_el_vec[0], g_el_vec[1], theta_el_vec[1] ) );
+    else 
+    	modes_.push_back( new Multi_level_electronic( isp_, R_, min_massf_, g_el_vec, theta_el_vec ) );
+    // [2] Rotation
+    if ( type.find("nonlinear")!=string::npos ) {
+    	// Different s, e and c_v expressions for non-linear molecules
+    	modes_.push_back( new Fully_excited_nonlinear_rotation( isp_, R_, min_massf_, theta_A0, theta_B0, theta_C0, sigma ) );
+    }
+    else {
+    	modes_.push_back( new Fully_excited_rotation( isp_, R_, min_massf_, theta_B0, sigma ) );
+    }
+    // [3:] Vibration
+    // Vibrational oscillator type
+    oscillator_type_ = get_string( L, -1, "oscillator_type" );
+    if ( oscillator_type_=="harmonic" ) {
+    	// create multiple vibrational modes
+    	for ( size_t iv=0; iv<theta_v_vec.size(); ++iv )
+    	    modes_.push_back( new Harmonic_vibration( isp_, R_, min_massf_, theta_v_vec[iv] ) );
+    }
+    else if ( oscillator_type_=="truncated harmonic" ) {
+    	// create multiple vibrational modes
+    	// NOTE: setting equal parts of the dissociation energy to each vibrational mode
+    	double T_d = theta_D;
+    	if ( theta_v_vec.size() > 0 )
+    	    T_d = theta_D / double(theta_v_vec.size());
+    	for ( size_t iv=0; iv<theta_v_vec.size(); ++iv )
+    	    modes_.push_back( new Truncated_harmonic_vibration( isp_, R_, min_massf_, theta_v_vec[iv], T_d) );
+    }
+    else {
+    	ostringstream oss;
+    	oss << "Polyatomic_species::Polyatomic_species()" << endl
+    	    << name_ << " oscillator_type: " << oscillator_type_ << " not available" << endl;
+    	input_error( oss );
+    }
+
+}
+
+Polyatomic_species::~Polyatomic_species()
+{
+    // NOTE: energy modes are cleared by ~Chemical_species()
+}
+
+double
+Polyatomic_species::
+s_eval_Cv_vib( const Gas_data &Q )
+{
+    // Sum contributions from all vibrational modes
+    double Cv_vib = 0.0;
+    for ( size_t i=3; i<modes_.size(); ++i )
+    	Cv_vib += modes_[i]->eval_Cv(Q);
+    
+    return Cv_vib;
+}
+
+/* ------- Free electron species ------- */
+
+Free_electron_species::Free_electron_species( string name, string type, int isp, double min_massf, lua_State * L )
+ : Chemical_species( name, type, isp, min_massf, L )
+{
+    // Create translational energy mode
+    modes_.push_back( new Fully_excited_translation( isp_, R_, min_massf_ ) );
+    // Create electronic energy mode (necessary for correct entropy calculation)
+    modes_.push_back( new One_level_electronic( isp_, R_, min_massf_, 2, 0.0 ) );
+}
+
+Free_electron_species::~Free_electron_species()
+{
+    // NOTE: energy modes are cleared by ~Chemical_species()
+}
+

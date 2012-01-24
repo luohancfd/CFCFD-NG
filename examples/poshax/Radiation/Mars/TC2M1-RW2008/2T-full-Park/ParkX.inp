@@ -1,0 +1,719 @@
+[global]
+
+number_of_species = 21
+species  =  CO2  CO  N2  CN  NO  O2  C2  NCO  CO+  N2+  CN+  NO+  O2+  Ar  C   N   O   C+  N+  O+  e-
+# index  =    0   1   2   3   4   5   6   7    8    9    10   11   12  13  14  15  16  17  18  19  20
+# separating the vibrational and electronic modes is currently not supported
+separate_v_and_e = 0
+
+# hf -> J/kg converted from CEA thermo.inp data (divide by MW [kg/mol])
+# mol_weight -> kg/mol from CEA
+# theta_v -> effective 'temp' of principle vib. mode in K, taken from TC2-M1 and checked with herzberg
+# g0 -> derived from herzberg spectroscopic notation ** Should also check with Rowan's sheet **
+# theta_1 -> rep. temp (K) for electronic energy of 1st electronic excited state
+# NOTES: - All diatomics are now truncated oscillators
+#        - All vibrational and electronic constants taken from NIST Chemistry WebBook
+#           http://webbook.nist.gov/chemistry/
+#	 - Have expanded electronic levels to observe its influence
+#	 - First two states will suffice for now
+
+[CO2]
+# NOTES:
+# - Hindelang recommends D/4 as max vibrational energy
+# - implementation of polyatomic molecules in tTg gas-model assumes equidivision of modal energies
+# - linear 0-C-O arrangement has no resultant moment 
+# - electronic state data from:
+#      Hertzberg (1966) "Molecular Spectra and Molecular Structure III. Electronic Spectra and 
+#                        Electronic Structure of Polyatomic Molecules"
+# - assuming unlabeled electronic states are non-degenerate
+           type = polyatomic nonpolar linear
+oscillator_type = truncated
+            h_f = -8941478.544
+     mol_weight = 44.0095000e-3
+       theta_vs = 960.0 1936.0 1936.0 3380.0
+            Nps = 18    8      8      4
+       theta_es = 0.0 66183.65
+	   g_es = 1   2       
+#      theta_es = 0.0 66183.65 104282.42 105174.46 122526.09 123504.46 127381.96 128210.69
+#	   g_es = 1   2        2         1         1         1         1         1
+# unchecked diffusion parameters
+dipole_moment  = 0.0
+polarizability = 2.65
+# dummy SSH parameters
+eps0 = 1.0
+r0   = 1.0
+r_eq = 1.0
+f_m  = 1.0
+
+
+[CO]
+           type = diatomic polar
+oscillator_type = truncated
+            h_f = -3946262.098
+     mol_weight = 28.0101000e-3
+        theta_v = 3121.87
+             Np = 29
+       theta_es = 0.0 70049.21 
+           g_es = 1   6        
+#       theta_es = 0.0 70049.21 80320.32 87938.08 92412.87 93629.40 93641.82 94855.57
+#           g_es = 1   6        3        6        3        2        1        2
+# unchecked diffusion parameters
+dipole_moment  = 1.375
+polarizability = 0.0
+# dummy SSH parameters
+eps0    = 1.0
+r0      = 1.0
+r_eq    = 1.0
+f_m     = 1.0
+
+
+[N2]
+           type = diatomic nonpolar
+oscillator_type = truncated
+            h_f = 0.0
+     mol_weight = 28.0134000e-3
+        theta_v = 3393.45
+	     Np = 33
+       theta_es = 0.0 72231.78
+           g_es = 1   3      
+#       theta_es = 0.0 72231.78 85778.46 86050.26 95351.22 98056.27 99682.74 103731.95
+#           g_es = 1   3        6        6        3        1        2        2
+# unchecked diffusion parameters
+dipole_moment  = 0.0
+polarizability = 1.76
+# dummy SSH parameters
+eps0    = 1.0
+r0      = 1.0
+r_eq    = 1.0
+f_m     = 1.0
+
+
+[CN]
+           type = diatomic polar
+oscillator_type = truncated
+            h_f = 16861160.3
+     mol_weight = 26.0174000e-3
+        theta_v = 2976.24
+	     Np = 23
+       theta_es = 0.0 13301.89 
+           g_es = 2   4        
+#      theta_es = 0.0 13301.89 37052.48 46616.31 78393.53 85105.25 86464.11
+#          g_es = 2   4        2        4        4        2        4
+# unchecked diffusion parameters
+dipole_moment  = 1.375
+polarizability = 0.0
+# dummy SSH parameters
+eps0    = 1.0
+r0      = 1.0
+r_eq    = 1.0
+f_m     = 1.0
+
+
+[NO]
+           type = diatomic polar
+oscillator_type = truncated
+            h_f = 3.041758509e+6
+     mol_weight = 30.0061000e-3
+        theta_v = 2739.72
+             Np = 27
+       theta_es = 87.11 55306.52
+           g_es = 4     8       
+#      theta_es = 87.11 55306.52 63256.76 66086.25 70039.57 75069.1 76376.95 86850.51
+#          g_es = 4     8        2        4        4        4       2        4
+# unchecked diffusion parameters
+dipole_moment  = 0.153
+polarizability = 0.0
+# dummy SSH parameters
+eps0    = 1.0
+r0      = 1.0
+r_eq    = 1.0
+f_m     = 1.0
+
+
+[O2]
+           type = diatomic nonpolar
+oscillator_type = truncated
+            h_f = 0.0
+     mol_weight = 31.99880e-3
+	theta_v = 2273.54
+             Np = 26
+       theta_es = 0.0 11392.37
+           g_es = 3   2       
+#      theta_es = 0.0 11392.37 18984.78 47562.02 50929.47 71641.33 94282.93 99534.46
+#          g_es = 3   2        1        1        3        3        6        2
+# unchecked diffusion parameters
+dipole_moment  = 0.0
+polarizability = 1.6
+# dummy SSH parameters
+eps0    = 1.0
+r0      = 1.0
+r_eq    = 1.0
+f_m     = 1.0
+
+
+[C2]
+           type = diatomic nonpolar
+oscillator_type = truncated
+	    h_f = 34571562.11
+     mol_weight = 24.0214000e-3
+        theta_v = 2668.51
+             Np = 26
+           g_es = 1   6      
+       theta_es = 0.0 1030.51
+#          g_es = 1   6       3       2        3        6        2        6
+#      theta_es = 0.0 1030.51 9257.51 12072.76 19153.12 28807.88 49294.31 58697.21
+# unchecked diffusion parameters
+dipole_moment  = 0.0
+polarizability = 2.03
+# dummy SSH parameters
+eps0    = 1.0
+r0      = 1.0
+r_eq    = 1.0
+f_m     = 1.0
+
+
+[NCO]
+# NOTES:
+# - Hertzberg (see reference CO2) only quote 3 electronic states
+           type = polyatomic polar nonlinear
+oscillator_type = truncated
+	    h_f = 3137961.85
+     mol_weight = 42.0168000e-3
+       theta_vs = 3221.42 870.46 1794.15
+            Nps = 2       9      4
+       theta_es = 0.0 32737.89
+           g_es = 4   2       
+#      theta_es = 0.0 32737.89 45685.57
+#          g_es = 4   2        4
+# unchecked diffusion parameters
+dipole_moment  = 0.0
+polarizability = 0.0
+# dummy SSH parameters
+eps0    = 1.0
+r0      = 1.0
+r_eq    = 1.0
+f_m     = 1.0
+
+[CO+]
+# NOTES:
+# - T_d / theta_v ~ Np where T_d is associative dissociation energy
+# - neglecting NIST states in paraenthesis
+           type = diatomic polar
+oscillator_type = truncated
+            h_f = 44548703.6
+     mol_weight = 28.0095514e-3
+        theta_v = 3185.79
+	     Np = 17
+       theta_es = 0.0 29830.40
+	   g_es = 2   4       
+#      theta_es = 0.0 29830.40 66006.25 90660.10
+#	   g_es = 2   4        2        4        
+# unchecked diffusion parameters
+dipole_moment  = 1.375
+polarizability = 0.0
+# dummy SSH parameters
+eps0    = 1.0
+r0      = 1.0
+r_eq    = 1.0
+f_m     = 1.0
+
+
+[N2+]
+# NOTES:
+# - using radiation lev0 vib limit for Np
+# - neglecting NIST states in paraenthesis
+           type = diatomic nonpolar
+oscillator_type = truncated
+            h_f = -3946262.10
+     mol_weight = 28.0128514e-03
+        theta_v = 3175.0
+	     Np = 15
+       theta_es = 0.0 13189.18 
+	   g_es = 2   4        
+#      theta_es = 0.0 13189.18 36633.32 75274.12 92956.53
+#	   g_es = 2   4        2        4        2
+# unchecked diffusion parameters
+dipole_moment  = 0.0
+polarizability = 1.76
+# dummy SSH parameters
+eps0    = 1.0
+r0      = 1.0
+r_eq    = 1.0
+f_m     = 1.0
+
+
+[CN+]
+# NOTES:
+# - using radiation lev0 vib limit for Np
+# - neglecting NIST states in paraenthesis
+           type = diatomic polar
+oscillator_type = truncated
+            h_f = 69143297.79
+     mol_weight = 26.0168514e-03
+        theta_v = 2925.10
+             Np = 15
+       theta_es = 0.0 11961.40
+           g_es = 1   2       
+#      theta_es = 0.0 11961.40 65512.61
+#          g_es = 1   2        1
+# unchecked diffusion parameters
+dipole_moment  = 1.375
+polarizability = 0.0
+# dummy SSH parameters
+eps0    = 1.0
+r0      = 1.0
+r_eq    = 1.0
+f_m     = 1.0
+
+
+[NO+]
+# NOTES:
+# - neglecting NIST states in paraenthesis (none in first 8 states)
+           type = diatomic polar
+oscillator_type = truncated
+            h_f = 33020879.73
+     mol_weight = 30.0055514e-3
+        theta_v = 3419.13
+             Np = 9
+       theta_es = 0.0 75089.67
+	   g_es = 1   3       
+#      theta_es = 0.0 75089.67 85233.04 89031.41 97433.85 100052.42 102800.48 105709.28
+#	   g_es = 1   3        6        6        3        1         2         2
+# unchecked diffusion parameters
+dipole_moment  = 0.153
+polarizability = 0.0
+# dummy SSH parameters
+eps0    = 1.0
+r0      = 1.0
+r_eq    = 1.0
+f_m     = 1.0
+
+
+[O2+]
+# NOTES:
+# - neglecting NIST states in paraenthesis
+           type = diatomic nonpolar
+oscillator_type = truncated
+            h_f = 36621639.76
+     mol_weight = 31.99825e-3
+        theta_v = 2699.72
+	     Np = 26
+       theta_es = 0.0 47427.78
+	   g_es = 4   8       
+#      theta_es = 0.0 47427.78 58513.98 71294.19 90254.36 95993.64
+#	   g_es = 4   8        4        4        4        2
+# unchecked diffusion parameters
+dipole_moment  = 0.0
+polarizability = 1.6
+# dummy SSH parameters
+eps0    = 1.0
+r0      = 1.0
+r_eq    = 1.0
+f_m     = 1.0
+
+
+[Ar]
+# NOTES: 
+# - No condensed level data available, just using first few states from NIST
+# - Of course, we are combining multiplet states
+      type = atom
+       h_f = 0.0
+mol_weight = 39.9480000e-3
+  theta_es = 0.0 134340.33
+      g_es = 1   8
+
+[C]
+# NOTES: 
+# - Using first 8 spradian composite levels
+      type = atom
+       h_f = 59670127.47
+mol_weight = 12.0107000e-3
+  theta_es = 43.16 14666.87
+      g_es = 9     5       
+# theta_es = 43.16 14666.87 31146.60 86863.17 89178.16 101271.07 102889.69 112489.19
+#     g_es = 9     5        1        9        3        27        9         12       
+	
+[C+]
+# NOTES: 
+# - Using first 8 spradian composite levels
+      type = atom
+       h_f = 150659589.7
+mol_weight = 12.0101514e-3
+  theta_es = 0.0 92.08 
+      g_es = 2   4     
+# theta_es = 0.0 92.08 61914.81 107810.30 138833.17 159203.35 167671.98 189532.73
+#     g_es = 2   4     12       10        2         6         2         6       
+
+[N]
+# NOTES: 
+# - Using first 8 spradian composite levels
+      type = atom
+       h_f = 33746706.93
+mol_weight = 14.0067000e-3
+  theta_es = 0.0 27664.76 
+      g_es = 4   10       
+# theta_es = 0.0 27664.76 41494.27 119903.20 125875.56 137080.74 139263.36 149434.06
+#     g_es = 4   10       6        12        18        36        18        18
+	
+[N+]
+# NOTES: 
+# - Using first 8 spradian composite levels
+      type = atom
+       h_f = 134378643.37
+mol_weight = 14.006151e-3
+  theta_es = 0.0 100.81
+      g_es = 1   3            
+# theta_es = 0.0 100.81 270.76 31705.52 67667.94 96847.16 190937.0 190964.12
+#     g_es = 1   3      5      5        1        5        7        5         
+
+[O]
+# NOTES: 
+# - Using first 8 spradian composite levels
+      type = atom
+       h_f = 15574021.71
+mol_weight = 15.9994000e-3
+  theta_es = 112.22 22830.48
+      g_es = 9      5      
+# theta_es = 112.22 22830.48 48619.09 106135.56 110490.74 124639.65 127520.08 137772.79
+#     g_es = 9      5        1        5         3         15        9         8
+
+[O+]
+# NOTES: 
+# - Using first 8 spradian composite levels
+      type = atom
+       h_f = 36621639.77
+mol_weight = 31.9982514e-3
+  theta_es = 0.0 131.28
+      g_es = 2   4     
+# theta_es = 0.0 131.28 89019.62 89065.17 89123.76 155110.19 155115.40 199748.32
+#     g_es = 2   4      2        4        6        6         4         2
+
+[e-]
+      type = electron
+mol_weight = 0.000548579903e-3
+       h_f = 0.0
+
+[energy_exchange]
+# NOTE: New vibratory species are NCO, CN+, O2+ [all species can use Landau Teller rates]
+# non-vibrators: Ar  C   N   O   C+  N+  O+  e-
+#       indices: 13  14  15  16  17  18  19  20
+vibrational_species = CO2  CO  N2  CN  NO  O2  C2  NCO  CO+  N2+ CN+  NO+  O2+
+# ivib_indices      = 0    1   2   3   4   5   6   7    8    9   10   11   12 
+include_electron = True 
+ode_method = rkf
+
+[energy_exchange/e-]
+# all mechanisms as this is a 3T model
+no_mechanisms = 13
+
+[energy_exchange/e-/0]
+type = ET_exchange
+relaxation_time = ET_ion
+c = C+
+
+[energy_exchange/e-/1]
+type = ET_exchange
+relaxation_time = ET_ion
+c = N+
+
+[energy_exchange/e-/2]
+type = ET_exchange
+relaxation_time = ET_ion
+c = O+
+
+[energy_exchange/e-/3]
+type = ET_exchange
+relaxation_time = ET_ion
+c = CO+
+
+[energy_exchange/e-/4]
+type = ET_exchange
+relaxation_time = ET_ion
+c = N2+
+
+[energy_exchange/e-/5]
+type = ET_exchange
+relaxation_time = ET_ion
+c = CN+
+
+[energy_exchange/e-/6]
+type = ET_exchange
+relaxation_time = ET_ion
+c = NO+
+
+[energy_exchange/e-/7]
+type = ET_exchange
+relaxation_time = ET_ion
+c = O2+
+
+[energy_exchange/e-/8]
+type = ET_exchange
+relaxation_time = ET_neutral
+c = N
+Ps = 5.0e-20 0.0 0.0
+
+[energy_exchange/e-/9]
+type = ET_exchange
+relaxation_time = ET_neutral
+c = O
+Ps = 1.2e-20 1.7e-24 -2.0e-29
+
+[energy_exchange/e-/10]
+# e- and N2 collisions
+type = ET_exchange
+relaxation_time = ET_neutral
+c = N2
+Ps = 7.5e-20 5.5e-24 -1.0e-28
+
+[energy_exchange/e-/11]
+# e- and NO collisions
+type = ET_exchange
+relaxation_time = ET_neutral
+c = NO
+Ps = 1.0e-19 0.0 0.0
+
+[energy_exchange/e-/12]
+# e- and O2 collisions
+type = ET_exchange
+relaxation_time = ET_neutral
+c = O2
+Ps = 2.0e-20 6.0e-24 0.0
+
+[energy_exchange/CO2]
+no_mechanisms = 7
+
+[energy_exchange/CO2/0]
+# CO2-CO2 VT
+type = VT_exchange
+relaxation_time = VT_MW2
+p = CO2
+q = CO2
+sigma_v_dash = 1.0e-16
+LCS_expr = park
+
+[energy_exchange/CO2/1]
+# CO2-CO VT
+type = VT_exchange
+relaxation_time = VT_MW2
+p = CO2
+q = CO
+sigma_v_dash = 1.0e-16
+LCS_expr = park
+
+[energy_exchange/CO2/2]
+# CO2-N2 VT
+type = VT_exchange
+relaxation_time = VT_MW2
+p = CO2
+q = N2
+sigma_v_dash = 1.0e-16
+LCS_expr = park
+
+[energy_exchange/CO2/3]
+# CO2-Ar VT
+type = VT_exchange
+relaxation_time = VT_MW2
+p = CO2
+q = Ar
+sigma_v_dash = 1.0e-16
+LCS_expr = park
+
+[energy_exchange/CO2/4]
+# CO2-C VT
+type = VT_exchange
+relaxation_time = VT_MW2
+p = CO2
+q = C
+sigma_v_dash = 1.0e-16
+LCS_expr = park
+
+[energy_exchange/CO2/5]
+# CO2-N VT
+type = VT_exchange
+relaxation_time = VT_MW2
+p = CO2
+q = N
+sigma_v_dash = 1.0e-16
+LCS_expr = park
+
+[energy_exchange/CO2/6]
+# CO2-O VT
+type = VT_exchange
+relaxation_time = VT_MW2
+p = CO2
+q = O
+sigma_v_dash = 1.0e-16
+LCS_expr = park
+
+[energy_exchange/CO]
+no_mechanisms = 7
+
+[energy_exchange/CO/0]
+# CO-CO2 VT
+type = VT_exchange
+relaxation_time = VT_MW2
+p = CO
+q = CO2
+sigma_v_dash = 3.0e-18
+LCS_expr = park
+
+[energy_exchange/CO/1]
+# CO-CO VT
+type = VT_exchange
+relaxation_time = VT_MW2
+p = CO
+q = CO
+sigma_v_dash = 3.0e-18
+LCS_expr = park
+
+[energy_exchange/CO/2]
+# CO-N2 VT
+type = VT_exchange
+relaxation_time = VT_MW2
+p = CO
+q = N2
+sigma_v_dash = 3.0e-18
+LCS_expr = park
+
+[energy_exchange/CO/3]
+# CO-Ar VT
+type = VT_exchange
+relaxation_time = VT_MW2
+p = CO
+q = Ar
+sigma_v_dash = 3.0e-18
+LCS_expr = park
+
+[energy_exchange/CO/4]
+# CO-C VT
+type = VT_exchange
+relaxation_time = VT_MW2
+p = CO
+q = C
+sigma_v_dash = 3.0e-18
+LCS_expr = park
+
+[energy_exchange/CO/5]
+# CO-N VT
+type = VT_exchange
+relaxation_time = VT_MW2
+p = CO
+q = N
+sigma_v_dash = 3.0e-18
+LCS_expr = park
+
+[energy_exchange/CO/6]
+# CO-O VT
+type = VT_exchange
+relaxation_time = VT_MW2
+p = CO
+q = O
+sigma_v_dash = 3.0e-18
+LCS_expr = park
+
+[energy_exchange/N2]
+no_mechanisms = 7
+
+[energy_exchange/N2/0]
+# N2-CO2 VT
+type = VT_exchange
+relaxation_time = VT_MW2
+p = N2
+q = CO2
+sigma_v_dash = 3.0e-17
+LCS_expr = park
+
+[energy_exchange/N2/1]
+# N2-CO VT
+type = VT_exchange
+relaxation_time = VT_MW2
+p = N2
+q = CO
+sigma_v_dash = 3.0e-17
+LCS_expr = park
+
+[energy_exchange/N2/2]
+# N2-N2 VT
+type = VT_exchange
+relaxation_time = VT_MW2
+p = N2
+q = N2
+sigma_v_dash = 3.0e-17
+LCS_expr = park
+
+[energy_exchange/N2/3]
+# N2-Ar VT
+type = VT_exchange
+relaxation_time = VT_MW2
+p = N2
+q = Ar
+sigma_v_dash = 3.0e-17
+LCS_expr = park
+
+[energy_exchange/N2/4]
+# N2-C VT
+type = VT_exchange
+relaxation_time = VT_MW2
+p = N2
+q = C
+sigma_v_dash = 3.0e-17
+LCS_expr = park
+
+[energy_exchange/N2/5]
+# N2-N VT
+type = VT_exchange
+relaxation_time = VT_MW2
+p = N2
+q = N
+sigma_v_dash = 3.0e-17
+LCS_expr = park
+
+[energy_exchange/N2/6]
+# N2-O VT
+type = VT_exchange
+relaxation_time = VT_MW2
+p = N2
+q = O
+sigma_v_dash = 3.0e-17
+LCS_expr = park
+
+[energy_exchange/CN]
+no_mechanisms = 0
+equilibriated_with = 0
+
+[energy_exchange/NO]
+no_mechanisms = 0
+equilibriated_with = 0
+
+[energy_exchange/O2]
+no_mechanisms = 0
+equilibriated_with = 0
+
+[energy_exchange/C2]
+no_mechanisms = 0
+equilibriated_with = 0
+
+[energy_exchange/NCO]
+no_mechanisms = 0
+equilibriated_with = 0
+
+[energy_exchange/CO+]
+no_mechanisms = 0
+equilibriated_with = 0
+
+[energy_exchange/N2+]
+no_mechanisms = 0
+equilibriated_with = 0
+
+[energy_exchange/CN+]
+no_mechanisms = 0
+equilibriated_with = 0
+
+[energy_exchange/NO+]
+no_mechanisms = 0
+equilibriated_with = 0
+
+[energy_exchange/O2+]
+no_mechanisms = 0
+equilibriated_with = 0
+

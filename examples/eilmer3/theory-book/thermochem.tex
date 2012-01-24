@@ -1,0 +1,511 @@
+% thermochem.tex
+
+\section{Thermochemistry}
+\label{thermochem-sec}
+The gas-dynamic equations of the previous section are closed by a set of relations
+between the various thermodynamic properties of the gas mixture.
+This section describes a gas library which provides various models of gas behaviour for use
+in the simulation codes.
+
+There are a number of gas models available as part of the gas library. They are desribed here:
+\begin{description}
+ \item[ideal gas mix] \hspace{1cm} \\
+     The ideal gas mix is used to model one or more components, all of which
+     have ideal (perfectly elastic collisions and calorically perfect) behaviour.
+ \item[equilibrium gas mix] \hspace{1cm} \\
+     The equilibrium gas mix models a fixed-composition gas mix which is assumed to be in thermal and
+     chemical equilibrium at the local thermodynamic conditions.
+ \item[thermally perfect gas mix] \hspace{1cm} \\
+     The thermally perfect gas mix models a gas with one or more components, all of which
+     have perfect (collisional) behaviour but each have all internal energy modes excited to
+     an equilibrium described by a single temperature
+ \item[multi-temperature gas mix] \hspace{1cm} \\
+     This model represents a mixture of gases with perfect collisional behaviour but the
+     the internal energy modes are ascribed different Boltzmann temperatures in order
+     to model the effect of thermal nonequilibrium.
+ \item[Noble-Abel gas mix] \hspace{1cm} \\
+     The Nobel-Abel gas mix model is used in interior ballistics work where high pressures mean
+     that real gas effects cannot be neglected.  It models the effect
+     of the finite volume occupied by gas particles when computing the equation of state.
+     Collisions between gas particles are still considered to be perfectly elastic.
+ \item[van der Waals gas mix] \hspace{1cm} \\
+     The van der Waals gas mix models real gas effects at high pressures/densities.  The finite volume
+     occupied by the gas particles and the non-ideal particle collisions due to van der Waals' forces
+     are considered in the model.
+\end{description}
+
+In simulating impulse facilities, we typically only use the equilibrium gas and thermally perfect gas models.
+Therefore, these two models are discussed in the remainder of this section.
+The thermally perfect gas mix is used when we also wish to simulate the effect of finite-rate chemistry
+between the gases.
+The multi-temperature gas mix has also been used recently to model the X2 facilities~\cite{potter_etal_08}, however, we consider
+the validation of this model a work in progress.
+
+\subsection{An equilibrium gas mixture}
+At higher temperatures, the gases in impulse facilities will undergo chemical reactions.
+For example in air, by 2\,000\,K oxygen molecules will begin to dissociate, and
+by 4\,000\,K nitrogen molecules will begin to dissociate.
+When the chemical reactions are rapid compared to the flow transit times, we use a model
+of the gas which assumes chemical equilibrium.
+Along with the assumption of chemical equilibrium, thermal equilibrium is also assumed;
+the internal energy modes of the gas rapidly equilibriate with the translational temperature
+when compared to the characteristic flow time.
+This assumption is most appropriate in the high pressure, high temperature gas that is driven by
+the piston against an unruptured diaphgram: the high pressures and temperatures give rise
+to rapid changes in chemical composition.
+
+\medskip
+The equilibrium gas mix is implemented as a look-up table where the thermodynamic properties
+are interpolated (or extrapolated) from a table with indexing based on density and internal
+energy.
+The look-up table is built for a fixed gas composition over a range of densities
+and energies prior to the gas dynamics simulation and is read into memory
+at the start of the simulation.
+A tool provided in the gas library builds the look-up table by running the CEA2 program~\cite{mcbride_gordon_96}
+numerous times.
+
+%
+\subsection{A mixture of thermally perfect gases}
+As mentioned above, the gas model for a mixture of thermally perfect gases is often used in conjunction
+with a finite-rate chemistry simulation.
+The thermodynamic relations for the gas mixture are presented here.
+The implementation of finite-rate chemical effects is discussed in Section~\ref{sec:chemistry}.
+
+\subsubsection{A single thermally perfect gas}
+%
+The assumed behaviour of a thermally perfect gas is that
+all internal energy modes are in equilibrium at a single temperature.
+For atoms this means that the Boltzmann distributions for translational
+and electronic energy are governed by one temperature value.
+Similarly for molecules, the Boltzmann distributions for translational,
+rotational, vibrational and electronic energy are described by
+a single temperature value.
+
+\medskip
+To model a thermally perfect gas requires a knowledge
+of how the gas stores energy as a function of temperature.
+It is convenient to have available the specific
+heat at constant pressure as a function of temperature, $C_p(T)$.
+From this, specific enthalpy of the gas can be computed as
+\begin{equation}
+h = \int_{T_{ref}}^T C_p(T) dT + h(T_{ref})
+\end{equation}
+and entropy is given as
+\begin{equation}
+s = \int_{T_{ref}}^T \frac{C_P(T)}{T} dT + s(T_{ref}).
+\end{equation}
+
+\medskip
+The transport properties, viscosity and thermal conductivity, can be calculated
+as a function of temperature for a single component of the gas mix.
+The transport properties for a single component can be combined by an appropriate
+mixing rule to give a mixture viscosity and thermal conductivity.
+
+\medskip
+In the implementation, a thermally perfect gas is characterised
+by five curve fits all of which are functions of temperature:
+\begin{enumerate}
+   \item specific heat at constant pressure, $C_p(T)$,
+   \item enthalpy, $h(T)$,
+   \item entropy, $s(T)$,
+   \item viscosity, $\mu(T)$, and
+   \item thermal conductivity, $k(T)$.
+\end{enumerate}
+The form of these curve fits follows that used by
+McBride and Gordon~\cite{mcbride_gordon_96}.
+The curve fits for thermodynamic properties
+in non-dimensional form are as follows:
+\begin{eqnarray}
+ \frac{C_p(T)}{R} & = & a_0 T^{-2} + a_1 T^{-1} + a_2 + a_3 T + a_4 T^2 + a_5 T^3 + a_6 T^4 \\
+ \frac{H(T)}{RT} & = & -a_0 T^{-2} + a_1 T^{-1} \log{T} + a_2 + a_3 \frac{T}{2} +
+                        a_4 \frac{T^2}{3} + a_5 \frac{T^3}{4} + a_6 \frac{T^4}{5} + \frac{a_7}{T} \\
+ \frac{S(T)}{R} & = & -a_0 \frac{T^{-2}}{2} - a_1 T^{-1} + a_2 \log{T} + a_3 T + a_4 \frac{T^2}{2}  +
+                        a_5 \frac{T^{3}}{3} + a_6 \frac{T^4}{4} + a_8
+\end{eqnarray}
+The coefficients for these curve fits are available for a large number of gaseous species in
+the CEA program~\cite{mcbride_gordon_96} (and associated database files).
+Each of these curve fits are only valid over a limited temperature range.
+For example, the thermodynamic curve fits for molecular nitrogen (N$_2$) are comprised of three
+segments: 200.0--1000.0\,K, 1000.0--6000.0\,K and 6000.0--20000.0\,K.
+Beyond this range the values are extrapolated in this work.
+The extrapolations are based on a crude assumption of constant $C_p$ outside of the
+range.
+Thus the extrapolations are as follows:
+\begin{eqnarray*}
+  \frac{C_p(T < T_{low})}{R} & = & \frac{C_p(T_{low})}{R}\\
+  \frac{C_p(T > T_{high})}{R} & = & \frac{C_p(T_{high} )}{R} \\
+  \frac{H(T < T_{low})}{RT} & = & \frac{1}{T} \left\lbrace H(T_{low})T_{low} - C_p(T_{low})( T_{low} - T ) \right\rbrace  \\
+  \frac{H(T > T_{high})}{RT} & = & \frac{1}{T} \left\lbrace H(T_{high})T_{high} + C_p(T_{high})( T - T_{high}) \right\rbrace \\
+  \frac{S(T < T_{low})}{R} & = & S(T_{low}) - C_p(T_{low}) \log{\left( \frac{T_{low}}{T}\right) }  \\
+  \frac{S(T > T_{high})}{R} & = & S(T_{high}) + C_p(T_{high}) \log{\left( \frac{T}{T_{high}}\right) }
+\end{eqnarray*}
+
+\medskip
+The curve fits for viscosity and thermal conductivity are also in the same form as
+that used by the CEA program~\cite{mcbride_gordon_96}.
+The curves are as follows.
+\begin{equation*}
+\log{\mu(T)}  =  a_0 \log{T} + \frac{a_1}{T} + \frac{a_2}{T^2} + a_3
+\end{equation*}
+\begin{equation*}
+\log{k(T)} = b_0 \log{T} + \frac{b_1}{T} + \frac{b_2}{T^2} + b_3
+\end{equation*}
+
+\subsubsection{Mixing rules for a collection of thermally perfect gases}
+%
+The thermodynamic state for a mixture of thermally perfect gases is uniquely
+defined by two state variables and the mixture composition.
+The internal energy is computed as a mass fraction weighted sum of
+individual internal energies,
+\begin{equation}
+e = \sum_{i=1}^{N} f_i e_i = \sum_{i=1}^{N} f_i \left( h_i - R_i T \right).
+\end{equation}
+Pressure is computed from Dalton's law of partial pressures,
+\begin{equation}
+p = \sum_{i=1}^{N} \rho_i R_i T.
+\end{equation}
+The specific gas constant for the mixture is defined as
+\begin{equation}
+R = \sum_{i=1}^{N} f_i R_i.
+\end{equation}
+The calculation of $C_p$ is based on a mass fraction weighted sum of component
+specific heats,
+\begin{equation}
+C_p = \sum_{i=1}^{N} f_i {C_p}_i.
+\end{equation}
+The specific heat at constant volume is then computed as
+\begin{equation}
+C_v = C_p - R.
+\end{equation}
+The ratio of specific heats, $\gamma$, is given by its definition,
+\begin{equation}
+\gamma = \frac{C_p}{C_v}.
+\end{equation}
+The frozen sound speed for the mixture, $a$, is calculated as
+\begin{equation}
+a = \sqrt{\gamma R T}.
+\end{equation}
+
+\medskip
+During a compressible flow simulation, the values of $\rho$ and $e$ are most
+readily available from the conserved quantities that are solved for during
+each time increment.
+This leads to the specific problem of solving for the thermodynamic
+state of the gas mixture given $\rho$, $e$, and the mixture composition, $\overrightarrow{f}$.
+However, the formulae previously presented are all explicit in temperature.
+We solve for temperature using the Newton iteration technique for zero solving,
+\begin{equation}
+T_{n+1} = T_n - \frac{f_0(T_n)}{f_0'(T_n)},
+\end{equation}
+where the zero function, $f_0(T)$, is based on the given internal energy, $e$, and
+a guess for internal energy based on temperature,
+\begin{equation}
+f_0(T) = e_{guess} - e = \sum_{i=1}^{N} f_i \left( h_i - R_i T_{guess} \right) - e.
+\end{equation}
+Using the fact that ${C_v}_i = \frac{de_i}{dt}$, we can conveniently find the derivative
+function for the Newton technique by computing the mixture $C_v$,
+\begin{equation}
+\frac{df_0(T)}{dT} = \sum_{i=1}^{N} f_i \frac{de_i}{dT} = \sum_{i=1}^{N} f_i {C_v}_i = C_v.
+\end{equation}
+The Newton iteration is set to converge when the accuracy of the temperature value is
+within $\pm 1.0\times10^{-6}$\,K.
+Personal experience has shown that this kind of error tolerance is required when temperature
+is used in a finite-rate chemistry calculation to compute rates of composition change.
+
+\medskip
+The calculation of mixture transport properties is not as straight forward
+as the thermodynamic properties.
+A mixing rule is required to compute the mixture viscosity and thermal
+conductivity.
+Wilke's mixing rule~\cite{wilke_50} has been implemented in the work
+presented here.
+Specifically, the mixing rules used by Gordon and McBride~\cite{gordon_mcbride_94} in the CEA program are used
+for calculating mixture transport properties in this work; these rules are a variant of Wilke's original formulation~\cite{wilke_50}.
+\begin{equation}
+   \mu_{mix} = \sum_{i=1}^N \frac{x_i \mu_i}{x_i + \sum_{\genfrac{}{}{0pt}{}{j=1}{j\neq i}}^N x_j \phi_{ij}}
+\end{equation}
+and
+\begin{equation}
+   k_{mix} = \sum_{i=1}^N \frac{x_i k_i}{x_i + \sum_{\genfrac{}{}{0pt}{}{j=1}{j\neq i}}^N x_j \psi_{ij}}
+\end{equation}
+where $x_i$ is the mole fraction of species $i$.
+
+\medskip
+The interaction potentials, $\phi_{ij}$ and $\psi_{ij}$, can be calculated a number of ways.
+Again, the formulae suggested by Gordon and McBride~\cite{gordon_mcbride_94} have been used,
+\begin{equation}
+   \phi_{ij} = \frac{1}{4} \left[ 1 + \left(\frac{\mu_i}{\mu_j}\right)^{1/2} 
+               \left(\frac{M_j}{M_i}\right)^{1/4} \right]^2\left(\frac{2M_j}{M_i + M_j}\right)^{1/2}
+\end{equation}
+and
+\begin{equation}
+\psi_{ij} = \phi_{ij} \left[ 1 + \frac{2.41(M_i - M_j)(M_i - 0.142M_j)}{(M_i + M_j)^2}\right]
+\end{equation}
+where $M_i$ and $M_j$ refer to the molecular weights of species $i$ and $j$ respectively.
+
+\medskip
+Once the mixture viscosity and thermal conductivity have been computed, it is possible to
+compute the mixture Prandtl number from its definition
+\begin{equation}
+Pr = \frac{\mu C_p}{k}.
+\end{equation}
+
+\subsection{Finite-rate chemistry implementation}
+\label{sec:chemistry}
+
+\subsubsection{Rates of species change due to chemical reaction}
+\label{subsec:chem_rates}
+By assuming a collection of simple reversible reactions, the chemically reacting system
+can be represented as,
+\begin{equation}
+   \sum_{i=1}^N \alpha_i X_i \rightleftharpoons \sum_{i=1}^N \beta_i X_i,
+\end{equation}
+where $\alpha_i$ and $\beta_i$ represent the stoichiometric coefficients for the reactants and
+products respectively.
+The case of an irreversible reaction is represented by setting the backward rate to zero.
+For a given reaction $j$, the rate of concentration change of species $i$ is given as,
+\begin{equation}
+  \left( \frac{d[X_i]}{dt} \right)_j = \nu_i \left\{ k_f \prod_i [X_i]^{\alpha_i} 
+                       - k_b \prod_i [X_i]^{\beta_i} \right\},
+\end{equation}
+where $\nu_i = \beta_i - \alpha_i$.
+By summation over all reactions, $N_r$, the total rate of concentration change is,
+\begin{equation}
+\label{eqn:chem_ode_system}
+  \frac{d[X_i]}{dt} = \sum_{j=1}^{N_r} \left( \frac{d[X_i]}{dt} \right)_j.
+\end{equation}
+For certain integration schemes it is convenient to have the production and loss
+rates available as separate quantities.
+In this case,
+\begin{equation}
+\label{eq:split}
+  \frac{d[X_i]}{dt} = q_i - L_i = \sum_{j=1}^{N_r} \dot{\omega}_{app_{i,j}} - \sum_{j=1}^{N_r} \dot{\omega}_{va_{i,j}} 
+\end{equation}
+The calculation of $\dot{\omega}_{app_{i,j}}$ and $\dot{\omega}_{va_{i,j}}$ depends on the
+value of $\nu_i$ in reach reaction $j$ as shown in Table~\ref{tab:omega}.
+
+\begin{table}[ht]
+\caption[Chemical production and loss terms]{The form of the chemical production and loss terms based on the value of $\nu_i$}
+\label{tab:omega}
+\begin{center}
+\begin{tabular}{ccc}
+\hline \hline
+                           & $\nu_i > 0$                          & $\nu_i < 0$  \\ \hline
+ $\dot{\omega}_{app_{i}}$  & $\nu_i k_f \prod_i [X_i]^{\alpha_i}$ & $-\nu_i k_b \prod_i [X_i]^{\beta_i}$ \\
+ $\dot{\omega}_{va_{i}}$   & $-\nu_i k_b \prod_i [X_i]^{\beta_i}$ & $\nu_i k_f \prod_i [X_i]^{\alpha_i}$ \\ \hline \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\medskip
+The calculation of the reaction rate coefficients, $k_f$ and $k_b$, and the solution methods for the ordinary differential
+equation system of species concentration changes are discussed in the subsequent sections.
+
+\subsubsection{Reaction rate coefficients}
+%
+The reaction rate coefficients for a reaction can be determined by experiment (often
+shock tube studies are used) or from theory.
+In a great number of cases, estimates of the reaction rate from theory can vary by
+orders of magnitude from experimentally determined values.
+For this reason, fits to experimental values are most commonly used.
+
+For the single-temperature gas model discussed in this chapter,
+the forward reaction rate coefficients are calculated using
+the generalised Arrhenius form,
+\begin{equation}
+\label{eqn:ga}
+k_f = A T^{n} \exp{\left( \frac{-E_a}{kT}\right)}
+\end{equation}
+where $k$ is the Boltzmann constant and $A$, $n$ and $E_a$ are constants
+of the model.
+
+\medskip
+The backward rate coefficient can also be calculated using a modified
+Arrhenius form,
+\begin{equation}
+k_b = A T^{n} \exp{\left(\frac{-E_a}{kT}\right)}
+\end{equation}
+or it can be calculated by first calculating the equilibrium constant
+for the reaction,
+\begin{equation}
+k_b = \frac{k_f}{K_{c}}.
+\end{equation}
+%
+If the backward rate coefficient is calculated from the equilibrium constant,
+then a method of calculation of the equilibrium constant is required.
+The equilibrium constant for a specific reaction can be calculated from curve fits or, as is done in this work,
+using the principles of thermodynamics.
+The equilibrium constant based on concentration is related to the equilibrium constant
+based on pressure by,
+\begin{equation}
+K_c = K_p \left( \frac{p_{atm}}{\mathcal{R}T} \right)^{\nu}
+\end{equation}
+where $p_{atm}$ is atmospheric pressure in Pascals, $\mathcal{R}$ is the universal
+gas constant, $\nu = \sum_i^{N_S} \nu_i$ and
+\begin{equation}
+K_p = \exp{\left( \frac{-\Delta G}{\mathcal{R}T} \right) }.
+\end{equation}
+The derivation of the formula for $K_p$, the equilibrium constant based on partial pressures,
+can be found in any introductory text on classical thermodynamics which covers chemical equilibrium.
+The differential Gibbs function for the reaction, $\Delta G$, is calculated using
+\begin{equation}
+\Delta G = \sum_i^{N_s} \nu_i G_i
+\end{equation}
+where each $G_i$ is computed from the definition of Gibbs free energy,
+\begin{equation}
+G_i(T) = H_i(T) - T \times S_i(T)
+\end{equation}
+and $G_i$ is in units of J/mol.
+$H_i$ and $S_i$ can be computed in the appropriate units
+by using the CEA polynomials and multiplying by $\mathcal{R}T$ and
+$\mathcal{R}$ respectively.
+
+\medskip
+Some caution should be exercised in the selection and use of reaction rates for a specific flow problem.
+In many cases, a set of reaction rates may only be ``tuned'' for a specific problem domain.
+This problem of ``tuned'' sets of reaction rates and an explanation for why it arises
+is described by Oran and Boris (p. 38 of Ref.~\cite{oran_boris_01}):
+\begin{quote}
+ A problem that often arises in chemical reactions is that there are fundamental inconsistencies
+ in a measured reaction rate.
+ For example, there may be experimental measurements of both the forward and reverse rate constants,
+ $k_f$ and $k_r$.
+ Nonetheless, when either is combined with the equilibrium coefficient for that reaction, the other is not
+ produced.
+ This appears to represent a violation of equilibrium thermodynamics.
+ The explanation is usually that $k_f$ and $k_r$ have been measured at rather different temperatures or
+ pressures, and so there are inconsistencies when they are extrapolated outside the regime of validity of
+ the experiments.
+\end{quote}
+
+
+\subsubsection{Solving the chemical kinetic ordinary differential equation}
+%
+The system represented in Equation~\ref{eqn:chem_ode_system} is a system of ordinary
+differential equations (ODEs) which can be solved by
+an appropriate method.
+For certain chemical systems, the governing ODEs form a stiff system
+due to rates of change varying by orders of magnitude for certain
+species.
+For these systems, special methods for stiff ODEs are required.
+In this work, four methods for the numerical solution of the ODE system
+have been implemented.
+\begin{enumerate}
+  \item Euler method
+  \item modified Euler method
+  \item alpha-QSS method, and
+  \item Runge-Kutta-Fehlberg method
+\end{enumerate}
+
+\medskip
+The Euler method and modified Euler method are standard techniques for solving
+ODEs and the details can be found in any text dealing with numerical methods and
+numerical analysis.
+The fourth-order Runge-Kutta method uses a fifth-order error estimate as a means for controlling
+the timestep used for integration as proposed by Fehlberg~\cite{fehlberg_69}.
+This is particularly efficient for non-stiff systems.
+
+\paragraph{alpha-QSS method}
+%
+The alpha-QSS (quasi-steady-state) method was proposed in Mott's thesis~\cite{mott_99}.
+It is an ODE solver aimed specifically at the problem of stiffness in chemical
+systems.
+This ODE solver makes use of the forward and backwards rates of concentration change
+as calculated by Equation~\ref{eq:split}.
+This is a predictor-corrector type scheme in which the corrector is iterated
+upon until a desired convergence is achieved.
+The predictor and corrector are,
+\begin{eqnarray}
+\left[X_i\right]^1 & = & \left[X_i\right]^0 + \frac{ \Delta t q_i^0}{1 + \alpha_i^0 \Delta t L_i^0} \\
+\left[X_i\right]^{n+1} & = & \left[X_i\right]^0 + \frac{ \Delta t \left(\bar{q}_i - \left[X_i\right]^0 \bar{L}_i \right)}{1 + \bar{\alpha}_i \Delta t \bar{L}_i }.
+\end{eqnarray}
+In the above equations,
+\begin{equation}
+\bar{L}_i = \frac{1}{2} \left( L_i^0 + L_i^n \right)
+\end{equation}
+and
+\begin{equation}
+\bar{q}_i = \bar{\alpha}_i q_i^n + \left( 1 - \bar{\alpha}_i\right) Q_i^0.
+\end{equation}
+The key to the scheme is calculating $\alpha$ correctly.
+This $\alpha$ parameter controls how the update works on a given species integration.
+Note that $\alpha$ is defined as
+\begin{equation}
+\alpha(L \Delta t) \equiv \frac{ 1 - \left( 1 - e^{-L \Delta t} \right) / (L \Delta t) }{1 - e^{-L \Delta t}}.
+\end{equation}
+Using Pade's approximation,
+\begin{equation}
+e^x \approx \frac{360 + 120x + 12x^2}{360 - 240x + 72x^2 - 12x^3 + x^4}
+\end{equation}
+it is possible to write a form of the expression for $\alpha$ which is more amenable to computation
+as the expensive exponential function evaluation is avoided.
+The approximation for $\alpha$ becomes,
+\begin{equation}
+\alpha(L \Delta t) \approx \frac{180 r^3 + 60 r^2 + 11 r + 1}{360 r^3 + 60 r^2 + 12 r + 1}
+\end{equation}
+where $r \equiv 1/(L \Delta t)$.
+
+\subsubsection{Coupling chemistry effects to the flow solver}
+Some details about the coupling of the chemistry effects to the gas dynamics
+simulation are provided here.
+In an unsteady, time-accurate flow simulation, the
+allowable timestep is constrained by the Courant-Friedrichs-Lewy
+(CFL) criterion.
+In a viscous compressible flow, the CFL criterion allows one to
+select an appropriate timestep and limit the propagation
+of flow information to distances less than one cell-width.
+The speed at which flow information propagates is a function
+of inviscid wave speeds and viscous effects.
+
+\medskip
+When the effects of finite-rate chemistry are `split' from the flow
+simulation, the chemical update is solved in a separate step in
+which the flow is held frozen. (In fact, in true timestep-splitting, \emph{all}
+other contributing physics is frozen during the chemistry update.)
+Thus the chemistry problem is to find the updated species composition
+at the end of the flow timestep.
+
+\medskip
+It may be, and is quite likely, that the flow timestep is not
+an appropriate timestep to solve the chemical kinetic ODE problem.
+When the timestep for the chemistry problem is smaller than the
+flow timestep, the chemistry problem is subcycled a number of times
+until the total elapsed time equals that of the flow timestep.
+It is common to have simulations where
+the chemistry timestep is 100--1000 times smaller than the flow timestep,
+that is, 100-1000 subcycles are required to solve the chemistry problem.
+When the timstep for the chemistry problem is larger than the flow
+timestep, it is simply set to the value of the flow timestep.
+
+\medskip
+During the simulation process, the chemistry timestep is tracked for each
+finite-volume cell in the simulation.
+Although the flow `moves on' in subsequent timesteps, if the change of flow conditions is not large,
+then the previous chemistry timestep will be a good estimate to begin the
+new chemistry problem in the subsequent timestep.
+An exceptional case is when a shock passes through the cell: the change of flow
+conditions does become large.
+In this instance, the old chemistry step is disregarded and a new step is selected.
+The selection procedure for a new step is discussed in the next paragraph.
+When using either the Runge-Kutta-Fehlberg or the alpha-QSS methods, an estimate
+of the new chemistry timestep is provided as part of the ODE update routine.
+
+\medskip
+So, during a simulation, the old chemistry step at one iteration is used to
+begin the new chemistry problem in the next iteration.
+What is needed is a means to select the chemistry step on the initial iteration,
+or whenever the old suggestion is not reasonable (as in the case of a shock passing
+through the cell).
+In this work, the initial step for the chemistry problem is selected
+based on the suggestion by Young and Boris~\cite{young_boris_77},
+\begin{equation}
+ dt_{\mbox{chem}} = \epsilon_1 \min \left( \frac{[X_i](0)}{[\dot{X}_i](0)} \right)
+\end{equation}
+where $\epsilon_1$ is taken as $1.0 \times 10^{-3}$ in this work,
+and the expression is evaulated at the initial values for the chemistry
+subproblem.
+Young and Boris~\cite{young_boris_77} suggest that $\epsilon_1$
+be scaled from the convergence criteria.
+We have found that the fixed value is adequate for the problems
+of interest to our research group.
+

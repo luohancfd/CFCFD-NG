@@ -1,0 +1,6 @@
+TODO.txt for mms
+
+(1) Make a user-defined gas model so that we can set large, constant viscosity.
+(2) Use conditional statements to define the supersonic (inviscid) or subsonic
+(viscous) test cases.
+ 

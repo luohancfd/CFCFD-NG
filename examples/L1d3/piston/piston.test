@@ -1,0 +1,43 @@
+# piston.test
+# Functional test for the ideal piston-in-tube.
+#
+# This exercises quite a few of the basic functions of the L1d3 code.
+#
+# PJ, 19-Feb-2011 (adapted from Eilmer3's cone20.test)
+# Note that later tests below depend on earlier ones,
+# just as we shouldn't do.  Should fix this some day.
+
+package require tcltest 2.0
+namespace import ::tcltest::*
+configure -verbose {start body error}
+
+test run-preprocessor {Run the preprocessing stage.} -body {
+    exec l_script.py -f piston > LOGFILE_SCRIPT
+    exec l_prep.exe -f piston > LOGFILE_PREP
+} -result {} -returnCodes {0}
+
+test run-simulation {Run the L1d3 simulation code.} -body {
+    exec l1d.exe -f piston > LOGFILE_MAIN
+} -result {} -returnCodes {0}
+
+test end-state {The piston gets to a particular speed in a certain number of steps.} -body {
+    set fp [open LOGFILE_MAIN r]
+    set contents [read $fp]
+    close $fp
+    set final_steps 0
+    set final_velocity 0.0
+    foreach line [split $contents "\n"] {
+	if {[string first "Total number of steps" $line] >= 0} {
+	    set final_steps [lindex [split $line] 5]
+	}
+	if {[string first "Piston 0:" $line] >= 0} {
+	    set final_velocity [lindex [split $line] 6]
+	}
+    }
+    set result [list [expr abs($final_steps - 1893) <= 1] \
+		    [expr abs($final_velocity - 210.3) < 0.1]]
+    set result
+} -result {1 1}
+
+
+cleanupTests
