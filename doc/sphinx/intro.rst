@@ -1,9 +1,9 @@
 The CFCFD Group
 ===============
 
-The Compressible-Flow CFD group is an informal group of academic staff
-postdoctoral fellows and postgraduate students within the Faculty of Engineering
-For many years, the main participants are from the Centre for Hypersonics
+The Compressible-Flow CFD group is an informal group of academic staff,
+postdoctoral fellows and postgraduate students within the Faculty of Engineering.
+For many years, the main participants have been from the Centre for Hypersonics
 and the Geothermal Energy Research Centre.
 Our common interest is the simulation of the flow of compressible fluids.
 
