@@ -1,0 +1,7 @@
+L1d3
+====
+
+L1d3 is our specialist simulation code for quasi-one-dimensional gas dynamics.
+It is usually applied to the simulation of entire shock-tube or expansion-tube
+facilities and has a role to play in the design of new experimantal machines.
+
