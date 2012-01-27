@@ -80,9 +80,14 @@ On Xserver for Linux (especially Ubuntu):
   in the Edit->Settings ("Options") dialog.
   You will find the checkbutton under "Render View"->General.
 
-User Guide (PDF)
-----------------
+Detailed Documents (PDF)
+------------------------
 
+The full Eilmer3 User Guide and Example Book: pdf-user-guide_
 
+.. _pdf-user-guide: ./pdf/eilmer3-user-guide.pdf
 
+The Theory Book: pdf-theory-book_
+
+.. _pdf-theory-book: ./pdf/eilmer3-theory-book.pdf
 
