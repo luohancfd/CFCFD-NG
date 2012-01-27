@@ -15,6 +15,7 @@
 #include <iomanip>
 #include <algorithm>
 
+#include "../../nm/source/exponential_integrals.hh"
 #include "../../util/source/useful.h"
 
 #include "spectral_model.hh"
@@ -78,7 +79,6 @@ write_data_to_file( string fname,
     if ( with_Y2 ) {
     	specfile << "# Column 4: " << Y2_label << endl;
     }
-    
     /* 2. Write data for each frequency interval to file. */
     double Y1_int = 0.0;
     for ( int inu=int(nu.size())-1; inu >= 0; --inu ) {
@@ -164,6 +164,134 @@ void CoeffSpectra::calculate_cumulative_emission( bool resize )
     }
     
     return;
+}
+
+/* ------------ SpectralBin class ------------ */
+
+SpectralBin::SpectralBin(vector<double> & pvec, double p_min, double p_max )
+{
+    for ( int ip=0; ip<int(pvec.size()); ++ip ) {
+	if ( pvec[ip] >= p_min && pvec[ip] < p_max ) {
+	    inu.push_back( ip );
+	}
+    }
+}
+
+SpectralBin::SpectralBin(vector<int> & inus )
+ : inu( inus ) {}
+
+void create_spectral_bin_vector( std::vector<double> & pvec, int binning_type, int N_bins, std::vector<SpectralBin*> & B )
+{
+    if ( N_bins<1 ) {
+	cout << "create_spectral_bin_vector()" << endl
+	     << "N_bins must be greater than or equal to 1" << endl;
+	exit( BAD_INPUT_ERROR );
+    }
+
+    if ( binning_type==FREQUENCY_BINNING ) {
+	// Simply subdivide spectral range into N_bins of equal size
+	int nnus = (int) pvec.size();
+	int bin_size = nnus / N_bins;
+	int first_bin_size = nnus - ( N_bins - 1 ) * bin_size;
+	int inu_start = 0, inu_end = first_bin_size;
+	for ( int iB=0; iB<N_bins; ++iB ) {
+	    vector<int> inus;
+	    for ( int inu=inu_start; inu<inu_end; ++inu )
+		inus.push_back( inu );
+	    inu_start = inu_end;
+	    inu_end += bin_size;
+	    B.push_back( new SpectralBin( inus ) );
+	}
+	cout << "inu_end = " << inu_end << ", bin_size = " << bin_size << ", first_bin_size = " << first_bin_size << endl;
+	cout << "nnus = " << nnus << ", N_bins = " << N_bins << endl;
+    }
+    else if ( binning_type==OPACITY_BINNING ) {
+	// divide the opacity range into equal segment in log space
+	int nps = (int) pvec.size();
+	double p_min = 1.0e99, p_max = 0.0;
+	for ( int ip=0; ip<nps; ++ip ) {
+	    if ( pvec[ip] < p_min && pvec[ip]>0.0 ) p_min = pvec[ip];
+	    if ( pvec[ip] > p_max ) p_max = pvec[ip];
+	}
+	if ( p_min > p_max ) {
+	    cout << "create_spectral_bin_vector()" << endl
+		 << "p_min and p_max search failed." << endl
+		 << "Exiting program." << endl;
+	    exit( FAILURE );
+	}
+	else if ( p_min == p_max && N_bins != 1 ) {
+	    cout << "create_spectral_bin_vector()" << endl
+		 << "It appears this is a gray gas as the opacity is constant." << endl
+		 << "For this type of radiation, spectral binning will only work with a single bin." << endl
+		 << "Currently N_bins = " << N_bins << "." << endl
+		 << "Exiting program." << endl;
+	    exit( BAD_INPUT_ERROR );
+	}
+	else if ( p_min == p_max && N_bins == 1 ) {
+	    // We need to artificially increase p_max so that all spectral points are included in the bin
+	    // Any increase is sufficient as all opacities are equal
+	    p_max += 1.0;
+	}
+	vector<double> p_limits;
+	double delta_log_p = log(p_max / p_min ) / ( N_bins );
+	for ( int iB=0; iB<N_bins+1; ++iB ) {
+	   double log_p = log(p_min) + iB*delta_log_p;
+	   p_limits.push_back(exp(log_p));
+	   // cout << "p_limits = " << p_limits.back() << endl;
+	}
+	// decrease the first limit, and increase the last limit to ensure all points will be included
+        p_limits.front() *= 0.99;
+        p_limits.back() *= 1.01;
+	int nnu_inc = 0.0;
+	for ( int iB=1; iB<N_bins+1; ++iB ) {
+	    B.push_back( new SpectralBin( pvec, p_limits[iB-1], p_limits[iB] ) );
+	    cout << "Created a new spectral bin with " << B.back()->inu.size() << " entries" << endl;
+	    nnu_inc +=  B.back()->inu.size();
+	}
+	cout << nnu_inc << " spectral points have been included from a total of " << nps << endl;
+    }
+}
+
+/* ------------ BinnedCoeffSpectra class ------------ */
+
+BinnedCoeffSpectra::BinnedCoeffSpectra( CoeffSpectra * X, vector<SpectralBin*> & B )
+{
+    int nnu = X->nu.size();
+
+    // 1. Calculate the kappa_bin and j_bin vectors
+    for ( int iB=0; iB<int(B.size()); ++iB ) {
+	double j_int = 0.0, S_int = 0.0;
+	for ( int j=0; j<int(B[iB]->inu.size()); ++j) {
+	    int inu = B[iB]->inu[j];
+	    // NOTE: we are taking care here to remain consistent with a trapezoidal discretisation of the spectra
+	    //       where the trapezoid heights are taken as the average of the two bounding points
+	    double dj_int = 0.0;
+	    if      ( inu==0 )     dj_int = X->j_nu[inu] * 0.5 * fabs( X->nu[inu+1] - X->nu[inu] );
+	    else if ( inu==nnu-1 ) dj_int = X->j_nu[inu] * 0.5 * fabs( X->nu[inu] - X->nu[inu-1] );
+	    else                   dj_int = X->j_nu[inu] * ( 0.5 * fabs( X->nu[inu] - X->nu[inu-1] ) + 0.5 * fabs( X->nu[inu+1] - X->nu[inu] ) );
+	    j_int += dj_int;
+	    if ( X->kappa_nu[inu] > 0.0 )
+	        S_int += dj_int / X->kappa_nu[inu];
+	}
+	j_bin.push_back( j_int );
+	// If the source function is zero then kappa should also be zero
+	if ( S_int==0.0 )
+	    kappa_bin.push_back( 0.0 );
+	else
+	    kappa_bin.push_back( j_int / S_int );
+    }
+
+}
+
+BinnedCoeffSpectra::~BinnedCoeffSpectra()
+{}
+
+double BinnedCoeffSpectra::sum_emission()
+{
+    double j_total = 0.0;
+    for ( size_t ib=0; ib<j_bin.size(); ++ib )
+	j_total += j_bin[ib];
+    return j_total;
 }
 
 /* ------------ SpectralIntensity class ------------ */
@@ -323,6 +451,65 @@ double SpectralIntensity::integrate_intensity_spectra( double lambda_min, double
     return I_total;
 }
 
+/* ------------ BinnedSpectralIntensity class ------------ */
+
+BinnedSpectralIntensity::BinnedSpectralIntensity( size_t N_bins )
+{
+    I_bin.resize(N_bins);
+}
+
+BinnedSpectralIntensity::BinnedSpectralIntensity( SpectralIntensity * I, vector<SpectralBin*> & B )
+{
+    int nnu = I->nu.size();
+
+    // 1. Calculate the I_bin vector
+    for ( int iB=0; iB<int(B.size()); ++iB ) {
+	double I_int = 0.0;
+	for ( int j=0; j<int(B[iB]->inu.size()); ++j) {
+	    int inu = B[iB]->inu[j];
+	    // NOTE: we are taking care here to remain consistent with a trapezoidal discretisation of the spectra
+	    //       where the trapezoid heights are taken as the average of the two bounding points
+	    if      ( inu==0 )     I_int += I->I_nu[inu] * 0.5 * fabs( I->nu[inu+1] - I->nu[inu] );
+	    else if ( inu==nnu-1 ) I_int += I->I_nu[inu] * 0.5 * fabs( I->nu[inu] - I->nu[inu-1] );
+	    else                   I_int += I->I_nu[inu] * ( 0.5 * fabs( I->nu[inu] - I->nu[inu-1] ) + 0.5 * fabs( I->nu[inu+1] - I->nu[inu] ) );
+	}
+	I_bin.push_back( I_int );
+    }
+
+}
+
+BinnedSpectralIntensity::BinnedSpectralIntensity( RadiationSpectralModel * rsm, double T, vector<SpectralBin*> & B )
+{
+    SpectralIntensity S( rsm, T );
+
+    int nnu = S.nu.size();
+
+    // 1. Calculate the I_bin vector
+    for ( int iB=0; iB<int(B.size()); ++iB ) {
+	double I_int = 0.0;
+	for ( int j=0; j<int(B[iB]->inu.size()); ++j) {
+	    int inu = B[iB]->inu[j];
+	    // NOTE: we are taking care here to remain consistent with a trapezoidal discretisation of the spectra
+	    //       where the trapezoid heights are taken as the average of the two bounding points
+	    if      ( inu==0 )     I_int += S.I_nu[inu] * 0.5 * fabs( S.nu[inu+1] - S.nu[inu] );
+	    else if ( inu==nnu-1 ) I_int += S.I_nu[inu] * 0.5 * fabs( S.nu[inu] - S.nu[inu-1] );
+	    else                   I_int += S.I_nu[inu] * ( 0.5 * fabs( S.nu[inu] - S.nu[inu-1] ) + 0.5 * fabs( S.nu[inu+1] - S.nu[inu] ) );
+	}
+	I_bin.push_back( I_int );
+    }
+}
+
+BinnedSpectralIntensity::~BinnedSpectralIntensity()
+{}
+
+double BinnedSpectralIntensity::sum_intensity()
+{
+    double I_total = 0.0;
+    for ( size_t ib=0; ib<I_bin.size(); ++ib )
+	I_total += I_bin[ib];
+    return I_total;
+}
+
 /* ------------ SpectralFlux class ------------ */
 
 SpectralFlux::SpectralFlux() {}
@@ -331,6 +518,16 @@ SpectralFlux::SpectralFlux( RadiationSpectralModel * rsm )
  : SpectralContainer( rsm )
 {
     q_nu.resize( nu.size() );
+}
+
+SpectralFlux::SpectralFlux( RadiationSpectralModel * rsm, double T )
+ : SpectralContainer( rsm )
+{
+    q_nu.resize( nu.size() );
+
+    for ( size_t inu=0; inu<nu.size(); ++inu ) {
+    	q_nu[inu] = 2.0 * M_PI * planck_intensity( nu[inu], T ) * E_3( 0.0 );
+    }
 }
 
 SpectralFlux::~SpectralFlux()
@@ -344,6 +541,65 @@ double SpectralFlux::write_to_file( string filename )
     string Y1_int_label = "Integrated flux, q (W/m**2-sr)";
     
     return write_data_to_file( filename, q_nu, Y1_label, Y1_int_label );
+}
+
+/* ------------ BinnedSpectralFlux class ------------ */
+
+BinnedSpectralFlux::BinnedSpectralFlux( size_t N_bins )
+{
+    q_bin.resize(N_bins);
+}
+
+BinnedSpectralFlux::BinnedSpectralFlux( SpectralFlux * F, vector<SpectralBin*> & B )
+{
+    double nnu = F->nu.size();
+
+    // 1. Calculate the q_bin vector
+    for ( int iB=0; iB<int(B.size()); ++iB ) {
+	double q_int = 0.0;
+	for ( int j=0; j<int(B[iB]->inu.size()); ++j) {
+	    int inu = B[iB]->inu[j];
+	    // NOTE: we are taking care here to remain consistent with a trapezoidal discretisation of the spectra
+	    //       where the trapezoid heights are taken as the average of the two bounding points
+	    if      ( inu==0 )     q_int += F->q_nu[inu] * 0.5 * fabs( F->nu[inu+1] - F->nu[inu] );
+	    else if ( inu==nnu-1 ) q_int += F->q_nu[inu] * 0.5 * fabs( F->nu[inu] - F->nu[inu-1] );
+	    else                   q_int += F->q_nu[inu] * ( 0.5 * fabs( F->nu[inu] - F->nu[inu-1] ) + 0.5 * fabs( F->nu[inu+1] - F->nu[inu] ) );
+	}
+	q_bin.push_back( q_int );
+    }
+
+}
+
+BinnedSpectralFlux::BinnedSpectralFlux( RadiationSpectralModel * rsm, double T, vector<SpectralBin*> & B )
+{
+    SpectralFlux F( rsm, T );
+
+    double nnu = F.nu.size();
+
+    // 1. Calculate the q_bin vector
+    for ( int iB=0; iB<int(B.size()); ++iB ) {
+	double q_int = 0.0;
+	for ( int j=0; j<int(B[iB]->inu.size()); ++j) {
+	    int inu = B[iB]->inu[j];
+	    // NOTE: we are taking care here to remain consistent with a trapezoidal discretisation of the spectra
+	    //       where the trapezoid heights are taken as the average of the two bounding points
+	    if      ( inu==0 )     q_int += F.q_nu[inu] * 0.5 * fabs( F.nu[inu+1] - F.nu[inu] );
+	    else if ( inu==nnu-1 ) q_int += F.q_nu[inu] * 0.5 * fabs( F.nu[inu] - F.nu[inu-1] );
+	    else                   q_int += F.q_nu[inu] * ( 0.5 * fabs( F.nu[inu] - F.nu[inu-1] ) + 0.5 * fabs( F.nu[inu+1] - F.nu[inu] ) );
+	}
+	q_bin.push_back( q_int );
+    }
+}
+
+BinnedSpectralFlux::~BinnedSpectralFlux()
+{}
+
+double BinnedSpectralFlux::sum_flux()
+{
+    double q_total = 0.0;
+    for ( size_t ib=0; ib<q_bin.size(); ++ib )
+	q_total += q_bin[ib];
+    return q_total;
 }
 
 /* ------------ IntensityProfile class ------------ */

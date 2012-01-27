@@ -77,6 +77,37 @@ public:
     void calculate_cumulative_emission( bool resize=false );
 };
 
+#define NO_BINNING        0
+#define FREQUENCY_BINNING 1
+#define OPACITY_BINNING   2
+
+class SpectralBin {
+public:
+    SpectralBin( std::vector<double> & pvec, double p_min, double p_max );
+    SpectralBin( std::vector<int> & inus );
+
+public:
+    std::vector<int> inu;
+};
+
+void create_spectral_bin_vector( std::vector<double> & pvec, int binning_type, int N_bins, std::vector<SpectralBin*> & B );
+
+class BinnedCoeffSpectra {
+public:
+    /// \brief Minimal Constructor
+    BinnedCoeffSpectra( CoeffSpectra * X, std::vector<SpectralBin*> & B );
+
+    /// \brief Deconstructor
+    ~BinnedCoeffSpectra();
+
+public:
+    double sum_emission();
+
+public:
+    std::vector<double> kappa_bin;
+    std::vector<double> j_bin;
+};
+
 double eval_Gaussian( double x, double delta_x );
 
 class SpectralIntensity : public SpectralContainer {
@@ -113,6 +144,25 @@ public:
     int nwidths;
 };
 
+class BinnedSpectralIntensity {
+public:
+    /// \brief Minimal Constructor
+    BinnedSpectralIntensity( size_t N_bins );
+
+    BinnedSpectralIntensity( SpectralIntensity * I, std::vector<SpectralBin*> & B );
+
+    BinnedSpectralIntensity( RadiationSpectralModel * rsm, double T, std::vector<SpectralBin*> & B );
+
+    /// \brief Deconstructor
+    ~BinnedSpectralIntensity();
+
+public:
+    double sum_intensity();
+
+public:
+    std::vector<double> I_bin;
+};
+
 class SpectralFlux : public SpectralContainer {
 public:
     /// \brief Minimal Constructor 
@@ -121,6 +171,9 @@ public:
     /// \brief Constructor 
     SpectralFlux( RadiationSpectralModel * rsm  );
     
+    /// \brief Constructor from temperature
+    SpectralFlux( RadiationSpectralModel * rsm, double T );
+
     /// \brief Deconstructor
     ~SpectralFlux();
     
@@ -130,6 +183,26 @@ public:
 public:
     std::vector<double> q_nu;
 };
+
+class BinnedSpectralFlux {
+public:
+    /// \brief Minimal Constructor
+    BinnedSpectralFlux( size_t N_bins );
+
+    BinnedSpectralFlux( SpectralFlux * F, std::vector<SpectralBin*> & B );
+
+    BinnedSpectralFlux( RadiationSpectralModel * rsm, double T, std::vector<SpectralBin*> & B );
+
+    /// \brief Deconstructor
+    ~BinnedSpectralFlux();
+
+public:
+    double sum_flux();
+
+public:
+    std::vector<double> q_bin;
+};
+
 
 class IntensityProfile {
 public:

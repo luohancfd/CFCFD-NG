@@ -10,12 +10,12 @@
 #include <vector>
 
 #include "../../../lib/radiation2/source/spectral_model.hh"
-#include "../../../lib/radiation2/source/ray_tracing_pieces.hh"
 #include "../../../lib/util/source/lua_service.hh"
 #include "../../../lib/util/source/randomc.h"
 
 #include "block.hh"
 #include "cell_finder.hh"
+#include "ray_tracing_pieces.hh"
 
 class RadiationTransportModel {
 public:
@@ -113,6 +113,9 @@ private:
     double dl_min_;
     double E_min_;
     int clustering_;
+    int binning_;
+    int N_bins_;
+    std::vector<SpectralBin*> B_;
 };
 
 class MonteCarlo : public RadiationTransportModel {

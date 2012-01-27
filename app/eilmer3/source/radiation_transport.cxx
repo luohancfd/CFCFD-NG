@@ -283,6 +283,16 @@ DiscreteTransfer::DiscreteTransfer( lua_State *L )
     else
     	clustering_ = NO_CLUSTERING;
     
+    string binning = get_string(L,-1,"binning");
+    if ( binning == "frequency" )
+	binning_ = FREQUENCY_BINNING;
+    else if ( binning == "opacity" )
+	binning_ = OPACITY_BINNING;
+    else
+	binning_ = NO_BINNING;
+    if ( binning_ )
+	N_bins_ = get_int(L,-1,"N_bins");
+
     // Done.
 }
 
@@ -397,9 +407,6 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 	for ( int irsm=0; irsm<(int)rsm_.size(); ++irsm ) {
 	    rsm_[irsm]->reset_spectral_params( isb );
 	}
-	
-    	// NOTE: - assuming uniform frequency distribution
-	double dnu = ( lambda2nu( rsm_[0]->get_lambda_min() ) - lambda2nu( rsm_[0]->get_lambda_max() ) ) / rsm_[0]->get_spectral_points();
     
 	// 1. Set all source terms to zero and store all spectra
 	for ( int ib=0; ib<(int)cells_.size(); ++ib ) {
@@ -454,6 +461,64 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 	    }
 	}
 	
+	// 3. Create spectral bins
+	if ( binning_==FREQUENCY_BINNING ) {
+	    create_spectral_bin_vector( cells_[0][0]->X_->nu, binning_, N_bins_, B_ );
+	}
+	else if ( binning_==OPACITY_BINNING ) {
+	    // We need to solve for the spatially independent mean opacity/absorption (see Eq 2.2 of Wray, Ripoll and Prabhu)
+	    vector<double> kappa_mean(rsm_[0]->get_spectral_points());
+	    int inu;
+#	    ifdef _OPENMP
+#   	    pragma omp barrier
+#	    pragma omp parallel for private(inu) schedule(runtime)
+#	    endif
+	    for ( inu=0; inu < rsm_[omp_get_thread_num()]->get_spectral_points(); inu++ ) {
+		double j_nu_dV = 0.0, S_nu_dV = 0.0;
+		for ( int ib=0; ib<(int)cells_.size(); ++ib ) {
+		    for ( int ic=0; ic<(int)cells_[ib].size(); ++ic ) {
+			RayTracingCell * cell = cells_[ib][ic];
+			double dj_nu_dV = cell->X_->j_nu[inu] * cell->vol_;
+			j_nu_dV += dj_nu_dV;
+			if ( cell->X_->kappa_nu[inu] > 0.0 )
+			    S_nu_dV += dj_nu_dV / cell->X_->kappa_nu[inu];
+		    }
+		}
+		// If the source function is zero then kappa should also be zero
+		kappa_mean[inu] = ( S_nu_dV==0.0 ) ? 0.0 : j_nu_dV / S_nu_dV;
+	    }
+	    create_spectral_bin_vector( kappa_mean, binning_, N_bins_, B_ );
+	}
+
+	// 4. Create binned spectra
+	if ( binning_ ) {
+	    for ( int ib=0; ib<(int)cells_.size(); ++ib ) {
+		int ic;
+#	        ifdef _OPENMP
+#	        pragma omp parallel for private(ic) schedule(runtime)
+#  	        endif
+		for ( ic=0; ic<(int)cells_[ib].size(); ++ic ) {
+		    RayTracingCell * cell = cells_[ib][ic];
+		    cout << "Thread " << omp_get_thread_num() << ": Creating binned spectra for cell: " << ic << " in block: " << ib;
+		    cell->Y_ = new BinnedCoeffSpectra( cell->X_, B_ );
+		    cout << " - j_total from spectra = " << cell->X_->integrate_emission_spectra() << endl;
+		    cout << " - j_total from binning = " << cell->Y_->sum_emission() << endl;
+		}
+		int iface;
+#	        ifdef _OPENMP
+#	        pragma omp barrier
+#	        pragma omp parallel for private(iface) schedule(runtime)
+#	        endif
+		for ( iface=0; iface<(int)interfaces_[ib].size(); ++iface ) {
+		    RayTracingInterface * interface = interfaces_[ib][iface];
+		    cout << "Thread " << omp_get_thread_num() << ": Creating binned spectra for interface: " << iface << " in block: " << ib;
+		    interface->U_ = new BinnedSpectralIntensity( interface->S_, B_ );
+		    cout << " - I_total from spectra = " <<  interface->S_->integrate_intensity_spectra() << endl;
+		    cout << " - I_total from binning = " << interface->U_->sum_intensity() << endl;
+		}
+	    }
+	}
+
 	// 3. create rays
 	for ( int ib=0; ib<(int)cells_.size(); ++ib ) {
 	    int ii, jj, kk;
@@ -532,25 +597,61 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 #		endif
 		for ( ir=0; ir<(int)cell->rays_.size(); ++ir ) {
 		    RayTracingRay * ray = cell->rays_[ir];
-		    for ( int inu=0; inu<rsm_[omp_get_thread_num()]->get_spectral_points(); ++inu ) {
-		    	// calculate energy of this photon packet
-			double E = cell->X_->j_nu[inu] * cell->vol_ * ray->domega_ * dnu;
-			if ( E < E_min_ ) continue;
-			// subtract emitted energy from origin cell
-			cell->Q_rE_rad_temp_[omp_get_thread_num()] -= E / cell->vol_;
-			// step along the ray path
-			double L = 0.0, dL;
-			for ( size_t ip=0; ip<ray->points_.size(); ++ip ) {
-			    RayTracingPoint * point = ray->points_[ip];
-			    // calculate absorbed energy
-			    double kappa_nu = point->X_->kappa_nu[inu];
-			    dL = point->s_ - L; L += dL;
-			    double dE = ( 1.0 - exp( - kappa_nu * dL ) ) * E; E -= dE;
-			    // add absorbed energy to traversed cell
-			    (*point->Q_rE_rad_temp_)[omp_get_thread_num()] += dE / point->vol_;
+		    if ( binning_ ) {
+			// perform radiation transport with the binned spectra
+			for ( int iB=0; iB<N_bins_; ++iB ) {
+			    // calculate frequency interval for this frequency point
+			    // NOTE: we are taking care here to remain consistent with a trapezoidal discretisation of the spectra
+			    //       where the trapezoid heights are taken as the average of the two bounding points
+			    // calculate energy of this photon packet
+			    double E = cell->Y_->j_bin[iB] * cell->vol_ * ray->domega_;
+			    if ( E < E_min_ ) continue;
+			    // subtract emitted energy from origin cell
+			    cell->Q_rE_rad_temp_[omp_get_thread_num()] -= E / cell->vol_;
+			    // step along the ray path
+			    double L = 0.0, dL;
+			    for ( size_t ip=0; ip<ray->points_.size(); ++ip ) {
+				RayTracingPoint * point = ray->points_[ip];
+				// calculate absorbed energy
+				double kappa_bin = point->Y_->kappa_bin[iB];
+				dL = point->s_ - L; L += dL;
+				double dE = ( 1.0 - exp( - kappa_bin * dL ) ) * E; E -= dE;
+				// add absorbed energy to traversed cell
+				(*point->Q_rE_rad_temp_)[omp_get_thread_num()] += dE / point->vol_;
+			    }
+			    // store the remaining energy to be dumped onto the wall element
+			    ray->E_exit_ += E;
 			}
-		        // store the remaining energy to be dumped onto the wall element
-		        ray->E_exit_ += E;
+		    }
+		    else {
+			int nnu = rsm_[omp_get_thread_num()]->get_spectral_points();
+			for ( int inu=0; inu<nnu; ++inu ) {
+			    // calculate frequency interval for this frequency point
+			    // NOTE: we are taking care here to remain consistent with a trapezoidal discretisation of the spectra
+			    //       where the trapezoid heights are taken as the average of the two bounding points
+			    double dnu=0.0;
+			    if      ( inu==0 )     dnu = 0.5 * fabs( cell->X_->nu[inu+1] - cell->X_->nu[inu] );
+			    else if ( inu==nnu-1 ) dnu = 0.5 * fabs( cell->X_->nu[inu] - cell->X_->nu[inu-1] );
+			    else                   dnu = 0.5 * fabs( cell->X_->nu[inu] - cell->X_->nu[inu-1] ) + 0.5 * fabs( cell->X_->nu[inu+1] - cell->X_->nu[inu] );
+			    // calculate energy of this photon packet
+			    double E = cell->X_->j_nu[inu] * cell->vol_ * ray->domega_ * dnu;
+			    if ( E < E_min_ ) continue;
+			    // subtract emitted energy from origin cell
+			    cell->Q_rE_rad_temp_[omp_get_thread_num()] -= E / cell->vol_;
+			    // step along the ray path
+			    double L = 0.0, dL;
+			    for ( size_t ip=0; ip<ray->points_.size(); ++ip ) {
+				RayTracingPoint * point = ray->points_[ip];
+				// calculate absorbed energy
+				double kappa_nu = point->X_->kappa_nu[inu];
+				dL = point->s_ - L; L += dL;
+				double dE = ( 1.0 - exp( - kappa_nu * dL ) ) * E; E -= dE;
+				// add absorbed energy to traversed cell
+				(*point->Q_rE_rad_temp_)[omp_get_thread_num()] += dE / point->vol_;
+			    }
+			    // store the remaining energy to be dumped onto the wall element
+			    ray->E_exit_ += E;
+			}
 		    }
 		}
 	    }
@@ -566,25 +667,57 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 #		endif
 		for ( ir=0; ir<(int)interface->rays_.size(); ++ir ) {
 		    RayTracingRay * ray = interface->rays_[ir];
-		    for ( int inu=0; inu<rsm_[omp_get_thread_num()]->get_spectral_points(); ++inu ) {
-		    	// calculate energy of this photon packet
-			double E = interface->S_->I_nu[inu] * interface->area_ * ray->domega_ * dnu;
-			if ( E < E_min_ ) continue;
-			// step along the ray path
-			double L = 0.0, dL;
-			for ( size_t ip=0; ip<ray->points_.size(); ++ip ) {
-			    RayTracingPoint * point = ray->points_[ip];
-			    // calculate absorbed energy
-			    double kappa_nu = point->X_->kappa_nu[inu];
-			    dL = point->s_ - L; L += dL;
-			    double dE = ( 1.0 - exp( - kappa_nu * dL ) ) * E; E -= dE;
-			    // add absorbed energy to traversed cell
-			    (*point->Q_rE_rad_temp_)[omp_get_thread_num()] += dE / point->vol_;
+		    if ( binning_ ) {
+			for ( int iB=0; iB<N_bins_; ++iB ) {
+			    // calculate energy of this photon packet
+			    double E = interface->U_->I_bin[iB] * interface->area_ * ray->domega_;
+			    if ( E < E_min_ ) continue;
+			    // step along the ray path
+			    double L = 0.0, dL;
+			    for ( size_t ip=0; ip<ray->points_.size(); ++ip ) {
+				RayTracingPoint * point = ray->points_[ip];
+				// calculate absorbed energy
+				double kappa_bin = point->Y_->kappa_bin[iB];
+				dL = point->s_ - L; L += dL;
+				double dE = ( 1.0 - exp( - kappa_bin * dL ) ) * E; E -= dE;
+				// add absorbed energy to traversed cell
+				(*point->Q_rE_rad_temp_)[omp_get_thread_num()] += dE / point->vol_;
+			    }
+			    // store the remaining energy to be dumped onto the wall element
+			    // NOTE: only if the number of points is non-zero to avoid those
+			    //       rays that are directed into the wall
+			    if ( ray->points_.size() > 0 ) ray->E_exit_ += E;
 			}
-		        // store the remaining energy to be dumped onto the wall element 
-		        // NOTE: only if the number of points is non-zero to avoid those 
-		        //       rays that are directed into the wall
-		        if ( ray->points_.size() > 0 ) ray->E_exit_ += E;
+		    }
+		    else {
+			int nnu = rsm_[omp_get_thread_num()]->get_spectral_points();
+			for ( int inu=0; inu<nnu; ++inu ) {
+			    // calculate frequency interval for this frequency point
+			    // NOTE: we are taking care here to remain consistent with a trapezoidal discretisation of the spectra
+			    //       where the trapezoid heights are taken as the average of the two bounding points
+			    double dnu=0.0;
+			    if      ( inu==0 )     dnu = 0.5 * fabs( interface->S_->nu[inu+1] - interface->S_->nu[inu] );
+			    else if ( inu==nnu-1 ) dnu = 0.5 * fabs( interface->S_->nu[inu] - interface->S_->nu[inu-1] );
+			    else                   dnu = 0.5 * fabs( interface->S_->nu[inu] - interface->S_->nu[inu-1] ) + 0.5 * fabs( interface->S_->nu[inu+1] - interface->S_->nu[inu] );
+			    // calculate energy of this photon packet
+			    double E = interface->S_->I_nu[inu] * interface->area_ * ray->domega_ * dnu;
+			    if ( E < E_min_ ) continue;
+			    // step along the ray path
+			    double L = 0.0, dL;
+			    for ( size_t ip=0; ip<ray->points_.size(); ++ip ) {
+				RayTracingPoint * point = ray->points_[ip];
+				// calculate absorbed energy
+				double kappa_nu = point->X_->kappa_nu[inu];
+				dL = point->s_ - L; L += dL;
+				double dE = ( 1.0 - exp( - kappa_nu * dL ) ) * E; E -= dE;
+				// add absorbed energy to traversed cell
+				(*point->Q_rE_rad_temp_)[omp_get_thread_num()] += dE / point->vol_;
+			    }
+			    // store the remaining energy to be dumped onto the wall element
+			    // NOTE: only if the number of points is non-zero to avoid those
+			    //       rays that are directed into the wall
+			    if ( ray->points_.size() > 0 ) ray->E_exit_ += E;
+			}
 		    }
 		}
 	    }
@@ -777,11 +910,15 @@ int DiscreteTransfer::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, in
     	cell = A->get_cell(ic,jc,kc);
     	// create the RayTracingPoint
     	RTcell = cells_[ib][get_cell_index(A,ic,jc,kc)];
-    	ray->points_.push_back( new RayTracingPoint( cell->fs->gas, &(cell->Q_rE_rad), L, cell->volume, RTcell->X_, &(RTcell->Q_rE_rad_temp_) ) );
+    	ray->points_.push_back( new RayTracingPoint( cell->fs->gas, &(cell->Q_rE_rad), L, cell->volume, RTcell->X_, RTcell->Y_, &(RTcell->Q_rE_rad_temp_) ) );
 	// calculate next position on ray
 	L += dl_lmin_ratio_ * cell->L_min;
 	p = ray->get_point_on_line( L );
     }
+
+    // Make sure block and cell pointers are up to date
+    A = get_block_data_ptr( ib );
+    cell = A->get_cell(ic,jc,kc);
     
     if ( ray->status_ == ERROR ) {
     	cout << "DiscreteTransfer::trace_ray()" << endl
@@ -1239,6 +1376,10 @@ int MonteCarlo::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, 
     	++count;
 	p = ray->get_point_on_line( L );
     }
+
+    // Make sure block and cell pointers are up to date
+    A = get_block_data_ptr( ib );
+    cell = A->get_cell(ic,jc,kc);
     
     if ( ray->status_ == ERROR ) {
     	cout << "MonteCarlo::trace_ray()" << endl

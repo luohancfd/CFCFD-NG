@@ -797,9 +797,6 @@ cea2 :
 	cp $(CEA2)/thermo.inp .
 	cp $(CEA2)/trans.inp .
 
-cea2_gas.py : $(CEA2)/cea2_gas.py
-	cp $(CEA2)/cea2_gas.py .
-
 thermo.inp : $(CEA2)/thermo.inp
 	cp $(CEA2)/thermo.inp .
 

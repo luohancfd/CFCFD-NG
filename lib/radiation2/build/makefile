@@ -36,7 +36,7 @@ LIBGEOM         := $(GEOM)/build/libgeom2.a
 LIBUTIL         := $(UTIL)/build/libutil.a
 ZLIB            := ../../../extern/zlib-1.2.3
 LIBZLIB         := $(ZLIB)/libz.a
-CEA2            := ../../../alt_app/cea2
+CEA2            := ../../../extern/cea2
 
 #---------------------------------------
 # File name variables
@@ -57,10 +57,11 @@ RAD_OBJECTS := spectral_model.o \
 	planck_radiator.o \
 	spectra_pieces.o \
 	LOS_pieces.o \
-	ray_tracing_pieces.o \
 	photoionisation.o \
 	cr_reactions.o \
-	cr_rr_coeffs.o
+	cr_rr_coeffs.o \
+	parade.o \
+	parade_radiator.o
 
 ifeq ($(WITH_SPRADIAN), 1)
     RAD_OBJECTS += spradian.o radipac6.o
@@ -101,7 +102,7 @@ endif
 	
 test: install $(TEST_EXE) CEA2.exe $(GASPY)
 	- cd ../../speclib/build; ./install
-	- cp $(SRC)/photaura_test.py $(CEA2)/cea2_gas.py $(INSTALL_DIR)
+	- cp $(SRC)/photaura_test.py $(INSTALL_DIR)
 	- cp $(TEST_EXE) CEA2.exe $(CEA2)/thermo.inp $(CEA2)/trans.inp $(INSTALL_DIR)
 	
 clean :
@@ -247,9 +248,6 @@ spectra_pieces.o : $(SRC)/spectra_pieces.cxx $(SRC)/spectra_pieces.hh
 LOS_pieces.o : $(SRC)/LOS_pieces.cxx $(SRC)/LOS_pieces.hh 
 	$(CXX) $(CXXFLAG) $(SRC)/LOS_pieces.cxx  -I$(LUA_INCLUDE_DIR)
 	
-ray_tracing_pieces.o : $(SRC)/ray_tracing_pieces.cxx $(SRC)/ray_tracing_pieces.hh 
-	$(CXX) $(CXXFLAG) $(SRC)/ray_tracing_pieces.cxx -I$(LUA_INCLUDE_DIR)
-	
 photoionisation.o : $(SRC)/photoionisation.cxx $(SRC)/photoionisation.hh
 	$(CXX) $(CXXFLAG) $(SRC)/photoionisation.cxx -I$(LUA_INCLUDE_DIR)
 	
@@ -258,15 +256,23 @@ cr_reactions.o : $(SRC)/cr_reactions.cxx $(SRC)/cr_reactions.hh $(SRC)/cr_rr_coe
 	
 cr_rr_coeffs.o : $(SRC)/cr_rr_coeffs.cxx $(SRC)/cr_rr_coeffs.hh
 	$(CXX) $(CXXFLAG) $(SRC)/cr_rr_coeffs.cxx -I$(LUA_INCLUDE_DIR)
+	
+parade.o : $(SRC)/parade.cxx $(SRC)/parade.hh \
+		$(SRC)/spectral_model.hh $(SRC)/radiation_constants.hh $(SRC)/parade_radiator.hh \
+		$(GAS)/models/gas_data.hh
+	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/parade.cxx
+	
+parade_radiator.o : $(SRC)/parade_radiator.cxx $(SRC)/parade_radiator.hh
+	$(CXX) $(CXXFLAG) $(SRC)/parade_radiator.cxx -I$(LUA_INCLUDE_DIR)
 
 # ------------ Test executables ------------
 
 CEA2.exe : $(CEA2)/cea2.f
 	gfortran -std=legacy -o CEA2.exe $(CEA2)/cea2.f
 
-photaura_test.x : photaura_test.o $(LIBRAD2) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
+photaura_test.x : photaura_test.o $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
 	$(CXXLINK) $(LFLAG) $(FLINK) -o photaura_test.x photaura_test.o \
-		$(LIBRAD2) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LUALINK) $(LIBGEOM)
+		$(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LUALINK) $(LIBGEOM)
 		
 photaura_test.o : $(SRC)/photaura_test.cxx 
 	$(CXX) $(CXXFLAG) $(SRC)/photaura_test.cxx -I$(LUA_INCLUDE_DIR)

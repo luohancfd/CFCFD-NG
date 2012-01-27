@@ -41,6 +41,9 @@ public:
     
     /* Spectral coefficients */
     CoeffSpectra * X_;
+
+    /* Binned spectral coefficients */
+    BinnedCoeffSpectra * Y_;
 };
 
 class LOS_data {
@@ -56,8 +59,12 @@ public:
     
     void clone_rad_point( int iprp, int irp, double * Q_rE_rad, double s, double ds );
     
+    void create_spectral_bins( int bining_type, int N_bins, std::vector<SpectralBin*> & B );
+
     double integrate_LOS( SpectralIntensity &S );
     
+    double integrate_LOS_with_binning( int binning_type, int N_bins );
+
     void write_all_points_to_file( void );
     
     void write_point_to_file( int ip, std::string fname );
@@ -91,6 +98,8 @@ public:
 
     double quick_solve_for_divq();
     
+    double quick_solve_for_divq_with_binning(  int binning_type, int N_bins );
+
     double exact_solve_for_divq();
     
 public:

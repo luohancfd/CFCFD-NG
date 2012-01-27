@@ -144,7 +144,8 @@ E3_OBJECTS_2 := kernel.o \
 	radiation_transport.o \
 	implicit.o \
 	cell_finder.o \
-	mersenne.o
+	mersenne.o \
+	ray_tracing_pieces.o
 
 ifeq ($(LES_DATA), 1)
     E3_OBJECTS_2 += les.o
@@ -630,6 +631,9 @@ cell_finder.o : $(SRC)/cell_finder.cxx $(SRC)/cell_finder.hh
 
 mersenne.o : $(UTIL_SRC)/mersenne.cpp $(UTIL_SRC)/randomc.h
 	$(CXX) $(CXXFLAG) $(UTIL_SRC)/mersenne.cpp
+	
+ray_tracing_pieces.o : $(SRC)/ray_tracing_pieces.cxx $(SRC)/ray_tracing_pieces.hh 
+	$(CXX) $(CXXFLAG) $(SRC)/ray_tracing_pieces.cxx -I$(LUA_INCLUDE_DIR)
 
 #
 #---------------------------- end of makefile -----------------------------

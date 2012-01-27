@@ -969,6 +969,13 @@ def write_starting_solution_files(rootName, blockList, pistonList, zipFiles=0):
 # --------------------------------------------------------------------
 RenderList = []
 
+def add_item_to_render_list(item):
+    """
+    Add the given item to the RenderList
+    """
+    RenderList.append(item)
+    return
+
 def render_to_vrml(rootName):
     """
     Render the items referenced in RenderList to the wrl file.

@@ -15,6 +15,7 @@
 #include "../../util/source/useful.h"
 
 #include "spectral_model.hh"
+#include "LOS_pieces.hh"
 
 using namespace std;
 
@@ -29,8 +30,6 @@ int main()
     cout << "Creating an equilibrium air 'photaura' radiation model from file: " << rad_input_file << endl;
     RadiationSpectralModel * rsm = create_radiation_spectral_model( rad_input_file );
     
-    int ntm = gm->get_number_of_modes();
-    int nsp = gm->get_number_of_species();
     Gas_data Q(gm);
     
     cout << "Calculating post shock conditions for u=10.254 km/s, p=40 Pa air" << endl;
@@ -50,9 +49,9 @@ int main()
     Q.massf[10]= 2.01780000000e-06; 
 
     gm->eval_thermo_state_pT(Q);
-    Q.print_values();
+    Q.print_values(false);
     
-    int n_evals = 1;
+    int n_evals = 100;
     cout << "Performing " << n_evals << " emission coefficient evaluations" << endl;
     clock_t c0 = clock();
     double j_total;
@@ -69,6 +68,36 @@ int main()
     j_total = X.write_to_file( "coefficient_spectra.txt" );
     cout << "Spectrally integrated emission: j_total = " << ( j_total * 1.0e-6 )  << " W/cm**3" << endl;
     
+    TS_data TS(rsm,2);
+    double Q_rE_rad;
+    TS.set_rad_point(0,&Q,&Q_rE_rad,-0.05,0.1);
+    TS.set_rad_point(1,&Q,&Q_rE_rad, 0.05,0.1);
+    cout << "testing quick_solve_for_divq" << endl;
+    double q_rad = TS.quick_solve_for_divq();
+    cout << "q_rad = " << q_rad << " W/cm2" << endl;
+    cout << "testing quick_solve_for_divq_with_binning(OPACITY_BINNING, N_bins=10)" << endl;
+    q_rad = TS.quick_solve_for_divq_with_binning( OPACITY_BINNING, 10 );
+    cout << "q_rad = " << q_rad << " W/cm2" << endl;
+    cout << "testing quick_solve_for_divq_with_binning(OPACITY_BINNING, N_bins=100)" << endl;
+    q_rad = TS.quick_solve_for_divq_with_binning( OPACITY_BINNING, 100 );
+    cout << "q_rad = " << q_rad << " W/cm2" << endl;
+    cout << "testing quick_solve_for_divq_with_binning( FREQUENCY_BINNING, N_bins=10)" << endl;
+    q_rad = TS.quick_solve_for_divq_with_binning( FREQUENCY_BINNING, 10 );
+    cout << "q_rad = " << q_rad << " W/cm2" << endl;
+    cout << "testing quick_solve_for_divq_with_binning( FREQUENCY_BINNING, N_bins=95)" << endl;
+    q_rad = TS.quick_solve_for_divq_with_binning( FREQUENCY_BINNING, 95 );
+    cout << "q_rad = " << q_rad << " W/cm2" << endl;
+    cout << "testing quick_solve_for_divq_with_binning( FREQUENCY_BINNING, N_bins=950)" << endl;
+    q_rad = TS.quick_solve_for_divq_with_binning( FREQUENCY_BINNING, 950 );
+    cout << "q_rad = " << q_rad << " W/cm2" << endl;
+    cout << "testing quick_solve_for_divq_with_binning( FREQUENCY_BINNING, N_bins=9500)" << endl;
+    q_rad = TS.quick_solve_for_divq_with_binning( FREQUENCY_BINNING, 9500 );
+    cout << "q_rad = " << q_rad << " W/cm2" << endl;
+    cout << "testing quick_solve_for_divq_with_binning( FREQUENCY_BINNING, N_bins=95000)" << endl;
+    q_rad = TS.quick_solve_for_divq_with_binning( FREQUENCY_BINNING, 95000 );
+    cout << "q_rad = " << q_rad << " W/cm2" << endl;
+
+
     cout << "Clearing gas and radiation models" << endl;
     delete gm;
     delete rsm;

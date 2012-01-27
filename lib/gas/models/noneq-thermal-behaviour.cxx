@@ -65,12 +65,14 @@ Noneq_thermal_behaviour(lua_State *L)
     }
     lua_pop(L,1);
     
-    // 1. Create chemical species library
-    if ( initialise_chemical_species_library( min_massf_, L ) ) {
-    	ostringstream ost;
-	ost << "Noneq_thermal_behaviour::Noneq_thermal_behaviour():\n";
-	ost << "Failed to initialise chemical species library.\n";
-	input_error(ost);
+    // 1. Create chemical species library if it has not yet been initialised
+    if ( !chemical_species_library_initialised() ) {
+	if ( initialise_chemical_species_library( min_massf_, L ) ) {
+	    ostringstream ost;
+	    ost << "Noneq_thermal_behaviour::Noneq_thermal_behaviour():\n";
+	    ost << "Failed to initialise chemical species library.\n";
+	    input_error(ost);
+	}
     }
     
     // 2. Make vector of species pointers (declared as generic "Chemical_species")

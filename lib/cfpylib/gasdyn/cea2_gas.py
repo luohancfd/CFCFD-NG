@@ -36,6 +36,7 @@ import copy
 DEBUG_GAS = 0
 R_universal = 8314.0;  # J/kgmole.K
 CEA_COMMAND_NAME = 'cea2'
+use_out_file = False
 
 # -------------------------------------------------------------------
 # Second, utility functions.
@@ -56,6 +57,13 @@ def run_cea_program(jobName):
             print ('%s finished job %s.' % (CEA_COMMAND_NAME,jobName))
     else:
         raise Exception, 'The file %s is not present.' % inpFile
+
+def get_cea2_float( value_str ):
+    if value_str.find("-")>0:
+    	value_str = value_str.replace("-","e-")
+    if value_str.find("+")>0:
+    	value_str = value_str.replace("+","e+")
+    return float(value_str)
     
 # ----------------------------------------------------------------
 
@@ -232,50 +240,132 @@ class Gas:
         #
         # Pick out the interesting bits from the plotfile.
         # These data will be on the first non-comment line.
-        fp = open('tmp.plt', 'r')
-        L = string.split(fp.readline())
-        while L[0] == "#":
-            # Skip over comment lines
+        if use_out_file==False:
+            fp = open('tmp.plt', 'r')
             L = string.split(fp.readline())
-        fp.close()
-        if len(L) == 0:
-            # Assume that CEA had problems and return a FAIL flag
-            return -1
-        #
-        # Fill out equilibrium mass fractions...
-	# print "len(L) = %d, len(species) = %d" % ( len(L), len(self.species) )
-        if speciesOut == 0 : 
-            for i in range(self.nsp):
-                self.eq_massf[i] = float(L[i])
-            next = self.nsp
-        elif speciesOut == 1:
-            for i in range(self.nsp):
-                self.eq_molef[i] = float(L[i])
-            next = self.nsp
+            while L[0] == "#":
+                # Skip over comment lines
+                L = string.split(fp.readline())
+            fp.close()
+            #
+            # Fill out equilibrium mass fractions...
+	    # print "len(L) = %d, len(species) = %d" % ( len(L), len(self.species) )
+            expected_entries = len(self.species)
+            if thermoProps:
+                expected_entries += 9
+            if transProps:
+                expected_entries += 2
+            if len(L)!=expected_entries:
+                print "cea .plt file returned %d values, while %d values were requested." % ( len(L), expected_entries )
+                print "This probably means too many values were requested."
+                print "Try setting the global variable 'use_out_file' to 'True' in cea2_gas.py."
+                sys.exit()
+            if speciesOut == 0 : 
+                for i in range(self.nsp):
+                    self.eq_massf[i] = float(L[i])
+                next = self.nsp
+            elif speciesOut == 1:
+                for i in range(self.nsp):
+                    self.eq_molef[i] = float(L[i])
+                next = self.nsp
+            else:
+                next = 0
+            #
+            # Fill out thermo properties if requested
+            if thermoProps:
+                self.h = float(L[self.nsp]) * 1.0e3;    # enthalpy, J/kg
+                self.u = float(L[self.nsp+1]) * 1.0e3;  # internal energy, J/kg
+                self.e = self.u
+                self.s = float(L[self.nsp+2]) * 1.0e3;  # entropy, J/kg.K
+                self.cp = float(L[self.nsp+3]) * 1.0e3; # specific heat, const p,
+                self.C_p = self.cp
+                self.gam = float(L[self.nsp+4])         # ratio of specific-heats
+                self.son = float(L[self.nsp+5])         # sound speed, m/s
+                self.a = self.son
+                self.rho = float(L[self.nsp+6])         # density, kg/m^3
+                self.p = float(L[self.nsp+7]) * 1.0e5   # pressure, Pa
+                self.T = float(L[self.nsp+8])           # temperature, Kelvin
+                self.R = self.p / (self.rho * self.T);  # gas constant, J/kg.K
+                self.C_v = self.C_p - self.R            # specific heat, const volume
+                next += 9
+            if transProps:
+	            self.mu =  float(L[next]) * 1.0e-4     # dynamic viscosity, Pa.s
+    	            self.k  =  float(L[next+1]) * 1.0e-1   # W/(m.K)
         else:
-            next = 0
-        #
-        # Fill out thermo properties if requested
-        if thermoProps:
-            self.h = float(L[self.nsp]) * 1.0e3;    # enthalpy, J/kg
-            self.u = float(L[self.nsp+1]) * 1.0e3;  # internal energy, J/kg
-            self.e = self.u
-            self.s = float(L[self.nsp+2]) * 1.0e3;  # entropy, J/kg.K
-            self.cp = float(L[self.nsp+3]) * 1.0e3; # specific heat, const p,
-            self.C_p = self.cp
-            self.gam = float(L[self.nsp+4])         # ratio of specific-heats
-            self.son = float(L[self.nsp+5])         # sound speed, m/s
-            self.a = self.son
-            self.rho = float(L[self.nsp+6])         # density, kg/m^3
-            self.p = float(L[self.nsp+7]) * 1.0e5   # pressure, Pa
-            self.T = float(L[self.nsp+8])           # temperature, Kelvin
-            self.R = self.p / (self.rho * self.T);  # gas constant, J/kg.K
-            self.C_v = self.C_p - self.R            # specific heat, const volume
-            next += 9
-        if transProps:
-	    self.mu =  float(L[next]) * 1.0e-4     # dynamic viscosity, Pa.s
-	    self.k  =  float(L[next+1]) * 1.0e-1   # W/(m.K)
-		
+	    # use the .out file as this allows more species to be included
+            fp = open('tmp.out', 'r')
+            lines = fp.readlines()
+            fp.close()
+            species_data = dict()
+            pT_thermo_props = False
+            conductivity_found = False
+            for s in self.species:
+                species_data.setdefault(s,0.0)
+            for line in lines:
+               if line=="\n": continue
+               if line.find("PRODUCTS WHICH WERE CONSIDERED BUT WHOSE")>=0:
+                   break
+               tks = line.split()
+               if line.find("THERMODYNAMIC EQUILIBRIUM PROPERTIES AT ASSIGNED")>=0:
+                   pT_thermo_props = True
+               elif pT_thermo_props==True:
+                   #
+                   # Fill out thermo properties if requested
+                   if thermoProps:
+                       if line.find("H, KJ/KG")>=0:
+                           self.h = get_cea2_float(tks[2]) * 1.0e3
+                       elif line.find("U, KJ/KG")>=0:
+                           self.u = get_cea2_float(tks[2]) * 1.0e3
+                           self.e = self.u
+                       elif line.find("S, KJ/(KG)(K)")>=0:
+                           self.s = get_cea2_float(tks[2]) * 1.0e3
+                       elif line.find("Cp, KJ/(KG)(K)")>=0:
+                           self.cp = get_cea2_float(tks[2]) * 1.0e3
+                           self.C_p = self.cp
+                       elif line.find("GAMMAs")>=0:
+                           self.gam = get_cea2_float(tks[1])
+                       elif line.find("SON VEL,M/SEC")>=0:
+                           self.son = get_cea2_float(tks[2])
+                           self.a = self.son
+                       elif line.find("P, BAR")>=0:
+                           self.p = get_cea2_float(tks[2]) * 1.0e5
+                           # print "p = ", self.p
+                       elif line.find("T, K")>=0:
+                           self.T = get_cea2_float(tks[2])
+                           # print "T = ", self.T
+                       elif line.find("RHO, KG/CU M")>=0:
+                           self.rho = get_cea2_float(tks[3])
+                           # print "rho = ", self.rho
+                   #
+                   # get species data
+                   for s in self.species:
+                       if tks[0]==s or tks[0]==("*"+s):
+                           species_data[s] = get_cea2_float(tks[1])
+                           # print "%s = %e" % ( s, species_data[s] )
+                   #
+                   # Fill out trans properties if requested
+                   if transProps:
+                       if line.find("VISC,MILLIPOISE")>=0:
+                           self.mu = get_cea2_float(tks[1]) * 1.0e-4
+                           # print "mu = ", self.mu
+                       elif conductivity_found==False and line.find("CONDUCTIVITY")>=0 and len(tks)==2:
+                           self.k = get_cea2_float(tks[1]) * 1.0e-1
+                           # print "k = ", self.k
+                           # want to use the first conductivity value (for equilibrium reaction)
+                           conductivity_found = True
+            #
+            # Fill out species properties in requested form
+            for i,val in enumerate(species_data.values()):
+                if speciesOut == 0:
+                    self.eq_massf[i] = val
+                else: 
+                    self.eq_molef[i] = val
+            #
+            # Calculation remaining thermo properties if requested
+            if thermoProps:
+                self.R = self.p / (self.rho * self.T);  # gas constant, J/kg.K
+                self.C_v = self.C_p - self.R            # specific heat, const volume
+	
     def Shock(self, Us, speciesOut=0):
         """
         Computes the equilibrium post-shock gas state using CEA.
@@ -356,33 +446,88 @@ class Gas:
         # Now, run the cea program in anger.
         run_cea_program('shock')
         #
+        # Create a instance of Gas to store the equilibrium post-shock gas-state
+        eps = Gas( "mix", self.species, self.massf )
+        #
         # Pick out the interesting bits from the plotfile.
         # These data will be on the first non-comment line.
-        fp = open('shock.plt', 'r')
-        L = string.split(fp.readline())
-        while L[0] == "#":
-            # Skip over comment lines
+        if use_out_file==False:
+            # use the .plt file as per usual
+            fp = open('shock.plt', 'r')
             L = string.split(fp.readline())
-        fp.close()
-        if len(L) == 0:
-            # Assume that CEA had problems and return a FAIL flag
-            return -1
-        #
-        # Fill out the equilibrium post-shock gas-state
-        eps = Gas( "mix", self.species, [0.0]*len(self.species) )
-	eps.T = float(L[0])
-	eps.p = float(L[1])*1.0e5
-        eps.rho = float(L[2])
-	# print "T = %f K, p = %f bar " % ( eps.T, eps.p*1.0e-5 ) 
-        if speciesOut == 0 : 
-            for i in range(3,3+len(self.species)):
-	        # print "eq_massf[%d] = %f" % ( i-3, float(L[i]) )
-                eps.eq_massf[i-3] = float(L[i])
-        else :
-            for i in range(3,3+len(self.species)):
-                eps.eq_molef[i-3] = float(L[i])
-	eps.mu =  float(L[3+len(self.species)]) * 1.0e-4
-	eps.k  =  float(L[3+len(self.species)+1]) * 1.0e-1
+            while L[0] == "#":
+                # Skip over comment lines
+                L = string.split(fp.readline())
+            fp.close()
+            expected_entries = len(self.species) + 3 + 2
+            if len(L)!=expected_entries:
+                print "cea returned %d values, while %d values were requested." % ( len(L), expected_entries )
+                print "This probably means too many values were requested."
+                print "Try setting the global variable 'use_out_file' to 'True' in cea2_gas.py."
+                sys.exit()
+            # Fill out the equilibrium post-shock gas-state
+	    eps.T = float(L[0])
+	    eps.p = float(L[1])*1.0e5
+            eps.rho = float(L[2])
+	    # print "T = %f K, p = %f bar " % ( eps.T, eps.p*1.0e-5 ) 
+            if speciesOut == 0 : 
+                for i in range(3,3+len(self.species)):
+	            # print "eq_massf[%d] = %f" % ( i-3, float(L[i]) )
+                    eps.eq_massf[i-3] = float(L[i])
+            else :
+                for i in range(3,3+len(self.species)):
+                    eps.eq_molef[i-3] = float(L[i])
+	    eps.mu =  float(L[3+len(self.species)]) * 1.0e-4
+	    eps.k  =  float(L[3+len(self.species)+1]) * 1.0e-1
+        else:
+	    # use the .out file as this allows more species to be included
+            fp = open('shock.out', 'r')
+            lines = fp.readlines()
+            fp.close()
+            incident_shock_data = False
+            species_data = dict()
+            conductivity_found = False
+            for s in self.species:
+                species_data.setdefault(s,0.0)
+            for line in lines:
+               if line=="\n": continue
+               if line.find("PRODUCTS WHICH WERE CONSIDERED BUT WHOSE")>=0:
+                   break
+               tks = line.split()
+               if line.find("SHOCKED GAS (2)--INCIDENT--EQUILIBRIUM")>=0:
+                   incident_shock_data = True
+               elif incident_shock_data==True:
+                   # thermo data
+                   if line.find("P, BAR")>=0:
+                       eps.p = get_cea2_float(tks[2]) * 1.0e5
+                       # print "p = ", eps.p
+                   elif line.find("T, K")>=0:
+                       eps.T = get_cea2_float(tks[2])
+                       # print "T = ", eps.T
+                   elif line.find("RHO, KG/CU M")>=0:
+                       eps.rho = get_cea2_float(tks[3])
+                       # print "rho = ", eps.rho
+                   # species data
+                   for s in self.species:
+                       if tks[0]==s or tks[0]==("*"+s):
+                           species_data[s] = get_cea2_float(tks[1])
+                           # print "%s = %e" % ( s, species_data[s] )
+                   # transport data
+                   if line.find("VISC,MILLIPOISE")>=0:
+                       eps.mu = get_cea2_float(tks[1]) * 1.0e-4
+                       # print "mu = ", eps.mu
+                   elif conductivity_found==False and line.find("CONDUCTIVITY")>=0 and len(tks)==2:
+                       eps.k = get_cea2_float(tks[1]) * 1.0e-1
+                       # print "k = ", eps.k
+                       # want to use the first conductivity value (for equilibrium reaction)
+                       conductivity_found = True
+            #
+            # Fill out species properties in requested form
+            for i,val in enumerate(species_data.values()):
+                if speciesOut == 0:
+                    eps.eq_massf[i] = val
+                else: 
+                    eps.eq_molef[i] = val
 	return eps
 
 # --------------------------------------------------------------

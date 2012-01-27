@@ -3,9 +3,14 @@
 import sys
 from gaspy import *
 from librad2 import *
-from cea2_gas import *
+from cfpylib.gasdyn.cea2_gas import *
 from time import time
-from YvX import *
+try:
+    from YvX import *
+except ImportError:
+    print "Problem loading YvX module."
+    print "Make sure the directory $HOME/spec_bin is in your PYTHONPATH."
+    sys.exit()
 
 def create_gas_file(model, species, fname):
     # borrowed from "e3_gas.py"
@@ -55,8 +60,7 @@ def main():
     f_inf = [ 0.0 ] * nsp
     f_inf[gm.get_isp_from_species_name('N2')] = 0.767; f_inf[gm.get_isp_from_species_name('O2')] = 0.233
     p_inf = 40.0; T_inf = 296.0; u_inf = 10.254e3
-    Q = gas_data()
-    init_gas_data(Q, nsp, ntm)
+    Q = Gas_data(nsp,ntm)
     Q.p = p_inf
     for itm in range(ntm): Q.T[itm] = T_inf
     for isp in range(nsp): Q.massf[isp] = f_inf[isp]
@@ -70,7 +74,7 @@ def main():
     for itm in range(ntm): Q.T[itm] = eps.T
     for isp in range(nsp): Q.massf[isp] = eps.eq_massf[isp]
     gm.eval_thermo_state_rhoT(Q)
-    print_gas_data(Q)
+    Q.print_values(False)
 
     # print "electron number density = %e cm-3" % ( Q.massf[gm.get_isp_from_species_name("e-")]*Q.rho/RC_m_SI*1.0e-6 )
     if 1:

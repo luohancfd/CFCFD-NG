@@ -56,6 +56,8 @@
 %include "diatomic_system.hh"
 %include "cr_rr_coeffs.hh"
 
+%template(vectorSB) std::vector<SpectralBin*>;
+
 %pythoncode %{
 class Bar:
     def __init__(self):

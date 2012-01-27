@@ -22,6 +22,7 @@
 # if WITH_SPRADIAN == 1
 #include "spradian.hh"
 # endif
+#include "parade.hh"
 #include "radiation_constants.hh"
 
 using namespace std;
@@ -123,6 +124,8 @@ RadiationSpectralModel( const string input_file )
 RadiationSpectralModel::
 ~RadiationSpectralModel() {}
 
+
+
 void
 RadiationSpectralModel::
 reset_spectral_params( int isb )
@@ -154,6 +157,7 @@ reset_spectral_params( int isb )
     
     double dnu = ( lambda2nu(lambda_min) - lambda2nu(lambda_max) ) 
 		/ double ( spectral_points - 1 );
+    delta_nu = dnu;
     double nu_min_star = lambda2nu(lambda_max) + inu_lower * dnu;
     double nu_max_star = lambda2nu(lambda_max) + inu_upper * dnu;
     
@@ -248,14 +252,7 @@ RadiationSpectralModel * create_radiation_spectral_model( const string input_fil
 #	endif
     }
     else if( spectral_model == "parade" ) {
-#	if WITH_PARADE == 1
 	rsm = new Parade( input_file );
-#	else
-	cout << "Code not built with Parade spectral radiation model available." << endl
-	     << "Recompile using WITH_PARADE==1." << endl
-	     << "Exiting program." << endl;
-	exit(BAD_INPUT_ERROR);
-#	endif
     }
     else {
 	cout << "The specified spectral radiation model: " << spectral_model << endl;

@@ -13,9 +13,9 @@
 #endif
 
 #include "../../../lib/util/source/useful.h"
-#include "../../../lib/radiation2/source/ray_tracing_pieces.hh"
 
 #include "cell_finder.hh"
+#include "ray_tracing_pieces.hh"
 #include "bc.hh"
 #include "bc_defs.hh"
 #include "kernel.hh"
@@ -96,11 +96,11 @@ find_cell( const Vector3 &p, int &ib, int &ic, int &jc, int &kc )
 	    	}
 	    	else if ( A->bcp[WEST]->neighbour_face==WEST ) {
 	    	    // ic goes to new imin, jc goes to new jmax - jc
-	    	    ic = B->imin; jc = B->jmax - jc;
+	    	    ic = B->imin; jc = B->jmax - jc + B->jmin;
 	    	}
 	    	else if ( A->bcp[WEST]->neighbour_face==NORTH ) {
 	    	    // ic goes to new imax - jc, jc goes to new jmax
-	    	    ic = B->imax - jc; jc = B->jmax;
+	    	    ic = B->imax - jc + B->imin; jc = B->jmax;
 	    	}
 	    }
 	    else {
@@ -129,11 +129,11 @@ find_cell( const Vector3 &p, int &ib, int &ic, int &jc, int &kc )
 	    	}
 	    	else if ( A->bcp[EAST]->neighbour_face==EAST ) {
 	    	    // ic goes to new imax, jc goes to new jmax - jc
-	    	    ic = B->imax; jc = B->jmax - jc;
+	    	    ic = B->imax; jc = B->jmax - jc + B->jmin;
 	    	}
 	    	else if ( A->bcp[EAST]->neighbour_face==SOUTH ) {
 	    	    // ic goes to new jmax - jc, jc goes to new jmin
-	    	    ic = B->imax - jc; jc = B->jmin;
+	    	    ic = B->imax - jc + B->imin; jc = B->jmin;
 	    	}
 	    }
 	    else {
@@ -158,11 +158,11 @@ find_cell( const Vector3 &p, int &ib, int &ic, int &jc, int &kc )
 	    	}
 	    	else if ( A->bcp[SOUTH]->neighbour_face==EAST ) {
 	    	    // ic goes to new imax, jc goes to new jmax - ic
-	    	    ic = B->imax; jc = B->jmax - ic;
+	    	    ic = B->imax; jc = B->jmax - ic + B->jmin;
 	    	}
 	    	else if ( A->bcp[SOUTH]->neighbour_face==SOUTH ) {
 	    	    // ic goes to new imax - ic, jc goes to new jmin
-	    	    ic = B->imax - ic; jc = B->jmin;
+	    	    ic = B->imax - ic + B->imin; jc = B->jmin;
 	    	}
 	    	else if ( A->bcp[SOUTH]->neighbour_face==WEST ) {
 	    	    // ic goes to new imin, jc goes to ic
@@ -191,11 +191,11 @@ find_cell( const Vector3 &p, int &ib, int &ic, int &jc, int &kc )
 	    	}
 	    	else if ( A->bcp[NORTH]->neighbour_face==WEST ) {
 	    	    // ic goes to new imin, jc goes to new jmax - ic
-	    	    ic = B->imin; jc = B->jmax - ic;
+	    	    ic = B->imin; jc = B->jmax - ic + B->jmin;
 	    	}
 	    	else if ( A->bcp[NORTH]->neighbour_face==NORTH ) {
 	    	    // ic goes to new imax - ic, jc goes to new jmax
-	    	    ic = B->imax - ic; jc = B->jmax;
+	    	    ic = B->imax - ic + B->imin; jc = B->jmax;
 	    	}
 	    	else if ( A->bcp[NORTH]->neighbour_face==EAST ) {
 	    	    // ic goes to new imax, jc goes to ic
@@ -335,7 +335,7 @@ find_cell( const Vector3 &p, int &ib, int &ic, int &jc, int &kc )
     FV_Cell * cell = A->get_cell(ic,jc,kc);
     
     // Pointer for the neighbour block
-    // Block * B;
+    Block * B;
     
     // Search for the containing cell starting with the given guess
     dc_[ithread][0] = 1; dc_[ithread][1] = 1; dc_[ithread][2] = 1;
@@ -346,8 +346,35 @@ find_cell( const Vector3 &p, int &ib, int &ic, int &jc, int &kc )
 	if ( ic < A->imin ) {
 	    // cout << "Outside the block: West" << endl;
 	    if ( A->bcp[WEST]->type_code == ADJACENT ) {
-	    	cout << "Multiple blocks in 3D not yet supported." << endl;
-	    	exit( FAILURE );
+	    	// set the block index to the neighbour
+	    	ib = A->bcp[WEST]->neighbour_block;
+	    	B = get_block_data_ptr( ib );
+	    	// make sure jc and kc are back in-range
+	    	jc -= dc_[ithread][1]; kc -= dc_[ithread][2];
+	    	if ( A->bcp[WEST]->neighbour_face==EAST ) {
+	    	    // kc and jc stay the same, ic goes to new imax
+	    	    ic = B->imax;
+	    	}
+	    	else if ( A->bcp[WEST]->neighbour_face==SOUTH ) {
+	    	    // ic goes to jc, jc goes to new jmin, kc stays the same
+	    	    ic = jc; jc = B->jmin;
+	    	}
+	    	else if ( A->bcp[WEST]->neighbour_face==WEST ) {
+	    	    // ic goes to new imin, jc goes to new jmax - jc, kc stays the same
+	    	    ic = B->imin; jc = B->jmax - jc + B->jmin;
+	    	}
+	    	else if ( A->bcp[WEST]->neighbour_face==NORTH ) {
+	    	    // ic goes to new imax - jc, jc goes to new jmax, kc stays the same
+	    	    ic = B->imax - jc + B->imin; jc = B->jmax;
+	    	}
+	    	else if ( A->bcp[WEST]->neighbour_face==BOTTOM ) {
+	    	    // ic goes to new imin, jc goes to new jmax - jc, kc stays the same
+	    	    ic = jc; jc = B->jmax - kc + B->jmin; kc = B->kmin;
+	    	}
+	    	else if ( A->bcp[WEST]->neighbour_face==TOP ) {
+	    	    // ic goes to new imax - jc, jc goes to new jmax, kc stays the same
+	    	    ic = jc; jc = kc; kc = B->kmax;
+	    	}
 	    }
 	    else {
 	    	// the ray is leaving the grid
@@ -360,10 +387,37 @@ find_cell( const Vector3 &p, int &ib, int &ic, int &jc, int &kc )
 	    }
 	}
 	else if ( ic > A->imax ) {
-	    // cout << "Outside the block: EAST" << endl;
+	    // cout << "Outside the block: East" << endl;
 	    if ( A->bcp[EAST]->type_code == ADJACENT ) {
-	    	cout << "Multiple blocks in 3D not yet supported." << endl;
-	    	exit( FAILURE );
+	    	// set the block index to the neighbour
+	    	ib = A->bcp[EAST]->neighbour_block;
+	    	B = get_block_data_ptr( ib );
+	    	// make sure jc and kc are back in-range
+	    	jc -= dc_[ithread][1]; kc -= dc_[ithread][2];
+	    	if ( A->bcp[EAST]->neighbour_face==WEST ) {
+	    	    // jc and kc stay the same, ic goes to new imin
+	    	    ic = B->imin;
+	    	}
+	    	else if ( A->bcp[EAST]->neighbour_face==NORTH ) {
+	    	    // ic goes to jc, jc goes to new jmax, kc stays the same
+	    	    ic = jc; jc = B->jmax;
+	    	}
+	    	else if ( A->bcp[EAST]->neighbour_face==EAST ) {
+	    	    // ic goes to new imax, jc goes to new jmax - jc, kc stays the same
+	    	    ic = B->imax; jc = B->jmax - jc + B->jmin;
+	    	}
+	    	else if ( A->bcp[EAST]->neighbour_face==SOUTH ) {
+	    	    // ic goes to new imax - jc, jc goes to new jmin, kc stays the same
+	    	    ic = B->imax - jc + B->imin; jc = B->jmin;
+	    	}
+	    	else if ( A->bcp[EAST]->neighbour_face==BOTTOM ) {
+	    	    // ic goes to new imax - jc, jc goes to new jmax - kc, kc goes to new kmin
+	    	    ic = B->imax - jc + B->imin; jc = B->jmax - kc + B->jmin; kc = B->kmin;
+	    	}
+	    	else if ( A->bcp[EAST]->neighbour_face==TOP ) {
+	    	    // ic goes to new imax - jc, jc goes to kc, kc goes to new kmax
+	    	    ic = B->imax - jc + B->imin; jc = kc; kc = B->kmax;
+	    	}
 	    }
 	    else {
 	    	// the ray is leaving the grid
@@ -378,8 +432,35 @@ find_cell( const Vector3 &p, int &ib, int &ic, int &jc, int &kc )
 	else if ( jc < A->jmin ) {
 	    // cout << "Outside the block: SOUTH" << endl;
 	    if ( A->bcp[SOUTH]->type_code == ADJACENT ) {
-	    	cout << "Multiple blocks in 3D not yet supported." << endl;
-	    	exit( FAILURE );
+	    	// set the block index to the neighbour
+	    	ib = A->bcp[SOUTH]->neighbour_block;
+	    	B = get_block_data_ptr( ib );
+	    	// make sure ic and kc are back in-range
+	    	ic -= dc_[ithread][0]; kc -= dc_[ithread][2];
+	    	if ( A->bcp[SOUTH]->neighbour_face==NORTH ) {
+	    	    // ic stays the same, jc goes to new jmax, kc stays the same
+	    	    jc = B->jmax;
+	    	}
+	    	else if ( A->bcp[SOUTH]->neighbour_face==EAST ) {
+	    	    // ic goes to new imax, jc goes to new jmax - ic, kc stays the same
+	    	    ic = B->imax; jc = B->jmax - ic + B->jmin;
+	    	}
+	    	else if ( A->bcp[SOUTH]->neighbour_face==SOUTH ) {
+	    	    // ic goes to new imax - ic, jc goes to new jmin, kc stays the same
+	    	    ic = B->imax - ic + B->imin; jc = B->jmin;
+	    	}
+	    	else if ( A->bcp[SOUTH]->neighbour_face==WEST ) {
+	    	    // ic goes to new imin, jc goes to ic, kc stays the same
+	    	    ic = B->imin; jc = B->jmin;
+	    	}
+	    	else if ( A->bcp[SOUTH]->neighbour_face==BOTTOM ) {
+	    	    // ic goes to new imax - ic, jc goes to new jmax - kc, kc goes to new kmin
+	    	    ic = B->imax - ic + B->imin; jc = B->jmax - kc + B->jmin; kc = B->kmin;
+	    	}
+	    	else if ( A->bcp[SOUTH]->neighbour_face==TOP ) {
+	    	    // ic goes to jc, jc kc, kc goes to new kmax
+	    	    ic = jc; jc = kc; kc = B->kmax;
+	    	}
 	    }
 	    else {
 	    	// the ray is leaving the grid
@@ -394,8 +475,35 @@ find_cell( const Vector3 &p, int &ib, int &ic, int &jc, int &kc )
 	else if ( jc > A->jmax ) {
 	    // cout << "Outside the block: NORTH" << endl;
 	    if ( A->bcp[NORTH]->type_code == ADJACENT ) {
-	    	cout << "Multiple blocks in 3D not yet supported." << endl;
-	    	exit( FAILURE );
+	    	// set the block index to the neighbour
+	    	ib = A->bcp[NORTH]->neighbour_block;
+	    	B = get_block_data_ptr( ib );
+	    	// make sure ic and kc is back in-range
+	    	ic -= dc_[ithread][0]; kc -= dc_[ithread][2];
+	    	if ( A->bcp[NORTH]->neighbour_face==SOUTH ) {
+	    	    // ic stays the same, jc goes to new jmin, kc stays the same
+	    	    jc = B->jmin;
+	    	}
+	    	else if ( A->bcp[NORTH]->neighbour_face==WEST ) {
+	    	    // ic goes to new imin, jc goes to new jmax - ic, kc stays the same
+	    	    ic = B->imin; jc = B->jmax - ic + B->jmin;
+	    	}
+	    	else if ( A->bcp[NORTH]->neighbour_face==NORTH ) {
+	    	    // ic goes to new imax - ic, jc goes to new jmax, kc stays the same
+	    	    ic = B->imax - ic + B->imin; jc = B->jmax;
+	    	}
+	    	else if ( A->bcp[NORTH]->neighbour_face==EAST ) {
+	    	    // ic goes to new imax, jc goes to ic, kc stays the same
+	    	    ic = B->imax; jc = ic;
+	    	}
+	    	else if ( A->bcp[NORTH]->neighbour_face==BOTTOM ) {
+	    	    // ic goes to new imax - ic, jc goes to new jmax - kc, kc goes to new kmin
+	    	    ic = B->imax - ic + B->imin; jc = B->jmax - kc + B->jmin; kc = B->kmin;
+	    	}
+	    	else if ( A->bcp[NORTH]->neighbour_face==TOP ) {
+	    	    // ic stays the same, jc goes to kc, kc goes to new kmax
+	    	    jc = kc; kc = B->kmax;
+	    	}
 	    }
 	    else {
 	    	// the ray is leaving the grid
@@ -410,8 +518,35 @@ find_cell( const Vector3 &p, int &ib, int &ic, int &jc, int &kc )
 	else if ( kc < A->kmin ) {
 	    // cout << "Outside the block: BOTTOM" << endl;
 	    if ( A->bcp[BOTTOM]->type_code == ADJACENT ) {
-	    	cout << "Multiple blocks in 3D not yet supported." << endl;
-	    	exit( FAILURE );
+	    	// set the block index to the neighbour
+	    	ib = A->bcp[BOTTOM]->neighbour_block;
+	    	B = get_block_data_ptr( ib );
+	    	// make sure ic and jc are back in-range
+	    	ic -= dc_[ithread][0]; jc -= dc_[ithread][1];
+	    	if ( A->bcp[BOTTOM]->neighbour_face==SOUTH ) {
+	    	    // ic goes to new imax - ic, jc goes to new jmin, kc goes to new kmax - jc
+	    	    ic = B->imax - ic + B->imin; kc = B->kmax - jc + B->kmin;  jc = B->jmin;
+	    	}
+	    	else if ( A->bcp[BOTTOM]->neighbour_face==WEST ) {
+	    	    // ic goes to new imin, jc goes to ic, kc goes to new kmax - jc
+	    	    ic = B->imin; kc = B->kmax - jc + B->kmin; jc = ic;
+	    	}
+	    	else if ( A->bcp[BOTTOM]->neighbour_face==NORTH ) {
+	    	    // ic stays the same, jc goes to new jmax, kc goes to new kmax - jc
+	    	    kc = B->kmax - jc + B->kmin; jc = B->jmax;
+	    	}
+	    	else if ( A->bcp[BOTTOM]->neighbour_face==EAST ) {
+	    	    // ic goes to new imax, jc goes to new jmax - ic, kc goes to new kmax - jc
+	    	    kc = B->kmax - jc + B->kmin; jc = B->jmax - ic + B->jmin; ic = B->imax;
+	    	}
+	    	else if ( A->bcp[BOTTOM]->neighbour_face==BOTTOM ) {
+	    	    // ic goes to new imax - ic, jc stays the same, kc goes to new kmin
+	    	    ic = B->imax - ic + B->imin; kc = B->kmin;
+	    	}
+	    	else if ( A->bcp[BOTTOM]->neighbour_face==TOP ) {
+	    	    // ic goes to new imax - ic, jc goes to new jmax - jc, kc goes to new kmax
+	    	    ic = B->imax - ic + B->imin; jc = B->jmax - jc + B->jmin; kc = B->kmax;
+	    	}
 	    }
 	    else {
 	    	// the ray is leaving the grid
@@ -426,8 +561,35 @@ find_cell( const Vector3 &p, int &ib, int &ic, int &jc, int &kc )
 	else if ( kc > A->kmax ) {
 	    // cout << "Outside the block: TOP" << endl;
 	    if ( A->bcp[TOP]->type_code == ADJACENT ) {
-	    	cout << "Multiple blocks in 3D not yet supported." << endl;
-	    	exit( FAILURE );
+	    	// set the block index to the neighbour
+	    	ib = A->bcp[TOP]->neighbour_block;
+	    	B = get_block_data_ptr( ib );
+	    	// make sure ic and jc are back in-range
+	    	ic -= dc_[ithread][0]; jc -= dc_[ithread][1];
+	    	if ( A->bcp[TOP]->neighbour_face==SOUTH ) {
+	    	    // ic goes to new imax - ic, jc goes to new jmin, kc goes to jc
+	    	    ic = B->imax - ic + B->imin; kc = jc;  jc = B->jmin;
+	    	}
+	    	else if ( A->bcp[TOP]->neighbour_face==WEST ) {
+	    	    // ic goes to new imin, jc goes to ic, kc goes to jc
+	    	    ic = B->imin; kc = jc; jc = ic;
+	    	}
+	    	else if ( A->bcp[TOP]->neighbour_face==NORTH ) {
+	    	    // ic stays the same, jc goes to new jmax, kc goes to jc
+	    	    kc = jc; jc = B->jmax;
+	    	}
+	    	else if ( A->bcp[TOP]->neighbour_face==EAST ) {
+	    	    // ic goes to new imax, jc goes to new jmax - ic, kc goes to jc
+	    	    kc = jc; jc = B->jmax - ic + B->jmin; ic = B->imax;
+	    	}
+	    	else if ( A->bcp[TOP]->neighbour_face==BOTTOM ) {
+	    	    // ic goes to new imax - ic, jc goes to new jmax - jc, kc goes to new kmin
+	    	    ic = B->imax - ic + B->imin; jc = B->jmax - jc + B->jmin; kc = B->kmin;
+	    	}
+	    	else if ( A->bcp[TOP]->neighbour_face==TOP ) {
+	    	    // ic goes to new imax - ic, jc stays the same, kc goes to new kmax
+	    	    ic = B->imax - ic + B->imin; kc = B->kmax;
+	    	}
 	    }
 	    else {
 	    	// the ray is leaving the grid

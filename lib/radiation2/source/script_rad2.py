@@ -88,6 +88,7 @@ class GlobalRadData(object):
 		sys.exit()
 	    ofile.write(tab+"nrays = %d,\n" % self.nrays )
 	    ofile.write(tab+"clustering = 'none',\n" )
+            ofile.write(tab+"binning = 'none',\n" )
 	elif self.transport_model=="optically variable":
 	    ofile.write(tab+"optical_switch = %f,\n" % self.optical_switch )
 	    ofile.write(tab+"lower_escape_factor = %f,\n" % self.lower_escape_factor )

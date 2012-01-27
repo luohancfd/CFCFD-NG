@@ -12,11 +12,9 @@
 #include <string>
 #include <vector>
 
-#include "../../gas/models/gas_data.hh"
-#include "../../geometry2/source/geom.hh"
-
-#include "spectral_model.hh"
-#include "spectra_pieces.hh"
+#include "../../../lib/gas/models/gas_data.hh"
+#include "../../../lib/geometry2/source/geom.hh"
+#include "../../../lib/radiation2/source/spectra_pieces.hh"
 
 // NOTE: using face definitions from cell.hh for these
 // #define NORTH  0
@@ -30,7 +28,7 @@
 
 class RayTracingPoint {
 public:
-    RayTracingPoint( Gas_data * Q, double * Q_rE_rad, double s, double vol, CoeffSpectra * X = 0, std::vector<double> * Q_rE_rad_temp = 0 );
+    RayTracingPoint( Gas_data * Q, double * Q_rE_rad, double s, double vol, CoeffSpectra * X = 0,  BinnedCoeffSpectra * Y = 0, std::vector<double> * Q_rE_rad_temp = 0 );
     
     ~RayTracingPoint();
     
@@ -48,6 +46,9 @@ public:
     /* Pointer to spectral coefficients */
     CoeffSpectra * X_;
     
+    /* Pointer to binned spectral coefficients */
+    BinnedCoeffSpectra * Y_;
+
     /* Point to vector of doubles for threads to store source term contributions */
     std::vector<double> * Q_rE_rad_temp_;
 };
@@ -148,6 +149,9 @@ public:
     /* Spectral coefficients */
     CoeffSpectra * X_;
     
+    /* Binned spectral coefficients */
+    BinnedCoeffSpectra * Y_;
+
     /* Ray-tracing rays */
     std::vector<RayTracingRay*> rays_;
     
@@ -210,6 +214,9 @@ public:
     /* Spectral coefficients */
     SpectralIntensity * S_;
     
+    /* Binned spectral coefficients */
+    BinnedSpectralIntensity * U_;
+
     /* Ray-tracing rays */
     std::vector<RayTracingRay*> rays_;
     

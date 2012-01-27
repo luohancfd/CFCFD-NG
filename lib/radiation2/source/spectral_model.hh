@@ -60,6 +60,8 @@ public:
     
     int get_spectral_blocks() { return spectral_blocks; }
     
+    double get_delta_nu() { return delta_nu; }
+
     void write_line_widths_to_file( Gas_data &Q )
     { write_line_widths(Q); }
     
@@ -71,7 +73,7 @@ public:
     
     void write_QSS_population_analysis_files( Gas_data &Q, int index )
     { return write_QSS_analysis_files( Q, index ); }
-    
+
 protected:
     virtual double integrated_emission_for_gas_state( Gas_data &Q, bool spectrally_resolved ) = 0;
     
@@ -94,6 +96,7 @@ protected:
     double lambda_max, lambda_max_star;
     int spectral_points, spectral_points_star;
     int spectral_blocks, spectral_block;
+    double delta_nu;
 };
 
 /* Functions for creating a RadiationSpectralModel */

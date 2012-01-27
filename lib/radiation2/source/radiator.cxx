@@ -250,7 +250,7 @@ Radiator * create_new_radiator( lua_State * L, const std::string name )
     lua_getglobal(L, name.c_str());
     if ( !lua_istable(L, -1) ) {
 	ostringstream ost;
-	ost << "Photaura::Photaura()\n";
+	ost << "create_new_radiator()\n";
 	ost << "Error locating information table for radiator: " << name << endl;
 	input_error(ost);
     }

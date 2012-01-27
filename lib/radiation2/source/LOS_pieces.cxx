@@ -59,7 +59,7 @@ LOS_data::LOS_data( RadiationSpectralModel * rsm, int nrps, double T_i, double T
     // Assuming uniform spectral distribution
     nnus_ = rsm_->get_spectral_points();
 }
- 
+
 LOS_data::~LOS_data()
 {
     for ( size_t irp=0; irp<rpoints_.size(); ++irp )
@@ -83,6 +83,42 @@ void LOS_data::clone_rad_point( int iprp, int irp, double * Q_rE_rad, double s, 
     rpoints_[irp]->redefine( rpoints_[iprp]->Q_, Q_rE_rad, s, ds );
     delete rpoints_[irp]->X_;
     rpoints_[irp]->X_ = rpoints_[iprp]->X_->clone();
+}
+
+void LOS_data::create_spectral_bins( int binning_type, int N_bins, vector<SpectralBin*> & B )
+{
+    // check that we have some rpoints_
+    if ( rpoints_.size()==0 ) {
+	cout << "LOS_data::create_spectral_bins()" << endl
+	     << "No spectral points have been created." << endl
+	     << "Exiting program." << endl;
+	exit(FAILURE);
+    }
+
+    if ( binning_type==FREQUENCY_BINNING ) {
+	create_spectral_bin_vector( rpoints_[0]->X_->nu, binning_type, N_bins, B );
+    }
+    else if ( binning_type==OPACITY_BINNING ) {
+	// We need to solve for the spatially independent mean opacity/absorption (see Eq 2.2 of Wray, Ripoll and Prabhu)
+	// NOTE: We are assuming planar geometry (ie that the cells have the same width in the z direction)
+	//       For axi geometries, this is only accurate along stagnation streamlines
+	vector<double> kappa_mean;
+	for ( int inu=0; inu < nnus_; inu++ ) {
+	    double j_nu_dV = 0.0, S_nu_dV = 0.0;
+	    for ( int irp=0; irp<nrps_; irp++ ) {
+		double dj_nu_dV = rpoints_[irp]->X_->j_nu[inu] * rpoints_[irp]->ds_;
+		j_nu_dV += dj_nu_dV;
+		if ( rpoints_[irp]->X_->kappa_nu[inu] > 0.0 )
+		    S_nu_dV += dj_nu_dV / rpoints_[irp]->X_->kappa_nu[inu];
+	    }
+	    // If the source function is zero then kappa should also be zero
+	    if ( S_nu_dV==0.0 )
+		kappa_mean.push_back( 0.0 );
+	    else
+		kappa_mean.push_back( j_nu_dV / S_nu_dV );
+	}
+	create_spectral_bin_vector( kappa_mean, binning_type, N_bins, B );
+    }
 }
 
 double LOS_data::integrate_LOS( SpectralIntensity &S )
@@ -128,7 +164,53 @@ double LOS_data::integrate_LOS( SpectralIntensity &S )
 	    I_total += 0.5 * ( S.I_nu[inu] + S.I_nu[inu-1] ) * ( S.nu[inu] - S.nu[inu-1] );
     }
 
-    // End void function
+    return I_total;
+}
+
+double LOS_data::integrate_LOS_with_binning( int binning_type, int N_bins )
+{
+    /* Spectral LOS integration using the exact transport eq. sol. for constant property slabs */
+    /* ...and using binned spectral coefficients                                                   */
+
+    // 0. Create the spectral bins
+    vector<SpectralBin*> B;
+    this->create_spectral_bins( binning_type, N_bins, B);
+
+    // 1. Create set of Binned coefficient spectra
+    for ( int irp=0; irp<nrps_; irp++ ) {
+	rpoints_[irp]->Y_ = new BinnedCoeffSpectra( rpoints_[irp]->X_, B );
+    }
+
+    // 2. Create binned intensity spectra for backlight and frontlight
+    BinnedSpectralIntensity I_i = BinnedSpectralIntensity( rsm_, T_i_, B );
+    BinnedSpectralIntensity I_f = BinnedSpectralIntensity( rsm_, T_f_, B );
+
+    // Spatial integration over discretised points
+    for ( int irp=0; irp<nrps_; irp++ ) {
+	double ds = rpoints_[irp]->ds_;
+	// Spatial integration for each spectral bin
+	for ( int iB=0; iB < N_bins; iB++ ) {
+	    // exact solution for constant property slab
+	    double decay_factor = exp( - ds * rpoints_[irp]->Y_->kappa_bin[iB] );
+	    // newly radiated intensity
+	    double tmpA = rpoints_[irp]->Y_->j_bin[iB] / rpoints_[irp]->Y_->kappa_bin[iB] * ( 1.0 - decay_factor );
+	    if ( isnan(tmpA) ) {
+		// tmpA will go NaN when kappa_nu is zero.  Intensity is zero.
+		tmpA = 0.0;
+	    }
+	    // incoming intensity
+	    double tmpB = I_i.I_bin[iB] * decay_factor;
+	    // write-over old I_bin with new I_bin
+	    I_i.I_bin[iB] = tmpA + tmpB;
+	}
+    }
+    // Subtract out Planck intensity from outer BC and cumpute integrated (via summing) intensity
+    double I_total = 0.0;
+    for ( int iB=0; iB < N_bins; iB++ ) {
+	I_i.I_bin[iB] -= I_f.I_bin[iB];
+        I_total += I_i.I_bin[iB];
+    }
+
     return I_total;
 }
 
@@ -286,6 +368,112 @@ double TS_data::quick_solve_for_divq()
     // NOTE: omitting wall emission - which is correct
     double q_wall = q_plus.back();
     
+    return q_wall;
+}
+
+double TS_data::quick_solve_for_divq_with_binning( int binning_type, int N_bins )
+{
+    // Simple method from Sebastian Karl's VKI thesis where q+ and q- between
+    // each node location are solved for
+    // ...with spectral binning
+
+    cout << "T_f = " << T_f_ << ", T_i = " << T_i_ << endl;
+
+    // Make vectors to store integrated fluxes
+    vector<double> q_plus, q_minus;
+
+    // 0. Create the spectral bins
+    vector<SpectralBin*> B;
+    this->create_spectral_bins( binning_type, N_bins, B);
+
+    // 1. Create set of Binned coefficient spectra
+    for ( int irp=0; irp<nrps_; irp++ ) {
+	rpoints_[irp]->Y_ = new BinnedCoeffSpectra( rpoints_[irp]->X_, B );
+    }
+
+    /* ------- Wall-to-shock (minus) direction ------- */
+
+    // Outer-boundary blackbody intensity (note optical thickness = 0)
+    BinnedSpectralFlux F_f( rsm_, T_f_, B );
+    double q_int = 0.0;
+    for ( int iB=0; iB < N_bins; iB++ ) {
+	q_int += F_f.q_bin[iB];
+    }
+
+    // Save integrated flux
+    q_minus.push_back( q_int );
+
+    // integrate over emitting slabs using trapezoidal method
+    for ( int irp=(nrps_-1); irp >= 0; --irp ) {
+        // cout << "Spatial location: | " << irp << " | \r" << flush;
+        q_int = 0.0;
+        for ( int iB=0; iB < N_bins; iB++ ) {
+            // emission and absorption coefficients for this slab
+            double kappa = rpoints_[irp]->Y_->kappa_bin[iB];
+            double j = rpoints_[irp]->Y_->j_bin[iB];
+            // calculate optical thickness between intervals
+            double tau = fabs(rpoints_[irp]->ds_) * kappa;
+            // Attenuate incident flux )
+            F_f.q_bin[iB] *= 2.0 * E_3( tau );
+            // Add contribution from this slab
+	    double tmpA = 0.0;
+	    if ( j != 0.0 )	tmpA = j / kappa;
+	     F_f.q_bin[iB] += tmpA * M_PI * ( 1.0 -  2.0 * E_3( tau ) );
+            // Integrate
+            q_int += F_f.q_bin[iB];
+        }
+        // Save integrated flux
+        q_minus.push_back( q_int );
+    }
+
+    /* ------- Shock-to-wall (plus) direction ------- */
+
+    // Outer-boundary blackbody intensity (note optical thickness = 0)
+    BinnedSpectralFlux F_i( rsm_, T_i_, B );
+    q_int = 0.0;
+    for ( int iB=0; iB < N_bins; iB++ ) {
+	q_int += F_i.q_bin[iB];
+    }
+
+    // Save integrated flux
+    q_plus.push_back( q_int );
+
+    // integrate over emitting slabs using trapezoidal method
+    for ( int irp=0; irp < nrps_; irp++ ) {
+        // cout << "Spatial location: | " << irp << " | \r" << flush;
+        q_int = 0.0;
+        for ( int iB=0; iB < N_bins; iB++ ) {
+            // emission and absorption coefficients for this slab
+            double kappa = rpoints_[irp]->Y_->kappa_bin[iB];
+            double j = rpoints_[irp]->Y_->j_bin[iB];
+            // calculate optical thickness between intervals
+            double tau = fabs(rpoints_[irp]->ds_) * kappa;
+            // Attenuate incident flux )
+            F_i.q_bin[iB] *= 2.0 * E_3( tau );
+            // Add contribution from this slab
+	    double tmpA = 0.0;
+	    if ( j != 0.0 )	tmpA = j / kappa;
+	    F_i.q_bin[iB] += tmpA * M_PI * ( 1.0 -  2.0 * E_3( tau ) );
+            // Integrate
+            q_int += F_i.q_bin[iB];
+        }
+        // Save integrated flux
+        q_plus.push_back( q_int );
+    }
+
+    // calculate radiative divergence
+
+    for ( int irp=0; irp<nrps_; ++irp ) {
+	// use forward differencing to evaluate divergence
+	double q_net_i = q_plus[irp] - q_minus[nrps_-irp];
+	double q_net_ip1 = q_plus[irp+1] - q_minus[nrps_-irp-1];
+	*(rpoints_[irp]->Q_rE_rad_) = ( q_net_i - q_net_ip1 ) / rpoints_[irp]->ds_;
+    }
+
+    // return wall directed flux
+    // NOTE: omitting wall emission - which is correct
+    double q_wall = q_plus.back();
+
     return q_wall;
 }
 

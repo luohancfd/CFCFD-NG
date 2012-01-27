@@ -3,7 +3,7 @@
 import sys
 import os
 from gaspy import *
-from cea2_gas import *
+from cfpylib.gasdyn.cea2_gas import *
 from time import time
 from random import random
 

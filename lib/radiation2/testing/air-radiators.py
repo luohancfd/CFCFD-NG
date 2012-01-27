@@ -4,7 +4,7 @@
 gdata.spectral_model = "photaura"
 gdata.lambda_min = 50.0
 gdata.lambda_max = 1000.0
-gdata.spectral_points = 95001
+gdata.spectral_points = 95000
 
 # now transport model data
 gdata.transport_model = "optically thin"

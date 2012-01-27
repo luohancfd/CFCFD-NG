@@ -14,14 +14,15 @@
 #include <cmath>
 
 #include "ray_tracing_pieces.hh"
-#include "spectral_model.hh"
+
+#include "../../../lib/radiation2/source/spectral_model.hh"
 
 using namespace std;
 
 /* RayTracingPoint class definitions */
 
-RayTracingPoint::RayTracingPoint( Gas_data * Q, double * Q_rE_rad, double s, double vol, CoeffSpectra * X, vector<double> * Q_rE_rad_temp )
-: Q_( Q ), Q_rE_rad_( Q_rE_rad ), s_( s ), vol_( vol ), X_( X ), Q_rE_rad_temp_( Q_rE_rad_temp )
+RayTracingPoint::RayTracingPoint( Gas_data * Q, double * Q_rE_rad, double s, double vol, CoeffSpectra * X, BinnedCoeffSpectra * Y, vector<double> * Q_rE_rad_temp )
+: Q_( Q ), Q_rE_rad_( Q_rE_rad ), s_( s ), vol_( vol ), X_( X ), Y_( Y ), Q_rE_rad_temp_( Q_rE_rad_temp )
 {}
 
 RayTracingPoint::~RayTracingPoint() {}
@@ -89,6 +90,9 @@ RayTracingCell::RayTracingCell( Gas_data * Q, double * Q_rE_rad, Vector3 origin,
     // 0. Initialise CoeffSpectra
     X_ = new CoeffSpectra();
     
+    // 1. Initialise BinnedCoeffSpectra to zero as it may not be required
+    Y_ = 0;
+
     // NOTE: - not computing spectra until DiscreteTransfer::compute_Q_rad_for_flowfield()
     //         is called
 }
@@ -98,6 +102,9 @@ RayTracingCell::~RayTracingCell()
     // 1. delete CoeffSpectra
     delete X_;
     
+    // 2. delete BinnedCoeffSpectra
+    if ( Y_ ) delete Y_;
+
     // 2. delete all rays
     for ( size_t ir=0; ir<rays_.size(); ++ir )
     	delete rays_[ir];
@@ -241,6 +248,9 @@ RayTracingInterface::RayTracingInterface( Gas_data * Q, Vector3 origin, double a
     // 0. Initialise SpectralIntensity
     S_ = new SpectralIntensity();
     
+    // 1. Initialise BinnedSpectralIntensity to zero as it may not be used
+    U_ = 0;
+
     // NOTE: - not computing spectra until DiscreteTransfer::compute_Q_rad_for_flowfield()
     //         is called
 }
@@ -250,6 +260,9 @@ RayTracingInterface::~RayTracingInterface()
     // 1. delete SpectralIntensity
     delete S_;
     
+    // 1. delete BinnedSpectralIntensity
+    if ( U_ ) delete U_;
+
     // 2. delete all rays
     for ( size_t ir=0; ir<rays_.size(); ++ir )
     	delete rays_[ir];
