@@ -28,6 +28,7 @@ eilmer3-user-guide.pdf: eilmer3-user-guide.tex \
 		sod-3d.tex \
 		sphere-cone.tex \
 		sphere-heat-transfer.tex \
+                therm-exchange.tex \
 		turbo-sc10.tex \
 		turbo-sc10-parametric.tex \
 		udf.tex \

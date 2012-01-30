@@ -1,0 +1,166 @@
+% therm_exchange.tex
+\index{thermal nonequilibrium!energy exchange scheme file}
+For thermal nonequilibrium flow simulations, the user may wish to model a set of 
+energy exchange mechanisms operating between the thermal modes.
+In a similar fashion as for chemical reactions (see Appendix~\ref{app:chem}), 
+thermal energy exchange mechanisms are described in a Lua input file prepared by
+the user.
+
+\par
+
+Creating the Lua input file for thermal energy exchange, however, is presently less user-friendly
+than for chemical reactions.
+Users are advised to use the input file \verb TV-TE_exchange.lua  from the thermal nonequilibrium
+3D cylinder simulation described in Section~\ref{finite-cyl-therm-noneq} as a template when
+creating their own energy exchange schemes.
+The input file must have the following general structure:
+
+\begin{verbatim}
+scheme_t = {...}
+
+ode_t = {...}
+
+rates = {...}
+
+equilibriation_mechanisms = {...}
+\end{verbatim}
+
+The \texttt{scheme\_t} table defines the scheme that will be used to model the energy exchange
+update during a timestep.
+The table should have the following format:
+
+\begin{verbatim}
+scheme_t = {
+    update ='energy exchange ODE',
+    temperature_limits = {
+        lower = 20.0,
+        upper = 100000.0
+    },
+    error_tolerance = 0.000001
+}
+\end{verbatim}
+
+\begin{description}
+ \item[\texttt{update}] \hspace{1cm} \\
+ A string defining the update method.  Presently the only available option is
+ \texttt{energy exchange ODE}, where the energy exchange update is modelled via solving a
+ system of ordinary differential equations.
+ \item[\texttt{temperature\_limits}] \hspace{1cm} \\
+ Specifies the range of \textit{translational} temperatures where thermal energy exchange is 
+ permitted to occur.  The fields \texttt{lower} and \texttt{upper} expect floating point values.
+ \item[\texttt{error\_tolerance}] \hspace{1cm} \\
+ Although not currently used in the code, a floating point value is expected in this field.
+\end{description}
+
+\par
+
+The \texttt{ode\_t} table defines parameters for controlling the ODE solver used during the
+energy exchange update.
+Note this has the same format as the \texttt{ode\_solver} table in the chemistry input
+file described in Appendix~\ref{app:chem}.
+The table should have the following format:
+
+\begin{verbatim}
+ode_t = {
+    step_routine = 'rkf',
+    max_step_attempts = 4,
+    max_increase_factor = 1.15,
+    max_decrease_factor = 0.01,
+    decrease_factor = 0.333
+}
+\end{verbatim}
+
+\begin{description}
+ \item[\texttt{step\_routine}] \hspace{1cm} \\
+ A string specifying the desired ODE stepping method.
+ The available methods are:
+   \begin{tabular}{lll}
+    \texttt{'qss'} & : & Mott's $\alpha$-QSS method~\cite{mott_99a} \\
+    \texttt{'rkf'} & : & Runge-Kutta-Fehlberg method~\cite{fehlberg_69a} \\
+    \texttt{'euler'} & : & Euler stepping \\
+   \end{tabular}
+\item[\texttt{max\_step\_attempts}] \hspace{1cm} \\
+    This integer value sets the maximum number of retry attempts the stepping
+    routine will attempt on a single step if the ODE system indicates failure.
+\item[\texttt{max\_increase\_factor}] \hspace{1cm} \\
+    This value is used to control the maximum factor the thermal timestep
+    will increase when the step is successful.  The \texttt{'qss'} and \texttt{'rkf'}
+    methods can suggest their own timestep increase. However, the increase will
+    be calculated as \texttt{MIN(suggestion, max\_increase\_factor)}.
+\item[\texttt{max\_decrease\_factor}] \hspace{1cm} \\
+    This value is used to control the maximum amount of decrease or reduction
+    in timestep that occurs.  It is computed as \texttt{MAX(suggestion, max\_decrease\_factor)}.
+\item[\texttt{decrease\_factor}] \hspace{1cm} \\
+    Occasionally, the step fails and yet the step routines suggests using a \emph{larger}
+    timestep for the retry.  In this case, the \texttt{decrease\_factor} is used to reduce
+    the timestep size for the retry attempt.
+\end{description}
+
+The \texttt{rates} table lists the thermal energy exchange mechanisms to be considered for 
+each thermal mode \textit{except the primary mode}\footnote{The energy of the primary thermal
+mode is solved for by enforcing the conservation of total energy during the thermal time-step.}.
+Therefore one entry is expected for a two temperature model, two entries for a three 
+temperature model, etc.
+For a three temperature model, for example, where the list of thermal modes in the
+\texttt{gas-model.lua} file reads:
+
+\begin{verbatim}
+thermal_modes = { 'transrotational', 'vibrational', 'electronic' }
+\end{verbatim}
+
+\noindent the table should have the following format:
+
+\begin{verbatim}
+rates = {
+    {
+        -- vibrational mode
+        mechanisms = {...}
+    },
+    {
+        -- electronic mode
+        mechanisms = {...}
+    }
+}
+\end{verbatim}
+
+\noindent where the first table entry is for the vibrational thermal mode, whilst the second 
+table entry is for the electronic thermal mode.
+The \texttt{mechanisms} tables list the thermal energy exchange mechanisms to be applied to
+the respective thermal modes.
+The mandatory items for a \texttt{mechanisms} table entry are:
+
+\begin{description}
+ \item[\texttt{type}] \hspace{1cm} \\
+ A string specifying the type of energy exchange mechanism.
+ The available types are: \\
+   \begin{tabular}{lll}
+    \texttt{'VT\_exchange'} & : & Vibration-translation exchange \\
+    \texttt{'ET\_exchange'} & : & Electron-translation exchange \\
+    % \texttt{'VE\_exchange'} & : & Vibration-electron exchange \\
+    % \texttt{'EV\_exchange'} & : & Electron-vibration exchange \\
+   \end{tabular}
+\item[\texttt{relaxation\_time}] \hspace{1cm} \\
+    A table listing the parameters for the relaxation time model.
+\end{description}
+
+\par
+
+When specifying a \texttt{'VT\_exchange'} mechanism, an additional field \texttt{'p\_name'}
+that indicates the name of the vibrating species is required.
+A detailed description of the \texttt{relaxation\_time} table will be available in a 
+future version of this user guide.
+For the moment, please refer to the following example as a basic guide.
+
+\par
+
+Below is the thermal energy exchange Lua input file for dissociating and ionising nitrogen
+described by the two temperature model (see Section~\ref{finite-cyl-therm-noneq} for
+an example simulation using this model).
+The gas consists of five species, namely N$_2$, N$_2^+$, N, N$^+$ and e$^+$, and two thermal
+modes, translation-rotation and vibration-electron-electronic.
+Two thermal energy exchange mechanisms are specified: vibration-translation exchange due to
+inelastic collisions with the N$_2$ molecule, and electron-translation exchange due to elastic 
+collisions between free-electrons and heavy particles.\\
+\topbar\\
+\lstinputlisting[language={},firstline=21,lastline=54]{../3D/finite-cylinder/thermal-noneq/TV-TE_exchange.lua}
+\bottombar\\

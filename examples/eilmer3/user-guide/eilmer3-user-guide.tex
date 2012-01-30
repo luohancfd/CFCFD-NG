@@ -12,6 +12,8 @@
 \usepackage{listings}
 \usepackage{lscape}
 \usepackage{longtable}
+\usepackage{amsmath}
+\usepackage{subfig}
 \lstset{basicstyle=\ttfamily\scriptsize,identifierstyle=,keywordstyle=}
 
 %------------------------------------------------------------------
@@ -640,6 +642,31 @@ The available gas models are:
  \item \texttt{'thermally perfect gas'}: a gas with thermally perfect behaviour: modelled as having perfectly
                              elastic collisions but with specific heats that are functions of temperature
                              \index{gas model!thermally perfect}
+% \item \texttt{'one temperature gas'}: similar to the 'thermally perfect gas' except that the thermodynamic 
+%                             properties are calculated from statistical mechanics rather than the CEA curve 
+%                             fits\footnote{Due to the assumption of decoupled thermal modes, the thermodynamic
+%                             properties for the 'one temperature gas' model are not as accurate as the CEA curve
+%                             fits.  The purpose of the this gas model is to provide a single temperature 
+%                             equivalent of the multiple temperature gas models.  For general thermal equilibrium
+%                             calculations, users are advised to use the 'thermally perfect gas' model.}, and
+%                             transport properties are calculated via collision-integrals.
+ \item \texttt{'two temperature gas'}: a thermally perfect gas\footnote{The two temperature gas model is thermally
+                             perfect in the sense that the thermodynamic properties are functions
+                             of temperature only, however multiple temperatures are defined.} with two independent
+                             thermal modes: one temperature $T_\text{tr}$ governs the heavy-particle translation 
+                             and rotation modes, and another temperature $T_\text{ve}$ governs the vibration, 
+                             electronic and free-electron translation modes.
+                             \index{gas model!two temperature}
+% \item \texttt{'three temperature gas'}: a thermally perfect gas with three independent thermal modes: the 
+%                             temperature $T_\text{tr}$ governs the heavy-particle translation and rotation modes,
+%                             $T_\text{v}$ governs the vibration modes and $T_\text{e}$ governs the
+%                             electronic and free-electron translation modes.
+%                             \index{gas model!three temperature}
+% \item \texttt{'four temperature gas'}: a thermally perfect gas with four independent thermal modes: the 
+%                             temperature $T_\text{t}$ governs the heavy-particle translation modes, $T_{\text{r}}$
+%                             governs the rotation modes, $T_\text{v}$ governs the vibration modes and $T_\text{e}$ 
+%                             governs the electronic and free-electron translation modes.
+%                             \index{gas model!four temperature}
 \end{itemize}
 
 The \texttt{species} keyword accepts a list of strings; each string denotes
@@ -699,8 +726,8 @@ This assumes your configuration file is called \texttt{gas-model.lua} and reside
 in the same directory as your main simulation script.\index{gas model!gas-model.lua file}
 
 \medskip
-Finally, for certain advanced gas models (like multi-temperature gas mixtures), the only
-means to configure these models is via the preparation of a Lua-style configuration
+Finally, for certain advanced gas models (such as a gas with multiple vibrational temperatures),
+the only means to configure these models is via the preparation of a Lua-style configuration
 file by hand.
 After building a file by hand (that is, in a text editor), one would use the \texttt{fname} keyword
 argument in the call to \texttt{select\_gas\_model} to set the gas model.
@@ -708,7 +735,8 @@ The list of gas models which are set by directly creating a configuration file a
 \begin{itemize}
  \item user-defined gas (by specification of callable Lua functions)\index{gas model!user-defined}
  \item an equilibrium gas, based on a look-up table\index{gas model!look-up table}
- \item a reacting mixture of thermally perfect gases\index{gas model!reacting}
+ % DFP: this model is specified via 'thermally perfect gas'
+ % \item a reacting mixture of thermally perfect gases\index{gas model!reacting}
 \end{itemize}
 Further discussion of gas models which are set by direct creation
 and manipulation of a configuration file is given in Appendix~\ref{app:gas-models}.
@@ -762,6 +790,31 @@ chemical reaction updates by setting \texttt{reacting\_flag=0}.
 \medskip
 An example of a reacting flow simulation is given in Section~\ref{sec:n90}.
 The details of building a chemistry input file are provided in Appendix~\ref{app:chem}.
+
+\subsection{Specifying thermal energy exchange mechanisms}
+\index{thermal nonequilibrium!energy exchange scheme file}
+For flow simulations where the number of thermal modes is greater than one (such as for the 
+`two temperature gas' model previously
+mentioned), energy exchange mechanisms can be defined that describe the exchange of thermal
+energy between modes due to particle collisions.
+If such energy exchange mechanisms wish to be modelled, the following function call is
+required:\\
+%
+\topbar\\
+\texttt{set\_energy\_exchange\_update(config\_file)}\\
+\bottombar\\
+where \texttt{config\_file} is a string naming the Lua configuration file for the
+energy exchange scheme.  This configuration file specifies all of the energy exchange 
+mechanisms between the thermal modes due to thermal processes (i.e. particle collisions) 
+and is built by hand by the user.\index{thermal energy exchange}
+Thermal energy exchange is automatically turned on when the
+\texttt{set\_energy\_exchange\_update(config\_file)} function call is made.
+
+\medskip
+An example of a flow simulation with thermal energy exchange is given in
+Section~\ref{sec:finite-cyl-sec}.
+The details of building a thermal energy exchange input file are provided in 
+Appendix~\ref{app:therm-exchange}.
 
 \subsection{Defining flow conditions}
 \label{sec:flow_condition}
@@ -1952,7 +2005,7 @@ Now, let's do it all again in three dimensions.
 \part{References and Appendices}
 
 \bibliographystyle{unsrt}
-\bibliography{bibtex/pj,bibtex/computing,bibtex/gas_dynamic,bibtex/adm,bibtex/gas}
+\bibliography{bibtex/pj,bibtex/computing,bibtex/gas_dynamic,bibtex/adm,bibtex/gas,bibtex/dan}
 
 \cleardoublepage
 \appendix
@@ -2247,7 +2300,7 @@ and is a much larger machine, with a little over 3000 cores, running SUSE Enterp
 \clearpage
   \item An example of a shell script prepared for running on the Blackhole cluster.\\
      \topbarshort
-     \lstinputlisting[language={}]{../3D/finite-cylinder/run_simulation.sh}
+     \lstinputlisting[language={}]{../3D/finite-cylinder/thermal-eq/run_simulation.sh}
      \bottombarshort
   \item When running a job on the through the batch queue system, the job is identified by
      a number \textit{nnnnn}.
@@ -2322,6 +2375,11 @@ user's job definition script.
 \section{Chemical reactions: specification by configuration file}
 \label{app:chem}
 \input{chem}
+
+\cleardoublepage
+\section{Thermal energy exchange mechanisms: specification by configuration file}
+\label{app:therm-exchange}
+\input{therm-exchange}
 
 \cleardoublepage
 \section{User-defined functions for run-time customization}
