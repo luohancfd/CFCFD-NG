@@ -1,6 +1,0 @@
-if [ -d $HOME/spec_bin ]; then echo "$HOME/spec_bin already exists"
-else echo "creating $HOME/spec_bin directory" && mkdir $HOME/spec_bin
-fi
-echo "installing files..."
-cp -v ../source/*.py ~/spec_bin
-echo "speclib installation complete"

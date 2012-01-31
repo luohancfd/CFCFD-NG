@@ -3,13 +3,20 @@
 import sys
 from gaspy import *
 from librad2 import *
-from cfpylib.gasdyn.cea2_gas import *
+try:
+    from cfpylib.gasdyn.cea2_gas import *
+    cea2_gas = True
+except:
+    print "WARNING: The cea2_gas module is not functional."
+    print "         Equilibrium calculation disabled."
+    cea2_gas = False
+    
 from time import time
 try:
-    from YvX import *
+    from cfpylib.spectra.YvX import *
 except ImportError:
     print "Problem loading YvX module."
-    print "Make sure the directory $HOME/spec_bin is in your PYTHONPATH."
+    print "Make sure cfpylib is in your installation directory."
     sys.exit()
 
 def create_gas_file(model, species, fname):
@@ -29,6 +36,9 @@ def create_gas_file(model, species, fname):
 
     return
 
+EMISSION_CALC = True
+TS_CALC = True
+
 def main():
     if len(sys.argv) > 1:
         gas_input_file = sys.argv[1]
@@ -45,42 +55,53 @@ def main():
 
     print "Setting up a managed radiation model from input file", rad_input_file
     rsm = create_radiation_spectral_model( rad_input_file )
+    print "\n"
     
     # species  =  N2   O2   NO   N    O 
     # index  =    0    1    2    3    4
     
-    # may want to compute equilibrium composition via CEA
-    species  =  []
     nsp = gm.get_number_of_species()
     ntm = gm.get_number_of_modes()
-    for isp in range(nsp):
-    	species.append(gm.species_name(isp))
-    	species[-1] = species[-1].replace("_plus","+")
-    	species[-1] = species[-1].replace("_minus","-")
-    f_inf = [ 0.0 ] * nsp
-    f_inf[gm.get_isp_from_species_name('N2')] = 0.767; f_inf[gm.get_isp_from_species_name('O2')] = 0.233
-    p_inf = 40.0; T_inf = 296.0; u_inf = 10.254e3
     Q = Gas_data(nsp,ntm)
-    Q.p = p_inf
-    for itm in range(ntm): Q.T[itm] = T_inf
-    for isp in range(nsp): Q.massf[isp] = f_inf[isp]
-    gm.eval_thermo_state_pT(Q)
-    cea = Gas('mix', species, f_inf)
-    cea.set_from_pAndT(p_inf,T_inf)
-    eps = cea.Shock( u_inf )
-    #over-write provided initial mass-fractions
-    #print "f_eq = ", eps.eq_massf
-    Q.rho = eps.rho
-    for itm in range(ntm): Q.T[itm] = eps.T
-    for isp in range(nsp): Q.massf[isp] = eps.eq_massf[isp]
+    if cea2_gas:
+    	# Compute equilibrium composition via CEA 
+        species  =  []
+        for isp in range(nsp):
+    	    species.append(gm.species_name(isp))
+    	    species[-1] = species[-1].replace("_plus","+")
+    	    species[-1] = species[-1].replace("_minus","-")
+        f_inf = [ 0.0 ] * nsp
+        f_inf[gm.get_isp_from_species_name('N2')] = 0.767; f_inf[gm.get_isp_from_species_name('O2')] = 0.233
+        p_inf = 40.0; T_inf = 296.0; u_inf = 10.254e3
+        Q.p = p_inf
+        for itm in range(ntm): Q.T[itm] = T_inf
+        for isp in range(nsp): Q.massf[isp] = f_inf[isp]
+        gm.eval_thermo_state_pT(Q)
+        cea = Gas('mix', species, f_inf, use_out_file=True)
+        cea.set_from_pAndT(p_inf,T_inf, use_out_file=True)
+        eps = cea.Shock( u_inf, use_out_file=True )
+        #over-write provided initial mass-fractions
+        #print "f_eq = ", eps.eq_massf
+        Q.rho = eps.rho
+        for itm in range(ntm): Q.T[itm] = eps.T
+        for isp in range(nsp): Q.massf[isp] = eps.eq_massf[isp]
+	del cea, eps
+    else:
+	# Use precomputed equilibrium composition as cea2_gas is not functioning
+        Q.rho = 7.2917e-03
+        for itm in range(ntm): Q.T[itm] = 10441.0
+        eq_massf = [ 1.43390e-03, 6.50260e-05, 1.2349e-06, 4.6649e-07, 6.1227e-05,
+                     1.10000e-04, 2.24290e-01, 8.6206e-03, 7.2153e-01, 4.3886e-02,
+                     2.01780e-06 ]
+ 	for isp in range(nsp): Q.massf[isp] = eq_massf[isp]
     gm.eval_thermo_state_rhoT(Q)
     Q.print_values(False)
 
     # print "electron number density = %e cm-3" % ( Q.massf[gm.get_isp_from_species_name("e-")]*Q.rho/RC_m_SI*1.0e-6 )
-    if 1:
+    if EMISSION_CALC:
 	# perform radiation calculation
 	n_evals = 1
-	print "Performing %d emission coefficient calculations..." % n_evals
+	print "\nPerforming %d emission coefficient calculations..." % n_evals
 	t0 = time()
 	for i in range(n_evals): j_total = rsm.radiative_integrated_emission_for_gas_state( Q, True )
 	t1 = time()
@@ -107,16 +128,17 @@ def main():
 	# show how certain properties can be outputed to file
 	rsm.write_line_widths_to_file(Q)
 
-    if 0:
+    if TS_CALC:
 	# now demonstrate use of the LOS/TS classes to perform a tangent-slab calculation
+	print "Performing a tangent slab transport calculation..."
 	nslabs = 1
 	s0 = 0.0; T0 = 0.0
 	s1 = 5.0e-2; T1 = 1000.0
 	ds = (s1-s0)/nslabs
-	TS = TS_data(rsm,nslabs,s0,T0,s1,T1)
+	TS = TS_data(rsm,nslabs,T0,T1)
 	for islab in range(nslabs):
 	    divq = new_doublep()
-	    TS.set_rad_point(islab,Q,divq,s0+0.5*ds+islab*ds)
+	    TS.set_rad_point(islab,Q,divq,s0+0.5*ds+islab*ds,ds)
 	q_total = TS.quick_solve_for_divq()
 	print "Total radiative flux from a %f cm slab: q_total = %0.2f W/cm**2" % ( (s1-s0)*100, q_total*1.0e-4 )
 	print "divq = %0.2f W/m**3" % doublep_value(divq)

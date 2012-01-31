@@ -37,6 +37,13 @@ LIBUTIL         := $(UTIL)/build/libutil.a
 ZLIB            := ../../../extern/zlib-1.2.3
 LIBZLIB         := $(ZLIB)/libz.a
 CEA2            := ../../../extern/cea2
+CFPYLIB         := ../../cfpylib
+
+ifeq ($(shell [ -d ../../../extern/cea2 ] && echo "true"), true)
+  WITH_CEA2 := 1
+else
+  WITH_CEA2 := 0
+endif
 
 #---------------------------------------
 # File name variables
@@ -69,6 +76,12 @@ endif
 
 TEST_EXE := photaura_test.x
 
+TEST_PY := photaura_test.py
+
+ifeq ($(WITH_CEA2), 1)
+	TEST_EXE += CEA2.exe
+endif
+
 # Assume Unix/Linux
 LOADABLE_MODULE := _librad2.so
 ifeq ($(findstring MINGW32, $(SYSTEM)), MINGW32)
@@ -100,18 +113,33 @@ ifeq ($(findstring Darwin, $(SYSTEM)), Darwin)
 endif
 	- cp $(SRC)/radiator_library2.py $(SRC)/script_rad2.py $(INSTALL_DIR)
 	
-test: install $(TEST_EXE) CEA2.exe $(GASPY)
-	- cd ../../speclib/build; ./install
-	- cp $(SRC)/photaura_test.py $(INSTALL_DIR)
-	- cp $(TEST_EXE) CEA2.exe $(CEA2)/thermo.inp $(CEA2)/trans.inp $(INSTALL_DIR)
+test: install $(TEST_EXE) $(TEST_PY) $(GASPY)
+	cd ../../; rsync -av --exclude=".svn" --exclude="*~" cfpylib $(INSTALL_DIR)
+	- cp $(TEST_PY) $(INSTALL_DIR)
+	- cp $(TEST_EXE) $(INSTALL_DIR)
+ifeq ($(WITH_CEA2), 1)
+	- cp $(CEA2)/thermo.inp $(CEA2)/trans.inp $(INSTALL_DIR)
+	@echo "---------------------------------------------------"
+	@echo "Installation of radiation test components complete."
+	@echo "CEA2 has been included in the build."
+	@echo "---------------------------------------------------"
+else
+	@echo "--------------------------------------------------------------------"
+	@echo "Installation of radiation test components complete."
+	@echo "The cea2_gas python module will NOT be functional"
+	@echo "because the CEA2 program has not been found in $(CEA2)."
+	@echo "Contact the NASA Glenn Research Center to request the software:"
+	@echo "http://www.grc.nasa.gov/WWW/CEAWeb/"
+	@echo "--------------------------------------------------------------------"
+endif
 	
 clean :
-	- rm *.o *.py $(LIBRAD2) $(LOADABLE_MODULE) *.x *.a *.mod $(TEST_EXE) CEA2.exe
+	- rm *.o *.py $(LIBRAD2) $(LOADABLE_MODULE) *.x *.a *.mod $(TEST_EXE)
 	- rm $(SRC)/librad2.py $(SRC)/librad2_wrap.cxx
 	- cd $(GAS)/build; make clean
 	
 clean_local :
-	- rm *.o *.py $(LIBRAD2) $(LOADABLE_MODULE) *.x *.a *.mod $(TEST_EXE) CEA2.exe
+	- rm *.o *.py $(LIBRAD2) $(LOADABLE_MODULE) *.x *.a *.mod $(TEST_EXE)
 	- rm $(SRC)/librad2.py $(SRC)/librad2_wrap.cxx
 
 #----------- External libraries
@@ -264,6 +292,11 @@ parade.o : $(SRC)/parade.cxx $(SRC)/parade.hh \
 	
 parade_radiator.o : $(SRC)/parade_radiator.cxx $(SRC)/parade_radiator.hh
 	$(CXX) $(CXXFLAG) $(SRC)/parade_radiator.cxx -I$(LUA_INCLUDE_DIR)
+	
+# ------------ Test python libraries and executables -------
+	
+photaura_test.py : $(SRC)/photaura_test.py
+	- cp $(SRC)/photaura_test.py .
 
 # ------------ Test executables ------------
 

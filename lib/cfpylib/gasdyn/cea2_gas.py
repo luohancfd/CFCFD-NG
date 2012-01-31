@@ -36,10 +36,28 @@ import copy
 DEBUG_GAS = 0
 R_universal = 8314.0;  # J/kgmole.K
 CEA_COMMAND_NAME = 'cea2'
-use_out_file = False
 
 # -------------------------------------------------------------------
 # Second, utility functions.
+
+def test_for_cea_exe(program=CEA_COMMAND_NAME):
+    """
+    Tests if the CEA executable is available.
+    """
+    def is_exe(fpath):
+        return os.path.exists(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    raise Exception, "The command '%s' could not be found in the system path." % program
 
 def run_cea_program(jobName):
     """
@@ -64,14 +82,19 @@ def get_cea2_float( value_str ):
     if value_str.find("+")>0:
     	value_str = value_str.replace("+","e+")
     return float(value_str)
-    
+   
+# ----------------------------------------------------------------
+# Before going any further, check that CEA_COMMAND_NAME is in the
+#  system path.
+test_for_cea_exe()
+ 
 # ----------------------------------------------------------------
 
 class Gas:
     """
     Provides the equation of state for the gas.
     """
-    def __init__(self, gasName, speciesList=[], massfList=[]):
+    def __init__(self, gasName, speciesList=[], massfList=[], use_out_file=False):
         self.gasName = gasName           # see method EOS for possible names
         self.species = speciesList       # species names as per CEA database
         self.nsp     = len(speciesList)  # number of species
@@ -87,7 +110,7 @@ class Gas:
         # self.with_ions = True # force it on for test PJ 18-Jan-2011
         self.p = 1.0e5 # need a value in case EOS gets called
         self.T = 300.0 # likewise
-	self.EOS(speciesOut=1, thermoProps=1, transProps=1, problemType='pT')
+	self.EOS(speciesOut=1, thermoProps=1, transProps=1, problemType='pT', use_out_file=use_out_file)
 	
     def get_eq_massf(self, isp):
 	"""
@@ -101,13 +124,13 @@ class Gas:
         """
 	return self.eq_molef[isp]  
 
-    def set_from_pAndT(self,p,T, speciesOut=0, thermoProps=1, transProps=1):
+    def set_from_pAndT(self,p,T, speciesOut=0, thermoProps=1, transProps=1, use_out_file=False):
         """
         Fills out gas state from given p and T.
         """
         self.p = p;        # pressure, Pa
         self.T = T;        # temperature, K
-        flag = self.EOS(speciesOut,thermoProps,transProps)     # fill out the rest
+        flag = self.EOS(speciesOut,thermoProps,transProps,use_out_file=use_out_file)     # fill out the rest
         return flag
 
     def write_state(self,strm):
@@ -122,7 +145,7 @@ class Gas:
             strm.write('species[%d] is %s: specified-massf %e, eq-massf %e, eq-molef %e\n' %
                        (i, self.species[i], self.massf[i], self.eq_massf[i], self.eq_molef[i]))
 
-    def EOS(self, speciesOut=0, thermoProps=1, transProps=1, problemType='pT'):
+    def EOS(self, speciesOut=0, thermoProps=1, transProps=1, problemType='pT', use_out_file=False):
         """
         Computes the gas state, taking into account the high-temperature effects.
 
@@ -258,7 +281,7 @@ class Gas:
             if len(L)!=expected_entries:
                 print "cea .plt file returned %d values, while %d values were requested." % ( len(L), expected_entries )
                 print "This probably means too many values were requested."
-                print "Try setting the global variable 'use_out_file' to 'True' in cea2_gas.py."
+                print "Try calling the EOS function with 'use_out_file=True'."
                 sys.exit()
             if speciesOut == 0 : 
                 for i in range(self.nsp):
@@ -366,7 +389,7 @@ class Gas:
                 self.R = self.p / (self.rho * self.T);  # gas constant, J/kg.K
                 self.C_v = self.C_p - self.R            # specific heat, const volume
 	
-    def Shock(self, Us, speciesOut=0):
+    def Shock(self, Us, speciesOut=0, use_out_file=False):
         """
         Computes the equilibrium post-shock gas state using CEA.
 
@@ -447,7 +470,7 @@ class Gas:
         run_cea_program('shock')
         #
         # Create a instance of Gas to store the equilibrium post-shock gas-state
-        eps = Gas( "mix", self.species, self.massf )
+        eps = Gas( "mix", self.species, self.massf, use_out_file )
         #
         # Pick out the interesting bits from the plotfile.
         # These data will be on the first non-comment line.
@@ -463,7 +486,7 @@ class Gas:
             if len(L)!=expected_entries:
                 print "cea returned %d values, while %d values were requested." % ( len(L), expected_entries )
                 print "This probably means too many values were requested."
-                print "Try setting the global variable 'use_out_file' to 'True' in cea2_gas.py."
+                print "Try calling the Shock function with 'use_out_file=True'."
                 sys.exit()
             # Fill out the equilibrium post-shock gas-state
 	    eps.T = float(L[0])
