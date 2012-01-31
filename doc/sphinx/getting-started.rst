@@ -1,19 +1,29 @@
-Getting Started
-===============
+Getting the codes and preparing to run them
+===========================================
 
-Getting the current code collection
------------------------------------
-The codes are available for download via a Mercurial repository.
+The code repository
+-------------------
+The codes are available for download from a Mercurial repository.
+To make a clone of the repository:
 
-| $ cd ~
-| $ hg clone ssh://cfcfd3@triton/cfcfd3-hg cfcfd3
-| $ cd cfcfd3/extern/
-| $ hg clone ssh://cfcfd3@triton/cea2-hg cea2
+| $ cd $HOME
+| $ hg clone https://cfcfdlocal@triton.pselab.uq.edu.au/cfcfd3-hg/cfcfd3-hg/ cfcfd3
+
+This takes about 40 seconds on campus at UQ.  
+It may take much longer, depending on your internet connection.
+
+To see what's changed:
+
+| $ cd cfcfd3
+| $ hg incoming https://cfcfdlocal@triton.pselab.uq.edu.au/cfcfd3-hg/cfcfd3-hg/
+| ...
+| $ hg pull -u https://cfcfdlocal@triton.pselab.uq.edu.au/cfcfd3-hg/cfcfd3-hg/
 
 Notes
 
 #. You will need a password for any access.  Please ask.
-#. To push code changes, you will need access via ssh.
+#. You can read but not write with the "cfcfdlocal" username.
+#. Some usernames (by negotiation) may push changesets back to the repository.
 
 
 Your computational environment
@@ -74,17 +84,16 @@ To a basic Ubuntu 10.04 installation, you should add the following packages and 
 #. gnuplot
 
 
-Getting the cfcfd2 (old) codes
-------------------------------
-The older cfcfd2 code collection is still available using bazaar-ng.
-To get (read-only) access via http, use the command:
+SSH access to the repository for developers
+-------------------------------------------
+Alternative access to the Mercurial repository for developers is possible via ssh.
+You will need the password or your public key installed for any access.  Please ask.
 
-| cd $HOME
-| bzr branch http://cfcfdlocal@triton.pselab.uq.edu.au/bzr-cfcfd2 cfcfd2
+| $ cd ~
+| $ hg clone ssh://cfcfd3@triton/cfcfd3-hg cfcfd3
+| $ cd cfcfd3/extern/
+| $ hg clone ssh://cfcfd3@triton/cea2-hg cea2
 
-Notes
 
-#. You will need a password for bzr access.  Please ask.
-#. To push code changes, you will need access via ssh.
 
 

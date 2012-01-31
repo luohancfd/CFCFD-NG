@@ -70,7 +70,7 @@ Past members and associates
 ---------------------------
 Joanna M. Austin, University of Illinois, Urbana;
 Kevin J. Austin, UQ, Brisbane;
-Russell Boyce, ADFA Canberra;
+Russell Boyce, UQ, Brisbane;
 Chris S. Craddock, BMT, UK;
 Andrew Denman;
 Michael Elford;

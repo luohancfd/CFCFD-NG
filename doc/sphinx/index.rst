@@ -13,6 +13,9 @@ Since the 1980s, we have been building compressible flow simulation codes.
 
    intro
    codes
+   reports-and-theses
+   case-studies
+   old-codes
 
 .. comment out following bits
    Indices and tables
