@@ -4,20 +4,20 @@ Getting the codes and preparing to run them
 The code repository
 -------------------
 The codes are available for download from a Mercurial repository.
-To make a clone of the repository:
+To make a clone of the repository::
 
-| $ cd $HOME
-| $ hg clone https://cfcfdlocal@triton.pselab.uq.edu.au/cfcfd3-hg/cfcfd3-hg/ cfcfd3
+  $ cd $HOME
+  $ hg clone https://cfcfdlocal@triton.pselab.uq.edu.au/cfcfd3-hg/cfcfd3-hg/ cfcfd3
 
 This takes about 40 seconds on campus at UQ.  
 It may take much longer, depending on your internet connection.
 
-To see what's changed:
+To see what's changed::
 
-| $ cd cfcfd3
-| $ hg incoming https://cfcfdlocal@triton.pselab.uq.edu.au/cfcfd3-hg/cfcfd3-hg/
-| ...
-| $ hg pull -u https://cfcfdlocal@triton.pselab.uq.edu.au/cfcfd3-hg/cfcfd3-hg/
+  $ cd cfcfd3
+  $ hg incoming https://cfcfdlocal@triton.pselab.uq.edu.au/cfcfd3-hg/cfcfd3-hg/
+  ...
+  $ hg pull -u https://cfcfdlocal@triton.pselab.uq.edu.au/cfcfd3-hg/cfcfd3-hg/
 
 Notes
 
@@ -89,11 +89,48 @@ SSH access to the repository for developers
 Alternative access to the Mercurial repository for developers is possible via ssh.
 You will need the password or your public key installed for any access.  Please ask.
 
-| $ cd ~
-| $ hg clone ssh://cfcfd3@triton/cfcfd3-hg cfcfd3
-| $ cd cfcfd3/extern/
-| $ hg clone ssh://cfcfd3@triton/cea2-hg cea2
+::
+
+  $ cd ~
+  $ hg clone ssh://cfcfd3@triton/cfcfd3-hg cfcfd3
+  $ cd cfcfd3/extern/
+  $ hg clone ssh://cfcfd3@triton/cea2-hg cea2
 
 
 
+Notes about Mercurial and https certificate warnings
+----------------------------------------------------
+For versions of Mercurial greater than 1.7.3, a warning will be issued
+about the certificate not being verified when accessing the repository
+over https. To satisy Mercurial's complaints, you will need to configure
+the Certificate Authorities (CAs) which it uses. There are two ways to
+do this:
 
+1. configure HTTPS certificate authorities; or
+2. verify ``triton.pselab.uq.edu.au`` individually using its fingerprint.
+
+In either case, you will need to edit your hg configuration file which
+can be a repository-specific file ``.hg/hgrc`` or set globally in
+``~/.hgrc``.
+
+To configure the certificate authorities, the value for ``cacerts`` need to
+be set correctly for your system. For example, a Fedora (or Fedora-like) linux system,
+this can be done by adding the following to the ``hgrc`` file::
+
+  [web]
+  cacerts = /etc/ssl/certs/ca-bundle.crt
+
+Examples for other linux systems can be found at MercurialCAs_.
+
+The alternative is to configure the host fingerprint for
+``triton.pselab.uq.edu.au`` explicitly. To do this, add
+the following to your hg config file::
+
+  [hostfingerprints]
+  triton.pselab.uq.edu.au = 1d:33:32:b0:6c:e2:5c:13:67:35:ba:e6:60:cc:4e:c1:03:63:5a:2e
+
+More information about configuring Mercurial to use your system's certificate
+authorities is available at MercurialCAs_.
+
+
+.. _MercurialCAs: http://mercurial.selenic.com/wiki/CACertificates
