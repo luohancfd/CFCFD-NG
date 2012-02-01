@@ -91,3 +91,12 @@ The Theory Book: pdf-theory-book_
 
 .. _pdf-theory-book: ./pdf/eilmer3-theory-book.pdf
 
+Source Code Docs
+----------------
+
+.. toctree::
+   :maxdepth: 2
+
+   eilmer3/e3prep
+   eilmer3/e3_block
+

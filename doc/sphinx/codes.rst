@@ -14,6 +14,7 @@ For local and external collaborators, these are available via a Mercurial reposi
 #. *imoc*: interactive method-of-characteristics code, written in C+Tcl.
 #. *poshax3*: post-shock, one-dimensional flow with complex thermochemistry 
    and radiation.
+#. *photaura*: radiation toolset.
 
 .. toctree::
    :maxdepth: 2
@@ -23,6 +24,7 @@ For local and external collaborators, these are available via a Mercurial reposi
    l1d3
    imoc
    poshax3
+   photaura
    estcj
    nenzfr
 

@@ -1,5 +1,5 @@
-"""@package e3_block
-\brief Classes for defining 2D and 3D blocks.
+"""
+e3_block.py -- Classes for defining 2D and 3D blocks.
 
 It is expected that this module be imported by the application program e3prep.py.
 
@@ -363,32 +363,36 @@ def make_patch(north, east, south, west, grid_type="TFI"):
     """
     Defines a 2D patch (or region) by its boundary paths (in order NESW).
 
-    A patch is defined by its four bounding L{Path} objects
+    A patch is defined by its four bounding Path objects
     with assumed positive directions as shown::
 
-        .               NORTH
-        . 1       +------->-------+
-        . |       |               |
-        . s  WEST |               | EAST
-        . |       |               |
-        . 0       +------->-------+
-        .               SOUTH
-        .
-        .         0-------r------>1
+                       NORTH
+         1       +------->-------+
+         |       |               |
+         s  WEST |               | EAST
+         |       |               |
+         0       +------->-------+
+                       SOUTH
+        
+                 0-------r------>1
 
     NORTH and SOUTH boundaries progress WEST to EAST while
     EAST and WEST boundaries progress SOUTH to NORTH.
-    To reuse a L{Path} object when building multiple blocks,
-    you will need to pay attention to the orientation of the blocks
-    and the defined positive direction of the L{Path} object.
 
-    north: bounding path on the NORTH side
-    east: bounding path on the EAST side
-    south: bounding path on the SOUTH side
-    west: bounding path on the WEST side
-    grid_type: indicates the type of interpolation within the patch
-        TFI, COONS: transfinite interpolation or Coons patch
-        AO: interpolation via an area-orthogonality grid, used as background
+    To reuse a Path object when building multiple blocks,
+    you will need to pay attention to the orientation of the blocks
+    and the defined positive direction of the Path object.
+
+    Input
+
+    * north: bounding path on the NORTH side
+    * east: bounding path on the EAST side
+    * south: bounding path on the SOUTH side
+    * west: bounding path on the WEST side
+    * grid_type: indicates the type of interpolation within the patch
+
+        * TFI, COONS: transfinite interpolation or Coons patch
+        * AO: interpolation via an area-orthogonality grid, used as background
     """
     if not isinstance(north, Path):
         raise TypeError, ("north should be a Path but it is: %s" % type(north))
@@ -434,22 +438,24 @@ class Block(object):
                is_wall=0, use_udf_flux=0, assume_ideal=0, 
                mdot=None, epsilon=None,
                Twall_i=None, Twall_f=None, t_i=None, t_f=None,
-               label=""):
+               label=''):
         """
         Sets a boundary condition on a particular face of the block.
 
         Sometimes it is good to be able to adjust properties after
         block creation; this function provides that capability.
 
-        face_name: int identifier to select the appropriate boundary within the block.
-        type_of_BC: Name or index value of the requested boundary
-            condition.  See module bc_defs.py for the available options.
-        inflow_condition: If the type of boundary requires the user to
-            specify the inflow FlowCondition object, this is the parameter to do so.
-        sponge_flag: Set to 1 to activate Andrew Denman's damping layer near the boundary.
-        Twall: If appropriate, specify the boundary-wall temperature in degrees Kelvin.
-        Pout: If appropriate, specify the value of static pressure
-            (in Pascals) just outside the boundary.
+        Input
+
+        * face_name: int identifier to select the appropriate boundary within the block.
+        * type_of_BC: Name or index value of the requested boundary
+          condition.  See module bc_defs.py for the available options.
+        * inflow_condition: If the type of boundary requires the user to
+          specify the inflow FlowCondition object, this is the parameter to do so.
+        * sponge_flag: Set to 1 to activate Andrew Denman's damping layer near the boundary.
+        * Twall: If appropriate, specify the boundary-wall temperature in degrees Kelvin.
+        * Pout: If appropriate, specify the value of static pressure
+          (in Pascals) just outside the boundary.
         """
         iface = faceDict[face_name]
         type_of_BC = bcIndexFromName[str(type_of_BC).upper()]
@@ -537,21 +543,23 @@ class Block(object):
             sys.exit()
         return
 
-    def set_WBC(self, face_name, type_of_WBC, f_wall=[1.0,], input_file=None, label=""):
+    def set_WBC(self, face_name, type_of_WBC, f_wall=[1.0,], input_file=None, label=''):
         """
         Sets a wall catalytic boundary condition on a particular face of the block.
 
         Sometimes it is good to be able to adjust properties after
         block creation; this function provides that capability.
 
-        face_name: String or int identifier to select the appropriate Face2D 
-            within the block.
-        type_of_WBC: Name or index value of the requested wall catalycity boundary
-            condition.  See module L{cns_bc_defs} for the available options.
-        f_wall: If the user is required to set the chemical composition at the wall,
-            then a list of mass fractions (floats) should be supplied as this parameter.
-        input_file: If the boundary condition requires an input file, then its name
-            is supplied as this parameter.
+        Input
+
+        * face_name: String or int identifier to select the appropriate Face2D 
+          within the block.
+        * type_of_WBC: Name or index value of the requested wall catalycity boundary
+          condition.  See module L{cns_bc_defs} for the available options.
+        * f_wall: If the user is required to set the chemical composition at the wall,
+          then a list of mass fractions (floats) should be supplied as this parameter.
+        * input_file: If the boundary condition requires an input file, then its name
+          is supplied as this parameter.
         """
         iface = faceDict[face_name]
         type_of_WBC = str(type_of_WBC).upper()
