@@ -195,6 +195,9 @@ int
 Chemical_kinetic_ODE_MC_update::
 s_eval_chemistry_energy_coupling_source_terms( Gas_data &Q, vector<double> &dedt )
 {
+    // Quick exit if no mechanisms are present
+    if ( cks_->cecs_size()==0 ) return 0;
+
     // 0. clear the yin_ array
     for ( size_t ir=0; ir<yin_.size(); ++ir ) yin_[ir] = 0.0;
     

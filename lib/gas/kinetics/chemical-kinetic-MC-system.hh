@@ -52,6 +52,7 @@ public:
     
     int eval_chemistry_energy_coupling_source_terms( Gas_data &Q, const std::valarray<double> &y, std::vector<double> &dedt );
 
+    size_t cecs_size( void ) { return cecs_.size(); }
 private:
     // A list of Reactions making up the reaction scheme
     std::vector<Reaction*> reaction_;

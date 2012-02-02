@@ -81,4 +81,8 @@ class Bar:
 	out.append((self.len-self.filledc)*self.chars[0])
 	out.append(self.wrap[1])
 	return "".join(out)
+
+def nu2T( nu_cm ):
+    return RC_h_SI * RC_c * nu_cm / RC_k_SI
+
 %}
