@@ -35,7 +35,8 @@ class Post_shock_flow : public OdeSystem {
 public:
     Post_shock_flow();
     Post_shock_flow(Flow_state &ic, Gas_model * gm, Reaction_update * ru, 
-    		    Energy_exchange_update * eeu, PoshaxRadiationTransportModel * rtm);
+    		    Energy_exchange_update * eeu,
+    		    PoshaxRadiationTransportModel * rtm);
 
     ~Post_shock_flow();
 

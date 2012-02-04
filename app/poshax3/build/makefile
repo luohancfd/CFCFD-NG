@@ -115,21 +115,25 @@ $(LIBPSR) : $(PSR_OBJECTS)
 
 
 #----------- executables -----------------
-poshax3.x : poshax.o $(LIBPSR) $(LIBGAS) $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
+poshax3.x : poshax.o $(LIBPSR) $(LIBGAS) $(LIBRAD2) $(LIBNM) $(LIBUTIL) \
+                     $(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
 	$(CXXLINK) $(FLINK) -o poshax3.x poshax.o \
-		$(LIBPSR) $(LIBGAS) $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBGEOM) $(LUALINK)
+		$(LIBPSR) $(LIBGAS) $(LIBRAD2) $(LIBNM) $(LIBUTIL) \
+		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBGEOM) $(LUALINK)
 
 #----------- objects ---------
 poshax.o : $(SRC)/poshax.cxx $(LUA_INCLUDE_DIR)
 	$(CXX) $(CXXFLAG) $(SRC)/poshax.cxx -I$(LUA_INCLUDE_DIR)
 
-conservation_systems.o : $(SRC)/conservation_systems.cxx $(SRC)/conservation_systems.hh $(LUA_INCLUDE_DIR)
+conservation_systems.o : $(SRC)/conservation_systems.cxx \
+                         $(SRC)/conservation_systems.hh $(LUA_INCLUDE_DIR)
 	$(CXX) $(CXXFLAG) $(SRC)/conservation_systems.cxx -I$(LUA_INCLUDE_DIR)
 
 flow_state.o : $(SRC)/flow_state.cxx $(SRC)/flow_state.hh $(LUA_INCLUDE_DIR)
 	$(CXX) $(CXXFLAG) $(SRC)/flow_state.cxx -I$(LUA_INCLUDE_DIR)
 
-post_shock_flow.o : $(SRC)/post_shock_flow.cxx $(SRC)/post_shock_flow.hh $(LUA_INCLUDE_DIR)
+post_shock_flow.o : $(SRC)/post_shock_flow.cxx $(SRC)/post_shock_flow.hh \
+                    $(LUA_INCLUDE_DIR)
 	$(CXX) $(CXXFLAG) $(SRC)/post_shock_flow.cxx -I$(LUA_INCLUDE_DIR)
 	
 poshax_radiation_transport.o : $(SRC)/poshax_radiation_transport.cxx \

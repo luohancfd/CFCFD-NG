@@ -46,9 +46,11 @@ int main(int argc, char *argv[])
 
     string gas_model_file;
     Gas_model * gmodel = 0;
-    if( ! cfg.parse_string("models", "gas_model_file", gas_model_file, "no-gas-model" ) ||
+    if( ! cfg.parse_string("models", "gas_model_file", gas_model_file, 
+    	                   "no-gas-model" ) ||
     	gas_model_file == "no-gas-model" ) {
-	cout << "Error reading gas_model_file in [models] section of " << input << endl;
+	cout << "Error reading gas_model_file in [models] section of " << input
+	     << endl;
 	cout << "Bailing Out!\n";
 	exit(BAD_INPUT_ERROR);
     }
@@ -58,13 +60,15 @@ int main(int argc, char *argv[])
     
     string reaction_file;
     Reaction_update * rupdate = 0;
-    if( ! cfg.parse_string("models", "reaction_file", reaction_file, "no-reactions" ) ) {
-	cout << "Error reading reaction_file in [models] section of " << input << endl;
+    if( ! cfg.parse_string("models", "reaction_file", reaction_file,
+    	                   "no-reactions" ) ) {
+	cout << "Error reading reaction_file in [models] section of " << input
+	     << endl;
 	cout << "Bailing Out!\n";
 	exit(BAD_INPUT_ERROR);
     }
     else if ( reaction_file == "no-reactions" ) {
-    	cout << "No reaction_file specified, chemical reactions inactive" << endl;
+    	cout << "No reaction_file specified, chemical reactions inactive\n";
     }
     else {
     	rupdate = create_Reaction_update(reaction_file,*gmodel);
@@ -72,13 +76,16 @@ int main(int argc, char *argv[])
     
     string energy_exchange_file;
     Energy_exchange_update * eeupdate = 0;
-    if( ! cfg.parse_string("models", "energy_exchange_file", energy_exchange_file, "no-energy-exchange" ) ) {
-	cout << "Error reading energy_exchange_file in [models] section of " << input << endl;
+    if( ! cfg.parse_string("models", "energy_exchange_file", 
+    	                    energy_exchange_file, "no-energy-exchange" ) ) {
+	cout << "Error reading energy_exchange_file in [models] section of " 
+	     << input << endl;
 	cout << "Bailing Out!\n";
 	exit(BAD_INPUT_ERROR);
     }
     else if ( energy_exchange_file == "no-energy-exchange" ) {
-    	cout << "No energy_exchange_file specified, thermal energy exchange inactive" << endl;
+    	cout << "No energy_exchange_file specified, thermal energy exchange"
+    	     << " inactive" << endl;
     }
     else {
     	eeupdate = create_Energy_exchange_update(energy_exchange_file,*gmodel);
@@ -86,13 +93,15 @@ int main(int argc, char *argv[])
     
     string radiation_file;
     PoshaxRadiationTransportModel * rtmodel = 0;
-    if( ! cfg.parse_string("models", "radiation_file", radiation_file, "no-radiation" ) ) {
-	cout << "Error reading radiation_file in [models] section of " << input << endl;
+    if( ! cfg.parse_string("models", "radiation_file", radiation_file, 
+    	                   "no-radiation" ) ) {
+	cout << "Error reading radiation_file in [models] section of " << input
+	     << endl;
 	cout << "Bailing Out!\n";
 	exit(BAD_INPUT_ERROR);
     }
     else if ( radiation_file == "no-radiation" ) {
-    	cout << "No radiation_file specified, radiative cooling inactive" << endl;
+    	cout << "No radiation_file specified, radiative cooling inactive\n";
     }
     else {
     	rtmodel = create_poshax_radiation_transport_model(radiation_file);
@@ -101,35 +110,43 @@ int main(int argc, char *argv[])
     double dx;
     if( ! cfg.parse_double("controls", "dx", dx, 0.0) ||
 	dx <= 0.0 ) {
-	cout << "Error reading dx in [controls] section of " << input << endl;
-	cout << "The value is less than or equal to zero OR it has not been specified.\n";
-	cout << "It should be a positive value that will be used as the first estimate\n";
-	cout << "for the stepping distance behind the shock.\n";
+	cout << "Error reading dx in [controls] section of " << input << endl
+	     << "The value is less than or equal to zero OR it has not been"
+	     << " specified." << endl
+	     << "It should be a positive value that will be used as the first\n"
+	     << "estimate for the stepping distance behind the shock."
+	     << endl;
 	exit(BAD_INPUT_ERROR);
     }
     
     bool adaptive_dx;
     if( ! cfg.parse_boolean("controls", "adaptive_dx", adaptive_dx, true) ) {
-	cout << "Error reading adaptive_dx in [controls] section of " << input << endl;
+	cout << "Error reading adaptive_dx in [controls] section of " 
+	     << input << endl;
 	exit(BAD_INPUT_ERROR);
     }
 
     double final_x;
     if( ! cfg.parse_double("controls", "final_x", final_x, 1.0e-3) ||
 	final_x <= 0.0 ) {
-	cout << "Error reading final_x in [controls] section of " << input << endl;
-	cout << "The value is less than or equal to zero OR it has not been specified.\n";
-	cout << "It should be a positive value that will be used as the final distance\n";
-	cout << "behind the shock for computing the solution.\n";
+	cout << "Error reading final_x in [controls] section of " << input 
+	     << endl
+	     << "The value is less than or equal to zero OR it has not been"
+	     << " specified." << endl
+	     << "It should be a positive value that will be used as the final\n"
+	     << " distance behind the shock for computing the solution."
+	     << endl;
 	exit(BAD_INPUT_ERROR);
     }
 
     double plot_dx;
     if( ! cfg.parse_double("controls", "plot_dx", plot_dx, final_x*1.0e-3) ||
 	plot_dx <= 0 ) {
-	cout << "Error reading plot_dx in [controls] section of " << input << endl;
-	cout << "This value should be a positive double and indicates how often a \n";
-	cout << "solution is written to file.\n";
+	cout << "Error reading plot_dx in [controls] section of " << input 
+	     << endl
+	     << "This value should be a positive double and indicates hown"
+	     << "often a solution is written to file."
+	     << endl;
 	exit(BAD_INPUT_ERROR);
     }
 
@@ -137,14 +154,17 @@ int main(int argc, char *argv[])
     double dx_scale;
     if( ! cfg.parse_double("controls", "dx_scale", dx_scale, 1.0) ||
 	plot_dx <= 0 ) {
-	cout << "Error reading dx_scale in [controls] section of " << input << endl;
+	cout << "Error reading dx_scale in [controls] section of " << input 
+	     << endl;
 	cout << "This value should be a positive double and scales dx.\n";
 	exit(BAD_INPUT_ERROR);
     }
     
     string output_file_name;
-    if( ! cfg.parse_string("controls", "output_file", output_file_name, "poshax_output.data" ) ) {
-	cout << "Error reading output_file in [controls] section of " << input << endl;
+    if( ! cfg.parse_string("controls", "output_file", output_file_name, 
+    	                   "poshax_output.data" ) ) {
+	cout << "Error reading output_file in [controls] section of " << input
+	     << endl;
 	cout << "Bailing Out!\n";
 	exit(BAD_INPUT_ERROR);
     }
@@ -161,9 +181,11 @@ int main(int argc, char *argv[])
     double x_EQ_spectra;
     cfg.parse_double("radiation", "x_EQ_spectra", x_EQ_spectra, 0.0);
     bool write_rad_level_pops;
-    cfg.parse_boolean("radiation", "write_rad_level_pops", write_rad_level_pops, false );
+    cfg.parse_boolean("radiation", "write_rad_level_pops", 
+    	               write_rad_level_pops, false );
     bool write_rad_emissions;
-    cfg.parse_boolean("radiation", "write_rad_emissions", write_rad_emissions, false );
+    cfg.parse_boolean("radiation", "write_rad_emissions", 
+    	               write_rad_emissions, false );
     vector<double> vdnf;
     vector<double> lambda_min;
     cfg.parse_vector_of_doubles("radiation", "lambda_min", lambda_min, vdnf);
@@ -181,8 +203,9 @@ int main(int argc, char *argv[])
     	     << "Bailing out!" << endl;
     	exit(BAD_INPUT_ERROR);
     }
-    if ( !rtmodel && ( rad_dx > 0.0 || tube_width > 0.0 || write_rad_level_pops || fwhm_Ang > 0.0
-    	|| write_rad_emissions || lambda_min.size() || lambda_max.size() || dx_smear.size() ) ) {
+    if ( !rtmodel && ( rad_dx > 0.0 || tube_width > 0.0 || write_rad_level_pops 
+    	|| fwhm_Ang > 0.0 || write_rad_emissions || lambda_min.size() 
+    	|| lambda_max.size() || dx_smear.size() ) ) {
     	cout << "Cannot compute radiation without a radiation model!" << endl
     	     << "Bailing out!" << endl;
     	exit(BAD_INPUT_ERROR);
@@ -197,7 +220,8 @@ int main(int argc, char *argv[])
     cfg.parse_double("initial-conditions", "p_inf", p_inf, -1.0);
     
     if ( rho_inf < 0.0 && p_inf < 0.0 ) {
-    	cout << "Error reading p_inf or rho_inf in [initial-conditions] section of " << input << endl;
+    	cout << "Error reading p_inf or rho_inf in [initial-conditions] section"
+    	     << " of " << input << endl;
     	cout << "Bailing out!\n";
     	exit(BAD_INPUT_ERROR);
     }
@@ -209,27 +233,33 @@ int main(int argc, char *argv[])
     cfg.parse_double("initial-conditions", "M_inf", M_inf, -1.0);
     
     if ( u_inf < 0.0 && M_inf < 0.0 ) {
-    	cout << "Error reading u_inf or M_inf in [initial-conditions] section of " << input << endl;
+    	cout << "Error reading u_inf or M_inf in [initial-conditions] section"
+    	     << " of " << input << endl;
     	cout << "Bailing out!\n";
     	exit(BAD_INPUT_ERROR);
     }
     
     vector<double> massf_inf;
-    if ( !cfg.parse_vector_of_doubles("initial-conditions", "massf_inf", massf_inf, vdnf) ) {
-    	cout << "Error reading massf_inf in [initial-conditions] section of " << input << endl;
+    if ( !cfg.parse_vector_of_doubles("initial-conditions", "massf_inf", 
+    	                               massf_inf, vdnf) ) {
+    	cout << "Error reading massf_inf in [initial-conditions] section of " 
+    	     << input << endl;
     	cout << "Bailing out!\n";
     	exit(BAD_INPUT_ERROR);
     }
     
     vector<double> molef_inf;
-    if ( !cfg.parse_vector_of_doubles("initial-conditions", "molef_inf", molef_inf, vdnf) ) {
-    	cout << "Error reading molef_inf in [initial-conditions] section of " << input << endl;
+    if ( !cfg.parse_vector_of_doubles("initial-conditions", "molef_inf",
+    	                               molef_inf, vdnf) ) {
+    	cout << "Error reading molef_inf in [initial-conditions] section of "
+    	     << input << endl;
     	cout << "Bailing out!\n";
     	exit(BAD_INPUT_ERROR);
     }
     
     if ( massf_inf.size()==0 && molef_inf.size()==0 ) {
-    	cout << "Neither 'molef_inf' or 'massf_inf' is present in [initial-conditions] section of " << input << endl;
+    	cout << "Neither 'molef_inf' or 'massf_inf' is present in the "
+    	     << "[initial-conditions] section of " << input << endl;
     	cout << "Bailing out!\n";
     	exit(BAD_INPUT_ERROR);
     }
@@ -239,13 +269,15 @@ int main(int argc, char *argv[])
     	for ( int isp=0; isp<gmodel->get_number_of_species(); ++isp  )
     	    MW += molef_inf[isp] * gmodel->molecular_weight(isp);
     	for ( int isp=0; isp<gmodel->get_number_of_species(); ++isp  )
-    	    massf_inf.push_back( molef_inf[isp]*gmodel->molecular_weight(isp) / MW );
+    	    massf_inf.push_back( molef_inf[isp]*gmodel->molecular_weight(isp) 
+    	    	                 / MW );
     }
 
     vector<double> T_inf;
-    if ( !cfg.parse_vector_of_doubles("initial-conditions", "T_inf", T_inf, vdnf) ||
-    	T_inf.size()==0 ) {
-    	cout << "Error reading T_inf in [initial-conditions] section of " << input << endl;
+    if ( !cfg.parse_vector_of_doubles("initial-conditions", "T_inf", T_inf, vdnf)
+    	|| T_inf.size()==0 ) {
+    	cout << "Error reading T_inf in [initial-conditions] section of " 
+    	     << input << endl;
     	cout << "Bailing out!\n";
     	exit(BAD_INPUT_ERROR);
     }
@@ -275,8 +307,8 @@ int main(int argc, char *argv[])
     
     // Initialise the post shock flow solver
     
-    Post_shock_flow * psr = new Post_shock_flow( initial_condition, gmodel, rupdate,
-    						 eeupdate, rtmodel );
+    Post_shock_flow * psr = new Post_shock_flow( initial_condition, gmodel,
+    	   	   	   	   	   	 rupdate, eeupdate, rtmodel );
     
     // Print out pre-shock flow conditions
     
@@ -360,7 +392,9 @@ int main(int argc, char *argv[])
     	emissions_outfile.open( "rad_emissions.txt" );
     	emissions_outfile << "# Column 1: x location (m)" << endl;
     	for ( int irad=0; irad<psm->get_nrad(); ++irad ) {
-    	    emissions_outfile << "# Column " << irad + 2 << ": Radiator " << psm->get_rad_name(irad) << " emission (W/m**3-sr)" << endl;
+    	    emissions_outfile << "# Column " << irad + 2 << ": Radiator " 
+    	                      << psm->get_rad_name(irad) 
+    	                      << " emission (W/m**3-sr)" << endl;
     	}
 	emissions_outfile << setprecision(6) << showpoint;
     }
@@ -373,7 +407,8 @@ int main(int argc, char *argv[])
     if ( TS_dx > 0 ) {
 	// tangent slab problem - create first shock point 
 	cout << "creating TS point " << TS_count << " at x = " << 0 << endl;
-	TS->set_rad_point( TS_count, psr->psflow.Q, &(divq_rad[TS_count]), 0.0, TS_dx );
+	TS->set_rad_point( TS_count, psr->psflow.Q, &(divq_rad[TS_count]), 0.0,
+	                   TS_dx );
 	TS_count += 1;
     }
     while( x < final_x ) {
@@ -389,15 +424,17 @@ int main(int argc, char *argv[])
 	    cout << "dx = " << setw(12) << dx << ' ';
 	    cout << "rho = " << setw(12) << psr->psflow.Q->rho << ' ';
 	    for ( size_t iT=0; iT<T_inf.size(); ++iT )
-	    	cout << "T[" << iT << "] = " << setw(12) << psr->psflow.Q->T[iT] << ' ';
-	    cout << "u = " << setw(12) << psr->psflow.u << ' ';
+	    	cout << "T[" << iT << "] = " << setw(12) << psr->psflow.Q->T[iT]
+	             << " u = " << setw(12) << psr->psflow.u << ' ';
 	    if ( bool(rtmodel) ) 
 	    	cout << "Q_rad = " << setw(12) << psr->psflow.Q_rad << endl;
 	    else cout << endl;
 	    if ( write_rad_emissions ) {
 	    	emissions_outfile << setw(20) << x;
 	    	for ( int irad=0; irad<psm->get_nrad(); ++irad )
-	    	    emissions_outfile << setw(20) << psm->integrate_emission_spectrum_for_radiator( *psr->psflow.Q, irad );
+	    	    emissions_outfile << setw(20) << 
+	    	    psm->integrate_emission_spectrum_for_radiator( *psr->psflow.Q,
+	    	    	   	   	   	   	   	    irad );
 	    	emissions_outfile << endl;
 	    }
 	    next_plot_x += plot_dx;
@@ -407,11 +444,14 @@ int main(int argc, char *argv[])
 	    LOS_data LOS( rsm, 1, 0.0, 0.0 );
 	    double * div_q = 0;
 	    rad_x.push_back( x );
-	    LOS.set_rad_point( 0, psr->psflow.Q, div_q, tube_width / 2.0, tube_width );
+	    LOS.set_rad_point( 0, psr->psflow.Q, div_q, tube_width / 2.0, 
+	    	               tube_width );
 	    SpectralIntensity S(rsm);
 	    I_vec[0].add_new_point( x, LOS.integrate_LOS( S ) );
 	    for ( size_t i=0; i<lambda_min.size(); ++i ){
-	    	I_vec[i+1].add_new_point( x, S.integrate_intensity_spectra( lambda_min[i], lambda_max[i] ) );
+	    	I_vec[i+1].add_new_point( x, 
+	    	    S.integrate_intensity_spectra( lambda_min[i], 
+	    	    	                           lambda_max[i] ) );
 	    }
 	    if ( x > x_EQ_spectra ) {
 	    	S.apply_apparatus_function( fwhm_Ang / 2.0 );
@@ -422,7 +462,8 @@ int main(int argc, char *argv[])
 	    }
 	    if ( write_rad_level_pops ) {
 	    	rsm->append_current_radiator_populations( x );
-	    	rsm->write_QSS_population_analysis_files( *psr->psflow.Q, rad_count );
+	    	rsm->write_QSS_population_analysis_files( *psr->psflow.Q, 
+	    	                                           rad_count );
 	    }
 	    ++rad_count;
 	    next_spectra_x += rad_dx;
@@ -430,7 +471,8 @@ int main(int argc, char *argv[])
 	if ( next_TS_x > 0.0 && x > next_TS_x ) {
 	    // tangent slab problem
 	    cout << "creating TS point " << TS_count << " at x = " << x << endl;
-	    TS->set_rad_point( TS_count, psr->psflow.Q, &(divq_rad[TS_count]), x, TS_dx );
+	    TS->set_rad_point( TS_count, psr->psflow.Q, &(divq_rad[TS_count]), 
+	    	               x, TS_dx );
 	    next_TS_x += TS_dx;
 	    TS_count += 1;
 	}
@@ -449,7 +491,8 @@ int main(int argc, char *argv[])
     	for ( size_t i=0; i<I_vec.size(); ++i ) {
     	    ostringstream oss;
     	    if ( i==0 ) oss << "IvX-unsmeared_total.txt";
-    	    else oss << "IvX-unsmeared_" << int(lambda_min[i-1]) << "-" << int(lambda_max[i-1]) << "nm.txt";
+    	    else oss << "IvX-unsmeared_" << int(lambda_min[i-1]) << "-" 
+    	    	     << int(lambda_max[i-1]) << "nm.txt";
     	    I_vec[i].write_to_file( oss.str() );
     	}
     	// smeared intensity profiles
@@ -461,7 +504,8 @@ int main(int argc, char *argv[])
     	    	smear_dx = dx_smear[0];
     	    }
     	    else {
-    	    	oss << "IvX-smeared_" << int(lambda_min[i-1]) << "-" << int(lambda_max[i-1]) << "nm.txt";
+    	    	oss << "IvX-smeared_" << int(lambda_min[i-1]) << "-" 
+    	    	    << int(lambda_max[i-1]) << "nm.txt";
     	    	smear_dx = dx_smear[i-1];
     	    }
     	    I_vec[i].spatially_smear( smear_dx );
@@ -471,7 +515,7 @@ int main(int argc, char *argv[])
     
     if ( TS_dx > 0.0 ) {
     	double q_rad = TS->quick_solve_for_divq();
-    	cout << "Tangent slab flux q_rad = " << q_rad*1.0e-4 << " W/cm**2" << endl;
+    	cout << "Tangent slab flux q_rad = " << q_rad*1.0e-4 << " W/cm**2\n";
     	ofstream TS_outfile;
     	TS_outfile.open( "TS_divq.txt" );
     	TS_outfile << "# Column 1: x location (m)" << endl;
@@ -483,7 +527,9 @@ int main(int argc, char *argv[])
 	    // ostringstream oss;
 	    // oss << "coeff-spectra-" << iTS << ".txt";
 	    // TS->rpoints_[iTS]->X_->write_to_file( oss.str() );
-	    TS_outfile << setw(20) << TS->rpoints_[iTS]->s_ << setw(20) << divq_rad[iTS] << setw(20) << - 4.0 * M_PI * j_total << endl;
+	    TS_outfile << setw(20) << TS->rpoints_[iTS]->s_ << setw(20) 
+	               << divq_rad[iTS] << setw(20) << - 4.0 * M_PI * j_total
+	               << endl;
 	}
 	TS_outfile.close();
     }

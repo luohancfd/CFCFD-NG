@@ -110,10 +110,14 @@ OpticallyVariable::eval_Q_rad( Gas_data &Q )
 {
     // No flowfield reabsorption, 100% emission
     return ( - 4.0 * M_PI ) * \
-    rsm_->radiative_variably_integrated_emission_for_gas_state(Q, wavel_switch_, Lambda_lower_, Lambda_upper_, spectrally_resolved_);
+    rsm_->radiative_variably_integrated_emission_for_gas_state(Q, wavel_switch_, 
+    	                                                       Lambda_lower_,
+    	                                                       Lambda_upper_,
+    	                                                       spectrally_resolved_);
 }
 
-PoshaxRadiationTransportModel * create_poshax_radiation_transport_model( const string file_name )
+PoshaxRadiationTransportModel
+* create_poshax_radiation_transport_model( const string file_name )
 {
     // 0. Initialise a Radiation_transport_model pointer
     PoshaxRadiationTransportModel * rtm;
@@ -153,9 +157,10 @@ PoshaxRadiationTransportModel * create_poshax_radiation_transport_model( const s
 	rtm = new OpticallyVariable(L);
     }
     else {
-	cout << "The specified radiation transport model: " << transport_model << endl;
-	cout << "is not available in poshax2 or no yet implemented.\n";
-	cout << "Bailing Out!\n";
+	cout << "The specified radiation transport model: " << transport_model
+	     << endl
+	     << "is not available in poshax2 or no yet implemented.\n"
+	     << "Bailing Out!\n";
 	exit(BAD_INPUT_ERROR);
     }
     

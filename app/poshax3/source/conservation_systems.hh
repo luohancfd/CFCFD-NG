@@ -59,7 +59,8 @@ public:
     
     int f( const std::valarray<double> &y, std::valarray<double> &G );
     int Jac( const std::valarray<double> &y, Valmatrix &dGdy );
-    int encode_conserved( std::valarray<double> &y, const Gas_data &Q, const double u );
+    int encode_conserved( std::valarray<double> &y, const Gas_data &Q,
+    	                  const double u );
     int set_constants( const std::valarray<double> &A );
 
 private:

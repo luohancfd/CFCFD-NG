@@ -48,7 +48,8 @@ Post_shock_flow() {}
 
 Post_shock_flow::
 Post_shock_flow( Flow_state &ic, Gas_model * gm, Reaction_update * ru, 
-    		 Energy_exchange_update * eeu, PoshaxRadiationTransportModel * rtm )
+    		 Energy_exchange_update * eeu,
+    		 PoshaxRadiationTransportModel * rtm )
 : gmodel_( gm ), rupdate_( ru ), eeupdate_( eeu ), rtmodel_( rtm )
 {
     // gas-model dimensions
@@ -95,7 +96,8 @@ Post_shock_flow( Flow_state &ic, Gas_model * gm, Reaction_update * ru,
     yin_.resize( ndim, 0.0 );
     yout_.resize( ndim, 0.0 );
     yguess_.resize( ndim, 0.0 );
-    ode_solver_.set_constants( "poshax3 noneq ODE system", ndim, "rkf", 20, 1.15, 1.0e-2, 0.333 );
+    ode_solver_.set_constants( "poshax3 noneq ODE system", ndim,
+    	                       "rkf", 20, 1.15, 1.0e-2, 0.333 );
     ode_sys_ptr_ = dynamic_cast<OdeSystem*>(this);
     
     // Initialise the conservation system pieces
@@ -130,7 +132,8 @@ ode_solve(double x, double delta_x)
     con_sys_.encode_conserved( yin_, *psflow.Q, psflow.u );
     
     // 2. Submit to ODE solver
-    int flag = ode_solver_.solve_over_interval( *(ode_sys_ptr_), 0.0, dx, &dx_suggest, yin_, yout_ );
+    int flag = ode_solver_.solve_over_interval( *(ode_sys_ptr_), 0.0, dx, 
+    	                                        &dx_suggest, yin_, yout_ );
     
     if ( ! flag ) {
     	cout << "Post_shock_flow::ode_solve()" << endl
@@ -205,7 +208,8 @@ eval( const valarray<double> &y, valarray<double> &ydot )
     ++iy;
     // 2d. Modal energies
     if ( eeupdate_ ) eeupdate_->rate_of_change( *psflow.Q, dedt_ );
-    if ( rupdate_ ) rupdate_->eval_chemistry_energy_coupling_source_terms( *psflow.Q, dedt_ );
+    if ( rupdate_ )
+    	rupdate_->eval_chemistry_energy_coupling_source_terms( *psflow.Q, dedt_ );
     for ( int itm=1; itm<ntm_; ++itm ) {
     	ydot[iy] = dedt_[itm] * psflow.Q->rho;
     	if ( itm==(ntm_-1) ) ydot[iy] += psflow.Q_rad;
