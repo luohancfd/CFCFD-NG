@@ -36,7 +36,7 @@ To build and run the newer codes, you will need the following:
 * a Unix-like system with GNU-make, C and C++ compilers
 * popt (command-line parser) library and development files
 * readline library (including the header files, libreadline5-dev on Ubuntu)
-* Python + (with the numpy extension)
+* Python + (with the numpy and scipy extensions)
 * SWIG
 * Tcl/Tk + the BWidget library (to run the GUI program e3console.tcl)
 
@@ -63,6 +63,7 @@ To a basic Fedora 16 installation, you should add the following packages:
 #. gcc-gfortran
 #. swig
 #. python-devel
+#. scipy
 #. readline-devel (for Lua)
 #. popt-devel
 
@@ -77,6 +78,7 @@ To a basic Ubuntu 10.04 installation, you should add the following packages and 
 #. swig
 #. python-dev
 #. python-numpy
+#. python-scipy
 #. libreadline-dev
 #. libpopt-dev
 #. tk

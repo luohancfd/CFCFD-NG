@@ -5,3 +5,48 @@ L1d3 is our specialist simulation code for quasi-one-dimensional gas dynamics.
 It is usually applied to the simulation of entire shock-tube or expansion-tube
 facilities and has a role to play in the design of new experimantal machines.
 
+Typical build and run procedure
+-------------------------------
+The new 2D/3D code Eilmer3 is built from source into an installation directory $HOME/e3bin/.  
+A typical build procedure (using the default TARGET=for_gnu) might be::
+
+  $ cd $HOME/cfcfd3/app/L1d3/build
+  $ make install
+  $ make clean
+  $ cd ../../../lib/plot/build
+  $ make INSTALL_DIR=$HOME/e3bin install
+  $ make clean
+
+You may need to add the installation directory to your system's 
+search path and to Lua's search path.
+On a recent Linux system, this could be done by adding the lines::
+
+  $ export PATH=${PATH}:${HOME}/e3bin
+  $ export LUA_PATH=${HOME}/e3bin/?.lua
+  $ export LUA_CPATH=${HOME}/e3bin/?.so
+
+to the .bash_profile or .bashrc file in your home directory.
+
+Run a quick example of gas accelerating a piston::
+
+  $ mkdir $HOME/work; cd $HOME/work
+  $ rsync -av /home/peterj/cfcfd3/examples/L1d3 .
+  $ cd L1d3/piston/
+  $ ./run_and_plot_piston_sim.sh
+  $ gv piston_log_p.ps
+
+If you have ghostview installed, you should now be looking at 
+a space-time diagram of the expanding gas.  
+The upstream-face of the piston is the right, curved boundary.
+ 
+
+Documentation
+-------------
+Report-13-98_ is the documentation for theory behind the Lagrangian 1-D program. 
+
+.. _Report-13-98: ./pdf/l1d_98.pdf
+
+Report-2005-09_ describes the newer, Python-based input format.
+
+.. _Report-2005-09: ./pdf/l_script.pdf
+

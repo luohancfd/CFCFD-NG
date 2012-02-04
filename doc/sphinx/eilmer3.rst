@@ -8,25 +8,25 @@ flows where the bounding geometry is not too complex.
 Typical build and run procedure
 -------------------------------
 The new 2D/3D code Eilmer3 is built from source into an installation directory $HOME/e3bin/.  
-A typical build procedure (using the default TARGET=for_gnu) might be:
+A typical build procedure (using the default TARGET=for_gnu) might be::
 
-| cd $HOME/cfcfd2/app/eilmer3/build
-| make install
-| make clean
+  $ cd $HOME/cfcfd3/app/eilmer3/build
+  $ make install
+  $ make clean
 
-Or, if you want the MPI version of the code built as well:
+Or, if you want the MPI version of the code built as well::
 
-| cd $HOME/cfcfd2/app/eilmer3/build
-| make TARGET=for_openmpi install
-| make clean
+  $ cd $HOME/cfcfd3/app/eilmer3/build
+  $ make TARGET=for_openmpi install
+  $ make clean
 
 You may need to add the installation directory to your system's 
 search path and to Lua's search path.
-On a recent Linux system, this could be done by adding the lines
+On a recent Linux system, this could be done by adding the lines::
 
-| export PATH=${PATH}:${HOME}/e3bin
-| export LUA_PATH=${HOME}/e3bin/?.lua
-| export LUA_CPATH=${HOME}/e3bin/?.so
+  $ export PATH=${PATH}:${HOME}/e3bin
+  $ export LUA_PATH=${HOME}/e3bin/?.lua
+  $ export LUA_CPATH=${HOME}/e3bin/?.so
 
 to the .bash_profile or .bashrc file in your home directory.
 Note that it is not necessary to have the LUA_CPATH variable set 
@@ -34,21 +34,23 @@ unless you want to access the Lua gas module from within
 the user-defined (Lua) functions.
 You don't need it to run Eilmer3 otherwise.
 
-For running on some managed computers, such as our blackhole cluster, also add the following:
+For running on some managed computers, such as our blackhole cluster, also add the following::
 
-| module load openmpi/1.2-gnu-4.1
-| module load swig
+  $ module load openmpi/1.2-gnu-4.1
+  $ module load swig
 
 IMPORTANT: Do NOT load lua as was done in the example for Elmer2.
 
-Then, try out the cone20-simple example.
+Then, try out the cone20-simple example::
 
-| mkdir $HOME/work; cd $HOME/work; mkdir 2D; cd 2D
-| mkdir cone20-simple; cd cone20-simple
-| cp $HOME/cfcfd2/examples/eilmer3/2D/cone20-simple/* .
-| ./cone20_run.sh  # exercise the shared-memory version of the code
-|        or
-| ./cone20_run_mpi.sh  # exercise the MPI version of the code
+  $ mkdir $HOME/work; cd $HOME/work; mkdir 2D; cd 2D
+  $ mkdir cone20-simple; cd cone20-simple
+  $ cp $HOME/cfcfd3/examples/eilmer3/2D/cone20-simple/* .
+  $ ./cone20_run.sh  # exercise the shared-memory version of the code
+
+or::
+
+  $ ./cone20_run_mpi.sh  # exercise the MPI version of the code
 
 This should generate a postscript figure of the drag coefficient history
 about a sharp 20-degree cone and also put the VTK data file into the plot/
@@ -64,9 +66,9 @@ Other Notes
 -----------
 On Xserver for Linux (especially Ubuntu):
 
-* If Paraview crashes on exporting a bitmap image, try adding the line
+* If Paraview crashes on exporting a bitmap image, try adding the line::
   
-  Option "AIGLX" "false"
+    Option "AIGLX" "false"
 
   to the Section "ServerLayout" in /etc/X11/xorg.conf
 
@@ -93,6 +95,8 @@ The Theory Book: pdf-theory-book_
 
 Source Code Docs
 ----------------
+The following documentation is tentative and experimental.
+Use the PDF files above; they are the primary documents.
 
 .. toctree::
    :maxdepth: 2
