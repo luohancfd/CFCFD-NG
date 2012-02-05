@@ -30,30 +30,74 @@ double r2_r1(double M1, double g);
 double T2_T1(double M1, double g);
 double u2_u1(double M1, double g);
 
-
-class Post_shock_flow : public OdeSystem {
+class Post_shock_flow {
 public:
-    Post_shock_flow();
     Post_shock_flow(Flow_state &ic, Gas_model * gm, Reaction_update * ru, 
     		    Energy_exchange_update * eeu,
     		    PoshaxRadiationTransportModel * rtm);
 
-    ~Post_shock_flow();
+    virtual ~Post_shock_flow();
 
-    double increment_in_space(double x, double delta_x);
-    int eval( const std::valarray<double> &y, std::valarray<double> &ydot );
+public:
+    virtual double increment_in_space(double x, double delta_x) = 0;
     
+public:
     Flow_state psflow;
     Flow_state icflow;
-    
+
 protected:
-    double ode_solve(double x, double delta_x);
-    void zero_solve( const std::valarray<double> &A );
+    std::string type;
 
     Gas_model * gmodel_;
     Reaction_update * rupdate_;
     Energy_exchange_update * eeupdate_;
     PoshaxRadiationTransportModel * rtmodel_;
+    
+    std::valarray<double> yout_;
+    std::valarray<double> yguess_;
+
+    NewtonRaphsonZF zero_solver_;
+};
+
+class Loosely_coupled_post_shock_flow : public Post_shock_flow {
+public:
+    Loosely_coupled_post_shock_flow(Flow_state &ic, Gas_model * gm,
+    	                            Reaction_update * ru, 
+    		                    Energy_exchange_update * eeu,
+    		                    PoshaxRadiationTransportModel * rtm);
+
+    ~Loosely_coupled_post_shock_flow();
+    
+public:
+    double increment_in_space(double x, double delta_x); 
+    
+private:   
+    double ode_solve(double x, double delta_x);
+    void zero_solve();
+    
+private:
+    double dt_suggest_;
+    
+    FrozenConservationSystem con_sys_;
+};
+
+class Fully_coupled_post_shock_flow : public Post_shock_flow, public OdeSystem {
+public:
+    Fully_coupled_post_shock_flow(Flow_state &ic, Gas_model * gm, 
+    	                          Reaction_update * ru, 
+    	                          Energy_exchange_update * eeu,
+    		                  PoshaxRadiationTransportModel * rtm);
+
+    ~Fully_coupled_post_shock_flow();
+    
+    int eval( const std::valarray<double> &y, std::valarray<double> &ydot );
+
+public:
+    double increment_in_space(double x, double delta_x);
+    
+private:
+    double ode_solve(double x, double delta_x);
+    void zero_solve( const std::valarray<double> &A );
     
     int nsp_;
     int ntm_;
@@ -62,12 +106,10 @@ protected:
     std::vector<double> dedt_;
     
     std::valarray<double> yin_;
-    std::valarray<double> yout_;
-    std::valarray<double> yguess_;
+
     OdeSolver ode_solver_;
     OdeSystem * ode_sys_ptr_;
-
-    NewtonRaphsonZF zero_solver_;
+    
     NoneqConservationSystem con_sys_;
 };
 

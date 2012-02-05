@@ -21,7 +21,7 @@ public:
     /// \brief Default constructor
     FrozenConservationSystem();
     /// \brief Normal Constructor
-    FrozenConservationSystem( Gas_model * gm, Gas_data &Q, double u );
+    FrozenConservationSystem( Gas_model * gm, Gas_data * Q, double u );
 
     /// \brief Copy Constructor
     FrozenConservationSystem( const FrozenConservationSystem &c );
@@ -29,7 +29,7 @@ public:
     /// \brief Default destructor
     virtual ~FrozenConservationSystem();
 
-    void initialise(Gas_model * gm, Gas_data &Q, double u);
+    void initialise(Gas_model * gm, Gas_data * Q, double u);
 
     int f( const std::valarray<double> &y, std::valarray<double> &G );
     int Jac( const std::valarray<double> &y, Valmatrix &dGdy );
@@ -47,7 +47,7 @@ public:
     /// \brief Default constructor
     NoneqConservationSystem();
     /// \brief Normal Constructor
-    NoneqConservationSystem( Gas_model * gm, Gas_data &Q, double u );
+    NoneqConservationSystem( Gas_model * gm, Gas_data * Q, double u );
 
     /// \brief Copy Constructor
     NoneqConservationSystem( const NoneqConservationSystem &c );
@@ -55,7 +55,7 @@ public:
     /// \brief Default destructor
     virtual ~NoneqConservationSystem();
 
-    void initialise(Gas_model * gm, Gas_data &Q, double u);
+    void initialise(Gas_model * gm, Gas_data * Q, double u);
     
     int f( const std::valarray<double> &y, std::valarray<double> &G );
     int Jac( const std::valarray<double> &y, Valmatrix &dGdy );

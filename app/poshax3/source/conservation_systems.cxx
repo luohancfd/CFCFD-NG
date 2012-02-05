@@ -16,40 +16,32 @@ using namespace std;
 
 FrozenConservationSystem::FrozenConservationSystem() {}
 
-FrozenConservationSystem::FrozenConservationSystem( Gas_model * gm, Gas_data &Q,
+FrozenConservationSystem::FrozenConservationSystem( Gas_model * gm, Gas_data * Q,
                                                     double u )
-    :  gmodel_( gm )
+    :  gmodel_( gm ), Q_(Q)
 {
-    Q_ = new Gas_data(Q);
-    
-    A_ = Q.rho*u;
-    B_ = Q.rho*u*u + Q.p;
-    C_ = Q.rho*u*( Q.e[0] + 0.5*u*u  ) + Q.p*u;
+    A_ = Q->rho*u;
+    B_ = Q->rho*u*u + Q->p;
+    C_ = Q->rho*u*( Q->e[0] + 0.5*u*u  ) + Q->p*u;
    
 }
 
 FrozenConservationSystem::FrozenConservationSystem( const FrozenConservationSystem &c )
-    : gmodel_( c.gmodel_ ), A_( c.A_ ), B_( c.B_ ), C_( c.C_ )
-{
-    Q_ = new Gas_data(*(c.Q_));
-}
+    : gmodel_( c.gmodel_ ), Q_ ( c.Q_ ), A_( c.A_ ), B_( c.B_ ), C_( c.C_ ) {}
 
-FrozenConservationSystem::~FrozenConservationSystem()
-{
-    delete Q_;
-}
+FrozenConservationSystem::~FrozenConservationSystem() {}
 
 void
 FrozenConservationSystem::
-initialise(Gas_model * gm, Gas_data &Q, double u )
+initialise(Gas_model * gm, Gas_data * Q, double u )
 {
     gmodel_ = gm;
     
-    Q_ = new Gas_data(Q);
+    Q_ = Q;
     
-    A_ = Q.rho*u;
-    B_ = Q.rho*u*u + Q.p;
-    C_ = Q.rho*u*( Q.e[0] + 0.5*u*u ) + Q.p*u;
+    A_ = Q->rho*u;
+    B_ = Q->rho*u*u + Q->p;
+    C_ = Q->rho*u*( Q->e[0] + 0.5*u*u ) + Q->p*u;
 }
 
 int FrozenConservationSystem::f( const valarray<double> &y, valarray<double> &G )
@@ -95,9 +87,9 @@ int FrozenConservationSystem::Jac( const valarray<double> &y, Valmatrix &dGdy )
 
 NoneqConservationSystem::NoneqConservationSystem() {}
 
-NoneqConservationSystem::NoneqConservationSystem( Gas_model * gm, Gas_data &Q,
+NoneqConservationSystem::NoneqConservationSystem( Gas_model * gm, Gas_data * Q,
                                                   double u )
-    :  gmodel_( gm ), nsp_( gm->get_number_of_species() ), 
+    :  gmodel_( gm ), Q_( Q ), nsp_( gm->get_number_of_species() ), 
        ntm_( gm->get_number_of_modes() )
 {
     ndim_ = nsp_ + 1 + ntm_;
@@ -108,27 +100,19 @@ NoneqConservationSystem::NoneqConservationSystem( Gas_model * gm, Gas_data &Q,
     }
     A_.resize( ndim_ );
     
-    Q_ = new Gas_data(Q);
-    
     encode_conserved( A_, *Q_, u );
    
 }
 
 NoneqConservationSystem::NoneqConservationSystem( const NoneqConservationSystem &c )
-    : gmodel_( c.gmodel_ ), nsp_( c.nsp_ ), ntm_( c.ntm_ ), ndim_( c.ndim_ ),
-    e_index_( c.e_index_ ), A_( c.A_ )
-{
-    Q_ = new Gas_data( *(c.Q_) );
-}
+    : gmodel_( c.gmodel_ ), Q_( c.Q_ ), nsp_( c.nsp_ ), ntm_( c.ntm_ ),
+      ndim_( c.ndim_ ), e_index_( c.e_index_ ), A_( c.A_ ) {}
 
-NoneqConservationSystem::~NoneqConservationSystem()
-{
-    delete Q_;
-}
+NoneqConservationSystem::~NoneqConservationSystem() {}
 
 void
 NoneqConservationSystem::
-initialise(Gas_model * gm, Gas_data &Q, double u)
+initialise(Gas_model * gm, Gas_data * Q, double u)
 {
     gmodel_ = gm;
     nsp_ = gmodel_->get_number_of_species();
@@ -141,7 +125,7 @@ initialise(Gas_model * gm, Gas_data &Q, double u)
     }
     A_.resize( ndim_ );
     
-    Q_ = new Gas_data(Q);
+    Q_ = Q;
     
     encode_conserved( A_, *Q_, u );
 }

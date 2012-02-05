@@ -2,8 +2,9 @@
  *
  *  \brief Defintions for the post-shock flow classes.
  *
- *  \author Rowan J. Gollan
+ *  \author Rowan J. Gollan, Daniel F. Potter
  *  \version 07-Jan-07 : ported from Python version
+ *           05-Jan-2012 : Loose and full coupling versions
  *
  **/
 
@@ -44,18 +45,11 @@ double u2_u1(double M1, double g)
 }
 
 Post_shock_flow::
-Post_shock_flow() {}
-
-Post_shock_flow::
 Post_shock_flow( Flow_state &ic, Gas_model * gm, Reaction_update * ru, 
     		 Energy_exchange_update * eeu,
     		 PoshaxRadiationTransportModel * rtm )
 : gmodel_( gm ), rupdate_( ru ), eeupdate_( eeu ), rtmodel_( rtm )
 {
-    // gas-model dimensions
-    nsp_ = gmodel_->get_number_of_species();
-    ntm_ = gmodel_->get_number_of_modes();
-    
     // Set icflow
     icflow.set_flow_state(*ic.Q,ic.u);
     
@@ -78,7 +72,7 @@ Post_shock_flow( Flow_state &ic, Gas_model * gm, Reaction_update * ru,
     valarray<double> yguess(3), yout(3);
     yguess[0] = rho2; yguess[1] = T2; yguess[2] = u2;
     
-    FrozenConservationSystem con_sys(gm,Q,u_inf);
+    FrozenConservationSystem con_sys(gm,&Q,u_inf);
     zero_solver_.set_constants(3, 1.0e-6, 100, true);
     zero_solver_.solve(con_sys, yguess, yout);
     
@@ -88,7 +82,112 @@ Post_shock_flow( Flow_state &ic, Gas_model * gm, Reaction_update * ru,
     double u_s = yout[2];
 
     psflow.set_flow_state(Q,u_s);
+}
 
+Post_shock_flow::
+~Post_shock_flow() {}
+
+/******************************************************************************/
+
+Loosely_coupled_post_shock_flow::
+Loosely_coupled_post_shock_flow( Flow_state &ic, Gas_model * gm, Reaction_update * ru, 
+    		                 Energy_exchange_update * eeu,
+    		                 PoshaxRadiationTransportModel * rtm )
+: Post_shock_flow( ic, gm, ru, eeu, rtm )
+{
+    yout_.resize( 3 );
+    yguess_.resize( 3 );    
+    
+    con_sys_.initialise( gmodel_, psflow.Q, psflow.u );
+}
+
+Loosely_coupled_post_shock_flow::
+~Loosely_coupled_post_shock_flow() {}
+
+double 
+Loosely_coupled_post_shock_flow::
+increment_in_space(double x, double delta_x)
+{
+    // 1. Integrate the ODE system in space
+    double new_x = ode_solve(x, delta_x);
+    
+    // 2. Solve for the flow state
+    zero_solve();
+    
+    return new_x;
+}
+
+double 
+Loosely_coupled_post_shock_flow::
+ode_solve(double x, double delta_x)
+{
+    double dx = delta_x;
+    double dt = dx/psflow.u;
+    double dt_suggest = dt;
+    
+    // Apply reaction update if it is present
+    if ( rupdate_ ) {
+    	rupdate_->update_state( *psflow.Q, dt, dt_suggest, gmodel_ );
+    	gmodel_->eval_thermo_state_rhoe( *psflow.Q );
+    	// dt_new = dt_suggest;
+    }
+    
+    // Apply energy exchange update if it is present
+    if ( eeupdate_ ) {
+    	eeupdate_->update_state( *psflow.Q, dt, dt_suggest, gmodel_ );
+    	gmodel_->eval_thermo_state_rhoe( *psflow.Q );
+    	// if ( dt_suggest < dt_new ) dt_new = dt_suggest;
+    }
+    
+    // Apply radiative source term if it is present
+    // NOTE:  - assuming the electronic mode is at the back of the vector
+    if ( rtmodel_ ) {
+    	psflow.Q_rad = rtmodel_->eval_Q_rad( *psflow.Q );
+    	double delta_Q_rad_kg = ( psflow.Q_rad / psflow.Q->rho ) * dt;
+    	psflow.Q->e[0] += delta_Q_rad_kg;
+    	if ( gmodel_->get_number_of_modes()>1 ) 
+    	    psflow.Q->e.back() += delta_Q_rad_kg;
+    	gmodel_->eval_thermo_state_rhoe( *psflow.Q );
+    }
+    
+    return dt_suggest*psflow.u;
+}
+
+void
+Loosely_coupled_post_shock_flow::
+zero_solve()
+{
+    // 1. Create a guess
+    yguess_[0] = psflow.Q->rho;
+    yguess_[1] = psflow.Q->T[0];
+    yguess_[2] = psflow.u;
+
+    // 2. Solve
+    zero_solver_.solve(con_sys_, yguess_, yout_);
+
+    // 3. Map
+    psflow.Q->rho = yout_[0];
+    psflow.Q->T[0] = yout_[1];
+    psflow.u = yout_[2];
+    
+    // 4. Equation of state evaluation
+    gmodel_->eval_thermo_state_rhoT(*psflow.Q);
+    
+    return;
+}
+
+/*************************************************************************/
+
+Fully_coupled_post_shock_flow::
+Fully_coupled_post_shock_flow( Flow_state &ic, Gas_model * gm, Reaction_update * ru, 
+    		               Energy_exchange_update * eeu,
+    		               PoshaxRadiationTransportModel * rtm )
+: Post_shock_flow( ic, gm, ru, eeu, rtm )
+{
+    // gas-model dimensions
+    nsp_ = gmodel_->get_number_of_species();
+    ntm_ = gmodel_->get_number_of_modes();
+    
     // Initialise the ODE solver pieces
     dcdt_.resize( nsp_, 0.0 );
     dedt_.resize( ntm_, 0.0 );
@@ -100,29 +199,29 @@ Post_shock_flow( Flow_state &ic, Gas_model * gm, Reaction_update * ru,
     	                       "rkf", 20, 1.15, 1.0e-2, 0.333 );
     ode_sys_ptr_ = dynamic_cast<OdeSystem*>(this);
     
-    // Initialise the conservation system pieces
+    // Initialise the zero solver and conservation system
     zero_solver_.set_constants(ndim, 1.0e-6, 100, true);
-    con_sys_.initialise( gmodel_, *psflow.Q, psflow.u );
+    con_sys_.initialise( gmodel_, psflow.Q, psflow.u );
 }
 
-Post_shock_flow::
-~Post_shock_flow() {}
+Fully_coupled_post_shock_flow::
+~Fully_coupled_post_shock_flow() {}
 
 double 
-Post_shock_flow::
+Fully_coupled_post_shock_flow::
 increment_in_space(double x, double delta_x)
 {
     // 1. Integrate the ODE system in space
     double new_x = ode_solve(x, delta_x);
     
     // 2. Solve for the flow state
-    zero_solve( yout_ );
+    zero_solve(yout_);
     
     return new_x;
 }
 
 double 
-Post_shock_flow::
+Fully_coupled_post_shock_flow::
 ode_solve(double x, double delta_x)
 {
     double dx = delta_x;
@@ -147,7 +246,7 @@ ode_solve(double x, double delta_x)
 }
 
 void
-Post_shock_flow::
+Fully_coupled_post_shock_flow::
 zero_solve( const valarray<double> &A )
 {
     // 0. Set constants in the conservation system
@@ -183,7 +282,7 @@ zero_solve( const valarray<double> &A )
 }
 
 int
-Post_shock_flow::
+Fully_coupled_post_shock_flow::
 eval( const valarray<double> &y, valarray<double> &ydot )
 {
     // NOTE: may need to omit this step if its too slow

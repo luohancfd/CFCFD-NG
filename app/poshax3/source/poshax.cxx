@@ -106,6 +106,21 @@ int main(int argc, char *argv[])
     else {
     	rtmodel = create_poshax_radiation_transport_model(radiation_file);
     }
+    
+    string coupling_default = "loosely_coupled";
+    // Make the user select a coupling model if source terms are present
+    if ( rupdate || eeupdate || rtmodel ) coupling_default = "unspecified";
+    
+    string coupling_str;
+    if( ! cfg.parse_string("controls", "source_term_coupling", coupling_str, 
+    	                    coupling_default) || coupling_str == "unspecified" ) {
+	cout << "Error read source_term_coupling in [controls] section of " 
+	     << input << endl
+	     << "This parameter controls how the source terms are applied.\n"
+	     << "The available options are 'fully_coupled' or 'loosely_coupled'\n"
+	     << "Exiting program!\n";
+	exit(BAD_INPUT_ERROR);
+    }
 
     double dx;
     if( ! cfg.parse_double("controls", "dx", dx, 0.0) ||
@@ -115,14 +130,15 @@ int main(int argc, char *argv[])
 	     << " specified." << endl
 	     << "It should be a positive value that will be used as the first\n"
 	     << "estimate for the stepping distance behind the shock."
-	     << endl;
+	     << "Exiting program!\n";
 	exit(BAD_INPUT_ERROR);
     }
     
     bool adaptive_dx;
     if( ! cfg.parse_boolean("controls", "adaptive_dx", adaptive_dx, true) ) {
 	cout << "Error reading adaptive_dx in [controls] section of " 
-	     << input << endl;
+	     << input << endl
+	     << "Exiting program!\n";
 	exit(BAD_INPUT_ERROR);
     }
 
@@ -135,7 +151,7 @@ int main(int argc, char *argv[])
 	     << " specified." << endl
 	     << "It should be a positive value that will be used as the final\n"
 	     << " distance behind the shock for computing the solution."
-	     << endl;
+	     << "Exiting program!\n";
 	exit(BAD_INPUT_ERROR);
     }
 
@@ -146,6 +162,7 @@ int main(int argc, char *argv[])
 	     << endl
 	     << "This value should be a positive double and indicates hown"
 	     << "often a solution is written to file."
+	     << "Exiting program!\n"
 	     << endl;
 	exit(BAD_INPUT_ERROR);
     }
@@ -155,8 +172,9 @@ int main(int argc, char *argv[])
     if( ! cfg.parse_double("controls", "dx_scale", dx_scale, 1.0) ||
 	plot_dx <= 0 ) {
 	cout << "Error reading dx_scale in [controls] section of " << input 
-	     << endl;
-	cout << "This value should be a positive double and scales dx.\n";
+	     << endl
+	     << "This value should be a positive double and scales dx.\n"
+	     << "Exiting program!\n";
 	exit(BAD_INPUT_ERROR);
     }
     
@@ -164,8 +182,8 @@ int main(int argc, char *argv[])
     if( ! cfg.parse_string("controls", "output_file", output_file_name, 
     	                   "poshax_output.data" ) ) {
 	cout << "Error reading output_file in [controls] section of " << input
-	     << endl;
-	cout << "Bailing Out!\n";
+	     << endl
+	     << "Exiting program!\n";
 	exit(BAD_INPUT_ERROR);
     }
     
@@ -306,9 +324,22 @@ int main(int argc, char *argv[])
     Flow_state initial_condition( Q, u_inf );
     
     // Initialise the post shock flow solver
-    
-    Post_shock_flow * psr = new Post_shock_flow( initial_condition, gmodel,
-    	   	   	   	   	   	 rupdate, eeupdate, rtmodel );
+    Post_shock_flow * psr = 0;
+    if ( coupling_str=="loosely_coupled" )
+    	psr = new Loosely_coupled_post_shock_flow( initial_condition, gmodel,
+    	   	   	   	   	   	   rupdate, eeupdate, 
+    	   	   	   	   	   	   rtmodel );
+    else if ( coupling_str=="fully_coupled" )
+    	psr = new Fully_coupled_post_shock_flow( initial_condition, gmodel,
+    	   		   	   	   	 rupdate, eeupdate, 
+    	   	   	   	   	   	 rtmodel );
+    else {
+    	cout << "Source term coupling model: " << coupling_str
+    	     << " not recognised." << endl
+    	     << "The available options are 'fully_coupled' or 'loosely_coupled'\n"
+    	     << "Bailing out!" << endl;
+    	exit(BAD_INPUT_ERROR);
+    }
     
     // Print out pre-shock flow conditions
     
