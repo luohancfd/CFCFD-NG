@@ -54,7 +54,7 @@ TEST_EXECUTABLES := user-defined-gas-model-test.x \
 # 	perfect-gas-EOS-test.x \
 # 	noble-abel-gas-EOS-test.x \
 
-TOOL_EXECUTABLES := gasfile
+TOOL_EXECUTABLES := gasfile gasmodel.py
 ifeq ($(shell [ -d ../../../extern/cea2 ] && echo "true"), true)
   TOOL_EXECUTABLES += build-cea-lut cea2 thermo.inp trans.inp
   CEA2_MSG := "CEA2 has been included in the build."
@@ -132,6 +132,7 @@ install: $(LIBGAS) $(LUA_MODULES) $(TOOL_EXECUTABLES) $(LUAGAS_MODULE) \
 	- cp thermo.inp trans.inp $(INSTALL_DIR)/cea-cases/
 	- cp $(LUA)/bin/lua $(INSTALL_DIR)/
 	chmod +x $(INSTALL_DIR)/gasfile
+	chmod +x $(INSTALL_DIR)/gasmodel.py
 	- cp $(LUA_MODULES) $(INSTALL_DIR)/
 	- mkdir $(INSTALL_DIR)/species
 	- cp $(SPECIES)/*.lua $(INSTALL_DIR)/species/
@@ -802,3 +803,7 @@ thermo.inp : $(CEA2)/thermo.inp
 
 trans.inp : $(CEA2)/trans.inp
 	cp $(CEA2)/trans.inp .
+
+gasmodel.py : $(TOOLS)/gasmodel.py
+	cp $(TOOLS)/gasmodel.py gasmodel.py
+	chmod +x gasmodel.py

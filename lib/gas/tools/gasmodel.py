@@ -1,4 +1,7 @@
 #! /usr/bin/python
+# File: gasmodel.py
+# Author: Daniel Potter
+# Notes: A python tool to create a gas model file from the command line
 
 import sys
 import os
