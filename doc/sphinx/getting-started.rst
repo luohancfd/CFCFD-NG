@@ -26,6 +26,27 @@ Notes
 #. Some usernames (by negotiation) may push changesets back to the repository.
 
 
+Licence
+-------
+CFCFD program collection is a set of flow simulation tools for compressible fluids.
+Copyright (C) 1991-2012 Peter Jacobs, Rowan Gollan, Daniel Potter and 
+other members of the CFCFD group.
+
+This collection is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or any later version.
+
+This program collection is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+See the GNU General Public License for more details.
+
+You should have received a copy of the GNU-General-Public-License_
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+.. _GNU-General-Public-License: ./_static/gpl.txt
+
+
 Your computational environment
 ------------------------------
 The code collection comes as source code only so,
@@ -35,8 +56,8 @@ To build and run the newer codes, you will need the following:
 
 * a Unix-like system with GNU-make, C and C++ compilers
 * popt (command-line parser) library and development files
-* readline library (including the header files, libreadline5-dev on Ubuntu)
-* Python + (with the numpy and scipy extensions)
+* readline library (including the header files, libreadline-dev on Ubuntu)
+* Python + the numpy, matplotlib and scipy extensions
 * SWIG
 * Tcl/Tk + the BWidget library (to run the GUI program e3console.tcl)
 
@@ -63,7 +84,9 @@ To a basic Fedora 16 installation, you should add the following packages:
 #. gcc-gfortran
 #. swig
 #. python-devel
-#. scipy
+#. python-numeric (numpy)
+#. python-matplotlib
+#. python-scipy
 #. readline-devel (for Lua)
 #. popt-devel
 
@@ -78,12 +101,20 @@ To a basic Ubuntu 10.04 installation, you should add the following packages and 
 #. swig
 #. python-dev
 #. python-numpy
+#. python-matplotlib
 #. python-scipy
 #. libreadline-dev
 #. libpopt-dev
 #. tk
 #. bwidget
 #. gnuplot
+
+Using the codes on MS-Windows
+-----------------------------
+The codes assemble most conveniently on a Linux/Unix-like environment.
+They should also build and run within Cygwin (http://cygwin.com/), however,
+it may be convenient to run a full linux installation within 
+VirtualBox (https://www.virtualbox.org/), on your MS-Windows computer.
 
 
 SSH access to the repository for developers

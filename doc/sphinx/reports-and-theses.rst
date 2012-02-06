@@ -62,7 +62,7 @@ Dan-Potter-PhD-Thesis_ "Modeling of radiating shock layers for atmospheric entry
 Rowan-Gollan-PhD-Thesis_ "The Computational Modelling of High-Temperature Gas
 Effects with Application to Hypersonic Flows".
 
-.. _Rowan-Gollan-PhD-Thesis: ./theses/n33694032_PhD_submission.pdf
+.. _Rowan-Gollan-PhD-Thesis: ./theses/rowan-gollan-PhD-thesis-feb-2009.pdf
 
 Kevin-Austin-PhD-Thesis_ "Evolutionary Design of Robust Flight Control for a Hypersonic Aircraft"
 
@@ -111,5 +111,33 @@ Vince-Wheatley-MSc-Thesis_ "Modelling Low-Density Flow in Hypersonic Impulse Fac
 Peter-Jacobs-PhD-Thesis_ "Nonlinear Dynamics of Piecewise-Constant Vorticity Distributions in an Inviscid Fluid"
 
 .. _Peter-Jacobs-PhD-Thesis: ./theses/peter-jacobs-phd-thesis-may-1987.pdf
+
+Adrian-Window-MPhil-Thesis_ ""
+
+.. _Adrian-Window-MPhil-Thesis: ./theses/adriaan-window-MPhil-thesis-oct-2008.pdf
+
+Andrew-Denman-PhD-Thesis_ ""
+
+.. _Andrew-Denman-PhD-Thesis: ./theses/andrew-denman-PhD-thesis-jan-2007.pdf
+
+Charles-Lilley-PhD-Thesis_ ""
+
+.. _Charles-Lilley-PhD-Thesis: ./theses/charles-lilley-phd-thesis-jun-2005.pdf
+
+Dwishen-Ramanah-MPhil-Thesis_ ""
+
+.. _Dwishen-Ramanah-MPhil-Thesis: ./theses/dwishen-ramanah-mphil_thesis-jan-2007.pdf
+
+Joseph-Tang-PhD-Thesis_ ""
+
+.. _Joseph-Tang-PhD-Thesis: ./theses/joseph-tang-PhD-thesis-jun-2008.pdf
+
+Matthew-Smith-PhD-Thesis_ ""
+
+.. _Matthew-Smith-PhD-Thesis: ./theses/matthew-smith-PhD-thesis-june-2008.pdf
+
+Matthew-McGilvray-PhD-Thesis_ ""
+
+.. _Matthew-McGilvray-PhD-Thesis: ./theses/matt-mcgilvray-PhD-thesis-sep-2008.pdf
 
 

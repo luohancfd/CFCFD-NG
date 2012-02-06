@@ -1,5 +1,5 @@
 #! /bin/bash
-DEST=peterj@viking.mech.uq.edu.au:/var/www/html/cfcfd-new/
+DEST=peterj@viking.mech.uq.edu.au:/var/www/html/cfcfd/
 
 echo "About to rsync html files to viking."
 echo "A password may have to be supplied for each rsync."

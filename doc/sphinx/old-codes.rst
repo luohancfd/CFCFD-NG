@@ -16,7 +16,6 @@ through the Bazaar-ng repository.
    This is the code corresponding to the 1996 report. (obsolete)
 #. *mbcns2*: second version using libgas2 and written in C++. (obsolete)
 #. *newt*: Newtonian flow approximation for hypersonics flows.
-#. *octvce*: Joseph's fast Euler code with hierarchical adaptive grid for 3D flows.
 #. *poshax*: one-dimensional flow with complex thermochemistry.
 #. *sdas*: firmware for simple data acquisition system for student Zuni projects.
 #. *sf3d_v4.1*: Ian Johnston's shock-fitting code for 3D flow.
