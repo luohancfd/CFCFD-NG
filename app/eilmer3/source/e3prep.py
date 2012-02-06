@@ -1,6 +1,10 @@
 #! /usr/bin/env python
 """
-e3prep.py: Python program to specify the flow problem.
+Python program to specify the flow problem.
+
+This program takes the userinput, in the form of a Python script,
+and generates the files needed to start a simulation.
+There are a number of functions that may be called by the user's script. 
 
 It is intended for the user to define the flow simulation in terms of
 the data objects defined in this program.
@@ -22,31 +26,38 @@ This geometry definition is created in a bottom-up approach
 by successively defining Nodes, simple path elements
 (such as Line, Arc and Bezier elements) and, possibly,
 compound path elements (such as Spline objects and Polyline objects).
-Four paths are then used to define a patch over which
+In 2D flow, four paths are then used to define a patch over which
 a block of finite-volume cells is defined.
-The four bounding faces of each block also carry
+The four bounding faces of each Block2D object also carry
 boundary-condition information.
+In 3D flow, there will be 6 bounding surfaces for each Block3D object.
 
-note: Physical quantities should be specified in MKS units.
+Note that physical quantities should be specified in MKS units.
 
-gdata: Contains the GlobalData information describing the simulation.
-    Note that there is one such variable set up by the main program and
-    the user's script should directly set the attributes of this variable
-    to adjust settings for the simulation.
-sketch: A global variable holding the state of the SketchEnvironment.
-    Note that there is one such variable set up by the main program and
-    the user's script should directly set the attributes of this variable
-    to adjust settings (such as scale and ranges of the axes)
-    for the SVG output.
+Globally-defined objects:
 
-\author P.Jacobs
-\version February 2005 as scriptit.py
-\version 15-Jan-2006 renamed as mbcns_prep.py and modified to work with libgeom2.
-\version 17-Jan-2006 reinstated Node rendering and eliminated option --do-grid-gen
-                     because we will always want to generate grids (replacing mb_prep.c)
-\version 02-Mar-2008 Elmer3 port started
-\version 17-Mar-2008 Block3D merged.
-\version 24-Feb-2009 changed to using folders for the grid and flow files.
+* gdata: Contains the GlobalData information describing the simulation.
+  Note that there is one such variable set up by the main program and
+  the user's script should directly set the attributes of this variable
+  to adjust settings for the simulation.
+* sketch: A global variable holding the state of the SketchEnvironment.
+  Note that there is one such variable set up by the main program and
+  the user's script should directly set the attributes of this variable
+  to adjust settings (such as scale and ranges of the axes)
+  for the SVG output.
+
+
+Author: P.Jacobs
+
+Versions:
+
+* February 2005 as scriptit.py
+* 15-Jan-2006 renamed as mbcns_prep.py and modified to work with libgeom2.
+* 17-Jan-2006 reinstated Node rendering and eliminated option --do-grid-gen
+  because we will always want to generate grids (replacing mb_prep.c)
+* 02-Mar-2008 Elmer3 port started
+* 17-Mar-2008 Block3D merged.
+* 24-Feb-2009 changed to using folders for the grid and flow files.
 """
 
 # ----------------------------------------------------------------------
@@ -90,10 +101,11 @@ def select_gas_model(model=None, species=None, fname=None):
     """
     Selects a gas model for the simulation.
 
-    Input:
-    model   : (string) name of the gas model as shown in the list below.
-    species : list of species names (strings).
-    fname   : (string) name of the gas-model file.
+    :param model: (string) name of the gas model as shown in the list below.
+    :param species: list of species names (strings).
+    :param fname: (string) name of the gas-model file.
+
+    :returns: a list of species names.
 
     The new gas models are configured by stand-alone files.
     This function initialises a gas model for present use
@@ -138,9 +150,12 @@ def set_reaction_scheme(fname, reacting_flag=1):
     """
     Sets the reaction update model and specifies a reacting simulation.
 
-    This function sets the name of the input file for the reaction update.
-    It also sets the reacting flag.  Note that the user may later reset
-    that flag, possibly to turn off reactions for a particular simulation.
+    :param fname: (string) the name of the input file for the reaction update.
+    :param reacting_flag: (int) 1=reacting, 0=nonreacting 
+    :returns: None
+
+    Note that the user may later reset that flag within the input script,
+    possibly to turn off reactions for a particular simulation.
     """
     gdata.reacting_flag = reacting_flag
     gdata.reaction_update = fname
@@ -153,9 +168,12 @@ def set_energy_exchange_scheme(fname, energy_exchange_flag=1):
     """
     Sets the energy exchange update model and specifies a TNE simulation.
 
-    This function sets the name of the input file for the energy exchange update.
-    It also sets the energy exchange flag.  Note that the user may later reset
-    that flag, possibly to turn off energy exchange for a particular simulation.
+    :param fname: (string) the name of the input file for the energy exchange update.
+    :param energy_exchange_flag: 1=do exchange; 0=no exchange
+    :returns: None
+
+    Note that the user may later reset the flag, 
+    possibly to turn off energy exchange for a particular simulation.
     """
     gdata.energy_exchange_flag = energy_exchange_flag
     gdata.energy_exchange_update = fname
@@ -164,20 +182,21 @@ def set_energy_exchange_scheme(fname, energy_exchange_flag=1):
 # We want to keep the old name, for a while.
 set_energy_exchange_update = set_energy_exchange_scheme
     
-def select_radiation_model( input_file="no_file", update_frequency=1 ):
+def select_radiation_model(input_file=None, update_frequency=1):
     """
-    Selects the radiation spectral and transport models 
-    for the simulation.
-    
+    Selects the radiation spectral and transport models for the simulation.
+
+    :param input_file: (string) name of the radiation configuration file
+    :param update_frequency: (int)
+    :returns: None, or may exit the program if input_file is not specified.
+   
     This function is provided to the user as a means
     to setup a radiation model.
-    
-    This function initialises a radiation model for present use
+    It initialises a radiation model for present use
     in the preparation program (ie. sets it in kernel code)
     and stores the name for later user at simulation time.
     """
-    
-    if input_file!="no_file":
+    if input_file:
 	# 1. store model and input file names for config file creation
 	gdata.radiation_flag = 1
 	gdata.radiation_input_file = input_file
@@ -187,10 +206,9 @@ def select_radiation_model( input_file="no_file", update_frequency=1 ):
 	set_radiation_update_frequency( update_frequency ) 
     else:
 	print "The field 'input_file' is required when selecting the"
-	print "radiation model via the functionn'select_radiation_model'."
+	print "radiation model via the function 'select_radiation_model'."
 	print "Bailing out!"
 	sys.exit(1)
-	
     return
 
 #----------------------------------------------------------------------
@@ -201,95 +219,95 @@ class GlobalData(object):
 
     The user's script should not create one of these
     but should specify the simulation parameters by
-    altering the attributes of the global object L{gdata}.
+    altering the attributes of the one instance of this global object, gdata.
 
-    title: (string) A piece of text that will be propagated through the
-        solution files and subsequently generated plots.
-    case_id: (int) An identifier for special cases in which pieces of
-        specialised code have been embedded into the main simulation
-        program.
-        If you don't have such code to activate, the default value of 0 is fine.
-    gas_model_file: (string) The input file required for configuring the gas model
-    axisymmetric_flag: (0/1) A value of 0 sets two-dimensional, planar flow.
-        A value of 1 sets axisymmetric flow with the x-axis being the axis
-        of symmetry.
-    viscous_flag: (0/1) Set to 1 to activate viscous transport terms.
-        Set to 0 (the default) for inviscid flow simulation.
-    viscous_delay: (float) Sometimes, the viscous terms make it difficult to
-        start a calculation without encountering numerical instability.
-        Set this parameter to the delay (in seconds) from simulation start
-        to the time at which the viscous terms will be allowed to become
-        active (if L{viscous_flag} was set to 1).
-    viscous_factor_increment: (float) Increment for the viscous_factor
-        after viscous_delay has passed.
-    max_mu_t_factor: (float) Limiting factor for the turbulence viscosity
-        relative to the laminar viscosity.
-    transient_mu_t_factor: (float) A value of 1.0 indicates a fully-developed
-        turbulent flow.  Set values less than 1.0 to model transient flows
-        where the turbulence is not fully developed.  This may be good for
-        Matt McGilvray's scramjet experiments in the expansion tube which have
-        very short flow durations.
-    diffusion_flag: (0/1) Set to 1 to compute multi-component diffusion of species
-    diffusion_model: (string) set the type (by name) of multi-component diffusion model
-    k_omega_flag: (0/1) Allow the k-omega turbulence model to be active.
-    turbulence_prandtl_number: (float) default 0.89
-    turbulence_schmidt_number: (float) default 0.75
-    heat_time_start: (float) start time for heating zones to be adding energy
-    heat_time_stop: (float) final time for heating zones to be adding heat
-    heat_factor_increment: (float) the fraction of full heat load that will be
-        added with each time step from t=heat_time_start
-    reacting_flag: (0/1) A value of 1 will make Rowan Gollan's finite-rate
-        chemistry active if the appropriate gas_name (e.g. 'perf_gas_mix')
-        has been specified.
-    reaction_time_start: (float) Time after which reactions are allowed to proceed.
-    reaction_update: (string) A (file) name for the chemical kinetics scheme
-    energy_exchange_flag: (0/1) A flag indicting finite-rate evolution of thermal state
-    energy_exchange_update: (string) A (file) name for the thermal energy exchange scheme
-    x_order: (int 1 or 2) Specifies the form of reconstruction from cell-average
-        data to cell interface data.
-        Select 1 for low-order (i.e. no) reconstruction.
-        Select 2 for a higer-order (limited quadratic) reconstruction.
-    t_order: (int 1 or 2) Specifies the form of time stepping scheme.
-        Select 1 for Euler stepping.
-        Select 2 for predictor-corrector stepping.
-    stringent_cfl: (0/1) Set to 1 to get a very strict CFL check.
-    flux_calc: (int or string) Specifies the form of flux calculation at cell interfaces.
-        See module L{flux_dict.py} for options.
-    interpolation_type: (string) Choose the set of thermo variables to use in interpolation.
-        options: "rhoe", "rhop", "rhoT", "pT", default "rhoe"
-    compression_tolerance: (float) relative velocity change for the shock detector.
-        This value is expected to be a negative number (for compression)
-        and not too large in magnitude. default -0.30
-    shear_tolerance: (float) normalised tangential velocity change beyond which we
-        we suppress the application of EFM in the ADAPTIVE flux calculator.
-    apply_limiter_flag : (0/1) Set to 1 to have reconstruction limiter enabled (default)
-        Set to 0 for no limiting
-    dt: (float) Size of the initial time step.
-        After a few steps, the solver will have enough information to select
-        a suitable time step, based on the L{cfl} number.
-    cfl: (float) The ratio of the actual time step to the allowed time
-        step as determined by the flow condition and grid.
-        Typically the default value of 0.5 is good but you may want
-        to try smaller values if you are having the solution go unstable,
-        especially for viscous simulations.
-    print_count: (int) The number of time steps between printing a status message
-        to the console.
-    cfl_count: (int) The number of time steps between checking the CFL number.
-    fixed_time_step: (boolean) Flag to indicate fixed time-stepping
-    max_invalid_cells: (int) Number of cells that will be tolerated without too
-        much complaint.
-    dt_reduction_factor: (float) If a time step fails because of any bad cells,
-        this is the factor to reduce the size of the next attempted time step.
-    max_time: (float) The (simulation) time (in seconds) at which time stepping
-        should be terminated.
-    max_step: (int) Time stepping will be terminated if the simulation reached
-        this number of steps.
-    dt_plot: (float) Period between writing all of the flow field data to the
-        solution file.
-        Multiple instances can be written to the one file but be careful not to
-        write too many and fill up your disk.
-    dt_history: (float) Period (in seconds) between writing the data for the
-        selected cells to the history file.
+    * title: (string) A piece of text that will be propagated through the
+      solution files and subsequently generated plots.
+    * case_id: (int) An identifier for special cases in which pieces of
+      specialised code have been embedded into the main simulation
+      program.
+      If you don't have such code to activate, the default value of 0 is fine.
+    * gas_model_file: (string) The input file required for configuring the gas model
+    * axisymmetric_flag: (0/1) A value of 0 sets two-dimensional, planar flow.
+      A value of 1 sets axisymmetric flow with the x-axis being the axis of symmetry.
+    * viscous_flag: (0/1) Set to 1 to activate viscous transport terms.
+      Set to 0 (the default) for inviscid flow simulation.
+    * viscous_delay: (float) Sometimes, the viscous terms make it difficult to
+      start a calculation without encountering numerical instability.
+      Set this parameter to the delay (in seconds) from simulation start
+      to the time at which the viscous terms will be allowed to become
+      active (if L{viscous_flag} was set to 1).
+    * viscous_factor_increment: (float) Increment for the viscous_factor
+      after viscous_delay has passed.
+    * max_mu_t_factor: (float) Limiting factor for the turbulence viscosity
+      relative to the laminar viscosity.
+    * transient_mu_t_factor: (float) A value of 1.0 indicates a fully-developed
+      turbulent flow.  Set values less than 1.0 to model transient flows
+      where the turbulence is not fully developed.  This may be good for
+      Matt McGilvray's scramjet experiments in the expansion tube which have
+      very short flow durations.
+    * diffusion_flag: (0/1) Set to 1 to compute multi-component diffusion of species
+    * diffusion_model: (string) set the type (by name) of multi-component diffusion model
+    * k_omega_flag: (0/1) Allow the k-omega turbulence model to be active.
+    * turbulence_prandtl_number: (float) default 0.89
+    * turbulence_schmidt_number: (float) default 0.75
+    * heat_time_start: (float) start time for heating zones to be adding energy
+    * heat_time_stop: (float) final time for heating zones to be adding heat
+    * heat_factor_increment: (float) the fraction of full heat load that will be
+      added with each time step from t=heat_time_start
+    * reacting_flag: (0/1) A value of 1 will make Rowan Gollan's finite-rate
+      chemistry active if the appropriate gas_name (e.g. 'perf_gas_mix')
+      has been specified.
+    * reaction_time_start: (float) Time after which reactions are allowed to proceed.
+    * reaction_update: (string) A (file) name for the chemical kinetics scheme
+    * energy_exchange_flag: (0/1) A flag indicting finite-rate evolution of thermal state
+    * energy_exchange_update: (string) A (file) name for the thermal energy exchange scheme
+    * x_order: (int 1 or 2) Specifies the form of reconstruction from cell-average
+      data to cell interface data.
+      Select 1 for low-order (i.e. no) reconstruction.
+      Select 2 for a higer-order (limited quadratic) reconstruction.
+    * t_order: (int 1 or 2) Specifies the form of time stepping scheme.
+      Select 1 for Euler stepping.
+      Select 2 for predictor-corrector stepping.
+    * stringent_cfl: (0/1) Set to 1 to get a very strict CFL check.
+    * flux_calc: (int or string) Specifies the form of flux calculation at cell interfaces.
+      See module flux_dict.py for options.
+    * interpolation_type: (string) Choose the set of thermo variables to use in interpolation.
+      options: "rhoe", "rhop", "rhoT", "pT", default "rhoe"
+    * compression_tolerance: (float) relative velocity change for the shock detector.
+      This value is expected to be a negative number (for compression)
+      and not too large in magnitude. default -0.30
+    * shear_tolerance: (float) normalised tangential velocity change beyond which we
+      we suppress the application of EFM in the ADAPTIVE flux calculator.
+      default 0.20
+    * apply_limiter_flag : (0/1) Set to 1 to have reconstruction limiter enabled (default)
+       Set to 0 for no limiting
+    * dt: (float) Size of the initial time step.
+      After a few steps, the solver will have enough information to select
+      a suitable time step, based on the cfl number.
+    * cfl: (float) The ratio of the actual time step to the allowed time
+      step as determined by the flow condition and grid.
+      Typically the default value of 0.5 is good but you may want
+      to try smaller values if you are having the solution go unstable,
+      especially for viscous simulations.
+    * print_count: (int) The number of time steps between printing a status message
+      to the console.
+    * cfl_count: (int) The number of time steps between checking the CFL number.
+    * fixed_time_step: (boolean) Flag to indicate fixed time-stepping
+    * max_invalid_cells: (int) Number of cells that will be tolerated without too
+      much complaint.
+    * dt_reduction_factor: (float) If a time step fails because of any bad cells,
+      this is the factor to reduce the size of the next attempted time step.
+    * max_time: (float) The (simulation) time (in seconds) at which time stepping
+      should be terminated.
+    * max_step: (int) Time stepping will be terminated if the simulation reached
+      this number of steps.
+    * dt_plot: (float) Period between writing all of the flow field data to the
+      solution file.
+      Multiple instances can be written to the one file but be careful not to
+      write too many and fill up your disk.
+    * dt_history: (float) Period (in seconds) between writing the data for the
+      selected cells to the history file.
     """
     count = 0
 
@@ -494,13 +512,12 @@ class HeatZone(object):
         """
         Sets up a hexahedral heat-addition zone defined by its diagonal corner points.
 
+        :param qdot: (float) rate of heat addition in W/m**3
+        :param point0: (Vector) lower corner of the zone
+        :param point1: (Vector) upper corner of the zone
+
         Note that it doesn't matter if the defined zone extends outside of a block
         because of the way the test is done within the source terms.
-
-        qdot: (float) rate of heat addition in W/m**3
-        point0: (Vector) lower corner of the zone
-        point1: (Vector) upper corner of the zone
-        
         """
         if not isinstance(qdot, float):
             raise TypeError, ("qdot should be a float but it is: %s" % type(qdot))
@@ -549,11 +566,10 @@ class ReactionZone(object):
         """
         Sets up a hexahedral heat-addition zone defined by its diagonal corner points.
 
-        Note that it doesn't matter if the defined zone extends outside of a block.
+        :param point0: (Vector) lower corner of the zone
+        :param point1: (Vector) upper corner of the zone
 
-        point0: (Vector) lower corner of the zone
-        point1: (Vector) upper corner of the zone
-        
+        Note that it doesn't matter if the defined zone extends outside of a block.
         """
         if not isinstance(point0, Vector):
             raise TypeError, ("point0 should be a Vector but it is: %s" % type(point0))
@@ -599,11 +615,10 @@ class TurbulenceZone(object):
         """
         Sets up a hexahedral turbulent-addition zone defined by its diagonal corner points.
 
-        Note that it doesn't matter if the defined zone extends outside of a block.
+        :param point0: (Vector) lower corner of the zone
+        :param point1: (Vector) upper corner of the zone
 
-        point0: (Vector) lower corner of the zone
-        point1: (Vector) upper corner of the zone
-        
+        Note that it doesn't matter if the defined zone extends outside of a block.
         """
         if not isinstance(point0, Vector):
             raise TypeError, ("point0 should be a Vector but it is: %s" % type(point0))
@@ -642,11 +657,11 @@ class SimplePiston(object):
     of a set of blocks.
     We'll expand this description later to include friction, etc.
 
-    x0 : x-coordinate position of the centre of mass
-    v0 : x-coordinate velocity of the centre of mass
-    D  : y-coordinate diameter, m
-    L  : x-coordinate length, m
-    m  : mass, kg
+    * x0 : x-coordinate position of the centre of mass
+    * v0 : x-coordinate velocity of the centre of mass
+    * D  : y-coordinate diameter, m
+    * L  : x-coordinate length, m
+    * m  : mass, kg
     """
     __slots__ = 'pistonId', 'label', 'd', 'L', 'm', 'x0', 'v0', 'f', 'const_v_flag', 'postv_v_flag'
 
@@ -657,15 +672,16 @@ class SimplePiston(object):
                  const_v_flag="False", postv_v_flag="False"):
         """
         Initialises a piston's geometric parameters and state.
-        m : mass, kg
-        d : effective diameter, m
-        xL0 : x-position of left-face, m
-        xR0 : x-position of right-face, m
-        v0 : initial velocity, m/s
-        f : friction coefficient
-        label : (optional) string label
-        const_v_flag: piston will not accelerate
-        postv_v_flag: negative velocities forbidden
+
+        :param m: mass, kg
+        :param d: effective diameter, m
+        :param xL0: x-position of left-face, m
+        :param xR0: x-position of right-face, m
+        :param v0: initial velocity, m/s
+        :param f: friction coefficient
+        :param label: (optional) string label
+        :param const_v_flag: piston will not accelerate
+        :param postv_v_flag: negative velocities forbidden
         """
         self.pistonId = len(SimplePiston.pistonList)    # next available index
         if len(label) == 0:
@@ -679,9 +695,7 @@ class SimplePiston(object):
         self.f = f
         self.const_v_flag = const_v_flag
         self.postv_v_flag = postv_v_flag
-        
         SimplePiston.pistonList.append(self)
-
         return
 
     def write_starting_solution(self, fp):
@@ -725,6 +739,15 @@ class HistoryLocation(object):
         Initialises a history location.
 
         This location will later be tied to a cell in the grid.
+
+        :param x: (float) point in space
+        :param y: (float)
+        :param z: (float)
+        :param i_offset: (int) Sometimes we want to be a cell or more away from a point 
+        (like the centerline) in an axisymmetric flow simulation.
+        :param j_offset: (int)
+        :param k_offset: (int)
+        :param label: (string)
         """
         if not isinstance(x, float):
             raise TypeError, ("x should be a float but it is: %s" % type(x))

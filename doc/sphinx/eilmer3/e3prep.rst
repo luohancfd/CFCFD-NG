@@ -1,9 +1,32 @@
 e3prep (Application)
 ====================
-This program takes the userinput, in the form of a Python script,
-and generates the files needed to start a simulation.
-There are a number of functions that may be called by the user's script. 
 
-.. autofunction:: e3prep.select_gas_model
+.. automodule:: e3prep
 
+Interesting functions and objects
+---------------------------------
+
+.. currentmodule:: e3prep
+
+.. autofunction:: select_gas_model
+
+.. autofunction:: set_reaction_scheme
+
+.. autofunction:: set_energy_exchange_scheme
+
+.. autofunction:: select_radiation_model
+
+.. autoclass:: GlobalData
+
+.. autoclass:: HeatZone
+   :members: __init__
+
+.. autoclass:: ReactionZone
+   :members: __init__
+
+.. autoclass:: TurbulenceZone
+   :members: __init__
+
+.. .. autoclass:: SimplePiston
+..    :members: __init__
 

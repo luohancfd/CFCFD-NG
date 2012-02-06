@@ -51,6 +51,13 @@ Note that, although the current web copy is a bit broken, the code and
 documentation is in the code repository.
 
 .. _Report-3-00: ./imoc/index.html
+
+OctVCE
+------
+Report-2007-13_ is the "User guide for shock and blast simulation with the OctVCE code (version 3.5+)"
+
+.. _Report-2007-13: ./pdf/octvce_manual.pdf
+
  
 Theses
 ------
@@ -112,31 +119,31 @@ Peter-Jacobs-PhD-Thesis_ "Nonlinear Dynamics of Piecewise-Constant Vorticity Dis
 
 .. _Peter-Jacobs-PhD-Thesis: ./theses/peter-jacobs-phd-thesis-may-1987.pdf
 
-Adrian-Window-MPhil-Thesis_ ""
+Adrian-Window-MPhil-Thesis_ "Simulation of Separating Flows in the X2 Expansion Tube Over Bluff Aerocapture Vehicles"
 
 .. _Adrian-Window-MPhil-Thesis: ./theses/adriaan-window-MPhil-thesis-oct-2008.pdf
 
-Andrew-Denman-PhD-Thesis_ ""
+Andrew-Denman-PhD-Thesis_ "Large-Eddy Simulation of Compressible Turbulent Boundary Layers with Heat Addition"
 
 .. _Andrew-Denman-PhD-Thesis: ./theses/andrew-denman-PhD-thesis-jan-2007.pdf
 
-Charles-Lilley-PhD-Thesis_ ""
+Charles-Lilley-PhD-Thesis_ "A macroscopic chemistry method for the direct simulation of non-equilibrium gas flows"
 
 .. _Charles-Lilley-PhD-Thesis: ./theses/charles-lilley-phd-thesis-jun-2005.pdf
 
-Dwishen-Ramanah-MPhil-Thesis_ ""
+Dwishen-Ramanah-MPhil-Thesis_ "Background Oriented Schlieren Technique for Flow Visualisation in Shock Tunnels"
 
 .. _Dwishen-Ramanah-MPhil-Thesis: ./theses/dwishen-ramanah-mphil_thesis-jan-2007.pdf
 
-Joseph-Tang-PhD-Thesis_ ""
+Joseph-Tang-PhD-Thesis_ "Development of a Parallel Adaptive Cartesian Cell Code to Simulate Blast in Complex Geometries"
 
 .. _Joseph-Tang-PhD-Thesis: ./theses/joseph-tang-PhD-thesis-jun-2008.pdf
 
-Matthew-Smith-PhD-Thesis_ ""
+Matthew-Smith-PhD-Thesis_ "The True Direction Equilibrium Flux Method and its Application"
 
 .. _Matthew-Smith-PhD-Thesis: ./theses/matthew-smith-PhD-thesis-june-2008.pdf
 
-Matthew-McGilvray-PhD-Thesis_ ""
+Matthew-McGilvray-PhD-Thesis_ "Scramjet testing at high enthalpies in expansion tube facilities"
 
 .. _Matthew-McGilvray-PhD-Thesis: ./theses/matt-mcgilvray-PhD-thesis-sep-2008.pdf
 
