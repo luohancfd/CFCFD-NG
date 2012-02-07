@@ -2,8 +2,8 @@
 Relaxation of chemically-reacting air behind a shock
 =====================================================
 
-:Author: Rowan J. Gollan <r.gollan@uq.edu.au>
-:Date: 05-Feb-2012
+.. Author: Rowan J. Gollan <r.gollan@uq.edu.au>
+.. Date: 05-Feb-2012
 
 Description
 -----------
@@ -18,7 +18,7 @@ Section 4.4.2 of the author's thesis.
 
 Files
 -----
-User-built files:
+*User-built files:*
 
 air-Mach-12.3.cfg
   Input file for Poshax3.
@@ -32,20 +32,20 @@ gupta_etal_no_ionisation.lua
 run.sh
   A script to execute the example and plot results.
 
-Gas model input file:
+*Gas model input file:*
 
 air-model.lua
   Gas model input file for direct use by Poshax3. This
   file is created using the ``gasfile`` program.
 
-Output file:
+*Output file:*
 
 air-Mach-12.3.data
   Output file from Poshax3 calculation. This contains flow properties
   as a function of distance downstream of the shock. *This file is only
   available after running the calculation.*
 
-Data files:
+*Data files:*
 
 marrone_fig3\_??.g3data
   Mole profiles of various species as calculated by Marrone.
@@ -53,7 +53,7 @@ marrone_fig3\_??.g3data
 marrone_fig4\_??_ratio.g3data
   Flow property profiles (as ratio of free stream values) as calculated by Marrone.
 
-Results files:
+*Results files:*
 
 plot-data.gplot
   A Gnuplot input file for plotting of results.

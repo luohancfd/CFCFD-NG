@@ -84,9 +84,9 @@ To a basic Fedora 16 installation, you should add the following packages:
 #. gcc-gfortran
 #. swig
 #. python-devel
-#. python-numeric (numpy)
+#. numpy
 #. python-matplotlib
-#. python-scipy
+#. scipy
 #. readline-devel (for Lua)
 #. popt-devel
 
