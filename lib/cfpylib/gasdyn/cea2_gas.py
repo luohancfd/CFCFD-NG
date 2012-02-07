@@ -1,31 +1,35 @@
-## \file cea2_gas.py
-## \ingroup cfpylib/gasdyn/cea2
-##
-## \brief Class file providing the thermodynamic properties of a gas mixture
-##        in chemical equilibrium.
-##
-## It interfaces to the CEA code by writing a small input file,
-## running the CEA code as a child process and then reading the results
-## from the CEA plot file.
-##
-## See the report:
-##     Bonnie J. McBride and Sanford Gordon
-##     Computer Program for Calculation of Complex Chemical Equilibrium
-##     Compositions and Applications II. Users Manual and Program
-##     Description. NASA Reference Publication 1311, June 1996.
-## for details of the input and output file formats.
-##
-## \author PA Jacobs
-##         Institute of Aerodynamics and Flow Technology
-##         The German Aerospace Center, Goettingen.
-##
-## \version 24-Dec-02: First code.
-## \version 10-May-04: Updated for a mix of species.
-## \version 06-Feb-05: renamed to cea_gas.py
-## \version 28-Feb-08: Added a get_eq_massf() access function.
-## \version 28-Fed-08: Major changes to allow proper calculation at high temps.
-## \version 11-Dec-08: Addition of basic incident Shock function
-##
+"""
+cea2_gas.py: Thermodynamic properties of a gas mixture in chemical equilibrium.
+
+It interfaces to the CEA code by writing a small input file,
+running the CEA code as a child process and then reading the results
+from the CEA plot file.
+
+See the report::
+
+    Bonnie J. McBride and Sanford Gordon
+    Computer Program for Calculation of Complex Chemical Equilibrium
+    Compositions and Applications II. Users Manual and Program
+    Description. NASA Reference Publication 1311, June 1996.
+
+for details of the input and output file formats.
+
+Author: 
+
+    | PA Jacobs
+    | Institute of Aerodynamics and Flow Technology
+    | The German Aerospace Center, Goettingen.
+
+Versions:
+
+    | 24-Dec-02: First code.
+    | 10-May-04: Updated for a mix of species.
+    | 06-Feb-05: renamed to cea_gas.py
+    | 28-Feb-08: Added a get_eq_massf() access function.
+    | 28-Fed-08: Major changes to allow proper calculation at high temps.
+    | 11-Dec-08: Addition of basic incident Shock function
+    | RJG and DFP have made these later changes which are significant.
+"""
 
 import sys, string, math, os, subprocess, re
 import copy
@@ -77,6 +81,9 @@ def run_cea_program(jobName):
         raise Exception, 'The file %s is not present.' % inpFile
 
 def get_cea2_float( value_str ):
+    """
+    Clean up the CEA2 short-hand notation for exponential format.
+    """
     if value_str.find("-")>0:
     	value_str = value_str.replace("-","e-")
     if value_str.find("+")>0:
@@ -85,16 +92,20 @@ def get_cea2_float( value_str ):
    
 # ----------------------------------------------------------------
 # Before going any further, check that CEA_COMMAND_NAME is in the
-#  system path.
+# system path. ---- FIX-ME ---- PJ ---- do the test at object creation time
+# so that people without access to cea2 will still be able to load cfpylib
 test_for_cea_exe()
  
 # ----------------------------------------------------------------
 
-class Gas:
+class Gas(object):
     """
     Provides the equation of state for the gas.
     """
     def __init__(self, gasName, speciesList=[], massfList=[], use_out_file=False):
+        """
+        Set up a new obects, from either a name of species list.
+        """
         self.gasName = gasName           # see method EOS for possible names
         self.species = speciesList       # species names as per CEA database
         self.nsp     = len(speciesList)  # number of species
@@ -110,7 +121,9 @@ class Gas:
         # self.with_ions = True # force it on for test PJ 18-Jan-2011
         self.p = 1.0e5 # need a value in case EOS gets called
         self.T = 300.0 # likewise
-	self.EOS(speciesOut=1, thermoProps=1, transProps=1, problemType='pT', use_out_file=use_out_file)
+	self.EOS(speciesOut=1, thermoProps=1, transProps=1, 
+                 problemType='pT', use_out_file=use_out_file)
+        return
 	
     def get_eq_massf(self, isp):
 	"""
@@ -124,13 +137,14 @@ class Gas:
         """
 	return self.eq_molef[isp]  
 
-    def set_from_pAndT(self,p,T, speciesOut=0, thermoProps=1, transProps=1, use_out_file=False):
+    def set_from_pAndT(self, p, T, speciesOut=0, thermoProps=1,
+                       transProps=1, use_out_file=False):
         """
         Fills out gas state from given p and T.
         """
         self.p = p;        # pressure, Pa
         self.T = T;        # temperature, K
-        flag = self.EOS(speciesOut,thermoProps,transProps,use_out_file=use_out_file)     # fill out the rest
+        flag = self.EOS(speciesOut, thermoProps, transProps, use_out_file=use_out_file)
         return flag
 
     def write_state(self,strm):
@@ -152,17 +166,15 @@ class Gas:
         It does this by writing a suitable input file for the CEA code,
         calling that code and then pulling the relevant results out of the CEA plt file.
 
-        Input:
-            self        is the gas state to be filled in
-	    speciesOut  is a flag where (-1) do not plot species
-                                        (0) requests massfs,
-                                        (1) requests molefs
-	    thermoProps is a flag where (0) does nothing,
-                                        (1) request Cv, Cp, entropy, a, gamma etc
-            problemType is a string specifying input parameters: 'pT', 'rhoT', 'ps'
+        :param self: the gas state to be filled in
+	:param speciesOut: a flag where (-1) do not plot species,
+                           (0) requests massfs,
+                           (1) requests molefs
+	:param thermoProps: a flag where (0) does nothing,
+                            (1) request Cv, Cp, entropy, a, gamma etc
+        :param problemType: a string specifying input parameters: 'pT', 'rhoT', 'ps'
             
-        Returns nothing but does update the contents of the gas state
-        as a side-effect..
+        :returns: None, but does update the contents of the gas state as a side-effect.
         """
         if DEBUG_GAS >= 2:
             print 'EOS: Write temporary input file.'
@@ -388,16 +400,16 @@ class Gas:
             if thermoProps:
                 self.R = self.p / (self.rho * self.T);  # gas constant, J/kg.K
                 self.C_v = self.C_p - self.R            # specific heat, const volume
+        return
 	
     def Shock(self, Us, speciesOut=0, use_out_file=False):
         """
         Computes the equilibrium post-shock gas state using CEA.
 
-        Input:
-            self        is the gas state to be filled in
-	    speciesOut  is a flag where (0) requests massfs, (1) requests molefs
+        :param self: the gas state to be filled in
+	:param speciesOut: a flag where (0) requests massfs, (1) requests molefs
 
-        Returns the equilibrium post-shock (eps) gas-state as a new class
+        :returns: the equilibrium post-shock (eps) gas-state as a new class
         """
         if DEBUG_GAS >= 2:
             print 'EOS: Write temporary input file.'

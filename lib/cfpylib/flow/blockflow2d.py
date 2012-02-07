@@ -1,10 +1,9 @@
-# \file blockflow2d.py
-# \ingroup mbcns2
-# \brief A module to pick up the flow data for mbcns2 block-structured grids.
-# \author PAJ
-# \version 11-Apr-2007 : first cut after talking about it for so long
 """
-Pick up the flow data for mbcns2 block-structured grids.
+blockflow2d.py: Pick up the flow data for mbcns2 block-structured grids.
+
+Author: PAJ
+
+Version: 11-Apr-2007 : first cut after talking about it for so long
 """
 
 from copy import copy
@@ -23,6 +22,9 @@ from math import fabs
 UFLOWZ = 1.0e-20
 
 def apply_uflowz(val):
+    """
+    Cleanly flush small float values to zero (for the benefit of Paraview).
+    """
     if fabs(val) <= UFLOWZ:
         return 0.0
     else:
@@ -36,9 +38,11 @@ class BlockFlow2D(object):
                  nsp=1, nvib=0, separate_electron_energy=0,
                  radiation=0, k_omega=0, scalar_pdf=0, debug=0):
         """
-        ni: number of cells in the i-index direction
-        nj: number of cells in the j-index direction
-        label: (optional) string label for the block
+        Prepare to store the data.
+
+        :param ni: number of cells in the i-index direction
+        :param nj: number of cells in the j-index direction
+        :param label: (optional) string label for the block
         
         If the number of vertices are specified in each direction,
         we actually create the storage arrays now.

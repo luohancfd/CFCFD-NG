@@ -1,14 +1,13 @@
 #! /bin/env python
-## \file roberts.py
-## \ingroup nm
-##
-## \brief Node distribution and coordinate stretching functions.
-##
-## These functions should behave the same as the C code functions.
-##
-## \author PA Jacobs
-##
-## \version 1.0: 22-Mar-2005
+"""
+roberts.py: Node distribution and coordinate stretching functions.
+
+These functions should behave the same as the C code functions.
+
+Author PA Jacobs
+
+Version: 1.0, 22-Mar-2005
+"""
 
 try:
     from numpy import arange, power
@@ -23,11 +22,12 @@ def roberts(eta, alpha, beta):
     Computes the stretched coordinate in the range [0.0..1.0]
     using the boundary-layer-like transformation devised by Roberts.
     
-    eta   : unstretched coordinate, 0 <= eta <= 1.0
-    beta  : stretching factor (more stretching as beta --> 1.0)
-    alpha : location of stretching
-            alpha = 0.5 : clustering of nodes at both extremes of eta
-            alpha = 0.0 : nodes will be clustered near eta=1.0
+    :param eta: unstretched coordinate, 0 <= eta <= 1.0
+    :param beta: stretching factor (more stretching as beta --> 1.0)
+    :param alpha: location of stretching:
+
+        | alpha = 0.5: clustering of nodes at both extremes of eta
+        | alpha = 0.0: nodes will be clustered near eta=1.0
 
     Works for both scalars and arrays.
     """
@@ -43,19 +43,26 @@ def distribute_points_1(t1, t2, n, end1, end2, beta):
     """
     Generate a set of points nonuniformly distributed from t1 to t2.
 
-    t1   : parameter value  1
-    t2   : parameter value  2
-    n    : number of intervals (the number of points is n+1)
-    end1 : =0 points are not clustered to end 1
-         : =1 points ARE clustered to end 1
-    end2 : =0 points are not clustered to end 2
-         : =1 points ARE clustered to end 2
-    beta : grid stretching parameter
-         : 1 < beta < +inf : points are clustered 
-         : The closer to 1, the more the clustering.
-         : beta < 1        : no clustering
+    :param t1: parameter value  1
+    :param t2: parameter value  2
+    :param n: number of intervals (the number of points is n+1)
+    :param end1: (int) cluster flag for end 1:
+
+        | ==0 points are not clustered to end 1
+        | ==1 points ARE clustered to end 1
+
+    :param end2: (int) cluster flag for end 2:
+
+        | ==0 points are not clustered to end 2
+        | ==1 points ARE clustered to end 2
+
+    :param beta: grid stretching parameter:
+
+        | 1 < beta < +inf : points are clustered 
+        | The closer to 1, the more the clustering.
+        | beta < 1 for no clustering.
  
-    Returns t[0:n] an array of distributed values.
+    :returns: t[0:n] an array of distributed values.
     """ 
     # Decide on stretching parameters for Robert's transform.
     alpha = 0.5;

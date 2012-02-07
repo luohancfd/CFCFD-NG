@@ -1,36 +1,34 @@
 #! /bin/env python
-## \file nelmin.py
-## \ingroup nm
-##
-## \brief Nelder-Mead simplex minimization of a nonlinear (multivariate) function.
-##
-## This code has been adapted from the C-coded nelmin.c which was
-## adapted from the Fortran-coded nelmin.f which was, in turn, adapted
-## from the papers
-##
-##     J.A. Nelder and R. Mead (1965)
-##     A simplex method for function minimization.
-##     Computer Journal, Volume 7, pp 308-313.
-##
-##     R. O'Neill (1971)
-##     Algorithm AS47. Function minimization using a simplex algorithm.
-##     Applied Statistics, Volume 20, pp 338-345.
-##
-## and some examples are in
-##
-##    D.M. Olsson and L.S. Nelson (1975)
-##    The Nelder-Mead Simplex procedure for function minimization.
-##    Technometrics, Volume 17 No. 1, pp 45-51.
-##   
-## For a fairly recent and popular incarnation of this minimizer,
-## see the amoeba function in the famous "Numerical Recipes" text.
-## The programming interface is via the minimize() function; see below.
-##
-## \author PA Jacobs
-##         School of Engineering, The University of Queensland
-##
-## \version 07-Jan-04
-##
+"""
+nelmin.py: Nelder-Mead simplex minimization of a nonlinear (multivariate) function.
+
+This code has been adapted from the C-coded nelmin.c which was
+adapted from the Fortran-coded nelmin.f which was, in turn, adapted
+from the papers:
+
+    J.A. Nelder and R. Mead (1965)
+    A simplex method for function minimization.
+    Computer Journal, Volume 7, pp 308-313.
+
+    R. O'Neill (1971)
+    Algorithm AS47. Function minimization using a simplex algorithm.
+    Applied Statistics, Volume 20, pp 338-345.
+
+and some examples are in:
+
+   D.M. Olsson and L.S. Nelson (1975)
+   The Nelder-Mead Simplex procedure for function minimization.
+   Technometrics, Volume 17 No. 1, pp 45-51.
+   
+For a fairly recent and popular incarnation of this minimizer,
+see the amoeba function in the famous "Numerical Recipes" text.
+The programming interface is via the minimize() function; see below.
+
+Author: PA Jacobs
+        School of Engineering, The University of Queensland
+
+Version: 07-Jan-04
+"""
 
 from copy import copy
 from math import sqrt
@@ -44,28 +42,28 @@ def minimize(f, x, dx=None, tol=1.0e-6,
     """
     Locate a minimum of the objective function, f.
 
-    Input:
-    f       : user-specified function f(x)
-    x       : list of N coordinates
-    dx      : list of N increments to apply to x when forming
-              the initial simplex.  Their magnitudes determine the size
-              and shape of the initial simplex.
-    tol     : the terminating limit for the standard-deviation
-              of the simplex function values.
-    maxfe   : maximum number of function evaluations that we will allow
-    n_check : number of steps between convergence checks
-    delta   : magnitude of the perturbations for checking a local minimum
-              and for the scale reduction when restarting
-    Kreflect, Kextend, Kcontract: coefficients for locating the new vertex
+    :param f: user-specified function f(x)
+    :param x: list of N coordinates
+    :param dx: list of N increments to apply to x when forming
+               the initial simplex.  Their magnitudes determine the size
+               and shape of the initial simplex.
+    :param tol: the terminating limit for the standard-deviation
+                of the simplex function values.
+    :param maxfe: maximum number of function evaluations that we will allow
+    :param n_check: number of steps between convergence checks
+    :param delta: magnitude of the perturbations for checking a local minimum
+                  and for the scale reduction when restarting
+    :param Kreflect:
+    :param Kextend:
+    :param Kcontract: coefficients for locating the new vertex
 
-    Output:
-    Returns a tuple consisting of
-    [0] a list of coordinates for the best x location,
-        corresponding to min(f(x)),
-    [1] the function value at that point,
-    [2] a flag to indicate if convergence was achieved
-    [3] the number of function evaluations and
-    [4] the number of restarts (with scale reduction)
+    :Returns: a tuple consisting of:
+
+        [0] a list of coordinates for the best x location, corresponding to min(f(x)),
+        [1] the function value at that point,
+        [2] a flag to indicate if convergence was achieved
+        [3] the number of function evaluations and
+        [4] the number of restarts (with scale reduction)
     """
     converged = 0
     N = len(x)

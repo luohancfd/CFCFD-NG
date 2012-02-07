@@ -1,13 +1,14 @@
 #! /usr/bin/env python
+"""
+zero_finding.py
 
-## \file    zero_finding.py
-## \author  Brendan O'Flaherty
-## 
-## \version 23 Oct 2007 -- File created
-## \version 12 Nov 2007 -- Implemented bisection and golden methods
-## \version
-## 
-## ---------------------------------------------------------
+Author:  Brendan O'Flaherty
+
+Versions:
+
+   | 23 Oct 2007 -- File created
+   | 12 Nov 2007 -- Implemented bisection and golden methods
+"""
 
 import sys
 
@@ -31,7 +32,9 @@ def derivatives(f, xval, dx, args=()):
 # Contains a number of constrained zero finding methods.
 
 def bisection_root(f, x0, x1, tol, args=(), max_iter=100):
-    """Applies the Bisection-Root method to find f(x) = 0."""
+    """
+    Applies the Bisection-Root method to find f(x) = 0.
+    """
     assert x1 > x0
 
     y0 = f(x0, args)
@@ -66,7 +69,9 @@ def bisection_root(f, x0, x1, tol, args=(), max_iter=100):
     return 0.5*(x0+x1)
 
 def muller_root(f, x0, x1, tol, args=(), max_iter=100):
-    """Applies the Bisection-Root method to find f(x) = 0."""
+    """
+    Applies the Bisection-Root method to find f(x) = 0.
+    """
     assert x1 > x0
 
     y0 = f(x0, args)
@@ -145,7 +150,9 @@ def muller_root(f, x0, x1, tol, args=(), max_iter=100):
     return x_root
 
 def newton_root(f, x0, x1, tol, args=()):
-    """Applies Newton's method to find f(x) = 0."""
+    """
+    Applies Newton's method to find f(x) = 0.
+    """
     assert x1 > x0
     
     y0 = f(x0, args)
@@ -176,8 +183,9 @@ def newton_root(f, x0, x1, tol, args=()):
 # These are effectively zero-finding methods for the derivative of a function f(x)
 
 def golden_section(f, a, c, tol, args=()):
-    """Applies the Golden-Section search to find min(f(x))."""
-
+    """
+    Applies the Golden-Section search to find min(f(x)).
+    """
     g = (3.0 - 5**0.5)/2.0
     b1 = a + g*(c - a)
     b2 = a + (1 - g)*(c - a)

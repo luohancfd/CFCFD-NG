@@ -1,15 +1,16 @@
-## \file secant_method.py
-## \ingroup nm
-##
-## \brief Function solver, using the secant method.
-##
-## \author PAJ
-## \version 17-May-04
-##
+"""
+secant_method.py: Function solver, using the secant method.
+
+Author: PAJ
+
+Version: 17-May-04
+"""
 
 def solve(f, x1, x2, tol=1.0e-9):
-    """Computes x that satisfies f(x) = 0,
-    given f and two initial guesses x1 and x2."""
+    """
+    Computes x that satisfies f(x) = 0,
+    given f and two initial guesses x1 and x2.
+    """
     assert callable(f)
     f1 = f(x1)
     f2 = f(x2)

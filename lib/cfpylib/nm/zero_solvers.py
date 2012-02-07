@@ -1,10 +1,14 @@
 #!/usr/bin/env python
-# \file zero_solvers.py
-#
-# Python code by...
-# \author Rowan J Gollan
-# \date   06-Dec-2004
-# \date   08-May-2011: Dan's bisection_method added by PJ
+"""
+zero_solvers.py
+
+Author: Rowan J Gollan
+
+Versions:
+
+   | 06-Dec-2004
+   | 08-May-2011: Dan's bisection_method added by PJ
+"""
 
 from copy import copy
 from math import fabs, pow, sin, exp

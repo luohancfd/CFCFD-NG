@@ -1,5 +1,9 @@
 #!/usr/bin/env python
-# collect_run_stats.py
+"""
+collect_run_stats.py: Run an executable a number of times and report.
+
+This is a small application program rather than a library function.
+"""
 
 import sys, os
 

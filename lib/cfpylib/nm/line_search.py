@@ -1,6 +1,6 @@
 # line_search.py
 """
-Implementation of an algorithm for optimization from Gerald and Wheatley
+Implementation of an algorithm for optimization from Gerald and Wheatley.
 
 A class demo for mech2700.
 PJ, 23-Oct-2008 
@@ -10,10 +10,10 @@ def minimize(f, a, b, tolerance=1.0e-4):
     """
     Returns the bracket xL,xR containing the minimum of the function f.
 
-    f is a user supplied function
-    a,b is the original bracket containing a minimum
-    tolerance is the final size of the bracket
-    It should not be set too small.
+    :param f: a user supplied function
+    :param a,b: the original bracket containing a minimum
+    :param tolerance: the final size of the bracket.
+                      It should not be set too small.
     """
     r = 0.618034
     xL = a + (1-r)*(b-a)

@@ -1,10 +1,13 @@
-## \file billig.py
-## \brief Billig's correlations for hypersonic shock-wave shapes.
-##
-## These are a direct implementation of equations 5.36, 5.37 and 5.38
-## from J.D. Anderson's text Hypersonic and High Temperature Gas Dynamics
-##
-## \version 19-June-2005 PJ
+"""
+billig.py: Fred Billig's correlations for hypersonic shock-wave shapes.
+
+These are a direct implementation of equations 5.36, 5.37 and 5.38
+from J.D. Anderson's text Hypersonic and High Temperature Gas Dynamics
+
+Author: PJ
+
+Version: 19-June-2005
+"""
 
 from math import exp, sqrt, pow, tan
 from ideal_gas_flow import beta_obl
@@ -39,14 +42,16 @@ def x_from_y(y, M, theta=0.0, axi=0, R_nose=1.0):
     """
     Determine the x-coordinate of a point on the shock wave.
 
-    Input:
-    y        : y-coordinate of the point on the shock wave
-    M        : free-stream Mach number
-    theta    : angle (in radians wrt free-stream direction)
-               of the downstream surface
-    axi == 0 : cylinder-wedge
-        == 1 : sphere-cone
-    R_nose   : radius of the forebody (either cylinder or sphere)
+    :param y: y-coordinate of the point on the shock wave
+    :param M: free-stream Mach number
+    :param theta: angle (in radians wrt free-stream direction)
+                  of the downstream surface
+    :param axi: (int) axisymmetric flag:
+
+                | == 0 : cylinder-wedge
+                | == 1 : sphere-cone
+
+    :param R_nose: radius of the forebody (either cylinder or sphere)
 
     It is assumed that, for the ideal gas, gamma=1.4.
     That's the only value relevant to the data used for
@@ -64,14 +69,16 @@ def y_from_x(x, M, theta=0.0, axi=0, R_nose=1.0):
     """
     Determine the y-coordinate of a point on the shock wave.
 
-    Input:
-    x        : x-coordinate of the point on the shock wave
-    M        : free-stream Mach number
-    theta    : angle (in radians wrt free-stream direction)
-               of the downstream surface
-    axi == 0 : cylinder-wedge
-        == 1 : sphere-cone
-    R_nose   : radius of the forebody (either cylinder or sphere)
+    :param x: x-coordinate of the point on the shock wave
+    :param M: free-stream Mach number
+    :param theta: angle (in radians wrt free-stream direction)
+                  of the downstream surface
+    :param axi: (int) axisymmetric flag:
+
+                | == 0 : cylinder-wedge
+                | == 1 : sphere-cone
+
+    :param R_nose: radius of the forebody (either cylinder or sphere)
 
     It is assumed that, for the ideal gas, gamma=1.4.
     That's the only value relevant to the data used for

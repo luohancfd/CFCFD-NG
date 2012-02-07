@@ -1,5 +1,5 @@
-## \file ode.py
-"""\brief Integrate a set of first-order ODEs.
+"""
+ode.py: Integrate a set of first-order ODEs.
 
 This module provides a small number of ODE integration schemes
 together with a coordination function ode_integrate().
@@ -12,28 +12,29 @@ and which provides the derivatives of the system as an array.
 For further details, see the doc string of ode_integrate() and study
 the sample functions near the end of this file.
 
-Running this module as a Python script gives me the following transcript:
+Running this module as a Python script gives me the following transcript::
 
-Start sample integrations...
-(1) Constant derivatives with Euler method:
-t1= 10.0
-y1= [ 10. -20.  30.]
-err1= [ 0.  0.  0.]
-(2) Second-order linear ODE with Euler method:
-t1= 6.28318530718
-y1= [ -2.16009598e-04   1.03190177e+00]
-err1= [ 0.02031786  0.02030512]
-(3) Second-order linear ODE with RKF45 method:
-t1= 6.28318530718
-y1= [  8.42476994e-14   1.00000000e+00]
-err1= [  5.12421830e-11   5.12821769e-11]
-Done.
+    Start sample integrations...
+    (1) Constant derivatives with Euler method:
+    t1= 10.0
+    y1= [ 10. -20.  30.]
+    err1= [ 0.  0.  0.]
+    (2) Second-order linear ODE with Euler method:
+    t1= 6.28318530718
+    y1= [ -2.16009598e-04   1.03190177e+00]
+    err1= [ 0.02031786  0.02030512]
+    (3) Second-order linear ODE with RKF45 method:
+    t1= 6.28318530718
+    y1= [  8.42476994e-14   1.00000000e+00]
+    err1= [  5.12421830e-11   5.12821769e-11]
+    Done.
 
-\author P. Jacobs
+Author: P. Jacobs
         School of Engineering, UQ
-\version 05-Oct-03 implementation with lists for storage
-\version 21-Feb-05 use Numeric arrays for storage and manipulation
-                   of the state data.
+
+Version:
+    05-Oct-03 implementation with lists for storage
+    21-Feb-05 use Numeric arrays for storage and manipulation of the state data.
 """
 
 from math import pi
@@ -47,29 +48,33 @@ except:
 
 
 def ode_integrate(t0, tlast, dt, F, n, y0, method="euler"):
-    """Steps the set of ODEs until t reaches tlast.
+    """
+    Steps the set of ODEs until t reaches tlast.
 
     This function coordinates the work of integrating a system
-    of first-order differential equations of the form
+    of first-order differential equations of the form:
+
         y' = f(t, y)
         y(t=t0) = y0
+
     The actual work is done by one of a set of more specialised
     stepping functions that appear below.
 
-    \param t0    is the starting value of the independent variable
-    \param tlast is the desired finishing value for x
-    \param dt    is the requested step size
-    \param F     is a callable function that returns the derivative of y wrt t
-                 The signature of this function is F(t, y, n) where
-                 t is a float value, y is a list (or array) or float values
-                 and n is an integer specifying the number of equations.
-    \param n     is the number of dependent variables (in y)
-    \param y0    is an array of starting values for the dependent variables
-                 It is assumed that the y-elements are indexed 0..n-1
-    \param method is a string specifying which stepping method to use.
+    :param t0: is the starting value of the independent variable
+    :param tlast: the desired finishing value for x
+    :param dt: the requested step size
+    :param F: a callable function that returns the derivative of y wrt t
+              The signature of this function is F(t, y, n) where
+              t is a float value, y is a list (or array) or float values
+              and n is an integer specifying the number of equations.
+    :param n: the number of dependent variables (in y)
+    :param y0: an array of starting values for the dependent variables
+               It is assumed that the y-elements are indexed 0..n-1
+    :param method: a string specifying which stepping method to use.
+                   "euler", "rkf45"
 
-    \returns final values of t, y, and error estimates for y values
-             are returned as a tuple.    
+    :returns: final values of t, y, and error estimates for y values
+              are returned as a tuple.    
     """
     assert callable(F)
     assert n <= len(y0)
@@ -96,7 +101,9 @@ def ode_integrate(t0, tlast, dt, F, n, y0, method="euler"):
 
 
 def euler_step(t0, h, F, n, y0):
-    "Steps the set of ODEs by the Euler method."
+    """
+    Steps the set of ODEs by the Euler method.
+    """
     # The Euler step itself.
     t = t0
     y = y0.copy()  # ...so that the user's function cannot mangle y0
@@ -118,7 +125,9 @@ def euler_step(t0, h, F, n, y0):
 
 
 def rkf45_step(t0, h, F, n, y0):
-    "Steps the set of ODEs by the Runge-Kutta-Fehlberg method."
+    """
+    Steps the set of ODEs by the Runge-Kutta-Fehlberg method.
+    """
     # Build up the sample point information.
     k1 = F(t0, y0.copy(), n)
     k2 = F(t0 + h/4.0, y0 + 0.25*h*k1, n)

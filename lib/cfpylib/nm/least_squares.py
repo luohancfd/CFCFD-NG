@@ -1,26 +1,22 @@
-## \file least_squares.py
-## \ingroup nm
-##
-## \brief Fits a least-squares polynomial to given data.
-##
-## \author Rowan J. Gollan
-## \version 11-May-04
-##
+"""
+least_squares.py: Fits a least-squares polynomial to given data.
+
+Author: Rowan J. Gollan
+Version: 11-May-04
+"""
 
 import math
 from matrix import *
-
 
 def least_squares(x, y, fList) :
     """ Returns a least-squares fit to the given data (x, y)
     as a polynomial of order, m.
 
-    x: independent variable
-    y: dependent variable
-    m: order of least-squarse polynomial
+    :param x: independent variable
+    :param y: dependent variable
+    :param m: order of least-squarse polynomial
 
-    Returns
-    a: vector of polynomial coefficients
+    :returns: a vector of polynomial coefficients
     """
     if len(x) != len(y) :
         raise IndexError, 'Vectors of data (x, y) do not match in length'

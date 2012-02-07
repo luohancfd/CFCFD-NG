@@ -1,5 +1,5 @@
 """
-Numerical methods in Python.
+Miscellaneous numerical methods in Python.
 """
 
 import nelmin, matrix

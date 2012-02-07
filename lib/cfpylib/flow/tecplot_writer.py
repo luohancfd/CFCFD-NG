@@ -1,6 +1,11 @@
 #!/usr/bin/env python
-#
-# date: 22-Oct-2007
+"""
+tecplot_writer.py: Writing of BlockGrid2D and BlockFlow2D (mbcns2) objects to VTK XML files.
+
+Author: Rowan Gollan
+
+Date: 22-Oct-2007
+"""
 
 import sys
 
@@ -8,12 +13,10 @@ def write_tecplot_structured_block_2D(grid, block, filename, data_list):
     """
     This function writes an unstructured grid in tecplot format.
     
-    Inputs
-    ------
-    grid             : A BlockGrid2D object
-    block            : A BlockFlow2D object which corresponds to grid
-    filename         : A filename for the output file (without extension)
-    data_list        : A list of keys for the desired data from the block
+    :param grid: A BlockGrid2D object
+    :param block: A BlockFlow2D object which corresponds to grid
+    :param filename: A filename for the output file (without extension)
+    :data_list: A list of keys for the desired data from the block
     """
 
     # Write header information
@@ -80,11 +83,9 @@ def write_tecplot_file_per_block(grid_and_blocks, filename, data_list):
     """
     This function writes a structured grid in tecplot format.
     
-    Inputs
-    ------
-    grid_and_blocks  : A list of tuples containing (grid, block) objects.
-    filename         : A filename for the output file (without extension)
-    data_list        : A list of keys for the desired data from the block
+    :param grid_and_blocks: A list of tuples containing (grid, block) objects.
+    :param filename: A filename for the output file (without extension)
+    :param data_list: A list of keys for the desired data from the block
     """
 
     for i, (grid, block) in enumerate(grid_and_blocks):
@@ -97,11 +98,9 @@ def write_tecplot_single_file(grid_and_blocks, filename, data_list):
     """
     This function writes a structured grid in tecplot format.
     
-    Inputs
-    ------
-    grid_and_blocks  : A list of tuples containing (grid, block) objects.
-    filename         : A filename for the output file (without extension)
-    data_list        : A list of keys for the desired data from the block
+    :param grid_and_blocks: A list of tuples containing (grid, block) objects.
+    :param filename: A filename for the output file (without extension)
+    :param data_list: A list of keys for the desired data from the block
     """
 
     for i, (grid, block) in enumerate(grid_and_blocks):

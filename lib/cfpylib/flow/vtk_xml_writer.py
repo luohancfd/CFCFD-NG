@@ -1,7 +1,11 @@
 #!/usr/bin/env python
-#
-# author: Rowan J. Gollan
-# date: 15-Jun-2007
+"""
+vtk_xml_writer.py: Writing of BlockGrid2D and BlockFlow2D (mbcns2) objects to VTK XML files.
+
+Author: Rowan J. Gollan
+
+Date: 15-Jun-2007
+"""
 
 import sys
 
@@ -20,13 +24,10 @@ def write_vtk_xml_unstructured_grid_2D(grid, block, filename, data_list):
     """
     This function writes a serial vtk file in XML format for an unstructured grid.
 
-    Inputs
-    ------
-    grid      : A BlockGrid2D object
-    block     : A BlockFlow2D onject which corresponds to grid
-    filename  : A filename for the output file (without extension)
-    data_list : A list of keys for the desired data from the block
-
+    :param grid: A BlockGrid2D object
+    :param block: A BlockFlow2D onject which corresponds to grid
+    :param filename: A filename for the output file (without extension)
+    :param data_list: A list of keys for the desired data from the block
     """
     num_points = grid.ni * grid.nj
     num_cells = block.ni * block.nj
@@ -115,11 +116,9 @@ def write_vtk_xml_multi_block_2D( grid_and_blocks, filename, data_list):
     This function writes a multi block of flow data as individual files
     and a coordinating file.
 
-    Inputs
-    ------
-    grid_and_blocks  : A list of tuples containing (grid, block) objects.
-    filename         : The base name for the collection of files.
-    data_list        : A list of tuples of the form (symbol, name)
+    :param grid_and_blocks: A list of tuples containing (grid, block) objects.
+    :param filename: The base name for the collection of files.
+    :param data_list: A list of tuples of the form (symbol, name)
     """
 
     for i, (grid, block) in enumerate(grid_and_blocks):

@@ -1,23 +1,26 @@
-## \file sode.py
-""" \brief Integrate a set of stiff ODEs.
-\author P.Jacobs
-\version 1.0 21-Feb-2005
+"""
+sode.py: Integrate a set of stiff ODEs.
 
-Transcript:
-Start sample integrations...
-(1) Constant derivatives with semi-implicit RK1 method:
-t1= 10.0
-y1= [ 10. -20.  30.]
-err1= [ 0.  0.  0.]
-(2) Second-order linear ODE with semi-implicit RK1 method:
-t1= 6.28318530718
-y1= [ -5.23352415e-05   9.99999999e-01]
-err1= [ 0.01999997  0.01998885]
-(3) Second-order linear ODE with semi-implicit RK2 method:
-t1= 6.28318530718
-y1= [ -2.29779805e-10   1.00000000e-00]
-err1= [ 0.01999992  0.01998906]
-Done.
+Author: P.Jacobs
+
+Version: 1.0, 21-Feb-2005
+
+Transcript::
+
+    Start sample integrations...
+    (1) Constant derivatives with semi-implicit RK1 method:
+    t1= 10.0
+    y1= [ 10. -20.  30.]
+    err1= [ 0.  0.  0.]
+    (2) Second-order linear ODE with semi-implicit RK1 method:
+    t1= 6.28318530718
+    y1= [ -5.23352415e-05   9.99999999e-01]
+    err1= [ 0.01999997  0.01998885]
+    (3) Second-order linear ODE with semi-implicit RK2 method:
+    t1= 6.28318530718
+    y1= [ -2.29779805e-10   1.00000000e-00]
+    err1= [ 0.01999992  0.01998906]
+    Done.
 """
 
 from math import sqrt, pi
@@ -35,28 +38,32 @@ except:
 
 
 def ode_integrate(t0, tlast, dt, F, n, y0, dFdt=None, dFdy=None, method="rk1"):
-    """\brief Steps the set of ODEs until x reaches xlast.
+    """
+    Steps the set of ODEs until x reaches xlast.
 
     This function coordinates the work of integrating a system
-    of first-order differential equations of the form
-        y' = F(t, y)
-        y(t=t0) = y0
+    of first-order differential equations of the form:
+
+        | y' = F(t, y)
+        | y(t=t0) = y0
+
     The actual work is done by one of a set of more specialised
     stepping functions that appear below.
 
-    \param t0    is the starting value of the independent variable
-    \param tlast is the desired finishing value for x
-    \param dt    is the requested step size
-    \param F     is a callable function that returns the derivative of y wrt t
-                 The signature of this function is F(t, y, n) where
-                 t is a float value, y is a list (or array) or float values
-                 and n is an integer specifying the number of equations.
-    \param n     is the number of dependent variables (in y)
-    \param y0    is an array of starting values for the dependent variables
-                 It is assumed that the y-elements are indexed 0..n-1
-    \param method is a string specifying which stepping method to use.
+    :param t0: the starting value of the independent variable
+    :param tlast: the desired finishing value for x
+    :param dt: the requested step size
+    :param F: a callable function that returns the derivative of y wrt t
+              The signature of this function is F(t, y, n) where
+              t is a float value, y is a list (or array) or float values
+              and n is an integer specifying the number of equations.
+    :param n: the number of dependent variables (in y)
+    :param y0: an array of starting values for the dependent variables
+               It is assumed that the y-elements are indexed 0..n-1
+    :param method: a string specifying which stepping method to use.
+                   "rk1", "rk2"
 
-    \returns final values of t, y, and error estimates for y values as a tuple.    
+    :returns: final values of t, y, and error estimates for y values as a tuple.    
     """
     assert callable(F)
     assert n <= len(y0)
@@ -83,7 +90,9 @@ def ode_integrate(t0, tlast, dt, F, n, y0, dFdt=None, dFdy=None, method="rk1"):
 
 
 def rk1_step(t0, h, F, n, y0, dFdt, dFdy):
-    """\brief Steps the set of ODEs by the semi-implicit one-stage Runge-Kutta method."""
+    """
+    Steps the set of ODEs by the semi-implicit one-stage Runge-Kutta method.
+    """
     t = t0
     y = y0.copy()  # ...so that the user's function cannot mangle y0
     k0 = F(t, y, n)
@@ -99,7 +108,9 @@ def rk1_step(t0, h, F, n, y0, dFdt, dFdy):
 
 
 def rk2_step(t0, h, F, n, y0, dFdt, dFdy):
-    """\brief Steps the set of ODEs by the semi-implicit two-stage Runge-Kutta method."""
+    """
+    Steps the set of ODEs by the semi-implicit two-stage Runge-Kutta method.
+    """
     t = t0
     y = y0.copy()  # ...so that the user's function cannot mangle y0
     k0 = F(t, y, n)
