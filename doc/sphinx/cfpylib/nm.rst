@@ -1,5 +1,5 @@
-nm module
-=========
+Numerical Methods module
+========================
 
 .. currentmodule:: cfpylib/nm/
 

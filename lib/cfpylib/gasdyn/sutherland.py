@@ -1,8 +1,8 @@
-# sutherland.py
 """
-Sutherland form of viscosity and thermal conductivity for a few gases.
+sutherland.py: Sutherland form of viscosity and thermal conductivity for a few gases.
 
 Authors: Wilson (original) and PJ (refactor) 29-Oct-2010
+
 Reference for coefficients: White FM (2006) Viscous Fluid Flow, pp.28
 """
 

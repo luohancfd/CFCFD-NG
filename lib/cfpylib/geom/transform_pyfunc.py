@@ -1,11 +1,13 @@
 """
-Apply a matrix transformation such as rotation or translation to a Python function.
+transform_pyfunc.py: Apply a matrix transformation to a Python function.
 
 The functions provided by this module are used to manipulate a python function
 prior to using the function to create a path with libprep3's PyFunctionPath.
+Available transformations are rotation and translation.
 
-Peter Blyton
-    March 2011: Rotate and translate functions created.
+Author: Peter Blyton
+
+Version: March 2011: Rotate and translate functions created.
 """
 
 import math
@@ -17,14 +19,12 @@ def rotate_pyfunc(original_pyfunc, axis, angle):
     Return a function that is the "original_pyfunc" function rotated about an
     axis "axis" through an angle of "angle".
     
-    Arguments:
-    original_pyfunc: (function) The name of the python function to be rotated.
-        This python function must return a tuple of the 3 co-ordinates.
-    axis: (str) The axis of rotation ["x", "y" or "z"].
-    angle: (float) Counter-clockwise (right hand rule) angle of rotation [radians].
+    :param original_pyfunc: (function) The name of the python function to be rotated.
+                            This python function must return a tuple of the 3 co-ordinates.
+    :param axis: (str) The axis of rotation ["x", "y" or "z"].
+    :param angle: (float) Counter-clockwise (right hand rule) angle of rotation [radians].
     
-    Return Value:
-    (function): Rotated version of the original python function.
+    :returns: (function) Rotated version of the original python function.
     """
     def rotated_pyfunc_x(t):
         """
@@ -103,13 +103,11 @@ def translate_pyfunc(original_pyfunc, new_origin):
     Return a function that is the "original_pyfunc" function with it's origin
     tranlated to "new_origin".
     
-    Arguments:
-    original_pyfunc: (function) The name of the python function to be rotated.
-        This python function must return a tuple of the 3 co-ordinates.
-    new_origin: (tuple) The new origin of original_pyfunc.
+    :param original_pyfunc: (function) The name of the python function to be rotated.
+                            This python function must return a tuple of the 3 co-ordinates.
+    :param new_origin: (tuple) The new origin of original_pyfunc.
     
-    Return Value:
-    (function): Translated version of the original python function.
+    :returns: (function) Translated version of the original python function.
     """
     def translated_pyfunc(t):
         """

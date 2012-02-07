@@ -1,32 +1,34 @@
-## \file ideal_gas_flow.py
-## \ingroup basic_gas_dyn
-##
-## \brief One-dimensional steady flow of an ideal gas.
-##
-## \author PA Jacobs
-##         Centre for Hypersonics, School of Engineering
-##         The University of Queensland
-##
-## \version 1.1 30-Sep-94: Xplore version
-## \version 2.0 16-May-04: Python equivalent adapted from the Xplore version.
-##
-
 """
-Contents...
+ideal_gas_flow.py: One-dimensional steady flow of an ideal gas.
 
-One-dimensional flows:
-(a) Isentropic flow relations.
-    State zero (0) refers to the stagnation condition.
-    State star is the sonic (throat) condition.
-(b) 1D (Normal) Shock Relations
-    State 1 is before the shock and state 2 after the shock.
-    Velocities are in a shock-stationary frame.
-(c) 1-D flow with heat addition (Rayleigh-line)
-    State star is the (possibly-hypothetical) sonic condition.
+Author:
 
-Two-dimensional flows:
-(a) Prandtl-Meyer functions
-(b) Oblique-shock relations.
+   | PA Jacobs
+   | Centre for Hypersonics, School of Engineering
+   | The University of Queensland
+
+Versions:
+
+   | 1.1 30-Sep-94: Xplore version
+   | 2.0 16-May-04: Python equivalent adapted from the Xplore version.
+
+Contents:
+
+* One-dimensional flows:
+
+   * Isentropic flow relations.
+     State zero (0) refers to the stagnation condition.
+     State star is the sonic (throat) condition.
+   * 1D (Normal) Shock Relations
+     State 1 is before the shock and state 2 after the shock.
+     Velocities are in a shock-stationary frame.
+   * 1-D flow with heat addition (Rayleigh-line)
+     State star is the (possibly-hypothetical) sonic condition.
+
+* Two-dimensional flows:
+
+   * Prandtl-Meyer functions
+   * Oblique-shock relations.
 """
 
 from math import *

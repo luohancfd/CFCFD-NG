@@ -9,5 +9,10 @@ cfpylib (Library of support modules)
    cfpylib/nm
    cfpylib/gasdyn
    cfpylib/flow
+   cfpylib/geom
+   cfpylib/util
+   cfpylib/spectra
+
+
 
 

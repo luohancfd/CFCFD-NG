@@ -1,5 +1,5 @@
-flow module
-===========
+Flow (house-keeping) module
+===========================
 
 .. automodule:: cfpylib.flow
 

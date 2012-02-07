@@ -1,25 +1,26 @@
-## \file svg_render.py
-## \ingroup geom
-## \brief Render a drawing in Scalable Vector Graphics format.
-##
-## \author P.Jacobs
-## \version 23-Oct-2005 first cut to suit scriptit.py in mb_cns
 """
-This module provides a few convenient functions for rendering a drawing
-in Scalable Vector Graphics format.
+svg_render.py: Render a drawing in Scalable Vector Graphics format.
 
+This module provides a few convenient functions for rendering 
+a 2D drawing in Scalable Vector Graphics format.
 The main transformation is from a user-space coordinate system
 with (0,0) at the lower-left corner
-to the SVG coordinate system with (0,0) in the upper-left corner
+to the SVG coordinate system with (0,0) in the upper-left corner 
 of the page.
-
 Along the way, user-space units are converted to points because
 Inkscape seems to behave better if everything is specified in points.
+
+Author: P.Jacobs
+
+Version: 23-Oct-2005 first cut to suit scriptit.py in mb_cns
 """
 
 from math import sqrt
 
 class SvgEnvironment(object):
+    """
+    Somewhere to keep the rendering configuration.
+    """
     def __init__(self, width=120.0, height=120.0, unitLength="mm",
                  title="Untitled", desc="No description"):
         """
@@ -54,8 +55,9 @@ class SvgEnvironment(object):
     def toPointsX(self, x):
         """
         Transforms x-coordinate from user-space to SVG space.
-        
-        @returns: points for SVG
+
+        :param x: (float or int) x-coordinate in units (with the origin in the lower-left corner)       
+        :returns: points for SVG
         """
         return x * self.unitToPoints
 
@@ -63,9 +65,9 @@ class SvgEnvironment(object):
         """
         Transforms y-coordinate from user-space to SVG space.
 
-        @param y: y-coordinate in units (with the origin in the lower-left corner)
-        @type y: float or int
-        @returns: points in SVG coordinate system (with the origin in the upper left)
+        :param y: (float or int) y-coordinate in units (with the origin in the lower-left corner)
+
+        :returns: points in SVG coordinate system (with the origin in the upper left)
         """
         return (self.height - y) * self.unitToPoints
 
@@ -73,8 +75,9 @@ class SvgEnvironment(object):
         """
         Sets line width.
         
-        @param w: line-width in mm.
-        @type w: float or int
+        :param w: (float or int) line-width in mm.
+
+        :returns: None
         """
         self.lineWidth = w * 72.0 / 25.4
         return
@@ -83,10 +86,10 @@ class SvgEnvironment(object):
         """
         Sets length of dashes and gaps.
         
-        @param dashLength: in mm
-        @type dashLength: float or int
-        @param gapLength: in mm
-        @type gapLength: float or int
+        :param dashLength: (float or int) in mm
+        :param gapLength: (float or int) in mm
+
+        :returns: None
         """
         self.dashLength = dashLength * 72.0/25.4
         self.gapLength = gapLength * 72.0/25.4
@@ -96,8 +99,8 @@ class SvgEnvironment(object):
         """
         Assembles a suitable style specification string.
         
-        @param dashed: flag to indicate that the line is dashed
-        @type dashed: boolean or int
+        :param dashed: (boolean or int) flag to indicate that the line is dashed
+        :returns: style string
         """
         style = "stroke:%s;stroke-width:%.2f;stroke-linecap:%s;fill:%s" % \
                 (self.lineColour, self.lineWidth, self.lineCap, self.fillColour)
@@ -109,6 +112,10 @@ class SvgEnvironment(object):
     def open(self, fileName="drawing.svg"):
         """
         Opens the SVG file and writes the preamble.
+
+        :param self: SvgEnvironment object
+        :param fileName: file to save the rendering.
+        :returns: None
         """
         f = open(fileName, "w")
         self.fileHandle = f
@@ -235,20 +242,21 @@ class SvgEnvironment(object):
              fontFamily="sanserif"):
         """
         Render the textString at point (x,y).
-        @param x: x-coordinate of anchor in user-space
-        @type x: float or int
-        @param y: y-coordinate of anchor in user-space
-        @type y: float or int
-        @param textString: string of characters to render
-        @param angle: angle (in degrees) of text line wrt x-axis
+
+        :param x: x-coordinate of anchor in user-space
+        :type x: float or int
+        :param y: y-coordinate of anchor in user-space
+        :type y: float or int
+        :param textString: string of characters to render
+        :param angle: angle (in degrees) of text line wrt x-axis
                       (counterclockwise is positive)
-        @type angle: float or int
-        @param fontSize: size of font in points
-        @type fontSize: int or float
-        @param anchor: one of 'start', 'middle' or 'end'
-        @type anchor: string
-        @param colour: of the text
-        @type colour: string
+        :type angle: float or int
+        :param fontSize: size of font in points
+        :type fontSize: int or float
+        :param anchor: one of 'start', 'middle' or 'end'
+        :type anchor: string
+        :param colour: of the text
+        :type colour: string
         """
         xp = self.toPointsX(x); yp = self.toPointsY(y)
         f = self.fileHandle
@@ -270,13 +278,13 @@ class SvgEnvironment(object):
         """
         Render a dot with a text label.
 
-        @param x: x-coordinate in user-space
-        @param y: y-coordinate in user-space
-        @param label: label text
-        @param anchor: anchor location on label
-        @param dotSize: dot diameter in mm
-        @param textSize: font size in points
-        @param colour: of both the label and the dot
+        :param x: x-coordinate in user-space
+        :param y: y-coordinate in user-space
+        :param label: label text
+        :param anchor: anchor location on label
+        :param dotSize: dot diameter in mm
+        :param textSize: font size in points
+        :param colour: of both the label and the dot
         """
         xp = self.toPointsX(x); yp = self.toPointsY(y)
         rp = dotSize/2.0 * 72.0/25.4
