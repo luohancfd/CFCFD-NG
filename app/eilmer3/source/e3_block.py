@@ -2,11 +2,12 @@
 e3_block.py -- Classes for defining 2D and 3D blocks.
 
 It is expected that this module be imported by the application program e3prep.py.
+The classes and functions will then be available for use in the user's input scripts.
 
-\ingroup eilmer3
-\author PJ
-\version 16-Mar-2008: extracted from e3prep.py (formerly mbcns_prep.py)
-\version 29-Nov-2010: moved face and vertex definitions to separate file.
+.. Author: PJ
+.. Versions:
+   16-Mar-2008: extracted from e3prep.py (formerly mbcns_prep.py)
+   29-Nov-2010: moved face and vertex definitions to separate file.
 """
 
 from libprep3 import *
@@ -363,6 +364,15 @@ def make_patch(north, east, south, west, grid_type="TFI"):
     """
     Defines a 2D patch (or region) by its boundary paths (in order NESW).
 
+    :param north: bounding path on the NORTH side
+    :param east: bounding path on the EAST side
+    :param south: bounding path on the SOUTH side
+    :param west: bounding path on the WEST side
+    :param grid_type: indicates the type of interpolation within the patch:
+
+        * TFI, COONS: transfinite interpolation or Coons patch
+        * AO: interpolation via an area-orthogonality grid, used as background
+
     A patch is defined by its four bounding Path objects
     with assumed positive directions as shown::
 
@@ -382,17 +392,6 @@ def make_patch(north, east, south, west, grid_type="TFI"):
     To reuse a Path object when building multiple blocks,
     you will need to pay attention to the orientation of the blocks
     and the defined positive direction of the Path object.
-
-    Input
-
-    * north: bounding path on the NORTH side
-    * east: bounding path on the EAST side
-    * south: bounding path on the SOUTH side
-    * west: bounding path on the WEST side
-    * grid_type: indicates the type of interpolation within the patch
-
-        * TFI, COONS: transfinite interpolation or Coons patch
-        * AO: interpolation via an area-orthogonality grid, used as background
     """
     if not isinstance(north, Path):
         raise TypeError, ("north should be a Path but it is: %s" % type(north))
@@ -442,20 +441,21 @@ class Block(object):
         """
         Sets a boundary condition on a particular face of the block.
 
+        :param face_name: int identifier to select the appropriate boundary
+             within the block.
+        :param type_of_BC: Name or index value of the requested boundary
+            condition.  See module bc_defs.py for the available options.
+        :param inflow_condition: If the type of boundary requires the user to
+            specify the inflow FlowCondition object, this is the parameter to do so.
+        :param sponge_flag: Set to 1 to activate Andrew Denman's damping layer
+            near the boundary.
+        :param Twall: If appropriate, specify the boundary-wall temperature 
+            in degrees Kelvin.
+        :param Pout: If appropriate, specify the value of static pressure
+            (in Pascals) just outside the boundary.
+
         Sometimes it is good to be able to adjust properties after
         block creation; this function provides that capability.
-
-        Input
-
-        * face_name: int identifier to select the appropriate boundary within the block.
-        * type_of_BC: Name or index value of the requested boundary
-          condition.  See module bc_defs.py for the available options.
-        * inflow_condition: If the type of boundary requires the user to
-          specify the inflow FlowCondition object, this is the parameter to do so.
-        * sponge_flag: Set to 1 to activate Andrew Denman's damping layer near the boundary.
-        * Twall: If appropriate, specify the boundary-wall temperature in degrees Kelvin.
-        * Pout: If appropriate, specify the value of static pressure
-          (in Pascals) just outside the boundary.
         """
         iface = faceDict[face_name]
         type_of_BC = bcIndexFromName[str(type_of_BC).upper()]
@@ -547,19 +547,18 @@ class Block(object):
         """
         Sets a wall catalytic boundary condition on a particular face of the block.
 
+        :param face_name: String or int identifier to select the appropriate Face2D 
+            within the block.
+        :param type_of_WBC: Name or index value of the requested wall catalycity 
+            boundary condition.  See module cns_bc_defs for the available options.
+        :param f_wall: If the user is required to set the chemical composition
+            at the wall, then a list of mass fractions (floats) should be 
+            supplied as this parameter.
+        :param input_file: If the boundary condition requires an input file,
+            then its name is supplied as this parameter.
+
         Sometimes it is good to be able to adjust properties after
         block creation; this function provides that capability.
-
-        Input
-
-        * face_name: String or int identifier to select the appropriate Face2D 
-          within the block.
-        * type_of_WBC: Name or index value of the requested wall catalycity boundary
-          condition.  See module L{cns_bc_defs} for the available options.
-        * f_wall: If the user is required to set the chemical composition at the wall,
-          then a list of mass fractions (floats) should be supplied as this parameter.
-        * input_file: If the boundary condition requires an input file, then its name
-          is supplied as this parameter.
         """
         iface = faceDict[face_name]
         type_of_WBC = str(type_of_WBC).upper()
@@ -588,9 +587,11 @@ class Block(object):
             count = 0
             for hcell in self.hcell_list:
                 if dimensions == 3:
-                    fp.write("history-cell-%d = %d %d %d\n" % (count,hcell[0],hcell[1],hcell[2]))
+                    fp.write("history-cell-%d = %d %d %d\n" % 
+                             (count,hcell[0],hcell[1],hcell[2]))
                 else:
-                    fp.write("history-cell-%d = %d %d\n" % (count,hcell[0],hcell[1]))
+                    fp.write("history-cell-%d = %d %d\n" % 
+                             (count,hcell[0],hcell[1]))
                 count += 1
         if dimensions == 3:
             faceList = faceList3D
@@ -744,30 +745,36 @@ class Block2D(Block):
         """
         Create a block from a parametric-surface object.
 
-        You should specify on of the following three:
-        psurf: The ParametricSurface object defining the block in space.
-            Typically, this will be a CoonsPatch or an AOPatch.
-        grid: A StructuredGrid object may be supplied directly.
-        import_grid_file_name: name of a VTK file containing the grid
+        You should specify one of the following three:
 
-        nni: number of cells in the i-direction (west to east)
-        nnj: number of cells in the j-direction (south to north)
-        cf_list: List of the cluster_function objects, one for each boundary.
+        :param psurf: The ParametricSurface object defining the block in space.
+            Typically, this will be a CoonsPatch or an AOPatch.
+        :param grid: A StructuredGrid object may be supplied directly.
+        :param import_grid_file_name: name of a VTK file containing the grid
+
+        :param nni: number of cells in the i-direction (west to east)
+        :param nnj: number of cells in the j-direction (south to north)
+        :param cf_list: List of the cluster_function objects, one for each boundary.
             The order within the list is NORTH, EAST, SOUTH and WEST.
-        bc_list: List of BoundaryCondition objects, one for each face.
-        fill_condition: Either a single FlowCondition or user-defined function.
-        hcell_list: List of (i,j) tuples specifying the cells
+        :param bc_list: List of BoundaryCondition objects, one for each face.
+        :param fill_condition: Either a single FlowCondition or user-defined function.
+        :param hcell_list: List of (i,j) tuples specifying the cells
             (for this block)
             whose flow data is to be recorded in the history file.
             For an MPI simulation, there is one history file for each
             block but, for a shared-memory simulation, the history cells
             for all blocks are written to a single history file.
-        xforce_list: list of int flags to indicate that we want boundary forces calculated
-        label: Optional string label that will appear in the generated parameter file.
-        active: =1 (default) the time integration operates for this block
-                =0 time integration for this block is suppressed
+        :param xforce_list: list of int flags to indicate that we want 
+            boundary forces calculated
+        :param label: Optional string label that will appear 
+            in the generated parameter file.
+        :param active: flag that indicates if the block is active:
 
-        Note: The blocks are given their identity (counting from zero)
+            * =1 (default) the time integration operates for this block
+            * =0 time integration for this block is suppressed
+
+        Note: 
+            The blocks are given their identity (counting from zero)
             according to the order in which they are created by the user's script.
             This identity is stored as blkId and is used internally
             in the preprocessing, simulation and postprocessing stages.
@@ -841,14 +848,15 @@ class Block2D(Block):
         """
         Return the cell geometry.
 
-        Geometry of cell
-        ^ j
-        |
-        |
-        NW-----NE
-        |       |
-        |       |
-        SW-----SE  --> i
+        Geometry of cell::
+
+           ^ j
+           |
+           |
+           NW-----NE
+           |       |
+           |       |
+           SW-----SE  --> i
         """
         # Should match the code in C++ function calc_volumes_2D() in block.cxx.
         k = 0
@@ -885,11 +893,11 @@ def connect_blocks_2D(A, faceA, B, faceB, with_udf=0,
     """
     Make the face-to-face connection between neighbouring blocks.
 
-    A: first Block2D object
-    faceA: indicates which face of block A is to be connected.
+    :param A: first Block2D object
+    :param faceA: indicates which face of block A is to be connected.
         The constants NORTH, EAST, SOUTH, and WEST may be convenient to use.
-    B: second Block2D object
-    faceB: indicates which face of block B is to be connected.
+    :param B: second Block2D object
+    :param faceB: indicates which face of block B is to be connected.
         The constants NORTH, EAST, SOUTH, and WEST may be convenient to use.
     """
     assert isinstance(A, Block2D)
@@ -915,12 +923,12 @@ def identify_block_connections_2D(block_list=None, exclude_list=[], tolerance=1.
     """
     Identifies and makes block connections based on block-vertex locations.
 
-    block_list: list of Block2D objects that are to be included in the search.
+    :param block_list: list of Block2D objects that are to be included in the search.
         If none is supplied, the whole collection is searched.
         This allows one to specify a limited selection of blocks
         to be connected.
-    exclude_list: list of pairs of Block2D objects that should not be connected
-    tolerance: spatial tolerance for colocation of vertices
+    :param exclude_list: list of pairs of Block2D objects that should not be connected
+    :param tolerance: spatial tolerance for colocation of vertices
     """
     if block_list == None:
         # Default to searching all defined blocks.
@@ -1063,36 +1071,38 @@ class MultiBlock2D(object):
         """
         Create a cluster of blocks within an original parametric surface.
 
-        psurf: ParametricSurface which defines the block.
-        bc_list: List of boundary condition objects
+        :param psurf: ParametricSurface which defines the block.
+        :param bc_list: List of boundary condition objects
             The order within the list is NORTH, EAST, SOUTH and WEST.
-        nb_w2e: Number of sub-blocks from west to east.
-        nb_s2n: Number of sub-blocks from south to north.
-        nn_w2e: List of discretisation values for north and south
+        :param nb_w2e: Number of sub-blocks from west to east.
+        :param nb_s2n: Number of sub-blocks from south to north.
+        :param nn_w2e: List of discretisation values for north and south
             boundaries of the sub-blocks.
             If a list is not supplied, the original number of cells for the
             outer boundary is divided over the individual sub-block boundaries.
-        nn_s2n: List of discretisation values for west and east
+        :param nn_s2n: List of discretisation values for west and east
             boundaries of the sub-blocks.
             If a list is not supplied, the original number of cells for the
             outer boundary is divided over the individual sub-block boundaries.
-        cluster_w2e: If a list of cluster functions is supplied,
+        :param cluster_w2e: If a list of cluster functions is supplied,
             individual clustering will be applied to the corresponding
             south and north boundaries of each sub-block.
             If not supplied, a default of no clustering will be applied.
-        cluster_s2n: If a list of cluster functions is supplied,
+        :param cluster_s2n: If a list of cluster functions is supplied,
             individual clustering will be applied to the corresponding
             west and east boundaries of each sub-block.
             If not supplied, a default of no clustering will be applied.
-        fill_condition: A single FlowCondition object that is to be
+        :param fill_condition: A single FlowCondition object that is to be
             used for all sub-blocks
-        grid_type: Select the type of grid generator from TFI or AO.
-        split_single_grid : If this boolean flag is true, a single grid is
+        :param grid_type: Select the type of grid generator from TFI or AO.
+        :param split_single_grid: If this boolean flag is true, a single grid is
             generated which is then subdivided into the required blocks.
-        label: A label that will be augmented with the sub-block index
+        :param label: A label that will be augmented with the sub-block index
             and then used to label the individual Block2D objects.
-        active: =1 (default) the time integration operates for this block
-                =0 time integration for this block is suppressed
+        :param active: (int) flag indicating if the block is active:
+
+            *  =1 (default) the time integration operates for this block
+            *  =0 time integration for this block is suppressed
         """
         default_cluster_function = LinearFunction()
         self.blks = []
@@ -1181,11 +1191,11 @@ def subdivide_vertex_range(ncells, nblocks):
     """
     Subdivide one index-direction into a number of sub-blocks within a SuperBlock.
 
-    Input:
-    ncells  : number of cells in one index-direction
-    nblocks : number of sub-blocks in the same direction
+    :param ncells  : number of cells in one index-direction
+    :param nblocks : number of sub-blocks in the same direction
     
-    Returns a list of tuples specifying the subranges of the vertices that form the sub-blocks.
+    :returns: a list of tuples specifying the subranges of the vertices 
+        that form the sub-blocks.
     """
     vtx_subranges = []
     vtx_min = 0
@@ -1197,11 +1207,12 @@ def subdivide_vertex_range(ncells, nblocks):
         ncells -= n_subblock # remaining cells to be sub-divided
     return vtx_subranges
 
+
 class SuperBlock2D(object):
     """
     Creates a single grid over the region and then subdivides that grid.
 
-    Original implementation by Rowan; refactored (lightly) by PJ Nov-2010.
+    .. Original implementation by Rowan; refactored (lightly) by PJ Nov-2010.
     """
 
     __slots__ = 'psurf', 'bc_list', 'nni', 'nnj', 'nbi', 'nbj', 'cf_list',\
@@ -1313,19 +1324,20 @@ class Block3D(Block):
         """
         Basic initialisation for a block.
 
-        The order of the cluster_function_list elements are
-        edge 0 is from p0 -> p1  (i-direction, bottom surface)
-        edge 1         p1 -> p2  (j-direction, bottom surface)
-             2         p3 -> p2  (i-direction, bottom surface)
-             3         p0 -> p3  (j-direction, bottom surface)
-             4         p4 -> p5  (i-direction, top surface)
-             5         p5 -> p6  (j-direction, top surface)
-             6         p7 -> p6  (i-direction, top surface)
-             7         p4 -> p7  (j-direction, top surface)
-             8         p0 -> p4  (k-direction)
-             9         p1 -> p5  (k-direction)
-             10        p2 -> p6  (k-direction)
-             11        p3 -> p7  (k-direction)
+        | The order of the cluster_function_list elements are
+        | edge 0 is from p0 -> p1  (i-direction, bottom surface)
+        | edge 1         p1 -> p2  (j-direction, bottom surface)
+        |      2         p3 -> p2  (i-direction, bottom surface)
+        |      3         p0 -> p3  (j-direction, bottom surface)
+        |      4         p4 -> p5  (i-direction, top surface)
+        |      5         p5 -> p6  (j-direction, top surface)
+        |      6         p7 -> p6  (i-direction, top surface)
+        |      7         p4 -> p7  (j-direction, top surface)
+        |      8         p0 -> p4  (k-direction)
+        |      9         p1 -> p5  (k-direction)
+        |      10        p2 -> p6  (k-direction)
+        |      11        p3 -> p7  (k-direction)
+
         The definitive list is in the function make_TFI_grid_from_volume() in
         the Python module e3_grid.py.
         
@@ -1502,32 +1514,34 @@ class MultiBlock3D(object):
         """
         Create a cluster of blocks within a given parametric volume.
 
-        parametric_volume: The total volume that will be subdivided.
-        nbi: integer number of sub-blocks in the i-direction (i.e. from west to east).
-        nbj: integer number of sub-blocks in the j-direction (i.e. from south to north).
-        nbk: integer number of sub-blocks in the k-direction (i.e. from south to north).
-        nni: List of integer discretisation values along the i-direction edges
+        :param parametric_volume: The total volume that will be subdivided.
+        :param nbi: integer number of sub-blocks in the i-direction (i.e. from west to east).
+        :param nbj: integer number of sub-blocks in the j-direction (i.e. from south to north).
+        :param nbk: integer number of sub-blocks in the k-direction (i.e. from south to north).
+        :param nni: List of integer discretisation values along the i-direction edges
             of the sub-blocks.
-        nnj: List of integer discretisation values for j-direction edges.
-        nnk: List of integer discretisation values for k-direction edges.
-        clusteri: If a list of cluster function objects is supplied,
+        :param nnj: List of integer discretisation values for j-direction edges.
+        :param nnk: List of integer discretisation values for k-direction edges.
+        :param clusteri: If a list of cluster function objects is supplied,
             individual clustering will be applied to the corresponding
             i-direction edges of each sub-block.
             If not supplied, a default of no clustering will be applied.
-        clusterj: If a list of cluster function objects is supplied,
+        :param clusterj: If a list of cluster function objects is supplied,
             individual clustering will be applied to the corresponding
             j-direction edges of each sub-block.
             If not supplied, a default of no clustering will be applied.
-        clusterk: If a list of cluster function objects is supplied,
+        :param clusterk: If a list of cluster function objects is supplied,
             individual clustering will be applied to the corresponding
             k-direction edges of each sub-block.
             If not supplied, a default of no clustering will be applied.
-        fill_condition: A single FlowCondition|ExistingSolution|function 
+        :param fill_condition: A single FlowCondition|ExistingSolution|function 
             that is to be used for all sub-blocks
-        label: A string label that will be augmented with the sub-block index
+        :param label: A string label that will be augmented with the sub-block index
             and then used to label the individual Block3D objects.
-        active: =1 (default) the time integration operates for this block
-                =0 time integration for this block is suppressed
+        :param active: flag to indicate if block is active:
+
+            * =1 (default) the time integration operates for this block
+            * =0 time integration for this block is suppressed
         """
         #
         # Number of blocks along each parametric direction.
@@ -1622,7 +1636,8 @@ class SuperBlock3D(object):
     Creates a single grid over the region and then subdivides that grid.
 
     Implemented as an extension of SuperBlock2D to the third dimension.
-    Wilson Chan 08-Dec-2008; Refactored (lightly) by PJ Nov-2010.
+    
+    .. Wilson Chan 08-Dec-2008; Refactored (lightly) by PJ Nov-2010.
     """
 
     __slots__ = 'parametric_volume', 'bc_list', 'nni', 'nnj', 'nnk',\
@@ -1652,8 +1667,7 @@ class SuperBlock3D(object):
         """
         Creates a single grid over the region and then subdivides that grid.
         
-        On return self.blks holds a 'flat' list of sub-blocks
-        (instead of a multi-dimensional list in the SuperBlock2D constructor).
+        On return self.blks holds a list-of-lists collection of sub-blocks
         """
         # 1. Create the large grid for the super-block
         grid = StructuredGrid((nni+1, nnj+1, nnk+1))
@@ -1719,11 +1733,11 @@ def identify_block_connections_3D(block_list=None, exclude_list=[], tolerance=1.
     """
     Identifies and makes block connections based on vertex locations.
 
-    block_list   : list of Block3D objects that are to be included in the search.
+    :param block_list: list of Block3D objects that are to be included in the search.
        If none is supplied, the whole collection is searched.
        This allows one to specify a limited selection of blocks to be connected.
-    exclude_list : list of pairs of Block3D objects that should not be connected
-    tolerance    : spatial tolerance for colocation of vertices
+    :param exclude_list: list of pairs of Block3D objects that should not be connected
+    :param tolerance: spatial tolerance for colocation of vertices
     """
     if block_list == None:
         # Default to searching all defined blocks.
@@ -1747,9 +1761,9 @@ def identify_colocated_vertices(A, B, tolerance):
     """
     Identify colocated vertices by looking at their position is 3D space.
 
-    A: Block3D object
-    B: Block3D object
-    tolerance : Vertices are considered to be colocated if their Euclidian distance
+    :param A: Block3D object
+    :param B: Block3D object
+    :param tolerance: Vertices are considered to be colocated if their Euclidian distance
         is less than tolerance.
     """
     from math import sqrt
@@ -1765,9 +1779,9 @@ def connect_blocks_3D(A, B, vtx_pairs, with_udf=0,
     """
     Make the specified vertex-to-vertex connection between neighbouring blocks.
 
-    A: Block3D object
-    B: Block3D object
-    vtxPairs : list of 4 pairs of vertex indices specifying the corresponding corners. 
+    :param A: Block3D object
+    :param B: Block3D object
+    :param vtxPairs: list of 4 pairs of vertex indices specifying the corresponding corners. 
     """
     print "connect_blocks(): begin..."
     if not isinstance(vtx_pairs, list):
@@ -1889,11 +1903,11 @@ def identify_block_connections(block_list=None, exclude_list=[], tolerance=1.0e-
     """
     Identifies and makes block connections based on vertex locations.
 
-    block_list   : list of Block3D or Block2D objects that are to be included in the search.
+    :param block_list: list of Block3D or Block2D objects that are to be included in the search.
        If none is supplied, the whole collection is searched.
        This allows one to specify a limited selection of blocks to be connected.
-    exclude_list : list of pairs of Block3D objects that should not be connected
-    tolerance    : spatial tolerance for colocation of vertices
+    :param exclude_list: list of pairs of Block3D objects that should not be connected
+    :param tolerance: spatial tolerance for colocation of vertices
 
     Note that this function is just a proxy for the specialized 2D and 3D functions.
     """
