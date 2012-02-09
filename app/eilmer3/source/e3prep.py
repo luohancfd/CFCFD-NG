@@ -47,17 +47,16 @@ Globally-defined objects:
   for the SVG output.
 
 
-Author: P.Jacobs
+.. Author: P.Jacobs
 
-Versions:
-
-* February 2005 as scriptit.py
-* 15-Jan-2006 renamed as mbcns_prep.py and modified to work with libgeom2.
-* 17-Jan-2006 reinstated Node rendering and eliminated option --do-grid-gen
-  because we will always want to generate grids (replacing mb_prep.c)
-* 02-Mar-2008 Elmer3 port started
-* 17-Mar-2008 Block3D merged.
-* 24-Feb-2009 changed to using folders for the grid and flow files.
+.. Versions:
+   February 2005 as scriptit.py
+   15-Jan-2006 renamed as mbcns_prep.py and modified to work with libgeom2.
+   17-Jan-2006 reinstated Node rendering and eliminated option --do-grid-gen
+               because we will always want to generate grids (replacing mb_prep.c)
+   02-Mar-2008 Elmer3 port started
+   17-Mar-2008 Block3D merged.
+   24-Feb-2009 changed to using folders for the grid and flow files.
 """
 
 # ----------------------------------------------------------------------

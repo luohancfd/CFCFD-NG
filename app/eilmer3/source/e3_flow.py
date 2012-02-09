@@ -1,10 +1,16 @@
 """
 e3_flow.py: Functions for reading flow data for 2D and 3D blocks.
 
-P.A. Jacobs, 17 March 2008
-             15 May 2008 : added reference-function and norm calculations
-             01 July 08  : norms returned in a dictionary
-             20 Oct 2008 : select surfaces from 3D blocks
+This is a grab-bag of classes and functions that help with data handling 
+while preparing and post-processing the flow field data.
+
+.. Author: P.A. Jacobs
+
+.. Version: 
+     17 March 2008
+     15 May 2008 : added reference-function and norm calculations
+     01 July 08  : norms returned in a dictionary
+     20 Oct 2008 : select surfaces from 3D blocks
 """
 
 try:
@@ -55,33 +61,37 @@ class FlowCondition(object):
         """
         Create a FlowCondition.
 
-        p: static pressure, Pa
-        u: x-component of velocity, m/s
-        v: y-component of velocity, m/s
-        w: z-component of velocity, m/s
-        T: list of temperatures (T[0] is static temperature), degrees K
+        :param p: static pressure, Pa
+        :param u: x-component of velocity, m/s
+        :param v: y-component of velocity, m/s
+        :param w: z-component of velocity, m/s
+        :param T: list of temperatures (T[0] is static temperature), degrees K
             The length of the list of temperatures must match the number
             of individual energies in the gas model.
-        massf: mass fractions of the component species
+        :param massf: mass fractions of the component species
             These may be provided in a number of ways:
-            (a) full list of floats. The length of the list of mass fractions 
+
+            * full list of floats. The length of the list of mass fractions 
                 must match the number of species in the previously selected 
                 gas model.
-            (b) single float or int that gets used as the first element,
+            * single float or int that gets used as the first element,
                 the rest being set 0.0
-            (c) dictionary of species names with mass fraction values,
+            * dictionary of species names with mass fraction values,
                 the remainder being set 0.0
-            (d) None provided, results in the first element being 1.0
+            * None provided, results in the first element being 1.0
                 and the rest 0.0
-	label: (optional) string label
-        tke: turbulence kinetic energy, (m/s)**2
-        omega: turbulence frequency or pseudo-vorticity, 1/s
-	mu_t: turbulence viscosity 
-	k_t: turbulence thermal conductivity
-	S: shock indicator 
-            1 == shock-is-near,
-            0 == no-shock
-        add_to_list: flag to indicate that this FlowCondition object 
+
+	:param label: (optional) string label
+        :param tke: turbulence kinetic energy, (m/s)**2
+        :param omega: turbulence frequency or pseudo-vorticity, 1/s
+	:param mu_t: turbulence viscosity 
+	:param k_t: turbulence thermal conductivity
+	:param S: shock indicator
+ 
+            * 1 == shock-is-near,
+            * 0 == no-shock
+
+        :param add_to_list: flag to indicate that this FlowCondition object 
             should be added to the flowList.  Sometimes we don't want
             to accumulate objects in this list.  For example, when using
             many FlowCondition objects in a user-defined flow evaluation
@@ -224,12 +234,12 @@ def variable_list_for_cell(gdata):
     Returns a list of names for the cell variables that are written
     by the companion function write_cell_data().
 
-    gdata: the global-data object (used to control which elements are written)
+    :param gdata: the global-data object (used to control which elements are written)
 
-    This function needs to be kept consistent with functions 
-    write_cell_data() and read_cell_data() below and with 
-    the corresponding C++ functions in lib/fv_core/source/cns_cell.cxx 
-    (write_solution_for_cell, read_solution_for_cell and variable_list_for_cell)
+    .. This function needs to be kept consistent with functions 
+       write_cell_data() and read_cell_data() below and with 
+       the corresponding C++ functions in lib/fv_core/source/cns_cell.cxx 
+       (write_solution_for_cell, read_solution_for_cell and variable_list_for_cell)
     """
     gmodel = get_gas_model_ptr()
     nsp = gmodel.get_number_of_species();
@@ -265,11 +275,11 @@ def write_cell_data(fp, data, gdata):
     """
     Write the cell data into the specified file (fp).
 
-    fp   : file object
-    data : cell data in dictionary form
-    gdata: the global-data object (used to control which elements are written)
+    :param fp: file object
+    :param data: cell data in dictionary form
+    :param gdata: the global-data object (used to control which elements are written)
 
-    For Elmer3, it's all on one line.
+    For Eilmer3 data files, it's all on one line.
     """
     fp.write("%20.12e %20.12e %20.12e %20.12e" % 
              (data['pos.x'], data['pos.y'], data['pos.z'], data['volume']))
@@ -614,9 +624,8 @@ def locate_cell_and_block(grid, flow, dimensions,
 
     Can be used for interpolating flow data from within another solution.
     
-    10.03.2010 - Modified to use suggest_better_cell() function, DFP
-    25.04.2010 - moved suggest_better_cell() to class StructuredGrid, PJ.
-    
+    .. 10.03.2010 - Modified to use suggest_better_cell() function, DFP
+    .. 25.04.2010 - moved suggest_better_cell() to class StructuredGrid, PJ.
     """
     # Step 1 : Starts by checking if point is in the last found block
     jb = jb_found
@@ -697,20 +706,23 @@ class ExistingSolution(object):
         """
         Reads and stores an existing solution.
 
-        rootName: job name that will be used to build file names
-        solutionWorkDir: the directory where we'll find our ExistingSolution files.
-        nblock: number of blocks in the ExistingSolution data set
-        tindx: the time index to select 0..9999
+        :param rootName: job name that will be used to build file names
+        :param solutionWorkDir: the directory where we'll find our ExistingSolution files.
+        :param nblock: number of blocks in the ExistingSolution data set
+        :param tindx: the time index to select 0..9999:
             Do not specify with leading zeros because the Python interpreter
-            will assume that you want to count the ime index in octal.
-        dimensions: number of spatial dimensions for the ExistingSolution
-        assume_same_grid: decide how to locate corresponding cells
-            0 == searches for corresponding cells
-                As Rainer found, this can be agonisingly slow for large grids.
-            1 == omits the search for the corresponding cell
-                For the impatient.
-        zipFiles: to use gzipped files, or not
-        add_velocity: is the value to be aded to the old-solution's velocity
+            will assume that you want to count the time index in octal.
+
+        :param dimensions: number of spatial dimensions for the ExistingSolution
+        :param assume_same_grid: decide how to locate corresponding cells
+ 
+            * 0 == searches for corresponding cells
+              As Rainer found, this can be agonisingly slow for large grids.
+            * 1 == omits the search for the corresponding cell
+              For the impatient.
+
+        :param zipFiles: to use gzipped files, or not
+        :param add_velocity: is the value to be aded to the old-solution's velocity.
             If it is a float value, it becomes the x-component. Otherwise, 
             a Vector value should be supplied and all components will be used.
         """
@@ -778,9 +790,9 @@ def write_VTK_XML_unstructured_file(fp, grid, flow):
     Write the cell-centred flow data from a single block 
     as an unstructured grid of finite-volume cells.
 
-    fp  : reference to a file object
-    grid: single-block grid of vertices
-    flow: single-block of cell-centre flow data
+    :param fp  : reference to a file object
+    :param grid: single-block grid of vertices
+    :param flow: single-block of cell-centre flow data
     """
     niv = grid.ni; njv = grid.nj; nkv = grid.nk
     nic = flow.ni; njc = flow.nj; nkc = flow.nk
@@ -890,10 +902,11 @@ def write_VTK_XML_files(rootName, tindx, nblock, grid, flow):
     """
     Writes the top-level (coordinating) parallel-VTK file.
 
-    tindx : integer
-    nblock: integer
-    grid  : list of StructuredGrid objects
-    flow  : list of StructuredGridFlow objects
+    :param rootName: specific file names are built by adding bits to this name
+    :param tindx: integer
+    :param nblock: integer
+    :param grid: list of StructuredGrid objects
+    :param flow: list of StructuredGridFlow objects
     """
     plotPath = "plot"
     if not os.access(plotPath, os.F_OK):
@@ -944,10 +957,12 @@ def write_Tecplot_file(rootName, tindx, nblock, grid, flow, t):
     """
     Write the TECPLOT ASCII file in BLOCK form, CELLCENTERED flow data.
 
-    tindx : integer
-    nblock: integer
-    grid  : list of StructuredGrid objects
-    flow  : list of StructuredGridFlow objects
+    :param rootName: specific file names are built by adding bits to this name
+    :param tindx: integer
+    :param nblock: integer
+    :param grid: list of StructuredGrid objects
+    :param flow: list of StructuredGridFlow objects
+    :param t: float value for the time that gets written into the file
     """
     plotPath = "plot"
     if not os.access(plotPath, os.F_OK):
@@ -1000,11 +1015,12 @@ def write_plot3d_files(rootName, tindx, nblock, grid, flow, t):
     """
     Write the Plote3D files.
 
-    tindx : integer
-    nblock: integer
-    grid  : list of StructuredGrid objects
-    flow  : list of StructuredGridFlow objects
-    t     :
+    :param rootName: specific file names are built by adding bits to this name
+    :param tindx: integer
+    :param nblock: integer
+    :param grid: list of StructuredGrid objects
+    :param flow: list of StructuredGridFlow objects
+    :param t: float value for time (that gets ignored)
     """
     plotPath = "plot"
     if not os.access(plotPath, os.F_OK):
@@ -1100,8 +1116,8 @@ def write_profile_data(fileName, slice_list_str, tindx, nblock, grid, flow):
     """
     Write selected slices of cell data to a file in GnuPlot format.
 
-    grid: list of StructuredGrid objects
-    flow: list of StructuredGridFlow objects
+    :param grid: list of StructuredGrid objects
+    :param flow: list of StructuredGridFlow objects
     """
     fp = open(fileName, "w")
     flow[0].write_gnuplot_header(fp)
@@ -1128,9 +1144,9 @@ def convert_string(slice_at_point_str, nblock, grid, flow):
     Convert a slice-at-point string to a slice-list string
     that can be appended to another slice-at-list string.
 
-    nblock: integer
-    grid  : list of StructuredGrid objects
-    flow  : list of StructuredGridFlow objects
+    :param nblock: integer
+    :param grid: list of StructuredGrid objects
+    :param flow: list of StructuredGridFlow objects
     """
     slice_list_string = ""
     if len(slice_at_point_str) == 0: return slice_list_string
@@ -1237,11 +1253,11 @@ def compute_difference_in_flow_data(f_ref, nblock, grid, flow, t):
     """
     Take difference with respect to a reference function.
 
-    f_ref  : function that returns flow data in a dictionary
-    nblock : integer
-    grid   : list of StructuredGrid objects
-    flow   : list of StructuredGridFlow objects
-    t      :
+    :param f_ref: function that returns flow data in a dictionary
+    :param nblock: integer
+    :param grid: list of StructuredGrid objects
+    :param flow: list of StructuredGridFlow objects
+    :param t:
     """
     for jb in range(nblock):
         ni = flow[jb].ni; nj = flow[jb].nj; nk = flow[jb].nk
@@ -1390,8 +1406,8 @@ def tangent_slab_along_slice(fileName, slice_list_str, tindx, nblock, grid, flow
     """
     Perform a tangent-slab radiation calculation using the slices as the profile
 
-    grid: list of StructuredGrid objects
-    flow: list of StructuredGridFlow objects
+    :param grid: list of StructuredGrid objects
+    :param flow: list of StructuredGridFlow objects
     """
     
     cells = []; s = []
