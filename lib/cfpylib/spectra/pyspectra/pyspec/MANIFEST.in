@@ -1,0 +1,11 @@
+#
+# $Id: MANIFEST.in 114 2010-11-05 23:06:55Z stuwilkins $
+# $Author: stuwilkins $
+#
+include setup.cfg*
+include setupext.py
+recursive-include tests *.py *.spe *.dat
+recursive-include examples *.py
+recursive-include src *.c *.h
+recursive-include macros *.mac
+include macros/README

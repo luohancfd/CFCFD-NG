@@ -1,0 +1,89 @@
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/svnroot/pyspec/!svn/ver/208/trunk/src
+END
+ctrans.h
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svnroot/pyspec/!svn/ver/165/trunk/src/ctrans.h
+END
+pylevmar.c
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svnroot/pyspec/!svn/ver/45/trunk/src/pylevmar.c
+END
+sgio.c
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/svnroot/pyspec/!svn/ver/86/trunk/src/sgio.c
+END
+sgclib.c
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svnroot/pyspec/!svn/ver/86/trunk/src/sgclib.c
+END
+license-sginfo
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svnroot/pyspec/!svn/ver/86/trunk/src/license-sginfo
+END
+pylevmar.h
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svnroot/pyspec/!svn/ver/42/trunk/src/pylevmar.h
+END
+sginfo.c
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svnroot/pyspec/!svn/ver/86/trunk/src/sginfo.c
+END
+sgsi.c
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/svnroot/pyspec/!svn/ver/86/trunk/src/sgsi.c
+END
+sghkl.c
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svnroot/pyspec/!svn/ver/86/trunk/src/sghkl.c
+END
+ctrans.c
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svnroot/pyspec/!svn/ver/208/trunk/src/ctrans.c
+END
+sgfind.c
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svnroot/pyspec/!svn/ver/86/trunk/src/sgfind.c
+END
+sginfo.h
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svnroot/pyspec/!svn/ver/86/trunk/src/sginfo.h
+END
+sginfomodule.c
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svnroot/pyspec/!svn/ver/130/trunk/src/sginfomodule.c
+END
+README
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svnroot/pyspec/!svn/ver/117/trunk/src/README
+END

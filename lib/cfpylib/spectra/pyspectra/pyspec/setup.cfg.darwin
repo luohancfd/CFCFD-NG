@@ -1,0 +1,17 @@
+#
+# PYSPEC setup.cfg file
+#
+# $Id: setup.cfg.darwin 206 2011-04-30 15:03:47Z stuwilkins $
+#
+[global]
+verbose=1
+
+[ctrans]
+build = True
+usethreads = True
+
+[sginfo]
+build = True
+
+[levmar]
+build = False

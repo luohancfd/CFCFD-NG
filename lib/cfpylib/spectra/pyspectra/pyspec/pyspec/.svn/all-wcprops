@@ -1,0 +1,89 @@
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/svnroot/pyspec/!svn/ver/227/trunk/pyspec
+END
+matplotaddons.py
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svnroot/pyspec/!svn/ver/176/trunk/pyspec/matplotaddons.py
+END
+ipython.py
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svnroot/pyspec/!svn/ver/176/trunk/pyspec/ipython.py
+END
+spec.py
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svnroot/pyspec/!svn/ver/227/trunk/pyspec/spec.py
+END
+gda.py
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svnroot/pyspec/!svn/ver/225/trunk/pyspec/gda.py
+END
+undulator.py
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svnroot/pyspec/!svn/ver/213/trunk/pyspec/undulator.py
+END
+diffractometer.py
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svnroot/pyspec/!svn/ver/176/trunk/pyspec/diffractometer.py
+END
+__init__.py
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svnroot/pyspec/!svn/ver/176/trunk/pyspec/__init__.py
+END
+extensions.py
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svnroot/pyspec/!svn/ver/179/trunk/pyspec/extensions.py
+END
+mpfit.py
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svnroot/pyspec/!svn/ver/176/trunk/pyspec/mpfit.py
+END
+utils.py
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svnroot/pyspec/!svn/ver/183/trunk/pyspec/utils.py
+END
+fitfuncs.py
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svnroot/pyspec/!svn/ver/216/trunk/pyspec/fitfuncs.py
+END
+fit.py
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svnroot/pyspec/!svn/ver/220/trunk/pyspec/fit.py
+END
+hasy.py
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svnroot/pyspec/!svn/ver/176/trunk/pyspec/hasy.py
+END
+x1und.pro
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svnroot/pyspec/!svn/ver/165/trunk/pyspec/x1und.pro
+END

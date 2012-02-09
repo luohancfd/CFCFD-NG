@@ -1,0 +1,17 @@
+#
+# PYSPEC setup.cfg file
+#
+# $Id$
+#
+[global]
+verbose=1
+
+[ctrans]
+build = True
+usethreads = True
+
+[sginfo]
+build = True
+
+[levmar]
+build = False

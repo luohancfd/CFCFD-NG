@@ -1,0 +1,7 @@
+Gridder:
+
+Current version gives summed values in each grid part (bin) and its occupation. One needs the averaged value, i.e. dividing by the occupation number. This casses problems because if there are no contributing data poins, i.e. occupation no. = 0 the division gives 'nan'. That is bad for the later treatment. The masking helps only for the first simple plots.
+
+Clean up plotting / transformtions interface
+
+error check on mask to ensure it's the same size at the data set.

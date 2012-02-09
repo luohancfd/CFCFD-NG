@@ -1,0 +1,722 @@
+def setGridBackOptions(self, backSub = False, backMaskBox = None, backType = 'threeDLin'):
+        """Set the masked box for the background subtraction of the grid
+
+        backSub     : substract background from grid if True
+        backMaskBox : [xMin, yMin, zMin, xMax, yMax, zMax]
+        backType    : type of background subtraction, 'mean', 'threeDLin'"""
+
+        self.backSub     = backSub
+        self.backMaskBox = backMaskBox
+        self.backType    = backType
+
+    def getGridBackOptions(self):
+        """Get the masked box for the background subtraction of the grid
+
+        backSub     : substract background from grid if True
+        backMaskBox : [xMin, yMin, zMin, xMax, yMax, zMax]
+        backType    : type of background subtraction, 'mean', 'threeDLin'"""
+
+        return self.backSub, self.backMaskBox, self.backType
+
+    def setIntegrationRegion(self, intAll = None, intMask = None, intBox = None, freshhold = None):
+        """Set the region for the integration of intensity and background
+
+        ranked by following order. if None use next one
+        intAll     : integrated over all voxels if True, default False
+        intMask    : mask of grid size, True if point gets integrated, default None
+        intBox     : [xmin, ymin, zmin, xmax, ymax, zmax] as np.array to construct intMask, default None
+        freshhold  : all voxels with intensity less than freshold * standard error excluded, default 3"""
+
+        self.intAll    = intAll
+        self.intMask   = intMask
+        self.intBox    = intBox
+        self.freshhold = freshhold
+        
+    def getIntegrationRegion(self):
+        """Set the region for the integration of intensity and background
+
+        ranked by following order. if None use next one
+        intAll     : integrated over all voxels if True, default False
+        intMask    : mask of grid size, True if point gets integrated, default None
+        intBox     : [xmin, ymin, zmin, xmax, ymax, zmax] as np.array to construct intMask, default None
+        freshhold  : all voxels with intensity less than freshold * standard error excluded, default 3
+        intMode    : 'all', 'mask', 'box', 'freshhold'"""
+
+        try:
+            intMode = self.intMode
+        except:
+            intMode = None
+
+        return self.intAll, self.intMask, self.intBox, self.freshhold, intMode
+
+    def setCutInd(self, cutInd = None):
+        """Set the cut indicies
+
+        cutInd : cut indices, [nx, ny, nz]
+                 if None, indicies of maximum is taken"""
+
+        self.cutInd = cutInd
+
+    def getCutInd(self):
+        """Get the cut indicies
+
+        cutInd : cut indices, [nx, ny, nz]
+                 if None, indicies of maximum is taken"""
+
+        return self.cutInd
+    
+    def setCutPos(self, cutPos = None, cutMode = 'fix'):
+        """Set the cut position and cut mode
+
+        cutPos  : cut position, [qx, qy, qz]
+        cutMode : 'fix' for fixed setting of 'max' for cut at positon of maximum"""
+
+        self.cutPos  = np.array(cutPos)
+        self.cutMode = cutMode
+
+    def getCutPos(self):
+        """Get the cut position and cut mode
+
+        cutPos  : cut position, [qx, qy, qz]
+        cutMode : 'fix' for fixed setting of 'max' for cut at positon of maximum"""
+
+        return self.cutPos, self.cutMode
+    
+    def set1DFitOptions(self, selType = 'cut', fitType = 'lor2a', fitFuncs = None):
+        """Set 1D fit options of the selected lines
+
+        setType  : type of line, 'sum' or 'cut' (default)
+        fitType  : type of peak shape, 'lorr' or 'lor2a' (default)
+        fitFuncs : fit functions like in the fit package from pyspec, prefered if given"""
+
+        self._selType  = selType
+        self._fitType  = fitType
+        self._fitFuncs = fitFuncs
+
+    def get1DFitOptions(self):
+        """Get 1D fit options of the selected lines
+
+        setType  : type of line, 'sum' or 'cut' (default)
+        fitType  : type of peak shape, 'lorr' or 'lor2a' (default)
+        fitFuncs : fit functions like in the fit package from pyspec, prefered if given"""
+
+        return self._selType, self._fitType, self._fitFuncs\
+
+def _preAxesLabels(self, mode = None):
+        """Prepare the labels of the axes regarding the frame mode
+
+        mode : 1 (theta-) , 2 (phi-), 3 (cartesian-) or 4 (hkl-frame), take object default if None"""
+
+        if mode == None:
+            mode = self.frameMode
+
+        if mode != 4:
+            self.qLabel = ['Qx', 'Qy', 'Qz']
+            self.setEntLabel = '(Qx, Qy, Qz, I)'
+        else:
+            self.qLabel = ['H', 'K', 'L']
+            self.setEntLabel = '(H, K, L, I)'
+
+def writeInfoFile(self, outFile = None):
+        """Write information about the current processing into a file
+
+        outFile : path and file name of the output file"""
+
+        if outFile == None:
+            outFile = self.infoFile
+
+        out = file(outFile, 'w')
+        out.write(self.makeInfo())
+        out.close()
+
+def get1DFit(self):
+        """Get the data and parameters of the 1D fits
+
+        return
+        fitData1D : list of the fitted data values at the 1D cuts or sums
+        fitRes1D  : list of the fitted parameters"""
+
+        return self._fitData1D, self._fitRes1D
+
+    def getIntIntensity(self):
+        """Get results of integration by summing over all considerd voxels and multiply by dVol
+        
+        stores
+        intInten   : integrated intensity
+        errInten   : intensity difference by the standard deviations
+        backInten  : background intensity
+        intMode    : 'all', 'mask', 'box', 'freshhold'"""
+
+        return self.intInten, self.errInten, self.backInten, self.intMode
+
+    def do1DFit(self, selType = None, fitType = None, fitFuncs = None):
+        """Do 1D fits of the selected lines
+
+        selType  : selected type of line, 'sum' or 'cut' (rank: given, set-value, 'cut')
+        fitType  : type of peak shape, 'lorr' or 'lor2a' (rank: given, set-value, 'lor2a')
+        fitFuncs : fit functions like in the fit package from pyspec, prefered if given or set-default"""
+
+        print "\n**** Fit 1D Data."
+        t1 = time.time()
+            
+           
+        # prepare fitting functions
+        if fitFuncs == None:
+            fitFuncs = self._fitFuncs
+        if fitFuncs == None:
+            if fitType == None:
+                fitType = self._fitType
+            if fitType == None:
+                fitType = 'lor2a'
+            fitFuncs = [fitfuncs.linear, getattr(fitfuncs, fitType)]
+        # prepare fitting parameter sets
+        Nfunc = len(fitFuncs)
+        Npara = range(Nfunc + 1)
+        for i in range(Nfunc):
+            Npara[i+1] = Npara[i] + len(fitFuncs[i](0, 1, mode = 'params'))
+
+        # prepare 1D data
+        if selType == None:
+            selType = self._selType
+        if selType == None:
+            selType = 'cut'
+
+        if selType == 'sum':
+            data1D = self.get1DSum()
+        elif selType == 'cut':
+            data1D = self.get1DCut()
+        else:
+            print 'xxxx %s is no prober line type for 1D fit!' % (setType)
+            print "---- choose 'sum' or 'cut' instead"
+
+        # prepare fit
+        qVals = self.qVal
+        fit1D = []
+        res1D = []
+
+        for i in range(3):
+            f = fit.fit(qVals[i], data1D[i], funcs = fitFuncs)
+            f.go()
+            res1D.append(f.result)
+            fitLine = np.zeros(qVals[i].size)
+            for j in range(Nfunc):
+                fitLine += fitFuncs[j](qVals[i], res1D[i][Npara[j]:Npara[j+1]])
+            fit1D.append(fitLine)
+
+        # for info file
+        self.opProcInfo += self._make1DFitInfo(selType, fitFuncs, res1D)
+
+        # store fitterd data and parameters
+        self._fitData1D = fit1D
+        self._fitRes1D  = res1D
+
+        t2 = time.time()
+        print "---- DONE (Processed in %f seconds)" % (t2 - t1)
+
+def doIntIntensity(self, intAll = None, intMask = None, intBox = None, freshhold = None):
+        """Integrated intensity y summing over all considered voxels and multiply by dVol
+
+        ranked by following order. if None use next one
+        each is ranked by given, set-value, default
+        intAll     : integrated over all voxels if True, default False
+        intMask    : mask of grid size, True if point gets integrated, default None
+        intBox     : [xmin, ymin, zmin, xmax, ymax, zmax] as np.array to construct intMask, default None
+        freshhold  : all voxels with intensity less than freshold * standard error excluded, default 3
+        
+        stores
+        intInten   : integrated intensity
+        errInten   : intensity difference by the standard deviations
+        backInten  : background intensity
+        intMode    : 'all', 'mask', 'box', 'freshhold'"""
+
+        if intAll == None:
+            intAll = self.intAll
+        if intAll == True:
+            # integrated all voxels
+            conMask = np.ones(self.gridData.shape).astype(int)
+            intMode = 'all'
+        else:
+            if intMask == None:
+                intMask = self.intMask
+            if intMask != None:
+                # integrated voxels in intMask
+                conMask = intMask
+                intMode = 'mask'
+            else:
+                if intBox == None:
+                    intBox = self.intBox
+                if intBox != None:
+                    # integrated voxels in intBox
+                    conMask = self._box2mask(intBox)
+                    intMode = 'box'
+                else:
+                    if freshhold == None:
+                        freshhold = self.freshhold
+                    if freshhold == None:
+                        freshhold = 3
+                    # integration of voxels intensities higher freshhold * stdErr
+                    conMask = self.gridData > (freshhold * self.gridStdErr)
+                    intMode = 'freshhold'
+        
+        # integrated intensity and background in considered region
+        intInten = self.gridData[conMask].sum()*self.dVol
+        errInten = self.gridStdErr[conMask].sum()*self.dVol
+        if self.backSub == True:
+            backInten = self.gridBack[conMask].sum()*self.dVol
+        else:
+            backInten = 0.0
+
+        self.intMode    = intMode
+        self.intConMask = conMask
+        self.intInten   = intInten
+        self.errInten   = errInten
+        self.backInten  = backInten
+
+        # for info file about integrated intensities
+        self.opProcInfo += self._makeIntIntensityInfo(intAll, conMask, intBox, freshhold)
+
+
+    def get1DSum(self, selType = 'gridData'):
+        """1D Lines of the selected grid by summing in the other directions
+
+        selType : select type of summed grid, e.g. 'gridData'
+
+        returns
+        oneDSum : set in the order Qx, Qy, Qz as list"""
+
+        try:
+            selGrid = getattr(self, selType)
+            oneDSum = [selGrid.sum(1).sum(1),
+                       selGrid.sum(0).sum(1),
+                       selGrid.sum(0).sum(0)]
+        except:
+            print 'xxxx %s is not a corecct type of a grid from ImageProcessor!' % (selType)
+        
+        return oneDSum
+
+    def get2DSum(self, selType = 'gridData'):
+        """2D Areas of the selected grid by summing in the other direction
+
+        selType : select type of summed grid, e.g. 'gridData'
+
+        returns
+        twoDSum : set in the order (Qy, Qz), (Qx, Qz), (Qx, Qy) as list"""
+
+        try:
+            selGrid = getattr(self, selType)
+            twoDSum = [selGrid.sum(0), selGrid.sum(1), selGrid.sum(2)]
+        except:
+            print 'xxxx %s is not a corecct type of a grid from ImageProcessor!' % (selType)
+
+        return twoDSum
+    
+    def get1DCut(self, selType = 'gridData', cutInd = None):
+        """1D Lines of the selected grid at the cut position
+
+        selType : select type of cutted grid, e.g. 'gridData'
+        cutInd  : cut indices, [nx, ny, nz], if None, default
+                  if default None, indicies of maximum is taken
+
+        returns
+        oneDCut : set in the order Qx, Qy, Qz as list"""
+        
+        if cutInd == None:
+            cutInd = self.cutInd
+        if cutInd == None:
+            cutInd = self.maxInd
+
+        try:
+            selGrid = getattr(self, selType)
+            oneDCut = [selGrid[:, cutInd[1], cutInd[2]],
+                       selGrid[cutInd[0], :, cutInd[2]],
+                       selGrid[cutInd[0], cutInd[1], :]]
+        except:
+            print '\nxxxx %s is not a corecct type of a grid from ImageProcessor!\n' % (selType)
+           
+        return oneDCut
+
+    def get2DCut(self, selType = 'gridData', cutInd = None):
+        """2D Areas of the selected grid at the cut position
+
+        selType : select type of cutted grid, e.g. 'gridData'
+        cutInd  : cut indices, [nx, ny, nz], if None, default
+                  if default None, indicies of maximum is taken
+
+        returns
+        twoDCut : set in the order (Qy, Qz), (Qx, Qz), (Qx, Qy) as list"""
+
+        if cutInd == None:
+            cutInd = self.cutInd
+        if cutInd == None:
+            cutInd = self.maxInd 
+
+        try:
+            selGrid = getattr(self, selType)
+            twoDCut = [selGrid[cutInd[0], :, :],
+                       selGrid[:, cutInd[1], :],
+                       selGrid[:, :, cutInd[2]]]
+        except:
+            print '\nxxxx %s is not a corecct type of a grid from ImageProcessor!\n' % (selType)
+        
+        return twoDCut
+
+    def get1DCutAv(self):
+        """1D averaged Lines of the grid data and occupations at the position of the maximum
+        intensity and its eight neighbored lines 
+
+        cutInd : cut indices, [nx, ny, nz], if None, default
+                 if default None, indicies of maximum is taken
+
+        returns
+        gridData1DCutAv : intensity set  in the order Qx, Qy, Qz as list
+        gridOccu1DCutAv : occupation no. in the order Qx, Qy, Qz as list"""
+
+        if cutInd == None:
+            cutInd = self.cutInd
+        if cutInd == None:
+            cutInd = self.maxInd 
+
+        # initialize with correct size as zeros
+        gridData1DCutAv = [np.zeros(self.dQN[0]),np.zeros(self.dQN[1]),np.zeros(self.dQN[2])]
+        gridOccu1DCutAv = [np.zeros(self.dQN[0]),np.zeros(self.dQN[1]),np.zeros(self.dQN[2])]
+
+        #print self.dQN[0]
+        # go through the neighbors
+        for i in range(3):
+            for j in range(3):
+                gridData1DCutAv[0] += self.gridData[:,self.cutInd[1]+i-1,self.cutInd[2]+j-1]/9.0
+                gridData1DCutAv[1] += self.gridData[self.cutInd[0]+i-1,:,self.cutInd[2]+j-1]/9.0
+                gridData1DCutAv[2] += self.gridData[self.cutInd[0]+i-1,self.cutInd[1]+j-1,:]/9.0
+                gridOccu1DCutAv[0] += self.gridOccu[:,self.cutInd[1]+i-1,self.cutInd[2]+j-1]/9.0
+                gridOccu1DCutAv[1] += self.gridOccu[self.cutInd[0]+i-1,:,self.cutInd[2]+j-1]/9.0
+                gridOccu1DCutAv[2] += self.gridOccu[self.cutInd[0]+i-1,self.cutInd[1]+j-1,:]/9.0
+        
+        return gridData1DCutAv, gridOccu1DCutAv
+
+    def get2DCutAv(self):
+        """2D average Areas of the grid data and occupations at the position of the maximum
+        intensity and the their two neighbors
+
+        cutInd : cut indices, [nx, ny, nz], if None, default
+                 if default None, indicies of maximum is taken
+
+        returns
+        gridData2DCutAv : intensity set  in the order (Qy, Qz), (Qx, Qz), (Qx, Qy) as list
+        gridOccu2DCutAv : occupation no. in the order (Qy, Qz), (Qx, Qz), (Qx, Qy) as list"""
+
+        if cutInd == None:
+            cutInd = self.cutInd
+        if cutInd == None:
+            cutInd = self.maxInd 
+
+        # initialize with correct size as zeros
+        gridData2DCutAv = [np.array(np.meshgrid(np.zeros(self.dQN[2]),np.zeros(self.dQN[1])))[0],
+                           np.array(np.meshgrid(np.zeros(self.dQN[2]),np.zeros(self.dQN[0])))[0],
+                           np.array(np.meshgrid(np.zeros(self.dQN[1]),np.zeros(self.dQN[0])))[0]]
+        gridOccu2DCutAv = [np.array(np.meshgrid(np.zeros(self.dQN[2]),np.zeros(self.dQN[1])))[0],
+                           np.array(np.meshgrid(np.zeros(self.dQN[2]),np.zeros(self.dQN[0])))[0],
+                           np.array(np.meshgrid(np.zeros(self.dQN[1]),np.zeros(self.dQN[0])))[0]]
+        print gridData2DCutAv[0].shape
+        # go through the neighbors
+        for i in range(3):
+            gridData2DCutAv[0] += self.gridData[self.cutInd[0]+i-1,:,:]/3.0
+            gridData2DCutAv[1] += self.gridData[:,self.cutInd[1]+i-1,:]/3.0
+            gridData2DCutAv[2] += self.gridData[:,:,self.cutInd[2]+i-1]/3.0
+            gridOccu2DCutAv[0] += self.gridOccu[self.cutInd[0]+i-1,:,:]/3.0
+            gridOccu2DCutAv[1] += self.gridOccu[:,self.cutInd[1]+i-1,:]/3.0
+            gridOccu2DCutAv[2] += self.gridOccu[:,:,self.cutInd[2]+i-1]/3.0
+        return gridData2DCutAv, gridOccu2DCutAv
+
+
+### From process
+
+# calculated the corresponding vectors and maximum intensity position of the grid
+        self._calcVecDataSet()
+
+        # for info file about gridding
+        self.opProcInfo += self._makeGridInfo()
+              
+        # background subtraction
+        if backSub == None:
+            backSub = self.backSub
+        if backSub == True:
+            print "\n**** Substract Background of Data Grid."
+            tb1 = time.time()
+            self._processBgnd()
+            tb2 = time.time()
+            print "---- DONE (Processed in %f seconds)" % (tb2 - tb1)
+
+        # position of maximum and cutting of the data grid
+        self._calcMax()
+        self._calcCutInd()
+
+def _make1DFitInfo(self, selType, fitFuncs, fitRes):
+        """Create information about the fitting of the 1D data
+
+        selType  : type of the 1D data, 'sum' or 'cut'
+        fitFuncs : list of used fit functions from pyspec.fitfuncs, e.g. 'linear', 'lor2a'
+        fitRes   : parameters of the fit"""
+
+        fitNames  = ''
+        fitPara   = []
+        fitParams = ''
+        Nfunc     = len(fitFuncs)
+        resInfos  = self.qLabel
+        # go through all fit functions
+        for i in range(Nfunc):
+            if i != 0:
+                fitNames += ' + '
+            fitNames += fitFuncs[i](0, 1, mode = 'name')
+            fitPara  += fitFuncs[i](0, 1, mode = 'params')
+        # go through all parameters
+        for i in range(len(fitPara)):
+            fitParams += '\t %s\t' % (fitPara[i])
+            for j in range(3):
+                resInfos[j] += '\t %.2e' % (fitRes[j][i])
+            
+        fitInfo  = '\n\n**** Fitting of 1D %s by %s' % (selType, fitNames)
+        fitInfo += '\n%s' % (fitParams)
+        for j in range(3):
+            fitInfo += '\n%s' % (resInfos[j])
+            
+        return fitInfo
+
+def _makeIntIntensityInfo(self, intAll, conMask, intBox, freshhold):
+        """Create information about integrated intensity of the grid"""
+
+        intInten, errInten, backInten, intMode = self.getIntIntensity()
+    
+        gridIntInfo  = '\n\n**** Integrated intensities of the grid in mode %s' % (intMode)
+        gridIntInfo += '\nTotal Intensity : \t %.4e' % (intInten + backInten)
+        gridIntInfo += '\nData  Intensity : \t %.4e' % (intInten)
+        gridIntInfo += '\nDiff   Intensity : \t %.4e' % (errInten)
+        gridIntInfo += '\nBack  Intensity : \t %.4e' % (backInten)
+        gridIntInfo += '\n---- Considered region:'
+        gridIntInfo += '\n %.2e voxels out of %.2e used' % (conMask.sum(), self.gridData.size)
+        if   intMode == 'intBox':
+            gridIntInfo += '\n\t min \t\t max'
+            line = '\n%s' + 2*' \t %.2e'
+            for i in range(3):
+                gridIntInfo += line % (self.qLabel[i], intBox[i], intBox[i+3])
+        elif intMode == 'freshhold':
+            gridIntInfo += '\nVoxel intensity higher than %.1f times standard deviation' % (freshhold)
+
+        return gridIntInfo
+
+    def _makeCutIndInfo(self):
+        """Create information about the cutting position of the grid"""
+
+        cutIndInfo = '\n\n**** Cutting the grids'
+        if self.cutMode == 'fix':
+            cutIndInfo += ' at fixed position'
+        elif self.cutMode == 'max':
+            cutIndInfo += ' at maximum postion'
+        cutIndInfo += '\n\t index \t value'
+        line = '\n%s' + ' \t %d' + ' \t %.2e'
+        for i in range(3):
+            cutIndInfo += line % (self.qLabel[i], self.cutInd[i], self.qVal[i][self.cutInd[i]])
+
+        return cutIndInfo
+
+def _makeGridBackInfo(self, maskBox):
+        """Create information about background subtraction of the grid"""
+            
+        gridBackInfo  = '\n\n**** Background subtraction of grid'
+        if self.backType == 'mean':
+            gridBackInfo += ' by mean value'
+        elif self.backType == 'threeDLin':
+            gridBackInfo += ' by fitted 3D linear function'
+        gridBackInfo += '\n---- Masked region'
+        if maskBox == None:
+            gridBackInfo += '\nNo'
+        else:
+            gridBackInfo += '\n\t min \t\t max'
+            line = '\n%s' + 2*' \t %.2e'
+            for i in range(3):
+                gridBackInfo += line % (self.qLabel[i], maskBox[i], maskBox[i+3])
+
+        gridBackInfo += '\n---- Fitted parameters:'
+        if self.backType == 'mean':
+            gridBackInfo += '\nmean'
+            gridBackInfo += ('\n%.2e') % self.pBack[0]
+        elif self.backType == 'threeDLin':
+            gridBackInfo += '\nmx \t\t my \t\t mz \t\t d'
+            gridBackInfo += ('\n%.2e' + 3*' \t %.2e') % tuple(self.pBack)
+
+            gridBackInfo += '\n---- Background values at corners'
+            cornList = [['min', 'min', 'min'], ['max', 'min', 'min'], ['max', 'max', 'min'],
+                        ['min', 'max', 'min'], ['min', 'min', 'max'], ['max', 'min', 'max'], 
+                        ['max', 'max', 'max'], ['min', 'max', 'max']]
+            cornLayo = ['\n(%s_%s, ', '%s_%s, ', '%s_%s) : \t ']
+            for i in range(len(cornList)):
+                cornVal = self.pBack[3]
+                for j in range(3):
+                    gridBackInfo += cornLayo[j] % (self.qLabel[j], cornList[i][j])
+                    cornVal      += getattr(self, 'Q' + cornList[i][j])[j]*self.pBack[j]
+                gridBackInfo += '%.2e' % (cornVal)
+        
+        return gridBackInfo
+
+def _threeDLin(self, p, x, y, z):
+        """3D linear function
+
+        p       : parameter [mx, my, mz, d]
+        x, y, z : coordinates"""
+        
+        mx, my, mz, d = p
+        f = (mx * x) + (my * y) + (mz * z) + d
+        return f
+
+    def _threeDLinRes(self, p, f, x, y, z):
+        """3D linear function residual
+
+        p       : parameter [mx, my, mz, d]
+        f       : measured value
+        x, y, z : coordinates"""
+        
+        err = f - self._threeDLin(p, x, y, z)
+        return err
+    
+
+def _calcMax(self):
+        """Calculates the position of the maximum as indicies
+
+        stores
+        maxInd : indices of intensity maximum as np.array"""
+        maxN = self.gridData.argmax()
+        ind2 = maxN % self.dQN[2]
+        ind1 = maxN / self.dQN[2] % self.dQN[1]
+        ind0 = maxN / self.dQN[2] / self.dQN[1]
+        self.maxInd = np.array([ind0, ind1, ind2])
+
+    def _calcCutInd(self):
+        """Calculates the cutting indices regarding the cutting modes
+
+        'fix' : from the given position
+        'max' : from the position of maximum"""
+        
+        if self.cutMode == 'fix':
+            self.cutInd = self._q2n(self.cutPos)
+        elif self.cutMode == 'max':
+            self.cutInd = self.maxInd
+
+        # for info file
+        self.opProcInfo += self._makeCutIndInfo()
+
+    def _processBgnd(self, maskBox = None):
+        """Background subtraction of grid
+
+        maskBox  : masked box [xMin, yMin, zMin, xMax, yMax, zMax]
+
+        stores
+        pBack    : parameters of background [mx, my, mz, d]
+        gridBack : grid of the background
+        maskBack : True if point in maskBox (False if part of background)
+        maskFit  : False if point used for fit"""
+
+        # function to discribe background
+        bgndfunc = self._threeDLinRes
+
+        # qx, qy, qz as gird in order x,y,z
+        qx, qy, qz = self.qxGrid, self.qyGrid, self.qzGrid
+                        
+        # background and fit mask
+        if maskBox == None:
+            maskBox = self.backMaskBox
+        if maskBox == None:
+            self.maskBack = np.ones(self.gridData.shape) == 0
+            self.maskFit  = self.maskOccu
+        else:
+            self.maskBack = self._box2mask(maskBox)
+            self.maskFit  = self.maskOccu | self.maskBack
+
+        # considered positions for background fit
+        conMask = (self.maskFit == False)
+        _qx = np.ravel(qx[conMask])
+        _qy = np.ravel(qy[conMask])
+        _qz = np.ravel(qz[conMask])
+
+        # background subtraction
+        if self.backType == 'mean':
+            backMean      = self.gridData[conMask].mean()
+            self.pBack    = [backMean]
+            self.gridBack = np.ones(qx.shape) * backMean
+        elif self.backType == 'threeDLin':
+            bgndFunc = self._threeDLin
+            bgndRes  = self._threeDLinRes
+            guess    = [1e-6, 1e-6, 1e-6, self.gridData.mean()]
+            fMes     = np.ravel(self.gridData[conMask])
+            plsq     = leastsq(bgndRes, guess, args = (fMes, _qx, _qy, _qz))
+            self.pBack    = plsq[0]
+            self.gridBack = bgndFunc(plsq[0], qx, qy, qz)
+        self.gridBack[self.maskOccu] = 0.0
+        self.gridData = self.gridData - self.gridBack     
+
+        # for info file
+        self.opProcInfo += self._makeGridBackInfo(maskBox)
+        
+
+    def _calcVecDataSet(self):
+        """Calculats the vector data set for the grid points
+
+        stores:
+        qVal   : list of Qx-, Qy- and Qz-values
+        dVec   : np.array of difference step in Qx, Qy and Qz
+        dVol   : difference volume in 3D reciprocal space
+        qxGrid : 3D grid of Qx-values
+        qyGrid : 3D grid of Qy-values
+        qzGrid : 3D grid of Qz-values"""
+
+        # aliases
+        minBox = self.Qmin
+        maxBox = self.Qmax
+        dVec   = (maxBox - minBox) / self.dQN
+        
+        # vector data set of the center of each grid part (bin)
+        qxVal = np.arange(minBox[0], maxBox[0] - dVec[0]/2, dVec[0]) + dVec[0]/2
+        qyVal = np.arange(minBox[1], maxBox[1] - dVec[1]/2, dVec[1]) + dVec[1]/2
+        qzVal = np.arange(minBox[2], maxBox[2] - dVec[2]/2, dVec[2]) + dVec[2]/2
+        self.qVal = [qxVal, qyVal, qzVal]
+        self.dVec = dVec
+        self.dVol = dVec[0] * dVec[1] * dVec[2]
+        
+        # qx, qy, qz as gird in order z,y,x
+        qx, qy, qz = get3DMesh(self.qVal[0], self.qVal[1], self.qVal[2])
+        # qx, qy, qz as gird in order x,y,z like data grid and everything else
+        self.qxGrid = qx.transpose(2,1,0)
+        self.qyGrid = qy.transpose(2,1,0)
+        self.qzGrid = qz.transpose(2,1,0)
+
+    def _q2n(self, q):
+        """Transform q-vector in grid indices
+
+        q : q-vector as np.array
+
+        return
+        n : grid indices as np.array"""
+        n = np.array((q - self.Qmin)/(self.Qmax - self.Qmin)*self.dQN).astype(int)
+        if (n > np.array(self.dQN)).all():
+            print '\n\nXXXX q-vector %s gives grid indices %s,' % (q, n)
+            print '---- which are bigger than grid size %s' % (self.dQN)
+            n = np.array(self.dQN)/2
+            print '---- indices set to %s' % (n)
+        return n
+
+    def _box2mask(self, maskBox):
+        """Transform box-values to mask grid region
+
+        maskBox  : [xmin, ymin, zmin, xmax, ymax, zmax] as np.array
+
+        return
+        maskGrid : masking grid, True if in maskBox"""
+
+        # qx, qy, qz as gird in order x,y,z                                                                     
+        qx, qy, qz = self.qxGrid, self.qyGrid, self.qzGrid
+
+        xMask = (qx >= maskBox[0]) & (qx <= maskBox[3])
+        yMask = (qy >= maskBox[1]) & (qy <= maskBox[4])
+        zMask = (qz >= maskBox[2]) & (qz <= maskBox[5])
+
+        maskGrid = xMask & yMask & zMask
+        return maskGrid
+

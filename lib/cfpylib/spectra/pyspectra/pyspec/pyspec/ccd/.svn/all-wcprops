@@ -1,0 +1,59 @@
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svnroot/pyspec/!svn/ver/227/trunk/pyspec/ccd
+END
+transformations_removed.py.txt
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svnroot/pyspec/!svn/ver/201/trunk/pyspec/ccd/transformations_removed.py.txt
+END
+plotter.py
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svnroot/pyspec/!svn/ver/205/trunk/pyspec/ccd/plotter.py
+END
+transformations.py
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svnroot/pyspec/!svn/ver/227/trunk/pyspec/ccd/transformations.py
+END
+statistics.py
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svnroot/pyspec/!svn/ver/176/trunk/pyspec/ccd/statistics.py
+END
+specext.py
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svnroot/pyspec/!svn/ver/188/trunk/pyspec/ccd/specext.py
+END
+__init__.py
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svnroot/pyspec/!svn/ver/176/trunk/pyspec/ccd/__init__.py
+END
+utils.py
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svnroot/pyspec/!svn/ver/223/trunk/pyspec/ccd/utils.py
+END
+files.py
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svnroot/pyspec/!svn/ver/221/trunk/pyspec/ccd/files.py
+END
+transformations_removed.py.old
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svnroot/pyspec/!svn/ver/199/trunk/pyspec/ccd/transformations_removed.py.old
+END

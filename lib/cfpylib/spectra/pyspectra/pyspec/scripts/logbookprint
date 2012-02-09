@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+import matplotlib
+matplotlib.use('pdf')
+from pylab import savefig, close
+from pyspec import spec
+import sys
+
+def plotit():
+    #print sys.argv
+    
+    sf = spec.SpecDataFile(sys.argv[1])
+    scans = sys.argv[2].split(",")
+    xcol = int(sys.argv[3])
+    ycol = sys.argv[4]
+    mcol = sys.argv[5]
+    
+    for scan in scans:
+        sn = 0
+        try:
+            sn = int(scan)
+        except:
+            continue
+        if sn != 0:
+            sf[sn].plot(xcol = xcol, ycol = ycol, mcol = mcol)
+            savefig("/tmp/specfigure_%d.pdf" % sn)
+            
+if __name__ == "__main__":
+    plotit()

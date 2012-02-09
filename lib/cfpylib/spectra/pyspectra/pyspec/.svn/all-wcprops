@@ -1,0 +1,77 @@
+K 25
+svn:wc:ra_dav:version-url
+V 34
+/svnroot/pyspec/!svn/ver/227/trunk
+END
+setup.cfg.win32
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svnroot/pyspec/!svn/ver/117/trunk/setup.cfg.win32
+END
+setup.cfg.darwin
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svnroot/pyspec/!svn/ver/206/trunk/setup.cfg.darwin
+END
+ez_setup.py
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svnroot/pyspec/!svn/ver/185/trunk/ez_setup.py
+END
+TODO
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svnroot/pyspec/!svn/ver/209/trunk/TODO
+END
+setup.py
+K 25
+svn:wc:ra_dav:version-url
+V 43
+/svnroot/pyspec/!svn/ver/189/trunk/setup.py
+END
+setupext.py
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svnroot/pyspec/!svn/ver/206/trunk/setupext.py
+END
+MANIFEST.in
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svnroot/pyspec/!svn/ver/114/trunk/MANIFEST.in
+END
+README
+K 25
+svn:wc:ra_dav:version-url
+V 40
+/svnroot/pyspec/!svn/ver/77/trunk/README
+END
+gpl-3.0.txt
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svnroot/pyspec/!svn/ver/84/trunk/gpl-3.0.txt
+END
+pyspec-upload.sh
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svnroot/pyspec/!svn/ver/187/trunk/pyspec-upload.sh
+END
+setup.cfg
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/svnroot/pyspec/!svn/ver/187/trunk/setup.cfg
+END
+setup.cfg.linux2
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svnroot/pyspec/!svn/ver/206/trunk/setup.cfg.linux2
+END

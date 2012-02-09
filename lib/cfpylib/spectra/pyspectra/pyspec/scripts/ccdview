@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+from pylab import *
+from pyspec import spec, utils
+from pyspec.ccd.transformations import FileProcessor, ImageProcessor
+from pyspec.ccd.plotter import CCDPlot
+import sys
+
+def plotit():
+
+    sf   = spec.SpecDataFile(sys.argv[1], ccdpath = sys.argv[2])
+    scan = sf[int(sys.argv[3])]
+
+    fp = FileProcessor()
+    fp.setFromSpec(scan)
+    fp.process(dark = True, norm = False)
+    p = CCDPlot(fp.getImage())
+    p.draw()
+    show()
+
+if __name__ == "__main__":
+    plotit()

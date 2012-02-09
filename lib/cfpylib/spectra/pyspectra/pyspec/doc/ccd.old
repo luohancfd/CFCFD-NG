@@ -1,0 +1,16 @@
+Real Space to Reciprocal Space Transformation
+---------------------------------------------
+
+This package is written for a six circle diffraction setup. In the case of an point detector the setting angles of the point detector on the peak maximum and the wavelength :math:`\lambda` (energy :math:`E`) of the photons define the position of the peak in reciprocal space. Now each pixel of the CCD can be thought as a point detector itself.
+
+The CCD camera is characterized by the numbers of pixels :math:`(n_X, n_Y)`, there neighboring distances (sizes) :math:`(d_X, d_Y)`, and the detector distance to the diffractometer ceter of rotation :math:`d_\mathrm{det}`.
+The image :math:`X`-axis runs from left to right and the :math:`Y`-axis from top to bottum. Thus the axes are antiparallel to the :math:`\gamma`- and :math:`\delta`-direction, respectively. 
+A possible binning :math:`(n_{\mathrm{bin},X}, n_{\mathrm{bin},Y})` scales the number of pixels and the pixel distances to effective new CCD parameters.
+
+For the calculation of the :math:`(\delta, \gamma)`-values of each pixel we need the coordinates of a reference point :math:`(x_0, y_0)` and its setting angles :math:`(\delta_0, \gamma_0)`. 
+Each pixel has :math:`(x, y)`-coordinates which can be now calculated to :math:`(\delta, \gamma)`.
+
+.. math::
+    \delta &= \delta_0 - \arctan\left( \frac{(y-y_0) d_Y}{d_\mathrm{det}} \right)
+
+    \gamma &= \gamma_0 - \arctan\left( \frac{(x-x_0) d_X}{d_\mathrm{det}} \right)

@@ -1,0 +1,290 @@
+ def processBgnd(self, maskroi = None, mask = None):
+        """Process the background by fitting each image
+
+        maskroi : list of tuples
+           list of 4 element tuples or lists for ROI to mask
+        mask    : ndarray
+           (n x m) array for the background mask"""
+
+        print "---- Subtracting background from images"
+        self._processBgnd(maskroi = maskroi, mask = mask)
+        print "---- Done."
+
+def _processBgnd(self, maskroi = None, mask = None):
+
+        bgndfunc = self._residualsLinear
+
+        x, y = np.meshgrid(range(self.images.shape[2]), 
+                           range(self.images.shape[1]))
+
+        if mask is None:
+            mask = np.ravel(np.ones(self.images.shape[1:]) == 1)
+            if maskroi is not None:
+                for m in maskroi:
+                    xmask = (x >= m[0]) & (x <= (m[0] + m[2]))
+                    ymask = (y >= m[1]) & (y <= (m[1] + m[3]))
+                    mask = mask & (np.ravel((xmask & ymask)) == False)
+
+        _x = np.ravel(x)[mask]
+        _y = np.ravel(y)[mask]
+        allplsq = np.array([])
+        for i in range(self.images.shape[0]):
+            guess = [1e-3, 1e-3, self.images[i].mean()]
+            z = np.ravel(self.images[i])[mask]
+            plsq = leastsq(bgndfunc, guess, args = (z, _y, _x))
+            self.images[i] = self.images[i] - x*plsq[0][0] - y*plsq[0][1] - plsq[0][2]
+            allplsq = np.concatenate((allplsq, plsq[0]))
+        allplsq = allplsq.reshape(-1, 3)
+        self.bgndParams = allplsq            
+
+    def _residualsLinear(self, p, z, x, y):
+        mx, my, c = p
+        err = z - (mx * x) - (my * y) - c
+        return err
+
+def setFit1D(self, fit1D = 0, fitType = 'lor2a'):
+        """Set whether 1D lines get fitted (1)
+
+        fit1D   : 1 (on), 0 (off) fitting of the 1D data
+        fitType : type of the peak function from pyspec fitfuncs, e.g. 'lor2a'"""
+        
+        self.fit1D     = fit1D
+        self.fit1DType = fitType
+
+    def getFit1D(self):
+        """Get whether 1D lines get fitted (1)
+
+        fit1D   : 1 (on), 0 (off) fitting of the 1D data
+        fitType : type of the peak function from pyspec fitfuncs, e.g. 'lor2a'"""
+        
+        return self.fit1D, self.fit1DType
+
+    def _XY2delgam(self, del0, gam0):
+
+        """
+        calculate (delta, gamma) in deg from (x, y), flattend arrays are used
+        x, y       : given (x, y)coordinates on CCD
+        del0, gam0 : given (delta, gamma) in deg of point0, e.g. center
+        x0, y0     : given (x, y) of point0, e.g. center
+        """
+
+        # (x, y)-values
+        conZ = getAreaXY(self.conRoi)
+        x    = np.ravel(conZ[0])
+        y    = np.ravel(conZ[1])
+
+        x, y = self._XYCorrect(x, y)
+
+        # detector distance
+        detDis = self.detDis
+        # pixel distance binded 4x4 -> 80um (micro meter)
+        pixDisX = self.detPixSizeX
+        pixDisY = self.detPixSizeY
+        # (x, y) for point0, take center of CCD
+        x0 = self.detX0
+        y0 = self.detY0
+
+        # work in grad
+        delta = del0 - np.arctan( (y-y0)*pixDisY/detDis )/np.pi*180.0
+        gamma = gam0 - np.arctan( (x-x0)*pixDisX/detDis )/np.pi*180.0
+    
+        return delta, gamma
+
+    def _processOneImage(self, outArray, imNum, mode = None):
+        """Process one image to (Qx, Qy, Qz, I)
+
+        mode : 1 (theta-) , 2 (phi-), 3 (cartesian-) or 4 (hkl-frame), take object default if None"""
+
+        # used mode
+        if mode == None:
+            mode = self.frameMode
+        # angle alias
+        delta = self.settingAngles[imNum, 0]
+        theta = self.settingAngles[imNum, 1]
+        chi   = self.settingAngles[imNum, 2]
+        phi   = self.settingAngles[imNum, 3]
+        mu    = self.settingAngles[imNum, 4]
+        gamma = self.settingAngles[imNum, 5]
+        
+        # intensities of considered image part
+        intent = np.ravel( self._readImage(imNum) )
+
+        # (delta, gamma)-values at each pixel
+        delPix, gamPix = self._XY2delgam(delta, gamma)        
+        # diffractometer for angle to q calculations
+        scanDiff = Diffractometer()
+        scanDiff.setLambda(self.waveLen)
+        scanDiff.setAngles(delta = delPix, theta = theta, chi   = chi   ,
+                           phi   = phi   , mu    = mu   , gamma = gamPix)
+        scanDiff.calc()
+        scanDiff.setUbMatrix(self.UBmat)
+        if mode == 1:
+            Qxyz = scanDiff.getQTheta()
+        elif mode == 2:
+            Qxyz = scanDiff.getQPhi()
+        elif mode == 3:
+            Qxyz = scanDiff.getQCart()
+        elif mode == 4:
+            Qxyz = scanDiff.getQHKL()
+        else:
+            print 'mode = %s is no proper mode for calculation of (Qx, Qy, Qz)!'
+            print 'choose  theta- (1), phi- (2), cartesian- (3) or hkl-frame (4)'
+
+        # out put (Qx, Qy, Qz, I)
+        outArray[:,:3] = Qxyz
+        outArray[:,3]  = intent
+        #del Qxyz 
+        #del intent
+
+        def _fit1DData(self, xVals, yVals, fitType = None, fitTitle = None):
+        """Fit a 1D data set
+
+        xVals   : list of x-values
+        yVals   : list of y-values
+        fitType : peak shape to fit from pyspec fitfuncs, use object default if None, e.g. 'lor2a'
+        
+        returns
+        allRes  : results of the fits, [[a1, b1, cen1, width1, area1],...], 
+                  [[0, 0, 0, 0, 0],...] if unsuccessful fit"""
+
+        if fitType == None:
+            fitType = self.fit1DType
+        if fitTitle == None:
+            fitTitle += ' '
+        else:
+            fitTitle = ''
+
+        allRes = np.zeros((len(xVals),5))
+
+        # go through the list of 1D data sets
+        for i in range(len(xVals)):
+            # try to fit the 1D data
+            infoDes = fitTitle + 'Fit %d' % (i+1)
+            if nonZero == False:
+                xVal = xVals[i]
+                yVal = yVals[i]
+            elif nonZero == True:
+                conMask = yVals[i] != 0
+                xVal = xVals[i][conMask]
+                yVal = yVals[i][conMask]
+            try:
+                f = fit.fit(x=xVal, y=yVal, funcs = [fitfuncs.linear, getattr(fitfuncs, fitType)])
+                f.go()
+                allRes[i] = f.result
+            except:
+                print 'WARNING : %s could not be fitted to %s!' % (infoDes, fitType)
+
+        return allRes
+
+def _makeFitInfo1D(self, allRes, fitType = None, fitTitle = None, fitNames = None):
+        """Create information output for the fit results in 1D
+
+        allRes   : all results of the fittings, [[a, b, cen, width, area],...]
+        fitType  : tpe of the fitting, e.g 'lor2a'
+        fitTitle : title for the current fitting process, e.g. '1D Line cuts'
+        fitNames : name for each fitting, e.g. ['Qx', 'Qy', 'Qz']"""
+
+        # prepare information
+        if fitTitle == None:
+            fitTitle = ''
+        else:
+            fitTitle = fitTitle + ' '
+        if fitType == None:
+            fitType = self.fitType
+        if fitNames == None:
+            fitNames = []
+            for i in range(allRes.shape[0]):
+                fitNames.append('Fit %02d' % i)
+
+        fitInfo  = '\n\n**** %s%s' % (fitTitle, fitType)
+        fitInfo += '\n\t a \t\t b \t\t cen \t\t width \t\t width/step \t area' 
+        line    = '\n%s \t ' + 4*'%.5e\t ' + '%.2f\t\t ' + '%.5e'
+        for i in range(allRes.shape[0]):
+            fitInfo += line % (fitNames[i], allRes[i,0], allRes[i,1], allRes[i,2], allRes[i,3], allRes[i,3]/self.dVec[i], allRes[i,4])
+
+        return fitInfo
+
+    #
+    # fit part
+    #
+
+    def get1DFit(self, xVals, yVals, fitType = None, infoDes = '', nonZero = False):
+        """Fit a 1D data set
+
+        xVals   : x-values as list of arrays
+        yVals   : y-values as list of arrays
+        fitType : peak shape to fit from pyspec fitfuncs, use object default if None, e.g. 'lor2a'
+        infoDes : description of the current fit try for output, e.g. 'Line cut of Scan #244'
+        nonZero : do not considered y-values which are 0 for the fit
+        
+        returns
+        yFit    : y-values of the fit
+        fitRes  : results of the fit, [a1, b1, cen1, width1, area1], [0, 0, 0, 0, 0] if unsuccessful fit"""
+
+        if fitType == None:
+            fitType = self.fitType
+
+        yFit   = []
+        for i in range(len(xVals)):
+            yFit.append(np.zeros(len(xVals[i])))
+        fitRes = np.zeros((len(xVals),5))
+        for i in range(len(xVals)):
+            if nonZero == False:
+                xVal = xVals[i]
+                yVal = yVals[i]
+            elif nonZero == True:
+                conMask = yVals[i] != 0
+                xVal = xVals[i][conMask]
+                yVal = yVals[i][conMask]
+            try:
+                f = fit.fit(x=xVal, y=yVal, funcs = [fitfuncs.linear, getattr(fitfuncs, fitType)])
+                f.go()
+                yFit[i]   = fitfuncs.linear(xVals[i], f.result[:2]) + getattr(fitfuncs, fitType)(xVals[i], f.result[2:])
+                fitRes[i] = f.result
+            except:
+                print 'WARNING : %s %s could not be fitted to %s!' % (self.qLabel[i], infoDes, fitType)
+
+        # for info file
+        self.opProcInfo += self._makeFitInfo1D(fitRes, fitType = None, fitTitle = infoDes, fitNames = self.qLabel)
+
+        return yFit, fitRes
+
+
+    #
+# global help functions
+#
+
+def getAreaSet(image, roi):
+
+    """
+    selects a region of interest (ROI) from a CCD image
+    
+    image : array of the image values in the full window ( [   1, 325,   1, 335 ] )
+    roi   : region of interest [xmin, dx, ymin, dy], e.g. [137, 51, 142, 51] for center
+
+    output
+    cut   : [ [val00, val01, ..., val0m],
+              [val10, val11, ..., val1m],
+              ...,
+              [valn0, valn1, ..., valnm] ]
+    valij is value at (x[i], y[j]) 
+    """
+
+    # data points in region of interest at (y, x)
+    cut = image[roi[2]-1:roi[2]+roi[3]-1, roi[0]-1:roi[0]+roi[1]-1 ]
+
+    return cut
+
+def getAreaXY(roi):
+
+    """
+    calculates (x, y) = (x[0], x[1]) set for each point in region of interest
+
+    output
+    z  : [ [ [x00, x10, ..., xn0], [x01, x11, ..., xn1], ..., [x0m, x1m, ..., xnm] ],
+           [ [y00, y10, ..., yn0], [y01, y01, ..., yn1], ..., [y0m, y1m, ..., ynm] ] ]
+    """
+
+    z  = np.array(np.meshgrid(np.arange(roi[0], roi[0] + roi[1]), np.arange(roi[2], roi[2] + roi[3])))
+            
+    return z 

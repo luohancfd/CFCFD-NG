@@ -1,0 +1,20 @@
+#
+# PYSPEC setup.cfg file
+#
+# $Id: setup.cfg.linux2 206 2011-04-30 15:03:47Z stuwilkins $
+#
+[global]
+verbose=1
+
+[levmar]
+build = False
+include_dirs = /usr/local/atlas/include:/usr/local/include
+library_dirs = /usr/local/atlas/lib:/usr/local/lib
+libraries = lapack,f77blas,cblas,atlas,gcc_s
+
+[ctrans]
+build = True
+usethreads = True
+
+[sginfo]
+build = True
