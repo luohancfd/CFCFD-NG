@@ -102,6 +102,7 @@ Use the PDF files above; they are the primary documents.
    :maxdepth: 2
 
    eilmer3/e3prep
+   eilmer3/e3_defs
    eilmer3/e3_flow
    eilmer3/e3_block
-
+   eilmer3/e3_grid

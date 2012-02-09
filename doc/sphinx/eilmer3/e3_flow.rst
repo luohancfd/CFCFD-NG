@@ -6,6 +6,9 @@ e3_flow
 Preparing flow field files
 --------------------------
 
+FlowCondition
+^^^^^^^^^^^^^
+
 .. autoclass:: e3_flow.FlowCondition
 
 .. automethod:: e3_flow.FlowCondition.__init__
@@ -17,6 +20,9 @@ Preparing flow field files
 .. autofunction:: variable_list_for_cell
 
 .. autofunction:: write_cell_data
+
+StructuredGridFlow
+^^^^^^^^^^^^^^^^^^
 
 .. autoclass:: e3_flow.StructuredGridFlow
 
@@ -32,11 +38,17 @@ Preparing flow field files
 
 .. automethod:: e3_flow.StructuredGridFlow.write_gnuplot_data_for_cell
 
+House-keeping
+^^^^^^^^^^^^^
+
 .. autofunction:: read_all_blocks
 
 .. autofunction:: add_auxiliary_variables
 
 .. autofunction:: locate_cell_and_block
+
+ExistingSolution
+^^^^^^^^^^^^^^^^
 
 .. autoclass:: e3_flow.ExistingSolution
 

@@ -3,6 +3,11 @@ e3_block
 
 .. automodule:: e3_block
 
+Generic functions and classes
+-----------------------------
+
+.. autofunction:: identify_block_connections
+
 .. autofunction:: e3_block.make_patch
 
 .. autofunction:: e3_block.close_enough
@@ -12,6 +17,9 @@ e3_block
 .. automethod:: e3_block.Block.set_BC
 
 .. automethod:: e3_block.Block.set_WBC
+
+Two-dimensional flows
+---------------------
 
 .. autoclass:: e3_block.Block2D
 
@@ -30,6 +38,9 @@ e3_block
 .. autoclass:: e3_block.SuperBlock2D
 
 .. automethod:: e3_block.SuperBlock2D.__init__
+
+Three-dimensional flows
+-----------------------
 
 .. autoclass:: e3_block.Block3D
 
@@ -52,6 +63,4 @@ e3_block
 .. autofunction:: connect_blocks_3D
 
 .. autofunction:: cell_count_consistent_3D
-
-.. autofunction:: identify_block_connections
 

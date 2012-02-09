@@ -1,14 +1,13 @@
-## \file e3_grid.py
-## \ingroup eilmer3
-## \brief Python grid-generation functions for Elmer3.
-##
-## \author P.Jacobs
-## \version 17-Mar-2008 extracted from lib/geometry2/source/blockgrid2d.py
-##                      and lib/geometry2/source/blockgrid3d.py
 """
-Python grid-generation functions for Elmer3.
+e3_grid.py: Python grid-generation functions for Elmer3.
 
 Builds on the path and basic geometric functions.
+
+.. Author: P.Jacobs
+
+.. Versions:
+   17-Mar-2008 extracted from lib/geometry2/source/blockgrid2d.py and 
+               lib/geometry2/source/blockgrid3d.py
 """
 #----------------------------------------------------------------------
 
@@ -36,14 +35,14 @@ class StructuredGrid(object):
         """
         Create an object containg coordinates representing a grid of points.
 
-        nijk : optional tuple of integers specifying the number of points 
-               in each direction.
-               If the number of vertices are specified in each direction,
-               we actually create the storage arrays now.
-               Note that the number of grid vertices in each index-direction
-               will be one more than the number of finite-volume cells
-               in that direction.
-        label: optional string name for the grid
+        :param nijk: optional tuple of integers specifying the number of points 
+           in each direction.
+           If the number of vertices are specified in each direction,
+           we actually create the storage arrays now.
+           Note that the number of grid vertices in each index-direction
+           will be one more than the number of finite-volume cells
+           in that direction.
+        :param label: optional string name for the grid
         """
         if nijk != None:
             self.ni = nijk[0]
@@ -78,7 +77,7 @@ class StructuredGrid(object):
         """
         Writes the grid to an already open file, f.
 
-        This defines the Eilmer3 native format.
+        This function essentially defines the Eilmer3 native format.
         """
         f.write("%d %d %d  # ni nj nk\n" % (self.ni, self.nj, self.nk))
         for k in range(self.nk):
@@ -112,9 +111,10 @@ class StructuredGrid(object):
         """
         Read one block from plot3D whole-grid format (ASCII or text file).
 
-        Note that
-        (1) the file is already opened.
-        (2) the size of the grid has already been read.
+        Note that:
+
+           * the file is already opened.
+           *  the size of the grid has already been read.
 
         This format, without blanking, seems to be used by GridGen (from Pointwise).
         """
@@ -172,9 +172,10 @@ class StructuredGrid(object):
         """
         Read one block from plot3D in-planes (ASCII or text) format.
 
-        Note that
-        (1) the file is already opened, f is the file object.
-        (2) the size of the grid has already been read.
+        Note that:
+
+           * the file is already opened, f is the file object.
+           * the size of the grid has already been read.
 
         This seems to be the format written by ICEM software
         as used by Bianca and Rowan at EPFL, Lausanne.
@@ -237,9 +238,10 @@ class StructuredGrid(object):
         """
         Write one block in plot3d format to a text file.
 
-        Note that
-        (1) the file is already opened, f is the file object
-        (2) the headers for the file have already been written to f.
+        Note that:
+
+           * the file is already opened, f is the file object
+           * the headers for the file have already been written to f.
         """
         # Write out all x-coordinates
         for k in range(self.nk):
@@ -518,7 +520,9 @@ class StructuredGrid(object):
         """
         Using the method from cell_finder.cxx (ray-tracing) where a cell step 
         is returned (ie di = change in i index, etc) based on what side of the 
-        interfaces the point is on
+        interfaces the point is on.
+
+        .. Author: Dan (?)
         """
         if dimensions == 2:
             # In 2 dimensions,
@@ -576,6 +580,10 @@ class StructuredGrid(object):
 def write_plot3d_grid(fname, grid):
     """
     Writes a formatted multiple-block Plot3D grid (ASCII or text) file.
+
+    :param fname: name of the plot3d grid file to create
+    :param grid: list of StructuredGrid objects
+    :returns: None
     """
     f = open(fname, 'w')
     f.write(" %d\n" % len(grid))
@@ -591,14 +599,17 @@ def write_plot3d_grid(fname, grid):
 
 def read_plot3d_grid(fname, dimensions):
     """
-    Reads a plot3d grid file, returns a list StructuredGrid object(s).
+    Reads a plot3d grid file, containing one or more block-grids.
 
-    dimensions can have the value of 2 or 3.
+    :param fname: name of plot3d grid file
+    :param dimensions: can have the value 2 or 3
+    :returns: a list StructuredGrid object(s)
 
     Assumptions:
-    - text file, Fortran formatted
-    - multiple-block
-    - with I-blanking
+
+       * text file, Fortran formatted
+       * multiple-block
+       * with I-blanking
     """
     f = open(fname, 'r')
     tokens = f.read().split()
@@ -642,16 +653,22 @@ def read_plot3d_grid(fname, dimensions):
     return gridList
 
 def read_plot3d_grid_from_pointwise(fname, dim, scaleFactor):
-    """Reads a plot3d grid, returns a list StructuredGrid ogject(s).
+    """
+    Reads a plot3d grid, returns a list StructuredGrid object(s).
        
-       Modified from 'read_plot3d_grid' for use with POINTWISE plot3d
-       grids. scaleFactor has been introduced to allow for correction
-       of dimensions of the grid if required. 
-       (LukeD/WilsonC 02-June-2011)
+    :param fname: name of plot3d grid file
+    :param dim: has the value 2 or 3
+    :param scaleFactor: allow for correction of dimensions of the grid, if required.
+       For example, from millimetres to metres, scaleFactor would be 1000.
+    :returns: list of StructuredGrid objects 
     
     Assumptions:
-    - formatted
-    - multiple-block
+
+       * formatted
+       * multiple-block
+       
+    .. Modified from 'read_plot3d_grid' for use with POINTWISE plot3d grids.
+    .. Authors: LukeD/WilsonC, 02-June-2011
     """
     #
     f = open(fname, 'r')
@@ -705,9 +722,14 @@ def read_plot3d_grid_binary_file(gname):
     Returns a lists of mesh dimensions and coordinate data read from a single plot3d file.
 
     This is Rowan's function for reading files from Peter Gnoffo's Laura code.
-    Given the stories about the variations of plot3d formet, it's probably not
-    worth the effort of trying to merge this function into the previous
-    read_plot3d_grid function.  There seem to be a lot of special/arbitrary cases.
+
+    :param gname: name of plot3d grid file
+    :returns: a tuple containing lists of the i,j and k dimensions of eash block
+        and a list of the StructuredGrid objects holding the grid points.
+
+    .. Given the stories about the variations of plot3d formet, it's probably not
+       worth the effort of trying to merge this function into the previous
+       read_plot3d_grid function.  There seem to be a lot of special/arbitrary cases.
     """
     g = FortranFile(gname)
     nblocks = g.readInts()[0]

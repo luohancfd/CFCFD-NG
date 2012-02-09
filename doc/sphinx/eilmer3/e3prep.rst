@@ -3,8 +3,8 @@ e3prep (Application)
 
 .. automodule:: e3prep
 
-Functions and objects for use in you input script
--------------------------------------------------
+Functions and classess for use in your input script
+---------------------------------------------------
 
 .. currentmodule:: e3prep
 

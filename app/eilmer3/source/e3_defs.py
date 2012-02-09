@@ -1,12 +1,12 @@
-"""@package e3_defs
-\brief Definitions of the faces and vertex names for 2D and 3D blocks and cells.
+"""
+e3_defs.py: Definitions of the faces and vertex names for 2D and 3D blocks and cells.
 
 This set of definitions is used by various other e3_xxxx.py modules
 and may also be used by the user's input script.
 
-\ingroup eilmer3
-\author PJ
-\version 29-Nov-2010: extracted from e3_block.py
+.. Author: PJ
+.. Versions:
+   29-Nov-2010: extracted from e3_block.py
 """
 
 # Face names and Ids

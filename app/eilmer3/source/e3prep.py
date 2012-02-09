@@ -34,7 +34,8 @@ In 3D flow, there will be 6 bounding surfaces for each Block3D object.
 
 Note that physical quantities should be specified in MKS units.
 
-Globally-defined objects:
+Globally-defined objects
+------------------------
 
 * gdata: Contains the GlobalData information describing the simulation.
   Note that there is one such variable set up by the main program and
