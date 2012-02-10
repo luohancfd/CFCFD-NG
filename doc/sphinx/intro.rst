@@ -22,7 +22,7 @@ Such projects have included the calibration of a reentry air-data system,
 for the HYFLEX flight vehicle,
 the optimisation of scramjet exhaust nozzle shapes, and
 the analysis of the scramjet inlet and combustor for the HyShot project.
-Thes applied studies motivate more abstract modelling efforts that
+These applied studies motivate more abstract modelling efforts that
 aim to improve our simulation capability by developing novel phenomonological
 flow models and numerical codes that implement those models. 
 

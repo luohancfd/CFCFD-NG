@@ -10,7 +10,7 @@ caldata
 
 .. automodule:: cfpylib.spectra.caldata
 
-.. autofunction:: calData
+.. autoclass:: calData
 
 
 process_spectral_field

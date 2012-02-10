@@ -46,5 +46,5 @@ transform_pyfunc
 
 .. autofunction:: rotate_pyfunc
 
-.. autofunction:: rotate_pyfunc
+.. autofunction:: translate_pyfunc
 
