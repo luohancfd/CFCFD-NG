@@ -1,9 +1,0 @@
-K 10
-svn:ignore
-V 30
-build
-dist
-MANIFEST
-setup.cfg
-
-END

@@ -13,7 +13,7 @@ except:
     
 from time import time
 try:
-    from cfpylib.spectra.YvX import *
+    from cfpylib.util.YvX import *
 except ImportError:
     print "Problem loading YvX module."
     print "Make sure cfpylib is in your installation directory."
