@@ -3,6 +3,6 @@
 Utility methods in Python.
 """
 
-import flatten, FortranFile, YvX
+import flatten, FortranFile
 
 

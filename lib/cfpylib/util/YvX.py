@@ -3,9 +3,17 @@
 
 import sys
 from numpy import *
-from scipy import interpolate
+try:
+    from scipy import interpolate
+except:
+    print "Cannot import scipy.intepolate
+    sys.exit()
 from datetime import datetime
-import pylab
+try:
+    import pylab
+except:
+    print "YvX.py: Cannot import pylab."
+    sys.exit()
 
 class YvX:
     """a class describing structure containing some property Y against some property X"""
