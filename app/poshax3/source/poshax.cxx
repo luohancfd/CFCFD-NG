@@ -325,11 +325,11 @@ int main(int argc, char *argv[])
     
     // Initialise the post shock flow solver
     Post_shock_flow * psr = 0;
-    if ( coupling_str=="loosely_coupled" )
+    if ( coupling_str=="loose" )
     	psr = new Loosely_coupled_post_shock_flow( initial_condition, gmodel,
     	   	   	   	   	   	   rupdate, eeupdate, 
     	   	   	   	   	   	   rtmodel );
-    else if ( coupling_str=="fully_coupled" )
+    else if ( coupling_str=="full" )
     	psr = new Fully_coupled_post_shock_flow( initial_condition, gmodel,
     	   		   	   	   	 rupdate, eeupdate, 
     	   	   	   	   	   	 rtmodel );
