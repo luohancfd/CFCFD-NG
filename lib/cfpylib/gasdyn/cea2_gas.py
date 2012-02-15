@@ -91,12 +91,6 @@ def get_cea2_float( value_str ):
     return float(value_str)
    
 # ----------------------------------------------------------------
-# Before going any further, check that CEA_COMMAND_NAME is in the
-# system path. ---- FIX-ME ---- PJ ---- do the test at object creation time
-# so that people without access to cea2 will still be able to load cfpylib
-test_for_cea_exe()
- 
-# ----------------------------------------------------------------
 
 class Gas(object):
     """
@@ -106,6 +100,11 @@ class Gas(object):
         """
         Set up a new obects, from either a name of species list.
         """
+	# ----------------------------------------------------------------
+	# Before going any further, check that CEA_COMMAND_NAME is in the
+	# system path. 
+	test_for_cea_exe()
+	# ----------------------------------------------------------------
         self.gasName = gasName           # see method EOS for possible names
         self.species = speciesList       # species names as per CEA database
         self.nsp     = len(speciesList)  # number of species
