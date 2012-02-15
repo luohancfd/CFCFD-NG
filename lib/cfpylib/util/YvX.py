@@ -6,7 +6,7 @@ from numpy import *
 try:
     from scipy import interpolate
 except:
-    print "Cannot import scipy.intepolate
+    print "Cannot import scipy.intepolate."
     sys.exit()
 from datetime import datetime
 try:
