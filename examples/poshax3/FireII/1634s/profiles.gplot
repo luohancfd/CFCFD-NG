@@ -1,0 +1,39 @@
+# created by make_gnuplot_file.py
+
+set term postscript eps enhanced 'Helvetica,22'
+set size 1.0, 1.0
+set output 'temperature_profiles.eps
+set ylabel 'Temperature, T (K)'
+set xlabel 'Distance from shock, x (cm)'
+set xrange [0:5]
+set grid
+set label "T_{tr}" at 0.4,34000
+set arrow from 0.5,37000 to 0.7,40000
+set label "T_{ve}" at 0.4,22000
+set arrow from 0.6,19000 to 0.9,15000
+plot 'output.data'   u ($1*100):($2) w l lw 5 lt 1 t 'poshax3', \
+     'output.data'   u ($1*100):($3) w l lw 5 lt 1 notitle, \
+     'marco_1634s_T.txt' u ($1*100):2 w lp lw 2 lt 2 pt 4 t 'Panesi', \
+     'marco_1634s_Tv.txt' u ($1*100):2 w lp lw 2 lt 2 pt 4 notitle
+     
+unset label
+unset arrow
+     
+set output "number_density_profiles.eps"
+set ylabel "Number density, N (cm^{-3})"
+# set logscale y
+# set yrange [1e8:1e17]
+set xrange [0:5]
+set key at 5,1.6e16
+set label "N" at 1.8,1.12e16
+set arrow from 1.77,1.15e16 to 1.65,1.25e16
+set label "e^-" at 3.5,2.6e15
+set arrow from 3.47,2.9e15 to 3.35,4.0e15
+set label "O" at 4.5,6.9e15
+set arrow from 4.47,6.5e15 to 4.28,5.2e15
+plot 'output.data' u ($1*100):($13*$5/0.0140067*6.022e23*1.0e-6) w l lw 5 lt 1 t "poshax3", \
+     'output.data' u ($1*100):($15*$5/0.0159994*6.022e23*1.0e-6) w l lw 5 lt 1 notitle, \
+     'output.data' u ($1*100):($17*$5/5.48579903e-07*6.022e23*1.0e-6) w l lw 5 lt 1 notitle, \
+     'marco_1634s_N.txt'  u ($1*100):($2*1.0e-6) w lp lw 2 lt 2 pt 4 t 'Panesi', \
+     'marco_1634s_Np.txt' u ($1*100):($2*1.0e-6) w lp lw 2 lt 2 pt 4 notitle, \
+     'marco_1634s_e.txt'  u ($1*100):($2*1.0e-6) w lp lw 2 lt 2 pt 4 notitle
