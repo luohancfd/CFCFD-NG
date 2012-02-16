@@ -11,7 +11,6 @@ cfpylib (Library of support modules)
    cfpylib/flow
    cfpylib/geom
    cfpylib/util
-   cfpylib/spectra
 
 
 

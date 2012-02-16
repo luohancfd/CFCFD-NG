@@ -14,21 +14,19 @@ See the report::
 
 for details of the input and output file formats.
 
-Author: 
+.. Author: 
+   PA Jacobs
+   Institute of Aerodynamics and Flow Technology
+   The German Aerospace Center, Goettingen.
 
-    | PA Jacobs
-    | Institute of Aerodynamics and Flow Technology
-    | The German Aerospace Center, Goettingen.
-
-Versions:
-
-    | 24-Dec-02: First code.
-    | 10-May-04: Updated for a mix of species.
-    | 06-Feb-05: renamed to cea_gas.py
-    | 28-Feb-08: Added a get_eq_massf() access function.
-    | 28-Fed-08: Major changes to allow proper calculation at high temps.
-    | 11-Dec-08: Addition of basic incident Shock function
-    | RJG and DFP have made these later changes which are significant.
+.. Versions:
+   24-Dec-02: First code.
+   10-May-04: Updated for a mix of species.
+   06-Feb-05: renamed to cea_gas.py
+   28-Feb-08: Added a get_eq_massf() access function.
+   28-Fed-08: Major changes to allow proper calculation at high temps.
+   11-Dec-08: Addition of basic incident Shock function
+   RJG and DFP have made these later changes which are significant.
 """
 
 import sys, string, math, os, subprocess, re
