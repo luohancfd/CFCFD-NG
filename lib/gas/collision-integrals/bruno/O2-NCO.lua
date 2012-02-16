@@ -1,6 +1,6 @@
 CI = {
-  i = O2,
-  j = NCO,
+  i = 'O2',
+  j = 'NCO',
   reference = 'Bruno et al ESA STR-256 September 2008',
   model = 'Bruno curve fits',
   parameters = {

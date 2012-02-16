@@ -1,6 +1,6 @@
 CI = {
-  i = N2_plus,
-  j = NO,
+  i = 'N2_plus',
+  j = 'NO',
   reference = 'Wright et al, JTHT Vol. 19 No. 1 2005',
   model = 'GuptaYos curve fits',
   parameters = {

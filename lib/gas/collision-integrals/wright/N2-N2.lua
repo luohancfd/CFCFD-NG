@@ -1,6 +1,6 @@
 CI = {
-  i = N2,
-  j = N2,
+  i = 'N2',
+  j = 'N2',
   reference = 'Wright et al, AIAA Journal Vol. 43 No. 12 December 2005',
   model = 'GuptaYos curve fits',
   parameters = {

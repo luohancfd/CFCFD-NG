@@ -1,6 +1,6 @@
 CI = {
-  i = Ar,
-  j = O2_plus,
+  i = 'Ar',
+  j = 'O2_plus',
   reference = 'Levin et al, JTHT Vol. 18 No. 1 2004',
   model = 'GuptaYos curve fits',
   parameters = {

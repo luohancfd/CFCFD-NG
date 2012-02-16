@@ -1,6 +1,6 @@
 CI = {
-  i = e_minus,
-  j = CO2,
+  i = 'e_minus',
+  j = 'CO2',
   reference = 'Wright et al, AIAA Journal Vol. 45 No. 1 January 2007',
   model = 'GuptaYos curve fits',
   parameters = {

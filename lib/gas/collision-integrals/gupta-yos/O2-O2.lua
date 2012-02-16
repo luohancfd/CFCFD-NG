@@ -1,6 +1,6 @@
 CI = {
-  i = 'O2',
-  j = 'O2',
+  i = ''O2'',
+  j = ''O2'',
   reference = 'NASA Reference Publication 1232 by Gupta,R.N., Yos,J.M. et al 1990',
   model = 'GuptaYos curve fits',
   parameters = {

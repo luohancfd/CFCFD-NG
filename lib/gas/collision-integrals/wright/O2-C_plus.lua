@@ -1,6 +1,6 @@
 CI = {
-  i = O2,
-  j = C_plus,
+  i = 'O2',
+  j = 'C_plus',
   reference = 'Wright et al, AIAA Journal Vol. 45 No. 1 January 2007',
   model = 'GuptaYos curve fits',
   parameters = {

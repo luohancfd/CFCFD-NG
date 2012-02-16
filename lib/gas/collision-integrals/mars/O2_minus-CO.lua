@@ -1,6 +1,6 @@
 CI = {
-  i = O2_minus,
-  j = CO,
+  i = 'O2_minus',
+  j = 'CO',
   reference = 'Bruno et al ESA STR-256 September 2008',
   model = 'Bruno curve fits',
   parameters = {

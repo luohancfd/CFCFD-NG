@@ -1,6 +1,6 @@
 CI = {
-  i = 'NO_plus',
-  j = 'NO_plus',
+  i = ''NO_plus'',
+  j = ''NO_plus'',
   reference = 'NASA Reference Publication 1232 by Gupta,R.N., Yos,J.M. et al 1990',
   model = 'GuptaYos curve fits',
   parameters = {

@@ -1,6 +1,6 @@
 CI = {
-  i = C2,
-  j = NO,
+  i = 'C2',
+  j = 'NO',
   reference = 'Bruno et al ESA STR-256 September 2008',
   model = 'Bruno curve fits',
   parameters = {

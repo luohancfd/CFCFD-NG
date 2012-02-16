@@ -1,6 +1,6 @@
 CI = {
-  i = N,
-  j = Ar_plus,
+  i = 'N',
+  j = 'Ar_plus',
   reference = 'Levin et al, JTHT Vol. 18 No. 1 2004',
   model = 'GuptaYos curve fits',
   parameters = {
