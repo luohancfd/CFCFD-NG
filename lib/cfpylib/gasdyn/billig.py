@@ -4,9 +4,9 @@ billig.py: Fred Billig's correlations for hypersonic shock-wave shapes.
 These are a direct implementation of equations 5.36, 5.37 and 5.38
 from J.D. Anderson's text Hypersonic and High Temperature Gas Dynamics
 
-Author: PJ
+.. Author: PJ
 
-Version: 19-June-2005
+.. Version: 19-June-2005
 """
 
 from math import exp, sqrt, pow, tan

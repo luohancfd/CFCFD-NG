@@ -42,24 +42,30 @@ CEA_COMMAND_NAME = 'cea2'
 # -------------------------------------------------------------------
 # Second, utility functions.
 
-def test_for_cea_exe(program=CEA_COMMAND_NAME):
+def locate_executable_file(name):
     """
-    Tests if the CEA executable is available.
-    """
-    def is_exe(fpath):
-        return os.path.exists(fpath) and os.access(fpath, os.X_OK)
+    Locates an executable file, if available somewhere on the PATH.
 
-    fpath, fname = os.path.split(program)
-    if fpath:
-        if is_exe(program):
-            return program
+    :param name: may be a simple file name or fully-qualified path.
+    :returns: the full program name, if is is found and is executable,
+        else None.
+    """
+    def is_exe(path):
+        return os.path.exists(path) and os.access(path, os.X_OK)
+
+    head, tail = os.path.split(name)
+    if head:
+        # If there is a head component, we may have been given
+        # full path to the exe_file.
+        if is_exe(name): return name
     else:
+        # We've been given the name of the program
+        # without the fully-qualified path in front,
+        # now search the PATH for the program.
         for path in os.environ["PATH"].split(os.pathsep):
-            exe_file = os.path.join(path, program)
-            if is_exe(exe_file):
-                return exe_file
-
-    raise Exception, "The command '%s' could not be found in the system path." % program
+            fullName = os.path.join(path, name)
+            if is_exe(fullName): return fullName
+    return None
 
 def run_cea_program(jobName):
     """
@@ -98,10 +104,12 @@ class Gas(object):
         """
         Set up a new obects, from either a name of species list.
         """
-	# ----------------------------------------------------------------
-	# Before going any further, check that CEA_COMMAND_NAME is in the
-	# system path. 
-	test_for_cea_exe()
+	if locate_executable_file(CEA_COMMAND_NAME) is None:
+            print "Could not find the executable program %s" % CEA_COMMAND_NAME
+            print "The chemical equilibrium-analysis program is external"
+            print "to the cfcfd3 code collection and needs to be obtained from NASA Glenn."
+            print "Quitting the current program because we really can't do anything further."
+            sys.exit()
 	# ----------------------------------------------------------------
         self.gasName = gasName           # see method EOS for possible names
         self.species = speciesList       # species names as per CEA database

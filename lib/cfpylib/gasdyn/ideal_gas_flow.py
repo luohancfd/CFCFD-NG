@@ -1,16 +1,14 @@
 """
 ideal_gas_flow.py: One-dimensional steady flow of an ideal gas.
 
-Author:
+.. Author:
+   PA Jacobs
+   Centre for Hypersonics, School of Engineering
+   The University of Queensland
 
-   | PA Jacobs
-   | Centre for Hypersonics, School of Engineering
-   | The University of Queensland
-
-Versions:
-
-   | 1.1 30-Sep-94: Xplore version
-   | 2.0 16-May-04: Python equivalent adapted from the Xplore version.
+.. Versions:
+   1.1 30-Sep-94: Xplore version
+   2.0 16-May-04: Python equivalent adapted from the Xplore version.
 
 Contents:
 
@@ -23,7 +21,7 @@ Contents:
      State 1 is before the shock and state 2 after the shock.
      Velocities are in a shock-stationary frame.
    * 1-D flow with heat addition (Rayleigh-line)
-     State star is the (possibly-hypothetical) sonic condition.
+     State star is the (hypothetical) sonic condition.
 
 * Two-dimensional flows:
 

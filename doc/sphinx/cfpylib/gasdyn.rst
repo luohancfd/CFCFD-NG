@@ -24,7 +24,7 @@ cea2_gas
 
 .. automodule:: cfpylib.gasdyn.cea2_gas
 
-.. autofunction:: test_for_cea_exe
+.. autofunction:: locate_executable_file
 
 .. autofunction:: run_cea_program
 
