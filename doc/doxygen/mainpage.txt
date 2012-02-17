@@ -1,0 +1,21 @@
+/** \mainpage Compressible Flow CFD
+
+\section intro Introduction
+
+This is the developer documentation for the C++ source code collection 
+of the CFCFD group. Refer to the home page at http://mech.uq.edu.au/cfcfd 
+for documentation of python sources.
+*/
+
+/** \defgroup eilmer3       Eilmer3: Multi-Block Compressible Navier-Stokes Simulator */
+/** \defgroup imoc          imoc: Interactive Method of Characteristics */
+/** \defgroup l1d3          L1d3: Quasi-one-dimensional Gas Dynamics Code */
+
+/** \defgroup libgas2       libgas2: Gas Models and Nonquilibrium Thermochemistry */
+/** \defgroup geom          geom: Geometry and Path Definition Functions */
+/** \defgroup libgeom2      libgeom2: Nodes, Paths, Surfaces and Volume classes */
+/** \defgroup nm            nm: Numerical Methods */
+/** \defgroup plot          plot: Plotting Programs */
+/** \defgroup radiation2    radiation2: Radiation Library */
+/** \defgroup util          util: Utility Functions */
+

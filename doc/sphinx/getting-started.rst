@@ -77,7 +77,7 @@ Some other things that are useful:
 
 To a basic Fedora 16 installation, you should add the following packages:
 
-#. bzr
+#. mercurial
 #. gcc
 #. gcc-c++
 #. m4
@@ -92,8 +92,7 @@ To a basic Fedora 16 installation, you should add the following packages:
 
 To a basic Ubuntu 10.04 installation, you should add the following packages and their dependencies:
 
-#. bzr
-#. bzrtools
+#. mercurial
 #. g++
 #. m4
 #. mpi-default-dev

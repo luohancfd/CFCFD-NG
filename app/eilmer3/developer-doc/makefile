@@ -1,13 +1,8 @@
-# makefile for generating source-code documentation
+# makefile for asciidoc
 
-all: README-for-developers.html ./html/index.html
-	echo "Should have finished building Developer notes."
+all: README-for-developers.txt
+	asciidoc -b xhtml11 README-for-developers.txt
 
 clean:
-	- rm -r ./html/* ./latex
+	- rm *.html
 
-./html/index.html:
-	doxygen Doxyfile
-
-README-for-developers.html: README-for-developers.txt
-	asciidoc -b xhtml11 README-for-developers.txt

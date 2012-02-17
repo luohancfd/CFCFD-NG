@@ -1,5 +1,9 @@
-// Author: Rowan J. Gollan
-// Date: 03-Jul-2008
+/** \file gas-model.cxx
+ *  \ingroup libgas2
+ *
+ *  \author Rowan J Gollan
+ *  \version 03-Jul-2008
+ **/
 
 #include <iostream>
 #include <cmath>

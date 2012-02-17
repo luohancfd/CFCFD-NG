@@ -1,5 +1,6 @@
 /** \file reaction_scheme.cxx
  *  \brief Definitions for the ReactionScheme class (and derivatives)
+ *  \ingroup libgas2
  *
  *  \author Rowan J Gollan
  *  \version 23-Feb-2006
