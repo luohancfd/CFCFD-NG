@@ -61,26 +61,41 @@ If you want him to come and look at your simulation files when things go wrong,
 use the same.
 If not, use whatever hierarchy you like.
 
+When things go wrong
+--------------------
+Eilmer3 is a complex piece of software, 
+especially when all of the thermochemistry comes into play.
+There will be problems buried in the code and, (very) occasionally,
+you will expose them.
+We really do have some pride in this code and will certainly try to fix 
+anything that is broken, however, 
+we do this work essentially on our own time and that time is limited.
 
-Other Notes
------------
-On Xserver for Linux (especially Ubuntu):
+When you have a problem, there are a number of things that you can do 
+to minimize the duration and pain of debugging:
 
-* If Paraview crashes on exporting a bitmap image, try adding the line::
-  
-    Option "AIGLX" "false"
+#. Check the repository and be sure that you have the most recent
+   revision of the code.
+   This code collection is a work in progress and, in some cases,
+   you will not be the only one hitting a blatant bug.
+   It is likely that we or someone else has hit the same problem and,
+   if so, it may be fixed already.
+   The code changes daily in small ways.
+   This may sound chaotic, such that you should just stay with an old version,
+   however, we do try hard to not break things.
+   In general, it is safest to work with the lastest revision.
 
-  to the Section "ServerLayout" in /etc/X11/xorg.conf
+#. Put together a simple example that displays the problem.
+   This example should be as simple as possible so that there are not 
+   extra interactions that confuse us.
 
-* To use Paraview 3.6.1 on Ubuntu 9.04 or later,
-  it seems that we need to customize the look of the desktop 
-  by turning off the Visual Effects. 
-  This setting can be found in the System->Preferences->Appearance menu.
+#. Provide a complete package of input files and output pictures.
+   We should be able to run your simulation within a few minutes
+   and see the same output.
 
-* To get Paraview Screenshot to behave,
-  uncheck "Use Offscreen Rendering for Screenshots" button
-  in the Edit->Settings ("Options") dialog.
-  You will find the checkbutton under "Render View"->General.
+#. Be prepared to dig into the code and identify the problem yourself.
+   We appreciate all of the help that we can get.
+
 
 Detailed Documents (PDF)
 ------------------------
@@ -109,3 +124,23 @@ Use the PDF files above; they are the primary documents.
    eilmer3/cgns_grid
 
 `Doxygen documenation of C++ sources <http://mech.uq.edu.au/cfcfd/doxygen/group__eilmer3.html>`_
+
+Other Notes
+-----------
+On Xserver for Linux (especially Ubuntu):
+
+* If Paraview crashes on exporting a bitmap image, try adding the line::
+  
+    Option "AIGLX" "false"
+
+  to the Section "ServerLayout" in /etc/X11/xorg.conf
+
+* To use Paraview 3.6.1 on Ubuntu 9.04 or later,
+  it seems that we need to customize the look of the desktop 
+  by turning off the Visual Effects. 
+  This setting can be found in the System->Preferences->Appearance menu.
+
+* To get Paraview Screenshot to behave,
+  uncheck "Use Offscreen Rendering for Screenshots" button
+  in the Edit->Settings ("Options") dialog.
+  You will find the checkbutton under "Render View"->General.
