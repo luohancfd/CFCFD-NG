@@ -16,8 +16,13 @@ reaction rates as compared to those used by Marrone.
 The details of this calculation can be found in
 Section 4.4.2 of the author's thesis.
 
+This example is found in the code collection at::
+
+  $CFCFD/examples/poshax3/air-Mach-12.3
+
 Files
 -----
+
 *User-built files:*
 
 air-Mach-12.3.cfg
