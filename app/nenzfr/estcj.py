@@ -41,7 +41,7 @@ from cfpylib.gasdyn.ideal_gas_flow import *
 
 # ----------------------------------------------------------------------------
 
-VERSION_STRING = "09-Nov-2011"
+VERSION_STRING = "19-Feb-2012"
 DEBUG_ESTCJ  = 0  # if 1: some detailed data is output to help debugging
 PRINT_STATUS = 1  # if 1: the start of each stage of the computation is noted.
 
@@ -82,6 +82,16 @@ def shock_ideal(s1, Vs, s2):
     #
     return (V2,Vg)
 
+def my_limiter(delta, orig, frac=0.5):
+    """
+    Limit the magnitude of delta to no more than a fraction of the original.
+    """
+    if delta >= 0.0:
+        sign = 1
+    else:
+        sign = -1
+    abs_delta = min(abs(delta), frac*abs(orig))
+    return sign * abs_delta
 
 def shock_real(s1, Vs, s2):
     """
@@ -102,9 +112,17 @@ def shock_real(s1, Vs, s2):
         s2.write_state(sys.stdout)
         print '    V2: %g m/s, Vg: %g m/s' % (V2,Vg)
     #
-    V1    = Vs
-    s1.EOS(problemType='pT');  # We assume that p1 and T1 are correct
-    s2.EOS(problemType='pT');  # and that s2 contains a fair initial guess.
+    # We assume that p1 and T1 are correct
+    # and that s2 contains a fair initial guess.
+    V1 = Vs
+    s1.EOS(problemType='pT');
+    if DEBUG_ESTCJ:
+        print 'shock_real(): pre-shock condition assuming real gas and original pT'
+        s1.write_state(sys.stdout)
+    s2.EOS(problemType='pT');
+    if DEBUG_ESTCJ:
+        print 'shock_real(): post-shock condition assuming real gas and ideal pT'
+        s2.write_state(sys.stdout)
     #
     p1    = s1.p
     e1    = s1.e
@@ -170,8 +188,14 @@ def shock_real(s1, Vs, s2):
         rho_delta = (D * f1_save - B * f2_save) / det
         T_delta = (-C * f1_save + A * f2_save) / det
         #
+        rho_delta = my_limiter(rho_delta, rho_save)
+        T_delta = my_limiter(T_delta, T_save)
         rho_new = rho_save - rho_delta
         T_new   = T_save - T_delta
+        if DEBUG_ESTCJ:
+            print('shock_real(): rho_save=%e, T_save=%e' % (rho_save, T_save))
+            print('shock_real(): rho_delta=%e, T_delta=%e' % (rho_delta, T_delta))
+            print('shock_real(): rho_new=%e, T_new=%e' % (rho_new, T_new))
         #
         s2.rho = rho_new
         s2.T   = T_new
