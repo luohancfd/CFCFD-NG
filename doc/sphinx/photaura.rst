@@ -9,7 +9,7 @@ The name Photaura comes from the Greek word photos (light) and the Latin
 word aura (wind); an appropriate name for a code that deals with plasmas.
 
 Typical build and test procedure
--------------------------------
+--------------------------------
 The parts of the Photaura code that are used by Eilmer3 and Poshax3 are
 automatically compiled and linked by the these codes own makefiles.
 To get the script_rad2.py utility, however, the user needs to do
@@ -40,7 +40,7 @@ This will run some simple calculations with the librad2 module
 that tests the basic features of a Photaura spectral model.
 
 Python input script
---------------------
+-------------------
 See the file cfcfd3/lib/photaura/test/air-radiators.py for an example
 input script.
 More information coming soon.
@@ -52,5 +52,5 @@ Examples
 .. toctree::
    :maxdepth: 1
 
-   photaura/VKI-minitorch
+   photaura/VKI-minitorch/README
 

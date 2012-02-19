@@ -24,6 +24,7 @@ For local and external collaborators, these are available via a Mercurial reposi
    l1d3
    imoc
    poshax3
+   photaura
    estcj
    nenzfr
    octvce
