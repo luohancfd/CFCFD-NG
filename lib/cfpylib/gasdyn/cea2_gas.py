@@ -69,7 +69,7 @@ def locate_executable_file(name):
             if is_exe(fullName): return fullName
     return None
 
-def run_cea_program(jobName):
+def run_cea_program(jobName,checkTableHeader=True):
     """
     Runs the CEA program on the specified job.
     """
@@ -94,8 +94,10 @@ def run_cea_program(jobName):
         fp = open(outFile, 'r')
         outFileText = fp.read()
         outFileIsBad = False
-        # Look for the summary table header.
-        if outFileText.find('THERMODYNAMIC PROPERTIES') == -1: outFileIsBad = True
+        if checkTableHeader:
+            # Look for the summary table header 
+            if outFileText.find('THERMODYNAMIC PROPERTIES') == -1:
+            	outFileIsBad = True
         if outFileIsBad:
             print('cea2_gas: the output file seems incomplete; you should go check.')
             raise Exception, 'cea2_gas: detected badness in cea2 output file.'
@@ -133,7 +135,8 @@ class Gas(object):
     """
     Provides the equation of state for the gas.
     """
-    def __init__(self, gasName, speciesList=[], massfList=[], use_out_file=False):
+    def __init__(self, gasName, speciesList=[], massfList=[], use_out_file=False, 
+    			thermoProps=1, transProps=1):
         """
         Set up a new obects, from either a name of species list.
 
@@ -172,7 +175,7 @@ class Gas(object):
         self.p = 1.0e5 # need a value in case EOS gets called
         self.T = 300.0 # likewise
         self.Us = 0.0 # m/s
-	self.EOS(speciesOut=1, thermoProps=1, transProps=1, problemType='pT')
+	self.EOS(speciesOut=1, thermoProps=thermoProps, transProps=transProps, problemType='pT')
         return
 
     def clone(self):
@@ -505,9 +508,9 @@ class Gas(object):
         # Make sure that binary versions of the database files exist.
         if not os.path.exists('thermo.lib'):
             print 'Make the binary database for thermodynamic properties'
-            run_cea_program('thermo')
+            run_cea_program('thermo',checkTableHeader=False)
             print 'Make the binary database for transport properties'
-            run_cea_program('trans')
+            run_cea_program('trans',checkTableHeader=False)
         # Now, run the cea program on the actual job.
         run_cea_program('tmp')
         # ... and scan the output to extract the gas-properties data.

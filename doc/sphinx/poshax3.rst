@@ -41,6 +41,7 @@ A brief description of each is given here.
 ::
 
   [controls]
+  source_term_coupling : Select 'full' or 'loose' source term coupling
   dx                   : Initial or constant spatial step size
   adaptive_dx          : Flag to indicate adaptive spatial stepping
   final_x              : x location to terminate the calculation

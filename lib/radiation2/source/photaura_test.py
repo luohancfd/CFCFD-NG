@@ -78,8 +78,8 @@ def main():
         for isp in range(nsp): Q.massf[isp] = f_inf[isp]
         gm.eval_thermo_state_pT(Q)
         cea = Gas('mix', species, f_inf, use_out_file=True)
-        cea.set_from_pAndT(p_inf,T_inf, use_out_file=True)
-        eps = cea.Shock( u_inf, use_out_file=True )
+        cea.set_from_pAndT(p_inf,T_inf)
+        eps = cea.shock_process( u_inf )
         #over-write provided initial mass-fractions
         #print "f_eq = ", eps.eq_massf
         Q.rho = eps.rho

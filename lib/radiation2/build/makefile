@@ -79,7 +79,7 @@ TEST_EXE := photaura_test.x
 TEST_PY := photaura_test.py
 
 ifeq ($(WITH_CEA2), 1)
-	TEST_EXE += CEA2.exe
+	TEST_EXE += cea2
 endif
 
 # Assume Unix/Linux
@@ -300,8 +300,8 @@ photaura_test.py : $(SRC)/photaura_test.py
 
 # ------------ Test executables ------------
 
-CEA2.exe : $(CEA2)/cea2.f
-	gfortran -std=legacy -o CEA2.exe $(CEA2)/cea2.f
+cea2 : $(CEA2)/cea2.f
+	gfortran -std=legacy -o cea2 $(CEA2)/cea2.f
 
 photaura_test.x : photaura_test.o $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
 	$(CXXLINK) $(LFLAG) $(FLINK) -o photaura_test.x photaura_test.o \

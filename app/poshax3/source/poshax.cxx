@@ -107,13 +107,12 @@ int main(int argc, char *argv[])
     	rtmodel = create_poshax_radiation_transport_model(radiation_file);
     }
     
-    string coupling_default = "loose";
-    // Make the user select a coupling model if source terms are present
-    if ( rupdate || eeupdate || rtmodel ) coupling_default = "unspecified";
+    // Default to loose coupling
+    coupling_default = "loose";
     
     string coupling_str;
     if( ! cfg.parse_string("controls", "source_term_coupling", coupling_str, 
-    	                    coupling_default) || coupling_str == "unspecified" ) {
+    	                    coupling_default) ) {
 	cout << "Error read source_term_coupling in [controls] section of " 
 	     << input << endl
 	     << "This parameter controls how the source terms are applied.\n"
@@ -336,7 +335,7 @@ int main(int argc, char *argv[])
     else {
     	cout << "Source term coupling model: " << coupling_str
     	     << " not recognised." << endl
-    	     << "The available options are 'fully_coupled' or 'loosely_coupled'\n"
+    	     << "The available options are 'full' or 'loose' coupling\n"
     	     << "Bailing out!" << endl;
     	exit(BAD_INPUT_ERROR);
     }
