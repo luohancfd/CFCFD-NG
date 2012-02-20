@@ -121,7 +121,7 @@ int push_vector_as_table(lua_State *L, const vector<double> &vec)
     int t = lua_gettop(L);
     for( size_t i = 0; i < vec.size(); ++i ) {
 	lua_pushnumber(L, vec[i]);
-	lua_rawseti(L, t, i+1);
+	lua_rawseti(L, t, i);
     }
     return t;
 }
@@ -129,7 +129,7 @@ int push_vector_as_table(lua_State *L, const vector<double> &vec)
 void get_table_as_vector(lua_State *L, vector<double> &vec)
 {
     for( size_t i = 0; i < vec.size(); ++i ) {
-	lua_rawgeti(L, -1, i+1);
+	lua_rawgeti(L, -1, i);
 	vec[i] = luaL_checknumber(L, -1);
 	lua_pop(L, 1);
     }
@@ -144,9 +144,9 @@ int push_matrix_as_table(lua_State *L, const matrix &mat)
 	int u = lua_gettop(L);
 	for( size_t j = 0; j < mat[i].size(); ++j ) {
 	    lua_pushnumber(L, mat[i][j]);
-	    lua_rawseti(L, u, j+1);
+	    lua_rawseti(L, u, j);
 	}
-	lua_rawseti(L, t, i+1);
+	lua_rawseti(L, t, i);
     }
     return t;
 }
@@ -154,9 +154,9 @@ int push_matrix_as_table(lua_State *L, const matrix &mat)
 void get_table_as_matrix(lua_State *L, matrix &mat)
 {
     for( size_t i = 0; i < mat.size(); ++i ) {
-	lua_rawgeti(L, -1, i+1);
+	lua_rawgeti(L, -1, i);
 	for( size_t j = 0; j < mat[i].size(); ++j ) {
-	    lua_rawgeti(L, -1, j+1);
+	    lua_rawgeti(L, -1, j);
 	    mat[i][j] = luaL_checknumber(L, -1);
 	    lua_pop(L, 1);
 	}

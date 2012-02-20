@@ -17,6 +17,15 @@ extern "C" {
 #include "gas_data.hh"
 #include "gas-model.hh"
 
+/** \brief A gas model where the behaviour is supplied by a user-supplied Lua file.
+ *
+ * This class gives the user some flexibility in implementing some specialised
+ * gas model behaviour for some one-off situations.  If the user's model is
+ * widely useful, it might be a candidate to be coded as a C++ class. In this
+ * sense, the Lua script implementation can be used for rapid prototyping of
+ * a new gas model implementation.
+ **/
+
 class UD_gas_model : public Gas_model {
 public:
     UD_gas_model(std::string cfile);

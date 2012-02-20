@@ -49,9 +49,9 @@ function eval_thermo_state_rhoe(Q)
    -- Remember: we need to access the temperature
    -- and energy as the first value in an array
    -- of possible energies/temperatures.
-   Q.T[1] = Q.e[1]/C_v
-   Q.p = Q.rho*R*Q.T[1]
-   Q.a = sound_speed(gamma, R, Q.T[1])
+   Q.T[0] = Q.e[0]/C_v
+   Q.p = Q.rho*R*Q.T[0]
+   Q.a = sound_speed(gamma, R, Q.T[0])
    -- Pass back the updated table
    return Q
 end
@@ -64,25 +64,25 @@ end
 
 function eval_thermo_state_pT(Q)
    -- Assume p and T are given, compute the rest.
-   Q.e[1] = C_v*Q.T[1]
-   Q.rho = Q.p/(R*Q.T[1])
-   Q.a = sound_speed(gamma, R, Q.T[1])
+   Q.e[0] = C_v*Q.T[0]
+   Q.rho = Q.p/(R*Q.T[0])
+   Q.a = sound_speed(gamma, R, Q.T[0])
    return Q
 end
 
 function eval_thermo_state_rhoT(Q)
-   -- Assume rho and T[1] are given, compute the rest.
-   Q.e[1] = C_v*Q.T[1]
-   Q.p = Q.rho*R*Q.T[1]
-   Q.a = sound_speed(gamma, R, Q.T[1])
+   -- Assume rho and T are given, compute the rest.
+   Q.e[0] = C_v*Q.T[0]
+   Q.p = Q.rho*R*Q.T[0]
+   Q.a = sound_speed(gamma, R, Q.T[0])
    return Q
 end
 
 function eval_thermo_state_rhop(Q)
    -- Assume rho and p are given, compute the rest.
-   Q.T[1] = Q.p/(R*Q.rho)
-   Q.e[1] = C_v*Q.T[1]
-   Q.a = sound_speed(gamma, R, Q.T[1])
+   Q.T[0] = Q.p/(R*Q.rho)
+   Q.e[0] = C_v*Q.T[0]
+   Q.a = sound_speed(gamma, R, Q.T[0])
    return Q
 end
 
@@ -98,7 +98,7 @@ end
 
 function dpdrho_const_T(Q)
    -- Assume T, rho are given
-   return R*Q.T[1]
+   return R*Q.T[0]
 end
 
 function dedT_const_v(Q)
@@ -117,14 +117,14 @@ function eval_transport_coefficients(Q)
    -- Assume that all pertinent values in Q are
    -- at the correct state.  In this particular
    -- model, viscosity and thermal conductivity
-   -- are only dependent on temperature, ie. Q.T[1]
-   Q.mu = Sutherland_viscosity(Q.T[1])
-   Q.k[1] = Sutherland_thermal_conductivity(Q.T[1])
+   -- are only dependent on temperature, ie. Q.T[0]
+   Q.mu = Sutherland_viscosity(Q.T[0])
+   Q.k[0] = Sutherland_thermal_conductivity(Q.T[0])
    return Q
 end
 
 function eval_diffusion_coeficients(Q)
    -- PJ added July 2010
-   Q.D_AB[1][1] = 0.0
+   Q.D_AB[0][0] = 0.0
    return Q
 end

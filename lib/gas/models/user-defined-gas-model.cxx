@@ -1,5 +1,12 @@
 // Author: Rowan J. Gollan
 // Date: 03-Jul-2008
+//
+// History:
+//   20-Feb-2012
+//   Changed all indexing of Lua arrays to begin at 0
+//   for consistency for use throughout eilmer3 app code.
+//
+
 
 #include <cstdlib>
 #include <string>
@@ -92,7 +99,7 @@ UD_gas_model(string cfile)
 	}
 	
 	for ( int isp = 0; isp < nsp; ++isp ) {
-	    lua_rawgeti(L_, -1, isp+1);
+	    lua_rawgeti(L_, -1, isp);
 	    s_names_[isp] = luaL_checkstring(L_, -1);
 	    lua_pop(L_, 1);
 	}
@@ -127,7 +134,7 @@ UD_gas_model(string cfile)
     M_.resize(nsp);
     for ( int isp = 0; isp < nsp; ++isp ) {
 	lua_getglobal(L_, "molecular_weight");
-	lua_pushinteger(L_, isp+1);
+	lua_pushinteger(L_, isp);
 	int number_args = 1;
 	int number_results = 1;
 	if ( lua_pcall(L_, number_args, number_results, 0) != 0 ) {

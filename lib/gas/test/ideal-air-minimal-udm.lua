@@ -52,9 +52,9 @@ function eval_thermo_state_rhoe(Q)
    -- Remember: we need to access the temperature
    -- and energy as the first value in an array
    -- of possible energies/temperatures.
-   Q.T[1] = Q.e[1]/C_v
-   Q.p = Q.rho*R*Q.T[1]
-   Q.a = sound_speed(gamma, R, Q.T[1])
+   Q.T[0] = Q.e[0]/C_v
+   Q.p = Q.rho*R*Q.T[0]
+   Q.a = sound_speed(gamma, R, Q.T[0])
    -- Pass back the updated table
    return Q
 end
@@ -64,8 +64,8 @@ function eval_transport_coefficients(Q)
    -- at the correct state.  In this particular
    -- model, viscosity and thermal conductivity
    -- are only dependent on temperature, ie. Q.T[1]
-   Q.mu = Sutherland_viscosity(Q.T[1])
-   Q.k[1] = Sutherland_thermal_conductivity(Q.T[1])
+   Q.mu = Sutherland_viscosity(Q.T[0])
+   Q.k[0] = Sutherland_thermal_conductivity(Q.T[0])
    return Q
 end
 
@@ -76,6 +76,6 @@ end
 
 function eval_diffusion_coeficients(Q)
    -- PJ added July 2010
-   Q.D_AB[1][1] = 0.0
+   Q.D_AB[0][0] = 0.0
    return Q
 end

@@ -45,126 +45,40 @@ and or extra arguments, then (s)he will be aware that the implementation may sti
 function even if not all arguments are present.  In practice and for ease of understanding
 the code, it is best to stick to the documented function signatures.}
 The job of the function will be to compute the required results
-based on the input arguments.
+based on the input arguments, typically this involves manipulating
+a supplied \texttt{Gas\_data} table (see Table~\ref{tab:gas-data}).
 The set of functions recognised by a `user-defined' gas model, 
 along with their arguments lists and return value lists, are given
 in Table~\ref{tab:user-defined-gas-model}.
 The mandatory functions are listed first, followed by the optional functions.
-A majority of the functions accept a \texttt{gas\_data} table as an argument
-and also return a \texttt{gas\_data} table.
+A majority of the functions accept a \texttt{Gas\_data} table as an argument
+and also return a \texttt{Gas\_data} table.
+The fields in the \texttt{Gas\_data} table are described in Table~\ref{tab:gas-data}.
+Note that the fields for temperature (\texttt{T}), internal energy (\texttt{e}),
+species mass fractions (\texttt{massf}) and mass fractions per energy mode (\texttt{massf\_mode})
+are vector fields indexed from 0.
+So, to access what is commonly the translational temperature, one uses
+\texttt{Q.T[0]}.
+Similarly, the field for binary diffusion coefficients (\texttt{D\_AB})
+is a 2-dimensional array, also using indices beginning from 0.
+\footnote{While typical Lua code uses 1-based indexing,
+the use of 0-based indexing was chosen here so that the user input 
+is consistent with all of the other 0-based indexing used throughout \texttt{eilmer3}.
+Note that this means the Lua \texttt{\#} operator for returning the
+length of an array will return the wrong result for the vector fields,
+and should not be used.
+Instead, \texttt{nsp} and \texttt{nmodes} are available globally in
+the module as they must be set by the user.}
 As a pre-condition to the function calls, certain data members in the
-\texttt{gas\_data} table may be assumed to be present and correct.
+\texttt{Gas\_data} table may be assumed to be present and correct.
 As a post-condition to the function calls, certain data members in the
-\texttt{gas\_data} table should be correctly set upon return.
-These pre- and post-conditions for the \texttt{gas\_data} table
+\texttt{Gas\_data} table should be correctly set upon return.
+These pre- and post-conditions for the \texttt{Gas\_data} table
 are also shown in Table~\ref{tab:user-defined-gas-model}.
-Finally, Table~\ref{tab:gas-data} describes the entry
-in a \texttt{gas\_data} table.
-
-\begin{landscape}
-\begin{center}
-\setlength{\LTcapwidth}{15cm}
-\begin{longtable}{p{5.5cm}p{4.5cm}p{4.5cm}p{6.5cm}}
-\caption{User-defined functions for specification of gas model behaviour \label{tab:user-defined-gas-model}}\\
-\hline \hline Function & Arguments & Return values & Description \\ \hline
-\endfirsthead
-\hline \hline Function & Arguments & Return values & Description \\ \hline
-\endhead
-\hline
-\endfoot
-\multicolumn{4}{c}{\emph{Mandatory functions}} \\
-\texttt{eval\_thermo\_state\_rhoe} & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                  \textit{pre-conditions}: \texttt{rho}, \texttt{e} and \texttt{massf} are set}
-                                   & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                  \textit{post-conditions}: set all other thermodynamic variables} 
-                                   &   Given density, the internal energy (vector) and mass fractions,
-                                       compute the rest of the thermodynamic state. \\
-\texttt{eval\_transport\_properties} & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                   \textit{pre-conditions}: thermodynamic state is up-to-date} 
-                                    & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                   \textit{post-conditions}: transport data set, i.e., \texttt{mu} and
-                                                   \texttt{k}}
-                                    & Given an up-to-date thermodynamic state, compute the transport properties:
-                                      viscosity and thermal conductivity (in all thermal modes as appropriate). \\
-\texttt{eval\_diffusion\_coefficients} & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                      \textit{pre-conditions}: thermodynamic state is up-to-date} 
-                                       & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                      \textit{post-conditions}: all binary diffusion coefficients set, \texttt{D\_AB}}
-                                       & Given an up-to-date thermodynamic state, compute the binary diffusion coefficients for
-                                         all species interaction pairs in the mixture. \\
-\texttt{molecular\_weight}             & \raggedright{\textbf{isp}: species index, \texttt{integer}} 
-                                       & \raggedright{\textbf{MW}: molecular weight of species \textit{isp}, \texttt{float}}
-                                       & Returns the molecular weight, g/mol, for species \textit{isp}. \\ \hline
-\multicolumn{4}{c}{\emph{Optional functions}} \\
-\texttt{eval\_thermo\_state\_pT} & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                \textit{pre-conditions}: \texttt{p}, \texttt{T} and \texttt{massf} are set}
-                                 & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                  \textit{post-conditions}: set all other thermodynamic variables} 
-                                   &   Given pressure, temperature(s), and mass fractions,
-                                       compute the rest of the thermodynamic state. \\
-\texttt{eval\_thermo\_state\_rhoT} & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                \textit{pre-conditions}: \texttt{rho}, \texttt{T} and \texttt{massf} are set}
-                                 & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                  \textit{post-conditions}: set all other thermodynamic variables} 
-                                   &   Given density, temperature(s), and mass fractions,
-                                       compute the rest of the thermodynamic state. \\
-\texttt{eval\_thermo\_state\_rhop} & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                \textit{pre-conditions}: \texttt{rho}, \texttt{p} and \texttt{massf} are set}
-                                 & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                  \textit{post-conditions}: set all other thermodynamic variables} 
-                                   &   Given density, pressure, and mass fractions,
-                                       compute the rest of the thermodynamic state. \\
-\texttt{encode\_conserved\_energy} & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                  \textit{pre-conditions}: \texttt{rho}, \texttt{e} and \texttt{massf} are set} 
-                                   & \raggedright{\textbf{rhoe}: table of \texttt{float} values \\
-                                                  \textit{post-conditions}: table has dimension \texttt{nmodes} and stores
-                                                  the conserved energy quantities} 
-                                   & Given the primary variables, encode the conserved energy quantities. \\
-\texttt{decode\_conserved\_energy} & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                  \textbf{rhoe}: table of \texttt{float} values
-                                                  \textit{pre-conditions}: \texttt{rho} and \texttt{massf} are set} 
-                                   & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                  \textit{post-conditions}: the vector member \texttt{e} is up-to-date (decoded)} 
-                                   & Given density and the vector of conserved energies, set the specific energies. \\
-\texttt{update\_massf\_mode}       & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                  \textit{pre-condition}: \texttt{massf} are set}
-                                   & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                  \textit{post-condition}: \texttt{massf\_mode} are set}
-                                   & Given the mass fractions, update the vector \texttt{massf\_mode} which
-                                     stores the mass fraction associated with each thermal mode. \\
-\texttt{dTdp\_const\_rho}          & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                  \textit{pre-condition}: thermodynamic state variables are up-to-date}
-                                   & \raggedright{\textbf{dTdp}: \texttt{float}}
-                                   & Return $\left(\frac{\partial T}{\partial p}\right)_{\rho}$. \\
-\texttt{dTdrho\_const\_p}          & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                  \textit{pre-condition}: thermodynamic state variables are up-to-date}
-                                   & \raggedright{\textbf{dTdrho}: \texttt{float}}
-                                   & Return $\left(\frac{\partial T}{\partial \rho}\right)_{p}$. \\
-\texttt{dpdrho\_const\_T}          & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                  \textit{pre-condition}: thermodynamic state variables are up-to-date}
-                                   & \raggedright{\textbf{dpdrho}: \texttt{float}}
-                                   & Return $\left(\frac{\partial p}{\partial \rho}\right)_{T}$. \\
-\texttt{dedT\_const\_v}            & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                  \textit{pre-condition}: thermodynamic state variables are up-to-date}
-                                   & \raggedright{\textbf{dedT}: \texttt{float}}
-                                   & Return $\left(\frac{\partial e}{\partial T}\right)_{v}$: $C_v$, the specific
-                                     heat capacity at constant volume. \\
-\texttt{dhdT\_const\_p}            & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                  \textit{pre-condition}: thermodynamic state variables are up-to-date}
-                                   & \raggedright{\textbf{dhdT}: \texttt{float}}
-                                   & Return $\left(\frac{\partial h}{\partial T}\right)_{p}$: $C_p$, the specific
-                                     heat capacity at constant volume. \\
-\texttt{gas\_constant}             & \raggedright{\textbf{Q}: \texttt{gas\_data} \\
-                                                  \textit{pre-condition}: thermodynamic state variables are up-to-date}
-                                   & \raggedright{\textbf{R}: \texttt{float}}
-                                   & Return $R$, the specific gas constant. \\
-\end{longtable}
-\end{center}
-\end{landscape}
 
 \begin{table}
  \begin{center}
-  \caption{Description of fields in \texttt{gas\_data} table}
+  \caption{Description of fields in \texttt{Gas\_data} table}
   \label{tab:gas-data}
 \begin{tabular}{llp{6cm}}
  \hline \hline
@@ -187,6 +101,107 @@ in a \texttt{gas\_data} table.
 \end{tabular}
 \end{center}
 \end{table}
+
+\begin{landscape}
+\begin{center}
+\setlength{\LTcapwidth}{15cm}
+\begin{longtable}{p{5.5cm}p{4.5cm}p{4.5cm}p{6.5cm}}
+\caption{User-defined functions for specification of gas model behaviour \label{tab:user-defined-gas-model}}\\
+\hline \hline Function & Arguments & Return values & Description \\ \hline
+\endfirsthead
+\hline \hline Function & Arguments & Return values & Description \\ \hline
+\endhead
+\hline
+\endfoot
+\multicolumn{4}{c}{\emph{Mandatory functions}} \\
+\texttt{eval\_thermo\_state\_rhoe} & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                  \textit{pre-conditions}: \texttt{rho}, \texttt{e} and \texttt{massf} are set}
+                                   & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                  \textit{post-conditions}: set all other thermodynamic variables} 
+                                   &   Given density, the internal energy (vector) and mass fractions,
+                                       compute the rest of the thermodynamic state. \\
+\texttt{eval\_transport\_properties} & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                   \textit{pre-conditions}: thermodynamic state is up-to-date} 
+                                    & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                   \textit{post-conditions}: transport data set, i.e., \texttt{mu} and
+                                                   \texttt{k}}
+                                    & Given an up-to-date thermodynamic state, compute the transport properties:
+                                      viscosity and thermal conductivity (in all thermal modes as appropriate). \\
+\texttt{eval\_diffusion\_coefficients} & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                      \textit{pre-conditions}: thermodynamic state is up-to-date} 
+                                       & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                      \textit{post-conditions}: all binary diffusion coefficients set, \texttt{D\_AB}}
+                                       & Given an up-to-date thermodynamic state, compute the binary diffusion coefficients for
+                                         all species interaction pairs in the mixture. \\
+\texttt{molecular\_weight}             & \raggedright{\textbf{isp}: species index, \texttt{integer}} 
+                                       & \raggedright{\textbf{MW}: molecular weight of species \textit{isp}, \texttt{float}}
+                                       & Returns the molecular weight, g/mol, for species \textit{isp}. \\ \hline
+\multicolumn{4}{c}{\emph{Optional functions}} \\
+\texttt{eval\_thermo\_state\_pT} & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                \textit{pre-conditions}: \texttt{p}, \texttt{T} and \texttt{massf} are set}
+                                 & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                  \textit{post-conditions}: set all other thermodynamic variables} 
+                                   &   Given pressure, temperature(s), and mass fractions,
+                                       compute the rest of the thermodynamic state. \\
+\texttt{eval\_thermo\_state\_rhoT} & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                \textit{pre-conditions}: \texttt{rho}, \texttt{T} and \texttt{massf} are set}
+                                 & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                  \textit{post-conditions}: set all other thermodynamic variables} 
+                                   &   Given density, temperature(s), and mass fractions,
+                                       compute the rest of the thermodynamic state. \\
+\texttt{eval\_thermo\_state\_rhop} & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                \textit{pre-conditions}: \texttt{rho}, \texttt{p} and \texttt{massf} are set}
+                                 & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                  \textit{post-conditions}: set all other thermodynamic variables} 
+                                   &   Given density, pressure, and mass fractions,
+                                       compute the rest of the thermodynamic state. \\
+\texttt{encode\_conserved\_energy} & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                  \textit{pre-conditions}: \texttt{rho}, \texttt{e} and \texttt{massf} are set} 
+                                   & \raggedright{\textbf{rhoe}: table of \texttt{float} values \\
+                                                  \textit{post-conditions}: table has dimension \texttt{nmodes} and stores
+                                                  the conserved energy quantities} 
+                                   & Given the primary variables, encode the conserved energy quantities. \\
+\texttt{decode\_conserved\_energy} & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                  \textbf{rhoe}: table of \texttt{float} values
+                                                  \textit{pre-conditions}: \texttt{rho} and \texttt{massf} are set} 
+                                   & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                  \textit{post-conditions}: the vector member \texttt{e} is up-to-date (decoded)} 
+                                   & Given density and the vector of conserved energies, set the specific energies. \\
+\texttt{update\_massf\_mode}       & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                  \textit{pre-condition}: \texttt{massf} are set}
+                                   & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                  \textit{post-condition}: \texttt{massf\_mode} are set}
+                                   & Given the mass fractions, update the vector \texttt{massf\_mode} which
+                                     stores the mass fraction associated with each thermal mode. \\
+\texttt{dTdp\_const\_rho}          & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                  \textit{pre-condition}: thermodynamic state variables are up-to-date}
+                                   & \raggedright{\textbf{dTdp}: \texttt{float}}
+                                   & Return $\left(\frac{\partial T}{\partial p}\right)_{\rho}$. \\
+\texttt{dTdrho\_const\_p}          & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                  \textit{pre-condition}: thermodynamic state variables are up-to-date}
+                                   & \raggedright{\textbf{dTdrho}: \texttt{float}}
+                                   & Return $\left(\frac{\partial T}{\partial \rho}\right)_{p}$. \\
+\texttt{dpdrho\_const\_T}          & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                  \textit{pre-condition}: thermodynamic state variables are up-to-date}
+                                   & \raggedright{\textbf{dpdrho}: \texttt{float}}
+                                   & Return $\left(\frac{\partial p}{\partial \rho}\right)_{T}$. \\
+\texttt{dedT\_const\_v}            & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                  \textit{pre-condition}: thermodynamic state variables are up-to-date}
+                                   & \raggedright{\textbf{dedT}: \texttt{float}}
+                                   & Return $\left(\frac{\partial e}{\partial T}\right)_{v}$: $C_v$, the specific
+                                     heat capacity at constant volume. \\
+\texttt{dhdT\_const\_p}            & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                  \textit{pre-condition}: thermodynamic state variables are up-to-date}
+                                   & \raggedright{\textbf{dhdT}: \texttt{float}}
+                                   & Return $\left(\frac{\partial h}{\partial T}\right)_{p}$: $C_p$, the specific
+                                     heat capacity at constant volume. \\
+\texttt{gas\_constant}             & \raggedright{\textbf{Q}: \texttt{Gas\_data} \\
+                                                  \textit{pre-condition}: thermodynamic state variables are up-to-date}
+                                   & \raggedright{\textbf{R}: \texttt{float}}
+                                   & Return $R$, the specific gas constant. \\
+\end{longtable}
+\end{center}
+\end{landscape}
 
 \subsubsection{An example minimal user-defined gas model}\index{gas model!user-defined!minimal example}
 The following code listing shows the minimum requirements to specify
