@@ -1,5 +1,5 @@
 /** \file gas-model.hh
- *  \ingroup libgas2
+ *  \ingroup gas
  *
  *  \author Rowan J Gollan
  *  \version 03-Jul-2008

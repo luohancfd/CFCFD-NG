@@ -1,5 +1,9 @@
-// Author: Rowan J. Gollan
-// Date: 09-Jul-2008
+/** \file composite-gas-model.hh
+ *  \ingroup gas
+ *
+ *  \author Rowan J Gollan
+ *  \version 09-Jul-2008
+ **/
 
 #ifndef COMPOSITE_GAS_MODEL_HH
 #define COMPOSITE_GAS_MODEL_HH

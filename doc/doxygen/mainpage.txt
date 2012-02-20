@@ -11,7 +11,7 @@ for documentation of python sources.
 /** \defgroup imoc          imoc: Interactive Method of Characteristics */
 /** \defgroup l1d3          L1d3: Quasi-one-dimensional Gas Dynamics Code */
 
-/** \defgroup libgas2       libgas2: Gas Models and Nonquilibrium Thermochemistry */
+/** \defgroup gas           gas: Gas Models and Nonquilibrium Thermochemistry */
 /** \defgroup geom          geom: Geometry and Path Definition Functions */
 /** \defgroup libgeom2      libgeom2: Nodes, Paths, Surfaces and Volume classes */
 /** \defgroup nm            nm: Numerical Methods */

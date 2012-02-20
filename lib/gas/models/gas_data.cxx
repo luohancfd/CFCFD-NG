@@ -1,7 +1,11 @@
-// Author: Rowan J. Gollan
-// Date: 04-July-2008
-//       10-May-2010: PJ: introduce copying of matrix elements.
-//       19-July-2010: PJ: class-ified
+/** \file gas_data.cxx
+ *  \ingroup gas
+ *
+ *  \author Rowan J Gollan
+ *  \version 04-July-2008
+ *  \version 10-May-2010: PJ: introduce copying of matrix elements.
+ *  \version 19-July-2010: PJ: class-ified
+ **/
 
 #include <cstdio>
 #include <iostream>

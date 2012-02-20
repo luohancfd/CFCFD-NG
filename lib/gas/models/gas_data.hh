@@ -1,7 +1,10 @@
-// Author: Rowan J. Gollan
-// Version: 24-May-2008 -- initial coding, refactored
-//                         from gas_models2/source/gas.hh
-//
+/** \file gas_data.hh
+ *  \ingroup gas
+ *
+ *  \author Rowan J Gollan
+ *  \version 24-May-2008 -- initial coding, refactored
+ *                          from gas_models2/source/gas.hh
+ **/
 
 #ifndef GAS_DATA_HH
 #define GAS_DATA_HH

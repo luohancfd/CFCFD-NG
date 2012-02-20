@@ -28,6 +28,5 @@ For local and external collaborators, these are available via a Mercurial reposi
    estcj
    nenzfr
    octvce
-   cfpylib
-   libgas2
+   lib
 

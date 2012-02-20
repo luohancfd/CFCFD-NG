@@ -1,5 +1,9 @@
-// Author: Rowan J. Gollan
-// Date: 09-Jul-2008
+/** \file composite-gas-model.cxx
+ *  \ingroup gas
+ *
+ *  \author Rowan J Gollan
+ *  \version 09-Jul-2008
+ **/
 
 #include <iostream>
 #include <string>
