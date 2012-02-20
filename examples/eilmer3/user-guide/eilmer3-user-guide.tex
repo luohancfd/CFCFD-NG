@@ -176,9 +176,12 @@ The main requirement is that the C/C++ compilers, the Tcl and Python
 interpreters be available, along with their supporting libraries and 
 various extensions. 
 The source code of the Lua interpreter is included in with Eilmer3.
-The \texttt{README.txt} file (Appendix\,\ref{readme-file}) or the corresponding
-\texttt{README.html} file in the root directory 
-of the source code provides more detail including 
+The reStructuredText file \texttt{eilmer3.rst} (Appendix\,\ref{getting-started-file}) 
+or the corresponding HTML file from the web site\footnote{The web site 
+\texttt{http://www.mech.uq.edu.au/cfcfd/} has a nicely formatted set of instructions,
+detailed API documents that have been extracted from the source code and 
+a number of examples.  It is regularly expanded and updated.}
+provides more detail including 
 the actual commands needed to build and install the programs.
 
 \medskip
@@ -326,7 +329,7 @@ have a look in the data files to see what specific data has been captured.
 %
 One can build and run the distributed-memory version of the program, \texttt{e3mpi.exe}, on computers with 
 the MPI (Message Passing Interface) library\footnote{See, for example, http://www.open-mpi.org/.} and runtime environment.
-The notes in Appendix\,\ref{readme-file} show how to build the Eilmer3 executable for OpenMPI.
+The notes in Appendix\,\ref{getting-started-file} show how to build the Eilmer3 executable for OpenMPI.
 There are also some notes in Appendix\,\ref{blackhole-notes-sec} on batch commands and 
 job output files for the Blackhole and Barrine clusters at UQ.
 
@@ -2010,14 +2013,18 @@ Now, let's do it all again in three dimensions.
 \cleardoublepage
 \appendix
 
-\section{README.txt: Instructions for installation}
-\label{readme-file}\index{README}\index{Installation}
+\section{Instructions for installation and getting started}
+\label{getting-started-file}\index{Getting started}\index{Installation}
 %
-The latest version of this file should be in the root directory of the package
-of source files.
-This loation is typically \texttt{\$HOME/cfcfd2} on our development machines.\\
+The latest version of this files should be in the \texttt{doc/sphinx/} directory 
+of the package of source files.\\
 \topbar
-\lstinputlisting[language={}]{../../../README.txt}
+\lstinputlisting[language={}]{../../../doc/sphinx/getting-started.rst}
+\bottombar
+
+\noindent
+\topbar
+\lstinputlisting[language={}]{../../../doc/sphinx/eilmer3.rst}
 \bottombar
 
 \cleardoublepage
