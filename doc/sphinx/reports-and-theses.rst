@@ -111,6 +111,10 @@ Ben-Stewart-PhD-Thesis_ "Predicted Scramjet Testing Capabilities of the Proposed
 
 .. _Ben-Stewart-PhD-Thesis: ./theses/ben-stewart-phd-thesis-oct-2004.pdf
 
+Michael-Scott-PhD-Thesis_ "Development and Modelling of Expansion Tubes"
+ 
+.. _Michael-Scott-PhD-Thesis: ./theses/michael-scott-phd-thesis-june-2006.pdf
+
 Vince-Wheatley-MSc-Thesis_ "Modelling Low-Density Flow in Hypersonic Impulse Facilities"
 
 .. _Vince-Wheatley-MSc-Thesis: ./theses/vince-wheatley-masters-thesis-aug-2001.pdf
