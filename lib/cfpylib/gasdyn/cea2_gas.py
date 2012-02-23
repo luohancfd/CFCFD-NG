@@ -16,9 +16,12 @@ See the report::
 for details of the input and output file formats.
 
 .. Author: 
-   PA Jacobs
+   PA Jacobs RJ Gollan and DF Potter
    Institute of Aerodynamics and Flow Technology
    The German Aerospace Center, Goettingen.
+   and
+   School of Mechanical Engineering
+   The University of Queensland
 
 .. Versions:
    24-Dec-02: First code.
@@ -27,8 +30,7 @@ for details of the input and output file formats.
    28-Feb-08: Added a get_eq_massf() access function.
    28-Fed-08: Major changes to allow proper calculation at high temps.
    11-Dec-08: Addition of basic incident Shock function
-   RJG and DFP have made these later changes which are significant.
-   19-Feb-12: some refactoring and general clean-up by PJ
+   19-Feb-12: some refactoring, simplification and general clean-up
 """
 
 import sys, string, math, os, subprocess, re
@@ -142,7 +144,7 @@ class Gas(object):
     """
     def __init__(self, reactants=[], fractions=[], onlyList=[],
                  inputUnits='massf', outputUnits='massf', 
-                 with_ions=False, trace=1.0e-10):
+                 with_ions=False, trace=1.0e-6):
         """
         Set up a new obects, from either a name of species list.
 
@@ -166,20 +168,13 @@ class Gas(object):
             sys.exit()
 	# ----------------------------------------------------------------
         self.reactants = copy(reactants)
-        self.fractions = copy(fractions)
+        self.reactantFractions = copy(fractions)
         self.inputUnits = inputUnits
         self.outputUnits = outputUnits
         self.onlyList = copy(onlyList)
-        # Make a full list of all species that we expect to have in the mix.
-        # FIX_ME this won't work as cea2 will add whatever it likes...
-        self.species = copy(reactants)
-        self.speciesFraction = copy(fractions)
-        for s in self.onlyList:
-            if s not in self.species: 
-                self.species.append(s)
-                self.speciesFraction.append(0.0)
-        self.nsp = len(self.species)
-	self.with_ions = with_ions or ("e-" in self.species)
+        self.species = []
+        self.speciesFractions = []
+	self.with_ions = with_ions or ('e-' in self.reactants) or ('e-' in self.onlyList)
         self.trace = trace
         self.Us = 0.0 # m/s
         self.have_run_cea = False
@@ -191,7 +186,7 @@ class Gas(object):
 
         :returns: the new Gas object.
         """
-        other = Gas(self.reactants, self.fractions, self.onlyList, 
+        other = Gas(self.reactants, self.reactantFractions, self.onlyList, 
                     self.inputUnits, self.outputUnits, self.with_ions)
         if self.have_run_cea:
             other.p = self.p
@@ -217,9 +212,9 @@ class Gas(object):
                    % (self.p, self.T, self.rho, self.u, self.son) )
         strm.write('    R: %g J/(kg.K), gam: %g, Cp: %g J/(kg.K), mu: %g Pa.s, k: %g W/(m.K)\n'
                    % (self.R, self.gam, self.cp, self.mu, self.k) )
-        for i in range(self.nsp):
-            strm.write('%s fraction for species[%d] %s %e\n' %
-                       (self.outputUnits, i, self.species[i], self.speciesFraction[i]))
+        strm.write('    %s fractions\n' % self.outputUnits)
+        for i in range(len(self.species)):
+            strm.write('        [%d] %s = %e\n' % (i, self.species[i], self.speciesFractions[i]))
 
     def write_cea2_input_file(self, problemType, transProps):
         """
@@ -281,14 +276,15 @@ class Gas(object):
         # Select the gas components.
         fp.write('reac\n')
         for i in range(len(self.reactants)):
-            if self.fractions[i] > 0.0:
-                fp.write('   name= %s  %s=%g\n' % (self.species[i], self.inputUnits, self.fractions[i]))
+            if self.reactantFractions[i] > 0.0:
+                fp.write('   name= %s  %s=%g\n' % (self.reactants[i], self.inputUnits, 
+                                                   self.reactantFractions[i]))
         #
         if len(self.onlyList) > 0:
             fp.write('only %s\n' % (' '.join(self.onlyList)))
         #
         fp.write('output')
-        if self.outputUnits == 'massf': fp.write(' MASSF')
+        if self.outputUnits == 'massf': fp.write(' massf')
         fp.write(' trace=%e' % self.trace)
         if transProps: fp.write(' trans')
         fp.write('\n')
@@ -309,64 +305,84 @@ class Gas(object):
         fp = open('tmp.out', 'r')
         lines = fp.readlines()
         fp.close()
-        species_data = dict()
         thermo_props_found = False
         conductivity_found = False
         incident_shock_data = False
-        for s in self.species:
-            species_data.setdefault(s,0.0)
         for line in lines:
-           if line=="\n": continue
-           if line.find("PRODUCTS WHICH WERE CONSIDERED BUT WHOSE")>=0: break
-           if line.find("THERMODYNAMIC EQUILIBRIUM PROPERTIES AT ASSIGNED")>=0:
-               thermo_props_found = True
-           elif line.find("SHOCKED GAS (2)--INCIDENT--EQUILIBRIUM")>=0:
-               incident_shock_data = True
-           elif thermo_props_found or incident_shock_data:
-               tks = line.split()
-               # Fill out thermo properties
-               if line.find("H, KJ/KG")>=0:
-                   self.h = get_cea2_float(tks[2:]) * 1.0e3
-               elif line.find("U, KJ/KG")>=0:
-                   self.u = get_cea2_float(tks[2:]) * 1.0e3
-                   self.e = self.u
-               elif line.find("S, KJ/(KG)(K)")>=0:
-                   self.s = get_cea2_float(tks[2:]) * 1.0e3
-               elif line.find("Cp, KJ/(KG)(K)")>=0:
-                   self.cp = get_cea2_float(tks[2:]) * 1.0e3
-                   self.C_p = self.cp
-               elif line.find("GAMMAs")>=0:
-                   self.gam = get_cea2_float(tks[1:])
-               elif line.find("SON VEL,M/SEC")>=0:
-                   self.son = get_cea2_float(tks[2:])
-                   self.a = self.son
-               elif line.find("P, BAR")>=0:
-                   self.p = get_cea2_float(tks[2:]) * 1.0e5
-                   # print "p = ", self.p
-               elif line.find("T, K")>=0:
-                   self.T = get_cea2_float(tks[2:])
-                   # print "T = ", self.T
-               elif line.find("RHO, KG/CU M")>=0:
-                   self.rho = get_cea2_float(tks[3:])
-                   # print "rho = ", self.rho
-               # Scan tokens for species data
-               for s in self.species:
-                   if tks[0]==s or tks[0]==("*"+s):
-                       species_data[s] = get_cea2_float(tks[1:])
-                       # print "%s = %e" % ( s, species_data[s] )
-               # Fill out transport properties if requested
-               if transProps:
-                   if line.find("VISC,MILLIPOISE")>=0:
-                       self.mu = get_cea2_float(tks[1:]) * 1.0e-4
-                       # print "mu = ", self.mu
-                   elif conductivity_found==False and line.find("CONDUCTIVITY")>=0 and len(tks)==2:
-                       self.k = get_cea2_float(tks[1:]) * 1.0e-1
-                       # print "k = ", self.k
-                       # want to use the first conductivity value (for equilibrium reaction)
-                       conductivity_found = True
+            if line=="\n": continue
+            if line.find("PRODUCTS WHICH WERE CONSIDERED BUT WHOSE")>=0: break
+            if line.find("THERMODYNAMIC EQUILIBRIUM PROPERTIES AT ASSIGNED")>=0:
+                thermo_props_found = True
+            elif line.find("SHOCKED GAS (2)--INCIDENT--EQUILIBRIUM")>=0:
+                incident_shock_data = True
+            elif thermo_props_found or incident_shock_data:
+                tokens = line.split()
+                # Fill out thermo properties
+                if line.find("H, KJ/KG")>=0:
+                    self.h = get_cea2_float(tokens[2:]) * 1.0e3
+                elif line.find("U, KJ/KG")>=0:
+                    self.u = get_cea2_float(tokens[2:]) * 1.0e3
+                    self.e = self.u
+                elif line.find("S, KJ/(KG)(K)")>=0:
+                    self.s = get_cea2_float(tokens[2:]) * 1.0e3
+                elif line.find("Cp, KJ/(KG)(K)")>=0:
+                    self.cp = get_cea2_float(tokens[2:]) * 1.0e3
+                    self.C_p = self.cp
+                elif line.find("GAMMAs")>=0:
+                    self.gam = get_cea2_float(tokens[1:])
+                elif line.find("SON VEL,M/SEC")>=0:
+                    self.son = get_cea2_float(tokens[2:])
+                    self.a = self.son
+                elif line.find("P, BAR")>=0:
+                    self.p = get_cea2_float(tokens[2:]) * 1.0e5
+                    # print "p = ", self.p
+                elif line.find("T, K")>=0:
+                    self.T = get_cea2_float(tokens[2:])
+                    # print "T = ", self.T
+                elif line.find("RHO, KG/CU M")>=0:
+                    self.rho = get_cea2_float(tokens[3:])
+                    # print "rho = ", self.rho
+                # Fill out transport properties if requested
+                if transProps:
+                    if line.find("VISC,MILLIPOISE")>=0:
+                        self.mu = get_cea2_float(tokens[1:]) * 1.0e-4
+                        # print "mu = ", self.mu
+                    elif conductivity_found==False and line.find("CONDUCTIVITY")>=0 and len(tokens)==2:
+                        self.k = get_cea2_float(tokens[1:]) * 1.0e-1
+                        # print "k = ", self.k
+                        # want to use the first conductivity value (for equilibrium reaction)
+                        conductivity_found = True
+                else:
+                    self.mu = 0.0
+                    self.k = 0.0
         # Calculate remaining thermo properties
         self.R = self.p / (self.rho * self.T);  # gas constant, J/kg.K
         self.C_v = self.C_p - self.R            # specific heat, const volume
+        #
+        # Scan lines again, this time looking for species fractions.
+        species_data = {}
+        for s in self.species: species_data[s] = 0.0
+        species_fractions_found = False
+        for line in lines:
+            line = line.strip()
+            if len(line) == 0: continue
+            if line.find('MOLE FRACTIONS') >= 0:
+                species_fractions_found = True
+                continue
+            if line.find('MASS FRACTIONS') >= 0:
+                species_fractions_found = True
+                continue
+            if line.find('* THERMODYNAMIC PROPERTIES FITTED') >= 0: break
+            if species_fractions_found:
+                tokens = line.split()
+                s = tokens[0].replace('*', '')
+                species_data[s] = get_cea2_float(tokens[1:])
+                # print "%s = %e" % (s, species_data[s])
+        self.speciesFractions = [species_data[s] for s in self.species]
+        for s in species_data.keys():
+            if s not in self.species:
+                self.species.append(s)
+                self.speciesFractions.append(species_data[s])
         return
 
     def EOS(self, problemType='pT', transProps=True):
@@ -421,17 +437,15 @@ class Gas(object):
 if __name__ == '__main__':
     print 'Test the Gas class...'
     #
-    print '\nDefault constructor with air as the test gas...'
+    print '\nDefault constructor with Air as the test gas...'
     a = Gas(['Air'], [1.0,], outputUnits='moles')
     a.set_pT(100.0e3, 300.0)
     a.write_state(sys.stdout)
-    print 'and the same air at a higher temperature'
+    print 'and the same Air at a higher temperature'
     a.set_pT(100.0e3, 4000.0)
     a.write_state(sys.stdout)
-
-    sys.exit()
     #
-    print '\nAir-5-species for Luke: 79% N2, 21% O2 by mole fraction.'
+    print '\nAir-5-species for nenzfr: 79% N2, 21% O2 by mole fraction.'
     a = Gas(reactants=['N2','O2','N','O','NO'], 
             fractions=[0.79,0.21,0.0,0.0,0.0],
             inputUnits='moles', outputUnits='massf',
@@ -442,7 +456,7 @@ if __name__ == '__main__':
     a.set_pT(100.0e3, 4000.0)
     a.write_state(sys.stdout)
     #
-    print '\nTry a user-specified mix of Helium, N2 and N'
+    print '\nTry an odd mix of Helium, N2 and N'
     b = Gas(['N2','N','He'], [1.0, 0.0, 0.0])
     b.set_pT(100.0e3, 300.0)
     b.write_state(sys.stdout)
