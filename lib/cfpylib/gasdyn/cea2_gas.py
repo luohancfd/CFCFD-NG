@@ -142,23 +142,23 @@ class Gas(object):
     """
     Provides the equation of state for the gas.
     """
-    def __init__(self, reactants=[], fractions=[], onlyList=[],
+    def __init__(self, reactants={}, onlyList=[],
                  inputUnits='massf', outputUnits='massf', 
                  with_ions=False, trace=1.0e-6):
         """
         Set up a new obects, from either a name of species list.
 
-        :param reactants: list of strings is used to specify the reactants in the mix.
+        :param reactants: dictionary of reactants and their mixture fractions
+            The keys used to specify the reactants in the mix 
+            and the (float) values are their mass- or mole-fractions.
             The names are as per the CEA database.
             Note that other chemical species may be added to the mix by cea2.
-        :param fractions: list of floats is used to specify the mass- 
-            or mole-fractions of the reactants
         :param onlyList: list of strings limiting the species in the mix.
         :param inputUnits: string 'moles' or 'massf'
         :param outputUnits: string 'moles' or 'massf'
         :param with_ions: boolean flag indicating whether electrons and ions 
             should be included in the mix
-        :param trace: fraction below which a species will be neglected in the output
+        :param trace: fraction below which a species will be neglected in CEA
         """
 	if locate_executable_file(CEA_COMMAND_NAME) is None:
             print "Could not find the executable program %s" % CEA_COMMAND_NAME
@@ -168,26 +168,25 @@ class Gas(object):
             sys.exit()
 	# ----------------------------------------------------------------
         self.reactants = copy(reactants)
-        self.reactantFractions = copy(fractions)
         self.inputUnits = inputUnits
         self.outputUnits = outputUnits
         self.onlyList = copy(onlyList)
-        self.species = []
-        self.speciesFractions = []
-	self.with_ions = with_ions or ('e-' in self.reactants) or ('e-' in self.onlyList)
+        self.species = {} # will be read from CEA2 output
+	self.with_ions = with_ions or ('e-' in self.reactants.keys()) or ('e-' in self.onlyList)
         self.trace = trace
         self.Us = 0.0 # m/s
         self.have_run_cea = False
         return
 
-    def clone(self):
+    def clone(self, newOutputUnits=None):
         """
         Clone the current Gas object to make another, just the same.
 
         :returns: the new Gas object.
         """
-        other = Gas(self.reactants, self.reactantFractions, self.onlyList, 
-                    self.inputUnits, self.outputUnits, self.with_ions)
+        if newOutputUnits == None: newOutputUnits = self.outputUnits
+        other = Gas(self.reactants, self.onlyList, self.inputUnits,
+                    newOutputUnits, self.with_ions)
         if self.have_run_cea:
             other.p = self.p
             other.T = self.T
@@ -197,12 +196,33 @@ class Gas(object):
 
     def set_pT(self, p, T, transProps=True):
         """
-        Fills out gas state from given p and T.
+        Fills out gas state from given pressure and temperature.
+
+        :param p: pressure, Pa
+        :param T: temperature, K
         """
-        self.p = p;        # pressure, Pa
-        self.T = T;        # temperature, K
-        flag = self.EOS(problemType='pT', transProps=transProps)
-        return flag
+        self.p = p; self.T = T
+        return self.EOS(problemType='pT', transProps=transProps)
+
+    def set_rhoT(self, rho, T, transProps=True):
+        """
+        Fills out gas state from given density and temperature.
+
+        :param rho: density, kg/m**3
+        :param T: temperature, K
+        """
+        self.rho = rho; self.T = T
+        return self.EOS(problemType='rhoT', transProps=transProps)
+
+    def set_ps(self, p, s, transProps=True):
+        """
+        Fills out gas state from given pressure and specific entropy.
+
+        :param p: pressure, Pa
+        :param s: entropy, J/(kg.K)
+        """
+        self.p = p; self.s = s
+        return self.EOS(problemType='ps', transProps=transProps)
 
     def write_state(self, strm):
         """
@@ -212,9 +232,8 @@ class Gas(object):
                    % (self.p, self.T, self.rho, self.u, self.son) )
         strm.write('    R: %g J/(kg.K), gam: %g, Cp: %g J/(kg.K), mu: %g Pa.s, k: %g W/(m.K)\n'
                    % (self.R, self.gam, self.cp, self.mu, self.k) )
-        strm.write('    %s fractions\n' % self.outputUnits)
-        for i in range(len(self.species)):
-            strm.write('        [%d] %s = %e\n' % (i, self.species[i], self.speciesFractions[i]))
+        strm.write('    species %s: %s\n' % (self.outputUnits, str(self.species)) )
+        return
 
     def write_cea2_input_file(self, problemType, transProps):
         """
@@ -275,10 +294,9 @@ class Gas(object):
             raise Exception, 'cea2_gas: Invalid problemType: %s' % problemType
         # Select the gas components.
         fp.write('reac\n')
-        for i in range(len(self.reactants)):
-            if self.reactantFractions[i] > 0.0:
-                fp.write('   name= %s  %s=%g\n' % (self.reactants[i], self.inputUnits, 
-                                                   self.reactantFractions[i]))
+        for s in self.reactants.keys():
+            f = self.reactants[s]
+            if f > 0.0: fp.write('   name= %s  %s=%g\n' % (s, self.inputUnits, f))
         #
         if len(self.onlyList) > 0:
             fp.write('only %s\n' % (' '.join(self.onlyList)))
@@ -360,8 +378,6 @@ class Gas(object):
         self.C_v = self.C_p - self.R            # specific heat, const volume
         #
         # Scan lines again, this time looking for species fractions.
-        species_data = {}
-        for s in self.species: species_data[s] = 0.0
         species_fractions_found = False
         for line in lines:
             line = line.strip()
@@ -376,13 +392,8 @@ class Gas(object):
             if species_fractions_found:
                 tokens = line.split()
                 s = tokens[0].replace('*', '')
-                species_data[s] = get_cea2_float(tokens[1:])
-                # print "%s = %e" % (s, species_data[s])
-        self.speciesFractions = [species_data[s] for s in self.species]
-        for s in species_data.keys():
-            if s not in self.species:
-                self.species.append(s)
-                self.speciesFractions.append(species_data[s])
+                self.species[s] = get_cea2_float(tokens[1:])
+                # print "%s = %e" % (s, self.species[s])
         return
 
     def EOS(self, problemType='pT', transProps=True):
@@ -435,10 +446,10 @@ class Gas(object):
 # --------------------------------------------------------------
 
 if __name__ == '__main__':
-    print 'Test the Gas class...'
+    print 'Test/demonstrate the Gas class...'
     #
-    print '\nDefault constructor with Air as the test gas...'
-    a = Gas(['Air'], [1.0,], outputUnits='moles')
+    print '\nDefault constructor with Air as the test gas.'
+    a = Gas({'Air':1.0,}, outputUnits='moles')
     a.set_pT(100.0e3, 300.0)
     a.write_state(sys.stdout)
     print 'and the same Air at a higher temperature'
@@ -446,27 +457,28 @@ if __name__ == '__main__':
     a.write_state(sys.stdout)
     #
     print '\nAir-5-species for nenzfr: 79% N2, 21% O2 by mole fraction.'
-    a = Gas(reactants=['N2','O2','N','O','NO'], 
-            fractions=[0.79,0.21,0.0,0.0,0.0],
+    a = Gas(reactants={'N2':0.79, 'O2':0.21, 'N':0.0, 'O':0.0, 'NO':0.0}, 
             inputUnits='moles', outputUnits='massf',
             onlyList=['N2','O2','N','O','NO'])
     a.set_pT(100.0e3, 300.0)
     a.write_state(sys.stdout)
-    print 'and the same air at a higher temperature'
-    a.set_pT(100.0e3, 4000.0)
+    print 'and isentropically compress to a higher pressure'
+    a.set_ps(10.0e6, a.s)
     a.write_state(sys.stdout)
     #
     print '\nTry an odd mix of Helium, N2 and N'
-    b = Gas(['N2','N','He'], [1.0, 0.0, 0.0])
+    b = Gas({'N2':1.0, 'N':0.0, 'He':0.0})
     b.set_pT(100.0e3, 300.0)
     b.write_state(sys.stdout)
-    print 'and the same initial mix at a higher temperature'
-    b.set_pT(263.79e3, 5719.0)
+    print 'and the same initial mix and volume at a higher temperature'
+    b.set_rhoT(b.rho, 5000.0)
     b.write_state(sys.stdout)
     #
     print '\nStart again with low-T air as the test gas'
-    a = Gas(['Air'], [1.0,]); a.set_pT(100.0e3, 300.0)
-    c = a.clone()
+    a = Gas({'Air':1.0,}); a.set_pT(100.0e3, 300.0)
+    a.write_state(sys.stdout)
+    print 'clone it, changing species-fraction units'
+    c = a.clone(newOutputUnits='moles')
     c.write_state(sys.stdout)
     print 'and shock process it'
     c.shock_process(4000.0)
