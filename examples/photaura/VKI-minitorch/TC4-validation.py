@@ -5,6 +5,27 @@ from librad2 import *
 from cfpylib.gasdyn.cea2_gas import *
 from numpy import *
 import sys
+
+def make_reactants_dictionary( species_list ):
+    nsp = len(species_list)
+    reactants = dict()
+    for sp in species_list:
+        # replace names containing '_plus' with '+' 
+        if ( sp.find("_plus")>=0 ): sp = sp[0:sp.find("_plus")] + "+"
+        # replace names containing '_minus' with '-' 
+        if ( sp.find("_minus")>=0 ): sp = sp[0:sp.find("_minus")] + "-"
+	reactants.setdefault(sp,0.0)
+    return reactants
+
+def get_species_composition( sp, species_data ):
+    # replace names containing '_plus' with '+' 
+    if ( sp.find("_plus")>=0 ): sp = sp[0:sp.find("_plus")] + "+"
+    # replace names containing '_minus' with '-' 
+    if ( sp.find("_minus")>=0 ): sp = sp[0:sp.find("_minus")] + "-"
+    if sp in species_data.keys():
+	return species_data[sp]
+    else:
+	return 0.0
     
 def main():
     print "--------------------------------------------------------------------------"
@@ -45,13 +66,14 @@ def main():
     CH4_mw = gm.molecular_weight( gm.get_isp_from_species_name( "CH4" ) )
     N2_mw = gm.molecular_weight( gm.get_isp_from_species_name( "N2" ) )
     
-    CH4_imf = 0.019 * CH4_mw / ( 0.019 * CH4_mw + 0.981 * N2_mw )
-    N2_imf  = 0.981 * N2_mw / ( 0.019 * CH4_mw + 0.981 * N2_mw )
+    # 98.1% N2 by volume
+    CH4_mf = 0.019 * CH4_mw / ( 0.019 * CH4_mw + 0.981 * N2_mw )
+    N2_mf  = 0.981 * N2_mw / ( 0.019 * CH4_mw + 0.981 * N2_mw )
     
-    imfs = [ 0.0 ] * nsp
-    imfs[gm.get_isp_from_species_name( "CH4" )] = CH4_imf
-    imfs[gm.get_isp_from_species_name( "N2" )] = N2_imf
-    cea = Gas('mix', species, imfs, use_out_file=False, thermoProps=0, transProps=0)
+    reactants = make_reactants_dictionary( species )
+    reactants["CH4"] = CH4_mf
+    reactants["N2"] = N2_mf
+    cea = Gas( reactants, onlyList=reactants.keys(), with_ions=True, trace=1.0e-10 )
     
     if do_LOS_integration:
         # Initialise line-of-sight class instance (f_res and radial limit previously defined)
@@ -100,9 +122,10 @@ def main():
             print "Preparing slab %d of %d: x = %0.2f mm, T = %0.1f K" % ( islb+1, n_slabs, x*1.e3, T )
             # only do unique calculations up to centre slab
             if islb<(n_slabs+1)/2:
-                cea.set_from_pAndT(p_plasma,T,thermoProps=0,transProps=0)
+                cea.set_pT(p_plasma,T)
                 for itm in range(ntm): Q.T[itm] = T
-                for isp in range(nsp): Q.massf[isp ] = cea.eq_massf[isp]
+		for isp,sp in enumerate(species):
+		    Q.massf[isp] = get_species_composition(sp,cea.species)
                 gm.eval_thermo_state_pT(Q)
                 # Q.print_values(False)
                 Plasma.set_rad_point(islb,Q,divqs[islb],x,slab_width)
@@ -149,9 +172,10 @@ def main():
         # extract emissivities for comparison with Abel inversions
         for x in x_list:
             T = slabs(x)
-            cea.set_from_pAndT(p_plasma,T,thermoProps=0, transProps=0)
+            cea.set_pT(p_plasma,T)
             for itm in range(ntm): Q.T[itm] = T
-            for isp in range(nsp): Q.massf[isp ] = cea.eq_massf[isp]
+            for isp,sp in enumerate(species):
+                Q.massf[isp] = get_species_composition(sp,cea.species)
             gm.eval_thermo_state_pT(Q)
             # check the CN and C2 mole-fractions
             M = vectord(nsp)

@@ -82,7 +82,17 @@ class Bar:
 	out.append(self.wrap[1])
 	return "".join(out)
 
+# convert wavenumber in 1/cm to K
 def nu2T( nu_cm ):
     return RC_h_SI * RC_c * nu_cm / RC_k_SI
 
+# convert CEA heat of formation (J/mol) to cfcfd heat of formation (J/kg)
+# note that the both h_f and m_w should be the values straight out thermo.inp
+# in those units
+def cea_Hf( h_f, m_w ):
+    return h_f / ( m_w*1.0e-3 )
+
+# CEA heat of formation (J/mol) to TAU heat of formation (K)
+def cea_Hf2T( h_f ):
+    return h_f / RC_Na / RC_k_SI 
 %}

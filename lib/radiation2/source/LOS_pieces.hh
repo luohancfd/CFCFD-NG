@@ -102,6 +102,8 @@ public:
 
     double exact_solve_for_divq();
     
+    double quick_solve_for_planck_divq( double kappa_nu );
+
 public:
     SpectralFlux * F_;
 };

@@ -261,3 +261,82 @@ double Neufeld_CI_model::s_eval_D( Gas_data &Q )
     
     return 0.0;
 }
+
+Collision_integral * new_CI_from_file( string fname )
+{
+    Collision_integral * CI_model = 0;
+
+    lua_State *L = luaL_newstate();
+    luaL_openlibs(L);
+
+    if( luaL_dofile(L, fname.c_str()) != 0 ) {
+        ostringstream ost;
+        ost << "new_CI_from_file():\n";
+        ost << "Error in input file: " << fname << endl;
+        input_error(ost);
+    }
+
+    lua_getglobal(L, "CI");
+    if ( !lua_istable(L, -1) ) {
+        ostringstream ost;
+        ost << "new_CI_from_file()\n";
+        ost << "Expected a table entry for 'CI'" << endl;
+        input_error(ost);
+    }
+
+    string i_name = get_string(L, -1, "i");
+    string j_name = get_string(L, -1, "j");
+
+    int Z_i = 0;
+    int Z_j = 0;
+    if ( i_name.find("_plus")!=string::npos ) Z_i = 1;
+    else if ( i_name.find("_minus")!=string::npos ) Z_i = -1;
+    if ( j_name.find("_plus")!=string::npos ) Z_j = 1;
+    else if ( j_name.find("_minus")!=string::npos ) Z_j = -1;
+
+    string CI_model_str = get_string(L,-1,"model");
+    // Move to the parameters section
+    lua_getfield(L, -1, "parameters" );
+    if ( !lua_istable(L, -1) ) {
+        ostringstream ost;
+        ost << "new_CI_from_file()\n";
+        ost << "Error setting parameters table for collision-integral: "
+            << i_name << " - " << j_name << endl;
+        input_error(ost);
+    }
+
+    // Create the CI model
+    if ( CI_model_str=="none" ) {
+        CI_model = new No_CI_model();
+    }
+    else if ( CI_model_str=="GuptaYos curve fits" ) {
+        CI_model = new GuptaYos_CI_model( 0, Z_i, Z_j, L );
+    }
+    else if ( CI_model_str=="Stallcop curve fits" ) {
+        CI_model = new Stallcop_CI_model( 0, Z_i, Z_j, L );
+    }
+    else if ( CI_model_str=="Bruno curve fits" ) {
+        CI_model = new Bruno_CI_model( 0, Z_i, Z_j, L );
+    }
+    else if ( CI_model_str=="Neufeld curve fits" ) {
+        ostringstream oss;
+        oss << "new_CI_from_file()" << endl
+            << "Collision pair: " << i_name << " - " << j_name << " requested the Neufeld curve fits model." << endl
+            << "Not currently implementing this model." << endl;
+        input_error( oss );
+    }
+    else {
+        ostringstream oss;
+        oss << "Binary_interaction::Binary_interaction()" << endl
+            << "Collision integral model: " << CI_model_str << " is not recognised." << endl;
+        input_error( oss );
+    }
+    lua_pop(L,1);       // pop 'parameters'
+
+    lua_pop(L,1);       // pop 'CI'
+
+    lua_close(L);
+
+    return CI_model;
+}
+

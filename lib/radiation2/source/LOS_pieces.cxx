@@ -604,3 +604,93 @@ double TS_data::exact_solve_for_divq()
     return q_wall;
 }
 
+double TS_data::quick_solve_for_planck_divq( double kappa_nu )
+{
+    // Simple method from Sebastian Karl's VKI thesis where q+ and q- between
+    // each node location are solved for
+    // using planck function to generate emission coefficients
+
+    // Make vectors to store integrated fluxes
+    vector<double> q_plus, q_minus;
+
+    /* ------- Wall-to-shock (minus) direction ------- */
+
+    // Outer-boundary blackbody intensity (note optical thickness = 0)
+    double q_int = 0.0;
+    for ( int inu=0; inu < nnus_; inu++ ) {
+        F_->q_nu[inu] = 2.0 * M_PI * planck_intensity( F_->nu[inu], T_f_ ) * E_3( 0.0 );
+        // Frequency integration
+        if ( inu>0 )
+            q_int += 0.5 * ( F_->q_nu[inu] + F_->q_nu[inu-1] ) * fabs( F_->nu[inu] - F_->nu[inu-1] );
+    }
+
+    // Save integrated flux
+    q_minus.push_back( q_int );
+
+    // integrate over emitting slabs using trapezoidal method
+    for ( int irp=(nrps_-1); irp >= 0; --irp ) {
+        // cout << "Spatial location: | " << irp << " | \r" << flush;
+        q_int = 0.0;
+        for ( int inu=0; inu < nnus_; inu++ ) {
+            // calculate optical thickness between intervals
+            double tau_nu = fabs(rpoints_[irp]->ds_) * kappa_nu;
+            // Attenuate incident flux )
+            F_->q_nu[inu] *= 2.0 * E_3( tau_nu );
+            // Add contribution from this slab
+             F_->q_nu[inu] += 2.0 * M_PI * planck_intensity( F_->nu[inu], rpoints_[irp]->Q_->T[0] ) * E_3( 0.0 );
+            // Integrate
+            if ( inu>0 )
+                q_int += 0.5 * ( F_->q_nu[inu] + F_->q_nu[inu-1] ) * fabs( F_->nu[inu] - F_->nu[inu-1] );
+        }
+        // Save integrated flux
+        q_minus.push_back( q_int );
+    }
+
+    /* ------- Shock-to-wall (plus) direction ------- */
+
+    // Outer-boundary blackbody intensity (note optical thickness = 0)
+    q_int = 0.0;
+    for ( int inu=0; inu < nnus_; inu++ ) {
+        F_->q_nu[inu] = 2.0 * M_PI * planck_intensity( F_->nu[inu], T_i_ ) * E_3( 0.0 );
+        // Frequency integration
+        if ( inu>0 )
+            q_int += 0.5 * ( F_->q_nu[inu] + F_->q_nu[inu-1] ) * fabs( F_->nu[inu] - F_->nu[inu-1] );
+    }
+
+    // Save integrated flux
+    q_plus.push_back( q_int );
+
+    // integrate over emitting slabs using trapezoidal method
+    for ( int irp=0; irp < nrps_; irp++ ) {
+        // cout << "Spatial location: | " << irp << " | \r" << flush;
+        q_int = 0.0;
+        for ( int inu=0; inu < nnus_; inu++ ) {
+            // calculate optical thickness between intervals
+            double tau_nu = fabs(rpoints_[irp]->ds_) * kappa_nu;
+            // Attenuate incident flux )
+            F_->q_nu[inu] *= 2.0 * E_3( tau_nu );
+            // Add contribution from this slab
+             F_->q_nu[inu] += 2.0 * M_PI * planck_intensity( F_->nu[inu], rpoints_[irp]->Q_->T[0] ) * E_3( 0.0 );
+            // Integrate
+            if ( inu>0 )
+                q_int += 0.5 * ( F_->q_nu[inu] + F_->q_nu[inu-1] ) * fabs( F_->nu[inu] - F_->nu[inu-1] );
+        }
+        // Save integrated flux
+        q_plus.push_back( q_int );
+    }
+
+    // calculate radiative divergence
+
+    for ( int irp=0; irp<nrps_; ++irp ) {
+        // use forward differencing to evaluate divergence
+        double q_net_i = q_plus[irp] - q_minus[nrps_-irp];
+        double q_net_ip1 = q_plus[irp+1] - q_minus[nrps_-irp-1];
+        *(rpoints_[irp]->Q_rE_rad_) = ( q_net_i - q_net_ip1 ) / rpoints_[irp]->ds_;
+    }
+
+    // return wall directed flux
+    // NOTE: omitting wall emission - which is correct
+    double q_wall = q_plus.back();
+
+    return q_wall;
+}

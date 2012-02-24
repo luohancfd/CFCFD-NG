@@ -13,3 +13,6 @@ poshax3.x FireII.cfg
 # 3. Plot results
 gnuplot profiles.gplot
 
+# 4. Convert to png files
+convert number_density_profiles.eps number_density_profiles.png
+convert temperature_profiles.eps temperature_profiles.png 

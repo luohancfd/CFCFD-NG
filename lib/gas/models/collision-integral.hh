@@ -127,4 +127,6 @@ private:
     Univariate_functor * Pi_Omega_22_;
 };
 
+Collision_integral * new_CI_from_file( std::string fname );
+
 #endif

@@ -106,9 +106,9 @@ int main(int argc, char *argv[])
     else {
     	rtmodel = create_poshax_radiation_transport_model(radiation_file);
     }
-    
+
     // Default to loose coupling
-    coupling_default = "loose";
+    string coupling_default = "loose";
     
     string coupling_str;
     if( ! cfg.parse_string("controls", "source_term_coupling", coupling_str, 
@@ -222,7 +222,7 @@ int main(int argc, char *argv[])
     }
     if ( !rtmodel && ( rad_dx > 0.0 || tube_width > 0.0 || write_rad_level_pops 
     	|| fwhm_Ang > 0.0 || write_rad_emissions || lambda_min.size() 
-    	|| lambda_max.size() || dx_smear.size() ) ) {
+    	|| lambda_max.size() || dx_smear.size() || x_EQ_spectra > 0.0 ) ) {
     	cout << "Cannot compute radiation without a radiation model!" << endl
     	     << "Bailing out!" << endl;
     	exit(BAD_INPUT_ERROR);
@@ -289,6 +289,9 @@ int main(int argc, char *argv[])
     	    massf_inf.push_back( molef_inf[isp]*gmodel->molecular_weight(isp) 
     	    	                 / MW );
     }
+
+    // Make sure the mass-fractions sum to one
+    scale_mass_fractions(massf_inf);
 
     vector<double> T_inf;
     if ( !cfg.parse_vector_of_doubles("initial-conditions", "T_inf", T_inf, vdnf)
@@ -392,7 +395,7 @@ int main(int argc, char *argv[])
     	outfile << "# " << col << ": Q_rad (W/m**3)\n";
     	++col;
     }
-    
+
     /* Pieces for radiation calculation */
     int rad_count = 0;
     double next_spectra_x = rad_dx;
@@ -401,7 +404,7 @@ int main(int argc, char *argv[])
     RadiationSpectralModel * rsm = 0;
     TS_data * TS = 0;
     vector<double> divq_rad;
-    if ( rad_dx > 0.0 || TS_dx > 0.0 ) {
+    if ( rad_dx > 0.0 || TS_dx > 0.0 || x_EQ_spectra > 0.0 ) {
     	rsm = rtmodel->get_rsm_pointer();
     }
     if ( TS_dx > 0.0 ) {
@@ -483,13 +486,6 @@ int main(int argc, char *argv[])
 	    	    S.integrate_intensity_spectra( lambda_min[i], 
 	    	    	                           lambda_max[i] ) );
 	    }
-	    if ( x > x_EQ_spectra ) {
-	    	S.apply_apparatus_function( fwhm_Ang / 2.0 );
-		
-		string specfile_name = "EQ_intensity_spectra.txt";
-		cout << "- Writing " << specfile_name << endl;
-		S.write_to_file( specfile_name );
-	    }
 	    if ( write_rad_level_pops ) {
 	    	rsm->append_current_radiator_populations( x );
 	    	rsm->write_QSS_population_analysis_files( *psr->psflow.Q, 
@@ -498,6 +494,28 @@ int main(int argc, char *argv[])
 	    ++rad_count;
 	    next_spectra_x += rad_dx;
 	}
+        if ( x_EQ_spectra > 0.0 && x > x_EQ_spectra ) {
+            cout << "- Computing equilibrium spectra " << rad_count << endl;
+            LOS_data LOS( rsm, 1, 0.0, 0.0 );
+            double * div_q = 0;
+            LOS.set_rad_point( 0, psr->psflow.Q, div_q, tube_width / 2.0,
+                               tube_width );
+            SpectralIntensity S(rsm);
+            LOS.integrate_LOS( S );
+
+            S.apply_apparatus_function( fwhm_Ang / 2.0 );
+
+            string specfile_name = "EQ_intensity_spectra.txt";
+            cout << "- Writing " << specfile_name << endl;
+            S.write_to_file( specfile_name );
+
+            string coeffile_name = "EQ_coefficient_spectra.txt";
+            cout << "- Writing " << coeffile_name << endl;
+            LOS.write_point_to_file( 0, coeffile_name );
+
+            // Set x_EQ_spectra to a large value so another spectrum is not computed
+            x_EQ_spectra = 9.9e99;
+        }
 	if ( next_TS_x > 0.0 && x > next_TS_x ) {
 	    // tangent slab problem
 	    cout << "creating TS point " << TS_count << " at x = " << x << endl;
@@ -542,7 +560,6 @@ int main(int argc, char *argv[])
     	    I_vec[i].write_to_file( oss.str() );
     	}
     }
-    
     if ( TS_dx > 0.0 ) {
     	double q_rad = TS->quick_solve_for_divq();
     	cout << "Tangent slab flux q_rad = " << q_rad*1.0e-4 << " W/cm**2\n";
@@ -563,7 +580,6 @@ int main(int argc, char *argv[])
 	}
 	TS_outfile.close();
     }
-    
     outfile.close();
     delete gmodel;
     if ( rupdate ) delete rupdate;

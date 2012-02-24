@@ -36,6 +36,27 @@ def create_gas_file(model, species, fname):
 
     return
 
+def make_reactants_dictionary( species_list ):
+    nsp = len(species_list)
+    reactants = dict()
+    for sp in species_list:
+        # replace names containing '_plus' with '+' 
+        if ( sp.find("_plus")>=0 ): sp = sp[0:sp.find("_plus")] + "+"
+        # replace names containing '_minus' with '-' 
+        if ( sp.find("_minus")>=0 ): sp = sp[0:sp.find("_minus")] + "-"
+	reactants.setdefault(sp,0.0)
+    return reactants
+
+def get_species_composition( sp, species_data ):
+    # replace names containing '_plus' with '+' 
+    if ( sp.find("_plus")>=0 ): sp = sp[0:sp.find("_plus")] + "+"
+    # replace names containing '_minus' with '-' 
+    if ( sp.find("_minus")>=0 ): sp = sp[0:sp.find("_minus")] + "-"
+    if sp in species_data.keys():
+	return species_data[sp]
+    else:
+	return 0.0
+
 EMISSION_CALC = True
 TS_CALC = True
 
@@ -65,27 +86,18 @@ def main():
     Q = Gas_data(nsp,ntm)
     if cea2_gas:
     	# Compute equilibrium composition via CEA 
-        species  =  []
-        for isp in range(nsp):
-    	    species.append(gm.species_name(isp))
-    	    species[-1] = species[-1].replace("_plus","+")
-    	    species[-1] = species[-1].replace("_minus","-")
-        f_inf = [ 0.0 ] * nsp
-        f_inf[gm.get_isp_from_species_name('N2')] = 0.767; f_inf[gm.get_isp_from_species_name('O2')] = 0.233
+	reactants = make_reactants_dictionary( species_list )
+        reactants['N2'] = 0.767; reactants['O2'] = 0.233
         p_inf = 40.0; T_inf = 296.0; u_inf = 10.254e3
-        Q.p = p_inf
-        for itm in range(ntm): Q.T[itm] = T_inf
-        for isp in range(nsp): Q.massf[isp] = f_inf[isp]
-        gm.eval_thermo_state_pT(Q)
-        cea = Gas('mix', species, f_inf, use_out_file=True)
-        cea.set_from_pAndT(p_inf,T_inf)
-        eps = cea.shock_process( u_inf )
-        #over-write provided initial mass-fractions
-        #print "f_eq = ", eps.eq_massf
-        Q.rho = eps.rho
-        for itm in range(ntm): Q.T[itm] = eps.T
-        for isp in range(nsp): Q.massf[isp] = eps.eq_massf[isp]
-	del cea, eps
+        cea = Gas( reactants, onlyList=reactants.keys(), with_ions=True, trace=1.0e-10 )
+        cea.set_pT(p_inf,T_inf)
+        cea.shock_process( u_inf )
+        Q.rho = cea.rho
+        for itm in range(ntm):
+            Q.T[itm] = cea.T
+        for isp,sp in enumerate(species_list):
+            Q.massf[isp] = get_species_composition(sp,cea.species)
+	del cea
     else:
 	# Use precomputed equilibrium composition as cea2_gas is not functioning
         Q.rho = 7.2917e-03
