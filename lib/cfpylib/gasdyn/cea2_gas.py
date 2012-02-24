@@ -168,7 +168,10 @@ class Gas(object):
             sys.exit()
 	# ----------------------------------------------------------------
         self.reactants = copy(reactants)
-        self.inputUnits = inputUnits
+        if inputUnits.find("mass")>=0:
+	    self.inputUnits = "wt"
+	else:
+	    self.inputUnits = inputUnits
         self.outputUnits = outputUnits
         self.onlyList = copy(onlyList)
         self.species = {} # will be read from CEA2 output
@@ -323,69 +326,10 @@ class Gas(object):
         fp = open('tmp.out', 'r')
         lines = fp.readlines()
         fp.close()
-<<<<<<< local
-        self.species_data = dict()
-=======
->>>>>>> other
         thermo_props_found = False
         conductivity_found = False
         incident_shock_data = False
-<<<<<<< local
-        for s in self.species:
-            self.species_data.setdefault(s,0.0)
-=======
->>>>>>> other
         for line in lines:
-<<<<<<< local
-           if line=="\n": continue
-           if line.find("PRODUCTS WHICH WERE CONSIDERED BUT WHOSE")>=0: break
-           if line.find("THERMODYNAMIC EQUILIBRIUM PROPERTIES AT ASSIGNED")>=0:
-               thermo_props_found = True
-           elif line.find("SHOCKED GAS (2)--INCIDENT--EQUILIBRIUM")>=0:
-               incident_shock_data = True
-           elif thermo_props_found or incident_shock_data:
-               tks = line.split()
-               # Fill out thermo properties
-               if line.find("H, KJ/KG")>=0:
-                   self.h = get_cea2_float(tks[2:]) * 1.0e3
-               elif line.find("U, KJ/KG")>=0:
-                   self.u = get_cea2_float(tks[2:]) * 1.0e3
-                   self.e = self.u
-               elif line.find("S, KJ/(KG)(K)")>=0:
-                   self.s = get_cea2_float(tks[2:]) * 1.0e3
-               elif line.find("Cp, KJ/(KG)(K)")>=0:
-                   self.cp = get_cea2_float(tks[2:]) * 1.0e3
-                   self.C_p = self.cp
-               elif line.find("GAMMAs")>=0:
-                   self.gam = get_cea2_float(tks[1:])
-               elif line.find("SON VEL,M/SEC")>=0:
-                   self.son = get_cea2_float(tks[2:])
-                   self.a = self.son
-               elif line.find("P, BAR")>=0:
-                   self.p = get_cea2_float(tks[2:]) * 1.0e5
-                   # print "p = ", self.p
-               elif line.find("T, K")>=0:
-                   self.T = get_cea2_float(tks[2:])
-                   # print "T = ", self.T
-               elif line.find("RHO, KG/CU M")>=0:
-                   self.rho = get_cea2_float(tks[3:])
-                   # print "rho = ", self.rho
-               # Scan tokens for species data
-               for s in self.species:
-                   if tks[0]==s or tks[0]==("*"+s):
-                       self.species_data[s] = get_cea2_float(tks[1:])
-                       # print "%s = %e" % ( s, species_data[s] )
-               # Fill out transport properties if requested
-               if transProps:
-                   if line.find("VISC,MILLIPOISE")>=0:
-                       self.mu = get_cea2_float(tks[1:]) * 1.0e-4
-                       # print "mu = ", self.mu
-                   elif conductivity_found==False and line.find("CONDUCTIVITY")>=0 and len(tks)==2:
-                       self.k = get_cea2_float(tks[1:]) * 1.0e-1
-                       # print "k = ", self.k
-                       # want to use the first conductivity value (for equilibrium reaction)
-                       conductivity_found = True
-=======
             if line=="\n": continue
             if line.find("PRODUCTS WHICH WERE CONSIDERED BUT WHOSE")>=0: break
             if line.find("THERMODYNAMIC EQUILIBRIUM PROPERTIES AT ASSIGNED")>=0:
@@ -432,7 +376,6 @@ class Gas(object):
                 else:
                     self.mu = 0.0
                     self.k = 0.0
->>>>>>> other
         # Calculate remaining thermo properties
         self.R = self.p / (self.rho * self.T);  # gas constant, J/kg.K
         self.C_v = self.C_p - self.R            # specific heat, const volume
