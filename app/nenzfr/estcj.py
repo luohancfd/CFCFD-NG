@@ -1,37 +1,36 @@
 #! /usr/bin/env python 
-## \file estcj.py
-## \ingroup basic_gas_dyn
-##
-## \brief Equilibrium Shock Tube Conditions, Junior
-##
-## Since 1968, we have been using the ESTC code by Malcolm McIntosh
-## to compute the conditions in the end of the reflected shock tubes
-## T1--T5 and HEG.  There are a number of problems in using the ESTC
-## code, including uncertainty in updating the chemistry coefficients.
-##
-## This program, ESTCJ, moves away from the old chemistry model
-## by making use of the CEA code from the NASA Glenn Research Center.
-##
-## \author PA Jacobs
-##         Institute of Aerodynamics and Flow Technology
-##         The German Aerospace Center, Goettingen.
-##
-## \version 24-Dec-02: First code.
-## \version 2010: ported to run with Rowan's cea2_gas module.
-## \version 2011: Added isentropic expansions so that we now have
-##    a full replacement for stn.f
-## \version 01-June-2011 LukeD: Separated the code which writes an output
-##    file into its own function to allow for better integration with 
-##    nenzfr.py
-## \version 30-June-2011 LukeD: Decreased the starting guess for secant 
-##    when solving for the exit flow
-## \version 22-July-2011 LukeD: Added stnp option which allows us to expand
-##    to a nominated pitot-to-supply pressure ratio. The calculated pitot 
-##    pressure and pitot-to-supply pressure ratio are included in the values 
-##    printed out for the nozzle exit
-##
+"""
+estcj.py: Equilibrium Shock Tube Conditions, Junior
+
+Since 1968, we have been using the ESTC code by Malcolm McIntosh
+to compute the conditions in the end of the reflected shock tubes
+T1--T5 and HEG.  There are a number of problems in using the ESTC
+code, including uncertainty in updating the chemistry coefficients.
+
+This program, ESTCJ, moves away from the old chemistry model
+by making use of the CEA code from the NASA Glenn Research Center.
+
+.. Author: PA Jacobs
+   Institute of Aerodynamics and Flow Technology
+   The German Aerospace Center, Goettingen.
+
+.. Versions:
+   24-Dec-02: First code.
+   2010: ported to run with Rowan's cea2_gas module.
+   2011: Added isentropic expansions so that we now have
+       a full replacement for stn.f
+   01-June-2011 LukeD: Separated the code which writes an output
+       file into its own function to allow for better integration with nenzfr.py
+   30-June-2011 LukeD: Decreased the starting guess for secant 
+       when solving for the exit flow
+   22-July-2011 LukeD: Added stnp option which allows us to expand
+       to a nominated pitot-to-supply pressure ratio. The calculated pitot 
+       pressure and pitot-to-supply pressure ratio are included in the values 
+       printed out for the nozzle exit
+   24-Feb-2012 PJ: update to use the new cea2_gas.py arrangement.
+"""
+
 import sys, os, math
-sys.path.append("/sw/lib/python2.3/site-packages/Numeric") # for Tim's MacOSX
 sys.path.append(os.path.expandvars("$HOME/e3bin")) # installation directory
 sys.path.append("") # so that we can find user's scripts in current directory
 from cfpylib.nm.zero_solvers import secant
@@ -41,23 +40,42 @@ from cfpylib.gasdyn.ideal_gas_flow import *
 
 # ----------------------------------------------------------------------------
 
-VERSION_STRING = "19-Feb-2012"
+VERSION_STRING = "24-Feb-2012"
 DEBUG_ESTCJ  = 0  # if 1: some detailed data is output to help debugging
 PRINT_STATUS = 1  # if 1: the start of each stage of the computation is noted.
 
 # ----------------------------------------------------------------------------
 # Utility functions.
 
+def make_gas_from_name(gasName):
+    """
+    Manufacture a cea2_gas object from a small library of options.
+
+    :param gasName: one of the names for the special cases set out below
+    """
+    if gasName == 'air':
+        return Gas({'Air':1.0,})
+    elif gasName == 'air5species':
+        return Gas(reactants={'N2':0.79, 'O2':0.21, 'N':0.0, 'O':0.0, 'NO':0.0}, 
+                   inputUnits='moles', onlyList=['N2','O2','N','O','NO'])
+    elif gasName == 'n2':
+        return Gas(reactants={'N2':1.0, 'N':0.0}, onlyList=['N2', 'N'])
+    elif gasName == 'co2':
+        return Gas(reactants={'CO2':1.0})
+    elif gasName == 'h2ne':
+        return Gas(reactants={'H2':0.15, 'Ne':0.85}, inputUnits='moles')
+    else:
+        raise Exception, 'make_gas_from_name(): unknown gasName: %s' % gasName
+
+
 def shock_ideal(s1, Vs, s2):
     """
-    Computes post-shock conditions in the shock frame.  Assumes ideal gas.
+    Computes post-shock conditions in the shock frame, assuming ideal gas.
 
-    Input:
-        s1 pre-shock gas state
-        Vs speed of gas coming into shock
-        s2 post-shock gas state
-
-    Returns both the shock-reference speed and the lab speed.
+    :param s1: pre-shock gas state
+    :param Vs: speed of gas coming into shock
+    :param s2: post-shock gas state
+    :returns: both the shock-reference speed and the lab speed.
     """
     #
     M1 = Vs / s1.a
@@ -78,7 +96,7 @@ def shock_ideal(s1, Vs, s2):
     #
     s2.R = s1.R
     s2.gam = s1.gam
-    s2.C_v = s2.C_v
+    s2.C_v = s1.C_v
     #
     return (V2,Vg)
 
@@ -98,12 +116,10 @@ def shock_real(s1, Vs, s2):
     Computes post-shock conditions, using high-temperature gas properties
     and a shock-stationary frame.
 
-    Input:
-        s1 pre-shock gas state
-        Vs speed of gas coming into shock
-        s2 post-shock gas state
-
-    Returns both the shock-reference speed and the lab speed.
+    :param s1: pre-shock gas state
+    :param Vs: speed of gas coming into shock
+    :param s2: post-shock gas state
+    :returns: both the shock-reference speed and the lab speed.
     """
     #
     (V2,Vg) = shock_ideal(s1, Vs, s2)
@@ -135,7 +151,7 @@ def shock_real(s1, Vs, s2):
     rho_tol = 1.0e-3; # tolerance in kg/m^3
     T_tol = 0.25;  # tolerance in degrees K
     #
-    s0 = Gas(s1.gasName); # temporary workspace
+    s0 = s1.clone(); # temporary workspace
     #
     # Update the estimates using the Newton-Raphson method.
     #
@@ -218,13 +234,11 @@ def reflected_shock(s2, Vg, s5):
     """
     Computes state5 which has brought the gas to rest at the end of the shock tube.
 
-    Input:
-        state2 is the post-incident-shock gas state
-        Vg     is the lab-frame velocity of the gas in state 2
-        state5 is the stagnation state that will be filled in as
-                  a side effect of this function
-
-    Returns Vr, the reflected shock speed in the lab frame.
+    :param state2: the post-incident-shock gas state
+    :param Vg: the lab-frame velocity of the gas in state 2
+    :param s5: the stagnation state that will be filled in
+        (as a side effect of this function)
+    :returns: Vr, the reflected shock speed in the lab frame.
     """
     #
     # As an initial guess, 
@@ -277,9 +291,9 @@ def expand_from_stagnation(p_over_p0, p0, T0, gasName):
     Given a stagnation condition, expand to a new pressure.
     Returns new gas state and the corresponding velocity of the expanded stream.
     """
-    state0 = Gas(gasName)
+    state0 = make_gas_from_name(gasName)
     state0.set_from_pAndT(p0, T0)
-    new_state = Gas(gasName)
+    new_state = make_gas_from_name(gasName)
     new_state.set_from_pAndT(p0, T0)
     new_state.p = p0 * p_over_p0;
     new_state.EOS(problemType='ps')
@@ -297,16 +311,16 @@ def total_condition(p1, T1, V1, gasName):
     Given a free-stream condition, compute the corresponding stagnant condition
     at which the gas is brought to rest isentropically.
     """
-    state1 = Gas(gasName)
-    state1.set_from_pAndT(p1, T1)
+    state1 = make_gas_from_name(gasName)
+    state1.set_pT(p1, T1)
     H1 = state1.p/state1.rho + state1.e + 0.5*V1*V1
     def error_in_total_enthalpy(x, p1=state1.p, T1=state1.T, s1=state1.s, H1=H1):
         """
         The enthalpy at the stagnation condition should match
         the total enthalpy of the stream.
         """
-        new_state = Gas(gasName)
-        new_state.set_from_pAndT(p1, T1)
+        new_state = make_gas_from_name(gasName)
+        new_state.set_pT(p1, T1)
         new_state.p = x * p1
         new_state.EOS(problemType='ps')
         h = new_state.p/new_state.rho + new_state.e
@@ -315,8 +329,8 @@ def total_condition(p1, T1, V1, gasName):
     if x_total == 'FAIL':
         print "Failed to find total conditions iteratively."
         x_total = 1.0
-    new_state = Gas(gasName)
-    new_state.set_from_pAndT(p1, T1)
+    new_state = make_gas_from_name(gasName)
+    new_state.set_pT(p1, T1)
     new_state.p = x_total * p1
     new_state.EOS(problemType='ps')
     return new_state
@@ -327,11 +341,11 @@ def pitot_condition(p1, T1, V1, gasName):
     Given a free-stream condition, compute the corresponding Pitot condition
     at which the gas is brought to rest, possibly through a shock.
     """
-    state1 = Gas(gasName)
-    state1.set_from_pAndT(p1, T1)
+    state1 = make_gas_from_name(gasName)
+    state1.set_pT(p1, T1)
     if V1 > state1.a:
         # Supersonic free-stream; process through a shock first.
-        state2 = Gas(gasName)
+        state2 = make_gas_from_name(gasName)
         (V2,Vg) = shock_real(state1, V1, state2)
         return total_condition(state2.p, state2.T, V2, gasName)
     else:
@@ -345,20 +359,16 @@ def reflected_shock_tube_calculation(gasName, p1, T1, Vs, pe, pp_on_pe, area_rat
     Runs the reflected-shock-tube calculation from initial fill conditions
     observed shock speed and equilibrium pressure.
 
-    Choices for task:
-        'ishock'
-        'st'
-        'stn'
-        'stnp'
+    :param task: one of 'ishock', 'st', 'stn', 'stnp'
     """
     if PRINT_STATUS: print 'Write pre-shock condition.'
-    state1 = Gas(gasName)
-    state1.set_from_pAndT(p1, T1)
+    state1 = make_gas_from_name(gasName)
+    state1.set_pT(p1, T1)
     H1 = state1.u + state1.p/state1.rho
     result = {'state1':state1, 'H1':H1}
     #
     if PRINT_STATUS: print 'Start incident-shock calculation.'
-    state2 = Gas(gasName)
+    state2 = make_gas_from_name(gasName)
     (V2,Vg) = shock_real( state1, Vs, state2 )
     result['state2'] = state2
     result['V2'] = V2
@@ -369,14 +379,14 @@ def reflected_shock_tube_calculation(gasName, p1, T1, Vs, pe, pp_on_pe, area_rat
         return result
     #
     if PRINT_STATUS: print 'Start reflected-shock calculation.'
-    state5 = Gas(gasName)
+    state5 = make_gas_from_name(gasName)
     Vr = reflected_shock(state2, Vg, state5)
     result['state5'] = state5
     result['Vr'] = Vr
     #
     if PRINT_STATUS: print 'Start calculation of isentropic relaxation.'
-    state5s = Gas(gasName)
-    state5s.set_from_pAndT(state5.p, state5.T);  # entropy is set
+    state5s = make_gas_from_name(gasName)
+    state5s.set_pT(state5.p, state5.T);  # entropy is set
     state5s.p = pe;                    # then pressure is relaxed
     state5s.EOS(problemType='ps');     # via an isentropic process
     result['state5s'] = state5s
