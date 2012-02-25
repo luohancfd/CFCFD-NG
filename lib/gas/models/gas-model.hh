@@ -31,6 +31,24 @@ const double T_max = 150000.0;
 const double p_min = 1.0e-6;
 const double a_min = 1.0e-2;
 
+/**
+ * \brief Class for encapsulating gas model behaviour.
+ *
+ * The Gas_model class is an abstract base class. It 
+ * prescribes the services offered by all derived classes.
+ * This class encapsulates the behaviour of the gas model.
+ * Basically, given a Gas_data object, a Gas_model object
+ * can compute various properties based on the model behaviour.
+ * It is a catch-all class which presents a single, unified
+ * object for the calling code to access all gas property-related
+ * computations. These computations include:
+ *  - evaluation of thermodynamic state and derivatives
+ *  - conversion to/from conserved quantities and primary variables
+ *  - evaluation of transport properties
+ *  - evaluation of general gas properties
+ *  - evaluation of gas properties of specific components
+ **/
+
 class Gas_model {
 public:
     Gas_model();
@@ -186,7 +204,7 @@ public:
     double gamma(const Gas_data &Q)
     { int status; return Cp(Q, status)/Cv(Q, status); }
 
-    std::vector<double> M() { return M_; }
+    const std::vector<double>& M() { return M_; }
 
 protected:
     int nsp_;     // No. of species components

@@ -48,6 +48,10 @@ A brief description of each is given here.
   plot_dx              : Spatial frequency of solution output 
   dx_scale             : Scale the spatial step by this amount each step
   output_file          : Name of the output file
+  species_output       : String specifying how species composition is output
+                         Allowable values are: massf -- mass fractions (default)
+                                               molef -- mole fractions
+                                               moles -- moles per unit volume, concentration
   
   [models]
   gas_model_file       : Name of the gas model lua file

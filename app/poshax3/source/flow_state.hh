@@ -15,7 +15,8 @@ public:
 
     void set_flow_state(Gas_data &Q1, double u1, double Q_rad1=0.0);
 
-    std::string str( bool with_Q_rad );
+    std::string str(bool with_Q_rad);
+    std::string str(bool with_Q_rad, std::string specied_output_type, const std::vector<double> &M);
     Gas_data * Q;
     double u;
     double Q_rad;

@@ -185,6 +185,15 @@ int main(int argc, char *argv[])
 	     << "Exiting program!\n";
 	exit(BAD_INPUT_ERROR);
     }
+
+    string species_output_type;
+    if ( !cfg.parse_string("controls", "species_output", species_output_type,
+			   "massf") ) {
+	cout << "Error reading species_output in [controls] section of " << input
+	     << endl
+	     << "Exiting program!\n";
+	exit(BAD_INPUT_ERROR);
+    }
     
     // Parse the radiation output options
     double rad_dx;
@@ -387,9 +396,23 @@ int main(int argc, char *argv[])
     ++col;
     outfile << "# " << col << ": u (m/s)\n";
     ++col;
-    for ( int isp=0; isp<nsp; ++isp ) {
-	outfile << "# " << col << ": massf[" << isp << "]\n";
-    	++col;
+    if ( species_output_type == "molef" ) {
+	for ( int isp = 0; isp < nsp; ++isp ) {
+	    outfile << "# " << col << ": molef[" << isp << "]\n";
+	    ++col;
+	}
+    }
+    else if ( species_output_type == "moles" ) {
+	for ( int isp = 0; isp < nsp; ++isp ) {
+	    outfile << "# " << col << ": moles[" << isp << "]\n";
+	    ++col;
+	}
+    }
+    else {
+	for ( int isp=0; isp<nsp; ++isp ) {
+	    outfile << "# " << col << ": massf[" << isp << "]\n";
+	    ++col;
+	}
     }
     if ( rtmodel ) {
     	outfile << "# " << col << ": Q_rad (W/m**3)\n";
@@ -436,7 +459,7 @@ int main(int argc, char *argv[])
     double x = 0.0, new_dx, next_plot_x = plot_dx;
     int count = 0;
     int TS_count = 0;
-    outfile << setw(20) << x << psr->psflow.str(bool(rtmodel)) << endl;
+    outfile << setw(20) << x << psr->psflow.str(bool(rtmodel), species_output_type, gmodel->M()) << endl;
     if ( TS_dx > 0 ) {
 	// tangent slab problem - create first shock point 
 	cout << "creating TS point " << TS_count << " at x = " << 0 << endl;
@@ -450,7 +473,7 @@ int main(int argc, char *argv[])
 	if ( adaptive_dx ) dx = dx_scale*new_dx;
 	count++;
 	if( x > next_plot_x ) {
-	    outfile << setw(20) << x << psr->psflow.str(bool(rtmodel)) << endl;
+	    outfile << setw(20) << x << psr->psflow.str(bool(rtmodel), species_output_type, gmodel->M()) << endl;
 	    cout << setprecision(6) << showpoint;
 	    cout << "count = " << setw(6) << count << " :: ";
 	    cout << "x = " << setw(12) << x << ' ';

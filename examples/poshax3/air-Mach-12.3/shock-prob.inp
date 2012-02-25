@@ -1,0 +1,12 @@
+reac name N2 wt%=0.78 t(k)=300.0
+     name O2 wt%=0.22 t(k)=300.0
+
+
+problem p,mmhg=1.0, shock mach=12.28
+        inc fr eq ions
+only N2 O2 NO N O NO+ e-
+
+end
+
+
+

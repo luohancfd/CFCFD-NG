@@ -1,7 +1,8 @@
--- Gupta_etal_air_reactions.lua
 --
 -- This chemical kinetic system provides
 -- a full 20 reaction scheme for air.
+-- IN THIS VERSION, THE BACKWARDS REACTION RATE COEFFICIENTS
+-- ARE COMPUTED FROM THE EQUILIBRIUM CONSTANT.
 --
 -- Reference:
 -- ---------
@@ -15,13 +16,14 @@
 -- Date: 12-Mar-2010
 -- Place: Munich, Germany
 
+
 -- Species are N, O, N2, O2, NO, N+, O+, N2+, O2+, NO+, e-
 -- If NO_SPECIES == 5 then species are:
 --   N2, O2, N, O, NO
 -- If NO_SPECIES == 7 then species are:
 --   N2, O2, N, O, NO, NO+, e-
 
-NO_SPECIES = 11
+NO_SPECIES = 7
 
 -- Currently two schemes are available in this file using 
 -- the WITH_IONIZATION flag. If 'false' then the first
@@ -46,7 +48,6 @@ SUPPRESS_WARNINGS = true
 reaction{
 	'O2 + M <=> O + O + M',
 	fr={'Arrhenius', A=3.610e+18, n=-1.00, T_a=59400.00},
-	br={'Arrhenius', A=3.010e+15, n=-0.50, T_a=0.0},
 	label='r1',
 	efficiencies={O2=9.0, N2=2.0, O=25.0, N=1.0, NO=1.0, 
 		['NO+']=0.0, ['O2+']=0.0, ['N2+']=0.0, ['O+']=0.0, ['N+']=0.0, ['e-']=0.0}
@@ -61,7 +62,6 @@ reaction{
 reaction{
 	'N2 + M <=> N + N + M',
 	fr={'Arrhenius', A=1.920e+17, n=-0.50, T_a=113100.00},
-	br={'Arrhenius', A=1.090e+16, n=-0.50, T_a=0.0},
 	label='r2',
 	efficiencies={O2=1.0, N2=2.5, O=1.0, N=0.0, NO=1.0,
 		['NO+']=0.0, ['O2+']=0.0, ['N2+']=0.0, ['O+']=0.0, ['N+']=0.0, ['e-']=0.0}
@@ -70,14 +70,12 @@ reaction{
 reaction{
 	'N2 + N <=> N + N + N',
 	fr={'Arrhenius', A=4.150e+22, n=-1.50, T_a=113100.00},
-	br={'Arrhenius', A=2.320e+21, n=-1.50, T_a=0.0},
 	label='r3'
 }
 
 reaction{
 	'NO + M <=> N + O + M',
 	fr={'Arrhenius', A=3.970e+20, n=-1.50, T_a=75600.00},
-	br={'Arrhenius', A=1.010e+20, n=-1.50, T_a=0.0},
 	label='r4',
 	efficiencies={O2=1.0, N2=1.0, O=20.0, N=20.0, NO=20.0,
 		['NO+']=0.0, ['O2+']=0.0, ['N2+']=0.0, ['O+']=0.0, ['N+']=0.0, ['e-']=0.0}
@@ -86,77 +84,66 @@ reaction{
 reaction{
 	'NO + O <=> O2 + N',
 	fr={'Arrhenius', A=3.180e+09, n=1.00, T_a=19700.00},
-	br={'Arrhenius', A=9.630e+11, n=0.50, T_a=3600.0},
 	label='r5'
 }
 
 reaction{
 	'N2 + O <=> NO + N',
 	fr={'Arrhenius', A=6.750e+13, n=0.00, T_a=37500.00},
-	br={'Arrhenius', A=1.500e+13, n=0.00, T_a=0.0},
 	label='r6'
 }
 
 reaction{
 	'N + O <=> NO+ + e-',
 	fr={'Arrhenius', A=9.030e+09, n=0.50, T_a=32400.00},
-	br={'Arrhenius', A=1.800e+19, n=-1.00, T_a=0.0},
 	label='r7'
 }
 
 reaction{
 	'O + e- <=> O+ + e- + e-',
 	fr={'Arrhenius', A=3.600e+31, n=-2.91, T_a=158000.00},
-	br={'Arrhenius', A=2.200e+40, n=-4.50, T_a=0.0},
 	label='r8'
 }
 
 reaction{
 	'N + e- <=> N+ + e- + e-',
 	fr={'Arrhenius', A=1.100e+32, n=-3.14, T_a=169000.00},
-	br={'Arrhenius', A=2.200e+40, n=-4.50, T_a=0.0},
 	label='r9'
 }
 
 reaction{
 	'O + O <=> O2+ + e-',
 	fr={'Arrhenius', A=1.600e+17, n=-0.98, T_a=80800.00},
-	br={'Arrhenius', A=8.020e+21, n=-1.50, T_a=0.0},
 	label='r10'
 }
 
 reaction{
 	'O + O2+ <=> O2 + O+',
 	fr={'Arrhenius', A=2.920e+18, n=-1.11, T_a=28000.00},
-	br={'Arrhenius', A=7.800e+11, n=0.50, T_a=0.0},
 	label='r11'
 }
 
 reaction{
 	'N2 + N+ <=> N + N2+',
 	fr={'Arrhenius', A=2.020e+11, n=0.81, T_a=13000.00},
-	br={'Arrhenius', A=7.800e+11, n=0.50, T_a=0.0},
 	label='r12'
 }
 
 reaction{
 	'N + N <=> N2+ + e-',
 	fr={'Arrhenius', A=1.400e+13, n=0.00, T_a=67800.00},
-	br={'Arrhenius', A=1.500e+22, n=-1.50, T_a=0.0},
 	label='r13'
 }
 
 reaction{
 	'O2 + N2 <=> NO + NO+ + e-',
 	fr={'Arrhenius', A=1.380e+20, n=-1.84, T_a=141000.00},
-	br={'Arrhenius', A=1.000e+24, n=-2.50, T_a=0.0},
 	label='r14'
 }
 
 reaction{
 	'NO + M <=> NO+ + e- + M',
 	fr={'Arrhenius', A=2.200e+15, n=-0.35, T_a=100800.00},
-	br={'Arrhenius', A=2.200e+26, n=-2.50, T_a=0.0},
 	label='r15',
 	efficiencies={O2=4.0, N2=1.0, O=0.0, N=0.0, NO=0.0,
 		['NO+']=0.0, ['O2+']=0.0, ['N2+']=0.0, ['O+']=0.0, ['N+']=0.0, ['e-']=0.0}
@@ -165,35 +152,30 @@ reaction{
 reaction{
 	'O + NO+ <=> NO + O+',
 	fr={'Arrhenius', A=3.630e+15, n=-0.60, T_a=50800.00},
-	br={'Arrhenius', A=1.500e+13, n=0.00, T_a=0.0},
 	label='r16'
 }
 
 reaction{
 	'N2 + O+ <=> O + N2+',
 	fr={'Arrhenius', A=3.400e+19, n=-2.0, T_a=23000.00},
-	br={'Arrhenius', A=2.480e+19, n=-2.20, T_a=0.0},
 	label='r17'
 }
 
 reaction{
 	'N + NO+ <=> NO + N+',
 	fr={'Arrhenius', A=1.000e+19, n=-0.93, T_a=61000.00},
-	br={'Arrhenius', A=4.800e+14, n=0.00, T_a=0.0},
 	label='r18'
 }
 
 reaction{
 	'O2 + NO+ <=> NO + O2+',
 	fr={'Arrhenius', A=1.800e+15, n=0.17, T_a=33000.00},
-	br={'Arrhenius', A=1.800e+13, n=0.50, T_a=0.0},
 	label='r19'
 }
 
 reaction{
 	'O + NO+ <=> O2 + N+',
 	fr={'Arrhenius', A=1.340e+13, n=0.31, T_a=77270.00},
-	br={'Arrhenius', A=1.000e+14, n=0.00, T_a=0.0},
 	label='r20'
 }
 

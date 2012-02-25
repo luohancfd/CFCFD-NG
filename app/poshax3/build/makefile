@@ -45,7 +45,7 @@ PSR_EXECUTABLE := poshax3.x
 
 all: install
 	@echo "--------------------------------"
-	@echo "Poshax2 should now be up to date."
+	@echo "Poshax3 should now be up to date."
 	@echo "--------------------------------"
 
 test : $(TEST_EXE_FILES)
