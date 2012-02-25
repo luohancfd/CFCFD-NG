@@ -31,7 +31,7 @@ air-Mach-12.3.cfg
 air-model.inp
   Input file for describing the gas model.
 
-gupta_etal_no_ionisation.lua
+gupta_etal_with_Keq.lua
   User-built input file containing chemical reaction rates.
 
 run.sh
