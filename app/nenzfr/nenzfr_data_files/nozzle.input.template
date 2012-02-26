@@ -28,6 +28,7 @@
 #---------------------------------------------------------------------
 import string, fileinput
 from estcj import reflected_shock_tube_calculation as rstc
+from estcj import make_gas_from_name
 from cfpylib.gasdyn.cea2_gas import Gas
 from operator import indexOf
 from cfpylib.nm.zero_solvers import secant
@@ -91,6 +92,8 @@ if gastype in ['n2', 'N2']:
 if DEBUG_flag:
     print "Test gas is "+gastype
 
+# TODO: can simplify this gas-model section of code by using more of the data
+#       returned by a recent version of the estcj.py program.
 
 if gastype in ['air', 'Air']:
     #
@@ -111,9 +114,11 @@ if gastype in ['air', 'Air']:
     elif $chemModel in ['neq','frz','frz1']:  
         # Assume Air = 79% N2, 21% O2 by mole fraction. We give mass fractions
         # when defining the gasState
-        gasState = Gas('mix',['N2','O2','N','O','NO'],\
-                       [0.767082, 0.232918, 0.0, 0.0, 0.0])
-        gasState.set_from_pAndT(p=throat.p, T=throat.T)
+        gasState = Gas(reactants={'N2':0.79,'O2':0.21,'N':0.0,'O':0.0,'NO':0.0},
+                       inputUnits='moles', outputUnits='massf',
+		       onlyList=['N2','O2','N','O','NO'])
+        gasState.set_AT(p=throat.p, T=throat.T)
+        gasSpecies = ['N2','O2','N','O','NO']
         
         #
         # The species have changed across the throat due to CEA air considering a wider
@@ -124,14 +129,14 @@ if gastype in ['air', 'Air']:
         print "Changing from CEA air to 5-species air mixture for nozzle calculation."
         print "Adjusting throat temperature to conserve mass, momentum and energy."
         def enthalpy_error(x, p1=throat.p, h1=throat.h, a1=throat.a, state=gasState):
-            state.set_from_pAndT(p=p1, T=x)
+            state.set_pT(p=p1, T=x)
             return state.e + a1**2/state.gam - h1
         new_T = secant(enthalpy_error, 0.9*throat.T, 1.1*throat.T, tol=0.05/100*throat.h)
         if new_T == 'FAIL':
             print "Failed to find throat temperature for which the 5-species mixture conserves mass, momentum and energy"
             new_T = throat.T
         print 'New throat temperature: ', new_T
-        gasState.set_from_pAndT(p=throat.p, T=new_T)
+        gasState.set_pT(p=throat.p, T=new_T)
         
         print 'Enthalpy CEA air: ', throat.h
         print 'Enthalpy 5-species air: ', gasState.h
@@ -162,15 +167,15 @@ if gastype in ['air', 'Air']:
         print "Note that if required, the equilibrium massf values have been scaled by their summation"
         gasState.write_state(sys.stdout)
         
-        throat_massf = massFraction_check(gasState.eq_massf)
-        initial_massf = gasState.massf
+        throat_massf = massFraction_check(gasState.get_fractions(gasSpecies))
+        initial_massf = gasState.get_fractions(gasSpecies)
     
     # Frozen-2...    
     elif $chemModel in ['frz2']:
         # Use CEA species present at the throat and perform a frozen calculation
         
-        gasState = Gas('air')
-        gasState.set_from_pAndT(p=throat.p, T=throat.T)
+        gasState = make_gas_from_name('air')
+        gasState.set_pT(p=throat.p, T=throat.T)
         
         print 60*"-"
         print "Nozzle expansion uses Frozen Air (CEA species)"
@@ -231,10 +236,11 @@ elif gastype in ['air5species']:
     
     # Frozen or Non-equilibrium...
     if $chemModel not in ['eq']:
-        gasState = Gas('mix',['N2','O2','N','O','NO'],[0.767082,0.232918,0.0,0.0,0.0])
-        gasState.set_from_pAndT(p=throat.p, T=throat.T)
+        gasState = make_gas_from_name('air5species')
+        gasState.set_pT(p=throat.p, T=throat.T)
+        gasSpecies = ['N2','O2','N','O','NO']
         
-        select_gas_model(model='thermally perfect gas', species=gasState.species)
+        select_gas_model(model='thermally perfect gas', species=gasSpecies)
         
         if $chemModel in ['frz','frz2']:
             print 60*"-"
@@ -250,8 +256,8 @@ elif gastype in ['air5species']:
         print "Note that if required, the equilibrium massf values have been scaled by their summation"
         gasState.write_state(sys.stdout)
 
-        throat_massf = massFraction_check(gasState.eq_massf)
-        initial_massf = gasState.massf
+        throat_massf = massFraction_check(gasState.get_fractions(gasSpecies))
+        initial_massf = gasState.get_fractions(gasSpecies)
     
     # Equilibrium
     else:
@@ -273,10 +279,11 @@ elif gastype in ['N2']:
 
     # Frozen or Non-equilibrium...
     if $chemModel not in ['eq']:
-        gasState = Gas('mix',['N2','N'],[1.0,0.0])
-        gasState.set_from_pAndT(p=throat.p, T=throat.T)
+        gasState = make_gas_from_name('n2')
+        gasState.set_pT(p=throat.p, T=throat.T)
+        gasSpecies = ['N2','N']
         
-        select_gas_model(model='thermally perfect gas', species=gasState.species)
+        select_gas_model(model='thermally perfect gas', species=gasSpecies)
         
         if $chemModel in ['frz','frz2']:
             print 60*"-"
@@ -292,8 +299,8 @@ elif gastype in ['N2']:
         print "Note that if required, the equilibrium massf values have been scaled by their summation"
         gasState.write_state(sys.stdout)
         
-        throat_massf = massFraction_check(gasState.eq_massf)
-        initial_massf = gasState.massf
+        throat_massf = massFraction_check(gasState.get_fractions(gasSpecies))
+        initial_massf = gasState.get_fractions(gasSpecies)
     
     # Equilibrium...
     else:

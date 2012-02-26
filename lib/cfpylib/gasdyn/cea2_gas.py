@@ -238,6 +238,23 @@ class Gas(object):
         strm.write('    species %s: %s\n' % (self.outputUnits, str(self.species)) )
         return
 
+    def get_fractions(self, speciesList):
+        """
+        Gets a list of mole- or mass-fractions for the specified species.
+
+        :param speciesList: the species names for which we want a list of fractions.
+        :returns: list of floats representing the fractions of each species in the mix
+            Note that the mass-fractions or mole-fractions are returned, based on
+            the value of outputUnits in the Gas object.
+        """
+        fractionList = []
+        for s in speciesList:
+            if s in self.species.keys(): 
+                fractionList.append(self.species[s])
+            else:
+                fractionList.append(0.0)
+        return fractionList
+
     def write_cea2_input_file(self, problemType, transProps):
         """
         Set up a problem-description file for CEA2.

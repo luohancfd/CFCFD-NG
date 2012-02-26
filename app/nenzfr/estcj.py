@@ -6,7 +6,6 @@ Since 1968, we have been using the ESTC code by Malcolm McIntosh
 to compute the conditions in the end of the reflected shock tubes
 T1--T5 and HEG.  There are a number of problems in using the ESTC
 code, including uncertainty in updating the chemistry coefficients.
-
 This program, ESTCJ, moves away from the old chemistry model
 by making use of the CEA code from the NASA Glenn Research Center.
 
@@ -47,23 +46,26 @@ PRINT_STATUS = 1  # if 1: the start of each stage of the computation is noted.
 # ----------------------------------------------------------------------------
 # Utility functions.
 
-def make_gas_from_name(gasName):
+def make_gas_from_name(gasName, outputUnits='massf'):
     """
     Manufacture a cea2_gas object from a small library of options.
 
     :param gasName: one of the names for the special cases set out below
     """
     if gasName == 'air':
-        return Gas({'Air':1.0,})
+        return Gas({'Air':1.0,}, outputUnits=outputUnits)
     elif gasName == 'air5species':
         return Gas(reactants={'N2':0.79, 'O2':0.21, 'N':0.0, 'O':0.0, 'NO':0.0}, 
-                   inputUnits='moles', onlyList=['N2','O2','N','O','NO'])
+                   inputUnits='moles', onlyList=['N2','O2','N','O','NO'],
+                   outputUnits=outputUnits)
     elif gasName == 'n2':
-        return Gas(reactants={'N2':1.0, 'N':0.0}, onlyList=['N2', 'N'])
+        return Gas(reactants={'N2':1.0, 'N':0.0}, onlyList=['N2', 'N'],
+                   outputUnits=outputUnits)
     elif gasName == 'co2':
-        return Gas(reactants={'CO2':1.0})
+        return Gas(reactants={'CO2':1.0}, outputUnits=outputUnits)
     elif gasName == 'h2ne':
-        return Gas(reactants={'H2':0.15, 'Ne':0.85}, inputUnits='moles')
+        return Gas(reactants={'H2':0.15, 'Ne':0.85}, inputUnits='moles',
+                   outputUnits=outputUnits)
     else:
         raise Exception, 'make_gas_from_name(): unknown gasName: %s' % gasName
 
@@ -234,7 +236,7 @@ def reflected_shock(s2, Vg, s5):
     """
     Computes state5 which has brought the gas to rest at the end of the shock tube.
 
-    :param state2: the post-incident-shock gas state
+    :param s2: the post-incident-shock gas state
     :param Vg: the lab-frame velocity of the gas in state 2
     :param s5: the stagnation state that will be filled in
         (as a side effect of this function)
@@ -292,9 +294,9 @@ def expand_from_stagnation(p_over_p0, p0, T0, gasName):
     Returns new gas state and the corresponding velocity of the expanded stream.
     """
     state0 = make_gas_from_name(gasName)
-    state0.set_from_pAndT(p0, T0)
+    state0.set_pT(p0, T0)
     new_state = make_gas_from_name(gasName)
-    new_state.set_from_pAndT(p0, T0)
+    new_state.set_pT(p0, T0)
     new_state.p = p0 * p_over_p0;
     new_state.EOS(problemType='ps')
     # Matt McGilvray had a note about CEA giving bad entropy values

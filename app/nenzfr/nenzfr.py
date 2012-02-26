@@ -1,21 +1,23 @@
 #!/usr/bin/env python
-# nenzfr.py
-# NENZF reloaded (Non-Equilibrium Nozzle Flow reloaded)
-#
-# This script coordinates the running of the T4 nozzle calculation.
-# The intention is to provide a fairly quick calculation of 
-# the test flow conditions at the exit plane of the selected nozzle.
-# Behind the scene, estcj.py is used to get an estimate of 
-# the flow condition at the nozzle throat and then Eilmer3 is used
-# to compute the expanding flow in the divergent part of the nozzle.
-# Finally, a profile is examined at the downstream-end of the nozzle
-# to extract nominal flow condition data.
-# 
-# Peter Jacobs, Luke Doherty, Wilson Chan and Rainer Kirchhartz
-# School of Mechancial and Mining Engineering
-# The University of Queensland
+"""
+nenzfr.py -- NENZF reloaded (Non-Equilibrium Nozzle Flow reloaded)
 
-VERSION_STRING = "05-Oct-2011"
+This script coordinates the running of the T4 nozzle calculation.
+The intention is to provide a fairly quick calculation of 
+the test flow conditions at the exit plane of the selected nozzle.
+
+Behind the scene, estcj.py is used to get an estimate of 
+the flow condition at the nozzle throat and then Eilmer3 is used
+to compute the expanding flow in the divergent part of the nozzle.
+Finally, a profile is examined at the downstream-end of the nozzle
+to extract nominal flow condition data.
+
+.. Authors: Peter Jacobs, Luke Doherty, Wilson Chan and Rainer Kirchhartz
+   School of Mechancial and Mining Engineering
+   The University of Queensland
+"""
+
+VERSION_STRING = "26-Feb-2012"
 
 import shlex, subprocess, string
 from subprocess import PIPE
