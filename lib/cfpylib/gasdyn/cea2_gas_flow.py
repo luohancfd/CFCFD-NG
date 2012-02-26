@@ -15,6 +15,8 @@ from ..nm.zero_solvers import secant
 DEBUG_GAS_FLOW = False
 
 #----------------------------------------------------------------------------
+# 1-D flow functions abstracted from estcj.py
+# and made a little more generic.
 
 def shock_ideal(s1, Vs, s2):
     """
@@ -46,12 +48,16 @@ def shock_ideal(s1, Vs, s2):
     s2.gam = s1.gam
     s2.C_v = s1.C_v
     #
-    return (V2,Vg)
+    return (V2, Vg)
 
 
 def my_limiter(delta, orig, frac=0.5):
     """
     Limit the magnitude of delta to no more than a fraction of the original.
+
+    It occasionally happens that the Newton iterations go badly.
+    It is worth trying to take smaller steps in these situations,
+    assuming that the computed direction is still a fair guess.
     """
     if delta >= 0.0:
         sign = 1
@@ -69,7 +75,7 @@ def shock_real(s1, Vs, s2):
     :param s1: pre-shock gas state
     :param Vs: speed of gas coming into shock
     :param s2: post-shock gas state
-    :returns: both the shock-reference speed and the lab speed.
+    :returns: the post-shock gas speed, V2 in the shock-reference frame, Vg in the lab frame.
     """
     #
     (V2,Vg) = shock_ideal(s1, Vs, s2)
@@ -239,7 +245,11 @@ def reflected_shock(s2, Vg, s5):
 def expand_from_stagnation(p_over_p0, state0):
     """
     Given a stagnation condition state0, expand to a new pressure.
-    Returns new gas state and the corresponding velocity of the expanded stream.
+
+    :param p_over_p0: pressure ratio
+    :param state0: Gas object specifying stagnation conditions
+    :returns: new gas state and the corresponding velocity (in m/s)
+        of the expanded stream.
     """
     new_state = state0.clone()
     new_state.p = state0.p * p_over_p0;
@@ -258,6 +268,10 @@ def total_condition(state1, V1):
     Given a free-stream condition and velocity,
     compute the corresponding stagnant condition
     at which the gas is brought to rest isentropically.
+
+    :param state1: Gas object specifying free-stream condition
+    :param V1: free-stream velocity, m/s
+    :returns: Gas object specifying gas total conditions (isentropic, stagnant)
     """
     H1 = state1.p/state1.rho + state1.e + 0.5*V1*V1
     def error_in_total_enthalpy(x, state1=state1, H1=H1):
@@ -284,6 +298,11 @@ def pitot_condition(state1, V1):
     """
     Given a free-stream condition, compute the corresponding Pitot condition
     at which the gas is brought to rest, possibly through a shock.
+
+    :param state1: Gas object specifying free-stream condition
+    :param V1: free-stream velocity, m/s
+    :returns: Gas object specifying gas impact conditions, 
+        possibly after processing be a normal shock. 
     """
     if V1 > state1.a:
         # Supersonic free-stream; process through a shock first.
@@ -295,10 +314,55 @@ def pitot_condition(state1, V1):
         return total_condition(state1, V1)
     
 #------------------------------------------------------------------------
+# Oblique shock relations
+
+def theta_oblique(state1, V1, beta):
+    """
+    Compute the deflection angle and post-shock conditions given the shock wave angle.
+
+    :param state1: upstream gas condition
+    :param V1: speed of gas into shock
+    :param beta: shock wave angle wrt stream direction (in radians)
+    :returns: tuple of theta, V2 and state2:
+        theta is stream deflection angle in radians
+        V2 is post-shock speed of gas in m/s
+        state2 is post-shock gas state
+    """
+    V1_n = V1 * math.sin(beta)
+    V_t = V1 * math.cos(beta)
+    M1_n = V1 / state1.a
+    if M1_n < 1.0:
+        raise Exception, 'theta_oblique(): subsonic inflow M1_n=%e' % M1_n
+    state2 = state1.clone()
+    V2_n, Vg_n = shock_real(state1, V1_n, state2)
+    V2 = math.sqrt(V2_n * V2_n + V_t * V_t)
+    theta = beta - math.atan2(V2_n, V_t)
+    return theta, V2, state2
+
+
+def beta_oblique(state1, V1, theta):
+    """
+    Compute the oblique shock wave angle given the deflection angle.
+
+    :param state1: upstream gas condition
+    :param V1: speed of gas into shock
+    :param theta: stream deflection angle (in radians)
+    :returns: shock wave angle wrt incoming stream direction (in radians)
+    """
+    M1 = V1 / state1.a
+    b1 = math.asin(1.0 / M1)
+    b2 = b1 * 1.1
+    def error_in_theta(beta_guess):
+        theta_guess, V2, state2 = theta_oblique(state1, V1, beta_guess)
+        return theta_guess - theta
+    return secant(error_in_theta, b1, b2, tol=1.0e-6)
+
+#------------------------------------------------------------------------
 
 def demo():
     print "cea2_gas_flow Demonstration -- reflected shock tunnel."
     s1 = Gas({'Air':1.0})
+    s1.set_pT(1.0e5, 300.0)
     s1.set_pT(1.0e5, 300.0)
     print "s1:"
     s1.write_state(sys.stdout)
@@ -326,4 +390,20 @@ def demo():
     s8 = pitot_condition(s6, V)
     print "pitot-p/total-p=", s8.p/s5.p, "s8:"
     s8.write_state(sys.stdout)
+    #
+    print "\nOblique-shock demo."
+    from ideal_gas_flow import theta_obl
+    beta = 45.0 * math.pi/180
+    V1 = 500.0
+    s1.set_pT(100.0e3, 300.0)
+    print "s1:"
+    s1.write_state(sys.stdout)
+    theta, V2, s2 = theta_oblique(s1, V1, beta)
+    print "theta=", theta, "V2=", V2, "s2:"
+    s2.write_state(sys.stdout)
+    print "c.f. ideal gas angle=", theta_obl(V1/s1.a, beta)
+    #
+    print "Oblique shock angle from deflection."
+    beta2 = beta_oblique(s1, V1, theta)
+    print "beta2(degrees)=", beta2*180/math.pi
     print "Done."

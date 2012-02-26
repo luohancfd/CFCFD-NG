@@ -19,20 +19,6 @@ billig
 .. autofunction:: y_from_x
 
 
-cea2_gas
---------
-
-.. automodule:: cfpylib.gasdyn.cea2_gas
-
-.. autofunction:: locate_executable_file
-
-.. autofunction:: run_cea_program
-
-.. autofunction:: get_cea2_float
-
-.. autoclass:: Gas
-   :members: __init__, clone, set_pT, set_rhoT, set_ps, write_state, get_fractions, EOS, shock_process
-
 ideal_gas_flow
 --------------
 
@@ -91,6 +77,42 @@ ideal_gas_flow
 .. autofunction:: T2_T1_obl
 
 .. autofunction:: p02_p01_obl
+
+
+cea2_gas
+--------
+
+.. automodule:: cfpylib.gasdyn.cea2_gas
+
+.. autofunction:: locate_executable_file
+
+.. autofunction:: run_cea_program
+
+.. autofunction:: get_cea2_float
+
+.. autoclass:: Gas
+   :members: __init__, clone, set_pT, set_rhoT, set_ps, write_state, get_fractions, EOS, shock_process
+
+cea2_gas_flow
+-------------
+
+.. automodule:: cfpylib.gasdyn.cea2_gas_flow
+
+.. autofunction:: shock_ideal
+
+.. autofunction:: shock_real
+
+.. autofunction:: reflected_shock
+
+.. autofunction:: expand_from_stagnation
+
+.. autofunction:: total_condition
+
+.. autofunction:: pitot_condition
+
+.. autofunction:: theta_oblique
+
+.. autofunction:: beta_oblique
 
 
 sutherland

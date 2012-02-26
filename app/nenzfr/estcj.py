@@ -46,7 +46,6 @@ DEBUG_ESTCJ  = 0  # if 1: some detailed data is output to help debugging
 PRINT_STATUS = 1  # if 1: the start of each stage of the computation is noted.
 
 # ----------------------------------------------------------------------------
-# Utility functions.
 
 def make_gas_from_name(gasName, outputUnits='massf'):
     """
@@ -90,7 +89,7 @@ def reflected_shock_tube_calculation(gasName, p1, T1, Vs, pe, pp_on_pe, area_rat
     #
     if PRINT_STATUS: print 'Start incident-shock calculation.'
     state2 = make_gas_from_name(gasName)
-    (V2,Vg) = shock_real( state1, Vs, state2 )
+    (V2,Vg) = shock_real(state1, Vs, state2)
     result['state2'] = state2
     result['V2'] = V2
     result['Vg'] = Vg

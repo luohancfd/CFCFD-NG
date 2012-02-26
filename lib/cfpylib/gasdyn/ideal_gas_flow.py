@@ -160,13 +160,13 @@ def PM2(nu, g=1.4):
 
 def beta_obl(M1, theta, g=1.4):
     """Returns the oblique shock wave angle
-    given the upsream Mach number and the deflection angle."""
+    given the upstream Mach number and the deflection angle."""
     b1 = asin(1.0/M1); b2 = b1 * 1.05
     def f_to_solve(beta): return theta_obl(M1, beta, g) - theta
     return solve(f_to_solve, b1, b2)
 
 def theta_obl(M1, beta, g=1.4):
-    "Compute the deflection angle given the shock wave angle angle."
+    "Compute the deflection angle given the shock wave angle."
     m1sb = M1 * sin(beta)
     t1 = 2.0 / tan(beta) * (m1sb**2 - 1.0) 
     t2 = M1**2 * (g + cos(2.0 * beta)) + 2.0
