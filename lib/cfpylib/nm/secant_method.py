@@ -1,9 +1,9 @@
 """
 secant_method.py: Function solver, using the secant method.
 
-Author: PAJ
+.. Author: PAJ
 
-Version: 17-May-04
+.. Version: 17-May-04
 """
 
 def solve(f, x1, x2, tol=1.0e-9):

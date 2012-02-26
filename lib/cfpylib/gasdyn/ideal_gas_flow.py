@@ -9,6 +9,7 @@ ideal_gas_flow.py: One-dimensional steady flow of an ideal gas.
 .. Versions:
    1.1 30-Sep-94: Xplore version
    2.0 16-May-04: Python equivalent adapted from the Xplore version.
+   27-Feb-2012: use relative import in cfpylib
 
 Contents:
 
@@ -30,9 +31,7 @@ Contents:
 """
 
 from math import *
-import string
-base_package = string.join(string.split(__name__,'.')[:-2],'.')
-exec 'from %s.nm.secant_method import solve' % (base_package)
+from ..nm.secant_method import solve
 
 # ---------------------------------------------------------------
 # Isentropic flow
@@ -211,7 +210,7 @@ def p02_p01_obl(M1, beta, g=1.4):
 
 # -----------------------------------------------------------------
 
-if __name__ == '__main__':
+def demo():
     print "Begin test of isentropic flow ratios..."
     M = 2.0
     print "Computed: M=%g: A/Astar=%g, T0/T=%g, p0/p=%g, r0/r=%g" % \
@@ -249,4 +248,4 @@ if __name__ == '__main__':
           (u2_u1_obl(M, beta), p02_p01_obl(M, beta))
     print "Expected: u2/u1=0.8304=sin(B)/sin(B-d)*r1/r2"
     print "Done."
-
+    return

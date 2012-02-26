@@ -2,12 +2,11 @@
 """
 zero_solvers.py
 
-Author: Rowan J Gollan
+.. Author: Rowan J Gollan
 
-Versions:
-
-   | 06-Dec-2004
-   | 08-May-2011: Dan's bisection_method added by PJ
+.. Versions:
+   06-Dec-2004
+   08-May-2011: Dan's bisection_method added by PJ
 """
 
 from copy import copy
