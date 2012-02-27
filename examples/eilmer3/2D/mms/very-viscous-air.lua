@@ -27,14 +27,14 @@ end
 
 -- Mandatory function:
 function eval_thermo_state_rhoe(Q)
-   -- Assume rho and e[1] are given, compute the
+   -- Assume rho and e[0] are given, compute the
    -- remaining thermodynamic variables.
    -- Remember: we need to access the temperature
-   -- and energy as the first value in an array
+   -- and energy as the 0th entry in an array
    -- of possible energies/temperatures.
-   Q.T[1] = Q.e[1]/C_v
-   Q.p = Q.rho*R*Q.T[1]
-   Q.a = sound_speed(gamma, R, Q.T[1])
+   Q.T[0] = Q.e[0]/C_v
+   Q.p = Q.rho*R*Q.T[0]
+   Q.a = sound_speed(gamma, R, Q.T[0])
    -- Pass back the updated table
    return Q
 end
@@ -45,7 +45,7 @@ function eval_transport_coefficients(Q)
    -- model, viscosity and thermal conductivity
    -- are constants.
    Q.mu = mu0
-   Q.k[1] = k0
+   Q.k[0] = k0
    return Q
 end
 
@@ -56,6 +56,6 @@ end
 
 function eval_diffusion_coeficients(Q)
    -- PJ added July 2010
-   Q.D_AB[1][1] = 0.0
+   Q.D_AB[0][0] = 0.0
    return Q
 end

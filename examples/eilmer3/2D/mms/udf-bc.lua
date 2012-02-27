@@ -13,7 +13,7 @@ sin = math.sin
 L = 1.0
 gam = 1.4
 
-case = 1
+case = 2
 
 if case == 1 then
    -- Supersonic flow
@@ -61,18 +61,20 @@ function ghost_cell(args)
    -- Set constant conditions across the whole boundary.
    x = args.x; y = args.y
    ghost = {}
-   if args.which_boundary == SOUTH or args.which_boundary == NORTH then
-      ghost.p = p(x, 0.0)        -- pressure, Pa
-      ghost_rho = rho(x, 0.0)    -- density, kg/m^3
-      ghost.u = u(x, 0.0)        -- x-velocity, m/s
-      ghost.v = v(x, 0.0)        -- y-velocity, m/s
+   if args.which_boundary == NORTH then
+      y = L
+   elseif args.which_boundary == SOUTH then
+      y = 0.0
+   elseif args.which_boundary == EAST then
+      x = L
    else
-      -- Assumed WEST or EAST.
-      ghost.p = p(0.0, y)        -- pressure, Pa
-      ghost_rho = rho(0.0, y)    -- density, kg/m^3
-      ghost.u = u(0.0, y)        -- x-velocity, m/s
-      ghost.v = v(0.0, y)        -- y-velocity, m/s
+      -- WEST
+      x = 0.0
    end
+   ghost.p = p(x, y)        -- pressure, Pa
+   ghost_rho = rho(x, y)    -- density, kg/m^3
+   ghost.u = u(x, y)        -- x-velocity, m/s
+   ghost.v = v(x, y)        -- y-velocity, m/s
    ghost.w = 0.0
    R = 287.1
    ghost.T = {}
@@ -90,17 +92,20 @@ function interface(args)
    -- args contains {t, x, y, z, csX, csY, csZ, i, j, k, which_boundary}
    x = args.x; y = args.y
    wall = {}
-   if args.which_boundary == SOUTH or args.which_boundary == NORTH then
-      wall.u = u(x, 0.0) 
-      wall.v = v(x, 0.0)
-      wall_p = p(x, 0.0)
-      wall_rho = rho(x, 0.0)
+   if args.which_boundary == NORTH then
+      y = L
+   elseif args.which_boundary == SOUTH then
+      y = 0.0
+   elseif args.which_boundary == EAST then
+      x = L
    else
-      wall.u = u(0.0, y) 
-      wall.v = v(0.0, y)
-      wall_p = p(0.0, y)
-      wall_rho = rho(0.0, y)
+      -- WEST
+      x = 0.0
    end
+   wall.u = u(x, y) 
+   wall.v = v(x, y)
+   wall_p = p(x, y)
+   wall_rho = rho(x, y)
    wall.w = 0.0
    R = 287.1
    wall.T = {}
