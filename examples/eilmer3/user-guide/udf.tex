@@ -99,8 +99,8 @@ If viscous effects are active, the Lua function \texttt{interface(args)} is call
 get a few properties right at the bounding interface.
 These properties are to be returned in a table containing:\\
 \begin{tabular}{ll}
- \texttt{T\_wall} & \parbox{12cm}{static temperature at the interface, possibly a wall.
-                                  All mode temperatures are set to this value.} \\
+ \texttt{massf} & \parbox{12cm}{table of \texttt{nsp} mass fractions. The zero entry, at least, must be specified.} \\
+ \texttt{T} & \parbox{12cm}{table of \texttt{nmodes} temperatures to be set at interface, possibly a wall.}\\
  \texttt{u,v,w} & flow velocity at the interface \\
  \texttt{tke} &  turbulent kinetic energy \\
  \texttt{omega} &  $\omega$ for the $k-\omega$ turbulence model \\
