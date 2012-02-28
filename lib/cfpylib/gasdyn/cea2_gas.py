@@ -399,6 +399,9 @@ class Gas(object):
         #
         # Scan lines again, this time looking for species fractions.
         species_fractions_found = False
+        # Re-initialise the species list/fractions so that we ensure that there is
+        # no 'left-over' information from last time
+        self.species = {}    
         for line in lines:
             line = line.strip()
             if len(line) == 0: continue

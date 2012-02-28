@@ -25,6 +25,9 @@
 #   start of the divergence section is properly captured. Number of 
 #   cells and clustering in the throat block is automatically selected
 #   based on the values for the divergence section.
+# LukeD February-2012, modifications include
+# - altered how we define throat species to use the new estcj, cea2
+#   dictionaries
 #---------------------------------------------------------------------
 import string, fileinput
 from estcj import reflected_shock_tube_calculation as rstc
@@ -43,23 +46,27 @@ def round_list(list, precision):
         list[k] = round(list[k], precision)
     return list
 
-def massFraction_check(massf):
+def massFraction_check(species):
     # The mass fractions we get from CEA do not always sum to one within
-    # the tolerance expected by Eilmer3. When this is the case, and the
+    # the tolerance expected by Eilmer3. When this is the case, and the 
     # difference from one is not too great, we scale the mass fractions
-    # by their summation.
-    pass_flag = 0
-    massf_error = abs(1.0-sum(massf))
+    # by their summation
+    #
+    # NB. 'species' should be a dictionary of species names and mass
+    # fractions.
+    pass_flag = 0;
+    massf_error = abs(1.0-sum(species.values()))
     if massf_error<=1.0e-6:
         pass_flag = 1
     elif 1.0e-6 < massf_error <= 1.0e-4:
-        totalMass = sum(massf)
-        massf = [x/totalMass for x in massf]
+        totalMass = sum(species.values())
+        for var in species.keys():
+            species[var] = species[var]/totalMass
         pass_flag = 1
     else:
         print "Mass fractions DO NOT sum to one. Error is >1.0e-4"
     if pass_flag == 1:
-        return massf
+        return species
     else:
         return 0
 
@@ -91,6 +98,14 @@ if gastype in ['n2', 'N2']:
     gastype = upper(gastype)
 if DEBUG_flag:
     print "Test gas is "+gastype
+
+
+# Define the temperature and pressure of the intial gas sitting in the nozzle/
+# dump tank
+initial = {};
+initial['p'] = 106.4;
+initial['T'] = 300.0;
+
 
 # TODO: can simplify this gas-model section of code by using more of the data
 #       returned by a recent version of the estcj.py program.
@@ -236,12 +251,8 @@ elif gastype in ['air5species']:
     
     # Frozen or Non-equilibrium...
     if $chemModel not in ['eq']:
-        gasState = make_gas_from_name('air5species')
-        gasState.set_pT(p=throat.p, T=throat.T)
-        gasSpecies = ['N2','O2','N','O','NO']
-        
-        select_gas_model(model='thermally perfect gas', species=gasSpecies)
-        
+        select_gas_model(model='thermally perfect gas', species=throat.onlyList)
+
         if $chemModel in ['frz','frz2']:
             print 60*"-"
             print "Nozzle expansion uses Frozen Air (5-species)"
@@ -254,11 +265,17 @@ elif gastype in ['air5species']:
         
         print "Flow species at nozzle throat"
         print "Note that if required, the equilibrium massf values have been scaled by their summation"
-        gasState.write_state(sys.stdout)
+        throat.species = massFraction_check(throat.species)
+        throat_massf = throat.get_fractions(throat.onlyList)
+        print throat.species
+        
+        # Define the composition for the gas initially in the nozzle/dump tank
+        gasState = make_gas_from_name('air5species')
+        gasState.set_pT(p=initial['p'], T=initial['T'])
+        initial_massf = gasState.get_fractions(gasState.onlyList)
+        print "Initial flow species"
+        print gasState.species
 
-        throat_massf = massFraction_check(gasState.get_fractions(gasSpecies))
-        initial_massf = gasState.get_fractions(gasSpecies)
-    
     # Equilibrium
     else:
         print 60*"-"
@@ -279,11 +296,7 @@ elif gastype in ['N2']:
 
     # Frozen or Non-equilibrium...
     if $chemModel not in ['eq']:
-        gasState = make_gas_from_name('n2')
-        gasState.set_pT(p=throat.p, T=throat.T)
-        gasSpecies = ['N2','N']
-        
-        select_gas_model(model='thermally perfect gas', species=gasSpecies)
+        select_gas_model(model='thermally perfect gas', species=throat.onlyList)
         
         if $chemModel in ['frz','frz2']:
             print 60*"-"
@@ -297,11 +310,17 @@ elif gastype in ['N2']:
         
         print "Flow species at nozzle throat"
         print "Note that if required, the equilibrium massf values have been scaled by their summation"
-        gasState.write_state(sys.stdout)
+        throat.species = massFraction_check(throat.species)
+        throat_massf = throat.get_fractions(throat.onlyList)
+        print throat.species
         
-        throat_massf = massFraction_check(gasState.get_fractions(gasSpecies))
-        initial_massf = gasState.get_fractions(gasSpecies)
-    
+        # Define the composition of the gas initially in the nozzle/dump tank
+        gasState = make_gas_from_name('n2')
+        gasState.set_pT(p=initial['p'], T=initial['T'])
+        initial_massf = gasState.get_fractions(gasState.onlyList)
+        print "Initial gas species"
+        print gasState.species
+
     # Equilibrium...
     else:
         print 60*"-"
@@ -320,7 +339,7 @@ else:
 inflow=FlowCondition(p=throat.p, u=throat_V, v=0.0, T=throat.T,
                        massf=throat_massf, tke=throat_tke,
                        omega=throat_omega)
-initial=FlowCondition(p=106.4, u=0.0, v=0.0, T=300.0,
+initial=FlowCondition(p=initial['p'], u=0.0, v=0.0, T=initial['T'],
                        massf=initial_massf, tke=0.0, omega=1.0,
                        label="initial")
 
