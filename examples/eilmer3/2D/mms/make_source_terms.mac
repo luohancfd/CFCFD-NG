@@ -8,7 +8,7 @@
  *      2 subsonic flow with large absolute viscosity
  */
 
-case: 1;
+case: 2;
 
 /* Gas properties for an ideal gas like air but very viscous. */
 Rgas: 287.1; 
@@ -24,8 +24,8 @@ k: Cp*mu/Prandtl;
 batch("analytic_solution.mac");
 
 /* Thermodynamic behaviour, equation of state. */
-T: e/Cv;
 e: p/rho/(g-1);
+T: e/Cv;
 et: e + u*u/2 + v*v/2;
 
 /* Heat flux */

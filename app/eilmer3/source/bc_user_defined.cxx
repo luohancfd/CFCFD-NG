@@ -538,9 +538,15 @@ int UserDefinedBC::eval_viscous_udf( double t, int i, int j, int k,
 	}
 	lua_pop(L, 1); // remove mf table from top-of-stack
 	// cout << "Now get T, v, u, w, tke, omega" << endl;
-	double T_wall;
-	lua_getfield(L, -1, "T_wall"); T_wall = lua_tonumber(L, -1); lua_pop(L, 1);
-	for ( int imode = 0; imode < nmodes; ++imode ) fs.gas->T[imode] = T_wall;
+	lua_getfield(L, -1, "T"); // put temperature table at TOS
+	for ( int imode = 0; imode < nmodes; ++imode ) {
+	    lua_pushinteger(L, imode);
+	    lua_gettable(L, -2);
+	    fs.gas->T[imode] = lua_tonumber(L, -1);
+	    lua_pop(L, 1); // remove the number to leave the table at TOS
+	}
+	lua_pop(L, 1); // remove T table from top-of-stack
+	// Now get scalar quantities
 	lua_getfield(L, -1, "u"); fs.vel.x = lua_tonumber(L, -1); lua_pop(L, 1);
 	lua_getfield(L, -1, "v"); fs.vel.y = lua_tonumber(L, -1); lua_pop(L, 1);
 	lua_getfield(L, -1, "w"); fs.vel.z = lua_tonumber(L, -1); lua_pop(L, 1);
