@@ -17,10 +17,11 @@ to extract nominal flow condition data.
    The University of Queensland
 """
 
-VERSION_STRING = "26-Feb-2012"
+VERSION_STRING = "01-Mar-2012"
 
 import shlex, subprocess, string
 from subprocess import PIPE
+from string import upper
 import sys, os, gzip
 import optparse
 E3BIN = os.path.expandvars("$HOME/e3bin")
@@ -229,20 +230,22 @@ def main():
     # Get the nozzle contour file into the current work directory.
     run_command('cp '+E3BIN+'/nenzfr_data_files/'+opt.contourFileName+' .')
     # Set up the equilibrium gas-model file as a look-up table.
-    eqGasModelFile = 'cea-lut-'+opt.gasName+'.lua.gz'
-    if not os.path.exists(eqGasModelFile):
-        run_command('build-cea-lut --case='+opt.gasName)
+    if opt.chemModel in ['eq',]:
+        if opt.gasName in ['n2']:
+            eqGasModelFile = 'cea-lut-'+upper(opt.gasName)+'.lua.gz'
+        else:
+            eqGasModelFile = 'cea-lut-'+opt.gasName+'.lua.gz'
+        if not os.path.exists(eqGasModelFile):
+            run_command('build-cea-lut --case='+opt.gasName)
+        gmodelFile = eqGasModelFile
+    else:
+        # We'll assume that hte gas-model file of default name is set up.
+        # TODO: Luke, this needs to be modified, I suspect.
+        gmodelFile = 'gas-model.lua'
     # Runs estcj to get the equilibrium shock-tube conditions up to the nozzle-supply region.
     command_text = E3BIN+('/estcj.py --gas=%s --T1=%g --p1=%g --Vs=%g --pe=%g --task=st --ofn=%s' % 
                           (opt.gasName, opt.T1, opt.p1, opt.Vs, opt.pe, opt.jobName))
     run_command(command_text)
-    if opt.chemModel in ['eq',]:
-        # The gas model description for Eilmer3 is entirely in the look-up table file.
-        gmodelFile = eqGasModelFile
-    else:
-        # We'll assume that the gas-model file of default name is set up.
-        # TODO: Luke, this needs to be modified, I suspect.
-        gmodelFile = 'gas-model.lua'
     # Set up the input script for Eilmer3.
     paramDict = {'jobName':quote(opt.jobName), 'gasName':quote(opt.gasName),
                  'T1':opt.T1, 'p1':opt.p1, 'Vs':opt.Vs, 'pe':opt.pe,
@@ -251,7 +254,8 @@ def main():
                  'chemModel':quote(opt.chemModel),
                  'areaRatio':opt.areaRatio,
                  'nni':opt.nni, 'nnj':opt.nnj, 'nbi':opt.nbi, 'bx':opt.bx, 'by':opt.by,
-                 'max_time':opt.max_time, 'max_step':opt.max_step}
+                 'max_time':opt.max_time, 'max_step':opt.max_step, 
+                 'HOME':'$HOME'}
     prepare_input_script(paramDict, opt.jobName)
     # Run Eilmer3
     run_command(E3BIN+('/e3prep.py --job=%s --do-svg' % (opt.jobName,)))
@@ -276,7 +280,7 @@ def main():
     print_stats(opt.exitSliceFileName,opt.jobName)                
     # Compute viscous data at the nozzle wall
     run_command(E3BIN+'/nenzfr_compute_viscous_data.py --job=%s' % (opt.jobName,))
-
+    
     #
     # The following are additional commands specific to Luke D. and the Mach 10 nozzle.
     # TODO: Luke, we need to think of a good way to encode all of the options.
@@ -290,7 +294,7 @@ def main():
                +('--output-file=%s2 --slice-at-point="-1,jk,1.642,0,0" ' % 
                  (opt.exitSliceFileName,))
                +'--add-mach --add-pitot --add-total-enthalpy --add-total-p')
-
+    
     # 29-07-2011 Luke D. 
     # Copy the original exit stats file to a temporary file
     run_command(('cp %s-exit.stats %s-exit.stats_temp') % (opt.jobName, opt.jobName,))
@@ -301,9 +305,9 @@ def main():
     run_command('mv %s-exit.stats_temp %s-exit.stats' % (opt.jobName, opt.jobName,))
     #
     # End specific commands
-    # 
+    #
     return 0
-
+    
 #---------------------------------------------------------------
 
 if __name__ == '__main__':

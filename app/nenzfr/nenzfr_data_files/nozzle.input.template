@@ -38,6 +38,7 @@ from cfpylib.nm.zero_solvers import secant
 from string import upper
 from numpy import arange
 from cfpylib.nm.roberts import roberts
+import os
 
 #---------------------------------------------------------------------
 # Utility functions
@@ -106,10 +107,6 @@ initial = {};
 initial['p'] = 106.4;
 initial['T'] = 300.0;
 
-
-# TODO: can simplify this gas-model section of code by using more of the data
-#       returned by a recent version of the estcj.py program.
-
 if gastype in ['air', 'Air']:
     #
     # Test gas is Air (CEA species)
@@ -118,7 +115,7 @@ if gastype in ['air', 'Air']:
     # Equilibrium...
     if $chemModel in ['eq']:
         print 60*'-'
-        print "Nozzle expansion uses Equilibrium Air (CEA)"
+        print "Nozzle expansion uses Equilibrium Air (CEA LUT)"
         print 60*'-'
 
         select_gas_model(fname="cea-lut-air.lua.gz")
@@ -138,7 +135,9 @@ if gastype in ['air', 'Air']:
         # Therefore assume that the pressure is constant and adjust the temperature at 
         # the throat to conserve the mass, momentum and energy fluxes.
         #
+        print 60*"-"
         print "Changing from CEA air to 5-species air mixture for nozzle calculation."
+        print 60*"-"
         print "Adjusting throat temperature to conserve mass, momentum and energy."
         def enthalpy_error(x, p1=throat.p, h1=throat.h, a1=throat.a, state=gasState):
             state.set_pT(p=p1, T=x)
@@ -175,8 +174,20 @@ if gastype in ['air', 'Air']:
             print "Nozzle expansion uses Non-Equilibrium Air (5 species)"
             print 60*"-"
             set_reaction_update('gupta_etal_air_reactions.lua')
+            
+            # Check that the reaction file is present in the current working directory
+            if not os.path.exists('gupta_etal_air_reactions.lua'):
+                fp = open(os.path.expandvars('$HOME/cfcfd3/lib/gas/reaction-schemes/air/gupta_etal_air_reactions.lua'),'r')
+                fout = open('./gupta_etal_air_reactions.lua','w')
+                for line in fp.readlines():
+                    items = line.strip().split()
+                    if len(items)>0 and items[0] == 'NO_SPECIES' and items[-1] is not 5:
+                        fout.write('NO_SPECIES = 5\n')
+                    else:
+                        fout.write('%s' % line)
+                fout.close()
         
-        print "Flow species at nozzle throat"
+        print "Flow species at nozzle throat:"
         print "Note that if required, the equilibrium massf values have been scaled by their summation"
         gasState.species = massFraction_check(gasState.species)
         throat_massf = gasState.get_fractions(gasState.onlyList)
@@ -185,71 +196,35 @@ if gastype in ['air', 'Air']:
         # Define the composition for the gas initially in the nozzle/dump tank
         gasState.set_pT(p=initial['p'], T=initial['T'])
         initial_massf = gasState.get_fractions(gasState.onlyList)
-        print "Initial flow species"
+        print "Initial flow species:"
         print gasState.species
-
-
-
-
 
     # Frozen-2...    
     elif $chemModel in ['frz2']:
-        # Use CEA species present at the throat and perform a frozen calculation
-        
-        #gasState = make_gas_from_name('air')
-        #gasState.set_pT(p=throat.p, T=throat.T)
+        # Use CEA species present at the throat and perform a frozen calculation. At standard
+        # conditions CEA air is assumed to be formed from those species given in the basicSpecies
+        # list (see NASA RP-1311-P2 pg. 84)
+        basicSpecies = ['N2','O2','Ar','CO2']
+        for var in basicSpecies:
+            if not sum( array(throat.species.keys())==var )==1:
+                throat.species[var] = 0.0
+        select_gas_model('thermally perfect gas', species=throat.species.keys())
         
         print 60*"-"
         print "Nozzle expansion uses Frozen Air (CEA species)"
         print 60*"-"
-        print "Flow species at nozzle throat"
-        #gasState.write_state(sys.stdout)
-
-        ## Read the "tmp.out" file to get species present and their mass-fractions
-        ## at the throat...
-        #linestart = 1000;   linefinish = 1000
-        #throatSpecies = [];   eqMassf = []
-        #for line in fileinput.input('tmp.out',mode='r'):
-        #    if line == ' MASS FRACTIONS\n':
-        #        linestart = fileinput.filelineno() + 2
-        #    elif line == '  * THERMODYNAMIC PROPERTIES FITTED TO 20000.K\n':
-        #        linefinish = fileinput.filelineno() - 2
-        #    tempdata = string.split(string.lstrip(line,' *'))
-        #    if fileinput.filelineno()>=linestart and fileinput.filelineno()<=linefinish\
-        #        and len(tempdata)>0:
-        #        throatSpecies += [tempdata[0]]
-        #        eqMassf += [float(tempdata[1])]
-        #fileinput.close()
-        
-        
-        # At standard conditions air is assumed to be formed from those species
-        # given in the basicSpecies list. We compare basicSpecies to throatSpecies and
-        # add missing species.
-        #
-        basicSpecies = ['N2','O2','Ar','CO2']
-        basicMassf = [0.755184, 0.231416, 0.012916, 0.000484]
-        indx = []; addSpecies = []
-
-        
-        allSpecies = throatSpecies;   alleqMassf = eqMassf;   allMassf = [0.0]*(len(eqMassf)) 
-        for kk in basicSpecies:
-            if kk not in throatSpecies:
-                allSpecies += [kk];   alleqMassf += [0.0]
-                allMassf += [basicMassf[indexOf(basicSpecies,kk)]]
-            else:
-                allMassf[indexOf(throatSpecies,kk)] = basicMassf[indexOf(basicSpecies,kk)]
-
-        print "Species being considered:"
-        print allSpecies
-        print "Mass Fractions at Equilibrium Throat:"
-        print alleqMassf
-        print "Mass Fractions at Standard temperature and pressure condition (consistent with CEA):"
-        print allMassf
+        print "Flow species at nozzle throat:"
         print "Note that if required, the equilibrium massf values have been scaled by their summation"
-
-        select_gas_model(model='thermally perfect gas', species=allSpecies)
-        throat_massf = massFraction_check(alleqMassf)
-        initial_massf = allMassf
+        throat.species = massFraction_check(throat.species)
+        throat_massf = throat.get_fractions(throat.species.keys())
+        print throat.species
+        
+        # Define the composition for the gas initially in the nozzle/dump tank
+        gasState = make_gas_from_name('air')
+        gasState.set_pT(p=initial['p'], T=initial['T'])
+        initial_massf = gasState.get_fractions(throat.species)
+        print "Initial flow species:"
+        print gasState.species
 
 
 elif gastype in ['air5species']:
@@ -273,7 +248,7 @@ elif gastype in ['air5species']:
             
             # Check that the reaction file is present in the current directory 
             if not os.path.exists('gupta_etal_air_reactions.lua'):
-                fp = open('/home/users/uqldoher/cfcfd3/lib/gas/reaction-schemes/air/gupta_etal_air_reactions.lua','r')
+                fp = open(os.path.expandvars('$HOME/cfcfd3/lib/gas/reaction-schemes/air/gupta_etal_air_reactions.lua'),'r')
                 fout = open('./gupta_etal_air_reactions.lua','w')
                 for line in fp.readlines():
                     items = line.strip().split()
@@ -283,7 +258,7 @@ elif gastype in ['air5species']:
                         fout.write('%s' % line)
                 fout.close()
         
-        print "Flow species at nozzle throat"
+        print "Flow species at nozzle throat:"
         print "Note that if required, the equilibrium massf values have been scaled by their summation"
         throat.species = massFraction_check(throat.species)
         throat_massf = throat.get_fractions(throat.onlyList)
@@ -293,7 +268,7 @@ elif gastype in ['air5species']:
         gasState = make_gas_from_name('air5species')
         gasState.set_pT(p=initial['p'], T=initial['T'])
         initial_massf = gasState.get_fractions(gasState.onlyList)
-        print "Initial flow species"
+        print "Initial flow species:"
         print gasState.species
 
     # Equilibrium
@@ -330,7 +305,7 @@ elif gastype in ['N2']:
             
             # Check that the reaction file is present in the current directory
             if not os.path.exists('nitrogen-5sp-6r.lua'):
-                fp = open('/home/users/uqldoher/cfcfd3/lib/gas/reaction-schemes/nitrogen/nitrogen-5sp-6r.lua','r')
+                fp = open(os.path.expandvars('$HOME/cfcfd3/lib/gas/reaction-schemes/nitrogen/nitrogen-5sp-6r.lua'),'r')
                 fout = open('./nitrogen-5sp-6r.lua','w')
                 for line in fp.readlines():
                     items = line.strip().split()
@@ -340,7 +315,7 @@ elif gastype in ['N2']:
                         fout.write('%s' % line)
                 fout.close()
         
-        print "Flow species at nozzle throat"
+        print "Flow species at nozzle throat:"
         print "Note that if required, the equilibrium massf values have been scaled by their summation"
         throat.species = massFraction_check(throat.species)
         throat_massf = throat.get_fractions(throat.onlyList)
@@ -350,7 +325,7 @@ elif gastype in ['N2']:
         gasState = make_gas_from_name('n2')
         gasState.set_pT(p=initial['p'], T=initial['T'])
         initial_massf = gasState.get_fractions(gasState.onlyList)
-        print "Initial gas species"
+        print "Initial gas species:"
         print gasState.species
 
     # Equilibrium...
