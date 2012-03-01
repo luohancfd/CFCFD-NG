@@ -6,7 +6,7 @@
 # Updated: 05-Feb-2008
 # Generalized to the viscous case by PJ, June 2011.
 #
-case = 1
+case = 2
 gdata.title = "Method of Manufactured Solutions, Case=%d." % case
 
 select_gas_model(fname='very-viscous-air.lua')
@@ -60,7 +60,6 @@ elif case == 2:
     gdata.max_step = 20000
     gdata.dt = 1.0e-6
     gdata.cfl = 0.5
-    # gdata.fixed_time_step = True
 gdata.stringent_cfl = 1
 gdata.dt_plot = gdata.max_time/20.0
 
