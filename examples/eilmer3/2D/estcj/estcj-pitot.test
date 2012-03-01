@@ -1,0 +1,92 @@
+# estcj-pitot.test
+# Functional test for ESTCj pitot- and total-pressure estimation.
+# These tests suggested by David Gildfind (DLG), November 2011
+#
+# Peter Jacobs, 01-Mar-2012
+
+package require tcltest 2.0
+namespace import ::tcltest::*
+configure -verbose {start body error}
+
+proc check_values {p_ref T_ref fileName} {
+    set p 0
+    set T 0
+    #
+    set fp [open $fileName r]
+    set contents [read $fp]
+    close $fp  
+    #  
+    # Searches lines for variable name and variable value.
+    foreach line [split $contents "\n"] {
+	if {[string first "  p:" $line] >= 0} {
+            set tmp [split $line]
+            # .. and remove all unnecessary spaces ..
+            set tmp2 [regsub -all ({}\ )+ $tmp ""]
+            # .. and read the variable value.
+	    set items [split $tmp2]
+	    set p [lindex $items 1]
+	    set T [lindex $items 4]
+	    # puts "found values p= $p, T= $T" 
+	}
+    }
+    # Each should be within 1% of the expected values.
+    list [expr abs($p - $p_ref) < (0.01 * $p_ref)] [expr abs($T - $T_ref) < (0.01 * $T_ref)]
+}
+
+test pitot-1-run {Run Pitot pressure estimate case 1.} -body {
+    exec estcj.py --task=pitot --gas=air --T1=451 --p1=167200 --V1=2934 > LOGFILE
+} -result {} -returnCodes {0}
+ 
+test pitot-1-check {Pitot pressure estimate for case 1 should be 10.53MPa.} -body {
+    check_values 10.533e6 3597.7 LOGFILE
+} -result {1 1}
+
+test pitot-2-run {Run Pitot pressure estimate case 2.} -body {
+    exec estcj.py --task=pitot --gas=air --T1=226 --p1=34080 --V1=3011 > LOGFILE
+} -result {} -returnCodes {0}
+ 
+test pitot-2-check {Pitot pressure estimate for case 2 should be 4.491MPa.} -body {
+    check_values 4.492e6 3548.7 LOGFILE
+} -result {1 1}
+
+test pitot-3-run {Run Pitot pressure estimate case 3.} -body {
+    exec estcj.py --task=pitot --gas=air --T1=229 --p1=10700 --V1=3789 > LOGFILE
+} -result {} -returnCodes {0}
+ 
+test pitot-3-check {Pitot pressure estimate for case 3 should be 2.222MPa.} -body {
+    check_values 2.221e6 4442.1 LOGFILE
+} -result {1 1}
+
+test pitot-4-run {Run Pitot pressure estimate case 4.} -body {
+    exec estcj.py --task=pitot --gas=air --T1=235 --p1=3458 --V1=4614 > LOGFILE
+} -result {} -returnCodes {0}
+ 
+test pitot-4-check {Pitot pressure estimate for case 4 should be 1.040MPa.} -body {
+    check_values 1.040e6 5580.8 LOGFILE
+} -result {1 1}
+
+test total-5-run {Run total pressure estimate case 5.} -body {
+    exec estcj.py --task=total --gas=air --T1=226 --p1=1368 --V1=3011 > LOGFILE
+} -result {} -returnCodes {0}
+ 
+test total-5-check {Total pressure estimate for case 5 should be 129MPa.} -body {
+    check_values 128.0e6 3690.2 LOGFILE
+} -result {1 1}
+
+test total-6-run {Run total pressure estimate case 6.} -body {
+    exec estcj.py --task=total --gas=air --T1=229 --p1=876 --V1=3789 > LOGFILE
+} -result {} -returnCodes {0}
+ 
+test total-6-check {Total pressure estimate for case 6 should be 616MPa.} -body {
+    check_values 613.0e6 5286 LOGFILE
+} -result {1 1}
+
+test total-7-run {Run total pressure estimate case 7.} -body {
+    exec estcj.py --task=total --gas=air --T1=235 --p1=608 --V1=4614 > LOGFILE
+} -result {} -returnCodes {0}
+ 
+test total-7-check {Total pressure estimate for case 7 should be 2.547GPa.} -body {
+    check_values 2.5620e9 7366 LOGFILE
+} -result {1 1}
+
+cleanupTests

@@ -32,6 +32,7 @@ lappend test_scripts "2D/odw/odw.test"
 lappend test_scripts "2D/sawada_sphere/ss3.test"
 lappend test_scripts "2D/bittker-hydrogen-combustion/hydrogen.test"
 lappend test_scripts "2D/methane-reactor/psr.test"
+lappend test_scripts "2D/estcj/estcj-pitot.test"
 lappend test_scripts "2D/nenzfr-Mach4-nozzle-eq/nozzle-eq.test"
 lappend test_scripts "3D/simple_ramp/simple_ramp.test"
 if {$long_tests} {
