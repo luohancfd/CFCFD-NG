@@ -166,14 +166,14 @@ def main():
                   help=("chemistry model: " "eq=equilibrium; " 
                         "neq=non-equilibrium; " "frz=frozen " 
                         "[default: %default]"))
-    op.add_option('--area', dest='areaRatio', default=27.0,
+    op.add_option('--area', dest='areaRatio', default=1581.165,
                   help=("nozzle area ratio. only used for estcj calc. "
                         "use when --cfile(--gfile) are "
                         "specified. [default: %default]"))
     op.add_option('--job', dest='jobName', default='nozzle',
                   help="base name for Eilmer3 files [default: %default]")
     op.add_option('--cfile', dest='contourFileName', 
-                  default='contour-t4-m4.data',
+                  default='contour-t4-m10.data',
                   help="file containing nozzle contour [default: %default]")
     op.add_option('--gfile', dest='gridFileName', default='None',
                   help="file containing nozzle grid. "
@@ -189,13 +189,13 @@ def main():
     # The following defaults suit Like's Mach 10 calculations.
     op.add_option('--nni', dest='nni', type='int', default=1800,
                   help=("number of axial cells"))
-    op.add_option('--nnj', dest='nnj', type='int', default=300,
+    op.add_option('--nnj', dest='nnj', type='int', default=100,
                   help=("number of radial cells"))
     op.add_option('--nbi', dest='nbi', type='int', default=180,
                   help=("number of axial blocks for the divergence section (nozzle_blk)"))
     op.add_option('--bx', dest='bx', type='float', default=1.05,
                   help=("clustering in the axial direction"))
-    op.add_option('--by', dest='by', type='float', default=1.005,
+    op.add_option('--by', dest='by', type='float', default=1.002,
                   help=("clustering in the radial direction"))
     op.add_option('--max-time', dest='max_time', type='float', default=6.0e-3,
                   help=("overall simulation time for nozzle flow"))
