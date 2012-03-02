@@ -17,7 +17,7 @@
 WITH_PYTHON_CALLBACKS ?= 1
 TARGET ?= for_gnu
 OPT ?= -O2
-INSTALL_DIR ?= $(HOME)/cfd_bin
+INSTALL_DIR ?= $(HOME)/e3bin
 include ../../util/source/systems.mk
 
 UTIL_SRC        := ../../util/source
