@@ -266,8 +266,8 @@ int main(int argc, char *argv[])
     }
     
     vector<double> massf_inf;
-    if ( !cfg.parse_vector_of_doubles("initial-conditions", "massf_inf", 
-    	                               massf_inf, vdnf) ) {
+    if ( !cfg.parse_vector_of_doubles("initial-conditions", "massf_inf", massf_inf, vdnf)
+    	  || ( massf_inf.size() > (size_t) 0 && massf_inf.size() != (size_t) gmodel->get_number_of_species() )  ) {
     	cout << "Error reading massf_inf in [initial-conditions] section of " 
     	     << input << endl;
     	cout << "Bailing out!\n";
@@ -275,8 +275,8 @@ int main(int argc, char *argv[])
     }
     
     vector<double> molef_inf;
-    if ( !cfg.parse_vector_of_doubles("initial-conditions", "molef_inf",
-    	                               molef_inf, vdnf) ) {
+    if ( !cfg.parse_vector_of_doubles("initial-conditions", "molef_inf", molef_inf, vdnf)
+            || ( molef_inf.size() > (size_t) 0 && molef_inf.size() != (size_t) gmodel->get_number_of_species() )  ) {
     	cout << "Error reading molef_inf in [initial-conditions] section of "
     	     << input << endl;
     	cout << "Bailing out!\n";
