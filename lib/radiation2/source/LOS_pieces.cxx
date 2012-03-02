@@ -280,7 +280,7 @@ double TS_data::quick_solve_for_divq()
     vector<double> q_plus, q_minus;
     
     /* ------- Wall-to-shock (minus) direction ------- */
-    
+
     // Outer-boundary blackbody intensity (note optical thickness = 0)
     double q_int = 0.0;
     for ( int inu=0; inu < nnus_; inu++ ) {
@@ -318,7 +318,7 @@ double TS_data::quick_solve_for_divq()
     }
     
     /* ------- Shock-to-wall (plus) direction ------- */
-    
+
     // Outer-boundary blackbody intensity (note optical thickness = 0)
     q_int = 0.0;
     for ( int inu=0; inu < nnus_; inu++ ) {
@@ -327,7 +327,7 @@ double TS_data::quick_solve_for_divq()
         if ( inu>0 )
             q_int += 0.5 * ( F_->q_nu[inu] + F_->q_nu[inu-1] ) * fabs( F_->nu[inu] - F_->nu[inu-1] );
     }
-    
+
     // Save integrated flux
     q_plus.push_back( q_int );
     

@@ -70,6 +70,9 @@ public:
     /// \brief Write CoeffSpectra class data to file
     double write_to_file( std::string fname );
     
+    /// \brief Write CoeffSpectra class data to file in format for TRT_tools interface
+    void write_TRT_tools_file( std::string fname );
+
     /// \brief Integrate the emission coefficient spectrum
     double integrate_emission_spectra();
     

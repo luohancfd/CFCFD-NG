@@ -141,6 +141,35 @@ double CoeffSpectra::write_to_file( string fname )
     return write_data_to_file( fname, j_nu, Y1_label, Y1_int_label, kappa_nu, Y2_label );
 }
 
+void CoeffSpectra::write_TRT_tools_file( string fname )
+{
+    ofstream specfile;
+    specfile.open(fname.c_str());
+    if( specfile.fail() ) {
+        cout << "Error opening file: " << fname << endl;
+        cout << "Bailing Out!\n";
+        exit(FILE_ERROR);
+    }
+
+    specfile << setprecision(12) << scientific << showpoint;
+
+    // Column 1: Wavelength (Ang)
+    // Column 2: Emission coefficient, j_lambda
+    // Column 3: Absorption coefficient, kappa_lambda (1/m)
+    for ( int inu=int(nu.size())-1; inu >= 0; --inu ) {
+        // Write to file
+        specfile << setw(20) << nu2lambda( nu[inu] ) * 10
+                 << setw(20) << j_nu[inu] * nu[inu] * nu[inu] / RC_c_SI
+                 << setw(20) << kappa_nu[inu]
+                 << endl;
+        // move on to next frequency interval
+    }
+
+    specfile.close();
+
+    return;
+}
+
 double CoeffSpectra::integrate_emission_spectra()
 {
     double j_total = 0.0;
@@ -202,8 +231,8 @@ void create_spectral_bin_vector( std::vector<double> & pvec, int binning_type, i
 	    inu_end += bin_size;
 	    B.push_back( new SpectralBin( inus ) );
 	}
-	cout << "inu_end = " << inu_end << ", bin_size = " << bin_size << ", first_bin_size = " << first_bin_size << endl;
-	cout << "nnus = " << nnus << ", N_bins = " << N_bins << endl;
+	// cout << "inu_end = " << inu_end << ", bin_size = " << bin_size << ", first_bin_size = " << first_bin_size << endl;
+	// cout << "nnus = " << nnus << ", N_bins = " << N_bins << endl;
     }
     else if ( binning_type==OPACITY_BINNING ) {
 	// divide the opacity range into equal segment in log space
@@ -245,10 +274,10 @@ void create_spectral_bin_vector( std::vector<double> & pvec, int binning_type, i
 	int nnu_inc = 0.0;
 	for ( int iB=1; iB<N_bins+1; ++iB ) {
 	    B.push_back( new SpectralBin( pvec, p_limits[iB-1], p_limits[iB] ) );
-	    cout << "Created a new spectral bin with " << B.back()->inu.size() << " entries" << endl;
+	    // cout << "Created a new spectral bin with " << B.back()->inu.size() << " entries" << endl;
 	    nnu_inc +=  B.back()->inu.size();
 	}
-	cout << nnu_inc << " spectral points have been included from a total of " << nps << endl;
+	// cout << nnu_inc << " spectral points have been included from a total of " << nps << endl;
     }
 }
 
@@ -437,14 +466,14 @@ double SpectralIntensity::integrate_intensity_spectra( double lambda_min, double
 {
     // 1. Find spectral indice range to integrate over
     int inu_start = 0;
-    if ( lambda_max > 0.0 ) inu_start = get_nu_index(nu, lambda2nu(lambda_max))-1;
+    if ( lambda_max > 0.0 ) inu_start = get_nu_index(nu, lambda2nu(lambda_max)) + 1;
     
     int inu_end = nu.size() - 1;
-    if ( lambda_min > 0.0 ) inu_end = get_nu_index(nu, lambda2nu(lambda_min))-1;
+    if ( lambda_min > 0.0 ) inu_end = get_nu_index(nu, lambda2nu(lambda_min)) + 1;
 
     double I_total = 0.0;
-    for( int inu=inu_start; inu<inu_end; ++inu ) {
-    	I_total += 0.5 * ( I_nu[inu] + I_nu[inu+1] ) * ( nu[inu+1] - nu[inu] );
+    for( int inu=inu_start+1; inu<inu_end; ++inu ) {
+    	I_total += 0.5 * ( I_nu[inu-1] + I_nu[inu] ) * ( nu[inu] - nu[inu-1] );
     	I_int[inu] = I_total;
     }
 
@@ -781,15 +810,15 @@ extract_intensity_profile( double lambda_l, double lambda_u )
     }
     
     // 1. Find spectral indice range to integrate over
-    int inu_start = get_nu_index(S_vec[0]->nu, lambda2nu(lambda_u));
-    int inu_end = get_nu_index(S_vec[0]->nu, lambda2nu(lambda_l));
+    int inu_start = get_nu_index(S_vec[0]->nu, lambda2nu(lambda_u)) + 1;
+    int inu_end = get_nu_index(S_vec[0]->nu, lambda2nu(lambda_l)) + 1;
     
     // 2. Loop over LOS_points and spectrally integrate
     IntensityProfile IvX;
     for ( size_t ip=0; ip<x_vec.size(); ++ip ) {
     	double I_total = 0.0;
-    	for( int inu=inu_start; inu<inu_end; ++inu )
-    	    I_total += 0.5 * ( S_vec[ip]->I_nu[inu] + S_vec[ip]->I_nu[inu+1] ) * ( S_vec[ip]->nu[inu+1] - S_vec[ip]->nu[inu] );
+    	for( int inu=inu_start+1; inu<inu_end; ++inu )
+    	    I_total += 0.5 * ( S_vec[ip]->I_nu[inu-1] + S_vec[ip]->I_nu[inu] ) * ( S_vec[ip]->nu[inu] - S_vec[ip]->nu[inu-1] );
     	IvX.add_new_point( x_vec[ip], I_total );
     }
     
@@ -832,7 +861,7 @@ int get_nu_index( vector<double> &nus, double nu )
     // 0. Firstly check if nu is in range
     int nnu = int ( nus.size() );
     int inu;
-    if ( nu < nus.front() ) inu=0;
+    if ( nu < nus.front() ) inu=-1;
     else if ( nu > nus.back() ) inu=nnu-1;
     else {
 	// 1. nu is in range, so find the appropriate index
