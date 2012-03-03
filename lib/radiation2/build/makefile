@@ -76,7 +76,7 @@ endif
 
 TEST_EXE := photaura_test.x
 
-TEST_PY := photaura_test.py
+TEST_PY := photaura_test.py radGUI.py
 
 ifeq ($(WITH_CEA2), 1)
 	TEST_EXE += cea2
@@ -218,7 +218,7 @@ endif
 
 # -----------  Swig wrapper -----------
 
-librad2_wrap.o : $(SRC)/librad2_wrap.cxx
+librad2_wrap.o : $(SRC)/librad2_wrap.cxx $(LIBLUA)
 	$(CXX) $(CXXFLAG3) $(SRC)/librad2_wrap.cxx \
 	-I$(PYTHON_INCLUDE_DIR) -I$(LUA_INCLUDE_DIR)
 
@@ -297,6 +297,9 @@ parade_radiator.o : $(SRC)/parade_radiator.cxx $(SRC)/parade_radiator.hh
 	
 photaura_test.py : $(SRC)/photaura_test.py
 	- cp $(SRC)/photaura_test.py .
+	
+radGUI.py : $(SRC)/radGUI.py
+	- cp $(SRC)/radGUI.py .
 
 # ------------ Test executables ------------
 
