@@ -201,6 +201,20 @@ def main():
                   help=("overall simulation time for nozzle flow"))
     op.add_option('--max-step', dest='max_step', type='int', default=80000,
                   help=("maximum simulation steps allowed"))
+    
+    op.add_option('--Twall', dest='Tw', type='float', default=300.0,
+                  help=("Nozzle wall temperature, in K "
+                        "[default: %default]"))
+    op.add_option('--BLTrans', dest='BLTrans', default="x_c[-1]*1.1",
+                  help=("Transition location for the Boundary layer. Used "
+                        "to define the turbulent portion of the nozzle. "
+                        "[default: >nozzle length i.e. laminar nozzle]"))
+    op.add_option('--TurbVisRatio', dest='TurbVisRatio', type='float',
+                  default=100.0, help=("Turbulent to Laminar Viscosity Ratio "
+                  "[default: %default]"))
+    op.add_option('--TurbIntensity', dest='TurbInten', type='float', 
+                  default=0.05, help=("Turbulence intensity at the throat "
+                  "[default: %default]"))
     opt, args = op.parse_args()
     #
     # If we have already run a calculation, it may be that we just want
@@ -255,7 +269,8 @@ def main():
                  'areaRatio':opt.areaRatio,
                  'nni':opt.nni, 'nnj':opt.nnj, 'nbi':opt.nbi, 'bx':opt.bx, 'by':opt.by,
                  'max_time':opt.max_time, 'max_step':opt.max_step, 
-                 'HOME':'$HOME'}
+                 'HOME':'$HOME', 'Tw':opt.Tw, 'TurbVisRatio':opt.TurbVisRatio,
+                 'TurbInten':opt.TurbInten, 'BLTrans':opt.BLTrans}
     prepare_input_script(paramDict, opt.jobName)
     # Run Eilmer3
     run_command(E3BIN+('/e3prep.py --job=%s --do-svg' % (opt.jobName,)))
@@ -280,7 +295,7 @@ def main():
     print_stats(opt.exitSliceFileName,opt.jobName)                
     # Compute viscous data at the nozzle wall
     run_command(E3BIN+'/nenzfr_compute_viscous_data.py --job=%s' % (opt.jobName,))
-    
+     
     #
     # The following are additional commands specific to Luke D. and the Mach 10 nozzle.
     # TODO: Luke, we need to think of a good way to encode all of the options.
@@ -294,7 +309,7 @@ def main():
                +('--output-file=%s2 --slice-at-point="-1,jk,1.642,0,0" ' % 
                  (opt.exitSliceFileName,))
                +'--add-mach --add-pitot --add-total-enthalpy --add-total-p')
-    
+     
     # 29-07-2011 Luke D. 
     # Copy the original exit stats file to a temporary file
     run_command(('cp %s-exit.stats %s-exit.stats_temp') % (opt.jobName, opt.jobName,))

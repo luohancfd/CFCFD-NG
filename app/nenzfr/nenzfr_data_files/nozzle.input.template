@@ -88,8 +88,8 @@ throat.write_state(sys.stdout)
 # Estimate turbulence quantities for free stream
 # by specifying the intensity as 0.05 and estimating the
 # turbulence viscosity as 100 times the laminar viscosity.
-throat_tke = 1.5 * (throat_V * 0.05)**2
-throat_mu_t = 100.0 * throat.mu
+throat_tke = 1.5 * (throat_V * $TurbInten)**2
+throat_mu_t = $TurbVisRatio * throat.mu
 throat_omega = throat.rho * throat_tke / throat_mu_t
 print "Inflow turbulence: tke=", throat_tke, "omega=", throat_omega
 
@@ -305,7 +305,6 @@ initial=FlowCondition(p=initial['p'], u=0.0, v=0.0, T=initial['T'],
                        massf=initial_massf, tke=0.0, omega=1.0,
                        label="initial")
 
-
 # When no gridFileName is given we use the provided (or default) contourFile
 if $gridFileName in ['None']:
     # Read in contour file for the particular nozzle.
@@ -367,7 +366,7 @@ if $gridFileName in ['None']:
     expansion_region = make_patch(n_north, n_east, n_south, n_west)
 
     # Boundary conditions
-    Twall = 300
+    Twall = $Tw
     bc_list = [FixedTBC(Twall), ExtrapolateOutBC(), SlipWallBC(), SupInBC(inflow)]
 
     # Define the clustering and grid resolution parameters for the "nozzle_blk". 
@@ -473,7 +472,7 @@ else:
     # Define the blocks, boundary conditions
     blockList = []
     
-    Twall = 300.0
+    Twall = $Tw
     for count in range(nblocks):
        blk = Block2D(nni=importedGrid[count].ni-1, nnj=importedGrid[count].nj-1,
                      # minus 1 for nni because nni=number-of-cell-centres & ni=number-of-nodes
@@ -490,6 +489,10 @@ else:
      
     identify_block_connections()
     
+# Define the turbulent portion of the nozzle
+point0=Vector($BLTrans, 0.000, 0.000)
+point1=Vector(x_c[-1]*2.0, y_c[-1]*2.0, 0.000)
+TurbulenceZone(point0, point1, label="Turbulent")
     
 # Attributes for the space-marching simulation.
 gdata.dimensions = 2
@@ -504,7 +507,7 @@ gdata.cfl = 0.4
 gdata.cfl_count = 5
 gdata.dt_plot = 0.04e-3
 gdata.dt_history = 10.0e-6
-gdata.turbulence_flag = 0
+gdata.turbulence_flag = 1
 gdata.turbulence_model = 'k_omega'
 
 sketch.xaxis(0.0, 1.2, 0.1, 0.)
