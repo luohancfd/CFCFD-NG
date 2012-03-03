@@ -232,11 +232,11 @@ def main():
     # Set up the equilibrium gas-model file as a look-up table.
     if opt.chemModel in ['eq',]:
         if opt.gasName in ['n2']:
-            eqGasModelFile = 'cea-lut-'+upper(opt.gasName)+'.lua.gz'
+            eqGasModelFile = 'cea-lut-'+upper(opt.gasName)+'-no-ions.lua.gz'
         else:
-            eqGasModelFile = 'cea-lut-'+opt.gasName+'.lua.gz'
+            eqGasModelFile = 'cea-lut-'+opt.gasName+'-no-ions.lua.gz'
         if not os.path.exists(eqGasModelFile):
-            run_command('build-cea-lut --case='+opt.gasName)
+            run_command('build-cea-lut --case='+opt.gasName+'-no-ions')
         gmodelFile = eqGasModelFile
     else:
         # We'll assume that hte gas-model file of default name is set up.

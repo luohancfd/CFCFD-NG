@@ -118,7 +118,7 @@ if gastype in ['air', 'Air']:
         print "Nozzle expansion uses Equilibrium Air (CEA LUT)"
         print 60*'-'
 
-        select_gas_model(fname="cea-lut-air.lua.gz")
+        select_gas_model(fname="cea-lut-air-no-ions.lua.gz")
         throat_massf = [1.,]
         initial_massf = [1.,]
     
@@ -290,7 +290,7 @@ elif gastype in ['air5species', 'N2']:
         print "Nozzle expansion uses Equilibrium "+gastype
         print 60*"-"
     
-        select_gas_model(fname="cea-lut-"+gastype+".lua.gz")
+        select_gas_model(fname="cea-lut-"+gastype+"-no-ions.lua.gz")
         throat_massf = [1.,]
         initial_massf = [1.,]
 else:

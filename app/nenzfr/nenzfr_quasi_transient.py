@@ -121,7 +121,7 @@ def main():
     op.add_option('--tstart', dest='tstart', type='float', default='1.5e-3',
                   help=("time at which the first slice of the input pressure "
                         "trace is to begin [default: %default]"))
-    op.add_option('--nsteps', dest='nsteps', type='float', default=5,
+    op.add_option('--nsteps', dest='nsteps', type='int', default=5,
                   help=("number of slices to use [default: %default]"))
     op.add_option('--dt', dest='dt', type='float', default=0.5e-3,
                   help=("width of each averaging slice [default: %default]"))

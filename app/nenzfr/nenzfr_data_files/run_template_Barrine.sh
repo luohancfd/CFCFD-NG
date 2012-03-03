@@ -20,7 +20,8 @@ echo "-------------------------------------------"
 echo "Begin Shared job..."
 date
 
-nenzfr.py --gas="air5species" --T1=300.0 --p1=250000.0 --Vs=2195.0 --pe=$pe --chem="neq" --area=1581.165 --job=$jobName --cfile="contour-t4-m10.data" --gfile="None" --exitfile="nozzle-exit.data" --nni=2700 --nnj=150 --nbi=270 --bx=1.05 --by=1.002 --max-time=0.006 --max-step=800000 > LOGFILE
+cd $PBS_O_WORKDIR
+$HOME/e3bin/nenzfr.py --gas="air5species" --T1=300.0 --p1=250000.0 --Vs=2195.0 --pe=$pe --chem="neq" --area=1581.165 --job=$jobName --cfile="contour-t4-m10.data" --gfile="None" --exitfile="nozzle-exit.data" --nni=2700 --nnj=150 --nbi=270 --bx=1.05 --by=1.002 --max-time=0.006 --max-step=800000 > LOGFILE
 
 echo "End Shared job."
 date
