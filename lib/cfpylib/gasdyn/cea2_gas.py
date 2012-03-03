@@ -167,11 +167,10 @@ class Gas(object):
             print "Quitting the current program because we really can't do anything further."
             sys.exit()
 	# ----------------------------------------------------------------
+        assert inputUnits == 'moles' or inputUnits == 'massf'
+        assert outputUnits == 'moles' or outputUnits == 'massf'
         self.reactants = copy(reactants)
-        if inputUnits.find("mass")>=0:
-	    self.inputUnits = "wt"
-	else:
-	    self.inputUnits = inputUnits
+        self.inputUnits = inputUnits
         self.outputUnits = outputUnits
         self.onlyList = copy(onlyList)
         self.species = {} # will be read from CEA2 output
@@ -227,12 +226,22 @@ class Gas(object):
         self.p = p; self.s = s
         return self.EOS(problemType='ps', transProps=transProps)
 
+    def set_ph(self, p, h, transProps=True):
+        """
+        Fills out gas state from given pressure and enthalpy.
+
+        :param p: pressure, Pa
+        :param h: enthalpy, J/kg
+        """
+        self.p = p; self.h = h
+        return self.EOS(problemType='ph', transProps=transProps)
+
     def write_state(self, strm):
         """
         Writes the gas state data to the specified stream.
         """
-        strm.write('    p: %g Pa, T: %g K, rho: %g kg/m**3, e: %g J/kg, a: %g m/s\n'
-                   % (self.p, self.T, self.rho, self.u, self.son) )
+        strm.write('    p: %g Pa, T: %g K, rho: %g kg/m**3, e: %g J/kg, h: %g J/kg, a: %g m/s\n'
+                   % (self.p, self.T, self.rho, self.u, self.h, self.son) )
         strm.write('    R: %g J/(kg.K), gam: %g, Cp: %g J/(kg.K), mu: %g Pa.s, k: %g W/(m.K)\n'
                    % (self.R, self.gam, self.cp, self.mu, self.k) )
         strm.write('    species %s: %s\n' % (self.outputUnits, str(self.species)) )
@@ -300,7 +309,17 @@ class Gas(object):
             fp.write('   p(bar)      %e\n' % (self.p / 1.0e5) )
             fp.write('   s/r         %e\n' % (self.s / R_universal) )
             if DEBUG_GAS >= 2:
-                print 'EOS: input to CEA2 p: %g, s: %g' % (self.p, self.s)
+                print 'EOS: input to CEA2 p: %g, s/r: %g' % (self.p, self.s)
+        elif problemType == 'ph':
+            if self.with_ions:
+                fp.write('problem case=estcj ph ions\n')
+            else:
+                fp.write('problem case=estcj ph\n')
+            assert self.p > 0.0
+            fp.write('   p(bar)      %e\n' % (self.p / 1.0e5) )
+            fp.write('   h/r         %e\n' % (self.h / R_universal) )
+            if DEBUG_GAS >= 2:
+                print 'EOS: input to CEA2 p: %g, h/r: %g' % (self.p, self.s)
         elif problemType == 'shock':
             if self.with_ions:
                 fp.write('problem shock inc eq ions\n')
@@ -316,7 +335,13 @@ class Gas(object):
         fp.write('reac\n')
         for s in self.reactants.keys():
             f = self.reactants[s]
-            if f > 0.0: fp.write('   name= %s  %s=%g\n' % (s, self.inputUnits, f))
+            if f > 0.0:
+                if self.inputUnits == 'moles':
+                    fp.write('   name= %s  moles=%g' % (s, f))
+                else:
+                    fp.write('   name= %s  wtf=%g' % (s, f))
+                if problemType == 'ph': fp.write(' t=300')
+                fp.write('\n')
         #
         if len(self.onlyList) > 0:
             fp.write('only %s\n' % (' '.join(self.onlyList)))
@@ -349,7 +374,8 @@ class Gas(object):
         for line in lines:
             if line=="\n": continue
             if line.find("PRODUCTS WHICH WERE CONSIDERED BUT WHOSE")>=0: break
-            if line.find("THERMODYNAMIC EQUILIBRIUM PROPERTIES AT ASSIGNED")>=0:
+            if (line.find("THERMODYNAMIC EQUILIBRIUM PROPERTIES AT ASSIGNED")>=0 or
+                line.find("THERMODYNAMIC EQUILIBRIUM COMBUSTION PROPERTIES AT ASSIGNED")>=0):
                 thermo_props_found = True
             elif line.find("SHOCKED GAS (2)--INCIDENT--EQUILIBRIUM")>=0:
                 incident_shock_data = True
@@ -478,6 +504,11 @@ if __name__ == '__main__':
     print 'and the same Air at a higher temperature'
     a.set_pT(100.0e3, 4000.0)
     a.write_state(sys.stdout)
+    #
+    print '\nCheck enthalpy specification'
+    b = Gas({'Air':1.0,}, outputUnits='moles')
+    b.set_ph(a.p, a.h)
+    b.write_state(sys.stdout)
     #
     print '\nAir-5-species for nenzfr: 79% N2, 21% O2 by mole fraction.'
     a = Gas(reactants={'N2':0.79, 'O2':0.21, 'N':0.0, 'O':0.0, 'NO':0.0}, 
