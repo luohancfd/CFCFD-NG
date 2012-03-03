@@ -143,7 +143,8 @@ def reflected_shock_tube_calculation(gasName, p1, T1, Vs, pe, pp_on_pe, area_rat
                 return (mflux-mflux_throat)/mflux_throat
             # It appears that we need a pretty good starting guess for the pressure ratio.
             # Maybe a low value is OK.
-            x7 = secant(error_at_exit, 0.001*x6, 0.00005*x6, tol=1.0e-4)
+            x7 = secant(error_at_exit, 0.001*x6, 0.00005*x6, tol=1.0e-4,
+                        limits=[1.0/state5s.p,1.0])
             if x7 == 'FAIL':
                 print "Failed to find exit conditions iteratively."
                 x7 = x6
@@ -168,7 +169,8 @@ def reflected_shock_tube_calculation(gasName, p1, T1, Vs, pe, pp_on_pe, area_rat
             # We need a low starting guess for the pressure ratio.
             #x7 = secant(error_at_exit, 0.001*x6, 0.00005*x6, tol=1.0e-4)
             # Changed the tolerance on 25/07/2011 in order to get the M8 nozzle to work (shot 10803)
-            x7 = secant(error_at_exit, 0.001*x6, 0.00005*x6, tol=1.5e-4)
+            x7 = secant(error_at_exit, 0.001*x6, 0.00005*x6, tol=2.0e-4,
+                        limits=[1.0/state5s.p,1.0])
             if x7 == 'FAIL':
                 print "Failed to find exit conditions iteratively."
                 x7 = x6
