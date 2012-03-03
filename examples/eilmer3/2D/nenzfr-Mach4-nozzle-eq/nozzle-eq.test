@@ -10,7 +10,8 @@ namespace import ::tcltest::*
 configure -verbose {start body error}
 
 test nenzfr {Prepare and run nenzfr.} -body {
-    exec nenzfr.py --gas=air --T1=300 --p1=125.0e3 --Vs=2414 --pe=34.376e6 --nni=600 --nnj=40 --by=1.02 --nbi=60 --max-time=1.0e-3  > LOGFILE_MAIN
+    exec nenzfr.py --gas=air --T1=300 --p1=125.0e3 --Vs=2414 --pe=34.376e6 --area=27.0 --cfile=contour-t4-m4.data \
+                   --nni=600 --nnj=40 --by=1.02 --nbi=60 --max-time=1.0e-3  > LOGFILE_MAIN
 } -result {} -returnCodes {0}
 
 test nozzle-exit-temperature {The nozzle exit temperature should be 1259 K.} -body {
