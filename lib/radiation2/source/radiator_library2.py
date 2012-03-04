@@ -11535,6 +11535,7 @@ H_plus_no_lines = AtomicLineSet()
 H_plus_no_lines.lines = [ '' ] * 0
 H_plus_no_lines.comments = "# no lines considered\n"
 H_plus.available_line_sets["no_lines"] = H_plus_no_lines
+H_plus.available_line_sets["all_lines"] = H_plus_no_lines
 # ----- Photoionization cross-section models -----
 H_plus.default_photoionXsection_model = "none"
 #
