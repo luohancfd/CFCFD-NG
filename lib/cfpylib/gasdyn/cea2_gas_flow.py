@@ -8,7 +8,7 @@ cea2_gas_flow.py -- Gas flow calculations using CEA2 Gas objects.
    26-Feb-2012 : functions moved out of estcj.py to this module.
 """
 
-import sys, math
+import sys, math, numpy
 from cea2_gas import Gas
 from ..nm.zero_solvers import secant
 
@@ -351,9 +351,129 @@ def beta_oblique(state1, V1, theta):
     """
     M1 = V1 / state1.a
     b1 = math.asin(1.0 / M1)
-    b2 = b1 * 1.1
+    b2 = b1 * 1.05
     def error_in_theta(beta_guess):
         theta_guess, V2, state2 = theta_oblique(state1, V1, beta_guess)
+        return theta_guess - theta
+    return secant(error_in_theta, b1, b2, tol=1.0e-6)
+
+#------------------------------------------------------------------------
+# Taylor-Maccoll cone flow.
+
+def EOS_derivatives(state):
+    """
+    Compute equation-of-state derivatives at the specified state.
+
+    :param state: a complete state (with valid data)
+    :returns: tuple of approximations (drho/dp, drho/dh)
+    """
+    rho_0 = state.rho
+    # Choose relatively-small increments in enthalpy (J/kg) and pressure (Pa).
+    dh = abs(state.h) * 0.01 + 1000.0
+    dp = state.p * 0.01 + 1000.0
+    # Use finite-differences to get the partial derivative.
+    state_new = state.clone()
+    state_new.set_ph(state.p + dp, state.h)
+    drhodp = (state_new.rho - rho_0) / dp
+    # and again, for the other.
+    state_new.set_ph(state.p, state.h + dh)
+    drhodh = (state_new.rho - rho_0) / dh
+    # Assume that these first-order differences will suffice.
+    return drhodp, drhodh
+
+def taylor_maccoll_odes(z, theta, gas_state):
+    """
+    The ODEs from the Taylor-Maccoll formulation.
+
+    See PJ's workbook for Feb 2012 for details.
+    We've packaged them formally so that we might one day use
+    a more sophisticated ODE integrator requiring fewer steps.
+    """
+    rho, V_r, V_theta, h, p = z
+    dfdp, dfdh = EOS_derivatives(gas_state)
+    print "DEBUG dfdp=", dfdp, "dfdh=", dfdh
+    # Assemble linear system for determining the derivatives wrt theta.
+    A = numpy.zeros((5,5), float)
+    b = numpy.zeros((5,), float)
+    A[0,0] = V_theta; A[0,2] = rho; b[0] = -2.0*rho*V_r - rho*V_theta/math.tan(theta)
+    A[1,1] = 1.0; b[1] = V_theta
+    A[2,1] = rho*V_r; A[2,2] = rho*V_theta; A[2,4] = 1.0
+    A[3,1] = V_r; A[3,2] = V_theta; A[3,3] = 1.0
+    A[4,0] = 1.0; A[4,3] = -dfdh; A[4,4] = -dfdp
+    dzdtheta = numpy.linalg.solve(A,b)
+    return dzdtheta
+
+def theta_cone(state1, V1, beta):
+    """
+    Compute the cone-surface angle and conditions given the shock wave angle.
+
+    :param state1: upstream gas condition
+    :param V1: speed of gas into shock
+    :param beta: shock wave angle wrt stream direction (in radians)
+    :returns: tuple of theta_c, V_c and state_c:
+        theta_c is stream deflection angle in radians
+        V_c is cone-surface speed of gas in m/s
+        state_c is cone-surface gas state
+
+    The computation starts with the oblique-shock jump and then integrates
+    across theta until V_theta goes through zero.
+    The cone surface corresponds to V_theta == 0.
+    """
+    # Start at the point just downstream the oblique shock.
+    theta_s, V2, state2 = theta_oblique(state1, V1, beta)
+    print "DEBUG beta=%g V1=%g state1:" % (beta, V1)
+    state1.write_state(sys.stdout)
+    print "DEBUG theta_s=%g V2=%g state2:" % (theta_s, V2)
+    state2.write_state(sys.stdout)
+    #
+    # Initial conditions.
+    dtheta = -0.5 * math.pi / 180.0  # fraction-of-a-degree steps
+    theta = beta
+    V_r = V2 * math.cos(beta - theta_s)
+    V_theta = -V2 * math.sin(beta - theta_s)
+    rho = state2.rho; h = state2.h; p = state2.p
+    gas_state = state2.clone()
+    # For integrating across the shock layer, the state vector is:
+    z = numpy.array([rho, V_r, V_theta, h, p])
+    while V_theta < 0.0:
+        # Keep a copy for linear interpolation at the end.
+        z_old = z.copy(); theta_old = theta
+        # Do the update using a low-order method (Euler) for the moment.
+        dzdtheta = taylor_maccoll_odes(z, theta, gas_state)
+        z += dtheta * dzdtheta; theta += dtheta
+        rho, V_r, V_theta, h, p = z
+        gas_state.set_ph(p, h)
+        print "DEBUG theta=", theta, "V_r=", V_r, "V_theta=", V_theta
+    # At this point, V_theta should have crossed zero so
+    # we can linearly-interpolate the cone-surface conditions.
+    V_theta_old = z_old[2]
+    frac = (0.0 - V_theta_old)/(V_theta - V_theta_old)
+    z_c = z_old*(1.0-frac) + z*frac
+    theta_c = theta_old*(1.0-frac) + theta*frac
+    # At the cone surface...
+    rho, V_r, V_theta, h, p = z_c
+    gas_state.set_ph(p, h)
+    assert abs(V_theta) < 1.0e-6
+    #
+    return theta_c, V_r, gas_state
+
+
+def beta_cone(state1, V1, theta):
+    """
+    Compute the conical shock wave angle given the cone-surface deflection angle.
+
+    :param state1: upstream gas condition
+    :param V1: speed of gas into shock
+    :param theta: stream deflection angle (in radians)
+    :returns: shock wave angle wrt incoming stream direction (in radians)
+    """
+    M1 = V1 / state1.a
+    b1 = math.asin(1.0 / M1) * 1.01 # to be stronger than a Mach wave
+    b2 = b1 * 1.05
+    def error_in_theta(beta_guess):
+        print "DEBUG beta_guess(deg)=", beta_guess*180/math.pi
+        theta_guess, V_c, state_c = theta_cone(state1, V1, beta_guess)
+        print "DEBUG theta_guess(deg)=", theta_guess*180/math.pi
         return theta_guess - theta
     return secant(error_in_theta, b1, b2, tol=1.0e-6)
 
@@ -391,19 +511,60 @@ def demo():
     print "pitot-p/total-p=", s8.p/s5.p, "s8:"
     s8.write_state(sys.stdout)
     #
-    print "\nOblique-shock demo."
+    M1 = 1.5
+    print "\nOblique-shock demo for M1=%g." % M1
     from ideal_gas_flow import theta_obl
-    beta = 45.0 * math.pi/180
-    V1 = 500.0
     s1.set_pT(100.0e3, 300.0)
+    beta = 45.0 * math.pi/180
+    V1 = 1.5 * s1.a
     print "s1:"
     s1.write_state(sys.stdout)
     theta, V2, s2 = theta_oblique(s1, V1, beta)
     print "theta=", theta, "V2=", V2, "s2:"
     s2.write_state(sys.stdout)
-    print "c.f. ideal gas angle=", theta_obl(V1/s1.a, beta)
+    print "c.f. ideal gas angle=", theta_obl(M1, beta)
     #
     print "Oblique shock angle from deflection."
     beta2 = beta_oblique(s1, V1, theta)
     print "beta2(degrees)=", beta2*180/math.pi
+    #
+    M1 = 1.5
+    print "\nTaylor-Maccoll cone flow demo with M1=%g" % M1
+    print "for M1=1.5, beta=49deg, expect theta=20deg."
+    V1 = M1 * s1.a
+    beta = 49.0 * math.pi/180
+    theta_c, V_c, s_c = theta_cone(s1, V1, beta)
+    print "theta_c(deg)=", theta_c*180.0/math.pi, "expected 20deg, surface speed V_c=", V_c
+    print "surface pressure coefficient=", (s_c.p - s1.p)/(0.5*s1.rho*V1*V1), "expected 0.385"
+    print "s_c:"
+    s_c.write_state(sys.stdout)
+    #
+    M1 = 1.5
+    print "\nTaylor-Maccoll cone flow demo with M1=%g" % M1
+    print "for M1=1.5, beta=49.0404423512deg, expect theta=20deg."
+    V1 = M1 * s1.a
+    beta = 49.0404423512 * math.pi/180
+    theta_c, V_c, s_c = theta_cone(s1, V1, beta)
+    print "theta_c(deg)=", theta_c*180.0/math.pi, "expected 20deg, surface speed V_c=", V_c
+    print "surface pressure coefficient=", (s_c.p - s1.p)/(0.5*s1.rho*V1*V1), "expected 0.385"
+    print "s_c:"
+    s_c.write_state(sys.stdout)
+    sys.exit(-1)
+    #
+    M1 = 1.8
+    print "\nTaylor-Maccoll cone flow demo with M1=%g" % M1
+    print "for M1=1.8, beta=45deg, theta=24deg."
+    V1 = M1 * s1.a
+    beta = 45.0 * math.pi/180
+    theta_c, V_c, s_c = theta_cone(s1, V1, beta)
+    print "theta_c(deg)=", theta_c*180.0/math.pi, "expected 24deg, surface speed V_c=", V_c
+    print "surface pressure coefficient=", (s_c.p - s1.p)/(0.5*s1.rho*V1*V1), "expected 0.466"
+    print "s_c:"
+    s_c.write_state(sys.stdout)
+    #
+    M1 = 1.5
+    print "Conical shock from cone with half-angle 20deg in M1=", M1
+    V1 = M1 * s1.a
+    beta = beta_cone(s1, V1, 20.0*math.pi/180)
+    print "sigma(deg)=", beta*180/math.pi, "expected 49deg"
     print "Done."
