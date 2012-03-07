@@ -78,6 +78,8 @@ def shock_real(s1, Vs, s2):
     :returns: the post-shock gas speed, V2 in the shock-reference frame, Vg in the lab frame.
     """
     #
+    # Initial guess via ideal gas relations.
+    #
     (V2,Vg) = shock_ideal(s1, Vs, s2)
     if DEBUG_GAS_FLOW:
         print 'shock_real(): post-shock condition assuming ideal gas'
@@ -87,92 +89,68 @@ def shock_real(s1, Vs, s2):
     # We assume that p1 and T1 are correct
     # and that s2 contains a fair initial guess.
     V1 = Vs
-    s1.EOS(problemType='pT');
+    s1.set_pT(s1.p, s1.T);
     if DEBUG_GAS_FLOW:
         print 'shock_real(): pre-shock condition assuming real gas and original pT'
         s1.write_state(sys.stdout)
-    s2.EOS(problemType='pT');
+    s2.set_pT(s2.p, s2.T);
     if DEBUG_GAS_FLOW:
         print 'shock_real(): post-shock condition assuming real gas and ideal pT'
         s2.write_state(sys.stdout)
     #
-    p1    = s1.p
-    e1    = s1.e
-    rho1  = s1.rho
-    temp1 = p1 + rho1 * V1 * V1;             # momentum
-    H1    = e1 + p1 / rho1 + 0.5 * V1 * V1;  # total enthalpy
+    momentum = s1.p + s1.rho * V1 * V1
+    total_enthalpy = s1.h + 0.5 * V1 * V1
+    #
+    def Fvector(rho2, T2):
+        """
+        Constraint equations for state2 from the normal shock relations.
+
+        The correct post-shock values allow this vector to evaluate to zeros.
+        """
+        s2.set_rhoT(rho2, T2)
+        V2 = V1 * s1.rho / rho2  # mass conservation
+        f1 = momentum - s2.p - s2.rho * V2 * V2
+        f2 = total_enthalpy - s2.h - 0.5 * V2 * V2
+        return f1, f2
+    #
+    A = numpy.zeros((2,2), float)
+    b = numpy.zeros((2,), float)
     #
     rho_delta = 1.0
     T_delta = 1.0
     rho_tol = 1.0e-3; # tolerance in kg/m^3
     T_tol = 0.25;  # tolerance in degrees K
     #
-    s0 = s1.clone(); # temporary workspace
-    #
     # Update the estimates using the Newton-Raphson method.
     #
     for count in range(20):
         rho_save = s2.rho
         T_save = s2.T
-        p_save = s2.p
-        #
-        p2 = p_save
-        T2 = T_save
-        s2.EOS(problemType='pT')
-        e2 = s2.e
-        rho2 = rho_save
-        r2r1 = rho2 / rho1
-        f1 = temp1 - p2 - rho1 * rho1 * V1 * V1 / rho2
-        f2 = H1 - e2 - p2 / rho2 - 0.5 * V1 * V1 / (r2r1 * r2r1)
-        f1_save = f1
-        f2_save = f2
-        #
+        f1_save, f2_save = Fvector(rho_save, T_save)
         # Use finite differences to compute the Jacobian.
         d_rho = rho_save * 0.01
         d_T = T_save * 0.01
-        #
-        rho2 = rho_save + d_rho
-        T2 = T_save
-        s0.rho = rho2
-        s0.T = T2
-        s0.EOS(problemType='rhoT')
-        p2 = s0.p
-        e2 = s0.e
-        f1 = temp1 - p2 - rho1 * rho1 * V1 * V1 / rho2
-        f2 = H1 - e2 - p2 / rho2 - 0.5 * V1 * V1 / (r2r1 * r2r1)
-        A = (f1 - f1_save) / d_rho
-        C = (f2 - f2_save) / d_rho
-        #
-        rho2 = rho_save
-        T2 = T_save + d_T
-        s0.rho = rho2
-        s0.T = T2
-        s0.EOS(problemType='rhoT')
-        e2 = s0.e
-        p2 = s0.p
-        f1 = temp1 - p2 - rho1 * rho1 * V1 * V1 / rho2
-        f2 = H1 - e2 - p2 / rho2 - 0.5 * V1 * V1 / (r2r1 * r2r1)
-        B = (f1 - f1_save) / d_T
-        D = (f2 - f2_save) / d_T
-        #
-        # Invert Jacobian and multiply.
-        det = A * D - B * C
-        rho_delta = (D * f1_save - B * f2_save) / det
-        T_delta = (-C * f1_save + A * f2_save) / det
-        #
+        f1, f2 = Fvector(rho_save + d_rho, T_save)
+        df1drho = (f1 - f1_save) / d_rho
+        df2drho = (f2 - f2_save) / d_rho
+        f1, f2 = Fvector(rho_save, T_save + d_T)
+        df1dT = (f1 - f1_save) / d_T
+        df2dT = (f2 - f2_save) / d_T
+        A = numpy.array([[df1drho, df1dT],
+                         [df2drho, df2dT]])
+        b = numpy.array([-f1_save, -f2_save])
+        rho_delta, T_delta = numpy.linalg.solve(A, b)
+        # Possibly limit the increments so that the Newton iteration is
+        # less inclined to go crazy.
         rho_delta = my_limiter(rho_delta, rho_save)
         T_delta = my_limiter(T_delta, T_save)
-        rho_new = rho_save - rho_delta
-        T_new   = T_save - T_delta
+        rho_new = rho_save + rho_delta
+        T_new   = T_save + T_delta
         if DEBUG_GAS_FLOW:
             print('shock_real(): rho_save=%e, T_save=%e' % (rho_save, T_save))
             print('shock_real(): rho_delta=%e, T_delta=%e' % (rho_delta, T_delta))
             print('shock_real(): rho_new=%e, T_new=%e' % (rho_new, T_new))
-        #
-        s2.rho = rho_new
-        s2.T   = T_new
-        s2.EOS(problemType='rhoT')
-        #
+        s2.set_rhoT(rho_new, T_new)
         # Check convergence.
         if abs(rho_delta) < rho_tol and abs(T_delta) < T_tol: break
     #
@@ -391,7 +369,7 @@ def taylor_maccoll_odes(z, theta, gas_state):
     """
     rho, V_r, V_theta, h, p = z
     dfdp, dfdh = EOS_derivatives(gas_state)
-    print "DEBUG dfdp=", dfdp, "dfdh=", dfdh
+    if DEBUG_GAS_FLOW: print "DEBUG dfdp=", dfdp, "dfdh=", dfdh
     # Assemble linear system for determining the derivatives wrt theta.
     A = numpy.zeros((5,5), float)
     b = numpy.zeros((5,), float)
@@ -421,10 +399,6 @@ def theta_cone(state1, V1, beta):
     """
     # Start at the point just downstream the oblique shock.
     theta_s, V2, state2 = theta_oblique(state1, V1, beta)
-    print "DEBUG beta=%g V1=%g state1:" % (beta, V1)
-    state1.write_state(sys.stdout)
-    print "DEBUG theta_s=%g V2=%g state2:" % (theta_s, V2)
-    state2.write_state(sys.stdout)
     #
     # Initial conditions.
     dtheta = -0.5 * math.pi / 180.0  # fraction-of-a-degree steps
@@ -443,7 +417,7 @@ def theta_cone(state1, V1, beta):
         z += dtheta * dzdtheta; theta += dtheta
         rho, V_r, V_theta, h, p = z
         gas_state.set_ph(p, h)
-        print "DEBUG theta=", theta, "V_r=", V_r, "V_theta=", V_theta
+        if DEBUG_GAS_FLOW: print "DEBUG theta=", theta, "V_r=", V_r, "V_theta=", V_theta
     # At this point, V_theta should have crossed zero so
     # we can linearly-interpolate the cone-surface conditions.
     V_theta_old = z_old[2]
@@ -471,11 +445,9 @@ def beta_cone(state1, V1, theta):
     b1 = math.asin(1.0 / M1) * 1.01 # to be stronger than a Mach wave
     b2 = b1 * 1.05
     def error_in_theta(beta_guess):
-        print "DEBUG beta_guess(deg)=", beta_guess*180/math.pi
         theta_guess, V_c, state_c = theta_cone(state1, V1, beta_guess)
-        print "DEBUG theta_guess(deg)=", theta_guess*180/math.pi
         return theta_guess - theta
-    return secant(error_in_theta, b1, b2, tol=1.0e-6)
+    return secant(error_in_theta, b1, b2, tol=1.0e-4)
 
 #------------------------------------------------------------------------
 
@@ -530,7 +502,7 @@ def demo():
     #
     M1 = 1.5
     print "\nTaylor-Maccoll cone flow demo with M1=%g" % M1
-    print "for M1=1.5, beta=49deg, expect theta=20deg."
+    print "for M1=1.5, beta=49deg, expect theta=20deg from NACA1135."
     V1 = M1 * s1.a
     beta = 49.0 * math.pi/180
     theta_c, V_c, s_c = theta_cone(s1, V1, beta)
@@ -541,7 +513,7 @@ def demo():
     #
     M1 = 1.5
     print "\nTaylor-Maccoll cone flow demo with M1=%g" % M1
-    print "for M1=1.5, beta=49.0404423512deg, expect theta=20deg."
+    print "for M1=1.5, beta=49.0404423512deg, expect theta=20deg from NACA1135."
     V1 = M1 * s1.a
     beta = 49.0404423512 * math.pi/180
     theta_c, V_c, s_c = theta_cone(s1, V1, beta)
@@ -549,11 +521,10 @@ def demo():
     print "surface pressure coefficient=", (s_c.p - s1.p)/(0.5*s1.rho*V1*V1), "expected 0.385"
     print "s_c:"
     s_c.write_state(sys.stdout)
-    sys.exit(-1)
     #
     M1 = 1.8
     print "\nTaylor-Maccoll cone flow demo with M1=%g" % M1
-    print "for M1=1.8, beta=45deg, theta=24deg."
+    print "for M1=1.8, beta=45deg, theta=24deg from NACA1135."
     V1 = M1 * s1.a
     beta = 45.0 * math.pi/180
     theta_c, V_c, s_c = theta_cone(s1, V1, beta)
@@ -563,7 +534,7 @@ def demo():
     s_c.write_state(sys.stdout)
     #
     M1 = 1.5
-    print "Conical shock from cone with half-angle 20deg in M1=", M1
+    print "\nConical shock from cone with half-angle 20deg in M1=", M1
     V1 = M1 * s1.a
     beta = beta_cone(s1, V1, 20.0*math.pi/180)
     print "sigma(deg)=", beta*180/math.pi, "expected 49deg"
