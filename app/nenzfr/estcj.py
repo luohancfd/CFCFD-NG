@@ -35,13 +35,12 @@ sys.path.append("") # so that we can find user's scripts in current directory
 from cfpylib.nm.zero_solvers import secant
 # We base our calculation of gas properties upon calls to the NASA Glenn CEA code.
 from cfpylib.gasdyn.cea2_gas import Gas
-from cfpylib.gasdyn.cea2_gas_flow import shock_real, reflected_shock
-from cfpylib.gasdyn.cea2_gas_flow import expand_from_stagnation, total_condition, pitot_condition
+from cfpylib.gasdyn.cea2_gas_flow import *
 from cfpylib.gasdyn.ideal_gas_flow import *
 
 # ----------------------------------------------------------------------------
 
-VERSION_STRING = "26-Feb-2012"
+VERSION_STRING = "07-Mar-2012"
 DEBUG_ESTCJ  = 0  # if 1: some detailed data is output to help debugging
 PRINT_STATUS = 1  # if 1: the start of each stage of the computation is noted.
 
@@ -198,14 +197,15 @@ def main():
     import optparse
     op = optparse.OptionParser(version=VERSION_STRING)
     op.add_option('--task', dest='task', default='st',
-                  choices=['st', 'stn', 'stnp', 'ishock', 'total', 'pitot'],
+                  choices=['st', 'stn', 'stnp', 'ishock', 'total', 'pitot', 'cone'],
                   help=("particular calculation to make: "
                         "st = reflected shock tube; "
                         "stn = reflected shock tube with nozzle; "
                         "stnp = reflected shock tube with nozzle expanded to pitot; "
                         "ishock = incident shock only; "
-                        "total = free-stream to total conditions; "
-                        "pitot = free-stream to Pitot condition"))
+                        "total = free-stream to total condition; "
+                        "pitot = free-stream to Pitot condition; "
+                        "cone = free-stream to Taylor-Maccoll cone flow"))
     op.add_option('--gas', dest='gasName', default='air',
                   choices=['air', 'air5species', 'n2', 'co2', 'h2ne'],
                   help=("name of gas model: "
@@ -224,6 +224,8 @@ def main():
                   help=("nozzle supply to exit pitot pressure ratio"))
     op.add_option('--ar', dest='area_ratio', type='float', default=None,
                   help=("exit-to-throat area ratio of the nozzle"))
+    op.add_option('--sigma-deg', dest='cone_half_angle_deg', type='float', default=None,
+                  help=("half-angle of the cone, in degrees"))
     op.add_option('--ofn', dest='outFileName', default=None,
                   help="name of file in which to accumulate output."
                       " file name will be: outFileName-estcj.dat"
@@ -239,6 +241,7 @@ def main():
     pe = opt.pe
     pp_on_pe = opt.pp_on_pe
     area_ratio = opt.area_ratio
+    cone_half_angle_deg = opt.cone_half_angle_deg
     outFileName = opt.outFileName
     if DEBUG_ESTCJ: print 'estcj:', gasName, p1, T1, V1, Vs, pe, area_ratio, outFileName
     #
@@ -251,6 +254,12 @@ def main():
         bad_input = True
     if Vs is None and task in ['stn', 'stnp', 'st', 'ishock']:
         print "Need to supply a float value for Vs."
+        bad_input = True
+    if V1 is None and task in ['pitot', 'total', 'cone']:
+        print "Need to supply a free-stream velocity."
+        bad_input = True
+    if cone_half_angle_deg is None and task in ['cone',]:
+        print "Need to supply a cone half-angle (in degrees)."
         bad_input = True
     if pe is None and task in ['stn', 'stnp', 'st']:
         print "Need to supply a float value for pe."
@@ -318,6 +327,20 @@ def main():
         state0 = pitot_condition(state1, V1)
         fout.write('Pitot condition:\n')
         state0.write_state(fout)
+    elif task in ['cone', 'CONE', 'Cone']:
+        fout.write('Input parameters:\n')
+        fout.write('    Gas is %s, p1: %g Pa, T1: %g K, V1: %g m/s, sigma: %g degrees\n' 
+                   % (gasName,p1,T1,V1,cone_half_angle_deg) )
+        state1 = make_gas_from_name(gasName)
+        state1.set_pT(p1, T1)
+        cone_half_angle_rad = cone_half_angle_deg*math.pi/180.0
+        beta_rad = beta_cone(state1, V1, cone_half_angle_rad)
+        theta_c, V_cone_surface, state2 = theta_cone(state1, V1, beta_rad)
+        assert fabs(theta_c - cone_half_angle_rad) < 0.001
+        fout.write('Shock angle: %g (rad), %g (deg)\n' % (beta_rad, beta_rad*180.0/math.pi))
+        fout.write('Cone-surface velocity: %g m/s\n' % (V_cone_surface,))
+        fout.write('Cone-surface condition:\n')
+        state2.write_state(fout)
     #
     if outFileName is None:
         pass
