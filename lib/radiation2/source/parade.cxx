@@ -251,7 +251,7 @@ read_parade_template_file( string parade_template_filename )
 
     ptfile.close();
 
-    if ( ECHO_RAD_INPUT>0 ) {
+    if ( ECHO_RAD_INPUT>1 ) {
         cout << "template file:" << endl
 	     << parade_template_file_buffer.str()
 	     << endl;

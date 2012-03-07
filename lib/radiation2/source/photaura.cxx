@@ -370,8 +370,10 @@ spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
     cout << "lambda_min = " << nu2lambda(X.nu.back()) << ", lambda_max = " << nu2lambda(X.nu.front()) << endl;
 #   endif
 
-    /* 2a. Resize j_nu and kappa_nu vectors (and initialise to zero) */
+    /* 2a. Clear, resize and initialise to zero the j_nu and kappa_nu vectors */
+    X.j_nu.clear();
     X.j_nu.resize(X.nu.size(),0.0);
+    X.kappa_nu.clear();
     X.kappa_nu.resize(X.nu.size(),0.0);
     
     /* 3. Proceed with spectral emission and absorption calculations */

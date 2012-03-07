@@ -12,6 +12,7 @@ from datetime import datetime
 from getopt import getopt
 
 import radiator_library2 as rl
+import parade_radiator_library as prl
 
 tab = rl.tab
 
@@ -60,6 +61,18 @@ class GlobalRadData(object):
 	# spectral data
 	ofile.write("spectral_data = {\n")
 	ofile.write(tab+"spectral_model = '%s',\n" % self.spectral_model )
+	if self.spectral_model=="parade":
+	    ofile.write(tab+"parade_template = 'parade.template',\n" )
+	    iT = self.radiators[0].iT; iTe = self.radiators[0].iTe
+	    for rad in self.radiators[1:]:
+		if rad.iT!=iT:
+		    print "iT not consistent amongst radiators"
+		    sys.exit()
+		if rad.iTe!=iTe:
+		    print "iTe not consistent amongst radiators"
+		    sys.exit()
+	    ofile.write(tab+"iT = %d,\n" % iT )
+	    ofile.write(tab+"iTe = %d,\n" % iTe )
 	ofile.write(tab+"radiators = { ")
 	for rad in self.radiators:
 	    ofile.write("'%s', " % rad.name )
@@ -101,15 +114,82 @@ class GlobalRadData(object):
 	ofile.close()
 	
     def request_radiator( self, rrad ):
-	for arad in rl.available_radiators.keys():
+	if self.spectral_model=="photaura":
+	    available_radiators = rl.available_radiators
+	elif self.spectral_model=="parade":
+	    available_radiators = prl.available_radiators
+ 	else:
+	    print "Spectral model: %s not understood" % self.spectral_model
+	    sys.exit()
+	for arad in available_radiators.keys():
 	    if rrad==arad: 
-		self.radiators.append( rl.available_radiators[arad] )
+		self.radiators.append( available_radiators[arad] )
 		return self.radiators[-1]
 		
         print "Requested radiator: %s was not found.\n" % rrad
         print "Available radiators are: ", rl.available_radiators.keys()
         sys.exit()
-		
+
+    def create_parade_template_file( self, data_path ):
+	ffrad = False; fbrad = False; alrad = False; mbrad = False
+	for rad in self.radiators:
+	    if rad.type=="electron_radiator":
+		ffrad = True; fbrad = True
+	    elif rad.type=="atomic_radiator":
+		alrad = True
+	    elif rad.type=="diatomic_radiator":
+		mbrad = True
+        ofile = open("parade.template","w")
+        ofile.write("c       This PARADE 3.1 control template file was automatically created\n")
+        ofile.write("c       by TRT_tools.py at %s\n" % datetime.now() )    
+        ofile.write("c       1. Spectrum control data:\n")
+        ofile.write("c\n")
+        ofile.write(" %d\t\twavlo   [A]\n" % (self.lambda_min*10) )
+        ofile.write(" %d\t\twavhi   [A]\n" % (self.lambda_max*10) )
+        ofile.write(" %d\t\tnpoints [A]\n" % self.spectral_points   )
+        ofile.write("c\n")
+        ofile.write("c       2. Parameters for adaptive wavelength discretisation (not used):\n")
+        ofile.write("  0.0005       minimum distance between adjacent points\n")
+        ofile.write("   100.        integration limit for line shape\n")
+        ofile.write("  0.001        minimum fraction for use of energy level\n")
+        ofile.write("c       3. Switches for radiation mechanisms:\n")
+        ofile.write("  8            number of control switches\n")
+        if ffrad:
+            ofile.write("  'Y'          free-free radiation (y/n)\n")
+        else:
+            ofile.write("  'N'          free-free radiation (y/n)\n")
+        if fbrad:
+            ofile.write("  'Y'          free-bound radiation (y/n)\n")
+        else:
+            ofile.write("  'N'          free-bound radiation (y/n)\n")
+        if alrad:
+            ofile.write("  'Y'          atomic line radiation (y/n)\n")
+        else:
+            ofile.write("  'N'          atomic line radiation (y/n)\n")
+        if mbrad:
+            ofile.write("  'Y'          molecular band radiation (y/n)\n")
+        else:
+            ofile.write("  'N'          molecular band radiation (y/n)\n")
+        ofile.write("  'N'          read 'parade.rad' if available (y/n)\n")
+        ofile.write("  'N'          adaptive wavelength discretisation (y/n)\n")
+        ofile.write("  'N'          equal wavelength increments (y/n)\n")
+        ofile.write("  'Y'          equal frequency increments (y/n)\n")
+        ofile.write("c 3(bis). Switches for output options\n")
+        ofile.write("  1         iout (row number for main outputs)\n")
+        ofile.write("  1        jout (column number for main outputs)\n")
+        ofile.write("  3            number of output switches\n")
+        ofile.write("  'N'          'par_res.imo' for each cell (y/n)\n")
+        ofile.write("  'N'          time integrated emission coefficient until cell number\n")
+        ofile.write("  2            debug level (0: minimum output, 2: maximum output)\n")
+        ofile.write("  60           max cell number for time integration (shock tube test)\n")
+        ofile.write("c\n")
+        ofile.write("c       4. rad(y/n) remark  at. spec  tt tr  tv  te    rad.file\n")
+        mol_index = 0
+        for rad in self.radiators:
+	    if rad.name=="e_minus": continue
+            if rad.atoms>1: mol_index+=1
+            ofile.write(rad.get_parade_string(mol_index,data_path))
+        ofile.close()
 		
 gdata = GlobalRadData()
 

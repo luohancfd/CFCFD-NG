@@ -10,6 +10,7 @@
 #define GAS_DATA_HH
 
 #include <vector>
+#include <string>
 
 typedef std::vector<std::vector<double> > matrix;
 
@@ -41,6 +42,7 @@ public:
     ~Gas_data();
     Gas_data & operator= (const Gas_data &Q);
     void print_values(bool print_transport_data=true) const;
+    void write_values(std::string fname, bool print_transport_data) const;
     void copy_values_from(const Gas_data &src);
     void average_values_from(const Gas_data &src0, const Gas_data &src1, bool with_diff_coeff);
     int accumulate_values_from(const Gas_data &src, double alpha);

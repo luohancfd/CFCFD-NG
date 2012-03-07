@@ -111,7 +111,8 @@ install : build_new $(LOADABLE_MODULE) librad2.py
 ifeq ($(findstring Darwin, $(SYSTEM)), Darwin)
 	- cp $(INSTALL_DIR)/_librad2.dylib $(INSTALL_DIR)/_librad2.so
 endif
-	- cp $(SRC)/radiator_library2.py $(SRC)/script_rad2.py $(INSTALL_DIR)
+	- cp $(SRC)/radiator_library2.py $(SRC)/parade_radiator_library.py \
+		$(SRC)/script_rad2.py $(INSTALL_DIR)
 	
 test: install $(TEST_EXE) $(TEST_PY) $(GASPY)
 	cd ../../; rsync -av --exclude=".svn" --exclude="*~" cfpylib $(INSTALL_DIR)

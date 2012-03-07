@@ -154,7 +154,7 @@ void CoeffSpectra::write_TRT_tools_file( string fname )
     specfile << setprecision(12) << scientific << showpoint;
 
     // Column 1: Wavelength (Ang)
-    // Column 2: Emission coefficient, j_lambda
+    // Column 2: Emission coefficient, j_lambda (W/m3-m-sr)
     // Column 3: Absorption coefficient, kappa_lambda (1/m)
     for ( int inu=int(nu.size())-1; inu >= 0; --inu ) {
         // Write to file

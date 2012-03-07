@@ -8,6 +8,7 @@
  **/
 
 #include <cstdio>
+#include <fstream>
 #include <iostream>
 #include <iomanip>
 #include <vector>
@@ -142,6 +143,49 @@ void Gas_data::print_values(bool print_transport_data) const
     }
     cout << endl;
 } // end Gas_data::print_values()
+
+void Gas_data::write_values(string fname, bool print_transport_data) const
+{
+    /* 1. Setup the output file. */
+    ofstream gasfile;
+    gasfile.open(fname.c_str());
+    if( gasfile.fail() ) {
+        cout << "Error opening file: " << fname << endl;
+        cout << "Bailing Out!\n";
+        exit(FILE_ERROR);
+    }
+
+    gasfile << showpoint;
+    gasfile << setprecision(12);
+    gasfile << "rho= " << rho << " p= " << p << " p_e= " << p_e << " a= " << a << endl;
+    for( size_t i = 0; i < T.size(); ++i ) {
+        gasfile << "T[" << i << "]= " << T[i] << " ";
+    }
+    gasfile << endl;
+    for( size_t i = 0; i < e.size(); ++i ) {
+        gasfile << "e[" << i << "]= " << e[i] << " ";
+    }
+    gasfile << endl;
+    if ( print_transport_data==true ) {
+        gasfile << "mu= " << mu << endl;
+        for ( size_t i = 0; i < k.size(); ++i ) {
+            gasfile << "k[" << i << "]= " << k[i] << " ";
+        }
+        gasfile << endl;
+        for( size_t i = 0; i < D_AB.size(); ++i ) {
+            for( size_t j = 0; j < D_AB[i].size(); ++j ) {
+                gasfile << "D_AB[" << i << "][" << j << "]= " << D_AB[i][j] << " ";
+            }
+            gasfile << endl;
+        }
+    }
+    for( size_t isp = 0; isp < massf.size(); ++isp ) {
+        gasfile << "massf[" << isp << "]= " << massf[isp] << " ";
+    }
+    gasfile << endl;
+
+    gasfile.close();
+} // end Gas_data::write_values()
 
 void Gas_data::copy_values_from(const Gas_data &src)
 {
