@@ -62,6 +62,10 @@ Report-2007-13_ is the "User guide for shock and blast simulation with the OctVC
 Theses
 ------
 
+Carolyn-Jacobs-PhD-Thesis_ "Radiation in low density hypervelocity flows"
+
+.. _Carolyn-Jacobs-PhD-Thesis: ./theses/carolyn-jacobs-phd-finalthesis-UQversion-aug-2011.pdf
+
 Dan-Potter-PhD-Thesis_ "Modeling of radiating shock layers for atmospheric entry at Earth and Mars".
 
 .. _Dan-Potter-PhD-Thesis: ./theses/dan-potter-phd-thesis-may-2011.pdf
