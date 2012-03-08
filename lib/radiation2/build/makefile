@@ -7,9 +7,9 @@
 # Some default compile options
 
 TARGET ?= for_gnu
-WITH_SPRADIAN ?= 0
 OPT ?= -O2
 INSTALL_DIR ?= $(HOME)/e3bin
+WITH_SPRADIAN ?= 0
 include ../../util/source/systems.mk
 
 #----------------------------------------
@@ -68,11 +68,12 @@ RAD_OBJECTS := spectral_model.o \
 	cr_reactions.o \
 	cr_rr_coeffs.o \
 	parade.o \
-	parade_radiator.o
-
+	parade_radiator.o 
+	
 ifeq ($(WITH_SPRADIAN), 1)
-    RAD_OBJECTS += spradian.o radipac6.o
+    RAD_OBJECTS += spradian.o spradian_radiator.o radipac6.o
 endif
+
 
 TEST_EXE := photaura_test.x
 
@@ -293,6 +294,14 @@ parade.o : $(SRC)/parade.cxx $(SRC)/parade.hh \
 	
 parade_radiator.o : $(SRC)/parade_radiator.cxx $(SRC)/parade_radiator.hh
 	$(CXX) $(CXXFLAG) $(SRC)/parade_radiator.cxx -I$(LUA_INCLUDE_DIR)
+	
+spradian.o : $(SRC)/spradian.cxx $(SRC)/spradian.hh \
+		$(SRC)/spectral_model.hh $(SRC)/radiation_constants.hh $(SRC)/spradian_radiator.hh \
+		$(GAS)/models/gas_data.hh
+	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/spradian.cxx
+	
+spradian_radiator.o : $(SRC)/spradian_radiator.cxx $(SRC)/spradian_radiator.hh
+	$(CXX) $(CXXFLAG) $(SRC)/spradian_radiator.cxx -I$(LUA_INCLUDE_DIR)
 	
 # ------------ Test python libraries and executables -------
 	

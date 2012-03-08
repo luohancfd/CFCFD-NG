@@ -19,9 +19,9 @@
 #include "spectral_model.hh"
 #include "equilibrium_air.hh"
 #include "photaura.hh"
-# if WITH_SPRADIAN == 1
+#if WITH_SPRADIAN == 1
 #include "spradian.hh"
-# endif
+#endif
 #include "parade.hh"
 #include "radiation_constants.hh"
 
@@ -244,7 +244,6 @@ RadiationSpectralModel * create_radiation_spectral_model( const string input_fil
     else if( spectral_model == "spradian" ) {
 #	if WITH_SPRADIAN == 1
 	rsm = new Spradian( input_file );
-#	else
 	cout << "Code not built with Spradian spectral radiation model available." << endl
 	     << "Recompile using WITH_SPRADIAN==1." << endl
 	     << "Exiting program." << endl;
