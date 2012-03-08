@@ -27,11 +27,14 @@ Contents:
 * Two-dimensional flows:
 
    * Prandtl-Meyer functions
-   * Oblique-shock relations.
+   * Oblique-shock relations
+   * Taylor-Maccoll conical flow
 """
 
 from math import *
+import numpy
 from ..nm.secant_method import solve
+from ..nm.zero_solvers import secant
 
 # ---------------------------------------------------------------
 # Isentropic flow
@@ -208,6 +211,125 @@ def p02_p01_obl(M1, beta, g=1.4):
     t2 = (g + 1.0) * m1sb**2 / (2.0 + (g - 1.0) * m1sb**2)
     return t1**(1.0/(g-1.0)) * t2**(g/(g-1.0))
 
+#------------------------------------------------------------------------
+# Taylor-Maccoll cone flow.
+
+def taylor_maccoll_odes(z, theta, g=1.4):
+    """
+    The ODEs from the Taylor-Maccoll formulation.
+
+    See PJ's workbook for Feb 2012 for details.
+    We've packaged them formally so that we might one day use
+    a more sophisticated ODE integrator requiring fewer steps.
+    """
+    rho, V_r, V_theta, h, p = z
+    # Assemble linear system for determining the derivatives wrt theta.
+    A = numpy.zeros((5,5), float)
+    b = numpy.zeros((5,), float)
+    A[0,0] = V_theta; A[0,2] = rho; b[0] = -2.0*rho*V_r - rho*V_theta/tan(theta)
+    A[1,1] = 1.0; b[1] = V_theta
+    A[2,1] = rho*V_r; A[2,2] = rho*V_theta; A[2,4] = 1.0
+    A[3,1] = V_r; A[3,2] = V_theta; A[3,3] = 1.0
+    A[4,0] = h*(g-1)/g; A[4,3] = rho*(g-1)/g; A[4,4] = -1.0
+    dzdtheta = numpy.linalg.solve(A,b)
+    return dzdtheta
+
+def theta_cone(V1, p1, T1, beta, R=287.1, g=1.4):
+    """
+    Compute the cone-surface angle and conditions given the shock wave angle.
+
+    :param V1: speed of gas into shock
+    :param p1: free-stream pressure
+    :param T1: free-stream static temperature
+    :param beta: shock wave angle wrt stream direction (in radians)
+    :param R: gas constant
+    :param g: ratio of specific heats
+    :returns: tuple of theta_c, V_c, p_c, T_c:
+        theta_c is stream deflection angle in radians
+        V_c is the cone-surface speed of gas in m/s
+        p_c is the cone-surface pressure
+        T_c is the cone-surface static temperature
+
+    The computation starts with the oblique-shock jump and then integrates
+    across theta until V_theta goes through zero.
+    The cone surface corresponds to V_theta == 0.
+
+    This ideal-gas version adapted from the cea2_gas_flow version, 08-Mar-2012.
+    """
+    # Free-stream properties and gas model.
+    a1 = sqrt(g*R*T1)
+    M1 = V1 / a1
+    C_p = R * g / (g-1)
+    h1 = C_p * T1
+    rho1 = p1 / (R * T1)
+    #
+    # Start at the point just downstream the oblique shock.
+    theta_s = theta_obl(M1, beta, g)
+    M2 = M2_obl(M1, beta, theta_s, g)
+    assert M2 > 1.0
+    rho2 = rho1 * r2_r1_obl(M1, beta, g)
+    V2 = V1 * u2_u1_obl(M1, beta, g)
+    p2 = p1 * p2_p1_obl(M1, beta, g)
+    T2 = T1 * T2_T1_obl(M1, beta, g)
+    h2 = T2 * C_p
+    #
+    # Initial conditions for Taylor-Maccoll integration.
+    dtheta = -0.5 * pi / 180.0  # fraction-of-a-degree steps
+    theta = beta
+    V_r = V2 * cos(beta - theta_s)
+    V_theta = -V2 * sin(beta - theta_s)
+    # For integrating across the shock layer, the state vector is:
+    z = numpy.array([rho2, V_r, V_theta, h2, p2])
+    while V_theta < 0.0:
+        # Keep a copy for linear interpolation at the end.
+        z_old = z.copy(); theta_old = theta
+        # Do the update using a low-order method (Euler) for the moment.
+        dzdtheta = taylor_maccoll_odes(z, theta, g)
+        z += dtheta * dzdtheta; theta += dtheta
+        rho, V_r, V_theta, h, p = z
+        if False: print "DEBUG theta=", theta, "V_r=", V_r, "V_theta=", V_theta
+    # At this point, V_theta should have crossed zero so
+    # we can linearly-interpolate the cone-surface conditions.
+    V_theta_old = z_old[2]
+    frac = (0.0 - V_theta_old)/(V_theta - V_theta_old)
+    z_c = z_old*(1.0-frac) + z*frac
+    theta_c = theta_old*(1.0-frac) + theta*frac
+    # At the cone surface...
+    rho, V_r, V_theta, h, p = z_c
+    T = h / C_p
+    assert abs(V_theta) < 1.0e-6
+    #
+    return theta_c, V_r, p, T
+
+def beta_cone(V1, p1, T1, theta, R=287.1, g=1.4):
+    """
+    Compute the conical shock wave angle given the cone-surface deflection angle.
+
+    :param V1: speed of gas into shock
+    :param p1: free-stream pressure
+    :param T1: free-stream static temperature
+    :param theta: stream deflection angle (in radians)
+    :param R: gas constant
+    :param g: ratio of specific heats
+    :returns: shock wave angle wrt incoming stream direction (in radians)
+
+    This ideal-gas version adapted from the cea2_gas_flow version, 08-Mar-2012.
+    """
+    # Free-stream properties and gas model.
+    a1 = sqrt(g*R*T1)
+    M1 = V1 / a1
+    C_p = R * g / (g-1)
+    h1 = C_p * T1
+    rho1 = p1 / (R * T1)
+    # Initial guess
+    M1 = V1 / a1
+    b1 = asin(1.0 / M1) * 1.01 # to be stronger than a Mach wave
+    b2 = b1 * 1.05
+    def error_in_theta(beta_guess):
+        theta_guess, V_c, p_c, T_c = theta_cone(V1, p1, T1, beta_guess, R, g)
+        return theta_guess - theta
+    return secant(error_in_theta, b1, b2, tol=1.0e-4)
+
 # -----------------------------------------------------------------
 
 def demo():
@@ -247,5 +369,21 @@ def demo():
     print "u2/u1=%g, p02/p01=%g" % \
           (u2_u1_obl(M, beta), p02_p01_obl(M, beta))
     print "Expected: u2/u1=0.8304=sin(B)/sin(B-d)*r1/r2"
+    print ""
+    M1 = 1.5; p1 = 100.0e3; T1 = 300.0; R = 287.1; g = 1.4; rho1 = p1/(R*T1)
+    print "Taylor-Maccoll cone flow demo with M1=%g" % M1
+    print "for M1=1.5, beta=49deg, expect theta=20deg from NACA1135."
+    a1 = sqrt(1.4*287*T1)
+    V1 = M1 * a1
+    beta = 49.0 * pi/180
+    theta_c, V_c, p_c, T_c = theta_cone(V1, p1, T1, beta)
+    print "theta_c(deg)=", theta_c*180.0/pi, "expected 20deg, surface speed V_c=", V_c
+    print "surface pressure coefficient=", (p_c - p1)/(0.5*rho1*V1*V1), "expected 0.385"
+    print "p_c: %g, T_c: %g" % (p_c, T_c)
+    print ""
+    print "Conical shock from cone with half-angle 20deg in M1=", M1
+    beta = beta_cone(V1, p1, T1, 20.0*pi/180)
+    print "sigma(deg)=", beta*180/pi, "expected 49deg"
+    #
     print "Done."
     return

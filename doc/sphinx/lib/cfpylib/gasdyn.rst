@@ -40,7 +40,7 @@ ideal_gas_flow
 
 .. autofunction:: p2_p1
 
-.. autofunction::T2_T1 
+.. autofunction:: T2_T1 
 
 .. autofunction:: p02_p01
 
@@ -77,6 +77,10 @@ ideal_gas_flow
 .. autofunction:: T2_T1_obl
 
 .. autofunction:: p02_p01_obl
+
+.. autofunction:: theta_cone
+
+.. autofunction:: beta_cone
 
 
 
