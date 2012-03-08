@@ -150,19 +150,12 @@ spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
     system("parade > parade.out");
 
     // 3. Pick up the solution and insert it into CoeffSpectra
-    ifstream specfile( "par_res.dat" );
+    ifstream specfile( "par_res.txt" );
     if ( !specfile.is_open() ) {
 	cout << "Parade::spectra_for_gas_state()" << endl
              << "Could not open parade spectra file 'par_res.dat'." << endl
              << "Exiting program." << endl;
 	exit( FAILURE );
-    }
-
-    string line;
-    // First five lines are headers
-    for ( int i=0; i<5; ++i ) {
-	getline( specfile, line );
-	// cout << line << endl;
     }
 
     // Remaining lines should be spectral data

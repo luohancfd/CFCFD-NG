@@ -377,8 +377,6 @@ double TS_data::quick_solve_for_divq_with_binning( int binning_type, int N_bins 
     // each node location are solved for
     // ...with spectral binning
 
-    cout << "T_f = " << T_f_ << ", T_i = " << T_i_ << endl;
-
     // Make vectors to store integrated fluxes
     vector<double> q_plus, q_minus;
 
@@ -527,8 +525,9 @@ double TS_data::exact_solve_for_divq()
 		// add contribution from this cell
 		F_->q_nu[inu] += 2.0 * M_PI * S * ( E_3( dtau_j ) -  E_3( dtau_jm1 ) );
 		// update ds_i
-		if ( irp != 0 )
-		    ds_i = 2.0 * ( rpoints_[irp-1]->s_ - rpoints_[irp]->s_ - 0.5 * ds_i );
+		ds_i = rpoints_[irp]->ds_;
+		// if ( irp != 0 )
+		//    ds_i = 2.0 * ( rpoints_[irp-1]->s_ - rpoints_[irp]->s_ - 0.5 * ds_i );
 	    }
             if ( inu>0 )
                 q_int += 0.5 * ( F_->q_nu[inu] + F_->q_nu[inu-1] ) * fabs( F_->nu[inu] - F_->nu[inu-1] );
