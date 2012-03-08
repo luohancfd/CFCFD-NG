@@ -2,6 +2,63 @@
 """
 estcj.py: Equilibrium Shock Tube Conditions, Junior
 
+This program can be used to estimate flow conditions 
+for shock-processed flows typical of high-performance 
+shock-tunnels and expansion tubes.
+The gas is assumed to remain in thermochemical equilibrium
+and the flow processing is done in decoupled quasi-one-dimensional
+wave processes such as shock waves and expansion fans.
+For the reflected shock tunnel, this means that the initial,
+quiescent test gas is first processed by the incident shock and 
+subsequently by the reflected shock.  
+The incident shock sets the inflow conditions for the reflected shock 
+but there is no further interaction.
+
+The program can do a number of calculations:
+
+* flow in a reflected shock tube with or without a nozzle
+* pitot pressure from free-stream flow condition
+* stagnation (total) condition from free-stream condition
+* code surface condition from free-stream condition
+ 
+When run as an application, this program takes its input as
+command line arguments, performs the requested calculations and outputs
+the gast-state results.
+To see what specific inputs are required, start the program as::
+
+$ estcj.py --help
+
+Which particular input parameters you need to supply depends on the
+chosen task, however, a typical flow condition for the T4 shock tunnel
+with the Mach 4 nozzle may be computed using::
+
+$ estcj.py --task=stn --gas=air --T1=300 --p1=125.0e3 --Vs=2414 --pe=34.37e6 --ar=27.0
+
+The full output is a bit too much to include here, but you should see that
+this condition has an enthalpy of 5.43 MJ/kg and the nozzle-exit condition
+has a pressure of 93.6 kPa and a static temperature of 1284 degrees K,
+with a flow speed of 2.95 km/s.
+
+
+Getting the program set up
+--------------------------
+estcj.py is not a stand-alone file.
+It comes as part of the cfcfd3 compressible-flow collection and
+depends upon functions from the cfpylib library to do the specific 
+calculations.
+The easiest way to get started is to build and install from the 
+nenzfr directory where this source file resides::
+
+$ cd app/nenzfr/
+$ make install
+
+You may then call upon estcj.py so long as you have suitable
+enviroment variables set, as per the installation instructions
+for Eilmer3.
+
+
+Some History
+------------
 Since 1968, we have been using the ESTC code by Malcolm McIntosh
 to compute the conditions in the end of the reflected shock tubes
 T1--T5 and HEG.  There are a number of problems in using the ESTC
@@ -34,7 +91,7 @@ sys.path.append(os.path.expandvars("$HOME/e3bin")) # installation directory
 sys.path.append("") # so that we can find user's scripts in current directory
 from cfpylib.nm.zero_solvers import secant
 # We base our calculation of gas properties upon calls to the NASA Glenn CEA code.
-from cfpylib.gasdyn.cea2_gas import Gas
+from cfpylib.gasdyn.cea2_gas import Gas, make_gas_from_name
 from cfpylib.gasdyn.cea2_gas_flow import *
 from cfpylib.gasdyn.ideal_gas_flow import *
 
@@ -45,31 +102,6 @@ DEBUG_ESTCJ  = 0  # if 1: some detailed data is output to help debugging
 PRINT_STATUS = 1  # if 1: the start of each stage of the computation is noted.
 
 # ----------------------------------------------------------------------------
-
-def make_gas_from_name(gasName, outputUnits='massf'):
-    """
-    Manufacture a cea2_gas object from a small library of options.
-
-    :param gasName: one of the names for the special cases set out below
-    """
-    if gasName == 'air':
-        return Gas({'Air':1.0,}, outputUnits=outputUnits)
-    elif gasName == 'air5species':
-        return Gas(reactants={'N2':0.79, 'O2':0.21, 'N':0.0, 'O':0.0, 'NO':0.0}, 
-                   inputUnits='moles', onlyList=['N2','O2','N','O','NO'],
-                   outputUnits=outputUnits)
-    elif gasName == 'n2':
-        return Gas(reactants={'N2':1.0, 'N':0.0}, onlyList=['N2', 'N'],
-                   outputUnits=outputUnits)
-    elif gasName == 'co2':
-        return Gas(reactants={'CO2':1.0}, outputUnits=outputUnits)
-    elif gasName == 'h2ne':
-        return Gas(reactants={'H2':0.15, 'Ne':0.85}, inputUnits='moles',
-                   outputUnits=outputUnits)
-    else:
-        raise Exception, 'make_gas_from_name(): unknown gasName: %s' % gasName
-
-#--------------------------------------------------------------------
 
 def reflected_shock_tube_calculation(gasName, p1, T1, Vs, pe, pp_on_pe, area_ratio, task):
     """

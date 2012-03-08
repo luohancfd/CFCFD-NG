@@ -494,6 +494,31 @@ class Gas(object):
 
 # --------------------------------------------------------------
 
+def make_gas_from_name(gasName, outputUnits='massf'):
+    """
+    Manufacture a Gas object from a small library of options.
+
+    :param gasName: one of the names for the special cases set out below
+    """
+    if gasName == 'air':
+        return Gas({'Air':1.0,}, outputUnits=outputUnits)
+    elif gasName == 'air5species':
+        return Gas(reactants={'N2':0.79, 'O2':0.21, 'N':0.0, 'O':0.0, 'NO':0.0}, 
+                   inputUnits='moles', onlyList=['N2','O2','N','O','NO'],
+                   outputUnits=outputUnits)
+    elif gasName == 'n2':
+        return Gas(reactants={'N2':1.0, 'N':0.0}, onlyList=['N2', 'N'],
+                   outputUnits=outputUnits)
+    elif gasName == 'co2':
+        return Gas(reactants={'CO2':1.0}, outputUnits=outputUnits)
+    elif gasName == 'h2ne':
+        return Gas(reactants={'H2':0.15, 'Ne':0.85}, inputUnits='moles',
+                   outputUnits=outputUnits)
+    else:
+        raise Exception, 'make_gas_from_name(): unknown gasName: %s' % gasName
+
+# --------------------------------------------------------------
+
 if __name__ == '__main__':
     print 'Test/demonstrate the Gas class...'
     #
@@ -506,7 +531,7 @@ if __name__ == '__main__':
     a.write_state(sys.stdout)
     #
     print '\nCheck enthalpy specification'
-    b = Gas({'Air':1.0,}, outputUnits='moles')
+    b = make_gas_from_name('air', outputUnits='moles')
     b.set_ph(a.p, a.h)
     b.write_state(sys.stdout)
     #

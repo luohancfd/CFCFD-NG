@@ -31,8 +31,7 @@
 #---------------------------------------------------------------------
 import string, fileinput
 from estcj import reflected_shock_tube_calculation as rstc
-from estcj import make_gas_from_name
-from cfpylib.gasdyn.cea2_gas import Gas
+from cfpylib.gasdyn.cea2_gas import Gas, make_gas_from_name
 from operator import indexOf
 from cfpylib.nm.zero_solvers import secant
 from string import upper, lower

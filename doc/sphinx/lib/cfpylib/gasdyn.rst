@@ -79,6 +79,9 @@ ideal_gas_flow
 .. autofunction:: p02_p01_obl
 
 
+
+.. _cea2_gas:
+
 cea2_gas
 --------
 
@@ -91,7 +94,12 @@ cea2_gas
 .. autofunction:: get_cea2_float
 
 .. autoclass:: Gas
-   :members: __init__, clone, set_pT, set_rhoT, set_ps, write_state, get_fractions, EOS, shock_process
+   :members: __init__, clone, set_pT, set_rhoT, set_ps, set_ph, write_state, get_fractions, EOS, shock_process
+
+.. autofunction:: make_gas_from_name
+
+ 
+.. _cea2_gas_flow:
 
 cea2_gas_flow
 -------------
@@ -113,6 +121,10 @@ cea2_gas_flow
 .. autofunction:: theta_oblique
 
 .. autofunction:: beta_oblique
+
+.. autofunction:: theta_cone
+
+.. autofunction:: beta_cone
 
 
 sutherland
