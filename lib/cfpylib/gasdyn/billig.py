@@ -10,7 +10,7 @@ from J.D. Anderson's text Hypersonic and High Temperature Gas Dynamics
 """
 
 from math import exp, sqrt, pow, tan
-from ideal_gas_flow import beta_obl
+from ideal_gas_flow import beta_obl, beta_cone2
 
 def delta_over_R(M, axi):
     """
@@ -59,7 +59,12 @@ def x_from_y(y, M, theta=0.0, axi=0, R_nose=1.0):
     """
     Rc = R_nose * Rc_over_R(M, axi)
     d = R_nose * delta_over_R(M, axi)
-    beta = beta_obl(M, theta)
+    if axi == 1:
+        # Use shock angle on a cone
+        beta = beta_cone2(M, theta)
+    else:
+        # Use shock angle on a wedge
+        beta = beta_obl(M, theta)
     tan_beta = tan(beta)
     cot_beta = 1.0/tan_beta
     x = R_nose + d - Rc * cot_beta**2 * (sqrt(1 + (y*tan_beta/Rc)**2) - 1)
@@ -86,7 +91,12 @@ def y_from_x(x, M, theta=0.0, axi=0, R_nose=1.0):
     """
     Rc = R_nose * Rc_over_R(M, axi)
     d = R_nose * delta_over_R(M, axi)
-    beta = beta_obl(M, theta)
+    if axi == 1:
+    # Use shock angle on a cone
+        beta = beta_cone2(M, theta)
+    else:
+        # Use shock angle on a wedge
+        beta = beta_obl(M, theta)        
     tan_beta = tan(beta)
     cot_beta = 1.0/tan_beta
     tmpA = (x - R_nose - d)/(-Rc * cot_beta**2) + 1

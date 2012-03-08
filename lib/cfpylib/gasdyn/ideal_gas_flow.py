@@ -330,6 +330,27 @@ def beta_cone(V1, p1, T1, theta, R=287.1, g=1.4):
         return theta_guess - theta
     return secant(error_in_theta, b1, b2, tol=1.0e-4)
 
+def beta_cone2(M1, theta, R=287.1, g=1.4):
+    """
+    Compute the conical shock wave angle given the cone-surface deflection angle and free stream Mach number.
+
+    :param M1: free stream Mach number
+    :param theta: stream deflection angle (in radians)
+    :param R: gas constant
+    :param g: ratio of specific heats
+    :returns: shock wave angle wrt incoming stream direction (in radians)
+
+    This version basically delegates work to beta_cone().
+    """
+    # Compute free stream velocity assuming unit value temperature
+    T1 = 1.0
+    a1 = sqrt(g*R*T1)
+    V1 = M1*a1
+    # Set free stream pressure to unit value
+    p1 = 1.0
+    # Now ready to call beta_cone()
+    return beta_cone(V1, p1, T1, theta, R, g)
+
 # -----------------------------------------------------------------
 
 def demo():
@@ -383,6 +404,9 @@ def demo():
     print ""
     print "Conical shock from cone with half-angle 20deg in M1=", M1
     beta = beta_cone(V1, p1, T1, 20.0*pi/180)
+    print "sigma(deg)=", beta*180/pi, "expected 49deg"
+    print "Repeat above test, but call beta_cone2()"
+    beta = beta_cone2(M1, 20.0*pi/180)
     print "sigma(deg)=", beta*180/pi, "expected 49deg"
     #
     print "Done."
