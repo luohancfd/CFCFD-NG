@@ -1181,6 +1181,7 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 		for ( iray=0; iray<nrays; ++iray ) {
 		    RayTracingRay * ray = this->create_new_ray_for_cell( cell, nrays, G.dimensions, planar_flag );
 		    int inu = this->determine_frequency_interval_for_cell( cell );
+		    // Each photon for a given cell has the same energy (domega is constant)
 		    double E = cell->X_->j_int.back() * cell->vol_ * ray->domega_;
 		    if ( E < E_min_ ) continue;
 		    // subtract emitted energy from origin cell
@@ -1451,7 +1452,7 @@ RadiationTransportModel * create_radiation_transport_model( const string file_na
     else if( transport_model == "discrete transfer" ) {
 	rtm = new DiscreteTransfer(L);
     }
-    else if( transport_model == "Monte Carlo" ) {
+    else if( transport_model == "monte carlo" ) {
 	rtm = new MonteCarlo(L);
     }
     else {
