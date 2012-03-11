@@ -346,6 +346,13 @@ DiscreteTransfer::initialise()
 	    for ( int j = bdp->jmin; j <= bdp->jmax; ++j ) {
 	    	for ( int i = bdp->imin; i <= bdp->imax; ++i ) {
 	    	    FV_Cell * cell = bdp->get_cell(i,j,k);
+	    	    // check that L_min is non-zero
+	    	    if ( cell->L_min <= 0.0 ) {
+	    	    	cout << "DiscreteTransfer::initialise()" << endl
+	    	    	     << "L_min for cell " << i << ", " << j << ", " << k << " is " << cell->L_min << endl
+	    	    	     << "Check that the grid has been properly formed." << endl;
+	    	    	exit( BAD_INPUT_ERROR );
+	    	    }
 	    	    cells_[jb].push_back( new DiscreteTransferCell( cell->fs->gas, &(cell->Q_rE_rad), cell->pos, cell->volume ) );
 	    	    cells_[jb].back()->set_CFD_cell_indices( i, j, k );
 	    	    cells_[jb].back()->Q_rE_rad_temp_.resize( nthreads );
@@ -353,33 +360,27 @@ DiscreteTransfer::initialise()
 	    	    if ( j==bdp->jmin && bdp->bcp[SOUTH]->is_wall_flag ) {
 	    	    	interfaces_[jb].push_back( new DiscreteTransferInterface( cell->iface[SOUTH]->fs->gas, cell->iface[SOUTH]->pos, cell->iface[SOUTH]->area, cell->iface[SOUTH]->length ) );
 	    	    	interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
-	    	    	interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    }
 	    	    else if ( j==bdp->jmax && bdp->bcp[NORTH]->is_wall_flag ) {
 	    	    	interfaces_[jb].push_back( new DiscreteTransferInterface( cell->iface[NORTH]->fs->gas, cell->iface[NORTH]->pos, cell->iface[NORTH]->area, cell->iface[NORTH]->length ) );
 	    	    	interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
-	    	    	interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    }
 	    	    if ( i==bdp->imin && bdp->bcp[WEST]->is_wall_flag ) {
 	    	    	interfaces_[jb].push_back( new DiscreteTransferInterface( cell->iface[WEST]->fs->gas, cell->iface[WEST]->pos, cell->iface[WEST]->area, cell->iface[WEST]->length ) );
 	    	    	interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
-	    	    	interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    }
 	    	    else if ( i==bdp->imax && bdp->bcp[EAST]->is_wall_flag ) {
 	    	    	interfaces_[jb].push_back( new DiscreteTransferInterface( cell->iface[EAST]->fs->gas, cell->iface[EAST]->pos, cell->iface[EAST]->area, cell->iface[EAST]->length ) );
 	    	    	interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
-	    	    	interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    }
 	    	    if ( G.dimensions == 3 ) {
 	    	    	if ( k==bdp->kmin && bdp->bcp[BOTTOM]->is_wall_flag ) {
 	    	    	    interfaces_[jb].push_back( new DiscreteTransferInterface( cell->iface[BOTTOM]->fs->gas, cell->iface[BOTTOM]->pos, cell->iface[BOTTOM]->area, cell->iface[BOTTOM]->length ) );
 	    	    	    interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
-	    	    	    interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    	}
 	    	    	else if ( k==bdp->kmax && bdp->bcp[TOP]->is_wall_flag ) {
 	    	    	    interfaces_[jb].push_back( new DiscreteTransferInterface( cell->iface[TOP]->fs->gas, cell->iface[TOP]->pos, cell->iface[TOP]->area, cell->iface[TOP]->length ) );
 	    	    	    interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
-	    	    	    interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    	}
 	    	    }
 	    	}
@@ -1033,7 +1034,6 @@ MonteCarlo::initialise()
 	    	    if ( j==bdp->jmin && bdp->bcp[SOUTH]->is_wall_flag ) {
 	    	    	interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[SOUTH]->fs->gas, cell->iface[SOUTH]->pos, cell->iface[SOUTH]->area, cell->iface[SOUTH]->length ) );
 	    	    	interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
-	    	    	interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    	int hf_index_ =  bdp->bcp[SOUTH]->get_heat_flux_index( i, j, k );
 	    	    	interfaces_[jb].back()->q_rad_ = &(bdp->bcp[SOUTH]->q_rad[hf_index_]);
 	    	    	cells_[jb].back()->interfaces_[SOUTH] = interfaces_[jb].back();
@@ -1041,7 +1041,6 @@ MonteCarlo::initialise()
 	    	    else if ( j==bdp->jmax && bdp->bcp[NORTH]->is_wall_flag ) {
 	    	    	interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[NORTH]->fs->gas, cell->iface[NORTH]->pos, cell->iface[NORTH]->area, cell->iface[NORTH]->length ) );
 	    	    	interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
-	    	    	interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    	int hf_index_ =  bdp->bcp[NORTH]->get_heat_flux_index( i, j, k );
 	    	    	interfaces_[jb].back()->q_rad_ = &(bdp->bcp[NORTH]->q_rad[hf_index_]);
 	    	    	cells_[jb].back()->interfaces_[NORTH] = interfaces_[jb].back();
@@ -1049,7 +1048,6 @@ MonteCarlo::initialise()
 	    	    if ( i==bdp->imin && bdp->bcp[WEST]->is_wall_flag ) {
 	    	    	interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[WEST]->fs->gas, cell->iface[WEST]->pos, cell->iface[WEST]->area, cell->iface[WEST]->length ) );
 	    	    	interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
-	    	    	interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    	int hf_index_ =  bdp->bcp[WEST]->get_heat_flux_index( i, j, k );
 	    	    	interfaces_[jb].back()->q_rad_ = &(bdp->bcp[WEST]->q_rad[hf_index_]);
 	    	    	cells_[jb].back()->interfaces_[WEST] = interfaces_[jb].back();
@@ -1057,7 +1055,6 @@ MonteCarlo::initialise()
 	    	    else if ( i==bdp->imax && bdp->bcp[EAST]->is_wall_flag ) {
 	    	    	interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[EAST]->fs->gas, cell->iface[EAST]->pos, cell->iface[EAST]->area, cell->iface[EAST]->length) );
 	    	    	interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
-	    	    	interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    	int hf_index_ =  bdp->bcp[EAST]->get_heat_flux_index( i, j, k );
 	    	    	interfaces_[jb].back()->q_rad_ = &(bdp->bcp[EAST]->q_rad[hf_index_]);
 	    	    	cells_[jb].back()->interfaces_[EAST] = interfaces_[jb].back();
@@ -1066,7 +1063,6 @@ MonteCarlo::initialise()
 	    	    	if ( k==bdp->kmin && bdp->bcp[BOTTOM]->is_wall_flag ) {
 	    	    	    interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[BOTTOM]->fs->gas, cell->iface[BOTTOM]->pos, cell->iface[BOTTOM]->area, cell->iface[BOTTOM]->length ) );
 	    	    	    interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
-	    	    	    interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    	    int hf_index_ =  bdp->bcp[BOTTOM]->get_heat_flux_index( i, j, k );
 	    	    	    interfaces_[jb].back()->q_rad_ = &(bdp->bcp[BOTTOM]->q_rad[hf_index_]);
 	    	    	    cells_[jb].back()->interfaces_[BOTTOM] = interfaces_[jb].back();
@@ -1074,7 +1070,6 @@ MonteCarlo::initialise()
 	    	    	else if ( k==bdp->kmax && bdp->bcp[TOP]->is_wall_flag ) {
 	    	    	    interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[TOP]->fs->gas, cell->iface[TOP]->pos, cell->iface[TOP]->area, cell->iface[TOP]->length ) );
 	    	    	    interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
-	    	    	    interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    	    int hf_index_ =  bdp->bcp[TOP]->get_heat_flux_index( i, j, k );
 	    	    	    interfaces_[jb].back()->q_rad_ = &(bdp->bcp[TOP]->q_rad[hf_index_]);
 	    	    	    cells_[jb].back()->interfaces_[TOP] = interfaces_[jb].back();
@@ -1234,21 +1229,25 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
     	}
     }
     
-    // 6. Sum q_rad_temp values and set q_rad in CFD interfaces
+    // 6. dump all exiting energy onto appropriate wall elements
+    // NOTE: cannot do this with multiple threads due to possible race condition
     for ( int ib=0; ib<(int)cells_.size(); ++ib ) {
-    	int iface;
-#   	ifdef _OPENMP
-#   	pragma omp barrier
-#   	pragma omp parallel for private(iface) schedule(runtime)
-#  	endif
-    	for ( iface=0; iface<(int)interfaces_[ib].size(); ++iface ) {
-    	    RayTracingInterface * interface = interfaces_[ib][iface];
-    	    for ( size_t iq=0; iq<interface->q_rad_temp_.size(); ++iq ) {
-    	    	*(interface->q_rad_) += interface->q_rad_temp_[iq];
+    	for ( size_t ic=0; ic<cells_[ib].size(); ++ic ) {
+    	    for ( size_t iray=0; iray<cells_[ib][ic]->rays_.size(); ++iray ) {
+    	    	RayTracingRay * ray = cells_[ib][ic]->rays_[iray];
+    	    	*(ray->q_rad_) += ray->E_exit_ / ray->exit_area_;
     	    }
     	}
     }
-
+    
+    for ( int ib=0; ib<(int)interfaces_.size(); ++ib ) {
+    	for ( size_t iface=0; iface<interfaces_[ib].size(); ++iface ) {
+    	    for ( size_t iray=0; iray<interfaces_[ib][iface]->rays_.size(); ++iray ) {
+    	    	RayTracingRay * ray = interfaces_[ib][iface]->rays_[iray];
+    	    	*(ray->q_rad_) += ray->E_exit_ / ray->exit_area_;
+    	    }
+    	}
+    }
     // clean up
     // all done in deconstructor for now
     
@@ -1388,23 +1387,11 @@ int MonteCarlo::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, 
     	     << "Exiting program" << endl;
     	exit( FAILURE);
     }
-    else if ( count>0 && A->bcp[ray->status_]->is_wall_flag ) {
-    	// dump energy onto interface (only if more than one point and this is a wall)
-    	// int index = A->bcp[ ray->status_ ]->get_heat_flux_index( ic, jc, kc );
-    	RayTracingInterface * RTinterface =  RTcell->interfaces_[ray->status_];
-    	if ( RTinterface==0 ) {
-    	    cout << "MonteCarlo::trace_ray" << endl
-    	         << "bad RayTracingInterface pointer on RayTracingCell" << endl
-    	         << "Bailing ouT!" << endl;
-    	    cout << "ray->status_ = " << ray->status_ << endl;
-    	    cout << "RTcell->interfaces_[NORTH] = " << RTcell->interfaces_[NORTH] << endl;
-    	    cout << "RTcell->interfaces_[SOUTH] = " << RTcell->interfaces_[SOUTH] << endl;
-    	    cout << "RTcell->interfaces_[EAST] = " << RTcell->interfaces_[EAST] << endl;
-    	    cout << "RTcell->interfaces_[WEST] = " << RTcell->interfaces_[WEST] << endl;
-    	    cout << "cell->pos = " << RTcell->origin_.str() << endl;
-    	    exit( BAD_INPUT_ERROR );
-    	}
-    	RTinterface->q_rad_temp_[omp_get_thread_num()] += E / RTinterface->area_;
+    else {
+    	// set q_rad pointer and exit area
+    	int index = A->bcp[ ray->status_ ]->get_heat_flux_index( ic, jc, kc );
+    	ray->q_rad_ = &(A->bcp[ ray->status_ ]->q_rad[ index ]);
+    	ray->exit_area_ = cell->iface[ ray->status_ ]->area;
     }
     
     return SUCCESS;
