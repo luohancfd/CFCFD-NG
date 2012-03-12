@@ -15,6 +15,13 @@
 #include <cstdlib>
 #include <algorithm>
 
+#ifdef _OPENMP
+#include <omp.h>
+#else
+#define omp_get_thread_num() 0
+#define omp_get_max_threads() 1
+#endif
+
 #include "parade.hh"
 #include "radiation_constants.hh"
 #include "../../util/source/lua_service.hh"
@@ -100,6 +107,15 @@ void Parade::initialise( lua_State * L )
 	    e_index = radiators.back()->isp;
 	}
     }
+
+    // create working directories for each thread
+    if ( omp_get_thread_num()==0 ) {
+        for ( int i=0; i<omp_get_max_threads(); ++i ) {
+            ostringstream oss;
+            oss << "mkdir parade_working_dir_" << i;
+            system(oss.str().c_str());
+        }
+    }
 }
 
 Parade::~Parade()
@@ -118,9 +134,10 @@ double
 Parade::
 integrated_emission_for_gas_state( Gas_data &Q, bool spectrally_resolved )
 {
-    double j_total = 0.0;
+    CoeffSpectra X;
+    this->spectra_for_gas_state(Q,X);
     
-    return j_total;
+    return X.integrate_emission_spectra();
 }
 
 double
@@ -137,6 +154,11 @@ void
 Parade::
 spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
 {
+    // Move to the working directory
+    ostringstream oss;
+    oss << "parade_working_dir_" << omp_get_thread_num();
+    chdir(oss.str().c_str());
+
     // 0. Make sure the vectors in CoeffSpectra are sized to zero.
     //    This is required for adaptive spectral distributions.
     X.nu.clear();
@@ -147,6 +169,7 @@ spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
     create_parade_control_file( Q );
     
     // 2. Run the parade executable
+
     system("parade > parade.out");
 
     // 3. Pick up the solution and insert it into CoeffSpectra
@@ -163,15 +186,13 @@ spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
     // CoeffSpectra class starts from the highest wavelength, and parade outputs
     // j_lambda whereas we need j_nu (hence the conversion)
     double lambda_ang, nu, j_lambda, kappa;
-    while ( specfile.good() ) {
-        specfile >> lambda_ang >> j_lambda >> kappa;
+    while ( specfile >> lambda_ang >> j_lambda >> kappa ) {
         // cout << "lambda_ang = " << lambda_ang << ", j_lambda = " << j_lambda << ", kappa = " << kappa << endl;
         nu = lambda2nu( lambda_ang/10.0 );
         X.nu.push_back( nu );
         X.j_nu.push_back( j_lambda * RC_c_SI / nu / nu );
         X.kappa_nu.push_back( kappa );
     }
-
     specfile.close();
 
     // We want ascending frequencies for consistency with photaura model
@@ -181,6 +202,9 @@ spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
         reverse( X.kappa_nu.begin(), X.kappa_nu.end() );
     }
 
+    // Move out of the working directory
+    chdir("..");
+
     return;
 }
 
@@ -188,10 +212,39 @@ void
 Parade::
 spectral_distribution_for_gas_state(Gas_data &Q, vector<double> &nus)
 {
-    cout << "Parade::spectral_distribution_for_gas_state()" << endl
-         << "This function is not available for the parade radiation model." << endl
-         << "Exiting program!" << endl;
-    exit( BAD_INPUT_ERROR );
+    // 0. Make sure the nu vector is of size zero
+    nus.clear();
+
+    // 1. Create the parade control file
+    create_parade_control_file( Q );
+
+    // 2. Run the parade executable
+    system("parade > parade.out");
+
+    // 3. Pick up the solution and insert it into CoeffSpectra
+    ifstream specfile( "par_res.txt" );
+    if ( !specfile.is_open() ) {
+        cout << "Parade::spectral_distribution_for_gas_state()" << endl
+             << "Could not open parade spectra file 'par_res.dat'." << endl
+             << "Exiting program." << endl;
+        exit( FAILURE );
+    }
+
+    // Remaining lines should be spectral data
+    // Note that the parade data starts from the lower wavelength whereas our
+    // spectra classes start from the highest wavelength
+    double lambda_ang, j_lambda, kappa;
+    while ( specfile >> lambda_ang >> j_lambda >> kappa ) {
+        nus.push_back( lambda2nu( lambda_ang/10.0 ) );
+    }
+    specfile.close();
+
+    // We want ascending frequencies for consistency with photaura model
+    if ( nus.front() > nus.back() ) {
+        reverse( nus.begin(), nus.end() );
+    }
+
+    return;
 }
 
 void

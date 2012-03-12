@@ -949,9 +949,9 @@ MonteCarlo::MonteCarlo( lua_State *L )
 
     nrays_ = get_int(L,-1,"nrays");	// average number of rays/photons per cell/interface
     
-    dl_lmin_ratio_ = 0.9;	// ratio of RT step to min cell length scale
+    dl_lmin_ratio_ = 0.3;	// ratio of RT step to min cell length scale
     
-    dl_min_ = 1.0e-10;		// Minimum step length in metres
+    dl_min_ = 1.0e-15;		// Minimum step length in metres
     
     E_min_ = 1.0e-30;		// min energy per photon packet to be considered
     
@@ -1359,7 +1359,7 @@ int MonteCarlo::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, 
     RayTracingCell * RTcell = 0;
     
     int count = 0;
-    
+
     // step along the ray, dumping energy as we go
     while ( ( ray->status_ = cf_->find_cell( p, ib, ic, jc, kc ) ) == INSIDE_GRID ) {
     	// Get pointers to the new block and cell
@@ -1402,6 +1402,7 @@ int MonteCarlo::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, 
     	    cout << "RTcell->interfaces_[EAST] = " << RTcell->interfaces_[EAST] << endl;
     	    cout << "RTcell->interfaces_[WEST] = " << RTcell->interfaces_[WEST] << endl;
     	    cout << "cell->pos = " << RTcell->origin_.str() << endl;
+    	    cout << "point = " << p.str() << endl;
     	    exit( BAD_INPUT_ERROR );
     	}
     	RTinterface->q_rad_temp_[omp_get_thread_num()] += E / RTinterface->area_;

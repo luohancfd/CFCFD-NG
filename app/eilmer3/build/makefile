@@ -234,6 +234,8 @@ tags:
 
 e3rad : 
 	@echo Installing a fresh copy of e3rad.exe with all dependent components rebuilt
+	- rm $(RAD)/build/librad2.a $(RAD)/build/parade.o
+	make TARGET=$(TARGET) OPT=$(OPT) $(LIBRAD2) 
 	- rm e3rad.exe e3rad.o radiation_transport.o cell_finder.o
 	make TARGET=$(TARGET) OPT=$(OPT) e3rad.exe
 	- cp -f e3rad.exe $(INSTALL_DIR)

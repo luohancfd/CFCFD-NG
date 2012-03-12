@@ -12,6 +12,15 @@ INSTALL_DIR ?= $(HOME)/e3bin
 WITH_SPRADIAN ?= 0
 include ../../util/source/systems.mk
 
+OMPFLAG ?= 
+ifeq ($(TARGET), for_gnu_openmp)
+    OMPFLAG := "-fopenmp"
+endif
+
+ifeq ($(TARGET), for_intel_openmp)
+    OMPFLAG := "-fopenmp"
+endif
+
 #----------------------------------------
 # Directory variables
 
@@ -290,7 +299,7 @@ cr_rr_coeffs.o : $(SRC)/cr_rr_coeffs.cxx $(SRC)/cr_rr_coeffs.hh
 parade.o : $(SRC)/parade.cxx $(SRC)/parade.hh \
 		$(SRC)/spectral_model.hh $(SRC)/radiation_constants.hh $(SRC)/parade_radiator.hh \
 		$(GAS)/models/gas_data.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/parade.cxx
+	$(CXX) $(CXXFLAG) $(OMPFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/parade.cxx
 	
 parade_radiator.o : $(SRC)/parade_radiator.cxx $(SRC)/parade_radiator.hh
 	$(CXX) $(CXXFLAG) $(SRC)/parade_radiator.cxx -I$(LUA_INCLUDE_DIR)
