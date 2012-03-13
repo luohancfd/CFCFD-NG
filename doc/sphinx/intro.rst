@@ -23,7 +23,7 @@ for the HYFLEX flight vehicle,
 the optimisation of scramjet exhaust nozzle shapes, and
 the analysis of the scramjet inlet and combustor for the HyShot project.
 These applied studies motivate more abstract modelling efforts that
-aim to improve our simulation capability by developing novel phenomonological
+aim to improve our simulation capability by developing novel phenomenological
 flow models and numerical codes that implement those models. 
 
 Compressible flow simulations pose a number of challenges to CFD codes:
@@ -79,7 +79,7 @@ Tony Gardner,  DLR;
 Richard J. Goozee;
 Klaus Hannemann and Monika Hannemann, DLR, Goettingen;
 Haruko Ishikawa, Tokyo;
-Carolyn Jacobs; Ecole Centrale, Paris;
+Carolyn Jacobs, Ecole Centrale, Paris;
 Ian A. Johnston, DSTO, Adelaide;
 Charles Lilley, Melbourne;
 Andrew M. McGhee, Brisbane;
