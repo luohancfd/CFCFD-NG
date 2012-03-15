@@ -28,7 +28,7 @@ eilmer3-user-guide.pdf: eilmer3-user-guide.tex \
 		sod-3d.tex \
 		sphere-cone.tex \
 		sphere-heat-transfer.tex \
-                therm-exchange.tex \
+		therm-exchange.tex \
 		turbo-sc10.tex \
 		turbo-sc10-parametric.tex \
 		udf.tex \
@@ -36,8 +36,8 @@ eilmer3-user-guide.pdf: eilmer3-user-guide.tex \
 	export BIBINPUTS=$HOME/papers/bibtex/
 	pdflatex eilmer3-user-guide
 	- bibtex eilmer3-user-guide
-	makeindex -l eilmer3-user-guide
 	pdflatex eilmer3-user-guide
+	makeindex -l eilmer3-user-guide
 	pdflatex eilmer3-user-guide
 
 clean:
