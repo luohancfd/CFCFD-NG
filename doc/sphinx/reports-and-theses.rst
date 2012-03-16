@@ -155,4 +155,6 @@ Matthew-McGilvray-PhD-Thesis_ "Scramjet testing at high enthalpies in expansion 
 
 .. _Matthew-McGilvray-PhD-Thesis: ./theses/matt-mcgilvray-PhD-thesis-sep-2008.pdf
 
+Neil-Mudford-PhD-Thesis_ "The Production of Pulsed Nozzle Flows in a Shock Tube"
 
+.. _Neil-Mudford-PhD-Thesis: ./theses/neil-mudford-phd-thesis-production-of-pulsed-nozzle-flows.pdf
