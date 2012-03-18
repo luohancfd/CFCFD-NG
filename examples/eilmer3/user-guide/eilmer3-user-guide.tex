@@ -909,10 +909,13 @@ where the arguments and their possible values are:
   \item \texttt{dimensions}: number of spatial dimensions for the existing solution
   \item \texttt{assume\_same\_grid}: decide how to locate corresponding cells
      \begin{itemize}
-        \item[\texttt{0}]: searches for corresponding cells.
+        \item[\texttt{0}]: searches for corresponding cells. This steps through each cell and
+		searches for closest corresponding cell centre in the old solution and inserts
+		the flow data.
                 As Rainer found, this can be agonisingly slow for large grids.\index{Kirchhartz}
         \item[\texttt{1}]: omits the search for the corresponding cell.
-                Definitely the option for the impatient.
+                Definitely the option for the impatient. This assumes the same grid for the old and
+		new solution and inserts flow data based on the i and j cell references.
      \end{itemize}
    \item \texttt{zipFiles}: to use gzipped files (1), or not (0)
    \item \texttt{add\_velocity}: value to be added to each cell's velocity,
