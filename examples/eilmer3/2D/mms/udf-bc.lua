@@ -1,6 +1,4 @@
--- Lua script for the south and west boundaries
--- of a Manufactured Solution which
--- treats Euler flow.
+-- Lua script for the boundaries of a Manufactured Solution
 --
 -- Author: Rowan J. Gollan
 -- Date: 04-Feb-2008
@@ -13,7 +11,9 @@ sin = math.sin
 L = 1.0
 gam = 1.4
 
-case = 2
+file = io.open("case.txt", "r")
+case = file:read("*n")
+file:close()
 
 if case == 1 then
    -- Supersonic flow

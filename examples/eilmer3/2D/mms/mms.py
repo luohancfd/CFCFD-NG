@@ -6,7 +6,8 @@
 # Updated: 05-Feb-2008
 # Generalized to the viscous case by PJ, June 2011.
 #
-case = 2
+fp = open('case.txt', 'r'); case_str = fp.read().strip(); fp.close()
+case = int(case_str)
 gdata.title = "Method of Manufactured Solutions, Case=%d." % case
 
 select_gas_model(fname='very-viscous-air.lua')

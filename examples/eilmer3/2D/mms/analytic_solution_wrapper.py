@@ -4,7 +4,8 @@ import sys
 
 R_air = 287.1
 
-case = 1
+fp = open('case.txt', 'r'); case_str = fp.read().strip(); fp.close()
+case = int(case_str)
 
 if case == 1:
     ev = AnalyticSolution(L=1.0,

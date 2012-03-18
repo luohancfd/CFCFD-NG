@@ -3,7 +3,7 @@
  *
  * PJ, 28-May-2011
  */
-case: 1;
+case: read_list("case.txt")[1];
 batch("analytic_solution.mac");
 x:0.5; y:0.5;
 rho, numer;
