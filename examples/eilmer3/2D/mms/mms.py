@@ -19,8 +19,7 @@ if case == 1:
 elif case == 2:
     # Subsonic viscous flow
     u0 = 70.0; v0 = 90.0
-    # gdata.viscous_flag = 1
-    gdata.viscous_flag = 0
+    gdata.viscous_flag = 1
 else:
     print "UNKNOWN CASE"
     sys.exit()
