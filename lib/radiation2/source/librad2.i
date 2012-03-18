@@ -95,4 +95,8 @@ def cea_Hf( h_f, m_w ):
 # CEA heat of formation (J/mol) to TAU heat of formation (K)
 def cea_Hf2T( h_f ):
     return h_f / RC_Na / RC_k_SI 
+    
+# convert energy in Rydberg's to energy in Kelvin
+def Ry2T( Ry ):
+    return Ry * RC_Ry * RC_h_SI * RC_c_SI / RC_k_SI
 %}

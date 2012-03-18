@@ -115,6 +115,20 @@ They should also build and run within Cygwin (http://cygwin.com/), however,
 it may be convenient to run a full linux installation within 
 VirtualBox (https://www.virtualbox.org/), on your MS-Windows computer.
 
+Using the codes on Apple OSX
+----------------------------
+The codes can be compiled and run on OSX as this is a Unix based OS.
+The Xcode development environment (https://developer.apple.com/xcode/) 
+should be downloaded and installed to provide Apple's versions of the 
+GNU Compiler Collection, Python and the make utility, amongst other
+development tools.
+popt, readline, SWIG and Tcl/Tk can either be installed from source
+or via a package manager such as MacPorts (http://www.macports.org/) or 
+Fink (http://www.finkproject.org/).
+If possible, it is recommended to install these dependencies from source.
+The required Python packages (numpy, scipy and matplotlib) are all available
+as pre-packaged binaries for OSX on sourceforge.net, although they can also
+be installed from source if necessary.
 
 SSH access to the repository for developers
 -------------------------------------------
