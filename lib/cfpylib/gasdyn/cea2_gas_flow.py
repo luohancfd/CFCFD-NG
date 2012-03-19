@@ -290,7 +290,43 @@ def pitot_condition(state1, V1):
     else:
         # Subsonic free-stream
         return total_condition(state1, V1)
-    
+
+#------------------------------------------------------------------------
+# Finite-strength waves along characteristic lines.
+
+def finite_wave(characteristic, V1, state1, p2, steps=100):
+    """
+    Process the gas isentropically, following a characteristic line.
+
+    See Section 7.6 Finite Nonlinear Waves in JD Anderson's text
+    Modern Compressible Flow.
+
+    :param characteristic: is either 'cplus' or 'cminus'
+    :param V1: initial gas velocity, in m/s
+    :param state1: initial gas state
+    :param p2: new pressure after processing
+    :returns: flow condition after processing as tuple (V2, state2)
+    """
+    V2 = V1
+    p1 = state1.p; s1 = state1.s
+    state2 = state1.clone()
+    dp = (p2 - state1.p)/steps
+    p = p1+0.5*dp   # effectively mid-point of next step
+    state2.set_ps(p, s1)
+    for i in range(steps):
+        rhoa = state2.rho * state2.a
+        if characteristic == 'cminus':
+            dV = dp / rhoa
+        else:
+            dV = -dp / rhoa
+        V2 += dV
+        p += dp  # prepare for next step
+        state2.set_ps(p, s1)
+    # back up to the correct end-point
+    p -= 0.5 * dp
+    state2.set_ps(p, s1)
+    return V2, state2
+
 #------------------------------------------------------------------------
 # Oblique shock relations
 
@@ -482,6 +518,16 @@ def demo():
     s8 = pitot_condition(s6, V)
     print "pitot-p/total-p=", s8.p/s5.p, "s8:"
     s8.write_state(sys.stdout)
+    #
+    print "\nFinite wave process along a cplus characteristic."
+    V1 = 0.0
+    s9 = Gas({'Air':1.0})
+    s9.set_pT(1.0e5, 320.0)
+    Jplus = V1 + 2*s9.a/(1.4-1)
+    V2, s10 = finite_wave('cplus', V1, s9, 60.0e3)
+    print "V2=", V2, "s10:"
+    s10.write_state(sys.stdout)
+    print "ideal V2=", Jplus - 2*s10.a/(1.4-1)
     #
     M1 = 1.5
     print "\nOblique-shock demo for M1=%g." % M1
