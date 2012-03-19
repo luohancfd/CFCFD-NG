@@ -329,7 +329,10 @@ have a look in the data files to see what specific data has been captured.
 %
 One can build and run the distributed-memory version of the program, \texttt{e3mpi.exe}, on computers with 
 the MPI (Message Passing Interface) library\footnote{See, for example, http://www.open-mpi.org/.} and runtime environment.
-The notes in Appendix\,\ref{getting-started-file} show how to build the Eilmer3 executable for OpenMPI.
+The notes in Appendix\,\ref{getting-started-file} show how to build the Eilmer3 executable for OpenMPI. To run
+Eilmer3 across multiple processors on a local machine use the following command\\
+\texttt{mpirun -np \textit{n} e3mpi.exe --job=name --run}\\
+where \textit{n} is the number of processors to use.
 There are also some notes in Appendix\,\ref{blackhole-notes-sec} on batch commands and 
 job output files for the Blackhole and Barrine clusters at UQ.
 
