@@ -529,7 +529,6 @@ def demo():
     print "cea2_gas_flow Demonstration -- reflected shock tunnel."
     s1 = Gas({'Air':1.0})
     s1.set_pT(1.0e5, 300.0)
-    s1.set_pT(1.0e5, 300.0)
     print "s1:"
     s1.write_state(sys.stdout)
     print "Incident shock"
