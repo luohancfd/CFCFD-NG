@@ -294,7 +294,7 @@ def pitot_condition(state1, V1):
 #------------------------------------------------------------------------
 # Finite-strength waves along characteristic lines.
 
-def finite_wave(characteristic, V1, state1, p2, steps=100):
+def finite_wave_dp(characteristic, V1, state1, p2, steps=100):
     """
     Process the gas isentropically, following a characteristic line.
 
@@ -304,8 +304,9 @@ def finite_wave(characteristic, V1, state1, p2, steps=100):
     :param characteristic: is either 'cplus' or 'cminus'
     :param V1: initial gas velocity, in m/s
     :param state1: initial gas state
-    :param p2: new pressure after processing
-    :returns: flow condition after processing as tuple (V2, state2)
+    :param p2: new pressure after processing, in Pa
+    :param steps: number of small steps to take through the process
+    :returns: flow condition after processing, as tuple (V2, state2)
     """
     V2 = V1
     p1 = state1.p; s1 = state1.s
@@ -325,6 +326,43 @@ def finite_wave(characteristic, V1, state1, p2, steps=100):
     # back up to the correct end-point
     p -= 0.5 * dp
     state2.set_ps(p, s1)
+    return V2, state2
+
+def finite_wave_dv(characteristic, V1, state1, V2_target, steps=100, Tmin=200.0):
+    """
+    Process the gas isentropically, following a characteristic line.
+
+    See Section 7.6 Finite Nonlinear Waves in JD Anderson's text
+    Modern Compressible Flow.
+
+    :param characteristic: is either 'cplus' or 'cminus'
+    :param V1: initial gas velocity, in m/s
+    :param state1: initial gas state
+    :param V2_target: desired velocity after processing, in m/s
+        Note that we may not reach the requested velocity before pressure 
+        and temperature become too small.
+    :param steps: number of small steps to take through the process
+    :param Tmin: temperature (in Kelvin) below which we terminate the process.
+        We have this minimum to avoid problems with the thermodynamic
+        polynomials of CEA2 program.  If you really want to work with very low
+        temperatures, it's probably best to use an ideal gas model.
+    :returns: flow condition after processing, as tuple (V2, state2)
+    """
+    V2 = V1
+    dV = (V2_target - V1)/steps
+    p = state1.p
+    s1 = state1.s
+    state2 = state1.clone()
+    for i in range(steps):
+        rhoa = state2.rho * state2.a
+        if characteristic == 'cminus':
+            dp = dV * rhoa
+        else:
+            dp = -dV * rhoa
+        V2 += dV
+        p += dp
+        state2.set_ps(p, s1)
+        if state2.T < Tmin: break
     return V2, state2
 
 #------------------------------------------------------------------------
@@ -519,15 +557,24 @@ def demo():
     print "pitot-p/total-p=", s8.p/s5.p, "s8:"
     s8.write_state(sys.stdout)
     #
-    print "\nFinite wave process along a cplus characteristic."
+    print "\nFinite wave process along a cplus characteristic, stepping in p."
     V1 = 0.0
     s9 = Gas({'Air':1.0})
     s9.set_pT(1.0e5, 320.0)
     Jplus = V1 + 2*s9.a/(1.4-1)
-    V2, s10 = finite_wave('cplus', V1, s9, 60.0e3)
+    V2, s10 = finite_wave_dp('cplus', V1, s9, 60.0e3)
     print "V2=", V2, "s10:"
     s10.write_state(sys.stdout)
     print "ideal V2=", Jplus - 2*s10.a/(1.4-1)
+    #
+    print "\nFinite wave process along a cplus characteristic, stepping in V."
+    V1 = 0.0
+    s9.set_pT(1.0e5, 320.0)
+    Jplus = V1 + 2*s9.a/(1.4-1)
+    V2, s10 = finite_wave_dv('cplus', V1, s9, 125.0)
+    print "V2=", V2, "s10:"
+    s10.write_state(sys.stdout)
+    print "ideal Jplus=", Jplus, " actual Jplus=", V2 + 2*s10.a/(1.4-1)
     #
     M1 = 1.5
     print "\nOblique-shock demo for M1=%g." % M1

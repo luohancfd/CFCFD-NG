@@ -122,6 +122,10 @@ cea2_gas_flow
 
 .. autofunction:: pitot_condition
 
+.. autofunction:: finite_wave_dp
+
+.. autofunction:: finite_wave_dv
+
 .. autofunction:: theta_oblique
 
 .. autofunction:: beta_oblique
