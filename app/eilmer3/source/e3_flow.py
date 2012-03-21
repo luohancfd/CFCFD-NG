@@ -1347,12 +1347,13 @@ def compute_volume_weighted_norms(nblock, grid, flow):
                                              "peak_pos":peak_pos}
         norms_for_block["vol"] = block_volume_sum
         norms["per_block"]["block[%d]"%jb] = norms_for_block
-        for var in flow[0].vars:
-            if not(var in ["pos.x", "pos.y", "pos.z", "volume"]):
-                norms["global"]["%s"%var]["L1"] = norms["global"]["%s"%var]["L1"]/global_volume_sum
-                norms["global"]["%s"%var]["L2"] = math.sqrt(norms["global"]["%s"%var]["L2"]
-                                                            /global_volume_sum)
-        norms["global"]["vol"] = global_volume_sum
+    # Now, average to get the global norms for each variable.
+    for var in flow[0].vars:
+        if not(var in ["pos.x", "pos.y", "pos.z", "volume"]):
+            norms["global"]["%s"%var]["L1"] = norms["global"]["%s"%var]["L1"]/global_volume_sum
+            norms["global"]["%s"%var]["L2"] = math.sqrt(norms["global"]["%s"%var]["L2"]
+                                                        /global_volume_sum)
+    norms["global"]["vol"] = global_volume_sum
     return norms
 
 def pretty_print_norms(norms, per_block_norm_list="", global_norm_list=""):
@@ -1373,6 +1374,8 @@ def pretty_print_norms(norms, per_block_norm_list="", global_norm_list=""):
     """
     print "Volume-weighted norms, per-block:"
     if len(per_block_norm_list) == 0:
+        # We've ask for norms without specifying which ones.
+        # Print them all.
         for blk in norms["per_block"].keys():
             print "    ------- Begin", blk, "-------"
             for var in norms["per_block"][blk].keys():
@@ -1381,6 +1384,7 @@ def pretty_print_norms(norms, per_block_norm_list="", global_norm_list=""):
     elif per_block_norm_list.lower() == "none":
         print "    none requested"
     else:
+        # Print selected norms.
         for item in per_block_norm_list.split(';'):
             jb, var_name, norm_name = item.split(',')
             block_name = "block["+jb+"]"
@@ -1388,12 +1392,15 @@ def pretty_print_norms(norms, per_block_norm_list="", global_norm_list=""):
                 norms["per_block"][block_name][var_name][norm_name]
     print "Volume-weighted norms, global:"
     if len(global_norm_list) == 0:
+        # We've ask for norms without specifying which ones.
+        # Print them all.
         for var in norms["global"].keys():
             print "   ", var, norms["global"][var]
         print "------- End global norms ---------"
     elif global_norm_list.lower() == "none":
         print "    none requested"
     else:
+        # Print selected global norms.
         for item in global_norm_list.split(';'):
             var_name, norm_name = item.split(',')
             print var_name, norm_name, norms["global"][var_name][norm_name]
