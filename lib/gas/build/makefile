@@ -68,6 +68,7 @@ endif
 LUA_MODULES := ideal_gas.lua \
 	Noble_Abel_gas.lua \
 	van_der_Waals_gas.lua \
+	Bender_real_gas.lua \
 	thermally_perfect_gas.lua \
 	four_temperature_gas.lua \
 	three_temperature_gas.lua \
@@ -188,6 +189,7 @@ MODELS_OBJECTS := CEA-Cp-functor.o \
 	perfect-gas-EOS.o \
 	noble-abel-gas-EOS.o \
 	van-der-waals-gas-EOS.o \
+	Bender-real-gas-EOS.o \
 	thermal-behaviour-model.o \
 	perfect-thermal-behaviour.o \
 	real-thermal-behaviour.o \
@@ -415,6 +417,10 @@ noble-abel-gas-EOS.o : $(MODELS)/noble-abel-gas-EOS.cxx $(MODELS)/noble-abel-gas
 van-der-waals-gas-EOS.o : $(MODELS)/van-der-waals-gas-EOS.cxx $(MODELS)/van-der-waals-gas-EOS.hh \
 	$(MODELS)/equation-of-state.hh $(MODELS)/gas_data.hh $(UTIL_SRC)/lua_service.hh $(LUA_INCLUDE_DIR)
 	$(CXX) $(CXXFLAG) $(MODELS)/van-der-waals-gas-EOS.cxx -I$(LUA_INCLUDE_DIR)
+
+Bender-real-gas-EOS.o : $(MODELS)/Bender-real-gas-EOS.cxx $(MODELS)/Bender-real-gas-EOS.hh \
+	$(MODELS)/equation-of-state.hh $(MODELS)/gas_data.hh $(UTIL_SRC)/lua_service.hh $(LUA_INCLUDE_DIR)
+	$(CXX) $(CXXFLAG) $(MODELS)/Bender-real-gas-EOS.cxx -I$(LUA_INCLUDE_DIR)
 
 thermal-behaviour-model.o : $(MODELS)/thermal-behaviour-model.cxx $(MODELS)/thermal-behaviour-model.hh \
 	$(LUA_INCLUDE_DIR)
@@ -753,6 +759,9 @@ Noble_Abel_gas.lua : $(TOOLS)/Noble_Abel_gas.lua
 
 van_der_Waals_gas.lua : $(TOOLS)/van_der_Waals_gas.lua
 	cp $(TOOLS)/van_der_Waals_gas.lua .
+
+Bender_real_gas.lua : $(TOOLS)/Bender_real_gas.lua
+	cp $(TOOLS)/Bender_real_gas.lua .
 
 thermally_perfect_gas.lua : $(TOOLS)/thermally_perfect_gas.lua
 	cp $(TOOLS)/thermally_perfect_gas.lua .

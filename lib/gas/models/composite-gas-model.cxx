@@ -23,6 +23,7 @@ extern "C" {
 #include "perfect-gas-EOS.hh"
 #include "noble-abel-gas-EOS.hh"
 #include "van-der-waals-gas-EOS.hh"
+#include "Bender-real-gas-EOS.hh"
 #include "noneq-gas-EOS.hh"
 #include "constant-specific-heats.hh"
 #include "perfect-thermal-behaviour.hh"
@@ -71,6 +72,9 @@ Composite_gas_model(string cfile)
     }
     else if ( EOS == "van der Waals gas" ) {
      	EOS_ = (Equation_of_state*) new van_der_Waals_gas(L);
+    }
+    else if ( EOS == "Bender real gas" ) {
+        EOS_ = (Equation_of_state*) new Bender_real_gas(L);
     }
     else if ( EOS == "nonequilibrium gas" ) {
     	EOS_ = (Equation_of_state*) new Noneq_gas(L);
