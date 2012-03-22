@@ -114,6 +114,8 @@ cea2_gas_flow
 
 .. autofunction:: shock_real
 
+.. autofunction:: shock_real_p2p1
+
 .. autofunction:: reflected_shock
 
 .. autofunction:: expand_from_stagnation

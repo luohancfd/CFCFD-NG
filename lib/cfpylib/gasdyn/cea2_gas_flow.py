@@ -164,6 +164,34 @@ def shock_real(s1, Vs, s2):
     return (V2, Vg)
 
 
+def shock_real_p2p1(s1, p2p1):
+    """
+    Computes post-shock conditions, using high-temperature gas properties
+    and a shock-stationary frame.
+
+    :param s1: pre-shock gas state
+    :param p2p1: ration of pressure across the shock
+    :returns: a tuple of the incident shock speed, V1;
+        the post-shock gas speed, V2 in the shock-reference frame;
+        Vg in the lab frame; and the post shock state s2.
+    """
+    s2 = s1.clone()
+    # Initial guess via ideal gas relations.
+    g = s1.gam
+    Ms = math.sqrt(1+(g+1)/2/g*(p2p1-1.0))
+    V1ideal = Ms * s1.a
+    def error_in_p2p1(Vs, s1=s1, s2=s2, p2p1=p2p1):
+        "Set up error function that will be zero when we have the correct V1"
+        V2, Vg = shock_real(s1, Vs, s2)
+        return (s2.p/s1.p - p2p1)/p2p1
+    V1 = secant(error_in_p2p1, V1ideal, 1.01*V1ideal, tol=1.0e-3)
+    if V1 == 'FAIL':
+        raise Exception, ("shock_real_p2p1: secant method failed p2p1=%g, V1ideal=%g" 
+                          % (p2p1, V1ideal))
+    V2, Vg = shock_real(s1, V1, s2)
+    return (V1, V2, Vg, s2)
+
+
 def reflected_shock(s2, Vg, s5):
     """
     Computes state5 which has brought the gas to rest at the end of the shock tube.
@@ -537,12 +565,17 @@ def demo():
     print "V2=", V2, "Vg=", Vg
     print "s2:"
     s2.write_state(sys.stdout)
+    print "Incident shock from pressure ratio."
+    V1b, V2b, Vgb, s2b = shock_real_p2p1(s1, s2.p/s1.p)
+    print "V1b=", V1b, "Vgb=", Vgb
+    #
     print "Reflected shock"
     s5 = s1.clone()
     Vr_b = reflected_shock(s2, Vg, s5)
     print "Vr_b=", Vr_b
     print "s5:"
     s5.write_state(sys.stdout)
+    #
     print "Expand from stagnation"
     s6, V = expand_from_stagnation(0.0025, s5)
     print "V=", V, "Mach=", V/s6.a, "s6:"
