@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <cmath>
 
 #include "../../util/source/useful.h"
 #include "../../util/source/lua_service.hh"
@@ -14,6 +15,9 @@
 #include "Bender-real-gas-EOS.hh"
 
 using namespace std;
+
+const double BRG_PROPS_CONVERGE_TOL = 0.001;
+const double BRG_MAX_ITERATIONS = 10;
 
 Bender_real_gas::
 Bender_real_gas(lua_State *L)
@@ -75,15 +79,17 @@ int
 Bender_real_gas::
 s_eval_temperature(Gas_data &Q)
 {
-    Q.T[0] = brg_temperature(Q.rho, Q.p, R_, A_);
-    return SUCCESS;
+    int status;
+    Q.T[0] = brg_temperature(Q.rho, Q.p, R_, A_, status);
+    return status;
 }
 
 int
 Bender_real_gas::
 s_eval_density(Gas_data &Q)
 {
-    Q.rho = brg_density(Q.T[0], Q.p, R_, A_);
+    int status;
+    Q.rho = brg_density(Q.T[0], Q.p, R_, A_, status);
     return SUCCESS;
 }
 
@@ -92,7 +98,9 @@ Bender_real_gas::
 s_gas_constant(const Gas_data &Q, int &status)
 {
     status = SUCCESS;
-    return R_;
+    // Return a gas constant for use by the CFD code, which assumes
+    // ideal gas. For this equation of state, it is not simply R_.
+    return Q.p / (Q.rho * Q.T[0]);
 }
 
 double 
@@ -222,25 +230,41 @@ double brg_dpdrho(double rho, double T, double R, const std::vector<double> &A)
     return dpdrho;
 }
 
-double brg_temperature(double rho, double p, double R, const std::vector<double> &A)
+double brg_temperature(double rho, double p, double R, const std::vector<double> &A, int &status)
 {
     // Evaluate temperature from density and pressure. Must solve EOS iteratively.
     // Temperature from ideal gas EOS is a good first guess.
     double T_guess = p / (rho * R);
-    for (int i=0; i < 10; i++) { // Apply Newtons method. Need to put in a convergence criteria.
+    int i = 0;
+    double T_temp;
+    status = SUCCESS;
+    do {
+        if (i >= BRG_MAX_ITERATIONS) {
+            status = FAILURE; break;
+        }
+        T_temp = T_guess;
         T_guess -= (brg_pressure(rho, T_guess, R, A) - p)/brg_dpdT(rho, T_guess, R, A);
-    }
+        i++;
+    } while (fabs(T_temp - T_guess) > BRG_PROPS_CONVERGE_TOL);
     return T_guess;
 }
 
-double brg_density(double T, double p, double R, const std::vector<double> &A)
+double brg_density(double T, double p, double R, const std::vector<double> &A, int &status)
 {
     // Evaluate density from temperature and pressure. Must solve EOS iteratively.
     // Density from ideal gas EOS is a good first guess.
     double rho_guess = p / (R * T);
-    for (int i=0; i < 10; i++) { // Apply Newtons method. Need to put in a convergence criteria.
+    int i = 0;
+    double rho_temp;
+    status = SUCCESS;
+    do {
+        if (i >= BRG_MAX_ITERATIONS) {
+            status = FAILURE; break;
+        }
+        rho_temp = rho_guess;
         rho_guess -= (brg_pressure(rho_guess, T, R, A) - p)/brg_dpdrho(rho_guess, T, R, A);
-    }
+        i++;
+    } while (fabs(rho_temp - rho_guess) > BRG_PROPS_CONVERGE_TOL);
     return rho_guess;
 }
 

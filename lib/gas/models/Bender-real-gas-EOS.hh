@@ -53,7 +53,7 @@ private:
 double brg_pressure(double rho, double T, double R, const std::vector<double> &A);
 double brg_dpdT(double rho, double T, double R, const std::vector<double> &A);
 double brg_dpdrho(double rho, double T, double R, const std::vector<double> &A);
-double brg_temperature(double rho, double p, double R, const std::vector<double> &A);
-double brg_density(double T, double p, double R, const std::vector<double> &A);
+double brg_temperature(double rho, double p, double R, const std::vector<double> &A, int &status);
+double brg_density(double T, double p, double R, const std::vector<double> &A, int &status);
 
 #endif

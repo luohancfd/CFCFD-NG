@@ -5,9 +5,9 @@ The functions provided by this module are used to manipulate a python function
 prior to using the function to create a path with libprep3's PyFunctionPath.
 Available transformations are rotation and translation.
 
-Author: Peter Blyton
+.. Author: Peter Blyton
 
-Version: March 2011: Rotate and translate functions created.
+.. Version: March 2011: Rotate and translate functions created.
 """
 
 import math

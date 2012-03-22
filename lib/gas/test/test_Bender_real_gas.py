@@ -1,9 +1,9 @@
 """
-Unittest to compare the behaviour of the Bender real gas model for CO2
-with that of REFPROP.
+test_Bender_real_gas.py -- Unittest to compare the behaviour
+of the Bender real gas model for CO2 with results from REFPROP.
 
-Author: Peter Blyton
-Version: 22/03/2012
+.. Author: Peter Blyton
+.. Version: 22/03/2012
 """
 
 import unittest
