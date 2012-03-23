@@ -360,7 +360,17 @@ connectionDict3D[tuple(vpairs)] = (BOTTOM, BOTTOM, 3)
 
 #----------------------------------------------------------------------
 
-def make_patch(north, east, south, west, grid_type="TFI"):
+def close_enough(vA, vB, tolerance=1.0e-4):
+    """
+    Decide if two Vector quantities are close enough to being equal.
+
+    This will be used to test that the block corners coincide.
+    """
+    return (vabs(vA - vB)/(vabs(vA + vB)+1.0)) <= tolerance
+
+#----------------------------------------------------------------------------
+
+def make_patch(north, east, south, west, grid_type="TFI", tol=1.0e-6):
     """
     Defines a 2D patch (or region) by its boundary paths (in order NESW).
 
@@ -372,6 +382,8 @@ def make_patch(north, east, south, west, grid_type="TFI"):
 
         * TFI, COONS: transfinite interpolation or Coons patch
         * AO: interpolation via an area-orthogonality grid, used as background
+
+    :param tol: relative tolerance for testing coincidence of the corner points
 
     A patch is defined by its four bounding Path objects
     with assumed positive directions as shown::
@@ -401,21 +413,45 @@ def make_patch(north, east, south, west, grid_type="TFI"):
         raise TypeError, ("south should be a Path but it is: %s" % type(south))
     if not isinstance(west, Path):
         raise TypeError, ("west should be a Path but it is: %s" % type(west))
+    # Check that the corner points match.
+    p00 = south.eval(0.0); p10 = south.eval(1.0)
+    p01 = north.eval(0.0); p11 = north.eval(1.0)
+    p00_alt = west.eval(0.0); p01_alt = west.eval(1.0)
+    p10_alt = east.eval(0.0); p11_alt = east.eval(1.0)
+    average_length = 0.25*(vabs(p10-p00)+vabs(p01-p00)+vabs(p11-p10)+vabs(p11-p01))
+    tolerance = tol * (average_length + 1.0)
+    corners_OK = True
+    if not close_enough(p00, p00_alt, tolerance):
+        print "Error: south and west boundaries do coincide at corner p00."
+        print "   ", str(p00), str(p00_alt)
+        corners_OK = False
+    if not close_enough(p10, p10_alt, tolerance):
+        print "Error: south and east boundaries do coincide at corner p10."
+        print "   ", str(p10), str(p10_alt)
+        corners_OK = False
+    if not close_enough(p01, p01_alt, tolerance):
+        print "Error: north and west boundaries do coincide at corner p01."
+        print "   ", str(p01), str(p01_alt)
+        corners_OK = False
+    if not close_enough(p11, p11_alt, tolerance):
+        print "Error: north and east boundaries do coincide at corner p11."
+        print "   ", str(p11), str(p11_alt)
+        corners_OK = False
+    if not corners_OK:
+        print "----------------------------------------------------------------"
+        print "Preparation is stopping at this point because there is a problem"
+        print "with the geomtric data presented to mesh_patch."
+        print "The following stack trace should tell you where this occured"
+        print "in your input script. The preceeding data should give you a hint"
+        print "about where the problem points are in modelling space."
+        print "----------------------------------------------------------------"
+        raise RuntimeError("Corner points do not coincide")
+    # Finally, proceed with mesh generation.
     grid_type.upper()
     if grid_type == "AO":
         return AOPatch(south, north, west, east)
     else:
         return CoonsPatch(south, north, west, east)
-
-#----------------------------------------------------------------------------
-
-def close_enough(vA, vB, tolerance=1.0e-4):
-    """
-    Decide if two Vector quantities are close enough to being equal.
-
-    This will be used to test that the block corners coincide.
-    """
-    return (vabs(vA - vB)/(vabs(vA + vB)+1.0)) <= tolerance
 
 #----------------------------------------------------------------------------
 
