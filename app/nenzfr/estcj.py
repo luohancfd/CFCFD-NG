@@ -93,7 +93,6 @@ from cfpylib.nm.zero_solvers import secant
 # We base our calculation of gas properties upon calls to the NASA Glenn CEA code.
 from cfpylib.gasdyn.cea2_gas import Gas, make_gas_from_name
 from cfpylib.gasdyn.cea2_gas_flow import *
-from cfpylib.gasdyn.ideal_gas_flow import *
 
 # ----------------------------------------------------------------------------
 
@@ -365,10 +364,12 @@ def main():
                    % (gasName,p1,T1,V1,cone_half_angle_deg) )
         state1 = make_gas_from_name(gasName)
         state1.set_pT(p1, T1)
+        fout.write('Free-stream condition:\n')
+        state1.write_state(fout)
         cone_half_angle_rad = cone_half_angle_deg*math.pi/180.0
         beta_rad = beta_cone(state1, V1, cone_half_angle_rad)
         theta_c, V_cone_surface, state2 = theta_cone(state1, V1, beta_rad)
-        assert fabs(theta_c - cone_half_angle_rad) < 0.001
+        assert abs(theta_c - cone_half_angle_rad) < 0.001
         fout.write('Shock angle: %g (rad), %g (deg)\n' % (beta_rad, beta_rad*180.0/math.pi))
         fout.write('Cone-surface velocity: %g m/s\n' % (V_cone_surface,))
         fout.write('Cone-surface condition:\n')
