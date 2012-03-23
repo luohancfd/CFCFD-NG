@@ -235,6 +235,14 @@ int main(int argc, char **argv)
 
     // At this point, we know the number of blocks in the calculation.
 #   ifdef _MPI
+    if ( num_proc != G.nblock ) {
+	if ( master ) {
+	    printf("Error in specifying mpirun -np\n");
+	    printf("    It needs to match number of blocks; present values are:\n");
+	    printf("    num_proc= %d nblock= %d\n", num_proc, G.nblock);
+	}
+	goto Quit;
+    }
     // Identify block with mpi process number.
     G.parallel = 1;
     G.rank = mpi_pid;
