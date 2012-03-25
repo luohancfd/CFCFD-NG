@@ -90,7 +90,7 @@ s_eval_density(Gas_data &Q)
 {
     int status;
     Q.rho = brg_density(Q.T[0], Q.p, R_, A_, status);
-    return SUCCESS;
+    return status;
 }
 
 double
@@ -240,7 +240,10 @@ double brg_temperature(double rho, double p, double R, const std::vector<double>
     status = SUCCESS;
     do {
         if (i >= BRG_MAX_ITERATIONS) {
-            status = FAILURE; break;
+            status = ITERATION_ERROR;
+            cout << "brg_temperature():\n";
+            cout << "    Iterations did not converge.\n";
+            return T_guess;
         }
         T_temp = T_guess;
         T_guess -= (brg_pressure(rho, T_guess, R, A) - p)/brg_dpdT(rho, T_guess, R, A);
@@ -259,7 +262,10 @@ double brg_density(double T, double p, double R, const std::vector<double> &A, i
     status = SUCCESS;
     do {
         if (i >= BRG_MAX_ITERATIONS) {
-            status = FAILURE; break;
+            status = ITERATION_ERROR;
+            cout << "brg_density():\n";
+            cout << "    Iterations did not converge.\n";
+            return rho_guess;
         }
         rho_temp = rho_guess;
         rho_guess -= (brg_pressure(rho_guess, T, R, A) - p)/brg_dpdrho(rho_guess, T, R, A);
