@@ -1,5 +1,5 @@
 """
-cea2_gas_flow.py -- Gas flow calculations using CEA2 Gas objects.
+gas_flow.py -- Gas flow calculations using CEA2 or ideal Gas objects.
 
 .. Author:
    PA Jacobs
@@ -9,7 +9,6 @@ cea2_gas_flow.py -- Gas flow calculations using CEA2 Gas objects.
 """
 
 import sys, math, numpy
-from cea2_gas import Gas
 from ..nm.zero_solvers import secant
 
 DEBUG_GAS_FLOW = False
@@ -18,35 +17,35 @@ DEBUG_GAS_FLOW = False
 # 1-D flow functions abstracted from estcj.py
 # and made a little more generic.
 
-def shock_ideal(s1, Vs, s2):
+def shock_ideal(state1, Vs, state2):
     """
     Computes post-shock conditions in the shock frame, assuming ideal gas.
 
-    :param s1: pre-shock Gas state
+    :param state1: pre-shock Gas state
     :param Vs: speed of gas coming into shock
-    :param s2: post-shock Gas state
+    :param state2: post-shock Gas state
     :returns: the post-shock gas speed, V2 in the shock-reference frame, Vg in the lab frame.
     """
     #
-    M1 = Vs / s1.a
+    M1 = Vs / state1.a
     V1 = Vs
-    gam = s1.gam
-    R = s1.R
-    C_v = s1.C_v
+    gam = state1.gam
+    R = state1.R
+    C_v = state1.C_v
     #
-    s2.rho = s1.rho * (gam + 1.0) * M1 * M1 \
+    state2.rho = state1.rho * (gam + 1.0) * M1 * M1 \
              / (2.0 + (gam - 1.0) * M1 * M1)
-    s2.p = s1.p * (2.0 * gam * M1 * M1 - (gam - 1.0)) / (gam + 1.0)
-    s2.T = s2.p / (R * s2.rho)
-    s2.e = s2.T * C_v
+    state2.p = state1.p * (2.0 * gam * M1 * M1 - (gam - 1.0)) / (gam + 1.0)
+    state2.T = state2.p / (R * state2.rho)
+    state2.e = state2.T * C_v
     #
-    V2 = s1.rho / s2.rho * V1
+    V2 = state1.rho / state2.rho * V1
     Vg = V1 - V2
-    s2.a = s1.a * math.sqrt(s2.T / s1.T)
+    state2.a = state1.a * math.sqrt(state2.T / state1.T)
     #
-    s2.R = s1.R
-    s2.gam = s1.gam
-    s2.C_v = s1.C_v
+    state2.R = state1.R
+    state2.gam = state1.gam
+    state2.C_v = state1.C_v
     #
     return (V2, Vg)
 
@@ -67,39 +66,39 @@ def my_limiter(delta, orig, frac=0.5):
     return sign * abs_delta
 
 
-def shock_real(s1, Vs, s2):
+def normal_shock(state1, Vs, state2):
     """
     Computes post-shock conditions, using high-temperature gas properties
     and a shock-stationary frame.
 
-    :param s1: pre-shock gas state
+    :param state1: pre-shock gas state
     :param Vs: speed of gas coming into shock
-    :param s2: post-shock gas state
+    :param state2: post-shock gas state
     :returns: the post-shock gas speed, V2 in the shock-reference frame, Vg in the lab frame.
     """
     #
     # Initial guess via ideal gas relations.
     #
-    (V2,Vg) = shock_ideal(s1, Vs, s2)
+    (V2,Vg) = shock_ideal(state1, Vs, state2)
     if DEBUG_GAS_FLOW:
-        print 'shock_real(): post-shock condition assuming ideal gas'
-        s2.write_state(sys.stdout)
+        print 'normal_shock(): post-shock condition assuming ideal gas'
+        state2.write_state(sys.stdout)
         print '    V2: %g m/s, Vg: %g m/s' % (V2,Vg)
     #
     # We assume that p1 and T1 are correct
-    # and that s2 contains a fair initial guess.
+    # and that state2 contains a fair initial guess.
     V1 = Vs
-    s1.set_pT(s1.p, s1.T);
+    state1.set_pT(state1.p, state1.T);
     if DEBUG_GAS_FLOW:
-        print 'shock_real(): pre-shock condition assuming real gas and original pT'
-        s1.write_state(sys.stdout)
-    s2.set_pT(s2.p, s2.T);
+        print 'normal_shock(): pre-shock condition assuming real gas and original pT'
+        state1.write_state(sys.stdout)
+    state2.set_pT(state2.p, state2.T);
     if DEBUG_GAS_FLOW:
-        print 'shock_real(): post-shock condition assuming real gas and ideal pT'
-        s2.write_state(sys.stdout)
+        print 'normal_shock(): post-shock condition assuming real gas and ideal pT'
+        state2.write_state(sys.stdout)
     #
-    momentum = s1.p + s1.rho * V1 * V1
-    total_enthalpy = s1.h + 0.5 * V1 * V1
+    momentum = state1.p + state1.rho * V1 * V1
+    total_enthalpy = state1.h + 0.5 * V1 * V1
     #
     def Fvector(rho2, T2):
         """
@@ -107,10 +106,10 @@ def shock_real(s1, Vs, s2):
 
         The correct post-shock values allow this vector to evaluate to zeros.
         """
-        s2.set_rhoT(rho2, T2)
-        V2 = V1 * s1.rho / rho2  # mass conservation
-        f1 = momentum - s2.p - s2.rho * V2 * V2
-        f2 = total_enthalpy - s2.h - 0.5 * V2 * V2
+        state2.set_rhoT(rho2, T2)
+        V2 = V1 * state1.rho / rho2  # mass conservation
+        f1 = momentum - state2.p - state2.rho * V2 * V2
+        f2 = total_enthalpy - state2.h - 0.5 * V2 * V2
         return f1, f2
     #
     A = numpy.zeros((2,2), float)
@@ -124,8 +123,8 @@ def shock_real(s1, Vs, s2):
     # Update the estimates using the Newton-Raphson method.
     #
     for count in range(20):
-        rho_save = s2.rho
-        T_save = s2.T
+        rho_save = state2.rho
+        T_save = state2.T
         f1_save, f2_save = Fvector(rho_save, T_save)
         # Use finite differences to compute the Jacobian.
         d_rho = rho_save * 0.01
@@ -147,56 +146,56 @@ def shock_real(s1, Vs, s2):
         rho_new = rho_save + rho_delta
         T_new   = T_save + T_delta
         if DEBUG_GAS_FLOW:
-            print('shock_real(): rho_save=%e, T_save=%e' % (rho_save, T_save))
-            print('shock_real(): rho_delta=%e, T_delta=%e' % (rho_delta, T_delta))
-            print('shock_real(): rho_new=%e, T_new=%e' % (rho_new, T_new))
-        s2.set_rhoT(rho_new, T_new)
+            print('normal_shock(): rho_save=%e, T_save=%e' % (rho_save, T_save))
+            print('normal_shock(): rho_delta=%e, T_delta=%e' % (rho_delta, T_delta))
+            print('normal_shock(): rho_new=%e, T_new=%e' % (rho_new, T_new))
+        state2.set_rhoT(rho_new, T_new)
         # Check convergence.
         if abs(rho_delta) < rho_tol and abs(T_delta) < T_tol: break
     #
     if DEBUG_GAS_FLOW:
-        print ('shock_real(): count = %d, drho=%e, dT=%e' %
+        print ('normal_shock(): count = %d, drho=%e, dT=%e' %
                (count, rho_delta, T_delta) )
     #
     # Back-out velocities via continuity.
-    V2 = V1 * s1.rho / s2.rho
+    V2 = V1 * state1.rho / state2.rho
     Vg = V1 - V2
     return (V2, Vg)
 
 
-def shock_real_p2p1(s1, p2p1):
+def normal_shock_p2p1(state1, p2p1):
     """
     Computes post-shock conditions, using high-temperature gas properties
     and a shock-stationary frame.
 
-    :param s1: pre-shock gas state
+    :param state1: pre-shock gas state
     :param p2p1: ration of pressure across the shock
     :returns: a tuple of the incident shock speed, V1;
         the post-shock gas speed, V2 in the shock-reference frame;
-        Vg in the lab frame; and the post shock state s2.
+        Vg in the lab frame; and the post shock state state2.
     """
-    s2 = s1.clone()
+    state2 = state1.clone()
     # Initial guess via ideal gas relations.
-    g = s1.gam
+    g = state1.gam
     Ms = math.sqrt(1+(g+1)/2/g*(p2p1-1.0))
-    V1ideal = Ms * s1.a
-    def error_in_p2p1(Vs, s1=s1, s2=s2, p2p1=p2p1):
+    V1ideal = Ms * state1.a
+    def error_in_p2p1(Vs, state1=state1, state2=state2, p2p1=p2p1):
         "Set up error function that will be zero when we have the correct V1"
-        V2, Vg = shock_real(s1, Vs, s2)
-        return (s2.p/s1.p - p2p1)/p2p1
+        V2, Vg = normal_shock(state1, Vs, state2)
+        return (state2.p/state1.p - p2p1)/p2p1
     V1 = secant(error_in_p2p1, V1ideal, 1.01*V1ideal, tol=1.0e-3)
     if V1 == 'FAIL':
-        raise Exception, ("shock_real_p2p1: secant method failed p2p1=%g, V1ideal=%g" 
+        raise Exception, ("normal_shock_p2p1: secant method failed p2p1=%g, V1ideal=%g" 
                           % (p2p1, V1ideal))
-    V2, Vg = shock_real(s1, V1, s2)
-    return (V1, V2, Vg, s2)
+    V2, Vg = normal_shock(state1, V1, state2)
+    return (V1, V2, Vg, state2)
 
 
-def reflected_shock(s2, Vg, s5):
+def reflected_shock(state2, Vg, s5):
     """
     Computes state5 which has brought the gas to rest at the end of the shock tube.
 
-    :param s2: the post-incident-shock gas state
+    :param state2: the post-incident-shock gas state
     :param Vg: the lab-frame velocity of the gas in state 2
     :param s5: the stagnation state that will be filled in
         (as a side effect of this function)
@@ -205,9 +204,9 @@ def reflected_shock(s2, Vg, s5):
     #
     # As an initial guess, 
     # assume that we have a very strong shock in an ideal gas.
-    density_ratio = (s2.gam + 1.0)/(s2.gam - 1.0)
+    density_ratio = (state2.gam + 1.0)/(state2.gam - 1.0)
     Vr_a = Vg / density_ratio;
-    V5, Vjunk = shock_real(s2, Vr_a+Vg, s5)
+    V5, Vjunk = normal_shock(state2, Vr_a+Vg, s5)
     # The objective function is the difference in speeds,
     # units are m/s.  A value of zero for this function means
     # that, as the shock propagates upstream with speed ur,
@@ -220,7 +219,7 @@ def reflected_shock(s2, Vg, s5):
     # Now, we need to update this guess...use a secant update.
     #
     Vr_b = 1.1 * Vr_a
-    V5, Vjunk = shock_real(s2, Vr_b+Vg, s5)
+    V5, Vjunk = normal_shock(state2, Vr_b+Vg, s5)
     f_b = V5 - Vr_b
     if DEBUG_GAS_FLOW:
         print 'Reflected shock: Vr_b: %g, V5: %g' % (Vr_b, V5)
@@ -231,7 +230,7 @@ def reflected_shock(s2, Vg, s5):
     while abs(f_b) > 0.5 and count < 20:
         slope = (f_b - f_a) / (Vr_b - Vr_a)
         Vr_c = Vr_b - f_b / slope
-        V5, Vjunk = shock_real(s2, Vr_c+Vg, s5)
+        V5, Vjunk = normal_shock(state2, Vr_c+Vg, s5)
         f_c = V5 - Vr_c
         if abs(f_c) < abs(f_b):
             Vr_b = Vr_c; f_b = f_c
@@ -244,7 +243,7 @@ def reflected_shock(s2, Vg, s5):
     #
     if count >= 20:
         print 'Reflected shock iteration did not converge.'
-    V5, Vjunk = shock_real(s2, Vr_b+Vg, s5)
+    V5, Vjunk = normal_shock(state2, Vr_b+Vg, s5)
     return Vr_b
 
 
@@ -258,8 +257,7 @@ def expand_from_stagnation(p_over_p0, state0):
         of the expanded stream.
     """
     new_state = state0.clone()
-    new_state.p = state0.p * p_over_p0;
-    new_state.EOS(problemType='ps')
+    new_state.set_ps(state0.p * p_over_p0, state0.s)
     # Matt McGilvray had a note about CEA giving bad entropy values
     # so we'll assert things are OK before proceeding.
     assert abs(new_state.s - state0.s)/abs(state0.s) < 0.001
@@ -286,8 +284,7 @@ def total_condition(state1, V1):
         the total enthalpy of the stream.
         """
         new_state = state1.clone()
-        new_state.p *= x
-        new_state.EOS(problemType='ps')
+        new_state.set_ps(x * state1.p, state1.s)
         h = new_state.p/new_state.rho + new_state.e
         return (H1 - h)/abs(H1)
     x_total = secant(error_in_total_enthalpy, 1.0, 1.01, tol=1.0e-4)
@@ -295,8 +292,7 @@ def total_condition(state1, V1):
         print "Failed to find total conditions iteratively."
         x_total = 1.0
     new_state = state1.clone()
-    new_state.p *= x_total
-    new_state.EOS(problemType='ps')
+    new_state.set_ps(x_total * state1.p, state1.s)
     return new_state
 
 
@@ -313,7 +309,7 @@ def pitot_condition(state1, V1):
     if V1 > state1.a:
         # Supersonic free-stream; process through a shock first.
         state2 = state1.clone()
-        (V2,Vg) = shock_real(state1, V1, state2)
+        (V2,Vg) = normal_shock(state1, V1, state2)
         return total_condition(state2, V2)
     else:
         # Subsonic free-stream
@@ -414,7 +410,7 @@ def theta_oblique(state1, V1, beta):
     if M1_n < 1.0:
         raise Exception, 'theta_oblique(): subsonic inflow M1_n=%e' % M1_n
     state2 = state1.clone()
-    V2_n, Vg_n = shock_real(state1, V1_n, state2)
+    V2_n, Vg_n = normal_shock(state1, V1_n, state2)
     V2 = math.sqrt(V2_n * V2_n + V_t * V_t)
     theta = beta - math.atan2(V2_n, V_t)
     return theta, V2, state2
@@ -554,14 +550,15 @@ def beta_cone(state1, V1, theta):
 #------------------------------------------------------------------------
 
 def demo():
-    print "cea2_gas_flow Demonstration -- reflected shock tunnel."
+    print "gas_flow Demonstration -- reflected shock tunnel."
+    from cea2_gas import Gas
     s1 = Gas({'Air':1.0})
     s1.set_pT(1.0e5, 300.0)
     print "s1:"
     s1.write_state(sys.stdout)
     print "Incident shock"
     s2 = s1.clone()
-    V2,Vg = shock_real(s1, 3000.0, s2)
+    V2,Vg = normal_shock(s1, 3000.0, s2)
     print "V2=", V2, "Vg=", Vg
     print "s2:"
     s2.write_state(sys.stdout)

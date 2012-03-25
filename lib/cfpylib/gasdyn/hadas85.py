@@ -2,7 +2,7 @@
 """
 hadas85.py -- Hadas' 8.5 expansion-tube condition.
 
-Done as an example of using cea2_gas_flow functions.
+Done as an example of using gas_flow functions.
 PJ, 21-Mar-2012
 """
 
@@ -10,7 +10,7 @@ import sys, os
 sys.path.append(os.path.expandvars("$HOME/e3bin"))
 
 from cfpylib.gasdyn.cea2_gas import Gas
-from cfpylib.gasdyn.cea2_gas_flow import shock_real, finite_wave_dp, shock_real_p2p1
+from cfpylib.gasdyn.gas_flow import normal_shock, finite_wave_dp, normal_shock_p2p1
 from cfpylib.nm.zero_solvers import secant
 
 def main():
@@ -28,7 +28,7 @@ def main():
     #
     print "Incident shock"
     state2 = state1.clone()
-    V2,V2g = shock_real(state1, 4100.0, state2)
+    V2,V2g = normal_shock(state1, 4100.0, state2)
     print "V2=", V2, "Vg=", V2g, "expected 3670.56"
     print "state2:"
     state2.write_state(sys.stdout)
@@ -50,7 +50,7 @@ def main():
         # Across the contact surface, p20 == p5
         p20 = p5p2 * state2.p
         print "current guess for p5 and p20=", p20
-        V10, V20, V20g, state20 = shock_real_p2p1(state10, p20/state10.p)
+        V10, V20, V20g, state20 = normal_shock_p2p1(state10, p20/state10.p)
         return (V5g - V20g)/V5g
     p5p2 = secant(error_in_velocity, 0.01, 0.011, tol=1.0e-3)
     print "From secant solve: p5/p2=", p5p2

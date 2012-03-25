@@ -103,18 +103,18 @@ cea2_gas
 .. autofunction:: make_gas_from_name
 
  
-.. _cea2_gas_flow:
+.. _gas_flow:
 
-cea2_gas_flow
+gas_flow
 -------------
 
-.. automodule:: cfpylib.gasdyn.cea2_gas_flow
+.. automodule:: cfpylib.gasdyn.gas_flow
 
 .. autofunction:: shock_ideal
 
-.. autofunction:: shock_real
+.. autofunction:: normal_shock
 
-.. autofunction:: shock_real_p2p1
+.. autofunction:: normal_shock_p2p1
 
 .. autofunction:: reflected_shock
 

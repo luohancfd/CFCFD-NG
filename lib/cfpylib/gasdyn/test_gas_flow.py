@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-test_cea2_gas_flow.py -- test script
+test_gas_flow.py -- test script
 """
 
 import sys, os
@@ -8,17 +8,17 @@ sys.path.append(os.path.expandvars("$HOME/e3bin"))
 
 import unittest
 from cfpylib.gasdyn.cea2_gas import Gas
-from cfpylib.gasdyn.cea2_gas_flow import *
+from cfpylib.gasdyn.gas_flow import *
 from cfpylib.gasdyn.ideal_gas_flow import theta_obl
 
 
-class TestCEA2GasFlow(unittest.TestCase):
+class TestGasFlow(unittest.TestCase):
     def test_shock_given_V(self):
         s1 = Gas({'Air':1.0})
         s1.set_pT(1.0e5, 300.0)
         self.assertAlmostEqual(s1.rho, 1.1612, delta=0.001)
         s2 = s1.clone()
-        V2,Vg = shock_real(s1, 3000.0, s2)
+        V2,Vg = normal_shock(s1, 3000.0, s2)
         self.assertAlmostEqual(s2.p, 9.1779e+06, delta=1.0)
         self.assertAlmostEqual(s2.T, 3572.97, delta=1.0)
         self.assertAlmostEqual(V2, 394.09, delta=1.0)
@@ -30,8 +30,8 @@ class TestCEA2GasFlow(unittest.TestCase):
         s1.set_pT(1.0e5, 300.0)
         self.assertAlmostEqual(s1.rho, 1.1612, delta=0.001)
         s2 = s1.clone()
-        V1, V2, Vg, s2 = shock_real_p2p1(s1, 9.1779e+06/s1.p)
-        V2,Vg = shock_real(s1, 3000.0, s2)
+        V1, V2, Vg, s2 = normal_shock_p2p1(s1, 9.1779e+06/s1.p)
+        V2,Vg = normal_shock(s1, 3000.0, s2)
         self.assertAlmostEqual(V1, 3000.0, delta=1.0)
         self.assertAlmostEqual(s2.T, 3572.97, delta=1.0)
         self.assertAlmostEqual(V2, 394.09, delta=1.0)
@@ -42,7 +42,7 @@ class TestCEA2GasFlow(unittest.TestCase):
         s1 = Gas({'Air':1.0})
         s1.set_pT(1.0e5, 300.0)
         s2 = s1.clone()
-        V2,Vg = shock_real(s1, 3000.0, s2)
+        V2,Vg = normal_shock(s1, 3000.0, s2)
         s5 = s1.clone()
         Vr_b = reflected_shock(s2, Vg, s5)
         self.assertAlmostEqual(s5.p, 8.4329e+07, delta=10.0)
@@ -55,7 +55,7 @@ class TestCEA2GasFlow(unittest.TestCase):
         s1 = Gas({'Air':1.0})
         s1.set_pT(1.0e5, 300.0)
         s2 = s1.clone()
-        V2,Vg = shock_real(s1, 3000.0, s2)
+        V2,Vg = normal_shock(s1, 3000.0, s2)
         s5 = s1.clone()
         Vr_b = reflected_shock(s2, Vg, s5)
         s6, V = expand_from_stagnation(0.0025, s5)
@@ -135,5 +135,5 @@ class TestCEA2GasFlow(unittest.TestCase):
         return
 
 if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestCEA2GasFlow)
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestGasFlow)
     unittest.TextTestRunner(verbosity=2).run(suite)

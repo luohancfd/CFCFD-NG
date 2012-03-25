@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """
-test_cea2_gas_flow.py -- test script
+demo_gas_flow.py -- demonstration script
 """
 
 import sys, os
 sys.path.append(os.path.expandvars("$HOME/e3bin"))
-from cfpylib.gasdyn.cea2_gas_flow import demo
+from cfpylib.gasdyn.gas_flow import demo
 
 demo()
