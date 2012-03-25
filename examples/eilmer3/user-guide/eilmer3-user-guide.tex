@@ -407,7 +407,7 @@ Usage: e3post.py [--help] [--job=<jobFileName>] [--tindx=<index|all>]
                  [--add-pitot-p] [--add-total-p] [--add-mach] [--add-total-enthalpy]
                  [--probe="x,y,z;..."]
                  [--heat-flux-list="blk-range,surf-range,i-range,j-range,k-range;..."]
- \end{verbatim}
+\end{verbatim}
 } % end of \footnotesize
 
 \noindent
@@ -997,6 +997,17 @@ If you want a point to be rendered with a label, you can define it as a
 \texttt{Node}.
 Examples of use include: $a$ = \texttt{Vector}($x$, $y$, $z$) and
 $b$ = \texttt{Node}($x$, $y$, $z$, \texttt{label='B'}).\index{geometric element!Node}
+
+\medskip
+It is also possible to 'get' and 'set' values within a geometric element. For example to
+create a node, extract the x value of that node, to change the y value or to use
+the geometry values for a new node could be done as follows.\\
+\topbar\\
+\texttt{a = Node(0.5,0.8,label='Node a')}\\
+\texttt{x-value = a.x}\\
+\texttt{a.y = 0.6}\\
+\texttt{b = Node(a.x, a.y+0.2,label='Node b')}\\
+\bottombar\\
 
 \medskip
 If you look into the file \texttt{cfcfd2/lib/geometry2/source/geom.hh}, you will see that
@@ -2272,6 +2283,27 @@ so that it can be conveniently referenced in later statements.
 In the periodic shear layer case, the \texttt{Node} objects are bound to names 
 that are then used to construct the \texttt{Line} objects that are, in turn, 
 used to define the rectangular flow domain.
+
+\medskip
+When working in Python it is possible to see what options are available to you with a particular
+function or object using the \texttt{dir} command. This enables you to get a print out of the properties
+and functions associated with the object. For example create a node and see what the \texttt{dir} output is.\\
+\topbar\\
+\texttt{a = Node(0.0,0.1,label='a')}\\
+\texttt{print dir(a)}\\
+\begin{scriptsize}
+\texttt{['\_\_add\_\_', '\_\_class\_\_', '\_\_del\_\_', '\_\_delattr\_\_', '\_\_dict\_\_', '\_\_div\_\_', '\_\_doc\_\_',
+ '\_\_format\_\_', '\_\_getattr\_\_',\\ '\_\_getattribute\_\_', '\_\_hash\_\_', '\_\_iadd\_\_', '\_\_idiv\_\_', 
+'\_\_imul\_\_', '\_\_init\_\_', '\_\_isub\_\_', '\_\_module\_\_', '\_\_mul\_\_',\\ '\_\_neg\_\_', '\_\_new\_\_', 
+'\_\_pos\_\_', '\_\_reduce\_\_', '\_\_reduce\_ex\_\_', '\_\_repr\_\_', '\_\_rmul\_\_', '\_\_setattr\_\_', 
+'\_\_sizeof\_\_',\\ '\_\_str\_\_', '\_\_sub\_\_', '\_\_subclasshook\_\_', '\_\_swig\_destroy\_\_', '\_\_swig\_getmethods\_\_', 
+'\_\_swig\_setmethods\_\_',\\ '\_\_weakref\_\_', 'clone', 'copy', 'label', 'mirror\_image', 'nodeList', 'norm', 
+'rotate\_about\_zaxis', 'str',\\ 'this', 'transform\_to\_global', 'transform\_to\_local', 'translate', 'vrml\_str', 
+'vtk\_str', 'x', 'y', 'z']}\end{scriptsize}\\
+\bottombar\\
+
+The last items in this list are the different options available to a Node object that can be used within the
+prep file.
 
 \cleardoublepage
 \section{Make your own debugging cube}
