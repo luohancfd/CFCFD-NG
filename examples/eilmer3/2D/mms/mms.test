@@ -1,0 +1,61 @@
+# mms.test
+# Rowan's manufactured-solution test for 2D, viscous flow.
+#
+# This exercises quite a few of the basic functions of the 2D code.
+# By default, we're doing the viscous test case because mms_euler
+# should be the equivalent inviscid case.
+#
+# PJ, 25-Mar-2012, adapted from mms_euler
+
+package require tcltest 2.0
+namespace import ::tcltest::*
+configure -verbose {start body error}
+
+test run-preprocessor {Run the preprocessing stage.} -body {
+    exec maxima --batch=make_source_terms.mac > LOGFILE_PREP
+    exec python f90_to_lua.py >> LOGFILE_PREP
+    exec e3prep.py --job=mms >> LOGFILE_PREP
+} -result {} -returnCodes {0}
+
+test run-simulation {Run the shared-memory simulation code.} -body {
+    exec  mpirun -np 4 e3mpi.exe --job=mms --run > LOGFILE_MAIN
+} -result {} -returnCodes {0}
+
+test run-postprocessor {Run the postprocessing stage.} -body {
+    exec e3post.py --job=mms --tindx=20 \
+        --gmodel-file="very-viscous-air.lua" \
+	--ref-function=analytic_solution_wrapper.py \
+	--per-block-norm-list=0,rho,L2\;0,rho,L1 \
+	--global-norm-list=rho,L2 > LOGFILE_POST
+} -result {} -returnCodes {0}
+
+test number-of-steps {The main simulation takes a certain number of steps.} -body {
+    set fp [open LOGFILE_MAIN r]
+    set contents [read $fp]
+    close $fp
+    set final_steps 0
+    foreach line [split $contents "\n"] {
+	if {[string first "Total number of steps" $line] >= 0} {
+	    set final_steps [lindex [split $line] 5]
+	}
+    }
+    set final_steps
+} -result {6803}
+
+test check-density {The density difference with respect to the analytic solution.} -body {
+    set L2_density_error 0
+    # We're looking for a line with something like the content:
+    # rho L2 0.0036484674842
+    # This is for the viscous case (i.e. case = 2)
+    set fp [open LOGFILE_POST r]
+    set results [read $fp]
+    close $fp
+    foreach line [split $results "\n"] {
+	if {[string first "rho L2 " $line] == 0} {
+	    set L2_density_error [lindex [split $line] 2]
+	}
+    }
+    expr abs($L2_density_error - 0.003648)/0.003648 < 1.0e-2
+} -result {1}
+
+cleanupTests
