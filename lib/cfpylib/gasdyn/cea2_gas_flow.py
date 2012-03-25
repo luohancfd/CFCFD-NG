@@ -565,9 +565,6 @@ def demo():
     print "V2=", V2, "Vg=", Vg
     print "s2:"
     s2.write_state(sys.stdout)
-    print "Incident shock from pressure ratio."
-    V1b, V2b, Vgb, s2b = shock_real_p2p1(s1, s2.p/s1.p)
-    print "V1b=", V1b, "Vgb=", Vgb
     #
     print "Reflected shock"
     s5 = s1.clone()
@@ -580,6 +577,7 @@ def demo():
     s6, V = expand_from_stagnation(0.0025, s5)
     print "V=", V, "Mach=", V/s6.a, "s6:"
     s6.write_state(sys.stdout)
+    #
     print "Total condition"
     s7 = total_condition(s6, V)
     print "s7:"
@@ -663,4 +661,6 @@ def demo():
     V1 = M1 * s1.a
     beta = beta_cone(s1, V1, 20.0*math.pi/180)
     print "sigma(deg)=", beta*180/math.pi, "expected 49deg"
+    #
     print "Done."
+    
