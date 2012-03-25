@@ -1,0 +1,41 @@
+Helium driver gas
+state4:
+    p: 3e+07 Pa, T: 3000 K, rho: 4.814 kg/m**3, e: 7.79939e+06 J/kg, h: 1.40312e+07 J/kg, a: 3222.8 m/s
+    R: 2077.27 J/(kg.K), gam: 1.6667, Cp: 5193.2 J/(kg.K), mu: 0.00010459 Pa.s, k: 0.8162 W/(m.K)
+    species massf: {'He': 1.0}
+Air driven gas
+state1:
+    p: 30000 Pa, T: 300 K, rho: 0.34837 kg/m**3, e: -88591 J/kg, h: -2475 J/kg, a: 347.2 m/s
+    R: 287.051 J/(kg.K), gam: 1.3999, Cp: 1004.8 J/(kg.K), mu: 1.8746e-05 Pa.s, k: 0.02639 W/(m.K)
+    species massf: {'N2': 0.75518, 'Ar': 0.012916, 'CO2': 0.00048469, 'O2': 0.23142}
+
+Now do the classic shock tube solution...
+current guess for p3 and p2= 3000000.0
+current guess for p3 and p2= 3300000.0
+current guess for p3 and p2= 3000000.0
+current guess for p3 and p2= 3300000.0
+current guess for p3 and p2= 4051687.67395
+current guess for p3 and p2= 3300000.0
+current guess for p3 and p2= 4051687.67395
+current guess for p3 and p2= 4039983.56244
+From secant solve: p3/p4= 0.134666118748
+Expanded driver gas:
+V3g= 3194.31470271
+state3:
+    p: 4.04e+06 Pa, T: 1345.83 K, rho: 1.4451 kg/m**3, e: 2.64513e+06 J/kg, h: 5.44079e+06 J/kg, a: 2158.6 m/s
+    R: 2077.27 J/(kg.K), gam: 1.6667, Cp: 5193.2 J/(kg.K), mu: 5.7327e-05 Pa.s, k: 0.44766 W/(m.K)
+    species massf: {'He': 1.0}
+Shock-processed test gas:
+V1s= 3603.68782193 V2g= 3194.17036155
+state2:
+    p: 4.04e+06 Pa, T: 4307.54 K, rho: 3.0656 kg/m**3, e: 5.08909e+06 J/kg, h: 6.40696e+06 J/kg, a: 1257.3 m/s
+    R: 305.94 J/(kg.K), gam: 1.1996, Cp: 1324 J/(kg.K), mu: 0.00012312 Pa.s, k: 0.56424 W/(m.K)
+    species massf: {'CO2': 8.6354e-05, 'CO': 0.00025352, 'NO': 0.097245, 'O': 0.07227, 'N': 0.00033838, 'Ar': 0.012916, 'N2O': 5.3337e-05, 'N2': 0.70936, 'O3': 4.1875e-06, 'O2': 0.10728, 'NO2': 0.00019727}
+Left end
+Upstream head of the unsteady expansion.
+The unsteady expansion in n steps.
+Downstream tail of expansion.
+Contact surface.
+Shock front
+Right end
+Done.

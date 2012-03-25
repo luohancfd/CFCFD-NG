@@ -25,19 +25,18 @@ north0 = Line(c, b); north1 = Line(b, f) # upper boundary
 west0 = Line(d, c); east0west1 = Line(a, b); east1 = Line(e, f) 
 
 # Define the blocks, boundary conditions and set the discretisation.
-nx = 50; ny = 2
 blk_0 = Block2D(make_patch(north0, east0west1, south0, west0), 
-                nni=100, nnj=2,
+                nni=400, nnj=2,
                 fill_condition=helium, label="driver")
 blk_1 = Block2D(make_patch(north1, east1, south1, east0west1), 
-                nni=100, nnj=2,
+                nni=400, nnj=2,
                 fill_condition=air, label="driven")
 identify_block_connections()
 
 # Some simulation parameters
 gdata.flux_calc = ADAPTIVE
 gdata.max_time = 100.0e-6
-gdata.max_step = 600
+gdata.max_step = 1500
 gdata.dt = 1.0e-9
 
 

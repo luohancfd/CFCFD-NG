@@ -58,6 +58,51 @@ def main():
     print "V1s=", V1s, "V2g=", V2g
     print "state2:"
     state2.write_state(sys.stdout)
+    assert abs(V2g - V3g)/V3g < 1.0e-3
+    #
+    # Make a record for plotting against the Eilmer3 simulation data.
+    # We reconstruct the expected data along a tube 0.0 <= x <= 1.0
+    # at t=100us, where the diaphragm is at x=0.5.
+    x_centre = 0.5 # metres
+    t = 100.0e-6 # seconds
+    fp = open('exact.data', 'w')
+    fp.write('# 1:x(m)  2:rho(kg/m**3) 3:p(Pa) 4:T(K) 5:V(m/s)\n')
+    print 'Left end'
+    x = 0.0
+    fp.write('%g %g %g %g %g\n' % (x, state4.rho, state4.p, state4.T, 0.0))
+    print 'Upstream head of the unsteady expansion.'
+    x = x_centre - state4.a * t
+    fp.write('%g %g %g %g %g\n' % (x, state4.rho, state4.p, state4.T, 0.0))
+    print 'The unsteady expansion in n steps.'
+    n = 100
+    dp = (state3.p - state4.p) / n
+    state = state4.clone()
+    V = 0.0
+    p = state4.p
+    for i in range(n):
+        rhoa = state.rho * state.a
+        dV = -dp / rhoa
+        V += dV
+        p += dp
+        state.set_ps(p, state4.s)
+        x = x_centre + t * (V - state.a)
+        fp.write('%g %g %g %g %g\n' % (x, state.rho, state.p, state.T, V))
+    print 'Downstream tail of expansion.'
+    x = x_centre + t * (V3g - state3.a)
+    fp.write('%g %g %g %g %g\n' % (x, state3.rho, state3.p, state3.T, V3g))
+    print 'Contact surface.'
+    x = x_centre + t * V3g
+    fp.write('%g %g %g %g %g\n' % (x, state3.rho, state3.p, state3.T, V3g))
+    x = x_centre + t * V2g  # should not have moved
+    fp.write('%g %g %g %g %g\n' % (x, state2.rho, state2.p, state2.T, V2g))
+    print 'Shock front'
+    x = x_centre + t * V1s  # should not have moved
+    fp.write('%g %g %g %g %g\n' % (x, state2.rho, state2.p, state2.T, V2g))
+    fp.write('%g %g %g %g %g\n' % (x, state1.rho, state1.p, state1.T, 0.0))
+    print 'Right end'
+    x = 1.0
+    fp.write('%g %g %g %g %g\n' % (x, state1.rho, state1.p, state1.T, 0.0))
+    fp.close()
     return
 
 if __name__ == '__main__':

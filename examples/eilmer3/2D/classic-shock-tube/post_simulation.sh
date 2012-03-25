@@ -14,10 +14,11 @@ set term postscript eps enhanced 20
 set output "cst-p.eps"
 set title "High-performance shock tube at t = 100us"
 set xlabel "x, m"
-set ylabel "Pressure, Pa"
+set ylabel "Pressure, MPa"
 set xrange [0:1]
-set yrange [0:32.0e6]
-plot "profile.data" using 1:9 t 'simulation' with points pt 2
+set yrange [0:32.0]
+plot "profile.data" using 1:(\$9/1.0e6) t 'Eilmer3' with points pt 6, \
+     "exact.data" using 1:(\$3/1.0e6) t 'analytic soln' with lines lt 1 lw 3
 EOF
 
 gnuplot <<EOF
@@ -29,7 +30,8 @@ set ylabel "Density, kg/m^3"
 set xrange [0:1]
 set yrange [0:5]
 set key left bottom
-plot "profile.data" using 1:5 t 'simulation' with points pt 2
+plot "profile.data" using 1:5 t 'Eilmer3' with points pt 6, \
+     "exact.data" using 1:2 t 'analytic soln' with lines lt 1 lw 3
 EOF
 
 gnuplot <<EOF
@@ -41,7 +43,8 @@ set ylabel "Velocity, m/s"
 set xrange [0:1]
 set yrange [0:3500]
 set key left top
-plot "profile.data" using 1:6 t 'simulation' with points pt 2
+plot "profile.data" using 1:6 t 'Eilmer3' with points pt 6, \
+     "exact.data" using 1:5 t 'analytic soln' with lines lt 1 lw 3
 EOF
 
 gnuplot <<EOF
@@ -53,7 +56,8 @@ set ylabel "Temperature, degrees K"
 set xrange [0:1]
 set yrange [0:5000]
 set key left bottom
-plot "profile.data" using 1:22 t 'simulation' with points pt 2
+plot "profile.data" using 1:22 t 'Eilmer3' with points pt 6, \
+     "exact.data" using 1:4 t 'analytic soln' with lines lt 1 lw 3
 EOF
 
 
