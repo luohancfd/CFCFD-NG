@@ -19,7 +19,7 @@ int call_udf( double t, int step, std::string udf_fn_name );
 int udf_source_vector_for_cell( FV_Cell *cell, double t );
 int integrate_blocks_in_sequence( void );
 int integrate_in_time( double target_time );
-int finalize( void );
+int finalize_simulation( void );
 int gasdynamic_inviscid_increment( void );
 int gasdynamic_viscous_increment( void );
 int do_bad_cell_count( void );

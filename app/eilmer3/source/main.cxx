@@ -262,11 +262,11 @@ int main(int argc, char **argv)
 	/* The simulation proper. */
 	if (prepare_to_integrate(start_tindx) != SUCCESS) goto Quit;
 	if ( G.sequence_blocks ) {
-	    integrate_blocks_in_sequence();
+	    if ( integrate_blocks_in_sequence() != SUCCESS) goto Quit;
 	} else {
-	    integrate_in_time(-1.0);
+	    if ( integrate_in_time(-1.0) != SUCCESS) goto Quit;
 	}
-	finalize();
+	finalize_simulation();
     } else {
 	printf( "NOTHING DONE -- because you didn't ask...\n" );
     }
@@ -645,6 +645,7 @@ int integrate_blocks_in_sequence( void )
     Block *bdp;
     double time_slice = G.max_time / G.nblock;
     BoundaryCondition *bcp_save;
+    int status_flag = SUCCESS;
 
     // Initially deactivate all blocks
     for ( int jb = 0; jb < G.nblock; ++jb ) {
@@ -733,7 +734,7 @@ int integrate_blocks_in_sequence( void )
 	bdp->active = 1;
     }
     set_block_range(0, G.nblock - 1);
-    return SUCCESS;
+    return status_flag;
 } // end integrate_blocks_in_sequence()
 
 //---------------------------------------------------------------------------
@@ -755,6 +756,7 @@ int integrate_in_time( double target_time )
 #   ifdef _MPI
     int cfl_result_2;
 #   endif
+    int status_flag = SUCCESS;
     dt_record.resize(G.nblock);
 
     printf( "Integrate in time\n" ); fflush(stdout);
@@ -816,8 +818,7 @@ int integrate_in_time( double target_time )
 
     // Normally, we can terminate upon either reaching 
     // a maximum time or upon reaching a maximum iteration count.
-    finished_time_stepping =
-        (G.sim_time >= stopping_time || G.step >= G.max_step);
+    finished_time_stepping = (G.sim_time >= stopping_time || G.step >= G.max_step);
 
     //----------------------------------------------------------------
     //                 Top of main time-stepping loop
@@ -903,7 +904,7 @@ int integrate_in_time( double target_time )
 
 
 	// 1. Set the size of the time step.
-    if ( G.step == 0 ) {
+	if ( G.step == 0 ) {
 	    // When starting a new calculation,
 	    // set the global time step to the initial value.
 	    do_cfl_check_now = 0;
@@ -911,10 +912,10 @@ int integrate_in_time( double target_time )
 		if ( G.sequence_blocks && G.dt_global != 0 ) {
 		    /* do nothing i.e. keep dt_global from previous block */ ;
 		} else { 
-			G.dt_global = G.dt_init;
+		    G.dt_global = G.dt_init;
 		}
 	} else if ( !G.fixed_time_step && 
-				(G.step/G.cfl_count)*G.cfl_count == G.step ) {
+		    (G.step/G.cfl_count)*G.cfl_count == G.step ) {
 	    // Check occasionally 
 	    do_cfl_check_now = 1;
 	} // end if (G.step == 0 ...
@@ -930,6 +931,7 @@ int integrate_in_time( double target_time )
 	    MPI_Allreduce( &cfl_result, &cfl_result_2, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD );
 	    if ( cfl_result_2 != 0 ) {
 		program_return_flag = DT_SEARCH_FAILED;
+		status_flag = FAILURE;
 		goto conclusion;
 	    }
 
@@ -948,6 +950,7 @@ int integrate_in_time( double target_time )
 		    cfl_result = bdp->determine_time_step_size( G.cfl_target, G.dimensions );
 		    if ( cfl_result != 0 ) {
 			program_return_flag = DT_SEARCH_FAILED;
+			status_flag = FAILURE;
 			goto conclusion;
 		    }
 		}
@@ -979,6 +982,7 @@ int integrate_in_time( double target_time )
         if ( G.cfl_max > 100.0 ) {
             // If the CFL has gone crazy, bail out.
             printf( "\nCFL = %e: breaking main loop\n", G.cfl_max );
+	    status_flag = FAILURE;
             break;
         }
 
@@ -1029,11 +1033,13 @@ int integrate_in_time( double target_time )
 		cout << "As indicated, one of the pistons has reached the\n"
 		     << "end of a block with a free end.  The only sensible thing\n"
 		     << "to do is to terminate the program and write out the solution.\n";
+		status_flag = FAILURE;
 		goto conclusion;
 	    }
 	    else if (status != SUCCESS) {
 		cout << "Error trying to configure piston boundary cells.\n";
 		cout << "Bailing out!" << endl;
+		status_flag = FAILURE;
 		goto conclusion;
 	    }
 	}
@@ -1043,6 +1049,7 @@ int integrate_in_time( double target_time )
 	    if( status == PISTON_FAILURE ) {
 		cout << "Error trying to update piston motion.\n";
 		cout << "Bailing out!" << endl;
+		status_flag = FAILURE;
 		goto conclusion;
 	    }
 	}
@@ -1059,11 +1066,13 @@ int integrate_in_time( double target_time )
 		cout << "As indicated, one of the pistons has reached the\n"
 		     << "end of a block with a free end.  The only sensible thing\n"
 		     << "to do is to terminate the program and write out the solution.\n";
+		status_flag = FAILURE;
 		goto conclusion;
 	    }
 	    else if (status != SUCCESS) {
 		cout << "Error trying to configure piston boundary cells.\n";
 		cout << "Bailing out!" << endl;
+		status_flag = FAILURE;
 		goto conclusion;
 	    }
 	}
@@ -1089,6 +1098,7 @@ int integrate_in_time( double target_time )
 	    if ( break_loop ) {
 		printf("Breaking main loop:\n");
 		printf("    time step failed at viscous increment.\n");
+		status_flag = FAILURE;
 		break;
 	    }
 #           if SEPARATE_UPDATE_FOR_K_OMEGA_SOURCE == 1
@@ -1353,11 +1363,11 @@ int integrate_in_time( double target_time )
 
  conclusion:
     dt_record.resize(0);
-    return SUCCESS;
+    return status_flag;
 } // end integrate_in_time()
 
 
-int finalize( void )
+int finalize_simulation( void )
 {
     global_data &G = *get_global_data_ptr();  // set up a reference
     Block *bdp;
@@ -1439,7 +1449,7 @@ int finalize( void )
 	bdp->array_cleanup(G.dimensions);
     }
     return SUCCESS;
-} // end finalize()
+} // end finalize_simulation()
 
 //------------------------------------------------------------------------
 
