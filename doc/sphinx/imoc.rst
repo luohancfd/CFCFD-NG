@@ -25,5 +25,19 @@ Ensure that you have tcl-dev installed, then::
 This should create a folder in your home directory called imoc_bin. IMOC can then be run from within
 this folder using the command::
 
- $ cd ~/imoc_bin
+ $ cd ~/imoc_bin/source
  $ ./moc_startup.tcl
+
+For regular use, it is convenient to set the ``IMOC_HOME`` variable in your ``.bashrc`` file::
+
+ export IMOC_HOME=$HOME/imoc_bin
+
+You may encounter an error to do with the ``BROWSER`` setting if the system cannot
+find firefox. In that case just set::
+
+ export BROWSER=""
+
+
+ 
+
+
