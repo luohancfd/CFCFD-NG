@@ -144,3 +144,24 @@ On Xserver for Linux (especially Ubuntu):
   uncheck "Use Offscreen Rendering for Screenshots" button
   in the Edit->Settings ("Options") dialog.
   You will find the checkbutton under "Render View"->General.
+
+**Transferring input files between machines**
+
+If you find you want to transfer just the input files between
+machines, ignoring the generated output files, you can do this by using the ``--exclude`` option
+for the ``rsync`` command. For example, to transfer just
+the input files of a directory
+called ``my-sim`` on a local machine to a remote machine, use::
+
+ $ rsync -av --exclude=flow --exclude=grid --exclude=hist --exclude=heat --exclude=plot my-sim/ remote:my-sim
+
+If you find you are using this often, you can define an alias as appropriate for your
+shell. In BASH, I add the following line to my ``.bashrc`` file::
+
+ alias rsync-eilmer="rsync -av --progress --exclude=flow --exclude=grid --exclude=hist --exclude=heat --exclude=plot"
+
+Then I can use do the above transfer by issuing the following command::
+ 
+ $ rsync-eilmer my-sim/ remote:my-sim
+
+
