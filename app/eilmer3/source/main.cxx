@@ -851,6 +851,7 @@ int integrate_in_time( double target_time )
 #       endif
         if ( active_blocks == 0 ) {
             printf( "There are no active blocks at step %d\n", G.step );
+	    status_flag = FAILURE;
             break;
         }
 
@@ -1008,6 +1009,7 @@ int integrate_in_time( double target_time )
 	if ( break_loop2 ) {
 	    printf("Breaking main loop:\n");
 	    printf("    time step failed at inviscid increment.\n");
+	    status_flag = FAILURE;
 	    break;
 	}
         

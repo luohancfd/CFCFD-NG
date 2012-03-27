@@ -2324,6 +2324,10 @@ int Block::determine_time_step_size( double cfl_target, int dimensions )
 	printf( "    If this cfl_max value is not much larger than 1.0,\n" );
 	printf( "    your simulation could probably be restarted successfully\n" );
 	printf( "    with some minor tweaking." );
+	printf( "    That tweaking should probably include a reduction\n");
+	printf( "    in the size of the initial time-step, dt\n");
+	printf( "    If this job is a restart/continuation of an old job, look in\n");
+	printf( "    the old-job.finish file for the value of dt at termination.\n");
 	return DT_SEARCH_FAILED;
     }
 } // end of determine_time_step_size()
