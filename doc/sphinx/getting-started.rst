@@ -107,6 +107,8 @@ To a basic Ubuntu 10.04 installation, you should add the following packages and 
 #. tk
 #. bwidget
 #. gnuplot
+#. tcl-dev (if you want to build IMOC)
+#. maxima (to run the Method-of-Manufactured-Solutions test case for Eilmer3)
 
 Using the codes on MS-Windows
 -----------------------------

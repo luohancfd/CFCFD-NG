@@ -61,6 +61,88 @@ If you want him to come and look at your simulation files when things go wrong,
 use the same.
 If not, use whatever hierarchy you like.
 
+Building and running on the Barrine cluster at UQ
+-------------------------------------------------
+The details of running simulations on any cluster computer will be specific 
+to the local configuration.  
+The Barrine cluster is run by the High-Performance Computing Unit at The University of Queensland 
+and is a much larger machine, with a little over 3000 cores, running SUSE Enterprise Linux.
+
+* Set up your environment by adding the following lines to your .bashrc file::
+
+    module load python
+    module load intel-cc-11
+    module load intel-mpi/3.2.2.006
+    export PATH=${PATH}:${HOME}/e3bin
+    export LUA_PATH=${HOME}/e3bin/?.lua
+    export LUA_CPATH=${HOME}/e3bin/?.so
+
+  Note that we load a specific version of the MPI module.
+
+* Get yourself an interactive shell on a compute node so that you don't hammer the login node
+  while compiling.  You won't make friends if you keep the login node excessively busy::
+
+     $ qsub -I -A uq-Jacobs
+
+* To compile the MPI-version of the code, use the command::
+
+     $ make TARGET=for_intel_mpi install
+
+  from the cfcfd2/app/eilmer3/build/ directory.
+
+* Optionally, clean up after the build.::
+
+     $ make clean
+
+* To submit a job to PBS-Pro, which is the batch queue system on barrine,
+  use the command::
+
+     $ qsub script_name.sh
+
+* An example of a shell script prepared for running on the Barrine cluster::
+
+     #!/bin/bash -l
+     #PBS -S /bin/bash
+     #PBS -N lehr
+     #PBS -q workq
+     #PBS -l select=3:ncpus=8:NodeType=medium:mpiprocs=8 -A uq-Jacobs
+     #PBS -l walltime=6:00:00
+     # Incantations to get bash to behave and the Intel MPI bits in place.
+     . /usr/share/modules/init/bash
+     module load intel-mpi/3.2.2.006
+     echo "Where are my nodes?"
+     echo $PBS_NODEFILE
+     cat $PBS_NODEFILE
+     echo "-------------------------------------------"
+     echo "Begin MPI job..."
+     date
+     cd $PBS_O_WORKDIR
+     mpirun -np 24 $HOME/e3bin/e3mpi.exe --job=lehr --run --max-wall-clock=20000 > LOGFILE
+     echo "End MPI job."
+     date
+     # As we leave the job, make sure that we leave no processes behind.
+     # (The following incantation is from Gerald Hartig.)
+     for i in $(cat $PBS_NODEFILE | grep -v `hostname` | sort -u); do 
+     	 ssh $i pkill -u `whoami` 
+     done
+     killall -u `whoami` e3mpi.exe
+
+  This is the script input examples/eilmer3/2D/lehr-479/run_simulation.sh.
+
+  Here, we ask for 3 nodes with 8 cores each for a set of 24 MPI tasks.
+  The medium nodes have 8 cores available, and we ask for all of them so that we are reasonably sure
+  that our job will not be in competition with another job on the same nodes.
+  Note the -A accounting option.  
+  You will have to use an appropriate group name
+  and you can determine which groups you are part of with the "groups" command.
+  Unlike SGE on Blackhole, we seem to need to change to the working directory before running the
+  simulation code.
+  Finally, we have redirected the standard output from the main simulation to the file LOGFILE
+  so that we can monitor progress with the command::
+
+     $ tail -f LOGFILE
+
+
 When things go wrong
 --------------------
 Eilmer3 is a complex piece of software, 

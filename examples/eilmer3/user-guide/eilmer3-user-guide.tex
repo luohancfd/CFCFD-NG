@@ -327,14 +327,17 @@ have a look in the data files to see what specific data has been captured.
 
 \subsection{Running the simulation in parallel (e3mpi.exe)}
 %
-One can build and run the distributed-memory version of the program, \texttt{e3mpi.exe}, on computers with 
-the MPI (Message Passing Interface) library\footnote{See, for example, http://www.open-mpi.org/.} and runtime environment.
-The notes in Appendix\,\ref{getting-started-file} show how to build the Eilmer3 executable for OpenMPI. To run
-Eilmer3 across multiple processors on a local machine use the following command\\
+One can build and run the distributed-memory version of the program, \texttt{e3mpi.exe}, 
+on computers with 
+the MPI (Message Passing Interface) library\footnote{See, for example, http://www.open-mpi.org/.} 
+and runtime environment.
+The notes in Appendix\,\ref{getting-started-file} show how to build and run 
+the Eilmer3 executable for OpenMPI. 
+These notes are also available in HTML form at the URL
+\texttt{http://www.mech.uq.edu.au/cfcfd/eilmer3.html}.
+To run Eilmer3 across multiple processors on a local machine use the following command\\
 \texttt{mpirun -np \textit{n} e3mpi.exe --job=name --run}\\
 where \textit{n} is the number of processors to use.
-There are also some notes in Appendix\,\ref{blackhole-notes-sec} on batch commands and 
-job output files for the Blackhole and Barrine clusters at UQ.
 
 \subsection{Restarting a simulation}\index{restarting a simulation}
 %
@@ -2313,90 +2316,6 @@ prep file.
 
 %\newpage 
 %\input{../../../lib/gas_models2/tex/scriptnoneq}
-
-\cleardoublepage
-\section{Notes on running MPI jobs on cluster computers}
-\label{blackhole-notes-sec}
-The details of running simulations on any cluster computer will be specific to the local 
-configuration.  
-The Blackhole cluster computer belongs to the Hypersonics Group at the University of Queensland
-and is a SUN Rack computer consisting of about 66 nodes with dual AMD Opteron processors.
-The Barrine cluster is run by the High-Performance Computing Unit at The University of Queensland 
-and is a much larger machine, with a little over 3000 cores, running SUSE Enterprise Linux.
-%
-\subsection{The Blackhole (SUN Rack) cluster}
-%
-\begin{itemize}
-  \item Set the environment up by customizing your \verb .bash_profile ~ file.\\
-     \topbarshort
-     \lstinputlisting[language={}]{./blackhole_bash_profile.sh}
-     \bottombarshort
-  \item Get the source code tree onto Blackhole using the \texttt{rsync} program
-      or whatever you find convenient to use.\\
-      \texttt{rsync -av triton:cfcfd2 .}
-  \item To compile the MPI-version of the code, use the command:\\
-     \texttt{make TARGET=for\_openmpi install}\\
-     from the \texttt{cfcfd2/app/eilmer3/build/} directory.
-  \item Optionally, clean up after the build.\\
-     \texttt{make clean}
-  \item To submit a job to Sun Grid Engine (SGE), which is the batch queue system on Blackhole,
-     use the command:\\
-     \texttt{qsub} \textit{script\_name.sh}
-\clearpage
-  \item An example of a shell script prepared for running on the Blackhole cluster.\\
-     \topbarshort
-     \lstinputlisting[language={}]{../3D/finite-cylinder/thermal-eq/run_simulation.sh}
-     \bottombarshort
-  \item When running a job on the through the batch queue system, the job is identified by
-     a number \textit{nnnnn}.
-     Output that would have gone to the console (as standard-output) for an interactive job 
-     will be collected in the file \textit{job.onnnnn}.
-     Error messages will accumulate in the file \textit{job.ennnnn}.
-  \item To see how the calculation is progressing by following the content of the output file,
-     use the command\\
-     \texttt{tail -f} \textit{job.onnnnn}
-  \item To put a hold on a job while waiting for another to finish, use the command\\
-     \texttt{qsub --hold\_jid} \textit{nnnnn} \textit{script\_name.sh}
-\end{itemize}
-%
-\subsection{The barrine.hpcu.uq.edu.au SGI cluster}
-%
-\begin{itemize}
-  \item Set up your environment by adding the following lines to your \texttt{.bashrc} file.\\
-    \texttt{module load python}\\
-    \texttt{module load intel-cc-11}\\
-    \texttt{module load intel-mpi/3.2.2.006}\\
-    \texttt{export PATH=\$\{PATH\}:\$\{HOME\}/e3bin} \\
-    \texttt{export LUA\_PATH=\$\{HOME\}/e3bin/?.lua} \\
-    \texttt{export LUA\_CPATH=\$\{HOME\}/e3bin/?.so} \\
-    Note that we load a specific version of the MPI module.
-  \item Get yourself an interactive shell on a compute node so that you don't hammer the login node
-     while compiling.  You won't make friends if you keep the login node excessively busy.\\
-     \texttt{qsub -I -A uq-Jacobs}
-  \item To compile the MPI-version of the code, use the command:\\
-     \texttt{make TARGET=for\_intel\_mpi install}\\
-     from the \texttt{cfcfd2/app/eilmer3/build/} directory.
-  \item Optionally, clean up after the build.\\
-     \texttt{make clean}
-  \item To submit a job to PBS-Pro, which is the batch queue system on barrine,
-     use the command:\\
-     \texttt{qsub} \textit{script\_name.sh}
-  \item An example of a shell script prepared for running on the Barrine cluster.\\
-     \topbarshort
-     \lstinputlisting[language={}]{../2D/lehr-479/run_simulation.sh}
-     \bottombarshort\\
-    Here, we ask for 3 nodes with 8 cores each for a set of 24 MPI tasks.
-    The medium nodes have 8 cores available, and we ask for all of them so that we are reasonably sure
-    that our job will not be in competition with another job on the same nodes.
-    Note the \texttt{-A} accounting option.  You will have to use an appropriate group name
-    and you can determine which groups you are part of with the \texttt{groups} command.
-    Unlike SGE on Blackhole, we seem to need to change to the working directory before running the
-    simulation code.
-    Finally, we have redirected the standard output from the main simulation to the file \texttt{LOGFILE}
-    so that we can monitor progress with the command\\
-    \texttt{tail -f LOGFILE}
-\end{itemize}
-
 
 \cleardoublepage
 \section{cfpylib modules}\index{module!cfpylib}
