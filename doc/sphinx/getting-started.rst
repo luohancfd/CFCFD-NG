@@ -96,6 +96,7 @@ To a basic Ubuntu 10.04 installation, you should add the following packages and 
 #. g++
 #. m4
 #. mpi-default-dev
+#. mpi-default-bin
 #. gfortran
 #. swig
 #. python-dev
