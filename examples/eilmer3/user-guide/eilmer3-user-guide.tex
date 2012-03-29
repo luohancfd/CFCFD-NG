@@ -327,24 +327,29 @@ have a look in the data files to see what specific data has been captured.
 
 \subsection{Running the simulation in parallel (e3mpi.exe)}
 %
-One can build and run the distributed-memory version of the program, \texttt{e3mpi.exe}, 
-on computers with 
+One can build and run the distributed-memory version of the program, 
+\texttt{e3mpi.exe}\index{e3mpi.exe}, on computers with 
 the MPI (Message Passing Interface) library\footnote{See, for example, http://www.open-mpi.org/.} 
 and runtime environment.
 The notes in Appendix\,\ref{getting-started-file} show how to build and run 
-the Eilmer3 executable for OpenMPI. 
-These notes are also available in HTML form at the URL
-\texttt{http://www.mech.uq.edu.au/cfcfd/eilmer3.html}.
-To run Eilmer3 across multiple processors on a local machine use the following command\\
-\texttt{mpirun -np \textit{n} e3mpi.exe --job=name --run}\\
-where \textit{n} is the number of processors to use.
+the Eilmer3 executable for OpenMPI.\footnote{These notes are also available in HTML form at the URL
+\texttt{http://www.mech.uq.edu.au/cfcfd/}.}
+To run Eilmer3 across multiple processors\index{e3mpi.exe!running a simulation}
+on a local machine use the following command\\
+\texttt{\$ mpirun -np \textit{n} e3mpi.exe --job=name --run}\\
+where \textit{n} is the number of MPI processes to use.
+Note that the program is written such that one MPI process is assigned to each block; 
+the number of MPI processes \emph{must} match the number of blocks in the simulation.
+Each of these MPI processes is a separate program and you may run more than one per core 
+or physical processor, however, if you want the shortest calculation time and you had lost of cores,
+you would probably run one per core.
 
 \subsection{Restarting a simulation}\index{restarting a simulation}
 %
 By default, the simulation program picks up the flow solution for \texttt{tindx} equal to 0 but
 it can be told to pick up any other \texttt{tindx} snapshot.
 To pick up a solution and continue, it is probably best to do a little house-keeping with the command\\
-\texttt{e3post.py --job=name --prepare-restart}\\
+\texttt{\$ e3post.py --job=name --prepare-restart}\\
 This renames the 9999 flow files and tidies up the \textit{job}\texttt{.times} file to reflect the changes.
 Then you should edit the \textit{job}\texttt{.control} file and change the parameters \texttt{dt}
 \texttt{max\_time} and \texttt{max\_steps} to suitable values.
@@ -353,7 +358,7 @@ your newly edited \textit{job}\texttt{.control} file.
 At this point, you should be ready to run the main simulation program again.
 Remember to supply the relevant \texttt{tindx} value on the command line for your restart.
 For example:\\
-\texttt{e3shared.exe --job=name --tindx=5 --run}
+\texttt{\$ e3shared.exe --job=name --tindx=5 --run}
 
 \medskip
 Also, with restarts, be careful that you have consistent modelling requirements and settings.
@@ -395,7 +400,8 @@ Begin e3post.py...
 
 Usage: e3post.py [--help] [--job=<jobFileName>] [--tindx=<index|all>]
                  [--zip-files|--no-zip-files]
-                 [--vtk-xml] [--tecplot] [--plot3d] [--prepare-restart]
+                 [--vtk-xml] [--tecplot] [--plot3d]
+                 [--prepare-restart] [--prepare-fstc-restart]
                  [--put-into-folders]
                  [--ref-function=<python-script>]
                  [--report-norms]
@@ -408,8 +414,11 @@ Usage: e3post.py [--help] [--job=<jobFileName>] [--tindx=<index|all>]
                  [--slice-along-line="x0,y0,z0,x1,y1,z1,N"]
                  [--surface-list="blk,surface-name;..."]
                  [--add-pitot-p] [--add-total-p] [--add-mach] [--add-total-enthalpy]
+                 [--add-molef --gmodel-file="gas-model.lua"]
                  [--probe="x,y,z;..."]
                  [--heat-flux-list="blk-range,surf-range,i-range,j-range,k-range;..."]
+                 [--omegaz="[omegaz0,omegaz1,...]"]
+                 [--tangent-slab-list="blk-range,i-range,j-range,k-range;..."]
 \end{verbatim}
 } % end of \footnotesize
 
@@ -1998,6 +2007,8 @@ coordinating script that runs the simulation a number of times with better grid 
 \include{vortex}
 \cleardoublepage
 \include{mms-euler}
+\cleardoublepage
+\include{mms-viscous}
 \cleardoublepage
 \include{odw}
 \cleardoublepage
