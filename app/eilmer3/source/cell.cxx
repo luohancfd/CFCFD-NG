@@ -1896,8 +1896,8 @@ int number_of_values_in_cell_copy(int type_of_copy)
 std::string variable_list_for_cell( void )
 {
     // This function needs to be kept consistent with functions 
-    // write_solution_for_cell, read_solution_for_cell above
-    // and with the corresponding Python functions 
+    // FV_Cell::write_values_to_string, FV_Cell::scan_values_from_string
+    // (found above) and with the corresponding Python functions 
     // write_cell_data and variable_list_for_cell
     // that may be found in app/eilmer3/source/e3_flow.py.
     ostringstream ost;
@@ -1912,7 +1912,13 @@ std::string variable_list_for_cell( void )
     }
     ost << " \"tke\" \"omega\"";
     for ( size_t isp = 0; isp < nsp; ++isp ) {
-	ost << " \"massf[" << isp << "]\"";
+	std::string specname = gmodel->species_name(isp);
+	size_t found = specname.find(" ");
+	while ( found != std::string::npos ) {
+	    specname.replace(found, 1, "-");
+	    found = specname.find(" ");
+	}
+	ost << " \"massf[" << isp << "]-" << specname << "\"";
     }
     if ( nsp > 1 ) ost << " \"dt_chem\"";
     for ( size_t imode = 0; imode < nmodes; ++imode ) {

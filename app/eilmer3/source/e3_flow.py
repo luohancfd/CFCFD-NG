@@ -220,7 +220,8 @@ class FlowCondition(object):
         flow_props['mu'] = self.flow.gas.mu
         flow_props['k[0]'] = self.flow.gas.k[0]
         for isp in range(nsp):
-            flow_props['massf[%d]' % isp] = self.flow.gas.massf[isp]
+            specname = self.gmodel.species_name(isp).replace(' ', '-')
+            flow_props['massf[%d]-%s' % (isp,specname)] = self.flow.gas.massf[isp]
         for imode in range(nmodes):
             flow_props['e[%d]' % imode] = self.flow.gas.e[imode]
             flow_props['T[%d]' % imode] = self.flow.gas.T[imode]
@@ -252,7 +253,8 @@ def variable_list_for_cell(gdata):
     var_names.append("tke")
     var_names.append("omega")
     for isp in range(nsp):
-	var_names.append("massf[%d]" % isp)
+        specname = gmodel.species_name(isp).replace(' ', '-')
+	var_names.append("massf[%d]-%s" % (isp, specname))
     if nsp > 1: 
         var_names.append("dt_chem")
     for imode in range(nmodes):
@@ -295,7 +297,8 @@ def write_cell_data(fp, data, gdata):
     gmodel = get_gas_model_ptr()
     nsp = gmodel.get_number_of_species()
     for isp in range(nsp):
-        fp.write(" %20.12e" % data['massf[%d]' % isp])
+        specname = gmodel.species_name(isp).replace(' ', '-')
+        fp.write(" %20.12e" % data['massf[%d]-%s' % (isp, specname)])
     if nsp > 1:
         dt_chem = -1.0
         fp.write(" %20.12e" % dt_chem)
@@ -463,7 +466,8 @@ class StructuredGridFlow(object):
             self.data["beta"] = zeros((nic,njc,nkc),'d')
         if add_molef:
             for isp in range(self.nsp):
-                varName = "molef[%d]" % isp
+                specname = self.gmodel.species_name(isp).replace(' ', '-')
+                varName = "molef[%d]-%s" % (isp, specname)
                 self.vars.append(varName)
                 self.data[varName] = zeros((nic,njc,nkc),'d')
         #
