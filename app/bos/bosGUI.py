@@ -1,15 +1,16 @@
-# bosgui.py
-# Starter GUI for BOS functions
-#
-# PJ, 17-Dec-05 starting sample
-#
-# Dwishen Ramanah, 12-Jan-2007 Version 1.0
+#! /usr/bin/env python
+""" bosgui.py
 
+Starter GUI for BOS functions
+
+.. Authors:: PJ, 17-Dec-05 starting sample
+             Dwishen Ramanah, 12-Jan-2007 Version 1.0
+"""
 
 import sys
 import Tkinter, tkFileDialog, tkSimpleDialog, tkMessageBox
 import Image, ImageTk, ImageChops, ImageOps
-import Numeric
+import numpy
 try:
     from scipy.signal.signaltools import correlate2d
     from scipy.signal.signaltools import medfilt
@@ -43,7 +44,9 @@ def layoutMainWindow(root):
     The main window consists of a menubar and some labeled entry boxes.
     """
     global refFileName, testFileName
-    global xshiftVar, yshiftVar, sampleBoxVar, sxyVar, wxyVar,lowerLevelVar,upperLevelVar,numcontourVar,modelgreylevelVar,goodvectorsVar,colourlevelVar
+    global xshiftVar, yshiftVar, sampleBoxVar, sxyVar, wxyVar
+    global lowerLevelVar, upperLevelVar, numcontourVar, modelgreylevelVar
+    global goodvectorsVar, colourlevelVar
     global x0, y0, x1, y1
     
     refFileName = Tkinter.StringVar()
@@ -377,7 +380,7 @@ def simplepiv(I1,I2,wxy,mxy,sxy):
     global QMAT, QQ
     import numpy 
 
-    #convert Image to numeric arrays    
+    #convert Image to numpy arrays    
     I1data = numpy.array(I1.getdata())
     I2data = numpy.array(I2.getdata())
     xsize ,ysize = I1.size
@@ -486,10 +489,10 @@ def estimateCoarseShift():
     testSmallImage = testImage.crop(sampleBox).convert('L')
     # refSmallImage.show(); testSmallImage.show()
     xsize, ysize = refSmallImage.size
-    # Convert to Numeric arrays and do cross correlation.
-    refData = Numeric.array(refSmallImage.getdata())
+    # Convert to numpy arrays and do cross correlation.
+    refData = numpy.array(refSmallImage.getdata())
     refData.shape = refSmallImage.size
-    testData = Numeric.array(testSmallImage.getdata())
+    testData = numpy.array(testSmallImage.getdata())
     testData.shape = testSmallImage.size
     try:
         # Requires Scipy.
