@@ -138,9 +138,21 @@ CO2.electronic_levels = {
 
 -- Real gas data
 
+CO2.reference_state = {
+   description = 'Reference temperature, internal energy and entropy',
+   reference = 'Reynolds, WC (1979). Thermodynamic Properties in SI.',
+   units = 'K, J/kg, J/kg.K',
+   T0 = 216.54, -- Triple point temperature
+ --u0 = 3.2174105e+5, -- Reference state internal energy from WC Reynolds
+   u0 = 4.0026e5, -- IIR convention used by REFPROP, u=0 at 273.16K for saturated liquid.
+ --s0 = 2.1396056e+3, -- Reference state entropy from WC Reynolds
+   s0 = 2.6537e3, -- IIR convention used by REFPROP, s=0 at 273.16K for saturated liquid.
+}
+
 CO2.Bender_EOS_coeffs = {
    description = 'Coefficients for Bender equation of state',
    reference = 'Reynolds, WC (1979). Thermodynamic Properties in SI. Equation P-3',
+   units = 'Pa', -- Resulting unit when using these coefficients in p-rho-T equation.
    A = {0.0, -- First element zero to align indexes with coefficient numbers.
         2.2488558e-1,
        -1.3717965e+2,
@@ -162,5 +174,20 @@ CO2.Bender_EOS_coeffs = {
        -3.7546530e+1,
         1.1898141e+4,
         5.0e-6} -- Final element is what WC Reynolds calls "gamma", just another coefficient.
+}
+
+CO2.Cv0_coeffs = {
+   description = 'Coefficients for classic polynomial ideal gas specific heat capacity equation.',
+   reference = 'Reynolds, WC (1979). Thermodynamic Properties in SI. Equation C-6',
+   units = 'J/kg.K', -- Resulting unit when using these coefficients in Cv0 equation.
+   T_low  = 50.0, -- Range of validity.
+   T_high = 1500.0,
+   G = {0.0, -- First element zero to align indexes with coefficient numbers.
+        8.726361e+3,
+        1.840040e+2,
+        1.914025,
+       -1.667825e-3,
+        7.305950e-7,
+       -1.255290e-10}
 }
 

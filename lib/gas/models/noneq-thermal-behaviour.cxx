@@ -173,7 +173,7 @@ s_encode_conserved_energy(const Gas_data &Q, vector<double> &rhoe)
 
 double
 Noneq_thermal_behaviour::
-s_dhdT_const_p(const Gas_data &Q, int &status)
+s_dhdT_const_p(const Gas_data &Q, Equation_of_state *EOS_, int &status)
 {
     double Cp = 0.0;
     for ( size_t isp=0; isp<species_.size(); ++isp ) {

@@ -21,7 +21,7 @@ public:
     int eval_temperature(Gas_data &Q)
     { return s_eval_temperature(Q); }
 
-    int eval_density(Gas_data &Q) 
+    int eval_density(Gas_data &Q)
     { return s_eval_density(Q); }
 
     // For evaluating internal energy from enthalpy
@@ -49,6 +49,12 @@ public:
     double molecular_weight(const Gas_data &Q)
     { return calculate_molecular_weight(Q.massf, M_); }
 
+    // Accessor methods for real gas models
+    double eval_integral_const_T_energy(const Gas_data &Q)
+    { return s_integral_const_T_energy(Q); }
+    double eval_integral_const_T_entropy(const Gas_data &Q)
+    { return s_integral_const_T_entropy(Q); }
+
 protected:
     std::vector<double> M_;
 
@@ -63,6 +69,12 @@ private:
     virtual double s_dpdrho_i_const_T(const Gas_data &Q, int isp, int &status) = 0;
     virtual double s_dpdT_i_const_rho(const Gas_data &Q, int itm, int &status) = 0;
     virtual double s_gas_constant(const Gas_data &Q, int &status) = 0;
+
+    // Added for real gas models, integration of EOS for internal energy and entropy
+    virtual double s_integral_const_T_energy(const Gas_data &Q)
+    { return 0; }
+    virtual double s_integral_const_T_entropy(const Gas_data &Q)
+    { return 0; }
 };
 
 #endif

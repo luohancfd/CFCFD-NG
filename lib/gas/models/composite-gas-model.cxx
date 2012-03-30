@@ -28,6 +28,7 @@ extern "C" {
 #include "constant-specific-heats.hh"
 #include "perfect-thermal-behaviour.hh"
 #include "real-thermal-behaviour.hh"
+#include "dense-real-thermal-behaviour.hh"
 #include "noneq-thermal-behaviour.hh"
 #include "Wilke-mixing-rule.hh"
 #include "no-diffusion-coefficients.hh"
@@ -96,6 +97,9 @@ Composite_gas_model(string cfile)
     }
     else if ( TBM == "thermally real" ) {
 	TBM_ = (Thermal_behaviour_model*) new Real_thermal_behaviour(L);
+    }
+    else if ( TBM == "dense thermally real" ) {
+        TBM_ = (Thermal_behaviour_model*) new Dense_real_thermal_behaviour(L);
     }
     else if ( TBM == "thermal nonequilibrium" ) {
 	TBM_ = (Thermal_behaviour_model*) new Noneq_thermal_behaviour(L);
@@ -334,7 +338,7 @@ double
 Composite_gas_model::
 s_dhdT_const_p(const Gas_data &Q, int &status)
 {
-    return TBM_->dhdT_const_p(Q, status);
+    return TBM_->dhdT_const_p(Q, EOS_, status);
 }
 
 double

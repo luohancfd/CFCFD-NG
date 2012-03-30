@@ -115,7 +115,7 @@ s_encode_conserved_energy(const Gas_data &Q, vector<double> &rhoe)
 
 double
 Perfect_thermal_behaviour::
-s_dhdT_const_p(const Gas_data &Q, int &status)
+s_dhdT_const_p(const Gas_data &Q, Equation_of_state *EOS_, int &status)
 {
     status = SUCCESS;
     return tbm_dhdT_const_p(Cp_, Q.massf, Q.T);

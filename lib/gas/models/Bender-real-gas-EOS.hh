@@ -28,13 +28,13 @@ extern "C" {
  *
  *  As there are no mixing rules implemented for this equation of state,
  *  it should only be used with single species gases.
- **/
+ */
 
 class Bender_real_gas : public Equation_of_state {
 public:
     Bender_real_gas(lua_State *L);
     ~Bender_real_gas();
-    
+
 private:
     std::vector<double> A_; // Coefficients for Bender EOS.
     double R_;
@@ -48,6 +48,8 @@ private:
     double s_dpdrho_const_T(const Gas_data &Q, int &status);
     double s_dpdrho_i_const_T(const Gas_data &Q, int isp, int &status);
     double s_dpdT_i_const_rho(const Gas_data &Q, int itm, int &status);
+    double s_integral_const_T_energy(const Gas_data &Q);
+    double s_integral_const_T_entropy(const Gas_data &Q);
 };
 
 double brg_pressure(double rho, double T, double R, const std::vector<double> &A);
@@ -55,5 +57,7 @@ double brg_dpdT(double rho, double T, double R, const std::vector<double> &A);
 double brg_dpdrho(double rho, double T, double R, const std::vector<double> &A);
 double brg_temperature(double rho, double p, double R, const std::vector<double> &A, int &status);
 double brg_density(double T, double p, double R, const std::vector<double> &A, int &status);
+double brg_integral_const_T_energy(double rho, double T, double R, const std::vector<double> &A);
+double brg_integral_const_T_entropy(double rho, double T, double R, const std::vector<double> &A);
 
 #endif

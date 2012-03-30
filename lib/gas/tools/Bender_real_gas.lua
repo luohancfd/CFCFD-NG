@@ -48,8 +48,9 @@ end
 
 local value_list = {"M",
                     "gamma",
+                    "reference_state",
                     "Bender_EOS_coeffs",
-                    "CEA_coeffs"}
+                    "Cv0_coeffs"}
 
 local model_list = {"viscosity",
                     "thermal_conductivity"}
@@ -61,11 +62,10 @@ function create_Bender_real_gas(species, f)
                          os.date("%d-%b-%Y %X")))
    f:write("model = 'composite gas'\n")
    f:write("equation_of_state = 'Bender real gas'\n")
-   f:write("thermal_behaviour = 'thermally real'\n")
+   f:write("thermal_behaviour = 'dense thermally real'\n")
    f:write("mixing_rule = 'None'\n")
    f:write("sound_speed = 'equilibrium'\n")
    f:write("ignore_mole_fraction = 1.0e-15\n")
-   f:write("T_COLD = 20.0\n")
 
    f:write("species = {")
    for _,sp in ipairs(species) do

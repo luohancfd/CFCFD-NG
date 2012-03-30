@@ -26,8 +26,8 @@ public:
     int encode_conserved_energy(const Gas_data &Q, std::vector<double> &rhoe)
     { return s_encode_conserved_energy(Q, rhoe); }
 
-    double dhdT_const_p(const Gas_data &Q, int &status)
-    { return s_dhdT_const_p(Q, status); }
+    double dhdT_const_p(const Gas_data &Q, Equation_of_state *EOS_, int &status)
+    { return s_dhdT_const_p(Q, EOS_, status); }
 
     double dedT_const_v(const Gas_data &Q, Equation_of_state *EOS_, int &status)
     { return s_dedT_const_v(Q, EOS_, status); }
@@ -56,7 +56,7 @@ public:
 private:
     virtual int s_decode_conserved_energy(Gas_data &Q, const std::vector<double> &rhoe) = 0;
     virtual int s_encode_conserved_energy(const Gas_data &Q, std::vector<double> &rhoe) = 0;
-    virtual double s_dhdT_const_p(const Gas_data &Q, int &status) = 0;
+    virtual double s_dhdT_const_p(const Gas_data &Q, Equation_of_state *EOS_, int &status) = 0;
     virtual double s_dedT_const_v(const Gas_data &Q, Equation_of_state *EOS_, int &status) = 0;
     virtual int s_eval_energy(Gas_data &Q, Equation_of_state *EOS_) = 0;
     virtual int s_eval_temperature(Gas_data &Q, Equation_of_state *EOS_) = 0;

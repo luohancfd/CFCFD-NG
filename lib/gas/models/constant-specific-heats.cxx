@@ -86,7 +86,7 @@ s_encode_conserved_energy(const Gas_data &Q, vector<double> &rhoe)
 
 double
 Constant_specific_heats::
-s_dhdT_const_p(const Gas_data &Q, int &status)
+s_dhdT_const_p(const Gas_data &Q, Equation_of_state *EOS_, int &status)
 {
     status = SUCCESS;
     return mass_average(Q.massf, Cp_);

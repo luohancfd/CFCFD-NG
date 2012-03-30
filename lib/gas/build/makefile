@@ -167,6 +167,7 @@ endif
 	- cd $(ZLIB); make clean
 	- cd $(NM)/build; make clean
 	- cd $(TEST); make clean
+	- cd $(UTIL)/build; make clean
 
 #----------------------------------------
 # Filename variables
@@ -193,6 +194,7 @@ MODELS_OBJECTS := CEA-Cp-functor.o \
 	thermal-behaviour-model.o \
 	perfect-thermal-behaviour.o \
 	real-thermal-behaviour.o \
+	dense-real-thermal-behaviour.o \
 	constant-specific-heats.o \
 	Wilke-mixing-rule.o \
 	segmented-functor.o \
@@ -433,6 +435,10 @@ perfect-thermal-behaviour.o : $(MODELS)/perfect-thermal-behaviour.cxx $(MODELS)/
 real-thermal-behaviour.o : $(MODELS)/real-thermal-behaviour.cxx $(MODELS)/real-thermal-behaviour.hh \
 	$(MODELS)/thermal-behaviour-model.hh $(LUA_INCLUDE_DIR)
 	$(CXX) $(CXXFLAG) $(MODELS)/real-thermal-behaviour.cxx -I$(LUA_INCLUDE_DIR)
+
+dense-real-thermal-behaviour.o : $(MODELS)/dense-real-thermal-behaviour.cxx $(MODELS)/dense-real-thermal-behaviour.hh \
+	$(MODELS)/thermal-behaviour-model.hh $(LUA_INCLUDE_DIR)
+	$(CXX) $(CXXFLAG) $(MODELS)/dense-real-thermal-behaviour.cxx -I$(LUA_INCLUDE_DIR)
 
 constant-specific-heats.o : $(MODELS)/constant-specific-heats.cxx $(MODELS)/constant-specific-heats.hh \
 	$(MODELS)/thermal-behaviour-model.hh $(MODELS)/gas_data.hh $(UTIL_SRC)/lua_service.hh $(LUA_INCLUDE_DIR)
