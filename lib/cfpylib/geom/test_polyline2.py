@@ -1,6 +1,5 @@
 # test_polyline2.py
 
-from cfpylib.geom.path import Polyline2
 from libgeom2 import *
 a = Vector(0.0,0.0)
 b = Vector(0.0,1.0)

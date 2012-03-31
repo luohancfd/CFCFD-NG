@@ -310,7 +310,6 @@ def Polyline2( *args ):
     that may be Vectors (points) or Path elements.
 
     Example usage:
-    >>> from cfpylib.geom.path import Polyline2
     >>> from libgeom2 import *
     >>> a = Polyline2(Vector(1.0,2.0),
     ...               Line(Vector(1.0,3.0),Vector(1.0,4.0)),
@@ -318,6 +317,7 @@ def Polyline2( *args ):
     >>> print a.eval(0.5)
     Vector3(1, 3.5, 0)
     """
+    from cfpylib.util.flatten import flatten
     seq = flatten(args)
     # print "received args=", seq
     segment_list = []

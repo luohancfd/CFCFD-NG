@@ -15,7 +15,6 @@ Peter Blyton
 
 from sc10_blade_profile import *
 from cfpylib.geom.transform_pyfunc import rotate_pyfunc
-from cfpylib.geom.path import Polyline2
 
 #---------------------------------------------------
 # Global data

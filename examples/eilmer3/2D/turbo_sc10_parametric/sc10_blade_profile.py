@@ -24,6 +24,7 @@ def thickness(s):
     (float) Full aerofoil thickness.
     
     """
+    if abs(s) < 1.0e-12: s = 0
     return 0.06*(2.969*s**0.5 - 1.26*s - 3.516*s**2 + 2.843*s**3 - 1.036*s**4)
 
 def camber(s):
