@@ -39,6 +39,7 @@ eilmer3-user-guide.pdf: eilmer3-user-guide.tex \
 	pdflatex eilmer3-user-guide
 	makeindex -l eilmer3-user-guide
 	pdflatex eilmer3-user-guide
+	pdflatex eilmer3-user-guide
 
 clean:
 	- rm eilmer3-user-guide.log \
