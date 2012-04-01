@@ -81,6 +81,7 @@ To a basic Fedora 16 installation, you should add the following packages:
 #. gcc
 #. gcc-c++
 #. m4
+#. openmpi-devel
 #. gcc-gfortran
 #. swig
 #. python-devel
