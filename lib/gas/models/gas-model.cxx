@@ -1080,11 +1080,7 @@ calculate_molecular_weight(const vector<double> &massf,
     // 4th Ed.
     // McGraw Hill
     // Equation 11-40 on p. 634
-    vector<double> inv_M(M.size(),0.0);
-    for (size_t i = 0; i < M.size(); ++i) {
-	inv_M[i] = 1.0/M[i];
-    }
-    return 1.0/mass_average(massf, inv_M);
+    return 1.0/mass_average_inverse(massf, M);
 }
 
 double

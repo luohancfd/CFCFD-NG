@@ -52,6 +52,7 @@ public:
 };
 
 double mass_average(const std::vector<double> &massf, const std::vector<double> &vec);
+double mass_average_inverse(const std::vector<double> &massf, const std::vector<double> &vec);
 double mole_average(const std::vector<double> &molef, const std::vector<double> &vec);
 int scale_mass_fractions(std::vector<double> &massf, double tolerance=0.0);
 int copy_mass_fractions(const std::vector<double> &f_src, std::vector<double> &f_target);

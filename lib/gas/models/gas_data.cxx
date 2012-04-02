@@ -363,6 +363,15 @@ double mass_average(const vector<double> &massf, const vector<double> &vec)
     return val;
 }
 
+double mass_average_inverse(const vector<double> &massf, const vector<double> &vec)
+{
+    double val = 0.0;
+    for( size_t isp = 0; isp < massf.size(); ++isp ) {
+        val += massf[isp]/vec[isp];
+    }
+    return val;
+}
+
 double mole_average(const vector<double> &molef, const vector<double> &vec)
 {
     double val = 0.0;
