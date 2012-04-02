@@ -146,7 +146,7 @@ class Gas(object):
                  inputUnits='massf', outputUnits='massf', 
                  with_ions=False, trace=1.0e-6):
         """
-        Set up a new obects, from either a name of species list.
+        Set up a new object, from either a name of species list.
 
         :param reactants: dictionary of reactants and their mixture fractions
             The keys used to specify the reactants in the mix 
