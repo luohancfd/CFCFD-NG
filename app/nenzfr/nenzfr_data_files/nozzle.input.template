@@ -374,6 +374,7 @@ if $gridFileName in ['None']:
     nnj = $nnj   # number of radial cells
     nni = $nni   # number of axial cells
     nbi = $nbi   # number of axial blocks for the divergence section (nozzle_blk)
+    nbj = $nbj   # number of radial blocks
     bx = $bx     # clustering in the axial direction
     by = $by     # clustering in the radial direction
     
@@ -433,6 +434,9 @@ if $gridFileName in ['None']:
         nbi_throat = int(round(float(nbi)/float(nni)*float(nni_throat)))
         if nbi_throat > 1:
             nbi_throat = nbi_throat - 1
+        # We need at least 1 block for the throat region
+        if nbi_throat < 1:
+            nbi_throat = 1
 
         # Display the calculated data
         print "nni_throat=",nni_throat
@@ -445,13 +449,13 @@ if $gridFileName in ['None']:
 
         # Now define the block
         throat_blk = SuperBlock2D(throat_region, nni=nni_throat, nnj=nnj,
-                                  nbi=nbi_throat, nbj=1, 
+                                  nbi=nbi_throat, nbj=nbj, 
                                   bc_list=bc_list, cf_list=cf_list_throat, 
                                   fill_condition=initial, label="throat")
     
     # Finally, define the main nozzle block
     nozzle_blk = SuperBlock2D(expansion_region, nni=nni, nnj=nnj,
-                              nbi=nbi, nbj=1,
+                              nbi=nbi, nbj=nbj,
                               bc_list=bc_list, cf_list = cf_list,
                               fill_condition=initial, label="nozzle")
     
@@ -495,7 +499,7 @@ TurbulenceZone(point0, point1, label="Turbulent")
     
 # Attributes for the space-marching simulation.
 gdata.dimensions = 2
-gdata.sequence_blocks = 1
+gdata.sequence_blocks = $seq_blocks
 gdata.axisymmetric_flag = 1
 gdata.viscous_flag = 1
 gdata.flux_calc = ADAPTIVE
