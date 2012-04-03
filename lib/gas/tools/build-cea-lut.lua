@@ -301,12 +301,12 @@ function find_e_limits(data, extrapolate)
       u_upper = 1.0e9
       for ir,_ in ipairs(data) do
 	 u = data[ir][1].u
-	 if u > u_lower then
+	 if u < u_lower then
 	    u_lower = u
 	 end
 
 	 u = data[ir][#data[ir]].u
-	 if u < u_upper then
+	 if u > u_upper then
 	    u_upper = u
 	 end
       end
@@ -506,3 +506,4 @@ function main()
 end
 
 main()
+
