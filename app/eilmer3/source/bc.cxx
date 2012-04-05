@@ -776,7 +776,7 @@ read_surface_heat_flux( string filename, int dimensions, int zip_files )
 //------------------------------------------------------------------------
 
 BoundaryCondition *create_BC( Block &bdp, int which_boundary, int type_of_BC, 
-			      int inflow_condition_id, std::string filename,
+			      int inflow_condition_id, std::string filename, int n_profile,
 			      double Twall, double Pout, int is_wall, int use_udf_flux,
 			      int other_block, int other_face, int neighbour_orientation,
 			      int sponge_flag, int xforce_flag, 
@@ -822,7 +822,7 @@ BoundaryCondition *create_BC( Block &bdp, int which_boundary, int type_of_BC,
 	newBC = new TransientUniformBC( bdp, which_boundary, filename );
 	break;
     case STATIC_PROF:
-	newBC = new StaticProfileBC( bdp, which_boundary, filename );
+	newBC = new StaticProfileBC( bdp, which_boundary, filename, n_profile );
 	break;
     case FIXED_P_OUT:
 	newBC = new FixedPOutBC( bdp, which_boundary, Pout );

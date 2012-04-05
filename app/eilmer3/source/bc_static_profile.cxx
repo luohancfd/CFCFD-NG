@@ -26,12 +26,14 @@
 //------------------------------------------------------------------------
 
 StaticProfileBC::StaticProfileBC( Block &bdp, int which_boundary,
-				  const std::string filename )
+				  const std::string filename, int n_profile )
     : BoundaryCondition(bdp, which_boundary, STATIC_PROF, "StaticProfileBC",
 			false, false, -1, -1, 0),
       filename(filename)
 {
     // Reads the flow state data from a previously written profile file.
+    // ( Note that this boundary condition takes in 2 profile slices instead
+    //   instead of 1 profile slice. Change made by Wilson Chan, 3 Apr 2012 )
     //
     // The format expected of this file is that written by the Python
     // code found in e3_flow.py, as used by the postprocessing program e3_post.py.
@@ -147,6 +149,8 @@ StaticProfileBC::StaticProfileBC( Block &bdp, int which_boundary,
     } else {
 	ncell = bdp.nnj;
     }
+    // The number of cells for each profile slice is half of the number of cells read.
+    ncell_for_profile = ncell_for_profile / n_profile;
     if ( ncell != ncell_for_profile ) {
         cerr << "StaticProfileBC() constructor:" << endl 
 	     << "    Inconsistent numbers of cells: ncell=" << ncell
@@ -165,7 +169,7 @@ StaticProfileBC::StaticProfileBC( const StaticProfileBC &bc )
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
 			bc.is_wall_flag, bc.use_udf_flux_flag,
 			bc.neighbour_block, bc.neighbour_face),
-      filename(bc.filename) 
+      filename(bc.filename), n_profile(bc.n_profile)
 {
     cerr << "StaticProfileBC() copy constructor is not implemented." << endl;
     exit( NOT_IMPLEMENTED_ERROR );
@@ -181,9 +185,11 @@ StaticProfileBC::~StaticProfileBC()
 
 int StaticProfileBC::apply_inviscid( double t )
 {
-    int i, ifirst, ilast, j, jfirst, jlast;
+    int i, ifirst, ilast, j, jfirst, jlast, ncell_for_profile;
     FV_Cell *dest_cell;
     CFlowCondition *gsp;
+
+    ncell_for_profile = flow_profile.size() / n_profile;
 
     switch ( which_boundary ) {
     case NORTH:
@@ -194,6 +200,9 @@ int StaticProfileBC::apply_inviscid( double t )
             gsp = flow_profile[i - ifirst];
             dest_cell = bdp.get_cell(i,j+1);
             dest_cell->copy_values_from(*gsp);
+            if (n_profile == 2) {
+                gsp = flow_profile[(i - ifirst) + ncell_for_profile];
+            }
             dest_cell = bdp.get_cell(i,j+2);
             dest_cell->copy_values_from(*gsp);
         } // end i loop
@@ -204,9 +213,12 @@ int StaticProfileBC::apply_inviscid( double t )
 	jlast = bdp.jmax;
         for (j = jfirst; j <= jlast; ++j) {
             gsp = flow_profile[j - jfirst];
-            dest_cell = bdp.get_cell(i + 1,j);
+            dest_cell = bdp.get_cell(i+1,j);
             dest_cell->copy_values_from(*gsp);
-            dest_cell = bdp.get_cell(i + 2,j);
+            if (n_profile == 2) {
+                gsp = flow_profile[(j - jfirst) + ncell_for_profile];
+            }
+            dest_cell = bdp.get_cell(i+2,j);
             dest_cell->copy_values_from(*gsp);
 	} // end j loop
 	break;
@@ -218,6 +230,9 @@ int StaticProfileBC::apply_inviscid( double t )
             gsp = flow_profile[i - ifirst];
             dest_cell = bdp.get_cell(i,j-1);
             dest_cell->copy_values_from(*gsp);
+            if (n_profile == 2) {
+                gsp = flow_profile[(i - ifirst) + ncell_for_profile];
+            }
             dest_cell = bdp.get_cell(i,j-2);
             dest_cell->copy_values_from(*gsp);
         } // end i loop
@@ -230,6 +245,9 @@ int StaticProfileBC::apply_inviscid( double t )
             gsp = flow_profile[j - jfirst];
             dest_cell = bdp.get_cell(i-1,j);
             dest_cell->copy_values_from(*gsp);
+            if (n_profile == 2) {
+                gsp = flow_profile[(j - jfirst) + ncell_for_profile];
+            }
             dest_cell = bdp.get_cell(i-2,j);
             dest_cell->copy_values_from(*gsp);
         } // end j loop

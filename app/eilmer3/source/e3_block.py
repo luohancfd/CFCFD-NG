@@ -469,7 +469,7 @@ class Block(object):
 
     def set_BC(self, face_name, type_of_BC,
                inflow_condition=None, sponge_flag=None,
-               Twall=None, Pout=None, filename=None,
+               Twall=None, Pout=None, filename=None, n_profile=1,
                is_wall=0, use_udf_flux=0, assume_ideal=0, 
                mdot=None, epsilon=None,
                Twall_i=None, Twall_f=None, t_i=None, t_f=None,
@@ -545,7 +545,7 @@ class Block(object):
             newbc = TransientProfBC(label=label)
         if type_of_BC == STATIC_PROF:
             if not filename: filename = "profile.dat"
-            newbc = StaticProfBC(filename, label=label)
+            newbc = StaticProfBC(filename, n_profile, label=label)
         if type_of_BC == FIXED_P_OUT:
             newbc = FixedPOutBC(Pout, label=label)
         if type_of_BC == RRM:
@@ -644,6 +644,7 @@ class Block(object):
                 inflow_indx = bc.inflow_condition.indx
             fp.write("inflow_condition = %d\n" % inflow_indx)
             fp.write("filename = %s\n" % bc.filename)
+            fp.write("n_profile = %d\n" % bc.n_profile)
             fp.write("sponge_flag = %d\n" % bc.sponge_flag)
             fp.write("xforce_flag = %d\n" % self.xforce_list[iface])
             fp.write("Twall = %e\n" % bc.Twall)

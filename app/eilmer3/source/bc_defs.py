@@ -165,7 +165,7 @@ class BoundaryCondition(object):
     """
     __slots__ = 'type_of_BC', 'Twall', 'Pout', 'inflow_condition', \
                 'sponge_flag', 'other_block', 'other_face', 'orientation', \
-                'filename', 'is_wall', 'use_udf_flux', 'assume_ideal', \
+                'filename', 'n_profile', 'is_wall', 'use_udf_flux', 'assume_ideal', \
                 'mdot', 'epsilon', 'Twall_i', 'Twall_f', 't_i', 't_f', 'label'
     def __init__(self,
                  type_of_BC=SLIP_WALL,
@@ -177,6 +177,7 @@ class BoundaryCondition(object):
                  other_face=-1,
                  orientation=0,
                  filename="",
+                 n_profile=1,
                  is_wall=0,
                  use_udf_flux=0,
                  assume_ideal=0,
@@ -196,6 +197,7 @@ class BoundaryCondition(object):
         self.other_face = other_face
         self.orientation = orientation
         self.filename = filename
+        self.n_profile = n_profile
         self.is_wall = is_wall
         self.use_udf_flux = use_udf_flux
         self.assume_ideal = assume_ideal
@@ -219,6 +221,7 @@ class BoundaryCondition(object):
         str_rep += ", other_face=%d" % self.other_face
         str_rep += ", orientation=%d" % self.orientation
         str_rep += ", filename=\"%s\"" % self.filename
+        str_rep += ", n_profile=%d" % self.n_profile
         str_rep += ", is_wall=%d" % self.is_wall
         str_rep += ", use_udf_flux=%d" % self.use_udf_flux
         str_rep += ", assume_ideal=%d" % self.assume_ideal
@@ -237,6 +240,7 @@ class BoundaryCondition(object):
                                  other_face=self.other_face,
                                  orientation=self.orientation,
                                  filename=self.filename,
+                                 n_profile=self.n_profile,
                                  is_wall=self.is_wall,
                                  use_udf_flux=self.use_udf_flux,
                                  assume_ideal=self.assume_ideal,
@@ -452,13 +456,13 @@ class StaticProfBC(BoundaryCondition):
     
     The actual flow data is read (at run time) from the specified file.
     """
-    def __init__(self, filename="profile.dat", label=""):
-        BoundaryCondition.__init__(self, type_of_BC=STATIC_PROF, filename=filename, label=label)
+    def __init__(self, filename="profile.dat", n_profile=1, label=""):
+        BoundaryCondition.__init__(self, type_of_BC=STATIC_PROF, filename=filename, n_profile=n_profile, label=label)
         return
     def __str__(self):
-        return "StaticProfBC(filename=\"%s\", label=\"%s\")" % (self.filename, self.label)
+        return "StaticProfBC(filename=\"%s\", n_profile=%d, label=\"%s\")" % (self.filename, self.n_profile, self.label)
     def __copy__(self):
-        return StaticProfBC(filename=self.filename, label=self.label)
+        return StaticProfBC(filename=self.filename, n_profile=self.n_profile, label=self.label)
  
 class FixedPOutBC(BoundaryCondition):
     """

@@ -575,7 +575,7 @@ int set_block_parameters( int id, ConfigParser &dict, int master )
     global_data &G = *get_global_data_ptr();
     Block &bdp = *get_block_data_ptr(id);
     int indx, iface, other_block, other_face, neighbour_orientation;
-    int wc_bc, sponge_flag, xforce_flag;
+    int wc_bc, sponge_flag, xforce_flag, n_profile;
     string value_string, block_label, filename, wcbc_fname;
     int inflow_condition_id, bc_type_code, is_wall, use_udf_flux, assume_ideal;
     double Twall, Pout, epsilon;
@@ -640,6 +640,7 @@ int set_block_parameters( int id, ConfigParser &dict, int master )
 	dict.parse_int(section, "bc", bc_type_code, SLIP_WALL);
 	dict.parse_int(section, "inflow_condition", inflow_condition_id, 0);
 	dict.parse_string(section, "filename", filename, "");
+	dict.parse_int(section, "n_profile", n_profile, 1);
 	dict.parse_int(section, "sponge_flag", sponge_flag, 0);
 	dict.parse_int(section, "xforce_flag", xforce_flag, 0);
 	dict.parse_double(section, "Twall", Twall, 300.0);
@@ -668,7 +669,7 @@ int set_block_parameters( int id, ConfigParser &dict, int master )
 	dict.parse_vector_of_doubles(section, "f_wall", f_wall, vnf);
 
 	bdp.bcp[iface] = create_BC( bdp, iface, bc_type_code, inflow_condition_id, 
-				    filename, Twall, Pout, is_wall, use_udf_flux,
+				    filename, n_profile, Twall, Pout, is_wall, use_udf_flux,
 				    other_block, other_face, neighbour_orientation,
 				    sponge_flag, xforce_flag, mdot, epsilon,
 				    wc_bc, wcbc_fname, f_wall,
