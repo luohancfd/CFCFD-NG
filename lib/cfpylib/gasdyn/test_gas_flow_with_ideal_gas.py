@@ -67,7 +67,7 @@ class TestGasFlowIdeal(unittest.TestCase):
         beta = 45.0 * math.pi/180
         V1 = M1 * s1.a
         theta, V2, s2 = theta_oblique(s1, V1, beta)
-        self.assertAlmostEqual(s2.p, 114580, delta=10)
+        self.assertAlmostEqual(s2.p, 114580, delta=50)
         self.assertAlmostEqual(theta, theta_obl(M1, beta), delta=0.001)
         beta2 = beta_oblique(s1, V1, theta)
         self.assertAlmostEqual(beta2*180/math.pi, 45.0, delta=0.01)

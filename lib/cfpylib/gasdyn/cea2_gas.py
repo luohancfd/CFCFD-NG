@@ -216,6 +216,16 @@ class Gas(object):
         self.rho = rho; self.T = T
         return self.EOS(problemType='rhoT', transProps=transProps)
 
+    def set_rhoe(self, rho, e, transProps=True):
+        """
+        Fills out gas state from given density and internal energy.
+
+        :param rho: density, kg/m**3
+        :param e: internal energy of mixture, J/kg
+        """
+        self.rho = rho; self.e = e; self.u = e;
+        return self.EOS(problemType='rhoe', transProps=transProps)
+
     def set_ps(self, p, s, transProps=True):
         """
         Fills out gas state from given pressure and specific entropy.
@@ -269,7 +279,7 @@ class Gas(object):
         Set up a problem-description file for CEA2.
 
         :param problemType: a string specifying type of CEA analysis that is requested: 
-            'pT', 'rhoT', 'ps', 'shock'
+            'pT', 'rhoT', 'rhoe', 'ps', 'shock'
 	:param transProps: a boolean flag:
             False=don't request transport props, True=request viscosity and thermal-conductivity
         :returns: None
@@ -290,6 +300,16 @@ class Gas(object):
             fp.write('   t(k)        %e\n' % self.T)
             if DEBUG_GAS >= 2:
                 print 'EOS: input to CEA2 rho: %g, T: %g' % (self.rho, self.T)
+        elif problemType == 'rhoe':
+            if self.with_ions:
+                fp.write('problem case=estcj vu ions\n')
+            else:
+                fp.write('problem case=estcj vu\n')
+            assert self.rho > 0.0
+            fp.write('   rho,kg/m**3 %e\n' % self.rho)
+            fp.write('   u/r         %e\n' % (self.e / R_universal) )
+            if DEBUG_GAS >= 2:
+                print 'EOS: input to CEA2 rho: %g, e: %g' % (self.rho, self.e)
         elif problemType == 'pT':
             if self.with_ions:
                 fp.write('problem case=estcj tp ions\n')
@@ -340,7 +360,7 @@ class Gas(object):
                     fp.write('   name= %s  moles=%g' % (s, f))
                 else:
                     fp.write('   name= %s  wtf=%g' % (s, f))
-                if problemType == 'ph': fp.write(' t=300')
+                if problemType in ['ph', 'rhoe']: fp.write(' t=300')
                 fp.write('\n')
         #
         if len(self.onlyList) > 0:
@@ -394,6 +414,8 @@ class Gas(object):
                     self.C_p = self.cp
                 elif line.find("GAMMAs")>=0:
                     self.gam = get_cea2_float(tokens[1:])
+                elif line.find("M, (1/n)")>=0:
+                    self.Mmass = get_cea2_float(tokens[2:])
                 elif line.find("SON VEL,M/SEC")>=0:
                     self.son = get_cea2_float(tokens[2:])
                     self.a = self.son
@@ -420,8 +442,12 @@ class Gas(object):
                     self.mu = 0.0
                     self.k = 0.0
         # Calculate remaining thermo properties
-        self.R = self.p / (self.rho * self.T);  # gas constant, J/kg.K
-        self.C_v = self.C_p - self.R            # specific heat, const volume
+        self.R = R_universal / self.Mmass  # gas constant, J/kg.K
+        self.C_v = self.C_p - self.R       # specific heat, const volume
+        # Check for small or zero pressure value printed by CEA2; 
+        # it may have underflowed when printed in bars.
+        if self.p < 1000.0:
+            self.p = self.rho * self.R * self.T
         #
         # Scan lines again, this time looking for species fractions.
         species_fractions_found = False
@@ -455,7 +481,7 @@ class Gas(object):
 
         :param self: the gas state to be filled in
         :param problemType: a string specifying the type of CEA analysis:
-            'pT', 'rhoT', 'ps', shock
+            'pT', 'rhoT', 'rhoe', 'ps', shock
 	:param transProps: a boolean flag:
             False=don't request transport props, True=request viscosity and thermal-conductivity
         :returns: None, but does update the contents of the gas state as a side-effect.
@@ -500,18 +526,18 @@ def make_gas_from_name(gasName, outputUnits='massf'):
 
     :param gasName: one of the names for the special cases set out below
     """
-    if gasName == 'air':
+    if gasName.lower() == 'air':
         return Gas({'Air':1.0,}, outputUnits=outputUnits)
-    elif gasName == 'air5species':
+    elif gasName.lower() == 'air5species':
         return Gas(reactants={'N2':0.79, 'O2':0.21, 'N':0.0, 'O':0.0, 'NO':0.0}, 
                    inputUnits='moles', onlyList=['N2','O2','N','O','NO'],
                    outputUnits=outputUnits)
-    elif gasName == 'n2':
+    elif gasName.lower() == 'n2':
         return Gas(reactants={'N2':1.0, 'N':0.0}, onlyList=['N2', 'N'],
                    outputUnits=outputUnits)
-    elif gasName == 'co2':
+    elif gasName.lower() == 'co2':
         return Gas(reactants={'CO2':1.0}, outputUnits=outputUnits)
-    elif gasName == 'h2ne':
+    elif gasName.lower() == 'h2ne':
         return Gas(reactants={'H2':0.15, 'Ne':0.85}, inputUnits='moles',
                    outputUnits=outputUnits)
     else:
@@ -533,6 +559,11 @@ if __name__ == '__main__':
     print '\nCheck enthalpy specification'
     b = make_gas_from_name('air', outputUnits='moles')
     b.set_ph(a.p, a.h)
+    b.write_state(sys.stdout)
+    #
+    print '\nCheck internal-energy specification'
+    b = make_gas_from_name('air', outputUnits='moles')
+    b.set_rhoe(a.rho, a.e)
     b.write_state(sys.stdout)
     #
     print '\nAir-5-species for nenzfr: 79% N2, 21% O2 by mole fraction.'

@@ -45,7 +45,7 @@ class TestGasFlow(unittest.TestCase):
         V2,Vg = normal_shock(s1, 3000.0, s2)
         s5 = s1.clone()
         Vr_b = reflected_shock(s2, Vg, s5)
-        self.assertAlmostEqual(s5.p, 8.4329e+07, delta=10.0)
+        self.assertAlmostEqual(s5.p, 8.4329e+07, delta=10.0e3)
         self.assertAlmostEqual(s5.T, 6121.63, delta=1.0)
         self.assertAlmostEqual(s5.rho, 43.909, delta=0.01)
         self.assertAlmostEqual(Vr_b, 656.69, delta=0.1)
@@ -64,7 +64,7 @@ class TestGasFlow(unittest.TestCase):
         self.assertAlmostEqual(s6.rho, 0.31475, delta=0.0001)
         self.assertAlmostEqual(V, 3766.2, delta=0.1)
         s7 = total_condition(s6, V)
-        self.assertAlmostEqual(s7.p, 8.4013e+07, delta=10.0)
+        self.assertAlmostEqual(s7.p, 8.4013e+07, delta=10.0e3)
         self.assertAlmostEqual(s7.T, 6120.72, delta=1.0)
         self.assertAlmostEqual(s7.rho, 43.748, delta=0.01)
         s8 = pitot_condition(s6, V)
@@ -96,7 +96,7 @@ class TestGasFlow(unittest.TestCase):
         beta = 45.0 * math.pi/180
         V1 = M1 * s1.a
         theta, V2, s2 = theta_oblique(s1, V1, beta)
-        self.assertAlmostEqual(s2.p, 114620, delta=10)
+        self.assertAlmostEqual(s2.p, 114620, delta=50)
         self.assertAlmostEqual(theta, theta_obl(M1, beta), delta=0.001)
         beta2 = beta_oblique(s1, V1, theta)
         self.assertAlmostEqual(beta2*180/math.pi, 45.0, delta=0.01)
