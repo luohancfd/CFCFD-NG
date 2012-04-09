@@ -99,6 +99,7 @@ To a basic Ubuntu 10.04 installation, you should add the following packages and 
 #. mpi-default-dev
 #. mpi-default-bin
 #. gfortran
+#. gfortran-multilib
 #. swig
 #. python-dev
 #. python-numpy
