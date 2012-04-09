@@ -56,7 +56,7 @@ TEST_EXECUTABLES := user-defined-gas-model-test.x \
 
 TOOL_EXECUTABLES := gasfile gasmodel.py
 ifeq ($(shell [ -d ../../../extern/cea2 ] && echo "true"), true)
-  TOOL_EXECUTABLES += build-cea-lut cea2 thermo.inp trans.inp
+  TOOL_EXECUTABLES += build-cea-lut.py cea2 thermo.inp trans.inp
   CEA2_MSG := "CEA2 has been included in the build."
 else
   CEA2_MSG := "The look-up-table utilities will NOT be functional\n\
@@ -804,12 +804,15 @@ gasfile : $(TOOLS)/gasfile.lua
 	cp $(TOOLS)/gasfile.lua gasfile
 	chmod +x gasfile
 
-build-cea-lut : $(TOOLS)/build-cea-lut.lua cea2
-	cp $(TOOLS)/build-cea-lut.lua build-cea-lut
-	chmod +x build-cea-lut
+#build-cea-lut : $(TOOLS)/build-cea-lut.lua cea2
+#	cp $(TOOLS)/build-cea-lut.lua build-cea-lut
+#	chmod +x build-cea-lut
+
+build-cea-lut.py : $(TOOLS)/build-cea-lut.py
+	cp $(TOOLS)/build-cea-lut.py .
 
 cea2 :
-	gfortran -std=legacy -o cea2 $(CEA2)/cea2.f
+	gfortran -m32 -std=legacy -o cea2 $(CEA2)/cea2.f
 	cp $(CEA2)/thermo.inp .
 	cp $(CEA2)/trans.inp .
 

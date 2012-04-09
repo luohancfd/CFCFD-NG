@@ -17,22 +17,22 @@ from cfpylib.gasdyn.cea2_gas import make_gas_from_name, Gas
 #-----------------------------------------------------------------------------
 
 def get_e_offset(mygas):
-   """
-   At a suitably-low value of temperature, compute the energy offset for CEA gas.
-
-   :param mygas: cea2 Gas object
-   :returns: offset value to be added to CEA internal energy.
-
-   It is convenient to have the reference temperature of 0 degrees K
-   for internal energy and enthalpy, so that e = C_v * T, approximately.
-   This is quite different to the reference temperature of 298 degrees K
-   used by CEA, so we'll compute an offset value and shift the CEA value
-   of internal energy by this offset in future.
-   """ 
-   T = 302.0 # Any low temperature will suffice. 
-   mygas.set_pT(100.0e3, T)
-   # mygas.write_state(sys.stdout)
-   return  mygas.C_v * T - mygas.e
+    """
+    At a suitably-low value of temperature, compute the energy offset for CEA gas.
+    
+    :param mygas: cea2 Gas object
+    :returns: offset value to be added to CEA internal energy.
+    
+    It is convenient to have the reference temperature of 0 degrees K
+    for internal energy and enthalpy, so that e = C_v * T, approximately.
+    This is quite different to the reference temperature of 298 degrees K
+    used by CEA, so we'll compute an offset value and shift the CEA value
+    of internal energy by this offset in future.
+    """ 
+    T = 302.0 # Any low temperature will suffice. 
+    mygas.set_pT(100.0e3, T)
+    # mygas.write_state(sys.stdout)
+    return  mygas.C_v * T - mygas.e
 
 def get_e_range(mygas, T_min, T_max, log_rho_values):
     """
@@ -111,9 +111,34 @@ def build_table(gasName):
     return
 
 #-----------------------------------------------------------------------------
+def list_gases(option, opt, value, parser):
+    print "Available gases are:"
+    print "   air"
+    print "   air5species"
+    print "   N2"
+    print "   CO2"
+    print "   H2Ne"
+    print ""
+    import sys
+    sys.exit()
+    
 
 if __name__ == '__main__':
     print "Begin build-cea-lut.py..."
-    gasName = 'air'
-    build_table(gasName)
+    from optparse import OptionParser
+    usage = "Usage: %prog [options]"
+    parser = OptionParser(usage=usage)
+    parser.add_option("-g", "--gas", action="store",
+                      type="string", dest="gasName",
+                      help="name of built-in gas mixture")
+    parser.add_option("-l", "--list-gases", action="callback",
+                      callback=list_gases,
+                      help="list available gas names and exit")
+    (options, args) = parser.parse_args()
+    if options.gasName == None:
+       parser.print_help()
+       import sys
+       sys.exit()
+    print "Building table for gas name: ", options.gasName
+    build_table(options.gasName)
     print "Done."
