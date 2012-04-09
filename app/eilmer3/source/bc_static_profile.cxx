@@ -32,8 +32,11 @@ StaticProfileBC::StaticProfileBC( Block &bdp, int which_boundary,
       filename(filename)
 {
     // Reads the flow state data from a previously written profile file.
-    // ( Note that this boundary condition takes in 2 profile slices instead
-    //   instead of 1 profile slice. Change made by Wilson Chan, 3 Apr 2012 )
+    //
+    // The default is to take in one profile slice and to copy this profile
+    // into the two ghost cell slices. However, if the user wishes to use
+    // individual profile slices for each slice of ghost cell, the user can
+    // input two profile slices by setting the n_profile option to 2.
     //
     // The format expected of this file is that written by the Python
     // code found in e3_flow.py, as used by the postprocessing program e3_post.py.
@@ -43,13 +46,17 @@ StaticProfileBC::StaticProfileBC( Block &bdp, int which_boundary,
     // The first line in the file specifies the variable names on the 
     // remaining lines.  The elements on all lines are space separated.
     //
+    // For the input of two profile slices, the first profile listed in the
+    // file must be for the inner ghost cells, and the second profile for
+    // the outer ghost cells.
+    //
     char line[512], token[512];
     double x, y, z, volume, rho, u, v, w, p, a, mu, k,mu_t, k_t;
     int S;
     double Q_rad_org, f_rad_org, Q_rE_rad, tke, omega, dt_chem, dt_therm;
     std::vector<double> massf, e, T;
-    int ncell;
-    int ncell_for_profile = 0;
+    int ncell, ncell_for_profile;
+    int ncell_read_from_file = 0;
     FILE *fp;
     global_data *G = get_global_data_ptr();
     //---------------------------------------------------------------------------
@@ -138,19 +145,25 @@ StaticProfileBC::StaticProfileBC( Block &bdp, int which_boundary,
 	     << " dt_chem=" << dt_chem << " e[0]=" << e[0] << " T[0]=" << T[0] << endl;
 #       endif
 	flow_profile.push_back(new CFlowCondition(gmodel, p, u, v, w, T, massf, "", tke, omega, mu_t, k_t, S));
-	++ncell_for_profile;
+	++ncell_read_from_file;
     } // end while
 #   if ECHO_ALL
-    cout << "StaticProfileBC() constructor: read " << ncell_for_profile << " cells." << endl; 
+    cout << "StaticProfileBC() constructor: read " << ncell_read_from_file << " cells." << endl; 
 #   endif
+    // For the case with two input profiles, check that the number of cells read is an even number
+    if ( ncell_read_from_file % 2 != 0 ) {
+        cerr << "StaticProfileBC() constructor:" << endl
+             << "    For 2 input profiles, the number of cells read should be an even number: " << endl
+             << ", ncell_read_from_file=" << ncell_read_from_file << endl;
+        exit(BAD_INPUT_ERROR);
+    }
     // Check for that the number of cells is appropriate for this boundary
     if ( which_boundary == NORTH || which_boundary == SOUTH ) {
 	ncell = bdp.nni;
     } else {
 	ncell = bdp.nnj;
     }
-    // The number of cells for each profile slice is half of the number of cells read.
-    ncell_for_profile = ncell_for_profile / n_profile;
+    ncell_for_profile = ncell_read_from_file / n_profile;
     if ( ncell != ncell_for_profile ) {
         cerr << "StaticProfileBC() constructor:" << endl 
 	     << "    Inconsistent numbers of cells: ncell=" << ncell
