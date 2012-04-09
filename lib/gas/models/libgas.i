@@ -139,6 +139,9 @@ def create_gas_file(model, species, fname="gas-model.lua", lut_file=None):
     and put together the detailed gas-model.lua file that is 
     input to the main C++ codes.
 
+    Return a pointer to a gas model object which may be
+    optionally caught by the caller.
+
     Input:
     model   : (string) name of the gas model as shown in the list below.
     species : list of species names (strings)
@@ -180,7 +183,8 @@ def create_gas_file(model, species, fname="gas-model.lua", lut_file=None):
                 line = line.replace("composite gas", "LUT-plus-composite")
             fp.write(line)
         fp.close()
-    return
+    
+    return create_gas_model(fname)
 
 
 def change_ideal_gas_attribute(species_name, attribute_name, new_value,

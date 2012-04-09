@@ -1,0 +1,33 @@
+\chapter{Polynomials and curve fits for property evaluations}
+\label{chap:poly}
+
+\section{CEA polynomials for thermodynamic properties}
+\label{sec:cea-thermo}
+The CEA polynomials can be used to evaluate the specific heat
+at constant pressure ($C_p$), enthalpy ($h$), and
+the temperature-dependent component of entropy ($s^o$).
+For a given species, the polynomials are split over various temperature
+ranges of validity.
+Typically, the coefficients for the polynomials are valid over temperature ranges
+from 200.0 -- 1000.0\,K and and 1000.0 -- 6000.0\,K.
+For some species, there is a high-temperature range from 6000.0 -- 20,000.0\,K.
+The CEA thermodynamics database gives are nine coefficients ($a_0 \ldots a_8$) for each polynomial piece.
+Additionally, an enthalpy of formation is listed for each species.
+This may be used as the reference enthalpy value in Equation~\ref{eq:tpg_h}.
+The polynomials in non-dimensional form are:
+\begin{eqnarray}
+ \frac{C_p(T)}{R} & = & a_0 T^{-2} + a_1 T^{-1} + a_2 + a_3 T + a_4 T^2 + a_5 T^3 + a_6 T^4 \\
+ \frac{h(T)}{RT} & = & -a_0 T^{-2} + a_1 T^{-1} \log{T} + a_2 + a_3 \frac{T}{2} +
+                        a_4 \frac{T^2}{3} + a_5 \frac{T^3}{4} + a_6 \frac{T^4}{5} + \frac{a_7}{T} \\
+ \frac{s^o(T)}{R} & = & -a_0 \frac{T^{-2}}{2} - a_1 T^{-1} + a_2 \log{T} + a_3 T + a_4 \frac{T^2}{2}  +
+                        a_5 \frac{T^{3}}{3} + a_6 \frac{T^4}{4} + a_8
+\end{eqnarray}
+
+\section{CEA polynomials for transport properties}
+\begin{equation}
+\log{\mu(T)}  =  a_0 \log{T} + \frac{a_1}{T} + \frac{a_2}{T^2} + a_3
+\end{equation}
+\begin{equation}
+\log{k(T)} = b_0 \log{T} + \frac{b_1}{T} + \frac{b_2}{T^2} + b_3
+\end{equation}
+

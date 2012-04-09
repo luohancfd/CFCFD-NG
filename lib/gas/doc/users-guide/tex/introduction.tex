@@ -1,0 +1,349 @@
+\chapter{Introduction}
+The gas library was first developed to provide a service
+to a collection of CFD codes.
+The library is intended to provide a level of abstraction
+such that the calling CFD code need not be concerned
+with the details of how the gas behaviour is modelled
+and/or computed.
+Examples of code in our collection which call on this
+gas library are \texttt{L1d3}\cite{jacobs_L1d}, 
+\texttt{Eilmer3}\cite{jacobs_etal_2010}, and
+\texttt{Poshax3}.
+The first section considers the conservation equations
+describing the dynamics of compressible fluid.
+From this discussion, we establish what services the
+gas library should provide to the calling CFD code.
+
+The second section extends that discussion to include
+the conservation equations for a mixture of reacting
+gases at high-temperature.
+These equations are typically employed to model the 
+behaviour of flow in the hypersonic regime.
+These extensions to the basic Navier-Stokes compressible
+flow equations require additional services from the
+gas library.
+Along with additional gas properties, the library was
+developed to compute rates for chemical species change
+and the exchange of energy amongst various modes.
+
+Although originally developed for CFD applications,
+with a little extra work the gas library is made
+available as a stand-alone utility.
+The final section introduces the other facilities
+provided by the gas library which are not of direct
+use by the calling CFD codes.
+
+\section{Modelling gas behaviour for compressible flow CFD}
+\label{sec:cfeqns}
+The conservation equations of mass, momentum (Navier-Stokes)
+and energy for a single-component compressible flow in
+three dimensions are expressed in integral form as
+\begin{equation}
+ \frac{\partial}{\partial t} \int_{V} U dV = - \oint_{S} \left ( \overline{F}_{i} - \overline{F}_{v} \right ) \cdot \hat{n}~dA + \int_{V} Q dV \text{ , }
+ \label{eq:conservation}
+\end{equation}
+where $S$ is the bounding surface and $\hat{n}$ is the outward-facing unit normal of the control surface.
+
+The vector of conserved quantities is expressed in full as
+\begin{equation}
+ U = \left [ \begin{array}{c} \rho \\ 
+                              \rho u \\ 
+                              \rho v \\ 
+                              \rho w \\ 
+                              \rho E \\ 
+             \end{array} \right ] \text{ . }
+ \label{eq:U_vector_3D}
+\end{equation}
+Here, the conserved quantities are respectively density, $x$-momentum per volume, $y$-momentum per volume, total energy per volume.
+
+The inviscid component of the fluxes is
+\begin{equation}
+ \overline{F}_{i} = \left [ \begin{array}{c}
+                               \rho u \\
+                               \rho u^{2} + p \\
+                               \rho vu \\
+                               \rho wu \\
+                               \rho Eu + pu \\
+                            \end{array} \right ] \hat{i} 
+                  + \left [ \begin{array}{c} 
+                               \rho v \\
+                               \rho uv \\
+                               \rho v^{2} + p \\
+                               \rho wv \\
+                               \rho Ev + pv  \\
+                            \end{array} \right ] \hat{j} 
+                  + \left [ \begin{array}{c} 
+                               \rho w \\
+                               \rho uw \\
+                               \rho vw \\
+                               \rho w^{2} + p \\
+                               \rho Ew + pw \\
+                            \end{array} \right ] \hat{k} 
+                 \text{ . }
+ \label{eq:F_i_3D}
+\end{equation}
+The viscous component is
+\begin{eqnarray}
+ \overline{F}_{v} & = & \left [ 
+                            \begin{array}{c} 
+                                0 \\
+                                \tau_{xx} \\
+                                \tau_{yx} \\
+                                \tau_{zx} \\
+                                \tau_{xx} u + \tau_{yx} v + \tau_{zx} w + q_{x} \\
+                            \end{array}
+                          \right ] \hat{i} 
+                        + \left [ 
+                             \begin{array}{c}
+                                 0 \\
+                                 \tau_{xy} \\
+                                 \tau_{yy} \\
+                                 \tau_{zy} \\
+                                 \tau_{xy} u + \tau_{yy} v + \tau_{zy} w + q_{y} \\
+                             \end{array}
+                          \right ] \hat{j}  + \nonumber \\
+                  &   &   \left [
+                             \begin{array}{c}
+                                 0 \\
+                                 \tau_{xz} \\
+                                 \tau_{yz} \\
+                                 \tau_{zz} \\
+                                 \tau_{xz} u + \tau_{yz} v + \tau_{zz} w + q_{z} \\
+                             \end{array}
+                          \right ] \hat{k} \text{ , }
+ \label{eq:F_v_3D}
+\end{eqnarray}
+and the viscous stresses are
+\begin{eqnarray}
+ \tau_{xx} &=& 2 \mu \frac{\partial u }{\partial x} 
+               + \lambda \left ( \frac{\partial u}{\partial x} 
+                                 + \frac{\partial v}{\partial y} 
+                                 + \frac{\partial w}{\partial z} \right ) \text{ , } \nonumber \\
+ \tau_{yy} &=& 2 \mu \frac{\partial v }{\partial y} 
+               + \lambda \left ( \frac{\partial u}{\partial x} 
+                                 + \frac{\partial v}{\partial y} 
+                                 + \frac{\partial w}{\partial z} \right ) \text{ , } \nonumber \\
+ \tau_{zz} &=& 2 \mu \frac{\partial w }{\partial z} 
+               + \lambda \left ( \frac{\partial u}{\partial x} 
+                                 + \frac{\partial v}{\partial y} 
+                                 + \frac{\partial w}{\partial z} \right ) \text{ , } \nonumber \\
+ \tau_{xy} = \tau_{yx} &=& \mu \left ( \frac{\partial u}{dy} 
+                                     + \frac{\partial v}{dx} \right ) \text{ , } \nonumber \\
+ \tau_{xz} = \tau_{zx} &=& \mu \left ( \frac{\partial u}{dz} 
+                                     + \frac{\partial w}{dx} \right ) \text{ , } \nonumber \\
+ \tau_{yz} = \tau_{zy} &=& \mu \left ( \frac{\partial v}{dz} 
+                                     + \frac{\partial w}{dy} \right ) \text{ , }
+ \label{eq:taus_3D}
+\end{eqnarray}
+where the secondary viscosity coefficient $\lambda$ is expressed 
+in terms of the primary coefficient $\mu$ via Stokes hypothesis, $\lambda = - \frac{2}{3} \mu$. 
+The viscous heat fluxes are
+\begin{eqnarray}
+ q_{x} &=& k \frac{\partial T}{\partial x} \text{ , } \nonumber \\
+ q_{y} &=& k \frac{\partial T}{\partial y} \text{ , } \nonumber \\
+ q_{z} &=& k \frac{\partial T}{\partial z} \text{ . } \label{eq:qs}
+\end{eqnarray}
+
+The vector of source terms, $Q$, is zero when modelling a non-reacting single component gas.
+The total energy, $E$, is comprised of internal energy of the gas and its kinetic
+energy:
+\begin{equation}
+ E = e + \frac{1}{2}(u^2 + v^2 + w^2)\text{ . }
+\end{equation}
+
+Examining the above equations, there are nine unknown primary variables and only 
+five conservation equations.
+The nine unknowns are:
+\[ \rho,\quad  u,\quad  v,\quad w,\quad p,\quad e,\quad \mu,\quad k,\quad \text{and}\quad T. \]
+The gas library provides the last four equations which link the primary
+variables.
+Specifically, the gas library links thermodynamic properties
+by using equations of state and evaluates the transport properties
+using constitutive relations.
+Typically, the thermodynamics of a gas are characterised by its
+p-v-T behaviour, that is,
+\begin{equation}
+   p = p(\rho, T)
+\end{equation}
+and by its thermal behaviour
+\begin{equation}
+   e = e(\rho, T) \text{.}
+\end{equation}
+The constitutive relations are used to compute the dynamic viscosity
+\begin{equation}
+ \mu = \mu(T) \text{ , }
+\end{equation}
+and the thermal conductivity
+\begin{equation}
+ k = k(T) \text{ . }
+\end{equation}
+Additionally, the gas library computes the sound speed, $a$.
+This quantity is used directly by various flux calculators in
+the CFD code.
+
+
+\section{Extension to high-temperature, reacting gases: hypersonic flows}
+At hypersonic flow speeds, certain physical phenomena can no longer
+be neglected as was the case when modelling a supersonic compressible
+flow.
+For example, at higher temperatures, the gas mixture will chemically
+react.
+There are also certain conditions where the gas will exhibit an 
+appreciable degree of thermal nonequilibrium.
+At the conditions where these high-temperature effects are important, 
+additional conservation equations are used when modelling the flow.
+Specifically, conservation of mass equations for each species and conservation
+of energy equations for each energy mode are included.
+Shown below are the extended set of conservation equations
+for a nonequilibrium gas.
+The ellipses ($\dots$) are used to denote where the entries in the
+vector are unchanged from the equations presented in Section~\ref{sec:cfeqns}.
+The vector of conserved quantities extended for a high-temperature
+mixture of gases is
+\begin{equation}
+ U = \left [ \begin{array}{c} 
+                 \vdots \\
+                 \rho e_{m} \\
+                 \rho f_{s}
+              \end{array} \right ]
+ \label{eq:U_ht}
+\end{equation}
+where the additional conserved quantities are energy for mode $m$ and
+mass density of species $s$.
+The inviscid component of the fluxes for a high-temperature mixture
+of gases is
+\begin{equation}
+ \overline{F}_{i} = \left [ \begin{array}{c}
+                               \vdots \\
+                               \rho e_{m} u \\
+                               \rho f_{s} u
+                            \end{array} \right ] \hat{i} 
+                  + \left [ \begin{array}{c} 
+                               \vdots \\
+                               \rho e_{m} v \\
+                               \rho f_{s} v
+                            \end{array} \right ] \hat{j} 
+                  + \left [ \begin{array}{c} 
+                               \vdots \\
+                               \rho e_{m} w \\
+                               \rho f_{s} w 
+                            \end{array} \right ] \hat{k} \text{ . }
+\label{eq:F_i_ht}
+\end{equation}
+The viscous component is
+\begin{eqnarray}
+ \overline{F}_{v} & = & \left [ 
+                            \begin{array}{c} 
+                                \vdots \\
+                                q_{x,m} \\
+                                J_{x,s}
+                            \end{array}
+                          \right ] \hat{i} 
+                        + \left [ 
+                             \begin{array}{c}
+                                 \vdots \\
+                                 q_{y,m} \\
+                                 J_{y,s}
+                             \end{array}
+                          \right ] \hat{j}  + \nonumber \\
+                  &   &   \left [
+                             \begin{array}{c}
+                                 \vdots \\
+                                 q_{z,m} \\
+                                 J_{z,s}
+                             \end{array}
+                          \right ] \hat{k} \text{ , }
+ \label{eq:F_v_ht}
+\end{eqnarray}
+and the viscous heat fluxes are
+\begin{eqnarray}
+ q_{x,m} &=& k_m \frac{\partial T_m}{\partial x} + J_{x,m} h_m\text{ , } \nonumber \\
+ q_{y,m} &=& k_m \frac{\partial T_m}{\partial y} + J_{y,m} h_m\text{ , } \nonumber \\
+ q_{z,m} &=& k_m \frac{\partial T_m}{\partial z} + J_{z,m} h_m\text{ . } \label{eq:qs_ht}
+\end{eqnarray}
+Assuming Fick's law, the diffusive fluxes are
+\begin{eqnarray}
+J_{x,s} = -\rho D_{s,\text{mix}} \frac{\partial f}{\partial x}\text{ , }\nonumber \\
+J_{y,s} = -\rho D_{s,\text{mix}} \frac{\partial f}{\partial y}\text{ , }\nonumber \\
+J_{z,s} = -\rho D_{s,\text{mix}} \frac{\partial f}{\partial z}\text{ . }\label{eq:Js_ht}
+\end{eqnarray}
+The mixture diffusion coefficient for each species, $D_{s,\text{mix}}$, is computed from the binary diffusion coefficients, $D_{A,B}$, for each pair of species in the mix.
+Note that the expressions for the diffusive fluxes given in Equation~\ref{eq:Js_ht} can become more complicated if a different model for diffusive fluxes is used.
+The point is that in all cases, the binary diffusion coefficients require calculation.
+Finally, the source vector now includes terms for the energy exchange mechanisms,
+such as vibrational relaxation, and species mass change due to chemical reactions.
+\begin{equation}
+Q  = \left [ \begin{array}{c} 
+             \vdots \\
+             \Omega_{m} \\
+             \dot{\omega_s}
+             \end{array} \right ]
+\end{equation}
+
+Again, the gas library assists with the closure of this equation set.
+The thermodynamics models are used to compute the energies, $e_m$,
+and enthalpies, $h_m$, in the various modes which are considered.
+The models for transport properties provide calculations of
+the thermal conductivities in each mode, $k_m$, and the binary
+diffusion coefficients, $D_{A,B}$.
+The gas library also provides modelling of high-temperature kinetic
+processes.
+These models are used to compute the various components which contribute
+to the source terms for energy exchange and rate of species mass change.
+
+\section{Additional gas properties}
+Over time, additional functionality not necessarily required by the calling
+CFD codes has been added to make this a general purpose library for
+gas phase thermodynamics.
+Along with the thermodynamic properties already mentioned, the gas library can be used to
+calculate a number of other state variables including entropy and the Gibbs function.
+The library calculates a number of useful state derivatives.
+These are introduced in Chapter~\ref{chap:thermo}.
+
+\section{Structure of the report}
+
+This introduction presented the motivation for this gas library as a service library
+for compressible flow CFD codes.
+The remainder of Part~I deals with the underlying theory of the models provided
+by the gas library.
+Chapter~\ref{chap:thermo} presents the theory for the thermodynamics modelling.
+The calculation of transport properties is discussed in Chapter~\ref{chap:trans-prop}.
+Chapter~\ref{chap:kinetics} concerns itself with the modelling of kinetic processes
+in high-temperature gases, namely, chemical reactions and nonequilibrium energy exchange.
+The intent of this Theory section is twofold: (1) to give the user an overview of the available modelling options in the gas library, and (2) to serve a reference manual for the models implemented in the library.
+
+The second part of the report serves as a User's Guide.
+Those readers who are not concerned with the details of the underlying theory
+might be better served by skipping ahead to Part~II.
+The User's Guide explains a number of things, including:
+\begin{itemize}
+\item how to install the library (Chapter~\ref{chap:install});
+\item how to setup input files (Chapter~\ref{chap:input});
+\item how to call the library from a C++ program (Chapter~\ref{chap:cfd}); and
+\item how to use the library as a stand-alone Python module (Chapter~\ref{chap:python}).
+\end{itemize}
+This guide section concludes with a number of examples in Chapter~\ref{chap:examples}
+which demonstrate the use of the library to build small programs.
+
+The appendices contain some useful sections for the advanced user.
+Appendix~\ref{app:code} contains the code for every figure displayed
+in this report.
+Thus, this serves as an extensive set of additional examples.
+For gases whose properties are computationally expensive to evaluate,
+a look-up table implementation is available.
+Appendix~\ref{app:lut} documents the format of look-up tables used
+by this code so that users can construct their own look-up table.
+The complete application programming interface (API) is documented in
+Appendix~\ref{app:api}.
+
+
+
+
+
+
+
+
+
+
+
+

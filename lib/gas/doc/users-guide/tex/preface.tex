@@ -1,0 +1,99 @@
+\chapter*{Preface}
+\addcontentsline{toc}{chapter}{Preface}
+
+The develpoment of this gas library first began life in 2002
+as C code written as part of the first author's doctoral work.
+At the time, the goal was to implement a model of a mixture
+of thermally perfect gases which could be hooked up to
+our in-house compressible flow solver, \texttt{mb\_cns}.
+This gas model implementation was precursor work to
+developing modelling capability for chemically-reacting
+and radiating hypersonic flows.
+
+Over time the gas library code was expanded and generalised
+to model a wider range of gases.
+The second incarnation of this library was rewritten as
+C++ code in 2006.
+This was partly an exercise in experimenting with C++
+as an implementation language.
+A lot of the gas modelling lends itself to `variation-on-a-theme'
+type situations, so the object-oriented facilities seemed
+worth experimenting with.
+At that time it was used by the main workhorse codes in our
+CFD collection: \texttt{L1d2}, for quasi-1D flows;
+\texttt{mbcns2}, for two-dimensional flows; and \texttt{elmer2}
+for 3D flows.
+
+By and large, the experiment with C++ was a success.
+The development of the present version of the library
+(the one documented here) began in July, 2008.
+The authors had gained a fair amount of C++ experience by that
+time --- that is, they had stumbled over some of its hurdles, and learnt
+from those mistakes --- and were ready to implement a cleaner design
+which offered greater flexibility.
+This coincided with the gas models being used in new areas of applications
+such interior ballistics modelling and turbine flows.
+These applications required that the modelling capability
+be extended to real gases, that is, gases where high-density (or high-pressure) effects are important.
+
+\section*{Audience}
+The intended audience for this report is for users of the gas library, 
+be they direct users or indirect.
+Indirect users are those who use the compressible flow CFD collection
+and would like to learn more about the underlying gas model.
+Direct users are those who want to hook the library into their
+own application or use the library directly via the supplied Python
+module.
+Use of the Python module allows users to build their own stand-alone
+programs for specific tasks.
+For those who are interested in further development of the library,
+there is an accompanying \textit{Developer's Guide}.
+
+The first part of this report presents the modelling options offered
+by the gas library and documents the underlying theory.
+It is intended that users of the calling CFD code can access this
+section as a Theory Manual.
+The theory section also provides detailed references to the appropriate
+literature.
+Thus, when users of the library come to publish the results of their
+calculations, all of the references for the modelling theory are
+documented here.
+The theory section is also useful for all users
+as it links the required user inputs (constants, coefficients, etc.)
+to the various model equations.
+This section is also intended to be somewhat of a reference manual
+such that the reader can open to a specific model description
+and obtain the desired information.
+Because of this, there is some unavoidable repetition in the
+text as various concepts and models are explained.
+
+The second part discusses how to install and use the gas library.
+For the most part, the indirect users need not be concerned with this
+section.
+For day-to-day use of the CFD codes, all the information that the
+indirect user needs is included in the appropriate guides for the
+CFD codes.
+Only if the user requires some special gas model not included in
+the standard selection would he/she need to consult this part
+of the report.
+
+The second part of the report is intended for the direct users of the gas library.
+It shows how to install and use the library as part of a calling application.
+There is also a section that discusses the user input in detail and how
+to use the stand-alone Python module.
+A section of examples goes on to show how small specialised programs
+may be built using the Python module.
+Additionally, the appendix of this report contains the code that produced
+every figure in this report.
+This collection serves as an extensive set of examples.
+
+\section*{Acknowledgements}
+.. list some other people who have contributed either by influence or by use ...
+
+
+
+
+
+
+
+
