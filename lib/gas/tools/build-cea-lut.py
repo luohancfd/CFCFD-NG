@@ -12,7 +12,7 @@ We just collate the results in a form convenient for the gas module of Eilmer3.
 
 import sys, os, time, numpy, math, gzip
 sys.path.append(os.path.expandvars("$HOME/e3bin"))
-from cfpylib.gasdyn.cea2_gas import make_gas_from_name, Gas
+from cfpylib.gasdyn.cea2_gas import make_gas_from_name, Gas, list_gas_names
 
 #-----------------------------------------------------------------------------
 
@@ -51,27 +51,29 @@ def get_e_range(mygas, T_min, T_max, log_rho_values):
     e_max = min(e_values)
     return e_min, e_max
 
-def build_table(gasName):
+def build_table(mygas, gasName, T_min=200.0, T_max=20000.0,
+                log_rho_min=-6.0, log_rho_max=2.0):
     """
     Compute gas thermo properties for a mesh of internal-energy and density values
     and write an encoded form of the thermo data to a Lua-format file.
 
-    This file is later read and the data used by the LUT gas model.
+    :param mygas: a cea2_gas Gas object
+    :param gasname: string name of the gas, used to construct the table file name.
+    :param T_min: in degrees K
+    :param T_max: in degrees K
+    :param log_rho_min: log-base-10 of minimum density in kg/m**3
+    :param log_rho_max: log-base-10 of maximum density in kg/m**3
+
+    The file produced is intended for later use by the LUT gas model.
     """
-    mygas = make_gas_from_name(gasName)
-    #
-    e_offset = get_e_offset(mygas)
-    print "e_offset=", e_offset
-    #
-    # Density range on a logarithmic scale.
-    log_rho_min, log_rho_max = -6.0, 2.0
+    # Keep density range on a logarithmic scale.
     irsteps = 50
     dlr = (log_rho_max - log_rho_min) / irsteps
     log_rho_values = numpy.linspace(log_rho_min, log_rho_max, irsteps+1)
-    # print "log_rho_values=", log_rho_values
     #
     # Internal energy range on a linear scale.
-    T_min, T_max = 200.0, 20000.0
+    e_offset = get_e_offset(mygas)
+    print "e_offset=", e_offset
     e_min, e_max = get_e_range(mygas, T_min, T_max, log_rho_values)
     print "e_min=", e_min, "e_max=", e_max
     iesteps = 400
@@ -113,32 +115,74 @@ def build_table(gasName):
 #-----------------------------------------------------------------------------
 def list_gases(option, opt, value, parser):
     print "Available gases are:"
-    print "   air"
-    print "   air5species"
-    print "   N2"
-    print "   CO2"
-    print "   H2Ne"
+    for name in list_gas_names():
+        print "   %s" % name
     print ""
-    import sys
     sys.exit()
     
 
 if __name__ == '__main__':
     print "Begin build-cea-lut.py..."
-    from optparse import OptionParser
+    from optparse import OptionParser, OptionGroup
     usage = "Usage: %prog [options]"
     parser = OptionParser(usage=usage)
-    parser.add_option("-g", "--gas", action="store",
-                      type="string", dest="gasName",
+    parser.add_option("-g", "--gas", action="store", type="string", dest="gasName",
                       help="name of built-in gas mixture")
-    parser.add_option("-l", "--list-gases", action="callback",
-                      callback=list_gases,
+    parser.add_option("-l", "--list-gases", action="callback", callback=list_gases,
                       help="list available gas names and exit")
+    parser.add_option("-c", "--custom", action="store_true", dest="custom", default=False,
+                      help="build a custom gas model from reactants")
+    parser.add_option("-b", "--bounds", action="store", type="string", dest="bounds",
+                      default="200.0,20000.0,-6.0,2.0",
+                      help="bounds of the table in form \"T_min,T_max,log_rho_min,log_rho_max\"")
+    group = OptionGroup(parser, "Custom gas options")
+    group.add_option("-r", "--reactants", action="store", type="string", dest="reactants",
+                     help="reactant fractions in dictionary form")
+    group.add_option("-o", "--only-list", action="store", type="string", dest="onlyList",
+                     help="limit species to this list")
+    group.add_option("-m", "--moles", action="store_const", dest="inputUnits", default="moles",
+                     help="reactant fractions as mole fractions [default]")
+    group.add_option("-f", "--massf", action="store_const", dest="inputUnits",
+                     help="reactant fractions as mass fractions")
+    group.add_option("-n", "--no-ions", action="store_false", dest="withIons", default=False,
+                     help="excluding ions [default]")
+    group.add_option("-i", "--with-ions", action="store_true", dest="withIons",
+                     help="including ions")
+    parser.add_option_group(group)
     (options, args) = parser.parse_args()
-    if options.gasName == None:
-       parser.print_help()
-       import sys
-       sys.exit()
-    print "Building table for gas name: ", options.gasName
-    build_table(options.gasName)
+    if options.gasName == None and not options.custom:
+        parser.print_help()
+        print ""
+        print "Example 1: build-cea-lut.py --gas=air5species"
+        print "Example 2: build-cea-lut.py --custom --reactants=\"N2:0.79,O2:0.21\" --only-list=\"N2,O2,NO,O,N\""
+        sys.exit()
+    T_min, T_max, log_rho_min, log_rho_max = [float(item) for item in options.bounds.split(',')]
+    print "    log_rho_min=", log_rho_min, "log_rho_max=", log_rho_max
+    print "    T_min=", T_min, "T_max=", T_max
+    if options.custom:
+        print "Building table for custom gas:"
+        print "    reactants=", options.reactants
+        print "    inputUnits=", options.inputUnits
+        print "    onlyList=", options.onlyList
+        print "    withIons=", options.withIons
+        if options.reactants == None:
+            parser.print_help()
+            print "To build a custom gas model, you need to specify reactant fractions"
+            print "in dictionary form.  For example: --reactants=\"N2:0.79,O2:0.21\""
+            sys.exit()
+        reactants = {}
+        for species in options.reactants.split(','):
+            name, fraction = species.split(':')
+            reactants[name] = float(fraction)
+        onlyList = []
+        if options.onlyList != None:
+            for name in options.onlyList.split(','):
+                onlyList.append(name)
+        mygas = Gas(reactants, onlyList, options.inputUnits, with_ions=options.withIons)
+        gasName = "custom"
+    else:
+        print "Building table for gas name: ", options.gasName
+        mygas = make_gas_from_name(options.gasName)
+        gasName = options.gasName
+    build_table(mygas, gasName, T_min, T_max, log_rho_min, log_rho_max)
     print "Done."

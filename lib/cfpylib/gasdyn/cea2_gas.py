@@ -543,6 +543,12 @@ def make_gas_from_name(gasName, outputUnits='massf'):
     else:
         raise Exception, 'make_gas_from_name(): unknown gasName: %s' % gasName
 
+def list_gas_names():
+    """
+    :returns: the list of gases available in make_gas_from_name()
+    """
+    return ['air', 'air5species', 'n2', 'co2', 'h2ne']
+
 # --------------------------------------------------------------
 
 if __name__ == '__main__':

@@ -98,9 +98,11 @@ cea2_gas
 .. autofunction:: get_cea2_float
 
 .. autoclass:: Gas
-   :members: __init__, clone, set_pT, set_rhoT, set_ps, set_ph, write_state, get_fractions, EOS, shock_process
+   :members: __init__, clone, set_pT, set_rhoT, set_rhoe, set_ps, set_ph, write_state, get_fractions, EOS, shock_process
 
 .. autofunction:: make_gas_from_name
+
+.. autofunction:: list_gas_names
 
  
 .. _gas_flow:
