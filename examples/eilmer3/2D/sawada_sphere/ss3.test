@@ -8,7 +8,7 @@ namespace import ::tcltest::*
 configure -verbose {start body error}
 
 test run-preprocessor {Run the preprocessing stage.} -body {
-    exec build-cea-lut --case=air > LOGFILE_CEA
+    exec build-cea-lut.py --gas=air > LOGFILE_CEA
     exec e3prep.py --job=ss3 > LOGFILE_PREP
 } -result {} -returnCodes {0}
 
@@ -34,7 +34,7 @@ test number-of-steps {The main simulation takes a certain number of steps.} -bod
     }
     # We'll tolerate a small change in the number of steps,
     # in case the look-up table gets changed.
-    expr abs($final_steps - 4556) < 3
+    expr abs($final_steps - 4450) < 10
 } -result {1}
 
 test stand-off {The shock stand-off distance compared with experiment.} -body {
