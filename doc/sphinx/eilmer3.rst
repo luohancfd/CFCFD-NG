@@ -7,8 +7,8 @@ flows where the bounding geometry is not too complex.
 
 Typical build and run procedure
 -------------------------------
-The new 2D/3D code Eilmer3 is built from source into an installation directory $HOME/e3bin/.  
-A typical build procedure (using the default TARGET=for_gnu) might be::
+The new 2D/3D code Eilmer3 is built from source into an installation directory ``$HOME/e3bin/``.
+A typical build procedure (using the default ``TARGET=for_gnu``) might be::
 
   $ cd $HOME/cfcfd3/app/eilmer3/build
   $ make install
@@ -28,8 +28,8 @@ On a recent Linux system, this could be done by adding the lines::
   $ export LUA_PATH=${HOME}/e3bin/?.lua
   $ export LUA_CPATH=${HOME}/e3bin/?.so
 
-to the .bash_profile or .bashrc file in your home directory.
-Note that it is not necessary to have the LUA_CPATH variable set 
+to the ``.bash_profile`` or ``.bashrc`` file in your home directory.
+Note that it is not necessary to have the ``LUA_CPATH`` variable set 
 unless you want to access the Lua gas module from within 
 the user-defined (Lua) functions.
 You don't need it to run Eilmer3 otherwise.
@@ -68,7 +68,7 @@ to the local configuration.
 The Barrine cluster is run by the High-Performance Computing Unit at The University of Queensland 
 and is a much larger machine, with a little over 3000 cores, running SUSE Enterprise Linux.
 
-Set up your environment by adding the following lines to your .bashrc file::
+Set up your environment by adding the following lines to your ``.bashrc`` file::
 
     module load python
     module load intel-cc-11
@@ -91,7 +91,7 @@ To compile the MPI-version of the code, use the command::
 
     $ make TARGET=for_intel_mpi install
 
-from the cfcfd3/app/eilmer3/build/ directory.
+from the ``cfcfd3/app/eilmer3/build/`` directory.
 
 Optionally, clean up after the build::
 
@@ -129,7 +129,7 @@ An example of a shell script prepared for running on the Barrine cluster::
     done
     killall -u `whoami` e3mpi.exe
 
-This is the script input examples/eilmer3/2D/lehr-479/run_simulation.sh.
+This is the script input ``examples/eilmer3/2D/lehr-479/run_simulation.sh``.
 
 Here, we ask for 3 nodes with 8 cores each for a set of 24 MPI tasks.
 The medium nodes have 8 cores available, and we ask for all of them so that 
@@ -218,7 +218,7 @@ On Xserver for Linux (especially Ubuntu):
   
     Option "AIGLX" "false"
 
-  to the Section "ServerLayout" in /etc/X11/xorg.conf
+  to the Section "ServerLayout" in ``/etc/X11/xorg.conf``
 
 * To use Paraview 3.6.1 on Ubuntu 9.04 or later,
   it seems that we need to customize the look of the desktop 
@@ -230,8 +230,8 @@ On Xserver for Linux (especially Ubuntu):
   in the Edit->Settings ("Options") dialog.
   You will find the checkbutton under "Render View"->General.
 
-**Transferring input files between machines**
-
+Transferring input files between machines
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 If you find you want to transfer just the input files between
 machines, ignoring the generated output files, you can do this by using the ``--exclude`` option
 for the ``rsync`` command. For example, to transfer just
@@ -249,4 +249,12 @@ Then I can use do the above transfer by issuing the following command::
  
  $ rsync-eilmer my-sim/ remote:my-sim
 
+Open MPI on Fedora
+^^^^^^^^^^^^^^^^^^
+Fedora does not load a particular MPI library into your path upon installation,
+as there are a number of MPI implementations avaliable. Open MPI can be loaded
+by adding the following to your ``.bash_profile``::
 
+  module load openmpi-i386
+  # Or, for 64-bit:
+  module load openmpi-x86_64

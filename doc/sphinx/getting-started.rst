@@ -83,6 +83,7 @@ To a basic Fedora 16 installation, you should add the following packages:
 #. m4
 #. openmpi-devel
 #. gcc-gfortran
+#. libgfortran.i686 and glibc-devel.i686 (to compile the CEA code on 64-bit Fedora)
 #. swig
 #. python-devel
 #. numpy
