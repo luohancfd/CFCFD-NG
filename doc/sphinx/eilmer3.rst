@@ -34,12 +34,13 @@ unless you want to access the Lua gas module from within
 the user-defined (Lua) functions.
 You don't need it to run Eilmer3 otherwise.
 
-For running on some managed computers, such as our blackhole cluster, also add the following::
+.. _label-openmpi-fedora:
 
-  $ module load openmpi/1.2-gnu-4.1
-  $ module load swig
+For running on Fedora, also add the following::
 
-IMPORTANT: Do NOT load lua as was done in the example for Elmer2.
+  module load openmpi-i386
+  # Or, for 64-bit:
+  module load openmpi-x86_64
 
 Then, try out the cone20-simple example::
 
@@ -248,13 +249,3 @@ shell. In BASH, I add the following line to my ``.bashrc`` file::
 Then I can use do the above transfer by issuing the following command::
  
  $ rsync-eilmer my-sim/ remote:my-sim
-
-Open MPI on Fedora
-^^^^^^^^^^^^^^^^^^
-Fedora does not load a particular MPI library into your path upon installation,
-as there are a number of MPI implementations avaliable. Open MPI can be loaded
-by adding the following to your ``.bash_profile``::
-
-  module load openmpi-i386
-  # Or, for 64-bit:
-  module load openmpi-x86_64

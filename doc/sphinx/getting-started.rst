@@ -29,7 +29,8 @@ Notes
 Licence
 -------
 CFCFD program collection is a set of flow simulation tools for compressible fluids.
-Copyright (C) 1991-2012 Peter Jacobs, Rowan Gollan, Daniel Potter and 
+Copyright (C) 1991-2012 Peter Jacobs, Rowan Gollan, Daniel Potter,
+Brendan O'Flaherty, Fabian Zander, Wilson Chan, Peter Blyton and
 other members of the CFCFD group.
 
 This collection is free software: you can redistribute it and/or modify
@@ -81,9 +82,10 @@ To a basic Fedora 16 installation, you should add the following packages:
 #. gcc
 #. gcc-c++
 #. m4
-#. openmpi-devel
+#. openmpi
+#. openmpi-devel (to use openmpi on Fedora, :ref:`the module must be loaded <label-openmpi-fedora>`)
 #. gcc-gfortran
-#. libgfortran.i686 and glibc-devel.i686 (to compile the CEA code on 64-bit Fedora)
+#. libgfortran.i686 and glibc-devel.i686 (to compile the 32-bit CEA code on 64-bit Fedora)
 #. swig
 #. python-devel
 #. numpy
