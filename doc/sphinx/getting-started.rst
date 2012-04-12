@@ -94,7 +94,8 @@ To a basic Fedora 16 installation, you should add the following packages:
 #. readline-devel (for Lua)
 #. popt-devel
 
-To a basic Ubuntu 10.04 installation, you should add the following packages and their dependencies:
+To a basic Ubuntu 10.04 (or any recent Debian derivative) installation, 
+you should add the following packages and their dependencies:
 
 #. mercurial
 #. g++
@@ -102,7 +103,7 @@ To a basic Ubuntu 10.04 installation, you should add the following packages and 
 #. mpi-default-dev
 #. mpi-default-bin
 #. gfortran
-#. gfortran-multilib
+#. gfortran-multilib (for compiling 32-bit CEA2 on a 64-bit system)
 #. swig
 #. python-dev
 #. python-numpy
