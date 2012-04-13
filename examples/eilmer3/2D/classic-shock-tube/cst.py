@@ -39,4 +39,8 @@ gdata.max_time = 100.0e-6
 gdata.max_step = 8000
 gdata.dt = 1.0e-9
 
+sketch.xaxis(0.0, 1.0, 0.5, -0.05)
+sketch.yaxis(0.0, 0.1, 0.1, -0.05)
+sketch.window(0.0, 0.0, 1.0, 0.1, 0.02, 0.02, 0.17, 0.035)
+
 

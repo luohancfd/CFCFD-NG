@@ -4,10 +4,19 @@
 %
 This example is a variation of the ``Sod'' shock tube problem that is a classic
 test case for transient flow simulation codes.
-It models a 1 metre long tube with hot, high-pressure helium in the left half and
-low-pressure air in the right half.
+It models a 1 metre long tube with hot, high-pressure helium in the left half (driver) and
+low-pressure air in the right half (driven) part of the tube.
 The conditions are such that high-temperature thermochemical effects are significant
 in the shock-compressed air that is driven to the right from $t=0$.
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.9\textwidth]{../2D/classic-shock-tube/cst-edited.pdf}
+\end{center}
+\caption{Flow region, as modelled, for the classic shock tube.}
+\label{cst-model-fig}
+\end{figure}
+
 Run the case with the following commands:\\
 %
 \topbar\\
@@ -19,8 +28,10 @@ Run the case with the following commands:\\
 %
 
 The simulation is run for 100\,$\mu$s and the data is extracted for plotting against
-the expected solution obtained using finite-wave and shock analysis assuming chemical equilibrium 
+the expected solution, as shown in Figure\,\ref{cst-profiles-fig}.
+This reference solution is obtained using finite-wave and shock analysis assuming chemical equilibrium 
 in the driven air.
+The details of the calculation are found in Python script in Section\,\ref{finite-wave-sec}.
 
 \begin{figure}[htbp]
 \begin{tabular}{cc}
@@ -29,8 +40,20 @@ in the driven air.
 \includegraphics[width=0.5\textwidth]{../2D/classic-shock-tube/cst-u.pdf} &
 \includegraphics[width=0.5\textwidth]{../2D/classic-shock-tube/cst-T.pdf}
 \end{tabular}
-\caption{Flow properties along the duct for the Sod shock tube problem.}
+\caption{Flow properties along the duct for the Sod shock tube problem for nni=400.}
 \label{cst-profiles-fig}
+\end{figure}
+
+Convergence of the estimated shock speed (determined by locating the pressure jump with
+the \texttt{locate\_shock.py} postprocessing script) is shown in Figure\,\ref{cst-convergence-fig}.
+This custom postprocessing script also computes an average of the expended driver gas speed.
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.6\textwidth]{../2D/classic-shock-tube/cst-errors.pdf}
+\end{center}
+\caption{Convergence of estimated shock speed and gas speed.}
+\label{cst-convergence-fig}
 \end{figure}
 
 \newpage
@@ -65,8 +88,14 @@ The look-up table gas ends up being prepended to the list of species for the sim
 \lstinputlisting[language={}]{../2D/classic-shock-tube/post_simulation.sh}
 \bottombar
 
+\noindent
+\topbar
+\lstinputlisting[language={}]{../2D/classic-shock-tube/plot_errors.sh}
+\bottombar
+
 \newpage
 \subsection{Solution using finite wave and shock analysis}
+\label{finite-wave-sec}
 %
 The NASA CEA program can be used by a library module to provide convenient estimates 
 of the thermochemical state of gas mixtures at equilibrium.
@@ -81,7 +110,21 @@ flow processes such as shock and finite, isentropic waves.
 \lstinputlisting[language={}]{../2D/classic-shock-tube/classic_shock_tube.py}
 \bottombar
 
+\newpage
+\subsection{Extracting shock location and getting average gas speed}
+%
+\index{postprocessing!customized!shock location}
+The following script is and example of how to pick up a full block of data
+with the post-processing library functions and then look within that flow data
+for particular features.
+
+\noindent
+\topbar
+\lstinputlisting[language={}]{../2D/classic-shock-tube/locate_shock.py}
+\bottombar
+
 \subsection{Notes}
 \begin{itemize}
-\item None
+\item The simulation with \texttt{nni = 400} takes about 13\,seconds on a recent (2011) machine 
+  with an AMD Phenom 9650 quad-core processor.
 \end{itemize}
