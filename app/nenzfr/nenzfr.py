@@ -148,7 +148,7 @@ def print_stats(sliceFileName,jobName):
 
 def run_in_block_marching_mode(opt, gmodelFile):
     """
-    Run Eilmer3 in multi-block space-marching mode.
+    Run nenzfr in multi-block space-marching mode.
     """
 
     print "-------------------------------------------"
@@ -160,6 +160,10 @@ def run_in_block_marching_mode(opt, gmodelFile):
 
     # Set up mpirun parameters
     MPI_PARAMS = "mpirun -np " + str(2 * blksPerSet) + " "
+
+    # For the multi-block space-marching mode, we initialise the starting
+    # solution with the inflow conditions.
+    run_command("sed -i 's/fill_condition=initial/fill_condition=inflow/g' %s.py" % opt.jobName)
 
     # Step 1: Run e3prep
     run_command(E3BIN+('/e3prep.py --job=%s --do-svg' % (opt.jobName,)))
@@ -222,8 +226,8 @@ def run_in_block_marching_mode(opt, gmodelFile):
             run_command(targetCmd)
             targetCmd = ['cp'] + glob('grid.master/t0000/*b' + str(blk).zfill(4) + '*')\
                         + ['temp/']
-            run_command(targetCmd)
-            # then modify the file names.
+            run_command(targetCmd) 
+            # From the second nenzfr run onwards, ...
             if run != 0:                
                 # Change the block numbers of each solution file and move them to
                 # temporary files first to avoid over-writing files.
@@ -253,17 +257,25 @@ def run_in_block_marching_mode(opt, gmodelFile):
         if run == 1:
             inputFileName = opt.jobName + ".config"
             update_inflowBC(blksPerSet, inputFileName)
+        # Propagate the inflow profile across all blocks to generate a starting solution
+        # that will help achieve a faster convergence to the steady-state solution.
+        if run != 0:
+            # Propagate only the last profile slice of set A to the blocks in set B.
+            for blk in range(blksPerSet, 2*blksPerSet):
+                flowFileName = 'flow/t0000/' + str(opt.jobName) + '.flow.b' +\
+                               str(blk).zfill(4) + '.t0000.gz'
+                profileFileName = 'blk-' + str(blk - blksPerSet) + \
+                                  '-slices-1-and-2.dat'
+                propagate_data_west_to_east(flowFileName, profileFileName)
         # Run Eilmer3.
         run_command(MPI_PARAMS+E3BIN+('/e3mpi.exe --job=%s --run' % (opt.jobName,)))
         # Post-process to get profiles for the inflow for the next run.
         for blk in range(0, blksPerSet):
-            # Take the last 2 slices for each block in set A.
+            # Extract the last 2 slices for each block in set A.
             run_command(E3BIN+('/e3post.py --job=%s --tindx=9999 ' % (opt.jobName,))
-                        +('--output-file=blk-%d-slice-1.dat ' % blk)
-                        +('--slice-list="%d,-1,:,0" --gmodel-file=%s' % (blk, gmodelFile)))
-            run_command(E3BIN+('/e3post.py --job=%s --tindx=9999 ' % (opt.jobName,))
-                        +('--output-file=blk-%d-slice-2.dat ' % blk)
-                        +('--slice-list="%d,-2,:,0" --gmodel-file=%s' % (blk, gmodelFile)))
+                        +('--output-file=blk-%d-slices-1-and-2.dat ' % blk)
+                        +('--slice-list="%d,-1,:,0;%d,-2,:,0" ' % (blk, blk))
+                        +('--gmodel-file=%s' % gmodelFile))
         # Copy flow solutions to temporary folder first.
         run_command(['mv'] + glob('flow/t9999/*') + ['temp/'])
         # Clean up the grid folder.
@@ -477,16 +489,67 @@ def update_inflowBC(blksPerSet, inputFileName):
         lineIndex += 1
     f.close()
     # For set A, we modify the WEST boundary to reflect a StaticProfBC
-    # TODO -> Need to change this to accept new BC class that accepts 2
-    #         slices of input profiles.
     for i in range(len(setALines)):
         lineBuffer[setALines[i]+2] = "bc = 10\n"
         lineBuffer[setALines[i]+4] = "filename = blk-" + str(i) + \
-                                     "-slice-1.dat\n"
+                                     "-slices-1-and-2.dat\n"
+        lineBuffer[setALines[i]+5] = "n_profile = 2\n"
     # Write the new config file
     outfile = file(inputFileName, 'w')
     outfile.writelines(lineBuffer)
     outfile.close()
+    return
+
+def propagate_data_west_to_east(flowFileName, profileFileName):
+    """
+    Extract a profile from a given file and propagate this profile across
+    the initial flow solution for the specified block.
+    """
+    profile = []
+    # Read in file that contains profile. Note that the input file contains
+    # contains 2 profiles (One for the inner ghost cells and the other for 
+    # the outer ghost cells). We want only that for the inner ghost cells.
+    fi = open(profileFileName, "r")
+    fi.readline() # Read away the header line that contains variable names
+    while True:
+        buf = fi.readline().strip()
+        if len(buf) == 0: break
+        tokens = [float(word) for word in buf.split()]
+        profile.append(tokens)
+    fi.close()
+    # Keep only the first profile slice
+    ncells_for_profile = len(profile) / 2
+    del profile[ncells_for_profile:]
+    # Propagate the profile across the flow solutions
+    fi = gzip.open(flowFileName, "r")
+    fo = gzip.open('flow/t0000/tmp.gz', "w")
+    # Read and write the first three header lines
+    buf = fi.readline(); fo.write(buf)
+    buf = fi.readline(); fo.write(buf)
+    buf = fi.readline(); fo.write(buf)
+    # Extract dimensions from the third line
+    buf.strip(); tokens = buf.split()
+    nni = int(tokens[0]); nnj = int(tokens[1])
+    # Check that the number of cells in the j-direction matches the given profile
+    if nnj != len(profile):
+        print 'The number of cells in the j-direction ', nnj,\
+              'does not match that of the given profile ', len(profile)
+        sys.exit()
+    # Read and replace flow data
+    for j in range(nnj):
+        for i in range(nni):
+            # Read in the pos.x, pos.y, pos.z and vol variables first
+            buf = fi.readline().strip(); tokens = buf.split()
+            # Write the pos.x, pos.y, pos.z and vol variables to the new data file
+            newline = ' ' + tokens[0] + ' ' + tokens[1] + ' ' + tokens[2] + ' ' + tokens[3] + ' '
+            fo.write(newline)
+            # Fill out values for the other variables
+            for variable in range(4, len(profile[0])):
+                fo.write("%.12e " % profile[j][variable])
+            fo.write("\n")
+    fi.close(); fo.close()
+    # Change the output file name to the inflow file name
+    run_command('mv flow/t0000/tmp.gz ' + flowFileName)
     return
 
 
@@ -597,11 +660,12 @@ def main():
     # Set up the equilibrium gas-model file as a look-up table.
     if opt.chemModel in ['eq',]:
         if opt.gasName in ['n2']:
-            eqGasModelFile = 'cea-lut-'+upper(opt.gasName)+'-no-ions.lua.gz'
+            eqGasModelFile = 'cea-lut-'+upper(opt.gasName)+'.lua.gz'
         else:
-            eqGasModelFile = 'cea-lut-'+opt.gasName+'-no-ions.lua.gz'
+            eqGasModelFile = 'cea-lut-'+opt.gasName+'.lua.gz'
         if not os.path.exists(eqGasModelFile):
-            run_command('build-cea-lut --case='+opt.gasName+'-no-ions --extrapolate')
+            #run_command('build-cea-lut --case='+opt.gasName+' --extrapolate')
+            run_command('build-cea-lut.py --gas='+opt.gasName)
         gmodelFile = eqGasModelFile
     else:
         # We'll assume that the gas-model file of default name is set up.
