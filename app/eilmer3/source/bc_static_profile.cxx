@@ -29,7 +29,7 @@ StaticProfileBC::StaticProfileBC( Block &bdp, int which_boundary,
 				  const std::string filename, int n_profile )
     : BoundaryCondition(bdp, which_boundary, STATIC_PROF, "StaticProfileBC",
 			false, false, -1, -1, 0),
-      filename(filename)
+      filename(filename), n_profile(n_profile)
 {
     // Reads the flow state data from a previously written profile file.
     //
