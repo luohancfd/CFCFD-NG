@@ -1211,8 +1211,9 @@ double FV_Cell::signal_frequency(int dimensions)
 	    signal = MAXIMUM(signalN, signalE);
 	}
     }
-    if ( get_viscous_flag() == 1 && get_implicit_flag() == 0 ) {
+    if ( get_viscous_flag() == 1 && get_implicit_flag() == 0 && fs->gas->mu > 10e-23) {
 	// Factor for the viscous time limit.
+	// This factor is not included if viscosity is zero.
 #	if VISCOUS_TIME_LIMIT_MODEL==0
 	// See Swanson, Turkel and White (1991)
 	gam_eff = gmodel->gamma(*(fs->gas), statusf);
