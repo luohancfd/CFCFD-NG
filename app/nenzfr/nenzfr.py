@@ -13,11 +13,11 @@ Finally, a profile is examined at the downstream-end of the nozzle
 to extract nominal flow condition data.
 
 .. Authors: Peter Jacobs, Luke Doherty, Wilson Chan and Rainer Kirchhartz
-   School of Mechancial and Mining Engineering
+   School of Mechanical and Mining Engineering
    The University of Queensland
 """
 
-VERSION_STRING = "01-Mar-2012"
+VERSION_STRING = "12-Apr-2012"
 
 import shlex, subprocess, string
 from subprocess import PIPE
@@ -165,11 +165,11 @@ def run_in_block_marching_mode(opt, gmodelFile):
     # solution with the inflow conditions.
     run_command("sed -i 's/fill_condition=initial/fill_condition=inflow/g' %s.py" % opt.jobName)
 
-    # Step 1: Run e3prep
+    # Run e3prep
     run_command(E3BIN+('/e3prep.py --job=%s --do-svg' % (opt.jobName,)))
     
-    # Step 2: Make a copy of the flow and grid folders and 
-    #         the config and control files, and rename to *master
+    # Make a copy of the flow and grid folders, and the config, control
+    # and block_labels.list files, and rename to *.master files
     run_command('cp %s.config %s.config.master' % (opt.jobName, opt.jobName,))
     run_command('cp %s.control %s.control.master' % (opt.jobName, opt.jobName,))
     run_command('cp -r block_labels.list block_labels.list.master')
@@ -178,15 +178,15 @@ def run_in_block_marching_mode(opt, gmodelFile):
     run_command('cp -r flow.master/t0000 flow.master/intermediate')
     run_command('mkdir flow grid flow/t0000 grid/t0000 flow.master/t9999')
     
-    # Step 3: Modify .config and block_labels.list files, and reading in the
-    #         number of blocks and the respective dimensions for each block.
+    # Modify .config and block_labels.list files, and reading in the
+    # number of blocks and the respective dimensions for each block.
     inputFileName = opt.jobName + ".config.master"
     outputFileName = opt.jobName + ".config"
     mod_cfg_file(blksPerSet, inputFileName, outputFileName)
     mod_blkLabels_file(blksPerSet)
     blockDims, noOfBlks = read_block_dims(inputFileName)
     
-    # Step 4: Compute number of runs needed.
+    # Compute number of runs needed.
     if noOfBlks % blksPerSet == 0:
         # The number of runs is the number of sets minus 1.
         noOfEilmer3Runs = noOfBlks / blksPerSet - 1
@@ -195,9 +195,9 @@ def run_in_block_marching_mode(opt, gmodelFile):
         # of blocks and the number of blocks per set.
         print "There's a mismatch in the total number of blocks \
                and the number of blocks per set."
-        return -2
+        sys.exit()
 
-    # Step 5: Read timing file (file that states the max_time for each eilmer3 run)
+    # Read timing file (file that specifies the max_time for each Eilmer3 run)
     inputFileName = opt.jobName + ".timing"
     maxTimeList = read_timing_file(inputFileName)
     # TODO -> Unfortunately, because the number of blocks in the throat region is
@@ -207,30 +207,32 @@ def run_in_block_marching_mode(opt, gmodelFile):
     if len(maxTimeList) != noOfEilmer3Runs:
         print "Error: The number of max_time specified must match \
                the total number of Eilmer3 runs."
-        return -2
+        sys.exit()
 
-    # Step 6: Start looping for the number of Eilmer3 runs.
-    firstBlk = 0
     # Create temporary folder to hold flow and grid files which are to be renamed for each run.
     run_command('mkdir temp')
+
+    # Start looping for the number of Eilmer3 runs.
+    firstBlk = 0
     for run in range(noOfEilmer3Runs):
         print "-----------------------------------------------"
         print " nenzfr in block-marching mode - Run %d of %d. " % (run, noOfEilmer3Runs)
-        # Identify last block of this run.
+        # Identify the last block of this run.
         lastBlk = firstBlk + (2 * blksPerSet)
-        # Copy the grid and flow files needed for this run from the flow.master folder.
+        # Copy the grid and flow files needed for this run from the 
+        # flow.master/intermediate folder.
         for blk in range(firstBlk, lastBlk):
-            # Copy to temporary folder first.
+            # Copy to files to temporary folder first.
             targetCmd = ['cp'] + glob('flow.master/intermediate/*b' + str(blk).zfill(4) + '*')\
                         + ['temp/'] 
             run_command(targetCmd)
             targetCmd = ['cp'] + glob('grid.master/t0000/*b' + str(blk).zfill(4) + '*')\
                         + ['temp/']
             run_command(targetCmd) 
-            # From the second nenzfr run onwards, ...
+            # From the second Eilmer3 run onwards, ...
             if run != 0:                
-                # Change the block numbers of each solution file and move them to
-                # temporary files first to avoid over-writing files.
+                # Change the block numbers of each solution file. Simultaneously
+                # change the root name to 'tmp' to avoid over-writing files.
                 targetCmd = 'mv temp/' + str(opt.jobName) + '.flow.b' +\
                             str(blk).zfill(4) + '.t0000.gz temp/tmp.flow.b' +\
                             str(blk - run * blksPerSet).zfill(4) + '.t0000.gz'
@@ -239,14 +241,13 @@ def run_in_block_marching_mode(opt, gmodelFile):
                             str(blk).zfill(4) + '.t0000.gz temp/tmp.grid.b' +\
                             str(blk - run * blksPerSet).zfill(4) + '.t0000.gz'
                 run_command(targetCmd)
-            # Update config file to reflect dimensions of the new blocks.
+            # Also update config file to reflect dimensions of each new block.
             inputFileName = opt.jobName + ".config"
             targetBlock = blk - run * blksPerSet
             update_block_dims(targetBlock, blockDims[blk], inputFileName)
-        # Rename temporary files back to original job name.
-        targetCmd = ['rename'] + ['tmp'] + [str(opt.jobName)] + glob('temp/*')
-        run_command(targetCmd)
-        # Copy the files to the flow and grid folders for this Eilmer3 tun.
+        # Restore the original root name for the files.
+        run_command(['rename'] + ['tmp'] + [str(opt.jobName)] + glob('temp/*'))
+        # Copy the files from temp folder to the flow & grid folders for this Eilmer3 tun.
         run_command(['mv'] + glob('temp/*flow*') + ['flow/t0000/'])
         run_command(['mv'] + glob('temp/*grid*') + ['grid/t0000/'])
         # Update control file to reflect the max_time for the current run.
@@ -276,23 +277,21 @@ def run_in_block_marching_mode(opt, gmodelFile):
                         +('--output-file=blk-%d-slices-1-and-2.dat ' % blk)
                         +('--slice-list="%d,-1,:,0;%d,-2,:,0" ' % (blk, blk))
                         +('--gmodel-file=%s' % gmodelFile))
-        # Copy flow solutions to temporary folder first.
-        run_command(['mv'] + glob('flow/t9999/*') + ['temp/'])
         # Clean up the grid folder.
         run_command(['rm'] + glob('grid/t0000/*'))
-        # Restore flow files to its original name and copy them back to the master folder.
+        # Copy flow solutions to temporary folder first.
+        run_command(['mv'] + glob('flow/t9999/*') + ['temp/'])
+        # Then restore block numbers for each solution file to its original block number.
         for blk in range(firstBlk, lastBlk):
-            # Restore original file names
             if run != 0:
-                # Change the block numbers of each solution file and move them to 
-                # temporary files first to avoid over-writing files.
+                # Change the block numbers of each solution file. Simultaneously  
+                # change the root name to 'tmp' to avoid over-writing files.
                 targetCmd = 'mv temp/' + str(opt.jobName) + '.flow.b' +\
                             str(blk - run * blksPerSet).zfill(4) +\
                             '.t9999.gz temp/tmp.flow.b' + str(blk).zfill(4) + '.t9999.gz'
                 run_command(targetCmd)
-        # Rename temporary files back to original job name.
-        targetCmd = ['rename'] + ['tmp'] + [str(opt.jobName)] + glob('temp/*')
-        run_command(targetCmd)
+        # Restore the original root name for the files.
+        run_command(['rename'] + ['tmp'] + [str(opt.jobName)] + glob('temp/*'))
         # Copy files from the temp folder back to the flow.master t9999 folder.
         run_command(['cp'] + glob('temp/*flow*') + ['flow.master/t9999/'])
         # Now to use the flow solutions from this run as the starting solution for
@@ -303,12 +302,12 @@ def run_in_block_marching_mode(opt, gmodelFile):
         run_command(['gunzip'] + glob('temp/*'))
         run_command(['sed'] + ['-i'] + ['1s/.*/ 0.000000000000e+00/'] + glob('temp/*'))
         run_command(['gzip'] + glob('temp/*'))
-        # Move files from the temp folder back to the flow.master intermediate folder
+        # Move files from the temp folder back to the flow.master intermediate folder.
         run_command(['mv'] + glob('temp/*flow*') + ['flow.master/intermediate/'])
-        # Update the index of the first block for the next run
+        # Update the index of the first block for the next run.
         firstBlk = firstBlk + blksPerSet
-        #
-    # Step 7: Clean up the temporary folders and files.
+        
+    # Clean up the temporary folders and files.
     run_command('rm -r flow grid temp flow.master/intermediate')
     run_command('mv flow.master flow')
     run_command('mv grid.master grid')
@@ -329,36 +328,36 @@ def mod_cfg_file(blksPerSet, inputFileName, outputFileName):
     # is always twice that of the number of blocks per set.
     blksPerRun = 2 * blksPerSet 
     # Delete the unwanted blocks in the config file and 
-    # find the line numbers for the blocks in sets A and B
+    # find the line numbers for the blocks in Sets A and B.
     unwantedBlock = '[block/' + str(blksPerRun) + ']'
     for line in f:
-        # Stop appending once we have hit the unwanted blocks
+        # Stop appending once we have hit the unwanted blocks.
         if unwantedBlock in line: break
-        # Edit to reflect new number of blocks
+        # Edit to reflect new number of blocks.
         if 'nblock =' in line:
             line = "nblock = " + str(blksPerRun) + "\n"
-        # Append line numbers of the target string for set B. The index for the
-        # blocks in set B always starts from blksPerSet to blksPerRun.
+        # Append line numbers of the target string for Set B. The index for
+        # the blocks in Set B always starts from blksPerSet to blksPerRun.
         for blk in range(blksPerSet, blksPerRun):
             targetString = '[block/' + str(blk) + '/face/east]'
             if targetString in line:
-                # Append target line numbers
+                # Append target line numbers.
                 setBLines.append(lineIndex)
-        # Append lines from the input file to a buffer
+        # Append lines from the input file to a buffer.
         lineBuffer.append(line)
-        # Increase line index counter
+        # Increase line index counter.
         lineIndex += 1
-    # Append the footer that is found in eilmer3 config files
+    # Append the footer that is found in Eilmer3 config files.
     lineBuffer.append("# end file")
     f.close()
     # Start editing the lines in lineBuffer.
-    # For set B, we modify the EAST boundary to reflect an ExtrapolateOutBC    
+    # For Set B, we modify the EAST boundary to reflect an ExtrapolateOutBC.
     for i in range(len(setBLines)):
         lineBuffer[setBLines[i]+2] = "bc = 2\n"
         # "Disconnect" edges of the blocks after changing the boundary condition.
-        lineBuffer[setBLines[i]+13] = "other_block = -1\n"
-        lineBuffer[setBLines[i]+14] = "other_face = none\n"
-    # Write the new config file
+        lineBuffer[setBLines[i]+15] = "other_block = -1\n"
+        lineBuffer[setBLines[i]+16] = "other_face = none\n"
+    # Write the new config file.
     outfile = file(outputFileName, 'w')
     outfile.writelines(lineBuffer)
     outfile.close()
@@ -368,11 +367,11 @@ def mod_blkLabels_file(blksPerSet):
     """
     Modify block_labels.list file to allow nenzfr to run in block-marching mode.
     """
-    # Generate list of blocks
+    # Generate list of blocks.
     lineBuffer = []
     for i in range(2 * blksPerSet):
         lineBuffer.append(str(i) + ' temp-' + str(i) + '\n')
-    # Write the new block_labels.list file
+    # Write the new block_labels.list file.
     outfile = file('block_labels.list', 'w')
     outfile.write('# indx label\n')
     outfile.writelines(lineBuffer)
@@ -387,11 +386,11 @@ def read_block_dims(inputFileName):
     blockDims = []; blockIndex = 0
     f = file(inputFileName)
     for line in f:
-        # Find number of blocks for the full simulation
+        # Find number of blocks for the full simulation.
         if 'nblock =' in line:
             tokens = line.split()
             noOfBlks = int(tokens[2])
-        # Find the nni, nnj, nnk for each block
+        # Find the nni, nnj, nnk for each block.
         if 'nni =' in line:
             blockDims.append([])
             tokens = line.split()
@@ -424,15 +423,15 @@ def update_max_time(maxTime, inputFileName):
     that is specified for the current Eilmer3 run.
     """
     lineBuffer = []
-    # Read in .control file and update to reflect the new max_time
+    # Read in .control file and update to reflect the new max_time.
     f = file(inputFileName)
     for line in f:
         if 'max_time =' in line:
-            line = "max_time = " + maxTime + "\n"
-        # Append lines from the input file to a buffer
+            line = "max_time = " + maxTime 
+        # Append lines from the input file to a buffer.
         lineBuffer.append(line)
     f.close()
-    # Write the new config file
+    # Write the new config file.
     outfile = file(inputFileName, 'w')
     outfile.writelines(lineBuffer)
     outfile.close()
@@ -448,19 +447,19 @@ def update_block_dims(targetBlock, blockDims, inputFileName):
     # Read in file
     f = file(inputFileName)
     for line in f:
-        # Record line index if target string is matched
+        # Record line index if target string is matched.
         if targetString in line:
             targetLine = lineIndex
-        # Append lines from the input file to a buffer
+        # Append lines from the input file to a buffer.
         lineBuffer.append(line)
-        # Increase the line index counter
+        # Increase the line index counter.
         lineIndex += 1
     f.close()
-    # Update the nni, nnj and nnk of the target block
+    # Update the nni, nnj and nnk of the target block.
     lineBuffer[targetLine+3] = "nni = " + blockDims[0] + "\n"
     lineBuffer[targetLine+4] = "nnj = " + blockDims[1] + "\n"
     lineBuffer[targetLine+5] = "nnk = " + blockDims[2] + "\n"
-    # Write the new config file
+    # Write the new config file.
     outfile = file(inputFileName, 'w')
     outfile.writelines(lineBuffer)
     outfile.close()
@@ -473,28 +472,28 @@ def update_inflowBC(blksPerSet, inputFileName):
     """
     lineBuffer = []; setALines = []; lineIndex = 0
     # We always run with 2 sets, so the number of blocks per run
-    # is always twice that of the number of blocks per set
+    # is always twice that of the number of blocks per set.
     blksPerRun = 2 * blksPerSet
-    # Read in input file
+    # Read in input file.
     f = file(inputFileName)
     for line in f:
         for blk in range(0, blksPerSet):
             targetString = '[block/' + str(blk) + '/face/west]'
             if targetString in line:
-                # Append target line numbers
+                # Append target line numbers.
                 setALines.append(lineIndex)
-        # Append lines from the input file to a buffer
+        # Append lines from the input file to a buffer.
         lineBuffer.append(line)
-        # Increment line index counter
+        # Increment line index counter.
         lineIndex += 1
     f.close()
-    # For set A, we modify the WEST boundary to reflect a StaticProfBC
+    # For Set A, we modify the WEST boundary to reflect a StaticProfBC.
     for i in range(len(setALines)):
         lineBuffer[setALines[i]+2] = "bc = 10\n"
         lineBuffer[setALines[i]+4] = "filename = blk-" + str(i) + \
                                      "-slices-1-and-2.dat\n"
         lineBuffer[setALines[i]+5] = "n_profile = 2\n"
-    # Write the new config file
+    # Write the new config file.
     outfile = file(inputFileName, 'w')
     outfile.writelines(lineBuffer)
     outfile.close()
@@ -510,45 +509,46 @@ def propagate_data_west_to_east(flowFileName, profileFileName):
     # contains 2 profiles (One for the inner ghost cells and the other for 
     # the outer ghost cells). We want only that for the inner ghost cells.
     fi = open(profileFileName, "r")
-    fi.readline() # Read away the header line that contains variable names
+    fi.readline() # Read away the header line that contains variable names.
     while True:
         buf = fi.readline().strip()
         if len(buf) == 0: break
         tokens = [float(word) for word in buf.split()]
         profile.append(tokens)
     fi.close()
-    # Keep only the first profile slice
+    # Keep only the first profile slice.
     ncells_for_profile = len(profile) / 2
     del profile[ncells_for_profile:]
-    # Propagate the profile across the flow solutions
+    # Propagate the profile across the flow solutions.
     fi = gzip.open(flowFileName, "r")
     fo = gzip.open('flow/t0000/tmp.gz', "w")
-    # Read and write the first three header lines
+    # Read and write the first three header lines.
     buf = fi.readline(); fo.write(buf)
     buf = fi.readline(); fo.write(buf)
     buf = fi.readline(); fo.write(buf)
-    # Extract dimensions from the third line
+    # Extract dimensions from the third line.
     buf.strip(); tokens = buf.split()
     nni = int(tokens[0]); nnj = int(tokens[1])
-    # Check that the number of cells in the j-direction matches the given profile
+    # Check that the number of cells in the j-direction matches the given profile.
     if nnj != len(profile):
         print 'The number of cells in the j-direction ', nnj,\
               'does not match that of the given profile ', len(profile)
         sys.exit()
-    # Read and replace flow data
+    # Read and replace flow data.
     for j in range(nnj):
         for i in range(nni):
-            # Read in the pos.x, pos.y, pos.z and vol variables first
+            # Read in the pos.x, pos.y, pos.z and vol variables first.
             buf = fi.readline().strip(); tokens = buf.split()
-            # Write the pos.x, pos.y, pos.z and vol variables to the new data file
-            newline = ' ' + tokens[0] + ' ' + tokens[1] + ' ' + tokens[2] + ' ' + tokens[3] + ' '
+            # Write the pos.x, pos.y, pos.z and vol variables to the new data file.
+            newline = ' ' + tokens[0] + ' ' + tokens[1] +\
+                      ' ' + tokens[2] + ' ' + tokens[3] + ' '
             fo.write(newline)
-            # Fill out values for the other variables
+            # Fill out values for the other variables.
             for variable in range(4, len(profile[0])):
                 fo.write("%.12e " % profile[j][variable])
             fo.write("\n")
     fi.close(); fo.close()
-    # Change the output file name to the inflow file name
+    # Change the output file name to the inflow file name.
     run_command('mv flow/t0000/tmp.gz ' + flowFileName)
     return
 
@@ -695,26 +695,34 @@ def main():
     prepare_input_script(paramDict, opt.jobName)
     #
     # Run Eilmer3 either in the single processor mode, or the
-    # multi-processor block-marching mode
+    # multi-processor block-marching mode.
     if opt.blockMarching:
-        # Assume that the number of blocks per set to 
-        # be the same as the number of radial blocks
         run_in_block_marching_mode(opt, gmodelFile)
+        # Generate slice list for exit plane.
+        exitPlaneSlice = '-' + str(opt.nbj) + ':-1,-2,:,0'
+        # Generate slice list for centreline.
+        blockDims, noOfBlks = read_block_dims(opt.jobName + '.config')
+        centrelineSlice = '0,:,1,0'
+        for blk in range(opt.nbj, noOfBlks, opt.nbj):
+            centrelineSlice += ';' + str(blk) + ',:,1,0'
     else:
         run_command(E3BIN+('/e3prep.py --job=%s --do-svg' % (opt.jobName,)))
         run_command(E3BIN+('/e3shared.exe --job=%s --run' % (opt.jobName,)))
+        # Generate slice list for exit plane and centreline.
+        exitPlaneSlice = '-1,-2,:,0'
+        centrelineSlice = ':,:,1,0'
     #
     # Exit plane slice
     run_command(E3BIN+('/e3post.py --job=%s --tindx=9999 --gmodel-file=%s ' % 
                        (opt.jobName, gmodelFile))
-                +('--output-file=%s --slice-list="-1,-2,:,0" ' % 
-                  (opt.exitSliceFileName,))
+                +('--output-file=%s ' % (opt.exitSliceFileName,))
+                +('--slice-list="%s" ' % exitPlaneSlice)
                 +'--add-mach --add-pitot --add-total-enthalpy --add-total-p')
     # Centerline slice
     run_command(E3BIN+('/e3post.py --job=%s --tindx=9999 --gmodel-file=%s ' % 
                        (opt.jobName, gmodelFile))
-                +('--output-file=%s-centreline.data --slice-list=":,:,1,0" ' % 
-                  (opt.jobName,))
+                +('--output-file=%s-centreline.data ' % (opt.jobName,))
+                +('--slice-list="%s" ' % centrelineSlice)
                 +'--add-mach --add-pitot --add-total-enthalpy --add-total-p')
     # Prep files for plotting with Paraview            
     run_command(E3BIN+('/e3post.py --job=%s --vtk-xml --tindx=9999 --gmodel-file=%s ' % 

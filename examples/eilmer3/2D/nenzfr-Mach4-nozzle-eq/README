@@ -1,0 +1,13 @@
+examples/eilmer3/2D/nenzfr-Mach4-nozzle-eq
+
+This example can be run in two modes - 
+
+  1. The original block-sequencing mode that exists 
+     in Eilmer3 (./run.sh)
+
+  2. The new multi-process block-marching mode that has 
+     recently been written into nenzfr.py (./run-mpi-block-marching-mode.sh)
+     When running in this mode, ensure that you have the nozzle.timing
+     file that specifies the max_time for each Eilmer3 run.
+
+Wilson Chan, 14-Apr-2012

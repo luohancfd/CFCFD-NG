@@ -14,10 +14,10 @@ test nenzfr {Prepare and run nenzfr.} -body {
                    --nni=600 --nnj=40 --by=1.02 --nbi=60 --max-time=1.0e-3  > LOGFILE_MAIN
 } -result {} -returnCodes {0}
 
-test nozzle-exit-temperature {The nozzle exit temperature should be 1259 K.} -body {
+test nozzle-exit-temperature {The nozzle exit temperature should be 1255 K.} -body {
     # The reference value was extracted from the solution data file nozzle-exit.stats
-    # as it was computed on Wilson's netbook 19-Oct-2011.
-    set temperature_ref 1259
+    # as it was computed on mango.eait.uq.edu.au on 14-Apr-2012.
+    set temperature_ref 1255
     set temperature 0
     #
     # Reads nozzle-exit.stats file.
@@ -40,10 +40,10 @@ test nozzle-exit-temperature {The nozzle exit temperature should be 1259 K.} -bo
     list [expr abs($temperature - $temperature_ref) < (0.05 * $temperature_ref)]
 } -result {1}
 
-test nozzle-exit-x-velocity {The nozzle exit x-velocity should be 2961 m/s.} -body {
+test nozzle-exit-x-velocity {The nozzle exit x-velocity should be 2962 m/s.} -body {
     # The reference value was extracted from the solution data file nozzle-exit.stats
-    # as it was computed on Wilson's netbook 19-Oct-2011.
-    set velocity_ref 2961
+    # as it was computed on mango.eait.uq.edu.au on 14-Apr-2012.
+    set velocity_ref 2962
     set velocity 0
     #
     # Reads nozzle-exit.stats file.
@@ -66,10 +66,10 @@ test nozzle-exit-x-velocity {The nozzle exit x-velocity should be 2961 m/s.} -bo
     list [expr abs($velocity - $velocity_ref) < (0.05 * $velocity_ref)]
 } -result {1}
 
-test nozzle-exit-density {The nozzle exit density should be 0.2377 kg/m^3.} -body {
+test nozzle-exit-density {The nozzle exit density should be 0.239 kg/m^3.} -body {
     # The reference value was extracted from the solution data file nozzle-exit.stats
-    # as it was computed on Wilson's netbook 19-Oct-2011.
-    set density_ref 0.2377
+    # as it was computed on mango.eait.uq.edu.au on 14-Apr-2012.
+    set density_ref 0.239
     set density 0
     #
     # Reads nozzle-exit.stats file.
