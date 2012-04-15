@@ -1,0 +1,213 @@
+\chapter{Chemical Kinetics}
+\label{chap:chem-kinetics}
+
+Chemical nonequilibrium flows, also called flows with finite-rate chemical effects,
+are an important class of flows in the study of gas dynamics.
+On a kinetic level, chemical nonequilibrium exists in the gas when there have not been 
+sufficient particle collisions to reach chemical equilibrium
+at a given pressure and temperature.
+In terms of modelling fluid dynamics, the influence of chemical nonequilibrium
+effects is important when the time for completion of the chemical reactions
+is of the same order of magnitude as some characteristic flow time scale.
+Consider
+$\tau_f$ as a characteristic transit time for the flow and $\tau_c$ as a characteristic chemical relaxation time; this leads to a convenient classification of types of flows:
+\begin{description}
+  \item[frozen flow] the time taken for chemical relaxation is much longer
+                     than the flow transit time of interest
+                     \[ \tau_c \gg \tau_f \]
+  \item[nonequilibrium flow] the time taken for chemical relaxation is comparable
+                             to the time for flow transit (and influential on that flow)
+                             \[ \tau_c \approx \tau_f \]
+  \item[equilibrium flow] the time taken for chemical relaxation time is much quicker
+                          than the flow transit time
+                          \[ \tau_c \ll \tau_f \]
+\end{description}
+
+In gas dynamics, the influence of chemical nonequilibrium processes
+is important in a number of classes of flow such as:
+\begin{itemize}
+\item blunt body flows during planetary-entry;
+\item combustion processes;
+\item detonation waves; and
+\item nozzle flows.
+\end{itemize}
+The same basic theoretical treatment
+can be applied to each of theses types of flows.
+In this section, the model for computing 
+the gas phase chemical reactions in nonequilibrium flows is described.
+
+
+\section{Rates of species change}
+\label{subsec:chem_rates}
+By assuming a set of simple reversible reactions,
+the chemically reacting system can be represented as,
+\begin{equation}
+   \sum_{i=1}^N \alpha_i X_i \rightleftharpoons \sum_{i=1}^N \beta_i X_i,
+\end{equation}
+where $\alpha_i$ and $\beta_i$ represent the stoichiometric coefficients for the reactants and
+products respectively, and $X_i$ is the concentration of species $i$.
+The case of an irreversible reaction is represented by setting the backward rate to zero.
+For a given reaction $j$, the rate of concentration change of species $i$ is given as,
+\begin{equation}
+  \left( \frac{d[X_i]}{dt} \right)_j = \nu_i \left\{ k_f \prod_i [X_i]^{\alpha_i} 
+                       - k_b \prod_i [X_i]^{\beta_i} \right\},
+\end{equation}
+where $\nu_i = \beta_i - \alpha_i$.
+By summation over all reactions, $N_r$, the total rate of concentration change is,
+\begin{equation}
+\label{eqn:chem_ode_system}
+  \frac{d[X_i]}{dt} = \sum_{j=1}^{N_r} \left( \frac{d[X_i]}{dt} \right)_j.
+\end{equation}
+For certain integration schemes it is convenient to have the production and loss
+rates available as separate quantities.
+In this case,
+\begin{equation}
+\label{eq:split}
+  \frac{d[X_i]}{dt} = q_i - L_i = \sum_{j=1}^{N_r} \dot{\omega}_{app_{i,j}} - \sum_{j=1}^{N_r} \dot{\omega}_{va_{i,j}} 
+\end{equation}
+The calculation of $\dot{\omega}_{app_{i,j}}$ and $\dot{\omega}_{va_{i,j}}$ depends on the
+value of $\nu_i$ in reach reaction $j$ as shown in Table~\ref{tab:omega}.
+
+\begin{table}[h]
+\caption[Chemical production and loss terms]{The form of the chemical production and loss terms based on the value of $\nu_i$}
+\label{tab:omega}
+\begin{center}
+\begin{tabular}{ccc}
+\hline \hline
+                           & $\nu_i > 0$                          & $\nu_i < 0$  \\ \hline
+ $\dot{\omega}_{app_{i}}$  & $\nu_i k_f \prod_i [X_i]^{\alpha_i}$ & $-\nu_i k_b \prod_i [X_i]^{\beta_i}$ \\
+ $\dot{\omega}_{va_{i}}$   & $-\nu_i k_b \prod_i [X_i]^{\beta_i}$ & $\nu_i k_f \prod_i [X_i]^{\alpha_i}$ \\ \hline \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+The calculation of the reaction rate coefficients, $k_f$ and $k_b$, is described in
+Section~\ref{sec:reac_coeffs} and the solution methods for the ordinary differential
+equation system of species concentration changes is presented in Section~\ref{sec:ODE}.
+
+\section{Reaction rate coefficients}
+\label{sec:reac_coeffs}
+
+The reaction rate coefficients for a reaction can be determined by experiment (often
+shock tube studies are used) or from theory.
+In a great number of cases, estimates of the reaction rate from theory can vary by
+orders of magnitude from experimentally determined values.
+For this reason, fits to experimental values are most commonly used.
+The methods for computing reaction rate coefficients available in the
+gas library are described below.
+
+\paragraph{A note on the units of reaction rate coefficients}
+
+
+
+\subsection{Generalised Arrhenius rate coefficients}
+\paragraph{Description}
+The Arrhenius rate form is used to approximate reaction
+rates derived from either experimental data
+or theoretical calculations.
+
+\paragraph{Equations}
+
+The generalied Arrhenius expression for a rate coefficient, either forwards or backwards, is
+\begin{equation}
+\label{eqn:ga}
+k = A T^{n} \exp{\left( \frac{-E_a}{k_bT}\right)}
+\end{equation}
+where $k_b$ is the Boltzmann constant and $A$, $n$ and $E_a$ are constants
+of the model.
+This may be written equivalently in terms of an activation
+temperature, $T_a = E_a/k_b$, as
+\begin{equation}
+k = A T^{n} \exp{\left( \frac{-T_a}{T}\right)} \text{ . }
+\end{equation}
+
+
+The original Arrhenius formula does not include the pre-exponentiation
+temperature cofactor, $T^n$.
+In the gas library, the simpler Arrhenius formula is not
+a separate modelling option.
+Instead, one sets $n = 0$, to get
+\begin{equation}
+k = A \exp{\left( \frac{-E_a}{k_bT}\right)} \text{ . }
+\end{equation}
+
+\paragraph{Input parameters}
+
+\begin{table}[h!]
+\caption{Parameters for the generalised Arrhenius rate formula}
+\label{tab:ga-formula}
+\begin{tabular}{llp{10cm}}
+\toprule
+Parameter & Units & Description \\ \midrule
+\multicolumn{3}{l}{\textit{User input}} \\
+$A$       & ${}^*$ & pre-exponential coefficient in c.g.s units.
+                    ${}^*$ The units vary depending on the particular
+                    elementary reaction. For example, for bimolecular reactions,
+                    the units of $A$ are cm$^3$/(mole.s). \\
+$n$       &  --    & the power of the pre-exponentiation temperature cofactor \\
+$T_a$     & K      & activation temperature \\
+\bottomrule
+\end{tabular}
+\end{table}
+When the reaction rate coefficient is given in terms
+of activation energy, $E_a$, the equivalent activation
+temperature is calculate as
+\[ T_a = \frac{E_a}{k_b} \text{ . } \]
+
+
+\subsection{Using the equilibrium constant to compute rate coefficients}
+\paragraph{Description}
+The Law of Mass Action can be used to relate the forwards
+and backwards rate coefficient from the equilibrium constant.
+This is useful when the reaction rate coefficient
+is only given for one direction of the reaction.
+
+\paragraph{Equations}
+Given either a forwards or backwards rate coefficient, the
+other coefficient may be obtained from the expression
+\begin{equation}
+K_c = \frac{k_f}{k_b}
+\end{equation}
+where $K_c$ is the equilibrium constant calculated based
+on concentrations.
+
+The equilibrium constant is sometimes computed from curve fits
+or can be computed from thermodynamics principles.
+In the gas library implementation, the equilibrium constant
+is computed from first principles.
+The equilibrium constant based on concentration is related to the equilibrium constant
+based on pressure by,
+\begin{equation}
+K_c = K_p \left( \frac{p_{atm}}{R_uT} \right)^{\nu}
+\end{equation}
+where $p_{atm}$ is atmospheric pressure in Pascals, $R_u$ is the universal
+gas constant, and $\nu = \sum_i^{N_S} \nu_i$.
+The equilibrium constant based on pressure is
+\begin{equation}
+K_p = \exp{\left( \frac{-\Delta G^*(T)}{R_uT} \right) }.
+\end{equation}
+The derivation of the formula for $K_p$,
+the equilibrium constant based on partial pressures,
+can be found in any introductory text on classical thermodynamics
+which covers chemical equilibrium.
+The standard state differential Gibbs function for the reaction,
+$\Delta G^*(T)$, is defined as
+\begin{equation}
+\Delta G^*(T) = \sum_i^{N_s} \nu_i \bar{g}_i^*(T)
+\end{equation}
+where each $\bar{g}_i^*$ is the molal Gibbs free energy 
+at a pressure of one atmosphere,
+\begin{equation}
+\bar{g}_i^*(T) = \bar{h}_i(T) - T \bar{s}_i(T) \text{ . }
+\end{equation}
+
+\paragraph{Input parameters}
+No input parameters are required.
+The necessary inputs are part of the thermodynamics
+model input.
+
+\subsection{Pressure-dependent rate coefficients}
+
+BRENDAN TO ADD CONTENT.
+
+
