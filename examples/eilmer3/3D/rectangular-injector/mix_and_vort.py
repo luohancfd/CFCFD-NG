@@ -17,8 +17,8 @@ if len(sys.argv) != 3:
     sys.exit()
 jobName = sys.argv[1]
 outputFileName = sys.argv[2]
-#tindx = '9999'
-tindx = '0014'
+tindx = '9999'
+# tindx = '0014'
 
 # We'll access the blocks using [i][j] indexing, with i progressing
 # in the downstream direction.
@@ -155,8 +155,8 @@ def process_one_slice(flow, grd, i):
             df = face_area * pressure * face_normal
             dm_flux = rho * dot(vel_abs, face_normal) * face_area
             m_flux += dm_flux
-	    f0 = flow.data['massf[0]'][i,j,k]
-            f1 = flow.data['massf[1]'][i,j,k]
+	    f0 = flow.data['massf[0]-H2'][i,j,k]
+            f1 = flow.data['massf[1]-air'][i,j,k]
             mf_flux += f0*dm_flux
             if f0 < 0.02961*f1:
                 mfR_flux += f0*dm_flux
@@ -166,7 +166,7 @@ def process_one_slice(flow, grd, i):
                 if z > z_pen:
 		   z_pen = z
                    zp = flow.data['pos.z'][i,j,k+1]
-                   f0p = flow.data['massf[0]'][i,j,k+1]
+                   f0p = flow.data['massf[0]-H2'][i,j,k+1]
 		   if f0p < f0lim:
 		      z_pen = (f0lim-f0)/(f0p-f0)*(zp-z)+z
             prec += p0*dm_flux
