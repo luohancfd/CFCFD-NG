@@ -241,7 +241,7 @@ function interface(args)
    wall.u = prof[args.k-1].u
    wall.v = prof[args.k-1].v
    wall.w = prof[args.k-1].w
-   wall.T_wall = prof[args.k-1].T
+   wall.T = {prof[args.k-1].T,} -- now a table, PJ, 15-Apr-2012
    wall.tke = prof[args.k-1].tke
    wall.omega = prof[args.k-1].omega
    wall.massf = {}

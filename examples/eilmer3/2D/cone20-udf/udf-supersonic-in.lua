@@ -14,6 +14,7 @@ function ghost_cell(args)
    -- but we don't happen to us any of them.
    --
    -- Set constant conditions across the whole boundary.
+   -- print("Hello from function ghost_cell.")
    ghost = {}
    ghost.p = 95.84e3 -- pressure, Pa
    ghost.T = {}  -- temperatures, K (as a table)
@@ -33,11 +34,12 @@ function interface(args)
    --
    -- args contains t, x, y, z, csX, csY, csZ, i, j, k, which_boundary
    -- but we don't happen to us any of them.
+   -- print("Hello from function interface.")
    wall = {}
    wall.u = 1000.0
    wall.v = 0.0
    wall.w = 0.0
-   wall.T_wall = 1103.0
+   wall.T = {1103.0,}
    wall.massf = {}
    wall.massf[0] = 1.0
    return wall
@@ -51,6 +53,7 @@ function flux(args)
    -- args contains t, x, y, z, csX, csY, csZ, i, j, k, which_boundary
    --
    -- Set constant conditions across the whole boundary.
+   -- print("Hello from function flux.")
    R = 287          -- gas constant J/(kg.K)
    g = 1.4          -- ratio of specific heats
    Cv = R / (g - 1) -- specific-heat, constant volume
