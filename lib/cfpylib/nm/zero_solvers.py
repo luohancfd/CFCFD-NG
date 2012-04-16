@@ -7,50 +7,39 @@ zero_solvers.py
 .. Versions:
    06-Dec-2004
    08-May-2011: Dan's bisection_method added by PJ
+   16-Apr-2012: PJ, make more efficient by not evaluating f redundantly
+                Also, make the code more compact (so that the full 
+                function fits in the editor window).
 """
 
-from copy import copy
-from math import fabs, pow, sin, exp
-
 TEST_MODULE = 0
-ZERO_VAL = 1.0e-6
-max_iterations = 1000
 
-
-def secant(f, x0, x1, tol=1.0e-11, limits=[]):
+def secant(f, x0, x1, tol=1.0e-11, limits=[], max_iterations=1000):
     """
     The iterative secant method for zero-finding in one-dimension.
     """
-    f0 = f(x0)
-    f1 = f(x1)
-
-    if fabs(f0) < fabs(f1):
-        temp = x0; x0 = x1; x1 = temp;
-
+    # We're going to arrange x0 as the oldest (furtherest) point
+    # and x1 and the closer-to-the-solution point.
+    # x2, when we compute it, will be the newest sample point.
+    f0 = f(x0); f1 = f(x1)
+    if abs(f0) < abs(f1):
+        x0, f0, x1, f1 = x1, f1, x0, f0
     for i in range(max_iterations):
-        f0 = f(x0); f1 = f(x1);
         try :
             x2 = x1 - f1 * (x0 - x1) / (f0 - f1)
         except ZeroDivisionError:
             return 'FAIL'
-            
         if limits != []:
-            if x2 < limits[0]:
-                x2 = limits[0]
-            if x2 > limits[1]:
-                x2 = limits[1]
-        
+            x2 = max(limits[0], x2)
+            x2 = min(limits[1], x2)
+        f2 = f(x2)
         if TEST_MODULE == 1:
-            print '  %d \t  %f \t %f \t %f \t %e' % (i+1, x0, x1, x2, f(x2) )
-        x0 = x1; x1 = x2
-
-        if fabs( f(x2) ) < tol:
-            return x2
-
-    if i >= (max_iterations-1):
-        if TEST_MODULE == 1:
-            print 'The secant method did not converge after ', i+1, ' iterations'
-        return 'FAIL'
+            print '  %d \t  %f \t %f \t %f \t %e' % (i+1, x0, x1, x2, f2 )
+        x0, f0, x1, f1 = x1, f1, x2, f2
+        if abs(f2) < tol: return x2
+    if TEST_MODULE == 1:
+        print 'The secant method did not converge after ', i+1, ' iterations'
+    return 'FAIL'
 
 # -------------------------------------------------------------------
 
@@ -68,16 +57,12 @@ def bisection(f, by, uy, tol=1.0e-6):
 
 # -------------------------------------------------------------------
 
-def test_fun_1(x):
-    return ( pow(x,3) + pow(x,2) - 3*x - 3 )
-
-def test_fun_2(x):
-    return ( 3*x + sin(x) - exp(x) )
-
-# -------------------------------------------------------------------
-
 if __name__ == '__main__':
     print "Begin zero_solvers self-test..."
+
+    from math import pow, sin, exp
+    def test_fun_1(x):
+        return ( pow(x,3) + pow(x,2) - 3*x - 3 )
     print ''
     print 'Test function 1.'
     print '----------------'
@@ -86,7 +71,7 @@ if __name__ == '__main__':
     print 'guesses of x0 = 1 and x1 = 2.'
     print 'Begin function call secant()...'
     print ''
-    print 'Iteration \t x0 \t\tx1 \t\tx2 \t F(x2) '
+    print 'Iteration \t x0 \t\tx1 \t\tx2 \t f(x2) '
     print '-----------------------------------------------------------------------'
     TEST_MODULE = 1
     x2 = secant(test_fun_1, 1, 2)
@@ -96,6 +81,8 @@ if __name__ == '__main__':
     print 'Using bisection... x =', bisection(test_fun_1, 1.0, 2.0, tol=1.0e-11)
     print ''
 
+    def test_fun_2(x):
+        return ( 3*x + sin(x) - exp(x) )
     print 'Test function 2.'
     print '----------------'
     print 'Example from Gerald and Wheatley, p.45'
@@ -103,7 +90,7 @@ if __name__ == '__main__':
     print 'guesses of x0 = 0 and x1 = 1.'
     print 'Begin function call secant()...'
     print ''
-    print 'Iteration \t x0 \t\tx1 \t\tx2 \t F(x2) '
+    print 'Iteration \t x0 \t\tx1 \t\tx2 \t f(x2) '
     print '-----------------------------------------------------------------------'
     x2 = secant(test_fun_2, 0, 1)
     print '-----------------------------------------------------------------------'
