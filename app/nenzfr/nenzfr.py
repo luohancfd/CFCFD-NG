@@ -17,7 +17,7 @@ to extract nominal flow condition data.
    The University of Queensland
 """
 
-VERSION_STRING = "12-Apr-2012"
+VERSION_STRING = "16-Apr-2012"
 
 import shlex, subprocess, string
 from subprocess import PIPE
@@ -66,7 +66,7 @@ def quote(str):
     """
     return '"' + str + '"'
 
-def print_stats(sliceFileName,jobName):
+def print_stats(sliceFileName,jobName,coreRfraction):
     """
     Display statistics of flow properties at the nozzle exit.
     """
@@ -93,7 +93,7 @@ def print_stats(sliceFileName,jobName):
     #
     # Identify edge of core flow.
     ys = data['pos.y']
-    y_edge = ys[-1] * 2.0/3.0  # somewhat arbitrary...
+    y_edge = ys[-1] * coreRfraction
     #
     # Compute and print area-weighted-average core flow values.
     exclude_list = ['pos.x', 'pos.y', 'pos.z', 'volume', 'vel.z', 'S']
@@ -598,7 +598,7 @@ def main():
                   "just retrieve exit-flow statistics")
     op.add_option('--block-marching', dest='blockMarching', action='store_true', 
                   default=False, help="run nenzfr in block-marching mode")
-    # The following defaults suit Like's Mach 10 calculations.
+    # The following defaults suit Luke's Mach 10 calculations.
     op.add_option('--nni', dest='nni', type='int', default=1800,
                   help=("number of axial cells"))
     op.add_option('--nnj', dest='nnj', type='int', default=100,
@@ -629,12 +629,15 @@ def main():
     op.add_option('--TurbIntensity', dest='TurbInten', type='float', 
                   default=0.05, help=("Turbulence intensity at the throat "
                   "[default: %default]"))
+    op.add_option('--CoreRadiusFraction', dest='coreRfraction', type='float',
+                  default=2.0/3.0, help=("Radius of core flow as a fraction of "
+                  "the nozzle exit radius [default: %default]"))
     opt, args = op.parse_args()
     #
     # If we have already run a calculation, it may be that we just want
     # to extract the exit-flow statistics again.
     if opt.justStats:
-        print_stats(opt.exitSliceFileName,opt.jobName)
+        print_stats(opt.exitSliceFileName,opt.jobName,opt.coreRfraction)
         return 0
     #
     # Go ahead with a new calculation.
@@ -680,6 +683,7 @@ def main():
         sequenceBlocksFlag = 0
     else: 
         sequenceBlocksFlag = 1
+        opt.nbj = 1
     # Set up the input script for Eilmer3.
     paramDict = {'jobName':quote(opt.jobName), 'gasName':quote(opt.gasName),
                  'T1':opt.T1, 'p1':opt.p1, 'Vs':opt.Vs, 'pe':opt.pe,
@@ -729,7 +733,7 @@ def main():
                        (opt.jobName, gmodelFile))
                 +'--add-mach --add-pitot --add-total-enthalpy --add-total-p')
     # Generate averaged exit flow properties
-    print_stats(opt.exitSliceFileName,opt.jobName)                
+    print_stats(opt.exitSliceFileName,opt.jobName,opt.coreRfraction)                
     # Compute viscous data at the nozzle wall
     run_command(E3BIN+'/nenzfr_compute_viscous_data.py --job=%s' % (opt.jobName,))
      
@@ -751,7 +755,7 @@ def main():
     # Copy the original exit stats file to a temporary file
     run_command(('cp %s-exit.stats %s-exit.stats_temp') % (opt.jobName, opt.jobName,))
     # (Re) Generate the exit stats using the slice-at-point data
-    print_stats(opt.exitSliceFileName+'2',opt.jobName)
+    print_stats(opt.exitSliceFileName+'2',opt.jobName,opt.coreRfraction)
     run_command('cp %s-exit.stats %s-exit.stats2' % (opt.jobName, opt.jobName,))
     # Now rename the temporary exit stats file back to its original name
     run_command('mv %s-exit.stats_temp %s-exit.stats' % (opt.jobName, opt.jobName,))

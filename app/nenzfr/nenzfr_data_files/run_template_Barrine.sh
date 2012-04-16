@@ -1,14 +1,13 @@
 #!/bin/bash -l
 #PBS -S /bin/bash
 #PBS -N $jobName
-#PBS -q workq
-#PBS -l place=scatter -l select=1:ncpus=1:NodeType=fast:mpiprocs=1 -l walltime=250:00:00 -A uq-SCRAMSPACE
+#PBS -q fast
+#PBS -l place=scatter -l select=1:ncpus=1:NodeType=fast:mpiprocs=1 -l walltime=150:00:00 -A uq-SCRAMSPACE
 #PBS -V
 
-# This file should be modified as required, however the --pe and --job 
-# options must be left as --pe=$pe and --job=$jobName respectively.
+# This file should not need to be modified.
 # Luke Doherty
-# 24-02-2012
+# 16-04-2012
 
 module load intel-mpi
 module load intel-cc-11
@@ -21,7 +20,13 @@ echo "Begin Shared job..."
 date
 
 cd $PBS_O_WORKDIR
-$HOME/e3bin/nenzfr.py --gas="air5species" --T1=300.0 --p1=250000.0 --Vs=2195.0 --pe=$pe --chem="neq" --area=1581.165 --job=$jobName --cfile="contour-t4-m10.data" --gfile="None" --exitfile="nozzle-exit.data" --nni=2700 --nnj=150 --nbi=270 --bx=1.05 --by=1.002 --max-time=0.006 --max-step=800000 --BLTrans=0.050 > LOGFILE
+$HOME/e3bin/nenzfr.py --gas=$gasName --T1=$T1 --p1=$p1 --Vs=$Vs --pe=$pe --chem=$chemModel --area=$areaRatio --job=$jobName --cfile=$contourFileName --gfile=$gridFileName --exitfile=$exitSliceFileName $blockMarching --nni=$nni --nnj=$nnj --nbi=$nbi --nbj=$nbj --bx=$bx --by=$by --max-time=$max_time --max-step=$max_step --Twall=$Tw --BLTrans=$BLTrans --TurbVisRatio=$TurbVisRatio --TurbIntensity=$TurbInten --CoreRadiusFraction=$CoreRadiusFraction > LOGFILE
 
 echo "End Shared job."
 date
+# As we leave the job, make sure that we leave no processes behind.
+# (The following incantation is from Gerald Hartig.)
+for i in $(cat $PBS_NODEFILE | grep -v 'hostname' | sort -u); do
+    ssh $i pkill -u 'whoami'
+done
+kill all -u 'whoami' e3mpi.exe
