@@ -16,6 +16,7 @@ import sys, os, gzip
 import optparse
 #import numpy
 from numpy import array, mean, logical_and, zeros
+import copy
 E3BIN = os.path.expandvars("$HOME/e3bin")
 sys.path.append(E3BIN)
 
@@ -62,8 +63,9 @@ def quote(str):
 
 
 def configure_input_dictionary(perturbedDict, defaultPerturbations, gradient, perturb): 
-    if perturbedDict["BLTrans"] == "x_c[-1]*1.1":
-        del perturbedDict["BLTrans"]
+    if 'BLTrans' in perturbedDict:
+        if perturbedDict["BLTrans"] == "x_c[-1]*1.1":
+            del perturbedDict["BLTrans"]
     for i in range(len(perturbedDict)):
             var = perturbedDict.keys()[i]
             temp =  perturbedDict.values()[i]
@@ -76,7 +78,7 @@ def set_perturbed_values(var, temp, defaultPerturbations, perturb, gradient):
     if gradient == "linear":
         if len(temp) == 1:
             # have just the value
-            print "Using default relative perturbation for "+var
+            print "Using default relative perturbation of "+str(defaultPerturbations[var]*100.0)+"% for "+var
             temp = [temp[0], temp[0]*(1+defaultPerturbations[var]), temp[0]*(1-defaultPerturbations[var])]
         elif len(temp) == 2:
             # have either [value, delta] or [value, percent_delta]
@@ -93,9 +95,9 @@ def set_perturbed_values(var, temp, defaultPerturbations, perturb, gradient):
         else:
             print "Too many values given for "+var
             return -2
-    elif gradient == "quad":
+    elif gradient == "quadratic":
         if len(temp) == 1:
-            print "Using default relative perturbation for "+var
+            print "Using default relative perturbation of "+str(defaultPerturbations[var]*100.0)+"% for "+var
             temp = [temp[0], temp[0]*(1+defaultPerturbations[var]), temp[0]*(1-defaultPerturbations[var]),\
                     temp[0]*(1+defaultPerturbations[var]*2.0), temp[0]*(1-defaultPerturbations[var]*2.0)]
         elif len(temp) == 2:
@@ -138,6 +140,64 @@ def set_perturbed_values(var, temp, defaultPerturbations, perturb, gradient):
             return -2
     return temp
 
+def set_case_running(caseString, caseDict, textString):
+    print 60*"-"
+    print caseString
+    print textString
+    
+    run_command('mkdir ./'+caseString)
+     
+    # Set up the run script for Nenzfr
+    scriptFileName = prepare_run_script(caseDict, caseDict['jobName'].strip('"')+'_'+caseString, caseDict['Cluster'])
+    
+    # Move the run script to its sub-directory
+    command_text = 'mv '+scriptFileName+' ./'+caseString+'/'+scriptFileName
+    run_command(command_text)
+    
+    # Change into the sub-directory, ensure the run script is exectuable and
+    # then run it
+    os.chdir(caseString)
+    run_command('chmod u+x '+scriptFileName)
+    print ""
+    print caseDict['runCMD']+scriptFileName
+    print ""
+    # I am not sure how to replace the following line with the run_command function
+    os.system(caseDict['runCMD']+scriptFileName)
+    os.chdir('../')
+    return
+
+def write_case_summary(varList,caseDict,caseString,newfile):
+    formatDict = {'p1':'{0:>13.2f}', 'T1':'{0:>10.2f}', 'Vs':'{0:>11.2f}',
+                  'pe':'{0:>15.2f}', 'Tw':'{0:>10.2f}', 'BLTrans':'{0:>10.4f}', 
+                  'TurbVisRatio':'{0:>14.1f}', 'TurbInten':'{0:>11.3f}', 
+                  'CoreRadiusFraction':'{0:>20.8f}'}
+    titleFormatDict = {'p1':'{0:{fill}>13}', 'T1':'{0:{fill}>10}', 'Vs':'{0:{fill}>11}',
+                       'pe':'{0:{fill}>15}', 'Tw':'{0:{fill}>10}', 'BLTrans':'{0:{fill}>10}',
+                       'TurbVisRatio':'{0:{fill}>14}', 'TurbInten':'{0:{fill}>11}',
+                       'CoreRadiusFraction':'{0:{fill}>20}'}
+
+    if newfile == 1:
+        fout = open('sensitivity_cases.dat','w')
+        # Write title line
+        fout.write('{0:>7}'.format('#'))
+        for k in tuple(varList):
+            fout.write(titleFormatDict[k].format(k,fill=''))
+        fout.write('\n')
+        # Underline the title
+        for k in varList:
+            fout.write(titleFormatDict[k].format('-',fill='-'))
+        fout.write('{0:->7}'.format('-'))
+        fout.write('\n')
+    else:
+        fout = open('case_summary.dat','a')
+        
+    # Now write out the data for the current case
+    fout.write('{0:>7}'.format(caseString))
+    for k in varList:
+        fout.write(formatDict[k].format(caseDict[k]))
+    fout.write('\n')
+    fout.close()
+    
 
 def main():
     """
@@ -146,21 +206,22 @@ def main():
     """
     op = optparse.OptionParser(version=VERSION_STRING)
 
-    op.add_option('--runCMD', dest='runCMD', default='qsub ',
+    op.add_option('--runCMD', dest='runCMD', default='./',
                   help=("command used to execute the run-script file "
                         "[default: %default]"))
-    op.add_option('--Cluster', dest='Cluster', default='Barrine',
+    op.add_option('--Cluster', dest='Cluster', default='Mango',
                   choices =['Mango', 'Barrine'],
                   help=("specify on which cluster the computations are to be ran. "
                         "This is used to define which run template script will "
                         "be used. Options: "
                         "Mango; Barrine [default: %default]"))
     
-    op.add_option('--perturb', dest='perturb', default='rel',
+    op.add_option('--perturb', dest='perturb', default='rel', choices=['rel','abs'],
                   help=("specify whether the given perturbations are absolute "
                         "or relative values. Options: rel, abs [default: %default]"))
 
     op.add_option('--gradient', dest='gradient', default='linear',
+                  choices=['linear','quadratic'],
                   help=("specify whether the gradient is to be calculated "
                         "using a linear or quadratic equation. ONLY available "
                         "with the --create-LUT option "
@@ -174,18 +235,16 @@ def main():
                   choices=['air', 'air5species', 'n2', 'co2', 'h2ne'],
                   help=("name of gas model: "
                         "air; " "air5species; " "n2; " "co2; " "h2ne"))
-    #op.add_option('--p1', dest='p1', type='float', default=None,
-    #              help=("shock tube fill pressure or static pressure, in Pa"))
     
     op.add_option('--p1', dest='p1', default=None, 
                   help=("shock tube fill pressure (in Pa) and its perturbation"))
-    
     op.add_option('--T1', dest='T1', default=None,
-                  help=("shock tube fill temperature, in degrees K"))
+                  help=("shock tube fill temperature, in degrees K and its perturbation"))
     op.add_option('--Vs', dest='Vs', default=None,
                   help=("incident shock speed, in m/s"))
     op.add_option('--pe', dest='pe', default=None,
                   help=("equilibrium pressure (after shock reflection), in Pa"))
+
     op.add_option('--chem', dest='chemModel', default='eq',
                   choices=['eq', 'neq', 'frz', 'frz2'],
                   help=("chemistry model: " "eq=equilibrium; "
@@ -206,8 +265,7 @@ def main():
                   default='nozzle-exit.data',
                   help="file for holding the nozzle-exit data [default: %default]")
     op.add_option('--block-marching', dest='blockMarching', action='store_true',
-                  default=False, help="run nenzfr in block-marching mode")
-    
+                  default=False, help="run nenzfr in block-marching mode")    
     op.add_option('--create-LUT', dest='createLUT', action='store_true',
                   default=False, 
                   help="create a LUT by perturbing only p1, T1, Vs and pe")
@@ -247,33 +305,18 @@ def main():
                   help=("Radius of core flow as a fraction of "
                   "the nozzle exit radius [default: %default]"))
     opt, args = op.parse_args()
-    
-    
-    # Set all the default relative perturbation values
+        
+    # Set the default relative perturbation values
     defaultPerturbations = {'p1':0.05, 'T1':0.05, 'Vs':0.05, 'pe':0.05, 
                            'Tw':0.05, 'BLTrans':0.05, 'TurbVisRatio':0.05,
-                           'TurbInten':0.05, 'coreRfraction':0.05}
+                           'TurbInten':0.05, 'CoreRadiusFraction':0.05}
+    formatDict = {'p1':0.05, 'T1':0.05, 'Vs':0.05, 'pe':0.05,
+                  'Tw':0.05, 'BLTrans':0.05, 'TurbVisRatio':0.05,
+                  'TurbInten':0.05, 'CoreRadiusFraction':0.05}
 
     # Go ahead with a new calculation.
     # First, make sure that we have the needed parameters.
     bad_input = False
-
-    #print opt.p1[2]
-    #test = opt.p1.strip('[').strip(']').split(',')
-    #print test
-    #for i in range(len(test)):
-    #    test[i] = float(test[i])
-    #print test
-    #test2[i] = float(test2[i])
-    #p1 = {}
-    #for i in range(len(items)):
-    #    p1[variable_list[i]].append(float(items[i]))
-    
-    #print opt
-    #print opt['p1']
-    #print opt.values()
-    #print opt.values().strip('[').strip(']').split(',')
-    
     if opt.p1 is None:
         print "Need to supply a value for p1."
         bad_input = True
@@ -291,81 +334,84 @@ def main():
     else:
         opt.blockMarching = ""
     if opt.createLUT is False:
-        if opt.gradient is "quadratic":
+        if opt.gradient == "quadratic":
             opt.gradient = 'linear'
             print "Sensitivity will be calculated using a linear slope."
     if bad_input:
         return -2
     
-    #print opt
-    #print opt.strip('[').strip(']').split(',')
     if opt.createLUT:
-        #perturbedVariables = ['p1','T1','Vs','pe']
+        perturbedVariables = ['p1','T1','Vs','pe']
         perturbedDict = {'p1':opt.p1, 'T1':opt.T1, 'Vs':opt.Vs, 'pe':opt.pe}
         perturbedDict = configure_input_dictionary(perturbedDict, defaultPerturbations, 
                                                 opt.gradient, opt.perturb)
     else:
-        #perturbedVariables = ['p1','T1','Vs','pe','Tw','BLTrans','TurbVisRatio',
-        #                      'TurbInten','coreRfraction',]
+        perturbedVariables = ['p1','T1','Vs','pe','Tw','BLTrans','TurbVisRatio',
+                              'TurbInten','CoreRadiusFraction',]
         perturbedDict = {'p1':opt.p1, 'T1':opt.T1, 'Vs':opt.Vs, 'pe':opt.pe,
                         'Tw':opt.Tw, 'BLTrans':opt.BLTrans, 'TurbVisRatio':opt.TurbVisRatio,
-                        'TurbInten':opt.TurbInten, 'coreRfraction':opt.coreRfraction}
+                        'TurbInten':opt.TurbInten, 'CoreRadiusFraction':opt.coreRfraction}
         perturbedDict = configure_input_dictionary(perturbedDict, defaultPerturbations,
                                                 opt.gradient, opt.perturb)
+        if len(perturbedVariables) != len(perturbedDict):
+            # Not perturbing BLTrans variable
+            del perturbedVariables[perturbedVariables.index('BLTrans')]
+    
+    # Set up a parameter dictionary 
+    # (with perturbed variables at their nominal value
+    paramDict = {'jobName':quote(opt.jobName), 'gasName':quote(opt.gasName),
+                 'T1':opt.T1, 'p1':opt.p1, 'Vs':opt.Vs, 'pe':opt.pe,
+                 'chemModel':quote(opt.chemModel),
+                 'contourFileName':quote(opt.contourFileName),
+                 'gridFileName':quote(opt.gridFileName),
+                 'exitSliceFileName':quote(opt.exitSliceFileName),
+                 'areaRatio':opt.areaRatio, 'blockMarching':opt.blockMarching,
+                 'nni':opt.nni, 'nnj':opt.nnj, 'nbi':opt.nbi, 'nbj':opt.nbj,
+                 'bx':opt.bx, 'by':opt.by,
+                 'max_time':opt.max_time, 'max_step':opt.max_step,
+                 'Tw':opt.Tw, 'TurbVisRatio':opt.TurbVisRatio,
+                 'TurbInten':opt.TurbInten, 'BLTrans':opt.BLTrans,
+                 'CoreRadiusFraction':opt.coreRfraction,
+                 'Cluster':opt.Cluster,'runCMD':opt.runCMD}
+    for k in range(len(perturbedVariables)):
+        var = perturbedVariables[k]
+        paramDict[var] = perturbedDict[var][0]
 
-    #inputDict = {'p1':[float(opt.p1.strip('[').strip(']').split(',')[i]) for i in range(len(a))]
+    # Calculate Nominal condition
+    caseString = 'case'+"{0:02}".format(0)+"{0:01}".format(0)
+    textString = "Nominal Condition"
+    caseDict = copy.copy(paramDict)
     
-    print perturbedDict
+    set_case_running(caseString, caseDict, textString)
+    write_case_summary(perturbedVariables,caseDict,caseString,1)
     
-    # Set up the run script for Nenzfr.
-    paramDict = {'jobName':quote(opt.jobName)}
-    #for k in range(len(pe)):
-    #    # Create sub-directory for the current case.
-    #    caseString = 'case'+"{0:03}".format(k)
-    #    
-    #    print 60*"-"
-    #    print caseString
-    #    print "tstart= %f; pe[k]= %f" % (opt.tstart+k*opt.dt, pe[k])
-    #    
-    #    run_command('mkdir ./'+caseString)
-    #    
-    #    # Set up the run script for Nenzfr
-    #    paramDict = {'jobName':quote(opt.jobName), 'gasName':quote(opt.gasName),
-    #                 'T1':opt.T1, 'p1':opt.p1, 'Vs':opt.Vs, 'pe':pe[k],
-    #                 'chemModel':quote(opt.chemModel),
-    #                 'contourFileName':quote(opt.contourFileName),
-    #                 'gridFileName':quote(opt.gridFileName),
-    #                 'exitSliceFileName':quote(opt.exitSliceFileName),
-    #                 'areaRatio':opt.areaRatio, 'blockMarching':opt.blockMarching,
-    #                 'nni':opt.nni, 'nnj':opt.nnj, 'nbi':opt.nbi, 'nbj':opt.nbj,
-    #                 'bx':opt.bx, 'by':opt.by,
-    #                 'max_time':opt.max_time, 'max_step':opt.max_step,
-    #                 'Tw':opt.Tw, 'TurbVisRatio':opt.TurbVisRatio,
-    #                 'TurbInten':opt.TurbInten, 'BLTrans':opt.BLTrans,
-    #                 'CoreRadiusFraction':opt.coreRfraction}
-    #    scriptFileName = prepare_run_script(paramDict, opt.jobName+'_'+caseString, opt.Cluster)
-    #     
-    #    # Move the run script to its sub-directory
-    #    command_text = 'mv '+scriptFileName+' ./'+caseString+'/'+scriptFileName
-    #    run_command(command_text)
-    #    
-    #    # Change into the sub-directory, ensure the run script is exectuable and
-    #    # then run it
-    #    os.chdir(caseString)
-    #    run_command('chmod u+x '+scriptFileName)
-    #    print ""
-    #    print opt.runCMD+scriptFileName
-    #    print ""
-    #    os.system(opt.runCMD+scriptFileName) # I am not sure how to replace this with the run_command function
-    #    os.chdir('../')
-     
+    # Now run all the perturbed conditions
+    for k in range(len(perturbedVariables)):
+        var = perturbedVariables[k]
+        
+        if opt.gradient == "linear":
+            perturbCount = 3
+        else:
+            perturbCount = 5
+        
+        for kk in range(perturbCount):
+            if kk != 0:
+                caseString = 'case'+"{0:02}".format(k)+"{0:01}".format(kk)
+                textString = var+" perturbed to "+str(perturbedDict[var][kk])
+                caseDict = copy.copy(paramDict)
+                caseDict[var] = perturbedDict[var][kk]
+                
+                set_case_running(caseString, caseDict, textString)
+                write_case_summary(perturbedVariables,caseDict,\
+                                   caseString,0)
+ 
     return 0
 
 #---------------------------------------------------------------
 
 if __name__ == '__main__':
     if len(sys.argv) <= 1:
-        print "NENZFr Quasi Transient:\n Calculate Shock Tunnel Test Flow Conditions for a varying Supply Pressure"
+        print "NENZFr Sensitivity:\n Calculate Sensitivity of Shock Tunnel Test Flow Conditions for a varying inputs"
         print "   Version:", VERSION_STRING
         print "   To get some useful hints, invoke the program with option --help."
         sys.exit(0)
