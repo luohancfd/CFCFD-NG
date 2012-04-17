@@ -111,7 +111,7 @@ function create_ideal_gas(species, f)
       for __,model in ipairs(model_list) do
          var = sp.."."..model
          f:write(string.format("%s = ", var))
-         if _G[sp][val] then
+         if _G[sp][model] then
             serialise(_G[sp][model], f)
          else
             serialise(default[model], f)
