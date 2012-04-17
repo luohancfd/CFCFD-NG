@@ -154,7 +154,7 @@ def create_gas_file(model, species, fname="gas-model.lua", lut_file=None):
     # Names known by Rowan's gasfile.lua
     gas_models = ["ideal gas", "thermally perfect gas", 
                   "Noble-Abel gas", "van der Waals gas",
-                  "Bender real gas",
+                  "real gas Bender",
                   "three temperature gas", "two temperature gas",
                   "one temperature gas"]
     # Prepare the basic gas model file by invoking Rowan's gasfile.lua program.

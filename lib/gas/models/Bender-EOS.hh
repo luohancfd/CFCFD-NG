@@ -1,12 +1,12 @@
-/** \file Bender-real-gas-EOS.hh
+/** \file Bender-EOS.hh
  *  \ingroup gas
  *
  *  \author Peter Blyton
  *  \version 13-Mar-2012
  */
 
-#ifndef BENDER_REAL_GAS_EOS_HH
-#define BENDER_REAL_GAS_EOS_HH
+#ifndef BENDER_EOS_HH
+#define BENDER_EOS_HH
 
 extern "C" {
 #include <lua.h>
@@ -30,10 +30,10 @@ extern "C" {
  *  it should only be used with single species gases.
  */
 
-class Bender_real_gas : public Equation_of_state {
+class Bender_EOS : public Equation_of_state {
 public:
-    Bender_real_gas(lua_State *L);
-    ~Bender_real_gas();
+    Bender_EOS(lua_State *L);
+    ~Bender_EOS();
 
 private:
     std::vector<double> A_; // Coefficients for Bender EOS.
@@ -49,15 +49,17 @@ private:
     double s_dpdrho_i_const_T(const Gas_data &Q, int isp, int &status);
     double s_dpdT_i_const_rho(const Gas_data &Q, int itm, int &status);
     double s_integral_const_T_energy(const Gas_data &Q);
+    double s_dintegral_const_T_energy_dT(const Gas_data &Q);
     double s_integral_const_T_entropy(const Gas_data &Q);
 };
 
-double brg_pressure(double rho, double T, double R, const std::vector<double> &A);
-double brg_dpdT(double rho, double T, double R, const std::vector<double> &A);
-double brg_dpdrho(double rho, double T, double R, const std::vector<double> &A);
-double brg_temperature(double rho, double p, double R, const std::vector<double> &A, int &status);
-double brg_density(double T, double p, double R, const std::vector<double> &A, int &status);
-double brg_integral_const_T_energy(double rho, double T, double R, const std::vector<double> &A);
-double brg_integral_const_T_entropy(double rho, double T, double R, const std::vector<double> &A);
+double Bender_pressure(double rho, double T, double R, const std::vector<double> &A);
+double Bender_dpdT(double rho, double T, double R, const std::vector<double> &A);
+double Bender_dpdrho(double rho, double T, double R, const std::vector<double> &A);
+double Bender_temperature(double rho, double p, double R, const std::vector<double> &A, int &status);
+double Bender_density(double T, double p, double R, const std::vector<double> &A, int &status);
+double Bender_integral_const_T_energy(double rho, double T, const std::vector<double> &A);
+double Bender_dintegral_const_T_energy_dT(double rho, double T, const std::vector<double> &A);
+double Bender_integral_const_T_entropy(double rho, double T, const std::vector<double> &A);
 
 #endif

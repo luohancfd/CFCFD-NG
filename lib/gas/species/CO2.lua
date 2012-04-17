@@ -52,6 +52,24 @@ CO2.CEA_coeffs = {
    },
    ref='Gurvich (1991) from cea2::thermo.inp'
 }
+CO2.viscosity = {
+   model = "CEA",
+   parameters = {
+      {T_low=200.0, T_high=1000.0, A=0.51137258e+00, B=-0.22951321e+03, C=0.13710678e+05, D=0.27075538e+01},
+      {T_low=1000.0, T_high=5000.0, A=0.63978285e+00, B=-0.42637076e+02, C=-0.15522605e+05, D=0.16628843e+01},
+      {T_low=5000.0, T_high=10000.0, A=0.72150912e+00, B=0.75012895e+03, C=-0.11825507e+07, D=0.85493645e+00},
+      ref = 'from CEA2::trans.inp which cites Boushehri et al (1987) and Svehla (1994)'
+   }
+}
+CO2.thermal_conductivity = {
+   model = "CEA",
+   parameters = {
+      {T_low=200.0, T_high=1000.0, A=0.48056568e+00, B=-0.50786720e+03, C=0.35088811e+05, D=0.36747794e+01},
+      {T_low=1000.0, T_high=5000.0, A=0.69857277e+00, B=-0.11830477e+03, C=-0.50688859e+05, D=0.18650551e+01},
+      {T_low=5000.0, T_high=10000.0, A=0.105183581e+01, B=-0.42555944e+04, C=0.14288688e+08, D=-0.88950473e+00},
+      ref = 'from CEA2::trans.inp which cites Boushehri et al (1987) and Svehla (1994)'
+   }
+}
 CO2.T_c = {
    value = 304.12,
    units = 'K',

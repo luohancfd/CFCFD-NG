@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-test_Bender_real_gas.py -- unittest to compare the behaviour
-of the Bender real gas model for CO2 with results from REFPROP.
+test_real_gas_Bender.py -- unittest to compare the behaviour
+of the real gas Bender model with results from REFPROP.
 
 .. Author: Peter Blyton
 .. Version: 22/03/2012
@@ -20,10 +20,13 @@ PRES_TOL = 0.0001
 DENS_TOL = 0.002
 ENER_TOL = 0.003
 ENTR_TOL = 0.003
+# Following errors are much less when not near critical point.
+HEAT_CAP_TOL = 0.23
+SS_TOL = 0.05
 
-class BenderTest(unittest.TestCase):
+class BenderTestCO2(unittest.TestCase):
     def setUp(self):
-        create_gas_file("Bender real gas", ["CO2"])
+        create_gas_file("real gas Bender", ["CO2"])
         self.gmodel = create_gas_model("gas-model.lua")
         self.gas = Gas_data(self.gmodel)
         set_molef(self.gas, self.gmodel, {'CO2':1})
@@ -34,8 +37,14 @@ class BenderTest(unittest.TestCase):
         self.gmodel.eval_thermo_state_rhoe(self.gas)
         self.assertAlmostEqual(self.gas.T[0], 250.0, delta=TEMP_TOL*self.gas.T[0])
         self.assertAlmostEqual(self.gas.p, 1785.0e3, delta=ENER_TOL*self.gas.p)
+        self.assertAlmostEqual(self.gas.a, 221.22, delta=SS_TOL*self.gas.a)
         s = self.gmodel.total_entropy(self.gas)
         self.assertAlmostEqual(s, 1.9641e3, delta=ENTR_TOL*s)
+        Cv = self.gmodel.Cv(self.gas)
+        self.assertAlmostEqual(Cv, 745.91, delta=HEAT_CAP_TOL*Cv)
+        Cp = self.gmodel.Cp(self.gas)
+        self.assertAlmostEqual(Cp, 1236.6, delta=HEAT_CAP_TOL*Cp)
+        
 
     def test_rho_from_pT(self):
         self.gas.T[0] = 350.0
@@ -43,8 +52,13 @@ class BenderTest(unittest.TestCase):
         self.gmodel.eval_thermo_state_pT(self.gas)
         self.assertAlmostEqual(self.gas.rho, 270.0, delta=DENS_TOL*self.gas.rho)
         self.assertAlmostEqual(self.gas.e[0], 410.85e3, delta=ENER_TOL*self.gas.e[0])
+        self.assertAlmostEqual(self.gas.a, 247.75, delta=SS_TOL*self.gas.a)
         s = self.gmodel.total_entropy(self.gas)
         self.assertAlmostEqual(s, 1.7719e3, delta=ENTR_TOL*s)
+        Cv = self.gmodel.Cv(self.gas)
+        self.assertAlmostEqual(Cv, 891.87, delta=HEAT_CAP_TOL*Cv)
+        Cp = self.gmodel.Cp(self.gas)
+        self.assertAlmostEqual(Cp, 2233.0, delta=HEAT_CAP_TOL*Cp)
 
     def test_press_from_rhoT(self):
         self.gas.rho = 268.58
@@ -52,8 +66,13 @@ class BenderTest(unittest.TestCase):
         self.gmodel.eval_thermo_state_rhoT(self.gas)
         self.assertAlmostEqual(self.gas.p, 6.713e6, delta=PRES_TOL*self.gas.p)
         self.assertAlmostEqual(self.gas.e[0], 362.09e3, delta=ENER_TOL*self.gas.e[0])
+        self.assertAlmostEqual(self.gas.a, 185.33, delta=SS_TOL*self.gas.a)
         s = self.gmodel.total_entropy(self.gas)
         self.assertAlmostEqual(s, 1.6215e3, delta=ENTR_TOL*s)
+        Cv = self.gmodel.Cv(self.gas)
+        self.assertAlmostEqual(Cv, 1247.6, delta=HEAT_CAP_TOL*Cv)
+        Cp = self.gmodel.Cp(self.gas)
+        self.assertAlmostEqual(Cp, 11921.0, delta=HEAT_CAP_TOL*Cp)
 
     def test_temp_from_rhop(self):
         self.gas.rho = 40.0
@@ -61,9 +80,14 @@ class BenderTest(unittest.TestCase):
         self.gmodel.eval_thermo_state_rhop(self.gas)
         self.assertAlmostEqual(self.gas.T[0], 250.0, delta=TEMP_TOL*self.gas.T[0])
         self.assertAlmostEqual(self.gas.e[0], 401.88e3, delta=ENER_TOL*self.gas.e[0])
+        self.assertAlmostEqual(self.gas.a, 225.18, delta=SS_TOL*self.gas.a)
         s = self.gmodel.total_entropy(self.gas)
         self.assertAlmostEqual(s, 2.0004e3, delta=ENTR_TOL*s)
+        Cv = self.gmodel.Cv(self.gas)
+        self.assertAlmostEqual(Cv, 721.46, delta=HEAT_CAP_TOL*Cv)
+        Cp = self.gmodel.Cp(self.gas)
+        self.assertAlmostEqual(Cp, 1144.2, delta=HEAT_CAP_TOL*Cp)
 
 if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(BenderTest)
+    suite = unittest.TestLoader().loadTestsFromTestCase(BenderTestCO2)
     unittest.TextTestRunner(verbosity=2).run(suite)
