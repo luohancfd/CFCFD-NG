@@ -165,6 +165,9 @@ def run_in_block_marching_mode(opt, gmodelFile):
     # solution with the inflow conditions.
     run_command("sed -i 's/fill_condition=initial/fill_condition=inflow/g' %s.py" % opt.jobName)
 
+    # Clean up any remnant files from previous runs 
+    run_command(['rm'] + ['-r'] + ['flow'] + ['grid'] + ['temp'] + glob('*.master'))
+
     # Run e3prep
     run_command(E3BIN+('/e3prep.py --job=%s --do-svg' % (opt.jobName,)))
     
