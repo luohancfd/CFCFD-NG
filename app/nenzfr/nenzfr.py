@@ -200,13 +200,18 @@ def run_in_block_marching_mode(opt, gmodelFile):
                and the number of blocks per set."
         sys.exit()
 
-    # Read timing file (file that specifies the max_time for each Eilmer3 run)
+    # Read timing file (file that specifies the max_time for each Eilmer3 run).
     inputFileName = opt.jobName + ".timing"
+    # Creates timing file if it does not exist.
+    if not os.path.exists(inputFileName):
+        timingFile = file(inputFileName, 'w')
+        time_slice = opt.max_time / noOfEilmer3Runs
+        for t in range(noOfEilmer3Runs):
+            timingFile.write('%.6e\n' % time_slice)
+        timingFile.close()
+    # Read timing file.
     maxTimeList = read_timing_file(inputFileName)
-    # TODO -> Unfortunately, because the number of blocks in the throat region is
-    #         not known when setting up the nenzfr calculation (it is determined
-    #         automatically), the user might not get the number of lines in the
-    #         timing file correct in his/her first go.
+    # Ensure that the number of time slices is equal to the number of runs.
     if len(maxTimeList) != noOfEilmer3Runs:
         print "Error: The number of max_time specified must match \
                the total number of Eilmer3 runs."
