@@ -198,7 +198,7 @@ def write_case_summary(varList,caseDict,caseString,newfile):
         fout.write('{0:->7}'.format('-'))
         fout.write('\n')
     else:
-        fout = open('case_summary.dat','a')
+        fout = open('sensitivity_cases.dat','a')
     # Now write out the data for the current case
     fout.write('{0:>7}'.format(caseString))
     for k in varList:
