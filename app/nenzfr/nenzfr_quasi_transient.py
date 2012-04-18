@@ -108,10 +108,11 @@ def main():
     """
     op = optparse.OptionParser(version=VERSION_STRING)
 
-    op.add_option('--runCMD', dest='runCMD', default='qsub ',
+    op.add_option('--runCMD', dest='runCMD', default='./',
+                  choices=['./', 'qsub '],
                   help=("command used to execute the run-script file "
                         "[default: %default]"))
-    op.add_option('--Cluster', dest='Cluster', default='Barrine',
+    op.add_option('--Cluster', dest='Cluster', default='Mango',
                   choices =['Mango', 'Barrine'],
                   help=("specify on which cluster the computations are to be ran. "
                         "This is used to define which run template script will "
@@ -257,6 +258,12 @@ def main():
         # Move the run script to its sub-directory
         command_text = 'mv '+scriptFileName+' ./'+caseString+'/'+scriptFileName
         run_command(command_text)
+        
+        # If required, copy the nozzle.timing file to the sub-directory
+        if opt.blockMarching is True:
+            if os.path.exists(nozzle.timing):
+                command_text = 'cp nozzle.timing ./'+caseString+'/'
+                run_command(command_text)
         
         # Change into the sub-directory, ensure the run script is exectuable and
         # then run it

@@ -2,7 +2,9 @@
 # nenzfr_sensitivity.py
 #
 # This script coordinates the running of a series of nenzfr 
-# calculations... 
+# calculations that are perturbations around a nominal condition.
+# The results may be used to create either a LUT or calculate
+# the sensitivities of the freestream properties to the inputs.
 # 
 # Luke Doherty
 # School of Mechancial and Mining Engineering
@@ -145,14 +147,22 @@ def set_case_running(caseString, caseDict, textString):
     print caseString
     print textString
     
+    # Create sub-directory for the current case
     run_command('mkdir ./'+caseString)
      
     # Set up the run script for Nenzfr
-    scriptFileName = prepare_run_script(caseDict, caseDict['jobName'].strip('"')+'_'+caseString, caseDict['Cluster'])
+    scriptFileName = prepare_run_script(caseDict, \
+        caseDict['jobName'].strip('"')+'_'+caseString, caseDict['Cluster'])
     
     # Move the run script to its sub-directory
     command_text = 'mv '+scriptFileName+' ./'+caseString+'/'+scriptFileName
     run_command(command_text)
+
+    # If required, copy the nozzle.timing file to the sub-directory
+    if caseDict['blockMarching'] == "--block-marching":
+        if os.path.exists(nozzle.timing):
+            command_text = 'cp nozzle.timing ./'+caseString+'/'
+            run_command(command_text)
     
     # Change into the sub-directory, ensure the run script is exectuable and
     # then run it
@@ -175,7 +185,6 @@ def write_case_summary(varList,caseDict,caseString,newfile):
                        'pe':'{0:{fill}>15}', 'Tw':'{0:{fill}>10}', 'BLTrans':'{0:{fill}>10}',
                        'TurbVisRatio':'{0:{fill}>14}', 'TurbInten':'{0:{fill}>11}',
                        'CoreRadiusFraction':'{0:{fill}>20}'}
-
     if newfile == 1:
         fout = open('sensitivity_cases.dat','w')
         # Write title line
@@ -190,7 +199,6 @@ def write_case_summary(varList,caseDict,caseString,newfile):
         fout.write('\n')
     else:
         fout = open('case_summary.dat','a')
-        
     # Now write out the data for the current case
     fout.write('{0:>7}'.format(caseString))
     for k in varList:
@@ -215,18 +223,15 @@ def main():
                         "This is used to define which run template script will "
                         "be used. Options: "
                         "Mango; Barrine [default: %default]"))
-    
     op.add_option('--perturb', dest='perturb', default='rel', choices=['rel','abs'],
                   help=("specify whether the given perturbations are absolute "
                         "or relative values. Options: rel, abs [default: %default]"))
-
     op.add_option('--gradient', dest='gradient', default='linear',
                   choices=['linear','quadratic'],
                   help=("specify whether the gradient is to be calculated "
-                        "using a linear or quadratic equation. ONLY available "
-                        "with the --create-LUT option "
+                        "using a linear or quadratic equation. Quadratic is "
+                        "only  available with the --create-LUT option. "
                         "Options: linear, quadratic [default: %default]"))
-
     op.add_option('--job', dest='jobName', default='nozzle',
                   help="base name for Eilmer3 files [default: %default]")
 
@@ -235,16 +240,48 @@ def main():
                   choices=['air', 'air5species', 'n2', 'co2', 'h2ne'],
                   help=("name of gas model: "
                         "air; " "air5species; " "n2; " "co2; " "h2ne"))
-    
-    op.add_option('--p1', dest='p1', default=None, 
-                  help=("shock tube fill pressure (in Pa) and its perturbation"))
-    op.add_option('--T1', dest='T1', default=None,
-                  help=("shock tube fill temperature, in degrees K and its perturbation"))
-    op.add_option('--Vs', dest='Vs', default=None,
-                  help=("incident shock speed, in m/s"))
-    op.add_option('--pe', dest='pe', default=None,
-                  help=("equilibrium pressure (after shock reflection), in Pa"))
 
+    group = optparse.OptionGroup(op, "Inputs that may be perturbed:", 
+                  "The following inputs my be perturbed by providing a list in one of "
+                  "the following forms: "
+                  " (1)  [nominal, +delta];"
+                  " (2)  [nominal, +delta_1, -delta_2];"
+                  " (3)  [nominal, +delta_1, -delta_2, +delta_3];"
+                  " (4)  [nominal, +delta_1, -delta_2, +delta_3, -delta_4]. "
+                  "Note that (3),(4) are only valid for the 'quadratic' "
+                  "gradient option.")
+    group.add_option('--p1', dest='p1', default=None, 
+                  help=("shock tube fill pressure (in Pa) and its perturbation/s "
+                        "as a list. [default delta: 5%]" ))
+    group.add_option('--T1', dest='T1', default=None,
+                  help=("shock tube fill temperature, in degrees K and its perturbation/s "
+                        "as a list. [default delta: 5%]"))
+    group.add_option('--Vs', dest='Vs', default=None,
+                  help=("incident shock speed, in m/s and its perturbation/s as a list. "
+                        "[default delta: 5%]"))
+    group.add_option('--pe', dest='pe', default=None,
+                  help=("equilibrium pressure (after shock reflection), in Pa and its "
+                        "perturbation/s as a list. [default delta: 5%]"))
+
+    group.add_option('--Twall', dest='Tw', default='300.0',
+                  help=("Nozzle wall temperature, in K and its perturbation/s as a list. "
+                        "[default: %default, delta: 5%]"))
+    group.add_option('--BLTrans', dest='BLTrans', default="x_c[-1]*1.1",
+                  help=("Transition location for the Boundary layer and its perturbation/s "
+                        "as a list. Used to define the turbulent portion of the nozzle. "
+                        "[default: >nozzle length i.e. laminar nozzle, delta: 5%]"))
+    group.add_option('--TurbVisRatio', dest='TurbVisRatio', default='100.0',
+                  help=("Turbulent to Laminar Viscosity Ratio and its perturbation/s "
+                        "as a list. [default: %default, delta: 5%]"))
+    group.add_option('--TurbIntensity', dest='TurbInten', default='0.05',
+                  help=("Turbulence intensity at the throat and its perturbation/s "
+                  "[default: %default, delta: 5%]"))
+    group.add_option('--CoreRadiusFraction', dest="coreRfraction", default='0.6666666667',
+                  help=("Radius of core flow as a fraction of "
+                  "the nozzle exit radius and its perturbation/s "
+                  "[default: %default, delta: 5%]"))
+    op.add_option_group(group)
+    
     op.add_option('--chem', dest='chemModel', default='eq',
                   choices=['eq', 'neq', 'frz', 'frz2'],
                   help=("chemistry model: " "eq=equilibrium; "
@@ -288,22 +325,6 @@ def main():
     op.add_option('--max-step', dest='max_step', type='int', default=80000,
                   help=("maximum simulation steps allowed"))
 
-    op.add_option('--Twall', dest='Tw', default='300.0',
-                  help=("Nozzle wall temperature, in K "
-                        "[default: %default]"))
-    op.add_option('--BLTrans', dest='BLTrans', default="x_c[-1]*1.1",
-                  help=("Transition location for the Boundary layer. Used "
-                        "to define the turbulent portion of the nozzle. "
-                        "[default: >nozzle length i.e. laminar nozzle]"))
-    op.add_option('--TurbVisRatio', dest='TurbVisRatio', default='100.0', 
-                  help=("Turbulent to Laminar Viscosity Ratio "
-                  "[default: %default]"))
-    op.add_option('--TurbIntensity', dest='TurbInten', default='0.05', 
-                  help=("Turbulence intensity at the throat "
-                  "[default: %default]"))
-    op.add_option('--CoreRadiusFraction', dest="coreRfraction", default='0.6666666667', 
-                  help=("Radius of core flow as a fraction of "
-                  "the nozzle exit radius [default: %default]"))
     opt, args = op.parse_args()
         
     # Set the default relative perturbation values
