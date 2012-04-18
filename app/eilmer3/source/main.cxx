@@ -643,7 +643,7 @@ int integrate_blocks_in_sequence( void )
 {
     global_data &G = *get_global_data_ptr();
     Block *bdp;
-    double time_slice = G.max_time / G.nblock;
+    double time_slice = G.max_time / (G.nblock - 1);
     BoundaryCondition *bcp_save;
     int status_flag = SUCCESS;
 
