@@ -143,6 +143,8 @@ def set_perturbed_values(var, temp, defaultPerturbations, perturb, gradient):
     return temp
 
 def set_case_running(caseString, caseDict, textString):
+    """
+    """
     print 60*"-"
     print caseString
     print textString
@@ -159,10 +161,15 @@ def set_case_running(caseString, caseDict, textString):
     run_command(command_text)
 
     # If required, copy the nozzle.timing file to the sub-directory
-    if caseDict['blockMarching'] == "--block-marching":
-        if os.path.exists(nozzle.timing):
+    if caseDict['blockMarching'] in ["--block-marching",]:
+        if os.path.exists('nozzle.timing'):
             command_text = 'cp nozzle.timing ./'+caseString+'/'
             run_command(command_text)
+    
+    # If require, copy the equilibrium gas LUT to the sub-directory
+    if caseDict['chemModel'] in ['"eq"',]:
+        command_text = 'cp ./'+caseDict['gmodelFile']+' ./'+caseString+'/'
+        run_command(command_text)
     
     # Change into the sub-directory, ensure the run script is exectuable and
     # then run it
@@ -179,7 +186,7 @@ def set_case_running(caseString, caseDict, textString):
 def write_case_summary(varList,caseDict,caseString,newfile):
     formatDict = {'p1':'{0:>13.2f}', 'T1':'{0:>10.2f}', 'Vs':'{0:>11.2f}',
                   'pe':'{0:>15.2f}', 'Tw':'{0:>10.2f}', 'BLTrans':'{0:>10.4f}', 
-                  'TurbVisRatio':'{0:>14.1f}', 'TurbInten':'{0:>11.3f}', 
+                  'TurbVisRatio':'{0:>14.1f}', 'TurbInten':'{0:>11.6f}', 
                   'CoreRadiusFraction':'{0:>20.8f}'}
     titleFormatDict = {'p1':'{0:{fill}>13}', 'T1':'{0:{fill}>10}', 'Vs':'{0:{fill}>11}',
                        'pe':'{0:{fill}>15}', 'Tw':'{0:{fill}>10}', 'BLTrans':'{0:{fill}>10}',
@@ -360,7 +367,8 @@ def main():
             print "Sensitivity will be calculated using a linear slope."
     if bad_input:
         return -2
-    
+        
+
     if opt.createLUT:
         perturbedVariables = ['p1','T1','Vs','pe']
         perturbedDict = {'p1':opt.p1, 'T1':opt.T1, 'Vs':opt.Vs, 'pe':opt.pe}
@@ -397,6 +405,19 @@ def main():
     for k in range(len(perturbedVariables)):
         var = perturbedVariables[k]
         paramDict[var] = perturbedDict[var][0]
+
+    # As building an equilibrium gas LUT is so time consuming, we do it here
+    # and then copy the resulting LUT into each case sub-directory. The following
+    # lines are copied almost verbatim from "nenzfr.py"
+    if opt.chemModel in ['eq']:
+        if opt.gasName in ['n2']:
+            eqGasModelFile = 'cea-lut-'+upper(opt.gasName)+'.lua.gz'
+        else:
+            eqGasModelFile = 'cea-lut-'+opt.gasName+'.lua.gz'
+        if not os.path.exists(eqGasModelFile):
+            run_command('build-cea-lut.py --gas='+opt.gasName)
+        paramDict['gmodelFile'] = eqGasModelFile
+
 
     # Calculate Nominal condition
     caseString = 'case'+"{0:02}".format(0)+"{0:01}".format(0)

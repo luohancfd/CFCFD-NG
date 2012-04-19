@@ -188,11 +188,12 @@ class Gas(object):
         """
         if newOutputUnits == None: newOutputUnits = self.outputUnits
         other = Gas(self.reactants, self.onlyList, self.inputUnits,
-                    newOutputUnits, self.with_ions)
+                    newOutputUnits, self.with_ions, self.trace)
         if self.have_run_cea:
             other.p = self.p
             other.T = self.T
             other.Us = self.Us
+            other.trace = self.trace
             other.EOS(problemType='pT', transProps=True)
         return other
 
@@ -527,7 +528,7 @@ def make_gas_from_name(gasName, outputUnits='massf'):
     :param gasName: one of the names for the special cases set out below
     """
     if gasName.lower() == 'air':
-        return Gas({'Air':1.0,}, outputUnits=outputUnits)
+        return Gas({'Air':1.0,}, outputUnits=outputUnits, trace=1.0e-4)
     elif gasName.lower() == 'air5species':
         return Gas(reactants={'N2':0.79, 'O2':0.21, 'N':0.0, 'O':0.0, 'NO':0.0}, 
                    inputUnits='moles', onlyList=['N2','O2','N','O','NO'],

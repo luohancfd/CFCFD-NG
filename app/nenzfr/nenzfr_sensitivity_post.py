@@ -94,6 +94,34 @@ def read_nenzfr_outfile(FileToRead):
     fp.close()
     return exitDataDict, exitProperty
 
+def read_estcj_outfile(FileToRead):
+    """
+    Read just the line in the estcj output file that contains the nozzle
+    supply temperature and enthalpy.
+    """
+    supplyDict = {}
+    lineToRead = 0
+    
+    fp = open(FileToRead,'r')
+    for line in fp.readlines():
+        # We only want to read one line in the file
+        if lineToRead == 1: 
+            for data in line.split(','):
+                # Data is a list of strings with one string for each property.
+                # The form of the strings is 'property: value unit'. We split
+                # list and create "values" which is a list of lists of the form
+                #     values = [[property],[value, unit]]
+                # We then put this into a dictionary.
+                values = [x.split() for x in data.split(':')]
+                supplyDict[values[0][0]] = float(values[1][0])
+            lineToRead = 0
+            
+        if line.strip() in ['State 5s: equilibrium condition (relaxation to pe)',]:
+            # We want to read the next line
+            lineToRead = 1
+    fp.close()
+    return supplyDict
+
 def get_values(dict, propertyList):
     """
     Adapted from Peter Jacob's function "get_fractions" which may be
@@ -139,18 +167,18 @@ def write_sensitivity_summary(sensitivity, perturbedVariables, exitVar, nominalD
                       'CoreRadiusFraction':'{0:>20.2%}'}
     
     # Write header information
-    fout.write('{0:>10}'.format('variable'))
+    fout.write('{0:>13}'.format('variable'))
     for k in perturbedVariables:
         fout.write(titleFormatDict[k].format(k,fill=''))
     fout.write('{0:>10}'.format('total'))
     fout.write('\n')
     for k in perturbedVariables:
         fout.write(titleFormatDict[k].format('-',fill='-'))
-    fout.write('{0:->20}'.format('-'))
+    fout.write('{0:->23}'.format('-'))
     fout.write('\n')
     
     for k in exitVar:
-        fout.write('{0:>10}'.format(k))
+        fout.write('{0:>13}'.format(k))
         X_total = 0.0
         for kk in perturbedVariables:
             X_kk = sensitivity[kk][exitVar.index(k)]
@@ -193,8 +221,8 @@ def main():
                         "only  available with the --create-LUT option. "
                         "Options: linear, quadratic [default: %default]"))
     
-    #op.add_option('--job', dest='jobName', default='nozzle',
-    #              help="base name for Eilmer3 files [default: %default]")
+    op.add_option('--job', dest='jobName', default='nozzle',
+                  help="base name for Eilmer3 files [default: %default]")
 
     op.add_option('--exitStatsfile', dest='exitStatsFileName',
                   default='nozzle-exit.stats',
@@ -221,12 +249,20 @@ def main():
     # their various values
     perturbedVariables, DictOfCases = read_case_summary()
     
-    # Define the name of the nominal case and load the data
+    # Define the name of the nominal case and load the exit plane data
     nominal = 'case000'
     nominalData, exitVar = read_nenzfr_outfile('./'+nominal+'/'+opt.exitStatsFileName)
+    # Load the nozzle supply data
+    nominalSupply = read_estcj_outfile('./'+nominal+'/'+opt.jobName+'-estcj.dat')
+    # Now add the relevant supply data (T, h) to the nominalData dictionary
+    nominalData['supply_T'] = nominalSupply['T']
+    nominalData['supply_h'] = nominalSupply['h']
+    # Add the supply variables to the exitVar list
+    exitVar.insert(0,'supply_T')
+    exitVar.insert(1,'supply_h')
+    
     nominalValues = get_values(nominalData, exitVar)
     
-     
     # Loop through each of the perturbed variables
     sensitivity = {}
     for k in range(len(perturbedVariables)):
@@ -236,12 +272,19 @@ def main():
         # associated data
         high = 'case'+"{0:02}".format(k)+'1'
         highData, dontNeed  = read_nenzfr_outfile('./'+high+'/'+opt.exitStatsFileName)
+        highSupply = read_estcj_outfile('./'+high+'/'+opt.jobName+'-estcj.dat')
+        highData['supply_T'] = highSupply['T']
+        highData['supply_h'] = highSupply['h']
+        
         low = 'case'+"{0:02}".format(k)+'2'
         lowData, dontNeed = read_nenzfr_outfile('./'+low+'/'+opt.exitStatsFileName)
-        print low, nominal, high
+        lowSupply = read_estcj_outfile('./'+low+'/'+opt.jobName+'-estcj.dat')
+        lowData['supply_T'] = lowSupply['T']
+        lowData['supply_h'] = lowSupply['h']
+        
+        #print low, nominal, high
     
         if opt.gradient == "linear":
-            print ""
             highValues = get_values(highData,exitVar)
             lowValues = get_values(lowData,exitVar)
             
@@ -251,11 +294,28 @@ def main():
             
             highWeighting = (nominalX - lowX)/(highX - lowX)
             lowWeighting = (highX - nominalX)/(highX - lowX)
-            sensitivity[var] = highWeighting*(array(highValues)-array(nominalValues))/\
+            
+            sensitivity[var] = ( highWeighting*(array(highValues)-array(nominalValues))/\
                                   (highX - nominalX) + \
                                lowWeighting*(array(nominalValues) - array(lowValues))/\
-                                  (nominalX - lowX)
-                   
+                                  (nominalX - lowX) ) * nominalX/array(nominalValues)
+            #sensitivity[var] = (array(highValues)-array(lowValues))/(highX-lowX)*\
+            #                    nominalX/array(nominalValues)
+            
+            #weightA = (nominalX - lowX)/(highX - lowX)
+            #print "weightA=",weightA
+            #slopeA = (array(highValues)-array(nominalValues))/(highX - nominalX)
+            #print "slopeA=",slopeA
+            #
+            #weightB = (highX - nominalX)/(highX - lowX)
+            #print "weightB=",weightB
+            #slopeB = (array(nominalValues)-array(lowValues))/(nominalX - lowX)
+            #print "slopeB=",slopeB
+            #print "" 
+            #print "sensitivity_1=",weightA*slopeA + weightB*slopeB
+            #print "sensitivity_2=",(array(highValues)-array(lowValues))/(highX-lowX)
+            #print "sensitivity_3=", sensitivity[var]
+            #print "difference=",weightA*slopeA + weightB*slopeB-(array(highValues)-array(lowValues))/(highX-lowX)
         else:
             # For quadratic curve fit we have additional cases 
             # that need to be loaded
@@ -266,8 +326,8 @@ def main():
             tooLowData,dontNeed = \
                   read_nenzfr_outfile('./'+tooLow+'/'+opt.exitStatsFileName)
 
-    print sensitivity
-
+    #print sensitivity
+   
     # Now write out a file of the sensitivities as both absolute and relative numbers
     write_sensitivity_summary(sensitivity, perturbedVariables, exitVar, nominalData, 1)
     write_sensitivity_summary(sensitivity, perturbedVariables, exitVar, nominalData, 0) 

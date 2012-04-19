@@ -228,7 +228,33 @@ def main():
     pe = calculate_pe_values(opt.peFileName, opt.tstart, opt.nsteps, opt.dt)
     
     # Set up the run script for Nenzfr.
-    paramDict = {'jobName':quote(opt.jobName)}
+    paramDict = {'jobName':quote(opt.jobName), 'gasName':quote(opt.gasName),
+                 'T1':opt.T1, 'p1':opt.p1, 'Vs':opt.Vs,
+                 'chemModel':quote(opt.chemModel),
+                 'contourFileName':quote(opt.contourFileName),
+                 'gridFileName':quote(opt.gridFileName),
+                 'exitSliceFileName':quote(opt.exitSliceFileName),
+                 'areaRatio':opt.areaRatio, 'blockMarching':opt.blockMarching,
+                 'nni':opt.nni, 'nnj':opt.nnj, 'nbi':opt.nbi, 'nbj':opt.nbj,
+                 'bx':opt.bx, 'by':opt.by,
+                 'max_time':opt.max_time, 'max_step':opt.max_step,
+                 'Tw':opt.Tw, 'TurbVisRatio':opt.TurbVisRatio,
+                 'TurbInten':opt.TurbInten, 'BLTrans':opt.BLTrans,
+                 'CoreRadiusFraction':opt.coreRfraction}
+    
+    # As building an equilibrium gas LUT is so time consuming, we do it here
+    # and then copy the resulting LUT into each case sub-directory. The following
+    # lines are copied almost verbatim from "nenzfr.py"
+    if opt.chemModel in ['eq']:
+        if opt.gasName in ['n2']:
+            eqGasModelFile = 'cea-lut-'+upper(opt.gasName)+'.lua.gz'
+        else:
+            eqGasModelFile = 'cea-lut-'+opt.gasName+'.lua.gz'
+        if not os.path.exists(eqGasModelFile):
+            run_command('build-cea-lut.py --gas='+opt.gasName)
+        paramDict['gmodelFile'] = eqGasModelFile
+
+    
     for k in range(len(pe)):
         # Create sub-directory for the current case.
         caseString = 'case'+"{0:03}".format(k)
@@ -240,19 +266,20 @@ def main():
         run_command('mkdir ./'+caseString)
         
         # Set up the run script for Nenzfr
-        paramDict = {'jobName':quote(opt.jobName), 'gasName':quote(opt.gasName),
-                     'T1':opt.T1, 'p1':opt.p1, 'Vs':opt.Vs, 'pe':pe[k],
-                     'chemModel':quote(opt.chemModel),
-                     'contourFileName':quote(opt.contourFileName),
-                     'gridFileName':quote(opt.gridFileName),
-                     'exitSliceFileName':quote(opt.exitSliceFileName),
-                     'areaRatio':opt.areaRatio, 'blockMarching':opt.blockMarching,
-                     'nni':opt.nni, 'nnj':opt.nnj, 'nbi':opt.nbi, 'nbj':opt.nbj,
-                     'bx':opt.bx, 'by':opt.by,
-                     'max_time':opt.max_time, 'max_step':opt.max_step,
-                     'Tw':opt.Tw, 'TurbVisRatio':opt.TurbVisRatio,
-                     'TurbInten':opt.TurbInten, 'BLTrans':opt.BLTrans,
-                     'CoreRadiusFraction':opt.coreRfraction}
+        #paramDict = {'jobName':quote(opt.jobName), 'gasName':quote(opt.gasName),
+        #             'T1':opt.T1, 'p1':opt.p1, 'Vs':opt.Vs, 'pe':pe[k],
+        #             'chemModel':quote(opt.chemModel),
+        #             'contourFileName':quote(opt.contourFileName),
+        #             'gridFileName':quote(opt.gridFileName),
+        #             'exitSliceFileName':quote(opt.exitSliceFileName),
+        #             'areaRatio':opt.areaRatio, 'blockMarching':opt.blockMarching,
+        #             'nni':opt.nni, 'nnj':opt.nnj, 'nbi':opt.nbi, 'nbj':opt.nbj,
+        #             'bx':opt.bx, 'by':opt.by,
+        #             'max_time':opt.max_time, 'max_step':opt.max_step,
+        #             'Tw':opt.Tw, 'TurbVisRatio':opt.TurbVisRatio,
+        #             'TurbInten':opt.TurbInten, 'BLTrans':opt.BLTrans,
+        #             'CoreRadiusFraction':opt.coreRfraction}
+        paramDict['pe'] = pe[k]
         scriptFileName = prepare_run_script(paramDict, opt.jobName+'_'+caseString, opt.Cluster)
          
         # Move the run script to its sub-directory
@@ -265,6 +292,17 @@ def main():
                 command_text = 'cp nozzle.timing ./'+caseString+'/'
                 run_command(command_text)
         
+        # If required, copy the nozzle.timing file to the sub-directory
+        if paramDict['blockMarching'] in ["--block-marching",]:
+            if os.path.exists('nozzle.timing'):
+                command_text = 'cp nozzle.timing ./'+caseString+'/'
+                run_command(command_text)
+
+        # If require, copy the equilibrium gas LUT to the sub-directory
+        if paramDict['chemModel'] in ['"eq"',]:
+            command_text = 'cp '+paramDict['gmodelFile']+' ./'+caseString+'/'
+            run_command(command_text)
+     
         # Change into the sub-directory, ensure the run script is exectuable and
         # then run it
         os.chdir(caseString)
@@ -272,9 +310,10 @@ def main():
         print ""
         print opt.runCMD+scriptFileName
         print ""
-        os.system(opt.runCMD+scriptFileName) # I am not sure how to replace this with the run_command function
+        # I am not sure how to replace the next line with the run_command function
+        os.system(opt.runCMD+scriptFileName)
         os.chdir('../')
-     
+    
     return 0
 
 #---------------------------------------------------------------
