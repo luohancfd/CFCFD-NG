@@ -266,19 +266,6 @@ def main():
         run_command('mkdir ./'+caseString)
         
         # Set up the run script for Nenzfr
-        #paramDict = {'jobName':quote(opt.jobName), 'gasName':quote(opt.gasName),
-        #             'T1':opt.T1, 'p1':opt.p1, 'Vs':opt.Vs, 'pe':pe[k],
-        #             'chemModel':quote(opt.chemModel),
-        #             'contourFileName':quote(opt.contourFileName),
-        #             'gridFileName':quote(opt.gridFileName),
-        #             'exitSliceFileName':quote(opt.exitSliceFileName),
-        #             'areaRatio':opt.areaRatio, 'blockMarching':opt.blockMarching,
-        #             'nni':opt.nni, 'nnj':opt.nnj, 'nbi':opt.nbi, 'nbj':opt.nbj,
-        #             'bx':opt.bx, 'by':opt.by,
-        #             'max_time':opt.max_time, 'max_step':opt.max_step,
-        #             'Tw':opt.Tw, 'TurbVisRatio':opt.TurbVisRatio,
-        #             'TurbInten':opt.TurbInten, 'BLTrans':opt.BLTrans,
-        #             'CoreRadiusFraction':opt.coreRfraction}
         paramDict['pe'] = pe[k]
         scriptFileName = prepare_run_script(paramDict, opt.jobName+'_'+caseString, opt.Cluster)
          

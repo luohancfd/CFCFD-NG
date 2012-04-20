@@ -10,7 +10,7 @@
 # School of Mechancial and Mining Engineering
 # The University of Queensland
 
-VERSION_STRING = "16-April-2012"
+VERSION_STRING = "20-April-2012"
 
 import shlex, subprocess, string
 from subprocess import PIPE
@@ -65,6 +65,11 @@ def quote(str):
 
 
 def configure_input_dictionary(perturbedDict, defaultPerturbations, gradient, perturb): 
+    """
+    Take the input dictionary, for which the values corresponding to each key are 
+    strings and convert the strings into a list of floats. Return the adjusted input
+    dictionary.
+    """
     if 'BLTrans' in perturbedDict:
         if perturbedDict["BLTrans"] == "x_c[-1]*1.1":
             del perturbedDict["BLTrans"]
@@ -73,70 +78,104 @@ def configure_input_dictionary(perturbedDict, defaultPerturbations, gradient, pe
             temp =  perturbedDict.values()[i]
             temp = temp.strip(']').strip('[').split(',')
             temp = [float(temp[j]) for j in range(len(temp))]
-            perturbedDict[var] = set_perturbed_values(var, temp, defaultPerturbations, perturb, gradient) 
+            perturbedDict[var] = set_perturbed_values(var, temp, \
+                                    defaultPerturbations, perturb, gradient) 
     return perturbedDict
 
 def set_perturbed_values(var, temp, defaultPerturbations, perturb, gradient):
+    """
+    Caculate a list of perturbed values for variable of interest based on 
+    input data.
+    """
     if gradient == "linear":
         if len(temp) == 1:
             # have just the value
-            print "Using default relative perturbation of "+str(defaultPerturbations[var]*100.0)+"% for "+var
-            temp = [temp[0], temp[0]*(1+defaultPerturbations[var]), temp[0]*(1-defaultPerturbations[var])]
+            print "Using default relative perturbation of "+\
+                   str(defaultPerturbations[var]*100.0)+"% for "+var
+            temp = [temp[0], temp[0]*(1+defaultPerturbations[var]),\
+                             temp[0]*(1-defaultPerturbations[var])]
         elif len(temp) == 2:
-            # have either [value, delta] or [value, percent_delta]
+            # have either [value, delta]         or
+            #             [value, percent_delta]
             if perturb == "rel":
-                temp = [temp[0], temp[0]*(1.0+temp[1]), temp[0]*(1.0-temp[1])]
+                temp = [temp[0], temp[0]*(1.0+temp[1]),\
+                                 temp[0]*(1.0-temp[1])]
             else:
-                temp = [temp[0], temp[0]+temp[1], temp[0]-temp[1]]
+                temp = [temp[0], temp[0]+temp[1],\
+                                 temp[0]-temp[1]]
         elif len(temp) == 3:
-            # have either [value, +delta, -delta] or [value, +percent_delta, -percent_delta]
+            # have either [value, +delta, -delta]                  or 
+            #             [value, +percent_delta, -percent_delta]
             if perturb == "rel":
-                temp = [temp[0], temp[0]*(1.0+temp[1]), temp[0]*(1.0+temp[2])]
+                temp = [temp[0], temp[0]*(1.0+temp[1]),\
+                                 temp[0]*(1.0+temp[2])]
             else:
-                temp = [temp[0], temp[0]+temp[1], temp[0]+temp[2]]
+                temp = [temp[0], temp[0]+temp[1],\
+                                 temp[0]+temp[2]]
         else:
             print "Too many values given for "+var
             return -2
     elif gradient == "quadratic":
         if len(temp) == 1:
-            print "Using default relative perturbation of "+str(defaultPerturbations[var]*100.0)+"% for "+var
-            temp = [temp[0], temp[0]*(1+defaultPerturbations[var]), temp[0]*(1-defaultPerturbations[var]),\
-                    temp[0]*(1+defaultPerturbations[var]*2.0), temp[0]*(1-defaultPerturbations[var]*2.0)]
+            print "Using default relative perturbation of "+\
+                           str(defaultPerturbations[var]*100.0)+"% for "+var
+            temp = [temp[0], temp[0]*(1+defaultPerturbations[var]),\
+                             temp[0]*(1-defaultPerturbations[var]),\
+                             temp[0]*(1+defaultPerturbations[var]*2.0),\
+                             temp[0]*(1-defaultPerturbations[var]*2.0)]
         elif len(temp) == 2:
-            # have either [value, delta] or [value, +percent_delta]
+            # have either [value, delta]            or
+            #              [value, +percent_delta]
             # we assume that "2"*delta == 2*delta
             if perturb == "rel":
-                temp = [temp[0], temp[0]*(1.0+temp[1]), temp[0]*(1.0-temp[1]),\
-                        temp[0]*(1.0+temp[1]*2.0), temp[0]*(1.0-temp[1]*2.0)]
+                temp = [temp[0], temp[0]*(1.0+temp[1]),\
+                                 temp[0]*(1.0-temp[1]),\
+                                 temp[0]*(1.0+temp[1]*2.0),\
+                                 temp[0]*(1.0-temp[1]*2.0)]
             else:
-                temp = [temp[0], temp[0]+temp[1], temp[0]-temp[1],\
-                        temp[0]+2.0*temp[1], temp[0]-2.0*temp[1]]
+                temp = [temp[0], temp[0]+temp[1],\
+                                 temp[0]-temp[1],\
+                                 temp[0]+2.0*temp[1],\
+                                 temp[0]-2.0*temp[1]]
         elif len(temp) == 3:
-            # have either [value, delta, "2"*delta] or [value, percent_delta, "2"*percent_delta]
+            # have either [value, delta, "2"*delta]                  or
+            #             [value, percent_delta, "2"*percent_delta]
             if perturb == "rel":
-                temp = [temp[0], temp[0]*(1.0+temp[1]), temp[0]*(1.0-temp[1]),\
-                        temp[0]*(1.0+temp[2]), temp[0]*(1.0-temp[2])]
+                temp = [temp[0], temp[0]*(1.0+temp[1]),\
+                                 temp[0]*(1.0-temp[1]),\
+                                 temp[0]*(1.0+temp[2]),\
+                                 temp[0]*(1.0-temp[2])]
             else:
-                temp = [temp[0], temp[0]+temp[1], temp[0]-temp[1],\
-                        temp[0]+temp[2], temp[0]-temp[2]]
+                temp = [temp[0], temp[0]+temp[1],\
+                                 temp[0]-temp[1],\
+                                 temp[0]+temp[2],\
+                                 temp[0]-temp[2]]
         elif len(temp) == 4:
-            # have either [value, +delta, -delta, "2"*delta] or
+            # have either [value, +delta, -delta, "2"*delta]                          or
             #             [value, +percent_delta, -percent_delta, "2"*percent_delta]
             if perturb == "rel":
-                temp = [temp[0], temp[0]*(1.0+temp[1]), temp[0]*(1.0-temp[2]),\
-                        temp[0]*(1.0+temp[3]), temp[0]*(1.0-temp[3])]
+                temp = [temp[0], temp[0]*(1.0+temp[1]),\
+                                 temp[0]*(1.0-temp[2]),\
+                                 temp[0]*(1.0+temp[3]),\
+                                 temp[0]*(1.0-temp[3])]
             else:
-                temp = [temp[0], temp[0]+temp[1], temp[0]-temp[2],\
-                        temp[0]+temp[3], temp[0]-temp[3]]
+                temp = [temp[0], temp[0]+temp[1],\
+                                 temp[0]-temp[2],\
+                                 temp[0]+temp[3],\
+                                 temp[0]-temp[3]]
         elif len(temp) == 5:
             # have either [value, +delta, -delta, +"2"*delta, -"2"*delta] or
             #             [value +percent_delta, -percent_delta, +"2"*percent_delta, -"2"*percent_delta]
             if perturb == "rel":
-                temp = [temp[0], temp[0]*(1.0+temp[1]), temp[0]*(1.0-temp[2]),\
-                        temp[0]*(1.0+temp[3]), temp[0]*(1.0-temp[4])]
+                temp = [temp[0], temp[0]*(1.0+temp[1]),\
+                                 temp[0]*(1.0-temp[2]),\
+                                 temp[0]*(1.0+temp[3]),\
+                                 temp[0]*(1.0-temp[4])]
             else:
-                temp = [temp[0], temp[0]+temp[1], temp[0]-temp[2],\
-                        temp[0]+temp[3], temp[0]-temp[4]]
+                temp = [temp[0], temp[0]+temp[1],\
+                                 temp[0]-temp[2],\
+                                 temp[0]+temp[3],\
+                                 temp[0]-temp[4]]
         else:
             print "Too many values given for "+var
             return -2
@@ -144,6 +183,8 @@ def set_perturbed_values(var, temp, defaultPerturbations, perturb, gradient):
 
 def set_case_running(caseString, caseDict, textString):
     """
+    A short function to set a given case running in an appropriately
+    named sub-directory.
     """
     print 60*"-"
     print caseString
@@ -184,14 +225,22 @@ def set_case_running(caseString, caseDict, textString):
     return
 
 def write_case_summary(varList,caseDict,caseString,newfile):
-    formatDict = {'p1':'{0:>13.2f}', 'T1':'{0:>10.2f}', 'Vs':'{0:>11.2f}',
-                  'pe':'{0:>15.2f}', 'Tw':'{0:>10.2f}', 'BLTrans':'{0:>10.4f}', 
-                  'TurbVisRatio':'{0:>14.1f}', 'TurbInten':'{0:>11.6f}', 
-                  'CoreRadiusFraction':'{0:>20.8f}'}
+    """
+    A short function to write the values of the perturbed variables 
+    for the current case to a summary file.
+    """
+    # Define some dictionaries with the formating of each of the possible 
+    # perturbed variables
+    formatDict = {'p1':'{0:>13.4g}', 'T1':'{0:>10.4g}', 'Vs':'{0:>11.4g}',
+                  'pe':'{0:>15.4g}', 'Tw':'{0:>10.4g}', 'BLTrans':'{0:>10.4g}',
+                  'TurbVisRatio':'{0:>14.4g}', 'TurbInten':'{0:>11.4g}',
+                  'CoreRadiusFraction':'{0:>20.4g}'}
     titleFormatDict = {'p1':'{0:{fill}>13}', 'T1':'{0:{fill}>10}', 'Vs':'{0:{fill}>11}',
                        'pe':'{0:{fill}>15}', 'Tw':'{0:{fill}>10}', 'BLTrans':'{0:{fill}>10}',
                        'TurbVisRatio':'{0:{fill}>14}', 'TurbInten':'{0:{fill}>11}',
                        'CoreRadiusFraction':'{0:{fill}>20}'}
+    # For the first time we create a new file and write the header information.
+    # Each following case is appended to the existing file.
     if newfile == 1:
         fout = open('sensitivity_cases.dat','w')
         # Write title line
@@ -217,7 +266,8 @@ def write_case_summary(varList,caseDict,caseString,newfile):
 def main():
     """
     Examine the command-line options to decide the what to do
-    and then coordinate the calculations done by Nenzfr.
+    and then coordinate a series of Nenzfr calculations with 
+    various inputs perturbed around the input nominal condition.
     """
     op = optparse.OptionParser(version=VERSION_STRING)
 
@@ -335,12 +385,9 @@ def main():
     opt, args = op.parse_args()
         
     # Set the default relative perturbation values
-    defaultPerturbations = {'p1':0.05, 'T1':0.05, 'Vs':0.05, 'pe':0.05, 
-                           'Tw':0.05, 'BLTrans':0.05, 'TurbVisRatio':0.05,
-                           'TurbInten':0.05, 'CoreRadiusFraction':0.05}
-    formatDict = {'p1':0.05, 'T1':0.05, 'Vs':0.05, 'pe':0.05,
-                  'Tw':0.05, 'BLTrans':0.05, 'TurbVisRatio':0.05,
-                  'TurbInten':0.05, 'CoreRadiusFraction':0.05}
+    defaultPerturbations = {'p1':0.025, 'T1':0.025, 'Vs':0.025, 'pe':0.025, 
+                           'Tw':0.025, 'BLTrans':0.025, 'TurbVisRatio':0.025,
+                           'TurbInten':0.025, 'CoreRadiusFraction':0.025}
 
     # Go ahead with a new calculation.
     # First, make sure that we have the needed parameters.
@@ -368,10 +415,11 @@ def main():
     if bad_input:
         return -2
         
-
+    # Set up a list of the perturbed variables and a dictionary. Then configure the 
+    # dictionary so that the values for each key is an array of floats.
     if opt.createLUT:
-        perturbedVariables = ['p1','T1','Vs','pe']
-        perturbedDict = {'p1':opt.p1, 'T1':opt.T1, 'Vs':opt.Vs, 'pe':opt.pe}
+        perturbedVariables = ['p1','Vs','pe']
+        perturbedDict = {'p1':opt.p1, 'Vs':opt.Vs, 'pe':opt.pe}
         perturbedDict = configure_input_dictionary(perturbedDict, defaultPerturbations, 
                                                 opt.gradient, opt.perturb)
     else:
@@ -423,7 +471,8 @@ def main():
     caseString = 'case'+"{0:02}".format(0)+"{0:01}".format(0)
     textString = "Nominal Condition"
     caseDict = copy.copy(paramDict)
-    
+    # Run the nominal case and write the values of the perturbed variables
+    # to a summary file
     set_case_running(caseString, caseDict, textString)
     write_case_summary(perturbedVariables,caseDict,caseString,1)
     
@@ -442,8 +491,9 @@ def main():
                 textString = var+" perturbed to "+str(perturbedDict[var][kk])
                 caseDict = copy.copy(paramDict)
                 caseDict[var] = perturbedDict[var][kk]
-                
+                # Run the current case 
                 set_case_running(caseString, caseDict, textString)
+                # Write current case to the summary file
                 write_case_summary(perturbedVariables,caseDict,\
                                    caseString,0)
  
