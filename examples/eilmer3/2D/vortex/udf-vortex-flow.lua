@@ -58,12 +58,12 @@ function ghost_cell(args)
    end
    speed, p, T = vortex_flow(r_ghost1)
    ghost1.p = p
-   ghost1.T = {}  -- temperatures as a table
-   ghost1.T[0] = T
+   ghost1.T = {}    -- temperatures as a table
+   ghost1.T[0] = T  -- indexed from 0 to nmodes-1
    ghost1.u = math.sin(theta) * speed
    ghost1.v = -math.cos(theta) * speed
    ghost1.w = 0.0
-   ghost1.massf = {} -- mass fractions to be provided as a table
+   ghost1.massf = {}     -- mass fractions to be provided as a table
    ghost1.massf[0] = 1.0 -- mass fractions are indexed from 0 to nsp-1
 
    ghost2 = {}
@@ -74,13 +74,11 @@ function ghost_cell(args)
    end
    speed, p, T = vortex_flow(r_ghost2)
    ghost2.p = p
-   ghost2.T = {}
-   ghost2.T[0] = T
+   ghost2.T = {[0]=T,}
    ghost2.u = math.sin(theta) * speed
    ghost2.v = -math.cos(theta) * speed
    ghost2.w = 0.0
-   ghost2.massf = {}
-   ghost2.massf[0] = 1.0
+   ghost2.massf = {[0]=1.0,}
 
    return ghost1, ghost2
 end
@@ -97,12 +95,11 @@ function interface(args)
    theta = math.atan2(y, x)
    speed, p, T = vortex(r)
 
-   wall = {}
-   wall.u = math.sin(theta) * speed
-   wall.v = -math.cos(theta) * speed
-   wall.w = 0.0
-   wall.T_wall = T
-   wall.massf = {}
-   wall.massf[0] = 1.0
-   return wall
+   face = {}
+   face.u = math.sin(theta) * speed
+   face.v = -math.cos(theta) * speed
+   face.w = 0.0
+   face.T = {[0]=T,}
+   face.massf = {[0]=1.0,}
+   return face
 end

@@ -6,7 +6,7 @@ set title "Inviscid Vortex"
 set xlabel "r/r_i"
 set ylabel "p/p_i"
 # set yrange [1.0:4.5]
-set key 1.35, 2
+set key bottom right
 plot "radial_profile_0.dat" using 1:2 title "exact" with lines, \
      "radial_profile_45.dat" using 1:2 title "45 degrees", \
      "radial_profile_90.dat" using 1:2 title "exit plane"
@@ -28,7 +28,7 @@ set title "Inviscid Vortex"
 set xlabel "r/r_i"
 set ylabel "T/T_i"
 # set yrange [1.0:1.7]
-set key 1.35, 1.2
+set key bottom right
 plot "radial_profile_0.dat" using 1:5 title "exact" with lines, \
      "radial_profile_45.dat" using 1:5 title "45 degrees", \
      "radial_profile_90.dat" using 1:5 title "90 degrees"

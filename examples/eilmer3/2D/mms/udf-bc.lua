@@ -91,7 +91,7 @@ function interface(args)
    --
    -- args contains {t, x, y, z, csX, csY, csZ, i, j, k, which_boundary}
    x = args.x; y = args.y
-   wall = {}
+   face = {}
    if args.which_boundary == NORTH then
       y = L
    elseif args.which_boundary == SOUTH then
@@ -102,15 +102,15 @@ function interface(args)
       -- WEST
       x = 0.0
    end
-   wall.u = u(x, y) 
-   wall.v = v(x, y)
-   wall_p = p(x, y)
-   wall_rho = rho(x, y)
-   wall.w = 0.0
+   face.u = u(x, y) 
+   face.v = v(x, y)
+   face_p = p(x, y)
+   face_rho = rho(x, y)
+   face.w = 0.0
    R = 287.1
-   wall.T = {}
-   wall.T[0] = wall_p/(wall_rho*R)
-   wall.massf = {}
-   wall.massf[0] = 1.0
-   return wall
+   face.T = {}
+   face.T[0] = face_p/(face_rho*R)
+   face.massf = {}
+   face.massf[0] = 1.0
+   return face
 end

@@ -3,6 +3,7 @@
 ## \author PJ, 08-Feb-2005
 ##
 ## 15-Jan-2008 -- demonstrate user-defined boundary conditions
+## 24-Apr-2012 -- update source terms and supersonic-in Lua files
 
 job_title = "Mach 1.5 flow over a 20 degree cone."
 print job_title
@@ -51,7 +52,7 @@ blk_1.set_BC(SOUTH, USER_DEFINED, filename="udf-slip-wall.lua", is_wall=1)
 
 # Do a little more setting of global data.
 gdata.udf_file = "udf-process.lua"
-gdata.udf_source_vector_flag = 0
+gdata.udf_source_vector_flag = 0 # 0=standard case; 1=energy-addition test
 gdata.compression_tolerance = -0.05 # the old default value
 gdata.viscous_flag = 1
 gdata.flux_calc = ADAPTIVE

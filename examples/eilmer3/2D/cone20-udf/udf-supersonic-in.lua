@@ -35,14 +35,13 @@ function interface(args)
    -- args contains t, x, y, z, csX, csY, csZ, i, j, k, which_boundary
    -- but we don't happen to us any of them.
    -- print("Hello from function interface.")
-   wall = {}
-   wall.u = 1000.0
-   wall.v = 0.0
-   wall.w = 0.0
-   wall.T = {1103.0,}
-   wall.massf = {}
-   wall.massf[0] = 1.0
-   return wall
+   face = {}
+   face.u = 1000.0
+   face.v = 0.0
+   face.w = 0.0
+   face.T = {[0]=1103.0,}
+   face.massf = {[0]=1.0,}
+   return face
 end
 
 

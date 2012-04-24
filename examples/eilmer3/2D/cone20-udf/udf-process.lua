@@ -24,13 +24,21 @@ function at_timestep_end(args)
 end
 
 function source_vector(args, cell_data)
-   -- args contains {t...}
+   -- args contains t
+   -- cell_data table contains most else
    src = {}
    src.mass = 0.0
    src.momemtum_x = 0.0
    src.momentum_y = 0.0
    src.momentum_z = 0.0
-   src.energy = {1.0e+6,}  -- J/m**3
-   src.species = {0.0,}
+   if cell_data.x > 0.2 and cell_data.x < 0.4 and 
+      cell_data.y > 0.2 and cell_data.y < 0.3 then
+      src.total_energy = 100.0e+6  -- J/m**3
+      src.energies = {[0]=100.0e6}
+   else
+      src.total_energy = 0.0
+      src.energies = {[0]=0.0}
+   end
+   src.species = {[0]=0.0,}
    return src
 end
