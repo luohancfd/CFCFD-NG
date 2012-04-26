@@ -142,21 +142,24 @@ s_eval_entropy( double T, double p )
 
 double
 Multi_level_electronic::
-s_eval_Cv( double T )
+s_eval_Cv_from_T( double T )
 {
     // Ref: Bottin, B. "Aerothermodynamic model of an Inductively-Coupled Plasma
     //                  Wind Tunnel" VKI PhD Thesis 1999, Eq. A.45
-    double tmpA = 0.0;	// sum of weighted energies
-    double tmpB = 0.0;	// sum of weighted energies^2
-    double tmpC = 0.0;	// total partition function
-    double tmpD;	// level partition function
-    for ( size_t i=0; i<theta_.size(); ++i ) {
-    	tmpD = double(g_[i]) * exp( - theta_[i] / T );
-    	tmpA += theta_[i] * tmpD;
-    	tmpB += theta_[i] * theta_[i] * tmpD;
-    	tmpC += tmpD;
+    double tmp;           // level partition function
+    double u = 0.0;	  // sum of weighted energies
+    double v = 0.0;	  // total partition function
+    double u_dash_star = 0.0;  // derivative of u without 1/T**2
+    double v_dash_star = 0.0;  // derivative of v without 1/T**2
+    for ( size_t i=0; i<theta_vec_.size(); ++i ) {
+    	tmp = double(g_vec_[i]) * exp( - theta_vec_[i] / T );
+    	u += theta_vec_[i] * tmp;
+    	v += tmp;
+    	u_dash_star += tmp * theta_vec_[i] * theta_vec_[i];
+    	v_dash_star += theta_vec_[i] * tmp;
     }
-    return R_/(T*T)*( tmpB / tmpC - tmpA / tmpC );
+
+    return R_/(T*T)*( u_dash_star * v - u * v_dash_star ) / ( v * v );
 }
 
 /* ------- Fully excited translation ------- */
