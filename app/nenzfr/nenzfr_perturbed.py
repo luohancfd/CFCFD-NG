@@ -10,7 +10,7 @@
 # School of Mechancial and Mining Engineering
 # The University of Queensland
 
-VERSION_STRING = "23-April-2012"
+VERSION_STRING = "26-April-2012"
 
 import shlex, subprocess, string
 from subprocess import PIPE
@@ -64,42 +64,49 @@ def quote(str):
     return '"' + str + '"'
 
 
-def configure_input_dictionary(perturbedDict, defaultPerturbations, gradient, perturb): 
+def configure_input_dictionary(perturbedVariables, perturbedDict,\
+                               defaultPerturbations, levels, perturb): 
     """
     Take the input dictionary, for which the values corresponding to each key are 
     strings and convert the strings into a list of floats. Return the adjusted input
     dictionary.
     """
-    if 'BLTrans' in perturbedDict:
-        if perturbedDict["BLTrans"] == "x_c[-1]*1.1":
-            del perturbedDict["BLTrans"]
+    # If necessary, remove BLTrans variable from the perturbedDict so that 
+    # we don't try to make a float of it later.
+    if 'BLTrans' in perturbedDict.keys():
+        if perturbedDict['BLTrans'] == "x_c[-1]*1.1":
+            del perturbedDict['BLTrans']
+
     for i in range(len(perturbedDict)):
-            var = perturbedDict.keys()[i]
-            temp =  perturbedDict.values()[i]
-            temp = temp.strip(']').strip('[').split(',')
-            temp = [float(temp[j]) for j in range(len(temp))]
+        var = perturbedDict.keys()[i]
+        temp =  perturbedDict.values()[i]
+        temp = temp.strip(']').strip('[').split(',')
+        temp = [float(temp[j]) for j in range(len(temp))]
+        if var in perturbedVariables:
             perturbedDict[var] = set_perturbed_values(var, temp, \
-                                    defaultPerturbations, perturb, gradient) 
+                                defaultPerturbations, perturb, levels)
+        else:
+            perturbedDict[var] = [temp[0]]
     return perturbedDict
 
-def set_perturbed_values(var, temp, defaultPerturbations, perturb, gradient):
+def set_perturbed_values(var, temp, defaultPerturbations, perturb, levels):
     """
     Caculate a list of perturbed values for variable of interest based on 
     input data.
     """
-    if gradient == "linear":
+    if levels == 3:
         if len(temp) == 1:
             # have just the value
             print "Using default relative perturbation of "+\
-                   str(defaultPerturbations[var]*100.0)+"% for "+var
-            temp = [temp[0], temp[0]*(1+defaultPerturbations[var]),\
-                             temp[0]*(1-defaultPerturbations[var])]
+                   str(defaultPerturbations[var])+"% for "+var
+            temp = [temp[0], temp[0]*(1+defaultPerturbations[var]/100.0),\
+                             temp[0]*(1-defaultPerturbations[var]/100.0)]
         elif len(temp) == 2:
             # have either [value, delta]         or
             #             [value, percent_delta]
             if perturb == "rel":
-                temp = [temp[0], temp[0]*(1.0+temp[1]),\
-                                 temp[0]*(1.0-temp[1])]
+                temp = [temp[0], temp[0]*(1.0+temp[1]/100.0),\
+                                 temp[0]*(1.0-temp[1]/100.0)]
             else:
                 temp = [temp[0], temp[0]+temp[1],\
                                  temp[0]-temp[1]]
@@ -107,31 +114,31 @@ def set_perturbed_values(var, temp, defaultPerturbations, perturb, gradient):
             # have either [value, +delta, -delta]                  or 
             #             [value, +percent_delta, -percent_delta]
             if perturb == "rel":
-                temp = [temp[0], temp[0]*(1.0+temp[1]),\
-                                 temp[0]*(1.0+temp[2])]
+                temp = [temp[0], temp[0]*(1.0+temp[1]/100.0),\
+                                 temp[0]*(1.0+temp[2]/100.0)]
             else:
                 temp = [temp[0], temp[0]+temp[1],\
                                  temp[0]+temp[2]]
         else:
             print "Too many values given for "+var
             return -2
-    elif gradient == "quadratic":
+    elif levels == 5:
         if len(temp) == 1:
             print "Using default relative perturbation of "+\
-                           str(defaultPerturbations[var]*100.0)+"% for "+var
-            temp = [temp[0], temp[0]*(1+defaultPerturbations[var]),\
-                             temp[0]*(1-defaultPerturbations[var]),\
-                             temp[0]*(1+defaultPerturbations[var]*2.0),\
-                             temp[0]*(1-defaultPerturbations[var]*2.0)]
+                           str(defaultPerturbations[var])+"% for "+var
+            temp = [temp[0], temp[0]*(1+defaultPerturbations[var]/100.0),\
+                             temp[0]*(1-defaultPerturbations[var]/100.0),\
+                             temp[0]*(1+defaultPerturbations[var]/100.0*2.0),\
+                             temp[0]*(1-defaultPerturbations[var]/100.0*2.0)]
         elif len(temp) == 2:
             # have either [value, delta]            or
             #              [value, +percent_delta]
             # we assume that "2"*delta == 2*delta
             if perturb == "rel":
-                temp = [temp[0], temp[0]*(1.0+temp[1]),\
-                                 temp[0]*(1.0-temp[1]),\
-                                 temp[0]*(1.0+temp[1]*2.0),\
-                                 temp[0]*(1.0-temp[1]*2.0)]
+                temp = [temp[0], temp[0]*(1.0+temp[1]/100.0),\
+                                 temp[0]*(1.0-temp[1]/100.0),\
+                                 temp[0]*(1.0+temp[1]/100.0*2.0),\
+                                 temp[0]*(1.0-temp[1]/100.0*2.0)]
             else:
                 temp = [temp[0], temp[0]+temp[1],\
                                  temp[0]-temp[1],\
@@ -141,10 +148,10 @@ def set_perturbed_values(var, temp, defaultPerturbations, perturb, gradient):
             # have either [value, delta, "2"*delta]                  or
             #             [value, percent_delta, "2"*percent_delta]
             if perturb == "rel":
-                temp = [temp[0], temp[0]*(1.0+temp[1]),\
-                                 temp[0]*(1.0-temp[1]),\
-                                 temp[0]*(1.0+temp[2]),\
-                                 temp[0]*(1.0-temp[2])]
+                temp = [temp[0], temp[0]*(1.0+temp[1]/100.0),\
+                                 temp[0]*(1.0-temp[1]/100.0),\
+                                 temp[0]*(1.0+temp[2]/100.0),\
+                                 temp[0]*(1.0-temp[2]/100.0)]
             else:
                 temp = [temp[0], temp[0]+temp[1],\
                                  temp[0]-temp[1],\
@@ -154,10 +161,10 @@ def set_perturbed_values(var, temp, defaultPerturbations, perturb, gradient):
             # have either [value, +delta, -delta, "2"*delta]                          or
             #             [value, +percent_delta, -percent_delta, "2"*percent_delta]
             if perturb == "rel":
-                temp = [temp[0], temp[0]*(1.0+temp[1]),\
-                                 temp[0]*(1.0-temp[2]),\
-                                 temp[0]*(1.0+temp[3]),\
-                                 temp[0]*(1.0-temp[3])]
+                temp = [temp[0], temp[0]*(1.0+temp[1]/100.0),\
+                                 temp[0]*(1.0-temp[2]/100.0),\
+                                 temp[0]*(1.0+temp[3]/100.0),\
+                                 temp[0]*(1.0-temp[3]/100.0)]
             else:
                 temp = [temp[0], temp[0]+temp[1],\
                                  temp[0]-temp[2],\
@@ -167,10 +174,10 @@ def set_perturbed_values(var, temp, defaultPerturbations, perturb, gradient):
             # have either [value, +delta, -delta, +"2"*delta, -"2"*delta] or
             #             [value +percent_delta, -percent_delta, +"2"*percent_delta, -"2"*percent_delta]
             if perturb == "rel":
-                temp = [temp[0], temp[0]*(1.0+temp[1]),\
-                                 temp[0]*(1.0-temp[2]),\
-                                 temp[0]*(1.0+temp[3]),\
-                                 temp[0]*(1.0-temp[4])]
+                temp = [temp[0], temp[0]*(1.0+temp[1]/100.0),\
+                                 temp[0]*(1.0-temp[2]/100.0),\
+                                 temp[0]*(1.0+temp[3]/100.0),\
+                                 temp[0]*(1.0-temp[4]/100.0)]
             else:
                 temp = [temp[0], temp[0]+temp[1],\
                                  temp[0]-temp[2],\
@@ -262,7 +269,16 @@ def write_case_summary(varList,caseDict,caseString,newfile):
         fout.write(formatDict[k].format(caseDict[k]))
     fout.write('\n')
     fout.close()
-    
+
+def write_case_config(caseDict):
+    """
+    """
+    fout = open('nominal_case.config','w')
+    for k in range(len(caseDict)):
+        fout.write('{0}'.format(caseDict.keys()[k]+':   '))
+        fout.write('{0}'.format(caseDict.values()[k]))
+        fout.write('\n')
+    fout.close()    
 
 def main():
     """
@@ -284,11 +300,9 @@ def main():
     op.add_option('--perturb', dest='perturb', default='rel', choices=['rel','abs'],
                   help=("specify whether the given perturbations are absolute "
                         "or relative values. Options: rel, abs [default: %default]"))
-    op.add_option('--gradient', dest='gradient', default='linear',
-                  choices=['linear','quadratic'],
-                  help=("specify whether the gradient is to be calculated "
-                        "using a linear or quadratic equation.  "
-                        "Options: linear, quadratic [default: %default]"))
+    op.add_option('--levels', dest='levels', default=3,choices=['3','5'],
+                  help=("specify how many values are to be used for each variable, "
+                        "including the nominal. Options: 3, 5 [default: %default]"))
     op.add_option('--job', dest='jobName', default='nozzle',
                   help="base name for Eilmer3 files [default: %default]")
 
@@ -305,8 +319,8 @@ def main():
                   " (2)  [nominal, +delta_1, -delta_2];"
                   " (3)  [nominal, +delta_1, -delta_2, +delta_3];"
                   " (4)  [nominal, +delta_1, -delta_2, +delta_3, -delta_4]. "
-                  "Note that (3),(4) are only valid for the 'quadratic' "
-                  "gradient option.")
+                  "Note that the deltas may be given as absolute values or "
+                  "as relative values in the form of percentages.")
     group.add_option('--p1', dest='p1', default=None, 
                   help=("shock tube fill pressure (in Pa) and its perturbation/s "
                         "as a list. [default delta: 5%]" ))
@@ -360,9 +374,10 @@ def main():
                   help="file for holding the nozzle-exit data [default: %default]")
     op.add_option('--block-marching', dest='blockMarching', action='store_true',
                   default=False, help="run nenzfr in block-marching mode")    
-    op.add_option('--create-LUT', dest='createLUT', action='store_true',
+    op.add_option('--create-RSA', dest='createRSA', action='store_true',
                   default=False, 
-                  help="perturb only p1, Vs and pe in preparation for building a LUT")
+                  help="perturb only Vs and pe in preparation for calculating "
+                       "a Response Surface Approximation")
 
     # The following defaults suit a Mach 10 Nozzle calculation.
     op.add_option('--nni', dest='nni', type='int', default=1800,
@@ -384,10 +399,10 @@ def main():
 
     opt, args = op.parse_args()
         
-    # Set the default relative perturbation values
-    defaultPerturbations = {'p1':0.025, 'T1':0.025, 'Vs':0.025, 'pe':0.025, 
-                           'Tw':0.025, 'BLTrans':0.025, 'TurbVisRatio':0.025,
-                           'TurbInten':0.025, 'CoreRadiusFraction':0.025}
+    # Set the default relative perturbation values (as percentages)
+    defaultPerturbations = {'p1':2.5, 'T1':2.5, 'Vs':2.5, 'pe':2.5, 
+                           'Tw':2.5, 'BLTrans':2.5, 'TurbVisRatio':2.5,
+                           'TurbInten':2.5, 'CoreRadiusFraction':2.5}
 
     # Go ahead with a new calculation.
     # First, make sure that we have the needed parameters.
@@ -410,30 +425,41 @@ def main():
         opt.blockMarching = ""
     if bad_input:
         return -2
-        
-    # Set up a list of the perturbed variables and a dictionary. Then configure the 
-    # dictionary so that the values for each key is an array of floats.
-    if opt.createLUT:
-        perturbedVariables = ['p1','Vs','pe']
-        perturbedDict = {'p1':opt.p1, 'Vs':opt.Vs, 'pe':opt.pe}
-        perturbedDict = configure_input_dictionary(perturbedDict, defaultPerturbations, 
-                                                opt.gradient, opt.perturb)
+    # Convert to integer. NB. I don't specify the type as int in the option
+    # as this negates the ability to have choices.
+    opt.levels = int(opt.levels)
+    
+    # Set up a list of the perturbed variables.
+    if opt.createRSA:
+        print "Create Response Surface (RS) option selected. Perturbing only Vs and pe"
+        perturbedVariables = ['Vs','pe']
     else:
         perturbedVariables = ['p1','T1','Vs','pe','Tw','BLTrans','TurbVisRatio',
                               'TurbInten','CoreRadiusFraction',]
-        perturbedDict = {'p1':opt.p1, 'T1':opt.T1, 'Vs':opt.Vs, 'pe':opt.pe,
-                        'Tw':opt.Tw, 'BLTrans':opt.BLTrans, 
-                        'TurbVisRatio':opt.TurbVisRatio,
-                        'TurbInten':opt.TurbInten, 
-                        'CoreRadiusFraction':opt.coreRfraction}
-        perturbedDict = configure_input_dictionary(perturbedDict, defaultPerturbations,
-                                                opt.gradient, opt.perturb)
-        if len(perturbedVariables) != len(perturbedDict):
-            # Not perturbing BLTrans variable
+        if opt.BLTrans == "x_c[-1]*1.1": # Laminar nozzle
+            # TODO: Remove TurbInten once it has been shown not to an effect.
+            # For some reason it currently (as of 25/04/2012) does.
+            print "Nozzle is assumed laminar (based on input BLTrans), therefore\n"+\
+                  "BLTrans and TurbVisRatio are not perturbed"
             del perturbedVariables[perturbedVariables.index('BLTrans')]
-    
+            del perturbedVariables[perturbedVariables.index('TurbVisRatio')]
+            #del perturbedVariables[perturbedVariables.index('TurbInten')]
+            
+    # Now set up a dictionary of all variables that could possibly be perturbed. 
+    # Then configure this dictionary. For each dictionary key, if the key is not
+    # in the perturbedVariables list, its value is a list with a single float 
+    # element, otherwise it is a list of floats corresponding to the 
+    # perturbed values.
+    perturbedDict =  {'p1':opt.p1, 'T1':opt.T1, 'Vs':opt.Vs, 'pe':opt.pe,
+                      'Tw':opt.Tw, 'BLTrans':opt.BLTrans,
+                      'TurbVisRatio':opt.TurbVisRatio,
+                      'TurbInten':opt.TurbInten,
+                      'CoreRadiusFraction':opt.coreRfraction}
+    perturbedDict = configure_input_dictionary(perturbedVariables, perturbedDict,\
+                             defaultPerturbations, opt.levels, opt.perturb)
+     
     # Set up a parameter dictionary 
-    # (with perturbed variables at their nominal value
+    # (with all variables at their nominal value)
     paramDict = {'jobName':quote(opt.jobName), 'gasName':quote(opt.gasName),
                  'T1':opt.T1, 'p1':opt.p1, 'Vs':opt.Vs, 'pe':opt.pe,
                  'chemModel':quote(opt.chemModel),
@@ -448,10 +474,9 @@ def main():
                  'TurbInten':opt.TurbInten, 'BLTrans':opt.BLTrans,
                  'CoreRadiusFraction':opt.coreRfraction,
                  'Cluster':opt.Cluster,'runCMD':opt.runCMD}
-    for k in range(len(perturbedVariables)):
-        var = perturbedVariables[k]
+    for var in perturbedDict.keys():
         paramDict[var] = perturbedDict[var][0]
-
+        
     # As building an equilibrium gas LUT is so time consuming, we do it here
     # and then copy the resulting LUT into each case sub-directory. The following
     # lines are copied almost verbatim from "nenzfr.py"
@@ -464,50 +489,84 @@ def main():
             run_command('build-cea-lut.py --gas='+opt.gasName)
         paramDict['gmodelFile'] = eqGasModelFile
 
+    if opt.createRSA is not True: # Perturbing for a sensitivity calculation
+        # Calculate Nominal condition
+        caseString = 'case'+"{0:02}".format(0)+"{0:01}".format(0)
+        textString = "Nominal Condition"
+        caseDict = copy.copy(paramDict)
+        # Run the nominal case and write the values of the perturbed variables
+        # to a summary file
+        set_case_running(caseString, caseDict, textString)
+        write_case_summary(perturbedVariables,caseDict,caseString,1)
 
-    # Calculate Nominal condition
-    caseString = 'case'+"{0:02}".format(0)+"{0:01}".format(0)
-    textString = "Nominal Condition"
-    caseDict = copy.copy(paramDict)
-    # Run the nominal case and write the values of the perturbed variables
-    # to a summary file
-    set_case_running(caseString, caseDict, textString)
-    write_case_summary(perturbedVariables,caseDict,caseString,1)
-    
-    # Now run all the perturbed conditions
-    for k in range(len(perturbedVariables)):
-        var = perturbedVariables[k]
+        # Now run all the perturbed conditions
+        for k in range(len(perturbedVariables)):
+            var = perturbedVariables[k]
+            perturbCount = opt.levels
+
+            for kk in range(perturbCount):
+                if kk != 0:
+                    caseString = 'case'+"{0:02}".format(k)+"{0:01}".format(kk)
+                    textString = var+" perturbed to "+str(perturbedDict[var][kk])
+                    # Perturbation of the "CoreRadiusFraction" input may be done
+                    # by (re)post processing the nominal case solution using the
+                    # --just-stats option in nenzfr. We therefore don't need to
+                    # run any separate cases for this variable. The perturbation
+                    # is handled by "nenzfr_sensitivity.py".
+                    caseDict = copy.copy(paramDict)
+                    caseDict[var] = perturbedDict[var][kk]
+                    if var != 'CoreRadiusFraction':
+                        # Run the current case
+                        set_case_running(caseString, caseDict, textString)
+                    # Write current case to the summary file
+                    write_case_summary(perturbedVariables,caseDict,\
+                                       caseString,0)
+
+    else: # Perturbing to create a LUT
+        var1 = perturbedVariables[0] # 'Vs'
+        var2 = perturbedVariables[1] # 'pe'
         
-        if opt.gradient == "linear":
-            perturbCount = 3
-        else:
-            perturbCount = 5
+        if opt.levels == 3:
+            casesToRun = [(2,1),(0,1),(1,1),
+                          (2,0),(0,0),(1,0),
+                          (2,2),(0,2),(1,2)]
+        elif opt.levels == 5:
+            casesToRun = [(4,3),      (0,3),      (3,3),
+                                (2,1),      (1,1),      
+                          (4,0),      (0,0),      (3,0),
+                                (2,2),      (1,2),      
+                          (4,4),      (0,4),      (3,4)]
+            #[(1,1),(1,2),(2,2),(2,1),(3,3),(3,4),(4,4),(4,3)]
         
-        for kk in range(perturbCount):
-            if kk != 0:
-                caseString = 'case'+"{0:02}".format(k)+"{0:01}".format(kk)
-                textString = var+" perturbed to "+str(perturbedDict[var][kk])
-                # Perturbation of the "CoreRadiusFraction" input may be done 
-                # by (re)post processing the nominal case solution using the 
-                # --just-stats option in nenzfr. We therefore don't need to 
-                # run any separate cases for this variable. The perturbation
-                # is handled by "nenzfr_sensitivity.py".
+        # Run the nominal case first
+        caseString = 'case'+"{0:01}{0:01}".format(0,0)
+        caseDict = copy.copy(paramDict)
+        textString = "Nominal Case: "+var1+"="+str(perturbedDict[var1][0])+\
+                                 "; "+var2+"="+str(perturbedDict[var2][1])
+        write_case_config(caseDict)
+        set_case_running(caseString, caseDict, textString)
+        write_case_summary(perturbedVariables, caseDict, caseString, 1)
+         
+        # Now run all other cases
+        for case in casesToRun:
+            if case != (0,0):
+                caseString = 'case'+"{0:01}{1:01}".format(case[0],case[1])
+                textString = var1+" perturbed to "+str(perturbedDict[var1][case[0]])+                                "\n"+var2+" perturbed to "+str(perturbedDict[var2][case[1]])
                 caseDict = copy.copy(paramDict)
-                caseDict[var] = perturbedDict[var][kk]
-                if var != 'CoreRadiusFraction':
-                    # Run the current case 
-                    set_case_running(caseString, caseDict, textString)
-                # Write current case to the summary file
-                write_case_summary(perturbedVariables,caseDict,\
-                                   caseString,0)
- 
+                caseDict[var1] = perturbedDict[var1][case[0]]
+                caseDict[var2] = perturbedDict[var2][case[1]]
+
+                set_case_running(caseString, caseDict, textString)
+                write_case_summary(perturbedVariables, caseDict, caseString, 0)
+
+    
     return 0
 
 #---------------------------------------------------------------
 
 if __name__ == '__main__':
     if len(sys.argv) <= 1:
-        print "NENZFr Sensitivity:\n Calculate Sensitivity of Shock Tunnel Test Flow Conditions for a varying inputs"
+        print "NENZFr Perturbed:\n Calculate Shock Tunnel Test Flow Conditions for inputs perturbed about the nominal"
         print "   Version:", VERSION_STRING
         print "   To get some useful hints, invoke the program with option --help."
         sys.exit(0)
