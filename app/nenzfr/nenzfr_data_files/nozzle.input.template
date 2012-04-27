@@ -368,7 +368,13 @@ if $gridFileName in ['None']:
     # the non-slip walls as orthogonal to the walls as possible. However,
     # because the "AO" option in make_patch does not give a grid that is 
     # good enough for the nozzle geometry, a specialised surface function
-    # has to be used.
+    # has to be used. Points in the grid along the north, east and west
+    # edges follow that specified by n_north, n_east and n_west. The rest
+    # of the other points in the grid are built by creating strips of 
+    # quadratic Bezier curves that run from the nozzle wall to the axis.
+    # The use of quadratic Bezier curves allows the generated points to
+    # be orthogonal to the wall near the nozzle wall and orthogonal to
+    # the axis near the axis.
     def make_expansion_region_grid(r, s):
         global n_north, n_west, n_east
         if r == 0.0:
@@ -395,13 +401,13 @@ if $gridFileName in ['None']:
             # start of this small region and smooths it out to the actual
             # wall_angle at the end of this small region.
             north_length = n_north.eval(1.0).x - n_north.eval(0.0).x
-            if n_north.eval(r).x <= (0.02 * north_length):
+            if (n_north.eval(r).x - n_north.eval(0.0).x) <= (0.02 * north_length):
                 wall_angle = (n_north.eval(r).x - n_north.eval(0.0).x) / \
                              (0.02 * north_length) * wall_angle
             # Do the same for a small region at the end of the nozzle. This is
             # to accommodate to nozzles that have been a non-zero gradient at
             # at the nozzle exit (which is brought about by nozzle truncation).
-            if n_north.eval(r).x >= (0.98 * north_length):
+            if (n_north.eval(r).x - n_north.eval(0.0).x) >= (0.98 * north_length):
                 wall_angle = (n_north.eval(1.0).x - n_north.eval(r).x) / \
                              (0.02 * north_length) * wall_angle
             # Mid point (Bezier control point 2)
