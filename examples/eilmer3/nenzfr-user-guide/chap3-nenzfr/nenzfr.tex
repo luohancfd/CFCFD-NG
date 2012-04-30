@@ -1,0 +1,123 @@
+% nenzfr.tex
+
+\newpage
+\section{NENZFr}
+\label{chapter-nenzfr}
+
+NENZF-r is comprised of a set of Python scripts and template files that coordinate the running of a space-marched nozzle simulation using Eilmer3. The following sections provide an overview of the implementation of NENZF-r and its capabilites. Though based on Eilmer3, minimal details concerning Eilmer3 are provided in this report. Readers are instead referred to the reports by \cite{} for further information on Eilmer3 and on the space-marching algorithm. Table \ref{tab:code}, given below, summarises the scripts that comprise NENZF-r. A copy of each of these files in it's current form may be found in Appendices \ref{app:code} - \ref{app:reactions}. 
+
+Obviously in order to run NENZF-r, Eilmer3 must be successfully compiled. Users should also ensure that the following files are present in the \textbf{local} working directory:
+\begin{enumerate}
+\item \textit{nenzfr.py}, \textit{nozzle.input.template} and \textit{nenzfr\_compute\_viscous\_data.py}
+\item For equilibrium gas calculations a look-up-table should be present. These may be prepared using \textit{setup\_lut.sh}.
+\item For non-equilibrium gas calculations, the appropriate reaction scheme as listed in Table \ref{tab:code} is required. These reaction schemes may be found in \textit{~/cfcfd2/lib/gas/reaction-schemes/}. Note that ions are not considered and so the reaction scheme should be checked and adjusted accordingly.
+\item A contour or grid file for the nozzle.
+\end{enumerate}
+Finally, users should ensure that within \textit{nenzfr.py} the directory paths for the Eilmer3 executables are correct. 
+
+\subsection{Method}
+NENZF-r has been designed specifically to estimate the test flow conditions produced in reflected shock tunnels. Referring to Figure \ref{fig:x-t-diagram}, given the intial conditions of the gas in the shock tube (state 1), the shock speed and nozzle supply pressure, the global algorithm used by NENZF-r is:
+\begin{enumerate}
+\item compute the gas conditions behind the incident shock (state 2);
+\item compute the gas conditions after shock reflection (state 5);
+\item complete an isentropic relaxation to the measured nozzle supply pressure (state 5s);
+\item complete an isentropic relaxation to the nozzle throat (state 6);
+\item from the throat, complete a 2D axis-symmetric expansion of the gas to the nozzle exit (state 7).
+\end{enumerate}
+Steps 1-4 are completed by \textit{estcj.py} assuming an equilibrium gas and using 1D shock relations. Calls to NASA's CEA \cite{Gordon_1994} program are used to determine the thermodynamic properties. Step 5, the nozzle expansion, is completed using Eilmer3 assuming either an equilibrium, non-equilibrium or frozen gas. Viscosity and turbulence may be considered depending on the Eilmer3 simulation control data specified in \textit{nozzle.input.template}. 
+
+The top-level coordinating script, \textit{nenzfr.py}, writes an Eilmer3 input file based on \textit{nozzle.input.template}, calls Eilmer3 and then completes the necessary post-processing to determine the averaged properties at the nozzle exit. The following sections discuss the inputs, output files produced and gas models/reaction schemes currently implemented. %Note that \textit{estcj.py} is called by the Eilmer3 input script and the result used to define the inflow condition. 
+
+
+\begin{table}[!ht]%
+\caption{NENZF-r scripts}
+\begin{tabulary}{\linewidth}{|l|L|}
+\hline \hline
+\multicolumn{2}{|c|}{\textbf{Core Files}}\\ 
+\hline
+nenzfr.py & Top most coordinating script.\\
+nozzle.input.template & Template Eilmer3 input script. This is the core of NENZF-r.\\
+\hline \hline
+\multicolumn{2}{|c|}{\textbf{Auxilary Files}}\\ 
+\hline
+nenzfr\_compute\_viscous\_data.py & Script used to calculate the viscous data, including $y^+$, at the wall. \\
+nenzfr\_sensitivity\_and\_lut.py & Coordinating script that conducts a sensitivity analysis for NENZF-r and builds a corresponding look-up-table for the nozzle exit properties. (YET TO BE COMPLETED)\\
+setup\_lut.sh & A simple shell script that builds the required equilibrium gas look-up-tables.\\
+run.sh & Shell script to submit a NENZF-r job on the hpcu cluster \textit{barrine}. \\
+estcj.py & Equilibrium Shock Tube Calculation, junior. This Python script completes the reflected shock calculation. Though apart of the cfcfd2/Eilmer3 suite of programs, it has been included here for completeness. \\
+\hline \hline
+\multicolumn{2}{|c|}{\textbf{Nozzle Profiles}} \\ \hline
+contour-t4-m10.data & T4 Mach 10 nozzle profile. \\
+contour-t4-m6.data & T4 Mach 6 nozzle profile.\\
+contour-t4-m4.data & T4 Mach 4 nozzle profile. \\ \hline \hline
+\multicolumn{2}{|c|}{\textbf{Reaction Schemes}}\\ \hline
+gupta\_etal\_air\_reactions.lua & Reaction scheme for 5-species air model. \\
+nitrogen-5sp-6r.lua & Reaction scheme for nitrogen.\\ \hline
+\end{tabulary}
+\label{tab:code}
+\end{table} 
+
+
+\subsection{Inputs}
+NENZF-r takes a number of required and optional input arguments as detailed below.
+\begin{itemize}
+\item[] \texttt{--help} Displays help information including listing the available input arguments. No other inputs are relevant. \end{itemize}
+\textbf{Necessary inputs:} \begin{itemize}
+\item[] \texttt{--T1} Shock tube filling temperature (K) 
+\item[] \texttt{--p1} Shock tube filling pressure (Pa)
+\item[] \texttt{--Vs} Incident shock speed (m/s)
+\item[] \texttt{--pe} (Measured) Nozzle supply pressure (Pa) \end{itemize}
+\textbf{Optional inputs:}\begin{itemize}
+\item[] \texttt{--job} Base name for solution files. Default: nozzle
+\item[] \texttt{--gas} Gas that the shock tube has been filled with. Default: air. Options: air, air5species, n2
+\item[] \texttt{--chem} Chemistry model to use in the nozzle expansion. Default: eq. Options: eq, neq, frz, frz2
+\item[] \texttt{--cfile} Filename for the contour defining the shape of the nozzle. Default: contour-t4-m4.data
+\item[] \texttt{--gfile} Filename for a Pointwise plot3d grid for the nozzle. This option over-rides \textit{--cfile} if both are given.
+\item[] \texttt{--area} Exit area for the nozzle. Only used by \textit{estcj} which determines the nozzle exit properties (state 7) via an isentropic expansion. Default: 27.0
+\item[] \texttt{--exitfile} Filename for the nozzle exit slice data. Default: nozzle-exit.data
+\item[] \texttt{--just-stats} Option allowing the code to skip the detailed calculation and just retrive the exit-flow statistics
+\end{itemize}
+%Providing that Eilmer3 has been successfully compiled, users may invoke NENZF-r minimally using:
+Several example invocations for NENZF-r are as follows.
+\begin{itemize}
+\item[-] Mimimal. This completes an equilibrium calculation using air for the Mach 4 nozzle. 
+\newline
+\texttt{   ./nenzfr.py --T1=300 --p1=160.0e3 --Vs=2707 --pe=38.0e6}
+%\newline 
+\item[-] Nitrogen as the test gas:
+\newline
+\texttt{   ./nenzfr.py --T1=300 --p1=160.0e3 --Vs=2707 --pe=38.0e6 --gas=n2}
+%\newline
+\item[-] A non-equilibrium solution for the Mach 10 nozzle using the 5-species air gas model:
+\newline
+\texttt{   ./nenzfr.py --gas=air5species --T1=300.0 --p1=160.0e3 --Vs=2300.0}
+\newline
+\texttt{       --pe=43.0e6 --cfile=contour-t4-m10.data --area=1581.165 --chem=neq}
+\end{itemize}
+
+\subsection{Output Files}
+Providing that NENZF-r has been properly invoked and that the Eilmer3 nozzle simulation has not crashed, users can expect the files detailed in Table \ref{tab:output-files} to be produced. Note that these files are in addition to those produced by Eilmer3.
+
+\begin{table}[!ht]
+\centering
+\caption{NENZF-r output files}
+\begin{tabular}{p{0.22\linewidth}|p{0.25\linewidth}|p{0.43\linewidth}} 
+\hline
+Filename & Default Filename & Description \\ 
+\hline
+\textit{job}-estcj.dat & nozzle-estcj.dat & Output file detailing the results of the estcj calculation.\\
+\textit{exitfile} & nozzle-exit.data & Flow properties in the exit plane.\\
+\textit{job}-centerline.data & nozzle-centreline.data & Flow properties along the centerline.\\
+\textit{job}-exit.stats & nozzle-exit.stats & The integrated nozzle exit flow properties.\\
+\textit{job}-viscous.data & nozzle-viscous.dat & Calculated wall shear stress ($\tau_w$) and $y^+$.\\
+\hline 
+\end{tabular}
+\label{tab:output-files}
+\end{table}
+
+Currently the integrated nozzle exit flow properties are calculated by taking an area-weighted average over the core of the nozzle using the data contained in \textit{nozzle-exit.data}. Quite arbitarily, the edge of the core has been taken to be at \textbf{2/3rds} of the nozzle exit radius.
+
+\subsection{Gas Models and Reaction Schemes}
+
+
+

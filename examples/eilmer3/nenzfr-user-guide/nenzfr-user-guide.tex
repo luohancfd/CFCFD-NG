@@ -1,0 +1,87 @@
+% nenzfr-user-guide.tex
+% LaTeX format copied from FZ's eilmer3-space-marching user
+% guide.
+% 
+% Luke Doherty, August 2011
+%
+
+\documentclass[12pt,a4paper]{article}
+\usepackage[body={16cm,24.5cm}]{geometry}
+%\usepackage{pstricks}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{tabulary, multicol}
+\lstset{basicstyle=\scriptsize,identifierstyle=,keywordstyle=}
+
+%------------------------------------------------------------------
+% a couple horizontal bars to delimit embedded code
+% the width suits the page size set above and
+% the mathmode eliminates spaces between the three elements
+\newcommand{\topbar}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule[2.0mm]{159.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+\newcommand{\bottombar}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule{159.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+\newcommand{\topbarshort}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule[2.0mm]{149.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+\newcommand{\bottombarshort}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule{149.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+%------------------------------------------------------------------
+
+\title{
+    NENZF-r: Non-Equilibrium Nozzle\\
+    Flow, Reloaded. A User Guide.
+}
+\author{
+    The University of Queensland \\
+    School of Mechanical \& Mining Engineering \\
+    Research Report Number 2011/?? 
+    \vspace{0.5cm} \\
+    L. Doherty,
+    F. Zander, 
+    P. A. Jacobs\thanks{Queensland Geothermal Energy Centre of 
+     Excellence, The University of Queensland, Brisbane, Australia.},\\
+    R. J. Gollan, 
+    W.Y.K. Chan and 
+    R. M. Kirchhartz\\
+    {Centre for Hypersonics, The University of 
+     Queensland, Brisbane, Australia.}
+\\
+}
+
+\usepackage{subfigure}   % Adds capability to input sub-figures
+
+\begin{document}
+\maketitle
+
+\centerline{\textbf{Abstract}}
+\medskip
+This report blah blah blah
+\newpage
+\tableofcontents
+
+%-------------------------------------------------------------------
+\include{./chap1-intro/introduction}
+\include{./chap2-overview/overview}
+\include{./chap3-nenzfr/nenzfr}
+\include{./chap4-nenzfr-perturbed/nenzfr-perturbed}
+\include{./chap5-nenzfr-sensitivity/nenzfr-sensitivity}
+\include{./chap6-nenzfr-response-surface/nenzfr-RS}
+\include{./chap7-nenzfr-quasi-transient/nenzfr-qt}
+
+%--------------------------------------------------------------------
+
+\newpage
+\bibliographystyle{unsrt}
+%\bibliography{./bibtex/pj,./bibtex/computing,./bibtex/gas_dynamic,./bibtex/adm,./bibliography/phd_bibliography}
+\bibliography{./bibtex/literature}
+
+\newpage
+\appendix
+
+%\include{./appendix1-code/code}
+
+\end{document}

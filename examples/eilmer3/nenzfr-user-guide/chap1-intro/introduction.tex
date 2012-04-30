@@ -1,0 +1,24 @@
+% introduction.tex
+
+\newpage
+\section{Introduction}
+\label{chapter-introduction}
+%
+For many years the calculation of the free-stream test flow properties within Shock Tunnel Facilities has relied upon a suite of codes, including, but not limited to ESTC\footnote{\textbf{E}quilibrium-\textbf{S}hock-\textbf{T}ube-\textbf{C}alculation}\cite{McIntosh_1968}, ESTCj\footnote{\textbf{E}quilibrium-\textbf{S}hock-\textbf{T}ube-\textbf{C}alculation-\textbf{j}unior}, STN\footnote{\textbf{S}hock-\textbf{T}ube-\textbf{N}ozzle}\cite{} and NENZF\footnote{\textbf{N}on-\textbf{E}quilibrium-\textbf{N}ozzle-\textbf{F}low}\cite{Lordi_1966}. Each of these codes serves a different purpose. ESTC, written in the late 1960's in Fortran IV, was used to calculate to nozzle supply conditions in reflected shock tunnels assuming thermodynamic equilibrium. 
+
+Difficulty in maintaining the thermodynamic database used by ESTC led Dr. Peter Jacobs to update this code in the mid 1990's. The resulting program, ESTC-junior, was written in Python and relied on calls to NASA's CEA\cite{Gordon_1994} program for the thermodynamic properties. NENZF, another product of the 1960's, uses nozzle supply conditions and an input nozzle geometry to completes a quasi-one-dimensional expansion assuming either frozen, equilibrium or non-equilibrium gas. 
+
+The final code, STN, is another Fortran based program that was developed in the mid 1990's. Implemented using thermodynamic curve fits for equilibrium air only, this code was written in order to provide experimenters with freestream properties for low-enthalpy conditions ($<\approx$3.5MJ/kg) for which other codes would crash. 
+
+A desire to consolidate the programs, and in particular to update and move away from NENZF, has existed within the Centre for Hypersonics for some time. Much like the original ESTC, the thermodynamic properties, reaction rates and reaction schemes implemented within NENZF are not easily maintained. Furthermore, difficulty in obtaining a converged solution for particular nozzle geometries over particular enthalpy ranges has been a consistent issue with NENZF. 
+
+
+This example is a proof-of-concept showing that the aging ESTC and NENZF codes
+can be replaced by something with more up-to-date chemistry and with a better
+approximation to the multi-dimensional expansion that processes the test gas.
+
+The request was for a calculation yielding single numbers for each flow variable
+and a run time that was not too long.
+
+
+This has been made possible with the recent implementation of a space-marching algorithm within Eilmer3\cite{}

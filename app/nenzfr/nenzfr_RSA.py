@@ -14,7 +14,7 @@
 # School of Mechancial and Mining Engineering
 # The University of Queensland
 
-VERSION_STRING = "27-April-2012"
+VERSION_STRING = "30-April-2012"
 
 import shlex, subprocess, string
 from subprocess import PIPE
@@ -47,14 +47,17 @@ def quote(str):
     """
     return '"' + str + '"'
 
-def calculate_RS_coefficients(exitVar, DictOfCases, nozzleData):
+def calculate_RS_coefficients(exitVar, DictOfCases, nozzleData, RSAtype):
     """
     """
     beta = {}
     # Loop through each freestream property
     for var in exitVar:
-        F = zeros((len(DictOfCases),1))
-        X = zeros((len(DictOfCases),len(DictOfCases)))
+        Y = zeros((len(DictOfCases),1))
+        if RSAtype in ['radial']:
+            X = zeros((len(DictOfCases),len(DictOfCases)))
+        elif RSAtype in ['2nd-order']:
+            X = zeros((len(DictOfCases),6))
         
         # Loop through each perturbation case
         k = 0
@@ -62,25 +65,41 @@ def calculate_RS_coefficients(exitVar, DictOfCases, nozzleData):
         for case in DictOfCases.keys():
             # Store the value of the exit flow property
             # for the current case
-            F[k] = nozzleData[case][var]
-            # Using normalised coordinates for (Vs,pe), 
-            # calculate the set of Euclidean norms for 
-            # the current case with respect to all other
-            # cases.
-            X_temp = array(DictOfCases[case])/X0 - \
-                     array(DictOfCases.values())/X0
-            X[k,:] = [sqrt(dot(X_temp[i],X_temp[i])) for i in range(len(X_temp))]
+            Y[k] = nozzleData[case][var]
+            if RSAtype in ['radial']:
+                # Using normalised coordinates for (Vs,pe), 
+                # calculate the set of Euclidean norms for 
+                # the current case with respect to all other
+                # cases.
+                X_temp = array(DictOfCases[case])/X0 - \
+                         array(DictOfCases.values())/X0
+                X[k,:] = [sqrt(dot(X_temp[i],X_temp[i])) for i in range(len(X_temp))]
+            elif RSAtype in ['2nd-order']:
+                X_temp = array(DictOfCases[case])/X0
+                X[k,:] = [1.0, X_temp[0], X_temp[1], X_temp[0]**2, X_temp[1]**2,\
+                          X_temp[0]*X_temp[1]]
             k += 1
+        
         # Now solve the set of linear equations:
-        #     F = X*B
-        B = linalg.solve(X,F)
-        beta[var] = B.transpose() # Make it a row
+        #     Y = X*B
+        B = linalg.lstsq(X,Y)
+        beta[var] = B[0].transpose() # Make it a row
+        #if RSAtype in ['radial']:
+        #    B = linalg.solve(X,Y)
+        #    beta[var] = B.transpose() # Make it a row
+        #elif RSAtype in ['2nd-order']:
+        #    #B = dot(dot(linalg.inv(dot(X.transpose(),X)),X.transpose()),Y)
+        #    B = linalg.lstsq(X,Y)
+        #    beta[var] = B[0].transpose() # Make it a row
     return beta
 
-def write_RSA_file(beta, exitVar, DictOfCases, FileToWrite):
+def write_RSA_file(beta, exitVar, DictOfCases, RSAtype, FileToWrite):
     """
     """
     fout = open(FileToWrite,'w')
+    # Write out the type of RS as the first line. 
+    fout.write('{0:>9}'.format(RSAtype))
+    fout.write('\n')
     # Write out title line
     fout.write('{0:>9}'.format('variable'))
     for case in DictOfCases.keys():
@@ -101,6 +120,15 @@ def write_RSA_file(beta, exitVar, DictOfCases, FileToWrite):
         fout.write('{0:->15}'.format('-'))
     fout.write('{0:->9}'.format('-'))
     fout.write('\n')
+    # For 2nd-order RS we write out what each beta is for
+    if RSAtype in ['2nd-order']:
+        fout.write('{0:>9}{1:>15}{2:>15}{3:>15}{4:>15}{5:>15}{6:>15}'.\
+                   format('','1','Vs','pe','Vs**2','pe**2','Vs*pe'))
+        fout.write('\n')
+        for k in range(6):
+            fout.write('{0:->15}'.format('-'))
+        fout.write('{0:->9}'.format('-'))
+        fout.write('\n')    
     # Now write out the radial basis function coefficients
     # for each freestream property
     for var in exitVar:
@@ -116,6 +144,8 @@ def read_RSA_file(FileToRead):
     """
     fp = open(FileToRead,'r')
     
+    # Get the type of response surface that we are loading
+    RSAtype = fp.readline().strip()
     # Get case names
     titles = fp.readline().strip().split(" ")
     titleList = [k for k in titles if k!="" and k!="variable"]
@@ -130,6 +160,9 @@ def read_RSA_file(FileToRead):
     for j in range(len(titleList)):
         DictOfCases[titleList[j]] = [caseVs[j],casePe[j]]
     fp.readline() # This is just a line of "-"
+    if RSAtype in ['2nd-order']:
+        fp.readline() # 
+        fp.readline() # This is just a line of "-"
     # Now read the rest of the data and assemble a 
     # dictionary of beta values
     beta = {}
@@ -143,9 +176,9 @@ def read_RSA_file(FileToRead):
         del values[0]
         beta[var] = [float(values[k]) for k in range(len(values))]
     fp.close()
-    return exitVar, DictOfCases, beta
+    return exitVar, DictOfCases, RSAtype, beta
 
-def calculate_freestream(Vs, pe, exitVar, DictOfCases, beta):
+def calculate_freestream(Vs,pe,exitVar,DictOfCases,RSAtype,beta):
     """
     """
     freeStreamValues = {}
@@ -155,17 +188,20 @@ def calculate_freestream(Vs, pe, exitVar, DictOfCases, beta):
         X0 = array(DictOfCases['case00'])
         # Calculate normalised coordinates
         X = array([Vs,pe])/X0
-        Xi = array(DictOfCases.values())/X0
-        # Calculate Euclidean distance from the current (Vs,pe)
-        # values to each of the cases
-        Xdiff = X - Xi
-        R = [sqrt(dot(Xdiff[i],Xdiff[i])) for i in range(len(Xdiff))]
+        if RSAtype in ['radial']:
+            Xi = array(DictOfCases.values())/X0
+            # Calculate Euclidean distance from the 
+            # current (Vs,pe) values to each of the cases
+            Xdiff = X - Xi
+            R = [sqrt(dot(Xdiff[i],Xdiff[i])) for i in range(len(Xdiff))]
+        elif RSAtype in ['2nd-order']:
+            R = [1.0, X[0], X[1], X[0]**2, X[1]**2,X[0]*X[1]]
         # Calculate the nozzle property
         freeStreamValues[var] = sum(R*array(beta[var]))
     return freeStreamValues    
 
-def calculate_residuals(freeStreamValues,nozzleData,exitVar,beta=None,\
-                        DictOfCases=None):
+def calculate_residuals(freeStreamValues, nozzleData, exitVar, \
+                        RSAtype=None, beta=None, DictOfCases=None):
     """
     """
     residuals = {}
@@ -191,7 +227,7 @@ def calculate_residuals(freeStreamValues,nozzleData,exitVar,beta=None,\
             pe = DictOfCases[case][1]
             
             rsaFreestream[case] = calculate_freestream(Vs,pe,exitVar,\
-                                                     DictOfCases,beta)
+                                                DictOfCases,RSAtype,beta)
         # Now calculate the residuals (as percentages) and put them into 
         # a dictionary that has a similar structure as to the "beta" 
         # dictionary.
@@ -207,13 +243,17 @@ def calculate_residuals(freeStreamValues,nozzleData,exitVar,beta=None,\
     return residuals
 
 
-def write_flow_summary(valuesDict,outFileName,exitVar):
+def write_flow_summary(Vs,pe,valuesDict,outFileName,exitVar):
     """
     """
     fout = open(outFileName,'w')
     
     # Write title line
     fout.write('{0:>12}{1:>12}'.format('variable','value'))
+    fout.write('\n')
+    fout.write('{0:>12}{1:>12.5g}'.format('Vs',Vs))
+    fout.write('\n')
+    fout.write('{0:>12}{1:>12.5g}'.format('pe',pe))
     fout.write('\n')
     fout.write('{0:->24}'.format('-'))
     fout.write('\n')
@@ -237,6 +277,12 @@ def main():
                   default=False, help="create the Response Surface "
                   "approximation using perturbation results generated by "
                   "'nenzfr_perturbed.py'. [default: %default]")
+
+    op.add_option('--RSA-type', dest='RSAtype', choices=['radial','2nd-order'],
+                  default='2nd-order',help="specify whether the response "
+                  "surface should be formed from a summation of radial basis "
+                  "functions or from a 2nd-order equation in Vs and pe, "
+                  "choices: radial, 2nd-order. [default: %default]")
 
     op.add_option('--calculate-residuals', dest='calcResiduals', action='store_true',
                   default=False, help="calculate difference between a RSA freestream "
@@ -277,6 +323,16 @@ def main():
         if opt.pe is None:
             print "Need to supply a value for pe."
             bad_input = True
+        if not os.path.exists(opt.estcjFile):
+            print "'"+opt.estcjFile+"' does not exist in current directory"
+            bad_input = True
+        if not os.path.exists(opt.exitStatsFileName):
+            print "'"+opt.exitStatsFileName+"' does not exist in current directory"
+            bad_input = True
+    if opt.createRSA:
+        if not os.path.exists('perturbation_cases.dat'):
+            print "'perturbation_cases.dat' does not exist in current directory"
+            bad_input = True    
     if bad_input:
         return -2
     
@@ -300,9 +356,10 @@ def main():
         exitVar.insert(1,'supply_h')
         
         # Calculate the basis function coefficients
-        beta = calculate_RS_coefficients(exitVar, DictOfCases, nozzleData)
+        beta = calculate_RS_coefficients(exitVar, DictOfCases, \
+                                                    nozzleData, opt.RSAtype)
         # Write out a file summarising the coefficients
-        write_RSA_file(beta, exitVar, DictOfCases, opt.RSAfile)
+        write_RSA_file(beta, exitVar, DictOfCases, opt.RSAtype, opt.RSAfile)
         
         if opt.calcResiduals:
             """ 
@@ -311,27 +368,29 @@ def main():
             response surface. Unless something went wrong, these 
             should all be very small.
             """
-            ld_exitVar, ld_DictOfCases, ld_beta = read_RSA_file(opt.RSAfile)
+            ld_exitVar, ld_DictOfCases, opt.RSAtype, ld_beta = \
+                                                  read_RSA_file(opt.RSAfile)
             
             residuals = calculate_residuals(None, nozzleData, exitVar, \
-                                                       ld_beta, DictOfCases)
-        
+                                          opt.RSAtype, ld_beta, DictOfCases)
+            
             write_RSA_file(residuals, exitVar, DictOfCases, \
-                                                   opt.RSAfile+'_residuals')
+                         opt.RSAtype+' RS residuals', opt.RSAfile+'_residuals')
         
     else: 
         """
         Use the RSA to predict new freestream properties
         """
         # Load in the nominated file
-        exitVar, DictOfCases, beta = read_RSA_file(opt.RSAfile)
+        exitVar, DictOfCases, opt.RSAtype, beta = read_RSA_file(opt.RSAfile)
         
         # Calculate nozzle property values
         freeStreamValues = calculate_freestream(opt.Vs,opt.pe,exitVar,\
-                                                          DictOfCases,beta)
+                                               DictOfCases,opt.RSAtype,beta)
         
         # Write an output file
-        write_flow_summary(freeStreamValues,opt.exitFileName,exitVar)
+        write_flow_summary(opt.Vs,opt.pe,freeStreamValues,\
+                                                 opt.exitFileName,exitVar)
         
         if opt.calcResiduals:
             """
@@ -348,8 +407,8 @@ def main():
             
             residuals = calculate_residuals(freeStreamValues,nenzfrData,\
                                                                  exitVar)
-            write_flow_summary(residuals,opt.exitFileName+'_residuals',\
-                                                                 exitVar) 
+            write_flow_summary(opt.Vs,opt.pe,residuals,\
+                                   opt.exitFileName+'_residuals',exitVar) 
 
 
     return 0

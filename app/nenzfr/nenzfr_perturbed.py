@@ -10,7 +10,7 @@
 # School of Mechancial and Mining Engineering
 # The University of Queensland
 
-VERSION_STRING = "26-April-2012"
+VERSION_STRING = "30-April-2012"
 
 import shlex, subprocess, string
 from subprocess import PIPE
@@ -536,7 +536,11 @@ def main():
                           (4,0),      (0,0),      (3,0),
                                 (2,2),      (1,2),      
                           (4,4),      (0,4),      (3,4)]
-            #[(1,1),(1,2),(2,2),(2,1),(3,3),(3,4),(4,4),(4,3)]
+            #casesToRun = [      (2,3),      (1,3),     
+            #              (4,1),      (0,1),      (3,1),
+            #                    (2,0),      (1,0),     
+            #              (4,2),      (0,2),      (3,2),
+            #                    (2,4),      (1,4)      ]
         
         # Run the nominal case first
         caseString = 'case'+"{0:01}{0:01}".format(0,0)
