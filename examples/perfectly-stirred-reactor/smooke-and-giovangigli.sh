@@ -3,7 +3,7 @@
 # Exercise the perfectly-stirred-reactor simulation 
 # for the smooke-and-giovangigli reaction scheme.
 
-INPUTFILES=${HOME}/cfcfd2/lib/gas/reaction-schemes/methane-combustion
+INPUTFILES=${HOME}/cfcfd3/lib/gas/reaction-schemes/methane-combustion
 cp ${INPUTFILES}/smooke-and-giovangigli.lua .
 cp ${INPUTFILES}/smooke-and-giovangigli.inp .
 gasfile smooke-and-giovangigli.inp thermally-perfect-smooke-and-giovangigli.lua

@@ -4,14 +4,14 @@ Read structured grids from CGNS files.
 
 Authors: Paul Petrie-Repar, QGECE, 15 Feb 2011
          Peter J, 23 Feb 2011
-         Sancho J, 8 Feb 2012  
+         Sancho J, 8 Feb 2012
 
 This module makes use of Oliver Borm's CGNS package for Python 2.x
 http://sourceforge.net/projects/python-cgns/
 
-We have a copy of that package in cfcfd2/extern/python-cgns/.
+We have a copy of that package in cfcfd3/extern/python-cgns/.
 
-Sancho J just introduced some meodifications to read 2D meshes
+Sancho J just introduced some modifications to read 2D meshes
 Sancho J moved bc translation part to main eilmer3 script
 """
 

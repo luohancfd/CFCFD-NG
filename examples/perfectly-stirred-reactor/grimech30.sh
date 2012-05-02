@@ -3,7 +3,7 @@
 # Exercise the perfectly-stirred-reactor simulation 
 # for the GRI-Mech3.0 reaction scheme.
 
-INPUTFILES=${HOME}/cfcfd2/lib/gas/reaction-schemes/methane-combustion
+INPUTFILES=${HOME}/cfcfd3/lib/gas/reaction-schemes/methane-combustion
 cp ${INPUTFILES}/grimech30.lua .
 cp ${INPUTFILES}/grimech30.inp .
 gasfile grimech30.inp thermally-perfect-grimech30.lua

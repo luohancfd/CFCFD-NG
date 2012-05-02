@@ -3,7 +3,7 @@
 # Exercise the perfectly-stirred-reactor simulation 
 # for the Li and Williams reaction scheme.
 
-INPUTFILES=${HOME}/cfcfd2/lib/gas/reaction-schemes/methane-combustion
+INPUTFILES=${HOME}/cfcfd3/lib/gas/reaction-schemes/methane-combustion
 cp ${INPUTFILES}/li_and_williams.lua .
 cp ${INPUTFILES}/li_and_williams.inp .
 gasfile li_and_williams.inp thermally-perfect-li_and_williams.lua

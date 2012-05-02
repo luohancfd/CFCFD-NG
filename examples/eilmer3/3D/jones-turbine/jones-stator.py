@@ -56,7 +56,7 @@ def getLUAfunction(bcType, row):
 select_gas_model(model='ideal gas', species=['air'])
 
 # Flow domain is defined by Carlos' ICEM grid written in CGNS format.
-from import_cgns_grid import read_ICEM_CGNS_grids
+from cgns_grid import read_ICEM_CGNS_grids
 
 cgns_data = read_ICEM_CGNS_grids('Stator.cgns', labelStem='stator', gridScale=0.001)
 nb = cgns_data['nblock']

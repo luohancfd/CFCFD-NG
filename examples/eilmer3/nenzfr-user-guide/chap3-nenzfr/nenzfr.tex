@@ -10,7 +10,7 @@ Obviously in order to run NENZF-r, Eilmer3 must be successfully compiled. Users 
 \begin{enumerate}
 \item \textit{nenzfr.py}, \textit{nozzle.input.template} and \textit{nenzfr\_compute\_viscous\_data.py}
 \item For equilibrium gas calculations a look-up-table should be present. These may be prepared using \textit{setup\_lut.sh}.
-\item For non-equilibrium gas calculations, the appropriate reaction scheme as listed in Table \ref{tab:code} is required. These reaction schemes may be found in \textit{~/cfcfd2/lib/gas/reaction-schemes/}. Note that ions are not considered and so the reaction scheme should be checked and adjusted accordingly.
+\item For non-equilibrium gas calculations, the appropriate reaction scheme as listed in Table \ref{tab:code} is required. These reaction schemes may be found in \textit{~/cfcfd3/lib/gas/reaction-schemes/}. Note that ions are not considered and so the reaction scheme should be checked and adjusted accordingly.
 \item A contour or grid file for the nozzle.
 \end{enumerate}
 Finally, users should ensure that within \textit{nenzfr.py} the directory paths for the Eilmer3 executables are correct. 
@@ -44,7 +44,7 @@ nenzfr\_compute\_viscous\_data.py & Script used to calculate the viscous data, i
 nenzfr\_sensitivity\_and\_lut.py & Coordinating script that conducts a sensitivity analysis for NENZF-r and builds a corresponding look-up-table for the nozzle exit properties. (YET TO BE COMPLETED)\\
 setup\_lut.sh & A simple shell script that builds the required equilibrium gas look-up-tables.\\
 run.sh & Shell script to submit a NENZF-r job on the hpcu cluster \textit{barrine}. \\
-estcj.py & Equilibrium Shock Tube Calculation, junior. This Python script completes the reflected shock calculation. Though apart of the cfcfd2/Eilmer3 suite of programs, it has been included here for completeness. \\
+estcj.py & Equilibrium Shock Tube Calculation, junior. This Python script completes the reflected shock calculation. Though apart of the cfcfd3/Eilmer3 suite of programs, it has been included here for completeness. \\
 \hline \hline
 \multicolumn{2}{|c|}{\textbf{Nozzle Profiles}} \\ \hline
 contour-t4-m10.data & T4 Mach 10 nozzle profile. \\

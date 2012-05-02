@@ -153,8 +153,9 @@ endif
 
 E3_OBJECTS_2_MPI := exch_mpi.o
 
-PY_FILES = e3prep.py e3post.py turbo_post.py e3cgns.py e3history.py e3_block.py e3_render.py \
-	e3_grid.py e3_flow.py bc_defs.py flux_dict.py libprep3.py e3_defs.py
+PY_FILES = e3prep.py e3post.py turbo_post.py cgns_grid.py e3cgns.py e3history.py \
+	e3_block.py e3_render.py e3_grid.py e3_flow.py bc_defs.py flux_dict.py \
+	libprep3.py e3_defs.py
 
 # Assume Unix/Linux
 LOADABLE_MODULE := _libprep3.so
@@ -383,6 +384,10 @@ e3post.py : $(SRC)/e3post.py
 turbo_post.py : $(SRC)/turbo_post.py
 	cp $(SRC)/turbo_post.py .
 	chmod +x turbo_post.py
+
+cgns_grid.py : $(SRC)/cgns_grid.py
+	cp $(SRC)/cgns_grid.py .
+	chmod +x cgns_grid.py
 
 e3cgns.py : $(SRC)/e3cgns.py
 	cp $(SRC)/e3cgns.py .

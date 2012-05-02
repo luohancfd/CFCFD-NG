@@ -3,7 +3,7 @@
 # Exercise the perfectly-stirred-reactor simulation 
 # for the DRM22 reaction scheme.
 
-INPUTFILES=${HOME}/cfcfd2/lib/gas/reaction-schemes/methane-combustion
+INPUTFILES=${HOME}/cfcfd3/lib/gas/reaction-schemes/methane-combustion
 cp ${INPUTFILES}/drm22.lua .
 cp ${INPUTFILES}/drm22.inp .
 gasfile drm22.inp thermally-perfect-drm22.lua

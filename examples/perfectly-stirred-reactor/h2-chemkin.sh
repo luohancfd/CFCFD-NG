@@ -21,7 +21,7 @@ echo "Have saved original species files."
 rsync -av ${SPECIES}/species-with-chemkin-thermo-data/*.lua ${SPECIES}/
 echo "Have put Chemkin thermo data in place."
 
-INPUTFILES=${HOME}/cfcfd2/lib/gas/reaction-schemes/methane-combustion
+INPUTFILES=${HOME}/cfcfd3/lib/gas/reaction-schemes/methane-combustion
 cp ${INPUTFILES}/h2-chemkin.lua .
 cp ${INPUTFILES}/h2-chemkin.inp .
 gasfile h2-chemkin.inp thermally-perfect-h2-chemkin.lua

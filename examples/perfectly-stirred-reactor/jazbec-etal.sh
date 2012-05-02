@@ -3,7 +3,7 @@
 # Exercise the perfectly-stirred-reactor simulation 
 # for the jazbec-etal reaction scheme.
 
-INPUTFILES=${HOME}/cfcfd2/lib/gas/reaction-schemes/methane-combustion
+INPUTFILES=${HOME}/cfcfd3/lib/gas/reaction-schemes/methane-combustion
 cp ${INPUTFILES}/jazbec-etal.lua .
 cp ${INPUTFILES}/jazbec-etal.inp .
 gasfile jazbec-etal.inp thermally-perfect-jazbec-etal.lua
