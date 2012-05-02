@@ -4,7 +4,73 @@
 \section{NENZFr Response Surface}
 \label{chapter-response-surface}
 
-\subsection{Method}
+When completing a test campaign within a reflected-shock tunnel facility, the ability to calculate the nozzle flow properties within a few minutes of a shot is of great importance. The current implementation of NENZFr is not able to satisfy this requirement directly. Indirectly, the obvious solution and one that is frequently employed in similar situations is to use a set of NENZFr simulations to calculate a response surface describing the variation of the nozzle flow properties with the chosen inputs. Provided that it is sufficiently accurate, the response surface can be used to rapidly calculate the flow properties rather than running separate NENZFr simulations. 
+
+The calculation of a set of NENZFr simulations from which a response surface may be constructed is handled by \textit{nenzfr\_perturbed.py} while \textit{nenzfr\_RSA.py} performs the calculation of the response surface and the prediction of the nozzle exit flow. Based on the work of \cite{Simpson_2001} and \cite{Giunta_2003} two different response surfaces have been implemented within \textit{nenzfr\_RSA.py} and are detailed in the \cref{RS-methods}. 
+
+In each case the response surfaces describes the variation of the nozzle exit flow properties over the normalised domain $(x_1, x_2) = (V_s/V_{s0}, p_e/p_{e0})$ where $V_{s0}$ and $p_{e0}$ are the incident shock speed and equilibrium nozzle supply pressure for the nominal condition on which the response surface is centered. Normalised coordinates were used to ensure that both variables were considered equally despite being different by four orders of magnitude ($V_s\sim10^3$ while $p_e\sim10^7$).  
+
+The choice to describe the variation of the nozzle exit flow properties in terms of just the incident shock speed and nozzle supply pressure was made based on the usual operation of shock tunnel facilities. When conducting an experimental campaign the tunnel may be operated at a number of different nominal conditions.  For any given nominal condition, there exists some shot-to-shot variability in the shock speed and nozzle supply pressure though this is typically small compared to the variation that exists over the range of available nominal conditions. 
+
+For a given nominal condition, the response surface accounts for the shot-to-shot variation. Consequently, a separate response surface is required for each condition to be used during an experimental campaign. More often than not, creating the required response surfaces will be computationally cheaper than running individual NENZFr simulations for each shot.
+
+
+\subsection{Method} \label{RS-methods}
+\subsubsection{2nd-order Surface}
+For this option the variation of each property is modelled using a 2nd order polynominal equation of the form:
+\begin{equation}
+y^k = \beta_0^k + \beta_1^k x_1 + \beta_2^k x_2 + \beta_{11}^k x_1^2 + \beta_{22}^k x_2^2 + \beta_{12}^k x_{12}
+\label{2nd-order}
+\end{equation}
+for $y^k$ in $\lbrace T_s, h_s, \rho, v_x, v_y, p, \dots \rbrace$ and normalised coordinates $(x_1, x_2) = (V_s/V_{s0}, p_e/p_{e0})$. Distinct values for $\lbrace \beta_0, \beta_1, \beta_2, \beta_{11}, \beta_{22}, \beta_{12}\rbrace^k$ exists for each $y^k$. Using a set of computed results, $\lbrace (x_1, x_2, f^k) \rbrace_i$, $i = 1 \dots n$, \cref{2nd-order} may be rewritten in matrix form as:
+\begin{eqnarray}
+%\begin{align}
+\begin{bmatrix}
+f_1 \\ f_2 \\ f_3 \\ \vdots \\ y_n
+\end{bmatrix}^k
+&=& \begin{bmatrix}
+%1 & x_1^1 & x_2^1 & (x_1^1)^2 & (x_2^1)^2 & x_1^1 x_2^1 \\
+%1 & x_1^2 & x_2^2 & (x_1^2)^2 & (x_2^2)^2 & x_1^2 x_2^2 \\
+%1 & x_1^3 & x_2^3 & (x_1^3)^2 & (x_2^3)^2 & x_1^3 x_2^3 \\
+1 & x_{11} & x_{21} & x_{11}^2 & x_{21}^2 & x_{11} x_{21} \\
+1 & x_{12} & x_{22} & x_{12}^2 & x_{22}^2 & x_{12} x_{22} \\
+1 & x_{13} & x_{23} & x_{13}^2 & x_{23}^2 & x_{13} x_{23} \\
+\vdots & \vdots & \vdots & \vdots & \vdots & \vdots \\
+1 & x_{1n} & x_{2n} & x_{1n}^2 & x_{2n}^2 & x_{1n} x_{2n} \\
+\end{bmatrix}
+\begin{bmatrix}
+\beta_0 \\ \beta_1 \\ \beta_2 \\ \beta_{11} \\ \beta_{22} \\ \beta_{12}
+\end{bmatrix}^k \\
+\mathbf{f}^k &=& X \boldsymbol{\beta}^k
+%\end{align}
+\end{eqnarray}
+This set of linear equations may easily be solved as follows\footnote{Multiplying by the transpose of X gives a square matrix of size $n \times n$ which can then be inverted}: 
+\begin{eqnarray}
+X^T\mathbf{f}^k &=& X^TX\boldsymbol{\beta}^k  \nonumber \\
+\therefore \boldsymbol{\beta}^k &=& [X^TX]^{-1}X^T\mathbf{f}^k
+\end{eqnarray}
+since $[X^TX]^{-1}[X^TX] = I$, the identity matrix.
+%by multiplying by the transponse of $X$ to give a square matrix and then by the inverse of $X^TX$ to give:
+%\begin{eqnarray}
+%\boldsymbol{\beta}^k = \left[X^TX\right]^{-1}X^T\mathbf{y}^k
+%\end{eqnarray}
+
+
+\subsubsection{Radial-Basis Function Surface}
+For this method the variation of each property is modelled by interpolating over the entire set of computed results. That is,
+\begin{equation}
+y^k = \sum_i^n{\beta_i^k \parallel \mathbf{x} - \mathbf{x_i} \parallel}
+\label{radial}
+\end{equation}
+for $y^k$ in $\lbrace T_s, h_s, \rho, v_x, v_y, p, \dots \rbrace$, normalised coordinates $\mathbf{x} = (x_1, x_2) = (V_s/V_{s0}, p_e/p_{e0})$ and where $\parallel . \parallel$ represents the Euclidean distance and $\lbrace (x_1, x_2, f^k) \rbrace_i$, $i = 1 \dots n$ is a set of computed results. 
+
+Just as for the 2nd-order surface, the set of computed results can be used to find the distinct set of values $\lbrace \beta_i \rbrace^k$ for each $y_k$. In matrix form using the computed results \cref{radial} becomes:
+\begin{eqnarray}
+\begin{bmatrix} f_1 \\ f_2 \\ f_3 \\ \vdots \\ f_n \end{bmatrix}^k &=& \begin{bmatrix} 0 & \parallel\mathbf{x}_1-\mathbf{x}_2\parallel & \parallel\mathbf{x}_1-\mathbf{x}_3\parallel & \dots & \parallel\mathbf{x}_1-\mathbf{x}_n\parallel \\ \parallel\mathbf{x}_2-\mathbf{x}_1\parallel & 0 & \parallel\mathbf{x}_2-\mathbf{x}_3\parallel & \dots & \parallel\mathbf{x}_2-\mathbf{x}_n\parallel \\ \parallel\mathbf{x}_3-\mathbf{x}_1\parallel & \parallel\mathbf{x}_3-\mathbf{x}_2\parallel & 0 & \dots & \parallel\mathbf{x}_3-\mathbf{x}_n\parallel \\ \vdots & \vdots & \vdots & \ddots & \vdots \\ \parallel\mathbf{x}_n-\mathbf{x}_1\parallel & \parallel\mathbf{x}_n-\mathbf{x}_2\parallel & \parallel\mathbf{x}_n-\mathbf{x}_3\parallel & \dots & 0 \end{bmatrix} \begin{bmatrix} \beta_1 \\ \beta_2 \\ \beta_3 \\ \vdots \\ \beta_n \end{bmatrix}^k \\
+\mathbf{f}^k &=& X \boldsymbol{\beta}^k \nonumber \\
+\therefore \boldsymbol{\beta}^k &=& X^{-1}\mathbf{f}^k 
+\end{eqnarray}
+since $X$ is a square matrix of dimension $n\times n$.
 
 \subsection{Inputs}
 

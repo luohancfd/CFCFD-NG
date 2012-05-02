@@ -14,7 +14,7 @@
 # School of Mechancial and Mining Engineering
 # The University of Queensland
 
-VERSION_STRING = "30-April-2012"
+VERSION_STRING = "02-May-2012"
 
 import shlex, subprocess, string
 from subprocess import PIPE
@@ -49,6 +49,9 @@ def quote(str):
 
 def calculate_RS_coefficients(exitVar, DictOfCases, nozzleData, RSAtype):
     """
+    Function to calculate the coefficients for the chosen response
+    surface by solving a set of linear equations using the results of
+    a set of perturbation cases.
     """
     beta = {}
     # Loop through each freestream property
@@ -95,6 +98,8 @@ def calculate_RS_coefficients(exitVar, DictOfCases, nozzleData, RSAtype):
 
 def write_RSA_file(beta, exitVar, DictOfCases, RSAtype, FileToWrite):
     """
+    Write out a file summarising the response surface coefficients
+    for each exit flow property.
     """
     fout = open(FileToWrite,'w')
     # Write out the type of RS as the first line. 
@@ -141,6 +146,20 @@ def write_RSA_file(beta, exitVar, DictOfCases, RSAtype, FileToWrite):
 
 def read_RSA_file(FileToRead):
     """
+    Read in a Response Surface file and return:
+    
+    exitVar: a list of the exit flow properties that have
+        been fitted with surfaces;
+    DictOfCases: a dictionary detailing the perturbation 
+        cases that were used to create the response
+        surface. The keys are the case names while the 
+        values are a list of the form [Vs, pe];
+    RSAtype: the type of response surface
+    beta: a dictionary of coefficients. The keys are
+        the exit flow property names while the values
+        are a list of floats of coefficients. The type
+        of response surface dictates how the coefficients
+        should be used.
     """
     fp = open(FileToRead,'r')
     
@@ -180,6 +199,11 @@ def read_RSA_file(FileToRead):
 
 def calculate_freestream(Vs,pe,exitVar,DictOfCases,RSAtype,beta):
     """
+    Calculate and return a dictionary of the freestream values 
+    corresponding to the given (Vs,pe) using the response surface 
+    coefficients (beta) provided. The equation used is dictated
+    by the type of surface being used (RSAtype). The freestream
+    properties returned correspond to those in the exitVar list. 
     """
     freeStreamValues = {}
     # Loop through each nozzle property
@@ -203,6 +227,23 @@ def calculate_freestream(Vs,pe,exitVar,DictOfCases,RSAtype,beta):
 def calculate_residuals(freeStreamValues, nozzleData, exitVar, \
                         RSAtype=None, beta=None, DictOfCases=None):
     """
+    Function to calculate the residuals (differences between predicted
+    freestream values and those returned by nenzfr.
+
+    This function calculates the residuals for two situations. 
+    (1) freeStreamValues are given. In this case we are comparing
+        the input freeStreamValues to the input nozzleData for 
+        each property in the exitVar list.
+    (2) no freeStreamValues are given. In this case we assume that
+        we are calculating residuals for each perturbation case that
+        was used to create the response surface. We must therefore
+        specify the type of response surface (RSAtype), the
+        coefficients (beta) and the perturbation cases (DictOfCases).
+
+    The function returns the dictionary 'residuals'. The keys of
+    this dictionary correspond to the freestream property names in 
+    exitVar. The dictionary values are either a single float or a
+    list of floats (one value for every perturbation case).
     """
     residuals = {}
     if freeStreamValues is not None:
@@ -216,7 +257,10 @@ def calculate_residuals(freeStreamValues, nozzleData, exitVar, \
             print "Bad input (beta) for 'calculate_residuals'"
             return -2
         if DictOfCases is None:
-            print "Bad input (DictOfCases) for 'calculate_residuals"
+            print "Bad input (DictOfCases) for 'calculate_residuals'"
+            return -2
+        if RSAtype is None:
+            print "Bad input (RSAtype) for 'calculate_residuals'"
             return -2
         
         # Calculate freestream properties using the response surface
@@ -245,15 +289,18 @@ def calculate_residuals(freeStreamValues, nozzleData, exitVar, \
 
 def write_flow_summary(Vs,pe,valuesDict,outFileName,exitVar):
     """
+    Write out a file summarising the predicted freestream
+    values.
     """
     fout = open(outFileName,'w')
     
-    # Write title line
+    # Write title line and values of Vs, pe used. Underline
+    # this header.
     fout.write('{0:>12}{1:>12}'.format('variable','value'))
     fout.write('\n')
     fout.write('{0:>12}{1:>12.5g}'.format('Vs',Vs))
     fout.write('\n')
-    fout.write('{0:>12}{1:>12.5g}'.format('pe',pe))
+    fout.write('{0:>12}{1:>12.6g}'.format('pe',pe))
     fout.write('\n')
     fout.write('{0:->24}'.format('-'))
     fout.write('\n')
@@ -307,7 +354,7 @@ def main():
     op.add_option('--pe', dest='pe', default=None, type='float',
                   help=("equilibrium pressure (after shock reflection), in Pa. "
                         "[default: %default]"))
-    op.add_option('--exitfile', dest='exitFileName', default='nozzle-exit.RSAdat',
+    op.add_option('--exitFile', dest='exitFileName', default='nozzle-exit.RSAdat',
                   help="file for holding the RSA calculated nozzle exit data "
                        "[default: %default]")
 
@@ -375,7 +422,7 @@ def main():
                                           opt.RSAtype, ld_beta, DictOfCases)
             
             write_RSA_file(residuals, exitVar, DictOfCases, \
-                         opt.RSAtype+' RS residuals', opt.RSAfile+'_residuals')
+                         opt.RSAtype+' RS residuals as PERCENTAGES', opt.RSAfile+'_residuals')
         
     else: 
         """
@@ -417,7 +464,7 @@ def main():
 
 if __name__ == '__main__':
     if len(sys.argv) <= 1:
-        print "NENZFr Sensitivity:\n Calculate Shock Tunnel Test Flow Conditions"
+        print "NENZFr Sensitivity:\n Calculate Shock Tunnel Test Flow Conditions\nusing a Response Surface Approximation"
         print "   Version:", VERSION_STRING
         print "   To get some useful hints, invoke the program with option --help."
         sys.exit(0)

@@ -6,6 +6,102 @@
 
 
 \subsection{Method}
+The default uncertainties for the measured inputs were taken from \cite{Kirchhartz_2009a} while the defaults for the remaining inputs were guestimated by the authors. The values are summarised in \cref{default_uncertainties}.
+
+\begin{table}[!ht]
+\centering
+\caption{Default Uncertainties for NENZFr Input Parameters}
+\begin{tabular}{rD..{-1}}
+\hline
+Input & \multicolumn{1}{c}{Relative Uncertainty} \\
+\hline
+$p_1$ 		& 3.25\% \\
+$T_1$ 		& 2\%    \\
+$V_s$ 		& 5\%    \\
+$p_e$ 		& 2.5\%  \\
+\hline
+$T_{wall}$ 	& 4\%    \\
+$x_{tr}$ 		& 100\%  \\
+$I_{turb}$ 	& 80\%   \\
+$\mu_{turb}/\mu_{lam}$ 	& 100\% \\
+$r_{core}/r_{exit}$ 		& 5\%   \\
+\hline
+\end{tabular}
+\label{default_uncertainties}
+\end{table}
+
+
+\subsubsection{3-point derivative}
+When calculating the derivative at $x_0$, we make no assumption concering the spacing of $x_+$ and $x_-$ relative to $x_0$. Using Taylor series expansion around $x_0$ we may write the following equations:
+\begin{equation}
+f_+ = f_0 + f'_0h_+ + \frac{1}{2}f''_0 h_+^2 + O(h_+^3) %\\
+\label{fx+1}
+\end{equation}
+\begin{equation}
+f_- = f_0 + f'_0h_- + \frac{1}{2}f''_0 h_-^2 + O(h_-^3) %\\
+\label{fx-1}
+\end{equation}
+where $h_i = x_i-x_0$, $f_i = f(x_i)$, $f'_i = f'(x_i)$ and $f''_i = f''(x_i)$.
+
+We want to combine these two equations such that the second order terms cancel. Therefore, multiply \cref{fx-1} by $h_+/h_-$ and subtract the result from \cref{fx+1} to give:
+\begin{equation*}
+f_+ - f_-\frac{h_+}{h_-} = \left[1 - \left(\frac{h_+}{h_-}\right)^2\right]f_0 + \left[h_+ - \frac{h_+^2}{h_-}\right]f'_0 + O(h_+^3) - O(h_-^2 h_+)
+\end{equation*}
+Rearranging the above we arrive at the following expression for the derivative at $x_0$:
+\begin{equation}
+f'_0 = \left(-\frac{h_-}{x_+-x_-}\right).\frac{f_+ - f_0}{h_+} + \left(\frac{h_+}{x_+-x_-}\right) \frac{f_- - f_0}{h_-} 
+\end{equation}
+where the terms in brackets are weightings for the forward and backward two-point derivatives. The truncation error for this estimate of the derivative is:
+$O\left(\text{max}(h_+^2,h_-^2). \frac{h_-}{h_+-h_-}\right)$
+
+\subsubsection{5-point derivative}
+For the calculation of the derivative at $x_0$ using five points, we write the following Taylor series expansions:
+\begin{equation}
+f_{++} = f_0 + f'_0 h_{++} + \frac{1}{2}f''_0 h_{++}^2 + \frac{1}{6}f'''_0 h_{++}^3 + O(h_{++}^4)
+\label{fx++}
+\end{equation}
+\begin{equation}
+f_{--} = f_0 + f'_0 h_{--} + \frac{1}{2}f''_0 h_{--}^2 + \frac{1}{6}f'''_0 h_{--}^3 + O(h_{--}^4)
+\label{fx--}
+\end{equation}
+\begin{equation}
+f_{+} = f_0 + f'_0 h_+ + \frac{1}{2}f''_0 h_{+}^2 + \frac{1}{6}f'''_0 h_{+}^3 + O(h_{+}^4)
+\label{fx+}
+\end{equation}
+\begin{equation}
+f_{-} = f_0 + f'_0 h_- + \frac{1}{2}f''_0 h_{-}^2 + \frac{1}{6}f'''_0 h_{-}^3 + O(h_{-}^4)
+\label{fx-}
+\end{equation}
+Following the procedure used in the previous section we combine \cref{fx++} and \cref{fx--} to eliminate the second order terms. Thus, multiply \cref{fx--} by $h_{++}^2/h_{--}^2$ and subtract from \cref{fx++} to give:
+\begin{equation}
+f_{++} - f_{--}\frac{h_{++}^2}{h_{--}^2} = f_0\left[ 1 - \frac{h_{++}^2}{h_{--}^2}\right] + f'_0 h_{++} \left[ 1 - \frac{h_{++}}{h_{--}} \right] + \frac{1}{6} f'''_0 h_{++}^2 \left( x_{++} - x_{--}\right)
+\label{f'1}
+\end{equation}
+In a similar way combine \cref{fx+} and \cref{fx-} to give:
+\begin{equation}
+f_+ - f_-\frac{h_+^2}{h_-^2} = f_0\left[ 1 - \frac{h_+^2}{h_-^2}\right] + f'_0 h_+ \left[ 1 - \frac{h_+}{h_-} \right] + \frac{1}{6} f'''_0 h_+^2 \left( x_+ - x_-\right)
+\label{f'2}
+\end{equation}
+The goal is to now combine \cref{f'1,f'2} such that the terms involving $f'''_0$ are eliminate. We therefore multiply \cref{f'2} by:
+\begin{equation}
+\frac{h_{++}^2}{h_+^2}\frac{x_{++}-x_{--}}{x_+-x_-}
+\end{equation}
+which gives:
+\begin{equation}
+\begin{split}
+\left[ \frac{f_+}{h_+^2} - \frac{f_-}{h_-^2} \right] h_{++}^2 \left(\frac{x_{++} - x_{--}}{x_+ - x_-}\right) &= f_0 \left[\frac{1}{h_+^2} - \frac{1}{h_-^2} \right] h_{++}^2 \left(\frac{x_{++} - x_{--}}{x_+ - x_-}\right) \\&+  f'_0 \left[ \frac{1}{h_+} - \frac{1}{h_-} \right] h_{++}^2 \left(\frac{x_{++} - x_{--}}{x_+ - x_-}\right) \\&+ \frac{1}{6} f'''_0 h_{++}^2 \left( x_{++} - x_{--} \right)
+\end{split}
+\label{f'2a}
+\end{equation}
+We now subtract \cref{f'2a} from \cref{f'1} and divide throughout by $h_{++}^2$ to give:
+\begin{equation}
+%\begin{split}
+%f'_0 \left\lbrace \frac{1}{h_{++}} - \frac{1}{h_{--}} - \left[ \frac{1}{h_+} - \frac{1}{h_-} \right] \left(\frac{x_{++} - x_{--}}{x_+ - x_-}\right)\right\rbrace 
+%&= \frac{f_{++}}{h_{++}^2} - \frac{f_{--}}{h_{--}^2} - \left[\frac{f_+}{h_+^2} - \frac{f_-}{h_-^2} \right] \left(\frac{x_{++} - x_{--}}{x_+ - x_-} \right) \\&- f_0 \left\lbrace \frac{1}{h_{++}^2} - \frac{1}{h_{--}^2} - \left[\frac{1}{h_+^2} \frac{1}{h_-^2} \right] \left(\frac{x_{++} - x_{--}}{x_+ - x_-} \right) \right\rbrace
+%\end{split}
+f'_0 = \frac{\frac{f_{++}}{h_{++}^2} - \frac{f_{--}}{h_{--}^2} - \left[\frac{f_+}{h_+^2} - \frac{f_-}{h_-^2} \right] \left(\frac{x_{++} - x_{--}}{x_+ - x_-} \right) - f_0 \left\lbrace \frac{1}{h_{++}^2} - \frac{1}{h_{--}^2} - \left[\frac{1}{h_+^2} - \frac{1}{h_-^2} \right] \left(\frac{x_{++} - x_{--}}{x_+ - x_-} \right) \right\rbrace}{ \frac{1}{h_{++}} - \frac{1}{h_{--}} - \left[ \frac{1}{h_+} - \frac{1}{h_-} \right] \left(\frac{x_{++} - x_{--}}{x_+ - x_-}\right) }
+\end{equation}
+
 
 \subsection{Inputs}
 

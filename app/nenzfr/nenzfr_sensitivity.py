@@ -291,7 +291,7 @@ def main():
                   default=True, help="calculate sensitivities and "
                   "uncertainties using all the default values.")
     
-    op.add_option('--exitStatsfile', dest='exitStatsFileName',
+    op.add_option('--exitStatsFile', dest='exitStatsFileName',
                   default='nozzle-exit.stats',
                   help="file that holds the averaged nozzle-exit "
                        "data and is to be read in for each perturbation "
@@ -312,14 +312,13 @@ def main():
                         "[default: %default]" ))
     op.add_option('--XT1', dest='T1', default=0.02,
                   help=("relative uncertainty in shock tube fill temperature. "
-                        "[default delta: %default]"))
+                        "[default: %default]"))
     op.add_option('--XVs', dest='Vs', default=0.05,
                   help=("relative uncertainty in the incident shock speed. "
-                        "[default delta: %default]"))
+                        "[default: %default]"))
     op.add_option('--Xpe', dest='pe', default=0.025,
-                  help=("equilibrium pressure (after shock reflection), "
-                        "in Pa and its perturbation/s as a list. "
-                        "[default: 5%]"))
+                  help=("relative uncertainty in the equilibrium pressure "
+                        "(after shock reflection). [default: %default]"))
     # The default values for the following inputs are guestimates :)
     op.add_option('--XTwall', dest='Tw', default=0.04,
                   help=("relative uncertainty in nozzle wall temperature. "

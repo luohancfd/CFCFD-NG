@@ -10,7 +10,7 @@
 # School of Mechancial and Mining Engineering
 # The University of Queensland
 
-VERSION_STRING = "30-April-2012"
+VERSION_STRING = "02-May-2012"
 
 import shlex, subprocess, string
 from subprocess import PIPE
@@ -238,10 +238,10 @@ def write_case_summary(varList,caseDict,caseString,newfile):
     """
     # Define some dictionaries with the formating of each of the possible 
     # perturbed variables
-    formatDict = {'p1':'{0:>13.4g}', 'T1':'{0:>10.4g}', 'Vs':'{0:>11.4g}',
-                  'pe':'{0:>15.4g}', 'Tw':'{0:>10.4g}', 'BLTrans':'{0:>10.4g}',
-                  'TurbVisRatio':'{0:>14.4g}', 'TurbInten':'{0:>11.4g}',
-                  'CoreRadiusFraction':'{0:>20.4g}'}
+    formatDict = {'p1':'{0:>13.5g}', 'T1':'{0:>10.5g}', 'Vs':'{0:>11.5g}',
+                  'pe':'{0:>15.6g}', 'Tw':'{0:>10.5g}', 'BLTrans':'{0:>10.5g}',
+                  'TurbVisRatio':'{0:>14.5g}', 'TurbInten':'{0:>11.5g}',
+                  'CoreRadiusFraction':'{0:>20.5g}'}
     titleFormatDict = {'p1':'{0:{fill}>13}', 'T1':'{0:{fill}>10}', 
                        'Vs':'{0:{fill}>11}', 'pe':'{0:{fill}>15}', 
                        'Tw':'{0:{fill}>10}', 'BLTrans':'{0:{fill}>10}',
@@ -291,7 +291,7 @@ def main():
     op.add_option('--runCMD', dest='runCMD', default='./',
                   help=("command used to execute the run-script file "
                         "[default: %default]"))
-    op.add_option('--Cluster', dest='Cluster', default='Mango',
+    op.add_option('--cluster', dest='Cluster', default='Mango',
                   choices =['Mango', 'Barrine'],
                   help=("specify on which cluster the computations are to be ran. "
                         "This is used to define which run template script will "
@@ -300,9 +300,10 @@ def main():
     op.add_option('--perturb', dest='perturb', default='rel', choices=['rel','abs'],
                   help=("specify whether the given perturbations are absolute "
                         "or relative values. Options: rel, abs [default: %default]"))
-    op.add_option('--levels', dest='levels', default=3,choices=['3','5'],
+    op.add_option('--levels', dest='levels', default=3,choices=['3','3-reduced','5'],
                   help=("specify how many values are to be used for each variable, "
-                        "including the nominal. Options: 3, 5 [default: %default]"))
+                        "including the nominal. Options: 3, 3-reduced, 5 "
+                        "[default: %default]"))
     op.add_option('--job', dest='jobName', default='nozzle',
                   help="base name for Eilmer3 files [default: %default]")
 
@@ -427,7 +428,15 @@ def main():
         return -2
     # Convert to integer. NB. I don't specify the type as int in the option
     # as this negates the ability to have choices.
-    opt.levels = int(opt.levels)
+    if opt.levels in ['3-reduced']:
+        if opt.createRSA is True:
+            opt.levels = 2.5
+        else:
+            print "the --levels=3-reduced is only valid when creating a response surface."+
+                  " changing to levels=3" 
+            opt.levels = 3
+    else:
+       opt.levels = int(opt.levels)
     
     # Set up a list of the perturbed variables.
     if opt.createRSA:
@@ -526,7 +535,11 @@ def main():
         var1 = perturbedVariables[0] # 'Vs'
         var2 = perturbedVariables[1] # 'pe'
         
-        if opt.levels == 3:
+        if opt.levels == 2.5
+            casesToRun = [(2,1),      (1,1),
+                                (0,0),
+                          (2,2),      (1,2)]
+        elif opt.levels == 3:
             casesToRun = [(2,1),(0,1),(1,1),
                           (2,0),(0,0),(1,0),
                           (2,2),(0,2),(1,2)]
