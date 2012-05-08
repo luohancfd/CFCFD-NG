@@ -57,19 +57,25 @@ Dense_real_thermal_behaviour(lua_State *L)
     M_.push_back(M);
     R_ = PC_R_u/M;
 
-    lua_getfield(L, -1, "Cv0_coeffs"); // Bring Cv0 coeffs to TOS
+    lua_getfield(L, -1, "Cp0_coeffs"); // Bring Cp0 coeffs to TOS
     G_ = get_vector(L, -1, "G");
-    lua_pop(L, 1); // pop Cv0 coeffs off stack
+    lua_getfield(L, -1, "T_low");
+    T_low_ = lua_tonumber(L, -1);
+    lua_pop(L, 1); // pop T_low off stack
+    lua_getfield(L, -1, "T_high");
+    T_high_ = lua_tonumber(L, -1);
+    lua_pop(L, 1); // pop T_high off stack
+    lua_pop(L, 1); // pop Cp0 coeffs off stack
 
     lua_getfield(L, -1, "reference_state"); // Bring reference states to TOS
     lua_getfield(L, -1, "T0");
-    T0 = lua_tonumber(L, -1);
+    T0_ = lua_tonumber(L, -1);
     lua_pop(L, 1); // pop T0 off stack
     lua_getfield(L, -1, "u0");
-    u0 = lua_tonumber(L, -1);
+    u0_ = lua_tonumber(L, -1);
     lua_pop(L, 1); // pop u0 off stack
     lua_getfield(L, -1, "s0");
-    s0 = lua_tonumber(L, -1);
+    s0_ = lua_tonumber(L, -1);
     lua_pop(L, 1); // pop s0 off stack
     lua_pop(L, 1); // pop reference states off stack
 
@@ -78,6 +84,20 @@ Dense_real_thermal_behaviour(lua_State *L)
 
 Dense_real_thermal_behaviour::
 ~Dense_real_thermal_behaviour() {}
+
+int
+Dense_real_thermal_behaviour::
+check_temperature_valid(const double &T)
+{
+    // Check that temperature is within range of validity of Cv0 data.
+    if (T < T_low_ || T > T_high_) {
+        cout << "Dense_real_thermal_behaviour::check_temperature_valid():\n"
+             << "   Temperature = " << T << " out of validity range!\n";
+        return FAILURE;
+    } else {
+        return SUCCESS;
+    }
+}
 
 int
 Dense_real_thermal_behaviour::
@@ -97,32 +117,23 @@ double
 Dense_real_thermal_behaviour::
 s_dhdT_const_p(const Gas_data &Q, Equation_of_state *EOS_, int &status)
 {
-    // This could be improved by using Univariate_functor
-    // and Richardson extrapolation from the nm library.
-    double dT = 0.01;
-    double h1 = s_eval_enthalpy_isp(Q, EOS_, 0);
-    Gas_data Q_peturb(Q);
-    Q_peturb.T[0] += dT;
-    // Recalculate the thermodynamic state at the perturbed temp and original pressure.
-    EOS_->eval_density(Q_peturb);
-    double h2 = s_eval_enthalpy_isp(Q_peturb, EOS_, 0);
-    return (h2 - h1)/dT;
+    double Cp = s_dedT_const_v(Q, EOS_, status);
+    // Use chain rule to find (dv/dT)p
+    double dvdT_const_p = -pow(Q.rho, -2)/EOS_->dTdrho_const_p(Q, status);
+    // Apply the Mayer relation, equation 12-45 from Cengel and Boles Thermodynamics, 6e.
+    Cp += Q.T[0]*dvdT_const_p/EOS_->dTdp_const_rho(Q, status);
+    return Cp;
 }
 
 double
 Dense_real_thermal_behaviour::
 s_dedT_const_v(const Gas_data &Q, Equation_of_state *EOS_, int &status)
 {
-    // This could be improved by using Univariate_functor
-    // and Richardson extrapolation from the nm library.
-    double dT = 0.01;
-    double e1 = s_eval_energy_isp(Q, EOS_, 0);
-    Gas_data Q_peturb(Q);
-    Q_peturb.T[0] += dT;
-    // Recalculate the thermodynamic state at the perturbed temp and original density.
-    EOS_->eval_pressure(Q_peturb);
-    double e2 = s_eval_energy_isp(Q_peturb, EOS_, 0);
-    return (e2 - e1)/dT;
+    // Evaluation derivative analytically.
+    check_temperature_valid(Q.T[0]);
+    double Cv = drtb_Cp0(Q.T[0], G_) - R_;
+    Cv += EOS_->eval_dintegral_const_T_energy_dT(Q);
+    return Cv;
 }
 
 int
@@ -130,8 +141,7 @@ Dense_real_thermal_behaviour::
 s_eval_energy(Gas_data &Q, Equation_of_state *EOS_)
 {
     int status = SUCCESS;
-    double e = s_eval_energy_isp(Q, EOS_, 0);
-    Q.e[0] = e;
+    Q.e[0] = s_eval_energy_isp(Q, EOS_, 0);
     return status;
 }
 
@@ -154,7 +164,6 @@ s_eval_temperature(Gas_data &Q, Equation_of_state *EOS_)
         T_guess -= (s_eval_energy_isp(Q, EOS_, 0) - Q.e[0])/s_dedT_const_v(Q, EOS_, status);
         i++;
     } while (fabs(Q.T[0] - T_guess) > DRTB_PROPS_CONVERGE_TOL);
-    
     return SUCCESS;
 }
 
@@ -164,9 +173,10 @@ s_eval_energy_isp(const Gas_data &Q, Equation_of_state *EOS_, int isp)
 {
     // Evaluate the internal energy of a real gas using integration.
     // See Equation 4, Section 2 of Reynolds, WC (1979). Thermodynamic Properties in SI.
-    double e = drtb_integral_Cv0(T0, Q.T[0], G_); // First integral, ideal gas at zero density
+    check_temperature_valid(Q.T[0]);
+    double e = drtb_integral_Cp0(T0_, Q.T[0], G_) - R_*(Q.T[0] - T0_); // First integral, ideal gas at zero density
     e += EOS_->eval_integral_const_T_energy(Q); // Second integral, constant temperature
-    e += u0;
+    e += u0_;
     return e;
 }
 
@@ -183,34 +193,41 @@ s_eval_entropy_isp(const Gas_data &Q, Equation_of_state *EOS_, int isp)
 {
     // Evaluate the entropy of a real gas using integration.
     // See Equation 8, Section 2 of Reynolds, WC (1979). Thermodynamic Properties in SI.
-    double s = drtb_integral_Cv0_over_T(T0, Q.T[0], G_); // First integral, ideal gas at zero density
+    check_temperature_valid(Q.T[0]);
+    double s = drtb_integral_Cp0_over_T(T0_, Q.T[0], G_) - R_*log(Q.T[0]/T0_); // First integral, ideal gas at zero density
     s += - R_*log(Q.rho);
     s += EOS_->eval_integral_const_T_entropy(Q); // Second integral, constant temperature
-    s += s0;
+    s += s0_;
     return s;
 }
 
-double drtb_integral_Cv0(double T0, double T, const std::vector<double> &G)
+double drtb_Cp0(double T, const std::vector<double> &G)
 {
-    // Integral of the classic fourth order polynomial ideal gas specific
-    // heat capacity equation from the reference temperature T0 to T,
-    // with respect to temperature.
-    // Generated by sympy from the utility script Bender-gas-equations.py.
-    // For use in the evaluation of internal energy.
-    return G[1]*log(T) - G[1]*log(T0) + G[2]*T - G[2]*T0 + G[3]*pow(T, 2)/2
-        - G[3]*pow(T0, 2)/2 + G[4]*pow(T, 3)/3 - G[4]*pow(T0, 3)/3
-        + G[5]*pow(T, 4)/4 - G[5]*pow(T0, 4)/4 + G[6]*pow(T, 5)/5
-        - G[6]*pow(T0, 5)/5;
+    // Isobaric ideal gas specific heat capacity equation.
+    // For use in the evaluation of Cv.
+    return G[1]/T + G[2] + G[3]*T + G[4]*pow(T, 2) + G[5]*pow(T, 3) + G[6]*pow(T, 4);
 }
 
-double drtb_integral_Cv0_over_T(double T0, double T, const std::vector<double> &G)
+double drtb_integral_Cp0(double T0, double T, const std::vector<double> &G)
 {
-    // Integral of the classic fourth order polynomial ideal gas specific
-    // heat capacity equation divided by T from the reference temperature T0 to T,
+    // Integral of heat capacity equation from the reference temperature T0 to T,
     // with respect to temperature.
-    // Generated by sympy from the utility script Bender-gas-equations.py.
+    // For use in the evaluation of internal energy.
+    return G[1]*log(T/T0) + G[2]*(T - T0)
+        + G[3]*(pow(T, 2) - pow(T0, 2))/2
+        + G[4]*(pow(T, 3) - pow(T0, 3))/3
+        + G[5]*(pow(T, 4) - pow(T0, 4))/4
+        + G[6]*(pow(T, 5) - pow(T0, 5))/5;
+}
+
+double drtb_integral_Cp0_over_T(double T0, double T, const std::vector<double> &G)
+{
+    // Integral of heat capacity equation divided by T from the reference temperature T0 to T,
+    // with respect to temperature.
     // For use in the evaluation of entropy.
-    return G[1]/T0 - G[1]/T + G[2]*log(T) - G[2]*log(T0) + G[3]*T - G[3]*T0
-        + G[4]*pow(T, 2)/2 - G[4]*pow(T0, 2)/2 + G[5]*pow(T, 3)/3
-        - G[5]*pow(T0, 3)/3 + G[6]*pow(T, 4)/4 - G[6]*pow(T0, 4)/4;
+    return G[1]*(1/T0 - 1/T)
+        + G[2]*log(T/T0) + G[3]*(T - T0)
+        + G[4]*(pow(T, 2) - pow(T0, 2))/2
+        + G[5]*(pow(T, 3) - pow(T0, 3))/3
+        + G[6]*(pow(T, 4) - pow(T0, 4))/4;
 }

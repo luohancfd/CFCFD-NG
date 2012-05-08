@@ -61,3 +61,44 @@ H2O.p_c = {
    description = 'critical pressure',
    reference = 'Poling, B.E. et al. (2001). The Properties of Gases and Liquids. Section A, p.A.5'
 }
+
+-- Real gas data
+
+H2O.reference_state = {
+   description = 'Reference temperature, internal energy and entropy',
+   reference = 'None',
+   note = 'Ideal gas reference when U=0, S=0 for saturated liquid at T0',
+   units = 'K, J/kg, J/kg.K',
+   T0 = 273.16,
+   u0 = 2.3741e6,
+   s0 = 6.6945e3,
+}
+H2O.Cp0_coeffs = {
+   description = 'Coefficients for Cp0 polynomial of form T^(-2) to T^4.',
+   reference = 'Polt, A and G Maurer (1992). Fluid Phase Equilibria, 73: 27-38.',
+   note = 'Polt published these coefficients in kJ/(kg.K)',
+   units = 'J/kg.K', -- Resulting unit when using these coefficients in Cp0 equation.
+   T_low  = 273.15, -- Range of validity.
+   T_high = 923.91,
+   G = {0.0, -- First element zero to align array indexes with equation coefficient numbers.
+        0.0,
+        1.94077e+03,
+       -9.67660e-01,
+        3.08550e-03,
+       -2.63140e-06,
+        8.60950e-10}
+}
+H2O.Bender_EOS_coeffs = {
+   description = 'Coefficients for Bender equation of state',
+   reference = 'Polt, A and G Maurer (1992). Fluid Phase Equilibria, 73: 27-38.',
+   units = 'Pa', -- Resulting unit when usng these coefficients in p-rho-T equation.
+   A = {0.0, -- First element zero to align array indexes with equation coefficient numbers.
+       -1.3002084070e-07,   7.6533762730e-04,  -9.0745855500e-01,
+       -2.9984514510e+02,  -1.6148196450e+04,   4.4890768230e-06,
+       -6.3451282300e-03,   3.6353975160e+00,  -8.1460085550e-06,
+        6.0971223530e-03,   1.0426877550e-05,  -1.0516986730e-02,
+        2.7385365060e-03,  -2.2453231530e+03,   2.1342907950e+06,
+       -3.1262434070e+08,   4.9365926510e+03,  -5.7492854100e+06,
+        1.1440257530e+09,
+        4.0e-6} -- Final element is "gamma", roughly 1/(rho_c^2) as used in the MBWR EOS.
+}

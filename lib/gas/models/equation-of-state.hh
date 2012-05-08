@@ -52,6 +52,8 @@ public:
     // Accessor methods for real gas models
     double eval_integral_const_T_energy(const Gas_data &Q)
     { return s_integral_const_T_energy(Q); }
+    double eval_dintegral_const_T_energy_dT(const Gas_data &Q)
+    { return s_dintegral_const_T_energy_dT(Q); }
     double eval_integral_const_T_entropy(const Gas_data &Q)
     { return s_integral_const_T_entropy(Q); }
 
@@ -72,6 +74,8 @@ private:
 
     // Added for real gas models, integration of EOS for internal energy and entropy
     virtual double s_integral_const_T_energy(const Gas_data &Q)
+    { return 0; }
+    virtual double s_dintegral_const_T_energy_dT(const Gas_data &Q)
     { return 0; }
     virtual double s_integral_const_T_entropy(const Gas_data &Q)
     { return 0; }

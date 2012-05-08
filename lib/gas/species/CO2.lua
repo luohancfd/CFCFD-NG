@@ -82,6 +82,12 @@ CO2.p_c = {
    description = 'critical pressure',
    reference = 'Poling, B.E. et al. (2001). The Properties of Gases and Liquids. Section A, p.A.5'
 }
+CO2.rho_c = {
+   value = 466.5007, -- 10.60 mol/L
+   units = 'kg/m^3',
+   description = 'critical density',
+   reference = 'Ely, JF, JW Magee and WM Haynes (1987). Thermophysical properties for special high CO2 content mixtures',
+}
 
 -- Nonequilibrium data
 
@@ -161,51 +167,52 @@ CO2.reference_state = {
    reference = 'Reynolds, WC (1979). Thermodynamic Properties in SI.',
    units = 'K, J/kg, J/kg.K',
    T0 = 216.54, -- Triple point temperature
- --u0 = 3.2174105e+5, -- Reference state internal energy from WC Reynolds
-   u0 = 4.0026e5, -- IIR convention used by REFPROP, u=0 at 273.16K for saturated liquid.
- --s0 = 2.1396056e+3, -- Reference state entropy from WC Reynolds
-   s0 = 2.6537e3, -- IIR convention used by REFPROP, s=0 at 273.16K for saturated liquid.
+   u0 = 3.2174105e+5,
+   s0 = 2.1396056e+3,
 }
-
+CO2.Cp0_coeffs = {
+   description = 'Coefficients for Cp0 polynomial of form T^(-2) to T^4.',
+   reference = 'Reynolds, WC (1979). Thermodynamic Properties in SI.',
+   note = 'Cv0 coefficients converted to Cp0 model using Cp0 = Cv0 + R',
+   units = 'J/kg.K', -- Resulting unit when using these coefficients in Cp0 equation.
+   T_low  = 50.0, -- Range of validity.
+   T_high = 1500.0,
+   G = {0.0, -- First element zero to align array indexes with equation coefficient numbers.
+        8.726361e+03,
+        3.729294e+02, -- = 1.840040e+02 + 188.92535
+        1.914025e+00,
+       -1.667825e-03,
+        7.305950e-07,
+       -1.255290e-10}
+}
 CO2.Bender_EOS_coeffs = {
    description = 'Coefficients for Bender equation of state',
    reference = 'Reynolds, WC (1979). Thermodynamic Properties in SI. Equation P-3',
    units = 'Pa', -- Resulting unit when using these coefficients in p-rho-T equation.
-   A = {0.0, -- First element zero to align indexes with coefficient numbers.
-        2.2488558e-1,
-       -1.3717965e+2,
-       -1.4430214e+4,
-       -2.9630491e+6,
-       -2.0606039e+8,
-        4.5554393e-5,
-        7.7042840e-2,
-        4.0602371e+1,
-        4.0029509e-7,
-       -3.9436077e-4,
-        1.2115286e-10,
-        1.0783386e-7,
-        4.3962336e-11,
-       -3.6505545e+4,
-        1.9490511e+7,
-       -2.9186718e+9,
-        2.4358627e-2,
-       -3.7546530e+1,
-        1.1898141e+4,
-        5.0e-6} -- Final element is what WC Reynolds calls "gamma", just another coefficient.
+   A = {0.0, -- First element zero to align array indexes with equation coefficient numbers.
+        2.2488558e-01,  -1.3717965e+02,  -1.4430214e+04,
+       -2.9630491e+06,  -2.0606039e+08,   4.5554393e-05,
+        7.7042840e-02,   4.0602371e+01,   4.0029509e-07,
+       -3.9436077e-04,   1.2115286e-10,   1.0783386e-07,
+        4.3962336e-11,  -3.6505545e+04,   1.9490511e+07,
+       -2.9186718e+09,   2.4358627e-02,  -3.7546530e+01,
+        1.1898141e+04,
+        5.0e-6} -- Final element is "gamma", roughly 1/(rho_c^2) as used in the MBWR EOS.
 }
-
-CO2.Cv0_coeffs = {
-   description = 'Coefficients for classic polynomial ideal gas specific heat capacity equation.',
-   reference = 'Reynolds, WC (1979). Thermodynamic Properties in SI. Equation C-6',
-   units = 'J/kg.K', -- Resulting unit when using these coefficients in Cv0 equation.
-   T_low  = 50.0, -- Range of validity.
-   T_high = 1500.0,
-   G = {0.0, -- First element zero to align indexes with coefficient numbers.
-        8.726361e+3,
-        1.840040e+2,
-        1.914025,
-       -1.667825e-3,
-        7.305950e-7,
-       -1.255290e-10}
+CO2.MBWR_EOS_coeffs = {
+   description = 'Coefficients for MBWR equation of state',
+   reference = 'Ely, JF, JW Magee and WM Haynes (1987). Thermophysical properties for special high CO2 content mixtures',
+   units = 'bar', -- Resulting unit when using these coefficients in p-rho-T equation.
+   b = {0.0, -- First element zero to align array indexes with equation coefficient numbers.
+       -0.981851065838e-02,   0.995062267309e+00,  -0.228380160313e+02,
+        0.281827634529e+04,  -0.347001262699e+06,   0.394706709102e-03,
+       -0.325550000110e+00,   0.484320083063e+01,  -0.352181542995e+06,
+       -0.324053603343e-04,   0.468596684665e-01,  -0.754547012075e+01,
+       -0.381894354016e-04,  -0.442192933859e-01,   0.516925168095e+02,
+        0.212450985237e-02,  -0.261009474785e-04,  -0.888533388977e-01,
+        0.155226179403e-02,   0.415091004940e+06,  -0.110173967489e+08,
+        0.291990583344e+04,   0.143254606508e+08,   0.108574207533e+02,
+       -0.247799657039e+03,   0.199293590763e-01,   0.102749908059e+03,
+        0.377618865158e-04,  -0.332276512346e-02,   0.179196707121e-07,
+        0.945076627807e-05,  -0.123400943061e-02}
 }
-

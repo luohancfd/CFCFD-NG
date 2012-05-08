@@ -21,18 +21,13 @@ extern "C" {
 
 /**
  *  \brief Class for implementing a real gas thermal behaviour model.
- *  Evaluates energy and entropy by integration of the equation of state
- *  and the ideal gas specific heat capacity, as described by:
+ *  Evaluates energy, entropy, Cv and Cp by integration of an equation of state
+ *  and an isobaric ideal gas heat capacity equation, Cp0, of the form:
  *
- *  Reynolds, WC (1979). Thermodynamic Properties in SI:
- *  Graphs, tables, and computational equations for forty substances.
- *  Department of Mechanical Engineering, Stanford University.
+ *  Cp0 = G2/T + G3 + G4*T + G5*T^2 + G6*T^3 + G7*T^4 [J/kg.K]
  *
- *  The classic fourth order polynomial ideal gas specific heat equation is
- *  used, this is equation C-6 published by Reynolds.
- *
- *  As there are no mixing rules implemented for this thermal behaviour model,
- *  it should only be used with single species gases.
+ *  This form is used as it fits with the coefficients provided by
+ *  McLinden (1989, 1992, 1995, 1997), Reynolds (1979), Platzer (1990), Polt (1992).
  */
 
 class Dense_real_thermal_behaviour : public Thermal_behaviour_model {
@@ -41,11 +36,13 @@ public:
     ~Dense_real_thermal_behaviour();
 
 private:
-    std::vector<double> G_; // Coefficients for the Cv0 equation.
-    double T0, u0, s0;      // Thermodynamic reference state parameters.
+    std::vector<double> G_; // Coefficients for the Cp0 equation.
+    double T_low_, T_high_;
+    double T0_, u0_, s0_;   // Thermodynamic reference state parameters.
     double R_;
     std::vector<double> M_;
 
+    int check_temperature_valid(const double &T);
     int s_decode_conserved_energy(Gas_data &Q, const std::vector<double> &rhoe);
     int s_encode_conserved_energy(const Gas_data &Q, std::vector<double> &rhoe);
     double s_dhdT_const_p(const Gas_data &Q, Equation_of_state *EOS_, int &status);
@@ -57,7 +54,8 @@ private:
     double s_eval_entropy_isp(const Gas_data &Q, Equation_of_state *EOS_, int isp);
 };
 
-double drtb_integral_Cv0(double T0, double T, const std::vector<double> &G);
-double drtb_integral_Cv0_over_T(double T0, double T, const std::vector<double> &G);
+double drtb_Cp0(double T, const std::vector<double> &G);
+double drtb_integral_Cp0(double T0, double T, const std::vector<double> &G);
+double drtb_integral_Cp0_over_T(double T0, double T, const std::vector<double> &G);
 
 #endif
