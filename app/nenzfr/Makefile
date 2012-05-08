@@ -9,7 +9,9 @@ EILMER3 := ../eilmer3
 GAS     := ../../lib/gas
 TARGET := for_gnu
 OPT := -O2
-PROGRAMS := estcj.py nenzfr.py nenzfr_compute_viscous_data.py nenzfr_quasi_transient.py nenzfr_sensitivity.py nenzfr_perturbed.py nenzfr_RSA.py
+PROGRAMS := estcj.py nenzfr.py nenzfr_utils.py nenzfr_stats.py nenzfr_parallel.py \
+	nenzfr_compute_viscous_data.py nenzfr_quasi_transient.py nenzfr_sensitivity.py \
+	nenzfr_perturbed.py nenzfr_RSA.py
 
 install : $(INSTALL_DIR) $(PROGRAMS)
 	@echo Copying executable files to $(INSTALL_DIR)
