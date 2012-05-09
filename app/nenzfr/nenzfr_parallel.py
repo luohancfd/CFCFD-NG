@@ -176,7 +176,7 @@ def run_in_block_marching_mode(opt, gmodelFile):
     run_command('mv master/grid grid')
     run_command('mv master/%s.config %s.config' % (jobName, jobName,))
     run_command('mv master/%s.control %s.control' % (jobName, jobName,))
-    run_command('mv master/block_labels block_labels.list')
+    run_command('mv master/block_labels.list block_labels.list')
     run_command('rm -rf master')
     return
 
