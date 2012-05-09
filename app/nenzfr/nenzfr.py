@@ -15,6 +15,10 @@ to extract nominal flow condition data.
 .. Authors: Peter Jacobs, Luke Doherty, Wilson Chan and Rainer Kirchhartz
    School of Mechanical and Mining Engineering
    The University of Queensland
+
+.. TODO: Luke, we need to think of a good way to encode all of the options.
+   I've added quite a few command-line options and more are needed.
+   Maybe a dictionary of customised parameters for each case. Wilson.
 """
 
 VERSION_STRING = "08-May-2012"
@@ -37,7 +41,7 @@ from nenzfr_parallel import run_in_block_marching_mode, read_block_dims
 def main():
     """
     Examine the command-line options to decide the what to do
-    and then coordinate the calculations done by Eilmer3.
+    and then coordinate the calculations done by estcj and Eilmer3.
     """
     op = optparse.OptionParser(version=VERSION_STRING)
     op.add_option('--gas', dest='gasName', default='air',
@@ -96,7 +100,7 @@ def main():
                   help=("overall simulation time for nozzle flow"))
     op.add_option('--max-step', dest='max_step', type='int', default=80000,
                   help=("maximum simulation steps allowed"))
-    
+    #
     op.add_option('--Twall', dest='Tw', type='float', default=300.0,
                   help=("Nozzle wall temperature, in K "
                         "[default: %default]"))
@@ -220,31 +224,27 @@ def main():
     print_stats(opt.exitSliceFileName,opt.jobName,opt.coreRfraction)                
     # Compute viscous data at the nozzle wall
     run_command(E3BIN+'/nenzfr_compute_viscous_data.py --job=%s' % (opt.jobName,))
-     
     #
-    # The following are additional commands specific to Luke D. and the Mach 10 nozzle.
-    # TODO: Luke, we need to think of a good way to encode all of the options.
-    #       I've added quite a few command-line options and more are needed.
-    #       Maybe a dictionary of customised parameters for each case.
-    #
-    # Extract a slice from the last block along jk index directions at the i-index that
-    # is closest to the point x=1.642, y=0.0, z=0.0
-    run_command(E3BIN+('/e3post.py --job=%s --tindx=9999 --gmodel-file=%s ' % 
-                       (opt.jobName, gmodelFile))
-               +('--output-file=%s2 --slice-at-point="-1,jk,1.642,0,0" ' % 
-                 (opt.exitSliceFileName,))
-               +'--add-mach --add-pitot --add-total-enthalpy --add-total-p')
-     
-    # 29-07-2011 Luke D. 
-    # Copy the original exit stats file to a temporary file
-    run_command(('cp %s-exit.stats %s-exit.stats_temp') % (opt.jobName, opt.jobName,))
-    # (Re) Generate the exit stats using the slice-at-point data
-    print_stats(opt.exitSliceFileName+'2',opt.jobName,opt.coreRfraction)
-    run_command('cp %s-exit.stats %s-exit.stats2' % (opt.jobName, opt.jobName,))
-    # Now rename the temporary exit stats file back to its original name
-    run_command('mv %s-exit.stats_temp %s-exit.stats' % (opt.jobName, opt.jobName,))
-    #
-    # End specific commands
+    if opt.contourFileName == "contour-t4-m10.data":
+        # The following are additional commands specific to Luke D. and the Mach 10 nozzle.
+        #
+        # Extract a slice from the last block along jk index directions at the i-index that
+        # is closest to the point x=1.642, y=0.0, z=0.0
+        run_command(E3BIN+('/e3post.py --job=%s --tindx=9999 --gmodel-file=%s ' % 
+                           (opt.jobName, gmodelFile))
+                   +('--output-file=%s2 --slice-at-point="-1,jk,1.642,0,0" ' % 
+                     (opt.exitSliceFileName,))
+                   +'--add-mach --add-pitot --add-total-enthalpy --add-total-p')
+        #
+        # 29-07-2011 Luke D. 
+        # Copy the original exit stats file to a temporary file
+        run_command(('cp %s-exit.stats %s-exit.stats_temp') % (opt.jobName, opt.jobName,))
+        # (Re) Generate the exit stats using the slice-at-point data
+        print_stats(opt.exitSliceFileName+'2',opt.jobName,opt.coreRfraction)
+        run_command('cp %s-exit.stats %s-exit.stats2' % (opt.jobName, opt.jobName,))
+        # Now rename the temporary exit stats file back to its original name
+        run_command('mv %s-exit.stats_temp %s-exit.stats' % (opt.jobName, opt.jobName,))
+        # End specific commands
     #
     return 0
     

@@ -16,7 +16,8 @@ The new program is called nenzfr.py and may be invoked
 $ nenzfr.py --gas=air --T1=300 --p1=160.0e3 --Vs=2707 --pe=38.0e6
 
 For a relatively quick, low-resolution calculation, try:
-$ nenzfr.py --gas=air --T1=300 --p1=160.0e3 --Vs=2707 --pe=38.0e6 --nni=600 --nnj=40 --by=1.02 --nbi=60 --max-time=1.0e-3
+$ nenzfr.py --gas=air --T1=300 --p1=160.0e3 --Vs=2707 --pe=38.0e6 --nni=600 --nnj=40 \
+            --by=1.02 --nbi=60 --max-time=1.0e-3
 
 Here are the stats written to the screen at the end of that calculation:
 Nozzle-exit statistics:
@@ -47,5 +48,52 @@ the do the corresponding calculation as
 $ estcj.py --task=stn --gas=air --T1=300 --p1=160.0e3 --Vs=2707 --pe=38.0e6 --ar=27.0
 
 Peter Jacobs, Luke Doherty and Wilson Chan, 05-Oct-2011
+
+-------------------------------------------------------------------------------------
+Update for 09-May-2012
+
+Single-thread job run on helmholtz, an AMD Phenom II X4 840 processor.
+Note that the input data specifies slightly different conditions than 
+the October 2011 case above.
+
+peterj@helmholtz ~/work/eilmer3/2D/nenzfr-Mach4-nozzle-eq $ cat run.sh
+#! /bin/bash 
+# run.sh
+
+echo "Start time: "; date
+nenzfr.py --gas=air --T1=300 --p1=125.0e3 --Vs=2414 --pe=34.376e6 --area=27.0 --cfile=contour-t4-m4.data \
+          --nni=600 --nnj=40 --by=1.02 --nbi=60 --max-time=1.0e-3 > LOGFILE
+echo "Finish time: "; date
+peterj@helmholtz ~/work/eilmer3/2D/nenzfr-Mach4-nozzle-eq $ ./run.sh
+Start time: 
+Wed May  9 21:28:25 EST 2012
+Finish time: 
+Wed May  9 21:38:08 EST 2012
+peterj@helmholtz ~/work/eilmer3/2D/nenzfr-Mach4-nozzle-eq $ 
+
+extract from LOGFILE follows:
+
+Nozzle-exit statistics:
+  variable    mean-value         minus       plus    std-dev
+------------------------------------------------------------
+       rho        0.2388      -0.00473     0.0161    0.00658
+     vel.x          2962         -10.9       3.26       4.66
+     vel.y        -20.96         -4.99       13.3       6.16
+         p     8.603e+04     -2.26e+03   7.76e+03   3.19e+03
+         a         689.1          -2.1       6.95       2.97
+        mu     5.081e-05     -2.21e-07   7.38e-07   3.14e-07
+      k[0]       0.07965     -0.000434    0.00145   0.000616
+      mu_t             0             0          0          0
+       k_t             0             0          0          0
+       tke          5007             0   9.09e-13   9.44e-13
+     omega     8.002e+06             0   9.31e-10   9.66e-10
+massf[0]-LUT             1             0          0          0
+      e[0]     9.844e+05     -7.32e+03   2.44e+04   1.04e+04
+      T[0]          1255         -8.11         27       11.5
+   M_local         4.299       -0.0587     0.0178     0.0251
+   pitot_p     1.997e+06     -3.58e+04   1.21e+05   4.92e+04
+   total_p     2.516e+07     -6.35e+04   1.99e+05   7.18e+04
+   total_h     5.737e+06          -694        329        287
+------------------------------------------------------------
 
 
