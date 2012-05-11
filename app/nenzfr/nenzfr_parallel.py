@@ -43,7 +43,7 @@ def run_in_block_marching_mode(opt, gmodelFile):
     if noOfBlks % blksPerColumn == 0:
         noOfEilmer3Runs = noOfBlks/blksPerColumn - 1
     else:
-        raise RunTimeError("Mismatch in total number of blocks and number of blocks per set.")
+        raise RuntimeError("Mismatch in total number of blocks and number of blocks per set.")
     #
     print "Set up the master copy of the blocks and files."
     run_command('mkdir master')
@@ -72,7 +72,7 @@ def run_in_block_marching_mode(opt, gmodelFile):
         timingFile.close()
     maxTimeList = read_timing_file(timingFileName)
     if len(maxTimeList) != noOfEilmer3Runs:
-        raise RunTimeError("Number of max_time specified must match the total number of Eilmer3 runs.")
+        raise RuntimeError("Number of max_time specified must match the total number of Eilmer3 runs.")
 
     # Start looping for the number of Eilmer3 runs.
     for run in range(noOfEilmer3Runs):
