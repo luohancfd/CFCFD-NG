@@ -7,10 +7,5 @@ This example can be run in two modes -
 
   2. The new multi-process block-marching mode that has recently 
      been built into nenzfr.py (./run-mpi-block-marching-mode.sh).
-     When running in this mode, you will need a file (nominally
-     named 'nozzle.timing') that specifies the max_time for each 
-     Eilmer3 run. This file can either be created by the user
-     manually, or generated automatically by nenzfr (when given
-     the max-time option).
 
-Wilson Chan, 18-Apr-2012
+Wilson Chan, 12-May-2012

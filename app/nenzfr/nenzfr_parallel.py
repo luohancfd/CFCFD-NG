@@ -25,7 +25,7 @@ def run_in_block_marching_mode(opt, gmodelFile):
     jobName = opt.jobName
     # Assume that the number of blocks per set is the number of radial blocks.
     blksPerColumn = opt.nbj
-    # Set up mpirun parameters
+    # Set up mpirun parameters.
     MPI_PARAMS = "mpirun -np " + str(2 * blksPerColumn) + " "
     # For the multi-block space-marching mode, we initialise the starting
     # solution with the inflow conditions in the nenzfr-generated input script.
@@ -43,7 +43,9 @@ def run_in_block_marching_mode(opt, gmodelFile):
     if noOfBlks % blksPerColumn == 0:
         noOfEilmer3Runs = noOfBlks/blksPerColumn - 1
     else:
-        raise RuntimeError("Mismatch in total number of blocks and number of blocks per set.")
+        raise RuntimeError("Mismatch in total number of blocks and number of blocks per column.")
+    # Compute the maximum run time for each Eilmer3 run.
+    maxRunTime = opt.max_time / noOfEilmer3Runs
     #
     print "Set up the master copy of the blocks and files."
     run_command('mkdir master')
@@ -61,23 +63,13 @@ def run_in_block_marching_mode(opt, gmodelFile):
     # Modify .config and block_labels.list files for the run of a subset of blocks.
     mod_cfg_file(blksPerColumn, "master/"+jobName+".config", jobName+".config")
     mod_blkLabels_file(blksPerColumn)
-    # Read timing file (file that specifies the max_time for each Eilmer3 run).
-    timingFileName = jobName + ".timing"
-    if not os.path.exists(timingFileName):
-        # Create a fresh file.
-        timingFile = file(timingFileName, 'w')
-        time_slice = opt.max_time / noOfEilmer3Runs
-        for t in range(noOfEilmer3Runs):
-            timingFile.write('%.6e\n' % time_slice)
-        timingFile.close()
-    maxTimeList = read_timing_file(timingFileName)
-    if len(maxTimeList) != noOfEilmer3Runs:
-        raise RuntimeError("Number of max_time specified must match the total number of Eilmer3 runs.")
+    # Update control file to reflect the max_time for each Eilmer3 run.
+    update_max_time(maxRunTime, jobName+".control")
 
     # Start looping for the number of Eilmer3 runs.
     for run in range(noOfEilmer3Runs):
         print "-----------------------------------------------"
-        print " nenzfr in block-marching mode - Run %d of %d. " % (run, noOfEilmer3Runs)
+        print " nenzfr in block-marching mode - Run %d of %d. " % (run, noOfEilmer3Runs-1)
         # For each run, there are a subset of blocks that are integrated in time.
         # This set of blocks is arranged in two columns A (upstream) and B (downstream).
         # Within the run, the blocks have to be labelled locally 0..2*blksPerColumn-1.
@@ -126,8 +118,6 @@ def run_in_block_marching_mode(opt, gmodelFile):
         for blk in range(firstBlk, lastBlk):
             localBlkId = blk - run*blksPerColumn
             update_block_dims(localBlkId, blockDims[blk], jobName+".config")
-        # Update control file to reflect the max_time for the current run.
-        update_max_time(maxTimeList[run], jobName + ".control")
         if run == 1:
             # Update the inflow boundary conditions if we are in the second run.
             # The inflow condition should not change from this run onwards.
@@ -269,33 +259,21 @@ def read_block_dims(inputFileName):
     f.close()
     return blockDims, noOfBlks
 
-def read_timing_file(inputFileName):
-    """
-    Read the timing file that contains the max_time for each 
-    Eilmer3 run, and return a list of the max_time for each run.
-    """
-    maxTimeList = []
-    f = file(inputFileName)
-    for line in f:
-        maxTimeList.append(line)
-    f.close()
-    return maxTimeList
-
 def update_max_time(maxTime, inputFileName):
     """
-    Update the max_time in the control file to reflect the max_time 
-    that is specified for the current Eilmer3 run.
+    Update the max_time in the control file to reflect the maximum
+    run time for each Eilmer3 run.
     """
     lineBuffer = []
     # Read in .control file and update to reflect the new max_time.
     f = file(inputFileName)
     for line in f:
         if 'max_time =' in line:
-            line = "max_time = " + maxTime 
+            line = "max_time = " + str(maxTime) + "\n"
         # Append lines from the input file to a buffer.
         lineBuffer.append(line)
     f.close()
-    # Write the new config file.
+    # Write the new .control file.
     outfile = file(inputFileName, 'w')
     outfile.writelines(lineBuffer)
     outfile.close()
