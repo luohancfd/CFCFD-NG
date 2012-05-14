@@ -541,6 +541,10 @@ def make_gas_from_name(gasName, outputUnits='massf'):
     elif gasName.lower() == 'h2ne':
         return Gas(reactants={'H2':0.15, 'Ne':0.85}, inputUnits='moles',
                    outputUnits=outputUnits)
+    elif gasName.lower() == 'ar':
+        return Gas(reactants={'Ar':1.0, 'Ar+':0.0, 'e_minus':0.0},
+                   inputUnits='moles', outputUnits=outputUnits, 
+                   with_ions=True, trace=1.0e-16)
     else:
         raise Exception, 'make_gas_from_name(): unknown gasName: %s' % gasName
 
@@ -548,7 +552,7 @@ def list_gas_names():
     """
     :returns: the list of gases available in make_gas_from_name()
     """
-    return ['air', 'air5species', 'n2', 'co2', 'h2ne']
+    return ['air', 'air5species', 'n2', 'co2', 'h2ne', 'ar']
 
 # --------------------------------------------------------------
 
