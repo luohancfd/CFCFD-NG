@@ -82,6 +82,19 @@ def minimize(f, x, dx=None, tol=1.0e-6,
         # Check the scatter of vertex values to see if we are
         # close enough to call it quits.
         mean, stddev = smplx.f_statistics()
+        # Append some statistics to a log file as we go along the optimisation
+        # loop, so that the user knows that the optimiser is still running.
+        fo = open('nelmin.log','a')
+        fo.write('x = [')
+        for i in range(len(x_best)):
+            fo.write('%f, ' % x_best[i])
+        fo.write(']\n')
+        fo.write('Number of function evaluations = %d \n' % smplx.nfe)
+        fo.write('Target standard deviation  = %f \n' % tol)
+        fo.write('Current standard deviation = %f \n' % stddev)
+        fo.write('---------------------------------------------------\n')
+        fo.close()
+        #
         if stddev < tol:
             # All of the points are close together but we need to
             # test more carefully.
