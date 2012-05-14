@@ -1,0 +1,20 @@
+# Bezier-control-pts-t4-m8.data
+# Control points for a Bezier curve that defines the T4 Mach 8 nozzle contour.
+#
+# This file has been built from the control points in Table 5 in Chris 
+# Craddock's UQ Mechanical Engineering Department Report 2/00, "Design of 
+# the axisymmetric HyShot Nozzle for T4".
+#
+# Wilson Chan, Peter Jacobs, Luke Doherty, 12 May 2012
+#
+#     x, m       y, m 
+ 0.000000e+00 8.200000e-03
+ 1.500000e-02 8.200000e-03
+ 3.000000e-02 8.200000e-03
+ 1.350000e-01 6.800000e-02
+ 1.800000e-01 5.010000e-02
+ 2.850000e-01 8.959000e-02
+ 4.400000e-01 1.088600e-01
+ 6.350000e-01 1.172100e-01
+ 8.600000e-01 1.349500e-01
+ 1.110000e+00 1.350300e-01 

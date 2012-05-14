@@ -92,7 +92,7 @@ def main():
                   help=("number of axial blocks for the divergence section (nozzle_blk)"))
     op.add_option('--nbj', dest='nbj', type='int', default=1,
                   help=("number of radial blocks"))
-    op.add_option('--bx', dest='bx', type='float', default=1.05,
+    op.add_option('--bx', dest='bx', type='float', default=1.10,
                   help=("clustering in the axial direction"))
     op.add_option('--by', dest='by', type='float', default=1.002,
                   help=("clustering in the radial direction"))
@@ -144,7 +144,8 @@ def main():
         return -2
     #
     # Get the nozzle contour file into the current work directory.
-    run_command('cp '+E3BIN+'/nenzfr_data_files/'+opt.contourFileName+' .')
+    if not os.path.exists(opt.contourFileName):
+        run_command('cp '+E3BIN+'/nenzfr_data_files/'+opt.contourFileName+' .')
     # Set up the equilibrium gas-model file as a look-up table.
     if opt.chemModel in ['eq',]:
         if opt.gasName in ['n2']:
@@ -152,7 +153,6 @@ def main():
         else:
             eqGasModelFile = 'cea-lut-'+opt.gasName+'.lua.gz'
         if not os.path.exists(eqGasModelFile):
-            #run_command('build-cea-lut --case='+opt.gasName+' --extrapolate')
             run_command('build-cea-lut.py --gas='+opt.gasName)
         gmodelFile = eqGasModelFile
     else:
