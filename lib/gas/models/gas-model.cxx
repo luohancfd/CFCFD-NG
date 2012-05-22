@@ -22,6 +22,7 @@
 #include "composite-gas-model.hh"
 #include "look-up-table.hh"
 #include "LUT-plus-composite-gas-model.hh"
+#include "REFPROP-gas-model.hh"
 
 using namespace std;
 
@@ -32,7 +33,6 @@ Gas_model::
 Gas_model(string cfile)
 {
     lua_State *L = initialise_lua_State();
-
     if( luaL_dofile(L, cfile.c_str()) != 0 ) {
 	ostringstream ost;
 	ost << "Gas_model():\n";
@@ -828,6 +828,7 @@ create_gas_model(string cfile)
     gas_models.insert(pair<string, Gas_model* (*)(string)>("composite gas", create_composite_gas_model));
     gas_models.insert(pair<string, Gas_model* (*)(string)>("look-up table", create_look_up_table_gas_model));
     gas_models.insert(pair<string, Gas_model* (*)(string)>("LUT-plus-composite", create_LUT_plus_composite_gas_model));
+    gas_models.insert(pair<string, Gas_model* (*)(string)>("REFPROP", create_REFPROP_gas_model));
 
     lua_State *L = initialise_lua_State();
 

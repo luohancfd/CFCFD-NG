@@ -38,6 +38,7 @@ LUALINK         := -ldl
 ZLIB            := ../../../extern/zlib-1.2.3
 LIBZLIB         := $(ZLIB)/libz.a
 CEA2            := ../../../extern/cea2
+REFPROP         := ../../../extern/refprop
 
 #---------------------------------------
 # File name variables
@@ -61,8 +62,16 @@ ifeq ($(shell [ -d ../../../extern/cea2 ] && echo "true"), true)
 else
   CEA2_MSG := "The look-up-table utilities will NOT be functional\n\
   because the CEA2 program has not been found in $(CEA2)\n\
-  Contact the NASA Glenn Research Center to request the software\n\
+  Contact the NASA Glenn Research Center to request the software.\n\
   http://www.grc.nasa.gov/WWW/CEAWeb/"
+endif
+ifeq ($(shell [ -d ../../../extern/refprop ] && echo "true"), true)
+  TOOL_EXECUTABLES += refprop.so
+  REFPROP_MSG := "REFPROP has been included in the build."
+else
+  REFPROP_MSG := "The REFPROP gas model will NOT be functional\n\
+  because the REFPROP program has not been found in $(REFPROP)\n\
+  Contact the QGECE to request access to the software."
 endif
 
 LUA_MODULES := ideal_gas.lua \
@@ -70,6 +79,7 @@ LUA_MODULES := ideal_gas.lua \
 	van_der_Waals_gas.lua \
 	real_gas_Bender.lua \
 	real_gas_MBWR.lua \
+	real_gas_REFPROP.lua \
 	thermally_perfect_gas.lua \
 	four_temperature_gas.lua \
 	three_temperature_gas.lua \
@@ -87,6 +97,7 @@ LUA_OBJECTS := lgas-model.o \
 # Assume Unix/Linux
 LUAGAS_MODULE := gas.so
 PYTHONGAS_MODULE := gaspy.py _gaspy.so
+REFPROP_MODULE := refprop.so
 ifeq ($(findstring Darwin, $(SYSTEM)), Darwin)
   # Darwin environment on a Mac OS X
   LUAGAS_MODULE := gas.dylib
@@ -109,7 +120,8 @@ endif
 build_new: $(LIBGAS) $(LUA_MODULES) $(TOOL_EXECUTABLES) $(LUAGAS_MODULE) \
 		$(PYTHONGAS_MODULE)
 	@echo "Gas model library should be up to date."
-	@echo $(CEA2_MSG)
+	@echo -e $(subst \n ,\n,$(CEA2_MSG))
+	@echo -e $(subst \n ,\n,$(REFPROP_MSG))
 
 test: $(TEST_EXECUTABLES) $(LUAGAS_MODULE) cea2
 	cp $(TEST_EXECUTABLES) $(TEST)
@@ -139,6 +151,10 @@ install: $(LIBGAS) $(LUA_MODULES) $(TOOL_EXECUTABLES) $(LUAGAS_MODULE) \
 	- mkdir $(INSTALL_DIR)/species
 	- cp $(SPECIES)/*.lua $(INSTALL_DIR)/species/
 	- rsync -av $(SPECIES)/species-with-chemkin-thermo-data $(INSTALL_DIR)/species/
+	- mkdir -p $(INSTALL_DIR)/species/refprop/fluids
+	- rsync -av $(REFPROP)/REFPROP/fluids/ $(INSTALL_DIR)/species/refprop/fluids
+	- mkdir -p $(INSTALL_DIR)/species/refprop/mixtures
+	- rsync -av $(REFPROP)/REFPROP/mixtures/ $(INSTALL_DIR)/species/refprop/mixtures
 	- mkdir $(INSTALL_DIR)/collision-integrals
 	rsync -a --exclude=.svn $(COLLISION_INTEGRALS)/* $(INSTALL_DIR)/collision-integrals/
 	- cp $(LUAGAS_MODULE) $(INSTALL_DIR)/
@@ -188,6 +204,7 @@ MODELS_OBJECTS := CEA-Cp-functor.o \
 	look-up-table.o \
 	LUT-plus-composite-gas-model.o \
 	composite-gas-model.o \
+	REFPROP-gas-model.o \
 	perfect-gas-EOS.o \
 	noble-abel-gas-EOS.o \
 	van-der-waals-gas-EOS.o \
@@ -409,6 +426,10 @@ user-defined-gas-model.o : $(MODELS)/user-defined-gas-model.cxx $(MODELS)/user-d
 composite-gas-model.o : $(MODELS)/composite-gas-model.cxx $(MODELS)/composite-gas-model.hh \
 	$(MODELS)/gas-model.hh $(MODELS)/gas_data.hh $(LUA_INCLUDE_DIR)
 	$(CXX) $(CXXFLAG) $(MODELS)/composite-gas-model.cxx -I$(LUA_INCLUDE_DIR)
+
+REFPROP-gas-model.o : $(MODELS)/REFPROP-gas-model.cxx $(MODELS)/REFPROP-gas-model.hh \
+	$(MODELS)/gas-model.hh $(MODELS)/gas_data.hh $(LUA_INCLUDE_DIR)
+	$(CXX) $(CXXFLAG) $(MODELS)/REFPROP-gas-model.cxx -I$(LUA_INCLUDE_DIR)
 
 perfect-gas-EOS.o : $(MODELS)/perfect-gas-EOS.cxx $(MODELS)/perfect-gas-EOS.hh \
 	$(MODELS)/equation-of-state.hh $(MODELS)/gas_data.hh $(UTIL_SRC)/lua_service.hh $(LUA_INCLUDE_DIR)
@@ -778,6 +799,9 @@ real_gas_Bender.lua : $(TOOLS)/real_gas_Bender.lua
 real_gas_MBWR.lua : $(TOOLS)/real_gas_MBWR.lua
 	cp $(TOOLS)/real_gas_MBWR.lua .
 
+real_gas_REFPROP.lua : $(TOOLS)/real_gas_REFPROP.lua
+	cp $(TOOLS)/real_gas_REFPROP.lua .
+
 thermally_perfect_gas.lua : $(TOOLS)/thermally_perfect_gas.lua
 	cp $(TOOLS)/thermally_perfect_gas.lua .
 
@@ -834,3 +858,8 @@ trans.inp : $(CEA2)/trans.inp
 gasmodel.py : $(TOOLS)/gasmodel.py
 	cp $(TOOLS)/gasmodel.py gasmodel.py
 	chmod +x gasmodel.py
+
+refprop.so :
+	cd $(REFPROP)/build; make
+	cp $(REFPROP)/build/$@ .
+	cd $(REFPROP)/build; make all-clean

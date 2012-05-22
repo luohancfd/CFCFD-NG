@@ -9,6 +9,7 @@
 --   30-Aug-2009 - added two temperature gas option (Daniel F. Potter)
 --   12-Mar-2012 - added real gas Bender option (Peter Blyton)
 --   18-Apr-2012 - added real gas MBWR option (Peter Blyton)
+--   15-May-2012 - added real gas REFPROP option (Peter Blyton)
 
 require 'ideal_gas'
 require 'thermally_perfect_gas'
@@ -16,6 +17,7 @@ require 'Noble_Abel_gas'
 require 'van_der_Waals_gas'
 require 'real_gas_Bender'
 require 'real_gas_MBWR'
+require 'real_gas_REFPROP'
 require 'four_temperature_gas'
 require 'three_temperature_gas'
 require 'two_temperature_gas'
@@ -28,6 +30,7 @@ local create_Noble_Abel_gas = Noble_Abel_gas.create_Noble_Abel_gas
 local create_van_der_Waals_gas = van_der_Waals_gas.create_van_der_Waals_gas
 local create_real_gas_Bender = real_gas_Bender.create_real_gas_Bender
 local create_real_gas_MBWR = real_gas_MBWR.create_real_gas_MBWR
+local create_real_gas_REFPROP = real_gas_REFPROP.create_real_gas_REFPROP
 local create_four_temperature_gas = four_temperature_gas.create_three_temperature_gas
 local create_three_temperature_gas = three_temperature_gas.create_three_temperature_gas
 local create_two_temperature_gas = two_temperature_gas.create_two_temperature_gas
@@ -41,6 +44,7 @@ gas_models["Noble-Abel gas"] = create_Noble_Abel_gas
 gas_models["van der Waals gas"] = create_van_der_Waals_gas
 gas_models["real gas Bender"] = create_real_gas_Bender
 gas_models["real gas MBWR"] = create_real_gas_MBWR
+gas_models["real gas REFPROP"] = create_real_gas_REFPROP
 gas_models["four temperature gas"] = create_four_temperature_gas
 gas_models["three temperature gas"] = create_three_temperature_gas
 gas_models["two temperature gas"] = create_two_temperature_gas

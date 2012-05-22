@@ -31,10 +31,11 @@ public:
     std::vector<double> T;     /**< \brief array of temperatures, K       */
     // -- Transport properties
     double mu;                 /**< \brief viscosity, Pa.s                 */
-    std::vector<double> k;     /**< \brief array of heat flux coefficients */
+    std::vector<double> k;     /**< \brief array of heat flux coefficients, W/(m.K) */
     matrix D_AB;               /**< \brief binary diffusion coefficients.  */
     // -- composition
     std::vector<double> massf; /**< \brief species mass fractions          */
+    double quality;            /**< \brief vapour quality                  */
     //
     Gas_data(Gas_model *gm);
     Gas_data(const Gas_data &Q);

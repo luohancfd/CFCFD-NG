@@ -13,8 +13,8 @@ import math
 sys.path.append(os.path.expandvars("$HOME/e3bin")) # installation directory
 from gaspy import *
 
-# REFPROP for CO2 uses a different reference state for e, s than the WC Reynolds
-# Bender CO2 implementation.
+# REFPROP for CO2 uses a different reference state for e, s than the
+# WC Reynolds Bender CO2 implementation.
 s_offset = 0.518e3
 e_offset = 79.69e3
 
@@ -22,7 +22,8 @@ class MBWRTestCO2(unittest.TestCase):
     """Compare the CO2 implementation from Ely, JF, JW Magee and WM Haynes (1987)
     against data from the same equation implemented in REFPROP. Differences in
     numbers are due to the use of a different R_u, M, rho_c, reference state and Cp0 model.
-    Once the paper of Ely arrives, this can be rectified."""
+    Ely, Magee and Haynes provide a Cp0 model in the form of the statistical
+    mechanics relation, we just use the polynomial provided by WC Reynolds."""
     def setUp(self):
         self.gmodel = create_gas_file("real gas MBWR", ["CO2"])
         self.gas = Gas_data(self.gmodel)
