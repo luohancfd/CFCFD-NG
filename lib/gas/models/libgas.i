@@ -143,7 +143,7 @@ def create_gas_file(model, species, fname="gas-model.lua", lut_file=None):
     optionally caught by the caller.
 
     Input:
-    model   : (string) name of the gas model as shown in the list below.
+    model   : (string) name of the gas model as specified in gasfile.lua.
     species : list of species names (strings)
     fname   : (string) name of the file to be output be gasfile.lua
     lut_file: (string) name of the Look-up table file, if any.

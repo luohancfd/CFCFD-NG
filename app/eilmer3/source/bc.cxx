@@ -925,7 +925,7 @@ int check_connectivity()
     } // end for jb
 
     if (fail == 0) {
-        cout << "Forward and Backward connections ar OK" << endl;
+        cout << "Forward and Backward connections are OK" << endl;
     } else {
         cout << "Block connections fail" << endl;
         exit( VALUE_ERROR );

@@ -465,7 +465,7 @@ LUT_plus_composite::
 s_eval_diffusion_coefficients(Gas_data &Q)
 {
     cout << "LUT_plus_composite::s_eval_diffusion_coefficients()\n";
-    cout << "Diffusion coefficients have no meaning forn";
+    cout << "Diffusion coefficients have no meaning for\n";
     cout << "this gas model.\n";
     return SUCCESS;
 }
