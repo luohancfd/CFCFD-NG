@@ -21,18 +21,20 @@ Or, if you want the MPI version of the code built as well::
   $ make clean
 
 You may need to add the installation directory to your system's 
-search path and to Lua's search path.
-On a recent Linux system, this could be done by adding the lines::
+search path to run Eilmer3.
+On a recent Linux system, this could be done by adding the line::
 
   $ export PATH=${PATH}:${HOME}/e3bin
-  $ export LUA_PATH=${HOME}/e3bin/?.lua
-  $ export LUA_CPATH=${HOME}/e3bin/?.so
 
 to the ``.bash_profile`` or ``.bashrc`` file in your home directory.
-Note that it is not necessary to have the ``LUA_CPATH`` variable set 
-unless you want to access the Lua gas module from within 
-the user-defined (Lua) functions.
-You don't need it to run Eilmer3 otherwise.
+
+To access the Lua gas module from within the user-defined (Lua) functions,
+or to use the REFPROP gas model, the following lines should also be added
+to your bash configuration::
+
+  $ export LUA_PATH=${HOME}/e3bin/?.lua
+  $ export LUA_CPATH=${HOME}/e3bin/?.so
+  $ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${HOME}/e3bin
 
 .. _label-openmpi-fedora:
 

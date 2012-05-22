@@ -150,6 +150,7 @@ You will need the password or your public key installed for any access.  Please 
   $ hg clone ssh://cfcfd3@triton/cfcfd3-hg cfcfd3
   $ cd cfcfd3/extern/
   $ hg clone ssh://cfcfd3@triton/cea2-hg cea2
+  $ hg clone ssh://geothermal@triton/refprop-hg refprop
 
 
 
