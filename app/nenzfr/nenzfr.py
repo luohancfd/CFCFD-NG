@@ -68,8 +68,9 @@ def main():
     op.add_option('--job', dest='jobName', default='nozzle',
                   help="base name for Eilmer3 files [default: %default]")
     op.add_option('--cfile', dest='contourFileName', 
-                  default='contour-t4-m10.data',
-                  help="file containing nozzle contour [default: %default]")
+                  default='Bezier-control-pts-t4-m10.data',
+                  help="file containing Bezier control points "
+                       "for nozzle contour [default: %default]")
     op.add_option('--gfile', dest='gridFileName', default='None',
                   help="file containing nozzle grid. "
                   "overrides --cfile if both are given "

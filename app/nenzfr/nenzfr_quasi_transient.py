@@ -10,58 +10,17 @@
 # School of Mechancial and Mining Engineering
 # The University of Queensland
 
-VERSION_STRING = "16-April-2012"
+VERSION_STRING = "24-May-2012"
 
-import shlex, subprocess, string
-from subprocess import PIPE
-import sys, os, gzip
+import string
+import sys, os
 import optparse
-#import numpy
 from numpy import array, mean, logical_and, zeros
+from nenzfr_utils import run_command, quote, prepare_run_script
 E3BIN = os.path.expandvars("$HOME/e3bin")
 sys.path.append(E3BIN)
 
 #---------------------------------------------------------------
-
-def prepare_run_script(substituteDict, jobName, Cluster):
-    """
-    Prepare the actual run file for Nenzfr from a template.
-    """
-    templateFileName = "run_template_"+Cluster +".sh"
-    # Check that the templateFileName is in the current directory,
-    # if it isn't copy it from "E3BIN/nenzfr_data_files/"
-    if not os.path.exists(templateFileName):
-        command_text = 'cp '+E3BIN+'/nenzfr_data_files/'+templateFileName+' ./'
-        #print command_text
-        run_command('cp '+E3BIN+'/nenzfr_data_files/'+templateFileName+' ./')
-    scriptFileName = "run_" + jobName + ".sh"
-    fp = open(templateFileName, 'r')
-    text = fp.read()
-    fp.close()
-    template = string.Template(text)
-    text = template.safe_substitute(substituteDict)
-    fp = open(scriptFileName, 'w')
-    fp.write(text)
-    fp.close()
-    return scriptFileName
-    
-def run_command(cmdText):
-    """
-    Run the command as a subprocess.
-    """
-    print "About to run cmd:", cmdText
-    args = shlex.split(cmdText)
-    p = subprocess.Popen(args)
-    # wait until the subprocess is finished
-    stdoutData, stderrData = p.communicate() 
-    return
-
-def quote(str):
-    """
-    Put quotes around a string.
-    """
-    return '"' + str + '"'
-
 def calculate_pe_values(pefile, tstart, nsteps, dt):
     """
     Calculate mean pe values for 'nsteps' intervals 
@@ -154,8 +113,9 @@ def main():
                         "use when --cfile(--gfile) are "
                         "specified. [default: %default]"))
     op.add_option('--cfile', dest='contourFileName',
-                  default='contour-t4-m10.data',
-                  help="file containing nozzle contour [default: %default]")
+                  default='Bezier-control-pts-t4-m10.data',
+                  help="file containing Bezier control points "
+                       "for nozzle contour [default: %default]")
     op.add_option('--gfile', dest='gridFileName', default='None',
                   help="file containing nozzle grid. "
                   "overrides --cfile if both are given "

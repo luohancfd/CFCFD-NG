@@ -14,61 +14,18 @@
 # School of Mechancial and Mining Engineering
 # The University of Queensland
 
-VERSION_STRING = "26-April-2012"
+VERSION_STRING = "24-May-2012"
 
-import shlex, subprocess, string
-from subprocess import PIPE
-import sys, os, gzip
+import shlex, string
+import sys, os
 import optparse
-#import numpy
-from numpy import array, mean, logical_and, zeros
-import copy
+from numpy import array
+from nenzfr_utils import run_command, quote, read_case_summary, \
+     read_nenzfr_outfile, read_estcj_outfile
 E3BIN = os.path.expandvars("$HOME/e3bin")
 sys.path.append(E3BIN)
 
 #---------------------------------------------------------------
-    
-def run_command(cmdText):
-    """
-    Run the command as a subprocess.
-    """
-    print "About to run cmd:", cmdText
-    args = shlex.split(cmdText)
-    p = subprocess.Popen(args)
-    # wait until the subprocess is finished
-    stdoutData, stderrData = p.communicate() 
-    return
-
-def quote(str):
-    """
-    Put quotes around a string.
-    """
-    return '"' + str + '"'
-
-def read_case_summary():
-    """
-    Reads the file "perturbation_cases.dat" to determine which variables
-    have been perturbed and values for the perturbed variables for each
-    case consituting the sensitivity calculation.
-    
-    :returns: perturbedVariables - a list of variable names
-            : DictOfCases - a dictionary with the case names as keys 
-                            and the values of each perturbed variable.
-    """
-    fp = open('perturbation_cases.dat','r')
-    
-    varList = fp.readline().strip().split(" ")
-    perturbedVariables = [k for k in varList if k!="#" and k!=""]
-    fp.readline()
-    DictOfCases = {}
-    for line in fp.readlines():
-        caseData = line.strip().split(" ")
-        caseName = caseData[0]
-        DictOfCases[caseName] = [float(k) for k in caseData \
-                                 if k!=caseName and k!=""]
-    fp.close()
-    return perturbedVariables, DictOfCases
-
 def perturb_CoreRadiusFraction(var, perturbedVariables,\
                                DictOfCases, levels):
     """
@@ -103,67 +60,6 @@ def perturb_CoreRadiusFraction(var, perturbedVariables,\
                   str(DictOfCases[caseString][perturbedVariables.index(var)])
                 run_command(command_text)
                 os.chdir('../')
-
-def read_nenzfr_outfile(FileToRead):
-    """
-    Reads the nenzfr out-file containing the statistics of the 
-    exit flow properties.
-    
-    :FileToRead: the name of the file to be read. Default should be 
-                 something like "nozzle-exit.stats"
-    :returns: a list of all the exit flow properties and a dictionary
-              of the mean-values.
-    """
-    fp = open(FileToRead,'r')
-    # Collumn titles
-    titles = fp.readline().strip().split(" ")
-    titleList = [k for k in titles if k!="" and k!="variable"]
-    
-    fp.readline() # This is a row of "-"
-    exitDataDict = {}
-    fileLines = fp.readlines()
-    del fileLines[-1] # Get rid of the last line which is just a row of "-"
-    exitProperty = []
-    # Now read in the rest of the data
-    for line in fileLines:
-        data = line.strip().split(" ")
-        values = [k for k in data if k!=""]
-        variable = values[0]
-        exitProperty.append(variable)
-        exitDataDict[variable] = float(values[1])
-    fp.close()
-    return exitDataDict, exitProperty
-
-def read_estcj_outfile(FileToRead):
-    """
-    Read just the line in the estcj output file that contains 
-    the nozzle supply temperature and enthalpy.
-    """
-    supplyDict = {}
-    lineToRead = 0
-    
-    fp = open(FileToRead,'r')
-    for line in fp.readlines():
-        # We only want to read one line in the file
-        if lineToRead == 1: 
-            for data in line.split(','):
-                # Data is a list of strings with one string for 
-                # each property. The form of the strings is 
-                # 'property: value unit'. We split the list and 
-                # create "values" which is a list of lists of the 
-                # form
-                #     values = [[property],[value, unit]]
-                # We then put this into a dictionary.
-                values = [x.split() for x in data.split(':')]
-                supplyDict[values[0][0]] = float(values[1][0])
-            lineToRead = 0
-            
-        if line.strip() in \
-            ['State 5s: equilibrium condition (relaxation to pe)',]:
-            # We want to read the next line
-            lineToRead = 1
-    fp.close()
-    return supplyDict
 
 def get_values(dict, propertyList):
     """

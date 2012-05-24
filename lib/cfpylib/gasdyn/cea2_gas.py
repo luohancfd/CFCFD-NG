@@ -41,7 +41,13 @@ from copy import copy
 
 DEBUG_GAS = 0
 R_universal = 8314.0;  # J/kgmole.K
-CEA_COMMAND_NAME = 'cea2'
+
+# Set name for cea executable. If we are not on a linux 
+# machine then assume we are on Windows
+if sys.platform.startswith('linux'):
+    CEA_COMMAND_NAME = 'cea2'
+else:
+    CEA_COMMAND_NAME = 'fcea2'
 
 # -------------------------------------------------------------------
 # Second, utility functions.
@@ -66,7 +72,13 @@ def locate_executable_file(name):
         # We've been given the name of the program
         # without the fully-qualified path in front,
         # now search the PATH for the program.
-        for path in os.environ["PATH"].split(os.pathsep):
+        #
+        # At the highest level of estcj we have added
+        # e3bin and local estcj path to sys.path. Searching 
+        # over sys.path  ensures that estcj/cea2_gas will 
+        # work on Windows machines. Luke D. 24-May-12
+        for path in sys.path:
+        #for path in os.environ["PATH"].split(os.pathsep):
             fullName = os.path.join(path, name)
             if is_exe(fullName): return fullName
     return None

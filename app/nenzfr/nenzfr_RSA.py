@@ -14,39 +14,18 @@
 # School of Mechancial and Mining Engineering
 # The University of Queensland
 
-VERSION_STRING = "02-May-2012"
+VERSION_STRING = "24-May-2012"
 
-import shlex, subprocess, string
-from subprocess import PIPE
+import string
 import sys, os, gzip
 import optparse
-#from numpy import array, mean, logical_and, zeros, dot, sqrt, linalg
 from numpy import *
-import copy
-from nenzfr_sensitivity import read_case_summary, read_nenzfr_outfile, \
-     read_estcj_outfile
+from nenzfr_utils import run_command, quote, read_case_summary, \
+     read_nenzfr_outfile, read_estcj_outfile
 E3BIN = os.path.expandvars("$HOME/e3bin")
 sys.path.append(E3BIN)
 
 #---------------------------------------------------------------
-  
-def run_command(cmdText):
-    """
-    Run the command as a subprocess.
-    """
-    print "About to run cmd:", cmdText
-    args = shlex.split(cmdText)
-    p = subprocess.Popen(args)
-    # wait until the subprocess is finished
-    stdoutData, stderrData = p.communicate() 
-    return
-
-def quote(str):
-    """
-    Put quotes around a string.
-    """
-    return '"' + str + '"'
-
 def calculate_RS_coefficients(exitVar, DictOfCases, nozzleData, RSAtype):
     """
     Function to calculate the coefficients for the chosen response
@@ -118,7 +97,7 @@ def write_RSA_file(beta, exitVar, DictOfCases, RSAtype, FileToWrite):
     # Write out the pe values for each case
     fout.write('{0:>9}'.format('pe'))
     for values in DictOfCases.values():
-        fout.write('{0:>15.5g}'.format(values[1]))
+        fout.write('{0:>15.6g}'.format(values[1]))
     fout.write('\n')
     # Write out a horizontal line
     for k in range(len(DictOfCases)):
