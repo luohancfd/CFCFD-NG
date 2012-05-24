@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
-test_real_gas_REFPROP.py -- test the REFPROP gas model.
+test_real_gas_REFPROP.py -- test the REFPROP gas model by comparing to
+data from the REFPROP GUI interface.
 
 .. Author: Peter Blyton
 .. Version: 21/05/2012
@@ -19,192 +20,101 @@ class REFPROPTestR134A_FLD(unittest.TestCase):
         self.gas = Gas_data(self.gmodel)
 
     def test_temp_from_rhoe(self):
-        # Within 2 phase region
-        self.gas.rho = 66.491
-        self.gas.e[0] = 314.66e3
+        # Within 2 phase region, speed of sound undefined
+        self.gas.rho = 66.4905623976
+        self.gas.e[0] = 314.657214669e3
         self.gmodel.eval_thermo_state_rhoe(self.gas)
         self.assertAlmostEqual(self.gas.T[0], 300.0, places=2)
-        self.assertAlmostEqual(self.gas.p, 300.0, places=2)
+        self.assertAlmostEqual(self.gas.p/1e6, 0.702820647167, places=3)
+        self.assertAlmostEqual(self.gas.quality, 0.5, places=4)
 
-#    def test_rho_from_pT(self):
-#        # Supercritical
-#        self.gas.T[0] = 400.0
-#        self.gas.p = 20.0e6
-#        self.gmodel.eval_thermo_state_pT(self.gas)
-#        self.assertAlmostEqual(self.gas.rho, 380.58, delta=0.02)
-#        self.assertAlmostEqual((self.gas.e[0] + e_offset)/1e3, 432.24, delta=0.2)
-#        s = self.gmodel.total_entropy(self.gas)
-#        self.assertAlmostEqual(s, 1.7875e3 - s_offset, delta=1.0)
-#        #self.assertAlmostEqual(self.gas.a, 310.33, delta=2.0)
-#        Cv = self.gmodel.Cv(self.gas)
-#        self.assertAlmostEqual(Cv, 881.90, delta=2.0)
-#        #Cp = self.gmodel.Cp(self.gas) # Something wrong with calculation of Cp
-#        #self.assertAlmostEqual(Cp, 1878.4, delta=5.0)
+    def test_rho_from_pT(self):
+        # Supercritical
+        self.gas.T[0] = 400.0
+        self.gas.p = 4.2e6
+        self.gmodel.eval_thermo_state_pT(self.gas)
+        self.assertAlmostEqual(self.gas.rho, 201.900034379, places=9)
+        self.assertAlmostEqual(self.gas.e[0]/1e3, 452.009183568, places=9)
+        self.assertAlmostEqual(self.gas.a, 135.781351458, places=9)
+        self.assertEqual(self.gas.quality, 999) # 999 means supercritical
+        # Test calculation of transport coefficients
+        self.gmodel.eval_transport_coefficients(self.gas)
+        self.assertAlmostEqual(self.gas.mu/1e6, 19.4290589130, places=9)
+        self.assertAlmostEqual(self.gas.k[0]*1e3, 27.0975847050, places=9)
 
-#    def test_press_from_rhoT(self):
-#        # Saturated vapor, near critical point
-#        self.gas.T[0] = 300.0
-#        self.gas.rho = 264.89
-#        self.gmodel.eval_thermo_state_rhoT(self.gas)
-#        self.assertAlmostEqual(self.gas.p/1e3, 6703.7, delta=0.5)
-#        self.assertAlmostEqual((self.gas.e[0] + e_offset)/1e3, 364.39, delta=0.1)
-#        s = self.gmodel.total_entropy(self.gas)
-#        self.assertAlmostEqual(s, 1.6303e3 - s_offset, delta=1.0)
-#        #self.assertAlmostEqual(self.gas.a, 191.02, places=2)
-#        Cv = self.gmodel.Cv(self.gas)
-#        self.assertAlmostEqual(Cv, 1094.1, delta=1.0)
-#        #Cp = self.gmodel.Cp(self.gas)
-#        #self.assertAlmostEqual(Cp, 1006.3, delta=5.0)
+    def test_press_from_rhoT(self):
+        # Saturated vapor
+        self.gas.T[0] = 300.0
+        self.gas.rho = 34.1928366481
+        self.gmodel.eval_thermo_state_rhoT(self.gas)
+        self.assertAlmostEqual(self.gas.p/1e6, 0.702820647167, places=9)
+        self.assertAlmostEqual(self.gas.e[0]/1e3, 392.711079900, places=9)
+        self.assertAlmostEqual(self.gas.quality, 1.0, places=9)
 
-#    def test_temp_from_rhop(self):
-#        # Superheated vapor
-#        self.gas.rho = 18.576
-#        self.gas.p = 1.0e6
-#        self.gmodel.eval_thermo_state_rhop(self.gas)
-#        self.assertAlmostEqual(self.gas.T[0], 300.0, delta=0.01)
-#        self.assertAlmostEqual((self.gas.e[0] + e_offset)/1e3, 445.85, delta=0.1)
-#        s = self.gmodel.total_entropy(self.gas)
-#        self.assertAlmostEqual(s, 2.2923e3 - s_offset, delta=1.0)
-#        self.assertAlmostEqual(self.gas.a, 262.37, delta=0.05)
-#        Cv = self.gmodel.Cv(self.gas)
-#        self.assertAlmostEqual(Cv, 684.66, delta=1.0)
-#        Cp = self.gmodel.Cp(self.gas)
-#        self.assertAlmostEqual(Cp, 923.55, delta=1.0)
+    def test_other_functions(self):
+        # Superheated vapor
+        self.gas.T[0] = 400.0
+        self.gas.rho = 3.08911589927 # corresponds to pressure of 0.1 MPa
+        self.assertAlmostEqual(self.gmodel.Cv(self.gas)/1e3, 0.925309754316, places=9)
+        self.assertAlmostEqual(self.gmodel.internal_energy(self.gas, 1)/1e3, 486.926162331, places=9)
+        self.assertAlmostEqual(self.gmodel.enthalpy(self.gas, 1)/1e3, 519.297883970, places=9)
+        self.assertAlmostEqual(self.gmodel.entropy(self.gas, 1)/1e3, 2.17396506192, places=9)
 
-#class REFPROPTestAIR_PPF(unittest.TestCase):
-#    def setUp(self):
-#        self.gmodel = create_gas_file("real gas REFPROP", ["AIR.PPF", "single phase"])
-#        self.gas = Gas_data(self.gmodel)
+class REFPROPTestR134A_FLD_singlephase(unittest.TestCase):
+    def setUp(self):
+        self.gmodel = create_gas_file("real gas REFPROP", ["R134A.FLD", "single phase"])
+        self.gas = Gas_data(self.gmodel)
 
-#    def test_temp_from_rhoe(self):
-#        # Triple point properties of vapor
-#        self.gas.rho = 0.028197 # Data of McLinden sensitive to more than 3dp.
-#        self.gas.e[0] = 321.25e3
-#        self.gmodel.eval_thermo_state_rhoe(self.gas)
-#        self.assertAlmostEqual(self.gas.T[0], 273.15 - 103.30, places=1)
-#        self.assertAlmostEqual(self.gas.p, 390.0, places=1)
-#        self.assertAlmostEqual(self.gas.a, 127.0, places=0)
-#        s = self.gmodel.total_entropy(self.gas)
-#        self.assertAlmostEqual(s/1e3, 1.9638, places=3)
-#        Cp = self.gmodel.Cp(self.gas)
-#        self.assertAlmostEqual(Cp/1e3, 0.585, places=3)
+    def test_rho_from_pT(self):
+        # Supercritical
+        self.gas.T[0] = 400.0
+        self.gas.p = 4.2e6
+        self.gmodel.eval_thermo_state_pT(self.gas)
+        self.assertAlmostEqual(self.gas.rho, 201.900034379, places=9)
+        self.assertAlmostEqual(self.gas.e[0]/1e3, 452.009183568, places=9)
+        self.assertAlmostEqual(self.gas.a, 135.781351458, places=9)
+        self.assertEqual(self.gas.quality, 999) # 999 means supercritical
+        # Test calculation of transport coefficients
+        self.gmodel.eval_transport_coefficients(self.gas)
+        self.assertAlmostEqual(self.gas.mu/1e6, 19.4290589130, places=9)
+        self.assertAlmostEqual(self.gas.k[0]*1e3, 27.0975847050, places=9)
 
-#    def test_rho_from_pT(self):
-#        # Saturated vapor
-#        self.gas.T[0] = 273.15
-#        self.gas.p = 292.69e3
-#        self.gmodel.eval_thermo_state_pT(self.gas)
-#        self.assertAlmostEqual(self.gas.rho, 14.420, places=3)
-#        self.assertAlmostEqual(self.gas.e[0]/1e3, 378.38, places=2)
-#        self.assertAlmostEqual(self.gas.a, 147.0, places=1)
-#        s = self.gmodel.total_entropy(self.gas)
-#        self.assertAlmostEqual(s/1e3, 1.7274, places=3)
-#        Cp = self.gmodel.Cp(self.gas)
-#        self.assertAlmostEqual(Cp/1e3, 0.883, places=3)
+class REFPROPTestAIR_PPF(unittest.TestCase):
+    def setUp(self):
+        self.gmodel = create_gas_file("real gas REFPROP", ["AIR.PPF", "single phase"])
+        self.gas = Gas_data(self.gmodel)
 
-#    def test_press_from_rhoT(self):
-#        # Saturated vapor. At this point, Cv is right but Cp wrong, also causing
-#        # SS to be wrong. See Span (2000) Multiparameter equations of state, pg 43.
-#        # Cp of a saturation state is that in the limit when T -> Ts, as Cp
-#        # is meaningless at the saturation boundary as phase change is a constant
-#        # temperature process under isobaric conditions.
-#        self.gas.rho = 267.60
-#        self.gas.T[0] = 273.15 + 95.0
-#        self.gmodel.eval_thermo_state_rhoT(self.gas)
-#        self.assertAlmostEqual(self.gas.p/1e6, 3.5916, places=3)
-#        self.assertAlmostEqual(self.gas.e[0]/1e3, 407.17, places=2)
-#        #self.assertAlmostEqual(self.gas.a, 102.0, places=1)
-#        s = self.gmodel.total_entropy(self.gas)
-#        self.assertAlmostEqual(s/1e3, 1.6490, places=3)
-#        #Cp = self.gmodel.Cp(self.gas)
-#        #self.assertAlmostEqual(Cp, 4942.0, places=1)
+    def test_press_from_rhoT(self):
+        self.gas.T[0] = 300.0
+        self.gas.rho = 1.16159962683
+        self.gmodel.eval_thermo_state_rhoT(self.gas)
+        self.assertAlmostEqual(self.gas.p/1e6, 0.1, places=9)
+        self.assertAlmostEqual(self.gas.e[0]/1e3, 340.212604297, places=9)
+        self.assertAlmostEqual(self.gas.a, 347.318504450, places=9)
 
-#    def test_temp_from_rhop(self):
-#        # Superheated vapor, comparison to REFPROP as McLinden only provide
-#        # saturation tables.
-#        self.gas.rho = 10.0
-#        self.gas.p = 318.76e3
-#        self.gmodel.eval_thermo_state_rhop(self.gas)
-#        self.assertAlmostEqual(self.gas.T[0], 400.0, delta=0.02)
-#        self.assertAlmostEqual(self.gas.e[0]/1e3, 485.59, delta=0.1)
-#        self.assertAlmostEqual(self.gas.a, 185.03, delta=0.03)
-#        s = self.gmodel.total_entropy(self.gas)
-#        self.assertAlmostEqual(s, 2.0762e3, delta=1.0)
-#        Cv = self.gmodel.Cv(self.gas)
-#        self.assertAlmostEqual(Cv, 929.94, delta=6.0)
-#        Cp = self.gmodel.Cp(self.gas)
-#        self.assertAlmostEqual(Cp, 1021.6, delta=6.0)
+class REFPROPTestAIR_MIX(unittest.TestCase):
+    def setUp(self):
+        self.gmodel = create_gas_file("real gas REFPROP", ["AIR.MIX", "two phase"])
+        self.gas = Gas_data(self.gmodel)
 
-#class REFPROPTestAIR_MIX(unittest.TestCase):
-#    def setUp(self):
-#        self.gmodel = create_gas_file("real gas REFPROP", ["AIR.MIX", "single phase"])
-#        self.gas = Gas_data(self.gmodel)
-
-#    def test_temp_from_rhoe(self):
-#        # Triple point properties of vapor
-#        self.gas.rho = 0.028197 # Data of McLinden sensitive to more than 3dp.
-#        self.gas.e[0] = 321.25e3
-#        self.gmodel.eval_thermo_state_rhoe(self.gas)
-#        self.assertAlmostEqual(self.gas.T[0], 273.15 - 103.30, places=1)
-#        self.assertAlmostEqual(self.gas.p, 390.0, places=1)
-#        self.assertAlmostEqual(self.gas.a, 127.0, places=0)
-#        s = self.gmodel.total_entropy(self.gas)
-#        self.assertAlmostEqual(s/1e3, 1.9638, places=3)
-#        Cp = self.gmodel.Cp(self.gas)
-#        self.assertAlmostEqual(Cp/1e3, 0.585, places=3)
-
-#    def test_rho_from_pT(self):
-#        # Saturated vapor
-#        self.gas.T[0] = 273.15
-#        self.gas.p = 292.69e3
-#        self.gmodel.eval_thermo_state_pT(self.gas)
-#        self.assertAlmostEqual(self.gas.rho, 14.420, places=3)
-#        self.assertAlmostEqual(self.gas.e[0]/1e3, 378.38, places=2)
-#        self.assertAlmostEqual(self.gas.a, 147.0, places=1)
-#        s = self.gmodel.total_entropy(self.gas)
-#        self.assertAlmostEqual(s/1e3, 1.7274, places=3)
-#        Cp = self.gmodel.Cp(self.gas)
-#        self.assertAlmostEqual(Cp/1e3, 0.883, places=3)
-
-#    def test_press_from_rhoT(self):
-#        # Saturated vapor. At this point, Cv is right but Cp wrong, also causing
-#        # SS to be wrong. See Span (2000) Multiparameter equations of state, pg 43.
-#        # Cp of a saturation state is that in the limit when T -> Ts, as Cp
-#        # is meaningless at the saturation boundary as phase change is a constant
-#        # temperature process under isobaric conditions.
-#        self.gas.rho = 267.60
-#        self.gas.T[0] = 273.15 + 95.0
-#        self.gmodel.eval_thermo_state_rhoT(self.gas)
-#        self.assertAlmostEqual(self.gas.p/1e6, 3.5916, places=3)
-#        self.assertAlmostEqual(self.gas.e[0]/1e3, 407.17, places=2)
-#        #self.assertAlmostEqual(self.gas.a, 102.0, places=1)
-#        s = self.gmodel.total_entropy(self.gas)
-#        self.assertAlmostEqual(s/1e3, 1.6490, places=3)
-#        #Cp = self.gmodel.Cp(self.gas)
-#        #self.assertAlmostEqual(Cp, 4942.0, places=1)
-
-#    def test_temp_from_rhop(self):
-#        # Superheated vapor, comparison to REFPROP as McLinden only provide
-#        # saturation tables.
-#        self.gas.rho = 10.0
-#        self.gas.p = 318.76e3
-#        self.gmodel.eval_thermo_state_rhop(self.gas)
-#        self.assertAlmostEqual(self.gas.T[0], 400.0, delta=0.02)
-#        self.assertAlmostEqual(self.gas.e[0]/1e3, 485.59, delta=0.1)
-#        self.assertAlmostEqual(self.gas.a, 185.03, delta=0.03)
-#        s = self.gmodel.total_entropy(self.gas)
-#        self.assertAlmostEqual(s, 2.0762e3, delta=1.0)
-#        Cv = self.gmodel.Cv(self.gas)
-#        self.assertAlmostEqual(Cv, 929.94, delta=6.0)
-#        Cp = self.gmodel.Cp(self.gas)
-#        self.assertAlmostEqual(Cp, 1021.6, delta=6.0)
+    def test_press_from_rhoT(self):
+        self.gas.T[0] = 300.0
+        self.gas.rho = 1.16129872304
+        self.gmodel.eval_thermo_state_rhoT(self.gas)
+        self.assertAlmostEqual(self.gas.p/1e6, 0.1, places=9)
+        # Different default thermodynamic reference state used by mixture
+        self.assertAlmostEqual(self.gas.e[0]/1e3, 214.201724633, places=9)
+        self.assertAlmostEqual(self.gas.a, 347.369957553, places=9)
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(REFPROPTestR134A_FLD)
     unittest.TextTestRunner(verbosity=2).run(suite)
 
-#    suite = unittest.TestLoader().loadTestsFromTestCase(REFPROPTestAIR_PPF)
-#    unittest.TextTestRunner(verbosity=2).run(suite)
+    suite = unittest.TestLoader().loadTestsFromTestCase(REFPROPTestR134A_FLD_singlephase)
+    unittest.TextTestRunner(verbosity=2).run(suite)
 
-#    suite = unittest.TestLoader().loadTestsFromTestCase(REFPROPTestAIR_MIX)
-#    unittest.TextTestRunner(verbosity=2).run(suite)
+    suite = unittest.TestLoader().loadTestsFromTestCase(REFPROPTestAIR_PPF)
+    unittest.TextTestRunner(verbosity=2).run(suite)
+
+    suite = unittest.TestLoader().loadTestsFromTestCase(REFPROPTestAIR_MIX)
+    unittest.TextTestRunner(verbosity=2).run(suite)
