@@ -42,12 +42,12 @@ from copy import copy
 DEBUG_GAS = 0
 R_universal = 8314.0;  # J/kgmole.K
 
-# Set name for cea executable. If we are not on a linux 
-# machine then assume we are on Windows
-if sys.platform.startswith('linux'):
-    CEA_COMMAND_NAME = 'cea2'
+# Set name for cea executable. If we are not on a Windows
+# machine then assume we are on a Linux-like machine
+if sys.platform.startswith('win'):
+    CEA_COMMAND_NAME = 'fcea2.exe'
 else:
-    CEA_COMMAND_NAME = 'fcea2'
+    CEA_COMMAND_NAME = 'cea2'
 
 # -------------------------------------------------------------------
 # Second, utility functions.
