@@ -98,12 +98,24 @@ REFPROP_gas_model(string cfile)
     ierr = 0;
 
     if (strstr(sp, ".FLD") || strstr(sp, ".PPF")){
+        if (phase ==  "single phase" && strstr(sp, ".PPF")) {
+            cout << "REFPROP_gas_model::REFPROP_gas_model():\n"
+                 << "PPF can only be used with the two phase calculation\n"
+                 << "as unit conversion of dpdrho does not work correctly.\n";
+            exit(BAD_INPUT_ERROR);
+        }
         species_path = home + "/e3bin/species/refprop/fluids/" + sp;
         strncpy(hfld, species_path.c_str(), stringlength*ncmax);
         i = 1; x[0] = 1.0;
         SETUP(i,hfld,hfmix,hrf,ierr,herr);
         if (ierr != 0) is_REFPROP_error("REFPROP_gas_model");
     } else if (strstr(sp, ".MIX")) {
+        if (phase ==  "single phase") {
+            cout << "REFPROP_gas_model::REFPROP_gas_model():\n"
+                 << "Mixtures can only be used with the two phase calculation\n"
+                 << "as unit conversion of dpdrho does not work correctly.\n";
+            exit(BAD_INPUT_ERROR);
+        }
         species_path = home + "/e3bin/species/refprop/mixtures/" + sp;
         strncpy(hfld, species_path.c_str(), stringlength*ncmax);
         SETMIX(hfld,hfmix,hrf,i,hfiles,x,ierr,herr);
@@ -156,9 +168,9 @@ s_eval_thermo_state_rhoe(Gas_data &Q)
         // Now update the pressure from the new temperature and density
         PRESS(t,d,x,p);
         Q.p = p*1e3; // kPa to Pa
-        CVCP(t,d,x,cv,cp);
-        DPDD(t,d,x,dpdrho);
-        Q.a = sqrt(dpdrho*cp/cv);
+        CVCP(t,d,x,cv,cp); // J/(mol.K)
+        DPDD(t,d,x,dpdrho); // kPa.L/mol
+        Q.a = sqrt(dpdrho*wm*(cp/cv));
         Q.quality = 1;
         return SUCCESS;
     } else {
@@ -206,9 +218,9 @@ s_eval_thermo_state_rhoT(Gas_data &Q)
         Q.p = p*1e3; // kPa to Pa
         ENERGY(t,d,x,e);
         Q.e[0] = e*1e3/wm; // J/mol to J/kg
-        CVCP(t,d,x,cv,cp);
-        DPDD(t,d,x,dpdrho);
-        Q.a = sqrt(dpdrho*cp/cv);
+        CVCP(t,d,x,cv,cp); // J/(mol.K)
+        DPDD(t,d,x,dpdrho); // kPa.L/mol
+        Q.a = sqrt(dpdrho*wm*(cp/cv));
         Q.quality = 1;
         return SUCCESS;
     } else {
