@@ -81,7 +81,7 @@ class REFPROPTestR134A_FLD_singlephase(unittest.TestCase):
 
 class REFPROPTestAIR_PPF(unittest.TestCase):
     def setUp(self):
-        self.gmodel = create_gas_file("real gas REFPROP", ["AIR.PPF", "single phase"])
+        self.gmodel = create_gas_file("real gas REFPROP", ["AIR.PPF", "two phase"])
         self.gas = Gas_data(self.gmodel)
 
     def test_press_from_rhoT(self):
