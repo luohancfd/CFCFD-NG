@@ -166,12 +166,6 @@ def set_case_running(caseString, caseDict, textString):
     # Move the run script to its sub-directory
     command_text = 'mv '+scriptFileName+' ./'+caseString+'/'+scriptFileName
     run_command(command_text)
-
-    # If required, copy the nozzle.timing file to the sub-directory
-    if caseDict['blockMarching'] in ["--block-marching",]:
-        if os.path.exists('nozzle.timing'):
-            command_text = 'cp nozzle.timing ./'+caseString+'/'
-            run_command(command_text)
     
     # If require, copy the equilibrium gas LUT to the sub-directory
     if caseDict['chemModel'] in ['"eq"',]:
@@ -392,7 +386,7 @@ def main():
         if opt.createRSA is True:
             opt.levels = 2.5
         else:
-            print "the --levels=3-reduced is only valid when creating a response surface."+
+            print "the --levels=3-reduced is only valid when creating a response surface."+\
                   " changing to levels=3" 
             opt.levels = 3
     else:
@@ -495,7 +489,7 @@ def main():
         var1 = perturbedVariables[0] # 'Vs'
         var2 = perturbedVariables[1] # 'pe'
         
-        if opt.levels == 2.5
+        if opt.levels == 2.5:
             casesToRun = [(2,1),      (1,1),
                                 (0,0),
                           (2,2),      (1,2)]
@@ -519,7 +513,7 @@ def main():
         caseString = 'case'+"{0:01}{0:01}".format(0,0)
         caseDict = copy.copy(paramDict)
         textString = "Nominal Case: "+var1+"="+str(perturbedDict[var1][0])+\
-                                 "; "+var2+"="+str(perturbedDict[var2][1])
+                                 "; "+var2+"="+str(perturbedDict[var2][0])
         write_case_config(caseDict)
         set_case_running(caseString, caseDict, textString)
         write_case_summary(perturbedVariables, caseDict, caseString, 1)
@@ -528,7 +522,8 @@ def main():
         for case in casesToRun:
             if case != (0,0):
                 caseString = 'case'+"{0:01}{1:01}".format(case[0],case[1])
-                textString = var1+" perturbed to "+str(perturbedDict[var1][case[0]])+                                "\n"+var2+" perturbed to "+str(perturbedDict[var2][case[1]])
+                textString = var1+" perturbed to "+str(perturbedDict[var1][case[0]])+\
+                        "\n"+var2+" perturbed to "+str(perturbedDict[var2][case[1]])
                 caseDict = copy.copy(paramDict)
                 caseDict[var1] = perturbedDict[var1][case[0]]
                 caseDict[var2] = perturbedDict[var2][case[1]]
