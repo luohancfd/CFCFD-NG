@@ -224,7 +224,7 @@ def main():
     # Generate averaged exit flow properties
     print_stats(opt.exitSliceFileName,opt.jobName,opt.coreRfraction)                
     # Compute viscous data at the nozzle wall
-    run_command(E3BIN+'/nenzfr_compute_viscous_data.py --job=%s' % (opt.jobName,))
+    run_command(E3BIN+'/nenzfr_compute_viscous_data.py --job=%s --nbj=%s' % (opt.jobName, opt.nbj))
     #
     if opt.contourFileName == "contour-t4-m10.data":
         # The following are additional commands specific to Luke D. and the Mach 10 nozzle.

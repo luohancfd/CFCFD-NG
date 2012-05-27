@@ -12,7 +12,7 @@
 #  nenzfr.py.
 #                                                         Luke D. 16-Aug-2011
 
-VERSION_STRING = "Luke D, 16-Aug-2011"
+VERSION_STRING = "Luke D, 27-May-2012"
 
 import sys, os
 sys.path.append(os.path.expandvars("$HOME/e3bin")) # installation directory
@@ -30,13 +30,13 @@ def get_cell_corners(grd, i, j, k):
 
 #----------------------------------------------------------------------------
 
-def compute_viscous(jobName, nblock, tindx):
+def compute_viscous(jobName, nblock, nbj, tindx):
     # Read in all grid and flow files
     zipFiles = 1
     grid, flow, dimensions = read_all_blocks(jobName, nblock, tindx, zipFiles)
-
-    for jb in range(nblock): 
-        if jb==0:
+    
+    for jb in range(nbj-1, nblock, nbj):
+        if jb==nbj-1:
             outfile = open(jobName+"-viscous.data", "w")
             outfile.write("#x(m)\ty(m)\tz(m)\tdu(m/s)\tdy(m)\trho(kg/m^3)\tmu(N.s/m^2)\ttau_w(N/m^2)\ty_plus \n")
         else:
@@ -80,6 +80,9 @@ def main():
                   help="time index for solution data to be processed [default: %default]")
     op.add_option('--nblock', dest='nblock', type='int', default=None,
                   help="total number of blocks to consider")
+    op.add_option('--nbj', dest='nbj', type='int', default=1,
+                  help="number of blocks in the radial/transverse direction "
+                       "[default: %default]")
     opt, args = op.parse_args()
     
     # If no value for nblock is given, we infer the number of blocks from the number of 
@@ -97,7 +100,7 @@ def main():
         return -2    
     
     # Compute y_plus data.
-    compute_viscous(opt.jobName, opt.nblock, opt.tindx)
+    compute_viscous(opt.jobName, opt.nblock, opt.nbj, opt.tindx)
     
     print "Computed viscous data may be found in "+opt.jobName+"-viscous.data"
     return 0
