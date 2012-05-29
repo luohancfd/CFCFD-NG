@@ -61,33 +61,33 @@ REFPROP_gas_model(string cfile)
     if (!refprop_handle) is_slib_error("REFPROP_gas_model", false);
 
     // Get pointers into the shared object for the required functions
-    *(void **)(&SETUP) = dlsym(refprop_handle, "setup_");
+    *(void **)(&SETUP) = dlsym(refprop_handle, "setup");
     if (!SETUP) is_slib_error("REFPROP_gas_model", true);
-    *(void **)(&SETMIX) = dlsym(refprop_handle, "setmix_");
+    *(void **)(&SETMIX) = dlsym(refprop_handle, "setmix");
     if (!SETMIX) is_slib_error("REFPROP_gas_model", true);
-    *(void **)(&WMOL) = dlsym(refprop_handle, "wmol_");
+    *(void **)(&WMOL) = dlsym(refprop_handle, "wmol");
     if (!WMOL) is_slib_error("REFPROP_gas_model", true);
-    *(void **)(&DEFLSH) = dlsym(refprop_handle, "deflsh_");
+    *(void **)(&DEFLSH) = dlsym(refprop_handle, "deflsh");
     if (!DEFLSH) is_slib_error("REFPROP_gas_model", true);
-    *(void **)(&TPFLSH) = dlsym(refprop_handle, "tpflsh_");
+    *(void **)(&TPFLSH) = dlsym(refprop_handle, "tpflsh");
     if (!TPFLSH) is_slib_error("REFPROP_gas_model", true);
-    *(void **)(&TDFLSH) = dlsym(refprop_handle, "tdflsh_");
+    *(void **)(&TDFLSH) = dlsym(refprop_handle, "tdflsh");
     if (!TDFLSH) is_slib_error("REFPROP_gas_model", true);
-    *(void **)(&TRNPRP) = dlsym(refprop_handle, "trnprp_");
+    *(void **)(&TRNPRP) = dlsym(refprop_handle, "trnprp");
     if (!TRNPRP) is_slib_error("REFPROP_gas_model", true);
-    *(void **)(&DEFL1) = dlsym(refprop_handle, "defl1_");
+    *(void **)(&DEFL1) = dlsym(refprop_handle, "defl1");
     if (!DEFL1) is_slib_error("REFPROP_gas_model", true);
-    *(void **)(&CVCP) = dlsym(refprop_handle, "cvcp_");
+    *(void **)(&CVCP) = dlsym(refprop_handle, "cvcp");
     if (!CVCP) is_slib_error("REFPROP_gas_model", true);
-    *(void **)(&PRESS) = dlsym(refprop_handle, "press_");
+    *(void **)(&PRESS) = dlsym(refprop_handle, "press");
     if (!PRESS) is_slib_error("REFPROP_gas_model", true);
-    *(void **)(&DPDD) = dlsym(refprop_handle, "dpdd_");
+    *(void **)(&DPDD) = dlsym(refprop_handle, "dpdd");
     if (!DPDD) is_slib_error("REFPROP_gas_model", true);
-    *(void **)(&ENERGY) = dlsym(refprop_handle, "energy_");
+    *(void **)(&ENERGY) = dlsym(refprop_handle, "energy");
     if (!ENERGY) is_slib_error("REFPROP_gas_model", true);
-    *(void **)(&ENTHAL) = dlsym(refprop_handle, "enthal_");
+    *(void **)(&ENTHAL) = dlsym(refprop_handle, "enthal");
     if (!ENTHAL) is_slib_error("REFPROP_gas_model", true);
-    *(void **)(&ENTRO) = dlsym(refprop_handle, "entro_");
+    *(void **)(&ENTRO) = dlsym(refprop_handle, "entro");
     if (!ENTRO) is_slib_error("REFPROP_gas_model", true);
 
     string home = getenv("HOME"), species_path;
