@@ -1,11 +1,11 @@
 #!/bin/bash -l
 #PBS -S /bin/bash
 #PBS -N $jobName
-#PBS -q fast
-#PBS -l place=scatter -l select=1:ncpus=1:NodeType=fast:mpiprocs=1 -l walltime=150:00:00 -A uq-SCRAMSPACE
+#PBS -q workq
+#PBS -l place=scatter -l select=1:ncpus=8:NodeType=medium:mpiprocs=8 -l walltime=50:00:00 -A uq-SCRAMSPACE
 #PBS -V
 
-# This file should not need to be modified.
+# With the exception of the above PBS options, this file should not need to be modified.
 # Luke Doherty
 # 16-04-2012
 

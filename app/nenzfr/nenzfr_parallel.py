@@ -123,6 +123,9 @@ def run_in_block_marching_mode(opt, gmodelFile):
             # The inflow condition should not change from this run onwards.
             update_inflowBC(blksPerColumn, jobName+".config")
         if run > 0:
+            # Propagate the dt_global from the previous run. This will hopefully help 
+            # achieve faster convergence.
+            update_dt_global(jobName+'.times')
             # Propagate the inflow profile across all blocks to generate a starting solution
             # that will help achieve a faster convergence to the steady-state solution.
             # Propagate only the last profile slice of set A to the blocks in set B.
@@ -278,6 +281,34 @@ def update_max_time(maxTime, inputFileName):
     outfile.writelines(lineBuffer)
     outfile.close()
     return
+
+def update_dt_global(inputFileName):
+    """
+    Update dt_global for tindx=0000 in nozzle.times file to be
+    the same as the (current) last value in the file.
+    """
+    
+    # Read inputFileName and put data into a list of strings
+    f = open(inputFileName,'r')
+    data = f.readlines()
+    f.close()
+    
+    # Grab the dt_global value from the last line of the file
+    # We leave it as a string for convenience
+    final_dt_global = data[-1].split()[-1]
+    
+    # Now get the first line (of data) and replace it's
+    # dt_global value with the value from the last line
+    firstline = data[1].split()
+    firstline[-1] = final_dt_global
+    
+    # Update the list of strings
+    data[1] = ''.join([' '.join(firstline),'\n'])
+    
+    # Write out a new file
+    f = open(inputFileName,'w')
+    f.writelines(data)
+    f.close()
 
 def update_block_dims(targetBlock, blockDims, inputFileName):
     """

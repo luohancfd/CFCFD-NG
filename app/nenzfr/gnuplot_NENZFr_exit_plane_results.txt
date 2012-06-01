@@ -1,0 +1,381 @@
+# gunplot_NENZFr_exit_plane_results.txt
+#
+# Luke Doherty
+# 21-09-2011, 20-10-2011, 25-03-2012
+#
+# gnuplot script to be used in conjuction with NENZFr results to produce 
+# plots of exit flow properties
+# 
+
+reset
+
+
+### PITOT ####
+
+set terminal postscript enhanced color eps 18 size 7cm, 12cm;
+set output "./exit_plane_pitot.eps";
+
+set size 1.25,1.25
+#set size ratio 2
+
+set xrange [0:120];
+set xlabel "Pitot Pressure, kPa";
+#set xtics 0, 10;
+#set mxtics 5;
+set xtics nomirror
+
+set x2range [0:(120e3/43.0e6*1e4)];
+set x2tics 0, 2.74e-4*1e4;
+set format x2 "%2.1f"
+set x2label "Pitot/Nozzle Supply, 10^{-4}Pa/Pa"
+
+set yrange [0:200]; # Mach 10 nozzle
+set ylabel "Radius, mm";
+set format y "%2.0f"
+set ytics 0, 20;
+set mytics 4;
+
+#set key top left Left reverse font ",12"
+set key bottom left Left reverse font ",14"
+set grid
+
+plot "./nozzle-exit.data" using ($27/1000):($2*1000) notitle "10792" with lines lt 1 lc 3 lw 3
+
+	 
+reset
+
+#------------------------------------------------------------------------------------------------------------------------------
+### PRESSURE ###
+
+set terminal postscript enhanced color eps 18 size 5.5cm, 12cm;
+set output "./exit_plane_pressure.eps";
+
+set size 1.25,1.25
+#set size ratio 2
+
+set xrange [0:1000];
+set xlabel "Pressure, Pa";
+#set xtics 250, 50;
+#set mxtics 5;
+
+set yrange [0:200]; # Mach 10 nozzle
+#set ylabel "Radius, mm";
+#set format y "%2.0f"
+set format y ""
+set ytics 0, 20;
+set mytics 4;
+
+set key bottom left Left reverse font ",14"
+set grid
+
+plot "./nozzle-exit.data" using 9:($2*1000) notitle "10792" with lines lt 1 lc 3 lw 3
+
+reset
+
+#------------------------------------------------------------------------------------------------------------------------------
+### TEMPERATURE ###
+
+set terminal postscript enhanced color eps 18 size 7cm, 12cm;
+set output "./exit_plane_temperature.eps";
+
+set size 1.25,1.25
+#set size ratio 2
+
+set xrange [0:1150];
+set xlabel "Temperature, K";
+#set xtics 450, 50;
+#set mxtics 5;
+
+set yrange [0:200]; # Mach 10 nozzle
+set ylabel "Radius, mm";
+set format y "%2.0f"
+set ytics 0, 20;
+set mytics 4;
+
+set multiplot
+set origin 0.0,0.0;
+set size 1.25,1.25;
+
+set key bottom left Left reverse font ",14"
+set grid
+
+plot "./nozzle-exit.data" using 25:($2*1000) notitle "10792" with lines lt 1 lc 3 lw 3
+ 
+set object rectangle from graph -0.2,-0.08 to graph 1.05,1.05 behind fc rgb "white" fs solid noborder
+     
+set origin 0.4,0.2;
+set size 0.75,0.65;
+set xrange [200:300];
+#set xtics ("3100" 3100, "" 3110 1, "" 3120 1, "" 3125, "" 3130 1, "" 3140 1, "3150" 3150, "" 3160 1, "" 3170 1, "" 3175, "" 3180 1, "" 3190 1, "3200" 3200)
+#set mxtics 5;
+#unset mxtics;
+set yrange [0:200];
+unset format
+unset xlabel;
+unset ylabel;
+unset key
+replot
+
+unset multiplot
+reset
+
+#------------------------------------------------------------------------------------------------------------------------------
+### VELOCITY X ###
+
+set terminal postscript enhanced color eps 18 size 5.5cm, 12cm;
+set output "./exit_plane_velX.eps";
+
+set size 1.25,1.25
+#set size ratio 2
+
+#set xrange [9.0:10.0];
+#set xrange [3180.0:3200.0];
+set xlabel "Ux, m/s";
+#set xtics 9.9, 0.04;
+#set mxtics 4;
+
+set yrange [0:200]; # Mach 10 nozzle
+#set yrange [0:140];
+#set ylabel "Radius, mm";
+#set format y "%2.0f"
+set format y ""
+set ytics 0, 20;
+set mytics 4;
+
+#set y2range [0:200];
+#set y2label "Radius, mm";
+#set format y2 "%2.0f"
+#set y2tics 0, 20;
+#set my2tics 4;
+
+set multiplot
+set origin 0.0,0.0;
+set size 1.25,1.25;
+
+set key bottom left Left reverse font ",14"
+set grid
+
+plot "./nozzle-exit.data" using 6:($2*1000) notitle "10792" with lines lt 1 lc 3 lw 3
+
+set object rectangle from graph -0.2,-0.08 to graph 1.05,1.05 behind fc rgb "white" fs solid noborder
+     
+set origin 0.1,0.2;
+set size 0.85,0.65;
+set xrange [3090:3110];
+#set xtics 3100, 50
+set xtics ("3090" 3090, "" 3095, "3100" 3100, "" 3105, "3110" 3110)
+#set mxtics 5;
+#unset mxtics;
+set yrange [0:200];
+unset format
+unset xlabel;
+unset ylabel;
+#unset y2label;
+#unset y2tics;
+#unset my2tics;
+unset key
+replot
+
+unset multiplot
+reset
+
+#------------------------------------------------------------------------------------------------------------------------------
+### VELOCITY Y ###
+
+set terminal postscript enhanced color eps 18 size 4.5cm, 12cm;
+set output "./exit_plane_velY.eps";
+
+set size 1.25,1.25
+#set size ratio 2
+
+set xrange [-20:60];
+set xlabel "Uy, m/s";
+set xtics -20, 20;
+set mxtics 4;
+
+set yrange [0:200]; # Mach 10 nozzle
+#set yrange [0:140];
+#set ylabel "Radius, mm";
+#set format y "%2.0f"
+set format y ""
+set ytics 0, 20;
+set mytics 4;
+
+set y2range [0:200];
+set y2label "Radius, mm";
+set format y2 "%2.0f"
+set y2tics 0, 20;
+set my2tics 4;
+
+#set multiplot
+#set origin 0.0,0.0;
+#set size 1.25,1.25;
+
+set key bottom left Left reverse font ",14"
+set grid
+
+plot "./nozzle-exit.data" using 7:($2*1000) notitle "10792" with lines lt 1 lc 3 lw 3
+
+#set object rectangle from graph -0.2,-0.08 to graph 1.05,1.05 behind fc rgb "white" fs #solid noborder
+     
+#set origin 0.1,0.2;
+#set size 0.7,0.65;
+#set xrange [3090:3110];
+##set xtics 3100, 50
+##set xtics ("3100" 3100, "" 3110 1, "" 3120 1, "" 3125, "" 3130 1, "" 3140 1, "3150" 3150, "" 3160 1, "" 3170 1, "" 3175, "" 3180 1, "" 3190 1, "3200" 3200)
+##set mxtics 5;
+##unset mxtics;
+#set yrange [0:200];
+#unset format
+#unset xlabel;
+#unset ylabel;
+#unset y2label;
+#unset y2tics;
+#unset my2tics;
+#unset key
+#replot
+
+#unset multiplot
+reset
+
+
+#------------------------------------------------------------------------------------------------------------------------------
+### MACH NUMBER ###
+
+set terminal postscript enhanced color eps 18 size 7cm, 12cm;
+set output "./exit_plane_mach.eps";
+
+set size 1.25,1.25
+#set size ratio 2
+
+#set xrange [9.0:10.0];
+set xrange [0:12];
+set xlabel "Mach number";
+#set xtics 9.9, 0.04;
+#set mxtics 4;
+
+set yrange [0:200]; # Mach 10 nozzle
+#set yrange [0:140];
+#set ylabel "Radius, mm";
+#set format y "%2.0f"
+set format y "";
+set ytics 0, 20;
+set mytics 4;
+
+set y2range [0:200]
+set y2label "Radius, mm";
+set format y2 "%2.0f"
+set y2tics 0, 20;
+set my2tics 4;
+
+set multiplot
+set origin 0.0,0.0;
+set size 1.25,1.25;
+
+set key bottom left Left reverse font ",14"
+set grid
+
+set tmargin 3
+
+plot "./nozzle-exit.data" using 26:($2*1000) notitle "10792" with lines lt 1 lc 3 lw 3
+ 
+set object rectangle from graph -0.2,-0.08 to graph 1.05,1.05 behind fc rgb "white" fs solid noborder
+     
+set origin 0.1,0.2;
+set size 0.7,0.65;
+set format x "%0.1f";
+set xrange [9.2:10.8];
+set xtics 9.2, 0.4;
+set mxtics 4;
+set yrange [0:200];
+#unset format
+set format y "%2.0f"
+unset xlabel;
+unset ylabel;
+unset y2label;
+unset y2tics;
+unset my2tics;
+unset key
+replot
+
+unset multiplot	  
+reset
+
+
+#-----------------------------------------------------------------------------------------------------------------------------------------
+### Y-PLUS ###
+
+set terminal postscript enhanced color eps 18 size 12cm, 7.5cm;
+set output "./exit_plane_y_plus.eps";
+
+set size 1.25,1.25
+#set size ratio 2
+
+set xrange [0:1650];
+set xlabel "Length (mm)";
+#set mxtics 4;
+
+#set yrange [0:30];
+set ylabel "y^+";
+#set format y "%2.0f"
+#set ytics 0, 20;
+#set mytics 4;
+
+#set key top left Left reverse
+set key bottom left Left reverse samplen 2 font ",16" maxrows 5
+set grid
+
+set multiplot;
+set origin 0.0,0.0;
+set size 1.25,1.25;
+
+plot "./nozzle-viscous.data" using ($1*1000):9 notitle "10792" with lines lt 1 lc 3 lw 3
+
+set object rectangle from graph -0.09,-0.13 to graph 1.05,1.05 behind fc rgb "white" fs solid noborder
+	 
+set origin 0.3,0.5;
+set size 0.9,0.7;
+set yrange [0:14];
+set xrange [0:400];
+unset xlabel;
+unset ylabel;
+unset key
+replot
+
+unset multiplot	
+reset
+
+
+#------------------------------------------------------------------------------------------------------------------------------
+### MASS FRACTIONS ###
+
+set terminal postscript enhanced color eps 18 size 7cm, 12cm;
+set output "./exit_plane_mass_fractions.eps";
+
+set size 1.25,1.25
+#set size ratio 2
+
+#set xrange [0:1];
+set xlabel "Mass Fractions";
+#set xtics 250, 50;
+#set mxtics 5;
+
+set yrange [0:200]; # Mach 10 nozzle
+#set yrange [0:140];
+set ylabel "Radius, mm";
+set format y "%2.0f"
+set ytics 0, 20;
+set mytics 4;
+
+set key bottom left Left reverse font ",14"
+set grid
+
+plot "./nozzle-exit.data" using 18:($2*1000) notitle "N_2" with lines lt 1 lc 3 lw 3,\
+"./nozzle-exit.data" using 19:($2*1000) notitle "O_2" with lines lt 1 lw 1.5,\
+"./nozzle-exit.data" using 20:($2*1000) notitle "N" with lines lt 5 lc 3 lw 2,\
+"./nozzle-exit.data" using 21:($2*1000) notitle "O" with lines lt 2 lc 4 lw 2,\
+"./nozzle-exit.data" using 22:($2*1000) notitle "NO" with lines lt 4 lc 5 lw 2
+
+reset
+
+

@@ -151,7 +151,7 @@ if gastype in ['air', 'Air']:
             state.set_pT(p=p1, T=x)
             return state.e + a1**2/state.gam - h1
         new_T = secant(enthalpy_error, 0.9*throat.T, 1.1*throat.T, tol=0.05/100*throat.h)
-        if new_T == 'FAIL':
+        if new_T in ['Fail','FAIL',]:
             print "Failed to find throat temperature for which the 5-species mixture conserves mass, momentum and energy"
             new_T = throat.T
         print 'New throat temperature: ', new_T
@@ -460,7 +460,7 @@ if $gridFileName in ['None']:
         # Acutal grid points
         actual_noz = x_c[-1] * logical_noz
         diff = actual_noz[1] - actual_noz[0]
-            
+
         # Calculate the number of cells required on the NORTH/SOUTH boundaries of the 
         # "throat_blk" based on how many cells there are in the "nozzle_blk" over the 
         # same physical length. NB. If you are clustering very strongly in the x-direction 
@@ -477,7 +477,7 @@ if $gridFileName in ['None']:
             return (new[1]-new[0] - diff)/diff
         bx_throat = secant(spacing_error, 1.0001, 1.002, tol=1.0e-2,\
                           limits=[1.0001,5])
-        if bx_throat == 'Fail' or 'FAIL':
+        if bx_throat in ['Fail','FAIL',]:
             print "Failed to find throat clustering parameter"
             print "Setting bx_throat == bx"
             bx_throat = bx
