@@ -149,8 +149,8 @@ if gastype in ['air', 'Air']:
         print "Adjusting throat temperature to conserve mass, momentum and energy."
         def enthalpy_error(x, p1=throat.p, h1=throat.h, a1=throat.a, state=gasState):
             state.set_pT(p=p1, T=x)
-            return state.e + a1**2/state.gam - h1
-        new_T = secant(enthalpy_error, 0.9*throat.T, 1.1*throat.T, tol=0.05/100*throat.h)
+            return state.e + state.R*x - h1
+        new_T = secant(enthalpy_error, 0.9*throat.T, 1.1*throat.T, tol=0.002/100*throat.h)
         if new_T in ['Fail','FAIL',]:
             print "Failed to find throat temperature for which the 5-species mixture conserves mass, momentum and energy"
             new_T = throat.T

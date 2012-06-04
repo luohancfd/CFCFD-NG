@@ -277,34 +277,34 @@ def main():
                   "as relative values in the form of percentages.")
     group.add_option('--p1', dest='p1', default=None, 
                   help=("shock tube fill pressure (in Pa) and its perturbation/s "
-                        "as a list. [default delta: 5%]" ))
+                        "as a list. [default delta: 2.5%]" ))
     group.add_option('--T1', dest='T1', default=None,
                   help=("shock tube fill temperature, in degrees K and its perturbation/s "
-                        "as a list. [default delta: 5%]"))
+                        "as a list. [default delta: 2.5%]"))
     group.add_option('--Vs', dest='Vs', default=None,
                   help=("incident shock speed, in m/s and its perturbation/s as a list. "
-                        "[default delta: 5%]"))
+                        "[default delta: 2.5%]"))
     group.add_option('--pe', dest='pe', default=None,
                   help=("equilibrium pressure (after shock reflection), in Pa and its "
-                        "perturbation/s as a list. [default delta: 5%]"))
+                        "perturbation/s as a list. [default delta: 2.5%]"))
 
     group.add_option('--Twall', dest='Tw', default='300.0',
                   help=("Nozzle wall temperature, in K and its perturbation/s as a list. "
-                        "[default: %default, delta: 5%]"))
+                        "[default: %default, delta: 2.5%]"))
     group.add_option('--BLTrans', dest='BLTrans', default="x_c[-1]*1.1",
                   help=("Transition location for the Boundary layer and its perturbation/s "
                         "as a list. Used to define the turbulent portion of the nozzle. "
-                        "[default: >nozzle length i.e. laminar nozzle, delta: 5%]"))
+                        "[default: >nozzle length i.e. laminar nozzle, delta: 2.5%]"))
     group.add_option('--TurbVisRatio', dest='TurbVisRatio', default='100.0',
                   help=("Turbulent to Laminar Viscosity Ratio and its perturbation/s "
-                        "as a list. [default: %default, delta: 5%]"))
+                        "as a list. [default: %default, delta: 2.5%]"))
     group.add_option('--TurbIntensity', dest='TurbInten', default='0.05',
                   help=("Turbulence intensity at the throat and its perturbation/s "
-                  "[default: %default, delta: 5%]"))
+                  "[default: %default, delta: 2.5%]"))
     group.add_option('--CoreRadiusFraction', dest="coreRfraction", default='0.6666666667',
                   help=("Radius of core flow as a fraction of "
                   "the nozzle exit radius and its perturbation/s "
-                  "[default: %default, delta: 5%]"))
+                  "[default: %default, delta: 2.5%]"))
     op.add_option_group(group)
     
     op.add_option('--chem', dest='chemModel', default='eq',
@@ -336,21 +336,22 @@ def main():
 
     # The following defaults suit a Mach 10 Nozzle calculation.
     op.add_option('--nni', dest='nni', type='int', default=1800,
-                  help=("number of axial cells"))
+                  help=("number of axial cells [default: %default]"))
     op.add_option('--nnj', dest='nnj', type='int', default=100,
-                  help=("number of radial cells"))
+                  help=("number of radial cells [default: %default]"))
     op.add_option('--nbi', dest='nbi', type='int', default=180,
-                  help=("number of axial blocks for the divergence section (nozzle_blk)"))
+                  help=("number of axial blocks for the divergence section (nozzle_blk) "
+                        "[default: %default]"))
     op.add_option('--nbj', dest='nbj', type='int', default=1,
-                  help=("number of radial blocks"))
+                  help=("number of radial blocks [default: %default]"))
     op.add_option('--bx', dest='bx', type='float', default=1.05,
-                  help=("clustering in the axial direction"))
+                  help=("clustering in the axial direction [default: %default]"))
     op.add_option('--by', dest='by', type='float', default=1.002,
-                  help=("clustering in the radial direction"))
+                  help=("clustering in the radial direction [default: %default]"))
     op.add_option('--max-time', dest='max_time', type='float', default=6.0e-3,
-                  help=("overall simulation time for nozzle flow"))
+                  help=("overall simulation time for nozzle flow [default: %default]"))
     op.add_option('--max-step', dest='max_step', type='int', default=80000,
-                  help=("maximum simulation steps allowed"))
+                  help=("maximum simulation steps allowed [default: %default]"))
 
     opt, args = op.parse_args()
         
@@ -399,7 +400,7 @@ def main():
     else:
         perturbedVariables = ['p1','T1','Vs','pe','Tw','BLTrans','TurbVisRatio',
                               'TurbInten','CoreRadiusFraction',]
-        if opt.BLTrans == "x_c[-1]*1.1": # Laminar nozzle
+        if opt.BLTrans == "x_c[-1]*1.1": # Laminar nozzle. Don't perturb BLTrans
             # TODO: Remove TurbInten once it has been shown not to an effect.
             # For some reason it currently (as of 25/04/2012) does.
             print "Nozzle is assumed laminar (based on input BLTrans), therefore\n"+\
@@ -407,6 +408,12 @@ def main():
             del perturbedVariables[perturbedVariables.index('BLTrans')]
             del perturbedVariables[perturbedVariables.index('TurbVisRatio')]
             #del perturbedVariables[perturbedVariables.index('TurbInten')]
+        else:
+            BLTransValues = opt.BLTrans.strip(']').strip('[').split(',')
+            if float(BLTransValues[0]) == 0.0: # Full turbulent nozzle. Don't perturb BLTrans
+                print "Nozzle is assumed fully turbulent, therefore BLTrans\n"+\
+                      "will not be perturbed"
+                del perturbedVariables[perturbedVariables.index('BLTrans')]
             
     # Now set up a dictionary of all variables that could possibly be perturbed. 
     # Then configure this dictionary. For each dictionary key, if the key is not

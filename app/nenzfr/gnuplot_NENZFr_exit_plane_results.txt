@@ -6,6 +6,9 @@
 # gnuplot script to be used in conjuction with NENZFr results to produce 
 # plots of exit flow properties
 # 
+# The script is currently set up to plot the results from a Mach 10 
+# non-equilibrium simulation. For equilibrium simulations the collumn
+# numbers for Pitot, static temperature, and Mach number will change. 
 
 reset
 
