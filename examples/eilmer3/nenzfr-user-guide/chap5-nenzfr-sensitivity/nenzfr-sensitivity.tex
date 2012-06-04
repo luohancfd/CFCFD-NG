@@ -3,6 +3,24 @@
 \newpage
 \section{NENZFr Sensitivity}
 \label{chapter-sensitivity}
+This code is used to analyse a set of NENZFr perturbation cases and calculate the uncertainties in each freestream property. The calculation methodology implemented is based on that described in \cite{Mee_1993}.
+
+\subsection{Useage Examples}
+\textit{nenzfr\_sensitivity} should be called from the same directory in which \textit{nenzfr\_perturbed} was ran. Below are some typical invocations.
+\begin{itemize}
+\item List all inputs and their default values:
+\newline
+\texttt{nenzfr\_sensitivity.py --help}
+\item Calculate the sensitivities using default uncertainties and a three point derivative: 
+\newline
+\texttt{nenzfr\_sensitivity.py --run-defaults}
+\item Calculate sensitivities using a 5-point derivative:
+\newline
+\texttt{nenzfr\_sensitivity.py --levels=5}
+\item Calculate sensitivities using different (relative) uncertainties for $V_s$, $p_e$ and $p_1$:
+\newline
+\texttt{nenzfr\_sensitivity.py --XVs=0.025 --Xpe=0.032 --Xp1=0.02}
+\end{itemize}
 
 
 \subsection{Method}
@@ -32,7 +50,7 @@ $r_{core}/r_{exit}$ 		& 5\%   \\
 
 
 \subsubsection{3-point derivative}
-When calculating the derivative at $x_0$, we make no assumption concering the spacing of $x_+$ and $x_-$ relative to $x_0$. Using Taylor series expansion around $x_0$ we may write the following equations:
+When calculating the derivative at $x_0$, we make no assumption concering the spacing of $x_+$ and $x_-$ relative to $x_0$. With reference to \cref{gradient_calculation} then using Taylor series expansion around $x_0$ we may write the following equations:
 \begin{equation}
 f_+ = f_0 + f'_0h_+ + \frac{1}{2}f''_0 h_+^2 + O(h_+^3) %\\
 \label{fx+1}
@@ -42,6 +60,14 @@ f_- = f_0 + f'_0h_- + \frac{1}{2}f''_0 h_-^2 + O(h_-^3) %\\
 \label{fx-1}
 \end{equation}
 where $h_i = x_i-x_0$, $f_i = f(x_i)$, $f'_i = f'(x_i)$ and $f''_i = f''(x_i)$.
+
+\begin{figure}[ht!]%
+\centering
+\includegraphics*[width=0.8\textwidth]{gradient_calculation.pdf}%
+\caption{Calculation of the gradient using either 3 or 5 points.}%
+\label{gradient_calculation}%
+\end{figure}
+
 
 We want to combine these two equations such that the second order terms cancel. Therefore, multiply \cref{fx-1} by $h_+/h_-$ and subtract the result from \cref{fx+1} to give:
 \begin{equation*}

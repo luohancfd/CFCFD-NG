@@ -6,14 +6,32 @@
 
 NENZF-r is comprised of a set of Python scripts and template files that coordinate the running of a space-marched nozzle simulation using Eilmer3. The following sections provide an overview of the implementation of NENZF-r and its capabilites. Though based on Eilmer3, minimal details concerning Eilmer3 are provided in this report. Readers are instead referred to the reports by \cite{} for further information on Eilmer3 and on the space-marching algorithm. Table \ref{tab:code}, given below, summarises the scripts that comprise NENZF-r. A copy of each of these files in it's current form may be found in Appendices \ref{app:code} - \ref{app:reactions}. 
 
-Obviously in order to run NENZF-r, Eilmer3 must be successfully compiled. Users should also ensure that the following files are present in the \textbf{local} working directory:
-\begin{enumerate}
-\item \textit{nenzfr.py}, \textit{nozzle.input.template} and \textit{nenzfr\_compute\_viscous\_data.py}
-\item For equilibrium gas calculations a look-up-table should be present. These may be prepared using \textit{setup\_lut.sh}.
-\item For non-equilibrium gas calculations, the appropriate reaction scheme as listed in Table \ref{tab:code} is required. These reaction schemes may be found in \textit{~/cfcfd3/lib/gas/reaction-schemes/}. Note that ions are not considered and so the reaction scheme should be checked and adjusted accordingly.
-\item A contour or grid file for the nozzle.
-\end{enumerate}
-Finally, users should ensure that within \textit{nenzfr.py} the directory paths for the Eilmer3 executables are correct. 
+%Obviously in order to run NENZF-r, Eilmer3 must be successfully compiled. Users should also ensure that the following files are present in the \textbf{local} working directory:
+%\begin{enumerate}
+%\item \textit{nenzfr.py}, \textit{nozzle.input.template} and \textit{nenzfr\_compute\_viscous\_data.py}
+%\item For equilibrium gas calculations a look-up-table should be present. These may be prepared using \textit{setup\_lut.sh}.
+%\item For non-equilibrium gas calculations, the appropriate reaction scheme as listed in Table \ref{tab:code} is required. These reaction schemes may be found in \textit{~/cfcfd2/lib/gas/reaction-schemes/}. Note that ions are not considered and so the reaction scheme should be checked and adjusted accordingly.
+%\item A contour or grid file for the nozzle.
+%\end{enumerate}
+%Finally, users should ensure that within \textit{nenzfr.py} the directory paths for the Eilmer3 executables are correct. 
+
+\subsection{Useage Tips}
+\begin{itemize}
+\item Aim to have 10 cells per block in the axial direction for both block-sequencing and block-marching calculations. Having less for block-sequencing influences the final result\footnote{We assume that the same would be true for block-marching. This has yet to be checked.}. For block-marching calculations 10 cells per block in the radial direction is also recommended.
+\item When running simulations on Barrine we are currently limited to 1 node (8 cpus in total). Thus for block-marched calculations \texttt{--nbj} is limited to 4.
+\item The air gas model \textbf{should not} be used for non-equlibrium calculations. See \cref{gas_models}.
+\item The Mach 10 nozzle is a pain. Don't use it. If you must, then don't set \texttt{BLTrans} to 50\,mm. For some reason this value causes Eilmer3 to crash. Other values (100\,mm, 150\,mm) including a fully turbulent nozzle (\texttt{BLTrans}=0.0) seem to be ok. If you can find out why, let me know.
+\item The default values for all nenzfr inputs have been set up for a Mach 10, chemical equilibrium, laminar nozzle calculation. If you are running a different nozzle, be sure to check the grid parameters (\texttt{nni}, \texttt{nnj}, \text{nbi} etc.) and the maximum simulation time (\texttt{max-time}).
+\item The building of the equilibrium gas LUT takes a long time. Try to get a copy from someone. If you put it in the directory from which you will be calling \textit{nenzfr} (or the other related codes) then \textit{nenzfr} won't try to build it.
+\end{itemize}
+
+\subsection{To do}
+\label{nenzfr_to_do}
+\begin{itemize}
+\item The CEA LUTs used for equilibrium nozzle calculations include ions. The Gas objects defined by \textit{make\_gas\_from\_name()} within \textit{cea2\_gas.py} do not include ions. These Gas objects are used by \textit{estcj} during the calculation of the nozzle supply condition. When no-ions LUTs were created, Wilson found that they caused NENZFr to crash for some reason. No further work has been done at this time (04-06-2012).
+\item When completing a sensitivity calculation for the Mach 4, equilibrium, laminar test case, it was found that the inflow turbulence intensity had non-zero sensitivity. This shouldn't be the case for a laminar calculation. Wilson has looked at this and found that the error originates from the inflow plane. No further work has been done at this time (04-06-2012).
+\item Once the inflow turbulence intensity issue has been sorted this input should not be perturbed in \textit{nenzf\_perturbed} for laminar nozzles.
+\end{itemize}
 
 \subsection{Method}
 NENZF-r has been designed specifically to estimate the test flow conditions produced in reflected shock tunnels. Referring to Figure \ref{fig:x-t-diagram}, given the intial conditions of the gas in the shock tube (state 1), the shock speed and nozzle supply pressure, the global algorithm used by NENZF-r is:
@@ -44,7 +62,7 @@ nenzfr\_compute\_viscous\_data.py & Script used to calculate the viscous data, i
 nenzfr\_sensitivity\_and\_lut.py & Coordinating script that conducts a sensitivity analysis for NENZF-r and builds a corresponding look-up-table for the nozzle exit properties. (YET TO BE COMPLETED)\\
 setup\_lut.sh & A simple shell script that builds the required equilibrium gas look-up-tables.\\
 run.sh & Shell script to submit a NENZF-r job on the hpcu cluster \textit{barrine}. \\
-estcj.py & Equilibrium Shock Tube Calculation, junior. This Python script completes the reflected shock calculation. Though apart of the cfcfd3/Eilmer3 suite of programs, it has been included here for completeness. \\
+estcj.py & Equilibrium Shock Tube Calculation, junior. This Python script completes the reflected shock calculation. Though apart of the cfcfd2/Eilmer3 suite of programs, it has been included here for completeness. \\
 \hline \hline
 \multicolumn{2}{|c|}{\textbf{Nozzle Profiles}} \\ \hline
 contour-t4-m10.data & T4 Mach 10 nozzle profile. \\
@@ -80,7 +98,7 @@ NENZF-r takes a number of required and optional input arguments as detailed belo
 %Providing that Eilmer3 has been successfully compiled, users may invoke NENZF-r minimally using:
 Several example invocations for NENZF-r are as follows.
 \begin{itemize}
-\item[-] Mimimal. This completes an equilibrium calculation using air for the Mach 4 nozzle. 
+\item[-] Mimimal. This completes an equilibrium calculation using air for the Mach 10 nozzle assuming that the nozzle is fully laminar. 
 \newline
 \texttt{   ./nenzfr.py --T1=300 --p1=160.0e3 --Vs=2707 --pe=38.0e6}
 %\newline 
@@ -115,9 +133,44 @@ Filename & Default Filename & Description \\
 \label{tab:output-files}
 \end{table}
 
-Currently the integrated nozzle exit flow properties are calculated by taking an area-weighted average over the core of the nozzle using the data contained in \textit{nozzle-exit.data}. Quite arbitarily, the edge of the core has been taken to be at \textbf{2/3rds} of the nozzle exit radius.
+Currently the integrated nozzle exit flow properties are calculated by taking an area-weighted average over the core of the nozzle using the data contained in \textit{nozzle-exit.data}. The desired core radius can be specified as a fraction of the nozzle exit radius using the option \texttt{--CoreRadiusFraction}. Quite arbitarily, the default value has been taken to be $\frac{2}{3}$.
 
 \subsection{Gas Models and Reaction Schemes}
+\label{gas_models}
 
+\subsubsection{Air}
+This gas model should only be used when completing equilibrium or frozen gas calculations. If chemical non-equilibrium is specified the code swaps to the 5-species air model for the nozzle calculation. The reason for doing this is simply that the CEA equilibrium air model considers many more species than would be practical\footnote{from computational-expense considerations} to include in a non-equilibrium nozzle flow calculation. The species present at the throat would also be dependent on the condition and finding a suitable reaction scheme is difficult.
 
+The shift from the complete air model to the 5-species model occurs at the throat. The current implementation finds the equilibrium temperature required to conserve mass, momentum and energy with the change in gas composition assuming that the static pressure and velocity are constant across the throat. The theory is outlined below.
 
+\begin{figure}[ht!]%
+\centering
+\includegraphics*[]{throat_schematic_for_air_to_air5species.pdf}%
+\caption{}%
+\label{throat_schematic}%
+\end{figure}
+
+Using conservation of mass, momentum and energy flux and with reference to \cref{throat_schematic} we may write:
+\begin{align}
+\rho_1a_1             &= \rho_2a_2 \label{throat_mass_flux}\\
+p_1 + \rho_1a_1^2     &= p_2 + \rho_2a_2^2 \label{throat_momentum_flux}\\
+h_1 + \frac{a_1^2}{2} &= h_2 + \frac{a_2^2}{2} \label{throat_energy_flux}
+\end{align}
+where the fact that $u_1 = a_1$ and $u_2 = a_2$ has been used. To solve the above equations under a change in gas composition an additional assumption is required for one of the state variables. Noting that in a physical nozzle a change in static pressure across the throat would cause a wave to be driven either upstream or downstream, we make the assumption that $p_2 = p_1$. The momentum flux, \cref{throat_momentum_flux}, thus reduces to:
+\begin{align}
+\rho_1a_1^2 &= \rho_2a_2^2\\
+\therefore a_1 &= a_2
+\end{align}
+using \cref{throat_mass_flux}. Consequently \cref{throat_energy_flux} becomes:
+\begin{align}
+h_1 &= h_2 \notag \\
+\therefore h_1 &= e_2 + \frac{p_2}{\rho_2} \notag \\
+\therefore h_1 &= e_2 + R_2T_2 \label{energy_flux}
+\end{align}
+where the definitions of static enthalpy and the ideal gas equation of state have been used. Since the gas is in equilibrium and $p_2$ is know then $e_2\,=\,e_2(T_2)$ and $R_2\,=\,R_2(T_2)$. Thus we may rewrite \cref{energy_flux} as:
+\begin{equation}
+f(T_2) = 0 = e_2 + R_2T_2 - h_1 \label{T2_equation}
+\end{equation}
+\cref{T2_equation} can be solved numerically to deterime the temperature $T_2$ of the 5-species air gas composition that conserves mass, momentum and energy.
+
+\textbf{Frozen Calculation:} There are two frozen calculation options available for this gas model. For \texttt{chem=frz} the CEA air species present at the throat are used for the frozen nozzle calculation. For \texttt{chem=frz2}, the code changes to the 5-species air model as described above and then uses these species for a frozen nozzle calculation. Really, you should just use the 5-species air model.

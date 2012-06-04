@@ -12,10 +12,13 @@
 \usepackage{listings}
 \usepackage{tabulary, multicol, dcolumn}
 \usepackage{amsmath,amssymb}
-\usepackage{cleveref}
+
 \lstset{basicstyle=\scriptsize,identifierstyle=,keywordstyle=}
 
+\usepackage{subfig,caption}   % Adds capability to input sub-figures
+\graphicspath{{./figs/}}
 
+\usepackage{cleveref}
 \crefname{section}{Section}{Sections}
 \crefname{appendix}{Appendix}{Appendices}
 \crefname{enumi}{item}{items}
@@ -63,7 +66,6 @@
 \\
 }
 
-\usepackage{subfigure}   % Adds capability to input sub-figures
 
 \begin{document}
 \maketitle

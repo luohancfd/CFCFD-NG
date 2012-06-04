@@ -3,8 +3,94 @@
 \newpage
 \section{NENZFr Perturbed}
 \label{chapter-perturbed}
+This code controls and coordinates the running of a series of \textit{nenzfr} calculations that are perturbations around some given nominal condition. The perturbed results may be used to either determine the sensitivity of each freestream property to the various inputs or to build a response surface for use during an experimental campaign. Refer to \cref{chapter-sensitivity} and \cref{chapter-response-surface} for further details on the codes that complete these different analyses.
+
+\subsection{Useage Examples}
+\begin{itemize}
+\item List all inputs and their default values:
+\newline
+\texttt{nenzfr\_perturbed.py --help}
+\item Perturb the given nominal condition using default perturbation $\Delta$'s on a standard Linux machine. In this case the inputs are identical to a typical \textit{nenzfr} call. The below example runs a turbulent calculation for the Mach 4 nozzle in non-equilibrium mode. Turbulence is switched on 100mm downstream of throat:
+\newline
+\texttt{nenzfr\_perturbed.py --gas=air5species --chem=neq --area=27.0}
+\newline
+\texttt{    --cfile='Bezier-control-pts-t4-m4.data' --block-marching }
+\newline
+\texttt{    --p1=170.0e3 --T1=300.0 --Vs=2250.0 --pe=25.0e6 --BLTrans=0.100}
+\newline
+\texttt{    --nni=600 --nnj=50 --nbi=60 --nbj=5 --bx=1.05 --by=1.002}
+\newline
+\texttt{     --max-time=0.003}
+\item Run the simulations on the UQ Barrine cluster. In this case we would use the following options:
+\newline
+\texttt{\dots --runCMD=qsub --cluster=Barrine}
+\item Perturb \textbf{only} $V_s$ and $p_e$ with the aim of building a response surface for the nominal condition. Set the perturbations for $V_s$ and $p_e$ to $\pm6\%$ and $\pm14\%$ respectively:
+\newline
+\texttt{\dots --create-RSA --Vs='[2250.0,6]' --pe='[25.0e6,14]'}
+\item Give absolute values for the perturbation $\Delta$ and specify that 5 levels are to be used:
+\newline
+\texttt{\dots --levels=5 --perturb=abs --p1='[170.e3 2.e3]' }
+\newline \texttt{--Vs='[2250. 50. -25.]' --pe='[25.e6 2.e6 -4.e6 5.e6 -7.e6]'}
+\newline
+In this case the values used for each input will be: 
+\begin{itemize}
+\item[] $p_1\in\{166.0e3, 168.0e3, 170.0e3, 172.0e3, 174.0e3\}$
+\item[] $V_s\in\{2200, 2225, 2250, 2300, 2350\}$
+\item[] $p_e\in\{18.e6, 21.e6, 25.e6, 27.e6, 30.e6\}$ 
+\end{itemize}
+Similar formatting may also be used for \texttt{--perturb=rel}.
+\end{itemize}
+
+\subsection{Useage Notes}
+\begin{itemize}
+\item If the nozzle is either fully turbulent or fully laminar then \texttt{BLTrans} will not be perturbed for a sensitivity calculation.
+\item For a fully laminar nozzle the Turbulent-to-Laminar viscosity ratio (\texttt{TurbVisRatio}) is also not perturbed. The inflow turbulence intensity (\texttt{TurbIntensity}) is perturbed but only because there is some underlying issue that needs sorting. See \cref{nenzfr_to_do}.
+\end{itemize}
 
 \subsection{Method}
+\subsubsection{Perturbing for Sensitivity Calculation}
+When running \textit{nenzfr\_perturbed} in preparation for completing a sensitivity calculation each of the inputs listed in \cref{sens_perturbed_inputs} are perturbed. The default perturbations are also given. The \texttt{--levels} option dictates how many cases will be ran for each perturbed variable as shown in \cref{sensitivity_perturbations}.
+
+\begin{table}[!ht]
+\centering
+\caption{NENZFr Input Parameters Perturbed for Sensitivity Calculations}
+\begin{tabular}{rD..{-1}}
+\hline
+Input & \multicolumn{1}{c}{Default Perturbation} \\
+\hline
+$p_1$ 		& 2.5\% \\
+$T_1$ 		& 2.5\%    \\
+$V_s$ 		& 2.5\%    \\
+$p_e$ 		& 2.5\%  \\
+\hline
+$T_{wall}$ 	& 2.5\%    \\
+$x_{tr}$ 		& 2.5\%  \\
+$I_{turb}$ 	& 2.5\%   \\
+$\mu_{turb}/\mu_{lam}$ 	& 2.5\% \\
+$r_{core}/r_{exit}$ 		& 2.5\%   \\
+\hline
+\end{tabular}
+\label{sens_perturbed_inputs}
+\end{table}
+
+\begin{figure}[ht!]%
+\centering
+\subfloat[\texttt{--levels=3}]{\includegraphics*[width=0.45\textwidth]{3_level_perturbation_for_sensitivity.pdf}}
+\subfloat[\texttt{--levels=5}]{\includegraphics*[width=0.45\textwidth]{5_level_perturbation_for_sensitivity.pdf}}
+\caption{Perturbation cases considered for a sensitivity analysis. Label 0 represents the nominal values, labels 1-4 are the perturbations.}%
+\label{sensitivity_perturbations}%
+\end{figure}
+
+\subsubsection{Perturbing for Response Surface}
+When the \texttt{--create-RSA} option is selected only $V_s$ and $p_e$ are perturbed. The reasons for this are explained at the start of \cref{chapter-response-surface}. Any perturbation $\Delta$'s specified for the other inputs are simply ignored in the code. \cref{RSA_perturbations} summarises the cases that are used when creating a response surface.
+
+\begin{figure}[ht!]%
+\centering
+\subfloat[\texttt{--levels=3}, 9 cases in total]{\includegraphics*[]{3_levels_for_RSA.pdf}} \quad \subfloat[\texttt{--levels=3-reduced}, 5 cases in total]{\includegraphics*[]{3_levels_reduced_for_RSA.pdf}}\\%
+\subfloat[\texttt{--levels=5}, 13 cases in total]{\includegraphics*[]{5_levels_for_RSA.pdf}}
+\caption{Perturbation cases used for calculation of a Response Surface. Case 00 is the nominal condition.}%
+\label{RSA_perturbations}%
+\end{figure}
 
 \subsection{Inputs}
 

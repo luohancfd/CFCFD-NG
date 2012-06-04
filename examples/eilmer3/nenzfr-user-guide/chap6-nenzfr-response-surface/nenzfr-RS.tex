@@ -3,17 +3,51 @@
 \newpage
 \section{NENZFr Response Surface}
 \label{chapter-response-surface}
+This code performs the calculation of a response surface and also handles the prediction of the nozzle exit flow. The response surface is constructed from a suitable set of NENZFr perturbation cases.  
 
 When completing a test campaign within a reflected-shock tunnel facility, the ability to calculate the nozzle flow properties within a few minutes of a shot is of great importance. The current implementation of NENZFr is not able to satisfy this requirement directly. Indirectly, the obvious solution and one that is frequently employed in similar situations is to use a set of NENZFr simulations to calculate a response surface describing the variation of the nozzle flow properties with the chosen inputs. Provided that it is sufficiently accurate, the response surface can be used to rapidly calculate the flow properties rather than running separate NENZFr simulations. 
 
-The calculation of a set of NENZFr simulations from which a response surface may be constructed is handled by \textit{nenzfr\_perturbed.py} while \textit{nenzfr\_RSA.py} performs the calculation of the response surface and the prediction of the nozzle exit flow. Based on the work of \cite{Simpson_2001} and \cite{Giunta_2003} two different response surfaces have been implemented within \textit{nenzfr\_RSA.py} and are detailed in the \cref{RS-methods}. 
+%The calculation of a set of NENZFr simulations from which a response surface (RS) may be constructed is handled by \textit{nenzfr\_perturbed.py} while \textit{nenzfr\_RSA.py} performs the calculation of the response surface and the prediction of the nozzle exit flow. 
 
-In each case the response surfaces describes the variation of the nozzle exit flow properties over the normalised domain $(x_1, x_2) = (V_s/V_{s0}, p_e/p_{e0})$ where $V_{s0}$ and $p_{e0}$ are the incident shock speed and equilibrium nozzle supply pressure for the nominal condition on which the response surface is centered. Normalised coordinates were used to ensure that both variables were considered equally despite being different by four orders of magnitude ($V_s\sim10^3$ while $p_e\sim10^7$).  
+Based on the work of \cite{Simpson_2001} and \cite{Giunta_2003} two different response surfaces have been implemented within \textit{nenzfr\_RSA} and are detailed in the \cref{RS-methods}. In each case the response surfaces describes the variation of the nozzle exit flow properties over the normalised domain $(x_1, x_2) = (V_s/V_{s0}, p_e/p_{e0})$ where $V_{s0}$ and $p_{e0}$ are the incident shock speed and equilibrium nozzle supply pressure for the nominal condition on which the response surface is centered. Normalised coordinates were used to ensure that both variables were considered equally despite being different by four orders of magnitude ($V_s\sim10^3$ while $p_e\sim10^7$).  
 
-The choice to describe the variation of the nozzle exit flow properties in terms of just the incident shock speed and nozzle supply pressure was made based on the usual operation of shock tunnel facilities. When conducting an experimental campaign the tunnel may be operated at a number of different nominal conditions.  For any given nominal condition, there exists some shot-to-shot variability in the shock speed and nozzle supply pressure though this is typically small compared to the variation that exists over the range of available nominal conditions. 
+The choice to describe the variation of the nozzle exit flow properties in terms of only the incident shock speed and nozzle supply pressure was made based on the usual operation of shock tunnel facilities. When conducting an experimental campaign the tunnel may be operated at a number of different nominal conditions.  For any given nominal condition, there exists shot-to-shot variability in the shock speed and nozzle supply pressure. This variation is typically small compared to that which exists over the range of available nominal conditions. 
 
-For a given nominal condition, the response surface accounts for the shot-to-shot variation. Consequently, a separate response surface is required for each condition to be used during an experimental campaign. More often than not, creating the required response surfaces will be computationally cheaper than running individual NENZFr simulations for each shot.
+The intention is that the response surface will adequately account for the shot-to-shot variation of a given nominal condition. Consequently, separate response surfaces are required for each condition to be used during an experimental campaign. More often than not, creating the required response surfaces will be computationally cheaper than running individual NENZFr simulations for each shot.
 
+\subsection{Useage Examples}
+When creating a response surface \textit{nenzfr\_RSA} should be called from the same directory in which \textit{nenzfr\_perturbed} was ran. When using \textit{nenzfr\_RSA} to predict the nozzle exit flow, it only needs to be called from the same directory as the response surface data file. Below are some typical invocations.
+\begin{itemize}
+\item List all inputs and their default values:
+\newline
+\texttt{nenzfr\_RSA.py --help}
+\item Minimally build a 2nd-order response surface: 
+\newline
+\texttt{   nenzfr\_RSA.py --create-RSA}
+\item Build a 2nd-order response surface and calculate the residuals between the response surface and nenzfr cases on which it is based:
+\newline
+\texttt{   nenzfr\_RSA.py --create-RSA --calculate-residuals}
+\item Use a response surface to predict freestream properties:
+\newline
+\texttt{   nenzfr\_RSA.py --Vs=2250.0 --pe=35.4e6}
+\item Use a response surface to predict freestream properties and compare the results to a complete nenzfr simulation:
+\newline
+\texttt{   nenzfr\_RSA.py --Vs=2250.0 --pe=35.4e6 --calculate-residuals}
+\newline
+\texttt{     --exitStatsFile=../shot\_10972/nozzle-exit.stats}
+\newline
+\texttt{     --estcjFile=../shot\_10972/nozzle-estcj.dat}
+\item Save the predicted freestream properties to a specified file:
+\newline
+\texttt{   nenzfr\_RSA.py --Vs=2250.0 --pe=35.4e6 --exitFile=10972-freestream.dat}
+\end{itemize}
+
+Some additional notes:
+\begin{itemize}
+\item Don't use the radial-basis function response surface. It performs poorly. The 2nd-order response surface is a better method.
+\item When running \textit{nenzfr\_perturbed} use \texttt{--levels=3}. This produces the best (2nd-order) response surface which also performs quite well when extrapolating outside the design domain\footnote{At least for the Mach 4, equilibrium gas test case.}.
+\item Perturbing $V_s$ by 5\% and $p_e$ by 15\% when running \textit{nenzfr\_perturbed} in preparation for building a response surface should be appropriate for most nominal conditions. That is, the subsequent response surface should cover a sufficient region in the ($V_s$, $p_e$) space that extrapolation shouldn't be required in a typical test campaign.
+\end{itemize}
 
 \subsection{Method} \label{RS-methods}
 \subsubsection{2nd-order Surface}
