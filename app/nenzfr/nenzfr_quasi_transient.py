@@ -127,21 +127,22 @@ def main():
                   default=False, help="run nenzfr in block-marching mode")
     # The following defaults suit a Mach 10 Nozzle calculation.
     op.add_option('--nni', dest='nni', type='int', default=1800,
-                  help=("number of axial cells"))
+                  help=("number of axial cells [default: %default]"))
     op.add_option('--nnj', dest='nnj', type='int', default=100,
-                  help=("number of radial cells"))
+                  help=("number of radial cells [default: %default]"))
     op.add_option('--nbi', dest='nbi', type='int', default=180,
-                  help=("number of axial blocks for the divergence section (nozzle_blk)"))
+                  help=("number of axial blocks for the divergence section (nozzle_blk) "
+                        "[default: %default]"))
     op.add_option('--nbj', dest='nbj', type='int', default=1,
-                  help=("number of radial blocks"))
+                  help=("number of radial blocks [default: %default]"))
     op.add_option('--bx', dest='bx', type='float', default=1.05,
-                  help=("clustering in the axial direction"))
+                  help=("clustering in the axial direction [default: %default]"))
     op.add_option('--by', dest='by', type='float', default=1.002,
-                  help=("clustering in the radial direction"))
+                  help=("clustering in the radial direction [default: %default]"))
     op.add_option('--max-time', dest='max_time', type='float', default=6.0e-3,
-                  help=("overall simulation time for nozzle flow"))
-    op.add_option('--max-step', dest='max_step', type='int', default=80000,
-                  help=("maximum simulation steps allowed"))
+                  help=("overall simulation time for nozzle flow [default: %default]"))
+    op.add_option('--max-step', dest='max_step', type='int', default=800000,
+                  help=("maximum simulation steps allowed [default: %default]"))
 
     op.add_option('--Twall', dest='Tw', type='float', default=300.0,
                   help=("Nozzle wall temperature, in K "

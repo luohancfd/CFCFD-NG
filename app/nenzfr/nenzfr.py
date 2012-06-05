@@ -101,7 +101,7 @@ def main():
                   help=("clustering in the radial direction [default: %default]"))
     op.add_option('--max-time', dest='max_time', type='float', default=6.0e-3,
                   help=("overall simulation time for nozzle flow [default: %default]"))
-    op.add_option('--max-step', dest='max_step', type='int', default=80000,
+    op.add_option('--max-step', dest='max_step', type='int', default=800000,
                   help=("maximum simulation steps allowed [default: %default]"))
     #
     op.add_option('--Twall', dest='Tw', type='float', default=300.0,

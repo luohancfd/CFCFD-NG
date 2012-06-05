@@ -316,7 +316,7 @@ initial=FlowCondition(p=initial['p'], u=0.0, v=0.0, T=initial['T'],
 
 # When no gridFileName is given we use the provided (or default) contourFile
 if $gridFileName in ['None']:
-    # Read in contour file for the particular nozzle.
+    # Read in file for the particular nozzle.
     x_c = []; y_c = []
     fp = open($contourFileName, 'r')
     for line in fp.readlines():
@@ -325,22 +325,28 @@ if $gridFileName in ['None']:
         if items[0] == '#': continue  # skip header lines
         x_c.append(float(items[0]))
         y_c.append(float(items[1]))
-    area_ratio = (y_c[-1]/y_c[0])**2
-    print "nozzle area ratio=", area_ratio
     
     # Bezier control points that make up the nozzle contour. 
-    if $contourFileName in ['Bezier-control-pts-t4-m8.data']:
-        # Only for the T4 Mach 8 nozzle, the control points start
-        # from the first pair of coordinates in the given data file.
+    if $contourFileName in ['Bezier-control-pts-t4-m8.data',\
+                            'Bezier-control-pts-t4-m10.data']:
+        # For the T4 Mach 8 and Mach 10 nozzles, the control points 
+        # start from the first pair of coordinates in the given data 
+        # file.
         bezCtrlPts = [Vector(x_c[i],y_c[i]) for i in range(len(x_c))]
     else:
         # The first pair of coordinates in the given data file for 
         # the other nozzles are not Bezier control points.
         bezCtrlPts = [Vector(x_c[i],y_c[i]) for i in range(1, len(x_c))]
     
-    # Create nodes 
-    throat_axis = Node(-y_c[0], 0.0) 
-    throat_wall = Node(-y_c[0], y_c[0])
+    # Create nodes
+    if $contourFileName in ['Bezier-control-pts-t4-m10.data']:
+        Lthr = 0.010
+        Lnoz = 1.633197
+    else:
+        Lthr = y_c[0]
+        Lnoz = x_c[-1]
+    throat_axis = Node(-Lthr, 0.0) 
+    throat_wall = Node(-Lthr, y_c[0])
     divergence_axis = Node(0.0, 0.0)
     divergence_wall = Node(0.0, y_c[0])
     nozzle_end_axis = Node(x_c[-1], 0.0)
@@ -352,12 +358,29 @@ if $gridFileName in ['None']:
     t_west = Line(throat_axis, throat_wall)
     t_east = Line(divergence_axis, divergence_wall)
     # .. and the expansion region.
-    if $contourFileName in ['Bezier-control-pts-t4-m8.data']:
+    if $contourFileName in ['Bezier-control-pts-t4-m7.data',\
+                            'Bezier-control-pts-t4-m8.data',\
+                            'Bezier-control-pts-t4-m10.data']:
         n_north = Bezier(bezCtrlPts)
+        
+        # For the Mach 10 nozzle the Bezier curve is longer than 
+        # the actual nozzle so we must truncate it.
+        if $contourFileName in ['Bezier-control-pts-t4-m10.data']:
+            def truncate_time(x, curve=n_north, L=Lnoz):
+                return curve.eval(x).x - L
+            tstar = secant(truncate_time,0.5,0.6,tol=1.0e-6,limits=[0.0,1.0])
+            n_north.t1 = tstar
+            # Redefine relevant nodes for nozzle exit
+            nozzle_end_axis = Node(n_north.eval(1.0).x,0.0)
+            nozzle_end_wall = Node(n_north.eval(1.0).x,n_north.eval(1.0).y) 
     else:
         n_north = Polyline([Line(divergence_wall,bezCtrlPts[0]), Bezier(bezCtrlPts)])
     n_west = Line(divergence_axis, divergence_wall)
     n_east = Line(nozzle_end_axis, nozzle_end_wall)
+    
+    # Write out the nozzle area ratio 
+    area_ratio = (n_north.eval(1).y/n_north.eval(0).y)**2
+    print "nozzle area ratio=", area_ratio
 
     # Define the expansion_region using a specialised Surface Function.
     # For viscous simulations, it is necessary to keep the cells near
@@ -429,8 +452,15 @@ if $gridFileName in ['None']:
     nbi = $nbi   # number of axial blocks for the divergence section (nozzle_blk)
     nbj = $nbj   # number of radial blocks
     bx = $bx     # clustering in the axial direction
-    by = $by     # clustering in the radial direction    
-    x_clust = RobertsClusterFunction(1, 1, bx)
+    by = $by     # clustering in the radial direction
+    if $contourFileName in ['Bezier-control-pts-t4-m7.data',\
+                            'Bezier-control-pts-t4-m8.data',\
+                            'Bezier-control-pts-t4-m10.data']:
+        # To accomodate for the natural clustering induced by the Bezier curves
+        # for these nozzle we only cluster towards the nozzle exit.
+        x_clust = RobertsClusterFunction(0, 1, bx)
+    else:
+        x_clust = RobertsClusterFunction(1, 1, bx)
     y_clust = RobertsClusterFunction(0, 1, by)
     cf_list = [x_clust, y_clust, x_clust, y_clust]
 
@@ -438,71 +468,76 @@ if $gridFileName in ['None']:
     Twall = $Tw
     bc_list = [FixedTBC(Twall), ExtrapolateOutBC(), SlipWallBC(), SupInBC(inflow)]
 
-    if $contourFileName not in ['Bezier-control-pts-t4-m10.data']:
-        # Now, we also make a block for the throat region. We must define this
-        # block here BEFORE the "nozzle_blk" in order to ensure that the blocks are
-        # numbered in sequence in order to allow space-marching in the simulation.
-        #
-        # The number of cells in the axial direction and clustering for
-        # this block are automatically calculated based on the clustering and 
-        # resolution of "nozzle_blk" as specified above. We try to ensure that the 
-        # spacing across the interface of the "throat_blk" and "nozzle_blk" is even
-        # and an appropriate number of cells/blocks are used in the throat.
-        #     Luke D. 21-Aug-2011
-        throat_region = make_patch(t_north, t_east, t_south, t_west)
+    # Now, we also make a block for the throat region. We must define this
+    # block here BEFORE the "nozzle_blk" in order to ensure that the blocks are
+    # numbered in sequence in order to allow space-marching in the simulation.
+    #
+    # The number of cells in the axial direction and clustering for
+    # this block are automatically calculated based on the clustering and 
+    # resolution of "nozzle_blk" as specified above. We try to ensure that the 
+    # spacing across the interface of the "throat_blk" and "nozzle_blk" is even
+    # and an appropriate number of cells/blocks are used in the throat.
+    #     Luke D. 21-Aug-2011
+    throat_region = make_patch(t_north, t_east, t_south, t_west)
      
-        # We need to know the axial spacing of the first grid point in 
-        # "nozzle_blk" in order to calculate the required clustering. 
-        # The following code isn't very elegant but it works.
-        delta = 1.0/float(nni) # Intial uniform spacing
-        # Non-uniform spacing in logical space for the SOUTH boundary of "nozzle_blk"
+    # We need to know the axial spacing of the first grid point in 
+    # "nozzle_blk" in order to calculate the required clustering. 
+    # The following code isn't very elegant but it works.
+    delta = 1.0/float(nni) # Intial uniform spacing
+    # Non-uniform spacing in logical space for the SOUTH boundary of "nozzle_blk"
+    if $contourFileName in ['Bezier-control-pts-t4-m7.data',\
+                            'Bezier-control-pts-t4-m8.data',\
+                            'Bezier-control-pts-t4-m10.data']:
+        logical_noz = roberts(arange(0.0, 1.+delta, delta), 0.0, bx)
+    else:
         logical_noz = roberts(arange(0.0, 1.+delta, delta), 0.5, bx)
-        # Acutal grid points
-        actual_noz = x_c[-1] * logical_noz
-        diff = actual_noz[1] - actual_noz[0]
+    # Acutal grid points
+    actual_noz = [make_expansion_region_grid(r,0)[0] for r in logical_noz]
+    # First cell width
+    diff = make_expansion_region_grid(logical_noz[1], 0)[0]
 
-        # Calculate the number of cells required on the NORTH/SOUTH boundaries of the 
-        # "throat_blk" based on how many cells there are in the "nozzle_blk" over the 
-        # same physical length. NB. If you are clustering very strongly in the x-direction 
-        # (x_clust, bx specified above) you may want to include a factor here to reduce
-        # the number of cells in the throat region.
-        nni_throat = [indexOf(actual_noz, x) for x in actual_noz if x < y_c[0]][-1] + 1
-        delta2 = 1./nni_throat # Intial uniform spacing
-        logical_throat = arange(0.0, 1.+delta2, delta2)
+    # Calculate the number of cells required on the NORTH/SOUTH boundaries of the 
+    # "throat_blk" based on how many cells there are in the "nozzle_blk" over the 
+    # same physical length. NB. If you are clustering very strongly in the x-direction 
+    # (x_clust, bx specified above) you may want to include a factor here to reduce
+    # the number of cells in the throat region.
+    nni_throat = [indexOf(actual_noz, x) for x in actual_noz if x < Lthr][-1] + 1
+    delta2 = 1./nni_throat # Intial uniform spacing
+    logical_throat = arange(0.0, 1.+delta2, delta2)
             
-        # Define a function which calculates the difference in the grid
-        # spacing on either side of the "throat_blk"/"nozzle_blk" boundary
-        def spacing_error(x, L=y_c[0], diff=diff, orig=logical_throat):
-            new = L * roberts(orig, 0.5, x)
-            return (new[1]-new[0] - diff)/diff
-        bx_throat = secant(spacing_error, 1.0001, 1.002, tol=1.0e-2,\
-                          limits=[1.0001,5])
-        if bx_throat in ['Fail','FAIL',]:
-            print "Failed to find throat clustering parameter"
-            print "Setting bx_throat == bx"
-            bx_throat = bx
-        # Infer the number of blocks from how many we set for "nozzle_blk"
-        nbi_throat = int(round(float(nbi)/float(nni)*float(nni_throat)))
-        if nbi_throat > 1:
-            nbi_throat = nbi_throat - 1
-        # We need at least 1 block for the throat region
-        if nbi_throat < 1:
-            nbi_throat = 1
+    # Define a function which calculates the difference in the grid
+    # spacing on either side of the "throat_blk"/"nozzle_blk" boundary
+    def spacing_error(x, L=Lthr, diff=diff, orig=logical_throat):
+        new = L * roberts(orig, 0.5, x)
+        return (new[1]-new[0] - diff)/diff
+    bx_throat = secant(spacing_error, 1.0001, 1.002, tol=1.0e-2,\
+                      limits=[1.0001,5])
+    if bx_throat in ['Fail','FAIL',]:
+        print "Failed to find throat clustering parameter"
+        print "Setting bx_throat == bx"
+        bx_throat = bx
+    # Infer the number of blocks from how many we set for "nozzle_blk"
+    nbi_throat = int(round(float(nbi)/float(nni)*float(nni_throat)))
+    if nbi_throat > 1:
+        nbi_throat = nbi_throat - 1
+    # We need at least 1 block for the throat region
+    if nbi_throat < 1:
+        nbi_throat = 1
     
-        # Display the calculated data
-        print "nni_throat=",nni_throat
-        print "nbi_throat=",nbi_throat
-        print "Clustering, bx_throat=",bx_throat 
+    # Display the calculated data
+    print "nni_throat=",nni_throat
+    print "nbi_throat=",nbi_throat
+    print "Clustering, bx_throat=",bx_throat 
     
-        # Now set the clustering and define the "throat_blk"
-        x_clust_throat = RobertsClusterFunction(1, 1, bx_throat)
-        cf_list_throat = [x_clust_throat, y_clust, x_clust_throat, y_clust]
+    # Now set the clustering and define the "throat_blk"
+    x_clust_throat = RobertsClusterFunction(1, 1, bx_throat)
+    cf_list_throat = [x_clust_throat, y_clust, x_clust_throat, y_clust]
     
-        # Now define the throat block
-        throat_blk = SuperBlock2D(throat_region, nni=nni_throat, nnj=nnj,
-                                  nbi=nbi_throat, nbj=nbj, 
-                                  bc_list=bc_list, cf_list=cf_list_throat, 
-                                  fill_condition=initial, label="throat")
+    # Now define the throat block
+    throat_blk = SuperBlock2D(throat_region, nni=nni_throat, nnj=nnj,
+                              nbi=nbi_throat, nbj=nbj, 
+                              bc_list=bc_list, cf_list=cf_list_throat, 
+                              fill_condition=initial, label="throat")
     
     # Finally, define the main nozzle block
     nozzle_blk = SuperBlock2D(expansion_region, nni=nni, nnj=nnj,
