@@ -576,8 +576,11 @@ else:
     identify_block_connections()
 
     
-# Define the turbulent portion of the nozzle
-point0=Vector($BLTrans, 0.000, 0.000)
+# Define the turbulent portion of the nozzle. We adjust 
+# BLTrans by the length of the throat region. This ensures
+# that turbulence is turned on a distance of BLTrans from 
+# the START of the nozzle.
+point0=Vector($BLTrans-Lthr, 0.000, 0.000)
 point1=Vector(x_c[-1]*2.0, y_c[-1]*2.0, 0.000)
 TurbulenceZone(point0, point1, label="Turbulent")
     
