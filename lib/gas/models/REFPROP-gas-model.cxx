@@ -89,6 +89,8 @@ REFPROP_gas_model(string cfile)
     if (!ENTHAL) is_slib_error("REFPROP_gas_model", true);
     *(void **)(&ENTRO) = dlsym(refprop_handle, "entro");
     if (!ENTRO) is_slib_error("REFPROP_gas_model", true);
+    *(void **)(&SATT) = dlsym(refprop_handle, "satt");
+    if (!SATT) is_slib_error("REFPROP_gas_model", true);
 
     string home = getenv("HOME"), species_path;
     string mixfile_path = home + "/e3bin/species/refprop/fluids/HMX.BNC";
@@ -98,24 +100,12 @@ REFPROP_gas_model(string cfile)
     ierr = 0;
 
     if (strstr(sp, ".FLD") || strstr(sp, ".PPF")){
-        if (phase ==  "single phase" && strstr(sp, ".PPF")) {
-            cout << "REFPROP_gas_model::REFPROP_gas_model():\n"
-                 << "PPF can only be used with the two phase calculation\n"
-                 << "as unit conversion of dpdrho does not work correctly.\n";
-            exit(BAD_INPUT_ERROR);
-        }
         species_path = home + "/e3bin/species/refprop/fluids/" + sp;
         strncpy(hfld, species_path.c_str(), stringlength*ncmax);
         i = 1; x[0] = 1.0;
         SETUP(i,hfld,hfmix,hrf,ierr,herr);
         if (ierr != 0) is_REFPROP_error("REFPROP_gas_model");
     } else if (strstr(sp, ".MIX")) {
-        if (phase ==  "single phase") {
-            cout << "REFPROP_gas_model::REFPROP_gas_model():\n"
-                 << "Mixtures can only be used with the two phase calculation\n"
-                 << "as unit conversion of dpdrho does not work correctly.\n";
-            exit(BAD_INPUT_ERROR);
-        }
         species_path = home + "/e3bin/species/refprop/mixtures/" + sp;
         strncpy(hfld, species_path.c_str(), stringlength*ncmax);
         SETMIX(hfld,hfmix,hrf,i,hfiles,x,ierr,herr);
@@ -156,9 +146,9 @@ s_eval_thermo_state_rhoe(Gas_data &Q)
         DEFLSH(d,e,x,t,p,dl,dv,xliq,xvap,q,h,s,cv,cp,w,ierr,herr);
         if (ierr != 0) is_REFPROP_error("s_eval_thermo_state_rhoe");
         Q.p = p*1e3; // kPa to Pa
-        Q.a = w;
         Q.T[0] = t;
         Q.quality = q;
+        Q.a = two_phase_sound_speed();
         return SUCCESS;
     } else if (phase == "single phase") {
         // Use the single phase flash calculator, much faster than DEFLSH.
@@ -170,7 +160,7 @@ s_eval_thermo_state_rhoe(Gas_data &Q)
         Q.p = p*1e3; // kPa to Pa
         CVCP(t,d,x,cv,cp); // J/(mol.K)
         DPDD(t,d,x,dpdrho); // kPa.L/mol
-        Q.a = sqrt(dpdrho*wm*(cp/cv));
+        Q.a = sqrt(1e3*dpdrho/wm*(cp/cv));
         Q.quality = 1;
         return SUCCESS;
     } else {
@@ -209,9 +199,9 @@ s_eval_thermo_state_rhoT(Gas_data &Q)
         TDFLSH(t,d,x,p,dl,dv,xliq,xvap,q,e,h,s,cv,cp,w,ierr,herr);
         if (ierr != 0) is_REFPROP_error("s_eval_thermo_state_rhoT");
         Q.p = p*1e3; // kPa to Pa
-        Q.a = w;
         Q.e[0] = e*1e3/wm;
         Q.quality = q;
+        Q.a = two_phase_sound_speed();
         return SUCCESS;
     } else if (phase == "single phase") {
         PRESS(t,d,x,p);
@@ -220,7 +210,7 @@ s_eval_thermo_state_rhoT(Gas_data &Q)
         Q.e[0] = e*1e3/wm; // J/mol to J/kg
         CVCP(t,d,x,cv,cp); // J/(mol.K)
         DPDD(t,d,x,dpdrho); // kPa.L/mol
-        Q.a = sqrt(dpdrho*wm*(cp/cv));
+        Q.a = sqrt(1e3*dpdrho/wm*(cp/cv));
         Q.quality = 1;
         return SUCCESS;
     } else {
@@ -313,6 +303,28 @@ is_REFPROP_error(const string &method_name)
         << herr << endl;
     dlclose(refprop_handle);
     input_error(ost);
+}
+
+double
+REFPROP_gas_model::
+two_phase_sound_speed()
+{   // Calculate mass average of liquid and vapor sound speeds if two phase
+    if (q <= 0.0 || q >= 1.0) { // Single phase
+        return w; // Already computed sound speed
+    } else { // Two phase
+        phase_flag = 1;
+        SATT(t,x,phase_flag,p,dl,dv,xliq,xvap,ierr,herr);
+        if (ierr != 0) is_REFPROP_error("two_phase_sound_speed");
+        // Liquid sound speed
+        CVCP(t,dl,x,cv,cp); // J/(mol.K)
+        DPDD(t,dl,x,dpdrho); // kPa.L/mol
+        liq_SS = sqrt(1e3*dpdrho/wm*(cp/cv));
+        // Vapour sound speed
+        CVCP(t,dv,x,cv,cp); // J/(mol.K)
+        DPDD(t,dv,x,dpdrho); // kPa.L/mol
+        vap_SS = sqrt(1e3*dpdrho/wm*(cp/cv));
+        return q*vap_SS + (1.0 - q)*liq_SS;
+    }
 }
 
 Gas_model* create_REFPROP_gas_model(string cfile)

@@ -78,6 +78,15 @@ class REFPROPTestR134A_FLD_singlephase(unittest.TestCase):
         self.gmodel.eval_transport_coefficients(self.gas)
         self.assertAlmostEqual(self.gas.mu/1e6, 19.4290589130, places=9)
         self.assertAlmostEqual(self.gas.k[0]*1e3, 27.0975847050, places=9)
+    
+    def test_SS_from_rhoe(self):
+        # Test out the fast, single phase sound speed calculation
+        self.gas.rho = 4.17309524172
+        self.gas.e[0] = 402.163750920e3
+        self.gmodel.eval_thermo_state_rhoe(self.gas)
+        self.assertAlmostEqual(self.gas.p/1e6, 0.1, places=9)
+        self.assertAlmostEqual(self.gas.T[0], 300.0, places=9)
+        self.assertAlmostEqual(self.gas.a, 162.07, places=2)
 
 class REFPROPTestAIR_PPF(unittest.TestCase):
     def setUp(self):

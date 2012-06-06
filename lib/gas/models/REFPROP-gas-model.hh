@@ -48,6 +48,8 @@ typedef void (*fp_TRNPRP_TYPE)(double &,double &,double *,double &,double &,long
 typedef void (*fp_DEFL1_TYPE)(double &,double &,double *,double &,long &,char*);
 typedef void (*fp_CVCP_TYPE)(double &,double &,double *,double &,double &);
 typedef void (*fp_PRESS_TYPE)(double &,double &,double *,double &);
+typedef void (*fp_SATT_TYPE)(double &,double *,long &,double &,double &,double &,
+                             double *,double *,long &,char*);
 
 class REFPROP_gas_model : public Gas_model {
 public:
@@ -79,6 +81,7 @@ private:
     fp_DEFL1_TYPE DEFL1;
     fp_CVCP_TYPE CVCP;
     fp_PRESS_TYPE PRESS, DPDD, ENERGY, ENTHAL, ENTRO;
+    fp_SATT_TYPE SATT;
 
     long i,ierr;
     double x[ncmax],xliq[ncmax],xvap[ncmax];
@@ -86,6 +89,8 @@ private:
          herr[stringlength],hfmix[stringlength],
          hfiles[stringlength*ncmax],setpath[stringlength];
     double wm,d,e,t,p,dl,dv,q,h,s,cv,cp,w,eta,tcx,dpdrho;
+    double liq_SS, vap_SS;
+    long phase_flag;
 
     int s_eval_thermo_state_rhoe(Gas_data &Q);
     int s_eval_thermo_state_pT(Gas_data &Q);
@@ -99,6 +104,7 @@ private:
 
     void is_slib_error(const string &method_name, bool close_handle);
     void is_REFPROP_error(const string &method_name);
+    double two_phase_sound_speed();
 };
 
 Gas_model* create_REFPROP_gas_model(string cfile);
