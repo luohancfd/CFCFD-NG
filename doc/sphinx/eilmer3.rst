@@ -64,6 +64,16 @@ If you want him to come and look at your simulation files when things go wrong,
 use the same.
 If not, use whatever hierarchy you like.
 
+
+Building and running on Mac OSX
+-------------------------------
+This is mostly the same as for a Linux machine but we provide a couple of 
+specific targets::
+
+  $ make TARGET=for_macports_gnu install
+  $ make TARGET=for_macports_openmpi install
+
+
 Building and running on the Barrine cluster at UQ
 -------------------------------------------------
 The details of running simulations on any cluster computer will be specific 

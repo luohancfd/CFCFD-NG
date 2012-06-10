@@ -134,10 +134,15 @@ development tools.
 popt, readline, SWIG and Tcl/Tk can either be installed from source
 or via a package manager such as MacPorts (http://www.macports.org/) or 
 Fink (http://www.finkproject.org/).
-If possible, it is recommended to install these dependencies from source.
-The required Python packages (numpy, scipy and matplotlib) are all available
-as pre-packaged binaries for OSX on sourceforge.net, although they can also
-be installed from source if necessary.
+
+Notes:
+
+#. If possible, it is recommended to install these dependencies from source.
+#. The required Python packages (numpy, scipy and matplotlib) are all available
+   as pre-packaged binaries for OSX on sourceforge.net, although they can also
+   be installed from source if necessary.
+#. Ingo has had a good experience installing binary packages from MacPorts,
+   the only subtly being the need to install swig and swig-python.
 
 SSH access to the repository for developers
 -------------------------------------------

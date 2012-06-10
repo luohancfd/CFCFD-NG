@@ -227,6 +227,20 @@ ifeq ($(TARGET), for_gnu_opteron)
     LLIB    := -lm
 endif
 
+ifeq ($(TARGET), for_macports_gnu)
+    # OpenMPI on Mac OS-X with MacPorts
+    # PJ edits for Ingo's Mac 06-June-2012.
+    # Note that this works on LinuxMint13 as well as the default for_gnu.
+    COMPILE := gcc
+    LINK    := gcc
+    CXX     := g++
+    CXXLINK := g++
+    CFLAG   := -c $(OPT) -fPIC 
+    CXXFLAG := -c $(OPT) -fPIC 
+    LFLAG   :=  $(OPT) -fPIC -lstdc++
+    LLIB    := -lm -lstdc++
+endif
+
 ifeq ($(TARGET), for_gnu_openmp)
     # Linux Opteron server using GNU compiler
     COMPILE := gcc
@@ -240,7 +254,6 @@ ifeq ($(TARGET), for_gnu_openmp)
     LLIB    := -lm
     PCA     := -fopenmp
 endif
-
 
 # ------------------------------------
 #          Portland Compilers
@@ -301,6 +314,7 @@ ifeq ($(TARGET), for_pgi_opteron_O2)
     CXXFLAG := -c -O2 -fPIC -tp amd64 
 #    PCA     := -mp
 endif
+
 # -------------------------------------
 #  Intel compilers
 # -------------------------------------
@@ -466,8 +480,24 @@ ifeq ($(TARGET), for_openmpi_debug)
     LLIB    := -lm
 endif
 
+ifeq ($(TARGET), for_macports_openmpi)
+    # OpenMPI on Mac OS-X with MacPorts
+    # PJ edits for Ingo's Mac 06-June-2012.
+    # Note (1) This works on LinuxMint13 as well as the usual for_openmpi.
+    # Note (2) The case sensitivity seems to work since Dan's note below,
+    #          at least within the xcode unix-like environment that Ingo uses.
+    COMPILE := mpicc
+    LINK    := mpicc
+    CXX     := mpiCC
+    CXXLINK := mpiCC
+    CFLAG   := -c $(OPT) -fPIC 
+    CXXFLAG := -c $(OPT) -fPIC 
+    LFLAG   :=  $(OPT) -fPIC -lstdc++
+    LLIB    := -lm -lstdc++ -lmpi_cxx
+endif
+
 ifeq ($(TARGET), for_mac_openmpi)
-    # OpenMPI on Mac OS X
+    # OpenMPI on Mac OS X as used by Dan Potter, PJ believes...
     # HFS+ is not case-sensitive, so need to use mpic++ instead of mpiCC.
     COMPILE := mpicc
     LINK    := mpicc
