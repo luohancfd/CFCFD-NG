@@ -66,7 +66,7 @@ In this report, internal energy is denoted with the symbol, $e$, whereas
 many books on thermodynamics use the symbol, $u$.
 The choice of $e$ is influenced by the use of the thermodynamics in the
 context of fluid mechanics.
-In fluid mechanics, the symobl $u$ is customarily used to represent
+In fluid mechanics, the symbol $u$ is customarily used to represent
 the flow speed in the $x$-direction.
 It would rapidly become confusing to use the symbol $u$ to represent
 internal energy also.
@@ -285,7 +285,7 @@ There is a third class of perfect gas considered in the gas library.
 It is used to model gases which are not in thermal equilibrium.
 We call these multi-temperature gases because the internal energy of the gas
 is computed by ascribing different temperatures for different modes of the energy storage
-(transtional, vibrational, etc.).
+(transitional, vibrational, etc.).
 We defer discussion of this special class of gas to Section~\ref{sec:multi-T}.
 
 \paragraph{Gas mixtures}
@@ -560,7 +560,7 @@ Substituting this equation in terms of $p$ and $T$ into Equation~\ref{eq:int-e-r
 e(T, \rho) = \int_{T_0}^{T} C_v\,dT + a \left( \rho - \rho_0 \right) \text{ . }
 \end{equation}
 Note that this relation still depends on some choice for modelling $C_v$.
-Similarly, the second term in the expression for entropy (Eqation~\ref{eq:s-p})
+Similarly, the second term in the expression for entropy (Equation~\ref{eq:s-p})
 may be evaluated analytically, while the first term depends on the model for $C_v$:
 \begin{equation}
 s(T,p) = \int_{T_0}^{T} \frac{C_v}{T}\,dT + \left [ R \log \left( v - b \right ) \right ]_{v_0}^{v} \text { . }
@@ -910,7 +910,7 @@ which contains fluid and mixture specific configuration files.
 \label{sec:pgm}
 \paragraph{Description}
 A perfect gas mixture, as the name implies, is a gas composed
-of individual components each having perfect gas behvaiour.
+of individual components each having perfect gas behaviour.
 This model is typically used when simulating chemically
 reacting gases; each chemical species is treated as a separate
 component of the gas mixture.
@@ -932,7 +932,7 @@ instances.
 
 \paragraph{Equations}
 For mixtures, the thermodynamic state is uniquely defined
-by specifying two independemt properties of the mixture and the mixture
+by specifying two independent properties of the mixture and the mixture
 composition.
 The subscript $m$ is used to denote mixture properties.
 By applying Dalton's Law of partial pressures, the
@@ -975,7 +975,7 @@ weighted sum as
 The input for the model is a list of the component gaseous species.
 For each species, a specific perfect gas model needs to be selected
 (and appropriate inputs given).
-The available gas models for the componets is a selection of a calorically perfect
+The available gas models for the components is a selection of a calorically perfect
 gas (Section~\ref{sec:cal-perf}) or thermally perfect gas (Section~\ref{sec:therm-perf}).
 
 \subsection{Real gas mixtures}
