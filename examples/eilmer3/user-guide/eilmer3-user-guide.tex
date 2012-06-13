@@ -685,6 +685,20 @@ The available gas models are:
 %                             governs the rotation modes, $T_\text{v}$ governs the vibration modes and $T_\text{e}$ 
 %                             governs the electronic and free-electron translation modes.
 %                             \index{gas model!four temperature}
+ \item \texttt{'real gas Bender'}: a gas with real behaviour, such as accurate thermodynamic property evaluation
+                            at high density and pressure near the saturation boundary and in the critical region.
+                            This model is based on the Bender \textit{p-v-T} relationship.
+                             \index{gas model!real gas!Bender}
+ \item \texttt{'real gas MBWR'}: a gas with real behaviour, such as accurate thermodynamic property evaluation
+                            at high density and pressure near the saturation boundary and in the critical region.
+                            This model is based on the MBWR \textit{p-v-T} relationship, which is more accurate
+                            than the Bender \textit{p-v-T} relationship.
+                             \index{gas model!real gas!MBWR}
+ \item \texttt{'real gas REFPROP'}: a gas with real behaviour, such as accurate thermodynamic property evaluation
+                            in all single and two phase regions.
+                            This model makes use of the REFPROP thermodynamic database and is more accurate than
+                            the MBWR gas model.
+                             \index{gas model!real gas!REFPROP}
 \end{itemize}
 
 The \texttt{species} keyword accepts a list of strings; each string denotes
