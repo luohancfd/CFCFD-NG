@@ -29,4 +29,4 @@ date
 for i in $(cat $PBS_NODEFILE | grep -v 'hostname' | sort -u); do
     ssh $i pkill -u 'whoami'
 done
-kill all -u 'whoami' e3mpi.exe
+killall -u 'whoami' e3mpi.exe
