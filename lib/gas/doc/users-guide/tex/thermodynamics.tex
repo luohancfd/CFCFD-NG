@@ -217,6 +217,7 @@ The specific heat at constant pressure is defined as
 and the definition of specific heat at constant volume is
 \begin{equation}
   C_v = \left ( \frac{\partial e}{\partial T} \right )_v \text{ . }
+\label{eq:Cv}
 \end{equation}
 The speed of sound in a gas is related to the pressure and density
 by
@@ -297,10 +298,10 @@ properties based on the composition and properties of the components.
 We can classify gas mixtures as\\
 \begin{tabular}{lp{12cm}}
 \textbf{perfect gas mixtures:} & each of the component gases exhibits perfect behaviour; \emph{or} \\
-\textbf{real gas mixtures:} & eacho of the component gases exhibits perfect behaviour.
+\textbf{real gas mixtures:} & each of the component gases exhibits perfect behaviour.
 \end{tabular}
 
-For perfect gas mixtures, the intensive mixture properties are simply a mass fraction weigthed sum
+For perfect gas mixtures, the intensive mixture properties are simply a mass fraction weighted sum
 of the component properties, while the extensive properties come from summing the individual contributions
 of the components.
 For real gas mixtures, the determination of mixture properties from component properties is more complex.
@@ -536,6 +537,8 @@ This list of available real gases is:
 \item van der Waal's gas (Section~\ref{sec:van_der_waals_gas})
 \item Noble-Abel gas (Section~\ref{sec:noble_abel_gas})
 \item Bender gas (Section~\ref{sec:bender_gas})
+\item Modified Benedict-Webb-Rubin (MBWR) gas (Section~\ref{sec:MBWR_gas})
+\item REFPROP gas (Section~\ref{sec:REFPROP_gas})
 \end{itemize}
 
 \subsection{van der Waal's gas}
@@ -610,7 +613,7 @@ $b$      & m$^3$/kg & co-volume (sometimes seen as $\nu_0$) computed as
 \subsection{Noble-Abel gas}
 \label{sec:noble_abel_gas}
 \paragraph{Description}
-The Noble-Abel gas model for real gas behaviour is a simplication of
+The Noble-Abel gas model for real gas behaviour is a simplification of
 the van der Waal's model in that it only accounts for the co-volume
 occupied by the gas particles.
 This model is applicable at high pressures where the volume of
@@ -683,10 +686,225 @@ $b$      & m$^3$/kg & co-volume (sometimes seen as $\nu_0$) computed as
 \label{sec:bender_gas}
 
 \paragraph{Description}
-\paragraph{Assumptions}
-\paragraph{Equations}
-\paragraph{Input parameters}
+The Bender gas model for real gas behaviour uses the Bender \cite{bender1975equations}
+\textit{p-v-T} relationship which is a modification of the Benedict-Webb-Rubin
+form \cite{sengers2000equations}.
+The Bender \textit{p-v-T} relationship has 19 experimentally determined coefficients
+which have been published for over 50 substances \cite{bender1970equations}
+\cite{bender1975equations} \cite{platzer1990thermophysical} \cite{polt1992bender}
+\cite{sievers1980equation}.
 
+This model is applicable at high pressures and densities, in the critical region and
+for calculating vapour-liquid equilibrium. For this reason, it is useful in
+simulating flows which are thermodynamically close to or within the vapour dome,
+such as turbomachinery and nozzle flows.
+
+%\paragraph{Assumptions}
+\paragraph{Equations}
+The \textit{p-v-T} behaviour for a Bender gas is expressed by the Bender equation of state \cite{bender1975equations}
+\begin{dmath}
+P = \rho R T + \rho^2 \sum_{i=1}^5 A_i T^{2-i} + \rho^3 \sum_{i=6}^8 A_i T^{7-i}
+    + \rho^4 \left( A_9 T + A_{10} \right) + \rho^5 \left( A_{11} T + A_{12} \right) + \rho^6 A_{13}
+    + \left[ \rho^3 \sum_{i=14}^{16} A_i T^{12-i} + \rho^5 \sum_{i=17}^{19} A_i T^{15-i} \right] \exp(-A_{20} \rho^2)
+\end{dmath}
+Where \(A_i\) are the experimentally determined coefficients. To capture the
+\textit{p-v-T} behaviour in the critical region, the final coefficient is typically
+published as
+\begin{dmath}
+A_{20} \approx \rho_c^{-2}
+\end{dmath}
+The ideal gas (zero density) specific heat capacity at constant pressure is
+expressed using a fourth order polynomial, as this form can be used with
+the available published coefficients \cite{platzer1990thermophysical}
+\cite{polt1992bender} \cite{mclinden1989measurement}
+\cite{huber1992thermodynamic} \cite{outcalt1995equations}
+\cite{outcalt1996modified} \cite{outcalt1997equation}
+\cite{reynolds1979thermodynamic}
+\begin{dmath} \label{eq:bender_cp0}
+C_p^0 = \sum_{i=1}^6 G_i T^{i-2}
+\end{dmath}
+
+Reynolds \cite{reynolds1979thermodynamic} provide coefficients for a \(C_v^0\) equation,
+which have been converted to \(C_p^0\) form using
+\begin{dmath}
+C_p^0 = C_v^0 + R
+\end{dmath}
+which results in only one coefficient modification
+\begin{dmath}
+G_{2,p} = G_{2,v} + R
+\end{dmath}
+
+Due to the polynomial and exponential form of the Bender \textit{p-v-T} relationship
+and the ideal gas specific heat capacity equation,
+the expressions for internal energy, entropy, real specific heat capacities and
+sound speed can be evaluated analytically.
+
+For the calculation of internal energy, Equation~\ref{eq:int-energy} can be
+re-written as \cite{reynolds1979thermodynamic}
+\begin{dmath}
+e = \int_{T_0}^T \left(C_p^0 - R\right)\, dT
+    + \int_0^{\rho}\frac{1}{\rho^2}\left[ P - T\left( \frac{\partial P}{\partial T} \right)_{\rho} \right]\, d\rho
+    + e_0
+\end{dmath}
+For the calculation of entropy, Equation~\ref{eq:s-p} can be
+re-written as \cite{reynolds1979thermodynamic}
+\begin{dmath}
+s = \int_{T_0}^T \frac{C_p^0 - R}{T}\, dT
+    - R \ln{\rho}
+    + \int_0^{\rho}\frac{1}{\rho^2}\left[ \rho R - \left( \frac{\partial P}{\partial T} \right)_{\rho} \right]\, d\rho
+    + s_0
+\end{dmath}
+\(C_v\) can then be calculated analytically with Equation~\ref{eq:Cv}. \(C_p\) is
+calculated using the Mayer Relation and the chain rule
+\begin{dmath}
+C_p = C_v + T\left(\frac{\partial\nu}{\partial T}\right)_P\left(\frac{\partial P}{\partial T}\right)_{\nu}
+= C_v - T \rho^{-2} \left(\frac{\partial\rho}{\partial T}\right)_P\left(\frac{\partial P}{\partial T}\right)_{\rho}
+\end{dmath}
+The sound speed is given by
+\begin{dmath}
+a = \sqrt{\frac{C_p}{C_v} \left(\frac{\partial P}{\partial \rho}\right)_T}
+\end{dmath}
+The analytical derivation using the above equations can be performed by hand, but
+is quite verbose and has therefore not been included in this report.
+
+\paragraph{Input parameters}
+The input parameters for the Bender gas model are given in Table~\ref{tab:bender-params}.
+
+\begin{table}[h]
+\caption{Parameters for the Bender gas model}
+\label{tab:bender-params}
+\begin{tabular}{llp{10cm}}
+\toprule
+Parameter & Units & Description \\ \midrule
+\multicolumn{3}{l}{\textit{User input}} \\
+$M$       & kg/mole & molecular weight of gas \\
+$A_i$     &       & \textit{p-v-T} equation coefficients \\
+$G_i$     &       & ideal gas specific heat capacity equation coefficients \\
+$T_0$     & K     & temperature at the standard reference state \\
+$e_0$     & J/kg   & specific internal energy at the standard reference state.
+                    When internal energy is computed, what is really 
+                    reported is the \emph{change} in internal energy
+                    from this reference or zero-point energy. \\
+$s_0$     & J/(kg.K) & specific entropy at the standard reference state.
+                       As with internal energy, the computed entropy value
+                       is the change from the standard state value of entropy. \\
+ & & \\
+\multicolumn{3}{l}{\textit{Derived parameters}} \\
+$R$      & J/(kg.K) & specific gas constant computed as $R = R_u/M$ where
+                      $R_u$ is the universal gas constant \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{MBWR gas}
+\label{sec:MBWR_gas}
+
+\paragraph{Description}
+The MBWR gas model for real gas behaviour uses the Jacobsen and Stewart
+\cite{jacobsen1973thermodynamic} \textit{p-v-T} relationship, which became known
+as the Modified Benedict-Webb-Rubin (MBWR) equation \cite{span2000multiparameter}.
+The MBWR \textit{p-v-T} relationship has 32 experimentally determined coefficients,
+and has been used extensively in technical and scientific applications \cite{sengers2000equations}.
+
+This model is applicable at high pressures and densities, in the critical region and
+for calculating vapour-liquid equilibrium. For this reason, it is useful in
+simulating flows which are thermodynamically close to or within the vapour dome,
+such as turbomachinery and nozzle flows. The higher number of coefficients in
+comparison to the Bender \textit{p-v-T} relationship mean that the MBWR equation
+typically has higher accuracy in the evaluation of thermodynamic properties.
+
+%\paragraph{Assumptions}
+\paragraph{Equations}
+The \textit{p-v-T} behaviour for a MBWR gas is expressed by the MBWR equation of state \cite{jacobsen1973thermodynamic}
+\begin{dmath}
+P = \sum_{i=1}^9 A_i \rho^i + \exp{\left(-\gamma \rho^2\right)}\sum_{i=10}^{15} A_i \rho^{2i-17}
+\end{dmath}
+where the critical region coefficient is
+\begin{dmath}
+\gamma = \rho_c^{-2}
+\end{dmath}
+and the \(A_i\) temperature polynomials are
+\begin{align*}
+A_1 &= RT\\
+A_2 &= B_1 T + B_2 T^{0.5} + B_3 + B_4 T^{-1} + B_5 T^{-2}\\
+A_3 &= B_6 T + B_7 + B_8 T^{-1} + B_9 T^{-2}\\
+A_4 &= B_{10} T + B_{11} + B_{12} T^{-1}\\
+A_5 &= B_{13}\\
+A_6 &= B_{14} T^{-1} + B_{15} T^{-2}\\
+A_7 &= B_{16} T^{-1}\\
+A_8 &= B_{17} T^{-1} + B_{18} T^{-2}\\
+A_9 &= B_{19} T^{-2}\\
+A_{10} &= B_{20} T^{-2} + B_{21} T^{-3}\\
+A_{11} &= B_{22} T^{-2} + B_{23} T^{-4}\\
+A_{12} &= B_{24} T^{-2} + B_{25} T^{-3}\\
+A_{13} &= B_{26} T^{-2} + B_{27} T^{-4}\\
+A_{14} &= B_{28} T^{-2} + B_{29} T^{-3}\\
+A_{15} &= B_{30} T^{-2} + B_{31} T^{-3} + B_{32} T^{-4}\\
+\end{align*}
+The ideal gas (zero density) specific heat capacity at constant pressure is
+expressed using Equation~\ref{eq:bender_cp0}, and the internal energy, entropy,
+real specific heat capacities and sound speed can be evaluated analytically with
+the same approach as used in Section~\ref{sec:bender_gas}. The analytical
+derivation using these equations can be performed by hand, but are quite verbose
+and has therefore not been included in this report.
+
+\paragraph{Input parameters}
+The input parameters for the MBWR gas model are given in Table~\ref{tab:MBWR-params}.
+
+\begin{table}[h]
+\caption{Parameters for the MBWR gas model}
+\label{tab:MBWR-params}
+\begin{tabular}{llp{10cm}}
+\toprule
+Parameter & Units & Description \\ \midrule
+\multicolumn{3}{l}{\textit{User input}} \\
+$M$       & kg/mole & molecular weight of gas \\
+$B_i$     &       & \textit{p-v-T} equation coefficients \\
+$G_i$     &       & ideal gas specific heat capacity equation coefficients \\
+$T_0$     & K     & temperature at the standard reference state \\
+$e_0$     & J/kg   & specific internal energy at the standard reference state.
+                    When internal energy is computed, what is really 
+                    reported is the \emph{change} in internal energy
+                    from this reference or zero-point energy. \\
+$s_0$     & J/(kg.K) & specific entropy at the standard reference state.
+                       As with internal energy, the computed entropy value
+                       is the change from the standard state value of entropy. \\
+ & & \\
+\multicolumn{3}{l}{\textit{Derived parameters}} \\
+$R$      & J/(kg.K) & specific gas constant computed as $R = R_u/M$ where
+                      $R_u$ is the universal gas constant \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{REFPROP gas}
+\label{sec:REFPROP_gas}
+
+\paragraph{Description}
+The REFPROP gas model for real gas behaviour makes use of the NIST REFPROP
+thermodynamic and transport property database (Version 9) \cite{lemmon2002nist}
+for the evaluation of all fluid properties. REFPROP is a commercial software package
+that implements the most accurate models and equations available for the
+evaluation of pure fluid and mixture properties. Typically, thermodynamic and transport
+properties can be evaluated to within the uncertainly of the experimental data with
+which the equations are based.
+
+This model is applicable at high pressures and densities, in the critical region and
+for calculating vapour-liquid equilibrium. For this reason, it is useful in
+simulating flows which are thermodynamically close to or within the vapour dome,
+such as turbomachinery and nozzle flows. The equations used in REFPROP are
+more accurate than the equations used in the MBWR gas model, and also cover
+many fluid mixtures.
+
+%\paragraph{Assumptions}
+\paragraph{Equations}
+The REFPROP database makes use of optimized multiparameter fundamental equations
+of state, known as the Helmholtz equation of state. For a comprehensive description of
+the Helmholtz equation of state and its use, refer to the text of Span \cite{span2000multiparameter}.
+
+\paragraph{Input parameters}
+All required inputs for the REFPROP gas model are covered by the REFPROP software,
+which contains fluid and mixture specific configuration files.
 
 \subsection{Perfect gas mixtures}
 \label{sec:pgm}
@@ -761,6 +979,7 @@ The available gas models for the componets is a selection of a calorically perfe
 gas (Section~\ref{sec:cal-perf}) or thermally perfect gas (Section~\ref{sec:therm-perf}).
 
 \subsection{Real gas mixtures}
+\label{sec:real-gas-mix}
 \paragraph{Description}
 The model of real gas mixtures assumes that all of the
 component gases have real gas behaviour.

@@ -54,7 +54,8 @@ The vector of conserved quantities is expressed in full as
              \end{array} \right ] \text{ . }
  \label{eq:U_vector_3D}
 \end{equation}
-Here, the conserved quantities are respectively density, $x$-momentum per volume, $y$-momentum per volume, total energy per volume.
+Here, the conserved quantities are respectively density, $x$-momentum per volume,
+$y$-momentum per volume, $z$-momentum per volume and total energy per volume.
 
 The inviscid component of the fluxes is
 \begin{equation}
@@ -161,7 +162,7 @@ Specifically, the gas library links thermodynamic properties
 by using equations of state and evaluates the transport properties
 using constitutive relations.
 Typically, the thermodynamics of a gas are characterised by its
-p-v-T behaviour, that is,
+\textit{p-v-T} behaviour, that is,
 \begin{equation}
    p = p(\rho, T)
 \end{equation}
@@ -308,7 +309,7 @@ The remainder of Part~I deals with the underlying theory of the models provided
 by the gas library.
 Chapter~\ref{chap:thermo} presents the theory for the thermodynamics modelling.
 The calculation of transport properties is discussed in Chapter~\ref{chap:trans-prop}.
-Chapter~\ref{chap:kinetics} concerns itself with the modelling of kinetic processes
+Chapter~\ref{chap:chem-kinetics} concerns itself with the modelling of kinetic processes
 in high-temperature gases, namely, chemical reactions and nonequilibrium energy exchange.
 The intent of this Theory section is twofold: (1) to give the user an overview of the available modelling options in the gas library, and (2) to serve a reference manual for the models implemented in the library.
 

@@ -5,6 +5,7 @@
 \usepackage{palatino}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{breqn}
 
 \usepackage{afterpage}
 % ----------------------
@@ -82,6 +83,11 @@
 \usepackage{lscape}
 \usepackage{ctable}
 \usepackage{afterpage}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks = true,
+    allcolors = blue,
+}
 
 % ----------------------
 % Page layout details
@@ -114,7 +120,7 @@
 \title{\textsf{A Library of Gas Models for Compressible Flow CFD:\\
        Theory and User's Guide}}
 \author{\textsf{Rowan J. Gollan, Brendan F. O'Flaherty, Daniel F. Potter,}\\
-        \textsf{Peter Blyton and Peter A. Jacobs}}
+        \textsf{Peter J. Blyton and Peter A. Jacobs}}
 \date{\textsf{28 March 2012}}
 
 \begin{document}
@@ -150,7 +156,7 @@
 
 \renewcommand\bibname{References}
 \bibliographystyle{unsrt}
-\bibliography{gas}
+\bibliography{gas,equations-of-state}
 \addcontentsline{toc}{chapter}{References}
 
 \appendix

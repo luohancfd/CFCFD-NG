@@ -5,11 +5,15 @@
 # over the temperature range of 200.0 -- 20,000.0 K.
 #
 
+import sys, os
+sys.path.append(os.path.expandvars("$HOME/e3bin"))
 from gaspy import *
 import numpy as np
-import matplotlib
 #matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from matplotlib import rc
+rc('text', usetex=True)
+rc('font', family='serif')
 
 # Initialise gas model and gas data
 gmodel = create_gas_file('thermally perfect gas', ['O2'],
@@ -34,8 +38,8 @@ for i, T in enumerate(T_list):
 
 # Plot result and exit
 plt.axis([200.0, 20000.0, 0.0, 1500.0])
-plt.xlabel('temperature, K')
+plt.xlabel('Temperature, K')
 plt.ylabel(r'$C_p$, J/(kg.K)')
 plt.plot(T_list, Cp_list)
-plt.savefig('../figs/Cp-O2')
+plt.savefig('../figs/Cp-O2.pdf')
 
