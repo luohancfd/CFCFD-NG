@@ -12,7 +12,7 @@ functions related to source terms.}
 When the user's (Python) input script calls up a \texttt{UserDefinedBC()} boundary condition,
 a Lua file is specified.
 This file is run at the time of boundary-condition instantiation and it needs to define the
-Lua functions \texttt{ghost\_cell(args)} and \texttt{interface(args)} at a minumum.
+Lua functions \texttt{ghost\_cell(args)} and \texttt{interface(args)} at a minimum.
 These functions are later called, every time the boundary condition is applied during the simulation.
 As well as providing the \textit{expected} functions, the Lua file may contain whatever else
 the user wishes.
@@ -53,13 +53,13 @@ the flow at specific locations:\\
                                       the flow state for a particular cell.  The data is the same as that
                                       listed for the \texttt{ghost\_cell} tables with the addition of \texttt{vol},
                                       the cell volume.  This function is not likely to work for a MPI simulation,
-                                      where only one block is visible to the curent process.} \\
+                                      where only one block is visible to the current process.} \\
  \noalign{\smallskip} \hline \noalign{\smallskip}
  \texttt{locate\_cell(x,y,z)} & \parbox{10cm}{a function that will search for the cell nearest 
                                       the specified coordinates and return the cell indices
                                       and the index of the containing block.  This function 
                                       is not likely to work for a MPI simulation,
-                                      where only one block is visible to the curent process.} \\
+                                      where only one block is visible to the current process.} \\
  \noalign{\smallskip} \hline \noalign{\smallskip}
 \end{tabular}
 

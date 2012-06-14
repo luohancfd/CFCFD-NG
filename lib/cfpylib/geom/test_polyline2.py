@@ -1,6 +1,8 @@
 # test_polyline2.py
 
-from libgeom2 import *
+import sys, os
+sys.path.append(os.path.expandvars("$HOME/e3bin"))
+from libprep3 import *
 a = Vector(0.0,0.0)
 b = Vector(0.0,1.0)
 c = Vector(1.0,1.0)
