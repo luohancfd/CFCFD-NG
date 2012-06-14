@@ -422,19 +422,19 @@ def make_patch(north, east, south, west, grid_type="TFI", tol=1.0e-6):
     tolerance = tol * (average_length + 1.0)
     corners_OK = True
     if not close_enough(p00, p00_alt, tolerance):
-        print "Error: south and west boundaries do coincide at corner p00."
+        print "Error: south and west boundaries do not coincide at corner p00."
         print "   ", str(p00), str(p00_alt)
         corners_OK = False
     if not close_enough(p10, p10_alt, tolerance):
-        print "Error: south and east boundaries do coincide at corner p10."
+        print "Error: south and east boundaries do not coincide at corner p10."
         print "   ", str(p10), str(p10_alt)
         corners_OK = False
     if not close_enough(p01, p01_alt, tolerance):
-        print "Error: north and west boundaries do coincide at corner p01."
+        print "Error: north and west boundaries do not coincide at corner p01."
         print "   ", str(p01), str(p01_alt)
         corners_OK = False
     if not close_enough(p11, p11_alt, tolerance):
-        print "Error: north and east boundaries do coincide at corner p11."
+        print "Error: north and east boundaries do not coincide at corner p11."
         print "   ", str(p11), str(p11_alt)
         corners_OK = False
     if not corners_OK:

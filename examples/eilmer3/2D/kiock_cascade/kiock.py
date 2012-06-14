@@ -160,7 +160,7 @@ pres_front_west = Spline([LE_down, mid_2, mid_1, LE_up])
 
 pres_front_south = Line(pres_front_west.eval(0), pres_front_surface.eval(0))
 
-patch = make_patch(suct_front_west, pres_front_surface, pres_front_south, pres_front_west)
+patch = make_patch(suct_front_west.reverse(), pres_front_surface, pres_front_south, pres_front_west)
 cflist = [RobertsClusterFunction(0, 1, clust_surf), None, 
           RobertsClusterFunction(0, 1, clust_surf), None]
 bclist = [SlipWallBC(), AdiabaticBC(), SlipWallBC(), SlipWallBC()]
@@ -317,7 +317,7 @@ out3_east = Line(out3_bottom_right, out2low_bottom_right)
 out3_south = Line(out3_bottom_left, out3_bottom_right)
 out3_west = Line(out3_bottom_left, TE_out)
 
-patch = make_patch(out2_south, out3_east, out3_south, out3_west, "AO")
+patch = make_patch(out2low_south, out3_east, out3_south, out3_west, "AO")
 
 out3_block = Block2D(label="out3", nni=out2_block.nni, nnj=in3_block.nnj,
                psurf=patch, fill_condition=initialCond)
