@@ -104,7 +104,7 @@ initial flow field.
 These items are then used as a starting point for the main simulation program
 which computes a series of snapshots of the evolving flow.
 Eilmer3 is part of the larger collection of compressible flow simulation codes
-found at \texttt{http://www.mech.uq.edu.au/cfcfd/}.
+found at \url{http://www.mech.uq.edu.au/cfcfd/}.
 
 \medskip
 This user guide contains a collection of example simulations: scripts, results
@@ -146,14 +146,14 @@ much more cleanly and be made much more versatile if we just reworked some of th
 Thus, the thermochemistry was reworked and the separate two and three dimensional codes merged
 into Eilmer3.
 The name change is to avoid a naming clash with the Elmer finite-element code 
-from Finland.\footnote{http://www.csc.fi/elmer} 
+from Finland.\footnote{\url{http://www.csc.fi/elmer}}
 
 \medskip 
 The following sections provide example input scripts and shell scripts for a number of simulations.
 These are intended to be starting points for your own simulations and should be studied together with 
 the other manuals that can be found in the documentation section of the 
 Compressible Flow CFD Group web site:  
-\texttt{http://www.mech.uq.edu.au/cfcfd/}.\index{Internet address}
+\url{http://www.mech.uq.edu.au/cfcfd/}.\index{Internet address}
 Study these scripts carefully; some of the interesting bits of the documentation are
 embedded within them.
 
@@ -178,7 +178,7 @@ various extensions.
 The source code of the Lua interpreter is included in with Eilmer3.
 The reStructuredText file \texttt{eilmer3.rst} (Appendix\,\ref{getting-started-file}) 
 or the corresponding HTML file from the web site\footnote{The web site 
-\texttt{http://www.mech.uq.edu.au/cfcfd/} has a nicely formatted set of instructions,
+\url{http://www.mech.uq.edu.au/cfcfd/} has a nicely formatted set of instructions,
 detailed API documents that have been extracted from the source code and 
 a number of examples.  It is regularly expanded and updated.}
 provides more detail including 
@@ -253,7 +253,7 @@ Create the geometry definition and a grid with the command\\
              to a scalable-vector-graphics file while \texttt{--do-vrml} will render 
              three-dimensional blocks to a virtual-reality-modeling-language file.
              For two-dimensional simulations, the SVG file can be edited in a program such as \texttt{Inkscape}
-             (\texttt{http://www.inkscape.org})
+             (\url{http://www.inkscape.org})
              and the result used as part of your documentation for a particular simulation.
            \item \textit{job}\texttt{.grid.b0000.t0000}, \textit{job}\texttt{.grid.b0001.t0000} :
              The grid of finite-volume cells, 
@@ -329,11 +329,11 @@ have a look in the data files to see what specific data has been captured.
 %
 One can build and run the distributed-memory version of the program, 
 \texttt{e3mpi.exe}\index{e3mpi.exe}, on computers with 
-the MPI (Message Passing Interface) library\footnote{See, for example, http://www.open-mpi.org/.} 
+the MPI (Message Passing Interface) library\footnote{See, for example, \url{http://www.open-mpi.org/}.} 
 and runtime environment.
 The notes in Appendix\,\ref{getting-started-file} show how to build and run 
 the Eilmer3 executable for OpenMPI.\footnote{These notes are also available in HTML form at the URL
-\texttt{http://www.mech.uq.edu.au/cfcfd/}.}
+\url{http://www.mech.uq.edu.au/cfcfd/}.}
 To run Eilmer3 across multiple processors\index{e3mpi.exe!running a simulation}
 on a local machine use the following command\\
 \texttt{\$ mpirun -np \textit{n} e3mpi.exe --job=name --run}\\
@@ -374,8 +374,8 @@ Postprocessing of the simulation data is the most unstructured of the simulation
 We provide a postprocessing program, \texttt{e3post.py} that has the basic capabilities of picking up 
 the simulation data and writing flow field files in formats suitable for 
 \texttt{Paraview}, \texttt{Visit}, \texttt{Tecplot}, the venerable \texttt{Plot3D} or 
-\texttt{gnuplot}\footnote{See the web sites  \texttt{http://www.paraview.org} \texttt{https://wci.llnl.gov/codes/visit/}
-\texttt{http://www.tecplot.com} \texttt{http://people.nas.nasa.gov/\~rogers/plot3d/intro.html} and \texttt{http://www.gnuplot.info}}.
+\texttt{gnuplot}\footnote{See the web sites  \url{http://www.paraview.org}, \url{https://wci.llnl.gov/codes/visit/},
+\url{http://www.tecplot.com}, \url{http://people.nas.nasa.gov/\~rogers/plot3d/intro.html} and \url{http://www.gnuplot.info}}.
 \vspace{0.25cm} \\
 \centerline{\includegraphics[width=0.7\textwidth]{figs/post-process.png}}\\
 
@@ -550,7 +550,7 @@ geometric regions and specifying flow conditions.
 Because your specification script, \texttt{{\em job}.py}, 
 becomes a part of that program when it runs,
 it is worth the effort to learn just enough Python to be dangerous.
-The web site \texttt{http://www.python.org} is a good starting point for
+The web site \url{http://www.python.org} is a good starting point for
 learning about the Python programming language, however, Appendix\,\ref{python-notes-sec}
 may have enough information to get you started.
 
@@ -1005,7 +1005,7 @@ The top-level geometry description given to the grid generator is in terms of
 ``patches'' for 2D flow and ``parametric volumes'' for 3D flow.
 These are regions of space that may be traversed by
 a set of parametric coordinates $0 \le r < 1$, $0 \le s < 1$ (in 2D) and 
-with the thrid parameter $0 \le t < 1$ in 3D.
+with the third parameter $0 \le t < 1$ in 3D.
 These patches or volumes can be imported as VTK structured grids or they can be
 constructed as a ``boundary representation'' from lower-dimensional 
 geometric entities such as paths and points.
@@ -1370,7 +1370,7 @@ the \texttt{e3prep.py} program and these represent\footnote{The
 \item \texttt{label} is an optional text label for the block.  This label
   will be embedded in the block definition and some of the postprocessing
   programs may use it.
-  For example, the \texttt{e3cgns.py} postporcessing program uses labels to group block boundaries symbolically.
+  For example, the \texttt{e3cgns.py} postprocessing program uses labels to group block boundaries symbolically.
 \end{itemize}
 Note that, when lists of items are provided for the four boundaries,
 the order of the boundaries is NORTH, EAST, SOUTH and WEST.
@@ -1780,7 +1780,7 @@ restricted to being applied to specific zones using\\
 \texttt{TurbulenceZone(point0, point1, label="")}\index{TurbulenceZone}\\
 The turbulence model (say, the $k-\omega$ model) is active throughout the flow
 but its effect on the flow field is masked outside of the \texttt{TurbulenceZone}s.
-This is achieved by the code setting the turbulence vicsosity and conductivity to zero
+This is achieved by the code setting the turbulence viscosity and conductivity to zero
 for finite-volume cells that fall outside of all regions defined as a \texttt{TurbulenceZone}.
 If there a no such defined regions, all of the flowfield may have nonzero turbulence viscosity.
 
@@ -1861,7 +1861,7 @@ are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config 
 \item \texttt{x\_order}\ddag: 1=no reconstruction of intra-cell flow properties
   before applying the flux calculator, 2=high-order reconstruction applied, 
   default value 2
-\item \texttt{apply\_limiter\_flag}: 1=apply reconstrction limiter, default value 1.
+\item \texttt{apply\_limiter\_flag}: 1=apply reconstruction limiter, default value 1.
 \item \texttt{interpolation\_type}: string to choose the set of interpolation variables
   to use in the interpolation, options are "rhoe", "rhop", "rhoT", "pT", default value "rhoe".
 \end{itemize}
@@ -2088,7 +2088,7 @@ where
 \begin{itemize}
  \item\texttt{cmd} is the name of the command or utility program that will do the work.
    Command names on Linux are often terse, 2 or 3 character names.
- \item\texttt{options} are words that are optionally included and are typically preceeded by one or two dashes.
+ \item\texttt{options} are words that are optionally included and are typically preceded by one or two dashes.
    These modify the bahaviour of the command, if the default behaviour is not quite what you want.
  \item \texttt{arguments} are the things to work on.
    If these are file names, you can often use patterns with \textit{wildcard} characters that may match
