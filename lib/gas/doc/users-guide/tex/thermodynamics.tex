@@ -690,9 +690,8 @@ The Bender gas model for real gas behaviour uses the Bender \cite{bender1975equa
 \textit{p-v-T} relationship which is a modification of the Benedict-Webb-Rubin
 form \cite{sengers2000equations}.
 The Bender \textit{p-v-T} relationship has 19 experimentally determined coefficients
-which have been published for over 50 substances \cite{bender1970equations}
-\cite{bender1975equations} \cite{platzer1990thermophysical} \cite{polt1992bender}
-\cite{sievers1980equation}.
+which have been published for over 50 substances
+\cite{bender1970equations,bender1975equations,platzer1990thermophysical,polt1992bender,sievers1980equation}.
 
 This model is applicable at high pressures and densities, in the critical region and
 for calculating vapour-liquid equilibrium. For this reason, it is useful in
@@ -702,37 +701,37 @@ such as turbomachinery and nozzle flows.
 %\paragraph{Assumptions}
 \paragraph{Equations}
 The \textit{p-v-T} behaviour for a Bender gas is expressed by the Bender equation of state \cite{bender1975equations}
-\begin{dmath}
-P = \rho R T + \rho^2 \sum_{i=1}^5 A_i T^{2-i} + \rho^3 \sum_{i=6}^8 A_i T^{7-i}
-    + \rho^4 \left( A_9 T + A_{10} \right) + \rho^5 \left( A_{11} T + A_{12} \right) + \rho^6 A_{13}
-    + \left[ \rho^3 \sum_{i=14}^{16} A_i T^{12-i} + \rho^5 \sum_{i=17}^{19} A_i T^{15-i} \right] \exp(-A_{20} \rho^2)
-\end{dmath}
+\begin{align}
+P = \rho R T &+ \rho^2 \sum_{i=1}^5 A_i T^{2-i} + \rho^3 \sum_{i=6}^8 A_i T^{7-i} \nonumber
+    + \rho^4 \left( A_9 T + A_{10} \right) + \rho^5 \left( A_{11} T + A_{12} \right)\\
+   &+ \rho^6 A_{13} + \left[ \rho^3 \sum_{i=14}^{16} A_i T^{12-i}
+    + \rho^5 \sum_{i=17}^{19} A_i T^{15-i} \right] \exp(-A_{20} \rho^2)
+\end{align}
 Where \(A_i\) are the experimentally determined coefficients. To capture the
 \textit{p-v-T} behaviour in the critical region, the final coefficient is typically
 published as
-\begin{dmath}
+\begin{align}
 A_{20} \approx \rho_c^{-2}
-\end{dmath}
+\end{align}
 The ideal gas (zero density) specific heat capacity at constant pressure is
 expressed using a fourth order polynomial, as this form can be used with
-the available published coefficients \cite{platzer1990thermophysical}
-\cite{polt1992bender} \cite{mclinden1989measurement}
-\cite{huber1992thermodynamic} \cite{outcalt1995equations}
-\cite{outcalt1996modified} \cite{outcalt1997equation}
-\cite{reynolds1979thermodynamic}
-\begin{dmath} \label{eq:bender_cp0}
+the available published coefficients
+\cite{platzer1990thermophysical,polt1992bender,mclinden1989measurement,
+    huber1992thermodynamic,outcalt1995equations,outcalt1996modified,
+    outcalt1997equation,reynolds1979thermodynamic}
+\begin{align} \label{eq:bender_cp0}
 C_p^0 = \sum_{i=1}^6 G_i T^{i-2}
-\end{dmath}
+\end{align}
 
 Reynolds \cite{reynolds1979thermodynamic} provide coefficients for a \(C_v^0\) equation,
 which have been converted to \(C_p^0\) form using
-\begin{dmath}
+\begin{align}
 C_p^0 = C_v^0 + R
-\end{dmath}
+\end{align}
 which results in only one coefficient modification
-\begin{dmath}
+\begin{align}
 G_{2,p} = G_{2,v} + R
-\end{dmath}
+\end{align}
 
 Due to the polynomial and exponential form of the Bender \textit{p-v-T} relationship
 and the ideal gas specific heat capacity equation,
@@ -741,29 +740,29 @@ sound speed can be evaluated analytically.
 
 For the calculation of internal energy, Equation~\ref{eq:int-energy} can be
 re-written as \cite{reynolds1979thermodynamic}
-\begin{dmath}
+\begin{align}
 e = \int_{T_0}^T \left(C_p^0 - R\right)\, dT
     + \int_0^{\rho}\frac{1}{\rho^2}\left[ P - T\left( \frac{\partial P}{\partial T} \right)_{\rho} \right]\, d\rho
     + e_0
-\end{dmath}
+\end{align}
 For the calculation of entropy, Equation~\ref{eq:s-p} can be
 re-written as \cite{reynolds1979thermodynamic}
-\begin{dmath}
+\begin{align}
 s = \int_{T_0}^T \frac{C_p^0 - R}{T}\, dT
     - R \ln{\rho}
     + \int_0^{\rho}\frac{1}{\rho^2}\left[ \rho R - \left( \frac{\partial P}{\partial T} \right)_{\rho} \right]\, d\rho
     + s_0
-\end{dmath}
+\end{align}
 \(C_v\) can then be calculated analytically with Equation~\ref{eq:Cv}. \(C_p\) is
 calculated using the Mayer Relation and the chain rule
-\begin{dmath}
-C_p = C_v + T\left(\frac{\partial\nu}{\partial T}\right)_P\left(\frac{\partial P}{\partial T}\right)_{\nu}
-= C_v - T \rho^{-2} \left(\frac{\partial\rho}{\partial T}\right)_P\left(\frac{\partial P}{\partial T}\right)_{\rho}
-\end{dmath}
+\begin{align}
+C_p &= C_v + T\left(\frac{\partial\nu}{\partial T}\right)_P\left(\frac{\partial P}{\partial T}\right)_{\nu}\\
+    &= C_v - T \rho^{-2} \left(\frac{\partial\rho}{\partial T}\right)_P\left(\frac{\partial P}{\partial T}\right)_{\rho}
+\end{align}
 The sound speed is given by
-\begin{dmath}
+\begin{align}
 a = \sqrt{\frac{C_p}{C_v} \left(\frac{\partial P}{\partial \rho}\right)_T}
-\end{dmath}
+\end{align}
 The analytical derivation using the above equations can be performed by hand, but
 is quite verbose and has therefore not been included in this report.
 
@@ -816,13 +815,13 @@ typically has higher accuracy in the evaluation of thermodynamic properties.
 %\paragraph{Assumptions}
 \paragraph{Equations}
 The \textit{p-v-T} behaviour for a MBWR gas is expressed by the MBWR equation of state \cite{jacobsen1973thermodynamic}
-\begin{dmath}
+\begin{align}
 P = \sum_{i=1}^9 A_i \rho^i + \exp{\left(-\gamma \rho^2\right)}\sum_{i=10}^{15} A_i \rho^{2i-17}
-\end{dmath}
+\end{align}
 where the critical region coefficient is
-\begin{dmath}
+\begin{align}
 \gamma = \rho_c^{-2}
-\end{dmath}
+\end{align}
 and the \(A_i\) temperature polynomials are
 \begin{align*}
 A_1 &= RT\\
