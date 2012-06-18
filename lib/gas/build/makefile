@@ -66,7 +66,7 @@ else
   http://www.grc.nasa.gov/WWW/CEAWeb/"
 endif
 ifeq ($(shell [ -d ../../../extern/refprop ] && echo "true"), true)
-  TOOL_EXECUTABLES += refprop.so
+  TOOL_EXECUTABLES += build-REFPROP-lut.py refprop.so
   REFPROP_MSG := "REFPROP has been included in the build."
 else
   REFPROP_MSG := "The REFPROP gas model will NOT be functional\n\
@@ -858,6 +858,9 @@ trans.inp : $(CEA2)/trans.inp
 gasmodel.py : $(TOOLS)/gasmodel.py
 	cp $(TOOLS)/gasmodel.py gasmodel.py
 	chmod +x gasmodel.py
+
+build-REFPROP-lut.py : $(TOOLS)/build-REFPROP-lut.py
+	cp $(TOOLS)/build-REFPROP-lut.py .
 
 refprop.so :
 	cd $(REFPROP)/build; make
