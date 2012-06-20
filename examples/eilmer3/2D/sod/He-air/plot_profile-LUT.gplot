@@ -5,8 +5,8 @@ set xlabel "x, m"
 set ylabel "Pressure, Pa"
 set xrange [0.0:1.0]
 set yrange [0:120000]
-plot "profile-LUT.data" using 1:9 t 'simulation' with points 2, \
-     "sod_p.dat" using 1:2 t 'exact' with l 1
+plot "profile-LUT.data" using 1:9 t 'simulation' with points pt 2, \
+     "sod_p.dat" using 1:2 t 'exact' with lines lt 1 lw 1
 
 set output "sod_rho-LUT.eps"
 set title "One-D Shock Tube at t = 0.6ms (LUT)"
@@ -14,8 +14,8 @@ set xlabel "x, m"
 set ylabel "Density, kg/m^3"
 set xrange [0.0:1.0]
 set yrange [0.0:0.4]
-plot "profile-LUT.data" using 1:5 t 'simulation' with points 2,\
-     "sod_rho.dat" using 1:2 t 'exact' with l 1
+plot "profile-LUT.data" using 1:5 t 'simulation' with points pt 2, \
+     "sod_rho.dat" using 1:2 t 'exact' with lines lt 1 lw 1
 
 
 set output "sod_u-LUT.eps"
@@ -24,8 +24,8 @@ set xlabel "x, m"
 set ylabel "Velocity, m/s"
 set xrange [0.0:1.0]
 set yrange [0.0:500.0]
-plot "profile-LUT.data" using 1:6 t 'simulation' with points 2, \
-     "sod_u.dat" using 1:2 t 'exact' with l 1
+plot "profile-LUT.data" using 1:6 t 'simulation' with points pt 2, \
+     "sod_u.dat" using 1:2 t 'exact' with lines lt 1 lw 1
 
 set output "sod_e-LUT.eps"
 set title "One-D Shock Tube at t = 0.6ms (LUT)"
@@ -33,6 +33,6 @@ set xlabel "x, m"
 set ylabel "Energy, J"
 set xrange [0.0:1.0]
 set yrange [0:1.2e6]
-plot "profile-LUT.data" using 1:21 t 'simulation' with points 2, \
-     "sod_e.dat" using 1:2 t 'exact' with l 1
+plot "profile-LUT.data" using 1:21 t 'simulation' with points pt 2, \
+     "sod_e.dat" using 1:2 t 'exact' with lines lt 1 lw 1
 

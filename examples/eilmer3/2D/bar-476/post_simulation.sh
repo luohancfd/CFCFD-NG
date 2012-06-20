@@ -24,5 +24,5 @@ set xlabel "r/r-max"
 set ylabel "p/p-centre"
 set key bottom left
 plot "norm_profile.data" using 1:2 title "simulation" with lines, \
-     "kendall_profile.data" using 1:2 title "experiment" with points 4
+     "kendall_profile.data" using 1:2 title "experiment" with points pt 4
 EOF

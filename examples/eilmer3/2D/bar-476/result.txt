@@ -1,2 +1,2 @@
-shock-location=  -0.00275601 0.0001875
+shock-location=  -0.0027505 0.0001875
 done.

@@ -18,7 +18,7 @@ set xlabel "Temperature, K"
 set yrange [0:25]
 set xrange [200:270]
 set style line 1 linetype 1 linewidth 4.0
-plot "profile-i47.data" using (\$20):(\$2-0.005)*1000 title "50x50 grid" with points 4, \
+plot "profile-i47.data" using (\$20):(\$2-0.005)*1000 title "50x50 grid" with points pt 4, \
      "cyl50_dimensional.dat" using (\$2):(\$1-0.005)*1000.0 title "spectral" with lines ls 1
 EOF
 
@@ -33,6 +33,6 @@ set key top left
 set yrange [0:25]
 set xrange [0:700]
 set style line 1 linetype 1 linewidth 4.0
-plot "profile-i47.data" using (\$6):(\$2-0.005)*1000 title "50x50 grid" with points 4, \
+plot "profile-i47.data" using (\$6):(\$2-0.005)*1000 title "50x50 grid" with points pt 4, \
      "cyl50_dimensional.dat" using (\$3):(\$1-0.005)*1000.0 title "spectral" with lines ls 1
 EOF

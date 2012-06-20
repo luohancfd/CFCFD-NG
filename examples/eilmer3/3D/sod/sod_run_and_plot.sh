@@ -13,8 +13,8 @@ set xlabel "x, m"
 set ylabel "Pressure, Pa"
 set xrange [0.0:1.0]
 set yrange [0.0:120.0e3]
-plot "sod_new.dat" using 1:9 with points 1 1, \
-     "sod_old.dat" using 1:7 with points 1 2
+plot "sod_new.dat" using 1:9 with points ps 1 pt 1, \
+     "sod_old.dat" using 1:7 with points ps 1 pt 2
 EOF
 
 gnuplot<<EOF
@@ -25,8 +25,8 @@ set xlabel "x, m"
 set ylabel "Density, kg/m**3"
 set xrange [0.0:1.0]
 set yrange [0.0:1.2]
-plot "sod_new.dat" using 1:5 with points 1 1, \
-     "sod_old.dat" using 1:3 with points 1 2
+plot "sod_new.dat" using 1:5 with points ps 1 pt 1, \
+     "sod_old.dat" using 1:3 with points ps 1 pt 2
 EOF
 
 gnuplot<<EOF
@@ -37,8 +37,8 @@ set xlabel "x, m"
 set ylabel "Velocity, m/s"
 set xrange [0.0:1.0]
 set yrange [0.0:500.0]
-plot "sod_new.dat" using 1:6 with points 1 1, \
-     "sod_old.dat" using 1:4 with points 1 2
+plot "sod_new.dat" using 1:6 with points ps 1 pt 1, \
+     "sod_old.dat" using 1:4 with points ps 1 pt 2
 EOF
 
 gnuplot<<EOF
@@ -49,6 +49,6 @@ set xlabel "x, m"
 set ylabel "Temperature, K"
 set xrange [0.0:1.0]
 set yrange [0.0:500.0]
-plot "sod_new.dat" using 1:20 with points 1 1, \
-     "sod_old.dat" using 1:10 with points 1 2
+plot "sod_new.dat" using 1:20 with points ps 1 pt 1, \
+     "sod_old.dat" using 1:10 with points ps 1 pt 2
 EOF
