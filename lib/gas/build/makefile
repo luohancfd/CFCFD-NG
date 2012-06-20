@@ -39,6 +39,16 @@ ZLIB            := ../../../extern/zlib-1.2.3
 LIBZLIB         := $(ZLIB)/libz.a
 CEA2            := ../../../extern/cea2
 REFPROP         := ../../../extern/refprop
+ifeq ($(shell [ -d $(CEA2) ] && echo "true"), true)
+  CEA2_EXISTS   := true
+else
+  CEA2_EXISTS   := false
+endif
+ifeq ($(shell [ -d $(REFPROP) ] && echo "true"), true)
+  REFPROP_EXISTS  := true
+else
+  REFPROP_EXISTS  := false
+endif
 
 #---------------------------------------
 # File name variables
@@ -56,20 +66,20 @@ TEST_EXECUTABLES := user-defined-gas-model-test.x \
 # 	noble-abel-gas-EOS-test.x \
 
 TOOL_EXECUTABLES := gasfile gasmodel.py
-ifeq ($(shell [ -d ../../../extern/cea2 ] && echo "true"), true)
+ifeq ($(CEA2_EXISTS), true)
   TOOL_EXECUTABLES += build-cea-lut.py cea2 thermo.inp trans.inp
   CEA2_MSG := "CEA2 has been included in the build."
 else
-  CEA2_MSG := "The look-up-table utilities will NOT be functional\n\
+  CEA2_MSG := "The CEA2 look-up-table utilities will NOT be functional\n\
   because the CEA2 program has not been found in $(CEA2)\n\
   Contact the NASA Glenn Research Center to request the software.\n\
   http://www.grc.nasa.gov/WWW/CEAWeb/"
 endif
-ifeq ($(shell [ -d ../../../extern/refprop ] && echo "true"), true)
+ifeq ($(REFPROP_EXISTS), true)
   TOOL_EXECUTABLES += build-REFPROP-lut.py refprop.so
   REFPROP_MSG := "REFPROP has been included in the build."
 else
-  REFPROP_MSG := "The REFPROP gas model will NOT be functional\n\
+  REFPROP_MSG := "The REFPROP look-up-table and gas model will NOT be functional\n\
   because the REFPROP program has not been found in $(REFPROP)\n\
   Contact the QGECE to request access to the software."
 endif
@@ -138,24 +148,28 @@ noneq_test: noneq-test.x noneq-test.py cea2 $(PYTHONGAS_MODULE)
 
 install: $(LIBGAS) $(LUA_MODULES) $(TOOL_EXECUTABLES) $(LUAGAS_MODULE) \
 		$(PYTHONGAS_MODULE)
-	- mkdir $(INSTALL_DIR)
+	- mkdir -p $(INSTALL_DIR)
 	cd ../../; rsync -av --exclude=".svn" --exclude="*~" cfpylib $(INSTALL_DIR)
 	- cp $(TOOL_EXECUTABLES) $(INSTALL_DIR)/
-	- mkdir $(INSTALL_DIR)/cea-cases
+	- mkdir -p $(INSTALL_DIR)/cea-cases
 	- cp $(CEA_CASES)/*.lua $(INSTALL_DIR)/cea-cases/
+ifeq ($(CEA2_EXISTS), true)
 	- cp thermo.inp trans.inp $(INSTALL_DIR)/cea-cases/
+endif
 	- cp $(LUA)/bin/lua $(INSTALL_DIR)/
 	chmod +x $(INSTALL_DIR)/gasfile
 	chmod +x $(INSTALL_DIR)/gasmodel.py
 	- cp $(LUA_MODULES) $(INSTALL_DIR)/
-	- mkdir $(INSTALL_DIR)/species
+	- mkdir -p $(INSTALL_DIR)/species
 	- cp $(SPECIES)/*.lua $(INSTALL_DIR)/species/
+ifeq ($(REFPROP_EXISTS), true)
 	- rsync -av $(SPECIES)/species-with-chemkin-thermo-data $(INSTALL_DIR)/species/
 	- mkdir -p $(INSTALL_DIR)/species/refprop/fluids
 	- rsync -av $(REFPROP)/REFPROP/fluids/ $(INSTALL_DIR)/species/refprop/fluids
 	- mkdir -p $(INSTALL_DIR)/species/refprop/mixtures
 	- rsync -av $(REFPROP)/REFPROP/mixtures/ $(INSTALL_DIR)/species/refprop/mixtures
-	- mkdir $(INSTALL_DIR)/collision-integrals
+endif
+	- mkdir -p $(INSTALL_DIR)/collision-integrals
 	rsync -a --exclude=.svn $(COLLISION_INTEGRALS)/* $(INSTALL_DIR)/collision-integrals/
 	- cp $(LUAGAS_MODULE) $(INSTALL_DIR)/
 	- cp $(PYTHONGAS_MODULE) $(INSTALL_DIR)/
@@ -282,7 +296,7 @@ KINETICS_OBJECTS := chemical-kinetic-ODE-update.o \
 #
 
 $(LIBGAS) : $(MODELS_OBJECTS) $(KINETICS_OBJECTS) $(LIBUTIL)
-	- rm $(LIBGAS)
+	- rm -f $(LIBGAS)
 	$(AR) rv $(LIBGAS) $(MODELS_OBJECTS) $(KINETICS_OBJECTS) $(LIBUTIL)
 	- ranlib $(LIBGAS)
 
