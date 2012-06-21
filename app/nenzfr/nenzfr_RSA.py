@@ -379,12 +379,13 @@ def main():
         if opt.pe is None:
             print "Need to supply a value for pe."
             bad_input = True
-        if not os.path.exists(opt.estcjFile):
-            print "'"+opt.estcjFile+"' does not exist in current directory"
-            bad_input = True
-        if not os.path.exists(opt.exitStatsFileName):
-            print "'"+opt.exitStatsFileName+"' does not exist in current directory"
-            bad_input = True
+        if opt.calcResiduals:
+            if not os.path.exists(opt.estcjFile):
+                print "'"+opt.estcjFile+"' does not exist in current directory"
+                bad_input = True
+            if not os.path.exists(opt.exitStatsFileName):
+                print "'"+opt.exitStatsFileName+"' does not exist in current directory"
+                bad_input = True
     if opt.createRSA:
         if not os.path.exists('perturbation_cases.dat'):
             print "'perturbation_cases.dat' does not exist in current directory"
