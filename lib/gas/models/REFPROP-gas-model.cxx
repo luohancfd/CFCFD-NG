@@ -182,7 +182,6 @@ s_eval_thermo_state_pT(Gas_data &Q)
     Q.rho = d*wm; // mol/L to mol/L
     Q.a = w;
     Q.e[0] = e*1e3/wm; // J/mol to J/kg
-    Q.T[0] = t;
     Q.quality = q;
     return SUCCESS;
 }
@@ -251,6 +250,16 @@ s_dedT_const_v(const Gas_data &Q, int &status)
     d = Q.rho/wm; // kg/m^3 to mol/L
     CVCP(t,d,x,cv,cp);
     return cv*1e3/wm; // J/(mol.K) to J/(kg.K)
+}
+
+double
+REFPROP_gas_model::
+s_dhdT_const_p(const Gas_data &Q, int &status)
+{   // Cp from temperature, density and composition.
+    t = Q.T[0];
+    d = Q.rho/wm; // kg/m^3 to mol/L
+    CVCP(t,d,x,cv,cp);
+    return cp*1e3/wm; // J/(mol.K) to J/(kg.K)
 }
 
 double

@@ -98,6 +98,7 @@ private:
     int s_eval_transport_coefficients(Gas_data &Q);
     int s_eval_diffusion_coefficients(Gas_data &Q);
     double s_dedT_const_v(const Gas_data &Q, int &status);
+    double s_dhdT_const_p(const Gas_data &Q, int &status);
     double s_internal_energy(const Gas_data &Q, int isp);
     double s_enthalpy(const Gas_data &Q, int isp);
     double s_entropy(const Gas_data &Q, int isp);
