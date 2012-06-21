@@ -14,12 +14,13 @@
 # School of Mechancial and Mining Engineering
 # The University of Queensland
 
-VERSION_STRING = "24-May-2012"
+VERSION_STRING = "21-June-2012"
 
 import string
 import sys, os, gzip
 import optparse
 from numpy import *
+from math import copysign
 from nenzfr_utils import run_command, quote, read_case_summary, \
      read_nenzfr_outfile, read_estcj_outfile
 E3BIN = os.path.expandvars("$HOME/e3bin")
@@ -175,6 +176,35 @@ def read_RSA_file(FileToRead):
         beta[var] = [float(values[k]) for k in range(len(values))]
     fp.close()
     return exitVar, DictOfCases, RSAtype, beta
+
+def extrapolation_check(Vs,pe,DictOfCases):
+    """
+    Compare the current Vs, pe values to the size of the domain
+    for which the response surface was designed. If we are 
+    outside the domain we print some warning messages so that 
+    the user is aware that the response surface will be 
+    extrapolating.
+    """
+    minVs = min(DictOfCases.values(), key=lambda x:x[0])[0]
+    maxVs = max(DictOfCases.values(), key=lambda x:x[0])[0]
+    
+    minPe = min(DictOfCases.values(), key=lambda x:x[1])[1]
+    maxPe = max(DictOfCases.values(), key=lambda x:x[1])[1]
+     
+    if Vs < minVs or Vs > maxVs:
+        dVs = min([abs(x) for x in [Vs-maxVs, Vs-minVs]])
+        dVs = copysign(dVs,Vs-maxVs)
+        print 
+        print "WARNING: Vs is outside the design domain of the current response surface\n"+\
+              "         by {0:5.1f} m/s or {1:5.1%} of the nominal.".format(dVs, dVs/DictOfCases['case00'][0])
+    if pe < minPe or pe > maxPe:
+        dpe = min([abs(x) for x in [pe-maxPe, pe-minPe]])
+        dpe = copysign(dpe,pe-maxPe)
+        print
+        print "WARNING: pe is outside the design domain of the current response surface\n"+\
+              "         by {0:>7.1f} Pa or {1:>5.1%} of the nominal.".format(dpe, dpe/DictOfCases['case00'][1])
+    print
+    return
 
 def calculate_freestream(Vs,pe,exitVar,DictOfCases,RSAtype,beta):
     """
@@ -410,6 +440,10 @@ def main():
         # Load in the nominated file
         exitVar, DictOfCases, opt.RSAtype, beta = read_RSA_file(opt.RSAfile)
         
+        # Check if the given Vs,pe are within the design domain of the
+        # current RSA.
+        extrapolation_check(opt.Vs,opt.pe,DictOfCases)
+
         # Calculate nozzle property values
         freeStreamValues = calculate_freestream(opt.Vs,opt.pe,exitVar,\
                                                DictOfCases,opt.RSAtype,beta)
