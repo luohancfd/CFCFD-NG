@@ -15,11 +15,11 @@ include ../../util/source/systems.mk
 
 OMPFLAG ?= 
 ifeq ($(TARGET), for_gnu_openmp)
-    OMPFLAG := "-fopenmp"
+    OMPFLAG := -fopenmp
 endif
 
 ifeq ($(TARGET), for_intel_openmp)
-    OMPFLAG := "-fopenmp"
+    OMPFLAG := -fopenmp
 endif
 
 #----------------------------------
@@ -85,8 +85,11 @@ ifeq ($(WITH_SPRADIAN), 1)
     RAD_OBJECTS += spradian.o spradian_radiator.o radipac6.o
 endif
 
+TEST_EXE := photaura_test.x
 
-TEST_EXE := photaura_test.x spradian_test.x run_spradian.x
+ifeq ($(WITH_SPRADIAN), 1)
+    TEST_EXE += spradian_test.x run_spradian.x
+endif
 
 TEST_PY := photaura_test.py radGUI.py
 
@@ -198,18 +201,18 @@ endif
 
 # ----------  Loadable library for Python under Linux --------
 _librad2.so : librad2_wrap.o $(LIBRAD2) $(LIBNM) $(LIBZLIB) $(LIBGEOM)
-	$(CXXLINK) $(LDFLAG) $(FLINK) -shared -o _librad2.so librad2_wrap.o \
+	$(CXXLINK) $(LDFLAG) $(FLINK) $(OMPFLAG) -shared -o _librad2.so librad2_wrap.o \
 		$(LIBRAD2) $(LIBNM) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
 
 # ----------  Loadable library for Python under Mac OS X --------
 _librad2.dylib : librad2_wrap.o $(LIBRAD2) $(LIBNM) $(LIBZLIB) $(LIBGEOM)
-	$(CXXLINK) $(LDFLAG) $(FLINK) -o _librad2.dylib librad2_wrap.o \
+	$(CXXLINK) $(LDFLAG) $(FLINK) $(OMPFLAG) -o _librad2.dylib librad2_wrap.o \
 		$(LIBRAD2) $(LIBNM) $(LIBLUA) $(LIBZLIB) $(LIBGEOM) \
 		-framework Python -bundle -bundle_loader $(PYTHON_BIN_DIR)/python 
 		 
 # ----------  Loadable library for Python under MS-Windows --------
 _librad2.dll : librad2_wrap.o $(LIBRAD2) $(LIBNM) $(LIBPYTHON) $(LIBZLIB) $(LIBGEOM)
-	$(CXXLINK) $(LDFLAG) $(FLINK) -shared -o _librad2.dll librad2_wrap.o \
+	$(CXXLINK) $(LDFLAG) $(FLINK) $(OMPFLAG) -shared -o _librad2.dll librad2_wrap.o \
 		-L$(PYTHON_DIR)/libs \
 		$(LIBRAD2) $(LIBNM) $(LIBPYTHON) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
 
@@ -338,14 +341,14 @@ cea2 : $(CEA2)/cea2.f
 	gfortran -std=legacy -o cea2 $(CEA2)/cea2.f
 
 photaura_test.x : photaura_test.o $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
-	$(CXXLINK) $(LFLAG) $(FLINK) -o photaura_test.x photaura_test.o \
+	$(CXXLINK) $(LFLAG) $(FLINK) $(OMPFLAG) -o photaura_test.x photaura_test.o \
 		$(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LUALINK) $(LIBGEOM)
 		
 photaura_test.o : $(SRC)/photaura_test.cxx 
 	$(CXX) $(CXXFLAG) $(SRC)/photaura_test.cxx -I$(LUA_INCLUDE_DIR)
 	
 spradian_test.x : spradian_test.o $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
-	$(CXXLINK) $(LFLAG) $(FLINK) -o spradian_test.x spradian_test.o \
+	$(CXXLINK) $(LFLAG) $(FLINK) $(OMPFLAG) -o spradian_test.x spradian_test.o \
 		$(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LUALINK) $(LIBGEOM)
 		
 spradian_test.o : $(SRC)/spradian_test.cxx $(SRC)/spradian.cxx 
