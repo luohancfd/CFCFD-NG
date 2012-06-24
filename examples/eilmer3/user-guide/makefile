@@ -12,6 +12,7 @@ eilmer3-user-guide.pdf: eilmer3-user-guide.tex \
 		cone20-udf.tex \
 		finite-cylinder.tex \
 		gas_models.tex \
+		hayabusa.tex \
 		inject.tex \
 		lehr-sphere.tex \
 		mms-euler.tex \
