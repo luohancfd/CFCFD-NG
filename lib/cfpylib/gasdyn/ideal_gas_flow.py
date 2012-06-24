@@ -255,13 +255,39 @@ def theta_cone(V1, p1, T1, beta, R=287.1, g=1.4):
     The cone surface corresponds to V_theta == 0.
 
     This ideal-gas version adapted from the cea2_gas_flow version, 08-Mar-2012.
+
+    24-Jun-2012 : RJG added checks to catch the limiting case when beta < mu
+                : and a linear interpolation when beta is only slightly larger
+                : than mu (1% larger)
     """
+    # When beta is only this fraction larger than mu,
+    # we'll apply a linear interpolation
+    LINEAR_INTERP_SWITCH = 1.01
     # Free-stream properties and gas model.
     a1 = sqrt(g*R*T1)
     M1 = V1 / a1
     C_p = R * g / (g-1)
     h1 = C_p * T1
     rho1 = p1 / (R * T1)
+    # Test beta in relation to the Mach angle, mu
+    mu = asin(1.0/M1)
+    beta2 = LINEAR_INTERP_SWITCH*mu
+    #print "beta= ", beta, "mu= ", mu, " beta2= ", beta2
+    if beta <= mu:
+        # An infinitely weak shock angle
+        return 0.0, V1, p1, T1
+    if beta < beta2:
+        # It is difficult to integrate between the shock and cone body
+        # when the shock angle is only slightly larger than the Mach
+        # angle. In this instance, find the value at LINEAR_INTER_SWITCH*mu
+        # and linearly interpolate to find the value at beta
+        (theta2, V2, p2, T2) = theta_cone(V1, p1, T1, beta2, R, g)
+        frac = (beta - mu)/(beta2 - mu)
+        theta_c = frac*theta2
+        V = (1.0 - frac)*V1 + frac*V2
+        p = (1.0 - frac)*p1 + frac*p2
+        T = (1.0 - frac)*T1 + frac*T2
+        return theta_c, V, p, T
     #
     # Start at the point just downstream the oblique shock.
     theta_s = theta_obl(M1, beta, g)
@@ -274,7 +300,7 @@ def theta_cone(V1, p1, T1, beta, R=287.1, g=1.4):
     h2 = T2 * C_p
     #
     # Initial conditions for Taylor-Maccoll integration.
-    dtheta = -0.5 * pi / 180.0  # fraction-of-a-degree steps
+    dtheta = -0.05 * pi / 180.0  # fraction-of-a-degree steps
     theta = beta
     V_r = V2 * cos(beta - theta_s)
     V_theta = -V2 * sin(beta - theta_s)
@@ -328,7 +354,7 @@ def beta_cone(V1, p1, T1, theta, R=287.1, g=1.4):
     def error_in_theta(beta_guess):
         theta_guess, V_c, p_c, T_c = theta_cone(V1, p1, T1, beta_guess, R, g)
         return theta_guess - theta
-    return secant(error_in_theta, b1, b2, tol=1.0e-4)
+    return secant(error_in_theta, b1, b2, tol=1.0e-4, limits=[asin(1.0/M1), pi/2.0])
 
 def beta_cone2(M1, theta, R=287.1, g=1.4):
     """
