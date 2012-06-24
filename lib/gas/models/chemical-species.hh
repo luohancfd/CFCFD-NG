@@ -39,8 +39,8 @@ public:
     double eval_energy(const Gas_data &Q)
     { return s_eval_energy(Q); }
     
-    double eval_modal_energy(double T, int itm )
-    { return s_eval_modal_energy(T,itm); }
+    double eval_modal_energy(int itm, const Gas_data &Q)
+    { return s_eval_modal_energy(itm, Q); }
 
     double eval_enthalpy(const Gas_data &Q)
     { return s_eval_enthalpy(Q); }
@@ -48,8 +48,8 @@ public:
     double eval_CEA_enthalpy(const Gas_data &Q)
     { return s_eval_CEA_enthalpy(Q); }
     
-    double eval_modal_enthalpy(double T, int itm )
-    { return s_eval_modal_enthalpy(T,itm); }
+    double eval_modal_enthalpy(int itm, const Gas_data &Q)
+    { return s_eval_modal_enthalpy(itm,Q); }
     
     double eval_entropy(const Gas_data &Q)
     { return s_eval_entropy(Q); }
@@ -126,11 +126,11 @@ protected:
     Segmented_functor * s_;
     
     double s_eval_energy(const Gas_data &Q);
-    double s_eval_modal_energy(double T, int itm );
+    double s_eval_modal_energy(int itm, const Gas_data &Q);
     double s_eval_enthalpy(const Gas_data &Q);
     double s_eval_CEA_enthalpy(const Gas_data &Q);
-    double s_eval_modal_enthalpy(double T, int itm );
-    double s_eval_entropy(const Gas_data &Q);
+    double s_eval_modal_enthalpy(int itm, const Gas_data &Q);
+    virtual double s_eval_entropy(const Gas_data &Q);
     double s_eval_Cv(const Gas_data &Q);
     double s_eval_Cp(const Gas_data &Q);
     double s_eval_CEA_Gibbs_free_energy( double T );
@@ -199,16 +199,28 @@ private:
     double theta_v_;
 };
 
+class Fully_coupled_diatomic_species;
+
+struct IntegrationParams  {
+    double A, B;
+    Fully_coupled_diatomic_species * X;
+};
+
 class Fully_coupled_diatomic_species : public Chemical_species {
 public:
     Fully_coupled_diatomic_species( std::string name, std::string type, int isp, double min_massf, lua_State * L );
     ~Fully_coupled_diatomic_species();
+    
+    void set_modal_temperature_indices();
 
-    int get_iT_vib()
-    { return modes_[1]->get_iT(); }	// internal mode is always second
+    int get_iT_elec()
+    { return modes_[1]->get_iT(); }	// electronic mode always second
     
     int get_iT_rot()
-    { return modes_[1]->get_iT(); }	// internal mode is always second
+    { return modes_[2]->get_iT(); }	// rotational mode always third
+    
+    int get_iT_vib()
+    { return modes_[3]->get_iT(); }	// vibrational mode always fourth
     
     bool get_polar_flag()
     { return polar_flag_; }
@@ -231,6 +243,9 @@ public:
     double get_mu_B()
     { return mu_B_; }
     
+    Fully_coupled_diatom_internal * get_fcd_int_pointer()
+    { return fcd_int_; }
+
 private:
     std::string oscillator_type_;
     bool polar_flag_;
@@ -240,9 +255,14 @@ private:
     double mu_;
     double alpha_;
     double mu_B_;
+
+#   if TABULATED_COUPLED_DIATOMIC_MODES==0
+    std::vector<Diatom_electronic_level*> elevs_;
+#   endif
     
-    double s_eval_Cv_int( const Gas_data &Q )
-    { return modes_[1]->eval_Cv(Q); }	// internal mode always second
+    Fully_coupled_diatom_internal * fcd_int_;
+    
+    double s_eval_entropy(const Gas_data &Q);
 };
 
 class Polyatomic_species : public Chemical_species {

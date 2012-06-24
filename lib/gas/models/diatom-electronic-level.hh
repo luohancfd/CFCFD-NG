@@ -51,6 +51,15 @@ public:
     /// \brief Calculate Bv term for the given vibrational level
     double eval_B_v( int iV );
     
+    /// \brief Calculate the rotational partition function for this electronic level
+    double eval_Qr( double T_rot );
+
+    /// \brief Calculate the rovibrational partition function for this electronic level
+    double eval_QvQr( double T_vib, double T_rot );
+
+    /// \brief Calculate the rovibronic partition function for this electronic level
+    double eval_QeQvQr( double T_el, double T_vib, double T_rot );
+
 public:
     /* Fundamental level data */
     double N;

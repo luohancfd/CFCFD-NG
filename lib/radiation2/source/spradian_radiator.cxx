@@ -18,6 +18,7 @@
 
 #include "spradian_radiator.hh"
 #include "spectral_model.hh"
+#include "radiation_constants.hh"
 
 using namespace std;
 
@@ -33,26 +34,18 @@ SpradianRadiator::SpradianRadiator( lua_State * L, string name )
 
     isp = get_int( L, -1, "isp" );
     
-    if ( type=="diatomic_radiator" || type=="triatomic_radiator" ) {
-	iTr = get_int( L, -1, "iTr" );
-    
-	iTv = get_int( L, -1, "iTv" );
-    }
-    else {
-	iTr = 0;
-
-	iTv = 0;
-    }
-
     if ( ECHO_RAD_INPUT > 1 ) {
-	cout << "isp = " << isp << endl
-	     << "iTr = " << iTr << endl
-	     << "iTv = " << iTv << endl;
+	cout << "isp = " << isp << endl;
     }
 }
 
 SpradianRadiator::
 ~SpradianRadiator() {}
+
+void SpradianRadiator::set_concentration( double rho_i )
+{
+    *conc = rho_i / m_w * RC_Na;
+}
 
 SpradianRadiator * create_new_spradian_radiator( lua_State * L, const std::string name )
 {

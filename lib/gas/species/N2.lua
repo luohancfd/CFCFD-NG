@@ -165,7 +165,7 @@ N2.Z = {
    reference = 'NA'
 }
 N2.NIST_electronic_levels = {
-   n_levels = 29,
+   n_levels = 24,
    ref = 'NIST Chemistry WebBook: http://webbook.nist.gov/chemistry/ (with spradian07::diatom.dat data for some parameters)',
    -- ===========================================================================================================================================================
    --   n       Te         re       g   dzero      we         wexe      weye        weze        be        alphae      de          betae       spn-orb     l   s  

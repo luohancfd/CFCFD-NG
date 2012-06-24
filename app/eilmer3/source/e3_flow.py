@@ -1450,22 +1450,26 @@ def tangent_slab_along_slice(fileName, slice_list_str, tindx, nblock, grid, flow
     gm = create_gas_model( "gas-model.lua" )
     nsp = gm.get_number_of_species()
     ntm = gm.get_number_of_modes()
-    Q = Gas_data(gm)
-    T_i = cells[0]["T[0]"]
-    T_f = cells[-1]["T[0]"] + 0.5 * ( cells[-1]["T[0]"] - cells[-2]["T[0]"] )
-    # print "s_i = %e, s_f = %e, T_i = %e, T_f = %e, T[-2] = %e, T[-1] = %e\n" % ( s_i, s_f, T_i, T_f, cells[-2]["T[0]"], cells[-1]["T[0]"] )
+    # T_i = cells[0]["T[0]"]
+    # T_f = cells[-1]["T[0]"] + 0.5 * ( cells[-1]["T[0]"] - cells[-2]["T[0]"] )
+    T_i = 0.0; T_f = 0.0
+    # print "T_i = %e, T_f = %e\n" % ( T_i, T_f )
     TS = TS_data(rsm,nslabs,T_i,T_f)
     divq = []
     divq_OT = []
     print "Calculating the radiation spectra for all slabs..."
     b = Bar()
-    b.len = 100
+    b.len = 50
     rsm.prep_radiator_population_files()
     ds_vec = []
+    # NOTE: must save gas-data structures to a list so that the pointers can 
+    #       access the correct data
+    Q_vec = []
     for islab in range(nslabs):
     	b.fill(int(float(islab)/float(nslabs)*100.0))
     	print b.show(), "\r",
     	sys.stdout.flush()
+    	Q = Gas_data(gm)
     	Q.rho = cells[islab]["rho"]
     	for isp in range(nsp):
     	    Q.massf[isp] = cells[islab]["massf[%d]"%isp]
@@ -1483,18 +1487,13 @@ def tangent_slab_along_slice(fileName, slice_list_str, tindx, nblock, grid, flow
     	rsm.append_current_radiator_populations( s[islab] )
     	rsm.write_QSS_population_analysis_files( Q, islab )
     	ds_vec.append(ds)
-    	# if islab==78:
-    	#     print_gas_data(Q,False)
-    	#     rsm.write_line_widths_to_file(Q)
-    	#     N_e = Q.massf[nsp-1] * Q.rho / RC_m_SI
-    	#     print "N_e = ", N_e
-    	#     sys.exit(1)
+    	Q_vec.append(Q)
     	
     print "\nSolving the tangent-slab problem..."
     q_total = TS.quick_solve_for_divq()
     print "approximate q_total = %0.3f W/cm2" % ( q_total * 1.0e-4 )
-    # q_total = TS.exact_solve_for_divq()
-    # print "exact q_total = %0.3f W/cm2" % ( q_total * 1.0e-4 )
+    q_total = TS.exact_solve_for_divq()
+    print "exact q_total = %0.3f W/cm2" % ( q_total * 1.0e-4 )
     TS.F_.write_to_file("TS-flux-spectra.data")
     ofile = open( fileName, "w" )
     ofile.write( "# Column 1: 1D cell location, s (m)\n" )

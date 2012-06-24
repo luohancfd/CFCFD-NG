@@ -131,6 +131,13 @@ Noneq_thermal_behaviour(lua_State *L)
 #    else
      ces_ = new No_chemical_equilibrium_system( min_massf_, species_ );
 #    endif
+
+     // 4. Complete initilisation of fully coupled diatomic species
+     for ( int isp=0; isp<get_library_nsp(); ++isp ) {
+     	 Chemical_species * X = get_library_species_pointer(isp);
+     	 if ( X->get_type().find("fully coupled diatomic")!=string::npos )
+     	     dynamic_cast<Fully_coupled_diatomic_species*>(X)->set_modal_temperature_indices();
+     }
 }
 
 Noneq_thermal_behaviour::
@@ -265,9 +272,9 @@ s_eval_entropy_isp(const Gas_data &Q, Equation_of_state *EOS_, int isp)
 
 double
 Noneq_thermal_behaviour::
-s_eval_modal_enthalpy_isp( double T, Equation_of_state *EOS_, int isp, int itm )
+s_eval_modal_enthalpy_isp(const Gas_data &Q, Equation_of_state *EOS_, int isp, int itm )
 {
-    return species_[isp]->eval_modal_enthalpy(T,itm);
+    return species_[isp]->eval_modal_enthalpy(itm,Q);
 }
 
 double

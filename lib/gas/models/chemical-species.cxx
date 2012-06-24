@@ -37,6 +37,8 @@ Chemical_species * new_chemical_species_from_file( string name, string inFile )
     Chemical_species * X = 0;
     if ( species_type.find("monatomic")!=string::npos )
 	X = new Atomic_species( string(name), species_type, 0, 0.0, L );
+    else if ( species_type.find("fully coupled diatomic")!=string::npos )
+        X = new Fully_coupled_diatomic_species( string(name), species_type, 0, 0.0, L );
     else if ( species_type.find("diatomic")!=string::npos )
 	X = new Diatomic_species( string(name), species_type, 0, 0.0, L );
     else if ( species_type.find("free electron")!=string::npos )
@@ -244,7 +246,7 @@ double Chemical_species::s_eval_energy(const Gas_data &Q)
     return e;
 }
 
-double Chemical_species::s_eval_modal_energy(double T, int itm)
+double Chemical_species::s_eval_modal_energy(int itm, const Gas_data &Q)
 {
     // 1. Initialise h
     //    CHECK-ME: Omitt Heat of formation?
@@ -255,7 +257,7 @@ double Chemical_species::s_eval_modal_energy(double T, int itm)
     //           diffusion at present
     for ( size_t iem=0; iem<modes_.size(); ++iem ) {
     	if ( modes_[iem]->get_iT()==itm )
-    	    h += modes_[iem]->eval_energy_from_T(T);
+    	    h += modes_[iem]->eval_energy(Q);
     }
     
     return h;
@@ -283,7 +285,7 @@ s_eval_CEA_enthalpy(const Gas_data &Q)
     return h;
 }
 
-double Chemical_species::s_eval_modal_enthalpy(double T, int itm)
+double Chemical_species::s_eval_modal_enthalpy(int itm, const Gas_data &Q)
 {
     // 1. Initialise h
     //    CHECK-ME: Omitt Heat of formation?
@@ -294,7 +296,7 @@ double Chemical_species::s_eval_modal_enthalpy(double T, int itm)
     //           diffusion at present
     for ( size_t iem=0; iem<modes_.size(); ++iem ) {
     	if ( modes_[iem]->get_iT()==itm )
-    	    h += modes_[iem]->eval_enthalpy_from_T(T);
+    	    h += modes_[iem]->eval_enthalpy(Q);
     }
     
     return h;
@@ -580,6 +582,10 @@ Fully_coupled_diatomic_species( string name, string type, int isp, double min_ma
 	mu_B_ = get_positive_value( L, -1, "mu_B" );
     }
     
+#   if TABULATED_COUPLED_DIATOMIC_MODES==0
+    // Set the temperature perturbation factor (used for finding derivatives numerically)
+    double fT = 1.0e-6;
+    
     lua_getfield(L, -1, "electronic_levels");
     if ( !lua_istable(L, -1) ) {
 	ostringstream ost;
@@ -596,18 +602,20 @@ Fully_coupled_diatomic_species( string name, string type, int isp, double min_ma
     	input_error(ost);
     }
     
-    // Get electronic level data
-    vector< vector<double> > lev_data(nlevs);
-    
+    // Create the electronic levels
     for ( int ilev=0; ilev<nlevs; ++ilev ) {
+    	vector<double> elev_data;
     	ostringstream lev_oss;
     	lev_oss << "ilev_" << ilev;
     	lua_getfield(L, -1, lev_oss.str().c_str());
 	for ( size_t i=0; i<lua_objlen(L, -1); ++i ) {
 	    lua_rawgeti(L, -1, i+1);
-	    lev_data[ilev].push_back( luaL_checknumber(L, -1) );
+	    elev_data.push_back( luaL_checknumber(L, -1) );
 	    lua_pop(L, 1 );
 	}
+    	cout << "Fully_coupled_diatomic_species::Fully_coupled_diatomic_species()" << endl
+    	<< "Attempting to create ilev = " << ilev << " for species: " << name << endl;
+    	elevs_.push_back( new Diatom_electronic_level( elev_data ) );
 	lua_pop(L,1);	// pop ilev
     }
     
@@ -630,12 +638,107 @@ Fully_coupled_diatomic_species( string name, string type, int isp, double min_ma
     
     // Create energy modes
     modes_.push_back( new Fully_excited_translation( isp_, R_, min_massf_ ) );
-    modes_.push_back( new Fully_coupled_diatom_internal( isp_, R_, min_massf_, sigma_r, lev_data ) );
+    modes_.push_back( new Coupled_diatomic_electronic( isp_, R_, min_massf_, sigma_r, fT, elevs_ ) );
+    modes_.push_back( new Coupled_diatomic_rotation( isp_, R_, min_massf_, sigma_r, fT, elevs_ ) );
+    modes_.push_back( new Coupled_diatomic_vibration( isp_, R_, min_massf_, sigma_r, fT, elevs_ ) );
+    
+    // Create a single temperature fully coupled internal mode
+    fcd_int_ = new Fully_coupled_diatom_internal( isp_, R_, min_massf_, sigma_r, fT, elevs_ );
+#   else
+    lua_getfield(L, -1, "electronic_levels");
+    if ( !lua_istable(L, -1) ) {
+	ostringstream ost;
+	ost << "Fully_coupled_diatomic_species::Fully_coupled_diatomic_species()\n";
+	ost << "Error locating 'level_data' table" << endl;
+	input_error(ost);
+    }
+    
+    int nlevs = get_int(L, -1, "n_levels");
+    if ( nlevs < 1 ) {
+    	ostringstream ost;
+    	ost << "Fully_coupled_diatomic_species::Fully_coupled_diatomic_species()\n";
+    	ost << "Require at least 1 electronic level - only " << nlevs << " present.\n";
+    	input_error(ost);
+    }
+    
+    // Get the ground state spectroscopic parameters
+    vector<double> lev_data;
+    
+    // Ground state - outside of loop to get vibration and rotation constants
+    string lev_str = "ilev_0";
+    lua_getfield(L, -1, lev_str.c_str());
+    for ( size_t i=0; i<lua_objlen(L, -1); ++i ) {
+	lua_rawgeti(L, -1, i+1);
+	lev_data.push_back( luaL_checknumber(L, -1) );
+	lua_pop(L, 1 );
+    }
+    lua_pop(L,1);	// pop ilev0
+    double theta_v = lev_data[4]*PC_c*PC_h_SI/PC_k_SI;
+    double theta_r = lev_data[8]*PC_c*PC_h_SI/PC_k_SI;
+    
+    // Get the first excited state electronic energy
+    lev_str = "ilev_1";
+    lua_getfield(L, -1, lev_str.c_str());
+    for ( size_t i=0; i<lua_objlen(L, -1); ++i ) {
+	lua_rawgeti(L, -1, i+1);
+	lev_data.push_back( luaL_checknumber(L, -1) );
+	lua_pop(L, 1 );
+    }
+    lua_pop(L,1);	// pop ilev1
+    double theta_e = lev_data[0]*PC_c*PC_h_SI/PC_k_SI;
+    
+    lua_pop(L,1);   // pop 'electronic_levels'
+
+    ostringstream LUT_fname;
+    LUT_fname << name_ << "-LUT.data";
+
+    modes_.push_back( new Fully_excited_translation( isp_, R_, min_massf_ ) );
+    modes_.push_back( new Coupled_diatomic_electronic( isp_, R_, min_massf_, theta_e, LUT_fname.str()  ) );
+    modes_.push_back( new Coupled_diatomic_rotation( isp_, R_, min_massf_, theta_r, LUT_fname.str() ) );
+    modes_.push_back( new Coupled_diatomic_vibration( isp_, R_, min_massf_, theta_v, LUT_fname.str() ) );
+    
+    fcd_int_ = new Fully_coupled_diatom_internal( isp_, R_, min_massf_, LUT_fname.str() );
+#   endif
+
 }
 
 Fully_coupled_diatomic_species::~Fully_coupled_diatomic_species()
 {
-    // NOTE: energy modes are cleared by ~Chemical_species()
+#   if TABULATED_COUPLED_DIATOMIC_MODES==0
+    // Clear the electronic levels
+    for ( size_t ilev=0; ilev<elevs_.size(); ++ilev )
+    	delete elevs_[ilev];
+#   endif
+    
+    // Delete the fully coupled diatomic mode
+    delete fcd_int_;
+}
+
+void Fully_coupled_diatomic_species::set_modal_temperature_indices()
+{
+    int iTt = modes_[0]->get_iT();
+    int iTe = modes_[1]->get_iT();
+    int iTr = modes_[2]->get_iT();
+    int iTv = modes_[3]->get_iT();
+    
+    // cout << "Fully_coupled_diatomic_species::set_modal_temperature_indices()" << endl
+    //      << "iTe = " << iTe << ", iTr = " << iTr << ", iTv = " << iTv << endl;
+    
+    dynamic_cast<Coupled_diatomic_electronic*>(modes_[1])->set_iTs(iTe,iTv,iTr);
+    dynamic_cast<Coupled_diatomic_rotation*>(modes_[2])->set_iTs(iTe,iTv,iTr);
+    dynamic_cast<Coupled_diatomic_vibration*>(modes_[3])->set_iTs(iTe,iTv,iTr);
+    fcd_int_->set_iT(iTt);
+}
+
+double Fully_coupled_diatomic_species::s_eval_entropy(const Gas_data &Q)
+{
+    // NOTE: This species needs its own expression for entropy as the coupled 
+    //       modes cannot presently calculate entropy.
+    //       The calculation here assumes thermal equilibrium at T_trans.
+    double s_trans = modes_[0]->eval_entropy(Q);
+    double s_int = fcd_int_->eval_entropy(Q);
+    
+    return s_trans + s_int;
 }
 
 /* ------- Polyatomic species ------- */

@@ -186,7 +186,6 @@ class GlobalRadData(object):
         ofile.write("c       4. rad(y/n) remark  at. spec  tt tr  tv  te    rad.file\n")
         mol_index = 0
         for rad in self.radiators:
-	    if rad.name=="e_minus": continue
             if rad.atoms>1: mol_index+=1
             ofile.write(rad.get_parade_string(mol_index,data_path))
         ofile.close()

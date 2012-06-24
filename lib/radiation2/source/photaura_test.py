@@ -165,6 +165,29 @@ def main():
 	for i,y in enumerate(qvL.y_array):
 	    qvL.y_array[i] = log(y)
 	qvL.plot_data(xlabel="wavelength, lambda (nm)", ylabel="Spectral flux, q (W/m**2-sr-m)", show_plot=True, include_integral=False)
+
+        print  "testing quick_solve_for_divq_with_binning(OPACITY_BINNING, N_bins=10)"
+        q_rad = TS.quick_solve_for_divq_with_binning( OPACITY_BINNING, 10 )
+	print  "q_rad = %e W/cm2 " % q_rad
+	print  "testing quick_solve_for_divq_with_binning(OPACITY_BINNING, N_bins=100)"
+	q_rad = TS.quick_solve_for_divq_with_binning( OPACITY_BINNING, 100 )
+	print  "q_rad = %e W/cm2 " % q_rad
+	print  "testing quick_solve_for_divq_with_binning( FREQUENCY_BINNING, N_bins=10)"
+	q_rad = TS.quick_solve_for_divq_with_binning( FREQUENCY_BINNING, 10 )
+	print  "q_rad = %e W/cm2 " % q_rad
+	print  "testing quick_solve_for_divq_with_binning( FREQUENCY_BINNING, N_bins=95)"
+	q_rad = TS.quick_solve_for_divq_with_binning( FREQUENCY_BINNING, 95 )
+	print  "q_rad = %e W/cm2 " % q_rad
+	print  "testing quick_solve_for_divq_with_binning( FREQUENCY_BINNING, N_bins=950)"
+	q_rad = TS.quick_solve_for_divq_with_binning( FREQUENCY_BINNING, 950 )
+	print  "q_rad = %e W/cm2 " % q_rad
+	print  "testing quick_solve_for_divq_with_binning( FREQUENCY_BINNING, N_bins=9500)"
+	q_rad = TS.quick_solve_for_divq_with_binning( FREQUENCY_BINNING, 9500 )
+	print  "q_rad = %e W/cm2 " % q_rad
+	print  "testing quick_solve_for_divq_with_binning( FREQUENCY_BINNING, N_bins=95000)"
+	q_rad = TS.quick_solve_for_divq_with_binning( FREQUENCY_BINNING, 95000 )
+	print  "q_rad = %e W/cm2 " % q_rad
+
 	del TS
 
     del gm, rsm, Q

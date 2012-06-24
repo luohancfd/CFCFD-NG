@@ -56,7 +56,7 @@ private:
     double s_eval_energy_isp(const Gas_data &Q, Equation_of_state *EOS_, int isp);
     double s_eval_enthalpy_isp(const Gas_data &Q, Equation_of_state *EOS_, int isp);
     double s_eval_entropy_isp(const Gas_data &Q, Equation_of_state *EOS_, int isp);
-    double s_eval_modal_enthalpy_isp( double T, Equation_of_state *EOS_, int isp, int itm );
+    double s_eval_modal_enthalpy_isp( const Gas_data &Q, Equation_of_state *EOS_, int isp, int itm );
     double s_eval_modal_Cv(Gas_data &Q, Equation_of_state *EOS_, int itm );
 };
 

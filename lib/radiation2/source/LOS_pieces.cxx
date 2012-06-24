@@ -10,9 +10,12 @@
 #include <math.h>
 #include <sstream>
 #include <iostream>
+#include <fstream>
+#include <iomanip>
 
 #include "../../nm/source/exponential_integrals.hh"
 #include "../../util/source/useful.h"
+#include "../../util/source/randomc.h"
 
 #include "LOS_pieces.hh"
 
@@ -214,6 +217,42 @@ double LOS_data::integrate_LOS_with_binning( int binning_type, int N_bins )
     return I_total;
 }
 
+double LOS_data::integrate_LOS_MC( SpectralIntensity &S, int nphotons )
+{
+    /* Spectral LOS integration using the Monte Carlo method */
+    // NOTE: only computing absorption
+    // Check vector sizes in S for consistency
+    if ( int(S.nu.size()) != nnus_ || int(S.I_nu.size()) != nnus_ ) {
+        cout << "Mismatch in size of spectral vector in structure S. " << endl
+             << "nnus = " << nnus_ << ", S.nu.size() = " << S.nu.size() << endl
+             << "Bailing out!" << endl;
+        exit( BAD_INPUT_ERROR );
+    }
+
+    double E_total = S.integrate_intensity_spectra();
+    double E_out = 0.0;
+    
+    CRandomMersenne rg = CRandomMersenne((int32)time(0));
+
+    // Loop over all photons
+    for ( int ip=0; ip < nphotons; ip++ ) {
+        double E_photon = E_total / nphotons;
+        double nu = S.random_frequency(rg.Random());
+        // int inu = S.random_frequency_interval(rg.Random());
+        // cout << "nu = " << nu << endl;
+        for ( int irp=0; irp<nrps_; irp++ ) {
+            double ds = rpoints_[irp]->ds_;
+            double kappa = rpoints_[irp]->X_->kappa_from_nu(nu);
+            // double kappa = rpoints_[irp]->X_->kappa_nu[inu];
+            double decay_factor = exp( - ds * kappa );
+            E_photon *= decay_factor;
+        }
+        E_out += E_photon;
+    }
+
+    return E_out;
+}
+
 void LOS_data::write_all_points_to_file( void )
 {
     for ( size_t ip=0; ip<rpoints_.size(); ++ip ) {
@@ -235,6 +274,50 @@ void LOS_data::write_point_to_file( int ip, string fname )
     }
     rpoints_[ip]->X_->write_to_file( fname );
     
+    return;
+}
+
+void LOS_data::write_gas_data_to_file( void )
+{
+    /* 1. Setup the output file. */
+    ofstream ofile;
+    ofile.open("LOS-gas-data.txt");
+    if( ofile.fail() ) {
+	cout << "Error opening file: LOS-gas-data.txt" << endl;
+	cout << "Bailing Out!\n";
+	exit(FILE_ERROR);
+    }
+    
+    ofile << setprecision(12) << scientific << showpoint;
+    
+    size_t ntm = rpoints_[0]->Q_->T.size();
+    size_t nsp = rpoints_[0]->Q_->massf.size();
+
+    ofile << "# File: LOS-gas-data.txt" << endl
+    	  << "# Column 1: Position, s (m)" << endl
+          << "# Column 2: Pressure, p (Pa)" << endl
+          << "# Column 3: Electron pressure, p_e (Pa)" << endl
+          << "# Column 4: Density, rho (kg/m**3" << endl;
+    for ( size_t itm=0; itm<ntm; ++itm )
+    	ofile << "# Column " << itm + 5 << ": Temperature, T[" << itm << "] (K)" << endl;
+    for ( size_t isp=0; isp<nsp; ++isp )
+    	ofile << "# Column " << isp + 5 + ntm << ": Mass-fraction, massf[" << isp << "] (ND)" << endl;
+           
+    for ( int irp=0; irp<nrps_; ++irp ) {
+    	RadiatingPoint * rp = this->get_rpoint_pointer(irp);
+    	ofile << setw(20) << rp->s_
+    	      << setw(20) << rp->Q_->p
+    	      << setw(20) << rp->Q_->p_e
+    	      << setw(20) << rp->Q_->rho;
+    	for ( size_t itm=0; itm<ntm; ++itm )
+    	    ofile << setw(20) << rp->Q_->T[itm];
+    	for ( size_t isp=0; isp<nsp; ++isp )
+    	    ofile << setw(20) << rp->Q_->massf[isp];
+    	ofile << endl;
+    }
+    
+    ofile.close();
+    	
     return;
 }
 

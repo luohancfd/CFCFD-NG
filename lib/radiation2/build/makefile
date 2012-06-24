@@ -10,6 +10,7 @@ TARGET ?= for_gnu
 OPT ?= -O2
 INSTALL_DIR ?= $(HOME)/e3bin
 WITH_SPRADIAN ?= 0
+SPRADIAN_SRC ?= ../../../extern/spradian07
 include ../../util/source/systems.mk
 
 OMPFLAG ?= 
@@ -21,7 +22,7 @@ ifeq ($(TARGET), for_intel_openmp)
     OMPFLAG := "-fopenmp"
 endif
 
-#----------------------------------------
+#----------------------------------
 # Directory variables
 
 # Local to this area
@@ -77,14 +78,15 @@ RAD_OBJECTS := spectral_model.o \
 	cr_reactions.o \
 	cr_rr_coeffs.o \
 	parade.o \
-	parade_radiator.o 
+	parade_radiator.o \
+	mersenne.o
 	
 ifeq ($(WITH_SPRADIAN), 1)
     RAD_OBJECTS += spradian.o spradian_radiator.o radipac6.o
 endif
 
 
-TEST_EXE := photaura_test.x
+TEST_EXE := photaura_test.x spradian_test.x run_spradian.x
 
 TEST_PY := photaura_test.py radGUI.py
 
@@ -151,6 +153,10 @@ clean :
 	
 clean_local :
 	- rm *.o *.py $(LIBRAD2) $(LOADABLE_MODULE) *.x *.a *.mod $(TEST_EXE)
+	- rm $(SRC)/librad2.py $(SRC)/librad2_wrap.cxx
+	
+clean_swig :
+	- rm librad2.py $(LOADABLE_MODULE) librad2_wrap.o
 	- rm $(SRC)/librad2.py $(SRC)/librad2_wrap.cxx
 
 #----------- External libraries
@@ -312,6 +318,12 @@ spradian.o : $(SRC)/spradian.cxx $(SRC)/spradian.hh \
 spradian_radiator.o : $(SRC)/spradian_radiator.cxx $(SRC)/spradian_radiator.hh
 	$(CXX) $(CXXFLAG) $(SRC)/spradian_radiator.cxx -I$(LUA_INCLUDE_DIR)
 	
+radipac6.o : $(SPRADIAN_SRC)/radipac6.f90
+	$(F90) $(F90FLAG) $(SPRADIAN_SRC)/radipac6.f90
+
+mersenne.o : $(UTIL_SRC)/mersenne.cpp $(UTIL_SRC)/randomc.h
+	$(CXX) $(CXXFLAG) $(UTIL_SRC)/mersenne.cpp
+	
 # ------------ Test python libraries and executables -------
 	
 photaura_test.py : $(SRC)/photaura_test.py
@@ -331,4 +343,18 @@ photaura_test.x : photaura_test.o $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIB
 		
 photaura_test.o : $(SRC)/photaura_test.cxx 
 	$(CXX) $(CXXFLAG) $(SRC)/photaura_test.cxx -I$(LUA_INCLUDE_DIR)
+	
+spradian_test.x : spradian_test.o $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
+	$(CXXLINK) $(LFLAG) $(FLINK) -o spradian_test.x spradian_test.o \
+		$(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LUALINK) $(LIBGEOM)
+		
+spradian_test.o : $(SRC)/spradian_test.cxx $(SRC)/spradian.cxx 
+	$(CXX) $(CXXFLAG) $(SRC)/spradian_test.cxx -I$(LUA_INCLUDE_DIR)
+	
+run_spradian.x : run_spradian.o $(LIBRAD2) $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
+	$(CXXLINK) $(LFLAG) $(FLINK) -o run_spradian.x run_spradian.o \
+		$(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LUALINK) $(LIBGEOM) 
+	
+run_spradian.o : $(SRC)/run_spradian.cxx 
+	$(CXX) $(CXXFLAG) $(SRC)/run_spradian.cxx -I$(LUA_INCLUDE_DIR)
 	

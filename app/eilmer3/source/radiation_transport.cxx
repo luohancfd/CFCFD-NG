@@ -1180,13 +1180,13 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 #          	endif
 		for ( iray=0; iray<nrays; ++iray ) {
 		    RayTracingRay * ray = this->create_new_ray_for_cell( cell, nrays, G.dimensions, planar_flag );
-		    int inu = this->determine_frequency_interval_for_cell( cell );
+		    double nu = cell->X_->random_frequency( rg_->Random() );
 		    // Each photon for a given cell has the same energy (domega is constant)
 		    double E = cell->X_->j_int.back() * cell->vol_ * ray->domega_;
 		    if ( E < E_min_ ) continue;
 		    // subtract emitted energy from origin cell
 		    cell->Q_rE_rad_temp_[omp_get_thread_num()] -= E / cell->vol_;
-		    this->trace_ray( ray, ib, ii, jj, kk, inu, E );
+		    this->trace_ray( ray, ib, ii, jj, kk, nu, E );
 		    delete ray;
 		}
 	    }
@@ -1209,10 +1209,11 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 #          	endif
 		for ( iray=0; iray<nrays; ++iray ) {
 		    RayTracingRay * ray = this->create_new_ray_for_interface( interface, nrays, G.dimensions, planar_flag );
-		    int inu = this->determine_frequency_interval_for_interface( interface );
+                    double nu = interface->S_->random_frequency( rg_->Random() );
 		    double E = interface->S_->I_int.back() * interface->area_ * ray->domega_;
 		    if ( E < E_min_ ) continue;
-		    this->trace_ray( ray, ib, ii, jj, kk, inu, E );
+		    this->trace_ray( ray, ib, ii, jj, kk, nu, E );
+		    delete ray;
 		}
 	    }
 	}
@@ -1305,48 +1306,9 @@ RayTracingRay * MonteCarlo::create_new_ray_for_interface( RayTracingInterface * 
     
     return ray;
 }
-
-int MonteCarlo::determine_frequency_interval_for_cell( RayTracingCell * cell )
-{
-    double j_interval = rg_->Random() * cell->X_->j_int.back();
-    int inu_b = 0, inu_u = int( cell->X_->j_int.size() - 1 ), inu_mp = 0;
-    double f_b, f_mp;
-    // double f_u;
-    while ( abs( inu_u - inu_b ) > 1 ) {
-	f_b = cell->X_->j_int[inu_b] - j_interval;
-	// f_u = cell->X_->j_int[inu_u] - j_interval; // Dan, seems to be unused, PJ 12-nov-2011.
-	inu_mp = int( ( inu_u + inu_b ) / 2.0 );
-	f_mp = cell->X_->j_int[inu_mp] - j_interval;
-	// cout << "j_interval = " << j_interval << endl;
-	// cout << "cell->X_->j_int[inu_b=" << inu_b << "] = " << cell->X_->j_int[inu_b] << endl;
-	// cout << "cell->X_->j_int[inu_u=" << inu_u << "] = " << cell->X_->j_int[inu_u] << endl;
-	// cout << "cell->X_->j_int[inu_mp=" << inu_mp << "] = " << cell->X_->j_int[inu_mp] << endl;
-	( f_b * f_mp > 0.0 ) ? ( inu_b = inu_mp ) : ( inu_u = inu_mp );
-    }
-    return inu_mp;
-}
-
-int MonteCarlo::determine_frequency_interval_for_interface( RayTracingInterface * interface )
-{
-    double I_interval = rg_->Random() * interface->S_->I_int.back();
-    int inu_b = 0, inu_u = int( interface->S_->I_int.size() - 1 ), inu_mp = 0;
-    double f_b, f_mp;
-    // double f_u;
-    while ( abs( inu_u - inu_b ) > 1 ) {
-	f_b = interface->S_->I_int[inu_b] - I_interval;
-	// f_u = interface->S_->I_int[inu_u] - I_interval; // Dan, seems to be unused, PJ 12-nov-2011.
-	inu_mp = int( ( inu_u + inu_b ) / 2.0 );
-	f_mp = interface->S_->I_int[inu_mp] - I_interval;
-	// cout << "I_interval = " << I_interval << endl;
-	// cout << "interface->S_->I_int[inu_b=" << inu_b << "] = " << interface->S_->I_int[inu_b] << endl;
-	// cout << "interface->S_->I_int[inu_u=" << inu_u << "] = " << interface->S_->I_int[inu_u] << endl;
-	// cout << "interface->S_->I_int[inu_mp=" << inu_mp << "] = " << interface->S_->I_int[inu_mp] << endl;
-	( f_b * f_mp > 0.0 ) ? ( inu_b = inu_mp ) : ( inu_u = inu_mp );
-    }
-    return inu_mp;
-}
-
-int MonteCarlo::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, int inu, double E )
+# if 0
+// statistical approach
+int MonteCarlo::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, double nu, double E )
 {
     // 1. Initialise pointers
     Block * A = get_block_data_ptr( ib );
@@ -1360,17 +1322,26 @@ int MonteCarlo::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, 
     
     int count = 0;
 
+    // limiting optical thickness
+    double tau_lim = 1.0 / exp( rg_->Random() );
+
+    // accumulative optical thickness
+    double tau_acc = 0.0;
+
     // step along the ray, dumping energy as we go
     while ( ( ray->status_ = cf_->find_cell( p, ib, ic, jc, kc ) ) == INSIDE_GRID ) {
     	// Get pointers to the new block and cell
     	A = get_block_data_ptr( ib );
     	cell = A->get_cell(ic,jc,kc);
     	RTcell = cells_[ib][get_cell_index(A,ic,jc,kc)];
-	// calculate absorbed energy
-	double kappa_nu = RTcell->X_->kappa_nu[inu];
-	double dE = ( 1.0 - exp( - kappa_nu * dL ) ) * E; E -= dE;
-	// add absorbed energy to traversed cell
-	RTcell->Q_rE_rad_temp_[omp_get_thread_num()] += dE / RTcell->vol_;
+	// calculate optical thickness
+	double kappa = RTcell->X_->kappa_from_nu(nu);
+	tau_acc += kappa * dL;
+	// add all energy to traversed cell if limiting optical thickness exceeded
+	if ( tau_acc >= tau_lim ) {
+	    RTcell->Q_rE_rad_temp_[omp_get_thread_num()] += E / RTcell->vol_;
+	    return SUCCESS;
+	}
     	// calculate next position on ray
     	dL = dl_lmin_ratio_ * cell->L_min;
     	L += dL;
@@ -1410,6 +1381,72 @@ int MonteCarlo::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, 
     
     return SUCCESS;
 }
+# else
+int MonteCarlo::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, double nu, double E )
+{
+    // 1. Initialise pointers
+    Block * A = get_block_data_ptr( ib );
+    FV_Cell * cell = A->get_cell(ic,jc,kc);             // start at origin cell
+
+    double dL = 0.5 * dl_lmin_ratio_ * cell->L_min;     // small initial step length
+    double L = dL;
+    Vector3 p = ray->get_point_on_line( L );
+
+    RayTracingCell * RTcell = 0;
+
+    int count = 0;
+
+    // step along the ray, dumping energy as we go
+    while ( ( ray->status_ = cf_->find_cell( p, ib, ic, jc, kc ) ) == INSIDE_GRID ) {
+        // Get pointers to the new block and cell
+        A = get_block_data_ptr( ib );
+        cell = A->get_cell(ic,jc,kc);
+        RTcell = cells_[ib][get_cell_index(A,ic,jc,kc)];
+        // calculate absorbed energy
+        double kappa = RTcell->X_->kappa_from_nu(nu);
+        double dE = ( 1.0 - exp( - kappa * dL ) ) * E; E -= dE;
+        // add absorbed energy to traversed cell
+        RTcell->Q_rE_rad_temp_[omp_get_thread_num()] += dE / RTcell->vol_;
+        // calculate next position on ray
+        dL = dl_lmin_ratio_ * cell->L_min;
+        L += dL;
+        ++count;
+        p = ray->get_point_on_line( L );
+    }
+
+    // Make sure block and cell pointers are up to date
+    A = get_block_data_ptr( ib );
+    cell = A->get_cell(ic,jc,kc);
+
+    if ( ray->status_ == ERROR ) {
+        cout << "MonteCarlo::trace_ray()" << endl
+             << "CellFinder failed at location: " << p.str() << endl
+             << "Exiting program" << endl;
+        exit( FAILURE);
+    }
+    else if ( count>0 && A->bcp[ray->status_]->is_wall_flag ) {
+        // dump energy onto interface (only if more than one point and this is a wall)
+        // int index = A->bcp[ ray->status_ ]->get_heat_flux_index( ic, jc, kc );
+        RayTracingInterface * RTinterface =  RTcell->interfaces_[ray->status_];
+        if ( RTinterface==0 ) {
+            cout << "MonteCarlo::trace_ray" << endl
+                 << "bad RayTracingInterface pointer on RayTracingCell" << endl
+                 << "Bailing ouT!" << endl;
+            cout << "ray->status_ = " << ray->status_ << endl;
+            cout << "RTcell->interfaces_[NORTH] = " << RTcell->interfaces_[NORTH] << endl;
+            cout << "RTcell->interfaces_[SOUTH] = " << RTcell->interfaces_[SOUTH] << endl;
+            cout << "RTcell->interfaces_[EAST] = " << RTcell->interfaces_[EAST] << endl;
+            cout << "RTcell->interfaces_[WEST] = " << RTcell->interfaces_[WEST] << endl;
+            cout << "cell->pos = " << RTcell->origin_.str() << endl;
+            cout << "point = " << p.str() << endl;
+            exit( BAD_INPUT_ERROR );
+        }
+        RTinterface->q_rad_temp_[omp_get_thread_num()] += E / RTinterface->area_;
+    }
+
+    return SUCCESS;
+}
+# endif
 
 RadiationTransportModel * create_radiation_transport_model( const string file_name )
 {

@@ -19,6 +19,7 @@ using namespace std;
 Diatom_electronic_level::Diatom_electronic_level( vector<double> lev_data )
 {
     E = lev_data[0] * PC_c * PC_h_SI;		// Convert cm^-1 to J
+    r_e = lev_data[1];
     g = int(lev_data[2]);
     D = lev_data[3] * PC_c * PC_h_SI;
     omega_e = lev_data[4] * PC_c * PC_h_SI;
@@ -139,14 +140,15 @@ solve_for_potential_curve_r_max( int iJ )
     double r_lower = 1.001 * r_e;
     double r_upper = 5 * r_e;
     double r_mid = 0.5 * ( r_upper + r_lower );
-    
-    int max_iterations = 1000;
+    double tol = 1.0e-6;
+
+    int max_iterations = 10000;
     for ( int i=0; i<=max_iterations; ++i ) {
     	if ( eval_potential_curve_first_derivative(iJ,r_lower) * eval_potential_curve_first_derivative(iJ,r_mid) > 0.0 ) r_lower = r_mid;
     	else r_upper = r_mid;
     	// cout << "iteration = " << i << ", r_mid = " << r_mid << ", fabs(r_upper - r_lower)/r_mid = " << fabs(r_upper - r_lower)/r_mid << endl;
     	r_mid = 0.5 * ( r_upper + r_lower );
-    	if ( fabs(r_upper - r_lower)/r_mid < 1.0e-6 ) break;
+    	if ( fabs(r_upper - r_lower)/r_mid < tol ) break;
     	if ( i==max_iterations ) {
     	    cout << "Diatom_electronic_level::solve_for_potential_curve_r_max()" << endl
     	         << "Reached maximum iterations with iJ = " << iJ << endl
@@ -259,3 +261,41 @@ eval_B_v( int iV )
     return B_v;
 }
 
+double
+Diatom_electronic_level::
+eval_Qr( double T_rot )
+{
+    double Q_rot = 0.0;
+    for ( int iV=0; iV<V_max; ++iV ) {
+        for ( int iJ=0; iJ<J_max[iV]; ++iJ ) {
+            double E_rot = eval_E_rot( iV, iJ ) - eval_E_rot( iV, 0 );
+            Q_rot += double(2*iJ+1) * exp( - E_rot / PC_k_SI / T_rot );
+        }
+    }
+
+    return Q_rot;
+}
+
+double
+Diatom_electronic_level::
+eval_QvQr( double T_vib, double T_rot )
+{
+    double Q_vib = 0.0;
+    for ( int iV=0; iV<V_max; ++iV ) {
+        double Q_rot = 0.0;
+        for ( int iJ=0; iJ<J_max[iV]; ++iJ ) {
+            double E_rot = eval_E_rot( iV, iJ );
+            Q_rot += double(2*iJ+1) * exp( - E_rot / PC_k_SI / T_rot );
+        }
+        double E_vib = eval_E_vib( iV );
+        Q_vib += exp( - E_vib / PC_k_SI / T_vib ) * Q_rot;
+    }
+    return Q_vib;
+}
+
+double
+Diatom_electronic_level::
+eval_QeQvQr( double T_el, double T_vib, double T_rot )
+{
+    return double(g) * exp( - E / PC_k_SI / T_el ) * eval_QvQr( T_vib, T_rot );
+}

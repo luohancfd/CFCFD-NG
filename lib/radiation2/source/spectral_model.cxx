@@ -208,7 +208,7 @@ write_QSS_analysis_files( Gas_data &Q, int index )
 RadiationSpectralModel * create_radiation_spectral_model( const string input_file )
 {
     // 0. Create a Radiation_spectral_model pointer
-    RadiationSpectralModel * rsm;
+    RadiationSpectralModel * rsm = 0;
     
     // 1. Get spectral_model string from lua file
     lua_State *L = initialise_radiation_lua_State();
@@ -243,7 +243,8 @@ RadiationSpectralModel * create_radiation_spectral_model( const string input_fil
     }
     else if( spectral_model == "spradian" ) {
 #	if WITH_SPRADIAN == 1
-	rsm = new Spradian( input_file );
+	rsm = new Spradian(L);
+#       else
 	cout << "Code not built with Spradian spectral radiation model available." << endl
 	     << "Recompile using WITH_SPRADIAN==1." << endl
 	     << "Exiting program." << endl;
@@ -251,7 +252,7 @@ RadiationSpectralModel * create_radiation_spectral_model( const string input_fil
 #	endif
     }
     else if( spectral_model == "parade" ) {
-	rsm = new Parade( input_file );
+	rsm = new Parade(L);
     }
     else {
 	cout << "The specified spectral radiation model: " << spectral_model << endl;

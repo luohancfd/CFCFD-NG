@@ -121,8 +121,8 @@ ifeq ($(TARGET), for_gnu)
         # Define the Fortran 90 compiler.
         F90 := gfortran
         # Compile without vector optimization for now.
-        F90FLAG := -c -O0 -fPIC
-        F90LFLAG := -lstdc++ -gnofor_main
+        F90FLAG := -m64 -c -O0 -fPIC
+        F90LFLAG := -m64 -lstdc++ -gnofor_main
         FLINK := -lgfortran
     endif
 endif
@@ -151,14 +151,6 @@ ifeq ($(TARGET), for_gnu_gcc4)
         CXXFLAG := -c $(OPT) -Wall -pedantic $(MARCH_FLAG)
     endif
     LLIB := -lm
-    ifeq ($(WITH_SPRADIAN), 1)
-        # Define the Fortran 90 compiler.
-        F90 := gfortran
-        # Compile without vector optimization for now.
-        F90FLAG := -c -O0 -fPIC
-        F90LFLAG := -lstdc++ -gnofor_main
-        FLINK := -lgfortran
-    endif
 endif
 
 ifeq ($(TARGET), for_gnu_debug)

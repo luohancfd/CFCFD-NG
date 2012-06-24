@@ -31,7 +31,9 @@ public:
     { tau_ = specific_compute_relaxation_time(Q,molef); }
     
     double compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
-    
+
+    double py_compute_rate(const std::vector<double> &y, Gas_data &Q, std::vector<double> &molef);
+
     double get_tau()
     { return tau_; }
 

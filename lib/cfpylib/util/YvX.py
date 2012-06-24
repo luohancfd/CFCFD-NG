@@ -79,18 +79,22 @@ class YvX:
             oFile.write("%e \t %e\n" % ( self.x_array[i], self.y_array[i] ) )
         oFile.close()
         print "Done"
-    def plot_data( self, title="", xlabel="", ylabel="", label="YvX_data", new_plot=True, show_plot=False, include_integral=False, rep='-' ):
+    def plot_data( self, title="", xlabel="", ylabel="", label="YvX_data", new_plot=True, show_plot=False, include_integral=False, rep='-', logscale_y=False, xrange=None, yrange=None ):
         if new_plot: pylab.figure()
         if include_integral: pylab.subplot(211)
         pylab.title(title)
         pylab.xlabel(xlabel)
         pylab.ylabel(ylabel)
+        if logscale_y: pylab.yscale('log')
+        if xrange: pylab.xlim(xrange[0],xrange[1])
+        if yrange: pylab.ylim(yrange[0],yrange[1])
         pylab.plot( self.x_array, self.y_array, rep )
         labels = [ label ]
 	if new_plot:
             pylab.legend( labels, loc="best" )
         if include_integral:
             pylab.subplot(212)
+            if xrange: pylab.xlim(xrange[0],xrange[1])
             self.integrate()
             pylab.plot( self.x_array, self.integral, rep )
             labels = [ label + " integral" ]
@@ -98,24 +102,28 @@ class YvX:
             	pylab.legend( labels, loc="best" )
         if show_plot:
             pylab.show()
-    def plot_spline( self, title="", xlabel="", ylabel="", label="YvX_data", new_plot=True, show_plot=False, include_integral=False ):
+    def plot_spline( self, title="", xlabel="", ylabel="", label="YvX_data", new_plot=True, show_plot=False, include_integral=False, rep='-', logscale_y=False, xrange=None, yrange=None  ):
         if new_plot: pylab.figure()
         if include_integral: pylab.subplot(211)
         pylab.title(title)
         pylab.xlabel(xlabel)
         pylab.ylabel(ylabel)
+        if xrange: pylab.xlim(xrange[0],xrange[1])
+        if yrange: pylab.ylim(yrange[0],yrange[1])
+        if logscale_y: pylab.yscale('log')
         x_spline = []; y_spline = []
         nx = 10*len(self.x_array)
         dx = ( self.x_array[-1] - self.x_array[0] ) / ( nx - 1 )
         for ix in range(nx):
             x_spline.append( self.x_array[0] + ix*dx )
             y_spline.append( self.y_from_x( self.x_array[0] + ix*dx ) )
-        pylab.plot( x_spline, y_spline, '-' )
+        pylab.plot( x_spline, y_spline, rep )
         labels = [ label ]
         if include_integral:
             pylab.subplot(212)
+            if xrange: pylab.xlim(xrange[0],xrange[1])
             self.integrate()
-            pylab.plot( self.x_array, self.integral, '-' )
+            pylab.plot( self.x_array, self.integral, rep )
             labels.append( label + " integral" )
         if new_plot: 
             pylab.legend( labels, loc='best' )
