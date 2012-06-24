@@ -108,6 +108,24 @@ private:
     double theta;
 };
 
+class TOPBaseModel : public PhotoIonisationCrossSectionModel {
+public:
+    /// \brief Constructor
+    TOPBaseModel(  lua_State * L, int ilev );
+    
+    /// \brief Deconstructor
+    ~TOPBaseModel();
+    
+public:
+    double eval( double nu );
+    
+private:
+    std::vector<double> nu_list;
+    std::vector<double> sigma_list;
+    int i_prev;
+    int N_points;
+};
+
 PhotoIonisationCrossSectionModel*
 create_new_PICS_model( lua_State * L, int ilev, double n_eff, int Z, double I );
 

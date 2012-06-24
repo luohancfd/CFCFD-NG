@@ -90,7 +90,6 @@ int initialise_chemical_species_library( double min_massf, lua_State * L )
 	}
 	// else if ( species_type.find("diatomic")!=string::npos )
 	// else if ( species_type.find("polyatomic")!=string::npos )
-
 	lua_pop(L, 1);	// pop 'sp'
     }
     

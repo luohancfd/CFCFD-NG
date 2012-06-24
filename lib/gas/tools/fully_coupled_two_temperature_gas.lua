@@ -1,6 +1,6 @@
 -- Author: Daniel F. Potter
--- Date: 25-Mar-2009
--- Place: UQ, St Lucia, QLD
+-- Date: 07-Apr-2012
+-- Place: Goettingen, Germany
 
 module(..., package.seeall)
 
@@ -92,7 +92,7 @@ default.convergence_tolerance = 1.0e-6
 default.max_iterations = 100
 default.oscillator_type = 'truncated anharmonic'
 
-function create_fully_coupled_one_temperature_gas(species, f)
+function create_fully_coupled_two_temperature_gas(species, f)
    e_flag = false
    for _,sp in ipairs(species) do
        if sp=="e_minus" then
@@ -117,16 +117,34 @@ function create_fully_coupled_one_temperature_gas(species, f)
    f:write("diffusion_coefficients = 'GuptaYos'\n")
    f:write(string.format("min_massf = %e\n\n", default.min_massf))
    
-   f:write("thermal_modes = { 'all' }\n\n")
-   f:write("all = {}\n")
-   f:write("all.type = 'variable Cv'\n")
-   f:write("all.iT = 0\n")
-   f:write("all.components = { 'all-translation', 'all-rotation', 'all-vibration', 'all-electronic' }\n")
-   f:write(string.format("all.T_min = %f\n",default.T_min))
-   f:write(string.format("all.T_max = %f\n",default.T_max))
-   f:write(string.format("all.iterative_method = '%s'\n",default.iterative_method))
-   f:write(string.format("all.convergence_tolerance = %e\n",default.convergence_tolerance))
-   f:write(string.format("all.max_iterations = %d\n\n",default.max_iterations))
+   f:write("thermal_modes = { 'transrotational', 'vibroelectronic' }\n\n")
+   f:write("transrotational = {}\n")
+   f:write("transrotational.type = 'variable Cv'\n")
+   f:write("transrotational.iT = 0\n")
+   if e_flag then
+      f:write("transrotational.components = { 'hp-translation', 'all-rotation' }\n\n")
+   else
+      f:write("transrotational.components = { 'all-translation', 'all-rotation' }\n\n")
+   end
+   f:write(string.format("transrotational.T_min = %f\n",default.T_min))
+   f:write(string.format("transrotational.T_max = %f\n",default.T_max))
+   f:write(string.format("transrotational.iterative_method = '%s'\n",default.iterative_method))
+   f:write(string.format("transrotational.convergence_tolerance = %e\n",default.convergence_tolerance))
+   f:write(string.format("transrotational.max_iterations = %d\n\n",default.max_iterations))
+   f:write("vibroelectronic = {}\n")
+   f:write("vibroelectronic.type = 'variable Cv'\n")
+   f:write("vibroelectronic.iT = 1\n")
+   if e_flag then
+      f:write("vibroelectronic.components = { 'all-vibration', 'all-electronic', 'e_minus-translation' }\n")
+   else
+      f:write("vibroelectronic.components = { 'all-vibration', 'all-electronic' }\n")
+   end
+   f:write(string.format("vibroelectronic.T_min = %f\n",default.T_min))
+   f:write(string.format("vibroelectronic.T_max = %f\n",default.T_max))
+   f:write(string.format("vibroelectronic.iterative_method = '%s'\n",default.iterative_method))
+   f:write(string.format("vibroelectronic.convergence_tolerance = %e\n",default.convergence_tolerance))
+   f:write(string.format("vibroelectronic.max_iterations = %d\n\n",default.max_iterations))
+   
    
    species_avail = list_available_species()
    f:write("species = {")
@@ -192,14 +210,15 @@ function create_fully_coupled_one_temperature_gas(species, f)
       
       -- electronic levels
       val = "electronic_levels"
+      elev_src = "electronic_levels"
       f:write(string.format("%s = {\n", sp.."."..val))
-      n_levels = _G[sp][val]["n_levels"]
+      n_levels = _G[sp][elev_src]["n_levels"]
       f:write(string.format("  n_levels = %d,\n", n_levels ))
-      f:write(string.format("  ref = %q,\n", _G[sp][val]["ref"] ))
+      f:write(string.format("  ref = %q,\n", _G[sp][elev_src]["ref"] ))
       for ilev=0,(n_levels-1) do
          ilev_str = string.format("ilev_%d", ilev)
          f:write(string.format("  %s = ", ilev_str))
-         serialise(_G[sp][val][ilev_str], f, "  ")
+         serialise(_G[sp][elev_src][ilev_str], f, "  ")
          f:write(",\n")
       end
       f:write("}\n")

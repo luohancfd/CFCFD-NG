@@ -135,11 +135,7 @@ private:
     
     RayTracingRay * create_new_ray_for_interface( RayTracingInterface * interface, int nrays, int ndim, bool planar );
     
-    int determine_frequency_interval_for_cell( RayTracingCell * cell );
-    
-    int determine_frequency_interval_for_interface( RayTracingInterface * interface );
-    
-    int trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, int inu, double E );
+    int trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, double nu, double E );
     
     int get_cell_index( Block * A, int i, int j, int k )
     { return (k-A->kmin)*(A->nnj*A->nni)+(j-A->jmin)*A->nni+(i-A->imin); }

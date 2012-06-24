@@ -17,6 +17,8 @@ require 'three_temperature_gas'
 require 'two_temperature_gas'
 require 'one_temperature_gas'
 require 'fully_coupled_one_temperature_gas'
+require 'fully_coupled_two_temperature_gas'
+require 'fully_coupled_four_temperature_gas'
 
 local create_ideal_gas = ideal_gas.create_ideal_gas
 local create_thermally_perfect_gas = thermally_perfect_gas.create_thermally_perfect_gas
@@ -27,6 +29,8 @@ local create_three_temperature_gas = three_temperature_gas.create_three_temperat
 local create_two_temperature_gas = two_temperature_gas.create_two_temperature_gas
 local create_one_temperature_gas = one_temperature_gas.create_one_temperature_gas
 local create_fully_coupled_one_temperature_gas = fully_coupled_one_temperature_gas.create_fully_coupled_one_temperature_gas
+local create_fully_coupled_two_temperature_gas = fully_coupled_two_temperature_gas.create_fully_coupled_two_temperature_gas
+local create_fully_coupled_four_temperature_gas = fully_coupled_four_temperature_gas.create_fully_coupled_four_temperature_gas
 
 gas_models = {}
 gas_models["ideal gas"] = create_ideal_gas
@@ -38,6 +42,8 @@ gas_models["three temperature gas"] = create_three_temperature_gas
 gas_models["two temperature gas"] = create_two_temperature_gas
 gas_models["one temperature gas"] = create_one_temperature_gas
 gas_models["fully coupled one temperature gas"] = create_fully_coupled_one_temperature_gas
+gas_models["fully coupled two temperature gas"] = create_fully_coupled_two_temperature_gas
+gas_models["fully coupled four temperature gas"] = create_fully_coupled_four_temperature_gas
 
 function print_usage()
    print "Usage gasfile:"

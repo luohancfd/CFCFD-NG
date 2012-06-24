@@ -16,6 +16,9 @@
 
 #include "energy-exchange-relaxation-time.hh"
 
+#define THIVET_MW_FORMULATION          1
+#define N_TOTAL_FOR_PARK_VT_CORRECTION 1
+
 using namespace std;
 
 Relaxation_time::
@@ -119,15 +122,28 @@ specific_relaxation_time(Gas_data &Q, vector<double> &molef)
     
     // NOTE: assuming thermally perfect gases
     for ( size_t i=0; i<iqs_.size(); ++i ) {
+#       if THIVET_MW_FORMULATION==1
+        // Use the mixture partial pressure
 	if ( homogenous_flags_[i] ) {
 	    p_atm = Q.rho * Q.massf[ip_] * PC_R_u / M_p_ * Q.T[iT_] / PC_P_atm;
 	}
 	else {
 	    p_atm = Q.rho * ( Q.massf[ip_] * PC_R_u / M_p_ +  Q.massf[iqs_[i]] * PC_R_u / M_qs_[i] ) * Q.T[iT_] / PC_P_atm;
 	}
+#       else
+        // Use the collider partial pressure
+	p_atm = Q.rho * Q.massf[iqs_[i]] * PC_R_u / M_qs_[i] * Q.T[iT_] / PC_P_atm;
+#       endif
 	
 	tau_q = (1.0/p_atm)*exp(a_[i]*(pow(Q.T[iT_], -1.0/3.0) - b_[i]) - 18.42);
-	tau_inv += molef[iqs_[i]] / tau_q;						// mole-fraction scaling (see Thivet paper)
+
+#       if THIVET_MW_FORMULATION==1
+	// Scale by collider mole-fraction
+	tau_inv += molef[iqs_[i]] / tau_q;
+#       else
+	// Omit mole-fraction scaling
+	tau_inv += 1.0 / tau_q;
+#       endif
     }
 
     return 1.0/tau_inv;
@@ -280,10 +296,17 @@ specific_relaxation_time(Gas_data &Q, vector<double> &molef)
     double tau_q;
     double tau_inv = 0.0;
     double sigma;
-    double n_total = Q.p / PC_k_SI / Q.T[0] * 1.0e-6;					// total particles / cm**3
+#   if N_TOTAL_FOR_PARK_VT_CORRECTION==1
+    double n_col = Q.p / PC_k_SI / Q.T[0] * 1.0e-6;
+#   else
+    double n_col;
+#   endif
+
     
     // NOTE: assuming thermally perfect gases for the p_atm calc
     for ( size_t i=0; i<iqs_.size(); ++i ) {
+#       if THIVET_MW_FORMULATION==1
+        // Use binary mixture partial pressure
 	if ( homogenous_flags_[i] ) {
 	    p_atm = Q.rho * Q.massf[ip_] * PC_R_u / M_p_ * Q.T[iT_] / PC_P_atm;		// atmospheres
 	    m_av = M_p_ / PC_Avogadro * 1.0e3;						// grams
@@ -292,13 +315,37 @@ specific_relaxation_time(Gas_data &Q, vector<double> &molef)
 	    p_atm = Q.rho * ( Q.massf[ip_] * PC_R_u / M_p_ +  Q.massf[iqs_[i]] * PC_R_u / M_qs_[i] ) * Q.T[iT_] / PC_P_atm;
 	    m_av = 0.5 * ( M_p_ + M_qs_[i] ) / PC_Avogadro * 1.0e3;
 	}
+#       if N_TOTAL_FOR_PARK_VT_CORRECTION==0
+	n_col = p_atm * PC_P_atm / PC_k_SI / Q.T[0] * 1.0e-6;                           // colliding particles / cm**3
+#       endif
+#       else
+	// Use collider partial pressure
+	p_atm = Q.rho * Q.massf[iqs_[i]] * PC_R_u / M_qs_[i] * Q.T[iT_] / PC_P_atm;
+        if ( homogenous_flags_[i] ) {
+#           if N_TOTAL_FOR_PARK_VT_CORRECTION==0
+            n_col = Q.rho * Q.massf[ip_] / M_p_ * PC_Avogadro * 1.0e-6;                 // colliding particles / cm**3
+#           endif
+            m_av = M_p_ / PC_Avogadro * 1.0e3;                                          // grams
+        }
+        else {
+#           if N_TOTAL_FOR_PARK_VT_CORRECTION==0
+            n_col = Q.rho * ( Q.massf[ip_] * PC_R_u / M_p_ +  Q.massf[iqs_[i]] * PC_R_u / M_qs_[i] ) * PC_Avogadro * 1.0e-6;
+#           endif
+            m_av = 0.5 * ( M_p_ + M_qs_[i] ) / PC_Avogadro * 1.0e3;
+        }
+#       endif
 	
 	tau_q = (1.0/p_atm)*exp(a_[i]*(pow(Q.T[iT_], -1.0/3.0) - b_[i]) - 18.42);
 	// high-temperature correction
 	sigma = HTC_model_->eval_sigma(Q.T[iT_]);				// cm**-2
-	tau_q += 1.0 / ( n_total * sqrt( 8.0 * PC_k_CGS * Q.T[iT_] / ( M_PI * m_av ) ) * sigma );
+	tau_q += 1.0 / ( n_col * sqrt( 8.0 * PC_k_CGS * Q.T[iT_] / ( M_PI * m_av ) ) * sigma );
+#       if THIVET_MW_FORMULATION==1
 	// mole-fraction scaling (see Thivet paper)
 	tau_inv += molef[iqs_[i]] / tau_q;
+#       else
+	// Omit mole-fraction scaling
+	tau_inv += 1.0 / tau_q;
+#       endif
     }
 
     return 1.0/tau_inv;
@@ -468,8 +515,10 @@ specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
     if ( n_c==0.0 ) return -1.0;
 
     double T = Q.T[iTe_];
-    double simga_ec = C_[0] + C_[1] * T + C_[2] * T * T;
-    double nu_ec = n_c * simga_ec * sqrt( 8.0 * PC_k_CGS * T / ( M_PI * PC_m_CGS ) );
+    double sigma_ec = C_[0] + C_[1] * T + C_[2] * T * T;
+    /* Convert sigma_ec from m**2 -> cm**2 */
+    sigma_ec *= 1.0e4;
+    double nu_ec = n_c * sigma_ec * sqrt( 8.0 * PC_k_CGS * T / ( M_PI * PC_m_CGS ) );
     double tau_ec = M_c_ / nu_ec;
     
     return tau_ec;

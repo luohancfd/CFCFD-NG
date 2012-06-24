@@ -54,7 +54,7 @@ SpectralContainer::~SpectralContainer()
 
 double
 SpectralContainer::
-write_data_to_file( string fname,
+write_data_to_file( string fname, int spectral_units,
     		    vector<double> &Y1, string Y1_label, string Y1_int_label,
     		    vector<double> &Y2, string Y2_label )
 {
@@ -72,28 +72,68 @@ write_data_to_file( string fname,
     
     specfile << setprecision(12) << scientific << showpoint;
 
-    specfile << "# " << fname << endl
-    	     << "# Column 1: Wavelength (nm)" << endl
-             << "# Column 2: " << Y1_label << endl
+    specfile << "# " << fname << endl;
+    if ( spectral_units==WAVELENGTH )
+        specfile << "# Column 1: Wavelength (nm)" << endl;
+    else if ( spectral_units==WAVENUMBER )
+        specfile << "# Column 1: Wavenumber (cm-1)" << endl;
+    else if ( spectral_units==FREQUENCY )
+        specfile << "# Column 1: Frequency (Hz)" << endl;
+    else if ( spectral_units==ENERGY )
+        specfile << "# Column 1: Energy (eV)" << endl;
+    else {
+        cout << "SpectralContainer::write_data_to_file()" << endl
+             << "spectral unit: " << spectral_units << "not recognised" << endl;
+        exit( BAD_INPUT_ERROR );
+    }
+    specfile << "# Column 2: " << Y1_label << endl
              << "# Column 3: " << Y1_int_label << endl;
     if ( with_Y2 ) {
     	specfile << "# Column 4: " << Y2_label << endl;
     }
     /* 2. Write data for each frequency interval to file. */
     double Y1_int = 0.0;
-    for ( int inu=int(nu.size())-1; inu >= 0; --inu ) {
-        // Integration of Y1
-        if ( inu < int(nu.size())-1 ) 
-	    Y1_int += 0.5 * ( Y1[inu] + Y1[inu+1] ) * fabs(nu[inu] - nu[inu+1]);
-	// Write to file
-        specfile << setw(20) << nu2lambda( nu[inu] )
-                 << setw(20) << Y1[inu] * nu[inu] * nu[inu] / RC_c_SI
-                 << setw(20) << Y1_int;
-        if ( with_Y2 ) {
-            specfile << setw(20) << Y2[inu];
+    if ( spectral_units==WAVELENGTH ) {
+        for ( int inu=int(nu.size())-1; inu >= 0; --inu ) {
+            // Integration of Y1
+            if ( inu < int(nu.size())-1 )
+                Y1_int += 0.5 * ( Y1[inu] + Y1[inu+1] ) * fabs(nu[inu] - nu[inu+1]);
+            // Spectral coordinate
+            double SC = nu2lambda( nu[inu] );
+            // Write to file
+            specfile << setw(20) << SC
+                     << setw(20) << Y1[inu] * nu[inu] * nu[inu] / RC_c_SI
+                     << setw(20) << Y1_int;
+            if ( with_Y2 ) {
+                specfile << setw(20) << Y2[inu];
+            }
+            specfile << endl;
+            // move on to next frequency interval
         }
-        specfile << endl;
-        // move on to next frequency interval
+    }
+    else {
+        for ( int inu=0; inu < int(nu.size()); ++inu ) {
+            // Integration of Y1
+            if ( inu > 0 )
+                Y1_int += 0.5 * ( Y1[inu-1] + Y1[inu] ) * fabs(nu[inu-1] - nu[inu]);
+            // Spectral coordinate
+            double SC = 0.0;
+            if ( spectral_units==WAVENUMBER )
+                SC = 1.0 / nu2lambda( nu[inu] ) * 1.0e7;
+            else if ( spectral_units==FREQUENCY )
+                SC = nu[inu];
+            else if ( spectral_units==ENERGY )
+                SC = RC_h_SI * nu[inu] / RC_e_SI;
+            // Write to file
+            specfile << setw(20) << SC
+                     << setw(20) << Y1[inu] * nu[inu] / SC
+                     << setw(20) << Y1_int;
+            if ( with_Y2 ) {
+                specfile << setw(20) << Y2[inu];
+            }
+            specfile << endl;
+            // move on to next frequency interval
+        }
     }
     
     specfile.close();
@@ -112,7 +152,6 @@ CoeffSpectra::CoeffSpectra( RadiationSpectralModel * rsm )
     kappa_nu.resize( nu.size() );
     j_int.resize( nu.size() );
 }
-    
 
 CoeffSpectra::~CoeffSpectra()
 {
@@ -132,13 +171,19 @@ CoeffSpectra * CoeffSpectra::clone()
     return X;
 }
 
-double CoeffSpectra::write_to_file( string fname )
+double CoeffSpectra::write_to_file( string fname, int spectral_units )
 {
     string Y1_label = "Emission coefficient, j_lambda (W/m**3-sr-m)";
+    if ( spectral_units==WAVENUMBER )
+        Y1_label = "Emission coefficient, j_eta (W/m**3-sr-1/cm)";
+    else if ( spectral_units==FREQUENCY )
+        Y1_label = "Emission coefficient, j_nu (W/m**3-sr-Hz)";
+    else if ( spectral_units==ENERGY )
+        Y1_label = "Emission coefficient, j_epsilon (W/m**3-sr-eV)";
     string Y1_int_label = "Integrated emission, j (W/m**3-sr)";
     string Y2_label = "Absorption coefficient, kappa_lambda (1/m)";
     
-    return write_data_to_file( fname, j_nu, Y1_label, Y1_int_label, kappa_nu, Y2_label );
+    return write_data_to_file( fname, spectral_units, j_nu, Y1_label, Y1_int_label, kappa_nu, Y2_label );
 }
 
 void CoeffSpectra::write_TRT_tools_file( string fname )
@@ -189,10 +234,90 @@ void CoeffSpectra::calculate_cumulative_emission( bool resize )
     // 1. Integrate, storing cumulative integrand along the way
     j_int[0] = 0.0;
     for ( int inu=1; inu < int(nu.size()); inu++ ) {
-    	j_int[inu] = j_int[inu-1] + 0.5 * ( j_nu[inu] + j_nu[inu-1] ) * fabs(nu[inu] - nu[inu-1]);
+        j_int[inu] = j_int[inu-1] + 0.5 * ( j_nu[inu] + j_nu[inu-1] ) * fabs(nu[inu] - nu[inu-1]);
     }
-    
+
     return;
+}
+
+#define QUADRATIC_EQUATION(a,b,c) ( -b + sqrt( b*b - 4.0 * a * c ) ) / ( 2.0 * a )
+
+double CoeffSpectra::random_frequency( double R )
+{
+    double j_interval = R * j_int.back();
+    // cout << "j_interval = " << j_interval << ", R = " << R << ", j_int.back() = " << j_int.back() << endl;
+    int inu_b = 0, inu_u = int( j_int.size() - 1 ), inu_mp = 0;
+    double f_b = 0.0, f_mp;
+    while ( abs( inu_u - inu_b ) > 1 ) {
+        f_b = j_int[inu_b] - j_interval;
+        inu_mp = int( ( inu_u + inu_b ) / 2.0 );
+        f_mp = j_int[inu_mp] - j_interval;
+        ( f_b * f_mp > 0.0 ) ? ( inu_b = inu_mp ) : ( inu_u = inu_mp );
+    }
+
+    // now need to solve for the actual frequency
+    double m = ( j_nu[inu_u] - j_nu[inu_b] ) / ( nu[inu_u] - nu[inu_b] );
+    double nu_interval = QUADRATIC_EQUATION( (0.5*m), (-m*nu[inu_b]+j_nu[inu_b]), (0.5*m*nu[inu_b]*nu[inu_b] - j_nu[inu_b]*nu[inu_b] - ( j_interval - j_int[inu_b] ) ) );
+
+    // cout << "CoeffSpectra::random_frequency()" << endl;
+    // cout << "inu_b = " << inu_b << ", inu_u = " << inu_u << endl;
+    // cout << "nu = " << nu[inu_b] + dnu << ", nu[inu_b] = " << nu[inu_b] << ", nu[inu_u] = " << nu[inu_u] << endl;
+    // cout << "j_interval = " << j_interval << ", j_int[inu_b] = " << j_int[inu_b] << ", j_int[inu_u] = " << j_int[inu_u] << endl;
+
+    // if ( nu_interval > nu[inu_u] ) {
+    //     cout << "CoeffSpectra::random_frequency()" << endl
+    //          << "nu_interval = " << nu_interval << " > nu[inu_u] = " << nu[inu_u] << endl;
+    //     exit( FAILURE );
+    // }
+    // else if ( nu_interval < nu[inu_b] ) {
+    //     cout << "CoeffSpectra::random_frequency()" << endl
+    //          << "nu_interval = " << nu_interval << " < nu[inu_b] = " << nu[inu_b] << endl;
+    //     exit( FAILURE );
+    // }
+    return nu_interval;
+}
+
+#undef QUADRATIC_EQUATION
+
+int CoeffSpectra::random_frequency_interval( double R )
+{
+    double j_interval = R * j_int.back();
+    // cout << "j_interval = " << j_interval << ", R = " << R << ", j_int.back() = " << j_int.back() << endl;
+    int inu_b = 0, inu_u = int( j_int.size() - 1 ), inu_mp = 0;
+    double f_b = 0.0, f_mp;
+    while ( abs( inu_u - inu_b ) > 1 ) {
+        f_b = j_int[inu_b] - j_interval;
+        inu_mp = int( ( inu_u + inu_b ) / 2.0 );
+        f_mp = j_int[inu_mp] - j_interval;
+        ( f_b * f_mp > 0.0 ) ? ( inu_b = inu_mp ) : ( inu_u = inu_mp );
+    }
+    f_b = j_int[inu_b] - j_interval;
+    double f_u = j_int[inu_u] - j_interval;
+
+    return fabs(f_b) < fabs(f_u) ? inu_b : inu_u;
+}
+
+double CoeffSpectra::kappa_from_nu( double nu_interval )
+{
+    int inu_b = 0, inu_u = int( nu.size() - 1 ), inu_mp = 0;
+    double f_b = 0.0, f_mp;
+    while ( abs( inu_u - inu_b ) > 1 ) {
+        f_b = nu[inu_b] - nu_interval;
+        inu_mp = int( ( inu_u + inu_b ) / 2.0 );
+        f_mp = nu[inu_mp] - nu_interval;
+        ( f_b * f_mp > 0.0 ) ? ( inu_b = inu_mp ) : ( inu_u = inu_mp );
+    }
+
+    double dnu = nu_interval - nu[inu_b];
+    double m = ( kappa_nu[inu_u] - kappa_nu[inu_b] ) / ( nu[inu_u] - nu[inu_b] );
+    double kappa = kappa_nu[inu_b] + m * dnu;
+
+    // cout << "CoeffSpectra::kappa_from_nu()" << endl;
+    // cout << "inu_b = " << inu_b << ", inu_u = " << inu_u << endl;
+    // cout << "nu_interval = " << nu_interval << ", nu[inu_b] = " << nu[inu_b] << ", nu[inu_u] = " << nu[inu_u] << endl;
+    // cout << "kappa = " << kappa << ", kappa_nu[inu_b] = " << kappa_nu[inu_b] << ", kappa_nu[inu_u] = " << kappa_nu[inu_u] << endl;
+
+    return kappa;
 }
 
 /* ------------ SpectralBin class ------------ */
@@ -354,14 +479,15 @@ SpectralIntensity::SpectralIntensity( RadiationSpectralModel * rsm, double T )
     I_int.resize( nu.size() );
     
     nwidths = 5;
-    
+
     for ( size_t inu=0; inu<nu.size(); ++inu ) {
     	I_nu[inu] = planck_intensity( nu[inu], T );
     }
 }
 
 SpectralIntensity::SpectralIntensity(SpectralIntensity &S )
- : SpectralContainer( S ), I_nu( S.I_nu ), I_int( S.I_int ), nwidths( S.nwidths ) {}
+ : SpectralContainer( S ), I_nu( S.I_nu ), I_int( S.I_int ), nwidths( S.nwidths )
+{}
 
 SpectralIntensity::~SpectralIntensity()
 {
@@ -369,12 +495,18 @@ SpectralIntensity::~SpectralIntensity()
     I_int.resize(0);
 }
 
-double SpectralIntensity::write_to_file( string filename )
+double SpectralIntensity::write_to_file( string filename, int spectral_units )
 {
     string Y1_label = "Spectral intensity, I_lambda (W/m**2-sr-m)";
+    if ( spectral_units==WAVENUMBER )
+        Y1_label = "Spectral intensity, I_eta (W/m**2-sr-1/cm)";
+    else if ( spectral_units==FREQUENCY )
+        Y1_label = "Spectral intensity, I_nu (W/m**2-sr-Hz)";
+    else if ( spectral_units==ENERGY )
+        Y1_label = "Spectral intensity, I_epsilon (W/m**2-sr-eV)";
     string Y1_int_label = "Integrated intensity, I (W/m**2-sr)";
     
-    return write_data_to_file( filename, I_nu, Y1_label, Y1_int_label );
+    return write_data_to_file( filename, spectral_units, I_nu, Y1_label, Y1_int_label );
 }
 
 void SpectralIntensity::apply_apparatus_function( double delta_x_ang )
@@ -472,12 +604,70 @@ double SpectralIntensity::integrate_intensity_spectra( double lambda_min, double
     if ( lambda_min > 0.0 ) inu_end = get_nu_index(nu, lambda2nu(lambda_min)) + 1;
 
     double I_total = 0.0;
-    for( int inu=inu_start+1; inu<inu_end; ++inu ) {
-    	I_total += 0.5 * ( I_nu[inu-1] + I_nu[inu] ) * ( nu[inu] - nu[inu-1] );
-    	I_int[inu] = I_total;
+    for( int inu=inu_start+1; inu<=inu_end; ++inu ) {
+     	I_total += 0.5 * ( I_nu[inu] + I_nu[inu-1] ) * ( nu[inu] - nu[inu-1] );
+     	I_int[inu] = I_total;
     }
 
     return I_total;
+}
+
+#define QUADRATIC_EQUATION(a,b,c) ( -b + sqrt( b*b - 4.0 * a * c ) ) / ( 2.0 * a )
+
+double SpectralIntensity::random_frequency( double R )
+{
+    double I_interval = R * I_int.back();
+    // cout << "I_int.back() = " << I_int.back() << ", I_interval = " << I_interval << endl;
+    int inu_b = 0, inu_u = int( I_int.size() - 1 ), inu_mp = 0;
+    double f_b = 0.0, f_mp;
+    while ( abs( inu_u - inu_b ) > 1 ) {
+        f_b = I_int[inu_b] - I_interval;
+        inu_mp = int( ( inu_u + inu_b ) / 2.0 );
+        f_mp = I_int[inu_mp] - I_interval;
+        ( f_b * f_mp > 0.0 ) ? ( inu_b = inu_mp ) : ( inu_u = inu_mp );
+    }
+
+    // now need to solve for the actual frequency
+    double m = ( I_nu[inu_u] - I_nu[inu_b] ) / ( nu[inu_u] - nu[inu_b] );
+    double nu_interval = QUADRATIC_EQUATION( (0.5*m), (-m*nu[inu_b]+I_nu[inu_b]), (0.5*m*nu[inu_b]*nu[inu_b] - I_nu[inu_b]*nu[inu_b] - ( I_interval - I_int[inu_b])) );
+
+    // cout << "SpectralIntensity::random_frequency()" << endl;
+    // cout << "inu_b = " << inu_b << ", inu_u = " << inu_u << endl;
+    // cout << "I_interval = " << I_interval << ", I_int[inu_b] = " << I_int[inu_b] << ", I_int[inu_u] = " << I_int[inu_u] << endl;
+    // cout << "nu_interval = " << nu_interval << ", nu[inu_b] = " << nu[inu_b] << ", nu[inu_u] = " << nu[inu_u] << endl;
+    // cout << "I_nu[inu_b] = " << I_nu[inu_b] << ", I_nu[inu_u] = " << I_nu[inu_u] << endl;
+
+    // if ( nu_interval > nu[inu_u] ) {
+    //     cout << "SpectralIntensity::random_frequency()" << endl
+    //          << "nu_interval = " << nu_interval << " > nu[inu_u] = " << nu[inu_u] << endl;
+    //     exit( FAILURE );
+    // }
+    // else if ( nu_interval < nu[inu_b] ) {
+    //     cout << "SpectralIntensity::random_frequency()" << endl
+    //          << "nu_interval = " << nu_interval << " < nu[inu_b] = " << nu[inu_b] << endl;
+    //     exit( FAILURE );
+    // }
+    return nu_interval;
+}
+
+#undef QUADRATIC_EQUATION
+
+int SpectralIntensity::random_frequency_interval( double R )
+{
+    double I_interval = R * I_int.back();
+    // cout << "I_interval = " << I_interval << ", R = " << R << ", I_int.back() = " << I_int.back() << endl;
+    int inu_b = 0, inu_u = int( I_int.size() - 1 ), inu_mp = 0;
+    double f_b = 0.0, f_mp;
+    while ( abs( inu_u - inu_b ) > 1 ) {
+        f_b = I_int[inu_b] - I_interval;
+        inu_mp = int( ( inu_u + inu_b ) / 2.0 );
+        f_mp = I_int[inu_mp] - I_interval;
+        ( f_b * f_mp > 0.0 ) ? ( inu_b = inu_mp ) : ( inu_u = inu_mp );
+    }
+    f_b = I_int[inu_b] - I_interval;
+    double f_u = I_int[inu_u] - I_interval;
+
+    return fabs(f_b) < fabs(f_u) ? inu_b : inu_u;
 }
 
 /* ------------ BinnedSpectralIntensity class ------------ */
@@ -564,12 +754,18 @@ SpectralFlux::~SpectralFlux()
     q_nu.resize(0);
 }
 
-double SpectralFlux::write_to_file( string filename )
+double SpectralFlux::write_to_file( string filename, int spectral_units )
 {
-    string Y1_label = "Spectral flux, q_lambda (W/m**2-sr-m)";
-    string Y1_int_label = "Integrated flux, q (W/m**2-sr)";
+    string Y1_label = "Spectral flux, q_lambda (W/m**2-m)";
+    if ( spectral_units==WAVENUMBER )
+        Y1_label = "Spectral flux, q_eta (W/m**2-1/cm)";
+    else if ( spectral_units==FREQUENCY )
+        Y1_label = "Spectral flux, q_nu (W/m**2-Hz)";
+    else if ( spectral_units==ENERGY )
+        Y1_label = "Spectral flux, q_epsilon (W/m**2-eV)";
+    string Y1_int_label = "Integrated flux, q (W/m**2)";
     
-    return write_data_to_file( filename, q_nu, Y1_label, Y1_int_label );
+    return write_data_to_file( filename, spectral_units, q_nu, Y1_label, Y1_int_label );
 }
 
 /* ------------ BinnedSpectralFlux class ------------ */

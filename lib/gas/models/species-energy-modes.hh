@@ -7,12 +7,14 @@
 #define SPECIES_ERNEGY_MODES_HH
 
 #define EVAL_ENTROPY_AT_1ATM 1
+#define TABULATED_COUPLED_DIATOMIC_MODES 0
 
 #include <string>
 
 #include "gas_data.hh"
 #include "physical_constants.hh"
 #include "diatom-electronic-level.hh"
+#include "coupled-diatom-LUT.hh"
 
 class Species_energy_mode {
 public:
@@ -25,56 +27,50 @@ public:
     int get_iT() { return iT_; }
     
     double eval_weighted_energy( const Gas_data &Q )
-    { return Q.massf[isp_]*s_eval_energy( Q.T[iT_] ); }
-//    { return ( Q.massf[isp_]>min_massf_ ) ? Q.massf[isp_]*s_eval_energy( Q.T[iT_] ) : 0.0; }
+    { return Q.massf[isp_]*s_eval_energy( Q ); }
     
     double eval_energy( const Gas_data &Q )
-    { return s_eval_energy( Q.T[iT_] ); }
+    { return s_eval_energy( Q ); }
     
     double eval_energy_from_T( double T )
-    { return s_eval_energy( T ); }
-    
+    { return s_eval_energy_from_T( T ); }
+
     double eval_weighted_enthalpy( const Gas_data &Q )
-    { return Q.massf[isp_]*s_eval_enthalpy( Q.T[iT_] ); }
+    { return Q.massf[isp_]*s_eval_enthalpy( Q ); }
     
     double eval_enthalpy( const Gas_data &Q )
-    { return s_eval_enthalpy( Q.T[iT_] ); }
+    { return s_eval_enthalpy( Q ); }
     
     double eval_enthalpy_from_T( double T )
-    { return s_eval_enthalpy( T ); }
-    
+    { return s_eval_enthalpy_from_T( T ); }
+
     double eval_weighted_entropy( const Gas_data &Q )
-    { return Q.massf[isp_]*s_eval_entropy(Q.T[iT_],Q.massf[isp_]*Q.rho*R_*Q.T[iT_]); }
+    { return Q.massf[isp_]*s_eval_entropy(Q); }
     
     double eval_entropy( const Gas_data &Q )
-#   if EVAL_ENTROPY_AT_1ATM
-    { return s_eval_entropy(Q.T[iT_],PC_P_atm); }
-#   else
-    { return s_eval_entropy(Q.T[iT_],Q.massf[isp_]*Q.rho*R_*Q.T[iT_]); }
-#   endif
+    { return s_eval_entropy(Q); }
     
-    // NOTE: assuming we want standard state entropy, therefore p=1atm
     double eval_entropy_from_T( double T )
-    { return s_eval_entropy(T,PC_P_atm); }
-    
+    { return s_eval_entropy_from_T( T ); }
+
     double eval_weighted_Cv( Gas_data &Q )
-    { return Q.massf[isp_]*s_eval_Cv( Q.T[iT_] ); }
+    { return Q.massf[isp_]*s_eval_Cv( Q ); }
     
     double eval_Cv( const Gas_data &Q )
-    { return s_eval_Cv( Q.T[iT_] ); }
+    { return s_eval_Cv( Q ); }
     
-    double eval_Cv_from_T( double T=0.0 )
-    { return s_eval_Cv( T ); }
-    
+    double eval_Cv_from_T( double T )
+    { return s_eval_Cv_from_T( T ); }
+
     double eval_weighted_Cp( Gas_data &Q )
-    { return Q.massf[isp_]*s_eval_Cp( Q.T[iT_] ); }
+    { return Q.massf[isp_]*s_eval_Cp( Q ); }
     
     double eval_Cp( const Gas_data &Q )
-    { return s_eval_Cp( Q.T[iT_] ); }
+    { return s_eval_Cp( Q ); }
     
-    double eval_Cp_from_T( double T=0.0 )
-    { return s_eval_Cp( T ); }
-    
+    double eval_Cp_from_T( double T )
+    { return s_eval_Cp_from_T( T ); }
+
     double eval_Q_from_T( double T=0.0, double A=-1.0 )
     { return s_eval_Q(T,A); }
     
@@ -88,33 +84,56 @@ protected:
     std::string type_;
     int iT_;
     
-    virtual double s_eval_energy( double T ) = 0;
-    virtual double s_eval_enthalpy( double T ) = 0;
-    virtual double s_eval_entropy( double T, double p ) = 0;
-    virtual double s_eval_Cv( double T ) = 0;
-    virtual double s_eval_Cp( double T ) = 0;
+    virtual double s_eval_energy( const Gas_data &Q  ) = 0;
+    virtual double s_eval_energy_from_T( double T ) = 0;
+    virtual double s_eval_enthalpy( const Gas_data &Q  ) = 0;
+    virtual double s_eval_enthalpy_from_T( double T ) = 0;
+    virtual double s_eval_entropy( const Gas_data &Q ) = 0;
+    virtual double s_eval_entropy_from_T( double T ) = 0;
+    virtual double s_eval_Cv( const Gas_data &Q  ) = 0;
+    virtual double s_eval_Cv_from_T( double T ) = 0;
+    virtual double s_eval_Cp( const Gas_data &Q  ) = 0;
+    virtual double s_eval_Cp_from_T( double T ) = 0;
+
     virtual double s_eval_Q( double T, double A ) = 0;
     
 };
 
-class One_level_electronic : public Species_energy_mode {
+class Electronic : public Species_energy_mode {
+public:
+    Electronic( int isp, double R, double min_massf, double theta );
+    ~Electronic() {}
+    
+    double get_theta()
+    { return theta_; }
+    
+protected:
+    double theta_;
+    
+    double s_eval_enthalpy( const Gas_data &Q ) { return s_eval_energy(Q); }
+    double s_eval_enthalpy_from_T( double T ) { return s_eval_energy_from_T(T); }
+    double s_eval_Cp( const Gas_data &Q  ) { return s_eval_Cv(Q); }
+    double s_eval_Cp_from_T( double T  ) { return s_eval_Cv_from_T(T); }
+};
+
+class One_level_electronic : public Electronic {
 public:
     One_level_electronic( int isp, double R, double min_massf, int g, double theta );
     ~One_level_electronic() {}
     
 private:
     int g_;
-    double theta_;
     
-    double s_eval_energy( double T );
-    double s_eval_enthalpy( double T ) { return s_eval_energy(T); }
-    double s_eval_entropy( double T, double p );
-    double s_eval_Cv( double T );
-    double s_eval_Cp( double T ) { return s_eval_Cv(T); }
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_]); }
+    double s_eval_energy_from_T( double T );
+    double s_eval_entropy( const Gas_data &Q  ) { return s_eval_entropy_from_T(Q.T[iT_]); }
+    double s_eval_entropy_from_T( double T );
+    double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
+    double s_eval_Cv_from_T( double T );
     double s_eval_Q( double T, double A ) { return 0.0; }
 };
 
-class Two_level_electronic : public Species_energy_mode {
+class Two_level_electronic : public Electronic {
 public:
     Two_level_electronic( int isp, double R, double min_massf, int g0, 
     	                  double theta0, int g1, double theta1 );
@@ -123,33 +142,98 @@ public:
 private:
     int g0_;
     int g1_;
-    double theta_;
+    double delta_theta_;
     
-    double s_eval_energy( double T );
-    double s_eval_enthalpy( double T ) { return s_eval_energy(T); }
-    double s_eval_entropy( double T, double p );
-    double s_eval_Cv( double T );
-    double s_eval_Cp( double T ) { return s_eval_Cv(T); }
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_]); }
+    double s_eval_energy_from_T( double T );
+    double s_eval_entropy( const Gas_data &Q  ) { return s_eval_entropy_from_T(Q.T[iT_]); }
+    double s_eval_entropy_from_T( double T );
+    double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
+    double s_eval_Cv_from_T( double T );
     double s_eval_Q( double T, double A ) { return 0.0; }
 };
 
-class Multi_level_electronic : public Species_energy_mode {
+class Multi_level_electronic : public Electronic {
 public:
     Multi_level_electronic( int isp, double R, double min_massf, 
     			    std::vector<int> &g, std::vector<double> &theta);
     ~Multi_level_electronic() {}
     
 private:
-    std::vector<int> g_;
-    std::vector<double> theta_;
+    std::vector<int> g_vec_;
+    std::vector<double> theta_vec_;
     
-    double s_eval_energy( double T );
-    double s_eval_enthalpy( double T ) { return s_eval_energy(T); }
-    double s_eval_entropy( double T, double p );
-    double s_eval_Cv( double T );
-    double s_eval_Cp( double T ) { return s_eval_Cv(T); }
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_]); }
+    double s_eval_energy_from_T( double T );
+    double s_eval_entropy( const Gas_data &Q ) { return s_eval_entropy_from_T(Q.T[iT_]); }
+    double s_eval_entropy_from_T( double T );
+    double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
+    double s_eval_Cv_from_T( double T );
     double s_eval_Q( double T, double A ) { return 0.0; }
 };
+
+#if TABULATED_COUPLED_DIATOMIC_MODES==0
+class Coupled_diatomic_electronic : public Electronic {
+public:
+    Coupled_diatomic_electronic( int isp, double R, double min_massf, int sigma_r, 
+    	double fT_, std::vector<Diatom_electronic_level*> &elevs );
+    ~Coupled_diatomic_electronic();
+    
+    void set_iTs( int iTe, int iTv, int iTr )
+    { iTe_ = iTe; iTv_ = iTv; iTr_ = iTr; }
+
+private:
+    int iTe_;
+    int iTv_;
+    int iTr_;
+    
+    int sigma_r_;
+    double m_;
+    double fT_;
+    std::vector<Diatom_electronic_level*> elevs_;
+
+    double eval_total_internal_energy( double T_el, double T_vib, double T_rot );
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_energy_from_T( double T ) { return s_eval_energy_from_Ts(T,T,T); }
+    double s_eval_energy_from_Ts( double T_el, double T_vib, double T_rot );
+    double s_eval_entropy( const Gas_data &Q ) { return s_eval_entropy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_entropy_from_T( double T ) { return s_eval_entropy_from_Ts(T,T,T); }
+    double s_eval_entropy_from_Ts( double T_el, double T_vib, double T_rot );
+    double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_Cv_from_T( double T ) { return s_eval_Cv_from_Ts(T,T,T); }
+    double s_eval_Cv_from_Ts( double T_el, double T_vib, double T_rot );
+    double s_eval_Q( double T, double A ) { return 0.0; }
+};
+#else
+class Coupled_diatomic_electronic : public Electronic {
+public:
+    Coupled_diatomic_electronic( int isp, double R, double min_massf, double theta, std::string lut_fname );
+    ~Coupled_diatomic_electronic();
+    
+    void set_iTs( int iTe, int iTv, int iTr )
+    { iTe_ = iTe; iTv_ = iTv; iTr_ = iTr; }
+
+private:
+    int iTe_;
+    int iTv_;
+    int iTr_;
+    
+    double m_;
+    NoneqCoupledDiatomicLUT * e_LUT_;
+    NoneqCoupledDiatomicLUT * Cv_LUT_;
+
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_energy_from_T( double T ) { return s_eval_energy_from_Ts(T,T,T); }
+    double s_eval_energy_from_Ts( double T_el, double T_vib, double T_rot );
+    double s_eval_entropy( const Gas_data &Q ) { return s_eval_entropy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_entropy_from_T( double T ) { return s_eval_entropy_from_Ts(T,T,T); }
+    double s_eval_entropy_from_Ts( double T_el, double T_vib, double T_rot );
+    double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_Cv_from_T( double T ) { return s_eval_Cv_from_Ts(T,T,T); }
+    double s_eval_Cv_from_Ts( double T_el, double T_vib, double T_rot );
+    double s_eval_Q( double T, double A ) { return 0.0; }
+};
+#endif
 
 class Fully_excited_translation : public Species_energy_mode {
 public:
@@ -161,37 +245,56 @@ private:
     double Cp_;
     double entropy_constant_;
     
-    double s_eval_energy( double T );
-    double s_eval_enthalpy( double T );
-    double s_eval_entropy( double T, double p=0.0 );
-    double s_eval_Cv( double T );
-    double s_eval_Cp( double T );
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_]); }
+    double s_eval_energy_from_T( double T );
+    double s_eval_enthalpy( const Gas_data &Q ) { return s_eval_enthalpy_from_T(Q.T[iT_]); }
+    double s_eval_enthalpy_from_T( double T );
+    double s_eval_entropy( const Gas_data &Q );
+    double s_eval_entropy_from_T( double T );
+    double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
+    double s_eval_Cv_from_T( double T );
+    double s_eval_Cp( const Gas_data &Q ) { return s_eval_Cp_from_T(Q.T[iT_]); }
+    double s_eval_Cp_from_T( double T );
     double s_eval_Q( double T, double A ) { return 0.0; }
 };
 
-class Fully_excited_rotation : public Species_energy_mode {
+class Rotation : public Species_energy_mode {
+public:
+    Rotation( int isp, double R, double min_massf, double theta );
+    ~Rotation() {}
+    
+    double get_theta()
+    { return theta_; }
+    
+protected:
+    double theta_;
+    
+    double s_eval_enthalpy( const Gas_data &Q ) { return s_eval_energy(Q); }
+    double s_eval_enthalpy_from_T( double T ) { return s_eval_energy_from_T(T); }
+    double s_eval_Cp( const Gas_data &Q  ) { return s_eval_Cv(Q); }
+    double s_eval_Cp_from_T( double T  ) { return s_eval_Cv_from_T(T); }
+};
+
+class Fully_excited_rotation : public Rotation {
 public:
     // NOTE: sigma = 1 or 2 for hetero/homonuclear molecules
     Fully_excited_rotation( int isp, double R, double min_massf, double theta, int sigma );
     ~Fully_excited_rotation() {}
     
-    double get_theta()
-    { return theta_; }
-    
 private:
     double Cv_;
-    double theta_;
     int sigma_;
     
-    double s_eval_energy( double T );
-    double s_eval_enthalpy( double T ) { return s_eval_energy(T); }
-    double s_eval_entropy( double T, double p=0.0 );
-    double s_eval_Cv( double T );
-    double s_eval_Cp( double T ) { return s_eval_Cv(T); }
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_]); }
+    double s_eval_energy_from_T( double T );
+    double s_eval_entropy( const Gas_data &Q  ) { return s_eval_entropy_from_T(Q.T[iT_]); }
+    double s_eval_entropy_from_T( double T );
+    double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
+    double s_eval_Cv_from_T( double T );
     double s_eval_Q( double T, double A ) { return 0.0; }
 };
 
-class Fully_excited_nonlinear_rotation : public Species_energy_mode {
+class Fully_excited_nonlinear_rotation : public Rotation {
 public:
     Fully_excited_nonlinear_rotation( int isp, double R, double min_massf, 
     				      double theta_A0, double theta_B0, double theta_C0,
@@ -205,13 +308,83 @@ private:
     double theta_C0_;
     int sigma_;
     
-    double s_eval_energy( double T );
-    double s_eval_enthalpy( double T ) { return s_eval_energy(T); }
-    double s_eval_entropy( double T, double p=0.0 );
-    double s_eval_Cv( double T );
-    double s_eval_Cp( double T ) { return s_eval_Cv(T); }
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_]); }
+    double s_eval_energy_from_T( double T );
+    double s_eval_entropy( const Gas_data &Q  ) { return s_eval_entropy_from_T(Q.T[iT_]); }
+    double s_eval_entropy_from_T( double T );
+    double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
+    double s_eval_Cv_from_T( double T );
     double s_eval_Q( double T, double A ) { return 0.0; }
 };
+
+#if TABULATED_COUPLED_DIATOMIC_MODES==0
+class Coupled_diatomic_rotation : public Rotation {
+public:
+    Coupled_diatomic_rotation( int isp, double R, double min_massf, int sigma_r,
+    	double fT_, std::vector<Diatom_electronic_level*> &elevs );
+    ~Coupled_diatomic_rotation();
+    
+    void set_iTs( int iTe, int iTv, int iTr )
+    { iTe_ = iTe; iTv_ = iTv; iTr_ = iTr; }
+
+private:
+    int iTe_;
+    int iTv_;
+    int iTr_;
+    
+    int sigma_r_;
+    double m_;
+    double fT_;
+    std::vector<Diatom_electronic_level*> elevs_;
+
+    double eval_total_internal_energy( double T_el, double T_vib, double T_rot );
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_energy_from_T( double T ) { return s_eval_energy_from_Ts(T,T,T); }
+    double s_eval_energy_from_Ts( double T_el, double T_vib, double T_rot );
+    double s_eval_entropy( const Gas_data &Q ) { return s_eval_entropy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_entropy_from_T( double T ) { return s_eval_entropy_from_Ts(T,T,T); }
+    double s_eval_entropy_from_Ts( double T_el, double T_vib, double T_rot );
+    double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_Cv_from_T( double T ) { return s_eval_Cv_from_Ts(T,T,T); }
+    double s_eval_Cv_from_Ts( double T_el, double T_vib, double T_rot );
+    double s_eval_Q( double T, double A ) { return 0.0; }
+};
+#else
+class Coupled_diatomic_rotation : public Rotation {
+public:
+    Coupled_diatomic_rotation( int isp, double R, double min_massf, double theta_r, std::string lut_fname );
+    ~Coupled_diatomic_rotation();
+    
+    void set_iTs( int iTe, int iTv, int iTr )
+    { iTe_ = iTe; iTv_ = iTv; iTr_ = iTr; }
+
+private:
+    int iTe_;
+    int iTv_;
+    int iTr_;
+    
+    double m_;
+    NoneqCoupledDiatomicLUT * e_LUT_;
+    NoneqCoupledDiatomicLUT * Cv_LUT_;
+    
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_energy_from_T( double T ) { return s_eval_energy_from_Ts(T,T,T); }
+    double s_eval_energy_from_Ts( double T_el, double T_vib, double T_rot );
+    double s_eval_enthalpy( const Gas_data &Q ) { return s_eval_energy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_enthalpy_from_T( double T ) { return s_eval_energy_from_Ts(T,T,T); }
+    double s_eval_enthalpy_from_Ts( double T_el, double T_vib, double T_rot ) { return s_eval_energy_from_Ts(T_el,T_vib,T_rot); }
+    double s_eval_entropy( const Gas_data &Q ) { return s_eval_entropy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_entropy_from_T( double T ) { return s_eval_entropy_from_Ts(T,T,T); }
+    double s_eval_entropy_from_Ts( double T_el, double T_vib, double T_rot );
+    double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_Cv_from_T( double T ) { return s_eval_Cv_from_Ts(T,T,T); }
+    double s_eval_Cv_from_Ts( double T_el, double T_vib, double T_rot );
+    double s_eval_Cp( const Gas_data &Q ) { return s_eval_Cv_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_Cp_from_T( double T ) { return s_eval_Cv_from_Ts(T,T,T); }
+    double s_eval_Cp_from_Ts( double T_el, double T_vib, double T_rot ) { return s_eval_Cv_from_Ts(T_el,T_vib,T_rot); }
+    double s_eval_Q( double T, double A ) { return 0.0; }
+};
+#endif
 
 class Vibration : public Species_energy_mode {
 public:
@@ -224,12 +397,10 @@ public:
 protected:
     double theta_;
     
-    double s_eval_energy( double T );
-    double s_eval_enthalpy( double T ) { return s_eval_energy(T); }
-    double s_eval_entropy( double T, double p=0.0 );
-    double s_eval_Cv( double T );
-    double s_eval_Cp( double T ) { return s_eval_Cv(T); }
-    double s_eval_Q( double T, double A ) { return 0.0; }
+    double s_eval_enthalpy( const Gas_data &Q  ) { return s_eval_energy(Q); }
+    double s_eval_enthalpy_from_T( double T  ) { return s_eval_energy_from_T(T); }
+    double s_eval_Cp( const Gas_data &Q  ) { return s_eval_Cv(Q); }
+    double s_eval_Cp_from_T( double T  ) { return s_eval_Cv_from_T(T); }
 };
 
 class Harmonic_vibration : public Vibration {
@@ -238,9 +409,12 @@ public:
     ~Harmonic_vibration() {}
     
 private:
-    double s_eval_energy( double T );
-    double s_eval_entropy( double T, double p=0.0 );
-    double s_eval_Cv( double T );
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_]); }
+    double s_eval_energy_from_T( double T );
+    double s_eval_entropy( const Gas_data &Q ) { return s_eval_entropy_from_T(Q.T[iT_]); }
+    double s_eval_entropy_from_T( double T );
+    double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
+    double s_eval_Cv_from_T( double T );
     double s_eval_Q( double T, double A );
 };
 
@@ -255,29 +429,145 @@ public:
 private:
     double theta_D_;
     
-    double s_eval_energy( double T );
-    double s_eval_entropy( double T, double p=0.0 );
-    double s_eval_Cv( double T );
+private:
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_]); }
+    double s_eval_energy_from_T( double T );
+    double s_eval_entropy( const Gas_data &Q ) { return s_eval_entropy_from_T(Q.T[iT_]); }
+    double s_eval_entropy_from_T( double T );
+    double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
+    double s_eval_Cv_from_T( double T );
     double s_eval_HO_energy( double T );
     double s_eval_Q( double T, double A );
 };
 
+#if TABULATED_COUPLED_DIATOMIC_MODES==0
+class Coupled_diatomic_vibration : public Vibration {
+public:
+    Coupled_diatomic_vibration( int isp, double R, double min_massf, int sigma_r, 
+    	double fT, std::vector<Diatom_electronic_level*> &elevs );
+    ~Coupled_diatomic_vibration();
+    
+    void set_iTs( int iTe, int iTv, int iTr )
+    { iTe_ = iTe; iTv_ = iTv; iTr_ = iTr; }
+
+private:
+    int iTe_;
+    int iTv_;
+    int iTr_;
+    
+    int sigma_r_;
+    double m_;
+    double fT_;
+    std::vector<Diatom_electronic_level*> elevs_;
+    
+    double eval_total_internal_energy( double T_el, double T_vib, double T_rot );
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_energy_from_T( double T ) { return s_eval_energy_from_Ts(T,T,T); }
+    double s_eval_energy_from_Ts( double T_el, double T_vib, double T_rot );
+    double s_eval_enthalpy( const Gas_data &Q ) { return s_eval_energy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_enthalpy_from_T( double T ) { return s_eval_energy_from_Ts(T,T,T); }
+    double s_eval_enthalpy_from_Ts( double T_el, double T_vib, double T_rot ) { return s_eval_energy_from_Ts(T_el,T_vib,T_rot); }
+    double s_eval_entropy( const Gas_data &Q ) { return s_eval_entropy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_entropy_from_T( double T ) { return s_eval_entropy_from_Ts(T,T,T); }
+    double s_eval_entropy_from_Ts( double T_el, double T_vib, double T_rot );
+    double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_Cv_from_T( double T ) { return s_eval_Cv_from_Ts(T,T,T); }
+    double s_eval_Cv_from_Ts( double T_el, double T_vib, double T_rot );
+    double s_eval_Cp( const Gas_data &Q ) { return s_eval_Cv_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_Cp_from_T( double T ) { return s_eval_Cv_from_Ts(T,T,T); }
+    double s_eval_Cp_from_Ts( double T_el, double T_vib, double T_rot ) { return s_eval_Cv_from_Ts(T_el,T_vib,T_rot); }
+    double s_eval_Q( double T, double A ) { return 0.0; }
+};
+#else
+class Coupled_diatomic_vibration : public Vibration {
+public:
+    Coupled_diatomic_vibration( int isp, double R, double min_massf, double theta_v, std::string lut_fname );
+    ~Coupled_diatomic_vibration();
+    
+    void set_iTs( int iTe, int iTv, int iTr )
+    { iTe_ = iTe; iTv_ = iTv; iTr_ = iTr; }
+
+private:
+    int iTe_;
+    int iTv_;
+    int iTr_;
+    
+    double m_;
+    NoneqCoupledDiatomicLUT * e_LUT_;
+    NoneqCoupledDiatomicLUT * Cv_LUT_;
+    
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_energy_from_T( double T ) { return s_eval_energy_from_Ts(T,T,T); }
+    double s_eval_energy_from_Ts( double T_el, double T_vib, double T_rot );
+    double s_eval_enthalpy( const Gas_data &Q ) { return s_eval_energy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_enthalpy_from_T( double T ) { return s_eval_energy_from_Ts(T,T,T); }
+    double s_eval_enthalpy_from_Ts( double T_el, double T_vib, double T_rot ) { return s_eval_energy_from_Ts(T_el,T_vib,T_rot); }
+    double s_eval_entropy( const Gas_data &Q ) { return s_eval_entropy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_entropy_from_T( double T ) { return s_eval_entropy_from_Ts(T,T,T); }
+    double s_eval_entropy_from_Ts( double T_el, double T_vib, double T_rot );
+    double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_Cv_from_T( double T ) { return s_eval_Cv_from_Ts(T,T,T); }
+    double s_eval_Cv_from_Ts( double T_el, double T_vib, double T_rot );
+    double s_eval_Cp( const Gas_data &Q ) { return s_eval_Cv_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
+    double s_eval_Cp_from_T( double T ) { return s_eval_Cv_from_Ts(T,T,T); }
+    double s_eval_Cp_from_Ts( double T_el, double T_vib, double T_rot ) { return s_eval_Cv_from_Ts(T_el,T_vib,T_rot); }
+    double s_eval_Q( double T, double A ) { return 0.0; }
+};
+#endif
+
+#if TABULATED_COUPLED_DIATOMIC_MODES==0
 class Fully_coupled_diatom_internal : public Species_energy_mode {
 public:
-    Fully_coupled_diatom_internal( int isp, double R, double min_massf, int sigma_r, std::vector< std::vector<double> > &elev_data );
+    Fully_coupled_diatom_internal( int isp, double R, double min_massf, int sigma_r, 
+    	double fT, std::vector<Diatom_electronic_level*> &elevs );
     ~Fully_coupled_diatom_internal();
     
+    Diatom_electronic_level * get_elev_pointer( int ilev );
+
+    int get_nlevs() { return (int) elevs_.size(); }
+
 private:
     int sigma_r_;
     double m_;
+    double fT_;
     std::vector<Diatom_electronic_level*> elevs_;
     
-    double s_eval_energy( double T );
-    double s_eval_enthalpy( double T ) { return s_eval_energy(T); }
-    double s_eval_entropy( double T, double p=0.0 );
-    double s_eval_Cv( double T );
-    double s_eval_Cp( double T ) { return s_eval_Cv(T); }
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_]); }
+    double s_eval_energy_from_T( double T );
+    double s_eval_enthalpy( const Gas_data &Q  ) { return s_eval_energy_from_T(Q.T[iT_]); }
+    double s_eval_enthalpy_from_T( double T  ) { return s_eval_energy_from_T(T); }
+    double s_eval_entropy( const Gas_data &Q  ) { return s_eval_entropy_from_T(Q.T[iT_]); }
+    double s_eval_entropy_from_T( double T );
+    double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
+    double s_eval_Cv_from_T( double T );
+    double s_eval_Cp( const Gas_data &Q  ) { return s_eval_Cv_from_T(Q.T[iT_]); }
+    double s_eval_Cp_from_T( double T  ) { return s_eval_Cv_from_T(T); }
     double s_eval_Q( double T, double A ) { return 0.0; }
 };
+#else
+class Fully_coupled_diatom_internal : public Species_energy_mode {
+public:
+    Fully_coupled_diatom_internal( int isp, double R, double min_massf, std::string lut_fname );
+    ~Fully_coupled_diatom_internal();
+
+private:
+    double m_;
+    EqCoupledDiatomicLUT * e_LUT_;
+    EqCoupledDiatomicLUT * Cv_LUT_;
+    EqCoupledDiatomicLUT * s_LUT_;
+    
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_]); }
+    double s_eval_energy_from_T( double T );
+    double s_eval_enthalpy( const Gas_data &Q  ) { return s_eval_energy_from_T(Q.T[iT_]); }
+    double s_eval_enthalpy_from_T( double T  ) { return s_eval_energy_from_T(T); }
+    double s_eval_entropy( const Gas_data &Q  ) { return s_eval_entropy_from_T(Q.T[iT_]); }
+    double s_eval_entropy_from_T( double T );
+    double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
+    double s_eval_Cv_from_T( double T );
+    double s_eval_Cp( const Gas_data &Q  ) { return s_eval_Cv_from_T(Q.T[iT_]); }
+    double s_eval_Cp_from_T( double T  ) { return s_eval_Cv_from_T(T); }
+    double s_eval_Q( double T, double A ) { return 0.0; }
+};
+#endif
 
 #endif

@@ -6,5 +6,5 @@
 # - comparing results with that of cea2 and a 
 #   Perfect_thermal_behaviour model
 ./clean.sh
-./noneq-test.py
+noneq-test.py
 gnuplot plot.gnu

@@ -74,6 +74,8 @@ LUA_MODULES := ideal_gas.lua \
 	two_temperature_gas.lua \
 	one_temperature_gas.lua \
 	fully_coupled_one_temperature_gas.lua \
+	fully_coupled_two_temperature_gas.lua \
+	fully_coupled_four_temperature_gas.lua \
 	reaction_parser.lua \
 	reac.lua \
 	reaction_rate.lua
@@ -117,7 +119,7 @@ test: $(TEST_EXECUTABLES) $(LUAGAS_MODULE) cea2
 	cd $(TEST); make test
 
 noneq_test: noneq-test.x noneq-test.py cea2 $(PYTHONGAS_MODULE)
-	cp noneq-test.py $(NONEQ_TEST)/
+	cp noneq-test.py $(INSTALL_DIR)/
 	cp cea2 $(INSTALL_DIR)/CEA2.exe
 	cp thermo.inp trans.inp $(INSTALL_DIR)/
 	cp noneq-test.x $(INSTALL_DIR)/
@@ -209,6 +211,7 @@ MODELS_OBJECTS := CEA-Cp-functor.o \
 	chemical-species.o \
 	species-energy-modes.o \
 	diatom-electronic-level.o \
+	coupled-diatom-LUT.o \
 	no-transport-coefficients.o \
 	chemical-equilibrium-system.o \
 	chemical-species-library.o \
@@ -273,7 +276,7 @@ $(MODELS)/gaspy_wrap.cxx : $(MODELS)/gaspy.i $(LIBGAS)
 	swig -python -c++ -w512 $(MODELS)/gaspy.i
 
 gaspy_wrap.o : $(MODELS)/gaspy_wrap.cxx $(LUA_INCLUDE_DIR)
-	$(CXX) $(CXXFLAG3)  $(MODELS)/gaspy_wrap.cxx \
+	$(CXX) $(CXXFLAG3) $(MODELS)/gaspy_wrap.cxx \
 	-I$(PYTHON_INCLUDE_DIR) -I$(LUA_INCLUDE_DIR)
 
 $(MODELS)/gaspy.py : $(MODELS)/gaspy.i $(LIBGAS)
@@ -497,11 +500,14 @@ chemical-species.o : $(MODELS)/chemical-species.cxx $(MODELS)/chemical-species.h
 	$(CXX) $(CXXFLAG) $(MODELS)/chemical-species.cxx -I$(LUA_INCLUDE_DIR)
 
 species-energy-modes.o : $(MODELS)/species-energy-modes.cxx $(MODELS)/species-energy-modes.hh \
-	$(MODELS)/diatom-electronic-level.hh
+	$(MODELS)/diatom-electronic-level.hh $(MODELS)/coupled-diatom-LUT.hh
 	$(CXX) $(CXXFLAG) $(MODELS)/species-energy-modes.cxx
 
 diatom-electronic-level.o : $(MODELS)/diatom-electronic-level.cxx $(MODELS)/diatom-electronic-level.hh
 	$(CXX) $(CXXFLAG) $(MODELS)/diatom-electronic-level.cxx
+	
+coupled-diatom-LUT.o : $(MODELS)/coupled-diatom-LUT.cxx $(MODELS)/coupled-diatom-LUT.hh
+	$(CXX) $(CXXFLAG) $(MODELS)/coupled-diatom-LUT.cxx
 
 no-transport-coefficients.o : $(MODELS)/no-transport-coefficients.cxx \
 	$(MODELS)/no-transport-coefficients.hh $(MODELS)/gas_data.hh \
@@ -771,7 +777,13 @@ one_temperature_gas.lua : $(TOOLS)/one_temperature_gas.lua
 
 fully_coupled_one_temperature_gas.lua : $(TOOLS)/fully_coupled_one_temperature_gas.lua
 	cp $(TOOLS)/fully_coupled_one_temperature_gas.lua .
+	
+fully_coupled_two_temperature_gas.lua : $(TOOLS)/fully_coupled_two_temperature_gas.lua
+	cp $(TOOLS)/fully_coupled_two_temperature_gas.lua .
 
+fully_coupled_four_temperature_gas.lua : $(TOOLS)/fully_coupled_four_temperature_gas.lua
+	cp $(TOOLS)/fully_coupled_four_temperature_gas.lua .
+	
 reaction_parser.lua : $(KINETICS)/reaction_parser.lua
 	cp $(KINETICS)/reaction_parser.lua .
 

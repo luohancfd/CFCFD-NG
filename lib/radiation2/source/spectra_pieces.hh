@@ -14,6 +14,11 @@
 #include <string>
 #include <vector>
 
+#define WAVELENGTH 0
+#define WAVENUMBER 1
+#define FREQUENCY  2
+#define ENERGY     3
+
 // Forward declaration of RadiationSpectralModel
 class RadiationSpectralModel;
 
@@ -34,9 +39,9 @@ public:
     virtual ~SpectralContainer() = 0;
     
 public:    
-    virtual double write_to_file( std::string fname ) = 0;
+    virtual double write_to_file( std::string fname, int spectral_units ) = 0;
     
-    double write_data_to_file( std::string fname,
+    double write_data_to_file( std::string fname, int spectral_units,
     		    	       std::vector<double> &Y1, std::string Y1_label, std::string Y1_int_label,
     		    	       std::vector<double> &Y2 = zero_vec, std::string Y2_label = "" );
     
@@ -50,7 +55,7 @@ public:
     CoeffSpectra();
     
     /// \brief Constructor 
-    CoeffSpectra( RadiationSpectralModel * rsm  );
+    CoeffSpectra( RadiationSpectralModel * rsm );
     
     /// \brief Deconstructor
     ~CoeffSpectra();
@@ -68,7 +73,7 @@ public:
     CoeffSpectra * clone();
     
     /// \brief Write CoeffSpectra class data to file
-    double write_to_file( std::string fname );
+    double write_to_file( std::string fname, int spectral_units=WAVELENGTH );
     
     /// \brief Write CoeffSpectra class data to file in format for TRT_tools interface
     void write_TRT_tools_file( std::string fname );
@@ -78,6 +83,15 @@ public:
     
     /// \brief Calculate and store the cumulative emission coefficient
     void calculate_cumulative_emission( bool resize=false );
+
+    /// \brief Determine a random frequency for this spectra via the Monte Carlo method
+    double random_frequency( double R );
+
+    /// \brief Determine a random frequency interval for this spectra via the Monte Carlo method
+    int random_frequency_interval( double R );
+
+    /// \brief Calculate the absorption coefficient for the given frequency (via interpolation if necessary)
+    double kappa_from_nu( double nu );
 };
 
 #define NO_BINNING        0
@@ -131,7 +145,7 @@ public:
     ~SpectralIntensity();
     
 public:
-    double write_to_file( std::string fname );
+    double write_to_file( std::string fname, int spectral_units=WAVELENGTH );
     
     void apply_apparatus_function( double delta_x_ang );
     
@@ -141,6 +155,12 @@ public:
     
     double integrate_intensity_spectra( double lambda_min=-1.0, double lambda_max=-1.0 );
     
+    /// \brief Determine a random frequency for this spectra via the Monte Carlo method
+    double random_frequency( double R );
+
+    /// \brief Determine a random frequency interval for this spectra via the Monte Carlo method
+    int random_frequency_interval( double R );
+
 public:
     std::vector<double> I_nu;
     std::vector<double> I_int;
@@ -181,7 +201,7 @@ public:
     ~SpectralFlux();
     
 public:
-    double write_to_file( std::string fname );
+    double write_to_file( std::string fname, int spectral_units=WAVELENGTH );
     
 public:
     std::vector<double> q_nu;

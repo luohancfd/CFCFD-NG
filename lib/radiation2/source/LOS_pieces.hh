@@ -65,9 +65,13 @@ public:
     
     double integrate_LOS_with_binning( int binning_type, int N_bins );
 
+    double integrate_LOS_MC( SpectralIntensity &S, int nphotons );
+
     void write_all_points_to_file( void );
     
     void write_point_to_file( int ip, std::string fname );
+    
+    void write_gas_data_to_file( void );
     
     RadiatingPoint * get_rpoint_pointer( int irp )
     { return rpoints_[irp]; }

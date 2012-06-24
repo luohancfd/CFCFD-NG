@@ -13,6 +13,8 @@
 #include "CI-functor.hh"
 #include "physical_constants.hh"
 
+#define IMPOSE_CI_TEMPERATURE_LIMITS 0
+
 using namespace std;
 
 /****************************** Gupta-Yos curve fits **************************/
@@ -79,9 +81,11 @@ double
 GuptaYos_CI_functor::
 operator()(double T)
 {
+#   if IMPOSE_CI_TEMPERATURE_LIMITS
     // 0. Impose temperature limits
     if ( T < T_low_ ) T = T_low_;
     if ( T > T_high_ ) T = T_high_;
+#   endif
     
     // 1. Evaluate curve at T
     return exp( a_[3] ) * pow( T, a_[0]*pow( log(T),2) + a_[1]*log(T) + a_[2] );

@@ -29,15 +29,25 @@ public:
     virtual ~SpradianRadiator();
 
 public:
+    void set_conc_pointer( double * concp )
+    { conc = concp; }
+
+    void set_concentration( double rho_i );
+
+    double get_concentration()
+    { return *conc; }
+
+public:
     std::string name;
     std::string type;
     int isp;
-    int iTr;
-    int iTv;
     int nsys;
     std::vector<std::string> sys_names;
 
     double m_w;
+
+private:
+    double * conc;
 };
 
 SpradianRadiator *create_new_spradian_radiator( lua_State * L, const std::string name );

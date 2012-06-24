@@ -24,6 +24,17 @@ compute_rate(const valarray<double> &y, Gas_data &Q, std::vector<double> &molef)
     return specific_compute_rate(y, Q, molef);
 }
 
+double
+Energy_exchange_mechanism::
+py_compute_rate(const vector<double> &y, Gas_data &Q, vector<double> &molef)
+{
+  valarray<double> y_(y.size());
+  for ( size_t i=0; i<y.size(); ++i)
+    y_[i] = y[i];
+
+  return this->compute_rate(y_,Q,molef);
+}
+
 VT_exchange::
 VT_exchange( lua_State *L )
     : Energy_exchange_mechanism()

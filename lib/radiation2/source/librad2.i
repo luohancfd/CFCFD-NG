@@ -99,4 +99,16 @@ def cea_Hf2T( h_f ):
 # convert energy in Rydberg's to energy in Kelvin
 def Ry2T( Ry ):
     return Ry * RC_Ry * RC_h_SI * RC_c_SI / RC_k_SI
+    
+# convert eV to nm
+def eV2nm( eV ):
+    return RC_h_SI * RC_c_SI / ( eV * RC_e_SI ) *1.0e9 
+
+# convert eV to K
+def eV2K( eV ):
+    return eV * RC_e_SI / RC_k_SI 
+    
+# convert J to 1/cm
+def J2nu( J ):
+    return J / RC_h_SI / RC_c
 %}

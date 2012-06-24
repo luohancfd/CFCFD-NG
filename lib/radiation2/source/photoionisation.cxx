@@ -190,6 +190,87 @@ double JohnstonThresholdModel::eval( double nu )
     return sigma_bf_t * pow( nu_t / nu, theta );
 }
 
+TOPBaseModel::TOPBaseModel( lua_State * L, int ilev )
+ : PhotoIonisationCrossSectionModel( "TOPBaseModel" )
+{
+    int npoints = get_int( L, -1, "npoints" );
+    
+    for ( int i=0; i<npoints; ++i ) {
+    	ostringstream datapoint_label;
+    	datapoint_label << "datapoint_" << i;
+    	lua_getfield(L,-1,datapoint_label.str().c_str());
+	if ( !lua_istable(L, -1) ) {
+	    ostringstream ost;
+	    ost << "TOPBaseModel::TOPBaseModel()\n";
+	    ost << "Error locating " << datapoint_label.str() << " table" << endl;
+	    input_error(ost);
+	}
+	vector<double> point_data;
+	for ( size_t i=0; i<lua_objlen(L, -1); ++i ) {
+	    lua_rawgeti(L, -1, i+1);
+	    point_data.push_back( luaL_checknumber(L, -1) );
+	    lua_pop(L, 1 );
+	}
+	lua_pop(L,1);	// pop ithreshold
+	
+	// Check the size of the threshold data vector
+	if ( point_data.size()!=3 ) {
+	    ostringstream oss;
+	    oss << "TOPBaseModel::TOPBaseModel()" << endl
+	        << "Cross-section data expected to have 2 elements." << endl;
+	    input_error( oss );
+	}
+	
+ 	// Initialise the threshold params if they corresponds to this ilev
+ 	if ( ilev==int(point_data[0]) ) {
+ 	    double nu = point_data[1]*RC_Ry*RC_c_SI;	// convert Ry -> Hz
+ 	    double sigma_bf = point_data[2] * 1.0e-18;	  // convert cm**2 x 1.0e18 -> cm**2
+ 	    nu_list.push_back( nu );
+ 	    sigma_list.push_back( sigma_bf );
+ 	}
+    }
+    
+    // initialise i_prev to 0
+    i_prev = 0;
+    
+    // initialise N_points
+    N_points = (int) nu_list.size();
+}
+
+TOPBaseModel::~TOPBaseModel() {}
+
+double TOPBaseModel::eval( double nu )
+{
+    cout << "TOPBaseModel::eval( " << nu << " ) " << endl;
+    cout << "nu.front() = " << nu_list.front() << ", nu.back() = " << nu_list.back() << endl;
+    cout << "i_prev = " << i_prev << endl;
+    
+    // need to find bounding data points
+    if ( nu < nu_list.front() ) return 0.0;
+    else if ( nu > nu_list.back() ) return 0.0;
+    else {
+    	// start from i_prev
+        for ( int i=i_prev; i<(N_points-1); ++i ) {
+            cout << "i = " << i << endl;
+    	    if ( nu >= nu_list[i] && nu < nu_list[i+1] )
+    	        return 0.5 * ( sigma_list[i] + sigma_list[i+1] );
+    	}
+	// start from 0
+    	for ( int i=0; i<(i_prev-1); ++i ) {
+    	    cout << "i = " << i << endl;
+    	    if ( nu >= nu_list[i] && nu < nu_list[i] ) {
+    	        return 0.5 * ( sigma_list[i] + sigma_list[i+1] );
+    	    }
+        }
+    }
+    
+    // if we get to here then the search failed
+    cout << "TOPBaseModel::eval()" << endl
+         << "Failed to find cross-section data for nu = " << nu << endl;
+    exit( FAILURE );
+}
+
+
 PhotoIonisationCrossSectionModel*
 create_new_PICS_model( lua_State * L, int ilev, double n_eff, int Z, double I )
 {
@@ -211,6 +292,9 @@ create_new_PICS_model( lua_State * L, int ilev, double n_eff, int Z, double I )
     	else {
     	    PICS_model = new JohnstonThresholdModel(L, ilev);
     	}
+    }
+    else if ( PICS_model_type=="TOPBase" ) {
+    	PICS_model = new TOPBaseModel( L, ilev );
     }
     else {
     	cout << "create_new_PICS_model()" << endl

@@ -4,7 +4,7 @@ class ParadeRadiator:
     """Base parade radiator class"""
     def __init__( self, name, atoms, mw, dat_file, systems=[] ):
         self.pname = name
-	self.name = name.replace("+","_plus").replace("-","_minus")
+	self.name = name.replace("+","_plus").replace("E","e_minus")
         self.atoms = atoms
 	if self.atoms==0:
 	    self.type = "electron_radiator"
@@ -50,17 +50,17 @@ class ParadeRadiator:
 	    string += "%s.iTr = %d\n" % ( self.name, self.iTr )
 	return string
 
-available_radiators = { "Ar"       :    ParadeRadiator( "Ar" , 1, 39.948   ,    "ari.dat" ),
-                        "Ar_minus" :    ParadeRadiator( "Ar+", 1, 39.948   ,   "arii.dat" ),
-                        "C"        :    ParadeRadiator( "C"  , 1, 12.011   ,     "ci.dat" ),
-                        "F"        :    ParadeRadiator( "F"  , 1, 18.9984  ,     "fi.dat" ),
-                        "H"        :    ParadeRadiator( "H"  , 1,  1.008   ,     "hi.dat" ),
+available_radiators = { "Ar"       :    ParadeRadiator( "Ar" , 1, 39.948   ,    "NIST/arinist.dat" ),
+                        "Ar_minus" :    ParadeRadiator( "Ar+", 1, 39.948   ,   "NIST/ariinist.dat" ),
+                        "C"        :    ParadeRadiator( "C"  , 1, 12.011   ,     "NIST/cinistmf.dat" ),
+                        "F"        :    ParadeRadiator( "F"  , 1, 18.9984  ,     "NIST/finist.dat" ),
+                        "H"        :    ParadeRadiator( "H"  , 1,  1.008   ,     "NIST/hinist.dat" ),
                         "H_plus"   :    ParadeRadiator( "H+" , 1,  1.008   ,    "hii.dat" ),
-                        "He"       :    ParadeRadiator( "He" , 1,  4.0026  ,    "hei.dat" ),
-                        "N"        :    ParadeRadiator( "N"  , 1, 14.0067  ,     "ni.dat" ),
-                        "N_plus"   :    ParadeRadiator( "N+" , 1, 14.0067  ,    "nii.dat" ),
-                        "O"        :    ParadeRadiator( "O"  , 1, 15.998   ,     "oi.dat" ),
-                        "O_plus"   :    ParadeRadiator( "O+" , 1, 15.998   ,    "oii.dat" ),
+                        "He"       :    ParadeRadiator( "He" , 1,  4.0026  ,    "NIST/heinist.dat" ),
+                        "N"        :    ParadeRadiator( "N"  , 1, 14.0067  ,     "NIST/niNISTmf.dat" ),
+                        "N_plus"   :    ParadeRadiator( "N+" , 1, 14.0067  ,    "NIST/niiNISTmf.dat" ),
+                        "O"        :    ParadeRadiator( "O"  , 1, 15.998   ,     "NIST/oiNISTmf.dat" ),
+                        "O_plus"   :    ParadeRadiator( "O+" , 1, 15.998   ,    "NIST/oiiNISTmf.dat" ),
                         "C2"       :    ParadeRadiator( "C2" , 2, 24.0214  ,  "C2ijb.dat", [ "swan" ] ),
                         "CH"       :    ParadeRadiator( "CH" , 2, 13.0186  ,  "CHibp.dat", [ "3900A"   , "4300A" ] ),
                         "CN"       :    ParadeRadiator( "CN" , 2, 26.0174  , "CNimds.dat", [ "CNviolet", "CNred" ] ),
@@ -71,5 +71,5 @@ available_radiators = { "Ar"       :    ParadeRadiator( "Ar" , 1, 39.948   ,    
                         "NH"       :    ParadeRadiator( "NH" , 2, 15.01468 , "NHibp.dat" , [ "3360A" ] ),
                         "NO"       :    ParadeRadiator( "NO" , 2, 30.00614 , "NOibp.dat" , [ "NObeta"  , "NOgamma" , "NOdelta", "NOepsilon" ] ),
                         "O2"       :    ParadeRadiator( "O2" , 2, 31.9988  , "O2ibp.dat" , [ "O2sr" ] ),
-                        "e_minus"  :    ParadeRadiator( "e-" , 0, 0.000548579903, "none" ) }
+                        "e_minus"  :    ParadeRadiator( "E" , 0, 0.000548579903, "none" ) }
 
