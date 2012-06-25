@@ -7,6 +7,7 @@ cfpylib/gasdyn interface.
 .. Version: 21/06/2012
 """
 
+from ..nm.zero_solvers import secant
 import sys, os
 sys.path.append(os.path.expandvars("$HOME/e3bin"))
 try:
@@ -65,6 +66,7 @@ class Gas(object):
         self.son = self.a
         self.u = self.gasData.e[0]
         self.e = self.u
+        self.quality = self.gasData.quality
         # Manually call methods to calculate other thermodynamic properties
         self.h = self.gasModel.enthalpy(self.gasData, 0)
         self.s = self.gasModel.entropy(self.gasData, 0)
@@ -121,37 +123,3 @@ class Gas(object):
                    % (self.R, self.gam, self.C_p, self.mu, self.k) )
         strm.write('    name: %s\n' % self.name)
         return
-
-def secant(f, x0, x1, tol=1.0e-6, max_iterations=1000):
-    """
-    The iterative secant method for zero-finding in one-dimension.
-    """
-    # We're going to arrange x0 as the oldest (furtherest) point
-    # and x1 and the closer-to-the-solution point.
-    # x2, when we compute it, will be the newest sample point.
-    f0 = f(x0)
-    f1 = f(x1)
-    if abs(f0) < abs(f1):
-        x0, f0, x1, f1 = x1, f1, x0, f0
-    for i in range(max_iterations):
-        x2 = x1 - f1 * (x0 - x1) / (f0 - f1)
-        f2 = f(x2)
-        x0, f0, x1, f1 = x1, f1, x2, f2
-        if abs(f2) < tol: return x2
-
-if __name__ == '__main__':
-    print 'Demonstrate accessing libgas through the gasdyn interface...'
-    print '\nDefault constructor with REFPROP CO2 as the test gas.'
-    a = Gas()
-    a.write_state(sys.stdout)
-    print '\nAnd the same CO2 at a higher pressure'
-    a.set_pT(1.0e6, 300.0)
-    a.write_state(sys.stdout)
-    print '\nAnd now a test from pressure and entropy'
-    a.set_ps(1.0e6, 2.289e3)
-    a.write_state(sys.stdout)
-    print '\nNow try some cloning'
-    b = a.clone()
-    b.write_state(sys.stdout)
-
-    print 'End of test.'
