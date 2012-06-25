@@ -158,7 +158,7 @@ blk_0 = SuperBlock2D(psurf=make_patch(north0, east0, south0, west0),
 #
 # 5. Simulation control parameters 
 #
-gdata.viscous_flag = 0
+gdata.viscous_flag = 1
 gdata.flux_calc = ADAPTIVE
 gdata.max_time = Rn * 5 / u_inf    # 5 body lengths
 gdata.max_step = 230000
