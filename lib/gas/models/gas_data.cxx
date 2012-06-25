@@ -54,6 +54,7 @@ Gas_data::Gas_data(Gas_model *gm)
     p_e = 0.0;
     a = 0.0;
     mu = 0.0;
+    quality = 1.0;
     massf.resize(nsp, 0.0);
     T.resize(nmodes, 0.0);
     e.resize(nmodes, 0.0);
@@ -195,6 +196,7 @@ void Gas_data::copy_values_from(const Gas_data &src)
     p_e = src.p_e;
     a = src.a;
     mu = src.mu;
+    quality = src.quality;
     // 2. vectors
     // 2a. loop over thermal modes
     for ( size_t itm=0; itm<src.e.size(); ++itm ) {
