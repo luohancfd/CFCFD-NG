@@ -37,7 +37,7 @@ def get_e_range(myFluid, fluidModel, T_min, T_max, log_rho_values):
 
 def build_table(fluidName, T_min, T_max,
                 log_rho_min, log_rho_max,
-                iesteps, irsteps):
+                iesteps, irsteps, transProps):
     """
     Compute gas thermo properties for a mesh of internal-energy and density values
     and write an encoded form of the thermo data to a Lua-format file.
@@ -49,6 +49,7 @@ def build_table(fluidName, T_min, T_max,
     :param log_rho_max: log-base-10 of maximum density in kg/m**3
     :param iesteps: number of internal energy divisions
     :param irsteps: number of density divisions
+    :param transProps: boolean for the calculation of transport properties
 
     The file produced is intended for later use by the LUT gas model.
     """
@@ -87,7 +88,7 @@ def build_table(fluidName, T_min, T_max,
             myFluid.rho = rho
             myFluid.e[0] = e
             fluidModel.eval_thermo_state_rhoe(myFluid)
-            fluidModel.eval_transport_coefficients(myFluid)
+            if transProps: fluidModel.eval_transport_coefficients(myFluid)
             Cv_hat = (e) / myFluid.T[0]
             Cv_actual = fluidModel.Cv(myFluid)
             R_hat = myFluid.p / (rho * myFluid.T[0])
@@ -121,6 +122,9 @@ if __name__ == '__main__':
     parser.add_option("-d", "--divisions", action="store", type="string", dest="divisions",
                       default="400,50",
                       help="number of density and internal energy divisions, of the form \"num_energy,num_density\"")
+    parser.add_option("-n", "--no-trans-props", action="store_false", dest="transProps",
+                      default=True,
+                      help="Control if the calculation of transport properties is performed")
     (options, args) = parser.parse_args()
     if options.fluidName == None:
         parser.print_help()
@@ -134,5 +138,5 @@ if __name__ == '__main__':
     print "Building table for fluid name: ", options.fluidName
     print "    log_rho_min=", log_rho_min, "log_rho_max=", log_rho_max
     print "    T_min=", T_min, "T_max=", T_max
-    build_table(options.fluidName, T_min, T_max, log_rho_min, log_rho_max, iesteps, irsteps)
+    build_table(options.fluidName, T_min, T_max, log_rho_min, log_rho_max, iesteps, irsteps, options.transProps)
     print "Done."
