@@ -33,7 +33,7 @@ sys.path.append(E3BIN)
 # becomes just the top-level coordinating function that wrangles
 # the command-line options and works out what to do.
 from nenzfr_utils import prepare_input_script, run_command, quote
-from nenzfr_stats import print_stats
+from nenzfr_stats import *
 from nenzfr_parallel import run_in_block_marching_mode, read_block_dims
 
 #---------------------------------------------------------------

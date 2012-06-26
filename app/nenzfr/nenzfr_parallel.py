@@ -11,6 +11,11 @@ from glob import glob
 import gzip
 from nenzfr_utils import prepare_input_script, run_command, quote
 
+restart = "no"
+restartFromRun = 126
+if restart not in ["yes"]:
+    restartFromRun = 0
+
 #---------------------------------------------------------------
 
 def run_in_block_marching_mode(opt, gmodelFile):
@@ -31,12 +36,15 @@ def run_in_block_marching_mode(opt, gmodelFile):
     # solution with the inflow conditions in the nenzfr-generated input script.
     run_command("sed -i 's/fill_condition=initial/fill_condition=inflow/g' %s.py" % jobName)
     #
-    # Clean up any remnant files from previous runs 
-    run_command('rm -rf flow grid master')
-    #
-    print "Run e3prep to generate a collection of blocks for the full nozzle."
-    run_command(E3BIN+('/e3prep.py --job=%s --do-svg' % jobName))
-    blockDims, noOfBlks = read_block_dims(jobName+'.config')
+    if restart not in ["yes"]:
+        # Clean up any remnant files from previous runs
+        run_command('rm -rf flow grid master')
+        #
+        print "Run e3prep to generate a collection of blocks for the full nozzle."
+        run_command(E3BIN+('/e3prep.py --job=%s --do-svg' % jobName))
+        blockDims, noOfBlks = read_block_dims(jobName+'.config')
+    elif restart in ["yes"]:
+        blockDims, noOfBlks = read_block_dims('./master/'+jobName+'.config')
     # Compute number of e3mpi runs needed.
     # The first e3mpi run starts with two columns and then 
     # every e3mpi run after that moves along by one column.
@@ -47,27 +55,28 @@ def run_in_block_marching_mode(opt, gmodelFile):
     # Compute the maximum run time for each Eilmer3 run.
     maxRunTime = opt.max_time / noOfEilmer3Runs
     #
-    print "Set up the master copy of the blocks and files."
-    run_command('mkdir master')
-    run_command('cp %s.config master/%s.config' % (jobName, jobName,))
-    run_command('cp %s.control master/%s.control' % (jobName, jobName,))
-    run_command('cp -r block_labels.list master/block_labels.list')
-    run_command('mv flow master/')
-    run_command('mv grid master/')
-    # We will accumulate the converged solution blocks in the master area.
-    run_command('mkdir master/flow/t9999')
-    #
-    print "Set up current-run config files in the usual places for Eilmer3."
-    run_command('mkdir flow grid')
-    run_command('mkdir flow/t0000 grid/t0000')
-    # Modify .config and block_labels.list files for the run of a subset of blocks.
-    mod_cfg_file(blksPerColumn, "master/"+jobName+".config", jobName+".config")
-    mod_blkLabels_file(blksPerColumn)
-    # Update control file to reflect the max_time for each Eilmer3 run.
-    update_max_time(maxRunTime, jobName+".control")
+    if restart not in ["yes"]:
+        print "Set up the master copy of the blocks and files."
+        run_command('mkdir master')
+        run_command('cp %s.config master/%s.config' % (jobName, jobName,))
+        run_command('cp %s.control master/%s.control' % (jobName, jobName,))
+        run_command('cp -r block_labels.list master/block_labels.list')
+        run_command('mv flow master/')
+        run_command('mv grid master/')
+        # We will accumulate the converged solution blocks in the master area.
+        run_command('mkdir master/flow/t9999')
+        #
+        print "Set up current-run config files in the usual places for Eilmer3."
+        run_command('mkdir flow grid')
+        run_command('mkdir flow/t0000 grid/t0000')
+        # Modify .config and block_labels.list files for the run of a subset of blocks.
+        mod_cfg_file(blksPerColumn, "master/"+jobName+".config", jobName+".config")
+        mod_blkLabels_file(blksPerColumn)
+        # Update control file to reflect the max_time for each Eilmer3 run.
+        update_max_time(maxRunTime, jobName+".control")
 
     # Start looping for the number of Eilmer3 runs.
-    for run in range(noOfEilmer3Runs):
+    for run in range(restartFromRun,noOfEilmer3Runs):
         print "-----------------------------------------------"
         print " nenzfr in block-marching mode - Run %d of %d. " % (run, noOfEilmer3Runs-1)
         # For each run, there are a subset of blocks that are integrated in time.
@@ -90,17 +99,18 @@ def run_in_block_marching_mode(opt, gmodelFile):
                 dest = 'grid/t0000/'+jobName+'.grid.b'+str(localBlkId).zfill(4)+'.t0000.gz'
                 run_command(['cp', src, dest])
             else:
-                # On subsequent runs, the flow data comes from the downstream column
-                # that has most recently been iterated.
-                src = 'flow/t9999/'+jobName+'.flow.b'+str(localBlkId+blksPerColumn).zfill(4)+'.t9999.gz'
-                dest = 'flow/t0000/'+jobName+'.flow.b'+str(localBlkId).zfill(4)+'.t0000.gz'
-                run_command(['cp', src, dest])
-                # We also need to change the time in the header line back to 0.0 seconds in
-                # each file. The files need to be unzipped and zipped again for this process.
-                run_command(['gunzip'] + [dest])
-                dest = 'flow/t0000/'+jobName+'.flow.b'+str(localBlkId).zfill(4)+'.t0000'
-                run_command(['sed'] + ['-i'] + ['1s/.*/ 0.000000000000e+00/'] + [dest])
-                run_command(['gzip'] + [dest])
+                if run != restartFromRun:
+                    # On subsequent runs, the flow data comes from the downstream column
+                    # that has most recently been iterated.
+                    src = 'flow/t9999/'+jobName+'.flow.b'+str(localBlkId+blksPerColumn).zfill(4)+'.t9999.gz'
+                    dest = 'flow/t0000/'+jobName+'.flow.b'+str(localBlkId).zfill(4)+'.t0000.gz'
+                    run_command(['cp', src, dest])
+                    # We also need to change the time in the header line back to 0.0 seconds in
+                    # each file. The files need to be unzipped and zipped again for this process.
+                    run_command(['gunzip'] + [dest])
+                    dest = 'flow/t0000/'+jobName+'.flow.b'+str(localBlkId).zfill(4)+'.t0000'
+                    run_command(['sed'] + ['-i'] + ['1s/.*/ 0.000000000000e+00/'] + [dest])
+                    run_command(['gzip'] + [dest])
             # Grid comes always from the master area.
             src = 'master/grid/t0000/'+jobName+'.grid.b'+str(blk).zfill(4)+'.t0000.gz'
             dest = 'grid/t0000/'+jobName+'.grid.b'+str(localBlkId).zfill(4)+'.t0000.gz'
@@ -125,7 +135,7 @@ def run_in_block_marching_mode(opt, gmodelFile):
         if run > 0:
             # Propagate the dt_global from the previous run. This will hopefully help 
             # achieve faster convergence.
-            update_dt_global(jobName+'.times')
+            update_dt_global(jobName)
             # Propagate the inflow profile across all blocks to generate a starting solution
             # that will help achieve a faster convergence to the steady-state solution.
             # Propagate only the last profile slice of set A to the blocks in set B.
@@ -282,33 +292,38 @@ def update_max_time(maxTime, inputFileName):
     outfile.close()
     return
 
-def update_dt_global(inputFileName):
+def update_dt_global(jobName):
     """
-    Update dt_global for tindx=0000 in nozzle.times file to be
-    the same as the (current) last value in the file.
+    Update dt value in the "jobName.control" file
+    based on the last value in "jobName.times" file.
     """
-    
-    # Read inputFileName and put data into a list of strings
-    f = open(inputFileName,'r')
-    data = f.readlines()
-    f.close()
-    
-    # Grab the dt_global value from the last line of the file
+
+    # Read in data from .times file
+    f1 = open(jobName+'.times','r')
+    data = f1.readlines()
+    f1.close()
+
+    # Grab the dt_global value from the last line of the file.
     # We leave it as a string for convenience
     final_dt_global = data[-1].split()[-1]
-    
-    # Now get the first line (of data) and replace it's
-    # dt_global value with the value from the last line
-    firstline = data[1].split()
-    firstline[-1] = final_dt_global
-    
-    # Update the list of strings
-    data[1] = ''.join([' '.join(firstline),'\n'])
-    
-    # Write out a new file
-    f = open(inputFileName,'w')
-    f.writelines(data)
-    f.close()
+
+    # Now read in the data from the .control file
+    f2 = open(jobName+'.control','r')
+    data2 = f2.readlines()
+    f2.close()
+
+    # Write out a new .control file with the appropriate
+    # line updated
+    fout = open(jobName+'.control','w')
+    for line in data2:
+        if line.split()[0] == 'dt':
+            linedata = line.split()
+            linedata[-1] = final_dt_global
+            newline = ''.join([' '.join(linedata),'\n'])
+            fout.write(newline)
+        else:
+            fout.write(line)
+    fout.close()
 
 def update_block_dims(targetBlock, blockDims, inputFileName):
     """
