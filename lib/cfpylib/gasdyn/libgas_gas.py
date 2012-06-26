@@ -110,7 +110,8 @@ class Gas(object):
             self.set_pT(p, temp) # calculate density
             entropy = self.gasModel.entropy(self.gasData, 0) # entropy from temp and density
             return s - entropy
-        T = secant(entropy_solve, 250.0, 260.0)
+        T = secant(entropy_solve, 250.0, 260.0, tol=1.0e-4)
+        if T == "FAIL": raise Exception("Secant solver failed, bailing out!")
         return self.set_pT(p, T, transProps)
 
     def write_state(self, strm):
