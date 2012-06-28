@@ -41,6 +41,8 @@ Chemical_species * new_chemical_species_from_file( string name, string inFile )
         X = new Fully_coupled_diatomic_species( string(name), species_type, 0, 0.0, L );
     else if ( species_type.find("diatomic")!=string::npos )
 	X = new Diatomic_species( string(name), species_type, 0, 0.0, L );
+    else if ( species_type.find("polyatomic")!=string::npos )
+        X = new Polyatomic_species( string(name), species_type, 0, 0.0, L );
     else if ( species_type.find("free electron")!=string::npos )
 	X = new Free_electron_species( string(name), species_type, 0, 0.0, L );
     else {
@@ -134,6 +136,28 @@ Chemical_species::get_mode_pointer_from_type( string type )
     	 << "mode type: " << type << " not found." << endl
     	 << "Bailing out!" << endl;
     exit( BAD_INPUT_ERROR );
+}
+
+Multi_level_electronic*
+Chemical_species::get_multi_level_electronic_mode_pointer()
+{
+    // First test that there is mode in the 1 position
+    if ( modes_.size()<2 ) {
+        cout << "Chemical_species::get_multi_level_electronic_mode_pointer()" << endl
+             << "No energy mode found in the expected position!" << endl;
+        exit( FAILURE );
+    }
+
+    // Now ensure that this is the electronic mode
+    // FIXME: somehow need to ensure this is a Multi_level_electronic instance
+    if ( modes_[1]->get_type()!="electronic") {
+        cout << "Chemical_species::get_multi_level_electronic_mode_pointer()" << endl
+             << "Electronic mode not found in the expected position!" << endl;
+        exit( FAILURE );
+    }
+
+    // Now can safely do the dynamic cast and return the pointer
+    return dynamic_cast<Multi_level_electronic*>(modes_[1]);
 }
 
 int
@@ -820,10 +844,12 @@ Polyatomic_species::Polyatomic_species( string name, string type, int isp, doubl
     	modes_.push_back( new Multi_level_electronic( isp_, R_, min_massf_, g_el_vec, theta_el_vec ) );
     // [2] Rotation
     if ( type.find("nonlinear")!=string::npos ) {
+        linear_flag_ = false;
     	// Different s, e and c_v expressions for non-linear molecules
     	modes_.push_back( new Fully_excited_nonlinear_rotation( isp_, R_, min_massf_, theta_A0, theta_B0, theta_C0, sigma ) );
     }
     else {
+        linear_flag_ = true;
     	modes_.push_back( new Fully_excited_rotation( isp_, R_, min_massf_, theta_B0, sigma ) );
     }
     // [3:] Vibration

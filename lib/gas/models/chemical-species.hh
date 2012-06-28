@@ -28,7 +28,9 @@ public:
     virtual ~Chemical_species();
     
     Species_energy_mode* get_mode_pointer_from_type( std::string type );
-    
+
+    Multi_level_electronic* get_multi_level_electronic_mode_pointer();
+
     int get_element_count( std::string X );
     
     void partial_equilibrium_participants( std::vector<int> &betas, 
@@ -199,13 +201,6 @@ private:
     double theta_v_;
 };
 
-class Fully_coupled_diatomic_species;
-
-struct IntegrationParams  {
-    double A, B;
-    Fully_coupled_diatomic_species * X;
-};
-
 class Fully_coupled_diatomic_species : public Chemical_species {
 public:
     Fully_coupled_diatomic_species( std::string name, std::string type, int isp, double min_massf, lua_State * L );
@@ -282,6 +277,9 @@ public:
     double get_theta_v()
     { return theta_v_; }
     
+    bool get_linear_flag()
+    { return linear_flag_; }
+
     double eval_Cv_rot( const Gas_data &Q )
     { return s_eval_Cv_rot(Q); }
     
@@ -290,6 +288,7 @@ public:
     
 private:
     std::string oscillator_type_;
+    bool linear_flag_;
     double theta_v_;
     
     double s_eval_Cv_elec( const Gas_data &Q )

@@ -159,6 +159,15 @@ public:
     			    std::vector<int> &g, std::vector<double> &theta);
     ~Multi_level_electronic() {}
     
+    int get_n_levels()
+    { return (int) g_vec_.size(); }
+
+    int get_g( int ilev )
+    { return g_vec_[ilev]; }
+
+    double get_theta( int ilev )
+    { return theta_vec_[ilev]; }
+
 private:
     std::vector<int> g_vec_;
     std::vector<double> theta_vec_;
@@ -181,6 +190,9 @@ public:
     
     void set_iTs( int iTe, int iTv, int iTr )
     { iTe_ = iTe; iTv_ = iTv; iTr_ = iTr; }
+
+    Diatom_electronic_level * get_elev_pointer( int ilev )
+    { return elevs_[ilev]; }
 
 private:
     int iTe_;
