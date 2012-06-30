@@ -17,4 +17,16 @@ The key value is an L2 norm of 0.00476 for the grid with ni=nj=16.
 
 The corresponding value for the viscous case (2) is 0.003648.
 
+----------------------------------------------------------------------------
+30-June-2012
+Have scaled the perturbation to reduce it away from the centre of the domain.
+This is done via the "S" expressions and functions in the Maxima, Python 
+and Lua files.
+The residual for case 1 is now 
+Volume-weighted norms, global:
+rho L2 0.00151061874308
+
+TODO: make it into a new case so that the original case 1 and 2 are restored.
+----------------------------------------------------------------------------
+
 

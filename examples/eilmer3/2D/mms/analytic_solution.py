@@ -8,8 +8,10 @@
 # PJ, 28-May-2011
 # It essentially Rowan's code with more and renamed variables
 # to bring it closer to the original paper.
+# PJ, 30-June-2012
+# Scale the disturbance to reduce its magnitude away from the centre.
 
-from math import sin, cos, pi
+from math import sin, cos, pi, exp
 
 class AnalyticSolution:
     def __init__(self, L,
@@ -28,25 +30,30 @@ class AnalyticSolution:
         self.apx=apx; self.apy=apy; self.apxy=apxy
         return
 
+    def S(self, x, y):
+        """Reduce the disturbance away from the centre of the domain."""
+        rsq = (x - self.L/2)**2 + (y - self.L/2)**2
+        return exp(-16.0*rsq/(self.L**2))
+
     def rho(self, x, y):
-        return self.rho0 + self.rhox*sin(self.arhox*pi*x/self.L) \
-            + self.rhoy*cos(self.arhoy*pi*y/self.L) \
-            + self.rhoxy*cos(self.arhoxy*pi*x*y/(self.L*self.L))
+        return self.rho0 + self.S(x,y)*self.rhox*sin(self.arhox*pi*x/self.L) \
+            + self.S(x,y)*self.rhoy*cos(self.arhoy*pi*y/self.L) \
+            + self.S(x,y)*self.rhoxy*cos(self.arhoxy*pi*x*y/(self.L*self.L))
 
     def u(self, x, y):
-        return self.u0 + self.ux*sin(self.aux*pi*x/self.L) \
-            + self.uy*cos(self.auy*pi*y/self.L) \
-            + self.uxy*cos(self.auxy*pi*x*y/(self.L*self.L))
+        return self.u0 + self.S(x,y)*self.ux*sin(self.aux*pi*x/self.L) \
+            + self.S(x,y)*self.uy*cos(self.auy*pi*y/self.L) \
+            + self.S(x,y)*self.uxy*cos(self.auxy*pi*x*y/(self.L*self.L))
 
     def v(self, x, y):
-        return self.v0 + self.vx*cos(self.avx*pi*x/self.L) \
-            + self.vy*sin((self.avy*pi*y)/self.L) \
-            + self.vxy*cos(self.avxy*pi*x*y/(self.L*self.L))
+        return self.v0 + self.S(x,y)*self.vx*cos(self.avx*pi*x/self.L) \
+            + self.S(x,y)*self.vy*sin((self.avy*pi*y)/self.L) \
+            + self.S(x,y)*self.vxy*cos(self.avxy*pi*x*y/(self.L*self.L))
     
     def p(self, x, y):
-        return self.p0 + self.px*cos((self.apx*pi*x)/self.L) \
-        + self.py*sin(self.apy*pi*y/self.L) \
-        + self.pxy*sin(self.apxy*pi*x*y/(self.L*self.L))
+        return self.p0 + self.S(x,y)*self.px*cos((self.apx*pi*x)/self.L) \
+        + self.S(x,y)*self.py*sin(self.apy*pi*y/self.L) \
+        + self.S(x,y)*self.pxy*sin(self.apxy*pi*x*y/(self.L*self.L))
     
 if __name__ == "__main__":
     print "Display the analytic solution graphically."

@@ -7,6 +7,7 @@
 pi = math.pi
 cos = math.cos
 sin = math.sin
+exp = math.exp
 
 L = 1.0
 gam = 1.4
@@ -33,24 +34,29 @@ end
 
 w0=0.0
 
+function S(x, y)
+   rsq = (x - L/2)^2 + (y - L/2)^2
+   return exp(-16.0*rsq/(L*L))
+end
+
 function rho(x, y)
-   return rho0 + rhox*sin(arhox*pi*x/L) + rhoy*cos(arhoy*pi*y/L)
-          + rhoxy*cos(arhoxy*pi*x*y/(L*L))
+   return rho0 + S(x,y)*rhox*sin(arhox*pi*x/L) + S(x,y)*rhoy*cos(arhoy*pi*y/L)
+          + S(x,y)*rhoxy*cos(arhoxy*pi*x*y/(L*L))
 end
 
 function u(x, y)
-   return u0 + ux*sin(aux*pi*x/L) + uy*cos(auy*pi*y/L)
-          + uxy*cos(auxy*pi*x*y/(L*L))
+   return u0 + S(x,y)*ux*sin(aux*pi*x/L) + S(x,y)*uy*cos(auy*pi*y/L)
+          + S(x,y)*uxy*cos(auxy*pi*x*y/(L*L))
 end
 
 function v(x, y)
-   return v0 + vx*cos(avx*pi*x/L) + vy*sin((avy*pi*y)/L)
-          + vxy*cos(avxy*pi*x*y/(L*L))
+   return v0 + S(x,y)*vx*cos(avx*pi*x/L) + S(x,y)*vy*sin((avy*pi*y)/L)
+          + S(x,y)*vxy*cos(avxy*pi*x*y/(L*L))
 end
 
 function p(x, y)
-   return p0 + px*cos((apx*pi*x)/L) + py*sin(apy*pi*y/L)
-          + pxy*sin(apxy*pi*x*y/(L*L))
+   return p0 + S(x,y)*px*cos((apx*pi*x)/L) + S(x,y)*py*sin(apy*pi*y/L)
+          + S(x,y)*pxy*sin(apxy*pi*x*y/(L*L))
 end
 
 function ghost_cell(args)

@@ -11,6 +11,7 @@ text = text.replace('&\n', '')
 text = text.replace('%pi', 'math.pi')
 text = text.replace('sin', 'math.sin')
 text = text.replace('cos', 'math.cos')
+text = text.replace('exp', 'math.exp')
 source_terms_text = text.replace('**', '^')
 
 fin = open('udf-source-template.lua', 'r')
