@@ -12,6 +12,7 @@
 #include <iomanip>
 #include <sstream>
 #include <stdio.h>
+#include <unistd.h>
 extern "C" {
 #include <zlib.h>
 }
@@ -1850,25 +1851,31 @@ int Block::read_grid( std::string filename, int dimensions, int zip_file )
 {
 #   define NCHAR 132
     char line[NCHAR];
+    char *gets_result;
     FV_Vertex *vp;
     int i, j, k;
-    FILE *fp;
-    gzFile zfp;
-    char *gets_result;
+    int retries = 10;
+    FILE *fp = NULL;
+    gzFile zfp = NULL;
     if (id == 0) printf("read_grid(): Start block %d.\n", id);
-    if (zip_file) {
-	fp = NULL;
-	filename += ".gz";
-	if ((zfp = gzopen(filename.c_str(), "r")) == NULL) {
-	    cerr << "read_grid(): Could not open " << filename << "; BAILING OUT" << endl;
-	    exit(FILE_ERROR);
+    retries = 10;
+    if (zip_file) filename += ".gz";
+    while (retries > 0 && zfp == NULL && fp == NULL) {
+	if (zip_file) {
+	    zfp = gzopen(filename.c_str(), "r");
+	} else {
+	    fp = fopen(filename.c_str(), "r");
 	}
-    } else {
-	zfp = NULL;
-	if ((fp = fopen(filename.c_str(), "r")) == NULL) {
-	    cerr << "read_grid(): Could not open " << filename << "; BAILING OUT" << endl;
-	    exit(FILE_ERROR);
+	if (zfp == NULL && fp == NULL) {
+	    --retries;
+	    cerr << "read_grid(): Could not open " << filename 
+		 << "; " << retries << " retries to go." << endl;
+	    sleep(2);
 	}
+    }
+    if (zfp == NULL && fp == NULL) {
+	cerr << "read_grid(): Could not open " << filename << "; BAILING OUT" << endl;
+	return FILE_ERROR;
     }
     if (zip_file) {
 	gets_result = gzgets(zfp, line, NCHAR);
@@ -1877,7 +1884,7 @@ int Block::read_grid( std::string filename, int dimensions, int zip_file )
     }
     if (gets_result == NULL) {
 	printf("read_grid(): Empty grid file, block %d.\n", id);
-	exit(BAD_INPUT_ERROR);
+	return BAD_INPUT_ERROR;
     }
     sscanf(line, "%d %d %d", &i, &j, &k);
     if (dimensions == 3) {
@@ -1885,7 +1892,7 @@ int Block::read_grid( std::string filename, int dimensions, int zip_file )
 	    printf("read_grid(): Mismatch in cell numbers, block %d\n", id);
 	    printf("    i=%d nni+1=%d j=%d nnj+1=%d k=%d nnk+1=%d\n", 
 		   i, nni+1, j, nnj+1, k, nnk+1);
-	    exit(BAD_INPUT_ERROR);
+	    return BAD_INPUT_ERROR;
 	}
 	for ( k = kmin; k <= kmax+1; ++k ) {
 	    for ( j = jmin; j <= jmax+1; ++j ) {
@@ -1896,9 +1903,8 @@ int Block::read_grid( std::string filename, int dimensions, int zip_file )
 			gets_result = fgets(line, NCHAR, fp);
 		    }
 		    if (gets_result == NULL) {
-			printf("read_grid(): Premature end of file, block %d, vertex[%d,%d,%d]\n", 
-			       id, i, j, k);
-			exit(BAD_INPUT_ERROR);
+			printf("read_grid(): Premature end of file, block %d, vertex[%d,%d,%d]\n", id, i, j, k);
+			return BAD_INPUT_ERROR;
 		    }
 		    vp = get_vtx(i,j,k);
 		    sscanf(line, "%lf %lf %lf", &(vp->pos.x), &(vp->pos.y), &(vp->pos.z));
@@ -1911,7 +1917,7 @@ int Block::read_grid( std::string filename, int dimensions, int zip_file )
 	    printf( "read_grid(): Mismatch in cell numbers, block %d\n", id );
 	    printf( "    i=%d nni+1=%d j=%d nnj+1=%d k=%d nnk=%d\n", 
 		    i, nni+1, j, nnj+1, k, nnk);
-	    exit( BAD_INPUT_ERROR );
+	    return BAD_INPUT_ERROR;
 	}
 	for ( j = jmin; j <= jmax+1; ++j ) {
 	    for ( i = imin; i <= imax+1; ++i ) {
@@ -1922,7 +1928,7 @@ int Block::read_grid( std::string filename, int dimensions, int zip_file )
 		}
 		if (gets_result == NULL) {
 		    printf("read_grid(): Premature end of file, block %d, vertex[%d,%d]\n", id, i, j);
-		    exit(BAD_INPUT_ERROR);
+		    return BAD_INPUT_ERROR;
 		}
 		vp = get_vtx(i,j);
 		sscanf(line, "%lf %lf", &(vp->pos.x), &(vp->pos.y));

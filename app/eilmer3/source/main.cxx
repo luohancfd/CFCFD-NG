@@ -101,7 +101,8 @@ int main(int argc, char **argv)
 {
     global_data &G = *get_global_data_ptr();
     int do_run_simulation = 0;
-    int start_tindx = 0; 
+    int start_tindx = 0;
+    int run_status = SUCCESS;
     char c, job_name[132], text_buf[132];
     char log_file_name[132];
 
@@ -260,11 +261,14 @@ int main(int argc, char **argv)
     if ( do_run_simulation == 1 ) {
 	printf("Run simulation...\n");
 	/* The simulation proper. */
-	if (prepare_to_integrate(start_tindx) != SUCCESS) goto Quit;
+	run_status = prepare_to_integrate(start_tindx);
+	if (run_status != SUCCESS) goto Quit;
 	if ( G.sequence_blocks ) {
-	    if ( integrate_blocks_in_sequence() != SUCCESS) goto Quit;
+	    run_status = integrate_blocks_in_sequence();
+	    if (run_status != SUCCESS) goto Quit;
 	} else {
-	    if ( integrate_in_time(-1.0) != SUCCESS) goto Quit;
+	    run_status = integrate_in_time(-1.0);
+	    if (run_status != SUCCESS) goto Quit;
 	}
 	finalize_simulation();
     } else {
@@ -278,7 +282,10 @@ int main(int argc, char **argv)
     eilmer_finalize();
 #   ifdef _MPI
     printf("e3main: end of process %d.\n", mpi_pid);
-    MPI_Finalize();
+    if (run_status != SUCCESS) 
+	MPI_Abort(MPI_COMM_WORLD, program_return_flag);
+    else
+	MPI_Finalize();
 #   else
     printf("e3main: done.\n");
 #   endif
@@ -337,7 +344,7 @@ int prepare_to_integrate( int start_tindx )
 	filename += ".piston0";
 	if ((fp = fopen(filename.c_str(), "r")) == NULL) {
 	    cerr << "Could not open " << filename << "; BAILING OUT" << endl;
-	    exit( FILE_ERROR );
+	    return FILE_ERROR;
 	}
 	double temporary_time;
 	for ( int jp = 0; jp < G.npiston; ++jp ) {
@@ -370,7 +377,9 @@ int prepare_to_integrate( int start_tindx )
 	jbstring = jbcstr;
 	// Read grid from the tindx=0 files, always.
 	filename = "grid/t0000/"+G.base_file_name+".grid"+jbstring+".t0000";
-        bdp->read_grid(filename, G.dimensions, zip_files);
+        if (bdp->read_grid(filename, G.dimensions, zip_files) != SUCCESS) {
+	    return FAILURE;
+	}
 	// Read flow data from the specified tindx files.
 	filename = "flow/"+tindxstring+"/"+G.base_file_name+".flow"+jbstring+"."+tindxstring;
         G.sim_time = bdp->read_solution(filename, G.dimensions, zip_files);
@@ -402,7 +411,7 @@ int prepare_to_integrate( int start_tindx )
     if ( master ) {
 	if ((G.timestampfile = fopen(filename.c_str(), "a")) == NULL) {
 	    cerr << "Could not open " << filename << "; BAILING OUT" << endl;
-	    exit(FILE_ERROR);
+	    return FILE_ERROR;
 	}
 	// The zeroth entry in the timestampfile has been written already by e3prep.py.
 	// fprintf( G.timestampfile, "# count sim_time dt_global\n" );
