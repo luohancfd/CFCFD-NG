@@ -546,7 +546,7 @@ int Block::compute_primary_cell_geometric_data( int dimensions )
 // Compute cell and interface geometric properties.
 {
     int i, j, k;
-    FV_Cell *cell;
+    FV_Cell *cell, *cell_1, *cell_2, *ghost_cell;
     Vector3 dummy;
     FV_Interface *iface;
     Vector3 *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7;
@@ -707,6 +707,74 @@ int Block::compute_primary_cell_geometric_data( int dimensions )
 	}
     }
 
+    /* Extrapolate (with first-order) cell positions in ghost cells. */
+    for ( j = jmin; j <= jmax; ++j ) {
+	for ( k = kmin; k <= kmax; ++k ) {
+	    i = imin;
+	    cell_1 = get_cell(i,j,k);
+	    cell_2 = get_cell(i+1,j,k);
+	    ghost_cell = get_cell(i-1,j,k);
+	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	    cell_2 = cell_1;
+	    cell_1 = ghost_cell;
+	    ghost_cell = get_cell(i-2,j,k);
+	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	    i = imax;
+	    cell_1 = get_cell(i,j,k);
+	    cell_2 = get_cell(i-1,j,k);
+	    ghost_cell = get_cell(i+1,j,k);
+	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	    cell_2 = cell_1;
+	    cell_1 = ghost_cell;
+	    ghost_cell = get_cell(i+2,j,k);
+	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	}
+    }
+    for ( i = imin; i <= imax; ++i ) {
+	for ( k = kmin; k <= kmax; ++k ) {
+	    j = jmin;
+	    cell_1 = get_cell(i,j,k);
+	    cell_2 = get_cell(i,j+1,k);
+	    ghost_cell = get_cell(i,j-1,k);
+	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	    cell_2 = cell_1;
+	    cell_1 = ghost_cell;
+	    ghost_cell = get_cell(i,j-2,k);
+	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	    j = jmax;
+	    cell_1 = get_cell(i,j,k);
+	    cell_2 = get_cell(i,j-1,k);
+	    ghost_cell = get_cell(i,j+1,k);
+	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	    cell_2 = cell_1;
+	    cell_1 = ghost_cell;
+	    ghost_cell = get_cell(i,j+2,k);
+	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	}
+    }
+    for ( i = imin; i <= imax; ++i ) {
+	for ( j = jmin; j <= jmax; ++j ) {
+	    k = kmin;
+	    cell_1 = get_cell(i,j,k);
+	    cell_2 = get_cell(i,j,k+1);
+	    ghost_cell = get_cell(i,j,k-1);
+	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	    cell_2 = cell_1;
+	    cell_1 = ghost_cell;
+	    ghost_cell = get_cell(i,j,k-2);
+	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	    k = kmax;
+	    cell_1 = get_cell(i,j,k);
+	    cell_2 = get_cell(i,j,k-1);
+	    ghost_cell = get_cell(i,j,k+1);
+	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	    cell_2 = cell_1;
+	    cell_1 = ghost_cell;
+	    ghost_cell = get_cell(i,j,k+2);
+	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	}
+    }
+	    
     return SUCCESS;
 } // end compute_primary_cell_geometric_data()
 
