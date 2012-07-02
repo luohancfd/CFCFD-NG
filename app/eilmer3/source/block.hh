@@ -263,9 +263,11 @@ public:
     void compute_x_forces( char *text_string, int ibndy, int dimensions );
     int print_forces( FILE *fp, double t, int dimensions );
 
-    int read_grid( std::string filename, int dimensions, int zip_file=1 );
-    double read_solution( std::string filename, int dimensions, int zip_file=1 );
-    int write_solution( std::string filename, double sim_time, int dimensions, int zip_file=1 );
+    int read_grid(std::string filename, int dimensions, int zip_file=1);
+    int read_solution(std::string filename, double *sim_time, 
+		      int dimensions, int zip_file=1);
+    int write_solution(std::string filename, double sim_time, 
+		       int dimensions, int zip_file=1 );
     int write_history( std::string filename, double sim_time, int write_header=0 );
 
     int count_invalid_cells( int dimensions );

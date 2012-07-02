@@ -1845,7 +1845,7 @@ int Block::print_forces( FILE *fp, double t, int dimensions )
 } // end print_forces()
 
 
-int Block::read_grid( std::string filename, int dimensions, int zip_file )
+int Block::read_grid(std::string filename, int dimensions, int zip_file)
 /// \brief Read the grid from a disc file as a set of cell vertices.
 /// \returns 0 if successful but 1 if it hits the end of the grid file prematurely.
 {
@@ -1948,30 +1948,35 @@ int Block::read_grid( std::string filename, int dimensions, int zip_file )
 
 /// \brief Read the flow solution (i.e. the primary variables at the 
 ///        cell centers) from a disk file.
-/// Returns the simulation time for the data.
-double Block::read_solution(std::string filename, int dimensions, int zip_file)
+/// Returns a status flag.
+int Block::read_solution(std::string filename, double *sim_time,
+			 int dimensions, int zip_file)
 {
 #   define NCHAR 4000
     char line[NCHAR];
-    FILE *fp;
-    gzFile zfp;
     char *gets_result;
     int i, j, k;
-    double sim_time;
+    int retries = 10;
+    FILE *fp = NULL;
+    gzFile zfp = NULL;
     if (id == 0) printf("read_solution(): Start block %d.\n", id); 
-    if (zip_file) {
-	fp = NULL;
-	filename += ".gz";
-	if ((zfp = gzopen(filename.c_str(), "r")) == NULL) {
-	    cerr << "read_solution(): Could not open " << filename << "; BAILING OUT" << endl;
-	    exit(FILE_ERROR);
+    if (zip_file) filename += ".gz";
+    while (retries > 0 && zfp == NULL && fp == NULL) {
+	if (zip_file) {
+	    zfp = gzopen(filename.c_str(), "r");
+	} else {
+	    fp = fopen(filename.c_str(), "r");
 	}
-    } else {
-	zfp = NULL;
-	if ((fp = fopen(filename.c_str(), "r")) == NULL) {
-	    cerr << "read_solution(): Could not open " << filename << "; BAILING OUT" << endl;
-	    exit(FILE_ERROR);
+	if (zfp == NULL && fp == NULL) {
+	    --retries;
+	    cerr << "read_solution(): Could not open " << filename 
+		 << "; " << retries << " retries to go." << endl;
+	    sleep(2);
 	}
+    }
+    if (zfp == NULL && fp == NULL) {
+	cerr << "read_solution(): Could not open " << filename << "; BAILING OUT" << endl;
+	return FILE_ERROR;
     }
     if (zip_file) {
 	gets_result = gzgets(zfp, line, NCHAR);
@@ -1980,10 +1985,10 @@ double Block::read_solution(std::string filename, int dimensions, int zip_file)
     }
     if (gets_result == NULL) {
 	printf("read_solution(): Empty flow field file while looking for sim_time value.\n");
-	exit(BAD_INPUT_ERROR);
+	return BAD_INPUT_ERROR;
     }
-    sscanf(line, "%lf", &sim_time);
-    if (id == 0) printf("read_solution(): Time = %e\n", sim_time);
+    sscanf(line, "%lf", sim_time);
+    if (id == 0) printf("read_solution(): Time = %e\n", *sim_time);
     if (zip_file) {
 	gets_result = gzgets(zfp, line, NCHAR);
     } else {
@@ -1991,7 +1996,7 @@ double Block::read_solution(std::string filename, int dimensions, int zip_file)
     }
     if (gets_result == NULL) {
 	printf("read_solution(): Empty flow field file while looking for line of variable names.\n");
-	exit(BAD_INPUT_ERROR);
+	return BAD_INPUT_ERROR;
     }
     // The line just read should be the list of variable names, double-quoted.
     if (zip_file) {
@@ -2001,14 +2006,14 @@ double Block::read_solution(std::string filename, int dimensions, int zip_file)
     }
     if ( gets_result == NULL ) {
 	printf("read_solution(): Empty flow field file while looking for numbers of cells.\n");
-	exit(BAD_INPUT_ERROR);
+	return BAD_INPUT_ERROR;
     }
     sscanf(line, "%d %d %d", &i, &j, &k);
     if ( i != nni || j != nnj || k != ((dimensions == 3) ? nnk : 1) ) {
 	printf("read_solution(): block %d, mismatch in cell numbers\n", id);
 	printf("    This misalignment could be caused by a having a different number\n");
 	printf("    of fields for each cell's entry.\n");
-	exit(BAD_INPUT_ERROR);
+	return BAD_INPUT_ERROR;
     }
     for ( k = kmin; k <= kmax; ++k ) {
 	for ( j = jmin; j <= jmax; ++j ) {
@@ -2021,7 +2026,7 @@ double Block::read_solution(std::string filename, int dimensions, int zip_file)
 		}
 		if (gets_result == NULL) {
 		    printf("read_solution(): Empty flow field file while reading cell data.\n");
-		    exit(BAD_INPUT_ERROR);
+		    return BAD_INPUT_ERROR;
 		}
 		get_cell(i,j,k)->scan_values_from_string(line);
 	    }
@@ -2032,7 +2037,7 @@ double Block::read_solution(std::string filename, int dimensions, int zip_file)
     } else {
 	fclose(fp);
     }
-    return sim_time;
+    return SUCCESS;
 #   undef NCHAR
 } // end of Block::read_solution()
 

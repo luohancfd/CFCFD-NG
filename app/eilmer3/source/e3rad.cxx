@@ -313,7 +313,7 @@ int prepare_for_radiation_calculation( int start_tindx )
         bdp->read_grid(filename, G.dimensions, zip_files);
 	// Read flow data from the specified tindx files.
 	filename = "flow/"+tindxstring+"/"+G.base_file_name+".flow"+jbstring+"."+tindxstring;
-        G.sim_time = bdp->read_solution(filename, G.dimensions, zip_files);
+        bdp->read_solution(filename, &(G.sim_time), G.dimensions, zip_files);
 	// History file header is only written for a fresh start.
 	ensure_directory_is_present("hist");
 	filename = "hist/" + G.base_file_name + ".hist"+jbstring;

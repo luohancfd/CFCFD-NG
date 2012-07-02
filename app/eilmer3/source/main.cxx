@@ -382,7 +382,9 @@ int prepare_to_integrate( int start_tindx )
 	}
 	// Read flow data from the specified tindx files.
 	filename = "flow/"+tindxstring+"/"+G.base_file_name+".flow"+jbstring+"."+tindxstring;
-        G.sim_time = bdp->read_solution(filename, G.dimensions, zip_files);
+        if (bdp->read_solution(filename, &(G.sim_time), G.dimensions, zip_files) != SUCCESS) {
+	    return FAILURE;
+	}
     }
 
     // History file header is only written for a fresh start.
