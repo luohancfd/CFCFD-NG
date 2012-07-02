@@ -1307,10 +1307,10 @@ the \texttt{e3prep.py} program and these represent\footnote{The
       The optional \texttt{label} has an empty default value but may be used to group boundary surfaces symbolically
       in the postprocessing stage.
       Paul Petrie-Repar has made use of these labels in his \texttt{CGNS} postprocessing program.
-    \item \texttt{ExtrapolateOutBC(sponge\_flag=0, label='')}\index{boundary conditions!ExtrapolateOutBC} where we want a (mostly supersonic) outflow
+    \item \texttt{ExtrapolateOutBC(x\_order=0, sponge\_flag=0, label='')}\index{boundary conditions!ExtrapolateOutBC} where we want a (mostly supersonic) outflow
       condition.
-      Flow data is effectively copied from just inside the boundary to the ghost cells
-      just outside the boundary, every time step.
+      Flow data is effectively copied (\texttt{x\_order=0}) or linearly-extrapolated (\texttt{x\_order=1})
+      from just inside the boundary to the ghost cells just outside the boundary, every time step.
       In subsonic flow, this can lead to unphysical bahaviour.
     \item \texttt{SlipWallBC(label='')}\index{boundary conditions!SlipWallBC} where we want a solid wall with no viscous effects.
       This is the default boundary condition where no other condition is specified.
@@ -1325,8 +1325,8 @@ the \texttt{e3prep.py} program and these represent\footnote{The
       the inflow condition.
     \item \texttt{StaticProfileBC(filename, label='')}\index{boundary conditions!StaticProfileBC} where we want to apply a steady-state inflow
        which may vary in space.
-    \item \texttt{FixedPOutBC(Pout, label='')}\index{boundary conditions!FixedPOutBC} is like \texttt{ExtrapolateOutBC()} but with a specified 
-      back pressure.
+    \item \texttt{FixedPOutBC(Pout, x\_order=0, label='')}\index{boundary conditions!FixedPOutBC} 
+      is like \texttt{ExtrapolateOutBC()} but with a specified back pressure.
       This can be analogous to a vacuum pump that removes gas at the boundary to maintain
       a fixed pressure in the ghost cells.
     \item \texttt{UserDefinedBC(filename, is\_wall=0, use\_udf\_flux=0, label='')}\index{boundary conditions!UserDefinedBC}: 
@@ -1685,9 +1685,9 @@ argument of the block constructor, you may apply boundary conditions to specific
 of a \texttt{Block2D} or \texttt{Block3D} object by calling its method
 \texttt{
 \begin{tabbing}
-set\_BC(\=face\_name, type\_of\_BC, inflow\_condition=None, sponge\_flag=None,\\
-      \>Twall=None, Pout=None, filename=None, is\_wall=0, use\_udf\_flux=0,\\
-      \>label='')
+set\_BC(\=face\_name, type\_of\_BC, inflow\_condition=None, x\_order=0,\\
+      \>sponge\_flag=None, Twall=None, Pout=None, filename=None,\\
+      \>is\_wall=0, use\_udf\_flux=0, label='')
 \end{tabbing}\index{boundary conditions!set\_BC}
 }
 \noindent
@@ -1706,8 +1706,8 @@ specifying the boundary conditions when the block is created.
       \item \texttt{SUP\_IN}: supersonic inflow using the
         \texttt{inflow\_condition} properties.
       \item \texttt{EXTRAPOLATE\_OUT}: (assumed) supersonic-outflow where the
-        ghost-cell flow properties are simply copies of the adjacent interior 
-        cell properties.
+        ghost-cell flow properties are copies or extrapolations 
+        of the adjacent interior cell properties.
       \item \texttt{SLIP\_WALL}: an inviscid solid wall where the normal
         velocity in the ghost cells is a reflection of the velocity in the
         interoir cell.
@@ -1737,6 +1737,8 @@ specifying the boundary conditions when the block is created.
     \end{itemize}
   \item \texttt{inflow\_condition}: the flow condition used for
     \texttt{SUP\_IN}, default value None.
+  \item \texttt{x\_order}: Order of extrapolation for \texttt{EXTRAPOLATE\_OUT} and 
+    \texttt{FIXED\_P\_OUT}, default value 0.
   \item \texttt{sponge\_flag}: Andrew Denman's flag, default value None.
   \item \texttt{Twall}: static temperature of the wall in degrees K, default value None.
   \item \texttt{Pout}: static pressure in Pa applied to the ghost cells, default value None.
