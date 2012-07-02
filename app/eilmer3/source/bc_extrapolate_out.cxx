@@ -32,17 +32,82 @@ int ExtrapolateOutBC::apply_inviscid( double t )
     // We assume that this boundary is an outflow boundary.
     int i, j, k;
     FV_Cell *src_cell, *dest_cell;
+    FV_Cell *cell_1, *cell_2;
+    Gas_model *gmodel = get_gas_model_ptr();
+    int nsp = gmodel->get_number_of_species();
+    int nmodes = gmodel->get_number_of_modes();
 
     switch ( which_boundary ) {
     case NORTH:
 	j = bdp.jmax;
         for (k = bdp.kmin; k <= bdp.kmax; ++k) {
 	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		src_cell = bdp.get_cell(i,j,k);
-		dest_cell = bdp.get_cell(i,j+1,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
-		dest_cell = bdp.get_cell(i,j+2,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		if ( x_order == 1 ) {
+		    //  |--- [2] ---|--- [1] ---|||--- [dest] ---|---[ghost cell 2]----
+		    //      (j-1)        (j)           (j+1)
+		    //  dest: ghost cell 1
+		    //  [1]: first interior cell
+		    //  [2]: second interior cell
+		    // This extrapolation assumes that cell-spacing between
+		    // cells 1 and 2 continues on in the exterior
+		    cell_1 = bdp.get_cell(i,j,k);
+		    cell_2 = bdp.get_cell(i,j-1,k);
+		    dest_cell = bdp.get_cell(i,j+1,k);
+		    // Extrapolate on primitive variables
+		    // 1. First exterior point
+		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
+		    for ( int imode = 0; imode < nmodes; ++imode ) {
+			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2*fs->gas->e[imode];
+		    }
+		    if ( nsp > 1 ) {
+			for ( int isp = 0; isp < nsp; ++isp ) {
+			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2*fs->gas->massf[isp];
+			}
+			scale_mass_fractions(dest_cell->fs->gas->massf);
+		    }
+		    else {
+			dest_cell->fs->gas->massf[0] = 1.0;
+		    }
+		    gmodel->eval_thermo_state_rhoe(*(dest_cell->fs->gas));
+		    dest_cell->fs->vel = 2.0*cell_1->fs->vel - cell_2->fs->vel;
+		    dest_cell->fs->tke = 2.0*cell_1->fs->tke - cell_2->fs->tke;
+		    dest_cell->fs->omega = 2.0*cell_1->fs->omega - cell_2->fs->omega;
+		    dest_cell->fs->mu_t = 2.0*cell_1->fs->mu_t - cell_2->fs->mu_t;
+		    dest_cell->fs->k_t = 2.0*cell_1->fs->k_t - cell_2->fs->k_t;
+		    // 2. Second exterior point
+		    //  |---[2]---|||---[1]---|---[dest]------
+		    //      (j)        (j+1)       (j+2)
+		    cell_2 = cell_1;
+		    cell_1 = dest_cell;
+		    dest_cell = bdp.get_cell(i,j+2,k);
+		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
+		    for ( int imode = 0; imode < nmodes; ++imode ) {
+			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2*fs->gas->e[imode];
+		    }
+		    if ( nsp > 1 ) {
+			for ( int isp = 0; isp < nsp; ++isp ) {
+			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2*fs->gas->massf[isp];
+			}
+			scale_mass_fractions(dest_cell->fs->gas->massf);
+		    }
+		    else {
+			dest_cell->fs->gas->massf[0] = 1.0;
+		    }
+		    gmodel->eval_thermo_state_rhoe(*(dest_cell->fs->gas));
+		    dest_cell->fs->vel = 2.0*cell_1->fs->vel - cell_2->fs->vel;
+		    dest_cell->fs->tke = 2.0*cell_1->fs->tke - cell_2->fs->tke;
+		    dest_cell->fs->omega = 2.0*cell_1->fs->omega - cell_2->fs->omega;
+		    dest_cell->fs->mu_t = 2.0*cell_1->fs->mu_t - cell_2->fs->mu_t;
+		    dest_cell->fs->k_t = 2.0*cell_1->fs->k_t - cell_2->fs->k_t;
+		}
+		else {
+		    // Zero-order extrapolation
+		    src_cell = bdp.get_cell(i,j,k);
+		    dest_cell = bdp.get_cell(i,j+1,k);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		    dest_cell = bdp.get_cell(i,j+2,k);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		} 
 	    } // end i loop
 	} // for k
 	break;
@@ -50,11 +115,71 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 	i = bdp.imax;
         for (k = bdp.kmin; k <= bdp.kmax; ++k) {
 	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		src_cell = bdp.get_cell(i,j,k);
-		dest_cell = bdp.get_cell(i+1,j,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
-		dest_cell = bdp.get_cell(i+2,j,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		if ( x_order == 1 ) {
+		    //  |--- [2] ---|--- [1] ---|||--- [dest] ---|---[ghost cell 2]----
+		    //      (i-1)        (i)           (i+1)
+		    //  dest: ghost cell 1
+		    //  [1]: first interior cell
+		    //  [2]: second interior cell
+		    // This extrapolation assumes that cell-spacing between
+		    // cells 1 and 2 continues on in the exterior
+		    cell_1 = bdp.get_cell(i,j,k);
+		    cell_2 = bdp.get_cell(i-1,j,k);
+		    dest_cell = bdp.get_cell(i+1,j,k);
+		    // Extrapolate on primitive variables
+		    // 1. First exterior point
+		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
+		    for ( int imode = 0; imode < nmodes; ++imode ) {
+			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2*fs->gas->e[imode];
+		    }
+		    if ( nsp > 1 ) {
+			for ( int isp = 0; isp < nsp; ++isp ) {
+			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2*fs->gas->massf[isp];
+			}
+			scale_mass_fractions(dest_cell->fs->gas->massf);
+		    }
+		    else {
+			dest_cell->fs->gas->massf[0] = 1.0;
+		    }
+		    gmodel->eval_thermo_state_rhoe(*(dest_cell->fs->gas));
+		    dest_cell->fs->vel = 2.0*cell_1->fs->vel - cell_2->fs->vel;
+		    dest_cell->fs->tke = 2.0*cell_1->fs->tke - cell_2->fs->tke;
+		    dest_cell->fs->omega = 2.0*cell_1->fs->omega - cell_2->fs->omega;
+		    dest_cell->fs->mu_t = 2.0*cell_1->fs->mu_t - cell_2->fs->mu_t;
+		    dest_cell->fs->k_t = 2.0*cell_1->fs->k_t - cell_2->fs->k_t;
+		    // 2. Second exterior point
+		    //  |---[2]---|||---[1]---|---[dest]------
+		    //      (i)        (i+1)       (i+2)
+		    cell_2 = cell_1;
+		    cell_1 = dest_cell;
+		    dest_cell = bdp.get_cell(i+2,j,k);
+		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
+		    for ( int imode = 0; imode < nmodes; ++imode ) {
+			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2*fs->gas->e[imode];
+		    }
+		    if ( nsp > 1 ) {
+			for ( int isp = 0; isp < nsp; ++isp ) {
+			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2*fs->gas->massf[isp];
+			}
+			scale_mass_fractions(dest_cell->fs->gas->massf);
+		    }
+		    else {
+			dest_cell->fs->gas->massf[0] = 1.0;
+		    }
+		    gmodel->eval_thermo_state_rhoe(*(dest_cell->fs->gas));
+		    dest_cell->fs->vel = 2.0*cell_1->fs->vel - cell_2->fs->vel;
+		    dest_cell->fs->tke = 2.0*cell_1->fs->tke - cell_2->fs->tke;
+		    dest_cell->fs->omega = 2.0*cell_1->fs->omega - cell_2->fs->omega;
+		    dest_cell->fs->mu_t = 2.0*cell_1->fs->mu_t - cell_2->fs->mu_t;
+		    dest_cell->fs->k_t = 2.0*cell_1->fs->k_t - cell_2->fs->k_t;
+		}
+		else {
+		    src_cell = bdp.get_cell(i,j,k);
+		    dest_cell = bdp.get_cell(i+1,j,k);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		    dest_cell = bdp.get_cell(i+2,j,k);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		}
 	    } // end j loop
 	} // for k
 	break;
@@ -62,11 +187,71 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 	j = bdp.jmin;
         for (k = bdp.kmin; k <= bdp.kmax; ++k) {
 	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		src_cell = bdp.get_cell(i,j,k);
-		dest_cell = bdp.get_cell(i,j-1,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
-		dest_cell = bdp.get_cell(i,j-2,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		if ( x_order == 1 ) {
+		    //  |--- [2] ---|--- [1] ---|||--- [dest] ---|---[ghost cell 2]----
+		    //      (j+1)        (j)           (j-1)
+		    //  dest: ghost cell 1
+		    //  [1]: first interior cell
+		    //  [2]: second interior cell
+		    // This extrapolation assumes that cell-spacing between
+		    // cells 1 and 2 continues on in the exterior
+		    cell_1 = bdp.get_cell(i,j,k);
+		    cell_2 = bdp.get_cell(i,j+1,k);
+		    dest_cell = bdp.get_cell(i,j-1,k);
+		    // Extrapolate on primitive variables
+		    // 1. First exterior point
+		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
+		    for ( int imode = 0; imode < nmodes; ++imode ) {
+			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2*fs->gas->e[imode];
+		    }
+		    if ( nsp > 1 ) {
+			for ( int isp = 0; isp < nsp; ++isp ) {
+			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2*fs->gas->massf[isp];
+			}
+			scale_mass_fractions(dest_cell->fs->gas->massf);
+		    }
+		    else {
+			dest_cell->fs->gas->massf[0] = 1.0;
+		    }
+		    gmodel->eval_thermo_state_rhoe(*(dest_cell->fs->gas));
+		    dest_cell->fs->vel = 2.0*cell_1->fs->vel - cell_2->fs->vel;
+		    dest_cell->fs->tke = 2.0*cell_1->fs->tke - cell_2->fs->tke;
+		    dest_cell->fs->omega = 2.0*cell_1->fs->omega - cell_2->fs->omega;
+		    dest_cell->fs->mu_t = 2.0*cell_1->fs->mu_t - cell_2->fs->mu_t;
+		    dest_cell->fs->k_t = 2.0*cell_1->fs->k_t - cell_2->fs->k_t;
+		    // 2. Second exterior point
+		    //  |---[2]---|||---[1]---|---[dest]------
+		    //      (j)        (j-1)       (j-2)
+		    cell_2 = cell_1;
+		    cell_1 = dest_cell;
+		    dest_cell = bdp.get_cell(i,j-2,k);
+		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
+		    for ( int imode = 0; imode < nmodes; ++imode ) {
+			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2*fs->gas->e[imode];
+		    }
+		    if ( nsp > 1 ) {
+			for ( int isp = 0; isp < nsp; ++isp ) {
+			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2*fs->gas->massf[isp];
+			}
+			scale_mass_fractions(dest_cell->fs->gas->massf);
+		    }
+		    else {
+			dest_cell->fs->gas->massf[0] = 1.0;
+		    }
+		    gmodel->eval_thermo_state_rhoe(*(dest_cell->fs->gas));
+		    dest_cell->fs->vel = 2.0*cell_1->fs->vel - cell_2->fs->vel;
+		    dest_cell->fs->tke = 2.0*cell_1->fs->tke - cell_2->fs->tke;
+		    dest_cell->fs->omega = 2.0*cell_1->fs->omega - cell_2->fs->omega;
+		    dest_cell->fs->mu_t = 2.0*cell_1->fs->mu_t - cell_2->fs->mu_t;
+		    dest_cell->fs->k_t = 2.0*cell_1->fs->k_t - cell_2->fs->k_t;
+		}
+		else {
+		    src_cell = bdp.get_cell(i,j,k);
+		    dest_cell = bdp.get_cell(i,j-1,k);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		    dest_cell = bdp.get_cell(i,j-2,k);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		}
 	    } // end i loop
 	} // for k
 	break;
@@ -74,11 +259,72 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 	i = bdp.imin;
         for (k = bdp.kmin; k <= bdp.kmax; ++k) {
 	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		src_cell = bdp.get_cell(i,j,k);
-		dest_cell = bdp.get_cell(i-1,j,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
-		dest_cell = bdp.get_cell(i-2,j,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		if ( x_order == 1 ) {
+		    //  ---[ghost cell 2]---|--- [dest] ---|||--- [1] ---|---[2]----
+		    //      (i-2)                 (i-1)           (i)       (i+1)
+		    //  dest: ghost cell 1
+		    //  [1]: first interior cell
+		    //  [2]: second interior cell
+		    // This extrapolation assumes that cell-spacing between
+		    // cells 1 and 2 continues on in the exterior
+		    cell_1 = bdp.get_cell(i,j,k);
+		    cell_2 = bdp.get_cell(i+1,j,k);
+		    dest_cell = bdp.get_cell(i-1,j,k);
+		    // Extrapolate on primitive variables
+		    // 1. First exterior point
+		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
+		    for ( int imode = 0; imode < nmodes; ++imode ) {
+			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2*fs->gas->e[imode];
+		    }
+		    if ( nsp > 1 ) {
+			for ( int isp = 0; isp < nsp; ++isp ) {
+			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2*fs->gas->massf[isp];
+			}
+			scale_mass_fractions(dest_cell->fs->gas->massf);
+		    }
+		    else {
+			dest_cell->fs->gas->massf[0] = 1.0;
+		    }
+		    gmodel->eval_thermo_state_rhoe(*(dest_cell->fs->gas));
+		    dest_cell->fs->vel = 2.0*cell_1->fs->vel - cell_2->fs->vel;
+		    dest_cell->fs->tke = 2.0*cell_1->fs->tke - cell_2->fs->tke;
+		    dest_cell->fs->omega = 2.0*cell_1->fs->omega - cell_2->fs->omega;
+		    dest_cell->fs->mu_t = 2.0*cell_1->fs->mu_t - cell_2->fs->mu_t;
+		    dest_cell->fs->k_t = 2.0*cell_1->fs->k_t - cell_2->fs->k_t;
+		    // 2. Second exterior point
+		    //  |---[dest]---|---[1]---|||---[2]---|------|
+		    //       (i-2)       (i-1)       (i)
+		    cell_2 = cell_1;
+		    cell_1 = dest_cell;
+		    dest_cell = bdp.get_cell(i-2,j,k);
+		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
+		    for ( int imode = 0; imode < nmodes; ++imode ) {
+			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2*fs->gas->e[imode];
+		    }
+		    if ( nsp > 1 ) {
+			for ( int isp = 0; isp < nsp; ++isp ) {
+			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2*fs->gas->massf[isp];
+			}
+			scale_mass_fractions(dest_cell->fs->gas->massf);
+		    }
+		    else {
+			dest_cell->fs->gas->massf[0] = 1.0;
+		    }
+		    gmodel->eval_thermo_state_rhoe(*(dest_cell->fs->gas));
+		    dest_cell->fs->vel = 2.0*cell_1->fs->vel - cell_2->fs->vel;
+		    dest_cell->fs->tke = 2.0*cell_1->fs->tke - cell_2->fs->tke;
+		    dest_cell->fs->omega = 2.0*cell_1->fs->omega - cell_2->fs->omega;
+		    dest_cell->fs->mu_t = 2.0*cell_1->fs->mu_t - cell_2->fs->mu_t;
+		    dest_cell->fs->k_t = 2.0*cell_1->fs->k_t - cell_2->fs->k_t;
+		}
+		else {
+		    // Zero-order extrapolation
+		    src_cell = bdp.get_cell(i,j,k);
+		    dest_cell = bdp.get_cell(i-1,j,k);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		    dest_cell = bdp.get_cell(i-2,j,k);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		}
 	    } // end j loop
 	} // for k
  	break;
@@ -86,11 +332,72 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 	k = bdp.kmax;
         for (i = bdp.imin; i <= bdp.imax; ++i) {
 	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		src_cell = bdp.get_cell(i,j,k);
-		dest_cell = bdp.get_cell(i,j,k+1);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
-		dest_cell = bdp.get_cell(i,j,k+2);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		if ( x_order == 1 ) {
+		    //  |--- [2] ---|--- [1] ---|||--- [dest] ---|---[ghost cell 2]----
+		    //      (k-1)        (k)           (k+1)
+		    //  dest: ghost cell 1
+		    //  [1]: first interior cell
+		    //  [2]: second interior cell
+		    // This extrapolation assumes that cell-spacing between
+		    // cells 1 and 2 continues on in the exterior
+		    cell_1 = bdp.get_cell(i,j,k);
+		    cell_2 = bdp.get_cell(i,j,k-1);
+		    dest_cell = bdp.get_cell(i,j,k+1);
+		    // Extrapolate on primitive variables
+		    // 1. First exterior point
+		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
+		    for ( int imode = 0; imode < nmodes; ++imode ) {
+			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2*fs->gas->e[imode];
+		    }
+		    if ( nsp > 1 ) {
+			for ( int isp = 0; isp < nsp; ++isp ) {
+			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2*fs->gas->massf[isp];
+			}
+			scale_mass_fractions(dest_cell->fs->gas->massf);
+		    }
+		    else {
+			dest_cell->fs->gas->massf[0] = 1.0;
+		    }
+		    gmodel->eval_thermo_state_rhoe(*(dest_cell->fs->gas));
+		    dest_cell->fs->vel = 2.0*cell_1->fs->vel - cell_2->fs->vel;
+		    dest_cell->fs->tke = 2.0*cell_1->fs->tke - cell_2->fs->tke;
+		    dest_cell->fs->omega = 2.0*cell_1->fs->omega - cell_2->fs->omega;
+		    dest_cell->fs->mu_t = 2.0*cell_1->fs->mu_t - cell_2->fs->mu_t;
+		    dest_cell->fs->k_t = 2.0*cell_1->fs->k_t - cell_2->fs->k_t;
+		    // 2. Second exterior point
+		    //  |---[2]---|||---[1]---|---[dest]------
+		    //      (k)        (k+1)       (k+2)
+		    cell_2 = cell_1;
+		    cell_1 = dest_cell;
+		    dest_cell = bdp.get_cell(i,j,k+2);
+		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
+		    for ( int imode = 0; imode < nmodes; ++imode ) {
+			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2*fs->gas->e[imode];
+		    }
+		    if ( nsp > 1 ) {
+			for ( int isp = 0; isp < nsp; ++isp ) {
+			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2*fs->gas->massf[isp];
+			}
+			scale_mass_fractions(dest_cell->fs->gas->massf);
+		    }
+		    else {
+			dest_cell->fs->gas->massf[0] = 1.0;
+		    }
+		    gmodel->eval_thermo_state_rhoe(*(dest_cell->fs->gas));
+		    dest_cell->fs->vel = 2.0*cell_1->fs->vel - cell_2->fs->vel;
+		    dest_cell->fs->tke = 2.0*cell_1->fs->tke - cell_2->fs->tke;
+		    dest_cell->fs->omega = 2.0*cell_1->fs->omega - cell_2->fs->omega;
+		    dest_cell->fs->mu_t = 2.0*cell_1->fs->mu_t - cell_2->fs->mu_t;
+		    dest_cell->fs->k_t = 2.0*cell_1->fs->k_t - cell_2->fs->k_t;
+		}
+		else {
+		    // Zero-order extrapolation
+		    src_cell = bdp.get_cell(i,j,k);
+		    dest_cell = bdp.get_cell(i,j,k+1);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		    dest_cell = bdp.get_cell(i,j,k+2);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		}
 	    } // end j loop
 	} // for i
 	break;
@@ -98,11 +405,71 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 	k = bdp.kmin;
         for (i = bdp.imin; i <= bdp.imax; ++i) {
 	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		src_cell = bdp.get_cell(i,j,k);
-		dest_cell = bdp.get_cell(i,j,k-1);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
-		dest_cell = bdp.get_cell(i,j,k-2);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		if ( x_order == 1 ) {
+		    //  |--- [2] ---|--- [1] ---|||--- [dest] ---|---[ghost cell 2]----
+		    //      (k+1)        (k)           (k-1)
+		    //  dest: ghost cell 1
+		    //  [1]: first interior cell
+		    //  [2]: second interior cell
+		    // This extrapolation assumes that cell-spacing between
+		    // cells 1 and 2 continues on in the exterior
+		    cell_1 = bdp.get_cell(i,j,k);
+		    cell_2 = bdp.get_cell(i,j,k+2);
+		    dest_cell = bdp.get_cell(i,j,k-1);
+		    // Extrapolate on primitive variables
+		    // 1. First exterior point
+		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
+		    for ( int imode = 0; imode < nmodes; ++imode ) {
+			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2*fs->gas->e[imode];
+		    }
+		    if ( nsp > 1 ) {
+			for ( int isp = 0; isp < nsp; ++isp ) {
+			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2*fs->gas->massf[isp];
+			}
+			scale_mass_fractions(dest_cell->fs->gas->massf);
+		    }
+		    else {
+			dest_cell->fs->gas->massf[0] = 1.0;
+		    }
+		    gmodel->eval_thermo_state_rhoe(*(dest_cell->fs->gas));
+		    dest_cell->fs->vel = 2.0*cell_1->fs->vel - cell_2->fs->vel;
+		    dest_cell->fs->tke = 2.0*cell_1->fs->tke - cell_2->fs->tke;
+		    dest_cell->fs->omega = 2.0*cell_1->fs->omega - cell_2->fs->omega;
+		    dest_cell->fs->mu_t = 2.0*cell_1->fs->mu_t - cell_2->fs->mu_t;
+		    dest_cell->fs->k_t = 2.0*cell_1->fs->k_t - cell_2->fs->k_t;
+		    // 2. Second exterior point
+		    //  |---[2]---|||---[1]---|---[dest]------
+		    //      (k)        (k-1)       (k-2)
+		    cell_2 = cell_1;
+		    cell_1 = dest_cell;
+		    dest_cell = bdp.get_cell(i,j,k-2);
+		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
+		    for ( int imode = 0; imode < nmodes; ++imode ) {
+			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2*fs->gas->e[imode];
+		    }
+		    if ( nsp > 1 ) {
+			for ( int isp = 0; isp < nsp; ++isp ) {
+			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2*fs->gas->massf[isp];
+			}
+			scale_mass_fractions(dest_cell->fs->gas->massf);
+		    }
+		    else {
+			dest_cell->fs->gas->massf[0] = 1.0;
+		    }
+		    gmodel->eval_thermo_state_rhoe(*(dest_cell->fs->gas));
+		    dest_cell->fs->vel = 2.0*cell_1->fs->vel - cell_2->fs->vel;
+		    dest_cell->fs->tke = 2.0*cell_1->fs->tke - cell_2->fs->tke;
+		    dest_cell->fs->omega = 2.0*cell_1->fs->omega - cell_2->fs->omega;
+		    dest_cell->fs->mu_t = 2.0*cell_1->fs->mu_t - cell_2->fs->mu_t;
+		    dest_cell->fs->k_t = 2.0*cell_1->fs->k_t - cell_2->fs->k_t;
+		}
+		else {
+		    src_cell = bdp.get_cell(i,j,k);
+		    dest_cell = bdp.get_cell(i,j,k-1);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		    dest_cell = bdp.get_cell(i,j,k-2);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		}
 	    } // end j loop
 	} // for i
  	break;
