@@ -36,7 +36,7 @@ UserDefinedBC::UserDefinedBC( Block &bdp, int which_boundary,
 			      const std::string filename,
 			      bool is_wall, bool use_udf_flux )
     : BoundaryCondition(bdp, which_boundary, USER_DEFINED, "UserDefinedBC",
-			is_wall, use_udf_flux),
+			0, is_wall, use_udf_flux),
       filename(filename)
 {
     // Set up an instance of the Lua interpreter and run the specified script file
@@ -96,7 +96,7 @@ UserDefinedBC::UserDefinedBC( Block &bdp, int which_boundary,
 
 UserDefinedBC::UserDefinedBC( const UserDefinedBC &bc )
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.is_wall_flag, bc.use_udf_flux_flag,
+			bc.x_order, bc.is_wall_flag, bc.use_udf_flux_flag,
 			bc.neighbour_block, bc.neighbour_face,
 			bc.neighbour_orientation),
       filename(bc.filename) 

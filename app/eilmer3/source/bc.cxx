@@ -92,13 +92,13 @@ int apply_viscous_bc( Block &bdp, double t, int dimensions )
 //-----------------------------------------------------------------------
 
 BoundaryCondition::BoundaryCondition( Block &bdp, int which_boundary, int type_code,
-				      std::string name_of_BC,
+				      std::string name_of_BC, int x_order,
 				      bool is_wall, bool use_udf_flux,
 				      int neighbour_block, int neighbour_face,
 				      int neighbour_orientation,
 				      int wc_bc, int sponge_flag, int xforce_flag )
     : bdp(bdp), which_boundary(which_boundary), type_code(type_code),
-      name_of_BC(name_of_BC),
+      name_of_BC(name_of_BC), x_order(x_order),
       is_wall_flag(is_wall), use_udf_flux_flag(use_udf_flux),
       neighbour_block(neighbour_block), neighbour_face(neighbour_face),
       neighbour_orientation(neighbour_orientation),
@@ -192,7 +192,7 @@ BoundaryCondition::BoundaryCondition( Block &bdp, int which_boundary, int type_c
 
 BoundaryCondition::BoundaryCondition( const BoundaryCondition &bc )
     : bdp(bc.bdp), which_boundary(bc.which_boundary), type_code(bc.type_code),
-      name_of_BC(name_of_BC),
+      name_of_BC(bc.name_of_BC), x_order(bc.x_order),
       is_wall_flag(bc.is_wall_flag), use_udf_flux_flag(bc.use_udf_flux_flag),
       neighbour_block(bc.neighbour_block), neighbour_face(bc.neighbour_face),
       neighbour_orientation(bc.neighbour_orientation), cw( bc.cw )
@@ -297,6 +297,7 @@ void BoundaryCondition::print_info( std::string lead_in )
 	 << "(" << get_face_name(which_boundary) << ")" << endl;
     cout << lead_in << "type_code=" << type_code 
 	 << "(" << name_of_BC << ")" << endl;
+    cout << lead_in << "x_order=" << x_order << endl;
     cout << lead_in << "is_wall_flag=" << is_wall_flag << endl;
     cout << lead_in << "use_udf_flux=" << use_udf_flux_flag << endl;
     cout << lead_in << "neighbour_block=" << neighbour_block << endl;
@@ -777,7 +778,7 @@ read_surface_heat_flux( string filename, int dimensions, int zip_files )
 
 BoundaryCondition *create_BC( Block &bdp, int which_boundary, int type_of_BC, 
 			      int inflow_condition_id, std::string filename, int n_profile,
-			      double Twall, double Pout, int is_wall, int use_udf_flux,
+			      double Twall, double Pout, int x_order, int is_wall, int use_udf_flux,
 			      int other_block, int other_face, int neighbour_orientation,
 			      int sponge_flag, int xforce_flag, 
 			      vector<double> &mdot, double epsilon,
@@ -801,7 +802,7 @@ BoundaryCondition *create_BC( Block &bdp, int which_boundary, int type_of_BC,
 	newBC = new SupersonicInBC( bdp, which_boundary, inflow_condition_id );
 	break;
     case EXTRAPOLATE_OUT:
-	newBC = new ExtrapolateOutBC( bdp, which_boundary, sponge_flag );
+	newBC = new ExtrapolateOutBC( bdp, which_boundary, x_order, sponge_flag );
 	break;
     case SLIP_WALL:
 	newBC = new SlipWallBC( bdp, which_boundary );
@@ -825,7 +826,7 @@ BoundaryCondition *create_BC( Block &bdp, int which_boundary, int type_of_BC,
 	newBC = new StaticProfileBC( bdp, which_boundary, filename, n_profile );
 	break;
     case FIXED_P_OUT:
-	newBC = new FixedPOutBC( bdp, which_boundary, Pout );
+	newBC = new FixedPOutBC( bdp, which_boundary, Pout, x_order );
 	break;
     case USER_DEFINED:
 	newBC = new UserDefinedBC( bdp, which_boundary, filename, 

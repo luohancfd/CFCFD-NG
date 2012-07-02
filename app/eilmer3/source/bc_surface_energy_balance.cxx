@@ -29,7 +29,7 @@
 
 SurfaceEnergyBalanceBC::SurfaceEnergyBalanceBC( Block &bdp, int which_boundary, double epsilon )
     : BoundaryCondition(bdp, which_boundary, SEB, "SurfaceEnergyBalanceBC",
-			true, false, -1, -1, 0),
+			0, true, false, -1, -1, 0),
       epsilon(epsilon), tol(1.0e-4), max_iterations(100), f_relax(0.05)
 {
     // Ensure that epsilon is between 0 and 1 as required
@@ -48,7 +48,7 @@ SurfaceEnergyBalanceBC::SurfaceEnergyBalanceBC( Block &bdp, int which_boundary, 
 
 SurfaceEnergyBalanceBC::SurfaceEnergyBalanceBC( const SurfaceEnergyBalanceBC &bc )
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.is_wall_flag, bc.use_udf_flux_flag,
+			bc.x_order, bc.is_wall_flag, bc.use_udf_flux_flag,
 			bc.neighbour_block, bc.neighbour_face,
 			bc.neighbour_orientation),
       epsilon(bc.epsilon), tol(bc.tol), max_iterations(bc.max_iterations),

@@ -14,12 +14,12 @@
 SupersonicInBC::SupersonicInBC( Block &bdp, int which_boundary, 
 				int inflow_condition_id )
     : BoundaryCondition(bdp, which_boundary, SUP_IN, "SupersonicIn", 
-			false, false, -1, -1, 0), 
+			0, false, false, -1, -1, 0), 
       inflow_condition_id(inflow_condition_id) {}
 
 SupersonicInBC::SupersonicInBC( const SupersonicInBC &bc )
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.is_wall_flag, bc.use_udf_flux_flag,
+			bc.x_order, bc.is_wall_flag, bc.use_udf_flux_flag,
 			bc.neighbour_block, bc.neighbour_face,
 			bc.neighbour_orientation),
       inflow_condition_id(bc.inflow_condition_id) {}

@@ -6,7 +6,7 @@ class FixedPOutBC : public BoundaryCondition {
 public:
     double Pout;
 public:
-    FixedPOutBC( Block &bdp, int which_boundary, double Pout );
+    FixedPOutBC( Block &bdp, int which_boundary, double Pout, int x_order );
     FixedPOutBC( const FixedPOutBC &bc );
     virtual ~FixedPOutBC();
     virtual int apply_inviscid( double t );

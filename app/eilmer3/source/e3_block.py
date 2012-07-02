@@ -468,7 +468,7 @@ class Block(object):
     nmin = 2
 
     def set_BC(self, face_name, type_of_BC,
-               inflow_condition=None, sponge_flag=None,
+               inflow_condition=None, x_order=0, sponge_flag=None,
                Twall=None, Pout=None, filename=None, n_profile=1,
                is_wall=0, use_udf_flux=0, assume_ideal=0, 
                mdot=None, epsilon=None,
@@ -527,7 +527,7 @@ class Block(object):
         if type_of_BC == SUP_IN:
             newbc = SupInBC(inflow_condition, label=label)
         if type_of_BC == EXTRAPOLATE_OUT:
-            newbc = ExtrapolateOutBC(sponge_flag, label=label)
+            newbc = ExtrapolateOutBC(x_order, sponge_flag, label=label)
         if type_of_BC == SLIP_WALL:
             newbc = SlipWallBC(label=label)
         if type_of_BC == ADIABATIC:
@@ -547,7 +547,7 @@ class Block(object):
             if not filename: filename = "profile.dat"
             newbc = StaticProfBC(filename, n_profile, label=label)
         if type_of_BC == FIXED_P_OUT:
-            newbc = FixedPOutBC(Pout, label=label)
+            newbc = FixedPOutBC(Pout, x_order, label=label)
         if type_of_BC == RRM:
             newbc = RRMBC(sponge_flag, label=label)
         if type_of_BC == USER_DEFINED:
@@ -645,6 +645,7 @@ class Block(object):
             fp.write("inflow_condition = %d\n" % inflow_indx)
             fp.write("filename = %s\n" % bc.filename)
             fp.write("n_profile = %d\n" % bc.n_profile)
+            fp.write("x_order = %d\n" % bc.x_order)
             fp.write("sponge_flag = %d\n" % bc.sponge_flag)
             fp.write("xforce_flag = %d\n" % self.xforce_list[iface])
             fp.write("Twall = %e\n" % bc.Twall)

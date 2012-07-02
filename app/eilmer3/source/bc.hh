@@ -61,6 +61,7 @@ public:
     int which_boundary; // identity of the relevant boundary
     int type_code; // value matches one of the integer type codes in bc_defs.hh
     string name_of_BC;
+    int x_order;
     bool is_wall_flag;
     bool use_udf_flux_flag;
     int neighbour_block;
@@ -78,6 +79,7 @@ public:
 public:
     BoundaryCondition( Block &bdp, int which_boundary, int type_code,
 		       std::string name_of_BC="Unspecified", 
+		       int x_order=0,
 		       bool is_wall=false, bool use_udf_flux=false,
 		       int neighbour_block=-1, int neighbour_face=-1,
 		       int neighbour_orientation=0,
@@ -108,7 +110,7 @@ public:
 
 BoundaryCondition *create_BC( Block &bdp, int which_boundary, int type_of_BC,
 			      int inflow_condition_id, std::string filename, int n_profile,
-			      double Twall, double Pout, int is_wall, int use_udf_flux,
+			      double Twall, double Pout, int x_order, int is_wall, int use_udf_flux,
 			      int other_block, int other_face, int neighbour_orientation,
 			      int sponge_flag, int xforce_flag,
 			      std::vector<double> &mdot, double epsilon,

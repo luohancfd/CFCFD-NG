@@ -14,14 +14,14 @@
 SubsonicInBC::SubsonicInBC( Block &bdp, int which_boundary, 
 			    int inflow_condition_id, int assume_ideal )
     : BoundaryCondition(bdp, which_boundary, SUBSONIC_IN, "SubsonicInBC",
-			false, false, -1, -1, 0), 
+			0, false, false, -1, -1, 0), 
       inflow_condition_id(inflow_condition_id),
       use_ideal_gas_relations(assume_ideal)
 {}
 
 SubsonicInBC::SubsonicInBC( const SubsonicInBC &bc )
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.is_wall_flag, bc.use_udf_flux_flag,
+			bc.x_order, bc.is_wall_flag, bc.use_udf_flux_flag,
 			bc.neighbour_block, bc.neighbour_face,
 			bc.neighbour_orientation), 
       inflow_condition_id(bc.inflow_condition_id) 

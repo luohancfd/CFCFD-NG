@@ -164,7 +164,7 @@ class BoundaryCondition(object):
     @type sponge_flag: int
     """
     __slots__ = 'type_of_BC', 'Twall', 'Pout', 'inflow_condition', \
-                'sponge_flag', 'other_block', 'other_face', 'orientation', \
+                'x_order', 'sponge_flag', 'other_block', 'other_face', 'orientation', \
                 'filename', 'n_profile', 'is_wall', 'use_udf_flux', 'assume_ideal', \
                 'mdot', 'epsilon', 'Twall_i', 'Twall_f', 't_i', 't_f', 'label'
     def __init__(self,
@@ -172,6 +172,7 @@ class BoundaryCondition(object):
                  Twall=300.0,
                  Pout=100.0e3,
                  inflow_condition=None,
+                 x_order=0,
                  sponge_flag=0,
                  other_block=-1,
                  other_face=-1,
@@ -192,6 +193,7 @@ class BoundaryCondition(object):
         self.Twall = Twall
         self.Pout = Pout
         self.inflow_condition = inflow_condition
+        self.x_order = x_order
         self.sponge_flag = sponge_flag
         self.other_block = other_block
         self.other_face = other_face
@@ -216,6 +218,7 @@ class BoundaryCondition(object):
         str_rep += ", Twall=%g" % self.Twall
         str_rep += ", Pout=%g" % self.Pout
         str_rep += ", inflow_condition=%d" % self.inflow_condition
+        str_rep += ", x_order=%d" % self.x_order
         str_rep += ", sponge_flag=%d" % self.sponge_flag
         str_rep += ", other_block=%d" % self.other_block
         str_rep += ", other_face=%d" % self.other_face
@@ -235,6 +238,7 @@ class BoundaryCondition(object):
                                  Twall=self.Twall,
                                  Pout=self.Pout,
                                  inflow_condition=self.inflow_condition,
+                                 x_order=self.x_order,
                                  sponge_flag=self.sponge_flag,
                                  other_block=self.other_block,
                                  other_face=self.other_face,
@@ -296,16 +300,18 @@ class ExtrapolateOutBC(BoundaryCondition):
     This boundary condition will work best if the flow is supersonic,
     directed out of the flow domain.
     """
-    def __init__(self, sponge_flag=0, label=""):
+    def __init__(self, x_order=0, sponge_flag=0, label=""):
         BoundaryCondition.__init__(self, type_of_BC=EXTRAPOLATE_OUT,
+                                   x_order=x_order,
                                    sponge_flag=sponge_flag,
                                    label=label)
         return
     def __str__(self):
-        return "ExtrapolateOutBC(sponge_flag=%d, label=\"%s\")" % \
-            (self.sponge_flag, self.label)
+        return "ExtrapolateOutBC(x_order=%d, sponge_flag=%d, label=\"%s\")" % \
+            (self.x_order, self.sponge_flag, self.label)
     def __copy__(self):
-        return ExtrapolateOutBC(sponge_flag=self.sponge_flag, label=self.label)
+        return ExtrapolateOutBC(x_order=self.x_order, sponge_flag=self.sponge_flag,
+                                label=self.label)
 
 class SlipWallBC(BoundaryCondition):
     """
@@ -457,10 +463,12 @@ class StaticProfBC(BoundaryCondition):
     The actual flow data is read (at run time) from the specified file.
     """
     def __init__(self, filename="profile.dat", n_profile=1, label=""):
-        BoundaryCondition.__init__(self, type_of_BC=STATIC_PROF, filename=filename, n_profile=n_profile, label=label)
+        BoundaryCondition.__init__(self, type_of_BC=STATIC_PROF, filename=filename,
+                                   n_profile=n_profile, label=label)
         return
     def __str__(self):
-        return "StaticProfBC(filename=\"%s\", n_profile=%d, label=\"%s\")" % (self.filename, self.n_profile, self.label)
+        return "StaticProfBC(filename=\"%s\", n_profile=%d, label=\"%s\")" % \
+            (self.filename, self.n_profile, self.label)
     def __copy__(self):
         return StaticProfBC(filename=self.filename, n_profile=self.n_profile, label=self.label)
  
@@ -474,12 +482,13 @@ class FixedPOutBC(BoundaryCondition):
     be passive until a wave arrives at the boundary.
     """
     def __init__(self, Pout, label=""):
-        BoundaryCondition.__init__(self, type_of_BC=FIXED_P_OUT, Pout=Pout, label=label)
+        BoundaryCondition.__init__(self, type_of_BC=FIXED_P_OUT, Pout=Pout, x_order=0, label=label)
         return
     def __str__(self):
-        return "FixedPOutBC(Pout=%g, label=\"%s\")" % (self.Pout, self.label)
+        return "FixedPOutBC(Pout=%g, x_order=%d, label=\"%s\")" % \
+            (self.Pout, self.x_order, self.label)
     def __copy__(self):
-        return FixedPOutBC(Pout=self.Pout, label=self.label)
+        return FixedPOutBC(Pout=self.Pout, x_order=self.x_order, label=self.label)
 
 class RRMBC(BoundaryCondition):
     """
@@ -557,7 +566,8 @@ class AblatingBC(BoundaryCondition):
     effects are active.  Else, it is just like another solid (slip) wall.
     """
     def __init__(self, Twall, mdot, filename="T_profile.dat", label=""):
-        BoundaryCondition.__init__(self, type_of_BC=ABLATING, Twall=Twall, filename=filename, is_wall=1, label=label)
+        BoundaryCondition.__init__(self, type_of_BC=ABLATING, Twall=Twall, 
+                                   filename=filename, is_wall=1, label=label)
         self.mdot = copy.copy(mdot)
         return
     def __str__(self):

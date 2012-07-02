@@ -28,7 +28,7 @@
 StaticProfileBC::StaticProfileBC( Block &bdp, int which_boundary,
 				  const std::string filename, int n_profile )
     : BoundaryCondition(bdp, which_boundary, STATIC_PROF, "StaticProfileBC",
-			false, false, -1, -1, 0),
+			0, false, false, -1, -1, 0),
       filename(filename), n_profile(n_profile)
 {
     // Reads the flow state data from a previously written profile file.
@@ -180,7 +180,7 @@ StaticProfileBC::StaticProfileBC( Block &bdp, int which_boundary,
 
 StaticProfileBC::StaticProfileBC( const StaticProfileBC &bc )
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.is_wall_flag, bc.use_udf_flux_flag,
+			bc.x_order, bc.is_wall_flag, bc.use_udf_flux_flag,
 			bc.neighbour_block, bc.neighbour_face),
       filename(bc.filename), n_profile(bc.n_profile)
 {

@@ -13,12 +13,12 @@
 
 SlipWallBC::SlipWallBC( Block &bdp, int which_boundary )
     : BoundaryCondition(bdp, which_boundary, SLIP_WALL, "SlipWallBC",
-			true, false, -1, -1) 
+			0, true, false, -1, -1) 
 {}
 
 SlipWallBC::SlipWallBC( const SlipWallBC &bc )
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.is_wall_flag, bc.use_udf_flux_flag,
+			bc.x_order, bc.is_wall_flag, bc.use_udf_flux_flag,
 			bc.neighbour_block, bc.neighbour_face) 
 {}
 

@@ -27,7 +27,7 @@
 
 fstcBC::fstcBC( Block &bdp, int which_boundary, const std::string filename )
     : BoundaryCondition(bdp, which_boundary, FSTC, "fstcBC",
-			true, false, -1, -1, 0),
+			0, true, false, -1, -1, 0),
       filename(filename)
 {
     // Reads the temperature profile from the solid solver output.
@@ -89,7 +89,7 @@ fstcBC::fstcBC( Block &bdp, int which_boundary, const std::string filename )
 
 fstcBC::fstcBC( const fstcBC &bc )
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.is_wall_flag, bc.use_udf_flux_flag,
+			bc.x_order, bc.is_wall_flag, bc.use_udf_flux_flag,
 			bc.neighbour_block, bc.neighbour_face,
 			bc.neighbour_orientation),
       filename(bc.filename)

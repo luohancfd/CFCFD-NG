@@ -11,14 +11,14 @@
 
 //------------------------------------------------------------------------
 
-ExtrapolateOutBC::ExtrapolateOutBC( Block &bdp, int which_boundary, int _sponge_flag )
+ExtrapolateOutBC::ExtrapolateOutBC( Block &bdp, int which_boundary, int x_order, int _sponge_flag )
     : BoundaryCondition(bdp, which_boundary, EXTRAPOLATE_OUT, "ExtrapolateOutBC",
-			false, false, -1, -1, 0) 
+			x_order, false, false, -1, -1, 0) 
 {}
 
 ExtrapolateOutBC::ExtrapolateOutBC( const ExtrapolateOutBC &bc )
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.is_wall_flag, bc.use_udf_flux_flag,
+			bc.x_order, bc.is_wall_flag, bc.use_udf_flux_flag,
 			bc.neighbour_block, bc.neighbour_face,
 			bc.neighbour_orientation) 
 {}

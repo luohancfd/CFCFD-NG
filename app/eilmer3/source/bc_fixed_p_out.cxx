@@ -11,15 +11,15 @@
 
 //------------------------------------------------------------------------
 
-FixedPOutBC::FixedPOutBC( Block &bdp, int which_boundary, double Pout )
+FixedPOutBC::FixedPOutBC( Block &bdp, int which_boundary, double Pout, int x_order )
     : BoundaryCondition(bdp, which_boundary, FIXED_P_OUT, "FixedPOutBC",
-			false, false, -1, -1, 0), 
+			x_order, false, false, -1, -1, 0), 
       Pout(Pout) 
 {}
 
 FixedPOutBC::FixedPOutBC( const FixedPOutBC &bc )
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.is_wall_flag, bc.use_udf_flux_flag,
+			bc.x_order, bc.is_wall_flag, bc.use_udf_flux_flag,
 			bc.neighbour_block, bc.neighbour_face,
 			bc.neighbour_orientation), 
       Pout(Pout) 
