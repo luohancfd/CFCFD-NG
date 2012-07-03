@@ -14,6 +14,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <algorithm>
+#include <unistd.h>
 
 #ifdef _OPENMP
 #include <omp.h>
