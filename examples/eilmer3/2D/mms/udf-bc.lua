@@ -10,13 +10,14 @@ sin = math.sin
 exp = math.exp
 
 L = 1.0
+R = 287.0
 gam = 1.4
 
 file = io.open("case.txt", "r")
 case = file:read("*n")
 file:close()
 
-if case == 1 then
+if case == 1 or case == 3 then
    -- Supersonic flow
    rho0=1.0; rhox=0.15; rhoy=-0.1; rhoxy=0.0; arhox=1.0; arhoy=0.5; arhoxy=0.0;
    u0=800.0; ux=50.0; uy=-30.0; uxy=0.0; aux=1.5; auy=0.6; auxy=0.0;
@@ -24,7 +25,7 @@ if case == 1 then
    p0=1.0e5; px=0.2e5; py=0.5e5; pxy=0.0; apx=2.0; apy=1.0; apxy=0.0
 end
 
-if case == 2 then
+if case == 2 or case == 4 then
    -- Subsonic flow
    rho0=1.0; rhox=0.1; rhoy=0.15; rhoxy=0.08; arhox=0.75; arhoy=1.0; arhoxy=1.25;
    u0=70.0; ux=4.0; uy=-12.0; uxy=7.0; aux=5.0/3; auy=1.5; auxy=0.6;
@@ -34,9 +35,13 @@ end
 
 w0=0.0
 
-function S(x, y)
-   rsq = (x - L/2)^2 + (y - L/2)^2
-   return exp(-16.0*rsq/(L*L))
+if case == 1 or case == 2 then
+   function S(x, y) return 1.0 end
+else
+   function S(x, y)
+      rsq = (x - L/2)^2 + (y - L/2)^2
+      return exp(-16.0*rsq/(L*L))
+   end
 end
 
 function rho(x, y)
@@ -59,6 +64,21 @@ function p(x, y)
           + S(x,y)*pxy*sin(apxy*pi*x*y/(L*L))
 end
 
+function fill_table(t, x, y)
+   t.p = p(x, y)
+   t_rho = rho(x, y)
+   t.u = u(x, y)
+   t.v = v(x, y)
+   t.w = 0.0
+   t.T = {}
+   t.T[0] = t.p/(t_rho*R)      -- temperature, K
+   t.massf = {}     -- mass fractions to be provided as a table
+   t.massf[0] = 1.0 -- mass fractions are indexed from 0 to nsp-1
+   t.Tvib = {}   -- vibrational temperatures also indexed from 0
+   return t
+end
+
+
 function ghost_cell(args)
    -- Function that returns the flow states for a ghost cells.
    -- For use in the inviscid flux calculations.
@@ -66,29 +86,31 @@ function ghost_cell(args)
    -- args contains {t, x, y, z, csX, csY, csZ, i, j, k, which_boundary}
    -- Set constant conditions across the whole boundary.
    x = args.x; y = args.y
-   ghost = {}
+   i = args.i; j = args.j; k = args.k
+   ghost1 = {}
+   ghost2 = {}
    if args.which_boundary == NORTH then
-      y = L
+      cell = sample_flow(block_id, i, j+1, k)
+      ghost1 = fill_table(ghost1, cell.x, cell.y)
+      cell = sample_flow(block_id, i, j+2, k)
+      ghost2 = fill_table(ghost2, cell.x, cell.y)
    elseif args.which_boundary == SOUTH then
-      y = 0.0
+      cell = sample_flow(block_id, i, j-1, k)
+      ghost1 = fill_table(ghost1, cell.x, cell.y)
+      cell = sample_flow(block_id, i, j-2, k)
+      ghost2 = fill_table(ghost2, cell.x, cell.y)
    elseif args.which_boundary == EAST then
-      x = L
-   else
-      -- WEST
-      x = 0.0
+      cell = sample_flow(block_id, i+1, j, k)
+      ghost1 = fill_table(ghost1, cell.x, cell.y)
+      cell = sample_flow(block_id, i+2, j, k)
+      ghost2 = fill_table(ghost2, cell.x, cell.y)
+   else -- WEST
+      cell = sample_flow(block_id, i-1, j, k)
+      ghost1 = fill_table(ghost1, cell.x, cell.y)
+      cell = sample_flow(block_id, i-2, j, k)
+      ghost2 = fill_table(ghost2, cell.x, cell.y)
    end
-   ghost.p = p(x, y)        -- pressure, Pa
-   ghost_rho = rho(x, y)    -- density, kg/m^3
-   ghost.u = u(x, y)        -- x-velocity, m/s
-   ghost.v = v(x, y)        -- y-velocity, m/s
-   ghost.w = 0.0
-   R = 287.1
-   ghost.T = {}
-   ghost.T[0] = ghost.p/(ghost_rho*R)      -- temperature, K
-   ghost.massf = {}     -- mass fractions to be provided as a table
-   ghost.massf[0] = 1.0 -- mass fractions are indexed from 0 to nsp-1
-   ghost.Tvib = {}   -- vibrational temperatures also indexed from 0
-   return ghost, ghost
+   return ghost1, ghost2
 end
 
 function interface(args)
@@ -113,7 +135,6 @@ function interface(args)
    face_p = p(x, y)
    face_rho = rho(x, y)
    face.w = 0.0
-   R = 287.1
    face.T = {}
    face.T[0] = face_p/(face_rho*R)
    face.massf = {}

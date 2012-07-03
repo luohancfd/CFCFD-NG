@@ -10,7 +10,7 @@ nmodes = 1
 
 -- Local parameters for model
 local R0 = 8.31451
-local R = 287.1
+local R = 287.0
 local gamma = 1.4
 local C_v = R / (gamma - 1)
 local C_p = R + C_v

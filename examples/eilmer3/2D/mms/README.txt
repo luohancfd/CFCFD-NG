@@ -26,7 +26,15 @@ The residual for case 1 is now
 Volume-weighted norms, global:
 rho L2 0.00151061874308
 
-TODO: make it into a new case so that the original case 1 and 2 are restored.
 ----------------------------------------------------------------------------
+03-July-2012
 
+A lot of changes added:
+ - case.txt now controls a variety of parameters
+ - in the code base, 1st order boundary conditions are implemented
+ - the scaled perturbation cases are now known as '3' and '4'
 
+With first order boundary conditions in place, the error for
+the L2 norm in density on a ni=nj=16 grid has dropped considerably to:
+  0.001086
+----------------------------------------------------------------------------
