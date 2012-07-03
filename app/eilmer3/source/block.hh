@@ -259,6 +259,7 @@ public:
     int calc_volumes_2D( void );
     int secondary_areas_2D( void );
     int calc_faces_2D( void );
+    int calc_ghost_cell_pos_2D( void );
 
     void compute_x_forces( char *text_string, int ibndy, int dimensions );
     int print_forces( FILE *fp, double t, int dimensions );

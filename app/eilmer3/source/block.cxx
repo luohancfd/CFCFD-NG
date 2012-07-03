@@ -555,6 +555,7 @@ int Block::compute_primary_cell_geometric_data( int dimensions )
     if ( dimensions == 2 ) {
 	calc_volumes_2D();
 	calc_faces_2D();
+	calc_ghost_cell_pos_2D();
 	return SUCCESS;
     }
 
@@ -1758,6 +1759,65 @@ int Block::calc_faces_2D( void )
     return SUCCESS;
 } // end calc_faces_2D()
 
+int Block::calc_ghost_cell_pos_2D( void )
+/// \brief Compute the ghost cell positions.
+///
+/// This method uses a first-order extrapolation
+/// from interior cells to estimate the position
+/// of the ghost cells.
+{
+    int i, j;
+    FV_Cell *cell_1, *cell_2, *ghost_cell;
+    // East boundary
+    i = imax;
+    for ( j = jmin; j <= jmax; ++j ) {
+	cell_1 = get_cell(i,j);
+	cell_2 = get_cell(i-1,j);
+	ghost_cell = get_cell(i+1,j);
+	ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	cell_2 = cell_1;
+	cell_1 = ghost_cell;
+	ghost_cell = get_cell(i+2,j);
+	ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+    }
+    // West boundary
+    i = imin;
+    for ( j = jmin; j <= jmax; ++j ) {
+	cell_1 = get_cell(i,j);
+	cell_2 = get_cell(i+1,j);
+	ghost_cell = get_cell(i-1,j);
+	ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	cell_2 = cell_1;
+	cell_1 = ghost_cell;
+	ghost_cell = get_cell(i-2,j);
+	ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+    }
+    // North boundary
+    j = jmax;
+    for ( i = imin; i <= imax; ++i ) {
+	cell_1 = get_cell(i,j);
+	cell_2 = get_cell(i,j-1);
+	ghost_cell = get_cell(i,j+1);
+	ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	cell_2 = cell_1;
+	cell_1 = ghost_cell;
+	ghost_cell = get_cell(i,j+2);
+	ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+    }
+    // South boundary
+    j = jmin;
+    for ( i = imin; i <= imax; ++i ) {
+	cell_1 = get_cell(i,j);
+	cell_2 = get_cell(i,j+1);
+	ghost_cell = get_cell(i,j-1);
+	ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	cell_2 = cell_1;
+	cell_1 = ghost_cell;
+	ghost_cell = get_cell(i,j-2);
+	ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+    }
+    return SUCCESS;
+}
 
 /** \brief Computes the (pressure and shear) forces applied by the gas 
  *         to the bounding surface.
