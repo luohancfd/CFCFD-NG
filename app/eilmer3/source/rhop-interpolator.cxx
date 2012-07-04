@@ -27,13 +27,14 @@ s_one_d_interp(Gas_data &gL1, Gas_data &gL0,
 {
     Gas_model *gmodel = get_gas_model_ptr();
     int apply_limiter_flag = get_apply_limiter_flag();
+    int extrema_clipping_flag = get_extrema_clipping_flag();
 
     one_d_interp_scalar(gL1.rho, gL0.rho, gR0.rho, gR1.rho,
 			cL1Length, cL0Length, cR0Length, cR1Length,
-			Lft.rho, Rght.rho, apply_limiter_flag);
+			Lft.rho, Rght.rho, apply_limiter_flag, extrema_clipping_flag);
     one_d_interp_scalar(gL1.p, gL0.p, gR0.p, gR1.p,
 			cL1Length, cL0Length, cR0Length, cR1Length,
-			Lft.p, Rght.p, apply_limiter_flag);
+			Lft.p, Rght.p, apply_limiter_flag, extrema_clipping_flag);
     int status = 0;
 
     if ( gmodel->eval_thermo_state_rhop(Lft) != SUCCESS ) {

@@ -304,6 +304,9 @@ double Sc_t = 0.75;
 /// \brief  apply limiter Flag: =0 no limiting, =1 reconstruction limiter enabled.
 int apply_limiter = 1; /* default for users */
 
+/// \brief extrema_clipping_flag: =0 suppress clipping, =1 allow extream clipping
+int extrema_clipping_flag = 1; /* default is to clip */
+
 /// \brief suppress_reconstruction_for_species: =0 use x_order reconstruction,
 ///                                             =1 always use cell average values directly
 int suppress_reconstruction_for_species = 0; /* default is to allow reconstruction */
@@ -678,6 +681,28 @@ double set_turbulence_schmidt_number(double Sc)
 double get_turbulence_schmidt_number(void)
 {
     return Sc_t;
+}
+
+/*------------------------------------------------------------------*/
+
+int set_extrema_clipping_flag(int ip)
+{
+    extrema_clipping_flag = ip;
+    printf("set_extrema_limiting_flag(): ");
+    if (extrema_clipping_flag == 0)
+        printf("Extrema-clipping disabled\n");
+    else if (extrema_clipping_flag == 1)
+        printf("Extrema-clipping enabled (default)\n");
+    else {
+        printf("Invalid extrema clipping flag value: %d\n", extrema_clipping_flag);
+        exit( VALUE_ERROR );
+    }
+    return SUCCESS;
+}
+
+int get_extrema_clipping_flag(void)
+{
+    return extrema_clipping_flag;
 }
 
 /*------------------------------------------------------------------*/

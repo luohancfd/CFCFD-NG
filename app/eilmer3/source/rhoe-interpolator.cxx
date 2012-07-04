@@ -27,14 +27,15 @@ s_one_d_interp(Gas_data &gL1, Gas_data &gL0,
 {
     Gas_model *gmodel = get_gas_model_ptr();
     int apply_limiter_flag = get_apply_limiter_flag();
+    int extrema_clipping_flag = get_extrema_clipping_flag();
 
     one_d_interp_scalar(gL1.rho, gL0.rho, gR0.rho, gR1.rho,
 			cL1Length, cL0Length, cR0Length, cR1Length,
-			Lft.rho, Rght.rho, apply_limiter_flag);
+			Lft.rho, Rght.rho, apply_limiter_flag, extrema_clipping_flag);
     for ( int i = 0; i < gmodel->get_number_of_modes(); ++i ) {
 	one_d_interp_scalar(gL1.e[i], gL0.e[i], gR0.e[i], gR1.e[i],
 			    cL1Length, cL0Length, cR0Length, cR1Length,
-			    Lft.e[i], Rght.e[i], apply_limiter_flag);
+			    Lft.e[i], Rght.e[i], apply_limiter_flag, extrema_clipping_flag);
     }
 
     int status = 0;

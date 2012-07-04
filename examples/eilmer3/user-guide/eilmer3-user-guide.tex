@@ -1862,8 +1862,10 @@ are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config 
 \begin{itemize}
 \item \texttt{x\_order}\ddag: 1=no reconstruction of intra-cell flow properties
   before applying the flux calculator, 2=high-order reconstruction applied, 
-  default value 2
+  default value 2.
 \item \texttt{apply\_limiter\_flag}: 1=apply reconstruction limiter, default value 1.
+\item \texttt{extrema\_clipping\_flag}: 1=do extrema clipping at end of 1D scalar reconstruction,
+  default value 1.  A value of 0 suppresses clipping.
 \item \texttt{interpolation\_type}: string to choose the set of interpolation variables
   to use in the interpolation, options are "rhoe", "rhop", "rhoT", "pT", default value "rhoe".
 \end{itemize}

@@ -282,6 +282,8 @@ class GlobalData(object):
       default 0.20
     * apply_limiter_flag : (0/1) Set to 1 to have reconstruction limiter enabled (default)
        Set to 0 for no limiting
+    * extrema_clipping_flag : (0/1) Set to 1 to allow clipping of extreme values in the 1D
+       scalar reconstruction function (default).  Set to 0 to suppress clipping. 
     * dt: (float) Size of the initial time step.
       After a few steps, the solver will have enough information to select
       a suitable time step, based on the cfl number.
@@ -333,7 +335,7 @@ class GlobalData(object):
                 'max_time', 'max_step', 'dt_plot', 'dt_history', \
                 'displacement_thickness', 'time_average_flag', 'perturb_flag', \
                 'perturb_frac', 'tav_0', 'tav_f', 'dt_av', \
-                'fixed_time_step', 'apply_limiter_flag', \
+                'fixed_time_step', 'apply_limiter_flag', 'extrema_clipping_flag', \
                 'energy_exchange_flag', 'energy_exchange_update', \
                 'udf_file', 'udf_source_vector_flag', \
                 'heat_time_start', 'heat_time_stop', 'heat_factor_increment'
@@ -379,6 +381,7 @@ class GlobalData(object):
         self.x_order = 2
         self.interpolation_type = "rhoe"
         self.apply_limiter_flag = 1
+        self.extrema_clipping_flag = 1
         self.flux_calc = ADAPTIVE
         self.compression_tolerance = -0.30
         self.shear_tolerance = 0.20
@@ -473,6 +476,7 @@ class GlobalData(object):
         fp.write("shear_tolerance = %e\n"% self.shear_tolerance)
         fp.write("interpolation_type = %s\n" % self.interpolation_type)
         fp.write("apply_limiter_flag = %d\n" % self.apply_limiter_flag )
+        fp.write("extrema_clipping_flag = %d\n" % self.extrema_clipping_flag )
         fp.write("sequence_blocks = %d\n" % self.sequence_blocks)
         fp.write("max_invalid_cells = %d\n" % self.max_invalid_cells)
         fp.write("control_count = %d\n" % self.control_count)

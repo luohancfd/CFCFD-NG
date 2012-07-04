@@ -1944,6 +1944,7 @@ int one_d_interp(FV_Cell &cL1, FV_Cell &cL0,
     Thermo_interpolator* ti = get_thermo_interpolator_ptr();
     int nsp = gmodel->get_number_of_species();
     int apply_limiter_flag = get_apply_limiter_flag();
+    int extrema_clipping_flag = get_extrema_clipping_flag();
 
     // Low-order reconstruction just copies data from adjacent FV_Cell.
     Lft.copy_values_from(*(cL0.fs));
@@ -1952,26 +1953,27 @@ int one_d_interp(FV_Cell &cL1, FV_Cell &cL0,
 	// High-order reconstruction for some properties.
 	one_d_interp_scalar(cL1.fs->vel.x, cL0.fs->vel.x, cR0.fs->vel.x, cR1.fs->vel.x,
 			    cL1Length, cL0Length, cR0Length, cR1Length,
-			    Lft.vel.x, Rght.vel.x, apply_limiter_flag);
+			    Lft.vel.x, Rght.vel.x, apply_limiter_flag, extrema_clipping_flag);
 	one_d_interp_scalar(cL1.fs->vel.y, cL0.fs->vel.y, cR0.fs->vel.y, cR1.fs->vel.y,
 			    cL1Length, cL0Length, cR0Length, cR1Length,
-			    Lft.vel.y, Rght.vel.y, apply_limiter_flag);
+			    Lft.vel.y, Rght.vel.y, apply_limiter_flag, extrema_clipping_flag);
 	one_d_interp_scalar(cL1.fs->vel.z, cL0.fs->vel.z, cR0.fs->vel.z, cR1.fs->vel.z,
 			    cL1Length, cL0Length, cR0Length, cR1Length,
-			    Lft.vel.z, Rght.vel.z, apply_limiter_flag);
+			    Lft.vel.z, Rght.vel.z, apply_limiter_flag, extrema_clipping_flag);
 	if ( get_k_omega_flag() == 1 ) {
 	    one_d_interp_scalar(cL1.fs->tke, cL0.fs->tke, cR0.fs->tke, cR1.fs->tke,
 				cL1Length, cL0Length, cR0Length, cR1Length,
-				Lft.tke, Rght.tke, apply_limiter_flag);
+				Lft.tke, Rght.tke, apply_limiter_flag, extrema_clipping_flag);
 	    one_d_interp_scalar(cL1.fs->omega, cL0.fs->omega, cR0.fs->omega, cR1.fs->omega,
 				cL1Length, cL0Length, cR0Length, cR1Length,
-				Lft.omega, Rght.omega, apply_limiter_flag);
+				Lft.omega, Rght.omega, apply_limiter_flag, extrema_clipping_flag);
 	}
         for ( int isp = 0; isp < nsp; ++isp ) {
 	    one_d_interp_scalar(cL1.fs->gas->massf[isp], cL0.fs->gas->massf[isp], 
 				cR0.fs->gas->massf[isp], cR1.fs->gas->massf[isp],
 				cL1Length, cL0Length, cR0Length, cR1Length,
-				Lft.gas->massf[isp], Rght.gas->massf[isp], apply_limiter_flag);
+				Lft.gas->massf[isp], Rght.gas->massf[isp], 
+				apply_limiter_flag, extrema_clipping_flag);
         }
 	
 	// Make the thermodynamic properties consistent.

@@ -263,6 +263,8 @@ int read_config_parameters( const string filename, int master )
     set_thermo_interpolator( s_value );
     dict.parse_int("global_data", "apply_limiter_flag", i_value, 1);
     set_apply_limiter_flag(i_value);
+    dict.parse_int("global_data", "extrema_clipping_flag", i_value, 1);
+    set_extrema_clipping_flag(i_value);
     if ( get_verbose_flag() ) {
 	cout << "max_invalid_cells = " << G.max_invalid_cells << endl;
 	cout << "flux_calc = " << get_flux_calculator() << endl;
@@ -270,6 +272,7 @@ int read_config_parameters( const string filename, int master )
 	cout << "shear_tolerance = " << get_shear_tolerance() << endl;
 	cout << "interpolation_type = " << s_value << endl;
 	cout << "apply_limiter_flag = " << get_apply_limiter_flag() << endl;
+	cout << "extrema_clipping_flag = " << get_extrema_clipping_flag() << endl;
     }
 
     dict.parse_int("global_data", "sequence_blocks", i_value, 0);

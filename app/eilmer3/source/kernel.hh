@@ -229,6 +229,8 @@ double set_turbulence_schmidt_number(double Sc);
 double get_turbulence_schmidt_number(void);
 int set_apply_limiter_flag(int ip);
 int get_apply_limiter_flag(void);
+int set_extrema_clipping_flag(int ip);
+int get_extrema_clipping_flag(void);
 int set_suppress_reconstruction_for_species_flag(int ip);
 int get_suppress_reconstruction_for_species_flag(void);
 int set_bad_cell_complain_flag(int ip);
