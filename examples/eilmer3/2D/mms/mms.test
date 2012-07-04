@@ -12,13 +12,14 @@ namespace import ::tcltest::*
 configure -verbose {start body error}
 
 test run-preprocessor {Run the preprocessing stage.} -body {
+    exec cp mms-regular.py mms.py
     exec maxima --batch=make_source_terms.mac > LOGFILE_PREP
     exec python f90_to_lua.py >> LOGFILE_PREP
     exec e3prep.py --job=mms >> LOGFILE_PREP
 } -result {} -returnCodes {0}
 
 test run-simulation {Run the shared-memory simulation code.} -body {
-    exec  mpirun -np 4 e3mpi.exe --job=mms --run > LOGFILE_MAIN
+    exec  mpirun -np 16 e3mpi.exe --job=mms --run > LOGFILE_MAIN
 } -result {} -returnCodes {0}
 
 test run-postprocessor {Run the postprocessing stage.} -body {
@@ -40,12 +41,12 @@ test number-of-steps {The main simulation takes a certain number of steps.} -bod
 	}
     }
     set final_steps
-} -result {6803}
+} -result {12761}
 
 test check-density {The density difference with respect to the analytic solution.} -body {
     set L2_density_error 0
     # We're looking for a line with something like the content:
-    # rho L2 0.0036484674842
+    # rho L2 0.00473303564872
     # This is for the viscous case (i.e. case = 2)
     set fp [open LOGFILE_POST r]
     set results [read $fp]
@@ -55,7 +56,7 @@ test check-density {The density difference with respect to the analytic solution
 	    set L2_density_error [lindex [split $line] 2]
 	}
     }
-    expr abs($L2_density_error - 0.003648)/0.003648 < 1.0e-2
+    expr abs($L2_density_error - 0.004733)/0.004733 < 1.0e-2
 } -result {1}
 
 cleanupTests
