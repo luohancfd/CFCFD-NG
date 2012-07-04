@@ -53,7 +53,20 @@ the flow at specific locations:\\
                                       the flow state for a particular cell.  The data is the same as that
                                       listed for the \texttt{ghost\_cell} tables with the addition of \texttt{vol},
                                       the cell volume.  This function is not likely to work for a MPI simulation,
-                                      where only one block is visible to the current process.} \\
+                                      where only one block is visible to the current process.
+
+                                      This function may be called with indices which sample the properties
+                                      in the ghost cells themselves. When this is the case, the flow properties
+                                      in the ghost cells should not be relied on. The only useful data is
+                                      the position (\texttt{x}, \texttt{y} and \texttt{z}) and the volume
+                                      \texttt{vol}. These values are estimated by using a linear extrapolation
+                                      from the nearby interior cells. The values of position and volume may
+                                      be useful when setting the properties in the ghost cells (see for
+                                      example the application in MMS case to give a first-order boundary
+                                      condition).
+                                                                             
+
+} \\
  \noalign{\smallskip} \hline \noalign{\smallskip}
  \texttt{locate\_cell(x,y,z)} & \parbox{10cm}{a function that will search for the cell nearest 
                                       the specified coordinates and return the cell indices
