@@ -71,6 +71,7 @@ def print_stats_MoA(sliceFileName,jobName,coreRfraction,weight):
     exclude_list = ['pos.x', 'pos.y', 'pos.z', 'volume', 'vel.z', 'S']
     #
     fout = open(jobName+'-exit.stats'+weight.capitalize(),'w')
+    fout.write('CoreRadiusFraction: %10.6f\n' % coreRfraction)
     fout.write('%10s  %12s   %10s  %10s %10s\n' % \
                    ("variable","mean-value","minus","plus","std-dev"))
     fout.write(60*'-')
@@ -182,6 +183,7 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction):
     exclude_list = ['pos.x', 'pos.y', 'pos.z', 'volume', 'vel.z', 'S']
     #
     fout = open(jobName+'-exit.stats','w')
+    fout.write('CoreRadiusFraction: %10.6f\n' % coreRfraction)
     fout.write('%10s  %12s   %10s  %10s %10s\n' % \
                    ("variable","mean-value","minus","plus","std-dev"))
     fout.write(60*'-')

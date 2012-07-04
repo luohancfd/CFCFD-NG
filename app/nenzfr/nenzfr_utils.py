@@ -88,6 +88,7 @@ def read_nenzfr_outfile(FileToRead):
               dictionary of the mean-values.
     """
     fp = open(FileToRead,'r')
+    fp.readline() # first line of file (CoreRadiusFraction which we don't use)
     # Collumn titles
     titles = fp.readline().strip().split(" ")
     titleList = [k for k in titles if k!="" and k!="variable"]
