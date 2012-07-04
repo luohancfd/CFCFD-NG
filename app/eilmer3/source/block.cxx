@@ -555,7 +555,7 @@ int Block::compute_primary_cell_geometric_data( int dimensions )
     if ( dimensions == 2 ) {
 	calc_volumes_2D();
 	calc_faces_2D();
-	calc_ghost_cell_pos_2D();
+	calc_ghost_cell_geom_2D();
 	return SUCCESS;
     }
 
@@ -573,12 +573,6 @@ int Block::compute_primary_cell_geometric_data( int dimensions )
 		p7 = &(get_vtx(i,j+1,k+1)->pos);
 		hexahedron_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
 				       cell->pos, cell->volume );
-		if ( i == imax ) {
-		    /* Copy last cell data to ghost cell (SUB_OUT) */
-		    cell = get_cell(i+1,j,k);
-		    hexahedron_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
-					   cell->pos, cell->volume );
-		}
 	    }
 	}
     }
@@ -594,13 +588,6 @@ int Block::compute_primary_cell_geometric_data( int dimensions )
 		quad_properties( *p0, *p3, *p7, *p4,
 				 iface->pos, iface->n, iface->t1, iface->t2,
 				 iface->area );
-		if( i == imax + 1) {
-		    /* Copy last cell data to ghost cell (SUB_OUT) */
-		    iface = get_ifi(i+1,j,k);
-		    quad_properties( *p0, *p3, *p7, *p4,
-				     iface->pos, iface->n, iface->t1, iface->t2,
-				     iface->area );
-		}
 	    }
 	}
     }
@@ -616,13 +603,6 @@ int Block::compute_primary_cell_geometric_data( int dimensions )
 		quad_properties( *p0, *p4, *p5, *p1,
 				 iface->pos, iface->n, iface->t1, iface->t2,
 				 iface->area );
-		if ( i == imax ) {
-		    /* Copy last cell data to ghost cell (SUB_OUT) */
-		    iface = get_ifj(i+1,j,k);
-		    quad_properties( *p0, *p4, *p5, *p1,
-				     iface->pos, iface->n, iface->t1, iface->t2,
-				     iface->area );
-		}
 	    }
 	}
     }
@@ -638,13 +618,6 @@ int Block::compute_primary_cell_geometric_data( int dimensions )
 		quad_properties( *p0, *p1, *p2, *p3,
 				 iface->pos, iface->n, iface->t1, iface->t2,
 				 iface->area );
-		if ( i == imax ) {
-		    /* Copy last cell data to ghost cell (SUB_OUT) */
-		    iface = get_ifk(i+1,j,k);
-		    quad_properties( *p0, *p1, *p2, *p3,
-				     iface->pos, iface->n, iface->t1, iface->t2,
-				     iface->area );
-		}
 	    }
 	}
     }
@@ -708,7 +681,7 @@ int Block::compute_primary_cell_geometric_data( int dimensions )
 	}
     }
 
-    /* Extrapolate (with first-order) cell positions in ghost cells. */
+    /* Extrapolate (with first-order) cell positions and volumes to ghost cells. */
     for ( j = jmin; j <= jmax; ++j ) {
 	for ( k = kmin; k <= kmax; ++k ) {
 	    i = imin;
@@ -716,19 +689,23 @@ int Block::compute_primary_cell_geometric_data( int dimensions )
 	    cell_2 = get_cell(i+1,j,k);
 	    ghost_cell = get_cell(i-1,j,k);
 	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	    ghost_cell->volume = 2.0*cell_1->volume - cell_2->volume;
 	    cell_2 = cell_1;
 	    cell_1 = ghost_cell;
 	    ghost_cell = get_cell(i-2,j,k);
 	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	    ghost_cell->volume = 2.0*cell_2->volume - cell_2->volume;
 	    i = imax;
 	    cell_1 = get_cell(i,j,k);
 	    cell_2 = get_cell(i-1,j,k);
 	    ghost_cell = get_cell(i+1,j,k);
 	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	    ghost_cell->volume = 2.0*cell_1->volume - cell_2->volume;
 	    cell_2 = cell_1;
 	    cell_1 = ghost_cell;
 	    ghost_cell = get_cell(i+2,j,k);
 	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	    ghost_cell->volume = 2.0*cell_1->volume - cell_2->volume;
 	}
     }
     for ( i = imin; i <= imax; ++i ) {
@@ -738,19 +715,23 @@ int Block::compute_primary_cell_geometric_data( int dimensions )
 	    cell_2 = get_cell(i,j+1,k);
 	    ghost_cell = get_cell(i,j-1,k);
 	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	    ghost_cell->volume = 2.0*cell_1->volume - cell_2->volume;
 	    cell_2 = cell_1;
 	    cell_1 = ghost_cell;
 	    ghost_cell = get_cell(i,j-2,k);
 	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	    ghost_cell->volume = 2.0*cell_1->volume - cell_2->volume;
 	    j = jmax;
 	    cell_1 = get_cell(i,j,k);
 	    cell_2 = get_cell(i,j-1,k);
 	    ghost_cell = get_cell(i,j+1,k);
 	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	    ghost_cell->volume = 2.0*cell_1->volume - cell_2->volume;
 	    cell_2 = cell_1;
 	    cell_1 = ghost_cell;
 	    ghost_cell = get_cell(i,j+2,k);
 	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	    ghost_cell->volume = 2.0*cell_1->volume - cell_2->volume;
 	}
     }
     for ( i = imin; i <= imax; ++i ) {
@@ -760,19 +741,23 @@ int Block::compute_primary_cell_geometric_data( int dimensions )
 	    cell_2 = get_cell(i,j,k+1);
 	    ghost_cell = get_cell(i,j,k-1);
 	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	    ghost_cell->volume = 2.0*cell_1->volume - cell_2->volume;
 	    cell_2 = cell_1;
 	    cell_1 = ghost_cell;
 	    ghost_cell = get_cell(i,j,k-2);
 	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	    ghost_cell->volume = 2.0*cell_1->volume - cell_2->volume;
 	    k = kmax;
 	    cell_1 = get_cell(i,j,k);
 	    cell_2 = get_cell(i,j,k-1);
 	    ghost_cell = get_cell(i,j,k+1);
 	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	    ghost_cell->volume = 2.0*cell_1->volume - cell_2->volume;
 	    cell_2 = cell_1;
 	    cell_1 = ghost_cell;
 	    ghost_cell = get_cell(i,j,k+2);
 	    ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	    ghost_cell->volume = 2.0*cell_1->volume - cell_2->volume;
 	}
     }
 	    
@@ -1759,12 +1744,13 @@ int Block::calc_faces_2D( void )
     return SUCCESS;
 } // end calc_faces_2D()
 
-int Block::calc_ghost_cell_pos_2D( void )
-/// \brief Compute the ghost cell positions.
+int Block::calc_ghost_cell_geom_2D( void )
+/// \brief Compute the ghost cell positions and volumes.
 ///
-/// This method uses a first-order extrapolation
+/// 'Compute' is a bit too strong to describe what we do here.
+//  Rather this is a first-order extrapolation
 /// from interior cells to estimate the position
-/// of the ghost cells.
+/// and volume of the ghost cells.
 {
     int i, j;
     FV_Cell *cell_1, *cell_2, *ghost_cell;
@@ -1775,10 +1761,12 @@ int Block::calc_ghost_cell_pos_2D( void )
 	cell_2 = get_cell(i-1,j);
 	ghost_cell = get_cell(i+1,j);
 	ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	ghost_cell->volume = 2.0*cell_1->volume - cell_2->volume;
 	cell_2 = cell_1;
 	cell_1 = ghost_cell;
 	ghost_cell = get_cell(i+2,j);
 	ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	ghost_cell->volume = 2.0*cell_1->volume - cell_2->volume;
     }
     // West boundary
     i = imin;
@@ -1787,10 +1775,12 @@ int Block::calc_ghost_cell_pos_2D( void )
 	cell_2 = get_cell(i+1,j);
 	ghost_cell = get_cell(i-1,j);
 	ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	ghost_cell->volume = 2.0*cell_1->volume - cell_2->volume;
 	cell_2 = cell_1;
 	cell_1 = ghost_cell;
 	ghost_cell = get_cell(i-2,j);
 	ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	ghost_cell->volume = 2.0*cell_1->volume - cell_2->volume;
     }
     // North boundary
     j = jmax;
@@ -1799,10 +1789,12 @@ int Block::calc_ghost_cell_pos_2D( void )
 	cell_2 = get_cell(i,j-1);
 	ghost_cell = get_cell(i,j+1);
 	ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	ghost_cell->volume = 2.0*cell_1->volume - cell_2->volume;
 	cell_2 = cell_1;
 	cell_1 = ghost_cell;
 	ghost_cell = get_cell(i,j+2);
 	ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	ghost_cell->volume = 2.0*cell_1->volume - cell_2->volume;
     }
     // South boundary
     j = jmin;
@@ -1811,10 +1803,12 @@ int Block::calc_ghost_cell_pos_2D( void )
 	cell_2 = get_cell(i,j+1);
 	ghost_cell = get_cell(i,j-1);
 	ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	ghost_cell->volume = 2.0*cell_1->volume - cell_2->volume;
 	cell_2 = cell_1;
 	cell_1 = ghost_cell;
 	ghost_cell = get_cell(i,j-2);
 	ghost_cell->pos = 2.0*cell_1->pos - cell_2->pos;
+	ghost_cell->volume = 2.0*cell_1->volume - cell_2->volume;
     }
     return SUCCESS;
 }
