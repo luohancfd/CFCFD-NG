@@ -315,6 +315,40 @@ def pitot_condition(state1, V1):
         # Subsonic free-stream
         return total_condition(state1, V1)
 
+
+def steady_flow_with_area_change(state1, V1, A2A1, p2p1_guess=0.001):
+    """
+    Given station 1 condition, velocity and area-ratio A2/A1,
+    compute the steady, isentropic condition at station 2.
+
+    :param state1: Gas object specifying condition at station 1
+    :param V1: velocity at station 1, m/s
+    :param A2A1: area ratio between stations A2/A1
+    :returns: tuple (V2, state2) of conditions at station 2
+    """
+    H1 = state1.p/state1.rho + state1.e + 0.5*V1*V1
+    mdot1 = state1.rho * V1  # assuming unit area at station 1
+    def error_in_mass_flux(p2p1, state1=state1, A2=A2A1, H1=H1, mdot1=mdot1):
+        """
+        The mass flux should be the same at each station.
+        """
+        # print "p2/p1=", p2p1
+        state2 = state1.clone()
+        state2.set_ps(p2p1 * state1.p, state1.s)
+        h2 = state2.p/state2.rho + state2.e
+        V2 = math.sqrt(2*(H1 - h2))
+        mdot2 = state2.rho * V2 * A2
+        return (mdot2 - mdot1)/abs(mdot1)
+    p2p1 = secant(error_in_mass_flux, p2p1_guess, 1.01*p2p1_guess, tol=1.0e-4)
+    if p2p1 == 'FAIL':
+        print "Failed to find area-change conditions iteratively."
+        p2p1 = 1.0
+    state2 = state1.clone()
+    state2.set_ps(p2p1 * state1.p, state1.s)
+    h2 = state2.p/state2.rho + state2.e
+    V2 = math.sqrt(2*(H1 - h2))
+    return V2, state2
+
 #------------------------------------------------------------------------
 # Finite-strength waves along characteristic lines.
 
@@ -583,6 +617,13 @@ def demo():
     s8 = pitot_condition(s6, V)
     print "pitot-p/total-p=", s8.p/s5.p, "s8:"
     s8.write_state(sys.stdout)
+    #
+    print "Steady, isentropic flow with area change."
+    s8a = Gas({'Air':1.0})
+    s8a.set_pT(1.0e5, 320.0)
+    V8a = 1.01 * s8a.a
+    V8b, s8b = steady_flow_with_area_change(s8a, V8a, 10.72) # something like M4 nozzle
+    print "M=", V8b/s8b.a, "expected 4,  p2/p1=", s8b.p/s8a.p, "expected", 0.006586/0.5283
     #
     print "\nFinite wave process along a cplus characteristic, stepping in p."
     V1 = 0.0
