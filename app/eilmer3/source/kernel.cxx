@@ -555,12 +555,12 @@ int set_energy_exchange_flag(int ir)
 {
     thermal_energy_exchange = ir;
     printf("set_energy_exchange_flag(): ");
-    if (reacting == 0)
+    if (thermal_energy_exchange == 0)
         printf("Flow in thermal equilibrium\n");
-    else if (reacting == 1)
+    else if (thermal_energy_exchange == 1)
         printf("Flow in thermal nonequilibrium: source terms computed\n");
     else {
-        printf("Invalid energy_exchange_flag value: %d\n", reacting);
+        printf("Invalid energy_exchange_flag value: %d\n", thermal_energy_exchange);
         exit(VALUE_ERROR);
     }
     return SUCCESS;
