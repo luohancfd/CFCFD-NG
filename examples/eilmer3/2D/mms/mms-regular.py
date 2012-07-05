@@ -78,6 +78,10 @@ elif case == 2 or case == 4:
     gdata.max_step = 3000000
     gdata.dt = 1.0e-7
     gdata.cfl = 0.5
+# For the verification tests,
+# do NOT use the limiters
+gdata.apply_limiter_flag = 0
+gdata.extrema_clipping_flag = 0
 gdata.stringent_cfl = 1
 gdata.dt_plot = gdata.max_time/20.0
 

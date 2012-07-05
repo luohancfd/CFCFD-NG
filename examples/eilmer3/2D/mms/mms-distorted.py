@@ -72,7 +72,7 @@ elif case == 2 or case == 4:
     bc_list = [UserDefinedBC("udf-bc.lua"),]*4
 
 if blocking == 'single':
-    blk = Block2D(make_patch(BezCD, BezBD, BezAB, BezAC)), 
+    blk = Block2D(make_patch(BezCD, BezBD, BezAB, BezAC), 
                   nni=nn, nnj=nn,
                   bc_list=bc_list,
                   fill_condition=initial, label="blk")
@@ -99,6 +99,10 @@ elif case == 2 or case == 4:
     gdata.max_step = 3000000
     gdata.dt = 1.0e-7
     gdata.cfl = 0.5
+# For the verification tests,
+# do NOT use the limiters
+gdata.apply_limiter_flag = 0
+gdata.extrema_clipping_flag = 0
 gdata.stringent_cfl = 1
 gdata.dt_plot = gdata.max_time/20.0
 
