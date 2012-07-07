@@ -316,19 +316,44 @@ def pitot_condition(state1, V1):
         return total_condition(state1, V1)
 
 
-def steady_flow_with_area_change(state1, V1, A2A1, p2p1_guess=0.001):
+def steady_flow_with_area_change(state1, V1, A2_over_A1):
     """
     Given station 1 condition, velocity and area-ratio A2/A1,
     compute the steady, isentropic condition at station 2.
 
     :param state1: Gas object specifying condition at station 1
     :param V1: velocity at station 1, m/s
-    :param A2A1: area ratio between stations A2/A1
+    :param A2_over_A1: area ratio between stations A2/A1
     :returns: tuple (V2, state2) of conditions at station 2
     """
+    M1 = abs(V1)/state1.a
+    # When setting up the initial guess for pressure ratio,
+    # we could probably do better with the ideal relation between M and A/Astar.
+    # Note that we'll have trouble heading toward the sonic condition.
+    # For the moment, just don't do that.
+    if M1 > 1.0:
+        if A2_over_A1 > 1.0:
+            # For a supersonic expansion, we might start at the high Mach number end.
+            p2p1_guess_1 = 0.001
+            p2p1_guess_2 = 1.01 * p2p1_guess_1
+        else:
+            # For a supersonic compression, we probably can't go far in area ratio.
+            p2p1_guess_1 = 1.01
+            p2p1_guess_2 = 1.01 * p2p1_guess_1
+    else:
+        if A2_over_A1 < 1.0:
+            # Subsonic nozzle will accelerate to lower pressures.
+            p2p1_guess_1 = 0.95
+            p2p1_guess_2 = 1.01 * p2p1_guess_1
+        else:
+            # Subsonic diffuser will decelerate to higher pressure.
+            total_cond = total_condition(state1, V1)
+            p2p1_guess_1 = 0.99 * total_cond.p/state1.p
+            p2p1_guess_2 = 0.99 * p2p1_guess_1
+    # Set up constraint data and the error-function to be given to the solver.
     H1 = state1.p/state1.rho + state1.e + 0.5*V1*V1
     mdot1 = state1.rho * V1  # assuming unit area at station 1
-    def error_in_mass_flux(p2p1, state1=state1, A2=A2A1, H1=H1, mdot1=mdot1):
+    def error_in_mass_flux(p2p1, state1=state1, A2=A2_over_A1, H1=H1, mdot1=mdot1):
         """
         The mass flux should be the same at each station.
         """
@@ -339,7 +364,7 @@ def steady_flow_with_area_change(state1, V1, A2A1, p2p1_guess=0.001):
         V2 = math.sqrt(2*(H1 - h2))
         mdot2 = state2.rho * V2 * A2
         return (mdot2 - mdot1)/abs(mdot1)
-    p2p1 = secant(error_in_mass_flux, p2p1_guess, 1.01*p2p1_guess, tol=1.0e-4)
+    p2p1 = secant(error_in_mass_flux, p2p1_guess_1, p2p1_guess_2, tol=1.0e-4)
     if p2p1 == 'FAIL':
         print "Failed to find area-change conditions iteratively."
         p2p1 = 1.0
@@ -618,12 +643,20 @@ def demo():
     print "pitot-p/total-p=", s8.p/s5.p, "s8:"
     s8.write_state(sys.stdout)
     #
-    print "Steady, isentropic flow with area change."
+    print "\nSteady, isentropic flow with area change."
     s8a = Gas({'Air':1.0})
     s8a.set_pT(1.0e5, 320.0)
-    V8a = 1.01 * s8a.a
+    V8a = 1.001 * s8a.a
     V8b, s8b = steady_flow_with_area_change(s8a, V8a, 10.72) # something like M4 nozzle
     print "M=", V8b/s8b.a, "expected 4,  p2/p1=", s8b.p/s8a.p, "expected", 0.006586/0.5283
+    V8b, s8b = steady_flow_with_area_change(s8a, V8a, 1.030) # slightly supersonic
+    print "M=", V8b/s8b.a, "expected 1.2,  p2/p1=", s8b.p/s8a.p, "expected", 0.4124/0.5283
+    V8a = 0.999 * s8a.a
+    V8b, s8b = steady_flow_with_area_change(s8a, V8a, 2.9635) # sonic to M=0.2
+    print "M=", V8b/s8b.a, "expected 0.2,  p2/p1=", s8b.p/s8a.p, "expected", 0.9725/0.5283
+    V8a = 0.2 * s8a.a
+    V8b, s8b = steady_flow_with_area_change(s8a, V8a, 1.3398/2.9635) # M=0.2 to M=0.5
+    print "M=", V8b/s8b.a, "expected 0.5,  p2/p1=", s8b.p/s8a.p, "expected", 0.8430/0.9725
     #
     print "\nFinite wave process along a cplus characteristic, stepping in p."
     V1 = 0.0
