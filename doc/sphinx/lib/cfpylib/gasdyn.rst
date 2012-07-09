@@ -126,6 +126,8 @@ gas_flow
 
 .. autofunction:: pitot_condition
 
+.. autofunction:: steady_flow_with_area_change
+
 .. autofunction:: finite_wave_dp
 
 .. autofunction:: finite_wave_dv
