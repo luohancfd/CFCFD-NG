@@ -5,72 +5,52 @@
 ## \version 31-Jan-2005 extracted from e_model_spec.py
 ##
 """
-Dictionary to look up boundary-condition index from name or number.
+Historically, within the C/C++ simulation code, 
+the boundary conditions were identified by integer constants
+for which macro names were defined.
+The same names are available for use in your Python input scripts.:
 
-Boundary conditions are implemented within the simulation by setting
-flow data in ghost cells to suitable values.
-This is done once per time step, before evaluating the fluxes.
-
-@var ADJACENT: This boundary joins that of another block.
+* ADJACENT: This boundary joins that of another block.
     Normally, this boundary condition would be set implicitly
     when making block connections.
-@type ADJACENT: int
-@var COMMON: Synonym for L{ADJACENT}.
-@type COMMON: int
-@var SUP_IN: Fully-prescribed inflow (e.g. supersonic inflow).
-@type SUP_IN: int
-@var SUP_OUT: Synonym for L{EXTRAPOLATE_OUT}.
-@type SUP_OUT: int
-@var EXTRAPOLATE_OUT: Extrapolate all flow properties from
+* COMMON: Synonym for ADJACENT.
+* SUP_IN: Fully-prescribed inflow (e.g. supersonic inflow).
+* SUP_OUT: Synonym for EXTRAPOLATE_OUT.
+* EXTRAPOLATE_OUT: Extrapolate all flow properties from
    just inside the boundary into the ghost-cells outside
    the boundary.  This works fine for a strong supersonic outflow.
-@type EXTRAPOLATE_OUT: int
-@var SLIP: Synonym for L{SLIP_WALL}
-@type SLIP: int
-@var SLIP_WALL: A solid but inviscid wall.
+* SLIP: Synonym for SLIP_WALL
+* SLIP_WALL: A solid but inviscid wall.
     Effectively, this boundary condition copies and reflects the
     properties just inside the boundary into the ghost cells.
-@type SLIP_WALL: int
-@var ADIABATIC: A solid, no-slip wall without heat transfer.
+* ADIABATIC: A solid, no-slip wall without heat transfer.
     (i.e. the near-wall temperature is reflected in the ghost cells)
-@type ADIABATIC: int
-@var FIXED_T: A solid, no-slip wall with a user-specified
+* FIXED_T: A solid, no-slip wall with a user-specified
     temperature.
-@type FIXED_T: int
-@var SLIDING_T: A solid, no-slip wall with a sliding user-specified
+* SLIDING_T: A solid, no-slip wall with a sliding user-specified
     temperature that linearly varies with time.
-@type SLIDING_T: int
-@var SUBSONIC_IN: An inflow boundary for which the total pressure
+* SUBSONIC_IN: An inflow boundary for which the total pressure
     and temperature have been specified and the velocity from
     just inside the boundary is copied into the ghost cells.
-@type SUBSONIC_IN: int
-@var SUBSONIC_OUT: An outflow boundary which will try to prevent
+* SUBSONIC_OUT: An outflow boundary which will try to prevent
     wave reflection at the boundary in the presence of subsonic flow.
     (Doesn't work so well at present.)
-@type SUBSONIC_OUT: int
-@var SUB_OUT: Synonym for L{SUBSONIC_OUT}
-@type SUB_OUT: int
-@var TRANSIENT_UNI: An transient inflow boundary which has
+* SUB_OUT: Synonym for SUBSONIC_OUT
+* TRANSIENT_UNI: An transient inflow boundary which has
     a uniform flow condition applied across the full boundary.
-@type TRANSIENT_UNI: int
-@undocumented: TRANSIENT_PROF
-@var STATIC_PROF: A steady inflow boundary with a variable set of
+* TRANSIENT_PROF
+* STATIC_PROF: A steady inflow boundary with a variable set of
     flow conditions across the boundary.
-@type STATIC_PROF: int
-@var FIXED_P_OUT: Something like L{EXTRAPOLATE_OUT} but with the
+* FIXED_P_OUT: Something like EXTRAPOLATE_OUT but with the
     pressure set to some user-specified value.
     It is probably best to set this pressure at the same value as
     the initial fill pressure so that this boundary condition will
     be passive until a wave arrives at the boundary.
-@type FIXED_P_OUT: int
-@var RRM: Andrew Denman's recycled and renormalised boundary
+* RRM: Andrew Denman's recycled and renormalised boundary
     condition.
-@type RRM: int
-@var SEB: Surface energy balance.
-@type SEB: int
-@undocumented: SPECIAL
+* SEB: Surface energy balance.
+* SPECIAL
 
-@undocumented: bcIndexFromName
 """
 ADJACENT        = 0
 COMMON          = 0
@@ -151,17 +131,6 @@ bcName = {
 class BoundaryCondition(object):
     """
     Base class for boundary condition specifications.
-
-    @ivar type_of_BC: specifies the boundary condition
-    @ivar Twall: fixed wall temperature (in degrees K) that will be used if
-        the boundary conditions needs such a value.
-    @ivar Pout: fixed outside pressure (in Pascals) that will be used if
-        the boundary conditions needs such a value.
-    @ivar inflow_condition: the flow condition that will be applied if the
-        specified boundary condition needs it
-    @ivar sponge_flag: A value of 1 will activate Andrew Denman's damping
-        terms near the boundary.
-    @type sponge_flag: int
     """
     __slots__ = 'type_of_BC', 'Twall', 'Pout', 'inflow_condition', \
                 'x_order', 'sponge_flag', 'other_block', 'other_face', 'orientation', \
@@ -189,6 +158,52 @@ class BoundaryCondition(object):
                  t_i=0.0,
                  t_f=0.0,
                  label=""):
+        """
+        Construct a generic boundary condition object.
+
+        This constructor is usually invoked by one of the more specific
+        boundary-condition constructors. 
+        It is a catch-all for the bits of data that might be required by
+        any particular boundary condition.
+
+        :param type_of_BC: specifies the boundary condition (integer value)
+        :param Twall: fixed wall temperature (in degrees K) that will be used if
+            the boundary conditions needs such a value.
+        :param Pout: fixed outside pressure (in Pascals) that will be used if
+            the boundary conditions needs such a value.
+        :param inflow_condition: the flow condition that will be applied if the
+            specified boundary condition needs it.
+        :param x_order: Extrapolation order of the boundary conduition.
+            0=just copy the nearest cell data into both ghost cells 
+            (zero-order extrapolation).
+            1=linear extrapolation of the interior data into the ghost cells. 
+        :param sponge_flag: A value of 1 will activate Andrew Denman's damping
+            terms near the boundary.
+        :param other_block: index to an adjacent block, if any. 
+            A value of -1 will indicate that there is no adjacent block.
+        :param other_face: index of the adjacent face of the other block, if any.
+        :param orientation: for 3D connections the other block face can have one of
+            4 rotational orientations.
+        :param filename: Name of the UDF source file (in Lua)
+            or of the profile data, if relevant.
+        :param n_profile: Number of profiles to be found in the input data file
+            for the StaticProfileBC.
+        :param is_wall: Flag to indicate that various parts of the simulation code 
+            should treat this boundary as a solid wall.
+        :param use_udf_flux: For this boundary, use the fluxes as computed directly
+            by the user-supplied Lua script.  This pretty much ignores the ghost-cell
+            data, however, it does not relieve the user of supplying a suitable 
+            function for setting that data.
+        :param assume_ideal:
+        :param mdot:
+        :param epsilon:
+        :param Twall_i:
+        :param Twall_f:
+        :param t_i:
+        :param t_f:
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
         self.type_of_BC = type_of_BC
         self.Twall = Twall
         self.Pout = Pout
@@ -258,11 +273,24 @@ class BoundaryCondition(object):
 class AdjacentBC(BoundaryCondition):
     """
     This boundary joins (i.e. is adjacent to) a boundary of another block.
-
-    This condition is usually not set manually but is set as part of the
-    connect_blocks() function.
     """
     def __init__(self, other_block=-1, other_face=-1, orientation=0, label=""):
+        """
+        Join the boundary face to a boundary-face of another block.
+
+        This condition is usually not set manually but is set as part of the
+        connect_blocks() function.
+        There should be a corresponding AdjacentBC on the other block and
+        the connect_blocks() function ensures this.
+
+        :param other_block: index to an adjacent block, if any. 
+            A value of -1 will indicate that there is no adjacent block.
+        :param other_face: index of the adjacent face of the other block, if any.
+        :param orientation: for 3D connections the other block face can have one of
+            4 rotational orientations.
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
         BoundaryCondition.__init__(self, type_of_BC=ADJACENT, other_block=other_block,
                                    other_face=other_face, orientation=orientation,
                                    label=label)
@@ -283,6 +311,14 @@ class SupInBC(BoundaryCondition):
     The inflow_condition data is copied into the ghost cells.
     """
     def __init__(self, inflow_condition, label=""):
+        """
+        Construct a supersonic-inflow boundary condition.
+
+        :param inflow_condition: A reference to a previously-constructed
+            FlowCondition object.
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
         BoundaryCondition.__init__(self, type_of_BC=SUP_IN,
                                    inflow_condition=inflow_condition,
                                    label=label)
@@ -301,6 +337,18 @@ class ExtrapolateOutBC(BoundaryCondition):
     directed out of the flow domain.
     """
     def __init__(self, x_order=0, sponge_flag=0, label=""):
+        """
+        Construct an outflow BC that extrapolates the interior flow data.
+
+        :param x_order: Extrapolation order of the boundary conduition.
+            0=just copy the nearest cell data into both ghost cells 
+            (zero-order extrapolation).
+            1=linear extrapolation of the interior data into the ghost cells. 
+        :param sponge_flag: A value of 1 will activate Andrew Denman's damping
+            terms near the boundary.
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
         BoundaryCondition.__init__(self, type_of_BC=EXTRAPOLATE_OUT,
                                    x_order=x_order,
                                    sponge_flag=sponge_flag,
@@ -319,8 +367,16 @@ class SlipWallBC(BoundaryCondition):
 
     Effectively, this boundary condition copies and reflects the
     properties just inside the boundary into the ghost cells.
+    This is the default boundary condition applied to a block face
+    if you don't otherwise specify a boundary condition.
     """
     def __init__(self, label=""):
+        """
+        Construct a no-friction, solid-wall boundary.
+
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
         BoundaryCondition.__init__(self, type_of_BC=SLIP_WALL, is_wall=1, label=label)
         return
     def __str__(self):
@@ -333,10 +389,16 @@ class AdiabaticBC(BoundaryCondition):
     A solid, no-slip wall without heat transfer.
     
     The near-wall temperature is reflected in the ghost cells.
-    This BC is really only effective if viscous effects are active
+    This BC is only effective if viscous effects are active
     else it acts as another solid (slip) wall.
     """
     def __init__(self, label=""):
+        """
+        Construct a no-slip, no-heat-transfer, solid-wall boundary.
+
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
         BoundaryCondition.__init__(self, type_of_BC=ADIABATIC, is_wall=1, label=label)
         return
     def __str__(self):
@@ -352,6 +414,13 @@ class FixedTBC(BoundaryCondition):
     effects are active.  Else, it is just like another solid (slip) wall.
     """
     def __init__(self, Twall, label=""):
+        """
+        Construct a no-slip, fixed-temperature, solid-wall boundary.
+
+        :param Twall: fixed wall temperature (in degrees K) 
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
         BoundaryCondition.__init__(self, type_of_BC=FIXED_T, Twall=Twall, is_wall=1, label=label)
         return
     def __str__(self):
@@ -361,12 +430,20 @@ class FixedTBC(BoundaryCondition):
 
 class fstcBC(BoundaryCondition):
     """
-    A solid boundary with no-slip and a user specified temperature.
+    A solid boundary with no-slip and a user-specified temperature.
 
     Like the AdiabaticBC, this is completey effective only when viscous
     effects are active.  Else, it is just like another solid (slip) wall.
     """
     def __init__(self, filename="fstc_temperatures.dat", label=""):
+        """
+        Construct a no-slip, fixed-temperature, solid-wall boundary.
+
+        :param filename: containing the specified temperatures
+            for each cell along the boundary. 
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
         BoundaryCondition.__init__(self, type_of_BC=FSTC, filename=filename, is_wall=1, label=label)
         return
     def __str__(self):
@@ -383,6 +460,16 @@ class SlidingTBC(BoundaryCondition):
     effects are active.  Else, it is just like another solid (slip) wall.
     """
     def __init__(self, Twall_i, Twall_f, t_i, t_f, label=""):
+        """
+        Construct a no-slip, sliding-temperature, solid-wall boundary.
+
+        :param Twall_i:
+        :param Twall_f:
+        :param t_i:
+        :param t_f:
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
         BoundaryCondition.__init__(self, type_of_BC=SLIDING_T, 
             Twall_i=Twall_i, Twall_f=Twall_f, 
             t_i=t_i, t_f=t_f, is_wall=1, label=label)
@@ -401,6 +488,19 @@ class SubsonicInBC(BoundaryCondition):
     assume_ideal==0: use generalized stepping, down from stagnation to get conditions.
     """
     def __init__(self, inflow_condition, assume_ideal=0, label=""):
+        """
+        Construct a subsonic-inflow boundary.
+
+        :param inflow_condition: Refers to a FlowCondition object that represents
+            the total conditions for flow at the boundary.
+        :param assume_ideal: A value of 1 allows the code to use ideal gas relations
+            to get an estimate of the ghost-cell conditions.
+            A value of 0, causes the code to compute the ghost-cell flow conditions
+            from the total-conditions by making a number of finite steps through
+            the isentropic expansion while allowing a general equation of state.
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
         BoundaryCondition.__init__(self, type_of_BC=SUBSONIC_IN,
             inflow_condition=inflow_condition, assume_ideal=assume_ideal, label=label)
         return
@@ -430,9 +530,19 @@ class TransientUniBC(BoundaryCondition):
     """
     Transient but uniform inflow is applied to the ghost cells at the boundary.
     
-    The actual flow data is read (at run time) from the file transient_uni.dat
+    The actual flow data is read (at run time) from the file transient_uni.dat.
+    Mostly, this boundary condition is used to get L1d3 simulation data to drive
+    an axisymmetric simulation here.
     """
     def __init__(self, filename="transient_uniform.dat", label=""):
+        """
+        Construct a uniform-inflow boundary with user-specified, transient properties.
+
+        :param filename: containing the specified flow conditions that will be
+            applied uniformly along the boundary. 
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
         BoundaryCondition.__init__(self, type_of_BC=TRANSIENT_UNI, filename=filename, label=label)
         return
     def __str__(self):
@@ -463,6 +573,14 @@ class StaticProfBC(BoundaryCondition):
     The actual flow data is read (at run time) from the specified file.
     """
     def __init__(self, filename="profile.dat", n_profile=1, label=""):
+        """
+        Construct an inflow boundary with user-specified properties.
+
+        :param filename: containing the specified flow conditions that may
+            vary along the boundary. 
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
         BoundaryCondition.__init__(self, type_of_BC=STATIC_PROF, filename=filename,
                                    n_profile=n_profile, label=label)
         return
@@ -474,15 +592,28 @@ class StaticProfBC(BoundaryCondition):
  
 class FixedPOutBC(BoundaryCondition):
     """
-    Something like L{ExtrapolateOutBC} but with the pressure set
+    Something like ExtrapolateOutBC but with the pressure set
     to some user-specified value.
     
     It is probably best to set this pressure at the same value as
     the initial fill pressure so that this boundary condition will
     be passive until a wave arrives at the boundary.
     """
-    def __init__(self, Pout, label=""):
-        BoundaryCondition.__init__(self, type_of_BC=FIXED_P_OUT, Pout=Pout, x_order=0, label=label)
+    def __init__(self, Pout, x_order=0, label=""):
+        """
+        Construct an outflow BC that extrapolates the interior flow data but
+        specifies pressure directly.
+
+        :param Pout: fixed outside pressure (in Pascals)
+        :param x_order: Extrapolation order of the boundary conduition.
+            0=just copy the nearest cell data into both ghost cells 
+            (zero-order extrapolation).
+            1=linear extrapolation of the interior data into the ghost cells. 
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
+        BoundaryCondition.__init__(self, type_of_BC=FIXED_P_OUT, Pout=Pout, 
+                                   x_order=x_order, label=label)
         return
     def __str__(self):
         return "FixedPOutBC(Pout=%g, x_order=%d, label=\"%s\")" % \
@@ -506,9 +637,23 @@ class UserDefinedBC(BoundaryCondition):
     """
     The user defines the flow properties to use the ghost cells via a Lua function.
     
-    The actual flow data is computed (at run time) from the specified file.
+    The actual flow data is computed (at run time) from the functions defined in that file.
+    For details, please see the Appendix in the User Guide and Example Book.
     """
     def __init__(self, filename="udf.lua", is_wall=0, use_udf_flux=0, label=""):
+        """
+        Construct a user-defined boundary condition.
+
+        :param filename: Name of the file containing the Lua functions.
+        :param is_wall: Flag to indicate that various parts of the simulation code 
+            should treat this boundary as a solid wall.
+        :param use_udf_flux: For this boundary, use the fluxes as computed directly
+            by the user-supplied Lua script.  This pretty much ignores the ghost-cell
+            data, however, it does not relieve the user of supplying a suitable 
+            function for setting that data.
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
         BoundaryCondition.__init__(self, type_of_BC=USER_DEFINED, filename=filename,
                                    is_wall=is_wall, use_udf_flux=use_udf_flux, label=label)
         return
@@ -524,11 +669,29 @@ class AdjacentPlusUDFBC(BoundaryCondition):
     This boundary joins (i.e. is adjacent to) a boundary of another block 
     and a user-defined (Lua) function is used.
 
-    This condition is usually not set manually but is set as part of the
+    Usually, this condition is not set manually but is set as part of the
     connect_blocks() function.
     """
     def __init__(self, other_block=-1, other_face=-1, orientation=0,
                  filename="udf.lua", is_wall=0, use_udf_flux=0, label=""):
+        """
+        Construct a connecting boundary condition that also has some user-defined behaviour.
+
+        :param other_block: index to an adjacent block, if any. 
+            A value of -1 will indicate that there is no adjacent block.
+        :param other_face: index of the adjacent face of the other block, if any.
+        :param orientation: for 3D connections the other block face can have one of
+            4 rotational orientations.
+        :param filename: Name of the file containing the Lua functions.
+        :param is_wall: Flag to indicate that various parts of the simulation code 
+            should treat this boundary as a solid wall.
+        :param use_udf_flux: For this boundary, use the fluxes as computed directly
+            by the user-supplied Lua script.  This pretty much ignores the ghost-cell
+            data, however, it does not relieve the user of supplying a suitable 
+            function for setting that data.
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
         BoundaryCondition.__init__(self, type_of_BC=ADJACENT_PLUS_UDF, other_block=other_block,
                                    other_face=other_face, orientation=orientation,
                                    filename=filename, is_wall=is_wall, use_udf_flux=use_udf_flux,
@@ -584,24 +747,16 @@ Dictionary to look up wall catalycity boundary-condition index from name or numb
 
 Boundary conditions are implemented within the simulation by setting
 flow data in ghost cells to suitable values.
-This is done once per time step, before evaluating the fluxes.
+This is done once per time step, before evaluating the fluxes.:
 
-@var NON_CATALYTIC: The wall has no chemical influence on the
+* NON_CATALYTIC: The wall has no chemical influence on the
     neighbouring gas particles.
-@type NON_CATALYTIC: int
-@var PARTIALLY_CATALYTIC: The wall induces some finite recombination
+* PARTIALLY_CATALYTIC: The wall induces some finite recombination
     on the neighbouring gas particles.
-@type PARTIALLY_CATALYTIC: int
-@var CATALYTIC: The wall induces complete chemical equilibrium on the
+* CATALYTIC: The wall induces complete chemical equilibrium on the
     neighbouring gas particles a the local temperature (T_wall) and pressure.
-@type CATALYTIC: int
-@var FULLY_CATALYTIC: A synonym for CATALYTIC
-@type FULLY_CATALYTIC: int
-@var SUPER_CATALYTIC: The wall causes the gas to rcombine to freestream
-    values.
-@type SUPER_CATALYTIC: int
-
-@undocumented: wc_bcIndexFromName
+* FULLY_CATALYTIC: A synonym for CATALYTIC
+* SUPER_CATALYTIC: The wall causes the gas to rcombine to freestream values.
 """
 
 wc_bcNames = ['non-catalytic', 'equil-catalytic', 'super-catalytic' ]
@@ -622,12 +777,12 @@ class WallCatalycityBoundaryCondition(object):
     """
     Base class for wall catalycity boundary condition specifications.
 
-    @ivar type_of_WCBC: specifies the boundary condition
-    @ivar Twall: fixed wall temperature (in degrees K) that will be used if
+    type_of_WCBC: specifies the boundary condition
+    Twall: fixed wall temperature (in degrees K) that will be used if
         the boundary conditions needs such a value.
-    @ivar f_wall: fixed mass fractions at the wall that will be used if
+    f_wall: fixed mass fractions at the wall that will be used if
         the boundary conditions needs such a value.
-    @ivar input_file: name of input file if required for implementation of
+    input_file: name of input file if required for implementation of
         of the specified boundray condition
     """
     __slots__ = 'type_of_WCBC', 'f_wall', 'input_file'
