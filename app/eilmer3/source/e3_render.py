@@ -1,10 +1,11 @@
-## \file e3_render.py
-##
-## Classes for rendering 2D and 3D blocks.
-## It is expected that this module be imported by the application program e3prep.py.
-##
-## \version 16-Mar-2008 : extracted from e3prep.py (formerly mbcns_prep.py)
-##
+"""
+e3_render.py -- Classes for rendering 2D and 3D blocks.
+
+It is expected that this module be imported by the application program e3prep.py.
+
+.. Versions:
+   16-Mar-2008 : extracted from e3prep.py (formerly mbcns_prep.py)
+"""
 
 from libprep3 import *
 from e3_defs import *
@@ -19,9 +20,8 @@ def rad_to_degrees(rad):
     This is a convenience function for the writing of the MetaPost file
     but may also be used in the user script.
 
-    @param rad: angle in radians.
-    @type rad: float
-    @returns: angle in degrees
+    :param rad: angle in radians.
+    :returns: angle in degrees
     """
     return rad * 180.0 / math.pi
 
@@ -39,11 +39,6 @@ class SketchEnvironment(object):
     Also, because the origin of a postsript figure is in the bottom-left
     corner of the page, you may have to reset the origin to see all
     of the geometry elements if some of them have negative coordinates.
-
-    @undocumented: __init__, render_face, render_xaxis, render_yaxis,
-        transform, write_file
-    @undocumented: __delattr__, __getattribute__, __hash__, __new__,
-        __reduce__, __reduce_ex__, __repr__, __setattr__, __str__
     """
 
     def __init__(self):
@@ -77,8 +72,7 @@ class SketchEnvironment(object):
         """
         Set the state of label printing: True or False
         
-        @param label_state: State of label printing: True or False
-        @type label_state: boolean
+        :param label_state: State of label printing: True or False
         """
         assert type(label_state) == bool
         self.withText = label_state
@@ -88,16 +82,12 @@ class SketchEnvironment(object):
         """
         Set the x-axis scale parameters.
 
-        @param xmin: Minimum value for x-axis scale.
-        @type xmin: float
-        @param xmax: Maximum value for x-axis scale.
-        @type xmax: float
-        @param xtic: Interval between tic marks and labels.
-        @type xtic: float
-        @param xaxis_offset: The vertical offset (from ymin) for
-            drawing the length of the scale.
+        :param xmin: Minimum value for x-axis scale. (float)
+        :param xmax: Maximum value for x-axis scale. (float)
+        :param xtic: Interval between tic marks and labels. (float)
+        :param xaxis_offset: The vertical offset (from ymin) for
+            drawing the length of the scale. (float)
             Negative values will lower the x-axis scale.
-        @type xaxis_offset: float
         """
         if xmin != None:
             self.xmin = xmin
@@ -113,16 +103,12 @@ class SketchEnvironment(object):
         """
         Set the y-axis scale parameters.
 
-        @param ymin: Minimum value for y-axis scale.
-        @type ymin: float
-        @param ymax: Maximum value for y-axis scale.
-        @type ymax: float
-        @param ytic: Interval between tic marks and labels.
-        @type ytic: float
-        @param yaxis_offset: The horizontal offset (from xmin) for
+        :param ymin: Minimum value for y-axis scale.
+        :param ymax: Maximum value for y-axis scale.
+        :param ytic: Interval between tic marks and labels.
+        :param yaxis_offset: The horizontal offset (from xmin) for
             drawing the length of the scale.
             Negative values will move the y-axis scale to the left.
-        @type yaxis_offset: float
         """
         if ymin != None:
             self.ymin = ymin
@@ -138,8 +124,7 @@ class SketchEnvironment(object):
         """
         Set the scale factors for the drawing.
 
-        Model coordinates are multiplied by these scales to get
-        page coordinates.
+        Model coordinates are multiplied by these scales to get page coordinates.
         """
         if xscale != None:
             self.xscale = xscale
@@ -149,28 +134,23 @@ class SketchEnvironment(object):
 
     def set_drawing_size(self, width=None, height=None):
         """
-        Set the scale factors for the drawing based on a real length specified
-        by the user.
+        Set the scale factors for the drawing based on a length specified by the user.
 
         Depending on which scale is specified, the function searches the list
         of defined nodes and finds the max distance from the origin and
         scales the drawing by setting that distance as that specified in this
         function by the user.
 
-        @param width: The size of the drawing in the x-direction (Units = metres)
-            (Default = None)
-        @type width: float
-        @param height: The size of the drawing in the y-direction (Units = metres)
-            (Default = None)
-        @type height: float
+        :param width: The size of the drawing in the x-direction. (Units = metres)
+        :param height: The size of the drawing in the y-direction. (Units = metres)
 
-        @note: Onheight one scale needs to be specified. In the case that one scale is
-        specifed, the drawing will hold true shape and scale in both directions 
+        Note that only one scale needs to be specified. 
+        In the case that one scale is specifed, 
+        the drawing will hold true shape and scale in both directions 
         by the same factor (as computed by the function, not as specified by 
         the user). If both are specified, the drawing will be distorted to 
         meet the users demands.
         """
-
         # search through nodeList for the maximum x and y coordinates on which
         # to scale the drawing
         maxx = 0.0
@@ -204,20 +184,17 @@ class SketchEnvironment(object):
 
     def set_length_scale(self, length=None, ref_length=0.1):
         """
-        Sets the scale of the drawing given a user specified length. 
+        Sets the scale of the drawing given a user specified length.
+
         Reference length is 10cm on the page by default, but can also be 
         changed by user.
-
         If no parameters are specified the function searches for the largest
-        orthogonal distance and scales that to the reference length  on the 
+        orthogonal distance and scales that to the reference length on the 
         page while maintaining true shape.
 
-        @param length: User specified length (Units = metres)
-        @type length: float
-        @param ref_length: Reference length (Units = metres)
-        @type ref_length: float
+        :param length: User specified length. (Units = metres)
+        :param ref_length: Reference length. (Units = metres)
         """
-
         if length != None:
             self.xscale = ref_length / length
             self.yscale = ref_length / length
@@ -263,7 +240,8 @@ class SketchEnvironment(object):
         Define a world-view window and a corresponding window on the rendered page.
 
         These windows are defined by the coordinates of their lower-left and
-        upper-right corners.  Distances, in both views, are in metres.
+        upper-right corners.
+        Distances, in both views, are in metres.
         """
         self.xscale = (page_xmax - page_xmin) / (xmax - xmin)
         self.yscale = (page_ymax - page_ymin) / (ymax - ymin)

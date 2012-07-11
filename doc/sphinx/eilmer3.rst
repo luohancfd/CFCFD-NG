@@ -215,12 +215,17 @@ Use the PDF files above; they are the primary documents.
    :maxdepth: 2
 
    eilmer3/e3prep
-   eilmer3/e3_defs
+   eilmer3/e3post
+   eilmer3/e3history
+   eilmer3/e3cgns
    eilmer3/e3_flow
    eilmer3/e3_block
    eilmer3/e3_grid
    eilmer3/cgns_grid
+   eilmer3/e3_defs
    eilmer3/bc_defs
+   eilmer3/flux_dict
+   eilmer3/e3_render
 
 `Doxygen documenation of C++ sources <http://mech.uq.edu.au/cfcfd/doxygen/group__eilmer3.html>`_
 

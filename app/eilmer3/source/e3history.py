@@ -1,13 +1,15 @@
 #! /usr/bin/env python
-## \file e3history.py
-## \ingroup eilmer3
-## \brief Python program to pick up history files and extract data for a specified cell.
-##
-## \author P.Jacobs
-## \version 19-June-2008
-## \version 01-Sep-2008 added dictionary of data values and Pitot pressure calc.
 """
-e3history.py is one of the eilmer3 postprocessing programs
+e3history.py -- Pick up history files and extract data for a specified cell.
+
+e3history.py is one of the eilmer3 postprocessing programs.  
+Try invoking it with the --help option to see more information.
+
+.. Author: P.Jacobs
+
+.. Versions:
+   19-June-2008
+   01-Sep-2008 added dictionary of data values and Pitot pressure calc.
 """
 
 # ----------------------------------------------------------------------

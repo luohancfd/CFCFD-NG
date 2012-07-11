@@ -1,30 +1,28 @@
-## \file flux_dict.py
-## \ingroup flux_calc
-##
-## \author R.Gollan and PJ
-## \version 31-Jan-2005
-##
 """
-Dictionary to look up flux-calculator index from name or number.
+flux_dict.py -- Dictionary to look up flux-calculator index from name or number.
 
-@var RIEMANN: An exact Riemann-solver-based flux calculator.
+.. Author R.Gollan and PJ
+.. version 31-Jan-2005
+
+Entries in this dictionary may be used in your Python input script.
+They include:
+
+* RIEMANN: An exact Riemann-solver-based flux calculator.
     It is slow and only works for ideal gas models at the moment.
-@var AUSM: M. S. Liou's AUSM approximate flux calculator.
+* AUSM: M. S. Liou's AUSM approximate flux calculator.
     Fast but tends to be a bit noisy.
-@var EFM: Mike Macrossan's version of Dale Pullin's equilibrium
+* EFM: Mike Macrossan's version of Dale Pullin's equilibrium
     flux calculator as coded by Paul Petrie-Repar.
     When you need a dissipative scheme, this is a good one.
-@var AUSMDV: A version of Wada and Liou's AUSMDV scheme.
-@var ADAPTIVE: A switched AUSMDV/EFM scheme that uses EFM near
+* AUSMDV: A version of Wada and Liou's AUSMDV scheme.
+* ADAPTIVE: A switched AUSMDV/EFM scheme that uses EFM near
     shocks and AUSMDV elsewhere.
     This is a good all-rounder for shock-tunnel work.
-@var AUSM_PLUS_UP: An updated version of Liou's AUSM flux
+* AUSM_PLUS_UP: An updated version of Liou's AUSM flux
     calculator that includes (1) preconditioning to make it 
     suitable for calculations at all speeds and (2) a 
     pressure-velocity coupling modification to remove odd-even 
     decoupling issues encountered in low speed flows.
-    
-@undocumented: fluxcalcIndexFromName
 """
 
 RIEMANN  = 0

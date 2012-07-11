@@ -1,11 +1,16 @@
 #! /usr/bin/env python
-## \file e3post.py
-## \ingroup eilmer3
-## \brief Python program to pick up the data after a simulation.
-##
-## \author P.Jacobs
-## \version 19-March-2008
+"""
+e3post.py -- Python program to pick up the data after a simulation.
 
+e3post.py is the principal post-processing file for slicing and dicing
+your flow data.
+Try invoking it with the --help option to see more information.
+
+.. Author: P.Jacobs
+
+.. Versions:
+   19-March-2008
+"""
 
 # ----------------------------------------------------------------------
 #
@@ -150,8 +155,8 @@ def prepare_for_restart(rootName, tindx):
     flow data files so that the simulation may be restarted cleanly.
 
     This function essentially documents the process of setting up for a restart.
-    PJ, 19-Feb-2009 for Rainer.
-        24-Jan-2010 added some suggestions from Fabs
+    .. Versions: PJ, 19-Feb-2009 for Rainer.
+       24-Jan-2010 added some suggestions from Fabs
     """
     print "Preparing a restart from tindx=", tindx
     fileName = rootName + ".times"

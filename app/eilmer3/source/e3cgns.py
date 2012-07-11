@@ -1,8 +1,15 @@
 #!/usr/bin/env python
-# convert Eilmer3 solution to CGNS
-# started by Paul Petrie-Repar 13 Jul 10 for UQ
+"""
+e3cgns.py -- convert Eilmer3 solution to CGNS
 
-from CGNS import CGNS
+.. Author: started by Paul Petrie-Repar 13 Jul 10 for UQ
+"""
+
+try:
+    from CGNS import CGNS
+    CGNS_library_OK = True
+except:
+    CGNS_library_OK = False
 
 import ConfigParser
 import sys, os, gzip
@@ -752,79 +759,85 @@ if __name__ == '__main__':
         printUsage()
         sys.exit()
 
-jobName = args[0]
-print "Read grid from job: ", jobName
-cgnsFileName = args[1]
-print "Write grid to file: ", cgnsFileName
+    if not CGNS_library_OK:
+        print "Could not load CGNS library."
+        sys.exit()
 
-configFileName = jobName + ".config"
+    # TODO: Paul, I've indented all of the following code.
+    # Is that what you intended?  PJ, 11-July-2012
+    jobName = args[0]
+    print "Read grid from job: ", jobName
+    cgnsFileName = args[1]
+    print "Write grid to file: ", cgnsFileName
 
-blockLabels = getBlockLabels(configFileName) 
+    configFileName = jobName + ".config"
 
-domains = set(blockLabels)
-numberDomains = len(domains)
+    blockLabels = getBlockLabels(configFileName) 
 
-print "Number Domains: ", numberDomains, domains
+    domains = set(blockLabels)
+    numberDomains = len(domains)
 
-
-#if (len(userOptions) == 2):
-#    
-#    for opt, arg in userOptions:
-#        if opt in ('-s'):
-#            block_start = int(arg)
-#        elif opt in ('-e'):
-#            block_end = int(arg)
-
-#else:
-#    block_start = 0
-#    block_end = numberBlocks
- 
-    
-#jobName = sys.argv[1]
-#cgnsFileName = sys.argv[2]
-#block_start = int(sys.argv[3])
-#block_end = int(sys.argv[4])
+    print "Number Domains: ", numberDomains, domains
 
 
+    #if (len(userOptions) == 2):
+    #    
+    #    for opt, arg in userOptions:
+    #        if opt in ('-s'):
+    #            block_start = int(arg)
+    #        elif opt in ('-e'):
+    #            block_end = int(arg)
+
+    #else:
+    #    block_start = 0
+    #    block_end = numberBlocks
 
 
-# open cgns file
-
-filePointer = CGNS.intp()
-ier = CGNS.cg_open(cgnsFileName, CGNS.CG_MODE_WRITE, filePointer)
-fileValue = filePointer.value()
-
-#Definition of globals
-
-cell_dim = 3
-phys_dim = 3
-numberZones = 1
-sizeZones = cell_dim*phys_dim
-
-# write base data class + units
+    #jobName = sys.argv[1]
+    #cgnsFileName = sys.argv[2]
+    #block_start = int(sys.argv[3])
+    #block_end = int(sys.argv[4])
 
 
-b = CGNS.intp()
-ier = CGNS.cg_base_write ( fileValue, "Base", cell_dim, phys_dim, b )
-bValue = b.value()
-
-ier = CGNS.cg_goto ( fileValue, bValue, "end" )
-ier = CGNS.cg_state_write ( "Dimensional" )
-ier = CGNS.cg_dataclass_write ( CGNS.Dimensional )
-ier = CGNS.cg_units_write ( CGNS.Kilogram, CGNS.Meter, CGNS.Second, CGNS.Kelvin, CGNS.Radian )
 
 
-for domain in domains:
-    print domain
+    # open cgns file
 
-    blocks = []
-    for block_index in range(len(blockLabels)):
-        if(blockLabels[block_index] == domain):
-            blocks.append(block_index)
+    filePointer = CGNS.intp()
+    ier = CGNS.cg_open(cgnsFileName, CGNS.CG_MODE_WRITE, filePointer)
+    fileValue = filePointer.value()
+
+    #Definition of globals
+
+    cell_dim = 3
+    phys_dim = 3
+    numberZones = 1
+    sizeZones = cell_dim*phys_dim
+
+    # write base data class + units
 
 
-    boundaryConditions, blockConnections = readConfigFile(configFileName, blocks)
+    b = CGNS.intp()
+    ier = CGNS.cg_base_write ( fileValue, "Base", cell_dim, phys_dim, b )
+    bValue = b.value()
 
-    writeZone(fileValue, domain, blocks, boundaryConditions, blockConnections)
+    ier = CGNS.cg_goto ( fileValue, bValue, "end" )
+    ier = CGNS.cg_state_write ( "Dimensional" )
+    ier = CGNS.cg_dataclass_write ( CGNS.Dimensional )
+    ier = CGNS.cg_units_write ( CGNS.Kilogram, CGNS.Meter, CGNS.Second, CGNS.Kelvin, CGNS.Radian )
 
-ier = CGNS.cg_close ( filePointer.value() )
+
+    for domain in domains:
+        print domain
+
+        blocks = []
+        for block_index in range(len(blockLabels)):
+            if(blockLabels[block_index] == domain):
+                blocks.append(block_index)
+
+
+        boundaryConditions, blockConnections = readConfigFile(configFileName, blocks)
+
+        writeZone(fileValue, domain, blocks, boundaryConditions, blockConnections)
+
+    ier = CGNS.cg_close ( filePointer.value() )
