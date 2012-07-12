@@ -29,7 +29,7 @@
 #
 
 from math import cos, sin, sqrt, pow, log, fabs
-from zero_solvers import secant
+from cfpylib.nm.zero_solvers import secant
 from libprep3 import *
 
 class ObliqueDetonation:
@@ -193,6 +193,17 @@ class ObliqueDetonation:
             no_points += 1
 
         return spline
+
+    def create_wall_function(self, xmin, xmax):
+        
+        def wall(t):
+            # Map t --> x
+            x = t*(xmax - xmin)
+            (X, Yw) = self.find_XYw_from_x(x)
+            (x, y) = self.transform_XY_2_xy(X, Yw)
+            return (x, y, 0.0)
+
+        return wall
 
     def solution( self, x, y):
         (X, Y) = self.transform_xy_2_XY(x, y)

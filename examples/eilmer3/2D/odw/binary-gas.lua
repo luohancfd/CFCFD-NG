@@ -11,7 +11,7 @@ species = {'A', 'B', }
 
 A = {}
 A.M = {
-  value = 8.314/287.0,
+  value = 8.31451/287.0,
   reference = "Powers and Aslam, artifical gas.",
   description = "molecular mass",
   units = "kg/mol",
@@ -59,7 +59,7 @@ A.thermal_conductivity = {
 
 B = {}
 B.M = {
-  value = 8.314/287.0,
+  value = 8.31451/287.0,
   reference = "Powers and Aslam, artifical gas.",
   description = "molecular mass",
   units = "kg/mol",
