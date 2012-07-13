@@ -16,7 +16,7 @@ gdata.axisymmetric_flag = 1
 #
 # 0. Setup the radiation model
 #
-select_radiation_model("rad-model.lua",100)
+select_radiation_model("rad-model.lua",1)
 
 #
 # 1. Setup the gas model
@@ -161,14 +161,14 @@ blk_0 = SuperBlock2D(psurf=make_patch(north0, east0, south0, west0),
 gdata.viscous_flag = 1
 gdata.flux_calc = ADAPTIVE
 gdata.max_time = Rn * 5 / u_inf    # 5 body lengths
-gdata.max_step = 230000
-gdata.dt = 1.0e-8
+gdata.max_step = 100
+gdata.dt = 1.0e-10
 gdata.reaction_time_start = Rn * 0.1 /u_inf
 gdata.stringent_cfl = 1
 gdata.dt_plot = Rn * 1 / u_inf    # 5 solutions
-gdata.cfl = 0.5
+gdata.cfl = 0.1
 gdata.cfl_count = 1
-gdata.print_count = 20
+gdata.print_count = 1
 
 #
 # 6. svg sketch parameters
