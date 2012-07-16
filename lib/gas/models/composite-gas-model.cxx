@@ -368,9 +368,9 @@ s_entropy(const Gas_data &Q, int isp)
 
 double
 Composite_gas_model::
-s_modal_enthalpy( double T, int isp, int itm)
+s_modal_enthalpy(const Gas_data &Q, int isp, int itm)
 {
-    return TBM_->eval_modal_enthalpy_isp(T, EOS_, isp, itm);
+    return TBM_->eval_modal_enthalpy_isp(Q, EOS_, isp, itm);
 }
 
 double

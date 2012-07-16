@@ -54,7 +54,7 @@ tbm_dhdT_const_p(const vector<Segmented_functor *> &Cp_,
 
 double
 Thermal_behaviour_model::
-s_eval_modal_enthalpy_isp( double T, Equation_of_state *EOS_, int isp, int itm )
+s_eval_modal_enthalpy_isp( const Gas_data &Q, Equation_of_state *EOS_, int isp, int itm )
 {
     // NOTE: this function should never be used as Noneq_thermal_behaviour
     //       implements its own version

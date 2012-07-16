@@ -208,7 +208,7 @@ int viscous_flux_2D( Block *A )
 		    qx[0] -= jx[isp] * h;
 		    qy[0] -= jy[isp] * h;
 		    for ( int itm=1; itm<ntm; ++itm ) {
-			double hmode = gmodel->modal_enthalpy(fs.gas->T[itm], isp, itm);
+			double hmode = gmodel->modal_enthalpy(*(fs.gas), isp, itm);
 			qx[itm] -= jx[isp] * hmode;
 			qy[itm] -= jy[isp] * hmode;
 		    }
@@ -353,7 +353,7 @@ int viscous_flux_2D( Block *A )
 		    qx[0] -= jx[isp] * h;
 		    qy[0] -= jy[isp] * h;
 		    for ( int itm=1; itm<ntm; ++itm ) {
-			double hmode = gmodel->modal_enthalpy(fs.gas->T[itm], isp, itm);
+			double hmode = gmodel->modal_enthalpy(*(fs.gas), isp, itm);
 			qx[itm] -= jx[isp] * hmode;
 			qy[itm] -= jy[isp] * hmode;
 		    }

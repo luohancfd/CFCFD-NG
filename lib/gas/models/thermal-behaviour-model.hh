@@ -47,8 +47,8 @@ public:
     double eval_entropy_isp(const Gas_data &Q, Equation_of_state *EOS_, int isp)
     { return s_eval_entropy_isp(Q, EOS_, isp); }
     
-    double eval_modal_enthalpy_isp(double T, Equation_of_state *EOS_, int isp, int itm)
-    { return s_eval_modal_enthalpy_isp(T, EOS_, isp, itm); }
+    double eval_modal_enthalpy_isp(const Gas_data &Q, Equation_of_state *EOS_, int isp, int itm)
+    { return s_eval_modal_enthalpy_isp(Q, EOS_, isp, itm); }
     
     double eval_modal_Cv(Gas_data &Q, Equation_of_state *EOS_, int itm)
     { return s_eval_modal_Cv(Q, EOS_, itm); }
@@ -63,7 +63,7 @@ private:
     virtual double s_eval_energy_isp(const Gas_data &Q, Equation_of_state *EOS_, int isp) = 0;
     virtual double s_eval_enthalpy_isp(const Gas_data &Q, Equation_of_state *EOS_, int isp) = 0;
     virtual double s_eval_entropy_isp(const Gas_data &Q, Equation_of_state *, int isp) = 0;
-    virtual double s_eval_modal_enthalpy_isp( double T, Equation_of_state *EOS_, int isp, int itm );
+    virtual double s_eval_modal_enthalpy_isp(const Gas_data &Q, Equation_of_state *EOS_, int isp, int itm );
     virtual double s_eval_modal_Cv(Gas_data &Q, Equation_of_state *EOS_, int itm);
 };
 

@@ -180,7 +180,7 @@ int viscous_flux_3D(Block *A)
 		        qy[0] -= jy[isp] * h;
 		        qz[0] -= jz[isp] * h;
 		        for ( int itm=1; itm<ntm; ++itm ) {
-                            double hmode = gmodel->modal_enthalpy(fs.gas->T[itm], isp, itm);
+                            double hmode = gmodel->modal_enthalpy(*(fs.gas), isp, itm);
 			    qx[itm] -= jx[isp] * hmode;
 			    qy[itm] -= jy[isp] * hmode;
 			    qz[itm] -= jz[isp] * hmode;
@@ -332,7 +332,7 @@ int viscous_flux_3D(Block *A)
 		        qy[0] -= jy[isp] * h;
 		        qz[0] -= jz[isp] * h;
 		        for ( int itm=1; itm<ntm; ++itm ) {
-			    double hmode = gmodel->modal_enthalpy(fs.gas->T[itm], isp, itm);
+			    double hmode = gmodel->modal_enthalpy(*(fs.gas), isp, itm);
 			    qx[itm] -= jx[isp] * hmode;
 			    qy[itm] -= jy[isp] * hmode;
 			    qz[itm] -= jz[isp] * hmode;
@@ -484,7 +484,7 @@ int viscous_flux_3D(Block *A)
 		        qy[0] -= jy[isp] * h;
 		        qz[0] -= jz[isp] * h;
 		        for ( int itm=1; itm<ntm; ++itm ) {
-                            double hmode = gmodel->modal_enthalpy(fs.gas->T[itm], isp, itm);
+                            double hmode = gmodel->modal_enthalpy(*(fs.gas), isp, itm);
 			    qx[itm] -= jx[isp] * hmode;
 			    qy[itm] -= jy[isp] * hmode;
 			    qz[itm] -= jz[isp] * hmode;

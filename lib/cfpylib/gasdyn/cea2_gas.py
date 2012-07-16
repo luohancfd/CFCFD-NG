@@ -454,6 +454,10 @@ class Gas(object):
                 else:
                     self.mu = 0.0
                     self.k = 0.0
+                # Get the shock specific parameters if appropriate
+                if incident_shock_data:
+                    if line.find("U2, M/SEC")>=0:
+                        self.u2 = get_cea2_float(tokens[2:])
         # Calculate remaining thermo properties
         self.R = R_universal / self.Mmass  # gas constant, J/kg.K
         self.C_v = self.C_p - self.R       # specific heat, const volume
