@@ -659,6 +659,9 @@ create_electron_impact_excitation_reactions( lua_State * L, string model )
     
     for ( size_t ilev=0; ilev<noneq_elevs.size(); ++ilev ) {
     	for ( size_t flev=ilev+1; flev<noneq_elevs.size(); ++flev ) {
+    	    // Check that the two levels have different energies
+    	    if ( noneq_elevs[ilev]->elev->E==noneq_elevs[flev]->elev->E )
+    	        continue;
     	    // Can only use Frost data for certain transitions
     	    if ( model=="Frost and Drawin" ) {
     	    	if ( ilev <= 2 && flev <= 20 ) _model = "Frost";
