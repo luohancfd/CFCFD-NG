@@ -19,7 +19,7 @@ test run-preprocessor {Run the preprocessing stage.} -body {
 } -result {} -returnCodes {0}
 
 test run-simulation {Run the shared-memory simulation code.} -body {
-    exec  mpirun -np 16 e3mpi.exe --job=mms --run > LOGFILE_MAIN
+    exec  mpirun -np 16 --host localhost e3mpi.exe --job=mms --run > LOGFILE_MAIN
 } -result {} -returnCodes {0}
 
 test run-postprocessor {Run the postprocessing stage.} -body {
@@ -41,12 +41,12 @@ test number-of-steps {The main simulation takes a certain number of steps.} -bod
 	}
     }
     set final_steps
-} -result {12761}
+} -result {12777}
 
 test check-density {The density difference with respect to the analytic solution.} -body {
     set L2_density_error 0
     # We're looking for a line with something like the content:
-    # rho L2 0.00473303564872
+    # rho L2 0.00298456839614
     # This is for the viscous case (i.e. case = 2)
     set fp [open LOGFILE_POST r]
     set results [read $fp]
@@ -56,7 +56,7 @@ test check-density {The density difference with respect to the analytic solution
 	    set L2_density_error [lindex [split $line] 2]
 	}
     }
-    expr abs($L2_density_error - 0.004733)/0.004733 < 1.0e-2
+    expr abs($L2_density_error - 0.002985)/0.002985 < 1.0e-2
 } -result {1}
 
 cleanupTests

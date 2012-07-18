@@ -9,7 +9,6 @@ echo "----------------------------------------------------------------------"
 echo "Check simulation against analytical data:"
 e3post.py --job=mms --tindx=20 --gmodel-file="very-viscous-air.lua" \
     --ref-function=analytic_solution_wrapper.py \
-    --per-block-norm-list="0,rho,L2;0,rho,L1;1,rho,L2;1,rho,L1;2,rho,L2;2,rho,L1;3,rho,L2;3,rho,L1" \
     --global-norm-list="rho,L2"
 
 echo "----------------------------------------------------------------------"
