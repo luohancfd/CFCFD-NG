@@ -464,6 +464,7 @@ def main():
         caseString = 'case'+"{0:02}".format(0)+"{0:01}".format(0)
         textString = "Nominal Condition"
         caseDict = copy.copy(paramDict)
+        caseDict['caseName'] = caseString
         # Run the nominal case and write the values of the perturbed variables
         # to a summary file
         set_case_running(caseString, caseDict, textString)
@@ -485,6 +486,7 @@ def main():
                     # is handled by "nenzfr_sensitivity.py".
                     caseDict = copy.copy(paramDict)
                     caseDict[var] = perturbedDict[var][kk]
+                    caseDict['caseName'] = caseString
                     if var != 'CoreRadiusFraction':
                         # Run the current case
                         set_case_running(caseString, caseDict, textString)
@@ -519,6 +521,7 @@ def main():
         # Run the nominal case first
         caseString = 'case'+"{0:01}{0:01}".format(0,0)
         caseDict = copy.copy(paramDict)
+        caseDict['caseName'] = caseString
         textString = "Nominal Case: "+var1+"="+str(perturbedDict[var1][0])+\
                                  "; "+var2+"="+str(perturbedDict[var2][0])
         write_case_config(caseDict)
@@ -532,6 +535,7 @@ def main():
                 textString = var1+" perturbed to "+str(perturbedDict[var1][case[0]])+\
                         "\n"+var2+" perturbed to "+str(perturbedDict[var2][case[1]])
                 caseDict = copy.copy(paramDict)
+                caseDict['caseName'] = caseString
                 caseDict[var1] = perturbedDict[var1][case[0]]
                 caseDict[var2] = perturbedDict[var2][case[1]]
 

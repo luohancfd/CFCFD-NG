@@ -1,6 +1,6 @@
 #!/bin/bash -l
 #PBS -S /bin/bash
-#PBS -N $jobName
+#PBS -N $caseName
 #PBS -q workq
 #PBS -l place=scatter -l select=1:ncpus=8:NodeType=medium:mpiprocs=8 -l walltime=50:00:00 -A uq-SCRAMSPACE
 #PBS -V
