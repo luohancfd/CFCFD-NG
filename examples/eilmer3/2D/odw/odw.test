@@ -5,6 +5,7 @@
 # plus the finite-rate chemistry module.
 #
 # PJ, 13-Jan-2011
+#     18-Jul-2012 update to run with 64 tasks and a longer time
 
 package require tcltest 2.0
 namespace import ::tcltest::*
@@ -15,7 +16,7 @@ test run-preprocessor {Run the preprocessing stage.} -body {
 } -result {} -returnCodes {0}
 
 test run-simulation {Run the shared-memory simulation code.} -body {
-    exec e3shared.exe --job=odw --run > LOGFILE_MAIN
+    exec mpirun -np 64 e3mpi.exe --job=odw --run > LOGFILE_MAIN
 } -result {} -returnCodes {0}
 
 test number-of-steps {The main simulation takes a certain number of steps.} -body {
@@ -29,7 +30,7 @@ test number-of-steps {The main simulation takes a certain number of steps.} -bod
 	}
     }
     set final_steps
-} -result {871}
+} -result {1690}
 
 test shock-angle {The shock angle should be close to 45 degrees.} -body {
     set shock_angle 0

@@ -81,7 +81,7 @@ def locate_shock_front(jobName, nbi, nbj):
 #----------------------------------------------------------------
 print "Begin estimate_shock_angle.py"
 
-xs_all, ys_all = locate_shock_front("odw", nbi=2, nbj=1)
+xs_all, ys_all = locate_shock_front("odw", nbi=8, nbj=8)
 # print "xs_all=", xs_all, "ys=", ys_all
 # Trim shock points t avoid outflow boundary.
 xs = [x for x in xs_all if x < 1.70]
