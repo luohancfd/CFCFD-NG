@@ -70,7 +70,7 @@ def main():
     # Now lets put in the nozzle with a steady flow area change
     V6g, state6 = steady_flow_with_area_change(state5, V5g, nozzle_exp_ratio)
     # Print out nozzle expanded flow properties
-    print "\nNozzle exit gas conditions for an area ratio of 3.0:"
+    print "\nNozzle exit gas conditions for an area ratio of %s:" % nozzle_exp_ratio
     print "V6g:", V6g
     print "state6:"
     state6.write_state(sys.stdout)
