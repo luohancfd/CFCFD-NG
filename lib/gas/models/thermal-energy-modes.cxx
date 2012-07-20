@@ -231,23 +231,36 @@ s_eval_temperature(Gas_data &Q)
     	    T_im1 = 0.5 * ( T_min_ + T_max_ );
     	}
     }
-    
+
     // 2. Set e_im1_
     Q.T[iT_] = T_im1;
     double e_im1 = s_eval_energy( Q );
-    
+
     // 3. Perform iterations
     double T_i = T_given, e_i;
+    double f_relax = 1.0;
     for ( int i=0; i<max_iterations_; ++i ) {
     	// 3.a New T guess
-    	T_i = T_im1 - f_zero( e_im1, e_given ) / dfdT( Q );
+    	T_i = T_im1 - f_zero( e_im1, e_given ) / dfdT( Q ) * f_relax;
     	if ( T_i < T_min_ ) {
     	    T_i = T_min_;
     	    if ( T_im1 == T_max_ ) {
     	    	cout << "Variable_Cv_energy_mode::s_eval_temperature()" << endl
     	    	     << "Temperature is oscillating between T_min: " << T_min_ 
     	    	     << " and T_max: " << T_max_ << endl;
-    	    	exit( FAILURE );
+    	    	Q.print_values(false);
+    	    	Q.T[iT_] = T_min_;
+    	    	double e_min = s_eval_energy( Q );
+                Q.T[iT_] = T_max_;
+                double e_max = s_eval_energy( Q );
+                cout << "e_given = " << e_given << ", e(T_min) = " << e_min << ", e(T_max) = " << e_max << endl;
+                // Set T_i to an intermediate value and drop f_relax by an order-of-magnitude
+    	    	T_i = 0.5 * ( T_min_ + T_max_ );
+                f_relax *= 0.1;
+    	    	if ( f_relax < 1.0e-10 ) {
+    	    	   cout << "f_relax is getting too small, exiting program." << endl;
+    	    	   exit( FAILURE );
+    	    	}
     	    }
     	}
     	else if ( T_i > T_max_ ) {
@@ -256,7 +269,19 @@ s_eval_temperature(Gas_data &Q)
     	    	cout << "Variable_Cv_energy_mode::s_eval_temperature()" << endl
     	    	     << "Temperature is oscillating between T_min: " << T_min_ 
     	    	     << " and T_max: " << T_max_ << endl;
-    	    	exit( FAILURE );
+    	        Q.print_values(false);
+                Q.T[iT_] = T_min_;
+                double e_min = s_eval_energy( Q );
+                Q.T[iT_] = T_max_;
+                double e_max = s_eval_energy( Q );
+                cout << "e_given = " << e_given << ", e(T_min) = " << e_min << ", e(T_max) = " << e_max << endl;
+                // Set T_i to an intermediate value and drop f_relax by an order-of-magnitude
+                T_i = 0.5 * ( T_min_ + T_max_ );
+                f_relax *= 0.1;
+                if ( f_relax < 1.0e-10 ) {
+                   cout << "f_relax is getting too small, exiting program." << endl;
+                   exit( FAILURE );
+                }
     	    }
     	}
     	Q.T[iT_] = T_i;
@@ -281,7 +306,7 @@ s_eval_temperature(Gas_data &Q)
     // 4. Impose temperature limits
     impose_T_limits( T_i );
 #   endif
-    
+
     return T_i;
 }
 
