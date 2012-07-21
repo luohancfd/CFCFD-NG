@@ -401,13 +401,13 @@ def main():
         perturbedVariables = ['p1','T1','Vs','pe','Tw','BLTrans','TurbVisRatio',
                               'TurbInten','CoreRadiusFraction',]
         if opt.BLTrans == "x_c[-1]*1.1": # Laminar nozzle. Don't perturb BLTrans
-            # TODO: Remove TurbInten once it has been shown not to an effect.
-            # For some reason it currently (as of 25/04/2012) does.
+            # For fully laminar nozzles the inflow turbulent parameters are forced
+            # to zero so we shouldn't perturb them.
             print "Nozzle is assumed laminar (based on input BLTrans), therefore\n"+\
-                  "BLTrans and TurbVisRatio are not perturbed"
+                  "BLTrans, TurbVisRatio and TurbInten are not perturbed"
             del perturbedVariables[perturbedVariables.index('BLTrans')]
             del perturbedVariables[perturbedVariables.index('TurbVisRatio')]
-            #del perturbedVariables[perturbedVariables.index('TurbInten')]
+            del perturbedVariables[perturbedVariables.index('TurbInten')]
         else:
             BLTransValues = opt.BLTrans.strip(']').strip('[').split(',')
             if float(BLTransValues[0]) == 0.0: # Full turbulent nozzle. Don't perturb BLTrans

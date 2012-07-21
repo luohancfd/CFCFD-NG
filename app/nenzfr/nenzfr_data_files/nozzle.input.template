@@ -96,11 +96,17 @@ throat.write_state(sys.stdout)
 # Estimate turbulence quantities for free stream
 # by specifying the intensity as 0.05 and estimating the
 # turbulence viscosity as 100 times the laminar viscosity.
-throat_tke = 1.5 * (throat_V * $TurbInten)**2
-throat_mu_t = $TurbVisRatio * throat.mu
-throat_omega = throat.rho * throat_tke / throat_mu_t
-print "Inflow turbulence: tke=", throat_tke, "omega=", throat_omega
-
+if '$BLTrans' in ['x_c[-1]*1.1']: # Fully laminar nozzle
+    throat_tke = 0.0
+    throat_mu_t = 0.0
+    throat_omega = 0.0
+    print 60*'-'
+    print "Nozzle flow is fully Laminar: setting inflow turbulent parameters to 0."
+else: # Some of the nozzle flow is turbulent    
+    throat_tke = 1.5 * (throat_V * $TurbInten)**2
+    throat_mu_t = $TurbVisRatio * throat.mu
+    throat_omega = throat.rho * throat_tke / throat_mu_t
+    print "Inflow turbulence: tke=", throat_tke, "omega=", throat_omega
 
 gastype = $gasName
 if gastype in ['n2', 'N2']:

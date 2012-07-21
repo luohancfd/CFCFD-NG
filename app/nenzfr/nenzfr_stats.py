@@ -253,9 +253,12 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction):
         # Mass-weighted parameters...
         mach += M[j]*weighting*dA
         totalMassFlow += weighting*dA
-        tke += data['tke'][j]*weighting*dA
-        omega += data['omega'][j]*weighting*dA
-        dt_chem += data['dt_chem'][j]*weighting*dA
+        if 'tke' in data.keys():
+            tke += data['tke'][j]*weighting*dA
+        if 'omega' in data.keys():
+            omega += data['omega'][j]*weighting*dA
+        if 'dt_chem' in data.keys():
+            dt_chem += data['dt_chem'][j]*weighting*dA
 
     # Calculate the overall unit normal vector using
     # Eq'n (10) from the paper...
@@ -279,8 +282,9 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction):
     if len(speciesList)==1 and speciesList[0] in ['LUT']:
         print "I don't know how to deal with an equlibrium"+\
               " LUT yet."
+        fout.write("I don't know how to deal with an equilibrium LUT.")
         return
-    # Create a gas model to use...this won't work to equilibrium LUT(?)
+    # Create a gas model to use...this won't work for equilibrium LUT(?)
     select_gas_model(fname='gas-model.lua')
     gmodel = get_gas_model_ptr()
     gdata = Gas_data(gmodel)
@@ -426,8 +430,8 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction):
     properties['dt_chem'] = ave_dt_chem
 
     #----------------------------------------------------
-    # We now have all the one-dimensionalised flow
-    # properties and calculate the statistics and
+    # Now we have all the one-dimensionalised flow
+    # properties, calculate the statistics and
     # write a summary.
     for var in variable_list:
         if var in exclude_list: continue
