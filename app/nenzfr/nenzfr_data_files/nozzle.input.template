@@ -93,20 +93,16 @@ throat_V = estc_result['V6']
 print "Flow condition at nozzle throat:"
 throat.write_state(sys.stdout)
 
-# Estimate turbulence quantities for free stream
-# by specifying the intensity as 0.05 and estimating the
-# turbulence viscosity as 100 times the laminar viscosity.
-if '$BLTrans' in ['x_c[-1]*1.1']: # Fully laminar nozzle
-    throat_tke = 0.0
-    throat_mu_t = 0.0
-    throat_omega = 0.0
-    print 60*'-'
-    print "Nozzle flow is fully Laminar: setting inflow turbulent parameters to 0."
-else: # Some of the nozzle flow is turbulent    
-    throat_tke = 1.5 * (throat_V * $TurbInten)**2
-    throat_mu_t = $TurbVisRatio * throat.mu
-    throat_omega = throat.rho * throat_tke / throat_mu_t
-    print "Inflow turbulence: tke=", throat_tke, "omega=", throat_omega
+# Estimate turbulence quantities for free stream by specifying 
+# the intensity as 0.05 and estimating the turbulence viscosity 
+# as 100 times the laminar viscosity. Note that for fully laminar 
+# nozzles these values are adjusted later once the grid has been
+# defined.
+throat_tke = 1.5 * (throat_V * $TurbInten)**2
+throat_mu_t = $TurbVisRatio * throat.mu
+throat_omega = throat.rho * throat_tke / throat_mu_t
+print "Inflow turbulence: tke=", throat_tke, "omega=", throat_omega
+print "These will be adjusted later if nozzle flow is fully laminar."
 
 gastype = $gasName
 if gastype in ['n2', 'N2']:
@@ -115,8 +111,8 @@ if DEBUG_flag:
     print "Test gas is "+gastype
 
 
-# Define the temperature and pressure of the intial gas sitting in the nozzle/
-# dump tank
+# Define the temperature and pressure of the intial gas sitting 
+# in the nozzle/dump tank
 initial = {};
 initial['p'] = 106.4;
 initial['T'] = 300.0;
@@ -589,6 +585,17 @@ else:
 point0=Vector($BLTrans-Lthr, 0.000, 0.000)
 point1=Vector(x_c[-1]*2.0, y_c[-1]*2.0, 0.000)
 TurbulenceZone(point0, point1, label="Turbulent")
+
+# We now do a final check on whether or not the nozzle is 
+# fully laminar. If it is we adjust the inflow turbulence
+# parameters (tke, omega).
+if $BLTrans-Lthr >= Lnoz:
+    inflow.flow.tke = 0.0
+    inflow.flow.omega = 1.0
+    print 60*'-'
+    print "Nozzle flow is fully Laminar: setting inflow turbulence to 0"
+    print 60*'-'
+
     
 # Attributes for the space-marching simulation.
 gdata.dimensions = 2

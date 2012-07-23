@@ -278,6 +278,9 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction):
     # prefix)...
     speciesList = [name.split('-')[1] for name in speciesKeys]
     speciesDict = dict([(k,v) for k,v in zip(speciesList,massFrac)])
+    #
+    # TODO: Peter, we need to be able to define 'gmodel' and 'gdata'
+    #       objects for equilibrium gas calculations.
     # Now determine what type of gas model has been used...
     if len(speciesList)==1 and speciesList[0] in ['LUT']:
         print "I don't know how to deal with an equlibrium"+\
@@ -288,6 +291,7 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction):
     select_gas_model(fname='gas-model.lua')
     gmodel = get_gas_model_ptr()
     gdata = Gas_data(gmodel)
+    #
     # Set mass-fractions...
     set_massf(gdata,gmodel,speciesDict)
     # Calculate gas constant for the mixture...
