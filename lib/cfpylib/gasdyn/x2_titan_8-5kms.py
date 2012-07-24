@@ -40,7 +40,7 @@ def main():
     # These are the inputs!
     primary_shock = 4100.0 # m/s
     secondary_shock = 8620.0 # m/s
-    nozzle_exp_ratio = 7.5
+    nozzle_exp_ratio = 3.0
     conehead_pressure = 6675.4 # Pa
     # Set up the shock tube test gas
     print "Titan gas"
