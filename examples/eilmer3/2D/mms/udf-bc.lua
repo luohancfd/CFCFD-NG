@@ -120,16 +120,6 @@ function interface(args)
    -- args contains {t, x, y, z, csX, csY, csZ, i, j, k, which_boundary}
    x = args.x; y = args.y
    face = {}
-   if args.which_boundary == NORTH then
-      y = L
-   elseif args.which_boundary == SOUTH then
-      y = 0.0
-   elseif args.which_boundary == EAST then
-      x = L
-   else
-      -- WEST
-      x = 0.0
-   end
    face.u = u(x, y) 
    face.v = v(x, y)
    face_p = p(x, y)
