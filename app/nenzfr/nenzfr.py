@@ -224,7 +224,7 @@ def main():
                        (opt.jobName, gmodelFile))
                 +'--add-mach --add-pitot --add-total-enthalpy --add-total-p')
     # Generate averaged exit flow properties
-    print_stats(opt.exitSliceFileName,opt.jobName,opt.coreRfraction)                
+    print_stats(opt.exitSliceFileName,opt.jobName,opt.coreRfraction,gmodelFile)                
     # Compute viscous data at the nozzle wall
     run_command(E3BIN+'/nenzfr_compute_viscous_data.py --job=%s --nbj=%s' % (opt.jobName, opt.nbj))
     #
@@ -243,7 +243,7 @@ def main():
         # Copy the original exit stats file to a temporary file
         run_command(('cp %s-exit.stats %s-exit.stats_temp') % (opt.jobName, opt.jobName,))
         # (Re) Generate the exit stats using the slice-at-point data
-        print_stats(opt.exitSliceFileName+'2',opt.jobName,opt.coreRfraction)
+        print_stats(opt.exitSliceFileName+'2',opt.jobName,opt.coreRfraction,gmodelFile)
         run_command('cp %s-exit.stats %s-exit.stats2' % (opt.jobName, opt.jobName,))
         # Now rename the temporary exit stats file back to its original name
         run_command('mv %s-exit.stats_temp %s-exit.stats' % (opt.jobName, opt.jobName,))

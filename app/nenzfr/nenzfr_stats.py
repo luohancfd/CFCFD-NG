@@ -14,13 +14,12 @@ E3BIN = os.path.expandvars("$HOME/e3bin")
 sys.path.append(E3BIN)
 
 from numpy import pi, sqrt, zeros, array
-from libprep3 import Vector, vabs, dot, get_gas_model_ptr
 from cfpylib.nm.zero_solvers import secant
-from e3prep import select_gas_model
-from gaspy import *
+from libprep3 import Vector, vabs, dot
+from libprep3 import create_gas_model, Gas_data, set_massf
 
 #---------------------------------------------------------------
-def print_stats(sliceFileName,jobName,coreRfraction):
+def print_stats(sliceFileName,jobName,coreRfraction,gmodelFile):
 
     # Area weighted statistics...
     # Output filename: jobName-exit.statsArea
@@ -32,7 +31,7 @@ def print_stats(sliceFileName,jobName,coreRfraction):
 
     # Conserve mass, momemtum, energy...
     # Output filename: jobName-exit.stats
-    print_stats_CMME(sliceFileName,jobName,coreRfraction)
+    print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile)
     return
 
 def print_stats_MoA(sliceFileName,jobName,coreRfraction,weight):
@@ -72,14 +71,13 @@ def print_stats_MoA(sliceFileName,jobName,coreRfraction,weight):
     #
     fout = open(jobName+'-exit.stats'+weight.capitalize(),'w')
     fout.write('CoreRadiusFraction: %10.6f\n' % coreRfraction)
-    fout.write('%10s  %12s   %10s  %10s %10s\n' % \
+    fout.write('%15s  %12s   %10s  %10s %10s\n' % \
                    ("variable","mean-value","minus","plus","std-dev"))
-    fout.write(60*'-')
-    fout.write('\n')
+    fout.write(65*'-'+'\n')
     #
-    print "%10s  %12s    %10s %10s %10s" % \
+    print "%15s  %12s    %10s %10s %10s" % \
         ("variable", "mean-value", "minus", "plus","std-dev")
-    print 60*'-'
+    print 65*'-'
     u = data['vel.x']; v = data['vel.y']; rho = data['rho']
     for var in variable_list:
         if var in exclude_list: continue
@@ -129,19 +127,18 @@ def print_stats_MoA(sliceFileName,jobName,coreRfraction,weight):
             stddev += diff**2
         # Calculate the sample standard deviation
         stddev = (stddev/(count-1))**0.5
-        print "%10s  %12.5g    %10.3g %10.3g %10.3g" % \
+        print "%15s  %12.5g    %10.3g %10.3g %10.3g" % \
               (var, mean, diff_minus, diff_plus, stddev)
-        fout.write('%10s  %12.5g    %10.3g %10.3g %10.3g\n' % \
+        fout.write('%15s  %12.5g    %10.3g %10.3g %10.3g\n' % \
               (var, mean, diff_minus, diff_plus, stddev))
     #
-    print 60*'-'
-    #
-    fout.write(60*'-')
+    print 65*'-'
+    fout.write(65*'-'+'\n')
     fout.close()
     return
 
 #-------------------------------------------------------------------
-def print_stats_CMME(sliceFileName,jobName,coreRfraction):
+def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
     """
     Display statistics of flow properties at the nozzle exit
     using conservation of mass, momentum and energy method. 
@@ -189,9 +186,9 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction):
     fout.write(60*'-')
     fout.write('\n')
     #
-    print "%10s  %12s    %10s %10s %10s" % \
+    print "%15s  %12s    %10s %10s %10s" % \
         ("variable", "mean-value", "minus", "plus","std-dev")
-    print 60*'-'
+    print 65*'-'
     #
     # Over the core region of interest we now want to
     # calculate: (1) total area; (2) the unit normal;
@@ -274,28 +271,23 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction):
     ave_omega = omega/totalMassFlow
     ave_dt_chem = dt_chem/totalMassFlow
 
-    # Get a list of just the species names (without the "massf[i]-"
-    # prefix)...
+    # Get a list of just the species names
+    # (without the "massf[i]-" prefix)...
     speciesList = [name.split('-')[1] for name in speciesKeys]
     speciesDict = dict([(k,v) for k,v in zip(speciesList,massFrac)])
-    #
-    # TODO: Peter, we need to be able to define 'gmodel' and 'gdata'
-    #       objects for equilibrium gas calculations.
-    # Now determine what type of gas model has been used...
-    if len(speciesList)==1 and speciesList[0] in ['LUT']:
-        print "I don't know how to deal with an equlibrium"+\
-              " LUT yet."
-        fout.write("I don't know how to deal with an equilibrium LUT.")
-        return
-    # Create a gas model to use...this won't work for equilibrium LUT(?)
-    select_gas_model(fname='gas-model.lua')
-    gmodel = get_gas_model_ptr()
+    # ... and reconstruct the gas state for a representative point,
+    # initially, so that we can use the gas constant a few lines down.
+    # TODO: Luke, it might be good to consider that enthalpy may be a
+    # function of two variables in the functions below. 
+    # Maybe you should specify density as well as temperature in those functions.
+    gmodel = create_gas_model(gmodelFile)
     gdata = Gas_data(gmodel)
-    #
-    # Set mass-fractions...
+    gdata.rho = data['rho'][0]
+    gdata.T[0] = data['T[0]'][0]
     set_massf(gdata,gmodel,speciesDict)
-    # Calculate gas constant for the mixture...
+    gmodel.eval_thermo_state_rhoT(gdata)
     R = gmodel.R(gdata)
+
     # Calculate 'maximum' temperature...
     momentumFluxScalar = dot(momentumFlux,g_nhat) #...Eq'n (A8)
     Tmax = (momentumFluxScalar/totalMassFlux)**2/(4*R) #...Eq'n (A13)
@@ -315,8 +307,9 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction):
         tke  : mass-averaged tke
         """
         T = x #...1D temperature
-        R = gasModel.R(gasData) #...gas constant
         gasData.T[0] = T #...update gas data temperature
+        gmodel.eval_thermo_state_rhoT(gdata)
+        R = gasModel.R(gasData) #...gas constant
         h = gasModel.total_enthalpy(gasData) #...1D static enthalpy
         # NB. 'total_enthalpy' command above is to get sum the static
         # enthalpy of ALL species.
@@ -343,8 +336,9 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction):
         tke  : mass-averaged tke
         """
         T = x #...1D temperature
-        R = gasModel.R(gasData) #...gas constant
         gasData.T[0] = T #...update gas temperature
+        gmodel.eval_thermo_state_rhoT(gdata)
+        R = gasModel.R(gasData) #...gas constant
         h = gasModel.total_enthalpy(gasData) #...1D static enthalpy
         #
         pFluxPerMass = fp/fm
@@ -453,14 +447,13 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction):
             stddev += diff**2
         # Caculate the sample standard deviation
         stddev = (stddev/(count-1))**0.5
-        print "%10s  %12.5g    %10.3g %10.3g %10.3g" % \
+        print "%15s  %12.5g    %10.3g %10.3g %10.3g" % \
               (var, properties[var], diff_minus, diff_plus, stddev)
-        fout.write('%10s  %12.5g    %10.3g %10.3g %10.3g\n' % \
+        fout.write('%15s  %12.5g    %10.3g %10.3g %10.3g\n' % \
               (var, properties[var], diff_minus, diff_plus, stddev))
     #
-    print 60*'-'
-    #
-    fout.write(60*'-')
+    print 65*'-'
+    fout.write(65*'-'+'\n')
     fout.close()
     return
 
@@ -567,14 +560,13 @@ def print_stats_orignal(sliceFileName,jobName,coreRfraction):
     exclude_list = ['pos.x', 'pos.y', 'pos.z', 'volume', 'vel.z', 'S']
     #
     fout = open(jobName+'-exit.statsArea','w')
-    fout.write('%10s  %12s   %10s  %10s %10s\n' % \
+    fout.write('%15s  %12s   %10s  %10s %10s\n' % \
                    ("variable","mean-value","minus","plus","std-dev"))
-    fout.write(60*'-')
-    fout.write('\n')
+    fout.write(65*'-'+'\n')
     #
-    print "%10s  %12s    %10s %10s %10s" % \
+    print "%15s  %12s    %10s %10s %10s" % \
         ("variable", "mean-value", "minus", "plus","std-dev")
-    print 60*'-'
+    print 65*'-'
     for var in variable_list:
         if var in exclude_list: continue
         A = 0.0; F = 0.0;
@@ -603,14 +595,13 @@ def print_stats_orignal(sliceFileName,jobName,coreRfraction):
             stddev += diff**2
         # Calculate the sample standard deviation
         stddev = (stddev/(count-1))**0.5
-        print "%10s  %12.4g    %10.3g %10.3g %10.3g" % \
+        print "%15s  %12.4g    %10.3g %10.3g %10.3g" % \
               (var, mean, diff_minus, diff_plus, stddev)
-        fout.write('%10s  %12.4g    %10.3g %10.3g %10.3g\n' % \
+        fout.write('%15s  %12.4g    %10.3g %10.3g %10.3g\n' % \
               (var, mean, diff_minus, diff_plus, stddev))
     #
-    print 60*'-'
-    #
-    fout.write(60*'-')
+    print 65*'-'
+    fout.write(65*'-'+'\n')
     fout.close()
     return
 
