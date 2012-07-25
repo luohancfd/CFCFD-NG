@@ -78,7 +78,12 @@ def locate_executable_file(name):
         # over sys.path  ensures that estcj/cea2_gas will 
         # work on Windows machines. Luke D. 24-May-12
         for path in sys.path:
-        #for path in os.environ["PATH"].split(os.pathsep):
+            fullName = os.path.join(path, name)
+            if is_exe(fullName): return fullName
+        # Note that sys.path is initialized from PYTHONPATH,
+        # at least on linux machines,
+        # so we might need to search the PATH as well.  PJ 25-Jul-12
+        for path in os.environ["PATH"].split(os.pathsep):
             fullName = os.path.join(path, name)
             if is_exe(fullName): return fullName
     return None
@@ -263,8 +268,8 @@ class Gas(object):
         """
         Writes the gas state data to the specified stream.
         """
-        strm.write('    p: %g Pa, T: %g K, rho: %g kg/m**3, e: %g J/kg, h: %g J/kg, a: %g m/s\n'
-                   % (self.p, self.T, self.rho, self.u, self.h, self.son) )
+        strm.write('    p: %g Pa, T: %g K, rho: %g kg/m**3, e: %g J/kg, h: %g J/kg, a: %g m/s, s:%g kJ/(kg.K)\n'
+                   % (self.p, self.T, self.rho, self.u, self.h, self.son, self.s) )
         strm.write('    R: %g J/(kg.K), gam: %g, Cp: %g J/(kg.K), mu: %g Pa.s, k: %g W/(m.K)\n'
                    % (self.R, self.gam, self.cp, self.mu, self.k) )
         strm.write('    species %s: %s\n' % (self.outputUnits, str(self.species)) )
