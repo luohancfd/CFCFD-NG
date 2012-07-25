@@ -194,6 +194,13 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
     # calculate: (1) total area; (2) the unit normal;
     # (3) total mass flux for each species; (4) total
     # momentum flux; and (5) total energy flux.
+#-------------- DELETE ME WHEN DONE -------------------------
+# TODO: Luke, I really got confused with mass flow, mass flux and
+# species mass flux. I think that I would find it simpler with just
+# 1. scalar massFlux (instead of massFlow)
+# 2. array speciesMassFlux (instead of massFluxes) 
+# 3. Area (instead of A, because you also use a for sound speed)
+#-------------- DELETE ME WHEN DONE -------------------------
     #
     # First initialise required values:
     A = 0.0 #...area
@@ -277,13 +284,12 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
     speciesDict = dict([(k,v) for k,v in zip(speciesList,massFrac)])
     # ... and reconstruct the gas state for a representative point,
     # initially, so that we can use the gas constant a few lines down.
-    # TODO: Luke, it might be good to consider that enthalpy may be a
-    # function of two variables in the functions below. 
-    # Maybe you should specify density as well as temperature in those functions.
     gmodel = create_gas_model(gmodelFile)
     gdata = Gas_data(gmodel)
-    gdata.rho = data['rho'][0]
-    gdata.T[0] = data['T[0]'][0]
+    rho_representative = data['rho'][0]
+    gdata.rho = rho_representative
+    T_representative = data['T[0]'][0]
+    gdata.T[0] = T_representative
     set_massf(gdata,gmodel,speciesDict)
     gmodel.eval_thermo_state_rhoT(gdata)
     R = gmodel.R(gdata)
@@ -291,13 +297,14 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
     # Calculate 'maximum' temperature...
     momentumFluxScalar = dot(momentumFlux,g_nhat) #...Eq'n (A8)
     Tmax = (momentumFluxScalar/totalMassFlux)**2/(4*R) #...Eq'n (A13)
+    print "PJ DEBUG R=", R, "rho=", gdata.rho, "T=", gdata.T[0], "Tmax=", Tmax
 
     # We now need to define functions based on Eq'n (A12)
-    def energy_error_pos(x,gasData=gdata,gasModel=gmodel,\
+    def energy_error_pos(T,gasData=gdata,gasModel=gmodel,\
                      fpvec=momentumFlux,fp=momentumFluxScalar,\
                      fm=totalMassFlux,fe=energyFlux,tke=ave_tke):
         """
-        x    : temperature
+        T    : 1D temperature
         gasData  : gas model data object
         gasModel : gas model object
         fpvec: momentum Flux vector
@@ -306,11 +313,11 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
         fe   : energy flux
         tke  : mass-averaged tke
         """
-        T = x #...1D temperature
-        gasData.T[0] = T #...update gas data temperature
-        gmodel.eval_thermo_state_rhoT(gdata)
+        gasData.T[0] = T
+        gmodel.eval_thermo_state_rhoT(gasData)
         R = gasModel.R(gasData) #...gas constant
         h = gasModel.total_enthalpy(gasData) #...1D static enthalpy
+        print "PJ DEBUG T=", T, "rho=", gasData.rho, "R=", R, "h=", h
         # NB. 'total_enthalpy' command above is to get sum the static
         # enthalpy of ALL species.
         #
@@ -321,12 +328,13 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
         vel_dot_vel = 1/(fm*fm)*dot(fpvec,fpvec) - 2*R*T - (R*T/vel_dot_nhat)**2
         #...Eq'n (A12). We explicitly account for tke as per Eq'n (19)...
         error = h + 0.5*vel_dot_vel - fe/fm + tke
+        print "PJ DEBUG vel_dot_nhat=", vel_dot_nhat, "vel_dot_vel=", vel_dot_vel, "error=", error
         return error
-    def energy_error_neg(x,gasData=gdata,gasModel=gmodel,\
+    def energy_error_neg(T,gasData=gdata,gasModel=gmodel,\
                      fpvec=momentumFlux,fp=momentumFluxScalar,\
                      fm=totalMassFlux,fe=energyFlux,tke=ave_tke):
         """
-        x    : temperature
+        T    : 1D temperature
         gasData  : gas model data object
         gasModel : gas model object
         fpvec: momentum Flux vector
@@ -335,9 +343,8 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
         fe   : energy flux
         tke  : mass-averaged tke
         """
-        T = x #...1D temperature
-        gasData.T[0] = T #...update gas temperature
-        gmodel.eval_thermo_state_rhoT(gdata)
+        gasData.T[0] = T
+        gmodel.eval_thermo_state_rhoT(gasData)
         R = gasModel.R(gasData) #...gas constant
         h = gasModel.total_enthalpy(gasData) #...1D static enthalpy
         #
@@ -353,11 +360,13 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
     # Now calculate the two possible temperatures...
     #
     # Positive root...
-    Tpos = secant(energy_error_pos,\
-                  300.0,1000.0,limits=[0.0,Tmax],tol=1e-6)
+    Tpos = secant(energy_error_pos, T_representative, 1.1*T_representative,
+                  limits=[20.0,Tmax], tol=1.0e-2, max_iterations=20)
+    print "PJ DEBUG Tpos=", Tpos
     # Negative root...
-    Tneg = secant(energy_error_neg,\
-                  300.0,1000.0,limits=[0.0,Tmax],tol=1e-6)
+    Tneg = secant(energy_error_neg, 300.0, 1000.0, 
+                  limits=[20.0,Tmax], tol=1.0e-2, max_iterations=20)
+    print "PJ DEBUG Tneg=", Tneg
     # We may not always find a solution so only construct a dictionary
     # of properties if we have...
     if Tpos not in ['FAIL','Fail']:

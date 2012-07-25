@@ -122,10 +122,27 @@ def main():
                   "the nozzle exit radius [default: %default]"))
     opt, args = op.parse_args()
     #
+    # Get the nozzle contour file into the current work directory.
+    if not os.path.exists(opt.contourFileName):
+        run_command('cp '+E3BIN+'/nenzfr_data_files/'+opt.contourFileName+' .')
+    # Set up the equilibrium gas-model file as a look-up table.
+    if opt.chemModel in ['eq',]:
+        if opt.gasName in ['n2']:
+            eqGasModelFile = 'cea-lut-'+upper(opt.gasName)+'.lua.gz'
+        else:
+            eqGasModelFile = 'cea-lut-'+opt.gasName+'.lua.gz'
+        if not os.path.exists(eqGasModelFile):
+            run_command('build-cea-lut.py --gas='+opt.gasName)
+        gmodelFile = eqGasModelFile
+    else:
+        # We'll assume that the gas-model file of default name is set up.
+        # TODO: Luke, this needs to be modified, I suspect.
+        gmodelFile = 'gas-model.lua'
+    #
     # If we have already run a calculation, it may be that we just want
     # to extract the exit-flow statistics again.
     if opt.justStats:
-        print_stats(opt.exitSliceFileName,opt.jobName,opt.coreRfraction)
+        print_stats(opt.exitSliceFileName,opt.jobName,opt.coreRfraction,gmodelFile)
         return 0
     #
     # Go ahead with a new calculation.
@@ -146,22 +163,6 @@ def main():
     if bad_input:
         return -2
     #
-    # Get the nozzle contour file into the current work directory.
-    if not os.path.exists(opt.contourFileName):
-        run_command('cp '+E3BIN+'/nenzfr_data_files/'+opt.contourFileName+' .')
-    # Set up the equilibrium gas-model file as a look-up table.
-    if opt.chemModel in ['eq',]:
-        if opt.gasName in ['n2']:
-            eqGasModelFile = 'cea-lut-'+upper(opt.gasName)+'.lua.gz'
-        else:
-            eqGasModelFile = 'cea-lut-'+opt.gasName+'.lua.gz'
-        if not os.path.exists(eqGasModelFile):
-            run_command('build-cea-lut.py --gas='+opt.gasName)
-        gmodelFile = eqGasModelFile
-    else:
-        # We'll assume that the gas-model file of default name is set up.
-        # TODO: Luke, this needs to be modified, I suspect.
-        gmodelFile = 'gas-model.lua'
     # Runs estcj to get the equilibrium shock-tube conditions up to the nozzle-supply region.
     command_text = E3BIN+('/estcj.py --gas=%s --T1=%g --p1=%g --Vs=%g --pe=%g --task=st --ofn=%s' % 
                           (opt.gasName, opt.T1, opt.p1, opt.Vs, opt.pe, opt.jobName))
