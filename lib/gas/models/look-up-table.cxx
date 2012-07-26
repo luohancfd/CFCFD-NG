@@ -277,6 +277,8 @@ s_molecular_weight(int isp)
     // gas.  The molecular weight is best obtained from
     // the mixture molecular weight methods which IS a function
     // of gas composition and thermodynamic state.
+    cout << "s_molecular_weight() not implemented" << endl;
+    exit(NOT_IMPLEMENTED_ERROR);
     return 0.0;
 }
 
@@ -288,7 +290,8 @@ s_internal_energy(const Gas_data &Q, int isp)
     // This method should never be called.
     // This implementation is here to keep C++ happy that
     // all of the methods are implemented as required.
-
+    cout << "s_internal_energy() not implemented" << endl;
+    exit(NOT_IMPLEMENTED_ERROR);
     return 0.0;
 }
 
@@ -300,7 +303,8 @@ s_enthalpy(const Gas_data &Q, int isp)
     // This method should never be called.
     // This implementation is here to keep C++ happy that
     // all of the methods are implemented as required.
-
+    cout << "s_enthalpy() not implemented" << endl;
+    exit(NOT_IMPLEMENTED_ERROR);
     return 0.0;
 }
 
@@ -315,7 +319,8 @@ s_entropy(const Gas_data &Q, int isp)
     // the finite-rate chemistry model by definition.
     // This implementation is here to keep C++ happy that
     // all of the methods are implemented as required.
-
+    cout << "s_entropy() not implemented" << endl;
+    exit(NOT_IMPLEMENTED_ERROR);
     return 0.0;
 }
 

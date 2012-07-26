@@ -57,7 +57,7 @@
 #define ITERATION_ERROR         110
 #define BAD_TEMPERATURE_ERROR   111
 #define MASS_FRACTION_ERROR     112   /* Typically mass fractions don't sum to 1.0 */
-#define NOT_IMPLEMENTED_ERROR   113   /* often in boundary condition functions */
+#define NOT_IMPLEMENTED_ERROR   113   /* Unfinished code, often in boundary condition functions */
 #define VALUE_ERROR             114
 #define BAD_CELLS_ERROR         115
 #define DT_SEARCH_FAILED        116   /* The CFL check failed to find a good dt. */
