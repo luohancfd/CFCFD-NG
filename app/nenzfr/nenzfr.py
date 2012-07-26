@@ -32,7 +32,8 @@ sys.path.append(E3BIN)
 # We've put a most of the functions in other places so that this file
 # becomes just the top-level coordinating function that wrangles
 # the command-line options and works out what to do.
-from nenzfr_utils import prepare_input_script, run_command, quote
+from nenzfr_utils import prepare_input_script, run_command, quote, \
+                         read_gmodelFile_from_config
 from nenzfr_stats import *
 from nenzfr_parallel import run_in_block_marching_mode, read_block_dims
 
@@ -142,6 +143,7 @@ def main():
     # If we have already run a calculation, it may be that we just want
     # to extract the exit-flow statistics again.
     if opt.justStats:
+        gmodelFile = read_gmodelFile_from_config(opt.jobName)
         print_stats(opt.exitSliceFileName,opt.jobName,opt.coreRfraction,gmodelFile)
         return 0
     #

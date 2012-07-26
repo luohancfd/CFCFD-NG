@@ -94,8 +94,8 @@ def print_stats_MoA(sliceFileName,jobName,coreRfraction,weight):
                 y0 = 0.5*(ys[j-1]+ys[j])
                 x0 = 0.5*(xs[j-1]+xs[j])
             # Area element...
-            #dA = y1**2 - y0**2
-            dA = pi*(y0+y1)*sqrt((y1-y0)**2+(x0-x1)**2)
+            #d_Area = y1**2 - y0**2
+            d_Area = pi*(y0+y1)*sqrt((y1-y0)**2+(x0-x1)**2)
             # Unit normal vector...
             edge = Vector(x0,y0,0.0)-Vector(x1,y1,0.0)
             nhat = Vector(-edge.y, edge.x, 0.0)/vabs(edge)
@@ -110,8 +110,8 @@ def print_stats_MoA(sliceFileName,jobName,coreRfraction,weight):
                 print "Unknown weighting option given"
                 break
             # Accumulate total...
-            F += data[var][j] * weighting * dA
-            MassFlux += weighting * dA
+            F += data[var][j] * weighting * d_Area
+            MassFlux += weighting * d_Area
         mean = F/MassFlux
         # Identify low and high values.
         diff_minus = 0.0
@@ -194,25 +194,19 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
     # calculate: (1) total area; (2) the unit normal;
     # (3) total mass flux for each species; (4) total
     # momentum flux; and (5) total energy flux.
-#-------------- DELETE ME WHEN DONE -------------------------
-# TODO: Luke, I really got confused with mass flow, mass flux and
-# species mass flux. I think that I would find it simpler with just
-# 1. scalar massFlux (instead of massFlow)
-# 2. array speciesMassFlux (instead of massFluxes) 
-# 3. Area (instead of A, because you also use a for sound speed)
-#-------------- DELETE ME WHEN DONE -------------------------
     #
     # First initialise required values:
-    A = 0.0 #...area
+    Area = 0.0 #...area
     nhatTotal = Vector(0.0) #...unit normal
     speciesKeys = [k for k in variable_list if k.startswith("mass")]
-    massFluxes = zeros([len(speciesKeys)])
+    speciesMassFluxes = zeros([len(speciesKeys)])
+    massFlux = 0.0
     momentumFlux = Vector(0.0)
     energyFlux = 0.0
     # We also need to calculate the mass-weighted Mach
     # number for later use. Mass-weighted turbulent
     # parameters will also be reported in the stats file.
-    mach = 0.0; totalMassFlow = 0.0
+    mach = 0.0;
     tke = 0.0; omega = 0.0; dt_chem = 0.0
     # Define the following for ease of use...
     rho = data['rho']; u = data['vel.x']
@@ -234,49 +228,49 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
         # assumption is made about the straightness
         # of the plane over which we are integrating.
         # Hence we use a truncated cone for the area.
-        dA = pi*(y0+y1)*sqrt((y1-y0)**2+(x0-x1)**2)
-        A += dA
+        d_Area = pi*(y0+y1)*sqrt((y1-y0)**2+(x0-x1)**2)
+        Area += d_Area
         # Calculate the outward pointing unit
         # normal vector to the differential area
         # element...
         edge = Vector(x0,y0,0)-Vector(x1,y1,0)
         nhat = Vector(-edge.y, edge.x, 0)/vabs(edge)
-        nhatTotal += nhat*dA
+        nhatTotal += nhat*d_Area
         # Velocity vector and weighting function...
         vel = Vector(u[j],v[j],0.0)
         weighting = rho[j]*dot(vel,nhat)
         # Total mass, momentum and energy fluxes...
         # Eq'ns (2a), (2b), and (2c) in paper.
-        momentumFlux += (weighting*vel + p[j]*nhat)*dA
+        momentumFlux += (weighting*vel + p[j]*nhat)*d_Area
         #h0 = e0[j] + p[j]/rho[j] + 0.5*dot(vel,vel)
-        #energyFlux += weighting*h0*dA
-        energyFlux += weighting*h0[j]*dA
+        #energyFlux += weighting*h0*d_Area
+        energyFlux += weighting*h0[j]*d_Area
         speciesFractions = [data[species][j] for species in speciesKeys]
-        massFluxes += weighting*array(speciesFractions)*dA
-
+        speciesMassFluxes += weighting*array(speciesFractions)*d_Area
+        massFlux += weighting*d_Area
+        
         # Mass-weighted parameters...
-        mach += M[j]*weighting*dA
-        totalMassFlow += weighting*dA
+        mach += M[j]*weighting*d_Area
         if 'tke' in data.keys():
-            tke += data['tke'][j]*weighting*dA
+            tke += data['tke'][j]*weighting*d_Area
         if 'omega' in data.keys():
-            omega += data['omega'][j]*weighting*dA
+            omega += data['omega'][j]*weighting*d_Area
         if 'dt_chem' in data.keys():
-            dt_chem += data['dt_chem'][j]*weighting*dA
+            dt_chem += data['dt_chem'][j]*weighting*d_Area
 
     # Calculate the overall unit normal vector using
     # Eq'n (10) from the paper...
-    g_nhat = nhatTotal/A
-    # Total Mass flux...Eq'n (A2)
-    totalMassFlux = sum(massFluxes)
+    g_nhat = nhatTotal/Area
+    # Check the total mass flux...Eq'n (A2)
+    assert abs(massFlux - sum(speciesMassFluxes)) <= 1e-7
     # 1D species mass fractions...Eq'n (A4)
-    massFrac = massFluxes/totalMassFlux
+    massFrac = speciesMassFluxes/massFlux
     # Mass-weighted Mach number...
-    aveMach = mach/totalMassFlow
+    aveMach = mach/massFlux
     # Mass-weighted turbulent parameters...
-    ave_tke = tke/totalMassFlow #...Eq'n (20) and (A2)
-    ave_omega = omega/totalMassFlow
-    ave_dt_chem = dt_chem/totalMassFlow
+    ave_tke = tke/massFlux #...Eq'n (20) and (A2)
+    ave_omega = omega/massFlux
+    ave_dt_chem = dt_chem/massFlux
 
     # Get a list of just the species names
     # (without the "massf[i]-" prefix)...
@@ -296,13 +290,13 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
 
     # Calculate 'maximum' temperature...
     momentumFluxScalar = dot(momentumFlux,g_nhat) #...Eq'n (A8)
-    Tmax = (momentumFluxScalar/totalMassFlux)**2/(4*R) #...Eq'n (A13)
+    Tmax = (momentumFluxScalar/massFlux)**2/(4*R) #...Eq'n (A13)
     print "PJ DEBUG R=", R, "rho=", gdata.rho, "T=", gdata.T[0], "Tmax=", Tmax
 
     # We now need to define functions based on Eq'n (A12)
     def energy_error_pos(T,gasData=gdata,gasModel=gmodel,\
                      fpvec=momentumFlux,fp=momentumFluxScalar,\
-                     fm=totalMassFlux,fe=energyFlux,tke=ave_tke):
+                     fm=massFlux,fe=energyFlux,tke=ave_tke):
         """
         T    : 1D temperature
         gasData  : gas model data object
@@ -332,7 +326,7 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
         return error
     def energy_error_neg(T,gasData=gdata,gasModel=gmodel,\
                      fpvec=momentumFlux,fp=momentumFluxScalar,\
-                     fm=totalMassFlux,fe=energyFlux,tke=ave_tke):
+                     fm=massFlux,fe=energyFlux,tke=ave_tke):
         """
         T    : 1D temperature
         gasData  : gas model data object
@@ -372,14 +366,14 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
     if Tpos not in ['FAIL','Fail']:
         pos, gdataPos = \
            assemble_data(gmodel,gdata,Tpos,'pos',momentumFluxScalar,\
-                  momentumFlux,totalMassFlux,energyFlux,A,g_nhat)
+                  momentumFlux,massFlux,energyFlux,Area,g_nhat)
     else: # Set a non-sensical value for M_local for later use
         pos = {}; pos['M_local'] = 1000
     #
     if Tneg not in ['FAIL','Fail']:
         neg, gdataNeg = \
            assemble_data(gmodel,gdata,Tneg,'neg',momentumFluxScalar,\
-                  momentumFlux,totalMassFlux,energyFlux,A,g_nhat)
+                  momentumFlux,massFlux,energyFlux,Area,g_nhat)
     else:
         neg = {}; neg['M_local'] = 1000
     # In case something really goes wrong...
@@ -466,7 +460,7 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
     fout.close()
     return
 
-def assemble_data(gasModel,gasData,T,flag,fp,fpvec,fm,fe,A,g_nhat):
+def assemble_data(gasModel,gasData,T,flag,fp,fpvec,fm,fe,Area,g_nhat):
     """
     Small function to calculate as many properties as possible
     for a given gas-model based on an input temperature and
@@ -486,12 +480,12 @@ def assemble_data(gasModel,gasData,T,flag,fp,fpvec,fm,fe,A,g_nhat):
     fpvec    : momentum flux vector
     fm       : mass flux
     fe       : energy flux
-    A        : total area
+    Area     : total area
     g_nhat   : unit normal (Eq'n 10)
     """
     R = gasModel.R(gasData) #...gas constant
     gasData.T[0] = T
-    h = gasModel.enthalpy(gasData,0) #...enthalpy
+    #h = gasModel.enthalpy(gasData,0) #...enthalpy
 
     pFluxPerMass = fp/fm
     if flag in ['neg']:
@@ -499,7 +493,7 @@ def assemble_data(gasModel,gasData,T,flag,fp,fpvec,fm,fe,A,g_nhat):
     elif flag in ['pos']:
         vel_dot_nhat = 0.5*( pFluxPerMass + sqrt(pFluxPerMass**2 - 4*R*T) )
 
-    rho = fm/vel_dot_nhat/A #...density Eq'n (A9)
+    rho = fm/vel_dot_nhat/Area #...density Eq'n (A9)
     gasData.rho = rho
     p = rho*R*T             #...pressure
     # now check the pressure...
@@ -510,7 +504,7 @@ def assemble_data(gasModel,gasData,T,flag,fp,fpvec,fm,fe,A,g_nhat):
               "match that from gas law"
         return
 
-    vel = (fpvec - p*A*g_nhat)/fm #...velocity vector, Eq'n (A6)
+    vel = (fpvec - p*Area*g_nhat)/fm #...velocity vector, Eq'n (A6)
     M = sqrt(dot(vel,vel))/gasData.a    #...Mach number
 
     gasModel.Cp(gasData)

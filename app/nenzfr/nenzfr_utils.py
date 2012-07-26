@@ -45,6 +45,19 @@ def quote(str):
     """
     return '"' + str + '"'
 
+def read_gmodelFile_from_config(jobName):
+    """
+    Read the jobName.config file and return the name of 
+    the gas model that was used
+    """
+    fp = open(jobName+'.config','r')
+    for line in fp.readlines():
+        if line.startswith('gas_model_file'):
+            data = line.strip().split()
+            gas_model_file = str(data[-1])
+            break
+    return gas_model_file
+
 #---------------------------------------------------------------
 # Following functions are required by:
 #   nenzfr_sensitivity.py
