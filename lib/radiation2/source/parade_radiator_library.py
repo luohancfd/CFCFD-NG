@@ -51,7 +51,7 @@ class ParadeRadiator:
 	return string
 
 available_radiators = { "Ar"       :    ParadeRadiator( "Ar" , 1, 39.948   ,    "NIST/arinist.dat" ),
-                        "Ar_minus" :    ParadeRadiator( "Ar+", 1, 39.948   ,   "NIST/ariinist.dat" ),
+                        "Ar_plus"  :    ParadeRadiator( "Ar+", 1, 39.948   ,   "NIST/ariinist.dat" ),
                         "C"        :    ParadeRadiator( "C"  , 1, 12.011   ,     "NIST/cinistmf.dat" ),
                         "F"        :    ParadeRadiator( "F"  , 1, 18.9984  ,     "NIST/finist.dat" ),
                         "H"        :    ParadeRadiator( "H"  , 1,  1.008   ,     "NIST/hinist.dat" ),

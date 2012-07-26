@@ -99,31 +99,33 @@ void
 BoundFreeHydrogenic::calculate_spectrum( Gas_data &Q, CoeffSpectra &X, double n_elecs )
 {
     /* 1. Initialise frequency independent parameters */
-    int nnu = int ( X.nu.size() ); 
-    
+    int nnu = int ( X.nu.size() );
+
     double T = Q.T[Ri->iTe];
     double n_ions = Q.massf[Ri->isp] * Q.rho / Ri->m_w * RC_Na * 1.0e-6;
     double Q_ion = Ri->Q_el;
-    
+
     // combine all frequency independent params
     double bf_constC = n_ions * n_elecs * bf_constA / ( 2.0 * Q_ion ) * bf_constB * pow( T, -1.5 );
-    
-    /* 2. Loop over frequency */
-    for ( int inu=0; inu<nnu; ++inu ) {
-	double nu = X.nu[inu];
-	double E_min = Rn->I - RC_h_SI * nu;
-	/* 2a. Loop over neutral levels and add contributions */
-	for ( int ilev=0; ilev<Rn->nlevs; ++ilev ) {
-	    double E_i = Rn->get_elev_pointer(ilev)->E;
-	    if ( E_i < E_min ) continue;
-	    double sigma_bf = Rn->get_elev_pointer(ilev)->calculate_sigma_bf( nu );
-	    double N_i = Rn->get_elev_pointer(ilev)->N * 1.0e-6;
-	    X.j_nu[inu] += bf_constC * pow( nu, 3 ) * Rn->get_elev_pointer(ilev)->g * sigma_bf * \
-	    		exp( ( E_min - E_i ) / ( RC_k_SI * T ) ) * 1.0e-1;		// convert erg - s / cm**3 - sr -> W / m**3 - sr
-	    X.kappa_nu[inu] += sigma_bf * N_i * 1.0e2;	// convert 1 / cm -> 1 / m
-	}
+
+    /* 2. Loop over neutral levels */
+    for ( int ilev=0; ilev<Rn->nlevs; ++ilev ) {
+        double N_i = Rn->get_elev_pointer(ilev)->N * 1.0e-6;
+        double E_i = Rn->get_elev_pointer(ilev)->E;
+        // Determine minimum frequency
+        double nu_min = ( Rn->I - E_i ) / RC_h_SI;
+        int inu_min = get_nu_index( X.nu, nu_min ) + 1;
+        /* 2a. Loop over frequency and add contributions */
+        for ( int inu=inu_min; inu<nnu; ++inu ) {
+            double nu = X.nu[inu];
+            double E_min = Rn->I - RC_h_SI * nu;
+            double sigma_bf = Rn->get_elev_pointer(ilev)->calculate_sigma_bf( nu );
+            X.j_nu[inu] += bf_constC * pow( nu, 3 ) * Rn->get_elev_pointer(ilev)->g * sigma_bf * \
+                        exp( ( E_min - E_i ) / ( RC_k_SI * T ) ) * 1.0e-1;              // convert erg - s / cm**3 - sr -> W / m**3 - sr
+            X.kappa_nu[inu] += sigma_bf * N_i * 1.0e2;  // convert 1 / cm -> 1 / m
+        }
     }
-    
+
     return;
 }
 

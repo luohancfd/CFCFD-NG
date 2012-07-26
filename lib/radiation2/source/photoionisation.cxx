@@ -41,7 +41,12 @@ double NoPICSModel::eval( double nu )
 HydrogenicModel::HydrogenicModel( double n_eff, int Z, double I )
  : PhotoIonisationCrossSectionModel( "HydrogenicModel" ), 
    n_eff( n_eff ), Z( double(Z) ), I( I )
-{}
+{
+    constB = I * Z * Z;
+    constC = n_eff*n_eff;
+    constD = pow( Z, 4 );
+    constE = pow( n_eff, 5 );
+}
 
 HydrogenicModel::~HydrogenicModel() {}
 
@@ -57,12 +62,13 @@ double HydrogenicModel::eval( double nu )
     
     // Gaunt factor
     // Ref: Zeldovich and Razier (1966) p. 266
-    double G = 1.0 - 0.173 * pow( RC_h_SI * nu / ( I * Z * Z ), 1.0/3.0) * 
-		   ( 2.0 / ( n_eff*n_eff ) * I * Z * Z / (RC_h_SI * nu) - 1.0 );
+    double E = RC_h_SI * nu;
+    double G = 1.0 - 0.173 * pow( E / constB , 1.0/3.0) *
+		   ( 2.0 / constC * constB / E - 1.0 );
     
     // Cross-section in cm**2
     // CHECKME: - are pow() functions inefficient here?
-    double sigma_bf = constA * pow(Z,4) / ( pow( nu, 3 ) * pow( n_eff, 5 ) ) * G;
+    double sigma_bf = constA * constD / ( nu*nu*nu ) * constE ) * G;
     
     if ( isnan(sigma_bf) || isinf(sigma_bf) ) {
     	cout << "sigma_bf = " << sigma_bf << ", constA = " << constA << ", G = " << G << endl;

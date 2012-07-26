@@ -63,6 +63,10 @@ private:
     double n_eff;
     double Z;
     double I;
+    double constB;
+    double constC;
+    double constD;
+    double constE;
 };
 
 class PICS_step {
