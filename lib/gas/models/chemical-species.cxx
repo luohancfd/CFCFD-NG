@@ -268,7 +268,7 @@ double Chemical_species::s_eval_energy(const Gas_data &Q)
     // 2. Thermal energy modes
     for ( size_t iem=0; iem<modes_.size(); ++iem )
     	e += modes_[iem]->eval_energy(Q);
-    
+
     return e;
 }
 
@@ -381,6 +381,18 @@ s_eval_CEA_Gibbs_free_energy( double T )
     
     return g;
 }
+
+double
+Chemical_species::
+s_eval_partition_function( double T )
+{
+    double Q = exp(-h_f_/R_/T);
+    for ( size_t iem=0; iem<modes_.size(); ++iem )
+        Q *= modes_[iem]->eval_Q_from_T(T);
+
+    return Q;
+}
+
 
 /* ------- Atomic species ------- */
 
@@ -817,7 +829,7 @@ Polyatomic_species::Polyatomic_species( string name, string type, int isp, doubl
     UNUSED_VARIABLE(sigma_r);
     
     // Excited states - electron degeneracy and energy only
-    for ( int ilev=0; ilev<nlevs; ++ilev ) {
+    for ( int ilev=1; ilev<nlevs; ++ilev ) {
     	ostringstream lev_oss;
     	lev_oss << "ilev_" << ilev;
     	lua_getfield(L, -1, lev_oss.str().c_str());

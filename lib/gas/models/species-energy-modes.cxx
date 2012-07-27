@@ -128,6 +128,7 @@ s_eval_energy_from_T( double T )
     	numerator += theta_vec_[i] * tmp;
     	denominator += tmp;
     }
+
     return R_ * numerator / denominator;
 }
 
@@ -168,6 +169,17 @@ s_eval_Cv_from_T( double T )
     }
 
     return R_/(T*T)*( u_dash_star * v - u * v_dash_star ) / ( v * v );
+}
+
+double
+Multi_level_electronic::
+s_eval_Q( double T, double A )
+{
+    double Q = 0.0;
+    for ( size_t i=0; i<theta_vec_.size(); ++i ) {
+        Q += double(g_vec_[i]) * exp( - theta_vec_[i] / T );
+    }
+    return Q;
 }
 
 /* ------- Coupled diatomic electronic mode ------- */
@@ -434,6 +446,14 @@ s_eval_Cp_from_T( double T  )
     return Cp_;
 }
 
+double
+Fully_excited_translation::
+s_eval_Q( double T, double A )
+{
+    // NOTE: must divide by avogadro's number to get units of 1/m3 (I think)
+    return pow( 2.0 * M_PI * PC_R_u / R_ / PC_Avogadro * PC_k_SI * T / PC_h_SI / PC_h_SI, 1.5 ) / PC_Avogadro;
+}
+
 /* ------- Generic rotation --------- */
 
 Rotation::
@@ -470,6 +490,13 @@ Fully_excited_rotation::
 s_eval_Cv_from_T( double T  )
 {
     return Cv_;
+}
+
+double
+Fully_excited_rotation::
+s_eval_Q( double T, double A )
+{
+    return T / sigma_ / theta_ + 1.0 / ( 3.0 * sigma_);
 }
 
 /* ------- Fully excited nonlinear rotation ------- */
@@ -736,7 +763,7 @@ Harmonic_vibration::
 s_eval_Q( double T, double A )
 {
     // Ref: Vincenti and Kruger (1975) p 135
-    return R_ * 1.0 / ( exp( theta_ / T ) - 1.0 );
+    return 1.0 / ( 1.0 - exp( - theta_ / T ) );
 }
 
 /* ------- Truncated harmonic vibration ------- */

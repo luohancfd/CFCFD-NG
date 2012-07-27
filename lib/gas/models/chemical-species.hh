@@ -71,6 +71,9 @@ public:
     double eval_CEA_Gibbs_free_energy( double T )
     { return s_eval_CEA_Gibbs_free_energy(T); }
     
+    double eval_partition_function( double T )
+    { return s_eval_partition_function(T); }
+
     std::string get_name()
     { return name_; }
     
@@ -137,6 +140,7 @@ protected:
     double s_eval_Cp(const Gas_data &Q);
     double s_eval_CEA_Gibbs_free_energy( double T );
     double s_eval_gibbs_free_energy(double T);
+    double s_eval_partition_function(double T);
 };
 
 class Atomic_species : public Chemical_species {
