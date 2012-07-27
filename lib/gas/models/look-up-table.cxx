@@ -299,13 +299,15 @@ double
 Look_up_table::
 s_enthalpy(const Gas_data &Q, int isp)
 {
+    // The look-up table is always single-species,
+    // hence 'isp' is unused
     UNUSED_VARIABLE(isp);
-    // This method should never be called.
-    // This implementation is here to keep C++ happy that
-    // all of the methods are implemented as required.
-    cout << "s_enthalpy() not implemented" << endl;
-    exit(NOT_IMPLEMENTED_ERROR);
-    return 0.0;
+    // This method assumes that the internal energy,
+    // pressure and density are up-to-date in the
+    // gas_data struct. Then enthalpy is computed
+    // from definition.
+    double h = Q.e[0] + Q.p/Q.rho;
+    return h;
 }
 
 double
