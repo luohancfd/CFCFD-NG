@@ -44,6 +44,13 @@ Diatomic_species * get_library_diatom_pointer( int id );
 
 Diatomic_species * get_library_diatom_pointer_from_name( std::string name );
 
+int get_library_nfully_coupled_polyatoms();
+
+Fully_coupled_polyatomic_species * get_library_fully_coupled_polyatom_pointer( int id );
+
+Fully_coupled_polyatomic_species * get_library_fully_coupled_polyatom_pointer_from_name( std::string name );
+
+
 int get_library_npolyatoms();
 
 Polyatomic_species * get_library_polyatom_pointer( int ip );

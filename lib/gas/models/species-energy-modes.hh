@@ -15,6 +15,7 @@
 #include "physical_constants.hh"
 #include "diatom-electronic-level.hh"
 #include "coupled-diatom-LUT.hh"
+#include "polyatom-electronic-level.hh"
 
 class Species_energy_mode {
 public:
@@ -581,5 +582,33 @@ private:
     double s_eval_Q( double T, double A ) { return 0.0; }
 };
 #endif
+
+class Fully_coupled_polyatom_internal : public Species_energy_mode {
+public:
+    Fully_coupled_polyatom_internal( int isp, double R, double min_massf,
+        double fT, std::vector<Polyatom_electronic_level*> &elevs );
+    ~Fully_coupled_polyatom_internal();
+
+    Polyatom_electronic_level * get_elev_pointer( int ilev );
+
+    int get_nlevs() { return (int) elevs_.size(); }
+
+private:
+    double m_;
+    double fT_;
+    std::vector<Polyatom_electronic_level*> elevs_;
+
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_]); }
+    double s_eval_energy_from_T( double T );
+    double s_eval_enthalpy( const Gas_data &Q  ) { return s_eval_energy_from_T(Q.T[iT_]); }
+    double s_eval_enthalpy_from_T( double T  ) { return s_eval_energy_from_T(T); }
+    double s_eval_entropy( const Gas_data &Q  ) { return s_eval_entropy_from_T(Q.T[iT_]); }
+    double s_eval_entropy_from_T( double T );
+    double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
+    double s_eval_Cv_from_T( double T );
+    double s_eval_Cp( const Gas_data &Q  ) { return s_eval_Cv_from_T(Q.T[iT_]); }
+    double s_eval_Cp_from_T( double T  ) { return s_eval_Cv_from_T(T); }
+    double s_eval_Q( double T, double A ) { return 0.0; }
+};
 
 #endif

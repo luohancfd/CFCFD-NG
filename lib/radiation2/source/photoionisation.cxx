@@ -68,7 +68,7 @@ double HydrogenicModel::eval( double nu )
     
     // Cross-section in cm**2
     // CHECKME: - are pow() functions inefficient here?
-    double sigma_bf = constA * constD / ( nu*nu*nu ) * constE ) * G;
+    double sigma_bf = constA * constD / ( ( nu*nu*nu ) * constE ) * G;
     
     if ( isnan(sigma_bf) || isinf(sigma_bf) ) {
     	cout << "sigma_bf = " << sigma_bf << ", constA = " << constA << ", G = " << G << endl;

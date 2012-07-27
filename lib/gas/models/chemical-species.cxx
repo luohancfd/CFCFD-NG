@@ -41,6 +41,8 @@ Chemical_species * new_chemical_species_from_file( string name, string inFile )
         X = new Fully_coupled_diatomic_species( string(name), species_type, 0, 0.0, L );
     else if ( species_type.find("diatomic")!=string::npos )
 	X = new Diatomic_species( string(name), species_type, 0, 0.0, L );
+    else if ( species_type.find("fully coupled polyatomic")!=string::npos )
+        X = new Fully_coupled_polyatomic_species( string(name), species_type, 0, 0.0, L );
     else if ( species_type.find("polyatomic")!=string::npos )
         X = new Polyatomic_species( string(name), species_type, 0, 0.0, L );
     else if ( species_type.find("free electron")!=string::npos )
@@ -893,6 +895,83 @@ s_eval_Cv_vib( const Gas_data &Q )
     	Cv_vib += modes_[i]->eval_Cv(Q);
     
     return Cv_vib;
+}
+
+/* ------- Fully coupled polyatomic species -------- */
+
+Fully_coupled_polyatomic_species::
+Fully_coupled_polyatomic_species( string name, string type, int isp, double min_massf, lua_State * L )
+ : Chemical_species( name, type, isp, min_massf, L )
+{
+    // polarity flag
+    if ( type.find("nonpolar")!=string::npos )
+        polar_flag_ = false;
+    else
+        polar_flag_ = true;
+
+    // linearity flag
+    if ( type.find("nonlinear")!=string::npos )
+        linear_flag_ = false;
+    else
+        linear_flag_ = true;
+
+    // Set the temperature perturbation factor (used for finding derivatives numerically)
+    double fT = 1.0e-6;
+
+    lua_getfield(L, -1, "electronic_levels");
+    if ( !lua_istable(L, -1) ) {
+        ostringstream ost;
+        ost << "Fully_coupled_polyatomic_species::Fully_coupled_polyatomic_species()\n";
+        ost << "Error locating 'level_data' table" << endl;
+        input_error(ost);
+    }
+
+    int nlevs = get_int(L, -1, "n_levels");
+    if ( nlevs < 1 ) {
+        ostringstream ost;
+        ost << "Fully_coupled_polyatomic_species::Fully_coupled_polyatomic_species()\n";
+        ost << "Require at least 1 electronic level - only " << nlevs << " present.\n";
+        input_error(ost);
+    }
+
+    // Create the electronic levels
+    for ( int ilev=0; ilev<nlevs; ++ilev ) {
+        vector<double> elev_data;
+        ostringstream lev_oss;
+        lev_oss << "ilev_" << ilev;
+        lua_getfield(L, -1, lev_oss.str().c_str());
+        for ( size_t i=0; i<lua_objlen(L, -1); ++i ) {
+            lua_rawgeti(L, -1, i+1);
+            elev_data.push_back( luaL_checknumber(L, -1) );
+            lua_pop(L, 1 );
+        }
+        cout << "Fully_coupled_polyatomic_species::Fully_coupled_polyatomic_species()" << endl
+        << "Attempting to create ilev = " << ilev << " for species: " << name << endl;
+        elevs_.push_back( new Polyatom_electronic_level( elev_data ) );
+        lua_pop(L,1);   // pop ilev
+    }
+
+    lua_pop(L,1);       // pop 'electronic_levels'
+
+    // Create a single temperature fully coupled internal mode
+    fcp_int_ = new Fully_coupled_polyatom_internal( isp_, R_, min_massf_, fT, elevs_ );
+
+    modes_.push_back( new Fully_excited_translation( isp_, R_, min_massf_ ) );
+}
+
+Fully_coupled_polyatomic_species::~Fully_coupled_polyatomic_species()
+{
+    // Clear the electronic levels
+    for ( size_t ilev=0; ilev<elevs_.size(); ++ilev )
+        delete elevs_[ilev];
+
+    // Delete the fully coupled polyatomic mode
+    delete fcp_int_;
+}
+
+void Fully_coupled_polyatomic_species::set_modal_temperature_indices()
+{
+    return;
 }
 
 /* ------- Free electron species ------- */

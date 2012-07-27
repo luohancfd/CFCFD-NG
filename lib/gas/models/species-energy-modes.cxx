@@ -1154,3 +1154,55 @@ s_eval_Cv_from_T( double T  )
 }
 #endif
 
+/* ------- Fully coupled polyatomic internal mode ------- */
+
+Fully_coupled_polyatom_internal::
+Fully_coupled_polyatom_internal( int isp, double R, double min_massf,
+    double fT, std::vector<Polyatom_electronic_level*> &elevs )
+ : Species_energy_mode( isp, R, min_massf, "internal" ),
+ m_( PC_R_u / R_ / PC_Avogadro ), fT_( fT )
+{
+    // Set the elev pointers
+    for ( size_t ilev=0; ilev < elevs.size(); ++ilev ) {
+        elevs_.push_back( elevs[ilev] );
+    }
+}
+
+Fully_coupled_polyatom_internal::
+~Fully_coupled_polyatom_internal()
+{
+    // elevs are just pointers
+}
+
+Polyatom_electronic_level * Fully_coupled_polyatom_internal::get_elev_pointer( int ilev )
+{
+    if ( ilev >= int(elevs_.size()) ) {
+        cout << "Fully_coupled_polyatom_internal::get_elev_pointer()" << endl
+             << "Requested electronic level does not exist." << endl
+             << "Exiting program." << endl;
+        exit( FAILURE );
+    }
+
+    return elevs_[ilev];
+}
+
+double
+Fully_coupled_polyatom_internal::
+s_eval_energy_from_T( double T  )
+{
+    return 0.0;
+}
+
+double
+Fully_coupled_polyatom_internal::
+s_eval_entropy_from_T( double T  )
+{
+    return 0.0;
+}
+
+double
+Fully_coupled_polyatom_internal::
+s_eval_Cv_from_T( double T  )
+{
+    return 0.0;
+}

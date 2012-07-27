@@ -202,6 +202,11 @@ endif
 	- cd $(TEST); make clean
 	- cd $(UTIL)/build; make clean
 
+clean_swig :
+	- rm $(LIBGAS)
+	- rm $(PYTHONGAS_MODULE) $(MODELS)/gaspy_wrap.cxx $(MODELS)/gaspy.py
+	- rm gaspy_wrap.o
+
 #----------------------------------------
 # Filename variables
 # - convenient ways to refer to some
@@ -248,6 +253,7 @@ MODELS_OBJECTS := CEA-Cp-functor.o \
 	chemical-species.o \
 	species-energy-modes.o \
 	diatom-electronic-level.o \
+	polyatom-electronic-level.o \
 	coupled-diatom-LUT.o \
 	no-transport-coefficients.o \
 	chemical-equilibrium-system.o \
@@ -553,11 +559,14 @@ chemical-species.o : $(MODELS)/chemical-species.cxx $(MODELS)/chemical-species.h
 	$(CXX) $(CXXFLAG) $(MODELS)/chemical-species.cxx -I$(LUA_INCLUDE_DIR)
 
 species-energy-modes.o : $(MODELS)/species-energy-modes.cxx $(MODELS)/species-energy-modes.hh \
-	$(MODELS)/diatom-electronic-level.hh $(MODELS)/coupled-diatom-LUT.hh
+	$(MODELS)/diatom-electronic-level.hh $(MODELS)/polyatom-electronic-level.hh $(MODELS)/coupled-diatom-LUT.hh
 	$(CXX) $(CXXFLAG) $(MODELS)/species-energy-modes.cxx
 
 diatom-electronic-level.o : $(MODELS)/diatom-electronic-level.cxx $(MODELS)/diatom-electronic-level.hh
 	$(CXX) $(CXXFLAG) $(MODELS)/diatom-electronic-level.cxx
+	
+polyatom-electronic-level.o : $(MODELS)/polyatom-electronic-level.cxx $(MODELS)/polyatom-electronic-level.hh
+	$(CXX) $(CXXFLAG) $(MODELS)/polyatom-electronic-level.cxx
 	
 coupled-diatom-LUT.o : $(MODELS)/coupled-diatom-LUT.cxx $(MODELS)/coupled-diatom-LUT.hh
 	$(CXX) $(CXXFLAG) $(MODELS)/coupled-diatom-LUT.cxx

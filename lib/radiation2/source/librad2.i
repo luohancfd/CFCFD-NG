@@ -111,4 +111,8 @@ def eV2K( eV ):
 # convert J to 1/cm
 def J2nu( J ):
     return J / RC_h_SI / RC_c
+    
+# convert K to 1/cm
+def T2nu( T ):
+    return T * RC_k_SI / RC_h_SI / RC_c
 %}
