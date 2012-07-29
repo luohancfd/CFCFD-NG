@@ -10,15 +10,34 @@ O_3P.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermO_3P.inp'
 }
+O_3P.CEA_coeffs = {
+   { T_low  = 200.0,
+     T_high = 1000.0,
+     coeffs = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
+   },
+  ref="none"
+}
 
 -- Nonequilibrium data
 
 O_3P.species_type = "monatomic"
+O_3P.s_0 = {
+   value = 0.0,
+   units = 'J/kg-K',
+   description = 'Dummy standard state entropy at 1 bar',
+   reference = 'none'
+}
 O_3P.h_f = {
-   value = 1.557402e+07,
+   value = 15632317.75,
    units = 'J/kg',
    description = 'Heat of formation',
    reference = 'from CEA2::thermO_3P.inp'
+}
+O_3P.I = {
+   value = 0.0,
+   units = 'J/kg',
+   description = 'Dummy ionization energy',
+   reference = 'none'
 }
 O_3P.Z = {
    value = 0,
@@ -32,7 +51,7 @@ O_3P.electronic_levels = {
    -- ===========================================================
    --   No.      n      E(cm-1)      g     l     L     S    parity 
    -- ===========================================================
-   ilev_0   =  { 2,       77.97,     9,   -1,    1,    1,    2 }
+   ilev_0   =  { 2,       0.0,     9,   -1,    1,    1,    2 }
    -- ===========================================================
 }
 

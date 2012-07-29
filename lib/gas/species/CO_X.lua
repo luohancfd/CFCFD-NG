@@ -10,15 +10,34 @@ CO_X.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
+CO_X.CEA_coeffs = {
+   { T_low  = 200.0,
+     T_high = 1000.0,
+     coeffs = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
+   },
+  ref="none"
+}
 
 -- Nonequilibrium data
 
 CO_X.species_type = "polar diatomic"
+CO_X.s_0 = {
+   value = 0.0,
+   units = 'J/kg-K',
+   description = 'Dummy standard state entropy at 1 bar',
+   reference = 'none'
+}
 CO_X.h_f = {
    value = -3946262.10,
    units = 'J/kg',
    description = 'Heat of formation',
    reference = 'from CEA2::thermo.inp'
+}
+CO_X.I = {
+   value = 0.0,
+   units = 'J/kg',
+   description = 'Dummy ionization energy',
+   reference = 'none'
 }
 CO_X.Z = {
    value = 0,

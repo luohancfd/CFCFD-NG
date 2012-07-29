@@ -10,10 +10,29 @@ C2_X.M = {
    description = 'molecular mass',
    reference = 'molecular weight from CEA2'
 }
+C2_X.CEA_coeffs = {
+   { T_low  = 200.0,
+     T_high = 1000.0,
+     coeffs = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
+   },
+  ref="none"
+}
 
 -- Nonequilibrium data
 
 C2_X.species_type = "nonpolar diatomic"
+C2_X.s_0 = {
+   value = 0.0,
+   units = 'J/kg-K',
+   description = 'Dummy standard state entropy at 1 bar',
+   reference = 'none'
+}
+C2_X.I = {
+   value = 0.0,
+   units = 'J/kg',
+   description = 'Dummy ionization energy',
+   reference = 'none'
+}
 C2_X.h_f = {
    value = 34571562.11,
    units = 'J/kg',

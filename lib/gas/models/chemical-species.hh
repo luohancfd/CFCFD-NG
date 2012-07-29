@@ -29,6 +29,8 @@ public:
     
     Species_energy_mode* get_mode_pointer_from_type( std::string type );
 
+    Electronic* get_electronic_mode_pointer();
+    
     Multi_level_electronic* get_multi_level_electronic_mode_pointer();
 
     int get_element_count( std::string X );

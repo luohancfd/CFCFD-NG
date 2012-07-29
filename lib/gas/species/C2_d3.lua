@@ -10,12 +10,31 @@ C2_d3.M = {
    description = 'molecular mass',
    reference = 'molecular weight from CEA2'
 }
+C2_d3.CEA_coeffs = {
+   { T_low  = 200.0,
+     T_high = 1000.0,
+     coeffs = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
+   },
+  ref="none"
+}
 
 -- Nonequilibrium data
 
 C2_d3.species_type = "nonpolar diatomic"
+C2_d3.s_0 = {
+   value = 0.0,
+   units = 'J/kg-K',
+   description = 'Dummy standard state entropy at 1 bar',
+   reference = 'none'
+}
+C2_d3.I = {
+   value = 0.0,
+   units = 'J/kg',
+   description = 'Dummy ionization energy',
+   reference = 'none'
+}
 C2_d3.h_f = {
-   value = 34571562.11,
+   value = 44542774.12,
    units = 'J/kg',
    description = 'Heat of formation',
    reference = 'from CEA2::thermo.inp'
@@ -32,6 +51,6 @@ C2_d3.electronic_levels = {
    -- ===========================================================================================================================================================
    --   n       Te         re       g   dzero      we         wexe      weye        weze        be        alphae      de          betae       spn-orb     l   s  
    -- ===========================================================================================================================================================
-   ilev_0  = {  20022.50,  1.2661,  6,  30120.00,  1788.220,  16.4400, -5.067E-01,  0.000E+00,  1.75270,  1.608E-02,  6.740E-06,  1.030E-07, -1.690E+01,  1,  3 }
+   ilev_0  = {  0.0,       1.2661,  6,  30120.00,  1788.220,  16.4400, -5.067E-01,  0.000E+00,  1.75270,  1.608E-02,  6.740E-06,  1.030E-07, -1.690E+01,  1,  3 }
    -- ===========================================================================================================================================================
 }

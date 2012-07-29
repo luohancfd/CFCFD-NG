@@ -28,8 +28,10 @@ local Space = lpeg.S(" \n\t")^0
 local Number = lpeg.R("09")^1
 local Element = ((lpeg.R("AZ") * lpeg.R("az")^0) + lpeg.P("e"))
 local Solid = lpeg.P("_S")
+-- local Level = lpeg.R("_") * ( lpeg.R("AZ") + lpeg.R("az") ) + lpeg.R("09") ) * ( lpeg.R("AZ") + lpeg.R("az") ) + lpeg.R("09") ) * ( lpeg.R("AZ") + lpeg.R("az") ) + lpeg.R("09") )
 local PM = lpeg.S("+-")
-local Species = lpeg.C((Element * Number^0 * PM^0 * Solid^0)^1) 
+-- local Species = lpeg.C((Element * Number^0 * PM^0 * Solid^0 * Level^0)^1)
+local Species = lpeg.C((Element * Number^0 * PM^0 * Solid^0 )^1)
 local FArrow = lpeg.C(lpeg.P("=>")) * Space
 local RArrow = lpeg.C(lpeg.P("<=>")) * Space
 local Plus = lpeg.P("+") * Space
@@ -65,7 +67,7 @@ function validate_reaction(t)
    end
 
    reac = parse_reaction_string(t[1])
-   if reac == nil then
+   if reac == nil or reac[0] == nil then
       print("There was an error parsing the reaction string for reaction number: ", #reactions+1)
       print("It seems the string is badly formed.  The given string is: ")
       print(t[1])

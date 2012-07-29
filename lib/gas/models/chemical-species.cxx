@@ -140,6 +140,28 @@ Chemical_species::get_mode_pointer_from_type( string type )
     exit( BAD_INPUT_ERROR );
 }
 
+Electronic*
+Chemical_species::get_electronic_mode_pointer()
+{
+    // First test that there is mode in the 1 position
+    if ( modes_.size()<2 ) {
+        cout << "Chemical_species::get_electronic_mode_pointer()" << endl
+             << "No energy mode found in the expected position!" << endl;
+        exit( FAILURE );
+    }
+
+    // Now ensure that this is the electronic mode
+    // FIXME: somehow need to ensure this is a Multi_level_electronic instance
+    if ( modes_[1]->get_type()!="electronic") {
+        cout << "Chemical_species::get_multi_level_electronic_mode_pointer()" << endl
+             << "Electronic mode not found in the expected position!" << endl;
+        exit( FAILURE );
+    }
+
+    // Now can safely do the dynamic cast and return the pointer
+    return dynamic_cast<Electronic*>(modes_[1]);
+}
+
 Multi_level_electronic*
 Chemical_species::get_multi_level_electronic_mode_pointer()
 {

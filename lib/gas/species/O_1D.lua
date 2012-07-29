@@ -10,12 +10,31 @@ O_1D.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermO_1D.inp'
 }
+O_1D.CEA_coeffs = {
+   { T_low  = 200.0,
+     T_high = 1000.0,
+     coeffs = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
+   },
+  ref="none"
+}
 
 -- Nonequilibrium data
 
 O_1D.species_type = "monatomic"
+O_1D.s_0 = {
+   value = 0.0,
+   units = 'J/kg-K',
+   description = 'Dummy standard state entropy at 1 bar',
+   reference = 'none'
+}
+O_1D.I = {
+   value = 0.0,
+   units = 'J/kg',
+   description = 'Dummy ionization energy',
+   reference = 'none'
+}
 O_1D.h_f = {
-   value = 1.557402e+07,
+   value = 27438333.86,
    units = 'J/kg',
    description = 'Heat of formation',
    reference = 'from CEA2::thermO_1D.inp'
@@ -32,7 +51,7 @@ O_1D.electronic_levels = {
    -- ===========================================================
    --   No.      n      E(cm-1)      g     l     L     S    parity 
    -- ===========================================================
-   ilev_0   =  { 2,    15867.86,     5,   -1,    2,    0,    2 }
+   ilev_0   =  { 2,     0.0,         5,   -1,    2,    0,    2 }
    -- ===========================================================
 }
 

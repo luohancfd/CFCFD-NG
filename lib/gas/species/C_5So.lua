@@ -10,12 +10,31 @@ C_5So.M = {
    description = 'molecular mass',
    reference = 'molecular weight from CEA2'
 }
+C_5So.CEA_coeffs = {
+   { T_low  = 200.0,
+     T_high = 1000.0,
+     coeffs = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
+   },
+  ref="none"
+}
 
 -- Nonequilibrium data
 
 C_5So.species_type = "monatomic"
+C_5So.s_0 = {
+   value = 0.0,
+   units = 'J/kg-K',
+   description = 'Dummy standard state entropy at 1 bar',
+   reference = 'none'
+}
+C_5So.I = {
+   value = 0.0,
+   units = 'J/kg',
+   description = 'Dummy ionization energy',
+   reference = 'none'
+}
 C_5So.h_f = {
-   value = 59670127.47,
+   value = 93270410.31,
    units = 'J/kg',
    description = 'Heat of formation',
    reference = 'from CEA2::thermo.inp'
@@ -32,7 +51,7 @@ C_5So.electronic_levels = {
    -- ===========================================================
    --   No.      n       E(cm-1)     g     l     L     S     parity 
    -- ===========================================================
-   ilev_0   =  { 2,    33735.20,     5,   -1,    0,    2,    1 }
+   ilev_0   =  { 2,      0.0,        5,   -1,    0,    2,    1 }
    -- ===========================================================
 }
 

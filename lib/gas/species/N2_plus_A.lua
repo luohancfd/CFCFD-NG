@@ -10,6 +10,13 @@ N2_plus_A.M = {
    description = 'molecular mass',
    reference = 'from CEA2::thermo.inp'
 }
+N2_plus_A.CEA_coeffs = {
+   { T_low  = 200.0,
+     T_high = 1000.0,
+     coeffs = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
+   },
+  ref="none"
+}
 
 -- thermal nonequilibrium data
 

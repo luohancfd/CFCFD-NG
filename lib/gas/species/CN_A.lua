@@ -10,12 +10,31 @@ CN_A.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermo.inp'
 }
+CN_A.CEA_coeffs = {
+   { T_low  = 200.0,
+     T_high = 1000.0,
+     coeffs = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
+   },
+  ref="none"
+}
 
 -- Nonequilibrium data
 
 CN_A.species_type = "polar diatomic"
+CN_A.s_0 = {
+   value = 0.0,
+   units = 'J/kg-K',
+   description = 'Dummy standard state entropy at 1 bar',
+   reference = 'none'
+}
+CN_A.I = {
+   value = 0.0,
+   units = 'J/kg',
+   description = 'Dummy ionization energy',
+   reference = 'none'
+}
 CN_A.h_f = {
-   value = 16861160.30,
+   value = 21112092.11,
    units = 'J/kg',
    description = 'Heat of formation',
    reference = 'from CEA2::thermo.inp'
@@ -32,6 +51,6 @@ CN_A.electronic_levels = {
    -- ===========================================================================================================================================================
    --   n       Te         re       g   dzero      we         wexe      weye        weze        be        alphae      de          betae       spn-orb     l   s  
    -- ===========================================================================================================================================================
-   ilev_0  = {   9245.28,  1.2333,  4,  52580.00,  1812.560,  12.6090, -1.180E-02,  0.000E+00,  1.71510,  1.708E-02,  5.930E-06,  4.200E-08, -5.264E+01,  1,  2 }
+   ilev_0  = {  0.0,       1.2333,  4,  52580.00,  1812.560,  12.6090, -1.180E-02,  0.000E+00,  1.71510,  1.708E-02,  5.930E-06,  4.200E-08, -5.264E+01,  1,  2 }
    -- ===========================================================================================================================================================
 }

@@ -10,10 +10,29 @@ N_4So.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermo.inp'
 }
+N_4So.CEA_coeffs = {
+   { T_low  = 200.0,
+     T_high = 1000.0,
+     coeffs = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
+   },
+  ref="none"
+}
 
 -- Nonequilibrium data
 
 N_4So.species_type = "monatomic"
+N_4So.s_0 = {
+   value = 0.0,
+   units = 'J/kg-K',
+   description = 'Dummy standard state entropy at 1 bar',
+   reference = 'none'
+}
+N_4So.I = {
+   value = 0.0,
+   units = 'J/kg',
+   description = 'Dummy ionization energy',
+   reference = 'none'
+}
 N_4So.h_f = {
    value = 3.374671e+07,
    units = 'J/kg',
@@ -34,3 +53,4 @@ N_4So.electronic_levels = {
    -- ===========================================================
    ilev_0   =  { 2,        0.00,     4,   -1,    0,    2,    1 }
    -- ===========================================================
+}
