@@ -26,12 +26,13 @@ end
 -- lexical elements for parsing the whole reaction string
 local Space = lpeg.S(" \n\t")^0
 local Number = lpeg.R("09")^1
+local Underscore = lpeg.S("_")
 local Element = ((lpeg.R("AZ") * lpeg.R("az")^0) + lpeg.P("e"))
-local Solid = lpeg.P("_S")
--- local Level = lpeg.R("_") * ( lpeg.R("AZ") + lpeg.R("az") ) + lpeg.R("09") ) * ( lpeg.R("AZ") + lpeg.R("az") ) + lpeg.R("09") ) * ( lpeg.R("AZ") + lpeg.R("az") ) + lpeg.R("09") )
+local Solid = lpeg.P("S")
+local ElecLevel = lpeg.R("%w")^(-3) -- %w matches alphanumeric characters
+                                    -- ^(-3) says to match at most 3 occurrences
 local PM = lpeg.S("+-")
--- local Species = lpeg.C((Element * Number^0 * PM^0 * Solid^0 * Level^0)^1)
-local Species = lpeg.C((Element * Number^0 * PM^0 * Solid^0 )^1)
+local Species = lpeg.C(((Element * Number^0)^1 * PM^0)^1 * (Underscore * (Solid + ElecLevel))^0)
 local FArrow = lpeg.C(lpeg.P("=>")) * Space
 local RArrow = lpeg.C(lpeg.P("<=>")) * Space
 local Plus = lpeg.P("+") * Space
@@ -53,6 +54,8 @@ G = lpeg.P{ Mechanism,
 
 G = Space * G * -1
 
+SpeciesG = lpeg.P{ Species }
+
 function parse_reaction_string(s)
    t = lpeg.match(G, s)
    return t
@@ -67,7 +70,7 @@ function validate_reaction(t)
    end
 
    reac = parse_reaction_string(t[1])
-   if reac == nil or reac[0] == nil then
+   if reac == nil then
       print("There was an error parsing the reaction string for reaction number: ", #reactions+1)
       print("It seems the string is badly formed.  The given string is: ")
       print(t[1])
@@ -92,7 +95,8 @@ function validate_reaction(t)
    return true
 end
 
-local Species2 = lpeg.Ct(lpeg.Ct((lpeg.C(Element) * lpeg.C(Number^0) * lpeg.C(PM^0) * Solid^0))^1) 
+local Species2 = lpeg.Ct(lpeg.Ct((lpeg.C(Element) * lpeg.C(Number^0) * lpeg.C(PM^0) * Solid^0))^1)
+Species2G = lpeg.P{ Species2 }
 
 function check_equation_balances(r, rnumber)
    -- Checks both mass and charge balance
