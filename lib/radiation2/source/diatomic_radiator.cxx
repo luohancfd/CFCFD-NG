@@ -903,6 +903,23 @@ read_elevel_data( lua_State * L )
     nlevs = get_positive_int(L, -1, "n_levels");
     elevs.resize( nlevs );
     
+    lua_getfield(L, -1, "isp_list");
+    if ( !lua_istable(L, -1) ) {
+	ostringstream ost;
+	ost << "DiatomicRadiator::read_elevel_data()\n";
+	ost << "Error locating isp_list table" << endl;
+	input_error(ost);
+    }
+    vector<double> isp_list;
+    for ( size_t i=0; i<lua_objlen(L, -1); ++i ) {
+	lua_rawgeti(L, -1, i+1);
+	isp_list.push_back( luaL_checknumber(L, -1) );
+	lua_pop(L, 1 );
+    }
+    lua_pop(L,1);	// pop isp_list
+    
+    // FIXME: do something with the isp_list!
+    
     for ( int ilev=0; ilev<nlevs; ++ilev ) {
 	ostringstream lev_oss;
 	lev_oss << "ilev_" << ilev;
