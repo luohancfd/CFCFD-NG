@@ -67,13 +67,6 @@ DiatomicSystem( lua_State * L, string name, string band_method,
     if ( uRe_dim<=0 || lRe_dim <=0 ) {
 	cout << "No electronic transition moments present!" << endl;
     }
-#   if DEBUG_RAD > 0
-    else if ( uRe_dim > ( elev_u->get_V_max() + 1 ) || lRe_dim > ( elev_l->get_V_max() + 1 ) ) {
-    	cout << "DiatomicSystem::DiatomicSystem()" << endl
-    	     << "WARNING: System: " << name << " has an ETM matrix of size " << uRe_dim << " x " << lRe_dim << endl
-    	     << "but elev_u->V_max = " << elev_u->get_V_max() << " and elev_l->V_max = " << elev_l->get_V_max() << endl;
-    }
-#   endif
     else {
 	/* Create valarray with space for all bands with data */
 	for ( int iVu=0; iVu < uRe_dim; ++iVu ) {
@@ -103,6 +96,16 @@ DiatomicSystem( lua_State * L, string name, string band_method,
 #               endif
 	    }
 	}
+#       if DEBUG_RAD > 0
+	// System dimensions check
+        if ( uRe_dim > ( elev_u->get_V_max() + 1 ) || lRe_dim > ( elev_l->get_V_max() + 1 ) ) {
+            cout << "DiatomicSystem::DiatomicSystem()" << endl
+                 << "WARNING: System: " << name << " has an ETM matrix of size " << uRe_dim << " x " << lRe_dim << endl
+                 << "but elev_u->V_max = " << elev_u->get_V_max() << " and elev_l->V_max = " << elev_l->get_V_max() << endl
+                 << "The calculation is possible but the partition functions will not be consistent with the number bands in the spectra." << endl;
+        }
+#       endif
+
 	// Check vector size
 	if ( bands.size() != size_t(uRe_dim*lRe_dim) ) {
 	    ostringstream ost;
@@ -182,6 +185,7 @@ band_pointer( int Vu, int Vl )
     }
 
     int index = Vu * lRe_dim + Vl;
+
     return bands[index];
 }
 

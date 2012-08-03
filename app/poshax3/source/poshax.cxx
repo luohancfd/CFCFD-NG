@@ -570,7 +570,9 @@ int main(int argc, char *argv[])
     	for ( size_t i=0; i<I_vec.size(); ++i ) {
     	    ostringstream oss;
     	    double smear_dx = 0.0;
-    	    if ( i==0 ) {
+    	    if ( dx_smear.size()==0 )
+    	        smear_dx = -1.0;
+    	    else if ( i==0 ) {
     	    	oss << "IvX-smeared_total.txt";
     	    	smear_dx = dx_smear[0];
     	    }
@@ -582,6 +584,7 @@ int main(int argc, char *argv[])
     	    I_vec[i].spatially_smear( smear_dx );
     	    I_vec[i].write_to_file( oss.str() );
     	}
+
     }
     if ( TS_dx > 0.0 ) {
     	double q_rad = TS->quick_solve_for_divq();

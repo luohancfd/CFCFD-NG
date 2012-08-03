@@ -136,24 +136,7 @@ read_elevel_data( lua_State * L )
     
     nlevs = get_int(L, -1, "n_levels");
     elevs.resize( nlevs );
-    
-    lua_getfield(L, -1, "isp_list");
-    if ( !lua_istable(L, -1) ) {
-	ostringstream ost;
-	ost << "DiatomicRadiator::read_elevel_data()\n";
-	ost << "Error locating isp_list table" << endl;
-	input_error(ost);
-    }
-    vector<double> isp_list;
-    for ( size_t i=0; i<lua_objlen(L, -1); ++i ) {
-	lua_rawgeti(L, -1, i+1);
-	isp_list.push_back( luaL_checknumber(L, -1) );
-	lua_pop(L, 1 );
-    }
-    lua_pop(L,1);	// pop isp_list
-    
-    // FIXME: do something with the isp_list!
-    
+
     for ( int ilev=0; ilev<nlevs; ++ilev ) {
 	ostringstream lev_oss;
 	lev_oss << "ilev_" << ilev;
@@ -984,6 +967,74 @@ calculate_n_e( Gas_data &Q )
     	elevs[ilev]->set_N( N_ions * N_elecs * elevs[ilev]->get_Q_el() * Q_trans / Q_ion / Q_elec );
     }
     
+    // End of void function
+}
+
+/************************** NoneqAtomicRadiator **************************/
+
+NoneqAtomicRadiator::
+NoneqAtomicRadiator( lua_State * L, string name )
+ : AtomicRadiator(L, name)
+{
+    lua_getfield(L, -1, "level_data");
+    if ( !lua_istable(L, -1) ) {
+        ostringstream ost;
+        ost << "NoneqAtomicRadiator::NoneqAtomicRadiator()\n";
+        ost << "Error locating 'level_data' table" << endl;
+        input_error(ost);
+    }
+
+    lua_getfield(L, -1, "isp_list");
+    if ( !lua_istable(L, -1) ) {
+        ostringstream ost;
+        ost << "NoneqAtomicRadiator::NoneqAtomicRadiator()\n";
+        ost << "Error locating isp_list table" << endl;
+        input_error(ost);
+    }
+    for ( size_t i=0; i<lua_objlen(L, -1); ++i ) {
+        lua_rawgeti(L, -1, i+1);
+        isp_list.push_back( luaL_checknumber(L, -1) );
+        lua_pop(L, 1 );
+    }
+
+    lua_pop(L,1);       // pop isp_list
+
+    lua_pop(L,1);       // pop level_data
+}
+
+NoneqAtomicRadiator::
+~NoneqAtomicRadiator() {}
+
+void
+NoneqAtomicRadiator::
+calculate_n_e( Gas_data &Q )
+{
+    const double constA = Q.rho / m_w * RC_Na;        // convert kg/m**3 -> particles/m**3
+
+    int last_neq_lev = -1;
+
+    for (int ilev=0; ilev<nlevs; ++ilev) {
+        int lev_isp = isp_list[ilev];
+        if ( lev_isp >= 0 ) {
+            // directly set the level population
+            elevs[ilev]->set_N( Q.massf[lev_isp] * constA );
+            last_neq_lev = ilev;
+        }
+        else if ( last_neq_lev >= 0 ) {
+            // boltzmann equilibrium with last noneq level
+            const double Q_ratio = elevs[ilev]->get_Q_int() / elevs[last_neq_lev]->get_Q_int();
+            elevs[ilev]->set_N( Q_ratio * elevs[last_neq_lev]->get_N() );
+        }
+        else {
+            cout << "NoneqAtomicRadiator::calculate_n_e()" << endl
+                 << "Level %d does not have a nonequilibrium level below it." << endl;
+            exit( FAILURE );
+        }
+
+#       if DEBUG_RAD > 0
+        cout << "N_el[" << ilev << "] = " << elevs[ilev]->get_N() << endl;
+#       endif
+    }
     // End of void function
 }
 
