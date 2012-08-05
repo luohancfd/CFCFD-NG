@@ -1,0 +1,11 @@
+Experimental result for shock detachment distance:
+    p=200.e3 Pa, T=296.0 K, u=4.68e3 m/s
+    d = 2.59 mm
+ Sawada & Dendou CFD result: 
+    d = 2.56 mm
+Simulation results:
+    nn= 30 d= 0.00252911379396
+    nn= 60 d= 0.00253118788437
+    nn= 90 d= 0.00253733461891
+    nn= 135 d= 0.00253594808128
+

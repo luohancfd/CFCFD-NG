@@ -1,0 +1,92 @@
+# ss3.input.template
+# Peter Jacobs and Rowan Gollan
+# 05-Aug-2012
+#
+# Description:
+#   Simulation of ballistic range experiments of a 
+#   sphere fired into air.
+#
+# Reference:
+#   Sawada, K. and Dendou, E. (2001)
+#   Validation of hypersonic chemical equilibrium
+#   flow calculations using ballistic-range data.
+#   Shock Waves, 11:43--51
+#
+# This template is derived from the ss3.py input file for
+# the single case and uses the ideas from lobb.input.template
+# to set this case up to run as a staged simulation.
+#
+
+from math import sqrt, atan2, cos
+from cfpylib.gasdyn.billig import x_from_y, delta_over_R, y_from_x
+
+gdata.title = "Sphere fired into equilibrium air: p=%f, u=%f" % ($p_inf, $u_inf)
+
+# For equilibrium chemistry, use the look-up-table (which has
+# been previously created).
+select_gas_model(fname='cea-lut-air.lua.gz')
+
+# Free-stream flow definition
+p_inf = $p_inf                   # Pa
+T_inf = $T_inf                   # degrees K
+u_inf = $u_inf                   # flow speed, m/s
+inflow = FlowCondition(p=p_inf, u=u_inf, T=T_inf, massf=[1.0])
+M_inf = u_inf/inflow.flow.gas.a
+if $stage == 0:
+    initial = FlowCondition(p=p_inf/3.0, u=0.0, T=T_inf, massf=[1.0])
+else:
+    initial = ExistingSolution("$jobName" + str($stage-1), '.', $np, 9999)
+
+# Build the geometry from the bottom-up, starting with nodes...
+# Scale it with the nose radius.
+
+delta = delta_over_R(M_inf, 1) * $Rc
+delta_offset = 5.0/100.0*delta
+y_inc = 5.0/100.0
+x_shift = delta_offset
+
+# In preparation for defining nodes, generate a few sample points
+# along the expected shock position
+# (which is estimated via Billig's correlation).
+xys = []
+y_top = y_from_x(0.0, M_inf, theta=0.0, axi=1, R_nose=$Rc)
+dy = y_top/5.0
+for y in [ i*dy for i in range(6) ]:
+    x = x_from_y(y, M_inf, theta=0.0, axi=1, R_nose=$Rc)
+    xys.append((x,y)) # a new coordinate pair
+    print "x=", x, "y=", y
+ 
+a = Node(-$Rc, 0.0, label="a")
+b = Node( 0.0, $Rc, label="b")
+c = Node( 0.0, 0.0, label="c")
+d = [] # will use a list to keep the nodes for the shock boundary
+dcount = 0
+for x, y in xys:
+    # the outer boundary should be a little further than the shock itself
+    xd = -1.0 * (x + x_shift)
+    yd = y * (1.0 + y_inc)
+    d.append(Node(xd, yd, label="d[%d]" % dcount))
+    dcount += 1
+
+# ...then lines, arcs, etc, that will make up the block boundaries.
+axis = Line(d[0], a) # first-point of shock to nose of sphere
+body = Arc(a, b, c)
+shock = Spline(d)
+top = Line(d[-1], b)  # top-point of shock to top of sphere
+
+# ...and finally, assemble the block from its boundary faces.
+bc_list=[ExtrapolateOutBC(), SlipWallBC(), SlipWallBC(), SupInBC(inflow)]
+block_0 = SuperBlock2D(make_patch(top, body, axis, shock),
+                       bc_list=bc_list, fill_condition=initial,
+                       nni=$nn, nnj=$nn, nbi=$nbi, nbj=$nbj, hcell_list=[($nn, 1)])
+
+# Simulation control
+gdata.flux_calc = ADAPTIVE
+BFL = $Rc*2.0/u_inf
+gdata.max_time = $flow_lengths * BFL
+gdata.max_step = 600000
+gdata.axisymmetric_flag = 1
+gdata.cfl = 0.40
+gdata.dt = 1.0e-9
+gdata.dt_history = 1.0e-5
+gdata.dt_plot = 1.0e-3
