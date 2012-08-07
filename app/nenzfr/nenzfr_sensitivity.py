@@ -79,6 +79,32 @@ def get_values(dict, propertyList):
             print "WARNING: "+s+"was not found in the current case dictionary."
     return valueList
 
+def add_extra_variables(data, var):
+    """
+    We add some additional variables that of are interest to 
+    the input dictionary and list.
+
+    data: dictionary of data
+    var: list of variables
+    """
+    U_squared = data['vel.x']*data['vel.x'] + data['vel.y']*data['vel.y']
+    U = U_squared**0.5
+    # Dynamic Pressure
+    data['q'] = 0.5 * data['rho'] * U_squared
+    var.append('q')
+    # Mass flow rate per unit area
+    data['m_dot'] = data['rho'] * U
+    var.append('m_dot')
+    # Unit Reynolds number
+    data['Re_u'] = data['m_dot'] / data['mu']
+    var.append('Re_u')
+    # Pressure coefficient
+    data['p/q'] = data['p'] / data['q']
+    var.append('p/q')
+    
+    return data, var
+
+
 def write_sensitivity_summary(sensitivity, perturbedVariables, exitVar, type):
     """
     Write out a file summarising the sensitivity of each exit flow 
@@ -263,7 +289,9 @@ def main():
     # Add the supply variables to the exitVar list
     exitVar.insert(0,'supply_T')
     exitVar.insert(1,'supply_h')
-    
+    # Add extra variables of interest (q, Re_u, m_dot)
+    nominalData, exitVar = add_extra_variables(nominalData, exitVar)
+     
     nominalValues = get_values(nominalData, exitVar)
     
     # Loop through each of the perturbed variables
@@ -284,6 +312,7 @@ def main():
         highSupply = read_estcj_outfile('./'+high+'/'+opt.estcjFile)
         highData['supply_T'] = highSupply['T']
         highData['supply_h'] = highSupply['h']
+        highData, dontNeed = add_extra_variables(highData, [])
         
         low = 'case'+"{0:02}".format(k)+'2'
         lowData, dontNeed = read_nenzfr_outfile('./'+low+'/'+\
@@ -291,6 +320,7 @@ def main():
         lowSupply = read_estcj_outfile('./'+low+'/'+opt.estcjFile)
         lowData['supply_T'] = lowSupply['T']
         lowData['supply_h'] = lowSupply['h']
+        lowData, dontNeed = add_extra_variables(lowData, [])
         
         #print low, nominal, high
         
@@ -340,6 +370,7 @@ def main():
             tooHighSupply = read_estcj_outfile('./'+tooHigh+'/'+opt.estcjFile)
             tooHighData['supply_T'] = tooHighSupply['T']
             tooHighData['supply_h'] = tooHighSupply['h']
+            tooHighData, dontNeed = add_extra_variables(tooHighData, [])
             
             tooLow = 'case'+"{0:02}".format(k)+'4'
             tooLowData,dontNeed = \
@@ -347,6 +378,7 @@ def main():
             tooLowSupply = read_estcj_outfile('./'+tooLow+'/'+opt.estcjFile)
             tooLowData['supply_T'] = tooLowSupply['T']
             tooLowData['supply_h'] = tooLowSupply['h']
+            tooLowData, dontNeed = add_extra_variables(tooLowData, [])
             
             #print tooHigh, high, nominal, low, tooLow
             
@@ -356,7 +388,6 @@ def main():
             # Values of the perturbed input values
             tooHighX = DictOfCases[tooHigh][perturbedVariables.index(var)]
             tooLowX = DictOfCases[tooLow][perturbedVariables.index(var)]
-            
             
             tooHighDeltaX = tooHighX - nominalX
             highDeltaX = highX - nominalX
