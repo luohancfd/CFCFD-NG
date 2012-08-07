@@ -465,6 +465,7 @@ def main():
         textString = "Nominal Condition"
         caseDict = copy.copy(paramDict)
         caseDict['caseName'] = caseString
+        write_case_config(caseDict)
         # Run the nominal case and write the values of the perturbed variables
         # to a summary file
         set_case_running(caseString, caseDict, textString)

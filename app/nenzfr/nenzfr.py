@@ -127,18 +127,19 @@ def main():
     if not os.path.exists(opt.contourFileName):
         run_command('cp '+E3BIN+'/nenzfr_data_files/'+opt.contourFileName+' .')
     # Set up the equilibrium gas-model file as a look-up table.
-    if opt.chemModel in ['eq',]:
-        if opt.gasName in ['n2']:
-            eqGasModelFile = 'cea-lut-'+upper(opt.gasName)+'.lua.gz'
+    if not opt.justStats:
+        if opt.chemModel in ['eq',]:
+            if opt.gasName in ['n2']:
+                eqGasModelFile = 'cea-lut-'+upper(opt.gasName)+'.lua.gz'
+            else:
+                eqGasModelFile = 'cea-lut-'+opt.gasName+'.lua.gz'
+            if not os.path.exists(eqGasModelFile):
+                run_command('build-cea-lut.py --gas='+opt.gasName)
+            gmodelFile = eqGasModelFile
         else:
-            eqGasModelFile = 'cea-lut-'+opt.gasName+'.lua.gz'
-        if not os.path.exists(eqGasModelFile):
-            run_command('build-cea-lut.py --gas='+opt.gasName)
-        gmodelFile = eqGasModelFile
-    else:
-        # We'll assume that the gas-model file of default name is set up.
-        # TODO: Luke, this needs to be modified, I suspect.
-        gmodelFile = 'gas-model.lua'
+            # We'll assume that the gas-model file of default name is set up.
+            # TODO: Luke, this needs to be modified, I suspect.
+            gmodelFile = 'gas-model.lua'
     #
     # If we have already run a calculation, it may be that we just want
     # to extract the exit-flow statistics again.

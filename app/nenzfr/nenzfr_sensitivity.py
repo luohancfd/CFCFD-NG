@@ -79,27 +79,30 @@ def get_values(dict, propertyList):
             print "WARNING: "+s+"was not found in the current case dictionary."
     return valueList
 
-def write_sensitivity_summary(sensitivity, perturbedVariables, exitVar):
+def write_sensitivity_summary(sensitivity, perturbedVariables, exitVar, type):
     """
     Write out a file summarising the sensitivity of each exit flow 
     parameter to each of the input parameters.
     """
-    titleFormatDict = {'p1':'{0:{fill}>13}', 'T1':'{0:{fill}>10}',
-                       'Vs':'{0:{fill}>11}', 'pe':'{0:{fill}>15}', 
-                       'Tw':'{0:{fill}>10}', 'BLTrans':'{0:{fill}>10}',
+    titleFormatDict = {'p1':'{0:{fill}>13}', 'T1':'{0:{fill}>13}',
+                       'Vs':'{0:{fill}>13}', 'pe':'{0:{fill}>13}', 
+                       'Tw':'{0:{fill}>13}', 'BLTrans':'{0:{fill}>13}',
                        'TurbVisRatio':'{0:{fill}>14}', 
-                       'TurbInten':'{0:{fill}>11}',
+                       'TurbInten':'{0:{fill}>13}',
                        'CoreRadiusFraction':'{0:{fill}>20}'}     
-    formatDict = {'p1':'{0:13.4f}', 'T1':'{0:>10.4f}', 
-                  'Vs':'{0:>11.4f}', 'pe':'{0:>15.4f}', 
-                  'Tw':'{0:>10.4f}', 'BLTrans':'{0:>10.4f}',
-                  'TurbVisRatio':'{0:>14.4f}', 
-                  'TurbInten':'{0:>11.4f}',
-                  'CoreRadiusFraction':'{0:>20.4f}'}
-
-    fout = open('sensitivities.dat','w')
+    formatDict = {'p1':'{0:13.5g}', 'T1':'{0:>13.5g}', 
+                  'Vs':'{0:>13.5g}', 'pe':'{0:>13.5g}', 
+                  'Tw':'{0:>13.5g}', 'BLTrans':'{0:>13.5g}',
+                  'TurbVisRatio':'{0:>14.5g}', 
+                  'TurbInten':'{0:>13.5g}',
+                  'CoreRadiusFraction':'{0:>20.5g}'}
+    if type in ['relative']:
+        fout = open('sensitivities.dat','w')
+    elif type in ['absolute']:
+        fout = open('sensitivities_abs.dat','w')
     
     # Write header information
+    fout.write('{0:}\n'.format(type+' sensitivities'))
     fout.write('{0:>13}'.format('variable'))
     for k in perturbedVariables:
         fout.write(titleFormatDict[k].format(k,fill=''))
@@ -265,6 +268,7 @@ def main():
     
     # Loop through each of the perturbed variables
     sensitivity = {}
+    sensitivity_abs = {}
     uncertainty = {}
     for k in range(len(perturbedVariables)):
         var = perturbedVariables[k]
@@ -309,13 +313,20 @@ def main():
             highWeighting = (nominalX - lowX)/(highX - lowX)
             lowWeighting = (highX - nominalX)/(highX - lowX)
             
-            sensitivity[var] = ( highWeighting*(array(highValues)-\
+            #sensitivity[var] = ( highWeighting*(array(highValues)-\
+            #                                    array(nominalValues))/\
+            #                                   (highX - nominalX) + \
+            #                     lowWeighting*(array(nominalValues)-\
+            #                                   array(lowValues))/\
+            #                                  (nominalX - lowX)     )*\
+            #                    nominalX/array(nominalValues)
+            sensitivity_abs[var] = ( highWeighting*(array(highValues)-\
                                                 array(nominalValues))/\
                                                (highX - nominalX) + \
                                  lowWeighting*(array(nominalValues)-\
                                                array(lowValues))/\
-                                              (nominalX - lowX)     )*\
-                                nominalX/array(nominalValues)
+                                              (nominalX - lowX)     )
+            sensitivity[var] = sensitivity_abs[var]*nominalX/array(nominalValues)
             #print sensitivity[var]
         else:
             # For 5 levels per variable we have additional cases 
@@ -363,14 +374,16 @@ def main():
                        ( 1/tooHighDeltaX**2 - 1/tooLowDeltaX**2 - \
                          ( 1/highDeltaX**2 - 1/lowDeltaX**2 )*weighting )
             sensitivity[var] = numer/denom*nominalX/array(nominalValues) 
-            
+            sensitivity_abs[var] = numer/denom
         # Now calculate the uncertainty in each exit flow variable
         # due to the uncertainty in the current (perturbed)
         # input variable
         uncertainty[var] = sensitivity[var]*inputUncertainties[var]
    
     # Write out a file of the sensitivities
-    write_sensitivity_summary(sensitivity, perturbedVariables, exitVar)
+    write_sensitivity_summary(sensitivity, perturbedVariables, exitVar, 'relative')
+    write_sensitivity_summary(sensitivity_abs, perturbedVariables, exitVar, 'absolute')
+    
     # Write out a file of the uncertainties
     write_uncertainty_summary(uncertainty, perturbedVariables, exitVar,\
                               inputUncertainties)
