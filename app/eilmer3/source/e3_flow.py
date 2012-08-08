@@ -542,11 +542,15 @@ class StructuredGridFlow(object):
                     if add_molef:
                         # Accumulate the mass fractions and then compute the mole fractions
                         # in the context of the gas model.
-                        massf = [self.data['massf[%d]' % isp][i,j,k] for isp in range(self.nsp)]
+                        massf = []
+                        for isp in range(self.nsp):
+                            specname = self.gmodel.species_name(isp).replace(' ', '-')
+                            massf.append(self.data['massf[%d]-%s' % (isp, specname)][i,j,k])
                         # molef = convert_massf2molef(massf, self.gmodel.M()) # works OK
                         molef = self.gmodel.to_molef(massf)
                         for isp in range(self.nsp):
-                            self.data['molef[%d]' % isp][i,j,k] = molef[isp]
+                            specname = self.gmodel.species_name(isp).replace(' ', '-')
+                            self.data['molef[%d]-%s' % (isp, specname)][i,j,k] = molef[isp]
         # end of adding new data values for a block
         return
 
