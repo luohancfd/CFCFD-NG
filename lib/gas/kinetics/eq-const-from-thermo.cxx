@@ -39,6 +39,8 @@ s_eval(const Gas_data &Q)
     for ( size_t imode=0; imode<Q.T.size(); ++imode ) {
     	Q_->T[imode] = Q.T[iT_];
     }
+    // Set pressure to atmospheric so that standard state entropy is evaluated
+    Q_->p = PC_P_atm;
     double dG = 0.0;
     int nu_sum = 0;
     map<int, int>::const_iterator it;

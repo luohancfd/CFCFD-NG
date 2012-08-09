@@ -358,5 +358,5 @@ double
 Perfect_thermal_behaviour::
 s_eval_entropy_isp(const Gas_data &Q, Equation_of_state *EOS_, int isp)
 {
-    return (*s_[isp])(Q.T[0]);
+    return (*s_[isp])(Q.T[0]) - R_[isp]*log(Q.p/PC_P_atm);
 }
