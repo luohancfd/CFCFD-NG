@@ -64,7 +64,7 @@ def locate_shock_along_strip(x, y, p):
     """
     n = len(x)
     p_max = max(p)
-    p_trigger = p[0] + 0.3 * (p_max - p[0])
+    p_trigger = 0.5e6
     x_old = x[0]; y_old = y[0]; p_old = p[0]
     for i in range(1,n):
         x_new = x[i]; y_new = y[i]; p_new = p[i]
@@ -126,7 +126,7 @@ paramDict = {'jobName': jobName, 'stage':0, 'Rc':Rc, 'flow_lengths':30,
 
 # We will work through the following resolutions, one for each stage.
 nn_list = [30, 60, 90, 135]
-fl_list = [30, 3, 2, 2]
+fl_list = [30, 9, 6, 6]
 # ...and collect the d/D values for a summary at the end.
 d_list = []
 
