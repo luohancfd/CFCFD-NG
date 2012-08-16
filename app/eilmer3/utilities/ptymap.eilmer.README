@@ -1,0 +1,11 @@
+To install Eilmer3 property map for Gridpro.
+
+1. Copy ptymap.eilmer to $GRIDPRO/az_mngr/
+
+2. Add following line to file $GRIDPRO/az_mngr/ptymap.menu:
+
+Eilmer &pty=Eilmer & ptymap.eilmer
+
+Now, 'Eilmer' should appear in the list of solvers to select
+from when setting "properties", ie. boundary conditions.
+

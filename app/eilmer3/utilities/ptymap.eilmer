@@ -1,0 +1,30 @@
+23 # 2d-ptys (currently Gridpro limits this to a maximum of 32)
+#pdc-id & pdc-name  & mapped-name & label      #comments
+1       & INTERBLK  & INTERBLK    &*INTERBLK   #Gridpro default
+2       & BOUNDARY  & BOUNDARY    &*BOUNDARY   #Gridpro default
+3       & PERIODIC  & PERIODIC    &*PERIODIC   #Gridpro default
+4       & EILMER1   & SUP_IN      & sup-in     #Eilmer Sup-in
+5       & EILMER2   & SUP_OUT     & sup-out    #Eilmer Sup-out
+6       & EILMER3   & SLIP_WALL   & slip-wall  #Eilmer Slip-wall
+7       & EILMER4   & ADIABATIC   & adiabatic  #Eilmer Adiabatic
+8       & EILMER5   & FIXED_T     & fixed-T    #Eilmer Fixed-T
+9       & EILMER6   & SUBSONIC_IN & sub-in     #Eilmer Subsonic-in
+10      & EILMER7   & SUBSONIC_OUT & sub-out   #Eilmer Subsonic-out
+11      & EILMER8   & TRANSIENT_UNI & trans-uni #Eilmer Transient-uniform
+12      & EILMER9   & TRANSIENT_PROF & trans-prof #Eilmer Transient profile
+13      & EILMER10  & STATIC_PROF & stat-prof  #Eilmer static profile
+14      & EILMER11  & FIXED_P_OUT & fxd-p-out  #Eilmer fixed-pressure-out
+15      & EILMER12  & RRM         & rrm        #Eilmer rrm
+16      & EILMER13  & TRANSIENT_T_WALL & trans-T-wl #Eilmer transient T wall
+17      & EILMER15  & SEB         & seb        #Eilmer surface energy balance
+18      & EILMER16  & USER_DEFINED & udf       #Eilmer user-defined
+19      & EILMER17  & ADJACENT_PLUS_UDF & adj+udf #Eilmer adjacent_plus_udf
+20      & EILMER18  & ABLATING    & ablating   #Eilmer ablating
+21      & EILMER19  & SLIDING_T   & sliding-T  #Eilmer Sliding-T
+22      & EILMER20  & FSTC        & fstc       #Eilmer Fluid-structure thermal coupling
+23      & EILMERN1  & SPECIAL     & special    #Eilmer special (-1)
+#--------------------------------------------------------------
+1 # 3d-ptys
+#pdc-id & pdc-name  & mapped-name & label      #comments
+1       & BULK      & DEFAULT     &*FLUID      #Gridpro required
+#------------------------ END OF FILE -------------------------

@@ -155,7 +155,7 @@ E3_OBJECTS_2_MPI := exch_mpi.o
 
 PY_FILES = e3prep.py e3post.py turbo_post.py cgns_grid.py e3cgns.py e3history.py \
 	e3_block.py e3_render.py e3_grid.py e3_flow.py bc_defs.py flux_dict.py \
-	libprep3.py e3_defs.py
+	libprep3.py e3_defs.py e3_bc_util.py
 
 # Assume Unix/Linux
 LOADABLE_MODULE := _libprep3.so
@@ -313,6 +313,9 @@ e3_flow.py : $(SRC)/e3_flow.py
 
 e3_render.py : $(SRC)/e3_render.py
 	cp $(SRC)/e3_render.py .
+
+e3_bc_util.py : $(SRC)/e3_bc_util.py
+	cp $(SRC)/e3_bc_util.py .
 
 flux_dict.py : $(SRC)/flux_dict.py
 	cp $(SRC)/flux_dict.py .
@@ -638,7 +641,7 @@ cell_finder.o : $(SRC)/cell_finder.cxx $(SRC)/cell_finder.hh
 
 mersenne.o : $(UTIL_SRC)/mersenne.cpp $(UTIL_SRC)/randomc.h
 	$(CXX) $(CXXFLAG) $(UTIL_SRC)/mersenne.cpp
-	
+
 ray_tracing_pieces.o : $(SRC)/ray_tracing_pieces.cxx $(SRC)/ray_tracing_pieces.hh 
 	$(CXX) $(CXXFLAG) $(SRC)/ray_tracing_pieces.cxx -I$(LUA_INCLUDE_DIR)
 

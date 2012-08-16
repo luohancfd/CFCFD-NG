@@ -1,0 +1,6 @@
+A dummy example to test that Gridpro grids and boundary condition
+(what they call property information) can be imported into Eilmer.
+
+To test:
+> e3prep.py --job=test
+

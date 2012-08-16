@@ -766,6 +766,39 @@ def read_plot3d_grid_binary_file(gname):
     #
     return (ni, nj, nk, grids)
 
+def read_gridpro_grid(gname):
+    """
+    Reads a complete Gridpro grid file, returns a list of StructuredGrids.
+
+    A complete Gridpro grid file contains multiple blocks. This function
+    will read through all blocks and store them as StructuredGrid objects.
+    These are returned by the function.
+    
+    :param gname: name of Gridpro grid file
+    :returns: list of StructuredGrid object(s)
+    
+    .. Author: Rowan J. Gollan
+    .. Date: 16-Aug-2012
+    """
+    f = open(gname, 'r')
+    grids = []
+    while true:
+        tks = f.readline().split()
+        if not tks:
+            # Presumably reached end of file
+            break
+        ni, nj, nk = int(tks[0]), int(tks[1]), int(tks[2])
+        grids.append(StructuredGrid([ni, nj, nk]))
+        for i in range(ni):
+            for j in range(nj):
+                for k in range(nk):
+                    tks = f.readline().split()
+                    grids[-1].x[i,j,k] = float(tks[0])
+                    grids[-1].y[i,j,k] = float(tks[1])
+                    grids[-1].z[i,j,k] = float(tks[2])
+    f.close()
+    return grids
+
 #--------------------------------------------------------------------
 
 if __name__ == '__main__':
