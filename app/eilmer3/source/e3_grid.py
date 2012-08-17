@@ -782,7 +782,7 @@ def read_gridpro_grid(gname):
     """
     f = open(gname, 'r')
     grids = []
-    while true:
+    while True:
         tks = f.readline().split()
         if not tks:
             # Presumably reached end of file
