@@ -8,11 +8,90 @@ boundary condition information from some external source.
 
 .. Versions:
    16-Aug-2012 initial coding
+   19-Aug-2012 Add support for parsing Gridpro .conn file.
 """
 import sys
 
+from e3_defs import *
 from e3_flow import FlowCondition
+from bc_defs import AdjacentBC
 #-----------------------------------------------------------------------
+def determine_orientation(faceA, faceB, axis_map):
+    # FIX ME PLEASE PJ.
+
+    # Break open axis_map
+    imap = int(axis_map[0])
+    jmap = int(axis_map[1])
+    kmap = int(axis_map[2])
+    
+    return
+
+def apply_gridpro_connectivity(fname, blks):
+    """
+    Apply block connections from Gridpro connectivity file.
+    
+    :param fname: File name of Gridprop connectivity file.
+    :param blks: a list of Block object(s)
+    """
+    fname = open(fname, 'r')
+    while True:
+        line = f.readline()
+        if line.startswith("#"): continue
+        else: break
+    nb = int(line.split()[0])
+    conns = []
+    for ib in range(nb):
+        cons.append({})
+        while True:
+            line = f.readline()
+            if line.startswith("#"): continue
+            else: break
+        tks = line.split()
+        # Work on faces in order.
+        # Gridpro imin ==> Eilmer WEST face
+        other_blk = int(tks[4])
+        if other_blk > 0: # there is a connection
+            conns[ib]["WEST"] = (other_blk-1, tks[5])
+        # Gridpro imax ==> Eilmer EAST face
+        other_blk = int(tks[8])
+        if other_blk > 0:
+            conns[ib]["EAST"] = (other_blk-1, tks[9])
+        # Gridpro jmin ==> Eilmer SOUTH face
+        other_blk = int(tks[12])
+        if other_blk > 0:
+            conns[ib]["SOUTH"] = (other_blk-1, tks[13])
+        # Gridpro jmax ==> Eilmer NORTH face
+        other_blk = int(tks[16])
+        if other_blk > 0:
+            conns[ib]["NORTH"] = (other_blk-1, tks[17])
+        # Gridpro kmin ==> Eilmer BOTTOM face
+        other_blk = int(tks[20])
+        if other_blk > 0:
+            conns[ib]["BOTTOM"] = (other_blk-1, tks[21])
+        # Gridpro kmax ==> Eilmer TOP face
+        other_blk = int(tks[24])
+        if other_blk > 0:
+            conns[ib]["TOP"] = (other_blk-1, tks[25])
+    
+    for ib in range(nb):
+        for faceA, (oblk, axis_map) in conns[ib].items():
+            A = blks[ib]
+            B = blks[oblk]
+            # Retrieve connection info about other block, then
+            # delete other info (as its no longer needed)
+            for face, (oblk2, axis_map2) in conns[oblk].items():
+                if oblk2 == ib:
+                    faceB = face
+                    break
+            # delete entry for that face from other block
+            conns[oblk].pop(faceB)
+            orientation = determine_orientation(faceA, faceB, axis_map)
+            # Connect blocks
+            A.bc_list[faceA] = AdjacentBC(B.blkId, faceB, orientation)
+            B.bc_list[faceB] = AdjacentBC(A.blkId, faceA, orientation)
+    
+    return
+
 
 def apply_gridpro_bcs(fname, blks, bc_map):
     """
