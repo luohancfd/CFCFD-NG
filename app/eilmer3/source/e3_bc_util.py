@@ -15,7 +15,7 @@ import sys
 from e3_defs import *
 from e3_flow import FlowCondition
 from bc_defs import AdjacentBC
-from e3_block import eilmer_orientation
+from e3_block import get_eilmer_orientation
 
 #-----------------------------------------------------------------------
 
@@ -26,7 +26,8 @@ def apply_gridpro_connectivity(fname, blks):
     :param fname: File name of Gridprop connectivity file.
     :param blks: a list of Block object(s)
     """
-    fname = open(fname, 'r')
+    print "Apply GridPro connectivity from file:", fname
+    f = open(fname, 'r')
     while True:
         line = f.readline()
         if line.startswith("#"): continue
@@ -34,7 +35,7 @@ def apply_gridpro_connectivity(fname, blks):
     nb = int(line.split()[0])
     conns = []
     for ib in range(nb):
-        cons.append({})
+        conns.append({})
         while True:
             line = f.readline()
             if line.startswith("#"): continue
@@ -78,11 +79,16 @@ def apply_gridpro_connectivity(fname, blks):
                     break
             # delete entry for that face from other block
             conns[oblk].pop(faceB)
-            orientation = eilmer_orientation(faceA, faceB, axis_map)
+            ifaceA = faceDict[faceA]
+            ifaceB = faceDict[faceB]
+            orientation = get_eilmer_orientation(ifaceA, ifaceB, axis_map)
+            print "Connect ib=", ib, "oblk=", oblk, \
+                "faceA=", faceA, "faceB=", faceB, \
+                "axis_map=", axis_map, "orientation=", orientation
             # Connect blocks
-            A.bc_list[faceA] = AdjacentBC(B.blkId, faceB, orientation)
-            B.bc_list[faceB] = AdjacentBC(A.blkId, faceA, orientation)
-    #
+            A.bc_list[ifaceA] = AdjacentBC(B.blkId, ifaceB, orientation)
+            B.bc_list[ifaceB] = AdjacentBC(A.blkId, ifaceA, orientation)
+    print "Apply GridPro connectivity: Done."
     return
 
 

@@ -18,26 +18,7 @@ from e3_flow import *
 # Dictionaries to look up boundary-condition,
 from bc_defs import *
 from flux_dict import *
-
-
-def convert_axis_map(this_ijk):
-    """
-    Convert from GridPro axis_map string to Eilmer3 axis_map string.
-
-    From GridPro manual, Section 7.3.2 Connectivity Information.
-    Example, 123 --> '+i+j+k'
-    """
-    gridpro_other_axis = {0:'xx', 1:'+i', 2:'+j', 3:'+k', 4:'-i', 5:'-j', 6:'-k'}
-    if type(this_ijk) == type('a'):
-        pass
-    elif type(this_ijk) == type(0):
-        this_ijk = "%03d" % this_ijk
-    else:
-        print "Expected a string or integer of three digits but got this_ijk=", this_ijk
-        sys.exit(-1)
-    other_ijk = [gridpro_other_axis[int(d)] for d in this_ijk].join('')
-    return other_ijk
-
+import string
 
 # The folowing dictionary provides a map from inter-block connections
 # that are defined by (A,B) vertex pairs to inter-block connections that
@@ -383,6 +364,36 @@ eilmer_orientation = {}
 for vpairs in connectionDict3D.keys():
     this_face, other_face, orientation, axis_map = connectionDict3D[vpairs]
     eilmer_orientation[this_face,other_face,axis_map] = orientation 
+
+# print "eilmer_orientation=", eilmer_orientation
+
+def to_eilmer_axis_map(this_ijk):
+    """
+    Convert from GridPro axis_map string to Eilmer3 axis_map string.
+
+    From GridPro manual, Section 7.3.2 Connectivity Information.
+    Example, 123 --> '+i+j+k'
+    """
+    gridpro_other_axis = {0:'xx', 1:'+i', 2:'+j', 3:'+k', 4:'-i', 5:'-j', 6:'-k'}
+    if type(this_ijk) == type('a'):
+        pass
+    elif type(this_ijk) == type(0):
+        this_ijk = "%03d" % this_ijk
+    else:
+        print "Expected a string or integer of three digits but got this_ijk=", this_ijk
+        sys.exit(-1)
+    other_ijk = string.join([gridpro_other_axis[int(d)] for d in this_ijk], '')
+    return other_ijk
+
+def get_eilmer_orientation(this_face, other_face, gridpro_axis_map):
+    """
+    Returns an orientation integer, 0..3, for the orientation of the block connection.
+
+    Note that, when accessing the dictionary of orientations, 
+    we convert to the form of keys actually present in the dictionary.
+    """
+    return eilmer_orientation[faceDict[this_face], faceDict[other_face], 
+                              to_eilmer_axis_map(gridpro_axis_map)]
 
 #----------------------------------------------------------------------
 

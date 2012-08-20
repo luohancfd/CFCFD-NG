@@ -29,7 +29,8 @@ blk_list = []
 for ib in range(len(grids)):
     blk_list.append(Block3D(grid=grids[ib], fill_condition=initial))
 
-identify_block_connections()
+# identify_block_connections()
+apply_gridpro_connectivity('blk.tmp.conn', blk_list) 
 print type(inflow)
 bc_map = {'SUP_IN': inflow,
           'FIXED_T': 450.0 }
