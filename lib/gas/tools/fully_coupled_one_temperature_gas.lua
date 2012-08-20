@@ -158,6 +158,23 @@ function create_fully_coupled_one_temperature_gas(species, f)
             _G[sp]["species_type"] = "polar fully coupled diatomic"
          end
          _G[sp]["oscillator_type"] = "truncated anharmonic"
+      elseif string.find(_G[sp]["species_type"],"polyatomic") then
+         type_list = polyatomic_type_list
+         value_list = base_value_list
+         if string.find( _G[sp]["species_type"], "nonpolar" ) then
+            if string.find( _G[sp]["species_type"], "nonlinear" ) then
+               _G[sp]["species_type"] = "nonlinear nonpolar fully coupled polyatomic"
+            else
+               _G[sp]["species_type"] = "linear nonpolar fully coupled polyatomic"
+            end
+         else
+            if string.find( _G[sp]["species_type"], "nonlinear" ) then
+               _G[sp]["species_type"] = "nonlinear polar fully coupled polyatomic"
+            else
+               _G[sp]["species_type"] = "linear polar fully coupled polyatomic"
+            end
+         end
+         _G[sp]["oscillator_type"] = "truncated anharmonic"
       elseif string.find(_G[sp]["species_type"],"monatomic") then
          type_list = monatomic_type_list
          value_list = base_value_list

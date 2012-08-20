@@ -675,7 +675,7 @@ s_molecular_weight(int isp)
 
 double
 Gas_model::
-s_modal_enthalpy( double T, int isp, int itm )
+s_modal_enthalpy( const Gas_data &Q, int isp, int itm )
 {
     // NOTE: this function should never be used as the multi-temperature thermal
     //       models implement their own s_modal_enthalpy() function

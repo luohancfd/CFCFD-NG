@@ -70,3 +70,40 @@ CH4.p_c = {
    description = 'critical pressure',
    reference = 'Poling, B.E. et al. (2001). The Properties of Gases and Liquids. Section A, p.A.5'
 }
+
+-- noneq data
+
+CH4.species_type = "nonlinear nonpolar polyatomic"
+CH4.s_0 = {
+   value = 0.0,
+   units = 'J/kg-K',
+   description = 'Dummy standard state entropy at 1 bar',
+   reference = 'NIST Chemistry WebBook: http://webbook.nist.gov/chemistry/'
+}
+CH4.h_f = {
+   value = -4650159.64,
+   units = 'J/kg',
+   description = 'Heat of formation',
+   reference = 'from CEA2::thermo.inp'
+}
+CH4.I = {
+   value = 0.0,
+   units = 'J/kg',
+   description = 'Dummy ground state ionization energy',
+   reference = 'NA'
+}
+CH4.Z = {
+   value = 0,
+   units = 'ND',
+   description = 'Charge number',
+   reference = 'NA'
+}
+CH4.electronic_levels = {
+   n_levels = 1,
+   ref = 'dummy electronic levels',
+   -- ==============================================================================================================================================
+   --   n       Te         re       g       dzero      A0        B0          C0       sigma   sigma_rot   we[0]      we[1]      we[2]      we[3]
+   -- ==============================================================================================================================================
+   ilev_0  = {      0.00,  0.0,     0,      0.0,       0.0,      0.0,        0.000,   1,      0,          0.0,       0.0,       0.0,       0.0 },
+   -- ==============================================================================================================================================
+}

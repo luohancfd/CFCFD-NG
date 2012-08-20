@@ -62,6 +62,43 @@ H2O.p_c = {
    reference = 'Poling, B.E. et al. (2001). The Properties of Gases and Liquids. Section A, p.A.5'
 }
 
+-- Nonequilibrium data
+
+H2O.species_type = "nonlinear polar polyatomic"
+H2O.s_0 = {
+   value = 0.0,
+   units = 'J/kg-K',
+   description = 'Dummy standard state entropy at 1 bar',
+   reference = 'NA'
+}
+H2O.h_f = {
+   value = -13423382.82,
+   units = 'J/kg',
+   description = 'Heat of formation',
+   reference = 'from CEA2::thermo.inp'
+}
+H2O.Z = {
+   value = 0,
+   units = 'ND',
+   description = 'Charge number',
+   reference = 'NA'
+}
+H2O.I = {
+   value = 0.0,
+   units = 'J/kg',
+   description = 'Dummy ground state ionization energy',
+   reference = 'none'
+}
+H2O.electronic_levels = {
+   n_levels = 1,
+   ref = 'JANAF Tables 1985 (3rd edition)',
+   -- ====================================================================================================================================
+   --   n       Te         re       g       dzero      A0        B0          C0        sigma   sigma_rot   we[0]      we[1]      we[2]
+   -- ====================================================================================================================================
+   ilev_0  = {      0.00,  0.9587,  1,      0.0,       27.8847,  14.5118,    9.2806,   2,      0,          3651.1,    1594.7,    3755.9 }
+   -- ====================================================================================================================================
+}
+
 -- Real gas data
 
 H2O.reference_state = {

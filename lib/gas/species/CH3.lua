@@ -58,3 +58,41 @@ CH3.thermal_conductivity = {
       ref = 'ref="cea2 data for CH4"'
    }
 }
+
+-- noneq data
+
+CH3.species_type = "nonlinear nonpolar polyatomic"
+CH3.s_0 = {
+   value = 0.0,
+   units = 'J/kg-K',
+   description = 'Dummy standard state entropy at 1 bar',
+   reference = 'NIST Chemistry WebBook: http://webbook.nist.gov/chemistry/'
+}
+CH3.h_f = {
+   value = 9754753.73,
+   units = 'J/kg',
+   description = 'Heat of formation',
+   reference = 'from CEA2::thermo.inp'
+}
+CH3.I = {
+   value = 0.0,
+   units = 'J/kg',
+   description = 'Dummy ground state ionization energy',
+   reference = 'NA'
+}
+CH3.Z = {
+   value = 0,
+   units = 'ND',
+   description = 'Charge number',
+   reference = 'NA'
+}
+CH3.electronic_levels = {
+   n_levels = 1,
+   ref = 'dummy electronic levels',
+   -- ==============================================================================================================================================
+   --   n       Te         re       g       dzero      A0        B0          C0       sigma   sigma_rot   we[0]      we[1]      we[2]      we[3]
+   -- ==============================================================================================================================================
+   ilev_0  = {      0.00,  0.0,     0,      0.0,       0.0,      0.0,        0.000,   1,      0,          0.0,       0.0,       0.0,       0.0 },
+   -- ==============================================================================================================================================
+}
+

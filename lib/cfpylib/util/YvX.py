@@ -69,14 +69,17 @@ class YvX:
     def check_range(self, x_val):
         if x_val<self.x_array[0] or x_val>self.x_array[-1]: return False
         else: return True
-    def write_to_file( self, outfile_name="YvX.txt", header="" ):
+    def write_to_file( self, outfile_name="YvX.txt", header="", include_integral=False ):
         print "Writing %d datapoints to file: %s" % ( len(self.x_array), outfile_name )
         oFile = open( outfile_name, 'w' )
         oFile.write("# filename: %s\n" % outfile_name )
         oFile.write("#  created: %s\n" % datetime.now() )
         oFile.write( header )
         for i in range(len(self.x_array)):
-            oFile.write("%e \t %e\n" % ( self.x_array[i], self.y_array[i] ) )
+            if include_integral:
+                oFile.write("%e \t %e \t %e\n" % ( self.x_array[i], self.y_array[i], self.integral[i] ) )
+            else:
+                oFile.write("%e \t %e\n" % ( self.x_array[i], self.y_array[i] ) )
         oFile.close()
         print "Done"
     def plot_data( self, title="", xlabel="", ylabel="", label="YvX_data", new_plot=True, show_plot=False, include_integral=False, rep='-', logscale_y=False, xrange=None, yrange=None ):

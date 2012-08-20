@@ -230,6 +230,25 @@ private:
     Radiator * elec;
 };
 
+class NoneqAtomicRadiator : public AtomicRadiator {
+public:
+    /// \brief Constructor
+    NoneqAtomicRadiator( lua_State * L, std::string name );
+
+    /// \brief Deconstructor
+    ~NoneqAtomicRadiator();
+
+    /// \brief Collisional-radiative model in LaTeX format
+    std::string CR_model_latex_string() { return ""; };
+
+private:
+    /// \brief Calculate electronic state number densities
+    void calculate_n_e( Gas_data &Q );
+
+private:
+    std::vector<int> isp_list;
+};
+
 int get_atomic_transition_type( AtomicElecLev * lev_i, AtomicElecLev * lev_f );
 
 #endif

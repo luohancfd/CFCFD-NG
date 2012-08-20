@@ -270,6 +270,8 @@ Radiator * create_new_radiator( lua_State * L, const std::string name )
 	    new_radiator = new BoltzDiatomicRadiator(L,name);
 	else if ( E_pop_method=="QSS" )
 	    new_radiator = new QSSDiatomicRadiator(L,name);
+        else if ( E_pop_method=="noneq" )
+            new_radiator = new NoneqDiatomicRadiator(L,name);
     }
     else if( type == "atomic_radiator" ) {
 	if ( E_pop_method=="boltzmann" )
@@ -278,6 +280,8 @@ Radiator * create_new_radiator( lua_State * L, const std::string name )
 	    new_radiator = new QSSAtomicRadiator(L,name);
 	else if ( E_pop_method=="FirstOrderLTNE" )
 	    new_radiator = new FirstOrderLTNEAtomicRadiator(L,name);
+        else if ( E_pop_method=="noneq" )
+            new_radiator = new NoneqAtomicRadiator(L,name);
     }
     else if ( type == "electron_radiator" ) {
 	new_radiator = new ElectronRadiator(L,name);

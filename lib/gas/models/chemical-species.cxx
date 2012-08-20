@@ -41,6 +41,10 @@ Chemical_species * new_chemical_species_from_file( string name, string inFile )
         X = new Fully_coupled_diatomic_species( string(name), species_type, 0, 0.0, L );
     else if ( species_type.find("diatomic")!=string::npos )
 	X = new Diatomic_species( string(name), species_type, 0, 0.0, L );
+    else if ( species_type.find("fully coupled polyatomic")!=string::npos )
+        X = new Fully_coupled_polyatomic_species( string(name), species_type, 0, 0.0, L );
+    else if ( species_type.find("polyatomic")!=string::npos )
+        X = new Polyatomic_species( string(name), species_type, 0, 0.0, L );
     else if ( species_type.find("free electron")!=string::npos )
 	X = new Free_electron_species( string(name), species_type, 0, 0.0, L );
     else {
@@ -134,6 +138,50 @@ Chemical_species::get_mode_pointer_from_type( string type )
     	 << "mode type: " << type << " not found." << endl
     	 << "Bailing out!" << endl;
     exit( BAD_INPUT_ERROR );
+}
+
+Electronic*
+Chemical_species::get_electronic_mode_pointer()
+{
+    // First test that there is mode in the 1 position
+    if ( modes_.size()<2 ) {
+        cout << "Chemical_species::get_electronic_mode_pointer()" << endl
+             << "No energy mode found in the expected position!" << endl;
+        exit( FAILURE );
+    }
+
+    // Now ensure that this is the electronic mode
+    // FIXME: somehow need to ensure this is a Multi_level_electronic instance
+    if ( modes_[1]->get_type()!="electronic") {
+        cout << "Chemical_species::get_multi_level_electronic_mode_pointer()" << endl
+             << "Electronic mode not found in the expected position!" << endl;
+        exit( FAILURE );
+    }
+
+    // Now can safely do the dynamic cast and return the pointer
+    return dynamic_cast<Electronic*>(modes_[1]);
+}
+
+Multi_level_electronic*
+Chemical_species::get_multi_level_electronic_mode_pointer()
+{
+    // First test that there is mode in the 1 position
+    if ( modes_.size()<2 ) {
+        cout << "Chemical_species::get_multi_level_electronic_mode_pointer()" << endl
+             << "No energy mode found in the expected position!" << endl;
+        exit( FAILURE );
+    }
+
+    // Now ensure that this is the electronic mode
+    // FIXME: somehow need to ensure this is a Multi_level_electronic instance
+    if ( modes_[1]->get_type()!="electronic") {
+        cout << "Chemical_species::get_multi_level_electronic_mode_pointer()" << endl
+             << "Electronic mode not found in the expected position!" << endl;
+        exit( FAILURE );
+    }
+
+    // Now can safely do the dynamic cast and return the pointer
+    return dynamic_cast<Multi_level_electronic*>(modes_[1]);
 }
 
 int
@@ -242,7 +290,7 @@ double Chemical_species::s_eval_energy(const Gas_data &Q)
     // 2. Thermal energy modes
     for ( size_t iem=0; iem<modes_.size(); ++iem )
     	e += modes_[iem]->eval_energy(Q);
-    
+
     return e;
 }
 
@@ -355,6 +403,18 @@ s_eval_CEA_Gibbs_free_energy( double T )
     
     return g;
 }
+
+double
+Chemical_species::
+s_eval_partition_function( double T )
+{
+    double Q = exp(-h_f_/R_/T);
+    for ( size_t iem=0; iem<modes_.size(); ++iem )
+        Q *= modes_[iem]->eval_Q_from_T(T);
+
+    return Q;
+}
+
 
 /* ------- Atomic species ------- */
 
@@ -791,7 +851,7 @@ Polyatomic_species::Polyatomic_species( string name, string type, int isp, doubl
     UNUSED_VARIABLE(sigma_r);
     
     // Excited states - electron degeneracy and energy only
-    for ( int ilev=0; ilev<nlevs; ++ilev ) {
+    for ( int ilev=1; ilev<nlevs; ++ilev ) {
     	ostringstream lev_oss;
     	lev_oss << "ilev_" << ilev;
     	lua_getfield(L, -1, lev_oss.str().c_str());
@@ -820,10 +880,12 @@ Polyatomic_species::Polyatomic_species( string name, string type, int isp, doubl
     	modes_.push_back( new Multi_level_electronic( isp_, R_, min_massf_, g_el_vec, theta_el_vec ) );
     // [2] Rotation
     if ( type.find("nonlinear")!=string::npos ) {
+        linear_flag_ = false;
     	// Different s, e and c_v expressions for non-linear molecules
     	modes_.push_back( new Fully_excited_nonlinear_rotation( isp_, R_, min_massf_, theta_A0, theta_B0, theta_C0, sigma ) );
     }
     else {
+        linear_flag_ = true;
     	modes_.push_back( new Fully_excited_rotation( isp_, R_, min_massf_, theta_B0, sigma ) );
     }
     // [3:] Vibration
@@ -867,6 +929,83 @@ s_eval_Cv_vib( const Gas_data &Q )
     	Cv_vib += modes_[i]->eval_Cv(Q);
     
     return Cv_vib;
+}
+
+/* ------- Fully coupled polyatomic species -------- */
+
+Fully_coupled_polyatomic_species::
+Fully_coupled_polyatomic_species( string name, string type, int isp, double min_massf, lua_State * L )
+ : Chemical_species( name, type, isp, min_massf, L )
+{
+    // polarity flag
+    if ( type.find("nonpolar")!=string::npos )
+        polar_flag_ = false;
+    else
+        polar_flag_ = true;
+
+    // linearity flag
+    if ( type.find("nonlinear")!=string::npos )
+        linear_flag_ = false;
+    else
+        linear_flag_ = true;
+
+    // Set the temperature perturbation factor (used for finding derivatives numerically)
+    double fT = 1.0e-6;
+
+    lua_getfield(L, -1, "electronic_levels");
+    if ( !lua_istable(L, -1) ) {
+        ostringstream ost;
+        ost << "Fully_coupled_polyatomic_species::Fully_coupled_polyatomic_species()\n";
+        ost << "Error locating 'level_data' table" << endl;
+        input_error(ost);
+    }
+
+    int nlevs = get_int(L, -1, "n_levels");
+    if ( nlevs < 1 ) {
+        ostringstream ost;
+        ost << "Fully_coupled_polyatomic_species::Fully_coupled_polyatomic_species()\n";
+        ost << "Require at least 1 electronic level - only " << nlevs << " present.\n";
+        input_error(ost);
+    }
+
+    // Create the electronic levels
+    for ( int ilev=0; ilev<nlevs; ++ilev ) {
+        vector<double> elev_data;
+        ostringstream lev_oss;
+        lev_oss << "ilev_" << ilev;
+        lua_getfield(L, -1, lev_oss.str().c_str());
+        for ( size_t i=0; i<lua_objlen(L, -1); ++i ) {
+            lua_rawgeti(L, -1, i+1);
+            elev_data.push_back( luaL_checknumber(L, -1) );
+            lua_pop(L, 1 );
+        }
+        cout << "Fully_coupled_polyatomic_species::Fully_coupled_polyatomic_species()" << endl
+        << "Attempting to create ilev = " << ilev << " for species: " << name << endl;
+        elevs_.push_back( new Polyatom_electronic_level( elev_data ) );
+        lua_pop(L,1);   // pop ilev
+    }
+
+    lua_pop(L,1);       // pop 'electronic_levels'
+
+    // Create a single temperature fully coupled internal mode
+    fcp_int_ = new Fully_coupled_polyatom_internal( isp_, R_, min_massf_, fT, elevs_ );
+
+    modes_.push_back( new Fully_excited_translation( isp_, R_, min_massf_ ) );
+}
+
+Fully_coupled_polyatomic_species::~Fully_coupled_polyatomic_species()
+{
+    // Clear the electronic levels
+    for ( size_t ilev=0; ilev<elevs_.size(); ++ilev )
+        delete elevs_[ilev];
+
+    // Delete the fully coupled polyatomic mode
+    delete fcp_int_;
+}
+
+void Fully_coupled_polyatomic_species::set_modal_temperature_indices()
+{
+    return;
 }
 
 /* ------- Free electron species ------- */

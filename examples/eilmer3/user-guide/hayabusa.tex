@@ -1,0 +1,42 @@
+% hayabusa.tex
+
+\section{Hayabusa re-entry capsule forebody with radiation coupling}
+\label{sec:hayabusa}
+\index{radiation coupling!example of use}
+\index{finite-rate chemistry|see {chemical reaction}}
+\index{gas model!two temperature!example of use}
+%
+The Hayabusa spacecraft was developed by the Japan Aerospace Exploration Agency to return a sample of a near-Earth asteroid to Earth for scientific analysis.
+The re-entry of the spacecraft into the Earths atmosphere in June 2010 occurred at an estimated velocity of 12.2\,km/s and was observed by a number of teams via ground and airborne instruments~\cite{butts_2010}.
+The high entry velocity for Hayabusa makes it an interesting case for radiation--flowfield coupling.
+The peak heating condition was predicted to occur at an altitude of X\,km and a velocity of 11.6\,km/s~\cite{SFA2003}.
+
+\begin{table}[h]
+ \small
+ \centering
+ \caption{Peak heating freestream conditions for the Hayabusa capsule. }
+ \label{tab:hayabusa_effective_flight}
+ \begin{tabular*}{0.5\textwidth}{ccc}
+  \hline Altitude (km)                                                            & X\\
+             Density,  $\rho_\infty$ (kg/m$^3$)                      & $1.645 \times 10^{-4}$   \\
+             Temperature, $T_\infty$ (K)                                 & 233.25         \\
+             Velocity, $u_\infty$ (m/s)                                      & 11600  \\
+             N$_2$ mass-fraction, $f_\text{N$_2$}$            & 0.767 \\
+             O$_2$ mass-fraction, $f_\text{O$_2$}$            & 0.233 \\
+  \hline
+ \end{tabular*}
+\end{table}
+
+\newpage
+
+\subsection{Input script (.py)}
+\topbar
+\lstinputlisting[language={}]{../2D/hayabusa/coupled/hayabusa.py}
+\bottombar
+
+\subsection{Shell scripts}
+\topbar
+\lstinputlisting[language={}]{../2D/hayabusa/coupled/prep.sh}
+\bottombar
+
+\subsection{Notes}

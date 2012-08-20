@@ -56,7 +56,7 @@ private:
     double s_internal_energy(const Gas_data &Q, int isp);
     double s_enthalpy(const Gas_data &Q, int isp);
     double s_entropy(const Gas_data &Q, int isp);
-    double s_modal_enthalpy( double T, int isp, int itm);
+    double s_modal_enthalpy(const Gas_data &Q, int isp, int itm);
     double s_modal_Cv(Gas_data &Q, int itm);
 
     void initialise_ideal_gas(lua_State *L);

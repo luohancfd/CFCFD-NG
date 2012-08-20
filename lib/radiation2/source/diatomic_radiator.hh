@@ -370,6 +370,25 @@ private:
     double T_lower;
 };
 
+class NoneqDiatomicRadiator : public DiatomicRadiator {
+public:
+    /// \brief Constructor
+    NoneqDiatomicRadiator( lua_State * L, std::string name );
+
+    /// \brief Deconstructor
+    ~NoneqDiatomicRadiator();
+
+private:
+    /// \brief Calculate electronic state number densities
+    void calculate_n_e( Gas_data &Q );
+
+    /// \brief Collisional-radiative model in LaTeX format
+    std::string CR_model_latex_string() { return ""; };
+
+private:
+    std::vector<int> isp_list;
+};
+
 // Some helper functions
 int get_diatomic_transition_type( DiatomicElecLev * elev_u, DiatomicElecLev * elev_l );
 

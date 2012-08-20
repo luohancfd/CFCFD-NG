@@ -19,6 +19,7 @@ static bool initialised_flag = false;
 static vector<Atomic_species*> atoms;
 static vector<Fully_coupled_diatomic_species*> fully_coupled_diatoms;
 static vector<Diatomic_species*> diatoms;
+static vector<Fully_coupled_polyatomic_species*> fully_coupled_polyatoms;
 static vector<Polyatomic_species*> polyatoms;
 static Free_electron_species* electron = 0;
 
@@ -74,6 +75,10 @@ int initialise_chemical_species_library( double min_massf, lua_State * L )
 	    diatoms.push_back( new Diatomic_species( string(sp), species_type, isp, min_massf, L ) );
 	    species.push_back( diatoms.back() );
 	}
+	else if ( species_type.find("fully coupled polyatomic")!=string::npos ) {
+	    fully_coupled_polyatoms.push_back( new Fully_coupled_polyatomic_species( string(sp), species_type, 0, 0.0, L ) );
+	    species.push_back( fully_coupled_polyatoms.back() );
+	}
 	else if ( species_type.find("polyatomic")!=string::npos ) {
 	    polyatoms.push_back( new Polyatomic_species( string(sp), species_type, isp, min_massf, L ) );
 	    species.push_back( polyatoms.back() );
@@ -88,8 +93,6 @@ int initialise_chemical_species_library( double min_massf, lua_State * L )
 	    ost << "Could not decode type label for species " << sp << ": " << species_type << endl;
 	    input_error(ost);
 	}
-	// else if ( species_type.find("diatomic")!=string::npos )
-	// else if ( species_type.find("polyatomic")!=string::npos )
 	lua_pop(L, 1);	// pop 'sp'
     }
     
@@ -112,6 +115,9 @@ int clear_chemical_species_library()
     for ( size_t id=0; id<diatoms.size(); ++id )
     	delete diatoms[id];
     
+    for ( size_t ifcp=0; ifcp<fully_coupled_polyatoms.size(); ++ifcp )
+        delete fully_coupled_polyatoms[ifcp];
+
     for ( size_t ip=0; ip<polyatoms.size(); ++ip )
     	delete polyatoms[ip];
     
@@ -120,6 +126,7 @@ int clear_chemical_species_library()
     atoms.clear();
     fully_coupled_diatoms.clear();
     diatoms.clear();
+    fully_coupled_polyatoms.clear();
     polyatoms.clear();
     electron = 0;
     species.clear();
@@ -206,6 +213,30 @@ Diatomic_species * get_library_diatom_pointer_from_name( string name )
     
     cout << "get_library_diatom_pointer_from_name()\n";
     cout << "diatom: " << name << " is not in the species library.\n";
+    cout << "Bailing out!\n";
+    exit(BAD_INPUT_ERROR);
+}
+
+int get_library_nfully_coupled_polyatoms()
+{
+    return (int) fully_coupled_polyatoms.size();
+}
+
+Fully_coupled_polyatomic_species * get_library_fully_coupled_polyatom_pointer( int ifcp )
+{
+    return fully_coupled_polyatoms[ifcp];
+}
+
+Fully_coupled_polyatomic_species * get_library_fully_coupled_polyatom_pointer_from_name( string name )
+{
+
+    for ( size_t ifcp=0; ifcp<fully_coupled_polyatoms.size(); ++ifcp ) {
+        if ( fully_coupled_polyatoms[ifcp]->get_name()==name )
+            return fully_coupled_polyatoms[ifcp];
+    }
+
+    cout << "get_library_fully_coupled_polyatom_pointer_from_name()\n";
+    cout << "fully coupled polyatom: " << name << " is not in the species library.\n";
     cout << "Bailing out!\n";
     exit(BAD_INPUT_ERROR);
 }

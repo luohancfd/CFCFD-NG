@@ -28,7 +28,11 @@ public:
     virtual ~Chemical_species();
     
     Species_energy_mode* get_mode_pointer_from_type( std::string type );
+
+    Electronic* get_electronic_mode_pointer();
     
+    Multi_level_electronic* get_multi_level_electronic_mode_pointer();
+
     int get_element_count( std::string X );
     
     void partial_equilibrium_participants( std::vector<int> &betas, 
@@ -69,6 +73,9 @@ public:
     double eval_CEA_Gibbs_free_energy( double T )
     { return s_eval_CEA_Gibbs_free_energy(T); }
     
+    double eval_partition_function( double T )
+    { return s_eval_partition_function(T); }
+
     std::string get_name()
     { return name_; }
     
@@ -135,6 +142,7 @@ protected:
     double s_eval_Cp(const Gas_data &Q);
     double s_eval_CEA_Gibbs_free_energy( double T );
     double s_eval_gibbs_free_energy(double T);
+    double s_eval_partition_function(double T);
 };
 
 class Atomic_species : public Chemical_species {
@@ -199,13 +207,6 @@ private:
     double theta_v_;
 };
 
-class Fully_coupled_diatomic_species;
-
-struct IntegrationParams  {
-    double A, B;
-    Fully_coupled_diatomic_species * X;
-};
-
 class Fully_coupled_diatomic_species : public Chemical_species {
 public:
     Fully_coupled_diatomic_species( std::string name, std::string type, int isp, double min_massf, lua_State * L );
@@ -227,13 +228,13 @@ public:
     
     double get_r0()
     { return r0_; }
-    
+
     double get_r_eq()
     { return r_eq_; }
-    
+
     double get_f_m()
     { return f_m_; }
-    
+
     double get_mu()
     { return mu_; }
     
@@ -282,23 +283,65 @@ public:
     double get_theta_v()
     { return theta_v_; }
     
+    bool get_linear_flag()
+    { return linear_flag_; }
+
     double eval_Cv_rot( const Gas_data &Q )
-    { return s_eval_Cv_rot(Q); }
+    { return modes_[2]->eval_Cv(Q); }
     
     double eval_Cv_vib( const Gas_data &Q )
     { return s_eval_Cv_vib(Q); }
     
 private:
     std::string oscillator_type_;
+    bool linear_flag_;
     double theta_v_;
     
-    double s_eval_Cv_elec( const Gas_data &Q )
-    { return modes_[1]->eval_Cv(Q); }	// electronic mode always second
-    
-    double s_eval_Cv_rot( const Gas_data &Q )
-    { return modes_[2]->eval_Cv(Q); }	// rotational mode always third
-    
     double s_eval_Cv_vib( const Gas_data &Q );
+};
+
+class Fully_coupled_polyatomic_species : public Chemical_species {
+public:
+    Fully_coupled_polyatomic_species( std::string name, std::string type, int isp, double min_massf, lua_State * L );
+    ~Fully_coupled_polyatomic_species();
+
+    void set_modal_temperature_indices();
+
+    int get_iT_elec()
+    { return modes_[1]->get_iT(); }     // electronic mode always second
+
+    int get_iT_rot()
+    { return modes_[2]->get_iT(); }     // rotational mode always third
+
+    int get_iT_vib()
+    { return modes_[3]->get_iT(); }     // vibrational mode always fourth
+
+    bool get_polar_flag()
+    { return polar_flag_; }
+
+    bool get_linear_flag()
+    { return linear_flag_; }
+
+    double eval_Cv_rot( const Gas_data &Q )
+    { return 0.0; }
+
+    double eval_Cv_vib( const Gas_data &Q )
+    { return 0.0; }
+
+    Fully_coupled_polyatom_internal * get_fcp_int_pointer()
+    { return fcp_int_; }
+
+private:
+    std::string oscillator_type_;
+    bool polar_flag_;
+    bool linear_flag_;
+
+    std::vector<Polyatom_electronic_level*> elevs_;
+
+    Fully_coupled_polyatom_internal * fcp_int_;
+
+    double s_eval_entropy(const Gas_data &Q)
+    { return 0.0; }
 };
 
 class Free_electron_species : public Chemical_species {

@@ -10,27 +10,22 @@ N2_plus_A.M = {
    description = 'molecular mass',
    reference = 'from CEA2::thermo.inp'
 }
+N2_plus_A.CEA_coeffs = {
+   { T_low  = 200.0,
+     T_high = 1000.0,
+     coeffs = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
+   },
+  ref="none"
+}
 
 -- thermal nonequilibrium data
 
 N2_plus_A.species_type = "nonpolar diatomic"
-N2_plus_A.s_0 = {
-   value = 7055.69,
-   units = 'J/kg-k',
-   description = 'Standard state entropy at 1 bar',
-   reference = 'NIST Chemistry WebBook: http://webbook.nist.gov/chemistry/'
-}
 N2_plus_A.h_f = {
    value = 5.3886282e+07,
    units = 'J/kg',
    description = 'Heat of formation',
    reference = 'from CEA2::thermo.inp'
-}
-N2_plus_A.I = {
-   value = 0.0,
-   units = 'J/kg',
-   description = 'Dummy ground state ionization energy',
-   reference = 'NA'
 }
 N2_plus_A.Z = {
    value = 1,

@@ -69,6 +69,8 @@
 %include "GuptaYos-mixing-rule.hh"
 %include "collision-integral.hh"
 %include "binary-interaction.hh"
+%include "diatom-electronic-level.hh"
+%include "polyatom-electronic-level.hh"
 
 %pythoncode %{
 %}

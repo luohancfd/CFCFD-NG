@@ -238,12 +238,17 @@ class AtomicLevelSet(object):
     """Atomic level set class"""
     def __init__(self):
         self.levels = []
+        self.isp_list = []
 	self.comments = ""
     def get_LUA_string(self, aname):
 	ostring  = "%s.level_data = {\n" % ( aname )
 	comments = self.comments.replace('#','   --')
 	ostring += "%s" % ( comments )
 	ostring += tab+"n_levels = %d,\n" % ( len(self.levels) )
+	ostring += tab+"isp_list = { "
+	for isp in self.isp_list:
+	    ostring += "%d, " % isp
+	ostring += "},\n"
 	ostring += tab+"-- ===========================================================\n"
 	ostring += tab+"--   No.     n      E(cm-1)      g     l     L     S    parity \n"
 	ostring += tab+"-- ===========================================================\n"
@@ -311,6 +316,7 @@ class DiatomicLevelSet(object):
     """Diatomic level set class"""
     def __init__(self):
 	self.levels = []
+	self.isp_list = []
 	self.comments = ""
 	
     def get_LUA_string(self, mname):
@@ -318,6 +324,10 @@ class DiatomicLevelSet(object):
 	comments = self.comments.replace("#",tab+"--")
 	ostring += comments
 	ostring += tab+"n_levels = %d,\n" % ( len(self.levels) )
+	ostring += tab+"isp_list = { "
+	for isp in self.isp_list:
+	    ostring += "%d, " % isp
+	ostring += "},\n"
 	ostring += tab+"-- ===========================================================================================================================================================\n"
 	ostring += tab+"--    n      Te         re       g   dzero      we         wexe      weye        weze        be        alphae      de          betae       spn-orb     l   s  \n"
 	ostring += tab+"-- ===========================================================================================================================================================\n"

@@ -19,7 +19,7 @@ ifeq ($(TARGET), for_gnu_openmp)
 endif
 
 ifeq ($(TARGET), for_intel_openmp)
-    OMPFLAG := -fopenmp
+    OMPFLAG := -openmp
 endif
 
 #----------------------------------
