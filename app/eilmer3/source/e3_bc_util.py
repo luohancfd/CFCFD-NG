@@ -15,16 +15,9 @@ import sys
 from e3_defs import *
 from e3_flow import FlowCondition
 from bc_defs import AdjacentBC
-#-----------------------------------------------------------------------
-def determine_orientation(faceA, faceB, axis_map):
-    # FIX ME PLEASE PJ.
+from e3_block import eilmer_orientation
 
-    # Break open axis_map
-    imap = int(axis_map[0])
-    jmap = int(axis_map[1])
-    kmap = int(axis_map[2])
-    
-    return
+#-----------------------------------------------------------------------
 
 def apply_gridpro_connectivity(fname, blks):
     """
@@ -72,7 +65,7 @@ def apply_gridpro_connectivity(fname, blks):
         other_blk = int(tks[24])
         if other_blk > 0:
             conns[ib]["TOP"] = (other_blk-1, tks[25])
-    
+    #
     for ib in range(nb):
         for faceA, (oblk, axis_map) in conns[ib].items():
             A = blks[ib]
@@ -85,11 +78,11 @@ def apply_gridpro_connectivity(fname, blks):
                     break
             # delete entry for that face from other block
             conns[oblk].pop(faceB)
-            orientation = determine_orientation(faceA, faceB, axis_map)
+            orientation = eilmer_orientation(faceA, faceB, axis_map)
             # Connect blocks
             A.bc_list[faceA] = AdjacentBC(B.blkId, faceB, orientation)
             B.bc_list[faceB] = AdjacentBC(A.blkId, faceA, orientation)
-    
+    #
     return
 
 
@@ -118,7 +111,7 @@ def apply_gridpro_bcs(fname, blks, bc_map):
         print "But the number of blocks supplied in the block list is", len(blks)
         print "Bailing out!"
         sys.exit(1)
-
+    #
     bcs = []
     for ib in range(nb):
         while True:
@@ -131,11 +124,11 @@ def apply_gridpro_bcs(fname, blks, bc_map):
         bcs.append({'WEST' : int(tks[4]), 'EAST' : int(tks[6]),
                     'SOUTH' : int(tks[8]), 'NORTH' : int(tks[10]),
                     'BOTTOM' : int(tks[12]), 'TOP' : int(tks[14])})
-    
+    #
     nlabels = int(f.readline().split()[0])
     for il in range(nlabels):
         f.readline()
-    
+    #
     nbc_types = int(f.readline().split()[0])
     bc_type_map = {}
     for ibc in range(nbc_types):
@@ -144,7 +137,7 @@ def apply_gridpro_bcs(fname, blks, bc_map):
             continue
         tks = line.split()
         bc_type_map[int(tks[0])] = tks[1]
-
+    #
     f.close()
     # All the information is gathered.
     # So now loop over the blocks and apply bcs as appropriate.

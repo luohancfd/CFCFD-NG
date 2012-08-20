@@ -20,14 +20,14 @@ from bc_defs import *
 from flux_dict import *
 
 
-# From GridPro manual, Section 7.3.2 Connectivity Information
-gridpro_axis_map = {0:'xx', 1:'+i', 2:'+j', 3:'+k', 4:'-i', 5:'-j', 6:'-k'}
 def convert_axis_map(this_ijk):
     """
     Convert from GridPro axis_map string to Eilmer3 axis_map string.
 
-    For example, 123 --> '+i+j+k'
+    From GridPro manual, Section 7.3.2 Connectivity Information.
+    Example, 123 --> '+i+j+k'
     """
+    gridpro_other_axis = {0:'xx', 1:'+i', 2:'+j', 3:'+k', 4:'-i', 5:'-j', 6:'-k'}
     if type(this_ijk) == type('a'):
         pass
     elif type(this_ijk) == type(0):
@@ -35,7 +35,7 @@ def convert_axis_map(this_ijk):
     else:
         print "Expected a string or integer of three digits but got this_ijk=", this_ijk
         sys.exit(-1)
-    other_ijk = [gridpro_axis_map[d] for d in this_ijk].join('')
+    other_ijk = [gridpro_other_axis[int(d)] for d in this_ijk].join('')
     return other_ijk
 
 
@@ -377,7 +377,12 @@ connectionDict3D[tuple(vpairs)] = (BOTTOM, BOTTOM, 2, '+i-j-k')
 vpairs = [(0,2),(3,3),(2,0),(1,1)]; vpairs.sort()
 connectionDict3D[tuple(vpairs)] = (BOTTOM, BOTTOM, 3, '-j-i-k')
 
-# print connectionDict3D       
+# When reading GridPro block connectivity file, 
+# we need to look up Eilmer notation for connection orientations.
+eilmer_orientation = {}
+for vpairs in connectionDict3D.keys():
+    this_face, other_face, orientation, axis_map = connectionDict3D[vpairs]
+    eilmer_orientation[this_face,other_face,axis_map] = orientation 
 
 #----------------------------------------------------------------------
 

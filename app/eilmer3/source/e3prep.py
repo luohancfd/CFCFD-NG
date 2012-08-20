@@ -76,6 +76,7 @@ import traceback
 from libprep3 import *
 from e3_defs import *
 from e3_block import *
+from e3_bc_util import apply_gridpro_bcs
 from e3_render import *
 # from e3_gas import * # now in gaspy.i included in libprep3.i
 # Make one instance to accumulate the settings for 2D SVG rendering.
