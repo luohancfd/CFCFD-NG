@@ -783,10 +783,11 @@ def read_gridpro_grid(gname):
     f = open(gname, 'r')
     grids = []
     while True:
-        tks = f.readline().split()
-        if not tks:
-            # Presumably reached end of file
-            break
+        line = f.readline().strip()
+        if len(line) == 0: break
+        if line[0] == '#': continue
+        tks = line.split()
+        if not tks: break # Presumably reached end of file
         ni, nj, nk = int(tks[0]), int(tks[1]), int(tks[2])
         grids.append(StructuredGrid([ni, nj, nk]))
         for i in range(ni):
