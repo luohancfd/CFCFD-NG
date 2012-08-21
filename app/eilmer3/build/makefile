@@ -89,7 +89,7 @@ endif
 E3_UTILS := ../utilities/p2e.py ../utilities/import_grid.py \
             ../utilities/tecplot_feblock.py ../utilities/csv_util.py \
             ../utilities/laura2vtk.py ../utilities/import_laura_plot3d.py \
-            ../utilities/shock1d.py
+            ../utilities/shock1d.py ../utilities/e3loadbalance.py
 
 E3_OBJECTS_1 := e3shared.o e3rad.o
 E3_OBJECTS_1_MPI := e3mpi.o
@@ -190,6 +190,7 @@ install : $(INSTALL_DIR) $(E3_EXE_FILES) $(PY_FILES) $(E3_UTILS)
 	- cp -f $(E3_UTILS) $(INSTALL_DIR)
 	- chmod +x $(INSTALL_DIR)/import_laura_plot3d.py
 	- chmod +x $(INSTALL_DIR)/shock1d.py
+	- chmod +x $(INSTALL_DIR)/e3loadbalance.py
 ifeq ($(findstring Darwin, $(SYSTEM)), Darwin)
 	- cp $(INSTALL_DIR)/_libprep3.dylib $(INSTALL_DIR)/_libprep3.so
 endif
