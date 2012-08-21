@@ -67,7 +67,7 @@ parser.add_option("-o", "--output-hostfile", dest="hosts_out", type="string",
                   help="output hostfile with entries re-ordered",
                   metavar="HOSTS_OUT")
 
-def create_task_list(ctrl_fname):
+def create_task_list(cfg_fname):
     """
     Return a list of tuples of form (task_id, task_load).
 
@@ -78,8 +78,8 @@ def create_task_list(ctrl_fname):
     :param ctrl_fname: Name of eilmer control file.
     """
     cp = ConfigParser.ConfigParser()
-    cp.read(ctrl_fname)
-    nblks = int(cp.get("control_data", "nblock"))
+    cp.read(cfg_fname)
+    nblks = int(cp.get("global_data", "nblock"))
 
     tasks = []
     for ib in range(nblks):
@@ -124,8 +124,8 @@ def main():
         print parser.print_help()
         sys.exit(1)
 
-    ctrl_fname = options.jobname + ".control"
-    tasks = create_task_list(ctrl_fname)
+    cfg_fname = options.jobname + ".config"
+    tasks = create_task_list(cfg_fname)
     hosts = parse_hosts_file(options.hosts_in)
     nprocs = len(hosts)
 
