@@ -72,7 +72,7 @@ def apply_gridpro_connectivity(fname, blks):
             A = blks[ib]
             B = blks[oblk]
             # Retrieve connection info about other block, then
-            # delete other info (as its no longer needed)
+            # delete other info (as it's no longer needed)
             for face, (oblk2, axis_map2) in conns[oblk].items():
                 if oblk2 == ib:
                     faceB = face
@@ -81,6 +81,8 @@ def apply_gridpro_connectivity(fname, blks):
             conns[oblk].pop(faceB)
             ifaceA = faceDict[faceA]
             ifaceB = faceDict[faceB]
+            print "faceA= ", faceA, " faceB= ", faceB
+            print "ib= ", ib, " oblk= ", oblk, "ifaceA= ", ifaceA, " ifaceB= ", ifaceB
             orientation = get_eilmer_orientation(ifaceA, ifaceB, axis_map)
             print "Connect ib=", ib, "oblk=", oblk, \
                 "faceA=", faceA, "faceB=", faceB, \
@@ -173,6 +175,11 @@ def apply_gridpro_bcs(fname, blks, bc_map):
             elif bc_type == 'INTERBLK':
                 # This should already be set when block connections were
                 # identified.
+                pass
+            elif bc_type == 'BOUNDARY':
+                # This is a gridpro default name and cannot be changed.
+                # We'll assume the user wanted a slip wall, so we
+                # we don't need to do anything.
                 pass
             else:
                 # For all other cases, no special information is required.

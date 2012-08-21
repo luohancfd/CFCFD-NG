@@ -32,7 +32,7 @@ connectionDict3D = {}
 vpairs = [(3,2),(7,6),(6,7),(2,3)]; vpairs.sort()
 connectionDict3D[tuple(vpairs)] = (NORTH, NORTH, 0, '-i-j+k')
 vpairs = [(3,3),(7,2),(6,6),(2,7)]; vpairs.sort()
-connectionDict3D[tuple(vpairs)] = (NORTH, NORTH, 1, '-k-j+i')
+connectionDict3D[tuple(vpairs)] = (NORTH, NORTH, 1, '+k-j+i')
 vpairs = [(3,7),(7,3),(6,2),(2,6)]; vpairs.sort()
 connectionDict3D[tuple(vpairs)] = (NORTH, NORTH, 2, '+i-j-k')
 vpairs = [(3,6),(7,7),(6,3),(2,2)]; vpairs.sort()
@@ -392,6 +392,7 @@ def get_eilmer_orientation(this_face, other_face, gridpro_axis_map):
     Note that, when accessing the dictionary of orientations, 
     we convert to the form of keys actually present in the dictionary.
     """
+    print this_face, other_face, gridpro_axis_map
     return eilmer_orientation[faceDict[this_face], faceDict[other_face], 
                               to_eilmer_axis_map(gridpro_axis_map)]
 
