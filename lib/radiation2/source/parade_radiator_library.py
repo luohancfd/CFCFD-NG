@@ -12,12 +12,14 @@ class ParadeRadiator:
 	    self.type = "atomic_radiator"
 	elif self.atoms==2:
 	    self.type = "diatomic_radiator"
+	elif self.atoms==3:
+	    self.type = "triatomic_radiator"
 	else:
 	    print "atoms: %d not understood"
 	    sys.exit()
-        self.systems = systems
-        self.dat_file = dat_file
-        self.mol_weight = mw *1.0e-3
+	self.systems = systems
+	self.dat_file = dat_file
+	self.mol_weight = mw *1.0e-3
 	self.isp = -1
 	self.iT = 0
 	self.iTe = 0
@@ -45,7 +47,7 @@ class ParadeRadiator:
 	string += "%s.isp = %d\n" % ( self.name, self.isp )
 	string += "%s.type = '%s'\n" % ( self.name, self.type )
 	string += "%s.mol_weight = %e\n" % ( self.name, self.mol_weight )
-	if self.type=="diatomic_radiator":
+	if self.type=="diatomic_radiator" or self.type=="triatomic_radiator":
 	    string += "%s.iTv = %d\n" % ( self.name, self.iTv )
 	    string += "%s.iTr = %d\n" % ( self.name, self.iTr )
 	return string
@@ -71,5 +73,6 @@ available_radiators = { "Ar"       :    ParadeRadiator( "Ar" , 1, 39.948   ,    
                         "NH"       :    ParadeRadiator( "NH" , 2, 15.01468 , "NHibp.dat" , [ "3360A" ] ),
                         "NO"       :    ParadeRadiator( "NO" , 2, 30.00614 , "NOibp.dat" , [ "NObeta"  , "NOgamma" , "NOdelta", "NOepsilon" ] ),
                         "O2"       :    ParadeRadiator( "O2" , 2, 31.9988  , "O2ibp.dat" , [ "O2sr" ] ),
+                        "CO2"      :    ParadeRadiator( "CO2", 3, 44.0095  , "CO2ihl.dat" , [ "CO2rovib" ] ),
                         "e_minus"  :    ParadeRadiator( "E" , 0, 0.000548579903, "none" ) }
 

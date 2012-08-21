@@ -137,7 +137,7 @@ class GlobalRadData(object):
 		ffrad = True; fbrad = True
 	    elif rad.type=="atomic_radiator":
 		alrad = True
-	    elif rad.type=="diatomic_radiator":
+	    elif rad.type=="diatomic_radiator" or rad.type=="triatomic_radiator":
 		mbrad = True
         ofile = open("parade.template","w")
         ofile.write("c       This PARADE 3.1 control template file was automatically created\n")
