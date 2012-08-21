@@ -15,7 +15,7 @@ import sys
 from e3_defs import *
 from e3_flow import FlowCondition
 from bc_defs import AdjacentBC
-from e3_block import get_eilmer_orientation
+from e3_block import get_eilmer_orientation, check_block_connection_3D
 
 #-----------------------------------------------------------------------
 
@@ -81,12 +81,14 @@ def apply_gridpro_connectivity(fname, blks):
             conns[oblk].pop(faceB)
             ifaceA = faceDict[faceA]
             ifaceB = faceDict[faceB]
-            print "faceA= ", faceA, " faceB= ", faceB
-            print "ib= ", ib, " oblk= ", oblk, "ifaceA= ", ifaceA, " ifaceB= ", ifaceB
             orientation = get_eilmer_orientation(ifaceA, ifaceB, axis_map)
             print "Connect ib=", ib, "oblk=", oblk, \
                 "faceA=", faceA, "faceB=", faceB, \
                 "axis_map=", axis_map, "orientation=", orientation
+            if not check_block_connection_3D(A, ifaceA, B, ifaceB, orientation):
+                print "Problem connecting gridpro blocks."
+                print "Bailing out!"
+                sys.exit(1)
             # Connect blocks
             A.bc_list[ifaceA] = AdjacentBC(B.blkId, ifaceB, orientation)
             B.bc_list[ifaceB] = AdjacentBC(A.blkId, ifaceA, orientation)

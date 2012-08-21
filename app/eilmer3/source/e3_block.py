@@ -367,6 +367,11 @@ for vpairs in connectionDict3D.keys():
 
 # print "eilmer_orientation=", eilmer_orientation
 
+vpairsDict3D = {}
+for vpairs in connectionDict3D.keys():
+    this_face, other_face, orientation, axis_map = connectionDict3D[vpairs]
+    vpairsDict3D[this_face, other_face, orientation] = vpairs
+
 def to_eilmer_axis_map(this_ijk):
     """
     Convert from GridPro axis_map string to Eilmer3 axis_map string.
@@ -392,7 +397,6 @@ def get_eilmer_orientation(this_face, other_face, gridpro_axis_map):
     Note that, when accessing the dictionary of orientations, 
     we convert to the form of keys actually present in the dictionary.
     """
-    print this_face, other_face, gridpro_axis_map
     return eilmer_orientation[faceDict[this_face], faceDict[other_face], 
                               to_eilmer_axis_map(gridpro_axis_map)]
 
@@ -1916,6 +1920,23 @@ def connect_blocks_3D(A, B, vtx_pairs, with_udf=0,
         B.neighbour_vertex_list[faceB][vtxB] = vtxA
     print "connect_blocks(): done."
     return
+
+def check_block_connection_3D(blkA, faceA, blkB, faceB, orientation, tolerance=1.0e-6):
+    """
+    Returns True if blocks connect at specified faces.
+    """
+    vtx_pairs = vpairsDict3D[faceA, faceB, orientation]
+    for iA, iB in vtx_pairs:
+        if vabs(blkA.vtx[iA] - blkB.vtx[iB]) <= tolerance:
+            continue
+        else:
+            print "Corners of grid do not match."
+            print "blkA= ", blkA.blkId, " vtxA= ", iA, " pos= ", blkA.vtxA[iA]
+            print "blkB= ", blkB.blkId, " vtxB= ", iB, " pos= ", blkB.vtxB[iB]
+            return False
+    #
+    # If we get this far, then all is ok.
+    return True
 
 def cell_count_consistent_3D(blkA, faceA, blkB, faceB, orientation):
     """
