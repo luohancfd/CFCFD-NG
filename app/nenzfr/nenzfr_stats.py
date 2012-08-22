@@ -1,12 +1,13 @@
 """
 nenzfr_stats.py -- Flow statistics functions needed by the main program.
 
-VERSION: 26-06-2012
-    Updated to calculate the nozzle exit statistics using conservation
-    of mass, momentum and energy. 
-
-    Area and mass weighted statistics are also calculated and written
-    out.
+VERSION: 
+26-06-2012
+    Updated to calculate the nozzle exit statistics using conservation of
+    mass, momentum and energy. 
+    Area and mass weighted statistics are also calculated and written out.
+22-Aug-2012
+    Brute-force approach to estimating the CMME 1D flow conditions.
 """
 
 import sys, os
@@ -15,10 +16,12 @@ sys.path.append(E3BIN)
 
 from numpy import pi, sqrt, zeros, array
 from cfpylib.nm.zero_solvers import secant
+from cfpylib.nm.nelmin import minimize
 from libprep3 import Vector, vabs, dot
 from libprep3 import create_gas_model, Gas_data, set_massf
 
 #---------------------------------------------------------------
+
 def print_stats(sliceFileName,jobName,coreRfraction,gmodelFile):
 
     # Area weighted statistics...
@@ -34,13 +37,13 @@ def print_stats(sliceFileName,jobName,coreRfraction,gmodelFile):
     print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile)
     return
 
-def print_stats_MoA(sliceFileName,jobName,coreRfraction,weight):
+
+def get_slice_data(sliceFileName):
     """
-    (MoA = Mass- or Area-weighted)
-    Display either the mass-weighted or area-weighted statistics
-    of flow properties at the nozzle exit.
+    Returns the list of variables found in the slice and
+    a dictionary containing the flow data across a single slice.
+    For each variable, there is a list of data values at points across the slice.
     """
-    print weight.capitalize()+"-Weighted Nozzle-exit statistics:"
     fp = open(sliceFileName, 'r')
     # Keep a list of variables in order of appearance.
     varLine = fp.readline().strip()
@@ -60,6 +63,17 @@ def print_stats_MoA(sliceFileName,jobName,coreRfraction,weight):
         for i in range(len(items)):
             data[variable_list[i]].append(float(items[i]))
     fp.close()
+    return variable_list, data
+
+
+def print_stats_MoA(sliceFileName,jobName,coreRfraction,weight):
+    """
+    (MoA = Mass- or Area-weighted)
+    Display either the mass-weighted or area-weighted statistics
+    of flow properties at the nozzle exit.
+    """
+    print weight.capitalize()+"-Weighted Nozzle-exit statistics:"
+    variable_list, data = get_slice_data(sliceFileName)
     #
     # Identify edge of core flow.
     ys = data['pos.y']
@@ -71,8 +85,8 @@ def print_stats_MoA(sliceFileName,jobName,coreRfraction,weight):
     #
     fout = open(jobName+'-exit.stats'+weight.capitalize(),'w')
     fout.write('CoreRadiusFraction: %10.6f\n' % coreRfraction)
-    fout.write('%15s  %12s   %10s  %10s %10s\n' % \
-                   ("variable","mean-value","minus","plus","std-dev"))
+    fout.write('%15s  %12s   %10s  %10s %10s\n' % 
+               ("variable","mean-value","minus","plus","std-dev"))
     fout.write(65*'-'+'\n')
     #
     print "%15s  %12s    %10s %10s %10s" % \
@@ -138,81 +152,67 @@ def print_stats_MoA(sliceFileName,jobName,coreRfraction,weight):
     return
 
 #-------------------------------------------------------------------
+
 def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
     """
-    Display statistics of flow properties at the nozzle exit
-    using conservation of mass, momentum and energy method. 
-    The implementation is based on the paper:
-          Baurle, R.A. and Gaffney, R.L. (2008)
-          "Extraction of One-Dimensional Flow Properties
-          from Multidimensional Data Sets", Journal of
-          Propulsion and Power, vol. 24, no. 4, pg. 704
-    Equations numbers given in the comments of the code
-    refer to the paper.
+    Display statistics of flow properties at the nozzle exit using
+    conservation of mass, momentum and energy (CMME) method.
+ 
+    The implementation is loosely based on the paper:
+    Baurle, R.A. and Gaffney, R.L. (2008)
+    "Extraction of One-Dimensional Flow Properties from Multidimensional Data Sets",
+    Journal of Propulsion and Power, vol. 24, no. 4, pg. 704
+
+    Equations numbers given in the comments of the code refer to the paper.
+
+    PJ, 22-Aug-2012: Use brute-force to get the effective 1D flow properties.
     """
-    print "Nozzle-exit statistics:"
-    fp = open(sliceFileName, 'r')
-    # Keep a list of variables in order of appearance.
-    varLine = fp.readline().strip()
-    items = varLine.split()
-    if items[0] == '#': del items[0]
-    if items[0] == 'Variables:': del items[0]
-    variable_list = [item.split(':')[1] for item in items]
-    # print "variable_list=", variable_list
-    # Store the data in lists against these names.
-    data = {}
-    for var in variable_list:
-        data[var] = []
-    for line in fp.readlines():
-        items = line.strip().split()
-        if items[0] == '#': continue
-        assert len(items) == len(variable_list)
-        for i in range(len(items)):
-            data[variable_list[i]].append(float(items[i]))
-    fp.close()
+    print "Nozzle-exit statistics (CMME):"
+    variable_list, data = get_slice_data(sliceFileName)
     #
     # Identify edge of core flow.
     ys = data['pos.y']
     xs = data['pos.x']
     y_edge = ys[-1] * coreRfraction
     #
+    # Over the core region of interest we now want to calculate: 
+    # (1) total area; 
+    # (2) the unit normal;
+    # (3) total mass flux for each species; 
+    # (4) total momentum flux; and 
+    # (5) total energy flux.
     #
-    exclude_list = ['pos.x', 'pos.y', 'pos.z', 'volume', 'vel.z', 'S']
+    # First, we need to do a bit of fiddling with variable names in order
+    # to get the species names.
+    speciesKeys = [k for k in variable_list if k.startswith("mass")]
+    # Get a list of just the species names (without the "massf[i]-" prefix)...
+    speciesNames = [name.split('-')[1] for name in speciesKeys]
+    nsp = len(speciesKeys)
     #
-    fout = open(jobName+'-exit.stats','w')
-    fout.write('CoreRadiusFraction: %10.6f\n' % coreRfraction)
-    fout.write('%10s  %12s   %10s  %10s %10s\n' % \
-                   ("variable","mean-value","minus","plus","std-dev"))
-    fout.write(60*'-')
-    fout.write('\n')
-    #
-    print "%15s  %12s    %10s %10s %10s" % \
-        ("variable", "mean-value", "minus", "plus","std-dev")
-    print 65*'-'
-    #
-    # Over the core region of interest we now want to
-    # calculate: (1) total area; (2) the unit normal;
-    # (3) total mass flux for each species; (4) total
-    # momentum flux; and (5) total energy flux.
-    #
-    # First initialise required values:
+    # Initialise the totals across the slice:
     Area = 0.0 #...area
     nhatTotal = Vector(0.0) #...unit normal
-    speciesKeys = [k for k in variable_list if k.startswith("mass")]
-    speciesMassFluxes = zeros([len(speciesKeys)])
+    speciesMassFluxes = zeros((nsp,))
     massFlux = 0.0
     momentumFlux = Vector(0.0)
     energyFlux = 0.0
-    # We also need to calculate the mass-weighted Mach
-    # number for later use. Mass-weighted turbulent
-    # parameters will also be reported in the stats file.
-    mach = 0.0;
-    tke = 0.0; omega = 0.0; dt_chem = 0.0
-    # Define the following for ease of use...
-    rho = data['rho']; u = data['vel.x']
-    v = data['vel.y']; p = data['p']
+    # We also need to calculate the mass-weighted Mach number for later use. 
+    mach = 0.0
+    # Mass-weighted turbulent parameters will also be reported in the stats file.
+    tke = 0.0
+    omega = 0.0
+    dt_chem = 0.0
+    #
+    # Define the following for ease of use in the integration process below.
+    rho = data['rho']
+    u = data['vel.x']
+    v = data['vel.y']
+    p = data['p']
     h0 = data['total_h'] # this includes tke
-    a = data['a']; M = data['M_local']
+    a = data['a']
+    M = data['M_local']
+    #
+    # Integrate the conserved properties across the slice.
     for j in range(len(ys)):
         if ys[j] > y_edge: break
         y1 = 0.5*(ys[j]+ys[j+1])
@@ -245,10 +245,10 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
         #h0 = e0[j] + p[j]/rho[j] + 0.5*dot(vel,vel)
         #energyFlux += weighting*h0*d_Area
         energyFlux += weighting*h0[j]*d_Area
-        speciesFractions = [data[species][j] for species in speciesKeys]
-        speciesMassFluxes += weighting*array(speciesFractions)*d_Area
+        speciesFractions = array([data[species][j] for species in speciesKeys])
+        speciesMassFluxes += weighting*speciesFractions*d_Area
         massFlux += weighting*d_Area
-        
+        #
         # Mass-weighted parameters...
         mach += M[j]*weighting*d_Area
         if 'tke' in data.keys():
@@ -257,150 +257,97 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
             omega += data['omega'][j]*weighting*d_Area
         if 'dt_chem' in data.keys():
             dt_chem += data['dt_chem'][j]*weighting*d_Area
-
-    # Calculate the overall unit normal vector using
-    # Eq'n (10) from the paper...
-    g_nhat = nhatTotal/Area
     # Check the total mass flux...Eq'n (A2)
     assert abs(massFlux - sum(speciesMassFluxes)) <= 1e-7
+    #
+    # Now, compute the effective 1D flow properties
+    # to have the same integral properties.
+    #
+    # Calculate the overall unit normal vector using Eq'n (10)
+    g_nhat = nhatTotal/Area
+    # and a scalar momentum flux of the effective 1D flow, Eq'n (A8)
+    momentumFluxScalar = dot(momentumFlux,g_nhat)
     # 1D species mass fractions...Eq'n (A4)
     massFrac = speciesMassFluxes/massFlux
-    # Mass-weighted Mach number...
+    # Mass-weighted Mach number
     aveMach = mach/massFlux
-    # Mass-weighted turbulent parameters...
+    # and mass-weighted turbulent parameters.
     ave_tke = tke/massFlux #...Eq'n (20) and (A2)
     ave_omega = omega/massFlux
     ave_dt_chem = dt_chem/massFlux
-
-    # Get a list of just the species names
-    # (without the "massf[i]-" prefix)...
-    speciesList = [name.split('-')[1] for name in speciesKeys]
-    speciesDict = dict([(k,v) for k,v in zip(speciesList,massFrac)])
-    # ... and reconstruct the gas state for a representative point,
-    # initially, so that we can use the gas constant a few lines down.
+    # and reconstruct the gas state
     gmodel = create_gas_model(gmodelFile)
     gdata = Gas_data(gmodel)
-    rho_representative = data['rho'][0]
-    gdata.rho = rho_representative
-    T_representative = data['T[0]'][0]
-    gdata.T[0] = T_representative
-    set_massf(gdata,gmodel,speciesDict)
+    massfDict = dict([(k,v) for k,v in zip(speciesNames,massFrac)])
+    set_massf(gdata,gmodel,massfDict)
+    gdata.rho = data['rho'][0]
+    gdata.T[0] = data['T[0]'][0]
     gmodel.eval_thermo_state_rhoT(gdata)
+    vx = massFlux/(gdata.rho*Area)
+    # print "Before optimizer, vx=", vx, "p=", gdata.p, "T=", gdata.T[0], "rho=", gdata.rho
+    #
+    def error_estimate(params, 
+                       gasData=gdata, gasModel=gmodel,
+                       fm=massFlux, fp=momentumFluxScalar, fe=energyFlux,
+                       tke=ave_tke, Area=Area, mach=aveMach):
+        """
+        Estimate the badness the current guess for 1D flow properties.
+        params : [rho, T, v] 1D flow properties to be evaluated
+        """
+        rho, T, vx = params
+        gasData.T[0] = T
+        gasData.rho = rho
+        gmodel.eval_thermo_state_rhoT(gasData)
+        p = gasData.p
+        h = gasModel.total_enthalpy(gasData) #...1D static enthalpy
+        M = vx/gasData.a
+        # Realtive errors in each conserved quantity.
+        # The "+1.0" items are to avoid (unlikely) problems with zero values
+        # for the given quantities.
+        fm_err = abs(fm - rho*vx*Area)/(abs(fm)+1.0)
+        fp_err = abs(fp - (rho*vx*vx*Area + p*Area))/(abs(fp)+1.0)
+        fe_err = abs(fe - rho*vx*Area*(h+0.5*vx*vx))/(abs(fe)+1.0)
+        mach_err = abs(M - mach)/(abs(mach)+1.0)
+        # The overall error estimate is a weighted sum.
+        return fm_err + fp_err + fe_err + 0.1*mach_err
+    #
+    print "Optimize estimate of 1D flow properties"
+    flow_params, fx, conv_flag, nfe, nres = minimize(error_estimate, 
+                                                     [gdata.rho, gdata.T[0], vx],
+                                                     [0.01, 10.0, 10.0])
+    rho, T, vx = flow_params
+    # print "fx=", fx
+    # print "convergence-flag=", conv_flag
+    # print "number-of-fn-evaluations=", nfe
+    # print "number-of-restarts=", nres
+    gdata.T[0] = T
+    gdata.rho = rho
+    gmodel.eval_thermo_state_rhoT(gdata)
+    p = gdata.p
+    # print "After optimizer, vx=", vx, "p=", p, "T=", T, "rho=", rho
+    g = gmodel.gamma(gdata)
     R = gmodel.R(gdata)
-
-    # Calculate 'maximum' temperature...
-    momentumFluxScalar = dot(momentumFlux,g_nhat) #...Eq'n (A8)
-    Tmax = (momentumFluxScalar/massFlux)**2/(4*R) #...Eq'n (A13)
-    print "PJ DEBUG R=", R, "rho=", gdata.rho, "T=", gdata.T[0], "Tmax=", Tmax
-
-    # We now need to define functions based on Eq'n (A12)
-    def energy_error_pos(T,gasData=gdata,gasModel=gmodel,\
-                     fpvec=momentumFlux,fp=momentumFluxScalar,\
-                     fm=massFlux,fe=energyFlux,tke=ave_tke):
-        """
-        T    : 1D temperature
-        gasData  : gas model data object
-        gasModel : gas model object
-        fpvec: momentum Flux vector
-        fp   : momentum Flux scalar (Eq'n A8)
-        fm   : mass flux
-        fe   : energy flux
-        tke  : mass-averaged tke
-        """
-        gasData.T[0] = T
-        gmodel.eval_thermo_state_rhoT(gasData)
-        R = gasModel.R(gasData) #...gas constant
-        h = gasModel.total_enthalpy(gasData) #...1D static enthalpy
-        print "PJ DEBUG T=", T, "rho=", gasData.rho, "R=", R, "h=", h
-        # NB. 'total_enthalpy' command above is to get sum the static
-        # enthalpy of ALL species.
-        #
-        pFluxPerMass = fp/fm
-        #...Eq'n (A11), positive
-        vel_dot_nhat = 0.5*( pFluxPerMass + sqrt(pFluxPerMass**2 - 4*R*T) )
-        # dot product of velocity with itself...
-        vel_dot_vel = 1/(fm*fm)*dot(fpvec,fpvec) - 2*R*T - (R*T/vel_dot_nhat)**2
-        #...Eq'n (A12). We explicitly account for tke as per Eq'n (19)...
-        error = h + 0.5*vel_dot_vel - fe/fm + tke
-        print "PJ DEBUG vel_dot_nhat=", vel_dot_nhat, "vel_dot_vel=", vel_dot_vel, "error=", error
-        return error
-    def energy_error_neg(T,gasData=gdata,gasModel=gmodel,\
-                     fpvec=momentumFlux,fp=momentumFluxScalar,\
-                     fm=massFlux,fe=energyFlux,tke=ave_tke):
-        """
-        T    : 1D temperature
-        gasData  : gas model data object
-        gasModel : gas model object
-        fpvec: momentum Flux vector
-        fp   : momentum Flux scalar (Eq'n A8)
-        fm   : mass flux
-        fe   : energy flux
-        tke  : mass-averaged tke
-        """
-        gasData.T[0] = T
-        gmodel.eval_thermo_state_rhoT(gasData)
-        R = gasModel.R(gasData) #...gas constant
-        h = gasModel.total_enthalpy(gasData) #...1D static enthalpy
-        #
-        pFluxPerMass = fp/fm
-        #...Eq'n (A11), negative
-        vel_dot_nhat = 0.5*( pFluxPerMass - sqrt(pFluxPerMass**2 - 4*R*T) )
-        # dot product of velocity with itself...
-        vel_dot_vel = (1/fm)**2*dot(fpvec,fpvec) - 2*R*T - (R*T/vel_dot_nhat)**2
-        #...Eq'n (A12). We explicitly account for tke as per Eq'n (19)...
-        error = h + 0.5*vel_dot_vel - fe/fm + tke
-        return error
+    M = vx/gdata.a
+    total_h = energyFlux/massFlux
     #
-    # Now calculate the two possible temperatures...
-    #
-    # Positive root...
-    Tpos = secant(energy_error_pos, T_representative, 1.1*T_representative,
-                  limits=[20.0,Tmax], tol=1.0e-2, max_iterations=20)
-    print "PJ DEBUG Tpos=", Tpos
-    # Negative root...
-    Tneg = secant(energy_error_neg, 300.0, 1000.0, 
-                  limits=[20.0,Tmax], tol=1.0e-2, max_iterations=20)
-    print "PJ DEBUG Tneg=", Tneg
-    # We may not always find a solution so only construct a dictionary
-    # of properties if we have...
-    if Tpos not in ['FAIL','Fail']:
-        pos, gdataPos = \
-           assemble_data(gmodel,gdata,Tpos,'pos',momentumFluxScalar,\
-                  momentumFlux,massFlux,energyFlux,Area,g_nhat)
-    else: # Set a non-sensical value for M_local for later use
-        pos = {}; pos['M_local'] = 1000
-    #
-    if Tneg not in ['FAIL','Fail']:
-        neg, gdataNeg = \
-           assemble_data(gmodel,gdata,Tneg,'neg',momentumFluxScalar,\
-                  momentumFlux,massFlux,energyFlux,Area,g_nhat)
-    else:
-        neg = {}; neg['M_local'] = 1000
-    # In case something really goes wrong...
-    if Tpos in ['FAIL','Fail'] and Tneg in ['FAIL','Fail']:
-        print "Failed to find 1D Temperature that satisfies CMME.\n"+\
-              "Something went wrong."
-        return
-
-    # Following the recommendation of Baurle and Gaffney (2008) we
-    # select the set of properties for which the Mach number is
-    # closest to the mass-weighted average Mach number previously
-    # calculated.
-    if abs(pos['M_local']-aveMach) < abs(neg['M_local']-aveMach):
-        properties = pos
-        Gas_data.copy_values_from(gdata,gdataPos)
-    else:
-        properties = neg
-        Gas_data.copy_values_from(gdata,gdataNeg)
-
-    # Add the species mass fraction information to the
-    # "properties" dictionary...
-    for k in range(len(speciesList)):
+    gmodel.eval_transport_coefficients(gdata)
+    properties = {}
+    properties['rho'] = rho
+    properties['vel.x'] = vx
+    properties['vel.y'] = 0.0
+    properties['p'] = p
+    properties['a'] = gdata.a
+    properties['mu'] = gdata.mu
+    properties['k[0]'] = gdata.k[0]
+    properties['e[0]'] = gdata.e[0]
+    properties['T[0]'] = T
+    properties['M_local'] = M
+    properties['total_h'] = total_h
+    properties['gamma'] = g
+    properties['R'] = R
+    for k in range(nsp):
         properties[speciesKeys[k]] = massFrac[k]
-
     # Calculate Pitot pressure using Rayleigh formula...
-    g = properties['gamma']; M = properties['M_local']
-    p = properties['p']
     if M > 1.0:
         t1 = (g+1)*M*M/2
         t2 = (g+1)/(2*g*M*M - (g-1));
@@ -413,7 +360,7 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
     t1 = 1 + 0.5*(g-1)*M*M
     total_p = p * pow(t1,(g/(g-1)))
     properties['total_p'] = total_p
-
+    #
     # Calculate the turbulent viscosity and thermal
     # conductivity using definitions given in:
     #    Chan, W.Y.K., Jacobs, P.A., Nap, J.P., Mee, D.J.,
@@ -429,11 +376,21 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
     properties['tke'] =  ave_tke
     properties['omega'] = ave_omega
     properties['dt_chem'] = ave_dt_chem
-
-    #----------------------------------------------------
-    # Now we have all the one-dimensionalised flow
-    # properties, calculate the statistics and
-    # write a summary.
+    #
+    # Now we have all the one-dimensionalised flow properties,
+    # calculate the statistics and write a summary.
+    #
+    fout = open(jobName+'-exit.stats','w')
+    fout.write('CoreRadiusFraction: %10.6f\n' % coreRfraction)
+    fout.write('%15s  %12s   %10s  %10s %10s\n' % \
+                   ("variable","mean-value","minus","plus","std-dev"))
+    fout.write(65*'-')
+    fout.write('\n')
+    print "%15s  %12s    %10s %10s %10s" % \
+        ("variable", "mean-value", "minus", "plus","std-dev")
+    print 65*'-'
+    #
+    exclude_list = ['pos.x', 'pos.y', 'pos.z', 'volume', 'vel.z', 'S']
     for var in variable_list:
         if var in exclude_list: continue
         # Identify the low and high values
@@ -448,7 +405,7 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
             diff_plus = max(diff, diff_plus)
             count += 1
             stddev += diff**2
-        # Caculate the sample standard deviation
+        # Calculate the sample standard deviation
         stddev = (stddev/(count-1))**0.5
         print "%15s  %12.5g    %10.3g %10.3g %10.3g" % \
               (var, properties[var], diff_minus, diff_plus, stddev)
@@ -459,152 +416,3 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
     fout.write(65*'-'+'\n')
     fout.close()
     return
-
-def assemble_data(gasModel,gasData,T,flag,fp,fpvec,fm,fe,Area,g_nhat):
-    """
-    Small function to calculate as many properties as possible
-    for a given gas-model based on an input temperature and
-    fluxes. Calculation method follows that outlined in Appendix
-    A of the paper:
-        Baurle, R.A. and Gaffney, R.L. (2008)
-        "Extraction of One-Dimensional Flow Properties from
-        Mulitdimensional Data Sets", Journal of Propulsion
-        and Power, vol. 24, no. 4, pg. 704
-
-    gasModel : libgas object of gas
-    gasData  : ligas object of gas properties
-    T        : temperature
-    flag     : sets whether to use the postive or negative branch
-             : of Eq'n (A11)
-    fp       : momentum flux scalar value (Eq'n A8)
-    fpvec    : momentum flux vector
-    fm       : mass flux
-    fe       : energy flux
-    Area     : total area
-    g_nhat   : unit normal (Eq'n 10)
-    """
-    R = gasModel.R(gasData) #...gas constant
-    gasData.T[0] = T
-    #h = gasModel.enthalpy(gasData,0) #...enthalpy
-
-    pFluxPerMass = fp/fm
-    if flag in ['neg']:
-        vel_dot_nhat = 0.5*( pFluxPerMass - sqrt(pFluxPerMass**2 - 4*R*T) )
-    elif flag in ['pos']:
-        vel_dot_nhat = 0.5*( pFluxPerMass + sqrt(pFluxPerMass**2 - 4*R*T) )
-
-    rho = fm/vel_dot_nhat/Area #...density Eq'n (A9)
-    gasData.rho = rho
-    p = rho*R*T             #...pressure
-    # now check the pressure...
-    gasModel.eval_thermo_state_rhoT(gasData)
-    pcheck = gasData.p
-    if abs(p - pcheck) > 1.0e-4:
-        print "something went wrong. pressure from gasModel doesn't"+\
-              "match that from gas law"
-        return
-
-    vel = (fpvec - p*Area*g_nhat)/fm #...velocity vector, Eq'n (A6)
-    M = sqrt(dot(vel,vel))/gasData.a    #...Mach number
-
-    gasModel.Cp(gasData)
-    gasModel.Cv(gasData)
-    gasModel.eval_transport_coefficients(gasData)
-
-    # Create a dictionary of properties to return...
-    out = {}
-    out['rho'] = rho; out['vel.x'] = vel.x; out['vel.y'] = vel.y
-    out['p'] = p; out['a'] = gasData.a;
-    out['mu'] = gasData.mu; out['k[0]'] = gasData.k[0]
-    out['e[0]'] = gasData.e[0]; out['T[0]'] = T; out['M_local'] = M
-    out['total_h'] = fe/fm #...Eq'n (A5)
-    out['gamma'] = gasModel.gamma(gasData)
-    out['R'] = R
-    # Output a copy of gasData for later use...
-    gasDataOut = Gas_data(gasModel)
-    Gas_data.copy_values_from(gasDataOut,gasData)
-    return out, gasDataOut
-
-
-
-#------------------------------------------------------------------
-def print_stats_orignal(sliceFileName,jobName,coreRfraction):
-    """
-    (Original implementation by PJ.)
-    Display the area-weighted statistics of flow properties 
-    at the nozzle exit.
-    """
-    print "Nozzle-exit statistics:"
-    fp = open(sliceFileName, 'r')
-    # Keep a list of variables in order of appearance.
-    varLine = fp.readline().strip()
-    items = varLine.split()
-    if items[0] == '#': del items[0]
-    if items[0] == 'Variables:': del items[0]
-    variable_list = [item.split(':')[1] for item in items]
-    # print "variable_list=", variable_list
-    # Store the data in lists against these names.
-    data = {}
-    for var in variable_list:
-        data[var] = []
-    for line in fp.readlines():
-        items = line.strip().split()
-        if items[0] == '#': continue
-        assert len(items) == len(variable_list)
-        for i in range(len(items)):
-            data[variable_list[i]].append(float(items[i]))
-    fp.close()
-    #
-    # Identify edge of core flow.
-    ys = data['pos.y']
-    y_edge = ys[-1] * coreRfraction
-    #
-    # Compute and print area-weighted-average core flow values.
-    exclude_list = ['pos.x', 'pos.y', 'pos.z', 'volume', 'vel.z', 'S']
-    #
-    fout = open(jobName+'-exit.statsArea','w')
-    fout.write('%15s  %12s   %10s  %10s %10s\n' % \
-                   ("variable","mean-value","minus","plus","std-dev"))
-    fout.write(65*'-'+'\n')
-    #
-    print "%15s  %12s    %10s %10s %10s" % \
-        ("variable", "mean-value", "minus", "plus","std-dev")
-    print 65*'-'
-    for var in variable_list:
-        if var in exclude_list: continue
-        A = 0.0; F = 0.0;
-        for j in range(len(ys)):
-            if ys[j] > y_edge: break
-            if j == 0:
-                y0 = 0.0
-            else:
-                y0 = 0.5*(ys[j-1]+ys[j])
-            y1 = 0.5*(ys[j]+ys[j+1])
-            dA = y1**2 - y0**2
-            F += data[var][j] * dA
-            A += dA
-        mean = F/A
-        # Identify low and high values.
-        diff_minus = 0.0
-        diff_plus = 0.0
-        count = 0.0
-        stddev = 0.0
-        for j in range(len(ys)):
-            if ys[j] > y_edge: break
-            diff = data[var][j] - mean
-            diff_minus = min(diff, diff_minus)
-            diff_plus = max(diff, diff_plus)
-            count += 1
-            stddev += diff**2
-        # Calculate the sample standard deviation
-        stddev = (stddev/(count-1))**0.5
-        print "%15s  %12.4g    %10.3g %10.3g %10.3g" % \
-              (var, mean, diff_minus, diff_plus, stddev)
-        fout.write('%15s  %12.4g    %10.3g %10.3g %10.3g\n' % \
-              (var, mean, diff_minus, diff_plus, stddev))
-    #
-    print 65*'-'
-    fout.write(65*'-'+'\n')
-    fout.close()
-    return
-
