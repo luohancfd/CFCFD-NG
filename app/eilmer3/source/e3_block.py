@@ -10,6 +10,7 @@ The classes and functions will then be available for use in the user's input scr
    29-Nov-2010: moved face and vertex definitions to separate file.
 """
 
+import sys
 from libprep3 import *
 # Dictionaries to look up face index values from name or number.
 from e3_defs import *
@@ -1869,26 +1870,6 @@ def connect_blocks_3D(A, B, vtx_pairs, with_udf=0,
     if len(vtx_pairs) != 4:
         raise Exception, "connect_blocks(): Incorrect pairs: %s" % str(vtx_pairs)
     vtx_pairs.sort()  # want pairs in a standard order for dictionary lookup
-    # \begin{redundant}
-    # Sanity check: identify the individual faces.
-    # Build lists of 4 vertices for each adjoining face.
-    vtxListA = []
-    vtxListB = []
-    for vtxA, vtxB in vtx_pairs:
-        vtxListA.append(vtxA)
-        vtxListB.append(vtxB)
-    vLA = copy.copy(vtxListA); vLA.sort()
-    vLB = copy.copy(vtxListB); vLB.sort()
-    try:
-        faceA = faceDict[tuple(vLA)]
-        faceB = faceDict[tuple(vLB)]
-        print "faceDict lookup: faceA=", faceName[faceA], "faceB=", faceName[faceB]
-    except KeyError:
-        print "connect_blocks_3D(): error"
-        print "    The vertices are not consistent with face definitions."
-        print "    vLA=", vLA, " vLB=", vLB
-        faceA = -1; faceB = -1; orientation = 0
-    # \end{redundant}
     try:
         faceA, faceB, orientation, axis_map = connectionDict3D[tuple(vtx_pairs)]
         print "connectionDict3D lookup: faceA=", faceName[faceA], \
@@ -1899,6 +1880,7 @@ def connect_blocks_3D(A, B, vtx_pairs, with_udf=0,
         print "   the dictionary of known interblock connections."
         print "   vtx_pairs=", vtx_pairs
         faceA = -1; faceB = -1; orientation = 0
+        sys.exit(-1)
     print "connect block", A.blkId, "face", faceName[faceA], \
           "to block", B.blkId, "face", faceName[faceB]
     if with_udf:
@@ -1911,6 +1893,10 @@ def connect_blocks_3D(A, B, vtx_pairs, with_udf=0,
         # Classic exchange connection.
         A.bc_list[faceA] = AdjacentBC(B.blkId, faceB, orientation)
         B.bc_list[faceB] = AdjacentBC(A.blkId, faceA, orientation)
+    #
+    if not check_block_connection_3D(A, faceA, B, faceB, orientation):
+        print "connect_blocks(): Block vertex locations not consistent for this connection."
+        print "   vtx_pairs=", vtx_pairs
     if not cell_count_consistent_3D(A, faceA, B, faceB, orientation):
         print "connect_blocks(): Cell counts not consistent for this connection."
         print "   vtx_pairs=", vtx_pairs
