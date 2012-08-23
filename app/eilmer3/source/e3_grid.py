@@ -572,7 +572,7 @@ class StructuredGrid(object):
             if a[SOUTH] < 0.0: dj += 1
             if a[TOP] < 0.0: dk -= 1
             if a[BOTTOM] < 0.0: dk += 1
-            # 4. return the cell index increments
+            # 4. return the cell index increments * scale
             return di, dj, dk
 
 #--------------------------------------------------------------------
@@ -766,15 +766,20 @@ def read_plot3d_grid_binary_file(gname):
     #
     return (ni, nj, nk, grids)
 
-def read_gridpro_grid(gname):
+def read_gridpro_grid(gname, scale=1.0):
     """
     Reads a complete Gridpro grid file, returns a list of StructuredGrids.
 
     A complete Gridpro grid file contains multiple blocks. This function
     will read through all blocks and store them as StructuredGrid objects.
-    These are returned by the function.
+    These are returned by the function. Gridpro builds grids in the same
+    dimensions as the supplied geometry. Care should be taken with 
+    Gridpro grids built from CAD geometries which may typically be
+    in millimetres. In this case, the required 'scale' would be 0.001
+    to convert to metres for use in Eilmer.
     
     :param gname: name of Gridpro grid file
+    :param scale: a scale to convert supplied coordinates to metres
     :returns: list of StructuredGrid object(s)
     
     .. Author: Rowan J. Gollan
@@ -794,9 +799,9 @@ def read_gridpro_grid(gname):
             for j in range(nj):
                 for k in range(nk):
                     tks = f.readline().split()
-                    grids[-1].x[i,j,k] = float(tks[0])
-                    grids[-1].y[i,j,k] = float(tks[1])
-                    grids[-1].z[i,j,k] = float(tks[2])
+                    grids[-1].x[i,j,k] = scale*float(tks[0])
+                    grids[-1].y[i,j,k] = scale*float(tks[1])
+                    grids[-1].z[i,j,k] = scale*float(tks[2])
     f.close()
     return grids
 
