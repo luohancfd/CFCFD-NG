@@ -46,8 +46,6 @@ Bounds on Multiprocessing Timing Anomalies,
 SIAM Journal of Applied Mathematics, 17:2, pp. 416--429
 
 .. Author: Rowan J. Gollan
-.. Versions:
-   21-Aug-2012: initial coding.
 """
 
 import sys
@@ -56,6 +54,8 @@ import ConfigParser
 from copy import copy
 from optparse import OptionParser
 
+OUT_EXT = "mpimap"
+
 parser = OptionParser()
 parser.add_option("-j", "--job", dest="jobname", type="string",
                   help="base file name of job",
@@ -63,9 +63,12 @@ parser.add_option("-j", "--job", dest="jobname", type="string",
 parser.add_option("-i", "--input-hostfile", dest="hosts_in", type="string",
                   help="supplied hostfile (input)",
                   metavar="HOSTS_IN")
-parser.add_option("-o", "--output-hostfile", dest="hosts_out", type="string",
-                  help="output hostfile with entries re-ordered",
-                  metavar="HOSTS_OUT")
+parser.add_option("-n", "--number-of-procs", dest="nprocs", type="int",
+                  help="number of processors to use",
+                  metavar="NP")
+#parser.add_option("-o", "--output-hostfile", dest="hosts_out", type="string",
+#                  help="output hostfile with entries re-ordered",
+#                  metavar="HOSTS_OUT")
 
 def create_task_list(cfg_fname):
     """
@@ -94,16 +97,16 @@ def create_task_list(cfg_fname):
     tasks.sort(key=lambda x: x[1], reverse=True)
     return tasks
 
-def parse_hosts_file(fname):
-    f = open(fname, 'r')
-    hosts = []
-    while True:
-        line = f.readline()
-        if not line:
-            break
-        hosts.append(line.split()[0])
-    #
-    return hosts
+#def parse_hosts_file(fname):
+#    f = open(fname, 'r')
+#    hosts = []
+#    while True:
+#        line = f.readline()
+#        if not line:
+#            break
+#        hosts.append(line.split()[0])
+#    #
+#    return hosts
 
 def main():
     (options, args) = parser.parse_args()
@@ -113,27 +116,28 @@ def main():
         print "--job=JOBNAME"
         print parser.print_help()
         sys.exit(1)
-    if options.hosts_in is None:
-        print "The input host file name must be specified with"
-        print "--input-hostfile=HOSTS_IN"
-        print parser.print_help()
-        sys.exit(1)
-    if options.hosts_out is None:
-        print "The output host file name must be specified with"
-        print "--output-hostfile=HOSTS_OUT"
-        print parser.print_help()
-        sys.exit(1)
+
 
     cfg_fname = options.jobname + ".config"
     tasks = create_task_list(cfg_fname)
-    hosts = parse_hosts_file(options.hosts_in)
-    nprocs = len(hosts)
+    if options.nprocs:
+        nprocs = options.nprocs
+    elif options.hosts_in:
+        hosts = parse_hosts_file(options.hosts_in)
+        nprocs = len(hosts)
+    else:
+        print "The number of processors has not been supplied."
+        print "This should be supplied directly with: -np NP"
+        print "or indirectly by giving a hostsfile to be parsed: --input-hostfile=HOSTS"
+        print "Bailing out!"
+        print parser.print_help()
+        sys.exit(1)
 
     if nprocs > len(tasks):
         print "e3loadbalance.py: Quitting without doing anything"
-        print "because nprocs > ntasks."
+        print "because nprocs > nblocks."
         print "nprocs= ", nprocs
-        print "ntasks= ", ntasks
+        print "nblocks= ", len(tasks)
         print "Done."
         sys.exit(0)
     #
@@ -152,21 +156,20 @@ def main():
         procs[imin].append(task_id)
         task_hosts.append(imin)
     #
-    # Before writing out re-ordered host file,
-    # first print up the blocks per host to
-    # screen.
+    # Now write output file in INI format.
+    fname = options.jobname + "." + OUT_EXT
+    print "Writing out mpi rank-to-block map: ", fname
+    f = open(fname, 'w')
+    f.write("[global]\n")
+    f.write("nrank = %d\n" % nprocs)
     for ip, tsk_list in enumerate(procs):
-        print "For processing unit: ", ip, " hostname: ", hosts[ip]
-        print "The assigned blocks assigned are...."
+        f.write("[rank/%d]\n" % ip)
+        f.write("nblock = %d\n" % len(tsk_list))
+        f.write("blocks = ")
         for t in tsk_list:
-            print t,
-        print ""
+            f.write("%d " % t)
+        f.write("\n")
     #
-    # Now write out new host list.
-    print "Writing new host file to: ", options.hosts_out
-    f = open(options.hosts_out, 'w')
-    for proc_id in task_hosts:
-        f.write("%s\n" % hosts[proc_id])
     f.close()
     print "Done."
     #
