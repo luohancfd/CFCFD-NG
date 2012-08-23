@@ -166,7 +166,7 @@ def main():
         f.write("[rank/%d]\n" % ip)
         f.write("nblock = %d\n" % len(tsk_list))
         f.write("blocks = ")
-        for t in tsk_list:
+        for t in sorted(tsk_list):
             f.write("%d " % t)
         f.write("\n")
     #
