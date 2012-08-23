@@ -62,6 +62,10 @@ Report-2007-13_ is the "User guide for shock and blast simulation with the OctVC
 Theses
 ------
 
+Brendan-OFlaherty-PhD-Thesis_ "Reducing the Global Warming Potential of Coal Mine Ventilation Air by Combustion in a Free-Piston Engine"
+
+.. _Brendan-OFlaherty-PhD-Thesis: ./theses/brendan-oflaherty-phd-thesis-june-2012.pdf
+
 Carolyn-Jacobs-PhD-Thesis_ "Radiation in low density hypervelocity flows"
 
 .. _Carolyn-Jacobs-PhD-Thesis: ./theses/carolyn-jacobs-phd-finalthesis-UQversion-aug-2011.pdf
