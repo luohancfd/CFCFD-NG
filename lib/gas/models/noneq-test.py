@@ -87,9 +87,9 @@ def main():
             for itm in range(ntm): Q.T[itm] = T*(0.5+random())
             gm.eval_thermo_state_rhoe(Q)
             # write gas and cea2 thermo properties to file
-            h = gm.total_enthalpy(Q)
+            h = gm.mixture_enthalpy(Q)
             u = Q.e[0]
-            s = gm.total_entropy(Q)
+            s = gm.mixture_entropy(Q)
             Cp = gm.Cp(Q)
             gam = gm.gamma(Q)
             gfile.write("%d %0.4e \t %0.4e \t %0.4e \t %0.4e \t %0.4e \t %0.4e \t %0.4e \t %0.4e\n"\

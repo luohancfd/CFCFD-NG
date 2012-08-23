@@ -299,7 +299,7 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
         gasData.rho = rho
         gmodel.eval_thermo_state_rhoT(gasData)
         p = gasData.p
-        h = gasModel.total_enthalpy(gasData) #...1D static enthalpy
+        h = gasModel.mixture_enthalpy(gasData) #...1D static enthalpy
         M = vx/gasData.a
         # Realtive errors in each conserved quantity.
         # The "+1.0" items are to avoid (unlikely) problems with zero values

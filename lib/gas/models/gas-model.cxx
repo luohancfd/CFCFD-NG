@@ -760,7 +760,7 @@ set_mole_fractions(Gas_data &Q,
 
 double
 Gas_model::
-total_internal_energy(const Gas_data &Q, 
+mixture_internal_energy(const Gas_data &Q, 
 		      double T) 
 {
     double e = 0.0;
@@ -785,7 +785,7 @@ total_internal_energy(const Gas_data &Q,
 
 double
 Gas_model::
-total_enthalpy(const Gas_data &Q, 
+mixture_enthalpy(const Gas_data &Q, 
 	       double T)
 {
     double h = 0.0;
@@ -810,7 +810,7 @@ total_enthalpy(const Gas_data &Q,
 
 double
 Gas_model::
-total_entropy( const Gas_data &Q )
+mixture_entropy( const Gas_data &Q )
 {
     double s = 0.0;
     for ( int isp=0; isp<nsp_; ++isp )

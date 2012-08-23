@@ -187,9 +187,9 @@ public:
 			   const std::vector<double> &X);
     
     // Some useful analysis functions
-    double total_internal_energy(const Gas_data &Q, double T=0.0);
-    double total_enthalpy(const Gas_data &Q, double T=0.0);
-    double total_entropy(const Gas_data &Q);
+    double mixture_internal_energy(const Gas_data &Q, double T=0.0);
+    double mixture_enthalpy(const Gas_data &Q, double T=0.0);
+    double mixture_entropy(const Gas_data &Q);
     
     // Overloaded functions for python
     double R(const Gas_data &Q)

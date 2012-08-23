@@ -60,7 +60,7 @@ Q.p = p_inf
 for isp in range(nsp): Q.massf[isp] = massf_inf[isp]
 gm.eval_thermo_state_pT(Q)
 gm.eval_transport_coefficients(Q)
-T_total = ( gm.total_enthalpy(Q) + 0.5 * u_inf**2 ) / gm.Cp(Q) 
+T_total = ( gm.mixture_enthalpy(Q) + 0.5 * u_inf**2 ) / gm.Cp(Q) 
 print "Given T_total = %f K, calculated T_total = %f K" % ( T_total_R * 0.555555556, T_total )
 ReL = Q.rho * u_inf / Q.mu
 Q.print_values()
