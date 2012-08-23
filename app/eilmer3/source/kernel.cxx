@@ -15,25 +15,13 @@
 
 //---------------------------------------------------------------------
 // The core of the data collection...
-// There are two complete sets for mbcns_transfer.cxx but most of
-// the remaining code is completely ignorant of this.
-// Of course, in Eilmer3, this is no longer relevant but we
-// are thinking of doing some multigrid...
-
-static int which_data_bank = 0; // default
-
-int set_data_bank(int which_bank)
-{
-    which_data_bank = which_bank;
-    return which_data_bank;
-}
 
 // The global control data.
-static global_data gd[2];
+static global_data gd;
 
 global_data * get_global_data_ptr(void) 
 {
-    return &(gd[which_data_bank]);
+    return &gd;
 }
 
 // The managed gas model lives here.
@@ -125,32 +113,24 @@ RadiationTransportModel *get_radiation_transport_model_ptr()
     return rtm;
 }
 
-// The array of vectors of blocks, holding the structured arrays of cells.
-static std::vector<Block> bd[2];
-
-int set_number_of_blocks(int n) {
-    bd[which_data_bank].resize(n);
-    return n;
-}
-
 Block * get_block_data_ptr(int i) {
     if ( i < 0 ) return NULL;
-    if ( i >= (int)bd[which_data_bank].size() ) return NULL;
-    return &(bd[which_data_bank][i]);
+    if ( i >= (int)gd.bd.size() ) return NULL;
+    return &(gd.bd[i]);
 }
 
 void eilmer_finalize( void )
 {
-    global_data *G = get_global_data_ptr();
     // Clean up the objects created earlier.
     // This will satisfy valgrind, hopefully.
-    for ( int ig = 0; ig < G->n_gas_state; ++ig ) {
-	delete G->gas_state[ig];
+    for ( int ig = 0; ig < gd.n_gas_state; ++ig ) {
+	delete gd.gas_state[ig];
     }
-    G->pistons.resize(0);
-    G->heat_zone.resize(0);
-    G->reaction_zone.resize(0);
-    G->turbulent_zone.resize(0);
+    gd.bd.resize(0);
+    gd.pistons.resize(0);
+    gd.heat_zone.resize(0);
+    gd.reaction_zone.resize(0);
+    gd.turbulent_zone.resize(0);
     delete gmodel;
     delete tinterp;
     if ( get_radiation_flag() )	delete rtm;
@@ -169,14 +149,14 @@ void eilmer_finalize( void )
 int set_block_range(int first, int last)
 {
     if ( last - first >= 0 ) {
-	gd[which_data_bank].first_block = first;
-	gd[which_data_bank].last_block = last;
+	gd.first_block = first;
+	gd.last_block = last;
     } else {
-	gd[which_data_bank].first_block = 0;
-	gd[which_data_bank].last_block = 0;
+	gd.first_block = 0;
+	gd.last_block = 0;
     }
     // return number of blocks
-    return gd[which_data_bank].last_block - gd[which_data_bank].first_block + 1;
+    return gd.last_block - gd.first_block + 1;
 }
 
 /** \brief Returns the index of the first block for this process. 
@@ -185,7 +165,7 @@ int set_block_range(int first, int last)
  * block the same whether for the MPI code of for the shared-memory
  * code.
  */
-int first_block(void) { return gd[which_data_bank].first_block; }
+int first_block(void) { return gd.first_block; }
 
 /** \brief Returns the index of the last block for this process. 
  *
@@ -193,7 +173,7 @@ int first_block(void) { return gd[which_data_bank].first_block; }
  * block the same whether for the MPI code of for the shared-memory
  * code.
  */
-int last_block(void) { return gd[which_data_bank].last_block;}
+int last_block(void) { return gd.last_block;}
 
 //---------------------------------------------------------------------
 

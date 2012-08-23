@@ -64,6 +64,7 @@ struct global_data
     std::vector<class Piston *> pistons;
     int first_block;        // index of first block in this process
     int last_block;         // index of the last block in this process
+    std::vector<Block> bd;  // The array of vectors of blocks, holding the structured arrays of cells.
     int parallel;           // ==1 if we are using MPI parallel
     int rank;               // identification for MPI process
 
@@ -167,8 +168,6 @@ struct global_data
 //---------------------------------------------------------------
 // Function declarations.
 
-int set_data_bank(int which_bank);
-int set_number_of_blocks(int n);
 global_data * get_global_data_ptr(void);
 Gas_model *set_gas_model_ptr(Gas_model *gmptr);
 Gas_model *get_gas_model_ptr();

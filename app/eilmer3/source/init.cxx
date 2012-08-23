@@ -298,7 +298,7 @@ int read_config_parameters( const string filename, int master )
     if ( get_verbose_flag() ) {
 	printf( "nblock = %d\n", G.nblock);
     }
-    set_number_of_blocks(G.nblock);
+    G.bd.resize(G.nblock);
 
     // Number of pistons
     dict.parse_int("global_data", "npiston", G.npiston, 0);

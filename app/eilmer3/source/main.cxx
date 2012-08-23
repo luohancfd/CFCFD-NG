@@ -142,10 +142,9 @@ int main(int argc, char **argv)
 	POPT_TABLEEND
     };
 
-    // ----------
-    // INITIALIZE
-    // ----------
-    program_return_flag = SUCCESS;
+    // Initialization
+    //
+    program_return_flag = SUCCESS; // We'll start out optimistically :)
 #   ifdef _MPI
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &num_proc);
@@ -158,14 +157,12 @@ int main(int argc, char **argv)
 #   ifdef _MPI
     master = (mpi_pid == 0);
     sprintf(log_file_name, "e3mpi.%04d.log", mpi_pid);
-    //--NOT-NEEDED-- MPI_Barrier(MPI_COMM_WORLD);
     if (master) {
 	printf("e3main: C++,MPI version.\n");
     }
     MPI_Get_processor_name(node_name, &node_name_len);
     printf("e3main: process %d of %d active on node %s\n", 
 	   mpi_pid, num_proc, node_name );
-    //--NOT-NEEDED-- MPI_Barrier(MPI_COMM_WORLD);
 #   else
     master = 1;
     sprintf(log_file_name, "e3shared.log");
@@ -248,7 +245,6 @@ int main(int argc, char **argv)
     G.parallel = 1;
     G.rank = mpi_pid;
     set_block_range(G.rank, G.rank);
-    //--NOT-NEEDED-- MPI_Barrier(MPI_COMM_WORLD);
 #   else
     // All blocks in same process.
     G.parallel = 0;
@@ -290,7 +286,7 @@ int main(int argc, char **argv)
     printf("e3main: done.\n");
 #   endif
     return program_return_flag;
-}   /* end main */
+} // end main
 
 //------------------------------------------------------------------------------
 
@@ -310,7 +306,9 @@ void ensure_directory_is_present( string pathname )
 	}
     }
 #   ifdef _MPI
-    // Really do need this barrier.
+    // We really do need this barrier.
+    // Even if we are not the master node, we have to wait for the master
+    // to check and (possibly) make the directory.
     MPI_Barrier(MPI_COMM_WORLD);
 #   endif
     return;
@@ -534,12 +532,8 @@ int call_udf( double t, int step, std::string udf_fn_name )
 } // end call_udf()
 
 
-/** \brief Add to the components of the source vector, Q, via a Lua udf.
- *
- * This is done (occasionally) just after the for inviscid source vector calculation.
- *
- * \param cell : pointer to the FV_Cell data structure
- */
+/// \brief Add to the components of the source vector, Q, via a Lua udf.
+/// This is done (occasionally) just after the for inviscid source vector calculation.
 int udf_source_vector_for_cell( FV_Cell *cell, double t )
 {
     // Call the user-defined function which returns a table 
@@ -851,7 +845,6 @@ int integrate_in_time( double target_time )
 #       ifdef _MPI
         // FIX-ME -- at the moment we assume all blocks are active
 	// in the distributed-memory version.
-        //--NOT-NEEDED-- MPI_Barrier( MPI_COMM_WORLD );
 	active_blocks = G.nblock;
 #       else
         active_blocks = 0;
@@ -1000,9 +993,6 @@ int integrate_in_time( double target_time )
 
 
         // 2. Attempt a time step.
-#       ifdef _MPI
-        //--NOT-NEEDED-- MPI_Barrier( MPI_COMM_WORLD );
-#       endif
 
 	// 2a.
 	// explicit or implicit update of the inviscid terms.
@@ -1115,9 +1105,6 @@ int integrate_in_time( double target_time )
 		break;
 	    }
 #           if SEPARATE_UPDATE_FOR_K_OMEGA_SOURCE == 1
-#           ifdef _MPI
-            //--NOT-NEEDED-- MPI_Barrier( MPI_COMM_WORLD );
-#           endif
 	    if ( get_k_omega_flag() == 1 ) {
 		for ( jb = first_block(); jb <= last_block(); ++jb ) {
 		    bdp = get_block_data_ptr(jb);
@@ -1130,9 +1117,6 @@ int integrate_in_time( double target_time )
         // 2d. Chemistry step. 
 	//     Allow finite-rate evolution of species due
         //     to chemical reactions
-#       ifdef _MPI
-	//--NOT-NEEDED-- MPI_Barrier( MPI_COMM_WORLD );
-#       endif
         if ( get_reacting_flag() == 1 && G.sim_time >= G.reaction_time_start ) {
 	    for ( jb = first_block(); jb <= last_block(); ++jb ) {
 		bdp = get_block_data_ptr(jb);
@@ -1143,9 +1127,6 @@ int integrate_in_time( double target_time )
 	// 2e. Thermal step.
 	//     Allow finite-rate evolution of thermal energy
 	//     due to transfer between thermal energy modes.
-#       ifdef _MPI
-	//--NOT-NEEDED-- MPI_Barrier( MPI_COMM_WORLD );
-#       endif
 	if ( get_energy_exchange_flag() == 1 && G.sim_time >= G.reaction_time_start  ) {
 	    for ( jb = first_block(); jb <= last_block(); ++jb ) {
 		bdp = get_block_data_ptr(jb);
@@ -1253,7 +1234,7 @@ int integrate_in_time( double target_time )
             G.t_his += G.dt_his;
         }
 
-    // Velocity profile recording (Andrew Denman  19-June-2003)
+	// Velocity profile recording (Andrew Denman  19-June-2003)
 	//    Limited to taking velocity profiles along a constant xline
 	//    defined by x_record parameter in block block_record.
 	//    Calls function write_profile()

@@ -3,8 +3,7 @@
  * \brief Functions to exchange boundary data via MPI.
  *
  * \author PA Jacobs and RJ Goozee
- * \version 05-Mar-08 Elmer3 port
- ************************* FIX-ME NEED TO FINISH 3D ASPECTS, MERGE FUNCTIONS ******************
+ * \version 05-Mar-08 Eilmer3 port
  */
 
 // Intel MPI requires mpi.h included BEFORE stdio.h
