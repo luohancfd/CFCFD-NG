@@ -59,14 +59,20 @@ struct global_data
     FILE *fstctimesfile;
     std::string base_file_name;
     std::string title;
-    int nblock;             /* number of blocks           */
+    int nblock;             // number of blocks in overall simulation
     int npiston;            // number of pistons
-    std::vector<class Piston *> pistons;
-    int first_block;        // index of first block in this process
-    int last_block;         // index of the last block in this process
-    std::vector<Block> bd;  // The array of vectors of blocks, holding the structured arrays of cells.
-    int parallel;           // ==1 if we are using MPI parallel
-    int rank;               // identification for MPI process
+    std::vector<Piston *> pistons;
+
+    // Aug-2012 rework of the block-handling code for MPI.
+    // We eventually want to have each task/process look after 
+    // a "bag" of blocks that may not be sequentially numbered.
+    std::vector<Block> bd;  // The array of vectors of blocks, holding arrays of cells.
+    std::vector<Block *> my_blocks; // Collection that we can iterate over.
+    
+    int mpi_parallel;       // ==1 if we are using MPI parallel
+    int num_mpi_proc;       // count of MPI tasks participating in the simulation
+    int my_mpi_rank;        // identification for MPI process
+    std::vector<int> mpi_rank_for_block; // process in which each block resides
 
     int step;               /* global iteration count     */
     int max_step;           /* global iteration limit     */
@@ -181,9 +187,6 @@ int set_radiation_transport_model(std::string file_name);
 RadiationTransportModel *get_radiation_transport_model_ptr();
 Block * get_block_data_ptr(int i);
 void eilmer_finalize( void );
-int set_block_range(int first, int last);
-int first_block(void);
-int last_block(void);
 int set_verbose_flag( int i );
 int get_verbose_flag( void );
 int set_axisymmetric_flag(int ia);

@@ -76,9 +76,6 @@ int history_just_written, output_just_written, av_output_just_written;
 int program_return_flag = 0;
 int output_counter = 0; // counts the number of flow-solutions written
 int zip_files = 1; // flag to indicate if flow and grid files are to be gzipped
-#ifdef _MPI
-int mpi_pid;
-#endif
 int master;
 int max_wall_clock = 0;
 time_t start, now; // wall-clock timer
@@ -108,7 +105,7 @@ int main(int argc, char **argv)
 
 #   ifdef _MPI
     MPI_Status status;
-    int num_proc, node_name_len;
+    int node_name_len;
     char node_name[MPI_MAX_PROCESSOR_NAME];
 #   endif
 
@@ -147,22 +144,27 @@ int main(int argc, char **argv)
     program_return_flag = SUCCESS; // We'll start out optimistically :)
 #   ifdef _MPI
     MPI_Init(&argc, &argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &num_proc);
-    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_pid);
+    MPI_Comm_size(MPI_COMM_WORLD, &(G.num_mpi_proc));
+    MPI_Comm_rank(MPI_COMM_WORLD, &(G.my_mpi_rank));
     UNUSED_VARIABLE(status);
+    G.mpi_parallel = 1;
+#   else
+    G.mpi_parallel = 0;
+    G.num_mpi_proc = 0;
+    G.my_mpi_rank = 0;
 #   endif
 
     // Each process writes to a separate log file,
     // but all processes may write to stdout as well.
 #   ifdef _MPI
-    master = (mpi_pid == 0);
-    sprintf(log_file_name, "e3mpi.%04d.log", mpi_pid);
+    master = (G.my_mpi_rank == 0);
+    sprintf(log_file_name, "e3mpi.%04d.log", G.my_mpi_rank);
     if (master) {
 	printf("e3main: C++,MPI version.\n");
     }
     MPI_Get_processor_name(node_name, &node_name_len);
     printf("e3main: process %d of %d active on node %s\n", 
-	   mpi_pid, num_proc, node_name );
+	   G.my_mpi_rank, G.num_mpi_proc, node_name );
 #   else
     master = 1;
     sprintf(log_file_name, "e3shared.log");
@@ -231,26 +233,34 @@ int main(int argc, char **argv)
     // These will also be read at the start of each time step.
     read_control_parameters(G.base_file_name+".control", master, 1);
 
+// -------- FIX-ME ------------// -------- FIX-ME ------------// -------- FIX-ME ------------
     // At this point, we know the number of blocks in the calculation.
+    // Depending on whether we are running all blocks in the one process
+    // or we are running a subset of blocks in this process, talking to
+    // the other processes via MPI, we need to decide what blocks belong
+    // to the current process.
 #   ifdef _MPI
-    if ( num_proc != G.nblock ) {
+    if ( G.num_mpi_proc != G.nblock ) {
 	if ( master ) {
 	    printf("Error in specifying mpirun -np\n");
 	    printf("    It needs to match number of blocks; present values are:\n");
-	    printf("    num_proc= %d nblock= %d\n", num_proc, G.nblock);
+	    printf("    num_mpi_proc= %d nblock= %d\n", G.num_mpi_proc, G.nblock);
 	}
 	goto Quit;
     }
-    // Identify block with mpi process number.
-    G.parallel = 1;
-    G.rank = mpi_pid;
-    set_block_range(G.rank, G.rank);
+    // Identify block with mpi process number. 
+    G.my_blocks.push_back(&(G.bd[G.my_mpi_rank]));
+    for ( int jb=0; jb < G.nblock; ++jb ) {
+	G.mpi_rank_for_block.push_back(jb);
+    }
 #   else
     // All blocks in same process.
-    G.parallel = 0;
-    G.rank = 0;
-    set_block_range(0, G.nblock - 1);
+    for ( int jb=0; jb < G.nblock; ++jb ) {
+	G.my_blocks.push_back(&(G.bd[jb]));
+	G.mpi_rank_for_block.push_back(G.my_mpi_rank);
+    } 
 #   endif
+// -------- FIX-ME ------------// -------- FIX-ME ------------// -------- FIX-ME ------------
 
     // Real work is delegated to functions that know what to do...
     //
@@ -277,7 +287,7 @@ int main(int argc, char **argv)
     fclose(G.logfile);
     eilmer_finalize();
 #   ifdef _MPI
-    printf("e3main: end of process %d.\n", mpi_pid);
+    printf("e3main: end of process %d.\n", G.my_mpi_rank);
     if (run_status != SUCCESS) 
 	MPI_Abort(MPI_COMM_WORLD, program_return_flag);
     else
@@ -332,7 +342,7 @@ int prepare_to_integrate( int start_tindx )
 {
     global_data &G = *get_global_data_ptr();  // set up a reference
     Block *bdp;
-    int jb, iface;
+    int iface;
     string filename, commandstring, jbstring, tindxstring, ifstring;
     char jbcstr[10], tindxcstr[10], ifcstr[10];
     FILE *fp;
@@ -354,13 +364,13 @@ int prepare_to_integrate( int start_tindx )
     }
 
     // Allocate and initialise memory in parallel.
-    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-	bdp = get_block_data_ptr(jb);
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	bdp = G.my_blocks[jb];
         if ( bdp->array_alloc(G.dimensions) != 0 ) exit( MEMORY_ERROR );
 	bdp->bind_interfaces_to_cells(G.dimensions);
     }
 #   ifdef _MPI
-    bdp = get_block_data_ptr(mpi_pid);
+    bdp = get_block_data_ptr(G.my_mpi_rank);
     if ( allocate_send_and_receive_buffers(bdp) != 0 ) exit( MEMORY_ERROR );
 #   endif
 
@@ -368,9 +378,9 @@ int prepare_to_integrate( int start_tindx )
     // Note that the global simulation time is set by the last flow data read.
     sprintf( tindxcstr, "t%04d", start_tindx);
     tindxstring = tindxcstr;
-    for ( jb = first_block(); jb <= last_block(); ++jb ) {
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	bdp = G.my_blocks[jb];
         printf( "----------------------------------\n" );
-	bdp = get_block_data_ptr(jb);
 	sprintf( jbcstr, ".b%04d", jb );
 	jbstring = jbcstr;
 	// Read grid from the tindx=0 files, always.
@@ -388,9 +398,9 @@ int prepare_to_integrate( int start_tindx )
     // History file header is only written for a fresh start.
     ensure_directory_is_present("hist"); // includes Barrier
 
-    for ( jb = first_block(); jb <= last_block(); ++jb ) {
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	bdp = G.my_blocks[jb];
         printf( "----------------------------------\n" );
-	bdp = get_block_data_ptr(jb);
 	sprintf( jbcstr, ".b%04d", jb );
 	jbstring = jbcstr;
 	filename = "hist/" + G.base_file_name + ".hist"+jbstring;
@@ -425,8 +435,8 @@ int prepare_to_integrate( int start_tindx )
 
     // Prepare data within the primary finite-volume cells.
     // This includes both geometric data and flow state data.
-    for (jb = first_block(); jb <= last_block(); ++jb) {
-	bdp = get_block_data_ptr(jb);
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	bdp = G.my_blocks[jb];
 	bdp->compute_primary_cell_geometric_data(G.dimensions);
 	bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions);
 	bdp->compute_secondary_cell_geometric_data(G.dimensions);
@@ -443,9 +453,9 @@ int prepare_to_integrate( int start_tindx )
     // Exchange boundary cell geometry information so that we can
     // next calculate secondary-cell geometries.
 #   ifdef _MPI
-    mpi_exchange_boundary_data(first_block(), COPY_CELL_LENGTHS);
+    mpi_exchange_boundary_data(G.my_mpi_rank, COPY_CELL_LENGTHS);
 #   else
-    for (jb = first_block(); jb <= last_block(); ++jb) {
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
         exchange_shared_boundary_data(jb, COPY_CELL_LENGTHS);
     }
 #   endif
@@ -454,8 +464,8 @@ int prepare_to_integrate( int start_tindx )
     // Piston stuff not presently functional.
     int status;
     block_data** bda = (block_data**) calloc(G.nblock, sizeof(block_data*));
-    for (jb = first_block(); jb <= last_block(); ++jb) {
-	bda[jb] = get_block_data_ptr(jb);
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	bda[jb] = G.my_blocks[jb];
     }
     for (int jp = 0; jp < G.npiston; ++jp) {
 	cout << "Attempting to set piston[" << jp << "] face values from block data... ";
@@ -652,9 +662,15 @@ int integrate_blocks_in_sequence( void )
     BoundaryCondition *bcp_save;
     int status_flag = SUCCESS;
 
+    // This procedure does not work with MPI jobs.
+    if ( G.mpi_parallel ) {
+	cerr << "Error, we have not implemented block-sequence integration with MPI." << endl;
+	exit(NOT_IMPLEMENTED_ERROR);
+    }
+
     // Initially deactivate all blocks
-    for ( int jb = 0; jb < G.nblock; ++jb ) {
-	bdp = get_block_data_ptr(jb);
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	bdp = G.my_blocks[jb];
 	bdp->active = 0;
     }
 
@@ -692,7 +708,9 @@ int integrate_blocks_in_sequence( void )
     bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode_conserved" );
 
     // Integrate just the first two blocks in time, hopefully to steady state.
-    set_block_range(0,1);
+    G.my_blocks.resize(2);
+    G.my_blocks.push_back(&(G.bd[0]));
+    G.my_blocks.push_back(&(G.bd[1]));
     integrate_in_time( time_slice );
 
 
@@ -730,15 +748,15 @@ int integrate_blocks_in_sequence( void )
 	bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode_conserved" );
 	// Integrate just the two currently active blocks in time,
 	// hopefully to steady state.
-	set_block_range(jb-1, jb);
+	G.my_blocks[0] = &(G.bd[jb-1]);
+	G.my_blocks[1] = &(G.bd[jb]);
 	integrate_in_time( jb*time_slice );
     }
     // Before leaving, we want all blocks active for output.
-    for ( int jb = 0; jb < G.nblock; ++jb ) {
-	bdp = get_block_data_ptr(jb);
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	bdp = G.my_blocks[jb];
 	bdp->active = 1;
     }
-    set_block_range(0, G.nblock - 1);
     return status_flag;
 } // end integrate_blocks_in_sequence()
 
@@ -748,7 +766,7 @@ int integrate_in_time( double target_time )
 {
     global_data &G = *get_global_data_ptr();  // set up a reference
     Block *bdp;
-    int jb, active_blocks;
+    int active_blocks;
     string jbstring, jsstring, tindxstring;
     char jbcstr[10], jscstr[10], tindxcstr[10];
     string filename, commandstring, foldername;
@@ -848,8 +866,8 @@ int integrate_in_time( double target_time )
 	active_blocks = G.nblock;
 #       else
         active_blocks = 0;
-        for ( jb = first_block(); jb <= last_block(); ++jb ) {
-	    bdp = get_block_data_ptr(jb);
+	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	    bdp = G.my_blocks[jb];
             if ( bdp->active == 1 ) ++active_blocks;
         }
 #       endif
@@ -902,8 +920,8 @@ int integrate_in_time( double target_time )
 	    call_udf( G.sim_time, G.step, "at_timestep_start" );
 	}
 	// 0.b. We need to remember some flow information for later computing residuals.
-	for ( jb = first_block(); jb <= last_block(); ++jb ) {
-	    bdp = get_block_data_ptr(jb);
+	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	    bdp = G.my_blocks[jb];
 	    bdp->init_residuals( G.dimensions );
 	} // end for jb loop 
 
@@ -931,7 +949,7 @@ int integrate_in_time( double target_time )
 	    G.dt_allow = 1.0e6; /* outrageously large so that it gets replace immediately */
 	    G.cfl_max = 0.0;
 #           ifdef _MPI
-	    bdp = get_block_data_ptr(mpi_pid);
+	    bdp = get_block_data_ptr(G.my_mpi_rank);
 	    cfl_result = bdp->determine_time_step_size( G.cfl_target, G.dimensions );
 	    MPI_Allreduce( &cfl_result, &cfl_result_2, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD );
 	    if ( cfl_result_2 != 0 ) {
@@ -944,13 +962,13 @@ int integrate_in_time( double target_time )
 		// If the block for this process is active,
 		// it may participate in setting the allowable time-step.
 		MPI_Allreduce(&(bdp->dt_allow), &G.dt_allow, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-		dt_record[mpi_pid] = bdp->dt_allow;
+		dt_record[G.my_mpi_rank] = bdp->dt_allow;
 		MPI_Allreduce(&(bdp->cfl_max), &G.cfl_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 		MPI_Allreduce(&(bdp->cfl_min), &G.cfl_min, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
 	    }
 #           else
-	    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		bdp = get_block_data_ptr(jb);
+	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		bdp = G.my_blocks[jb];
 		if ( bdp->active == 1 ) {
 		    cfl_result = bdp->determine_time_step_size( G.cfl_target, G.dimensions );
 		    if ( cfl_result != 0 ) {
@@ -960,8 +978,8 @@ int integrate_in_time( double target_time )
 		    }
 		}
 	    } // end for jb loop 
-	    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		bdp = get_block_data_ptr(jb);
+	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
 		if ( bdp->dt_allow < G.dt_allow ) G.dt_allow = bdp->dt_allow;
 		dt_record[jb] = bdp->dt_allow;
@@ -1020,8 +1038,8 @@ int integrate_in_time( double target_time )
 #       if 0
 	int status;
 	block_data** bda = (block_data**) calloc(G.nblock, sizeof(block_data*));
-	for (jb = first_block(); jb <= last_block(); ++jb) {
-	    bda[jb] = get_block_data_ptr(jb);
+	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	    bda[jp] = G.my_blocks[jb];
 	}
 
 	// Set all cells active
@@ -1106,8 +1124,8 @@ int integrate_in_time( double target_time )
 	    }
 #           if SEPARATE_UPDATE_FOR_K_OMEGA_SOURCE == 1
 	    if ( get_k_omega_flag() == 1 ) {
-		for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		    bdp = get_block_data_ptr(jb);
+		for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		    bdp = G.my_blocks[jb];
 		    bdp->apply( &FV_Cell::update_k_omega_properties, G.dt_global, "k_omega_increment" );
 		}
 	    }
@@ -1118,8 +1136,8 @@ int integrate_in_time( double target_time )
 	//     Allow finite-rate evolution of species due
         //     to chemical reactions
         if ( get_reacting_flag() == 1 && G.sim_time >= G.reaction_time_start ) {
-	    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		bdp = get_block_data_ptr(jb);
+	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		bdp = G.my_blocks[jb];
 		bdp->apply( &FV_Cell::chemical_increment, G.dt_global, "chemical_increment" );
 	    }
 	}
@@ -1128,8 +1146,8 @@ int integrate_in_time( double target_time )
 	//     Allow finite-rate evolution of thermal energy
 	//     due to transfer between thermal energy modes.
 	if ( get_energy_exchange_flag() == 1 && G.sim_time >= G.reaction_time_start  ) {
-	    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		bdp = get_block_data_ptr(jb);
+	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		bdp = G.my_blocks[jb];
 		bdp->apply( &FV_Cell::thermal_increment, G.dt_global, "thermal_increment" );
 	    }
 	}
@@ -1155,8 +1173,8 @@ int integrate_in_time( double target_time )
 		   G.cfl_min, G.cfl_max, G.dt_allow );
             fprintf(G.logfile, "Smallest CFL_max so far = %e at t = %e\n",
 		   G.cfl_tiny, G.time_tiny );
-            for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		bdp = get_block_data_ptr(jb);
+	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		bdp = G.my_blocks[jb];
                 if ( bdp->active != 1 ) continue;
                 fprintf(G.logfile, " dt[%d]=%e", jb, dt_record[jb] );
             }
@@ -1182,9 +1200,9 @@ int integrate_in_time( double target_time )
 	    sprintf( tindxcstr, "t%04d", output_counter ); tindxstring = tindxcstr;
 	    foldername = "flow/"+tindxstring;
 	    ensure_directory_is_present(foldername); // includes Barrier
-            for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		bdp = get_block_data_ptr(jb);
-		sprintf( jbcstr, ".b%04d", jb ); jbstring = jbcstr; 
+	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		bdp = G.my_blocks[jb];
+		sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr; 
 		filename = foldername+"/"+ G.base_file_name+".flow"+jbstring+"."+tindxstring;
 		bdp->write_solution(filename, G.sim_time, G.dimensions, zip_files);
 	    }
@@ -1193,9 +1211,9 @@ int integrate_in_time( double target_time )
 		foldername = "heat/"+tindxstring;
 		ensure_directory_is_present(foldername); // includes Barrier
 		// Loop over blocks
-		for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		    bdp = get_block_data_ptr(jb);
-		    sprintf( jbcstr, ".b%04d", jb ); jbstring = jbcstr;
+		for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		    bdp = G.my_blocks[jb];
+		    sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr;
 		    final_s = ((G.dimensions == 3)? BOTTOM : WEST);
 		    // Loop over boundaries/surfaces
 		    for ( js = NORTH; js <= final_s; ++js ) {
@@ -1213,9 +1231,9 @@ int integrate_in_time( double target_time )
         }
 
         if ( (G.sim_time >= G.t_his) && !history_just_written ) {
-            for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		bdp = get_block_data_ptr(jb);
-		sprintf(jbcstr, ".b%04d", jb); jbstring = jbcstr;
+	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		bdp = G.my_blocks[jb];
+		sprintf(jbcstr, ".b%04d", bdp->id); jbstring = jbcstr;
 		filename = "hist/"+G.base_file_name+".hist"+jbstring;
                 bdp->write_history( filename, G.sim_time );
 		bdp->print_forces( G.logfile, G.sim_time, G.dimensions );
@@ -1259,25 +1277,25 @@ int integrate_in_time( double target_time )
         if ( (G.step / G.print_count) * G.print_count == G.step ) {
             G.mass_residual = 0.0;
             G.energy_residual = 0.0;
-            for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		bdp = get_block_data_ptr(jb);
+	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		bdp = G.my_blocks[jb];
                 if ( bdp->active == 1 ) {
 		    bdp->compute_residuals( G.dimensions );
 		    fprintf( G.logfile, "RESIDUAL mass block %d max: %e at (%g,%g,%g)\n",
-			     jb, bdp->mass_residual, bdp->mass_residual_loc.x,
+			     bdp->id, bdp->mass_residual, bdp->mass_residual_loc.x,
 			     bdp->mass_residual_loc.y, bdp->mass_residual_loc.z );
 		    fprintf( G.logfile, "RESIDUAL energy block %d max: %e at (%g,%g,%g)\n",
-			     jb, bdp->energy_residual, bdp->energy_residual_loc.x,
+			     bdp->id, bdp->energy_residual, bdp->energy_residual_loc.x,
 			     bdp->energy_residual_loc.y, bdp->energy_residual_loc.z );
 		}
             }
 #           ifdef _MPI
-	    bdp = get_block_data_ptr(mpi_pid);
+	    bdp = get_block_data_ptr(G.my_mpi_rank);
 	    MPI_Allreduce( &(bdp->mass_residual), &(G.mass_residual), 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
 	    MPI_Allreduce( &(bdp->energy_residual), &(G.energy_residual), 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
 #           else
-            for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		bdp = get_block_data_ptr(jb);
+	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		bdp = G.my_blocks[jb];
                 if ( bdp->active == 1 ) {
 		    if ( bdp->mass_residual > G.mass_residual ) {
 			G.mass_residual = bdp->mass_residual;
@@ -1297,8 +1315,8 @@ int integrate_in_time( double target_time )
 
 	// 6. Spatial filter may be applied occasionally.
 	if ( G.do_filter && G.sim_time > G.filter_next_time ) {
-            for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		bdp = get_block_data_ptr(jb);
+	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		bdp = G.my_blocks[jb];
 		bdp->apply_spatial_filter( G.filter_alpha, G.filter_npass, G.dimensions );
 		bdp->apply( &FV_Cell::encode_conserved, bdp->omegaz, "encode_conserved" );
 	    }
@@ -1367,8 +1385,7 @@ int finalize_simulation( void )
     Block *bdp;
     string filename, commandstring, foldername, jbstring, jsstring;
     char jbcstr[10],jscstr[10];
-    int jb, js;
-    int final_s;
+    int js, final_s;
 
     // Write out the final solution even if it has just been written
     // as part of the main time-stepping loop.
@@ -1379,9 +1396,9 @@ int finalize_simulation( void )
     }
     foldername = "flow/t9999";
     ensure_directory_is_present(foldername); // includes Barrier
-    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-	bdp = get_block_data_ptr(jb);
-	sprintf( jbcstr, ".b%04d", jb ); jbstring = jbcstr;
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	bdp = G.my_blocks[jb];
+	sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr;
 	filename = foldername+"/"+G.base_file_name+".flow"+jbstring+".t9999";
 	bdp->write_solution(filename, G.sim_time, G.dimensions, zip_files);
     }
@@ -1390,9 +1407,9 @@ int finalize_simulation( void )
 	foldername = "heat/t9999";
 	ensure_directory_is_present(foldername); // includes Barrier
 	// Loop over blocks
-	for ( jb = first_block(); jb <= last_block(); ++jb ) {
-	    bdp = get_block_data_ptr(jb);
-	    sprintf( jbcstr, ".b%04d", jb ); jbstring = jbcstr;
+	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	    bdp = G.my_blocks[jb];
+	    sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr;
 	    final_s = ((G.dimensions == 3)? BOTTOM : WEST);
 	    // Loop over boundaries/surfaces
 	    for ( js = NORTH; js <= final_s; ++js ) {
@@ -1408,9 +1425,9 @@ int finalize_simulation( void )
     output_just_written = 1;
     // For the history files, we don't want to double-up on solution data.
     if ( !history_just_written ) {
-        for ( jb = first_block(); jb <= last_block(); ++jb ) {
-	    bdp = get_block_data_ptr(jb);
-	    sprintf( jbcstr, ".b%04d", jb ); jbstring = jbcstr;
+	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	    bdp = G.my_blocks[jb];
+	    sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr;
 	    filename = "hist/"+G.base_file_name+".hist"+jbstring;
             bdp->write_history( filename, G.sim_time );
 	}
@@ -1438,8 +1455,8 @@ int finalize_simulation( void )
     fclose( G.timestampfile );
 #   endif
 
-    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-	bdp = get_block_data_ptr(jb);
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	bdp = G.my_blocks[jb];
 	bdp->array_cleanup(G.dimensions);
     }
     return SUCCESS;
@@ -1451,14 +1468,14 @@ int gasdynamic_inviscid_increment( void )
 {
     global_data &G = *get_global_data_ptr();  // set up a reference
     Block *bdp;
-    int jb, most_bad_cells;
+    int most_bad_cells;
     int attempt_number, step_failed;
 
     // Record the current values of the conserved variables
     // in preparation for applying the predictor and corrector
     // stages of the time step.
-    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-	bdp = get_block_data_ptr(jb);
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	bdp = G.my_blocks[jb];
         if ( bdp->active != 1 ) continue;
 	bdp->apply( &FV_Cell::record_conserved, "record_conserved" );
     }
@@ -1474,23 +1491,23 @@ int gasdynamic_inviscid_increment( void )
 
 	//  Predictor Stage for gas-dynamics
 #       ifdef _MPI
-	mpi_exchange_boundary_data(first_block(), COPY_FLOW_STATE);
+	mpi_exchange_boundary_data(G.my_mpi_rank, COPY_FLOW_STATE);
 #       else
-	for ( jb = first_block(); jb <= last_block(); ++jb ) {
-	    bdp = get_block_data_ptr(jb);
+	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	    bdp = G.my_blocks[jb];
 	    if ( bdp->active != 1 ) continue;
 	    exchange_shared_boundary_data( jb, COPY_FLOW_STATE );
 	}
 #       endif
-	for ( jb = first_block(); jb <= last_block(); ++jb ) {
-	    bdp = get_block_data_ptr(jb);
+	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	    bdp = G.my_blocks[jb];
 	    if ( bdp->active != 1 ) continue;
 	    apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
 	}
 
 	if ( get_flux_calculator() == FLUX_ADAPTIVE ) {
-	    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		bdp = get_block_data_ptr(jb);
+	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
 		bdp->detect_shock_points( G.dimensions );
 	    }
@@ -1501,7 +1518,6 @@ int gasdynamic_inviscid_increment( void )
 	if ( get_radiation_flag() ) {
 	    RadiationTransportModel * rtm = get_radiation_transport_model_ptr();
 	    global_data &G = *get_global_data_ptr();
-	    int jb;
 	    Block * bdp;
 	    
 	    // Determine if a scaled or complete radiation call is required
@@ -1511,8 +1527,8 @@ int gasdynamic_inviscid_increment( void )
 #		ifdef _OPENMP
 #		pragma omp parallel for private(jb) schedule(runtime)
 #		endif
-		for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		    bdp = get_block_data_ptr(jb);
+		for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		    bdp = G.my_blocks[jb];
 		    if ( bdp->active != 1 ) continue;
 		    bdp->apply( &FV_Cell::rescale_Q_rE_rad, "rescale-Q_rE_rad" );
 		}
@@ -1524,16 +1540,16 @@ int gasdynamic_inviscid_increment( void )
 #		ifdef _OPENMP
 #		pragma omp parallel for private(jb) schedule(runtime)
 #		endif
-		for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		    bdp = get_block_data_ptr( jb );
+		for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		    bdp = G.my_blocks[jb];
 		    if ( bdp->active != 1 ) continue;
 		    bdp->apply( &FV_Cell::store_rad_scaling_params, "store-rad-scaling-params" );
 		}
 	    }
 	}
 
-	for ( jb = first_block(); jb <= last_block(); ++jb ) {
-	    bdp = get_block_data_ptr(jb);
+	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	    bdp = G.my_blocks[jb];
 	    if ( bdp->active != 1 ) continue;
 	    bdp->inviscid_flux( G.dimensions );
 	    bdp->apply( &FV_Cell::inviscid_source_vector, bdp->omegaz, "inviscid-source-vector" );
@@ -1554,21 +1570,21 @@ int gasdynamic_inviscid_increment( void )
 	if ( get_Torder_flag() == 2 ) {
 #           ifdef _MPI
 	    MPI_Barrier( MPI_COMM_WORLD );
-	    mpi_exchange_boundary_data(first_block(), COPY_FLOW_STATE);
+	    mpi_exchange_boundary_data(G.my_mpi_rank, COPY_FLOW_STATE);
 #           else
-	    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		bdp = get_block_data_ptr(jb);
+	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
 		exchange_shared_boundary_data( jb, COPY_FLOW_STATE );
 	    }
 #           endif
-	    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		bdp = get_block_data_ptr(jb);
+	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
 		apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
 	    }
-	    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		bdp = get_block_data_ptr(jb);
+	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
 		bdp->inviscid_flux( G.dimensions );
 		bdp->apply( &FV_Cell::inviscid_source_vector, bdp->omegaz, "inviscid-source-vector" );
@@ -1594,8 +1610,8 @@ int gasdynamic_inviscid_increment( void )
 	    G.dt_global = G.dt_reduction_factor * G.dt_global;
 	    printf( "Attempt %d failed: reducing dt to %e.\n",
 		    attempt_number, G.dt_global);
-	    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		bdp = get_block_data_ptr(jb);
+	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
 		bdp->apply( &FV_Cell::restore_conserved, "restore_conserved" );
 		bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode_conserved" );
@@ -1615,12 +1631,11 @@ int gasdynamic_viscous_increment( void )
 {
     global_data &G = *get_global_data_ptr();  // set up a reference
     Block *bdp;
-    int jb;
     // Record the current values of the conserved variables
     // in preparation for applying the predictor and corrector
     // stages of the time step.
-    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-	bdp = get_block_data_ptr(jb);
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	bdp = G.my_blocks[jb];
         if ( bdp->active != 1 ) continue;
 	bdp->apply( &FV_Cell::record_conserved, "record-conserved" );
 	// cout << "After record_conserved in viscous_increment. jb=" << jb << endl;
@@ -1629,8 +1644,8 @@ int gasdynamic_viscous_increment( void )
 	// print_data_for_cell( bdp->get_cell(bdp->imin,bdp->jmin), 1 );
 	// print_data_for_interface( bdp->get_ifi(bdp->imin,bdp->jmin), 1 );
     }
-    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-	bdp = get_block_data_ptr(jb);
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	bdp = G.my_blocks[jb];
 	if ( bdp->active != 1 ) continue;
 	bdp->clear_fluxes_of_conserved_quantities( G.dimensions );
 	apply_viscous_bc( *bdp, G.sim_time, G.dimensions );
@@ -1835,20 +1850,20 @@ int do_bad_cell_count( void )
 {
     global_data &G = *get_global_data_ptr();  // set up a reference
     Block *bdp;
-    int jb, bad_cell_count, most_bad_cells;
+    int bad_cell_count, most_bad_cells;
 
 #   ifdef _MPI
-    bdp = get_block_data_ptr(mpi_pid);
+    bdp = get_block_data_ptr(G.my_mpi_rank);
     bad_cell_count = bdp->count_invalid_cells( G.dimensions );
     MPI_Allreduce( &bad_cell_count, &most_bad_cells, 1,
 		   MPI_INT, MPI_MAX, MPI_COMM_WORLD);
     if ( bad_cell_count > G.max_invalid_cells ) {
-	printf( "   Too many bad cells in block[%d].\n", mpi_pid );
+	printf( "   Too many bad cells in block[%d].\n", G.my_mpi_rank );
     } 
 #   else
     most_bad_cells = 0;
-    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-	bdp = get_block_data_ptr(jb);
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	bdp = G.my_blocks[jb];
 	bad_cell_count = bdp->count_invalid_cells( G.dimensions );
 	if ( bad_cell_count > most_bad_cells ) {
 	    most_bad_cells = bad_cell_count;
@@ -1883,13 +1898,13 @@ int write_finishing_data( global_data *G, std::string filename )
 /// \brief Check that the maximum delta(f_rad) / f_rad_org value is not exceedingly large
 int check_radiation_scaling( void )
 {
+    global_data &G = *get_global_data_ptr();  // set up a reference
     Block *bdp;
-    int jb;
     double f_max, block_f_max, global_f_max = 0.0;
     FV_Cell *cellp;
     
 #   ifdef _MPI
-    bdp = get_block_data_ptr(mpi_pid);
+    bdp = get_block_data_ptr(G.my_mpi_rank);
     block_f_max = 0.0;
     for ( int k = bdp->kmin; k <= bdp->kmax; ++k ) {
         for ( int j = bdp->jmin; j <= bdp->jmax; ++j ) {
@@ -1903,8 +1918,8 @@ int check_radiation_scaling( void )
     MPI_Allreduce( &block_f_max, &global_f_max, 1,
 		   MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 #   else
-    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-    	bdp = get_block_data_ptr(jb);
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	bdp = G.my_blocks[jb];
     	block_f_max = 0.0;
 	for ( int k = bdp->kmin; k <= bdp->kmax; ++k ) {
 	    for ( int j = bdp->jmin; j <= bdp->jmax; ++j ) {

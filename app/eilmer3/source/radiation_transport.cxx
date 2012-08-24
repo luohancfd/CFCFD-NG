@@ -112,14 +112,14 @@ OpticallyThin::initialise()
 void OpticallyThin::compute_Q_rad_for_flowfield()
 {
     Block * bdp;
-    int jb;
-    
+    global_data &G = *get_global_data_ptr();  // set up a reference
+
 #   ifdef _OPENMP
 #   pragma omp barrier
 #   pragma omp parallel for private(jb) schedule(runtime)
 #   endif
-    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-	bdp = get_block_data_ptr(jb);
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	bdp = G.my_blocks[jb];
 	if ( bdp->active != 1 ) continue;
 	this->compute_Q_rad_for_block(bdp);
     }
@@ -193,14 +193,14 @@ void TangentSlab::compute_Q_rad_for_flowfield()
     // FIXME: eventually want to be able to do calculation across blocks
     
     Block * bdp;
-    int jb;
+    global_data &G = *get_global_data_ptr();  // set up a reference
     
 #   ifdef _OPENMP
 #   pragma omp barrier
 #   pragma omp parallel for private(jb) schedule(runtime)
 #   endif
-    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-	bdp = get_block_data_ptr(jb);
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	bdp = G.my_blocks[jb];
 	if ( bdp->active != 1 ) continue;
 	this->compute_Q_rad_for_block(bdp);
     }
@@ -336,11 +336,11 @@ DiscreteTransfer::initialise()
     cells_.resize( G.nblock );
     interfaces_.resize( G.nblock );
     int nthreads = omp_get_max_threads();
-    for ( int jb = first_block(); jb <= last_block(); ++jb ) {
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	Block * bdp = G.my_blocks[jb];
 #       if VERBOSE_RADIATION_TRANSPORT
     	cout << "Thread " << omp_get_thread_num() << ": Initialising cells in block: " << jb << endl;
 #       endif
-    	Block * bdp = get_block_data_ptr( jb );
 	// if ( bdp->active != 1 ) continue;
 	for ( int k = bdp->kmin; k <= bdp->kmax; ++k ) {
 	    for ( int j = bdp->jmin; j <= bdp->jmax; ++j ) {
@@ -1015,11 +1015,11 @@ MonteCarlo::initialise()
     cells_.resize( G.nblock );
     interfaces_.resize( G.nblock );
     int nthreads = omp_get_max_threads();
-    for ( int jb = first_block(); jb <= last_block(); ++jb ) {
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	Block * bdp = G.my_blocks[jb];
 #       if VERBOSE_RADIATION_TRANSPORT
     	cout << "Thread " << omp_get_thread_num() << ": Initialising cells in block: " << jb << endl;
 #       endif
-    	Block * bdp = get_block_data_ptr( jb );
 	// if ( bdp->active != 1 ) continue;
 	for ( int k = bdp->kmin; k <= bdp->kmax; ++k ) {
 	    for ( int j = bdp->jmin; j <= bdp->jmax; ++j ) {

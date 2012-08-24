@@ -32,15 +32,15 @@ int gasdynamic_point_implicit_inviscid_increment(void)
 #if WITH_IMPLICIT == 1
     global_data &G = *get_global_data_ptr();  // set up a reference
     Block *bdp;
-    int jb, most_bad_cells;
+    int most_bad_cells;
     int attempt_number, step_failed;
 	
     cout << "=== Debut gasdynamic_point_implicit_inviscid_increment ===" << endl;
     // Record the current values of the conserved variables
     // in preparation for applying the predictor and corrector
     // stages of the time step.
-    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-	bdp = get_block_data_ptr(jb);
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	bdp = G.my_blocks[jb];
         if ( bdp->active != 1 ) continue;
 	bdp->apply( &FV_Cell::record_conserved, "record_conserved" );
     }
@@ -55,23 +55,23 @@ int gasdynamic_point_implicit_inviscid_increment(void)
 
 	//  Predictor Stage for gas-dynamics
 #       ifdef _MPI
-	mpi_exchange_boundary_data(first_block(), COPY_FLOW_STATE);
+	mpi_exchange_boundary_data(G.my_mpi_rank, COPY_FLOW_STATE);
 #       else
-	for ( jb = first_block(); jb <= last_block(); ++jb ) {
-	    bdp = get_block_data_ptr(jb);
+	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	    bdp = G.my_blocks[jb];
 	    if ( bdp->active != 1 ) continue;
 	    exchange_shared_boundary_data( jb, COPY_FLOW_STATE );
 	}
 #       endif
-	for ( jb = first_block(); jb <= last_block(); ++jb ) {
-	    bdp = get_block_data_ptr(jb);
+	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	    bdp = G.my_blocks[jb];
 	    if ( bdp->active != 1 ) continue;
 	    apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
 	}
 
 	if ( get_flux_calculator() == FLUX_ADAPTIVE ) {
-	    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		bdp = get_block_data_ptr(jb);
+	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
 		bdp->detect_shock_points( G.dimensions );
 	    }
@@ -82,7 +82,6 @@ int gasdynamic_point_implicit_inviscid_increment(void)
 	if ( get_radiation_flag() ) {
 	    RadiationTransportModel * rtm = get_radiation_transport_model_ptr();
 	    global_data &G = *get_global_data_ptr();
-	    int jb;
 	    Block * bdp;
 	    
 	    // Determine if a scaled or complete radiation call is required
@@ -94,8 +93,8 @@ int gasdynamic_point_implicit_inviscid_increment(void)
 #		ifdef _OPENMP
 #		pragma omp parallel for private(jb) schedule(runtime)
 #		endif
-		for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		    bdp = get_block_data_ptr( jb );
+		for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		    bdp = G.my_blocks[jb];
 		    if ( bdp->active != 1 ) continue;
 		    bdp->apply( &FV_Cell::store_rad_scaling_params, "store-rad-scaling-params" );
 		}
@@ -105,16 +104,16 @@ int gasdynamic_point_implicit_inviscid_increment(void)
 #		ifdef _OPENMP
 #		pragma omp parallel for private(jb) schedule(runtime)
 #		endif
-		for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		    bdp = get_block_data_ptr(jb);
+		for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		    bdp = G.my_blocks[jb];
 		    if ( bdp->active != 1 ) continue;
 		    bdp->apply( &FV_Cell::rescale_Q_rE_rad, "rescale-Q_rE_rad" );
 		}
 	    }
 	}
 
-	for ( jb = first_block(); jb <= last_block(); ++jb ) {
-	    bdp = get_block_data_ptr(jb);
+	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	    bdp = G.my_blocks[jb];
 	    if ( bdp->active != 1 ) continue;
 	    bdp->inviscid_flux( G.dimensions );
 	    bdp->apply( &FV_Cell::inviscid_source_vector, bdp->omegaz, "inviscid-source-vector" );
@@ -135,8 +134,8 @@ int gasdynamic_point_implicit_inviscid_increment(void)
 	    G.dt_global = G.dt_reduction_factor * G.dt_global;
 	    printf( "Attempt %d failed: reducing dt to %e.\n",
 		    attempt_number, G.dt_global);
-	    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-		bdp = get_block_data_ptr(jb);
+	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
 		bdp->apply( &FV_Cell::restore_conserved, "restore_conserved" );
 		bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode_conserved" );
@@ -388,12 +387,11 @@ int gasdynamic_point_implicit_viscous_increment(void)
 #if WITH_IMPLICIT == 1
     global_data &G = *get_global_data_ptr();  // set up a reference
     Block *bdp;
-    int jb;
     // Record the current values of the conserved variables
     // in preparation for applying the predictor and corrector
     // stages of the time step.
-    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-	bdp = get_block_data_ptr(jb);
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	bdp = G.my_blocks[jb];
 	if ( bdp->active != 1 ) continue;
 	bdp->apply( &FV_Cell::record_conserved, "record-conserved" );
 	// cout << "After record_conserved in viscous_increment. jb=" << jb << endl;
@@ -402,8 +400,8 @@ int gasdynamic_point_implicit_viscous_increment(void)
 	// print_data_for_cell( bdp->get_cell(bdp->imin,bdp->jmin), 1 );
 	// print_data_for_interface( bdp->get_ifi(bdp->imin,bdp->jmin), 1 );
     }
-    for ( jb = first_block(); jb <= last_block(); ++jb ) {
-	bdp = get_block_data_ptr(jb);
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	bdp = G.my_blocks[jb];
 	if ( bdp->active != 1 ) continue;
 	bdp->clear_fluxes_of_conserved_quantities( G.dimensions );
 	apply_viscous_bc( *bdp, G.sim_time, G.dimensions );

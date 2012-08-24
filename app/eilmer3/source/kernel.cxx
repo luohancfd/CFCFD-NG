@@ -131,49 +131,14 @@ void eilmer_finalize( void )
     gd.heat_zone.resize(0);
     gd.reaction_zone.resize(0);
     gd.turbulent_zone.resize(0);
+    gd.my_blocks.resize(0);
+    gd.mpi_rank_for_block.resize(0);
     delete gmodel;
     delete tinterp;
     if ( get_radiation_flag() )	delete rtm;
     return;
 }
 
-
-//---------------------------------------------------------------------
-
-/** \brief Set the limits for the range of block indices.
- *
- * Be sure to do this immediately after establishing the 
- * actual number of blocks in the calculation and,
- * for MPI jobs, that this number matches the number of processors.
- */
-int set_block_range(int first, int last)
-{
-    if ( last - first >= 0 ) {
-	gd.first_block = first;
-	gd.last_block = last;
-    } else {
-	gd.first_block = 0;
-	gd.last_block = 0;
-    }
-    // return number of blocks
-    return gd.last_block - gd.first_block + 1;
-}
-
-/** \brief Returns the index of the first block for this process. 
- *
- * This is a convenience function so that we can code loops over
- * block the same whether for the MPI code of for the shared-memory
- * code.
- */
-int first_block(void) { return gd.first_block; }
-
-/** \brief Returns the index of the last block for this process. 
- *
- * This is a convenience function so that we can code loops over
- * block the same whether for the MPI code of for the shared-memory
- * code.
- */
-int last_block(void) { return gd.last_block;}
 
 //---------------------------------------------------------------------
 
