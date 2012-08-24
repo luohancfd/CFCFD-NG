@@ -363,16 +363,15 @@ int prepare_to_integrate( int start_tindx )
 	fclose( fp );
     }
 
-    // Allocate and initialise memory in parallel.
+    // Allocate and initialise memory.
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
         if ( bdp->array_alloc(G.dimensions) != 0 ) exit( MEMORY_ERROR );
 	bdp->bind_interfaces_to_cells(G.dimensions);
+#       ifdef _MPI
+	if ( allocate_send_and_receive_buffers(bdp) != 0 ) exit( MEMORY_ERROR );
+#       endif
     }
-#   ifdef _MPI
-    bdp = get_block_data_ptr(G.my_mpi_rank);
-    if ( allocate_send_and_receive_buffers(bdp) != 0 ) exit( MEMORY_ERROR );
-#   endif
 
     // Read block grid and flow data; write history-file headers.
     // Note that the global simulation time is set by the last flow data read.
@@ -381,7 +380,7 @@ int prepare_to_integrate( int start_tindx )
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
         printf( "----------------------------------\n" );
-	sprintf( jbcstr, ".b%04d", jb );
+	sprintf( jbcstr, ".b%04d", bdp->id );
 	jbstring = jbcstr;
 	// Read grid from the tindx=0 files, always.
 	filename = "grid/t0000/"+G.base_file_name+".grid"+jbstring+".t0000";
@@ -401,7 +400,7 @@ int prepare_to_integrate( int start_tindx )
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
         printf( "----------------------------------\n" );
-	sprintf( jbcstr, ".b%04d", jb );
+	sprintf( jbcstr, ".b%04d", bdp->id );
 	jbstring = jbcstr;
 	filename = "hist/" + G.base_file_name + ".hist"+jbstring;
 	if ( access(filename.c_str(), F_OK) != 0 ) {
@@ -452,6 +451,8 @@ int prepare_to_integrate( int start_tindx )
 
     // Exchange boundary cell geometry information so that we can
     // next calculate secondary-cell geometries.
+    // FIX-ME generalize for handling several blocks per MPI process
+    // FIX-ME Be careful that we don't break the usage for integrate_blocks_in_sequence
 #   ifdef _MPI
     mpi_exchange_boundary_data(G.my_mpi_rank, COPY_CELL_LENGTHS);
 #   else
@@ -709,8 +710,8 @@ int integrate_blocks_in_sequence( void )
 
     // Integrate just the first two blocks in time, hopefully to steady state.
     G.my_blocks.resize(2);
-    G.my_blocks.push_back(&(G.bd[0]));
-    G.my_blocks.push_back(&(G.bd[1]));
+    G.my_blocks[0] = &(G.bd[0]);
+    G.my_blocks[1] = &(G.bd[1]);
     integrate_in_time( time_slice );
 
 
@@ -721,17 +722,17 @@ int integrate_blocks_in_sequence( void )
 	// becomes the left most block and jb is the new block to be iterated
 	cout << "Integrate Block " << jb << endl;
 	// Make the block jb-2 inactive.
-	bdp = get_block_data_ptr(jb-2);
+	bdp = &(G.bd[jb-2]);
 	bdp->active = 0;
 
 	// block jb-1 - reinstate the previous boundary condition on east face
 	// but leave the block active
-	bdp = get_block_data_ptr(jb-1);
+	bdp = &(G.bd[jb-1]);
 	delete bdp->bcp[EAST];
 	bdp->bcp[EAST] = bcp_save;
 
 	// Set up new block jb to be integrated
-	bdp = get_block_data_ptr(jb);
+	bdp = &(G.bd[jb]);
 	bdp->active = 1;
 
 	if ( jb < G.nblock-1 ) {
