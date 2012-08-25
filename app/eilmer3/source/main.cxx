@@ -671,16 +671,13 @@ int integrate_blocks_in_sequence( void )
 
     // Initially deactivate all blocks
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
-	bdp = G.my_blocks[jb];
-	bdp->active = 0;
+	G.bd[jb].active = 0;
     }
 
     cout << "Integrate Block 0 and Block 1" << endl;
 
     // Start by setting up block 0
-
-    // Activate block 0
-    bdp = get_block_data_ptr(0);
+    bdp = &(G.bd[0]);
     bdp->active = 1;
     // Apply the assumed SupINBC to the west face and propogate across the block
     bdp->bcp[WEST]->apply_inviscid(0.0);
@@ -692,16 +689,12 @@ int integrate_blocks_in_sequence( void )
     bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode_conserved" );
 
     // Now set up block 1
-
-    // Activate block 1
-    bdp = get_block_data_ptr(1);
+    bdp = &(G.bd[1]);
     bdp->active = 1;
-
     // Save the original east boundary condition and apply the temporary
     // ExtrapolateOutBC for the calculation
     bcp_save = bdp->bcp[EAST];
     bdp->bcp[EAST] = new ExtrapolateOutBC(*bdp, EAST, 0);
-
     // Read in data from block 0 and propogate across the block
     exchange_shared_boundary_data( 1, COPY_FLOW_STATE);
     bdp->propagate_data_west_to_east( G.dimensions );
@@ -709,11 +702,9 @@ int integrate_blocks_in_sequence( void )
     bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode_conserved" );
 
     // Integrate just the first two blocks in time, hopefully to steady state.
-    G.my_blocks.resize(2);
-    G.my_blocks[0] = &(G.bd[0]);
-    G.my_blocks[1] = &(G.bd[1]);
+    G.bd[0].active = 1;
+    G.bd[1].active = 1;
     integrate_in_time( time_slice );
-
 
     // The rest of the blocks.
     for ( int jb = 2; jb < (G.nblock); ++jb ) {
@@ -734,7 +725,6 @@ int integrate_blocks_in_sequence( void )
 	// Set up new block jb to be integrated
 	bdp = &(G.bd[jb]);
 	bdp->active = 1;
-
 	if ( jb < G.nblock-1 ) {
 	    // Cut off the east boundary of the current block 
 	    // from the downstream blocks if there are any.
@@ -749,14 +739,13 @@ int integrate_blocks_in_sequence( void )
 	bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode_conserved" );
 	// Integrate just the two currently active blocks in time,
 	// hopefully to steady state.
-	G.my_blocks[0] = &(G.bd[jb-1]);
-	G.my_blocks[1] = &(G.bd[jb]);
+	G.bd[jb-1].active = 1;
+	G.bd[jb].active = 1;
 	integrate_in_time( jb*time_slice );
     }
     // Before leaving, we want all blocks active for output.
-    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
-	bdp = G.my_blocks[jb];
-	bdp->active = 1;
+    for ( int jb = 0; jb < G.nblock; ++jb ) {
+	G.bd[jb].active = 1;
     }
     return status_flag;
 } // end integrate_blocks_in_sequence()
@@ -958,7 +947,6 @@ int integrate_in_time( double target_time )
 		status_flag = FAILURE;
 		goto conclusion;
 	    }
-
 	    if ( bdp->active == 1 ) {
 		// If the block for this process is active,
 		// it may participate in setting the allowable time-step.
@@ -1127,6 +1115,7 @@ int integrate_in_time( double target_time )
 	    if ( get_k_omega_flag() == 1 ) {
 		for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		    bdp = G.my_blocks[jb];
+		    if ( bdp->active != 1 ) continue;
 		    bdp->apply( &FV_Cell::update_k_omega_properties, G.dt_global, "k_omega_increment" );
 		}
 	    }
@@ -1139,6 +1128,7 @@ int integrate_in_time( double target_time )
         if ( get_reacting_flag() == 1 && G.sim_time >= G.reaction_time_start ) {
 	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
+		if ( bdp->active != 1 ) continue;
 		bdp->apply( &FV_Cell::chemical_increment, G.dt_global, "chemical_increment" );
 	    }
 	}
@@ -1149,6 +1139,7 @@ int integrate_in_time( double target_time )
 	if ( get_energy_exchange_flag() == 1 && G.sim_time >= G.reaction_time_start  ) {
 	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
+		if ( bdp->active != 1 ) continue;
 		bdp->apply( &FV_Cell::thermal_increment, G.dt_global, "thermal_increment" );
 	    }
 	}
@@ -1318,6 +1309,7 @@ int integrate_in_time( double target_time )
 	if ( G.do_filter && G.sim_time > G.filter_next_time ) {
 	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
+		if ( bdp->active != 1 ) continue;
 		bdp->apply_spatial_filter( G.filter_alpha, G.filter_npass, G.dimensions );
 		bdp->apply( &FV_Cell::encode_conserved, bdp->omegaz, "encode_conserved" );
 	    }
