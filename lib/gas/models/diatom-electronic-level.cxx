@@ -31,7 +31,7 @@ Diatom_electronic_level::Diatom_electronic_level( vector<double> lev_data )
     D_e = lev_data[10] * PC_c * PC_h_SI;
     beta_e = lev_data[11] * PC_c * PC_h_SI;
     A_spin = lev_data[12] * PC_c * PC_h_SI;
-    lambda = (int) lev_data[13];
+    Lambda = (int) lev_data[13];
     spin = (int) lev_data[14];
     // Check that a usable dissociation energy is present
     if ( D < 0.0 && xomega_e > 0.0 ) {
@@ -247,7 +247,7 @@ eval_E_rot( int iV, int iJ )
     double D_v = D_e + (double(iV) + 0.5) * beta_e;
     double B_v = B_e - (double(iV) + 0.5) * alpha_e;
     // Energy
-    double E_r = B_v*iJ*(iJ+1.0) + (A_spin-B_v)*double(lambda*lambda) - D_v*iJ*iJ*(iJ+1.0)*(iJ+1.0);
+    double E_r = B_v*iJ*(iJ+1.0) + (A_spin-B_v)*double(Lambda*Lambda) - D_v*iJ*iJ*(iJ+1.0)*(iJ+1.0);
     
     return E_r;
 }

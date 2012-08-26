@@ -16,10 +16,11 @@ def create_gas_file_list():
     gas_models["EQ"] = "thermally perfect gas"
     gas_models["NEQ"] = "two temperature gas"
     for gm_name in gas_input_files.keys():
-    	i = gm_name.find("-")
-    	gm_type = gas_models[gm_name[i+1:]]
-    	species_list = species[gm_name[:i]]
-    	create_gas_file(gm_type,species_list,gas_input_files[gm_name])
+        i = gm_name.find("-")
+        gm_type = gas_models[gm_name[i+1:]]
+        species_list = species[gm_name[:i]]
+        create_gas_file(gm_type,species_list,gas_input_files[gm_name])
+        clear_chemical_species_library()
     return gas_input_files
 
 def make_reactants_dictionary( species_list ):
@@ -30,7 +31,7 @@ def make_reactants_dictionary( species_list ):
         if ( sp.find("_plus")>=0 ): sp = sp[0:sp.find("_plus")] + "+"
         # replace names containing '_minus' with '-' 
         if ( sp.find("_minus")>=0 ): sp = sp[0:sp.find("_minus")] + "-"
-	reactants.setdefault(sp,0.0)
+    reactants.setdefault(sp,0.0)
     return reactants
 
 def get_species_composition( sp, species_data ):
@@ -39,9 +40,9 @@ def get_species_composition( sp, species_data ):
     # replace names containing '_minus' with '-' 
     if ( sp.find("_minus")>=0 ): sp = sp[0:sp.find("_minus")] + "-"
     if sp in species_data.keys():
-	return species_data[sp]
+        return species_data[sp]
     else:
-	return 0.0
+        return 0.0
 
 def main():
     gas_input_files = create_gas_file_list()
@@ -56,8 +57,8 @@ def main():
         # setup CEA gas
         reactants = make_reactants_dictionary( species )
         reactants["N2"] = 0.767; reactants["O2"] = 0.233
-	if "e_minus" in species: with_ions=True
-	else: with_ions=False
+        if "e_minus" in species: with_ions=True
+        else: with_ions=False
         cea = Gas( reactants, onlyList=reactants.keys(), with_ions=with_ions, trace=1.0e-10 )
         # prepare to loop over the following temperature range
         p = 1.0e5; T_min = 200.0; T_max = 13400.0; dT = 1000.0
@@ -112,7 +113,7 @@ def main():
         t1 = time(); print "Wall time = %f seconds" % ( t1-t0 ) 
             
         del gm
-	clear_chemical_species_library()
+        clear_chemical_species_library()
    
     print "done."
     

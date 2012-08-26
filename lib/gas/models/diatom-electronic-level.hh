@@ -68,7 +68,7 @@ public:
     
     /* Quantum state */
     int spin;		// State spin multiplicity
-    int lambda;		// ND orbital anglular momentum
+    int Lambda;		// ND orbital anglular momentum
     double A_spin;	// Spin-angular momentum coupling constant A ('spin-orb')
     
     /* Energy terms */

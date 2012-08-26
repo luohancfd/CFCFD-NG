@@ -21,7 +21,6 @@ SPECIES         := ../species
 TOOLS           := ../tools
 TEST            := ../test
 CEA_CASES       := ../cea-cases
-NONEQ_TEST      := ../noneq-test
 COLLISION_INTEGRALS := ../collision-integrals
 
 # Other useful directory variables
