@@ -927,9 +927,9 @@ int check_connectivity()
     } // end for jb
 
     if (fail == 0) {
-        cout << "Forward and Backward connections are OK" << endl;
+        if ( get_verbose_flag() ) cout << "Forward and Backward connections are OK." << endl;
     } else {
-        cout << "Block connections fail" << endl;
+        cout << "Block connections fail." << endl;
         exit( VALUE_ERROR );
     }
 
@@ -959,13 +959,14 @@ int check_connectivity()
 	    } // end for face
 	} // end for jb
 	if (fail == 0) {
-	    cout << "Numbers of cells for adjacent boundaries are OK." << endl;
+	    if ( get_verbose_flag() ) cout << "Numbers of cells for adjacent boundaries are OK." << endl;
 	} else {
 	    cerr << "Numbers of cells for adjacent boundaries FAIL." << endl;
 	    exit( VALUE_ERROR );
 	}
     } else {
-	cout << "Numbers of cells on joined faces are not checked for 3D." << endl;
+	// FIX-ME bring the code over from e3prep
+	if ( get_verbose_flag() ) cout << "Numbers of cells on joined faces are not checked for 3D." << endl;
     }
 
     return SUCCESS;

@@ -101,7 +101,7 @@ int main(int argc, char **argv)
     int start_tindx = 0;
     int run_status = SUCCESS;
     char c, job_name[132], text_buf[132];
-    char log_file_name[132];
+    char log_file_name[132], mpimap_file_name[132];
 
 #   ifdef _MPI
     MPI_Status status;
@@ -135,6 +135,9 @@ int main(int argc, char **argv)
 	{ "max-wall-clock", 'w', POPT_ARG_STRING, NULL, 'w',
 	  "maximum wall-clock time in seconds", 
 	  "<seconds>" },
+	{ "mpimap", 'm', POPT_ARG_STRING, NULL, 'm',
+	  "use this specific MPI map of blocks to rank", 
+	  "<mpimap_file>" },
 	POPT_AUTOHELP
 	POPT_TABLEEND
     };
@@ -165,6 +168,8 @@ int main(int argc, char **argv)
     MPI_Get_processor_name(node_name, &node_name_len);
     printf("e3main: process %d of %d active on node %s\n", 
 	   G.my_mpi_rank, G.num_mpi_proc, node_name );
+    fflush(stdout);
+    MPI_Barrier(MPI_COMM_WORLD); // just to reduce the jumble in stdout
 #   else
     master = 1;
     sprintf(log_file_name, "e3shared.log");
@@ -180,12 +185,14 @@ int main(int argc, char **argv)
     }
     // Configuration.
     //
-    printf("e3main: process command-line options...\n");
+    // printf("e3main: process command-line options...\n");
     optCon = poptGetContext(NULL, argc, (const char**)argv, optionsTable, 0);
     if (argc < 2) {
 	poptPrintUsage(optCon, stderr, 0);
 	goto Quit;
     }
+    strcpy(job_name, "");
+    strcpy(mpimap_file_name, "");
     /* Now do options processing as per the popt example. */
     while ((c = poptGetNextOpt(optCon)) >= 0) {
 	/* printf("received option %c\n", c); */
@@ -215,6 +222,9 @@ int main(int argc, char **argv)
 	    strcpy( text_buf, poptGetOptArg(optCon) );
 	    sscanf( text_buf, "%d", &max_wall_clock );
 	    break;
+	case 'm':
+	    strcpy(mpimap_file_name, poptGetOptArg(optCon));
+	    break;
 	}
     }
     if ( master ) {
@@ -228,42 +238,35 @@ int main(int argc, char **argv)
 
     G.base_file_name = string(job_name);
     // Read the static configuration parameters from the INI file
-    read_config_parameters(G.base_file_name+".config", master ); 
+#   ifdef _MPI
+    fflush(stdout);
+    MPI_Barrier(MPI_COMM_WORLD); // just to reduce the jumble in stdout
+#   endif
+    if ( SUCCESS != read_config_parameters(G.base_file_name+".config", master) ) goto Quit; 
     // Read the time-step control parameters from a separate file.
     // These will also be read at the start of each time step.
-    read_control_parameters(G.base_file_name+".control", master, 1);
-
-// -------- FIX-ME ------------// -------- FIX-ME ------------// -------- FIX-ME ------------
+#   ifdef _MPI
+    fflush(stdout);
+    MPI_Barrier(MPI_COMM_WORLD); // just to reduce the jumble in stdout
+#   endif
+    if ( SUCCESS != read_control_parameters(G.base_file_name+".control", master, 1) ) goto Quit;
     // At this point, we know the number of blocks in the calculation.
     // Depending on whether we are running all blocks in the one process
     // or we are running a subset of blocks in this process, talking to
     // the other processes via MPI, we need to decide what blocks belong
     // to the current process.
 #   ifdef _MPI
-    if ( G.num_mpi_proc != G.nblock ) {
-	if ( master ) {
-	    printf("Error in specifying mpirun -np\n");
-	    printf("    It needs to match number of blocks; present values are:\n");
-	    printf("    num_mpi_proc= %d nblock= %d\n", G.num_mpi_proc, G.nblock);
-	}
-	goto Quit;
-    }
-    // Identify block with mpi process number. 
-    G.my_blocks.push_back(&(G.bd[G.my_mpi_rank]));
-    for ( int jb=0; jb < G.nblock; ++jb ) {
-	G.mpi_rank_for_block.push_back(jb);
-    }
-#   else
-    // All blocks in same process.
-    for ( int jb=0; jb < G.nblock; ++jb ) {
-	G.my_blocks.push_back(&(G.bd[jb]));
-	G.mpi_rank_for_block.push_back(G.my_mpi_rank);
-    } 
+    fflush(stdout);
+    MPI_Barrier(MPI_COMM_WORLD); // just to reduce the jumble in stdout
 #   endif
-// -------- FIX-ME ------------// -------- FIX-ME ------------// -------- FIX-ME ------------
+    if ( SUCCESS != assign_blocks_to_mpi_rank(mpimap_file_name, master) ) goto Quit;
 
     // Real work is delegated to functions that know what to do...
     //
+#   ifdef _MPI
+    fflush(stdout);
+    MPI_Barrier(MPI_COMM_WORLD); // just to reduce the jumble in stdout
+#   endif
     if ( do_run_simulation == 1 ) {
 	printf("Run simulation...\n");
 	/* The simulation proper. */
@@ -364,6 +367,10 @@ int prepare_to_integrate( int start_tindx )
     }
 
     // Allocate and initialise memory.
+#   ifdef _MPI
+    fflush(stdout);
+    MPI_Barrier(MPI_COMM_WORLD); // just to reduce the jumble in stdout
+#   endif
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
         if ( bdp->array_alloc(G.dimensions) != 0 ) exit( MEMORY_ERROR );
@@ -375,6 +382,10 @@ int prepare_to_integrate( int start_tindx )
 
     // Read block grid and flow data; write history-file headers.
     // Note that the global simulation time is set by the last flow data read.
+#   ifdef _MPI
+    fflush(stdout);
+    MPI_Barrier(MPI_COMM_WORLD); // just to reduce the jumble in stdout
+#   endif
     sprintf( tindxcstr, "t%04d", start_tindx);
     tindxstring = tindxcstr;
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {

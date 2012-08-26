@@ -147,7 +147,6 @@ int verbose = 0;  // quiet by default
 
 int set_verbose_flag( int i )
 {
-    printf("set_verbose_flag(): ");
     if ( i == 0 ) {
         printf("Brief messages at startup.\n");
 	verbose = 0;
@@ -295,11 +294,10 @@ double shear_tolerance = 0.20;
 int set_axisymmetric_flag(int ia)
 {
     axisymm = ia;
-    printf("set_axisymmetric_flag(): ");
     if (axisymm == 0)
-        printf("Two-dimensional planar flow\n");
+        if ( get_verbose_flag() ) printf("Two-dimensional planar flow\n");
     else if (axisymm == 1)
-        printf("Axisymmetric flow\n");
+        if ( get_verbose_flag() ) printf("Axisymmetric flow\n");
     else {
         printf("Invalid axisymmetric flag value: %d\n", axisymm);
         exit(VALUE_ERROR);
@@ -317,11 +315,10 @@ int get_axisymmetric_flag(void)
 int set_viscous_flag(int iv)
 {
     viscous = iv;
-    printf("set_viscous_flag(): ");
     if (viscous == 0)
-        printf("Turn off viscous terms.\n");
+        if ( get_verbose_flag() ) printf("Turn off viscous terms.\n");
     else if (viscous == 1)
-        printf("Turn on viscous terms.\n");
+        if ( get_verbose_flag() ) printf("Turn on viscous terms.\n");
     else {
         printf("Invalid viscous flag value: %d\n", viscous);
         exit(VALUE_ERROR);
@@ -380,11 +377,10 @@ double get_viscous_factor_increment( void )
 int set_diffusion_flag(int id)
 {
     diffusion = id;
-    printf("set_diffusion_flag(): ");
     if (diffusion == 0)
-        printf("Diffusion of species ignored.\n");
+        if ( get_verbose_flag() ) printf("Diffusion of species ignored.\n");
     else if (diffusion == 1)
-        printf("Diffusion of species treated as part of viscous terms.\n");
+        if ( get_verbose_flag() ) printf("Diffusion of species treated as part of viscous terms.\n");
     else {
         printf("Invalid diffusion flag value: %d\n", diffusion);
         exit(VALUE_ERROR);
@@ -402,6 +398,7 @@ int get_diffusion_flag(void)
 int set_Xorder_flag(int ix)
 {
     Xorder = ix;
+    if ( get_verbose_flag() ) printf("Xorder=%d\n", Xorder);
     if ( Xorder != 1 && Xorder != 2 ) {
 	printf("set_Xorder_flag(): Invalid Xorder flag value: %d\n", Xorder);
         exit(VALUE_ERROR);
@@ -419,6 +416,7 @@ int get_Xorder_flag(void)
 int set_Torder_flag(int it)
 {
     Torder = it;
+    if ( get_verbose_flag() ) printf("Torder=%d\n", Torder);
     if ( Torder != 1 && Torder != 2 && Torder != 3 ) {
         printf("set_Torder_flag(): Invalid Torder flag value: %d\n", Torder);
         exit(VALUE_ERROR);
@@ -439,6 +437,7 @@ double set_heat_factor( double value )
     if ( value > 1.0 ) value = 1.0;
     if ( value < 0.0 ) value = 0.0;
     heat_factor = value;
+    if ( get_verbose_flag() ) printf("set heat_factor=%g\n", heat_factor);
     return heat_factor;
 }
 
@@ -463,6 +462,7 @@ double set_heat_factor_increment( double value )
     if ( value > 1.0 ) value = 1.0;
     if ( value < 0.0 ) value = 0.0;
     heat_factor_increment = value;
+    if ( get_verbose_flag() ) printf("set heat_factor_increment=%g\n", heat_factor_increment);
     return heat_factor_increment;
 }
 
@@ -477,11 +477,10 @@ double get_heat_factor_increment( void )
 int set_reacting_flag(int ir)
 {
     reacting = ir;
-    printf("set_reacting_flag(): ");
     if (reacting == 0)
-        printf("Flow in chemical equilibrium (or frozen)\n");
+        if ( get_verbose_flag() ) printf("Flow in chemical equilibrium (or frozen)\n");
     else if (reacting == 1)
-        printf("Flow in chemical nonequilibrium: source terms computed\n");
+        if ( get_verbose_flag() ) printf("Flow in chemical nonequilibrium: source terms computed\n");
     else {
         printf("Invalid reacting flag value: %d\n", reacting);
         exit(VALUE_ERROR);
@@ -499,11 +498,10 @@ int get_reacting_flag(void)
 int set_energy_exchange_flag(int ir)
 {
     thermal_energy_exchange = ir;
-    printf("set_energy_exchange_flag(): ");
     if (thermal_energy_exchange == 0)
-        printf("Flow in thermal equilibrium\n");
+        if ( get_verbose_flag() ) printf("Flow in thermal equilibrium\n");
     else if (thermal_energy_exchange == 1)
-        printf("Flow in thermal nonequilibrium: source terms computed\n");
+        if ( get_verbose_flag() ) printf("Flow in thermal nonequilibrium: source terms computed\n");
     else {
         printf("Invalid energy_exchange_flag value: %d\n", thermal_energy_exchange);
         exit(VALUE_ERROR);
@@ -521,11 +519,10 @@ int get_energy_exchange_flag(void)
 int set_radiation_flag(int ir)
 {
     radiation = ir;
-    printf("set_radiation_flag(): ");
     if (radiation == 0)
-        printf("Flow without radiation\n");
+        if ( get_verbose_flag() ) printf("Flow without radiation\n");
     else if (radiation == 1)
-        printf("Flow with radiation\n");
+        if ( get_verbose_flag() ) printf("Flow with radiation\n");
     else {
         printf("Invalid radiation flag value: %d\n", radiation);
         exit(VALUE_ERROR);
@@ -541,8 +538,7 @@ int get_radiation_flag(void)
 int set_radiation_update_frequency(int ruf)
 {
     radiation_update_frequency = ruf;
-    // printf("set_radiation_update_frequency(): " );
-    // printf("radiation_update_frequency = %d\n", radiation_update_frequency);
+    if ( get_verbose_flag() ) printf("radiation_update_frequency = %d\n", radiation_update_frequency);
     if ( radiation_update_frequency < 0 ) {
 	printf("ERROR: radiation_update_frequency needs to be larger than or equal to 0\n");
 	printf("Bailing out!\n");
@@ -562,7 +558,7 @@ int get_radiation_update_frequency(void)
 int set_implicit_flag(int imf)
 {
     implicit = imf;
-
+    if ( get_verbose_flag() ) printf("set implicit_flag=%d\n", implicit);
     return SUCCESS;
 }
 
@@ -576,6 +572,7 @@ int get_implicit_flag(void)
 int set_turbulence_flag(int i)
 {
     turbulence_flag = i;
+    if ( get_verbose_flag() ) printf("set turbulence_flag=%d\n", turbulence_flag);
     return SUCCESS;
 }
 
@@ -587,6 +584,7 @@ int get_turbulence_flag(void)
 int set_k_omega_flag(int ikw)
 {
     k_omega = ikw;
+    if ( get_verbose_flag() ) printf("set k_omega_flag=%d\n", k_omega);
     return SUCCESS;
 }
 
@@ -598,6 +596,7 @@ int get_k_omega_flag(void)
 int set_baldwin_lomax_flag(int ibl)
 {
     baldwin_lomax = ibl;
+    if ( get_verbose_flag() ) printf("set baldwin_lomax_flag=%d\n", baldwin_lomax);
     return SUCCESS;
 }
 
@@ -609,6 +608,7 @@ int get_baldwin_lomax_flag(void)
 double set_turbulence_prandtl_number(double Pr)
 {
     Pr_t = Pr;
+    if ( get_verbose_flag() ) printf("set turbulence_prandtl_number=%g\n", Pr_t);
     return Pr_t;
 }
 
@@ -620,6 +620,7 @@ double get_turbulence_prandtl_number(void)
 double set_turbulence_schmidt_number(double Sc)
 {
     Sc_t = Sc;
+    if ( get_verbose_flag() ) printf("set turbulence_schmidt_number=%g\n", Pr_t);
     return Sc_t;
 }
 
@@ -633,11 +634,10 @@ double get_turbulence_schmidt_number(void)
 int set_extrema_clipping_flag(int ip)
 {
     extrema_clipping_flag = ip;
-    printf("set_extrema_limiting_flag(): ");
     if (extrema_clipping_flag == 0)
-        printf("Extrema-clipping disabled\n");
+        if ( get_verbose_flag() ) printf("Extrema-clipping disabled\n");
     else if (extrema_clipping_flag == 1)
-        printf("Extrema-clipping enabled (default)\n");
+        if ( get_verbose_flag() ) printf("Extrema-clipping enabled (default)\n");
     else {
         printf("Invalid extrema clipping flag value: %d\n", extrema_clipping_flag);
         exit( VALUE_ERROR );
@@ -655,11 +655,10 @@ int get_extrema_clipping_flag(void)
 int set_apply_limiter_flag(int ip)
 {
     apply_limiter = ip;
-    printf("set_apply_limiter_flag(): ");
     if (apply_limiter == 0)
-        printf("Reconstruction limiter disabled\n");
+        if ( get_verbose_flag() ) printf("Reconstruction limiter disabled\n");
     else if (apply_limiter == 1)
-        printf("Reconstruction limiter applied (default)\n");
+        if ( get_verbose_flag() ) printf("Reconstruction limiter applied (default)\n");
     else {
         printf("Invalid apply_limiter flag value: %d\n", apply_limiter);
         exit( VALUE_ERROR );
@@ -677,11 +676,10 @@ int get_apply_limiter_flag(void)
 int set_suppress_reconstruction_for_species_flag(int ip)
 {
     suppress_reconstruction_for_species = ip;
-    printf("set_suppress_reconstruction_for_species_flag(): ");
     if (suppress_reconstruction_for_species == 1)
-        printf("High-order reconstruction for species suppressed\n");
+        if ( get_verbose_flag() ) printf("High-order reconstruction for species suppressed\n");
     else if (suppress_reconstruction_for_species == 0)
-        printf("High-order reconstruction for species allowed (default)\n");
+        if ( get_verbose_flag() ) printf("High-order reconstruction for species allowed (default)\n");
     else {
         printf("Invalid suppress_reconstruction_for_species flag value: %d\n", 
 	       suppress_reconstruction_for_species);
@@ -700,11 +698,10 @@ int get_suppress_reconstruction_for_species_flag(void)
 int set_bad_cell_complain_flag(int ip)
 {
     bad_cell_complain_flag = ip;
-    printf("set_bad_cell_complain_flag(): ");
     if (bad_cell_complain_flag == 0)
-        printf("Will not complain about bad cells.\n");
+        if ( get_verbose_flag() ) printf("Will not complain about bad cells.\n");
     else if (bad_cell_complain_flag == 1)
-        printf("Will complain about bad cells.\n");
+        if ( get_verbose_flag() ) printf("Will complain about bad cells.\n");
     else {
         printf("Invalid bad_cell_complain_flag value: %d\n", bad_cell_complain_flag);
         exit( VALUE_ERROR );
@@ -726,6 +723,7 @@ int set_stringent_cfl_flag( int i )
     } else {
 	stringent_cfl = 1;
     }
+    if ( get_verbose_flag() ) printf("set stringent_cfl_flag=%d\n", stringent_cfl);
     return SUCCESS;
 }
 
@@ -738,13 +736,11 @@ int get_stringent_cfl_flag( void )
 
 int set_interpolate_on_temperature_flag( bool flag )
 {
-
-    printf( "set_interpolate_on_temperature_flag(): " );
     if ( flag == false ) {
-	printf( "Interpolation uses gas internal energy.\n" );
+	if ( get_verbose_flag() ) printf( "Interpolation uses gas internal energy.\n" );
 	interpolate_on_temperature_flag = false;
     } else {
-	printf( "Interpolation uses gas temperature.\n" );
+	if ( get_verbose_flag() ) printf( "Interpolation uses gas temperature.\n" );
 	interpolate_on_temperature_flag = true;
     }
     return SUCCESS;
@@ -768,6 +764,7 @@ bool interpolate_on_temperature( void )
 double set_compression_tolerance( double value )
 {
     compression_tolerance = value;
+    if ( get_verbose_flag() ) printf("set compression_tolerance=%g\n", compression_tolerance);
     return compression_tolerance;
 }
 
@@ -784,6 +781,7 @@ double get_compression_tolerance( void )
 double set_shear_tolerance( double value )
 {
     shear_tolerance = value;
+    if ( get_verbose_flag() ) printf("set shear_tolerance=%g\n", shear_tolerance);
     return shear_tolerance;
 }
 

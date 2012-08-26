@@ -37,17 +37,17 @@ int set_flux_calculator(int iflux)
 {
     flux_calculator = iflux;
     if (flux_calculator == FLUX_RIEMANN)
-        printf("Fluxes calculated via Riemann solver\n");
+        if ( get_verbose_flag() ) printf("Fluxes calculated via Riemann solver\n");
     else if (flux_calculator == FLUX_AUSM)
-        printf("Fluxes calculated via AUSM\n");
+        if ( get_verbose_flag() ) printf("Fluxes calculated via AUSM\n");
     else if (flux_calculator == FLUX_EFM)
-        printf("Fluxes calculated via EFM\n");
+        if ( get_verbose_flag() ) printf("Fluxes calculated via EFM\n");
     else if (flux_calculator == FLUX_AUSMDV)
-        printf("Fluxes calculated via AUSMDV\n");
+        if ( get_verbose_flag() ) printf("Fluxes calculated via AUSMDV\n");
     else if (flux_calculator == FLUX_ADAPTIVE)
-        printf("Fluxes calculated via ADAPTIVE\n");
+        if ( get_verbose_flag() )  printf("Fluxes calculated via ADAPTIVE\n");
     else if (flux_calculator == FLUX_AUSM_PLUS_UP)
-        printf("Fluxes calculated via AUSM_PLUS_UP\n");
+        if ( get_verbose_flag() ) printf("Fluxes calculated via AUSM_PLUS_UP\n");
     else {
         printf("Invalid flux calculator: %d. Riemann solver assumed\n",
 	       flux_calculator);

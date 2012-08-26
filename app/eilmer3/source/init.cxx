@@ -48,7 +48,7 @@ std::string tostring(int i)
 /// \param filename : name of the INI parameter file
 /// \param master: flag to indicate that this process is master
 ///
-int read_config_parameters( const string filename, int master )
+int read_config_parameters(const string filename, int master)
 {
     global_data &G = *get_global_data_ptr();
     int jb;
@@ -298,9 +298,13 @@ int read_config_parameters( const string filename, int master )
     if ( get_verbose_flag() ) {
 	printf( "nblock = %d\n", G.nblock);
     }
+    // We keep a record of all of the configuration data for all blocks
+    // but, eventually, we may allocate the flow-field data for only a 
+    // subset of these blocks. 
     G.bd.resize(G.nblock);
 
     // Number of pistons
+    // FIX-ME code needs to be reworked...
     dict.parse_int("global_data", "npiston", G.npiston, 0);
 #   ifdef _MPI
     if ( G.npiston > 0 ) {
@@ -511,9 +515,117 @@ int read_control_parameters( const string filename, int master, int first_time )
 } // end read_control_parameters()
 
 
+/// \brief Read simulation config parameters from the INI file.
+///
+/// At this point, we know the number of blocks in the calculation.
+/// Depending on whether we are running all blocks in the one process
+/// or we are running a subset of blocks in this process, talking to
+/// the other processes via MPI, we need to decide what blocks belong
+/// to the current process.
+///
+/// \param filename : name of the INI file containing the mapping
+/// \param master: flag to indicate that this process is master
+///
+int assign_blocks_to_mpi_rank(const string filename, int master)
+{
+    global_data &G = *get_global_data_ptr();
+    if ( get_verbose_flag() && master ) printf("Assign blocks to processes:\n");
+    if ( G.mpi_parallel ) {
+	if ( filename.size() > 0 ) {
+	    if ( get_verbose_flag() && master ) {
+		printf("    MPI parallel, mpimap filename=%s\n", filename.c_str());
+		printf("    Assigning specific blocks to specific MPI processes.\n");
+	    }
+	    G.mpi_rank_for_block.resize(G.nblock);
+	    // The mapping comes from the previously-generated INI file.
+	    ConfigParser dict = ConfigParser(filename);
+	    int nrank = 0;
+	    int nblock;
+	    int nblock_total = 0;
+	    std::vector<int> block_ids, dummy_block_ids;
+	    dict.parse_int("global", "nrank", nrank, 0);
+	    if ( G.num_mpi_proc != nrank ) {
+		if ( master ) {
+		    printf("    Error in specifying mpirun -np\n");
+		    printf("    It needs to match number of nrank; present values are:\n");
+		    printf("    num_mpi_proc= %d nrank= %d\n", G.num_mpi_proc, nrank);
+		}
+		return FAILURE;
+	    }
+	    for ( int rank=0; rank < nrank; ++rank ) {
+		string section = "rank/" + tostring(rank);
+		dict.parse_int(section, "nblock", nblock, 0);
+		block_ids.resize(0);
+		dummy_block_ids.resize(nblock);
+		for ( int i = 0; i < nblock; ++i ) dummy_block_ids[i] = -1;
+		dict.parse_vector_of_ints(section, "blocks", block_ids, dummy_block_ids);
+		if ( nblock != block_ids.size() ) {
+		    if ( master ) {
+			printf("    Did not pick up correct number of block_ids:\n");
+			printf("        rank=%d, nblock=%d, block_ids.size()=%d\n",
+			       rank, nblock, block_ids.size());
+		    }
+		    return FAILURE;
+		}
+		for ( int i = 0; i < nblock; ++i ) {
+		    int this_block_id = block_ids[i];
+		    if ( this_block_id < 0 ) {
+			if ( master ) printf("    Error, invalid block id: %d\n", this_block_id);
+			return FAILURE;
+		    }
+		    if ( G.my_mpi_rank == rank ) G.my_blocks.push_back(&(G.bd[this_block_id]));
+		    G.mpi_rank_for_block[this_block_id] = rank;
+		    nblock_total += 1;
+		} // end for i
+	    } // end for rank
+	    if ( get_verbose_flag() ) {
+		printf("    my_rank=%d, block_ids=", G.my_mpi_rank);
+		for ( int i=0; i < G.my_blocks.size(); ++i ) {
+		    printf(" %d", G.my_blocks[i]->id);
+		}
+		printf("\n");
+	    }
+	    if ( master ) {
+		if ( nblock_total != G.nblock ) {
+		    printf("    Error, total number of blocks incorrect: total=%d G.nblock=%d\n",
+			   nblock_total, G.nblock);
+		    return FAILURE;
+		}
+	    }
+	} else {
+	    if ( get_verbose_flag() && master ) {
+		printf("    MPI parallel, No MPI map file specified.\n");
+		printf("    Identify each block with the corresponding MPI rank.\n");
+	    }
+	    if ( G.num_mpi_proc != G.nblock ) {
+		if ( master ) {
+		    printf("    Error in specifying mpirun -np\n");
+		    printf("    It needs to match number of blocks; present values are:\n");
+		    printf("    num_mpi_proc= %d nblock= %d\n", G.num_mpi_proc, G.nblock);
+		}
+		return FAILURE;
+	    }
+	    G.my_blocks.push_back(&(G.bd[G.my_mpi_rank]));
+	    for ( int jb=0; jb < G.nblock; ++jb ) {
+		G.mpi_rank_for_block.push_back(jb);
+	    }
+	}
+    } else {
+	if ( get_verbose_flag() ) {
+	    printf("    Since we are not doing MPI, all blocks in same process.\n");
+	}
+	for ( int jb=0; jb < G.nblock; ++jb ) {
+	    G.my_blocks.push_back(&(G.bd[jb]));
+	    G.mpi_rank_for_block.push_back(G.my_mpi_rank);
+	} 
+    } // endif
+    return SUCCESS;
+} // end assign_blocks_to_mpi_rank()
+
+
 /** \brief Use config_parser functions to read the flow condition data. 
  */
-CFlowCondition *read_flow_condition_from_ini_dict( ConfigParser &dict, int indx, int master )
+CFlowCondition *read_flow_condition_from_ini_dict(ConfigParser &dict, int indx, int master)
 {
     double p, u, v, w, mu_t, k_t, tke, omega, sigma_T, sigma_c;
     string value_string, flow_label;
@@ -573,7 +685,7 @@ CFlowCondition *read_flow_condition_from_ini_dict( ConfigParser &dict, int indx,
  * \version 20-Aug-2006 : Read in wall catalytic b.c.
  * \version 08-Sep-2006 : absorbed impose_global_parameters()
  */
-int set_block_parameters( int id, ConfigParser &dict, int master )
+int set_block_parameters(int id, ConfigParser &dict, int master)
 {
     global_data &G = *get_global_data_ptr();
     Block &bdp = *get_block_data_ptr(id);
