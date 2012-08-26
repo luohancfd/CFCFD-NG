@@ -509,7 +509,7 @@ double SpectralIntensity::write_to_file( string filename, int spectral_units )
     return write_data_to_file( filename, spectral_units, I_nu, Y1_label, Y1_int_label );
 }
 
-void SpectralIntensity::apply_apparatus_function( double delta_x_ang, int nu_skip )
+void SpectralIntensity::apply_apparatus_function( double delta_x_ang, int nu_sample )
 {
     /* apply apparatus function (Gaussian distribution with delta_x as HWHM) to
        the provided intensity spectrum (via convolution integral) */
@@ -523,13 +523,13 @@ void SpectralIntensity::apply_apparatus_function( double delta_x_ang, int nu_ski
 
     // A vector to temporarily smeared hold data
     vector<double> nu_temp;
-    int count = nu_skip;
+    int count = 0;
     for( size_t inu=0; inu<nu.size(); inu++) {
-        if ( count==nu_skip ) {
+	count++;
+        if ( count==nu_sample ) {
             nu_temp.push_back(nu[inu]);
             count = 0;
         }
-        else count++;
     }
     vector<double> I_nu_temp( nu_temp.size() );
 
@@ -553,13 +553,13 @@ void SpectralIntensity::apply_apparatus_function( double delta_x_ang, int nu_ski
 
 	// Apply convolution integral over this frequency range with trapezoidal method
 	double I_nu_conv = 0.0;
-	count = nu_skip;
+	count = 0;
 	for ( int jnu=jnu_start; jnu<jnu_end; jnu++ ) {
-	    if ( count==nu_skip ) {
+            count++;
+	    if ( count==nu_sample ) {
 	        count = 0;
 	        continue;
 	    }
-	    else count++;
 	    if ( jnu>jnu_start ) {
 		double x0 = nu[jnu-1] - nu_val;
 		double x1 = nu[jnu] - nu_val;

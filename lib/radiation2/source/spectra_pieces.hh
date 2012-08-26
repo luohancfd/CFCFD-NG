@@ -147,7 +147,7 @@ public:
 public:
     double write_to_file( std::string fname, int spectral_units=WAVELENGTH );
 
-    void apply_apparatus_function( double delta_x_ang, int nu_skip=0 );
+    void apply_apparatus_function( double delta_x_ang, int nu_sample=1 );
 
     void reverse_data_order();
     
