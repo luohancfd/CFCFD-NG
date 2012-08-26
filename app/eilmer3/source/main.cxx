@@ -951,24 +951,6 @@ int integrate_in_time( double target_time )
 	    // for any active block. 
 	    G.dt_allow = 1.0e6; /* outrageously large so that it gets replace immediately */
 	    G.cfl_max = 0.0;
-#           ifdef _MPI
-	    bdp = get_block_data_ptr(G.my_mpi_rank);
-	    cfl_result = bdp->determine_time_step_size( G.cfl_target, G.dimensions );
-	    MPI_Allreduce( &cfl_result, &cfl_result_2, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD );
-	    if ( cfl_result_2 != 0 ) {
-		program_return_flag = DT_SEARCH_FAILED;
-		status_flag = FAILURE;
-		goto conclusion;
-	    }
-	    if ( bdp->active == 1 ) {
-		// If the block for this process is active,
-		// it may participate in setting the allowable time-step.
-		MPI_Allreduce(&(bdp->dt_allow), &G.dt_allow, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-		dt_record[G.my_mpi_rank] = bdp->dt_allow;
-		MPI_Allreduce(&(bdp->cfl_max), &G.cfl_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-		MPI_Allreduce(&(bdp->cfl_min), &G.cfl_min, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-	    }
-#           else
 	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
 		if ( bdp->active == 1 ) {
@@ -979,16 +961,41 @@ int integrate_in_time( double target_time )
 			goto conclusion;
 		    }
 		}
-	    } // end for jb loop 
+	    } // end for jb loop
+	    // If we arrive here, cfl_result will be zero, indicating that all local blocks 
+	    // have successfully determined a suitable time step.
+#           ifdef _MPI
+	    MPI_Allreduce( &cfl_result, &cfl_result_2, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD );
+	    if ( cfl_result_2 != 0 ) {
+		program_return_flag = DT_SEARCH_FAILED;
+		status_flag = FAILURE;
+		goto conclusion;
+	    }
+#           endif
+	    // Get an overview of the allowable timestep.
+	    for ( int jb = 0; jb < G.nblock; ++jb ) {
+		dt_record[jb] = 0.0;
+	    }
 	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
 		if ( bdp->dt_allow < G.dt_allow ) G.dt_allow = bdp->dt_allow;
-		dt_record[jb] = bdp->dt_allow;
+		dt_record[bdp->id] = bdp->dt_allow;
 		if ( bdp->cfl_max > G.cfl_max ) G.cfl_max = bdp->cfl_max;
 		if ( bdp->cfl_min < G.cfl_min ) G.cfl_min = bdp->cfl_min;
 	    }
+#           ifdef _MPI
+	    // FIX-ME -- the following reduction on dt_record needs to be done more
+	    // efficiently, possibly by passing the full array corresponding to the vector.
+	    // For Rolf's 2308 blocks, this reduction will be expensive!
+	    for ( int jb = 0; jb < G.nblock; ++jb ) {
+		MPI_Allreduce(MPI_IN_PLACE, &(dt_record[jb]), 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+	    }
+	    MPI_Allreduce(MPI_IN_PLACE, &(G.dt_allow), 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+	    MPI_Allreduce(MPI_IN_PLACE, &(G.cfl_max), 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+	    MPI_Allreduce(MPI_IN_PLACE, &(G.cfl_min), 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
 #           endif
+	    // Change the actual time step, as needed.
 	    if ( G.dt_allow <= G.dt_global ) {
 		// If we need to reduce the time step, do it immediately.
 		G.dt_global = G.dt_allow;
@@ -1294,11 +1301,6 @@ int integrate_in_time( double target_time )
 			     bdp->energy_residual_loc.y, bdp->energy_residual_loc.z );
 		}
             }
-#           ifdef _MPI
-	    bdp = get_block_data_ptr(G.my_mpi_rank);
-	    MPI_Allreduce( &(bdp->mass_residual), &(G.mass_residual), 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
-	    MPI_Allreduce( &(bdp->energy_residual), &(G.energy_residual), 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
-#           else
 	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
                 if ( bdp->active == 1 ) {
@@ -1310,6 +1312,9 @@ int integrate_in_time( double target_time )
 		    }
 		}
             }
+#           ifdef _MPI
+	    MPI_Allreduce(MPI_IN_PLACE, &(G.mass_residual), 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+	    MPI_Allreduce(MPI_IN_PLACE, &(G.energy_residual), 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 #           endif
             fprintf( G.logfile, "RESIDUAL mass global max: %e step %d time %g\n",
 		     G.mass_residual, G.step, G.sim_time );
@@ -1450,15 +1455,12 @@ int finalize_simulation( void )
     printf( "\nTotal number of steps = %d\n", G.step );
 
     filename = G.base_file_name; filename += ".finish";
-#   ifdef _MPI
     if ( master ) {
 	write_finishing_data( &G, filename );
 	fclose( G.timestampfile );
     }
+#   ifdef _MPI
     MPI_Barrier(MPI_COMM_WORLD);
-#   else
-    write_finishing_data( &G, filename );
-    fclose( G.timestampfile );
 #   endif
 
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
@@ -1618,9 +1620,13 @@ int gasdynamic_inviscid_increment( void )
 	most_bad_cells = do_bad_cell_count();
 	if ( ADJUST_INVALID_CELL_DATA == 0 && most_bad_cells > 0 ) {
 	    step_failed = 1;
+	}
+#       ifdef _MPI
+	MPI_Allreduce(MPI_IN_PLACE, &(step_failed), 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+#       endif
+	if ( step_failed ) {
 	    G.dt_global = G.dt_reduction_factor * G.dt_global;
-	    printf( "Attempt %d failed: reducing dt to %e.\n",
-		    attempt_number, G.dt_global);
+	    printf("Attempt %d failed: reducing dt to %e.\n", attempt_number, G.dt_global);
 	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
@@ -1863,15 +1869,6 @@ int do_bad_cell_count( void )
     Block *bdp;
     int bad_cell_count, most_bad_cells;
 
-#   ifdef _MPI
-    bdp = get_block_data_ptr(G.my_mpi_rank);
-    bad_cell_count = bdp->count_invalid_cells( G.dimensions );
-    MPI_Allreduce( &bad_cell_count, &most_bad_cells, 1,
-		   MPI_INT, MPI_MAX, MPI_COMM_WORLD);
-    if ( bad_cell_count > G.max_invalid_cells ) {
-	printf( "   Too many bad cells in block[%d].\n", G.my_mpi_rank );
-    } 
-#   else
     most_bad_cells = 0;
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
@@ -1884,6 +1881,8 @@ int do_bad_cell_count( void )
 		    bad_cell_count, G.max_invalid_cells, jb );
 	}
     } // end for jb loop
+#   ifdef _MPI
+    MPI_Allreduce(MPI_IN_PLACE, &most_bad_cells, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
 #   endif
     return most_bad_cells;
 } // end do_bad_cell_count()
@@ -1914,21 +1913,6 @@ int check_radiation_scaling( void )
     double f_max, block_f_max, global_f_max = 0.0;
     FV_Cell *cellp;
     
-#   ifdef _MPI
-    bdp = get_block_data_ptr(G.my_mpi_rank);
-    block_f_max = 0.0;
-    for ( int k = bdp->kmin; k <= bdp->kmax; ++k ) {
-        for ( int j = bdp->jmin; j <= bdp->jmax; ++j ) {
-	    for ( int i = bdp->imin; i <= bdp->imax; ++i ) {
-		cellp = bdp->get_cell(i,j,k);
-		f_max = cellp->rad_scaling_ratio();
-		if ( f_max > block_f_max) block_f_max = f_max;
-	    }
-	}
-    }
-    MPI_Allreduce( &block_f_max, &global_f_max, 1,
-		   MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-#   else
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
     	block_f_max = 0.0;
@@ -1943,6 +1927,8 @@ int check_radiation_scaling( void )
 	}
 	if ( block_f_max > global_f_max ) global_f_max = block_f_max;
     }
+#   ifdef _MPI
+    MPI_Allreduce(MPI_IN_PLACE, &global_f_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 #   endif
 
     // printf("Global radiation f_max = %f\n", global_f_max);
