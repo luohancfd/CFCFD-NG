@@ -4,7 +4,7 @@
 gdata.spectral_model = "photaura"
 gdata.lambda_min = 190.0
 gdata.lambda_max = 1010.0
-gdata.spectral_points = 82001
+gdata.spectral_points = 820001
 
 # species list
 species = [ "HCN", "C2", "C", "N2",  "N",  "CH",  "H",  "CN", "CH4", "CH3", "CH2", "NH", "H2", "CN+", "N+", "N2+", "C+", "H+", "e-"  ]

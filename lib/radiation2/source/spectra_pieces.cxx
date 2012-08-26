@@ -509,26 +509,35 @@ double SpectralIntensity::write_to_file( string filename, int spectral_units )
     return write_data_to_file( filename, spectral_units, I_nu, Y1_label, Y1_int_label );
 }
 
-void SpectralIntensity::apply_apparatus_function( double delta_x_ang )
+void SpectralIntensity::apply_apparatus_function( double delta_x_ang, int nu_skip )
 {
     /* apply apparatus function (Gaussian distribution with delta_x as HWHM) to
        the provided intensity spectrum (via convolution integral) */
-       
-    /* FIXME: A smeared spectra can be represented by less points than the 
+
+    /* FIXME: A smeared spectra can be represented by less points than the
               original spectra.  Perhaps use LINE_POINTS per delta_x_ang?
 	      [Inner (convolution) loop can be reduced also]               */
-       
+
     // Quick exit if delta_x_ang is zero
     if ( delta_x_ang==0.0 ) return;
-    
+
     // A vector to temporarily smeared hold data
-    vector<double> I_nu_temp( nu.size() );
-       
+    vector<double> nu_temp;
+    int count = nu_skip;
+    for( size_t inu=0; inu<nu.size(); inu++) {
+        if ( count==nu_skip ) {
+            nu_temp.push_back(nu[inu]);
+            count = 0;
+        }
+        else count++;
+    }
+    vector<double> I_nu_temp( nu_temp.size() );
+
     // NOTE: delta_x_ang is the HFHM of the spectrometer in units of Angstroms
     int percentage=0;
-       
-    for( size_t inu=0; inu<nu.size(); inu++) {
-	double nu_val = nu[inu];
+
+    for( size_t inu=0; inu<nu_temp.size(); inu++) {
+	double nu_val = nu_temp[inu];
 	double lambda_ang = 10.0 * nu2lambda( nu_val );
 	// convert delta_x_ang to delta_x_hz
 	double delta_x_hz = delta_x_ang / lambda_ang * nu_val;
@@ -536,15 +545,21 @@ void SpectralIntensity::apply_apparatus_function( double delta_x_ang )
 	double nu_upper = nu_val + double(nwidths) * delta_x_hz;
 	int jnu_start = get_nu_index(nu,nu_lower) + 1;
 	int jnu_end = get_nu_index(nu,nu_upper) + 1;
-	
-	if((double(inu)/double(nu.size())*100.0+1.0)>double(percentage)) {
+
+	if((double(inu)/double(nu_temp.size())*100.0+1.0)>double(percentage)) {
 	    cout << "Smearing spectrum: | " << percentage << "% |, jnu_start = " << jnu_start << ", jnu_end = " << jnu_end << " \r" << flush;
 	    percentage += 10;
         }
-	
+
 	// Apply convolution integral over this frequency range with trapezoidal method
 	double I_nu_conv = 0.0;
+	count = nu_skip;
 	for ( int jnu=jnu_start; jnu<jnu_end; jnu++ ) {
+	    if ( count==nu_skip ) {
+	        count = 0;
+	        continue;
+	    }
+	    else count++;
 	    if ( jnu>jnu_start ) {
 		double x0 = nu[jnu-1] - nu_val;
 		double x1 = nu[jnu] - nu_val;
@@ -553,24 +568,29 @@ void SpectralIntensity::apply_apparatus_function( double delta_x_ang )
 		I_nu_conv += 0.5 * ( I_nu[jnu-1]*f_x0 + I_nu[jnu]*f_x1 ) * ( nu[jnu] - nu[jnu-1] );
 	    }
 	}
-	
+
 	// Make sure a zero value is not returned if nwidths is too small
 	if ( jnu_start==jnu_end ) {
 	    cout << "SpectralIntensity::apply_apparatus_function()" << endl
 	         << "WARNING: nwidths is too small!" << endl;
 	    I_nu_conv = I_nu[inu];
 	}
-	
+
 	// Save result
 	I_nu_temp[inu] = I_nu_conv;
     }
-    
+
     cout << endl;
-    
+
     // Loop again to overwrite old I_nu values in S
-    for( size_t inu=0; inu<nu.size(); inu++)
-	I_nu[inu] = I_nu_temp[inu];
-    
+    nu.resize(nu_temp.size());
+    I_nu.resize(nu_temp.size());
+    I_int.resize(nu_temp.size());
+    for( size_t inu=0; inu<nu_temp.size(); inu++) {
+	nu[inu] = nu_temp[inu];
+    	I_nu[inu] = I_nu_temp[inu];
+    }
+
     return;
 }
 

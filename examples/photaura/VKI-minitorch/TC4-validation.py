@@ -54,9 +54,11 @@ def main():
     rsm = create_radiation_spectral_model("TC4-radiators.lua")
     
     # calculation control parameters
+    HWHM = 11 / 2
+    print "Using a spectrometer HWHM of %0.2f Angstroms" % HWHM
+    nu_skip = 100
     do_LOS_integration = True
     extract_emissivities = True
-    HWHM = 11.0 / 2
     n_slabs = 5 # there are approximately 110 temperature data points, so 110 should be the maximum value used here
     x_list= [ 1.24e-3, 3.82e-3, 8.43e-3 ] # list of locations to extract the emissivities at
 
@@ -142,8 +144,10 @@ def main():
         print "\nperforming spatial integration through plasma torch..."
         I_total = Plasma.integrate_LOS(S)
     
+        # make a copy
+        S_copy = SpectralIntensity(S)
         # apply apparatus function
-        S.apply_apparatus_function( HWHM )
+        S.apply_apparatus_function( HWHM, nu_skip )
     
         # write to file
         outfile = "plasma-transported-intensity.txt"
@@ -151,20 +155,20 @@ def main():
         print "I_total after plasma transport = %0.3e W/m**2-sr" % ( I_total )
         
         # compute 'optically thin' intensity
-        for inu in range(S.nu.size()):
-            S.I_nu[inu] = 0.0
+        for inu in range(S_copy.nu.size()):
+            S_copy.I_nu[inu] = 0.0
         for islb in range(n_slabs):
-            for inu in range(S.nu.size()):
-                S.I_nu[inu] += Plasma.get_rpoint_pointer(islb).X_.j_nu[inu] * slab_width
+            for inu in range(S_copy.nu.size()):
+                S_copy.I_nu[inu] += Plasma.get_rpoint_pointer(islb).X_.j_nu[inu] * slab_width
         # apply apparatus function
-        S.apply_apparatus_function( HWHM )
+        S_copy.apply_apparatus_function( HWHM, nu_skip )
         # write to file
         outfile = "plasma-transported-intensity-optically-thin.txt"
-        I_total = S.write_to_file( outfile )
+        I_total = S_copy.write_to_file( outfile )
         print "I_total after plasma transport (optically thin) = %0.3e W/m**2-sr" % ( I_total )
         
         # clean up some c++ data structures
-        del S
+        del S, S_copy
         for divq in divqs:
             delete_doublep( divq )
     
@@ -192,9 +196,17 @@ def main():
             S = SpectralIntensity(rsm)
             for inu in range(S.nu.size()):
                 S.I_nu[inu] = X.j_nu[inu]
-            S.apply_apparatus_function( HWHM )
+            S.apply_apparatus_function( HWHM, nu_skip )
+            X.nu.resize(S.nu.size())
+            X.j_nu.resize(S.nu.size())
+            X.kappa_nu.resize(S.nu.size())
+            X.j_int.resize(S.nu.size())
             for inu in range(S.nu.size()):
+                X.nu[inu] = S.nu[inu]
                 X.j_nu[inu] = S.I_nu[inu]
+                X.kappa_nu[inu] = 0.0
+                X.j_int[inu] = 0.0
+            X.integrate_emission_spectra()
             # write to file
             X.write_to_file("emissivities_at_%d_microns.txt" % int(x*1000000) )
             del X,S

@@ -66,6 +66,9 @@ Parade( const string input_file )
 
 void Parade::initialise( lua_State * L )
 {
+    // system return value
+    int srv;
+    
     string parade_template_filename = get_string(L, -1, "parade_template");
 
     if ( ECHO_RAD_INPUT > 0 )
@@ -114,7 +117,7 @@ void Parade::initialise( lua_State * L )
         for ( int i=0; i<omp_get_max_threads(); ++i ) {
             ostringstream oss;
             oss << "mkdir parade_working_dir_" << i;
-            system(oss.str().c_str());
+            srv = system(oss.str().c_str());
         }
     }
 }
@@ -155,10 +158,13 @@ void
 Parade::
 spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
 {
+    // system return value
+    int srv;
+    
     // Move to the working directory
     ostringstream oss;
     oss << "parade_working_dir_" << omp_get_thread_num();
-    chdir(oss.str().c_str());
+    srv = chdir(oss.str().c_str());
 
     // 0. Make sure the vectors in CoeffSpectra are sized to zero.
     //    This is required for adaptive spectral distributions.
@@ -171,7 +177,7 @@ spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
     
     // 2. Run the parade executable
 
-    system("parade > parade.out");
+    srv = system("parade > parade.out");
 
     // 3. Pick up the solution and insert it into CoeffSpectra
     ifstream specfile( "par_res.txt" );
@@ -204,7 +210,7 @@ spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
     }
 
     // Move out of the working directory
-    chdir("..");
+    srv = chdir("..");
 
     return;
 }
