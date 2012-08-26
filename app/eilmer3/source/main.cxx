@@ -375,10 +375,12 @@ int prepare_to_integrate( int start_tindx )
 	bdp = G.my_blocks[jb];
         if ( bdp->array_alloc(G.dimensions) != 0 ) exit( MEMORY_ERROR );
 	bdp->bind_interfaces_to_cells(G.dimensions);
-#       ifdef _MPI
-	if ( allocate_send_and_receive_buffers(bdp) != 0 ) exit( MEMORY_ERROR );
-#       endif
     }
+#   ifdef _MPI
+    fflush(stdout);
+    MPI_Barrier(MPI_COMM_WORLD); // just to reduce the jumble in stdout
+    if ( allocate_send_and_receive_buffers() != 0 ) exit( MEMORY_ERROR );
+#   endif
 
     // Read block grid and flow data; write history-file headers.
     // Note that the global simulation time is set by the last flow data read.
@@ -465,7 +467,7 @@ int prepare_to_integrate( int start_tindx )
     // FIX-ME generalize for handling several blocks per MPI process
     // FIX-ME Be careful that we don't break the usage for integrate_blocks_in_sequence
 #   ifdef _MPI
-    mpi_exchange_boundary_data(G.my_mpi_rank, COPY_CELL_LENGTHS);
+    mpi_exchange_boundary_data(COPY_CELL_LENGTHS);
 #   else
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
         exchange_shared_boundary_data(jb, COPY_CELL_LENGTHS);
@@ -1463,6 +1465,11 @@ int finalize_simulation( void )
 	bdp = G.my_blocks[jb];
 	bdp->array_cleanup(G.dimensions);
     }
+#   ifdef _MPI
+    fflush(stdout);
+    MPI_Barrier(MPI_COMM_WORLD); // just to reduce the jumble in stdout
+    if ( delete_send_and_receive_buffers() != 0 ) exit( MEMORY_ERROR );
+#   endif
     return SUCCESS;
 } // end finalize_simulation()
 
@@ -1495,7 +1502,7 @@ int gasdynamic_inviscid_increment( void )
 
 	//  Predictor Stage for gas-dynamics
 #       ifdef _MPI
-	mpi_exchange_boundary_data(G.my_mpi_rank, COPY_FLOW_STATE);
+	mpi_exchange_boundary_data(COPY_FLOW_STATE);
 #       else
 	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
@@ -1574,7 +1581,7 @@ int gasdynamic_inviscid_increment( void )
 	if ( get_Torder_flag() == 2 ) {
 #           ifdef _MPI
 	    MPI_Barrier( MPI_COMM_WORLD );
-	    mpi_exchange_boundary_data(G.my_mpi_rank, COPY_FLOW_STATE);
+	    mpi_exchange_boundary_data(COPY_FLOW_STATE);
 #           else
 	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
