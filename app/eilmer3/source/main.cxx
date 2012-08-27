@@ -268,7 +268,7 @@ int main(int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD); // just to reduce the jumble in stdout
 #   endif
     if ( do_run_simulation == 1 ) {
-	printf("Run simulation...\n");
+	if ( master ) printf("Run simulation...\n");
 	/* The simulation proper. */
 	run_status = prepare_to_integrate(start_tindx);
 	if (run_status != SUCCESS) goto Quit;
@@ -392,7 +392,7 @@ int prepare_to_integrate( int start_tindx )
     tindxstring = tindxcstr;
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
-        printf( "----------------------------------\n" );
+        if ( get_verbose_flag() ) printf( "----------------------------------\n" );
 	sprintf( jbcstr, ".b%04d", bdp->id );
 	jbstring = jbcstr;
 	// Read grid from the tindx=0 files, always.
@@ -412,7 +412,7 @@ int prepare_to_integrate( int start_tindx )
 
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
-        printf( "----------------------------------\n" );
+        if ( get_verbose_flag() ) printf( "----------------------------------\n" );
 	sprintf( jbcstr, ".b%04d", bdp->id );
 	jbstring = jbcstr;
 	filename = "hist/" + G.base_file_name + ".hist"+jbstring;
@@ -783,9 +783,12 @@ int integrate_in_time( double target_time )
     int cfl_result_2;
 #   endif
     int status_flag = SUCCESS;
-    dt_record.resize(G.nblock);
+    dt_record.resize(G.my_blocks.size()); // Just the block local to this process.
 
-    printf( "Integrate in time\n" ); fflush(stdout);
+    if ( master ) {
+	printf( "Integrate in time\n" );
+	fflush(stdout);
+    }
     if ( target_time <= 0.0 ) {
 	stopping_time = G.max_time;
     } else {
@@ -973,24 +976,19 @@ int integrate_in_time( double target_time )
 	    }
 #           endif
 	    // Get an overview of the allowable timestep.
-	    for ( int jb = 0; jb < G.nblock; ++jb ) {
+	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		dt_record[jb] = 0.0;
 	    }
 	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
 		if ( bdp->dt_allow < G.dt_allow ) G.dt_allow = bdp->dt_allow;
-		dt_record[bdp->id] = bdp->dt_allow;
+		dt_record[jb] = bdp->dt_allow;
 		if ( bdp->cfl_max > G.cfl_max ) G.cfl_max = bdp->cfl_max;
 		if ( bdp->cfl_min < G.cfl_min ) G.cfl_min = bdp->cfl_min;
 	    }
 #           ifdef _MPI
-	    // FIX-ME -- the following reduction on dt_record needs to be done more
-	    // efficiently, possibly by passing the full array corresponding to the vector.
-	    // For Rolf's 2308 blocks, this reduction will be expensive!
-	    for ( int jb = 0; jb < G.nblock; ++jb ) {
-		MPI_Allreduce(MPI_IN_PLACE, &(dt_record[jb]), 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-	    }
+	    // Finding the minimum allowable time step is very important for stability.
 	    MPI_Allreduce(MPI_IN_PLACE, &(G.dt_allow), 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
 	    MPI_Allreduce(MPI_IN_PLACE, &(G.cfl_max), 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 	    MPI_Allreduce(MPI_IN_PLACE, &(G.cfl_min), 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
@@ -1188,7 +1186,7 @@ int integrate_in_time( double target_time )
 	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
                 if ( bdp->active != 1 ) continue;
-                fprintf(G.logfile, " dt[%d]=%e", jb, dt_record[jb] );
+                fprintf(G.logfile, " dt[%d]=%e", bdp->id, dt_record[jb] );
             }
 	    for ( int jp = 0; jp < G.npiston; ++jp ) {
 		fprintf(G.logfile, "%s\n", G.pistons[jp]->string_repr().c_str() );
@@ -1355,26 +1353,26 @@ int integrate_in_time( double target_time )
 	//    while the code is running).
         if ( G.sim_time >= stopping_time ) {
             finished_time_stepping = 1;
-            printf( "Integration stopped: reached maximum simulation time.\n" );
+            if ( master ) printf( "Integration stopped: reached maximum simulation time.\n" );
         }
         if ( G.step >= G.max_step ) {
             finished_time_stepping = 1;
-            printf( "Integration stopped: reached maximum number of steps.\n" );
+            if ( master ) printf( "Integration stopped: reached maximum number of steps.\n" );
         }
         if ( G.halt_now == 1 ) {
             finished_time_stepping = 1;
-            printf( "Integration stopped: Halt set in control file.\n" );
+            if ( master ) printf( "Integration stopped: Halt set in control file.\n" );
         }
 	now = time(NULL);
 	if ( max_wall_clock > 0 && ( (int)(now - start) > max_wall_clock ) ) {
             finished_time_stepping = 1;
-            printf( "Integration stopped: reached maximum wall-clock time.\n" );
+            if ( master ) printf( "Integration stopped: reached maximum wall-clock time.\n" );
 	}
 #       if CHECK_RADIATION_SCALING
 	if ( get_radiation_flag() ) {
 	    if ( check_radiation_scaling() ) {
 	    	finished_time_stepping = 1;
-	    	printf( "Integration stopped: radiation source term needs updating.\n" );
+	    	if ( master ) printf( "Integration stopped: radiation source term needs updating.\n" );
 	    }
 	}
 #       endif
@@ -1452,7 +1450,7 @@ int finalize_simulation( void )
 	}
         history_just_written = 1;
     }
-    printf( "\nTotal number of steps = %d\n", G.step );
+    if ( master ) printf( "\nTotal number of steps = %d\n", G.step );
 
     filename = G.base_file_name; filename += ".finish";
     if ( master ) {

@@ -36,7 +36,7 @@ Block::~Block() {
 /// Returns 0 if successful, 1 otherwise.
 int Block::array_alloc(int dimensions)
 {
-    cout << "array_alloc(): Begin for block " <<  id << endl;
+    if ( get_verbose_flag() ) cout << "array_alloc(): Begin for block " <<  id << endl;
     // Check for obvious errors.
     if ( nidim <= 0 || njdim <= 0 || nkdim <= 0 ) {
         cerr << "array_alloc(): Declared dimensions are zero or negative: " 
@@ -67,14 +67,18 @@ int Block::array_alloc(int dimensions)
         if ( dimensions == 3 ) sifk_[ijk] = new FV_Interface(gm);
     } // ijk loop
 
-    cout << "Block " << id << ": finished creating " << ntot << " cells." << endl;
+    if ( get_verbose_flag() || id == 0 ) {
+	cout << "Block " << id << ": finished creating " << ntot << " cells." << endl;
+    }
     return SUCCESS;
 } // end of array_alloc()
 
 
 int Block::array_cleanup(int dimensions)
 {
-    cout << "array_cleanup(): Begin for block " <<  id << endl;
+    if ( get_verbose_flag() || id == 0 ) {
+	cout << "array_cleanup(): Begin for block " <<  id << endl;
+    }
     // Need to clean up allocated memory.
     size_t ntot = nidim * njdim * nkdim;
     for (size_t ijk = 0; ijk < ntot; ++ijk) {
@@ -384,8 +388,10 @@ int Block::set_base_qdot( global_data &gdp )
 	    } // for j
 	} // for i
     } // for k
-    cout << "set_base_qdot(): block " << id
-	 << " base_qdot= " << total_qdot_for_block << " Watts" << endl;
+    if ( total_qdot_for_block > 1.0e-10 ) {
+	cout << "set_base_qdot(): block " << id
+	     << " base_qdot= " << total_qdot_for_block << " Watts" << endl;
+    }
     return SUCCESS;
 } // end set_base_qdot()
 

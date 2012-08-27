@@ -691,7 +691,8 @@ read_surface_heat_flux( string filename, int dimensions, int zip_files )
     int i, j, k;
     int index;
     double sim_time;
-    if ( which_boundary == 0 ) printf("read_surface_heat_flux(): Start surface %d.\n", which_boundary);
+    if ( get_verbose_flag() && which_boundary == 0 ) 
+	printf("read_surface_heat_flux(): Start surface %d.\n", which_boundary);
     if (zip_files) {
 	fp = NULL;
 	filename += ".gz";
@@ -718,7 +719,8 @@ read_surface_heat_flux( string filename, int dimensions, int zip_files )
 	exit(BAD_INPUT_ERROR);
     }
     sscanf(line, "%lf", &sim_time);
-    if (which_boundary == 0) printf("read_surface_heat_flux(): Time = %e\n", sim_time);
+    if ( get_verbose_flag() && which_boundary == 0 ) 
+	printf("read_surface_heat_flux(): Time = %e\n", sim_time);
     if (zip_files) {
 	gets_result = gzgets(zfp, line, NCHAR);
     } else {

@@ -398,7 +398,7 @@ int get_diffusion_flag(void)
 int set_Xorder_flag(int ix)
 {
     Xorder = ix;
-    if ( get_verbose_flag() ) printf("Xorder=%d\n", Xorder);
+    // if ( get_verbose_flag() ) printf("Xorder=%d\n", Xorder);
     if ( Xorder != 1 && Xorder != 2 ) {
 	printf("set_Xorder_flag(): Invalid Xorder flag value: %d\n", Xorder);
         exit(VALUE_ERROR);
@@ -416,7 +416,7 @@ int get_Xorder_flag(void)
 int set_Torder_flag(int it)
 {
     Torder = it;
-    if ( get_verbose_flag() ) printf("Torder=%d\n", Torder);
+    // if ( get_verbose_flag() ) printf("Torder=%d\n", Torder);
     if ( Torder != 1 && Torder != 2 && Torder != 3 ) {
         printf("set_Torder_flag(): Invalid Torder flag value: %d\n", Torder);
         exit(VALUE_ERROR);
@@ -538,7 +538,7 @@ int get_radiation_flag(void)
 int set_radiation_update_frequency(int ruf)
 {
     radiation_update_frequency = ruf;
-    if ( get_verbose_flag() ) printf("radiation_update_frequency = %d\n", radiation_update_frequency);
+    // if ( get_verbose_flag() ) printf("radiation_update_frequency = %d\n", radiation_update_frequency);
     if ( radiation_update_frequency < 0 ) {
 	printf("ERROR: radiation_update_frequency needs to be larger than or equal to 0\n");
 	printf("Bailing out!\n");
@@ -558,7 +558,7 @@ int get_radiation_update_frequency(void)
 int set_implicit_flag(int imf)
 {
     implicit = imf;
-    if ( get_verbose_flag() ) printf("set implicit_flag=%d\n", implicit);
+    // if ( get_verbose_flag() ) printf("set implicit_flag=%d\n", implicit);
     return SUCCESS;
 }
 
@@ -723,7 +723,7 @@ int set_stringent_cfl_flag( int i )
     } else {
 	stringent_cfl = 1;
     }
-    if ( get_verbose_flag() ) printf("set stringent_cfl_flag=%d\n", stringent_cfl);
+    // if ( get_verbose_flag() ) printf("set stringent_cfl_flag=%d\n", stringent_cfl);
     return SUCCESS;
 }
 
