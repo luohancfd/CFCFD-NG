@@ -66,6 +66,8 @@ parser.add_option("-i", "--input-hostfile", dest="hosts_in", type="string",
 parser.add_option("-n", "--number-of-procs", dest="nprocs", type="int",
                   help="number of processors to use",
                   metavar="NP")
+parser.add_option("-s", "--sweep-range", dest="sweep", type="string",
+                  help="sweep through range of 'lower_np:upper_np' testing load balance quality")
 #parser.add_option("-o", "--output-hostfile", dest="hosts_out", type="string",
 #                  help="output hostfile with entries re-ordered",
 #                  metavar="HOSTS_OUT")
@@ -85,28 +87,37 @@ def create_task_list(cfg_fname):
     nblks = int(cp.get("global_data", "nblock"))
 
     tasks = []
+    total_load = 0
     for ib in range(nblks):
         sec_name = "block/" + str(ib)
         nni = int(cp.get(sec_name, "nni"))
         nnj = int(cp.get(sec_name, "nnj"))
         nnk = int(cp.get(sec_name, "nnk"))
         # Estimate task load as: nni*nnj*nnk
-        tasks.append((ib, nni*nnj*nnk))
+        load = nni*nnj*nnk
+        tasks.append((ib, load))
+        total_load += load
     #
     # Sort tasks by load (2nd element in tuple)
     tasks.sort(key=lambda x: x[1], reverse=True)
-    return tasks
+    return tasks, total_load
 
-#def parse_hosts_file(fname):
-#    f = open(fname, 'r')
-#    hosts = []
-#    while True:
-#        line = f.readline()
-#        if not line:
-#            break
-#        hosts.append(line.split()[0])
-#    #
-#    return hosts
+def load_balance(tasks, nprocs):
+    procs = []
+    for i in range(nprocs): procs.append([])
+    proc_loads = [0,]*nprocs
+    task_hosts = []
+    for (task_id, task_load) in tasks:
+        # The algorithm is simply this:
+        # Given a list sorted from heaviest load to lightest,
+        # at any stage, assign task to the processing unit
+        # with the minimum load currently.
+        min_load = min(proc_loads)
+        imin = proc_loads.index(min_load)
+        proc_loads[imin] += task_load
+        procs[imin].append(task_id)
+        task_hosts.append(imin)
+    return procs, proc_loads, task_hosts
 
 def main():
     (options, args) = parser.parse_args()
@@ -119,7 +130,8 @@ def main():
 
 
     cfg_fname = options.jobname + ".config"
-    tasks = create_task_list(cfg_fname)
+    tasks, total_load = create_task_list(cfg_fname)
+
     if options.nprocs:
         nprocs = options.nprocs
     elif options.hosts_in:
@@ -141,20 +153,8 @@ def main():
         print "Done."
         sys.exit(0)
     #
-    procs = []
-    for i in range(nprocs): procs.append([])
-    proc_loads = [0,]*nprocs
-    task_hosts = []
-    for (task_id, task_load) in tasks:
-        # The algorithm is simply this:
-        # Given a list sorted from heaviest load to lightest,
-        # at any stage, assign task to the processing unit
-        # with the minimum load currently.
-        min_load = min(proc_loads)
-        imin = proc_loads.index(min_load)
-        proc_loads[imin] += task_load
-        procs[imin].append(task_id)
-        task_hosts.append(imin)
+    
+    procs, proc_loads, task_hosts = load_balance(tasks, nprocs)
     #
     # Now write output file in INI format.
     fname = options.jobname + "." + OUT_EXT
@@ -173,6 +173,33 @@ def main():
     f.close()
     print "Done."
     #
+    if options.sweep:
+        tks = options.sweep.split(":")
+        lower_n = int(tks[0])
+        upper_n = int(tks[1])
+        if upper_n < lower_n:
+            print "Error in sweep range string. upper_n should be greater than lower_n."
+            print "lower_n= ", lower_n
+            print "upper_n= ", upper_n
+            print "Bailing out!"
+            sys.exit(1)
+        print "Performing sweep of nprocs."
+        f = open('load-balance.dat', 'w')
+        f.write("# nprocs    packing-quality  speedup\n")
+        for n in range(lower_n, upper_n+1):
+            if n > len(tasks):
+                break
+            print "nprocs= ", n
+            procs, proc_loads, task_hosts = load_balance(tasks, n)
+            max_load = max(proc_loads)
+            min_load = min(proc_loads)
+            delta_cells = max_load - min_load
+            pq = 1.0 - float(max_load - min_load) / max_load
+            speedup = float(total_load) / max_load
+            f.write("%03d  %d %12.6f  %12.6f\n" % (n, delta_cells, pq, speedup))
+        f.close()
+        print "Written data to: load-balance.dat"
+    
     print "e3loadbalance.py: Done."
     return
 
