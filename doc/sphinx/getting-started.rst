@@ -85,7 +85,7 @@ To a basic Fedora 16 installation, you should add the following packages:
 #. openmpi
 #. openmpi-devel (to use openmpi on Fedora, :ref:`the module must be loaded <label-openmpi-fedora>`)
 #. gcc-gfortran
-#. libgfortran.i686 and glibc-devel.i686 (to compile the 32-bit CEA code on 64-bit Fedora)
+#. libgfortran.i686, glibc-devel.i686 and libgcc.i686 (to compile the 32-bit CEA code on 64-bit Fedora)
 #. swig
 #. python-devel
 #. numpy
