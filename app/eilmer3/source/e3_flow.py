@@ -1476,7 +1476,8 @@ def tangent_slab_along_slice(fileName, slice_list_str, tindx, nblock, grid, flow
     	Q = Gas_data(gm)
     	Q.rho = cells[islab]["rho"]
     	for isp in range(nsp):
-    	    Q.massf[isp] = cells[islab]["massf[%d]"%isp]
+    	    sp = gm.species_name(isp)
+    	    Q.massf[isp] = cells[islab]["massf[%d]-%s"%(isp,sp)]
     	for itm in range(ntm):
     	    Q.T[itm] = cells[islab]["T[%d]"%itm]
     	gm.eval_thermo_state_rhoT(Q)
