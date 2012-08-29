@@ -233,10 +233,11 @@ int main(int argc, char **argv)
 	    // recompute
 	    rtm->compute_Q_rad_for_flowfield();
 	    // store the radiation scaling parameters for each cell
+	    int jb;
 #	    ifdef _OPENMP
 #	    pragma omp parallel for private(jb) schedule(runtime)
 #	    endif
-	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	    for ( jb = 0; jb < (int) G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
 		bdp->apply( &FV_Cell::store_rad_scaling_params, "store-rad-scaling-params" );
@@ -244,10 +245,11 @@ int main(int argc, char **argv)
 	}
 	else {
 	    // rescale
+	    int jb;
 #	    ifdef _OPENMP
 #	    pragma omp parallel for private(jb) schedule(runtime)
 #	    endif
-	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	    for ( jb = 0; jb < (int) G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
 		bdp->apply( &FV_Cell::rescale_Q_rE_rad, "rescale-Q_rE_rad" );
@@ -294,7 +296,7 @@ int prepare_for_radiation_calculation( int start_tindx )
     }
 
     // Allocate and initialise memory in parallel.
-    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+    for ( int jb = 0; jb < (int) G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
         if ( bdp->array_alloc(G.dimensions) != 0 ) exit( MEMORY_ERROR );
 	bdp->bind_interfaces_to_cells(G.dimensions);
@@ -304,7 +306,7 @@ int prepare_for_radiation_calculation( int start_tindx )
     // Note that the global simulation time is set by the last flow data read.
     sprintf( tindxcstr, "t%04d", start_tindx);
     tindxstring = tindxcstr;
-    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+    for ( int jb = 0; jb < (int) G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
         printf( "----------------------------------\n" );
 	sprintf( jbcstr, ".b%04d", jb );
@@ -336,7 +338,7 @@ int prepare_for_radiation_calculation( int start_tindx )
 
     // Prepare data within the primary finite-volume cells.
     // This includes both geometric data and flow state data.
-    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+    for ( int jb = 0; jb < (int) G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
 	bdp->compute_primary_cell_geometric_data(G.dimensions);
 	bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions);
@@ -354,7 +356,7 @@ int prepare_for_radiation_calculation( int start_tindx )
     // Exchange boundary cell geometry information so that we can
     // next calculate secondary-cell geometries.
     // NOTE: now copying all data as required for radiation calculation
-    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+    for ( int jb = 0; jb < (int) G.my_blocks.size(); ++jb ) {
         exchange_shared_boundary_data(jb, COPY_ALL_CELL_DATA);
     }
 
@@ -405,7 +407,7 @@ int prepare_for_radiation_calculation( int start_tindx )
     
     // Apply viscous THEN inviscid boundary conditions to match environment for
     // radiation calculation in gasdynamic_inviscid_increment()
-    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+    for ( int jb = 0; jb < (int) G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
 	if ( bdp->active != 1 ) continue;
 	if ( get_viscous_flag() ) {
@@ -436,7 +438,7 @@ int finalize_e3rad( void )
     fflush( G.timestampfile );
     foldername = "flow/t9999";
     ensure_directory_is_present(foldername);
-    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+    for ( int jb = 0; jb < (int) G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
 	sprintf( jbcstr, ".b%04d", jb ); jbstring = jbcstr;
 	filename = foldername+"/"+G.base_file_name+".flow"+jbstring+".t9999";
@@ -447,7 +449,7 @@ int finalize_e3rad( void )
 	foldername = "heat/t9999";
 	ensure_directory_is_present(foldername);
 	// Loop over blocks
-	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	for ( int jb = 0; jb < (int) G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
 	    sprintf( jbcstr, ".b%04d", jb ); jbstring = jbcstr;
 	    final_s = ((G.dimensions == 3)? BOTTOM : WEST);
@@ -465,7 +467,7 @@ int finalize_e3rad( void )
     output_just_written = 1;
     // For the history files, we don't want to double-up on solution data.
     if ( !history_just_written ) {
-	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	for ( int jb = 0; jb < (int) G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
 	    sprintf( jbcstr, ".b%04d", jb ); jbstring = jbcstr;
 	    filename = "hist/"+G.base_file_name+".hist"+jbstring;
@@ -487,7 +489,7 @@ int finalize_e3rad( void )
     write_finishing_data( &G, filename );
     fclose( G.timestampfile );
 
-    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+    for ( int jb = 0; jb < (int) G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
 	bdp->array_cleanup(G.dimensions);
     }

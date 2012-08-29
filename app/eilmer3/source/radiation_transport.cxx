@@ -114,11 +114,12 @@ void OpticallyThin::compute_Q_rad_for_flowfield()
     Block * bdp;
     global_data &G = *get_global_data_ptr();  // set up a reference
 
+    int jb;
 #   ifdef _OPENMP
 #   pragma omp barrier
 #   pragma omp parallel for private(jb) schedule(runtime)
 #   endif
-    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+    for ( jb = 0; jb < (int) G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
 	if ( bdp->active != 1 ) continue;
 	this->compute_Q_rad_for_block(bdp);
@@ -195,11 +196,12 @@ void TangentSlab::compute_Q_rad_for_flowfield()
     Block * bdp;
     global_data &G = *get_global_data_ptr();  // set up a reference
     
+    int jb;
 #   ifdef _OPENMP
 #   pragma omp barrier
 #   pragma omp parallel for private(jb) schedule(runtime)
 #   endif
-    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+    for ( jb = 0; jb < (int) G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
 	if ( bdp->active != 1 ) continue;
 	this->compute_Q_rad_for_block(bdp);
@@ -336,7 +338,7 @@ DiscreteTransfer::initialise()
     cells_.resize( G.nblock );
     interfaces_.resize( G.nblock );
     int nthreads = omp_get_max_threads();
-    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+    for ( int jb = 0; jb < (int)G.my_blocks.size(); ++jb ) {
 	Block * bdp = G.my_blocks[jb];
 #       if VERBOSE_RADIATION_TRANSPORT
     	cout << "Thread " << omp_get_thread_num() << ": Initialising cells in block: " << jb << endl;
@@ -1015,7 +1017,7 @@ MonteCarlo::initialise()
     cells_.resize( G.nblock );
     interfaces_.resize( G.nblock );
     int nthreads = omp_get_max_threads();
-    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+    for ( int jb = 0; jb < (int) G.my_blocks.size(); ++jb ) {
 	Block * bdp = G.my_blocks[jb];
 #       if VERBOSE_RADIATION_TRANSPORT
     	cout << "Thread " << omp_get_thread_num() << ": Initialising cells in block: " << jb << endl;
@@ -1199,8 +1201,9 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 	        int nrays = nrays_;
 	        if ( clustering_ ) {
 		    nrays = int( double(nrays_) * interface->E_rad_ / interface_E_rad_total_max );
+
 	        }
-		if ( nrays==0 ) nrays = 1;
+		if ( nrays<=0 ) nrays = 1;
 		cout << " - nrays: " << nrays << endl;
 		// Cycle over all rays
 		int iray;
