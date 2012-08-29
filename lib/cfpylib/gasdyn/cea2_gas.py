@@ -574,6 +574,49 @@ def list_gas_names():
     :returns: the list of gases available in make_gas_from_name()
     """
     return ['air', 'air5species', 'n2', 'co2', 'h2ne', 'ar']
+    
+def make_reactants_dictionary( species_list ):
+    """
+    Creates the CEA reactants dictionary from a list of species
+    in the lib/gas format
+    :param species_list: lib/gas species list
+    """
+    nsp = len(species_list)
+    reactants = dict()
+    for sp in species_list:
+        # replace names containing '_plus' with '+' 
+        if ( sp.find("_plus")>=0 ): sp = sp[0:sp.find("_plus")] + "+"
+        # replace names containing '_minus' with '-' 
+        if ( sp.find("_minus")>=0 ): sp = sp[0:sp.find("_minus")] + "-"
+	reactants.setdefault(sp,0.0)
+    return reactants
+
+def get_species_composition( sp, species_data ):
+    """
+    Creates a list of mass or mole fractions for a species
+    in lib/gas form from the CEA species_data dictionary
+    :param sp: a single lib/gas species
+    :param species_data: the CEA species_data dictionary
+    """
+    # replace names containing '_plus' with '+' 
+    if ( sp.find("_plus")>=0 ): sp = sp[0:sp.find("_plus")] + "+"
+    # replace names containing '_minus' with '-' 
+    if ( sp.find("_minus")>=0 ): sp = sp[0:sp.find("_minus")] + "-"
+    if sp in species_data.keys():
+	    return species_data[sp]
+    else:
+	    return 0.0
+	    
+def get_with_ions_flag( species_list ):
+    """
+    Determines the 'with_ions' flag from a list of species
+    in the lib/gas format
+    :param species_list: lib/gas species list
+    """
+    for sp in species_list:
+        if sp.find("_plus")>=0: return True
+        if sp.find("_minus")>=0: return True
+    return False
 
 # --------------------------------------------------------------
 

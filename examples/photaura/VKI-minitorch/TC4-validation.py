@@ -5,28 +5,7 @@ from librad2 import *
 from cfpylib.gasdyn.cea2_gas import *
 from numpy import *
 import sys
-
-def make_reactants_dictionary( species_list ):
-    nsp = len(species_list)
-    reactants = dict()
-    for sp in species_list:
-        # replace names containing '_plus' with '+' 
-        if ( sp.find("_plus")>=0 ): sp = sp[0:sp.find("_plus")] + "+"
-        # replace names containing '_minus' with '-' 
-        if ( sp.find("_minus")>=0 ): sp = sp[0:sp.find("_minus")] + "-"
-	reactants.setdefault(sp,0.0)
-    return reactants
-
-def get_species_composition( sp, species_data ):
-    # replace names containing '_plus' with '+' 
-    if ( sp.find("_plus")>=0 ): sp = sp[0:sp.find("_plus")] + "+"
-    # replace names containing '_minus' with '-' 
-    if ( sp.find("_minus")>=0 ): sp = sp[0:sp.find("_minus")] + "-"
-    if sp in species_data.keys():
-	return species_data[sp]
-    else:
-	return 0.0
-    
+   
 def main():
     print "--------------------------------------------------------------------------"
     print "|       RADIATION OF HIGH TEMPERATURE GASES TESTCASE TC4 LEVEL 1         |"
