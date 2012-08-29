@@ -97,7 +97,7 @@ The methods for computing reaction rate coefficients available in the
 gas library are described below.
 
 \paragraph{A note on the units of reaction rate coefficients}
-
+Explain the use of CGS versus MKS.
 
 
 \subsection{Generalised Arrhenius rate coefficients}
@@ -207,7 +207,164 @@ The necessary inputs are part of the thermodynamics
 model input.
 
 \subsection{Pressure-dependent rate coefficients}
+\paragraph{Description}
+Reaction rate coefficients are strongly temperature dependent,
+however the rates for certain reactions are additionally
+dependent on the third body concentration.
+These are pressure-dependent rate coefficients.
+An example of a pressure dependent reaction is the
+decomposition of the methane molecule, written
+here as a unimolecular reaction:
+%\[ \text{CH}_4 \leftrightharpoonsfill{2.5em} \text{CH}_3 + \text{H} \]
+At low pressures, the rate of methane decomposition behaves as a bimolecular
+reaction (the second modelcule being an arbitrary third-body, not shown
+in the reaction equation).
+At high pressures, the reaction proceeds at a rate as if the reaction
+were a unimolecular one, as shown.
+Rather than alter the reaction mechanism itself as the
+pressure varies between low limits and high limits,
+the transitioning behaviour between bimolecular to unimolecular reaction can be
+accounted for in the calculation of the reaction rate coefficient.
+Thus, a pressure-dependent reaction rate coefficient is used for these
+types of reactions.
 
-BRENDAN TO ADD CONTENT.
+Pressure-dependent coefficients transition
+between two limiting Arrhenius coefficients depending on the third body value.
+This transition is due to the fact their reactions exhibit
+both unimolecular and bimolecular 
+(also known as first and second order) characteristics.
+The rate coefficient tends to a constant value, $k_\infty$,
+as the molar density goes to infinity.
+At high temperatures, essentially all unimolecular
+reactions exhibit this behaviour~\cite{gilbert_etal_1983}. 
+
+Pressure-dependent reactions are typically denoted in
+the literature using parentheses around the third body, as in
+%\[
+% \text{A} \left( + \text{M} \right) \autorightleftharpoons{$k_f$}{$k_r$} \text{B} + \text{C} \left( + \text{M} \right)~\text{.}
+%\]
+This signifies that the low pressure reaction involves two participants,
+whereas the high pressure reaction involves only one.
+Care must be taken when evaluating the units of the rate coefficient
+for this reaction.
+Pressure-dependent rate coefficients commonly take one of two forms: Lindemann-Hinshelwood or Troe.
+
+\subsubsection{Lindemann-Hinshelwood form of pressure-dependent rate coefficients}
+\paragraph{Equations}
+The Lindemann-Hinshelwood form of the forward rate coefficient is given by
+\begin{equation}
+k_f=\frac{k_\infty k_0[\text{M}]}{k_\infty + k_0[\text{M}]}=
+ \begin{cases}
+  k_0[\text{M}] &\lim_{[\text{M}]\to 0}\\
+  k_\infty &\lim_{[\text{M}]\to \infty}
+ \end{cases}\quad\text{,}
+\end{equation}
+where the rate coefficients $k_0$ and $k_\infty$ are provided
+by the kinetic mechanism in Arrhenius form. 
+
+\paragraph{Input parameters}
+\begin{table}[h!]
+\caption{Parameters for the Lindemann-Hinshelwood form of pressure-dependent rate coefficients}
+\label{tab:lh-pd}
+\begin{tabular}{lp{10cm}}
+\toprule
+Parameter & Description \\ \midrule
+\multicolumn{2}{l}{\textit{User input}} \\
+$k_0$       & Arrhenius rate constants (see Table~\ref{tab:ga-formula}) at the
+              low pressure limit \\
+$k_{\infty}$ & Arrhenius rate constants (see Table~\ref{tab:ga-formula}) at the
+              high pressure limit \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Troe form of pressure-dependent rate coefficients}
+
+\paragraph{Equations}
+The Troe form is based on the Lindemann-Hinshelwood form but includes strong and weak collision broadening effects in one broadening factor, $F$ \cite{gilbert_etal_1983}.
+\begin{equation}
+ k_f=\frac{k_\infty k_0[\text{M}]}{k_\infty + k_0[\text{M}]} F
+\end{equation}
+$F$ may be calculated using
+\begin{equation}
+\log F=
+% \begin{cases}
+%  0 &\text{Lindemann Form}\\
+  \left[ 1+ \left( \frac{\log P_r + c}{n-d\left(\log P_r + c\right)}\right)^2 \right]^{-1} \log F_{cent}% &\text{Troe Form}
+% \end{cases}
+\quad \text{,}
+\end{equation}
+where
+\begin{equation}
+\label{eqn:troe-params}
+ \begin{aligned}
+  P_r &= \frac{k_0[\text{M}]}{k_\infty} \\
+  c &= -0.4-0.67\log F_{cent} \\
+  n &= 0.75-1.27\log F_{cent} \\
+  d &= 0.14 \quad \text{and}\\
+  F_{cent} &= \left( 1-a \right) \exp \left( -\frac{T}{T^{***}} \right) + a \exp \left( -\frac{T}{T^*} \right) + \exp \left( -\frac{T^{**}}{T} \right)~~\text{.}
+ \end{aligned}
+\end{equation}
+
+\paragraph{Input parameters}
+\begin{table}[h!]
+\centering
+\caption{Parameters for the Troe form of pressure-dependent rate coefficients}
+\label{tab:troe-pd}
+\begin{tabular}{llp{10cm}}
+\toprule
+Parameter & Units & Description \\ \midrule
+\multicolumn{3}{l}{\textit{User input}} \\
+$k_0$       & - & Arrhenius rate constants (see Table~\ref{tab:ga-formula}) at the
+              low pressure limit \\
+$k_{\infty}$ & - & Arrhenius rate constants (see Table~\ref{tab:ga-formula}) at the
+              high pressure limit \\
+$a$         & - & parameter of the model as shown in Equation~\ref{eqn:troe-params} \\
+$T1$       & K & value for $T^*$ in Equation~\ref{eqn:troe-params} \\
+$T2$     & K & value for $T^{**}$ in Equation~\ref{eqn:troe-params} \\
+$T3$    & K & value for $T^{***}$ in Equation~\ref{eqn:troe-params} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Example of pressure-dependent rate}
+An example calculation of a pressure-dependent rate
+is shown here for methane decomposition.
+%\[ \text{H}+\text{CH}_3 (+\text{M}) \rightleftharpoonsfill{2.5em}
+% \text{CH}_4 (+\text{M}) \]
+The rate parameters, given in Table~\ref{tab:meth-decomp},
+are taken from Grimech 3.0.
+This is reaction 51 in that set.
+
+\begin{table}[h]
+\centering
+\caption{Parameters for the pressure-dependent rates for the decomposition of
+methane.}
+\label{tab:meth-decomp}
+\begin{tabular}{ll}
+\toprule
+Parameters & Values \\ \midrule
+$k_0$ & $A$ = 1.390$\times$10$^{16}$, $n$ = -0.534, $E_a$ = 536.0 \\
+$k_{\infty}$ & $A$ = 2.620$\times$10$^{33}$, $n$ = -4.76, $E_a$ = 2440 \\
+Troe coefficients & $a$ = 0.7830, $T^{***}$ = 74.0, $T^{*}$ = 2941.0, $T^{**}$ = 6964.0 \\ \bottomrule
+\end{tabular}
+\end{table}
+
+At a fixed temperature, the reaction rate is plotted for a range of
+pressures in Figure~\ref{fig:meth-decomp}.
+Both the Lindemann-Hinshelwood and Troe forms of the reaction rate
+coefficient evaluation are plotted to show the effect of the Troe coefficients.
+Also shown are the low pressure and high pressure limits for the 
+rate coefficient.
+Note how the pressure-dependent forms vary between these two limits
+over the range of pressure.
+
+\begin{figure}[ht]
+ \centering
+% \scalebox{1.0}{\input{../figs/pd_rates.tex}}
+ \caption{Pressure-dependent rate coefficient and the Arrhenius asymptotes (Reaction 51, GRI-Mech3.0).}
+\label{fig:meth-decomp}
+\end{figure}
+
 
 

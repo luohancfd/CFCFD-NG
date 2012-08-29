@@ -4,6 +4,7 @@ $(FILENAME).pdf: $(FILENAME).tex \
 		introduction.tex \
 		thermodynamics.tex \
 		trans-prop.tex \
+		chem-kinetics.tex \
 		installation.tex \
 		getting-started.tex \
 		input-files.tex \
