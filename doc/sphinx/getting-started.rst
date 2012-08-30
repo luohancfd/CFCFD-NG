@@ -111,7 +111,7 @@ you should add the following packages and their dependencies:
 #. python-scipy
 #. libreadline-dev
 #. libpopt-dev
-#. ncurses-dev
+#. libncurses5-dev
 #. tk
 #. bwidget
 #. gnuplot
