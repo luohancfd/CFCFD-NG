@@ -780,14 +780,14 @@ class ExistingSolution(object):
 #---------------------------------------------------------------------------------
 # VTK-related functions
 
-def uflowz(q):
+def uflowz(q, tiny=1.0e-30):
     """
     Set very small quantities to zero, exactly.
 
     This is intended primarily to avoid the bad behaviour of VTK
     when reading Float32 values that are *too* small.
     """
-    if abs(q) > 1.0e-30:
+    if abs(q) > tiny:
         return q
     else:
         return 0.0
@@ -819,7 +819,8 @@ def write_VTK_XML_unstructured_file(fp, grid, flow):
         for j in range(njv):
             for i in range(niv):
                 vtx_id[(i,j,k)] = vtx_number
-                fp.write(" %e %e %e\n" % (grid.x[i,j,k], grid.y[i,j,k], grid.z[i,j,k]))
+                fp.write(" %e %e %e\n" % (uflowz(grid.x[i,j,k]), uflowz(grid.y[i,j,k]),
+                                          uflowz(grid.z[i,j,k])))
                 vtx_number += 1
     fp.write(" </DataArray>\n")
     fp.write("</Points>\n")
