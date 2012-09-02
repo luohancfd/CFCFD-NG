@@ -780,19 +780,6 @@ class ExistingSolution(object):
 #---------------------------------------------------------------------------------
 # VTK-related functions
 
-def uflowz(q, tiny=1.0e-30):
-    """
-    Set very small quantities to zero, exactly.
-
-    This is intended primarily to avoid the bad behaviour of VTK
-    when reading Float32 values that are *too* small.
-    """
-    if abs(q) > tiny:
-        return q
-    else:
-        return 0.0
-
-
 def write_VTK_XML_unstructured_file(fp, grid, flow):
     """
     Write the cell-centred flow data from a single block 

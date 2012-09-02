@@ -1500,6 +1500,12 @@ int gasdynamic_inviscid_increment( void )
 	++attempt_number;
 	step_failed = 0;
 
+#       if 0
+	printf("PJ_DEBUG--------Corner-cell-before-tstep-----\n");
+	bdp = G.my_blocks[11];
+	bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax)->print();
+	printf("PJ_DEBUG-------------------------------------\n");
+#       endif
 	//  Predictor Stage for gas-dynamics
 #       ifdef _MPI
 	mpi_exchange_boundary_data(COPY_FLOW_STATE);
@@ -1559,6 +1565,36 @@ int gasdynamic_inviscid_increment( void )
 	    }
 	}
 
+#       if 0
+	// The troublesome cell in Rolf's duct6 grid.
+	printf("PJ_DEBUG--------Corner-cell-before-predictor-inviscid-update-----\n");
+	bdp = G.my_blocks[11];
+	bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax)->print();
+	for ( int iv=0; iv < 8; ++iv ) {
+	    Vector3 *pos = &(bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax)->vtx[iv]->pos);
+	    printf("vtx %d x=%e y=%e z=%e\n", iv, pos->x, pos->y, pos->z);
+	}
+	printf("Ghost cell below WEST boundary\n");
+	bdp->get_cell(bdp->imin-1,bdp->jmax,bdp->kmax)->print();
+	printf("Ghost cell past TOP boundary\n");
+	bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax+1)->print();
+	printf("Ghost cell past NORTH boundary\n");
+	bdp->get_cell(bdp->imin,bdp->jmax+1,bdp->kmax)->print();
+	printf("Cell one less along WEST boundary\n");
+	bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax-1)->print();
+	printf("PJ_DEBUG-------------------------------------\n");
+#       endif
+#       if 0
+	// The troublesome cell in Rowan's duct-3D grid.
+	printf("PJ_DEBUG--------Corner-cell-before-predictor-inviscid-update-----\n");
+	bdp = G.my_blocks[8];
+	bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax)->print();
+	for ( int iv=0; iv < 8; ++iv ) {
+	    Vector3 *pos = &(bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax)->vtx[iv]->pos);
+	    printf("vtx %d x=%e y=%e z=%e\n", iv, pos->x, pos->y, pos->z);
+	}
+	printf("PJ_DEBUG-------------------------------------\n");
+#       endif
 	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
 	    if ( bdp->active != 1 ) continue;
@@ -1576,6 +1612,45 @@ int gasdynamic_inviscid_increment( void )
 #           endif
 
 	} // end of for jb...
+
+#       if 0
+	// The troublesome cell in Rolf's duct6 grid.
+	printf("PJ_DEBUG--------Corner-cell-after-predictor-inviscid-update-----\n");
+	bdp = G.my_blocks[11];
+	bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax)->print();
+	for ( int fid=NORTH; fid <= BOTTOM; fid++ ) {
+	    cout << "*** Face " << get_face_name(fid) << "****" << endl;
+	    bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax)->iface[fid]->print(1);
+	}
+	printf("**** end faces ****\n");
+	printf("Cell one less along WEST boundary\n");
+	bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax-1)->print();
+	for ( int fid=NORTH; fid <= BOTTOM; fid++ ) {
+	    cout << "*** Face " << get_face_name(fid) << "****" << endl;
+	    bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax-1)->iface[fid]->print(1);
+	}
+	printf("**** end faces ****\n");
+	printf("PJ_DEBUG-------------------------------------\n");
+#       endif
+#       if 0
+	// Corresponding cell (that is well behaved) in Rowan's duct-3D grid.
+	printf("PJ_DEBUG--------Corner-cell-after-predictor-inviscid-update-----\n");
+	bdp = G.my_blocks[8];
+	bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax)->print();
+	for ( int fid=NORTH; fid <= BOTTOM; fid++ ) {
+	    cout << "*** Face " << get_face_name(fid) << "****" << endl;
+	    bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax)->iface[fid]->print(1);
+	}
+	printf("**** end faces ****\n");
+	printf("Cell one less along NORTH boundary\n");
+	bdp->get_cell(bdp->imin+1,bdp->jmax,bdp->kmax)->print();
+	for ( int fid=NORTH; fid <= BOTTOM; fid++ ) {
+	    cout << "*** Face " << get_face_name(fid) << "****" << endl;
+	    bdp->get_cell(bdp->imin+1,bdp->jmax,bdp->kmax)->iface[fid]->print(1);
+	}
+	printf("**** end faces ****\n");
+	printf("PJ_DEBUG-------------------------------------\n");
+#       endif
 
 	// Corrector Stage
 	if ( get_Torder_flag() == 2 ) {
@@ -1611,6 +1686,13 @@ int gasdynamic_inviscid_increment( void )
 	    } // end for jb loop
 	} // end if (corrector stage)
 
+#       if 0
+	// Rolf's troublesome cell
+	printf("PJ_DEBUG--------Corner-cell-after-corrector-inviscid-update-----\n");
+	bdp = G.my_blocks[11];
+	bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax)->print();
+	printf("PJ_DEBUG-------------------------------------\n");
+#       endif
 	// 2d. Check the record of bad cells and if any cells are bad, 
 	//     fail this attempt at taking a step,
 	//     set everything back to the initial state and

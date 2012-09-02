@@ -26,6 +26,22 @@ from cfpylib.util.FortranFile import FortranFile
 
 #----------------------------------------------------------------------
 
+def uflowz(q, tiny=1.0e-30):
+    """
+    Set very small quantities to zero, exactly.
+
+    This is intended primarily to avoid the bad behaviour of VTK
+    when it is reading Float32 values that are *too* small.
+    We have also come across unreasonably-small float values 
+    in the context of reading GridPro files.
+    """
+    if abs(q) > tiny:
+        return q
+    else:
+        return 0.0
+
+#----------------------------------------------------------------------
+
 class StructuredGrid(object):
     """
     Storage and service functions for a mesh of points defining
@@ -799,9 +815,9 @@ def read_gridpro_grid(gname, scale=1.0):
             for j in range(nj):
                 for k in range(nk):
                     tks = f.readline().split()
-                    grids[-1].x[i,j,k] = scale*float(tks[0])
-                    grids[-1].y[i,j,k] = scale*float(tks[1])
-                    grids[-1].z[i,j,k] = scale*float(tks[2])
+                    grids[-1].x[i,j,k] = uflowz(scale*float(tks[0]))
+                    grids[-1].y[i,j,k] = uflowz(scale*float(tks[1]))
+                    grids[-1].z[i,j,k] = uflowz(scale*float(tks[2]))
     f.close()
     return grids
 

@@ -261,6 +261,10 @@ int FV_Interface::print(int to_stdout)
     printf( "----------- Begin data for interface -----------\n");
     // printf( "id = %i\n", iface->id);
     printf("x=%e, y=%e, z=%e\n", pos.x, pos.y, pos.z);
+    printf("area=%e, Ybar=%e, length=%e\n", area, Ybar, length);
+    printf("n.x=%e, n.y=%e, n.z=%e\n", n.x, n.y, n.z);
+    printf("t1.x=%e, t1.y=%e, t1.z=%e\n", t1.x, t1.y, t1.z);
+    printf("t2.x=%e, t2.y=%e, t2.z=%e\n", t2.x, t2.y, t2.z);
     fs->print();
     printf("Fluxes of conserved quantities: \n");
     F->print();
