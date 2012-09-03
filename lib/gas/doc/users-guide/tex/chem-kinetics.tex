@@ -240,9 +240,9 @@ reactions exhibit this behaviour~\cite{gilbert_etal_1983}.
 
 Pressure-dependent reactions are typically denoted in
 the literature using parentheses around the third body, as in
-%\[
-% \text{A} \left( + \text{M} \right) \autorightleftharpoons{$k_f$}{$k_r$} \text{B} + \text{C} \left( + \text{M} \right)~\text{.}
-%\]
+\[
+ \text{A} \left( + \text{M} \right) \autorightleftharpoons{$k_f$}{$k_r$} \text{B} + \text{C} \left( + \text{M} \right)~\text{.}
+\]
 This signifies that the low pressure reaction involves two participants,
 whereas the high pressure reaction involves only one.
 Care must be taken when evaluating the units of the rate coefficient
@@ -266,7 +266,7 @@ by the kinetic mechanism in Arrhenius form.
 \begin{table}[h!]
 \caption{Parameters for the Lindemann-Hinshelwood form of pressure-dependent rate coefficients}
 \label{tab:lh-pd}
-\begin{tabular}{lp{10cm}}
+\begin{tabular}{lp{12cm}}
 \toprule
 Parameter & Description \\ \midrule
 \multicolumn{2}{l}{\textit{User input}} \\
@@ -311,7 +311,7 @@ where
 \centering
 \caption{Parameters for the Troe form of pressure-dependent rate coefficients}
 \label{tab:troe-pd}
-\begin{tabular}{llp{10cm}}
+\begin{tabular}{llp{12cm}}
 \toprule
 Parameter & Units & Description \\ \midrule
 \multicolumn{3}{l}{\textit{User input}} \\
@@ -330,8 +330,8 @@ $T3$    & K & value for $T^{***}$ in Equation~\ref{eqn:troe-params} \\
 \paragraph{Example of pressure-dependent rate}
 An example calculation of a pressure-dependent rate
 is shown here for methane decomposition.
-%\[ \text{H}+\text{CH}_3 (+\text{M}) \rightleftharpoonsfill{2.5em}
-% \text{CH}_4 (+\text{M}) \]
+\[ \text{H}+\text{CH}_3 (+\text{M}) \rightleftharpoonsfill{2.5em}
+ \text{CH}_4 (+\text{M}) \]
 The rate parameters, given in Table~\ref{tab:meth-decomp},
 are taken from Grimech 3.0.
 This is reaction 51 in that set.
@@ -358,10 +358,11 @@ Also shown are the low pressure and high pressure limits for the
 rate coefficient.
 Note how the pressure-dependent forms vary between these two limits
 over the range of pressure.
-
+% from Brendan's thesis class file
+\newcommand{\pow}[1]{\ensuremath{^{{\text{#1}}}}}
 \begin{figure}[ht]
  \centering
-% \scalebox{1.0}{\input{../figs/pd_rates.tex}}
+ \scalebox{1.0}{\input{../figs/pd_rates.tex}}
  \caption{Pressure-dependent rate coefficient and the Arrhenius asymptotes (Reaction 51, GRI-Mech3.0).}
 \label{fig:meth-decomp}
 \end{figure}
