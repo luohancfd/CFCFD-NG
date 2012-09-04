@@ -5,7 +5,7 @@
  * \author PJ
  * \version 29-Jun-04, initially extracted from mb_cns.h
  * \version July-2008, Elmer3 puts cell code, flux calculators and flow code back together.
- * 
+ *
  */
 
 #ifndef FLUX_CALC_HH
@@ -28,7 +28,8 @@
  * FLUX_EFM      : Mike Macrossan's EFM flux calculation
  * FLUX_AUSMDV   : Wada and Liou's flux calculator AIAA Paper 94-0083
  * FLUX_ADAPTIVE : EFM near shocks, AUSMDV otherwise
- * FLUX_AUSM_PLUS_UP : Liou's 2006 all-speed flux calculator 
+ * FLUX_AUSM_PLUS_UP : Liou's 2006 all-speed flux calculator
+ * FLUX_HLLE     : MHD HLLE approximate Riemann solver
  * \endverbatim
  */
 #define FLUX_RIEMANN       0
@@ -37,6 +38,7 @@
 #define FLUX_AUSMDV        3
 #define FLUX_ADAPTIVE      4
 #define FLUX_AUSM_PLUS_UP  5
+#define FLUX_HLLE          6
 
 /*
  * Function prototypes...
@@ -59,5 +61,7 @@ int ausmdv(FlowState &Lft, FlowState &Rght, FV_Interface &IFace);
 int adaptive_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace);
 /* ausm_plus_up.c */
 int ausm_plus_up(FlowState &Lft, FlowState &Rght, FV_Interface &IFace);
+/* hlle.cxx */
+int hlle(FlowState &Lft, FlowState &Rght, FV_Interface &IFace);
 
 #endif

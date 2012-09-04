@@ -57,7 +57,7 @@ std::string get_face_name(int index)
 
 //---------------------------------------------------------------------------
 
-FlowState::FlowState(Gas_model *gm) 
+FlowState::FlowState(Gas_model *gm)
 {
     gas = new Gas_data(gm);
     vel.x = 0.0; vel.y = 0.0; vel.z = 0.0;
@@ -69,7 +69,7 @@ FlowState::FlowState(Gas_model *gm)
     k_t = 0.0;
 }
 
-FlowState::~FlowState() 
+FlowState::~FlowState()
 {
     delete gas;
 }
@@ -301,7 +301,7 @@ int FV_Interface::print(int to_stdout)
 /// \brief Copies data between two interface structures
 int FV_Interface::copy_values_from(FV_Interface &src, int type_of_copy)
 {
-    if ( type_of_copy == COPY_ALL_CELL_DATA || 
+    if ( type_of_copy == COPY_ALL_CELL_DATA ||
 	 type_of_copy == COPY_FLOW_STATE ) {
         fs->copy_values_from(*(src.fs));
 	F->copy_values_from(*(src.F));
@@ -457,8 +457,8 @@ int FV_Cell::point_is_inside(Vector3 &p, int dimensions)
 	// the test consists of dividing the 6 cell faces into triangular facets
 	// with outwardly-facing normals and then computing the volumes of the
 	// tetrahedra formed by these facets and the sample point p.
-	// If any of the tetrahedra volumes are positive 
-	// (i.e. p is on the positive side of a facet) and we assume a convex cell, 
+	// If any of the tetrahedra volumes are positive
+	// (i.e. p is on the positive side of a facet) and we assume a convex cell,
 	// it means that the point is outside the cell and we may say so
 	// without further testing.
 
@@ -501,13 +501,13 @@ int FV_Cell::copy_values_from(CFlowCondition &src)
 }
 
 
-/// \brief Copy the data from one FV_Cell structure to another. 
+/// \brief Copy the data from one FV_Cell structure to another.
 ///
 /// \param src: pointer to the source cell structure
 ///\param type_of_copy indicates whether we copy the cell geometry along with the FlowState data
 int FV_Cell::copy_values_from(FV_Cell &src, int type_of_copy)
 {
-    if ( type_of_copy == COPY_ALL_CELL_DATA || 
+    if ( type_of_copy == COPY_ALL_CELL_DATA ||
 	 type_of_copy == COPY_FLOW_STATE ) {
         fs->copy_values_from(*(src.fs));
 	status = src.status;
@@ -528,7 +528,7 @@ int FV_Cell::copy_values_from(FV_Cell &src, int type_of_copy)
 /// \returns a pointer to the next available location in the data buffer.
 double * FV_Cell::copy_values_to_buffer(double *buf, int type_of_copy)
 {
-    if (type_of_copy == COPY_ALL_CELL_DATA || 
+    if (type_of_copy == COPY_ALL_CELL_DATA ||
 	type_of_copy == COPY_FLOW_STATE) {
         buf = fs->copy_values_to_buffer(buf);
 	*buf++ = (double)status;
@@ -548,7 +548,7 @@ double * FV_Cell::copy_values_to_buffer(double *buf, int type_of_copy)
 /// \returns a pointer to the next available location in the data buffer.
 double * FV_Cell::copy_values_from_buffer(double *buf, int type_of_copy)
 {
-    if (type_of_copy == COPY_ALL_CELL_DATA || 
+    if (type_of_copy == COPY_ALL_CELL_DATA ||
 	type_of_copy == COPY_FLOW_STATE) {
 	buf = fs->copy_values_from_buffer(buf);
 	status = (int)(*buf++);
@@ -563,7 +563,7 @@ double * FV_Cell::copy_values_from_buffer(double *buf, int type_of_copy)
 }
 
 
-/// \brief Replace the flow data in a cell with the average from neighbour cells. 
+/// \brief Replace the flow data in a cell with the average from neighbour cells.
 int FV_Cell::replace_flow_data_with_average(FV_Cell *src[], int ncell)
 {
     int ii;
@@ -608,6 +608,11 @@ int FV_Cell::replace_flow_data_with_average(FV_Cell *src[], int ncell)
 	fs->vel.x /= ((double)ncell);
 	fs->vel.y /= ((double)ncell);
 	fs->vel.z /= ((double)ncell);
+	if ( get_mhd_flag() == 1 ) {
+	    fs->B.x /= ((double)ncell);
+        fs->B.y /= ((double)ncell);
+        fs->B.z /= ((double)ncell);
+	}
 	fs->mu_t /= ((double)ncell);
 	fs->k_t /= ((double)ncell);
 	fs->tke /= ((double)ncell);
@@ -632,10 +637,10 @@ int FV_Cell::scan_values_from_string(char *bufptr)
 {
     // Look for a new-line character and truncate the string there.
     char *cptr = strchr(bufptr, '\n');
-    if ( cptr != NULL ) cptr = '\0'; 
+    if ( cptr != NULL ) cptr = '\0';
     // Now, we should have a string with only numbers separated by spaces.
     pos.x = atof(strtok( bufptr, " " )); // tokenize on space characters
-    pos.y = atof(strtok( NULL, " " )); 
+    pos.y = atof(strtok( NULL, " " ));
     pos.z = atof(strtok( NULL, " " ));
     volume = atof(strtok( NULL, " " ));
     fs->gas->rho = atof(strtok( NULL, " " ));
@@ -649,7 +654,7 @@ int FV_Cell::scan_values_from_string(char *bufptr)
     }
     fs->gas->p = atof(strtok( NULL, " " ));
     fs->gas->a = atof(strtok( NULL, " " ));
-    fs->gas->mu = atof(strtok( NULL, " " )); 
+    fs->gas->mu = atof(strtok( NULL, " " ));
     fs->gas->k[0] = atof(strtok( NULL, " " ));
     fs->mu_t = atof(strtok( NULL, " " ));
     fs->k_t = atof(strtok( NULL, " " ));
@@ -687,8 +692,8 @@ std::string FV_Cell::write_values_to_string()
     ostringstream ost;
     ost.setf(ios_base::scientific);
     ost.precision(12);
-    ost << pos.x << " " << pos.y << " " << pos.z 
-	<< " " << volume << " " <<  fs->gas->rho 
+    ost << pos.x << " " << pos.y << " " << pos.z
+	<< " " << volume << " " <<  fs->gas->rho
 	<< " " << fs->vel.x << " " << fs->vel.y << " " << fs->vel.z;
     if ( get_mhd_flag() == 1 ) {
 	ost << " " << fs->B.x << " " << fs->B.y << " " << fs->B.z;
@@ -761,15 +766,15 @@ int FV_Cell::encode_conserved(double omegaz)
     U->momentum.x = fs->gas->rho * fs->vel.x;
     U->momentum.y = fs->gas->rho * fs->vel.y;
     U->momentum.z = fs->gas->rho * fs->vel.z;
-    // Magnetic field -- FIX-ME -- Daryl
+    // Magnetic field
     U->B.x = fs->B.x;
     U->B.y = fs->B.y;
     U->B.z = fs->B.z;
     // Total Energy / unit volume = density
     // (specific internal energy + kinetic energy/unit mass).
-    double ke = 0.5 * (fs->vel.x * fs->vel.x 
-		       + fs->vel.y * fs->vel.y
-		       + fs->vel.z * fs->vel.z);
+    double ke = 0.5 * (fs->vel.x * fs->vel.x
+		     + fs->vel.y * fs->vel.y
+		     + fs->vel.z * fs->vel.z);
     if ( get_k_omega_flag() ) {
 	U->tke = fs->gas->rho * fs->tke;
 	U->omega = fs->gas->rho * fs->omega;
@@ -779,7 +784,13 @@ int FV_Cell::encode_conserved(double omegaz)
 	U->omega = fs->gas->rho * 1.0;
 	U->total_energy = fs->gas->rho * (fs->gas->e[0] + ke);
     }
-    // Species densities: mass of species isp per unit volume.
+    if ( get_mhd_flag() == 1) {
+    double me = 0.5 * (fs->B.x * fs->B.x
+		     + fs->B.y * fs->B.y
+		     + fs->B.z * fs->B.z);
+    U->total_energy += me;
+    }
+    // Species densities: mass of species is per unit volume.
     for ( size_t isp = 0; isp < U->massf.size(); ++isp ) {
 	U->massf[isp] = fs->gas->rho * fs->gas->massf[isp];
     }
@@ -808,7 +819,7 @@ int FV_Cell::encode_conserved(double omegaz)
 int FV_Cell::decode_conserved(double omegaz)
 {
     Gas_model *gmodel = get_gas_model_ptr();
-    double ke, dinv, rE;
+    double ke, dinv, rE, me;
 
     // Mass / unit volume = Density
     double rho = U->mass;
@@ -836,20 +847,25 @@ int FV_Cell::decode_conserved(double omegaz)
     fs->vel.x = U->momentum.x * dinv;
     fs->vel.y = U->momentum.y * dinv;
     fs->vel.z = U->momentum.z * dinv;
-    // Magnetic field -- FIX-ME -- Daryl
+    // Magnetic field
     fs->B.x = U->B.x;
     fs->B.y = U->B.y;
     fs->B.z = U->B.z;
     // Specific internal energy from total energy per unit volume.
     ke = 0.5 * (fs->vel.x * fs->vel.x + fs->vel.y * fs->vel.y + fs->vel.z * fs->vel.z);
-    if ( get_k_omega_flag() ) {
-	fs->tke = U->tke * dinv;
-	fs->omega = U->omega * dinv;
-	fs->gas->e[0] = (rE - U->tke) * dinv - ke;
+    if (get_mhd_flag() == 1) {
+        me = 0.5*(fs->B.x*fs->B.x + fs->B.y*fs->B.y + fs->B.z*fs->B.z);
     } else {
-	fs->tke = 0.0;
-	fs->omega = 1.0;
-	fs->gas->e[0] = rE * dinv - ke;
+        me = 0.0;
+    }
+    if ( get_k_omega_flag() ) {
+        fs->tke = U->tke * dinv;
+        fs->omega = U->omega * dinv;
+        fs->gas->e[0] = (rE - U->tke - me) * dinv - ke;
+    } else {
+        fs->tke = 0.0;
+        fs->omega = 1.0;
+        fs->gas->e[0] = (rE - me) * dinv - ke;
     }
     size_t nsp = U->massf.size();
     for ( size_t isp = 0; isp < nsp; ++isp ) {
@@ -942,7 +958,7 @@ int FV_Cell::time_derivatives(int time_level, int dimensions)
     // Time-derivative for Mass/unit volume.
     // Note that the unit normals for the interfaces are oriented
     // such that the unit normals for the east, north and top faces
-    // are outward and the unit normals for the south, west and 
+    // are outward and the unit normals for the south, west and
     // bottom faces are inward.
     integral = -IFe->F->mass * IFe->area - IFn->F->mass * IFn->area
 	+ IFw->F->mass * IFw->area + IFs->F->mass * IFs->area;
@@ -972,10 +988,28 @@ int FV_Cell::time_derivatives(int time_level, int dimensions)
 	dUdt[time_level]->momentum.z = 0.0;
     }
 
-    // Magnetic field -- FIX-ME -- Daryl
-    dUdt[time_level]->B.x = 0.0;
-    dUdt[time_level]->B.y = 0.0;
-    dUdt[time_level]->B.z = 0.0;
+    // Magnetic field
+    // Time-derivative for X-Magnetic Field/unit volume.
+    integral = -IFe->F->B.x * IFe->area - IFn->F->B.x * IFn->area
+	+ IFw->F->B.x * IFw->area + IFs->F->B.x * IFs->area;
+    if ( dimensions == 3 )
+	integral += IFb->F->B.x * IFb->area - IFt->F->B.x * IFt->area;
+    dUdt[time_level]->B.x = vol_inv * integral + Q->B.x;
+    // Time-derivative for Y-Magnetic Field/unit volume.
+    integral = -IFe->F->B.y * IFe->area - IFn->F->B.y * IFn->area
+	+ IFw->F->B.y * IFw->area + IFs->F->B.y * IFs->area;
+    if ( dimensions == 3 )
+	integral += IFb->F->B.y * IFb->area - IFt->F->B.y * IFt->area;
+    dUdt[time_level]->B.y = vol_inv * integral + Q->B.y;
+    // Time-derivative for Z-Magnetic Field/unit volume.
+    if ( dimensions == 3 ) {
+	integral = -IFe->F->B.z * IFe->area - IFn->F->B.z * IFn->area
+	    + IFw->F->B.z * IFw->area + IFs->F->B.z * IFs->area
+	    + IFb->F->B.z * IFb->area - IFt->F->B.z * IFt->area;
+	dUdt[time_level]->B.z = vol_inv * integral + Q->B.z;
+    } else {
+	dUdt[time_level]->B.z = 0.0;
+    }
 
     // Time-derivative for Total Energy/unit volume.
     integral = -IFe->F->total_energy * IFe->area - IFn->F->total_energy * IFn->area
@@ -1049,7 +1083,7 @@ int FV_Cell::predictor_update(double dt)
     U->momentum.y = U_old->momentum.y + dt * gamma_1 * dUdt0.momentum.y;
     U->momentum.z = U_old->momentum.z + dt * gamma_1 * dUdt0.momentum.z;
 
-    // Magnetic field -- FIX-ME -- Daryl
+    // Magnetic field
     U->B.x = U_old->B.x + dt * gamma_1 * dUdt0.B.x;
     U->B.y = U_old->B.y + dt * gamma_1 * dUdt0.B.y;
     U->B.z = U_old->B.z + dt * gamma_1 * dUdt0.B.z;
@@ -1059,15 +1093,15 @@ int FV_Cell::predictor_update(double dt)
 	U->tke = U_old->tke + dt * gamma_1 * dUdt0.tke;
 	U->tke = MAXIMUM(U->tke, 0.0);
 	U->omega = U_old->omega + dt * gamma_1 * dUdt0.omega;
-	U->omega = MAXIMUM(U->omega, U_old->mass); 
+	U->omega = MAXIMUM(U->omega, U_old->mass);
 	// ...assuming a minimum value of 1.0 for omega
 	// It may occur (near steps in the wall) that a large flux of romega
 	// through one of the cell interfaces causes romega within the cell
-	// to drop rapidly.  
+	// to drop rapidly.
 	// The large values of omega come from Menter's near-wall correction that may be
 	// applied outside the control of this finite-volume core code.
 	// These large values of omega will be convected along the wall and,
-	// if they are convected past a corner with a strong expansion, 
+	// if they are convected past a corner with a strong expansion,
 	// there will be an unreasonably-large flux out of the cell.
     } else {
 	U->tke = U_old->tke;
@@ -1091,8 +1125,8 @@ int FV_Cell::corrector_update(double dt)
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &dUdt1 = *(dUdt[1]);
     double th, th_inv;
-    /* 
-     * Set the type of time-stepping 
+    /*
+     * Set the type of time-stepping
      * th = 0.0 : Euler
      * th = 0.5 : 2nd order
      * th = 1.0 : sort-of-implicit?
@@ -1102,7 +1136,7 @@ int FV_Cell::corrector_update(double dt)
 	th = 5.0 / 12.0;
 	th_inv = -17.0 / 60.0;
     } else {
-	/* Normal Predictor-Corrector or Euler */	
+	/* Normal Predictor-Corrector or Euler */
 	th = 0.5;
 	th_inv = 1.0 - th;
     }
@@ -1111,7 +1145,7 @@ int FV_Cell::corrector_update(double dt)
     U->momentum.y = U_old->momentum.y + dt * (th_inv * dUdt0.momentum.y + th * dUdt1.momentum.y);
     U->momentum.z = U_old->momentum.z + dt * (th_inv * dUdt0.momentum.z + th * dUdt1.momentum.z);
 
-    // Magnetic field -- FIX-ME -- Daryl
+    // Magnetic field
     U->B.x = U_old->B.x + dt * (th_inv * dUdt0.B.x + th * dUdt1.B.x);
     U->B.y = U_old->B.y + dt * (th_inv * dUdt0.B.y + th * dUdt1.B.y);
     U->B.z = U_old->B.z + dt * (th_inv * dUdt0.B.z + th * dUdt1.B.z);
@@ -1130,7 +1164,7 @@ int FV_Cell::corrector_update(double dt)
 	U->massf[isp] = U_old->massf[isp] + dt * (th_inv * dUdt0.massf[isp] + th * dUdt1.massf[isp]);
     }
     for ( size_t imode = 0; imode < U->energies.size(); ++imode ) {
-	U->energies[imode] = U_old->energies[imode] + 
+	U->energies[imode] = U_old->energies[imode] +
 	    dt * (th_inv * dUdt0.energies[imode] + th * dUdt1.energies[imode]);
     }
     return SUCCESS;
@@ -1150,7 +1184,7 @@ int FV_Cell::rk3_update(double dt)
     U->momentum.y = U_old->momentum.y + dt * (psi_2 * dUdt1.momentum.y + gamma_3 * dUdt2.momentum.y);
     U->momentum.z = U_old->momentum.z + dt * (psi_2 * dUdt1.momentum.z + gamma_3 * dUdt2.momentum.z);
 
-    // Magnetic field -- FIX-ME -- Daryl
+    // Magnetic field
     U->B.x = U_old->B.x + dt * (psi_2 * dUdt1.B.x + gamma_3 * dUdt2.B.x);
     U->B.y = U_old->B.y + dt * (psi_2 * dUdt1.B.y + gamma_3 * dUdt2.B.y);
     U->B.z = U_old->B.z + dt * (psi_2 * dUdt1.B.z + gamma_3 * dUdt2.B.z);
@@ -1166,11 +1200,11 @@ int FV_Cell::rk3_update(double dt)
 	U->omega = U_old->omega;
     }
     for ( size_t isp = 0; isp < U->massf.size(); ++isp ) {
-	U->massf[isp] = U_old->massf[isp] + 
+	U->massf[isp] = U_old->massf[isp] +
 	    dt * (psi_2 * dUdt1.massf[isp] + gamma_3 * dUdt2.massf[isp]);
     }
     for ( size_t imode = 0; imode < U->energies.size(); ++imode ) {
-	U->energies[imode] = U_old->energies[imode] + 
+	U->energies[imode] = U_old->energies[imode] +
 	    dt * (psi_2 * dUdt1.energies[imode] + gamma_3 * dUdt2.energies[imode]);
     }
     return SUCCESS;
@@ -1179,7 +1213,7 @@ int FV_Cell::rk3_update(double dt)
 
 /// \brief Apply the chemistry update for a specified cell.
 ///
-/// Use the finite-rate chemistry module to update the 
+/// Use the finite-rate chemistry module to update the
 /// species fractions and the other thermochemical properties.
 /// \param dt   : size of the time-step
 int FV_Cell::chemical_increment(double dt)
@@ -1199,7 +1233,7 @@ int FV_Cell::chemical_increment(double dt)
     // viscous properties are up-to-date
     if ( get_viscous_flag() ) gmodel->eval_transport_coefficients(*(fs->gas));
     if ( get_diffusion_flag() ) gmodel->eval_diffusion_coefficients(*(fs->gas));
-    // ...but we have to manually update the conservation quantities 
+    // ...but we have to manually update the conservation quantities
     // for the gas-dynamics time integration.
     // Species densities: mass of species isp per unit volume.
     for ( size_t isp = 0; isp < fs->gas->massf.size(); ++isp )
@@ -1209,8 +1243,8 @@ int FV_Cell::chemical_increment(double dt)
 
 
 /// \brief Apply the thermal update for a specified cell.
-/// 
-/// Use the nonequilibrium multi-Temperature module to update the 
+///
+/// Use the nonequilibrium multi-Temperature module to update the
 /// energy values  and the other thermochemical properties.
 /// \param dt   : size of the time-step
 int FV_Cell::thermal_increment(double dt)
@@ -1218,7 +1252,7 @@ int FV_Cell::thermal_increment(double dt)
     if ( !fr_reactions_allowed ) return SUCCESS;
     Gas_model *gmodel = get_gas_model_ptr();
     Energy_exchange_update *eeupdate = get_energy_exchange_update_ptr();
-    
+
     int flag = eeupdate->update_state(*(fs->gas), dt, dt_therm, gmodel);
 
     // The update only changes modal energies, we need to impose
@@ -1230,7 +1264,7 @@ int FV_Cell::thermal_increment(double dt)
     // viscous properties are up-to-date
     if ( get_viscous_flag() ) gmodel->eval_transport_coefficients(*(fs->gas));
     if ( get_diffusion_flag() ) gmodel->eval_diffusion_coefficients(*(fs->gas));
-    // ...but we have to manually update the conservation quantities 
+    // ...but we have to manually update the conservation quantities
     // for the gas-dynamics time integration.
     // Independent energies energy: Joules per unit volume.
     gmodel->encode_conserved_energy(*(fs->gas), U->energies);
@@ -1254,7 +1288,7 @@ double FV_Cell::signal_frequency(int dimensions)
     FV_Interface *top = iface[TOP];
     // Get the local normal velocities by rotating the
     // local frame of reference.
-    // Also, compute the velocity magnitude and 
+    // Also, compute the velocity magnitude and
     // recall the minimum length.
     un_N = fabs(dot(fs->vel, north->n));
     un_E = fabs(dot(fs->vel, east->n));
@@ -1265,10 +1299,10 @@ double FV_Cell::signal_frequency(int dimensions)
 	un_T = 0.0;
 	u_mag = sqrt(fs->vel.x * fs->vel.x + fs->vel.y * fs->vel.y);
     }
-    // Check the INVISCID time step limit first, 
+    // Check the INVISCID time step limit first,
     // then add a component to ensure viscous stability.
     if ( get_stringent_cfl_flag() ) {
-	// Make the worst case. 
+	// Make the worst case.
 	signal = (u_mag + fs->gas->a) / L_min;
     } else {
 	// Standard signal speeds along each face.
@@ -1302,7 +1336,7 @@ double FV_Cell::signal_frequency(int dimensions)
 	double Prandtl = fs->gas->mu * gmodel->Cp(*(fs->gas), statusf) / k_total;
 	viscous_factor = get_viscous_factor();
 	if ( dimensions == 3 ) {
-	    signal += 4.0 * viscous_factor * (fs->gas->mu + fs->mu_t) 
+	    signal += 4.0 * viscous_factor * (fs->gas->mu + fs->mu_t)
 		* gam_eff / (Prandtl * fs->gas->rho)
 		* (1.0 / (iLength * iLength) + 1.0 / (jLength * jLength) + 1.0 / (kLength * kLength));
 	} else {
@@ -1313,7 +1347,7 @@ double FV_Cell::signal_frequency(int dimensions)
 	// A viscous time limit model incorporating diffusion effects
 	// See Ramshaw and Chang PCPP V.12 n.3 1992 p314
 	// 1. Viscosity signal frequency
-	double D_a = 4.0 * viscous_factor * (gas->mu + -0.66667 * gas->mu + 
+	double D_a = 4.0 * viscous_factor * (gas->mu + -0.66667 * gas->mu +
 	                    mu_t - 0.66667 *mu_t ) / gas->rho;
 	// 1. Conductivity signal frequency
 	double D_b = gas->k[0];
@@ -1347,7 +1381,7 @@ double FV_Cell::signal_frequency(int dimensions)
 			   	+ 1.0 / (jLength * jLength)
 				+ 1.0 / (kLength * kLength));
 	} else {
-	    signal += D_max * (  1.0 / (east->length * east->length) 
+	    signal += D_max * (  1.0 / (east->length * east->length)
 		   		+ 1.0 / (north->length * north->length));
 	}
 #       endif
@@ -1391,7 +1425,7 @@ int FV_Cell::turbulence_viscosity_limit(double factor)
     return SUCCESS;
 }
 
-// Scale the turbulent viscosity to model effects 
+// Scale the turbulent viscosity to model effects
 // such as not-fully-developed turbulence that might be expected
 // in short-duration transient flows.
 int FV_Cell::turbulence_viscosity_factor(double factor)
@@ -1405,7 +1439,7 @@ int FV_Cell::turbulence_viscosity_factor(double factor)
 ///
 /// Based on Wilcox' 2006 model.
 /// Jan-Pieter Nap, PJ, January 2007.
-/// 
+///
 /// Implementation of the 3D terms
 /// Wilson Chan, December 2008
 int FV_Cell::turbulence_viscosity_k_omega(void)
@@ -1426,21 +1460,21 @@ int FV_Cell::turbulence_viscosity_k_omega(void)
         dudy = 0.25 * (vtx[0]->dudy + vtx[1]->dudy + vtx[2]->dudy + vtx[3]->dudy);
         dvdx = 0.25 * (vtx[0]->dvdx + vtx[1]->dvdx + vtx[2]->dvdx + vtx[3]->dvdx);
         dvdy = 0.25 * (vtx[0]->dvdy + vtx[1]->dvdy + vtx[2]->dvdy + vtx[3]->dvdy);
-        if ( get_axisymmetric_flag() == 1 ) { 
+        if ( get_axisymmetric_flag() == 1 ) {
             // 2D axisymmetric
             double v_over_y = fs->vel.y / pos.y;
             S_bar_squared = dudx*dudx + dvdy*dvdy + v_over_y*v_over_y
                             - 1.0/3.0 * (dudx + dvdy + v_over_y)
-                            * (dudx + dvdy + v_over_y) 
+                            * (dudx + dvdy + v_over_y)
                             + 0.5 * (dudy + dvdx) * (dudy + dvdx) ;
-        } else {  
+        } else {
             // 2D cartesian
-            S_bar_squared = dudx*dudx + dvdy*dvdy 
+            S_bar_squared = dudx*dudx + dvdy*dvdy
                             - 1.0/3.0 * (dudx + dvdy) * (dudx + dvdy)
                             + 0.5 * (dudy + dvdx) * (dudy + dvdx);
-        } 
-    } else { 
-        // 3D cartesian 
+        }
+    } else {
+        // 3D cartesian
         double dudz, dvdz, dwdx, dwdy, dwdz;
         dudx = 0.125 * (vtx[0]->dudx + vtx[1]->dudx + vtx[2]->dudx + vtx[3]->dudx +
                         vtx[4]->dudx + vtx[5]->dudx + vtx[6]->dudx + vtx[7]->dudx);
@@ -1461,7 +1495,7 @@ int FV_Cell::turbulence_viscosity_k_omega(void)
         dwdz = 0.125 * (vtx[0]->dwdz + vtx[1]->dwdz + vtx[2]->dwdz + vtx[3]->dwdz +
                         vtx[4]->dwdz + vtx[5]->dwdz + vtx[6]->dwdz + vtx[7]->dwdz);
         // 3D cartesian
-        S_bar_squared =  dudx*dudx + dvdy*dvdy + dwdz*dwdz 
+        S_bar_squared =  dudx*dudx + dvdy*dvdy + dwdz*dwdz
                          - 1.0/3.0*(dudx + dvdy + dwdz)*(dudx + dvdy + dwdz)
                          + 0.5 * (dudy + dvdx) * (dudy + dvdx)
                          + 0.5 * (dudz + dwdx) * (dudz + dwdx)
@@ -1480,20 +1514,20 @@ int FV_Cell::turbulence_viscosity_k_omega(void)
 
 /// \brief Update the k-omega properties within the cell over a time step.
 ///
-/// This routine is for the source terms only and may used instead of 
-/// the predictor-corrector update that is applied to the rest of 
-/// the convective terms. It is hoped that it will give a more stable 
+/// This routine is for the source terms only and may used instead of
+/// the predictor-corrector update that is applied to the rest of
+/// the convective terms. It is hoped that it will give a more stable
 /// integration. Note that the spatial derivatives will not be updated.
 ///
 /// Oct 2007: Added some brute-force limiting so that the integration
 ///           doesn't go so crazy.
-/// Nov 2008: Added feature that stops update if cell is in a laminar 
+/// Nov 2008: Added feature that stops update if cell is in a laminar
 ///           region.
 /// Jan 2011: Improve existing update scheme by using an implicit update.
 ///           It should make the update "inherently stable". Have kept the
 ///           current explicit update scheme in the code, just in case the
 ///           implicit update scheme fails.
-/// 
+///
 int FV_Cell::update_k_omega_properties(double dt)
 {
     // Do not update k_omega properties if we are in laminar block
@@ -1512,10 +1546,10 @@ int FV_Cell::update_k_omega_properties(double dt)
     double tke_updated, omega_updated;
     double DrtkeDt_current, DromegaDt_current;
     double DrtkeDt_updated, DromegaDt_updated;
-    double perturbFactor = 1.01;  // Perturbation factor for perturbation 
+    double perturbFactor = 1.01;  // Perturbation factor for perturbation
                                   // analysis to get derivatives
     double tol = 1.0e-6;          // Tolerance for the Newton-solve loop
-    
+
     // Encode conserved quantities for cell.
     U->tke = fs->gas->rho * fs->tke;
     U->omega = fs->gas->rho * fs->omega;
@@ -1526,10 +1560,10 @@ int FV_Cell::update_k_omega_properties(double dt)
 
     // Work out values of Drtke_current and DromegaDt_current.
     this->k_omega_time_derivatives(&DrtkeDt_current, &DromegaDt_current, tke_current, omega_current);
-    
+
     // Implicit updating scheme.
     // A for-loop is used to limit the Newton-solve to 20 steps
-    // just in case convergence does not occur. 
+    // just in case convergence does not occur.
     for ( int i = 1; i <= 20; ++i ) {
         // Work out unperturbed values of Drtke_updated and DromegaDt_updated.
         this->k_omega_time_derivatives(&DrtkeDt_updated, &DromegaDt_updated, tke_updated, omega_updated);
@@ -1539,7 +1573,7 @@ int FV_Cell::update_k_omega_properties(double dt)
         // Perturb omega and obtain perturbed values of DrtkeDt_updated and DromegaDt_updated.
         tke = tke_updated; omega = perturbFactor * omega_updated;
         this->k_omega_time_derivatives(&DrtkeDt_perturbOmega, &DromegaDt_perturbOmega, tke, omega);
-        // Compute derivatives from perturb values. 
+        // Compute derivatives from perturb values.
         // FIX-ME : Dividing by tke and omega (instead of rtke and romega) seems to work (gives
         //          same results as explicit update scheme), but we will keep this note here for
         //          future reference..
@@ -1550,15 +1584,15 @@ int FV_Cell::update_k_omega_properties(double dt)
         // Compute components in matrix A of Ax=B problem.
         DGkDzetak = -1.0 + 0.5 * dt * DfkDk;
         DGkDzetaw = 0.5 * dt * DfkDw;
-        DGwDzetak = 0.5 * dt * DfwDk; 
+        DGwDzetak = 0.5 * dt * DfwDk;
         DGwDzetaw = -1.0 + 0.5 * dt * DfwDw;
         // Compute vector B of Ax=B problem.
-        Gk = fs->gas->rho * tke_updated - fs->gas->rho * tke_current - 
+        Gk = fs->gas->rho * tke_updated - fs->gas->rho * tke_current -
               0.5 * dt * (DrtkeDt_updated + DrtkeDt_current);
-        Gw = fs->gas->rho * omega_updated - fs->gas->rho * omega_current - 
+        Gw = fs->gas->rho * omega_updated - fs->gas->rho * omega_current -
               0.5 * dt * (DromegaDt_updated + DromegaDt_current);
         // Solve Ax=B algebraically.
-        delta_rtke = (DGkDzetaw * Gw - DGwDzetaw * Gk) / 
+        delta_rtke = (DGkDzetaw * Gw - DGwDzetaw * Gk) /
                       (DGwDzetak * DGkDzetaw - DGwDzetaw * DGkDzetak);
         delta_romega = (Gk - DGkDzetak * delta_rtke) / DGkDzetaw;
         // Assign the updated tke and omega values if delta_rtke and
@@ -1671,7 +1705,7 @@ int FV_Cell::k_omega_time_derivatives(double *Q_rtke, double *Q_romega, double t
             // Wilson Chan correction to JP Nap's version (13 Dec 2008)
             P_K = 2.0 * fs->mu_t * (dudx*dudx + dvdy*dvdy)
                   + fs->mu_t * (dudy + dvdx) * (dudy + dvdx)
-                  - 2.0/3.0 * fs->mu_t * (dudx + dvdy + v_over_y) 
+                  - 2.0/3.0 * fs->mu_t * (dudx + dvdy + v_over_y)
                   * (dudx + dvdy + v_over_y)
                   + 2.0 * fs->mu_t * (v_over_y) * (v_over_y)
                   - 2.0/3.0 * fs->gas->rho * tke * (dudx + dvdy + v_over_y);
@@ -1681,7 +1715,7 @@ int FV_Cell::k_omega_time_derivatives(double *Q_rtke, double *Q_romega, double t
             P_K = 1.3333 * fs->mu_t * (dudx*dudx - dudx*dvdy + dvdy*dvdy)
                   + fs->mu_t * (dudy + dvdx) * (dudy + dvdx)
                   - 0.66667 * fs->gas->rho * tke * (dudx + dvdy);
-            WWS = 0.0 ; 
+            WWS = 0.0 ;
         }
         cross_diff = dtkedx * domegadx + dtkedy * domegady ;
     } else {
@@ -1723,14 +1757,14 @@ int FV_Cell::k_omega_time_derivatives(double *Q_rtke, double *Q_romega, double t
               - 2.0/3.0 * fs->gas->rho * tke * (dudx + dvdy + dwdz)
               + fs->mu_t * (dudy + dvdx) * (dudy + dvdx)
               + fs->mu_t * (dudz + dwdx) * (dudz + dwdx)
-              + fs->mu_t * (dvdz + dwdy) * (dvdz + dwdy) ; 
+              + fs->mu_t * (dvdz + dwdy) * (dvdz + dwdy) ;
         cross_diff = dtkedx * domegadx + dtkedy * domegady + dtkedz * domegadz ;
-        WWS = 0.25 * (dudy - dvdx) * (dudy - dvdx) * dwdz 
+        WWS = 0.25 * (dudy - dvdx) * (dudy - dvdx) * dwdz
               + 0.25 * (dudz - dwdx) * (dudz - dwdx) * dvdy
               + 0.25 * (dvdz - dwdy) * (dvdz - dwdy) * dudx
-              + 0.25 * (dudy - dvdx) * (dvdz - dwdy) * (dwdx + dudz) 
-              + 0.25 * (dudz - dwdx) * (dwdy - dvdz) * (dudy + dvdx) 
-              + 0.25 * (dvdx - dudy) * (dudz - dwdx) * (dwdy + dvdx) ;  
+              + 0.25 * (dudy - dvdx) * (dvdz - dwdy) * (dwdx + dudz)
+              + 0.25 * (dudz - dwdx) * (dwdy - dvdz) * (dudy + dvdx)
+              + 0.25 * (dvdx - dudy) * (dudz - dwdx) * (dwdy + dvdx) ;
     }
 
     D_K = beta_star * fs->gas->rho * tke * omega;
@@ -1756,7 +1790,7 @@ int FV_Cell::k_omega_time_derivatives(double *Q_rtke, double *Q_romega, double t
 
 /// \brief Compute the components of the source vector, Q, for inviscid flow.
 ///
-/// Currently, the axisymmetric equations include the 
+/// Currently, the axisymmetric equations include the
 /// pressure contribution to the y-momentum equation
 /// here rather than in the boundary fluxes.
 int FV_Cell::inviscid_source_vector(double omegaz)
@@ -1840,7 +1874,7 @@ int FV_Cell::viscous_source_vector(void)
     Q->B.y = 0.0;
     Q->B.z = 0.0;
     Q->total_energy = 0.0;
-    
+
     for ( size_t isp = 0; isp < Q->massf.size(); ++isp ) Q->massf[isp] = 0.0;
     for ( size_t imode = 0; imode < Q->energies.size(); ++imode )
 	Q->energies[imode] = 0.0;
@@ -1865,7 +1899,7 @@ int FV_Cell::viscous_source_vector(void)
 	lmbda = -2.0/3.0 * mu;
 	tau_00 = 2.0 * mu * v_over_y + lmbda * (dudx + dvdy + v_over_y);
 	// Y-Momentum; viscous stress contribution from the front and Back interfaces.
-	// Note that these quantities are approximated at the 
+	// Note that these quantities are approximated at the
 	// mid-point of the cell face and so should never be
 	// singular -- at least I hope that this is so.
 	Q->momentum.y -= tau_00 * area / volume;
@@ -1882,14 +1916,14 @@ double FV_Cell::calculate_wall_Reynolds_number(int which_boundary)
     Gas_model * gm = get_gas_model_ptr();
     gm->eval_thermo_state_rhoT(*(IFace->fs->gas));
     a_wall = IFace->fs->gas->a;
-    if ( which_boundary==EAST || which_boundary==WEST ) 
+    if ( which_boundary==EAST || which_boundary==WEST )
 	cell_width = iLength;
-    else if ( which_boundary==NORTH || which_boundary==SOUTH ) 
+    else if ( which_boundary==NORTH || which_boundary==SOUTH )
 	cell_width = jLength;
-    else if ( which_boundary==TOP || which_boundary==BOTTOM ) 
+    else if ( which_boundary==TOP || which_boundary==BOTTOM )
 	cell_width = kLength;
     Re_wall = IFace->fs->gas->rho * a_wall * cell_width / IFace->fs->gas->mu;
-    
+
     return Re_wall;
 }
 
@@ -1968,7 +2002,7 @@ int number_of_values_in_cell_copy(int type_of_copy)
 {
     int number = 0;
     Gas_model *gmodel = get_gas_model_ptr();
-    if (type_of_copy == COPY_ALL_CELL_DATA || 
+    if (type_of_copy == COPY_ALL_CELL_DATA ||
 	type_of_copy == COPY_FLOW_STATE) {
         number += gmodel->number_of_values_in_gas_data_copy();
 	number += 8 + 4; // FlowState + cell data
@@ -1984,9 +2018,9 @@ int number_of_values_in_cell_copy(int type_of_copy)
 
 std::string variable_list_for_cell( void )
 {
-    // This function needs to be kept consistent with functions 
+    // This function needs to be kept consistent with functions
     // FV_Cell::write_values_to_string, FV_Cell::scan_values_from_string
-    // (found above) and with the corresponding Python functions 
+    // (found above) and with the corresponding Python functions
     // write_cell_data and variable_list_for_cell
     // that may be found in app/eilmer3/source/e3_flow.py.
     ostringstream ost;
@@ -2025,10 +2059,10 @@ std::string variable_list_for_cell( void )
 ///
 /// This is essentially a one-dimensional interpolation process.  It needs only
 /// the cell-average data and the lengths of the cells in the interpolation direction.
-int one_d_interp(FV_Cell &cL1, FV_Cell &cL0, 
-		 FV_Cell &cR0, FV_Cell &cR1, 
-		 double cL1Length, double cL0Length, 
-		 double cR0Length, double cR1Length, 
+int one_d_interp(FV_Cell &cL1, FV_Cell &cL0,
+		 FV_Cell &cR0, FV_Cell &cR1,
+		 double cL1Length, double cL0Length,
+		 double cR0Length, double cR1Length,
 		 FlowState &Lft, FlowState &Rght )
 {
     Gas_model *gmodel = get_gas_model_ptr();
@@ -2071,13 +2105,13 @@ int one_d_interp(FV_Cell &cL1, FV_Cell &cL0,
 				Lft.omega, Rght.omega, apply_limiter_flag, extrema_clipping_flag);
 	}
         for ( int isp = 0; isp < nsp; ++isp ) {
-	    one_d_interp_scalar(cL1.fs->gas->massf[isp], cL0.fs->gas->massf[isp], 
+	    one_d_interp_scalar(cL1.fs->gas->massf[isp], cL0.fs->gas->massf[isp],
 				cR0.fs->gas->massf[isp], cR1.fs->gas->massf[isp],
 				cL1Length, cL0Length, cR0Length, cR1Length,
-				Lft.gas->massf[isp], Rght.gas->massf[isp], 
+				Lft.gas->massf[isp], Rght.gas->massf[isp],
 				apply_limiter_flag, extrema_clipping_flag);
         }
-	
+
 	// Make the thermodynamic properties consistent.
 	// Pressure, Local Speed of Sound and Temperature.
         // The value of 1 indicates that the old temperature
@@ -2094,7 +2128,7 @@ int one_d_interp(FV_Cell &cL1, FV_Cell &cL0,
 		    cR0.fs->gas->massf[isp] = Rght.gas->massf[isp];
 	    }
 	}
-	
+
 	// Interpolate on two of the thermodynamic quantities, and fill
 	// in the rest based on an EOS call.
 
@@ -2122,7 +2156,7 @@ int one_d_interp(FV_Cell &cL1, FV_Cell &cL0,
 		exit(RECONSTRUCTION_ERROR);
 	    }
 	}
-	
+
 	if ( get_viscous_flag() ) {
 	    gmodel->eval_transport_coefficients(*(Lft.gas));
 	    gmodel->eval_transport_coefficients(*(Rght.gas));

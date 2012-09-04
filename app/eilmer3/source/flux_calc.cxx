@@ -26,6 +26,7 @@ int flux_calculator;    /* 0 == FLUX_RIEMANN */
                         /* 3 == FLUX_AUSMDV  */
                         /* 4 == FLUX_ADAPTIVE */
                         /* 5 == FLUX_AUSM_PLUS_UP */
+                        /* 6 == FLUX_HLLE */
 /* Local flow_state structures for temporarily holding interface state */
 FlowState *IFace_flow_state = NULL;
 
@@ -48,6 +49,8 @@ int set_flux_calculator(int iflux)
         if ( get_verbose_flag() )  printf("Fluxes calculated via ADAPTIVE\n");
     else if (flux_calculator == FLUX_AUSM_PLUS_UP)
         if ( get_verbose_flag() ) printf("Fluxes calculated via AUSM_PLUS_UP\n");
+    else if (flux_calculator == FLUX_HLLE)
+        if ( get_verbose_flag() ) printf("Fluxes calculated via HLLE\n");
     else {
         printf("Invalid flux calculator: %d. Riemann solver assumed\n",
 	       flux_calculator);
@@ -90,6 +93,12 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
 
     Lft.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
     Rght.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+
+    // also transform the magnetic field
+    if (get_mhd_flag() == 1) {
+        Lft.B.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+        Rght.B.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+    }
 
     /*
      * Compute the fluxes in the local frame of the interface.
@@ -138,6 +147,8 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
         adaptive_flux(Lft, Rght, IFace);
     } else if (get_flux_calculator() == FLUX_AUSM_PLUS_UP) {
         ausm_plus_up(Lft, Rght, IFace);
+    } else if (get_flux_calculator() == FLUX_HLLE) {
+        hlle(Lft, Rght, IFace);
     } else {
         printf("Invalid flux calculator.\n");
         exit(VALUE_ERROR);
@@ -148,7 +159,7 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
 	double x = IFace.pos.x;
 	double y = IFace.pos.y;
 	double rsq = x*x + y*y;
-	// The conserved quantity is rothalpy, 
+	// The conserved quantity is rothalpy,
 	// so we need to take -(u**2)/2 off the total energy flux.
 	// Note that rotating frame velocity u = omegaz * r.
 	F.total_energy -= F.mass * 0.5*omegaz*omegaz*rsq;
@@ -160,11 +171,19 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
 #   endif
 
     // Rotate momentum fluxes back to the global frame of reference.
-    F.momentum.transform_to_global(IFace.n, IFace.t1, IFace.t2);   
-
+    F.momentum.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	
+	// also transform the magnetic field
+    if (get_mhd_flag() == 1) {
+      F.B.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+    }
+	
 #   if DEBUG_FLUX >= 1
     printf("Interface fluxes\n");
     printf("xyz_mom.x=%e, \nxyz_mom.y=%e, xyz_mom.z=%e\n", F.momentum.x, F.momentum.y, F.momentum.z);
+    if (get_mhd_flag() == 1) {
+      printf("xyz_B.x=%e, \nxyz_B.y=%e, xyz_B.z=%e\n", F.B.x, F.B.y, F.B.z);
+    }
 #   endif
 
     return SUCCESS;
