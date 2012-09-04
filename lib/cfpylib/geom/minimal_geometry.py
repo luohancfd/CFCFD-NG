@@ -3,6 +3,7 @@ minimal_geometry.py: A bare minimum geometry library to do
                      some of the work required by Rowan's laura2vtk.py
 """
 
+from math import sqrt
 VERY_SMALL_MAGNITUDE = 1.0e-200
 
 class Vector(object):
@@ -82,7 +83,8 @@ def cross(a, b):
 
 def quad_properties(p0, p1, p2, p3):
     "Quadrilateral defining unit vectors, area and centroid."
-    vector_area = 0.5 * (cross(p0-p3, p2-p3) + cross(p1-p0, p2-p1))
+    vector_area = 0.25 * (cross(p0-p3, p2-p3) + cross(p1-p0, p2-p1) +
+                          cross(p3-p2, p1-p2) + cross(p3-p0, p1-p0))
     n = vector_area.unit()
     area = abs(vector_area)
     t1 = (p1 - p0).unit()
