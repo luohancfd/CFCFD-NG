@@ -271,15 +271,31 @@ int quad_properties( const Vector3 &p0, const Vector3 &p1,
 		     double &area )
 {
     // Compute areas via the cross products.
-    Vector3 vector_area = 0.5 * (cross(p0-p3, p2-p3) + cross(p1-p0, p2-p1));
+    Vector3 vector_area = 0.25 * (cross(p0-p3, p2-p3) + cross(p1-p0, p2-p1) +
+				  cross(p3-p2, p1-p2) + cross(p3-p0, p1-p0));
     // unit-normal and area
-    n = unit(vector_area);
     area = vabs(vector_area);
-    // Tangent unit-vectors: 
-    // t1 is parallel to s01, 
-    // t2 is normal to n and t1
-    t1 = unit(p1-p0);
-    t2 = cross(n, t1);
+    if ( area > 1.0e-20 ) {
+	n = unit(vector_area);
+	// Tangent unit-vectors: 
+	// t1 is parallel to s01, 
+	// t2 is normal to n and t1
+	t1 = unit(p1-p0);
+	t2 = cross(n, t1);
+    } else {
+	area = 0.0;
+	n = Vector3(1.0,0.0,0.0);
+	t1 = Vector3(0.0,1.0,0.0);
+	t2 = Vector3(0.0,0.0,1.0);
+    }
+    double my_tol = 1.0e-10;
+    if ( fabs(n.x*n.x + n.y*n.y + n.z*n.z - 1.0) < my_tol ||
+	 fabs(t1.x*t1.x + t1.y*t1.y + t1.z*t1.z - 1.0) < my_tol ||
+	 fabs(t2.x*t2.x + t2.y*t2.y + t2.z*t2.z - 1.0) < my_tol ) {
+	cout << "quad_properties() failed to produce unit vectors properly" << endl;
+	cout << "   p0=" << p0 << " p1=" << p1 << " p2=" << p2 << " p3=" << p3 << endl;
+	cout << "   n=" << n << " t1=" << t1 << " t2=" << t2 << " area=" << area << endl;
+    }
     // Centroid: average mid-points of the diagonals.
     centroid = 0.25 * (p0 + p1 + p2 + p3);
     return 0; 
