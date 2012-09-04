@@ -243,5 +243,7 @@ double set_compression_tolerance( double value );
 double get_compression_tolerance( void );
 double set_shear_tolerance( double value );
 double get_shear_tolerance( void );
+int set_mhd_flag(int imf);
+int get_mhd_flag(void);
 
 #endif

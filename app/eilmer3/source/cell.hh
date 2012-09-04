@@ -71,6 +71,7 @@ class FlowState {
 public:
     Gas_data *gas;       ///< \brief gas thermo state
     Vector3 vel;         ///< \brief velocity vector, m/s
+    Vector3 B;           ///< \brief magnetic field, Tesla 
     int S;               ///< \brief flag to indicate shock-point
     double tke;          ///< \brief turbulence kinetic energy per unit mass
     double omega;        ///< \brief turbulence frequency or pseudo vorticity
@@ -92,6 +93,7 @@ class ConservedQuantities {
 public:
     double mass;                  ///< \brief density, kg/m**3
     Vector3 momentum;             ///< \brief momentum/unit volume
+    Vector3 B;                    ///< \brief magnetic field, Tesla
     double total_energy;          ///< \brief total energy/unit volume
     std::vector<double> massf;    ///< \brief mass of species/unit volume
     std::vector<double> energies; ///< \brief vib. energy / unit-volume

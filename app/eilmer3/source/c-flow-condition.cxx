@@ -25,8 +25,9 @@ CFlowCondition::CFlowCondition( Gas_model *gmodel,
 				const std::string label,
 				double tke, double omega,
 				double mu_t, double k_t,
-				int S )
-    : u(u), v(v), w(w), label(label),
+				int S,
+				double Bx, double By, double Bz )
+    : u(u), v(v), w(w), Bx(Bx), By(By), Bz(Bz), label(label),
       tke(tke), omega(omega), mu_t(mu_t), k_t(k_t), S(S)
 {
     gas = new Gas_data(gmodel);
@@ -54,7 +55,7 @@ CFlowCondition::CFlowCondition( Gas_model *gmodel,
 }
 
 CFlowCondition::CFlowCondition( const CFlowCondition &cfc ) 
-    : u(cfc.u), v(cfc.v), w(cfc.w),
+    : u(cfc.u), v(cfc.v), w(cfc.w), Bx(cfc.Bx), By(cfc.By), Bz(cfc.Bz),
       label(cfc.label), tke(cfc.tke), omega(cfc.omega),
       mu_t(cfc.mu_t), k_t(cfc.k_t), S(cfc.S)
 {
@@ -93,6 +94,7 @@ string CFlowCondition::str() const
     ost << ", mu_t=" << mu_t << ", k_t=" << k_t
 	<< ", tke=" << tke << ", omega=" << omega;
     ost << ", S=" << S;
+    ost << ", Bx=" << Bx << ", By=" << By << ", Bz=" << Bz;
     ost << " )";
     return ost.str();
 }
@@ -120,6 +122,9 @@ string CFlowCondition::write_to_ini_str( int indx ) const
     ost << "u = " << u << endl;
     ost << "v = " << v << endl;
     ost << "w = " << w << endl;
+    ost << "Bx = " << Bx << endl;
+    ost << "By = " << By << endl;
+    ost << "Bz = " << Bz << endl;
     ost << "tke = " << tke << endl;
     ost << "omega = " << omega << endl;
     ost << "mu_t = " << mu_t << endl;

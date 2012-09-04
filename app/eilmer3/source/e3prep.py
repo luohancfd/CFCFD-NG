@@ -321,7 +321,7 @@ class GlobalData(object):
                 'axisymmetric_flag', \
                 'radiation_input_file', 'radiation_update_frequency', 'radiation_flag', \
                 'implicit_flag', 'control_count', \
-                'radiation_update_frequency', \
+                'radiation_update_frequency', 'mhd_flag', \
                 'viscous_flag', 'viscous_delay', 'viscous_factor_increment', \
                 'max_mu_t_factor', 'transient_mu_t_factor', \
                 'diffusion_flag', 'diffusion_model', \
@@ -365,6 +365,7 @@ class GlobalData(object):
         self.axisymmetric_flag = 0
         self.implicit_flag = 0
         self.radiation_update_frequency = 1
+        self.mhd_flag = 0
         self.viscous_flag = 0
         self.viscous_delay = 0.0
         self.viscous_factor_increment = 0.01
@@ -457,6 +458,7 @@ class GlobalData(object):
         fp.write("radiation_input_file = %s\n" % self.radiation_input_file)
         fp.write("radiation_update_frequency = %s\n" % self.radiation_update_frequency)
         fp.write("radiation_flag = %d\n" % self.radiation_flag)
+        fp.write("mhd_flag = %d\n" % self.mhd_flag)
         fp.write("viscous_flag = %d\n" % self.viscous_flag)
         fp.write("viscous_delay = %e\n"% self.viscous_delay)
         fp.write("viscous_factor_increment = %e\n"% self.viscous_factor_increment)

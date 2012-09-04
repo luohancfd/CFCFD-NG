@@ -19,6 +19,7 @@ class CFlowCondition {
 public:
     Gas_data *gas;
     double u, v, w;
+    double Bx, By, Bz;
     std::string label;
     double tke, omega;
     double mu_t, k_t;
@@ -33,7 +34,8 @@ public:
 		    const std::string label="",
 		    double tke=0.0, double omega=1.0,
 		    double mu_t=0.0, double k_t=0.0,
-		    int S=0 );
+		    int S=0,
+		    double Bx=0.0, double By=0.0, double Bz=0.0 );
     CFlowCondition( const CFlowCondition &cfc );
     ~CFlowCondition();
     /// \brief Returns a string representation of the CFlowCondition.

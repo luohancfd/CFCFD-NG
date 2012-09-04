@@ -55,7 +55,8 @@ class FlowCondition(object):
 
     __slots__ = 'gmodel', 'flow', 'indx'
     
-    def __init__(self, p = 100.0e3, u = 0.0, v = 0.0, w = 0.0, T = [300.0,],
+    def __init__(self, p = 100.0e3, u = 0.0, v = 0.0, w = 0.0,
+                 Bx=0.0, By=0.0, Bz=0.0, T = [300.0,],
                  massf = None, label="", tke = 0.0, omega = 1.0,
 		 mu_t = 0.0, k_t = 0.0, S = 0, add_to_list=1):
         """
@@ -65,6 +66,9 @@ class FlowCondition(object):
         :param u: x-component of velocity, m/s
         :param v: y-component of velocity, m/s
         :param w: z-component of velocity, m/s
+        :param Bx: x-component of magnetic field, Tesla
+        :param By: y-component of magnetic field, Tesla
+        :param Bz: z-component of magnetic field, Tesla
         :param T: list of temperatures (T[0] is static temperature), degrees K
             The length of the list of temperatures must match the number
             of individual energies in the gas model.
@@ -132,7 +136,7 @@ class FlowCondition(object):
             print "   type(T)=", type(T)
             raise ValueError, "Bad value supplied for T"
         self.flow = CFlowCondition(self.gmodel, p, u, v, w, Tlist, massf, label, 
-				   tke, omega, mu_t, k_t, S)
+				   tke, omega, mu_t, k_t, S, Bx, By, Bz)
         if add_to_list:
             # Indexed FlowCondition objects are later written 
             # to the job.config file.
@@ -162,6 +166,9 @@ class FlowCondition(object):
                                 u = self.flow.u,
                                 v = self.flow.v,
                                 w = self.flow.w,
+                                Bx = self.flow.Bx,
+                                By = self.flow.By,
+                                Bz = self.flow.Bz,
                                 T = Tlist,
                                 massf = massf,
                                 label= self.flow.label,
@@ -178,8 +185,9 @@ class FlowCondition(object):
         Produce a string representation that can be used by str() and print.
         """
         str = "FlowCondition("
-        str += "p=%g, u=%g, v=%g, w=%g" % (self.flow.gas.p, self.flow.u, 
-                                           self.flow.v, self.flow.w)
+        str += "p=%g" % (self.flow.gas.p,)
+        str += ", u=%g, v=%g, w=%g" % (self.flow.u, self.flow.v, self.flow.w)
+        str += ", Bx=%g, By=%g, Bz=%g" % (self.flow.Bx, self.flow.By, self.flow.Bz)
         nsp = self.gmodel.get_number_of_species()
         str += ", massf=["
         for isp in range(nsp): str += "%g," % self.flow.gas.massf[isp]
@@ -212,6 +220,7 @@ class FlowCondition(object):
         nsp = self.gmodel.get_number_of_species()
         nmodes = self.gmodel.get_number_of_modes()
         flow_props = {'vel.x':self.flow.u, 'vel.y':self.flow.v, 'vel.z':self.flow.w,
+                      'B.x':self.flow.Bx, 'B.y':self.flow.By, 'B.z':self.flow.Bz,
                       'tke':self.flow.tke, 'omega':self.flow.omega,
                       'mu_t':self.flow.mu_t, 'k_t':self.flow.k_t, 'S':self.flow.S}
         flow_props['rho'] = self.flow.gas.rho 
@@ -245,8 +254,10 @@ def variable_list_for_cell(gdata):
     gmodel = get_gas_model_ptr()
     nsp = gmodel.get_number_of_species();
     nmodes = gmodel.get_number_of_modes();
-    var_names = ["pos.x", "pos.y", "pos.z", "volume", "rho", "vel.x", "vel.y", "vel.z",
-                 "p", "a", "mu", "k[0]", "mu_t", "k_t", "S"]
+    var_names = ["pos.x", "pos.y", "pos.z", "volume", "rho", "vel.x", "vel.y", "vel.z",]
+    if gdata.mhd_flag == 1:
+        var_names += ["B.x", "B.y", "B.z"]
+    var_names += ["p", "a", "mu", "k[0]", "mu_t", "k_t", "S"]
     if gdata.radiation_flag == 1: 
         var_names += ["Q_rad_org", "f_rad_org", "Q_rE_rad"]
     # Always write k-omega properties, as of 24-Sep-2008.
@@ -287,6 +298,8 @@ def write_cell_data(fp, data, gdata):
              (data['pos.x'], data['pos.y'], data['pos.z'], data['volume']))
     fp.write(" %20.12e %20.12e %20.12e %20.12e" %
              (data['rho'], data['vel.x'], data['vel.y'], data['vel.z']))
+    if gdata.mhd_flag == 1:
+        fp.write(" %20.12e %20.12e %20.12e" % (data['B.x'], data['B.y'], data['B.y']))
     fp.write(" %20.12e %20.12e %20.12e %20.12e %20.12e %20.12e %1d" %
              (data['p'], data['a'], data['mu'], data['k[0]'], 
               data['mu_t'], data['k_t'], data['S']))
@@ -875,6 +888,15 @@ def write_VTK_XML_unstructured_file(fp, grid, flow):
                                               uflowz(flow.data['c.y'][i,j,k]), 
                                               uflowz(flow.data['c.z'][i,j,k])) )
         fp.write(" </DataArray>\n")
+    if 'B.x' in flow.vars:
+        fp.write(" <DataArray Name=\"B.vector\" type=\"Float32\" NumberOfComponents=\"3\">\n")
+        for k in range(nkc):
+            for j in range(njc):
+                for i in range(nic):
+                    fp.write(" %e %e %e\n" % (uflowz(flow.data['B.x'][i,j,k]), 
+                                              uflowz(flow.data['B.y'][i,j,k]), 
+                                              uflowz(flow.data['B.z'][i,j,k])) )
+        fp.write(" </DataArray>\n")
     fp.write("</CellData>\n")
     fp.write("</Piece>\n")
     fp.write("</UnstructuredGrid>\n")
@@ -921,6 +943,8 @@ def write_VTK_XML_files(rootName, tindx, nblock, grid, flow):
     pvtuFile.write(" <PDataArray Name=\"vel.vector\" type=\"Float32\" NumberOfComponents=\"3\"/>\n")
     if 'c.x' in flow[0].vars:
         pvtuFile.write(" <PDataArray Name=\"c.vector\" type=\"Float32\" NumberOfComponents=\"3\"/>\n")
+    if 'B.x' in flow[0].vars:
+        pvtuFile.write(" <PDataArray Name=\"B.vector\" type=\"Float32\" NumberOfComponents=\"3\"/>\n")
     pvtuFile.write("</PCellData>\n")
     for jb in range(nblock):
         fileName = rootName+(".b%04d.t%04d" % (jb, tindx))+".vtu"

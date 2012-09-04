@@ -286,8 +286,10 @@ double compression_tolerance = -0.30;
 /// We don't want EFM to be applied in situations of significant shear.
 /// The shear value is computed as the tangential-velocity difference across an interface
 /// normalised by the local sound speed.
-
 double shear_tolerance = 0.20;
+
+/// \brief For Daryl Bond and Vince Wheatley's MHD additions.
+int mhd_flag = 0;
 
 /*------------------------------------------------------------------*/
 
@@ -788,4 +790,18 @@ double set_shear_tolerance( double value )
 double get_shear_tolerance( void )
 {
     return shear_tolerance;
+}
+
+//-----------------------------------------------------------------------------
+
+int set_mhd_flag(int i)
+{
+    mhd_flag = i;
+    if ( get_verbose_flag() ) printf("set mhd_flag=%d\n", mhd_flag);
+    return mhd_flag;
+}
+
+int get_mhd_flag(void)
+{
+    return mhd_flag;
 }

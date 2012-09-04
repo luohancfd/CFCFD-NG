@@ -180,6 +180,9 @@ int read_config_parameters(const string filename, int master)
 	cout << "energy_exchange_update = " << s_value << endl;
     }
 
+    dict.parse_int("global_data", "mhd_flag", i_value, 0);
+    set_mhd_flag( i_value );
+
     dict.parse_int("global_data", "radiation_flag", i_value, 0);
     set_radiation_flag( i_value );
     dict.parse_string("global_data", "radiation_input_file", s_value, "no_file");

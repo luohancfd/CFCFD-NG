@@ -859,7 +859,8 @@ create a \texttt{FlowCondition} object\footnote{The \texttt{FlowCondition} class
   defined in source file \texttt{e3\_flow.py}} as:
 \texttt{
 \begin{tabbing}
-my\_flow = FlowCondition(\=p=1.0e5, u=0.0, v=0.0, w=0.0, T=[300.0,], \\
+my\_flow = FlowCondition(\=p=1.0e5, u=0.0, v=0.0, w=0.0, \\
+                         \>Bx=0.0, By=0.0, Bz=0.0, T=[300.0,], \\
                          \>massf=None, label="", tke=0.0, omega=1.0, \\
 %                         \>sigma\_T=0.0, sigma\_c=0.0, 
                          \>S=0, add\_to\_list=1)
@@ -872,6 +873,9 @@ my\_flow = FlowCondition(\=p=1.0e5, u=0.0, v=0.0, w=0.0, T=[300.0,], \\
   \item \texttt{u}: $x$-coordinate velocity in m/s, default value 0.0.
   \item \texttt{v}: $y$-coordinate velocity in m/s, default value 0.0.
   \item \texttt{w}: $z$-coordinate velocity in m/s, default value 0.0.
+  \item \texttt{Bx}: $x$-coordinate magnetic field in Tesla, default value 0.0.
+  \item \texttt{By}: $y$-coordinate magnetic field in Tesla, default value 0.0.
+  \item \texttt{Bz}: $z$-coordinate magnetic field in Tesla, default value 0.0.
   \item \texttt{T}: list of temperatures in degrees K, default value [300.0,].
     For gas models with multimodal energies, these are the corresponding temperatures.
     For a gas model with only one internal energy mode, you may specify a scalar value
@@ -1945,6 +1949,7 @@ are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config 
   through the HeatZones, default value 0.0, in seconds.
 \item \texttt{heat\_factor\_increment}: the fraction of full heat load that will be
   added with each step after $t$=heat\_time\_start, default value 0.01.
+\item \texttt{mhd\_flag}: 1=make MHD physics active. default value 0.
 \end{itemize}
 
 
