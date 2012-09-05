@@ -18,6 +18,7 @@
 #include <string>
 #include <sstream>
 #include <math.h>
+#include "../../util/source/useful.h"
 #include "geom.hh"
 using namespace std;
 
@@ -274,7 +275,7 @@ int quad_properties( const Vector3 &p0, const Vector3 &p1,
     centroid = 0.25 * (p0 + p1 + p2 + p3);
     // Compute areas via the cross products.
     Vector3 vector_area = 0.25 * (cross(p0-p3, p2-p3) + cross(p1-p0, p2-p1) +
-				  cross(p3-p2, p1-p2) + cross(p3-p0, p1-p0));
+				  cross(p3-p2, p1-p2) + cross(p1-p0, p3-p0));
     // unit-normal and area
     area = vabs(vector_area);
     if ( area > 1.0e-20 ) {
