@@ -270,6 +270,8 @@ int quad_properties( const Vector3 &p0, const Vector3 &p1,
 		     Vector3 &n, Vector3 &t1, Vector3 &t2,
 		     double &area )
 {
+    // Centroid: average mid-points of the diagonals.
+    centroid = 0.25 * (p0 + p1 + p2 + p3);
     // Compute areas via the cross products.
     Vector3 vector_area = 0.25 * (cross(p0-p3, p2-p3) + cross(p1-p0, p2-p1) +
 				  cross(p3-p2, p1-p2) + cross(p3-p0, p1-p0));
@@ -278,27 +280,31 @@ int quad_properties( const Vector3 &p0, const Vector3 &p1,
     if ( area > 1.0e-20 ) {
 	n = unit(vector_area);
 	// Tangent unit-vectors: 
-	// t1 is parallel to s01, 
+	// t1 is parallel to s01 and s32, 
 	// t2 is normal to n and t1
-	t1 = unit(p1-p0);
-	t2 = cross(n, t1);
+	t1 = unit((p1-p0)+(p2-p3)); // Works even if one edge has zero length.
+	t2 = unit(cross(n, t1)); // Calling unit() to tighten up the magnitude.
     } else {
+	cout << "quad_properties() zero area at " << centroid << endl;
 	area = 0.0;
 	n = Vector3(1.0,0.0,0.0);
 	t1 = Vector3(0.0,1.0,0.0);
 	t2 = Vector3(0.0,0.0,1.0);
     }
-    double my_tol = 1.0e-10;
-    if ( fabs(n.x*n.x + n.y*n.y + n.z*n.z - 1.0) < my_tol ||
-	 fabs(t1.x*t1.x + t1.y*t1.y + t1.z*t1.z - 1.0) < my_tol ||
-	 fabs(t2.x*t2.x + t2.y*t2.y + t2.z*t2.z - 1.0) < my_tol ) {
+    double my_tol = 1.0e-12;
+    double error_n = fabs(vabs(n) - 1.0);
+    double error_t1 = fabs(vabs(t1) - 1.0);
+    double error_t2 = fabs(vabs(t2) - 1.0);
+    if ( error_n > my_tol || error_t1 > my_tol || error_t2 > my_tol ) {
 	cout << "quad_properties() failed to produce unit vectors properly" << endl;
+	cout << setprecision(12);
 	cout << "   p0=" << p0 << " p1=" << p1 << " p2=" << p2 << " p3=" << p3 << endl;
 	cout << "   n=" << n << " t1=" << t1 << " t2=" << t2 << " area=" << area << endl;
+	cout << "   error_n=" << error_n << " error_t1=" << error_t1 
+	     << " error_t2=" << error_t2 << endl;
+	return FAILURE;
     }
-    // Centroid: average mid-points of the diagonals.
-    centroid = 0.25 * (p0 + p1 + p2 + p3);
-    return 0; 
+    return SUCCESS; 
 } /* end quad_properties() */
 
 Vector3 quad_centroid( const Vector3 &p0, const Vector3 &p1, 

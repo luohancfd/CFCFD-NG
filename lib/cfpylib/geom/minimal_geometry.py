@@ -87,8 +87,8 @@ def quad_properties(p0, p1, p2, p3):
                           cross(p3-p2, p1-p2) + cross(p3-p0, p1-p0))
     n = vector_area.unit()
     area = abs(vector_area)
-    t1 = (p1 - p0).unit()
-    t2 = cross(n, t1)
+    t1 = ((p1-p0)+(p2-p3)).unit() # Works even if one edge has zero length.
+    t2 = cross(n, t1).unit() # Using unit() to tighten up on magnitude.
     centroid = 0.25 * (p0 + p1 + p2 + p3)
     return centroid, n, t1, t2, area
 
