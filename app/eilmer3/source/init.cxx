@@ -630,7 +630,7 @@ int assign_blocks_to_mpi_rank(const string filename, int master)
  */
 CFlowCondition *read_flow_condition_from_ini_dict(ConfigParser &dict, int indx, int master)
 {
-    double p, u, v, w, mu_t, k_t, tke, omega, sigma_T, sigma_c;
+    double p, u, v, w, Bx, By, Bz, mu_t, k_t, tke, omega, sigma_T, sigma_c;
     string value_string, flow_label;
     std::vector<double> massf, T, vnf;
     CFlowCondition *cfcp;
@@ -642,6 +642,9 @@ CFlowCondition *read_flow_condition_from_ini_dict(ConfigParser &dict, int indx, 
     dict.parse_double(section, "u", u, 0.0);
     dict.parse_double(section, "v", v, 0.0);
     dict.parse_double(section, "w", w, 0.0);
+    dict.parse_double(section, "Bx", Bx, 0.0);
+    dict.parse_double(section, "By", By, 0.0);
+    dict.parse_double(section, "Bz", Bz, 0.0);
     dict.parse_double(section, "mu_t", mu_t, 0.0);
     dict.parse_double(section, "k_t", k_t, 0.0);
     dict.parse_double(section, "tke", tke, 0.0);
@@ -658,7 +661,7 @@ CFlowCondition *read_flow_condition_from_ini_dict(ConfigParser &dict, int indx, 
     dict.parse_vector_of_doubles(section, "T", T, vnf);
     int S = 0;  // shock indicator
     cfcp = new CFlowCondition( gmodel, p, u, v, w, T, massf, flow_label, 
-			       tke, omega, mu_t, k_t, S);
+			       tke, omega, mu_t, k_t, S, Bx, By, Bz);
     vnf.resize(0);
     massf.resize(0);
     T.resize(0);

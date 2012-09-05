@@ -96,7 +96,7 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
 
     // also transform the magnetic field
     if (get_mhd_flag() == 1) {
-        Lft.B.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+	Lft.B.transform_to_local(IFace.n, IFace.t1, IFace.t2);
         Rght.B.transform_to_local(IFace.n, IFace.t1, IFace.t2);
     }
 
@@ -173,7 +173,7 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
     // Rotate momentum fluxes back to the global frame of reference.
     F.momentum.transform_to_global(IFace.n, IFace.t1, IFace.t2);
 	
-	// also transform the magnetic field
+    // also transform the magnetic field
     if (get_mhd_flag() == 1) {
       F.B.transform_to_global(IFace.n, IFace.t1, IFace.t2);
     }

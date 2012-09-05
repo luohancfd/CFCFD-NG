@@ -299,7 +299,7 @@ def write_cell_data(fp, data, gdata):
     fp.write(" %20.12e %20.12e %20.12e %20.12e" %
              (data['rho'], data['vel.x'], data['vel.y'], data['vel.z']))
     if gdata.mhd_flag == 1:
-        fp.write(" %20.12e %20.12e %20.12e" % (data['B.x'], data['B.y'], data['B.y']))
+        fp.write(" %20.12e %20.12e %20.12e" % (data['B.x'], data['B.y'], data['B.z']))
     fp.write(" %20.12e %20.12e %20.12e %20.12e %20.12e %20.12e %1d" %
              (data['p'], data['a'], data['mu'], data['k[0]'], 
               data['mu_t'], data['k_t'], data['S']))

@@ -610,8 +610,8 @@ int FV_Cell::replace_flow_data_with_average(FV_Cell *src[], int ncell)
 	fs->vel.z /= ((double)ncell);
 	if ( get_mhd_flag() == 1 ) {
 	    fs->B.x /= ((double)ncell);
-        fs->B.y /= ((double)ncell);
-        fs->B.z /= ((double)ncell);
+	    fs->B.y /= ((double)ncell);
+	    fs->B.z /= ((double)ncell);
 	}
 	fs->mu_t /= ((double)ncell);
 	fs->k_t /= ((double)ncell);
@@ -978,36 +978,46 @@ int FV_Cell::time_derivatives(int time_level, int dimensions)
     if ( dimensions == 3 )
 	integral += IFb->F->momentum.y * IFb->area - IFt->F->momentum.y * IFt->area;
     dUdt[time_level]->momentum.y = vol_inv * integral + Q->momentum.y;
-    if ( dimensions == 3 ) {
+    
+    // we require the z-momentum for MHD even in 2D
+    if ((dimensions == 3) || (get_mhd_flag() == 1)) {
 	// Time-derivative for Z-Momentum/unit volume.
 	integral = -IFe->F->momentum.z * IFe->area - IFn->F->momentum.z * IFn->area
-	    + IFw->F->momentum.z * IFw->area + IFs->F->momentum.z * IFs->area
-	    + IFb->F->momentum.z * IFb->area - IFt->F->momentum.z * IFt->area;
+	    + IFw->F->momentum.z * IFw->area + IFs->F->momentum.z * IFs->area;
+    }
+    if ( dimensions == 3) {
+	integral += IFb->F->momentum.z * IFb->area - IFt->F->momentum.z * IFt->area;
+    }
+    if ((dimensions == 3) || (get_mhd_flag() == 1)) {
 	dUdt[time_level]->momentum.z = vol_inv * integral + Q->momentum.z;
     } else {
 	dUdt[time_level]->momentum.z = 0.0;
     }
 
-    // Magnetic field
-    // Time-derivative for X-Magnetic Field/unit volume.
-    integral = -IFe->F->B.x * IFe->area - IFn->F->B.x * IFn->area
-	+ IFw->F->B.x * IFw->area + IFs->F->B.x * IFs->area;
-    if ( dimensions == 3 )
-	integral += IFb->F->B.x * IFb->area - IFt->F->B.x * IFt->area;
-    dUdt[time_level]->B.x = vol_inv * integral + Q->B.x;
-    // Time-derivative for Y-Magnetic Field/unit volume.
-    integral = -IFe->F->B.y * IFe->area - IFn->F->B.y * IFn->area
-	+ IFw->F->B.y * IFw->area + IFs->F->B.y * IFs->area;
-    if ( dimensions == 3 )
-	integral += IFb->F->B.y * IFb->area - IFt->F->B.y * IFt->area;
-    dUdt[time_level]->B.y = vol_inv * integral + Q->B.y;
-    // Time-derivative for Z-Magnetic Field/unit volume.
-    if ( dimensions == 3 ) {
+    if (get_mhd_flag() == 1) {
+	// Time-derivative for X-Magnetic Field/unit volume.
+	integral = -IFe->F->B.x * IFe->area - IFn->F->B.x * IFn->area
+	    + IFw->F->B.x * IFw->area + IFs->F->B.x * IFs->area;
+	if ( dimensions == 3 )
+	    integral += IFb->F->B.x * IFb->area - IFt->F->B.x * IFt->area;
+	dUdt[time_level]->B.x = vol_inv * integral + Q->B.x;
+	// Time-derivative for Y-Magnetic Field/unit volume.
+	integral = -IFe->F->B.y * IFe->area - IFn->F->B.y * IFn->area
+	    + IFw->F->B.y * IFw->area + IFs->F->B.y * IFs->area;
+	if ( dimensions == 3 )
+	    integral += IFb->F->B.y * IFb->area - IFt->F->B.y * IFt->area;
+	dUdt[time_level]->B.y = vol_inv * integral + Q->B.y;
+	// Time-derivative for Z-Magnetic Field/unit volume.
 	integral = -IFe->F->B.z * IFe->area - IFn->F->B.z * IFn->area
-	    + IFw->F->B.z * IFw->area + IFs->F->B.z * IFs->area
-	    + IFb->F->B.z * IFb->area - IFt->F->B.z * IFt->area;
+	    + IFw->F->B.z * IFw->area + IFs->F->B.z * IFs->area;
+	if ( dimensions == 3 ) {
+	    integral += IFb->F->B.z * IFb->area - IFt->F->B.z * IFt->area;
+	}
 	dUdt[time_level]->B.z = vol_inv * integral + Q->B.z;
-    } else {
+    }
+    else {
+	dUdt[time_level]->B.x = 0.0;
+	dUdt[time_level]->B.y = 0.0;
 	dUdt[time_level]->B.z = 0.0;
     }
 
@@ -1084,9 +1094,11 @@ int FV_Cell::predictor_update(double dt)
     U->momentum.z = U_old->momentum.z + dt * gamma_1 * dUdt0.momentum.z;
 
     // Magnetic field
-    U->B.x = U_old->B.x + dt * gamma_1 * dUdt0.B.x;
-    U->B.y = U_old->B.y + dt * gamma_1 * dUdt0.B.y;
-    U->B.z = U_old->B.z + dt * gamma_1 * dUdt0.B.z;
+    if (get_mhd_flag() == 1) {
+	U->B.x = U_old->B.x + dt * gamma_1 * dUdt0.B.x;
+	U->B.y = U_old->B.y + dt * gamma_1 * dUdt0.B.y;
+	U->B.z = U_old->B.z + dt * gamma_1 * dUdt0.B.z;
+    }
 
     U->total_energy = U_old->total_energy + dt * gamma_1 * dUdt0.total_energy;
     if ( get_k_omega_flag() ) {
@@ -1146,9 +1158,11 @@ int FV_Cell::corrector_update(double dt)
     U->momentum.z = U_old->momentum.z + dt * (th_inv * dUdt0.momentum.z + th * dUdt1.momentum.z);
 
     // Magnetic field
-    U->B.x = U_old->B.x + dt * (th_inv * dUdt0.B.x + th * dUdt1.B.x);
-    U->B.y = U_old->B.y + dt * (th_inv * dUdt0.B.y + th * dUdt1.B.y);
-    U->B.z = U_old->B.z + dt * (th_inv * dUdt0.B.z + th * dUdt1.B.z);
+    if (get_mhd_flag() == 1) {
+	U->B.x = U_old->B.x + dt * (th_inv * dUdt0.B.x + th * dUdt1.B.x);
+	U->B.y = U_old->B.y + dt * (th_inv * dUdt0.B.y + th * dUdt1.B.y);
+	U->B.z = U_old->B.z + dt * (th_inv * dUdt0.B.z + th * dUdt1.B.z);
+    }
 
     U->total_energy = U_old->total_energy + dt * (th_inv * dUdt0.total_energy + th * dUdt1.total_energy);
     if ( get_k_omega_flag() ) {
@@ -1185,9 +1199,11 @@ int FV_Cell::rk3_update(double dt)
     U->momentum.z = U_old->momentum.z + dt * (psi_2 * dUdt1.momentum.z + gamma_3 * dUdt2.momentum.z);
 
     // Magnetic field
-    U->B.x = U_old->B.x + dt * (psi_2 * dUdt1.B.x + gamma_3 * dUdt2.B.x);
-    U->B.y = U_old->B.y + dt * (psi_2 * dUdt1.B.y + gamma_3 * dUdt2.B.y);
-    U->B.z = U_old->B.z + dt * (psi_2 * dUdt1.B.z + gamma_3 * dUdt2.B.z);
+    if (get_mhd_flag() == 1) {
+	U->B.x = U_old->B.x + dt * (psi_2 * dUdt1.B.x + gamma_3 * dUdt2.B.x);
+	U->B.y = U_old->B.y + dt * (psi_2 * dUdt1.B.y + gamma_3 * dUdt2.B.y);
+	U->B.z = U_old->B.z + dt * (psi_2 * dUdt1.B.z + gamma_3 * dUdt2.B.z);
+    }
 
     U->total_energy = U_old->total_energy + dt * (psi_2 * dUdt1.total_energy + gamma_3 * dUdt2.total_energy);
     if ( get_k_omega_flag() ) {

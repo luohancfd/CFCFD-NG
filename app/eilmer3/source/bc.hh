@@ -43,6 +43,14 @@ inline int reflect_normal_velocity(FV_Cell *cell, FV_Interface *IFace)
     return SUCCESS;
 }
 
+inline int reflect_normal_magnetic_field(FV_Cell *cell, FV_Interface *IFace)
+{
+    cell->fs->B.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+    cell->fs->B.x = -(cell->fs->B.x);
+    cell->fs->B.transform_to_global(IFace->n, IFace->t1, IFace->t2);
+    return SUCCESS;
+}
+
 //-----------------------------------------------------------------
 // Class-based boundary conditions in which all information about 
 // each boundary condition is contained within a single class 
