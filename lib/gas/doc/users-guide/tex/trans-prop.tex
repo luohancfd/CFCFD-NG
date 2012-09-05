@@ -1,2 +1,55 @@
 \chapter{Transport Properties}
 \label{chap:trans-prop}
+
+
+\section{Viscosity of single components}
+
+\subsection{Sutherland's law for viscosity}
+
+\paragraph{Description}
+Sutherland's law for viscosity is an approximation dervied from kinetic theory.
+The approximation is based on an idealised intermolecular force
+potential.
+Sutherland's law is applicable in the low-density limit for gases where
+the pressure is much lower than the critical pressure.
+
+\paragraph{Equation}
+
+\begin{equation}
+\mu = \mu_{\text{ref}} \left(\frac{T}{T_{\text{ref}}}\right)^{3/2} \frac{T_{\text{ref}} + S}{T + S}
+\end{equation}
+
+\paragraph{Parameters}
+The parameters of the model are described in Table~\ref{tab:Suth-visc}.
+The values of these constants for particular gases can be found in texts
+on fluid dynamics (see, for example, White~\cite{white_2006}), transport phenomena and the kinetic theory of gases.
+
+\begin{table}[h]
+\caption{Parameters for Sutherland's viscosity law}
+\label{tab:Suth-visc}
+\begin{tabular}{llp{10cm}}
+\toprule
+Parameter        & Units     & Description \\ \midrule
+$\mu_{\text{ref}}$ & N.s/m$^2$ & reference viscosity \\
+$T_{\text{ref}}$   & K         & reference temperature  \\
+$S$              & K         & Sutherland's constant; an effective temperature \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Viscosity from curve fits}
+Along with thermodynamic curve fits, the CEA program also uses curve fits
+for ther transport properties, viscosity and thermal conductivity.
+These curve fits are implemented in the library.
+The form of these curves and the input parameters are
+described in Appendix~\ref{app:cea-visc}.
+
+\section{Thermal conductivity of single components}
+
+
+
+\section{Mixing rules}
+
+\section{Diffusion coefficients}
+
+

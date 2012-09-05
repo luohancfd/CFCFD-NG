@@ -24,6 +24,17 @@ The polynomials in non-dimensional form are:
 \end{eqnarray}
 
 \section{CEA polynomials for transport properties}
+\label{app:cea-visc}
+The constants $a_0 \dots a_3$ in the equations below are
+available in the CEA databse for transport properties.
+When using these expressions, the resulting units for viscosity
+are in $\mu$Poise, and the units for thermal conductivity
+are in $\mu$W/(cm.K).
+For use in the library, the constants should be input exactly
+as given in the CEA database.
+Internally, the code converts the units for viscosity and thermal
+conductivity to give values in S.I.\ units.
+
 \begin{equation}
 \log{\mu(T)}  =  a_0 \log{T} + \frac{a_1}{T} + \frac{a_2}{T^2} + a_3
 \end{equation}
