@@ -166,6 +166,11 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
     Equations numbers given in the comments of the code refer to the paper.
 
     PJ, 22-Aug-2012: Use brute-force to get the effective 1D flow properties.
+    
+    Assumptions: Geometry is axisymmetric. The fluxes are calculated normal to
+      the curve (which may not be straight) over which we are integrating. The
+      returned averaged velocity vector is parallel to the averaged unit normal 
+      over the curve.
     """
     print "Nozzle-exit statistics (CMME):"
     variable_list, data = get_slice_data(sliceFileName)
@@ -306,7 +311,7 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
         # for the given quantities.
         fm_err = abs(fm - rho*vx*Area)/(abs(fm)+1.0)
         fp_err = abs(fp - (rho*vx*vx*Area + p*Area))/(abs(fp)+1.0)
-        fe_err = abs(fe - rho*vx*Area*(h+0.5*vx*vx))/(abs(fe)+1.0)
+        fe_err = abs(fe - rho*vx*Area*(h+0.5*vx*vx+tke))/(abs(fe)+1.0)
         mach_err = abs(M - mach)/(abs(mach)+1.0)
         # The overall error estimate is a weighted sum.
         return fm_err + fp_err + fe_err + 0.1*mach_err
