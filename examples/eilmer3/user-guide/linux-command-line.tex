@@ -1,0 +1,102 @@
+% linux-command-line.tex
+\section{Surviving the Linux Command Line}
+\label{linux-command-notes-sec}
+For running jobs on a Linux machine, it is worth knowing how to get around and do things in the \textit{shell},
+which is a command interpreter and programming language.
+Sobell's text \cite{sobell_2005a} is a good source of information but here are a few notes to get you started.
+
+\medskip
+A basic command is composed of a sequence of words, separated by spaces and has the usual form\\
+\texttt{cmd [options] arguments}\\
+where 
+\begin{itemize}
+ \item\texttt{cmd} is the name of the command or utility program that will do the work.
+   Command names on Linux are often terse, 2 or 3 character names.
+ \item\texttt{options} are words that are optionally included and are typically preceded by one or two dashes.
+   These modify the behaviour of the command, if the default behaviour is not quite what you want.
+ \item \texttt{arguments} are the things to work on.
+   If these are file names, you can often use patterns with \textit{wildcard} characters that may match
+   more then one file at a time.
+\end{itemize}
+Commands often put their \textit{standard output} to the console.
+If the amount of text output is overwhelming, it can be \textit{redirected} to a file 
+or \textit{piped} through a paging filter.
+This latter option is an example of putting multiple command together so that the output from
+one command becomes the input for another.
+Once you understand the system, customised commands can be build rather simply in this way.
+
+The following tables summarize a number of commands that you are likely to find useful while
+using \texttt{Eilmer3}.\\
+
+\subsection*{Logging in and getting out}
+\begin{tabular}{l|l}
+ \texttt{ssh} \textit{user}\texttt{@}\textit{host} & Connect to computer named \textit{host} as \textit{user}. \\
+ \textit{Ctrl+d} & Quit current session. \\
+ \texttt{exit} & Quit current session. \\
+\end{tabular}
+
+\subsection*{Getting help}
+\begin{tabular}{l|l}
+ \texttt{man} \textit{cmd-name} & Display the manual page for the named command. \\
+ \texttt{man} \textit{cmd-name} \texttt{| less} & Display the manual page through the paging filter. \\
+ \texttt{ls --help | less} & Look at the online help provided by the \texttt{ls} command. \\
+ \texttt{man -k} \textit{keyword} & List \texttt{man} pages that contain \textit{keyword}. \\
+ \texttt{apropos} \textit{subject} & List \texttt{man} pages on \texttt{subject}. \\
+\end{tabular}
+ 
+\subsection*{Moving about and looking in your folders}
+\begin{tabular}{l|l}
+ \texttt{cd} \textit{dir} & Change to directory \textit{dir}. \\
+ \texttt{cd} & Change to home directory. \\
+ \texttt{cd ..} & Change to parent of current directory. \\
+ \texttt{pwd} & Print current (working) directory. \\
+ \texttt{pushd} \textit{dir} & \parbox{0.8\textwidth}{Change to new directory \textit{dir}, 
+   putting the current directory onto a stack.} \\
+ \texttt{popd} & Go back to the directory at the top of that stack. \\
+ \texttt{ls -l} & List the files in the current directory, long format. \\
+ \texttt{ls -a ..} & List the files in the directory above, including all hidden files. \\
+ \texttt{du -h} \textit{dir} & Report the size of the directory and its subdirectories. \\
+ \texttt{df -h} & Report the capacities of the file systems and how much is used for each. \\
+ \texttt{mkdir} \textit{dir} & Make new directory. \\
+ \texttt{rmdir} \textit{dir} & Remove an empty directory. \\
+\end{tabular}
+
+\subsection*{Handling files}
+\begin{tabular}{l|l}
+ \texttt{cat} \textit{file} & Displays the content of a text file. \\
+ \texttt{head -n 20} \textit{file-to-show} & Display the first 20 lines of a text file. \\
+ \texttt{tail -f} \textit{file-to-show} & \parbox{0.6\textwidth}{Show the last few lines of a file and continue 
+   to show lines as that file changes.} \\
+ \texttt{grep 'ideal gas' *.py} & \parbox{0.6\textwidth}{Find the string \texttt{ideal gas} in all of 
+   the Python files in the current directory.} \\
+ \texttt{mv} \textit{src-file} \textit{dest-file} & Renames the source file to the destination name. \\
+ \texttt{cp} \textit{src-file} \textit{dest-file} & Copy the content from the source file to the destination file. \\
+ \texttt{scp} \textit{src-file} \textit{user}\texttt{@}\textit{host}\texttt{:} & \parbox{0.6\textwidth}{Copy the file
+   from the local computer to the home directory of \textit{user} on the remote computer \textit{host}.} \\
+ \texttt{rm -r} \textit{dir} & Remove a directory and all of its contents (recursively). \\
+ \texttt{gzip} \textit{src-file} & Compresses the file, adding the extension \texttt{.gz} to its name. \\
+ \texttt{tar -zcf} \textit{tarfile} \textit{dir} & Pack all of the contents of \textit{dir} into the \textit{tarfile}. \\
+ \texttt{tar -zxf} \textit{tarfile} & Unpack the contents of \textit{tarfile} into the current directory. \\
+\end{tabular}
+
+\subsection*{Managing processes}
+\begin{tabular}{l|l}
+ \texttt{top} & \parbox{0.9\textwidth}{Display information about all running processes. This is very handy
+   for finding out which jobs are taking all of your workstation's CPU cycles and memory.} \\
+ \textit{Ctrl+z} & Stops the current command. \\
+ \texttt{bg} & Resumes a stopped job in the background. \\
+ \texttt{fg} & Brings most recent job to the foreground. \\
+ \textit{Ctrl+c} & Halts current command. \\
+\end{tabular}
+
+\subsection*{Command-line editing}
+On most Linux systems, it seems that you can use the cursor keys to move about within the command line.
+Delete and backspace also seem to have suitable effect.
+
+\smallskip \noindent
+\begin{tabular}{l|l}
+ \textit{Ctrl+u} & Erases whole command line. \\
+ \texttt{!!} & Repeats last command. \\
+ \texttt{history} & Shows command history. \\
+ \texttt{!}\textit{n} & Repeats command \textit{n}. \\
+\end{tabular}

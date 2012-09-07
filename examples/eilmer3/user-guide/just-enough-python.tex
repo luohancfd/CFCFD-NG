@@ -1,0 +1,156 @@
+% just-enough-python.tex
+\section{Just enough Python to be dangerous}
+\label{python-notes-sec}
+When \texttt{e3prep.py} is run, the first thing that happens is that a number of Eilmer3-specific
+modules are loaded and a number of classes are defined to assist with the definition of flow and geometry.
+The user's input file is then read in and executed by the Python interpreter
+in the context of these predefined classes and functions.
+Since the input file has to be valid Python code, it's worth knowing a little about the language itself.
+We will discuss the features of Python using examples from the periodic shear layer input file on
+page \pageref{psl-py-file}.
+
+\medskip
+Python is a statement-based language where indentation is used to define the block structure
+of compound statements.
+One of the implications of this significant whitespace is that the first statement in the user's input
+file must start right at the beginning of the line.
+That is, it must not be indented.
+The first couple of lines in the periodic shear layer input file are:\\
+\texttt{\# psl.py\\
+gdata.title = "Periodic shear layer"\\
+}
+The comment line, starting with the sharp (or hash) character is ignored and the first statement assigns
+a string literal to the title.
+
+\medskip
+Single statements, such as assignment statements, may extend over several lines if they are continued
+by one of:
+\begin{itemize}
+ \item a backslash ($\backslash$) at the end of each incomplete line;
+ \item an open left parenthesis, bracket or brace without the corresponding closing parenthesis, bracket or brace; or
+ \item an open triple quote that has indicated the start of a multiline string.
+\end{itemize}
+The second of these is quite commonly seen in the example files because many of the function calls and object
+constructors have a lot of arguments, some of which may be quite complex in themselves.
+The following assignment statement, from near the end of the periodic shear layer input file, 
+calls the \texttt{SuperBlock2D} object
+constructor and then binds the resultant object to the name \texttt{superblk}.
+\texttt{
+\begin{tabbing}
+superblk = SuperBlock2D( \= psurf=domain, nni=nnx, nnj=nny,\\
+                         \> bc\_list=[SlipWallBC(),]*4,\\
+                         \> fill\_condition=initial\_gas,\\
+                         \> nbi=nbi, nbj=nbj, label="blk")
+\end{tabbing}
+}
+
+\medskip
+On the selection of names to bind to returned data objects, the usual rules apply.
+Start the name with a letter from the alphabet and follow it with any number of letters, digits or 
+underscores.
+Don't use any of the following reserved words for your own names:
+\begin{center}
+\texttt{
+\begin{tabular}{lllll}
+and      & del      & from     & None    & try \\
+as       & elif     & global   & not     & while \\
+assert   & else     & if       & or      & with \\
+break    & except   & import   & pass    & yield \\
+class    & exec     & in       & print   & \\
+continue & finally  & is       & raise   & \\
+def      & for      & lambda   & return  & 
+\end{tabular}
+}
+\end{center}
+And, if you want to see the list of names that are predefined for the environment in
+which your input file is interpreted, start \texttt{e3prep.py} with the \texttt{--show-names} option.
+There are conventions that leading and trailing underscores are reserved for system names and that
+names starting with an uppercase letter are class names.
+
+\medskip
+Control flow statements such are implemented as compound statements.
+These start with an opening clause at the current indentation level.
+This clause will start with a keyword, such as \texttt{if}, \texttt{while}, or \texttt{for},
+and end with a colon.
+The body of the compound statement will typically start on the following line, indented one level.
+All statements at that level of indentation or more form part of the body of that compound statement.
+There may be nested compounded statements and each level of indentation will be 4 spaces, by convention.
+
+\medskip
+The definition of a function is itself a compound statement and an example can be seen
+in the periodic shear layer example (page \pageref{psl-py-file}) where the initial state of the gas 
+is defined in the function \texttt{initial\_gas(x, y, z))} in the user's input file. 
+Collections of functions are typically available as modules in Python.
+These modules, or items from the modules may be ``imported''. 
+By default, Python does not load a lot of modules so you will typically have to import math functions, for example.
+
+\medskip
+As well as the simple numerical data types of integers and floats, there are strings and more complex, 
+structured data types built into the language.
+These include tuples, lists and dictionaries.
+\texttt{e3prep.py} also makes use of \texttt{numpy} arrays.
+
+\medskip
+You will make use of lists when defining collections of mass fractions and boundary conditions, for example.
+A list literal is denoted by square brackets, with items separated by commas.
+Lists are ordered collections of items that may be indexed, starting from zero.
+Negative index values count backward from the end of the list.
+The \texttt{for} loop is a convenient way of working through all the elements of a list.
+In the periodic shear layer example above, the boundary conditions are specified as a list of 4
+\texttt{SlipWallBC} objects.
+The following code works through the list of blocks 
+that had been returned by the SuperBlock2D constructor and makes the appropriate
+connections for a periodic domain.
+\texttt{
+\begin{tabbing}
+for \= j in range(nbj):\\
+    \> connect\_blocks\_2D(superblk.blks[-1][j], EAST, superblk.blks[0][j], WEST)
+\end{tabbing}
+}
+\noindent
+Here, the call to the function \texttt{range} returns a list of integer values starting with 0,
+going up to but not including the value bound to \texttt{nbj}.
+
+\medskip
+Dictionaries are collections of named objects.
+They are a convenient way of setting species mass fractions, especially for a gas model
+that has many species.
+You may typically only have only one or a couple of species present in and particular inflow or 
+initial gas condition as, for example, the literal dictionary \{\texttt{'He':0.1, 'air':0.9}\}
+is used to set the mass fraction of helium to 0.1 and the mass fraction of air to 0.9.
+Use of the dictionary has the benefit of making the input script somewhat self-documenting and you
+don't have to remember the order in which the gas species were defined in the call 
+to the \texttt{select\_gas\_model} function, earlier in the input file.
+
+\medskip
+More specialized data objects can be defined via classes, and \texttt{e3prep.py} does exactly that.
+The name \texttt{gdata} is bound to an instance of the \texttt{GlobalData} class and contains
+many attributes that set the configuration of the flow solver.
+The user input file will use the already defined gdata object but will typically create new instances
+of objects such as \texttt{Node} and \texttt{SuperBlock2D}.
+It is often convenient to bind the reference returned to the newly created object to a name in the input script
+so that it can be conveniently referenced in later statements.
+In the periodic shear layer case, the \texttt{Node} objects are bound to names 
+that are then used to construct the \texttt{Line} objects that are, in turn, 
+used to define the rectangular flow domain.
+
+\medskip
+When working in Python it is possible to see what options are available to you with a particular
+function or object using the \texttt{dir} command. This enables you to get a print out of the properties
+and functions associated with the object. For example create a node and see what the \texttt{dir} output is.\\
+\topbar\\
+\texttt{a = Node(0.0,0.1,label='a')}\\
+\texttt{print dir(a)}\\
+\begin{scriptsize}
+\texttt{['\_\_add\_\_', '\_\_class\_\_', '\_\_del\_\_', '\_\_delattr\_\_', '\_\_dict\_\_', '\_\_div\_\_', '\_\_doc\_\_',
+ '\_\_format\_\_', '\_\_getattr\_\_',\\ '\_\_getattribute\_\_', '\_\_hash\_\_', '\_\_iadd\_\_', '\_\_idiv\_\_', 
+'\_\_imul\_\_', '\_\_init\_\_', '\_\_isub\_\_', '\_\_module\_\_', '\_\_mul\_\_',\\ '\_\_neg\_\_', '\_\_new\_\_', 
+'\_\_pos\_\_', '\_\_reduce\_\_', '\_\_reduce\_ex\_\_', '\_\_repr\_\_', '\_\_rmul\_\_', '\_\_setattr\_\_', 
+'\_\_sizeof\_\_',\\ '\_\_str\_\_', '\_\_sub\_\_', '\_\_subclasshook\_\_', '\_\_swig\_destroy\_\_', '\_\_swig\_getmethods\_\_', 
+'\_\_swig\_setmethods\_\_',\\ '\_\_weakref\_\_', 'clone', 'copy', 'label', 'mirror\_image', 'nodeList', 'norm', 
+'rotate\_about\_zaxis', 'str',\\ 'this', 'transform\_to\_global', 'transform\_to\_local', 'translate', 'vrml\_str', 
+'vtk\_str', 'x', 'y', 'z']}\end{scriptsize}\\
+\bottombar\\
+
+The last items in this list are the different options available to a Node object that can be used within the
+prep file.

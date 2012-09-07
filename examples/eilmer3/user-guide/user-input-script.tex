@@ -1,0 +1,1438 @@
+% user-input-script.tex
+\section{Input Script Overview}
+Currently, \texttt{e3prep.py}\index{e3prep.py} is implemented as 
+a Python program that has a library of classes specialized for constructing
+geometric regions and specifying flow conditions.
+Because your specification script, \texttt{{\em job}.py}, 
+becomes a part of that program when it runs,
+it is worth the effort to learn just enough Python to be dangerous.
+The web site \url{http://www.python.org} is a good starting point for
+learning about the Python programming language, however, Appendix\,\ref{python-notes-sec}
+may have enough information to get you started.
+
+\medskip
+After doing some initialization, \texttt{e3prep.py} executes your
+script file and assembles the geometry and flow specification data
+into a form that can be given to the main simulation code
+\texttt{e3shared.exe}\index{e3shared.exe}\footnote{The ``shared'' tag indicated that we are
+  using the shared-memory version of the code.  
+  There is also a distributed-memory version, \texttt{e3mpi.exe}\index{e3mpi.exe},
+  based on message passing (MPI) that can be used for running the main simulation.
+}.
+The advantage of this approach is that you have the full capability of 
+the Python interpreter available to you from within your script.
+You can perform calculations so that you can parameterize your geometry, 
+for example, or you can use Python control structures
+to make repetitive definitions much more concise.
+Additionally, you may use Python comments and print statements
+to add documentation to the script file. 
+An input script usually does the following:
+\begin{enumerate}
+  \item selects gas model
+  \item optionally, creates geometric elements to assist in defining the boundary representation of the gas domain
+  \item creates blocks within the gas domain and specifies their discretization and, optionally, 
+        specifies boundary conditions along some block surfaces (in 3D) or edges (in 2D)
+  \item specifies remaining boundary conditions, if any
+  \item sets some simulation control parameters
+\end{enumerate}
+Most examples in this manual do just these things, however, it is possible to do much more.
+The example that computes the heat transfer to a sphere (Section\,\ref{sphere-heat-transfer-sec}) uses a top-level Python
+script to coordinate a number of simulations with increasingly-refined grids as a crude multigrid simulation.
+
+\medskip
+To aid with debugging, it is easy to process part of your input script and
+then temporarily put the interpreter into an interactive mode where 
+you may type python commands and expressions at the prompt (\texttt{>>>}).
+To do so, add the following lines at the appropriate point in your input
+script.\\
+%
+\topbar\\
+\texttt{from code import interact}\index{e3prep.py!interactive mode}\\
+\texttt{interact('Start interactive mode (Ctrl-D to return)', local=locals())}\\
+\bottombar\\
+%
+Now you can interact with the Python environment and the objects that your
+input script has defined so far.
+For example, to find out a bit about defining \texttt{Block3D} objects, type:\\
+%
+\topbar\\
+\texttt{>>> help(Block3D)}\\
+\bottombar\\
+%
+To get out of the interactive mode and continue processing the input script,
+type \texttt{Control-D} at the prompt.
+
+
+%------------------------------------------------------------------
+\section{Thermochemical model and flow conditions}
+\label{thermo-flow-sec}\index{thermochemical models}\index{module!libgas}
+%
+The thermochemical models are provided by the \texttt{libgas} module.
+This is primarily a C++ module but it has a SWIG-generated Python interface so
+that its objects and methods can be accessed from the user's input script.
+
+\subsection{10 second version: just tell me how to select perfect air}
+Place the following text (which is a function call) in your script \emph{before}
+specifying any \texttt{FlowCondition} objects:\\
+%
+\topbar\\
+\texttt{select\_gas\_model(model='ideal gas', species=['air'])}\\ \index{select\_gas\_model}
+\bottombar\\
+%
+If this is the only gas model that interests you for the present, then
+proceed to page~\pageref{sec:flow_condition} which discusses the specification
+of a \texttt{FlowCondition}.
+
+\subsection{2 minute version: tell me about other simple models}
+
+To select a gas model, the user calls the function
+\texttt{select\_gas\_model}.
+This function accepts three keyword arguments: \texttt{model},
+\texttt{species}, and \texttt{fname}.
+In the vast majority of cases, only the first
+two keyword arguments will be used.
+This function must be called \emph{before} specifying any \texttt{FlowCondition} objects
+so that the complete thermodynamic state can be computed.
+
+\medskip
+A second example: to select an ideal mixture of nitrogen and oxygen
+call:\\
+%
+\topbar\\
+\texttt{select\_gas\_model(model='ideal gas', species=['N2', 'O2'])}\\
+\bottombar\\
+%
+Note that the only difference between selecting a mixture and a single
+component gas is the addition of extra species in the species list and the extra computation that
+the main simulation program needs to do.
+
+\medskip
+In general, the \texttt{model} keyword accepts a string describing
+the gas model behaviour.
+The available gas models are:
+\begin{itemize}
+ \item \texttt{'ideal gas'}: a gas with ideal behaviour: modelled as having perfectly elastic collisions
+                             and constant specific heats\index{gas model!ideal}
+ \item \texttt{'thermally perfect gas'}: a gas with thermally perfect behaviour: modelled as having perfectly
+                             elastic collisions but with specific heats that are functions of temperature
+                             \index{gas model!thermally perfect}
+% \item \texttt{'one temperature gas'}: similar to the 'thermally perfect gas' except that the thermodynamic 
+%                             properties are calculated from statistical mechanics rather than the CEA curve 
+%                             fits\footnote{Due to the assumption of decoupled thermal modes, the thermodynamic
+%                             properties for the 'one temperature gas' model are not as accurate as the CEA curve
+%                             fits.  The purpose of the this gas model is to provide a single temperature 
+%                             equivalent of the multiple temperature gas models.  For general thermal equilibrium
+%                             calculations, users are advised to use the 'thermally perfect gas' model.}, and
+%                             transport properties are calculated via collision-integrals.
+ \item \texttt{'two temperature gas'}: a thermally perfect gas\footnote{The two temperature gas model is thermally
+                             perfect in the sense that the thermodynamic properties are functions
+                             of temperature only, however multiple temperatures are defined.} with two independent
+                             thermal modes: one temperature $T_\text{tr}$ governs the heavy-particle translation 
+                             and rotation modes, and another temperature $T_\text{ve}$ governs the vibration, 
+                             electronic and free-electron translation modes.
+                             \index{gas model!two temperature}
+% \item \texttt{'three temperature gas'}: a thermally perfect gas with three independent thermal modes: the 
+%                             temperature $T_\text{tr}$ governs the heavy-particle translation and rotation modes,
+%                             $T_\text{v}$ governs the vibration modes and $T_\text{e}$ governs the
+%                             electronic and free-electron translation modes.
+%                             \index{gas model!three temperature}
+% \item \texttt{'four temperature gas'}: a thermally perfect gas with four independent thermal modes: the 
+%                             temperature $T_\text{t}$ governs the heavy-particle translation modes, $T_{\text{r}}$
+%                             governs the rotation modes, $T_\text{v}$ governs the vibration modes and $T_\text{e}$ 
+%                             governs the electronic and free-electron translation modes.
+%                             \index{gas model!four temperature}
+ \item \texttt{'real gas Bender'}: a gas with real behaviour, such as accurate thermodynamic property evaluation
+                            at high density and pressure near the saturation boundary and in the critical region.
+                            This model is based on the Bender \textit{p-v-T} relationship.
+                             \index{gas model!real gas!Bender}
+ \item \texttt{'real gas MBWR'}: a gas with real behaviour, such as accurate thermodynamic property evaluation
+                            at high density and pressure near the saturation boundary and in the critical region.
+                            This model is based on the MBWR \textit{p-v-T} relationship, which is more accurate
+                            than the Bender \textit{p-v-T} relationship.
+                             \index{gas model!real gas!MBWR}
+ \item \texttt{'real gas REFPROP'}: a gas with real behaviour, such as accurate thermodynamic property evaluation
+                            in all single and two phase regions.
+                            This model makes use of the REFPROP thermodynamic database and is more accurate than
+                            the MBWR gas model.
+                             \index{gas model!real gas!REFPROP}
+\end{itemize}
+
+The \texttt{species} keyword accepts a list of strings; each string denotes
+a species in the mixture.  The order of this list is important: the order of
+species in this list corresponds to the order in which the species mass fractions
+are specified in other parts of the input.
+To get a list of available species, look at the selection of species which are placed
+in the \texttt{\$HOME/e3bin/species}\index{species!list of available} area during the install, 
+that is, at a command prompt type:
+
+\noindent
+\topbar\\
+\texttt{> ls \$HOME/e3bin/species}\\
+\bottombar\\
+%
+The names of these files (excluding the \texttt{.lua} extension) correspond to the
+names of available species.  The \texttt{defaults.lua} file is not a species name.
+Rather, this file provides a set of default values when no other data is available.
+
+\subsection{10 minute version: the detail of gas model configuration}
+In the last two examples, the \texttt{select\_gas\_model} function was called using
+the two keyword arguments \texttt{model} and \texttt{species}.
+Behind the scenes, this function calls an auxiliary set of tools to build
+a stand-alone text file which is a configuration file for the gas model.
+This configuration file is a Lua-style file: it is read directly by the
+C++ code (with embedded Lua interpreter) in order to configure the gas model.
+By default, the created configuration file is called \texttt{gas-model.lua}.
+This file will sit in your working directory after a successful call to
+\texttt{select\_gas\_model} using only the \texttt{model} and \texttt{species} keyword
+arguments.
+The configuration file contains all the necessary details to completely
+specify the gas.
+Thus, this file serves as a record of the gas model input parameters used in
+your simulation.
+
+\medskip
+You are encouraged to open the file \texttt{gas-model.lua} and take a look.
+It contains not only the input parameters for the gas model but also references for the
+data where possible.
+Some amount of effort has been made to design a configuration file that
+properly documents the input data.
+The use of Lua as the configuration language has aided this effort.
+
+\medskip
+Alternatively, the \texttt{select\_gas\_model} function may also be called
+with \texttt{fname} as a keyword argument.
+This argument, \texttt{fname}, accepts a string which names a Lua-style configuration
+file for the gas model.
+Thus, if you have a gas model configuration file from a previous simulation, you could
+set the gas model with the call:\\
+%
+\topbar\\
+\texttt{select\_gas\_model(fname='gas-model.lua')}\\
+\bottombar\\
+%
+This assumes your configuration file is called \texttt{gas-model.lua} and resides
+in the same directory as your main simulation script.\index{gas model!gas-model.lua file}
+
+\medskip
+Finally, for certain advanced gas models (such as a gas with multiple vibrational temperatures),
+the only means to configure these models is via the preparation of a Lua-style configuration
+file by hand.
+After building a file by hand (that is, in a text editor), one would use the \texttt{fname} keyword
+argument in the call to \texttt{select\_gas\_model} to set the gas model.
+The list of gas models which are set by directly creating a configuration file are:
+\begin{itemize}
+ \item user-defined gas (by specification of callable Lua functions)\index{gas model!user-defined}
+ \item an equilibrium gas, based on a look-up table\index{gas model!look-up table}
+ % DFP: this model is specified via 'thermally perfect gas'
+ % \item a reacting mixture of thermally perfect gases\index{gas model!reacting}
+\end{itemize}
+Further discussion of gas models which are set by direct creation
+and manipulation of a configuration file is given in Appendix~\ref{app:gas-models}.
+
+\subsection{Selecting a simple model and adjusting it}
+The simple ideal gas model of air as discussed above has $\gamma = 1.4$.
+You can get an air model with $\gamma = 1.3$ by selecting the species
+as \texttt{'air13'} or you can adjust the value of $\gamma$ directly
+for the ideal gas model.
+This can be done from within the Python input script by calling the function 
+\texttt{change\_ideal\_gas\_attribute()},\index{gas model!change\_ideal\_gas\_attribute}
+and telling it which species, which attribute and what new value to use.
+The function actually does a string substitution within the \texttt{gas-model.lua} file
+that was generated behind the scenes when the \texttt{select\_gas\_model()} function was called.
+
+\medskip
+For an example of use, see the MNM Implosion problem in Section\,\ref{mnm-implosion-sec}.
+There, the value of ratio of specific heats is changed with the lines\\
+%
+\topbar\\
+\texttt{gas\_gamma = 5.0/3.0}\\
+\texttt{select\_gas\_model(model='ideal gas', species=['air'])}\\
+\texttt{change\_ideal\_gas\_attribute('air', 'gamma', gas\_gamma)\\}
+\bottombar\\
+You might also like to change the gas constant but, since that is not an actual parameter in the 
+\texttt{gas-model.lua} file, it needs to be set indirectly, via the molecular mass (in units of kg/mol).\\
+\topbar\\
+\texttt{Rgas = 300.0}\\
+\texttt{MM = R\_u / Rgas}\\
+\texttt{change\_ideal\_gas\_attribute('air', 'M', Rgas)\\}
+\bottombar\\
+Note that \texttt{'M'} is the label for molecular mass in the \texttt{gas-model.lua} file
+and \texttt{R\_u} is the universal gas constant made available by the thermochemistry module
+to the Python input script.
+
+
+\subsection{Specifying chemically reacting flow}
+\index{chemical reaction!reaction scheme file}
+For chemically reacting flow simulations, the following function call is
+required:\\
+%
+\topbar\\
+\texttt{set\_reaction\_scheme(config\_file, reacting\_flag=1)}\\
+\bottombar\\
+where \texttt{config\_file} is a string naming the configuration file for the
+chemical reaction scheme.  This configuration file specifies all of the chemical
+reactions between the various species and is built by hand by the user.\index{chemical reaction}
+By default, the reactions are turned on, however, the user may elect to turn off
+chemical reaction updates by setting \texttt{reacting\_flag=0}.
+
+\medskip
+An example of a reacting flow simulation is given in Section~\ref{sec:n90}.
+The details of building a chemistry input file are provided in Appendix~\ref{app:chem}.
+
+\subsection{Specifying thermal energy exchange mechanisms}
+\index{thermal nonequilibrium!energy exchange scheme file}
+For flow simulations where the number of thermal modes is greater than one (such as for the 
+`two temperature gas' model previously
+mentioned), energy exchange mechanisms can be defined that describe the exchange of thermal
+energy between modes due to particle collisions.
+If such energy exchange mechanisms wish to be modelled, the following function call is
+required:\\
+%
+\topbar\\
+\texttt{set\_energy\_exchange\_update(config\_file)}\\
+\bottombar\\
+where \texttt{config\_file} is a string naming the Lua configuration file for the
+energy exchange scheme.  This configuration file specifies all of the energy exchange 
+mechanisms between the thermal modes due to thermal processes (i.e. particle collisions) 
+and is built by hand by the user.\index{thermal energy exchange}
+Thermal energy exchange is automatically turned on when the
+\texttt{set\_energy\_exchange\_update(config\_file)} function call is made.
+
+\medskip
+An example of a flow simulation with thermal energy exchange is given in
+Section~\ref{sec:finite-cyl-sec}.
+The details of building a thermal energy exchange input file are provided in 
+Appendix~\ref{app:therm-exchange}.
+
+\subsection{Defining flow conditions}
+\label{sec:flow_condition}
+Because \texttt{Eilmer3} is a flow \textit{simulation} code, initial gas flow conditions
+need to be specified throughout the domain.
+Also, depending on your model, free-stream inflow boundary conditions 
+may need to be specified on appropriate boundary surfaces.
+To define such a flow condition in your input script for one or both of these purposes, 
+create a \texttt{FlowCondition} object\footnote{The \texttt{FlowCondition} class is
+  defined in source file \texttt{e3\_flow.py}} as:
+\texttt{
+\begin{tabbing}
+my\_flow = FlowCondition(\=p=1.0e5, u=0.0, v=0.0, w=0.0, \\
+                         \>Bx=0.0, By=0.0, Bz=0.0, T=[300.0,], \\
+                         \>massf=None, label="", tke=0.0, omega=1.0, \\
+%                         \>sigma\_T=0.0, sigma\_c=0.0, 
+                         \>S=0, add\_to\_list=1)
+\end{tabbing}
+}\index{FlowCondition}\index{FlowCondition!add\_to\_list parameter}
+
+%
+\begin{itemize}
+  \item \texttt{p}: pressure in Pa, default value 100\,kPa.
+  \item \texttt{u}: $x$-coordinate velocity in m/s, default value 0.0.
+  \item \texttt{v}: $y$-coordinate velocity in m/s, default value 0.0.
+  \item \texttt{w}: $z$-coordinate velocity in m/s, default value 0.0.
+  \item \texttt{Bx}: $x$-coordinate magnetic field in Tesla, default value 0.0.
+  \item \texttt{By}: $y$-coordinate magnetic field in Tesla, default value 0.0.
+  \item \texttt{Bz}: $z$-coordinate magnetic field in Tesla, default value 0.0.
+  \item \texttt{T}: list of temperatures in degrees K, default value [300.0,].
+    For gas models with multimodal energies, these are the corresponding temperatures.
+    For a gas model with only one internal energy mode, you may specify a scalar value
+    for temperature.
+  \item \texttt{massf}: mass fractions of the component species.
+    These may be provided in a number of ways:
+    \begin{itemize}
+      \item[(a)] full list of floats. The length of the list of mass fractions 
+         must match the number of species in the previously selected gas model.
+      \item[(b)] single float or integer that gets used as the first element,
+         the rest being set 0.0
+      \item[(c)] dictionary of species names with mass fraction values,
+         the remainder being set 0.0.  See the example in Section\,\ref{sec:MoleFractions}.
+      \item[(d)] None provided, results in the first element being 1.0
+         and the rest 0.0
+    \end{itemize}
+    Note that the mass fractions supplied must sum to 1.0 (within a tolerance of $1.0 \times 10^{-6}$.
+  \item \texttt{label}: (optional) text label for the FlowCondition object.
+  \item \texttt{tke}: turbulent kinetic energy per unit mass in m$^2$/s$^2$ or
+    J/kg, default value 0.0.
+  \item \texttt{omega}: turbulence vorticity in 1/s, default value 1.0.
+  \item \texttt{mu\_t}: turbulence viscosity in Pa.s, default value 0.0.
+  \item \texttt{k\_t}: turbulence thermal conductivity, default value 0.0.
+     This might be conveniently computed as $C_p \mu_t / Pr_t$.
+%  \item \texttt{sigma\_T}: variance of temperature variations, default value 0.0.
+%  \item \texttt{sigma\_c}: variance of species concentrations, default value 0.0.
+  \item \texttt{S}: integer shock indicator value, default value 0.
+    A value of 1 indicates the presence of a shock through the cell.
+  \item \texttt{add\_to\_list}: flag to indicate that this FlowCondition object 
+    should be added to the flowList.  Sometimes we don't want
+    to accumulate objects in this list, for example, when using
+    many FlowCondition objects in a user-defined flow evaluation function.
+    default value 1.
+\end{itemize}
+
+\medskip
+Simulations involving nonequilibrium chemistry require and extra input file
+describing the participating gas species and their reactions.
+Preparation of this file is described in Appendix\,\ref{app:chem}.
+
+\subsection{Using flow conditions from other simulations}
+\label{sec:ExistingSolution}
+%
+There are occasions where you might like to use flow data from an old simulation
+as initial conditions for some or all of your blocks in your new simulation.
+A typical use case is to restart a simulation with a finer, or otherwise changed, mesh.
+For this, you may pick up the old simulation data using:\\
+\index{ExistingSolution}
+\texttt{
+\begin{tabbing}
+old\_flow = ExistingSolution(\=rootName, solutionWorkDir, nblock, tindx, \\
+                             \>dimensions=2, assume\_same\_grid=0, zipFiles=1, \\
+                             \>add\_velocity=Vector(0.0,0.0,0.0))\\
+\end{tabbing}
+}\index{ExistingSolution}
+where the arguments and their possible values are:
+\begin{itemize}
+  \item \texttt{rootName}: job name that will be used to build file names
+  \item \texttt{solutionWorkDir}: the directory where we'll find our existing solution files.
+  \item \texttt{nblock}: number of blocks in the existing solution data set
+  \item \texttt{tindx}: the time index to select 0..9999.
+            Do not specify with leading zeros because the Python interpreter
+            will assume that you want to count the time index in octal.
+  \item \texttt{dimensions}: number of spatial dimensions for the existing solution
+  \item \texttt{assume\_same\_grid}: decide how to locate corresponding cells
+     \begin{itemize}
+        \item[\texttt{0}]: searches for corresponding cells. This steps through each cell and
+		searches for closest corresponding cell centre in the old solution and inserts
+		the flow data.
+                As Rainer found, this can be agonisingly slow for large grids.\index{Kirchhartz}
+        \item[\texttt{1}]: omits the search for the corresponding cell.
+                Definitely the option for the impatient. This assumes the same grid for the old and
+		new solution and inserts flow data based on the i and j cell references.
+     \end{itemize}
+   \item \texttt{zipFiles}: to use gzipped files (1), or not (0)
+   \item \texttt{add\_velocity}: value to be added to each cell's velocity,
+       for changing frame of reference.
+\end{itemize}
+The process of writing the data into each cell of the new grid uses a fairly naive search for the 
+nearest cell in the existing solution.
+Although it is robust, the search is extremely slow and the preparation of sew grids has been known
+to take hours of CPU time.
+If the new simulation is a continuation of the old simulation, it may be appropriate to set
+\texttt{gdata.t0} to a nonzero value.  See Section\,\ref{sec:sim-control-parameters}.
+
+\subsection{Using mole fractions and species dictionaries}
+\label{sec:MoleFractions}
+%
+When simulating flows with mixes of gas species, it may be more convenient to specify the gas mix
+via mole fractions rather than mass fractions and via a dictionary rather than a list.
+With large numbers of species in the gas model, specification of the mix via dictionary is far easier to
+read and check than when using a list of numerical values. 
+
+\medskip
+There are a number of functions attached to the \texttt{Gas\_model} object that make the
+conversion to a list of mass fractions easy.
+Here is an extract from Umar's standing-shock script showing the creation of a fairly complex gas mix
+using a dictionary of mole fractions.
+
+\medskip\noindent\topbar\\
+{\small %\scriptsize
+\begin{verbatim}
+select_gas_model(model='thermally perfect gas', 
+                 species=['O', 'N', 'N2', 'O2', 'NO', 'N_plus', 'O_plus', 'N2_plus',
+                          'O2_plus', 'NO_plus', 'e_minus', 'Ar', 'Ar_plus'])
+set_reaction_scheme("gupta_etal_air_reactions.lua", reacting_flag=1)
+gmodel = get_gas_model_ptr()
+
+# Pre-shock gas: mass fractions for an ideal air mixture.
+mi = {'N2':0.769, 'O2':0.231}
+# Post-shock: mole fractions from a CEA calculation.
+X = {'O':1.6936e-1, 'N':5.9784e-1, 'N2':6.9757e-5, 'O2':4.7543e-8, 'NO':2.5654e-3, 
+     'N_plus':9.6331e-2, 'O_plus':1.7562e-2, 'N2_plus':7.7688e-6, 'O2_plus':5.0837e-8, 
+     'NO_plus':1.4459e-5, 'e_minus':1.1436e-1, 'Ar':4.0026e-3, 'Ar_plus':4.4835e-4}
+
+initial = FlowCondition(p=2700.0, u=0.0, v=0.0, T=300.0, massf=mi)
+inflow  = FlowCondition(p=4464.0, u=10284.0, v=0.0, T=10140.42,
+                        massf=gmodel.to_massf(X))
+\end{verbatim}
+}
+\noindent\bottombar
+
+
+%-------------------------------------------------------------------
+\section{Boundary representation of the gas domain}
+%
+Most of the effort required to set up a simulation goes into defining the
+``body-fitted'' grid of finite-volume cells that completely fills the flow
+domain.
+The top-level geometry description given to the grid generator is in terms of
+``patches'' for 2D flow and ``parametric volumes'' for 3D flow.
+These are regions of space that may be traversed by
+a set of parametric coordinates $0 \le r < 1$, $0 \le s < 1$ (in 2D) and 
+with the third parameter $0 \le t < 1$ in 3D.
+These patches or volumes can be imported as VTK structured grids or they can be
+constructed as a ``boundary representation'' from lower-dimensional 
+geometric entities such as paths and points.
+
+\subsection{Geometric elements}
+%
+The most fundamental class of geometric object is the \texttt{Vector}\index{geometric element!Vector} (or
+\texttt{Vector3}\index{geometric element!Vector3} as it is defined in the C++ module \texttt{libgeom2}\index{module!libgeom2}).
+A \texttt{Vector} represents a point in 3D space and has the usual behaviour 
+of a geometric vector (as opposed to the \texttt{vector} collection class in
+C++).
+See, for example, the postprocessing program in the \texttt{simple\_ramp}
+simulation (Section\,\ref{simple-ramp-post-files}).
+If you want a point to be rendered with a label, you can define it as a
+\texttt{Node}.
+Examples of use include: $a$ = \texttt{Vector}($x$, $y$, $z$) and
+$b$ = \texttt{Node}($x$, $y$, $z$, \texttt{label='B'}).\index{geometric element!Node}
+
+\medskip
+It is also possible to 'get' and 'set' values within a geometric element. For example to
+create a node, extract the x value of that node, to change the y value or to use
+the geometry values for a new node could be done as follows.\\
+\topbar\\
+\texttt{a = Node(0.5,0.8,label='Node a')}\\
+\texttt{x-value = a.x}\\
+\texttt{a.y = 0.6}\\
+\texttt{b = Node(a.x, a.y+0.2,label='Node b')}\\
+\bottombar\\
+
+\medskip
+If you look into the file \texttt{cfcfd3/lib/geometry2/source/geom.hh}, you will see that
+the \texttt{Vector3} objects support the usual vector operations of addition, subtraction and the like.
+Also, you can \texttt{clone} and transform a point.
+For example, to create a point and its mirror image in the (x,z)-plane, you could use\\
+\topbar\\
+\texttt{a = Vector(0.5, 0.6)}\\
+\texttt{b = a.clone().mirror\_image(Vector(0.0,0.0), Vector(0.0,1.0)}\\
+\bottombar\\
+ 
+\subsubsection{Paths}
+%
+The next level of dimensionality is the \texttt{Path} class\index{geometric element!Path}.
+A path object is a parametric curve in space, 
+along which points can be specified via the single parameter $0 \le t < 1$.
+Types of paths that are available include:
+\begin{itemize}
+\item \texttt{Line}($a$, $b$): a straight line between points $a$ and $b$.\index{geometric element!Line}
+\item \texttt{Arc}($a$, $b$, $c$): a circular arc from $a$ to $b$ around centre,
+  $c$.\index{geometric element!Arc}
+  Be careful that you don't try to make an \texttt{Arc} with included angle of 180$^o$ or greater.
+  For such a situation, create two circular arcs and join as a \texttt{Polyline} path.
+\item \texttt{Arc3}($a$, $b$, $c$): a circular arc from $a$ through $b$ to $c$.
+  All three points lie on the arc.\index{geometric element!Arc3}
+\item \texttt{Helix}($a_0$, $a_1$, $x_{local}$, $r_0$, $r_1$, $d\theta$): a helical path
+  about a specified axis, start and end radii and angle through which the path extends.\index{geometric element!Helix}
+\item \texttt{Helix}($p_0$, $p_1$, $a_0$, $a_1$): a helical path through specified points
+  and about a specified axis.
+  Internally, it is stored as the helical path described above.
+\item \texttt{Bezier}([$b_0, b_1, ..., b_n$]): a Bezier curve from $b_0$ to
+  $b_n$.\index{geometric element!Bezier}
+\item \texttt{Nurbs}($CP[.]$, $w[.]$,$degree$, $U[.]$): nonuniform rational B-spline with
+  control points vector $CP[.]$, weights vector $w[.]$, and knot vector $U[.]$.\index{geometric element!Nurbs}
+\item \texttt{Polyline}([$p_0, p_1, ..., p_n$]): a composite path made up of 
+  the segments $p_0$, through $p_n$.\index{geometric element!Polyline}
+  The individual segments are reparameterised, based on arc length, so that
+  the composite curve parameter is $0 \le t < 1$.
+\item \texttt{Polyline2}(*args): a composite path constructed from path elements and/or \texttt{Vector} points.
+  If there are gaps between the elements and points, 
+  they will be filled with \texttt{Line} segments.\index{geometric element!Polyline2}
+\item \texttt{Spline}([$b_0, b_1, ..., b_n$]): a cubic spline from $b0$ through
+  $b1$, to $bn$.\index{geometric element!Spline}
+  A \texttt{Spline} is actually a specialized \texttt{Polyline}.
+\item \texttt{Spline2}(filename): a spline constructed from a file containing $x(,y(,z))$ coordinates
+  of the interpolation points, one point per line.
+  If the $y$ or $z$ values are missing, they are assumed to be zero.\index{geometric element!Spline2}
+\item \texttt{PathOnSurface}($S$, $f_r$, $f_s$): a path on the
+  ParametricSurface $S(r,s)$, defined by the univariate functions 
+  $r=f_r(t)$ and $s=f_s(t)$.\index{geometric element!PathOnSurface}
+\item \texttt{PolarPath}($P$, $H$): A path in 3D space made from another path, $P$,
+  such that the neutral plane at height $H$ is wrapped around a cylinder aligned with
+  the x-axis.\index{geometric element!PolarPath}
+\item \texttt{PyFunctionPath}($f$): a path defined by the user-supplied Python function, $f(t)$.
+  The user function returns a tuple of three values representing the point in space 
+  for parameter value $t$.\index{geometric element!PyFunctionPath}
+\end{itemize}
+
+Most \texttt{Path} objects (except \texttt{PyFunctionPath}) support the transformation methods
+\texttt{translate(displacement)}, 
+\texttt{reverse()}, 
+\texttt{mirror\_image(point, normal)} and \\
+\texttt{rotate\_about\_zaxis(radians)}.
+Look in the source code files \texttt{gpath.hh} and \texttt{gpath.cxx} for details.
+These may be found in the directory \texttt{cfcfd3/lib/geometry2/source/}.
+
+\subsubsection{Surfaces}
+%
+The \texttt{ParametricSurface}\index{geometric element!ParametricSurface} class 
+represents two-dimensional objects which can be constructed from \texttt{Path} objects.
+Examples are:
+\begin{itemize}
+\item \texttt{CoonsPatch}($p_S, p_N, p_W, p_E$): a transfinite interpolated
+  surface between the four paths.\index{geometric element!CoonsPatch}
+  It is expected that the paths join at the corners of the patch, such that
+  $p_S(0) = p_W(0) = p00$, $p_S(1) = p_E(0) = p10$, $p_N(0) = p_W(1) = p01$ and $p_N(1) =  p_E(1) = p11$.
+  See the left part of Figure\,\ref{block2d-defn-fig} for the layout of this surface.
+  Note that, although we are using subscripts aligned with the BOTTOM and TOP
+  surfaces in this description, the same order is used for the other surfaces
+  when the local surface parametric directions are aligned with the relevant index
+  directions.
+  See the debugging cube in Appendix\,\ref{cube-development}.
+  Be aware that the order of the supplied paths for each surface is (SOUTH, NORTH, WEST, EAST),
+  which is different to the order accepted by the \texttt{make\_patch()} function 
+  that is used to make two-dimensional grids in the following section.  
+  Finally, it is important to be careful with the orientation of the \texttt{Path}
+  elements that form the patch boundaries.
+  The NORTH and SOUTH boundaries progress WEST to EAST as shown in Figure\,\ref{block2d-defn-fig}
+  (in the following section).
+  The WEST and EAST boundaries progress SOUTH to NORTH.
+  If the \texttt{e3prep.py} program complains that the corners of your patch are ``open'',
+  that may be a symptom of having one, or more, of your bounding paths having incorrect orientation.
+\item \texttt{AOPatch}($p_S, p_N, p_W, p_E$): an interpolated surface \index{geometric element!AOPatch}
+  that tries to keep the grid orthogonal near the edges and 
+  also tries to keep equal areas across the surface.
+\item \texttt{MeshPatch}: a surface defined over a structured mesh of
+  quadrilateral facets.\index{geometric element!MeshPatch}
+  This might be useful for generating new grids from files imported from
+  an external grid generator.
+\item \texttt{TrianglePatch}: a surface defined over an unstructured mesh of
+  triangular facets.\index{geometric element!TrianglePatch}
+  When the surface is really too complex to describe as a simpler form,
+  this type of surface can conform (approximately) to just about anything.
+\item \texttt{BezierPatch}: a surface defined over a tensor product of Bezier curves.\index{geometric element!BezierPatch} 
+\item \texttt{RevolvedSurface}($p$): a surface defined by rotating Path $p$
+  about the $x$-axis.\index{geometric element!RevolvedSurface}
+  When calling the \texttt{eval(r,s)} method for this surface, 
+  the first parameter, \texttt{r}, is along the path and the second parameter, 
+  \texttt{s}, is the angle in the ($y,z$)-plane.
+\item \texttt{MappedSurface}($S_{query}$, $S_{true}$)\index{geometric element!MappedSurface}: points on the
+  query surface are projected onto the true surface.
+  The final surface is a subset of the true surface.
+  Usually the query surface is something simple like a \texttt{CoonsPatch}
+  that is close to the shape of the desired grid and
+  the true surface could be constructed as a \texttt{RevolvedSurface} which is
+  a bit difficult to grid regularly.
+\item \texttt{PolarSurface}($S$, $H$): A surface in 3D space made from another surface, $S$,
+  such that the neutral plane at height $H$ is wrapped around a cylinder aligned with
+  the x-axis.\index{geometric element!PolarSurface}
+\item \texttt{SurfaceThruVolume}($V$,$f_r$,$f_s$,$f_t$)\index{geometric element!SurfaceThruVolume}: a surface through the
+  ParametricVolume $V(r,s,t)$, defined by the univariate functions 
+  $r=f_r(t)$, $s=f_s(t)$ and $t=f_t(t)$.
+\item \texttt{NurbsSurface}\index{geometric element!NurbsSurface}: a surface defined as the tensor product of non-uniform rational B-splines.
+\item \texttt{PyFunctionSurface}($f$)\index{geometric element!PyFunctionSurface}: a surface defined by the user-supplied Python function, $f(r,s)$.
+  The user function returns a tuple of three values representing the point in 3D space 
+  for parameter values $r$ and $s$.
+  If you are trying to build a 2D simulation, just return the z-coordinate as zero.
+\end{itemize} 
+
+Except for \texttt{PyFunctionSurface}, most of the surface objects can be cloned and transformed
+with \texttt{translate}, \texttt{mirror\_image} and \texttt{rotate\_about\_zaxis} methods.
+Again, see the source code for details.
+
+
+\subsubsection{Volumes}
+%
+Finally, in its most general form, a 
+\texttt{ParametricVolume}($S_N, S_E, S_S, S_W, S_T, S_B$) \index{geometric element!ParametricVolume}
+can be constructed from
+a set of six parametric surfaces to form a body-fitted hexahedral volume.
+More restricted forms of a volume can be constructed as
+\begin{itemize}
+\item \texttt{WireFrameVolume}($p_{01}, p_{12}, p_{32}, p_{03}, p_{45},
+  p_{56}, p_{76}, p_{47}, p_{04}, p_{15}, p_{26}, p_{37}$): \index{geometric element!WireFrameVolume} is defined by its
+  12 edges (paths).
+  Note the implied directions in the subscripts.
+  The subscripts correspond to the labelled points in Figure\,\ref{block-defn-fig}.
+\item \texttt{WireFrameVolume}($surf, p$): consists of a surface $surf$
+  extruded along path $p$.
+  The extrusion is actually done be forming a set of 6 surfaces by copying the
+  original surface and then constructing four \texttt{CoonsPatch} surfaces
+  between them. 
+\item \texttt{SimpleBoxVolume}($p_0, p_1, p_2, p_3, p_4, p_5, p_6, p_7$): \index{geometric element!SimpleBoxVolume}
+  consists of a straight-edged hexahedral box
+  defined by its 8 corner points (as shown in Figure\,\ref{block-defn-fig}).
+\item \texttt{MeshVolume}\index{geometric element!MeshVolume}: consists of a \texttt{ParametricVolume}
+  interpolated in an existing mesh.
+  This mesh may be specified as an array of points or it may be read in from a
+  VTK file.
+\end{itemize}
+There is an alternative approach to defining the ParametricVolume via a user-supplied
+Python function as
+\begin{itemize}
+ \item \texttt{PyFunctionVolume}($f$)\index{geometric element!PyFunctionVolume}: a volume defined by the user-supplied Python function, $f(r,s,t)$.
+  The user function returns a tuple of three values representing the point in 3D space 
+  for parameter values $r$, $s$ and $t$.
+\end{itemize}
+
+Again, transform methods such as \texttt{translate} and \texttt{rotate\_about\_zaxis} may help in 
+reducing the amount of user input script required to build complex regions out of multiple \texttt{ParametricVolume}
+objects.
+
+%------------------------------------------------------------------
+\subsection{Two-dimensional grids}\index{grid!2D}
+%
+The grid defining the discretized gas domain is block structured. 
+In 2D, each block is a patch bounded by 4 edges (NORTH, EAST, SOUTH and WEST) such that
+we are looking at a plan-view of the flow domain as shown in Fig.\,\ref{block2d-defn-fig}.
+
+\begin{figure}[htbp]
+\mbox{
+\includegraphics[width=0.5\textwidth,viewport=34 102 524 671,clip=true]{figs/block2d-defn.pdf}
+\includegraphics[width=0.5\textwidth,viewport=34 102 524 671,clip=true]{figs/superblock2d-defn.pdf}
+}
+\caption{A two-dimensional patch containing the structured mesh for a Block2D object (left)
+    and a collection of sub-blocks defined via a SuperBlock2D or MultiBlock2D constructor (right).
+    The orientations of the bounding paths are important:  
+    WEST and EAST paths progress from SOUTH to NORTH;
+    SOUTH and NORTH paths progress from WEST to EAST.}
+\label{block2d-defn-fig}
+\end{figure}
+
+\medskip
+To define a block in your input script for a 2D simulation, create a \texttt{Block2D} object as:
+\texttt{
+\begin{tabbing}
+my\_2d\_block = Block2D(\=psurf=None, grid=None, \\
+                        \>import\_grid\_file\_name=None, nni=2, nnj=2, \\
+                        \>cf\_list=[None,]*4, bc\_list=[SlipWallBC(),]*4, \\
+                        \>fill\_condition=None, hcell\_list=[], \\
+                        \>xforce\_list=[0,]*4, label="", active=1)
+\end{tabbing}\index{block!Block2D}
+}
+%
+\noindent
+where the assignment to the name \texttt{my\_2d\_block} allows easy referencing of
+the block at later times, say, for adding boundary conditions.
+The names of the actual arguments given above match the actual arguments in
+the \texttt{e3prep.py} program and these represent\footnote{The
+  definitive source is, of course, the \texttt{Block2D} class definition in 
+  \texttt{e3\_block.py}\index{module!e3\_block.py}. }:
+\begin{itemize}
+\item \texttt{psurf}: a region of 2D space bounded by 4 edges.
+    This region is often constructed from 4 geometric paths via a call to
+    \texttt{make\_patch(north, east, south, west, grid\_type)}\index{make\_patch} where the
+    default value for \texttt{grid\_type} is ``TFI'' \textit{i.e.} transfinite interpolation
+    or Coons' patch.\index{grid!TFI}\index{grid!transfinite interpolation}
+    Another possible form of grid is ``AO'', the area-orthogonality grid.\index{grid!AO}\index{grid!area orthogonality}
+    This is the usual way of specifying the flow domain, which will be discretized 
+    using \texttt{nni, nnj, and cf\_list}.
+    Note that all geometric elements should have zero values for their z-components when
+    doing a 2D flow simulation.
+    Since most constructors will have a default value of zero for the z-component, this
+    detail can usually be ignored.
+\item \texttt{grid}: a \texttt{StructuredGrid} object may be supplied (defaults to None). 
+\item \texttt{import\_grid\_file\_name}\index{import\_grid\_file\_name} defaults to None.
+  If a name is supplied, this file is read to obtain the grid directly.
+  The assumed file format in the legacy (ASCII) VTK format for a structured grid.
+\item \texttt{nni} is the number of finite-volume cells in the $i$-index
+  direction. See the left part of Figure\,\ref{block2d-defn-fig} for the orientation of the index.
+  Note that, when placing one block against another, the blocks must conform in
+  \begin{itemize}
+    \item the number of cells along corresponding edges
+    \item the clustering of those cells along the edges
+    \item the path defining the corresponding edges.
+  \end{itemize}
+  The minimum number of cells is 2, because of the way that the cell-interface values are 
+  reconstructed from cell-centred data.
+\item \texttt{nnj} is the number of finite-volume cells in the $j$-index direction.
+\item \texttt{cf\_list} \label{cflist-item} is an optional list of 4 \texttt{UnivariateFunction} objects
+  that specify a (possibly) nonuniform distribution of cells along each particular edge.
+  \index{clustering!See univariate function}
+  For each object, there is an \texttt{eval(t)} method which returns a transformed (new) value of $t$.
+  The options available are:
+  \begin{itemize}
+    \item \texttt{LinearFunction(m, c)}\index{univariate function!LinearFunction}
+      where $t_{new} = m \times t_{old} + c$.
+    \item \texttt{LinearFunction2(y0, y1)}\index{univariate function!LinearFunction2}
+      where $t_{new} = y0 \times (1-t_{old}) + y1 \times t_{old}$.
+    \item \texttt{RobertsClusterFunction(end0, end1, beta)}\index{univariate function!RobertsClusterFunction}
+      where the \texttt{end0, end1} integer flags indicate which end (possibly both) we wish to cluster toward.
+      The value of \texttt{beta} $> 1.0$ specifies the strength of the clustering, with the clustering
+      being stronger for smaller values of \texttt{beta}.
+      For example, a value of 1.3 would be relatively weak clustering while a value of 1.01 is quite strong
+      clustering.
+    \item \texttt{ValliammaiFunction(dL0, dL1, L, n)}\index{univariate function!ValliammaiFunction}
+      See Adriaan's source code for definitions.
+  \end{itemize}
+  See the files \texttt{lib/nm/source/fobject.cxx} and \texttt{lib/nm/source/fobject.hh} for details.
+  The order of appearance of boundaries in the list is NORTH, EAST, SOUTH and WEST.
+  Note that a full list of 4 items is required.
+  If you don't want to specify one (or more) of the items in the list, specify \texttt{None} as that item.
+\item \texttt{bc\_list} is an optional list of BoundaryCondition objects.\footnote{Note that, 
+  when creating these objects in the Python input script, the Python language requires the parentheses
+  even for the cases where no arguments, such as \texttt{Twall}, are required. }
+  Available boundary conditions are:\index{boundary conditions!list of available}
+  \begin{itemize}\index{boundary conditions}
+    \item \texttt{AdjacentBC()}\index{boundary conditions!AdjacentBC} for cases where one block interfaces with another.
+    \item \texttt{SupInBC(inflow\_condition, label='')}\index{boundary conditions!SupInBC} where we want to specify the inflow condition
+      that gets copies into the ghost cells each time step.
+      The optional \texttt{label} has an empty default value but may be used to group boundary surfaces symbolically
+      in the postprocessing stage.
+      Paul Petrie-Repar has made use of these labels in his \texttt{CGNS} postprocessing program.
+    \item \texttt{ExtrapolateOutBC(x\_order=0, sponge\_flag=0, label='')}\index{boundary conditions!ExtrapolateOutBC} where we want a (mostly supersonic) outflow
+      condition.
+      Flow data is effectively copied (\texttt{x\_order=0}) or linearly-extrapolated (\texttt{x\_order=1})
+      from just inside the boundary to the ghost cells just outside the boundary, every time step.
+      In subsonic flow, this can lead to unphysical bahaviour.
+    \item \texttt{SlipWallBC(label='')}\index{boundary conditions!SlipWallBC} where we want a solid wall with no viscous effects.
+      This is the default boundary condition where no other condition is specified.
+    \item \texttt{AdiabaticBC(label='')}\index{boundary conditions!AdiabaticBC} where we want viscous effects to impose no-slip at the wall
+      but where there is no heat transfer.
+    \item \texttt{FixedTBC(Twall, label='')}\index{boundary conditions!FixedTBC} where we want viscous effects to impose a no-slip velocity 
+      condition and a fixed wall temperature.
+    \item \texttt{SubsonicInBC(stagnation\_condition, label='')}\index{boundary conditions!SubsonicInBC} where the flow is assumed subsonic and
+      we specify the stagnation pressure and temperature, but take the velocity from just inside
+      the boundary.
+    \item \texttt{TransientUniBC(filename, label='')}\index{boundary conditions!TransientUniBC} where we want to specify the time-history of
+      the inflow condition.
+    \item \texttt{StaticProfileBC(filename, label='')}\index{boundary conditions!StaticProfileBC} where we want to apply a steady-state inflow
+       which may vary in space.
+    \item \texttt{FixedPOutBC(Pout, x\_order=0, label='')}\index{boundary conditions!FixedPOutBC} 
+      is like \texttt{ExtrapolateOutBC()} but with a specified back pressure.
+      This can be analogous to a vacuum pump that removes gas at the boundary to maintain
+      a fixed pressure in the ghost cells.
+    \item \texttt{UserDefinedBC(filename, is\_wall=0, use\_udf\_flux=0, label='')}\index{boundary conditions!UserDefinedBC}: 
+       allows the user to define the ghost-cell flow properties and/or interface fluxes at run time.
+       This is done via a set of functions defined by the user, and written in the Lua
+       programming language.
+       These functions are provided in the file given by \texttt{filename}.
+       The flag \texttt{is\_wall} indicates whether the boundary is to be considered
+       a wall for the application of turbulence-model fudges and the like (default 0).
+       The flag \texttt{use\_udf\_flux} indicates whether the user is supplying
+       the fluxes at the boundary interfaces (default 0).  
+       If not, the internal flux calculator is used together with the supplied ghost-cell data.
+       This boundary condition is the Jack of all trades and master of none.
+       It can be used to emulate any of the other boundary conditions and then build
+       variations, however, it is going to cost quite a lot in computational time.
+       See Appendix\,\ref{udf-sec} for the details of setting up this boundary condition.
+    \item \texttt{AdjacentPlusUDFBC(other\_block, other\_face, orientation, filename, \\is\_wall=0, use\_udf\_flux=0, label='')}\index{boundary conditions!AdjacentPlusUDFBC}: 
+       is a combination of the \texttt{AdjacentBC} and \texttt{UserDefinedBC}.
+       At each time step, the flow data is first exchanged, as per the usual
+       \texttt{AdjacentBC}.  Then the user-defined functions are applied.
+       This is one way of getting fancy boundary conditions, such as slowly-opening diaphragms,
+       into the simulation.
+  \end{itemize}
+  These boundary conditions may also be set, one at a time, as described in the 
+  Section\,\ref{setting-boundary-conditions-sec}.
+\item \texttt{fill\_condition} is the \texttt{FlowCondition} object with which to
+  define the initial flow state within the volume.
+  See Section\,\ref{thermo-flow-sec} for defining a suitable flow condition.
+  You may alternatively provide a Python function that supplies the flow properties as
+  a function of position or you may use an \texttt{ExistingSolution()} object.
+\item \texttt{hcell\_list} is a list of ($i,j$)-tuples specifying which
+  cells should be monitored at simulation time.
+  Data from the specified cells will be written to a ``history'' file for the
+  block and may be used at the postprocessing stage to provide flow data as if
+  there was a sensor located in the cell.
+\item \texttt{xforce\_list}\index{xforce\_list} is an optional list of zeros/ones that indicate if we
+  want the force to be calculated for each of the four edges and written to the 
+  \texttt{e3shared.log} log file.
+  See the notes in the 20$^o$ cone test case (Section\,\ref{cone20-simple-sec}) for an
+  example of how to extract this data from the log file. 
+\item \texttt{label} is an optional text label for the block.  This label
+  will be embedded in the block definition and some of the postprocessing
+  programs may use it.
+  For example, the \texttt{e3cgns.py} postprocessing program uses labels to group block boundaries symbolically.
+\end{itemize}
+Note that, when lists of items are provided for the four boundaries,
+the order of the boundaries is NORTH, EAST, SOUTH and WEST.
+ 
+
+\medskip
+When defining large domains and running simulations of a parallel computer, 
+it may be convenient to define many Block2D objects with one call.
+The first of two constructors for this situation is
+\texttt{
+\begin{tabbing}
+my\_block\_list = SuperBlock2D(\=psurf=None, nni=2, nnj=2, nbi=1, nbj=1, \\
+                               \>cf\_list=[None,]*4, bc\_list=[SlipWallBC(),]*4, \\
+                               \>fill\_condition=None, hcell\_list=[], label="sblk")
+\end{tabbing}\index{block!SuperBlock2D}
+}
+\noindent
+which generates a single grid over \texttt{psurf} and then subdivided that grid
+into \texttt{nbi} $\times$ \texttt{nbj} Block2D sub-blocks.
+References to all of these sub-blocks are returned as a list of lists, such that
+a particular sub-block may be obtained as \texttt{my\_block\_list.blks[i][j]}.
+The second constructor is
+\texttt{
+\begin{tabbing}
+my\_block\_list = MultiBlock2D(\=psurf=None, nni=None, nnj=None, \\
+                               \>bc\_list=[SlipWallBC(),]*4, \\
+                               \>nb\_w2e=1, nb\_s2n=1, nn\_w2e=None, nn\_s2n=None,\\
+                               \>cluster\_w2e=None, cluster\_s2n=None,\\
+                               \>fill\_condition=None, label="blk")
+\end{tabbing}\index{block!MultiBlock2D}
+}
+\noindent
+which first subdivides the parametric patch into sub-patches and then generates an
+individual grid over each sub-patch.
+Here, a set of \texttt{nb\_w2e} $\times$ \texttt{nb\_s2n} sub-blocks are generated and, if lists
+of integers are provided for \texttt{nn\_w2e} and \texttt{nn\_s2n}, these will be used
+as the numbers of cells along the edges of the sub-blocks.
+If these lists are not supplied, \texttt{nni} $\times$ \texttt{nnj} cells will be divided
+across the sub-blocks.
+In both of these constructors, the interior boundaries for the sub-blocks are connected 
+(as \texttt{AdjacentBC} boundary conditions).
+
+\medskip
+When assembling large numbers of blocks for complex geometries, there is a function
+\texttt{
+\begin{tabbing}
+identify\_block\_connections(\=block\_list=None, exclude\_list=[],\\
+                             \>tolerance=1.0e-6)
+\end{tabbing}\index{block!identify\_block\_connections}
+}
+\noindent
+that performs a brute-force search for all adjacent blocks and sets \texttt{AdjacentBC}
+boundary conditions for pairs of edges that have coinciding corners (to within a given tolerance).
+If you don't want the search to be over all blocks generated so far, supply a list to
+the \texttt{block\_list} argument.  
+Alternatively, supply a list for blocks that should be excluded.
+
+\medskip
+In some situations, you may want to manually connect particular blocks.
+You can use the function
+\texttt{
+\begin{tabbing}
+connect\_blocks\_2D(\= A, faceA, B, faceB, with\_udf=0, filename=None,\\
+                    \> is\_wall=0, use\_udf\_flux=0)
+\end{tabbing}\index{block!connect\_blocks\_2D}
+}
+\noindent
+where \texttt{A} and \texttt{B} are references to the individual \texttt{Block2D} objects
+and \texttt{faceA} and \texttt{faceB} are their adjoining edges (NORTH, EAST, SOUTH or WEST)
+Most of the time you can just ignore the default arguments associated with user-defined functions
+(\textit{i.e.} \texttt{with\_udf, filename, is\_wall, use\_udf\_flux}).
+These are used to implement slowly-opening diaphragms and the like. 
+
+
+%------------------------------------------------------------------
+\subsection{Three-dimensional grids}\index{grid!3D}
+%
+In 3D, life is just that bit more complicated with
+each block defined by 6 surfaces (NORTH, EAST, SOUTH, WEST, TOP and BOTTOM) 
+fitted to the actual surfaces of the domain.
+Figure\,\ref{block-defn-fig} shows the ``index-space'' view with cell indices
+$i$,$j$ and $k$ taking values $0 \le i < nni$, $0 \le j < nnj$ and 
+$0 \le k < nnk$ respectively.\footnote{
+  The $i$, $j$ and $k$ indices are related to the $r$, $s$ and $t$ parameters
+  used within the 3D geometric functions.
+  In some places, the corner points are identified by their ($r,s,t$)
+  coordinates.
+  For example, in the simple-ramp postprocessing script (section
+  \ref{simple-ramp-post-files}), point 0 would be identified as $p000$, point 1
+  as $p100$, etc.}
+The corner vertices of the block are numbered 1 through 7 as shown.
+These points are used in the search to determine block connectivity if the
+flow domain is defined as consisting of more than one block.
+Subdividing a complex flow domain into simpler subdomains is often done
+because the mapping from parametric space to physical space is limited to a
+simple transfinite interpolation.
+
+\medskip
+To assist in understanding the orientation of the corners, surfaces and indices,
+you can build a model block from the development plan in Appendix~\ref{cube-development}.
+This should bring back fond memories of kindergarten and primary school, 
+at least it did for us.
+
+ 
+\begin{figure}[htbp]
+\mbox{
+\includegraphics[width=0.5\textwidth]{figs/block3d-defn.pdf}
+\includegraphics[width=0.5\textwidth]{figs/block3d-defn-2.pdf}
+}
+\caption{Two views of the hexahedral block containing the structured mesh.
+    These figures are ambiguous but each is supposed to show a hollow box
+    with the \textit{far} surfaces in each view being labelled.  
+    The \textit{near} surfaces are transparent and unlabelled.
+    To get your hands on an unambiguous representation, build the debugging cube
+    drawn in Appendix\,\ref{cube-development}}.
+\label{block-defn-fig}
+\end{figure}
+
+\medskip
+To define a block in your input script, create a \texttt{Block3D} object as:
+\texttt{
+\begin{tabbing}
+my\_3d\_block = Block3D(\=parametric\_volume=None, grid=None, \\
+                        \>import\_grid\_file\_name=None, \\
+                        \>nni=None, nnj=None, nnk=None, \\
+                        \>cf\_list=[None,]*12, bc\_list=[SlipWallBC(),]*6, \\
+                        \>fill\_condition=None, \\
+                        \>hcell\_list=None, xforce\_list=[0,]*6, \\
+                        \>label="", active=1, omegaz=0.0)
+\end{tabbing}\index{block!Block3D}
+}
+%
+\noindent
+where the assignment to the name \texttt{my\_3d\_block} allows easy referencing of
+the block at later times, say, for adding boundary conditions.
+The names of the actual arguments given above match the actual arguments in
+the \texttt{e3prep.py} program and these represent\footnote{Again, the
+  definitive source is, of course, the \texttt{Block3D} class definition in 
+  \texttt{e3\_block.py}. }:
+\begin{itemize}
+\item \texttt{parametric\_volume}: a region of 3D space bounded by 6 surfaces.
+    This is the usual way of specifying the flow domain, which will be discretized 
+    using \texttt{nni, nnj, nnk and cf\_list}.
+    See the following section for a guide to constructing \texttt{parametric\_volume} objects.
+\item \texttt{grid}: a \texttt{StructuredGrid} object may be supplied (defaults to None). 
+\item \texttt{import\_grid\_file\_name}\index{import\_grid\_file\_name} defaults to None.
+  If a name is supplied, this file is read to obtain the grid directly.
+  The assumed file format in the legacy (ASCII) VTK format for a structured grid.
+  There is also an external tool (\texttt{p2e.py}) that can be used to convert
+  Plot3D format files to Eilmer's native format.
+\item \texttt{nni} is the number of finite-volume cells in the $i$-index
+  direction as shown in Figure\,\ref{block-defn-fig}.
+  This is only used when diecretizing a \texttt{parametric\_volume}.
+  When importing or supplying a grid, this data (\texttt{nni, nnj and nnk}) is ignored.
+  Note that, when placing one block against another, the blocks must conform in
+  \begin{itemize}
+    \item the number of cells along corresponding edges
+    \item the clustering of those cells along the edges
+    \item the path defining the corresponding edges.
+  \end{itemize}
+\item \texttt{nnj} is the number of finite-volume cells in the $j$-index direction.
+\item \texttt{nnk} is the number of finite-volume cells in the $k$-index direction.
+\item \texttt{cf\_list} is a list of \texttt{Function} objects
+  that specify a (possibly) nonuniform distribution of cells along a
+  particular edge of the \texttt{parametric\_volume}.
+  The order of the edges is shown in Table\,\ref{edge-list-table}.
+  See page~\pageref{cflist-item} for a more complete description of the cluster functions.
+\begin{table}
+  \caption{Directions for the edges of a \texttt{Block3D} object.}
+  \label{edge-list-table}
+  \begin{center}
+    \begin{tabular}{cccl}
+      \hline\hline
+      edge & from point & to point & comment \\ 
+      \hline
+      0  & $p_0$      & $p_1$    & $i$-direction, bottom surface \\
+      1  & $p_1$      & $p_2$    & $j$-direction, bottom surface \\
+      2  & $p_3$      & $p_2$    & $i$-direction, bottom surface \\
+      3  & $p_0$      & $p_3$    & $j$-direction, bottom surface \\
+      4  & $p_4$      & $p_5$    & $i$-direction, top surface \\
+      5  & $p_5$      & $p_6$    & $j$-direction, top surface \\
+      6  & $p_7$      & $p_6$    & $i$-direction, top surface \\
+      7  & $p_4$      & $p_7$    & $j$-direction, top surface \\
+      8  & $p_0$      & $p_4$    & $k$-direction \\
+      9  & $p_1$      & $p_5$    & $k$-direction \\
+      10 & $p_2$      & $p_6$    & $k$-direction \\
+      11 & $p_3$      & $p_7$    & $k$-direction \\
+      \hline \hline
+    \end{tabular}
+  \end{center}
+\end{table}
+\item \texttt{bc\_list} is an optional list of BoundaryCondition objects for the 
+  six bounding surfaces (\texttt{NORTH, EAST, SOUTH, WEST, TOP, BOTTOM}).
+  Available boundary conditions are the same as for Block2D objects
+\item \texttt{fill\_condition} is the \texttt{FlowCondition} object with which to
+  define the initial flow state within the volume.
+  See Section\,\ref{thermo-flow-sec} for defining a suitable flow condition.
+  This may also be a callable function that supplies the flow properties as
+  a function of position.
+\item \texttt{hcell\_list} is a list of ($i,j,k$)-tuples specifying which
+  cells should be monitored at simulation time.
+  Data from the specified cells will be written to a ``history'' file for the
+  block and may be used at the postprocessing stage to provide flow data as if
+  there was a sensor located in the cell.
+\item \texttt{xforce\_list} is an optional list of zeros/ones that indicate if we
+  want the force to be calculated for each of the six surfaces and written to the 
+  \texttt{e3shared.log} log file.
+  The order of the boundaries is the same as for \texttt{bc\_list}.
+\item \texttt{label} is an optional text label for the block.  This label
+  will be embedded in the block definition and some of the postprocessing
+  programs may use it.
+\item \texttt{omegaz} is the rotational speed of the volume about the z-axis.
+  This parameter is non-zero only for rotating components of the turbomachine grids.
+\end{itemize} 
+
+\medskip
+To manually connect particular Block3D objects, you can use the function
+\texttt{
+\begin{tabbing}
+connect\_blocks\_3D(\= A, B, vtx\_pairs, with\_udf=0, filename=None,\\
+                    \> is\_wall=0, use\_udf\_flux=0)
+\end{tabbing}\index{block!connect\_blocks\_3D}
+}
+\noindent
+where \texttt{A} and \texttt{B} are references to the individual \texttt{Block3D} objects
+and \texttt{vtx\_pairs} is a list of 4 pairs (tuples) of vertex indices.
+For example, the list \texttt{[(3,2),(7,6),(6,7),(2,3)]} specifies a \texttt{NORTH}-to-\texttt{NORTH} connection
+with orientation \texttt{0}.
+The definitions of all allowable connections is listed near the top of the file \texttt{e3\_block.py}.
+You will see that there are \textit{many} more combinations in 3D compared with 2D.
+
+\medskip
+As for the 2D grids, there are two composite-block generation functions.
+The first takes a volume, grids it and then subdivides the newly generated grid:
+\texttt{
+\begin{tabbing}
+my\_3d\_block = SuperBlock3D(\=parametric\_volume=None, cf\_list=[None,]*12, \\
+                        \>fill\_condition=None, \\
+                        \>nni=2, nnj=2, nnk=2, \\
+                        \>nbi=1, nbj=1, nbk=1, \\
+                        \>bc\_list=[SlipWallBC(),]*6, label="sblk", \\
+                        \>hcell\_list=None, omegaz=0.0)
+\end{tabbing}\index{block!SuperBlock3D}
+}
+\noindent
+where \texttt{nbi}, \texttt{nbi} and \texttt{nbk} are the number of basic blocks in each of the
+index directions.
+The values for \texttt{nni}, \texttt{nnj} and \texttt{nnk} specify the number of cells for the grid
+generated over the whole volume.
+The second composite block takes a volume, subdivides that volume and then generates a separate
+grid within each subvolume:
+\texttt{
+\begin{tabbing}
+my\_3d\_block = MultiBlock3D(\=parametric\_volume=None, \\
+                        \>fill\_condition=None, \\
+                        \>nni=None, nnj=None, nnk=None, \\
+                        \>nbi=1, nbj=1, nbk=1, \\
+                        \>clusteri=None, clusterj=None, clusterk=None, \\
+                        \>bc\_list=[SlipWallBC(),]*6, label="blk", \\
+                        \>hcell\_list=None, omegaz=0.0)
+\end{tabbing}\index{block!MultiBlock3D}
+}
+\noindent
+Here, \texttt{nni}, \texttt{nnj} and \texttt{nnk} may be integer values or lists of integer values.
+If they are simple integers, they represent the number of cells over the whole volume.
+If they are lists of integers, they specify the number of cells each of the subblocks.
+The \texttt{clusteri}, \texttt{clusterj} and \texttt{clusterk} may be lists of cluster functions
+that get applied to the subblocks in the respective index directions.
+
+\noindent
+Note the the composite-block objects contain a member \texttt{blks} that refers to the list of basic
+blocks that form the composite block.
+Any further setting of boundary conditions, and the like, 
+needs to be done to the individual blocks within this list.
+See the input script for the finite-cylinder case (on page\,\pageref{finite-cyl-script}) for an example of this.
+
+\medskip
+When assembling large numbers of blocks for complex geometries, the function
+\texttt{
+\begin{tabbing}
+identify\_block\_connections(\=block\_list=None, exclude\_list=[],\\
+                             \>tolerance=1.0e-6)
+\end{tabbing}\index{block!identify\_block\_connections}
+}
+\noindent
+also works for 3D blocks.
+As for 2D blocks, it performs a brute-force search for all adjacent blocks and sets \texttt{AdjacentBC}
+boundary conditions for pairs of faces that have coinciding corners (to within a given tolerance).
+The rotational orientation of the joined faces is also determined automatically.
+If you don't want the search to be over all blocks generated so far, supply a list to
+the \texttt{block\_list} argument.  
+Alternatively, supply a list for blocks that should be excluded.
+
+\medskip
+Be aware that the \texttt{identify\_block\_connections()} function is unaware of the form of the actual paths
+or surfaces connecting the corner points. 
+It may be that the corners coincide but the paths and surfaces do not conform.
+If you want more control over the process of joining blocks, you can manually
+connect blocks using the \texttt{connect\_blocks\_3D()} function which makes the logical
+connection without looking at the geometric locations of the corners.
+This situation might arise, for example, when you want to apply periodic boundary conditions
+\index{boundary conditions!periodic} in the cross-stream direction of a flow domain.
+Then, the boundaries that you want to connect have corners and faces that really don't coincide.
+
+%-------------------------------------------------------------------
+\bigskip
+\section{Setting conditions for individual boundaries}
+\label{setting-boundary-conditions-sec}\index{boundary conditions!setting individually}
+%
+If you have not already set all appropriate boundary conditions through the \texttt{bc\_list}
+argument of the block constructor, you may apply boundary conditions to specific faces 
+of a \texttt{Block2D} or \texttt{Block3D} object by calling its method
+\texttt{
+\begin{tabbing}
+set\_BC(\=face\_name, type\_of\_BC, inflow\_condition=None, x\_order=0,\\
+      \>sponge\_flag=None, Twall=None, Pout=None, filename=None,\\
+      \>is\_wall=0, use\_udf\_flux=0, label='')
+\end{tabbing}\index{boundary conditions!set\_BC}
+}
+\noindent
+and specifying the face and type of boundary condition.
+When this function is called, it creates a suitable boundary condition object 
+(as discussed in the previous section) and binds it to the appropriate block boundary.
+There is no difference in the end result compared with the approach of
+specifying the boundary conditions when the block is created. 
+\begin{itemize}
+  \item \texttt{face\_name}: one of \texttt{NORTH}, \texttt{EAST},
+    \texttt{SOUTH}, \texttt{WEST}, \texttt{TOP}, \texttt{BOTTOM}
+  \item \texttt{type\_of\_BC}: one of 
+    \begin{itemize}
+      \item \texttt{ADJACENT}: there is another block abutting this face.
+        This boundary condition is usually set by the block-conection functions.
+      \item \texttt{SUP\_IN}: supersonic inflow using the
+        \texttt{inflow\_condition} properties.
+      \item \texttt{EXTRAPOLATE\_OUT}: (assumed) supersonic-outflow where the
+        ghost-cell flow properties are copies or extrapolations 
+        of the adjacent interior cell properties.
+      \item \texttt{SLIP\_WALL}: an inviscid solid wall where the normal
+        velocity in the ghost cells is a reflection of the velocity in the
+        interoir cell.
+      \item \texttt{ADIABATIC}: a no-slip wall where the wall temperature is
+        the same as the cell-centre temperature.
+      \item \texttt{FIXED\_T}: a no-slip wall where the wall temperature is
+        specified by \texttt{Twall} in degrees K.
+      \item \texttt{SUBSONIC\_IN}: subsonic inflow where the stagnation
+        pressure and temperature is specified and the velocity is taken from
+        the interior cell.
+      \item \texttt{TRANSIENT\_UNI}: a transient flow condition applied
+        uniformly across the face of the block.
+      \item \texttt{STATIC\_PROF}: a time-invariant flow condition that has
+        spatial variation across the face of the block.
+      \item \texttt{FIXED\_P\_OUT}: something like the \texttt{EXTRAPOLATE\_OUT}
+        condition with the pressure in the ghost cells set to \texttt{Pout}.
+      \item \texttt{RRM}: rescaled and recycled data for Andrew Denman's LES simulations.
+      \item \texttt{USER\_DEFINED}: the user-supplied Lua functions are used to
+        determine ghost-cell flow properties and or interface fluxes.
+        These functions are provided in the file given by \texttt{filename}.
+        The flag \texttt{is\_wall} indicates whether the boundary is to be considered
+        a wall for the application of turbulence-model fudges and the like (default 0).
+        The flag \texttt{use\_udf\_flux} indicates whether the user is supplying
+        the fluxes at the boundary interfaces (default 0).  
+        If not, the internal flux calculator is used together with the supplied ghost-cell data.
+      \item \texttt{ADJACENT\_PLUS\_UDF}:
+    \end{itemize}
+  \item \texttt{inflow\_condition}: the flow condition used for
+    \texttt{SUP\_IN}, default value None.
+  \item \texttt{x\_order}: Order of extrapolation for \texttt{EXTRAPOLATE\_OUT} and 
+    \texttt{FIXED\_P\_OUT}, default value 0.
+  \item \texttt{sponge\_flag}: Andrew Denman's flag, default value None.
+  \item \texttt{Twall}: static temperature of the wall in degrees K, default value None.
+  \item \texttt{Pout}: static pressure in Pa applied to the ghost cells, default value None.
+  \item \texttt{label}: symbolic label for the boundary, default value is an empty string.
+\end{itemize}
+You need only specify the properties that are relevant to the specific
+boundary condition.
+
+%------------------------------------------------------------------
+\bigskip
+\section{Special zones and history points}
+\label{sec:special-zones}
+% 
+Zones of heating or cooling may be defined within the flow domain as rectangular (2D) 
+or regular hexahedral (3D) patches which are specified by two diagonally-opposite
+corners (\texttt{point0} and \texttt{point1}).
+For example, we could specify\\
+\texttt{HeatZone(qdot, point0, point1, label="")}\index{HeatZone}\\
+where \texttt{qdot} is the heat addition per unit volume in W/m$^3$.
+The corners of each hexahedral zone are given by the \texttt{Vector} values 
+\texttt{point0} and \texttt{point1}.
+If the centre of a cell lies within the heat zone, \texttt{qdot} is added to
+the source term in the energy equation every time step during the simulation. When using
+a HeatZone it is necessary to give at least \texttt{heat\_time\_stop} a positive non-zero
+value and \texttt{heat\_time\_start} and \texttt{heat\_factor\_increment} can also be modified
+as appropriate.
+A HeatZone might be used to model the deposition of energy into a small volume from 
+a high-power laser, for example.
+
+\medskip
+Similarly, zones of reaction are defined with\\
+\texttt{ReactionZone(point0, point1, label="")}\index{ReactionZone}\\
+where the finite-rate reactions will be allowed to proceed.
+Outside of these zones, the finite-rate chemical update will be suppressed 
+and the species concentrations will be effectively frozen.
+If no such zones are specified, reactions are permitted for the entire flow field.
+
+\medskip
+Also, when running turbulent flow simulations, the turbulence model can also be
+restricted to being applied to specific zones using\\
+\texttt{TurbulenceZone(point0, point1, label="")}\index{TurbulenceZone}\\
+The turbulence model (say, the $k-\omega$ model) is active throughout the flow
+but its effect on the flow field is masked outside of the \texttt{TurbulenceZone}s.
+This is achieved by the code setting the turbulence viscosity and conductivity to zero
+for finite-volume cells that fall outside of all regions defined as a \texttt{TurbulenceZone}.
+If there a no such defined regions, all of the flowfield may have nonzero turbulence viscosity.
+
+\medskip
+As well as being identified by their cell indices when defining a block,
+history points can be located by their Cartesian coordinates using:\\
+\texttt{HistoryLocation(x, y, z=0.0, i\_offset=0, j\_offset=0, k\_offset=0, label="")}\index{HistoryLocation} \\
+where the offset indices allow you to select a cell a known number of cells 
+away from another.
+
+%------------------------------------------------------------------
+\bigskip
+\section{Simulation control parameters}
+\label{sec:sim-control-parameters}
+\index{configuration parameters}\index{control parameters}
+%
+A number of other parameters can be set in order to control the behaviour of
+the simulation.
+These parameters are mainly collected into the \texttt{gdata}
+object\footnote{The \texttt{gdata} object is an instance of the \texttt{GlobalData}
+  class defined in \texttt{e3prep.py}. Most of the attributes are discussed here,
+  however, see the source code for that class for a full list of attributes.} 
+which is accessible to the user's input script.
+Grouped by theme, the possible attributes include\footnote{Attributes that are stored in the control file\index{control file}
+are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config file}}:
+\paragraph{Geometry}
+\begin{itemize}
+\item \texttt{dimensions}: number of geometric dimensions (2 or 3).  
+  If unspecified, the default is 2.
+\item \texttt{axisymmetric\_flag}: 1=2D-axisymmetric geometry with $x$-axis being the axis of symmetry,
+  0=2D-planar geometry, default value 0.
+\end{itemize}
+
+\paragraph{Time stepping}
+\begin{itemize}
+\item \texttt{sequence\_blocks}: 0=normal time iteration on all blocks, 1=integrate one block
+  at a time, default value 0.
+\item \texttt{dt}\ddag: the initial time step (in seconds) that will be used for the
+  first few steps of the simulation process.
+  Be careful to set a value small enough for the time-stepping to be stable.
+  Since the time stepping is synchronous across all parts of the flow domain,
+  this time step size should be smaller than half of the smallest time for a signal
+  (pressure wave) to cross any cell in the flow domain. 
+\item \texttt{dt\_chem}: suggested time-step for finite-rate chemistry update;
+  default value of -1.0 indicates that we want the code to work it out.
+\item \texttt{dt\_therm}: default value -1.0.
+\item \texttt{t\_order}\ddag: 1=Euler time stepping, 2=predictor-corrector
+  time-stepping, default value 1.
+  If you want time-accurate solutions, use predictor-corrector stepping,
+  otherwise, Euler stepping is half the computational expense 
+  (but you may get less accuracy and the code will not be as robust).
+\item \texttt{fixed\_time\_step}\ddag: 1=do not change time step from that specified, 
+  0=allow time step size to be determined from cell conditions and cfl number, default value 0.
+\item \texttt{cfl}\ddag: ratio of the smallest signal time to the actual time step,
+  default value 0.5.
+\item \texttt{stringent\_cfl}\ddag: 1=use the smallest cross-cell distance in the
+  CFL check, 0=use different cell widths in each index direction, default is 0.
+\item \texttt{dt\_reduction\_factor}\ddag: if the CFL condition is violated, scale the time-step size
+  down by this factor, default value 0.2.
+\item \texttt{cfl\_count}: number of time steps between checks of the CFL
+  condition, default value 10.
+  This check is expensive so we don't want to do it too frequently but, then,
+  we have to be careful that the time step does not become unstable.
+\item \texttt{max\_time}\ddag: the simulation will be terminated on reaching this
+  value of time, default value $1.0 \times 10^{-3}$.
+\item \texttt{t0}: starting time for simulation, may be useful to change when restarting from another job,
+  default value 0.0.
+\item \texttt{max\_step}\ddag: the simulation will be terminated on reaching this
+  number of time steps, default value 10.
+\item \texttt{dt\_plot}\ddag: the whole flow solution will be written to disk when
+  this amount of simulation time has elapsed, default value $1.0 \times 10^{-3}$s.
+\item \texttt{dt\_history}\ddag: the history-point data will be written to disk
+  when this amount of time has elapsed, default value $1.0 \times 10^{-3}$s.
+\end{itemize}
+
+\paragraph{Spatial reconstruction/interpolation}
+\begin{itemize}
+\item \texttt{x\_order}\ddag: 1=no reconstruction of intra-cell flow properties
+  before applying the flux calculator, 2=high-order reconstruction applied, 
+  default value 2.
+\item \texttt{apply\_limiter\_flag}: 1=apply reconstruction limiter, default value 1.
+\item \texttt{extrema\_clipping\_flag}: 1=do extrema clipping at end of 1D scalar reconstruction,
+  default value 1.  A value of 0 suppresses clipping.
+\item \texttt{interpolation\_type}: string to choose the set of interpolation variables
+  to use in the interpolation, options are "rhoe", "rhop", "rhoT", "pT", default value "rhoe".
+\end{itemize}
+
+\paragraph{Flux calculator}
+\begin{itemize}
+\item \texttt{flux\_calc}: selects the flavour of the flux calculator, 
+  default value \texttt{ADAPTIVE}.
+  The ADAPTIVE scheme is a good all-round scheme that uses AUSMDV away from
+  shocks and EFM near shocks.
+\item \texttt{compression\_tolerance}: value of relative velocity change (normalised by local sound-speed)
+   across a cell-interface that triggers the shock-point detector.  A negative value indicates a compression.
+   When the ADAPTIVE flux calculator is used and the shock detector is triggered, the EFM flux calculation
+   will be used in place of the default AUSMDV calculation.
+   A value of -0.05 seems OK for the sod and cone20 inviscid flow simulations, however,
+   a higher value is needed for cases with viscous boundary layers, 
+   where it is important to not have too much dissipation in the boundary layer region.
+   The default value is -0.30.
+\item \texttt{shear\_tolerance}: value of the relative tangential-velocity change 
+   (normalised by local sound speed) across a cell-interface that suppresses the use of EFM even if the
+   shock detector indicates that EFM should be used for the ADAPTIVE flux calculator.
+   The default value is experimentally set at 0.20 to get smooth shocks
+   in the stagnation region of bluff bodies.
+   A smaller value (say, 0.05) may be needed to get strongly expanding flows to behave 
+   when regions of shear are also present.
+\end{itemize}
+
+\paragraph{Viscous effects}
+\begin{itemize}
+\item \texttt{viscous\_flag}: 1=viscous terms are active, 0=inviscid
+  simulation, default value 0.
+\item \texttt{viscous\_delay}: the time (in seconds) to wait before applying
+  the viscous terms.
+  This might come in handy when trying to start blunt-body simulations.
+\item \texttt{viscous\_factor\_increment}: per-time-step increment of the viscous effects, once
+  t\,$>$\,viscous\_delay, default value 0.01.
+\item \texttt{diffusion\_flag}: 1=compute multicomponent diffusion of species, default value 0.
+\item \texttt{diffusion\_model}: string, default value "None".
+\item \texttt{turbulence\_flag}: 1=activate turbulence model, 0=laminar viscosity only,
+  default value 0.
+\item \texttt{turbulence\_model}: string specifying which model to use, "k\_omega", "baldwin\_lomax",
+  default "k\_omega".
+\item \texttt{turbulence\_prandtl\_number}: default value 0.89
+\item \texttt{turbulence\_schmidt\_number}: default value 0.75
+\item \texttt{max\_mu\_t\_factor}: turbulent viscosity is limited to laminar viscosity multiplied
+  by this factor, default value 300.0. 
+\item \texttt{transient\_mu\_t\_factor}: default value 1.0.
+\end{itemize}
+
+\paragraph{Chemistry}
+\begin{itemize}
+\item \texttt{reacting\_flag}: flag to indicate that the finite-rate chemical
+  reactions are active.
+  It has a default value of 0, however, it gets set to 1 if the call 
+  to \texttt{set\_reaction\_scheme()} is made.
+  This is the usual way of setting it.
+\item \texttt{reaction\_update}: File name for reaction scheme configuration.
+  (More conveniently set by calling \texttt{set\_reaction\_scheme()}.)
+\item \texttt{reaction\_time\_start}: time after which finite-rate reactions are allowed to start,
+  default value 0.0.
+\end{itemize}
+
+\paragraph{Miscellaneous}
+\begin{itemize}
+\item \texttt{title}: a title string that may appear in a number of places.
+  For example, in plots made during the postprocessing stage.
+\item \texttt{max\_invalid\_cells}: the maximum number of bad cells that will be tolerated on
+  decoding conserved quantities.  It this number is exceeded, the simulation will stop. default value 10.
+\item \texttt{udf\_source\_vector\_flag}: 1=apply user-defined source terms as supplied in a Lua file,
+  default value 0.
+\item \texttt{udf\_file}: name of the Lua file for the user-defined source terms, default value "".
+\item \texttt{print\_count}\ddag: number of time steps between printing status
+  information to the console, default value 20.
+\item \texttt{heat\_time\_start}: default value 0.0, in seconds.
+  For a description of HeatZones, see Section\,\ref{sec:special-zones}.
+\item \texttt{heat\_time\_stop}: a non-zero value indicates that we wish to add heat
+  through the HeatZones, default value 0.0, in seconds.
+\item \texttt{heat\_factor\_increment}: the fraction of full heat load that will be
+  added with each step after $t$=heat\_time\_start, default value 0.01.
+\item \texttt{mhd\_flag}: 1=make MHD physics active. default value 0.
+\end{itemize}
+
+
+%------------------------------------------------------------------
+\section{Parameters for a 2D sketch of the flow domain}\index{sketch}
+%
+The \texttt{sketch} object holds parameters that set the view and scale of the
+SVG (scalable vector graphic) rendering of the two-dimensional flow domain.
+The method
+\texttt{
+\begin{tabbing}
+sketch.window(\=xmin=0.0, ymin=0.0, xmax=1.0, ymax=1.0,\\
+              \>page\_xmin=0.05, page\_ymin=0.05, page\_xmax=0.17, page\_ymax=0.17)
+\end{tabbing}
+}
+
+\noindent
+sets the mapping from the lower-left to upper-right points in simulation geometry 
+to the corresponding points on a page.
+Axes may also be drawn with:\\
+\texttt{sketch.xaxis(x0, x1, xtic, y\_offset)} \\
+\texttt{sketch.yaxis(y0, y1, ytic, x\_offset)} \\
+where small negative values may be given for the offset values in order to move
+the axes clear of the main sketch elements.
+
+\medskip
+Of course, this sketch environment is only available for 2D simulations.
+For 3D rendering, there is an option for most geometric elements to be rendered as
+Virtual Reality Markup Language (VRML) strings.\index{VRML}  
+These VRML strings may be manually written to a file as part of the user's input script.

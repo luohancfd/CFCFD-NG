@@ -1,4 +1,6 @@
 % udf.tex
+\section{User-defined functions for run-time customization}
+\label{udf-sec}
 User-defined functions (UDFs) are callable for both specialized boundary conditions and 
 for the addition of custom source terms.\footnote{Note that the following information 
 is likely to become dated with code changes,
@@ -85,11 +87,11 @@ On being called at run time, the function \texttt{ghost\_cell(args)} returns two
 The first contains the flow state in the ghost cell nearest the boundary face, 
 and the second contains the flow state for the ghost cell further away from the boundary face.
 Items to appear in the returned tables are:\\
-\begin{tabular}{ll}
+\begin{tabular}{lp{12cm}}
  \texttt{p} &  gas pressure \\
  \texttt{u,v,w} & velocity components in x,y,z-directions \\
- \texttt{massf} & \parbox{12cm}{table of \texttt{nsp} mass fractions. The zero entry, at least, must be specified.} \\
- \texttt{T} &  \parbox{12cm}{table of \texttt{nmodes} temperatures. The zero entry, at least, must be specified.} \\
+ \texttt{massf} & table of \texttt{nsp} mass fractions. The zero entry, at least, must be specified. \\
+ \texttt{T} & table of \texttt{nmodes} temperatures. The zero entry, at least, must be specified. \\
  \texttt{tke} &  turbulent kinetic energy \\
  \texttt{omega} &  $\omega$ for the $k-\omega$ turbulence model \\
  \texttt{mu\_t} &  turbulence viscosity \\
@@ -99,21 +101,25 @@ Items to appear in the returned tables are:\\
  \texttt{S} & shock-detector value (1 or 0) \\
 \end{tabular}\\
 and the input \texttt{args} table contains:\\
-\begin{tabular}{ll}
+\begin{tabular}{lp{12cm}}
  \texttt{t} &  the current simulation time, in seconds \\
  \texttt{x,y,z} &  coordinates of the midpoint of the interface\\
  \texttt{csX,csY,csZ} &  direction cosines for the interface\\
  \texttt{i,j,k} &  indices of the cell adjacent to the interface\\
  \texttt{which\_boundary} & index of the boundary (\texttt{NORTH},...) \\
-\end{tabular}
+\end{tabular}\\
+Note that the \texttt{ghost\_cell} function is called once for every cell along the boundary,
+so be mindful of the possibility of repeating calculations that remain fixed across the full boundary.
+It may be efficient to do the calculation once, at the time the function is called for the first cell,
+and store the resulting data in global variables so that they are ready for use in subsequent calls. 
 
 \medskip
 If viscous effects are active, the Lua function \texttt{interface(args)} is called to
 get a few properties right at the bounding interface.
 These properties are to be returned in a table containing:\\
-\begin{tabular}{ll}
- \texttt{massf} & \parbox{12cm}{table of \texttt{nsp} mass fractions. The zero entry, at least, must be specified.} \\
- \texttt{T} & \parbox{12cm}{table of \texttt{nmodes} temperatures to be set at interface, possibly a wall.}\\
+\begin{tabular}{lp{12cm}}
+ \texttt{massf} & table of \texttt{nsp} mass fractions. The zero entry, at least, must be specified. \\
+ \texttt{T} & table of \texttt{nmodes} temperatures to be set at interface, possibly a wall.\\
  \texttt{u,v,w} & flow velocity at the interface \\
  \texttt{tke} &  turbulent kinetic energy \\
  \texttt{omega} &  $\omega$ for the $k-\omega$ turbulence model \\
