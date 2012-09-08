@@ -400,21 +400,24 @@ int wedge_properties( const Vector3 &p0, const Vector3 &p1,
 	volume = 0.0;
 	// equally-weighted tetrahedral centroids.
 	centroid = (c1 + c2 + c3) / 3.0;
-	return 0;
+	return SUCCESS;
     }
     if ( volume < 0.0 ) {
 	// Something has gone wrong with our wedge geometry.
-	printf("wedge_properties(): significant negative volume: %e\n", volume);
-	printf("                    setting volume to zero\n");
-	volume = 0.0;
+	cout << setprecision(12);
+	cout << "wedge_properties(): significant negative volume: " << volume << endl;
+	cout << "   p0=" << p0 << " p1=" << p1 << " p2=" << p2 << endl;
+	cout << "   p3=" << p3 << " p4=" << p4 << " p5=" << p5 << endl;
+	cout << "   v1=" << v1 << " v2=" << v2 << " v3=" << v3 << endl;
+	cout << "   c1=" << c1 << " c2=" << c2 << " c3=" << c3 << endl;
 	// equally-weighted tetrahedral centroids.
 	centroid = (c1 + c2 + c3) / 3.0;
-	return -1;
+	return FAILURE;
     }
     // Weight the tetrahedral centroids with their volumes.
-    centroid = (c1*v1 + c2*v2 +c3*v3) / volume;
-    return 0;
-} /* end wedge_properties() */
+    centroid = (c1*v1 + c2*v2 + c3*v3) / volume;
+    return SUCCESS;
+} // end wedge_properties()
 
 Vector3 wedge_centroid( const Vector3 &p0, const Vector3 &p1,
 			const Vector3 &p2, const Vector3 &p3,
@@ -448,18 +451,32 @@ int hexahedron_properties( const Vector3 &p0, const Vector3 &p1,
     wedge_properties( p0, p1, p2, p4, p5, p6, c1, v1 );
     wedge_properties( p0, p2, p3, p4, p6, p7, c2, v2 );
     volume = v1 + v2;
-    if (volume < VERY_SMALL_MAGNITUDE) {
-	printf("hexahedron_properties(): zero or negative volume: %e\n", volume);
-	printf("                         setting volume to zero.\n");
+    if ( (volume < 0.0 && fabs(volume) < SMALL_BUT_SIGNIFICANT) ||
+	 (volume >= 0.0 && volume < VERY_SMALL_MAGNITUDE) ) {
+	// We assume that we have a collapsed hexahedron;
+	// no real problem here but it may be a problem for the client code.
+	// That code should test the value of volume, on return.
 	volume = 0.0;
 	// equally-weighted prism centroidal values.
 	centroid = 0.5 * (c1 + c2);
-	return -1;
+	return SUCCESS;
+    }
+    if ( volume < 0.0 ) {
+	// Something has gone wrong with our wedge geometry.
+	cout << setprecision(12);
+	cout << "hexahedron_properties(): significant negative volume: " << volume << endl;
+	cout << "   p0=" << p0 << " p1=" << p1 << " p2=" << p2 << " p3=" << p3 << endl;
+	cout << "   p4=" << p4 << " p5=" << p5 << " p6=" << p6 << " p7=" << p7 << endl;
+	cout << "   v1=" << v1 << " v2=" << v2 << endl;
+	cout << "   c1=" << c1 << " c2=" << c2 << endl;
+	// equally-weighted centroids.
+	centroid = 0.5 * (c1 + c2);
+	return FAILURE;
     }
     // Volume-weight the prism centroidal values.
     centroid = (c1*v1 + c2*v2) / volume;
-    return 0; 
-} /* end hexahedron_properties() */
+    return SUCCESS; 
+} // end hexahedron_properties()
 
 
 double hexahedron_volume( const Vector3 &p0, const Vector3 &p1,

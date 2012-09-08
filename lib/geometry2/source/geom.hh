@@ -36,7 +36,7 @@ public:
     // Clone function (when dealing with pointers to Vector3s)
     Vector3* clone() const;
     /// Returns a string representation like Python __str__()
-    virtual string str(int precision=6) const;
+    virtual string str(int precision=12) const;
     /// Returns Virtual Reality Modelling Language string representation.
     virtual string vrml_str( double radius ) const;
     /// Returns VTK string representation.
