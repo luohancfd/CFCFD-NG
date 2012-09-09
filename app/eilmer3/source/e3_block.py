@@ -1804,8 +1804,30 @@ class SuperBlock3D(object):
                     flat_list.append(new_blk)
                 slab_of_blocks.append(column_of_blocks)
             self.blks.append(slab_of_blocks)
-        #
-        identify_block_connections(flat_list)
+        # Exclicitly connect blocks together within this SuperBlock because the
+        # automatic search breaks when surfaces are allowed to collapse to lines.
+        # identify_block_connections(flat_list)
+        if nbi > 1:
+            # Make connections of faces EAST to WEST
+            for i in range(nbi-1):
+                for j in range(nbj):
+                    for k in range(nbk):
+                        connect_blocks_3D(self.blks[i][j][k], self.blks[i+1][j][k],
+                                          ((2,3),(6,7),(5,4),(1,0)))
+        if nbj > 1:
+            # Make connections of faces NORTH to SOUTH
+            for i in range(nbi):
+                for j in range(nbj-1):
+                    for k in range(nbk):
+                        connect_blocks_3D(self.blks[i][j][k], self.blks[i][j+1][k],
+                                          ((3,0),(7,4),(6,5),(2,1)))
+        if nbk > 1:
+            # Make connections of faces TOP to BOTTOM
+            for i in range(nbi):
+                for j in range(nbj):
+                    for k in range(nbk-1):
+                        connect_blocks_3D(self.blks[i][j][k], self.blks[i][j][k+1],
+                                          ((5,1),(6,2),(7,3),(4,0)))
         return
 
 #----------------------------------------------------------------------

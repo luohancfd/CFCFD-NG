@@ -1,0 +1,14 @@
+[global]
+nrank = 4
+[rank/0]
+nblock = 3
+blocks = 0 1 2 
+[rank/1]
+nblock = 1
+blocks = 3
+[rank/2]
+nblock = 1
+blocks = 4 
+[rank/3]
+nblock = 1
+blocks = 5 
