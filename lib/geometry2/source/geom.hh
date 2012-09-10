@@ -286,6 +286,23 @@ Vector3 hexahedron_centroid( const Vector3 &p0, const Vector3 &p1,
 			     const Vector3 &p4, const Vector3 &p5,
 			     const Vector3 &p6, const Vector3 &p7 );
 
+int hex_cell_properties( const Vector3 &p0, const Vector3 &p1,
+			 const Vector3 &p2, const Vector3 &p3,
+			 const Vector3 &p4, const Vector3 &p5,
+			 const Vector3 &p6, const Vector3 &p7,
+			 Vector3 &centroid, double &volume,
+			 double &iLen, double &jLen, double &kLen );
+
+double hex_cell_volume( const Vector3 &p0, const Vector3 &p1,
+			const Vector3 &p2, const Vector3 &p3,
+			const Vector3 &p4, const Vector3 &p5,
+			const Vector3 &p6, const Vector3 &p7 );
+
+Vector3 hex_cell_centroid( const Vector3 &p0, const Vector3 &p1,
+			   const Vector3 &p2, const Vector3 &p3,
+			   const Vector3 &p4, const Vector3 &p5,
+			   const Vector3 &p6, const Vector3 &p7 );
+
 /** \brief Change from a global Cartesian frame of reference to a frame
  *        with its x-direction normal to the interface.
  *

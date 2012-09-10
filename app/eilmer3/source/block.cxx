@@ -565,6 +565,8 @@ int Block::compute_primary_cell_geometric_data( int dimensions )
 	return SUCCESS;
     }
 
+    // Cell properties of volume and position.
+    // Estimates of cross-cell distances for use in high-order reconstruction.
     for ( i = imin; i <= imax; ++i ) {
 	for ( j = jmin; j <= jmax; ++j ) {
 	    for ( k = kmin; k <= kmax; ++k ) {
@@ -577,8 +579,12 @@ int Block::compute_primary_cell_geometric_data( int dimensions )
 		p5 = &(get_vtx(i+1,j,k+1)->pos);
 		p6 = &(get_vtx(i+1,j+1,k+1)->pos);
 		p7 = &(get_vtx(i,j+1,k+1)->pos);
-		hexahedron_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
-				       cell->pos, cell->volume );
+		hex_cell_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
+				     cell->pos, cell->volume, cell->iLength,
+				     cell->jLength, cell->kLength);
+		cell->L_min = cell->iLength;
+		if ( cell->jLength < cell->L_min ) cell->L_min = cell->jLength;
+		if ( cell->kLength < cell->L_min ) cell->L_min = cell->kLength;
 	    }
 	}
     }
@@ -624,27 +630,6 @@ int Block::compute_primary_cell_geometric_data( int dimensions )
 		quad_properties( *p0, *p1, *p2, *p3,
 				 iface->pos, iface->n, iface->t1, iface->t2,
 				 iface->area );
-	    }
-	}
-    }
-
-    /* Estimate cross-cell distances for use in high-order reconstruction. */
-    for ( i = imin; i <= imax; ++i ) {
-	for ( j = jmin; j <= jmax; ++j ) {
-	    for ( k = kmin; k <= kmax; ++k ) {
-		cell = get_cell(i,j,k);
-		p0 = &(get_ifi(i,j,k)->pos);
-		p1 = &(get_ifi(i+1,j,k)->pos);
-		cell->iLength = vabs(*p1 - *p0);
-		cell->L_min = cell->iLength;
-		p0 = &(get_ifj(i,j,k)->pos);
-		p1 = &(get_ifj(i,j+1,k)->pos);
-		cell->jLength = vabs(*p1 - *p0);
-		if ( cell->jLength < cell->L_min ) cell->L_min = cell->jLength;
-		p0 = &(get_ifk(i,j,k)->pos);
-		p1 = &(get_ifk(i,j,k+1)->pos);
-		cell->kLength = vabs(*p1 - *p0);
-		if ( cell->kLength < cell->L_min ) cell->L_min = cell->kLength;
 	    }
 	}
     }
@@ -908,6 +893,7 @@ int Block::compute_secondary_cell_geometric_data( int dimensions )
 {
     int i, j, k;
     Vector3 dummy;
+    double iLen, jLen, kLen;
     FV_Vertex *vertex;
     FV_Interface *iface;
     Vector3 *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7;
@@ -933,8 +919,8 @@ int Block::compute_secondary_cell_geometric_data( int dimensions )
 		p5 = &(get_cell(i+1,j,k+1)->pos);
 		p6 = &(get_cell(i+1,j+1,k+1)->pos);
 		p7 = &(get_cell(i,j+1,k+1)->pos);
-		hexahedron_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
-				       dummy, vertex->volume );
+		hex_cell_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
+				     dummy, vertex->volume, iLen, jLen, kLen );
 	    }
 	}
     }
@@ -996,8 +982,8 @@ int Block::compute_secondary_cell_geometric_data( int dimensions )
 	    p5 = &(get_ifi(i+1,j,k+1)->pos);
 	    p6 = &(get_ifi(i+1,j+1,k+1)->pos);
 	    p7 = &(get_cell(i,j+1,k+1)->pos);
-	    hexahedron_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
-				   dummy, vertex->volume );
+	    hex_cell_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
+				 dummy, vertex->volume, iLen, jLen, kLen );
 	}
     }
     for ( j = jmin; j <= jmax-1; ++j ) {
@@ -1052,8 +1038,8 @@ int Block::compute_secondary_cell_geometric_data( int dimensions )
 	    p5 = &(get_cell(i+1,j,k+1)->pos);
 	    p6 = &(get_cell(i+1,j+1,k+1)->pos);
 	    p7 = &(get_ifi(i+1,j+1,k+1)->pos);
-	    hexahedron_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
-				   dummy, vertex->volume );
+	    hex_cell_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
+				 dummy, vertex->volume, iLen, jLen, kLen );
 	}
     }
     for ( j = jmin; j <= jmax-1; ++j ) {
@@ -1108,8 +1094,8 @@ int Block::compute_secondary_cell_geometric_data( int dimensions )
 	    p5 = &(get_cell(i+1,j,k+1)->pos);
 	    p6 = &(get_ifj(i+1,j+1,k+1)->pos);
 	    p7 = &(get_ifj(i,j+1,k+1)->pos);
-	    hexahedron_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
-				   dummy, vertex->volume );
+	    hex_cell_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
+				 dummy, vertex->volume, iLen, jLen, kLen );
 	}
     }
     for ( i = imin; i <= imax; ++i ) {
@@ -1164,8 +1150,8 @@ int Block::compute_secondary_cell_geometric_data( int dimensions )
 	    p5 = &(get_ifj(i+1,j+1,k+1)->pos);
 	    p6 = &(get_cell(i+1,j+1,k+1)->pos);
 	    p7 = &(get_cell(i,j+1,k+1)->pos);
-	    hexahedron_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
-				   dummy, vertex->volume );
+	    hex_cell_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
+				 dummy, vertex->volume, iLen, jLen, kLen );
 	}
     }
     for ( i = imin; i <= imax; ++i ) {
@@ -1220,8 +1206,8 @@ int Block::compute_secondary_cell_geometric_data( int dimensions )
 	    p5 = &(get_ifk(i+1,j,k+1)->pos);
 	    p6 = &(get_ifk(i+1,j+1,k+1)->pos);
 	    p7 = &(get_ifk(i,j+1,k+1)->pos);
-	    hexahedron_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
-				   dummy, vertex->volume );
+	    hex_cell_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
+				 dummy, vertex->volume, iLen, jLen, kLen );
 	}
     }
     for ( i = imin; i <= imax; ++i ) {
@@ -1276,8 +1262,8 @@ int Block::compute_secondary_cell_geometric_data( int dimensions )
 	    p5 = &(get_cell(i+1,j,k+1)->pos);
 	    p6 = &(get_cell(i+1,j+1,k+1)->pos);
 	    p7 = &(get_cell(i,j+1,k+1)->pos);
-	    hexahedron_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
-				   dummy, vertex->volume );
+	    hex_cell_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
+				 dummy, vertex->volume, iLen, jLen, kLen );
 	}
     }
     for ( i = imin; i <= imax; ++i) {

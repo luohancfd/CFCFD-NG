@@ -446,6 +446,9 @@ int hexahedron_properties( const Vector3 &p0, const Vector3 &p1,
 			   const Vector3 &p6, const Vector3 &p7,
 			   Vector3 &centroid, double &volume )
 {
+    // We presume the hexahedrom to have reasonably flat faces,
+    // without significant twist.
+    // If it does have significant twist, poor estimates of volume will result. 
     double v1, v2;
     struct Vector3 c1, c2;
     wedge_properties( p0, p1, p2, p4, p5, p6, c1, v1 );
@@ -498,6 +501,141 @@ Vector3 hexahedron_centroid( const Vector3 &p0, const Vector3 &p1,
     double volume;
     Vector3 centroid;
     hexahedron_properties( p0, p1, p2, p3, p4, p5, p6, p7, centroid, volume );
+    return centroid;
+}
+
+
+int hex_cell_properties( const Vector3 &p0, const Vector3 &p1,
+			 const Vector3 &p2, const Vector3 &p3,
+			 const Vector3 &p4, const Vector3 &p5,
+			 const Vector3 &p6, const Vector3 &p7,
+			 Vector3 &centroid, double &volume,
+			 double &iLen, double &jLen, double &kLen )
+{
+    // FIX-ME PJ 10-Sep-2012
+    // When computing the volume of Rolf's thin, warped cells, we have to do 
+    // something better than splitting our cell into a few tetrahedra.
+    // The present code tries one level of splitting in one or two directions
+    // depending on the relative size of the midpoint lengths, however,
+    // it is not successful.
+    // The transfinite interpolation process seems to manage the cell OK so
+    // maybe we should subdivide the cell into many pieces using TFI.
+    double v1, v2, v3, v4;
+    struct Vector3 c1, c2, c3, c4;
+    // Lengths between mid-points.
+    struct Vector3 pmN = 0.25*(p3+p2+p6+p7);
+    struct Vector3 pmE = 0.25*(p1+p2+p6+p5);
+    struct Vector3 pmS = 0.25*(p0+p1+p5+p4);
+    struct Vector3 pmW = 0.25*(p0+p3+p7+p4);
+    struct Vector3 pmT = 0.25*(p4+p5+p6+p7);
+    struct Vector3 pmB = 0.25*(p0+p1+p2+p3);
+    iLen = vabs(pmE - pmW);
+    jLen = vabs(pmN - pmS);
+    kLen = vabs(pmT - pmB);
+    struct Vector3 pm01 = 0.5*(p0+p1);
+    struct Vector3 pm45 = 0.5*(p4+p5);
+    struct Vector3 pm32 = 0.5*(p3+p2);
+    struct Vector3 pm76 = 0.5*(p7+p6);
+    struct Vector3 pm03 = 0.5*(p0+p3);
+    struct Vector3 pm12 = 0.5*(p1+p2);
+    struct Vector3 pm56 = 0.5*(p5+p6);
+    struct Vector3 pm47 = 0.5*(p4+p7);
+    struct Vector3 pm04 = 0.5*(p0+p4);
+    struct Vector3 pm15 = 0.5*(p1+p5);
+    struct Vector3 pm26 = 0.5*(p2+p6);
+    struct Vector3 pm37 = 0.5*(p3+p7);
+    // Split one or two principal directions in two parts.
+    if ( iLen > 4.0*jLen && iLen > 4.0*kLen ) {
+	// cout << "Split iLen by creating mid-points along the edges." << endl;
+	hexahedron_properties(p0, pm01, pm32, p3, p4, pm45, pm76, p7, c1, v1);
+	hexahedron_properties(pm01, p1, p2, pm32, pm45, p5, p6, pm76, c2, v2);
+	volume = v1 + v2;
+	centroid = (c1*v1 + c2*v2) / volume;
+    } else if ( jLen > 4.0*iLen && jLen > 4.0*kLen ) {
+	// cout << "Split jLen" << endl;
+	hexahedron_properties(p0, p1, pm12, pm03, p4, p5, pm56, pm47, c1, v1);
+	hexahedron_properties(pm03, pm12, p2, p3, pm47, pm56, p6, p7, c2, v2);
+	volume = v1 + v2;
+	centroid = (c1*v1 + c2*v2) / volume;
+    } else if ( kLen > 4.0*iLen && kLen > 4.0*jLen ) {
+	// cout << "Split kLen" << endl;
+	hexahedron_properties(p0, p1, p2, p3, pm04, pm15, pm26, pm37, c1, v1);
+	hexahedron_properties(pm04, pm15, pm26, pm37, p4, p5, p6, p7, c2, v2);
+	volume = v1 + v2;
+	centroid = (c1*v1 + c2*v2) / volume;
+    } else if ( iLen < 0.25*jLen && iLen < 0.25*kLen ) {
+	// cout << "Split both jLen and kLen" << endl;
+	hexahedron_properties(p0, p1, pm12, pm03, pm04, pm15, pmE, pmW, c1, v1);
+	hexahedron_properties(pm04, pm15, pmE, pmW, p4, p5, pm56, pm47, c2, v2);
+	hexahedron_properties(pm03, pm12, p2, p3, pmW, pmE, pm26, pm37, c3, v3);
+	hexahedron_properties(pmW, pmE, pm26, pm37, pm47, pm56, p6, p7, c4, v4);
+	volume = v1 + v2 + v3 + v4;
+	centroid = (c1*v1 + c2*v2 + c3*v3 + c4*v4) / volume;
+    } else if ( jLen < 0.25*iLen && jLen < 0.25*kLen ) {
+	// cout << "Split both iLen and kLen" << endl;
+	hexahedron_properties(p0, pm01, pm32, p3, pm04, pmS, pmN, pm37, c1, v1);
+	hexahedron_properties(pm04, pmS, pmN, pm37, p4, pm45, pm76, p7, c2, v2);
+	hexahedron_properties(pm01, p1, p2, pm32, pmS, pm15, pm26, pmN, c3, v3);
+	hexahedron_properties(pmS, pm15, pm26, pmN, pm45, p5, p6, pm76, c4, v4);
+	volume = v1 + v2 + v3 + v4;
+	centroid = (c1*v1 + c2*v2 + c3*v3 + c4*v4) / volume;
+    } else if ( kLen < 0.25*iLen && kLen < 0.25*jLen ) {
+	// cout << "Split both iLen and jLen" << endl;
+	hexahedron_properties(p0, pm01, pmB, pm03, p4, pm45, pmT, pm47, c1, v1);
+	hexahedron_properties(pm01, p1, pm12, pmB, pm45, p5, pm56, pmT, c2, v2);
+	hexahedron_properties(pm03, pmB, pm32, p3, pm47, pmT, pm76, p7, c3, v3);
+	hexahedron_properties(pmB, pm12, p2, pm32, pmT, pm56, p6, pm76, c4, v4);
+	volume = v1 + v2 + v3 + v4;
+	centroid = (c1*v1 + c2*v2 + c3*v3 + c4*v4) / volume;
+    } else {
+	// cout << "Single piece" << endl;
+	hexahedron_properties(p0, p1, p2, p3, p4, p5, p6, p7, centroid, volume);
+    }
+    if ( (volume < 0.0 && fabs(volume) < SMALL_BUT_SIGNIFICANT) ||
+	 (volume >= 0.0 && volume < VERY_SMALL_MAGNITUDE) ) {
+	// We assume that we have a collapsed hex cell;
+	// no real problem here but it may be a problem for the client code.
+	// That code should test the value of volume, on return.
+	volume = 0.0;
+	// equally-weighted prism centroidal values.
+	centroid = (p0+p1+p2+p3+p4+p5+p6)/8.0;
+	return SUCCESS;
+    }
+    if ( volume < 0.0 ) {
+	// Something has gone wrong with our wedge geometry.
+	cout << setprecision(12);
+	cout << "hex_cell_properties(): significant negative volume: " << volume << endl;
+	cout << "   p0=" << p0 << " p1=" << p1 << " p2=" << p2 << " p3=" << p3 << endl;
+	cout << "   p4=" << p4 << " p5=" << p5 << " p6=" << p6 << " p7=" << p7 << endl;
+	// equally-weighted centroids.
+	centroid = (p0+p1+p2+p3+p4+p5+p6)/8.0;
+	cout << "   centroid=" << centroid << endl;
+	return FAILURE;
+    }
+    // Volume-weight the prism centroidal values.
+    return SUCCESS; 
+} // end hex_cell_properties()
+
+
+double hex_cell_volume( const Vector3 &p0, const Vector3 &p1,
+			  const Vector3 &p2, const Vector3 &p3,
+			  const Vector3 &p4, const Vector3 &p5,
+			  const Vector3 &p6, const Vector3 &p7 )
+{
+    double volume, iLen, jLen, kLen;
+    Vector3 centroid;
+    hex_cell_properties( p0, p1, p2, p3, p4, p5, p6, p7, centroid, volume, iLen, jLen, kLen );
+    return volume;
+}
+
+Vector3 hex_cell_centroid( const Vector3 &p0, const Vector3 &p1,
+			     const Vector3 &p2, const Vector3 &p3,
+			     const Vector3 &p4, const Vector3 &p5,
+			     const Vector3 &p6, const Vector3 &p7 )
+{
+    double volume, iLen, jLen, kLen;
+    Vector3 centroid;
+    hex_cell_properties( p0, p1, p2, p3, p4, p5, p6, p7, centroid, volume, iLen, jLen, kLen );
     return centroid;
 }
 
