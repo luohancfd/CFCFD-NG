@@ -42,6 +42,9 @@ public:
     void test_derivatives( Gas_data &Q )
     { return s_test_derivatives(Q); }
     
+    std::string get_name()
+    { return s_get_name(); }
+
 protected:
     int iT_;
     
@@ -49,6 +52,9 @@ protected:
     std::vector<std::string> component_names_;
     std::vector<Species_energy_mode*> components_;
     
+    std::string s_get_name()
+    { return name_; }
+
     virtual double s_decode_conserved_energy(Gas_data &Q, double rhoe);
     virtual double s_encode_conserved_energy(const Gas_data &Q);
     virtual double s_eval_dedT(Gas_data &Q);

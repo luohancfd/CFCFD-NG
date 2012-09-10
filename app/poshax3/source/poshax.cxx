@@ -398,19 +398,19 @@ int main(int argc, char *argv[])
     ++col;
     if ( species_output_type == "molef" ) {
 	for ( int isp = 0; isp < nsp; ++isp ) {
-	    outfile << "# " << col << ": molef[" << isp << "]\n";
+	    outfile << "# " << col << ": molef[" << isp << "]-" << gmodel->species_name(isp) << "\n";
 	    ++col;
 	}
     }
     else if ( species_output_type == "moles" ) {
 	for ( int isp = 0; isp < nsp; ++isp ) {
-	    outfile << "# " << col << ": moles[" << isp << "]\n";
+	    outfile << "# " << col << ": moles[" << isp << "]-" << gmodel->species_name(isp) << "\n";
 	    ++col;
 	}
     }
     else {
 	for ( int isp=0; isp<nsp; ++isp ) {
-	    outfile << "# " << col << ": massf[" << isp << "]\n";
+	    outfile << "# " << col << ": massf[" << isp << "]-" << gmodel->species_name(isp) << "\n";
 	    ++col;
 	}
     }
@@ -480,8 +480,8 @@ int main(int argc, char *argv[])
 	    cout << "dx = " << setw(12) << dx << ' ';
 	    cout << "rho = " << setw(12) << psr->psflow.Q->rho << ' ';
 	    for ( size_t iT=0; iT<T_inf.size(); ++iT )
-	    	cout << "T[" << iT << "] = " << setw(12) << psr->psflow.Q->T[iT]
-	             << " u = " << setw(12) << psr->psflow.u << ' ';
+	    	cout << "T[" << iT << "] = " << setw(12) << psr->psflow.Q->T[iT] << ' ';
+	    cout << "u = " << setw(12) << psr->psflow.u << ' ';
 	    if ( bool(rtmodel) ) 
 	    	cout << "Q_rad = " << setw(12) << psr->psflow.Q_rad << endl;
 	    else cout << endl;
