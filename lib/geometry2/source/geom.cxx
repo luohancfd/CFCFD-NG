@@ -270,11 +270,15 @@ int quad_properties( const Vector3 &p0, const Vector3 &p1,
 		     Vector3 &centroid,
 		     Vector3 &n, Vector3 &t1, Vector3 &t2,
 		     double &area )
+//   p3-----p2
+//   |      |
+//   |      |
+//   p0-----p1
+// Resultant normal vector is up, toward you.
 {
     centroid = 0.25 * (p0 + p1 + p2 + p3);
     // Compute areas via the cross products.
-    Vector3 vector_area = 0.25 * (cross(p0-p3, p2-p3) + cross(p1-p0, p2-p1) +
-				  cross(p3-p2, p1-p2) + cross(p1-p0, p3-p0));
+    Vector3 vector_area = 0.25 * cross(p1-p0+p2-p3, p3-p0+p2-p1);
     // unit-normal and area
     area = vabs(vector_area);
     if ( area > 1.0e-20 ) {
@@ -472,6 +476,7 @@ int hexahedron_properties( const Vector3 &p0, const Vector3 &p1,
 	cout << "hexahedron_properties(): significant negative volume: " << volume << endl;
 	cout << "   p0=" << p0 << " p1=" << p1 << " p2=" << p2 << " p3=" << p3 << endl;
 	cout << "   p4=" << p4 << " p5=" << p5 << " p6=" << p6 << " p7=" << p7 << endl;
+	cout << "   constructed from wedges:" << endl;
 	cout << "   v1=" << v1 << " v2=" << v2 << endl;
 	cout << "   c1=" << c1 << " c2=" << c2 << endl;
 	// equally-weighted centroids.
@@ -517,8 +522,7 @@ double p_dot_dS(const Vector3 &p0, const Vector3 &p1,
 // Right-hand rule then gives a vector pointing back at you.
 {
     Vector3 centroid = 0.25 * (p0 + p1 + p2 + p3);
-    Vector3 vector_area = 0.25 * (cross(p0-p3, p2-p3) + cross(p1-p0, p2-p1) +
-				  cross(p3-p2, p1-p2) + cross(p1-p0, p3-p0));
+    Vector3 vector_area = 0.25 * cross(p1-p0+p2-p3, p3-p0+p2-p1);
     return dot(centroid, vector_area);
 }
 
@@ -553,7 +557,7 @@ int hexahedron2_properties(const Vector3 &p0, const Vector3 &p1,
 	return SUCCESS;
     }
     if ( volume < 0.0 ) {
-	// Something has gone wrong with our wedge geometry.
+	// Something has gone wrong with our divergence-theorem calculation of volume.
 	cout << setprecision(12);
 	cout << "hexahedron2_properties(): significant negative volume: " << volume << endl;
 	cout << "   p0=" << p0 << " p1=" << p1 << " p2=" << p2 << " p3=" << p3 << endl;
@@ -590,12 +594,14 @@ Vector3 hexahedron2_centroid(const Vector3 &p0, const Vector3 &p1,
 double tetragonal_dipyramid_volume(const Vector3 &p0, const Vector3 &p1, 
 				   const Vector3 &p2, const Vector3 &p3, 
 				   const Vector3 &pb, const Vector3 &pc)
-// pc apex
-// pb barycentre of base quad.
-// base quad p0->p1->p2->p3->p0 counterclockwise when looking from pc.
+// J. Grandy (1997) Efficient Computation of Volume of Hexahedral Cells UCRL-ID-128886.
+// Base of each dipyramid is specified clockwise from the outside.
+// pc is apex
+// pb is barycentre of base quad.
+// base quad p0->p1->p2->p3->p0 counterclockwise when looking from pc toward base.
 {
     double volume = dot(pc-pb, cross(p1-p0+p2-p3, p3-p0+p2-p1)) / 12.0;
-    cout << "tetragonal_dipyramid volume=" << volume << endl;
+    // cout << "tetragonal_dipyramid volume=" << volume << endl;
     if ( (volume < 0.0 && fabs(volume) < SMALL_BUT_SIGNIFICANT) ||
 	 (volume >= 0.0 && volume < VERY_SMALL_MAGNITUDE) ) {
 	// We assume that we have a collapsed pyramid (all points coplanar);
@@ -623,11 +629,6 @@ int hex_cell_properties(const Vector3 &p0, const Vector3 &p1,
     // PJ 10-Sep-2012
     // When computing the volume of Rolf's thin, warped cells, we have to do 
     // something better than splitting our cell into six tetrahedra.
-    // The present code tries one level of splitting into four quad panels per side.
-    // Depending on the distortion of the cell, however, this may not be successful.
-    //
-    // The transfinite interpolation process seems to manage the cell OK so
-    // maybe we should subdivide the cell into many pieces using TFI.
     centroid = 0.125 * (p0+p1+p2+p3+p4+p5+p6+p7);
     // Mid-points of faces.
     struct Vector3 pmN = 0.25*(p3+p2+p6+p7);
@@ -642,7 +643,6 @@ int hex_cell_properties(const Vector3 &p0, const Vector3 &p1,
     iLen = vabs(pmE - pmW);
     jLen = vabs(pmN - pmS);
     kLen = vabs(pmT - pmB);
-#if 1
     // cout << "Single hexahedron divided into six tetragonal dipyramids." << endl;
     // J. Grandy (1997) Efficient Computation of Volume of Hexahedral Cells UCRL-ID-128886.
     // Base of each dipyramid is specified clockwise from the outside.
@@ -653,53 +653,6 @@ int hex_cell_properties(const Vector3 &p0, const Vector3 &p1,
     volume += tetragonal_dipyramid_volume(p7, p4, p0, p3, pmW, centroid); // West
     volume += tetragonal_dipyramid_volume(p7, p6, p5, p4, pmT, centroid); // Top
     volume += tetragonal_dipyramid_volume(p0, p1, p2, p3, pmB, centroid); // Bottom
-#   endif
-#   if ( 0 )
-    cout << "Divide each face into 4 quad panels and integrate for divergence theorem." << endl;
-    // Mid-points of edges.
-    struct Vector3 pm01 = 0.5*(p0+p1);
-    struct Vector3 pm45 = 0.5*(p4+p5);
-    struct Vector3 pm32 = 0.5*(p3+p2);
-    struct Vector3 pm76 = 0.5*(p7+p6);
-    struct Vector3 pm03 = 0.5*(p0+p3);
-    struct Vector3 pm12 = 0.5*(p1+p2);
-    struct Vector3 pm56 = 0.5*(p5+p6);
-    struct Vector3 pm47 = 0.5*(p4+p7);
-    struct Vector3 pm04 = 0.5*(p0+p4);
-    struct Vector3 pm15 = 0.5*(p1+p5);
-    struct Vector3 pm26 = 0.5*(p2+p6);
-    struct Vector3 pm37 = 0.5*(p3+p7);
-    volume = 0.0;
-    volume += p_dot_dS(p2, pm32, pmN, pm26); // North
-    volume += p_dot_dS(pm32, p3, pm37, pmN);
-    volume += p_dot_dS(pm26, pmN, pm76, p6);
-    volume += p_dot_dS(pmN, pm37, p7, pm76);
-    volume += p_dot_dS(p1, pm12, pmE, pm15); // East
-    volume += p_dot_dS(pm12, p2, pm26, pmE);
-    volume += p_dot_dS(pm15, pmE, pm56, p5);
-    volume += p_dot_dS(pmE, pm26, p6, pm56);
-    volume += p_dot_dS(p0, pm01, pmS, pm04); // South
-    volume += p_dot_dS(pm01, p1, pm15, pmS);
-    volume += p_dot_dS(pm04, pmS, pm45, p4);
-    volume += p_dot_dS(pmS, pm15, p5, pm45);
-    volume += p_dot_dS(p3, pm03, pmW, pm37); // West
-    volume += p_dot_dS(pm03, p0, pm04, pmW);
-    volume += p_dot_dS(pm37, pmW, pm47, p7);
-    volume += p_dot_dS(pmW, pm04, p4, pm47);
-    volume += p_dot_dS(p4, pm45, pmT, pm47); // Top
-    volume += p_dot_dS(pm45, p5, pm56, pmT);
-    volume += p_dot_dS(pm47, pmT, pm76, p7);
-    volume += p_dot_dS(pmT, pm56, p6, pm76);
-    volume += p_dot_dS(p3, pm32, pmB, pm03); // Bottom
-    volume += p_dot_dS(pm32, p2, pm12, pmB);
-    volume += p_dot_dS(pm03, pmB, pm01, p0);
-    volume += p_dot_dS(pmB, pm12, p1, pm01);
-    volume /= 3.0;
-#   endif
-#if 0
-    cout << "Single hexahedron divided into six tetrahedra." << endl;
-    hexahedron_properties(p0, p1, p2, p3, p4, p5, p6, p7, centroid, volume);
-#   endif
     if ( (volume < 0.0 && fabs(volume) < SMALL_BUT_SIGNIFICANT) ||
 	 (volume >= 0.0 && volume < VERY_SMALL_MAGNITUDE) ) {
 	// We assume that we have a collapsed hex cell;
@@ -717,7 +670,6 @@ int hex_cell_properties(const Vector3 &p0, const Vector3 &p1,
 	cout << "   centroid=" << centroid << endl;
 	return FAILURE;
     }
-    // Volume-weight the prism centroidal values.
     return SUCCESS; 
 } // end hex_cell_properties()
 
