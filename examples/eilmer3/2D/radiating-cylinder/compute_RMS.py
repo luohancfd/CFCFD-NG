@@ -2,7 +2,8 @@
 # compute_relative_errors.py
 
 import sys, os
-
+sys.path.append(os.path.expandvars("$HOME/e3bin")) # installation directory
+sys.path.append("") # so that we can find user's scripts in working directory
 from cfpylib.util.YvX import YvX
 from math import sqrt
 
