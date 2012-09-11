@@ -286,6 +286,29 @@ Vector3 hexahedron_centroid( const Vector3 &p0, const Vector3 &p1,
 			     const Vector3 &p4, const Vector3 &p5,
 			     const Vector3 &p6, const Vector3 &p7 );
 
+double p_dot_dS(const Vector3 &p0, const Vector3 &p1,
+		const Vector3 &p2, const Vector3 &p3);
+
+int hexahedron2_properties(const Vector3 &p0, const Vector3 &p1,
+			   const Vector3 &p2, const Vector3 &p3,
+			   const Vector3 &p4, const Vector3 &p5,
+			   const Vector3 &p6, const Vector3 &p7,
+			   Vector3 &centroid, double &volume);
+
+double hexahedron2_volume(const Vector3 &p0, const Vector3 &p1,
+			  const Vector3 &p2, const Vector3 &p3,
+			  const Vector3 &p4, const Vector3 &p5,
+			  const Vector3 &p6, const Vector3 &p7 );
+
+Vector3 hexahedron2_centroid(const Vector3 &p0, const Vector3 &p1,
+			     const Vector3 &p2, const Vector3 &p3,
+			     const Vector3 &p4, const Vector3 &p5,
+			     const Vector3 &p6, const Vector3 &p7);
+
+double tetragonal_dipyramid_volume(const Vector3 &p0, const Vector3 &p1, 
+				   const Vector3 &p2, const Vector3 &p3, 
+				   const Vector3 &pb, const Vector3 &pc);
+
 int hex_cell_properties( const Vector3 &p0, const Vector3 &p1,
 			 const Vector3 &p2, const Vector3 &p3,
 			 const Vector3 &p4, const Vector3 &p5,
