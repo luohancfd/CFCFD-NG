@@ -83,8 +83,7 @@ def cross(a, b):
 
 def quad_properties(p0, p1, p2, p3):
     "Quadrilateral defining unit vectors, area and centroid."
-    vector_area = 0.25 * (cross(p0-p3, p2-p3) + cross(p1-p0, p2-p1) +
-                          cross(p3-p2, p1-p2) + cross(p1-p0, p3-p0))
+    vector_area = 0.25 * cross(p1-p0+p2-p3, p3-p0+p2-p1)
     n = vector_area.unit()
     area = abs(vector_area)
     t1 = ((p1-p0)+(p2-p3)).unit() # Works even if one edge has zero length.
