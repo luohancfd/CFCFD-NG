@@ -171,6 +171,14 @@ CoeffSpectra * CoeffSpectra::clone()
     return X;
 }
 
+void CoeffSpectra::clear_data()
+{
+    nu.clear();
+    j_nu.clear();
+    kappa_nu.clear();
+    j_int.clear();
+}
+
 double CoeffSpectra::write_to_file( string fname, int spectral_units )
 {
     string Y1_label = "Emission coefficient, j_lambda (W/m**3-sr-m)";
@@ -184,6 +192,60 @@ double CoeffSpectra::write_to_file( string fname, int spectral_units )
     string Y2_label = "Absorption coefficient, kappa_lambda (1/m)";
     
     return write_data_to_file( fname, spectral_units, j_nu, Y1_label, Y1_int_label, kappa_nu, Y2_label );
+}
+
+void CoeffSpectra::read_from_file( string fname, int inu_start, int inu_end )
+{
+    // make sure this coeffspectra is clear
+    this->clear_data();
+
+    string line;
+    ifstream specfile (fname.c_str());
+    if (specfile.is_open()) {
+        getline (specfile,line); // should be the filename
+        getline (specfile,line); // should be spectral column descriptor
+        if ( line.compare(0,11,"# Column 1:")==0 ) {
+            if ( line.compare(12,14,"Frequency (Hz)")!=0 ) {
+                cout << "CoeffSpectra::read_from_file()" << endl
+                     << "Only frequency units are currently supported" << endl;
+                exit(FAILURE);
+            }
+        }
+        getline (specfile,line); // should be emission coefficient column descriptor
+        getline (specfile,line); // should be abs coefficient column descriptor
+        getline (specfile,line); // should be int emission coefficient column descriptor
+        int count = 0;
+        while ( specfile.good() ) {
+            double _nu, _j_nu, _kappa_nu, _j_int;
+            specfile >> _nu >> _j_nu >> _j_int >> _kappa_nu;
+            // cout << "nu = " << _nu << ", j_nu = " << _j_nu << ", kappa_nu = " << _kappa_nu << ", j_int = " << _j_int << endl;
+            if ( count >= inu_start && ( count <= inu_end || inu_end < 0 ) ) {
+                nu.push_back(_nu);
+                j_nu.push_back(_j_nu);
+                kappa_nu.push_back(_kappa_nu);
+                // not storing j_int, calculating later
+                // j_int.push_back(_j_int);
+            }
+            count++;
+        }
+        specfile.close();
+    }
+    else {
+        cout << "CoeffSpectra::read_from_file()" << endl
+             << "Unable to open file with name: " << fname << endl;
+        exit(BAD_INPUT_ERROR);
+    }
+
+    if ( inu_end<0 ) {
+        // remove the last entry which is a double-up
+        nu.erase(nu.end()-1);
+        j_nu.erase(j_nu.end()-1);
+        kappa_nu.erase(kappa_nu.end()-1);
+    }
+
+    cout << "Read " << nu.size() << " spectral points from file: " << fname << endl;
+    double j_total = this->integrate_emission_spectra();
+    cout << "Integral is " << j_total << endl;
 }
 
 void CoeffSpectra::write_TRT_tools_file( string fname )

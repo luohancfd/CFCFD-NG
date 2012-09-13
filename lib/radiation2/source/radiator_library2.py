@@ -3,7 +3,7 @@ import sys
 def add_commas( string ):
     tks = string.split()
     for tk in tks[:-1]:
-	string = string.replace(tk+" ",tk+", ")
+        string = string.replace(tk+" ",tk+", ")
     return string
     
 tab = "   "
@@ -11,395 +11,395 @@ tab = "   "
 class PhotoIonXSectionModel(object):
     """Base class for describing a photo-ionization cross-section model"""
     def __init__(self, elevel_set="", model=""):
-    	self.model = model
-    	self.elevel_set = elevel_set
-    	self.comments = ""
-    	
+            self.model = model
+            self.elevel_set = elevel_set
+            self.comments = ""
+            
     def get_LUA_string(self, species):
-	ostring  = ""
-	ostring += "%s.photoionXsection_model = {\n" % ( species )
-	comments = self.comments.replace('#','   --')
-	ostring += "%s" % ( comments )
-	ostring += tab+"model = '%s',\n" % ( self.model )
-	ostring += "}\n"
-	return ostring
-	
+        ostring  = ""
+        ostring += "%s.photoionXsection_model = {\n" % ( species )
+        comments = self.comments.replace('#','   --')
+        ostring += "%s" % ( comments )
+        ostring += tab+"model = '%s',\n" % ( self.model )
+        ostring += "}\n"
+        return ostring
+        
 class JohnstonModel(PhotoIonXSectionModel):
     """Derived class for describing Johnston's photo-ionization cross-section model"""
     def __init__(self, elevel_set=""):
-    	PhotoIonXSectionModel.__init__(self, elevel_set=elevel_set, model="JohnstonModel")
-    	steps = []
-    	thresholds = []
-    	
+            PhotoIonXSectionModel.__init__(self, elevel_set=elevel_set, model="JohnstonModel")
+            steps = []
+            thresholds = []
+            
     def get_LUA_string(self, species):
-	ostring  = ""
-	ostring += "%s.photoionXsection_model = {\n" % ( species )
-	comments = self.comments.replace('#','   --')
-	ostring += "%s" % ( comments )
-	ostring += tab+"model = '%s',\n" % ( self.model )
-	ostring += tab+"nsteps = %d,\n" % ( len(self.steps) )
-	tks = self.steps[-1].split()
-	nstep_levs = int(tks[0])+1
-	ostring += tab+"nstep_levs = %d,\n" % ( nstep_levs )
-	ostring += tab+"-- ====================================================================\n"
-	ostring += tab+"--   No.     ilev    E_a(eV)    E_b(eV)      sigma_bf x 10^18 (cm^2)   \n"
-	ostring += tab+"-- ====================================================================\n"
-	for istep,step in enumerate(self.steps):
-	    if istep<10: ostring += tab+"step_%d   = { %s },\n" % (istep,add_commas(step))
-	    else: ostring += tab+"step_%d  = { %s },\n" % (istep,add_commas(step))
-	ostring += tab+"-- ====================================================================\n"
-	ostring += tab+"nthresholds = %d,\n" % ( len(self.thresholds) )
-	ostring += tab+"-- =======================================================================\n"
-	ostring += tab+"--   No.           ilev    E (eV)     sigma_bf x 10^18 (cm^2)     theta   \n"
-	ostring += tab+"-- =======================================================================\n"
-	for ithreshold,threshold in enumerate(self.thresholds):
-	    if ithreshold<10: ostring += tab+"threshold_%d   = { %s },\n" % ( ithreshold, add_commas(threshold) )
-	    else: ostring += tab+"threshold_%d  = { %s },\n" % ( ithreshold, add_commas(threshold) )
-	ostring += tab+"-- =======================================================================\n"
-	ostring += "}\n"
-	return ostring
-	
+        ostring  = ""
+        ostring += "%s.photoionXsection_model = {\n" % ( species )
+        comments = self.comments.replace('#','   --')
+        ostring += "%s" % ( comments )
+        ostring += tab+"model = '%s',\n" % ( self.model )
+        ostring += tab+"nsteps = %d,\n" % ( len(self.steps) )
+        tks = self.steps[-1].split()
+        nstep_levs = int(tks[0])+1
+        ostring += tab+"nstep_levs = %d,\n" % ( nstep_levs )
+        ostring += tab+"-- ====================================================================\n"
+        ostring += tab+"--   No.     ilev    E_a(eV)    E_b(eV)      sigma_bf x 10^18 (cm^2)   \n"
+        ostring += tab+"-- ====================================================================\n"
+        for istep,step in enumerate(self.steps):
+            if istep<10: ostring += tab+"step_%d   = { %s },\n" % (istep,add_commas(step))
+            else: ostring += tab+"step_%d  = { %s },\n" % (istep,add_commas(step))
+        ostring += tab+"-- ====================================================================\n"
+        ostring += tab+"nthresholds = %d,\n" % ( len(self.thresholds) )
+        ostring += tab+"-- =======================================================================\n"
+        ostring += tab+"--   No.           ilev    E (eV)     sigma_bf x 10^18 (cm^2)     theta   \n"
+        ostring += tab+"-- =======================================================================\n"
+        for ithreshold,threshold in enumerate(self.thresholds):
+            if ithreshold<10: ostring += tab+"threshold_%d   = { %s },\n" % ( ithreshold, add_commas(threshold) )
+            else: ostring += tab+"threshold_%d  = { %s },\n" % ( ithreshold, add_commas(threshold) )
+        ostring += tab+"-- =======================================================================\n"
+        ostring += "}\n"
+        return ostring
+        
 class AtomicQSSModel(object):
     """Class for describing an atomic QSS model"""
     def __init__(self, noneq_elevs="", eie_model="none", eii_model="none", rt_model="none", special=""):
-    	self.noneq_elevs = noneq_elevs
-    	self.eie_model = eie_model
-    	self.eii_model = eii_model
-    	self.rt_model = rt_model
-    	self.special = special
-    	self.comments = ""
-    	self.inc_eq_elevs = 1
-    	self.T_lower = 4000.0
-    	
+            self.noneq_elevs = noneq_elevs
+            self.eie_model = eie_model
+            self.eii_model = eii_model
+            self.rt_model = rt_model
+            self.special = special
+            self.comments = ""
+            self.inc_eq_elevs = 1
+            self.T_lower = 4000.0
+            
     def get_LUA_string(self, aname, special = ""):
-	ostring  = ""
-	ostring += "%s.QSS_model = {\n" % ( aname )
-	comments = self.comments.replace('#','   --')
-	ostring += "%s" % ( comments )
-	ostring += tab+"noneq_elevs = { %s },\n" % ( self.noneq_elevs )
-	ostring += tab+"inc_eq_elevs = %d,\n" % ( self.inc_eq_elevs )
-	ostring += tab+"T_lower = %e,\n" % ( self.T_lower )
-	ostring += tab+"electron_impact_excitation = '%s',\n" % ( self.eie_model )
-	ostring += tab+"electron_impact_ionization = '%s',\n" % ( self.eii_model )
-	ostring += tab+"radiative_transitions = '%s',\n" % ( self.rt_model )
-	ostring += "%s" % self.special
-	ostring += "}\n"
-	return ostring
-	
+        ostring  = ""
+        ostring += "%s.QSS_model = {\n" % ( aname )
+        comments = self.comments.replace('#','   --')
+        ostring += "%s" % ( comments )
+        ostring += tab+"noneq_elevs = { %s },\n" % ( self.noneq_elevs )
+        ostring += tab+"inc_eq_elevs = %d,\n" % ( self.inc_eq_elevs )
+        ostring += tab+"T_lower = %e,\n" % ( self.T_lower )
+        ostring += tab+"electron_impact_excitation = '%s',\n" % ( self.eie_model )
+        ostring += tab+"electron_impact_ionization = '%s',\n" % ( self.eii_model )
+        ostring += tab+"radiative_transitions = '%s',\n" % ( self.rt_model )
+        ostring += "%s" % self.special
+        ostring += "}\n"
+        return ostring
+        
 class DiatomicQSSModel(object):
     """Class for describing a diatomic QSS model"""
     def __init__(self, noneq_elevs="", noneq_elev_labels="", reactions=[]):
-    	self.noneq_elevs = noneq_elevs
-    	self.noneq_elev_labels = noneq_elev_labels
-    	self.reactions = reactions
-    	self.comments = ""
-    	self.inc_eq_elevs = 1
-    	self.T_lower = 4000.0
-    	
+            self.noneq_elevs = noneq_elevs
+            self.noneq_elev_labels = noneq_elev_labels
+            self.reactions = reactions
+            self.comments = ""
+            self.inc_eq_elevs = 1
+            self.T_lower = 4000.0
+            
     def get_LUA_string(self, mname):
-	ostring  = ""
-	ostring += "%s.QSS_model = {\n" % ( mname )
-	comments = self.comments.replace('#','   --')
-	ostring += "%s" % ( comments )
-	ostring += tab+"noneq_elevs = { %s },\n" % ( self.noneq_elevs )
-	ostring += tab+"noneq_elev_labels = { %s },\n" % ( self.noneq_elev_labels )
-	ostring += tab+"inc_eq_elevs = %d,\n" % ( self.inc_eq_elevs )
-	ostring += tab+"T_lower = %e,\n" % ( self.T_lower )
-	ostring += tab+"reactions = {\n"
-	for reaction in self.reactions:
-	    ostring += tab*2+"{\n"
-	    for line in reaction:
-	    	ostring += tab*3 + line + "\n"
-	    ostring += tab*2+"},\n"
-	ostring += tab + "},\n"
-	ostring += "}\n"
-	return ostring
-	
+        ostring  = ""
+        ostring += "%s.QSS_model = {\n" % ( mname )
+        comments = self.comments.replace('#','   --')
+        ostring += "%s" % ( comments )
+        ostring += tab+"noneq_elevs = { %s },\n" % ( self.noneq_elevs )
+        ostring += tab+"noneq_elev_labels = { %s },\n" % ( self.noneq_elev_labels )
+        ostring += tab+"inc_eq_elevs = %d,\n" % ( self.inc_eq_elevs )
+        ostring += tab+"T_lower = %e,\n" % ( self.T_lower )
+        ostring += tab+"reactions = {\n"
+        for reaction in self.reactions:
+            ostring += tab*2+"{\n"
+            for line in reaction:
+                    ostring += tab*3 + line + "\n"
+            ostring += tab*2+"},\n"
+        ostring += tab + "},\n"
+        ostring += "}\n"
+        return ostring
+        
 class Radiator(object):
     """Base radiator class"""
     def __init__(self, name="", type=""):
-	self.name = name
-	self.type = type
-	self.mol_weight = 0.0
-	self.eta_I = 0.0
-	self.h_f = 0.0
-	self.Z = 0
-	self.iT = 0
-	self.iTe = 0
-	self.E_pop_method = "boltzmann"
-	self.isp = -1
-	self.general_comments = ""
-	
+        self.name = name
+        self.type = type
+        self.mol_weight = 0.0
+        self.eta_I = 0.0
+        self.h_f = 0.0
+        self.Z = 0
+        self.iT = 0
+        self.iTe = 0
+        self.E_pop_method = "boltzmann"
+        self.isp = -1
+        self.general_comments = ""
+        
     def get_LUA_string(self):
-	ostring  = ""
-	ostring += "%s = {}\n" % ( self.name )
-	general_comments = self.general_comments.replace('#','--')
-	ostring += "%s" % ( general_comments )
-	ostring += "%s.isp = %d\n" % ( self.name, self.isp )
-	ostring += "%s.type = '%s'\n" % ( self.name, self.type )
-	ostring += "%s.mol_weight = %e\n" % ( self.name, self.mol_weight )
-	ostring += "%s.h_f = %e\n" % ( self.name, self.h_f )
-	ostring += "%s.eta_I = %e\n" % ( self.name, self.eta_I )
-	ostring += "%s.Z = %d\n" % ( self.name, self.Z )
-	ostring += "%s.E_pop_method = '%s'\n" % ( self.name, self.E_pop_method )
-	ostring += "%s.iT = %d\n" % ( self.name, self.iT )
-	ostring += "%s.iTe = %d\n" % ( self.name, self.iTe )
-	return ostring
-	
+        ostring  = ""
+        ostring += "%s = {}\n" % ( self.name )
+        general_comments = self.general_comments.replace('#','--')
+        ostring += "%s" % ( general_comments )
+        ostring += "%s.isp = %d\n" % ( self.name, self.isp )
+        ostring += "%s.type = '%s'\n" % ( self.name, self.type )
+        ostring += "%s.mol_weight = %e\n" % ( self.name, self.mol_weight )
+        ostring += "%s.h_f = %e\n" % ( self.name, self.h_f )
+        ostring += "%s.eta_I = %e\n" % ( self.name, self.eta_I )
+        ostring += "%s.Z = %d\n" % ( self.name, self.Z )
+        ostring += "%s.E_pop_method = '%s'\n" % ( self.name, self.E_pop_method )
+        ostring += "%s.iT = %d\n" % ( self.name, self.iT )
+        ostring += "%s.iTe = %d\n" % ( self.name, self.iTe )
+        return ostring
+        
 class ElectronRadiator(Radiator):
     """Derived electron radiator class"""
     def __init__(self, name=""):
-	Radiator.__init__(self, name, "electron_radiator")
-	self.systems = []
-	self.available_systems = {}
-	
+        Radiator.__init__(self, name, "electron_radiator")
+        self.systems = []
+        self.available_systems = {}
+        
     def get_LUA_string(self):
-	ostring  = ""
-	ostring += "%s = {}\n" % ( self.name )
-	general_comments = self.general_comments.replace('#','--')
-	ostring += "%s" % ( general_comments )
-	ostring += "%s.isp = %d\n" % ( self.name, self.isp )
-	ostring += "%s.type = '%s'\n" % ( self.name, self.type )
-	ostring += "%s.mol_weight = %e\n" % ( self.name, self.mol_weight )
-	ostring += "%s.h_f = %e\n" % ( self.name, self.h_f )
-	ostring += "%s.eta_I = %e\n" % ( self.name, self.eta_I )
-	ostring += "%s.Z = %d\n" % ( self.name, self.Z )
-	ostring += "%s.E_pop_method = 'none'\n" % self.name
-	ostring += "%s.iT = %d\n" % ( self.name, self.iT )
-	ostring += "%s.iTe = %d\n" % ( self.name, self.iTe )
-	ostring += "%s.systems_list = { " % ( self.name )
-	if len(self.systems)>0:
-	    for isys in self.systems:
-		ostring += "'%s', " % ( isys )
-	ostring += "}\n"
-	return ostring
-	
+        ostring  = ""
+        ostring += "%s = {}\n" % ( self.name )
+        general_comments = self.general_comments.replace('#','--')
+        ostring += "%s" % ( general_comments )
+        ostring += "%s.isp = %d\n" % ( self.name, self.isp )
+        ostring += "%s.type = '%s'\n" % ( self.name, self.type )
+        ostring += "%s.mol_weight = %e\n" % ( self.name, self.mol_weight )
+        ostring += "%s.h_f = %e\n" % ( self.name, self.h_f )
+        ostring += "%s.eta_I = %e\n" % ( self.name, self.eta_I )
+        ostring += "%s.Z = %d\n" % ( self.name, self.Z )
+        ostring += "%s.E_pop_method = 'none'\n" % self.name
+        ostring += "%s.iT = %d\n" % ( self.name, self.iT )
+        ostring += "%s.iTe = %d\n" % ( self.name, self.iTe )
+        ostring += "%s.systems_list = { " % ( self.name )
+        if len(self.systems)>0:
+            for isys in self.systems:
+                ostring += "'%s', " % ( isys )
+        ostring += "}\n"
+        return ostring
+        
     def default_data( self ):
-	for system in self.available_systems.keys():
-	     self.systems.append( self.available_systems[system] )
-	
+        for system in self.available_systems.keys():
+             self.systems.append( self.available_systems[system] )
+        
 class AtomicRadiator(Radiator):
     """Derived atomic radiator class"""
     def __init__(self, name=""):
-	Radiator.__init__(self, name, "atomic_radiator")
-	self.line_set = AtomicLineSet()
-	self.level_set = AtomicLevelSet()
-	self.photoionXsection_model = PhotoIonXSectionModel()
-	self.QSS_model = AtomicQSSModel()
-	self.available_line_sets = {}
-	self.available_level_sets = {}
-	self.available_photoionXsection_models = {}
-	self.available_QSS_models = {}
-	self.default_line_set = ""
-	self.default_level_set = ""
-	self.default_photoionXsection_model = ""
-	self.default_QSS_model = ""
-	
+        Radiator.__init__(self, name, "atomic_radiator")
+        self.line_set = AtomicLineSet()
+        self.level_set = AtomicLevelSet()
+        self.photoionXsection_model = PhotoIonXSectionModel()
+        self.QSS_model = AtomicQSSModel()
+        self.available_line_sets = {}
+        self.available_level_sets = {}
+        self.available_photoionXsection_models = {}
+        self.available_QSS_models = {}
+        self.default_line_set = ""
+        self.default_level_set = ""
+        self.default_photoionXsection_model = ""
+        self.default_QSS_model = ""
+        
     def get_LUA_string(self):
-	ostring = Radiator.get_LUA_string(self)
-	ostring += self.level_set.get_LUA_string(aname=self.name)
-	ostring += self.line_set.get_LUA_string(aname=self.name)
-	# FIXME: need to check that the level set is compatible with PICS model
-	ostring += self.photoionXsection_model.get_LUA_string(species=self.name)
-	# FIXME: need to check that the level set is compatible with the QSS model
-	if self.E_pop_method=="QSS":
-	    ostring += self.QSS_model.get_LUA_string(aname=self.name)
-	return ostring
-	
+        ostring = Radiator.get_LUA_string(self)
+        ostring += self.level_set.get_LUA_string(aname=self.name)
+        ostring += self.line_set.get_LUA_string(aname=self.name)
+        # FIXME: need to check that the level set is compatible with PICS model
+        ostring += self.photoionXsection_model.get_LUA_string(species=self.name)
+        # FIXME: need to check that the level set is compatible with the QSS model
+        if self.E_pop_method=="QSS":
+            ostring += self.QSS_model.get_LUA_string(aname=self.name)
+        return ostring
+        
     def default_data( self ):
-	self.line_set = self.available_line_sets[self.default_line_set]
-	self.level_set = self.available_level_sets[self.default_level_set]
-	self.photoionXsection_model = self.available_photoionXsection_models[self.default_photoionXsection_model]
-	self.QSS_model = self.available_QSS_models[self.default_QSS_model]
-	
+        self.line_set = self.available_line_sets[self.default_line_set]
+        self.level_set = self.available_level_sets[self.default_level_set]
+        self.photoionXsection_model = self.available_photoionXsection_models[self.default_photoionXsection_model]
+        self.QSS_model = self.available_QSS_models[self.default_QSS_model]
+        
 class AtomicLineSet(object):
     """Atomic line set class"""
     def __init__(self):
-	self.lines = []
-	self.comments = ""
-	
+        self.lines = []
+        self.comments = ""
+        
     def get_LUA_string(self, aname):
-	ostring  = "%s.line_data = {\n" % ( aname )
-	comments = self.comments.replace('#','   --')
-	ostring += "%s" % ( comments )
-	ostring += tab+"n_lines = %d,\n" % ( len(self.lines) )
-	ostring += tab+"-- ============================================================================\n"
-	ostring += tab+"--    No.         Ei(cm-1)  Ek(cm-1)    gi    gk  Aki(1/s)    ie_i  ie_k  type \n"
-	ostring += tab+"-- ============================================================================\n"
-	for i,line in enumerate(self.lines):
-	    if i<10: ostring += tab+"iline_%d   = { %s },\n" % ( i, add_commas(line) )
-	    elif i<100: ostring += tab+"iline_%d  = { %s },\n" % ( i, add_commas(line) )
-	    else: ostring += tab+"iline_%d = { %s },\n" % ( i, add_commas(line) )
-	ostring += tab+"-- ============================================================================\n"
-	ostring += "}\n"
-	return ostring
-	
+        ostring  = "%s.line_data = {\n" % ( aname )
+        comments = self.comments.replace('#','   --')
+        ostring += "%s" % ( comments )
+        ostring += tab+"n_lines = %d,\n" % ( len(self.lines) )
+        ostring += tab+"-- ============================================================================\n"
+        ostring += tab+"--    No.         Ei(cm-1)  Ek(cm-1)    gi    gk  Aki(1/s)    ie_i  ie_k  type \n"
+        ostring += tab+"-- ============================================================================\n"
+        for i,line in enumerate(self.lines):
+            if i<10: ostring += tab+"iline_%d   = { %s },\n" % ( i, add_commas(line) )
+            elif i<100: ostring += tab+"iline_%d  = { %s },\n" % ( i, add_commas(line) )
+            else: ostring += tab+"iline_%d = { %s },\n" % ( i, add_commas(line) )
+        ostring += tab+"-- ============================================================================\n"
+        ostring += "}\n"
+        return ostring
+        
 class AtomicLevelSet(object):
     """Atomic level set class"""
     def __init__(self):
         self.levels = []
         self.isp_list = []
-	self.comments = ""
+        self.comments = ""
     def get_LUA_string(self, aname):
-	ostring  = "%s.level_data = {\n" % ( aname )
-	comments = self.comments.replace('#','   --')
-	ostring += "%s" % ( comments )
-	ostring += tab+"n_levels = %d,\n" % ( len(self.levels) )
-	ostring += tab+"isp_list = { "
-	for isp in self.isp_list:
-	    ostring += "%d, " % isp
-	ostring += "},\n"
-	ostring += tab+"-- ===========================================================\n"
-	ostring += tab+"--   No.     n      E(cm-1)      g     l     L     S    parity \n"
-	ostring += tab+"-- ===========================================================\n"
-	for i,level in enumerate(self.levels):
-	    if i<10: ostring += tab+"ilev_%d  = { %s },\n" % ( i, add_commas(level) )
-	    else: ostring += tab+"ilev_%d = { %s },\n" % ( i, add_commas(level) )
-	ostring += tab+"-- ===========================================================\n"
-	ostring += "}\n"
-	return ostring
+        ostring  = "%s.level_data = {\n" % ( aname )
+        comments = self.comments.replace('#','   --')
+        ostring += "%s" % ( comments )
+        ostring += tab+"n_levels = %d,\n" % ( len(self.levels) )
+        ostring += tab+"isp_list = { "
+        for isp in self.isp_list:
+            ostring += "%d, " % isp
+        ostring += "},\n"
+        ostring += tab+"-- ===========================================================\n"
+        ostring += tab+"--   No.     n      E(cm-1)      g     l     L     S    parity \n"
+        ostring += tab+"-- ===========================================================\n"
+        for i,level in enumerate(self.levels):
+            if i<10: ostring += tab+"ilev_%d  = { %s },\n" % ( i, add_commas(level) )
+            else: ostring += tab+"ilev_%d = { %s },\n" % ( i, add_commas(level) )
+        ostring += tab+"-- ===========================================================\n"
+        ostring += "}\n"
+        return ostring
 
 class DiatomicRadiator(Radiator):
     """Derived diatomic radiator class"""
     def __init__(self, name=""):
-	Radiator.__init__(self, name, "diatomic_radiator")
-	self.systems = []
-	self.level_set = DiatomicLevelSet()
-	self.photoionXsection_model = PhotoIonXSectionModel()
-	self.QSS_model = DiatomicQSSModel()
-	self.available_systems = {}
-	self.available_level_sets = {}
-	self.available_photoionXsection_models = {}
-	self.available_QSS_models = {}
-	self.default_level_set = ""
-	self.default_photoionXsection_model = ""
-	self.default_QSS_model = ""
-	self.iTv = 0
-	self.iTr = 0
-	self.I_spin = 0.0
-	self.eta_D = 0.0
+        Radiator.__init__(self, name, "diatomic_radiator")
+        self.systems = []
+        self.level_set = DiatomicLevelSet()
+        self.photoionXsection_model = PhotoIonXSectionModel()
+        self.QSS_model = DiatomicQSSModel()
+        self.available_systems = {}
+        self.available_level_sets = {}
+        self.available_photoionXsection_models = {}
+        self.available_QSS_models = {}
+        self.default_level_set = ""
+        self.default_photoionXsection_model = ""
+        self.default_QSS_model = ""
+        self.iTv = 0
+        self.iTr = 0
+        self.I_spin = 0.0
+        self.eta_D = 0.0
 
     def get_LUA_string(self):
-	if len(self.systems)==0:
-	    print "DiatomicRadiator %s has no systems!" % self.name
-	    sys.exit()
-	ostring  = Radiator.get_LUA_string(self)
-	ostring += "%s.iTv = %d\n" % ( self.name, self.iTv )
-	ostring += "%s.iTr = %d\n" % ( self.name, self.iTr )
-	ostring += "%s.I_spin = %d\n" % ( self.name, self.I_spin )
-	ostring += "%s.eta_D = %e\n" % ( self.name, self.eta_D )
-	ostring += self.level_set.get_LUA_string(mname=self.name)
-	ostring += "%s.systems = {\n" % self.name 
-	ostring += tab+"systems_list = {"
-	for system in self.systems:
-	    ostring += "'" + system.name + "', "
-	ostring += tab+"},\n"
-	for system in self.systems:
-	    ostring += system.get_LUA_string(mname=self.name)
-	ostring += "}\n"
-	# FIXME: need to check that the level set is compatible with PICS model
-	ostring += self.photoionXsection_model.get_LUA_string(species=self.name)
-	# FIXME: need to check that the level set is compatible with the QSS model
-	if self.E_pop_method=="QSS":
-	    ostring += self.QSS_model.get_LUA_string(mname=self.name)
-	return ostring
-	
+        if len(self.systems)==0:
+            print "DiatomicRadiator %s has no systems!" % self.name
+            sys.exit()
+        ostring  = Radiator.get_LUA_string(self)
+        ostring += "%s.iTv = %d\n" % ( self.name, self.iTv )
+        ostring += "%s.iTr = %d\n" % ( self.name, self.iTr )
+        ostring += "%s.I_spin = %d\n" % ( self.name, self.I_spin )
+        ostring += "%s.eta_D = %e\n" % ( self.name, self.eta_D )
+        ostring += self.level_set.get_LUA_string(mname=self.name)
+        ostring += "%s.systems = {\n" % self.name 
+        ostring += tab+"systems_list = {"
+        for system in self.systems:
+            ostring += "'" + system.name + "', "
+        ostring += tab+"},\n"
+        for system in self.systems:
+            ostring += system.get_LUA_string(mname=self.name)
+        ostring += "}\n"
+        # FIXME: need to check that the level set is compatible with PICS model
+        ostring += self.photoionXsection_model.get_LUA_string(species=self.name)
+        # FIXME: need to check that the level set is compatible with the QSS model
+        if self.E_pop_method=="QSS":
+            ostring += self.QSS_model.get_LUA_string(mname=self.name)
+        return ostring
+        
     def default_data(self):
-	self.level_set = self.available_level_sets[self.default_level_set]
-	for system in self.available_systems.keys():
-	    self.systems.append( self.available_systems[system] )
-	    self.systems[-1].band_set = self.systems[-1].available_band_sets[self.systems[-1].default_band_set]
-	self.photoionXsection_model = self.available_photoionXsection_models[self.default_photoionXsection_model]
-	self.QSS_model = self.available_QSS_models[self.default_QSS_model]
+        self.level_set = self.available_level_sets[self.default_level_set]
+        for system in self.available_systems.keys():
+            self.systems.append( self.available_systems[system] )
+            self.systems[-1].band_set = self.systems[-1].available_band_sets[self.systems[-1].default_band_set]
+        self.photoionXsection_model = self.available_photoionXsection_models[self.default_photoionXsection_model]
+        self.QSS_model = self.available_QSS_models[self.default_QSS_model]
 
 class DiatomicLevelSet(object):
     """Diatomic level set class"""
     def __init__(self):
-	self.levels = []
-	self.isp_list = []
-	self.comments = ""
-	
+        self.levels = []
+        self.isp_list = []
+        self.comments = ""
+        
     def get_LUA_string(self, mname):
-	ostring  = "%s.level_data = {\n" % ( mname )
-	comments = self.comments.replace("#",tab+"--")
-	ostring += comments
-	ostring += tab+"n_levels = %d,\n" % ( len(self.levels) )
-	ostring += tab+"isp_list = { "
-	for isp in self.isp_list:
-	    ostring += "%d, " % isp
-	ostring += "},\n"
-	ostring += tab+"-- ===========================================================================================================================================================\n"
-	ostring += tab+"--    n      Te         re       g   dzero      we         wexe      weye        weze        be        alphae      de          betae       spn-orb     l   s  \n"
-	ostring += tab+"-- ===========================================================================================================================================================\n"
-	for i,level in enumerate(self.levels):
-	    if i<10: ostring += tab+"ilev_%d  = { %s },\n" % ( i, add_commas(level) )
-	    else: ostring += tab+"ilev_%d = { %s },\n" % ( i, add_commas(level) )
-	ostring += tab+"-- ===========================================================================================================================================================\n"
-	ostring += "}\n"
-	return ostring
-	
+        ostring  = "%s.level_data = {\n" % ( mname )
+        comments = self.comments.replace("#",tab+"--")
+        ostring += comments
+        ostring += tab+"n_levels = %d,\n" % ( len(self.levels) )
+        ostring += tab+"isp_list = { "
+        for isp in self.isp_list:
+            ostring += "%d, " % isp
+        ostring += "},\n"
+        ostring += tab+"-- ===========================================================================================================================================================\n"
+        ostring += tab+"--    n      Te         re       g   dzero      we         wexe      weye        weze        be        alphae      de          betae       spn-orb     l   s  \n"
+        ostring += tab+"-- ===========================================================================================================================================================\n"
+        for i,level in enumerate(self.levels):
+            if i<10: ostring += tab+"ilev_%d  = { %s },\n" % ( i, add_commas(level) )
+            else: ostring += tab+"ilev_%d = { %s },\n" % ( i, add_commas(level) )
+        ostring += tab+"-- ===========================================================================================================================================================\n"
+        ostring += "}\n"
+        return ostring
+        
 class DiatomicSystem:
     """ Diatomic system class"""
     def __init__(self):
-	self.name = ""
-	self.ie_l = 0
-	self.ie_u = 0
-	self.band_method = "linebyline"
-	self.sigma_nm = 0.5
-	self.band_set = DiatomicBandSet()
-	self.available_band_sets = {}
-	self.comments = ""
-	self.default_band_set = ""
-	
+        self.name = ""
+        self.ie_l = 0
+        self.ie_u = 0
+        self.band_method = "linebyline"
+        self.sigma_nm = 0.5
+        self.band_set = DiatomicBandSet()
+        self.available_band_sets = {}
+        self.comments = ""
+        self.default_band_set = ""
+        
     def get_LUA_string(self,mname):
-	ostring  = "   %s = {\n" % ( self.name )
-	comments = self.comments.replace("#",tab+"--")
-	ostring += comments
-	ostring += 2*tab+"band_method = '%s',\n" % ( self.band_method )
-	ostring += 2*tab+"sigma_nm = %f,\n" % ( self.sigma_nm )
-	ostring += 2*tab+"ie_l = %d,\n" % ( self.ie_l )
-	ostring += 2*tab+"ie_u = %d,\n" % ( self.ie_u )
-	ostring += self.band_set.get_LUA_string(mname=mname,sname=self.name)
-	ostring += tab+"},\n"
-	return ostring
-	
+        ostring  = "   %s = {\n" % ( self.name )
+        comments = self.comments.replace("#",tab+"--")
+        ostring += comments
+        ostring += 2*tab+"band_method = '%s',\n" % ( self.band_method )
+        ostring += 2*tab+"sigma_nm = %f,\n" % ( self.sigma_nm )
+        ostring += 2*tab+"ie_l = %d,\n" % ( self.ie_l )
+        ostring += 2*tab+"ie_u = %d,\n" % ( self.ie_u )
+        ostring += self.band_set.get_LUA_string(mname=mname,sname=self.name)
+        ostring += tab+"},\n"
+        return ostring
+        
 class DiatomicBandSet:
     def __init__(self):
-	self.comments = ""
-	self.uRe_dim = 0
-	self.lRe_dim = 0
-	self.bands = []
-	self.format = "transition moment"
-	
+        self.comments = ""
+        self.uRe_dim = 0
+        self.lRe_dim = 0
+        self.bands = []
+        self.format = "transition moment"
+        
     def get_LUA_string(self,mname,sname):
-	ostring  = tab*2+"band_data = {\n"
-	comments = self.comments.replace("#",tab*3+"--")
-	ostring += comments
-	ostring += tab*3+"format = '%s',\n" % ( self.format )
-	ostring += tab*3+"uRe_dim = %d,\n" % ( self.uRe_dim )
-	ostring += tab*3+"lRe_dim = %d,\n" % ( self.lRe_dim )
-	ostring += tab*3+"-- ==========="
-	for i in range(self.lRe_dim):
-	    ostring += "========="
-	ostring += "\n"
-	ostring += tab*3+"-- Vl =    "
-	for i in range(self.lRe_dim):
-	    ostring += "%d        " % i
-	ostring += "\n"
-	ostring += tab*3+"-- ==========="
-	for i in range(self.lRe_dim):
-	    ostring += "========="
-	ostring += "\n"
-	for i,band in enumerate(self.bands):
-	    if i < 10: ostring += tab*3+"Vu_%d  = { %s },\n" % ( i, add_commas(band) )
-	    else: ostring += tab*3+"Vu_%d = { %s },\n" % ( i, add_commas(band) )
-	ostring += tab*3+"-- ==========="
-	for i in range(self.lRe_dim):
-	    ostring += "========="
-	ostring += "\n"
-	ostring += 2*tab+"},\n"
-	return ostring
-	
+        ostring  = tab*2+"band_data = {\n"
+        comments = self.comments.replace("#",tab*3+"--")
+        ostring += comments
+        ostring += tab*3+"format = '%s',\n" % ( self.format )
+        ostring += tab*3+"uRe_dim = %d,\n" % ( self.uRe_dim )
+        ostring += tab*3+"lRe_dim = %d,\n" % ( self.lRe_dim )
+        ostring += tab*3+"-- ==========="
+        for i in range(self.lRe_dim):
+            ostring += "========="
+        ostring += "\n"
+        ostring += tab*3+"-- Vl =    "
+        for i in range(self.lRe_dim):
+            ostring += "%d        " % i
+        ostring += "\n"
+        ostring += tab*3+"-- ==========="
+        for i in range(self.lRe_dim):
+            ostring += "========="
+        ostring += "\n"
+        for i,band in enumerate(self.bands):
+            if i < 10: ostring += tab*3+"Vu_%d  = { %s },\n" % ( i, add_commas(band) )
+            else: ostring += tab*3+"Vu_%d = { %s },\n" % ( i, add_commas(band) )
+        ostring += tab*3+"-- ==========="
+        for i in range(self.lRe_dim):
+            ostring += "========="
+        ostring += "\n"
+        ostring += 2*tab+"},\n"
+        return ostring
+        
 #  ==== Electron data ===============
 e_minus = ElectronRadiator()
 e_minus.general_comments  = "# - Basic data required for free electrons\n"
@@ -411,7 +411,7 @@ e_minus.h_f = 0.0
 e_minus.Z = -1
 e_minus.available_systems["ff"] = "free-free"
 e_minus.available_systems["bf"] = "bound-free"
-	
+        
 #  ==== Diatomic Radiators ==========
 #  ==== CN ==========================
 CN = DiatomicRadiator()
@@ -2861,8 +2861,8 @@ N2.mol_weight = 28.01348e-3
 N2.h_f = 0.0
 N2.Z = 0
 N2.eta_I = 125659.1
-# N2.eta_D = 78740.00	# Spradian value
-N2.eta_D = 80127.5	# tuned value for 10km/s air
+# N2.eta_D = 78740.00        # Spradian value
+N2.eta_D = 80127.5        # tuned value for 10km/s air
 N2.I_spin = 1.0
 # ----- Electronic Levels -----
 N2.default_level_set = "Spradian_levels"
@@ -3982,8 +3982,8 @@ N2_plus.mol_weight = 28.012931e-3
 N2_plus.h_f = 53886282.0
 N2_plus.Z = 1
 N2_plus.eta_I = 100000.0
-# N2_plus.eta_D = 70300.00	# Spradian value
-N2_plus.eta_D = 72940.0		# tuned value for 10km/s air
+# N2_plus.eta_D = 70300.00        # Spradian value
+N2_plus.eta_D = 72940.0                # tuned value for 10km/s air
 N2_plus.I_spin = 1.0
 # ----- Electronic Levels -----
 N2_plus.default_level_set = "Spradian_levels"
@@ -18029,27 +18029,27 @@ available_radiators = { 'CN' : CN,
                         'CO' : CO,
                        'CO+' : CO_plus,
                    'CO_plus' : CO_plus,
-			'C2' : C2,
-			'H2' : H2,
-			'N2' : N2,
-		       'N2+' : N2_plus,
-		   'N2_plus' : N2_plus,
-			'NO' : NO,
-		        'O2' : O2,
-		        'Ar' : Ar,
-		  'Ar_plus'  : Ar_plus,
-		       'Ar+' : Ar_plus, 
-			 'C' : C,
-			'C+' : C_plus,
-		    'C_plus' : C_plus,
-			 'H' : H,
-			'H+' : H_plus,
-		    'H_plus' : H_plus,
-			 'N' : N,
-			'N+' : N_plus,
-		    'N_plus' : N_plus,
-			 'O' : O,
-			'O+' : O_plus,
-		    'O_plus' : O_plus,
-			'e-' : e_minus,
-		   'e_minus' : e_minus  }
+                        'C2' : C2,
+                        'H2' : H2,
+                        'N2' : N2,
+                       'N2+' : N2_plus,
+                   'N2_plus' : N2_plus,
+                        'NO' : NO,
+                        'O2' : O2,
+                        'Ar' : Ar,
+                  'Ar_plus'  : Ar_plus,
+                       'Ar+' : Ar_plus, 
+                         'C' : C,
+                        'C+' : C_plus,
+                    'C_plus' : C_plus,
+                         'H' : H,
+                        'H+' : H_plus,
+                    'H_plus' : H_plus,
+                         'N' : N,
+                        'N+' : N_plus,
+                    'N_plus' : N_plus,
+                         'O' : O,
+                        'O+' : O_plus,
+                    'O_plus' : O_plus,
+                        'e-' : e_minus,
+                   'e_minus' : e_minus  }

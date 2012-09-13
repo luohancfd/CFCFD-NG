@@ -72,8 +72,14 @@ public:
     /// \brief Clone function
     CoeffSpectra * clone();
     
+    /// \biref Clear all data
+    void clear_data();
+
     /// \brief Write CoeffSpectra class data to file
     double write_to_file( std::string fname, int spectral_units=WAVELENGTH );
+
+    /// \brief Read CoeffSpectra class from file
+    void read_from_file( std::string fname, int inu_start=0, int inu_end=-1 );
     
     /// \brief Write CoeffSpectra class data to file in format for TRT_tools interface
     void write_TRT_tools_file( std::string fname );

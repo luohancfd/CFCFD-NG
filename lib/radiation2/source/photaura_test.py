@@ -85,10 +85,16 @@ def main():
         print "Calculating emission and absorption spectra for gas state"
         X = CoeffSpectra()
         rsm.radiative_spectra_for_gas_state( Q, X )
-        j_total = X.write_to_file( "coefficient_spectra.txt" );
+        j_total = X.write_to_file( "coefficient_spectra.txt", FREQUENCY );
         print "Spectrally resolved integrated emission: j_total = %0.2f W/cm**3" % ( j_total * 1.0e-6 )
         j_total = rsm.radiative_integrated_emission_for_gas_state( Q, False )
         print "Spectrally unresolved integrated emission: j_total = %0.2f W/cm**3" % ( j_total * 1.0e-6 )
+        del X
+        
+        print "Testing read from file..."
+        X = CoeffSpectra()
+        X.read_from_file("coefficient_spectra.txt",0,-1);
+        j_total = X.write_to_file( "coefficient_spectra.txt", WAVELENGTH );
         
         # try to use YvX to plot the data
         JvL = YvX("coefficient_spectra.txt",0,1,False)
@@ -114,7 +120,7 @@ def main():
             divq = new_doublep()
             TS.set_rad_point(islab,Q,divq,s0+0.5*ds+islab*ds,ds)
         q_total = TS.quick_solve_for_divq()
-        print "Total radiative flux from a %f cm slab: q_total = %0.2f W/cm**2" % ( (s1-s0)*100, q_total*1.0e-4 )
+        print "Total radiative flux from a %f cm slab: q_total = %0.2f W/cm**2 (%e W/m**2)" % ( (s1-s0)*100, q_total*1.0e-4, q_total )
         print "divq = %0.2f W/m**3" % doublep_value(divq)
         delete_doublep(divq)
         
@@ -130,26 +136,39 @@ def main():
 
         print  "testing quick_solve_for_divq_with_binning(OPACITY_BINNING, N_bins=10)"
         q_rad = TS.quick_solve_for_divq_with_binning( OPACITY_BINNING, 10 )
-        print  "q_rad = %e W/cm2 " % q_rad
+        print  "q_rad = %e W/m2 " % q_rad
         print  "testing quick_solve_for_divq_with_binning(OPACITY_BINNING, N_bins=100)"
         q_rad = TS.quick_solve_for_divq_with_binning( OPACITY_BINNING, 100 )
-        print  "q_rad = %e W/cm2 " % q_rad
+        print  "q_rad = %e W/m2 " % q_rad
         print  "testing quick_solve_for_divq_with_binning( FREQUENCY_BINNING, N_bins=10)"
         q_rad = TS.quick_solve_for_divq_with_binning( FREQUENCY_BINNING, 10 )
-        print  "q_rad = %e W/cm2 " % q_rad
+        print  "q_rad = %e W/m2 " % q_rad
         print  "testing quick_solve_for_divq_with_binning( FREQUENCY_BINNING, N_bins=95)"
         q_rad = TS.quick_solve_for_divq_with_binning( FREQUENCY_BINNING, 95 )
-        print  "q_rad = %e W/cm2 " % q_rad
+        print  "q_rad = %e W/m2 " % q_rad
         print  "testing quick_solve_for_divq_with_binning( FREQUENCY_BINNING, N_bins=950)"
         q_rad = TS.quick_solve_for_divq_with_binning( FREQUENCY_BINNING, 950 )
-        print  "q_rad = %e W/cm2 " % q_rad
+        print  "q_rad = %e W/m2 " % q_rad
         print  "testing quick_solve_for_divq_with_binning( FREQUENCY_BINNING, N_bins=9500)"
         q_rad = TS.quick_solve_for_divq_with_binning( FREQUENCY_BINNING, 9500 )
-        print  "q_rad = %e W/cm2 " % q_rad
+        print  "q_rad = %e W/m2 " % q_rad
         print  "testing quick_solve_for_divq_with_binning( FREQUENCY_BINNING, N_bins=95000)"
         q_rad = TS.quick_solve_for_divq_with_binning( FREQUENCY_BINNING, 95000 )
-        print  "q_rad = %e W/cm2 " % q_rad
+        print  "q_rad = %e W/m2 " % q_rad
 
+        del TS
+        
+        print  "testing quick_solve_for_divq_in_blocks(OPACITY_BINNING, N_blocks=1)"
+        TS = TS_data(rsm,nslabs,T0,T1,True)
+        for islab in range(nslabs):
+            divq = new_doublep()
+            TS.set_rad_point(islab,Q,divq,s0+0.5*ds+islab*ds,ds)
+        q_rad = TS.quick_solve_for_divq_in_blocks( 1 )
+        print  "q_rad = %e W/m2 " % q_rad
+        print  "testing quick_solve_for_divq_in_blocks(N_blocks=10)"
+        q_rad = TS.quick_solve_for_divq_in_blocks( 10 )
+        print  "q_rad = %e W/m2 " % q_rad
+        
         del TS
 
     del gm, rsm, Q

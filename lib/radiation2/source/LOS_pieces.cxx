@@ -53,8 +53,8 @@ void RadiatingPoint::redefine( Gas_data * Q, double * Q_rE_rad, double s, double
 
 /* ---------- Line-of-sight data storage and manipulation ----------- */
 
-LOS_data::LOS_data( RadiationSpectralModel * rsm, int nrps, double T_i, double T_f )
- : rsm_( rsm ), nrps_( nrps ), T_i_( T_i ), T_f_( T_f )
+LOS_data::LOS_data( RadiationSpectralModel * rsm, int nrps, double T_i, double T_f, bool store_spectra_on_disk )
+ : rsm_( rsm ), nrps_( nrps ), T_i_( T_i ), T_f_( T_f ), store_spectra_on_disk_( store_spectra_on_disk )
 {
     rpoints_.resize( nrps_ );
     for ( int irp=0; irp<nrps_; ++irp )
@@ -79,6 +79,12 @@ void LOS_data::set_rad_point( int irp, Gas_data * Q, double * Q_rE_rad, double s
 {
     rpoints_[irp]->redefine( Q, Q_rE_rad, s, ds );
     rsm_->radiative_spectra_for_gas_state( *(rpoints_[irp]->Q_), *(rpoints_[irp]->X_) );
+    if ( store_spectra_on_disk_ ) {
+        ostringstream oss;
+        oss << "rpoint_" << irp << ".txt";
+        rpoints_[irp]->X_->write_to_file(oss.str(),FREQUENCY);
+        rpoints_[irp]->X_->clear_data();
+    }
 }
 
 void LOS_data::clone_rad_point( int iprp, int irp, double * Q_rE_rad, double s, double ds )
@@ -321,10 +327,20 @@ void LOS_data::write_gas_data_to_file( void )
     return;
 }
 
+void LOS_data::load_spectra( int inu_start, int inu_end )
+{
+    for ( int irp=0; irp<nrps_; ++irp ) {
+        RadiatingPoint * rp = this->get_rpoint_pointer(irp);
+        ostringstream oss;
+        oss << "rpoint_" << irp << ".txt";
+        rp->X_->read_from_file( oss.str(), inu_start, inu_end );
+    }
+}
+
 /* ---------- Tangent-slab data storage and manipulation ----------- */
 
-TS_data::TS_data( RadiationSpectralModel * rsm, int nrps, double T_i, double T_f )
- : LOS_data( rsm, nrps, T_i, T_f )
+TS_data::TS_data( RadiationSpectralModel * rsm, int nrps, double T_i, double T_f, bool store_spectra_on_disk )
+ : LOS_data( rsm, nrps, T_i, T_f, store_spectra_on_disk )
 {
     F_ = new SpectralFlux( rsm_ );
     F_->q_nu.resize( nnus_ );
@@ -451,6 +467,137 @@ double TS_data::quick_solve_for_divq()
     // NOTE: omitting wall emission - which is correct
     double q_wall = q_plus.back();
     
+    return q_wall;
+}
+
+double TS_data::quick_solve_for_divq_in_blocks( int nblks )
+{
+    // Simple method from Sebastian Karl's VKI thesis where q+ and q- between
+    // each node location are solved for
+    // This version does the calculation in multiple blocks in an attempt to reduce the memory requirements
+    if ( !store_spectra_on_disk_ ) {
+        cout << "TS_data::quick_solve_for_divq_in_blocks()" << endl
+             << "Currently only implemented for spectra stored on disk" << endl;
+        exit(FAILURE);
+    }
+
+    double sps_av = double(nnus_) / double(nblks);
+
+    // Make vectors to store integrated fluxes
+    vector<double> q_plus(nrps_+1), q_minus(nrps_+1);
+
+    /* Loop over blocks */
+    for ( int iblk=0; iblk<nblks; ++iblk ) {
+        // Calculate inu_lower and inu_upper
+        int nnus_star = 0;
+        if ( iblk==0 ) {
+            nnus_star = nnus_ - ( nblks - 1 )*int(sps_av);
+        }
+        else {
+            nnus_star = int(sps_av);
+        }
+        int inu_lower = 0;
+        if ( iblk>0 ) inu_lower = nnus_ - ( nblks - 1 )*int(sps_av) + (iblk-1)*int(sps_av);
+        int inu_upper = inu_lower + nnus_star - 1;
+
+        cout << "nnus = " << nnus_ << ", nnus_star = " << nnus_star << ", iblk = " << iblk << ", inu_lower = " << inu_lower << ", inu_upper = " << inu_upper << endl;
+
+        /* load the spectra into memory */
+        if ( store_spectra_on_disk_ )
+            this->load_spectra( inu_lower, inu_upper );
+
+        /* ------- Wall-to-shock (minus) direction ------- */
+        int iqm=0;
+
+        // Outer-boundary blackbody intensity (note optical thickness = 0)
+        double q_int = 0.0;
+        for ( int inu=inu_lower; inu <=inu_upper; inu++ ) {
+            F_->q_nu[inu] = 2.0 * M_PI * planck_intensity( F_->nu[inu], T_f_ ) * E_3( 0.0 );
+            // Frequency integration
+            if ( inu>0 )
+                q_int += 0.5 * ( F_->q_nu[inu] + F_->q_nu[inu-1] ) * fabs( F_->nu[inu] - F_->nu[inu-1] );
+        }
+
+        // Save integrated flux
+        q_minus[iqm] += q_int; iqm++;
+
+        // integrate over emitting slabs using trapezoidal method
+        for ( int irp=(nrps_-1); irp >= 0; --irp ) {
+            // cout << "Spatial location: | " << irp << " | \r" << flush;
+            q_int = 0.0;
+            for ( int inu=inu_lower; inu<=inu_upper; inu++ ) {
+                // emission and absorption coefficients for this slab
+                double kappa_nu = rpoints_[irp]->X_->kappa_nu[inu-inu_lower];
+                double j_nu = rpoints_[irp]->X_->j_nu[inu-inu_lower];
+                // calculate optical thickness between intervals
+                double tau_nu = fabs(rpoints_[irp]->ds_) * kappa_nu;
+                // Attenuate incident flux )
+                F_->q_nu[inu] *= 2.0 * E_3( tau_nu );
+                // Add contribution from this slab
+                double tmpA = 0.0;
+                if ( j_nu != 0.0 )  tmpA = j_nu / kappa_nu;
+                F_->q_nu[inu] += tmpA * M_PI * ( 1.0 -  2.0 * E_3( tau_nu ) );
+                // Integrate
+                if ( inu>0 )
+                q_int += 0.5 * ( F_->q_nu[inu] + F_->q_nu[inu-1] ) * fabs( F_->nu[inu] - F_->nu[inu-1] );
+            }
+            // Save integrated flux
+            q_minus[iqm] += q_int; iqm++;
+        }
+
+        /* ------- Shock-to-wall (plus) direction ------- */
+        int iqp=0;
+
+        // Outer-boundary blackbody intensity (note optical thickness = 0)
+        q_int = 0.0;
+        for ( int inu=inu_lower; inu<=inu_upper; inu++ ) {
+            F_->q_nu[inu] = 2.0 * M_PI * planck_intensity( F_->nu[inu], T_i_ ) * E_3( 0.0 );
+            // Frequency integration
+            if ( inu>0 )
+                q_int += 0.5 * ( F_->q_nu[inu] + F_->q_nu[inu-1] ) * fabs( F_->nu[inu] - F_->nu[inu-1] );
+        }
+
+        // Save integrated flux
+        q_plus[iqp] += q_int; iqp++;
+
+        // integrate over emitting slabs using trapezoidal method
+        for ( int irp=0; irp < nrps_; irp++ ) {
+            // cout << "Spatial location: | " << irp << " | \r" << flush;
+            q_int = 0.0;
+            for ( int inu=inu_lower; inu<=inu_upper; inu++ ) {
+                // emission and absorption coefficients for this slab
+                double kappa_nu = rpoints_[irp]->X_->kappa_nu[inu-inu_lower];
+                double j_nu = rpoints_[irp]->X_->j_nu[inu-inu_lower];
+                // calculate optical thickness between intervals
+                double tau_nu = fabs(rpoints_[irp]->ds_) * kappa_nu;
+                // Attenuate incident flux )
+                F_->q_nu[inu] *= 2.0 * E_3( tau_nu );
+                // Add contribution from this slab
+                double tmpA = 0.0;
+                if ( j_nu != 0.0 )  tmpA = j_nu / kappa_nu;
+                F_->q_nu[inu] += tmpA * M_PI * ( 1.0 -  2.0 * E_3( tau_nu ) );
+                // Integrate
+                if ( inu>0 )
+                    q_int += 0.5 * ( F_->q_nu[inu] + F_->q_nu[inu-1] ) * fabs( F_->nu[inu] - F_->nu[inu-1] );
+            }
+            // Save integrated flux
+            q_plus[iqp] += q_int; iqp++;
+        }
+    }
+
+    // calculate radiative divergence
+
+    for ( int irp=0; irp<nrps_; ++irp ) {
+        // use forward differencing to evaluate divergence
+        double q_net_i = q_plus[irp] - q_minus[nrps_-irp];
+        double q_net_ip1 = q_plus[irp+1] - q_minus[nrps_-irp-1];
+        *(rpoints_[irp]->Q_rE_rad_) = ( q_net_i - q_net_ip1 ) / rpoints_[irp]->ds_;
+    }
+
+    // return wall directed flux
+    // NOTE: omitting wall emission - which is correct
+    double q_wall = q_plus.back();
+
     return q_wall;
 }
 

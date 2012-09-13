@@ -48,7 +48,7 @@ public:
 
 class LOS_data {
 public:
-    LOS_data( RadiationSpectralModel * rsm=0, int nrps=0, double T_i=0.0, double T_f=0.0 );
+    LOS_data( RadiationSpectralModel * rsm=0, int nrps=0, double T_i=0.0, double T_f=0.0, bool store_spectra_on_disk=false );
     
     virtual ~LOS_data();
     
@@ -76,6 +76,8 @@ public:
     RadiatingPoint * get_rpoint_pointer( int irp )
     { return rpoints_[irp]; }
     
+    void load_spectra( int inu_start, int inu_end );
+
 public:
     RadiationSpectralModel * rsm_;
     
@@ -84,12 +86,14 @@ public:
     double T_i_;
     double T_f_;
     
+    bool store_spectra_on_disk_;
+
     std::vector<RadiatingPoint*> rpoints_;
 };
 
 class TS_data : public LOS_data {
 public:
-    TS_data( RadiationSpectralModel * rsm=0, int nrps=0, double T_i=0.0, double T_f=0.0 );
+    TS_data( RadiationSpectralModel * rsm=0, int nrps=0, double T_i=0.0, double T_f=0.0, bool store_spectra_on_disk=false );
     
     ~TS_data();
     
@@ -102,6 +106,8 @@ public:
 
     double quick_solve_for_divq();
     
+    double quick_solve_for_divq_in_blocks( int nblks );
+
     double quick_solve_for_divq_with_binning(  int binning_type, int N_bins );
 
     double exact_solve_for_divq();

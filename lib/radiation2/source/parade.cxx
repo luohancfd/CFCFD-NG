@@ -209,6 +209,9 @@ spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
         reverse( X.kappa_nu.begin(), X.kappa_nu.end() );
     }
 
+    // print the size of the spectral vectors
+    cout << "X.nu.size() = " << X.nu.size() << endl;
+
     // Move out of the working directory
     srv = chdir("..");
 
