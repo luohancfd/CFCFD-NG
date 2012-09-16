@@ -618,16 +618,16 @@ void SpectralIntensity::apply_apparatus_function( double delta_x_ang, int nu_sam
 	count = 0;
 	for ( int jnu=jnu_start; jnu<jnu_end; jnu++ ) {
             count++;
-	    if ( count==nu_sample ) {
-	        count = 0;
-	        continue;
-	    }
 	    if ( jnu>jnu_start ) {
 		double x0 = nu[jnu-1] - nu_val;
 		double x1 = nu[jnu] - nu_val;
 		double f_x0 = eval_Gaussian(x0, delta_x_hz);
 		double f_x1 = eval_Gaussian(x1, delta_x_hz);
 		I_nu_conv += 0.5 * ( I_nu[jnu-1]*f_x0 + I_nu[jnu]*f_x1 ) * ( nu[jnu] - nu[jnu-1] );
+	    }
+	    if ( count==nu_sample ) {
+	        count = 0;
+	        continue;
 	    }
 	}
 

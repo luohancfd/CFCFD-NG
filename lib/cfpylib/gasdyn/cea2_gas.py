@@ -585,9 +585,9 @@ def make_reactants_dictionary( species_list ):
     reactants = dict()
     for sp in species_list:
         # replace names containing '_plus' with '+' 
-        if ( sp.find("_plus")>=0 ): sp = sp[0:sp.find("_plus")] + "+"
+        sp = sp.replace("_plus","+")
         # replace names containing '_minus' with '-' 
-        if ( sp.find("_minus")>=0 ): sp = sp[0:sp.find("_minus")] + "-"
+        sp = sp.replace("_minus","-")
 	reactants.setdefault(sp,0.0)
     return reactants
 
