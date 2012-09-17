@@ -9,7 +9,7 @@ from time import time
 from getopt import getopt, GetoptError
 
 # sampling scale factor
-f_s = 10.0 
+f_s = 1.0 
 
 from gaspy import *
 
@@ -160,13 +160,13 @@ def main():
     cea = Gas( reactants, with_ions=True, trace=0 )
     cea.set_pT(p_inf,T_inf,transProps=False)
     cea.shock_process( Us )
-    print "unfiltered species composition: ", cea.species
+    # print "unfiltered species composition: ", cea.species
     del cea 
     cea = Gas( reactants, onlyList=reactants.keys(), with_ions=True, trace=1.0e-20 )
     cea.set_pT(p_inf,T_inf*10,transProps=False)
     cea.T = T_inf
     cea.shock_process( Us )
-    print "filtered species composition: ", cea.species
+    # print "filtered species composition: ", cea.species
     #over-write provided initial mass-fractions
     Q.rho = cea.rho
     for itm in range(ntm): Q.T[itm] = cea.T
