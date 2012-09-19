@@ -705,7 +705,7 @@ if __name__ == '__main__':
     if uoDict.has_key("--vtk-xml") or uoDict.has_key("--ref-function") or \
             uoDict.has_key("--compare-job"): 
         begin_Visit_file(rootName, nblock)
-
+        begin_PVD_file(rootName)
     #
     # For the times that have been specified, do something...
     for tindx in tindx_list:
@@ -713,7 +713,7 @@ if __name__ == '__main__':
             print "Assemble VTK-XML files for t=", times_dict[tindx]
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz)
-            write_VTK_XML_files(rootName, tindx, nblock, grid, flow)
+            write_VTK_XML_files(rootName, tindx, nblock, grid, flow, times_dict[tindx])
         #
         if uoDict.has_key("--tecplot"):
             print "Assemble Tecplot file for t=", times_dict[tindx]
@@ -777,7 +777,7 @@ if __name__ == '__main__':
                 add_auxiliary_variables(nblock, flow, uoDict, omegaz)
                 compute_difference_in_flow_data(ref_function, nblock, grid, flow, 
                                                 times_dict[tindx])
-                write_VTK_XML_files(rootName, tindx, nblock, grid, flow)
+                write_VTK_XML_files(rootName, tindx, nblock, grid, flow, times_dict[tindx])
                 norms = compute_volume_weighted_norms(nblock, grid, flow)
                 pretty_print_norms(norms,
                                    uoDict.get("--per-block-norm-list", ""),
@@ -794,7 +794,7 @@ if __name__ == '__main__':
             grid2, flow2, dimensions = read_all_blocks(compareRootName, nblock, compareTindx, zipFiles)
             add_auxiliary_variables(nblock, flow2, uoDict, omegaz)
             compute_difference_in_flow_data2(nblock, grid, flow, grid2, flow2, times_dict[tindx])
-            write_VTK_XML_files(rootName, tindx, nblock, grid, flow)
+            write_VTK_XML_files(rootName, tindx, nblock, grid, flow, times_dict[tindx])
             norms = compute_volume_weighted_norms(nblock, grid, flow)
             pretty_print_norms(norms,
                                uoDict.get("--per-block-norm-list", ""),
@@ -829,7 +829,7 @@ if __name__ == '__main__':
             outputName = uoDict.get("--output-file", rootName)
             write_VTK_XML_files(outputName+".surface", tindx, 
                                 len(surface_grid_list), 
-                                surface_grid_list, surface_flow_list)
+                                surface_grid_list, surface_flow_list, times_dict[tindx])
         #
         if uoDict.has_key("--probe"):
             print "Probe data for t=", times_dict[tindx]
@@ -873,7 +873,10 @@ if __name__ == '__main__':
                 tangent_slab_along_slice(outputFileName, slice_list_str, tindx, nblock, grid, flow)
             else:
                 print "No tangent-slab calculations performed."
-        #
+    #
+    if uoDict.has_key("--vtk-xml") or uoDict.has_key("--ref-function") or \
+            uoDict.has_key("--compare-job"): 
+        finish_PVD_file(rootName)
 
     print "End e3post.py."
     sys.exit(0)

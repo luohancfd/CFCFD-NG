@@ -916,15 +916,43 @@ def begin_Visit_file(rootName, nblock):
     visitFile.close()
     return
 
-def write_VTK_XML_files(rootName, tindx, nblock, grid, flow):
+def begin_PVD_file(rootName):
+    # Will be handy to have a Paraview collection file, also.
+    # For each time index, this justs lists the name of the top-level .pvtu file.
+    plotPath = "plot"
+    if not os.access(plotPath, os.F_OK):
+        os.makedirs(plotPath)
+    fileName = rootName+".pvd"
+    fileName = os.path.join(plotPath, fileName)
+    pvdFile = open(fileName, "w")
+    pvdFile.write("<?xml version=\"1.0\"?>\n")
+    pvdFile.write("<VTKFile type=\"Collection\" version=\"0.1\" byte_order=\"LittleEndian\">\n")
+    pvdFile.write("<Collection>\n")
+    pvdFile.close()
+    return
+
+def finish_PVD_file(rootName):
+    plotPath = "plot"
+    if not os.access(plotPath, os.F_OK):
+        os.makedirs(plotPath)
+    fileName = rootName+".pvd"
+    fileName = os.path.join(plotPath, fileName)
+    pvdFile = open(fileName, "a")
+    pvdFile.write("</Collection>\n")
+    pvdFile.write("</VTKFile>\n")
+    pvdFile.close()
+    return
+
+def write_VTK_XML_files(rootName, tindx, nblock, grid, flow, t):
     """
-    Writes the top-level (coordinating) parallel-VTK file.
+    Writes the top-level (coordinating) parallel/partitioned-VTK file.
 
     :param rootName: specific file names are built by adding bits to this name
     :param tindx: integer
     :param nblock: integer
     :param grid: list of StructuredGrid objects
     :param flow: list of StructuredGridFlow objects
+    :param t: simulation time corresponding to the flow data at this tindx 
     """
     plotPath = "plot"
     if not os.access(plotPath, os.F_OK):
@@ -968,6 +996,15 @@ def write_VTK_XML_files(rootName, tindx, nblock, grid, flow):
         fileName = rootName+(".b%04d.t%04d" % (jb, tindx))+".vtu"
         visitFile.write("%s\n" % fileName)
     visitFile.close()
+    # Will be handy to have a Paraview PVD file, also.
+    # This justs lists the top-level .pvtu files.
+    fileName = rootName+".pvd"
+    fileName = os.path.join(plotPath, fileName)
+    # Note that we append to the .pvd file for each tindx.
+    pvdFile = open(fileName, "a")
+    fileName = rootName+(".t%04d" % (tindx,))+".pvtu"
+    pvdFile.write("<DataSet timestep=\"%e\" group=\"\" part=\"0\" file=\"%s\"/>\n" % (t, fileName))
+    pvdFile.close()
     return
 
 #---------------------------------------------------------------------------------
@@ -983,6 +1020,10 @@ def write_Tecplot_file(rootName, tindx, nblock, grid, flow, t):
     :param grid: list of StructuredGrid objects
     :param flow: list of StructuredGridFlow objects
     :param t: float value for the time that gets written into the file
+
+    Note that the Tecplot360 ASCII data format has a limitation of 32000 characters 
+    on a line.  This may be a problem for the simple code below if we exceed nni=1600.
+    For the moment, retain the simpler code rather than making it cope with nni>1600.
     """
     plotPath = "plot"
     if not os.access(plotPath, os.F_OK):
@@ -1003,17 +1044,21 @@ def write_Tecplot_file(rootName, tindx, nblock, grid, flow, t):
         nic = flow[jb].ni; njc = flow[jb].nj; nkc = flow[jb].nk
         niv = grid[jb].ni; njv = grid[jb].nj; nkv = grid[jb].nk
         fp.write("ZONE I=%d J=%d K=%d DATAPACKING=BLOCK" % (niv,njv,nkv,))
+        fp.write(" SOLUTIONTIME=%e" % t)
         fp.write(" VARLOCATION=(%s=CELLCENTERED) T=\"block-%d\"\n" % (centered_list_str,jb,))
+        fp.write("# cell-vertex pos.x\n")
         for k in range(nkv):
             for j in range(njv):
                 for i in range(niv):
                     fp.write(" %e" % uflowz(grid[jb].x[i,j,k]))
                 fp.write("\n")
+        fp.write("# cell-vertex pos.y\n")
         for k in range(nkv):
             for j in range(njv):
                 for i in range(niv):
                     fp.write(" %e" % uflowz(grid[jb].y[i,j,k]))
                 fp.write("\n")
+        fp.write("# cell-vertex pos.z\n")
         for k in range(nkv):
             for j in range(njv):
                 for i in range(niv):
@@ -1021,6 +1066,7 @@ def write_Tecplot_file(rootName, tindx, nblock, grid, flow, t):
                 fp.write("\n")
         for var in flow[jb].vars:
             if var == "pos.x" or var == "pos.y" or var == "pos.z": continue
+            fp.write("# cell-centre %s\n" % var)
             for k in range(nkc):
                 for j in range(njc):
                     for i in range(nic):
