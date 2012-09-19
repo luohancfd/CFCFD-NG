@@ -45,7 +45,7 @@ double R_extrap_deriv(Univariate_functor &f, double x, double h, int &status,
 
     // If we get this far, we've failed.
     status = FAILURE;
-    return d[i][i];
+    return d[i-1][i-1];
 }
 
 

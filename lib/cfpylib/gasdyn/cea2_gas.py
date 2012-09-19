@@ -151,7 +151,12 @@ def get_cea2_float(token_list):
     else:
         print "get_cea2_float(): too many tokens (expected one or two, only):", token_list
         value_str = '0.0'
-    return float(value_str)
+    try:
+        value = float(value_str)
+    except:
+        print "Cannot make a float from this string: ", value_str
+        sys.exit()
+    return value
    
 # ----------------------------------------------------------------
 

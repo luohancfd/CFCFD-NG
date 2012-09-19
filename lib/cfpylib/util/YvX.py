@@ -7,7 +7,10 @@ try:
     from scipy import interpolate
 except:
     print "Cannot import scipy.interpolate."
-    sys.exit()
+    print "Interpolation will not be functional"
+    with_scipy = False
+else:
+    with_scipy = True
 from datetime import datetime
 try:
     import pylab
@@ -30,9 +33,10 @@ class YvX:
             sys.exit()
         self.x_array = array(x_list)
         self.y_array = array(y_list)
-        if with_spline:
-            self.spline_fit = interpolate.splrep( self.x_array, self.y_array )
-        self.linear_fit = interpolate.interp1d( self.x_array, self.y_array )
+        if with_scipy:
+            if with_spline:
+                self.spline_fit = interpolate.splrep( self.x_array, self.y_array )
+            self.linear_fit = interpolate.interp1d( self.x_array, self.y_array )
         print "Successfully created a YvX class from provided x and y lists of length: ", len(x_list)
     def create_from_file(self, infile_name, x_col=0, y_col=1, with_spline=True ):
         iFile = open( infile_name, "r" )
@@ -46,12 +50,16 @@ class YvX:
              y_list.append(float(tks[y_col]))
         self.x_array = array(x_list)
         self.y_array = array(y_list)
-        if with_spline:
-            self.spline_fit = interpolate.splrep( self.x_array, self.y_array )
-        self.linear_fit = interpolate.interp1d( self.x_array, self.y_array )
+        if with_scipy:
+            if with_spline:
+                self.spline_fit = interpolate.splrep( self.x_array, self.y_array )
+            self.linear_fit = interpolate.interp1d( self.x_array, self.y_array )
         print "Successfully created a YvX class of size: %d from file: %s\n" % (len(x_list), infile_name)
     def y_from_x(self, x_val, use_spline=True):
         # NOTE: x_val can be an array
+        if not with_scipy:
+            print "scipy is required for y_from_x to function"
+            sys.exit()
         if isinstance( x_val, ndarray ):
             if use_spline:
             	y_vals = interpolate.splev( x_val, self.spline_fit, der=0 )
@@ -157,5 +165,8 @@ class YvX:
         print "integral = ", integral
         return integral
     def recompute_spline(self, s=0):
+        if with_scipy:
+            print "scipy is required for interpolation"
+            sys.exit()
         self.spline_fit = interpolate.splrep( self.x_array, self.y_array, s=s )
         

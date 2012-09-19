@@ -110,6 +110,8 @@ public:
     double dTdp_const_rho(const Gas_data &Q, int &status)
     { return s_dTdp_const_rho(Q, status); }
     
+    double dTdp_const_rho_py(const Gas_data &Q)
+    { int status; return s_dTdp_const_rho(Q, status); }
 
     double dTdrho_const_p(const Gas_data &Q, int &status)
     { return s_dTdrho_const_p(Q, status); }
