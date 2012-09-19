@@ -567,17 +567,32 @@ Helix* Helix::rotate_about_zaxis( double dtheta )
 //------------------------------------------------------------------------------
 
 // Bezier curves of arbitrary order.
-Bezier::Bezier( const vector<Vector3> &B, string label, double t0, double t1 )
-    : Path(label, t0, t1), B(B)
+Bezier::Bezier( const vector<Vector3> &B, string label,
+		double t0, double t1, int arc_length_p )
+    : Path(label, t0, t1), B(B), arc_length_param_flag(arc_length_p)
 {
+    if ( arc_length_param_flag ) {
+	n_arc_length = 100;
+    } else {
+	n_arc_length = 0;
+    }
+    set_arc_length_vector();
     set_deriv_control_points();
 }
 Bezier::Bezier( const Bezier &bez ) 
-    : Path(bez.label, bez.t0, bez.t1), B(bez.B)
+    : Path(bez.label, bez.t0, bez.t1), B(bez.B),
+      arc_length_param_flag(bez.arc_length_param_flag)
 {
+    n_arc_length = bez.n_arc_length;
+    set_arc_length_vector();
     set_deriv_control_points();
 }
-Bezier::~Bezier() {}
+Bezier::~Bezier() 
+{
+    arc_length.resize(0);
+    C.resize(0);
+    D.resize(0);
+}
 Bezier* Bezier::clone() const
 {
     return new Bezier(*this);
@@ -591,14 +606,15 @@ Bezier* Bezier::copy(int direction) const
 Bezier* Bezier::add_point( const Vector3 &p )
 {
     B.push_back(Vector3(p));
+    set_arc_length_vector();
     set_deriv_control_points();
     return this;
 }
-Vector3 Bezier::eval( double t ) const
+Vector3 Bezier::raw_eval( double t ) const
+// Evaluate B(t) without considering arc_length parameterization flag or subrange.
 {
     if ( B.size() == 0 ) return Vector3(0.0, 0.0, 0.0);
     if ( B.size() == 1 ) return B[0];
-    t = t0 + t * (t1 - t0); // scale to subrange
     size_t n_order = B.size() - 1;
     // Apply de Casteljau's algorithm. 
     vector<Vector3> Q = B; // work array will be overwritten
@@ -608,6 +624,17 @@ Vector3 Bezier::eval( double t ) const
 	}
     }
     return Q[0];
+}
+Vector3 Bezier::eval( double t ) const
+// Evaluate B(t) considering arc_length parameterization flag and possible subrange of t.
+{
+    if ( B.size() == 0 ) return Vector3(0.0, 0.0, 0.0);
+    if ( B.size() == 1 ) return B[0];
+    t = t0 + t * (t1 - t0); // scale to subrange
+    if ( arc_length_param_flag ) {
+	t = t_from_arc_length(t);
+    }
+    return raw_eval(t);
 }
 Vector3 Bezier::dpdt( double t ) const
 {
@@ -622,6 +649,9 @@ Vector3 Bezier::dpdt( double t ) const
 	    Q[i] = (1.0 - t) * Q[i] + t * Q[i+1];
 	}
     }
+    // FIX-ME Please Rowan: The subrange selection (if it's not 0->1)
+    // and the arc_length parameterization probably messes with your
+    // derivative calculations.
     return Q[0];
 }
 string Bezier::str() const
@@ -632,7 +662,8 @@ string Bezier::str() const
 	ost << B[i];
 	if (i < B.size()-1 ) ost << ", "; else ost << "], ";
     }
-    ost << "\"" << label << "\", " << t0 << ", " << t1 << ")";
+    ost << "\"" << label << "\", " << t0 << ", " << t1 << ", " 
+	<< arc_length_param_flag << ")";
     return ost.str();
 }
 Bezier* Bezier::translate( const Vector3 &v )
@@ -640,12 +671,14 @@ Bezier* Bezier::translate( const Vector3 &v )
     for ( size_t i = 0; i < B.size(); ++i ) {
 	B[i] += v;
     }
+    set_arc_length_vector();
     set_deriv_control_points();
     return this;
 }
 Bezier* Bezier::translate( double vx, double vy, double vz )
 {
     translate(Vector3(vx, vy, vz));
+    set_arc_length_vector();
     set_deriv_control_points();
     return this;
 }
@@ -656,6 +689,7 @@ Bezier* Bezier::reverse()
     double t1_old = t1;
     t0 = 1.0 - t1_old;
     t1 = 1.0 - t0_old;
+    set_arc_length_vector();
     set_deriv_control_points();
     return this;
 }
@@ -664,6 +698,7 @@ Bezier* Bezier::mirror_image( const Vector3 &point, const Vector3 &normal )
     for ( size_t i = 0; i < B.size(); ++i ) {
 	B[i].mirror_image(point, normal);
     }
+    set_arc_length_vector();
     set_deriv_control_points();
     return this;
 }
@@ -672,6 +707,7 @@ Bezier* Bezier::rotate_about_zaxis( double dtheta )
     for ( size_t i = 0; i < B.size(); ++i ) {
 	B[i].rotate_about_zaxis(dtheta);
     }
+    set_arc_length_vector();
     set_deriv_control_points();
     return this;
 }
@@ -688,21 +724,59 @@ Vector3 Bezier::d2pdt2( double t ) const
 	    Q[i] = (1.0 - t) * Q[i] + t * Q[i+1];
 	}
     }
+    // FIX-ME Please Rowan: The subrange selection (if it's not 0->1)
+    // and the arc_length parameterization probably messes with your
+    // derivative calculations.  Maybe this function should not be
+    // called for curves with arc_lenght_param_flag == 1.
     return Q[0];
 }
 void Bezier::set_deriv_control_points()
 {
     size_t n = B.size() - 1;
-    if( n == 0 )
-	return;
+    if ( n == 0 ) return;
     C.resize(n);
-    for(size_t i = 0; i < n; ++i ) C[i] = n*(B[i+1] - B[i]);
+    for (size_t i = 0; i < n; ++i ) C[i] = n*(B[i+1] - B[i]);
 
-    if( n == 1 )
-	return;
+    if ( n == 1 ) return;
     D.resize(n-1);
-    for(size_t i = 0; i < (n-1); ++i ) D[i] = (n-1)*(C[i+1] - C[i]);
+    for (size_t i = 0; i < (n-1); ++i ) D[i] = (n-1)*(C[i+1] - C[i]);
 }
+void Bezier::set_arc_length_vector()
+{
+    // Compute the arc_lengths for a number of sample points 
+    // so that these can later be used to do a reverse interpolation
+    // on the evaluation parameter.
+    if ( n_arc_length == 0 ) return;
+    double dt = 1.0 / n_arc_length;
+    arc_length.resize(0);
+    double L = 0.0;
+    arc_length.push_back(L);
+    Vector3 p0 = raw_eval(0.0);
+    Vector3 p1;
+    for ( int i = 1; i <= n_arc_length; ++i ) {
+	p1 = raw_eval(dt * i);
+	L += vabs(p1 - p0);
+	arc_length.push_back(L);
+	p0 = p1;
+    }
+    return;
+}
+double Bezier::t_from_arc_length(double t) const
+{
+    // The incoming parameter value, t, is proportional to arc_length.
+    // Do a reverse look-up from the arc_length to the original t parameter
+    // of the Bezier curve.
+    double L_target = t * arc_length[n_arc_length];
+    // Starting from the right-hand end,
+    // let's try to find a point to the left of L_target.
+    // If the value is out of range, this should just result in
+    // us extrapolating one of the end segments -- that's OK.
+    int i = n_arc_length - 1;
+    double dt = 1.0 / n_arc_length;
+    while ( L_target < arc_length[i] && i > 0 ) i--;
+    double frac = (L_target - arc_length[i]) / (arc_length[i+1] - arc_length[i]);
+    return (1.0 - frac) * dt*i + frac * dt*(i+1);
+ }
 
 //------------------------------------------------------------------------------
 Nurbs::Nurbs( const vector<Vector3> &P, const vector<double> w,

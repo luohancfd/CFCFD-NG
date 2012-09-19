@@ -180,9 +180,10 @@ public:
 class Bezier : public Path {
 public:
     vector<Vector3> B; ///< collection of control points
+    int arc_length_param_flag;
     /// Construct the curve from a collection of points.
     Bezier( const vector<Vector3> &B, string label="", 
-	    double t0=0.0, double t1=1.0 );
+	    double t0=0.0, double t1=1.0, int arc_length_p=0 );
     /// Construct the curve as a copy of another Bezier curve.
     Bezier( const Bezier &bez );
     virtual ~Bezier();
@@ -190,6 +191,7 @@ public:
     virtual Bezier* copy(int direction=1) const; 
     /// Add another point to the end of the collection. (Will increase order of curve.)
     Bezier* add_point( const Vector3 &p );
+    Vector3 raw_eval( double t ) const;
     virtual Vector3 eval( double t ) const;
     Vector3 dpdt( double t ) const;
     // virtual double length() const; Get it from Path
@@ -206,6 +208,10 @@ public:
 private:
     // Don't expect users to access these
     void set_deriv_control_points();
+    void set_arc_length_vector();
+    double t_from_arc_length(double t) const;
+    vector<double> arc_length;
+    int n_arc_length; // Number of pieces in the arc_length vector, if used.
     vector<Vector3> C; // storage of control points
                        // for quick evaluation of first derivative
     vector<Vector3> D; // storage of control points

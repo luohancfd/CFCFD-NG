@@ -31,7 +31,7 @@ LUA_INCLUDE_DIR := $(LUA)/include
 #----------------------------------------------------------------------
 
 EXE_FILES := geom_test.x gpath_test.x surface_test.x \
-	secant_test.x geom_test.py gpath_test.py \
+	secant_test.x geom_test.py gpath_test.py gpath_test_bezier.py \
 	fobject_test.x surface_test.py volume_test.py meshvolume_test.py \
 	triangle_patch_test.x triangle_patch_test.py triangle_join_test.py \
 	revolved_surface_test.x revolved_surface_test.py \
@@ -110,6 +110,9 @@ geom_test.py : $(SRC)/geom_test.py
 
 gpath_test.py : $(SRC)/gpath_test.py
 	cp $(SRC)/gpath_test.py .
+
+gpath_test_bezier.py : $(SRC)/gpath_test_bezier.py
+	cp $(SRC)/gpath_test_bezier.py .
 
 helix_test.py : $(SRC)/helix_test.py
 	cp $(SRC)/helix_test.py .
