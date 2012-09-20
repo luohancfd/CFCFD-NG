@@ -23,6 +23,7 @@
 #include "kernel.hh"
 #include "flux_calc.hh"
 #include "diffusion.hh"
+#include "bgk.hh"
 
 #define VISCOUS_TIME_LIMIT_MODEL 0 // (0) original Swanson model, (1) Ramshaw model
 
@@ -67,11 +68,15 @@ FlowState::FlowState(Gas_model *gm)
     omega = 0.0;
     mu_t = 0.0;
     k_t = 0.0;
+    G.resize(get_velocity_buckets(), 0.0);
+    H.resize(get_velocity_buckets(), 0.0);
 }
 
 FlowState::~FlowState()
 {
     delete gas;
+    G.resize(0, 0.0);
+    H.resize(0, 0.0);
 }
 
 int FlowState::print()
@@ -81,6 +86,12 @@ int FlowState::print()
     printf("v.x= %e, v.y= %e, v.z= %e \n", vel.x, vel.y, vel.z);
     if ( get_mhd_flag() == 1 ) {
 	printf("B.x= %e, B.y=%e, B.z=%e \n", B.x, B.y, B.z);
+    }
+    if ( get_velocity_buckets() > 0) {
+	printf("Velocity Distribution Partial Densities:\n");
+	for ( size_t ipd = 0; ipd < G.size(); ++ipd ) {
+	    printf("i=%d: G=%e, H=%e\n",(int) ipd, G[ipd], H[ipd]);
+	}
     }
     printf("tke= %e, omega=%e\n", tke, omega);
     printf("S= %d, mu_t=%e, k_t=%e\n", S, mu_t, k_t);
@@ -97,6 +108,10 @@ int FlowState::copy_values_from(FlowState &src)
     omega = src.omega;
     mu_t = src.mu_t;
     k_t = src.k_t;
+    for ( size_t ipd = 0; ipd < src.G.size(); ++ipd ) {
+	G[ipd] = src.G[ipd];
+	H[ipd] = src.H[ipd];
+    }
     return SUCCESS;
 }
 
@@ -131,6 +146,10 @@ int FlowState::average_values_from(FlowState &src0, FlowState &src1, bool with_d
     omega = 0.5 * (src0.omega + src1.omega);
     mu_t = 0.5 * (src0.mu_t + src1.mu_t);
     k_t = 0.5 * (src0.k_t + src1.k_t);
+    for ( size_t ipd = 0; ipd < src0.G.size(); ++ipd ) {
+	G[ipd] = 0.5 * (src0.G[ipd] + src1.G[ipd]);
+	H[ipd] = 0.5 * (src0.H[ipd] + src1.H[ipd]);
+    }
     return SUCCESS;
 }
 
@@ -153,6 +172,11 @@ double * FlowState::copy_values_to_buffer(double *buf)
     *buf++ = omega;
     *buf++ = mu_t;
     *buf++ = k_t;
+    for ( size_t ipd = 0; ipd < G.size(); ++ipd ) {
+	*buf++ = G[ipd];
+	*buf++ = H[ipd];
+    }
+	
     return buf;
 }
 
@@ -175,7 +199,40 @@ double * FlowState::copy_values_from_buffer(double *buf)
     omega = *buf++;
     mu_t = *buf++;
     k_t = *buf++;
+    for ( size_t ipd = 0; ipd < G.size(); ++ipd ) {
+	G[ipd] = *buf++;
+	H[ipd] = *buf++;
+    }
     return buf;
+}
+
+/// \brief From the macroscopic quantities set the values of 
+/// G and H to those for equilibrium.
+int FlowState::BGK_equilibrium(void)
+{
+
+    //DARYL - FIX-ME: check the definition of temperature, heat flux coeff, what is "status" for
+
+    Vector3 gh, uvw;
+    int status;
+
+    Gas_model *gmodel = get_gas_model_ptr();
+    
+    double R = gmodel->R(*gas, status);
+    double Cp = gmodel->Cp(*gas, status);
+    double Pr = gmodel->Prandtl(gas->mu, Cp, gas->k[0]);
+
+    for (size_t iq = 0; iq < get_velocity_buckets(); ++iq) {
+	uvw = get_vcoord(iq);
+	
+	
+	gh = Shakhov(gas->rho, vel.x, vel.y, gas->T[0], 0.0, 0.0, R, Pr, uvw.x, uvw.y);
+
+	G[iq] = gh.x;
+	H[iq] = gh.y;
+    }
+	
+    return SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -190,12 +247,16 @@ ConservedQuantities::ConservedQuantities(Gas_model *gm)
     energies.resize(gm->get_number_of_modes(), 0.0);
     tke = 0.0;
     omega = 0.0;
+    G.resize(get_velocity_buckets(), 0.0);
+    H.resize(get_velocity_buckets(), 0.0);
 }
 
 ConservedQuantities::~ConservedQuantities()
 {
     massf.resize(0);
     energies.resize(0);
+    G.resize(0);
+    H.resize(0);
 }
 
 int ConservedQuantities::print()
@@ -216,6 +277,13 @@ int ConservedQuantities::print()
 	cout << imode << ":" << energies[imode] << " ";
     cout << endl;
     cout << "tke= " << tke << " omega=" << omega << endl;
+    if ( get_velocity_buckets() > 0) {
+	printf("Velocity Distribution Partial Densities:\n");
+	for ( size_t ipd = 0; ipd < G.size(); ++ipd ) {
+	    cout << ipd << ": (" << G[ipd] << ", " << H[ipd] << ")";
+	}
+	cout << endl;
+    }
     return SUCCESS;
 }
 
@@ -233,6 +301,10 @@ int ConservedQuantities::copy_values_from(ConservedQuantities &src)
 	energies[imode] = src.energies[imode];
     tke = src.tke;
     omega = src.omega;
+    for (size_t ipd = 0; ipd < src.G.size(); ++ipd) {
+	G[ipd] = src.G[ipd];
+	H[ipd] = src.H[ipd];
+    }
     return SUCCESS;
 }
 
@@ -250,6 +322,10 @@ int ConservedQuantities::clear_values()
 	energies[imode] = 0.0;
     tke = 0.0;
     omega = 0.0;
+    for (size_t ipd = 0; ipd < G.size(); ++ipd) {
+	G[ipd] = 0.0;
+	H[ipd] = 0.0;
+    }
     return SUCCESS;
 }
 
@@ -684,7 +760,6 @@ int FV_Cell::scan_values_from_string(char *bufptr)
     return SUCCESS;
 } // end scan_values_from_string()
 
-
 /// \brief Write the flow solution (i.e. the primary variables) to a string.
 std::string FV_Cell::write_values_to_string()
 {
@@ -721,6 +796,49 @@ std::string FV_Cell::write_values_to_string()
     return ost.str();
 } // end of write_values_to_string()
 
+/// \brief Scan a string, extracting the discrete samples of the BGK velocity distribution function
+int FV_Cell::scan_BGK_from_string(char *bufptr)
+// There isn't any checking of the file content.
+// If anything gets out of place, the result is wrong data.
+{
+    // Look for a new-line character and truncate the string there.
+    char *cptr = strchr(bufptr, '\n');
+    if ( cptr != NULL ) cptr = '\0';
+    // Now, we should have a string with only numbers separated by spaces.
+    // include the position data, duplicate of "flow", as insurance against 
+    // finding this file in isolation
+    pos.x = atof(strtok( bufptr, " " )); // tokenize on space characters
+    pos.y = atof(strtok( NULL, " " ));
+    pos.z = atof(strtok( NULL, " " ));
+    volume = atof(strtok( NULL, " " ));
+    
+    
+    // values of G and H are interleaved
+    for (size_t iGH = 0; iGH < get_velocity_buckets(); ++iGH) {
+	fs->G[iGH] = atof(strtok( NULL, " " ));
+	fs->H[iGH] = atof(strtok( NULL, " " ));
+    }
+
+    return SUCCESS;
+} // end scan_BGK_from_string()
+
+/// \brief Write the discrete samples of the BGK velocity distribution function to a string.
+std::string FV_Cell::write_BGK_to_string()
+{
+    // The new format for Elmer3 puts everything onto one line.
+    ostringstream ost;
+    ost.setf(ios_base::scientific);
+    ost.precision(12);
+    ost << pos.x << " " << pos.y << " " << pos.z << " " << volume;
+    // BGK discrete samples of velocity distribution function
+    // interleave G and H
+    for ( size_t iGH = 0; iGH < get_velocity_buckets(); ++iGH ) {
+	ost << " " << fs->G[iGH];
+	ost << " " << fs->H[iGH];
+    }
+    // Don't put the newline char on the end.
+    return ost.str();
+} // end of write_BGK_to_string()
 
 int FV_Cell::impose_chemistry_timestep(double dt)
 {

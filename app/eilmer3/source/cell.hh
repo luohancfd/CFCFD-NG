@@ -77,6 +77,8 @@ public:
     double omega;        ///< \brief turbulence frequency or pseudo vorticity
     double mu_t;         ///< \brief turbulence viscosity
     double k_t;          ///< \brief turbulence conductivity
+    std::vector<double> G; ///< \brief velocity dist. partial densities, kg/m**3
+    std::vector<double> H; ///> \brief velocity dist. partial densities, (kg*s**2)/(m**5)
     //
     FlowState(Gas_model *gm);
     ~FlowState();
@@ -86,6 +88,7 @@ public:
     int average_values_from(FlowState &src0, FlowState &src1, bool with_diff_coeff);
     double * copy_values_to_buffer(double *buf);
     double * copy_values_from_buffer(double *buf);
+    int BGK_equilibrium(void);
 };
 
 /// \brief Conserved quantities, per unit volume, are stored for each cell.
@@ -99,6 +102,8 @@ public:
     std::vector<double> energies; ///< \brief vib. energy / unit-volume
     double tke;                   ///< \brief turbulent kinetic energy
     double omega;                 ///< \brief omega from k-omega turbulence model
+    std::vector<double> G; ///< \brief velocity dist. partial densities, kg/m**3
+    std::vector<double> H; ///> \brief velocity dist. partial densities, (kg*s**2)/(m**5)
     //
     ConservedQuantities(Gas_model *gm);
     ~ConservedQuantities();
@@ -212,6 +217,8 @@ public:
     int replace_flow_data_with_average(FV_Cell *src[], int ncell);
     int scan_values_from_string(char *bufptr);
     std::string write_values_to_string();
+    int scan_BGK_from_string(char *bufptr);
+    std::string write_BGK_to_string();
     int impose_chemistry_timestep(double dt);
     int impose_thermal_timestep(double dt);
     int set_fr_reactions_allowed(int flag);

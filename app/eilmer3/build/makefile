@@ -146,7 +146,8 @@ E3_OBJECTS_2 := kernel.o \
 	implicit.o \
 	cell_finder.o \
 	mersenne.o \
-	ray_tracing_pieces.o
+	ray_tracing_pieces.o \
+	bgk.o
 
 ifeq ($(LES_DATA), 1)
     E3_OBJECTS_2 += les.o
@@ -650,6 +651,9 @@ mersenne.o : $(UTIL_SRC)/mersenne.cpp $(UTIL_SRC)/randomc.h
 
 ray_tracing_pieces.o : $(SRC)/ray_tracing_pieces.cxx $(SRC)/ray_tracing_pieces.hh 
 	$(CXX) $(CXXFLAG) $(SRC)/ray_tracing_pieces.cxx -I$(LUA_INCLUDE_DIR)
+
+bgk.o : $(SRC)/bgk.cxx $(SRC)/bgk.hh
+	$(CXX) $(CXXFLAG) $(SRC)/bgk.cxx -o bgk.o
 
 #
 #---------------------------- end of makefile -----------------------------

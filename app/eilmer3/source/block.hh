@@ -269,6 +269,11 @@ public:
 		      int dimensions, int zip_file=1);
     int write_solution(std::string filename, double sim_time, 
 		       int dimensions, int zip_file=1 );
+    int read_BGK(std::string filename, double *sim_time, 
+		      int dimensions, int zip_file=1);
+    int initialise_BGK_equilibrium( void );
+    int write_BGK(std::string filename, double sim_time, 
+		       int dimensions, int zip_file=1 );
     int write_history( std::string filename, double sim_time, int write_header=0 );
 
     int count_invalid_cells( int dimensions );

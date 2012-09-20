@@ -183,6 +183,45 @@ int read_config_parameters(const string filename, int master)
     dict.parse_int("global_data", "mhd_flag", i_value, 0);
     set_mhd_flag( i_value );
 
+    dict.parse_int("global_data", "BGK_flag", i_value, 0);
+    set_BGK_flag( i_value );
+
+    if (get_BGK_flag() > 0) {
+
+	dict.parse_int("global_data", "velocity_buckets", i_value, 0);
+	set_velocity_buckets( i_value );
+    
+	if (get_velocity_buckets() > 0) {
+	    std::vector<Vector3> *vct = get_vcoords_ptr();
+	    std::vector<double> tmp;
+	    dict.parse_vector_of_doubles("global_data", "vcoords_x", tmp, tmp);
+	    for (int tid = 0; tid < get_velocity_buckets(); ++tid) {
+		(*vct)[tid].x = tmp[tid];
+	    }
+	    tmp.resize(0);
+	    dict.parse_vector_of_doubles("global_data", "vcoords_y", tmp, tmp);
+	    for (int tid = 0; tid < get_velocity_buckets(); ++tid) {
+		(*vct)[tid].y = tmp[tid];
+	    }
+	    tmp.resize(0);
+	    dict.parse_vector_of_doubles("global_data", "vcoords_z", tmp, tmp);
+	    for (int tid = 0; tid < get_velocity_buckets(); ++tid) {
+		(*vct)[tid].z = tmp[tid];
+	    }
+	    std::vector<double> *vwt = get_vweights_ptr();
+	    dict.parse_vector_of_doubles("global_data", "vweights", tmp, tmp);
+	    for (int tid = 0; tid < get_velocity_buckets(); ++tid) {
+		(*vwt)[tid] = tmp[tid];
+	    }
+	}
+	else {
+	    cout << "Failure setting BGK velocities." << endl;
+	    return FAILURE;
+	}
+	    
+    }
+
+
     dict.parse_int("global_data", "radiation_flag", i_value, 0);
     set_radiation_flag( i_value );
     dict.parse_string("global_data", "radiation_input_file", s_value, "no_file");
@@ -566,7 +605,7 @@ int assign_blocks_to_mpi_rank(const string filename, int master)
 		    if ( master ) {
 			printf("    Did not pick up correct number of block_ids:\n");
 			printf("        rank=%d, nblock=%d, block_ids.size()=%d\n",
-			       rank, nblock, block_ids.size());
+			       rank, nblock,(int) block_ids.size());
 		    }
 		    return FAILURE;
 		}

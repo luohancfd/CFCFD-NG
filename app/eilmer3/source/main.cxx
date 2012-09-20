@@ -405,6 +405,22 @@ int prepare_to_integrate( int start_tindx )
         if (bdp->read_solution(filename, &(G.sim_time), G.dimensions, zip_files) != SUCCESS) {
 	    return FAILURE;
 	}
+	
+	if (get_BGK_flag() == 2) {
+	    filename = "flow/"+tindxstring+"/"+G.base_file_name+".BGK"+jbstring+"."+tindxstring;
+	    if ( access(filename.c_str(), F_OK) != 0 ) {
+		// previous BGK velocity distributions do exist, try to read them in
+		if (bdp->read_BGK(filename, &(G.sim_time), G.dimensions, zip_files) != SUCCESS) {
+		    return FAILURE;
+		}
+	    }
+	}
+        else if (get_BGK_flag() == 1) {
+	    // assume equilibrium velocity distribution, generate from conserved props
+	    if (bdp->initialise_BGK_equilibrium() != SUCCESS) {
+		return FAILURE;
+	    }
+	}		
     }
 
     // History file header is only written for a fresh start.
@@ -1410,6 +1426,10 @@ int finalize_simulation( void )
 	sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr;
 	filename = foldername+"/"+G.base_file_name+".flow"+jbstring+".t9999";
 	bdp->write_solution(filename, G.sim_time, G.dimensions, zip_files);
+	if (get_BGK_flag() > 0) {
+	    filename = foldername+"/"+G.base_file_name+".BGK"+jbstring+".t9999";
+	    bdp->write_BGK(filename, G.sim_time, G.dimensions, zip_files);
+	}
     }
     // Compute, store and write heat-flux data, if viscous simulation
     if ( get_viscous_flag() ) {

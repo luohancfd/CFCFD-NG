@@ -321,7 +321,8 @@ class GlobalData(object):
                 'axisymmetric_flag', \
                 'radiation_input_file', 'radiation_update_frequency', 'radiation_flag', \
                 'implicit_flag', 'control_count', \
-                'radiation_update_frequency', 'mhd_flag', \
+                'radiation_update_frequency', 'mhd_flag',\
+                'BGK_flag', 'velocity_buckets', 'vcoords', 'vweights',\
                 'viscous_flag', 'viscous_delay', 'viscous_factor_increment', \
                 'max_mu_t_factor', 'transient_mu_t_factor', \
                 'diffusion_flag', 'diffusion_model', \
@@ -366,6 +367,10 @@ class GlobalData(object):
         self.implicit_flag = 0
         self.radiation_update_frequency = 1
         self.mhd_flag = 0
+        self.BGK_flag = 0
+        self.velocity_buckets = 0
+        self.vcoords = []
+        self.vweights = []
         self.viscous_flag = 0
         self.viscous_delay = 0.0
         self.viscous_factor_increment = 0.01
@@ -459,6 +464,7 @@ class GlobalData(object):
         fp.write("radiation_update_frequency = %s\n" % self.radiation_update_frequency)
         fp.write("radiation_flag = %d\n" % self.radiation_flag)
         fp.write("mhd_flag = %d\n" % self.mhd_flag)
+        fp.write("BGK_flag = %d\n" % self.BGK_flag)
         fp.write("viscous_flag = %d\n" % self.viscous_flag)
         fp.write("viscous_delay = %e\n"% self.viscous_delay)
         fp.write("viscous_factor_increment = %e\n"% self.viscous_factor_increment)
@@ -483,6 +489,23 @@ class GlobalData(object):
         fp.write("sequence_blocks = %d\n" % self.sequence_blocks)
         fp.write("max_invalid_cells = %d\n" % self.max_invalid_cells)
         fp.write("control_count = %d\n" % self.control_count)
+        fp.write("velocity_buckets = %d\n" % self.velocity_buckets)
+        
+        if self.velocity_buckets > 0:
+            tstr_x = "vcoords_x ="
+            tstr_y = "vcoords_y ="
+            tstr_z = "vcoords_z ="
+            tstr_w = "vweights ="
+            for i, xyz in enumerate(self.vcoords):
+                tstr_x += " %e"%xyz[0]
+                tstr_y += " %e"%xyz[1]
+                tstr_z += " %e"%xyz[2]
+                tstr_w += " %e"%self.vweights[i]
+            fp.write(tstr_x + "\n")
+            fp.write(tstr_y + "\n")
+            fp.write(tstr_z + "\n")
+            fp.write(tstr_w + "\n")
+            
         return
 
 # We will create just one GlobalData object that the user can alter.
@@ -986,8 +1009,25 @@ def write_starting_solution_files(rootName, blockList, pistonList, zipFiles=0):
             fp = GzipFile(fileName+".gz", "wb")
         else:
             fp = open(fileName, "w")
-        b.write_starting_solution(fp, gdata)
+            
+        
+        if gdata.BGK_flag == 2:
+            fileName = rootName+(".BGK.b%04d.t0000" % b.blkId)
+            fileName = os.path.join(flowPath, fileName)
+            if zipFiles:
+                fb = GzipFile(fileName+".gz", "wb")
+            else:
+                fb = open(fileName, "w")
+        else:
+            fb = None
+        
+        b.write_starting_solution(fp, gdata, fb)
         fp.close()
+        
+        if fb:
+            fb.close()
+        
+        
     if len(pistonList) > 0:
         fp = open(rootName + ".piston.t0000", "w")
         for p in pistonList:

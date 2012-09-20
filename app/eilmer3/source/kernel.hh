@@ -245,5 +245,12 @@ double set_shear_tolerance( double value );
 double get_shear_tolerance( void );
 int set_mhd_flag(int imf);
 int get_mhd_flag(void);
-
+int set_BGK_flag(int i);
+int get_BGK_flag( void );
+int set_velocity_buckets(int i);
+int get_velocity_buckets( void );
+Vector3 get_vcoord(int i);
+std::vector<Vector3> *get_vcoords_ptr(void);
+double get_vweight(int i);
+std::vector<double> *get_vweights_ptr(void);
 #endif

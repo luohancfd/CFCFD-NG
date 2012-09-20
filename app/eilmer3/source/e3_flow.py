@@ -274,6 +274,19 @@ def variable_list_for_cell(gdata):
     if nmodes > 1: 
         var_names.append("dt_therm")
     return var_names
+    
+def bgk_list_for_cell(gdata):
+    """
+    Returns a list of names for the cell bgk variables that are written
+    by the companion function write_cell_data().
+
+    :param gdata: the global-data object (used to control which elements are written)
+    """
+    var_names = ["pos.x", "pos.y", "pos.z", "volume",]
+    for gh in range(gdata.velocity_buckets):
+        var_names.append("G[%d]" % (gh))
+        var_names.append("H[%d]" % (gh))
+    return var_names
 
 def quoted_string(vlist):
     """
@@ -321,6 +334,23 @@ def write_cell_data(fp, data, gdata):
     if nmodes > 1:
         dt_therm = -1.0
         fp.write(" %20.12e" % dt_therm)
+    fp.write("\n")
+    return
+    
+def write_bgk_data(fp, data, gdata):
+    """
+    Write the cell data into the specified file (fp).
+
+    :param fp: file object
+    :param data: bgk data in dictionary form
+    :param gdata: the global-data object (used to control which elements are written)
+
+    For Eilmer3 data files, it's all on one line.
+    """
+    fp.write("%20.12e %20.12e %20.12e %20.12e" % 
+             (data['pos.x'], data['pos.y'], data['pos.z'], data['volume']))
+    for gh in range(gdata.velocity_buckets):
+        fp.write("%20.12e %20.12e" % (data['G[%d]'%gh], data['H[%d]'%gh]))
     fp.write("\n")
     return
 
@@ -595,7 +625,7 @@ def read_all_blocks(rootName, nblock, tindx, zipFiles=0):
     """
     Returns all grids and flow blocks for a single flow solution.
     """
-    grid = []; flow = []
+    grid = []; flow = []; bgk = []
     for jb in range(nblock):
         fileName = rootName+".grid"+(".b%04d.t%04d" % (jb, 0))
         fileName = os.path.join("grid", "t0000", fileName)
@@ -607,6 +637,7 @@ def read_all_blocks(rootName, nblock, tindx, zipFiles=0):
             fp = open(fileName, "r")
         grid[-1].read(fp)
         fp.close()
+        
         fileName = rootName+".flow"+(".b%04d.t%04d" % (jb, tindx))
         fileName = os.path.join("flow", "t%04d" % tindx, fileName)
         print "Read cell-centre flow data from", fileName
@@ -617,11 +648,26 @@ def read_all_blocks(rootName, nblock, tindx, zipFiles=0):
         flow.append(StructuredGridFlow())
         flow[-1].read(fp)
         fp.close()
+        
+        
+        fileName = rootName+".BGK"+(".b%04d.t%04d" % (jb, tindx))
+        fileName = os.path.join("flow", "t%04d" % tindx, fileName)
+        # only open a BGK file if one is there
+        if os.path.exists(fileName) | os.path.exists(fileName+".gz"):
+            print "Read velocity distribution data from", fileName
+            if zipFiles: 
+                fp = GzipFile(fileName+".gz", "rb")
+            else:
+                fp = open(fileName, "r")
+            bgk.append(StructuredGridFlow())
+            bgk[-1].read(fp)
+            fp.close()        
+        
     if grid[0].nk == 1:
         dimensions = 2
     else:
         dimensions = 3
-    return grid, flow, dimensions
+    return grid, flow, bgk, dimensions
 
 def add_auxiliary_variables(nblock, flow, cmdLineDict, omegaz_list=None):
     """
@@ -763,7 +809,7 @@ class ExistingSolution(object):
                 raise TypeError("add_velocity parameter is incorrect")
         self.dimensions = dimensions
         self.assume_same_grid = assume_same_grid
-        self.grid, self.flow, stored_dims = read_all_blocks(rootName, nblock, tindx, zipFiles)
+        self.grid, self.flow, self.bgk, stored_dims = read_all_blocks(rootName, nblock, tindx, zipFiles)
         if stored_dims != dimensions:
             print "Oops: store_dims=", stored_dims, "dimensions=", dimensions
             print "These values of dimensions should be the same."
@@ -778,17 +824,27 @@ class ExistingSolution(object):
             # no need to search because we assume i,j,k correspond to correct location
             block_flow = self.flow[blk_indx]
             block_number = blk_indx
+            if self.bgk:
+                block_bgk = self.bgk[blk_indx]
         else:
             # we need to locate the appropriate cell
             jb , i, j, k = locate_cell_and_block(self.grid, self.flow, self.dimensions,
                                                  i, j, k, blk_indx, x, y, z)
             block_flow = self.flow[jb]
             block_number = jb
+            if self.bgk:
+                block_bgk = self.bgk[jb]
+                
         flow_data_for_cell = block_flow.get_cell_data(i, j, k, x, y, z, vol, replace_geom=True)
         flow_data_for_cell['vel.x'] += self.add_velocity.x
         flow_data_for_cell['vel.y'] += self.add_velocity.y
         flow_data_for_cell['vel.z'] += self.add_velocity.z
-        return (flow_data_for_cell, i, j, k, block_number)
+        
+        if self.bgk:
+            bgk_data_for_cell = block_bgk.get_cell_data(i, j, k, x, y, z, vol, replace_geom=True)
+            return (flow_data_for_cell, bgk_data_for_cell, i, j, k, block_number)
+        else:
+            return (flow_data_for_cell, i, j, k, block_number)
 
 #---------------------------------------------------------------------------------
 # VTK-related functions

@@ -291,6 +291,19 @@ double shear_tolerance = 0.20;
 /// \brief For Daryl Bond and Vince Wheatley's MHD additions.
 int mhd_flag = 0;
 
+/// \brief A flag for turning on the BGK non-equilibrium gas solver
+///
+/// This flag can have various settings:
+/// BGK_flag == 0: OFF
+/// BGK_flag == 1: ON, do not try to import velocity distribution values
+/// BGK_flag == 2: ON, read in velocity distribution values from "flow" file
+int BGK_flag = 0;
+
+/// \brief The number of velocity buckets for the rarefied gas solver
+int velocity_buckets = 0;
+std::vector<Vector3> vcoords; // velocity coordinates for rarefied flow
+std::vector<double> vweights; // weight for each velocity coordinate
+
 /*------------------------------------------------------------------*/
 
 int set_axisymmetric_flag(int ia)
@@ -804,4 +817,54 @@ int set_mhd_flag(int i)
 int get_mhd_flag(void)
 {
     return mhd_flag;
+}
+
+//-----------------------------------------------------------------------------
+
+int set_BGK_flag(int i)
+{
+    BGK_flag = i;
+    if ( get_verbose_flag() ) printf("set BGK_flag=%d\n", BGK_flag);
+    return BGK_flag;
+}
+
+int get_BGK_flag(void)
+{
+    return BGK_flag;
+}
+
+int set_velocity_buckets(int i)
+{
+    velocity_buckets = i;
+
+    vcoords.resize(i);
+    vweights.resize(i);
+
+    if ( get_verbose_flag() ) printf("set velocity_buckets=%d\n", velocity_buckets);
+    return velocity_buckets;
+}
+
+int get_velocity_buckets( void )
+{
+    return velocity_buckets;
+}
+
+Vector3 get_vcoord(int i)
+{
+    return vcoords[i];
+}
+
+std::vector<Vector3> *get_vcoords_ptr(void)
+{
+    return &vcoords;
+}
+
+double get_vweight(int i)
+{
+    return vweights[i];
+}
+
+std::vector<double> *get_vweights_ptr(void)
+{
+    return &vweights;
 }

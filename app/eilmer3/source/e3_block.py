@@ -729,7 +729,7 @@ class Block(object):
             fp.write("t_f = %e\n" % bc.t_f)
         return
 
-    def write_starting_solution(self, fp, gdata):
+    def write_starting_solution(self, fp, gdata, fb=None):
         """
         Writes the flow-solution in Eilmer3-native format to a file.
 
@@ -747,6 +747,12 @@ class Block(object):
         fp.write("%20.12e\n" % gdata.t0)
         fp.write("%s\n" % quoted_string(variable_list_for_cell(gdata)))
         fp.write("%d %d %d\n" % (self.nni, self.nnj, self.nnk)) # number of cells in each dir
+        
+        if fb:
+            fb.write("%20.12e\n" % gdata.t0)
+            fb.write("%s\n" % quoted_string(bgk_list_for_cell(gdata)))
+            fb.write("%d %d %d\n" % (self.nni, self.nnj, self.nnk)) # number of cells in each dir
+            
         # 
         # Initialise for instances when ExistingSolution() is used, so that 
         # we can start the search from the last located block and cell.
@@ -765,14 +771,16 @@ class Block(object):
                         cell_properties['volume'] = vol
                     elif isinstance(self.fill_condition, ExistingSolution):
                         # An ExistingSolution object also has similar capabilities.
-			if self.fill_condition.assume_same_grid:
-			    cell_properties, i_found, j_found, k_found, jb_found = \
-                                self.fill_condition.interpolate_flow_condition(
-                                     x, y, z, vol, i, j, k, self.blkId )
-			else:
-			    cell_properties, i_found, j_found, k_found, jb_found = \
-                                self.fill_condition.interpolate_flow_condition(
-                                     x, y, z, vol, i_found, j_found, k_found, jb_found )
+                        if self.fill_condition.assume_same_grid:
+                            interp_values = self.fill_condition.interpolate_flow_condition(x, y, z, vol, i, j, k, self.blkId )
+                        else:
+                            interp_values = self.fill_condition.interpolate_flow_condition(x, y, z, vol, i_found, j_found, k_found, jb_found ) 
+                        
+                        if fb:
+                            cell_properties, bgk_properties, i_found, j_found, k_found, jb_found = interp_values
+                        else:
+                            cell_properties, i_found, j_found, k_found, jb_found = interp_values                 
+
                     elif callable(self.fill_condition):
                         # We expect that the user-supplied function will accept
                         # x,y,z coordinate values and return a dictionary of
@@ -790,6 +798,8 @@ class Block(object):
                         print "    and we don't know what to do."
                         raise RuntimeError, "Problem with fill_condition."
                     write_cell_data(fp, cell_properties, gdata)
+                    if fb:
+                        write_bgk_data(fb, bgk_properties, gdata)
                 print ".",
                 sys.stdout.flush()
         print
