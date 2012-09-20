@@ -83,8 +83,9 @@ and is a much larger machine, with a little over 3000 cores, running SUSE Enterp
 
 Set up your environment by adding the following lines to your ``.bashrc`` file::
 
-    module load python
-    module load intel-cc-11
+    module load purge
+    module load mercurial
+    module load intel-cc-11/11.1.072
     module load intel-mpi/3.2.2.006
     export PATH=${PATH}:${HOME}/e3bin
     export LUA_PATH=${HOME}/e3bin/?.lua
@@ -98,7 +99,7 @@ Get yourself an interactive shell on a compute node so that you don't hammer the
 while compiling.  
 You won't make friends if you keep the login node excessively busy::
 
-    $ qsub -I -A uq-Jacobs
+    $ qsub -I -A uq
 
 To compile the MPI-version of the code, use the command::
 
@@ -120,14 +121,8 @@ An example of a shell script prepared for running on the Barrine cluster::
     #PBS -S /bin/bash
     #PBS -N lehr
     #PBS -q workq
-    #PBS -l select=3:ncpus=8:NodeType=medium:mpiprocs=8 -A uq-Jacobs
+    #PBS -l select=3:ncpus=8:NodeType=medium:mpiprocs=8 -A uq
     #PBS -l walltime=6:00:00
-    # Incantations to get bash to behave and the Intel MPI bits in place.
-    . /usr/share/modules/init/bash
-    module load intel-mpi/3.2.2.006
-    echo "Where are my nodes?"
-    echo $PBS_NODEFILE
-    cat $PBS_NODEFILE
     echo "-------------------------------------------"
     echo "Begin MPI job..."
     date
@@ -135,12 +130,7 @@ An example of a shell script prepared for running on the Barrine cluster::
     mpirun -np 24 $HOME/e3bin/e3mpi.exe --job=lehr --run --max-wall-clock=20000 > LOGFILE
     echo "End MPI job."
     date
-    # As we leave the job, make sure that we leave no processes behind.
-    # (The following incantation is from Gerald Hartig.)
-    for i in $(cat $PBS_NODEFILE | grep -v `hostname` | sort -u); do 
-        ssh $i pkill -u `whoami` 
-    done
-    killall -u `whoami` e3mpi.exe
+
 
 This is the script input ``examples/eilmer3/2D/lehr-479/run_simulation.sh``.
 
