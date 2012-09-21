@@ -1414,6 +1414,8 @@ double FV_Cell::signal_frequency(int dimensions)
 {
     double signal;
     double un_N, un_E, un_T, u_mag;
+    double Bn_N, Bn_E, Bn_T, B_mag;
+    double ca2, cfast;
     double gam_eff, viscous_factor;
     int statusf;
     Gas_model *gmodel = get_gas_model_ptr();
@@ -1429,19 +1431,65 @@ double FV_Cell::signal_frequency(int dimensions)
     if ( dimensions == 3 ) {
 	un_T = fabs(dot(fs->vel, top->n));
 	u_mag = sqrt(fs->vel.x * fs->vel.x + fs->vel.y * fs->vel.y + fs->vel.z * fs->vel.z);
-    } else {
+    }  else {
 	un_T = 0.0;
 	u_mag = sqrt(fs->vel.x * fs->vel.x + fs->vel.y * fs->vel.y);
+    }
+    if (get_mhd_flag() == 1) {
+	Bn_N = fabs(dot(fs->B, north->n));
+	Bn_E = fabs(dot(fs->B, east->n));
+	if ( dimensions == 3 ) {
+	    Bn_T = fabs(dot(fs->B, top->n));
+	}
+	u_mag = sqrt(fs->vel.x * fs->vel.x + fs->vel.y * fs->vel.y + fs->vel.z * fs->vel.z);
+	B_mag = sqrt(fs->B.x * fs->B.x + fs->B.y * fs->B.y + fs->B.z * fs->B.z);
     }
     // Check the INVISCID time step limit first,
     // then add a component to ensure viscous stability.
     if ( get_stringent_cfl_flag() ) {
 	// Make the worst case.
-	signal = (u_mag + fs->gas->a) / L_min;
+	if (get_mhd_flag() == 1) {
+	    // MHD
+	    ca2 = B_mag*B_mag / fs->gas->rho;
+	    cfast = sqrt( ca2 + fs->gas->a * fs->gas->a );
+            signal = (u_mag + cfast) / L_min;
+	}
+	else {
+	    // Hydrodynamics
+	    signal = (u_mag + fs->gas->a) / L_min;
+	}
     } else {
 	// Standard signal speeds along each face.
 	double signalN, signalE, signalT;
-	if ( dimensions == 3 ) {
+	if (get_mhd_flag() == 1) {
+	    double ca2, catang2_N, catang2_E, cfast_N, cfast_E;
+	    ca2 = B_mag * B_mag / fs->gas->rho;
+	    ca2 = ca2 + fs->gas->a * fs->gas->a;
+	    catang2_N = Bn_N * Bn_N / fs->gas->rho;
+	    cfast_N = 0.5 * ( ca2 + sqrt( ca2*ca2 - 4.0 * (fs->gas->a * fs->gas->a * catang2_N) ) );
+	    cfast_N = sqrt(cfast_N);
+	    catang2_E = Bn_E * Bn_E / fs->gas->rho;
+	    cfast_E = 0.5 * ( ca2 + sqrt( ca2*ca2 - 4.0 * (fs->gas->a * fs->gas->a * catang2_E) ) );
+	    cfast_E = sqrt(cfast_E);
+	    if ( dimensions == 3 ) {
+		double catang2_T, cfast_T, signalT;
+		catang2_T = Bn_T * Bn_T / fs->gas->rho;
+		cfast_T = 0.5 * ( ca2 + sqrt( ca2*ca2 - 4.0 * (fs->gas->a * fs->gas->a * catang2_T) ) );
+		cfast_T = sqrt(cfast_T);
+		signalN = (un_N + cfast_N) / jLength;
+		signal = signalN;
+		signalE = (un_E + cfast_E) / iLength;
+		if ( signalE > signal ) signal = signalE;
+		signalT = (un_T + cfast_T) / kLength;
+		if ( signalT > signal ) signal = signalT;
+	    }
+	    else {
+		signalN = (un_N + cfast) / east->length;
+		signalE = (un_E + cfast) / north->length;
+		signal = MAXIMUM(signalN, signalE);
+	    }
+	}
+	else if ( dimensions == 3 ) {
 	    // eilmer -- 3D cells
 	    signalN = (un_N + fs->gas->a) / jLength;
 	    signal = signalN;
