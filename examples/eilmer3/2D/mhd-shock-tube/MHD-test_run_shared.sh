@@ -24,10 +24,9 @@ e3post.py --job=MHD-test --vtk-xml --tindx=all
 
 echo "At this point, we should have a solution that can be viewed with Paraview."
 
-
 # plot some stuff
 # extract a line of data
-#e3post.py --job=MHD-test --slice-along-line="-1.0,0.0,0.0,1.0,0.0,0.0,1000" --tindx=9999
+e3post.py --job=MHD-test --slice-along-line="-1.0,0.0,0.0,1.0,0.0,0.0,1000" --tindx=9999
 
 gnuplot <<EOF
 set term postscript eps enhanced 20
