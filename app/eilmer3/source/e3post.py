@@ -791,7 +791,7 @@ if __name__ == '__main__':
             print "   Comparison solution:", compareRootName, " compareTindx=", compareTindx
             grid, flow, bgk, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz)
-            grid2, flow2, dimensions = read_all_blocks(compareRootName, nblock, compareTindx, zipFiles)
+            grid2, flow2, bgk, dimensions = read_all_blocks(compareRootName, nblock, compareTindx, zipFiles)
             add_auxiliary_variables(nblock, flow2, uoDict, omegaz)
             compute_difference_in_flow_data2(nblock, grid, flow, grid2, flow2, times_dict[tindx])
             write_VTK_XML_files(rootName, tindx, nblock, grid, flow, times_dict[tindx])

@@ -33,7 +33,7 @@ def get_cell_corners(grd, i, j, k):
 def compute_viscous(jobName, nblock, nbj, tindx):
     # Read in all grid and flow files
     zipFiles = 1
-    grid, flow, dimensions = read_all_blocks(jobName, nblock, tindx, zipFiles)
+    grid, flow, bgk, dimensions = read_all_blocks(jobName, nblock, tindx, zipFiles)
     
     for jb in range(nbj-1, nblock, nbj):
         if jb==nbj-1:

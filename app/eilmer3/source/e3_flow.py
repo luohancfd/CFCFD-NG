@@ -637,7 +637,7 @@ def read_all_blocks(rootName, nblock, tindx, zipFiles=0):
             fp = open(fileName, "r")
         grid[-1].read(fp)
         fp.close()
-        
+        #
         fileName = rootName+".flow"+(".b%04d.t%04d" % (jb, tindx))
         fileName = os.path.join("flow", "t%04d" % tindx, fileName)
         print "Read cell-centre flow data from", fileName
@@ -648,8 +648,7 @@ def read_all_blocks(rootName, nblock, tindx, zipFiles=0):
         flow.append(StructuredGridFlow())
         flow[-1].read(fp)
         fp.close()
-        
-        
+        #
         fileName = rootName+".BGK"+(".b%04d.t%04d" % (jb, tindx))
         fileName = os.path.join("flow", "t%04d" % tindx, fileName)
         # only open a BGK file if one is there
@@ -662,7 +661,7 @@ def read_all_blocks(rootName, nblock, tindx, zipFiles=0):
             bgk.append(StructuredGridFlow())
             bgk[-1].read(fp)
             fp.close()        
-        
+    #
     if grid[0].nk == 1:
         dimensions = 2
     else:
