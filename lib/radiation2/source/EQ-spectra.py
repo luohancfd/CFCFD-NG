@@ -157,12 +157,12 @@ def main():
     for itm in range(ntm): Q.T[itm] = T_inf
     for isp,sp in enumerate(species): Q.massf[isp] = get_species_composition(sp,reactants)
     # firstly without the onlyList:
-    cea = Gas( reactants, with_ions=True, trace=0 )
+    cea = Gas( reactants, with_ions=get_with_ions_flag(species), trace=0 )
     cea.set_pT(p_inf,T_inf,transProps=False)
     cea.shock_process( Us )
     # print "unfiltered species composition: ", cea.species
     del cea 
-    cea = Gas( reactants, onlyList=reactants.keys(), with_ions=True, trace=1.0e-20 )
+    cea = Gas( reactants, onlyList=reactants.keys(), with_ions=get_with_ions_flag(species), trace=1.0e-20 )
     cea.set_pT(p_inf,T_inf*10,transProps=False)
     cea.T = T_inf
     cea.shock_process( Us )
@@ -177,11 +177,12 @@ def main():
     print "computed equlibrium state with filtered species: "
     Q.print_values(False)
 
-    N_elecs = ( Q.massf[gm.get_isp_from_species_name("e_minus")]*Q.rho/RC_m_SI*1.0e-6 )
-    N_total = ( ( Q.p - Q.p_e ) / RC_R_u / Q.T[0] + Q.p_e / RC_R_u / Q.T[-1] ) * RC_Na * 1.0e-6
-    print "electron number density = %e cm-3" % ( N_elecs )
-    print "total number density = %e cm-3" % N_total
-    print "ionization fraction = %e" % ( N_elecs / N_total )
+    if "e_minus" in species:
+        N_elecs = ( Q.massf[gm.get_isp_from_species_name("e_minus")]*Q.rho/RC_m_SI*1.0e-6 )
+        N_total = ( ( Q.p - Q.p_e ) / RC_R_u / Q.T[0] + Q.p_e / RC_R_u / Q.T[-1] ) * RC_Na * 1.0e-6
+        print "electron number density = %e cm-3" % ( N_elecs )
+        print "total number density = %e cm-3" % N_total
+        print "ionization fraction = %e" % ( N_elecs / N_total )
 
     # perform LOS calculation
     LOS = LOS_data( rsm, 1 )
