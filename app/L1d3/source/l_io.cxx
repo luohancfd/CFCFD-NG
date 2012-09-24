@@ -28,6 +28,7 @@
 #include "../../../lib/gas/kinetics/reaction-update.hh"
 #include "l_kernel.hh"
 #include "l1d.hh"
+#include "l_misc.hh"
 using namespace std;
 
 /*=================================================================*/
@@ -275,6 +276,7 @@ int set_piston_parameters(piston_data *B, int indx, ConfigParser &dict,
     dict.parse_double(section, "mass", B->mass, 1.0);
     dict.parse_double(section, "diameter", B->diam, 1.0);
     dict.parse_double(section, "length", B->length, 1.0);
+    const double myPI = 4.0*atan(1.0);
     B->area = myPI * 0.25 * B->diam * B->diam;
     dict.parse_double(section, "front_seal_f", B->front_seal_f, 0.0);
     dict.parse_double(section, "front_seal_area", B->front_seal_area, 0.0);

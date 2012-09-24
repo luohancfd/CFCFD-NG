@@ -11,15 +11,6 @@
  * \author Jan Martinez-Schramm (TECPLOT output)
  *
  * \version 1.0 --  30-Dec-91
- * \version 1.1 --  31-Dec-91, include piston data
- * \version 1.2 --  03-Dec-92, include diaphragm data
- * \version 2.0 --  13-Jan-92, histories at specified x-locations
- * \version 3.0 --  14-Jan-92, back to doing the blocks separately
- * \version 4.0 --  30-Mar-94, Add skin friction, heat flux and entropy
- * \version 5.0 --  09-Jun-96, Updated to work with ANSI C code modules
- * \version 5.1 --  10-Apr-98, update for more general Lp file
- * \version 5.2 --  14-Apr-98, command line options
- * \version 5.3 --  22-Apr-98, option to echo input parameters
  * \version 6.0 --  05-Jun-00, Allowed for adaptivity.
  * \version 6.1 --  17-Nov-02, Jan Martinez-Schramm added TECPLOT output
  * \version 24-Jul-06, C++ port.
@@ -37,6 +28,8 @@
 #include "../../../lib/util/source/config_parser.hh"
 #include "l_kernel.hh"
 #include "l1d.hh"
+#include "l_io.hh"
+#include "l_misc.hh"
 
 /*-----------------------------------------------------------------*/
 

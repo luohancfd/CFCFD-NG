@@ -14,6 +14,7 @@
 
 #include "../../../lib/util/source/useful.h"
 #include "l1d.hh"
+#include "l_misc.hh"
 
 /*=================================================================*/
 

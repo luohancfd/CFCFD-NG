@@ -10,6 +10,9 @@
 #include "../../../lib/util/source/useful.h"
 #include "l_kernel.hh"
 #include "l1d.hh"
+#include "l_adapt.hh"
+#include "l_tstep.hh"
+#include "l_misc.hh"
 
 /*-----------------------------------------------------------------*/
 

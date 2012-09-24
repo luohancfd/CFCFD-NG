@@ -10,12 +10,6 @@
  * \author PA Jacobs
  *
  * \version 1.0 -- 03-Feb-92, adapted from sptime.c
- * \version 2.0 -- 16-mar-92, piston data now includes buffers, restraints
- *                   and brakes, and output includes acceleration.
- * \version 2.1 -- 10-Apr-98, Linux version, more general parameter file
- *                   Output format to suit GNU-Plot
- * \version 2.2 -- 14-Apr-98, command-line options.
- * \version 2.3 -- 22-Apr-98, option to echo input parameters
  * \version 24-Jul-06, C++ port.
  */
 
@@ -28,6 +22,7 @@
 #include <string.h>
 #include "../../../lib/util/source/config_parser.hh"
 #include "l1d.hh"
+#include "l_io.hh"
 
 /*-----------------------------------------------------------------*/
 
