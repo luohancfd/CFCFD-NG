@@ -15,8 +15,11 @@ from datetime import datetime
 try:
     import pylab
 except:
-    print "YvX.py: Cannot import pylab."
-    sys.exit()
+    print "Cannot import pylab."
+    print "Plotting will not be functional"
+    with_pylab = False
+else:
+    with_pylab = True
 
 class YvX:
     """a class describing structure containing some property Y against some property X"""
@@ -62,18 +65,18 @@ class YvX:
             sys.exit()
         if isinstance( x_val, ndarray ):
             if use_spline:
-            	y_vals = interpolate.splev( x_val, self.spline_fit, der=0 )
+                    y_vals = interpolate.splev( x_val, self.spline_fit, der=0 )
             else:
-            	y_vals = self.linear_fit( x_val )
+                    y_vals = self.linear_fit( x_val )
             for i,x in enumerate(x_val):
                 if self.check_range( x )==False: y_vals[i] = 0.0
             return y_vals
         else:
             if self.check_range( x_val )==False: return 0.0
             elif use_spline:
-            	return interpolate.splev( x_val, self.spline_fit, der=0 )
+                    return interpolate.splev( x_val, self.spline_fit, der=0 )
             else:
-            	return self.linear_fit( x_val )
+                    return self.linear_fit( x_val )
     def check_range(self, x_val):
         if x_val<self.x_array[0] or x_val>self.x_array[-1]: return False
         else: return True
@@ -91,6 +94,9 @@ class YvX:
         oFile.close()
         print "Done"
     def plot_data( self, title="", xlabel="", ylabel="", label="YvX_data", new_plot=True, show_plot=False, include_integral=False, rep='-', logscale_y=False, xrange=None, yrange=None ):
+        if not with_pylab:
+            print "Cannot plot data as pylab was not loaded."
+            sys.exit()
         if new_plot: pylab.figure()
         if include_integral: pylab.subplot(211)
         pylab.title(title)
@@ -101,7 +107,7 @@ class YvX:
         if yrange: pylab.ylim(yrange[0],yrange[1])
         pylab.plot( self.x_array, self.y_array, rep )
         labels = [ label ]
-	if new_plot:
+        if new_plot:
             pylab.legend( labels, loc="best" )
         if include_integral:
             pylab.subplot(212)
@@ -110,10 +116,13 @@ class YvX:
             pylab.plot( self.x_array, self.integral, rep )
             labels = [ label + " integral" ]
             if new_plot: 
-            	pylab.legend( labels, loc="best" )
+                pylab.legend( labels, loc="best" )
         if show_plot:
             pylab.show()
     def plot_spline( self, title="", xlabel="", ylabel="", label="YvX_data", new_plot=True, show_plot=False, include_integral=False, rep='-', logscale_y=False, xrange=None, yrange=None  ):
+        if not with_pylab:
+            print "Cannot plot data as pylab was not loaded."
+            sys.exit()
         if new_plot: pylab.figure()
         if include_integral: pylab.subplot(211)
         pylab.title(title)
