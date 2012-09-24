@@ -373,20 +373,13 @@ int set_diaphragm_parameters(struct diaphragm_data *D, int indx,
     dict.parse_double(section, "dt_hold", D->hold_period, 0.0);
     dict.parse_double(section, "dt_blend", D->blend_delay, 0.0);
     dict.parse_double(section, "dx_blend", D->blend_dx, 0.0);
-    dict.parse_double(section, "RSP_dt", D->RSP_dt, 0.0);
     if (echo_input == 1) {
 	cout << "    is_burst = " << D->is_burst << endl;
 	cout << "    p_burst = " << D->P_burst << endl;
 	cout << "    dt_hold = " << D->hold_period << endl;
 	cout << "    dt_blend = " << D->blend_delay << endl;
 	cout << "    dx_blend = " << D->blend_dx << endl;
-	cout << "    RSP_dt = " << D->RSP_dt << endl;
     }
-    // If non-zero RSP_dt value has been set apply_rsp to 1
-    if (D->RSP_dt != 0.0)
-	D->apply_rsp=1;
-    else
-	D->apply_rsp=0;
     // Initially set the trigger_time to a negative number.
     D->trigger_time = -1.0;
     D->already_blended = 0;

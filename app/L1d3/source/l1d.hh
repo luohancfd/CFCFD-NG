@@ -44,11 +44,6 @@
 
 #define myPI 3.141592654
 
-/* RSP constants */
-
-#define ERSP_NX 2000                /* No. steps through expansion */
-#define RIEMANN_CELLS 500           /* Max no. of L1d cells in RSP */
-
 /*-----------------------------------------------------------------*/
 
               /******************************/
@@ -519,8 +514,6 @@ struct diaphragm_data
 			       after diaphragn burst   */
     double blend_dx;        /* distance over which slug data is blended */
     double blend_delay;     /* time after rupture that blending is applied */
-    int apply_rsp;          /* flag for activating RSP control of diaphragm rupture */
-    double RSP_dt;          /* the window of time available to the RSP */
 
     /*
      * Neighbour information.
@@ -567,7 +560,6 @@ struct ersp_solution
 
 struct riemann_simulation_data
 {
-    double RSP_dt;
     double x_diaphragm;
     struct L_flow_state QL[1];
     struct L_flow_state QR[1];
@@ -756,30 +748,5 @@ int L_bc_right_reflect(struct slug_data *A);
 int L_bc_right_free(struct slug_data *A);
 int L_exchange_bc_data(struct slug_data *A, struct slug_data *B);
 int L_apply_bc(struct slug_data *A);
-
-/* rsp.cxx */
-int exact_riemann( struct L_flow_state *QL, struct L_flow_state *QR,
-                   double *left_vel, double *cs_vel, double *right_vel,
-                   struct ersp_solution *base_sol, int good);
-int RSD_alloc( struct riemann_simulation_data *RSD );
-int riemann_interpolate( double x, double x_mid, double delta_t, 
-                         struct ersp_solution *base_sol, 
-                         double *rho, double *e, double *u);
-int find_x_pos_right( double x_left, 
-                      double x_diaphragm, 
-                      double delta_t, 
-                      struct L_cell *m_cell, 
-                      struct ersp_solution *base_sol, 
-                      struct ersp_solution *cell_sol);
-int find_x_pos_left( double x_right, 
-                     double x_diaphragm, 
-                     double delta_t, 
-                     struct L_cell *m_cell, 
-                     struct ersp_solution *base_sol, 
-                     struct ersp_solution *cell_sol);
-int L_riemann_initialise(riemann_simulation_data * RSD, 
-                         std::vector<slug_data> &A, diaphragm_data *D );
-int L_riemann_solve(riemann_simulation_data *RSD, std::vector<slug_data> &A);
-int L_riemann_patch(riemann_simulation_data *RSD, std::vector<slug_data> &A);
 
 #endif

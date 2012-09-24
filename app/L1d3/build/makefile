@@ -59,8 +59,7 @@ OBJECTS = l_misc.o \
 	l_bc.o \
 	l_io.o \
 	l_rivp.o \
-	roberts.o \
-        rsp.o
+	roberts.o
 
 PY_FILES = l_script.py gaspy.py
 
@@ -307,8 +306,5 @@ piston.o  : $(SRC)/piston.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR)
 
 l_trim.o  : $(SRC)/l_trim.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR)
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_trim.cxx -o l_trim.o
-
-rsp.o  : $(SRC)/rsp.cxx $(SRC)/l1d.hh $(SRC)/rsp.hh $(LUA_INCLUDE_DIR)
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/rsp.cxx -o rsp.o
 
 # -------------------- end of makefile -------------------------------

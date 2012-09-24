@@ -258,9 +258,6 @@ int main(int argc, char **argv)
 						    sizeof(struct riemann_simulation_data));
     for (jd = 0; jd < SD.ndiaphragm; ++jd) {
         set_diaphragm_parameters(&(Diaph[jd]), jd, parameterdict, echo_input);
-        if (Diaph[jd].apply_rsp==1) {
-            if (RSD_alloc(&(RSD[jd])) != 0) exit(1);
-        }
     } // end for
     SD.hncell = 0;
     for (js = 0; js < SD.nslug; ++js) {
@@ -485,35 +482,6 @@ int main(int argc, char **argv)
                     log_event( efname, msg_string );
 		    print_simulation_status(NULL, efname, step, &SD, A, Diaph, Pist,
 					    cfl_max, cfl_tiny, time_tiny);
-                    if ( dp->apply_rsp == 1 ) {
-                        printf("\n**********************************************\n");
-                        printf("* Performing Riemann patching on diaphragm %d *\n",jd);
-                        printf("* The patching window is %0.1f microsecond/s   *\n",
-                               Diaph[jd].RSP_dt*1.0e6);
-                        printf("**********************************************\n\n");
-                        RSD[jd].jd = jd;
-                        printf("1. Initialising the RSP solution\n");
-                        if (L_riemann_initialise(&(RSD[jd]), A, dp) != SUCCESS) {
-                            RSD[jd].solve=false;
-                        }
-                        if (RSD[jd].solve==true) {
-                            printf("\n2. Discretising solution for L1d grid\n");
-                            if (L_riemann_solve(&(RSD[jd]),A) != SUCCESS) {
-                                RSD[jd].patch=false;
-                            }
-                        } else RSD[jd].patch = false;
-                        if (RSD[jd].patch==true)  {
-                            printf("\n3. Paching RSP solution into L1d\n");
-                            L_riemann_patch(&(RSD[jd]),A);
-                        }  else printf("##### RSP failed #####\n");
-                        printf("\n4. Freeing up space allocated for RSP\n\n");
-                        free(RSD[jd].rs_lcells);
-                        free(RSD[jd].rs_rcells);
-                        free(RSD[jd].base_sol);
-                        if (RSD[jd].patch==true) {
-                            printf("##### RSP for Diaphragm %d completed #####\n",jd);
-                        }
-                    } // end if dp->apply_rsp == 1
                 } // end if dp->trigger_time >= 0.0 &&...
             } else {
 		// For ruptured diaphragms, check to see if we should blend
