@@ -21,6 +21,8 @@
 #include "../../../lib/util/source/config_parser.hh"
 #include "l_kernel.hh"
 #include "l1d.hh"
+#include "l_io.hh"
+#include "l_misc.hh"
 
 int L_read_solution_no_check(struct slug_data *A, FILE * infile);
 int L_trim_slug(struct slug_data *A, double xmin, double xmax);

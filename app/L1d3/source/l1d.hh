@@ -3,23 +3,6 @@
  * \brief Header file for the flow solver code l1d.cxx.
  *
  * \author PA Jacobs
- *
- * \version 10-Nov-94 : added L_bar (length scale) to the cell data structure
- * \version 17-Aug-94 : ANSI Compiler version
- * \version 06-Jun-96 : removes useless keyword "typedef"
- * \version 24-Sep-97 : Added gas-gun propellant for Scott Thomson 
- *                      and Mark Kendall.
- * \version 05-Apr-98 : Update for a more general tube definition in the
- *                      user data file.
- * \version 14-Apr-98 : ECHO_INPUT added for reading the parameter file
- *                      option to cluster cells within slug
- * \version 22-Apr-98 : echo_input moved to parameter lists for the input fns
- * \version 17-May-98 : piston model for SWRC expansion tube
- *                      put in constant MINIMUM_MASS
- * \version 19-Jan-99 : replace areas with diameters in user input
- * \version 04-Jun-00 : Adaptivity added.
- * \version 24-Jul-06 : C++ port.
- *
  */
 
 #ifndef L1D_HH
@@ -42,13 +25,6 @@
  *
  */
 
-#define myPI 3.141592654
-
-/* RSP constants */
-
-#define ERSP_NX 2000                /* No. steps through expansion */
-#define RIEMANN_CELLS 500           /* Max no. of L1d cells in RSP */
-
 /*-----------------------------------------------------------------*/
 
               /******************************/
@@ -57,6 +33,7 @@
 
 /* 
  * Case identifiers to activate special code.
+ * Presently, there is only a little bit in l_tstep.cxx.
  */
 #define DRUMMOND_WITH_M4_NOZZLE 27
 
@@ -114,7 +91,7 @@
  *
  * NL        : number of levels in the time-stepping procedure
  */
-#define    NL        2
+#define NL 2
 
 /*
  * -----------------------------
@@ -195,13 +172,8 @@ struct tube_data
 };  /* end of struct tube_data */
 
 
-/*
- * ----------------------------
- * Gas states at the interfaces.
- * ----------------------------
- *
- * This is used for interfacing to the Riemann solver.
- */
+// Gas states at the interfaces.
+// This is used for interfacing to the Riemann solver.
 struct L_flow_state
 {
     Gas_data *gas;
@@ -209,12 +181,7 @@ struct L_flow_state
 };
 
 
-/*
- * -----------------------------------
- * Data stored in each Lagrangian cell.
- * -----------------------------------
- */
-
+// Data stored in each Lagrangian cell.
 struct L_cell
 {
     /* GEOMETRY -- INTERFACES */
@@ -272,11 +239,8 @@ struct L_cell
                         // FIX-ME, is this still correct Rowan?
 };
 
-/*
- * ---------------------------
- * The GAS-SLUG Data Structure 
- * ---------------------------
- */
+
+// Many cells make up a gas-slug.
 struct slug_data
 {
     /*
@@ -421,12 +385,8 @@ struct slug_data
      */
 };  /* end struct slug_data */
 
-/*
- * -------------------------
- * The piston data structure.
- * -------------------------
- */
 
+// We may have zero or more pistons pushing against the gas.
 struct piston_data
 {
     /* 
@@ -495,12 +455,8 @@ struct piston_data
      */
 };  /* end structure piston_data */
 
-/*
- * ----------------------------
- * The diaphragm data structure
- * ----------------------------
- */
 
+// Diaphragms are used to control the interaction of the gas-slugs.
 struct diaphragm_data
 {
     double sim_time;        /* current simulation time */
@@ -519,8 +475,6 @@ struct diaphragm_data
 			       after diaphragn burst   */
     double blend_dx;        /* distance over which slug data is blended */
     double blend_delay;     /* time after rupture that blending is applied */
-    int apply_rsp;          /* flag for activating RSP control of diaphragm rupture */
-    double RSP_dt;          /* the window of time available to the RSP */
 
     /*
      * Neighbour information.
@@ -536,64 +490,6 @@ struct diaphragm_data
      */
 };  /* end structure diaphragm_data */
 
-/*
- *
- * ---------------------------
- * Riemann solution structure.
- * ---------------------------
- *
- */
-
-struct ersp_solution
-{
-    double x_p;
-    double dx_p;
-    double P_p;
-    double u_p;
-    double T_p;
-    double rho_p;
-    double e_p;
-    double mass;
-    double vol;
-};
-
-/*
- *
- * ---------------------------
- * Riemann storage structure
- * ---------------------------
- *
- */
-
-struct riemann_simulation_data
-{
-    double RSP_dt;
-    double x_diaphragm;
-    struct L_flow_state QL[1];
-    struct L_flow_state QR[1];
-    double left_vel;
-    double cs_vel;
-    double right_vel;
-    struct ersp_solution *base_sol; 
-    struct L_cell *rs_lcells;
-    struct L_cell *rs_rcells;
-
-    int jd;
-    int rsr;
-    int rsr_end_id;
-    double right_end_dx;
-    int rsl;
-    int rsl_end_id;
-    double left_end_dx;
-    int ncells_left;
-    int ncells_right;
-    bool patch;
-    bool solve;
-
-    int sc;
-    int rc;
-    int m_extra;
-};
 
 /*-----------------------------------------------------------------*/
 
@@ -627,159 +523,5 @@ struct riemann_simulation_data
  * within the dimensioned range  0 <= ix <= nxdim-1.
  *
  * ----------------------------------------------------------- */
-
-
-/* 
- * ---------------
- * Indexing Macros
- * ---------------
- * 
- * NOTE that they are defined with respect to the [ix] cell.
- */
-
-#define  ixE  (ix)
-#define  ixW  (ix-1)
-
-
-/*--------------------------------------------------------------*/
-
-/* Function Prototypes... */
-
-/* l_adapt.c */
-int L_adapt_cells(struct slug_data *A);
-int L_fuse_cell_data(struct L_cell *source1,
-                     struct L_cell *source2, struct L_cell *destination);
-int L_split_cell_data_roughly( struct L_cell *source, double xL, 
-			       struct L_cell *dest1, struct L_cell *dest2);
-int L_split_cell_data_smoothly( struct L_cell *ci,   /* the cell to be split */
-				struct L_cell *cim1, /* the cell to left     */
-				struct L_cell *cip1, /* the cell to right    */
-				struct L_cell *ca,   /* left new cell        */ 
-				struct L_cell *cb ); /* right new cell       */
-
-/* l_misc.c */
-void L_set_case_id( int id );
-int L_get_case_id( void );
-int L_alloc(struct slug_data *A);
-void L_free(struct slug_data *A);
-int L_set_index_range(struct slug_data *A);
-int L_copy_cell_data(struct L_cell *source,
-                     struct L_cell *target, int copy_extras);
-int L_interpolate_cell_data(struct slug_data *A, 
-			    double xloc, 
-			    double value[], 
-			    std::valarray<double> &valuef );
-double L_slug_end_pressure( struct slug_data *A, int which_end, double dx );
-int L_slug_end_properties( struct slug_data *A, int which_end, double dx, 
-			   double * total_mass, struct L_flow_state * Q);
-int L_blend_cells( struct L_cell *cA, struct L_cell *cB, 
-		   struct L_cell *c, double alpha, int blend_type );
-int L_blend_slug_ends( struct slug_data *A, int endA, 
-			  struct slug_data *B, int endB,
-		       double dxb );
-int L_fill_data(struct slug_data *A);
-int L_compute_areas(struct slug_data *A, struct tube_data *tube);
-int L_dump_cell(struct slug_data *A, int ix);
-int maximum_p(struct slug_data *A, double *p_max, double *x_max);
-int total_energy(struct slug_data *A, double *E_tot);
-double L_get_dt_plot( struct simulation_data *SD );
-double L_get_dt_history( struct simulation_data *SD );
-
-/* l_tstep.c */
-int L_encode_conserved_for_one_cell(struct L_cell *c);
-int L_encode_conserved(struct slug_data *A);
-int L_decode_conserved(struct slug_data *A);
-int L_set_chemistry_timestep(struct slug_data *A, double dt);
-int L_chemical_increment(struct slug_data *A, double dt);
-int L_source_vector(struct slug_data *A);
-int L_axial_heat_flux(struct slug_data *A, double k);
-int L_adjust_end_cells(struct slug_data *A);
-int L_apply_rivp(struct slug_data *A);
-int L_time_derivatives(struct slug_data *A, int time_level);
-int L_record_slug_state(struct slug_data *A);
-int L_restore_slug_state(struct slug_data *A);
-int L_predictor_step(struct slug_data *A);
-int L_corrector_step(struct slug_data *A);
-int L_check_cells(struct slug_data *A, int js);
-int L_check_cfl(struct slug_data *A);
-int P_time_derivatives(struct piston_data *B, int time_level, double sim_time);
-int P_record_piston_state(struct piston_data *B);
-int P_restore_piston_state(struct piston_data *B);
-int P_predictor_step(struct piston_data *B);
-int P_corrector_step(struct piston_data *B);
-
-/* l_trans.c */
-int L_trans(struct L_flow_state *Q);
-
-/* l_state.c */
-int L_initialise_gas_model(int gas_index);
-int L_EOS(struct L_flow_state *Q);
-int L_EOS_pT(struct L_flow_state *Q);
-
-/* l_rivp.c */
-int L_rivp(struct L_flow_state QL[], struct L_flow_state QR[],
-           double ustar[], double pstar[],
-           int first, int last, int end1, int end2);
-
-/* l_io.c */
-int print_simulation_status( FILE *strm, char *efname, int step, simulation_data *SD,
-			     vector<slug_data> &A, vector<diaphragm_data> &Diaph,
-			     vector<piston_data> &Pist, double cfl_max, 
-			     double cfl_tiny, double time_tiny );
-int log_event( char *efname, char *event_message );
-int L_set_case_parameters(simulation_data *SD, tube_data *T, 
-			  ConfigParser &dict, int echo_input);
-int set_piston_parameters(struct piston_data *B, int indx, ConfigParser &dict, 
-			  double dt_init, int echo_input);
-int set_diaphragm_parameters(diaphragm_data *D, int indx,
-                             ConfigParser &dict, int echo_input);
-int L_set_slug_parameters(slug_data *A, int indx, simulation_data *SD, 
-			  ConfigParser &dict, int echo_input);
-int L_read_area(struct tube_data *tube, FILE * gf);
-int L_write_area(struct tube_data *tube, FILE * gf);
-int read_piston_solution(struct piston_data *B, FILE * infile);
-int write_piston_solution(struct piston_data *B, FILE * outfile);
-int read_diaphragm_solution(struct diaphragm_data *D, FILE * infile);
-int write_diaphragm_solution(struct diaphragm_data *D, FILE * outfile);
-int L_read_solution(struct slug_data *A, FILE * infile);
-int L_write_solution(struct slug_data *A, FILE * outfile, int nsp);
-int L_write_cell_history(struct slug_data *A, FILE * hisfile);
-int L_write_x_history(double xloc, std::vector<slug_data> &A,
-                      int nslug, FILE * hisfile);
-
-/* l_bc.c */
-int L_bc_left_velocity(struct slug_data *A, double v);
-int L_bc_left_reflect(struct slug_data *A);
-int L_bc_left_free(struct slug_data *A);
-int L_bc_right_velocity(struct slug_data *A, double v);
-int L_bc_right_reflect(struct slug_data *A);
-int L_bc_right_free(struct slug_data *A);
-int L_exchange_bc_data(struct slug_data *A, struct slug_data *B);
-int L_apply_bc(struct slug_data *A);
-
-/* rsp.cxx */
-int exact_riemann( struct L_flow_state *QL, struct L_flow_state *QR,
-                   double *left_vel, double *cs_vel, double *right_vel,
-                   struct ersp_solution *base_sol, int good);
-int RSD_alloc( struct riemann_simulation_data *RSD );
-int riemann_interpolate( double x, double x_mid, double delta_t, 
-                         struct ersp_solution *base_sol, 
-                         double *rho, double *e, double *u);
-int find_x_pos_right( double x_left, 
-                      double x_diaphragm, 
-                      double delta_t, 
-                      struct L_cell *m_cell, 
-                      struct ersp_solution *base_sol, 
-                      struct ersp_solution *cell_sol);
-int find_x_pos_left( double x_right, 
-                     double x_diaphragm, 
-                     double delta_t, 
-                     struct L_cell *m_cell, 
-                     struct ersp_solution *base_sol, 
-                     struct ersp_solution *cell_sol);
-int L_riemann_initialise(riemann_simulation_data * RSD, 
-                         std::vector<slug_data> &A, diaphragm_data *D );
-int L_riemann_solve(riemann_simulation_data *RSD, std::vector<slug_data> &A);
-int L_riemann_patch(riemann_simulation_data *RSD, std::vector<slug_data> &A);
 
 #endif

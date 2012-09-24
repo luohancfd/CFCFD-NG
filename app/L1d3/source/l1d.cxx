@@ -20,44 +20,24 @@
  * Diaphragms are implemented as flags which allow changes to the 
  * boundary conditions on the gas slugs.
  * 
- *
  * Running the code...
  *
  * The code reads initialization data from a parameter file and
- * an initial solution from an input-solution-file.  This solution
- * may have been prepared by L_prep.x or by a previous run.  The
- * solution is advanced in time until a specified number of time
+ * an initial solution from an input-solution-file.  
+ * This solution may have been prepared by l_prep or by a previous run.
+ * The solution is advanced in time until a specified number of time
  * steps are taken or until a specified simulation time is reached.
  * Solutions are written to an output-solution-file periodically and 
  * upon termination.
  *
- * Particular configurations need to have their boundary conditions
- * "hard-coded" into this program.  Several examples are provided
- * in the include files directory.  Note that the boundary condition 
- * code for both gas slugs and pistons needs to be inserted at the 
- * beginning of the predictor step 
- *    (files: l_slug_bc_2.inc, l_piston_1.inc)
- * and again at the beginning of the corrector step
- *    (files: l_slug_bc_2.inc, l_piston_2.inc).
- *
- *
  * \version 1.0  - 02-Dec-91, basic code skeleton
- *        For revision notes between Dec-91 and Apr-98, 
- *        see the file l1d_revisions.txt.
- * \version 16.0 - 05-Apr-98, Generalise input parameter file.
- * \version 16.1 - 13-Apr-98, command-line options
- * \version 16.2 - 22-Apr-98, updated command-line options, 
- *                   history cell count
- * \version 16.3 - 26-Apr-98, "attempted" time-stepping
  * \version 17.0 - 04-Jun-00, Adaptivity added.
- *
  *
  * \author PA Jacobs
  * \author David Buttsworth  (USQ) 
  * \author Tony Gardner      (UQ and DLR)
  * \author Vincent Wheatley  (UQ, Caltech, Adelaide and back to UQ).
  * \author Rowan Gollan      (UQ)
- *
  */
 
 //-----------------------------------------------------------------
@@ -73,6 +53,12 @@
 #include "../../../lib/util/source/config_parser.hh"
 #include "l_kernel.hh"
 #include "l1d.hh"
+#include "l_adapt.hh"
+#include "l_bc.hh"
+#include "l_io.hh"
+#include "l_rivp.hh"
+#include "l_tstep.hh"
+#include "l_misc.hh"
 
 //-----------------------------------------------------------------
 
@@ -84,7 +70,6 @@ int main(int argc, char **argv)
     std::vector<piston_data> Pist;          /* room for several pistons */
     std::vector<diaphragm_data> Diaph;      /* diaphragms            */
     struct diaphragm_data *dp;
-    struct riemann_simulation_data *RSD;  /* RSP data */
     static struct tube_data tube;        /* The area specification   */
     int step, print_count;             /* global iteration count     */
     int adjust_end_cell_count;
@@ -253,14 +238,8 @@ int main(int argc, char **argv)
     Diaph.resize(SD.ndiaphragm);
     for (jp = 0; jp < SD.npiston; ++jp)
         set_piston_parameters(&(Pist[jp]), jp, parameterdict, SD.dt_init, echo_input);
-    /* Allocate a space for each diaphragm in the RSD structure */
-    RSD = (struct riemann_simulation_data *) calloc(SD.ndiaphragm,
-						    sizeof(struct riemann_simulation_data));
     for (jd = 0; jd < SD.ndiaphragm; ++jd) {
         set_diaphragm_parameters(&(Diaph[jd]), jd, parameterdict, echo_input);
-        if (Diaph[jd].apply_rsp==1) {
-            if (RSD_alloc(&(RSD[jd])) != 0) exit(1);
-        }
     } // end for
     SD.hncell = 0;
     for (js = 0; js < SD.nslug; ++js) {
@@ -485,35 +464,6 @@ int main(int argc, char **argv)
                     log_event( efname, msg_string );
 		    print_simulation_status(NULL, efname, step, &SD, A, Diaph, Pist,
 					    cfl_max, cfl_tiny, time_tiny);
-                    if ( dp->apply_rsp == 1 ) {
-                        printf("\n**********************************************\n");
-                        printf("* Performing Riemann patching on diaphragm %d *\n",jd);
-                        printf("* The patching window is %0.1f microsecond/s   *\n",
-                               Diaph[jd].RSP_dt*1.0e6);
-                        printf("**********************************************\n\n");
-                        RSD[jd].jd = jd;
-                        printf("1. Initialising the RSP solution\n");
-                        if (L_riemann_initialise(&(RSD[jd]), A, dp) != SUCCESS) {
-                            RSD[jd].solve=false;
-                        }
-                        if (RSD[jd].solve==true) {
-                            printf("\n2. Discretising solution for L1d grid\n");
-                            if (L_riemann_solve(&(RSD[jd]),A) != SUCCESS) {
-                                RSD[jd].patch=false;
-                            }
-                        } else RSD[jd].patch = false;
-                        if (RSD[jd].patch==true)  {
-                            printf("\n3. Paching RSP solution into L1d\n");
-                            L_riemann_patch(&(RSD[jd]),A);
-                        }  else printf("##### RSP failed #####\n");
-                        printf("\n4. Freeing up space allocated for RSP\n\n");
-                        free(RSD[jd].rs_lcells);
-                        free(RSD[jd].rs_rcells);
-                        free(RSD[jd].base_sol);
-                        if (RSD[jd].patch==true) {
-                            printf("##### RSP for Diaphragm %d completed #####\n",jd);
-                        }
-                    } // end if dp->apply_rsp == 1
                 } // end if dp->trigger_time >= 0.0 &&...
             } else {
 		// For ruptured diaphragms, check to see if we should blend
@@ -958,8 +908,6 @@ int main(int argc, char **argv)
         write_diaphragm_solution(&(Diaph[jd]), outfile);
     for (js = 0; js < SD.nslug; ++js)
         L_write_solution(&(A[js]), outfile, nsp);
-
-    free(RSD);
     for (js = 0; js < SD.nslug; ++js) {
         L_free( &(A[js]) );
     }

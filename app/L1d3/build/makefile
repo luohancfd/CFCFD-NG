@@ -59,8 +59,7 @@ OBJECTS = l_misc.o \
 	l_bc.o \
 	l_io.o \
 	l_rivp.o \
-	roberts.o \
-        rsp.o
+	roberts.o
 
 PY_FILES = l_script.py gaspy.py
 
@@ -262,22 +261,26 @@ _gaspy.dylib : $(GAS)/build/_gaspy.dylib
 # Object file dependencies.
 # -------------------------
 
-l1d.o : $(SRC)/l1d.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR)
+l1d.o : $(SRC)/l1d.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) \
+	$(SRC)/l_adapt.hh $(SRC)/l_bc.hh $(SRC)/l_io.hh $(SRC)/l_rivp.hh $(SRC)/l_tstep.hh \
+	$(SRC)/l_misc.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l1d.cxx -o l1d.o
 
 l_kernel.o  : $(SRC)/l_kernel.cxx $(SRC)/l_kernel.hh $(SRC)/l1d.hh $(LUA_INCLUDE_DIR)
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_kernel.cxx -o l_kernel.o
 
-l_bc.o    : $(SRC)/l_bc.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR)
+l_bc.o    : $(SRC)/l_bc.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) $(SRC)/l_misc.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_bc.cxx -o l_bc.o
 
-l_adapt.o    : $(SRC)/l_adapt.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR)
+l_adapt.o    : $(SRC)/l_adapt.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) \
+	$(SRC)/l_adapt.hh $(SRC)/l_tstep.hh $(SRC)/l_misc.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_adapt.cxx -o l_adapt.o
 
-l_io.o    : $(SRC)/l_io.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR)
+l_io.o    : $(SRC)/l_io.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) $(SRC)/l_misc.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_io.cxx -o l_io.o
 
-l_tstep.o : $(SRC)/l_tstep.cxx $(SRC)/l1d.hh $(NM_SRC)/qd_power.h $(NM_SRC)/qd_log10.h  $(LUA_INCLUDE_DIR)
+l_tstep.o : $(SRC)/l_tstep.cxx $(SRC)/l1d.hh $(NM_SRC)/qd_power.h $(NM_SRC)/qd_log10.h \
+	$(LUA_INCLUDE_DIR) $(SRC)/l_rivp.hh $(SRC)/l_tstep.hh $(SRC)/l_misc.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_tstep.cxx -o l_tstep.o
 
 l_misc.o  : $(SRC)/l_misc.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR)
@@ -289,26 +292,25 @@ l_rivp.o  : $(SRC)/l_rivp.cxx $(SRC)/l1d.hh $(NM_SRC)/qd_power.h  $(LUA_INCLUDE_
 roberts.o : $(NM_SRC)/roberts.c $(NM_SRC)/roberts.h
 	$(COMPILE) $(CFLAG) $(NM_SRC)/roberts.c -o roberts.o
 
-l_prep.o  : $(SRC)/l_prep.cxx $(SRC)/l1d.hh $(NM_SRC)/roberts.h $(LUA_INCLUDE_DIR)
+l_prep.o  : $(SRC)/l_prep.cxx $(SRC)/l1d.hh $(NM_SRC)/roberts.h $(LUA_INCLUDE_DIR) \
+	$(SRC)/l_io.hh $(SRC)/l_tstep.hh $(SRC)/l_misc.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_prep.cxx -o l_prep.o
 
-l_post.o  : $(SRC)/l_post.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR)
+l_post.o  : $(SRC)/l_post.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) \
+	$(SRC)/l_io.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_post.cxx -o l_post.o
 
 l_hist.o  : $(SRC)/l_hist.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR)
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -DNSPECD=$(NSPECD) -I$(LUA_INCLUDE_DIR) \
 		$(SRC)/l_hist.cxx -o l_hist.o
 
-sptime.o  : $(SRC)/sptime.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR)
+sptime.o  : $(SRC)/sptime.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) $(SRC)/l_io.hh $(SRC)/l_misc.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/sptime.cxx -o sptime.o
 
-piston.o  : $(SRC)/piston.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR)
+piston.o  : $(SRC)/piston.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) $(SRC)/l_io.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/piston.cxx -o piston.o
 
-l_trim.o  : $(SRC)/l_trim.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR)
+l_trim.o  : $(SRC)/l_trim.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) $(SRC)/l_io.hh $(SRC)/l_misc.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_trim.cxx -o l_trim.o
-
-rsp.o  : $(SRC)/rsp.cxx $(SRC)/l1d.hh $(SRC)/rsp.hh $(LUA_INCLUDE_DIR)
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/rsp.cxx -o rsp.o
 
 # -------------------- end of makefile -------------------------------

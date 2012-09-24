@@ -37,6 +37,7 @@
 #include "../../../lib/util/source/config_parser.hh"
 #include "l_kernel.hh"
 #include "l1d.hh"
+#include "l_io.hh"
 
 int L_write_GENERIC(std::vector<slug_data> &A, int nslug, FILE *outfile, int nsp);
 int take_log_rho(std::vector<slug_data> &A, int nslug);

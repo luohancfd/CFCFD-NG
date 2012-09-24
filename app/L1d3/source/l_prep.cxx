@@ -34,6 +34,9 @@
 #include "../../../lib/util/source/config_parser.hh"
 #include "l_kernel.hh"
 #include "l1d.hh"
+#include "l_io.hh"
+#include "l_tstep.hh"
+#include "l_misc.hh"
 extern "C" {
 #   include "../../../lib/nm/source/roberts.h"
 }
@@ -67,6 +70,7 @@ int main(int argc, char **argv)
     double K_over_L, T_Wall;
     int i, command_line_error;
     int echo_input;
+    const double myPI = 4.0*atan(1.0);
 
     UNUSED_VARIABLE(infile);
 

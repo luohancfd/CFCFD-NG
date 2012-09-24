@@ -3,34 +3,6 @@
  * \brief Time-stepping routines for l1d.cxx.
  *
  * \author PA Jacobs
- * 
- * \version 04-Aug-94  : Compressibility factor removed from source-terms
- *              (friction factor) calculation.
- * \version 20-Aug-94  : Compressibility factor put back in.
- *              Record shear_stress and heat_flux for each cell.
- * \version 10-Nov-94  : Length scale added and Con's mass-loss theory.
- * \version 16-Nov-94  : Included momentum and energy loss with the viscous
- *              mass-loss theory
- * \version 21-Nov-94  : Mass-loss and energy loss are coupled but momentum loss
- *              is again via the friction factor
- * \version 20-Dec-94  : Remove friction factor model for shocked gas if mass
- *              loss model is used - but use new momentum loss model
- *              derived by Doolan.
- * \version 17-Jan-95  : Also use new energy loss model derived by Doolan for
- *              Turbulent case only (same for momentum loss).  Use the
- *              Original model of friction factor shear stress and heat
- *              loss along with momemtum and total energy by m_loss
- *              terms for the laminar case only.
- * \version 20-Dec-94  : If the mass_loss model is used then don't use the
- *              friction-factor momentum loss as well.
- * \version 05-Apr-95  : fixed the entropy calculation in decode()
- * \version 20-Aug-95  : define arrays in apply_rivp as static to get them off
- *              the stack
- * \version 17-May-98  : Aki's expansion tube piston added
- * \version 05-Jun-00  : Axial heat flux function added.
- * \version 24-Jul-06  : C++ port.
- *
- * The rest of the log is embedded in the versions file.
  */
 
 /*-----------------------------------------------------------------*/
@@ -43,6 +15,9 @@
 #include "../../../lib/gas/kinetics/reaction-update.hh"
 #include "l_kernel.hh"
 #include "l1d.hh"
+#include "l_tstep.hh"
+#include "l_rivp.hh"
+#include "l_misc.hh"
 #include "../../../lib/nm/source/qd_power.h"
 #include "../../../lib/nm/source/qd_log10.h"
 
@@ -182,6 +157,10 @@ int L_chemical_increment(struct slug_data *A, double dt)
     for (ix = A->ixmin; ix <= A->ixmax; ++ix) {
         c = &( A->Cell[ix] );
 	flag = rupdate->update_state(*(c->gas), dt, c->dt_chem, gmodel);
+	if ( flag != 0 ) {
+	    cout << "chemical update failed" << endl
+		 << "    for cell " << ix << " at x=" << c->xmid << endl;
+	}
 	// The update only changes mass fractions, we need to impose
 	// a thermodynamic constraint based on a call to the equation
 	// of state.
@@ -703,31 +682,21 @@ int L_adjust_end_cells(struct slug_data *A)
 
 int L_apply_rivp(struct slug_data *A)
 {
-/*
- * Apply the Riemann solver to obtain the pressure and
- * velocity at each interface.
- *
- * Input...
- * A      : pointer to the data structure
- * Output...
- * returns 0 is all is OK, 1 otherwise.
- *
- */
+    // Apply the Riemann solver to obtain the pressure and
+    // velocity at each interface.
+    //
+    // Input...
+    // A      : pointer to the data structure
+    // Output...
+    // returns 0 is all is OK, 1 otherwise.
     int ix;
     static struct L_flow_state QL[NDIM], QR[NDIM];
     static double del[NDIM], dplus[NDIM], dminus[NDIM];
-    static double rhoL[NDIM], rhoR[NDIM], eL[NDIM], eR[NDIM];
+    static double rhoL, rhoR;
     static double pstar[NDIM], ustar[NDIM];
-    static double PMIN, TMIN, RHOMIN;
     static double onedx[NDIM];
     Gas_model *gmodel = get_gas_model_ptr();
-
-    /*
-     * Minimum physical quantities.
-     */
-    RHOMIN = 1.0e-6;
-    PMIN = 1.0e-6;
-    TMIN = 1.0;
+    static double RHOMIN = 1.0e-6;
 
     // On first encounter, the gas components inside the QL, QR
     // flow state structures will need to be created.
@@ -740,19 +709,15 @@ int L_apply_rivp(struct slug_data *A)
 	printf( "l_apply_rivp(): Setting up workspace for the first time.\n" );
     }
 
-    /*
-     * Interpolate the cell average values to obtain
-     * LEFT and RIGHT states at each interface.
-     *
-     * The approach taken is to ignore grid distortions and perform
-     * one dimensional projection/interpolation in the ix parameter
-     * direction.
-     * Left cell has index [ix], Right cell has index [ix+1]
-     */
+    // Interpolate the cell average values to obtain
+    // LEFT and RIGHT states at each interface.
+    //
+    // The approach taken is to ignore grid distortions and perform
+    // one dimensional projection/interpolation in the ix parameter
+    // direction.
+    // Left cell has index [ix], Right cell has index [ix+1]
 
-    /*
-     * Always start with first-order interpolation.
-     */
+    // Always start with first-order interpolation.
     for (ix = A->ixmin - 1; ix <= A->ixmax; ++ix) {
 	QL[ix].gas->copy_values_from(*(A->Cell[ix].gas));
 	QL[ix].u = A->Cell[ix].u;
@@ -761,18 +726,12 @@ int L_apply_rivp(struct slug_data *A)
     }
 
     if ( A->Xorder == 2 ) {
-        /*
-         * Higher-order interoplation of some quantities.
-         * Assume 2 ghost points are available.
-         */
-
+        // Higher-order interoplation of some quantities.
+        // Assume 2 ghost points are available.
         for (ix = A->ixmin - 1; ix <= A->ixmax + 2; ++ix) {
             onedx[ix] = 1.0 / (A->Cell[ix].xmid - A->Cell[ix - 1].xmid);
         }
-
-        /*
-         * Density.
-         */
+        // Density.
         for (ix = A->ixmin - 1; ix <= A->ixmax + 1; ++ix) {
             dminus[ix] = (A->Cell[ix].gas->rho - A->Cell[ix - 1].gas->rho) * onedx[ix];
             dplus[ix] =
@@ -780,19 +739,14 @@ int L_apply_rivp(struct slug_data *A)
             del[ix] = MIN_MOD(dminus[ix], dplus[ix]);
         }
         for (ix = A->ixmin - 1; ix <= A->ixmax; ++ix) {
-            rhoL[ix] = A->Cell[ix].gas->rho +
+            rhoL = A->Cell[ix].gas->rho +
                 del[ix] * (A->Cell[ix].x - A->Cell[ix].xmid);
-            rhoR[ix] = A->Cell[ix + 1].gas->rho -
+            QL[ix].gas->rho = MAXIMUM(rhoL, RHOMIN);
+            rhoR = A->Cell[ix + 1].gas->rho -
                 del[ix + 1] * (A->Cell[ix + 1].xmid - A->Cell[ix].x);
+            QR[ix].gas->rho = MAXIMUM(rhoR, RHOMIN);
         }
-        for (ix = A->ixmin - 1; ix <= A->ixmax; ++ix) {
-            QL[ix].gas->rho = MAXIMUM(rhoL[ix], RHOMIN);
-            QR[ix].gas->rho = MAXIMUM(rhoR[ix], RHOMIN);
-        }
-
-        /*
-         * Axial Velocity
-         */
+        // Axial Velocity
         for (ix = A->ixmin - 1; ix <= A->ixmax + 1; ++ix) {
             dminus[ix] = (A->Cell[ix].u - A->Cell[ix - 1].u) * onedx[ix];
             dplus[ix] = (A->Cell[ix + 1].u - A->Cell[ix].u) * onedx[ix + 1];
@@ -804,65 +758,49 @@ int L_apply_rivp(struct slug_data *A)
             QR[ix].u = A->Cell[ix + 1].u -
                 del[ix + 1] * (A->Cell[ix + 1].xmid - A->Cell[ix].x);
         }
-
-        /*
-         * Specific Internal Energy.
-         */
+        // Specific Internal Energy.
+	// FIX-ME -- do we need to deal with the other energy modes?
         for (ix = A->ixmin - 1; ix <= A->ixmax + 1; ++ix) {
             dminus[ix] = (A->Cell[ix].gas->e[0] - A->Cell[ix - 1].gas->e[0]) * onedx[ix];
             dplus[ix] = (A->Cell[ix + 1].gas->e[0] - A->Cell[ix].gas->e[0]) * onedx[ix + 1];
             del[ix] = MIN_MOD(dminus[ix], dplus[ix]);
         }
         for (ix = A->ixmin - 1; ix <= A->ixmax; ++ix) {
-            eL[ix] = A->Cell[ix].gas->e[0] +
+            QL[ix].gas->e[0] = A->Cell[ix].gas->e[0] +
                 del[ix] * (A->Cell[ix].x - A->Cell[ix].xmid);
-            eR[ix] = A->Cell[ix + 1].gas->e[0] -
+            QR[ix].gas->e[0] = A->Cell[ix + 1].gas->e[0] -
                 del[ix + 1] * (A->Cell[ix + 1].xmid - A->Cell[ix].x);
         }
-
-        /*
-         * Pressure, Local Speed of Sound and Temperature.
-         */
+        // Pressure, Local Speed of Sound and Temperature.
         for (ix = A->ixmin - 1; ix <= A->ixmax; ++ix) {
 	    gmodel->eval_thermo_state_rhoe(*(QL[ix].gas));
 	    gmodel->eval_thermo_state_rhoe(*(QR[ix].gas));
         }
+    } // End of Higher-order interpolation.
 
-    } /* End of Higher-order interpolation. */
-
-    /*
-     *  *****************************
-     *  * Apply the Riemann solver. *
-     *  *****************************
-     */
-
-    /*
-     * Apply specified interface velocities if required.
-     */
-    if (A->set_left_end_ustar == 1)
+    // *****************************
+    // * Apply the Riemann solver. *
+    // *****************************
+    // Apply specified interface velocities if required.
+    if (A->set_left_end_ustar == 1) {
         ustar[A->ixmin - 1] = A->left_ustar;
-    if (A->set_right_end_ustar == 1)
+    }
+    if (A->set_right_end_ustar == 1) {
         ustar[A->ixmax] = A->right_ustar;
-
+    }
     L_rivp(QL, QR, ustar, pstar, A->ixmin - 1, A->ixmax,
            A->set_left_end_ustar, A->set_right_end_ustar);
-
-    /*
-     * Save the interface pressures and velocities.
-     */
+    // Save the interface pressures and velocities.
     for (ix = A->ixmin - 1; ix <= A->ixmax; ++ix) {
         A->Cell[ix].pface = pstar[ix];
         A->Cell[ix].uface = ustar[ix];
     }
-
-    /*
-     * Save the interface pressures at the ends in particular.
-     */
+    // Save the interface pressures at the ends in particular.
     A->left_pstar = pstar[A->ixmin - 1];
     A->right_pstar = pstar[A->ixmax];
 
     return 0;
-}   /* end function L_apply_rivp */
+} // end function L_apply_rivp
 
 
 /*-----------------------------------------------------------------*/
