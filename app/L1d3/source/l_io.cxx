@@ -28,6 +28,7 @@
 #include "../../../lib/gas/kinetics/reaction-update.hh"
 #include "l_kernel.hh"
 #include "l_diaph.hh"
+#include "l_piston.hh"
 #include "l1d.hh"
 #include "l_misc.hh"
 using namespace std;
@@ -36,7 +37,7 @@ using namespace std;
 
 int print_simulation_status(FILE *strm, const char* efname, int step, simulation_data *SD,
 			    vector<slug_data> &A, vector<DiaphragmData> &Diaph,
-			    vector<piston_data> &Pist, double cfl_max, 
+			    vector<PistonData> &Pist, double cfl_max, 
 			    double cfl_tiny, double time_tiny) {
     /*
      * Print the simulation status to the specified stream.
@@ -190,103 +191,6 @@ int L_set_case_parameters(simulation_data *SD, ConfigParser &dict, int echo_inpu
     }
     return SUCCESS;
 } // end function L_set_case_parameters()
-
-/*----------------------------------------------------------------*/
-
-int set_piston_parameters(piston_data *B, int indx, ConfigParser &dict, 
-			  double dt_init, int echo_input)
-{
-    std::stringstream tag;
-    tag << indx;
-    std::string section = "piston-" + tag.str();
-    if (echo_input == 1) cout << "Reading piston " << indx << " parameters..." << endl;
-
-    dict.parse_double(section, "mass", B->mass, 1.0);
-    dict.parse_double(section, "diameter", B->diam, 1.0);
-    dict.parse_double(section, "length", B->length, 1.0);
-    const double myPI = 4.0*atan(1.0);
-    B->area = myPI * 0.25 * B->diam * B->diam;
-    dict.parse_double(section, "front_seal_f", B->front_seal_f, 0.0);
-    dict.parse_double(section, "front_seal_area", B->front_seal_area, 0.0);
-    dict.parse_double(section, "back_seal_f", B->back_seal_f, 0.0);
-    dict.parse_double(section, "back_seal_area", B->back_seal_area, 0.0);
-    if (echo_input == 1) {
-	cout << "    mass = " << B->mass << endl;
-	cout << "    diameter = " << B->diam << endl;
-	cout << "    length = " << B->length << endl;
-	cout << "    area = " << B->area << endl;
-	cout << "    front_seal_f = " << B->front_seal_f << endl;
-	cout << "    front_seal_area = " << B->front_seal_area << endl;
-	cout << "    back_seal_f = " << B->back_seal_f << endl;
-	cout << "    back_seal_area = " << B->back_seal_area << endl;
-    }
-    dict.parse_double(section, "p_restrain", B->p_restrain, 1.0);
-    dict.parse_int(section, "is_restrain", B->is_restrain, 0);
-    dict.parse_double(section, "x_buffer", B->x_buffer, 0.0);
-    dict.parse_int(section, "hit_buffer", B->on_buffer, 0);
-    B->hit_buffer_count = 0;  /* initialize counter for buffer strikes */
-    B->V_buffer = 0.0;
-    dict.parse_int(section, "with_brakes", B->with_brakes, 0);
-    dict.parse_int(section, "brakes_on", B->brakes_on, 0);
-    if (echo_input == 1) {
-	cout << "    p_restrain = " << B->p_restrain << endl;
-	cout << "    is_restrain = " << B->is_restrain << endl;
-	cout << "    x_buffer = " << B->x_buffer << endl;
-	cout << "    on_buffer = " << B->on_buffer << endl;
-	cout << "    hit_buffer_count = " << B->hit_buffer_count << endl;
-	cout << "    with_brakes = " << B->with_brakes << endl;
-	cout << "    brakes_on = " << B->brakes_on << endl;
-    }
-    /* By default, the piston is free. */
-    B->left_slug_id = -1;
-    B->left_slug_end_id = -1;
-    dict.parse_int(section, "left-slug-id", B->left_slug_id, -1);
-    std::string label;
-    dict.parse_string(section, "left-slug-end-id", label, "");
-    if (label[0] == 'L' || label[0] == 'l' || label[0] == '0')
-        B->left_slug_end_id = LEFT;
-    if (label[0] == 'R' || label[0] == 'r' || label[0] == '1')
-        B->left_slug_end_id = RIGHT;
-    if (echo_input == 1) {
-	cout << "    left-slug-id = " << B->left_slug_id << endl;
-	cout << "    left-slug-end-id = " << B->left_slug_end_id << endl;
-    }
-    B->right_slug_id = -1;
-    B->right_slug_end_id = -1;
-    dict.parse_int(section, "right-slug-id", B->right_slug_id, -1);
-    dict.parse_string(section, "right-slug-end-id", label, "");
-    if (label[0] == 'L' || label[0] == 'l' || label[0] == '0')
-        B->right_slug_end_id = LEFT;
-    if (label[0] == 'R' || label[0] == 'r' || label[0] == '1')
-        B->right_slug_end_id = RIGHT;
-    if (echo_input == 1) {
-	cout << "    right-slug-id = " << B->right_slug_id << endl;
-	cout << "    right-slug-end-id = " << B->right_slug_end_id << endl;
-    }
-    // Initial position and velocity.
-    B->dt = dt_init;
-    dict.parse_double(section, "x0", B->x0, 0.0);
-    dict.parse_double(section, "v0", B->V0, 0.0);
-    B->x = B->x0;
-    B->V = B->V0;
-    if (echo_input == 1) {
-	cout << "    x0 = " << B->x0 << endl;
-	cout << "    v0 = " << B->V0 << endl;
-    }
-    // Mass decay
-    dict.parse_double(section, "f_decay", B->f_decay, 0.0);
-    dict.parse_double(section, "mass_limit", B->mass_limit, 0.0);
-    if (echo_input == 1) {
-	cout << "    f_decay = " << B->f_decay << endl;
-	cout << "    mass_limit = " << B->mass_limit << endl;
-    }
-    if (B->f_decay != 0.0) 
-	B->apply_decay = 1;
-    else 
-	B->apply_decay = 0;
-
-    return SUCCESS;
-} // end function set_piston_parameters()
 
 //-------------------------------------------------------------------
 
@@ -550,48 +454,6 @@ int L_set_slug_parameters(slug_data* A, int indx, simulation_data* SD,
     }
     return SUCCESS;
 } // end function L_set_slug_parameters()
-
-//---------------------------------------------------------------------
-
-int read_piston_solution(struct piston_data* B, FILE* infile)
-// Read the piston solution (i.e. the present piston state)
-{
-#   define NCHAR 320
-    char line[NCHAR];
-    if (fgets(line, NCHAR, infile) == NULL) {
-        printf("Empty solution file.\n");
-        return(FAILURE);
-    }
-    sscanf(line, "%lf", &(B->sim_time));
-    // Position, Velocity and acceleration.
-    if (fgets(line, NCHAR, infile) == NULL) {
-        printf("Empty solution file.\n");
-        return(FAILURE);
-    }
-    sscanf(line, "%lf %lf %lf %lf", &(B->x), &(B->V), &(B->DVDt[0]), &(B->mass) );
-    // Flags
-    if (fgets(line, NCHAR, infile) == NULL) {
-        printf("Empty solution file.\n");
-        return(FAILURE);
-    }
-    sscanf(line, "%d %d %d", &(B->is_restrain),
-           &(B->on_buffer), &(B->brakes_on));
-#   undef NCHAR
-    return SUCCESS;
-} // end read_piston_solution()
-
-
-int write_piston_solution(struct piston_data *B, FILE * outfile)
-{
-    fprintf(outfile, "%e  # begin piston data: sim_time\n",
-	    B->sim_time);
-    fprintf(outfile, "%e %e %e %e  # x, V, accel, mass\n",
-	    B->x, B->V, B->DVDt[0], B->mass);
-    fprintf(outfile, "%d %d %d  # is_restrain, on_buffer, brakes_on\n", 
-	    B->is_restrain, B->on_buffer, B->brakes_on);
-    fflush(outfile);
-    return SUCCESS;
-}
 
 //----------------------------------------------------------------------
 

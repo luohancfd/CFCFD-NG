@@ -57,6 +57,7 @@ extern "C" {
 #include "l_kernel.hh"
 #include "l1d.hh"
 #include "l_diaph.hh"
+#include "l_piston.hh"
 #include "l_tube.hh"
 #include "l_adapt.hh"
 #include "l_bc.hh"
@@ -72,7 +73,7 @@ int main(int argc, char **argv)
     struct simulation_data SD;
     int js, jp, jd;                    /* slug, piston, diaphragm index */
     std::vector<slug_data> A;               /* several gas slugs        */
-    std::vector<piston_data> Pist;          /* room for several pistons */
+    std::vector<PistonData> Pist;          /* room for several pistons */
     std::vector<DiaphragmData> Diaph;      /* diaphragms            */
     DiaphragmData *dp;
     int step, print_count;             /* global iteration count     */
@@ -232,9 +233,8 @@ int main(int argc, char **argv)
     L_set_case_parameters(&SD, parameterdict, echo_input);
     TubeModel tube = TubeModel(pname, echo_input);
     A.resize(SD.nslug);
-    Pist.resize(SD.npiston);
     for (jp = 0; jp < SD.npiston; ++jp) {
-        set_piston_parameters(&(Pist[jp]), jp, parameterdict, SD.dt_init, echo_input);
+        Pist.push_back(PistonData(jp, SD.dt_init, pname, echo_input));
         Pist[jp].sim_time = 0.0;
     }
     for (jd = 0; jd < SD.ndiaphragm; ++jd) {
@@ -303,8 +303,7 @@ int main(int argc, char **argv)
 	    printf("\nCould not open %s; BAILING OUT\n", oname.c_str());
 	    return FAILURE;
 	}
-	for (jp = 0; jp < SD.npiston; ++jp)
-	    write_piston_solution(&(Pist[jp]), outfile);
+	for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].write_state(outfile);
 	for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].write_state(outfile);
 	for (js = 0; js < SD.nslug; ++js)
 	    L_write_solution(&(A[js]), outfile);
@@ -317,8 +316,7 @@ int main(int argc, char **argv)
         printf("\nCould not open %s; BAILING OUT\n", iname.c_str());
         exit(1);
     }
-    for (jp = 0; jp < SD.npiston; ++jp)
-        read_piston_solution(&(Pist[jp]), infile);
+    for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].read_state(infile);
     for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].read_state(infile);
     for (js = 0; js < SD.nslug; ++js) {
         L_read_solution( &(A[js]), infile );
@@ -548,9 +546,7 @@ int main(int argc, char **argv)
 	// ----------------------
 	// 4. Update the dynamics 
 	// ----------------------
-        for (jp = 0; jp < SD.npiston; ++jp) {
-            P_record_piston_state(&(Pist[jp]));
-        }
+        for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].record_state(); 
         for (js = 0; js < SD.nslug; ++js) {
             L_record_slug_state(&(A[js]));
         }
@@ -668,8 +664,8 @@ int main(int argc, char **argv)
 
             // 4d. Piston-dynamic predictor step
             for (jp = 0; jp < SD.npiston; ++jp) {
-                P_time_derivatives(&(Pist[jp]), 0, SD.sim_time);
-                P_predictor_step(&(Pist[jp]));
+                Pist[jp].time_derivatives(0, SD.sim_time);
+                Pist[jp].predictor_step();
             }
 
 	    // -------------------
@@ -785,8 +781,8 @@ int main(int argc, char **argv)
 
                 // 4h. Piston-dynamic corrector step
                 for (jp = 0; jp < SD.npiston; ++jp) {
-                    P_time_derivatives(&(Pist[jp]), 1, SD.sim_time);
-                    P_corrector_step(&(Pist[jp]));
+                    Pist[jp].time_derivatives(1, SD.sim_time);
+                    Pist[jp].corrector_step();
                 }
             } // end of corrector step.
 
@@ -823,8 +819,7 @@ int main(int argc, char **argv)
                     A[js].dt = SD.dt_global;
 
                 // Restore the state which existed before the attempt.
-                for (jp = 0; jp < SD.npiston; ++jp)
-                    P_restore_piston_state(&(Pist[jp]));
+                for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].restore_state();
 
                 for (js = 0; js < SD.nslug; ++js) {
                     L_restore_slug_state(&(A[js]));
@@ -865,8 +860,7 @@ int main(int argc, char **argv)
 	// 5a. Full flow along tube, diaphragm and piston states
         if ( SD.sim_time >= tplot ) {
             tplot += L_get_dt_plot( &SD );
-            for (jp = 0; jp < SD.npiston; ++jp)
-                write_piston_solution(&(Pist[jp]), outfile);
+            for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].write_state(outfile);
             for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].write_state(outfile);
             for (js = 0; js < SD.nslug; ++js)
                 L_write_solution(&(A[js]), outfile);
@@ -956,8 +950,7 @@ int main(int argc, char **argv)
 			    cfl_max, cfl_tiny, time_tiny );
     printf("\nTotal number of steps = %d\n", step);
 
-    for (jp = 0; jp < SD.npiston; ++jp)
-        write_piston_solution(&(Pist[jp]), outfile);
+    for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].write_state(outfile);
     for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].write_state(outfile);
     for (js = 0; js < SD.nslug; ++js)
         L_write_solution(&(A[js]), outfile);

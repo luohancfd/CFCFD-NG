@@ -20,10 +20,5 @@ int L_predictor_step(struct slug_data* A);
 int L_corrector_step(struct slug_data* A);
 int L_check_cells(struct slug_data* A, int js);
 int L_check_cfl(struct slug_data* A);
-int P_time_derivatives(struct piston_data* B, int time_level, double sim_time);
-int P_record_piston_state(struct piston_data* B);
-int P_restore_piston_state(struct piston_data* B);
-int P_predictor_step(struct piston_data* B);
-int P_corrector_step(struct piston_data* B);
 
 #endif

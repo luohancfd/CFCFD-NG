@@ -38,6 +38,7 @@
 #include "l_kernel.hh"
 #include "l_tube.hh"
 #include "l_diaph.hh"
+#include "l_piston.hh"
 #include "l1d.hh"
 #include "l_io.hh"
 
@@ -52,7 +53,7 @@ int main(int argc, char **argv)
     struct simulation_data SD;
     int js, jp, jd;
     std::vector<slug_data> A;         /* several gas slugs        */
-    std::vector<piston_data> Pist;    /* room for several pistons */
+    std::vector<PistonData> Pist;     /* room for several pistons */
     std::vector<DiaphragmData> Diaph; /* diaphragms            */
 
     double tstop;
@@ -192,9 +193,8 @@ int main(int argc, char **argv)
     L_set_case_parameters(&SD, parameterdict, echo_input);
     TubeModel tube = TubeModel(pname, echo_input);
     A.resize(SD.nslug);
-    Pist.resize(SD.npiston);
     for (jp = 0; jp < SD.npiston; ++jp) {
-        set_piston_parameters(&(Pist[jp]), jp, parameterdict, SD.dt_init, echo_input);
+        Pist.push_back(PistonData(jp, SD.dt_init, pname, echo_input));
         Pist[jp].sim_time = 0.0;
     }
     for (jd = 0; jd < SD.ndiaphragm; ++jd) {
@@ -223,8 +223,7 @@ int main(int argc, char **argv)
     for (i = 1; i <= max_sol; ++i) {
         printf(".");
         fflush(stdout);
-        for (jp = 0; jp < SD.npiston; ++jp)
-            read_piston_solution(&(Pist[jp]), infile);
+        for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].read_state(infile);
         for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].read_state(infile);
         for (js = 0; js < SD.nslug; ++js)
             L_read_solution(&(A[js]), infile);
@@ -266,8 +265,7 @@ int main(int argc, char **argv)
                 printf("\nCould not open %s; BAILING OUT\n", oname);
                 exit(-1);
             }
-            for (jp = 0; jp < SD.npiston; ++jp)
-                write_piston_solution(&(Pist[jp]), outfile);
+            for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].write_state(outfile);
             for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].write_state(outfile);
             for (js = 0; js < SD.nslug; ++js)
                 L_write_solution(&(A[js]), outfile);
@@ -283,9 +281,8 @@ int main(int argc, char **argv)
                     printf("\nCould not open %s; BAILING OUT\n", oname);
                     exit(-1);
                 }
-                write_piston_solution(&(Pist[jp]), outfile);
-                if (outfile != NULL)
-                    fclose(outfile);
+                Pist[jp].write_state(outfile);
+                if (outfile != NULL) fclose(outfile);
             } /* end for jp */
             for (jd = 0; jd < SD.ndiaphragm; ++jd) {
                 strcpy(oname, base_file_name);

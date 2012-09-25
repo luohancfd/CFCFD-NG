@@ -59,6 +59,7 @@ OBJECTS = l_misc.o \
 	l_rivp.o \
 	l_tube.o \
 	l_diaph.o \
+	l_piston.o \
 	roberts.o
 
 PY_FILES = l_script.py gaspy.py
@@ -257,7 +258,8 @@ l1d.o : $(SRC)/l1d.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) \
 	$(SRC)/l_adapt.hh $(SRC)/l_bc.hh \
 	$(SRC)/l_io.hh $(SRC)/l_rivp.hh \
 	$(SRC)/l_tstep.hh $(SRC)/l_diaph.hh \
-	$(SRC)/l_misc.hh $(SRC)/l_tube.hh
+	$(SRC)/l_misc.hh $(SRC)/l_tube.hh \
+	$(SRC)/l_piston.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l1d.cxx -o l1d.o
 
 l_kernel.o  : $(SRC)/l_kernel.cxx $(SRC)/l_kernel.hh $(SRC)/l1d.hh $(LUA_INCLUDE_DIR)
@@ -268,6 +270,9 @@ l_tube.o  : $(SRC)/l_tube.cxx $(SRC)/l_tube.hh $(SRC)/l1d.hh $(LUA_INCLUDE_DIR)
 
 l_diaph.o  : $(SRC)/l_diaph.cxx $(SRC)/l_diaph.hh $(LUA_INCLUDE_DIR)
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_diaph.cxx -o l_diaph.o
+
+l_piston.o  : $(SRC)/l_piston.cxx $(SRC)/l_piston.hh $(LUA_INCLUDE_DIR)
+	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_piston.cxx -o l_piston.o
 
 l_bc.o    : $(SRC)/l_bc.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) $(SRC)/l_misc.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_bc.cxx -o l_bc.o

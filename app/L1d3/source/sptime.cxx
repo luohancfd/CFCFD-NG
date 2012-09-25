@@ -28,6 +28,7 @@
 #include "../../../lib/util/source/config_parser.hh"
 #include "l_kernel.hh"
 #include "l_diaph.hh"
+#include "l_piston.hh"
 #include "l1d.hh"
 #include "l_io.hh"
 #include "l_misc.hh"
@@ -40,7 +41,7 @@ int main(int argc, char **argv)
     int js, jp, jd;
     vector<int> nnx_initial;
     std::vector<slug_data> A;               /* several gas slugs        */
-    std::vector<piston_data> Pist;          /* room for several pistons */
+    std::vector<PistonData> Pist;          /* room for several pistons */
     std::vector<DiaphragmData> Diaph;      /* diaphragms            */
 
     double tstart, tstop;
@@ -245,10 +246,9 @@ int main(int argc, char **argv)
     L_set_case_parameters(&SD, parameterdict, echo_input);
     A.resize(SD.nslug);
     nnx_initial.resize(SD.nslug);
-    Pist.resize(SD.npiston);
     Gas_model *gmodel = get_gas_model_ptr();
     for (jp = 0; jp < SD.npiston; ++jp) {
-        set_piston_parameters(&(Pist[jp]), jp, parameterdict, SD.dt_init, echo_input);
+        Pist.push_back(PistonData(jp, SD.dt_init, pname, echo_input));
         Pist[jp].sim_time = 0.0;
     }
     for (jd = 0; jd < SD.ndiaphragm; ++jd) {
@@ -315,8 +315,7 @@ int main(int argc, char **argv)
     nt_write = 0;
     nt_read  = 0;
     for (nt = 0; nt < max_sol; ++nt) {
-        for (jp = 0; jp < SD.npiston; ++jp)
-            read_piston_solution(&(Pist[jp]), infile);
+        for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].read_state(infile);
         for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].read_state(infile);
         for (js = 0; js < SD.nslug; ++js)
             L_read_solution(&(A[js]), infile);
