@@ -27,6 +27,7 @@
 #include "../../../lib/gas/models/gas-model.hh"
 #include "../../../lib/gas/kinetics/reaction-update.hh"
 #include "l_kernel.hh"
+#include "l_diaph.hh"
 #include "l1d.hh"
 #include "l_misc.hh"
 using namespace std;
@@ -34,7 +35,7 @@ using namespace std;
 /*=================================================================*/
 
 int print_simulation_status(FILE *strm, const char* efname, int step, simulation_data *SD,
-			    vector<slug_data> &A, vector<diaphragm_data> &Diaph,
+			    vector<slug_data> &A, vector<DiaphragmData> &Diaph,
 			    vector<piston_data> &Pist, double cfl_max, 
 			    double cfl_tiny, double time_tiny) {
     /*
@@ -286,65 +287,6 @@ int set_piston_parameters(piston_data *B, int indx, ConfigParser &dict,
 
     return SUCCESS;
 } // end function set_piston_parameters()
-
-/*----------------------------------------------------------------*/
-
-int set_diaphragm_parameters(struct diaphragm_data *D, int indx,
-                             ConfigParser &dict, int echo_input)
-{
-    std::stringstream tag;
-    tag << indx;
-    std::string section = "diaphragm-" + tag.str();
-    if (echo_input == 1) cout << "Reading diaphragm " << indx << " parameters..." << endl;
-
-    dict.parse_int(section, "is_burst", D->is_burst, 0);
-    dict.parse_double(section, "p_burst", D->P_burst, 0.0);
-    dict.parse_double(section, "dt_hold", D->hold_period, 0.0);
-    dict.parse_double(section, "dt_blend", D->blend_delay, 0.0);
-    dict.parse_double(section, "dx_blend", D->blend_dx, 0.0);
-    if (echo_input == 1) {
-	cout << "    is_burst = " << D->is_burst << endl;
-	cout << "    p_burst = " << D->P_burst << endl;
-	cout << "    dt_hold = " << D->hold_period << endl;
-	cout << "    dt_blend = " << D->blend_delay << endl;
-	cout << "    dx_blend = " << D->blend_dx << endl;
-    }
-    // Initially set the trigger_time to a negative number.
-    D->trigger_time = -1.0;
-    D->already_blended = 0;
-    // By default, the diaphragm is unconnected.
-    D->left_slug_id = -1;
-    D->left_slug_end_id = -1;
-    dict.parse_int(section, "left-slug-id", D->left_slug_id, -1);
-    std::string label;
-    dict.parse_string(section, "left-slug-end-id", label, "");
-    if (label[0] == 'L' || label[0] == 'l' || label[0] == '0')
-        D->left_slug_end_id = LEFT;
-    if (label[0] == 'R' || label[0] == 'r' || label[0] == '1')
-        D->left_slug_end_id = RIGHT;
-    dict.parse_double(section, "dxL", D->left_slug_dx, 0.0);
-    if (echo_input == 1) {
-	cout << "    left-slug-id = " << D->left_slug_id << endl;
-	cout << "    left-slug-end-id = " << D->left_slug_end_id << endl;
-	cout << "    dxL = " << D->left_slug_dx << endl;
-    }
-    D->right_slug_id = -1;
-    D->right_slug_end_id = -1;
-    dict.parse_int(section, "right-slug-id", D->right_slug_id, -1);
-    dict.parse_string(section, "right-slug-end-id", label, "");
-    if (label[0] == 'L' || label[0] == 'l' || label[0] == '0')
-        D->right_slug_end_id = LEFT;
-    if (label[0] == 'R' || label[0] == 'r' || label[0] == '1')
-        D->right_slug_end_id = RIGHT;
-    dict.parse_double(section, "dxR", D->right_slug_dx, 0.0);
-    if (echo_input == 1) {
-	cout << "    right-slug-id = " << D->right_slug_id << endl;
-	cout << "    right-slug-end-id = " << D->right_slug_end_id << endl;
-	cout << "    dxR = " << D->right_slug_dx << endl;
-    }
-
-    return SUCCESS;
-} // end function set_diaphragm_parameters()
 
 //-------------------------------------------------------------------
 
@@ -649,52 +591,6 @@ int write_piston_solution(struct piston_data *B, FILE * outfile)
 	    B->is_restrain, B->on_buffer, B->brakes_on);
     fflush(outfile);
     return SUCCESS;
-}
-
-//---------------------------------------------------------------------------
-
-int read_diaphragm_solution(struct diaphragm_data *D, FILE * infile)
-// Read the diaphragm solution (i.e. the present diaphragm state)
-{
-#   define NCHAR 320
-    char line[NCHAR];
-    int nread;
-    if (fgets(line, NCHAR, infile) == NULL) {
-        printf("Empty solution file.\n");
-        return(FAILURE);
-    }
-    nread = sscanf(line, "%lf", &(D->sim_time));
-    if ( nread != 1 ) {
-	printf( "read_diaphragm_solution(): didn't correctly read sim_time\n" );
-        printf( "from line:\n%s\n", line );
-	return(FAILURE);
-    }
-    if (fgets(line, NCHAR, infile) == NULL) {
-        printf("Empty solution file.\n");
-        return(FAILURE);
-    }
-    nread = sscanf(line, "%d %d %lf", &(D->is_burst), 
-		   &(D->already_blended), &(D->trigger_time));
-    if ( nread != 3 ) {
-	printf( "read_diaphragm_solution(): " );
-	printf( "didn't correctly read is_burst, already_blended, trigger_time\n" );
-        printf( "from line:\n%s\n", line );
-	return(FAILURE);
-    }
-    return SUCCESS;
-#   undef NCHAR
-}
-
-
-int write_diaphragm_solution(struct diaphragm_data *D, FILE * outfile)
-{
-    fprintf(outfile, "%e  # begin diaphragm data: sim_time\n", 
-	    D->sim_time);
-    fprintf(outfile, "%d %d %e  # is_burst, already_blended, trigger_time\n", 
-	    D->is_burst, D->already_blended, D->trigger_time);
-    fflush(outfile);
-
-    return 0;
 }
 
 //----------------------------------------------------------------------

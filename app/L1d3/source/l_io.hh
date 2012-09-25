@@ -3,8 +3,10 @@
 #ifndef L_IO_HH
 #define L_IO_HH
 
+#include "l_diaph.hh"
+
 int print_simulation_status( FILE *strm, const char* efname, int step, simulation_data *SD,
-			     vector<slug_data> &A, vector<diaphragm_data> &Diaph,
+			     vector<slug_data> &A, vector<DiaphragmData> &Diaph,
 			     vector<piston_data> &Pist, double cfl_max, 
 			     double cfl_tiny, double time_tiny );
 int log_event( const char* efname, const char* event_message );
@@ -12,14 +14,10 @@ int L_set_case_parameters(simulation_data *SD, ConfigParser& dict, int echo_inpu
 int set_piston_parameters(struct piston_data* B, int indx, 
 			  ConfigParser& dict, 
 			  double dt_init, int echo_input);
-int set_diaphragm_parameters(diaphragm_data* D, int indx,
-                             ConfigParser& dict, int echo_input);
 int L_set_slug_parameters(slug_data* A, int indx, simulation_data* SD, 
 			  ConfigParser& dict, int echo_input);
 int read_piston_solution(struct piston_data* B, FILE* infile);
 int write_piston_solution(struct piston_data* B, FILE* outfile);
-int read_diaphragm_solution(struct diaphragm_data* D, FILE* infile);
-int write_diaphragm_solution(struct diaphragm_data* D, FILE* outfile);
 std::string write_iface_values_to_string(struct L_cell& cell);
 int scan_iface_values_from_string(char* bufptr, struct L_cell& cell);
 std::string write_cell_values_to_string(struct L_cell& cell);

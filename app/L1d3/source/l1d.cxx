@@ -56,6 +56,7 @@ extern "C" {
 }
 #include "l_kernel.hh"
 #include "l1d.hh"
+#include "l_diaph.hh"
 #include "l_tube.hh"
 #include "l_adapt.hh"
 #include "l_bc.hh"
@@ -72,8 +73,8 @@ int main(int argc, char **argv)
     int js, jp, jd;                    /* slug, piston, diaphragm index */
     std::vector<slug_data> A;               /* several gas slugs        */
     std::vector<piston_data> Pist;          /* room for several pistons */
-    std::vector<diaphragm_data> Diaph;      /* diaphragms            */
-    struct diaphragm_data *dp;
+    std::vector<DiaphragmData> Diaph;      /* diaphragms            */
+    DiaphragmData *dp;
     int step, print_count;             /* global iteration count     */
     int adjust_end_cell_count;
     double filter_start_time;          /* start end-cell adjustment after this time */
@@ -232,13 +233,12 @@ int main(int argc, char **argv)
     TubeModel tube = TubeModel(pname, echo_input);
     A.resize(SD.nslug);
     Pist.resize(SD.npiston);
-    Diaph.resize(SD.ndiaphragm);
     for (jp = 0; jp < SD.npiston; ++jp) {
         set_piston_parameters(&(Pist[jp]), jp, parameterdict, SD.dt_init, echo_input);
         Pist[jp].sim_time = 0.0;
     }
     for (jd = 0; jd < SD.ndiaphragm; ++jd) {
-        set_diaphragm_parameters(&(Diaph[jd]), jd, parameterdict, echo_input);
+        Diaph.push_back(DiaphragmData(jd, pname, echo_input));
         Diaph[jd].sim_time = 0.0;
     }
     SD.hncell = 0;
@@ -305,8 +305,7 @@ int main(int argc, char **argv)
 	}
 	for (jp = 0; jp < SD.npiston; ++jp)
 	    write_piston_solution(&(Pist[jp]), outfile);
-	for (jd = 0; jd < SD.ndiaphragm; ++jd)
-	    write_diaphragm_solution(&(Diaph[jd]), outfile);
+	for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].write_state(outfile);
 	for (js = 0; js < SD.nslug; ++js)
 	    L_write_solution(&(A[js]), outfile);
 	if (outfile != NULL) fclose(outfile);
@@ -320,8 +319,7 @@ int main(int argc, char **argv)
     }
     for (jp = 0; jp < SD.npiston; ++jp)
         read_piston_solution(&(Pist[jp]), infile);
-    for (jd = 0; jd < SD.ndiaphragm; ++jd)
-        read_diaphragm_solution(&(Diaph[jd]), infile);
+    for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].read_state(infile);
     for (js = 0; js < SD.nslug; ++js) {
         L_read_solution( &(A[js]), infile );
         L_compute_areas( &(A[js]), &tube );
@@ -869,8 +867,7 @@ int main(int argc, char **argv)
             tplot += L_get_dt_plot( &SD );
             for (jp = 0; jp < SD.npiston; ++jp)
                 write_piston_solution(&(Pist[jp]), outfile);
-            for (jd = 0; jd < SD.ndiaphragm; ++jd)
-                write_diaphragm_solution(&(Diaph[jd]), outfile);
+            for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].write_state(outfile);
             for (js = 0; js < SD.nslug; ++js)
                 L_write_solution(&(A[js]), outfile);
         }
@@ -961,8 +958,7 @@ int main(int argc, char **argv)
 
     for (jp = 0; jp < SD.npiston; ++jp)
         write_piston_solution(&(Pist[jp]), outfile);
-    for (jd = 0; jd < SD.ndiaphragm; ++jd)
-        write_diaphragm_solution(&(Diaph[jd]), outfile);
+    for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].write_state(outfile);
     for (js = 0; js < SD.nslug; ++js)
         L_write_solution(&(A[js]), outfile);
     for (js = 0; js < SD.nslug; ++js) {

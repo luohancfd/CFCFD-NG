@@ -27,6 +27,7 @@
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/util/source/config_parser.hh"
 #include "l_kernel.hh"
+#include "l_diaph.hh"
 #include "l1d.hh"
 #include "l_io.hh"
 #include "l_misc.hh"
@@ -40,7 +41,7 @@ int main(int argc, char **argv)
     vector<int> nnx_initial;
     std::vector<slug_data> A;               /* several gas slugs        */
     std::vector<piston_data> Pist;          /* room for several pistons */
-    std::vector<diaphragm_data> Diaph;      /* diaphragms            */
+    std::vector<DiaphragmData> Diaph;      /* diaphragms            */
 
     double tstart, tstop;
     int i, max_sol, tecplot_format;
@@ -245,21 +246,20 @@ int main(int argc, char **argv)
     A.resize(SD.nslug);
     nnx_initial.resize(SD.nslug);
     Pist.resize(SD.npiston);
-    Diaph.resize(SD.ndiaphragm);
     Gas_model *gmodel = get_gas_model_ptr();
     for (jp = 0; jp < SD.npiston; ++jp) {
         set_piston_parameters(&(Pist[jp]), jp, parameterdict, SD.dt_init, echo_input);
         Pist[jp].sim_time = 0.0;
-    }   /* end for */
+    }
     for (jd = 0; jd < SD.ndiaphragm; ++jd) {
-        set_diaphragm_parameters(&(Diaph[jd]), jd, parameterdict, echo_input);
+        Diaph.push_back(DiaphragmData(jd, pname, echo_input));
         Diaph[jd].sim_time = 0.0;
-    }   /* end for */
+    }
     for (js = 0; js < SD.nslug; ++js) {
         L_set_slug_parameters(&(A[js]), js, &SD, parameterdict, echo_input);
         A[js].sim_time = 0.0;
         nnx_initial[js] = A[js].nnx;
-    }   /* end for */
+    }
 
     /*
      * Allocate enough memory to accumulate the data.
@@ -317,8 +317,7 @@ int main(int argc, char **argv)
     for (nt = 0; nt < max_sol; ++nt) {
         for (jp = 0; jp < SD.npiston; ++jp)
             read_piston_solution(&(Pist[jp]), infile);
-        for (jd = 0; jd < SD.ndiaphragm; ++jd)
-            read_diaphragm_solution(&(Diaph[jd]), infile);
+        for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].read_state(infile);
         for (js = 0; js < SD.nslug; ++js)
             L_read_solution(&(A[js]), infile);
 	++nt_read;

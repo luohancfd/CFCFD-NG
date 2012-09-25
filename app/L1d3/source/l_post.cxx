@@ -37,6 +37,7 @@
 #include "../../../lib/util/source/config_parser.hh"
 #include "l_kernel.hh"
 #include "l_tube.hh"
+#include "l_diaph.hh"
 #include "l1d.hh"
 #include "l_io.hh"
 
@@ -50,9 +51,9 @@ int main(int argc, char **argv)
 {
     struct simulation_data SD;
     int js, jp, jd;
-    std::vector<slug_data> A;               /* several gas slugs        */
-    std::vector<piston_data> Pist;          /* room for several pistons */
-    std::vector<diaphragm_data> Diaph;      /* diaphragms            */
+    std::vector<slug_data> A;         /* several gas slugs        */
+    std::vector<piston_data> Pist;    /* room for several pistons */
+    std::vector<DiaphragmData> Diaph; /* diaphragms            */
 
     double tstop;
     int i, max_sol, echo_input;
@@ -192,13 +193,12 @@ int main(int argc, char **argv)
     TubeModel tube = TubeModel(pname, echo_input);
     A.resize(SD.nslug);
     Pist.resize(SD.npiston);
-    Diaph.resize(SD.ndiaphragm);
     for (jp = 0; jp < SD.npiston; ++jp) {
         set_piston_parameters(&(Pist[jp]), jp, parameterdict, SD.dt_init, echo_input);
         Pist[jp].sim_time = 0.0;
     }
     for (jd = 0; jd < SD.ndiaphragm; ++jd) {
-        set_diaphragm_parameters(&(Diaph[jd]), jd, parameterdict, echo_input);
+        Diaph.push_back(DiaphragmData(jd, pname, echo_input));
         Diaph[jd].sim_time = 0.0;
     }
     for (js = 0; js < SD.nslug; ++js) {
@@ -218,21 +218,20 @@ int main(int argc, char **argv)
     if ((infile = fopen(iname, "r")) == NULL) {
         printf("\nCould not open %s; BAILING OUT\n", iname);
         exit(1);
-    }   /* end if */
+    }
     found_solution = 0;
     for (i = 1; i <= max_sol; ++i) {
         printf(".");
         fflush(stdout);
         for (jp = 0; jp < SD.npiston; ++jp)
             read_piston_solution(&(Pist[jp]), infile);
-        for (jd = 0; jd < SD.ndiaphragm; ++jd)
-            read_diaphragm_solution(&(Diaph[jd]), infile);
+        for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].read_state(infile);
         for (js = 0; js < SD.nslug; ++js)
             L_read_solution(&(A[js]), infile);
         if (A[0].sim_time >= tstop) {
             found_solution = 1;
             break;
-        }   /* end if */
+        }
     }   /* end for i ... */
     printf("\n");
     if (infile != NULL)
@@ -269,12 +268,10 @@ int main(int argc, char **argv)
             }
             for (jp = 0; jp < SD.npiston; ++jp)
                 write_piston_solution(&(Pist[jp]), outfile);
-            for (jd = 0; jd < SD.ndiaphragm; ++jd)
-                write_diaphragm_solution(&(Diaph[jd]), outfile);
+            for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].write_state(outfile);
             for (js = 0; js < SD.nslug; ++js)
                 L_write_solution(&(A[js]), outfile);
-            if (outfile != NULL)
-                fclose(outfile);
+            if ( outfile ) fclose(outfile);
         } else {
             /* Write out the solution as individual pieces. */
             for (jp = 0; jp < SD.npiston; ++jp) {
@@ -299,9 +296,8 @@ int main(int argc, char **argv)
                     printf("\nCould not open %s; BAILING OUT\n", oname);
                     exit(-1);
                 }
-                write_diaphragm_solution(&(Diaph[jd]), outfile);
-                if (outfile != NULL)
-                    fclose(outfile);
+                Diaph[jd].write_state(outfile);
+                if (outfile != NULL) fclose(outfile);
             } /* end for jd */
             for (js = 0; js < SD.nslug; ++js) {
                 strcpy(oname, base_file_name);

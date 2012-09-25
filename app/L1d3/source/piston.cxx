@@ -23,6 +23,7 @@
 #include "../../../lib/util/source/config_parser.hh"
 #include "l1d.hh"
 #include "l_io.hh"
+#include "l_diaph.hh"
 
 /*-----------------------------------------------------------------*/
 
@@ -32,7 +33,7 @@ int main(int argc, char **argv)
     int js, jp, jd;
     std::vector<slug_data> A;               /* several gas slugs        */
     std::vector<piston_data> Pist;          /* room for several pistons */
-    std::vector<diaphragm_data> Diaph;      /* diaphragms            */
+    std::vector<DiaphragmData> Diaph;      /* diaphragms            */
 
     double tstop;
     int i, max_sol;
@@ -151,13 +152,12 @@ int main(int argc, char **argv)
     L_set_case_parameters(&SD, parameterdict, echo_input);
     A.resize(SD.nslug);
     Pist.resize(SD.npiston);
-    Diaph.resize(SD.ndiaphragm);
     for (jp = 0; jp < SD.npiston; ++jp) {
         set_piston_parameters(&(Pist[jp]), jp, parameterdict, SD.dt_init, echo_input);
         Pist[jp].sim_time = 0.0;
     }
     for (jd = 0; jd < SD.ndiaphragm; ++jd) {
-        set_diaphragm_parameters(&(Diaph[jd]), jd, parameterdict, echo_input);
+        Diaph.push_back(DiaphragmData(jd, pname, echo_input));
         Diaph[jd].sim_time = 0.0;
     }
     for (js = 0; js < SD.nslug; ++js) {
@@ -222,8 +222,7 @@ int main(int argc, char **argv)
         fflush(stdout);
         for (jp = 0; jp < SD.npiston; ++jp)
             read_piston_solution(&(Pist[jp]), infile);
-        for (jd = 0; jd < SD.ndiaphragm; ++jd)
-            read_diaphragm_solution(&(Diaph[jd]), infile);
+        for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].read_state(infile);
         for (js = 0; js < SD.nslug; ++js)
             L_read_solution(&(A[js]), infile);
         ++nttot;

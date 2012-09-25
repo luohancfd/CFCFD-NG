@@ -42,7 +42,7 @@ assemble_gas_path(left_end, driver_gas, cs, test_gas,
 
 # Set some time-stepping parameters
 gdata.dt_init = 0.5e-6
-gdata.cfl = 0.25
+gdata.cfl = 0.40
 gdata.max_time = 8.0e-3
 gdata.max_step = 100000
 add_dt_plot(0.0, 30.0e-6, 2.0e-6)

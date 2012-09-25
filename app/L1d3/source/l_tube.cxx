@@ -161,6 +161,8 @@ TubeModel::TubeModel(std::string config_file_name, int echo_input)
 
 TubeModel::~TubeModel()
 {
+    // FIX-ME should clean up the vectors,
+    // however, it probably doesn't matter because we only ever make one of these.
 }
 
 

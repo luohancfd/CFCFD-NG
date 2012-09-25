@@ -58,6 +58,7 @@ OBJECTS = l_misc.o \
 	l_io.o \
 	l_rivp.o \
 	l_tube.o \
+	l_diaph.o \
 	roberts.o
 
 PY_FILES = l_script.py gaspy.py
@@ -253,7 +254,9 @@ _gaspy.dylib : $(GAS)/build/_gaspy.dylib
 # -------------------------
 
 l1d.o : $(SRC)/l1d.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) \
-	$(SRC)/l_adapt.hh $(SRC)/l_bc.hh $(SRC)/l_io.hh $(SRC)/l_rivp.hh $(SRC)/l_tstep.hh \
+	$(SRC)/l_adapt.hh $(SRC)/l_bc.hh \
+	$(SRC)/l_io.hh $(SRC)/l_rivp.hh \
+	$(SRC)/l_tstep.hh $(SRC)/l_diaph.hh \
 	$(SRC)/l_misc.hh $(SRC)/l_tube.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l1d.cxx -o l1d.o
 
@@ -263,6 +266,9 @@ l_kernel.o  : $(SRC)/l_kernel.cxx $(SRC)/l_kernel.hh $(SRC)/l1d.hh $(LUA_INCLUDE
 l_tube.o  : $(SRC)/l_tube.cxx $(SRC)/l_tube.hh $(SRC)/l1d.hh $(LUA_INCLUDE_DIR)
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_tube.cxx -o l_tube.o
 
+l_diaph.o  : $(SRC)/l_diaph.cxx $(SRC)/l_diaph.hh $(LUA_INCLUDE_DIR)
+	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_diaph.cxx -o l_diaph.o
+
 l_bc.o    : $(SRC)/l_bc.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) $(SRC)/l_misc.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_bc.cxx -o l_bc.o
 
@@ -270,7 +276,7 @@ l_adapt.o    : $(SRC)/l_adapt.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) \
 	$(SRC)/l_adapt.hh $(SRC)/l_tstep.hh $(SRC)/l_misc.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_adapt.cxx -o l_adapt.o
 
-l_io.o    : $(SRC)/l_io.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) $(SRC)/l_misc.hh
+l_io.o    : $(SRC)/l_io.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) $(SRC)/l_misc.hh $(SRC)/l_diaph.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_io.cxx -o l_io.o
 
 l_tstep.o : $(SRC)/l_tstep.cxx $(SRC)/l1d.hh $(NM_SRC)/qd_power.h $(NM_SRC)/qd_log10.h \

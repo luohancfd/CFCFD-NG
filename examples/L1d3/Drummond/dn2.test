@@ -36,7 +36,7 @@ test end-state {Check final_steps and trigger_time for Diaphragm[0].} -body {
     }
     # puts "final_steps= $final_steps"
     # puts "trigger_time= $trigger_time"
-    set result [list [expr abs($final_steps - 18470) <= 10] \
+    set result [list [expr abs($final_steps - 11490) <= 10] \
 		    [expr abs($trigger_time - 3.830e-3)/3.830e-3 < 0.001]]
     set result
 } -result {1 1}
