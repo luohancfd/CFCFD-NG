@@ -122,45 +122,35 @@ int L_copy_cell_data(struct L_cell *source,
 /// gas slug, the values are set to zero and the function returns 0.
 /// Look at the code to see what values correspond to what properties.
 int L_interpolate_cell_data(struct slug_data *A, 
-			    double xloc, 
-			    double value[], 
-			    std::valarray<double> &valuef )
+			    double xloc, struct L_cell& icell)
 {
-    int i, ix, ixmin, ixmax, found;
-    int isp;
     double alpha, xmid_m1, xmid_p1, xmid, dx_plus, dx_minus;
     struct L_cell *c0, *c1;
 
     Gas_model *gmodel = get_gas_model_ptr();
     int nsp = gmodel->get_number_of_species();
+    int nmodes = gmodel->get_number_of_modes();
 
-    found = 0;
-    for (i = 0; i <= 8; ++i)
-        value[i] = 0.0;
-    for ( isp = 0; isp < nsp; ++isp ) 
-	valuef[isp] = 0.0;
-
-    ixmin = A->ixmin;
-    ixmax = A->ixmax;
+    int found = 0;
+    int ixmin = A->ixmin;
+    int ixmax = A->ixmax;
     if (xloc > A->Cell[ixmin - 1].x && xloc <= A->Cell[ixmax].x) {
-        /*
-         * and then find the cell containing the x-location.
-         */
-        for (ix = ixmin; ix <= ixmax; ++ix) {
-            if (xloc <= A->Cell[ix].x) {
+        // ...and then find the cell containing the x-location.
+        for ( int ix = ixmin; ix <= ixmax; ++ix ) {
+            if ( xloc <= A->Cell[ix].x ) {
                 /* 
                  * We have found the cell 
                  * Linearly interpolate the quantities.
                  */
-                xmid = 0.5 * (A->Cell[ix - 1].x + A->Cell[ix].x);
+                xmid = 0.5 * (A->Cell[ix-1].x + A->Cell[ix].x);
                 if (ix > ixmin) {
-                    xmid_m1 = 0.5 * (A->Cell[ix - 2].x + A->Cell[ix - 1].x);
+                    xmid_m1 = 0.5 * (A->Cell[ix-2].x + A->Cell[ix-1].x);
                 } else {
                     xmid_m1 =
-                        A->Cell[ixmin - 1].x - (xmid - A->Cell[ixmin - 1].x);
+                        A->Cell[ixmin-1].x - (xmid - A->Cell[ixmin-1].x);
                 }   /* end if */
                 if (ix < ixmax) {
-                    xmid_p1 = 0.5 * (A->Cell[ix].x + A->Cell[ix + 1].x);
+                    xmid_p1 = 0.5 * (A->Cell[ix].x + A->Cell[ix+1].x);
                 } else {
                     xmid_p1 = A->Cell[ixmax].x + (A->Cell[ixmax].x - xmid);
                 }   /* end if */
@@ -171,26 +161,28 @@ int L_interpolate_cell_data(struct slug_data *A,
                 if (alpha >= 0.0) {
                     alpha /= dx_plus;
 		    c0 = &( A->Cell[ix] );
-                    c1 = &( A->Cell[ix + 1] );
+                    c1 = &( A->Cell[ix+1] );
                 } else {
                     alpha /= -1.0 * dx_minus;  /* fixed negative 13-Jul-02 */
 		    c0 = &( A->Cell[ix] );
-                    c1 = &( A->Cell[ix - 1] );
+                    c1 = &( A->Cell[ix-1] );
                 }   /* end if */
-		value[0] = (1.0 - alpha) * c0->gas->rho + alpha * c1->gas->rho;
-		value[1] = (1.0 - alpha) * c0->u + alpha * c1->u;
-		// FIX-ME multiple energy modes
-		value[2] = (1.0 - alpha) * c0->gas->e[0] + alpha * c1->gas->e[0];
-		value[3] = (1.0 - alpha) * c0->gas->p + alpha * c1->gas->p;
-		value[4] = (1.0 - alpha) * c0->gas->a + alpha * c1->gas->a;
-		value[5] = (1.0 - alpha) * c0->gas->T[0] + alpha * c1->gas->T[0];
-		value[6] = (1.0 - alpha) * c0->shear_stress + alpha * c1->shear_stress;
-		value[7] = (1.0 - alpha) * c0->heat_flux + alpha * c1->heat_flux;
-		value[8] = (1.0 - alpha) * c0->entropy + alpha * c1->entropy;
-		for ( isp = 0; isp < nsp; ++isp ) {
-		    valuef[isp] = (1.0 - alpha) * c0->gas->massf[isp] +
-			          alpha * c1->gas->massf[isp];
+		// FIX-ME, we should delegate the blonding of the gas properties to the gas_model
+		icell.gas->rho = (1.0-alpha)*c0->gas->rho + alpha * c1->gas->rho;
+		icell.gas->p = (1.0-alpha)*c0->gas->p + alpha*c1->gas->p;
+		icell.gas->a = (1.0-alpha)*c0->gas->a + alpha*c1->gas->a;
+		for ( int isp = 0; isp < nsp; ++isp ) {
+		    icell.gas->massf[isp] = (1.0-alpha) * c0->gas->massf[isp] +
+			alpha*c1->gas->massf[isp];
 		}
+		for ( int imode = 0; imode < nmodes; ++imode ) {
+		    icell.gas->e[imode] = (1.0-alpha)*c0->gas->e[imode] + alpha*c1->gas->e[imode];
+		    icell.gas->T[imode] = (1.0-alpha)*c0->gas->T[imode] + alpha*c1->gas->T[imode];
+		}
+		icell.u = (1.0-alpha) * c0->u + alpha * c1->u;
+		icell.shear_stress = (1.0-alpha)*c0->shear_stress + alpha * c1->shear_stress;
+		icell.heat_flux = (1.0-alpha)*c0->heat_flux + alpha*c1->heat_flux;
+		icell.entropy = (1.0-alpha)*c0->entropy + alpha*c1->entropy;
                 found = 1;
                 break;
             }   /* end if ... */
@@ -207,7 +199,7 @@ int L_interpolate_cell_data(struct slug_data *A,
 /// \param which_end : integer to indicate which end of the gas slug we want
 /// \param dx : distance over which we will sample the cells
 /// \returns the average of the pressures within the cells.
-double L_slug_end_pressure( struct slug_data *A, int which_end, double dx )
+double L_slug_end_pressure(struct slug_data *A, int which_end, double dx)
 {
     int ix, n;
     struct L_cell *c;

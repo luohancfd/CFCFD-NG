@@ -49,7 +49,6 @@ EXEFILES = l1d.exe \
 	l_hist.exe \
 	sptime.exe \
 	piston.exe \
-	l_trim.exe \
 	$(PLOT)/build/mb_cont.exe
 
 OBJECTS = l_misc.o \
@@ -233,10 +232,6 @@ piston.exe : piston.o l1d3.a $(LIBGAS) $(LIBNM) $(LIBUTIL) $(LIBINIPARSER) $(LIB
 	$(CXXLINK) $(LFLAG) piston.o l1d3.a $(LIBGAS) $(LIBNM) $(LIBUTIL) $(LIBINIPARSER) \
 		$(LIBLUA) $(LIBZLIB) $(LLIB) -o piston.exe
 
-l_trim.exe : l_trim.o l1d3.a $(LIBGAS) $(LIBNM) $(LIBUTIL) $(LIBINIPARSER) $(LIBLUA) $(LIBZLIB)
-	$(CXXLINK) $(LFLAG) l_trim.o l1d3.a $(LIBGAS) $(LIBNM) $(LIBUTIL) $(LIBINIPARSER) \
-		$(LIBLUA) $(LIBZLIB) $(LLIB) -o l_trim.exe
-
 # Python files.
 
 l_script.py : $(SRC)/l_script.py
@@ -309,8 +304,5 @@ sptime.o  : $(SRC)/sptime.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) $(SRC)/l_io.hh $(
 
 piston.o  : $(SRC)/piston.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) $(SRC)/l_io.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/piston.cxx -o piston.o
-
-l_trim.o  : $(SRC)/l_trim.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) $(SRC)/l_io.hh $(SRC)/l_misc.hh
-	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_trim.cxx -o l_trim.o
 
 # -------------------- end of makefile -------------------------------

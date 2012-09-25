@@ -318,7 +318,7 @@ int main(int argc, char **argv)
     for (jd = 0; jd < SD.ndiaphragm; ++jd)
         write_diaphragm_solution(&(Diaph[jd]), outfile);
     for (js = 0; js < SD.nslug; ++js)
-        L_write_solution(&(slug[js]), outfile, nsp);
+        L_write_solution(&(slug[js]), outfile);
     if (outfile != NULL)
         fclose(outfile);
 

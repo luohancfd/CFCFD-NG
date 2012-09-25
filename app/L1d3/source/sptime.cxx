@@ -56,8 +56,7 @@ int main(int argc, char **argv)
     int nt, nt_read, nt_write, ix, nx, nxtot, option;
     int takelog;
     int found, ixmin, ixmax;
-    double dx, xloc, xL, xR, values[10];
-    std::valarray<double> valuesf;
+    double dx, xloc, xL, xR;
     int command_line_error;
     int echo_input;
 
@@ -249,8 +248,6 @@ int main(int argc, char **argv)
     Pist.resize(SD.npiston);
     Diaph.resize(SD.ndiaphragm);
     Gas_model *gmodel = get_gas_model_ptr();
-    int nsp = gmodel->get_number_of_species();
-    valuesf.resize(nsp);
     for (jp = 0; jp < SD.npiston; ++jp) {
         set_piston_parameters(&(Pist[jp]), jp, parameterdict, SD.dt_init, echo_input);
         Pist[jp].sim_time = 0.0;
@@ -380,6 +377,8 @@ int main(int argc, char **argv)
                  * interpolate the data from the actual cells onto
                  * an evenly distributed number of points.
                  */
+		struct L_cell* icell = new(struct L_cell);
+		icell->gas = new Gas_data(gmodel);
                 ixmin = A[js].ixmin;
                 ixmax = A[js].ixmax;
                 xL = 0.5 * (A[js].Cell[ixmin - 1].x + A[js].Cell[ixmin].x);
@@ -387,27 +386,27 @@ int main(int argc, char **argv)
                 dx = (xR - xL) / (nnx_initial[js] - 1);
                 for (nx = 0; nx < nnx_initial[js]; ++nx) {
                     xloc = xL + dx * nx;
-                    found = L_interpolate_cell_data(&(A[js]), xloc, values, valuesf);
+                    found = L_interpolate_cell_data(&(A[js]), xloc, *icell);
                     xarray[js][nt_write][nx] = xloc;
                     tarray[js][nt_write][nx] = A[js].sim_time;
                     if (option == SELECT_RHO) {
-                        varray[js][nt_write][nx] = values[0];
+                        varray[js][nt_write][nx] = icell->gas->rho;
                     } else if (option == SELECT_U) {
-                        varray[js][nt_write][nx] = values[1];
+                        varray[js][nt_write][nx] = icell->u;
                     } else if (option == SELECT_E) {
-                        varray[js][nt_write][nx] = values[2];
+                        varray[js][nt_write][nx] = icell->gas->e[0];
                     } else if (option == SELECT_P) {
-                        varray[js][nt_write][nx] = values[3];
+                        varray[js][nt_write][nx] = icell->gas->p;
                     } else if (option == SELECT_A) {
-                        varray[js][nt_write][nx] = values[4];
+                        varray[js][nt_write][nx] = icell->gas->a;
                     } else if (option == SELECT_T) {
-                        varray[js][nt_write][nx] = values[5];
+                        varray[js][nt_write][nx] = icell->gas->T[0];
                     } else if (option == SELECT_TAU) {
-                        varray[js][nt_write][nx] = values[6];
+                        varray[js][nt_write][nx] = icell->shear_stress;
                     } else if (option == SELECT_Q) {
-                        varray[js][nt_write][nx] = values[7];
+                        varray[js][nt_write][nx] = icell->heat_flux;
                     } else if (option == SELECT_S) {
-                        varray[js][nt_write][nx] = values[8];
+                        varray[js][nt_write][nx] = icell->entropy;
                     } else {
                         printf("Invalid option: start again.\n");
                         exit(-1);

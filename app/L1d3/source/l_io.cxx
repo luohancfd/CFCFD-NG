@@ -419,10 +419,10 @@ int set_diaphragm_parameters(struct diaphragm_data *D, int indx,
     return SUCCESS;
 } // end function set_diaphragm_parameters()
 
-/*----------------------------------------------------------------*/
+//-------------------------------------------------------------------
 
-int L_set_slug_parameters(slug_data *A, int indx, simulation_data *SD,
-                          ConfigParser &dict, int echo_input)
+int L_set_slug_parameters(slug_data* A, int indx, simulation_data* SD,
+                          ConfigParser& dict, int echo_input)
 {
     std::stringstream tag;
     tag << indx;
@@ -560,7 +560,7 @@ int L_set_slug_parameters(slug_data *A, int indx, simulation_data *SD,
     } else {
         cout << "    Invalid control string: " << control_string << endl;
         exit(-1);
-    } // end if
+    } // end if control_string...
 
     // Process BC data for right boundary. 
     dict.parse_string(section, "BC_R", line, "");
@@ -616,7 +616,7 @@ int L_set_slug_parameters(slug_data *A, int indx, simulation_data *SD,
     } else {
         cout << "    Invalid control string: " << control_string << endl;
         exit(-1);
-    } // end if
+    } // end if control_string...
 
     // Time stepping and order of reconstruction.
     A->dt = SD->dt_init;
@@ -624,7 +624,6 @@ int L_set_slug_parameters(slug_data *A, int indx, simulation_data *SD,
     A->dt0 = A->dt;
     A->Torder = SD->Torder;
     A->Xorder = SD->Xorder;
-
     // Plotting and history output events.
     dict.parse_int(section, "hncell", A->hncell, 0);
     std::vector<int> vint_default;
@@ -637,7 +636,6 @@ int L_set_slug_parameters(slug_data *A, int indx, simulation_data *SD,
 	for ( int i = 0; i < A->hncell; ++i ) cout << " " << A->hxcell[i];
 	cout << endl;
     }
-
     // Initial slug state. 
     int nsp = gmodel->get_number_of_species();
     A->init_str->gas = new Gas_data(gmodel);
@@ -681,214 +679,118 @@ int L_set_slug_parameters(slug_data *A, int indx, simulation_data *SD,
 	cout << "    mu = " << A->init_str->gas->mu
 	     << " k = " << A->init_str->gas->k[0] << endl;
     }
-
     return SUCCESS;
-    } // end function L_set_slug_parameters()
+} // end function L_set_slug_parameters()
 
-/*----------------------------------------------------------------*/
+//---------------------------------------------------------------------
 
 int L_read_area(struct tube_data *tube, FILE * gf)
+// Read the Area(x) specification from a file.
 {
-    /*
-     * Purpose...
-     * -------
-     * Read the Area(x) specification from a file.
-     *
-     * Input ...
-     * -----
-     * tube    : pointer to THE tube_data structure
-     * gf      : handle for the area/grid file
-     *
-     * Output ...
-     * ------
-     * L_read_area() returns 0 if successful but 1 if it hits the end
-     * of the area file prematurely.
-     *
-     */
-    int ix;
 #   define NCHAR 320
     char line[NCHAR];
-
-#   if DEBUG >= 1
-    printf("\nReading area specification ...\n");
-#   endif
-
     if (fgets(line, NCHAR, gf) == NULL) {
         printf("Empty area specification file.\n");
-        return 1;
-    }   /* end if */
+        return FAILURE;
+    }
     sscanf(line, "%d", &(tube->n));
-
     if (fgets(line, NCHAR, gf) == NULL) {
         printf("Empty area specification file.\n");
-        return 1;
-    }   /* end if */
+        return FAILURE;
+    }
     sscanf(line, "%lf %lf", &(tube->x1), &(tube->dx));
-
     tube->diam.resize(tube->n);
     tube->area.resize(tube->n);
     tube->T_Wall.resize(tube->n);
     tube->K_over_L.resize(tube->n);
-    for (ix = 0; ix < tube->n; ++ix) {
+    for ( int ix = 0; ix < tube->n; ++ix ) {
         if (fgets(line, NCHAR, gf) == NULL) {
             printf("Premature end of area file, interface[%d]\n", ix);
-            return (-1);
-        }   /* end if */
+            return FAILURE;
+        }
         sscanf(line, "%lf %lf %lf %lf", &(tube->diam[ix]),
                &(tube->area[ix]), &(tube->T_Wall[ix]), &(tube->K_over_L[ix]));
-    }   /* end for */
-
+    } // end for ix...
 #   undef NCHAR
-    return (0);
-}   /* end function L_read_area() */
+    return SUCCESS;
+} // end function L_read_area()
 
-
-/*----------------------------------------------------------------*/
 
 int L_write_area(struct tube_data *tube, FILE * gf)
+// Write the area(x) specification out to a file.
 {
-    /*
-     * Purpose...
-     * -------
-     * Write the area(x) specification out to a file.
-     *
-     * Input ...
-     * -----
-     * tube    : pointer to THE tube_data structure
-     * gf      : handle for the area/grid file
-     *
-     */
-    int ix;
-
-#   if DEBUG >= 1
-    printf("\nWriting areas...\n");
-#   endif
-
     fprintf(gf, "%d\n", tube->n);
     fprintf(gf, "%e %e\n", tube->x1, tube->dx);
-
-    for (ix = 0; ix < tube->n; ++ix) {
+    for ( int ix = 0; ix < tube->n; ++ix ) {
         fprintf(gf, "%e %e %e %e\n", tube->diam[ix], tube->area[ix],
                 tube->T_Wall[ix], tube->K_over_L[ix]);
-    }   /* end for */
+    } 
+    return SUCCESS;
+} // end function L_write_area()
 
-    return (0);
-}   /* end function L_write_area() */
+//--------------------------------------------------------------------
 
-
-/*----------------------------------------------------------------*/
-
-int read_piston_solution(struct piston_data *B, FILE * infile)
+int read_piston_solution(struct piston_data* B, FILE* infile)
+// Read the piston solution (i.e. the present piston state)
 {
-    /* 
-     * Purpose...
-     * -------
-     * Read the piston solution (i.e. the present piston state)
-     *
-     * Input...
-     * -----
-     * B       : pointer to the piston_data structure
-     * infile  : file handle for the solution file
-     */
-
 #   define NCHAR 320
     char line[NCHAR];
-
-#   if DEBUG >= 1
-    printf("\nReading a piston solution...\n");
-#   endif
-
     if (fgets(line, NCHAR, infile) == NULL) {
         printf("Empty solution file.\n");
-        exit(0);
+        return(FAILURE);
     }
     sscanf(line, "%lf", &(B->sim_time));
-#   if DEBUG >= 1
-    printf("Time = %e\n", B->sim_time);
-#   endif
-
-    /*
-     * Position, Velocity and acceleration.
-     */
+    // Position, Velocity and acceleration.
     if (fgets(line, NCHAR, infile) == NULL) {
         printf("Empty solution file.\n");
-        exit(0);
+        return(FAILURE);
     }
     sscanf(line, "%lf %lf %lf %lf", &(B->x), &(B->V), &(B->DVDt[0]), &(B->mass) );
-
-    /*
-     * Flags
-     */
+    // Flags
     if (fgets(line, NCHAR, infile) == NULL) {
         printf("Empty solution file.\n");
-        exit(0);
+        return(FAILURE);
     }
     sscanf(line, "%d %d %d", &(B->is_restrain),
            &(B->on_buffer), &(B->brakes_on));
-
 #   undef NCHAR
     return SUCCESS;
-}
+} // end read_piston_solution()
 
-
-/*----------------------------------------------------------------*/
 
 int write_piston_solution(struct piston_data *B, FILE * outfile)
 {
-#   if DEBUG >= 1
-    printf("\nWriting a piston solution at t = %e...\n", B->sim_time);
-#   endif
-
-    fprintf(outfile, "%e  # begin piston data: sim_time\n", B->sim_time);
-    fprintf(outfile, "%e %e %e %e  # x, V, accel, mass\n", B->x, B->V, B->DVDt[0], B->mass);
+    fprintf(outfile, "%e  # begin piston data: sim_time\n",
+	    B->sim_time);
+    fprintf(outfile, "%e %e %e %e  # x, V, accel, mass\n",
+	    B->x, B->V, B->DVDt[0], B->mass);
     fprintf(outfile, "%d %d %d  # is_restrain, on_buffer, brakes_on\n", 
 	    B->is_restrain, B->on_buffer, B->brakes_on);
     fflush(outfile);
-
-    return (0);
+    return SUCCESS;
 }
 
-
-
-/*----------------------------------------------------------------*/
+//---------------------------------------------------------------------------
 
 int read_diaphragm_solution(struct diaphragm_data *D, FILE * infile)
+// Read the diaphragm solution (i.e. the present diaphragm state)
 {
-    /*
-     * Purpose...
-     * -------
-     * Read the diaphragm solution (i.e. the present diaphragm state)
-     *
-     * Input...
-     * -----
-     * D       : pointer to the diaphragm_data structure
-     * infile  : file handle for the solution file
-     */
 #   define NCHAR 320
     char line[NCHAR];
     int nread;
-
-#   if DEBUG >= 1
-    printf("\nReading a diaphragm solution...\n");
-#   endif
-
     if (fgets(line, NCHAR, infile) == NULL) {
         printf("Empty solution file.\n");
-        exit(0);
+        return(FAILURE);
     }
     nread = sscanf(line, "%lf", &(D->sim_time));
     if ( nread != 1 ) {
 	printf( "read_diaphragm_solution(): didn't correctly read sim_time\n" );
         printf( "from line:\n%s\n", line );
-	exit( -1 );
+	return(FAILURE);
     }
-#   if DEBUG >= 1
-    printf("Time = %e\n", D->sim_time);
-#   endif
-
     if (fgets(line, NCHAR, infile) == NULL) {
         printf("Empty solution file.\n");
-        exit(0);
+        return(FAILURE);
     }
     nread = sscanf(line, "%d %d %lf", &(D->is_burst), 
 		   &(D->already_blended), &(D->trigger_time));
@@ -896,22 +798,15 @@ int read_diaphragm_solution(struct diaphragm_data *D, FILE * infile)
 	printf( "read_diaphragm_solution(): " );
 	printf( "didn't correctly read is_burst, already_blended, trigger_time\n" );
         printf( "from line:\n%s\n", line );
-	exit( -1 );
+	return(FAILURE);
     }
-
-    return 0;
+    return SUCCESS;
 #   undef NCHAR
 }
 
 
-/*----------------------------------------------------------------*/
-
 int write_diaphragm_solution(struct diaphragm_data *D, FILE * outfile)
 {
-#   if DEBUG >= 1
-    printf("\nWriting a diaphragm solution at t = %e...\n", D->sim_time);
-#   endif
-
     fprintf(outfile, "%e  # begin diaphragm data: sim_time\n", 
 	    D->sim_time);
     fprintf(outfile, "%d %d %e  # is_burst, already_blended, trigger_time\n", 
@@ -921,303 +816,246 @@ int write_diaphragm_solution(struct diaphragm_data *D, FILE * outfile)
     return 0;
 }
 
-/*----------------------------------------------------------------*/
+//----------------------------------------------------------------------
+
+std::string write_iface_values_to_string(struct L_cell& cell)
+// Write the flow solution for a cell to a string.
+{
+    // The new format for L1d3 puts everything onto one line.
+    ostringstream ost;
+    ost.setf(ios_base::scientific);
+    ost.precision(12);
+    ost << cell.x << " " << cell.area; 
+    // Don't put the newline char on the end.
+    return ost.str();
+} // end of write_iface_values_to_string()
+
+
+int scan_iface_values_from_string(char *bufptr, struct L_cell& cell)
+// Scan a string, extracting the data for an interface between cells.
+// There isn't any checking of the file content.
+// If anything gets out of place, the result is wrong data.
+{
+    // Look for a new-line character and truncate the string there.
+    char *cptr = strchr(bufptr, '\n');
+    if ( cptr != NULL ) cptr = '\0';
+    // Now, we should have a string with only numbers separated by spaces.
+    cell.x = atof(strtok( bufptr, " " )); // tokenize on space characters
+    cell.area = atof(strtok( NULL, " " ));
+    return SUCCESS;
+} // end scan_iface_values_from_string()
+
+
+std::string write_cell_values_to_string(struct L_cell& cell)
+// Write the flow solution for a cell to a string.
+{
+    // The new format for L1d3 puts everything onto one line.
+    ostringstream ost;
+    ost.setf(ios_base::scientific);
+    ost.precision(12);
+    ost << cell.xmid << " " 
+	<< cell.volume << " " 
+	<< cell.u << " " 
+	<< cell.L_bar << " " 
+	<< cell.gas->rho << " " 
+	<< cell.gas->p << " " 
+	<< cell.gas->a << " " 
+	<< cell.shear_stress << " " 
+	<< cell.heat_flux << " " 
+	<< cell.entropy;
+    // Species mass fractions.
+    size_t nsp = cell.gas->massf.size();
+    for ( size_t isp = 0; isp < nsp; ++isp ) {
+	ost << " " << cell.gas->massf[isp];
+    }
+    if ( nsp > 1 ) ost << " " << cell.dt_chem;
+    // Individual energies (in e, T pairs)
+    size_t nmodes = cell.gas->T.size();
+    for ( size_t imode = 0; imode < nmodes; ++imode ) {
+	ost << " " << cell.gas->e[imode] << " " << cell.gas->T[imode];
+    }
+    if ( nmodes > 1 ) ost << " " << cell.dt_therm;
+    // Don't put the newline char on the end.
+    return ost.str();
+} // end of write_cell_values_to_string()
+
+
+int scan_cell_values_from_string(char *bufptr, struct L_cell& cell)
+// Scan a string, extracting the data for a cell.
+// There isn't any checking of the file content.
+// If anything gets out of place, the result is wrong data.
+{
+    // Look for a new-line character and truncate the string there.
+    char *cptr = strchr(bufptr, '\n');
+    if ( cptr != NULL ) cptr = '\0';
+    // Now, we should have a string with only numbers separated by spaces.
+    cell.xmid = atof(strtok( bufptr, " " )); // tokenize on space characters
+    cell.volume = atof(strtok( NULL, " " ));
+    cell.u = atof(strtok( NULL, " " ));
+    cell.L_bar = atof(strtok( NULL, " " ));
+    cell.gas->rho = atof(strtok( NULL, " " ));
+    cell.gas->p = atof(strtok( NULL, " " ));
+    cell.gas->a = atof(strtok( NULL, " " ));
+    cell.shear_stress = atof(strtok( NULL, " " ));
+    cell.heat_flux = atof(strtok( NULL, " " ));
+    cell.entropy = atof(strtok( NULL, " " ));
+    size_t nsp = cell.gas->massf.size();
+    for ( size_t isp = 0; isp < nsp; ++isp ) {
+	cell.gas->massf[isp] = atof(strtok( NULL, " " ));
+    }
+    if ( nsp > 1 ) cell.dt_chem = atof(strtok( NULL, " " ));
+    size_t nmodes = cell.gas->T.size();
+    for ( size_t imode = 0; imode < nmodes; ++imode ) {
+	cell.gas->e[imode] = atof(strtok( NULL, " " ));
+	cell.gas->T[imode] = atof(strtok( NULL, " " ));
+    }
+    if ( nmodes > 1 ) cell.dt_therm = atof(strtok( NULL, " " ));
+    return SUCCESS;
+} // end scan_cell_values_from_string()
+
 
 int L_read_solution(struct slug_data *A, FILE * infile)
+// Read the flow solution for all faces and cells in a slug. 
 {
-    /* 
-     * Read the flow solution (i.e. the primary variables at the 
-     * cell centers) from a disc file.
-     */
-
-#   define NCHAR 320
-    char line[NCHAR], token[NCHAR];
-    int ix, isp, nread;
-    double xx, f_sum;
-    struct L_cell *c;
-
-#   if DEBUG >= 1
-    printf("\nReading a flow solution...\n");
-#   endif
+#   define NCHAR 3200
+    char line[NCHAR];
+    int ix, isp, imode;
     Gas_model *gmodel = get_gas_model_ptr();
     int nsp = gmodel->get_number_of_species();
-
+    int nmodes = gmodel->get_number_of_modes();
     if (fgets(line, NCHAR, infile) == NULL) {
         printf("Empty flow field file.\n");
-        exit(0);
+        return FAILURE;
     }
     sscanf(line, "%lf", &(A->sim_time));
-#   if DEBUG >= 1
-    printf("Time = %e\n", A->sim_time);
-#   endif
-
     if (fgets(line, NCHAR, infile) == NULL) {
         printf("Empty flow field file.\n");
-        exit(0);
+        return FAILURE;
     }
-    sscanf(line, "%d %d", &ix, &isp);
+    sscanf(line, "%d %d %d", &ix, &isp, &imode);
     if (ix <= A->nxmax) {
         A->nnx = ix;
     } else {
         printf("Trying to read too many cells into this slug.\n");
-        exit(-1);
-    }   /* end if */
+        return FAILURE;
+    }
     L_set_index_range(A);
     if ( isp != nsp ) {
-        printf( "Inconsistent number of species: expected %d, read %d\n",
-                nsp, isp );
-	exit( -1 );
+        printf("Inconsistent number of species: expected %d, read %d\n", nsp, isp);
+	return FAILURE;
     }
-
-    /*
-     * From here on, we hope that the solution file is ok.
-     */
-
-    for (ix = A->ixmin - 1; ix <= A->ixmax; ++ix) {
-	c = &( A->Cell[ix] );
-	if (fgets(line, NCHAR, infile) == NULL) {
-	    printf("Problem reading flow field file.\n");
-	    exit(0);
-	}
-        nread = sscanf(line, "%lf %lf", &(c->x), &(c->area));
-	if ( nread != 2 ) {
-	    printf( "Cell interface[%d] failed to read x and area:\n", ix );
-	    printf( "%s\n", line );
-	    exit( -1 );
-	}
+    if ( imode != nmodes ) {
+        printf("Inconsistent number of energy modes: expected %d, read %d\n", nmodes, imode);
+	return FAILURE;
     }
-
-    for (ix = A->ixmin; ix <= A->ixmax; ++ix) {
-	c = &( A->Cell[ix] );
-
+    // From here on, we hope that the solution file is ok.
+    // Interfaces between cells.
+    for ( ix = A->ixmin - 1; ix <= A->ixmax; ++ix ) {
+	struct L_cell* c = &( A->Cell[ix] );
 	if (fgets(line, NCHAR, infile) == NULL) {
 	    printf("Problem reading flow field file.\n");
-	    exit(0);
+	    return FAILURE;
 	}
-        nread = sscanf(line, "%lf %lf %lf %lf %lf", 
-		       &xx, &(c->gas->rho), &(c->u), &(c->gas->e[0]), &(c->L_bar) );
-	if ( nread != 5 ) {
-	    printf( "Cell[%d] failed to read x, rho, u, e, L_bar from line:\n", ix );
-	    printf( "%s\n", line );
-	    exit( -1 );
+	if ( scan_iface_values_from_string(line, *c) ) {
+	    printf("IFace for Cell[%d] failed to read from line:\n", ix);
+	    printf("%s\n", line);
+	    return FAILURE;
 	}
-
+    } // end for ix
+    // The actual cells.
+    for ( ix = A->ixmin; ix <= A->ixmax; ++ix ) {
+	struct L_cell* c = &( A->Cell[ix] );
 	if (fgets(line, NCHAR, infile) == NULL) {
 	    printf("Problem reading flow field file.\n");
-	    exit(0);
+	    return FAILURE;
 	}
-        nread = sscanf(line, "%lf %lf %lf %lf %lf %lf", 
-		       &(c->gas->p), &(c->gas->a), &(c->gas->T[0]), 
-		       &(c->shear_stress), &(c->heat_flux), &(c->entropy) );
-	if ( nread != 6 ) {
-	    printf( "Cell[%d] failed to read p, a, T, tau0, heatflux, entropy from line:\n",
-		    ix );
-	    printf( "%s\n", line );
-	    exit( -1 );
+	if ( scan_cell_values_from_string(line, *c) ) {
+	    printf("Cell[%d] failed to read from line:\n", ix);
+	    printf("%s\n", line);
+	    return FAILURE;
 	}
-
-	/*
-         * Now get the species mass fractions from one line of text
-	 * and check their sum.
-         */
-	for ( isp = 0; isp < nsp; ++isp ) {
-	    c->gas->massf[isp] = 0.0;
-	}
-	if (fgets(line, NCHAR, infile) == NULL) {
-	    printf("Problem reading flow field file.\n");
-	    exit(0);
-	}
-	strcpy( token, strtok( line, " " ) );
-	nread = sscanf( token, "%lf", &(c->gas->massf[0]) );
-	if ( nread != 1 ) {
-	    printf("Cell[%d] problem reading species[%d] from token:%s\n",
-		   ix, 0, token);
-	    exit(-1);
-	}
-	f_sum = c->gas->massf[0];
+	double f_sum = c->gas->massf[0];
 	for ( isp = 1; isp < nsp; ++isp ) {
-	    strcpy( token, strtok( NULL, " " ) );
-	    nread = sscanf( token, "%lf", &(c->gas->massf[isp]) );
-	    if ( nread != 1 ) {
-		printf("Cell[%d] problem reading species[%d] from token:%s\n",
-		       ix, isp, token);
-		exit(-1);
-	    }
 	    f_sum += c->gas->massf[isp];
 	}
 	if ( fabs(f_sum - 1.0) > 0.001 ) {
 	    printf("Species don't sum correctly %g\n", f_sum );
+	    for ( isp = 1; isp < nsp; ++isp ) {
+		printf("    %d %e\n", isp, c->gas->massf[isp]);
+	    }
+	    return FAILURE;
 	}
-
-    }   /* end for */
-
-    return 0;
+    } // end for ix
+    return SUCCESS;
 #   undef NCHAR
-}   /* end function L_read_solution */
+} // end function L_read_solution
 
 
-/*----------------------------------------------------------------*/
-
-int L_write_solution( struct slug_data *A, FILE * outfile, int nsp )
+int L_write_solution(struct slug_data* A, FILE* outfile)
+// Write the flow solution (i.e. the interface positions and
+// the primary variables at the cell centers) to a file.
 {
-    /*
-     * Write the flow solution (i.e. the interface positions and
-     * the primary variables at the cell centers) to a file.
-     *
-     * nsp is passed in (rather than calling get_number_of_species()
-     * because this function is also used in l_trim.c where the 
-     * gas models are not available.
-     */
-    int ix, isp;
-
-#   if DEBUG >= 1
-    printf("\nWriting a flow solution at t = %e...\n", A->sim_time);
-#   endif
-
+    Gas_model *gmodel = get_gas_model_ptr();
+    int nsp = gmodel->get_number_of_species();
+    int nmodes = gmodel->get_number_of_modes();
     fprintf(outfile, "%e  # begin slug data: sim_time\n", A->sim_time);
-    fprintf(outfile, "%d %d  # nnx, nsp\n", A->nnx, nsp);
-
-    for (ix = A->ixmin - 1; ix <= A->ixmax; ++ix) {
-        fprintf(outfile, "%e %e\n", A->Cell[ix].x, A->Cell[ix].area);
+    fprintf(outfile, "%d %d %d # nnx, nsp\n", A->nnx, nsp, nmodes);
+    // Interfaces between cells.
+    for ( int ix = A->ixmin - 1; ix <= A->ixmax; ++ix ) {
+        fprintf(outfile, "%s\n", write_iface_values_to_string(A->Cell[ix]).c_str());
     }
-
-    for (ix = A->ixmin; ix <= A->ixmax; ++ix) {
-        fprintf(outfile, "%e %e %e %e %e\n", 
-                0.5 * (A->Cell[ix].x + A->Cell[ix - 1].x),
-                A->Cell[ix].gas->rho, A->Cell[ix].u,
-		A->Cell[ix].gas->e[0], A->Cell[ix].L_bar);
-        fprintf(outfile, "%e %e %e %e %e %e\n", A->Cell[ix].gas->p,
-                A->Cell[ix].gas->a, A->Cell[ix].gas->T[0],
-		A->Cell[ix].shear_stress, A->Cell[ix].heat_flux,
-		A->Cell[ix].entropy);
-	for ( isp = 0; isp < nsp; ++isp ) {
-            fprintf(outfile, "%e ", A->Cell[ix].gas->massf[isp]);
-	}
-	fprintf(outfile, "\n");
-    }   /* end for */
-
+    // The actual cells.
+    for ( int ix = A->ixmin; ix <= A->ixmax; ++ix ) {
+        fprintf(outfile, "%s\n", write_cell_values_to_string(A->Cell[ix]).c_str());
+    }
     fflush(outfile);
-
-    return (0);
-}   /* end function L_write_solution() */
-
+    return SUCCESS;
+} // end function L_write_solution()
 
 
-/*----------------------------------------------------------------*/
-
-int L_write_cell_history(struct slug_data *A, FILE * hisfile)
+int L_write_cell_history(struct slug_data* A, FILE* hisfile)
+// Write out the flow solution in a (small) subset of cells
+// at a different (often smaller) time interval to the full
+// flow solution.
 {
-    /*
-     * Write out the flow solution in a (small) subset of cells
-     * at a different (often smaller) time interval to the full
-     * flow solution.
-     *
-     * The output format for this function needs to be kept the 
-     * same as that for L_write_x_history().
-     */
-    int ix, i, isp;
-    struct L_cell *cell;
-    Gas_model *gmodel = get_gas_model_ptr();
-    int nsp = gmodel->get_number_of_species();
-
-    for (i = 0; i < A->hncell; ++i) {
-#       if (DEBUG >= 2)
-        printf("\nWriting history cell[%d] at t = %e...\n",
-               A->hxcell[i], A->sim_time);
-#       endif
-
-        ix = A->hxcell[i] + A->ixmin - 1;
-        cell = &(A->Cell[ix]);
-
-        fprintf( hisfile, "%e %e %e\n",
-		 0.5 * (cell->x + cell->x), cell->gas->rho, cell->u);
-        fprintf( hisfile, "%e %e %e %e\n", cell->gas->e[0],
-		 cell->gas->p, cell->gas->a, cell->gas->T[0] );
-        fprintf( hisfile, "%e %e %e\n", cell->shear_stress,
-		 cell->heat_flux, cell->entropy);
-	for ( isp = 0; isp < nsp; ++isp ) {
-	    fprintf( hisfile, "%e ", cell->gas->massf[isp] );
-	}
-	fprintf( hisfile, "\n" );
-    }   /* end for */
-
+    // The output format for this function needs to be kept the 
+    // same as that for L_write_x_history().
+    for ( int i = 0; i < A->hncell; ++i) {
+        int ix = A->hxcell[i] + A->ixmin - 1;
+	fprintf(hisfile, "%s\n", write_cell_values_to_string(A->Cell[ix]).c_str());
+    } // end for i...
     fflush(hisfile);
-    return 0;
-}   /* end function L_write_cell_history */
+    return SUCCESS;
+} // end function L_write_cell_history
 
 
-/*----------------------------------------------------------------*/
-
-int L_write_x_history(double xloc, std::vector<slug_data> &A,
-                      int nslug, FILE * hisfile)
+int L_write_x_history(double xloc, std::vector<slug_data> &A, int nslug, FILE* hisfile)
+// Write out the flow solution at a specified x-location
+// at a different (often smaller) time interval to the full
+// flow solution.
+// To get values at the end of a slug, say at a reflecting
+// wall, it may be necessary to specify an x-location which
+// will always fall within the last cell and not at the very edge.
+// Input...
+// xloc    : x-location
+// A       : pointer to the array of slug_data structures
+// nslug   : number of gas slugs
+// hisfile : file to which data is to be written
 {
-    /*
-     * Write out the flow solution at a specified x-location
-     * at a different (often smaller) time interval to the full
-     * flow solution.
-     * To get values at the end of a slug, say at a reflecting
-     * wall, it may be necessary to specify an x-location which
-     * will always fall within the last cell and not at the
-     * very edge.
-     *
-     * The output format for this function needs to be kept the 
-     * same as that for L_write_cell_history().
-     *
-     * Input...
-     * -----
-     * xloc    : x-location
-     * A       : pointer to the array of slug_data structures
-     * nslug   : number of gas slugs
-     * hisfile : file to which data is to be written
-     */
-    int js, isp;
+    // The output format for this function needs to be kept the 
+    // same as that for L_write_cell_history().
+    Gas_model *gmodel = get_gas_model_ptr();
+    struct L_cell* icell = new(struct L_cell);
+    icell->gas = new Gas_data(gmodel);
+    // Find the gas slug containing the x-location
     int found=0;
-    double rho=0.0, u=0.0, e=0.0, p=0.0, T=0.0, a=0.0, tau0=0.0, q=0.0, entropy=0.0;
-    double values[10];
-    valarray<double> valuef;
-
-#   if DEBUG >= 2
-    printf("\nWriting history at x = %e, t = %e...\n", xloc, A[0].sim_time);
-#   endif
-    Gas_model *gmodel = get_gas_model_ptr();
-    int nsp = gmodel->get_number_of_species();
-    valuef.resize(nsp);
-
-    /*
-     * Find the gas slug containing the x-location
-     */
-    for (js = 0; js < nslug; ++js) {
-        found = L_interpolate_cell_data(&(A[js]), xloc, values, valuef);
-        if (found == 1) {
-            rho = values[0]; u = values[1];
-            e = values[2]; p = values[3]; a = values[4]; T = values[5];
-            tau0 = values[6]; q = values[7]; entropy = values[8];
-            break;
-        }   /* end if */
-    }   /* for (js = ... */
-
-    if (found == 0) {
-#       if (DEBUG >= 2)
-        printf("X-loc history, missed cell at t = %e\n", A[0].sim_time);
-#       endif
-        /* Dummy data. */
-	rho = 0.0; u = 0.0; 
-        e = 0.0; p = 0.0; a = 0.0; T = 0.0; 
-	tau0 = 0.0; q = 0.0; entropy = 0.0;
-	for ( isp = 0; isp < nsp; ++isp ) valuef[isp] = 0.0;
-	valuef[0] = 1.0;  /* arbitrary choice */
-    }
-
-    fprintf( hisfile, "%e %e %e\n", xloc, rho, u );
-    fprintf( hisfile, "%e %e %e %e\n", e, p, a, T);
-    fprintf( hisfile, "%e %e %e\n", tau0, q, entropy );
-    for ( isp = 0; isp < nsp; ++isp ) {
-	fprintf( hisfile, "%e ", valuef[isp] );
-    }
-    fprintf( hisfile, "\n" );
-
+    for ( int js = 0; js < nslug; ++js ) {
+        found = L_interpolate_cell_data(&(A[js]), xloc, *icell);
+        if (found == 1) break;
+    } // for (js = ...
+    fprintf(hisfile, "%s\n", write_cell_values_to_string(*icell).c_str() );
     fflush(hisfile);
-    return 0;
-}   /* end function L_write_x_history */
-
-/*================ end of l_io.c ==============*/
+    delete icell->gas;
+    delete icell;
+    return SUCCESS;
+} // end function L_write_x_history

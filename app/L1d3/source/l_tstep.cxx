@@ -95,6 +95,16 @@ int L_set_chemistry_timestep(struct slug_data *A, double dt)
 }
 
 
+int L_set_thermal_timestep(struct slug_data *A, double dt)
+{
+    for ( int ix = A->ixmin; ix <= A->ixmax; ++ix ) {
+        struct L_cell* c = &( A->Cell[ix] );
+	c->dt_therm = dt;
+    }
+    return SUCCESS;
+}
+
+
 int L_chemical_increment(struct slug_data *A, double dt)
 // Use Rowan's chemistry module to update the species mass fractions.
 {

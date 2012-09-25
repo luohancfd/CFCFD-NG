@@ -236,7 +236,7 @@ struct L_cell
                         /* transfer to the wall           */
 
     double dt_chem;     // Need to remember the suggested timestep.
-                        // FIX-ME, is this still correct Rowan?
+    double dt_therm;    // and for nonequilibrium thermodynamics.
 };
 
 

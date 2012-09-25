@@ -271,7 +271,7 @@ int main(int argc, char **argv)
             for (jd = 0; jd < SD.ndiaphragm; ++jd)
                 write_diaphragm_solution(&(Diaph[jd]), outfile);
             for (js = 0; js < SD.nslug; ++js)
-                L_write_solution(&(A[js]), outfile, nsp);
+                L_write_solution(&(A[js]), outfile);
             if (outfile != NULL)
                 fclose(outfile);
         } else {
@@ -311,7 +311,7 @@ int main(int argc, char **argv)
                     printf("\nCould not open %s; BAILING OUT\n", oname);
                     exit(-1);
                 }
-                L_write_solution(&(A[js]), outfile, nsp);
+                L_write_solution(&(A[js]), outfile);
                 if (outfile != NULL)
                     fclose(outfile);
             } // end for js

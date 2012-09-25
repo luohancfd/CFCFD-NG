@@ -31,7 +31,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../../../lib/util/source/useful.h"
+#include "../../../lib/util/source/config_parser.hh"
 #include "l1d.hh"
+#include "l_kernel.hh"
+#include "l_io.hh"
 
 // Don't try to fix these array issues...
 // We really must replace these post-processing files with a python equivalent.
@@ -44,9 +47,10 @@
 
 int main(int argc, char **argv)
 {
+    struct simulation_data SD;
+    static struct tube_data tube;
     double tstart, tstop;
     int i, j, maxsol;
-    int isp, nsp;
     int itype;  /* 0 = x-location histories   */
                 /* 1 = cell histories         */
     /*
@@ -61,8 +65,7 @@ int main(int argc, char **argv)
     double Tx[MAX_HIST_LOC], tau0x[MAX_HIST_LOC];
     double qx[MAX_HIST_LOC], entropyx[MAX_HIST_LOC];
     double fx[NSPECD][MAX_HIST_LOC], f_sum;
-    int    nread;
-
+    char pname[40];
     char oname[40], iname[40], base_file_name[32], name_tag[10];
     FILE * infile,  /* history file                 */
         *outfile;   /* plot file                    */
@@ -76,9 +79,8 @@ int main(int argc, char **argv)
     double M, gam, t1, t2;
     int count, c_temp;
     int ilogr, ilogp;   /* postprocessing options    */
-#   define NCHAR 320
+#   define NCHAR 3200
     char line[NCHAR];   /* buffer for input lines    */
-    char token[NCHAR];  /* place to put tokens from line */
     int command_line_error;
 
     UNUSED_VARIABLE(hxloc);
@@ -228,6 +230,13 @@ int main(int argc, char **argv)
         exit(1);
     }   /* end if command_line_error */
 
+    strcpy(pname, base_file_name); strcat(pname, ".Lp");
+    ConfigParser parameterdict = ConfigParser(pname);
+    L_set_case_parameters(&SD, &tube, parameterdict, 0);
+    Gas_model *gmodel = get_gas_model_ptr();
+    int nsp = gmodel->get_number_of_species();
+    int nmodes = gmodel->get_number_of_modes();
+
     strcpy(iname, base_file_name);
     if (itype == PARTICULAR_CELL) {
         strcat(iname, ".hc");
@@ -308,7 +317,7 @@ int main(int argc, char **argv)
         printf( "Failed to allocate memory for entropy[]\n" );
         exit( -1 );
     }
-    for ( isp = 0; isp < NSPECD; ++isp ) {
+    for ( int isp = 0; isp < NSPECD; ++isp ) {
 	f[isp] = (double *) calloc(maxsol, sizeof(double));
 	if ( f[isp] == NULL ) {
 	    printf( "Failed to allocate memory for f[%d][]\n", isp );
@@ -333,7 +342,7 @@ int main(int argc, char **argv)
             printf("Premature end of file.\n");
             break;
         }   /* end if */
-        if (sscanf(line, "%lf %d %d", &(sim_time[count]), &hnloc, &nsp) != 3) {
+        if (sscanf(line, "%lf %d %d %d", &(sim_time[count]), &hnloc, &nsp, &nmodes) != 4) {
             printf( "Invalid time-stamp, sol[%d].\n", i );
 	    printf( "Stop reading with line:\n%s\n", line );
             break;
@@ -354,42 +363,32 @@ int main(int argc, char **argv)
          * If we reached this point, the time-stamp was OK so
          * assume that all of the following lines are present. 
          */
+	struct L_cell* icell = new(struct L_cell);
+	icell->gas = new Gas_data(gmodel);
         for (j = 0; j < hnloc; ++j) {
 	    if ( fgets(line, NCHAR, infile) == NULL ) {
 		printf("Problem reading file.\n");
 		exit(BAD_INPUT_ERROR);
 	    }
-            sscanf(line, "%lf %lf %lf", &(xx[j]), &(rhox[j]), &(ux[j]) );
-	    if ( fgets(line, NCHAR, infile) == NULL ) {
-		printf("Problem reading file.\n");
-		exit(BAD_INPUT_ERROR);
+	    if ( scan_cell_values_from_string(line, *icell) ) {
+		printf("Cell failed to read from line:\n" );
+		printf("%s\n", line);
+		return FAILURE;
 	    }
-            sscanf(line, "%lf %lf %lf %lf", &(ex[j]), &(px[j]), &(ax[j]), &(Tx[j]) );
-	    if ( fgets(line, NCHAR, infile) == NULL ) {
-		printf("Problem reading file.\n");
-		exit(BAD_INPUT_ERROR);
-	    }
-            sscanf(line, "%lf %lf %lf", &(tau0x[j]), &(qx[j]), &(entropyx[j]) );
-	    if ( fgets(line, NCHAR, infile) == NULL ) {
-		printf("Problem reading file.\n");
-		exit(BAD_INPUT_ERROR);
-	    }
-	    strcpy( token, strtok( line, " " ) );
-	    nread = sscanf( token, "%lf", &(fx[0][j]) );
-	    if ( nread != 1 ) {
-		printf("Problem reading species[%d] from token:%s\n",
-		       0, token);
-		exit(-1);
-	    }
+	    xx[j] = icell->xmid;
+	    rhox[j] = icell->gas->rho;
+	    ux[j] = icell->u;
+	    ex[j] = icell->gas->e[0];
+	    px[j] = icell->gas->p;
+	    ax[j] = icell->gas->a;
+	    Tx[j] = icell->gas->T[0];
+	    tau0x[j] = icell->shear_stress;
+	    qx[j] = icell->heat_flux;
+	    entropyx[j] = icell->entropy;
+	    fx[0][j] = icell->gas->massf[0];
 	    f_sum = fx[0][j];
-	    for ( isp = 1; isp < nsp; ++isp ) {
-		strcpy( token, strtok( NULL, " " ) );
-		nread = sscanf( token, "%lf", &(fx[isp][j]) );
-		if ( nread != 1 ) {
-		    printf("Problem reading species[%d] from token:%s\n",
-			   isp, token);
-		    exit(-1);
-		}
+	    for ( int isp = 1; isp < nsp; ++isp ) {
+		fx[isp][j] = icell->gas->massf[isp];
 		f_sum += fx[isp][j];
 	    }
             if ( fabs(f_sum - 1.0) > 0.001 ) {
@@ -407,7 +406,7 @@ int main(int argc, char **argv)
         tau0[count] = tau0x[ixloc];
         q[count] = qx[ixloc];
         entropy[count] = entropyx[ixloc];
-	for ( isp = 0; isp < nsp; ++isp ) {
+	for ( int isp = 0; isp < nsp; ++isp ) {
 	    f[isp][count] = fx[isp][ixloc];
 	}
 
@@ -539,7 +538,7 @@ int main(int argc, char **argv)
     fprintf( outfile, "# tau0,Pa     <== col_11\n");
     fprintf( outfile, "# q,W/m**2    <== col_12\n");
     fprintf( outfile, "# S2,J/kg/K   <== col_13\n");
-    for ( isp = 0; isp < nsp; ++isp ) {
+    for ( int isp = 0; isp < nsp; ++isp ) {
         fprintf( outfile, "# f[%d]        <== col_%0d\n", isp, (13 + isp + 1) );
     }
     fprintf( outfile, "# %d           <== number of plotting blocks\n", 1);
@@ -550,7 +549,7 @@ int main(int argc, char **argv)
                 sim_time[i], x[i], rho[i], u[i], e[i],
                 p[i], a[i], T[i], h[i], pitot[i], 
 		tau0[i], q[i], entropy[i]);
-	for ( isp = 0; isp < nsp; ++isp ) {
+	for ( int isp = 0; isp < nsp; ++isp ) {
 	    fprintf( outfile, "%e ", f[isp][i] );
 	}
 	fprintf( outfile, "\n" );
@@ -575,7 +574,7 @@ int main(int argc, char **argv)
     if ( tau0 != NULL ) free( tau0 );
     if ( q != NULL ) free( q );
     if ( entropy != NULL ) free( entropy );
-    for ( isp = 0; isp < NSPECD; ++isp ) {
+    for ( int isp = 0; isp < NSPECD; ++isp ) {
 	if ( f[isp] != NULL ) free( f[isp] );
     }
 
@@ -583,5 +582,3 @@ int main(int argc, char **argv)
     return 0;
 }   /* end function main */
 
-
-/*================ end of l_hist.c ==================*/

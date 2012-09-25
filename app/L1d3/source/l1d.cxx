@@ -86,7 +86,6 @@ int main(int argc, char **argv)
     int newly_adapted;
     double max_piston_V[10];
     int max_piston_V_past[10];
-    int nsp;
 
     char pname[40], iname[40], aname[40], oname[40];
     char hname1[40], hname2[40], base_file_name[32];
@@ -248,7 +247,8 @@ int main(int argc, char **argv)
     } // end for
 
     Gas_model *gmodel = get_gas_model_ptr();
-    nsp = gmodel->get_number_of_species();
+    int nsp = gmodel->get_number_of_species();
+    int nmodes = gmodel->get_number_of_modes();
 
     // Pick up the initial data that was previously generated.
     if ((areafile = fopen(aname, "r")) == NULL) {
@@ -277,6 +277,7 @@ int main(int argc, char **argv)
 	    exit( -1 );
         }
 	L_set_chemistry_timestep( &(A[js]), -1.0 );
+	L_set_thermal_timestep( &(A[js]), -1.0 );
     } // end for js...
     if ( infile != NULL ) fclose(infile);
 
@@ -815,17 +816,17 @@ int main(int argc, char **argv)
             for (jd = 0; jd < SD.ndiaphragm; ++jd)
                 write_diaphragm_solution(&(Diaph[jd]), outfile);
             for (js = 0; js < SD.nslug; ++js)
-                L_write_solution(&(A[js]), outfile, nsp);
+                L_write_solution(&(A[js]), outfile);
         }
 	// 5b. Selected history points.
         if ( SD.sim_time >= thistory ) {
             thistory += L_get_dt_history( &SD );
-            fprintf(hisfile1, "%e %d %d  # sim_time, hncell, nsp\n", 
-		    SD.sim_time, SD.hncell, nsp);
+            fprintf(hisfile1, "%e %d %d %d # sim_time, hncell, nsp, nmodes\n", 
+		    SD.sim_time, SD.hncell, nsp, nmodes);
             for (js = 0; js < SD.nslug; ++js)
                 L_write_cell_history(&(A[js]), hisfile1);
-            fprintf(hisfile2, "%e %d %d  # sim_time, hnloc, nsp\n", 
-		    SD.sim_time, SD.hnloc, nsp);
+            fprintf(hisfile2, "%e %d %d %d  # sim_time, hnloc, nsp, nmodes\n", 
+		    SD.sim_time, SD.hnloc, nsp, nmodes);
             for (js = 0; js < SD.hnloc; ++js)
                 L_write_x_history(SD.hxloc[js], A, SD.nslug, hisfile2);
         }
@@ -907,7 +908,7 @@ int main(int argc, char **argv)
     for (jd = 0; jd < SD.ndiaphragm; ++jd)
         write_diaphragm_solution(&(Diaph[jd]), outfile);
     for (js = 0; js < SD.nslug; ++js)
-        L_write_solution(&(A[js]), outfile, nsp);
+        L_write_solution(&(A[js]), outfile);
     for (js = 0; js < SD.nslug; ++js) {
         L_free( &(A[js]) );
     }
