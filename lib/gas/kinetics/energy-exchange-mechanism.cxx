@@ -46,7 +46,7 @@ VT_exchange(lua_State *L, int ip, int imode)
     iT_ = get_int(L, -1, "itrans");
 
     lua_getfield(L,-1,"relaxation_time");
-    tau_VT_ = create_new_relaxation_time(L, ip, iq, iTv_);
+    tau_VT_ = create_new_relaxation_time(L, ip, iq, iT_);
     lua_pop(L, 1 );
 }
 
