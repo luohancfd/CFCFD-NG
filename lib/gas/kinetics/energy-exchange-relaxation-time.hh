@@ -13,6 +13,7 @@ extern "C" {
 }
 
 #include "../models/gas_data.hh"
+#include "../models/gas-model.hh"
 
 class Relaxation_time {
 public:
@@ -32,21 +33,31 @@ protected:
 
 class VT_MillikanWhite : public Relaxation_time {
 public:
-    VT_MillikanWhite(lua_State *L);
+    VT_MillikanWhite(lua_State *L, int ip, int iq, int itrans);
 
     ~VT_MillikanWhite();
 private:
-    double M_p_;
-    int ip_;
+    int ip_, iq_;
+    double M_p_, M_q_;
     double theta_;
     int iT_;
+    double mu_;
+    double a_;
+    double b_;
     
-    std::vector<bool> homogenous_flags_;
-    std::vector<int> iqs_;
-    std::vector<double> M_qs_;
-    std::vector<double> mus_;
-    std::vector<double> a_;
-    std::vector<double> b_;
+    double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
+    double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
+    { return 0.0; }
+};
+
+class VT_LandauTeller_cf : public Relaxation_time {
+public:
+    VT_LandauTeller_cf(lua_State *L, int ip, int iq, int itrans);
+
+    ~VT_LandauTeller_cf();
+private:
+    int ip_, iq_, iT_;
+    double A_, B_, C_;
     
     double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
     double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
@@ -85,28 +96,20 @@ private:
     double s_eval_sigma( double T );
 };
 
-VT_high_temperature_cross_section *
+VT_high_temperature_cross_section*
 create_VT_high_temperature_cross_section_model( lua_State *L );
+
 
 class VT_MillikanWhite_HTC : public Relaxation_time {
 public:
-    VT_MillikanWhite_HTC(lua_State *L);
+    VT_MillikanWhite_HTC(lua_State *L, int ip, int iq, int itrans);
 
     ~VT_MillikanWhite_HTC();
 private:
-    double M_p_;
-    int ip_;
-    double theta_;
-    int iT_;
-    
-    std::vector<bool> homogenous_flags_;
-    std::vector<int> iqs_;
-    std::vector<double> M_qs_;
-    std::vector<double> mus_;
-    std::vector<double> a_;
-    std::vector<double> b_;
-    
-    VT_high_temperature_cross_section * HTC_model_;
+    int ip_, iq_, iT_;
+    double m_av_;
+    VT_MillikanWhite *VT_MW_;
+    VT_high_temperature_cross_section *HTC_model_;
     
     double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
     double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
@@ -115,12 +118,12 @@ private:
 
 class ET_AppletonBray_Ion : public Relaxation_time {
 public:
-    ET_AppletonBray_Ion(lua_State *L);
+    ET_AppletonBray_Ion(lua_State *L, int ie, int ic);
     
     ~ET_AppletonBray_Ion();
 private:
-    int ic_;
     int ie_;
+    int ic_;
     int iTe_;
     double M_c_;
     double M_e_;
@@ -131,7 +134,7 @@ private:
 
 class ET_AppletonBray_Neutral : public Relaxation_time {
 public:
-    ET_AppletonBray_Neutral(lua_State *L);
+    ET_AppletonBray_Neutral(lua_State *L, int ie, int ic);
     
     ~ET_AppletonBray_Neutral();
 private:
@@ -146,7 +149,7 @@ private:
 
 class ET_AppletonBray_TwoRangeNeutral : public Relaxation_time {
 public:
-    ET_AppletonBray_TwoRangeNeutral(lua_State *L);
+    ET_AppletonBray_TwoRangeNeutral(lua_State *L, int ie, int ic);
 
     ~ET_AppletonBray_TwoRangeNeutral();
 private:
@@ -159,6 +162,7 @@ private:
     double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
     { return 0.0; }
 };
+
 
 // Helper functions for SSH calculations
 double collider_distance_A(Diatomic_species &p, Diatomic_species &q);
@@ -178,164 +182,155 @@ double SSH_alpha_pq(double mu, double del_E, double del_star);
 double SSH_chi_pq(double alpha_pq, double T);
 double SSH_Z_0(double del_star, double r_eq);
 double SSH_Z_V(double f_m, double mu_pp, double mu_pq, double alpha_pq,
-	       double theta_v, double del_E);
+	       double theta_v, double del_E, int i);
 double SSH_Z_T(double del_E, double alpha_pq, double T);
 double SSH_Z_plus(double eps0, double chi, double T);
 double SSH_A_factor(double r_c, double sigma);
 
+class VT_SSH : public Relaxation_time {
+public:
+    VT_SSH(lua_State *L, int ip, int iq, int itrans);
+    ~VT_SSH();
+private:
+    int ip_, iq_, iT_;
+    double M_p_, r_eq_p_, f_m_p_, mu_p_, theta_v_p_;
+    double M_q_, r_eq_q_, f_m_q_, mu_q_, theta_v_q_;
+    double r_, eps_, mu_, delta_E_, sigma_;
+    
+    double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
+    double specific_transition_probability(Gas_data &Q, std::vector<double> &molef);
+};
+
 class VV_SSH : public Relaxation_time {
 public:
-    VV_SSH(lua_State *L);
-    
+    VV_SSH(lua_State *L, int ip, int iq, int itrans);
     ~VV_SSH();
 private:
-    // Global data
-    int iT_;			// translational temperature
-    double sigma_;
-    double eps_;
-    double mu_;
-    double r_;
-    double delta_E_;
-    
-    // Species p data
-    int ip_;			// species index
-    int iTvp_;			// vibratonal temperature index
-    double theta_v_p_;		// characteristic vibrational temperature
-    double M_p_;		// molecular weight
-    double r_eq_p_;		// equilibrium intermolecular distance (m)
-    double f_m_p_;		// Thivet's mass factor
-    double mu_p_;		// reduced constituent atom mass
-    
-    // Species q data
-    int iq_;
-    int iTvq_;
-    double theta_v_q_;
-    double M_q_;
-    double r_eq_q_;
-    double f_m_q_;
-    double mu_q_;
-    
-    double VV_SSH_transition_probability( double T );
+    int ip_, iq_, iT_;
+    double M_p_, r_eq_p_, f_m_p_, mu_p_, theta_v_p_;
+    double M_q_, r_eq_q_, f_m_q_, mu_q_, theta_v_q_;
+    double r_, eps_, mu_, delta_E_, sigma_;
     
     double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
-    double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
-    { return 0.0; }
+    double specific_transition_probability(Gas_data &Q, std::vector<double> &molef);
 };
 
-class VV_Candler : public Relaxation_time {
-public:
-    VV_Candler(lua_State *L);
+// class VV_Candler : public Relaxation_time {
+// public:
+//     VV_Candler(lua_State *L);
     
-    ~VV_Candler();
-private:
-    // Global data
-    int iT_;			// translational temperature
-    double sigma_;		// collision cross-section (dxd)
-    double mu_;			// reduced molecular weight
-    double P_;			// transition probability
+//     ~VV_Candler();
+// private:
+//     // Global data
+//     int iT_;			// translational temperature
+//     double sigma_;		// collision cross-section (dxd)
+//     double mu_;			// reduced molecular weight
+//     double P_;			// transition probability
     
-    // Species p data
-    int ip_;			// species index
+//     // Species p data
+//     int ip_;			// species index
     
-    // Species q data
-    int iq_;			// species index
-    double M_q_;		// molecular weight
+//     // Species q data
+//     int iq_;			// species index
+//     double M_q_;		// molecular weight
       
-    double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
-    double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
-    { return 0.0; }
-};
+//     double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
+//     double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
+//     { return 0.0; }
+// };
 
-class VE_Lee : public Relaxation_time {
-public:
-    VE_Lee(lua_State *L);
+// class VE_Lee : public Relaxation_time {
+// public:
+//     VE_Lee(lua_State *L);
     
-    ~VE_Lee();
-private:
-    // Electron data
-    int ie_;
-    int iTe_;
+//     ~VE_Lee();
+// private:
+//     // Electron data
+//     int ie_;
+//     int iTe_;
     
-    // Vibrational species data
-    int iv_;
+//     // Vibrational species data
+//     int iv_;
     
-    std::vector<double> T_switches_;
-    std::vector< std::vector<double> > ptau_coeffs_;
+//     std::vector<double> T_switches_;
+//     std::vector< std::vector<double> > ptau_coeffs_;
     
-    double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
-    double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
-    { return 0.0; }
-};
+//     double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
+//     double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
+//     { return 0.0; }
+// };
 
-class RT_Parker : public Relaxation_time {
-public:
-    RT_Parker(lua_State *L);
+// class RT_Parker : public Relaxation_time {
+// public:
+//     RT_Parker(lua_State *L);
     
-    ~RT_Parker();
-private:
-    // Global data
-    int iT_;					// translational temperature
-    std::vector<double> sigmas_;		// rotational collision cross-sections
-    std::vector<double> mus_;			// reduced molecular weights
+//     ~RT_Parker();
+// private:
+//     // Global data
+//     int iT_;					// translational temperature
+//     std::vector<double> sigmas_;		// rotational collision cross-sections
+//     std::vector<double> mus_;			// reduced molecular weights
 
-    // Rotator data
-    int ip_;					// species index
+//     // Rotator data
+//     int ip_;					// species index
     
-    // Collider data
-    std::vector<int> iqs_;			// species indices
-    std::vector<double> M_qs_;			// molecular weights
+//     // Collider data
+//     std::vector<int> iqs_;			// species indices
+//     std::vector<double> M_qs_;			// molecular weights
 
-    double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
-    double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
-    { return 0.0; }
-};
+//     double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
+//     double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
+//     { return 0.0; }
+// };
 
-class RE_Abe : public Relaxation_time {
-public:
-    RE_Abe(lua_State *L);
+// class RE_Abe : public Relaxation_time {
+// public:
+//     RE_Abe(lua_State *L);
     
-    ~RE_Abe();
-private:
-    std::vector<Relaxation_time*> tau_REs_;
+//     ~RE_Abe();
+// private:
+//     std::vector<Relaxation_time*> tau_REs_;
     
-    double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
-    double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
-    { return 0.0; }
-};
+//     double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
+//     double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
+//     { return 0.0; }
+// };
 
-class RE_Ion : public Relaxation_time {
-public:
-    RE_Ion(lua_State *L);
+// class RE_Ion : public Relaxation_time {
+// public:
+//     RE_Ion(lua_State *L);
     
-    ~RE_Ion();
-private:
-    int ic_;
-    int ie_;
-    int iTe_;
-    double M_c_;
-    double M_e_;
-    double g_rot_;
-    double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
-    double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
-    { return 0.0; }
-};
+//     ~RE_Ion();
+// private:
+//     int ic_;
+//     int ie_;
+//     int iTe_;
+//     double M_c_;
+//     double M_e_;
+//     double g_rot_;
+//     double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
+//     double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
+//     { return 0.0; }
+// };
 
-class RE_Neutral : public Relaxation_time {
-public:
-    RE_Neutral(lua_State *L);
+// class RE_Neutral : public Relaxation_time {
+// public:
+//     RE_Neutral(lua_State *L);
     
-    ~RE_Neutral();
-private:
-    int ic_;
-    double M_c_;
-    int iTe_;
-    std::vector<double> C_;
-    double g_rot_;
-    double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
-    double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
-    { return 0.0; }
-};
+//     ~RE_Neutral();
+// private:
+//     int ic_;
+//     double M_c_;
+//     int iTe_;
+//     std::vector<double> C_;
+//     double g_rot_;
+//     double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
+//     double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
+//     { return 0.0; }
+// };
 
-Relaxation_time* create_new_relaxation_time( lua_State * L );
+Relaxation_time* create_new_relaxation_time(lua_State *L, int ip, int iq, int itrans);
+Relaxation_time* get_rt_from_file(int irt, std::string cfile, Gas_model &g);
+
 
 #endif

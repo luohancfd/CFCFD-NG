@@ -20,7 +20,6 @@ Energy_exchange_ODE_update(lua_State *L, Gas_model &g)
  : g_( &g )
 {
     lua_getglobal(L, "scheme_t");
-
     lua_getfield(L, -1, "temperature_limits");
     T_lower_limit_ = get_positive_number(L, -1, "lower");
     T_upper_limit_ = get_positive_number(L, -1, "upper");
@@ -67,16 +66,12 @@ Energy_exchange_ODE_update(lua_State *L, Gas_model &g)
     
     // Create equilibrium mechanisms
     lua_getglobal(L, "equilibriation_mechanisms");
-    if ( !lua_istable(L, -1) ) {
-	ostringstream ost;
-	ost << "Energy_exchange_ODE_update::Energy_exchange_ODE_update():\n";
-	ost << "Error in input: equilibriation_mechanisms table is missing.\n";
-	input_error(ost);
-    }
-    for ( size_t i = 1; i <= lua_objlen(L, -1); ++i ) {
-	lua_rawgeti(L, -1, i);
-	eq_mechs_.push_back( new Thermal_equilibrium_mechanism(L) );
-	lua_pop(L, 1);
+    if ( lua_istable(L, -1) ) {
+	for ( size_t i = 1; i <= lua_objlen(L, -1); ++i ) {
+	    lua_rawgeti(L, -1, i);
+	    eq_mechs_.push_back( new Thermal_equilibrium_mechanism(L) );
+	    lua_pop(L, 1);
+	}
     }
     lua_pop(L, 1);
 }
@@ -243,6 +238,7 @@ perform_increment(Gas_data &Q, double t_interval, double &dt_suggest)
     
     for ( size_t itm=1; itm<Q.e.size(); ++itm ) {
     	Q.e[itm] = yout_[itm-1];
+	//	cout << "itm= " << itm << " e= " << Q.e[itm] << endl;
     }
     
     // 3. But first apply equilibriation mechanisms

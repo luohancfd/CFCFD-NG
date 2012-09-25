@@ -20,7 +20,7 @@ extern "C" {
 
 class Energy_exchange_rate {
 public:
-    Energy_exchange_rate( lua_State *L );
+    Energy_exchange_rate(lua_State *L);
 
     ~Energy_exchange_rate();
 
