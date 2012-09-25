@@ -33,10 +33,10 @@ using namespace std;
 
 /*=================================================================*/
 
-int print_simulation_status( FILE *strm, char *efname, int step, simulation_data *SD,
-			     vector<slug_data> &A, vector<diaphragm_data> &Diaph,
-			     vector<piston_data> &Pist, double cfl_max, 
-			     double cfl_tiny, double time_tiny ) {
+int print_simulation_status(FILE *strm, const char* efname, int step, simulation_data *SD,
+			    vector<slug_data> &A, vector<diaphragm_data> &Diaph,
+			    vector<piston_data> &Pist, double cfl_max, 
+			    double cfl_tiny, double time_tiny) {
     /*
      * Print the simulation status to the specified stream.
      * If the specified stream is NULL, then send the data to the 
@@ -99,16 +99,16 @@ int print_simulation_status( FILE *strm, char *efname, int step, simulation_data
     return SUCCESS;
 }
 
-int log_event( char *efname, char *event_message ) {
+int log_event(const char *efname, const char* event_message ) {
     /*
      * Write a message to the events log file.
      * This file is opened and closed each time so that
      * Windows users can see the data.
      */
     FILE *efp;
-    efp = fopen( efname, "a+" );
+    efp = fopen(efname, "a+");
     if ( efp != NULL ) {
-        fputs( event_message, efp );
+        fputs(event_message, efp);
         /* print_status( efp ); */
         fclose( efp );
     }
@@ -117,8 +117,7 @@ int log_event( char *efname, char *event_message ) {
 
 /*=================================================================*/
 
-int L_set_case_parameters(simulation_data *SD, tube_data *T,
-                          ConfigParser &dict, int echo_input)
+int L_set_case_parameters(simulation_data *SD, ConfigParser &dict, int echo_input)
 {
     string reaction_scheme_file, gas_model_file;
     if (echo_input == 1) cout << endl << "Reading global_data..." << endl;
@@ -186,78 +185,6 @@ int L_set_case_parameters(simulation_data *SD, tube_data *T,
 	cout << "    hloc_n = " << SD->hnloc << endl;
 	cout << "    hloc_x =";
 	for ( int i = 0; i < SD->hnloc; ++i ) cout << " " << SD->hxloc[i]; 
-	cout << endl;
-    }
-    /*
-     * Tube parameters: 
-     * n : number of steps for internal discretization (say 10000)
-     * nseg : number of tube segments in the user description
-     * xb[0],    Diamb[0],    linear[0]
-     * ...
-     * xb[nseg], Diamb[nseg], linear[nseg]
-     */
-    dict.parse_int("global_data", "tube_n", T->n, 10000);
-    dict.parse_int("global_data", "tube_nseg", T->nseg, 1);
-    vdbl_default.resize(T->nseg+1);
-    for ( size_t i = 0; i < vdbl_default.size(); ++i ) vdbl_default[i] = 0.0;
-    dict.parse_vector_of_doubles("global_data", "tube_xb", T->xb, vdbl_default);
-    dict.parse_vector_of_doubles("global_data", "tube_d", T->Diamb, vdbl_default);
-    std::vector<int> vint_default;
-    vint_default.resize(T->nseg+1);
-    for ( size_t i = 0; i < vint_default.size(); ++i ) vint_default[i] = 0;
-    dict.parse_vector_of_ints("global_data", "tube_linear", T->linear, vint_default);
-    if (echo_input == 1) {
-	cout << "    tube_n = " << T->n << endl;
-	cout << "    tube_nseg = " << T->nseg << endl;
-	cout << "    tube_xb =";
-	for ( int i = 0; i < T->nseg+1; ++i ) cout << " " << T->xb[i];
-	cout << endl;
-	cout << "    tube_d =";
-	for ( int i = 0; i < T->nseg+1; ++i ) cout << " " << T->Diamb[i];
-	cout << endl;
-	cout << "    tube_linear =";
-	for ( int i = 0; i < T->nseg+1; ++i ) cout << " " << T->linear[i];
-	cout << endl;
-    }
-    // Now, read the loss-factor patches.
-    dict.parse_int("global_data", "KL_n", T->nKL, 0);
-    vdbl_default.resize(T->nKL);
-    for ( size_t i = 0; i < vdbl_default.size(); ++i ) vdbl_default[i] = 0.0;
-    dict.parse_vector_of_doubles("global_data", "KL_xL", T->xbeginK, vdbl_default);
-    dict.parse_vector_of_doubles("global_data", "KL_xR", T->xendK, vdbl_default);
-    dict.parse_vector_of_doubles("global_data", "KL_K", T->K, vdbl_default);
-    if (echo_input == 1) {
-	cout << "    KL_nseg = " << T->nKL << endl;
-	cout << "    KL_xL =";
-	for ( int i = 0; i < T->nKL; ++i ) cout << " " << T->xbeginK[i];
-	cout << endl;
-	cout << "    KL_xR =";
-	for ( int i = 0; i < T->nKL; ++i ) cout << " " << T->xendK[i];
-	cout << endl;
-	cout << "    KL_K =";
-	for ( int i = 0; i < T->nKL; ++i ) cout << " " << T->K[i];
-	cout << endl;
-    }
-    // Now, read the wall-temperature patches.
-    dict.parse_double("global_data", "T_nominal", T->Tnominal, 300.0);
-    dict.parse_int("global_data", "Tpatch_n", T->nT, 0);
-    vdbl_default.resize(T->nT);
-    for ( size_t i = 0; i < vdbl_default.size(); ++i ) vdbl_default[i] = 0.0;
-    dict.parse_vector_of_doubles("global_data", "Tpatch_xL", T->xbeginT, vdbl_default);
-    dict.parse_vector_of_doubles("global_data", "Tpatch_xR", T->xendT, vdbl_default);
-    for ( size_t i = 0; i < vdbl_default.size(); ++i ) vdbl_default[i] = 300.0;
-    dict.parse_vector_of_doubles("global_data", "Tpatch_T", T->Tlocal, vdbl_default);
-    if (echo_input == 1) {
-	cout << "    T_nominal = " << T->Tnominal << endl;
-	cout << "    Tpatch_n = " << T->nT << endl;
-	cout << "    Tpatch_xL =";
-	for ( int i = 0; i < T->nT; ++i ) cout << " " << T->xbeginT[i];
-	cout << endl;
-	cout << "    Tpatch_xR =";
-	for ( int i = 0; i < T->nT; ++i ) cout << " " << T->xendT[i];
-	cout << endl;
-	cout << "    Tpatch_T =";
-	for ( int i = 0; i < T->nT; ++i ) cout << " " << T->Tlocal[i];
 	cout << endl;
     }
     return SUCCESS;
@@ -683,52 +610,6 @@ int L_set_slug_parameters(slug_data* A, int indx, simulation_data* SD,
 } // end function L_set_slug_parameters()
 
 //---------------------------------------------------------------------
-
-int L_read_area(struct tube_data *tube, FILE * gf)
-// Read the Area(x) specification from a file.
-{
-#   define NCHAR 320
-    char line[NCHAR];
-    if (fgets(line, NCHAR, gf) == NULL) {
-        printf("Empty area specification file.\n");
-        return FAILURE;
-    }
-    sscanf(line, "%d", &(tube->n));
-    if (fgets(line, NCHAR, gf) == NULL) {
-        printf("Empty area specification file.\n");
-        return FAILURE;
-    }
-    sscanf(line, "%lf %lf", &(tube->x1), &(tube->dx));
-    tube->diam.resize(tube->n);
-    tube->area.resize(tube->n);
-    tube->T_Wall.resize(tube->n);
-    tube->K_over_L.resize(tube->n);
-    for ( int ix = 0; ix < tube->n; ++ix ) {
-        if (fgets(line, NCHAR, gf) == NULL) {
-            printf("Premature end of area file, interface[%d]\n", ix);
-            return FAILURE;
-        }
-        sscanf(line, "%lf %lf %lf %lf", &(tube->diam[ix]),
-               &(tube->area[ix]), &(tube->T_Wall[ix]), &(tube->K_over_L[ix]));
-    } // end for ix...
-#   undef NCHAR
-    return SUCCESS;
-} // end function L_read_area()
-
-
-int L_write_area(struct tube_data *tube, FILE * gf)
-// Write the area(x) specification out to a file.
-{
-    fprintf(gf, "%d\n", tube->n);
-    fprintf(gf, "%e %e\n", tube->x1, tube->dx);
-    for ( int ix = 0; ix < tube->n; ++ix ) {
-        fprintf(gf, "%e %e %e %e\n", tube->diam[ix], tube->area[ix],
-                tube->T_Wall[ix], tube->K_over_L[ix]);
-    } 
-    return SUCCESS;
-} // end function L_write_area()
-
-//--------------------------------------------------------------------
 
 int read_piston_solution(struct piston_data* B, FILE* infile)
 // Read the piston solution (i.e. the present piston state)

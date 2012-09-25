@@ -13,7 +13,7 @@ configure -verbose {start body error}
 
 test run-preprocessor {Run the preprocessing stage.} -body {
     exec l_script.py -f dn2 > LOGFILE_SCRIPT
-    exec l_prep.exe -f dn2 > LOGFILE_PREP
+    exec l1d.exe -f dn2 -prep > LOGFILE_PREP
 } -result {} -returnCodes {0}
 
 test run-simulation {Run the L1d3 simulation code.} -body {
@@ -36,8 +36,8 @@ test end-state {Check final_steps and trigger_time for Diaphragm[0].} -body {
     }
     # puts "final_steps= $final_steps"
     # puts "trigger_time= $trigger_time"
-    set result [list [expr abs($final_steps - 19490) <= 10] \
-		    [expr abs($trigger_time - 3.787e-3)/3.787e-3 < 0.001]]
+    set result [list [expr abs($final_steps - 18470) <= 10] \
+		    [expr abs($trigger_time - 3.830e-3)/3.830e-3 < 0.001]]
     set result
 } -result {1 1}
 

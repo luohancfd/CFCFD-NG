@@ -3,6 +3,8 @@
 #ifndef L_MISC_HH
 #define L_MISC_HH
 
+#include "l_tube.hh"
+
 void L_set_case_id(int id);
 int L_get_case_id(void);
 int L_alloc(struct slug_data *A);
@@ -21,7 +23,7 @@ int L_blend_slug_ends(struct slug_data *A, int endA,
 		      struct slug_data *B, int endB,
 		      double dxb );
 int L_fill_data(struct slug_data *A);
-int L_compute_areas(struct slug_data *A, struct tube_data *tube);
+int L_compute_areas(struct slug_data *A, TubeModel *tube);
 int L_dump_cell(struct slug_data *A, int ix);
 int maximum_p(struct slug_data *A, double *p_max, double *x_max);
 int total_energy(struct slug_data *A, double *E_tot);

@@ -36,6 +36,7 @@
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/util/source/config_parser.hh"
 #include "l_kernel.hh"
+#include "l_tube.hh"
 #include "l1d.hh"
 #include "l_io.hh"
 
@@ -52,7 +53,6 @@ int main(int argc, char **argv)
     std::vector<slug_data> A;               /* several gas slugs        */
     std::vector<piston_data> Pist;          /* room for several pistons */
     std::vector<diaphragm_data> Diaph;      /* diaphragms            */
-    static struct tube_data tube;
 
     double tstop;
     int i, max_sol, echo_input;
@@ -188,7 +188,8 @@ int main(int argc, char **argv)
     strcat(pname, ".Lp");
     printf("parameterfile: %s\n", pname);
     ConfigParser parameterdict = ConfigParser(pname);
-    L_set_case_parameters(&SD, &tube, parameterdict, echo_input);
+    L_set_case_parameters(&SD, parameterdict, echo_input);
+    TubeModel tube = TubeModel(pname, echo_input);
     A.resize(SD.nslug);
     Pist.resize(SD.npiston);
     Diaph.resize(SD.ndiaphragm);

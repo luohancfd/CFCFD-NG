@@ -44,7 +44,6 @@ ZLIB            := ../../../extern/zlib-1.2.3
 LIBZLIB         := $(ZLIB)/libz.a
 
 EXEFILES = l1d.exe \
-	l_prep.exe \
 	l_post.exe \
 	l_hist.exe \
 	sptime.exe \
@@ -58,6 +57,7 @@ OBJECTS = l_misc.o \
 	l_bc.o \
 	l_io.o \
 	l_rivp.o \
+	l_tube.o \
 	roberts.o
 
 PY_FILES = l_script.py gaspy.py
@@ -212,10 +212,6 @@ l1d.exe : l1d.o l1d3.a $(LIBGAS) $(LIBNM) $(LIBUTIL) $(LIBINIPARSER) $(LIBLUA) $
 	$(CXXLINK) $(LFLAG) l1d.o l1d3.a $(LIBGAS) $(LIBNM) $(LIBUTIL) $(LIBINIPARSER) \
 		$(LIBLUA) $(LIBZLIB) $(LLIB) -o l1d.exe
 
-l_prep.exe : l_prep.o l1d3.a $(LIBGAS) $(LIBNM) $(LIBUTIL) $(LIBINIPARSER) $(LIBLUA) $(LIBZLIB)
-	$(CXXLINK) $(LFLAG) l_prep.o l1d3.a $(LIBGAS) $(LIBNM) $(LIBUTIL) $(LIBINIPARSER) \
-		$(LIBLUA) $(LIBZLIB) $(LLIB) -o l_prep.exe
-
 l_post.exe : l_post.o l1d3.a $(LIBGAS) $(LIBNM) $(LIBUTIL) $(LIBINIPARSER) $(LIBLUA) $(LIBZLIB)
 	$(CXXLINK) $(LFLAG) l_post.o l1d3.a $(LIBGAS) $(LIBNM) $(LIBUTIL) $(LIBINIPARSER) \
 		$(LIBLUA) $(LIBZLIB) $(LLIB) -o l_post.exe
@@ -258,11 +254,14 @@ _gaspy.dylib : $(GAS)/build/_gaspy.dylib
 
 l1d.o : $(SRC)/l1d.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) \
 	$(SRC)/l_adapt.hh $(SRC)/l_bc.hh $(SRC)/l_io.hh $(SRC)/l_rivp.hh $(SRC)/l_tstep.hh \
-	$(SRC)/l_misc.hh
+	$(SRC)/l_misc.hh $(SRC)/l_tube.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l1d.cxx -o l1d.o
 
 l_kernel.o  : $(SRC)/l_kernel.cxx $(SRC)/l_kernel.hh $(SRC)/l1d.hh $(LUA_INCLUDE_DIR)
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_kernel.cxx -o l_kernel.o
+
+l_tube.o  : $(SRC)/l_tube.cxx $(SRC)/l_tube.hh $(SRC)/l1d.hh $(LUA_INCLUDE_DIR)
+	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_tube.cxx -o l_tube.o
 
 l_bc.o    : $(SRC)/l_bc.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) $(SRC)/l_misc.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_bc.cxx -o l_bc.o
@@ -287,12 +286,8 @@ l_rivp.o  : $(SRC)/l_rivp.cxx $(SRC)/l1d.hh $(NM_SRC)/qd_power.h  $(LUA_INCLUDE_
 roberts.o : $(NM_SRC)/roberts.c $(NM_SRC)/roberts.h
 	$(COMPILE) $(CFLAG) $(NM_SRC)/roberts.c -o roberts.o
 
-l_prep.o  : $(SRC)/l_prep.cxx $(SRC)/l1d.hh $(NM_SRC)/roberts.h $(LUA_INCLUDE_DIR) \
-	$(SRC)/l_io.hh $(SRC)/l_tstep.hh $(SRC)/l_misc.hh
-	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_prep.cxx -o l_prep.o
-
 l_post.o  : $(SRC)/l_post.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) \
-	$(SRC)/l_io.hh
+	$(SRC)/l_io.hh $(SRC)/l_tube.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_post.cxx -o l_post.o
 
 l_hist.o  : $(SRC)/l_hist.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR)

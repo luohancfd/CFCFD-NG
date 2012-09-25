@@ -15,6 +15,7 @@
 #include <valarray>
 #include "../../../lib/util/source/useful.h"
 #include "l_kernel.hh"
+#include "l_tube.hh"
 #include "l1d.hh"
 
 /*=================================================================*/
@@ -563,7 +564,7 @@ int L_fill_data(struct slug_data *A)
 
 /*-------------------------------------------------------*/
 
-int L_compute_areas(struct slug_data *A, struct tube_data *tube)
+int L_compute_areas(struct slug_data *A, TubeModel *tube)
 {
     /*
      * Purpose...
@@ -643,7 +644,7 @@ int L_compute_areas(struct slug_data *A, struct tube_data *tube)
         }   /* end if */
     }   /* end for */
 
-    return 0;
+    return SUCCESS;
 }   /* end function L_compute_areas */
 
 /*-----------------------------------------------------------------*/

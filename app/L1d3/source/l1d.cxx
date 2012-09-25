@@ -51,8 +51,12 @@
 #include <unistd.h>
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/util/source/config_parser.hh"
+extern "C" {
+#   include "../../../lib/nm/source/roberts.h"
+}
 #include "l_kernel.hh"
 #include "l1d.hh"
+#include "l_tube.hh"
 #include "l_adapt.hh"
 #include "l_bc.hh"
 #include "l_io.hh"
@@ -70,7 +74,6 @@ int main(int argc, char **argv)
     std::vector<piston_data> Pist;          /* room for several pistons */
     std::vector<diaphragm_data> Diaph;      /* diaphragms            */
     struct diaphragm_data *dp;
-    static struct tube_data tube;        /* The area specification   */
     int step, print_count;             /* global iteration count     */
     int adjust_end_cell_count;
     double filter_start_time;          /* start end-cell adjustment after this time */
@@ -86,22 +89,17 @@ int main(int argc, char **argv)
     int newly_adapted;
     double max_piston_V[10];
     int max_piston_V_past[10];
-
-    char pname[40], iname[40], aname[40], oname[40];
-    char hname1[40], hname2[40], base_file_name[32];
+    char base_file_name[32];
     FILE *infile,                    /* beginning flow state         */
-        *areafile,                   /* tube area specification      */
         *outfile,                    /* computed solution            */
         *hisfile1,                   /* single cell history          */
         *hisfile2;                   /* x-location  history          */
-    char efname[40];                 /* event file name              */
-
     int left_slug, right_slug, end_id;
     int left_slug_end, right_slug_end;
     double pressure, left_p, right_p, end_dx;
     int bc, piston_id, other_slug;
     int echo_input;
-
+    int prepare_only;
     int i, command_line_error;
     int attempt_number, step_failed, bad_cells;
     char msg_string[256];
@@ -122,6 +120,7 @@ int main(int argc, char **argv)
     adaptive_count = 5; /* Adapt cells occasionally  */
     adjust_end_cell_count = 50; /* Relax the properties in the end cells */
     filter_start_time = -1.0; /* But don't do it unless instructed to do so. */
+    prepare_only = 0; // By default, run a simulation.
 
     // Decode command line arguments.
     command_line_error = 0;
@@ -146,6 +145,10 @@ int main(int argc, char **argv)
             echo_input = 1;
             i++;
             printf("Will echo input parameters...\n");
+        } else if (strcmp(argv[i], "-prep") == 0) {
+	    prepare_only = 1;
+            i++;
+            printf("Will prepare initial solution files only.\n");
         } else if (strcmp(argv[i], "-print_count") == 0) {
             /* Set the interval between writing log text. */
             i++;
@@ -208,58 +211,111 @@ int main(int argc, char **argv)
         printf("-adaptive_count <n>       (%d)\n", adaptive_count);
         printf("-filter_start_time <t>    (%f) negative == None\n", filter_start_time);
         printf("-echo                     (no echo)\n");
+        printf("-prep                     (run)\n");
         printf("-help          (print this message)\n");
         exit(1);
     } // end if command_line_error
 
     // Build the file names.
-    strcpy(pname, base_file_name); strcat(pname, ".Lp");
-    strcpy(aname, base_file_name); strcat(aname, ".La");
-    strcpy(iname, base_file_name); strcat(iname, ".L0");
-    strcpy(oname, base_file_name); strcat(oname, ".Ls");
-    strcpy(hname1, base_file_name); strcat(hname1, ".hc");
-    strcpy(hname2, base_file_name); strcat(hname2, ".hx");
-    strcpy(efname, base_file_name); strcat(efname, ".event");
-    printf("\n");
-    printf("parameterfile: %s\n", pname);
-    printf("infile       : %s\n", iname);
-    printf("areafile     : %s\n", aname);
-    printf("outfile      : %s\n", oname);
-    printf("hisfile1     : %s\n", hname1);
-    printf("hisfile2     : %s\n", hname2);
-    printf("event file   : %s\n", efname);
+    string pname = string(base_file_name) + ".Lp";
+    string iname = string(base_file_name) + ".L0";
+    string aname = string(base_file_name) + ".La";
+    string oname = string(base_file_name) + ".Ls";
+    string hname1 = string(base_file_name) + ".hc";
+    string hname2 = string(base_file_name) + ".hx";
+    string efname = string(base_file_name) + ".event";
+    string dname = string(base_file_name) + ".dump";
 
     // Pick up the problem description data from the parameter (INI) file.
     ConfigParser parameterdict = ConfigParser(pname);
-    L_set_case_parameters(&SD, &tube, parameterdict, echo_input);
+    L_set_case_parameters(&SD, parameterdict, echo_input);
+    TubeModel tube = TubeModel(pname, echo_input);
     A.resize(SD.nslug);
     Pist.resize(SD.npiston);
     Diaph.resize(SD.ndiaphragm);
-    for (jp = 0; jp < SD.npiston; ++jp)
+    for (jp = 0; jp < SD.npiston; ++jp) {
         set_piston_parameters(&(Pist[jp]), jp, parameterdict, SD.dt_init, echo_input);
+        Pist[jp].sim_time = 0.0;
+    }
     for (jd = 0; jd < SD.ndiaphragm; ++jd) {
         set_diaphragm_parameters(&(Diaph[jd]), jd, parameterdict, echo_input);
-    } // end for
+        Diaph[jd].sim_time = 0.0;
+    }
     SD.hncell = 0;
     for (js = 0; js < SD.nslug; ++js) {
         L_set_slug_parameters(&(A[js]), js, &SD, parameterdict, echo_input);
         SD.hncell += A[js].hncell;
-    } // end for
-
+        A[js].sim_time = 0.0;
+    }
     Gas_model *gmodel = get_gas_model_ptr();
     int nsp = gmodel->get_number_of_species();
     int nmodes = gmodel->get_number_of_modes();
 
-    // Pick up the initial data that was previously generated.
-    if ((areafile = fopen(aname, "r")) == NULL) {
-        printf("\nCould not open %s; BAILING OUT\n", aname);
-        exit(1);
+    if ( prepare_only ) {
+	double x[11000]; 
+	// Not that we have made a guess for the required size; 
+	// we should use a std::vector but x is used in the call 
+	// to distribute_points().
+	double beta1, beta2;
+	printf("Prepare initial solution files only.\n");
+	printf("Set up gas slugs.\n");
+	for (js = 0; js < SD.nslug; ++js) {
+	    /*
+	     * Distribute the gas cells along the gas slug.
+	     * Modified to suit sm_3d stretching functions.
+	     */
+	    if ( A[js].cluster_to_end_1 == 1 ) {
+		beta1 = A[js].cluster_strength;
+	    } else {
+		beta1 = 0.0;
+	    }
+	    if ( A[js].cluster_to_end_2 == 1 ) {
+		beta2 = A[js].cluster_strength;
+	    } else {
+		beta2 = 0.0;
+	    }
+	    // FIX-ME: one day, it will be good to use a vector for x
+	    // such that its size can be adjested as needed.
+	    distribute_points(A[js].xbegin, A[js].xend, A[js].nnx, x, beta1, beta2); 
+	    int i = 0;
+	    for ( int ix = A[js].ixmin-1; ix <= A[js].ixmax; ++ix) {
+		A[js].Cell[ix].x = x[i];
+		++i;
+	    }   /* end for */
+	    /* Compute the areas at the cell interfaces. */
+	    L_compute_areas(&(A[js]), &tube);
+	    /* Fill each slug with uniform initial conditions. */
+	    L_fill_data(&(A[js]));
+	    L_encode_conserved(&(A[js]));
+	    /* 
+	     * The following line should fill in all of the 
+	     * extra variables.
+	     */
+	    if ( L_decode_conserved(&(A[js])) != 0 ) {
+		printf( "Failure decoding conserved quantities for slug[%d].\n", js );
+		exit( -1 );
+	    }
+	}   /* end for js... */
+	tube.write_area(aname);
+	tube.write_dump_file(dname);
+	printf("Write starting solution file.\n");
+	if ((outfile = fopen(iname.c_str(), "w")) == NULL) {
+	    printf("\nCould not open %s; BAILING OUT\n", oname.c_str());
+	    return FAILURE;
+	}
+	for (jp = 0; jp < SD.npiston; ++jp)
+	    write_piston_solution(&(Pist[jp]), outfile);
+	for (jd = 0; jd < SD.ndiaphragm; ++jd)
+	    write_diaphragm_solution(&(Diaph[jd]), outfile);
+	for (js = 0; js < SD.nslug; ++js)
+	    L_write_solution(&(A[js]), outfile);
+	if (outfile != NULL) fclose(outfile);
+	return SUCCESS;
     }
-    L_read_area(&tube, areafile);
-    fclose(areafile);
 
-    if ((infile = fopen(iname, "r")) == NULL) {
-        printf("\nCould not open %s; BAILING OUT\n", iname);
+    // Pick up the initial data that was previously generated.
+    if ((infile = fopen(iname.c_str(), "r")) == NULL) {
+        printf("\nCould not open %s; BAILING OUT\n", iname.c_str());
         exit(1);
     }
     for (jp = 0; jp < SD.npiston; ++jp)
@@ -291,17 +347,17 @@ int main(int argc, char **argv)
     }
 
     // Open output files to catch flow and history data.
-    if ((outfile = fopen(oname, "w")) == NULL) {
-        printf("\nCould not open %s; BAILING OUT\n", oname);
-        exit(1);
+    if ((outfile = fopen(oname.c_str(), "w")) == NULL) {
+        printf("\nCould not open %s; BAILING OUT\n", oname.c_str());
+        return FAILURE;
     }
-    if ((hisfile1 = fopen(hname1, "w")) == NULL) {
-        printf("\nCould not open %s; BAILING OUT\n", hname1);
-        exit(1);
+    if ((hisfile1 = fopen(hname1.c_str(), "w")) == NULL) {
+        printf("\nCould not open %s; BAILING OUT\n", hname1.c_str());
+        return FAILURE;
     }
-    if ((hisfile2 = fopen(hname2, "w")) == NULL) {
-        printf("\nCould not open %s; BAILING OUT\n", hname2);
-        exit(1);
+    if ((hisfile2 = fopen(hname2.c_str(), "w")) == NULL) {
+        printf("\nCould not open %s; BAILING OUT\n", hname2.c_str());
+        return FAILURE;
     }
 
     newly_adapted = 0;
@@ -319,7 +375,7 @@ int main(int argc, char **argv)
     fflush(stdout);
     sprintf( msg_string, "\nStart time stepping... " );
     strcat( msg_string, "\n" );
-    log_event( efname, msg_string );
+    log_event( efname.c_str(), msg_string );
 
     while (SD.sim_time <= SD.max_time && step <= SD.max_step && halt_now == 0) {
 
@@ -451,8 +507,8 @@ int main(int argc, char **argv)
                     sprintf( msg_string,
                              "\nEvent: diaphragm[%d] trigger at t= %e\n",
                              jd, SD.sim_time );
-                    log_event( efname, msg_string );
-		    print_simulation_status(NULL, efname, step, &SD, A, Diaph, Pist,
+                    log_event( efname.c_str(), msg_string );
+		    print_simulation_status(NULL, efname.c_str(), step, &SD, A, Diaph, Pist,
 					    cfl_max, cfl_tiny, time_tiny);
                 }
 
@@ -462,8 +518,8 @@ int main(int argc, char **argv)
                     dp->is_burst = 1;
                     sprintf( msg_string, "\nEvent: diaphragm[%d] rupture at t= %e\n",
                              jd, SD.sim_time );
-                    log_event( efname, msg_string );
-		    print_simulation_status(NULL, efname, step, &SD, A, Diaph, Pist,
+                    log_event( efname.c_str(), msg_string );
+		    print_simulation_status(NULL, efname.c_str(), step, &SD, A, Diaph, Pist,
 					    cfl_max, cfl_tiny, time_tiny);
                 } // end if dp->trigger_time >= 0.0 &&...
             } else {
@@ -484,8 +540,8 @@ int main(int argc, char **argv)
                     sprintf( msg_string,
                              "\nEvent: blend slugs [%d] and [%d] at t= %e\n",
                              dp->left_slug_id, dp->right_slug_id, SD.sim_time );
-                    log_event( efname, msg_string );
-		    print_simulation_status( NULL, efname, step, &SD, A, Diaph, Pist,
+                    log_event( efname.c_str(), msg_string );
+		    print_simulation_status( NULL, efname.c_str(), step, &SD, A, Diaph, Pist,
 				  cfl_max, cfl_tiny, time_tiny );
 		}
             } // end if dp->is_burst == 0 ... else ...
@@ -839,8 +895,8 @@ int main(int argc, char **argv)
                 sprintf( msg_string,
                          "\nEvent: piston[%d] reversal at t= %e x= %e\n",
                          jp, SD.sim_time, Pist[jp].x );
-                log_event( efname, msg_string );
-		print_simulation_status(NULL, efname, step, &SD, A, Diaph, Pist,
+                log_event( efname.c_str(), msg_string );
+		print_simulation_status(NULL, efname.c_str(), step, &SD, A, Diaph, Pist,
 					cfl_max, cfl_tiny, time_tiny);
                 // After reversal, look for new maximum.
                 max_piston_V[jp] = 0.0;
@@ -851,8 +907,8 @@ int main(int argc, char **argv)
                 sprintf( msg_string,
                          "\nEvent: piston[%d] brakes on at t= %e x= %e\n",
                          jp, SD.sim_time, Pist[jp].x );
-                log_event( efname, msg_string );
-		print_simulation_status( NULL, efname, step, &SD, A, Diaph, Pist,
+                log_event( efname.c_str(), msg_string );
+		print_simulation_status( NULL, efname.c_str(), step, &SD, A, Diaph, Pist,
 			      cfl_max, cfl_tiny, time_tiny );
             } // end if piston brake applied
 
@@ -860,8 +916,8 @@ int main(int argc, char **argv)
                 sprintf( msg_string,
                          "\nEvent: piston[%d] released at t= %e x= %e\n",
                          jp, SD.sim_time, Pist[jp].x );
-                log_event( efname, msg_string );
-		print_simulation_status( NULL, efname, step, &SD, A, Diaph, Pist,
+                log_event( efname.c_str(), msg_string );
+		print_simulation_status( NULL, efname.c_str(), step, &SD, A, Diaph, Pist,
 			      cfl_max, cfl_tiny, time_tiny );
             } // end if piston released
 
@@ -873,8 +929,8 @@ int main(int argc, char **argv)
                 sprintf( msg_string, 
                          "\nEvent: piston[%d] peak speed at t= %e V= %e\n",
                          jp, SD.sim_time, Pist[jp].V );
-                log_event( efname, msg_string );
-		print_simulation_status( NULL, efname, step, &SD, A, Diaph, Pist,
+                log_event( efname.c_str(), msg_string );
+		print_simulation_status( NULL, efname.c_str(), step, &SD, A, Diaph, Pist,
 			      cfl_max, cfl_tiny, time_tiny );
             } // end if piston max speed
         } // end for jp...
@@ -898,8 +954,8 @@ int main(int argc, char **argv)
     // Conclusion
     // ----------
     BailOut:
-    log_event( efname, (char *)"\nEnd time stepping.\n" );
-    print_simulation_status(NULL, efname, step, &SD, A, Diaph, Pist,
+    log_event( efname.c_str(), (const char *)"\nEnd time stepping.\n" );
+    print_simulation_status(NULL, efname.c_str(), step, &SD, A, Diaph, Pist,
 			    cfl_max, cfl_tiny, time_tiny );
     printf("\nTotal number of steps = %d\n", step);
 

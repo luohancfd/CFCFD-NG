@@ -50,8 +50,6 @@ int main(int argc, char **argv)
     vector <slug_data> slug;    /* the slug data structure */
     vector <piston_data> Pist; /* room for several pistons */
     vector <diaphragm_data> Diaph;           /* diaphragms */
-    tube_data tube;             /* the tube area spec */
-
     FILE *infile,                    /* beginning flow state         */
         *areafile,                  /* specification of tube area   */
         *outfile;                   /* computed solution            */
@@ -60,17 +58,13 @@ int main(int argc, char **argv)
 
     int ix;
     double xx;
-    int iseg, found_segment;
     double x[11000]; 
     // Not that we have made a guess for the required size; 
     // we should use a std::vector but x is used in the call 
     // to distribute_points().
     double beta1, beta2;
-    double real_x, alpha2, alpha3;
-    double K_over_L, T_Wall;
     int i, command_line_error;
     int echo_input;
-    const double myPI = 4.0*atan(1.0);
 
     UNUSED_VARIABLE(infile);
 
@@ -79,13 +73,11 @@ int main(int argc, char **argv)
      * INITIALIZE
      * ----------
      */
-
     printf("\n");
     printf("--------------------------\n");
     printf("Lagrangian 1D Preprocessor\n");
     printf("--------------------------\n");
     printf("\n");
-
     strcpy(base_file_name, "default");
     echo_input = 0; /* by default, don't echo input */
 
@@ -158,7 +150,8 @@ int main(int argc, char **argv)
     printf("dump file    : %s\n", dname);
 
     ConfigParser parameterdict = ConfigParser(pname);
-    L_set_case_parameters(&SD, &tube, parameterdict, echo_input);
+    L_set_case_parameters(&SD, parameterdict, echo_input);
+    TubeModel tube = TubeModel(pname, echo_input);
     slug.resize(SD.nslug);
     Pist.resize(SD.npiston);
     Diaph.resize(SD.ndiaphragm);
@@ -174,90 +167,8 @@ int main(int argc, char **argv)
         L_set_slug_parameters(&(slug[js]), js, &SD, parameterdict, echo_input);
         slug[js].sim_time = 0.0;
     }
-    Gas_model *gmodel = get_gas_model_ptr();
-    int nsp = gmodel->get_number_of_species();
-
-    printf("Set tube area specification\n");
-    tube.diam.resize(tube.n);
-    tube.area.resize(tube.n);
-    tube.T_Wall.resize(tube.n);
-    tube.K_over_L.resize(tube.n);
-    tube.x1 = tube.xb[0];
-    tube.dx = (tube.xb[tube.nseg] - tube.xb[0]) / tube.n;
-    for (ix = 0; ix < tube.n; ++ix) {
-        real_x = tube.x1 + tube.dx * ix;
-
-        /*
-         * Locate the appropriate tube segment and interpolate area.
-         * Start the search from the left and stop when the xb[iseg]
-         * exceeds the given x-location.
-         */
-        found_segment = 0;
-        for (iseg = 0; iseg <= tube.nseg; ++iseg) {
-            if (real_x < tube.xb[iseg]) {
-                found_segment = 1;
-                /* on leaving this loop, iseg indicates the segment */
-                break;
-            }   /* end if */
-        }   /* end for iseg... */
-
-        if (iseg == 0) {
-            /* We are upstream of the tube. */
-            tube.diam[ix] = tube.Diamb[iseg];
-        } else if (found_segment == 0) {
-            /* We are downstream of the tube. */
-            tube.diam[ix] = tube.Diamb[tube.nseg];
-        } else {
-            /* We are between xb[iseg-1] and xb[iseg]. */
-            if (tube.linear[iseg - 1] == 1) {
-                /* Linear interpolation */
-                xx = (real_x - tube.xb[iseg - 1]) /
-                    (tube.xb[iseg] - tube.xb[iseg - 1]);
-                tube.diam[ix] = tube.Diamb[iseg - 1] * (1.0 - xx) +
-                    tube.Diamb[iseg] * xx;
-            } else {
-                /* Cubic interpolation to give dArea/dx == 0 at ends */
-                xx = (real_x - tube.xb[iseg - 1]) /
-                    (tube.xb[iseg] - tube.xb[iseg - 1]);
-                alpha2 = 3.0 * (tube.Diamb[iseg] - tube.Diamb[iseg - 1]);
-                alpha3 = -2.0 / 3.0 * alpha2;
-                tube.diam[ix] = tube.Diamb[iseg - 1] +
-                    (alpha2 + alpha3 * xx) * xx * xx;
-            }   /* end if */
-        }   /* end if */
-        tube.area[ix] = myPI * 0.25 * tube.diam[ix] * tube.diam[ix];
-
-        /*
-         * Pipe-fitting loss coefficients:
-         * Most of the tube is "smooth", so assume zero, then
-         * search the loss patches to see if we are within one.
-         */
-        K_over_L = 0.0;
-        for (iseg = 0; iseg < tube.nKL; ++iseg) {
-            if (real_x >= tube.xbeginK[iseg] && real_x <= tube.xendK[iseg]) {
-                K_over_L = tube.K[iseg] /
-                    (tube.xendK[iseg] - tube.xbeginK[iseg]);
-            }   /* end if */
-        }   /* end for iseg */
-        tube.K_over_L[ix] = K_over_L;
-
-        /*
-         * Local variations of wall temperature:
-         * Assume a nominal temperature then
-         * search the loss patches to see if we are within one.
-         */
-        T_Wall = tube.Tnominal;
-        for (iseg = 0; iseg < tube.nT; ++iseg) {
-            if (real_x >= tube.xbeginT[iseg] && real_x <= tube.xendT[iseg]) {
-                T_Wall = tube.Tlocal[iseg];
-            }   /* end if */
-        }   /* end for iseg */
-        tube.T_Wall[ix] = T_Wall;
-
-    }   /* end for ix... */
 
     printf("Set up gas slugs.\n");
-
     for (js = 0; js < SD.nslug; ++js) {
         /*
          * Distribute the gas cells along the gas slug.
@@ -296,19 +207,9 @@ int main(int argc, char **argv)
 	    exit( -1 );
         }
     }   /* end for js... */
-
-    printf("Write area file.\n");
-
-    if ((areafile = fopen(aname, "w")) == NULL) {
-        printf("\nCould not open %s; BAILING OUT\n", aname);
-        exit(1);
-    }   /* end if */
-    L_write_area(&tube, areafile);
-    if (areafile != NULL)
-        fclose(areafile);
-
+    tube.write_area(aname);
+    tube.write_dump_file(dname);
     printf("Write starting solution file.\n");
-
     if ((outfile = fopen(oname, "w")) == NULL) {
         printf("\nCould not open %s; BAILING OUT\n", oname);
         exit(1);
@@ -319,25 +220,9 @@ int main(int argc, char **argv)
         write_diaphragm_solution(&(Diaph[jd]), outfile);
     for (js = 0; js < SD.nslug; ++js)
         L_write_solution(&(slug[js]), outfile);
-    if (outfile != NULL)
-        fclose(outfile);
+    if (outfile != NULL) fclose(outfile);
 
-    printf("Writing dump file for ");
-    printf("diameter, area, L_over_L, T_wall...\n");
-
-    if ((dumpf = fopen(dname, "w")) == NULL) {
-        printf("Could not open %s.\n", dname);
-        exit(0);
-    }   /* end if */
-    fprintf(dumpf, "# x  diam  area  K_over_L  T_Wall\n");
-    for (ix = 0; ix < tube.n; ++ix) {
-        xx = tube.dx * ix + tube.x1;
-        fprintf(dumpf, "%e %e %e %e %e\n", xx, tube.diam[ix],
-                tube.area[ix], tube.K_over_L[ix], tube.T_Wall[ix]);
-    }   /* end for ix... */
-    fclose(dumpf);
-
-    return 0;
+    return SUCCESS;
 }   /* end of main() */
 
 /*===================== end of l_prep.c ======================*/

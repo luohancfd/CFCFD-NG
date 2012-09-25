@@ -48,7 +48,6 @@
 int main(int argc, char **argv)
 {
     struct simulation_data SD;
-    static struct tube_data tube;
     double tstart, tstop;
     int i, j, maxsol;
     int itype;  /* 0 = x-location histories   */
@@ -232,7 +231,7 @@ int main(int argc, char **argv)
 
     strcpy(pname, base_file_name); strcat(pname, ".Lp");
     ConfigParser parameterdict = ConfigParser(pname);
-    L_set_case_parameters(&SD, &tube, parameterdict, 0);
+    L_set_case_parameters(&SD, parameterdict, 0);
     Gas_model *gmodel = get_gas_model_ptr();
     int nsp = gmodel->get_number_of_species();
     int nmodes = gmodel->get_number_of_modes();

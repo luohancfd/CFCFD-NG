@@ -6,7 +6,7 @@
 # tube description (area) file (t4_7864.La).
 
 l_script.py -f t4_7864
-l_prep.exe -f t4_7864
+l1d.exe -f t4_7864 -prep
 
 # The simulation can now start at the initial (t=0) solution
 # and integrate the gas-dynamic (and piston-dynamic) equations

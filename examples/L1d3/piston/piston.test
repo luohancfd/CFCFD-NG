@@ -13,7 +13,7 @@ configure -verbose {start body error}
 
 test run-preprocessor {Run the preprocessing stage.} -body {
     exec l_script.py -f piston > LOGFILE_SCRIPT
-    exec l_prep.exe -f piston > LOGFILE_PREP
+    exec l1d.exe -f piston -prep > LOGFILE_PREP
 } -result {} -returnCodes {0}
 
 test run-simulation {Run the L1d3 simulation code.} -body {

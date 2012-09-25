@@ -30,7 +30,6 @@ int main(int argc, char **argv)
 {
     struct simulation_data SD;
     int js, jp, jd;
-    static struct tube_data tube;
     std::vector<slug_data> A;               /* several gas slugs        */
     std::vector<piston_data> Pist;          /* room for several pistons */
     std::vector<diaphragm_data> Diaph;      /* diaphragms            */
@@ -149,7 +148,7 @@ int main(int argc, char **argv)
     strcpy(pname, base_file_name);
     strcat(pname, ".Lp");
     ConfigParser parameterdict = ConfigParser(pname);
-    L_set_case_parameters(&SD, &tube, parameterdict, echo_input);
+    L_set_case_parameters(&SD, parameterdict, echo_input);
     A.resize(SD.nslug);
     Pist.resize(SD.npiston);
     Diaph.resize(SD.ndiaphragm);

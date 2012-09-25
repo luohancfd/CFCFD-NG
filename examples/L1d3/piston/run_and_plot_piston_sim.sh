@@ -13,7 +13,7 @@
 # tube description (area) file (piston.La).
 
 l_script.py -f piston
-l_prep.exe -f piston
+l1d.exe -f piston -prep
 
 # The simulation can now start at the initial (t=0) solution
 # and integrate the gas-dynamic (and piston-dynamic) equations
