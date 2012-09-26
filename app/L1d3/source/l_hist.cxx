@@ -10,18 +10,6 @@
  * \author PA Jacobs
  *
  * \version 1.0  13-Jan-92
- * \version 1.1  24-Jan-92, minimum time as well as max time
- * \version 1.2  24-Mar-92, enthalpy computed and written out
- * \version 2.0  21-Apr-93, Added individual cell histories
- * \version 2.01 22-Apr-93, Fixed reading of cell histories
- * \version 3.0  20-Aug-94, Now reads shear_stress and heat_flux
- * \version 4.0  30-Mar-95, Added entropy
- * \version 4.1  10-Apr-98, Linux version, GNUPlot output, 
- *                 more robust input to cope with -Inf entropy
- * \version 4.2  14-Apr-98, command-line options, 
- *                 new format for cell history
- * \version 4.3  22-Apr-98, read cell/x-loc count from history files
- * \version      24-Jul-06 C++ port.
  */
 
 /*-----------------------------------------------------------------*/
@@ -31,7 +19,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../../../lib/util/source/useful.h"
-#include "../../../lib/util/source/config_parser.hh"
 #include "l1d.hh"
 #include "l_kernel.hh"
 #include "l_io.hh"
@@ -47,7 +34,6 @@
 
 int main(int argc, char **argv)
 {
-    struct simulation_data SD;
     double tstart, tstop;
     int i, j, maxsol;
     int itype;  /* 0 = x-location histories   */
@@ -230,8 +216,7 @@ int main(int argc, char **argv)
     }   /* end if command_line_error */
 
     strcpy(pname, base_file_name); strcat(pname, ".Lp");
-    ConfigParser parameterdict = ConfigParser(pname);
-    L_set_case_parameters(&SD, parameterdict, 0);
+    SimulationData SD = SimulationData(pname, 0);
     Gas_model *gmodel = get_gas_model_ptr();
     int nsp = gmodel->get_number_of_species();
     int nmodes = gmodel->get_number_of_modes();

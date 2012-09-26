@@ -93,40 +93,6 @@
  */
 #define NL 2
 
-/*
- * -----------------------------
- * Simulation-control parameters
- * -----------------------------
- */
-struct simulation_data
-{
-    int test_case;
-    int nslug;          /* number of gas slugs        */
-    int npiston;        /* number of pistons          */
-    int ndiaphragm;     /* number of diaphragms       */
-
-    int max_step;       /* global iteration limit     */
-    double sim_time;    /* present simulation time    */
-    double max_time;    /* final solution time, s     */
-    double dt_init;     /* initial time step          */
-    double dt_global;   /* simulation time step       */
-    double dt_allow;    /* allowable global time step */
-    double CFL;         /* target CFL (worst case)    */
-    int Torder;         /* order of time-stepping     */
-    int Xorder;         /* order of reconstruction    */
-    int fr_chem;        /* flag to activate finite-rate chemistry */
-    double k;           /* "thermal conductivity" for */
-                        /* damping temperature glitch */
-
-    int n_dt_plot;      /* number changes in plot intervals */
-    std::vector<double> t_change; /* times at which dt_plot changes */
-    std::vector<double> dt_plot; /* interval for writing soln  */
-    std::vector<double> dt_his;  /* interval for writing sample */
-    int hnloc;          /* number of history locations */
-    std::vector<double> hxloc;   /* history locations          */
-    int hncell;         /* history cell count (all slugs) */
-};  /* end struct global_data */
-
 
 // Gas states at the interfaces.
 // This is used for interfacing to the Riemann solver.

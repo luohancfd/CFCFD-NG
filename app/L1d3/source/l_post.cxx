@@ -50,7 +50,6 @@ int take_log_p(std::vector<slug_data> &A, int nslug);
 
 int main(int argc, char **argv)
 {
-    struct simulation_data SD;
     int js, jp, jd;
     std::vector<slug_data> A;         /* several gas slugs        */
     std::vector<PistonData> Pist;     /* room for several pistons */
@@ -189,10 +188,8 @@ int main(int argc, char **argv)
     strcpy(pname, base_file_name);
     strcat(pname, ".Lp");
     printf("parameterfile: %s\n", pname);
-    ConfigParser parameterdict = ConfigParser(pname);
-    L_set_case_parameters(&SD, parameterdict, echo_input);
+    SimulationData SD = SimulationData(pname, echo_input);
     TubeModel tube = TubeModel(pname, echo_input);
-    A.resize(SD.nslug);
     for (jp = 0; jp < SD.npiston; ++jp) {
         Pist.push_back(PistonData(jp, SD.dt_init, pname, echo_input));
         Pist[jp].sim_time = 0.0;
@@ -201,8 +198,10 @@ int main(int argc, char **argv)
         Diaph.push_back(DiaphragmData(jd, pname, echo_input));
         Diaph[jd].sim_time = 0.0;
     }
+    ConfigParser parameterdict = ConfigParser(pname);
+    A.resize(SD.nslug);
     for (js = 0; js < SD.nslug; ++js) {
-        L_set_slug_parameters(&(A[js]), js, &SD, parameterdict, echo_input);
+        L_set_slug_parameters(&(A[js]), js, SD, parameterdict, echo_input);
         A[js].sim_time = 0.0;
     }   /* end for */
     Gas_model *gmodel = get_gas_model_ptr();

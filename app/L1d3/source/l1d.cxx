@@ -70,7 +70,6 @@ extern "C" {
 
 int main(int argc, char **argv)
 {
-    struct simulation_data SD;
     int js, jp, jd;                    /* slug, piston, diaphragm index */
     std::vector<slug_data> A;               /* several gas slugs        */
     std::vector<PistonData> Pist;          /* room for several pistons */
@@ -112,7 +111,6 @@ int main(int argc, char **argv)
     printf("\n\n");
 
     // Initialise and set defaults.
-    SD.sim_time = 0.0;  /* Global simulation time */
     cfl_tiny = 1.0; /* Smallest CFL so far    */
     time_tiny = 1.0e6;
     strcpy(base_file_name, "default");
@@ -229,8 +227,8 @@ int main(int argc, char **argv)
     string dname = string(base_file_name) + ".dump";
 
     // Pick up the problem description data from the parameter (INI) file.
-    ConfigParser parameterdict = ConfigParser(pname);
-    L_set_case_parameters(&SD, parameterdict, echo_input);
+    SimulationData SD = SimulationData(pname, echo_input);
+    SD.sim_time = 0.0;  /* Global simulation time */
     TubeModel tube = TubeModel(pname, echo_input);
     A.resize(SD.nslug);
     for (jp = 0; jp < SD.npiston; ++jp) {
@@ -242,8 +240,9 @@ int main(int argc, char **argv)
         Diaph[jd].sim_time = 0.0;
     }
     SD.hncell = 0;
+    ConfigParser parameterdict = ConfigParser(pname);
     for (js = 0; js < SD.nslug; ++js) {
-        L_set_slug_parameters(&(A[js]), js, &SD, parameterdict, echo_input);
+        L_set_slug_parameters(&(A[js]), js, SD, parameterdict, echo_input);
         SD.hncell += A[js].hncell;
         A[js].sim_time = 0.0;
     }
@@ -448,7 +447,7 @@ int main(int argc, char **argv)
             printf("\n");
             printf("-------- Wall-Clock seconds = %d --------\n",
                    (int)(now - start) );
-            print_simulation_status(stdout, NULL, step, &SD, A, Diaph, Pist,
+            print_simulation_status(stdout, NULL, step, SD, A, Diaph, Pist,
 				    cfl_max, cfl_tiny, time_tiny);
             fflush(stdout); // make it appear now
         }
@@ -504,7 +503,7 @@ int main(int argc, char **argv)
                              "\nEvent: diaphragm[%d] trigger at t= %e\n",
                              jd, SD.sim_time );
                     log_event( efname.c_str(), msg_string );
-		    print_simulation_status(NULL, efname.c_str(), step, &SD, A, Diaph, Pist,
+		    print_simulation_status(NULL, efname.c_str(), step, SD, A, Diaph, Pist,
 					    cfl_max, cfl_tiny, time_tiny);
                 }
 
@@ -515,7 +514,7 @@ int main(int argc, char **argv)
                     sprintf( msg_string, "\nEvent: diaphragm[%d] rupture at t= %e\n",
                              jd, SD.sim_time );
                     log_event( efname.c_str(), msg_string );
-		    print_simulation_status(NULL, efname.c_str(), step, &SD, A, Diaph, Pist,
+		    print_simulation_status(NULL, efname.c_str(), step, SD, A, Diaph, Pist,
 					    cfl_max, cfl_tiny, time_tiny);
                 } // end if dp->trigger_time >= 0.0 &&...
             } else {
@@ -537,7 +536,7 @@ int main(int argc, char **argv)
                              "\nEvent: blend slugs [%d] and [%d] at t= %e\n",
                              dp->left_slug_id, dp->right_slug_id, SD.sim_time );
                     log_event( efname.c_str(), msg_string );
-		    print_simulation_status( NULL, efname.c_str(), step, &SD, A, Diaph, Pist,
+		    print_simulation_status( NULL, efname.c_str(), step, SD, A, Diaph, Pist,
 				  cfl_max, cfl_tiny, time_tiny );
 		}
             } // end if dp->is_burst == 0 ... else ...
@@ -887,7 +886,7 @@ int main(int argc, char **argv)
                          "\nEvent: piston[%d] reversal at t= %e x= %e\n",
                          jp, SD.sim_time, Pist[jp].x );
                 log_event( efname.c_str(), msg_string );
-		print_simulation_status(NULL, efname.c_str(), step, &SD, A, Diaph, Pist,
+		print_simulation_status(NULL, efname.c_str(), step, SD, A, Diaph, Pist,
 					cfl_max, cfl_tiny, time_tiny);
                 // After reversal, look for new maximum.
                 max_piston_V[jp] = 0.0;
@@ -899,7 +898,7 @@ int main(int argc, char **argv)
                          "\nEvent: piston[%d] brakes on at t= %e x= %e\n",
                          jp, SD.sim_time, Pist[jp].x );
                 log_event( efname.c_str(), msg_string );
-		print_simulation_status( NULL, efname.c_str(), step, &SD, A, Diaph, Pist,
+		print_simulation_status( NULL, efname.c_str(), step, SD, A, Diaph, Pist,
 			      cfl_max, cfl_tiny, time_tiny );
             } // end if piston brake applied
 
@@ -908,7 +907,7 @@ int main(int argc, char **argv)
                          "\nEvent: piston[%d] released at t= %e x= %e\n",
                          jp, SD.sim_time, Pist[jp].x );
                 log_event( efname.c_str(), msg_string );
-		print_simulation_status( NULL, efname.c_str(), step, &SD, A, Diaph, Pist,
+		print_simulation_status( NULL, efname.c_str(), step, SD, A, Diaph, Pist,
 			      cfl_max, cfl_tiny, time_tiny );
             } // end if piston released
 
@@ -921,7 +920,7 @@ int main(int argc, char **argv)
                          "\nEvent: piston[%d] peak speed at t= %e V= %e\n",
                          jp, SD.sim_time, Pist[jp].V );
                 log_event( efname.c_str(), msg_string );
-		print_simulation_status( NULL, efname.c_str(), step, &SD, A, Diaph, Pist,
+		print_simulation_status( NULL, efname.c_str(), step, SD, A, Diaph, Pist,
 			      cfl_max, cfl_tiny, time_tiny );
             } // end if piston max speed
         } // end for jp...
@@ -946,7 +945,7 @@ int main(int argc, char **argv)
     // ----------
     BailOut:
     log_event( efname.c_str(), (const char *)"\nEnd time stepping.\n" );
-    print_simulation_status(NULL, efname.c_str(), step, &SD, A, Diaph, Pist,
+    print_simulation_status(NULL, efname.c_str(), step, SD, A, Diaph, Pist,
 			    cfl_max, cfl_tiny, time_tiny );
     printf("\nTotal number of steps = %d\n", step);
 

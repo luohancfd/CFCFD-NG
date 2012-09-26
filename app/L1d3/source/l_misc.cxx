@@ -20,16 +20,6 @@
 
 /*=================================================================*/
 
-int L_case_id = 0;
-
-void L_set_case_id( int id ) {
-    L_case_id = id;
-}
-
-int L_get_case_id( void ) {
-    return L_case_id;
-}
-
 /// \brief Allocate for the internal arrays of the gas slug. 
 int L_alloc(struct slug_data *A)
 {
@@ -781,7 +771,7 @@ int total_energy(struct slug_data *A, double *E_tot)
 
 /*------------------------------------------------------------*/
 
-double L_get_dt_plot( struct simulation_data *SD ) 
+double L_get_dt_plot(SimulationData *SD) 
 {
     int i;
     double dt_plot;
@@ -794,7 +784,7 @@ double L_get_dt_plot( struct simulation_data *SD )
     return dt_plot;
 }   /* end L_get_dt_plot() */
 
-double L_get_dt_history( struct simulation_data *SD ) 
+double L_get_dt_history(SimulationData *SD) 
 {
     int i;
     double dt_his;

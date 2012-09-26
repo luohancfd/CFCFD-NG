@@ -3,10 +3,9 @@
 #ifndef L_MISC_HH
 #define L_MISC_HH
 
+#include "l_kernel.hh"
 #include "l_tube.hh"
 
-void L_set_case_id(int id);
-int L_get_case_id(void);
 int L_alloc(struct slug_data *A);
 void L_free(struct slug_data *A);
 int L_set_index_range(struct slug_data *A);
@@ -27,7 +26,7 @@ int L_compute_areas(struct slug_data *A, TubeModel *tube);
 int L_dump_cell(struct slug_data *A, int ix);
 int maximum_p(struct slug_data *A, double *p_max, double *x_max);
 int total_energy(struct slug_data *A, double *E_tot);
-double L_get_dt_plot(struct simulation_data *SD);
-double L_get_dt_history(struct simulation_data *SD);
+double L_get_dt_plot(SimulationData *SD);
+double L_get_dt_history(SimulationData *SD);
 
 #endif

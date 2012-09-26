@@ -1,19 +1,7 @@
 /** \file l_io.cxx
  * \ingroup l1d3
  * \brief I/O functions for l1d.c.
- *
- * \version 30-Mar-95 : added entropy to the input and output routines
- * \version 17-Aug-95 : ANSI Compiler version
- * \version 05-Apr-98 : generalise input
- * \version 22-Apr-98 : echo_input parameter added to functions that read
- *             parameter file
- * \version 19-Jan-98 : Change state variable input to p & T (from rho & e)
- *             Keep tube diameters as well as areas.
- * \version 04-Jun-00 : Adaptivity added.
- * \version 24-Jul-06 : C++ port
  */
-
-/*-----------------------------------------------------------------*/
 
 #include <stdio.h>
 #include <math.h>
@@ -33,11 +21,10 @@
 #include "l_misc.hh"
 using namespace std;
 
-/*=================================================================*/
 
-int print_simulation_status(FILE *strm, const char* efname, int step, simulation_data *SD,
-			    vector<slug_data> &A, vector<DiaphragmData> &Diaph,
-			    vector<PistonData> &Pist, double cfl_max, 
+int print_simulation_status(FILE *strm, const char* efname, int step, SimulationData& SD,
+			    vector<slug_data>& A, vector<DiaphragmData>& Diaph,
+			    vector<PistonData>& Pist, double cfl_max, 
 			    double cfl_tiny, double time_tiny) {
     /*
      * Print the simulation status to the specified stream.
@@ -63,9 +50,9 @@ int print_simulation_status(FILE *strm, const char* efname, int step, simulation
     if ( strm != NULL ) {
 	sprintf( msg_string,
 		 "Step= %7d, time= %e, dt= %10.3e, CFL= %10.3e\n",
-                 step, SD->sim_time, SD->dt_global, cfl_max);
+                 step, SD.sim_time, SD.dt_global, cfl_max);
 	fputs( msg_string, strm );
-	for (js = 0; js < SD->nslug; ++js) {
+	for (js = 0; js < SD.nslug; ++js) {
 	    maximum_p(&A[js], &p_max, &x_max);
 	    total_energy(&A[js], &E_tot);
 	    sprintf( msg_string,
@@ -73,12 +60,12 @@ int print_simulation_status(FILE *strm, const char* efname, int step, simulation
 		     js, p_max, x_max, E_tot, A[js].dt_allow, A[js].nnx);
 	    fputs( msg_string, strm );
 	}
-	for (jd = 0; jd < SD->ndiaphragm; ++jd) {
+	for (jd = 0; jd < SD.ndiaphragm; ++jd) {
 	    sprintf( msg_string, "Diaph[%d].is_burst = %d, trigger_time = %e\n",
 		     jd, Diaph[jd].is_burst, Diaph[jd].trigger_time);
 	    fputs( msg_string, strm );
         }
-	for (jp = 0; jp < SD->npiston; ++jp) {
+	for (jp = 0; jp < SD.npiston; ++jp) {
 	    sprintf( msg_string, "Piston %d: flags=%d%d%d",
 		     jp, Pist[jp].is_restrain, Pist[jp].on_buffer,
 		     Pist[jp].brakes_on);
@@ -117,84 +104,9 @@ int log_event(const char *efname, const char* event_message ) {
     return SUCCESS;
 }
 
-/*=================================================================*/
-
-int L_set_case_parameters(simulation_data *SD, ConfigParser &dict, int echo_input)
-{
-    string reaction_scheme_file, gas_model_file;
-    if (echo_input == 1) cout << endl << "Reading global_data..." << endl;
-
-    dict.parse_int("global_data", "case_id", SD->test_case, 0);
-    L_set_case_id( SD->test_case );
-    dict.parse_string("global_data", "gas_model_file", gas_model_file, "gas-model.lua");
-    Gas_model *gmodel = set_gas_model_ptr(create_gas_model(gas_model_file));
-    dict.parse_string("global_data", "reaction_scheme_file", reaction_scheme_file, "None");
-    dict.parse_int("global_data", "reacting_flag", SD->fr_chem, 0);
-    if( SD->fr_chem ) set_reaction_update( reaction_scheme_file );
-    if (echo_input == 1) {
-	cout << "    test_case_id = " << SD->test_case << endl;
-	cout << "    gas_model_file = " << gas_model_file << endl;
-	cout << "    nsp = " << gmodel->get_number_of_species() << endl;
-	cout << "    nmodes = " << gmodel->get_number_of_modes() << endl;
-	cout << "    reacting_flag = " << SD->fr_chem << endl;
-	cout << "    reaction_scheme_file = " << reaction_scheme_file << endl;
-    }
-    dict.parse_int("global_data", "nslug", SD->nslug, 0);
-    dict.parse_int("global_data", "npiston", SD->npiston, 0);
-    dict.parse_int("global_data", "ndiaphragm", SD->ndiaphragm, 0);
-    if (echo_input == 1) {
-	cout << "    nslug = " << SD->nslug << endl;
-	cout << "    npiston = " << SD->npiston << endl;
-	cout << "    ndiaphragm = " << SD->ndiaphragm << endl;
-    }
-    dict.parse_double("global_data", "max_time", SD->max_time, 1.0e-3);
-    dict.parse_int("global_data", "max_step", SD->max_step, 100);
-    dict.parse_double("global_data", "dt_init", SD->dt_init, 1.0e-9);
-    dict.parse_double("global_data", "cfl", SD->CFL, 0.5);
-    dict.parse_int("global_data", "x_order", SD->Xorder, 2);
-    dict.parse_int("global_data", "t_order", SD->Torder, 2);
-    dict.parse_double("global_data", "thermal_damping", SD->k, 0.0);
-    if (echo_input == 1) {
-	cout << "    max_time = " << SD->max_time << endl;
-	cout << "    max_step = " << SD->max_step << endl;
-	cout << "    dt_init = " << SD->dt_init << endl;
-	cout << "    cfl = " << SD->CFL << endl;
-	cout << "    x_order = " << SD->Xorder << endl;
-	cout << "    t_order = " << SD->Torder << endl;
-	cout << "    thermal_damping = " << SD->k << endl;
-    }
-    dict.parse_int("global_data", "n_dt_plot", SD->n_dt_plot, 0);
-    std::vector<double> vdbl, vdbl_default;
-    vdbl_default.resize(SD->n_dt_plot);
-    for ( size_t i = 0; i < vdbl_default.size(); ++i ) vdbl_default[i] = 0.0;
-    dict.parse_vector_of_doubles("global_data", "t_change", SD->t_change, vdbl_default);
-    for ( size_t i = 0; i < vdbl_default.size(); ++i ) vdbl_default[i] = 1.0e-3;
-    dict.parse_vector_of_doubles("global_data", "dt_plot", SD->dt_plot, vdbl_default);
-    dict.parse_vector_of_doubles("global_data", "dt_his", SD->dt_his, vdbl_default);
-    if (echo_input == 1) {
-	cout << "    n_dt_plot = " << SD->n_dt_plot << endl;
-	cout << "        t_change  dt_plot  dt_his" << endl;
-	for ( int i = 0; i < SD->n_dt_plot; ++i ) {
-	    cout << "        " << SD->t_change[i] 
-		 << " " << SD->dt_plot[i] << " " << SD->dt_his[i] << endl;
-	}
-    }
-    dict.parse_int("global_data", "hloc_n", SD->hnloc, 0);
-    vdbl_default.resize(SD->hnloc);
-    for ( size_t i = 0; i < vdbl_default.size(); ++i ) vdbl_default[i] = 0.0;
-    dict.parse_vector_of_doubles("global_data", "hloc_x", SD->hxloc, vdbl_default);
-    if (echo_input == 1) {
-	cout << "    hloc_n = " << SD->hnloc << endl;
-	cout << "    hloc_x =";
-	for ( int i = 0; i < SD->hnloc; ++i ) cout << " " << SD->hxloc[i]; 
-	cout << endl;
-    }
-    return SUCCESS;
-} // end function L_set_case_parameters()
-
 //-------------------------------------------------------------------
 
-int L_set_slug_parameters(slug_data* A, int indx, simulation_data* SD,
+int L_set_slug_parameters(slug_data* A, int indx, SimulationData& SD,
                           ConfigParser& dict, int echo_input)
 {
     std::stringstream tag;
@@ -392,11 +304,11 @@ int L_set_slug_parameters(slug_data* A, int indx, simulation_data* SD,
     } // end if control_string...
 
     // Time stepping and order of reconstruction.
-    A->dt = SD->dt_init;
-    A->cfl_target = SD->CFL;
+    A->dt = SD.dt_init;
+    A->cfl_target = SD.CFL;
     A->dt0 = A->dt;
-    A->Torder = SD->Torder;
-    A->Xorder = SD->Xorder;
+    A->Torder = SD.Torder;
+    A->Xorder = SD.Xorder;
     // Plotting and history output events.
     dict.parse_int(section, "hncell", A->hncell, 0);
     std::vector<int> vint_default;
