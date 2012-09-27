@@ -126,13 +126,13 @@ void eilmer_finalize( void )
     for ( int ig = 0; ig < gd.n_gas_state; ++ig ) {
 	delete gd.gas_state[ig];
     }
-    gd.bd.resize(0);
-    gd.pistons.resize(0);
-    gd.heat_zone.resize(0);
-    gd.reaction_zone.resize(0);
-    gd.turbulent_zone.resize(0);
-    gd.my_blocks.resize(0);
-    gd.mpi_rank_for_block.resize(0);
+    gd.bd.clear();
+    gd.pistons.clear();
+    gd.heat_zone.clear();
+    gd.reaction_zone.clear();
+    gd.turbulent_zone.clear();
+    gd.my_blocks.clear();
+    gd.mpi_rank_for_block.clear();
     delete gmodel;
     delete tinterp;
     if ( get_radiation_flag() )	delete rtm;

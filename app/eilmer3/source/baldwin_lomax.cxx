@@ -535,15 +535,15 @@ int baldwin_lomax_turbulence_model(global_data& gdata, Block& blk)
     } // end of "else"
 
     
-    vort.resize(0);
-    eta.resize(0);
-    y_plus.resize(0);
-    D.resize(0);
-    F.resize(0);
-    F_KLEB.resize(0);
-    mu_t_inner.resize(0);
-    mu_t_outer.resize(0);
-    mu_t.resize(0);
+    vort.clear();
+    eta.clear();
+    y_plus.clear();
+    D.clear();
+    F.clear();
+    F_KLEB.clear();
+    mu_t_inner.clear();
+    mu_t_outer.clear();
+    mu_t.clear();
     return SUCCESS;
 } // end of baldwin_lomax_turbulence_model()
 

@@ -1399,7 +1399,7 @@ int integrate_in_time( double target_time )
     //----------------------------------------------------------------
 
  conclusion:
-    dt_record.resize(0);
+    dt_record.clear();
     return status_flag;
 } // end integrate_in_time()
 

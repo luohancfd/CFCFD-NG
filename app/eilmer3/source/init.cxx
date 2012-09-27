@@ -701,9 +701,9 @@ CFlowCondition *read_flow_condition_from_ini_dict(ConfigParser &dict, int indx, 
     int S = 0;  // shock indicator
     cfcp = new CFlowCondition( gmodel, p, u, v, w, T, massf, flow_label, 
 			       tke, omega, mu_t, k_t, S, Bx, By, Bz);
-    vnf.resize(0);
-    massf.resize(0);
-    T.resize(0);
+    vnf.clear();
+    massf.clear();
+    T.clear();
     flow_label.clear();
     return cfcp;
 } // end  read_flow_condition_from_ini_dict()

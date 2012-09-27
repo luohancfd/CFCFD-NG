@@ -123,8 +123,8 @@ TransientUniformBC::TransientUniformBC( const TransientUniformBC &bc )
 
 TransientUniformBC::~TransientUniformBC() 
 {
-    for ( size_t ii = 0; ii < massfa.size(); ++ii ) massfa[ii].resize(0);
-    massfa.resize(0);
+    for ( size_t ii = 0; ii < massfa.size(); ++ii ) massfa[ii].clear();
+    massfa.clear();
 }
 
 int TransientUniformBC::apply_inviscid( double t )
@@ -173,8 +173,8 @@ int TransientUniformBC::apply_inviscid( double t )
     int S = 0;
     CFlowCondition *gsp = new CFlowCondition(gmodel, p, u, v, w, T, mf, "", 
 					     tke, omega, mu_t, k_t, S);
-    mf.resize(0);
-    T.resize(0);
+    mf.clear();
+    T.clear();
     // Now, fill in the ghost cells, assuming that the flow is
     // essentially like SupersonicIn.
     int i, j, k;

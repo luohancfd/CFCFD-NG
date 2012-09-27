@@ -105,10 +105,10 @@ int delete_send_and_receive_buffers(void)
 	    free(receive_buffer[jb*6+face]);
 	}
     } // end for jb...
-    status.resize(0);
-    request.resize(0);
-    send_buffer.resize(0);
-    receive_buffer.resize(0);
+    status.clear();
+    request.clear();
+    send_buffer.clear();
+    receive_buffer.clear();
     if ( get_verbose_flag() ) printf("    done deleting buffers.");
     return SUCCESS;
 } // end delete_send_and_receive_buffers()

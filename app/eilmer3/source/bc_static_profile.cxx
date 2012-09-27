@@ -170,9 +170,9 @@ StaticProfileBC::StaticProfileBC( Block &bdp, int which_boundary,
 	     << ", ncell_for_profile=" << ncell_for_profile << endl;
         exit(BAD_INPUT_ERROR);
     }
-    massf.resize(0);
-    e.resize(0);
-    T.resize(0);
+    massf.clear();
+    e.clear();
+    T.clear();
 #   if ECHO_ALL
     cout << "StaticProfileBC() constructor: done." << endl;
 #   endif
@@ -193,7 +193,7 @@ StaticProfileBC::~StaticProfileBC()
     for ( size_t i = 0; i < flow_profile.size(); ++i ) {
 	delete flow_profile[i];
     }
-    flow_profile.resize(0);
+    flow_profile.clear();
 }
 
 int StaticProfileBC::apply_inviscid( double t )

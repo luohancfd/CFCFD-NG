@@ -91,14 +91,14 @@ int Block::array_cleanup(int dimensions)
 	delete sifj_[ijk];
 	if ( dimensions == 3 ) delete sifk_[ijk];
     } // ijk loop
-    ctr_.resize(0); 
-    ifi_.resize(0);
-    ifj_.resize(0);
-    ifk_.resize(0);
-    vtx_.resize(0);
-    sifi_.resize(0);
-    sifj_.resize(0);
-    sifk_.resize(0);
+    ctr_.clear(); 
+    ifi_.clear();
+    ifj_.clear();
+    ifk_.clear();
+    vtx_.clear();
+    sifi_.clear();
+    sifj_.clear();
+    sifk_.clear();
 
     delete bcp[NORTH];
     delete bcp[EAST];

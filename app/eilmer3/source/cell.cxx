@@ -253,10 +253,10 @@ ConservedQuantities::ConservedQuantities(Gas_model *gm)
 
 ConservedQuantities::~ConservedQuantities()
 {
-    massf.resize(0);
-    energies.resize(0);
-    G.resize(0);
-    H.resize(0);
+    massf.clear();
+    energies.clear();
+    G.clear();
+    H.clear();
 }
 
 int ConservedQuantities::print()
@@ -414,8 +414,8 @@ FV_Vertex::FV_Vertex(Gas_model *gm)
 
 FV_Vertex::~FV_Vertex()
 {
-    dTdx.resize(0); dTdy.resize(0); dTdz.resize(0);
-    dfdx.resize(0); dfdy.resize(0); dfdz.resize(0);
+    dTdx.clear(); dTdy.clear(); dTdz.clear();
+    dfdx.clear(); dfdy.clear(); dfdz.clear();
 }
 
 int FV_Vertex::copy_values_from(FV_Vertex &src)
