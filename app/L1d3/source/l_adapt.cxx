@@ -8,10 +8,10 @@
 #include <math.h>
 #include <stdlib.h>
 #include "../../../lib/util/source/useful.h"
-#include "l_kernel.hh"
 #include "l1d.hh"
+#include "l_kernel.hh"
+#include "l_cell.hh"
 #include "l_adapt.hh"
-#include "l_tstep.hh"
 
 /*-----------------------------------------------------------------*/
 
@@ -180,7 +180,7 @@ int L_adapt_cells(GasSlug* A)
      * Returns 0 if OK; 1 otherwise.
      */
     int ix, ia, ib, B_nnx;
-    static vector<LCell> B_Cell;
+    static std::vector<LCell> B_Cell;
     LCell *ci, *cim1, *cip1;
     static int too_large[NDIM], too_small[NDIM];
     static int exp_indicator[NDIM], shock_indicator[NDIM];

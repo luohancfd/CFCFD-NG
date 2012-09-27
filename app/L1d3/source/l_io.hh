@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <vector>
 
 #include "l_kernel.hh"
 #include "l_diaph.hh"
@@ -12,8 +13,8 @@
 #include "l_slug.hh"
 
 int print_simulation_status(FILE *strm, const char* efname, int step, SimulationData& SD,
-			    vector<GasSlug>& A, vector<DiaphragmData>& Diaph,
-			    vector<PistonData>& Pist, double cfl_max, 
+			    std::vector<GasSlug>& A, std::vector<DiaphragmData>& Diaph,
+			    std::vector<PistonData>& Pist, double cfl_max, 
 			    double cfl_tiny, double time_tiny );
 int log_event( const char* efname, const char* event_message );
 std::string write_iface_values_to_string(LCell& cell);

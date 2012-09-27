@@ -1,11 +1,5 @@
-/** \file l_tstep.cxx
- * \ingroup l1d3
- * \brief Time-stepping routines for l1d.cxx.
- *
- * \author PA Jacobs
- */
-
-/*-----------------------------------------------------------------*/
+// l_cell.cxx
+// Contains Lagrangian-cell related code.
 
 #include <stdio.h>
 #include <math.h>
@@ -15,13 +9,14 @@
 #include "../../../lib/gas/kinetics/reaction-update.hh"
 #include "l_kernel.hh"
 #include "l1d.hh"
-#include "l_tstep.hh"
+#include "l_cell.hh"
 #include "../../../lib/nm/source/qd_power.h"
 #include "../../../lib/nm/source/qd_log10.h"
 
 
 LCell::LCell(Gas_model* gmodel)
 {
+    // Let most elements default to zero values.
     gas = new Gas_data(gmodel);
     ref = new Gas_data(gmodel);
 }

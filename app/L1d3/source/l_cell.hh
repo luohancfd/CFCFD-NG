@@ -1,8 +1,8 @@
-// l_tstep.hh
+// l_cell.hh
 // Refactored to contain mostly cell-related code, 26-Sep-2012
 
-#ifndef L_TSTEP_HH
-#define L_TSTEP_HH
+#ifndef L_CELL_HH
+#define L_CELL_HH
 
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/gas/models/gas_data.hh"

@@ -5,10 +5,11 @@
 #include <stdio.h>
 #include <iostream>
 #include <sstream>
+#include <math.h>
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/util/source/config_parser.hh"
-#include "l_piston.hh"
 #include "l1d.hh"
+#include "l_piston.hh"
 
 
 PistonData::PistonData(int indx, double dt_init, std::string config_file_name, int echo_input)

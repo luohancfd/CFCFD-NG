@@ -9,7 +9,7 @@
 #include "l1d.hh"
 #include "l_tube.hh"
 #include "l_kernel.hh"
-#include "l_tstep.hh"
+#include "l_cell.hh"
 
 class GasSlug {
 // Many Lagrangian cells make up a gas-slug.
@@ -41,7 +41,7 @@ public:
                                 /* = 2: laminar mass-loss     */
                                 /* = 3: turbulent mass-loss   */
                                 /*      See L_source_vector() */
-                                /*      in l_tstep.c          */
+                                /*      in l_slug.c           */
 
     int adiabatic;              /* Flag for wall temperature  */
                                 /* = 1: use adiabtaic temp    */

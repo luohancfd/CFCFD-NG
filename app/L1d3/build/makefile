@@ -52,7 +52,7 @@ EXEFILES = l1d.exe \
 
 OBJECTS = l_kernel.o \
 	l_adapt.o \
-	l_tstep.o \
+	l_cell.o \
 	l_bc.o \
 	l_io.o \
 	l_rivp.o \
@@ -257,7 +257,7 @@ _gaspy.dylib : $(GAS)/build/_gaspy.dylib
 l1d.o : $(SRC)/l1d.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) \
 	$(SRC)/l_adapt.hh $(SRC)/l_bc.hh \
 	$(SRC)/l_io.hh $(SRC)/l_rivp.hh \
-	$(SRC)/l_tstep.hh $(SRC)/l_diaph.hh \
+	$(SRC)/l_cell.hh $(SRC)/l_diaph.hh \
 	$(SRC)/l_tube.hh \
 	$(SRC)/l_piston.hh $(SRC)/l_slug.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l1d.cxx -o l1d.o
@@ -281,15 +281,15 @@ l_bc.o    : $(SRC)/l_bc.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR)
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_bc.cxx -o l_bc.o
 
 l_adapt.o    : $(SRC)/l_adapt.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) \
-	$(SRC)/l_adapt.hh $(SRC)/l_tstep.hh
+	$(SRC)/l_adapt.hh $(SRC)/l_cell.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_adapt.cxx -o l_adapt.o
 
-l_io.o    : $(SRC)/l_io.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) $(SRC)/l_tstep.hh $(SRC)/l_diaph.hh
+l_io.o    : $(SRC)/l_io.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) $(SRC)/l_cell.hh $(SRC)/l_diaph.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_io.cxx -o l_io.o
 
-l_tstep.o : $(SRC)/l_tstep.cxx $(SRC)/l1d.hh $(NM_SRC)/qd_power.h $(NM_SRC)/qd_log10.h \
-	$(LUA_INCLUDE_DIR) $(SRC)/l_rivp.hh $(SRC)/l_tstep.hh
-	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_tstep.cxx -o l_tstep.o
+l_cell.o : $(SRC)/l_cell.cxx $(SRC)/l1d.hh $(NM_SRC)/qd_power.h $(NM_SRC)/qd_log10.h \
+	$(LUA_INCLUDE_DIR) $(SRC)/l_rivp.hh $(SRC)/l_cell.hh
+	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_cell.cxx -o l_cell.o
 
 l_rivp.o  : $(SRC)/l_rivp.cxx $(SRC)/l1d.hh $(NM_SRC)/qd_power.h  $(LUA_INCLUDE_DIR)
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/l_rivp.cxx -o l_rivp.o
@@ -305,7 +305,7 @@ l_hist.o  : $(SRC)/l_hist.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR)
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -DNSPECD=$(NSPECD) -I$(LUA_INCLUDE_DIR) \
 		$(SRC)/l_hist.cxx -o l_hist.o
 
-sptime.o  : $(SRC)/sptime.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) $(SRC)/l_io.hh $(SRC)/l_tstep.hh
+sptime.o  : $(SRC)/sptime.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) $(SRC)/l_io.hh $(SRC)/l_cell.hh
 	$(CXX) $(CXXFLAG) -DNDIM=$(NDIM) -I$(LUA_INCLUDE_DIR) $(SRC)/sptime.cxx -o sptime.o
 
 piston.o  : $(SRC)/piston.cxx $(SRC)/l1d.hh $(LUA_INCLUDE_DIR) $(SRC)/l_io.hh

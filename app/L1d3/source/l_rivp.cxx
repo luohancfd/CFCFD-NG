@@ -11,10 +11,10 @@
 #include <stdio.h>
 
 #include "../../../lib/util/source/useful.h"
-#include "l_kernel.hh"
-#include "l1d.hh"
-#include "l_tstep.hh"
 #include "../../../lib/nm/source/qd_power.h"
+#include "l1d.hh"
+#include "l_kernel.hh"
+#include "l_cell.hh"
 
 /*------------------------------------------------------------*/
 

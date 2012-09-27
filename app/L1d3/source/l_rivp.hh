@@ -3,7 +3,7 @@
 #ifndef L_RIVP_HH
 #define L_RIVP_HH
 
-#include "l_tstep.hh"
+#include "l_cell.hh"
 
 int L_rivp(struct L_flow_state QL[], struct L_flow_state QR[],
            double ustar[], double pstar[],

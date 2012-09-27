@@ -5,7 +5,7 @@
 
 #include "l_slug.hh"
 #include "l1d.hh"
-#include "l_tstep.hh"
+#include "l_cell.hh"
 
 int L_adapt_cells(GasSlug *A);
 int L_fuse_cell_data(LCell *source1, LCell *source2, LCell *destination);
