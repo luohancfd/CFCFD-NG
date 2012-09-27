@@ -12,18 +12,6 @@
  * 2. A solution file suitable for a simulation restart.
  * 
  * \author PA Jacobs
- *
- * \version 1.0 --  17-Dec-91
- * \version 2.0 --  20-Dec-91, multi-slug version
- * \version 3.0 --  31-Dec-91, include piston dynamics
- * \version 4.0 --  03-Jan-92, include diaphragms
- * \version 4.1 --  08-Jan-92, logarithm options for pressure and density
- * \version 5.0 --  13-Jan-92, histories at specified x-locations
- * \version 6.0 --  30-Mar-95, entropy added (heat transfer from some months back)
- * \version 6.0 --  11-Apr-98, Linux version, more general input
- * \version 6.1 --  13-Apr-98, command-line options, both Generic and Save
- * \version 6.2 --  22-Apr-98, better names for options; GNU Plot outout
- * \version 24-Jul-06, C++ port
  */
 
 /*-----------------------------------------------------------------*/
@@ -34,7 +22,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../../../lib/util/source/useful.h"
-#include "../../../lib/util/source/config_parser.hh"
 #include "l_kernel.hh"
 #include "l_tube.hh"
 #include "l_diaph.hh"
@@ -42,16 +29,16 @@
 #include "l1d.hh"
 #include "l_io.hh"
 
-int L_write_GENERIC(std::vector<slug_data> &A, int nslug, FILE *outfile, int nsp);
-int take_log_rho(std::vector<slug_data> &A, int nslug);
-int take_log_p(std::vector<slug_data> &A, int nslug);
+int L_write_GENERIC(std::vector<GasSlug>& A, int nslug, FILE *outfile, int nsp);
+int take_log_rho(std::vector<GasSlug>& A, int nslug);
+int take_log_p(std::vector<GasSlug>& A, int nslug);
 
 /*-----------------------------------------------------------------*/
 
 int main(int argc, char **argv)
 {
     int js, jp, jd;
-    std::vector<slug_data> A;         /* several gas slugs        */
+    std::vector<GasSlug> A;           /* several gas slugs        */
     std::vector<PistonData> Pist;     /* room for several pistons */
     std::vector<DiaphragmData> Diaph; /* diaphragms            */
 
@@ -198,12 +185,10 @@ int main(int argc, char **argv)
         Diaph.push_back(DiaphragmData(jd, pname, echo_input));
         Diaph[jd].sim_time = 0.0;
     }
-    ConfigParser parameterdict = ConfigParser(pname);
-    A.resize(SD.nslug);
     for (js = 0; js < SD.nslug; ++js) {
-        L_set_slug_parameters(&(A[js]), js, SD, parameterdict, echo_input);
+        A.push_back(GasSlug(js, SD, pname, echo_input));
         A[js].sim_time = 0.0;
-    }   /* end for */
+    }
     Gas_model *gmodel = get_gas_model_ptr();
     int nsp = gmodel->get_number_of_species();
 
@@ -224,8 +209,7 @@ int main(int argc, char **argv)
         fflush(stdout);
         for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].read_state(infile);
         for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].read_state(infile);
-        for (js = 0; js < SD.nslug; ++js)
-            L_read_solution(&(A[js]), infile);
+        for (js = 0; js < SD.nslug; ++js) A[js].read_state(infile);
         if (A[0].sim_time >= tstop) {
             found_solution = 1;
             break;
@@ -266,8 +250,7 @@ int main(int argc, char **argv)
             }
             for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].write_state(outfile);
             for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].write_state(outfile);
-            for (js = 0; js < SD.nslug; ++js)
-                L_write_solution(&(A[js]), outfile);
+            for (js = 0; js < SD.nslug; ++js) A[js].write_state(outfile);
             if ( outfile ) fclose(outfile);
         } else {
             /* Write out the solution as individual pieces. */
@@ -304,9 +287,8 @@ int main(int argc, char **argv)
                     printf("\nCould not open %s; BAILING OUT\n", oname);
                     exit(-1);
                 }
-                L_write_solution(&(A[js]), outfile);
-                if (outfile != NULL)
-                    fclose(outfile);
+                A[js].write_state(outfile);
+                if (outfile != NULL) fclose(outfile);
             } // end for js
         } /* end if */
 
@@ -320,7 +302,7 @@ int main(int argc, char **argv)
 
 /*----------------------------------------------------------------*/
 
-int L_write_GENERIC(std::vector<slug_data> &A, int nslug, FILE *outfile, int nsp )
+int L_write_GENERIC(std::vector<GasSlug>& A, int nslug, FILE *outfile, int nsp )
 {
     // Write the flow solution (cell centres only) to a GENERIC plotting file.
 #   if (DEBUG >= 1)
@@ -373,7 +355,7 @@ int L_write_GENERIC(std::vector<slug_data> &A, int nslug, FILE *outfile, int nsp
 } // end function L_write_GENERIC
 
 
-int take_log_rho(std::vector<slug_data> &A, int nslug)
+int take_log_rho(std::vector<GasSlug>& A, int nslug)
 {
     // Take the logarithm of the density values.
     for ( int js = 0; js < nslug; ++js ) {
@@ -385,7 +367,7 @@ int take_log_rho(std::vector<slug_data> &A, int nslug)
 } // end function take_log_rho
 
 
-int take_log_p(std::vector<slug_data> &A, int nslug)
+int take_log_p(std::vector<GasSlug>& A, int nslug)
 {
     // Take the logarithm of the pressure values.
     for ( int js = 0; js < nslug; ++js ) {
@@ -395,5 +377,3 @@ int take_log_p(std::vector<slug_data> &A, int nslug)
     }
     return 0;
 } // end function take_log_p
-
-/*=============== end of l_post.cxx ==================*/

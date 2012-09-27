@@ -31,7 +31,7 @@
 int main(int argc, char **argv)
 {
     int js, jp, jd;
-    std::vector<slug_data> A;               /* several gas slugs        */
+    std::vector<GasSlug> A;               /* several gas slugs        */
     std::vector<PistonData> Pist;          /* room for several pistons */
     std::vector<DiaphragmData> Diaph;      /* diaphragms            */
 
@@ -158,9 +158,8 @@ int main(int argc, char **argv)
         Diaph[jd].sim_time = 0.0;
     }
     ConfigParser parameterdict = ConfigParser(pname);
-    A.resize(SD.nslug);
     for (js = 0; js < SD.nslug; ++js) {
-        L_set_slug_parameters(&(A[js]), js, SD, parameterdict, echo_input);
+        A.push_back(GasSlug(js, SD, pname, echo_input));
         A[js].sim_time = 0.0;
     }
 
@@ -222,7 +221,7 @@ int main(int argc, char **argv)
         for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].read_state(infile);
         for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].read_state(infile);
         for (js = 0; js < SD.nslug; ++js)
-            L_read_solution(&(A[js]), infile);
+            A[js].read_state(infile);
         ++nttot;
         for (jp = 0; jp < SD.npiston; ++jp) {
             xarray[jp][nt] = Pist[jp].x;

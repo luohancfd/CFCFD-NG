@@ -34,6 +34,7 @@ public:
     // xxxx-slug_dx    : the sampling distance for gas pressure
 
     DiaphragmData(int indx, std::string config_file_name, int echo_input=0);
+    DiaphragmData(const DiaphragmData& dd);
     ~DiaphragmData();
     int read_state(FILE* infile);
     int write_state(FILE* outfile);

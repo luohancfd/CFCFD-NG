@@ -13,6 +13,7 @@
 #include "../../../lib/util/source/useful.h"
 #include "l_kernel.hh"
 #include "l1d.hh"
+#include "l_tstep.hh"
 #include "../../../lib/nm/source/qd_power.h"
 
 /*------------------------------------------------------------*/
@@ -51,19 +52,6 @@ int L_rivp(struct L_flow_state QL[], struct L_flow_state QR[],
      * ------
      * pstar   : interface pressures
      * ustar   : interface velocities
-     *
-     * Version ...
-     * -------
-     * 1.0,  02-Dec-91: adapted from cns4u/rivp
-     * 2.0,  19-Dec-91: added isentropic end conditions
-     * 2.1,  09-Apr-92: added fast power macro
-     * 2.2,  17-Aug-95: ANSI Compiler version
-     * 2.21, 20-Aug-95: Work arrays are defined as static so that they are
-     *                  no longer on the stack
-     *
-     * This code written by ...
-     * --------------------
-     * P.A. Jacobs
      *
      */
 

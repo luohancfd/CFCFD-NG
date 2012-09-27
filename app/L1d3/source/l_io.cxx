@@ -18,12 +18,13 @@
 #include "l_diaph.hh"
 #include "l_piston.hh"
 #include "l1d.hh"
-#include "l_misc.hh"
+#include "l_tstep.hh"
+#include "l_slug.hh"
 using namespace std;
 
 
 int print_simulation_status(FILE *strm, const char* efname, int step, SimulationData& SD,
-			    vector<slug_data>& A, vector<DiaphragmData>& Diaph,
+			    vector<GasSlug>& A, vector<DiaphragmData>& Diaph,
 			    vector<PistonData>& Pist, double cfl_max, 
 			    double cfl_tiny, double time_tiny) {
     /*
@@ -53,8 +54,8 @@ int print_simulation_status(FILE *strm, const char* efname, int step, Simulation
                  step, SD.sim_time, SD.dt_global, cfl_max);
 	fputs( msg_string, strm );
 	for (js = 0; js < SD.nslug; ++js) {
-	    maximum_p(&A[js], &p_max, &x_max);
-	    total_energy(&A[js], &E_tot);
+	    A[js].maximum_p(&p_max, &x_max);
+	    E_tot = A[js].total_energy();
 	    sprintf( msg_string,
 		     "Slug %d: p_max=%10.3e, x=%10.3e, Etot=%10.3e, dt=%10.3e, nnx=%d\n",
 		     js, p_max, x_max, E_tot, A[js].dt_allow, A[js].nnx);
@@ -104,272 +105,9 @@ int log_event(const char *efname, const char* event_message ) {
     return SUCCESS;
 }
 
-//-------------------------------------------------------------------
-
-int L_set_slug_parameters(slug_data* A, int indx, SimulationData& SD,
-                          ConfigParser& dict, int echo_input)
-{
-    std::stringstream tag;
-    tag << indx;
-    std::string section = "slug-" + tag.str();
-    if (echo_input == 1) cout << "Reading slug " << indx << " parameters..." << endl;
-    Gas_model *gmodel = get_gas_model_ptr();
-
-    dict.parse_int(section, "nn", A->nnx, 10);
-    dict.parse_int(section, "cluster_to_end_L", A->cluster_to_end_1, 0);
-    dict.parse_int(section, "cluster_to_end_R", A->cluster_to_end_2, 0);
-    dict.parse_double(section, "cluster_strength", A->cluster_strength, 0.0);
-    if (echo_input == 1) {
-	cout << "    nn = " << A->nnx << endl;
-	cout << "    cluster_to_end_L = " << A->cluster_to_end_1 << endl;
-	cout << "    cluster_to_end_R = " << A->cluster_to_end_2 << endl;
-	cout << "    cluster_strength = " << A->cluster_strength << endl;
-    }
-    // Adaptivity parameters for this gas slug. 
-    dict.parse_int(section, "nnmax", A->nxmax, A->nnx);
-    dict.parse_int(section, "adaptive", A->adaptive, 0);
-    dict.parse_double(section, "dxmin", A->dxmin, 0.0);
-    dict.parse_double(section, "dxmax", A->dxmax, 0.0);
-    if (echo_input == 1) {
-	cout << "    nnmax = " << A->nxmax << endl;
-	cout << "    adaptive = " << A->adaptive << endl;
-	cout << "    dxmin = " << A->dxmin << endl;
-	cout << "    dxmax = " << A->dxmax << endl;
-    }
-    // Allow for ghost cells 
-    A->nghost = 2;
-    A->nxdim = A->nxmax + 2 * A->nghost;
-    if ( A->nxdim > NDIM ) {
-	cout << "**** Problem with Slug[" << indx << "]" << endl;
-	cout << "     NDIM=" << NDIM 
-	     << " is not large enough for A->nxdim=" << A->nxdim << endl;
-        cout << "     A->nnx=" << A->nnx << " A->nxmax=" << A->nxmax << endl;
-	cout << "Quitting." << endl;
-	exit(1);
-    }
-    if ( L_alloc(A) != 0 ) {
-        cout << "Memory allocation failed for slug." << endl; 
-        exit(1);
-    }
-    // Set up min and max indices for convenience in later work.
-    // Active cells should then be addressible as 
-    // cell[ix], ixmin <= ix <= ixmax.
-    L_set_index_range(A);
-    // FIX-ME
-    // Now that we know the size of the gas slug, 
-    // we should resize vectors to max(nnx,nxmax)+4 elements.
-
-    // Flag for viscous effects:
-    // =1: include them
-    // =0: do not include them
-    // Flag for wall temperature
-    // =0: use specified wall temperature
-    // =1: use adiabatic wall temperature
-    dict.parse_int(section, "viscous_effects", A->viscous_effects, 0);
-    dict.parse_int(section, "adiabatic_flag", A->adiabatic, 0);
-    if (echo_input == 1) {
-	cout << "    viscous_effects = " << A->viscous_effects << endl;
-	cout << "    adiabatic_flag = " << A->adiabatic << endl;
-    }
-
-    // Boundary conditions.
-    // By default, the gas slug is unconnected.
-    A->left_slug_id = -1;
-    A->left_slug_end_id = -1;
-    A->right_slug_id = -1;
-    A->right_slug_end_id = -1;
-    //
-    A->left_piston_id = -1;
-    A->right_piston_id = -1;
-    //
-    A->left_diaphragm_id = -1;
-    A->right_diaphragm_id = -1;
-    //
-    A->set_left_end_ustar = 0;
-    A->set_right_end_ustar = 0;
-    A->left_ustar = 0.0;
-    A->right_ustar = 0.0;
-
-    // Process BC data for left boundary. 
-    std::string line, control_string, label;
-    dict.parse_string(section, "BC_L", line, "");
-    stringstream ss_L(line);
-    ss_L >> control_string;
-    if (control_string == "S") {
-        A->left_bc_type = SLUG;
-	ss_L >> A->left_slug_id;
-	ss_L >> label;
-        if (label[0] == 'L' || label[0] == 'l' || label[0] == '0')
-            A->left_slug_end_id = LEFT;
-        if (label[0] == 'R' || label[0] == 'r' || label[0] == '1')
-            A->left_slug_end_id = RIGHT;
-        if (echo_input == 1) {
-            cout << "   left_boundary: neighbour slug = " 
-		 << A->left_slug_id << " end = " << A->left_slug_end_id << endl;
-        }
-    } else if (control_string == "SD") {
-        A->left_bc_type = SLUG_DIAPHRAGM;
-	ss_L >> A->left_slug_id;
-	ss_L >> label;
-        if (label[0] == 'L' || label[0] == 'l' || label[0] == '0')
-            A->left_slug_end_id = LEFT;
-        if (label[0] == 'R' || label[0] == 'r' || label[0] == '1')
-            A->left_slug_end_id = RIGHT;
-	ss_L >> A->left_diaphragm_id;
-        if (echo_input == 1) {
-            cout << "    left_boundary: neighbour slug = "
-		 << A->left_slug_id << " end = " <<  A->left_slug_end_id
-		 << " diaphragm = " << A->left_diaphragm_id << endl;
-        }
-    } else if (control_string == "P") {
-        A->left_bc_type = PISTON;
-        ss_L >> A->left_piston_id;
-        if (echo_input == 1) {
-            cout << "    left_boundary: neighbour piston = "
-		 << A->left_piston_id << endl;
-        }
-        A->set_left_end_ustar = 1;
-    } else if (control_string == "V") {
-        A->left_bc_type = SOLID_BOUNDARY;
-        ss_L >> A->left_ustar;
-        if (echo_input == 1) {
-            cout << "    left_boundary: imposed velocity = "
-		 << A->left_ustar << endl;
-        }
-        A->set_left_end_ustar = 1;
-    } else if (control_string == "F") {
-        A->left_bc_type = FREE_END;
-        if (echo_input == 1) {
-            cout << "    left_boundary: free-end" << endl;
-        }
-    } else {
-        cout << "    Invalid control string: " << control_string << endl;
-        exit(-1);
-    } // end if control_string...
-
-    // Process BC data for right boundary. 
-    dict.parse_string(section, "BC_R", line, "");
-    stringstream ss_R(line);
-    ss_R >> control_string;
-    if (control_string == "S") {
-        A->right_bc_type = SLUG;
-	ss_R >> A->right_slug_id;
-	ss_R >> label;
-        if (label[0] == 'L' || label[0] == 'l' || label[0] == '0')
-            A->right_slug_end_id = LEFT;
-        if (label[0] == 'R' || label[0] == 'r' || label[0] == '1')
-            A->right_slug_end_id = RIGHT;
-        if (echo_input == 1) {
-            cout << "   right_boundary: neighbour slug = " 
-		 << A->right_slug_id << " end = " << A->right_slug_end_id << endl;
-        }
-    } else if (control_string == "SD") {
-        A->right_bc_type = SLUG_DIAPHRAGM;
-	ss_R >> A->right_slug_id;
-	ss_R >> label;
-        if (label[0] == 'L' || label[0] == 'l' || label[0] == '0')
-            A->right_slug_end_id = LEFT;
-        if (label[0] == 'R' || label[0] == 'r' || label[0] == '1')
-            A->right_slug_end_id = RIGHT;
-	ss_R >> A->right_diaphragm_id;
-        if (echo_input == 1) {
-            cout << "    right_boundary: neighbour slug = "
-		 << A->right_slug_id << " end = " <<  A->right_slug_end_id
-		 << " diaphragm = " << A->right_diaphragm_id << endl;
-        }
-    } else if (control_string == "P") {
-        A->right_bc_type = PISTON;
-        ss_R >> A->right_piston_id;
-        if (echo_input == 1) {
-            cout << "    right_boundary: neighbour piston = "
-		 << A->right_piston_id << endl;
-        }
-        A->set_right_end_ustar = 1;
-    } else if (control_string == "V") {
-        A->right_bc_type = SOLID_BOUNDARY;
-        ss_R >> A->right_ustar;
-        if (echo_input == 1) {
-            cout << "    right_boundary: imposed velocity = "
-		 << A->right_ustar << endl;
-        }
-        A->set_right_end_ustar = 1;
-    } else if (control_string == "F") {
-        A->right_bc_type = FREE_END;
-        if (echo_input == 1) {
-            cout << "    right_boundary: free-end" << endl;
-        }
-    } else {
-        cout << "    Invalid control string: " << control_string << endl;
-        exit(-1);
-    } // end if control_string...
-
-    // Time stepping and order of reconstruction.
-    A->dt = SD.dt_init;
-    A->cfl_target = SD.CFL;
-    A->dt0 = A->dt;
-    A->Torder = SD.Torder;
-    A->Xorder = SD.Xorder;
-    // Plotting and history output events.
-    dict.parse_int(section, "hncell", A->hncell, 0);
-    std::vector<int> vint_default;
-    vint_default.resize(A->hncell);
-    for ( size_t i = 0; i < vint_default.size(); ++i ) vint_default[i] = 0;
-    dict.parse_vector_of_ints(section, "hxcell", A->hxcell, vint_default);
-    if (echo_input == 1) {
-	cout << "    hncell = " << A->hncell << endl;
-	cout << "    hxcell =";
-	for ( int i = 0; i < A->hncell; ++i ) cout << " " << A->hxcell[i];
-	cout << endl;
-    }
-    // Initial slug state. 
-    int nsp = gmodel->get_number_of_species();
-    A->init_str->gas = new Gas_data(gmodel);
-    dict.parse_double(section, "initial_xL", A->xbegin, 0.0);
-    dict.parse_double(section, "initial_xR", A->xend, 0.0);
-    dict.parse_double(section, "initial_p", A->init_str->gas->p, 100.0e3);
-    dict.parse_double(section, "initial_u", A->init_str->u, 0.0);
-    dict.parse_double(section, "initial_T", A->init_str->gas->T[0], 300.0);
-    std::vector<double> vdbl_default;
-    vdbl_default.resize(nsp);
-    for ( size_t i = 0; i < vdbl_default.size(); ++i ) vdbl_default[i] = 0.0;
-    dict.parse_vector_of_doubles(section, "massf", A->init_str->gas->massf, vdbl_default);
-    if (echo_input == 1) {
-	cout << "    initial_xL = " << A->xbegin << endl;
-	cout << "    initial_xR = " << A->xend << endl;
-	cout << "    initial_p = " << A->init_str->gas->p << endl;
-	cout << "    initial_u = " << A->init_str->u << endl;
-	cout << "    initial_T = " << A->init_str->gas->T[0] << endl;
-	cout << "    massf =";
-	for ( int i = 0; i < nsp; ++i ) cout << " " << A->init_str->gas->massf[i];
-	cout << endl;
-    }
-    double f_sum = A->init_str->gas->massf[0];
-    for ( int isp = 1; isp < nsp; ++isp ) {
-	f_sum += A->init_str->gas->massf[isp];
-    }
-    if ( fabs(f_sum - 1.0) > 1.0e-4 ) {
-	printf( "Species mass fractions do not sum to 1.0: %e\n", f_sum );
-	exit(-1);
-    }
-    // Density, Internal energy, Speed of Sound, and 
-    // molecular transport coefficients. 
-    gmodel->eval_thermo_state_pT(*(A->init_str->gas));
-    gmodel->eval_transport_coefficients(*(A->init_str->gas));
-    if (echo_input == 1) {
-	cout << "    rho = " << A->init_str->gas->rho
-	     << " e = " << A->init_str->gas->e[0]
-	     << " a = " << A->init_str->gas->a << endl;
-	cout << "    R = " << gmodel->R(*(A->init_str->gas))
-	     << " Cv = " << gmodel->Cv(*(A->init_str->gas)) << endl;
-	cout << "    mu = " << A->init_str->gas->mu
-	     << " k = " << A->init_str->gas->k[0] << endl;
-    }
-    return SUCCESS;
-} // end function L_set_slug_parameters()
-
 //----------------------------------------------------------------------
 
-std::string write_iface_values_to_string(struct L_cell& cell)
+std::string write_iface_values_to_string(LCell& cell)
 // Write the flow solution for a cell to a string.
 {
     // The new format for L1d3 puts everything onto one line.
@@ -382,7 +120,7 @@ std::string write_iface_values_to_string(struct L_cell& cell)
 } // end of write_iface_values_to_string()
 
 
-int scan_iface_values_from_string(char *bufptr, struct L_cell& cell)
+int scan_iface_values_from_string(char *bufptr, LCell& cell)
 // Scan a string, extracting the data for an interface between cells.
 // There isn't any checking of the file content.
 // If anything gets out of place, the result is wrong data.
@@ -397,7 +135,7 @@ int scan_iface_values_from_string(char *bufptr, struct L_cell& cell)
 } // end scan_iface_values_from_string()
 
 
-std::string write_cell_values_to_string(struct L_cell& cell)
+std::string write_cell_values_to_string(LCell& cell)
 // Write the flow solution for a cell to a string.
 {
     // The new format for L1d3 puts everything onto one line.
@@ -431,7 +169,7 @@ std::string write_cell_values_to_string(struct L_cell& cell)
 } // end of write_cell_values_to_string()
 
 
-int scan_cell_values_from_string(char *bufptr, struct L_cell& cell)
+int scan_cell_values_from_string(char *bufptr, LCell& cell)
 // Scan a string, extracting the data for a cell.
 // There isn't any checking of the file content.
 // If anything gets out of place, the result is wrong data.
@@ -465,106 +203,7 @@ int scan_cell_values_from_string(char *bufptr, struct L_cell& cell)
 } // end scan_cell_values_from_string()
 
 
-int L_read_solution(struct slug_data *A, FILE * infile)
-// Read the flow solution for all faces and cells in a slug. 
-{
-#   define NCHAR 3200
-    char line[NCHAR];
-    int ix, isp, imode;
-    Gas_model *gmodel = get_gas_model_ptr();
-    int nsp = gmodel->get_number_of_species();
-    int nmodes = gmodel->get_number_of_modes();
-    if (fgets(line, NCHAR, infile) == NULL) {
-        printf("Empty flow field file.\n");
-        return FAILURE;
-    }
-    sscanf(line, "%lf", &(A->sim_time));
-    if (fgets(line, NCHAR, infile) == NULL) {
-        printf("Empty flow field file.\n");
-        return FAILURE;
-    }
-    sscanf(line, "%d %d %d", &ix, &isp, &imode);
-    if (ix <= A->nxmax) {
-        A->nnx = ix;
-    } else {
-        printf("Trying to read too many cells into this slug.\n");
-        return FAILURE;
-    }
-    L_set_index_range(A);
-    if ( isp != nsp ) {
-        printf("Inconsistent number of species: expected %d, read %d\n", nsp, isp);
-	return FAILURE;
-    }
-    if ( imode != nmodes ) {
-        printf("Inconsistent number of energy modes: expected %d, read %d\n", nmodes, imode);
-	return FAILURE;
-    }
-    // From here on, we hope that the solution file is ok.
-    // Interfaces between cells.
-    for ( ix = A->ixmin - 1; ix <= A->ixmax; ++ix ) {
-	struct L_cell* c = &( A->Cell[ix] );
-	if (fgets(line, NCHAR, infile) == NULL) {
-	    printf("Problem reading flow field file.\n");
-	    return FAILURE;
-	}
-	if ( scan_iface_values_from_string(line, *c) ) {
-	    printf("IFace for Cell[%d] failed to read from line:\n", ix);
-	    printf("%s\n", line);
-	    return FAILURE;
-	}
-    } // end for ix
-    // The actual cells.
-    for ( ix = A->ixmin; ix <= A->ixmax; ++ix ) {
-	struct L_cell* c = &( A->Cell[ix] );
-	if (fgets(line, NCHAR, infile) == NULL) {
-	    printf("Problem reading flow field file.\n");
-	    return FAILURE;
-	}
-	if ( scan_cell_values_from_string(line, *c) ) {
-	    printf("Cell[%d] failed to read from line:\n", ix);
-	    printf("%s\n", line);
-	    return FAILURE;
-	}
-	double f_sum = c->gas->massf[0];
-	for ( isp = 1; isp < nsp; ++isp ) {
-	    f_sum += c->gas->massf[isp];
-	}
-	if ( fabs(f_sum - 1.0) > 0.001 ) {
-	    printf("Species don't sum correctly %g\n", f_sum );
-	    for ( isp = 1; isp < nsp; ++isp ) {
-		printf("    %d %e\n", isp, c->gas->massf[isp]);
-	    }
-	    return FAILURE;
-	}
-    } // end for ix
-    return SUCCESS;
-#   undef NCHAR
-} // end function L_read_solution
-
-
-int L_write_solution(struct slug_data* A, FILE* outfile)
-// Write the flow solution (i.e. the interface positions and
-// the primary variables at the cell centers) to a file.
-{
-    Gas_model *gmodel = get_gas_model_ptr();
-    int nsp = gmodel->get_number_of_species();
-    int nmodes = gmodel->get_number_of_modes();
-    fprintf(outfile, "%e  # begin slug data: sim_time\n", A->sim_time);
-    fprintf(outfile, "%d %d %d # nnx, nsp\n", A->nnx, nsp, nmodes);
-    // Interfaces between cells.
-    for ( int ix = A->ixmin - 1; ix <= A->ixmax; ++ix ) {
-        fprintf(outfile, "%s\n", write_iface_values_to_string(A->Cell[ix]).c_str());
-    }
-    // The actual cells.
-    for ( int ix = A->ixmin; ix <= A->ixmax; ++ix ) {
-        fprintf(outfile, "%s\n", write_cell_values_to_string(A->Cell[ix]).c_str());
-    }
-    fflush(outfile);
-    return SUCCESS;
-} // end function L_write_solution()
-
-
-int L_write_cell_history(struct slug_data* A, FILE* hisfile)
+int L_write_cell_history(GasSlug* A, FILE* hisfile)
 // Write out the flow solution in a (small) subset of cells
 // at a different (often smaller) time interval to the full
 // flow solution.
@@ -580,7 +219,8 @@ int L_write_cell_history(struct slug_data* A, FILE* hisfile)
 } // end function L_write_cell_history
 
 
-int L_write_x_history(double xloc, std::vector<slug_data> &A, int nslug, FILE* hisfile)
+int L_write_x_history(double xloc, std::vector<GasSlug> &A, 
+		      int nslug, FILE* hisfile)
 // Write out the flow solution at a specified x-location
 // at a different (often smaller) time interval to the full
 // flow solution.
@@ -596,17 +236,14 @@ int L_write_x_history(double xloc, std::vector<slug_data> &A, int nslug, FILE* h
     // The output format for this function needs to be kept the 
     // same as that for L_write_cell_history().
     Gas_model *gmodel = get_gas_model_ptr();
-    struct L_cell* icell = new(struct L_cell);
-    icell->gas = new Gas_data(gmodel);
+    LCell icell = LCell(gmodel);
     // Find the gas slug containing the x-location
     int found=0;
     for ( int js = 0; js < nslug; ++js ) {
-        found = L_interpolate_cell_data(&(A[js]), xloc, *icell);
+        found = A[js].interpolate_cell_data(xloc, icell);
         if (found == 1) break;
     } // for (js = ...
-    fprintf(hisfile, "%s\n", write_cell_values_to_string(*icell).c_str() );
+    fprintf(hisfile, "%s\n", write_cell_values_to_string(icell).c_str() );
     fflush(hisfile);
-    delete icell->gas;
-    delete icell;
     return SUCCESS;
 } // end function L_write_x_history

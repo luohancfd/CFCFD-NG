@@ -31,7 +31,7 @@
 #include "l_piston.hh"
 #include "l1d.hh"
 #include "l_io.hh"
-#include "l_misc.hh"
+#include "l_tstep.hh"
 
 /*-----------------------------------------------------------------*/
 
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 {
     int js, jp, jd;
     vector<int> nnx_initial;
-    std::vector<slug_data> A;               /* several gas slugs        */
+    std::vector<GasSlug> A;               /* several gas slugs        */
     std::vector<PistonData> Pist;          /* room for several pistons */
     std::vector<DiaphragmData> Diaph;      /* diaphragms            */
 
@@ -252,10 +252,8 @@ int main(int argc, char **argv)
         Diaph.push_back(DiaphragmData(jd, pname, echo_input));
         Diaph[jd].sim_time = 0.0;
     }
-    ConfigParser parameterdict = ConfigParser(pname);
-    A.resize(SD.nslug);
     for (js = 0; js < SD.nslug; ++js) {
-        L_set_slug_parameters(&(A[js]), js, SD, parameterdict, echo_input);
+        A.push_back(GasSlug(js, SD, pname, echo_input));
         A[js].sim_time = 0.0;
         nnx_initial[js] = A[js].nnx;
     }
@@ -316,8 +314,7 @@ int main(int argc, char **argv)
     for (nt = 0; nt < max_sol; ++nt) {
         for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].read_state(infile);
         for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].read_state(infile);
-        for (js = 0; js < SD.nslug; ++js)
-            L_read_solution(&(A[js]), infile);
+        for (js = 0; js < SD.nslug; ++js) A[js].read_state(infile);
 	++nt_read;
 
 	if ( A[0].sim_time < tstart ) {
@@ -373,8 +370,7 @@ int main(int argc, char **argv)
                  * interpolate the data from the actual cells onto
                  * an evenly distributed number of points.
                  */
-		struct L_cell* icell = new(struct L_cell);
-		icell->gas = new Gas_data(gmodel);
+		LCell* icell = new LCell(gmodel);
                 ixmin = A[js].ixmin;
                 ixmax = A[js].ixmax;
                 xL = 0.5 * (A[js].Cell[ixmin - 1].x + A[js].Cell[ixmin].x);
@@ -382,7 +378,7 @@ int main(int argc, char **argv)
                 dx = (xR - xL) / (nnx_initial[js] - 1);
                 for (nx = 0; nx < nnx_initial[js]; ++nx) {
                     xloc = xL + dx * nx;
-                    found = L_interpolate_cell_data(&(A[js]), xloc, *icell);
+                    found = A[js].interpolate_cell_data(xloc, *icell);
                     xarray[js][nt_write][nx] = xloc;
                     tarray[js][nt_write][nx] = A[js].sim_time;
                     if (option == SELECT_RHO) {
@@ -424,8 +420,7 @@ int main(int argc, char **argv)
     }   /* end for nt... */
 
     printf("\n");
-    if (infile != NULL)
-        fclose(infile);
+    if (infile != NULL) fclose(infile);
     printf("Number of solutions read: %d\n", nt_read);
     printf("Final time = %g\n", A[0].sim_time);
 

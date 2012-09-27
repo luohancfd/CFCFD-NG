@@ -347,8 +347,7 @@ int main(int argc, char **argv)
          * If we reached this point, the time-stamp was OK so
          * assume that all of the following lines are present. 
          */
-	struct L_cell* icell = new(struct L_cell);
-	icell->gas = new Gas_data(gmodel);
+	LCell* icell = new LCell(gmodel);
         for (j = 0; j < hnloc; ++j) {
 	    if ( fgets(line, NCHAR, infile) == NULL ) {
 		printf("Problem reading file.\n");

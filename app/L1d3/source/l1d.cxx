@@ -59,21 +59,22 @@ extern "C" {
 #include "l_diaph.hh"
 #include "l_piston.hh"
 #include "l_tube.hh"
+#include "l_slug.hh"
 #include "l_adapt.hh"
 #include "l_bc.hh"
 #include "l_io.hh"
 #include "l_rivp.hh"
 #include "l_tstep.hh"
-#include "l_misc.hh"
+#include "l_bc.hh"
 
 //-----------------------------------------------------------------
 
 int main(int argc, char **argv)
 {
     int js, jp, jd;                    /* slug, piston, diaphragm index */
-    std::vector<slug_data> A;               /* several gas slugs        */
-    std::vector<PistonData> Pist;          /* room for several pistons */
-    std::vector<DiaphragmData> Diaph;      /* diaphragms            */
+    std::vector<GasSlug> A;            /* several gas slugs        */
+    std::vector<PistonData> Pist;      /* room for several pistons */
+    std::vector<DiaphragmData> Diaph;  /* diaphragms            */
     DiaphragmData *dp;
     int step, print_count;             /* global iteration count     */
     int adjust_end_cell_count;
@@ -230,7 +231,6 @@ int main(int argc, char **argv)
     SimulationData SD = SimulationData(pname, echo_input);
     SD.sim_time = 0.0;  /* Global simulation time */
     TubeModel tube = TubeModel(pname, echo_input);
-    A.resize(SD.nslug);
     for (jp = 0; jp < SD.npiston; ++jp) {
         Pist.push_back(PistonData(jp, SD.dt_init, pname, echo_input));
         Pist[jp].sim_time = 0.0;
@@ -240,9 +240,8 @@ int main(int argc, char **argv)
         Diaph[jd].sim_time = 0.0;
     }
     SD.hncell = 0;
-    ConfigParser parameterdict = ConfigParser(pname);
     for (js = 0; js < SD.nslug; ++js) {
-        L_set_slug_parameters(&(A[js]), js, SD, parameterdict, echo_input);
+        A.push_back(GasSlug(js, SD, pname, echo_input));
         SD.hncell += A[js].hncell;
         A[js].sim_time = 0.0;
     }
@@ -280,17 +279,15 @@ int main(int argc, char **argv)
 	    for ( int ix = A[js].ixmin-1; ix <= A[js].ixmax; ++ix) {
 		A[js].Cell[ix].x = x[i];
 		++i;
-	    }   /* end for */
-	    /* Compute the areas at the cell interfaces. */
-	    L_compute_areas(&(A[js]), &tube);
-	    /* Fill each slug with uniform initial conditions. */
-	    L_fill_data(&(A[js]));
-	    L_encode_conserved(&(A[js]));
+	    }
+	    A[js].compute_areas(&tube);
+	    A[js].fill_data();
+	    A[js].encode_conserved();
 	    /* 
 	     * The following line should fill in all of the 
 	     * extra variables.
 	     */
-	    if ( L_decode_conserved(&(A[js])) != 0 ) {
+	    if ( A[js].decode_conserved() != 0 ) {
 		printf( "Failure decoding conserved quantities for slug[%d].\n", js );
 		exit( -1 );
 	    }
@@ -304,8 +301,7 @@ int main(int argc, char **argv)
 	}
 	for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].write_state(outfile);
 	for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].write_state(outfile);
-	for (js = 0; js < SD.nslug; ++js)
-	    L_write_solution(&(A[js]), outfile);
+	for (js = 0; js < SD.nslug; ++js) A[js].write_state(outfile);
 	if (outfile != NULL) fclose(outfile);
 	return SUCCESS;
     }
@@ -318,23 +314,23 @@ int main(int argc, char **argv)
     for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].read_state(infile);
     for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].read_state(infile);
     for (js = 0; js < SD.nslug; ++js) {
-        L_read_solution( &(A[js]), infile );
-        L_compute_areas( &(A[js]), &tube );
-        L_encode_conserved( &(A[js]) );
+        A[js].read_state(infile);
+        A[js].compute_areas(&tube);
+        A[js].encode_conserved();
         // Fill in all of the extra variables.
-        if ( L_decode_conserved( &(A[js]) ) != 0 ) {
+        if ( A[js].decode_conserved() != 0 ) {
 	    printf( "Failure decoding conserved quantities for slug[%d].\n", js );
 	    printf( "This occured just after reading starting solution.\n" );
-	    exit( -1 );
+	    exit(-1);
         }
-	L_set_chemistry_timestep( &(A[js]), -1.0 );
-	L_set_thermal_timestep( &(A[js]), -1.0 );
+	A[js].set_chemistry_timestep(-1.0);
+	A[js].set_thermal_timestep(-1.0);
     } // end for js...
     if ( infile != NULL ) fclose(infile);
 
     SD.sim_time = A[0].sim_time; // Pick up the old time.
-    tplot = SD.sim_time + L_get_dt_plot( &SD );
-    thistory = SD.sim_time + L_get_dt_history( &SD );
+    tplot = SD.sim_time + SD.get_dt_plot();
+    thistory = SD.sim_time + SD.get_dt_history();
     SD.dt_global = SD.dt_init;
     for (js = 0; js < SD.nslug; ++js) {
         A[js].dt = SD.dt_global;
@@ -392,8 +388,7 @@ int main(int argc, char **argv)
         if (step == 0 ||
             (step / cfl_count) * cfl_count == step || newly_adapted == 1) {
             // Check the CFL number and determine an allowable time-step.
-            for (js = 0; js < SD.nslug; ++js)
-                L_check_cfl(&(A[js]));
+            for (js = 0; js < SD.nslug; ++js) A[js].check_cfl();
             SD.dt_allow = A[0].dt_allow;
             cfl_max = A[0].cfl_max;
             if (SD.nslug > 1) {
@@ -460,7 +455,7 @@ int main(int argc, char **argv)
 	    // This will, hopefully, eliminate the glitches seen in the
 	    // beginning test gas in Ben's expansion tube simulations.
             for (js = 0; js < SD.nslug; ++js) {
-		L_adjust_end_cells( &(A[js]) );
+		A[js].adjust_end_cells();
 	    }
 	}
 
@@ -480,7 +475,7 @@ int main(int argc, char **argv)
                 if (js >= 0) {
                     end_id = dp->left_slug_end_id;
                     end_dx = dp->left_slug_dx;
-                    left_p = L_slug_end_pressure( &(A[js]), end_id, end_dx );
+                    left_p = A[js].end_pressure(end_id, end_dx);
                 } else {
                     left_p = 0.0;
                 }
@@ -490,7 +485,7 @@ int main(int argc, char **argv)
                 if (js >= 0) {
                     end_id = dp->right_slug_end_id;
                     end_dx = dp->right_slug_dx;
-                    right_p = L_slug_end_pressure( &(A[js]), end_id, end_dx );
+                    right_p = A[js].end_pressure(end_id, end_dx);
                 } else {
                     right_p = 0.0;
                 }
@@ -527,10 +522,10 @@ int main(int argc, char **argv)
 		    L_blend_slug_ends( &(A[dp->left_slug_id]), dp->left_slug_end_id,
 				       &(A[dp->right_slug_id]), dp->right_slug_end_id,
 				       dp->blend_dx );
-		    L_compute_areas( &(A[dp->left_slug_id]), &tube );
-		    L_encode_conserved( &(A[dp->left_slug_id]) );
-		    L_compute_areas( &(A[dp->right_slug_id]), &tube );
-		    L_encode_conserved( &(A[dp->right_slug_id]) );
+		    A[dp->left_slug_id].compute_areas(&tube);
+		    A[dp->left_slug_id].encode_conserved();
+		    A[dp->right_slug_id].compute_areas(&tube);
+		    A[dp->right_slug_id].encode_conserved();
 		    dp->already_blended = 1;
                     sprintf( msg_string,
                              "\nEvent: blend slugs [%d] and [%d] at t= %e\n",
@@ -547,7 +542,7 @@ int main(int argc, char **argv)
 	// ----------------------
         for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].record_state(); 
         for (js = 0; js < SD.nslug; ++js) {
-            L_record_slug_state(&(A[js]));
+            A[js].record_state();
         }
 
         attempt_number = 0;
@@ -615,14 +610,14 @@ int main(int argc, char **argv)
 
             // 4b. Gas-dynamic predictor step
             for (js = 0; js < SD.nslug; ++js) {
-                L_apply_rivp(&(A[js]));
-                L_source_vector(&(A[js]));
-                L_axial_heat_flux(&(A[js]), SD.k);
-                L_time_derivatives(&(A[js]), 0);
-                L_predictor_step(&(A[js]));
-                L_compute_areas(&(A[js]), &tube);
-                if ( L_decode_conserved(&(A[js])) != 0 ) {
-		    printf( "L_decode_conserved() failed at predictor step\n" );
+                A[js].apply_rivp();
+                A[js].source_vector();
+                A[js].axial_heat_flux(SD.k);
+                A[js].time_derivatives(0);
+                A[js].predictor_step();
+                A[js].compute_areas(&tube);
+                if ( A[js].decode_conserved() != 0 ) {
+		    printf( "decode_conserved() failed at predictor step\n" );
 		    printf( "   for slug[%d], attempt=%d, time-step=%d\n", 
 			    js, attempt_number, step );
 		}
@@ -732,14 +727,14 @@ int main(int argc, char **argv)
 
                 // 4f. Gas-dynamic corrector step
                 for (js = 0; js < SD.nslug; ++js) {
-                    L_apply_rivp(&(A[js]));
-                    L_source_vector(&(A[js]));
-                    L_axial_heat_flux(&(A[js]), SD.k);
-                    L_time_derivatives(&(A[js]), 1);
-                    L_corrector_step(&(A[js]));
-                    L_compute_areas(&(A[js]), &tube);
-		    if ( L_decode_conserved(&(A[js])) != 0 ) {
-			printf( "L_decode_conserved() failed at corrector step\n" );
+                    A[js].apply_rivp();
+                    A[js].source_vector();
+                    A[js].axial_heat_flux(SD.k);
+                    A[js].time_derivatives(1);
+                    A[js].corrector_step();
+                    A[js].compute_areas(&tube);
+		    if ( A[js].decode_conserved() != 0 ) {
+			printf( "decode_conserved() failed at corrector step\n" );
 			printf( "   for slug[%d], attempt=%d, time-step=%d\n", 
 				js, attempt_number, step );
 		    }
@@ -790,14 +785,14 @@ int main(int argc, char **argv)
 	    // chemistry module.
 	    if ( SD.fr_chem == 1 ) {
 		for (js = 0; js < SD.nslug; ++js) {
-		    L_chemical_increment( &(A[js]), SD.dt_global);
+		    A[js].chemical_increment(SD.dt_global);
 		}
 	    }
 
             // Check for bad cells. 
             bad_cells = 0;
             for (js = 0; js < SD.nslug; ++js) {
-                bad_cells += L_check_cells(&(A[js]), js);
+                bad_cells += A[js].check_cells(js);
             }
             step_failed = (bad_cells > 0);
 
@@ -821,10 +816,10 @@ int main(int argc, char **argv)
                 for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].restore_state();
 
                 for (js = 0; js < SD.nslug; ++js) {
-                    L_restore_slug_state(&(A[js]));
-                    L_compute_areas(&(A[js]), &tube);
-                    if ( L_decode_conserved(&(A[js])) != 0 ) {
-			printf("L_decode_conserved() failed while trying\n");
+                    A[js].restore_state();
+                    A[js].compute_areas(&tube);
+                    if ( A[js].decode_conserved() != 0 ) {
+			printf("decode_conserved() failed while trying\n");
 			printf("   to restore original state for slug[%d]\n", js);
 			printf("   at time-step=%d\n", step );
 		    }
@@ -858,15 +853,14 @@ int main(int argc, char **argv)
 	// --------------------------------------------
 	// 5a. Full flow along tube, diaphragm and piston states
         if ( SD.sim_time >= tplot ) {
-            tplot += L_get_dt_plot( &SD );
+            tplot += SD.get_dt_plot();
             for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].write_state(outfile);
             for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].write_state(outfile);
-            for (js = 0; js < SD.nslug; ++js)
-                L_write_solution(&(A[js]), outfile);
+            for (js = 0; js < SD.nslug; ++js) A[js].write_state(outfile);
         }
 	// 5b. Selected history points.
         if ( SD.sim_time >= thistory ) {
-            thistory += L_get_dt_history( &SD );
+            thistory += SD.get_dt_history();
             fprintf(hisfile1, "%e %d %d %d # sim_time, hncell, nsp, nmodes\n", 
 		    SD.sim_time, SD.hncell, nsp, nmodes);
             for (js = 0; js < SD.nslug; ++js)
@@ -951,10 +945,9 @@ int main(int argc, char **argv)
 
     for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].write_state(outfile);
     for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].write_state(outfile);
-    for (js = 0; js < SD.nslug; ++js)
-        L_write_solution(&(A[js]), outfile);
+    for (js = 0; js < SD.nslug; ++js) A[js].write_state(outfile);
     for (js = 0; js < SD.nslug; ++js) {
-        L_free( &(A[js]) );
+        delete &(A[js]);
     }
     delete gmodel;
 

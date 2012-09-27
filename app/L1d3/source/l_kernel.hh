@@ -38,7 +38,10 @@ public:
     int hncell;         /* history cell count (all slugs) */
 
     SimulationData(std::string config_file_name, int echo_input);
+    SimulationData(const SimulationData& sd);
     ~SimulationData();
+    double get_dt_plot();
+    double get_dt_history();
 }; // end SimulationData
 
 

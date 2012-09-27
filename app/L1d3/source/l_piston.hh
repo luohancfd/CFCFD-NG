@@ -66,6 +66,7 @@ public:
     // xxxx-slug_end_id: LEFT or RIGHT end adjoins
 
     PistonData(int indx, double dt_init, std::string config_file_name, int echo_input=0);
+    PistonData(const PistonData& pd);
     ~PistonData();
     int read_state(FILE* infile);
     int write_state(FILE* outfile);

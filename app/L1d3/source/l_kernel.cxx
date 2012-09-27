@@ -85,10 +85,67 @@ SimulationData::SimulationData(std::string config_file_name, int echo_input)
 } // end SimulationData constructor
 
 
+SimulationData::SimulationData(const SimulationData& sd)
+{
+    test_case = sd.test_case;
+    nslug = sd.nslug;
+    npiston = sd.npiston;
+    ndiaphragm = sd.ndiaphragm;
+    max_step = sd.max_step;
+    sim_time = sd.sim_time;
+    max_time = sd.max_time;
+    dt_init = sd.dt_init;
+    dt_global = sd.dt_global;
+    dt_allow = sd.dt_allow;
+    CFL = sd.CFL;
+    Torder = sd.Torder;
+    Xorder = sd.Xorder;
+    fr_chem = sd.fr_chem;
+    k = sd.k;
+    n_dt_plot = sd.n_dt_plot;
+    for ( size_t i = 0; i < sd.t_change.size(); ++i ) t_change.push_back(sd.t_change[i]);
+    for ( size_t i = 0; i < sd.dt_plot.size(); ++i ) dt_plot.push_back(sd.dt_plot[i]);
+    for ( size_t i = 0; i < sd.dt_his.size(); ++i ) dt_his.push_back(sd.dt_his[i]);
+    hnloc = sd.hnloc;
+    for ( size_t i = 0; i < sd.hxloc.size(); ++i ) hxloc.push_back(sd.hxloc[i]);
+    hncell = sd.hncell;
+} // end SimulationData copy constructor
+
+
 SimulationData::~SimulationData()
-{}
+{
+    t_change.resize(0);
+    dt_plot.resize(0);
+    dt_his.resize(0);
+    hxloc.resize(0);
+}
 
 
+double SimulationData::get_dt_plot()
+{
+    double current_dt_plot;
+    current_dt_plot = dt_plot[0];
+    for ( int i = 0; i < n_dt_plot; ++i ) {
+	if ( sim_time > t_change[i] ) {
+            current_dt_plot = dt_plot[i];
+        }
+    }
+    return current_dt_plot;
+}
+
+double SimulationData::get_dt_history()
+{
+    double current_dt_his;
+    current_dt_his = dt_his[0];
+    for ( int i = 0; i < n_dt_plot; ++i ) {
+        if ( sim_time > t_change[i] ) {
+            current_dt_his = dt_his[i];
+        }
+    }
+    return current_dt_his;
+}
+
+//-------------------------------------------------------------------------------
 // The managed gas model lives here.
 Gas_model *gmodel;
 

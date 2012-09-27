@@ -67,8 +67,28 @@ DiaphragmData::DiaphragmData(int indx, std::string config_file_name, int echo_in
 }
 
 
+DiaphragmData::DiaphragmData(const DiaphragmData& dd)
+{
+    sim_time = dd.sim_time;
+    is_burst = dd.is_burst;
+    P_burst = dd.P_burst;
+    hold_period = dd.hold_period;
+    trigger_time = dd.trigger_time;
+    already_blended = dd.already_blended;
+    blend_dx = dd.blend_dx;
+    blend_delay = dd.blend_delay;
+    left_slug_id = dd.left_slug_id;
+    right_slug_id = dd.right_slug_id;
+    left_slug_end_id = dd.left_slug_end_id;
+    right_slug_end_id = dd.right_slug_end_id;
+    left_slug_dx = dd.left_slug_dx;
+    right_slug_dx = dd.right_slug_dx;
+} // end DiaphragmData copy constructor
+
+
 DiaphragmData::~DiaphragmData()
 {
+    // nothing to do
 }
 
 

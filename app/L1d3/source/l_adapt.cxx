@@ -12,7 +12,6 @@
 #include "l1d.hh"
 #include "l_adapt.hh"
 #include "l_tstep.hh"
-#include "l_misc.hh"
 
 /*-----------------------------------------------------------------*/
 
@@ -175,30 +174,26 @@ int error_indicator(double rho[], int indicator[], int ixmin, int ixmax)
 
 /*-----------------------------------------------------------------*/
 
-int L_adapt_cells(struct slug_data *A)
+int L_adapt_cells(GasSlug* A)
 {
     /*
      * Returns 0 if OK; 1 otherwise.
      */
     int ix, ia, ib, B_nnx;
-    static struct L_cell B_Cell[NDIM];
-    struct L_cell *ci, *cim1, *cip1;
+    static vector<LCell> B_Cell;
+    LCell *ci, *cim1, *cip1;
     static int too_large[NDIM], too_small[NDIM];
     static int exp_indicator[NDIM], shock_indicator[NDIM];
     static int density_indicator[NDIM], decision[NDIM];
     int should_be_refined, should_be_coarsened;
     static double dudx[NDIM], rho[NDIM];
     double dx, dx_min, dx_max, dx_refine, dx_coarsen;
-
-#   if (DEBUG >= 1)
-    printf("\nBegin L_adapt_cells()...\n");
-#   endif
     Gas_model *gmodel = get_gas_model_ptr();
 
-    if ( B_Cell[0].gas == 0 ) {
+    if ( B_Cell.size() == 0 ) {
 	// If one cell is not filled out, assume the rest are not.
 	for ( ix = 0; ix < NDIM; ++ix ) {
-	    B_Cell[ix].gas = new Gas_data(gmodel);
+	    B_Cell.push_back(LCell(gmodel));
 	}
 	printf( "L_adapt_cells(): first-time: work arrays filled out.\n" );
     }
@@ -329,11 +324,11 @@ int L_adapt_cells(struct slug_data *A)
     B_nnx = ib - A->ixmin;
     if (B_nnx <= A->nxmax) {
         A->nnx = B_nnx;
-        L_set_index_range(A);
+	A->set_index_range();
         for (ix = A->ixmin; ix <= A->ixmax; ++ix) {
             L_copy_cell_data(&(B_Cell[ix]), &(A->Cell[ix]), 1);
         }   /* end for */
-        if ( L_decode_conserved(A) != 0 ) {
+        if ( A->decode_conserved() != 0 ) {
 	    printf( "L_adapt_cells(): Failure decoding conserved quantities.\n" );
 	    return 1;
 	}
@@ -347,8 +342,7 @@ int L_adapt_cells(struct slug_data *A)
 
 /*-----------------------------------------------------------------*/
 
-int L_fuse_cell_data(struct L_cell *source1,
-                     struct L_cell *source2, struct L_cell *destination)
+int L_fuse_cell_data(LCell *source1, LCell *source2, LCell *destination)
 {
     /*
      * Fuse the gas-dynamic data from the two source cells
@@ -397,10 +391,7 @@ int L_fuse_cell_data(struct L_cell *source1,
 
 /*-----------------------------------------------------------------*/
 
-int L_split_cell_data_roughly(struct L_cell *source,
-			      double xL, 
-			      struct L_cell *dest1, 
-			      struct L_cell *dest2)
+int L_split_cell_data_roughly(LCell *source, double xL, LCell *dest1, LCell *dest2)
 {
     /*
      * Split the gas-dynamic data from the one source cell
@@ -457,11 +448,11 @@ int L_split_cell_data_roughly(struct L_cell *source,
 
 /*-----------------------------------------------------------------*/
 
-int L_split_cell_data_smoothly( struct L_cell *ci,   /* the cell to be split */
-				struct L_cell *cim1, /* the cell to left     */
-				struct L_cell *cip1, /* the cell to right    */
-				struct L_cell *ca,   /* left new cell        */ 
-				struct L_cell *cb )  /* right new cell       */
+int L_split_cell_data_smoothly(LCell *ci,   /* the cell to be split */
+			       LCell *cim1, /* the cell to left     */
+			       LCell *cip1, /* the cell to right    */
+			       LCell *ca,   /* left new cell        */ 
+			       LCell *cb )  /* right new cell       */
 {
     /*
      * Split the gas-dynamic data from the one source cell

@@ -104,8 +104,58 @@ PistonData::PistonData(int indx, double dt_init, std::string config_file_name, i
 	apply_decay = 0;
 }
 
+
+PistonData::PistonData(const PistonData& pd)
+{
+    mass = pd.mass;
+    mass_old = pd.mass_old;
+    diam = pd.diam;
+    area = pd.area;
+    length = pd.length;
+    front_seal_f = pd.front_seal_f;
+    front_seal_area = pd.front_seal_area;
+    back_seal_f = pd.back_seal_f;
+    back_seal_area = pd.back_seal_area;
+    with_brakes = pd.with_brakes;
+    p_restrain = pd.p_restrain;
+    x_buffer = pd.x_buffer;
+    V_buffer = pd.V_buffer;
+    f_decay = pd.f_decay;
+    mass_limit = pd.mass_limit;
+    apply_decay = pd.apply_decay;
+    brakes_on = pd.brakes_on;
+    brakes_on_old = pd.brakes_on_old;
+    is_restrain = pd.is_restrain;
+    is_restrain_old = pd.is_restrain_old;
+    hit_buffer_count = pd.hit_buffer_count;
+    hit_buffer_count_old = pd.hit_buffer_count_old;
+    on_buffer = pd.on_buffer;
+    on_buffer_old = pd.on_buffer_old;
+    x0 = pd.x0;
+    V0 = pd.V0;
+    sim_time = pd.sim_time;
+    x = pd.x;
+    V = pd.V;
+    x_old = pd.x_old;
+    V_old = pd.V_old;
+    Pf = pd.Pf;
+    Pb = pd.Pb;
+    Friction = pd.Friction;
+    dt = pd.dt;
+    for ( int i = 0; i < NL; ++i ) {
+	DxDt[i] = pd.DxDt[i];
+	DVDt[i] = pd.DVDt[i];
+    }
+    left_slug_id = pd.left_slug_id;
+    right_slug_id = pd.right_slug_id;
+    left_slug_end_id = pd.left_slug_end_id;
+    right_slug_end_id = pd.right_slug_end_id;
+} // end PistonData copy constructor
+
+
 PistonData::~PistonData()
 {
+    // nothing to do
 }
 
 
