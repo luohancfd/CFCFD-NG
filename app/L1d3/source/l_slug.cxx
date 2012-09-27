@@ -330,13 +330,13 @@ GasSlug::GasSlug(const GasSlug& gs) // copy constructor
 
 GasSlug::~GasSlug(void)
 {
-    // FIX-ME Cell.resize(0);
+    Cell.clear();
     if ( init_str ) {
 	delete init_str->gas;
 	free(init_str);
 	init_str = NULL;
     }
-    hxcell.resize(0);
+    hxcell.clear();
 }
 
 
@@ -399,7 +399,7 @@ int GasSlug::read_state(FILE* infile)
 	    return FAILURE;
 	}
     } // end for ix
-    // The actual cells.
+    // The cells with flow data.
     for ( ix = ixmin; ix <= ixmax; ++ix ) {
 	LCell* c = &( Cell[ix] );
 	if (fgets(line, NCHAR, infile) == NULL) {

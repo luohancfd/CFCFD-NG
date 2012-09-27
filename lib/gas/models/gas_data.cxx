@@ -88,12 +88,12 @@ Gas_data::Gas_data(int nsp, int nmodes)
 
 Gas_data::~Gas_data() 
 {
-    for( size_t i = 0; i < D_AB.size(); ++i ) D_AB[i].resize(0);
-    D_AB.resize(0);
-    massf.resize(0);
-    T.resize(0);
-    e.resize(0);
-    k.resize(0);
+    for( size_t i = 0; i < D_AB.size(); ++i ) D_AB[i].clear();
+    D_AB.clear();
+    massf.clear();
+    T.clear();
+    e.clear();
+    k.clear();
 }
 
 Gas_data &

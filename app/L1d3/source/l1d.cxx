@@ -946,14 +946,13 @@ int main(int argc, char **argv)
     for (jp = 0; jp < SD.npiston; ++jp) Pist[jp].write_state(outfile);
     for (jd = 0; jd < SD.ndiaphragm; ++jd) Diaph[jd].write_state(outfile);
     for (js = 0; js < SD.nslug; ++js) A[js].write_state(outfile);
-    for (js = 0; js < SD.nslug; ++js) {
-        delete &(A[js]);
-    }
-    delete gmodel;
-
     if (outfile != NULL) fclose(outfile);
     if (hisfile1 != NULL) fclose(hisfile1);
     if (hisfile2 != NULL) fclose(hisfile2);
 
+    Pist.clear();
+    Diaph.clear();
+    A.clear();
+    delete gmodel;
     return SUCCESS;
 } // end function main()

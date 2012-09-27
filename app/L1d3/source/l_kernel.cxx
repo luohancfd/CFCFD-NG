@@ -114,10 +114,10 @@ SimulationData::SimulationData(const SimulationData& sd)
 
 SimulationData::~SimulationData()
 {
-    t_change.resize(0);
-    dt_plot.resize(0);
-    dt_his.resize(0);
-    hxloc.resize(0);
+    t_change.clear();
+    dt_plot.clear();
+    dt_his.clear();
+    hxloc.clear();
 }
 
 
