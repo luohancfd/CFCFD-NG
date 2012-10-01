@@ -49,10 +49,10 @@ Here is an example script for the Sod shock-tube problem::
     left_wall = VelocityEnd(x0=0.0, v=0.0)
     driver_gas = GasSlug(p=100.0e3, u=0.0, T=348.4, nn=100,
                          to_end_R=1, cluster_strength=1.1,
-                         hcells=1)
+                         hcells=0)
     interface = GasInterface(x0=0.5)
     driven_gas = GasSlug(p=10.0e3, u=0.0, T=278.7, nn=100,
-                         hcells=1)
+                         hcells=0)
     right_wall = VelocityEnd(x0=1.0, v=0.0)
     assemble_gas_path(left_wall, driver_gas, interface, driven_gas, right_wall)
     
