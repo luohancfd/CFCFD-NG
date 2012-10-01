@@ -353,7 +353,7 @@ int main(int argc, char **argv)
 		printf("Problem reading file.\n");
 		exit(BAD_INPUT_ERROR);
 	    }
-	    if ( scan_cell_values_from_string(line, *icell) ) {
+	    if ( icell->scan_cell_values_from_string(line) ) {
 		printf("Cell failed to read from line:\n" );
 		printf("%s\n", line);
 		return FAILURE;

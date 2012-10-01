@@ -16,7 +16,9 @@ typedef std::vector<std::vector<double> > matrix;
 
 double get_matrix_element(const matrix &M, int i, int j );
 int copy_matrix_elements(const matrix &srcM, matrix &destM );
-int average_matrix_elements(const matrix &srcM0, const matrix &srcM1, matrix &destM);
+int average_matrix_elements(const matrix &srcM0, double alpha0,
+			    const matrix &srcM1, double alpha1,
+			    matrix &destM);
 
 class Gas_model;
 
@@ -45,7 +47,9 @@ public:
     void print_values(bool print_transport_data=true) const;
     void write_values(std::string fname, bool print_transport_data) const;
     void copy_values_from(const Gas_data &src);
-    void average_values_from(const Gas_data &src0, const Gas_data &src1, bool with_diff_coeff);
+    void average_values_from(const Gas_data &src0, double alpha0,
+			     const Gas_data &src1, double alpha1, 
+			     bool with_diff_coeff);
     int accumulate_values_from(const Gas_data &src, double alpha);
     double* copy_values_to_buffer(double *buf) const;
     double* copy_values_from_buffer(double *buf);

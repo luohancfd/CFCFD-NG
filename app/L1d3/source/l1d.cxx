@@ -362,6 +362,7 @@ int main(int argc, char **argv)
     //-----------------------------------
     printf("\nBeginning MAIN LOOP...\n");
     //-----------------------------------
+    set_up_workspace_for_apply_rivp();
     start = time(NULL); // start of wallclock timing
     fflush(stdout);
     sprintf( msg_string, "\nStart time stepping... " );
@@ -864,11 +865,11 @@ int main(int argc, char **argv)
             fprintf(hisfile1, "%e %d %d %d # sim_time, hncell, nsp, nmodes\n", 
 		    SD.sim_time, SD.hncell, nsp, nmodes);
             for (js = 0; js < SD.nslug; ++js)
-                L_write_cell_history(&(A[js]), hisfile1);
+                L_write_cell_history(A[js], hisfile1);
             fprintf(hisfile2, "%e %d %d %d  # sim_time, hnloc, nsp, nmodes\n", 
 		    SD.sim_time, SD.hnloc, nsp, nmodes);
             for (js = 0; js < SD.hnloc; ++js)
-                L_write_x_history(SD.hxloc[js], A, SD.nslug, hisfile2);
+                L_write_x_history(SD.hxloc[js], A, hisfile2);
         }
 
 	// -------------------------
@@ -950,6 +951,7 @@ int main(int argc, char **argv)
     if (hisfile1 != NULL) fclose(hisfile1);
     if (hisfile2 != NULL) fclose(hisfile2);
 
+    dispose_workspace_for_apply_rivp();
     Pist.clear();
     Diaph.clear();
     A.clear();

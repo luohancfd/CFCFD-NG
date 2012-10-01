@@ -290,7 +290,7 @@ int L_adapt_cells(GasSlug* A)
             ia += 2;
             ib += 1;
         } else {
-            L_copy_cell_data( ci, &(B_Cell[ib]), 1 );
+            B_Cell[ib].copy_data_from(*ci, 1);
             ia += 1;
             ib += 1;
         }   /* end if */
@@ -312,7 +312,7 @@ int L_adapt_cells(GasSlug* A)
             ia += 1;
             ib += 2;
         } else {
-            L_copy_cell_data( ci, &(B_Cell[ib]), 1 );
+            B_Cell[ib].copy_data_from(*ci, 1);
             ia += 1;
             ib += 1;
         }   /* end if */
@@ -326,7 +326,7 @@ int L_adapt_cells(GasSlug* A)
         A->nnx = B_nnx;
 	A->set_index_range();
         for (ix = A->ixmin; ix <= A->ixmax; ++ix) {
-            L_copy_cell_data(&(B_Cell[ix]), &(A->Cell[ix]), 1);
+            A->Cell[ix].copy_data_from(B_Cell[ix], 1);
         }   /* end for */
         if ( A->decode_conserved() != 0 ) {
 	    printf( "L_adapt_cells(): Failure decoding conserved quantities.\n" );

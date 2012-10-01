@@ -20,178 +20,118 @@
 
 int L_bc_left_velocity(GasSlug* A, double v)
 {
-    /* 
-     * Apply a specified velocity to the left boundary.
-     */
-    int ix;
-    LCell *src, *dest;
-    double xbndy;
-
-    ix = A->ixmin - 1;
-    xbndy = A->Cell[ix].x;
+    // Apply a specified velocity to the left boundary.
+    int ix = A->ixmin - 1;
+    double xbndy = A->Cell[ix].x;
     A->left_ustar = v;
-
-    dest = &(A->Cell[ix]);
-    src = &(A->Cell[ix + 1]);
-    L_copy_cell_data(src, dest, 0);
-    dest->u = v;
-    dest->xmid = xbndy - (src->xmid - xbndy);
-
-    dest = &(A->Cell[ix - 1]);
-    src = &(A->Cell[ix + 2]);
-    L_copy_cell_data(src, dest, 0);
-    dest->u = v;
-    dest->xmid = xbndy - (src->xmid - xbndy);
-
-    return 0;
+    LCell& dest =A->Cell[ix];
+    LCell& src = A->Cell[ix+1];
+    dest.copy_data_from(src, 0);
+    dest.u = v;
+    dest.xmid = xbndy - (src.xmid - xbndy);
+    LCell& dest2 = A->Cell[ix-1];
+    LCell& src2 = A->Cell[ix+2];
+    dest2.copy_data_from(src2, 0);
+    dest2.u = v;
+    dest2.xmid = xbndy - (src2.xmid - xbndy);
+    return SUCCESS;
 }   /* end function L_bc_left_velocity */
 
 
 int L_bc_left_reflect(GasSlug* A)
 {
-    /*
-     * Apply a reflective bc to the left boundary.
-     */
-    int ix;
-    LCell *src, *dest;
-    double xbndy;
-
-    ix = A->ixmin - 1;
-    xbndy = A->Cell[ix].x;
+    // Apply a reflective bc to the left boundary.
+    int ix = A->ixmin - 1;
+    double xbndy = A->Cell[ix].x;
     A->left_ustar = 0.0;
-
-    dest = &(A->Cell[ix]);
-    src = &(A->Cell[ix + 1]);
-    L_copy_cell_data(src, dest, 0);
-    dest->u *= -1.0;
-    dest->xmid = xbndy - (src->xmid - xbndy);
-
-    dest = &(A->Cell[ix - 1]);
-    src = &(A->Cell[ix + 2]);
-    L_copy_cell_data(src, dest, 0);
-    dest->u *= -1.0;
-    dest->xmid = xbndy - (src->xmid - xbndy);
-
-    return 0;
+    LCell& dest = A->Cell[ix];
+    LCell& src = A->Cell[ix+1];
+    dest.copy_data_from(src, 0);
+    dest.u *= -1.0;
+    dest.xmid = xbndy - (src.xmid - xbndy);
+    LCell& dest2 = A->Cell[ix-1];
+    LCell& src2 = A->Cell[ix+2];
+    dest2.copy_data_from(src2, 0);
+    dest2.u *= -1.0;
+    dest2.xmid = xbndy - (src2.xmid - xbndy);
+    return SUCCESS;
 }   /* end function L_bc_left_reflect */
 
 
 int L_bc_left_free(GasSlug *A)
 {
-    /*
-     * Apply a free/supersonic outflow bc to the left boundary.
-     */
-    int ix;
-    LCell *src, *dest;
-    double xbndy;
-
-    ix = A->ixmin - 1;
-    xbndy = A->Cell[ix].x;
-    /*
-     * We should not need this velocity, but we'll copy it anyway.
-     */
-    A->left_ustar = A->Cell[ix + 1].u;
-
-    dest = &(A->Cell[ix]);
-    src = &(A->Cell[ix + 1]);
-    L_copy_cell_data(src, dest, 0);
-    dest->xmid = xbndy - (src->xmid - xbndy);
-
-    dest = &(A->Cell[ix - 1]);
-    src = &(A->Cell[ix + 1]);
-    L_copy_cell_data(src, dest, 0);
-    dest->xmid = xbndy - (A->Cell[ix + 2].xmid - xbndy);
-
-    return 0;
+    // Apply a free/supersonic outflow bc to the left boundary.
+    int ix = A->ixmin - 1;
+    double xbndy = A->Cell[ix].x;
+    A->left_ustar = A->Cell[ix+1].u;
+    LCell& dest = A->Cell[ix];
+    LCell& src = A->Cell[ix+1];
+    dest.copy_data_from(src, 0);
+    dest.xmid = xbndy - (src.xmid - xbndy);
+    LCell& dest2 = A->Cell[ix-1];
+    LCell& src2 = A->Cell[ix+2];
+    dest2.copy_data_from(src, 0); // same as for first ghost cell
+    dest2.xmid = xbndy - (src2.xmid - xbndy);
+    return SUCCESS;
 }   /* end function L_bc_left_free */
 
 
 int L_bc_right_velocity(GasSlug* A, double v)
 {
-    /*
-     * Apply a specified velocity to the right boundary.
-     */
-    int ix;
-    LCell *src, *dest;
-    double xbndy;
-
-    ix = A->ixmax + 1;
-    xbndy = A->Cell[ix - 1].x;
+    // Apply a specified velocity to the right boundary.
+    int ix = A->ixmax + 1;
+    double xbndy = A->Cell[ix - 1].x;
     A->right_ustar = v;
-
-    dest = &(A->Cell[ix]);
-    src = &(A->Cell[ix - 1]);
-    L_copy_cell_data(src, dest, 0);
-    dest->u = v;
-    dest->xmid = xbndy + (xbndy - src->xmid);
-
-    dest = &(A->Cell[ix + 1]);
-    src = &(A->Cell[ix - 2]);
-    L_copy_cell_data(src, dest, 0);
-    dest->u = v;
-    dest->xmid = xbndy + (xbndy - src->xmid);
-
-    return 0;
+    LCell& dest = A->Cell[ix];
+    LCell& src = A->Cell[ix-1];
+    dest.copy_data_from(src, 0);
+    dest.u = v;
+    dest.xmid = xbndy + (xbndy - src.xmid);
+    LCell& dest2 = A->Cell[ix+1];
+    LCell& src2 = A->Cell[ix-2];
+    dest2.copy_data_from(src2, 0);
+    dest2.u = v;
+    dest2.xmid = xbndy + (xbndy - src2.xmid);
+    return SUCCESS;
 }   /* end function L_bc_right_velocity */
 
 
 
 int L_bc_right_reflect(GasSlug* A)
 {
-    /*
-     * Apply a reflective bc to the right boundary.
-     */
-    int ix;
-    LCell *src, *dest;
-    double xbndy;
-
-    ix = A->ixmax + 1;
-    xbndy = A->Cell[ix - 1].x;
+    // Apply a reflective bc to the right boundary.
+    int ix = A->ixmax + 1;
+    double xbndy = A->Cell[ix - 1].x;
     A->right_ustar = 0.0;
-
-    dest = &(A->Cell[ix]);
-    src = &(A->Cell[ix - 1]);
-    L_copy_cell_data(src, dest, 0);
-    dest->u *= -1.0;
-    dest->xmid = xbndy + (xbndy - src->xmid);
-
-    dest = &(A->Cell[ix + 1]);
-    src = &(A->Cell[ix - 2]);
-    L_copy_cell_data(src, dest, 0);
-    dest->u *= -1.0;
-    dest->xmid = xbndy + (xbndy - src->xmid);
-
-    return 0;
+    LCell& dest = A->Cell[ix];
+    LCell& src = A->Cell[ix-1];
+    dest.copy_data_from(src, 0);
+    dest.u *= -1.0;
+    dest.xmid = xbndy + (xbndy - src.xmid);
+    LCell& dest2 = A->Cell[ix+1];
+    LCell& src2 = A->Cell[ix-2];
+    dest2.copy_data_from(src2, 0);
+    dest2.u *= -1.0;
+    dest2.xmid = xbndy + (xbndy - src2.xmid);
+    return SUCCESS;
 }   /* end function L_bc_right_reflect */
 
 
 int L_bc_right_free(GasSlug* A)
 {
-    /* 
-     * Apply a free/supersonic-outflow bc to the right boundary.
-     */
-    int ix;
-    LCell *src, *dest;
-    double xbndy;
-
-    ix = A->ixmax + 1;
-    xbndy = A->Cell[ix - 1].x;
-    /*
-     * We should not need this velocity, but we'll copy it anyway. 
-     */
+    // Apply a free/supersonic-outflow bc to the right boundary.
+    int ix = A->ixmax + 1;
+    double xbndy = A->Cell[ix - 1].x;
     A->right_ustar = A->Cell[ix - 1].u;
-
-    dest = &(A->Cell[ix]);
-    src = &(A->Cell[ix - 1]);
-    L_copy_cell_data(src, dest, 0);
-    dest->xmid = xbndy + (xbndy - src->xmid);
-
-    dest = &(A->Cell[ix + 1]);
-    src = &(A->Cell[ix - 2]);
-    L_copy_cell_data(src, dest, 0);
-    dest->xmid = xbndy + (xbndy - src->xmid);
-
-    return 0;
+    LCell& dest = A->Cell[ix];
+    LCell& src = A->Cell[ix-1];
+    dest.copy_data_from(src, 0);
+    dest.xmid = xbndy + (xbndy - src.xmid);
+    LCell& dest2 = A->Cell[ix+1];
+    LCell& src2 = A->Cell[ix-2];
+    dest2.copy_data_from(src, 0); // same as for first ghost cell
+    dest2.xmid = xbndy + (xbndy - src2.xmid);
+    return SUCCESS;
 }   /* end function L_bc_right_free */
 
 
@@ -203,32 +143,15 @@ int L_exchange_bc_data(GasSlug* A, GasSlug* B)
      *        V    V    |   ^    ^
      *       ib-2 ib-1  |  ib   ib+1
      */
-    int ia, ib;
-    LCell *src, *dest;
-
-    ia = A->ixmax;
-    ib = B->ixmin;
-
+    int ia = A->ixmax;
+    int ib = B->ixmin;
     A->right_ustar = B->Cell[ib].u;
     B->left_ustar = A->Cell[ia].u;
-
-    dest = &(A->Cell[ia + 1]);
-    src = &(B->Cell[ib]);
-    L_copy_cell_data(src, dest, 0);
-
-    dest = &(A->Cell[ia + 2]);
-    src = &(B->Cell[ib + 1]);
-    L_copy_cell_data(src, dest, 0);
-
-    dest = &(B->Cell[ib - 1]);
-    src = &(A->Cell[ia]);
-    L_copy_cell_data(src, dest, 0);
-
-    dest = &(B->Cell[ib - 2]);
-    src = &(A->Cell[ia - 1]);
-    L_copy_cell_data(src, dest, 0);
-
-    return 0;
+    A->Cell[ia+1].copy_data_from(B->Cell[ib], 0);
+    A->Cell[ia+2].copy_data_from(B->Cell[ib+1], 0);
+    B->Cell[ib-1].copy_data_from(A->Cell[ia], 0);
+    B->Cell[ib-2].copy_data_from(A->Cell[ia-1], 0);
+    return SUCCESS;
 }   /* end function L_exchange_bc_data() */
 
 
@@ -244,7 +167,7 @@ int L_blend_slug_ends(GasSlug* A, int endA,
      *
      * Input...
      * -----
-     * *A *B     : pointer to the gas slug data structures.
+     * *A *B     : pointer to the GasSlugs.
      * endA, endB: integers to indicate which end of the gas slugs we blend
      * dxb       : distance over which we will blend the flow properties
      *
@@ -253,19 +176,11 @@ int L_blend_slug_ends(GasSlug* A, int endA,
      * 0 if nothing drastic happens.
      */
     int ix, iA, iB, blend_type;
-    LCell *c, *cA, *cB;
     double x, x0, xA, xB, half_dxb, alpha;
 
     blend_type = BLEND_PUT;
     /* blend_type = BLEND_RHOUE; */
-
-#   if DEBUG >= 2
-    printf( "\nBlend end of slugs over distance %g with type %d...\n", 
-	    dxb, blend_type );
-#   endif
-
     if ( dxb <= 0.0 ) return 0;
-
     /*
      * Search from the ends of the slugs to find the indices over which
      * we will blend.
@@ -278,10 +193,9 @@ int L_blend_slug_ends(GasSlug* A, int endA,
     half_dxb = 0.5 * dxb;
     if ( endA == LEFT ) {
         iA = A->ixmin;
-        x0 = A->Cell[A->ixmin - 1].x;
+        x0 = A->Cell[A->ixmin-1].x;
         for (ix = A->ixmin; ix <= A->ixmax; ++ix) {
-            c = &(A->Cell[ix]);
-            xA = c->xmid;
+            xA = A->Cell[ix].xmid;
 	    iA = ix;
 	    if ( fabs(xA - x0) > half_dxb ) break;
         }   /* end for */
@@ -290,8 +204,7 @@ int L_blend_slug_ends(GasSlug* A, int endA,
         iA = A->ixmax;
         x0 = A->Cell[A->ixmax].x;
         for (ix = A->ixmax; ix >= A->ixmin; --ix) {
-            c = &(A->Cell[ix]);
-            xA = c->xmid;
+            xA = A->Cell[ix].xmid;
 	    iA = ix;
 	    if ( fabs(xA - x0) > half_dxb ) break;
         }   /* end for */
@@ -301,8 +214,7 @@ int L_blend_slug_ends(GasSlug* A, int endA,
         iB = B->ixmin;
         x0 = B->Cell[B->ixmin - 1].x;
         for (ix = B->ixmin; ix <= B->ixmax; ++ix) {
-            c = &(B->Cell[ix]);
-            xB = c->xmid;
+            xB = B->Cell[ix].xmid;
 	    iB = ix;
 	    if ( fabs(xB - x0) > half_dxb ) break;
         }   /* end for */
@@ -311,51 +223,44 @@ int L_blend_slug_ends(GasSlug* A, int endA,
         iB = B->ixmax;
         x0 = B->Cell[B->ixmax].x;
         for (ix = B->ixmax; ix >= B->ixmin; --ix) {
-            c = &(B->Cell[ix]);
-            xB = c->xmid;
+            xB = B->Cell[ix].xmid;
 	    iB = ix;
 	    if ( fabs(xB - x0) > half_dxb ) break;
         }   /* end for */
     }   /* end if */
 
-#   if DEBUG >= 2
-    printf( "Blend slugs between cells %d and %d over distance %g\n", 
-	    iA, iB, fabs(xB - xA) );
-#   endif
-
-    cA = &( A->Cell[iA] );
-    cB = &( B->Cell[iB] );
+    LCell& cA = A->Cell[iA];
+    LCell& cB = B->Cell[iB];
     if ( endA == LEFT ) {
         for (ix = A->ixmin; ix < iA; ++ix) {
-            c = &(A->Cell[ix]);
-            x = c->xmid;
+            LCell& c = A->Cell[ix];
+            x = c.xmid;
             alpha = (x - xA) / (xB - xA);
-            L_blend_cells( cA, cB, c, alpha, blend_type );
+            L_blend_cells(cA, cB, c, alpha, blend_type);
         }   /* end for */
     } else {
         for (ix = A->ixmax; ix > iA; --ix) {
-            c = &(A->Cell[ix]);
-            x = c->xmid;
+            LCell& c = A->Cell[ix];
+            x = c.xmid;
             alpha = (x - xA) / (xB - xA);
-            L_blend_cells( cA, cB, c, alpha, blend_type );
+            L_blend_cells(cA, cB, c, alpha, blend_type);
         }   /* end for */
     }
 
     if ( endB == LEFT ) {
         for (ix = B->ixmin; ix < iB; ++ix) {
-            c = &(B->Cell[ix]);
-            x = c->xmid;
+            LCell& c = B->Cell[ix];
+            x = c.xmid;
             alpha = (x - xA) / (xB - xA);
-            L_blend_cells( cA, cB, c, alpha, blend_type );
+            L_blend_cells(cA, cB, c, alpha, blend_type);
         }   /* end for */
     } else {
         for (ix = B->ixmax; ix > iB; --ix) {
-            c = &(B->Cell[ix]);
-            x = c->xmid;
+            LCell& c = B->Cell[ix];
+            x = c.xmid;
             alpha = (x - xA) / (xB - xA);
-            L_blend_cells( cA, cB, c, alpha, blend_type );
+            L_blend_cells(cA, cB, c, alpha, blend_type);
         }   /* end for */
     }
-
-    return 0;
+    return SUCCESS;
 }   /* end function L_blend_slug_ends() */

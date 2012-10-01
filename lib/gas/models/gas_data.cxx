@@ -35,11 +35,13 @@ int copy_matrix_elements(const matrix &srcM, matrix &destM)
     return SUCCESS;
 }
 
-int average_matrix_elements(const matrix &srcM0, const matrix &srcM1, matrix &destM)
+int average_matrix_elements(const matrix &srcM0, double alpha0, 
+			    const matrix &srcM1, double alpha1,
+			    matrix &destM)
 { 
     for ( size_t i = 0; i < srcM0.size(); ++i ) {
 	for ( size_t j = 0; j < srcM0[i].size(); ++j ) {
-	    destM[i][j] = 0.5 * (srcM0[i][j] + srcM1[i][j]);
+	    destM[i][j] = alpha0 * srcM0[i][j] + alpha1 * srcM1[i][j];
 	}
     }
     return SUCCESS;
@@ -212,29 +214,30 @@ void Gas_data::copy_values_from(const Gas_data &src)
     copy_matrix_elements(src.D_AB, D_AB);
 } // end Gas_data::copy_values_from()
 
-void Gas_data::average_values_from(const Gas_data &src0, const Gas_data &src1, 
+void Gas_data::average_values_from(const Gas_data &src0, double alpha0,
+				   const Gas_data &src1, double alpha1, 
 				   bool with_diff_coeff)
 {
     // 1. doubles
-    rho = 0.5 * (src0.rho + src1.rho);
-    p = 0.5 * (src0.p + src1.p);
-    p_e = 0.5 * (src0.p_e + src1.p_e);
-    a = 0.5 * (src0.a + src1.a);
-    mu = 0.5 * (src0.mu + src1.mu);
+    rho = alpha0 * src0.rho + alpha1 * src1.rho;
+    p = alpha0 * src0.p + alpha1 * src1.p;
+    p_e = alpha0 * src0.p_e + alpha1 * src1.p_e;
+    a = alpha0 * src0.a + alpha1 * src1.a;
+    mu = alpha0 * src0.mu + alpha1 * src1.mu;
     // 2. vectors
     // 2a. loop over thermal modes
     for ( size_t itm=0; itm<src0.e.size(); ++itm ) {
-    	e[itm] = 0.5 * (src0.e[itm] + src1.e[itm]);
-    	T[itm] = 0.5 * (src0.T[itm] + src1.T[itm]);
-    	k[itm] = 0.5 * (src0.k[itm] + src1.k[itm]);
+    	e[itm] = alpha0 * src0.e[itm] + alpha1 * src1.e[itm];
+    	T[itm] = alpha0 * src0.T[itm] + alpha1 * src1.T[itm];
+    	k[itm] = alpha0 * src0.k[itm] + alpha1 * src1.k[itm];
     }
     // 2b. loop over mass-fractions
     for ( size_t isp=0; isp<src0.massf.size(); ++isp ) {
-    	massf[isp] = 0.5 * (src0.massf[isp] + src1.massf[isp]);
+    	massf[isp] = alpha0 * src0.massf[isp] + alpha1 * src1.massf[isp];
     }
     // 3. matrices
     if ( with_diff_coeff ) {
-	average_matrix_elements(src0.D_AB, src1.D_AB, D_AB);
+	average_matrix_elements(src0.D_AB, alpha0, src1.D_AB, alpha1, D_AB);
     }
 } // end Gas_data::average_values_from()
 

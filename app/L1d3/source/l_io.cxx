@@ -105,122 +105,25 @@ int log_event(const char *efname, const char* event_message ) {
     return SUCCESS;
 }
 
-//----------------------------------------------------------------------
 
-std::string write_iface_values_to_string(LCell& cell)
-// Write the flow solution for a cell to a string.
-{
-    // The new format for L1d3 puts everything onto one line.
-    ostringstream ost;
-    ost.setf(ios_base::scientific);
-    ost.precision(12);
-    ost << cell.x << " " << cell.area; 
-    // Don't put the newline char on the end.
-    return ost.str();
-} // end of write_iface_values_to_string()
-
-
-int scan_iface_values_from_string(char *bufptr, LCell& cell)
-// Scan a string, extracting the data for an interface between cells.
-// There isn't any checking of the file content.
-// If anything gets out of place, the result is wrong data.
-{
-    // Look for a new-line character and truncate the string there.
-    char *cptr = strchr(bufptr, '\n');
-    if ( cptr != NULL ) cptr = '\0';
-    // Now, we should have a string with only numbers separated by spaces.
-    cell.x = atof(strtok( bufptr, " " )); // tokenize on space characters
-    cell.area = atof(strtok( NULL, " " ));
-    return SUCCESS;
-} // end scan_iface_values_from_string()
-
-
-std::string write_cell_values_to_string(LCell& cell)
-// Write the flow solution for a cell to a string.
-{
-    // The new format for L1d3 puts everything onto one line.
-    ostringstream ost;
-    ost.setf(ios_base::scientific);
-    ost.precision(12);
-    ost << cell.xmid << " " 
-	<< cell.volume << " " 
-	<< cell.u << " " 
-	<< cell.L_bar << " " 
-	<< cell.gas->rho << " " 
-	<< cell.gas->p << " " 
-	<< cell.gas->a << " " 
-	<< cell.shear_stress << " " 
-	<< cell.heat_flux << " " 
-	<< cell.entropy;
-    // Species mass fractions.
-    size_t nsp = cell.gas->massf.size();
-    for ( size_t isp = 0; isp < nsp; ++isp ) {
-	ost << " " << cell.gas->massf[isp];
-    }
-    if ( nsp > 1 ) ost << " " << cell.dt_chem;
-    // Individual energies (in e, T pairs)
-    size_t nmodes = cell.gas->T.size();
-    for ( size_t imode = 0; imode < nmodes; ++imode ) {
-	ost << " " << cell.gas->e[imode] << " " << cell.gas->T[imode];
-    }
-    if ( nmodes > 1 ) ost << " " << cell.dt_therm;
-    // Don't put the newline char on the end.
-    return ost.str();
-} // end of write_cell_values_to_string()
-
-
-int scan_cell_values_from_string(char *bufptr, LCell& cell)
-// Scan a string, extracting the data for a cell.
-// There isn't any checking of the file content.
-// If anything gets out of place, the result is wrong data.
-{
-    // Look for a new-line character and truncate the string there.
-    char *cptr = strchr(bufptr, '\n');
-    if ( cptr != NULL ) cptr = '\0';
-    // Now, we should have a string with only numbers separated by spaces.
-    cell.xmid = atof(strtok( bufptr, " " )); // tokenize on space characters
-    cell.volume = atof(strtok( NULL, " " ));
-    cell.u = atof(strtok( NULL, " " ));
-    cell.L_bar = atof(strtok( NULL, " " ));
-    cell.gas->rho = atof(strtok( NULL, " " ));
-    cell.gas->p = atof(strtok( NULL, " " ));
-    cell.gas->a = atof(strtok( NULL, " " ));
-    cell.shear_stress = atof(strtok( NULL, " " ));
-    cell.heat_flux = atof(strtok( NULL, " " ));
-    cell.entropy = atof(strtok( NULL, " " ));
-    size_t nsp = cell.gas->massf.size();
-    for ( size_t isp = 0; isp < nsp; ++isp ) {
-	cell.gas->massf[isp] = atof(strtok( NULL, " " ));
-    }
-    if ( nsp > 1 ) cell.dt_chem = atof(strtok( NULL, " " ));
-    size_t nmodes = cell.gas->T.size();
-    for ( size_t imode = 0; imode < nmodes; ++imode ) {
-	cell.gas->e[imode] = atof(strtok( NULL, " " ));
-	cell.gas->T[imode] = atof(strtok( NULL, " " ));
-    }
-    if ( nmodes > 1 ) cell.dt_therm = atof(strtok( NULL, " " ));
-    return SUCCESS;
-} // end scan_cell_values_from_string()
-
-
-int L_write_cell_history(GasSlug* A, FILE* hisfile)
+int L_write_cell_history(GasSlug& A, FILE* hisfile)
 // Write out the flow solution in a (small) subset of cells
 // at a different (often smaller) time interval to the full
 // flow solution.
+// As of 30-Sep-2012, we assume indexing 0..nn-1 in the slug.
 {
     // The output format for this function needs to be kept the 
     // same as that for L_write_x_history().
-    for ( int i = 0; i < A->hncell; ++i) {
-        int ix = A->hxcell[i] + A->ixmin - 1;
-	fprintf(hisfile, "%s\n", write_cell_values_to_string(A->Cell[ix]).c_str());
-    } // end for i...
+    for ( int i = 0; i < A.hncell; ++i) {
+        int ix = A.hxcell[i] + A.ixmin;
+	fprintf(hisfile, "%s\n", A.Cell.at(ix).write_cell_values_to_string().c_str());
+    }
     fflush(hisfile);
     return SUCCESS;
 } // end function L_write_cell_history
 
 
-int L_write_x_history(double xloc, std::vector<GasSlug> &A, 
-		      int nslug, FILE* hisfile)
+int L_write_x_history(double xloc, std::vector<GasSlug>& A, FILE* hisfile)
 // Write out the flow solution at a specified x-location
 // at a different (often smaller) time interval to the full
 // flow solution.
@@ -229,8 +132,7 @@ int L_write_x_history(double xloc, std::vector<GasSlug> &A,
 // will always fall within the last cell and not at the very edge.
 // Input...
 // xloc    : x-location
-// A       : pointer to the array of slug_data structures
-// nslug   : number of gas slugs
+// A       : reference to the vector of GasSlugs
 // hisfile : file to which data is to be written
 {
     // The output format for this function needs to be kept the 
@@ -239,11 +141,11 @@ int L_write_x_history(double xloc, std::vector<GasSlug> &A,
     LCell icell = LCell(gmodel);
     // Find the gas slug containing the x-location
     int found=0;
-    for ( int js = 0; js < nslug; ++js ) {
+    for ( size_t js = 0; js < A.size(); ++js ) {
         found = A[js].interpolate_cell_data(xloc, icell);
         if (found == 1) break;
-    } // for (js = ...
-    fprintf(hisfile, "%s\n", write_cell_values_to_string(icell).c_str() );
+    }
+    fprintf(hisfile, "%s\n", icell.write_cell_values_to_string().c_str() );
     fflush(hisfile);
     return SUCCESS;
 } // end function L_write_x_history

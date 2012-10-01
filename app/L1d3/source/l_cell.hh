@@ -10,10 +10,14 @@
 
 // Gas states at the interfaces.
 // This is used for interfacing to the Riemann solver.
-struct L_flow_state
-{
+class LFlowState {
+public:
     Gas_data *gas;
-    double u;       /* normal velocity, m/s           */
+    double u;       /* bluk, normal velocity, m/s */
+
+    LFlowState(Gas_model* gmodel);
+    LFlowState(const LFlowState& fs);
+    ~LFlowState();
 };
 
 
@@ -79,13 +83,17 @@ public:
     ~LCell();
     int encode_conserved();
     int decode_conserved();
+    int copy_data_from(LCell& source, int copy_extras);
+    std::string write_iface_values_to_string();
+    int scan_iface_values_from_string(char* bufptr);
+    std::string write_cell_values_to_string();
+    int scan_cell_values_from_string(char* bufptr);
 };
 
 
 #define BLEND_PUT 0
 #define BLEND_RHOUE 1
 
-int L_copy_cell_data(LCell *source, LCell *target, int copy_extras);
-int L_blend_cells(LCell *cA, LCell *cB, LCell *c, double alpha, int blend_type );
+int L_blend_cells(LCell& cA, LCell& cB, LCell& c, double alpha, int blend_type );
 
 #endif

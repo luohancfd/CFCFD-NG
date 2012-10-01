@@ -5,7 +5,8 @@
 
 #include "l_cell.hh"
 
-int L_rivp(struct L_flow_state QL[], struct L_flow_state QR[],
+int L_rivp(const std::vector<LFlowState>& QL, 
+	   const std::vector<LFlowState>& QR,
            double ustar[], double pstar[],
            int first, int last, int end1, int end2);
 

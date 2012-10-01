@@ -132,7 +132,7 @@ int FlowState::copy_values_from(CFlowCondition &src)
 
 int FlowState::average_values_from(FlowState &src0, FlowState &src1, bool with_diff_coeff)
 {
-    gas->average_values_from(*(src0.gas), *(src1.gas), with_diff_coeff);
+    gas->average_values_from(*(src0.gas), 0.5, *(src1.gas), 0.5, with_diff_coeff);
     vel.x = 0.5 * (src0.vel.x + src1.vel.x);
     vel.y = 0.5 * (src0.vel.y + src1.vel.y);
     vel.z = 0.5 * (src0.vel.z + src1.vel.z);

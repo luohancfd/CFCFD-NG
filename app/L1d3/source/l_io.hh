@@ -17,12 +17,7 @@ int print_simulation_status(FILE *strm, const char* efname, int step, Simulation
 			    std::vector<PistonData>& Pist, double cfl_max, 
 			    double cfl_tiny, double time_tiny );
 int log_event( const char* efname, const char* event_message );
-std::string write_iface_values_to_string(LCell& cell);
-int scan_iface_values_from_string(char* bufptr, LCell& cell);
-std::string write_cell_values_to_string(struct LCell& cell);
-int scan_cell_values_from_string(char* bufptr, LCell& cell);
-int L_write_cell_history(struct GasSlug* A, FILE * hisfile);
-int L_write_x_history(double xloc, std::vector<GasSlug> &A,
-                      int nslug, FILE* hisfile);
+int L_write_cell_history(GasSlug& A, FILE * hisfile);
+int L_write_x_history(double xloc, std::vector<GasSlug>& A, FILE* hisfile);
 
 #endif

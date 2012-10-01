@@ -18,6 +18,7 @@
 GasSlug::GasSlug(int indx, SimulationData& SD, 
 		 std::string config_file_name, int echo_input)
 {
+    cout << "GasSlug constructor using config file." << endl;
     ConfigParser dict = ConfigParser(config_file_name);
     std::stringstream tag;
     tag << indx;
@@ -227,30 +228,29 @@ GasSlug::GasSlug(int indx, SimulationData& SD,
     }
     // Initial slug state. 
     int nsp = gmodel->get_number_of_species();
-    init_str = (struct L_flow_state *) calloc(1, sizeof(struct L_flow_state));
-    init_str->gas = new Gas_data(gmodel);
+    initial_flow_state = new LFlowState(gmodel);
     dict.parse_double(section, "initial_xL", xbegin, 0.0);
     dict.parse_double(section, "initial_xR", xend, 0.0);
-    dict.parse_double(section, "initial_p", init_str->gas->p, 100.0e3);
-    dict.parse_double(section, "initial_u", init_str->u, 0.0);
-    dict.parse_double(section, "initial_T", init_str->gas->T[0], 300.0);
+    dict.parse_double(section, "initial_p", initial_flow_state->gas->p, 100.0e3);
+    dict.parse_double(section, "initial_u", initial_flow_state->u, 0.0);
+    dict.parse_double(section, "initial_T", initial_flow_state->gas->T[0], 300.0);
     std::vector<double> vdbl_default;
     vdbl_default.resize(nsp);
     for ( size_t i = 0; i < vdbl_default.size(); ++i ) vdbl_default[i] = 0.0;
-    dict.parse_vector_of_doubles(section, "massf", init_str->gas->massf, vdbl_default);
+    dict.parse_vector_of_doubles(section, "massf", initial_flow_state->gas->massf, vdbl_default);
     if (echo_input == 1) {
 	cout << "    initial_xL = " << xbegin << endl;
 	cout << "    initial_xR = " << xend << endl;
-	cout << "    initial_p = " << init_str->gas->p << endl;
-	cout << "    initial_u = " << init_str->u << endl;
-	cout << "    initial_T = " << init_str->gas->T[0] << endl;
+	cout << "    initial_p = " << initial_flow_state->gas->p << endl;
+	cout << "    initial_u = " << initial_flow_state->u << endl;
+	cout << "    initial_T = " << initial_flow_state->gas->T[0] << endl;
 	cout << "    massf =";
-	for ( int i = 0; i < nsp; ++i ) cout << " " << init_str->gas->massf[i];
+	for ( int i = 0; i < nsp; ++i ) cout << " " << initial_flow_state->gas->massf[i];
 	cout << endl;
     }
-    double f_sum = init_str->gas->massf[0];
+    double f_sum = initial_flow_state->gas->massf[0];
     for ( int isp = 1; isp < nsp; ++isp ) {
-	f_sum += init_str->gas->massf[isp];
+	f_sum += initial_flow_state->gas->massf[isp];
     }
     if ( fabs(f_sum - 1.0) > 1.0e-4 ) {
 	printf( "Species mass fractions do not sum to 1.0: %e\n", f_sum );
@@ -258,16 +258,16 @@ GasSlug::GasSlug(int indx, SimulationData& SD,
     }
     // Density, Internal energy, Speed of Sound, and 
     // molecular transport coefficients. 
-    gmodel->eval_thermo_state_pT(*(init_str->gas));
-    gmodel->eval_transport_coefficients(*(init_str->gas));
+    gmodel->eval_thermo_state_pT(*(initial_flow_state->gas));
+    gmodel->eval_transport_coefficients(*(initial_flow_state->gas));
     if (echo_input == 1) {
-	cout << "    rho = " << init_str->gas->rho
-	     << " e = " << init_str->gas->e[0]
-	     << " a = " << init_str->gas->a << endl;
-	cout << "    R = " << gmodel->R(*(init_str->gas))
-	     << " Cv = " << gmodel->Cv(*(init_str->gas)) << endl;
-	cout << "    mu = " << init_str->gas->mu
-	     << " k = " << init_str->gas->k[0] << endl;
+	cout << "    rho = " << initial_flow_state->gas->rho
+	     << " e = " << initial_flow_state->gas->e[0]
+	     << " a = " << initial_flow_state->gas->a << endl;
+	cout << "    R = " << gmodel->R(*(initial_flow_state->gas))
+	     << " Cv = " << gmodel->Cv(*(initial_flow_state->gas)) << endl;
+	cout << "    mu = " << initial_flow_state->gas->mu
+	     << " k = " << initial_flow_state->gas->k[0] << endl;
     }
 } // end GasSlug constructor
 
@@ -291,8 +291,7 @@ GasSlug::GasSlug(const GasSlug& gs) // copy constructor
     for ( size_t i = 0; i < gs.hxcell.size(); ++i ) hxcell.push_back(gs.hxcell[i]);
     viscous_effects = gs.viscous_effects;
     adiabatic = gs.adiabatic;
-    init_str = (struct L_flow_state *) calloc(1, sizeof(struct L_flow_state));
-    init_str->gas = new Gas_data(*(gs.init_str->gas));
+    initial_flow_state = new LFlowState(*(gs.initial_flow_state));
     adaptive = gs.adaptive;
     nxdim = gs.nxdim;
     nxmax = gs.nxmax;
@@ -331,11 +330,7 @@ GasSlug::GasSlug(const GasSlug& gs) // copy constructor
 GasSlug::~GasSlug(void)
 {
     Cell.clear();
-    if ( init_str ) {
-	delete init_str->gas;
-	free(init_str);
-	init_str = NULL;
-    }
+    delete initial_flow_state;
     hxcell.clear();
 }
 
@@ -393,7 +388,7 @@ int GasSlug::read_state(FILE* infile)
 	    printf("Problem reading flow field file.\n");
 	    return FAILURE;
 	}
-	if ( scan_iface_values_from_string(line, *c) ) {
+	if ( c->scan_iface_values_from_string(line) ) {
 	    printf("IFace for Cell[%d] failed to read from line:\n", ix);
 	    printf("%s\n", line);
 	    return FAILURE;
@@ -406,7 +401,7 @@ int GasSlug::read_state(FILE* infile)
 	    printf("Problem reading flow field file.\n");
 	    return FAILURE;
 	}
-	if ( scan_cell_values_from_string(line, *c) ) {
+	if ( c->scan_cell_values_from_string(line) ) {
 	    printf("Cell[%d] failed to read from line:\n", ix);
 	    printf("%s\n", line);
 	    return FAILURE;
@@ -439,11 +434,11 @@ int GasSlug::write_state(FILE* outfile)
     fprintf(outfile, "%d %d %d # nnx, nsp\n", nnx, nsp, nmodes);
     // Interfaces between cells.
     for ( int ix = ixmin - 1; ix <= ixmax; ++ix ) {
-        fprintf(outfile, "%s\n", write_iface_values_to_string(Cell[ix]).c_str());
+        fprintf(outfile, "%s\n", Cell[ix].write_iface_values_to_string().c_str());
     }
     // The actual cells.
     for ( int ix = ixmin; ix <= ixmax; ++ix ) {
-        fprintf(outfile, "%s\n", write_cell_values_to_string(Cell[ix]).c_str());
+        fprintf(outfile, "%s\n", Cell[ix].write_cell_values_to_string().c_str());
     }
     fflush(outfile);
     return SUCCESS;
@@ -540,8 +535,8 @@ int GasSlug::fill_data()
 {
     for ( int ix = ixmin; ix <= ixmax; ++ix ) {
         LCell* target = &(Cell[ix]);
-        target->gas->copy_values_from(*(init_str->gas));
-        target->u = init_str->u;
+        target->gas->copy_values_from(*(initial_flow_state->gas));
+        target->u = initial_flow_state->u;
     }
     return SUCCESS;
 } // end fill_data()
@@ -718,7 +713,7 @@ int GasSlug::source_vector()
 	double Prandtl = 0.75; // a constant value for the moment -- FIX-ME
 	omega = pow(Prandtl, 0.333); // Recovery factor -- assume turbulent
 	M = abs_u / cell->gas->a; // Local Mach number
-#   define APPLY_COMPRESSIBILITY_FACTOR 1
+#       define APPLY_COMPRESSIBILITY_FACTOR 1
 	if ( APPLY_COMPRESSIBILITY_FACTOR == 1 ) {
 	    lambda = 1.0 + (gam - 1.0) * 0.5 * omega * M * M;
 	} else {
@@ -830,7 +825,7 @@ int GasSlug::source_vector()
 	    // This is based on the incompressible flat plate boundary layer
 	    // equations and transformed to compresssible via the Howarth 
 	    // transformation.
-	    r2r1 = cell->gas->rho / init_str->gas->rho;
+	    r2r1 = cell->gas->rho / initial_flow_state->gas->rho;
 	    if (cell->L_bar > 0.0 && r2r1 > 1.001) {
 		// Only formulated for strong shocks going forward.
 		if ( viscous_effects == CJD_MASS_LOSS_TURBULENT ) {
@@ -976,12 +971,37 @@ double limit_to_within(double v, double a, double b)
     return v;
 }
 
+//---------------------------------------------------------------------------
+
+std::vector<LFlowState> QL, QR;
+
+int set_up_workspace_for_apply_rivp()
+{
+    printf( "set_up_workspace_forapply_rivp(): NDIM=%d.\n", NDIM);
+    Gas_model *gmodel = get_gas_model_ptr();
+    while ( QL.size() < NDIM ) {
+    	    QL.push_back(LFlowState(gmodel));
+    }
+    while ( QR.size() < NDIM ) {
+	QR.push_back(LFlowState(gmodel));
+    }
+    return SUCCESS;
+} // end set_up_workspace_for_apply_rivp()
+
+int dispose_workspace_for_apply_rivp()
+{
+    QL.clear();
+    QR.clear();
+    return SUCCESS;
+}
+
+//---------------------------------------------------------------------------
+
 int GasSlug::apply_rivp()
 {
     // Apply the Riemann solver to obtain the pressure and
     // velocity at each interface.
     int ix;
-    static struct L_flow_state QL[NDIM], QR[NDIM];
     static double del[NDIM], dplus[NDIM], dminus[NDIM];
     static double rhoL, rhoR, eL, eR;
     static double pstar[NDIM], ustar[NDIM];
@@ -990,21 +1010,12 @@ int GasSlug::apply_rivp()
 
     // On first encounter, the gas components inside the QL, QR
     // flow state structures will need to be created.
-    if ( QL[0].gas == 0 ) {
-	// If one is not present, assume that none are present.
-	for ( ix = 0; ix < NDIM; ++ix ) {
-	    QL[ix].gas = new Gas_data(gmodel);
-	    QR[ix].gas = new Gas_data(gmodel);
-	}
-	printf( "l_apply_rivp(): Setting up workspace for the first time.\n" );
-    }
 
     // Interpolate the cell average values to obtain
     // LEFT and RIGHT states at each interface.
     //
     // The approach taken is to ignore grid distortions and perform
-    // one dimensional projection/interpolation in the ix parameter
-    // direction.
+    // one dimensional projection/interpolation in the ix index-direction.
     // Left cell has index [ix], Right cell has index [ix+1]
 
     // Always start with first-order interpolation.
@@ -1337,62 +1348,50 @@ int GasSlug::check_cfl()
 int GasSlug::interpolate_cell_data(double xloc, LCell& icell)
 {
     double alpha, xmid_m1, xmid_p1, xmid, dx_plus, dx_minus;
-    LCell *c0, *c1;
-
-    Gas_model *gmodel = get_gas_model_ptr();
-    int nsp = gmodel->get_number_of_species();
-    int nmodes = gmodel->get_number_of_modes();
+    LCell* c0;
+    LCell* c1;
 
     int found = 0;
+    // We assume that the x-locations of the cells increase with index.
     if (xloc > Cell[ixmin-1].x && xloc <= Cell[ixmax].x) {
         // ...and then find the cell containing the x-location.
         for ( int ix = ixmin; ix <= ixmax; ++ix ) {
             if ( xloc <= Cell[ix].x ) {
-                /* 
-                 * We have found the cell 
-                 * Linearly interpolate the quantities.
-                 */
+		// We have found the cell 
+		// Linearly interpolate the quantities.
                 xmid = 0.5 * (Cell[ix-1].x + Cell[ix].x);
                 if (ix > ixmin) {
                     xmid_m1 = 0.5 * (Cell[ix-2].x + Cell[ix-1].x);
                 } else {
-                    xmid_m1 =
-                        Cell[ixmin-1].x - (xmid - Cell[ixmin-1].x);
-                }   /* end if */
+                    xmid_m1 = Cell[ixmin-1].x - (xmid - Cell[ixmin-1].x);
+                }
                 if (ix < ixmax) {
                     xmid_p1 = 0.5 * (Cell[ix].x + Cell[ix+1].x);
                 } else {
                     xmid_p1 = Cell[ixmax].x + (Cell[ixmax].x - xmid);
-                }   /* end if */
+                }
                 dx_minus = xmid - xmid_m1;
                 dx_plus = xmid_p1 - xmid;
 
                 alpha = xloc - xmid;
                 if (alpha >= 0.0) {
-                    alpha /= dx_plus;
-		    c0 = &( Cell[ix] );
-                    c1 = &( Cell[ix+1] );
+                    alpha /= dx_plus; c0 = &Cell[ix]; c1 = &Cell[ix+1];
                 } else {
-                    alpha /= -1.0 * dx_minus;  /* fixed negative 13-Jul-02 */
-		    c0 = &( Cell[ix] );
-                    c1 = &( Cell[ix-1] );
-                }   /* end if */
-		// FIX-ME, we should delegate the blonding of the gas properties to the gas_model
-		icell.gas->rho = (1.0-alpha)*c0->gas->rho + alpha * c1->gas->rho;
-		icell.gas->p = (1.0-alpha)*c0->gas->p + alpha*c1->gas->p;
-		icell.gas->a = (1.0-alpha)*c0->gas->a + alpha*c1->gas->a;
-		for ( int isp = 0; isp < nsp; ++isp ) {
-		    icell.gas->massf[isp] = (1.0-alpha) * c0->gas->massf[isp] +
-			alpha*c1->gas->massf[isp];
-		}
-		for ( int imode = 0; imode < nmodes; ++imode ) {
-		    icell.gas->e[imode] = (1.0-alpha)*c0->gas->e[imode] + alpha*c1->gas->e[imode];
-		    icell.gas->T[imode] = (1.0-alpha)*c0->gas->T[imode] + alpha*c1->gas->T[imode];
-		}
+                    alpha /= -1.0 * dx_minus; c0 = &Cell[ix]; c1 = &Cell[ix-1];
+                }
+		icell.xmid = xloc;
+		icell.volume = (1.0-alpha) * c0->volume + alpha * c1->volume;
+		icell.gas->average_values_from(*(c0->gas), (1.0-alpha), *(c1->gas), alpha, 0);
+		icell.L_bar = (1.0-alpha) * c0->L_bar + alpha * c1->L_bar;
 		icell.u = (1.0-alpha) * c0->u + alpha * c1->u;
-		icell.shear_stress = (1.0-alpha)*c0->shear_stress + alpha * c1->shear_stress;
-		icell.heat_flux = (1.0-alpha)*c0->heat_flux + alpha*c1->heat_flux;
-		icell.entropy = (1.0-alpha)*c0->entropy + alpha*c1->entropy;
+		if ( viscous_effects ) {
+		    icell.shear_stress = (1.0-alpha) * c0->shear_stress + alpha * c1->shear_stress;
+		    icell.heat_flux = (1.0-alpha) * c0->heat_flux + alpha * c1->heat_flux;
+		} else {
+		    icell.shear_stress = 0.0;
+		    icell.heat_flux = 0.0;
+		}
+		icell.entropy = (1.0-alpha) * c0->entropy + alpha * c1->entropy;
                 found = 1;
                 break;
             }   /* end if ... */
@@ -1461,8 +1460,7 @@ double GasSlug::end_pressure(int which_end, double dx)
 /// \param total_mass : total mass included in dx region
 /// \param Q : store the average flow properties in here
 /// \returns : success or failure
-int GasSlug::end_properties(int which_end, double dx,
-			    double* total_mass, struct L_flow_state& Q)
+int GasSlug::end_properties(int which_end, double dx, double* total_mass, LFlowState& Q)
 {
     int ix, n, i;
     LCell *c;

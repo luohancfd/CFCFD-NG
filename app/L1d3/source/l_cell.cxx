@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
+#include <iostream>
+#include <sstream>
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/gas/models/gas-model.hh"
 #include "../../../lib/gas/kinetics/reaction-update.hh"
@@ -13,12 +16,65 @@
 #include "../../../lib/nm/source/qd_power.h"
 #include "../../../lib/nm/source/qd_log10.h"
 
+LFlowState::LFlowState(Gas_model* gmodel)
+{
+    gas = new Gas_data(gmodel);
+    u = 0.0;
+}
+
+
+LFlowState::LFlowState(const LFlowState& fs)
+{
+    gas = new Gas_data(*(fs.gas));
+    u = fs.u;
+ }
+
+
+LFlowState::~LFlowState()
+{
+    delete gas;
+}
+
 
 LCell::LCell(Gas_model* gmodel)
 {
     // Let most elements default to zero values.
+    x = 0.0;
+    area = 0.0;
+    pface = 0.0;
+    uface = 0.0;
+    qstar = 0.0;
+    volume = 0.0;
+    xmid = 0.0;
+    T_Wall = 0.0;
+    K_over_L = 0.0;
     gas = new Gas_data(gmodel);
     ref = new Gas_data(gmodel);
+    u = 0.0;
+    shear_stress = 0.0;
+    heat_flux = 0.0;
+    entropy = 0.0;
+    mass = 0.0;
+    moment = 0.0;
+    Energy = 0.0;
+    L_bar = 0.0;
+    x_old = 0.0;
+    mass_old = 0.0;
+    moment_old = 0.0;
+    Energy_old = 0.0;
+    L_bar_old = 0.0;
+    for ( int i = 0; i < NL; ++i ) {
+	DxDt[i] = 0.0;
+	DmDt[i] = 0.0;
+	DmomDt[i] = 0.0;
+	DEDt[i] = 0.0;
+	DLDt[i] = 0.0;
+    }
+    Q_m = 0.0;
+    Q_mom = 0.0;
+    Q_E = 0.0;
+    dt_chem = 0.0;
+    dt_therm = 0.0;
 }
 
 
@@ -39,7 +95,7 @@ LCell::LCell(const LCell& c)
     shear_stress = c.shear_stress;
     heat_flux = c.heat_flux;
     entropy = c.entropy;
-    mass =c.mass;
+    mass = c.mass;
     moment = c.moment;
     Energy = c.Energy;
     L_bar = c.L_bar;
@@ -114,62 +170,159 @@ int LCell::decode_conserved()
 
 
 /// \brief Copy all of the gas-dynamic data from the source cell to the destination cell.
-int L_copy_cell_data(LCell *source, LCell *destination, int copy_extras)
+int LCell::copy_data_from(LCell& source, int copy_extras)
 {
     // Basic copy: just enough for the application of boundary
     // conditions to the end of the gas slugs.
-    destination->gas->copy_values_from(*(source->gas));
-    destination->xmid = source->xmid;
-    destination->L_bar = source->L_bar;
-    destination->u = source->u;
+    gas->copy_values_from(*(source.gas));
+    xmid = source.xmid;
+    L_bar = source.L_bar;
+    u = source.u;
     if (copy_extras == 1) {
 	// Now, for the extra items that will be needed for cell refinement.
-        destination->x = source->x;
-        destination->area = source->area;
-        destination->pface = source->pface;
-        destination->uface = source->uface;
-        destination->volume = source->volume;
+        x = source.x;
+        area = source.area;
+        pface = source.pface;
+        uface = source.uface;
+        volume = source.volume;
 
-        destination->T_Wall = source->T_Wall;
-        destination->K_over_L = source->K_over_L;
-        destination->shear_stress = source->shear_stress;
-        destination->heat_flux = source->heat_flux;
-        destination->entropy = source->entropy;
+        T_Wall = source.T_Wall;
+        K_over_L = source.K_over_L;
+        shear_stress = source.shear_stress;
+        heat_flux = source.heat_flux;
+        entropy = source.entropy;
 
-        destination->mass = source->mass;
-        destination->moment = source->moment;
-        destination->Energy = source->Energy;
+        mass = source.mass;
+        moment = source.moment;
+        Energy = source.Energy;
     }
-    return 0;
-} // end function L_copy_cell_data()
+    return SUCCESS;
+} // end copy_data()
 
 
-int L_blend_cells(LCell* cA, LCell* cB, LCell* c, double alpha, int blend_type)
+std::string LCell::write_iface_values_to_string()
+// Write the flow solution for a cell to a string.
+{
+    // The new format for L1d3 puts everything onto one line.
+    std::ostringstream ost;
+    ost.setf(std::ios_base::scientific);
+    ost.precision(12);
+    ost << x << " " << area; 
+    // Don't put the newline char on the end.
+    return ost.str();
+} // end of write_iface_values_to_string()
+
+
+int LCell::scan_iface_values_from_string(char *bufptr)
+// Scan a string, extracting the data for an interface between cells.
+// There isn't any checking of the file content.
+// If anything gets out of place, the result is wrong data.
+{
+    // Look for a new-line character and truncate the string there.
+    char *cptr = strchr(bufptr, '\n');
+    if ( cptr != NULL ) cptr = '\0';
+    // Now, we should have a string with only numbers separated by spaces.
+    x = atof(strtok( bufptr, " " )); // tokenize on space characters
+    area = atof(strtok( NULL, " " ));
+    return SUCCESS;
+} // end scan_iface_values_from_string()
+
+
+std::string LCell::write_cell_values_to_string()
+// Write the flow solution for a cell to a string.
+{
+    // The new format for L1d3 puts everything onto one line.
+    std::ostringstream ost;
+    ost.setf(std::ios_base::scientific);
+    ost.precision(12);
+    ost << xmid << " " 
+	<< volume << " " 
+	<< u << " " 
+	<< L_bar << " " 
+	<< gas->rho << " " 
+	<< gas->p << " " 
+	<< gas->a << " " 
+	<< shear_stress << " " 
+	<< heat_flux << " " 
+	<< entropy;
+    // Species mass fractions.
+    size_t nsp = gas->massf.size();
+    for ( size_t isp = 0; isp < nsp; ++isp ) {
+	ost << " " << gas->massf[isp];
+    }
+    if ( nsp > 1 ) ost << " " << dt_chem;
+    // Individual energies (in e, T pairs)
+    size_t nmodes = gas->T.size();
+    for ( size_t imode = 0; imode < nmodes; ++imode ) {
+	ost << " " << gas->e[imode] << " " << gas->T[imode];
+    }
+    if ( nmodes > 1 ) ost << " " << dt_therm;
+    // Don't put the newline char on the end.
+    return ost.str();
+} // end of write_cell_values_to_string()
+
+
+int LCell::scan_cell_values_from_string(char *bufptr)
+// Scan a string, extracting the data for a 
+// There isn't any checking of the file content.
+// If anything gets out of place, the result is wrong data.
+{
+    // Look for a new-line character and truncate the string there.
+    char *cptr = strchr(bufptr, '\n');
+    if ( cptr != NULL ) cptr = '\0';
+    // Now, we should have a string with only numbers separated by spaces.
+    xmid = atof(strtok( bufptr, " " )); // tokenize on space characters
+    volume = atof(strtok( NULL, " " ));
+    u = atof(strtok( NULL, " " ));
+    L_bar = atof(strtok( NULL, " " ));
+    gas->rho = atof(strtok( NULL, " " ));
+    gas->p = atof(strtok( NULL, " " ));
+    gas->a = atof(strtok( NULL, " " ));
+    shear_stress = atof(strtok( NULL, " " ));
+    heat_flux = atof(strtok( NULL, " " ));
+    entropy = atof(strtok( NULL, " " ));
+    size_t nsp = gas->massf.size();
+    for ( size_t isp = 0; isp < nsp; ++isp ) {
+	gas->massf[isp] = atof(strtok( NULL, " " ));
+    }
+    if ( nsp > 1 ) dt_chem = atof(strtok( NULL, " " ));
+    size_t nmodes = gas->T.size();
+    for ( size_t imode = 0; imode < nmodes; ++imode ) {
+	gas->e[imode] = atof(strtok( NULL, " " ));
+	gas->T[imode] = atof(strtok( NULL, " " ));
+    }
+    if ( nmodes > 1 ) dt_therm = atof(strtok( NULL, " " ));
+    return SUCCESS;
+} // end scan_cell_values_from_string()
+
+//----------------------------------------------------------------------
+
+int L_blend_cells(LCell& cA, LCell& cB, LCell& c, double alpha, int blend_type)
 {
     Gas_model *gmodel = get_gas_model_ptr();
     int nsp = gmodel->get_number_of_species();
 
     if ( blend_type == BLEND_PUT ) {
-	c->u     = (1.0 - alpha) * cA->u     + alpha * cB->u;
-	c->gas->p = (1.0 - alpha) * cA->gas->p + alpha * cB->gas->p;
-	c->gas->T[0] = (1.0 - alpha) * cA->gas->T[0] + alpha * cB->gas->T[0];
+	c.u     = (1.0 - alpha) * cA.u     + alpha * cB.u;
+	c.gas->p = (1.0 - alpha) * cA.gas->p + alpha * cB.gas->p;
+	c.gas->T[0] = (1.0 - alpha) * cA.gas->T[0] + alpha * cB.gas->T[0];
 	for ( int isp = 0; isp <= nsp; ++isp ) {
-	    c->gas->massf[isp] = (1.0 - alpha) * cA->gas->massf[isp] + 
-		            alpha * cB->gas->massf[isp];
+	    c.gas->massf[isp] = (1.0 - alpha) * cA.gas->massf[isp] + 
+		            alpha * cB.gas->massf[isp];
 	}
-	gmodel->eval_thermo_state_pT(*(c->gas));
-	gmodel->eval_transport_coefficients(*(c->gas));
+	gmodel->eval_thermo_state_pT(*(c.gas));
+	gmodel->eval_transport_coefficients(*(c.gas));
     } else {
-	c->u       = (1.0 - alpha) * cA->u       + alpha * cB->u;
-	c->gas->rho = (1.0 - alpha) * cA->gas->rho + alpha * cB->gas->rho;
-	c->gas->e[0]= (1.0 - alpha) * cA->gas->e[0]+ alpha * cB->gas->e[0];
-	c->gas->T[0]= (1.0 - alpha) * cA->gas->T[0]+ alpha * cB->gas->T[0];
+	c.u       = (1.0 - alpha) * cA.u       + alpha * cB.u;
+	c.gas->rho = (1.0 - alpha) * cA.gas->rho + alpha * cB.gas->rho;
+	c.gas->e[0]= (1.0 - alpha) * cA.gas->e[0]+ alpha * cB.gas->e[0];
+	c.gas->T[0]= (1.0 - alpha) * cA.gas->T[0]+ alpha * cB.gas->T[0];
 	for ( int isp = 0; isp <= nsp; ++isp ) {
-	    c->gas->massf[isp] = (1.0 - alpha) * cA->gas->massf[isp] + 
-		            alpha * cB->gas->massf[isp];
+	    c.gas->massf[isp] = (1.0 - alpha) * cA.gas->massf[isp] + 
+		            alpha * cB.gas->massf[isp];
 	}
-	gmodel->eval_thermo_state_rhoe(*(c->gas));
-	gmodel->eval_transport_coefficients(*(c->gas));
+	gmodel->eval_thermo_state_rhoe(*(c.gas));
+	gmodel->eval_transport_coefficients(*(c.gas));
     }
     return 0;
 } // end L_blend_cells()

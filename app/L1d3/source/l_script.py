@@ -687,6 +687,7 @@ class GasSlug(object):
         @param hcells: Either the index of a single cell or a list of indices
             of cells for which the data are to be written every C{dt_his}
             seconds, as set by L{add_dt_plot}.
+            Note that cells are indexed from 0 to nn-1.
         @type hcells: int or list of int
         @param nnmax: Maximum number of cells that can be carried in
             the adaptive discretization.

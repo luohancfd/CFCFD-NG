@@ -16,7 +16,7 @@ left_end = VelocityEnd(x0=-4.0, v=0.0)
 n_gas_cells = 100
 driver_gas = GasSlug(p=100.0e3, u=0.0, T=348.4, nn=n_gas_cells,
                      to_end_R=1, cluster_strength=1.1,
-                     hcells=n_gas_cells)
+                     hcells=n_gas_cells-1)
 piston = Piston(m=0.001, d=0.01, xL0=-0.005, xR0=0.005, v0=0.0)
 assemble_gas_path(left_end, driver_gas, piston)
 

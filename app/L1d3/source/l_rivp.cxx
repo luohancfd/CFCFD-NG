@@ -18,7 +18,8 @@
 
 /*------------------------------------------------------------*/
 
-int L_rivp(struct L_flow_state QL[], struct L_flow_state QR[],
+int L_rivp(const std::vector<LFlowState>& QL,
+	   const std::vector<LFlowState>& QR,
            double ustar[], double pstar[],
            int first, int last, int end1, int end2)
 {
@@ -31,12 +32,10 @@ int L_rivp(struct L_flow_state QL[], struct L_flow_state QR[],
      * is removed.  This solution is returned as values of
      * the interface pressures and velocities.
      *
-     *
      * Input ...
      * -----
-     * *QL     : pointer to the array of LEFT states
-     * 	     see "physics.h" for a definition of the components
-     * *QR     : RIGHT states
+     * QL     : vector of LEFT states
+     * QR     : vector of RIGHT states
      * first   : first element to be computed
      * last    : last element to be computed
      * end1    : type of boundary condition at first interface
@@ -54,11 +53,7 @@ int L_rivp(struct L_flow_state QL[], struct L_flow_state QR[],
      * ustar   : interface velocities
      *
      */
-
-    /*---------------------------------------------------------------*/
-
     int i, ip;
-
     static double geff[NDIM];   /* effective GAMMA          */
     double g, gL, gR;
     static double sqrL[NDIM], sqrR[NDIM];
@@ -69,18 +64,12 @@ int L_rivp(struct L_flow_state QL[], struct L_flow_state QR[],
     double term1, term2, F, dFdpstar;
     double PMIN, dp;
     Gas_model *gmodel = get_gas_model_ptr();
-
 #   define  QUICK_AND_DIRTY  0
 
     /*************************************************************
      * Compute a Roe-averaged effective-gamma for each interface *
      * as used by Edwards (1988) and Vinokur & Liu (1988).       *
      *************************************************************/
-
-    /* 
-     * General (gaseous) equation of state.
-     * Compute a Roe-averaged effective-gamma. 
-     */
     for (i = first; i <= last; ++i) {
         if (end1 == 1 && i == first) {
             sqrR[i] = sqrt(QR[i].gas->rho);
@@ -135,59 +124,33 @@ int L_rivp(struct L_flow_state QL[], struct L_flow_state QR[],
      *****************************************************************/
 
     for (i = first; i <= last; ++i) {
-
         g = geff[i];
         gm1 = g - 1.0;
         gp1 = g + 1.0;
-
         PMIN = 1.0e-6;
 
         if (end1 == 1 && i == first) {
             /*
-             * ***************************
-             * * Left boundary condition *
-             * ***************************
-             *
+             * Left boundary condition
              * ustar is specified.
              */
-#           if (DEBUG >= 3)
-            printf("Left boundary rivp:\n");
-#           endif
             uRbar = QR[i].u - 2.0 / gm1 * QR[i].gas->a;
             term1 = gm1 / (2.0 * sqrt(g));
             term2 = sqrt(QR[i].gas->rho / pow(QR[i].gas->p, 1.0 / g));
             base = (ustar[i] - uRbar) * term1 * term2;
             expon = 2.0 * g / gm1;
             pstar[i] = pow(base, expon);
-#           if (DEBUG >= 3)
-            printf("QR.u=%e, QR.a=%e, g=%e\n", QR[i].u, QR[i].gas->a, g);
-            printf("uRbar=%e, term1=%e, term2=%e\n", uRbar, term1, term2);
-            printf("base=%e, expon=%e\n", base, expon);
-            printf("ustar=%e, pstar=%e\n", ustar[i], pstar[i]);
-#           endif
         } else if (end2 == 1 && i == last) {
             /* 
-             * ****************************
-             * * Right boundary condition *
-             * ****************************
-             *
+             * Right boundary condition
              * ustar is specified.
              */
-#           if (DEBUG >= 3)
-            printf("Right boundary rivp:\n");
-#           endif
             uLbar = QL[i].u + 2.0 / gm1 * QL[i].gas->a;
             term1 = gm1 / (2.0 * sqrt(g));
             term2 = sqrt(QL[i].gas->rho / pow(QL[i].gas->p, 1.0 / g));
             base = (uLbar - ustar[i]) * term1 * term2;
             expon = 2.0 * g / gm1;
             pstar[i] = pow(base, expon);
-#           if (DEBUG >= 3)
-            printf("QL.u=%e, QL.a=%e, g=%e\n", QL[i].gas->u, QL[i].gas->a, g);
-            printf("uLbar=%e, term1=%e, term2=%e\n", uLbar, term1, term2);
-            printf("base=%e, expon=%e\n", base, expon);
-            printf("ustar=%e, pstar=%e\n", ustar[i], pstar[i]);
-#           endif
         } else {
             /* 
              * **********************************************
@@ -195,39 +158,19 @@ int L_rivp(struct L_flow_state QL[], struct L_flow_state QR[],
              * **********************************************
              *
              * We have valid Left and Right states.
-             */
-
-            /*
-             * -----------------------------------------------------
              * STAGE 1: Explicit solution using two isentropic waves.
-             * -----------------------------------------------------
              */
-#           if (DEBUG >= 3)
-            printf("STAGE 1\n");
-#           endif
-
-            /* 
-             * Riemann invariants. 
-             */
+	    // Riemann invariants. 
             uLbar = QL[i].u + 2.0 / gm1 * QL[i].gas->a;
             uRbar = QR[i].u - 2.0 / gm1 * QR[i].gas->a;
 
             if ((uLbar - uRbar) < 0.0) {
-                /* 
-                 * We have a situation in which a (near) vacuum is formed
-                 * between the left and right states.
-                 */
-
+		// We have a situation in which a (near) vacuum is formed
+		// between the left and right states.
                 ustar[i] = 0.0;
                 pstar[i] = PMIN;
-
-            }
-            /* End of Vacuum solution */
-            else {
-                /*
-                 * Positive-pressure solution.
-                 */
-
+            } else {
+                // Positive-pressure solution.
                 /* Intermediate variable. */
                 base = QL[i].gas->p / QR[i].gas->p;
                 expon = gm1 / (2.0 * g);
@@ -276,14 +219,6 @@ int L_rivp(struct L_flow_state QL[], struct L_flow_state QR[],
                  * ------------------------------------------
                  * End of isentropic-wave (explicit) solution.
                  * ------------------------------------------
-                 */
-#               if (DEBUG >= 3)
-                printf("Isentropic wave solution: pstar = %e, ustar = %e\n",
-                       pstar[i], ustar[i]);
-#               endif
-
-
-                /*
                  * ---------------------------------------------------
                  * STAGE 2: Apply the strong-shock relations if needed.
                  * ---------------------------------------------------
@@ -293,8 +228,7 @@ int L_rivp(struct L_flow_state QL[], struct L_flow_state QR[],
 #               define NEWTON_TOL 0.001
 #               define TOO_MUCH_ERROR 0.1
 
-                if (pstar[i] > BIG_RATIO * QL[i].gas->p
-                    && pstar[i] > BIG_RATIO * QR[i].gas->p) {
+                if (pstar[i] > BIG_RATIO*QL[i].gas->p && pstar[i] > BIG_RATIO*QR[i].gas->p) {
                     /*
                      * Apply the STRONG SHOCK relations to get an explicit solution
                      * if both of the pressure jumps are large enough.
@@ -304,15 +238,6 @@ int L_rivp(struct L_flow_state QL[], struct L_flow_state QR[],
                     term1 =
                         sqrR[i] * (QL[i].u - QR[i].u) / (sqrL[i] + sqrR[i]);
                     pstar[i] = 0.5 * gp1 * QL[i].gas->rho * term1 * term1;
-#                   if (DEBUG >= 3)
-                    printf
-                        ("Two strong shocks: pstar = %e, ustar = %e, gamma = %f\n",
-                         pstar[i], ustar[i], g);
-                    printf("   QL: u=%e, rho=%e, p=%e, T=%e\n", QL[i].u,
-                           QL[i].gas->rho, QL[i].gas->p, QL[i].gas->T);
-                    printf("   QR: u=%e, rho=%e, p=%e, T=%e\n", QR[i].u,
-                           QR[i].gas->rho, QR[i].gas->p, QR[i].gas->T);
-#                   endif
                 } else if (pstar[i] > BIG_RATIO * QR[i].gas->p) {
                     /*
                      * Treat the right-moving wave as a strong shock, the
@@ -343,10 +268,6 @@ int L_rivp(struct L_flow_state QL[], struct L_flow_state QR[],
                         printf( "pstar=%e, dp=%e, ustar=%e\n",
 				pstar[i], dp, ustar[i]);
                     }   /* end if */
-#                   if (DEBUG >= 3)
-                    printf("Right strong shock: pstar = %e, ustar = %e\n",
-                           pstar[i], ustar[i]);
-#                   endif
                 } else if (pstar[i] > BIG_RATIO * QL[i].gas->p) {
                     /*
                      * Treat the left-moving wave as a strong shock, the
@@ -378,10 +299,6 @@ int L_rivp(struct L_flow_state QL[], struct L_flow_state QR[],
                         printf("i=%d pstar=%e, dp=%e, ustar=%e\n",
                              i, pstar[i], dp, ustar[i]);
                     }   /* end if */
-#                   if (DEBUG >= 3)
-                    printf("Left strong shock: pstar = %e, ustar = %e\n",
-                           pstar[i], ustar[i]);
-#                   endif
                 }
 
             }   /* End of positive-pressure solution */
@@ -395,7 +312,8 @@ int L_rivp(struct L_flow_state QL[], struct L_flow_state QR[],
 	 */
 	if ( pstar[i] > 1.0e20 || pstar[i] < 0.0 || ustar[i] > 1.0e20 ) {
 	    printf("L_rivp(): unreasonable value for pressure\n");
-	    printf("    i=%d pstar=%g ustar=%g first=%d last=%d end1=%d end2=%d\n", i, pstar[i], ustar[i], first, last, end1, end2);
+	    printf("    i=%d pstar=%g ustar=%g first=%d last=%d end1=%d end2=%d\n", 
+		   i, pstar[i], ustar[i], first, last, end1, end2);
 	    printf("    QL u=%g\n", QL[i].u);
 	    QL[i].gas->print_values();
 	    printf("    QR u=%g\n", QR[i].u);

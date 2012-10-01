@@ -47,7 +47,7 @@ public:
                                 /* = 1: use adiabtaic temp    */
                                 /* = 0: use specified temp    */
 
-    L_flow_state *init_str; /* initial flow properties  */
+    LFlowState *initial_flow_state; /* used to fill slugs */
 
     int adaptive;
     // == 1 : the slug adapts to the flow solution by refining
@@ -130,8 +130,7 @@ public:
     // Most of the data is stored in the preceding array. 
     // Cell[ix] = cell values
 
-    GasSlug(int indx, SimulationData& SD, 
-	    std::string config_file_name, int echo_input);
+    GasSlug(int indx, SimulationData& SD, std::string config_file_name, int echo_input);
     GasSlug(const GasSlug& gs);
     ~GasSlug(void);
     int set_index_range(void);
@@ -159,10 +158,11 @@ public:
     int check_cfl();
     int interpolate_cell_data(double xloc, LCell& icell);
     double end_pressure(int which_end, double dx);
-    int end_properties(int which_end, double dx,
-		       double* total_mass, struct L_flow_state& Q);
+    int end_properties(int which_end, double dx, double* total_mass, LFlowState& Q);
 }; // end class GasSlug
 
+int set_up_workspace_for_apply_rivp();
+int dispose_workspace_for_apply_rivp();
 double min_increment( double y0, double y1, double y2 );
 double limit_to_within(double v, double a, double b);
 
