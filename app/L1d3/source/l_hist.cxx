@@ -1,5 +1,5 @@
 /** \file l_hist.cxx
- * \ingroup l1d2
+ * \ingroup l1d3
  * \brief History Postprocessor for l1d.cxx.
  *
  * This program is used to read the x-location and 
@@ -374,10 +374,10 @@ int main(int argc, char **argv)
 		fx[isp][j] = icell->gas->massf[isp];
 		f_sum += fx[isp][j];
 	    }
-            if ( fabs(f_sum - 1.0) > 0.001 ) {
+            if ( rhox[j] > 1.0e-12 && fabs(f_sum - 1.0) > 0.001 ) {
 		printf( "Mass fractions don't add up: %e.\n", f_sum );
             }
-        }   /* end for (j = 0... */
+        } // end for (j = 0...
 
         x[count] = xx[ixloc];
         rho[count] = rhox[ixloc];
@@ -396,7 +396,11 @@ int main(int argc, char **argv)
         /*
          * Compute Pitot pressure.
          */
-        M = fabs(u[count]) / a[count];
+	if ( a[count] > 1.0e-12 ) {
+	    M = fabs(u[count]) / a[count];
+	} else {
+	    M = 0.0;
+	}
         gam = p[count] / (rho[count] * e[count]) + 1.0;
 #       define  APPROX  0
 #       if (APPROX == 1)
@@ -425,7 +429,7 @@ int main(int argc, char **argv)
             h[count] = e[count] + p[count] / rho[count];
         } else {
             h[count] = 0.0;
-        }   /* end if */
+        } // end if
 
         /*
          * Print some sort of status report every 100 time increments.
@@ -434,7 +438,7 @@ int main(int argc, char **argv)
         if ((c_temp * 100 == count) && (count != 0)) {
             printf("soln=%d, count=%d, t=%e\n", i - 1,
                    count, sim_time[count]);
-        }   /* end if */
+        }
 
         /* 
          * We increment count now to indicate how many
@@ -562,6 +566,6 @@ int main(int argc, char **argv)
     }
 
     printf( "End program.\n" );
-    return 0;
-}   /* end function main */
+    return SUCCESS;
+} // end main
 
