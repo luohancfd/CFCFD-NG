@@ -142,9 +142,16 @@ def get_cea2_float(token_list):
         value_str = '0.0'
     elif len(token_list) == 1:
         value_str = token_list[0]
-        if value_str.find("-")>0:
+        if value_str.find("****") >= 0:
+            # We have one of the dodgy strings such as ******e-3
+            # CEA2 seems to write such for values like 0.0099998
+            # We should be able to tolerate one of these, at most,
+            # because we should be able to back out the intended
+            # value from knowledge of the rest of the list.
+            return None
+        if value_str.find("-") > 0:
             value_str = value_str.replace("-","e-")
-        if value_str.find("+")>0:
+        if value_str.find("+") > 0:
             value_str = value_str.replace("+","e+")
     elif len(token_list) == 2:
         value_str = token_list[0] + 'e+' + token_list[1]
@@ -155,7 +162,7 @@ def get_cea2_float(token_list):
         value = float(value_str)
     except:
         print "Cannot make a float from this string: ", value_str
-        sys.exit()
+        sys.exit(-1)
     return value
    
 # ----------------------------------------------------------------
@@ -496,6 +503,22 @@ class Gas(object):
                 s = tokens[0].replace('*', '')
                 self.species[s] = get_cea2_float(tokens[1:])
                 # print "%s = %e" % (s, self.species[s])
+        # Now check for any None values, where CEA2 wrote a dodgy format float.
+        dodgyCount = 0
+        sumFractions = 0.0
+        for s in self.species.keys():
+            if self.species[s] == None:
+                dodgyCount += 1
+                dodgySpecies = s
+            else:
+                sumFractions += self.species[s]
+        if dodgyCount > 1:
+            print "Cannot evaluate species fractions"
+            print "because there are too many dodgy values"
+            sys.exit(-1)
+        # but we can recover one missing value.
+        if dodgyCount == 1:
+            self.species[dodgySpecies] = 1.0 - sumFractions
         return
 
     def EOS(self, problemType='pT', transProps=True):
