@@ -26,7 +26,10 @@ def xypath(t):
     "Parametric path with 0<=t<=1."
     global y
     x = 10.0 * t
-    return (x, y(x), 0.0)
+    yval = y(x)
+    if yval < 0.0:
+        yval = 0.0
+    return (x, yval, 0.0)
 
 a = Node(-1.0, 0.0, label="A")
 b = Node( 0.0, 0.0, label="B")
