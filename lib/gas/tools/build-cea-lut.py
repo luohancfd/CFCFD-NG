@@ -166,10 +166,11 @@ if __name__ == '__main__':
         print "Example 2: build-cea-lut.py --custom --reactants=\"N2:0.79,O2:0.21\" --only-list=\"N2,O2,NO,O,N\""
         print "Example 3: build-cea-lut.py --gas=air-ions --bounds=\"500,20000,-6.0,2.0\""
         print "Example 4: build-cea-lut.py --gas=co2 --T-for-offset=650.0 --bounds=\"1000.0,20000,-6.0,2.0\""
+        print "Example 5: build-cea-lut.py --gas=co2-ions --T-for-offset=1000.0 --bounds=\"1000.0,20000,-6.0,2.0\""
         print ""
         print "Sometimes CEA2 has problems and the table will fail to build."
         print "The best approach to fixing the problem seems to be to raise"
-        print "the lower temperatures, as shown in examples 3 and 4 (above)."
+        print "the lower temperatures, as shown in examples 3, 4 and 5 (above)."
         sys.exit()
     T_min, T_max, log_rho_min, log_rho_max = [float(item) for item in options.bounds.split(',')]
     T_for_offset = float(options.T_for_offset)
