@@ -35,7 +35,8 @@ function serialise(o, f, indent)
 end
 
 function list_available_species()
-   dir = os.getenv("HOME").."/e3bin/species"
+   e3bin = os.getenv("E3BIN") or os.getenv("HOME").."/e3bin"
+   dir = e3bin.."/species"
    tmpname = os.tmpname()
    os.execute(string.format("ls -1 %s/*.lua > %s", dir, tmpname))
    tmpfile = assert(io.open(tmpname, "r"))
@@ -57,7 +58,8 @@ CI_folders["Mars"] = "mars"
 CI_folders["None"] = "none"
 
 function list_available_collision_integrals( ref )
-   dir = os.getenv("HOME").."/e3bin/collision-integrals/"..CI_folders[ref]
+   e3bin = os.getenv("E3BIN") or os.getenv("HOME").."/e3bin"
+   dir = e3bin.."/collision-integrals/"..CI_folders[ref]
    tmpname = os.tmpname()
    os.execute(string.format("ls -1 %s/*.lua > %s", dir, tmpname))
    tmpfile = assert(io.open(tmpname, "r"))
@@ -121,7 +123,8 @@ function create_one_temperature_gas(species, f)
       if not species_avail[sp] then
 	 print(string.format("Species: %s cannot be found in the collection of species.\n", sp))
 	 print("Check for an appropriate file in:\n")
-	 dir = os.getenv("HOME").."/e3bin/species"
+	 e3bin = os.getenv("E3BIN") or os.getenv("HOME").."/e3bin"
+	 dir = e3bin.."/species"
 	 print("   ", dir)
 	 print("Bailing out!\n")
 	 os.exit(1)
@@ -131,7 +134,9 @@ function create_one_temperature_gas(species, f)
    f:write("}\n\n")
    
    for _,sp in ipairs(species) do
-      file = os.getenv("HOME") .. "/e3bin/species/" .. sp .. ".lua"
+      e3bin = os.getenv("E3BIN") or os.getenv("HOME").."/e3bin"
+      dir = e3bin.."/species/"
+      file = dir..sp..".lua"
       dofile(file)
       
       f:write(string.format("%s = {}\n", sp))
@@ -216,7 +221,8 @@ function create_one_temperature_gas(species, f)
       
    -- collision integrals
    CI_ref = "Mars"
-   dir = os.getenv("HOME").."/e3bin/collision-integrals/"..CI_folders[CI_ref]
+   e3bin = os.getenv("E3BIN") or os.getenv("HOME").."/e3bin"
+   dir = e3bin.."/collision-integrals/"..CI_folders[CI_ref]
    available_CIs = list_available_collision_integrals( CI_ref )
    f:write(string.format("collision_integrals = {\n"))
    for isp,sp_i in ipairs(species) do
@@ -237,7 +243,8 @@ function create_one_temperature_gas(species, f)
          if file=="not found" then
             print(string.format("No %s-%s or %s-%s collision integral data available.", sp_i, sp_j, sp_j, sp_i))
             print("Setting all coefficients to 0.0.\n")
-            file = os.getenv("HOME").."/e3bin/collision-integrals/none-none.lua"
+            e3bin = os.getenv("E3BIN") or os.getenv("HOME").."/e3bin"
+	    file = e3bin.."/collision-integrals/none-none.lua"
          end
          dofile(file)
          f:write(string.format("  {\n"))

@@ -11,7 +11,10 @@ We just collate the results in a form convenient for the gas module of Eilmer3.
 """
 
 import sys, os, time, numpy, math, gzip
-sys.path.append(os.path.expandvars("$HOME/e3bin"))
+try:
+    sys.path.append(os.path.expandvars("$E3BIN"))
+except:
+    sys.path.append(os.path.expandvars("$HOME/e3bin"))
 from cfpylib.gasdyn.cea2_gas import make_gas_from_name, Gas, list_gas_names
 
 #-----------------------------------------------------------------------------

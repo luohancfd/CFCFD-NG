@@ -31,7 +31,8 @@ function serialise(o, f, indent)
 end
 
 function list_available_species()
-   fluid_dir = os.getenv("HOME").."/e3bin/species/refprop"
+   e3bin = os.getenv("E3BIN") or os.getenv("HOME").."/e3bin"
+   fluid_dir = e3bin.."/species/refprop"
    tmpname = os.tmpname()
    str1 = string.format("find %s -type f ", fluid_dir)
    str2 = "-printf '%f\n' "
@@ -69,7 +70,8 @@ function create_real_gas_REFPROP(species, f)
    if not species_avail[sp] then
       print(string.format("Species: %s is not implemented for this gas model.\n", sp))
       print("Check for an appropriate .FLD, .PPF or .MIX file in:\n")
-      dir = os.getenv("HOME").."/e3bin/species/refprop"
+      e3bin = os.getenv("E3BIN") or os.getenv("HOME").."/e3bin"
+      dir = e3bin.."/species/refprop"
       print("   ", dir, "\n")
       print("Bailing out!\n")
       os.exit(1)

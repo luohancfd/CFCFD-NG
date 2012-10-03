@@ -35,7 +35,8 @@ function serialise(o, f, indent)
 end
 
 function list_available_species()
-   dir = os.getenv("HOME").."/e3bin/species"
+   e3bin = os.getenv("E3BIN") or os.getenv("HOME").."/e3bin"
+   dir = e3bin.."/species"
    tmpname = os.tmpname()
    os.execute(string.format("ls -1 %s/*.lua > %s", dir, tmpname))
    tmpfile = assert(io.open(tmpname, "r"))
@@ -89,7 +90,8 @@ function create_thermally_perfect_gas(species, f)
       if not species_avail[sp] then
 	 print(string.format("Species: %s cannot be found in the collection of species.\n", sp))
 	 print("Check for an appropriate file in:\n")
-	 dir = os.getenv("HOME").."/e3bin/species"
+	 e3bin = os.getenv("E3BIN") or os.getenv("HOME").."/e3bin"
+	 dir = e3bin.."/species"
 	 print("   ", dir)
 	 print("Bailing out!\n")
 	 os.exit(1)
@@ -100,11 +102,15 @@ function create_thermally_perfect_gas(species, f)
    f:write("}\n")
    f:write("\n")
    
-   default_file = os.getenv("HOME") .. "/e3bin/species/defaults.lua"
+   e3bin = os.getenv("E3BIN") or os.getenv("HOME").."/e3bin"
+   dir = e3bin.."/species"
+   default_file = dir.."/defaults.lua"
    dofile(default_file)
 
    for _,sp in ipairs(species2) do
-      file = os.getenv("HOME") .. "/e3bin/species/" .. sp .. ".lua"
+      e3bin = os.getenv("E3BIN") or os.getenv("HOME").."/e3bin"
+      dir = e3bin.."/species/"
+      file = dir..sp..".lua"
       dofile(file)
       
       f:write(string.format("%s = {}\n", sp))

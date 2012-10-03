@@ -31,7 +31,8 @@ function serialise(o, f, indent)
 end
 
 function list_available_species()
-   dir = os.getenv("HOME").."/e3bin/species"
+   e3bin = os.getenv("E3BIN") or os.getenv("HOME").."/e3bin"
+   dir = e3bin.."/species"
    tmpname = os.tmpname()
    str1 = string.format("find %s -name '*.lua' ", dir)
    str2 = "| xargs grep -l 'rho_c' "
@@ -78,7 +79,8 @@ function create_real_gas_MBWR(species, f)
       if not species_avail[sp] then
          print(string.format("Species: %s is not implemented for this gas model.\n", sp))
          print("Check for an appropriate file in:\n")
-         dir = os.getenv("HOME").."/e3bin/species"
+	 e3bin = os.getenv("E3BIN") or os.getenv("HOME").."/e3bin"
+	 dir = e3bin.."/species"
          print("   ", dir, "\n")
          print("This model requires:\n")
          for __,value in ipairs(value_list) do
@@ -93,11 +95,15 @@ function create_real_gas_MBWR(species, f)
    f:write("}\n")
    f:write("\n")
    
-   default_file = os.getenv("HOME") .. "/e3bin/species/defaults.lua"
+   e3bin = os.getenv("E3BIN") or os.getenv("HOME").."/e3bin"
+   dir = e3bin.."/species"
+   default_file = dir.."/defaults.lua"
    dofile(default_file)
 
    for _,sp in ipairs(species) do
-      file = os.getenv("HOME") .. "/e3bin/species/" .. sp .. ".lua"
+      e3bin = os.getenv("E3BIN") or os.getenv("HOME").."/e3bin"
+      dir = e3bin.."/species/"
+      file = dir..sp..".lua"
       dofile(file)
       
       f:write(string.format("%s = {}\n", sp))

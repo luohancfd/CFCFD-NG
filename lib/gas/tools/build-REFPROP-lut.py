@@ -11,7 +11,10 @@ We just collate the results in a form convenient for the gas module of Eilmer3.
 """
 
 import sys, os, time, numpy, math, gzip
-sys.path.append(os.path.expandvars("$HOME/e3bin"))
+try:
+    sys.path.append(os.path.expandvars("$E3BIN"))
+except:
+    sys.path.append(os.path.expandvars("$HOME/e3bin"))
 from gaspy import *
 
 def get_e_range(myFluid, fluidModel, T_min, T_max, log_rho_values):
@@ -103,9 +106,15 @@ def build_table(fluidName, T_min, T_max,
 
 def list_fluids(option, opt, value, parser):
     print "Available pure fluids and pseudo pure fluids are:"
-    print os.listdir(os.path.expandvars("$HOME/e3bin") + "/species/refprop/fluids/")
+    try:
+        print os.listdir(os.path.expandvars("$E3BIN") + "/species/refprop/fluids/")
+    except:
+        print os.listdir(os.path.expandvars("$HOME/e3bin") + "/species/refprop/fluids/")
     print "Available predefined mixtures are:"
-    print os.listdir(os.path.expandvars("$HOME/e3bin") + "/species/refprop/mixtures/")
+    try:
+        print os.listdir(os.path.expandvars("$E3BIN") + "/species/refprop/mixtures/")
+    except:
+        print os.listdir(os.path.expandvars("$HOME/e3bin") + "/species/refprop/mixtures/")
     sys.exit()
 
 if __name__ == '__main__':
