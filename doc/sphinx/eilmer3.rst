@@ -36,6 +36,17 @@ to your bash configuration::
   $ export LUA_CPATH=${HOME}/e3bin/?.so
   $ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${HOME}/e3bin
 
+.. _label-nonstandard-install-path:
+
+If you choose to install eilmer3 in a different location from the
+default location (``$HOME/e3bin``), then you will need to
+set an environment variable called ``E3BIN`` and point it to 
+the non-standard install directory. For example, if you installed
+the executables and supporting scripts to: ``/work/e3bin`` then
+you would set the following in your ``.bashrc``::
+
+  $ export E3BIN=/work/e3bin
+ 
 .. _label-openmpi-fedora:
 
 For running on Fedora, also add the following::

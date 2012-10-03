@@ -27,6 +27,11 @@ On a recent Linux system, this could be done by adding the lines::
 
 to the .bash_profile or .bashrc file in your home directory.
 
+If you install L1d3 in a directory other than the default,
+then read and follow the instructions given for
+running Eilmer3 from a directory other than the default
+(see :ref:`Non-standard install of Eilmer3 <label-nonstandard-install-path>`).
+
 Run a quick example of gas accelerating a piston::
 
   $ mkdir $HOME/work; cd $HOME/work
