@@ -16,11 +16,12 @@ from cfpylib.gasdyn.cea2_gas import make_gas_from_name, Gas, list_gas_names
 
 #-----------------------------------------------------------------------------
 
-def get_e_offset(mygas):
+def get_e_offset(mygas, T):
     """
     At a suitably-low value of temperature, compute the energy offset for CEA gas.
     
     :param mygas: cea2 Gas object
+    :T: temperature at which to evaluate the offset
     :returns: offset value to be added to CEA internal energy.
     
     It is convenient to have the reference temperature of 0 degrees K
@@ -29,7 +30,6 @@ def get_e_offset(mygas):
     used by CEA, so we'll compute an offset value and shift the CEA value
     of internal energy by this offset in future.
     """ 
-    T = 302.0 # Any low temperature will suffice. 
     mygas.set_pT(100.0e3, T)
     # mygas.write_state(sys.stdout)
     return  mygas.C_v * T - mygas.e
@@ -52,7 +52,7 @@ def get_e_range(mygas, T_min, T_max, log_rho_values):
     return e_min, e_max
 
 def build_table(mygas, gasName, T_min=200.0, T_max=20000.0,
-                log_rho_min=-6.0, log_rho_max=2.0):
+                log_rho_min=-6.0, log_rho_max=2.0, T_for_offset=302.0):
     """
     Compute gas thermo properties for a mesh of internal-energy and density values
     and write an encoded form of the thermo data to a Lua-format file.
@@ -63,6 +63,8 @@ def build_table(mygas, gasName, T_min=200.0, T_max=20000.0,
     :param T_max: in degrees K
     :param log_rho_min: log-base-10 of minimum density in kg/m**3
     :param log_rho_max: log-base-10 of maximum density in kg/m**3
+    :param T_for_offset: Temperature at which to determine energy offset.
+        Mostly, any low temperature will suffice, however co2 needs T=600.
 
     The file produced is intended for later use by the LUT gas model.
     """
@@ -72,7 +74,8 @@ def build_table(mygas, gasName, T_min=200.0, T_max=20000.0,
     log_rho_values = numpy.linspace(log_rho_min, log_rho_max, irsteps+1)
     #
     # Internal energy range on a linear scale.
-    e_offset = get_e_offset(mygas)
+    print "T_for_offset=", T_for_offset
+    e_offset = get_e_offset(mygas, T_for_offset)
     print "e_offset=", e_offset
     e_min, e_max = get_e_range(mygas, T_min, T_max, log_rho_values)
     print "e_min=", e_min, "e_max=", e_max
@@ -135,6 +138,9 @@ if __name__ == '__main__':
     parser.add_option("-b", "--bounds", action="store", type="string", dest="bounds",
                       default="200.0,20000.0,-6.0,2.0",
                       help="bounds of the table in form \"T_min,T_max,log_rho_min,log_rho_max\"")
+    parser.add_option("-T", "--T-for-offset", action="store", type="string", dest="T_for_offset",
+                      default="302.0",
+                      help="Temperature (degree K) at which to evaluate the internal energy offset.")
     group = OptionGroup(parser, "Custom gas options")
     group.add_option("-r", "--reactants", action="store", type="string", dest="reactants",
                      help="reactant fractions in dictionary form")
@@ -155,8 +161,15 @@ if __name__ == '__main__':
         print ""
         print "Example 1: build-cea-lut.py --gas=air5species"
         print "Example 2: build-cea-lut.py --custom --reactants=\"N2:0.79,O2:0.21\" --only-list=\"N2,O2,NO,O,N\""
+        print "Example 3: build-cea-lut.py --gas=air-ions --bounds=\"500,20000,-6.0,2.0\""
+        print "Example 4: build-cea-lut.py --gas=co2 --T-for-offset=650.0 --bounds=\"1000.0,20000,-6.0,2.0\""
+        print ""
+        print "Sometimes CEA2 has problems and the table will fail to build."
+        print "The best approach to fixing the problem seems to be to raise"
+        print "the lower temperatures, as shown in examples 3 and 4 (above)."
         sys.exit()
     T_min, T_max, log_rho_min, log_rho_max = [float(item) for item in options.bounds.split(',')]
+    T_for_offset = float(options.T_for_offset)
     print "    log_rho_min=", log_rho_min, "log_rho_max=", log_rho_max
     print "    T_min=", T_min, "T_max=", T_max
     if options.custom:
@@ -184,5 +197,5 @@ if __name__ == '__main__':
         print "Building table for gas name: ", options.gasName
         mygas = make_gas_from_name(options.gasName)
         gasName = options.gasName
-    build_table(mygas, gasName, T_min, T_max, log_rho_min, log_rho_max)
+    build_table(mygas, gasName, T_min, T_max, log_rho_min, log_rho_max, T_for_offset)
     print "Done."
