@@ -3,11 +3,12 @@ L1d3
 
 L1d3 is our specialist simulation code for quasi-one-dimensional gas dynamics.
 It is usually applied to the simulation of entire shock-tube or expansion-tube
-facilities and has a role to play in the design of new experimantal machines.
+facilities and has a role to play in the design of new experimental machines.
 
 Typical build and run procedure
 -------------------------------
-The new 2D/3D code Eilmer3 is built from source into an installation directory $HOME/e3bin/.  
+The new 2D/3D code Eilmer3 is built from source into an installation directory 
+$HOME/e3bin/ and so is L1d3.  
 A typical build procedure (using the default TARGET=for_gnu) might be::
 
   $ cd $HOME/cfcfd3/app/L1d3/build
@@ -44,9 +45,65 @@ If you have ghostview installed, you should now be looking at
 a space-time diagram of the expanding gas.  
 The upstream-face of the piston is the right, curved boundary.
  
+Simulation Overview
+-------------------
+Setting up a simulation is mostly an exercise in writing a textual 
+description of your experimental facility and the gas slugs contained
+within it.
+This description is presented to the l_script program as a Python script,
+and is assumed to have a ".py" extension.
+Once you have prepared your simulation script, the simulation data
+is generated in a number of stages:
 
-Documentation
--------------
+#. Create the input parameter file job-name.Lp with the command::
+
+     $ l_script.py -f job-name
+
+#. Generate an initial (i.e. t = 0) flow solution in file
+   job-name.L0 and tube description file job-name.La with the command::
+ 
+     $ l1d.exe -f job-name -prep
+
+#. Run the simulation code to produce flow data at subsequent times.
+   The whole-of-tube data are saved in job-name.Ls while history
+   data at selected x-locations and cells are saved in files 
+   job-name.Lh and job-name.Lc respectively.
+   The command is::
+
+     $ l1d.exe -f job-name
+
+   The history data at fixed x-locations represent sensors embedded 
+   in the tube walls while the history data for particular cells might
+   be used to get pressures against piston faces.
+
+#. Extract subsets of the flow solution data for postprocessing.
+   The specific commands for this stage depend very much on what 
+   you want to do.
+   The flow solution data is cell-averaged data associated with cell centres.
+   You may extract the flow data for all cells at a particular time
+   using l_post.exe and save it in a form
+   ready for display with GNU-Plot or for further calculation.
+   The data for all cells over a range of times may be extracted
+   with the program sptime.exe and written into a form ready
+   to produce an (x,t)-diagram via a contouring program.
+   The program l_hist.exe can be used to extract data for
+   individual history locations and cells while piston.exe
+   can be used to get motion data for a specific piston.
+   See the shell scripts in the examples for ideas on what can be done.
+   Since the output of this stage is always a text file, you may look 
+   at the head of each file for hints as to what data is present.
+
+Source Code Docs
+----------------
+
+.. toctree::
+   :maxdepth: 2
+
+   l1d3/l_script
+
+
+Documentation for the older L1d code
+------------------------------------
 Report-13-98_ is the documentation for theory behind the Lagrangian 1-D program. 
 
 .. _Report-13-98: ./pdf/l1d_98.pdf
