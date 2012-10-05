@@ -62,6 +62,8 @@ specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, vector<double
 {
     // tau_ will be present and correct before beginning this
     // function ie. a call to compute_tau is expected earlier.
+    //cout << "T_trans = " << Q.T[iT_] << endl;
+    //cout << "T_vib= " << Q.T[iTv_] << endl;
     double e_vib_eq = p_vib_->eval_energy_from_T(Q.T[iT_]);
     double e_vib = p_vib_->eval_energy_from_T(Q.T[iTv_]);
     // NOTE: - tau_ needs to be (already) weighted by colliding mole fractions
