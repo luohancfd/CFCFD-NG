@@ -995,7 +995,7 @@ int FV_Cell::decode_conserved(double omegaz)
     //         and has already been calculated above
     //       - renergies[0] is being calculated but never used.
     //         We've decided to leave it that way.
-    double e0_save = fs->gas->e[0];
+double e0_save = fs->gas->e[0];
     gmodel->decode_conserved_energy(*(fs->gas), U->energies);
     fs->gas->e[0] = e0_save;
     // Fill out the other variables; P, T, a and

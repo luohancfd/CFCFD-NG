@@ -23,6 +23,30 @@ extern "C" {
 
 //-----------------------------------------------------------------------------
 
+// Set some values for debugging a particular cell in a particular block
+// These may be defined externally at compile time. Otherwise they are set here.
+// If PRNT_DBG_CELL is not set, then nothing is compiled.
+#ifndef PRNT_DBG_CELL
+#define PRNT_DBG_CELL 0
+#endif
+
+#ifndef DBG_BLK
+#define DBG_BLK 0
+#endif
+
+#ifndef DBG_CELL_I
+#define DBG_CELL_I 2
+#endif
+
+#ifndef DBG_CELL_J
+#define DBG_CELL_J 2
+#endif
+
+#ifndef DBG_CELL_K
+#define DBG_CELL_K 0
+#endif
+
+
 Block::Block()
 {
     // Constructor does nothing so far.
@@ -121,7 +145,26 @@ int Block::apply(FV_Cell_MemberFunction_void f, string failure_message_header)
         for ( int j = jmin; j <= jmax; ++j ) {
 	    for ( int i = imin; i <= imax; ++i ) {
 		cellp = get_cell(i,j,k);
+		#if PRNT_DBG_CELL
+		if ( id == DBG_BLK) {
+		    if ( i == DBG_CELL_I && j == DBG_CELL_J && k == DBG_CELL_K ) {
+			cout << "About to apply: " << failure_message_header << endl;
+			cout << "to cell[" << DBG_CELL_I << "," << DBG_CELL_J << "," << DBG_CELL_K << "]";
+			cout << " in block: " << DBG_BLK << endl;
+			cout << "Data before call: " << endl;
+			cellp->print();
+		    }
+		}
+		#endif
 		result_flag = CALL_MEMBER_FN(*cellp,f)();
+		#if PRNT_DBG_CELL
+		if ( id == DBG_BLK) {
+		    if ( i == DBG_CELL_I && j == DBG_CELL_J && k == DBG_CELL_K ) {
+			cout << "Data after call: " << endl;
+			cellp->print();
+		    }
+		}
+		#endif
 		if ( result_flag != 0 ) {
 		    cout << failure_message_header << endl;
 		    printf("Block %d: cell[%d][%d][%d] \n", id, i, j, k);
@@ -143,7 +186,26 @@ int Block::apply(FV_Cell_MemberFunction_double f, double param1, string failure_
         for ( int j = jmin; j <= jmax; ++j ) {
 	    for ( int i = imin; i <= imax; ++i ) {
 		cellp = get_cell(i,j,k);
+		#if PRNT_DBG_CELL
+		if ( id == DBG_BLK) {
+		    if ( i == DBG_CELL_I && j == DBG_CELL_J && k == DBG_CELL_K ) {
+			cout << "About to apply: " << failure_message_header << endl;
+			cout << "to cell[" << DBG_CELL_I << "," << DBG_CELL_J << "," << DBG_CELL_K << "]";
+			cout << " in block: " << DBG_BLK << endl;
+			cout << "Data before call: " << endl;
+			cellp->print();
+		    }
+		}
+		#endif
 		result_flag = CALL_MEMBER_FN(*cellp,f)(param1);
+		#if PRNT_DBG_CELL
+		if ( id == DBG_BLK) {
+		    if ( i == DBG_CELL_I && j == DBG_CELL_J && k == DBG_CELL_K ) {
+			cout << "Data after call: " << endl;
+			cellp->print();
+		    }
+		}
+		#endif
 		if ( result_flag != 0 ) {
 		    cout << failure_message_header << endl;
 		    printf("Block %d: cell[%d][%d][%d] \n", id, i, j, k);
@@ -166,7 +228,26 @@ int Block::apply(FV_Cell_MemberFunction_double_double f, double param1, double p
         for ( int j = jmin; j <= jmax; ++j ) {
 	    for ( int i = imin; i <= imax; ++i ) {
 		cellp = get_cell(i,j,k);
+		#if PRNT_DBG_CELL
+		if ( id == DBG_BLK) {
+		    if ( i == DBG_CELL_I && j == DBG_CELL_J && k == DBG_CELL_K ) {
+			cout << "About to apply: " << failure_message_header << endl;
+			cout << "to cell[" << DBG_CELL_I << "," << DBG_CELL_J << "," << DBG_CELL_K << "]";
+			cout << " in block: " << DBG_BLK << endl;
+			cout << "Data before call: " << endl;
+			cellp->print();
+		    }
+		}
+		#endif
 		result_flag = CALL_MEMBER_FN(*cellp,f)(param1,param2);
+		#if PRNT_DBG_CELL
+		if ( id == DBG_BLK) {
+		    if ( i == DBG_CELL_I && j == DBG_CELL_J && k == DBG_CELL_K ) {
+			cout << "Data after call: " << endl;
+			cellp->print();
+		    }
+		}
+		#endif
 		if ( result_flag != 0 ) {
 		    cout << failure_message_header << endl;
 		    printf("Block %d: cell[%d][%d][%d] \n", id, i, j, k);
@@ -188,7 +269,26 @@ int Block::apply(FV_Cell_MemberFunction_int f, int param1, string failure_messag
         for ( int j = jmin; j <= jmax; ++j ) {
 	    for ( int i = imin; i <= imax; ++i ) {
 		cellp = get_cell(i,j,k);
+		#if PRNT_DBG_CELL
+		if ( id == DBG_BLK) {
+		    if ( i == DBG_CELL_I && j == DBG_CELL_J && k == DBG_CELL_K ) {
+			cout << "About to apply: " << failure_message_header << endl;
+			cout << "to cell[" << DBG_CELL_I << "," << DBG_CELL_J << "," << DBG_CELL_K << "]";
+			cout << " in block: " << DBG_BLK << endl;
+			cout << "Data before call: " << endl;
+			cellp->print();
+		    }
+		}
+		#endif
 		result_flag = CALL_MEMBER_FN(*cellp,f)(param1);
+		#if PRNT_DBG_CELL
+		if ( id == DBG_BLK) {
+		    if ( i == DBG_CELL_I && j == DBG_CELL_J && k == DBG_CELL_K ) {
+			cout << "Data after call: " << endl;
+			cellp->print();
+		    }
+		}
+		#endif
 		if ( result_flag != 0 ) {
 		    cout << failure_message_header << endl;
 		    printf("Block %d: cell[%d][%d][%d] \n", id, i, j, k);
@@ -210,7 +310,26 @@ int Block::apply(FV_Cell_MemberFunction_int_int f, int param1, int param2, strin
         for ( int j = jmin; j <= jmax; ++j ) {
 	    for ( int i = imin; i <= imax; ++i ) {
 		cellp = get_cell(i,j,k);
+		#if PRNT_DBG_CELL
+		if ( id == DBG_BLK) {
+		    if ( i == DBG_CELL_I && j == DBG_CELL_J && k == DBG_CELL_K ) {
+			cout << "About to apply: " << failure_message_header << endl;
+			cout << "to cell[" << DBG_CELL_I << "," << DBG_CELL_J << "," << DBG_CELL_K << "]";
+			cout << " in block: " << DBG_BLK << endl;
+			cout << "Data before call: " << endl;
+			cellp->print();
+		    }
+		}
+		#endif
 		result_flag = CALL_MEMBER_FN(*cellp,f)(param1,param2);
+		#if PRNT_DBG_CELL
+		if ( id == DBG_BLK) {
+		    if ( i == DBG_CELL_I && j == DBG_CELL_J && k == DBG_CELL_K ) {
+			cout << "Data after call: " << endl;
+			cellp->print();
+		    }
+		}
+		#endif
 		if ( result_flag != 0 ) {
 		    cout << failure_message_header << endl;
 		    printf("Block %d: cell[%d][%d][%d] \n", id, i, j, k);
@@ -233,7 +352,26 @@ int Block::apply(int (*f)(FV_Cell *cellp),
         for ( int j = jmin; j <= jmax; ++j ) {
 	    for ( int i = imin; i <= imax; ++i ) {
 		cellp = get_cell(i,j,k);
+		#if PRNT_DBG_CELL
+		if ( id == DBG_BLK) {
+		    if ( i == DBG_CELL_I && j == DBG_CELL_J && k == DBG_CELL_K ) {
+			cout << "About to apply: " << failure_message_header << endl;
+			cout << "to cell[" << DBG_CELL_I << "," << DBG_CELL_J << "," << DBG_CELL_K << "]";
+			cout << " in block: " << DBG_BLK << endl;
+			cout << "Data before call: " << endl;
+			cellp->print();
+		    }
+		}
+		#endif
 		result_flag = (*f)( cellp );
+		#if PRNT_DBG_CELL
+		if ( id == DBG_BLK) {
+		    if ( i == DBG_CELL_I && j == DBG_CELL_J && k == DBG_CELL_K ) {
+			cout << "Data after call: " << endl;
+			cellp->print();
+		    }
+		}
+		#endif
 		if ( result_flag != 0 ) {
 		    cout << failure_message_header << endl;
 		    printf("Block %d: cell[%d][%d][%d] \n", id, i, j, k);
@@ -256,7 +394,26 @@ int Block::apply(int (*f)(FV_Cell *cellp, double param1),
         for ( int j = jmin; j <= jmax; ++j ) {
 	    for ( int i = imin; i <= imax; ++i ) {
 		cellp = get_cell(i,j,k);
+		#if PRNT_DBG_CELL
+		if ( id == DBG_BLK) {
+		    if ( i == DBG_CELL_I && j == DBG_CELL_J && k == DBG_CELL_K ) {
+			cout << "About to apply: " << failure_message_header << endl;
+			cout << "to cell[" << DBG_CELL_I << "," << DBG_CELL_J << "," << DBG_CELL_K << "]";
+			cout << " in block: " << DBG_BLK << endl;
+			cout << "Data before call: " << endl;
+			cellp->print();
+		    }
+		}
+		#endif
 		result_flag = (*f)( cellp, param1 );
+		#if PRNT_DBG_CELL
+		if ( id == DBG_BLK) {
+		    if ( i == DBG_CELL_I && j == DBG_CELL_J && k == DBG_CELL_K ) {
+			cout << "Data after call: " << endl;
+			cellp->print();
+		    }
+		}
+		#endif
 		if ( result_flag != 0 ) {
 		    cout << failure_message_header << endl;
 		    printf("Block %d: cell[%d][%d][%d] \n", id, i, j, k);
@@ -279,7 +436,26 @@ int Block::apply(int (*f)(FV_Cell *cellp, int param1),
         for ( int j = jmin; j <= jmax; ++j ) {
 	    for ( int i = imin; i <= imax; ++i ) {
 		cellp = get_cell(i,j,k);
+		#if PRNT_DBG_CELL
+		if ( id == DBG_BLK) {
+		    if ( i == DBG_CELL_I && j == DBG_CELL_J && k == DBG_CELL_K ) {
+			cout << "About to apply: " << failure_message_header << endl;
+			cout << "to cell[" << DBG_CELL_I << "," << DBG_CELL_J << "," << DBG_CELL_K << "]";
+			cout << " in block: " << DBG_BLK << endl;
+			cout << "Data before call: " << endl;
+			cellp->print();
+		    }
+		}
+		#endif
 		result_flag = (*f)( cellp, param1 );
+		#if PRNT_DBG_CELL
+		if ( id == DBG_BLK) {
+		    if ( i == DBG_CELL_I && j == DBG_CELL_J && k == DBG_CELL_K ) {
+			cout << "Data after call: " << endl;
+			cellp->print();
+		    }
+		}
+		#endif
 		if ( result_flag != 0 ) {
 		    cout << failure_message_header << endl;
 		    printf("Block %d: cell[%d][%d][%d] \n", id, i, j, k);
@@ -302,7 +478,26 @@ int Block::apply(int (*f)(FV_Cell *cellp, int param1, int param2),
         for ( int j = jmin; j <= jmax; ++j ) {
 	    for ( int i = imin; i <= imax; ++i ) {
 		cellp = get_cell(i,j,k);
+		#if PRNT_DBG_CELL
+		if ( id == DBG_BLK) {
+		    if ( i == DBG_CELL_I && j == DBG_CELL_J && k == DBG_CELL_K ) {
+			cout << "About to apply: " << failure_message_header << endl;
+			cout << "to cell[" << DBG_CELL_I << "," << DBG_CELL_J << "," << DBG_CELL_K << "]";
+			cout << " in block: " << DBG_BLK << endl;
+			cout << "Data before call: " << endl;
+			cellp->print();
+		    }
+		}
+		#endif
 		result_flag = (*f)( cellp, param1, param2 );
+		#if PRNT_DBG_CELL
+		if ( id == DBG_BLK) {
+		    if ( i == DBG_CELL_I && j == DBG_CELL_J && k == DBG_CELL_K ) {
+			cout << "Data after call: " << endl;
+			cellp->print();
+		    }
+		}
+		#endif
 		if ( result_flag != 0 ) {
 		    cout << failure_message_header << endl;
 		    printf("Block %d: cell[%d][%d][%d] \n", id, i, j, k);
