@@ -1,0 +1,142 @@
+% loadbalance.tex
+\section{Load balancing MPI simulations}
+\label{app:load-balance}
+
+Consider a parallel simulation with 16 blocks which you wish
+to run on 16 processes.
+Due to the geometry, the 16 blocks are not of equal size.
+For example, 2 of the blocks are twice as large (have twice the
+number of cells) as the other 14 blocks.
+When running this simulation in parallel over 16 processes,
+there is a degree of inefficiency.
+The code needs to synchronise the exchange of block-boundary
+data at the end of every timestep, so the 14 smaller blocks
+are spending roughly 50\% of their compute time just waiting 
+on the two larger blocks to complete their calculations.
+This type of inefficiency is not a big deal on your own
+machine with 16 cores but it will make you unpopular on
+large shared resource machines such as shared-memory supercomputers
+and supercomputing clusters.
+To alleviate some of this inefficiency, it's possible
+to run Eilmer3 in a mode where several blocks are handled by
+just one MPI process.
+In the example here, we would assign several of the smaller
+blocks to just one MPI process.
+In the end, we could use 9 MPI processes instead of 16, placing
+each of the two large blocks on their own MPI process and then
+assigining two of the smaller blocks to each of the remaining
+MPI processes.
+We do this with an MPImap file which is explained below.
+
+The other case in which we might want to use the MPImap feature
+is when we are running a simulation with many blocks (on the order
+of 100s of blocks) which exceeds the number of processes
+available.
+In this case, the only way to start a parallel simulation
+is by using the MPImap mode to assign multiple blocks
+to one MPI process.
+
+Using the MPImap feature is a three-step process.
+First, we prepare an Eilmer3 simulation as usual, using \texttt{e3prep.py}.
+Second, a mapping file is built with the \texttt{e3loadbalance.py}
+program.
+Third, when running \texttt{e3mpi.exe} the mapping file
+is supplied as an option using the \texttt{mpimap=} flag.
+As an example, consider the simulation included
+in \newline \texttt{examples/eilmer3/3D/load-balance-test}.
+This contains a GridPro grid with 27 blocks.
+After running \texttt{e3prep.py}, we are ready to use the
+load-balance program to map blocks to processes.
+We wish to run this simulation on 16 MPI processes,
+so first we call \texttt{e3loadbalance.py} to build an MPImap file:\\
+%
+\topbar\\
+\texttt{> e3loadbalance.py --job=test -n 16}\\
+\bottombar\\
+%
+We provide two options: we give the base file name to the \texttt{--job} option
+and supply the desired number of MPI processes with the \texttt{-n} option.
+The number of MPI processes should be less than (or equal to) the number
+of blocks.
+After running this, an \texttt{mpimap} file is created.
+In this case, it's called \texttt{test.mpimap}.
+The contents of that file are shown here.
+It is an INI-type file which lists which blocks have been assigned
+to which MPI process (called `ranks' in the MPI terminology).\\
+\topbar
+\lstinputlisting[language={}]{../3D/load-balance-test/test.mpimap}
+\bottombar\\
+Now to run this simulation, we would invoke \texttt{e3mpi.exe} in
+the following manner:\\
+%
+\topbar\\
+\texttt{> mpirun -np 16 e3mpi.exe --job=test --mpimap=test.mpimap --run}\\
+\bottombar\\
+%
+Note the new option \texttt{--mpimap=} which we haven't seen before.
+This supplies the name of the mapping file to use.
+
+The advantage to having \texttt{e3loadbalance.py} as a separate step
+is that you can reconfigure how you want your blocks mapped to MPI processes
+without re-prepping the simulation.
+Say you had a 200-block simulation but could only reliably get 16 CPUs
+on a cluster machine one week, then you could build a mapping file for
+16 MPI processes.
+If later on, you want to re-run the same simulation but there
+are now 64 CPUs available, you could rebuild the mapping file.
+Just build a new mapping file for 64 MPI processes and
+supply that to the \texttt{e3mpi.exe} command.
+
+The algorithm used to do the load balancing does not guarantee the
+optimal arrangement for mapping of blocks to MPI processes,
+but it can be shown that it gives a very good load balancing for
+minimal computational expense~\cite{graham_1969}.
+The optimal arrangement is possible to compute by brute force (trying
+every combination of block arrangement for processes) but
+that is computationally very expensive.
+There is an extra option for the \texttt{e3loadbalance.py}
+program which will give some measure of the quality of
+the load balancing based on the selected number of
+processes.
+The program will actually sweep over a range of
+numbers of processes.
+For example, let's see how the load balancing looks
+for this 27 block case if we vary the number
+of processes from 2 to 27.
+%
+\topbar\\
+\texttt{> e3loadbalance.py --job=test -n 16 --sweep-range=2:27}\\
+\bottombar\\
+%
+The results of this sweep are written to the file \texttt{load-balance.dat}.
+It's a simple text file with four columns of data:
+(1) number of processes;
+(2) $\Delta_{cells}$, the difference between
+the process with the largest number of cells to the process
+with the smallest number of cells;
+(3) packing quality, computed as $1.0 - \frac{L_{\text{max}} - L_{\text{min}}}{L_{\text{max}}}$
+where $L$ is the load (based on number of cells assigned to a process);
+and (4) estimated speedup, computed as $\frac{L_{\text{total}}}{L_{\text{max}}}$.
+The contents of this file are displayed here:\\
+\topbar
+\lstinputlisting[language={}]{../3D/load-balance-test/load-balance.dat}
+\bottombar\\
+Note that there is no benefit to choosing more than 7 processes for this simulation.
+We see that beyond 7, the speedup remains constant and that
+the packing quality starts to drop rapidly.
+What this essentially means is that we have got to the point
+where one large block (or possibly several) is dominating the
+load balancing.
+This large block is given one process to itself, the remaining
+blocks are smaller such that when combined
+they are still not as large as the largest block.
+By increasing more processes, you are effectively only sharing
+the smaller blocks around more processes.
+You are still limited by the one large block dominating the load.
+If this really is limiting achieving a good load-balancing, then
+the solution is to divide that block at the gridding stage.
+It might be possible to subdivide the block using
+the \texttt{SuperBlock} option in Eilmer3.
+
+
+
