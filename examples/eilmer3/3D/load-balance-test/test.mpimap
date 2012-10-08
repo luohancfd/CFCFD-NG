@@ -1,0 +1,50 @@
+[global]
+nrank = 16
+[rank/0]
+nblock = 1
+blocks = 13 
+[rank/1]
+nblock = 1
+blocks = 9 
+[rank/2]
+nblock = 1
+blocks = 11 
+[rank/3]
+nblock = 1
+blocks = 15 
+[rank/4]
+nblock = 1
+blocks = 16 
+[rank/5]
+nblock = 1
+blocks = 14 
+[rank/6]
+nblock = 2
+blocks = 5 19 
+[rank/7]
+nblock = 2
+blocks = 6 21 
+[rank/8]
+nblock = 2
+blocks = 7 23 
+[rank/9]
+nblock = 2
+blocks = 8 24 
+[rank/10]
+nblock = 2
+blocks = 10 26 
+[rank/11]
+nblock = 2
+blocks = 0 12 
+[rank/12]
+nblock = 2
+blocks = 1 17 
+[rank/13]
+nblock = 2
+blocks = 3 18 
+[rank/14]
+nblock = 2
+blocks = 2 25 
+[rank/15]
+nblock = 3
+blocks = 4 20 22 

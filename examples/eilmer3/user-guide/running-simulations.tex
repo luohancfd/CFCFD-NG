@@ -146,11 +146,19 @@ To run Eilmer3 across multiple processors\index{e3mpi.exe!running a simulation}
 on a local machine use the following command\\
 \texttt{\$ mpirun -np \textit{n} e3mpi.exe --job=name --run}\\
 where \textit{n} is the number of MPI processes to use.
-Note that the program is written such that one MPI process is assigned to each block; 
+Note that when running the program with these options,
+one MPI process is assigned to each block; 
 the number of MPI processes \emph{must} match the number of blocks in the simulation.
 Each of these MPI processes is a separate program and you may run more than one per core 
 or physical processor, however, if you want the shortest calculation time and you had lots of cores,
 you would probably run one per core.
+For simulations with many blocks, it is sometimes possible to achieve a better balance of
+computational load by assigning more than one block to a process.
+This is can be done with Eilmer3 by building a mapping file of blocks to MPI processes
+(using the \texttt{e3loadbalance.py} program), and then running \texttt{e3mpi.exe} with
+the \texttt{--mpimap=} option.
+The details of using Eilmer3 in this way are described in Appendix~\ref{app:load-balance}. 
+
 
 \subsection{Restarting a simulation}\index{restarting a simulation}
 %
