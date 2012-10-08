@@ -583,7 +583,7 @@ void SpectralIntensity::apply_apparatus_function( double delta_x_ang, int nu_sam
     // Quick exit if delta_x_ang is zero
     if ( delta_x_ang==0.0 ) return;
 
-    // A vector to temporarily smeared hold data
+    // A vector to temporarily hold smeared data
     vector<double> nu_temp;
     int count = 0;
     for( size_t inu=0; inu<nu.size(); inu++) {
@@ -615,24 +615,16 @@ void SpectralIntensity::apply_apparatus_function( double delta_x_ang, int nu_sam
 
 	// Apply convolution integral over this frequency range with trapezoidal method
 	double I_nu_conv = 0.0;
-	count = 0;
-	for ( int jnu=jnu_start; jnu<jnu_end; jnu++ ) {
-            count++;
-	    if ( jnu>jnu_start ) {
-		double x0 = nu[jnu-1] - nu_val;
-		double x1 = nu[jnu] - nu_val;
-		double f_x0 = eval_Gaussian(x0, delta_x_hz);
-		double f_x1 = eval_Gaussian(x1, delta_x_hz);
-		I_nu_conv += 0.5 * ( I_nu[jnu-1]*f_x0 + I_nu[jnu]*f_x1 ) * ( nu[jnu] - nu[jnu-1] );
-	    }
-	    if ( count==nu_sample ) {
-	        count = 0;
-	        continue;
-	    }
+	for ( int jnu=jnu_start+1; jnu<jnu_end; jnu++ ) {
+            double x0 = nu[jnu-1] - nu_val;
+            double x1 = nu[jnu] - nu_val;
+            double f_x0 = eval_Gaussian(x0, delta_x_hz);
+            double f_x1 = eval_Gaussian(x1, delta_x_hz);
+            I_nu_conv += 0.5 * ( I_nu[jnu-1]*f_x0 + I_nu[jnu]*f_x1 ) * ( nu[jnu] - nu[jnu-1] );
 	}
 
 	// Make sure a zero value is not returned if nwidths is too small
-	if ( jnu_start==jnu_end ) {
+	if ( jnu_start==(jnu_end-1) ) {
 	    cout << "SpectralIntensity::apply_apparatus_function()" << endl
 	         << "WARNING: nwidths is too small!" << endl;
 	    I_nu_conv = I_nu[inu];

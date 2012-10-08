@@ -200,7 +200,7 @@ def main():
     n_sample = int( f_s * FWHM / 2.0 / 10.0 / ( ( rsm.get_lambda_max() - rsm.get_lambda_min() ) / rsm.get_spectral_points() ) )
     if n_sample<1: n_sample=1
     print "n_sample = ", n_sample
-    S.apply_apparatus_function( FWHM / 2.0, 1 )
+    S.apply_apparatus_function( FWHM / 2.0, n_sample )
     S.write_to_file("intensity_spectra.txt" ) 
     
     IvW = YvX("intensity_spectra.txt" )
