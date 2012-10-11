@@ -39,7 +39,7 @@ extern "C" {
 #define HUND_AB_TRIPLET   5
 
 /* For the QSS calculation */
-#define ENFORCE_DIATOMIC_BOLTZ_QSS_LIMIT 1
+#define ENFORCE_DIATOMIC_BOLTZ_QSS_LIMIT 0
 
 // Minimum j_band / j_system for band inclusion
 #define F_BAND_LIMIT 1.0e-3

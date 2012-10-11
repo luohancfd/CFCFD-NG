@@ -526,7 +526,11 @@ int main(int argc, char *argv[])
             SpectralIntensity S(rsm);
             LOS.integrate_LOS( S );
 
-            S.apply_apparatus_function( fwhm_Ang / 2.0 );
+            /* Estimate nu_sample for efficiency */
+            int nu_sample = int( fwhm_Ang / 2.0 / 10.0 / ( ( rsm->get_lambda_max() - rsm->get_lambda_min() ) / rsm->get_spectral_points() ) );
+            if ( nu_sample<1 ) nu_sample=1;
+
+            S.apply_apparatus_function( fwhm_Ang / 2.0, nu_sample );
 
             string specfile_name = "EQ_intensity_spectra.txt";
             cout << "- Writing " << specfile_name << endl;

@@ -749,8 +749,9 @@ Fully_coupled_diatomic_species( string name, string type, int isp, double min_ma
     
     lua_pop(L,1);   // pop 'electronic_levels'
 
+    /* FIXME: assuming data is located in the current working directory */
     ostringstream LUT_fname;
-    LUT_fname << name_ << "-LUT.data";
+    LUT_fname << "FCD_tables/" << name_ << ".data";
 
     modes_.push_back( new Fully_excited_translation( isp_, R_, min_massf_ ) );
     modes_.push_back( new Coupled_diatomic_electronic( isp_, R_, min_massf_, theta_e, LUT_fname.str()  ) );

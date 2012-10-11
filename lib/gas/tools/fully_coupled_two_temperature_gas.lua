@@ -185,6 +185,10 @@ function create_fully_coupled_two_temperature_gas(species, f)
       elseif string.find(_G[sp]["species_type"],"free electron") then
          type_list = electron_type_list
          value_list = base_value_list
+      elseif string.find(_G[sp]["species_type"],"polyatomic") then
+         type_list = polyatomic_type_list
+         value_list = base_value_list
+         _G[sp]["oscillator_type"] = "truncated harmonic"
       else
          print(string.format("Could not decode the 'type' given for species: %s\n", sp))
          print("Bailing out!\n")

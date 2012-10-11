@@ -410,6 +410,14 @@ OpticallyThinExponentialDecay::get_latex_string()
 }
 
 OpticallyVariableExponentialDecay::
+OpticallyVariableExponentialDecay( lua_State * L )
+{
+    cout << "OpticallyVariableExponentialDecay::OpticallyVariableExponentialDecay()" << endl
+	 << "Not implemented yet." << endl;
+    exit( BAD_INPUT_ERROR );
+}
+
+OpticallyVariableExponentialDecay::
 OpticallyVariableExponentialDecay( double tau, double wavel, double wavel_switch, 
     				   double lambda_lower, double lambda_upper )
 : tau( tau )
@@ -1216,6 +1224,11 @@ create_explicit_rate_coeff( lua_State * L, string direction )
     else if ( rate_coeff_model=="OpticallyThinExponentialDecay" ) {
     	lua_getfield( L, -1, parameter_field.c_str() );
     	rate_coeff = new OpticallyThinExponentialDecay( L );
+    	lua_pop( L, 1);		// pop parameter_field
+    }
+    else if ( rate_coeff_model=="OpticallyVariableExponentialDecay" ) {
+    	lua_getfield( L, -1, parameter_field.c_str() );
+    	rate_coeff = new OpticallyVariableExponentialDecay( L );
     	lua_pop( L, 1);		// pop parameter_field
     }
     else {

@@ -219,6 +219,9 @@ private:
 
 class OpticallyVariableExponentialDecay : public CR_ReactionRateCoefficient {
 public:
+    /// \brief Constructor from lua file (for diatoms)
+    OpticallyVariableExponentialDecay( lua_State * L );
+
     /// \brief Constructor
     OpticallyVariableExponentialDecay( double tau, double wavel, double wavel_switch=200.0, double lambda_lower=0.0, double lambda_upper=1.0 );
     
