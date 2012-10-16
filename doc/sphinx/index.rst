@@ -8,6 +8,12 @@ The Compressible-Flow CFD Project
 
 Since the 1980s, we have been building compressible flow simulation codes. 
 
+.. figure:: _static/slot-injection-by-vince.jpeg
+   :align: center
+   :scale: 20%
+
+   Transverse injection of hydrogen into a supersonic air stream. 
+
 .. toctree::
    :maxdepth: 2
 

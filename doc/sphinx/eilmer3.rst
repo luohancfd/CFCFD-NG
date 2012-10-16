@@ -5,6 +5,12 @@ Eilmer3 is our principal simulation code for 2D and 3D gas dynamics.
 It is a research and education code, suitable for the exploration of
 flows where the bounding geometry is not too complex.
 
+.. figure:: _static/Kiock-Mach.pdf
+   :align: center
+   :scale: 30%
+
+   Two-dimensional turbine cascade.
+
 Typical build and run procedure
 -------------------------------
 The new 2D/3D code Eilmer3 is built from source into an installation directory ``$HOME/e3bin/``.

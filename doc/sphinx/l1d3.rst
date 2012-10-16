@@ -5,6 +5,12 @@ L1d3 is our specialist simulation code for quasi-one-dimensional gas dynamics.
 It is usually applied to the simulation of entire shock-tube or expansion-tube
 facilities and has a role to play in the design of new experimental machines.
 
+.. figure:: _static/L1d_tube_analysis_plot_m10p0_plot_600dpi_xshift.png
+   :align: center
+   :scale: 7%
+
+   Space-time diagram of wave processes in the X2 expansion tube.
+
 Typical build and run procedure
 -------------------------------
 The new 2D/3D code Eilmer3 is built from source into an installation directory 
