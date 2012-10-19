@@ -11,9 +11,10 @@ It comes as part of the cfcfd3 compressible-flow collection and
 depends upon functions from the cfpylib library to do the specific 
 calculations.
 
-PROPER INSTALLATION IS NOT SET UP YET I'll learn soon
+Someday I'll make a proper makefile for this guy, but for now,
+just copy pitot.py into your e3bin.
 
-You may then call upon estcj.py so long as you have suitable
+You may then call upon pitot.py so long as you have suitable
 enviroment variables set, as per the installation instructions
 for Eilmer3.
 
@@ -56,7 +57,7 @@ from cfpylib.gasdyn.cea2_gas import Gas, make_gas_from_name
 from cfpylib.gasdyn.gas_flow import *
 from cfpylib.gasdyn.ideal_gas_flow import *
 
-VERSION_STRING = "17-Oct-2012"
+VERSION_STRING = "19-Oct-2012"
 
 DEBUG_PITOT = False
 
@@ -82,8 +83,44 @@ def is_valid(command,valid_commands):
              print 'That is an invalid command. Valid commands are {0}'.format(valid_commands)
              command = str(raw_input('Try again? '))             
     return command
-
     
+def make_test_gas(gasName, outputUnits='massf'):
+    """
+    Manufacture a Gas object for the test gas from a small library of options.
+    
+    Also has workable gamma's and R's for the test gases at high temperature stored
+    in a dictionary of the form {'gam' : gam, 'R' : R}.
+    
+    I stole this from the make_gas_from_name function in cea2_gas.py and added
+    my own gases - Chris James
+
+    :param gasName: one of the names for the special cases set out below
+    """
+    if gasName.lower() == 'air':
+        return Gas({'Air':1.0,}, outputUnits=outputUnits, trace=1.0e-4), {'gam':1.35,'R':571.49}
+    elif gasName.lower() == 'air5species':
+        return Gas(reactants={'N2':0.79, 'O2':0.21, 'N':0.0, 'O':0.0, 'NO':0.0}, 
+                   inputUnits='moles', onlyList=['N2','O2','N','O','NO'],
+                   outputUnits=outputUnits), {'gam':1.35,'R':571.49}
+    elif gasName.lower() == 'n2':
+        return Gas(reactants={'N2':1.0, 'N':0.0}, onlyList=['N2', 'N'],
+                   outputUnits=outputUnits),{'gam': 1.36,'R':593.56}
+    elif gasName.lower() == 'titan':
+        return Gas(reactants={'N2':0.95, 'CH4':0.05}, inputUnits='moles',
+                   outputUnits=outputUnits), {'gam':1.35,'R':652.03}      
+    elif gasName.lower() == 'mars':
+        return Gas(reactants={'CO2':0.96, 'N2':0.04}, inputUnits='moles',
+                   outputUnits=outputUnits)    
+    elif gasName.lower() == 'co2':
+        return Gas(reactants={'CO2':1.0}, outputUnits=outputUnits)
+    elif gasName.lower() == 'gasgiant_h2ne':
+        return Gas(reactants={'H2':0.85, 'Ne':0.15}, inputUnits='moles',
+                   outputUnits=outputUnits),{'gam':1.15,'R':3245.1}
+    elif gasName.lower() == 'gasgiant_h2he':
+        return Gas(reactants={'H2':0.85, 'He':0.15}, inputUnits='moles',
+                   outputUnits=outputUnits), None
+    else:
+        raise Exception, 'make_gas_from_name(): unknown gasName: %s' % gasName               
     
 #--------------------------- property dictionaries -------------------------
 
@@ -114,10 +151,11 @@ def main():
                         "'He:0.80,Ar:0.20'; " "'He:0.90,Ar:0.10'; " "'He:1.0' "
                         "default is currently 100% He"))
     op.add_option('--test_gas', dest='gasName', default='air',
-                  choices=['air', 'air5species', 'n2', 'co2', 'h2ne', 'ar'],
-                  help=("name of gas model: "
-                        "air; " "air5species; " "n2; " "co2; " "h2ne; " "Ar"
-                        "default is air"))
+                  choices=['air', 'air5species', 'n2', 'titan', 
+                           'gasgiant_h2ne', 'gasgiant_h2he'],
+                  help=("name of test gas: "
+                        "air; " "air5species; " "n2; " "titan; " "gasgiant_h2ne; "
+                        "gasgiant_h2he" "default is air"))
     op.add_option('--Vs1', dest='Vs1', type='float', default=None,
                   help=("first shock speed, in m/s"))
     op.add_option('--Vs2', dest='Vs2', type='float', default=None,
@@ -173,6 +211,12 @@ def main():
         return -2
         
     if PRINT_STATUS: print "Let's get started, shall we."
+    if PRINT_STATUS: 
+        print 'selected Vs1 = {0} m/s'.format(Vs1)
+        print 'selected Vs2 = {0} m/s'.format(Vs2)
+        if secondary:
+            print 'selected Vs3 = {0} m/s'.format(Vs3)
+    
     
     #CURRENTLY RUNNING WITHOUT ANY OF THE REFLECTED SHOCK TYPE STUFF 
             
@@ -216,13 +260,13 @@ def main():
         V['s1']=0.0
         M['s1']=0.0
     else: #state 1 is shock tube
-        states['s1'] = make_gas_from_name(gasName)
+        states['s1'], gas_guess = make_test_gas(gasName)
         states['s1'].set_pT(p0,T0)
         V['s1']=0.0
         M['s1']=0.0
         
     if secondary: #state 5 is shock tube
-        states['s5'] = make_gas_from_name(gasName)
+        states['s5'], gas_guess = make_test_gas(gasName)
         states['s5'].set_pT(p0,T0)
         V['s5']=0.0
         M['s5']=0.0
@@ -268,7 +312,7 @@ def main():
             """Compute the velocity mismatch for a given pressure ratio across the 
             unsteady expansion in the driver."""
             
-            print "current guess for p1 = {0}".format(p1)            
+            print "current guess for p1 = {0} Pa".format(p1)            
             
             state1.set_pT(p1,300.0) #set s1 at set pressure and ambient temp
             
@@ -284,7 +328,7 @@ def main():
         
         #get p1 for our chosen shock speed
         p1 = secant(error_in_velocity_s11_driver_expansion, 1000.0, 100000.0, tol=1.0e-3,limits=[100.0,1000000.0])
-        if PRINT_STATUS: print "From secant solve: p1 = {0}".format(p1)
+        if PRINT_STATUS: print "From secant solve: p1 = {0} Pa".format(p1)
         
         #start using p1 now, compute states 1,2 and 3 using the correct p1
         if PRINT_STATUS: print "Once p1 is known, find conditions at state 1 and 2."
@@ -299,15 +343,15 @@ def main():
         
         #do ideal gas guess for gas constants if needed
         
-        if Vs2 >= 10000.0:
-            ideal_gas_guess = {'gam':1.35,'R':571.49}
+        if Vs2 >= 9000.0:
+            ideal_gas_guess = gas_guess
         else:
             ideal_gas_guess = None
             
         if secondary: 
-            if PRINT_STATUS: print "Start unsteady expansion of the test gas."
-        else: 
             if PRINT_STATUS: print "Start unsteady expansion of the secondary driver gas."
+        else: 
+            if PRINT_STATUS: print "Start unsteady expansion of the test gas."
 
         def error_in_velocity_s2_expansion(p5, state2=states['s2'], 
                                            V2g=V['s2'], state5=states['s5'],
@@ -316,7 +360,7 @@ def main():
             """Compute the velocity mismatch for a given pressure ratio across the 
             unsteady expansion from state 2 to state 7."""
             
-            print "current guess for p5 = {0}".format(p5)
+            print "current guess for p5 = {0} Pa".format(p5)
             
             state5.set_pT(p5,300.0) #set s1 at set pressure and ambient temp
             
@@ -332,15 +376,15 @@ def main():
         
         #get p5 for our chosen shock speed
         if secondary: #do a wider guess here        
-            p5 = secant(error_in_velocity_s2_expansion, 100.0, 100000.0, tol=1.0e-3,limits=[5.0,100000.0])
+            p5 = secant(error_in_velocity_s2_expansion, 50.0, 100000.0, tol=1.0e-3,limits=[50.0,100000.0])
         else: #don't bother
             p5 = secant(error_in_velocity_s2_expansion, 10.0, 1000.0, tol=1.0e-3,limits=[5.0,1000.0])
-        if PRINT_STATUS: print "From secant solve: p5 = {0}".format(p5)
+        if PRINT_STATUS: print "From secant solve: p5 = {0} Pa".format(p5)
         
         #start using p5 now, compute states 5,6 and 7 using the correct p5
         if PRINT_STATUS: print "Once p5 is known, find conditions at state 5 and 6."
         states['s5'].set_pT(p5,T0)
-        (V6, V['s6']) = normal_shock(states['s5'], Vs2, states['s6'])
+        (V6, V['s6']) = normal_shock(states['s5'], Vs2, states['s6'],ideal_gas_guess)
         V['s7'], states['s7'] = finite_wave_dv('cplus', V['s2'], states['s2'], V['s6'])
         
         #get mach numbers for the output
@@ -352,7 +396,7 @@ def main():
         
         if secondary:
             if Vs3 >= 10000.0:
-                ideal_gas_guess = {'gam':1.35,'R':571.49}
+                ideal_gas_guess = gas_guess
             else:
                 ideal_gas_guess = None
                 
@@ -365,7 +409,7 @@ def main():
                 """Compute the velocity mismatch for a given pressure ratio across the 
                 unsteady expansion from state 6 to state 10."""
                 
-                print "current guess for p8 = {0}".format(p8)
+                print "current guess for p8 = {0} Pa".format(p8)
                 
                 state8.set_pT(p8,300.0) #set s1 at set pressure and ambient temp
                 
@@ -381,12 +425,12 @@ def main():
             
             #get p8 for our chosen shock speed
             p8 = secant(error_in_velocity_s6_expansion, 10.0, 100.0, tol=1.0e-3,limits=[5.0,100.0])
-            if PRINT_STATUS: print "From secant solve: p8 = {0}".format(p8)
+            if PRINT_STATUS: print "From secant solve: p8 = {0} Pa".format(p8)
             
             #start using p8 now, compute states 8,9 and 10 using the correct p8
             if PRINT_STATUS: print "Once p8 is known, find conditions at state 8 and 9."
             states['s8'].set_pT(p8,T0)
-            (V9, V['s9']) = normal_shock(states['s8'], Vs3, states['s9'])
+            (V9, V['s9']) = normal_shock(states['s8'], Vs3, states['s9'],ideal_gas_guess)
             V['s10'], states['s10'] = finite_wave_dv('cplus', V['s6'], states['s6'], V['s9'])
             
             #get mach numbers for the output
@@ -442,7 +486,7 @@ def main():
             print important_lines3
             output.write(important_lines3 + '\n')
             
-            important_lines4 = 'State 16 is shocked test gas exiting over the model.'
+            important_lines4 = 'State 16 is shocked test gas flowing over the model.'
             print important_lines4
             output.write(important_lines4 + '\n')
         
@@ -469,6 +513,11 @@ def main():
         print units
         output.write(units + '\n')
         
+        #new dictionaries here to add pitot and stagnation pressure calcs
+        
+        pitot = {} #pitot pressure dict
+        p0 = {} #stagnation pressure dict
+        
         for i in range(1,17): #will cover 1-16
             """if M[I]== 0:
                 XPP=0;PS=0
@@ -484,10 +533,17 @@ def main():
                     
             if states.has_key(it_string):
                 
-                conditions = "{0:<7}{1:<10.7g}{2:<9.0f}{3:<9.0f}{4:<9.0f}{5:<9.2f}{6:<9.4f}{7:<9.0f}{8:<9.1f}"\
+                if M[it_string]==0:
+                    pitot[it_string] = 0
+                    p0[it_string] = 0
+                else:
+                    pitot[it_string] = pitot_p(states[it_string].p,M[it_string],states[it_string].gam)/1000.0
+                    p0[it_string] = p0_p(M[it_string], states[it_string].gam)*states[it_string].p/1.0e6
+                
+                conditions = "{0:<7}{1:<10.7g}{2:<9.1f}{3:<9.0f}{4:<9.0f}{5:<9.2f}{6:<9.4f}{7:<9.0f}{8:<9.1f}"\
                 .format(i, states[it_string].p, states[it_string].T,
                         states[it_string].son,V[it_string],M[it_string],
-                        states[it_string].rho, 0,0)
+                        states[it_string].rho, pitot[it_string], p0[it_string])
                         
                 print conditions
                 output.write(conditions + '\n')
@@ -542,7 +598,7 @@ def main():
             
         output.close()
         
-        change_tuple = ('VS1','VS2','VS3', 'quit')
+        change_tuple = ('Vs1','Vs2','Vs3', 'quit')
         
         change = is_valid(raw_input('What do you want to change? {0}'.format(change_tuple)), change_tuple)
             
@@ -551,20 +607,20 @@ def main():
             break
             #quit()
                     
-        elif change == 'VS1':
+        elif change == 'Vs1':
             difference = int(raw_input('How much do you want to change it by? '))
             Vs1 += difference
-            print 'VS1 = {0}m/s'.format(Vs1)
+            print 'Vs1 = {0} m/s'.format(Vs1)
             
-        elif change == 'VS2':    
+        elif change == 'Vs2':    
             difference = int(raw_input('How much do you want to change it by? '))
-            Us2 += difference
-            print 'VS2 = {0}m/s'.format(Vs2)
+            Vs2 += difference
+            print 'Vs2 = {0} m/s'.format(Vs2)
         
         else:
             difference = int(raw_input('How much do you want to change it by? '))
-            Us3 += difference
-            print 'VS3 = {0}m/s'.format(Vs3)
-        
-                   
-main()
+            Vs3 += difference
+            print 'Vs3 = {0} m/s'.format(Vs3)
+                           
+if __name__ == '__main__':
+    main()
