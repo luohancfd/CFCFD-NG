@@ -57,6 +57,8 @@ Gas_model(string cfile)
     }
 
     M_.resize(nsp);
+    charge_.resize(nsp);
+    atomic_constituents_.resize(nsp);
     for ( int isp = 0; isp < nsp; ++isp ) {
 	lua_rawgeti(L, -1, isp+1); // A Lua list is offset one from the C++ vector index
 	const char* sp = luaL_checkstring(L, -1);
@@ -72,6 +74,21 @@ Gas_model(string cfile)
 	}
 
 	M_[isp] = get_positive_value(L, -1, "M");
+	charge_[isp] = get_int(L, -1, "charge");
+	// Bring atomic constituents table to TOS
+	lua_getfield(L, -1, "atomic_constituents");
+	int t = lua_gettop(L);
+	// Start table traversal by using "nil" as a key
+	lua_pushnil(L);
+	while ( lua_next(L, t) != 0 ) {
+	    /* uses 'key' (at index -2) and 'value' (at index -1) */
+	    string atom = luaL_checkstring(L, -2);
+	    int n_atom = luaL_checkint(L, -1);
+	    atomic_constituents_[isp].insert(pair<string, int>(atom, n_atom));
+	    /* removes 'value'; keeps 'key' for next iteration */
+	    lua_pop(L, 1);
+	}
+	lua_pop(L, 1); // pop "atomic_constituents" off stack
 
 	lua_pop(L, 1); // pop "sp" off stack
     }
@@ -92,6 +109,25 @@ number_of_values_in_gas_data_copy() const
     nv += nsp_*nsp_; // matrix of D_AB
     nv += 3*nmodes_; // array of e, T, k
     return nv;
+}
+
+int
+Gas_model::
+no_atoms_of(string atom, int isp)
+{
+    map<string,int>::iterator it = atomic_constituents_[isp].find(atom);
+    if ( it != atomic_constituents_[isp].end() ) {
+	return it->second;
+    }
+    // else
+    return 0;
+}
+
+void
+Gas_model::
+atomic_constituents(int isp, map<string, int> &m)
+{
+    m = atomic_constituents_[isp];
 }
 
 int

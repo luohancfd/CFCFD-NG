@@ -52,7 +52,8 @@ end
 
 local value_list = {"M",
 --		    "gamma",
-		    "d"}
+		    "d",
+}
 
 local model_list = {"viscosity",
 		    "thermal_conductivity"}
@@ -114,6 +115,16 @@ function create_thermally_perfect_gas(species, f)
       dofile(file)
       
       f:write(string.format("%s = {}\n", sp))
+
+      key = sp..".atomic_constituents"
+      f:write(string.format("%s = {\n", key))
+      for k,v in pairs(_G[sp]['atomic_constituents']) do
+	 f:write(string.format("%s=%d, ", k,v))
+      end
+      f:write("\n}\n")
+
+      key = sp..".charge"
+      f:write(string.format("%s = %d\n", key, _G[sp]['charge']))
 
       for __,val in ipairs(value_list) do
 	 var = sp.."."..val

@@ -12,6 +12,7 @@
 
 %include "std_string.i"
 %include "std_vector.i"
+%include "std_map.i"
 
 // The following magic allows us to pass a list of numbers
 // to be collected as a C++ vector in the CFlowCondition constructor.
@@ -20,10 +21,11 @@
 %template(vectord) std::vector<double>;
 #define STD_VECTOR_TEMPLATES_ALREADY_DEFINED
 #endif
-
+%template(map_str_int) std::map<std::string, int>;
 %{
 #include <string>
 #include <vector>
+#include <map>
 #include <cstdio>
 #include "gas_data.hh"
 #include "gas-model.hh"
@@ -310,5 +312,28 @@ def set_molef_vector(self, Q, mf):
     set_molef(Q, self, mf)
     return
 Gas_model.set_molef = set_molef_vector
+
+def get_atomic_constituents(self, isp):
+    """
+    Return the atomic constituents as a dict.
+    """
+    map = map_str_int({})
+    self.atomic_constituents(isp, map)
+    return dict(map)
+Gas_model.get_atomic_constituents = get_atomic_constituents
+
+def list_all_atoms(self):
+    """
+    Return a list of all atomic species in mix.
+    """
+    nsp = self.get_number_of_species()
+    atoms = set({})
+    for isp in range(nsp):
+        d = self.get_atomic_constituents(isp)
+	for k in d.keys():
+            atoms.add(k)
+    return list(atoms)
+Gas_model.list_all_atoms = list_all_atoms
+
 
 %}

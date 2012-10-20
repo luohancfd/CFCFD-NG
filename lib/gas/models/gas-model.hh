@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
 #include <valarray>
 
 extern "C" {
@@ -187,6 +188,11 @@ public:
     int set_mole_fractions(Gas_data &Q, 
 			   std::vector<std::string> &sp, 
 			   const std::vector<double> &X);
+
+    int no_atoms_of(std::string atom, int isp);
+    void atomic_constituents(int isp, std::map<std::string, int> &m);
+    int charge(int isp)
+    { return charge_[isp]; }
     
     // Some useful analysis functions
     double mixture_internal_energy(const Gas_data &Q, double T=0.0);
@@ -214,6 +220,8 @@ protected:
 
     std::vector<std::string> s_names_;
     std::vector<double> M_;
+    std::vector<int> charge_;
+    std::vector<std::map<std::string, int> > atomic_constituents_;
 
     // Derived clasess may set nsp_ and nmodes_
     void set_number_of_species(int nsp)
