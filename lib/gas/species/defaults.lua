@@ -2,6 +2,8 @@
 -- Date: 29-July-2008
 
 default = {}
+default.charge = 0
+default.atomic_constituents = {}
 default.e_zero = {
    value = 0.0,
    units = 'J/kg',
