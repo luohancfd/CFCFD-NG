@@ -102,6 +102,28 @@ function create_ideal_gas(species, f)
       
       f:write(string.format("%s = {}\n", sp))
 
+      key = sp..".atomic_constituents"
+      f:write(string.format("%s = {\n", key))
+      if _G[sp]['atomic_constituents'] then
+	 for k,v in pairs(_G[sp]['atomic_constituents']) do
+	    f:write(string.format("%s=%d, ", k,v))
+	 end
+      else
+	 print("WARNING: No 'atomic_constituents' set for species: ", sp)
+	 print("No constituents will be listed in the gas model file.")
+      end
+      f:write("\n}\n")
+
+      key = sp..".charge"
+      if _G[sp]['charge'] then
+	 f:write(string.format("%s = %d\n", key, _G[sp]['charge']))
+      else
+	 print("WARNING: No 'charge' value set for species: ", sp)
+	 print("A default value of ", default['charge'], " will be written")
+	 print("to the gas model file.")
+	 f:write(string.format("%s = %d\n", key, default['charge']))
+      end
+
       for __,val in ipairs(value_list) do
 	 var = sp.."."..val
 	 f:write(string.format("%s = ", var))
