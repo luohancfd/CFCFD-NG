@@ -90,7 +90,9 @@ int get_int(lua_State *L, int index, const char *key)
     lua_getfield(L, index, key);
     if ( !lua_isnumber(L, -1) ) {
 	ostringstream ost;
-	ost << "An integer value was expected in field " << key << endl;
+	ost << "An integer value was expected in field '" << key << "'." << endl;
+	// Return stack to how it was
+	lua_pop(L, 1);
 	throw runtime_error(ost.str());
     }
     int val = luaL_checkint(L, -1);
@@ -115,6 +117,7 @@ double get_number(lua_State *L, int index, const char *key)
     if ( !lua_isnumber(L, -1) ) {
 	ostringstream ost;
 	ost << "A number value was expected in field " << key << endl;
+	lua_pop(L, 1);
 	throw runtime_error(ost.str());
     }
     double val = lua_tonumber(L, -1);
@@ -139,6 +142,7 @@ vector<double> get_vector(lua_State *L, int index, const char *key)
     if ( !lua_istable(L, -1) ) {
 	ostringstream ost;
 	ost << "A table was expected for field: " << key << endl;
+	lua_pop(L, 1);
 	throw runtime_error(ost.str());
     }
 
@@ -174,6 +178,7 @@ string get_string(lua_State *L, int index, const char *key)
     if ( !lua_isstring(L, -1) ) {
 	ostringstream ost;
 	ost << "A string was expected in field: " << key << endl;
+	lua_pop(L, 1);
 	throw runtime_error(ost.str());
     }
     string val = lua_tostring(L, -1);
@@ -190,6 +195,7 @@ double get_value(lua_State *L, int index, const char *key)
     if ( !lua_istable(L, -1) ) {
 	ostringstream ost;
 	ost << "A table was expected for field: " << key << endl;
+	lua_pop(L, 1);
 	throw runtime_error(ost.str());
     }
     
@@ -197,6 +203,7 @@ double get_value(lua_State *L, int index, const char *key)
     if ( !lua_isnumber(L, -1) ) {
 	ostringstream ost;
 	ost << "A number was expected in the 'value' field of entry: " << key << endl;
+	lua_pop(L, 1);
 	throw runtime_error(ost.str());
     }
 
@@ -235,6 +242,7 @@ int read_table_as_map(lua_State *L, int index, const char *key, map<int, int> &m
     if ( !lua_istable(L, -1) ) {
 	ostringstream ost;
 	ost << "A table was expected for field: " << key << endl;
+	lua_pop(L, 1);
 	throw runtime_error(ost.str());
     }
     
@@ -263,6 +271,7 @@ int read_table_as_map(lua_State *L, int index, const char *key, map<int, double>
     if ( !lua_istable(L, -1) ) {
 	ostringstream ost;
 	ost << "A table was expected for field: " << key << endl;
+	lua_pop(L, 1);
 	throw runtime_error(ost.str());
     }
     

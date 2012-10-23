@@ -9,6 +9,7 @@
 #include <cmath>
 #include <map>
 #include <string>
+#include <stdexcept>
 
 #include "../../util/source/useful.h"
 // #include "../../util/source/dbc_assert.hh"
@@ -74,19 +75,34 @@ Gas_model(string cfile)
 	}
 
 	M_[isp] = get_positive_value(L, -1, "M");
-	charge_[isp] = get_int(L, -1, "charge");
+	try {
+	    charge_[isp] = get_int(L, -1, "charge");
+	}
+	catch ( runtime_error &e ) {
+	    cout << e.what();
+	    cout << "No charge information available in input file for species: " << sp << endl;
+	    cout << "Applying default value of 0." << endl;
+	    charge_[isp] = 0;
+	}
+	    
 	// Bring atomic constituents table to TOS
 	lua_getfield(L, -1, "atomic_constituents");
-	int t = lua_gettop(L);
-	// Start table traversal by using "nil" as a key
-	lua_pushnil(L);
-	while ( lua_next(L, t) != 0 ) {
-	    /* uses 'key' (at index -2) and 'value' (at index -1) */
-	    string atom = luaL_checkstring(L, -2);
-	    int n_atom = luaL_checkint(L, -1);
-	    atomic_constituents_[isp].insert(pair<string, int>(atom, n_atom));
-	    /* removes 'value'; keeps 'key' for next iteration */
-	    lua_pop(L, 1);
+	if ( lua_istable(L, -1) ) {
+	    int t = lua_gettop(L);
+	    // Start table traversal by using "nil" as a key
+	    lua_pushnil(L);
+	    while ( lua_next(L, t) != 0 ) {
+		/* uses 'key' (at index -2) and 'value' (at index -1) */
+		string atom = luaL_checkstring(L, -2);
+		int n_atom = luaL_checkint(L, -1);
+		atomic_constituents_[isp].insert(pair<string, int>(atom, n_atom));
+		/* removes 'value'; keeps 'key' for next iteration */
+		lua_pop(L, 1);
+	    }
+	}
+	else {
+	    cout << "No table of atomic constituents found in input file for species: " << sp << endl;
+	    cout << "The atomic constituents of this species will not be available." << endl;
 	}
 	lua_pop(L, 1); // pop "atomic_constituents" off stack
 
