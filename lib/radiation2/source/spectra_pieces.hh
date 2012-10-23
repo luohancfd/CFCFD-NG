@@ -19,8 +19,13 @@
 #define FREQUENCY  2
 #define ENERGY     3
 
+#define NWIDTHS    10
+
 // Forward declaration of RadiationSpectralModel
 class RadiationSpectralModel;
+
+// Forward declaration of class ApparatusFunction
+class ApparatusFunction;
 
 static std::vector<double> zero_vec;
 
@@ -131,7 +136,6 @@ public:
     std::vector<double> j_bin;
 };
 
-double eval_Gaussian( double x, double delta_x );
 
 class SpectralIntensity : public SpectralContainer {
 public:
@@ -153,7 +157,7 @@ public:
 public:
     double write_to_file( std::string fname, int spectral_units=WAVELENGTH );
 
-    void apply_apparatus_function( double delta_x_ang, int nu_sample=1 );
+    void apply_apparatus_function( ApparatusFunction * A );
 
     void reverse_data_order();
     
@@ -275,6 +279,49 @@ public:
     std::vector<double> x_vec;
     std::vector<SpectralIntensity*> S_vec;
 };
+
+
+class ApparatusFunction {
+public:
+    ApparatusFunction( std::string name, double nu_sample );
+    virtual ~ApparatusFunction() = 0;
+
+    void initialise();
+
+    virtual double eval( double nu, double delta_nu ) = 0;
+public:
+    std::string name;
+    int nu_sample;
+    double f_scale;
+    double gamma_star;
+};
+
+class SQRT_Voigt : public ApparatusFunction {
+public:
+    SQRT_Voigt(double gamma_L, double gamma_G, double nu_sample);
+
+    ~SQRT_Voigt();
+
+    double eval( double nu, double delta_nu );
+public:
+    double gamma_L;
+    double gamma_G;
+    double gamma_V;
+};
+
+class Gaussian_Lorentzian_hybrid : public ApparatusFunction {
+public:
+    Gaussian_Lorentzian_hybrid(double gamma_L, double gamma_G, double f_pow, double nu_sample);
+
+    ~Gaussian_Lorentzian_hybrid();
+
+    double eval( double nu, double delta_nu );
+public:
+    double gamma_L;
+    double gamma_G;
+    double f_pow;
+};
+
 
 /* Some other useful functions */
 

@@ -202,10 +202,6 @@ int main(int argc, char *argv[])
     cfg.parse_double("radiation", "TS_dx", TS_dx, 0.0);
     double tube_width;
     cfg.parse_double("radiation", "tube_width", tube_width, 0.0);
-    double fwhm_Ang;
-    cfg.parse_double("radiation", "fwhm_Ang", fwhm_Ang, 0.0);
-    double x_EQ_spectra;
-    cfg.parse_double("radiation", "x_EQ_spectra", x_EQ_spectra, 0.0);
     bool write_rad_level_pops;
     cfg.parse_boolean("radiation", "write_rad_level_pops", 
     	               write_rad_level_pops, false );
@@ -230,8 +226,8 @@ int main(int argc, char *argv[])
     	exit(BAD_INPUT_ERROR);
     }
     if ( !rtmodel && ( rad_dx > 0.0 || tube_width > 0.0 || write_rad_level_pops 
-    	|| fwhm_Ang > 0.0 || write_rad_emissions || lambda_min.size() 
-    	|| lambda_max.size() || dx_smear.size() || x_EQ_spectra > 0.0 ) ) {
+    	|| write_rad_emissions || lambda_min.size()
+    	|| lambda_max.size() || dx_smear.size() ) ) {
     	cout << "Cannot compute radiation without a radiation model!" << endl
     	     << "Bailing out!" << endl;
     	exit(BAD_INPUT_ERROR);
@@ -427,7 +423,7 @@ int main(int argc, char *argv[])
     RadiationSpectralModel * rsm = 0;
     TS_data * TS = 0;
     vector<double> divq_rad;
-    if ( rad_dx > 0.0 || TS_dx > 0.0 || x_EQ_spectra > 0.0 ) {
+    if ( rad_dx > 0.0 || TS_dx > 0.0 ) {
     	rsm = rtmodel->get_rsm_pointer();
     }
     if ( TS_dx > 0.0 ) {
@@ -517,32 +513,6 @@ int main(int argc, char *argv[])
 	    ++rad_count;
 	    next_spectra_x += rad_dx;
 	}
-        if ( x_EQ_spectra > 0.0 && x > x_EQ_spectra ) {
-            cout << "- Computing equilibrium spectra " << rad_count << endl;
-            LOS_data LOS( rsm, 1, 0.0, 0.0 );
-            double * div_q = 0;
-            LOS.set_rad_point( 0, psr->psflow.Q, div_q, tube_width / 2.0,
-                               tube_width );
-            SpectralIntensity S(rsm);
-            LOS.integrate_LOS( S );
-
-            /* Estimate nu_sample for efficiency */
-            int nu_sample = int( fwhm_Ang / 2.0 / 10.0 / ( ( rsm->get_lambda_max() - rsm->get_lambda_min() ) / rsm->get_spectral_points() ) );
-            if ( nu_sample<1 ) nu_sample=1;
-
-            S.apply_apparatus_function( fwhm_Ang / 2.0, nu_sample );
-
-            string specfile_name = "EQ_intensity_spectra.txt";
-            cout << "- Writing " << specfile_name << endl;
-            S.write_to_file( specfile_name );
-
-            string coeffile_name = "EQ_coefficient_spectra.txt";
-            cout << "- Writing " << coeffile_name << endl;
-            LOS.write_point_to_file( 0, coeffile_name );
-
-            // Set x_EQ_spectra to a large value so another spectrum is not computed
-            x_EQ_spectra = 9.9e99;
-        }
 	if ( next_TS_x > 0.0 && x > next_TS_x ) {
 	    // tangent slab problem
 	    cout << "creating TS point " << TS_count << " at x = " << x << endl;

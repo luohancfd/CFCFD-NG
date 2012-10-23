@@ -40,6 +40,8 @@ PSR_OBJECTS := conservation_systems.o \
 	flow_state.o \
 	post_shock_flow.o \
 	poshax_radiation_transport.o
+	
+PYTHON_SCRIPTS := p3post.py
 
 PSR_EXECUTABLE := poshax3.x
 
@@ -54,8 +56,8 @@ clean :
 	- rm *.x *.o *.a
 	- cd $(RAD)/build; make clean
 
-install : $(PSR_EXECUTABLE) $(INSTALL_DIR)
-	- cp -f $(PSR_EXECUTABLE) $(INSTALL_DIR)
+install : $(PSR_EXECUTABLE) $(PYTHON_SCRIPTS) $(INSTALL_DIR)
+	- cp -f $(PSR_EXECUTABLE) $(PYTHON_SCRIPTS) $(INSTALL_DIR)
 	cd $(GAS)/build; make install
 	cd $(RAD)/build; make install
 
@@ -112,7 +114,11 @@ $(LIBPSR) : $(PSR_OBJECTS)
 	- rm $(LIBPSR)
 	$(AR) rv $(LIBPSR) $(PSR_OBJECTS)
 	- ranlib $(LIBPSR)
+	
+#----------- Python libraries ------------
 
+p3post.py : $(SRC)/p3post.py
+	cp $(SRC)/p3post.py .
 
 #----------- executables -----------------
 poshax3.x : poshax.o $(LIBPSR) $(LIBGAS) $(LIBRAD2) $(LIBNM) $(LIBUTIL) \

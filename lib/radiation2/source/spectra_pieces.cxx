@@ -21,6 +21,7 @@
 #include "spectral_model.hh"
 #include "spectra_pieces.hh"
 #include "radiation_constants.hh"
+#include "line_shapes.hh"
 
 using namespace std;
 
@@ -510,20 +511,80 @@ double BinnedCoeffSpectra::sum_emission()
     return j_total;
 }
 
-/* ------------ SpectralIntensity class ------------ */
+ApparatusFunction::ApparatusFunction( string name, double nu_sample )
+ : name( name ), nu_sample( nu_sample ), f_scale( 1.0 ) {}
 
-double eval_Gaussian( double x, double delta_x )
+ApparatusFunction::~ApparatusFunction() {}
+
+void ApparatusFunction::initialise()
 {
-    //       x: distance from center of profile
-    // delta_x: half-width at half-maximum
-    double A = (1.0/delta_x)*sqrt(log(2.0)/M_PI);
-    double B = -log(2.0)*(x/delta_x)*(x/delta_x);
-    
-    return A*exp(B);
+    /* FIXME: this might not be necessary if we rescale in apply_apparatus_function */
+#   if 0
+    ofstream ofile;
+    ofile.open("profile.txt");
+    ofile << setprecision(12) << scientific << showpoint;
+    cout << "initialising the apparatus function" << endl;
+    // Numerically integrate the eval function to get the unity factor
+    double nu_star = nu2lambda(500.0);
+    double gamma_star_Hz = gamma_star / ( nu2lambda(nu_star) * 10.0 ) * nu_star;
+    double nu_min = -100 * gamma_star_Hz + nu_star;
+    double nu_max = 100 * gamma_star_Hz + nu_star;
+    double nu = nu_min;
+    double dnu = ( nu_max - nu_min ) / 1.0e5;
+    double integral = 0.0;
+    // FIXME: replace with simpsons Rule
+    while ( nu <= nu_max ) {
+        integral += this->eval(nu,nu_star-nu) * dnu;
+        ofile << nu2lambda(nu) << "\t" << this->eval(nu,nu_star-nu) << endl;
+        nu += dnu;
+    }
+
+    cout << "integral = " << integral << endl;
+
+    f_scale = 1.0 / integral;
+#   endif
 }
 
+SQRT_Voigt::SQRT_Voigt(double gamma_L, double gamma_G, double nu_sample)
+ : ApparatusFunction("SQRT_Voigt",nu_sample), gamma_L( gamma_L), gamma_G( gamma_G )
+{
+    gamma_V = calculate_Voigt_width( gamma_L, gamma_G );
+    /* FIXME: need a more accurate representative width */
+    gamma_star = gamma_V;
+}
+
+SQRT_Voigt::~SQRT_Voigt() {}
+
+double SQRT_Voigt::eval( double nu, double delta_nu )
+{
+    double lambda_Ang = nu2lambda(nu) * 10.0;
+    double gamma_V_Hz = gamma_V / lambda_Ang * nu;
+    double gamma_L_Hz = gamma_L / lambda_Ang * nu;
+    double gamma_G_Hz = gamma_G / lambda_Ang * nu;
+    double b_V = eval_Voigt_profile( delta_nu, gamma_V_Hz, gamma_L_Hz, gamma_G_Hz );
+    return sqrt(b_V) * f_scale;
+}
+
+Gaussian_Lorentzian_hybrid::Gaussian_Lorentzian_hybrid(double gamma_L, double gamma_G, double f_pow, double nu_sample)
+ : ApparatusFunction("Gaussian_Lorentzian_hybrid",nu_sample), gamma_L( gamma_L), gamma_G( gamma_G ), f_pow( f_pow )
+{
+    /* FIXME: need a more accurate representative width */
+    gamma_star = 0.5 * ( gamma_G + gamma_L );
+}
+
+Gaussian_Lorentzian_hybrid::~Gaussian_Lorentzian_hybrid() {}
+
+double Gaussian_Lorentzian_hybrid::eval( double nu, double delta_nu )
+{
+    cout << "Gaussian_Lorentzian_hybrid::eval()" << endl
+	 << "Not implemented yet!" << endl;
+    exit( NOT_IMPLEMENTED_ERROR );
+}
+
+/* ------------ SpectralIntensity class ------------ */
+
 SpectralIntensity::SpectralIntensity()
-: nwidths( 5 ) {}
+: nwidths( NWIDTHS ) {}
 
 SpectralIntensity::SpectralIntensity( RadiationSpectralModel * rsm )
  : SpectralContainer( rsm )
@@ -531,7 +592,7 @@ SpectralIntensity::SpectralIntensity( RadiationSpectralModel * rsm )
     I_nu.resize( nu.size() );
     I_int.resize( nu.size() );
     
-    nwidths = 5;
+    nwidths = NWIDTHS;
 }
 
 SpectralIntensity::SpectralIntensity( RadiationSpectralModel * rsm, double T )
@@ -540,7 +601,7 @@ SpectralIntensity::SpectralIntensity( RadiationSpectralModel * rsm, double T )
     I_nu.resize( nu.size() );
     I_int.resize( nu.size() );
     
-    nwidths = 5;
+    nwidths = NWIDTHS;
 
     for ( size_t inu=0; inu<nu.size(); ++inu ) {
     	I_nu[inu] = planck_intensity( nu[inu], T );
@@ -571,40 +632,34 @@ double SpectralIntensity::write_to_file( string filename, int spectral_units )
     return write_data_to_file( filename, spectral_units, I_nu, Y1_label, Y1_int_label );
 }
 
-void SpectralIntensity::apply_apparatus_function( double delta_x_ang, int nu_sample )
+void SpectralIntensity::apply_apparatus_function( ApparatusFunction * A  )
 {
-    /* apply apparatus function (Gaussian distribution with delta_x as HWHM) to
-       the provided intensity spectrum (via convolution integral) */
+    // Quick exit if the representative width is too small
+    if ( A->gamma_star < 1.0e-10 ) return;
 
-    /* FIXME: A smeared spectra can be represented by less points than the
-              original spectra.  Perhaps use LINE_POINTS per delta_x_ang?
-	      [Inner (convolution) loop can be reduced also]               */
-
-    // Quick exit if delta_x_ang is zero
-    if ( delta_x_ang==0.0 ) return;
+    // Initialise the Apparatus function
+    A->initialise();
 
     // A vector to temporarily hold smeared data
     vector<double> nu_temp;
     int count = 0;
     for( size_t inu=0; inu<nu.size(); inu++) {
 	count++;
-        if ( count==nu_sample ) {
+        if ( count==A->nu_sample ) {
             nu_temp.push_back(nu[inu]);
             count = 0;
         }
     }
     vector<double> I_nu_temp( nu_temp.size() );
 
-    // NOTE: delta_x_ang is the HFHM of the spectrometer in units of Angstroms
     int percentage=0;
-
     for( size_t inu=0; inu<nu_temp.size(); inu++) {
 	double nu_val = nu_temp[inu];
 	double lambda_ang = 10.0 * nu2lambda( nu_val );
-	// convert delta_x_ang to delta_x_hz
-	double delta_x_hz = delta_x_ang / lambda_ang * nu_val;
-	double nu_lower = nu_val - double(nwidths) * delta_x_hz;
-	double nu_upper = nu_val + double(nwidths) * delta_x_hz;
+	// convert HWHM's to Hz
+	double gamma_star_Hz = A->gamma_star / lambda_ang * nu_val;
+	double nu_lower = nu_val - double(nwidths) * gamma_star_Hz;
+	double nu_upper = nu_val + double(nwidths) * gamma_star_Hz;
 	int jnu_start = get_nu_index(nu,nu_lower) + 1;
 	int jnu_end = get_nu_index(nu,nu_upper) + 1;
 
@@ -615,13 +670,17 @@ void SpectralIntensity::apply_apparatus_function( double delta_x_ang, int nu_sam
 
 	// Apply convolution integral over this frequency range with trapezoidal method
 	double I_nu_conv = 0.0;
+	double AF_integral = 0.0;
 	for ( int jnu=jnu_start+1; jnu<jnu_end; jnu++ ) {
-            double x0 = nu[jnu-1] - nu_val;
-            double x1 = nu[jnu] - nu_val;
-            double f_x0 = eval_Gaussian(x0, delta_x_hz);
-            double f_x1 = eval_Gaussian(x1, delta_x_hz);
-            I_nu_conv += 0.5 * ( I_nu[jnu-1]*f_x0 + I_nu[jnu]*f_x1 ) * ( nu[jnu] - nu[jnu-1] );
+            double dnu0 = nu[jnu-1] - nu_val;
+            double dnu1 = nu[jnu] - nu_val;
+            double f_nu0 = A->eval(nu_val, dnu0);
+            double f_nu1 = A->eval(nu_val, dnu1);
+            I_nu_conv += 0.5 * ( I_nu[jnu-1]*f_nu0 + I_nu[jnu]*f_nu1 ) * ( nu[jnu] - nu[jnu-1] );
+            AF_integral += 0.5 * ( f_nu0 + f_nu1 ) * ( nu[jnu] - nu[jnu-1] );
 	}
+
+	// cout << "AF_integral = " << AF_integral << endl;
 
 	// Make sure a zero value is not returned if nwidths is too small
 	if ( jnu_start==(jnu_end-1) ) {
@@ -630,8 +689,8 @@ void SpectralIntensity::apply_apparatus_function( double delta_x_ang, int nu_sam
 	    I_nu_conv = I_nu[inu];
 	}
 
-	// Save result
-	I_nu_temp[inu] = I_nu_conv;
+	// Save result (and rescale to ensure the integral remains the same)
+	I_nu_temp[inu] = I_nu_conv / AF_integral;
     }
 
     cout << endl;

@@ -79,7 +79,8 @@ RAD_OBJECTS := spectral_model.o \
 	cr_rr_coeffs.o \
 	parade.o \
 	parade_radiator.o \
-	mersenne.o
+	mersenne.o \
+	line_shapes.o
 	
 ifeq ($(WITH_SPRADIAN), 1)
     RAD_OBJECTS += spradian.o spradian_radiator.o radipac6.o
@@ -326,6 +327,9 @@ radipac6.o : $(SPRADIAN_SRC)/radipac6.f90
 
 mersenne.o : $(UTIL_SRC)/mersenne.cpp $(UTIL_SRC)/randomc.h
 	$(CXX) $(CXXFLAG) $(UTIL_SRC)/mersenne.cpp
+	
+line_shapes.o : $(SRC)/line_shapes.cxx $(SRC)/line_shapes.hh 
+	$(CXX) $(CXXFLAG) $(SRC)/line_shapes.cxx  -I$(LUA_INCLUDE_DIR)
 	
 # ------------ Test python libraries and executables -------
 	
