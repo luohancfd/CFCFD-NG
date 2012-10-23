@@ -66,7 +66,7 @@ def my_limiter(delta, orig, frac=0.5):
     return sign * abs_delta
 
 
-def normal_shock(state1, Vs, state2):
+def normal_shock(state1, Vs, state2,ideal_gas_guess=None):
     """
     Computes post-shock conditions, using high-temperature gas properties
     and a shock-stationary frame.
@@ -74,11 +74,18 @@ def normal_shock(state1, Vs, state2):
     :param state1: pre-shock gas state
     :param Vs: speed of gas coming into shock
     :param state2: post-shock gas state
+    :param ideal_gas_guess: defaulting to None, otherwise a dictionary of the 
+        form {'gam':gam,'R':R} thatis used for the ideal guess at the start of
+        the function when Vs is too high and CEA can't deal with the ideal guess 
+        for state 2
     :returns: the post-shock gas speed, V2 in the shock-reference frame, Vg in the lab frame.
     """
     #
     # Initial guess via ideal gas relations.
     #
+    if ideal_gas_guess:
+        state1.gam = ideal_gas_guess['gam']
+        state1.R = ideal_gas_guess['R']
     (V2,Vg) = shock_ideal(state1, Vs, state2)
     if DEBUG_GAS_FLOW:
         print 'normal_shock(): post-shock condition assuming ideal gas'
