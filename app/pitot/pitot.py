@@ -1,8 +1,49 @@
-#! /usr/bin/env python 
-"""
-pitot.py: Equilibrium expansion tube condition builder
+#! /usr/bin/env python
 
-ADD INTRO TO THE PROGRAM
+"""
+pitot.py: Equilibrium X2 expansion tube condition builder
+
+This program can be used to estimate the flow conditions for a shock-processed 
+flow for an expansion tube. It is currently setup to work primarily with the 
+X2 expansion tube at the University of QLD, but I daresay it could be
+expanded (excuse the pun) to use other facilities without too much effort.
+
+The gas is assumed to remain in thermochemical equilibrium and the flow 
+processing is done in decoupled quasi-one-dimensional wave processes such as 
+shock waves and expansion fans.
+
+The aim of the program is for it to be versatile, and it can do a number of
+different calculations and configurations using different command line arguments:
+
+* x2 with and without a pure He secondary driver tube and/or nozzle
+* x2's 3 different driver conditions currently (100%He,80%He:20%Ar,90%He:10%Ar)
+* choosing shock speeds to give certain fill pressures in the tube
+* choosing fill pressures to give certain shock speeds
+* inputing experimental data of fill pressures and shock speeds to 'fill in the gaps' so to speak
+ 
+When run as an application, this program takes its input as
+command line arguments, performs the requested calculations and prints a table
+with all of the results to the screen. Any changes you want to make can then
+be made to certain parameters, or you can quit the program. These results
+are also conveniently printed to a text file.
+
+To see what specific inputs are required, start the program as::
+
+$ pitot.py --help
+
+Which particular input parameters you need to supply depends on the
+chosen task, however, a fully theoretical basic x2 condition can be ran by using::
+
+$ pitot.py --test x2-fulltheory-pressure --config x2-nozzle --driver_gas He:1.0 --test_gas air --p1 3000.0 --p5 10.0
+
+due to the some of the default values this can be shortened down to this though::
+
+$ pitot.py --driver_gas He:1.0 --test_gas air --p1 3000.0 --p5 10.0
+    
+The full output is a bit too much to include here, but you should see that the
+stagnation enthalpy leaving the nozzle is 85.093 MJ/kg and that at the exit
+of the nozzle (state 8) the flow has a pressure of 1320.0 Pa and a static
+temperature of 3028.3 K, with a flow speed of 12592.2 m/s at Mach 11.81.
 
 Getting the program set up
 --------------------------
@@ -952,6 +993,7 @@ if __name__ == '__main__':
                         '--driver_gas','He:1.0', '--test_gas','gasgiant_h215he',
                         '--psd1','17500','--p1','4700','--p5','5.7']
             main()
-    else:
-        main()
+
+    return_flag = main()
+    sys.exit(return_flag)
 
