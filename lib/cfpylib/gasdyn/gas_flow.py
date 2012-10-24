@@ -83,7 +83,9 @@ def normal_shock(state1, Vs, state2,ideal_gas_guess=None):
     #
     # Initial guess via ideal gas relations.
     #
-    if ideal_gas_guess:
+    if ideal_gas_guess: #if we're worried the ideal gas guess will not work, 
+                        #store the original state and use our own guess gam and R for now
+        original_state1 = state1.clone()
         state1.gam = ideal_gas_guess['gam']
         state1.R = ideal_gas_guess['R']
     (V2,Vg) = shock_ideal(state1, Vs, state2)
@@ -163,6 +165,8 @@ def normal_shock(state1, Vs, state2,ideal_gas_guess=None):
     if DEBUG_GAS_FLOW:
         print ('normal_shock(): count = %d, drho=%e, dT=%e' %
                (count, rho_delta, T_delta) )
+    if ideal_gas_guess: #if we did this, restore the original state before we finish
+        state1 = original_state1.clone()
     #
     # Back-out velocities via continuity.
     V2 = V1 * state1.rho / state2.rho
