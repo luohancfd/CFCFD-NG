@@ -83,13 +83,7 @@ else
   Contact the QGECE to request access to the software."
 endif
 
-LUA_MODULES := ideal_gas.lua \
-	Noble_Abel_gas.lua \
-	van_der_Waals_gas.lua \
-	real_gas_Bender.lua \
-	real_gas_MBWR.lua \
-	real_gas_REFPROP.lua \
-	thermally_perfect_gas.lua \
+LUA_MODULES := 	refprop.lua \
 	four_temperature_gas.lua \
 	three_temperature_gas.lua \
 	two_temperature_gas.lua \
@@ -99,7 +93,8 @@ LUA_MODULES := ideal_gas.lua \
 	fully_coupled_four_temperature_gas.lua \
 	reaction_parser.lua \
 	reac.lua \
-	reaction_rate.lua
+	reaction_rate.lua \
+	tab_serialise.lua
 
 LUA_OBJECTS := lgas-model.o \
 	lreaction-update.o \
@@ -563,10 +558,10 @@ species-energy-modes.o : $(MODELS)/species-energy-modes.cxx $(MODELS)/species-en
 
 diatom-electronic-level.o : $(MODELS)/diatom-electronic-level.cxx $(MODELS)/diatom-electronic-level.hh
 	$(CXX) $(CXXFLAG) $(MODELS)/diatom-electronic-level.cxx
-	
+
 polyatom-electronic-level.o : $(MODELS)/polyatom-electronic-level.cxx $(MODELS)/polyatom-electronic-level.hh
 	$(CXX) $(CXXFLAG) $(MODELS)/polyatom-electronic-level.cxx
-	
+
 coupled-diatom-LUT.o : $(MODELS)/coupled-diatom-LUT.cxx $(MODELS)/coupled-diatom-LUT.hh
 	$(CXX) $(CXXFLAG) $(MODELS)/coupled-diatom-LUT.cxx
 
@@ -827,8 +822,8 @@ real_gas_Bender.lua : $(TOOLS)/real_gas_Bender.lua
 real_gas_MBWR.lua : $(TOOLS)/real_gas_MBWR.lua
 	cp $(TOOLS)/real_gas_MBWR.lua .
 
-real_gas_REFPROP.lua : $(TOOLS)/real_gas_REFPROP.lua
-	cp $(TOOLS)/real_gas_REFPROP.lua .
+refprop.lua : $(TOOLS)/refprop.lua
+	cp $(TOOLS)/refprop.lua .
 
 thermally_perfect_gas.lua : $(TOOLS)/thermally_perfect_gas.lua
 	cp $(TOOLS)/thermally_perfect_gas.lua .
@@ -847,13 +842,16 @@ one_temperature_gas.lua : $(TOOLS)/one_temperature_gas.lua
 
 fully_coupled_one_temperature_gas.lua : $(TOOLS)/fully_coupled_one_temperature_gas.lua
 	cp $(TOOLS)/fully_coupled_one_temperature_gas.lua .
-	
+
 fully_coupled_two_temperature_gas.lua : $(TOOLS)/fully_coupled_two_temperature_gas.lua
 	cp $(TOOLS)/fully_coupled_two_temperature_gas.lua .
 
 fully_coupled_four_temperature_gas.lua : $(TOOLS)/fully_coupled_four_temperature_gas.lua
 	cp $(TOOLS)/fully_coupled_four_temperature_gas.lua .
-	
+
+tab_serialise.lua : $(TOOLS)/tab_serialise.lua
+	cp $(TOOLS)/tab_serialise.lua .
+
 reaction_parser.lua : $(KINETICS)/reaction_parser.lua
 	cp $(KINETICS)/reaction_parser.lua .
 
