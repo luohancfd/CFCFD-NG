@@ -45,6 +45,30 @@ stagnation enthalpy leaving the nozzle is 85.093 MJ/kg and that at the exit
 of the nozzle (state 8) the flow has a pressure of 1320.0 Pa and a static
 temperature of 3028.3 K, with a flow speed of 12592.2 m/s at Mach 11.81.
 
+A brief description of the states can be found below:
+    
+State 4: primary driver at the burst of the steel diaphragm (27.9MPa,2700K), 
+    taken to be basically stagnated (M~0)
+State 3s: primary driver after steady expansion to the throat mach number 
+    (M=1 for 80%He, M=1.59 for 90%He,M=2.15 for 100%He, based on area ratio stuff done by Richard)
+
+If secondary driver is used:
+State sd1 : secondary driver fill condition (pure He)
+State sd2: shocked second driver gas
+State sd3: state 11 unsteadyily expanding into the secondary driver tube
+
+State 1: shock tube fill condition (test gas)
+State 2: shocked test gas
+State 3: state 11 or state sd2 unsteadily expanding into the shock tube
+
+State 5: acceleration tube fill condition (air)
+State 6: shocked acceleration tube gas
+State 7: test gas unsteadily expanding into the acceleration tube
+
+State 8: nozzle exit condition after steady expansion through the nozzle
+State 10: post shock condition at the stagnation point of the model
+
+
 Getting the program set up
 --------------------------
 pitot.py is not a stand-alone file.
@@ -131,7 +155,7 @@ def is_valid(command,valid_commands):
              command = str(raw_input('Try again? '))             
     return command
     
-def make_test_gas(gasName, outputUnits='massf'):
+def make_test_gas(gasName, outputUnits='moles'):
     """
     Manufacture a Gas object for the test gas from a small library of options.
     
@@ -147,30 +171,30 @@ def make_test_gas(gasName, outputUnits='massf'):
         return Gas({'Air':1.0,}, outputUnits=outputUnits, trace=1.0e-4), {'gam':1.35,'R':571.49}
     elif gasName.lower() == 'air5species':
         return Gas(reactants={'N2':0.79, 'O2':0.21, 'N':0.0, 'O':0.0, 'NO':0.0}, 
-                   inputUnits='moles', onlyList=['N2','O2','N','O','NO'],
+                   inputUnits='moles', onlyList=['N2','O2','N','O','NO'],with_ions=True,
                    outputUnits=outputUnits), {'gam':1.35,'R':571.49}
     elif gasName.lower() == 'n2':
-        return Gas(reactants={'N2':1.0, 'N':0.0}, onlyList=['N2', 'N'],
+        return Gas(reactants={'N2':1.0, 'N':0.0}, onlyList=['N2', 'N'], with_ions=True,
                    outputUnits=outputUnits), {'gam': 1.36,'R':593.56}
     elif gasName.lower() == 'titan':
-        return Gas(reactants={'N2':0.95, 'CH4':0.05}, inputUnits='moles',
+        return Gas(reactants={'N2':0.95, 'CH4':0.05}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits), {'gam':1.35,'R':652.03}      
     elif gasName.lower() == 'mars':
-        return Gas(reactants={'CO2':0.96, 'N2':0.04}, inputUnits='moles',
+        return Gas(reactants={'CO2':0.96, 'N2':0.04}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits)    
     elif gasName.lower() == 'co2':
         return Gas(reactants={'CO2':1.0}, outputUnits=outputUnits)
     elif gasName.lower() == 'gasgiant_h215ne':
-        return Gas(reactants={'H2':0.85, 'Ne':0.15}, inputUnits='moles',
+        return Gas(reactants={'H2':0.85, 'Ne':0.15}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits),{'gam':1.15,'R':3245.1}
     elif gasName.lower() == 'gasgiant_h240ne':
-        return Gas(reactants={'H2':0.6, 'Ne':0.4}, inputUnits='moles',
+        return Gas(reactants={'H2':0.6, 'Ne':0.4}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits),{'gam':1.5,'R':1443.2}
     elif gasName.lower() == 'gasgiant_h285ne':
-        return Gas(reactants={'H2':0.15, 'Ne':0.85}, inputUnits='moles',
+        return Gas(reactants={'H2':0.15, 'Ne':0.85}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits),{'gam':1.5,'R':547.8}
     elif gasName.lower() == 'gasgiant_h215he':
-        return Gas(reactants={'H2':0.85, 'He':0.15}, inputUnits='moles',
+        return Gas(reactants={'H2':0.85, 'He':0.15}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits), {'gam':1.2,'R':6303.2}
     else:
         raise Exception, 'make_gas_from_name(): unknown gasName: %s' % gasName               
@@ -404,7 +428,7 @@ def main():
             print 'selected Vs1 = {0} m/s'.format(Vs1)
             print 'selected Vs2 = {0} m/s'.format(Vs2)
             if secondary:
-                print 'selected secondary driver fill pressure (p1) = {0} Pa.'.format(psd1)
+                print 'selected secondary driver fill pressure (psd1) = {0} Pa.'.format(psd1)
             print 'selected shock tube fill pressure (p1) = {0} Pa.'.format(p1)
             print 'selected acceleration tube fill pressure (p5) = {0} Pa.'.format(p5)
             
@@ -436,13 +460,13 @@ def main():
     V['s4']=0.0
     M['s4']=0.0
     
-    M['s11']=primary_driver['He:0.90,Ar:0.10'][1]
+    M['s3s']=primary_driver['He:0.90,Ar:0.10'][1]
 
     #state11, piston after steady expansion at throat of driver
     
     if PRINT_STATUS: print "Start steady expansion of driver gas."     
     
-    (states['s11'], V['s11']) = expand_from_stagnation(1.0/(p0_p(M['s11'],states['s4'].gam)),states['s4'])
+    (states['s3s'], V['s3s']) = expand_from_stagnation(1.0/(p0_p(M['s3s'],states['s4'].gam)),states['s4'])
     
     #build the gas objects for all the other sections based on knowledge of what is what
     
@@ -452,9 +476,9 @@ def main():
     #start with shock tube and acc tube, start with atmospheric p and T
     
     if secondary: #state sd1 is pure He secondary driver
-        states['sd1'] =  Gas({'He':1.0,})
+        states['sd1'] =  Gas({'He':1.0,},outputUnits='moles')
         if psd1:
-            states['sd1'].set_pT(p1,T0)
+            states['sd1'].set_pT(psd1,T0)
         else:
             states['sd1'].set_pT(p0,T0)
         V['sd1']=0.0
@@ -471,7 +495,7 @@ def main():
         
 
     #state 5 is acceleration tube
-    states['s5'] = Gas({'Air':1.0,})
+    states['s5'] = Gas({'Air':1.0,},outputUnits='moles')
     if p5:
         states['s5'].set_pT(p5,T0)
     else:
@@ -483,10 +507,11 @@ def main():
     
     if secondary:
         states['sd2'] = states['sd1'].clone() #sd2 is sd1 shock heated
-        states['sd3'] = states['s11'].clone() #sd3 is s11 after unsteady
+        states['sd3'] = states['s3s'].clone() #sd3 is s11 after unsteady
         states['s3'] = states['sd2'].clone() #3 will be sd2 after unsteady expansion
     else:
-        states['s3'] = states['s11'].clone() #3 will be 11 after unsteady expansion
+        states['s3'] = states['s3s'].clone() #3 will be 11 after unsteady expansion
+        
     states['s2'] = states['s1'].clone() #2 is 1 shock heated
     states['s6'] = states['s5'].clone() #6 is 5 shock heated
     states['s7'] = states['s2'].clone() #7 is 2 after unsteady expansion
@@ -506,8 +531,8 @@ def main():
         
         if secondary:
             
-            def error_in_velocity_s11_to_sd3_expansion_pressure_iterator(psd1, state11=states['s11'], 
-                                                       V11g=V['s11'], statesd1=states['sd1'],
+            def error_in_velocity_s3s_to_sd3_expansion_pressure_iterator(psd1, state3s=states['s3s'], 
+                                                       V3sg=V['s3s'], statesd1=states['sd1'],
                                                         statesd2=states['sd2'],Vsd1=Vsd1):
                 """Compute the velocity mismatch for a given pressure ratio across the 
                 unsteady expansion in the driver into the secondary driver gas."""
@@ -522,12 +547,12 @@ def main():
                 psd3 = statesd2.p
                 
                 # Across the expansion, we get a velocity, V5g.
-                Vsd3g, statesd3 = finite_wave_dp('cplus', V11g, state11, psd3)
+                Vsd3g, statesd3 = finite_wave_dp('cplus', V3sg, state3s, psd3)
     
                 return (Vsd2g - Vsd3g)/Vsd2g
                 
-            def error_in_velocity_s11_to_sd3_driver_expansion_shock_speed_iterator(Vsd1,state11=states['s11'], 
-                                                       V11g=V['s11'], statesd1=states['sd1'],
+            def error_in_velocity_s3s_to_sd3_driver_expansion_shock_speed_iterator(Vsd1,state3s=states['s3s'], 
+                                                       V3sg=V['s3s'], statesd1=states['sd1'],
                                                         statesd2=states['sd2']):
                 """Compute the velocity mismatch for a given shock speed with the driver
                 unsteady expansion into the secondary driver gas behind it.
@@ -542,25 +567,25 @@ def main():
                 psd3 = statesd2.p
                 
                 # Across the expansion, we get a velocity, V5g.
-                Vsd3g, statesd3 = finite_wave_dp('cplus', V11g, state11, psd3)
+                Vsd3g, statesd3 = finite_wave_dp('cplus', V3sg, state3s, psd3)
     
                 return (Vsd2g - Vsd3g)/Vsd2g  
             
             if test == "x2-fulltheory-shock": #get psd1 for our chosen shock speed
-                psd1 = secant(error_in_velocity_s11_to_sd3_expansion_pressure_iterator, 1000.0, 100000.0, tol=1.0e-3,limits=[100.0,1000000.0])
+                psd1 = secant(error_in_velocity_s3s_to_sd3_expansion_pressure_iterator, 3000.0, 5000.0, tol=1.0e-3,limits=[1000.0,1000000.0])
                 if PRINT_STATUS: print "From secant solve: psd1 = {0} Pa".format(psd1)
                 #start using psd1 now, compute states sd1,sd2 and sd3 using the correct psd1
                 if PRINT_STATUS: print "Once p1 is known, find conditions at state 1 and 2."
                 states['sd1'].set_pT(psd1,T0)
             
             elif test == "x2-fulltheory-pressure": #get Vsd1 for our chosen fill pressure
-                Vsd1 = secant(error_in_velocity_s11_to_sd3_driver_expansion_shock_speed_iterator, 3000.0, 8000.0, tol=1.0e-3,limits=[1000.0,1000000.0])
+                Vsd1 = secant(error_in_velocity_s3s_to_sd3_driver_expansion_shock_speed_iterator, 4000.0, 5000.0, tol=1.0e-3,limits=[1000.0,1000000.0])
                 if PRINT_STATUS: print "From secant solve: Vsd1 = {0} m/s".format(Vsd1)
                 #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
                 if PRINT_STATUS: print "Once Vsd1 is known, find conditions at state sd1 and sd2."
             
             (Vsd2, V['sd2']) = normal_shock(states['sd1'], Vsd1, states['sd2'])
-            V['sd3'], states['sd3'] = finite_wave_dv('cplus', V['s11'], states['s11'], V['sd2'])
+            V['sd3'], states['sd3'] = finite_wave_dv('cplus', V['s3s'], states['s3s'], V['sd2'])
         
             #get mach numbers for the output
             Msd1 = Vsd1/states['sd1'].son
@@ -570,7 +595,7 @@ def main():
         if secondary:
             shock_tube_expansion = 'sd2' #state sd2 expands into shock tube
         else:
-            shock_tube_expansion = 's11' #otherwise state 11 is expanding into shock tube
+            shock_tube_expansion = 's3s' #otherwise state 3s is expanding into shock tube
             
             
         def error_in_velocity_shock_tube_expansion_pressure_iterator(p1, 
@@ -630,7 +655,7 @@ def main():
             if PRINT_STATUS: print "Once Vs1 is known, find conditions at state 1 and 2."
         
         (V2, V['s2']) = normal_shock(states['s1'], Vs1, states['s2'])
-        V['s3'], states['s3'] = finite_wave_dv('cplus', V['s11'], states['s11'], V['s2'])
+        V['s3'], states['s3'] = finite_wave_dv('cplus', V['s3s'], states['s3s'], V['s2'])
         
         #get mach numbers for the output
         Ms1 = Vs1/states['s1'].son
@@ -689,10 +714,7 @@ def main():
             return (V6g - V7g)/V6g    
         
         if test == 'x2-fulltheory-shock': #get p5 for our chosen shock speed
-            if secondary: #do a wider guess here        
-                p5 = secant(error_in_velocity_s2_expansion_pressure_iterator, 50.0, 100000.0, tol=1.0e-3,limits=[50.0,100000.0])
-            else: #don't bother
-                p5 = secant(error_in_velocity_s2_expansion_pressure_iterator, 10.0, 1000.0, tol=1.0e-3,limits=[5.0,1000.0])
+            p5 = secant(error_in_velocity_s2_expansion_pressure_iterator, 10.0, 100.0, tol=1.0e-3,limits=[3.5,1000.0])
             if PRINT_STATUS: print "From secant solve: p5 = {0} Pa".format(p5)
             
             #start using p5 now, compute states 5,6 and 7 using the correct p5
@@ -723,10 +745,32 @@ def main():
             state_over_model = 's7'             
         
         #do normal shock over model
-        if PRINT_STATUS: print "Start normal shock calculation over the test model."  
-        states['s10'] = states[state_over_model].clone()
-        (V10, V['s10']) = normal_shock(states[state_over_model], V[state_over_model], states['s10'])
-        M['s10']= V['s10']/states['s10'].son
+        
+        if PRINT_STATUS: print "Start frozen normal shock calculation over the test model."  
+        states['s10f'] = states[state_over_model].clone()
+        (V10, V['s10f']) = shock_ideal(states[state_over_model], V[state_over_model], states['s10f'])
+        M['s10f']= V['s10f']/states['s10f'].son        
+        
+        if PRINT_STATUS: print "Start equilibrium normal shock calculation over the test model."  
+        states['s10e'] = states[state_over_model].clone()
+        (V10, V['s10e']) = normal_shock(states[state_over_model], V[state_over_model], states['s10e'])
+        M['s10e']= V['s10e']/states['s10e'].son
+        
+        if conehead:
+            if PRINT_STATUS: print 'Doing taylor maccoll conehead calculation on 15 degree conehead.'
+            shock_angle = beta_cone(states[state_over_model], V[state_over_model], math.radians(15))
+            if PRINT_STATUS: print "\nShock angle over cone:", math.degrees(shock_angle)
+            # Reverse the process to get the flow state behind the shock and check the surface angle is correct
+            delta_s, V['s10c'], states['s10c'] = theta_cone(states[state_over_model], V[state_over_model], shock_angle)
+            M['s10c'] = V['s10c']/states['s10c'].son
+            if PRINT_STATUS: print "Surface angle should be the same.....: 15deg = ", math.degrees(delta_s), "deg"
+            if PRINT_STATUS: print "\nConehead surface conditions:"
+            if PRINT_STATUS: states['s10c'].write_state(sys.stdout)
+            # Need to check whether the pressure are the same
+            if PRINT_STATUS: print "Computed conehead pressure is {0} Pa".format(states['s10c'].p)
+
+            
+            
         
         #--------------------------- output --------------------------------
 
@@ -751,9 +795,13 @@ def main():
         print description_3
         output.write(description_3 + '\n')
             
-        description_4 = 'state 10 is equilirbium shocked test gas flowing over the model.'
+        description_4 = 'state 10f is frozen shocked test gas flowing over the model.'
         print description_4
-        output.write(description_4 + '\n')        
+        output.write(description_4 + '\n')  
+        
+        description_5 = 'state 10e is equilirbium shocked test gas flowing over the model.'
+        print description_5
+        output.write(description_5 + '\n')        
         
         
         test_gas_used = 'Test gas is {0}'.format(states['s1'].reactants)        
@@ -769,16 +817,10 @@ def main():
         print shockspeeds #prints above line in console
         output.write(shockspeeds + '\n') #writes above line to output file (input to write command must be a string)
         
-        if secondary:
-            gas = "Driver g/R = {0:.2f}, {1:.2f}, test gas {2:.2f}, {3:.2f}, accel {4:.2f}, {5:.2f}"\
-            .format(states['s4'].gam, states['s4'].R,
-                    states['s5'].gam, states['s5'].R,
-                    states['s8'].gam, states['s8'].R)
-        else:
-            gas = "Driver g/R = {0:.2f}, {1:.2f}, test gas {2:.2f}, {3:.2f}, accel {4:.2f}, {5:.2f}"\
-            .format(states['s4'].gam, states['s4'].R,
-                    states['s1'].gam, states['s1'].R,
-                    states['s5'].gam, states['s5'].R)
+        gas = "Driver g/R = {0:.2f}, {1:.2f}, test gas {2:.2f}, {3:.2f}, accel {4:.2f}, {5:.2f}"\
+        .format(states['s4'].gam, states['s4'].R,
+                states['s1'].gam, states['s1'].R,
+                states['s5'].gam, states['s5'].R)
         print gas
         output.write(gas + '\n')
         
@@ -795,36 +837,15 @@ def main():
         pitot = {} #pitot pressure dict
         p0 = {} #stagnation pressure dict
         
-        if secondary: #need a separate printing thing for the secondary driver
+        def condition_printer(it_string):
+            """Prints the values of a specified condition to the screen and to 
+            the output file. 
             
-            for i in range(1,4): #will cover 1-16
-                
-                it_string = 'sd{0}'.format(i)
-                        
-                if states.has_key(it_string):
-                    
-                    if M[it_string] == 0:
-                        pitot[it_string] = 0
-                        p0[it_string] = 0
-                    else:
-                        pitot[it_string] = pitot_p(states[it_string].p,M[it_string],states[it_string].gam)/1000.0
-                        p0[it_string] = p0_p(M[it_string], states[it_string].gam)*states[it_string].p/1.0e6
-                    
-                    conditions = "{0:<6}{1:<11.7}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.4f}{7:<8.0f}{8:<9.1f}"\
-                    .format(it_string, states[it_string].p, states[it_string].T,
-                            states[it_string].son,V[it_string],M[it_string],
-                            states[it_string].rho, pitot[it_string], p0[it_string])
-                            
-                    print conditions
-                    output.write(conditions + '\n')            
+            I made a function of this so I didn't have to keep pasting the code in."""
             
-        for i in range(1,11): #will cover 1-16
-            
-            it_string = 's{0}'.format(i)
-                    
             if states.has_key(it_string):
-                
-                if M[it_string]==0:
+                    
+                if M[it_string] == 0:
                     pitot[it_string] = 0
                     p0[it_string] = 0
                 else:
@@ -832,13 +853,42 @@ def main():
                     p0[it_string] = p0_p(M[it_string], states[it_string].gam)*states[it_string].p/1.0e6
                 
                 conditions = "{0:<6}{1:<11.7}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.4f}{7:<8.0f}{8:<9.1f}"\
-                .format(i, states[it_string].p, states[it_string].T,
+                .format(it_string, states[it_string].p, states[it_string].T,
                         states[it_string].son,V[it_string],M[it_string],
                         states[it_string].rho, pitot[it_string], p0[it_string])
                         
                 print conditions
-                output.write(conditions + '\n')
+                output.write(conditions + '\n')   
+                
+        #print the driver related stuff first
+        
+        condition_printer('s4')
+        condition_printer('s3s')
+        
+        if secondary: #need a separate printing thing for the secondary driver
             
+            for i in range(1,4): #will do 1 - 3
+            
+                it_string = 'sd{0}'.format(i)
+                condition_printer(it_string)
+                        
+        for i in range(1,4): #shock tube stuff
+            
+            it_string = 's{0}'.format(i)
+            condition_printer(it_string)
+            
+        for i in range(5,9): #acc tube and nozzle if it's there
+        
+            it_string = 's{0}'.format(i)
+            condition_printer(it_string)
+            
+        #do the conditions over the model
+        condition_printer('s10f')
+        condition_printer('s10e')
+                
+        if conehead:
+            condition_printer('s10c')
+                                       
         #some other useful calculations at the end
               
         total = total_condition(states[state_over_model], V[state_over_model])
@@ -857,28 +907,26 @@ def main():
         print u_eq_print
         output.write(u_eq_print + '\n')
         
-        #added taylor maccoll conehead calcs if people want to use them, appropriated from Fabs (thankyou)
+        #added ability to get the species in the post-shock condition
         
-        if conehead:
-            if PRINT_STATUS: print 'Doing taylor maccoll conehead calculation on 15 degree conehead.'
-            shock_angle = beta_cone(states[state_over_model], V[state_over_model], math.radians(15))
-            if PRINT_STATUS: print "\nShock angle over cone:", math.degrees(shock_angle)
-            # Reverse the process to get the flow state behind the shock and check the surface angle is correct
-            delta_s, vel_cond, state_conehead = theta_cone(states[state_over_model], V[state_over_model], shock_angle)
-            if PRINT_STATUS: print "Surface angle should be the same.....: 15deg = ", math.degrees(delta_s), "deg"
-            if PRINT_STATUS: print "\nConehead surface conditions:"
-            if PRINT_STATUS: state_conehead.write_state(sys.stdout)
-            # Need to check whether the pressure are the same
-            conehead_printout = "Computed conehead pressure is {0} Pa".format(state_conehead.p)
-            print conehead_printout
-            output.write(conehead_printout + '\n')
-
+        show_species = True
+        
+        if show_species:
+            species1 = 'species in the shock layer at equilibrium:'        
+            print species1
+            output.write(species1 + '\n')
             
+            species2 = '{0}'.format(states['s10e'].species)
+            print species2
+            output.write(species2 + '\n')
+        
+        #added taylor maccoll conehead calcs if people want to use them, appropriated from Fabs (thankyou)
+                    
         output.close()
         
         if test == 'x2-fulltheory-shock':
             if secondary:
-                change_tuple = ('Vs1','Vs2','Vs3', 'ar', 'quit')
+                change_tuple = ('Vsd1','Vs1','Vs2', 'ar', 'quit')
             else:
                 change_tuple = ('Vs1','Vs2','ar','quit')
             
@@ -891,25 +939,26 @@ def main():
                 #quit()
                         
             elif change == 'Vs1':
-                difference = int(raw_input('How much do you want to change it by? '))
+                difference = float(raw_input('How much do you want to change it by? '))
                 Vs1 += difference
                 print 'Vs1 = {0} m/s'.format(Vs1)
                 
             elif change == 'Vs2':    
-                difference = int(raw_input('How much do you want to change it by? '))
+                difference = float(raw_input('How much do you want to change it by? '))
                 Vs2 += difference
                 print 'Vs2 = {0} m/s'.format(Vs2)
+                
             elif change == 'ar':
-                area_ratio = int(raw_input('What do you want the new nozzle area ratio to be? '))
+                area_ratio = float(raw_input('What do you want the new nozzle area ratio to be? '))
                 print 'New nozzle area ratio is {0}'.format(area_ratio)
             else:
-                difference = int(raw_input('How much do you want to change it by? '))
-                Vs3 += difference
-                print 'Vs3 = {0} m/s'.format(Vs3)
+                difference = float(raw_input('How much do you want to change it by? '))
+                Vsd1 += difference
+                print 'Vsd1 = {0} m/s'.format(Vsd1)
         
         elif test == 'x2-fulltheory-pressure':
             if secondary:
-                change_tuple = ('p1','p5','p8','ar', 'quit')
+                change_tuple = ('psd1','p1','p5','ar', 'quit')
             else:
                 change_tuple = ('p1','p5','ar', 'quit')
             
@@ -921,22 +970,23 @@ def main():
                 #quit()
                         
             elif change == 'p1':
-                difference = int(raw_input('How much do you want to change it by? '))
+                difference = float(raw_input('How much do you want to change it by? '))
                 p1 += difference
                 print 'p1 = {0} Pa'.format(p1)
                 
             elif change == 'p5':    
-                difference = int(raw_input('How much do you want to change it by? '))
+                difference = float(raw_input('How much do you want to change it by? '))
                 p5 += difference
                 print 'p5 = {0} Pa'.format(p5)
+                
             elif change == 'ar':
-                area_ratio = int(raw_input('What do you want the new nozzle area ratio to be? '))
+                area_ratio = float(raw_input('What do you want the new nozzle area ratio to be? '))
                 print 'New nozzle area ratio is {0}'.format(area_ratio)
             
-            else:
-                difference = int(raw_input('How much do you want to change it by? '))
-                p8 += difference
-                print 'p8 = {0} m/s'.format(p8)
+            elif change == 'psd1':
+                difference = float(raw_input('How much do you want to change it by? '))
+                psd1 += difference
+                print 'psd1 = {0} m/s'.format(psd1)
         else:
 
             change_tuple = ('ar', 'quit')
@@ -947,8 +997,9 @@ def main():
                 arbitrary == False
                 break
                 #quit()
+                
             elif change == 'ar':
-                area_ratio = int(raw_input('What do you want the new nozzle area ratio to be? '))
+                area_ratio = float(raw_input('What do you want the new nozzle area ratio to be? '))
                 print 'New nozzle area ratio is {0}'.format(area_ratio)
                            
 if __name__ == '__main__':
@@ -961,39 +1012,56 @@ if __name__ == '__main__':
         print "hadas85-fulltheory: fully theoretical demo of Hadas' 8.5km/s titan condition where fill pressure's are specified."
         print "hadas85-tunnel: run through of Hadas' 8.5km/s titan condition with shock speeds from the tunnel specified."
         print "chrishe-fulltheory: full theoretical demo of one of my He conditions with secondary driver."
+        print "dave-scramjet: a fully theoretical test of one of David Gildfind's scramjet conditions."
         demo = raw_input("Type one of the demo commands for a demo run or anything else to quit ")
         if demo == 'demo_s':
             print "This is a demo of pitot recreating Umar Sheikh's high speed air condition where shock speeds are guessed to find the fill pressure's he used"
             print "Fill pressure's we are aiming for are p1 = 3000 Pa, p5 = 10 Pa"
             print " "
-            sys.argv = ['pitot.py', '--test','x2-fulltheory-shock', '--Vs1','5997.0','--Vs2','12500.0']
+            sys.argv = ['pitot.py', '--test','x2-fulltheory-shock', '--Vs1','5997.0',
+                        '--Vs2','12500.0','--filename','demo_s.txt']
             main()
+            
         elif demo == "demo_p":
             print "This is demo of pitot recreating Umar Sheikh's high speed air condition where fill pressure's are specified."
             print " "            
-            sys.argv = ['pitot.py', '--p1','3000.0','--p5','10.0']
+            sys.argv = ['pitot.py', '--p1','3000.0','--p5','10.0','--filename','demo_p.txt']
             main()
+            
         elif demo == 'hadas85-fulltheory':
             print "This is the fully theoretical demo of pitot recreating Hadas' 8.5 km/s titan condition."
             print " "
             sys.argv = ['pitot.py', '--driver_gas','He:0.80,Ar:0.20','--test_gas','titan', 
-                        '--p1','3200.0','--p5','10.0', '--ar','3.0', '--conehead','yes']
-            main()   
+                        '--p1','3200.0','--p5','10.0', '--ar','3.0', '--conehead','yes'
+                        '--filename','hadas85-fulltheory']
+            main()  
+            
         elif demo == 'hadas85-tunnel':
             print "This is the demo of pitot recreating Hadas' 8.5 km/s titan condition with experimental shock speeds specified."
             print " "
             sys.argv = ['pitot.py', '--test','x2-test', '--driver_gas','He:0.80,Ar:0.20',
                         '--test_gas','titan', '--p1','3200.0','--p5','10.0', 
-                        '--Vs1','4100.0','--Vs2','8620.0','--ar','3.0', '--conehead','yes']
+                        '--Vs1','4100.0','--Vs2','8620.0','--ar','3.0', '--conehead','yes'
+                        '--filename','hadas85-tunnel.txt']
             main()
+            
         elif demo == 'chrishe-fulltheory':
             print "This is the demo of pitot recreating my 14 km/s 85%H2:15%He condition fully theoretically."
             print " "
-            sys.argv = ['pitot.py', '--test','x2-fulltheory-pressure', '--config','x2-sec-nozzle',
-                        '--driver_gas','He:1.0', '--test_gas','gasgiant_h215he',
-                        '--psd1','17500','--p1','4700','--p5','5.7']
+            sys.argv = ['pitot.py', '--test','x2-fulltheory-pressure', '--config',
+                        'x2-sec-nozzle','--driver_gas','He:1.0', '--test_gas',
+                        'gasgiant_h215he','--psd1','17500','--p1','4700',
+                        '--p5','5.7','--filename','chrishe-fulltheory.txt']
             main()
-
-    return_flag = main()
-    sys.exit(return_flag)
-
+            
+        elif demo == 'dave-scramjet':
+            print "This is the demo of pitot recreating one of Dave Gildfind's scramjet conditions."
+            print " "
+            sys.argv = ['pitot.py', '--test','x2-fulltheory-pressure', '--config',
+                        'x2-sec','--driver_gas','He:0.80,Ar:0.20', '--test_gas',
+                        'air','--psd1','100000','--p1','486000',
+                        '--p5','1476','--filename','dave-scramjet.txt']
+            main()
+    
+    else:
+        main()
