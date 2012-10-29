@@ -127,13 +127,13 @@ gas_models["van der Waals gas"] = van_der_Waals_gas
 gas_models["real gas Bender"] = real_gas_Bender
 gas_models["real gas MBWR"] = real_gas_MBWR
 gas_models["real gas REFPROP"] = real_gas_REFPROP
-gas_models["four temperature gas"] = four_temperature_gas
-gas_models["three temperature gas"] = three_temperature_gas
-gas_models["two temperature gas"] = two_temperature_gas
-gas_models["one temperature gas"] = one_temperature_gas
-gas_models["fully coupled one temperature gas"] = fully_coupled_one_temperature_gas
-gas_models["fully coupled two temperature gas"] = fully_coupled_two_temperature_gas
-gas_models["fully coupled four temperature gas"] = fully_coupled_four_temperature_gas
+gas_models["four temperature gas"] = four_T_gas
+gas_models["three temperature gas"] = three_T_gas
+gas_models["two temperature gas"] = two_T_gas
+gas_models["one temperature gas"] = one_T_gas
+gas_models["fully coupled one temperature gas"] = fully_coupled_one_T_gas
+gas_models["fully coupled two temperature gas"] = fully_coupled_two_T_gas
+gas_models["fully coupled four temperature gas"] = fully_coupled_four_T_gas
 
 function print_usage()
    print "Usage gasfile:"
