@@ -24,6 +24,17 @@ class TestGasFlow(unittest.TestCase):
         self.assertAlmostEqual(V2, 394.09, delta=1.0)
         self.assertAlmostEqual(Vg, 2605.9, delta=1.0)
         return
+        
+    def test_shock_given_V_with_ideal_guess(self):
+        s1 = Gas({'Air':1.0})
+        s1.set_pT(10.0, 300.0)
+        self.assertAlmostEqual(s1.rho, 1.1611e-4, delta=0.001)
+        s2 = s1.clone()
+        V2,Vg = normal_shock(s1, 14000.0, s2,{'gam':1.35,'R':571.49})
+        self.assertAlmostEqual(s2.p, 20335.0, delta=1.0)
+        self.assertAlmostEqual(s2.T, 32753.03, delta=1.0)
+        self.assertAlmostEqual(V2, 1496.26, delta=1.0)
+        self.assertAlmostEqual(Vg, 12503.74, delta=1.0)
 
     def test_shock_given_p_ratio(self):
         s1 = Gas({'Air':1.0})

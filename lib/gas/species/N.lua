@@ -8,6 +8,8 @@ N.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermo.inp'
 }
+N.atomic_constituents = {N=1}
+N.charge = 0
 N.gamma = {
    value = 5/3,
    units = 'non-dimensional',

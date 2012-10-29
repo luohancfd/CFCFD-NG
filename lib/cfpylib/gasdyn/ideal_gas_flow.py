@@ -98,6 +98,16 @@ def DS_Cv(M1, g=1.4):
     t2 = r2_r1(M1, g)
     return log(t1 * t2**g)
 
+def pitot_p(p1, M1, g=1.4):
+    "Returns the pitot pressure for a specified Mach number. Will shock the gas if required."
+    if M1 > 1.0:
+        p2 = p2_p1(M1,g)*p1
+        M2 = m2_shock(M1, g)
+        return p0_p(M2, g)*p2
+    else:
+        return p0_p(M1, g)*p1
+
+
 # -----------------------------------------------------------------
 # 1-D flow with heat addition (Rayleigh-line)
 

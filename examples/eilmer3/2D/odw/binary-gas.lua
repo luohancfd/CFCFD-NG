@@ -10,6 +10,8 @@ ignore_mole_fraction = 1.0e-15
 species = {'A', 'B', }
 
 A = {}
+A.atomic_constituents = {}
+A.charge = 0
 A.M = {
   value = 8.31451/287.0,
   reference = "Powers and Aslam, artifical gas.",
@@ -58,6 +60,8 @@ A.thermal_conductivity = {
 }
 
 B = {}
+B.atomic_constituents = {}
+B.charge = 0
 B.M = {
   value = 8.31451/287.0,
   reference = "Powers and Aslam, artifical gas.",

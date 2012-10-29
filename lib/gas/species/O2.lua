@@ -10,6 +10,8 @@ O2.M = {
    description = 'molecular mass',
    reference = 'from CEA2::thermo.inp'
 }
+O2.atomic_constituents = {O=2}
+O2.charge = 0
 O2.gamma = { 
    value = 1.4,
    units = 'non-dimensional',
