@@ -62,9 +62,15 @@ double
 One_level_electronic::
 s_eval_Cv_from_T( double T )
 {
-    // Ref: Bottin, B. "Aerothermodynamic model of an Inductively-Coupled Plasma
-    //                  Wind Tunnel" VKI PhD Thesis 1999, Eq. A.45
-    return R_/(T*T) * ( theta_*theta_ - theta_ );
+    return 0.0;
+}
+
+double
+One_level_electronic::
+s_eval_Q( double T, double A )
+{
+    UNUSED_VARIABLE(A);
+    return g_*exp( - theta_ / T );
 }
 
 /* ------- Two level electronic species energy mode ------- */
