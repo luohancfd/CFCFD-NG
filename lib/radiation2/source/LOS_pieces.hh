@@ -104,6 +104,8 @@ public:
     
     void clear();
 
+    double solve_for_divq_OT();
+
     double quick_solve_for_divq();
     
     double quick_solve_for_divq_in_blocks( int nblks );

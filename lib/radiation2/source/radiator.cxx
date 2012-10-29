@@ -212,7 +212,7 @@ Radiator::prep_x_pop_file()
     ofile << "# " + fname << endl
           << "# Column 1: Spatial location, x (m)" << endl;
     for ( int ilev=0; ilev<nlevs; ++ilev )
-    	ofile << "# Column " << ilev + 1 << ": Level population, N (particles/m**3)" << endl;
+    	ofile << "# Column " << ilev + 2 << ": Level population, N (particles/m**3)" << endl;
     
     ofile.close();
 }
