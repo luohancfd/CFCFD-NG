@@ -555,7 +555,7 @@ private:
     double s_eval_Cv_from_T( double T );
     double s_eval_Cp( const Gas_data &Q  ) { return s_eval_Cv_from_T(Q.T[iT_]); }
     double s_eval_Cp_from_T( double T  ) { return s_eval_Cv_from_T(T); }
-    double s_eval_Q( double T, double A ) { return 0.0; }
+    double s_eval_Q( double T, double A );
 };
 #else
 class Fully_coupled_diatom_internal : public Species_energy_mode {

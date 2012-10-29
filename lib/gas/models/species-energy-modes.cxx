@@ -1139,6 +1139,31 @@ s_eval_Cv_from_T( double T  )
     
     return ( u_dash * v - u * v_dash ) / ( v * v ) / m_;	// convert J/particle/K -> J/kg/K
 }
+
+double
+Fully_coupled_diatom_internal::
+s_eval_Q( double T, double A )
+{
+    // Loop over all rovibronic levels, sum up contributions from definition
+    double Q_total = 0.0;
+    for ( size_t ilev=0; ilev<elevs_.size(); ++ilev ) {
+	double E_el = elevs_[ilev]->E;
+	for ( int iV=0; iV<elevs_[ilev]->V_max; ++iV ) {
+	    double E_rot_0 = elevs_[ilev]->eval_E_rot(iV,0);
+	    double E_vib = elevs_[ilev]->eval_E_vib( iV ) + E_rot_0;
+	    for ( int iJ=0; iJ<elevs_[ilev]->J_max[iV]; ++iJ ){
+		double E_rot = elevs_[ilev]->eval_E_rot(iV,iJ) - E_rot_0;
+		double E_rot_dash = E_el + E_vib + E_rot;
+		double Q_rot_dash = elevs_[ilev]->g * double(2*iJ+1) * exp( - E_rot_dash / PC_k_SI / T );
+		if ( isnan(Q_rot_dash) || isinf( Q_rot_dash ) ) continue;
+		Q_total += Q_rot_dash;
+	    }
+	}
+    }
+
+    return Q_total;
+}
+
 #else
 Fully_coupled_diatom_internal::
 Fully_coupled_diatom_internal( int isp, double R, double min_massf, string lut_fname )
