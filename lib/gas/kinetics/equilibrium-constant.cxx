@@ -16,6 +16,7 @@ extern "C" {
 #include "equilibrium-constant.hh"
 #include "eq-const-from-thermo.hh"
 #include "eq-const-from-CEA-curves.hh"
+#include "eq-const-from-partition-functions.hh"
 
 using namespace std;
 
@@ -33,6 +34,8 @@ create_Equilibrium_constant(lua_State *L,
 												   create_Eq_const_from_thermo));
     ec_models.insert(pair<string, Equilibrium_constant* (*)(lua_State*, map<int,int>&, Gas_model&)>("from CEA curves",
 												   create_Eq_const_from_CEA_curves));
+    ec_models.insert(pair<string, Equilibrium_constant* (*)(lua_State*, map<int,int>&, Gas_model&)>("from partition functions",
+												   create_Eq_const_from_partition_functions));
     string model = get_string(L, -1, "model");
     
     if ( ec_models.find(model) == ec_models.end() ) {

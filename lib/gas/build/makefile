@@ -269,6 +269,7 @@ KINETICS_OBJECTS := chemical-kinetic-ODE-update.o \
 	species-pieces.o \
 	eq-const-from-thermo.o \
 	eq-const-from-CEA-curves.o \
+	eq-const-from-partition-functions.o \
 	equilibrium-constant.o \
 	generalised-Arrhenius.o \
 	Park-nonequilibrium.o \
@@ -645,6 +646,10 @@ eq-const-from-thermo.o : $(KINETICS)/eq-const-from-thermo.hh $(KINETICS)/eq-cons
 eq-const-from-CEA-curves.o : $(KINETICS)/eq-const-from-CEA-curves.hh $(KINETICS)/eq-const-from-CEA-curves.cxx \
 	$(KINETICS)/equilibrium-constant.hh $(MODELS)/chemical-species.hh $(LUA_INCLUDE_DIR)
 	$(CXX) $(CXXFLAG) $(KINETICS)/eq-const-from-CEA-curves.cxx -I$(LUA_INCLUDE_DIR)
+	
+eq-const-from-partition-functions.o : $(KINETICS)/eq-const-from-partition-functions.hh $(KINETICS)/eq-const-from-partition-functions.cxx \
+	$(KINETICS)/equilibrium-constant.hh $(LUA_INCLUDE_DIR)
+	$(CXX) $(CXXFLAG) $(KINETICS)/eq-const-from-partition-functions.cxx -I$(LUA_INCLUDE_DIR)
 
 equilibrium-constant.o : $(KINETICS)/equilibrium-constant.hh $(KINETICS)/equilibrium-constant.cxx \
 	$(MODELS)/gas-model.hh $(LUA_INCLUDE_DIR)

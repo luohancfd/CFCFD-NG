@@ -802,6 +802,18 @@ double Fully_coupled_diatomic_species::s_eval_entropy(const Gas_data &Q)
     return s_trans + s_int;
 }
 
+double Fully_coupled_diatomic_species::s_eval_partition_function( double T )
+{
+    // formation energy contribution
+    double Q = exp(-h_f_/R_/T);
+    // translational contribution
+    Q *= modes_[0]->eval_Q_from_T(T);
+    // internal contribution
+    Q *= fcd_int_->eval_Q_from_T(T);
+
+    return Q;
+}
+
 /* ------- Polyatomic species ------- */
 
 Polyatomic_species::Polyatomic_species( string name, string type, int isp, double min_massf, lua_State * L )

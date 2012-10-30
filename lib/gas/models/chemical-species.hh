@@ -142,7 +142,7 @@ protected:
     double s_eval_Cp(const Gas_data &Q);
     double s_eval_CEA_Gibbs_free_energy( double T );
     double s_eval_gibbs_free_energy(double T);
-    double s_eval_partition_function(double T);
+    virtual double s_eval_partition_function(double T);
 };
 
 class Atomic_species : public Chemical_species {
@@ -264,6 +264,8 @@ private:
     Fully_coupled_diatom_internal * fcd_int_;
     
     double s_eval_entropy(const Gas_data &Q);
+
+    double s_eval_partition_function(double T);
 };
 
 class Polyatomic_species : public Chemical_species {
