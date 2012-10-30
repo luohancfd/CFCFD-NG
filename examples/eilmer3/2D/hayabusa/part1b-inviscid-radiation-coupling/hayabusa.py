@@ -1,17 +1,24 @@
 ## \file hayabusa.py
 ## \brief Simulating the JAXA Hayabusa sample return capsule
-## \author DFP, 23-Nov-2009
-##
+## \author DFP, 30-Oct-2012
+## 
+## Part1b: Radiation coupled (and inviscid) simulation on a coarse grid 
 
 from cfpylib.gasdyn.billig import x_from_y, y_from_x
 from cfpylib.nm.zero_solvers import bisection
 from math import cos, sin, tan, sqrt, pi
+from cfpylib.flow.shock_layer_surface import ShockLayerSurface
 
 job_title = "JAXA Hayabusa sample return capsule."
 print job_title
 
 gdata.title = job_title
 gdata.axisymmetric_flag = 1
+
+#
+# 0. Setup the radiation model
+#
+select_radiation_model("rad-model.lua",1000)
 
 #
 # 1. Setup the gas model
@@ -45,7 +52,7 @@ M_inf = u_inf / Q.a
 p_inf = Q.p
 print "p_inf = %0.1f, M_inf = %0.1f" % ( p_inf, M_inf )
 inflow  = FlowCondition(p=p_inf, u=u_inf, v=0.0, T=[T_inf]*ntm, massf=massf_inf)
-initial = FlowCondition(p=p_inf/10.0, u=0.0, v=0.0, T=[T_inf]*ntm, massf=massf_inf)
+initial = ExistingSolution(rootName="hayabusa", solutionWorkDir="../part1-inviscid/", nblock=4, tindx=9999) 
 
 #
 # 3. Define the geometry
@@ -68,17 +75,8 @@ b = Node(-Rn*cos(theta),Rn*sin(theta), label='b')
 c = Node( b.x + ( D/2.0-b.y)/tan(theta), D/2.0, label='c')
 d = Node( 0.0, c.y - abs(c.x), label='d')
 
-# boundary nodes
-e = Node( 2.0*L, 0.0, label='e')
-f = Node( e.x, d.y, label='f')
-g = Node( e.x, c.y + D/8.0, label='g')
-
-# working nodes
-h = Node( c.x + D/8.0, c.y + D/8.0, label='h')
-i = Node( e.x - L/5.0, h.y )
-
 # inflow boundary nodes
-x_limit = e.x
+x_limit = c.x
 inflow_nodes = []
 np = 32
 y_top = by_scale * y_from_x(-x_limit/bx_scale, M_inf, theta=0.0, axi=1, R_nose=Rn)
@@ -88,7 +86,7 @@ for iy in range(np):
     x = - bx_scale * x_from_y(y/by_scale, M_inf, theta=0.0, axi=1, R_nose=Rn)
     inflow_nodes.append( Node(x,y) )
 
-# block0/1 break on inflow boundary
+# find intersection of surface normal with inflow boundary at the top most point
 global inflow_spline
 inflow_spline = Spline(inflow_nodes)
 def zero_func(y):
@@ -99,37 +97,14 @@ y_int = bisection( zero_func, by=0.0, uy=D )
 x_int = inflow_spline.eval_from_y(y_int).x
 
 # split the inflow spline
-west0_nodes = []; west1_nodes = []
+west_nodes = []
 for node in inflow_nodes:
-    if node.y < y_int: west0_nodes.append(node)
-    else: west1_nodes.append(node)
-west0_nodes.append( Node( x_int, y_int ) )
-west1_nodes.insert( 0, Node( x_int, y_int, label='int' ) )
+    if node.y < y_int: west_nodes.append(node)
+west_nodes.append( Node( x_int, y_int ) )
 
 # curves - block0
-west0 = Spline(west0_nodes)
-south0 = Line(west0_nodes[0],a)
-north0 = Line(west0_nodes[-1],c)
+west0 = Spline(west_nodes)
 east0 = Polyline( [Arc(a,b,o),Line(b,c)] )
-
-# curves - block1
-west1 = Spline(west1_nodes)
-south1 = north0
-north1 = Line(west1_nodes[-1],g)
-east1 = Bezier([c,h,i,g])
-
-# curves - block2
-north2 = east1
-east2 = Line(f,g)
-south2 = Line(d,f)
-west2 = Line(d,c)
-
-# curves - block3
-north3 = south2
-east3 = Line(e,f)
-south3 = Line(o,e)
-west3 = Line(o,d)
-
 #
 # 4. Define the blocks, boundary conditions and set the discretisation
 #
@@ -153,17 +128,17 @@ blk_0 = SuperBlock2D(psurf=make_patch(north0, east0, south0, west0),
 #
 # 5. Simulation control parameters 
 #
-gdata.viscous_flag = 0
+gdata.viscous_flag = 1
 gdata.flux_calc = ADAPTIVE
 gdata.max_time = Rn * 5 / u_inf    # 5 body lengths
-gdata.max_step = 230000
-gdata.dt = 1.0e-8
+gdata.max_step = 100
+gdata.dt = 1.0e-10
 gdata.reaction_time_start = Rn * 0.1 /u_inf
 gdata.stringent_cfl = 1
 gdata.dt_plot = Rn * 1 / u_inf    # 5 solutions
-gdata.cfl = 0.5
+gdata.cfl = 0.1
 gdata.cfl_count = 1
-gdata.print_count = 20
+gdata.print_count = 1
 
 #
 # 6. svg sketch parameters
