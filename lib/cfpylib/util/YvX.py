@@ -20,6 +20,9 @@ except:
     with_pylab = False
 else:
     with_pylab = True
+    
+def eval_gaussian(x,gamma):
+    return 1.0 / ( gamma * sqrt(2*pi) ) * exp( - x**2 / ( 2.0 * gamma**2 ) )
 
 class YvX:
     """a class describing structure containing some property Y against some property X"""
@@ -178,4 +181,34 @@ class YvX:
             print "scipy is required for interpolation"
             sys.exit()
         self.spline_fit = interpolate.splrep( self.x_array, self.y_array, s=s )
+    def apply_filter(self,name,params):
+        if name=="gaussian":
+            gamma = params["gamma"]
+            x_tmp = []; y_tmp = []
+            dx0 = self.x_array[1] - self.x_array[0]
+            x = -gamma * 5
+            while x < 0:
+                x_tmp.append(x); x+= dx0
+            for x in self.x_array:
+                x_tmp.append(x)
+            for x in x_tmp:
+                y = 0.0
+                for i,x_dash in enumerate(self.x_array):
+                    delta_x = x_dash - x
+                    if i==0: dx = 0.5 * ( self.x_array[1] - self.x_array[0] )
+                    elif i==(len(self.x_array) - 1): dx = 0.5 * ( self.x_array[-1] - self.x_array[-2] )
+                    else: dx = 0.5 * ( self.x_array[i+1] - self.x_array[i-1] )
+                    f = self.y_array[i]
+                    g = eval_gaussian(delta_x,gamma)
+                    y += f*g*dx
+                y_tmp.append(y)
+            self.x_array = array(x_tmp)
+            self.y_array = array(y_tmp)
+        else:
+            print "filter %d not implemented yet" % name
+            sys.exit()
+        
+                    
+            
+            
         
