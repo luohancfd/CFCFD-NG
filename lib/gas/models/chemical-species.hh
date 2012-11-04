@@ -247,6 +247,20 @@ public:
     Fully_coupled_diatom_internal * get_fcd_int_pointer()
     { return fcd_int_; }
 
+#   if TABULATED_COUPLED_DIATOMIC_MODES==0
+    int get_nlevs()
+    { return elevs_.size(); }
+
+    Diatom_electronic_level * get_elev_pointer(int ilev)
+    { return elevs_[ilev]; }
+#   else
+    int get_nlevs()
+    { return 0; }
+
+    Diatom_electronic_level * get_elev_pointer(int ilev)
+    { return NULL; }
+#   endif
+
 private:
     std::string oscillator_type_;
     bool polar_flag_;
