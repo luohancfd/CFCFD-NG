@@ -141,12 +141,15 @@ ode_solve(double x, double delta_x)
     
     // Apply radiative source term if it is present
     // NOTE:  - assuming the electronic mode is at the back of the vector
+    //        - now also allowing the fraction of div(q) applied to the electronic
+    //          mode to be other than 1.0 (this allows for static specific models where
+    //          a factor of zero will often be used)
     if ( rtmodel_ ) {
     	psflow.Q_rad = rtmodel_->eval_Q_rad( *psflow.Q );
     	double delta_Q_rad_kg = ( psflow.Q_rad / psflow.Q->rho ) * dt;
     	psflow.Q->e[0] += delta_Q_rad_kg;
     	if ( gmodel_->get_number_of_modes()>1 ) 
-    	    psflow.Q->e.back() += delta_Q_rad_kg;
+    	    psflow.Q->e.back() += delta_Q_rad_kg * rtmodel_->get_electronic_mode_factor();
     	gmodel_->eval_thermo_state_rhoe( *psflow.Q );
     }
     

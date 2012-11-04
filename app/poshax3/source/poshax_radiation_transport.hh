@@ -30,8 +30,12 @@ public:
     
     virtual double eval_Q_rad( Gas_data &Q ) = 0;
     
+    double get_electronic_mode_factor()
+    { return electronic_mode_factor_; }
+
 protected:
     int spectrally_resolved_;
+    double electronic_mode_factor_;
     
     RadiationSpectralModel* rsm_;
 };
