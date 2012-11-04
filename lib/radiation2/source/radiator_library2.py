@@ -1056,6 +1056,43 @@ reac.append("backward_rate_coeff_model = 'ZeroRate',")
 CN_reactions.append(reac)
 #
 CN.available_QSS_models["Park"] = DiatomicQSSModel(name="Park",noneq_elevs=CN_noneq_elevs,noneq_elev_labels=CN_noneq_elev_labels,reactions=CN_reactions)
+#
+CN_noneq_elevs = "0, 1, 2, 3, 4, "
+CN_noneq_elev_labels = "'X', 'A', 'B', 'a', 'D', "
+CN_reactions = []
+# Ref: "Shock layer radiation modeling and uncertainty for Mars entry"
+reac = []
+reac.append("type = 'electron_impact_excitation',")
+reac.append("equation = 'CN_X + e- <=> CN_A + e-',")
+reac.append("forward_rate_coeff_model = 'GeneralisedArrhenius',")
+reac.append("k_f = { A = 3.860e+15, n = 0.2, T_a = 18303.0 },")
+reac.append("backward_rate_coeff_model = 'FromEquilibriumConstant',")
+CN_reactions.append(reac)
+reac = []
+reac.append("type = 'electron_impact_excitation',")
+reac.append("equation = 'CN_X + e- <=> CN_B + e-',")
+reac.append("forward_rate_coeff_model = 'GeneralisedArrhenius',")
+reac.append("k_f = { A = 4.113e+14, n = 0.39, T_a = 40428.0 },")
+reac.append("backward_rate_coeff_model = 'FromEquilibriumConstant',")
+CN_reactions.append(reac)
+reac = []
+reac.append("type = 'electron_impact_excitation',")
+reac.append("equation = 'CN_X + e- <=> CN_a + e-',")
+reac.append("forward_rate_coeff_model = 'GeneralisedArrhenius',")
+reac.append("k_f = { A = 3.089e+13, n = 0.35, T_a = 47323.0 },")
+reac.append("backward_rate_coeff_model = 'FromEquilibriumConstant',")
+CN_reactions.append(reac)
+reac = []
+reac.append("type = 'electron_impact_excitation',")
+reac.append("equation = 'CN_X + e- <=> CN_D + e-',")
+reac.append("forward_rate_coeff_model = 'GeneralisedArrhenius',")
+reac.append("k_f = { A = 2.451e+14, n = 0.25, T_a = 79368.0 },")
+reac.append("backward_rate_coeff_model = 'FromEquilibriumConstant',")
+CN_reactions.append(reac)
+#
+# FIXME: incomplete!
+#
+CN.available_QSS_models["Johnston"] = DiatomicQSSModel(name="Johnston",noneq_elevs=CN_noneq_elevs,noneq_elev_labels=CN_noneq_elev_labels,reactions=CN_reactions)
 # =========================================
 
 #  ==== CO ===========================
