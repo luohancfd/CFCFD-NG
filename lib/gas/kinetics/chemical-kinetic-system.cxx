@@ -256,3 +256,15 @@ passes_system_test(valarray<double> &y)
 	return true;
     }
 }
+
+int
+Chemical_kinetic_system::
+get_directional_rates( vector<double> &w_f, vector<double> &w_b )
+{
+    for ( size_t ir = 0; ir < reaction_.size(); ++ir ) {
+        w_f.push_back( reaction_[ir]->w_f() );
+        w_b.push_back( reaction_[ir]->w_b() );
+    }
+
+    return SUCCESS;
+}

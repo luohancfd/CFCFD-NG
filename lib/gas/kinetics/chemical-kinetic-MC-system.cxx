@@ -490,3 +490,15 @@ eval_chemistry_energy_coupling_source_terms( Gas_data &Q, const valarray<double>
     
     return SUCCESS;
 }
+
+int
+Chemical_kinetic_MC_system::
+get_directional_rates( vector<double> &w_f, vector<double> &w_b )
+{
+    for ( size_t ir = 0; ir < reaction_.size(); ++ir ) {
+        w_f.push_back( reaction_[ir]->w_f() );
+        w_b.push_back( reaction_[ir]->w_b() );
+    }
+
+    return SUCCESS;
+}

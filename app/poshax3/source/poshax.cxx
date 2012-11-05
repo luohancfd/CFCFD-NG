@@ -195,6 +195,15 @@ int main(int argc, char *argv[])
 	exit(BAD_INPUT_ERROR);
     }
     
+    bool write_reaction_rates;
+    if ( !cfg.parse_boolean("controls", "write_reaction_rates", write_reaction_rates,
+                           false) ) {
+        cout << "Error reading write_reaction_rates in [controls] section of " << input
+             << endl
+             << "Exiting program!\n";
+        exit(BAD_INPUT_ERROR);
+    }
+
     // Parse the radiation output options
     double rad_dx;
     cfg.parse_double("radiation", "rad_dx", rad_dx, 0.0);
@@ -452,6 +461,15 @@ int main(int argc, char *argv[])
     }
     vector<IntensityProfile> I_vec(lambda_min.size()+1);
     
+    // Prep output file for reaction rates if requested
+    ofstream reaction_rates_outfile;
+    if ( write_reaction_rates ) {
+        reaction_rates_outfile.open( "reaction_rates.txt" );
+        reaction_rates_outfile << "# Column 1: x location (m)" << endl;
+        reaction_rates_outfile << "# Columns 2 onwards: net reaction rate, one column for each reaction" << endl;
+        reaction_rates_outfile << setprecision(6) << showpoint;
+    }
+
     double x = 0.0, new_dx, next_plot_x = plot_dx;
     int count = 0;
     int TS_count = 0;
@@ -489,6 +507,8 @@ int main(int argc, char *argv[])
 	    	    	   	   	   	   	   	    irad );
 	    	emissions_outfile << endl;
 	    }
+	    if ( write_reaction_rates )
+	        psr->write_reaction_rates_to_file( x, reaction_rates_outfile );
 	    next_plot_x += plot_dx;
 	}
 	if ( next_spectra_x > 0.0 && x > next_spectra_x ) {
@@ -589,6 +609,9 @@ int main(int argc, char *argv[])
     	emissions_outfile.close();
     }
     if ( TS ) delete TS;
+
+    if ( write_reaction_rates )
+        reaction_rates_outfile.close();
 
     cout << "Data created in: " << output_file_name << endl;
     cout << "Done.\n";

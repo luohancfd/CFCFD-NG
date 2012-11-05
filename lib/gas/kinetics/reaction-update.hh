@@ -34,10 +34,14 @@ public:
     int eval_chemistry_energy_coupling_source_terms( Gas_data &Q, std::vector<double> &dedt )
     { return s_eval_chemistry_energy_coupling_source_terms( Q, dedt ); }
 
+    int get_directional_rates( std::vector<double> &w_f, std::vector<double> &w_b )
+    { return s_get_directional_rates( w_f, w_b ); }
+
 protected:
     virtual int s_update_state(Gas_data &Q, double dt, double &dt_suggest, Gas_model *gm) = 0;
     virtual int s_rate_of_change(Gas_data &Q, std::vector<double> &dcdt) = 0;
     virtual int s_eval_chemistry_energy_coupling_source_terms( Gas_data &Q, std::vector<double> &dedt ) = 0;
+    virtual int s_get_directional_rates( std::vector<double> &w_f, std::vector<double> &w_b ) = 0;
 
 };
 

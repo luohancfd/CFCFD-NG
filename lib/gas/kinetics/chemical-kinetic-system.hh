@@ -40,6 +40,8 @@ public:
     Reaction* get_reaction( int ir )
     { return reaction_[ir]; }
 
+    int get_directional_rates( std::vector<double> &w_f, std::vector<double> &w_b );
+
 private:
     // A list of Reactions making up the reaction scheme
     std::vector<Reaction*> reaction_;

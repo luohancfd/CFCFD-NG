@@ -33,6 +33,8 @@ private:
     int s_update_state(Gas_data &Q, double dt, double &dt_suggest, Gas_model *gm=0);
     int s_rate_of_change(Gas_data &Q, std::vector<double> &dcdt);
     int s_eval_chemistry_energy_coupling_source_terms( Gas_data &Q, std::vector<double> &dedt );
+    int s_get_directional_rates( std::vector<double> &w_f, std::vector<double> &w_b )
+    { return cks_->get_directional_rates(w_f,w_b); }
 
     int perform_increment(Gas_data &Q, double dt, double &dt_suggest);
     int estimate_appropriate_subcycle(double t_interval, double dt_suggest,

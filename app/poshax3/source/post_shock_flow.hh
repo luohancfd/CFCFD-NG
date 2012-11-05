@@ -11,6 +11,8 @@
 #define POST_SHOCK_FLOW_HH
 
 #include <string>
+#include <fstream>
+
 
 #include "../../../lib/nm/source/zero_finders.hh"
 #include "../../../lib/nm/source/ode_solver.hh"
@@ -41,6 +43,8 @@ public:
 public:
     virtual double increment_in_space(double x, double delta_x) = 0;
     
+    void write_reaction_rates_to_file( double x, std::ofstream &oss );
+
 public:
     Flow_state psflow;
     Flow_state icflow;

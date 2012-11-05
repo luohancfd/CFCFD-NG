@@ -87,6 +87,19 @@ Post_shock_flow( Flow_state &ic, Gas_model * gm, Reaction_update * ru,
 Post_shock_flow::
 ~Post_shock_flow() {}
 
+void
+Post_shock_flow::
+write_reaction_rates_to_file( double x, ofstream &ofile )
+{
+    vector<double> w_f, w_b;
+    rupdate_->get_directional_rates(w_f,w_b);
+    ofile << setw(10) << x;
+    for ( size_t ir=0; ir<w_f.size(); ++ir ) {
+        ofile << setw(20) << w_f[ir] - w_b[ir];
+    }
+    ofile << endl;
+}
+
 /******************************************************************************/
 
 Loosely_coupled_post_shock_flow::
