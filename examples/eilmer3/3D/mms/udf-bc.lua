@@ -104,11 +104,23 @@ function ghost_cell(args)
       ghost1 = fill_table(ghost1, cell.x, cell.y)
       cell = sample_flow(block_id, i+2, j, k)
       ghost2 = fill_table(ghost2, cell.x, cell.y)
-   else -- WEST
+   elseif args.which_boundary == WEST then
       cell = sample_flow(block_id, i-1, j, k)
       ghost1 = fill_table(ghost1, cell.x, cell.y)
       cell = sample_flow(block_id, i-2, j, k)
       ghost2 = fill_table(ghost2, cell.x, cell.y)
+   elseif args.which_boundary == TOP then
+      cell = sample_flow(block_id, i, j, k+1)
+      ghost1 = fill_table(ghost1, cell.x, cell.y)
+      cell = sample_flow(block_id, i, j, k+2)
+      ghost2 = fill_table(ghost2, cell.x, cell.y)
+   elseif args.which_boundary == BOTTOM then
+      cell = sample_flow(block_id, i, j, k-1)
+      ghost1 = fill_table(ghost1, cell.x, cell.y)
+      cell = sample_flow(block_id, i, j, k-2)
+      ghost2 = fill_table(ghost2, cell.x, cell.y)
+   else
+      print("ghost-cell: We just fell through a hole in the floor.")
    end
    return ghost1, ghost2
 end
