@@ -581,6 +581,22 @@ double Gaussian_Lorentzian_hybrid::eval( double nu, double delta_nu )
     exit( NOT_IMPLEMENTED_ERROR );
 }
 
+Gaussian_profile::Gaussian_profile(double gamma_G, double nu_sample)
+ : ApparatusFunction("Gaussian_profile",nu_sample), gamma_G( gamma_G )
+{
+    gamma_star = gamma_G;
+}
+
+Gaussian_profile::~Gaussian_profile() {}
+
+double Gaussian_profile::eval( double nu, double delta_nu )
+{
+    double lambda_Ang = nu2lambda(nu) * 10.0;
+    double gamma_G_Hz = gamma_G / lambda_Ang * nu;
+    double b_V = eval_Gaussian_profile( delta_nu, gamma_G_Hz );
+    return sqrt(b_V);
+}
+
 /* ------------ SpectralIntensity class ------------ */
 
 SpectralIntensity::SpectralIntensity()

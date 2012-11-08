@@ -322,6 +322,17 @@ public:
     double f_pow;
 };
 
+class Gaussian_profile : public ApparatusFunction {
+public:
+    Gaussian_profile(double gamma_G, double nu_sample);
+
+    ~Gaussian_profile();
+
+    double eval( double nu, double delta_nu );
+public:
+    double gamma_G;
+};
+
 
 /* Some other useful functions */
 
