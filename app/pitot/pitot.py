@@ -950,10 +950,15 @@ def main():
             # Need to check whether the pressure are the same
             if PRINT_STATUS: print "Computed conehead pressure is {0} Pa".format(states['s10c'].p)
 
-        if test =="fulltheory-pressure": #restore the fill pressure's back to normal
-            if shock_switch: 
-                states['s1'].p = states['s1'].p*2.0
-                states['s5'].p = states['s5'].p*2.0           
+        if test == "fulltheory-pressure" and shock_switch: #restore the fill pressure's back to normal
+            states['s1'].p = states['s1'].p*2.0
+            states['s5'].p = states['s5'].p*2.0
+            
+        if test == "fulltheory-shock" and shock_switch: #cut fill pressure's in half at the end
+            states['s1'].p = states['s1'].p*2.0
+            states['s5'].p = states['s5'].p*2.0
+                
+        
       
 #--------------------------- output --------------------------------
 
@@ -990,6 +995,15 @@ def main():
         test_gas_used = 'Facility is {0}. Test gas is {1}. Driver gas is {2}'.format(facility,states['s1'].reactants,driver_gas)        
         print test_gas_used
         output.write(test_gas_used + '\n')
+        
+        if shock_switch:
+            shock_warning1 = "NOTE: a reflected shock was done into the shock tube and as such,"
+            print shock_warning1
+            output.write(shock_warning1 + '\n')
+            
+            shock_warning2 = "fill pressure's have been artifically modified by the code to match with xpt."
+            print shock_warning2
+            output.write(shock_warning2 + '\n')
 
         if secondary:
             secondary_shockspeeds = "Vsd1 = {0:.2f} m/s, Msd1 = {1:.2f}".format(Vsd1,Msd1)
@@ -1259,8 +1273,8 @@ if __name__ == '__main__':
             print " "
             sys.argv = ['pitot.py', '--test','fulltheory-shock', '--config',
                         'sec-nozzle','--driver_gas','He:0.80,Ar:0.20', '--test_gas',
-                        'air','--Vsd1','4290.0','--Vs1','1228.0',
-                        '--Vs2','2746.0','--filename','dave-scramjet-s.txt']
+                        'air','--Vsd1','4290.0','--Vs1','1588.0',
+                        '--Vs2','3424.0','--filename','dave-scramjet-s.txt']
             main()
         
         elif demo == 'dave-scramjet-tunnel':
