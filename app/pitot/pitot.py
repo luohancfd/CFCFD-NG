@@ -5,7 +5,7 @@ pitot.py: Equilibrium X2 expansion tube condition builder
 
 This program can be used to estimate the flow conditions for a shock-processed 
 flow for an expansion tube. It is currently setup to work primarily with the 
-X2 expansion tube at the University of QLD, but I daresay it could be
+X2 and X3 expansion tube's at the University of QLD, but I daresay it could be
 expanded (excuse the pun) to use other facilities without too much effort.
 
 The gas is assumed to remain in thermochemical equilibrium and the flow 
@@ -15,17 +15,20 @@ shock waves and expansion fans.
 The aim of the program is for it to be versatile, and it can do a number of
 different calculations and configurations using different command line arguments:
 
-* x2 with and without a pure He secondary driver tube and/or nozzle
-* x2's 3 different driver conditions currently (100%He,80%He:20%Ar,90%He:10%Ar)
+* expansion tube with and without a pure He secondary driver tube and/or nozzle
+* different driver conditions currently (100%He,80%He:20%Ar,90%He:10%Ar for X2, 60%He:40%Ar for X3)
 * choosing shock speeds to give certain fill pressures in the tube
 * choosing fill pressures to give certain shock speeds
 * inputing experimental data of fill pressures and shock speeds to 'fill in the gaps' so to speak
+* the code has been setup to do high total pressure conditions where a shock
+  propagates into the shock tube from the secondary driver (instead of the usual
+  expansion). I don't think this feature is working very well at the moment though.. 
  
 When run as an application, this program takes its input as
 command line arguments, performs the requested calculations and prints a table
-with all of the results to the screen. Any changes you want to make can then
-be made to certain parameters, or you can quit the program. These results
-are also conveniently printed to a text file.
+with all of the results to the screen. Any changes you want to make can then 
+be made to certain parameters, or you can quit the program. 
+These results are also conveniently printed to a text file.
 
 To see what specific inputs are required, start the program as::
 
@@ -34,16 +37,16 @@ $ pitot.py --help
 Which particular input parameters you need to supply depends on the
 chosen task, however, a fully theoretical basic x2 condition can be ran by using::
 
-$ pitot.py --test x2-fulltheory-pressure --config x2-nozzle --driver_gas He:1.0 --test_gas air --p1 3000.0 --p5 10.0
+$ pitot.py --facility x2 --test fulltheory-pressure --config nozzle --driver_gas He:1.0 --test_gas air --p1 3000.0 --p5 10.0
 
-due to the some of the default values this can be shortened down to this though::
+due to the some of the default values this can be shortened down to this once 
+you get the feel of it everything:
 
 $ pitot.py --driver_gas He:1.0 --test_gas air --p1 3000.0 --p5 10.0
     
 The full output is a bit too much to include here, but you should see that the
-stagnation enthalpy leaving the nozzle is 85.093 MJ/kg and that at the exit
-of the nozzle (state 8) the flow has a pressure of 1320.0 Pa and a static
-temperature of 3028.3 K, with a flow speed of 12592.2 m/s at Mach 11.81.
+stagnation enthalpy leaving the nozzle is 62.87 MJ/kg, and the velocity exiting
+the nozzle (V in state 8) should be 10639.5 m/s.
 
 A brief description of the states can be found below:
     
@@ -54,8 +57,8 @@ State 3s: primary driver after steady expansion to the throat mach number
 
 If secondary driver is used:
 State sd1 : secondary driver fill condition (pure He)
-State sd2: shocked second driver gas
-State sd3: state 11 unsteadyily expanding into the secondary driver tube
+State sd2: shocked secondary driver gas
+State sd3: state 11 unsteadily expanding into the secondary driver tube
 
 State 1: shock tube fill condition (test gas)
 State 2: shocked test gas
@@ -77,7 +80,7 @@ depends upon functions from the cfpylib library to do the specific
 calculations.
 
 Someday I'll make a proper makefile for this guy, but for now,
-just copy pitot.py into your e3bin.
+just make sure cfpylib is in your Python $PATH.
 
 You may then call upon pitot.py so long as you have suitable
 enviroment variables set, as per the installation instructions
@@ -115,6 +118,8 @@ available to me as part of cfpylib inside the cfcfd code collection.
         and shock speeds from testing with pitot.
     30-Oct-2012: modified some of the notation to add x3 as a facility. Tested that all
         of the x2 simulations still worked, and then uploaded the new version.
+    8-Nov-2012: added the final stuff for the scramjet conditions, I don't know
+        how well it's working now, but for better or for worse, it's in there.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -130,7 +135,7 @@ from cfpylib.gasdyn.cea2_gas import Gas, make_gas_from_name
 from cfpylib.gasdyn.gas_flow import *
 from cfpylib.gasdyn.ideal_gas_flow import p0_p, pitot_p
 
-VERSION_STRING = "24-Oct-2012"
+VERSION_STRING = "08-Nov-2012"
 
 DEBUG_PITOT = False
 
@@ -281,6 +286,10 @@ def main():
     op.add_option('--filename',dest='filename',type='string',default='x2run.txt',
                   help=("filename the result will be saved to "
                           "defaults to x2run.txt"))
+    op.add_option('--expansion',dest='expansion',type='float',default='1.0',
+                  help=("Use this to expand the test gas further into the acceleration tube "
+                        "Basically just multiplies V7 by this percentage before the final expansion is done "
+                        "Defaults to 1.0 "))
     op.add_option('--shock_switch',dest='shock_switch', default=None,
                   help=("Used to trigger a shock instead of an expansion from the secondary driver gas moving into the shock tube"))
     
@@ -304,6 +313,7 @@ def main():
     area_ratio = opt.ar
     conehead = opt.conehead
     shock_switch = opt.shock_switch
+    expansion = opt.expansion
 
     bad_input = False
 
@@ -427,6 +437,8 @@ def main():
             if psd1 is None:
                 print "Need to supply a float value for psd1."
                 bad_input = True
+            if Vsd1 > Vs1:
+                shock_switch = True
             secondary = True
             nozzle = True    
         elif config == 'sec':
@@ -436,6 +448,8 @@ def main():
             if psd1 is None:
                 print "Need to supply a float value for psd1."
                 bad_input = True
+            if Vsd1 > Vs1:
+                shock_switch = True
             secondary = True
             nozzle = False    
         elif config == 'nozzle':
@@ -652,21 +666,38 @@ def main():
 
             return (V2g - V3g)/V2g
             
-        def error_in_velocity_shock_tube_reflected_shock_pressure_iterator(p1, 
-                                                   shocking_state=states[shock_tube_expansion], 
-                                                   shock_start_V=V[shock_tube_expansion], 
-                                                    state1=states['s1'],
-                                                    state2=states['s2'],Vs1=Vs1):
+        def p1_reflected_iterator(p1, statesd2=states[shock_tube_expansion], 
+                                  Vsd2g=V[shock_tube_expansion], state1=states['s1'], 
+                                  state2=states['s2'], state3=states['s3'], Vs1=Vs1):
             """Compute the velocity mismatch for a given pressure ratio across the reflected
                 shock from the secondary driver into the shock tube. 
                 
                 Used when Vsd > Vs1"""
                         
-            print "current guess for p1 = {0} Pa".format(p1)            
-            
+            print "current guess for p1 = {0} Pa".format(p1)
+
             state1.set_pT(p1,300.0) #set s1 at set pressure and ambient temp
             
-            (V2, V2g) = normal_shock(state1, Vs1, state2)
+            V2, V2g = normal_shock(state1, Vs1, state2)
+            
+            def reflected_shock_speed_iterator(Vr,statesd2=statesd2,
+                                               Vsd2g=Vsd2g, state3=state3,
+                                               V2g=V2g):
+                """iterates out the reflected shock speed that gives the right velocity behind
+                    a normal shock."""
+        
+                print "Current guess for Vr = {0} m/s".format(Vr)
+        
+                V3, V3g = normal_shock(statesd2, Vsd2g+Vr, state3)
+        
+                return (V3-(V2g+Vr))/V3
+            
+            Vr = secant(reflected_shock_speed_iterator, 100.0, 200.0, tol=1.0e-4)
+        
+            V3,V3g = normal_shock(statesd2,Vsd2g+Vr,state3)
+        
+            return (state3.p-state2.p)/state2.p
+                
             
             #Across the contact surface, p3 == p2
             p3 = state2.p
@@ -706,32 +737,34 @@ def main():
         
             return (V2g - V3g)/V2g
 
-        def error_in_velocity_shock_tube_reflected_shock_shock_speed_iterator(Vs1,
-                                                    shocking_state=states[shock_tube_expansion], 
-                                                    shocking_start_V=V[shock_tube_expansion],                    
-                                                    state1=states['s1'], state2=states['s2']):
-            """Compute the velocity mismatch for a given pressure ratio across the reflected
-                shock from the secondary driver into the shock tube. 
-                
-                Used when Vsd > Vs1. will need a switch for this...
+        def primary_shock_speed_reflected_iterator(Vs1,statesd2=states[shock_tube_expansion],
+                                                   Vsd2g=V[shock_tube_expansion],state1=states['s1'],
+                                                   state2=states['s2'],state3=states['s3']):
+            """The other new iterator for pitot. Has another iterator inside it, will take
+            AGES to run. Oh well, no other choice as far as I see."""
+        
+            print "Current guess for Vs1 = {0} m/s".format(Vs1)
             
-                Make sure you set the fill pressure in state 1 before you start!"""
-            
-            print "current guess for Vs1 = {0} m/s".format(Vs1)            
-            
-            (V2, V2g) = normal_shock(state1, Vs1, state2)
-            
-            #Across the contact surface, p3 == p2
-            p3 = state2.p
-            
-            print 'shocking state psd2 = {0} Pa, p3 = {1} Pa, p2/p1 = {2}'.format(shocking_state.p,p3,p3/shocking_state.p)
-            
-            # therefore we know the required pressure ratio across our shock
-            (Vs1found, V3, V3g, state3) = normal_shock_p2p1(shocking_state, p3/shocking_state.p)
-                       
-            print 'V2g = {0} m/s, V3g = {1} m/s, difference = {2}'.format(V2g,V3g,(V2g - V3g)/V2g)
+            V2, V2g = normal_shock(state1, Vs1, state2)
+        
+            def reflected_shock_speed_iterator(Vr,statesd2=statesd2,
+                                               Vsd2g=Vsd2g, state3=state3,
+                                               V2g=V2g):
+                """iterates out the reflected shock speed that gives the right velocity behind
+                    a normal shock."""
+        
+                print "Current guess for Vr = {0} m/s".format(Vr)
+        
+                V3, V3g = normal_shock(statesd2, Vsd2g+Vr, state3)
+        
+                return (V3-(V2g+Vr))/V3
+        
+            Vr = secant(reflected_shock_speed_iterator, 100.0, 200.0, tol=1.0e-4)
+        
+            V3,V3g = normal_shock(statesd2,Vsd2g+Vr,state3)
+        
+            return (state3.p-state2.p)/state2.p
 
-            return (V2g - V3g)/V2g   
 
 #----------------------- shock tube calculations --------------------------------                           
             
@@ -740,7 +773,7 @@ def main():
                 if Vsd1 > Vs1: #we get a shock into the shock tube, not an expansion
                     shock_switch = True #flip over this switch
                     if PRINT_STATUS: print "Vsd1 is a stronger shock than Vs1. Therefore a normal shock processes the secondary driver gas moving into the shock tube."
-                    p1 = secant(error_in_velocity_shock_tube_reflected_shock_pressure_iterator, 1000.0, 100000.0, tol=1.0e-3,limits=[100.0,1000000.0])
+                    p1 = secant(p1_reflected_iterator, 1000.0, 100000.0, tol=1.0e-3,limits=[100.0,1000000.0])
                 else: #same expansion as we're used to
                     if PRINT_STATUS: print "Start unsteady expansion of the secondary driver gas into the shock tube."
                     p1 = secant(error_in_velocity_shock_tube_expansion_pressure_iterator, 1000.0, 100000.0, tol=1.0e-3,limits=[100.0,1000000.0])
@@ -748,7 +781,6 @@ def main():
                 if PRINT_STATUS: print "Start unsteady expansion of the driver gas into the shock tube."
                 p1 = secant(error_in_velocity_shock_tube_expansion_pressure_iterator, 1000.0, 100000.0, tol=1.0e-3,limits=[100.0,1000000.0])
 
-           
             if PRINT_STATUS: print "From secant solve: p1 = {0} Pa".format(p1)
             #start using p1 now, compute states 1,2 and 3 using the correct p1
             if PRINT_STATUS: print "Once p1 is known, find conditions at state 1 and 2."
@@ -757,7 +789,11 @@ def main():
         elif test =="fulltheory-pressure": #get Vs1 for our chosen fill pressure
             if shock_switch: #if we've been told to do a shock here instead of an expansion, do a shock instead of an expansion
                 if PRINT_STATUS: print "The shock switch is turned on, therefore doing a shock here instead of the normal expansion... Turn this off if you didn't want it"
-                Vs1 = secant(error_in_velocity_shock_tube_reflected_shock_shock_speed_iterator, 2000.0, 4000.0, tol=1.0e-3,limits=[500.0,1000000.0])
+                if PRINT_STATUS: print "Current settings with the shock switch turned on here HALF the selected p1 and p5 to match experiment."
+                if PRINT_STATUS: print "the fill pressure's will be returned back to normal when the results are printed at the end..."
+                states['s1'].p = states['s1'].p/2.0
+                states['s5'].p = states['s5'].p/2.0
+                Vs1 = secant(primary_shock_speed_reflected_iterator, 2000.0, 4000.0, tol=1.0e-3,limits=[500.0,1000000.0])
             else: #just do the expansion
                 Vs1 = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, 2000.0, 4000.0, tol=1.0e-3,limits=[1000.0,1000000.0])
             if PRINT_STATUS: print "From secant solve: Vs1 = {0} m/s".format(Vs1)
@@ -766,7 +802,23 @@ def main():
         
         (V2, V['s2']) = normal_shock(states['s1'], Vs1, states['s2'])
         if shock_switch: #do a shock here if required
-            (Vs1found, V3, V['s3'], states['s3']) = normal_shock_p2p1(states[shock_tube_expansion], states['s2'].p/states[shock_tube_expansion].p)
+            V['s3'] = V['s2']
+            #need to back out Vr again here, for now I was lazy and put the function back in:
+            if PRINT_STATUS: print "Need to reiterate to find Vr again here..."   
+            def reflected_shock_speed_iterator(Vr,statesd2=states['sd2'],
+                                               Vsd2g=V[shock_tube_expansion],
+                                                state3=states['s3'], V2g=V['s2']):
+                """iterates out the reflected shock speed that gives the right velocity behind
+                    a normal shock."""
+        
+                print "Current guess for Vr = {0} m/s".format(Vr)
+        
+                V3, V3g = normal_shock(statesd2, Vsd2g+Vr, state3)
+        
+                return (V3-(V2g+Vr))/V3
+            
+            Vr = secant(reflected_shock_speed_iterator, 100.0, 200.0, tol=1.0e-4)
+            (V3,Vjunk) = normal_shock(states['sd2'],V[shock_tube_expansion]+Vr,states['s3'])
         else:
             V['s3'], states['s3'] = finite_wave_dv('cplus', V[shock_tube_expansion], states[shock_tube_expansion], V['s2'])
         
@@ -824,7 +876,7 @@ def main():
             
             #Across the contact surface, p3 == p2
             p7 = state6.p
-            
+                       
             # Across the expansion, we get a velocity, V7g.
             V7g, state7 = finite_wave_dp('cplus', V2g, state2, p7)
 
@@ -833,7 +885,11 @@ def main():
 #---------------------- acceleration tube calculations -----------------------
         
         if test == 'fulltheory-shock': #get p5 for our chosen shock speed
-            p5 = secant(error_in_velocity_s2_expansion_pressure_iterator, 10.0, 50.0, tol=1.0e-3,limits=[4.0,1000.0])
+            #put two sets of starting guesses here to try and make code that works will all conditions
+            if Vs2 > 4000.0:
+                p5 = secant(error_in_velocity_s2_expansion_pressure_iterator, 10.0, 30.0, tol=1.0e-3,limits=[4.0,1000.0])
+            else:
+                p5 = secant(error_in_velocity_s2_expansion_pressure_iterator, 400.0, 500.0, tol=1.0e-3,limits=[20.0,1000.0])
             if PRINT_STATUS: print "From secant solve: p5 = {0} Pa".format(p5)
             
             #start using p5 now, compute states 5,6 and 7 using the correct p5
@@ -841,13 +897,17 @@ def main():
             states['s5'].set_pT(p5,T0)
             
         elif test == 'fulltheory-pressure': #compute the shock speed for the chosen fill pressure, uses Vs1 as starting guess
-            Vs2 = secant(error_in_pressure_s2_expansion_shock_speed_iterator, Vs1+3000.0, 12000.0, tol=1.0e-3,limits=[2500.0,100000.0])
+            #put two sets of starting guesses here to try and make more stuff work
+            if Vs1 < 2000.0:
+                Vs2 = secant(error_in_pressure_s2_expansion_shock_speed_iterator, Vs1+3000.0, 12000.0, tol=1.0e-3,limits=[2500.0,100000.0])
+            else:
+                Vs2 = secant(error_in_pressure_s2_expansion_shock_speed_iterator, Vs1+3000.0, 12000.0, tol=1.0e-3,limits=[2500.0,100000.0])
             if PRINT_STATUS: print "From secant solve: Vs2 = {0} m/s".format(Vs2)
             #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
             if PRINT_STATUS: print "Once Vs2 is known, find conditions at state 5 and 6."            
             
         (V6, V['s6']) = normal_shock(states['s5'], Vs2, states['s6'],ideal_gas_guess)
-        V['s7'], states['s7'] = finite_wave_dv('cplus', V['s2'], states['s2'], V['s6'])
+        V['s7'], states['s7'] = finite_wave_dv('cplus', V['s2'], states['s2'], (V['s6']*expansion))
         
         #get mach numbers for the output
         Ms2 = Vs2/states['s5'].son
@@ -889,7 +949,16 @@ def main():
             if PRINT_STATUS: states['s10c'].write_state(sys.stdout)
             # Need to check whether the pressure are the same
             if PRINT_STATUS: print "Computed conehead pressure is {0} Pa".format(states['s10c'].p)
-           
+
+        if test == "fulltheory-pressure" and shock_switch: #restore the fill pressure's back to normal
+            states['s1'].p = states['s1'].p*2.0
+            states['s5'].p = states['s5'].p*2.0
+            
+        if test == "fulltheory-shock" and shock_switch: #cut fill pressure's in half at the end
+            states['s1'].p = states['s1'].p*2.0
+            states['s5'].p = states['s5'].p*2.0
+                
+        
       
 #--------------------------- output --------------------------------
 
@@ -923,9 +992,18 @@ def main():
         output.write(description_5 + '\n')        
         
         
-        test_gas_used = 'Test gas is {0}. Facility is {1}'.format(states['s1'].reactants,facility)        
+        test_gas_used = 'Facility is {0}. Test gas is {1}. Driver gas is {2}'.format(facility,states['s1'].reactants,driver_gas)        
         print test_gas_used
         output.write(test_gas_used + '\n')
+        
+        if shock_switch:
+            shock_warning1 = "NOTE: a reflected shock was done into the shock tube and as such,"
+            print shock_warning1
+            output.write(shock_warning1 + '\n')
+            
+            shock_warning2 = "fill pressure's have been artifically modified by the code to match with xpt."
+            print shock_warning2
+            output.write(shock_warning2 + '\n')
 
         if secondary:
             secondary_shockspeeds = "Vsd1 = {0:.2f} m/s, Msd1 = {1:.2f}".format(Vsd1,Msd1)
@@ -1133,10 +1211,11 @@ if __name__ == '__main__':
         print "demo_s: demo of Umar's high speed air condition where shock speeds are guessed to find the fill pressure's he used."
         print "demo_p: demo of Umar's high speed air condition where the fill pressure's are specified."
         print "hadas85-fulltheory: fully theoretical demo of Hadas' 8.5km/s titan condition where fill pressure's are specified."
-        print "hadas85-tunnel: run through of Hadas' 8.5km/s titan condition with shock speeds from the tunnel specified."
+        print "hadas85-tunnel: run through of Hadas' 8.5km/s titan condition with both fill pressure's and shock speed's from xpt specified."
         print "chrishe-fulltheory: full theoretical demo of one of my He conditions with secondary driver."
         print "dave-scramjet-p: a fully theoretical test of one of David Gildfind's scramjet conditions that iterates through fill pressures."
         print "dave-scramjet-s: a fully theoretical test of one of David Gildfind's scramjet conditions that iterates through shock speeds."
+        print "dave-scramjet-tunnel: a recreation of one of Dave's scramjet conditions using test data."
         print "x3: basic x3 scramjet condition example."
         demo = raw_input("Type one of the demo commands for a demo run or anything else to quit ")
         if demo == 'demo_s':
@@ -1166,7 +1245,7 @@ if __name__ == '__main__':
             print " "
             sys.argv = ['pitot.py', '--test','test', '--driver_gas','He:0.80,Ar:0.20',
                         '--test_gas','titan', '--p1','3200.0','--p5','10.0', 
-                        '--Vs1','4100.0','--Vs2','8620.0','--ar','3.0', '--conehead','yes'
+                        '--Vs1','4100.0','--Vs2','8620.0','--ar','3.0', 
                         '--filename','hadas85-tunnel.txt']
             main()
             
@@ -1183,9 +1262,9 @@ if __name__ == '__main__':
             print "This is the demo of pitot recreating one of Dave Gildfind's scramjet conditions that iterates through fill pressures."
             print " "
             sys.argv = ['pitot.py', '--test','fulltheory-pressure', '--config',
-                        'sec','--driver_gas','He:0.80,Ar:0.20', '--test_gas',
-                        'air','--psd1','100000','--p1','300000',
-                        '--p5','500','--filename','dave-scramjet.txt','--shock_switch','True']
+                        'sec-nozzle','--driver_gas','He:0.80,Ar:0.20', '--test_gas',
+                        'air','--psd1','100000','--p1','486000',
+                        '--p5','1500.0','--filename','dave-scramjet-p.txt','--shock_switch','True']
             main()
             
                     
@@ -1193,9 +1272,19 @@ if __name__ == '__main__':
             print "This is the demo of pitot recreating one of Dave Gildfind's scramjet conditions that iterates through shock speeds."
             print " "
             sys.argv = ['pitot.py', '--test','fulltheory-shock', '--config',
+                        'sec-nozzle','--driver_gas','He:0.80,Ar:0.20', '--test_gas',
+                        'air','--Vsd1','4290.0','--Vs1','1588.0',
+                        '--Vs2','3424.0','--filename','dave-scramjet-s.txt']
+            main()
+        
+        elif demo == 'dave-scramjet-tunnel':
+            print "This is the demo of pitot recreating one of Dave Gildfind's scramjet condition from test data."
+            print " "
+            sys.argv = ['pitot.py', '--test','test', '--config',
                         'sec','--driver_gas','He:0.80,Ar:0.20', '--test_gas',
-                        'air','--Vsd1','4178.0','--Vs1','660.0',
-                        '--Vs2','3264.0','--filename','dave-scramjet.txt']
+                        'air','--Vsd1','4178.0','--Vs1','1417.0',
+                        '--Vs2','3264.0','--psd1','100000','--p1','690800','--p5','288.2',
+                        '--filename','dave-scramjet-tunnel.txt']
             main()
             
         elif demo == 'x3':
