@@ -16,6 +16,9 @@
 #include <vector>
 #include <algorithm>
 #include "fobject.hh"
+#include "../../nm/source/zero_system.hh"
+#include "../../nm/source/zero_finders.hh"
+#include "../../util/source/useful.h"
 using namespace std;
 
 // Base class for functions of one variable.
@@ -576,7 +579,7 @@ DiscontinuousUnivariateFunction::clone() const
 double DiscontinuousUnivariateFunction::eval( double t )
 {
     double tbar;
-    
+
     if ( t < gamma )
     	tbar = uf0->eval( t/gamma ) * gamma;
     else
@@ -626,4 +629,74 @@ string BilinearFunction::str() const
     return ost.str();
 }
 
+//--------------------------------------------------------------------
+// Simple Hyperbolic-tangent clustering
+// Ref: http://www.cfd-online.com/Wiki/Structured_mesh_generation
 
+class VinokurFunction : public ZeroFunction  {
+public:
+    VinokurFunction( double _B );
+    VinokurFunction(const VinokurFunction& vfun);
+    virtual ~VinokurFunction();
+    virtual int eval(double x, double &y); // y = f(x)
+private:
+    double B;
+};
+
+VinokurFunction::VinokurFunction( double _B ) : B( _B ) {}
+VinokurFunction::VinokurFunction( const VinokurFunction &z )
+: B( z.B ) {}
+VinokurFunction::~VinokurFunction() {}
+int VinokurFunction::eval( double x, double &y)
+{
+    y = B - sinh(x) / x;
+
+    return SUCCESS;
+}
+
+// Hyberbolic-tangent clustering function
+HypertanClusterFunction::HypertanClusterFunction( double _dL0, double _dL1 )
+    : UnivariateFunction(), dL0(_dL0), dL1(_dL1)
+{
+    set_underlying_parameters();
+}
+HypertanClusterFunction::HypertanClusterFunction( const HypertanClusterFunction &f )
+    : UnivariateFunction(), dL0(f.dL0), dL1(f.dL1)
+{
+    set_underlying_parameters();
+}
+HypertanClusterFunction::~HypertanClusterFunction() {}
+HypertanClusterFunction* HypertanClusterFunction::clone() const
+{
+    return new HypertanClusterFunction(*this);
+}
+double HypertanClusterFunction::eval( double t )
+{
+    double u = 0.5 * ( 1.0 + tanh( delta * ( t - 0.5 ) ) );
+    double tbar = u / ( A + ( 1.0 - A ) * u );
+    return tbar;
+}
+string HypertanClusterFunction::str() const
+{
+    ostringstream ost;
+    ost << "HypertanClusterFunction(t)=(dL0="
+        << dL0 << ", dL1=" << dL1 << ")";
+    return ost.str();
+}
+void HypertanClusterFunction::reverse_clustering()
+{
+    int tmp = dL0; dL0 = dL1; dL1 = tmp;
+    set_underlying_parameters();
+    return;
+}
+void HypertanClusterFunction::set_underlying_parameters()
+{
+    // Solve for delta
+    A = sqrt( dL1 ) / sqrt( dL0 );
+    B = 1.0 / sqrt( dL1 * dL0 );
+    VinokurFunction f = VinokurFunction( B );
+    Bisection bsm = Bisection( &f, 1.0e-6 );
+    delta = bsm( 1.0e-10, 1.0e3 );
+
+    return;
+}

@@ -59,7 +59,7 @@ LIBGEOM2 := libgeom2.a
 
 GEOM_OBJECTS :=	geom.o gpath.o secant.o surface.o fobject.o volume.o nelmin.o \
 	gpath_utils.o no_fuss_linear_algebra.o nurbs.o golden_section_search.o \
-	nurbs_utils.o
+	nurbs_utils.o zero_system.o zero_finders.o
 ifeq ($(WITH_PYTHON_CALLBACKS), 1)
     GEOM_OBJECTS += pypath.o pysurface.o pyvolume.o
 endif
@@ -382,4 +382,9 @@ l_surface.o : $(SRC)/l_surface.cxx $(SRC)/l_surface.hh $(SRC)/surface.cxx $(SRC)
 	$(LUA_INCLUDE_DIR)
 	$(CXX) $(CXXFLAG) $(SRC)/l_surface.cxx -I$(LUA_INCLUDE_DIR)
 
-
+zero_system.o : $(NM_SRC)/zero_system.cxx $(NM_SRC)/zero_system.hh $(NM_SRC)/no_fuss_linear_algebra.hh
+	$(CXX) $(CXXFLAG) $(ARRAY_SIZES) $(NM_SRC)/zero_system.cxx
+	
+zero_finders.o : $(NM_SRC)/zero_finders.cxx $(NM_SRC)/zero_finders.hh \
+		$(NM_SRC)/zero_system.hh $(NM_SRC)/no_fuss_linear_algebra.hh
+	$(CXX) $(CXXFLAG) $(ARRAY_SIZES) $(NM_SRC)/zero_finders.cxx

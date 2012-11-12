@@ -141,9 +141,6 @@ private:
 // Combination of two UnivariateFunction's
 class DiscontinuousUnivariateFunction : public UnivariateFunction {
 public:
-    bool   end0, end1; // flags to indicate clustering to each end 
-    double beta; // stretching factor 1.0 < beta < +inf
-                 // closer to 1.0 gives stronger clustering
     DiscontinuousUnivariateFunction( double gamma, UnivariateFunction * _uf0, UnivariateFunction * _uf1 );
     DiscontinuousUnivariateFunction( const DiscontinuousUnivariateFunction &f );
     virtual ~DiscontinuousUnivariateFunction();
@@ -156,24 +153,6 @@ private:
     UnivariateFunction * uf1;
     double gamma;
 };
-
-// Adriaan's Hyperbolic-tangent clustering...
-// class HyptanClusterFunction : public UnivariateFunction {
-// public:
-//     double dL0, dL1; // size of cell at each end  
-//     double L; // overall length of the Path along which the points are distributed
-//     int n; // number of points to be spread along the path (including end points)
-//     HyptanClusterFunction( double dL0, double dL1, double L=1.0, int n=10 );
-//     HyptanClusterFunction( const HyptanClusterFunction &f );
-//     virtual ~HyptanClusterFunction();
-//     virtual HyptanClusterFunction* clone() const;
-//     virtual double eval( double t ) const;
-//     virtual string str() const;
-//     virtual void reverse_clustering(); 
-// private:
-//     double beta; // any bits that are needed during the calculation...
-// };
-
 
 //-----------------------------------------------------------------------------
 // f(r,s) = Area-weighting of corner values.
@@ -194,6 +173,24 @@ public:
     virtual BilinearFunction* clone() const;
     virtual double eval( double r, double s );
     virtual string str() const;
+};
+
+class HypertanClusterFunction : public UnivariateFunction {
+public:
+    double dL0, dL1; // size of cell at each end (relative to a unit path length)
+    HypertanClusterFunction( double dL0, double dL1 );
+    HypertanClusterFunction( const HypertanClusterFunction &f );
+     virtual ~HypertanClusterFunction();
+     virtual HypertanClusterFunction* clone() const;
+     virtual double eval( double t );
+     virtual string str() const;
+     virtual void reverse_clustering();
+private:
+     void set_underlying_parameters();
+private:
+     double A; // any bits that are needed during the calculation...
+     double B;
+     double delta;
 };
 
 #endif
