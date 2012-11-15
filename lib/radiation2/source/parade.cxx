@@ -173,7 +173,7 @@ spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
     X.kappa_nu.clear();
 
     // 1. Create the parade control file
-    create_parade_control_file( Q );
+    create_parade_control_files( Q );
     
     // 2. Run the parade executable
 
@@ -226,7 +226,7 @@ spectral_distribution_for_gas_state(Gas_data &Q, vector<double> &nus)
     nus.clear();
 
     // 1. Create the parade control file
-    create_parade_control_file( Q );
+    create_parade_control_files( Q );
 
     // 2. Run the parade executable
     system("parade > parade.out");
@@ -316,13 +316,56 @@ read_parade_template_file( string parade_template_filename )
 
 void
 Parade::
-create_parade_control_file( Gas_data &Q )
+create_parade_control_files( Gas_data &Q )
 {
     ofstream pcfile( "parade.con" );
 
     pcfile << parade_template_file_buffer.str();
 
+#   if USE_FLO_INPUT_FILES
+    // Flowfield style: gas data in the .flow files
+    // Grid file
+    // FIXME: this should be done as a initialisation step
+    ofstream gfile( "grid.flo" );
+    gfile << "TINA" << endl
+          << "           1          1" << endl
+          << "      0.00000000000000000E+00      0.00000000000000000E+00" << endl;
+    gfile.close();
+    // Number density file
+    ofstream dfile( "dens.flo" );
+    dfile << "           1          1          " << nrad << endl;
+    for ( int irad=0; irad<nrad; ++irad ) {
+	ParadeRadiator * R = radiators[irad];
+	double number_density = Q.rho * Q.massf[R->isp] / R->m_w * RC_Na;
+	if ( number_density < 1.0 ) number_density = 1.0;
+	dfile << " " << number_density;
+    }
+    dfile << endl;
+    dfile.close();
+    // Temperature file
+    ofstream tfile( "temp.flo" );
+    //determine number of temperatures
+    // FIXME: this should be done as a initialisation step
+    int ntemps = 2;
+    for ( int irad=0; irad<nrad; ++irad ) {
+	ParadeRadiator * R = radiators[irad];
+	if ( R->type=="diatomic_radiator" || R->type=="triatomic_radiator" )
+            ntemps += 2;
+    }
+    tfile << "           1          1          " << ntemps << endl;
     // Now put down Tt, Te
+    tfile << " " << Q.T[iT]  << " " << Q.T[iTe];
+    // Now put down Tv and Tr for each molecule
+    for ( int irad=0; irad<nrad; ++irad ) {
+	ParadeRadiator * R = radiators[irad];
+	if ( R->type=="diatomic_radiator" || R->type=="triatomic_radiator" )
+	    tfile << "   " << Q.T[R->iTr] << "   " << Q.T[R->iTv];
+    }
+    tfile << endl;
+    tfile.close();
+#   else
+    // Single cell style: all gas data in the .con file
+    // Firstly put down Tt, Te
     pcfile << " " << Q.T[iT]  << endl
 	   << " " << Q.T[iTe] << endl;
 
@@ -336,6 +379,7 @@ create_parade_control_file( Gas_data &Q )
 	    pcfile << "   " << Q.T[R->iTr] << "   " << Q.T[R->iTv];
 	pcfile << endl;
     }
+#   endif
 
     pcfile.close();
 }

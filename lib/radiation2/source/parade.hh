@@ -15,6 +15,8 @@
 #include "spectral_model.hh"
 #include "parade_radiator.hh"
 
+#define USE_FLO_INPUT_FILES 1
+
 class Parade : public RadiationSpectralModel {
 public:
     Parade( lua_State * L );
@@ -52,7 +54,7 @@ private:
 
     void read_parade_template_file( std::string parade_template_filename );
 
-    void create_parade_control_file( Gas_data &Q );
+    void create_parade_control_files( Gas_data &Q );
 
 private:
     int nrad;
