@@ -545,6 +545,25 @@ void ApparatusFunction::initialise()
 #   endif
 }
 
+Voigt::Voigt(double gamma_L, double gamma_G, double nu_sample)
+ : ApparatusFunction("Voigt",nu_sample), gamma_L( gamma_L), gamma_G( gamma_G )
+{
+    gamma_V = calculate_Voigt_width( gamma_L, gamma_G );
+    gamma_star = gamma_V;
+}
+
+Voigt::~Voigt() {}
+
+double Voigt::eval( double nu, double delta_nu )
+{
+    double lambda_Ang = nu2lambda(nu) * 10.0;
+    double gamma_V_Hz = gamma_V / lambda_Ang * nu;
+    double gamma_L_Hz = gamma_L / lambda_Ang * nu;
+    double gamma_G_Hz = gamma_G / lambda_Ang * nu;
+    double b_V = eval_Voigt_profile( delta_nu, gamma_V_Hz, gamma_L_Hz, gamma_G_Hz );
+    return b_V * f_scale;
+}
+
 SQRT_Voigt::SQRT_Voigt(double gamma_L, double gamma_G, double nu_sample)
  : ApparatusFunction("SQRT_Voigt",nu_sample), gamma_L( gamma_L), gamma_G( gamma_G )
 {

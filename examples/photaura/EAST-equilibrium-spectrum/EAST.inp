@@ -5,4 +5,7 @@
    gas-pressure: 0.25 Torr
 gas-temperature: 300 K
      tube-width: 10.15 cm
-           FWHM: 8 Ang
+   apparatus-fn: Voigt
+  Gaussian-HWHM: 4 Ang
+Lorentzian-HWHM: 0 Ang
+  sampling-rate: 1

@@ -129,7 +129,7 @@ class GlobalRadData(object):
 		return self.radiators[-1]
 		
         print "Requested radiator: %s was not found.\n" % rrad
-        print "Available radiators are: ", rl.available_radiators.keys()
+        print "Available radiators are: ", available_radiators.keys()
         sys.exit()
 
     def create_parade_template_file( self, data_path ):

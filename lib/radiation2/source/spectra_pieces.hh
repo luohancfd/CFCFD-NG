@@ -296,6 +296,19 @@ public:
     double gamma_star;
 };
 
+class Voigt : public ApparatusFunction {
+public:
+    Voigt(double gamma_L, double gamma_G, double nu_sample);
+
+    ~Voigt();
+
+    double eval( double nu, double delta_nu );
+public:
+    double gamma_L;
+    double gamma_G;
+    double gamma_V;
+};
+
 class SQRT_Voigt : public ApparatusFunction {
 public:
     SQRT_Voigt(double gamma_L, double gamma_G, double nu_sample);

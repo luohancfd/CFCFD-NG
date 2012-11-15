@@ -27,8 +27,8 @@ def parseInputFile(input_file):
     ifile = open(input_file,"r")
     lines = ifile.readlines()
     ifile.close()
-    if len(lines)!=10:
-        print "Input file %s does not follow the expected format: "
+    if len(lines)!=11:
+        print "Input file %s does not follow the expected format: " % input_file
         print "rad-model-file: <radFile>"
         print "   species-list: <speciesList>"
         print " mole-fractions: <moleFractionsList>"
@@ -38,6 +38,7 @@ def parseInputFile(input_file):
         print "   gas-pressure: <gasPressure> <units>"
         print "gas-temperature: <gasTemperature> <units>"
         print "     tube-width: <tubeWidth> <units>"
+        print "   Apparatus-fn: <apparatus_fn>"
         print "  Gaussian-HWHM: <gamma_G> <units>"
         print "Lorentzian-HWHM: <gamma_L> <units>"
         print "  sampling-rate: <nu_sample>"
@@ -108,9 +109,13 @@ def parseInputFile(input_file):
         else:
             print "Tube width units: %s not understood" % tks[2]
             sys.exit()
-    
-    # eighth line is the Gaussian half-width half maximum of the spectrometer apparatus function
+
+    # eighth line is the name of the desired apparatus function model
     tks = lines[7].split()
+    apparatus_fn = tks[1]
+    
+    # ninth line is the Gaussian half-width half maximum of the spectrometer apparatus function
+    tks = lines[8].split()
     gamma_G = float(tks[1])
     if len(tks)==3:
         if tks[2]=="Ang" or tks[2]=="ang": gamma_G *= 1.0
@@ -119,8 +124,8 @@ def parseInputFile(input_file):
             print "FWHM units: %s not understood" % tks[2]
             sys.exit()
             
-    # ninth line is the Lorentzian half-width half maximum of the spectrometer apparatus function
-    tks = lines[8].split()
+    # tenth line is the Lorentzian half-width half maximum of the spectrometer apparatus function
+    tks = lines[9].split()
     gamma_L = float(tks[1])
     if len(tks)==3:
         if tks[2]=="Ang" or tks[2]=="ang": gamma_L *= 1.0
@@ -129,11 +134,11 @@ def parseInputFile(input_file):
             print "FWHM units: %s not understood" % tks[2]
             sys.exit()     
             
-    # tenth line is the sampling output for the plotting-program-readable output
-    tks = lines[9].split()
+    # eleventh line is the sampling output for the plotting-program-readable output
+    tks = lines[10].split()
     nu_sample = int(tks[1])  
     
-    return rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, gamma_G, gamma_L, nu_sample
+    return rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, apparatus_fn, gamma_G, gamma_L, nu_sample
 
 def main():
     #
@@ -152,7 +157,7 @@ def main():
     input_file = uoDict.get("--input-file", "none")
     # 
     # parse the input option
-    rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, gamma_G, gamma_L, nu_sample = parseInputFile(input_file)
+    rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, apparatus_fn, gamma_G, gamma_L, nu_sample = parseInputFile(input_file)
 
     # setup the reactants list
     reactants = make_reactants_dictionary( species )
@@ -212,9 +217,19 @@ def main():
     I_total = LOS.integrate_LOS( S )
     print "I_total = ", I_total
     # initialise apparatus function
-    A = SQRT_Voigt(gamma_G, gamma_L, nu_sample)
+    if apparatus_fn=="Voigt":
+        A = Voigt(gamma_L, gamma_G, nu_sample)
+    elif apparatus_fn=="SQRT_Voigt":
+        A = SQRT_Voigt(gamma_L, gamma_G, nu_sample)
+    elif apparatus_fn=="none" or apparatus_fn=="None":
+        A = None
+    else:
+        print "Apparatus function with name: %s not recognised." % apparatus_fn
+        sys.exiit()
+    
     # apply apparatus function
-    S.apply_apparatus_function(A)
+    if A!=None:
+        S.apply_apparatus_function(A)
     S.write_to_file("intensity_spectra.txt" ) 
     
     IvW = YvX("intensity_spectra.txt" )
