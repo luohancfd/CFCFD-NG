@@ -100,7 +100,7 @@ and is a much larger machine, with a little over 3000 cores, running SUSE Enterp
 
 Set up your environment by adding the following lines to your ``.bashrc`` file::
 
-    module load purge
+    module purge
     module load mercurial
     module load intel-cc-11/11.1.072
     module load intel-mpi/3.2.2.006
