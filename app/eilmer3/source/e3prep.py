@@ -240,6 +240,8 @@ class GlobalData(object):
       active (if L{viscous_flag} was set to 1).
     * viscous_factor_increment: (float) Increment for the viscous_factor
       after viscous_delay has passed.
+    * viscous_upwinding: (0/1) Set to 1 to calculate viscous heat flux from
+      upwind direction only. Set to 0 (the default) to use both directions.
     * max_mu_t_factor: (float) Limiting factor for the turbulence viscosity
       relative to the laminar viscosity.
     * transient_mu_t_factor: (float) A value of 1.0 indicates a fully-developed
@@ -323,7 +325,7 @@ class GlobalData(object):
                 'implicit_flag', 'control_count', \
                 'radiation_update_frequency', 'mhd_flag',\
                 'BGK_flag', 'velocity_buckets', 'vcoords', 'vweights',\
-                'viscous_flag', 'viscous_delay', 'viscous_factor_increment', \
+                'viscous_flag', 'viscous_delay', 'viscous_factor_increment', 'viscous_upwinding',\
                 'max_mu_t_factor', 'transient_mu_t_factor', \
                 'diffusion_flag', 'diffusion_model', \
                 'turbulence_flag', 'turbulence_model', \
@@ -374,6 +376,7 @@ class GlobalData(object):
         self.viscous_flag = 0
         self.viscous_delay = 0.0
         self.viscous_factor_increment = 0.01
+        self.viscous_upwinding = 0
         self.max_mu_t_factor = 300.0
         self.transient_mu_t_factor = 1.0
         self.diffusion_flag = 0
@@ -468,6 +471,7 @@ class GlobalData(object):
         fp.write("viscous_flag = %d\n" % self.viscous_flag)
         fp.write("viscous_delay = %e\n"% self.viscous_delay)
         fp.write("viscous_factor_increment = %e\n"% self.viscous_factor_increment)
+        fp.write("viscous_upwinding = %d\n"% self.viscous_upwinding)
         fp.write("max_mu_t_factor = %e\n"% self.max_mu_t_factor)
         fp.write("transient_mu_t_factor = %e\n"% self.transient_mu_t_factor)
         fp.write("diffusion_flag = %d\n" % self.diffusion_flag)
