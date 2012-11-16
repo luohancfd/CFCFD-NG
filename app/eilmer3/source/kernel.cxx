@@ -174,6 +174,9 @@ double viscous_factor = 1.0;
 /// \brief The amount by which to increment the viscous factor during soft-start.
 double viscous_factor_increment = 0.01;
 
+/// \brief Viscous upwinding =0 for heat flux from upwind direction, =1 for both directions.
+int viscous_upwinding = 0;
+
 /// \brief Diffusion flag =0 for neglecting multicomponent diffusion, =1
 //         when considering the diffusion.
 //  When the diffusion is calculated is treated as part of the viscous
@@ -309,10 +312,12 @@ std::vector<double> vweights; // weight for each velocity coordinate
 int set_axisymmetric_flag(int ia)
 {
     axisymm = ia;
-    if (axisymm == 0)
+    if (axisymm == 0) {
         if ( get_verbose_flag() ) printf("Two-dimensional planar flow\n");
-    else if (axisymm == 1)
+    }
+    else if (axisymm == 1) {
         if ( get_verbose_flag() ) printf("Axisymmetric flow\n");
+    }
     else {
         printf("Invalid axisymmetric flag value: %d\n", axisymm);
         exit(VALUE_ERROR);
@@ -330,10 +335,12 @@ int get_axisymmetric_flag(void)
 int set_viscous_flag(int iv)
 {
     viscous = iv;
-    if (viscous == 0)
+    if (viscous == 0) {
         if ( get_verbose_flag() ) printf("Turn off viscous terms.\n");
-    else if (viscous == 1)
+    }
+    else if (viscous == 1) {
         if ( get_verbose_flag() ) printf("Turn on viscous terms.\n");
+    }
     else {
         printf("Invalid viscous flag value: %d\n", viscous);
         exit(VALUE_ERROR);
@@ -344,6 +351,29 @@ int set_viscous_flag(int iv)
 int get_viscous_flag(void)
 {
     return viscous;
+}
+
+/*------------------------------------------------------------------*/
+
+int set_viscous_upwinding(int iw)
+{
+    viscous_upwinding = iw;
+    if (viscous_upwinding == 0) {
+        if ( get_verbose_flag() ) printf("Turn off viscous upwinding.\n");
+    }
+    else if (viscous_upwinding == 1) {
+        if ( get_verbose_flag() ) printf("Turn on viscous upwinding.\n");
+    }
+    else {
+        printf("Invalid viscous upwinding value: %d\n", viscous_upwinding);
+        exit(VALUE_ERROR);
+    }
+    return SUCCESS;
+}
+
+int get_viscous_upwinding(void)
+{
+    return viscous_upwinding;
 }
 
 /*------------------------------------------------------------------*/
@@ -392,10 +422,12 @@ double get_viscous_factor_increment( void )
 int set_diffusion_flag(int id)
 {
     diffusion = id;
-    if (diffusion == 0)
+    if (diffusion == 0) {
         if ( get_verbose_flag() ) printf("Diffusion of species ignored.\n");
-    else if (diffusion == 1)
+    }    
+    else if (diffusion == 1) {
         if ( get_verbose_flag() ) printf("Diffusion of species treated as part of viscous terms.\n");
+    }
     else {
         printf("Invalid diffusion flag value: %d\n", diffusion);
         exit(VALUE_ERROR);
@@ -492,10 +524,12 @@ double get_heat_factor_increment( void )
 int set_reacting_flag(int ir)
 {
     reacting = ir;
-    if (reacting == 0)
+    if (reacting == 0) {
         if ( get_verbose_flag() ) printf("Flow in chemical equilibrium (or frozen)\n");
-    else if (reacting == 1)
+    }    
+    else if (reacting == 1) {
         if ( get_verbose_flag() ) printf("Flow in chemical nonequilibrium: source terms computed\n");
+    }
     else {
         printf("Invalid reacting flag value: %d\n", reacting);
         exit(VALUE_ERROR);
@@ -513,10 +547,12 @@ int get_reacting_flag(void)
 int set_energy_exchange_flag(int ir)
 {
     thermal_energy_exchange = ir;
-    if (thermal_energy_exchange == 0)
+    if (thermal_energy_exchange == 0) {
         if ( get_verbose_flag() ) printf("Flow in thermal equilibrium\n");
-    else if (thermal_energy_exchange == 1)
+    }    
+    else if (thermal_energy_exchange == 1) {
         if ( get_verbose_flag() ) printf("Flow in thermal nonequilibrium: source terms computed\n");
+    }    
     else {
         printf("Invalid energy_exchange_flag value: %d\n", thermal_energy_exchange);
         exit(VALUE_ERROR);
@@ -534,10 +570,12 @@ int get_energy_exchange_flag(void)
 int set_radiation_flag(int ir)
 {
     radiation = ir;
-    if (radiation == 0)
+    if (radiation == 0) {
         if ( get_verbose_flag() ) printf("Flow without radiation\n");
-    else if (radiation == 1)
+    }    
+    else if (radiation == 1) {
         if ( get_verbose_flag() ) printf("Flow with radiation\n");
+    }    
     else {
         printf("Invalid radiation flag value: %d\n", radiation);
         exit(VALUE_ERROR);
@@ -649,10 +687,12 @@ double get_turbulence_schmidt_number(void)
 int set_extrema_clipping_flag(int ip)
 {
     extrema_clipping_flag = ip;
-    if (extrema_clipping_flag == 0)
+    if (extrema_clipping_flag == 0) {
         if ( get_verbose_flag() ) printf("Extrema-clipping disabled\n");
-    else if (extrema_clipping_flag == 1)
+    }    
+    else if (extrema_clipping_flag == 1) {
         if ( get_verbose_flag() ) printf("Extrema-clipping enabled (default)\n");
+    }    
     else {
         printf("Invalid extrema clipping flag value: %d\n", extrema_clipping_flag);
         exit( VALUE_ERROR );
@@ -670,10 +710,12 @@ int get_extrema_clipping_flag(void)
 int set_apply_limiter_flag(int ip)
 {
     apply_limiter = ip;
-    if (apply_limiter == 0)
+    if (apply_limiter == 0) {
         if ( get_verbose_flag() ) printf("Reconstruction limiter disabled\n");
-    else if (apply_limiter == 1)
+    }    
+    else if (apply_limiter == 1) {
         if ( get_verbose_flag() ) printf("Reconstruction limiter applied (default)\n");
+    }    
     else {
         printf("Invalid apply_limiter flag value: %d\n", apply_limiter);
         exit( VALUE_ERROR );
@@ -691,10 +733,12 @@ int get_apply_limiter_flag(void)
 int set_suppress_reconstruction_for_species_flag(int ip)
 {
     suppress_reconstruction_for_species = ip;
-    if (suppress_reconstruction_for_species == 1)
+    if (suppress_reconstruction_for_species == 1) {
         if ( get_verbose_flag() ) printf("High-order reconstruction for species suppressed\n");
-    else if (suppress_reconstruction_for_species == 0)
+    }
+    else if (suppress_reconstruction_for_species == 0) {
         if ( get_verbose_flag() ) printf("High-order reconstruction for species allowed (default)\n");
+    }
     else {
         printf("Invalid suppress_reconstruction_for_species flag value: %d\n", 
 	       suppress_reconstruction_for_species);
@@ -713,10 +757,12 @@ int get_suppress_reconstruction_for_species_flag(void)
 int set_bad_cell_complain_flag(int ip)
 {
     bad_cell_complain_flag = ip;
-    if (bad_cell_complain_flag == 0)
+    if (bad_cell_complain_flag == 0) {
         if ( get_verbose_flag() ) printf("Will not complain about bad cells.\n");
-    else if (bad_cell_complain_flag == 1)
+    }
+    else if ( bad_cell_complain_flag == 1 ) {
         if ( get_verbose_flag() ) printf("Will complain about bad cells.\n");
+    }
     else {
         printf("Invalid bad_cell_complain_flag value: %d\n", bad_cell_complain_flag);
         exit( VALUE_ERROR );

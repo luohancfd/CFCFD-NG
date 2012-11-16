@@ -15,8 +15,9 @@
  *             after each of the edges is handled.
  * 16-Oct-97 : Clean up vectorisation for Cray C90
  * 23-Jul-2006 : last remains of vectorization removed.
- * 02-Mar-2008: Elmer3 port
- *
+ * 02-Mar-2008: Eilmer3 port
+ * 16-Nov-2012: Added function to check velocity direction and get
+ *              derivative from upwind direction.
  */
 
 /*-----------------------------------------------------------------*/
@@ -34,6 +35,7 @@
 #include "diffusion.hh"
 #include "baldwin_lomax.hh"
 
+#define SMALL  1.0e-3
 #define VERY_SMALL  1.0e-10
 
 // Working arrays for species derivatives
@@ -74,6 +76,27 @@ int estimate_turbulence_viscosity( global_data *gdp, Block *bdp )
     bdp->apply( &FV_Cell::turbulence_viscosity_zero_if_not_in_zone,
 		"turbulence_viscosity_zero_if_not_in_zone" );
     return SUCCESS;
+}
+
+/// \brief If flag set, determine and choose upwind direction.
+/// 
+/// To prevent oscillation between the two vertices for
+/// flows which are nearly normal to the interface the vertices
+/// are averaged.
+/// Added by Andrew Pastrello 16-Nov-2012 
+double select_derivative(double val1, double val2, double tvdp) {
+    if ( !get_viscous_upwinding() ) {
+        return 0.5 * (val1 + val2);
+    }
+    else {
+        // Using upwinding
+        if ( tvdp >= 0.0 ) { 
+            return val1;
+        }   
+        else { // < 0.0
+            return val2;
+        }
+    }    
 }
 
 /// \brief Compute the viscous contribution to the cell interface fluxes.
@@ -129,43 +152,45 @@ int viscous_flux_2D( Block *A )
         for (j = A->jmin; j <= A->jmax; ++j) {
             IFace = A->get_ifi(i,j);
 	    FlowState &fs = *(IFace->fs);
+	    Vector3 glbt = fs.vel;
+	    double tvdp = dot(glbt,IFace->t1);
             vtx1 = A->get_vtx(i,j+1);
             vtx2 = A->get_vtx(i,j);
 	    // Determine some of the interface properties.
             ybar = IFace->Ybar;
-            dudx = 0.5 * (vtx1->dudx + vtx2->dudx);
-            dudy = 0.5 * (vtx1->dudy + vtx2->dudy);
-            dvdx = 0.5 * (vtx1->dvdx + vtx2->dvdx);
-            dvdy = 0.5 * (vtx1->dvdy + vtx2->dvdy);
+            dudx = select_derivative( vtx1->dudx, vtx2->dudx, tvdp );
+            dudy = select_derivative( vtx1->dudy, vtx2->dudy, tvdp );
+            dvdx = select_derivative( vtx1->dvdx, vtx2->dvdx, tvdp );
+            dvdy = select_derivative( vtx1->dvdy, vtx2->dvdy, tvdp );
             for ( int itm=0; itm<ntm; ++itm ) {
-            	dTdx[itm] = 0.5 * (vtx1->dTdx[itm] + vtx2->dTdx[itm]);
-            	dTdy[itm] = 0.5 * (vtx1->dTdy[itm] + vtx2->dTdy[itm]);
-            	k_eff[itm] = viscous_factor * fs.gas->k[itm];
+                dTdx[itm] = select_derivative( vtx1->dTdx[itm], vtx2->dTdx[itm], tvdp );
+                dTdy[itm] = select_derivative( vtx1->dTdy[itm], vtx2->dTdy[itm], tvdp );
+                k_eff[itm] = viscous_factor * fs.gas->k[itm];
             }
             mu_lam = viscous_factor * fs.gas->mu;
-	    mu_t = viscous_factor * fs.mu_t;
-	    k_t = viscous_factor * fs.k_t;
-	    // CHECK-ME: Assume turbulent conductivity only applies to primary mode?
-	    k_eff[0] += k_t;
-	    mu_eff = mu_lam + mu_t;
-	    lmbda = -2.0/3.0 * mu_eff;
-	    if( get_diffusion_flag() == 1 ) {
-		for( int isp = 0; isp < nsp; ++isp ) {
-		    dfdx[isp] = 0.5 * (vtx1->dfdx[isp] + vtx2->dfdx[isp]);
-		    dfdy[isp] = 0.5 * (vtx1->dfdy[isp] + vtx2->dfdy[isp]);
-		}
-		// Apply a diffusion model
-		double D_t = 0.0;
-		if ( get_k_omega_flag() == 1 ) {
+            mu_t = viscous_factor * fs.mu_t;
+            k_t = viscous_factor * fs.k_t;
+            // CHECK-ME: Assume turbulent conductivity only applies to primary mode?
+            k_eff[0] += k_t;
+            mu_eff = mu_lam + mu_t;
+            lmbda = -2.0/3.0 * mu_eff;
+            if ( get_diffusion_flag() == 1 ) {
+                for ( int isp = 0; isp < nsp; ++isp ) {
+                    dfdx[isp] = select_derivative( vtx1->dfdx[isp], vtx2->dfdx[isp], tvdp );
+                    dfdy[isp] = select_derivative( vtx1->dfdy[isp], vtx2->dfdy[isp], tvdp );
+                }
+	        // Apply a diffusion model
+	        double D_t = 0.0;
+	        if ( get_k_omega_flag() == 1 ) {
                     double Sc_t = get_turbulence_schmidt_number();
                     D_t = mu_t / (fs.gas->rho * Sc_t);
-		}
-		calculate_diffusion_fluxes(*(fs.gas),
-					   D_t,
+	        }
+	        calculate_diffusion_fluxes(*(fs.gas),
+				           D_t,
 					   dfdx, dfdy, dfdz,
 					   jx, jy, jz);
 		// NOTE: now applying viscous_factor to diffusive fluxes
-		for( int isp = 0; isp < nsp; ++isp ) {
+		for ( int isp = 0; isp < nsp; ++isp ) {
 		    jx[isp] *= viscous_factor;
 		    jy[isp] *= viscous_factor;
 		    jz[isp] *= viscous_factor;
@@ -202,8 +227,8 @@ int viscous_flux_2D( Block *A )
 		qy[0] += qy[itm];
 	    }
 	    
-	    if( get_diffusion_flag() == 1 ) {
-		for( int isp = 0; isp < nsp; ++isp ) {
+	    if ( get_diffusion_flag() == 1 ) {
+		for ( int isp = 0; isp < nsp; ++isp ) {
 		    double h = gmodel->enthalpy(*(fs.gas), isp);
 		    qx[0] -= jx[isp] * h;
 		    qy[0] -= jy[isp] * h;
@@ -221,16 +246,16 @@ int viscous_flux_2D( Block *A )
 		tau_yy -= 0.66667 * fs.gas->rho * fs.tke;
 		// Turbulence contribution to heat transfer.
 		mu_effective = mu_lam + sigma_star * mu_t;
-		dtkedx = 0.5 * (vtx1->dtkedx + vtx2->dtkedx);
-		dtkedy = 0.5 * (vtx1->dtkedy + vtx2->dtkedy);
+		dtkedx = select_derivative( vtx1->dtkedx, vtx2->dtkedx, tvdp );
+		dtkedy = select_derivative( vtx1->dtkedy, vtx2->dtkedy, tvdp );
 		qx[0] += mu_effective * dtkedx;
 		qy[0] += mu_effective * dtkedy;
 		// Turbulence transport of the turbulence properties themselves.
 		tau_kx = mu_effective * dtkedx; 
 		tau_ky = mu_effective * dtkedy;
 		mu_effective = mu_lam + sigma * mu_t;
-		domegadx = 0.5 * (vtx1->domegadx + vtx2->domegadx);
-		domegady = 0.5 * (vtx1->domegady + vtx2->domegady);
+		domegadx = select_derivative( vtx1->domegadx, vtx2->domegadx, tvdp );
+		domegady = select_derivative( vtx1->domegady, vtx2->domegady, tvdp );
 		tau_wx = mu_effective * domegadx; 
 		tau_wy = mu_effective * domegady; 
 	    } else {
@@ -274,18 +299,20 @@ int viscous_flux_2D( Block *A )
         for (j = A->jmin; j <= A->jmax+1; ++j) {
             IFace = A->get_ifj(i,j);
 	    FlowState &fs = *(IFace->fs);
+	    Vector3 glbt = fs.vel;
+	    double tvdp = dot(glbt,IFace->t1);
             vtx1 = A->get_vtx(i,j);
             vtx2 = A->get_vtx(i+1,j);
 	    // Determine some of the interface properties.
             ybar = IFace->Ybar;
-            dudx = 0.5 * (vtx1->dudx + vtx2->dudx);
-            dudy = 0.5 * (vtx1->dudy + vtx2->dudy);
-            dvdx = 0.5 * (vtx1->dvdx + vtx2->dvdx);
-            dvdy = 0.5 * (vtx1->dvdy + vtx2->dvdy);
+            dudx = select_derivative( vtx1->dudx, vtx2->dudx, tvdp );
+            dudy = select_derivative( vtx1->dudy, vtx2->dudy, tvdp );
+            dvdx = select_derivative( vtx1->dvdx, vtx2->dvdx, tvdp );
+            dvdy = select_derivative( vtx1->dvdy, vtx2->dvdy, tvdp );
             for ( int itm=0; itm<ntm; ++itm ) {
-            	dTdx[itm] = 0.5 * (vtx1->dTdx[itm] + vtx2->dTdx[itm]);
-            	dTdy[itm] = 0.5 * (vtx1->dTdy[itm] + vtx2->dTdy[itm]);
-            	k_eff[itm] = viscous_factor * fs.gas->k[itm];
+                dTdx[itm] = select_derivative( vtx1->dTdx[itm], vtx2->dTdx[itm], tvdp );
+                dTdy[itm] = select_derivative( vtx1->dTdy[itm], vtx2->dTdy[itm], tvdp );
+                k_eff[itm] = viscous_factor * fs.gas->k[itm];
             }
             mu_lam = viscous_factor * fs.gas->mu;
 	    mu_t = viscous_factor * fs.mu_t;
@@ -294,11 +321,11 @@ int viscous_flux_2D( Block *A )
 	    k_eff[0] += k_t;
 	    mu_eff = mu_lam + mu_t;
 	    lmbda = -2.0/3.0 * mu_eff;
-	    if( get_diffusion_flag() == 1 ) {
-		for( int isp = 0; isp < nsp; ++isp ) {
-		    dfdx[isp] = 0.5 * (vtx1->dfdx[isp] + vtx2->dfdx[isp]);
-		    dfdy[isp] = 0.5 * (vtx1->dfdy[isp] + vtx2->dfdy[isp]);
-		}
+            if ( get_diffusion_flag() == 1 ) {
+                for ( int isp = 0; isp < nsp; ++isp ) {
+                    dfdx[isp] = select_derivative( vtx1->dfdx[isp], vtx2->dfdx[isp], tvdp );
+                    dfdy[isp] = select_derivative( vtx1->dfdy[isp], vtx2->dfdy[isp], tvdp );
+                }
 		// Apply a diffusion model
 		double D_t = 0.0;
 		if ( get_k_omega_flag() == 1 ) {
@@ -366,18 +393,18 @@ int viscous_flux_2D( Block *A )
 		tau_yy -= 0.66667 * fs.gas->rho * fs.tke;
 		// Turbulence contribution to heat transfer.
 		mu_effective = mu_lam + sigma_star * mu_t;
-		dtkedx = 0.5 * (vtx1->dtkedx + vtx2->dtkedx);
-		dtkedy = 0.5 * (vtx1->dtkedy + vtx2->dtkedy);
+		dtkedx = select_derivative( vtx1->dtkedx, vtx2->dtkedx, tvdp );
+		dtkedy = select_derivative( vtx1->dtkedy, vtx2->dtkedy, tvdp );
 		qx[0] += mu_effective * dtkedx;
 		qy[0] += mu_effective * dtkedy;
 		// Turbulence transport of the turbulence properties themselves.
 		tau_kx = mu_effective * dtkedx; 
 		tau_ky = mu_effective * dtkedy;
 		mu_effective = mu_lam + sigma * mu_t;
-		domegadx = 0.5 * (vtx1->domegadx + vtx2->domegadx);
-		domegady = 0.5 * (vtx1->domegady + vtx2->domegady);
+		domegadx = select_derivative( vtx1->domegadx, vtx2->domegadx, tvdp );
+		domegady = select_derivative( vtx1->domegady, vtx2->domegady, tvdp );
 		tau_wx = mu_effective * domegadx; 
-		tau_wy = mu_effective * domegady; 
+		tau_wy = mu_effective * domegady;
 	    } else {
 		tau_kx = 0.0;
 		tau_ky = 0.0;
