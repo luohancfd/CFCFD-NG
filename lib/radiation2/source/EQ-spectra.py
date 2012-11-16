@@ -67,7 +67,7 @@ def parseInputFile(input_file):
     if tks[0]=="mass-fractions:":
         massf_inf = []
         for tk in tks[1:]:
-            massf_inf = float(tk)
+            massf_inf.append( float(tk) )
     elif tks[0]=="mole-fractions:":
         molef_inf = []
         for tk in tks[1:]:
@@ -215,7 +215,7 @@ def main():
     LOS.write_point_to_file(0,"coefficient_spectra.txt")
     S = SpectralIntensity( rsm )
     I_total = LOS.integrate_LOS( S )
-    print "I_total = ", I_total
+    print "I_total = %0.3e W/m2" % I_total
     # initialise apparatus function
     if apparatus_fn=="Voigt":
         A = Voigt(gamma_L, gamma_G, nu_sample)
