@@ -174,7 +174,8 @@ double viscous_factor = 1.0;
 /// \brief The amount by which to increment the viscous factor during soft-start.
 double viscous_factor_increment = 0.01;
 
-/// \brief Viscous upwinding =0 for heat flux from upwind direction, =1 for both directions.
+/// \brief Viscous upwinding =0 for viscous flux from upwind direction, =1 for average of both
+/// directions.
 int viscous_upwinding = 0;
 
 /// \brief Diffusion flag =0 for neglecting multicomponent diffusion, =1
@@ -355,7 +356,7 @@ int get_viscous_flag(void)
 
 /*------------------------------------------------------------------*/
 
-int set_viscous_upwinding(int iw)
+int set_viscous_upwinding_flag(int iw)
 {
     viscous_upwinding = iw;
     if (viscous_upwinding == 0) {
@@ -371,7 +372,7 @@ int set_viscous_upwinding(int iw)
     return SUCCESS;
 }
 
-int get_viscous_upwinding(void)
+int get_viscous_upwinding_flag(void)
 {
     return viscous_upwinding;
 }

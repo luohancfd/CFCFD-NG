@@ -241,8 +241,8 @@ int read_config_parameters(const string filename, int master)
     dict.parse_double("global_data", "viscous_delay", G.viscous_time_delay, 0.0);
     dict.parse_double("global_data", "viscous_factor_increment", d_value, 0.01);
     set_viscous_factor_increment( d_value );
-    dict.parse_int("global_data", "viscous_upwinding", i_value, 0);
-    set_viscous_upwinding( i_value );
+    dict.parse_int("global_data", "viscous_upwinding_flag", i_value, 0);
+    set_viscous_upwinding_flag( i_value );
     dict.parse_double("global_data", "max_mu_t_factor", G.max_mu_t_factor, 300.0);
     dict.parse_double("global_data", "transient_mu_t_factor", G.transient_mu_t_factor, 1.0);
     dict.parse_int("global_data", "axisymmetric_flag", i_value, 0);
@@ -276,7 +276,7 @@ int read_config_parameters(const string filename, int master)
 	cout << "viscous_flag = " << get_viscous_flag() << endl;
 	cout << "viscous_delay = " << G.viscous_time_delay << endl;
 	cout << "viscous_factor_increment = " << get_viscous_factor_increment() << endl;
-	cout << "viscous_upwinding = " << get_viscous_upwinding() << endl;
+	cout << "viscous_upwinding_flag = " << get_viscous_upwinding_flag() << endl;
 	cout << "max_mu_t_factor = " << G.max_mu_t_factor << endl;
 	cout << "transient_mu_t_factor = " << G.transient_mu_t_factor << endl;
 	cout << "axisymmetric_flag = " << get_axisymmetric_flag() << endl;
