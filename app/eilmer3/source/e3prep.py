@@ -433,7 +433,7 @@ class GlobalData(object):
         fp.write("t_order = %d\n" % self.t_order)
         fp.write("dt = %e\n" % self.dt)
         fp.write("fixed_time_step = %s\n" % self.fixed_time_step)
-        fp.write("dt_reduction_factor = %e\n" % scd ~/elf.dt_reduction_factor)
+        fp.write("dt_reduction_factor = %e\n" % self.dt_reduction_factor)
         fp.write("cfl = %e\n" % self.cfl)
         fp.write("stringent_cfl = %d\n" % self.stringent_cfl)
         fp.write("print_count = %d\n" % self.print_count)
