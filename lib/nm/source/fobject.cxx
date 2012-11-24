@@ -581,9 +581,9 @@ double DiscontinuousUnivariateFunction::eval( double t )
     double tbar;
 
     if ( t < gamma )
-    	tbar = uf0->eval( t/gamma ) * gamma;
+   	tbar = uf0->eval( t/gamma ) * gamma;
     else
-    	tbar = uf1->eval( ( t - gamma ) / ( 1.0 - gamma ) ) * ( 1.0 - gamma ) + gamma ;
+        tbar = uf1->eval( ( t - gamma ) / ( 1.0 - gamma ) ) * ( 1.0 - gamma ) + gamma;
     
     return tbar;
 }
@@ -674,7 +674,7 @@ double HypertanClusterFunction::eval( double t )
 {
     double u = 0.5 * ( 1.0 + tanh( delta * ( t - 0.5 ) ) );
     double tbar = u / ( A + ( 1.0 - A ) * u );
-    return tbar;
+    return (tbar-tbar0)*tbar_scale;
 }
 string HypertanClusterFunction::str() const
 {
@@ -695,8 +695,13 @@ void HypertanClusterFunction::set_underlying_parameters()
     A = sqrt( dL1 ) / sqrt( dL0 );
     B = 1.0 / sqrt( dL1 * dL0 );
     VinokurFunction f = VinokurFunction( B );
-    Bisection bsm = Bisection( &f, 1.0e-6 );
+    Bisection bsm = Bisection( &f, 1.0e-12 );
     delta = bsm( 1.0e-10, 1.0e3 );
+    // Solve for shifting parameters
+    tbar0 = 0.0; tbar_scale = 1.0;
+    tbar0 = this->eval(0);
+    tbar_scale = 1.0 / this->eval(1.0);
+    // cout << "tbar0 = " << tbar0 << ", tbar_scale = " << tbar_scale << endl;
 
     return;
 }

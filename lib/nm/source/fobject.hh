@@ -191,6 +191,8 @@ private:
      double A; // any bits that are needed during the calculation...
      double B;
      double delta;
+     double tbar0;
+     double tbar_scale;
 };
 
 #endif
