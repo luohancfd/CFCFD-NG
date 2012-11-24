@@ -432,5 +432,5 @@ def exact_riemann( QL, QR ):
     print "* Us = %0.1f m/s; P* = %0.1f kPa; u* = %0.1f m/s"%(Us_R, 0.001*P_star_np1, QLstar.u)
     print "**********************************************************\n"
 
-    return Us_R, QRstar
+    return Us_R, QRstar, QLstar
 
