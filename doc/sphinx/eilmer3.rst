@@ -9,7 +9,9 @@ flows where the bounding geometry is not too complex.
    :align: center
    :scale: 30%
 
-   Two-dimensional turbine cascade.
+   Transonic flow through a plane turbine cascade (Kiock et al., 1986).
+   Simulation by Peter Blyton, 2011.
+   Visualization with Paraview.
 
 Typical build and run procedure
 -------------------------------

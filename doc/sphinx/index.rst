@@ -12,7 +12,10 @@ Since the 1980s, we have been building compressible flow simulation codes.
    :align: center
    :scale: 20%
 
-   Transverse injection of hydrogen into a supersonic air stream. 
+   Transverse injection of hydrogen from a rectangular slot
+   into a supersonic air stream.
+   Simulation by Tom Marty (2012) using Eilmer3 and
+   visualization by Vince Wheatley, using Paraview. 
 
 .. toctree::
    :maxdepth: 2

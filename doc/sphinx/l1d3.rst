@@ -9,7 +9,9 @@ facilities and has a role to play in the design of new experimental machines.
    :align: center
    :scale: 7%
 
-   Space-time diagram of wave processes in the X2 expansion tube.
+   Space-time diagram of wave processes in the X2 expansion tube
+   for a Mach 10, high total-pressure operating condition.
+   Simulation and figure preparation by David Gildfind, 2012.
 
 Typical build and run procedure
 -------------------------------
