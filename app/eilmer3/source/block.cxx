@@ -589,6 +589,9 @@ int Block::compute_primary_cell_geometric_data( int dimensions )
 	}
     }
 
+    // work on ifi face as a WEST face
+    // t1 in the j-ordinate direction
+    // t2 in the k-ordinate direction
     for ( i = imin; i <= imax + 1; ++i ) {
 	for ( j = jmin; j <= jmax; ++j ) {
 	    for ( k = kmin; k <= kmax; ++k ) {
@@ -604,6 +607,9 @@ int Block::compute_primary_cell_geometric_data( int dimensions )
 	}
     }
 
+    // work on ifj face as a SOUTH face
+    // t1 in the k-ordinate direction
+    // t2 in the i-ordinate direction
     for ( i = imin; i <= imax; ++i ) {
 	for ( j = jmin; j <= jmax + 1; ++j ) {
 	    for ( k = kmin; k <= kmax; ++k ) {
@@ -619,6 +625,9 @@ int Block::compute_primary_cell_geometric_data( int dimensions )
 	}
     }
 
+    // work on ifk face as a BOTTOM face
+    // t1 in the i-ordinate direction
+    // t2 in the j-ordinate direction
     for ( i = imin; i <= imax; ++i ) {
 	for ( j = jmin; j <= jmax; ++j ) {
 	    for ( k = kmin; k <= kmax + 1; ++k ) {

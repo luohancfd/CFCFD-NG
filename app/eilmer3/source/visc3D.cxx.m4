@@ -115,26 +115,71 @@ int viscous_flux_3D(Block *A)
     }
 
     // i-direction interfaces are treated as East interfaces.
+    // t1 vector aligned with j-index direction
+    // t2 vector aligned with k-index direction
+    // The cycle [Vtx1,Vtx2,Vtx3,Vtx4] progresses counter-clockwise around 
+    // the periphery of the face when the normal unit vector is pointing toward you.
     for (i = A->imin - 1; i <= A->imax; ++i) {
         for (j = A->jmin; j <= A->jmax; ++j) {
 	    for (k = A->kmin; k <= A->kmax; ++k) {
 		IFace = A->get_ifi(i+1,j,k);
 		FlowState &fs = *(IFace->fs);
-		Vtx1 = A->get_vtx(i+1,j,k+1);
-		Vtx2 = A->get_vtx(i+1,j,k);
-		Vtx3 = A->get_vtx(i+1,j+1,k);
-		Vtx4 = A->get_vtx(i+1,j+1,k+1);
+		Vtx1 = A->get_vtx(i+1,j,k);
+		Vtx2 = A->get_vtx(i+1,j+1,k);
+		Vtx3 = A->get_vtx(i+1,j+1,k+1);
+		Vtx4 = A->get_vtx(i+1,j,k+1);
 		// Determine some of the interface properties.
-		define(`average_scalar_over_face',
-                       `$1 = 0.25*(Vtx1->$1+Vtx2->$1+Vtx3->$1+Vtx4->$1);')dnl
-		define(`average_array_element_over_face', 
-                       `$1[$2] = 0.25*(Vtx1->$1[$2]+Vtx2->$1[$2]+Vtx3->$1[$2]+Vtx4->$1[$2]);')dnl
-		for_each_scalar_derivative(`average_scalar_over_face')
-		for ( int itm=0; itm<ntm; ++itm ) {
-                    average_array_element_over_face(dTdx,itm)
-                    average_array_element_over_face(dTdy,itm)
-                    average_array_element_over_face(dTdz,itm)
-                }
+                if ( get_viscous_upwinding_flag() == 1 ) {
+                    // Select one corner, based on the wind direction.
+                    double vt1dp = dot(fs.vel,IFace->t1);
+                    double vt2dp = dot(fs.vel,IFace->t2);
+		    define(`select_scalar_over_face', 
+                           `if ( vt1dp >= 0.0 ) {
+		               if ( vt2dp >= 0.0 ) { $1 = Vtx1->$1; } else { $1 = Vtx4->$1; }
+                           } else {
+		               if ( vt2dp >= 0.0 ) { $1 = Vtx2->$1; } else { $1 = Vtx3->$1; }
+                           }')dnl
+		    define(`select_array_element_over_face', 
+                           `if ( vt1dp >= 0.0 ) {
+		               if ( vt2dp >= 0.0 ) { $1[$2] = Vtx1->$1[$2]; } else { $1[$2] = Vtx4->$1[$2]; }
+                           } else {
+		               if ( vt2dp >= 0.0 ) { $1[$2] = Vtx2->$1[$2]; } else { $1[$2] = Vtx3->$1[$2]; }
+                           }')dnl
+		    for_each_scalar_derivative(`select_scalar_over_face')
+		    for ( int itm=0; itm<ntm; ++itm ) {
+                        select_array_element_over_face(dTdx,itm)
+                        select_array_element_over_face(dTdy,itm)
+                        select_array_element_over_face(dTdz,itm)
+                    }
+	            if( get_diffusion_flag() == 1 ) {
+                        // Needed for diffusion model, below.
+		        for( int isp = 0; isp < nsp; ++isp ) {
+                            select_array_element_over_face(dfdx,isp)
+                            select_array_element_over_face(dfdy,isp)
+                            select_array_element_over_face(dfdz,isp)
+		        }
+                    }
+                } else {
+                    // Symmetric average.
+		    define(`average_scalar_over_face',
+                           `$1 = 0.25*(Vtx1->$1+Vtx2->$1+Vtx3->$1+Vtx4->$1);')dnl
+		    define(`average_array_element_over_face', 
+                           `$1[$2] = 0.25*(Vtx1->$1[$2]+Vtx2->$1[$2]+Vtx3->$1[$2]+Vtx4->$1[$2]);')dnl
+		    for_each_scalar_derivative(`average_scalar_over_face')
+		    for ( int itm=0; itm<ntm; ++itm ) {
+                        average_array_element_over_face(dTdx,itm)
+                        average_array_element_over_face(dTdy,itm)
+                        average_array_element_over_face(dTdz,itm)
+                    }
+	            if( get_diffusion_flag() == 1 ) {
+                        // Needed for diffusion model, below.
+		        for( int isp = 0; isp < nsp; ++isp ) {
+                            average_array_element_over_face(dfdx,isp)
+                            average_array_element_over_face(dfdy,isp)
+                            average_array_element_over_face(dfdz,isp)
+		        }
+                    }
+                }		    
                 k_eff[0] = viscous_factor * (fs.gas->k[0] + fs.k_t);
 		for ( int itm=1; itm<ntm; ++itm ) {
 		    k_eff[itm] = viscous_factor * fs.gas->k[itm];
@@ -142,11 +187,6 @@ int viscous_flux_3D(Block *A)
 		mu_eff =  viscous_factor * (fs.gas->mu + fs.mu_t);
 		lmbda = -2.0/3.0 * mu_eff;
 	        if( get_diffusion_flag() == 1 ) {
-		    for( int isp = 0; isp < nsp; ++isp ) {
-                        average_array_element_over_face(dfdx,isp)
-                        average_array_element_over_face(dfdy,isp)
-                        average_array_element_over_face(dfdz,isp)
-		    }
 		    // Apply a diffusion model
 		    double D_t = 0.0;
 		    if ( get_k_omega_flag() == 1 ) {
@@ -256,21 +296,52 @@ int viscous_flux_3D(Block *A)
     } // i loop
 
     // j-interfaces are treated as North interfaces
+    // t1 vector aligned with k-index direction
+    // t2 vector aligned with i-index direction
     for (i = A->imin; i <= A->imax; ++i) {
         for (j = A->jmin - 1; j <= A->jmax; ++j) {
 	    for (k = A->kmin; k <= A->kmax; ++k) {
 		IFace = A->get_ifj(i,j+1,k);
 		FlowState &fs = *(IFace->fs);
-		Vtx1 = A->get_vtx(i,j+1,k+1);
-		Vtx2 = A->get_vtx(i+1,j+1,k+1);
-		Vtx3 = A->get_vtx(i+1,j+1,k);
-		Vtx4 = A->get_vtx(i,j+1,k);
+		Vtx1 = A->get_vtx(i,j+1,k);
+		Vtx2 = A->get_vtx(i,j+1,k+1);
+		Vtx3 = A->get_vtx(i+1,j+1,k+1);
+		Vtx4 = A->get_vtx(i+1,j+1,k);
 		// Determine some of the interface properties.
-		for_each_scalar_derivative(`average_scalar_over_face')
-		for ( int itm=0; itm<ntm; ++itm ) {
-                    average_array_element_over_face(dTdx,itm)
-                    average_array_element_over_face(dTdy,itm)
-                    average_array_element_over_face(dTdz,itm)
+                if ( get_viscous_upwinding_flag() == 1 ) {
+                    // Select one corner, based on the wind direction.
+                    double vt1dp = dot(fs.vel,IFace->t1);
+                    double vt2dp = dot(fs.vel,IFace->t2);
+		    for_each_scalar_derivative(`select_scalar_over_face')
+		    for ( int itm=0; itm<ntm; ++itm ) {
+                        select_array_element_over_face(dTdx,itm)
+                        select_array_element_over_face(dTdy,itm)
+                        select_array_element_over_face(dTdz,itm)
+                    }
+	            if( get_diffusion_flag() == 1 ) {
+                        // Needed for diffusion model, below.
+		        for( int isp = 0; isp < nsp; ++isp ) {
+                            select_array_element_over_face(dfdx,isp)
+                            select_array_element_over_face(dfdy,isp)
+                            select_array_element_over_face(dfdz,isp)
+		        }
+                    }
+                } else {
+                    // Symmetric average.
+ 		    for_each_scalar_derivative(`average_scalar_over_face')
+		    for ( int itm=0; itm<ntm; ++itm ) {
+                        average_array_element_over_face(dTdx,itm)
+                        average_array_element_over_face(dTdy,itm)
+                        average_array_element_over_face(dTdz,itm)
+                    }
+ 	            if( get_diffusion_flag() == 1 ) {
+                        // derivatives needed for diffusion model, below
+		        for( int isp = 0; isp < nsp; ++isp ) {
+                            average_array_element_over_face(dfdx,isp)
+                            average_array_element_over_face(dfdy,isp)
+                            average_array_element_over_face(dfdz,isp)
+		        }
+                    }
                 }
                 k_eff[0] = viscous_factor * (fs.gas->k[0] + fs.k_t);
 		for ( int itm=1; itm<ntm; ++itm ) {
@@ -279,11 +350,6 @@ int viscous_flux_3D(Block *A)
 		mu_eff =  viscous_factor * (fs.gas->mu + fs.mu_t);
 		lmbda = -2.0/3.0 * mu_eff;
 	        if( get_diffusion_flag() == 1 ) {
-		    for( int isp = 0; isp < nsp; ++isp ) {
-                        average_array_element_over_face(dfdx,isp)
-                        average_array_element_over_face(dfdy,isp)
-                        average_array_element_over_face(dfdz,isp)
-		    }
 		    // Apply a diffusion model
 		    double D_t = 0.0;
 		    if ( get_k_omega_flag() == 1 ) {
@@ -393,6 +459,8 @@ int viscous_flux_3D(Block *A)
     } // i loop
 
     // k-interfaces are treated as Top interfaces
+    // t1 vector aligned with i-index direction
+    // t2 vector aligned with j-index direction
     for (i = A->imin; i <= A->imax; ++i) {
         for (j = A->jmin; j <= A->jmax; ++j) {
 	    for (k = A->kmin - 1; k <= A->kmax; ++k) {
@@ -403,11 +471,40 @@ int viscous_flux_3D(Block *A)
 		Vtx3 = A->get_vtx(i+1,j+1,k+1);
 		Vtx4 = A->get_vtx(i,j+1,k+1);
 		// Determine some of the interface properties.
-		for_each_scalar_derivative(`average_scalar_over_face')
-		for ( int itm=0; itm<ntm; ++itm ) {
-                    average_array_element_over_face(dTdx,itm)
-                    average_array_element_over_face(dTdy,itm)
-                    average_array_element_over_face(dTdz,itm)
+                if ( get_viscous_upwinding_flag() == 1 ) {
+                    // Select one corner, based on the wind direction.
+                    double vt1dp = dot(fs.vel,IFace->t1);
+                    double vt2dp = dot(fs.vel,IFace->t2);
+		    for_each_scalar_derivative(`select_scalar_over_face')
+		    for ( int itm=0; itm<ntm; ++itm ) {
+                        select_array_element_over_face(dTdx,itm)
+                        select_array_element_over_face(dTdy,itm)
+                        select_array_element_over_face(dTdz,itm)
+                    }
+	            if( get_diffusion_flag() == 1 ) {
+                        // Needed for diffusion model, below.
+		        for( int isp = 0; isp < nsp; ++isp ) {
+                            select_array_element_over_face(dfdx,isp)
+                            select_array_element_over_face(dfdy,isp)
+                            select_array_element_over_face(dfdz,isp)
+		        }
+                    }
+                } else {
+                    // Symmetric average.
+		    for_each_scalar_derivative(`average_scalar_over_face')
+		    for ( int itm=0; itm<ntm; ++itm ) {
+                        average_array_element_over_face(dTdx,itm)
+                        average_array_element_over_face(dTdy,itm)
+                        average_array_element_over_face(dTdz,itm)
+                    }
+ 	            if( get_diffusion_flag() == 1 ) {
+                        // derivatives needed for diffusion model, below
+		        for( int isp = 0; isp < nsp; ++isp ) {
+                            average_array_element_over_face(dfdx,isp)
+                            average_array_element_over_face(dfdy,isp)
+                            average_array_element_over_face(dfdz,isp)
+		        }
+                    }
                 }
                 k_eff[0] = viscous_factor * (fs.gas->k[0] + fs.k_t);
 		for ( int itm=1; itm<ntm; ++itm ) {
@@ -415,12 +512,7 @@ int viscous_flux_3D(Block *A)
                 }
 		mu_eff =  viscous_factor * (fs.gas->mu + fs.mu_t);
 		lmbda = -2.0/3.0 * mu_eff;
-	        if( get_diffusion_flag() == 1 ) {
-		    for( int isp = 0; isp < nsp; ++isp ) {
-                        average_array_element_over_face(dfdx,isp)
-                        average_array_element_over_face(dfdy,isp)
-                        average_array_element_over_face(dfdz,isp)
-		    }
+ 	        if( get_diffusion_flag() == 1 ) {
 		    // Apply a diffusion model
 		    double D_t = 0.0;
 		    if ( get_k_omega_flag() == 1 ) {
