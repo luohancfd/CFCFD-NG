@@ -52,7 +52,9 @@ private:
     
     void write_QSS_analysis_files( Gas_data &Q, int index );
 
-    void read_parade_template_file( std::string parade_template_filename );
+    void read_control_template_file( std::string control_template_filename );
+
+    void read_snbopt_template_file( std::string snbcon_template_filename );
 
     void create_parade_control_files( Gas_data &Q );
 
@@ -67,7 +69,9 @@ private:
 
     std::vector<ParadeRadiator*> radiators;
 
-    std::stringstream parade_template_file_buffer;
+    std::stringstream control_template_file_buffer;
+
+    std::stringstream snbopt_template_file_buffer;
 };
 
 #endif

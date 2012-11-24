@@ -20,6 +20,7 @@ class ParadeRadiator:
 	self.systems = systems
 	self.dat_file = dat_file
 	self.mol_weight = mw *1.0e-3
+        self.band_model = 'LBL'
 	self.isp = -1
 	self.iT = 0
 	self.iTe = 0
@@ -35,8 +36,11 @@ class ParadeRadiator:
             tv  = mol_index*2 + 2
         else:
             ttr = 1
-            tv  = 2                
-        string = " 'Y',        '%s'           %d         1 %d   %d   2,   '%s'\n" % ( self.pname, self.atoms, ttr, tv, data_file_path )
+            tv  = 2  
+        atoms = self.atoms
+        if self.band_model == "SNB":
+            atoms *= -1              
+        string = " 'Y',        '%s'           %d         1 %d   %d   2,   '%s'\n" % ( self.pname, atoms, ttr, tv, data_file_path )
         for sys in self.systems:
             string += " 'b'    '%s'       'N'\n" % sys
         return string

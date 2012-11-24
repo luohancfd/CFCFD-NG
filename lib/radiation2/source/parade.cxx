@@ -69,12 +69,20 @@ void Parade::initialise( lua_State * L )
     // system return value
     int srv;
     
-    string parade_template_filename = get_string(L, -1, "parade_template");
+    string control_template_filename = get_string(L, -1, "control_template");
 
     if ( ECHO_RAD_INPUT > 0 )
-	cout << "parade_template_filename: " << parade_template_filename << endl;
+	cout << "control_template_filename: " << control_template_filename << endl;
 
-    read_parade_template_file( parade_template_filename );
+    read_control_template_file( control_template_filename );
+
+    string snbopt_template_filename = get_string(L, -1, "snbopt_template");
+
+    if ( ECHO_RAD_INPUT > 0 )
+        cout << "snbopt_template_filename: " << snbopt_template_filename << endl;
+
+    if ( snbopt_template_filename.compare("none")!=0 )
+        read_snbopt_template_file( snbopt_template_filename );
 
     iT  = get_int(L,-1,"iT");
     iTe = get_int(L,-1,"iTe");
@@ -299,18 +307,35 @@ write_QSS_analysis_files( Gas_data &Q, int index )
 
 void
 Parade::
-read_parade_template_file( string parade_template_filename )
+read_control_template_file( string control_template_filename )
 {
-    ifstream ptfile( parade_template_filename.c_str() );
+    ifstream ptfile( control_template_filename.c_str() );
 
-    parade_template_file_buffer << ptfile.rdbuf();
+    control_template_file_buffer << ptfile.rdbuf();
 
     ptfile.close();
 
     if ( ECHO_RAD_INPUT>1 ) {
         cout << "template file:" << endl
-	     << parade_template_file_buffer.str()
+	     << control_template_file_buffer.str()
 	     << endl;
+    }
+}
+
+void
+Parade::
+read_snbopt_template_file( string snbopt_template_filename )
+{
+    ifstream sotfile( snbopt_template_filename.c_str() );
+
+    snbopt_template_file_buffer << sotfile.rdbuf();
+
+    sotfile.close();
+
+    if ( ECHO_RAD_INPUT>1 ) {
+        cout << "template file:" << endl
+             << snbopt_template_file_buffer.str()
+             << endl;
     }
 }
 
@@ -318,12 +343,12 @@ void
 Parade::
 create_parade_control_files( Gas_data &Q )
 {
-    ofstream pcfile( "parade.con" );
-
-    pcfile << parade_template_file_buffer.str();
-
 #   if USE_FLO_INPUT_FILES
     // Flowfield style: gas data in the .flow files
+    // firstly the con file
+    ofstream pcfile( "parade.con" );
+    pcfile << control_template_file_buffer.str();
+    pcfile.close();
     // Grid file
     // FIXME: this should be done as a initialisation step
     ofstream gfile( "grid.flo" );
@@ -365,6 +390,8 @@ create_parade_control_files( Gas_data &Q )
     tfile.close();
 #   else
     // Single cell style: all gas data in the .con file
+    ofstream pcfile( "parade.con" );
+    pcfile << control_template_file_buffer.str();
     // Firstly put down Tt, Te
     pcfile << " " << Q.T[iT]  << endl
 	   << " " << Q.T[iTe] << endl;
@@ -379,7 +406,12 @@ create_parade_control_files( Gas_data &Q )
 	    pcfile << "   " << Q.T[R->iTr] << "   " << Q.T[R->iTv];
 	pcfile << endl;
     }
+    pcfile.close();
 #   endif
 
-    pcfile.close();
+    if ( snbopt_template_file_buffer.str().length()>0 ) {
+        ofstream sofile( "SNBOPT" );
+        sofile << snbopt_template_file_buffer.str();
+        sofile.close();
+    }
 }
