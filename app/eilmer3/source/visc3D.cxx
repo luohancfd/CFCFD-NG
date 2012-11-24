@@ -404,8 +404,8 @@ int viscous_flux_3D(Block *A)
 		FlowState &fs = *(IFace->fs);
 		Vtx1 = A->get_vtx(i,j,k+1);
 		Vtx2 = A->get_vtx(i+1,j,k+1);
-		Vtx3 = A->get_vtx(i,j+1,k+1);
-		Vtx4 = A->get_vtx(i+1,j+1,k+1);
+		Vtx3 = A->get_vtx(i+1,j+1,k+1);
+		Vtx4 = A->get_vtx(i,j+1,k+1);
 		// Determine some of the interface properties.
 		dudx = 0.25*(Vtx1->dudx+Vtx2->dudx+Vtx3->dudx+Vtx4->dudx);
        dudy = 0.25*(Vtx1->dudy+Vtx2->dudy+Vtx3->dudy+Vtx4->dudy);
