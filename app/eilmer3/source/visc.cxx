@@ -150,7 +150,18 @@ int viscous_flux_2D( Block *A )
         for (j = A->jmin; j <= A->jmax; ++j) {
             IFace = A->get_ifi(i,j);
 	    FlowState &fs = *(IFace->fs);
-	    double vtdp = dot(fs.vel,IFace->t1);
+	    // When getting the velocity for upwinding, use the interface value
+	    // unless we are at one of the block boundaries. 
+	    // Use the interior cell value for boundary faces because we want to 
+	    // know which direction is upwind, even for no-slip boundaries.
+	    double vtdp = 0.0;
+	    if ( i == A->imin ) {
+		vtdp = dot(A->get_cell(i,j)->fs->vel, IFace->t1);
+	    } else if ( i == A->imax+1 ) {
+		vtdp = dot(A->get_cell(i-1,j)->fs->vel, IFace->t1);
+	    } else {
+		vtdp = dot(fs.vel,IFace->t1);
+	    }
             vtx1 = A->get_vtx(i,j+1);
             vtx2 = A->get_vtx(i,j);
 	    // Determine some of the interface properties.
@@ -296,7 +307,18 @@ int viscous_flux_2D( Block *A )
         for (j = A->jmin; j <= A->jmax+1; ++j) {
             IFace = A->get_ifj(i,j);
 	    FlowState &fs = *(IFace->fs);
-	    double vtdp = dot(fs.vel,IFace->t1);
+	    // When getting the velocity for upwinding, use the interface value
+	    // unless we are at one of the block boundaries. 
+	    // Use the interior cell value for boundary faces because we want to 
+	    // know which direction is upwind, even for no-slip boundaries.
+	    double vtdp = 0.0;
+	    if ( j == A->jmin ) {
+		vtdp = dot(A->get_cell(i,j)->fs->vel, IFace->t1);
+	    } else if ( j == A->jmax+1 ) {
+		vtdp = dot(A->get_cell(i,j-1)->fs->vel, IFace->t1);
+	    } else {
+		vtdp = dot(fs.vel,IFace->t1);
+	    }
             vtx1 = A->get_vtx(i,j);
             vtx2 = A->get_vtx(i+1,j);
 	    // Determine some of the interface properties.

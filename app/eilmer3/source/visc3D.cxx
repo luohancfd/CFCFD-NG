@@ -109,8 +109,22 @@ int viscous_flux_3D(Block *A)
 		// Determine some of the interface properties.
                 if ( get_viscous_upwinding_flag() == 1 ) {
                     // Select one corner, based on the wind direction.
-                    double vt1dp = dot(fs.vel,IFace->t1);
-                    double vt2dp = dot(fs.vel,IFace->t2);
+	            // When getting the velocity for upwinding, use the interface value
+	            // unless we are at one of the block boundaries. 
+	            // Use the interior cell value for boundary faces because we want to 
+	            // know which direction is upwind, even for no-slip boundaries.
+	            double vt1dp = 0.0;
+	            double vt2dp = 0.0;
+	            if ( i == A->imin-1 ) {
+		        vt1dp = dot(A->get_cell(i+1,j,k)->fs->vel, IFace->t1);
+		        vt2dp = dot(A->get_cell(i+1,j,k)->fs->vel, IFace->t2);
+	            } else if ( i == A->imax ) {
+		        vt1dp = dot(A->get_cell(i,j,k)->fs->vel, IFace->t1);
+		        vt2dp = dot(A->get_cell(i,j,k)->fs->vel, IFace->t2);
+	            } else {
+		        vt1dp = dot(fs.vel,IFace->t1);
+		        vt2dp = dot(fs.vel,IFace->t2);
+	            }
 		    		    		    if ( vt1dp >= 0.0 ) {
 		               if ( vt2dp >= 0.0 ) { dudx = Vtx1->dudx; } else { dudx = Vtx4->dudx; }
                            } else {
@@ -386,8 +400,22 @@ int viscous_flux_3D(Block *A)
 		// Determine some of the interface properties.
                 if ( get_viscous_upwinding_flag() == 1 ) {
                     // Select one corner, based on the wind direction.
-                    double vt1dp = dot(fs.vel,IFace->t1);
-                    double vt2dp = dot(fs.vel,IFace->t2);
+	            // When getting the velocity for upwinding, use the interface value
+	            // unless we are at one of the block boundaries. 
+	            // Use the interior cell value for boundary faces because we want to 
+	            // know which direction is upwind, even for no-slip boundaries.
+	            double vt1dp = 0.0;
+	            double vt2dp = 0.0;
+	            if ( j == A->jmin-1 ) {
+		        vt1dp = dot(A->get_cell(i,j+1,k)->fs->vel, IFace->t1);
+		        vt2dp = dot(A->get_cell(i,j+1,k)->fs->vel, IFace->t2);
+	            } else if ( j == A->jmax ) {
+		        vt1dp = dot(A->get_cell(i,j,k)->fs->vel, IFace->t1);
+		        vt2dp = dot(A->get_cell(i,j,k)->fs->vel, IFace->t2);
+	            } else {
+		        vt1dp = dot(fs.vel,IFace->t1);
+		        vt2dp = dot(fs.vel,IFace->t2);
+	            }
 		    if ( vt1dp >= 0.0 ) {
 		               if ( vt2dp >= 0.0 ) { dudx = Vtx1->dudx; } else { dudx = Vtx4->dudx; }
                            } else {
@@ -663,8 +691,22 @@ int viscous_flux_3D(Block *A)
 		// Determine some of the interface properties.
                 if ( get_viscous_upwinding_flag() == 1 ) {
                     // Select one corner, based on the wind direction.
-                    double vt1dp = dot(fs.vel,IFace->t1);
-                    double vt2dp = dot(fs.vel,IFace->t2);
+	            // When getting the velocity for upwinding, use the interface value
+	            // unless we are at one of the block boundaries. 
+	            // Use the interior cell value for boundary faces because we want to 
+	            // know which direction is upwind, even for no-slip boundaries.
+	            double vt1dp = 0.0;
+	            double vt2dp = 0.0;
+	            if ( k == A->kmin-1 ) {
+		        vt1dp = dot(A->get_cell(i,j,k+1)->fs->vel, IFace->t1);
+		        vt2dp = dot(A->get_cell(i,j,k+1)->fs->vel, IFace->t2);
+	            } else if ( k == A->kmax ) {
+		        vt1dp = dot(A->get_cell(i,j,k)->fs->vel, IFace->t1);
+		        vt2dp = dot(A->get_cell(i,j,k)->fs->vel, IFace->t2);
+	            } else {
+		        vt1dp = dot(fs.vel,IFace->t1);
+		        vt2dp = dot(fs.vel,IFace->t2);
+	            }
 		    if ( vt1dp >= 0.0 ) {
 		               if ( vt2dp >= 0.0 ) { dudx = Vtx1->dudx; } else { dudx = Vtx4->dudx; }
                            } else {
