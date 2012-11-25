@@ -184,6 +184,11 @@ public:
     { return s_names_[isp]; }
     
     int get_isp_from_species_name( std::string name );
+
+    std::string mode_name(int imode)
+    { return m_names_[imode]; }
+
+    int get_imode_from_mode_name(std::string name);
     
     int set_mole_fractions(Gas_data &Q, 
 			   std::vector<std::string> &sp, 
@@ -219,6 +224,7 @@ protected:
     int nmodes_;  // No. of (separate) thermal modes
 
     std::vector<std::string> s_names_;
+    std::vector<std::string> m_names_;
     std::vector<double> M_;
     std::vector<int> charge_;
     std::vector<std::map<std::string, int> > atomic_constituents_;
