@@ -62,6 +62,15 @@ Report-2007-13_ is the "User guide for shock and blast simulation with the OctVC
 Theses
 ------
 
+David-Gildfind-PhD-Thesis_ "Development of High Total Pressure Scramjet Flow
+Conditions using the X2 Expansion Tube"
+
+.. _David-Gildfind-PhD-Thesis: ./theses/david-gildfind-phd-thesis-oct-2012.pdf
+
+Wilson-Chan-PhD-Thesis_ "Effects of flow non-uniformities on the drag reduction by boundary layer combustion"
+
+.. _Wilson-Chan-PhD-Thesis: ./theses/wilson-chan-phd-thesis-aug-2012.pdf
+
 Brendan-OFlaherty-PhD-Thesis_ "Reducing the Global Warming Potential of Coal Mine Ventilation Air by Combustion in a Free-Piston Engine"
 
 .. _Brendan-OFlaherty-PhD-Thesis: ./theses/brendan-oflaherty-phd-thesis-june-2012.pdf
