@@ -83,8 +83,8 @@ example-2.data
 
 *Data files:*
 
-thivet_etal_fig5_??.endata
-  Temperature data taken from Figure 5 of Thivet et al.
+thivet\_etal\_fig5\_??.endata
+  Temperature data taken from Fig. 5 of Thivet et al.
 
 *Results files:*
 
@@ -108,7 +108,7 @@ For example 1, in which only VT exchanges are considered,
 the temperature profiles are shown in the
 following figure.
 
-.. figure:: example-1.pdf
+.. figure:: example-1.png
    :align: center
    :scale: 150%
 
@@ -124,7 +124,7 @@ Also, the VV exchanges give a mechanism for the two vibrational
 temperatures to relax against each other. So, the equilibriation
 amongst the two vibrational modes occurs quicker.
 
-.. figure:: example-2.pdf
+.. figure:: example-2.png
    :align: center
    :scale: 150%
 
