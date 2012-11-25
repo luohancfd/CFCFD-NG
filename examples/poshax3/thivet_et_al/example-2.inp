@@ -1,0 +1,16 @@
+[controls]
+dx = 1.0e-6
+final_x = 5.0e-2
+plot_dx = 1.0e-4
+output_file = example-2.data
+
+[models]
+gas_model_file = inert-air.lua
+energy_exchange_file = exchange.lua
+
+[initial-conditions]
+p_inf = 2.5
+T_inf = 205.0, 205.0, 205.0
+M_inf = 25.0
+molef_inf = 0.21 0.79
+
