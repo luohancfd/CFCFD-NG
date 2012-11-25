@@ -43,9 +43,8 @@ function main(config_file)
    dofile(config_file)
 
    mechs = {}
-
    for i,m in ipairs(mechanisms) do
-      local t = transform_mechanism(m, species)
+      local t = transform_mechanism(m, species, modes)
       for _,m in ipairs(t) do
 	 mechs[#mechs+1] = m
       end
@@ -62,7 +61,7 @@ function main(config_file)
 	 ir = idx
 	 idx = idx + 1
       else
-	 ir = imode_map[m.imode]
+	 ir = imode_list[m.imode]
       end
 
       if not rates[ir] then

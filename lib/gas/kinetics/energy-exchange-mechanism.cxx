@@ -68,12 +68,12 @@ specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, vector<double
     double e_vib = p_vib_->eval_energy_from_T(Q.T[iTv_]);
     // NOTE: - tau_ needs to be (already) weighted by colliding mole fractions
     //       - massf scaling is to convert J/s/kg-of-species-ip to J/s/kg-of-mixture
-    double rate = Q.massf[ip_] * (e_vib_eq - e_vib) / tau_;
+    double rate = Q.massf[ip_]*(e_vib_eq - e_vib) / tau_;
     //    cout << "e_vib_eq= " << e_vib_eq << endl;
     //    cout << "e_vib= " << e_vib << endl;
     //    cout << "massf= " << Q.massf[ip_] << endl;
     //    cout << "rate= " << rate << endl;
-
+    //cout << "Vt-rate= " << rate << endl;
     return rate;
 }
 
@@ -175,75 +175,78 @@ specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, vector<double
 //     return rate;
 // }
 
-// VV_THO_exchange::
-// VV_THO_exchange( lua_State *L )
-//     : Energy_exchange_mechanism()
-// {
-//     // 1. Vibrating species 'p'
-//     // 1a. Species pointer
-//     string p_name = get_string(L, -1, "p_name");
-//     Chemical_species * P = get_library_species_pointer_from_name( p_name );
-//     // 1b. Thermal mode indices
-//     iT_ = P->get_mode_pointer_from_type("translation")->get_iT();
-//     iTvp_ = P->get_mode_pointer_from_type("vibration")->get_iT();
-//     // 1c. Pointer to vibrational mode cast as THO
-//     // FIXME: Need to test here that p_vib is truncated harmonic vibrational mode
-//     p_vib_ = dynamic_cast<Truncated_harmonic_vibration*>(P->get_mode_pointer_from_type("vibration"));
-//     // 1d. Characteristic vibrational temperature for p
-//     theta_v_p_ = p_vib_->get_theta();
-    
-//     // 2. Vibrating species 'q'
-//     // 2a. Species pointer
-//     string q_name = get_string(L, -1, "q_name");
-//     Chemical_species * Q = get_library_species_pointer_from_name( q_name );
-//     // 2b. Species Q species index
-//     iq_ = Q->get_isp();
-//     // 2c. Thermal mode indices
-//     iTvq_ = Q->get_mode_pointer_from_type("vibration")->get_iT();
-//     // 2d. Pointer to vibrational mode cast as THO
-//     // FIXME: Need to test here that q_vib is truncated harmonic vibrational mode
-//     q_vib_ = dynamic_cast<Truncated_harmonic_vibration*>(Q->get_mode_pointer_from_type("vibration"));
-//     // 1d. Characteristic vibrational temperature for q
-//     theta_v_q_ = q_vib_->get_theta();
-    
-//     // 3. Initialise relaxation time
-//     lua_getfield(L,-1,"relaxation_time");
-//     tau_VV_ = create_new_relaxation_time( L );
-//     lua_pop(L, 1 );
-// }
+VV_THO_exchange::
+VV_THO_exchange(lua_State *L, int ip, int imode)
+    : Energy_exchange_mechanism(), ip_(ip), iTvp_(imode)
+{
+    Chemical_species *X = get_library_species_pointer(ip_);
+    p_vib_ = dynamic_cast<Truncated_harmonic_vibration*>(X->get_mode_pointer_from_type("vibration"));
+    if ( p_vib_ == 0 ) {
+	cout << "The vibrating species " << X->get_name() << " could not be cast" << endl;
+	cout << "as a truncated harmonic oscillator." << endl;
+	cout << "Bailing out!" << endl;
+	exit(BAD_INPUT_ERROR);
+    }
 
-// VV_THO_exchange::
-// ~VV_THO_exchange()
-// {
-//     delete tau_VV_;
-// }
+    iq_ = get_int(L, -1, "iq");
+    iT_ = get_int(L, -1, "itrans");
+    iTvq_ = get_int(L, -1, "iTvq");
 
-// double
-// VV_THO_exchange::
-// specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &molef)
-// {
-//     // See VV_exchange::specific_compute_rate() in mTg_mechanisms.cxx for
-//     // Rowan's initial implementation of Thivet's equations
+    X = get_library_species_pointer(iq_);
+    q_vib_ = dynamic_cast<Truncated_harmonic_vibration*>(X->get_mode_pointer_from_type("vibration"));
+    if ( q_vib_ == 0 ) {
+	cout << "The vibrating species " << X->get_name() << " could not be cast" << endl;
+	cout << "as a truncated harmonic oscillator." << endl;
+	cout << "Bailing out!" << endl;
+	exit(BAD_INPUT_ERROR);
+    }
+
+    theta_v_p_ = p_vib_->get_theta();
+    theta_v_q_ = q_vib_->get_theta();
+
+    lua_getfield(L,-1,"relaxation_time");
+    tau_VV_ = create_new_relaxation_time(L, ip_, iq_, iT_);
+    lua_pop(L, 1 );
+}
+
+VV_THO_exchange::
+~VV_THO_exchange()
+{
+    delete tau_VV_;
+}
+
+double
+VV_THO_exchange::
+specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &molef)
+{
+    // See VV_exchange::specific_compute_rate() in mTg_mechanisms.cxx for
+    // Rowan's initial implementation of Thivet's equations
     
-//     // 0. Set the translational temperature
-//     double T = Q.T[iT_];
+    // 0. Set the temperatures
+    double T = Q.T[iT_];
+    double Tvp = Q.T[iTvp_];
+    double Tvq = Q.T[iTvq_];
     
-//     // 1. Calculate vibrational energies
-//     double e_p = p_vib_->eval_energy_from_T( Q.T[iTvp_] );	// p THO energy at Tv_p
-//     double e_q = p_vib_->eval_energy_from_T( Q.T[iTvp_] );	// q THO energy at Tv_q
-//     double e_p_bar = p_vib_->eval_energy_from_T( T );		// p THO energy at T
-//     double e_q_bar = q_vib_->eval_energy_from_T( T );		// q THO energy at T
-//     double e_q_hat = q_vib_->eval_HO_energy_from_T( T );	// q HO energy at T
+    // 1. Calculate vibrational energies
+    double e_p = p_vib_->eval_energy_from_T(Tvp);	// p THO energy at Tv_p
+    double e_q = q_vib_->eval_energy_from_T(Tvq);	// q THO energy at Tv_q
+    double e_p_bar = p_vib_->eval_energy_from_T(T);	// p THO energy at T
+    double e_q_bar = q_vib_->eval_energy_from_T(T);	// q THO energy at T
+    double e_q_hat = q_vib_->eval_HO_energy_from_T(T);  // q HO energy at T
     
-//     // 2. Calculate the rate
-//     double tmp_a = molef[iq_] / tau_;
-//     double tmp_b = (1.0 - exp(-1.0 * theta_v_p_/T)) / (1.0 - exp(-1.0 * theta_v_q_/T))
-// 	* ((e_q/e_q_hat)*(e_p_bar - e_p));
-//     double tmp_c = (e_p/e_q_hat)*(e_q_bar - e_q);
-//     double rate = tmp_a * (tmp_b - tmp_c);
+    //    cout << "iT= " << iT_ << " itvp= " << iTvp_ << " itvq= " << iTvq_ << endl;
+    //    cout << "e_p= " << e_p << " e_q= " << e_q << endl;
+    //    cout << "e_p_bar= " << e_p_bar << " e_q_bar= " << e_q_bar << " e_q_hat = " << e_q_hat << endl;
+
+    // 2. Calculate the rate
+    double tmp_a = 1.0 / tau_;
+    double tmp_b = (1.0 - exp(-1.0 * theta_v_p_/T)) / (1.0 - exp(-1.0 * theta_v_q_/T)) 	* ((e_q/e_q_hat)*(e_p_bar - e_p));
+    double tmp_c = (e_p/e_q_hat)*(e_q_bar - e_q);
+    double rate = Q.massf[ip_]*tmp_a*(tmp_b - tmp_c);
     
-//     return rate;
-// }
+    //    cout << "VV-rate= " << rate << endl;
+    return rate;
+}
 
 // VV_HO_exchange::
 // VV_HO_exchange( lua_State *L )
@@ -586,9 +589,9 @@ Energy_exchange_mechanism* create_energy_exhange_mechanism(lua_State *L, int ip,
 //     // else if( type == "ET_exchange" ) {
 //     // 	return new ET_exchange(L);
 //     // }
-//     // else if( type == "VV_THO_exchange" ) {
-//     // 	return new VV_THO_exchange(L);
-//     // }
+    else if( type == "VV-THO" ) {
+ 	return new VV_THO_exchange(L, ip, imode);
+    }
 //     // else if( type == "VV_HO_exchange" ) {
 //     // 	return new VV_HO_exchange(L);
 //     // }

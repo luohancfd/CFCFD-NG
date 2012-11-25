@@ -93,33 +93,21 @@ private:
 //     double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
 // };
 
-// class VV_THO_exchange : public Energy_exchange_mechanism {
-// public:
-//     VV_THO_exchange( lua_State *L );
-
-//     ~VV_THO_exchange();
-// private:
-//     // Global data
-//     int iT_;					// translational temperature
+class VV_THO_exchange : public Energy_exchange_mechanism {
+public:
+    VV_THO_exchange(lua_State *L, int ip, int imode);
+    ~VV_THO_exchange();
+private:
+    int ip_, iq_, iT_, iTvp_, iTvq_;
+    Truncated_harmonic_vibration *p_vib_, *q_vib_;
+    double theta_v_p_, theta_v_q_;
+    Relaxation_time *tau_VV_;
     
-//     // Species p data
-//     int iTvp_;					// molecule p vibratonal temperature index
-//     Truncated_harmonic_vibration * p_vib_;	// pointer to p vibrational mode
-//     double theta_v_p_;				// molecule p characteristic vibrational temperature
-    
-//     // Species q data
-//     int iq_;					// molecule q species index
-//     int iTvq_;					// molecule q vibrational temperature index
-//     Truncated_harmonic_vibration * q_vib_; 	// pointer to p vibrational mode
-//     double theta_v_q_;				// molecule q characteristic vibrational temperature
+    double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
+    { return tau_VV_->compute_relaxation_time(Q,molef); }
 
-//     Relaxation_time * tau_VV_;
-    
-//     double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
-//     { return tau_VV_->compute_relaxation_time(Q,molef); }
-
-//     double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
-// };
+    double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
+};
 
 // class VV_HO_exchange : public Energy_exchange_mechanism {
 // public:

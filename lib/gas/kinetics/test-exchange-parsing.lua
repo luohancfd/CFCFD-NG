@@ -36,8 +36,9 @@ t1 = "V-T"
 t2 = "V - V"
 t3 = "E-T"
 t4 = "T-W"
+t5 = "V-V THO"
 
-tests = {t1, t2, t3, t4}
+tests = {t1, t2, t3, t4, t5}
 for _,t in ipairs(tests) do
    result = lpeg.match(EG, t)
    if result then
@@ -58,8 +59,9 @@ local MG = exch.ThermMechG
 t1 = "N2 ~~ O2 : V-V"
 t2 = "N2 ~~ (O2, H2) : V-T"
 t3 = "O2 ~~ (*list) : E-T"
+t4 = "N2 ~~ (O2, N2) : V-V THO"
 
-tests = {t1, t2, t3}
+tests = {t1, t2, t3, t4}
 
 for _,t in ipairs(tests) do
    result = lpeg.match(MG, t)

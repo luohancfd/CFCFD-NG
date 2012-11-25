@@ -26,6 +26,7 @@ local Open = "(" * Space
 local Close = ")" * Space
 local ListKw = lpeg.C(lpeg.P("*list")) * Space
 local ExchType = lpeg.C(lpeg.S("VTE")) * Space -- letters designating exchange types
+local ExchDesc = lpeg.C(lpeg.R("AZ")^1)
 
 -- grammar
 local Colliders = lpeg.V"Colliders"
@@ -38,7 +39,7 @@ local G = lpeg.P{ Mechanism,
 					( Species + -- e.g. N2 ~~ O2
 					 lpeg.Ct((Open*Species*Space*(Comma*Species)^0*Close)) +  -- e.g. O2 ~~ (N2, H2)
 					 (Open*ListKw*Close) )),
-		  Exchange = lpeg.Ct(ExchType * Dash * ExchType)
+		  Exchange = lpeg.Ct(ExchType * Dash * ExchType*(Space*ExchDesc)^0)
 		}
 ThermMechG = Space * G * -1
 ColliderG = lpeg.P{ Colliders,
@@ -47,7 +48,7 @@ ColliderG = lpeg.P{ Colliders,
 					   lpeg.Ct((Open*Species*Space*(Comma*Species)^0*Close)) +  -- e.g. O2 ~~ (N2, H2)
 					   (Open*ListKw*Close) )) } -- e.g. N2 + (*list)
 ExchangeG = lpeg.P{ Exchange,
-		    Exchange = lpeg.Ct(ExchType * Dash * ExchType)}
+		    Exchange = lpeg.Ct(ExchType * Dash * ExchType*(Space*ExchDesc)^0)}
 
 
 function parse_energy_exch_string(s)
@@ -57,8 +58,9 @@ end
 
 function transform_mechanism(m, species, thermal_modes)
    local t = parse_energy_exch_string(m[1])
-   local ip = species[t[1][1]]
-   local q = t[1][2]
+   local p = t[1][1] -- species p as string
+   local ip = species[p]
+   local q = t[1][2] -- species q(s): could be string, list, or table
    local iqs = {}
 
    if type(q) == 'table' then
@@ -101,13 +103,40 @@ function transform_mechanism(m, species, thermal_modes)
 
    local mechs = {}
    local m_type = tostring(t[2][1]..t[2][2])
+   if t[2][3] then
+      m_type = m_type.."-"..t[2][3]
+   end
+   local mode = tostring(t[2][1].."_"..p)
+   local imode = thermal_modes[mode]
+
+   if ( imode == nil ) then
+      print("A mode for thermal exchange listed in the energy exchange file")
+      print("is NOT available as part of the gas model.")
+      print("mode : ", mode)
+      print("This was found when building exchange mechanism:")
+      print(m[1])
+      print("")
+      print("Bailing out!")
+      os.exit(1)
+   end
 
    for i,q in ipairs(iqs) do
       mechs[#mechs+1] = {ip=ip, iq=q, type=m_type, relaxation_time=m.rt}
       if m_type == 'VT' then
 	 mechs[#mechs].itrans = ITRANS
-	 -- Need to do this more intelligently
-	 mechs[#mechs].imode = 1
+	 mechs[#mechs].imode = imode
+      elseif m_type == "VV-THO" then
+	 mechs[#mechs].itrans = ITRANS
+	 mechs[#mechs].imode = imode
+	 local qmode = "V_"..species[q]
+	 mechs[#mechs].iTvq = thermal_modes[qmode]
+      else
+	 print("Mode type: ", m_type, " is not known.")
+	 print("This occurred when trying to build energy exchange mechanism:")
+	 print(m[1])
+	 print("")
+	 print("Bailing out!")
+	 os.exit(1)
       end
    end
 

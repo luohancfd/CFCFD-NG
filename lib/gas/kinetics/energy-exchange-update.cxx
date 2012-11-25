@@ -38,12 +38,24 @@ Energy_exchange_update* create_Energy_exchange_update(string cfile, Gas_model &g
 	// the reaction coefficients.
 	lua_pushinteger(L, isp);
 	lua_setfield(L, -2, g.species_name(isp).c_str());
+	// Also add the reverse lookup
+	lua_pushinteger(L, isp);
+	lua_pushstring(L, g.species_name(isp).c_str());
+	lua_settable(L, -3);
     }
     // Plus add a field 'size': no of species
     lua_pushinteger(L, g.get_number_of_species());
     lua_setfield(L, -2, "size");
     lua_setglobal(L, "species");
     
+    // Setup a map of thermal modes to integer
+    lua_newtable(L);
+    for ( int imode = 0; imode < g.get_number_of_modes(); ++imode ) {
+	lua_pushinteger(L, imode);
+	lua_setfield(L, -2, g.mode_name(imode).c_str());
+    }
+    lua_setglobal(L, "modes");
+
     cout << "Loading parser." << endl;
     // Path to reaction parsing script
     string home(getenv("HOME"));
@@ -54,6 +66,7 @@ Energy_exchange_update* create_Energy_exchange_update(string cfile, Gas_model &g
 	ostringstream ost;
 	ost << "create_energy_exchange_update():\n";
 	ost << "Error in loading script file: " << script_file << endl;
+	ost << lua_tostring(L, -1) << endl;
 	input_error(ost);
     }
 
@@ -65,6 +78,7 @@ Energy_exchange_update* create_Energy_exchange_update(string cfile, Gas_model &g
 	ostringstream ost;
 	ost << "create_Energy_exchange_update():\n";
 	ost << "Error trying to load/parse energy exchange input file: " << cfile << endl;
+	ost << lua_tostring(L, -1) << endl;
 	input_error(ost);
     }
     
