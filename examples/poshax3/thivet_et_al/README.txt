@@ -110,7 +110,7 @@ following figure.
 
 .. figure:: example-1.png
    :align: center
-   :scale: 150%
+   :scale: 30%
 
    Temperature profiles behind a normal shock in air at Mach 25. The air is treated as chemically inert
    and only VT energy exchanges are modelled.
@@ -126,7 +126,7 @@ amongst the two vibrational modes occurs quicker.
 
 .. figure:: example-2.png
    :align: center
-   :scale: 150%
+   :scale: 30%
 
    Temperature profiles behind a normal shock in air at Mach 25. The air is treated as chemically inert
    and only VT and VV relaxation energy exchanges are modelled.
