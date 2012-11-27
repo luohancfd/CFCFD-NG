@@ -406,6 +406,10 @@ def finite_wave_dp(characteristic, V1, state1, p2, steps=100):
     p1 = state1.p; s1 = state1.s
     state2 = state1.clone()
     dp = (p2 - state1.p)/steps
+    # I'm putting stuff in here that will make the function use more steps if p2 < dp, to prevent an overshoot into -ve pressure.
+    while p2 < dp:
+        steps *= 2
+        dp = (p2 - state1.p)/steps
     p = p1+0.5*dp   # effectively mid-point of next step
     state2.set_ps(p, s1)
     for i in range(steps):
