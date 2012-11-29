@@ -519,6 +519,13 @@ def main():
         print description_3
         output.write(description_3 + '\n')
         
+        description_4 = 'state 10f is frozen shocked test gas flowing over the model.'
+        print description_4
+        output.write(description_4 + '\n')  
+        
+        description_5 = 'state 10e is equilibrium shocked test gas flowing over the model.'
+        print description_5
+        output.write(description_5 + '\n')     
         
         test_gas_used = 'Test gas is {0} (gamma = {1}, R = {2}, {3}).'.format(test_gas,GT,RT,gases[test_gas][2].reactants)
         print test_gas_used
@@ -649,6 +656,8 @@ def main():
             output.write(species2 + '\n')
     
         output.close()
+               
+        #------------------------------ user commands---------------------------
         
         if secondary:
             change_tuple = ('Vsd','Vs1','Vs2', 'quit')
@@ -658,6 +667,15 @@ def main():
         change = is_valid(raw_input('What do you want to change? {0}'.format(change_tuple)), change_tuple)
             
         if change == 'quit':
+            print "Removing temporary files and leaving the program."
+            if os.path.isfile('thermo.inp'): os.remove('thermo.inp')
+            if os.path.isfile('thermo.out'): os.remove('thermo.out')
+            if os.path.isfile('thermo.lib'): os.remove('thermo.lib')
+            if os.path.isfile('tmp.inp'): os.remove('tmp.inp')
+            if os.path.isfile('tmp.out'): os.remove('tmp.out')
+            if os.path.isfile('trans.inp'): os.remove('trans.inp')
+            if os.path.isfile('trans.out'): os.remove('trans.out')
+            if os.path.isfile('trans.lib'): os.remove('trans.lib')
             arbitrary == False
             break
             #quit()
