@@ -460,6 +460,8 @@ ET_Neutral::
 ET_Neutral( lua_State * L )
     : Relaxation_time()
 {
+    int nCs;
+
     // 1. Colliding species data
     string c_name = get_string(L, -1, "c_name");
     Chemical_species * X = get_library_species_pointer_from_name( c_name );
@@ -476,33 +478,58 @@ ET_Neutral( lua_State * L )
     X = get_library_species_pointer_from_name( "e_minus" );
     iTe_ = X->get_iT_trans();
     
-    // 3. Sigma quadratic curve fit coefficients
-    lua_getfield(L, -1, "sigma_coefficients" );
+    // 3.  Sigma quadratic curve fit coefficients
+    // 3a. Temperature switch
+    T_switch_ = get_positive_number(L, -1, "T_switch");
+    // 3b. Low temperature range
+    lua_getfield(L, -1, "LT_sigma_coefficients" );
     if ( !lua_istable(L, -1) ) {
 	ostringstream ost;
 	ost << "ET_Neutral::ET_Neutral():\n";
-	ost << "Error in the declaration of sigma coefficients: a table is expected.\n";
+	ost << "Error in the declaration of low temperature sigma coefficients: a table is expected.\n";
 	input_error(ost);
     }
-    int nCs = lua_objlen(L, -1);
+    nCs = lua_objlen(L, -1);
     if ( nCs!=3 ) {
 	ostringstream ost;
 	ost << "ET_Neutral::ET_Neutral():\n";
-	ost << "Error in the declaration of sigma coefficients: 3 coefficients are expected.\n";
+	ost << "Error in the declaration of low temperature sigma coefficients: 3 coefficients are expected.\n";
 	input_error(ost);
     }
     for ( int i=0; i<nCs; ++i ) {
     	lua_rawgeti(L, -1, i+1); // A Lua list is offset one from the C++ vector index
-    	C_.push_back( luaL_checknumber(L,-1) );
+    	LT_C_.push_back( luaL_checknumber(L,-1) );
     	lua_pop(L,1);
     }
-    lua_pop(L,1);	// pop 'sigma_coefficients'    	
+    lua_pop(L,1);	// pop 'LT_sigma_coefficients'
+    // 3c. High temperature range
+    lua_getfield(L, -1, "HT_sigma_coefficients" );
+    if ( !lua_istable(L, -1) ) {
+        ostringstream ost;
+        ost << "ET_Neutral::ET_Neutral():\n";
+        ost << "Error in the declaration of high temperature sigma coefficients: a table is expected.\n";
+        input_error(ost);
+    }
+    nCs = lua_objlen(L, -1);
+    if ( nCs!=3 ) {
+        ostringstream ost;
+        ost << "ET_Neutral::ET_Neutral():\n";
+        ost << "Error in the declaration of high temperature sigma coefficients: 3 coefficients are expected.\n";
+        input_error(ost);
+    }
+    for ( int i=0; i<nCs; ++i ) {
+        lua_rawgeti(L, -1, i+1); // A Lua list is offset one from the C++ vector index
+        HT_C_.push_back( luaL_checknumber(L,-1) );
+        lua_pop(L,1);
+    }
+    lua_pop(L,1);       // pop 'HT_sigma_coefficients'
 }
 
 ET_Neutral::
 ~ET_Neutral()
 {
-    C_.resize(0);
+    LT_C_.resize(0);
+    HT_C_.resize(0);
 }
 
 double
@@ -514,8 +541,13 @@ specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
     // If there are no colliding species set a negative relaxation time
     if ( n_c==0.0 ) return -1.0;
 
+    // calculate sigma using the appropriate curve fit for the electron temperature
     double T = Q.T[iTe_];
-    double sigma_ec = C_[0] + C_[1] * T + C_[2] * T * T;
+    double sigma_ec = 0.0;
+    if ( T < T_switch_ )
+        sigma_ec = LT_C_[0] + LT_C_[1] * T + LT_C_[2] * T * T;
+    else
+        sigma_ec = HT_C_[0] + HT_C_[1] * T + HT_C_[2] * T * T;
     /* Convert sigma_ec from m**2 -> cm**2 */
     sigma_ec *= 1.0e4;
     double nu_ec = n_c * sigma_ec * sqrt( 8.0 * PC_k_CGS * T / ( M_PI * PC_m_CGS ) );
