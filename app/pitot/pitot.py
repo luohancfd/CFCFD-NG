@@ -207,7 +207,10 @@ def make_test_gas(gasName, outputUnits='moles'):
                    outputUnits=outputUnits), {'gam':1.2,'R':6303.2}
     elif gasName.lower() == 'gasgiant_h210he':
         return Gas(reactants={'H2':0.9, 'He':0.10}, inputUnits='moles', with_ions=True,
-                   outputUnits=outputUnits), None               
+                   outputUnits=outputUnits), None    
+    elif gasName.lower() == 'gasgiant_h210ne':
+        return Gas(reactants={'H2':0.9, 'Ne':0.10}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), None                  
     else:
         raise Exception, 'make_gas_from_name(): unknown gasName: %s' % gasName               
     
@@ -263,11 +266,13 @@ def main():
     op.add_option('--test_gas', dest='gasName', default='air',
                   choices=['air', 'air5species', 'n2', 'titan', 
                            'gasgiant_h215ne', 'gasgiant_h215he',
-                           'gasgiant_h240ne','gasgiant_h285ne'],
+                           'gasgiant_h240ne','gasgiant_h285ne', 
+                           'gasgiant_h210he', 'gasgiant_h210ne'],
                   help=("name of test gas: "
                         "air; " "air5species; " "n2; " "titan; " "gasgiant_h215ne; "
                         "gasgiant_h215he; " "gasgiant_h240ne; " "gasgiant_h285ne; " 
-                        "gasgiant_h210he; " "default is air"))
+                        "gasgiant_h210he; "  "gasgiant_h210ne; " 
+                        "default is air"))
     op.add_option('--Vs1', dest='Vs1', type='float', default=None,
                   help=("first shock speed, in m/s"))
     op.add_option('--Vs2', dest='Vs2', type='float', default=None,
