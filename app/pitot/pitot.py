@@ -122,6 +122,7 @@ available to me as part of cfpylib inside the cfcfd code collection.
         how well it's working now, but for better or for worse, it's in there.
     29-Nov-2012: Did some little changes to the printout at the end of the test
         to make it clearer and some of the basic syntax.
+    17-Dec-2012: Added two more test gases to the code.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -137,7 +138,7 @@ from cfpylib.gasdyn.cea2_gas import Gas, make_gas_from_name
 from cfpylib.gasdyn.gas_flow import *
 from cfpylib.gasdyn.ideal_gas_flow import p0_p, pitot_p
 
-VERSION_STRING = "29-Nov-2012"
+VERSION_STRING = "17-Dec-2012"
 
 DEBUG_PITOT = False
 
