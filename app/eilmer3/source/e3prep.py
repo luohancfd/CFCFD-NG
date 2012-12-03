@@ -408,7 +408,7 @@ class GlobalData(object):
         self.dt = 1.0e-6
         self.dt_chem = -1.0
         self.dt_therm = -1.0
-        self.sequence_blocks = 0 
+        self.sequence_blocks = 0
         # 0 = normal time iteration all blocks; 
         # 1 = iterate blocks one at a time (like space marching)
         self.print_count = 20

@@ -162,6 +162,9 @@ def apply_gridpro_bcs(fname, blks, bc_map):
                 # Need to check that a flow condition was supplied
                 assert(isinstance(bc_map['SUP_IN'], FlowCondition))
                 blk.set_BC(face, 'SUP_IN', inflow_condition=bc_map['SUP_IN'])
+            elif bc_type == 'SHOCK_IN':
+                assert(isinstance(bc_map['SHOCK_IN'], FlowCondition))
+                blk.set_BC(face, 'SHOCK_IN', inflow_condition=bc_map['SHOCK_IN'])
             elif bc_type == 'FIXED_T':
                 assert('FIXED_T' in bc_map)
                 blk.set_BC(face, 'FIXED_T', Twall=bc_map['FIXED_T'])

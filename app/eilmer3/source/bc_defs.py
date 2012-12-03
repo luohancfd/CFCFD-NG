@@ -16,6 +16,7 @@ The same names are available for use in your Python input scripts.:
 * COMMON: Synonym for ADJACENT.
 * SUP_IN: Fully-prescribed inflow (e.g. supersonic inflow).
 * SUP_OUT: Synonym for EXTRAPOLATE_OUT.
+* SHOCK_IN: Fully-prescribed boundary flux (e.g. shock inflow).
 * EXTRAPOLATE_OUT: Extrapolate all flow properties from
    just inside the boundary into the ghost-cells outside
    the boundary.  This works fine for a strong supersonic outflow.
@@ -79,7 +80,7 @@ ADJACENT_PLUS_UDF = 17
 ABLATING        = 18
 SLIDING_T       = 19
 FSTC            = 20
-SHOCK           = 21
+SHOCK_IN        = 21
 SPECIAL         = -1
 bcIndexFromName = {
      0: ADJACENT, "0": ADJACENT, "ADJACENT": ADJACENT, "COMMON": ADJACENT,
@@ -104,7 +105,7 @@ bcIndexFromName = {
     18: ABLATING, "18" : ABLATING, "ABLATING": ABLATING,
     19: SLIDING_T, "19" : SLIDING_T, "SLIDING_T": SLIDING_T,
     20: FSTC, "20" : FSTC, "FSTC": FSTC,
-    21: SHOCK, "21" : SHOCK, "SHOCK": FSTC,
+    21: SHOCK_IN, "21" : SHOCK_IN, "SHOCK_IN": SHOCK_IN,
     -1: SPECIAL, "-1": SPECIAL,  "SPECIAL": SPECIAL,
 }
 bcName = {
@@ -128,7 +129,7 @@ bcName = {
     SLIDING_T: "SLIDING_T",
     SPECIAL: "SPECIAL",
     FSTC: "FSTC",
-    SHOCK: "SHOCK"
+    SHOCK_IN: "SHOCK_IN"
     }
 
 class BoundaryCondition(object):

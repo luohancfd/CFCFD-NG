@@ -17,11 +17,11 @@ NENZF-r is comprised of a set of Python scripts and template files that coordina
 
 \subsection{Useage Tips}
 \begin{itemize}
-\item Aim to have 10 cells per block in the axial direction for both block-sequencing and block-marching calculations. Having less for block-sequencing influences the final result\footnote{We assume that the same would be true for block-marching. This has yet to be checked.}. For block-marching calculations 10 cells per block in the radial direction is also recommended.
-\item When running simulations on Barrine we are currently limited to 1 node (8 cpus in total). Thus for block-marched calculations \texttt{--nbj} is limited to 4.
+\item Aim to have 10 cells per block in the axial direction for both block-sequencing and block-marching calculations. Having less for block-sequencing influences the final result\footnote{We assume that the same would be true for block-marching. This has yet to be checked. Did Sarah R. check this?}. 
+\item When running simulations on Barrine in block-marching mode, we have found that splitting the simulation across multiple nodes affects the solution. We think this is related to what information is parsed across block boundaries. As such it is advisable to complete block-marched simulations on a single node (8 cpus in total) and thus \texttt{--nbj} is limited to 4.
 \item The air gas model \textbf{should not} be used for non-equlibrium calculations. See \cref{gas_models}.
-\item The Mach 10 nozzle is a pain. Don't use it. If you must, then don't set \texttt{BLTrans} to 50\,mm. For some reason this value causes Eilmer3 to crash. Other values (100\,mm, 150\,mm) including a fully turbulent nozzle (\texttt{BLTrans}=0.0) seem to be ok. If you can find out why, let me know.
 \item The default values for all nenzfr inputs have been set up for a Mach 10, chemical equilibrium, laminar nozzle calculation. If you are running a different nozzle, be sure to check the grid parameters (\texttt{nni}, \texttt{nnj}, \text{nbi} etc.) and the maximum simulation time (\texttt{max-time}).
+\item If the simulation crashes part-way through with errors related to FV\_cell calculations and unrealistic (large, negative) values for the density try increasing the maximum simulation time (\texttt{max-time}) first before looking elsewhere. 
 \item The building of the equilibrium gas LUT takes a long time. Try to get a copy from someone. If you put it in the directory from which you will be calling \textit{nenzfr} (or the other related codes) then \textit{nenzfr} won't try to build it.
 \end{itemize}
 
@@ -30,7 +30,9 @@ NENZF-r is comprised of a set of Python scripts and template files that coordina
 \begin{itemize}
 \item The CEA LUTs used for equilibrium nozzle calculations include ions. The Gas objects defined by \textit{make\_gas\_from\_name()} within \textit{cea2\_gas.py} do not include ions. These Gas objects are used by \textit{estcj} during the calculation of the nozzle supply condition. When no-ions LUTs were created, Wilson found that they caused NENZFr to crash for some reason. No further work has been done at this time (04-06-2012).
 \item When completing a sensitivity calculation for the Mach 4, equilibrium, laminar test case, it was found that the inflow turbulence intensity had non-zero sensitivity. This shouldn't be the case for a laminar calculation. Wilson has looked at this and found that the error originates from the inflow plane. No further work has been done at this time (04-06-2012).
-\item Once the inflow turbulence intensity issue has been sorted this input should not be perturbed in \textit{nenzf\_perturbed} for laminar nozzles.
+
+Update (Aug-2012): We believe the issue is related to how a laminar calculation has been implemented within nenzfr. Rather then swith turbulence off (as would be usual), we use a \texttt{TurbulenceZone} to define which portion of the nozzle is laminar/turbulent. This means that even for a fully laminar nozzle, eilmer3 is completing a turbulent calculation (\textit{Wilson can you elaborate/clarify this}) and so the inflow turbulence intensity, which directly relates to the turbulent kinetic energy (tke) has an influence. The current fix is to force the inflow turbulent parameters to "zero" when a fully laminar nozzle is detected.
+%\item Once the inflow turbulence intensity issue has been sorted this input should not be perturbed in \textit{nenzf\_perturbed} for laminar nozzles.
 \end{itemize}
 
 \subsection{Method}
@@ -59,7 +61,7 @@ nozzle.input.template & Template Eilmer3 input script. This is the core of NENZF
 \multicolumn{2}{|c|}{\textbf{Auxilary Files}}\\ 
 \hline
 nenzfr\_compute\_viscous\_data.py & Script used to calculate the viscous data, including $y^+$, at the wall. \\
-nenzfr\_sensitivity\_and\_lut.py & Coordinating script that conducts a sensitivity analysis for NENZF-r and builds a corresponding look-up-table for the nozzle exit properties. (YET TO BE COMPLETED)\\
+nenzfr\_sensitivity\_and\_lut.py & Coordinating script that conducts a sensitivity analysis for NENZF-r and builds a corresponding look-up-table for the nozzle exit properties. \\
 setup\_lut.sh & A simple shell script that builds the required equilibrium gas look-up-tables.\\
 run.sh & Shell script to submit a NENZF-r job on the hpcu cluster \textit{barrine}. \\
 estcj.py & Equilibrium Shock Tube Calculation, junior. This Python script completes the reflected shock calculation. Though apart of the cfcfd2/Eilmer3 suite of programs, it has been included here for completeness. \\

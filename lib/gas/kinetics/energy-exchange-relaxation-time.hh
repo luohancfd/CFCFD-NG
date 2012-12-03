@@ -151,7 +151,8 @@ private:
     int ic_;
     double M_c_;
     int iTe_;
-    std::vector<double> C_;
+    std::vector<double> LT_C_, HT_C_;
+    double T_switch_;
     double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
     double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
     { return 0.0; }

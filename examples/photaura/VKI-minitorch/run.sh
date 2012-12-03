@@ -15,5 +15,5 @@ gnuplot plot_spectra.gnu
 # 5. Convert to png images for sphinx documentation
 for X in Emissivity-r1.24mm Emissivity-r3.82mm Emissivity-r8.43mm Intensity3500-4300A Intensity4300-10000A
 do
-convert $X.eps $X.png
+convert -density 600x600 -quality 90 $X.eps $X.png
 done
