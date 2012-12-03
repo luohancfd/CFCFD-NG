@@ -79,6 +79,7 @@ ADJACENT_PLUS_UDF = 17
 ABLATING        = 18
 SLIDING_T       = 19
 FSTC            = 20
+SHOCK           = 21
 SPECIAL         = -1
 bcIndexFromName = {
      0: ADJACENT, "0": ADJACENT, "ADJACENT": ADJACENT, "COMMON": ADJACENT,
@@ -103,6 +104,7 @@ bcIndexFromName = {
     18: ABLATING, "18" : ABLATING, "ABLATING": ABLATING,
     19: SLIDING_T, "19" : SLIDING_T, "SLIDING_T": SLIDING_T,
     20: FSTC, "20" : FSTC, "FSTC": FSTC,
+    21: SHOCK, "21" : SHOCK, "SHOCK": FSTC,
     -1: SPECIAL, "-1": SPECIAL,  "SPECIAL": SPECIAL,
 }
 bcName = {
@@ -125,7 +127,8 @@ bcName = {
     ABLATING: "ABLATING",
     SLIDING_T: "SLIDING_T",
     SPECIAL: "SPECIAL",
-    FSTC: "FSTC"
+    FSTC: "FSTC",
+    SHOCK: "SHOCK"
     }
 
 class BoundaryCondition(object):
@@ -360,7 +363,32 @@ class ExtrapolateOutBC(BoundaryCondition):
     def __copy__(self):
         return ExtrapolateOutBC(x_order=self.x_order, sponge_flag=self.sponge_flag,
                                 label=self.label)
+class ShockInBC(BoundaryCondition):
+    """
+    Apply a (presumably) supersonic inflow condition to the boundary.
+    
+    The inflow_condition data is copied into the ghost cells, and unlike a 
+    SupInBC, the flux from the ghost cells to the domain is specified.
+    """
+    def __init__(self, inflow_condition, label=""):
+        """
+        Construct a shock-inflow boundary condition.
 
+        :param inflow_condition: A reference to a previously-constructed
+            FlowCondition object.
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
+        BoundaryCondition.__init__(self, type_of_BC=SHOCK_IN,
+                                   inflow_condition=inflow_condition,
+                                   label=label)
+        return
+    def __str__(self):
+        return "ShockInBC(inflow_condition=%s, label=\"%s\")" % \
+            (self.inflow_condition, self.label)
+    def __copy__(self):
+        return ShockInBC(self.inflow_condition, self.label)
+        
 class SlipWallBC(BoundaryCondition):
     """
     An inviscid-flow solid-boundary.
@@ -863,5 +891,7 @@ class SuperCatalyticWBC(WallCatalycityBoundaryCondition):
         return str
     def __copy__(self):
         return SuperCatalyticWBC(f_wall=self.f_wall, label=self.label)
+        
+
 
 

@@ -107,6 +107,8 @@ struct global_data
     double t_plot;          /* time to write next soln    */
     double t_his;           /* time to write next sample  */
     double t_fstc;          /* time to write next fluid-structure exchange data*/
+    double t_shock;         /* time to next adapt grid to shock    */
+    double dt_shock;        /* interval for running shock adapting algorithm  */
     double dt_plot;         /* interval for writing soln  */
     double dt_his;          /* interval for writing sample */
     double dt_fstc;         /* interval for writing next f-s exchange data*/
@@ -191,6 +193,8 @@ int set_verbose_flag( int i );
 int get_verbose_flag( void );
 int set_axisymmetric_flag(int ia);
 int get_axisymmetric_flag(void);
+int set_shock_adapting_flag(int iw);
+int get_shock_adapting_flag(void);
 int set_viscous_flag(int iv);
 int get_viscous_flag(void);
 int set_viscous_upwinding_flag(int iw);

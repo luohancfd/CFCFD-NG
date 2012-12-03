@@ -56,6 +56,7 @@
 #define ABLATING       18
 #define SLIDING_T      19
 #define FSTC           20
+#define SHOCK          21
 
 #define SPECIAL        -1
 

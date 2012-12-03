@@ -813,7 +813,8 @@ int integrate_in_time( double target_time )
     // The next time for output...
     G.t_plot = G.sim_time + G.dt_plot;
     G.t_his = G.sim_time + G.dt_his;
-
+    G.t_shock = G.sim_time + G.dt_shock;
+    
     // Flags to indicate that the saved output is fresh.
     // On startup or restart, it is assumed to be so.
     output_just_written = 1;
@@ -900,7 +901,7 @@ int integrate_in_time( double target_time )
         }
 
         // 0. Alter configuration setting if necessary.
-	if ( get_viscous_flag() == 1 && viscous_terms_are_on == 0 && 
+	if ( get_viscous_flag() == 1 && viscous_terms_are_on == 0 &&
 	     G.sim_time >= G.viscous_time_delay ) {
 	    // We want to turn on the viscous effects only once (if requested)
 	    // and, when doing so in the middle of a simulation, 
@@ -1299,6 +1300,12 @@ int integrate_in_time( double target_time )
 	    }
 	}
 	
+	    // 4a. (Occasionally) Adapt grid to shock (Andrew Pastrello 29-Nov-2012)
+        //if ( G.sim_time >= G.t_shock ) {
+        //    shock_adapt_grid()
+        //    G.t_shock += G.dt_shock;
+        //}
+	    
         // 5. For steady-state approach, check the residuals for mass and energy.
         if ( (G.step / G.print_count) * G.print_count == G.step ) {
             G.mass_residual = 0.0;

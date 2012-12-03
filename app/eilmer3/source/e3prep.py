@@ -307,6 +307,9 @@ class GlobalData(object):
       should be terminated.
     * max_step: (int) Time stepping will be terminated if the simulation reached
       this number of steps.
+    * shock_adapting_flag: (0/1) Set to 1 to activate periodic adaptation of the grid to the shock.
+      Set to 0 (the default) for no shock adaptation.
+    * dt_shock: (float) Period (in seconds) between running the shock adaptation algorithm.
     * dt_plot: (float) Period between writing all of the flow field data to the
       solution file.
       Multiple instances can be written to the one file but be careful not to
@@ -332,7 +335,7 @@ class GlobalData(object):
                 'turbulence_prandtl_number', 'turbulence_schmidt_number', \
                 'scalar_pdf_flag', 'reacting_flag', 'reaction_time_start', \
                 'x_order', 'flux_calc', 'compression_tolerance', 'shear_tolerance', \
-                't_order', 'stringent_cfl', \
+                't_order', 'stringent_cfl', 'shock_adapting_flag', 'dt_shock', \
                 't0', 'dt', 'cfl', 'dt_chem', 'dt_therm', \
                 'interpolation_type', 'sequence_blocks', \
                 'print_count', 'cfl_count', 'max_invalid_cells', 'dt_reduction_factor', \
@@ -414,6 +417,8 @@ class GlobalData(object):
         self.max_invalid_cells = 10
         self.max_time = 1.0e-3
         self.max_step = 10
+        self.shock_adapting_flag = 0
+        self.dt_shock = 1.0e-3
         self.dt_plot = 1.0e-3
         self.dt_history = 1.0e-3
         GlobalData.count += 1
@@ -438,6 +443,7 @@ class GlobalData(object):
         fp.write("stringent_cfl = %d\n" % self.stringent_cfl)
         fp.write("print_count = %d\n" % self.print_count)
         fp.write("cfl_count = %d\n" % self.cfl_count)
+        fp.write("dt_shock = %e\n" % self.dt_shock)
         fp.write("dt_plot = %e\n" % self.dt_plot)
         fp.write("dt_history = %e\n" % self.dt_history)
         fp.write("max_time = %e\n" % self.max_time)
@@ -472,6 +478,7 @@ class GlobalData(object):
         fp.write("viscous_delay = %e\n"% self.viscous_delay)
         fp.write("viscous_factor_increment = %e\n"% self.viscous_factor_increment)
         fp.write("viscous_upwinding_flag = %d\n"% self.viscous_upwinding_flag)
+        fp.write("shock_adapting_flag = %d\n"% self.shock_adapting_flag)
         fp.write("max_mu_t_factor = %e\n"% self.max_mu_t_factor)
         fp.write("transient_mu_t_factor = %e\n"% self.transient_mu_t_factor)
         fp.write("diffusion_flag = %d\n" % self.diffusion_flag)

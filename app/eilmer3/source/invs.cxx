@@ -70,6 +70,11 @@ int Block::inviscid_flux(int dimensions)
 		     (i == imax+1 && bcp[EAST]->use_udf_flux()) ) {
 		    // Retain the user-defined flux at the boundary
 		    // by doing nothing here.
+		// Check if boundary is a shock (type code 21)
+		} else if ( (i == imin && (bcp[WEST]->type_code == 21) ) ||
+		            (i == imax+1 && (bcp[EAST]->type_code == 21) ) ) {
+		    // Retain the user-defined flux at the boundary
+		    // by doing nothing here.
 		} else {
 		    compute_interface_flux(Lft, Rght, *IFace, omegaz);
 		} // end if
@@ -110,6 +115,11 @@ int Block::inviscid_flux(int dimensions)
 		     (j == jmax+1 && bcp[NORTH]->use_udf_flux()) ) {
 		    // Retain the user-defined flux at the boundary
 		    // by doing nothing here.
+		// Check if boundary is a shock (type code 21)
+		} else if ( (j == jmin && (bcp[SOUTH]->type_code == 21) ) ||
+		            (j == jmax+1 && (bcp[NORTH]->type_code == 21) ) ) {
+		    // Retain the user-defined flux at the boundary
+		    // by doing nothing here.
 		} else {
 		    compute_interface_flux(Lft, Rght, *IFace, omegaz);
 		} // end if
@@ -138,6 +148,11 @@ int Block::inviscid_flux(int dimensions)
 		// Finally, the flux calculation.
 		if ( (k == kmin && bcp[BOTTOM]->use_udf_flux()) ||
 		     (k == kmax+1 && bcp[TOP]->use_udf_flux()) ) {
+		    // Retain the user-defined flux at the boundary
+		    // by doing nothing here.
+		// Check if boundary is a shock (type_code 21)
+		} else if ( (k == kmin && (bcp[BOTTOM]->type_code == 21) ) ||
+		            (k == kmax+1 && (bcp[TOP]->type_code == 21) ) ) {
 		    // Retain the user-defined flux at the boundary
 		    // by doing nothing here.
 		} else {

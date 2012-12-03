@@ -35,7 +35,6 @@
 #include "diffusion.hh"
 #include "baldwin_lomax.hh"
 
-#define SMALL  1.0e-3
 #define VERY_SMALL  1.0e-10
 
 // Working arrays for species derivatives

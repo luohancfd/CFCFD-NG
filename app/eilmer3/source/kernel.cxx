@@ -184,6 +184,9 @@ int viscous_upwinding = 0;
 //  calculation.
 int diffusion = 0;           
 
+/// \brief Shock adapting =0 for no shock adaptation, =1 for shock adaptation
+int shock_adapting = 0;
+
 /// \brief Axisymmetric flag =0 for 2D planar equations, =1 for 2D axisymmetric. 
 ///
 /// The flow is still 2-dimensional but may includes source terms from the
@@ -329,6 +332,29 @@ int set_axisymmetric_flag(int ia)
 int get_axisymmetric_flag(void)
 {
     return axisymm;
+}
+
+/*------------------------------------------------------------------*/
+
+int set_shock_adapting_flag(int iw)
+{
+    shock_adapting = iw;
+    if (shock_adapting == 0) {
+        if ( get_verbose_flag() ) printf("Turn off shock adaptation\n");
+    }
+    else if (shock_adapting == 1) {
+        if ( get_verbose_flag() ) printf("Turn on shock adaptation\n");
+    }
+    else {
+        printf("Invalid shock adapting flag value: %d\n", shock_adapting);
+        exit(VALUE_ERROR);
+    }
+    return SUCCESS;
+}
+
+int get_shock_adapting_flag(void)
+{
+    return shock_adapting;
 }
 
 /*------------------------------------------------------------------*/
