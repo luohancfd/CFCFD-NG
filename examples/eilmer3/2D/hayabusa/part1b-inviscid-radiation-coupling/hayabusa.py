@@ -116,7 +116,7 @@ beta1 = 0.0; beta2 = 1.1
 def RCF(a,b,beta):
     return RobertsClusterFunction(a, b, beta)
 
-blk_0 = SuperBlock2D(psurf=make_patch(north0, east0, south0, west0),
+blk_0 = SuperBlock2D(psurf=ShockLayerSurface(east0, west0),
 		     fill_condition=initial,
 		     nni=nnx, nnj=nny,
 		     nbi=nbx, nbj=nby,
