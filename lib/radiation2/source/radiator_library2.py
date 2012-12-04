@@ -6889,7 +6889,7 @@ Ar.available_line_sets["all_lines"] = Ar_all_lines
 #
 Ar_my_lines = AtomicLineSet()
 Ar_my_lines.lines = [ '' ] * 210
-Ar_my_lines.comments  = "# Individual lines for delta_E < 6eV obtained from NIST ASD:\n"
+Ar_my_lines.comments  = "# Individual lines for delta_E > 6eV obtained from NIST ASD:\n"
 Ar_my_lines.comments += "# http://physics.nist.gov/PhysRefData/ASD/index.html\n"
 Ar_my_lines.comments += "# Missing multiplets have been independently derived\n"
 #---------------------------------------------------------------------------------------
@@ -17615,7 +17615,7 @@ O_plus_NIST_set1b_lines = AtomicLineSet()
 O_plus_NIST_set1b_lines.lines = [ '' ] * 434
 O_plus_NIST_set1b_lines.comments  = "# Lines obtained from NIST ASD:\n"
 O_plus_NIST_set1b_lines.comments += "# http://physics.nist.gov/PhysRefData/ASD/index.html\n"
-O_plus_NIST_set1b_lines.comments += "# Individual lines for E < 6.0eV, multiplet lines otherwise\n"
+O_plus_NIST_set1b_lines.comments += "# Individual lines for E > 6.0eV, multiplet lines otherwise\n"
 #----------------------------------------------------------------------------------
 #                No.        Ei(cm-1)   Ek(cm-1)   gi   gk Aki(1/s)  ie_i ie_k type
 #----------------------------------------------------------------------------------
