@@ -25,7 +25,7 @@ select_radiation_model("rad-model.lua",1000)
 #
 species = select_gas_model(model='two temperature gas', species=['N2', 'N2_plus', 'NO', 'NO_plus', 'O2', 'O2_plus', 'N', 'N_plus', 'O', 'O_plus', 'e_minus'])
 set_reaction_update("Park93-s03-AIC-EIIC.lua")
-set_energy_exchange_update("TV-TE.lua")
+set_energy_exchange_update("air-TV-TE.lua")
 gm = get_gas_model_ptr()
 nsp = gm.get_number_of_species()
 ntm = gm.get_number_of_modes()
