@@ -420,7 +420,7 @@ private:
     double umin_, umax_, vmin_, vmax_;
 };
 
-
+int write_STL(const ParametricSurface &s, int nr, int ns, std::string fname);
 
 
 #endif
