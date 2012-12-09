@@ -113,24 +113,11 @@ private:
     { return 0.0; }
 };
 
-class ET_AppletonBray : public Relaxation_time {
+class ET_AppletonBray_Ion : public Relaxation_time {
 public:
-    ET_AppletonBray(lua_State *L);
+    ET_AppletonBray_Ion(lua_State *L);
     
-    ~ET_AppletonBray();
-private:
-    std::vector<Relaxation_time*> tau_ETs_;
-    
-    double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
-    double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
-    { return 0.0; }
-};
-
-class ET_Ion : public Relaxation_time {
-public:
-    ET_Ion(lua_State *L);
-    
-    ~ET_Ion();
+    ~ET_AppletonBray_Ion();
 private:
     int ic_;
     int ie_;
@@ -142,11 +129,26 @@ private:
     { return 0.0; }
 };
 
-class ET_Neutral : public Relaxation_time {
+class ET_AppletonBray_Neutral : public Relaxation_time {
 public:
-    ET_Neutral(lua_State *L);
+    ET_AppletonBray_Neutral(lua_State *L);
     
-    ~ET_Neutral();
+    ~ET_AppletonBray_Neutral();
+private:
+    int ic_;
+    double M_c_;
+    int iTe_;
+    std::vector<double> C_;
+    double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
+    double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
+    { return 0.0; }
+};
+
+class ET_AppletonBray_TwoRangeNeutral : public Relaxation_time {
+public:
+    ET_AppletonBray_TwoRangeNeutral(lua_State *L);
+
+    ~ET_AppletonBray_TwoRangeNeutral();
 private:
     int ic_;
     double M_c_;

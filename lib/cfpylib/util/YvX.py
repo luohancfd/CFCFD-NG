@@ -177,7 +177,7 @@ class YvX:
         print "integral = ", integral
         return integral
     def recompute_spline(self, s=0):
-        if with_scipy:
+        if not with_scipy:
             print "scipy is required for interpolation"
             sys.exit()
         self.spline_fit = interpolate.splrep( self.x_array, self.y_array, s=s )

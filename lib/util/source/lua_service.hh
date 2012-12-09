@@ -35,6 +35,7 @@ std::string get_string(lua_State *L, int index, const char *key);
 double get_value(lua_State *L, int index, const char *key);
 double get_positive_value(lua_State *L, int index, const char *key);
 double get_negative_value(lua_State *L, int index, const char *key);
+bool get_boolean(lua_State *L, int index, const char *key);
 
 int read_table_as_map(lua_State *L, int index, const char *key, std::map<int, int> &m);
 int read_table_as_map(lua_State *L, int index, const char *key, std::map<int, double> &m);

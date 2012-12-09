@@ -69,20 +69,57 @@ rates = {
             {
                 type = 'ET_exchange',
                 relaxation_time = {
-                    type = 'ET_AppletonBray',
-                    ions = {
-                        { c_name = 'N_plus', },
-                        { c_name = 'O_plus', },
-                    },
-                    neutrals = {
-                        { c_name = 'N', LT_sigma_coefficients = { 5.0e-20, 0.0, 0.0 }, HT_sigma_coefficients = { 5.0e-20, 0.0, 0.0 }, T_switch=100000.0 },
-                        { c_name = 'O', LT_sigma_coefficients = { 1.2e-20, 1.7e-24,  -2.0e-29 }, HT_sigma_coefficients = { 5.0e-20, 0.0, 0.0 }, T_switch=100000.0 },
-                        { c_name = 'N2', LT_sigma_coefficients = { 7.5e-20, 5.5e-24, -1.0e-28 }, HT_sigma_coefficients = { 5.0e-20, 0.0, 0.0 }, T_switch=100000.0 },
-                        { c_name = 'NO', LT_sigma_coefficients = { 1.0e-19, 0.0,      0.0 }, HT_sigma_coefficients = { 5.0e-20, 0.0, 0.0 }, T_switch=100000.0 },
-                        { c_name = 'O2', LT_sigma_coefficients = { 2.0e-20, 6.0e-24,  0.0 }, HT_sigma_coefficients = { 5.0e-20, 0.0, 0.0 }, T_switch=100000.0 },
-                    }
+                    type = 'ET_AppletonBray_Ion',
+                    c_name = 'N_plus', 
                 }
-            }   
+            },
+            {
+                type = 'ET_exchange',
+                relaxation_time = {
+                    type = 'ET_AppletonBray_Ion',
+                    c_name = 'O_plus', 
+                }
+            },
+            {
+                type = 'ET_exchange',
+                relaxation_time = {
+                    type = 'ET_AppletonBray_Neutral',
+                    c_name = 'N',
+                    sigma_coefficients = { 5.0e-20, 0.0, 0.0 }
+                }
+            },
+            {
+                type = 'ET_exchange',
+                relaxation_time = {
+                    type = 'ET_AppletonBray_Neutral',
+                    c_name = 'O',
+                    sigma_coefficients = { 1.2e-20, 1.7e-24,  -2.0e-29 }
+                }
+            },
+            {
+                type = 'ET_exchange',
+                relaxation_time = {
+                    type = 'ET_AppletonBray_Neutral',
+                    c_name = 'N2',
+                    sigma_coefficients = { 7.5e-20, 5.5e-24, -1.0e-28 }
+                }
+            },
+            {
+                type = 'ET_exchange',
+                relaxation_time = {
+                    type = 'ET_AppletonBray_Neutral',
+                    c_name = 'NO',
+                    sigma_coefficients = { 1.0e-19, 0.0,      0.0 }
+                }
+            },
+            {
+                type = 'ET_exchange',
+                relaxation_time = {
+                    type = 'ET_AppletonBray_Neutral',
+                    c_name = 'O2',
+                    sigma_coefficients = { 2.0e-20, 6.0e-24,  0.0 }
+                }
+            }  
         }
     }
 }

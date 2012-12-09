@@ -351,66 +351,8 @@ specific_relaxation_time(Gas_data &Q, vector<double> &molef)
     return 1.0/tau_inv;
 }
 
-ET_AppletonBray::
-ET_AppletonBray( lua_State * L )
-    : Relaxation_time()
-{
-    // Initialise ions
-    lua_getfield(L,-1,"ions");
-    if ( !lua_istable(L, -1) ) {
-	ostringstream ost;
-	ost << "ET_AppletonBray::ET_AppletonBray():\n";
-	ost << "Error in declaration of ions: a table is expected.\n";
-	input_error(ost);
-    }
-    int n_ions = lua_objlen(L, -1);
-    for ( int i=0; i<n_ions; ++i ) {
-    	lua_rawgeti(L, -1, i+1); // A Lua list is offset one from the C++ vector index
-    	tau_ETs_.push_back( new ET_Ion(L) );
-    	lua_pop(L, 1);
-    }
-    lua_pop(L, 1);	// pop ions
-    
-    // Initialise neutrals
-    lua_getfield(L,-1,"neutrals");
-    if ( !lua_istable(L, -1) ) {
-	ostringstream ost;
-	ost << "ET_AppletonBray::ET_AppletonBray():\n";
-	ost << "Error in declaration of neutrals: a table is expected.\n";
-	input_error(ost);
-    }
-    int n_neutrals = lua_objlen(L, -1);
-    for ( int i=0; i<n_neutrals; ++i ) {
-    	lua_rawgeti(L, -1, i+1); // A Lua list is offset one from the C++ vector index
-    	tau_ETs_.push_back( new ET_Neutral(L) );
-    	lua_pop(L, 1);
-    }
-    lua_pop(L, 1);	// pop neutrals
-}
-
-double
-ET_AppletonBray::
-specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
-{
-    double tau_inv = 0.0;
-    for ( size_t i=0; i<tau_ETs_.size(); ++i ) {
-    	double tau = tau_ETs_[i]->compute_relaxation_time(Q,molef);
-    	if ( tau < 0.0 ) continue;
-    	tau_inv += 1.0/tau;
-    }
-    
-    return 1.0/tau_inv;
-}
-
-ET_AppletonBray::
-~ET_AppletonBray()
-{
-    for ( size_t i=0; i<tau_ETs_.size(); ++i )
-    	delete tau_ETs_[i];
-}
-
-ET_Ion::
-ET_Ion( lua_State * L )
+ET_AppletonBray_Ion::
+ET_AppletonBray_Ion( lua_State * L )
     : Relaxation_time()
 {
     // 1. Colliding species data
@@ -418,7 +360,7 @@ ET_Ion( lua_State * L )
     Chemical_species * X = get_library_species_pointer_from_name( c_name );
     if ( X->get_Z()<1 ) {
 	ostringstream ost;
-	ost << "ET_Ion::ET_Ion():\n";
+	ost << "ET_AppletonBray_Ion::ET_AppletonBray_Ion():\n";
 	ost << "Error in the declaration of colliding species: " << c_name << " is not an ion.\n";
 	input_error(ost);
     }    
@@ -432,11 +374,11 @@ ET_Ion( lua_State * L )
     M_e_ = X->get_M();
 }
 
-ET_Ion::
-~ET_Ion() {}
+ET_AppletonBray_Ion::
+~ET_AppletonBray_Ion() {}
 
 double
-ET_Ion::
+ET_AppletonBray_Ion::
 specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
 {
     double n_c = Q.massf[ic_] * Q.rho / M_c_ * PC_Avogadro * 1.0e-6;	// Number density of colliders (in cm**-3)
@@ -456,8 +398,8 @@ specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
     
 }
 
-ET_Neutral::
-ET_Neutral( lua_State * L )
+ET_AppletonBray_Neutral::
+ET_AppletonBray_Neutral( lua_State * L )
     : Relaxation_time()
 {
     int nCs;
@@ -467,7 +409,7 @@ ET_Neutral( lua_State * L )
     Chemical_species * X = get_library_species_pointer_from_name( c_name );
     if ( X->get_Z()!=0 ) {
 	ostringstream ost;
-	ost << "ET_Neutral::ET_Neutral():\n";
+	ost << "ET_AppletonBray_Neutral::ET_AppletonBray_Neutral():\n";
 	ost << "Error in the declaration of colliding species: " << c_name << " is not a neutral.\n";
 	input_error(ost);
     }    
@@ -479,20 +421,92 @@ ET_Neutral( lua_State * L )
     iTe_ = X->get_iT_trans();
     
     // 3.  Sigma quadratic curve fit coefficients
+    lua_getfield(L, -1, "sigma_coefficients" );
+    if ( !lua_istable(L, -1) ) {
+	ostringstream ost;
+	ost << "ET_AppletonBray_Neutral::ET_AppletonBray_Neutral():\n";
+	ost << "Error in the declaration of sigma coefficients: a table is expected.\n";
+	input_error(ost);
+    }
+    nCs = lua_objlen(L, -1);
+    if ( nCs!=3 ) {
+	ostringstream ost;
+	ost << "ET_AppletonBray_Neutral::ET_AppletonBray_Neutral():\n";
+	ost << "Error in the declaration of sigma coefficients: 3 coefficients are expected.\n";
+	input_error(ost);
+    }
+    for ( int i=0; i<nCs; ++i ) {
+    	lua_rawgeti(L, -1, i+1); // A Lua list is offset one from the C++ vector index
+    	C_.push_back( luaL_checknumber(L,-1) );
+    	lua_pop(L,1);
+    }
+    lua_pop(L,1);	// pop 'sigma_coefficients'
+}
+
+ET_AppletonBray_Neutral::
+~ET_AppletonBray_Neutral()
+{
+    C_.resize(0);
+}
+
+double
+ET_AppletonBray_Neutral::
+specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
+{
+    double n_c = Q.massf[ic_] * Q.rho / M_c_ * PC_Avogadro * 1.0e-6;	// Number density of colliders (in cm**-3)
+    
+    // If there are no colliding species set a negative relaxation time
+    if ( n_c==0.0 ) return -1.0;
+
+    // calculate sigma using the appropriate curve fit for the electron temperature
+    double T = Q.T[iTe_];
+    double sigma_ec = 0.0;
+    sigma_ec = C_[0] + C_[1] * T + C_[2] * T * T;
+    /* Convert sigma_ec from m**2 -> cm**2 */
+    sigma_ec *= 1.0e4;
+    double nu_ec = n_c * sigma_ec * sqrt( 8.0 * PC_k_CGS * T / ( M_PI * PC_m_CGS ) );
+    double tau_ec = M_c_ / nu_ec;
+    
+    return tau_ec;
+}
+
+ET_AppletonBray_TwoRangeNeutral::
+ET_AppletonBray_TwoRangeNeutral( lua_State * L )
+    : Relaxation_time()
+{
+    int nCs;
+
+    // 1. Colliding species data
+    string c_name = get_string(L, -1, "c_name");
+    Chemical_species * X = get_library_species_pointer_from_name( c_name );
+    if ( X->get_Z()!=0 ) {
+	ostringstream ost;
+	ost << "ET_AppletonBray_TwoRangeNeutral::ET_AppletonBray_TwoRangeNeutral():\n";
+	ost << "Error in the declaration of colliding species: " << c_name << " is not a neutral.\n";
+	input_error(ost);
+    }
+    ic_ = X->get_isp();
+    M_c_ = X->get_M();
+
+    // 2. Electron data
+    X = get_library_species_pointer_from_name( "e_minus" );
+    iTe_ = X->get_iT_trans();
+
+    // 3.  Sigma quadratic curve fit coefficients
     // 3a. Temperature switch
     T_switch_ = get_positive_number(L, -1, "T_switch");
     // 3b. Low temperature range
     lua_getfield(L, -1, "LT_sigma_coefficients" );
     if ( !lua_istable(L, -1) ) {
 	ostringstream ost;
-	ost << "ET_Neutral::ET_Neutral():\n";
+	ost << "ET_AppletonBray_TwoRangeNeutral::ET_AppletonBray_TwoRangeNeutral():\n";
 	ost << "Error in the declaration of low temperature sigma coefficients: a table is expected.\n";
 	input_error(ost);
     }
     nCs = lua_objlen(L, -1);
     if ( nCs!=3 ) {
 	ostringstream ost;
-	ost << "ET_Neutral::ET_Neutral():\n";
+	ost << "ET_AppletonBray_TwoRangeNeutral::ET_AppletonBray_TwoRangeNeutral():\n";
 	ost << "Error in the declaration of low temperature sigma coefficients: 3 coefficients are expected.\n";
 	input_error(ost);
     }
@@ -506,14 +520,14 @@ ET_Neutral( lua_State * L )
     lua_getfield(L, -1, "HT_sigma_coefficients" );
     if ( !lua_istable(L, -1) ) {
         ostringstream ost;
-        ost << "ET_Neutral::ET_Neutral():\n";
+        ost << "ET_AppletonBray_TwoRangeNeutral::ET_AppletonBray_TwoRangeNeutral():\n";
         ost << "Error in the declaration of high temperature sigma coefficients: a table is expected.\n";
         input_error(ost);
     }
     nCs = lua_objlen(L, -1);
     if ( nCs!=3 ) {
         ostringstream ost;
-        ost << "ET_Neutral::ET_Neutral():\n";
+        ost << "ET_AppletonBray_TwoRangeNeutral::ET_AppletonBray_TwoRangeNeutral():\n";
         ost << "Error in the declaration of high temperature sigma coefficients: 3 coefficients are expected.\n";
         input_error(ost);
     }
@@ -525,19 +539,19 @@ ET_Neutral( lua_State * L )
     lua_pop(L,1);       // pop 'HT_sigma_coefficients'
 }
 
-ET_Neutral::
-~ET_Neutral()
+ET_AppletonBray_TwoRangeNeutral::
+~ET_AppletonBray_TwoRangeNeutral()
 {
     LT_C_.resize(0);
     HT_C_.resize(0);
 }
 
 double
-ET_Neutral::
+ET_AppletonBray_TwoRangeNeutral::
 specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
 {
     double n_c = Q.massf[ic_] * Q.rho / M_c_ * PC_Avogadro * 1.0e-6;	// Number density of colliders (in cm**-3)
-    
+
     // If there are no colliding species set a negative relaxation time
     if ( n_c==0.0 ) return -1.0;
 
@@ -552,7 +566,7 @@ specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
     sigma_ec *= 1.0e4;
     double nu_ec = n_c * sigma_ec * sqrt( 8.0 * PC_k_CGS * T / ( M_PI * PC_m_CGS ) );
     double tau_ec = M_c_ / nu_ec;
-    
+
     return tau_ec;
 }
 
@@ -1399,7 +1413,7 @@ RE_Neutral( lua_State * L )
     Chemical_species * X = get_library_species_pointer_from_name( c_name );
     if ( X->get_Z()!=0 ) {
 	ostringstream ost;
-	ost << "ET_Neutral::ET_Neutral():\n";
+	ost << "ET_AppletonBray_Neutral::ET_AppletonBray_Neutral():\n";
 	ost << "Error in the declaration of colliding species: " << c_name << " is not a neutral.\n";
 	input_error(ost);
     }    
@@ -1485,14 +1499,14 @@ Relaxation_time* create_new_relaxation_time( lua_State * L )
     else if( relaxation_time == "VT_MillikanWhite_HTC" ) {
 	return new VT_MillikanWhite_HTC(L);
     }
-    else if( relaxation_time == "ET_AppletonBray" ) {
-	return new ET_AppletonBray(L);
+    else if( relaxation_time == "ET_AppletonBray_Ion" ) {
+	return new ET_AppletonBray_Ion(L);
     }
-    else if( relaxation_time == "ET_Ion" ) {
-	return new ET_Ion(L);
+    else if( relaxation_time == "ET_AppletonBray_Neutral" ) {
+	return new ET_AppletonBray_Neutral(L);
     }
-    else if( relaxation_time == "ET_Neutral" ) {
-	return new ET_Neutral(L);
+    else if( relaxation_time == "ET_AppletonBray_TwoRangeNeutral" ) {
+	return new ET_AppletonBray_TwoRangeNeutral(L);
     }
     else if( relaxation_time == "VV_SSH" ) {
 	return new VV_SSH(L);

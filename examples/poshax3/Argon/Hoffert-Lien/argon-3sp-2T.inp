@@ -1,0 +1,2 @@
+model = "two temperature gas"
+species = {'Ar', 'Ar_plus', 'e_minus'}
