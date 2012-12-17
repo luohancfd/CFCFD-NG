@@ -10,7 +10,7 @@
 # School of Mechancial and Mining Engineering
 # The University of Queensland
 
-VERSION_STRING = "24-May-2012"
+VERSION_STRING = "17-Dec-2012"
 
 import string
 import sys, os
@@ -25,7 +25,17 @@ def calculate_pe_values(pefile, tstart, nsteps, dt):
     """
     Calculate mean pe values for 'nsteps' intervals 
     of 'dt' starting at 'tstart' using the data in 
-    "pefile". 
+    "pefile".
+    
+    The first line of the file should have the following
+    format: 
+    
+    # Variables: 1:time 2:pe
+
+    This may be followed by any number of comment lines
+    begining with # and then two collumns of data with
+    both time and supply pressure in SI units (seconds
+    and pascals respectively).
     """
     # Load data
     fp = open(pefile, 'r')
@@ -219,6 +229,7 @@ def main():
     for k in range(len(pe)):
         # Create sub-directory for the current case.
         caseString = 'case'+"{0:03}".format(k)
+        paramDict['caseName'] = caseString
         
         print 60*"-"
         print caseString
@@ -233,18 +244,6 @@ def main():
         # Move the run script to its sub-directory
         command_text = 'mv '+scriptFileName+' ./'+caseString+'/'+scriptFileName
         run_command(command_text)
-        
-        # If required, copy the nozzle.timing file to the sub-directory
-        if opt.blockMarching is True:
-            if os.path.exists(nozzle.timing):
-                command_text = 'cp nozzle.timing ./'+caseString+'/'
-                run_command(command_text)
-        
-        # If required, copy the nozzle.timing file to the sub-directory
-        if paramDict['blockMarching'] in ["--block-marching",]:
-            if os.path.exists('nozzle.timing'):
-                command_text = 'cp nozzle.timing ./'+caseString+'/'
-                run_command(command_text)
 
         # If require, copy the equilibrium gas LUT to the sub-directory
         if paramDict['chemModel'] in ['"eq"',]:
