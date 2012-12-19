@@ -7,5 +7,5 @@ directly into the main application source directories or
 the gas or geometry libraries.
 """
 
-import nm, gasdyn, geom, flow, util
+import nm, gasdyn, geom, flow, util, grid
 

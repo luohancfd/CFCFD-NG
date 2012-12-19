@@ -4,21 +4,8 @@
 ## 
 ## Part2: Viscous solution on a finer grid
 
-from cfpylib.gasdyn.billig import x_from_y, y_from_x
-from cfpylib.nm.zero_solvers import bisection
 from math import *
-from cfpylib.flow.shock_layer_surface import ShockLayerSurface
-
-# for shock fitting
-import matplotlib.pyplot as plt
-from scipy.optimize import *
-from numpy import *
-from cfpylib.util.YvX import *
-
-def BRH(a,b,beta,dx0,dx1,gamma):
-    RCF = RobertsClusterFunction(a,b,beta0)
-    HCF = HypertanClusterFunction(dx0,dx1)
-    return DiscontinuousUnivariateFunction(gamma,RCF,HCF)
+from cfpylib.grid.shock_layer_surface import *
 
 job_title = "JAXA Hayabusa sample return capsule."
 print job_title
@@ -64,22 +51,6 @@ inflow  = FlowCondition(p=p_inf, u=u_inf, v=0.0, T=[T_inf]*ntm, massf=massf_inf)
 # use the inviscid solution as the initial condition
 initial = ExistingSolution(rootName="hayabusa", solutionWorkDir="../part1-inviscid/", nblock=4, tindx=9999)
 
-# find the shock points from the previous solution
-shock_points = []
-shock_y_coords = []
-shock_x_coords = []
-for flow in initial.flow:
-    for i in range(flow.ni):
-        for j in range(flow.nj):
-            for k in range(flow.nk):
-                if flow.data["S"][i][j][k]==1:
-                    print flow.data.keys()
-                    shock_points.append( Vector3( flow.data["pos.x"][i][j][k], flow.data["pos.y"][i][j][k], flow.data["pos.z"][i][j][k] ) ) 
-                    shock_x_coords.append( flow.data["pos.x"][i][j][k] )
-                    shock_y_coords.append( flow.data["pos.y"][i][j][k] )
-print "Found %d shock points" % len(shock_points)
-shock_x_coords, shock_y_coords = zip(*sorted(zip(shock_x_coords, shock_y_coords)))
-
 #
 # 3. Define the geometry
 #
@@ -103,118 +74,14 @@ d = Node( 0.0, c.y - abs(c.x), label='d')
 
 body = Polyline( [Arc(a,b,o),Line(b,c)] )
 
-# inflow boundary nodes
-x_limit = c.x
-inflow_nodes = []
-np = 32
+# make the computational domain
+x_limit = c.x; gamma = 0.2
 if fit2shock:
-    # make a best fit to tthe shock location point cloud
-    def shock_x_from_y( p, y ):
-        print p
-        _bx_scale, _by_scale, _M_inf, _Rn = p
-        x = []
-        for _y in y:
-            _x = - _bx_scale * x_from_y(_y/_by_scale, _M_inf, theta=0.0, axi=1, R_nose=_Rn)
-            x.append( _x )
-        return array(x)
-
-    def shock_y_from_x( p, x ):
-        print p
-        _bx_scale, _by_scale, _M_inf, _Rn = p
-        y = []
-        for _x in x:
-            _y = _by_scale * y_from_x(-_x*_bx_scale, _M_inf, theta=0.0, axi=1, R_nose=_Rn)
-            y.append( _y )
-        return array(y)
-
-    def residuals( p, x, y ):
-        x_dash = shock_x_from_y(p,y)
-        return sqrt(sum((array(x) - x_dash)**2)/len(x))
-    
-    p0 = [ bx_scale, by_scale, M_inf, Rn ]
-    plsq = fmin_slsqp(residuals, p0, args=(shock_x_coords, shock_y_coords), bounds=[(1.0e-1,1e1),(1.0e-1,1e1),(1.0e0,1e2),(1.0e-4,1e0)], fprime=None)
-    # p = p0
-    p = plsq
-    fit_x = []
-    fit_y = copy(shock_y_coords)
-    fit_y.sort()
-    insert(fit_y,0,0.0)
-    fit_x = shock_x_from_y(p,fit_y)
-    
-    plt.plot(fit_x,fit_y,"b-",label="fit")
-    plt.plot(shock_x_coords,shock_y_coords,"g.",label="points")
-    plt.grid()
-    plt.legend()
-    plt.show()  
-
-    y_top = p[1] * y_from_x(-x_limit/p[0], p[2], theta=0.0, axi=1, R_nose=p[3])
-    dy = y_top / ( np - 1 )
-    tmp_shock_nodes = []
-    for iy in range(np):
-        y = dy * iy
-        x = - p[0] * x_from_y(y/p[1], p[2], theta=0.0, axi=1, R_nose=p[3])
-        tmp_shock_nodes.append( Node(x,y) )
-    shock_spline = Spline( tmp_shock_nodes )
-
-    inflow_nodes = []
-    for _is in range(np):
-        s = _is / float( np - 1 )
-        # point on the body
-        bp = body.eval(s)
-	# eval normal angle on the body
-	dpdt = body.dpdt(s)
-	if dpdt.x == 0.0:
-            theta = 0.0
-        else:
-  	    theta = - atan( dpdt.y / dpdt.x ) + pi / 2.	
-	#  find the shock point
-	if s==0.0: t = 0
-        elif s==1.0: t = 1
-	elif theta != 0.0:
-            def f( t ):
-	        wp = shock_spline.eval(t)
-	        L = ( wp.y - bp.y ) / sin( theta ) 
-	        lp = Vector3( bp.x - L * cos(theta), bp.y + L * sin(theta) ) 
-	        return wp.x - lp.x
-	    t = bisection( f, 0.0, 1.0 )
-	else:
-            def f( t ):
-	        wp = shock_spline.eval(t)
-	        L = ( bp.x - wp.x ) / cos( theta ) 
-	        lp = Vector3( bp.x - L * cos(theta), bp.y + L * sin(theta) ) 
-	        return wp.y - lp.y
-	    t = bisection( f, 0.0, 1.0 )
-	sp = shock_spline.eval(t)
-        # calculate the inflow_node location by extending by some factor
-        f_extend = 1.2
-        inflow_nodes.append( Node( bp.x + ( sp.x - bp.x ) * f_extend, bp.y + ( sp.y - bp.y ) * f_extend ) )
-else:
-    y_top = by_scale * y_from_x(-x_limit/bx_scale, M_inf, theta=0.0, axi=1, R_nose=Rn)
-    dy = y_top / ( np - 1 )
-    for iy in range(np):
-        y = dy * iy
-        x = - bx_scale * x_from_y(y/by_scale, M_inf, theta=0.0, axi=1, R_nose=Rn)
-        inflow_nodes.append( Node(x,y) )
-
-# find intersection of surface normal with inflow boundary at the top most point
-global inflow_spline
-inflow_spline = Spline(inflow_nodes)
-def zero_func(y):
-    dc_line = Line( d, Node( d.x+(c.x-d.x)*2.0, d.y+(c.y-d.y)*2.0 ) )
-    t = (y-d.y)/((c.y-d.y)*2.0)
-    return inflow_spline.eval_from_y(y).x - dc_line.eval(t).x
-y_int = bisection( zero_func, by=0.0, uy=D )
-x_int = inflow_spline.eval_from_y(y_int).x
-
-# split the inflow spline
-west_nodes = []
-for node in inflow_nodes:
-    if node.y < y_int: west_nodes.append(node)
-west_nodes.append( Node( x_int, y_int ) )
-
-# curves - block0
-west0 = Spline(west_nodes)
-east0 = Polyline( [Arc(a,b,o),Line(b,c)] )
+    shock = fit_billig2shock( initial, gdata.axisymmetric_flag, M_inf, Rn, body )
+    psurf = make_parametric_surface( M_inf=M_inf, R=Rn, axi=gdata.axisymmetric_flag, east=body, shock=shock, f_s=1.0/(1.0-gamma) )
+else:  
+    bx_scale = 1.0; by_scale = 1.0
+    psurf = make_parametric_surface( bx_scale, by_scale, M_inf, Rn, axi=gdata.axisymmetric_flag )
 
 #
 # 4. Define the blocks, boundary conditions and set the discretisation
@@ -223,12 +90,12 @@ nnx = 60; nny=60
 nbx = 2; nby = 2
 
 # clustering at shock and boundary layer [ outflow, surface, axis, inflow ]
-beta0 = 1.1; dx0 = 5.0e-1; dx1 = 2.0e-2; gamma = 0.2
+beta0 = 1.1; dx0 = 5.0e-1; dx1 = 2.0e-2 # gamma is previously defined
 beta1 = 1.2
-cf_list = [BRH(0,1,beta0,dx0,dx1,gamma),
-           RobertsClusterFunction(0,1,beta1),
-           BRH(0,1,beta0,dx0,dx1,gamma),
-           RobertsClusterFunction(0,1,beta1)]
+cf_list = [BHRCF(beta0,dx0,dx1,gamma),
+           RCF(0,1,beta1),
+           BHRCF(beta0,dx0,dx1,gamma),
+           RCF(0,1,beta1)]
 
 # boundary conditions [ outflow, surface, axis, inflow ]
 bc_list=[ ExtrapolateOutBC(),
@@ -242,10 +109,7 @@ wc_bc_list = [NonCatalyticWBC(),
               NonCatalyticWBC(),
               NonCatalyticWBC()]
 
-def RCF(a,b,beta):
-    return RobertsClusterFunction(a, b, beta)
-
-blk_0 = SuperBlock2D(psurf=ShockLayerSurface(east0, west0),
+blk_0 = SuperBlock2D(psurf=psurf,
 		     fill_condition=initial,
 		     nni=nnx, nnj=nny,
 		     nbi=nbx, nbj=nby,
