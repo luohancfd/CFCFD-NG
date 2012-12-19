@@ -138,7 +138,7 @@ from cfpylib.gasdyn.cea2_gas import Gas, make_gas_from_name
 from cfpylib.gasdyn.gas_flow import *
 from cfpylib.gasdyn.ideal_gas_flow import p0_p, pitot_p
 
-VERSION_STRING = "17-Dec-2012"
+VERSION_STRING = "19-Dec-2012"
 
 DEBUG_PITOT = False
 
@@ -979,7 +979,7 @@ def main():
                     
         print " "
         
-        version_printout = "Version: {0}".format(VERSION_STRING)
+        version_printout = "Pitot Version: {0}".format(VERSION_STRING)
         print version_printout
         output.write(version_printout + '\n')
         
