@@ -32,6 +32,8 @@ except:
     print "Could not import scipy - shock fitting disabled."
     with_scipy = False
 else:
+    if float(scipy.version.version)<0.1: 
+        print "WARNING: difficulties with the optimisation routines may be experienced with scipy versions less than 0.10.0"
     with_scipy = True
 try:
     from numpy import *

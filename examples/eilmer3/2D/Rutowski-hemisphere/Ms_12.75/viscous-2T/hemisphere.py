@@ -91,13 +91,15 @@ else:
 # make the geometry
 Rn = 1.27e-2
 beta0 = 1.1; dx0 = 5.0e-1; dx1 = 5.0e-2; gamma = 0.2
-beta1 = 1.2
+beta1 = 1.0
 cf_list = [BHRCF(beta0,dx0,dx1,gamma),
            RCF(0,1,beta1),
            BHRCF(beta0,dx0,dx1,gamma),
            RCF(0,1,beta1)]
-nnx = 60; nny = 60
+nnx = 80; nny = 60
 if fit2shock:
+    print "WARNING: the shock fitting procedure takes a long time as the Billig function"
+    print "         is difficult to solve at this Mach number."
     shock = fit_billig2shock( initial, gdata.axisymmetric_flag, M_inf, Rn, None )
     psurf = make_parametric_surface( M_inf=M_inf, R=Rn, axi=gdata.axisymmetric_flag, east=None, shock=shock, f_s=1.0/(1.0-gamma) )
 else:  
@@ -108,7 +110,7 @@ else:
 blk_0 = SuperBlock2D(psurf=psurf,
 		     fill_condition=initial,
 		     nni=nnx, nnj=nny,
-		     nbi=2, nbj=2,
+		     nbi=4, nbj=3,
 		     cf_list=cf_list,
 		     bc_list=[ExtrapolateOutBC(), FixedTBC(T_wall), SlipWallBC(), SupInBC(inflow)],
                      # wc_bc_list=[NonCatalyticWBC(),SuperCatalyticWBC([1.0,0.0,0.0]),NonCatalyticWBC(),NonCatalyticWBC()],
@@ -121,17 +123,17 @@ identify_block_connections()
 gdata.viscous_flag = 1
 gdata.viscous_delay = 0.1 * Rn / u_inf
 gdata.viscous_factor_increment = 1.0e-3
-gdata.diffusion_flag = 0
+gdata.diffusion_flag = 1
 gdata.diffusion_model = "ConstantLewisNumber"
 gdata.reaction_time_start = 0 * Rn / u_inf
 gdata.flux_calc = ADAPTIVE
 gdata.max_time = Rn * 5 / u_inf    # 5 body lengths
 # gdata.reaction_time_start = Rn * 10 / u_inf
 gdata.max_step = 230000
-gdata.dt = 1.0e-16
+gdata.dt = 1.0e-10
 gdata.stringent_cfl = 1
 gdata.dt_plot = Rn * 1 / u_inf    # 5 solutions
-gdata.cfl = 0.01
+gdata.cfl = 0.5
 gdata.cfl_count = 1
 gdata.print_count = 1
 
