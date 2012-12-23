@@ -9,11 +9,10 @@ Version: 30-Oct-2012 : initial repository version, ported from my local version.
          19-Dec-2012 : addition of parametric surface function
 """
 
-
 try:
-    from libprep3 import *
+    from libgeom2 import *
 except:
-    print "Could not import libprep3."
+    print "Could not import libgeom2."
     sys.exit()
 from math import *
 from cfpylib.nm.zero_solvers import bisection
@@ -33,7 +32,16 @@ except:
     with_scipy = False
 else:
     import scipy
-    if float(scipy.version.version[:-2])<0.1: 
+    v = scipy.version.version[:-2]
+    first_dot = False
+    v_short = ''
+    for tk in v:
+        if tk==".": 
+            if not first_dot:
+                first_dot = True
+            else: break
+        v_short += tk
+    if float(v_short)<0.1:
         print "WARNING: difficulties with the optimisation routines may be experienced with scipy versions less than 0.10.0"
     with_scipy = True
 try:

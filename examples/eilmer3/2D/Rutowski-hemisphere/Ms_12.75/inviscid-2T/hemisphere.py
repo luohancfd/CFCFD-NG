@@ -3,13 +3,14 @@
 ## \author DFP, 23-Nov-2009
 ##
 
-from cfpylib.gasdyn.cea2_gas import *
+from cfpylib.grid.shock_layer_surface import *
 
 job_title = "Shock heated Argon flow over a 12.7mm diameter hemisphere (Rutowski and Bershader, 1964)"
 print job_title
 
 # define simulation control parameters
 transfer_solution = False
+fit2shock = False
 inflow_source = "poshax3"
 gmodel = "two temperature gas"
 species = [ "Ar", "Ar_plus", "e_minus" ]
@@ -35,6 +36,7 @@ if ntm>1:
 # Define flow conditions - shock heated argon, initially at 10 Torr and 300K
 T_wall = 300.0
 if inflow_source=="cea2":
+    from cfpylib.gasdyn.cea2_gas import *
     M_inf = 12.75
     reactants = { "Ar" : 1.0, "Ar+" : 0.0, "e-" : 0.0 }
     cea = Gas( reactants, onlyList=reactants.keys(), with_ions=True, trace=1.0e-20 )
@@ -82,21 +84,25 @@ print "M_inf = %0.2f" % ( M_inf )
 # define the inflow and initial conditions
 inflow  = FlowCondition(p=p_inf, u=u_inf, v=0.0, T=T_inf, massf=massf_inf)
 if transfer_solution:
-    initial = ExistingSolution(rootName="cyl", solutionWorkDir="../inviscid/", nblock=1, tindx=9999)
+    initial = ExistingSolution(rootName="hemisphere", solutionWorkDir="../inviscid-2T/", nblock=1, tindx=9999)
 else:
     initial = FlowCondition(p=p_inf/10.0, u=0.0, v=0.0, T=T_inf, massf=massf_inf)
 
 # make the geometry
 Rn = 1.27e-2
-import sys, os
-from taupytools.make_cyl_grid import * 
-beta0 = 1.0; beta1 = 1.0; beta2 = 1.0
-gamma0 = 0.35; gamma1 = 0.45
-bx_scale = 1.0; by_scale = 1.0
-shock_points = None
-nnx = 30; nny = 30
-psurf = make_cyl_parametric_surface( bx_scale, by_scale, M_inf, Rn, axi=1, shock_points=shock_points )
-cf_list = cf_list=[TRCF(0,1,1,0,0,1,beta0,beta0,beta1,gamma0,gamma1),RCF(0,1,beta2),TRCF(0,1,1,0,0,1,beta0,beta0,beta1,gamma0,gamma1),RCF(0,1,beta2)]
+beta0 = 1.1; dx0 = 5.0e-1; dx1 = 5.0e-2; gamma = 0.2
+beta1 = 1.0
+cf_list = [ None ] * 4
+nnx = 40; nny = 30
+if fit2shock:
+    print "WARNING: the shock fitting procedure takes a long time as the Billig function"
+    print "         is difficult to solve at this Mach number."
+    shock = fit_billig2shock( initial, gdata.axisymmetric_flag, M_inf, Rn, None )
+    psurf = make_parametric_surface( M_inf=M_inf, R=Rn, axi=gdata.axisymmetric_flag, east=None, shock=shock, f_s=1.0/(1.0-gamma) )
+else:  
+    bx_scale = 1.0; by_scale = 1.0
+    psurf = make_parametric_surface( bx_scale, by_scale, M_inf, Rn, axi=gdata.axisymmetric_flag )
+    
 
 blk_0 = SuperBlock2D(psurf=psurf,
 		     fill_condition=initial,
@@ -104,7 +110,8 @@ blk_0 = SuperBlock2D(psurf=psurf,
 		     nbi=1, nbj=1,
 		     cf_list=cf_list,
 		     bc_list=[ExtrapolateOutBC(), FixedTBC(T_wall), SlipWallBC(), SupInBC(inflow)],
-		     wc_bc_list=[NonCatalyticWBC()]*4,
+                     # wc_bc_list=[NonCatalyticWBC(),SuperCatalyticWBC([1.0,0.0,0.0]),NonCatalyticWBC(),NonCatalyticWBC()],
+                     wc_bc_list=[NonCatalyticWBC(),NonCatalyticWBC(),NonCatalyticWBC(),NonCatalyticWBC()],
 		     label="BLOCK-0", hcell_list=[(nnx,1)])
                  
 identify_block_connections()
@@ -113,16 +120,18 @@ identify_block_connections()
 gdata.viscous_flag = 0
 gdata.viscous_delay = 0.1 * Rn / u_inf
 gdata.viscous_factor_increment = 1.0e-3
+gdata.diffusion_flag = 0
+gdata.diffusion_model = "ConstantLewisNumber"
 gdata.reaction_time_start = 0 * Rn / u_inf
 gdata.flux_calc = ADAPTIVE
-gdata.max_time = Rn * 10 / u_inf    # 5 body lengths
+gdata.max_time = Rn * 10 / u_inf    # 10 body lengths
 # gdata.reaction_time_start = Rn * 10 / u_inf
 gdata.max_step = 230000
 gdata.dt = 1.0e-10
 gdata.stringent_cfl = 1
-gdata.dt_plot = Rn * 1 / u_inf    # 5 solutions
-gdata.cfl = 0.25
-gdata.cfl_count = 1
+gdata.dt_plot = Rn * 1 / u_inf    # 10 solutions
+gdata.cfl = 0.5
+gdata.cfl_count = 10
 gdata.print_count = 20
 
 # flux calc options
