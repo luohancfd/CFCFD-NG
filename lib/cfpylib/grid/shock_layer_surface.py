@@ -9,6 +9,7 @@ Version: 30-Oct-2012 : initial repository version, ported from my local version.
          19-Dec-2012 : addition of parametric surface function
 """
 
+import sys
 try:
     from libgeom2 import *
 except:

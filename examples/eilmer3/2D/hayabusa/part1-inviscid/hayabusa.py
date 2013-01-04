@@ -7,7 +7,7 @@
 from cfpylib.gasdyn.billig import x_from_y, y_from_x
 from cfpylib.nm.zero_solvers import bisection
 from math import cos, sin, tan, sqrt, pi
-from cfpylib.flow.shock_layer_surface import ShockLayerSurface
+from cfpylib.grid.shock_layer_surface import ShockLayerSurface
 
 job_title = "JAXA Hayabusa sample return capsule."
 print job_title

@@ -188,6 +188,7 @@ install : $(INSTALL_DIR) $(E3_EXE_FILES) $(PY_FILES) $(E3_UTILS)
 	@echo Copying executable files to $(INSTALL_DIR)
 	cd $(GAS)/build; make TARGET=$(TARGET) OPT=$(OPT) INSTALL_DIR=$(INSTALL_DIR) install
 	cd $(RAD)/build; make TARGET=$(TARGET) OPT=$(OPT) INSTALL_DIR=$(INSTALL_DIR) install
+	cd $(GEOM2)/build; make TARGET=$(TARGET) OPT=$(OPT) INSTALL_DIR=$(INSTALL_DIR) install
 	- cp -f $(E3_EXE_FILES) $(INSTALL_DIR)
 	- cp -f $(PY_FILES) $(INSTALL_DIR)
 	- cp -f $(E3_UTILS) $(INSTALL_DIR)
