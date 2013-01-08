@@ -217,6 +217,7 @@ s_eval_energy(Gas_data &Q, Equation_of_state *EOS_)
     for ( size_t itm=0; itm<modes_.size(); ++itm ) {
     	Q.e[itm] = modes_[itm]->eval_energy(Q);
     	Q.e[0] += ( itm>0 ) ? Q.e[itm] : 0.0;
+	//	cout << "itm= " << itm << " e= " << Q.e[itm] << endl;
     }
     
     // Add heat of formation energy to total (Q.e[0])

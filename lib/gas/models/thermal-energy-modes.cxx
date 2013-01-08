@@ -119,7 +119,7 @@ s_eval_energy(const Gas_data &Q)
 {
     double e = 0.0;
     for ( size_t ic=0; ic<components_.size(); ++ic )
-    	e += components_[ic]->eval_weighted_energy( Q );
+    	e += components_[ic]->eval_energy( Q );
     
     return e;
 }

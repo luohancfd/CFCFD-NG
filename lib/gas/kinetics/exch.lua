@@ -25,6 +25,7 @@ local Colon = lpeg.P(":") * Space
 local Open = "(" * Space
 local Close = ")" * Space
 local ListKw = lpeg.C(lpeg.P("*list")) * Space
+local AllKw = lpeg.C(lpeg.P("*all")) * Space
 local ExchType = lpeg.C(lpeg.S("VTE")) * Space -- letters designating exchange types
 local ExchDesc = lpeg.C(lpeg.R("AZ")^1)
 
@@ -46,7 +47,8 @@ ColliderG = lpeg.P{ Colliders,
 		    Colliders = lpeg.Ct(Species * Space * (Tilde*Tilde) * Space *
 					( Species + -- e.g. N2 ~~ O2
 					   lpeg.Ct((Open*Species*Space*(Comma*Species)^0*Close)) +  -- e.g. O2 ~~ (N2, H2)
-					   (Open*ListKw*Close) )) } -- e.g. N2 + (*list)
+					   (Open*ListKw*Close) + -- e.g. N2 + (*list)
+					   (Open*AllKw*Close) )) } -- e.g. N2 + (*all) 
 ExchangeG = lpeg.P{ Exchange,
 		    Exchange = lpeg.Ct(ExchType * Dash * ExchType*(Space*ExchDesc)^0)}
 
