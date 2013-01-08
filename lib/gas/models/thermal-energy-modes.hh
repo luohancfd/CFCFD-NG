@@ -29,7 +29,12 @@ public:
     double encode_conserved_energy(const Gas_data &Q)
     { return s_encode_conserved_energy(Q); }
     
-    // NOTE: following functions give values per kg of mixture (ie weighted)
+    // NOTE: following functions give values per kg of this mode, i.e.
+    //       NOT yet weighted by how much fraction this mode occupies
+    //       of total
+    //       08-Jan-2012 : Change by R. Gollan
+    //                     Earlier implementation gave J/kg-mixture
+    //                     (so the value was already weighted)
     double eval_energy(const Gas_data &Q)
     { return s_eval_energy(Q); }
     
@@ -41,6 +46,8 @@ public:
     
     void test_derivatives( Gas_data &Q )
     { return s_test_derivatives(Q); }
+
+    double mode_massf(const Gas_data &Q);
     
     std::string get_name()
     { return s_get_name(); }
@@ -49,6 +56,7 @@ protected:
     int iT_;
     
     std::string name_;
+    std::vector<int> sp_idx_; // List of species indices for compute mass fraction in mode
     std::vector<std::string> component_names_;
     std::vector<Species_energy_mode*> components_;
     

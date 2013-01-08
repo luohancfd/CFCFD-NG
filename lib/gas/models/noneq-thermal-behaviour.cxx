@@ -216,8 +216,11 @@ s_eval_energy(Gas_data &Q, Equation_of_state *EOS_)
     //       - e[0] is always total energy, so add all modal contributions
     for ( size_t itm=0; itm<modes_.size(); ++itm ) {
     	Q.e[itm] = modes_[itm]->eval_energy(Q);
-    	Q.e[0] += ( itm>0 ) ? Q.e[itm] : 0.0;
-	//	cout << "itm= " << itm << " e= " << Q.e[itm] << endl;
+    }
+    // but e[0] always contains total energy, so rework value in e[0].
+    Q.e[0] *= modes_[0]->mode_massf(Q);
+    for ( size_t itm = 1; itm < modes_.size(); ++itm ) {
+    	Q.e[0] += modes_[itm]->mode_massf(Q)*Q.e[itm];
     }
     
     // Add heat of formation energy to total (Q.e[0])
@@ -236,9 +239,14 @@ s_eval_temperature(Gas_data &Q, Equation_of_state *EOS_)
     // 0. Convert e_total to e[0] by subtracting out higher modes and formation energy
     double e_total = Q.e[0];
     for ( size_t itm=1; itm<modes_.size(); ++itm )
-    	Q.e[0] -= Q.e[itm];
+    	Q.e[0] -= modes_[itm]->mode_massf(Q)*Q.e[itm];
     for ( size_t isp=0; isp<species_.size(); ++isp )
     	Q.e[0] -= Q.massf[isp]*species_[isp]->get_h_f();
+    // and convert J/kg of that component
+    double modef0 = modes_[0]->mode_massf(Q);
+    if ( modef0 > DEFAULT_MIN_MASS_FRACTION ) {
+	Q.e[0] /= modef0;
+    }
     
     // 1. Calculate modal temperatures
     for ( size_t itm=0; itm<modes_.size(); ++itm )
