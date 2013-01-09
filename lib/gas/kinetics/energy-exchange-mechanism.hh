@@ -77,21 +77,21 @@ private:
 //     double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
 // };
 
-// class ET_exchange : public Energy_exchange_mechanism {
-// public:
-//     ET_exchange( lua_State *L );
+class ET_exchange : public Energy_exchange_mechanism {
+public:
+    ET_exchange( lua_State *L, int ie, int iTe );
 
-//     ~ET_exchange();
-// private:
-//     int iT_;	// translational temperature index
-//     int iTe_;	// electronic temperature index
-//     int ie_;	// electron index
-//     Relaxation_time * tau_ET_;
-//     double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
-//     { return tau_ET_->compute_relaxation_time(Q,molef); }
+    ~ET_exchange();
+private:
+    int ie_;	// electron index
+    int iTe_;	// electronic temperature index
+    int iT_;	// translational temperature index
+    Relaxation_time * tau_ET_;
+    double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
+    { return tau_ET_->compute_relaxation_time(Q,molef); }
 
-//     double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
-// };
+    double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
+};
 
 class VV_THO_exchange : public Energy_exchange_mechanism {
 public:

@@ -5,6 +5,10 @@
 
 module(..., package.seeall)
 
+require 'reac'
+
+local transform_species_str = reac.transform_species_str
+
 -- For the moment, assume translation mode is always 0
 ITRANS = 0
 
@@ -60,19 +64,21 @@ end
 
 function transform_mechanism(m, species, thermal_modes)
    local t = parse_energy_exch_string(m[1])
-   local p = t[1][1] -- species p as string
+   local p = transform_species_str(t[1][1]) -- species p as string
    local ip = species[p]
    local q = t[1][2] -- species q(s): could be string, list, or table
    local iqs = {}
 
    if type(q) == 'table' then
       for _,sq in ipairs(q) do
+	 local sq_t = transform_species_str(sq)
 	 iqs[#iqs+1] = species[sq]
       end
    elseif type(q) == 'string' then
-      if species[q] then
-	 -- We found q as a species entry
-	 iqs[#iqs+1] = species[q]
+      q_t = transform_species_str(q)
+      if species[q_t] then
+	 -- We found q_t as a species entry
+	 iqs[#iqs+1] = species[q_t]
       elseif q == '*list' then
 	 if not m.list then
 	    print("Keyword '*list' has been used to designate colliders")
@@ -81,6 +87,7 @@ function transform_mechanism(m, species, thermal_modes)
 	    os.exit(1)
 	 end
 	 for _,sq in ipairs(m.list) do
+	    local sq_t = transform_species_str(sq)
 	    iqs[#iqs+1] = species[sq]
 	 end
       else

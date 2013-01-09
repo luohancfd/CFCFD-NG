@@ -134,46 +134,40 @@ specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, vector<double
 //     return rate;
 // }
 
-// ET_exchange::
-// ET_exchange( lua_State *L )
-//     : Energy_exchange_mechanism()
-// {
-//     // 1. Assume translational index is 0
-//     iT_ = 0;
-    
-//     // 2. Initialise electron from name
-//     Chemical_species * e = get_library_species_pointer_from_name( "e_minus" );
-//     ie_ = e->get_isp();
-//     iTe_ = e->get_mode_pointer_from_type("translation")->get_iT();;
+ET_exchange::
+ET_exchange(lua_State *L, int ie, int iTe)
+    : Energy_exchange_mechanism(), ie_(ie), iTe_(iTe)
+{
+    iT_ = get_int(L, -1, "itrans");
+    int ic = get_int(L, -1, "iq");
 
-//     // 3. Initialise relaxation time
-//     lua_getfield(L,-1,"relaxation_time");
-//     tau_ET_ = create_new_relaxation_time( L );
-//     lua_pop(L, 1 );
-// }
+    lua_getfield(L,-1,"relaxation_time");
+    tau_ET_ = create_new_relaxation_time(L, ie, ic, iT_);
+    lua_pop(L, 1 );
+}
 
-// ET_exchange::
-// ~ET_exchange()
-// {
-//     delete tau_ET_;
-// }
+ET_exchange::
+~ET_exchange()
+{
+    delete tau_ET_;
+}
 
-// double
-// ET_exchange::
-// specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &molef)
-// {
-//     // tau_ET_ will be present and correct before beginning this
-//     // functionm ie. a call to compute_tau is expected earlier.
-//     // CHECKME: - from Abe and Panesi, maybe we should be scaling by molef[ie_]
-//     //            and NOT massf[ie_]?
-//     // NOTE: - scaling by molef gives a way to fast E-T equilibriation
-//     double rate = Q.massf[ie_] * 3.0 * PC_R_u * ( Q.T[iT_] - Q.T[iTe_] ) / tau_;
+double
+ET_exchange::
+specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &molef)
+{
+    // tau_ET_ will be present and correct before beginning this
+    // functionm ie. a call to compute_tau is expected earlier.
+    // CHECKME: - from Abe and Panesi, maybe we should be scaling by molef[ie_]
+    //            and NOT massf[ie_]?
+    // NOTE: - scaling by molef gives a way to fast E-T equilibriation
+    double rate = Q.massf[ie_] * 3.0 * PC_R_u * ( Q.T[iT_] - Q.T[iTe_] ) / tau_;
     
-//     // cout << "ET_exchange::specific_compute_rate()" << endl
-//     //      << "rate = " << rate << endl;
+    // cout << "ET_exchange::specific_compute_rate()" << endl
+    //      << "rate = " << rate << endl;
     
-//     return rate;
-// }
+    return rate;
+}
 
 VV_THO_exchange::
 VV_THO_exchange(lua_State *L, int ip, int imode)
@@ -582,15 +576,14 @@ Energy_exchange_mechanism* create_energy_exhange_mechanism(lua_State *L, int ip,
     if( type == "VT" ) {
 	return new VT_exchange(L, ip, imode);
     }
-
 //     // if( type == "Polymodal_VT_exchange" ) {
 //     // 	return new Polymodal_VT_exchange(L);
 //     // }
-//     // else if( type == "ET_exchange" ) {
-//     // 	return new ET_exchange(L);
-//     // }
     else if( type == "VV-THO" ) {
  	return new VV_THO_exchange(L, ip, imode);
+    }
+    else if( type == "ET" ) {
+ 	return new ET_exchange(L, ip, imode);
     }
 //     // else if( type == "VV_HO_exchange" ) {
 //     // 	return new VV_HO_exchange(L);
