@@ -108,7 +108,18 @@ function transform_mechanism(m, species, thermal_modes)
    if t[2][3] then
       m_type = m_type.."-"..t[2][3]
    end
-   local mode = tostring(t[2][1].."_"..p)
+   local m_str = t[2][1]
+   local mode
+   if m_str == 'V' then
+      mode = tostring(m_str.."_"..p)
+   elseif m_str == 'E' then
+      mode = 'Te'
+   else
+      print("mode type: ", m_str)
+      print("is not yet implemented.")
+      print("Bailing out!")
+      os.exit(1)
+   end
    local imode = thermal_modes[mode]
 
    if ( imode == nil ) then
@@ -132,6 +143,9 @@ function transform_mechanism(m, species, thermal_modes)
 	 mechs[#mechs].imode = imode
 	 local qmode = "V_"..species[q]
 	 mechs[#mechs].iTvq = thermal_modes[qmode]
+      elseif m_type == "ET" then
+	 mechs[#mechs].itrans = ITRANS
+	 mechs[#mechs].imode = imode
       else
 	 print("Mode type: ", m_type, " is not known.")
 	 print("This occurred when trying to build energy exchange mechanism:")
