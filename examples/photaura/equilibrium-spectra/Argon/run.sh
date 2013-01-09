@@ -11,7 +11,7 @@
 script_rad2.py -i argon-radiators.py -L rad-model.lua
 
 # 2. Run EQ-spectra.py
-EQ-spectra.py --input-file=argon.inp
+EQ-spectra.py --input-file=argon.py
 
 # The files coefficient_spectra.txt and intensity_spectra.txt
 # should now be in the working directory.

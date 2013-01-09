@@ -1,0 +1,13 @@
+input_data.rad_model_file = "rad-model.lua"
+input_data.species_list = [ "CO2",  "CO",  "CO_plus", "O2", "N2", "NO", "CN", "C2", "C", "C_plus", "N", "N_plus", "O", "O_plus", "e_minus" ]
+input_data.mole_fractions = [ 0.96, 0.0, 0.0, 0.0, 0.04, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]
+input_data.shock_speed = 6450. # m/s
+input_data.gas_pressure = 0.25 # Torr
+input_data.gas_pressure *= 133.33 # Torr -> Pa
+input_data.gas_temperature = 300 # K
+input_data.tube_width = 10.15 # cm
+input_data.tube_width *= 1.0e-2 # cm -> m
+input_data.apparatus_fn = "Voigt"
+input_data.Gaussian_HWHM = 4 # Ang
+input_data.Lorentzian_HWHM = 0 # Ang
+input_data.sampling_rate = 1
