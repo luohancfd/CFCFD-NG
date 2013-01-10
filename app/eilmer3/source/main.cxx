@@ -170,6 +170,13 @@ int main(int argc, char **argv)
 	   G.my_mpi_rank, G.num_mpi_proc, node_name );
     fflush(stdout);
     MPI_Barrier(MPI_COMM_WORLD); // just to reduce the jumble in stdout
+#   elif E3RAD
+    master = 1;
+    sprintf(log_file_name, "e3rad.log");
+    printf("e3main: C++,OpenMP version for radiation calculations.\n");
+#   ifdef _OPENMP
+    printf("OpenMP version using %d thread(s).\n", omp_get_max_threads());
+#   endif
 #   else
     master = 1;
     sprintf(log_file_name, "e3shared.log");

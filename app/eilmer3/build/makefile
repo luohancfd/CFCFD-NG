@@ -471,11 +471,11 @@ e3mpi.o : $(SRC)/main.cxx $(SRC)/main.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)
 	$(CXX) $(PCA) $(CXXFLAG) $(CFLAG_MPI) -L/opt/local/lib -D_MPI -I/sw/include -I/opt/local/include -I$(LUA_INCLUDE_DIR) \
 		$(SRC)/main.cxx -o e3mpi.o
 
-e3rad.o : $(SRC)/e3rad.cxx $(SRC)/e3rad.hh $(SRC)/main.hh $(SRC)/block.hh $(SRC)/kernel.hh \
+e3rad.o : $(SRC)/main.cxx $(SRC)/main.hh $(SRC)/main.hh $(SRC)/block.hh $(SRC)/kernel.hh \
 		$(SRC)/bc.hh $(SRC)/init.hh $(SRC)/exch2d.hh $(SRC)/radiation_transport.hh \
 		$(LIBLUA)
-	$(CXX) $(PCA) $(CXXFLAG) -DSHARED -L/opt/local/lib -I/sw/include -I/opt/local/include -I$(LUA_INCLUDE_DIR) \
-		$(SRC)/e3rad.cxx -o e3rad.o
+	$(CXX) $(PCA) $(CXXFLAG) -DSHARED -DE3RAD -L/opt/local/lib -I/sw/include -I/opt/local/include -I$(LUA_INCLUDE_DIR) \
+		$(SRC)/main.cxx -o e3rad.o
 
 exch2d.o : $(SRC)/exch2d.cxx $(SRC)/exch3d.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
 	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/exch2d.cxx -o exch2d.o
