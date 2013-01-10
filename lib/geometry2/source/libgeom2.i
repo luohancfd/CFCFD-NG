@@ -556,3 +556,41 @@ def makeSimpleBox(xPos=0.0, yPos=0.0, zPos=0.0, xSize=1.0, ySize=1.0, zSize=1.0)
     p7 = Node(xPos,       yPos+ySize, zPos+zSize)
     return SimpleBoxVolume(p0, p1, p2, p3, p4, p5, p6, p7)
 %}
+
+%pythoncode %{
+def RCF(a,b,beta):
+    return RobertsClusterFunction(a, b, beta)
+
+def HCF(dL0,dL1):
+    return HypertanClusterFunction(dL0,dL1)
+
+def BRCF(a,b,c,d,beta0,beta1,gamma):
+    RCF_a = RCF(a,b,beta0)
+    RCF_b = RCF(c,d,beta1)
+    return DiscontinuousUnivariateFunction(gamma,RCF_a,RCF_b)
+
+def TRCF( a, b, c, d, e, f, beta0, beta1, beta2, gamma0, gamma1 ):
+    rcf0 = RCF(a,b,beta0)
+    rcf1 = RCF(c,d,beta1)
+    rcf2 = RCF(e,f,beta2)
+    brcf01 = DiscontinuousUnivariateFunction(gamma0,rcf0,rcf1)
+    return DiscontinuousUnivariateFunction(gamma1,brcf01,rcf2)
+
+def BHCF( dL0, dL1, dL2, gamma ):
+    hcf0 = HCF(dL0,dL1)
+    hcf1 = HCF(dL1,dL2)
+    return DiscontinuousUnivariateFunction(gamma,hcf0,hcf1)
+
+def BHRCF( beta, dL0, dL1, gamma ):
+    rcf = RCF(0,1,beta)
+    hcf = HCF(dL0,dL1)
+    return DiscontinuousUnivariateFunction(gamma,rcf,hcf)
+
+def VCF(dL0, dL1, L, n):
+    return ValliammaiFunction(dL0,dL1,L,n)
+
+def BVCF(beta0,beta1,beta2,gamma,R,n):
+    VCF_a = VCF(beta0*R,beta1*R,R*gamma,int(n*gamma))
+    VCF_b = VCF(beta1*R,beta2*R,R*(1-gamma),int(n*(1-gamma)))
+    return DiscontinuousUnivariateFunction(gamma,VCF_a,VCF_b)
+%}

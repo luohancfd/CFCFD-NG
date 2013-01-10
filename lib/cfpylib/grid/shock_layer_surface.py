@@ -11,7 +11,7 @@ Version: 30-Oct-2012 : initial repository version, ported from my local version.
 
 import sys
 try:
-    from libgeom2 import *
+    from libgeom2 import Vector3, Arc, Node, Spline, Line
 except:
     print "Could not import libgeom2."
     sys.exit()
@@ -53,42 +53,6 @@ except:
 else:
     with_numpy = True
 
-def RCF(a,b,beta):
-    return RobertsClusterFunction(a, b, beta)
-
-def HCF(dL0,dL1):
-    return HypertanClusterFunction(dL0,dL1)
-
-def BRCF(a,b,c,d,beta0,beta1,gamma):
-    RCF_a = RCF(a,b,beta0)
-    RCF_b = RCF(c,d,beta1)
-    return DiscontinuousUnivariateFunction(gamma,RCF_a,RCF_b)
-
-def TRCF( a, b, c, d, e, f, beta0, beta1, beta2, gamma0, gamma1 ):
-    rcf0 = RCF(a,b,beta0)
-    rcf1 = RCF(c,d,beta1)
-    rcf2 = RCF(e,f,beta2)
-    brcf01 = DiscontinuousUnivariateFunction(gamma0,rcf0,rcf1)
-    return DiscontinuousUnivariateFunction(gamma1,brcf01,rcf2)
-
-def BHCF( dL0, dL1, dL2, gamma ):
-    hcf0 = HCF(dL0,dL1)
-    hcf1 = HCF(dL1,dL2)
-    return DiscontinuousUnivariateFunction(gamma,hcf0,hcf1)
-
-def BHRCF( beta, dL0, dL1, gamma ):
-    rcf = RCF(0,1,beta)
-    hcf = HCF(dL0,dL1)
-    return DiscontinuousUnivariateFunction(gamma,rcf,hcf)
-
-def VCF(dL0, dL1, L, n):
-    return ValliammaiFunction(dL0,dL1,L,n)
-
-def BVCF(beta0,beta1,beta2,gamma,R,n):
-    VCF_a = VCF(beta0*R,beta1*R,R*gamma,int(n*gamma))
-    VCF_b = VCF(beta1*R,beta2*R,R*(1-gamma),int(n*(1-gamma)))
-    return DiscontinuousUnivariateFunction(gamma,VCF_a,VCF_b)
-
 class ShockLayerSurface:
     def __init__(self, east, west):
 	self.east = east
@@ -128,6 +92,9 @@ class ShockLayerSurface:
 
     def str():
         return "ShockLayerSurface"
+        
+    def clone( self ):
+        return ShockLayerSurface( self.east, self.west )
 
 def make_parametric_surface(bx_scale=1.0, by_scale=1.0, M_inf=1.0, R=1.0, axi=0, east=None, shock=None, f_s=1.1):  
     # model geometry
