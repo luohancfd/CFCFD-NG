@@ -22,6 +22,12 @@ class Thermal_energy_mode {
 public:
     Thermal_energy_mode( std::string name, std::vector<Chemical_species*> &species, lua_State *L );
     virtual ~Thermal_energy_mode();
+
+    int no_components()
+    { return components_.size(); };
+
+    std::string component_name(int ic)
+    { return component_names_[ic]; }
     
     double decode_conserved_energy(Gas_data &Q, double rhoe)
     { return s_decode_conserved_energy(Q,rhoe); }

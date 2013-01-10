@@ -95,7 +95,6 @@ LUA_MODULES := 	refprop.lua \
 	reac.lua \
 	reaction_rate.lua \
 	tab_serialise.lua \
-	reaction_rate.lua \
 	energy_exchange_parser.lua \
 	exch.lua
 

@@ -45,8 +45,8 @@ function main(config_file)
    mechs = {}
    for i,m in ipairs(mechanisms) do
       local t = transform_mechanism(m, species, modes)
-      for _,m in ipairs(t) do
-	 mechs[#mechs+1] = m
+      for _,m2 in ipairs(t) do
+	 mechs[#mechs+1] = m2
       end
    end
 

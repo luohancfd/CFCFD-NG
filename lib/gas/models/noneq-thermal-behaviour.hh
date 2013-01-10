@@ -27,9 +27,15 @@ public:
     
     int get_number_of_modes()
     { return (int) modes_.size(); }
+
+    int mode_no_components(int imode)
+    { return modes_[imode]->no_components(); }
     
     std::string mode_name(int imode)
     { return modes_[imode]->get_name(); }
+
+    std::string mode_component_name(int imode, int ic)
+    { return modes_[imode]->component_name(ic); }
 
     int eval_equilibrium_composition( double T, double rho, std::vector<double> &massf )
     { return ces_->solve_system(T,rho,massf); }

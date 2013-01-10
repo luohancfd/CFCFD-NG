@@ -108,8 +108,12 @@ Composite_gas_model(string cfile)
     else if ( TBM == "thermal nonequilibrium" ) {
 	TBM_ = (Thermal_behaviour_model*) new Noneq_thermal_behaviour(L);
 	Noneq_thermal_behaviour *ntb = dynamic_cast<Noneq_thermal_behaviour*>(TBM_);
+	m_components_.resize(ntb->get_number_of_modes());
 	for ( int imode = 0; imode < ntb->get_number_of_modes(); ++imode ) {
 	    m_names_.push_back(ntb->mode_name(imode));
+	    for ( int ic = 0; ic < ntb->mode_no_components(imode); ++ic ) {
+		m_components_[imode].push_back(ntb->mode_component_name(imode, ic));
+	    }
 	}
     }
     else {

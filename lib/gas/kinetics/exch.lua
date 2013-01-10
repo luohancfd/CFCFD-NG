@@ -62,6 +62,58 @@ function parse_energy_exch_string(s)
    return t
 end
 
+local function find_mode_index(modes, mode_idx, e_str, s_str)
+   -- 1. First based on species name
+   local cname1
+   if e_str == "V" then
+      cname1 = s_str.."-vibration"
+   elseif e_str == "E" then
+      cname1 = "e_minus-translation"
+   else
+      print(string.format("Mode string %s" % e_str))
+      print("is not known in energy exchange file.")
+      print("Bailing out!")
+      os.exit(1)
+   end
+
+   for k,t in pairs(modes) do
+      for c,_ in pairs(t) do
+	 if cname1 == c then
+	    return mode_idx[k]
+	 end
+      end
+   end
+
+   if e_str == "E" then
+      -- If we're here we did NOT find "e_minus-translation"
+      print("Problem finding the mode 'e_minus-translation")
+      print("as one of the thermal modes while trying to")
+      print("setup the energy exchange mechanisms.")
+      print("Bailing out!")
+      os.exit(1)
+   end
+
+   -- 2. Search for 'all' in case this species is lumped with others
+   -- We've already searched for the special case of e-
+      
+   local cname2 = "all-vibration"
+   for k,t in pairs(modes) do
+      for c,_ in pairs(t) do
+	 if cname2 == c then
+	    return mode_idx[k]
+	 end
+      end
+   end
+
+   -- 3. If we got this far, we did NOT find this mode.
+   print("There was a problem determining the index of mode:")
+   print(string.format("%s-%s", e_str, s_str))
+   print("The following mode names were searched for:")
+   print(cname1)
+   print(cname2)
+   os.exit(1)
+end
+
 function transform_mechanism(m, species, thermal_modes)
    local t = parse_energy_exch_string(m[1])
    local p = transform_species_str(t[1][1]) -- species p as string
@@ -115,19 +167,9 @@ function transform_mechanism(m, species, thermal_modes)
    if t[2][3] then
       m_type = m_type.."-"..t[2][3]
    end
-   local m_str = t[2][1]
-   local mode
-   if m_str == 'V' then
-      mode = tostring(m_str.."_"..p)
-   elseif m_str == 'E' then
-      mode = 'Te'
-   else
-      print("mode type: ", m_str)
-      print("is not yet implemented.")
-      print("Bailing out!")
-      os.exit(1)
-   end
-   local imode = thermal_modes[mode]
+   local e_str = t[2][1]
+   local s_str = p
+   local imode = find_mode_index(thermal_modes, mode_idx, e_str, s_str)
 
    if ( imode == nil ) then
       print("A mode for thermal exchange listed in the energy exchange file")

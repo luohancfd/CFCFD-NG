@@ -192,6 +192,12 @@ public:
     std::string mode_name(int imode)
     { return m_names_[imode]; }
 
+    std::string mode_component_name(int imode, int ic)
+    { return m_components_[imode][ic]; }
+
+    int mode_no_components(int imode)
+    { return m_components_[imode].size(); }
+
     int get_imode_from_mode_name(std::string name);
     
     int set_mole_fractions(Gas_data &Q, 
@@ -230,6 +236,7 @@ protected:
 
     std::vector<std::string> s_names_;
     std::vector<std::string> m_names_;
+    std::vector<std::vector<std::string> > m_components_;
     std::vector<double> M_;
     std::vector<int> charge_;
     std::vector<std::map<std::string, int> > atomic_constituents_;

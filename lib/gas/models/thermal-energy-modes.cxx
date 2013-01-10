@@ -285,7 +285,7 @@ s_eval_temperature(Gas_data &Q)
     	    	double e_min = s_eval_energy( Q );
                 Q.T[iT_] = T_max_;
                 double e_max = s_eval_energy( Q );
-                //cout << "e_given = " << e_given << ", e(T_min) = " << e_min << ", e(T_max) = " << e_max << endl;
+                cout << "e_given = " << e_given << ", e(T_min) = " << e_min << ", e(T_max) = " << e_max << endl;
                 // Set T_i to an intermediate value and drop f_relax by an order-of-magnitude
     	    	T_i = 0.5 * ( T_min_ + T_max_ );
                 f_relax *= 0.1;

@@ -48,13 +48,25 @@ Energy_exchange_update* create_Energy_exchange_update(string cfile, Gas_model &g
     lua_setfield(L, -2, "size");
     lua_setglobal(L, "species");
     
-    // Setup a map of thermal modes to integer
+    // Setup a table of thermal modes
     lua_newtable(L);
     for ( int imode = 0; imode < g.get_number_of_modes(); ++imode ) {
-	lua_pushinteger(L, imode);
+	lua_newtable(L);
+	for ( int ic = 0; ic < g.mode_no_components(imode); ++ic ) {
+	    lua_pushinteger(L, ic);
+	    lua_setfield(L, -2, g.mode_component_name(imode, ic).c_str());
+	}
 	lua_setfield(L, -2, g.mode_name(imode).c_str());
     }
     lua_setglobal(L, "modes");
+
+    // Setup a table to find index of a given mode name
+    lua_newtable(L);
+    for ( int imode = 0; imode < g.get_number_of_modes(); ++imode) {
+	lua_pushinteger(L, imode);
+	lua_setfield(L, -2, g.mode_name(imode).c_str());
+    }
+    lua_setglobal(L, "mode_idx");
 
     cout << "Loading parser." << endl;
     // Path to reaction parsing script
