@@ -3502,7 +3502,7 @@ int Block::detect_shock_points( int dimensions )
 	    cW = get_cell(i-1,j);					\
             (cell)->fs->PROP = (1.0 - alpha) * (cell)->fs->PROP +	\
 		alpha * 0.25 * ((cN)->fs->PROP + (cE)->fs->PROP + (cS)->fs->PROP + (cW)->fs->PROP); \
-     `   }                                                                   \
+        }								\
     }
 
 

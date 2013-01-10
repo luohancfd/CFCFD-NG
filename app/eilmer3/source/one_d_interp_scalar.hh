@@ -120,15 +120,15 @@ inline int onesided_interp_scalar( double qR0, double qR1, double qR2,
     delR = 0.5 * sR * ( (1-sR*KAPPA)*delRplus + (1+sR*KAPPA)*delRminus );
     //qL = qR0 - lenR0 * delRplus;
     qR = qR0 - lenR0 * delR;
-    if ( extrema_clipping == 1 ) {
+    //if ( extrema_clipping == 1 ) {
 	// An extra limiting filter to make sure that we have not introduced
 	// any new extreme values.
 	// This was introduced to deal with very sharp transitions in species.
-	lower_limit = MINIMUM(qL0, qR0);
-	upper_limit = MAXIMUM(qL0, qR0);
-	qL = MINIMUM(upper_limit, MAXIMUM(lower_limit, qL)); 
-	qR = MINIMUM(upper_limit, MAXIMUM(lower_limit, qR));
-    }
+	//lower_limit = MINIMUM(qL0, qR0);
+	//upper_limit = MAXIMUM(qL0, qR0);
+	//qL = MINIMUM(upper_limit, MAXIMUM(lower_limit, qL)); 
+	//qR = MINIMUM(upper_limit, MAXIMUM(lower_limit, qR));
+    //}
     return SUCCESS;
 } // end of one_d_interp_scalar()
 
