@@ -61,6 +61,7 @@ private:
     double s_eval_entropy_isp(const Gas_data &Q, Equation_of_state *EOS_, int isp);
     double s_eval_modal_enthalpy_isp( const Gas_data &Q, Equation_of_state *EOS_, int isp, int itm );
     double s_eval_modal_Cv(Gas_data &Q, Equation_of_state *EOS_, int itm );
+    double s_eval_modal_massf(const Gas_data &Q, int itm);
 };
 
 Noneq_thermal_behaviour * new_ntb_from_file( std::string inFile );

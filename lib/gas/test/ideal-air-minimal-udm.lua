@@ -10,6 +10,11 @@
 -- This is a minimal implementation:
 -- numerical techniques are used to 
 -- give the rest of the functionality.
+--
+-- Notes:
+--   20-Nov-2012 : Updated to compute thermal conductivity
+--                 from Prandtl number
+--
 
 -- Mandatory, set nsp and nmodes
 model = 'user-defined'
@@ -27,9 +32,7 @@ local mu0 = 1.716e-5
 local T0_v = 273.0
 local S_v = 111.0
 
-local k0 = 0.0241
-local T0_k = 273.0
-local S_k = 194.0
+local Pr = 0.72
 
 -- Local helper functions
 local sqrt, pow = math.sqrt, math.pow
@@ -41,8 +44,10 @@ local function Sutherland_viscosity(T)
    return mu0 * pow(T/T0_v, 3/2) * (T0_v + S_v)/(T + S_v)
 end
 
-local function Sutherland_thermal_conductivity(T)
-   return k0 * pow(T/T0_k, 3/2) * (T0_k + S_k)/(T + S_k)
+local function thermal_conductivity(T)
+   local mu = Sutherland_viscosity(T)
+   local k = C_p*mu/Pr
+   return 
 end
 
 -- Mandatory function:
@@ -65,7 +70,7 @@ function eval_transport_coefficients(Q)
    -- model, viscosity and thermal conductivity
    -- are only dependent on temperature, ie. Q.T[1]
    Q.mu = Sutherland_viscosity(Q.T[0])
-   Q.k[0] = Sutherland_thermal_conductivity(Q.T[0])
+   Q.k[0] = thermal_conductivity(Q.T[0])
    return Q
 end
 

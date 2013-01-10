@@ -1,6 +1,6 @@
-set term pdfcairo enhanced mono dashed font "Times"
+set term postscript eps enhanced "Times" 20
 set title "Relaxation of inert air behind a shock; VT + VV exchanges"
-set output "example-2.pdf"
+set output "example-2.eps"
 set xlabel "distance, cm"
 set ylabel "temperature, K"
 set xrange [0:5]

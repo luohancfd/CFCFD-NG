@@ -753,6 +753,14 @@ s_modal_Cv(Gas_data &Q, int itm )
 
 double
 Gas_model::
+s_modal_massf(const Gas_data &Q, int itm)
+{
+    // For all single-temperature gases...
+    return 1.0;
+}
+
+double
+Gas_model::
 Gibbs_free_energy(const Gas_data &Q, int isp)
 {
     double h = s_enthalpy(Q, isp);

@@ -53,6 +53,9 @@ public:
     double eval_modal_Cv(Gas_data &Q, Equation_of_state *EOS_, int itm)
     { return s_eval_modal_Cv(Q, EOS_, itm); }
 
+    double eval_modal_massf(const Gas_data &Q, int itm)
+    {return s_eval_modal_massf(Q, itm); }
+
 private:
     virtual int s_decode_conserved_energy(Gas_data &Q, const std::vector<double> &rhoe) = 0;
     virtual int s_encode_conserved_energy(const Gas_data &Q, std::vector<double> &rhoe) = 0;
@@ -65,6 +68,7 @@ private:
     virtual double s_eval_entropy_isp(const Gas_data &Q, Equation_of_state *, int isp) = 0;
     virtual double s_eval_modal_enthalpy_isp(const Gas_data &Q, Equation_of_state *EOS_, int isp, int itm );
     virtual double s_eval_modal_Cv(Gas_data &Q, Equation_of_state *EOS_, int itm);
+    virtual double s_eval_modal_massf(const Gas_data &Q, int itm);
 };
 
 int tbm_decode_conserved_energy(std::vector<double> &e, 

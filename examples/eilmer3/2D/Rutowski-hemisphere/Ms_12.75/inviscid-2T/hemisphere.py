@@ -22,7 +22,9 @@ gdata.title = job_title
 gdata.axisymmetric_flag = 1
 
 # gas model
-species = select_gas_model(model=gmodel, species=species)
+# species = select_gas_model(model=gmodel, species=species)
+# NOTE: the auto gasfile creation tool is currently broken so we need to create the gas-model lua file by hand
+species = select_gas_model(fname="Ar-3sp-2T.lua")
 gm = get_gas_model_ptr()
 nsp = gm.get_number_of_species()
 ntm = gm.get_number_of_modes()

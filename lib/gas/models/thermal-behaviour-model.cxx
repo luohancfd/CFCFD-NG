@@ -68,7 +68,19 @@ double
 Thermal_behaviour_model::
 s_eval_modal_Cv(Gas_data &Q, Equation_of_state *EOS_, int itm)
 {
-    // NOTE: all thermal behaviour models except Noneq_thermal_behaviour should implement this function
+    // NOTE: all thermal behaviour models default to this.
+    // Any Noneq_thermal_behaviour derived classes should implement this function
     int status;
     return s_dedT_const_v(Q,EOS_,status);
+}
+
+double
+Thermal_behaviour_model::
+s_eval_modal_massf(const Gas_data &Q, int itm)
+{
+    // NOTE: all thermal behaviour models default to this.
+    // Any Noneq_thermal_behaviour derived classes should implement this function
+
+    // For all single-temperature gases...
+    return 1.0;
 }

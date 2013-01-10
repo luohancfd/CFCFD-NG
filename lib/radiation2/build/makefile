@@ -27,6 +27,7 @@ endif
 
 # Local to this area
 SRC             := ../source
+TOOLS           := ../tools
 
 # Other useful directory variables
 GAS             := ../../gas
@@ -127,8 +128,9 @@ install : build_new $(LOADABLE_MODULE) librad2.py
 ifeq ($(findstring Darwin, $(SYSTEM)), Darwin)
 	- cp $(INSTALL_DIR)/_librad2.dylib $(INSTALL_DIR)/_librad2.so
 endif
-	- cp $(SRC)/radiator_library2.py $(SRC)/parade_radiator_library.py \
-		$(SRC)/script_rad2.py $(SRC)/EQ-spectra.py $(INSTALL_DIR)
+	- cp $(TOOLS)/radiator_library2.py $(TOOLS)/parade_radiator_library.py \
+		$(TOOLS)/script_rad2.py $(TOOLS)/EQ-spectra.py $(TOOLS)/extract_NIST_data.py \
+		$(INSTALL_DIR)
 	
 test: install $(TEST_EXE) $(TEST_PY) $(GASPY)
 	cd ../../; rsync -av --exclude=".svn" --exclude="*~" cfpylib $(INSTALL_DIR)
@@ -333,11 +335,11 @@ line_shapes.o : $(SRC)/line_shapes.cxx $(SRC)/line_shapes.hh
 	
 # ------------ Test python libraries and executables -------
 	
-photaura_test.py : $(SRC)/photaura_test.py
-	- cp $(SRC)/photaura_test.py .
+photaura_test.py : $(TOOLS)/photaura_test.py
+	- cp $(TOOLS)/photaura_test.py .
 	
-radGUI.py : $(SRC)/radGUI.py
-	- cp $(SRC)/radGUI.py .
+radGUI.py : $(TOOLS)/radGUI.py
+	- cp $(TOOLS)/radGUI.py .
 
 # ------------ Test executables ------------
 
