@@ -293,3 +293,10 @@ s_eval_modal_Cv(Gas_data &Q, Equation_of_state *EOS_, int itm )
     return modes_[itm]->eval_Cv(Q);
 }
 
+double
+Noneq_thermal_behaviour::
+s_eval_modal_massf(const Gas_data &Q, int itm)
+{
+    return modes_[itm]->mode_massf(Q);
+}
+

@@ -7,22 +7,22 @@ sound_speed = 'equilibrium'
 diffusion_coefficients = 'GuptaYos'
 min_massf = 1.000000e-15
 
-thermal_modes = { 'transrotational', 'vibroelectronic' }
+thermal_modes = { 'transrotational', 'V_N2' }
 
 transrotational = {}
 transrotational.type = 'constant Cv'
 transrotational.iT = 0
 transrotational.components = { 'all-translation', 'all-rotation' }
 
-vibroelectronic = {}
-vibroelectronic.type = 'variable Cv'
-vibroelectronic.iT = 1
-vibroelectronic.components = { 'all-vibration', 'all-electronic' }
-vibroelectronic.T_min = 20.000000
-vibroelectronic.T_max = 100000.000000
-vibroelectronic.iterative_method = 'NewtonRaphson'
-vibroelectronic.convergence_tolerance = 1.000000e-06
-vibroelectronic.max_iterations = 100
+V_N2 = {}
+V_N2.type = 'variable Cv'
+V_N2.iT = 1
+V_N2.components = { 'all-vibration', 'all-electronic' }
+V_N2.T_min = 20.000000
+V_N2.T_max = 100000.000000
+V_N2.iterative_method = 'NewtonRaphson'
+V_N2.convergence_tolerance = 1.000000e-06
+V_N2.max_iterations = 100
 
 species = {'N2', }
 

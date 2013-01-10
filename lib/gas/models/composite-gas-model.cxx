@@ -384,6 +384,13 @@ s_modal_Cv(Gas_data &Q, int itm)
     return TBM_->eval_modal_Cv(Q, EOS_, itm);
 }
 
+double
+Composite_gas_model::
+s_modal_massf(const Gas_data &Q, int itm)
+{
+    return TBM_->eval_modal_massf(Q, itm);
+}
+
 void
 Composite_gas_model::
 initialise_ideal_gas(lua_State *L)

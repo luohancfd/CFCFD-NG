@@ -174,6 +174,10 @@ public:
     
     double modal_Cv( Gas_data &Q, int itm )
     { return s_modal_Cv(Q,itm); }
+
+    double modal_massf(const Gas_data &Q, int itm)
+    { return s_modal_massf(Q, itm); }
+
     
     double entropy(const Gas_data &Q, int isp)
     { return s_entropy(Q, isp); }
@@ -219,6 +223,7 @@ public:
 
     const std::vector<double>& M() { return M_; }
 
+
 protected:
     int nsp_;     // No. of species components
     int nmodes_;  // No. of (separate) thermal modes
@@ -262,6 +267,7 @@ protected:
     virtual double s_entropy(const Gas_data &Q, int isp) = 0;
     virtual double s_modal_enthalpy(const Gas_data &Q, int isp, int itm);
     virtual double s_modal_Cv(Gas_data &Q, int itm);
+    virtual double s_modal_massf(const Gas_data &Q, int itm);
 
 private:
     // Local classes.

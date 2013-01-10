@@ -68,7 +68,7 @@ specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, vector<double
     double e_vib = p_vib_->eval_energy_from_T(Q.T[iTv_]);
     // NOTE: - tau_ needs to be (already) weighted by colliding mole fractions
     //       - massf scaling is to convert J/s/kg-of-species-ip to J/s/kg-of-mixture
-    double rate = Q.massf[ip_]*(e_vib_eq - e_vib) / tau_;
+    double rate = (e_vib_eq - e_vib) / tau_;
     //    cout << "e_vib_eq= " << e_vib_eq << endl;
     //    cout << "e_vib= " << e_vib << endl;
     //    cout << "massf= " << Q.massf[ip_] << endl;
@@ -161,7 +161,7 @@ specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &mo
     // CHECKME: - from Abe and Panesi, maybe we should be scaling by molef[ie_]
     //            and NOT massf[ie_]?
     // NOTE: - scaling by molef gives a way to fast E-T equilibriation
-    double rate = Q.massf[ie_] * 3.0 * PC_R_u * ( Q.T[iT_] - Q.T[iTe_] ) / tau_;
+    double rate = 3.0 * PC_R_u * ( Q.T[iT_] - Q.T[iTe_] ) / tau_;
     
     // cout << "ET_exchange::specific_compute_rate()" << endl
     //      << "rate = " << rate << endl;
@@ -236,7 +236,7 @@ specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &mo
     double tmp_a = 1.0 / tau_;
     double tmp_b = (1.0 - exp(-1.0 * theta_v_p_/T)) / (1.0 - exp(-1.0 * theta_v_q_/T)) 	* ((e_q/e_q_hat)*(e_p_bar - e_p));
     double tmp_c = (e_p/e_q_hat)*(e_q_bar - e_q);
-    double rate = Q.massf[ip_]*tmp_a*(tmp_b - tmp_c);
+    double rate = tmp_a*(tmp_b - tmp_c);
     
     //    cout << "VV-rate= " << rate << endl;
     return rate;

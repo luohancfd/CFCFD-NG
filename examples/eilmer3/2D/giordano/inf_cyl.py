@@ -35,7 +35,7 @@ p_inf = 50.0
 # Set the gas model and
 # use this to compute some other flow properties
 
-select_gas_model(model='two temperature gas', species=['N2'])
+select_gas_model(fname='gas-model.lua')
 
 gmodel = get_gas_model_ptr()
 gd = Gas_data(gmodel)
