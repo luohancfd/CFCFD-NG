@@ -28,6 +28,7 @@ struct global_data; // ...and this
 typedef int (FV_Cell::*FV_Cell_MemberFunction_void)(void);
 typedef int (FV_Cell::*FV_Cell_MemberFunction_double)(double);
 typedef int (FV_Cell::*FV_Cell_MemberFunction_double_double)(double,double);
+typedef int (FV_Cell::*FV_Cell_MemberFunction_int_double)(int,double);
 typedef int (FV_Cell::*FV_Cell_MemberFunction_int)(int);
 typedef int (FV_Cell::*FV_Cell_MemberFunction_int_int)(int,int);
 #define CALL_MEMBER_FN(object,ptrToMember) ((object).*(ptrToMember))
@@ -122,6 +123,8 @@ private:
 public:
     Block();
     ~Block();
+    std::vector<Vector3 *> shock_iface_pos; // Positions of interfaces marked as shocks
+
     int array_alloc(int dimensions);
     int array_cleanup(int dimensions);
 
@@ -234,6 +237,8 @@ public:
     int apply(FV_Cell_MemberFunction_double f, double param1, string failure_message_header);
     int apply(FV_Cell_MemberFunction_double_double f, double param1, double param2, 
 	      string failure_message_header);
+    int apply(FV_Cell_MemberFunction_int_double f, int param1, double param2, 
+	      string failure_message_header);
     int apply(FV_Cell_MemberFunction_int f, int param1, string failure_message_header);
     int apply(FV_Cell_MemberFunction_int_int f, int param1, int param2, string failure_message_header);
 
@@ -257,10 +262,22 @@ public:
     int compute_distance_to_nearest_wall_for_all_cells( int dimensions );
     int compute_secondary_cell_geometric_data( int dimensions );
     int calc_volumes_2D( void );
+    int calc_volumes_2D( int time_level );
     int secondary_areas_2D( void );
     int calc_faces_2D( void );
+    int calc_faces_2D( int time_level );
     int calc_ghost_cell_geom_2D( void );
-
+    int predict_vertex_positions( double dt );
+	int correct_vertex_positions( double dt );
+    int set_vertex_velocities( int time_level );
+    int set_interface_velocities( int time_level );
+	int calc_boundary_vertex_velocity(FV_Interface *IFaceU, FV_Interface *IFaceD,     
+                                           FV_Vertex *vtx, Vector3 trv, int time_level);
+	int calc_boundary_vertex_velocity(FV_Interface *IFaceD2, FV_Interface *IFaceD,     
+                                           FV_Interface *IFaceU, FV_Interface *IFaceU2,
+                                           FV_Vertex *vtx, Vector3 trv, int time_level);
+	double velocity_weighting_factor(double M);
+    
     void compute_x_forces( char *text_string, int ibndy, int dimensions );
     int print_forces( FILE *fp, double t, int dimensions );
 
@@ -268,6 +285,8 @@ public:
     int read_solution(std::string filename, double *sim_time, 
 		      int dimensions, int zip_file=1);
     int write_solution(std::string filename, double sim_time, 
+		       int dimensions, int zip_file=1 );
+    int write_block(std::string filename, double sim_time, 
 		       int dimensions, int zip_file=1 );
     int read_BGK(std::string filename, double *sim_time, 
 		      int dimensions, int zip_file=1);
@@ -286,6 +305,7 @@ public:
 
     // The implementation for the following function is in invs.cxx
     int inviscid_flux( int dimensions );
+   
     
 };  /* end of the (single-)block data structure definition */
 

@@ -381,7 +381,6 @@ int prepare_to_integrate( int start_tindx )
     MPI_Barrier(MPI_COMM_WORLD); // just to reduce the jumble in stdout
     if ( allocate_send_and_receive_buffers() != 0 ) exit( MEMORY_ERROR );
 #   endif
-
     // Read block grid and flow data; write history-file headers.
     // Note that the global simulation time is set by the last flow data read.
 #   ifdef _MPI
@@ -396,7 +395,8 @@ int prepare_to_integrate( int start_tindx )
 	sprintf( jbcstr, ".b%04d", bdp->id );
 	jbstring = jbcstr;
 	// Read grid from the tindx=0 files, always.
-	filename = "grid/t0000/"+G.base_file_name+".grid"+jbstring+".t0000";
+	//filename = "grid/t0000/"+G.base_file_name+".grid"+jbstring+".t0000";
+	filename = "grid/"+tindxstring+"/"+G.base_file_name+".grid"+jbstring+"."+tindxstring;
         if (bdp->read_grid(filename, G.dimensions, zip_files) != SUCCESS) {
 	    return FAILURE;
 	}
@@ -464,18 +464,19 @@ int prepare_to_integrate( int start_tindx )
     // Prepare data within the primary finite-volume cells.
     // This includes both geometric data and flow state data.
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
-	bdp = G.my_blocks[jb];
-	bdp->compute_primary_cell_geometric_data(G.dimensions);
-	bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions);
-	bdp->compute_secondary_cell_geometric_data(G.dimensions);
-	bdp->set_base_qdot( G );  // this need be done only once per block
-	bdp->identify_reaction_zones( G );
-	bdp->identify_turbulent_zones( G );
-        bdp->apply( &FV_Cell::encode_conserved, bdp->omegaz, "encode_conserved" );
-        // Even though the following call appears redundant at this point,
-        // fills in some gas properties such as Prandtl number that is
-        // needed for both the cfd_check and the BLomax turbulence model.
-        bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode_conserved" );
+		bdp = G.my_blocks[jb];
+		bdp->compute_primary_cell_geometric_data(G.dimensions);
+		bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions);
+		bdp->compute_secondary_cell_geometric_data(G.dimensions);
+		bdp->set_base_qdot( G );  // this need be done only once per block
+		bdp->identify_reaction_zones( G );
+		bdp->identify_turbulent_zones( G );
+		bdp->apply( &FV_Cell::set_geometry_to_time_level, "set-geometry2D-level-0");
+		bdp->apply( &FV_Cell::encode_conserved, bdp->omegaz, "encode_conserved" );
+		// Even though the following call appears redundant at this point,
+		// fills in some gas properties such as Prandtl number that is
+		// needed for both the cfd_check and the BLomax turbulence model.
+		bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode_conserved" );
     }
 
     // Exchange boundary cell geometry information so that we can
@@ -489,7 +490,6 @@ int prepare_to_integrate( int start_tindx )
         exchange_shared_boundary_data(jb, COPY_CELL_LENGTHS);
     }
 #   endif
-
 #   if 0
     // Piston stuff not presently functional.
     int status;
@@ -576,7 +576,7 @@ int call_udf( double t, int step, std::string udf_fn_name )
 /// This is done (occasionally) just after the for inviscid source vector calculation.
 int udf_source_vector_for_cell( FV_Cell *cell, double t )
 {
-    // Call the user-defined function which returns a table 
+    // Call the user-defined function which returns a table
     // of source term values.
     // These are added to the inviscid source terms 
     // that were computed earlier in the time step.
@@ -715,7 +715,7 @@ int integrate_blocks_in_sequence( void )
     // Even though the following call appears redundant at this point,
     // fills in some gas properties such as Prandtl number that is
     // needed for both the cfd_check and the BLomax turbulence model.
-    bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode_conserved" );
+    bdp->apply( &FV_Cell::decode_conserved, 0, bdp->omegaz, "decode_conserved" );
 
     // Now set up block 1
     bdp = &(G.bd[1]);
@@ -728,7 +728,7 @@ int integrate_blocks_in_sequence( void )
     exchange_shared_boundary_data( 1, COPY_FLOW_STATE);
     bdp->propagate_data_west_to_east( G.dimensions );
     bdp->apply( &FV_Cell::encode_conserved, bdp->omegaz, "encode_conserved" );
-    bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode_conserved" );
+    bdp->apply( &FV_Cell::decode_conserved, 0, bdp->omegaz, "decode_conserved" );
 
     // Integrate just the first two blocks in time, hopefully to steady state.
     G.bd[0].active = 1;
@@ -765,7 +765,7 @@ int integrate_blocks_in_sequence( void )
 	exchange_shared_boundary_data( jb, COPY_FLOW_STATE );
 	bdp->propagate_data_west_to_east( G.dimensions );
 	bdp->apply( &FV_Cell::encode_conserved, bdp->omegaz, "encode_conserved" );
-	bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode_conserved" );
+	bdp->apply( &FV_Cell::decode_conserved, 0, bdp->omegaz, "decode_conserved" );
 	// Integrate just the two currently active blocks in time,
 	// hopefully to steady state.
 	G.bd[jb-1].active = 1;
@@ -1123,6 +1123,21 @@ int integrate_in_time( double target_time )
 	}
 #       endif
 
+	// 2b. Recalculate all geometry if shock fitting.
+	if ( get_shock_fitting_flag() == 1 ) {
+	    if ( G.sim_time >= G.t_shock ) {
+		    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+			    bdp = G.my_blocks[jb];
+			    bdp->compute_primary_cell_geometric_data(G.dimensions);
+			    bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions);
+			    bdp->compute_secondary_cell_geometric_data(G.dimensions);
+			    bdp->apply( &FV_Cell::set_geometry_to_time_level, "set-geometry2D-level-0");
+			    
+			    G.t_shock += G.dt_shock;
+			}
+		}
+	}
+
 	// 2c.
 	if ( get_viscous_flag() == 1 ) {
 	    // We now have the option of explicit or point implicit update
@@ -1179,7 +1194,6 @@ int integrate_in_time( double target_time )
 	    }
 	}
 
-
         // 3. Update the time record and (occasionally) print status.
         ++G.step;
         output_just_written = 0;
@@ -1232,6 +1246,16 @@ int integrate_in_time( double target_time )
 		sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr; 
 		filename = foldername+"/"+ G.base_file_name+".flow"+jbstring+"."+tindxstring;
 		bdp->write_solution(filename, G.sim_time, G.dimensions, zip_files);
+	    }
+	    if ( get_shock_fitting_flag() == 1 ) {
+	        foldername = "grid/"+tindxstring;
+	        ensure_directory_is_present(foldername); // includes Barrier
+	        for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		        bdp = G.my_blocks[jb];
+		        sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr; 
+		        filename = foldername+"/"+ G.base_file_name+".grid"+jbstring+"."+tindxstring;
+		        bdp->write_block(filename, G.sim_time, G.dimensions, zip_files);
+	        }
 	    }
 	    // Compute, store and write heat-flux data, if viscous simulation
 	    if ( get_viscous_flag() ) {
@@ -1299,12 +1323,6 @@ int integrate_in_time( double target_time )
 		G.n_record++;
 	    }
 	}
-	
-	    // 4a. (Occasionally) Adapt grid to shock (Andrew Pastrello 29-Nov-2012)
-        //if ( G.sim_time >= G.t_shock ) {
-        //    shock_adapt_grid()
-        //    G.t_shock += G.dt_shock;
-        //}
 	    
         // 5. For steady-state approach, check the residuals for mass and energy.
         if ( (G.step / G.print_count) * G.print_count == G.step ) {
@@ -1438,6 +1456,16 @@ int finalize_simulation( void )
 	    bdp->write_BGK(filename, G.sim_time, G.dimensions, zip_files);
 	}
     }
+    if ( get_shock_fitting_flag() == 1 ) {
+        foldername = "grid/t9999";
+        ensure_directory_is_present(foldername); // includes Barrier
+        for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	        bdp = G.my_blocks[jb];
+	        sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr; 
+	        filename = foldername+"/"+G.base_file_name+".grid"+jbstring+".t9999";
+	        bdp->write_block(filename, G.sim_time, G.dimensions, zip_files);
+        }
+    }
     // Compute, store and write heat-flux data, if viscous simulation
     if ( get_viscous_flag() ) {
 	foldername = "heat/t9999";
@@ -1546,9 +1574,10 @@ int gasdynamic_inviscid_increment( void )
 	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
 	    if ( bdp->active != 1 ) continue;
+	    //cout << "Block: " << jb << endl;
 	    apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
 	}
-
+	
 	if ( get_flux_calculator() == FLUX_ADAPTIVE ) {
 	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
@@ -1622,17 +1651,44 @@ int gasdynamic_inviscid_increment( void )
 	}
 	printf("PJ_DEBUG-------------------------------------\n");
 #       endif
+
+    /// Adjust grid before taking time step
+	/// Time levels:
+	/// 0: Start of predictor step
+	/// 1: End of predictor step/start of corrector step
+	/// 2: End of corrector step
+    if ( get_shock_fitting_flag() == 1 ) {
+#       ifdef _MPI
+	    mpi_exchange_boundary_data(COPY_CELL_LENGTHS);
+#       else
+	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	        bdp = G.my_blocks[jb];
+	        if ( bdp->active != 1 ) continue;
+	        exchange_shared_boundary_data( jb, COPY_CELL_LENGTHS );
+	    }
+#       endif
+	    if ( G.sim_time >= G.t_shock ) {
+            for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+                bdp = G.my_blocks[jb];
+                bdp->set_vertex_velocities(0);
+		bdp->set_interface_velocities(0);
+                bdp->predict_vertex_positions(G.dt_global);
+                bdp->calc_volumes_2D(1);
+		    }
+	    }
+    }
 	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
 	    if ( bdp->active != 1 ) continue;
 	    bdp->inviscid_flux( G.dimensions );
-	    bdp->apply( &FV_Cell::inviscid_source_vector, bdp->omegaz, "inviscid-source-vector" );
+	    bdp->apply( &FV_Cell::inviscid_source_vector, 0, bdp->omegaz, "inviscid-source-vector-level-0" );
 	    if ( G.udf_source_vector_flag == 1 ) {
 		bdp->apply( udf_source_vector_for_cell, G.sim_time, "udf-source-vector" );
 	    }
 	    bdp->apply( &FV_Cell::time_derivatives, 0, G.dimensions, "time-derivatives-level-0" );
 	    bdp->apply( &FV_Cell::predictor_update, G.dt_global, "predictor-step" );
-	    bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode-conserved" );
+	    bdp->apply( &FV_Cell::decode_conserved, 0, bdp->omegaz, "decode-conserved" );
+		bdp->apply( &FV_Cell::set_geometry_from_time_level, 1, "reset-geometry2D-level-1");
 #           define WILSON_OMEGA_FILTER 0
 #           if WILSON_OMEGA_FILTER == 1
             if ( get_k_omega_flag() ) apply_wilson_omega_correction( *bdp );
@@ -1696,17 +1752,40 @@ int gasdynamic_inviscid_increment( void )
 		if ( bdp->active != 1 ) continue;
 		apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
 	    }
+		
+        if ( get_shock_fitting_flag() == 1 ) {
+#       ifdef _MPI
+	    mpi_exchange_boundary_data(COPY_CELL_LENGTHS);
+#       else
+	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	        bdp = G.my_blocks[jb];
+	        if ( bdp->active != 1 ) continue;
+	        exchange_shared_boundary_data( jb, COPY_CELL_LENGTHS );
+	    }
+#       endif
+			if ( G.sim_time >= G.t_shock ) {
+                for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+                    bdp = G.my_blocks[jb];
+                    bdp->calc_faces_2D(1);
+                    bdp->set_vertex_velocities(1);
+				    bdp->set_interface_velocities(1);
+                    bdp->correct_vertex_positions(G.dt_global);
+                    bdp->calc_volumes_2D(2);
+			    }
+	        }
+        }
 	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
 		bdp->inviscid_flux( G.dimensions );
-		bdp->apply( &FV_Cell::inviscid_source_vector, bdp->omegaz, "inviscid-source-vector" );
+		bdp->apply( &FV_Cell::inviscid_source_vector, 1, bdp->omegaz, "inviscid-source-vector-level-1" );
 		if ( G.udf_source_vector_flag == 1 ) {
 		    bdp->apply( udf_source_vector_for_cell, G.sim_time, "udf-source-vector" );
 		}
 		bdp->apply( &FV_Cell::time_derivatives, 1, G.dimensions, "time_derivatives-level-1" );
 		bdp->apply( &FV_Cell::corrector_update, G.dt_global, "corrector-step" );
-		bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode-conserved" );
+		bdp->apply( &FV_Cell::decode_conserved, 1, bdp->omegaz, "decode-conserved" );
+		bdp->apply( &FV_Cell::set_geometry_from_time_level, 2, "reset-geometry2D-level-2");
 #               if WILSON_OMEGA_FILTER == 1
                 if ( get_k_omega_flag() ) apply_wilson_omega_correction( *bdp );
 #               endif
@@ -1720,6 +1799,7 @@ int gasdynamic_inviscid_increment( void )
 	bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax)->print();
 	printf("PJ_DEBUG-------------------------------------\n");
 #       endif
+    
 	// 2d. Check the record of bad cells and if any cells are bad, 
 	//     fail this attempt at taking a step,
 	//     set everything back to the initial state and
@@ -1738,7 +1818,7 @@ int gasdynamic_inviscid_increment( void )
 		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
 		bdp->apply( &FV_Cell::restore_conserved, "restore_conserved" );
-		bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode_conserved" );
+		bdp->apply( &FV_Cell::decode_conserved, 0, bdp->omegaz, "decode_conserved" );
 #               if WILSON_OMEGA_FILTER == 1
                 if ( get_k_omega_flag() ) apply_wilson_omega_correction( *bdp );
 #               endif
@@ -1961,7 +2041,7 @@ int gasdynamic_viscous_increment( void )
 	bdp->apply( &FV_Cell::viscous_source_vector, "viscous-source-vector" );
 	bdp->apply( &FV_Cell::time_derivatives, 0, G.dimensions, "time-derivatives-level-0,viscous" );
 	bdp->apply( &FV_Cell::predictor_update, G.dt_global, "predictor-step,viscous" );
-	bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode-conserved,viscous" );
+	bdp->apply( &FV_Cell::decode_conserved, 0, bdp->omegaz, "decode-conserved,viscous" );
 #       if WILSON_OMEGA_FILTER == 1
         if ( get_k_omega_flag() ) apply_wilson_omega_correction( *bdp );
 #       endif

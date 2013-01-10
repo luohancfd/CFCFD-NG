@@ -56,14 +56,12 @@ int copy_boundary_data_2D( int jb, int type_of_copy )
     Block *bdp = get_block_data_ptr(jb);
     Block *other_bdp;
     int other_block, other_bndry;
- 
     other_block = bdp->bcp[NORTH]->neighbour_block;
     other_bdp = get_block_data_ptr(other_block);
     if (other_block >= 0) {
         other_bndry = bdp->bcp[NORTH]->neighbour_face;
         copy_to_north_boundary_2D(bdp, other_bdp, other_bndry, type_of_copy);   
     }
- 
     /* note: the variable "diaphragm_block" defaults to -1 and so will never refer
      *       to an actual block, unless the case id for a diaphragm rupture simulation
      *       is set and the variable is assigned to a real block in mb_special_init.c
@@ -327,7 +325,6 @@ int copy_to_north_boundary_2D(Block *A, Block *B,
     int i_A, j_A, i_B, j_B;
     int ifirst, ilast;
     FV_Cell *src, *dest;
-
     if (B_bndry == SOUTH) {
         /*
          * Copy data from cells adjacent to the SOUTH boundary of
@@ -900,7 +897,6 @@ int copy_from_receive_buffer_2D( Block *bd, int bndry, int type_of_copy, double 
     FV_Cell *cell;
     double *bufp;
     nv = number_of_values_in_cell_copy(type_of_copy);
-
     if (bndry == NORTH) {
         j = bd->jmax;
         nx = bd->nni;

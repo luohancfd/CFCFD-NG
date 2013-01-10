@@ -571,8 +571,8 @@ class Block(object):
             newbc = SupInBC(inflow_condition, label=label)
         if type_of_BC == EXTRAPOLATE_OUT:
             newbc = ExtrapolateOutBC(x_order, sponge_flag, label=label)
-        if type_of_BC == SHOCK_IN:
-            newbc = ShockInBC(inflow_condition, label=label)
+        if type_of_BC == SHOCK_FITTING_IN:
+            newbc = ShockFittingInBC(inflow_condition, label=label)
         if type_of_BC == SLIP_WALL:
             newbc = SlipWallBC(label=label)
         if type_of_BC == ADIABATIC:

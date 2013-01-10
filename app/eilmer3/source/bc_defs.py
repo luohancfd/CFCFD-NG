@@ -16,7 +16,7 @@ The same names are available for use in your Python input scripts.:
 * COMMON: Synonym for ADJACENT.
 * SUP_IN: Fully-prescribed inflow (e.g. supersonic inflow).
 * SUP_OUT: Synonym for EXTRAPOLATE_OUT.
-* SHOCK_IN: Fully-prescribed boundary flux (e.g. shock inflow).
+* SHOCK_FITTING_IN: Moving boundary with fully-prescribed inflow flux.
 * EXTRAPOLATE_OUT: Extrapolate all flow properties from
    just inside the boundary into the ghost-cells outside
    the boundary.  This works fine for a strong supersonic outflow.
@@ -80,7 +80,7 @@ ADJACENT_PLUS_UDF = 17
 ABLATING        = 18
 SLIDING_T       = 19
 FSTC            = 20
-SHOCK_IN        = 21
+SHOCK_FITTING_IN    = 21
 SPECIAL         = -1
 bcIndexFromName = {
      0: ADJACENT, "0": ADJACENT, "ADJACENT": ADJACENT, "COMMON": ADJACENT,
@@ -105,7 +105,7 @@ bcIndexFromName = {
     18: ABLATING, "18" : ABLATING, "ABLATING": ABLATING,
     19: SLIDING_T, "19" : SLIDING_T, "SLIDING_T": SLIDING_T,
     20: FSTC, "20" : FSTC, "FSTC": FSTC,
-    21: SHOCK_IN, "21" : SHOCK_IN, "SHOCK_IN": SHOCK_IN,
+    21: SHOCK_FITTING_IN, "21" : SHOCK_FITTING_IN, "SHOCK_FITTING_IN": SHOCK_FITTING_IN,
     -1: SPECIAL, "-1": SPECIAL,  "SPECIAL": SPECIAL,
 }
 bcName = {
@@ -129,7 +129,7 @@ bcName = {
     SLIDING_T: "SLIDING_T",
     SPECIAL: "SPECIAL",
     FSTC: "FSTC",
-    SHOCK_IN: "SHOCK_IN"
+    SHOCK_FITTING_IN: "SHOCK_FITTING_IN"
     }
 
 class BoundaryCondition(object):
@@ -364,7 +364,7 @@ class ExtrapolateOutBC(BoundaryCondition):
     def __copy__(self):
         return ExtrapolateOutBC(x_order=self.x_order, sponge_flag=self.sponge_flag,
                                 label=self.label)
-class ShockInBC(BoundaryCondition):
+class ShockFittingInBC(BoundaryCondition):
     """
     Apply a (presumably) supersonic inflow condition to the boundary.
     
@@ -380,15 +380,15 @@ class ShockInBC(BoundaryCondition):
         :param label: A string that may be used to assist in identifying the boundary
             in the post-processing phase of a simulation.
         """
-        BoundaryCondition.__init__(self, type_of_BC=SHOCK_IN,
+        BoundaryCondition.__init__(self, type_of_BC=SHOCK_FITTING_IN,
                                    inflow_condition=inflow_condition,
                                    label=label)
         return
     def __str__(self):
-        return "ShockInBC(inflow_condition=%s, label=\"%s\")" % \
+        return "ShockFittingInBC(inflow_condition=%s, label=\"%s\")" % \
             (self.inflow_condition, self.label)
     def __copy__(self):
-        return ShockInBC(self.inflow_condition, self.label)
+        return ShockFittingInBC(self.inflow_condition, self.label)
         
 class SlipWallBC(BoundaryCondition):
     """

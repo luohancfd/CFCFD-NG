@@ -41,14 +41,14 @@
 int Block::inviscid_flux(int dimensions)
 {
     int i, j, k;
-    FV_Cell *cL1, *cL0, *cR0, *cR1; 
+    FV_Cell *cL1, *cL0, *cR0, *cR1;
     FV_Interface *IFace;
     Gas_model *gmodel = get_gas_model_ptr();
     // Maybe these two FlowState objects should be in the Block object
     // and initialised there so that we don't thrash the memory so much.
     FlowState Lft(gmodel);
     FlowState Rght(gmodel);
-
+    
     // ifi interfaces are East-facing interfaces.
     for (k = kmin; k <= kmax; ++k) {
 	for (j = jmin; j <= jmax; ++j) {
@@ -59,24 +59,35 @@ int Block::inviscid_flux(int dimensions)
 		cR0 = get_cell(i,j,k);
 		cR1 = get_cell(i+1,j,k);
 		// Interpolate LEFT and RIGHT interface states from the cell-center properties.
-		one_d_interp(*cL1, *cL0, *cR0, *cR1, 
-			     cL1->iLength, cL0->iLength, cR0->iLength, cR1->iLength, 
-			     Lft, Rght);
-		// Save u, v, w, T for the viscous flux calculation by making a local average.
-		// The values for u, v and T may be updated subsequently by the interface-flux function.
-		IFace->fs->average_values_from(Lft, Rght, get_diffusion_flag()==1);
-		// Finally, the flux calculation.
-		if ( (i == imin && bcp[WEST]->use_udf_flux()) ||
-		     (i == imax+1 && bcp[EAST]->use_udf_flux()) ) {
-		    // Retain the user-defined flux at the boundary
-		    // by doing nothing here.
-		// Check if boundary is a shock (type code 21)
-		} else if ( (i == imin && (bcp[WEST]->type_code == 21) ) ||
-		            (i == imax+1 && (bcp[EAST]->type_code == 21) ) ) {
-		    // Retain the user-defined flux at the boundary
+		if ( (i == imin && (bcp[WEST]->type_code == 21) ) ||
+		     (i == imax+1 && (bcp[EAST]->type_code == 21) ) ) {
+		    // Retain the inflow defined flux at the boundary
 		    // by doing nothing here.
 		} else {
-		    compute_interface_flux(Lft, Rght, *IFace, omegaz);
+		    if ( get_shock_fitting_flag() == 1 ) {
+			    wone_d_interp(*cL1, *cL0, *cR0, *cR1,
+				              cL1->iLength, cL0->iLength, cR0->iLength, cR1->iLength, Lft, Rght);
+		    } else {
+			    one_d_interp(*cL1, *cL0, *cR0, *cR1,
+				              cL1->iLength, cL0->iLength, cR0->iLength, cR1->iLength, Lft, Rght);
+		    }
+		    // Avoid interpolating across the shock.
+		    if ( ( i == imin+1 ) && (bcp[WEST]->type_code == 21) ) {
+        		one_d_linear_interp(*cL0, *cR0,
+                                     cL0->iLength, cR0->iLength,
+                                     Lft);
+		    } // end if
+		    // Save u, v, w, T for the viscous flux calculation by making a local average.
+		    // The values for u, v and T may be updated subsequently by the interface-flux function.
+		    IFace->fs->average_values_from(Lft, Rght, get_diffusion_flag()==1);
+		    // Finally, the flux calculation.
+		    if ( (i == imin && bcp[WEST]->use_udf_flux()) ||
+			 (i == imax+1 && bcp[EAST]->use_udf_flux()) ) {
+			// Retain the user-defined flux at the boundary
+			// by doing nothing here.
+		    } else {
+			compute_interface_flux(Lft, Rght, *IFace, omegaz);
+		    } // end if
 		} // end if
 		// DEBUGGING for ablating BC
 #               if 0
@@ -104,31 +115,33 @@ int Block::inviscid_flux(int dimensions)
 		cR0 = get_cell(i,j,k);
 		cR1 = get_cell(i,j+1,k);
 		// Interpolate LEFT and RIGHT interface states from the cell-center properties.
-		one_d_interp(*cL1, *cL0, *cR0, *cR1, 
-			     cL1->jLength, cL0->jLength, cR0->jLength, cR1->jLength, 
-			     Lft, Rght);
+		if ( get_shock_fitting_flag() == 1 ) {
+		    // Use Mach number weighted 
+	            wone_d_interp(*cL1, *cL0, *cR0, *cR1, 
+	                          cL1->jLength, cL0->jLength, cR0->jLength, cR1->jLength, 
+	                          Lft, Rght);
+	        } else {
+	            one_d_interp(*cL1, *cL0, *cR0, *cR1, 
+				 cL1->jLength, cL0->jLength, cR0->jLength, cR1->jLength, 
+				 Lft, Rght);
+	        }
 		// Save u, v, w, T for the viscous flux calculation by making a local average.
 		// The values for u, v and T may be updated subsequently by the interface-flux function.
-		IFace->fs->average_values_from(Lft, Rght, get_diffusion_flag()==1);
+	        IFace->fs->average_values_from(Lft, Rght, get_diffusion_flag()==1);
 		// Finally, the flux calculation.
-		if ( (j == jmin && bcp[SOUTH]->use_udf_flux()) ||
-		     (j == jmax+1 && bcp[NORTH]->use_udf_flux()) ) {
-		    // Retain the user-defined flux at the boundary
-		    // by doing nothing here.
-		// Check if boundary is a shock (type code 21)
-		} else if ( (j == jmin && (bcp[SOUTH]->type_code == 21) ) ||
-		            (j == jmax+1 && (bcp[NORTH]->type_code == 21) ) ) {
-		    // Retain the user-defined flux at the boundary
-		    // by doing nothing here.
-		} else {
-		    compute_interface_flux(Lft, Rght, *IFace, omegaz);
-		} // end if
+	        if ( (j == jmin && bcp[SOUTH]->use_udf_flux()) ||
+	             (j == jmax+1 && bcp[NORTH]->use_udf_flux()) ) {
+	            // Retain the user-defined flux at the boundary
+	            // by doing nothing here.
+	        } else {
+	            compute_interface_flux(Lft, Rght, *IFace, omegaz);
+	        } // end if
 	    } // j loop
 	} // i loop
-    } // for k 
-
+    } // for k
+    
     if ( dimensions == 2 ) return SUCCESS;
-
+    
     // ifk interfaces are TOP-facing interfaces.
     for (i = imin; i <= imax; ++i) {
 	for (j = jmin; j <= jmax; ++j) {
@@ -139,9 +152,15 @@ int Block::inviscid_flux(int dimensions)
 		cR0 = get_cell(i,j,k);
 		cR1 = get_cell(i,j,k+1);
 		// Interpolate LEFT and RIGHT interface states from the cell-center properties.
-		one_d_interp(*cL1, *cL0, *cR0, *cR1, 
-			     cL1->kLength, cL0->kLength, cR0->kLength, cR1->kLength, 
-			     Lft, Rght);
+		if ( get_shock_fitting_flag() == 1 ) {
+		    wone_d_interp(*cL1, *cL0, *cR0, *cR1, 
+				  cL1->kLength, cL0->kLength, cR0->kLength, cR1->kLength, 
+				  Lft, Rght);
+		} else {
+		    one_d_interp(*cL1, *cL0, *cR0, *cR1, 
+				 cL1->kLength, cL0->kLength, cR0->kLength, cR1->kLength, 
+				 Lft, Rght);
+		}
 		// Save u, v, w, T for the viscous flux calculation by making a local average.
 		// The values for u, v and T may be updated subsequently by the interface-flux function.
 		IFace->fs->average_values_from(Lft, Rght, get_diffusion_flag()==1);
@@ -150,17 +169,12 @@ int Block::inviscid_flux(int dimensions)
 		     (k == kmax+1 && bcp[TOP]->use_udf_flux()) ) {
 		    // Retain the user-defined flux at the boundary
 		    // by doing nothing here.
-		// Check if boundary is a shock (type_code 21)
-		} else if ( (k == kmin && (bcp[BOTTOM]->type_code == 21) ) ||
-		            (k == kmax+1 && (bcp[TOP]->type_code == 21) ) ) {
-		    // Retain the user-defined flux at the boundary
-		    // by doing nothing here.
 		} else {
 		    compute_interface_flux(Lft, Rght, *IFace, omegaz);
 		} // end if
 	    } // for k 
 	} // j loop
     } // i loop
-
+    
     return SUCCESS;
 }   // end of inviscid_flux()

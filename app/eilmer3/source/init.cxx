@@ -247,8 +247,11 @@ int read_config_parameters(const string filename, int master)
     dict.parse_double("global_data", "transient_mu_t_factor", G.transient_mu_t_factor, 1.0);
     dict.parse_int("global_data", "axisymmetric_flag", i_value, 0);
     set_axisymmetric_flag( i_value );
-    dict.parse_int("global_data", "shock_adapting_flag", i_value, 0);
-    set_shock_adapting_flag( i_value );
+    dict.parse_int("global_data", "shock_fitting_flag", i_value, 0);
+    set_shock_fitting_flag( i_value );
+    dict.parse_int("global_data", "shock_fitting_decay_flag", i_value, 0);
+    set_shock_fitting_decay_flag( i_value );
+    dict.parse_double("global_data", "shock_fitting_speed_factor", G.shock_fitting_speed_factor, 0.25);
     dict.parse_int("global_data", "turbulence_flag", i_value, 0);
     set_turbulence_flag( i_value );
     // By default, turn off all turbulence models.
@@ -281,7 +284,9 @@ int read_config_parameters(const string filename, int master)
 	cout << "viscous_upwinding_flag = " << get_viscous_upwinding_flag() << endl;
 	cout << "max_mu_t_factor = " << G.max_mu_t_factor << endl;
 	cout << "transient_mu_t_factor = " << G.transient_mu_t_factor << endl;
-	cout << "shock_adapting_flag = " << get_shock_adapting_flag() << endl;
+	cout << "shock_fitting_flag = " << get_shock_fitting_flag() << endl;
+	cout << "shock_fitting_decay_flag = " << get_shock_fitting_decay_flag() << endl;
+	cout << "shock_fitting_speed_factor = " << G.shock_fitting_speed_factor << endl;
 	cout << "axisymmetric_flag = " << get_axisymmetric_flag() << endl;
 	cout << "turbulence_flag = " << get_turbulence_flag() << endl;
 	cout << "k_omega_flag = " << get_k_omega_flag() << endl;
@@ -539,8 +544,9 @@ int read_control_parameters( const string filename, int master, int first_time )
 	cout << "    print_count = " << G.print_count << endl;
 	cout << "    cfl_count = " << G.cfl_count << endl;
 	cout << "    dt_plot = " << G.dt_plot << endl;
+	cout << "    dt_shock = " << G.dt_shock << endl;
 	cout << "    dt_history = " << G.dt_his << endl;
-        cout << "    dt_fstc = " << G.dt_fstc << endl;
+    cout << "    dt_fstc = " << G.dt_fstc << endl;
 	cout << "    max_time = " << G.max_time << endl;
 	cout << "    max_step = " << G.max_step << endl;
 	cout << "    halt_now = " << G.halt_now << endl;

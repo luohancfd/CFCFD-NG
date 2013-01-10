@@ -71,6 +71,7 @@ class FlowState {
 public:
     Gas_data *gas;       ///< \brief gas thermo state
     Vector3 vel;         ///< \brief velocity vector, m/s
+    Vector3 shock_vel;   ///< \brief shock velocity vector, m/s
     Vector3 B;           ///< \brief magnetic field, Tesla 
     int S;               ///< \brief flag to indicate shock-point
     double tke;          ///< \brief turbulence kinetic energy per unit mass
@@ -86,6 +87,7 @@ public:
     int copy_values_from(FlowState &src);
     int copy_values_from(CFlowCondition &src);
     int average_values_from(FlowState &src0, FlowState &src1, bool with_diff_coeff);
+	int average_values_from(FlowState &src0, double alpha0, FlowState &src1, double alpha1, bool with_diff_coeff);
     double * copy_values_to_buffer(double *buf);
     double * copy_values_from_buffer(double *buf);
     int BGK_equilibrium(void);
@@ -119,8 +121,10 @@ public:
     int status; // state of the interface with respect to pistons
     // Geometry
     Vector3 pos;       /* position of the (approx) midpoint */
+    Vector3 vel;       /* velocity, m/s    */
     double Ybar;       /* Y-coordinate of the mid-point     */
     double length;     /* Interface length in the x,y-plane */
+    double ar[NL];
     double area;       /* Area m**2 in 2D geometries        */
                        /* Area per radian in axisymmetric g */
     Vector3 n;         /* Direction cosines for unit normal */
@@ -148,6 +152,9 @@ public:
     int    id;
     // Geometry
     Vector3 pos;  // x,y,z-Coordinates, m
+	Vector3 position[NL];  // x,y,z-Coordinates for different integration time levels, m
+    Vector3 vel;  // velocity, m/s
+	Vector3 velocity[NL];  // velocity for different integration time levels, m/s
     double area;  // x,y-plane area of secondary cells
     double volume;  // volume of 3D secondary cells
     // Derivatives of primary-cell variables.
@@ -177,7 +184,10 @@ public:
     double base_qdot;       // base-level of heat addition to cell, W/m**3
     // Geometry
     Vector3 pos;            /* Centre x,y,z-coordinates, m    */
-    double volume;          /* Cell volume (unit depth), m**3 */
+	Vector3 position[NL];   /* Centre x,y,z-coordinates for different integration time levels, m	*/
+    double vol[NL];         /* Cell volume (unit depth), m**3 */
+    double volume;
+    double ar[NL];          /* (x,y)-plane area for different integration time levels, m**2         */
     double area;            /* (x,y)-plane area, m**2         */
     double uf;              /* uncovered fraction */
     double iLength;         /* length in the i-index direction */
@@ -225,8 +235,11 @@ public:
     int record_conserved(void);
     int restore_conserved(void);
     int encode_conserved(double omegaz=0.0);
-    int decode_conserved(double omegaz=0.0);
+	int decode_conserved(double omegaz=0.0);
+    int decode_conserved(int time_level, double omegaz=0.0);
     int check_flow_data(void);
+	int set_geometry_to_time_level( void );
+	int set_geometry_from_time_level( int time_level );
     int time_derivatives(int time_level, int dimensions);
     int predictor_update(double dt);
     int corrector_update(double dt);
@@ -241,7 +254,7 @@ public:
     int turbulence_viscosity_k_omega(void);
     int update_k_omega_properties(double dt);
     int k_omega_time_derivatives(double *Q_rtke, double *Q_romega, double tke, double omega);
-    int inviscid_source_vector(double omegaz=0.0);
+    int inviscid_source_vector(int time_level, double omegaz=0.0);
     int viscous_source_vector(void);
     double calculate_wall_Reynolds_number(int which_boundary);
     int store_rad_scaling_params(void);
@@ -260,5 +273,19 @@ int one_d_interp(FV_Cell &cL1, FV_Cell &cL0,
 		 double cL1Length, double cL0Length, 
 		 double cR0Length, double cR1Length, 
 		 FlowState &Lft, FlowState &Rght);
+
+int wone_d_interp(FV_Cell &cL1, FV_Cell &cL0, 
+		 FV_Cell &cR0, FV_Cell &cR1, 
+		 double cL1Length, double cL0Length, 
+		 double cR0Length, double cR1Length, 
+		 FlowState &Lft, FlowState &Rght);
+		 
+int onesided_interp(FV_Cell &cL0, FV_Cell &cR0, FV_Cell &cR1,
+		             double cL0Length, double cR0Length, double cR1Length,
+		             FlowState &Rght );
+		 
+int one_d_linear_interp(FV_Cell &cL0, FV_Cell &cR0,
+		                double cL0Length, double cR0Length,
+		                FlowState &Lft);
 
 #endif

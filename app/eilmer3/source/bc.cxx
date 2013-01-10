@@ -35,7 +35,7 @@ extern "C" {
 #include "bc_adjacent.hh"
 #include "bc_supersonic_in.hh"
 #include "bc_extrapolate_out.hh"
-#include "bc_shock_in.hh"
+#include "bc_shock_fitting_in.hh"
 #include "bc_slip_wall.hh"
 #include "bc_adiabatic.hh"
 #include "bc_fixed_t.hh"
@@ -841,8 +841,8 @@ BoundaryCondition *create_BC( Block &bdp, int which_boundary, int type_of_BC,
     case EXTRAPOLATE_OUT:
 	newBC = new ExtrapolateOutBC( bdp, which_boundary, x_order, sponge_flag );
 	break;
-    case SHOCK_IN:
-	newBC = new ShockInBC( bdp, which_boundary, inflow_condition_id );
+    case SHOCK_FITTING_IN:
+	newBC = new ShockFittingInBC( bdp, which_boundary, inflow_condition_id );
 	break;
     case SLIP_WALL:
 	newBC = new SlipWallBC( bdp, which_boundary );

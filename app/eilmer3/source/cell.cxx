@@ -63,6 +63,7 @@ FlowState::FlowState(Gas_model *gm)
     gas = new Gas_data(gm);
     vel.x = 0.0; vel.y = 0.0; vel.z = 0.0;
     B.x = 0.0; B.y = 0.0; B.z = 0.0;
+    shock_vel.x = 0.0; shock_vel.y = 0.0; shock_vel.z = 0.0;
     S = 0;
     tke = 0.0;
     omega = 0.0;
@@ -336,8 +337,12 @@ FV_Interface::FV_Interface(Gas_model *gm)
     id = 0;
     status = 0;
     pos.x = 0.0; pos.y = 0.0; pos.z = 0.0;
+    vel.x = 0.0; vel.y = 0.0; vel.z = 0.0;
     Ybar = 0.0;
     length = 0.0;
+    for ( size_t i = 0; i < NL; ++i ) {
+	    ar[i] = 0.0;	
+    }
     area = 0.0;
     n.x = 0.0; n.y = 0.0; n.z = 0.0;
     t1.x = 0.0; t1.y = 0.0; t1.z = 0.0;
@@ -385,6 +390,7 @@ int FV_Interface::copy_values_from(FV_Interface &src, int type_of_copy)
     if ( type_of_copy == COPY_ALL_CELL_DATA ||
 	 type_of_copy == COPY_CELL_LENGTHS ) {
 	pos.x = src.pos.x; pos.y = src.pos.y; pos.z = src.pos.z;
+	vel.x = src.vel.x; vel.y = src.vel.y; vel.z = src.vel.z;
 	n.x = src.n.x; n.y = src.n.y; n.z = src.n.z;
 	t1.x = src.t1.x; t1.y = src.t1.y; t1.z = src.t1.z;
 	t2.x = src.t2.x; t2.y = src.t2.y; t2.z = src.t2.z;
@@ -401,6 +407,13 @@ FV_Vertex::FV_Vertex(Gas_model *gm)
     int nmodes = gm->get_number_of_modes();
     id = 0;
     pos.x = 0.0; pos.y = 0.0; pos.z = 0.0;
+    for ( size_t i = 0; i < NL; ++i ) {
+	    position[i].x = 0.0; position[i].y = 0.0; position[i].z = 0.0;
+    }
+    vel.x = 0.0; vel.y = 0.0; vel.z = 0.0;
+    for ( size_t i = 0; i < NL; ++i ) {
+	    velocity[i].x = 0.0; velocity[i].y = 0.0; velocity[i].z = 0.0;
+    }
     area = 0.0;
     volume = 0.0;
     dudx = 0.0; dudy = 0.0; dudz = 0.0;
@@ -450,8 +463,17 @@ FV_Cell::FV_Cell(Gas_model *gm)
     in_turbulent_zone = 0;
     base_qdot = 0.0;
     pos.x = 0.0; pos.y = 0.0; pos.z = 0.0;
+    for ( size_t i = 0; i < NL; ++i ) {
+	    position[i].x = 0.0; position[i].y = 0.0; position[i].z = 0.0;
+    }
+    for ( size_t i = 0; i < NL; ++i ) {
+	    vol[i] = 0.0;
+    }
     volume = 0.0;
     area = 0.0;
+    for ( size_t i = 0; i < NL; ++i ) {
+	    ar[i] = 0.0;	
+    }
     uf = 0.0;
     iLength = 0.0; jLength = 0.0; kLength = 0.0;
     L_min = 0.0;
@@ -584,15 +606,23 @@ int FV_Cell::copy_values_from(CFlowCondition &src)
 int FV_Cell::copy_values_from(FV_Cell &src, int type_of_copy)
 {
     if ( type_of_copy == COPY_ALL_CELL_DATA ||
-	 type_of_copy == COPY_FLOW_STATE ) {
-        fs->copy_values_from(*(src.fs));
-	status = src.status;
-	Q_rE_rad = src.Q_rE_rad;
+	 	 type_of_copy == COPY_FLOW_STATE ) {
+       	 fs->copy_values_from(*(src.fs));
+		 status = src.status;
+		 Q_rE_rad = src.Q_rE_rad;
     }
     if ( type_of_copy == COPY_ALL_CELL_DATA ||
-	 type_of_copy == COPY_CELL_LENGTHS ) {
-        iLength = src.iLength; jLength = src.jLength; kLength = src.kLength;
-	pos.x = src.pos.x; pos.y = src.pos.y; pos.z = src.pos.z;
+	 	 type_of_copy == COPY_CELL_LENGTHS ) {
+       	iLength = src.iLength; jLength = src.jLength; kLength = src.kLength;
+		pos.x = src.pos.x; pos.y = src.pos.y; pos.z = src.pos.z;
+		if ( get_shock_fitting_flag() ) {
+			for ( size_t j = 0; j < 6; ++j ) {
+				if ( src.iface[j] == 0 || iface[j] == 0 ) { // When copying from ghost cell which may
+				    continue;                               // not have initialised interfaces
+				}
+				iface[j]->copy_values_from(*(src.iface[j]), COPY_ALL_CELL_DATA);
+			}
+		}
     }
     return SUCCESS;
 }
@@ -605,15 +635,26 @@ int FV_Cell::copy_values_from(FV_Cell &src, int type_of_copy)
 double * FV_Cell::copy_values_to_buffer(double *buf, int type_of_copy)
 {
     if (type_of_copy == COPY_ALL_CELL_DATA ||
-	type_of_copy == COPY_FLOW_STATE) {
+	    type_of_copy == COPY_FLOW_STATE) {
         buf = fs->copy_values_to_buffer(buf);
-	*buf++ = (double)status;
-	*buf++ = Q_rE_rad;
+	    *buf++ = (double)status;
+	    *buf++ = Q_rE_rad;
     }
     if (type_of_copy == COPY_ALL_CELL_DATA ||
         type_of_copy == COPY_CELL_LENGTHS) {
         *buf++ = iLength; *buf++ = jLength; *buf++ = kLength;
         *buf++ = pos.x; *buf++ = pos.y; *buf++ = pos.z;
+		if ( get_shock_fitting_flag() ) {
+			for ( int j = 0; j < 4; ++j ) {
+			    if ( iface[j] == 0 ) { // When copying from ghost cell which may
+			        continue;                               // not have initialised interfaces
+			    }
+			    *buf++ = iface[j]->pos.x; *buf++ = iface[j]->pos.y; *buf++ = iface[j]->pos.z;
+			    *buf++ = iface[j]->vel.x; *buf++ = iface[j]->vel.y; *buf++ = iface[j]->vel.z;
+				*buf++ = iface[j]->length;
+				iface[j]->fs->copy_values_to_buffer(buf);
+			}
+		}
     }
     return buf;
 }
@@ -634,6 +675,17 @@ double * FV_Cell::copy_values_from_buffer(double *buf, int type_of_copy)
         type_of_copy == COPY_CELL_LENGTHS) {
         iLength = *buf++; jLength = *buf++; kLength = *buf++;
         pos.x = *buf++; pos.y = *buf++; pos.z = *buf++;
+		if ( get_shock_fitting_flag() ) {
+		    for ( int j = 0; j < 4; ++j ) {
+			    if ( iface[j] == 0 ) { // When copying from ghost cell which may
+			        continue;                               // not have initialised interfaces
+			    }
+			    iface[j]->pos.x = *buf++; iface[j]->pos.y = *buf++; iface[j]->pos.z = *buf++;
+			    iface[j]->vel.x = *buf++; iface[j]->vel.y = *buf++; iface[j]->vel.z = *buf++;
+			    iface[j]->length = *buf++;
+			    iface[j]->fs->copy_values_from_buffer(buf);
+			}
+		}
     }
     return buf;
 }
@@ -1008,6 +1060,80 @@ int FV_Cell::decode_conserved(double omegaz)
     return SUCCESS;
 } // end of decode_conserved()
 
+int FV_Cell::decode_conserved( int time_level, double omegaz)
+{
+    Gas_model *gmodel = get_gas_model_ptr();
+    double ke, dinv, rE, me;
+
+    // Mass / unit volume = Density
+    double rho = U->mass;
+    fs->gas->rho = rho;
+    // This is limited to nonnegative and finite values.
+    if ( get_bad_cell_complain_flag() && (rho <= 0.0) ) {
+	printf("FV_Cell::decode_conserved(): Density is below minimum rho=%e\n", rho);
+	printf("x=%g, y=%g, z=%g\n", pos.x, pos.y, pos.z);
+	fs->gas->print_values();
+    }
+    dinv = 1.0 / rho;
+    if ( omegaz != 0.0 ) {
+	// Rotating frame.
+	// The conserved quantity is rothalpy so we need to convert
+	// back to enthalpy to do the rest of the decode.
+	double x = position[time_level].x;
+	double y = position[time_level].y;
+	double rsq = x*x + y*y;
+	rE = U->total_energy + rho * 0.5 * omegaz * omegaz * rsq;
+    } else {
+	// Non-rotating frame.
+	rE = U->total_energy;
+    }
+    // Velocities from momenta.
+    fs->vel.x = U->momentum.x * dinv;
+    fs->vel.y = U->momentum.y * dinv;
+    fs->vel.z = U->momentum.z * dinv;
+    // Magnetic field
+    fs->B.x = U->B.x;
+    fs->B.y = U->B.y;
+    fs->B.z = U->B.z;
+    // Specific internal energy from total energy per unit volume.
+    ke = 0.5 * (fs->vel.x * fs->vel.x + fs->vel.y * fs->vel.y + fs->vel.z * fs->vel.z);
+    if (get_mhd_flag() == 1) {
+        me = 0.5*(fs->B.x*fs->B.x + fs->B.y*fs->B.y + fs->B.z*fs->B.z);
+    } else {
+        me = 0.0;
+    }
+    if ( get_k_omega_flag() ) {
+        fs->tke = U->tke * dinv;
+        fs->omega = U->omega * dinv;
+        fs->gas->e[0] = (rE - U->tke - me) * dinv - ke;
+    } else {
+        fs->tke = 0.0;
+        fs->omega = 1.0;
+        fs->gas->e[0] = (rE - me) * dinv - ke;
+    }
+    size_t nsp = U->massf.size();
+    for ( size_t isp = 0; isp < nsp; ++isp ) {
+	fs->gas->massf[isp] = U->massf[isp] * dinv;
+    }
+    if ( nsp > 1 ) scale_mass_fractions( fs->gas->massf );
+
+    // NOTE: - gas->e[0] is the total internal energy (sum of all modes)
+    //         and has already been calculated above
+    //       - renergies[0] is being calculated but never used.
+    //         We've decided to leave it that way.
+    double e0_save = fs->gas->e[0];
+    gmodel->decode_conserved_energy(*(fs->gas), U->energies);
+    fs->gas->e[0] = e0_save;
+    // Fill out the other variables; P, T, a and
+    // check the species mass fractions.
+    // Update the viscous transport coefficients.
+    gmodel->eval_thermo_state_rhoe(*(fs->gas));
+    if ( get_viscous_flag() ) gmodel->eval_transport_coefficients(*(fs->gas));
+    if ( get_diffusion_flag() ) gmodel->eval_diffusion_coefficients(*(fs->gas));
+
+    return SUCCESS;
+} // end of decode_conserved()
+
 
 /// \brief Check the primary flow data for a specified cell.
 ///  \returns 1 for valid data, 0 for bad data.
@@ -1047,13 +1173,40 @@ int FV_Cell::check_flow_data(void)
     return data_valid;
 } // end of check_flow_data()
 
+int FV_Cell::set_geometry_to_time_level( void )
+{
+	for ( size_t j = 0; j < NL; ++j ) {
+		ar[j] = area;
+		vol[j] = volume;
+		position[j] = pos;
+		for ( int i = 0; i <= 3; ++i ) {
+			vtx[i]->position[j] = vtx[i]->pos;
+			iface[i]->ar[j] = iface[i]->area;
+		}
+	}
+	return SUCCESS;
+}
+
+/// \brief Set the cell geometry to the values calculated at the specified time level.
+///
+int FV_Cell::set_geometry_from_time_level(int time_level)
+{
+	area = ar[time_level];
+	volume = vol[time_level];
+	pos = position[time_level];
+	for ( int i = 0; i <= 3; ++i ) {
+		vtx[i]->pos = vtx[i]->position[time_level];
+		iface[i]->area = iface[i]->ar[time_level];
+	}
+	return SUCCESS;
+}
 
 /// \brief Compute the time derivatives for the conserved quantities.
 ///
 /// These are the spatial (RHS) terms in the semi-discrete governing equations.
 /// \param time_level : specifies where the computed derivatives are to be stored.
 /// \param dimensions : number of space dimensions: 2 for mbcns, 3 for eilmer
-int FV_Cell::time_derivatives(int time_level, int dimensions)
+int FV_Cell::time_derivatives( int time_level, int dimensions )
 {
     Gas_model *gmodel = get_gas_model_ptr();
     size_t nsp = gmodel->get_number_of_species();
@@ -1065,7 +1218,8 @@ int FV_Cell::time_derivatives(int time_level, int dimensions)
     FV_Interface *IFt = iface[TOP];
     FV_Interface *IFb = iface[BOTTOM];
     // Cell volume (inverted).
-    double vol_inv = 1.0 / volume;
+    double vol_inv = 1.0 / vol[time_level];
+	//double vol_inv = 1.0 / volume;
     double integral;
 
     if (status == MASKED_CELL || status == SHADOWED_CELL) {
@@ -1078,33 +1232,33 @@ int FV_Cell::time_derivatives(int time_level, int dimensions)
     // such that the unit normals for the east, north and top faces
     // are outward and the unit normals for the south, west and
     // bottom faces are inward.
-    integral = -IFe->F->mass * IFe->area - IFn->F->mass * IFn->area
-	+ IFw->F->mass * IFw->area + IFs->F->mass * IFs->area;
+    integral = -IFe->F->mass * IFe->ar[time_level] - IFn->F->mass * IFn->ar[time_level]
+	+ IFw->F->mass * IFw->ar[time_level] + IFs->F->mass * IFs->ar[time_level];
     if ( dimensions == 3 )
-	integral += IFb->F->mass * IFb->area - IFt->F->mass * IFt->area;
+	integral += IFb->F->mass * IFb->ar[time_level] - IFt->F->mass * IFt->ar[time_level];
     dUdt[time_level]->mass = vol_inv * integral + Q->mass;
 
     // Time-derivative for X-Momentum/unit volume.
-    integral = -IFe->F->momentum.x * IFe->area - IFn->F->momentum.x * IFn->area
-	+ IFw->F->momentum.x * IFw->area + IFs->F->momentum.x * IFs->area;
+    integral = -IFe->F->momentum.x * IFe->ar[time_level] - IFn->F->momentum.x * IFn->ar[time_level]
+	+ IFw->F->momentum.x * IFw->ar[time_level] + IFs->F->momentum.x * IFs->ar[time_level];
     if ( dimensions == 3 )
-	integral += IFb->F->momentum.x * IFb->area - IFt->F->momentum.x * IFt->area;
+	integral += IFb->F->momentum.x * IFb->ar[time_level] - IFt->F->momentum.x * IFt->ar[time_level];
     dUdt[time_level]->momentum.x = vol_inv * integral + Q->momentum.x;
     // Time-derivative for Y-Momentum/unit volume.
-    integral = -IFe->F->momentum.y * IFe->area - IFn->F->momentum.y * IFn->area
-	+ IFw->F->momentum.y * IFw->area + IFs->F->momentum.y * IFs->area;
+    integral = -IFe->F->momentum.y * IFe->ar[time_level] - IFn->F->momentum.y * IFn->ar[time_level]
+	+ IFw->F->momentum.y * IFw->ar[time_level] + IFs->F->momentum.y * IFs->ar[time_level];
     if ( dimensions == 3 )
-	integral += IFb->F->momentum.y * IFb->area - IFt->F->momentum.y * IFt->area;
+	integral += IFb->F->momentum.y * IFb->ar[time_level] - IFt->F->momentum.y * IFt->ar[time_level];
     dUdt[time_level]->momentum.y = vol_inv * integral + Q->momentum.y;
     
     // we require the z-momentum for MHD even in 2D
     if ((dimensions == 3) || (get_mhd_flag() == 1)) {
 	// Time-derivative for Z-Momentum/unit volume.
-	integral = -IFe->F->momentum.z * IFe->area - IFn->F->momentum.z * IFn->area
-	    + IFw->F->momentum.z * IFw->area + IFs->F->momentum.z * IFs->area;
+	integral = -IFe->F->momentum.z * IFe->ar[time_level] - IFn->F->momentum.z * IFn->ar[time_level]
+	    + IFw->F->momentum.z * IFw->ar[time_level] + IFs->F->momentum.z * IFs->ar[time_level];
     }
     if ( dimensions == 3) {
-	integral += IFb->F->momentum.z * IFb->area - IFt->F->momentum.z * IFt->area;
+	integral += IFb->F->momentum.z * IFb->ar[time_level] - IFt->F->momentum.z * IFt->ar[time_level];
     }
     if ((dimensions == 3) || (get_mhd_flag() == 1)) {
 	dUdt[time_level]->momentum.z = vol_inv * integral + Q->momentum.z;
@@ -1114,22 +1268,22 @@ int FV_Cell::time_derivatives(int time_level, int dimensions)
 
     if (get_mhd_flag() == 1) {
 	// Time-derivative for X-Magnetic Field/unit volume.
-	integral = -IFe->F->B.x * IFe->area - IFn->F->B.x * IFn->area
-	    + IFw->F->B.x * IFw->area + IFs->F->B.x * IFs->area;
+	integral = -IFe->F->B.x * IFe->ar[time_level] - IFn->F->B.x * IFn->ar[time_level]
+	    + IFw->F->B.x * IFw->ar[time_level] + IFs->F->B.x * IFs->ar[time_level];
 	if ( dimensions == 3 )
-	    integral += IFb->F->B.x * IFb->area - IFt->F->B.x * IFt->area;
+	    integral += IFb->F->B.x * IFb->ar[time_level] - IFt->F->B.x * IFt->ar[time_level];
 	dUdt[time_level]->B.x = vol_inv * integral + Q->B.x;
 	// Time-derivative for Y-Magnetic Field/unit volume.
-	integral = -IFe->F->B.y * IFe->area - IFn->F->B.y * IFn->area
-	    + IFw->F->B.y * IFw->area + IFs->F->B.y * IFs->area;
+	integral = -IFe->F->B.y * IFe->ar[time_level] - IFn->F->B.y * IFn->ar[time_level]
+	    + IFw->F->B.y * IFw->ar[time_level] + IFs->F->B.y * IFs->ar[time_level];
 	if ( dimensions == 3 )
-	    integral += IFb->F->B.y * IFb->area - IFt->F->B.y * IFt->area;
+	    integral += IFb->F->B.y * IFb->ar[time_level] - IFt->F->B.y * IFt->ar[time_level];
 	dUdt[time_level]->B.y = vol_inv * integral + Q->B.y;
 	// Time-derivative for Z-Magnetic Field/unit volume.
-	integral = -IFe->F->B.z * IFe->area - IFn->F->B.z * IFn->area
-	    + IFw->F->B.z * IFw->area + IFs->F->B.z * IFs->area;
+	integral = -IFe->F->B.z * IFe->ar[time_level] - IFn->F->B.z * IFn->ar[time_level]
+	    + IFw->F->B.z * IFw->ar[time_level] + IFs->F->B.z * IFs->ar[time_level];
 	if ( dimensions == 3 ) {
-	    integral += IFb->F->B.z * IFb->area - IFt->F->B.z * IFt->area;
+	    integral += IFb->F->B.z * IFb->ar[time_level] - IFt->F->B.z * IFt->ar[time_level];
 	}
 	dUdt[time_level]->B.z = vol_inv * integral + Q->B.z;
     }
@@ -1140,23 +1294,23 @@ int FV_Cell::time_derivatives(int time_level, int dimensions)
     }
 
     // Time-derivative for Total Energy/unit volume.
-    integral = -IFe->F->total_energy * IFe->area - IFn->F->total_energy * IFn->area
-	+ IFw->F->total_energy * IFw->area + IFs->F->total_energy * IFs->area;
+    integral = -IFe->F->total_energy * IFe->ar[time_level] - IFn->F->total_energy * IFn->ar[time_level]
+	+ IFw->F->total_energy * IFw->ar[time_level] + IFs->F->total_energy * IFs->ar[time_level];
     if ( dimensions == 3 )
-	integral += IFb->F->total_energy * IFb->area - IFt->F->total_energy * IFt->area;
+	integral += IFb->F->total_energy * IFb->ar[time_level] - IFt->F->total_energy * IFt->ar[time_level];
     dUdt[time_level]->total_energy = vol_inv * integral + Q->total_energy;
 
     if ( get_k_omega_flag() ) {
-	integral = -IFe->F->tke * IFe->area - IFn->F->tke * IFn->area
-	    + IFw->F->tke * IFw->area + IFs->F->tke * IFs->area;
+	integral = -IFe->F->tke * IFe->ar[time_level] - IFn->F->tke * IFn->ar[time_level]
+	    + IFw->F->tke * IFw->ar[time_level] + IFs->F->tke * IFs->ar[time_level];
 	if ( dimensions == 3 )
-	    integral += IFb->F->tke * IFb->area - IFt->F->tke * IFt->area;
+	    integral += IFb->F->tke * IFb->ar[time_level] - IFt->F->tke * IFt->ar[time_level];
 	dUdt[time_level]->tke = vol_inv * integral + Q->tke;
 
-	integral = -IFe->F->omega * IFe->area - IFn->F->omega * IFn->area
-	    + IFw->F->omega * IFw->area + IFs->F->omega * IFs->area;
+	integral = -IFe->F->omega * IFe->ar[time_level] - IFn->F->omega * IFn->ar[time_level]
+	    + IFw->F->omega * IFw->ar[time_level] + IFs->F->omega * IFs->ar[time_level];
 	if ( dimensions == 3 )
-	    integral += IFb->F->omega * IFb->area - IFt->F->omega * IFt->area;
+	    integral += IFb->F->omega * IFb->ar[time_level] - IFt->F->omega * IFt->ar[time_level];
 	dUdt[time_level]->omega = vol_inv * integral + Q->omega;
     } else {
 	dUdt[time_level]->tke = 0.0;
@@ -1169,24 +1323,24 @@ int FV_Cell::time_derivatives(int time_level, int dimensions)
     // Units of DmassfDt are 1/sec.
     for ( size_t isp = 0; isp < nsp; ++isp ) {
 	integral =
-	    -IFe->F->massf[isp] * IFe->area
-	    - IFn->F->massf[isp] * IFn->area
-	    + IFw->F->massf[isp] * IFw->area
-	    + IFs->F->massf[isp] * IFs->area;
+	    -IFe->F->massf[isp] * IFe->ar[time_level]
+	    - IFn->F->massf[isp] * IFn->ar[time_level]
+	    + IFw->F->massf[isp] * IFw->ar[time_level]
+	    + IFs->F->massf[isp] * IFs->ar[time_level];
 	if ( dimensions == 3 )
-	    integral += IFb->F->massf[isp] * IFb->area - IFt->F->massf[isp] * IFt->area;
+	    integral += IFb->F->massf[isp] * IFb->ar[time_level] - IFt->F->massf[isp] * IFt->ar[time_level];
 	dUdt[time_level]->massf[isp] = vol_inv * integral + Q->massf[isp];
     }
     // Individual energies.
     // NOTE: energies[0] is never used so skipping (DFP 10/12/09)
     for ( size_t imode = 1; imode < nmodes; ++imode ) {
 	integral =
-	    -IFe->F->energies[imode] * IFe->area
-	    - IFn->F->energies[imode] * IFn->area
-	    + IFw->F->energies[imode] * IFw->area
-	    + IFs->F->energies[imode] * IFs->area;
+	    -IFe->F->energies[imode] * IFe->ar[time_level]
+	    - IFn->F->energies[imode] * IFn->ar[time_level]
+	    + IFw->F->energies[imode] * IFw->ar[time_level]
+	    + IFs->F->energies[imode] * IFs->ar[time_level];
 	if ( dimensions == 3 )
-	    integral += IFb->F->energies[imode] * IFb->area - IFt->F->energies[imode] * IFt->area;
+	    integral += IFb->F->energies[imode] * IFb->ar[time_level] - IFt->F->energies[imode] * IFt->ar[time_level];
 	dUdt[time_level]->energies[imode] = vol_inv * integral + Q->energies[imode];
     }
     return SUCCESS;
@@ -1199,6 +1353,7 @@ int FV_Cell::predictor_update(double dt)
 {
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     double gamma_1;
+    double vr = 1.0;
     if (get_Torder_flag() == 3) {
 	/* 3rd order Runge-Kutta */
 	gamma_1 = 8.0 / 15.0;
@@ -1206,23 +1361,26 @@ int FV_Cell::predictor_update(double dt)
 	/* Normal Predictor-Corrector or Euler */
 	gamma_1 = 1.0;
     }
-    U->mass = U_old->mass + dt * gamma_1 * dUdt0.mass;
-    U->momentum.x = U_old->momentum.x + dt * gamma_1 * dUdt0.momentum.x;
-    U->momentum.y = U_old->momentum.y + dt * gamma_1 * dUdt0.momentum.y;
-    U->momentum.z = U_old->momentum.z + dt * gamma_1 * dUdt0.momentum.z;
+    if ( get_shock_fitting_flag() == 1 ) {
+        vr = vol[0]/vol[1];
+    }
+    U->mass = vr * (U_old->mass + dt * gamma_1 * dUdt0.mass);
+    U->momentum.x = vr * (U_old->momentum.x + dt * gamma_1 * dUdt0.momentum.x);
+    U->momentum.y = vr * (U_old->momentum.y + dt * gamma_1 * dUdt0.momentum.y);
+    U->momentum.z = vr * (U_old->momentum.z + dt * gamma_1 * dUdt0.momentum.z);
 
     // Magnetic field
     if (get_mhd_flag() == 1) {
-	U->B.x = U_old->B.x + dt * gamma_1 * dUdt0.B.x;
-	U->B.y = U_old->B.y + dt * gamma_1 * dUdt0.B.y;
-	U->B.z = U_old->B.z + dt * gamma_1 * dUdt0.B.z;
+	U->B.x = vr * (U_old->B.x + dt * gamma_1 * dUdt0.B.x);
+	U->B.y = vr * (U_old->B.y + dt * gamma_1 * dUdt0.B.y);
+	U->B.z = vr * (U_old->B.z + dt * gamma_1 * dUdt0.B.z);
     }
 
-    U->total_energy = U_old->total_energy + dt * gamma_1 * dUdt0.total_energy;
+    U->total_energy = vr * (U_old->total_energy + dt * gamma_1 * dUdt0.total_energy);
     if ( get_k_omega_flag() ) {
-	U->tke = U_old->tke + dt * gamma_1 * dUdt0.tke;
+	U->tke = vr * (U_old->tke + dt * gamma_1 * dUdt0.tke);
 	U->tke = MAXIMUM(U->tke, 0.0);
-	U->omega = U_old->omega + dt * gamma_1 * dUdt0.omega;
+	U->omega = vr * (U_old->omega + dt * gamma_1 * dUdt0.omega);
 	U->omega = MAXIMUM(U->omega, U_old->mass);
 	// ...assuming a minimum value of 1.0 for omega
 	// It may occur (near steps in the wall) that a large flux of romega
@@ -1238,11 +1396,11 @@ int FV_Cell::predictor_update(double dt)
 	U->omega = U_old->omega;
     }
     for ( size_t isp = 0; isp < U->massf.size(); ++isp ) {
-	U->massf[isp] = U_old->massf[isp] + dt * gamma_1 * dUdt0.massf[isp];
+	U->massf[isp] = vr * (U_old->massf[isp] + dt * gamma_1 * dUdt0.massf[isp]);
     }
     // NOTE: energies[0] is never used so skipping (DFP 10/12/09)
     for ( size_t imode = 1; imode < U->energies.size(); ++imode ) {
-	U->energies[imode] = U_old->energies[imode] + dt * gamma_1 * dUdt0.energies[imode];
+	U->energies[imode] = vr * (U_old->energies[imode] + dt * gamma_1 * dUdt0.energies[imode]);
     }
     return SUCCESS;
 } // end of predictor_update()
@@ -1255,49 +1413,58 @@ int FV_Cell::corrector_update(double dt)
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &dUdt1 = *(dUdt[1]);
     double th, th_inv;
+    double v0 = 1.0;
+	double v1 = 1.0;
+	double vol_inv = 1.0;
     /*
      * Set the type of time-stepping
      * th = 0.0 : Euler
      * th = 0.5 : 2nd order
      * th = 1.0 : sort-of-implicit?
      */
+    if ( get_shock_fitting_flag() == 1 ) {
+        v0 = vol[0];
+		v1 = vol[1];
+		vol_inv = 1.0 / vol[2];
+    }
     if (get_Torder_flag() == 3) {
 	/* 3rd order Runge-Kutta */
-	th = 5.0 / 12.0;
-	th_inv = -17.0 / 60.0;
+	th = v1 * 5.0 / 12.0;
+	th_inv = v0 * -17.0 / 60.0;
     } else {
 	/* Normal Predictor-Corrector or Euler */
-	th = 0.5;
-	th_inv = 1.0 - th;
+	th = v1 * 0.5;
+	th_inv = v0 * 0.5;
     }
-    U->mass = U_old->mass + dt * (th_inv * dUdt0.mass + th * dUdt1.mass);
-    U->momentum.x = U_old->momentum.x + dt * (th_inv * dUdt0.momentum.x + th * dUdt1.momentum.x);
-    U->momentum.y = U_old->momentum.y + dt * (th_inv * dUdt0.momentum.y + th * dUdt1.momentum.y);
-    U->momentum.z = U_old->momentum.z + dt * (th_inv * dUdt0.momentum.z + th * dUdt1.momentum.z);
+
+    U->mass = vol_inv * (v0 * U_old->mass + dt * (th_inv * dUdt0.mass + th * dUdt1.mass));
+    U->momentum.x = vol_inv * (v0 * U_old->momentum.x + dt * (th_inv * dUdt0.momentum.x + th * dUdt1.momentum.x));
+    U->momentum.y = vol_inv * (v0 * U_old->momentum.y + dt * (th_inv * dUdt0.momentum.y + th * dUdt1.momentum.y));
+    U->momentum.z = vol_inv * (v0 * U_old->momentum.z + dt * (th_inv * dUdt0.momentum.z + th * dUdt1.momentum.z));
 
     // Magnetic field
     if (get_mhd_flag() == 1) {
-	U->B.x = U_old->B.x + dt * (th_inv * dUdt0.B.x + th * dUdt1.B.x);
-	U->B.y = U_old->B.y + dt * (th_inv * dUdt0.B.y + th * dUdt1.B.y);
-	U->B.z = U_old->B.z + dt * (th_inv * dUdt0.B.z + th * dUdt1.B.z);
+	U->B.x = vol_inv * (v0 * U_old->B.x + dt * (th_inv * dUdt0.B.x + th * dUdt1.B.x));
+	U->B.y = vol_inv * (v0 * U_old->B.y + dt * (th_inv * dUdt0.B.y + th * dUdt1.B.y));
+	U->B.z = vol_inv * (v0 * U_old->B.z + dt * (th_inv * dUdt0.B.z + th * dUdt1.B.z));
     }
 
-    U->total_energy = U_old->total_energy + dt * (th_inv * dUdt0.total_energy + th * dUdt1.total_energy);
+    U->total_energy = vol_inv * (v0 * U_old->total_energy + dt * (th_inv * dUdt0.total_energy + th * dUdt1.total_energy));
     if ( get_k_omega_flag() ) {
-	U->tke = U_old->tke + dt * (th_inv * dUdt0.tke + th * dUdt1.tke);
+	U->tke = vol_inv * (v0 * U_old->tke + dt * (th_inv * dUdt0.tke + th * dUdt1.tke));
 	U->tke = MAXIMUM(U->tke, 0.0);
-	U->omega = U_old->omega + dt * (th_inv * dUdt0.omega + th * dUdt1.omega);
+	U->omega = vol_inv * (v0 * U_old->omega + dt * (th_inv * dUdt0.omega + th * dUdt1.omega));
 	U->omega = MAXIMUM(U->omega, U_old->mass);
     } else {
-	U->tke = U_old->tke;
-	U->omega = U_old->omega;
+	U->tke = vol_inv * (v0 * U_old->tke);
+	U->omega = vol_inv * (v0 * U_old->omega);
     }
     for ( size_t isp = 0; isp < U->massf.size(); ++isp ) {
-	U->massf[isp] = U_old->massf[isp] + dt * (th_inv * dUdt0.massf[isp] + th * dUdt1.massf[isp]);
+	U->massf[isp] = vol_inv * (v0 * U_old->massf[isp] + dt * (th_inv * dUdt0.massf[isp] + th * dUdt1.massf[isp]));
     }
     for ( size_t imode = 0; imode < U->energies.size(); ++imode ) {
-	U->energies[imode] = U_old->energies[imode] +
-	    dt * (th_inv * dUdt0.energies[imode] + th * dUdt1.energies[imode]);
+	U->energies[imode] = vol_inv * (v0 * U_old->energies[imode] +
+	    dt * (th_inv * dUdt0.energies[imode] + th * dUdt1.energies[imode]));
     }
     return SUCCESS;
 } // end of corrector_update()
@@ -1311,35 +1478,39 @@ int FV_Cell::rk3_update(double dt)
     ConservedQuantities &dUdt2 = *(dUdt[2]);
     double gamma_3 = 3.0 / 4.0;
     double psi_2 = -5.0 / 12.0;
-    U->mass = U_old->mass + dt * (psi_2 * dUdt1.mass + gamma_3 * dUdt2.mass);
-    U->momentum.x = U_old->momentum.x + dt * (psi_2 * dUdt1.momentum.x + gamma_3 * dUdt2.momentum.x);
-    U->momentum.y = U_old->momentum.y + dt * (psi_2 * dUdt1.momentum.y + gamma_3 * dUdt2.momentum.y);
-    U->momentum.z = U_old->momentum.z + dt * (psi_2 * dUdt1.momentum.z + gamma_3 * dUdt2.momentum.z);
+    double vr = 1.0;
+    if ( get_shock_fitting_flag() == 1 ) {
+        vr = volume/vol[2];
+    }
+    U->mass = vr * (U_old->mass + dt * (psi_2 * dUdt1.mass + gamma_3 * dUdt2.mass));
+    U->momentum.x = vr * (U_old->momentum.x + dt * (psi_2 * dUdt1.momentum.x + gamma_3 * dUdt2.momentum.x));
+    U->momentum.y = vr * (U_old->momentum.y + dt * (psi_2 * dUdt1.momentum.y + gamma_3 * dUdt2.momentum.y));
+    U->momentum.z = vr * (U_old->momentum.z + dt * (psi_2 * dUdt1.momentum.z + gamma_3 * dUdt2.momentum.z));
 
     // Magnetic field
     if (get_mhd_flag() == 1) {
-	U->B.x = U_old->B.x + dt * (psi_2 * dUdt1.B.x + gamma_3 * dUdt2.B.x);
-	U->B.y = U_old->B.y + dt * (psi_2 * dUdt1.B.y + gamma_3 * dUdt2.B.y);
-	U->B.z = U_old->B.z + dt * (psi_2 * dUdt1.B.z + gamma_3 * dUdt2.B.z);
+	U->B.x = vr * (U_old->B.x + dt * (psi_2 * dUdt1.B.x + gamma_3 * dUdt2.B.x));
+	U->B.y = vr * (U_old->B.y + dt * (psi_2 * dUdt1.B.y + gamma_3 * dUdt2.B.y));
+	U->B.z = vr * (U_old->B.z + dt * (psi_2 * dUdt1.B.z + gamma_3 * dUdt2.B.z));
     }
 
-    U->total_energy = U_old->total_energy + dt * (psi_2 * dUdt1.total_energy + gamma_3 * dUdt2.total_energy);
+    U->total_energy = vr * (U_old->total_energy + dt * (psi_2 * dUdt1.total_energy + gamma_3 * dUdt2.total_energy));
     if ( get_k_omega_flag() ) {
-	U->tke = U_old->tke + dt * (psi_2 * dUdt1.tke + gamma_3 * dUdt2.tke);
+	U->tke = vr * (U_old->tke + dt * (psi_2 * dUdt1.tke + gamma_3 * dUdt2.tke));
 	U->tke = MAXIMUM(U->tke, 0.0);
-	U->omega = U_old->omega + dt * (psi_2 * dUdt1.omega + gamma_3 * dUdt2.omega);
+	U->omega = vr * (U_old->omega + dt * (psi_2 * dUdt1.omega + gamma_3 * dUdt2.omega));
 	U->omega = MAXIMUM(U->omega, U_old->mass);
     } else {
-	U->tke = U_old->tke;
-	U->omega = U_old->omega;
+	U->tke = vr * (U_old->tke);
+	U->omega = vr * (U_old->omega);
     }
     for ( size_t isp = 0; isp < U->massf.size(); ++isp ) {
-	U->massf[isp] = U_old->massf[isp] +
-	    dt * (psi_2 * dUdt1.massf[isp] + gamma_3 * dUdt2.massf[isp]);
+	U->massf[isp] = vr * (U_old->massf[isp] +
+	    dt * (psi_2 * dUdt1.massf[isp] + gamma_3 * dUdt2.massf[isp]));
     }
     for ( size_t imode = 0; imode < U->energies.size(); ++imode ) {
-	U->energies[imode] = U_old->energies[imode] +
-	    dt * (psi_2 * dUdt1.energies[imode] + gamma_3 * dUdt2.energies[imode]);
+	U->energies[imode] = vr * (U_old->energies[imode] +
+	    dt * (psi_2 * dUdt1.energies[imode] + gamma_3 * dUdt2.energies[imode]));
     }
     return SUCCESS;
 } // end of rk3_update()
@@ -1975,7 +2146,7 @@ int FV_Cell::k_omega_time_derivatives(double *Q_rtke, double *Q_romega, double t
 /// Currently, the axisymmetric equations include the
 /// pressure contribution to the y-momentum equation
 /// here rather than in the boundary fluxes.
-int FV_Cell::inviscid_source_vector(double omegaz)
+int FV_Cell::inviscid_source_vector(int time_level, double omegaz)
 {
     // By default, assume 2D-planar, or 3D-Cartesian flow.
     Q->mass = 0.0;
@@ -2005,7 +2176,7 @@ int FV_Cell::inviscid_source_vector(double omegaz)
     if ( get_axisymmetric_flag() == 1 ) {
 	// For axisymmetric flow:
 	// pressure contribution from the Front and Back (radial) interfaces.
-	Q->momentum.y += fs->gas->p * area / volume;
+	Q->momentum.y += fs->gas->p * ar[time_level] / vol[time_level];
     }
     // Species production (other than chemistry).
     // For the chemistry, see chemical_increment().
@@ -2084,7 +2255,7 @@ int FV_Cell::viscous_source_vector(void)
 	// Note that these quantities are approximated at the
 	// mid-point of the cell face and so should never be
 	// singular -- at least I hope that this is so.
-	Q->momentum.y -= tau_00 * area / volume;
+	Q->momentum.y -= tau_00 * area/ volume;
     }
     return SUCCESS;
 } // end viscous_source_vector()
@@ -2193,6 +2364,9 @@ int number_of_values_in_cell_copy(int type_of_copy)
     if (type_of_copy == COPY_ALL_CELL_DATA ||
         type_of_copy == COPY_CELL_LENGTHS) {
         number += 6;
+	    if ( get_shock_fitting_flag() ) {
+		    number += 24; // Velocity and position for each interface (2D)	
+	    }
     }
     return number;
 }
@@ -2350,4 +2524,343 @@ int one_d_interp(FV_Cell &cL1, FV_Cell &cL0,
     } // end of high-order reconstruction
     return SUCCESS;
 } // end of one_d_interp()
+
+/// \brief Reconstruct upstream weighted flow properties at an interface from FV_Cell properties.
+///
+/// This is essentially a one-dimensional interpolation process.  It needs only
+/// the cell-average data and the lengths of the cells in the interpolation direction.
+int wone_d_interp(FV_Cell &cL1, FV_Cell &cL0,
+				 FV_Cell &cR0, FV_Cell &cR1,
+				 double cL1Length, double cL0Length,
+				 double cR0Length, double cR1Length,
+				 FlowState &Lft, FlowState &Rght )
+{
+    Gas_model *gmodel = get_gas_model_ptr();
+    Gas_data &gL1 = *(cL1.fs->gas);
+    Gas_data &gL0 = *(cL0.fs->gas);
+    Gas_data &gR0 = *(cR0.fs->gas);
+    Gas_data &gR1 = *(cR1.fs->gas);
+    Thermo_interpolator* ti = get_thermo_interpolator_ptr();
+    int nsp = gmodel->get_number_of_species();
+    int apply_limiter_flag = get_apply_limiter_flag();
+    int extrema_clipping_flag = get_extrema_clipping_flag();
+
+	double ML = dot(cL0.fs->vel, unit(cR0.pos - cL0.pos)) / cL0.fs->gas->a;
+	double MR = dot(cR0.fs->vel, unit(cL0.pos - cR0.pos)) / cR0.fs->gas->a;
+	double kL;
+	double kR;
+	if ( ML > 1.0 ) {
+		kL = -1.0;
+	} else {
+		kL = -max(0.0, ML);
+	}
+	if ( MR > 1.0 ) {
+		kR = -1.0;
+	} else {
+		kR = -max(0.0, MR);
+	}
+    // Low-order reconstruction just copies data from adjacent FV_Cell.
+    Lft.copy_values_from(*(cL0.fs));
+    Rght.copy_values_from(*(cR0.fs));
+    if ( get_Xorder_flag() > 1 ) {
+	// High-order reconstruction for some properties.
+	wone_d_interp_scalar(cL1.fs->vel.x, cL0.fs->vel.x, cR0.fs->vel.x, cR1.fs->vel.x,
+			    cL1Length, cL0Length, cR0Length, cR1Length,
+			    Lft.vel.x, Rght.vel.x, kL, kR, apply_limiter_flag, extrema_clipping_flag);
+	wone_d_interp_scalar(cL1.fs->vel.y, cL0.fs->vel.y, cR0.fs->vel.y, cR1.fs->vel.y,
+			    cL1Length, cL0Length, cR0Length, cR1Length,
+			    Lft.vel.y, Rght.vel.y, kL, kR, apply_limiter_flag, extrema_clipping_flag);
+	wone_d_interp_scalar(cL1.fs->vel.z, cL0.fs->vel.z, cR0.fs->vel.z, cR1.fs->vel.z,
+			    cL1Length, cL0Length, cR0Length, cR1Length,
+			    Lft.vel.z, Rght.vel.z, kL, kR, apply_limiter_flag, extrema_clipping_flag);
+	if ( get_mhd_flag() == 1 ) {
+	    wone_d_interp_scalar(cL1.fs->B.x, cL0.fs->B.x, cR0.fs->B.x, cR1.fs->B.x,
+				cL1Length, cL0Length, cR0Length, cR1Length,
+				Lft.B.x, Rght.B.x, kL, kR, apply_limiter_flag, extrema_clipping_flag);
+	    wone_d_interp_scalar(cL1.fs->B.y, cL0.fs->B.y, cR0.fs->B.y, cR1.fs->B.y,
+				cL1Length, cL0Length, cR0Length, cR1Length,
+				Lft.B.y, Rght.B.y, kL, kR, apply_limiter_flag, extrema_clipping_flag);
+	    wone_d_interp_scalar(cL1.fs->B.z, cL0.fs->B.z, cR0.fs->B.z, cR1.fs->B.z,
+				cL1Length, cL0Length, cR0Length, cR1Length,
+				Lft.B.z, Rght.B.z, kL, kR, apply_limiter_flag, extrema_clipping_flag);
+	}
+	if ( get_k_omega_flag() == 1 ) {
+	    wone_d_interp_scalar(cL1.fs->tke, cL0.fs->tke, cR0.fs->tke, cR1.fs->tke,
+				cL1Length, cL0Length, cR0Length, cR1Length,
+				Lft.tke, Rght.tke, kL, kR, apply_limiter_flag, extrema_clipping_flag);
+	    wone_d_interp_scalar(cL1.fs->omega, cL0.fs->omega, cR0.fs->omega, cR1.fs->omega,
+				cL1Length, cL0Length, cR0Length, cR1Length,
+				Lft.omega, Rght.omega, kL, kR, apply_limiter_flag, extrema_clipping_flag);
+	}
+        for ( int isp = 0; isp < nsp; ++isp ) {
+	    wone_d_interp_scalar(cL1.fs->gas->massf[isp], cL0.fs->gas->massf[isp],
+				cR0.fs->gas->massf[isp], cR1.fs->gas->massf[isp],
+				cL1Length, cL0Length, cR0Length, cR1Length,
+				Lft.gas->massf[isp], Rght.gas->massf[isp],  kL, kR,
+				apply_limiter_flag, extrema_clipping_flag);
+        }
+
+	// Make the thermodynamic properties consistent.
+	// Pressure, Local Speed of Sound and Temperature.
+        // The value of 1 indicates that the old temperature
+        // should be used as an initial guess for the iterative
+        // EOS functions.
+	// If the EOS call fouls up, just copy the cell data, low-order.
+	if ( nsp > 1 ) {
+	    if ( scale_mass_fractions( Lft.gas->massf ) != 0 ) {
+		for ( size_t isp=0; isp<Lft.gas->massf.size(); ++isp )
+		    cL0.fs->gas->massf[isp] = Lft.gas->massf[isp];
+	    }
+	    if ( scale_mass_fractions( Rght.gas->massf ) != 0 ) {
+		for ( size_t isp=0; isp<Rght.gas->massf.size(); ++isp )
+		    cR0.fs->gas->massf[isp] = Rght.gas->massf[isp];
+	    }
+	}
+
+	// Interpolate on two of the thermodynamic quantities, and fill
+	// in the rest based on an EOS call.
+
+	wone_d_interp_scalar(gL1.rho, gL0.rho, gR0.rho, gR1.rho,
+		  cL1Length, cL0Length, cR0Length, cR1Length,
+		  Lft.gas->rho, Rght.gas->rho,
+		  kL, kR,
+		  apply_limiter_flag, extrema_clipping_flag);
+    for ( int i = 0; i < gmodel->get_number_of_modes(); ++i ) {
+		wone_d_interp_scalar(gL1.e[i], gL0.e[i], gR0.e[i], gR1.e[i],
+							cL1Length, cL0Length, cR0Length, cR1Length,
+							Lft.gas->e[i], Rght.gas->e[i],
+			  				kL, kR,
+							apply_limiter_flag, extrema_clipping_flag);
+    }
+    int status = gmodel->eval_thermo_state_rhoe(*(Lft.gas));
+	status = gmodel->eval_thermo_state_rhoe(*(Rght.gas));
+	if ( status != SUCCESS ) {
+	    if ( status == 1 ) {
+		// Lft state failed.
+		Lft.copy_values_from(*(cL0.fs));
+	    }
+	    else if ( status == 2 ) {
+		// Rght state failed.
+		Rght.copy_values_from(*(cR0.fs));
+	    }
+	    else if ( status == 3 ) {
+		// Both failed.
+		Lft.copy_values_from(*(cL0.fs));
+		Rght.copy_values_from(*(cR0.fs));
+	    }
+	    else {
+		printf("one_d_interp(): Problem in flow state reconstruction.");
+		printf("Failure status: %d is unknown.\n", status);
+		printf("Bailing out!\n");
+		exit(RECONSTRUCTION_ERROR);
+	    }
+	}
+
+	if ( get_viscous_flag() ) {
+	    gmodel->eval_transport_coefficients(*(Lft.gas));
+	    gmodel->eval_transport_coefficients(*(Rght.gas));
+	}
+	if ( get_diffusion_flag() ) {
+	    gmodel->eval_diffusion_coefficients(*(Lft.gas));
+	    gmodel->eval_diffusion_coefficients(*(Rght.gas));
+	}
+    } // end of high-order reconstruction
+    return SUCCESS;
+} // end of wone_d_interp()
+
+/// \brief Reconstruct flow properties at an interface from FV_Cell properties from one side.
+///
+/// This is essentially a one-sided one-dimensional interpolation process.  It needs only
+/// the cell-average data and the lengths of the cells in the interpolation direction.
+int onesided_interp(FV_Cell &cL0, FV_Cell &cR0, FV_Cell &cR1,
+		             double cL0Length, double cR0Length, double cR1Length,
+		             FlowState &Rght )
+{
+    Gas_model *gmodel = get_gas_model_ptr();
+    Gas_data &gL0 = *(cL0.fs->gas);
+    Gas_data &gR0 = *(cR0.fs->gas);
+    Gas_data &gR1 = *(cR1.fs->gas);
+    Thermo_interpolator* ti = get_thermo_interpolator_ptr();
+    int nsp = gmodel->get_number_of_species();
+    int apply_limiter_flag = get_apply_limiter_flag();
+    int extrema_clipping_flag = get_extrema_clipping_flag();
+
+    // Low-order reconstruction just copies data from adjacent FV_Cell.
+    Rght.copy_values_from(*(cR0.fs));
+    if ( get_Xorder_flag() > 1 ) {
+	// High-order reconstruction for some properties.
+	onesided_interp_scalar(cL0.fs->vel.x, cR0.fs->vel.x, cR1.fs->vel.x,
+			    cL0Length, cR0Length, cR1Length,
+			    Rght.vel.x, apply_limiter_flag, extrema_clipping_flag);
+	onesided_interp_scalar(cL0.fs->vel.y, cR0.fs->vel.y, cR1.fs->vel.y,
+			    cL0Length, cR0Length, cR1Length,
+			    Rght.vel.y, apply_limiter_flag, extrema_clipping_flag);
+	onesided_interp_scalar(cL0.fs->vel.z, cR0.fs->vel.z, cR1.fs->vel.z,
+			    cL0Length, cR0Length, cR1Length,
+			    Rght.vel.z, apply_limiter_flag, extrema_clipping_flag);
+	if ( get_mhd_flag() == 1 ) {
+	    onesided_interp_scalar(cL0.fs->B.x, cR0.fs->B.x, cR1.fs->B.x,
+				cL0Length, cR0Length, cR1Length,
+				Rght.B.x, apply_limiter_flag, extrema_clipping_flag);
+	    onesided_interp_scalar(cL0.fs->B.y, cR0.fs->B.y, cR1.fs->B.y,
+				cL0Length, cR0Length, cR1Length,
+				Rght.B.y, apply_limiter_flag, extrema_clipping_flag);
+	    onesided_interp_scalar(cL0.fs->B.z, cR0.fs->B.z, cR1.fs->B.z,
+				cL0Length, cR0Length, cR1Length,
+				Rght.B.z, apply_limiter_flag, extrema_clipping_flag);
+	}
+	if ( get_k_omega_flag() == 1 ) {
+	    onesided_interp_scalar(cL0.fs->tke, cR0.fs->tke, cR1.fs->tke,
+				cL0Length, cR0Length, cR1Length,
+				Rght.tke, apply_limiter_flag, extrema_clipping_flag);
+	    onesided_interp_scalar(cL0.fs->omega, cR0.fs->omega, cR1.fs->omega,
+				cL0Length, cR0Length, cR1Length,
+				Rght.omega, apply_limiter_flag, extrema_clipping_flag);
+	}
+        for ( int isp = 0; isp < nsp; ++isp ) {
+	    onesided_interp_scalar(cL0.fs->gas->massf[isp],
+				cR0.fs->gas->massf[isp], cR1.fs->gas->massf[isp],
+				cL0Length, cR0Length, cR1Length,
+				Rght.gas->massf[isp],
+				apply_limiter_flag, extrema_clipping_flag);
+        }
+
+	// Make the thermodynamic properties consistent.
+	// Pressure, Local Speed of Sound and Temperature.
+        // The value of 1 indicates that the old temperature
+        // should be used as an initial guess for the iterative
+        // EOS functions.
+	// If the EOS call fouls up, just copy the cell data, low-order.
+	if ( nsp > 1 ) {
+	    if ( scale_mass_fractions( Rght.gas->massf ) != 0 ) {
+		for ( size_t isp=0; isp<Rght.gas->massf.size(); ++isp )
+		    cR0.fs->gas->massf[isp] = Rght.gas->massf[isp];
+	    }
+	}
+
+	// Interpolate on two of the thermodynamic quantities, and fill
+	// in the rest based on an EOS call.
+
+    onesided_interp_scalar(gL0.rho, gR0.rho, gR1.rho,
+	                       cL0Length, cR0Length, cR1Length,
+	                       Rght.gas->rho, apply_limiter_flag, extrema_clipping_flag);
+    for ( int i = 0; i < gmodel->get_number_of_modes(); ++i ) {
+     onesided_interp_scalar(gL0.e[i], gR0.e[i], gR1.e[i],
+		                    cL0Length, cR0Length, cR1Length,
+		                    Rght.gas->e[i], apply_limiter_flag, extrema_clipping_flag);
+    }
+    int status = gmodel->eval_thermo_state_rhoe(*(Rght.gas));
+    
+		if ( status != SUCCESS ) {
+		// Rght state failed.
+		Rght.copy_values_from(*(cL0.fs));
+	    }			      
+	
+	if ( get_viscous_flag() ) {
+	    gmodel->eval_transport_coefficients(*(Rght.gas));
+	}
+	if ( get_diffusion_flag() ) {
+	    gmodel->eval_diffusion_coefficients(*(Rght.gas));
+	}
+    } // end of high-order reconstruction
+    return SUCCESS;
+} // end of onesided_interp()
+
+/// \brief Reconstruct flow properties at an interface from FV_Cell properties.
+///
+/// This is essentially a one-dimensional linear interpolation process.  It needs only
+/// the cell-average data and the lengths of the cells in the interpolation direction.
+
+int one_d_linear_interp(FV_Cell &cL0, FV_Cell &cR0,
+		                double cL0Length, double cR0Length,
+		                FlowState &Lft)
+{
+    Gas_model *gmodel = get_gas_model_ptr();
+    Gas_data &gL0 = *(cL0.fs->gas);
+    Gas_data &gR0 = *(cR0.fs->gas);
+    Thermo_interpolator* ti = get_thermo_interpolator_ptr();
+    int nsp = gmodel->get_number_of_species();
+    int apply_limiter_flag = get_apply_limiter_flag();
+    int extrema_clipping_flag = get_extrema_clipping_flag();
+    
+    // Low-order reconstruction just copies data from adjacent FV_Cell.
+    Lft.copy_values_from(*(cL0.fs));
+    if ( get_Xorder_flag() > 1 ) {
+	// High-order reconstruction for some properties.
+	linear_interp_scalar(cL0.fs->vel.x, cR0.fs->vel.x,
+			             cL0Length, cR0Length,
+			             Lft.vel.x, apply_limiter_flag, extrema_clipping_flag);
+	linear_interp_scalar(cL0.fs->vel.y, cR0.fs->vel.y,
+			             cL0Length, cR0Length,
+			             Lft.vel.y, apply_limiter_flag, extrema_clipping_flag);
+	linear_interp_scalar(cL0.fs->vel.z, cR0.fs->vel.z,
+			             cL0Length, cR0Length,
+			             Lft.vel.z, apply_limiter_flag, extrema_clipping_flag);
+	if ( get_mhd_flag() == 1 ) {
+	    linear_interp_scalar(cL0.fs->B.x, cR0.fs->B.x,
+				             cL0Length, cR0Length,
+				             Lft.B.x, apply_limiter_flag, extrema_clipping_flag);
+	    linear_interp_scalar(cL0.fs->B.y, cR0.fs->B.y,
+				             cL0Length, cR0Length,
+				             Lft.B.y, apply_limiter_flag, extrema_clipping_flag);
+	    linear_interp_scalar(cL0.fs->B.z, cR0.fs->B.z,
+				             cL0Length, cR0Length,
+				             Lft.B.z, apply_limiter_flag, extrema_clipping_flag);
+	}
+	if ( get_k_omega_flag() == 1 ) {
+	    linear_interp_scalar(cL0.fs->tke, cR0.fs->tke,
+				             cL0Length, cR0Length,
+				             Lft.tke, apply_limiter_flag, extrema_clipping_flag);
+	    linear_interp_scalar(cL0.fs->omega, cR0.fs->omega,
+				             cL0Length, cR0Length,
+				             Lft.omega, apply_limiter_flag, extrema_clipping_flag);
+	}
+    for ( int isp = 0; isp < nsp; ++isp ) {
+    linear_interp_scalar(cL0.fs->gas->massf[isp], cR0.fs->gas->massf[isp],
+			             cL0Length, cR0Length,
+			             Lft.gas->massf[isp], apply_limiter_flag, extrema_clipping_flag);
+    }
+
+	// Make the thermodynamic properties consistent.
+	// Pressure, Local Speed of Sound and Temperature.
+        // The value of 1 indicates that the old temperature
+        // should be used as an initial guess for the iterative
+        // EOS functions.
+	// If the EOS call fouls up, just copy the cell data, low-order.
+	if ( nsp > 1 ) {
+	    if ( scale_mass_fractions( Lft.gas->massf ) != 0 ) {
+		    for ( size_t isp=0; isp<Lft.gas->massf.size(); ++isp )
+		        cL0.fs->gas->massf[isp] = Lft.gas->massf[isp];
+		}
+	}
+
+	// Interpolate on two of the thermodynamic quantities, and fill
+	// in the rest based on an EOS call.
+
+    //if ( *ti = Rhoe_interpolator ) {
+    linear_interp_scalar(gL0.rho, gR0.rho,
+	                     cL0Length, cR0Length,
+	                     Lft.gas->rho, apply_limiter_flag, extrema_clipping_flag);
+    for ( int i = 0; i < gmodel->get_number_of_modes(); ++i ) {
+    linear_interp_scalar(gL0.e[i], gR0.e[i],
+		                 cL0Length, cR0Length,
+		                 Lft.gas->e[i], apply_limiter_flag, extrema_clipping_flag);
+    }
+    int status = gmodel->eval_thermo_state_rhoe(*(Lft.gas));		      
+	
+	if ( status != SUCCESS ) {
+		// Lft state failed.
+		Lft.copy_values_from(*(cL0.fs));
+	    }
+
+	if ( get_viscous_flag() ) {
+	    gmodel->eval_transport_coefficients(*(Lft.gas));
+	}
+	if ( get_diffusion_flag() ) {
+	    gmodel->eval_diffusion_coefficients(*(Lft.gas));
+	}
+    } // end of high-order reconstruction
+    return SUCCESS;
+} // end of onesided_interp()
+
 

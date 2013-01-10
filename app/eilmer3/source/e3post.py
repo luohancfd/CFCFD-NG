@@ -38,7 +38,7 @@ longOptions = ["help", "job=", "zip-files", "no-zip-files", "vtk-xml", "tecplot"
                "probe=", "add-pitot-p", "add-total-p",
                "add-molef", "gmodel-file=",
                "add-total-enthalpy", "add-mach", "heat-flux-list=",
-               "plot3d", "omegaz=", "tangent-slab-list=", "prepare-fstc-restart"]
+               "plot3d", "omegaz=", "tangent-slab-list=", "prepare-fstc-restart", "moving-grid"]
 
 def printUsage():
     print ""
@@ -711,7 +711,10 @@ if __name__ == '__main__':
     for tindx in tindx_list:
         if uoDict.has_key("--vtk-xml"):
             print "Assemble VTK-XML files for t=", times_dict[tindx]
-            grid, flow, bgk, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
+            if uoDict.has_key("--moving-grid"):
+                grid, flow, bgk, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles, movingGrid=1)
+            else:
+                grid, flow, bgk, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz)
             write_VTK_XML_files(rootName, tindx, nblock, grid, flow, times_dict[tindx])
         #

@@ -103,7 +103,7 @@ E3_OBJECTS_2 := kernel.o \
 	bc_adjacent.o \
 	bc_supersonic_in.o \
 	bc_extrapolate_out.o \
-	bc_shock_in.o \
+	bc_shock_fitting_in.o \
 	bc_slip_wall.o \
 	bc_adiabatic.o \
 	bc_fixed_t.o \
@@ -493,9 +493,9 @@ bc_extrapolate_out.o : $(SRC)/bc_extrapolate_out.cxx $(SRC)/block.hh $(SRC)/kern
     $(NM_SRC)/zero_finders.hh $(SRC)/bc.hh
 	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_extrapolate_out.cxx -o bc_extrapolate_out.o
 
-bc_shock_in.o : $(SRC)/bc_shock_in.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(LIBLUA) \
+bc_shock_fitting_in.o : $(SRC)/bc_shock_fitting_in.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh $(SRC)/bc.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_shock_in.cxx -o bc_shock_in.o
+	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_shock_fitting_in.cxx -o bc_shock_fitting_in.o
 	
 bc_slip_wall.o : $(SRC)/bc_slip_wall.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh

@@ -307,8 +307,13 @@ class GlobalData(object):
       should be terminated.
     * max_step: (int) Time stepping will be terminated if the simulation reached
       this number of steps.
-    * shock_adapting_flag: (0/1) Set to 1 to activate periodic adaptation of the grid to the shock.
+    * shock_fitting_flag: (0/1) Set to 1 to activate adaptation of the grid to the shock.
       Set to 0 (the default) for no shock adaptation.
+    * shock_fitting_speed_factor: (float) The calcuated boundary interface velocity is multiplied
+      by this number. It may need to be reduced below the default of 1.0 for stability on fine grids.
+    * shock_fitting_decay_flag: (0/1) Set to 1 to cause the shock fitting speed factor to decay
+      exponentially from the given value to 0 over the length of the simulation.
+      Set to 0 (the default) for no decay.
     * dt_shock: (float) Period (in seconds) between running the shock adaptation algorithm.
     * dt_plot: (float) Period between writing all of the flow field data to the
       solution file.
@@ -335,7 +340,8 @@ class GlobalData(object):
                 'turbulence_prandtl_number', 'turbulence_schmidt_number', \
                 'scalar_pdf_flag', 'reacting_flag', 'reaction_time_start', \
                 'x_order', 'flux_calc', 'compression_tolerance', 'shear_tolerance', \
-                't_order', 'stringent_cfl', 'shock_adapting_flag', 'dt_shock', \
+                't_order', 'stringent_cfl', 'shock_fitting_flag', 'dt_shock', \
+                'shock_fitting_decay_flag', 'shock_fitting_speed_factor', \
                 't0', 'dt', 'cfl', 'dt_chem', 'dt_therm', \
                 'interpolation_type', 'sequence_blocks', \
                 'print_count', 'cfl_count', 'max_invalid_cells', 'dt_reduction_factor', \
@@ -417,8 +423,10 @@ class GlobalData(object):
         self.max_invalid_cells = 10
         self.max_time = 1.0e-3
         self.max_step = 10
-        self.shock_adapting_flag = 0
-        self.dt_shock = 1.0e-3
+        self.shock_fitting_flag = 0
+        self.shock_fitting_decay_flag = 0
+        self.shock_fitting_speed_factor = 0.25
+        self.dt_shock = 0.0
         self.dt_plot = 1.0e-3
         self.dt_history = 1.0e-3
         GlobalData.count += 1
@@ -478,7 +486,9 @@ class GlobalData(object):
         fp.write("viscous_delay = %e\n"% self.viscous_delay)
         fp.write("viscous_factor_increment = %e\n"% self.viscous_factor_increment)
         fp.write("viscous_upwinding_flag = %d\n"% self.viscous_upwinding_flag)
-        fp.write("shock_adapting_flag = %d\n"% self.shock_adapting_flag)
+        fp.write("shock_fitting_flag = %d\n"% self.shock_fitting_flag)
+        fp.write("shock_fitting_decay_flag = %d\n"% self.shock_fitting_decay_flag)
+        fp.write("shock_fitting_speed_factor = %e\n"% self.shock_fitting_speed_factor)
         fp.write("max_mu_t_factor = %e\n"% self.max_mu_t_factor)
         fp.write("transient_mu_t_factor = %e\n"% self.transient_mu_t_factor)
         fp.write("diffusion_flag = %d\n" % self.diffusion_flag)

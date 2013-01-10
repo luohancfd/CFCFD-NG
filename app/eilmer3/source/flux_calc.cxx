@@ -90,7 +90,7 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
     if( IFace_flow_state == NULL ) {
 	IFace_flow_state = new FlowState(gmodel);
     }
-
+    IFace.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
     Lft.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
     Rght.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
 
@@ -111,9 +111,9 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
             ausm(Lft, Rght, *IFace_flow_state, WSL, WSR);
 
 	rho = IFace_flow_state->gas->rho;
-	un = IFace_flow_state->vel.x;
-	vt1 = IFace_flow_state->vel.y;
-	vt2 = IFace_flow_state->vel.z;
+	un = IFace_flow_state->vel.x - IFace.vel.x;
+	vt1 = IFace_flow_state->vel.y - IFace.vel.y;
+	vt2 = IFace_flow_state->vel.z - IFace.vel.z;
 	p = IFace_flow_state->gas->p;
 	e = IFace_flow_state->gas->e[0];
 	ke = 0.5 * (un*un + vt1*vt1 + vt2*vt2);
@@ -170,6 +170,7 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
     F.print();
 #   endif
 
+    IFace.vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
     // Rotate momentum fluxes back to the global frame of reference.
     F.momentum.transform_to_global(IFace.n, IFace.t1, IFace.t2);
 	

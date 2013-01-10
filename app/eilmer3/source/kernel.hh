@@ -103,6 +103,7 @@ struct global_data
     double viscous_time_delay;
     double max_mu_t_factor;
     double transient_mu_t_factor;
+    double shock_fitting_speed_factor;
 
     double t_plot;          /* time to write next soln    */
     double t_his;           /* time to write next sample  */
@@ -193,8 +194,10 @@ int set_verbose_flag( int i );
 int get_verbose_flag( void );
 int set_axisymmetric_flag(int ia);
 int get_axisymmetric_flag(void);
-int set_shock_adapting_flag(int iw);
-int get_shock_adapting_flag(void);
+int set_shock_fitting_flag(int iw);
+int get_shock_fitting_flag(void);
+int set_shock_fitting_decay_flag(int iw);
+int get_shock_fitting_decay_flag(void);
 int set_viscous_flag(int iv);
 int get_viscous_flag(void);
 int set_viscous_upwinding_flag(int iw);

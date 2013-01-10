@@ -179,6 +179,29 @@ int Block::apply(FV_Cell_MemberFunction_double_double f, double param1, double p
     return SUCCESS;
 } // end of apply(f, p1, p2)
 
+/// \brief Apply the function (one extra int one extra double parameter) to all cells.
+int Block::apply(FV_Cell_MemberFunction_int_double f, int param1, double param2, 
+		 string failure_message_header)
+{
+    int result_flag;
+    FV_Cell *cellp;
+    for ( int k = kmin; k <= kmax; ++k ) {
+        for ( int j = jmin; j <= jmax; ++j ) {
+	    for ( int i = imin; i <= imax; ++i ) {
+		cellp = get_cell(i,j,k);
+		result_flag = CALL_MEMBER_FN(*cellp,f)(param1,param2);
+		if ( result_flag != 0 ) {
+		    cout << failure_message_header << endl;
+		    printf("Block %d: cell[%d][%d][%d] \n", id, i, j, k);
+		    cellp->print();
+		    exit( BAD_CELLS_ERROR );
+		}
+	    }
+	}
+    }
+    return SUCCESS;
+} // end of apply(f, p1, p2)
+
 /// \brief Apply the function (one extra int parameter) to all cells.
 int Block::apply(FV_Cell_MemberFunction_int f, int param1, string failure_message_header)
 {
@@ -1385,8 +1408,8 @@ int Block::calc_volumes_2D( void )
             }
             if (vol > max_vol) max_vol = vol;
             if (vol < min_vol) min_vol = vol;
-            cell->area = xyarea;
             cell->volume = vol;
+            cell->area = xyarea;
 	    // Check cell length scale using North and East boundaries.
 	    // Also, save the minimum length for later use in the CFL
 	    // checking routine.  Record max aspect ratio over all cells.
@@ -1487,9 +1510,185 @@ int Block::calc_volumes_2D( void )
         target_cell->jLength = source_cell->jLength;
 	target_cell->kLength = 0.0;
     } // end for j
+	
+	//printf("Max Volume = %e, Min Volume = %e\n", max_vol, min_vol);
+	//printf("Maximum aspect ratio = %e\n", max_aspect);
 
-    printf("Max Volume = %e, Min Volume = %e\n", max_vol, min_vol);
-    printf("Maximum aspect ratio = %e\n", max_aspect);
+    return SUCCESS;
+} // end calc_volumes_2D()
+
+int Block::calc_volumes_2D( int time_level )
+/// \brief Compute the PRIMARY cell volumes, areas, and centers 
+///        from the vertex positions.
+///
+/// For 2D planar, assume unit length in the Z-direction.
+/// For axisymmetry, compute a volume per radian.
+///
+/// Determine minimum length and aspect ratio, also.
+{
+    int i, j;
+    double xA, yA, xB, yB, xC, yC, xD, yD;
+    double xN, yN, xS, yS, xE, yE, xW, yW;
+    double vol, max_vol, min_vol, xyarea;
+    double dx, dy, dxN, dyN, dxE, dyE;
+    double lengthN, lengthE, length_max, length_min, length_cross;
+    double max_aspect, aspect_ratio;
+    FV_Cell *cell, *source_cell, *target_cell;
+
+    // Cell layout
+    // C-----B     3-----2
+    // |     |     |     |
+    // |  c  |     |  c  |
+    // |     |     |     |
+    // D-----A     0-----1
+
+    max_vol = 0.0;
+    min_vol = 1.0e6;    /* arbitrarily large */
+    max_aspect = 0.0;
+    for ( i = imin; i <= imax; ++i ) {
+        for ( j = jmin; j <= jmax; ++j ) {
+            cell = get_cell(i,j);
+	    // These are the corners.
+	    xA = cell->vtx[1]->position[time_level].x;
+	    yA = cell->vtx[1]->position[time_level].y;
+	    xB = cell->vtx[2]->position[time_level].x;
+	    yB = cell->vtx[2]->position[time_level].y;
+	    xC = cell->vtx[3]->position[time_level].x;
+	    yC = cell->vtx[3]->position[time_level].y;
+	    xD = cell->vtx[0]->position[time_level].x;
+	    yD = cell->vtx[0]->position[time_level].y;
+	    // Cell area in the (x,y)-plane.
+            xyarea = 0.5 * ((xB + xA) * (yB - yA) + (xC + xB) * (yC - yB) +
+                            (xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
+	    // Cell Centroid.
+            cell->position[time_level].x = 1.0 / (xyarea * 6.0) * 
+                      ((yB - yA) * (xA * xA + xA * xB + xB * xB) + 
+                       (yC - yB) * (xB * xB + xB * xC + xC * xC) +
+                       (yD - yC) * (xC * xC + xC * xD + xD * xD) + 
+                       (yA - yD) * (xD * xD + xD * xA + xA * xA));
+            cell->position[time_level].y = -1.0 / (xyarea * 6.0) * 
+                     ((xB - xA) * (yA * yA + yA * yB + yB * yB) + 
+                      (xC - xB) * (yB * yB + yB * yC + yC * yC) +
+                      (xD - xC) * (yC * yC + yC * yD + yD * yD) + 
+                      (xA - xD) * (yD * yD + yD * yA + yA * yA));
+	    cell->position[time_level].z = 0.0;
+	    // Cell Volume.
+            if (get_axisymmetric_flag() == 1) {
+                // Volume per radian = centroid y-ordinate * cell area
+                vol = xyarea * cell->position[time_level].y;
+            } else {
+                // Assume unit depth in the z-direction.
+                vol = xyarea;
+            }
+            if (vol < 0.0) {
+                printf("Negative cell volume: vol[%d][%d] = %e\n", i, j, vol);
+                return 1;
+            }
+            if (vol > max_vol) max_vol = vol;
+            if (vol < min_vol) min_vol = vol;
+            cell->vol[time_level] = vol;
+            cell->ar[time_level] = xyarea;
+	    // Check cell length scale using North and East boundaries.
+	    // Also, save the minimum length for later use in the CFL
+	    // checking routine.  Record max aspect ratio over all cells.
+            dxN = xC - xB;
+            dyN = yC - yB;
+            dxE = xA - xB;
+            dyE = yA - yB;
+            lengthN = sqrt(dxN * dxN + dyN * dyN);
+            lengthE = sqrt(dxE * dxE + dyE * dyE);
+
+            length_max = lengthN;
+            if (lengthE > length_max) length_max = lengthE;
+            length_cross = xyarea / length_max; 
+            // estimate of minimum width of cell
+            length_min = lengthN;
+            if (lengthE < length_min) length_min = lengthE;
+            if (length_cross < length_min) length_min = length_cross;
+            cell->L_min = length_min;
+            aspect_ratio = length_max / length_min;
+            if (aspect_ratio > max_aspect) max_aspect = aspect_ratio;
+
+	    // Record the cell widths in the i- and j-index directions.
+	    // The widths are measured between corresponding midpoints of
+            // the bounding interfaces.
+            // This data is later used by the high-order reconstruction.
+            xN = 0.5 * (xC + xB);
+            yN = 0.5 * (yC + yB);
+            xS = 0.5 * (xD + xA);
+            yS = 0.5 * (yD + yA);
+            xE = 0.5 * (xA + xB);
+            yE = 0.5 * (yA + yB);
+            xW = 0.5 * (xD + xC);
+            yW = 0.5 * (yD + yC);
+            dx = xN - xS;
+            dy = yN - yS;
+            cell->jLength = sqrt(dx * dx + dy * dy);
+            dx = xE - xW;
+            dy = yE - yW;
+            cell->iLength = sqrt(dx * dx + dy * dy);
+	    cell->kLength = 0.0;
+        } // j loop
+    } // i loop
+
+    // We now need to mirror the cell iLength and jLength
+    // around the boundaries.
+    // Those boundaries that are adjacent to another block
+    // will be updated later with the other-block's cell lengths.
+    for ( i = imin; i <= imax; ++i ) {
+        // North boundary
+        j = jmax;
+        source_cell = get_cell(i,j);
+	target_cell = get_cell(i,j+1);
+        target_cell->iLength = source_cell->iLength;
+        target_cell->jLength = source_cell->jLength;
+	target_cell->kLength = 0.0;
+        source_cell = get_cell(i,j);
+	target_cell = get_cell(i,j+2);
+        target_cell->iLength = source_cell->iLength;
+        target_cell->jLength = source_cell->jLength;
+	target_cell->kLength = 0.0;
+        // South boundary
+        j = jmin;
+        source_cell = get_cell(i,j);
+        target_cell = get_cell(i,j-1);
+        target_cell->iLength = source_cell->iLength;
+        target_cell->jLength = source_cell->jLength;
+	target_cell->kLength = 0.0;
+        source_cell = get_cell(i,j);
+        target_cell = get_cell(i,j-2);
+        target_cell->iLength = source_cell->iLength;
+        target_cell->jLength = source_cell->jLength;
+	target_cell->kLength = 0.0;
+    } // end for i
+
+    for ( j = jmin; j <= jmax; ++j ) {
+        // East boundary
+        i = imax;
+        source_cell = get_cell(i,j);
+        target_cell = get_cell(i+1,j);
+        target_cell->iLength = source_cell->iLength;
+        target_cell->jLength = source_cell->jLength;
+	target_cell->kLength = 0.0;
+        source_cell = get_cell(i,j);
+        target_cell = get_cell(i+2,j);
+        target_cell->iLength = source_cell->iLength;
+        target_cell->jLength = source_cell->jLength;
+	target_cell->kLength = 0.0;
+        // West boundary
+        i = imin;
+        source_cell = get_cell(i,j);
+        target_cell = get_cell(i-1,j);
+        target_cell->iLength = source_cell->iLength;
+        target_cell->jLength = source_cell->jLength;
+	target_cell->kLength = 0.0;
+        source_cell = get_cell(i,j);
+        target_cell = get_cell(i-2,j);
+        target_cell->iLength = source_cell->iLength;
+        target_cell->jLength = source_cell->jLength;
+	target_cell->kLength = 0.0;
+    } // end for j
+	
     return SUCCESS;
 } // end calc_volumes_2D()
 
@@ -1660,7 +1859,8 @@ int Block::secondary_areas_2D( void )
     get_vtx(imin,j)->area = 0.5 * get_vtx(imin+1,j)->area;
     get_vtx(imax+1,j)->area = 0.5 * get_vtx(imax,j)->area;
 
-    printf("Max area = %e, Min area = %e\n", max_area, min_area);
+    //printf("Max area = %e, Min area = %e\n", max_area, min_area);
+
     return SUCCESS;
 } // end secondary_areas_2D()
 
@@ -1680,12 +1880,15 @@ int Block::calc_faces_2D( void )
             IFace = get_ifi(i,j);
 	    // These are the corners.
             xA = get_vtx(i,j)->pos.x; 
-	    yA = get_vtx(i,j)->pos.y;
+	    	yA = get_vtx(i,j)->pos.y;
             xB = get_vtx(i,j+1)->pos.x; 
-	    yB = get_vtx(i,j+1)->pos.y;
+	    	yB = get_vtx(i,j+1)->pos.y;
             LAB = sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA));
             if (LAB < 1.0e-9) {
                 printf("Zero length ifi[%d,%d]: %e\n", i, j, LAB);
+				cout << xA << ", " << xB << endl; 
+			cout << yA << ", " << yB << endl;
+			cout << endl;
             }
             // Direction cosines for the unit normal.
             IFace->n.x = (yB - yA) / LAB;
@@ -1697,12 +1900,16 @@ int Block::calc_faces_2D( void )
             IFace->length = LAB;
             // Mid-point and area.
             IFace->Ybar = 0.5 * (yA + yB);
+            //IFace->ar[0] = IFace->ar[1];
+            //IFace->area = IFace->ar[0];
             if (get_axisymmetric_flag() == 1) {
                 // Interface area per radian.
                 IFace->area = LAB * IFace->Ybar;
+                //IFace->area = LAB * IFace->Ybar;
             } else {
                 // Assume unit depth in the Z-direction.
                 IFace->area = LAB;
+                //IFace->area = LAB;
             }
 	    IFace->pos =  (get_vtx(i,j)->pos + get_vtx(i,j+1)->pos)/2.0;
 	    
@@ -1725,13 +1932,15 @@ int Block::calc_faces_2D( void )
             // Direction cosines for the unit normal.
             IFace->n.x = (yC - yB) / LBC;
             IFace->n.y = -(xC - xB) / LBC;
-	    IFace->n.z = 0.0;  // 2D plane
-	    IFace->t2 = Vector3(0.0, 0.0, 1.0);
-	    IFace->t1 = cross(IFace->n, IFace->t2);
+	        IFace->n.z = 0.0;  // 2D plane
+	        IFace->t2 = Vector3(0.0, 0.0, 1.0);
+	        IFace->t1 = cross(IFace->n, IFace->t2);
             // Length in the XY-plane.
             IFace->length = LBC;
             // Mid-point and area.
             IFace->Ybar = 0.5 * (yC + yB);
+            IFace->ar[0] = IFace->ar[1];
+            IFace->area = IFace->ar[0];
             if (get_axisymmetric_flag() == 1) {
                 // Interface area per radian.
                 IFace->area = LBC * IFace->Ybar;
@@ -1740,6 +1949,92 @@ int Block::calc_faces_2D( void )
                 IFace->area = LBC;
             }
 	    IFace->pos = (get_vtx(i+1,j)->pos + get_vtx(i,j)->pos)/2.0;
+        } // j loop
+    } // i loop
+    return SUCCESS;
+} // end calc_faces_2D()
+
+/// \brief Compute the interface lengths and direction cosines for interfaces.
+///
+int Block::calc_faces_2D( int time_level )
+{
+    FV_Interface *IFace;
+    int i, j;
+    double xA, xB, yA, yB, xC, yC;
+    double LAB, LBC;
+
+    // East-facing interfaces.
+    for (i = imin; i <= imax+1; ++i) {
+        for (j = jmin; j <= jmax; ++j) {
+            IFace = get_ifi(i,j);
+	    // These are the corners.
+            xA = get_vtx(i,j)->position[time_level].x; 
+	    yA = get_vtx(i,j)->position[time_level].y;
+            xB = get_vtx(i,j+1)->position[time_level].x; 
+	    yB = get_vtx(i,j+1)->position[time_level].y;
+            LAB = sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA));
+            if (LAB < 1.0e-9) {
+                printf("Zero length ifi[%d,%d]: %e\n", i, j, LAB);
+            }
+            // Direction cosines for the unit normal.
+            IFace->n.x = (yB - yA) / LAB;
+            IFace->n.y = -(xB - xA) / LAB;
+	    IFace->n.z = 0.0;  // 2D plane
+	    IFace->t2 = Vector3(0.0, 0.0, 1.0);
+	    IFace->t1 = cross(IFace->n, IFace->t2);
+            // Length in the XY-plane.
+            IFace->length = LAB;
+            // Mid-point and area.
+            IFace->Ybar = 0.5 * (yA + yB);
+            //IFace->ar[0] = IFace->ar[1];
+            //IFace->area = IFace->ar[0];
+            if (get_axisymmetric_flag() == 1) {
+                // Interface area per radian.
+                IFace->ar[time_level] = LAB * IFace->Ybar;
+                //IFace->area = LAB * IFace->Ybar;
+            } else {
+                // Assume unit depth in the Z-direction.
+                IFace->ar[time_level] = LAB;
+                //IFace->area = LAB;
+            }
+	    IFace->pos =  (get_vtx(i,j)->position[time_level] + get_vtx(i,j+1)->position[time_level])/2.0;
+	    
+        } // j loop
+    } // i loop
+
+    // North-facing interfaces.
+    for (i = imin; i <= imax; ++i) {
+        for (j = jmin; j <= jmax+1; ++j) {
+            IFace = get_ifj(i,j);
+	    // These are the corners.
+            xB = get_vtx(i+1,j)->position[time_level].x;
+            yB = get_vtx(i+1,j)->position[time_level].y;
+            xC = get_vtx(i,j)->position[time_level].x;
+            yC = get_vtx(i,j)->position[time_level].y;
+            LBC = sqrt((xC - xB) * (xC - xB) + (yC - yB) * (yC - yB));
+            if (LBC < 1.0e-9) {
+                printf("Zero length ifj[%d,%d]: %e\n", i, j, LBC);
+            }
+            // Direction cosines for the unit normal.
+            IFace->n.x = (yC - yB) / LBC;
+            IFace->n.y = -(xC - xB) / LBC;
+	        IFace->n.z = 0.0;  // 2D plane
+	        IFace->t2 = Vector3(0.0, 0.0, 1.0);
+	        IFace->t1 = cross(IFace->n, IFace->t2);
+            // Length in the XY-plane.
+            IFace->length = LBC;
+            // Mid-point and area.
+            IFace->Ybar = 0.5 * (yC + yB);
+            IFace->ar[0] = IFace->ar[1];
+            IFace->area = IFace->ar[0];
+            if (get_axisymmetric_flag() == 1) {
+                // Interface area per radian.
+                IFace->ar[time_level] = LBC * IFace->Ybar;
+            } else {
+                // Assume unit depth in the Z-direction.
+                IFace->ar[time_level] = LBC;
+            }
+	    IFace->pos = (get_vtx(i+1,j)->position[time_level] + get_vtx(i,j)->position[time_level])/2.0;
         } // j loop
     } // i loop
     return SUCCESS;
@@ -1813,6 +2108,221 @@ int Block::calc_ghost_cell_geom_2D( void )
     }
     return SUCCESS;
 }
+
+/** \brief Adjust the vertices of the grid based on calculated vertex velocity. 
+ *
+ *
+ */
+
+int Block::predict_vertex_positions( double dt )
+{
+    int i, j, k;
+    FV_Vertex *vtx;
+    for (k = kmin; k <= kmax; ++k) {
+	    for (j = jmin; j <= jmax+1; ++j) {
+			for (i = imin; i <= imax+1; ++i) {
+				vtx = get_vtx(i,j,k);
+				vtx->position[1] = vtx->position[0] + dt * vtx->velocity[0];
+			}
+	    }
+	}
+    return SUCCESS;
+}
+
+int Block::correct_vertex_positions( double dt )
+{
+    int i, j, k;
+    FV_Vertex *vtx;
+    for (k = kmin; k <= kmax; ++k) {
+	    for (j = jmin; j <= jmax+1; ++j) {
+			for (i = imin; i <= imax+1; ++i) {
+				vtx = get_vtx(i,j,k);
+				vtx->position[2] = vtx->position[0] + 0.5 * dt * (vtx->velocity[0] + vtx->velocity[1]);
+			}
+	    }
+	}
+    return SUCCESS;
+}
+
+/// \brief Calculate shock speed at interface for 2D. 
+/// See Ian Johnston's thesis for an explanation.
+///
+int Block::calc_boundary_vertex_velocity(FV_Interface *IFaceU, FV_Interface *IFaceD,     
+                                         FV_Vertex *vtx, Vector3 trv, int time_level )
+{   
+    double Ma = dot(IFaceU->fs->vel, unit(vtx->position[time_level] - IFaceU->pos)) / IFaceU->fs->gas->a;
+    double Mb = dot(IFaceD->fs->vel, unit(vtx->position[time_level] - IFaceD->pos)) / IFaceD->fs->gas->a;
+    double wa = velocity_weighting_factor(Ma);
+    double wb = velocity_weighting_factor(Mb);
+    if ( (wa + wb) < 1e-3 ) {
+          wa = wb = 1.0;
+    }
+    Vector3 wsa = IFaceU->vel;
+    Vector3 wsb = IFaceD->vel;
+    Vector3 wv = (wa*wsa + wb*wsb) / (wa + wb);
+    vtx->vel = dot(wv, trv) * trv; // Constrain vertex velocity to body radial direction.
+    return SUCCESS;				       			           
+}
+
+/// \brief Calculate shock speed at interface for 3D. 
+/// See Ian Johnston's thesis for an explanation.
+/// 
+int Block::calc_boundary_vertex_velocity(FV_Interface *IFaceD2, FV_Interface *IFaceD,     
+                                         FV_Interface *IFaceU, FV_Interface *IFaceU2,
+                                         FV_Vertex *vtx, Vector3 trv, int time_level)
+{   
+    double Ma = dot(IFaceD2->fs->vel, unit(vtx->position[time_level] - IFaceD2->pos)) / IFaceD2->fs->gas->a;
+    double Mb = dot(IFaceD->fs->vel, unit(vtx->position[time_level] - IFaceD->pos)) / IFaceD->fs->gas->a;
+    double Mc = dot(IFaceU->fs->vel, unit(vtx->position[time_level] - IFaceU->pos)) / IFaceU->fs->gas->a;
+    double Md = dot(IFaceU2->fs->vel, unit(vtx->position[time_level] - IFaceU2->pos)) / IFaceU2->fs->gas->a;
+    double wa = velocity_weighting_factor(Ma);
+    double wb = velocity_weighting_factor(Mb);
+    double wc = velocity_weighting_factor(Mc);
+    double wd = velocity_weighting_factor(Md);
+    if ( (wa + wb + wc + wd) < 1e-3 ) {
+          wa = wb = wc = wd = 1.0;
+    }
+    Vector3 wsa = IFaceD2->vel;
+    Vector3 wsb = IFaceD->vel;
+    Vector3 wsc = IFaceU->vel;
+    Vector3 wsd = IFaceU2->vel;
+    Vector3 wv = (wa*wsa + wb*wsb + wc*wsc + wd*wsd) / (wa + wb + wc + wd);
+    vtx->vel = dot(wv, trv) * trv; // Constrain vertex velocity to body radial direction.
+    return SUCCESS;					       			           
+}
+
+inline double Block::velocity_weighting_factor(double M)
+{
+    if ( M > 1 ) {
+        return M;
+    } else {
+        //return 0.5 * ( M + fabs(M) );
+        return 0.125*( pow(M+1, 2) + (M+1)*fabs(M+1) );
+    }
+}
+
+/// \brief Calculate inviscid fluxes based only on freestream conditions. 
+///
+
+/** \brief Set vertex velocities based on linear distribution of velocity from boundary to wall. 
+ *  Assumes inflow at west boundary and wall at east boundary.
+ */
+int Block::set_vertex_velocities( int time_level )
+{
+    int i, j, k;
+	FV_Interface *IFaceU;
+	FV_Interface *IFaceD;
+	FV_Interface *IFaceU2;
+	FV_Interface *IFaceD2;
+	FV_Interface *IFaceD3;
+    FV_Vertex *svtx;
+    FV_Vertex *wvtx;
+    FV_Vertex *vtx;
+	Vector3 trv;
+    double length;
+	i = imin;
+    for (k = kmin; k <= kmax; ++k) {
+		for (j = jmin; j <= jmax+1; ++j) {
+		    IFaceD2 = get_ifi(i,j-2,k);
+			IFaceD = get_ifi(i,j-1,k);
+			IFaceU = get_ifi(i,j,k);
+			IFaceU2 = get_ifi(i,j+1,k);
+			vtx = get_vtx(i,j,k);
+			wvtx = get_vtx(imax,j,k);
+			trv = unit(wvtx->position[time_level] - vtx->position[time_level]); // Direction vector from vertex to body.
+			calc_boundary_vertex_velocity(IFaceD, IFaceU,
+				                     	  vtx, trv, time_level);
+		} // for j
+	} // for k
+    // Set first and last two boundary vertex velocities
+	if ( bcp[SOUTH]->type_code != 0 ) { // If not adjacent to another block.
+		vtx = get_vtx(imin,jmin,kmin);
+		wvtx = get_vtx(imax,jmin,kmin);
+		IFaceU = get_ifi(imin,jmin,kmin);
+		trv = unit(wvtx->position[time_level] - vtx->position[time_level]); 
+		calc_boundary_vertex_velocity(IFaceU, IFaceU,     
+		                              vtx, trv, time_level);
+		// Second
+		vtx = get_vtx(imin,jmin+1,kmin);
+		wvtx = get_vtx(imax,jmin+1,kmin);
+		IFaceU2 = get_ifi(imin,jmin+2,kmin);
+		IFaceU = get_ifi(imin,jmin+1,kmin);
+		IFaceD = get_ifi(imin,jmin,kmin);
+		trv = unit(wvtx->position[time_level] - vtx->position[time_level]);
+		calc_boundary_vertex_velocity(IFaceU, IFaceD,    
+		                              vtx, trv, time_level);
+	}
+    	// Last
+	if ( bcp[NORTH]->type_code != 0 ) { // If not adjacent to another block.
+		vtx = get_vtx(imin,jmax+1,kmin);
+		wvtx = get_vtx(imax,jmax+1,kmin);
+		IFaceD3 = get_ifi(imin,jmax-2,kmin);
+		IFaceD2 = get_ifi(imin,jmax-1,kmin);
+		IFaceD = get_ifi(imin,jmax,kmin);
+		IFaceU = get_ifi(imin,jmax-3,kmin);
+		trv = unit(wvtx->position[time_level] - vtx->position[time_level]);
+		calc_boundary_vertex_velocity(IFaceD2, IFaceD,
+		                              vtx, trv, time_level);
+		// Second Last
+		vtx = get_vtx(imin,jmax,kmin);
+		wvtx = get_vtx(imax,jmax,kmin);
+		IFaceD3 = get_ifi(imin,jmax-3,kmin);
+		IFaceD2 = get_ifi(imin,jmax-2,kmin);
+		IFaceD = get_ifi(imin,jmax-1,kmin);
+		IFaceU = get_ifi(imin,jmax,kmin);
+		trv = unit(wvtx->position[time_level] - vtx->position[time_level]);
+		calc_boundary_vertex_velocity(IFaceD, IFaceU, 
+		                              vtx, trv, time_level);
+	}
+    // Set interior vertex velocities 
+    for (k = kmin; k <= kmax; ++k) {
+	    for (j = jmin; j <= jmax+1; ++j) {
+	        svtx = get_vtx(imin,j,k); // Shock boundary vertex.
+	        wvtx = get_vtx(imax+1,j,k); // Wall vertex.
+	        length = vabs(svtx->position[time_level] - wvtx->position[time_level]);
+	        for (i = imin; i <= imax; ++i) {
+	            vtx = get_vtx(i,j,k);
+	            vtx->velocity[time_level] = ( vabs(vtx->position[time_level] - 
+											  wvtx->position[time_level]) / length ) * svtx->vel;
+		    }
+	    }
+	}
+    return SUCCESS;
+}
+
+int Block::set_interface_velocities( int time_level )
+{
+    int i, j, k;
+    FV_Vertex *vtx;
+    FV_Vertex *vtxi;
+    FV_Vertex *vtxj;
+    FV_Interface *IFacei;
+    FV_Interface *IFacej;
+    double length;
+    
+    for (k = kmin; k <= kmax; ++k) {
+	    for (j = jmin; j <= jmax; ++j) {
+	        for (i = imin; i <= imax+1; ++i) {
+	            vtx = get_vtx(i,j,k);
+	            vtxj = get_vtx(i,j+1,k);
+	            IFacei = get_ifi(i,j,k);
+	            IFacei->vel = (vtxj->velocity[time_level] + vtx->velocity[time_level]) / 2.0;
+		    }
+	    }
+	}
+    for (k = kmin; k <= kmax; ++k) {
+	    for (j = jmin; j <= jmax+1; ++j) {
+	        for (i = imin; i <= imax; ++i) {
+	            vtx = get_vtx(i,j,k);
+	            vtxi = get_vtx(i+1,j,k);
+	            IFacej = get_ifj(i,j,k);
+	            IFacej->vel = (vtxi->velocity[time_level] + vtx->velocity[time_level]) / 2.0;
+		    }
+	    }
+	}
+    return SUCCESS;
+}
+
 
 /** \brief Computes the (pressure and shear) forces applied by the gas 
  *         to the bounding surface.
@@ -2219,6 +2729,55 @@ int Block::write_solution( std::string filename, double sim_time, int dimensions
     }
     return SUCCESS;
 } // end of Block::write_solution()
+
+int Block::write_block( std::string filename, double sim_time, int dimensions, int zip_file )
+/// \brief Write the flow solution (i.e. the primary variables at the
+///        cell centers) for a single block.
+///
+/// This is "almost-Tecplot" POINT format.
+{
+    FV_Vertex *vtx;
+    FILE *fp;
+    gzFile zfp;
+    string str;
+    if (id == 0) {
+	printf("write_block(): At t = %e, start block = %d.\n", sim_time, id);
+    }
+    if (zip_file) {
+	fp = NULL;
+	filename += ".gz";
+	if ((zfp = gzopen(filename.c_str(), "w")) == NULL) {
+	    cerr << "write_block(): Could not open " << filename << "; BAILING OUT" << endl;
+	    exit( FILE_ERROR );
+	}
+	gzprintf(zfp, "%d %d %d  # ni nj nk\n", nni+1, nnj+1, nnk);
+    } else {
+	zfp = NULL;
+	if ((fp = fopen(filename.c_str(), "w")) == NULL) {
+	    cerr << "write_block(): Could not open " << filename << "; BAILING OUT" << endl;
+	    exit( FILE_ERROR );
+	}
+	fprintf(fp, "%d %d %d  # ni nj nk\n", nni+1, nnj+1, nnk);
+    }
+    for ( int k = kmin; k <= kmax; ++k ) { // Fix for 3D
+	for ( int j = jmin; j <= jmax+1; ++j ) {
+	    for ( int i = imin; i <= imax+1; ++i ) {
+		vtx = get_vtx(i,j,k);
+		if (zip_file) {
+		    gzprintf(zfp, "%20.12e %20.12e %20.12e\n", vtx->pos.x, vtx->pos.y, vtx->pos.z);
+		} else {
+		    fprintf(fp, "%20.12e %20.12e %20.12e\n", vtx->pos.x, vtx->pos.y, vtx->pos.z);
+		}
+	    } // i-loop
+	} // j-loop
+    } // k-loop
+    if (zip_file) {
+	gzclose(zfp);
+    } else {
+	fclose(fp);
+    }
+    return SUCCESS;
+} // end of Block::write_block()
 
 /// \brief Read the BGK discrete velocity distribution values
 /// Returns a status flag.
@@ -2659,18 +3218,18 @@ int Block::detect_shock_points( int dimensions )
     for ( int k = kmin; k <= kmax; ++k ) {
 	for ( int i = imin; i <= imax; ++i ) {
 	    for ( int j = jmin-1; j <= jmax; ++j ) {
-		cL = get_cell(i,j,k);
-		cR = get_cell(i,j+1,k);
-		IFace = cL->iface[NORTH];
-		uL = cL->fs->vel.x * IFace->n.x + cL->fs->vel.y * IFace->n.y + cL->fs->vel.z * IFace->n.z;
-		uR = cR->fs->vel.x * IFace->n.x + cR->fs->vel.y * IFace->n.y + cR->fs->vel.z * IFace->n.z;
-		aL = cL->fs->gas->a;
-		aR = cR->fs->gas->a;
-		if (aL < aR)
-		    a_min = aL;
-		else
-		    a_min = aR;
-		IFace->fs->S = ((uR - uL) / a_min < tol);
+		    cL = get_cell(i,j,k);
+		    cR = get_cell(i,j+1,k);
+		    IFace = cL->iface[NORTH];
+		    uL = cL->fs->vel.x * IFace->n.x + cL->fs->vel.y * IFace->n.y + cL->fs->vel.z * IFace->n.z;
+		    uR = cR->fs->vel.x * IFace->n.x + cR->fs->vel.y * IFace->n.y + cR->fs->vel.z * IFace->n.z;
+		    aL = cL->fs->gas->a;
+		    aR = cR->fs->gas->a;
+		    if (aL < aR)
+		        a_min = aL;
+		    else
+		        a_min = aR;
+		    IFace->fs->S = ((uR - uL) / a_min < tol);
 	    } // j loop
 	} // i loop
     } // for k
@@ -2680,18 +3239,18 @@ int Block::detect_shock_points( int dimensions )
     for ( int k = kmin; k <= kmax; ++k ) {
 	for ( int i = imin-1; i <= imax; ++i ) {
 	    for ( int j = jmin; j <= jmax; ++j ) {
-		cL = get_cell(i,j,k);
-		cR = get_cell(i+1,j,k);
-		IFace = cL->iface[EAST];
-		uL = cL->fs->vel.x * IFace->n.x + cL->fs->vel.y * IFace->n.y + cL->fs->vel.z * IFace->n.z;
-		uR = cR->fs->vel.x * IFace->n.x + cR->fs->vel.y * IFace->n.y + cR->fs->vel.z * IFace->n.z;
-		aL = cL->fs->gas->a;
-		aR = cR->fs->gas->a;
-		if (aL < aR)
-		    a_min = aL;
-		else
-		    a_min = aR;
-		IFace->fs->S = ((uR - uL) / a_min < tol);
+		    cL = get_cell(i,j,k);
+		    cR = get_cell(i+1,j,k);
+		    IFace = cL->iface[EAST];
+		    uL = cL->fs->vel.x * IFace->n.x + cL->fs->vel.y * IFace->n.y + cL->fs->vel.z * IFace->n.z;
+		    uR = cR->fs->vel.x * IFace->n.x + cR->fs->vel.y * IFace->n.y + cR->fs->vel.z * IFace->n.z;
+		    aL = cL->fs->gas->a;
+		    aR = cR->fs->gas->a;
+		    if (aL < aR)
+		        a_min = aL;
+		    else
+		        a_min = aR;
+		    IFace->fs->S = ((uR - uL) / a_min < tol);
 	    } // j loop
 	} // i loop
     } // for k

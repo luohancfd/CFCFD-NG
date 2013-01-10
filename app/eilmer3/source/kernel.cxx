@@ -184,8 +184,11 @@ int viscous_upwinding = 0;
 //  calculation.
 int diffusion = 0;           
 
-/// \brief Shock adapting =0 for no shock adaptation, =1 for shock adaptation
-int shock_adapting = 0;
+/// \brief Shock fitting =0 for no shock fitting, =1 for shock fitting
+int shock_fitting = 0;
+
+/// \brief Shock fitting decay =0 for no shock fitting decay, =1 for shock fitting decay
+int shock_fitting_decay = 0;
 
 /// \brief Axisymmetric flag =0 for 2D planar equations, =1 for 2D axisymmetric. 
 ///
@@ -336,25 +339,48 @@ int get_axisymmetric_flag(void)
 
 /*------------------------------------------------------------------*/
 
-int set_shock_adapting_flag(int iw)
+int set_shock_fitting_flag(int iw)
 {
-    shock_adapting = iw;
-    if (shock_adapting == 0) {
-        if ( get_verbose_flag() ) printf("Turn off shock adaptation\n");
+    shock_fitting = iw;
+    if (shock_fitting == 0) {
+        if ( get_verbose_flag() ) printf("Turn off shock fititng\n");
     }
-    else if (shock_adapting == 1) {
-        if ( get_verbose_flag() ) printf("Turn on shock adaptation\n");
+    else if (shock_fitting == 1) {
+        if ( get_verbose_flag() ) printf("Turn on shock fitting\n");
     }
     else {
-        printf("Invalid shock adapting flag value: %d\n", shock_adapting);
+        printf("Invalid shock fitting flag value: %d\n", shock_fitting);
         exit(VALUE_ERROR);
     }
     return SUCCESS;
 }
 
-int get_shock_adapting_flag(void)
+int get_shock_fitting_flag(void)
 {
-    return shock_adapting;
+    return shock_fitting;
+}
+
+/*------------------------------------------------------------------*/
+
+int set_shock_fitting_decay_flag(int iw)
+{
+    shock_fitting_decay = iw;
+    if (shock_fitting_decay == 0) {
+        if ( get_verbose_flag() ) printf("Turn off shock fitting decay\n");
+    }
+    else if (shock_fitting_decay == 1) {
+        if ( get_verbose_flag() ) printf("Turn on shock fitting decay\n");
+    }
+    else {
+        printf("Invalid shock fitting decay flag value: %d\n", shock_fitting_decay);
+        exit(VALUE_ERROR);
+    }
+    return SUCCESS;
+}
+
+int get_shock_fitting_decay_flag(void)
+{
+    return shock_fitting_decay;
 }
 
 /*------------------------------------------------------------------*/

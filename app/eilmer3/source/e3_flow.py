@@ -621,14 +621,18 @@ class StructuredGridFlow(object):
 
 # end of class StructuredGridFlow
 
-def read_all_blocks(rootName, nblock, tindx, zipFiles=0):
+def read_all_blocks(rootName, nblock, tindx, zipFiles=0, movingGrid=0):
     """
     Returns all grids and flow blocks for a single flow solution.
     """
     grid = []; flow = []; bgk = []
     for jb in range(nblock):
-        fileName = rootName+".grid"+(".b%04d.t%04d" % (jb, 0))
-        fileName = os.path.join("grid", "t0000", fileName)
+        if movingGrid == 0:
+            fileName = rootName+".grid"+(".b%04d.t%04d" % (jb, 0))
+            fileName = os.path.join("grid", "t0000", fileName)
+        else:
+            fileName = rootName+".grid"+(".b%04d.t%04d" % (jb, tindx))
+            fileName = os.path.join("grid", "t%04d" % tindx, fileName)
         print "Read cell-vertex data from", fileName
         grid.append(StructuredGrid())
         if zipFiles: 

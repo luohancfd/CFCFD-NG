@@ -44,9 +44,9 @@ int hlle(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
 
     rL = Lft.gas->rho;
     pL = Lft.gas->p;
-    uL = Lft.vel.x;
-    vL = Lft.vel.y;
-    wL = Lft.vel.z;
+    uL = Lft.vel.x - IFace.vel.x;
+    vL = Lft.vel.y - IFace.vel.y;
+    wL = Lft.vel.z - IFace.vel.z;
     BxL = Lft.B.x;
     ByL = Lft.B.y;
     BzL = Lft.B.z;
@@ -55,9 +55,9 @@ int hlle(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
 
     rR = Rght.gas->rho;
     pR = Rght.gas->p;
-    uR = Rght.vel.x;
-    vR = Rght.vel.y;
-    wR = Rght.vel.z;
+    uR = Rght.vel.x - IFace.vel.x;
+    vR = Rght.vel.y - IFace.vel.y;
+    wR = Rght.vel.z - IFace.vel.z;
     BxR = Rght.B.x;
     ByR = Rght.B.y;
     BzR = Rght.B.z;
