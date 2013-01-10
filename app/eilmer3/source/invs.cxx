@@ -65,17 +65,17 @@ int Block::inviscid_flux(int dimensions)
 		    // by doing nothing here.
 		} else {
 		    if ( get_shock_fitting_flag() == 1 ) {
-			    wone_d_interp(*cL1, *cL0, *cR0, *cR1,
-				              cL1->iLength, cL0->iLength, cR0->iLength, cR1->iLength, Lft, Rght);
+			wone_d_interp(*cL1, *cL0, *cR0, *cR1,
+				      cL1->iLength, cL0->iLength, cR0->iLength, cR1->iLength, Lft, Rght);
 		    } else {
-			    one_d_interp(*cL1, *cL0, *cR0, *cR1,
-				              cL1->iLength, cL0->iLength, cR0->iLength, cR1->iLength, Lft, Rght);
+			one_d_interp(*cL1, *cL0, *cR0, *cR1,
+				     cL1->iLength, cL0->iLength, cR0->iLength, cR1->iLength, Lft, Rght);
 		    }
-		    // Avoid interpolating across the shock.
+		    // Overwrite previous interpolation across the shock.
 		    if ( ( i == imin+1 ) && (bcp[WEST]->type_code == 21) ) {
         		one_d_linear_interp(*cL0, *cR0,
-                                     cL0->iLength, cR0->iLength,
-                                     Lft);
+					    cL0->iLength, cR0->iLength,
+					    Lft);
 		    } // end if
 		    // Save u, v, w, T for the viscous flux calculation by making a local average.
 		    // The values for u, v and T may be updated subsequently by the interface-flux function.

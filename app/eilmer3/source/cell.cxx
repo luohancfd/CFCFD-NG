@@ -224,15 +224,11 @@ int FlowState::BGK_equilibrium(void)
     double Pr = gmodel->Prandtl(gas->mu, Cp, gas->k[0]);
 
     for (size_t iq = 0; iq < get_velocity_buckets(); ++iq) {
-	uvw = get_vcoord(iq);
-	
-	
+	uvw = get_vcoord(iq);	
 	gh = Shakhov(gas->rho, vel.x, vel.y, gas->T[0], 0.0, 0.0, R, Pr, uvw.x, uvw.y);
-
 	G[iq] = gh.x;
 	H[iq] = gh.y;
     }
-	
     return SUCCESS;
 }
 
@@ -341,7 +337,7 @@ FV_Interface::FV_Interface(Gas_model *gm)
     Ybar = 0.0;
     length = 0.0;
     for ( size_t i = 0; i < NL; ++i ) {
-	    ar[i] = 0.0;	
+	ar[i] = 0.0;	
     }
     area = 0.0;
     n.x = 0.0; n.y = 0.0; n.z = 0.0;
@@ -464,15 +460,15 @@ FV_Cell::FV_Cell(Gas_model *gm)
     base_qdot = 0.0;
     pos.x = 0.0; pos.y = 0.0; pos.z = 0.0;
     for ( size_t i = 0; i < NL; ++i ) {
-	    position[i].x = 0.0; position[i].y = 0.0; position[i].z = 0.0;
+	position[i].x = 0.0; position[i].y = 0.0; position[i].z = 0.0;
     }
     for ( size_t i = 0; i < NL; ++i ) {
-	    vol[i] = 0.0;
+	vol[i] = 0.0;
     }
     volume = 0.0;
     area = 0.0;
     for ( size_t i = 0; i < NL; ++i ) {
-	    ar[i] = 0.0;	
+	ar[i] = 0.0;	
     }
     uf = 0.0;
     iLength = 0.0; jLength = 0.0; kLength = 0.0;
@@ -606,23 +602,23 @@ int FV_Cell::copy_values_from(CFlowCondition &src)
 int FV_Cell::copy_values_from(FV_Cell &src, int type_of_copy)
 {
     if ( type_of_copy == COPY_ALL_CELL_DATA ||
-	 	 type_of_copy == COPY_FLOW_STATE ) {
-       	 fs->copy_values_from(*(src.fs));
-		 status = src.status;
-		 Q_rE_rad = src.Q_rE_rad;
+	 type_of_copy == COPY_FLOW_STATE ) {
+	fs->copy_values_from(*(src.fs));
+	status = src.status;
+	Q_rE_rad = src.Q_rE_rad;
     }
     if ( type_of_copy == COPY_ALL_CELL_DATA ||
-	 	 type_of_copy == COPY_CELL_LENGTHS ) {
+	 type_of_copy == COPY_CELL_LENGTHS ) {
        	iLength = src.iLength; jLength = src.jLength; kLength = src.kLength;
-		pos.x = src.pos.x; pos.y = src.pos.y; pos.z = src.pos.z;
-		if ( get_shock_fitting_flag() ) {
-			for ( size_t j = 0; j < 6; ++j ) {
-				if ( src.iface[j] == 0 || iface[j] == 0 ) { // When copying from ghost cell which may
-				    continue;                               // not have initialised interfaces
-				}
-				iface[j]->copy_values_from(*(src.iface[j]), COPY_ALL_CELL_DATA);
-			}
+	pos.x = src.pos.x; pos.y = src.pos.y; pos.z = src.pos.z;
+	if ( get_shock_fitting_flag() ) {
+	    for ( size_t j = 0; j < 6; ++j ) {
+		if ( src.iface[j] == 0 || iface[j] == 0 ) { // When copying from ghost cell which may
+		    continue;                               // not have initialised interfaces
 		}
+		iface[j]->copy_values_from(*(src.iface[j]), COPY_ALL_CELL_DATA);
+	    }
+	}
     }
     return SUCCESS;
 }
@@ -635,30 +631,29 @@ int FV_Cell::copy_values_from(FV_Cell &src, int type_of_copy)
 double * FV_Cell::copy_values_to_buffer(double *buf, int type_of_copy)
 {
     if (type_of_copy == COPY_ALL_CELL_DATA ||
-	    type_of_copy == COPY_FLOW_STATE) {
+	type_of_copy == COPY_FLOW_STATE) {
         buf = fs->copy_values_to_buffer(buf);
-	    *buf++ = (double)status;
-	    *buf++ = Q_rE_rad;
+	*buf++ = (double)status;
+	*buf++ = Q_rE_rad;
     }
     if (type_of_copy == COPY_ALL_CELL_DATA ||
         type_of_copy == COPY_CELL_LENGTHS) {
         *buf++ = iLength; *buf++ = jLength; *buf++ = kLength;
         *buf++ = pos.x; *buf++ = pos.y; *buf++ = pos.z;
-		if ( get_shock_fitting_flag() ) {
-			for ( int j = 0; j < 4; ++j ) {
-			    if ( iface[j] == 0 ) { // When copying from ghost cell which may
-			        continue;                               // not have initialised interfaces
-			    }
-			    *buf++ = iface[j]->pos.x; *buf++ = iface[j]->pos.y; *buf++ = iface[j]->pos.z;
-			    *buf++ = iface[j]->vel.x; *buf++ = iface[j]->vel.y; *buf++ = iface[j]->vel.z;
-				*buf++ = iface[j]->length;
-				iface[j]->fs->copy_values_to_buffer(buf);
-			}
+	if ( get_shock_fitting_flag() ) {
+	    for ( int j = 0; j < 4; ++j ) {
+		if ( iface[j] == 0 ) { // When copying from ghost cell which may
+		    continue;          // not have initialised interfaces
 		}
+		*buf++ = iface[j]->pos.x; *buf++ = iface[j]->pos.y; *buf++ = iface[j]->pos.z;
+		*buf++ = iface[j]->vel.x; *buf++ = iface[j]->vel.y; *buf++ = iface[j]->vel.z;
+		*buf++ = iface[j]->length;
+		iface[j]->fs->copy_values_to_buffer(buf);
+	    }
+	}
     }
     return buf;
 }
-
 
 /// \brief Copy the data from a linear data buffer into the cell.
 /// \param buf : pointer to the current element somewhere in buffer
@@ -675,17 +670,17 @@ double * FV_Cell::copy_values_from_buffer(double *buf, int type_of_copy)
         type_of_copy == COPY_CELL_LENGTHS) {
         iLength = *buf++; jLength = *buf++; kLength = *buf++;
         pos.x = *buf++; pos.y = *buf++; pos.z = *buf++;
-		if ( get_shock_fitting_flag() ) {
-		    for ( int j = 0; j < 4; ++j ) {
-			    if ( iface[j] == 0 ) { // When copying from ghost cell which may
-			        continue;                               // not have initialised interfaces
-			    }
-			    iface[j]->pos.x = *buf++; iface[j]->pos.y = *buf++; iface[j]->pos.z = *buf++;
-			    iface[j]->vel.x = *buf++; iface[j]->vel.y = *buf++; iface[j]->vel.z = *buf++;
-			    iface[j]->length = *buf++;
-			    iface[j]->fs->copy_values_from_buffer(buf);
-			}
+	if ( get_shock_fitting_flag() ) {
+	    for ( int j = 0; j < 4; ++j ) {
+		if ( iface[j] == 0 ) { // When copying from ghost cell which may
+		    continue;          // not have initialised interfaces
 		}
+		iface[j]->pos.x = *buf++; iface[j]->pos.y = *buf++; iface[j]->pos.z = *buf++;
+		iface[j]->vel.x = *buf++; iface[j]->vel.y = *buf++; iface[j]->vel.z = *buf++;
+		iface[j]->length = *buf++;
+		iface[j]->fs->copy_values_from_buffer(buf);
+	    }
+	}
     }
     return buf;
 }
@@ -943,8 +938,8 @@ int FV_Cell::encode_conserved(double omegaz)
     // Total Energy / unit volume = density
     // (specific internal energy + kinetic energy/unit mass).
     double ke = 0.5 * (fs->vel.x * fs->vel.x
-		     + fs->vel.y * fs->vel.y
-		     + fs->vel.z * fs->vel.z);
+		       + fs->vel.y * fs->vel.y
+		       + fs->vel.z * fs->vel.z);
     if ( get_k_omega_flag() ) {
 	U->tke = fs->gas->rho * fs->tke;
 	U->omega = fs->gas->rho * fs->omega;
@@ -955,10 +950,10 @@ int FV_Cell::encode_conserved(double omegaz)
 	U->total_energy = fs->gas->rho * (fs->gas->e[0] + ke);
     }
     if ( get_mhd_flag() == 1) {
-    double me = 0.5 * (fs->B.x * fs->B.x
-		     + fs->B.y * fs->B.y
-		     + fs->B.z * fs->B.z);
-    U->total_energy += me;
+	double me = 0.5 * (fs->B.x * fs->B.x
+			   + fs->B.y * fs->B.y
+			   + fs->B.z * fs->B.z);
+	U->total_energy += me;
     }
     // Species densities: mass of species is per unit volume.
     for ( size_t isp = 0; isp < U->massf.size(); ++isp ) {
@@ -967,7 +962,7 @@ int FV_Cell::encode_conserved(double omegaz)
     // Individual energies
     Gas_model *gmodel = get_gas_model_ptr();
     gmodel->encode_conserved_energy(*(fs->gas), U->energies);
-
+    
     if ( omegaz != 0.0 ) {
 	// Rotating frame.
 	// Finally, we adjust the total energy to make rothalpy.
@@ -1042,12 +1037,12 @@ int FV_Cell::decode_conserved(double omegaz)
 	fs->gas->massf[isp] = U->massf[isp] * dinv;
     }
     if ( nsp > 1 ) scale_mass_fractions( fs->gas->massf );
-
+    
     // NOTE: - gas->e[0] is the total internal energy (sum of all modes)
     //         and has already been calculated above
     //       - renergies[0] is being calculated but never used.
     //         We've decided to leave it that way.
-double e0_save = fs->gas->e[0];
+    double e0_save = fs->gas->e[0];
     gmodel->decode_conserved_energy(*(fs->gas), U->energies);
     fs->gas->e[0] = e0_save;
     // Fill out the other variables; P, T, a and
@@ -1064,7 +1059,7 @@ int FV_Cell::decode_conserved( int time_level, double omegaz)
 {
     Gas_model *gmodel = get_gas_model_ptr();
     double ke, dinv, rE, me;
-
+    
     // Mass / unit volume = Density
     double rho = U->mass;
     fs->gas->rho = rho;
@@ -1130,7 +1125,7 @@ int FV_Cell::decode_conserved( int time_level, double omegaz)
     gmodel->eval_thermo_state_rhoe(*(fs->gas));
     if ( get_viscous_flag() ) gmodel->eval_transport_coefficients(*(fs->gas));
     if ( get_diffusion_flag() ) gmodel->eval_diffusion_coefficients(*(fs->gas));
-
+    
     return SUCCESS;
 } // end of decode_conserved()
 
@@ -1141,7 +1136,7 @@ int FV_Cell::check_flow_data(void)
 {
     int data_valid = 1;
     bool print_message = get_bad_cell_complain_flag() == 1;
-
+    
     data_valid = fs->gas->check_values(print_message);
 #   define MAXVEL 30000.0
     if (fabs(fs->vel.x) > MAXVEL || fabs(fs->vel.y) > MAXVEL || fabs(fs->vel.z) > MAXVEL) {
@@ -1175,30 +1170,30 @@ int FV_Cell::check_flow_data(void)
 
 int FV_Cell::set_geometry_to_time_level( void )
 {
-	for ( size_t j = 0; j < NL; ++j ) {
-		ar[j] = area;
-		vol[j] = volume;
-		position[j] = pos;
-		for ( int i = 0; i <= 3; ++i ) {
-			vtx[i]->position[j] = vtx[i]->pos;
-			iface[i]->ar[j] = iface[i]->area;
-		}
+    for ( size_t j = 0; j < NL; ++j ) {
+	ar[j] = area;
+	vol[j] = volume;
+	position[j] = pos;
+	for ( int i = 0; i <= 3; ++i ) {
+	    vtx[i]->position[j] = vtx[i]->pos;
+	    iface[i]->ar[j] = iface[i]->area;
 	}
-	return SUCCESS;
+    }
+    return SUCCESS;
 }
 
 /// \brief Set the cell geometry to the values calculated at the specified time level.
 ///
 int FV_Cell::set_geometry_from_time_level(int time_level)
 {
-	area = ar[time_level];
-	volume = vol[time_level];
-	pos = position[time_level];
-	for ( int i = 0; i <= 3; ++i ) {
-		vtx[i]->pos = vtx[i]->position[time_level];
-		iface[i]->area = iface[i]->ar[time_level];
-	}
-	return SUCCESS;
+    area = ar[time_level];
+    volume = vol[time_level];
+    pos = position[time_level];
+    for ( int i = 0; i <= 3; ++i ) {
+	vtx[i]->pos = vtx[i]->position[time_level];
+	iface[i]->area = iface[i]->ar[time_level];
+    }
+    return SUCCESS;
 }
 
 /// \brief Compute the time derivatives for the conserved quantities.
@@ -1219,14 +1214,13 @@ int FV_Cell::time_derivatives( int time_level, int dimensions )
     FV_Interface *IFb = iface[BOTTOM];
     // Cell volume (inverted).
     double vol_inv = 1.0 / vol[time_level];
-	//double vol_inv = 1.0 / volume;
     double integral;
 
     if (status == MASKED_CELL || status == SHADOWED_CELL) {
 	dUdt[time_level]->clear_values();
     	return SUCCESS; // do not update cell if it is covered with a piston
     }
-
+    
     // Time-derivative for Mass/unit volume.
     // Note that the unit normals for the interfaces are oriented
     // such that the unit normals for the east, north and top faces
@@ -1265,7 +1259,7 @@ int FV_Cell::time_derivatives( int time_level, int dimensions )
     } else {
 	dUdt[time_level]->momentum.z = 0.0;
     }
-
+    
     if (get_mhd_flag() == 1) {
 	// Time-derivative for X-Magnetic Field/unit volume.
 	integral = -IFe->F->B.x * IFe->ar[time_level] - IFn->F->B.x * IFn->ar[time_level]
@@ -1299,14 +1293,14 @@ int FV_Cell::time_derivatives( int time_level, int dimensions )
     if ( dimensions == 3 )
 	integral += IFb->F->total_energy * IFb->ar[time_level] - IFt->F->total_energy * IFt->ar[time_level];
     dUdt[time_level]->total_energy = vol_inv * integral + Q->total_energy;
-
+    
     if ( get_k_omega_flag() ) {
 	integral = -IFe->F->tke * IFe->ar[time_level] - IFn->F->tke * IFn->ar[time_level]
 	    + IFw->F->tke * IFw->ar[time_level] + IFs->F->tke * IFs->ar[time_level];
 	if ( dimensions == 3 )
 	    integral += IFb->F->tke * IFb->ar[time_level] - IFt->F->tke * IFt->ar[time_level];
 	dUdt[time_level]->tke = vol_inv * integral + Q->tke;
-
+	
 	integral = -IFe->F->omega * IFe->ar[time_level] - IFn->F->omega * IFn->ar[time_level]
 	    + IFw->F->omega * IFw->ar[time_level] + IFs->F->omega * IFs->ar[time_level];
 	if ( dimensions == 3 )
@@ -1375,7 +1369,7 @@ int FV_Cell::predictor_update(double dt)
 	U->B.y = vr * (U_old->B.y + dt * gamma_1 * dUdt0.B.y);
 	U->B.z = vr * (U_old->B.z + dt * gamma_1 * dUdt0.B.z);
     }
-
+    
     U->total_energy = vr * (U_old->total_energy + dt * gamma_1 * dUdt0.total_energy);
     if ( get_k_omega_flag() ) {
 	U->tke = vr * (U_old->tke + dt * gamma_1 * dUdt0.tke);
@@ -1414,8 +1408,8 @@ int FV_Cell::corrector_update(double dt)
     ConservedQuantities &dUdt1 = *(dUdt[1]);
     double th, th_inv;
     double v0 = 1.0;
-	double v1 = 1.0;
-	double vol_inv = 1.0;
+    double v1 = 1.0;
+    double vol_inv = 1.0;
     /*
      * Set the type of time-stepping
      * th = 0.0 : Euler
@@ -1423,9 +1417,9 @@ int FV_Cell::corrector_update(double dt)
      * th = 1.0 : sort-of-implicit?
      */
     if ( get_shock_fitting_flag() == 1 ) {
-        v0 = vol[0];
-		v1 = vol[1];
-		vol_inv = 1.0 / vol[2];
+        v0 = vol[0]; // The volume at different 
+	v1 = vol[1];
+	vol_inv = 1.0 / vol[2];
     }
     if (get_Torder_flag() == 3) {
 	/* 3rd order Runge-Kutta */
@@ -1436,11 +1430,14 @@ int FV_Cell::corrector_update(double dt)
 	th = v1 * 0.5;
 	th_inv = v0 * 0.5;
     }
-
+    
     U->mass = vol_inv * (v0 * U_old->mass + dt * (th_inv * dUdt0.mass + th * dUdt1.mass));
-    U->momentum.x = vol_inv * (v0 * U_old->momentum.x + dt * (th_inv * dUdt0.momentum.x + th * dUdt1.momentum.x));
-    U->momentum.y = vol_inv * (v0 * U_old->momentum.y + dt * (th_inv * dUdt0.momentum.y + th * dUdt1.momentum.y));
-    U->momentum.z = vol_inv * (v0 * U_old->momentum.z + dt * (th_inv * dUdt0.momentum.z + th * dUdt1.momentum.z));
+    U->momentum.x = vol_inv * (v0 * U_old->momentum.x + 
+			       dt * (th_inv * dUdt0.momentum.x + th * dUdt1.momentum.x));
+    U->momentum.y = vol_inv * (v0 * U_old->momentum.y + 
+			       dt * (th_inv * dUdt0.momentum.y + th * dUdt1.momentum.y));
+    U->momentum.z = vol_inv * (v0 * U_old->momentum.z + 
+			       dt * (th_inv * dUdt0.momentum.z + th * dUdt1.momentum.z));
 
     // Magnetic field
     if (get_mhd_flag() == 1) {
@@ -1448,8 +1445,9 @@ int FV_Cell::corrector_update(double dt)
 	U->B.y = vol_inv * (v0 * U_old->B.y + dt * (th_inv * dUdt0.B.y + th * dUdt1.B.y));
 	U->B.z = vol_inv * (v0 * U_old->B.z + dt * (th_inv * dUdt0.B.z + th * dUdt1.B.z));
     }
-
-    U->total_energy = vol_inv * (v0 * U_old->total_energy + dt * (th_inv * dUdt0.total_energy + th * dUdt1.total_energy));
+    
+    U->total_energy = vol_inv * (v0 * U_old->total_energy + 
+				 dt * (th_inv * dUdt0.total_energy + th * dUdt1.total_energy));
     if ( get_k_omega_flag() ) {
 	U->tke = vol_inv * (v0 * U_old->tke + dt * (th_inv * dUdt0.tke + th * dUdt1.tke));
 	U->tke = MAXIMUM(U->tke, 0.0);
@@ -1460,11 +1458,12 @@ int FV_Cell::corrector_update(double dt)
 	U->omega = vol_inv * (v0 * U_old->omega);
     }
     for ( size_t isp = 0; isp < U->massf.size(); ++isp ) {
-	U->massf[isp] = vol_inv * (v0 * U_old->massf[isp] + dt * (th_inv * dUdt0.massf[isp] + th * dUdt1.massf[isp]));
+	U->massf[isp] = vol_inv * (v0 * U_old->massf[isp] +
+				   dt * (th_inv * dUdt0.massf[isp] + th * dUdt1.massf[isp]));
     }
     for ( size_t imode = 0; imode < U->energies.size(); ++imode ) {
 	U->energies[imode] = vol_inv * (v0 * U_old->energies[imode] +
-	    dt * (th_inv * dUdt0.energies[imode] + th * dUdt1.energies[imode]));
+					dt * (th_inv * dUdt0.energies[imode] + th * dUdt1.energies[imode]));
     }
     return SUCCESS;
 } // end of corrector_update()
@@ -1486,7 +1485,7 @@ int FV_Cell::rk3_update(double dt)
     U->momentum.x = vr * (U_old->momentum.x + dt * (psi_2 * dUdt1.momentum.x + gamma_3 * dUdt2.momentum.x));
     U->momentum.y = vr * (U_old->momentum.y + dt * (psi_2 * dUdt1.momentum.y + gamma_3 * dUdt2.momentum.y));
     U->momentum.z = vr * (U_old->momentum.z + dt * (psi_2 * dUdt1.momentum.z + gamma_3 * dUdt2.momentum.z));
-
+    
     // Magnetic field
     if (get_mhd_flag() == 1) {
 	U->B.x = vr * (U_old->B.x + dt * (psi_2 * dUdt1.B.x + gamma_3 * dUdt2.B.x));
@@ -1494,7 +1493,8 @@ int FV_Cell::rk3_update(double dt)
 	U->B.z = vr * (U_old->B.z + dt * (psi_2 * dUdt1.B.z + gamma_3 * dUdt2.B.z));
     }
 
-    U->total_energy = vr * (U_old->total_energy + dt * (psi_2 * dUdt1.total_energy + gamma_3 * dUdt2.total_energy));
+    U->total_energy = vr * (U_old->total_energy + 
+			    dt * (psi_2 * dUdt1.total_energy + gamma_3 * dUdt2.total_energy));
     if ( get_k_omega_flag() ) {
 	U->tke = vr * (U_old->tke + dt * (psi_2 * dUdt1.tke + gamma_3 * dUdt2.tke));
 	U->tke = MAXIMUM(U->tke, 0.0);
@@ -1701,7 +1701,7 @@ double FV_Cell::signal_frequency(int dimensions)
 	// See Ramshaw and Chang PCPP V.12 n.3 1992 p314
 	// 1. Viscosity signal frequency
 	double D_a = 4.0 * viscous_factor * (gas->mu + -0.66667 * gas->mu +
-	                    mu_t - 0.66667 *mu_t ) / gas->rho;
+					     mu_t - 0.66667 *mu_t ) / gas->rho;
 	// 1. Conductivity signal frequency
 	double D_b = gas->k[0];
 	for ( int imode=1; imode<gmodel->get_number_of_modes(); ++imode )
@@ -1817,14 +1817,14 @@ int FV_Cell::turbulence_viscosity_k_omega(void)
             // 2D axisymmetric
             double v_over_y = fs->vel.y / pos.y;
             S_bar_squared = dudx*dudx + dvdy*dvdy + v_over_y*v_over_y
-                            - 1.0/3.0 * (dudx + dvdy + v_over_y)
-                            * (dudx + dvdy + v_over_y)
-                            + 0.5 * (dudy + dvdx) * (dudy + dvdx) ;
+		- 1.0/3.0 * (dudx + dvdy + v_over_y)
+		* (dudx + dvdy + v_over_y)
+		+ 0.5 * (dudy + dvdx) * (dudy + dvdx) ;
         } else {
             // 2D cartesian
             S_bar_squared = dudx*dudx + dvdy*dvdy
-                            - 1.0/3.0 * (dudx + dvdy) * (dudx + dvdy)
-                            + 0.5 * (dudy + dvdx) * (dudy + dvdx);
+		- 1.0/3.0 * (dudx + dvdy) * (dudx + dvdy)
+		+ 0.5 * (dudy + dvdx) * (dudy + dvdx);
         }
     } else {
         // 3D cartesian
@@ -1983,7 +1983,7 @@ int FV_Cell::update_k_omega_properties(double dt)
     double DrtkeDt, DromegaDt, rtke_increment, romega_increment;
     int n_little_steps = 20;  // Make this as large as needed to get stability.
     double dt_little = dt / n_little_steps;
-
+    
     // Encode conserved quantities for cell.
     U->tke = fs->gas->rho * fs->tke;
     U->omega = fs->gas->rho * fs->omega;
@@ -1995,16 +1995,16 @@ int FV_Cell::update_k_omega_properties(double dt)
              (rtke_increment > 0.0 && U->tke + rtke_increment > 0.5 * U->total_energy) ) {
             // Don't let rtke go negative and don't let it grow too large.
             rtke_increment = 0.0;
-            }
-            if ( U->omega + romega_increment < 0.0 ) {
-                // Don't let romega go negative.
+	}
+	if ( U->omega + romega_increment < 0.0 ) {
+	    // Don't let romega go negative.
             romega_increment = 0.0;
             }
-            U->tke += rtke_increment;
-            U->omega += romega_increment;
-            // Decode conserved quantities.
-            fs->tke = U->tke / fs->gas->rho;
-            fs->omega = U->omega / fs->gas->rho;
+	U->tke += rtke_increment;
+	U->omega += romega_increment;
+	// Decode conserved quantities.
+	fs->tke = U->tke / fs->gas->rho;
+	fs->omega = U->omega / fs->gas->rho;
     }  // End of for-loop for explicit update scheme
 #   endif
 
@@ -2121,7 +2121,7 @@ int FV_Cell::k_omega_time_derivatives(double *Q_rtke, double *Q_romega, double t
     }
 
     D_K = beta_star * fs->gas->rho * tke * omega;
-
+    
     // Apply a limit to the tke production as suggested by Jeff White, November 2007.
 #   define P_OVER_D_LIMIT (25.0)
     P_K = MINIMUM(P_K, P_OVER_D_LIMIT*D_K);
@@ -2172,7 +2172,7 @@ int FV_Cell::inviscid_source_vector(int time_level, double omegaz)
 	Q->momentum.y += rho * (omegaz*omegaz*y - 2.0*omegaz*wx);
 	// There is no contribution to the energy equation in the rotating frame
         // because it is implicit in the use of rothalpy as the conserved quantity.
-     }
+    }
     if ( get_axisymmetric_flag() == 1 ) {
 	// For axisymmetric flow:
 	// pressure contribution from the Front and Back (radial) interfaces.
@@ -2364,9 +2364,9 @@ int number_of_values_in_cell_copy(int type_of_copy)
     if (type_of_copy == COPY_ALL_CELL_DATA ||
         type_of_copy == COPY_CELL_LENGTHS) {
         number += 6;
-	    if ( get_shock_fitting_flag() ) {
-		    number += 24; // Velocity and position for each interface (2D)	
-	    }
+	if ( get_shock_fitting_flag() ) {
+	    number += 24; // Velocity and position for each interface (2D)	
+	}
     }
     return number;
 }
@@ -2544,128 +2544,128 @@ int wone_d_interp(FV_Cell &cL1, FV_Cell &cL0,
     int nsp = gmodel->get_number_of_species();
     int apply_limiter_flag = get_apply_limiter_flag();
     int extrema_clipping_flag = get_extrema_clipping_flag();
-
+    
 	double ML = dot(cL0.fs->vel, unit(cR0.pos - cL0.pos)) / cL0.fs->gas->a;
 	double MR = dot(cR0.fs->vel, unit(cL0.pos - cR0.pos)) / cR0.fs->gas->a;
 	double kL;
 	double kR;
 	if ( ML > 1.0 ) {
-		kL = -1.0;
+	    kL = -1.0;
 	} else {
 		kL = -max(0.0, ML);
 	}
 	if ( MR > 1.0 ) {
-		kR = -1.0;
+	    kR = -1.0;
 	} else {
-		kR = -max(0.0, MR);
+	    kR = -max(0.0, MR);
 	}
-    // Low-order reconstruction just copies data from adjacent FV_Cell.
-    Lft.copy_values_from(*(cL0.fs));
-    Rght.copy_values_from(*(cR0.fs));
-    if ( get_Xorder_flag() > 1 ) {
+	// Low-order reconstruction just copies data from adjacent FV_Cell.
+	Lft.copy_values_from(*(cL0.fs));
+	Rght.copy_values_from(*(cR0.fs));
+	if ( get_Xorder_flag() > 1 ) {
 	// High-order reconstruction for some properties.
-	wone_d_interp_scalar(cL1.fs->vel.x, cL0.fs->vel.x, cR0.fs->vel.x, cR1.fs->vel.x,
-			    cL1Length, cL0Length, cR0Length, cR1Length,
-			    Lft.vel.x, Rght.vel.x, kL, kR, apply_limiter_flag, extrema_clipping_flag);
-	wone_d_interp_scalar(cL1.fs->vel.y, cL0.fs->vel.y, cR0.fs->vel.y, cR1.fs->vel.y,
-			    cL1Length, cL0Length, cR0Length, cR1Length,
-			    Lft.vel.y, Rght.vel.y, kL, kR, apply_limiter_flag, extrema_clipping_flag);
-	wone_d_interp_scalar(cL1.fs->vel.z, cL0.fs->vel.z, cR0.fs->vel.z, cR1.fs->vel.z,
-			    cL1Length, cL0Length, cR0Length, cR1Length,
-			    Lft.vel.z, Rght.vel.z, kL, kR, apply_limiter_flag, extrema_clipping_flag);
-	if ( get_mhd_flag() == 1 ) {
-	    wone_d_interp_scalar(cL1.fs->B.x, cL0.fs->B.x, cR0.fs->B.x, cR1.fs->B.x,
-				cL1Length, cL0Length, cR0Length, cR1Length,
-				Lft.B.x, Rght.B.x, kL, kR, apply_limiter_flag, extrema_clipping_flag);
-	    wone_d_interp_scalar(cL1.fs->B.y, cL0.fs->B.y, cR0.fs->B.y, cR1.fs->B.y,
-				cL1Length, cL0Length, cR0Length, cR1Length,
-				Lft.B.y, Rght.B.y, kL, kR, apply_limiter_flag, extrema_clipping_flag);
-	    wone_d_interp_scalar(cL1.fs->B.z, cL0.fs->B.z, cR0.fs->B.z, cR1.fs->B.z,
-				cL1Length, cL0Length, cR0Length, cR1Length,
-				Lft.B.z, Rght.B.z, kL, kR, apply_limiter_flag, extrema_clipping_flag);
-	}
-	if ( get_k_omega_flag() == 1 ) {
-	    wone_d_interp_scalar(cL1.fs->tke, cL0.fs->tke, cR0.fs->tke, cR1.fs->tke,
-				cL1Length, cL0Length, cR0Length, cR1Length,
-				Lft.tke, Rght.tke, kL, kR, apply_limiter_flag, extrema_clipping_flag);
-	    wone_d_interp_scalar(cL1.fs->omega, cL0.fs->omega, cR0.fs->omega, cR1.fs->omega,
-				cL1Length, cL0Length, cR0Length, cR1Length,
-				Lft.omega, Rght.omega, kL, kR, apply_limiter_flag, extrema_clipping_flag);
-	}
-        for ( int isp = 0; isp < nsp; ++isp ) {
-	    wone_d_interp_scalar(cL1.fs->gas->massf[isp], cL0.fs->gas->massf[isp],
-				cR0.fs->gas->massf[isp], cR1.fs->gas->massf[isp],
-				cL1Length, cL0Length, cR0Length, cR1Length,
-				Lft.gas->massf[isp], Rght.gas->massf[isp],  kL, kR,
-				apply_limiter_flag, extrema_clipping_flag);
-        }
-
-	// Make the thermodynamic properties consistent.
-	// Pressure, Local Speed of Sound and Temperature.
-        // The value of 1 indicates that the old temperature
-        // should be used as an initial guess for the iterative
-        // EOS functions.
-	// If the EOS call fouls up, just copy the cell data, low-order.
-	if ( nsp > 1 ) {
-	    if ( scale_mass_fractions( Lft.gas->massf ) != 0 ) {
-		for ( size_t isp=0; isp<Lft.gas->massf.size(); ++isp )
-		    cL0.fs->gas->massf[isp] = Lft.gas->massf[isp];
+	    wone_d_interp_scalar(cL1.fs->vel.x, cL0.fs->vel.x, cR0.fs->vel.x, cR1.fs->vel.x,
+				 cL1Length, cL0Length, cR0Length, cR1Length,
+				 Lft.vel.x, Rght.vel.x, kL, kR, apply_limiter_flag, extrema_clipping_flag);
+	    wone_d_interp_scalar(cL1.fs->vel.y, cL0.fs->vel.y, cR0.fs->vel.y, cR1.fs->vel.y,
+				 cL1Length, cL0Length, cR0Length, cR1Length,
+				 Lft.vel.y, Rght.vel.y, kL, kR, apply_limiter_flag, extrema_clipping_flag);
+	    wone_d_interp_scalar(cL1.fs->vel.z, cL0.fs->vel.z, cR0.fs->vel.z, cR1.fs->vel.z,
+				 cL1Length, cL0Length, cR0Length, cR1Length,
+				 Lft.vel.z, Rght.vel.z, kL, kR, apply_limiter_flag, extrema_clipping_flag);
+	    if ( get_mhd_flag() == 1 ) {
+		wone_d_interp_scalar(cL1.fs->B.x, cL0.fs->B.x, cR0.fs->B.x, cR1.fs->B.x,
+				     cL1Length, cL0Length, cR0Length, cR1Length,
+				     Lft.B.x, Rght.B.x, kL, kR, apply_limiter_flag, extrema_clipping_flag);
+		wone_d_interp_scalar(cL1.fs->B.y, cL0.fs->B.y, cR0.fs->B.y, cR1.fs->B.y,
+				     cL1Length, cL0Length, cR0Length, cR1Length,
+				     Lft.B.y, Rght.B.y, kL, kR, apply_limiter_flag, extrema_clipping_flag);
+		wone_d_interp_scalar(cL1.fs->B.z, cL0.fs->B.z, cR0.fs->B.z, cR1.fs->B.z,
+				     cL1Length, cL0Length, cR0Length, cR1Length,
+				     Lft.B.z, Rght.B.z, kL, kR, apply_limiter_flag, extrema_clipping_flag);
 	    }
-	    if ( scale_mass_fractions( Rght.gas->massf ) != 0 ) {
-		for ( size_t isp=0; isp<Rght.gas->massf.size(); ++isp )
-		    cR0.fs->gas->massf[isp] = Rght.gas->massf[isp];
+	    if ( get_k_omega_flag() == 1 ) {
+		wone_d_interp_scalar(cL1.fs->tke, cL0.fs->tke, cR0.fs->tke, cR1.fs->tke,
+				     cL1Length, cL0Length, cR0Length, cR1Length,
+				     Lft.tke, Rght.tke, kL, kR, apply_limiter_flag, extrema_clipping_flag);
+		wone_d_interp_scalar(cL1.fs->omega, cL0.fs->omega, cR0.fs->omega, cR1.fs->omega,
+				     cL1Length, cL0Length, cR0Length, cR1Length,
+				     Lft.omega, Rght.omega, kL, kR, apply_limiter_flag, extrema_clipping_flag);
 	    }
-	}
-
-	// Interpolate on two of the thermodynamic quantities, and fill
-	// in the rest based on an EOS call.
-
-	wone_d_interp_scalar(gL1.rho, gL0.rho, gR0.rho, gR1.rho,
-		  cL1Length, cL0Length, cR0Length, cR1Length,
-		  Lft.gas->rho, Rght.gas->rho,
-		  kL, kR,
-		  apply_limiter_flag, extrema_clipping_flag);
-    for ( int i = 0; i < gmodel->get_number_of_modes(); ++i ) {
+	    for ( int isp = 0; isp < nsp; ++isp ) {
+		wone_d_interp_scalar(cL1.fs->gas->massf[isp], cL0.fs->gas->massf[isp],
+				     cR0.fs->gas->massf[isp], cR1.fs->gas->massf[isp],
+				     cL1Length, cL0Length, cR0Length, cR1Length,
+				     Lft.gas->massf[isp], Rght.gas->massf[isp],  kL, kR,
+				     apply_limiter_flag, extrema_clipping_flag);
+	    }
+	    
+	    // Make the thermodynamic properties consistent.
+	    // Pressure, Local Speed of Sound and Temperature.
+	    // The value of 1 indicates that the old temperature
+	    // should be used as an initial guess for the iterative
+	    // EOS functions.
+	    // If the EOS call fouls up, just copy the cell data, low-order.
+	    if ( nsp > 1 ) {
+		if ( scale_mass_fractions( Lft.gas->massf ) != 0 ) {
+		    for ( size_t isp=0; isp<Lft.gas->massf.size(); ++isp )
+			cL0.fs->gas->massf[isp] = Lft.gas->massf[isp];
+		}
+		if ( scale_mass_fractions( Rght.gas->massf ) != 0 ) {
+		    for ( size_t isp=0; isp<Rght.gas->massf.size(); ++isp )
+			cR0.fs->gas->massf[isp] = Rght.gas->massf[isp];
+		}
+	    }
+	    
+	    // Interpolate on two of the thermodynamic quantities, and fill
+	    // in the rest based on an EOS call.
+	    
+	    wone_d_interp_scalar(gL1.rho, gL0.rho, gR0.rho, gR1.rho,
+				 cL1Length, cL0Length, cR0Length, cR1Length,
+				 Lft.gas->rho, Rght.gas->rho,
+				 kL, kR,
+				 apply_limiter_flag, extrema_clipping_flag);
+	    for ( int i = 0; i < gmodel->get_number_of_modes(); ++i ) {
 		wone_d_interp_scalar(gL1.e[i], gL0.e[i], gR0.e[i], gR1.e[i],
-							cL1Length, cL0Length, cR0Length, cR1Length,
-							Lft.gas->e[i], Rght.gas->e[i],
-			  				kL, kR,
-							apply_limiter_flag, extrema_clipping_flag);
-    }
-    int status = gmodel->eval_thermo_state_rhoe(*(Lft.gas));
-	status = gmodel->eval_thermo_state_rhoe(*(Rght.gas));
-	if ( status != SUCCESS ) {
-	    if ( status == 1 ) {
-		// Lft state failed.
-		Lft.copy_values_from(*(cL0.fs));
+				     cL1Length, cL0Length, cR0Length, cR1Length,
+				     Lft.gas->e[i], Rght.gas->e[i],
+				     kL, kR,
+				     apply_limiter_flag, extrema_clipping_flag);
 	    }
-	    else if ( status == 2 ) {
-		// Rght state failed.
-		Rght.copy_values_from(*(cR0.fs));
+	    int status = gmodel->eval_thermo_state_rhoe(*(Lft.gas));
+	    status = gmodel->eval_thermo_state_rhoe(*(Rght.gas));
+	    if ( status != SUCCESS ) {
+		if ( status == 1 ) {
+		    // Lft state failed.
+		    Lft.copy_values_from(*(cL0.fs));
+		}
+		else if ( status == 2 ) {
+		    // Rght state failed.
+		    Rght.copy_values_from(*(cR0.fs));
+		}
+		else if ( status == 3 ) {
+		    // Both failed.
+		    Lft.copy_values_from(*(cL0.fs));
+		    Rght.copy_values_from(*(cR0.fs));
+		}
+		else {
+		    printf("one_d_interp(): Problem in flow state reconstruction.");
+		    printf("Failure status: %d is unknown.\n", status);
+		    printf("Bailing out!\n");
+		    exit(RECONSTRUCTION_ERROR);
+		}
 	    }
-	    else if ( status == 3 ) {
-		// Both failed.
-		Lft.copy_values_from(*(cL0.fs));
-		Rght.copy_values_from(*(cR0.fs));
+	    
+	    if ( get_viscous_flag() ) {
+		gmodel->eval_transport_coefficients(*(Lft.gas));
+		gmodel->eval_transport_coefficients(*(Rght.gas));
 	    }
-	    else {
-		printf("one_d_interp(): Problem in flow state reconstruction.");
-		printf("Failure status: %d is unknown.\n", status);
-		printf("Bailing out!\n");
-		exit(RECONSTRUCTION_ERROR);
+	    if ( get_diffusion_flag() ) {
+		gmodel->eval_diffusion_coefficients(*(Lft.gas));
+		gmodel->eval_diffusion_coefficients(*(Rght.gas));
 	    }
-	}
-
-	if ( get_viscous_flag() ) {
-	    gmodel->eval_transport_coefficients(*(Lft.gas));
-	    gmodel->eval_transport_coefficients(*(Rght.gas));
-	}
-	if ( get_diffusion_flag() ) {
-	    gmodel->eval_diffusion_coefficients(*(Lft.gas));
-	    gmodel->eval_diffusion_coefficients(*(Rght.gas));
-	}
-    } // end of high-order reconstruction
-    return SUCCESS;
+	} // end of high-order reconstruction
+	return SUCCESS;
 } // end of wone_d_interp()
 
 /// \brief Reconstruct flow properties at an interface from FV_Cell properties from one side.
@@ -2673,8 +2673,8 @@ int wone_d_interp(FV_Cell &cL1, FV_Cell &cL0,
 /// This is essentially a one-sided one-dimensional interpolation process.  It needs only
 /// the cell-average data and the lengths of the cells in the interpolation direction.
 int onesided_interp(FV_Cell &cL0, FV_Cell &cR0, FV_Cell &cR1,
-		             double cL0Length, double cR0Length, double cR1Length,
-		             FlowState &Rght )
+		    double cL0Length, double cR0Length, double cR1Length,
+		    FlowState &Rght )
 {
     Gas_model *gmodel = get_gas_model_ptr();
     Gas_data &gL0 = *(cL0.fs->gas);
@@ -2684,47 +2684,47 @@ int onesided_interp(FV_Cell &cL0, FV_Cell &cR0, FV_Cell &cR1,
     int nsp = gmodel->get_number_of_species();
     int apply_limiter_flag = get_apply_limiter_flag();
     int extrema_clipping_flag = get_extrema_clipping_flag();
-
+    
     // Low-order reconstruction just copies data from adjacent FV_Cell.
     Rght.copy_values_from(*(cR0.fs));
     if ( get_Xorder_flag() > 1 ) {
 	// High-order reconstruction for some properties.
 	onesided_interp_scalar(cL0.fs->vel.x, cR0.fs->vel.x, cR1.fs->vel.x,
-			    cL0Length, cR0Length, cR1Length,
-			    Rght.vel.x, apply_limiter_flag, extrema_clipping_flag);
+			       cL0Length, cR0Length, cR1Length,
+			       Rght.vel.x, apply_limiter_flag, extrema_clipping_flag);
 	onesided_interp_scalar(cL0.fs->vel.y, cR0.fs->vel.y, cR1.fs->vel.y,
-			    cL0Length, cR0Length, cR1Length,
-			    Rght.vel.y, apply_limiter_flag, extrema_clipping_flag);
+			       cL0Length, cR0Length, cR1Length,
+			       Rght.vel.y, apply_limiter_flag, extrema_clipping_flag);
 	onesided_interp_scalar(cL0.fs->vel.z, cR0.fs->vel.z, cR1.fs->vel.z,
-			    cL0Length, cR0Length, cR1Length,
-			    Rght.vel.z, apply_limiter_flag, extrema_clipping_flag);
+			       cL0Length, cR0Length, cR1Length,
+			       Rght.vel.z, apply_limiter_flag, extrema_clipping_flag);
 	if ( get_mhd_flag() == 1 ) {
 	    onesided_interp_scalar(cL0.fs->B.x, cR0.fs->B.x, cR1.fs->B.x,
-				cL0Length, cR0Length, cR1Length,
-				Rght.B.x, apply_limiter_flag, extrema_clipping_flag);
+				   cL0Length, cR0Length, cR1Length,
+				   Rght.B.x, apply_limiter_flag, extrema_clipping_flag);
 	    onesided_interp_scalar(cL0.fs->B.y, cR0.fs->B.y, cR1.fs->B.y,
-				cL0Length, cR0Length, cR1Length,
-				Rght.B.y, apply_limiter_flag, extrema_clipping_flag);
+				   cL0Length, cR0Length, cR1Length,
+				   Rght.B.y, apply_limiter_flag, extrema_clipping_flag);
 	    onesided_interp_scalar(cL0.fs->B.z, cR0.fs->B.z, cR1.fs->B.z,
-				cL0Length, cR0Length, cR1Length,
-				Rght.B.z, apply_limiter_flag, extrema_clipping_flag);
+				   cL0Length, cR0Length, cR1Length,
+				   Rght.B.z, apply_limiter_flag, extrema_clipping_flag);
 	}
 	if ( get_k_omega_flag() == 1 ) {
 	    onesided_interp_scalar(cL0.fs->tke, cR0.fs->tke, cR1.fs->tke,
-				cL0Length, cR0Length, cR1Length,
-				Rght.tke, apply_limiter_flag, extrema_clipping_flag);
+				   cL0Length, cR0Length, cR1Length,
+				   Rght.tke, apply_limiter_flag, extrema_clipping_flag);
 	    onesided_interp_scalar(cL0.fs->omega, cR0.fs->omega, cR1.fs->omega,
-				cL0Length, cR0Length, cR1Length,
-				Rght.omega, apply_limiter_flag, extrema_clipping_flag);
+				   cL0Length, cR0Length, cR1Length,
+				   Rght.omega, apply_limiter_flag, extrema_clipping_flag);
 	}
         for ( int isp = 0; isp < nsp; ++isp ) {
 	    onesided_interp_scalar(cL0.fs->gas->massf[isp],
-				cR0.fs->gas->massf[isp], cR1.fs->gas->massf[isp],
-				cL0Length, cR0Length, cR1Length,
-				Rght.gas->massf[isp],
-				apply_limiter_flag, extrema_clipping_flag);
+				   cR0.fs->gas->massf[isp], cR1.fs->gas->massf[isp],
+				   cL0Length, cR0Length, cR1Length,
+				   Rght.gas->massf[isp],
+				   apply_limiter_flag, extrema_clipping_flag);
         }
-
+	
 	// Make the thermodynamic properties consistent.
 	// Pressure, Local Speed of Sound and Temperature.
         // The value of 1 indicates that the old temperature
@@ -2737,24 +2737,24 @@ int onesided_interp(FV_Cell &cL0, FV_Cell &cR0, FV_Cell &cR1,
 		    cR0.fs->gas->massf[isp] = Rght.gas->massf[isp];
 	    }
 	}
-
+	
 	// Interpolate on two of the thermodynamic quantities, and fill
 	// in the rest based on an EOS call.
-
-    onesided_interp_scalar(gL0.rho, gR0.rho, gR1.rho,
+	
+	onesided_interp_scalar(gL0.rho, gR0.rho, gR1.rho,
 	                       cL0Length, cR0Length, cR1Length,
 	                       Rght.gas->rho, apply_limiter_flag, extrema_clipping_flag);
-    for ( int i = 0; i < gmodel->get_number_of_modes(); ++i ) {
-     onesided_interp_scalar(gL0.e[i], gR0.e[i], gR1.e[i],
-		                    cL0Length, cR0Length, cR1Length,
-		                    Rght.gas->e[i], apply_limiter_flag, extrema_clipping_flag);
-    }
-    int status = gmodel->eval_thermo_state_rhoe(*(Rght.gas));
-    
-		if ( status != SUCCESS ) {
-		// Rght state failed.
-		Rght.copy_values_from(*(cL0.fs));
-	    }			      
+	for ( int i = 0; i < gmodel->get_number_of_modes(); ++i ) {
+	    onesided_interp_scalar(gL0.e[i], gR0.e[i], gR1.e[i],
+				   cL0Length, cR0Length, cR1Length,
+				   Rght.gas->e[i], apply_limiter_flag, extrema_clipping_flag);
+	}
+	int status = gmodel->eval_thermo_state_rhoe(*(Rght.gas));
+	
+	if ( status != SUCCESS ) {
+	    // Rght state failed.
+	    Rght.copy_values_from(*(cL0.fs));
+	}			      
 	
 	if ( get_viscous_flag() ) {
 	    gmodel->eval_transport_coefficients(*(Rght.gas));
@@ -2772,8 +2772,8 @@ int onesided_interp(FV_Cell &cL0, FV_Cell &cR0, FV_Cell &cR1,
 /// the cell-average data and the lengths of the cells in the interpolation direction.
 
 int one_d_linear_interp(FV_Cell &cL0, FV_Cell &cR0,
-		                double cL0Length, double cR0Length,
-		                FlowState &Lft)
+			double cL0Length, double cR0Length,
+			FlowState &Lft)
 {
     Gas_model *gmodel = get_gas_model_ptr();
     Gas_data &gL0 = *(cL0.fs->gas);
@@ -2788,39 +2788,39 @@ int one_d_linear_interp(FV_Cell &cL0, FV_Cell &cR0,
     if ( get_Xorder_flag() > 1 ) {
 	// High-order reconstruction for some properties.
 	linear_interp_scalar(cL0.fs->vel.x, cR0.fs->vel.x,
-			             cL0Length, cR0Length,
-			             Lft.vel.x, apply_limiter_flag, extrema_clipping_flag);
+			     cL0Length, cR0Length,
+			     Lft.vel.x, apply_limiter_flag, extrema_clipping_flag);
 	linear_interp_scalar(cL0.fs->vel.y, cR0.fs->vel.y,
-			             cL0Length, cR0Length,
-			             Lft.vel.y, apply_limiter_flag, extrema_clipping_flag);
+			     cL0Length, cR0Length,
+			     Lft.vel.y, apply_limiter_flag, extrema_clipping_flag);
 	linear_interp_scalar(cL0.fs->vel.z, cR0.fs->vel.z,
-			             cL0Length, cR0Length,
-			             Lft.vel.z, apply_limiter_flag, extrema_clipping_flag);
+			     cL0Length, cR0Length,
+			     Lft.vel.z, apply_limiter_flag, extrema_clipping_flag);
 	if ( get_mhd_flag() == 1 ) {
 	    linear_interp_scalar(cL0.fs->B.x, cR0.fs->B.x,
-				             cL0Length, cR0Length,
-				             Lft.B.x, apply_limiter_flag, extrema_clipping_flag);
+				 cL0Length, cR0Length,
+				 Lft.B.x, apply_limiter_flag, extrema_clipping_flag);
 	    linear_interp_scalar(cL0.fs->B.y, cR0.fs->B.y,
-				             cL0Length, cR0Length,
-				             Lft.B.y, apply_limiter_flag, extrema_clipping_flag);
+				 cL0Length, cR0Length,
+				 Lft.B.y, apply_limiter_flag, extrema_clipping_flag);
 	    linear_interp_scalar(cL0.fs->B.z, cR0.fs->B.z,
-				             cL0Length, cR0Length,
-				             Lft.B.z, apply_limiter_flag, extrema_clipping_flag);
+				 cL0Length, cR0Length,
+				 Lft.B.z, apply_limiter_flag, extrema_clipping_flag);
 	}
 	if ( get_k_omega_flag() == 1 ) {
 	    linear_interp_scalar(cL0.fs->tke, cR0.fs->tke,
-				             cL0Length, cR0Length,
-				             Lft.tke, apply_limiter_flag, extrema_clipping_flag);
+				 cL0Length, cR0Length,
+				 Lft.tke, apply_limiter_flag, extrema_clipping_flag);
 	    linear_interp_scalar(cL0.fs->omega, cR0.fs->omega,
-				             cL0Length, cR0Length,
-				             Lft.omega, apply_limiter_flag, extrema_clipping_flag);
+				 cL0Length, cR0Length,
+				 Lft.omega, apply_limiter_flag, extrema_clipping_flag);
 	}
-    for ( int isp = 0; isp < nsp; ++isp ) {
-    linear_interp_scalar(cL0.fs->gas->massf[isp], cR0.fs->gas->massf[isp],
-			             cL0Length, cR0Length,
-			             Lft.gas->massf[isp], apply_limiter_flag, extrema_clipping_flag);
-    }
-
+	for ( int isp = 0; isp < nsp; ++isp ) {
+	    linear_interp_scalar(cL0.fs->gas->massf[isp], cR0.fs->gas->massf[isp],
+				 cL0Length, cR0Length,
+				 Lft.gas->massf[isp], apply_limiter_flag, extrema_clipping_flag);
+	}
+	
 	// Make the thermodynamic properties consistent.
 	// Pressure, Local Speed of Sound and Temperature.
         // The value of 1 indicates that the old temperature
@@ -2829,30 +2829,30 @@ int one_d_linear_interp(FV_Cell &cL0, FV_Cell &cR0,
 	// If the EOS call fouls up, just copy the cell data, low-order.
 	if ( nsp > 1 ) {
 	    if ( scale_mass_fractions( Lft.gas->massf ) != 0 ) {
-		    for ( size_t isp=0; isp<Lft.gas->massf.size(); ++isp )
-		        cL0.fs->gas->massf[isp] = Lft.gas->massf[isp];
-		}
+		for ( size_t isp=0; isp<Lft.gas->massf.size(); ++isp )
+		    cL0.fs->gas->massf[isp] = Lft.gas->massf[isp];
+	    }
 	}
-
+	
 	// Interpolate on two of the thermodynamic quantities, and fill
 	// in the rest based on an EOS call.
-
-    //if ( *ti = Rhoe_interpolator ) {
-    linear_interp_scalar(gL0.rho, gR0.rho,
+	
+	//if ( *ti = Rhoe_interpolator ) {
+	linear_interp_scalar(gL0.rho, gR0.rho,
 	                     cL0Length, cR0Length,
 	                     Lft.gas->rho, apply_limiter_flag, extrema_clipping_flag);
-    for ( int i = 0; i < gmodel->get_number_of_modes(); ++i ) {
-    linear_interp_scalar(gL0.e[i], gR0.e[i],
+	for ( int i = 0; i < gmodel->get_number_of_modes(); ++i ) {
+	    linear_interp_scalar(gL0.e[i], gR0.e[i],
 		                 cL0Length, cR0Length,
 		                 Lft.gas->e[i], apply_limiter_flag, extrema_clipping_flag);
-    }
-    int status = gmodel->eval_thermo_state_rhoe(*(Lft.gas));		      
+	}
+	int status = gmodel->eval_thermo_state_rhoe(*(Lft.gas));		      
 	
 	if ( status != SUCCESS ) {
-		// Lft state failed.
-		Lft.copy_values_from(*(cL0.fs));
-	    }
-
+	    // Lft state failed.
+	    Lft.copy_values_from(*(cL0.fs));
+	}
+	
 	if ( get_viscous_flag() ) {
 	    gmodel->eval_transport_coefficients(*(Lft.gas));
 	}

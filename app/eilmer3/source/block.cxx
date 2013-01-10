@@ -667,7 +667,7 @@ int Block::identify_turbulent_zones( global_data &gdp )
     int total_cells = 0;
     CTurbulentZone *tzp;
     FV_Cell *cellp;
-
+    
     for ( int k = kmin; k <= kmax; ++k ) {
 	for ( int i = imin; i <= imax; ++i ) {
 	    for ( int j = jmin; j <= jmax; ++j ) {
@@ -978,7 +978,7 @@ int Block::compute_primary_cell_geometric_data( int dimensions )
 	    ghost_cell->volume = 2.0*cell_1->volume - cell_2->volume;
 	}
     }
-	    
+    
     return SUCCESS;
 } // end compute_primary_cell_geometric_data()
 
@@ -1089,7 +1089,7 @@ int Block::compute_distance_to_nearest_wall_for_all_cells( int dimensions )
 			cell->cell_at_nearest_wall = cell_at_wall[iface];
 		    }
 		}
-
+		
 		// Step 3: find the closest real wall.
 		for ( int iface = 0; iface < 6; ++iface ) {
 		    if ( dimensions == 2 && iface >= 4 ) break; // Top,Bottom are 4,5
@@ -1105,7 +1105,7 @@ int Block::compute_distance_to_nearest_wall_for_all_cells( int dimensions )
 	    } // for k
 	} // for j
     } // for i
-
+    
     return SUCCESS;
 } // end compute_distance_to_nearest_wall_for_all_cells()
 
@@ -1678,7 +1678,7 @@ int Block::calc_volumes_2D( void )
         target_cell->jLength = source_cell->jLength;
 	target_cell->kLength = 0.0;
     } // end for i
-
+    
     for ( j = jmin; j <= jmax; ++j ) {
         // East boundary
         i = imax;
@@ -1706,9 +1706,9 @@ int Block::calc_volumes_2D( void )
 	target_cell->kLength = 0.0;
     } // end for j
 	
-	//printf("Max Volume = %e, Min Volume = %e\n", max_vol, min_vol);
-	//printf("Maximum aspect ratio = %e\n", max_aspect);
-
+    //printf("Max Volume = %e, Min Volume = %e\n", max_vol, min_vol);
+    //printf("Maximum aspect ratio = %e\n", max_aspect);
+    
     return SUCCESS;
 } // end calc_volumes_2D()
 
@@ -1736,7 +1736,7 @@ int Block::calc_volumes_2D( int time_level )
     // |  c  |     |  c  |
     // |     |     |     |
     // D-----A     0-----1
-
+    
     max_vol = 0.0;
     min_vol = 1.0e6;    /* arbitrarily large */
     max_aspect = 0.0;
@@ -1968,7 +1968,7 @@ int Block::secondary_areas_2D( void )
     // Fudge corners -- not expecting to use this data.
     get_vtx(i,jmin)->area = 0.5 * get_vtx(i,jmin+1)->area;
     get_vtx(i,jmax+1)->area = 0.5 * get_vtx(i,jmax)->area;
-
+    
     // West boundary.
     i = imin;
     for (j = jmin+1; j <= jmax; ++j) {
@@ -2075,15 +2075,15 @@ int Block::calc_faces_2D( void )
             IFace = get_ifi(i,j);
 	    // These are the corners.
             xA = get_vtx(i,j)->pos.x; 
-	    	yA = get_vtx(i,j)->pos.y;
+	    yA = get_vtx(i,j)->pos.y;
             xB = get_vtx(i,j+1)->pos.x; 
-	    	yB = get_vtx(i,j+1)->pos.y;
+	    yB = get_vtx(i,j+1)->pos.y;
             LAB = sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA));
             if (LAB < 1.0e-9) {
                 printf("Zero length ifi[%d,%d]: %e\n", i, j, LAB);
-				cout << xA << ", " << xB << endl; 
-			cout << yA << ", " << yB << endl;
-			cout << endl;
+		cout << xA << ", " << xB << endl; 
+		cout << yA << ", " << yB << endl;
+		cout << endl;
             }
             // Direction cosines for the unit normal.
             IFace->n.x = (yB - yA) / LAB;
@@ -2127,10 +2127,10 @@ int Block::calc_faces_2D( void )
             // Direction cosines for the unit normal.
             IFace->n.x = (yC - yB) / LBC;
             IFace->n.y = -(xC - xB) / LBC;
-	        IFace->n.z = 0.0;  // 2D plane
-	        IFace->t2 = Vector3(0.0, 0.0, 1.0);
-	        IFace->t1 = cross(IFace->n, IFace->t2);
-            // Length in the XY-plane.
+	    IFace->n.z = 0.0;  // 2D plane
+	    IFace->t2 = Vector3(0.0, 0.0, 1.0);
+	    IFace->t1 = cross(IFace->n, IFace->t2);
+	    // Length in the XY-plane.
             IFace->length = LBC;
             // Mid-point and area.
             IFace->Ybar = 0.5 * (yC + yB);
@@ -2196,7 +2196,7 @@ int Block::calc_faces_2D( int time_level )
 	    
         } // j loop
     } // i loop
-
+    
     // North-facing interfaces.
     for (i = imin; i <= imax; ++i) {
         for (j = jmin; j <= jmax+1; ++j) {
@@ -2213,9 +2213,9 @@ int Block::calc_faces_2D( int time_level )
             // Direction cosines for the unit normal.
             IFace->n.x = (yC - yB) / LBC;
             IFace->n.y = -(xC - xB) / LBC;
-	        IFace->n.z = 0.0;  // 2D plane
-	        IFace->t2 = Vector3(0.0, 0.0, 1.0);
-	        IFace->t1 = cross(IFace->n, IFace->t2);
+	    IFace->n.z = 0.0;  // 2D plane
+	    IFace->t2 = Vector3(0.0, 0.0, 1.0);
+	    IFace->t1 = cross(IFace->n, IFace->t2);
             // Length in the XY-plane.
             IFace->length = LBC;
             // Mid-point and area.
@@ -2314,13 +2314,13 @@ int Block::predict_vertex_positions( double dt )
     int i, j, k;
     FV_Vertex *vtx;
     for (k = kmin; k <= kmax; ++k) {
-	    for (j = jmin; j <= jmax+1; ++j) {
-			for (i = imin; i <= imax+1; ++i) {
-				vtx = get_vtx(i,j,k);
-				vtx->position[1] = vtx->position[0] + dt * vtx->velocity[0];
-			}
+	for (j = jmin; j <= jmax+1; ++j) {
+	    for (i = imin; i <= imax+1; ++i) {
+		vtx = get_vtx(i,j,k);
+		vtx->position[1] = vtx->position[0] + dt * vtx->velocity[0];
 	    }
 	}
+    }
     return SUCCESS;
 }
 
@@ -2329,13 +2329,13 @@ int Block::correct_vertex_positions( double dt )
     int i, j, k;
     FV_Vertex *vtx;
     for (k = kmin; k <= kmax; ++k) {
-	    for (j = jmin; j <= jmax+1; ++j) {
-			for (i = imin; i <= imax+1; ++i) {
-				vtx = get_vtx(i,j,k);
-				vtx->position[2] = vtx->position[0] + 0.5 * dt * (vtx->velocity[0] + vtx->velocity[1]);
-			}
+	for (j = jmin; j <= jmax+1; ++j) {
+	    for (i = imin; i <= imax+1; ++i) {
+		vtx = get_vtx(i,j,k);
+		vtx->position[2] = vtx->position[0] + 0.5 * dt * (vtx->velocity[0] + vtx->velocity[1]);
 	    }
 	}
+    }
     return SUCCESS;
 }
 
@@ -2350,7 +2350,7 @@ int Block::calc_boundary_vertex_velocity(FV_Interface *IFaceU, FV_Interface *IFa
     double wa = velocity_weighting_factor(Ma);
     double wb = velocity_weighting_factor(Mb);
     if ( (wa + wb) < 1e-3 ) {
-          wa = wb = 1.0;
+	wa = wb = 1.0;
     }
     Vector3 wsa = IFaceU->vel;
     Vector3 wsb = IFaceD->vel;
@@ -2375,7 +2375,7 @@ int Block::calc_boundary_vertex_velocity(FV_Interface *IFaceD2, FV_Interface *IF
     double wc = velocity_weighting_factor(Mc);
     double wd = velocity_weighting_factor(Md);
     if ( (wa + wb + wc + wd) < 1e-3 ) {
-          wa = wb = wc = wd = 1.0;
+	wa = wb = wc = wd = 1.0;
     }
     Vector3 wsa = IFaceD2->vel;
     Vector3 wsb = IFaceD->vel;
@@ -2405,83 +2405,83 @@ inline double Block::velocity_weighting_factor(double M)
 int Block::set_vertex_velocities( int time_level )
 {
     int i, j, k;
-	FV_Interface *IFaceU;
-	FV_Interface *IFaceD;
-	FV_Interface *IFaceU2;
-	FV_Interface *IFaceD2;
-	FV_Interface *IFaceD3;
+    FV_Interface *IFaceU;
+    FV_Interface *IFaceD;
+    FV_Interface *IFaceU2;
+    FV_Interface *IFaceD2;
+    FV_Interface *IFaceD3;
     FV_Vertex *svtx;
     FV_Vertex *wvtx;
     FV_Vertex *vtx;
-	Vector3 trv;
+    Vector3 trv;
     double length;
-	i = imin;
+    i = imin;
     for (k = kmin; k <= kmax; ++k) {
-		for (j = jmin; j <= jmax+1; ++j) {
-		    IFaceD2 = get_ifi(i,j-2,k);
-			IFaceD = get_ifi(i,j-1,k);
-			IFaceU = get_ifi(i,j,k);
-			IFaceU2 = get_ifi(i,j+1,k);
-			vtx = get_vtx(i,j,k);
-			wvtx = get_vtx(imax,j,k);
-			trv = unit(wvtx->position[time_level] - vtx->position[time_level]); // Direction vector from vertex to body.
-			calc_boundary_vertex_velocity(IFaceD, IFaceU,
-				                     	  vtx, trv, time_level);
-		} // for j
-	} // for k
+	for (j = jmin; j <= jmax+1; ++j) {
+	    IFaceD2 = get_ifi(i,j-2,k);
+	    IFaceD = get_ifi(i,j-1,k);
+	    IFaceU = get_ifi(i,j,k);
+	    IFaceU2 = get_ifi(i,j+1,k);
+	    vtx = get_vtx(i,j,k);
+	    wvtx = get_vtx(imax,j,k);
+	    trv = unit(wvtx->position[time_level] - vtx->position[time_level]); // Direction vector from vertex to body.
+	    calc_boundary_vertex_velocity(IFaceD, IFaceU,
+					  vtx, trv, time_level);
+	} // for j
+    } // for k
     // Set first and last two boundary vertex velocities
-	if ( bcp[SOUTH]->type_code != 0 ) { // If not adjacent to another block.
-		vtx = get_vtx(imin,jmin,kmin);
-		wvtx = get_vtx(imax,jmin,kmin);
-		IFaceU = get_ifi(imin,jmin,kmin);
-		trv = unit(wvtx->position[time_level] - vtx->position[time_level]); 
-		calc_boundary_vertex_velocity(IFaceU, IFaceU,     
-		                              vtx, trv, time_level);
-		// Second
-		vtx = get_vtx(imin,jmin+1,kmin);
-		wvtx = get_vtx(imax,jmin+1,kmin);
-		IFaceU2 = get_ifi(imin,jmin+2,kmin);
-		IFaceU = get_ifi(imin,jmin+1,kmin);
-		IFaceD = get_ifi(imin,jmin,kmin);
-		trv = unit(wvtx->position[time_level] - vtx->position[time_level]);
-		calc_boundary_vertex_velocity(IFaceU, IFaceD,    
-		                              vtx, trv, time_level);
-	}
-    	// Last
-	if ( bcp[NORTH]->type_code != 0 ) { // If not adjacent to another block.
-		vtx = get_vtx(imin,jmax+1,kmin);
-		wvtx = get_vtx(imax,jmax+1,kmin);
-		IFaceD3 = get_ifi(imin,jmax-2,kmin);
-		IFaceD2 = get_ifi(imin,jmax-1,kmin);
-		IFaceD = get_ifi(imin,jmax,kmin);
-		IFaceU = get_ifi(imin,jmax-3,kmin);
-		trv = unit(wvtx->position[time_level] - vtx->position[time_level]);
-		calc_boundary_vertex_velocity(IFaceD2, IFaceD,
-		                              vtx, trv, time_level);
-		// Second Last
-		vtx = get_vtx(imin,jmax,kmin);
-		wvtx = get_vtx(imax,jmax,kmin);
-		IFaceD3 = get_ifi(imin,jmax-3,kmin);
-		IFaceD2 = get_ifi(imin,jmax-2,kmin);
-		IFaceD = get_ifi(imin,jmax-1,kmin);
-		IFaceU = get_ifi(imin,jmax,kmin);
-		trv = unit(wvtx->position[time_level] - vtx->position[time_level]);
-		calc_boundary_vertex_velocity(IFaceD, IFaceU, 
-		                              vtx, trv, time_level);
-	}
+    if ( bcp[SOUTH]->type_code != 0 ) { // If not adjacent to another block.
+	vtx = get_vtx(imin,jmin,kmin);
+	wvtx = get_vtx(imax,jmin,kmin);
+	IFaceU = get_ifi(imin,jmin,kmin);
+	trv = unit(wvtx->position[time_level] - vtx->position[time_level]); 
+	calc_boundary_vertex_velocity(IFaceU, IFaceU,     
+				      vtx, trv, time_level);
+	// Second
+	vtx = get_vtx(imin,jmin+1,kmin);
+	wvtx = get_vtx(imax,jmin+1,kmin);
+	IFaceU2 = get_ifi(imin,jmin+2,kmin);
+	IFaceU = get_ifi(imin,jmin+1,kmin);
+	IFaceD = get_ifi(imin,jmin,kmin);
+	trv = unit(wvtx->position[time_level] - vtx->position[time_level]);
+	calc_boundary_vertex_velocity(IFaceU, IFaceD,    
+				      vtx, trv, time_level);
+    }
+    // Last
+    if ( bcp[NORTH]->type_code != 0 ) { // If not adjacent to another block.
+	vtx = get_vtx(imin,jmax+1,kmin);
+	wvtx = get_vtx(imax,jmax+1,kmin);
+	IFaceD3 = get_ifi(imin,jmax-2,kmin);
+	IFaceD2 = get_ifi(imin,jmax-1,kmin);
+	IFaceD = get_ifi(imin,jmax,kmin);
+	IFaceU = get_ifi(imin,jmax-3,kmin);
+	trv = unit(wvtx->position[time_level] - vtx->position[time_level]);
+	calc_boundary_vertex_velocity(IFaceD2, IFaceD,
+				      vtx, trv, time_level);
+	// Second Last
+	vtx = get_vtx(imin,jmax,kmin);
+	wvtx = get_vtx(imax,jmax,kmin);
+	IFaceD3 = get_ifi(imin,jmax-3,kmin);
+	IFaceD2 = get_ifi(imin,jmax-2,kmin);
+	IFaceD = get_ifi(imin,jmax-1,kmin);
+	IFaceU = get_ifi(imin,jmax,kmin);
+	trv = unit(wvtx->position[time_level] - vtx->position[time_level]);
+	calc_boundary_vertex_velocity(IFaceD, IFaceU, 
+				      vtx, trv, time_level);
+    }
     // Set interior vertex velocities 
     for (k = kmin; k <= kmax; ++k) {
-	    for (j = jmin; j <= jmax+1; ++j) {
-	        svtx = get_vtx(imin,j,k); // Shock boundary vertex.
-	        wvtx = get_vtx(imax+1,j,k); // Wall vertex.
-	        length = vabs(svtx->position[time_level] - wvtx->position[time_level]);
-	        for (i = imin; i <= imax; ++i) {
-	            vtx = get_vtx(i,j,k);
-	            vtx->velocity[time_level] = ( vabs(vtx->position[time_level] - 
-											  wvtx->position[time_level]) / length ) * svtx->vel;
-		    }
+	for (j = jmin; j <= jmax+1; ++j) {
+	    svtx = get_vtx(imin,j,k); // Shock boundary vertex.
+	    wvtx = get_vtx(imax+1,j,k); // Wall vertex.
+	    length = vabs(svtx->position[time_level] - wvtx->position[time_level]);
+	    for (i = imin; i <= imax; ++i) {
+		vtx = get_vtx(i,j,k);
+		vtx->velocity[time_level] = ( vabs(vtx->position[time_level] - 
+						   wvtx->position[time_level]) / length ) * svtx->vel;
 	    }
 	}
+    }
     return SUCCESS;
 }
 
@@ -2496,25 +2496,25 @@ int Block::set_interface_velocities( int time_level )
     double length;
     
     for (k = kmin; k <= kmax; ++k) {
-	    for (j = jmin; j <= jmax; ++j) {
-	        for (i = imin; i <= imax+1; ++i) {
-	            vtx = get_vtx(i,j,k);
-	            vtxj = get_vtx(i,j+1,k);
-	            IFacei = get_ifi(i,j,k);
-	            IFacei->vel = (vtxj->velocity[time_level] + vtx->velocity[time_level]) / 2.0;
-		    }
+	for (j = jmin; j <= jmax; ++j) {
+	    for (i = imin; i <= imax+1; ++i) {
+		vtx = get_vtx(i,j,k);
+		vtxj = get_vtx(i,j+1,k);
+		IFacei = get_ifi(i,j,k);
+		IFacei->vel = (vtxj->velocity[time_level] + vtx->velocity[time_level]) / 2.0;
 	    }
 	}
+    }
     for (k = kmin; k <= kmax; ++k) {
-	    for (j = jmin; j <= jmax+1; ++j) {
-	        for (i = imin; i <= imax; ++i) {
-	            vtx = get_vtx(i,j,k);
-	            vtxi = get_vtx(i+1,j,k);
-	            IFacej = get_ifj(i,j,k);
-	            IFacej->vel = (vtxi->velocity[time_level] + vtx->velocity[time_level]) / 2.0;
-		    }
+	for (j = jmin; j <= jmax+1; ++j) {
+	    for (i = imin; i <= imax; ++i) {
+		vtx = get_vtx(i,j,k);
+		vtxi = get_vtx(i+1,j,k);
+		IFacej = get_ifj(i,j,k);
+		IFacej->vel = (vtxi->velocity[time_level] + vtx->velocity[time_level]) / 2.0;
 	    }
 	}
+    }
     return SUCCESS;
 }
 
@@ -2533,7 +2533,7 @@ void Block::compute_x_forces( char *text_string, int ibndy, int dimensions )
     int i, j, ivisc;
     FV_Cell *cell;
     FV_Interface *IFace;
-
+    
     if ( dimensions == 3 ) {
 	printf( "X-Force calculations not implemented for 3D geometries, yet." );
 	exit( NOT_IMPLEMENTED_ERROR );
@@ -2977,7 +2977,7 @@ int Block::write_block( std::string filename, double sim_time, int dimensions, i
 /// \brief Read the BGK discrete velocity distribution values
 /// Returns a status flag.
 int Block::read_BGK(std::string filename, double *sim_time,
-			 int dimensions, int zip_file)
+		    int dimensions, int zip_file)
 {
 #   define NCHAR 4000
     char line[NCHAR];
@@ -3193,7 +3193,7 @@ int Block::count_invalid_cells( int dimensions )
     int  number_of_invalid_cells, ncell;
     Gas_model *gmodel = get_gas_model_ptr();
     FV_Cell dummy_cell(gmodel);
-
+    
     number_of_invalid_cells = 0;
 
     for ( int k = kmin; k <= kmax; ++k ) {
@@ -3207,7 +3207,7 @@ int Block::count_invalid_cells( int dimensions )
 			       id, i, j, k);
 			cell->print();
 		    }
-
+		    
 #                   if ADJUST_INVALID_CELL_DATA == 1
 		    // We shall set the cell data to something that
 		    // is valid (and self consistent).
@@ -3413,43 +3413,43 @@ int Block::detect_shock_points( int dimensions )
     for ( int k = kmin; k <= kmax; ++k ) {
 	for ( int i = imin; i <= imax; ++i ) {
 	    for ( int j = jmin-1; j <= jmax; ++j ) {
-		    cL = get_cell(i,j,k);
-		    cR = get_cell(i,j+1,k);
-		    IFace = cL->iface[NORTH];
-		    uL = cL->fs->vel.x * IFace->n.x + cL->fs->vel.y * IFace->n.y + cL->fs->vel.z * IFace->n.z;
-		    uR = cR->fs->vel.x * IFace->n.x + cR->fs->vel.y * IFace->n.y + cR->fs->vel.z * IFace->n.z;
-		    aL = cL->fs->gas->a;
-		    aR = cR->fs->gas->a;
-		    if (aL < aR)
-		        a_min = aL;
-		    else
-		        a_min = aR;
-		    IFace->fs->S = ((uR - uL) / a_min < tol);
+		cL = get_cell(i,j,k);
+		cR = get_cell(i,j+1,k);
+		IFace = cL->iface[NORTH];
+		uL = cL->fs->vel.x * IFace->n.x + cL->fs->vel.y * IFace->n.y + cL->fs->vel.z * IFace->n.z;
+		uR = cR->fs->vel.x * IFace->n.x + cR->fs->vel.y * IFace->n.y + cR->fs->vel.z * IFace->n.z;
+		aL = cL->fs->gas->a;
+		aR = cR->fs->gas->a;
+		if (aL < aR)
+		    a_min = aL;
+		else
+		    a_min = aR;
+		IFace->fs->S = ((uR - uL) / a_min < tol);
 	    } // j loop
 	} // i loop
     } // for k
-
+    
     // Second, work across East interfaces and
     // locate shocks using the (local) normal velocity.
     for ( int k = kmin; k <= kmax; ++k ) {
 	for ( int i = imin-1; i <= imax; ++i ) {
 	    for ( int j = jmin; j <= jmax; ++j ) {
-		    cL = get_cell(i,j,k);
-		    cR = get_cell(i+1,j,k);
-		    IFace = cL->iface[EAST];
-		    uL = cL->fs->vel.x * IFace->n.x + cL->fs->vel.y * IFace->n.y + cL->fs->vel.z * IFace->n.z;
-		    uR = cR->fs->vel.x * IFace->n.x + cR->fs->vel.y * IFace->n.y + cR->fs->vel.z * IFace->n.z;
-		    aL = cL->fs->gas->a;
-		    aR = cR->fs->gas->a;
-		    if (aL < aR)
-		        a_min = aL;
-		    else
-		        a_min = aR;
-		    IFace->fs->S = ((uR - uL) / a_min < tol);
+		cL = get_cell(i,j,k);
+		cR = get_cell(i+1,j,k);
+		IFace = cL->iface[EAST];
+		uL = cL->fs->vel.x * IFace->n.x + cL->fs->vel.y * IFace->n.y + cL->fs->vel.z * IFace->n.z;
+		uR = cR->fs->vel.x * IFace->n.x + cR->fs->vel.y * IFace->n.y + cR->fs->vel.z * IFace->n.z;
+		aL = cL->fs->gas->a;
+		aR = cR->fs->gas->a;
+		if (aL < aR)
+		    a_min = aL;
+		else
+		    a_min = aR;
+		IFace->fs->S = ((uR - uL) / a_min < tol);
 	    } // j loop
 	} // i loop
     } // for k
-
+    
     if ( dimensions == 3 ) {
 	// Third, work across Top interfaces.
 	for ( int i = imin; i <= imax; ++i ) {
@@ -3471,7 +3471,7 @@ int Block::detect_shock_points( int dimensions )
 	    } // j loop
 	} // i loop
     } // if ( dimensions == 3 )
-
+    
     // Finally, mark cells as shock points if any of their
     // interfaces are shock points.
     for ( int k = kmin; k <= kmax; ++k ) {
@@ -3484,7 +3484,7 @@ int Block::detect_shock_points( int dimensions )
 	    } // j loop
 	} // i loop
     } // for k
-
+    
     return SUCCESS;
 } // end of detect_shock_points()
 
@@ -3492,17 +3492,17 @@ int Block::detect_shock_points( int dimensions )
 /// \brief Part of the spatial filter function.
 /// 
 /// \param PROP : name of the variable to be filtered.
-#define SIMPLE_FILTER(PROP)                                                 \
-    for (i = imin; i <= imax; ++i) {                                        \
-        for (j = jmin; j <= jmax; ++j) {                                    \
-            cell = get_cell(i,j);                                           \
-	    cN = get_cell(i,j+1);                                           \
-	    cE = get_cell(i+1,j);                                           \
-	    cS = get_cell(i,j-1);                                           \
-	    cW = get_cell(i-1,j);                                           \
-            (cell)->fs->PROP = (1.0 - alpha) * (cell)->fs->PROP +                   \
+#define SIMPLE_FILTER(PROP)						\
+    for (i = imin; i <= imax; ++i) {					\
+        for (j = jmin; j <= jmax; ++j) {				\
+            cell = get_cell(i,j);					\
+	    cN = get_cell(i,j+1);					\
+	    cE = get_cell(i+1,j);					\
+	    cS = get_cell(i,j-1);					\
+	    cW = get_cell(i-1,j);					\
+            (cell)->fs->PROP = (1.0 - alpha) * (cell)->fs->PROP +	\
 		alpha * 0.25 * ((cN)->fs->PROP + (cE)->fs->PROP + (cS)->fs->PROP + (cW)->fs->PROP); \
-        }                                                                   \
+     `   }                                                                   \
     }
 
 
@@ -3614,10 +3614,10 @@ int locate_cell(double x, double y, double z,
     Block *bdp;
     Vector3 p;
     int i, j, k, jb;
-
+    
     p.x = x; p.y = y; p.z = z;
     *i_found = 0; *j_found = 0; *k_found = 0; *jb_found = 0;
-
+    
     // Search the blocks, 
     // starting from the block in which the last point was found.
     for (jb = starting_block; jb < gd->nblock; jb++) {
@@ -3635,7 +3635,7 @@ int locate_cell(double x, double y, double z,
 	    } // i-loop
 	} // k-loop
     } // jb-loop
-
+    
     // If we reach this point, then the point may be in one of the other blocks.
     for (jb = 0; jb < starting_block; jb++) {
 	bdp = get_block_data_ptr(jb);
@@ -3652,7 +3652,7 @@ int locate_cell(double x, double y, double z,
 	    } // i-loop
 	} // k-loop
     } // jb-loop
-
+    
     // if we arrive here, we have not located the containing cell
     return 0;
 } // end locate_cell()

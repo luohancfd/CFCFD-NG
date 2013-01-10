@@ -109,7 +109,7 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
             rivp(Lft, Rght, *IFace_flow_state, WSL, WSR);
         else
             ausm(Lft, Rght, *IFace_flow_state, WSL, WSR);
-
+	
 	rho = IFace_flow_state->gas->rho;
 	un = IFace_flow_state->vel.x - IFace.vel.x;
 	vt1 = IFace_flow_state->vel.y - IFace.vel.y;
@@ -164,7 +164,7 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
 	// Note that rotating frame velocity u = omegaz * r.
 	F.total_energy -= F.mass * 0.5*omegaz*omegaz*rsq;
     }
-
+    
 #   if DEBUG_FLUX >= 1
     printf("Inviscid Fluxes in local frame\n");
     F.print();
@@ -176,17 +176,17 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
 	
     // also transform the magnetic field
     if (get_mhd_flag() == 1) {
-      F.B.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	F.B.transform_to_global(IFace.n, IFace.t1, IFace.t2);
     }
 	
 #   if DEBUG_FLUX >= 1
     printf("Interface fluxes\n");
     printf("xyz_mom.x=%e, \nxyz_mom.y=%e, xyz_mom.z=%e\n", F.momentum.x, F.momentum.y, F.momentum.z);
     if (get_mhd_flag() == 1) {
-      printf("xyz_B.x=%e, \nxyz_B.y=%e, xyz_B.z=%e\n", F.B.x, F.B.y, F.B.z);
+	printf("xyz_B.x=%e, \nxyz_B.y=%e, xyz_B.z=%e\n", F.B.x, F.B.y, F.B.z);
     }
 #   endif
-
+    
     return SUCCESS;
 } // end of compute_interface_flux()
 

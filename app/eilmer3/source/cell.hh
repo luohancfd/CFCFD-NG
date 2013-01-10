@@ -87,7 +87,7 @@ public:
     int copy_values_from(FlowState &src);
     int copy_values_from(CFlowCondition &src);
     int average_values_from(FlowState &src0, FlowState &src1, bool with_diff_coeff);
-	int average_values_from(FlowState &src0, double alpha0, FlowState &src1, double alpha1, bool with_diff_coeff);
+    int average_values_from(FlowState &src0, double alpha0, FlowState &src1, double alpha1, bool with_diff_coeff);
     double * copy_values_to_buffer(double *buf);
     double * copy_values_from_buffer(double *buf);
     int BGK_equilibrium(void);
@@ -152,9 +152,9 @@ public:
     int    id;
     // Geometry
     Vector3 pos;  // x,y,z-Coordinates, m
-	Vector3 position[NL];  // x,y,z-Coordinates for different integration time levels, m
+    Vector3 position[NL];  // x,y,z-Coordinates for different integration time levels, m
     Vector3 vel;  // velocity, m/s
-	Vector3 velocity[NL];  // velocity for different integration time levels, m/s
+    Vector3 velocity[NL];  // velocity for different integration time levels, m/s
     double area;  // x,y-plane area of secondary cells
     double volume;  // volume of 3D secondary cells
     // Derivatives of primary-cell variables.
@@ -184,7 +184,7 @@ public:
     double base_qdot;       // base-level of heat addition to cell, W/m**3
     // Geometry
     Vector3 pos;            /* Centre x,y,z-coordinates, m    */
-	Vector3 position[NL];   /* Centre x,y,z-coordinates for different integration time levels, m	*/
+    Vector3 position[NL];   /* Centre x,y,z-coordinates for different integration time levels, m	*/
     double vol[NL];         /* Cell volume (unit depth), m**3 */
     double volume;
     double ar[NL];          /* (x,y)-plane area for different integration time levels, m**2         */
@@ -235,11 +235,11 @@ public:
     int record_conserved(void);
     int restore_conserved(void);
     int encode_conserved(double omegaz=0.0);
-	int decode_conserved(double omegaz=0.0);
+    int decode_conserved(double omegaz=0.0);
     int decode_conserved(int time_level, double omegaz=0.0);
     int check_flow_data(void);
-	int set_geometry_to_time_level( void );
-	int set_geometry_from_time_level( int time_level );
+    int set_geometry_to_time_level( void );
+    int set_geometry_from_time_level( int time_level );
     int time_derivatives(int time_level, int dimensions);
     int predictor_update(double dt);
     int corrector_update(double dt);
@@ -277,15 +277,15 @@ int one_d_interp(FV_Cell &cL1, FV_Cell &cL0,
 int wone_d_interp(FV_Cell &cL1, FV_Cell &cL0, 
 		 FV_Cell &cR0, FV_Cell &cR1, 
 		 double cL1Length, double cL0Length, 
-		 double cR0Length, double cR1Length, 
+		  double cR0Length, double cR1Length, 
 		 FlowState &Lft, FlowState &Rght);
-		 
+
 int onesided_interp(FV_Cell &cL0, FV_Cell &cR0, FV_Cell &cR1,
-		             double cL0Length, double cR0Length, double cR1Length,
-		             FlowState &Rght );
-		 
+		    double cL0Length, double cR0Length, double cR1Length,
+		    FlowState &Rght );
+
 int one_d_linear_interp(FV_Cell &cL0, FV_Cell &cR0,
-		                double cL0Length, double cR0Length,
-		                FlowState &Lft);
+			double cL0Length, double cR0Length,
+			FlowState &Lft);
 
 #endif

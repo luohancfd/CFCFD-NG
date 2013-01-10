@@ -78,7 +78,7 @@ int read_config_parameters(const string filename, int master)
 	G.tav = G.tav_0; /* time at which averaging is to commence */
 	G.nav = 0;
     }
-
+    
     // variables for profile recording.
     G.do_record = 0;
     G.block_record = 0;
@@ -546,7 +546,7 @@ int read_control_parameters( const string filename, int master, int first_time )
 	cout << "    dt_plot = " << G.dt_plot << endl;
 	cout << "    dt_shock = " << G.dt_shock << endl;
 	cout << "    dt_history = " << G.dt_his << endl;
-    cout << "    dt_fstc = " << G.dt_fstc << endl;
+	cout << "    dt_fstc = " << G.dt_fstc << endl;
 	cout << "    max_time = " << G.max_time << endl;
 	cout << "    max_step = " << G.max_step << endl;
 	cout << "    halt_now = " << G.halt_now << endl;

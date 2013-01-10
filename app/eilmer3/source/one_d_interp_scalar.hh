@@ -50,9 +50,9 @@ inline int one_d_interp_scalar( double qL1, double qL0, double qR0, double qR1,
 } // end of one_d_interp_scalar()
 
 inline int wone_d_interp_scalar( double qL1, double qL0, double qR0, double qR1, 
-				double lenL1, double lenL0, double lenR0, double lenR1, 
-				double &qL, double &qR, double kL, double kR,
-				int apply_limiter, int extrema_clipping )
+				 double lenL1, double lenL0, double lenR0, double lenR1, 
+				 double &qL, double &qR, double kL, double kR,
+				 int apply_limiter, int extrema_clipping )
 {
     double aL0, aR0, delLminus, del, delRplus, sL, sR;
     double lower_limit, upper_limit;
@@ -73,7 +73,7 @@ inline int wone_d_interp_scalar( double qL1, double qL0, double qR0, double qR1,
 	sL = 1.0;
 	sR = 1.0;
     }
-
+    
     // The high-order reconstruction, possibly limited.
     qL = qL0 + sL * aL0 * ( (1 + kL*sL) * del * (2.0*lenL0 + lenL1) + (1 - kL*sL) * delLminus * lenR0 );
     qR = qR0 - sR * aR0 * ( (1 - kR*sR) * delRplus * lenL0 + (1 + kR*sR) * del * (2.0*lenR0 + lenR1) );
@@ -95,12 +95,11 @@ inline int wone_d_interp_scalar( double qL1, double qL0, double qR0, double qR1,
 /// See Ian Johnston's thesis.
 ///
 inline int onesided_interp_scalar( double qR0, double qR1, double qR2, 
-				double lenR0, double lenR1, double lenR2, 
-				double &qR, int apply_limiter,
-				int extrema_clipping )
+				   double lenR0, double lenR1, double lenR2, 
+				   double &qR, int apply_limiter,
+				   int extrema_clipping )
 {
 #   define KAPPA 0.0
-#   define ALPHA 0.5
 #   define EPSILON 1.0e-12
 
     double delLminus, delRminus, delRplus, delR, sR;
@@ -121,26 +120,26 @@ inline int onesided_interp_scalar( double qR0, double qR1, double qR2,
     delR = 0.5 * sR * ( (1-sR*KAPPA)*delRplus + (1+sR*KAPPA)*delRminus );
     //qL = qR0 - lenR0 * delRplus;
     qR = qR0 - lenR0 * delR;
-    //if ( extrema_clipping == 1 ) {
+    if ( extrema_clipping == 1 ) {
 	// An extra limiting filter to make sure that we have not introduced
 	// any new extreme values.
 	// This was introduced to deal with very sharp transitions in species.
-	//lower_limit = MINIMUM(qL0, qR0);
-	//upper_limit = MAXIMUM(qL0, qR0);
-	//qL = MINIMUM(upper_limit, MAXIMUM(lower_limit, qL)); 
-	//qR = MINIMUM(upper_limit, MAXIMUM(lower_limit, qR));
-    //}
+	lower_limit = MINIMUM(qL0, qR0);
+	upper_limit = MAXIMUM(qL0, qR0);
+	qL = MINIMUM(upper_limit, MAXIMUM(lower_limit, qL)); 
+	qR = MINIMUM(upper_limit, MAXIMUM(lower_limit, qR));
+    }
     return SUCCESS;
 } // end of one_d_interp_scalar()
 
 /// \brief One-dimensional reconstruction of a scalar quantity between two flow states.
 ///
 inline int linear_interp_scalar( double qL0, double qR0,
-				double L, double R,
-				double &qL, int apply_limiter,
-				int extrema_clipping )
+				 double L, double R,
+				 double &qL, int apply_limiter,
+				 int extrema_clipping )
 {
-    qL = qL0 + (qR0 - qL0) * 0.5*L / ( 0.5*L + 0.5*R );
+    qL = qL0 + (qR0 - qL0) * 0.5 * L / ( 0.5 * L + 0.5 * R );
     return SUCCESS;
 } // end of one_d_linear_interp_scalar()
 #endif

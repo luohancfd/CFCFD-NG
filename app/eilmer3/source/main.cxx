@@ -464,19 +464,19 @@ int prepare_to_integrate( int start_tindx )
     // Prepare data within the primary finite-volume cells.
     // This includes both geometric data and flow state data.
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
-		bdp = G.my_blocks[jb];
-		bdp->compute_primary_cell_geometric_data(G.dimensions);
-		bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions);
-		bdp->compute_secondary_cell_geometric_data(G.dimensions);
-		bdp->set_base_qdot( G );  // this need be done only once per block
-		bdp->identify_reaction_zones( G );
-		bdp->identify_turbulent_zones( G );
-		bdp->apply( &FV_Cell::set_geometry_to_time_level, "set-geometry2D-level-0");
-		bdp->apply( &FV_Cell::encode_conserved, bdp->omegaz, "encode_conserved" );
-		// Even though the following call appears redundant at this point,
-		// fills in some gas properties such as Prandtl number that is
-		// needed for both the cfd_check and the BLomax turbulence model.
-		bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode_conserved" );
+	bdp = G.my_blocks[jb];
+	bdp->compute_primary_cell_geometric_data(G.dimensions);
+	bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions);
+	bdp->compute_secondary_cell_geometric_data(G.dimensions);
+	bdp->set_base_qdot( G );  // this need be done only once per block
+	bdp->identify_reaction_zones( G );
+	bdp->identify_turbulent_zones( G );
+	bdp->apply( &FV_Cell::set_geometry_to_time_level, "set-geometry2D-level-0");
+	bdp->apply( &FV_Cell::encode_conserved, bdp->omegaz, "encode_conserved" );
+	// Even though the following call appears redundant at this point,
+	// fills in some gas properties such as Prandtl number that is
+	// needed for both the cfd_check and the BLomax turbulence model.
+	bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode_conserved" );
     }
 
     // Exchange boundary cell geometry information so that we can
@@ -1126,18 +1126,18 @@ int integrate_in_time( double target_time )
 	// 2b. Recalculate all geometry if shock fitting.
 	if ( get_shock_fitting_flag() == 1 ) {
 	    if ( G.sim_time >= G.t_shock ) {
-		    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
-			    bdp = G.my_blocks[jb];
-			    bdp->compute_primary_cell_geometric_data(G.dimensions);
-			    bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions);
-			    bdp->compute_secondary_cell_geometric_data(G.dimensions);
-			    bdp->apply( &FV_Cell::set_geometry_to_time_level, "set-geometry2D-level-0");
-			    
-			    G.t_shock += G.dt_shock;
-			}
+		for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		    bdp = G.my_blocks[jb];
+		    bdp->compute_primary_cell_geometric_data(G.dimensions);
+		    bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions);
+		    bdp->compute_secondary_cell_geometric_data(G.dimensions);
+		    bdp->apply( &FV_Cell::set_geometry_to_time_level, "set-geometry2D-level-0");
+		    
+		    G.t_shock += G.dt_shock;
 		}
+	    }
 	}
-
+	
 	// 2c.
 	if ( get_viscous_flag() == 1 ) {
 	    // We now have the option of explicit or point implicit update
@@ -1460,10 +1460,10 @@ int finalize_simulation( void )
         foldername = "grid/t9999";
         ensure_directory_is_present(foldername); // includes Barrier
         for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
-	        bdp = G.my_blocks[jb];
-	        sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr; 
-	        filename = foldername+"/"+G.base_file_name+".grid"+jbstring+".t9999";
-	        bdp->write_block(filename, G.sim_time, G.dimensions, zip_files);
+	    bdp = G.my_blocks[jb];
+	    sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr; 
+	    filename = foldername+"/"+G.base_file_name+".grid"+jbstring+".t9999";
+	    bdp->write_block(filename, G.sim_time, G.dimensions, zip_files);
         }
     }
     // Compute, store and write heat-flux data, if viscous simulation
@@ -1657,7 +1657,7 @@ int gasdynamic_inviscid_increment( void )
 	/// 0: Start of predictor step
 	/// 1: End of predictor step/start of corrector step
 	/// 2: End of corrector step
-    if ( get_shock_fitting_flag() == 1 ) {
+	if ( get_shock_fitting_flag() == 1 ) {
 #       ifdef _MPI
 	    mpi_exchange_boundary_data(COPY_CELL_LENGTHS);
 #       else
@@ -1668,15 +1668,15 @@ int gasdynamic_inviscid_increment( void )
 	    }
 #       endif
 	    if ( G.sim_time >= G.t_shock ) {
-            for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
-                bdp = G.my_blocks[jb];
-                bdp->set_vertex_velocities(0);
-		bdp->set_interface_velocities(0);
-                bdp->predict_vertex_positions(G.dt_global);
-                bdp->calc_volumes_2D(1);
-		    }
+		for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		    bdp = G.my_blocks[jb];
+		    bdp->set_vertex_velocities(0);
+		    bdp->set_interface_velocities(0);
+		    bdp->predict_vertex_positions(G.dt_global);
+		    bdp->calc_volumes_2D(1);
+		}
 	    }
-    }
+	}
 	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
 	    if ( bdp->active != 1 ) continue;
@@ -1688,7 +1688,7 @@ int gasdynamic_inviscid_increment( void )
 	    bdp->apply( &FV_Cell::time_derivatives, 0, G.dimensions, "time-derivatives-level-0" );
 	    bdp->apply( &FV_Cell::predictor_update, G.dt_global, "predictor-step" );
 	    bdp->apply( &FV_Cell::decode_conserved, 0, bdp->omegaz, "decode-conserved" );
-		bdp->apply( &FV_Cell::set_geometry_from_time_level, 1, "reset-geometry2D-level-1");
+	    bdp->apply( &FV_Cell::set_geometry_from_time_level, 1, "reset-geometry2D-level-1");
 #           define WILSON_OMEGA_FILTER 0
 #           if WILSON_OMEGA_FILTER == 1
             if ( get_k_omega_flag() ) apply_wilson_omega_correction( *bdp );
@@ -1763,35 +1763,35 @@ int gasdynamic_inviscid_increment( void )
 	        exchange_shared_boundary_data( jb, COPY_CELL_LENGTHS );
 	    }
 #       endif
-			if ( G.sim_time >= G.t_shock ) {
+	    if ( G.sim_time >= G.t_shock ) {
                 for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
                     bdp = G.my_blocks[jb];
                     bdp->calc_faces_2D(1);
                     bdp->set_vertex_velocities(1);
-				    bdp->set_interface_velocities(1);
+		    bdp->set_interface_velocities(1);
                     bdp->correct_vertex_positions(G.dt_global);
                     bdp->calc_volumes_2D(2);
-			    }
-	        }
-        }
-	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
-		bdp = G.my_blocks[jb];
-		if ( bdp->active != 1 ) continue;
-		bdp->inviscid_flux( G.dimensions );
-		bdp->apply( &FV_Cell::inviscid_source_vector, 1, bdp->omegaz, "inviscid-source-vector-level-1" );
-		if ( G.udf_source_vector_flag == 1 ) {
-		    bdp->apply( udf_source_vector_for_cell, G.sim_time, "udf-source-vector" );
 		}
-		bdp->apply( &FV_Cell::time_derivatives, 1, G.dimensions, "time_derivatives-level-1" );
-		bdp->apply( &FV_Cell::corrector_update, G.dt_global, "corrector-step" );
-		bdp->apply( &FV_Cell::decode_conserved, 1, bdp->omegaz, "decode-conserved" );
-		bdp->apply( &FV_Cell::set_geometry_from_time_level, 2, "reset-geometry2D-level-2");
+	    }
+        }
+	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	    bdp = G.my_blocks[jb];
+	    if ( bdp->active != 1 ) continue;
+	    bdp->inviscid_flux( G.dimensions );
+	    bdp->apply( &FV_Cell::inviscid_source_vector, 1, bdp->omegaz, "inviscid-source-vector-level-1" );
+	    if ( G.udf_source_vector_flag == 1 ) {
+		bdp->apply( udf_source_vector_for_cell, G.sim_time, "udf-source-vector" );
+	    }
+	    bdp->apply( &FV_Cell::time_derivatives, 1, G.dimensions, "time_derivatives-level-1" );
+	    bdp->apply( &FV_Cell::corrector_update, G.dt_global, "corrector-step" );
+	    bdp->apply( &FV_Cell::decode_conserved, 1, bdp->omegaz, "decode-conserved" );
+	    bdp->apply( &FV_Cell::set_geometry_from_time_level, 2, "reset-geometry2D-level-2");
 #               if WILSON_OMEGA_FILTER == 1
-                if ( get_k_omega_flag() ) apply_wilson_omega_correction( *bdp );
+	    if ( get_k_omega_flag() ) apply_wilson_omega_correction( *bdp );
 #               endif
-	    } // end for jb loop
+	} // end for jb loop
 	} // end if (corrector stage)
-
+	
 #       if 0
 	// Rolf's troublesome cell
 	printf("PJ_DEBUG--------Corner-cell-after-corrector-inviscid-update-----\n");
