@@ -641,7 +641,7 @@ double * FV_Cell::copy_values_to_buffer(double *buf, int type_of_copy)
         *buf++ = iLength; *buf++ = jLength; *buf++ = kLength;
         *buf++ = pos.x; *buf++ = pos.y; *buf++ = pos.z;
 	if ( get_shock_fitting_flag() ) {
-	    for ( int j = 0; j < 4; ++j ) {
+	    for ( int j = 0; j < NI; ++j ) {
 		if ( iface[j] == 0 ) { // When copying from ghost cell which may
 		    continue;          // not have initialised interfaces
 		}
@@ -671,7 +671,7 @@ double * FV_Cell::copy_values_from_buffer(double *buf, int type_of_copy)
         iLength = *buf++; jLength = *buf++; kLength = *buf++;
         pos.x = *buf++; pos.y = *buf++; pos.z = *buf++;
 	if ( get_shock_fitting_flag() ) {
-	    for ( int j = 0; j < 4; ++j ) {
+	    for ( int j = 0; j < NI; ++j ) {
 		if ( iface[j] == 0 ) { // When copying from ghost cell which may
 		    continue;          // not have initialised interfaces
 		}
@@ -1174,9 +1174,17 @@ int FV_Cell::set_geometry_to_time_level( void )
 	ar[j] = area;
 	vol[j] = volume;
 	position[j] = pos;
-	for ( int i = 0; i <= 3; ++i ) {
-	    vtx[i]->position[j] = vtx[i]->pos;
+	for ( int i = 0; i < NI; ++i ) {
+	    if ( iface[i] == 0 ) { // When copying from ghost cell which may
+		continue;          // not have initialised interfaces
+	    }	    
 	    iface[i]->ar[j] = iface[i]->area;
+	}
+	for ( int i = 0; i < NV; ++i ) {
+	    if ( vtx[i] == 0 ) { // When copying from ghost cell which may
+		continue;        // not have initialised vertices.
+	    }
+	    vtx[i]->position[j] = vtx[i]->pos;
 	}
     }
     return SUCCESS;
@@ -1189,9 +1197,17 @@ int FV_Cell::set_geometry_from_time_level(int time_level)
     area = ar[time_level];
     volume = vol[time_level];
     pos = position[time_level];
-    for ( int i = 0; i <= 3; ++i ) {
-	vtx[i]->pos = vtx[i]->position[time_level];
+    for ( int i = 0; i < NI; ++i ) {
+	if ( iface[i] == 0 ) { // When copying from ghost cell which may
+	    continue;          // not have initialised interfaces
+	}	    
 	iface[i]->area = iface[i]->ar[time_level];
+    }
+    for ( int i = 0; i < NV; ++i ) {
+	if ( vtx[i] == 0 ) { // When copying from ghost cell which may
+	    continue;        // not have initialised vertices.
+	}
+	vtx[i]->pos = vtx[i]->position[time_level];
     }
     return SUCCESS;
 }

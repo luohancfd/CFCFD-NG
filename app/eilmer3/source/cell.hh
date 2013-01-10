@@ -52,7 +52,8 @@
  * Used below to dimension some time-derivative arrays.
  */
 #define NL 3
-
+#define NI 6
+#define NV 8
 
 /// We might update the k-omega properties in with the main predictor-corrector
 /// time-stepping function or we might choose to update it separately, 
