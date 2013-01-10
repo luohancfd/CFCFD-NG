@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# extract_NIST_levels.py
+# extract_NIST_data.py
 
 # Expected NIST format:
 # -------------------------------------------------------------
@@ -180,7 +180,11 @@ def extract_and_combine_levels( NIST_level_file ):
             continue
         elif tks[1]=="II" or tks[1]=="III":
             # start of super-ionization levels
-            E_ionized = float(tks[9].replace("(","").replace(")",""))
+            tmp = tks[9].replace("[","").replace("]","")
+            if "(" in tmp:
+                E_ionized = float(tmp[:tmp.index("(")])
+            else:
+                E_ionized = float(tmp)
             continue
             
         count += 1
