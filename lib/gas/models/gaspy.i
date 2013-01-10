@@ -44,6 +44,7 @@
 #include "chemical-species-library.hh"
 #include "species-energy-modes.hh"
 #include "../kinetics/energy-exchange-mechanism.hh"
+#include "../kinetics/energy-exchange-relaxation-time.hh"
 #include "CI-functor.hh"
 #include "GuptaYos-mixing-rule.hh"
 %}
@@ -63,6 +64,7 @@
 %include "chemical-species-library.hh"
 %include "species-energy-modes.hh"
 %include "../kinetics/energy-exchange-mechanism.hh"
+%include "../kinetics/energy-exchange-relaxation-time.hh"
 %include "../../nm/source/functor.hh"
 %include "CI-functor.hh"
 %include "transport-coefficients-model.hh"
@@ -73,4 +75,5 @@
 %include "polyatom-electronic-level.hh"
 
 %pythoncode %{
+initialise_gas_model = create_gas_model
 %}

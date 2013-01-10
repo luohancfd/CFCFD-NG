@@ -3,8 +3,7 @@
 //          Initial coding.
 //
 
-using namespace std;
-
+#include <set>
 #include <fstream>
 #include <iostream>
 #include <iomanip>
@@ -15,6 +14,9 @@ using namespace std;
 #include "../../util/source/lua_service.hh"
 #include "../../util/source/useful.h"
 #include "thermal-energy-modes.hh"
+#include "gas-model.hh"
+
+using namespace std;
 
 Thermal_energy_mode::
 Thermal_energy_mode( string name, vector<Chemical_species*> &species, lua_State *L )
@@ -76,11 +78,16 @@ Thermal_energy_mode( string name, vector<Chemical_species*> &species, lua_State 
 		    components_.push_back( M );
 		    // FIXME: Remove after testing
 		    cout << X->get_name() << "-" << M->get_type() << ", ";
+		    sp_idx_.push_back(M->get_isp());
 		}
 	    }
 	}
 	cout << " } " << endl;
     }
+    // Convert sp_idx vector to a set to remove duplicate entries
+    set<int> sp_idx2(sp_idx_.begin(), sp_idx_.end());
+    // Assign set back to vector
+    sp_idx_.assign(sp_idx2.begin(), sp_idx2.end());
 }
 
 Thermal_energy_mode::~Thermal_energy_mode()
@@ -90,16 +97,34 @@ Thermal_energy_mode::~Thermal_energy_mode()
 
 double
 Thermal_energy_mode::
+mode_massf(const Gas_data &Q)
+{
+    double sum = 0.0;
+    for ( size_t i = 0; i < sp_idx_.size(); ++i ) {
+	int isp = sp_idx_[i];
+	sum += Q.massf[isp];
+    }
+    return sum;
+}
+
+double
+Thermal_energy_mode::
 s_decode_conserved_energy(Gas_data &Q, double rhoe)
 {
-    return rhoe/Q.rho;
+    double modef = mode_massf(Q);
+    if ( modef > DEFAULT_MIN_MASS_FRACTION ) {
+	return rhoe/(Q.rho*modef);
+    }
+    else {
+	return rhoe/Q.rho;
+    }
 }
 
 double
 Thermal_energy_mode::
 s_encode_conserved_energy(const Gas_data &Q)
 {
-    return Q.rho*Q.e[iT_];
+    return Q.rho*mode_massf(Q)*Q.e[iT_];
 }
 
 double
@@ -107,8 +132,12 @@ Thermal_energy_mode::
 s_eval_dedT(Gas_data &Q)
 {
     double dedT = 0.0;
-    for ( size_t ic=0; ic<components_.size(); ++ic )
-    	dedT += components_[ic]->eval_weighted_Cv( Q );
+    double modef = mode_massf(Q);
+    for ( size_t ic=0; ic<components_.size(); ++ic ) {
+	double Cv_i = components_[ic]->eval_Cv(Q);
+	int isp = components_[ic]->get_isp();
+	dedT += ( modef > DEFAULT_MIN_MASS_FRACTION ) ? (Q.massf[isp]/modef)*Cv_i : Cv_i;
+    }
     
     return dedT;
 }
@@ -118,9 +147,12 @@ Thermal_energy_mode::
 s_eval_energy(const Gas_data &Q)
 {
     double e = 0.0;
-    for ( size_t ic=0; ic<components_.size(); ++ic )
-    	e += components_[ic]->eval_weighted_energy( Q );
-    
+    double modef = mode_massf(Q);
+    for ( size_t ic=0; ic<components_.size(); ++ic ) {
+	double e_c = components_[ic]->eval_energy(Q);
+	int isp = components_[ic]->get_isp();
+	e += ( modef > DEFAULT_MIN_MASS_FRACTION ) ? (Q.massf[isp]/modef)*e_c : e_c; 
+    }
     return e;
 }
 
@@ -253,7 +285,7 @@ s_eval_temperature(Gas_data &Q)
     	    	double e_min = s_eval_energy( Q );
                 Q.T[iT_] = T_max_;
                 double e_max = s_eval_energy( Q );
-                cout << "e_given = " << e_given << ", e(T_min) = " << e_min << ", e(T_max) = " << e_max << endl;
+                //cout << "e_given = " << e_given << ", e(T_min) = " << e_min << ", e(T_max) = " << e_max << endl;
                 // Set T_i to an intermediate value and drop f_relax by an order-of-magnitude
     	    	T_i = 0.5 * ( T_min_ + T_max_ );
                 f_relax *= 0.1;
@@ -287,7 +319,7 @@ s_eval_temperature(Gas_data &Q)
     	Q.T[iT_] = T_i;
     	// 3.b New e level
     	e_i = s_eval_energy( Q );
-        // cout << "i = " << i << ", T_im1 = " << T_im1 << ", T_i = " << T_i << ", e_i = " << e_i << ", e_given = " << e_given << endl;
+        //cout << "i = " << i << ", T_im1 = " << T_im1 << ", T_i = " << T_i << ", e_i = " << e_i << ", e_given = " << e_given << endl;
     	// 3.c Test for convergence
     	if ( check_convergence( e_i, e_given ) ) break;
     	// else -> prepare for next iteration

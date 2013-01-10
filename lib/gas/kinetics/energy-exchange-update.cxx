@@ -26,16 +26,59 @@ Energy_exchange_update* create_Energy_exchange_update(string cfile, Gas_model &g
     map<string, Energy_exchange_update* (*)(lua_State*, Gas_model&)> energy_exchange_updates;
     energy_exchange_updates.insert(pair<string, Energy_exchange_update* (*)(lua_State*, Gas_model&)>("energy exchange ODE", create_Energy_exchange_ODE_update));
 
+
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
 
-    // FIXME: may want to do some parsing with a lua script file here
+    // Set up a species table
+    lua_newtable(L);
+    for ( int isp = 0; isp < g.get_number_of_species(); ++isp ) {
+	// This species table maps to C++ indices, because
+	// it is used to setup the integer maps for
+	// the reaction coefficients.
+	lua_pushinteger(L, isp);
+	lua_setfield(L, -2, g.species_name(isp).c_str());
+	// Also add the reverse lookup
+	lua_pushinteger(L, isp);
+	lua_pushstring(L, g.species_name(isp).c_str());
+	lua_settable(L, -3);
+    }
+    // Plus add a field 'size': no of species
+    lua_pushinteger(L, g.get_number_of_species());
+    lua_setfield(L, -2, "size");
+    lua_setglobal(L, "species");
     
+    // Setup a map of thermal modes to integer
+    lua_newtable(L);
+    for ( int imode = 0; imode < g.get_number_of_modes(); ++imode ) {
+	lua_pushinteger(L, imode);
+	lua_setfield(L, -2, g.mode_name(imode).c_str());
+    }
+    lua_setglobal(L, "modes");
+
+    cout << "Loading parser." << endl;
+    // Path to reaction parsing script
+    string home(getenv("HOME"));
+    string script_file(home);
+    script_file.append("/e3bin/energy_exchange_parser.lua");
+    
+    if ( luaL_dofile(L, script_file.c_str()) != 0 ) {
+	ostringstream ost;
+	ost << "create_energy_exchange_update():\n";
+	ost << "Error in loading script file: " << script_file << endl;
+	ost << lua_tostring(L, -1) << endl;
+	input_error(ost);
+    }
+
+    cout << "Parsing the input file." << endl;
     // Parse the input file...
-    if( luaL_dofile(L, cfile.c_str()) != 0 ) {
+    lua_getglobal(L, "main");
+    lua_pushstring(L, cfile.c_str());
+    if ( lua_pcall(L, 1, 0, 0) != 0 ) {
 	ostringstream ost;
 	ost << "create_Energy_exchange_update():\n";
-	ost << "Error in input file: " << cfile << endl;
+	ost << "Error trying to load/parse energy exchange input file: " << cfile << endl;
+	ost << lua_tostring(L, -1) << endl;
 	input_error(ost);
     }
     
@@ -61,9 +104,9 @@ Energy_exchange_update* create_Energy_exchange_update(string cfile, Gas_model &g
 	input_error(ost);
     }
     lua_pop(L, 1);
-    
+
     Energy_exchange_update *eeu = energy_exchange_updates[update](L, g);
-    
+
     if ( eeu == 0 ) {
 	ostringstream ost;
 	ost << "create_Energy_exchange_update():\n";

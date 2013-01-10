@@ -1,0 +1,21 @@
+set term pdfcairo enhanced mono dashed font "Times"
+set title "Relaxation of inert air behind a shock; VT + VV exchanges"
+set output "example-2.pdf"
+set xlabel "distance, cm"
+set ylabel "temperature, K"
+set xrange [0:5]
+set yrange [0:25000.0]
+set arrow from 1,7000 to 0.8,12700 head
+set label "T_{v,N_2}" at 1.05,7000
+set arrow from 0.2,17000 to 0.5,15000 head
+set label "T_{v,O_2}" at 0.1,18000
+set arrow from 1.5,23000 to 1.0,22000 head
+set label "T_{t,r}" at 1.55,23000
+set key bottom
+plot "example-2.data" u ($1*100.0):2 t 'poshax3' w l ls 1, \
+     "example-2.data" u ($1*100.0):3 notitle w l ls 1, \
+     "example-2.data" u ($1*100.0):4 notitle w l ls 1, \
+     "thivet_etal_fig5_T.endata" t 'Thivet et al. (1991)' w l ls 2, \
+     "thivet_etal_fig5_T_O2_VV.endata" notitle w l ls 2, \
+     "thivet_etal_fig5_T_N2_VV.endata" notitle w l ls 2
+

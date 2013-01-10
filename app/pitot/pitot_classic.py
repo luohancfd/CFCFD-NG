@@ -319,6 +319,11 @@ def main():
         
     #air as accelorator gas
     GA = gases['air'][0]; RA = gases['air'][1]
+    
+    filename = raw_input('filename? ')
+    
+    if filename == '':
+        filename = 'x2run.txt'
                
     print 'Enter shock speeds (in m/s) below to find solution.'
     
@@ -349,7 +354,7 @@ def main():
         
         #output file creation
 
-        output = open('x2run.txt',"w")
+        output = open(filename,"w")
     
         #----------------- starting off ----------------------
         
@@ -498,7 +503,7 @@ def main():
         
         print " "
         
-        version_printout = "Version: {0}".format(VERSION_STRING)
+        version_printout = "Pitot Classic Version: {0}".format(VERSION_STRING)
         print version_printout
         output.write(version_printout + '\n')
         

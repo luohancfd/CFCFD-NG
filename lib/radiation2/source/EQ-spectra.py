@@ -18,125 +18,76 @@ longOptions = ["help", "input-file="]
 def printUsage():
     print ""
     print "Usage: eq-spectra.py [--help] [--input-file=<fileName>]"
-    print "e.g. eq-spectra.py --input-file='eqs.inp'"
+    print "e.g. eq-spectra.py --input-file='eqs.py'"
     print ""
     return
     
-def parseInputFile(input_file):
-    # parse the input file
-    ifile = open(input_file,"r")
-    lines = ifile.readlines()
-    ifile.close()
-    if len(lines)!=11:
-        print "Input file %s does not follow the expected format: " % input_file
-        print "rad-model-file: <radFile>"
-        print "   species-list: <speciesList>"
-        print " mole-fractions: <moleFractionsList>"
-        print "     --- OR ---"
-        print " mass-fractions: <massFractionsList>"
-        print "    shock-speed: <shockSpeed> <units>"
-        print "   gas-pressure: <gasPressure> <units>"
-        print "gas-temperature: <gasTemperature> <units>"
-        print "     tube-width: <tubeWidth> <units>"
-        print "   Apparatus-fn: <apparatus_fn>"
-        print "  Gaussian-HWHM: <gamma_G> <units>"
-        print "Lorentzian-HWHM: <gamma_L> <units>"
-        print "  sampling-rate: <nu_sample>"
-        sys.exit()
-          
-    # first line is the radiation mode filename
-    tks = lines[0].split()
-    rmodel_file = tks[1]
-    # make the radiation-model
-    print "Setting up a radiation model from input file", rmodel_file 
-    rsm = create_radiation_spectral_model( rmodel_file )
+class EqSpectraInputData(object):
+    """Python class to organize the global data for the EQ-spectra calculation.
+
+    The user's script does not create this object but rather just alters
+    attributes of the global object.
+    """
+    __slots__ = ['rad_model_file', 'gas_model_file', 'species_list', 'mole_fractions', 'mass_fractions', 'shock_speed', 'gas_pressure', 'gas_temperature', 'tube_width', 'apparatus_fn', 'Gaussian_HWHM', 'Lorentzian_HWHM', 'sampling_rate' ]
+    def __init__(self):
+        self.rad_model_file = "rad-model.lua"
+        self.gas_model_file = "gas-model.lua"
+        self.species_list = [ 'Ar', 'Ar_plus', 'e_minus' ]
+        self.mole_fractions = None
+        self.mass_fractions = None
+        self.shock_speed = 0
+        self.gas_pressure = 0
+        self.gas_temperature = 0
+        self.tube_width = 0
+        self.apparatus_fn = None
+        self.Gaussian_HWHM = 0
+        self.Lorentzian_HWHM = 0
+        self.sampling_rate = 1
     
-    # second line is the species list
-    tks = lines[1].split()
-    species = tks[1:]
+def parseInputData(input_data):
+    # parse the input data object
+          
+    print "Setting up a radiation model from input file", input_data.rad_model_file 
+    rsm = create_radiation_spectral_model( input_data.rad_model_file )
+    
+    species = input_data.species_list
     # make the gas-model
-    gmodel_file = "gas-model.lua"
-    create_gas_file( "thermally perfect gas", species, gmodel_file )
-    print "Setting up a gas model from input file", gmodel_file 
-    gm = create_gas_model("gas-model.lua")
+    create_gas_file( "thermally perfect gas", species, input_data.gas_model_file )
+    print "Setting up a gas model from input file", input_data.gas_model_file 
+    gm = create_gas_model(input_data.gas_model_file)
     nsp = gm.get_number_of_species()
     ntm = gm.get_number_of_modes()
     
-    # third line are the species mass-fractions or mole-fractions
-    tks = lines[2].split()
-    if tks[0]=="mass-fractions:":
-        massf_inf = []
-        for tk in tks[1:]:
-            massf_inf.append( float(tk) )
-    elif tks[0]=="mole-fractions:":
-        molef_inf = []
-        for tk in tks[1:]:
-            molef_inf.append( float(tk) )
-        massf_inf = convert_molef2massf(molef_inf,gm.M())
+    # species mass-fractions or mole-fractions
+    if input_data.mass_fractions!=None:
+        massf_inf = input_data.mass_fractions
+    else:
+        massf_inf = convert_molef2massf(input_data.mole_fractions,gm.M())
     # print "massf_inf = ", massf_inf        
 
-    # forth line is the shock speed
-    tks = lines[3].split()
-    Us = float(tks[1])
-    if len(tks)==3:
-        if tks[2]=="km/s": Us *= 1000.
-        elif tks[2]=="m/s": Us *= 1.0
-        else:
-            print "Shock speed units: %s not understood" % tks[2]
-            sys.exit()
+    # shock speed
+    Us = input_data.shock_speed
     
-    # fifth line is the gas pressure
-    tks = lines[4].split()
-    p_inf = float(tks[1])
-    if len(tks)==3:
-        if tks[2]=="Torr" or tks[2]=="torr": p_inf *= 133.3333
-        elif tks[2]=="Pa" or tks[2]=="pa": p_inf *= 1.0
-        else:
-            print "Pressure units: %s not understood" % tks[2]
-            sys.exit()
-    
-    # sixth line is the gas temperature
-    tks = lines[5].split()
-    T_inf = float(tks[1])
-    
-    # seventh line is the tube width
-    tks = lines[6].split()
-    tube_D = float(tks[1])
-    if len(tks)==3:
-        if tks[2]=="cm": tube_D /= 100.0
-        elif tks[2]=="mm": tube_D /= 1000.0
-        elif tks[2]=="m": tube_D *= 1.0
-        else:
-            print "Tube width units: %s not understood" % tks[2]
-            sys.exit()
+    # gas pressure
+    p_inf = input_data.gas_pressure
 
-    # eighth line is the name of the desired apparatus function model
-    tks = lines[7].split()
-    apparatus_fn = tks[1]
+    # gas temperature
+    T_inf = input_data.gas_temperature
     
-    # ninth line is the Gaussian half-width half maximum of the spectrometer apparatus function
-    tks = lines[8].split()
-    gamma_G = float(tks[1])
-    if len(tks)==3:
-        if tks[2]=="Ang" or tks[2]=="ang": gamma_G *= 1.0
-        elif tks[2]=="nm": gamma_G *= 10.0
-        else:
-            print "FWHM units: %s not understood" % tks[2]
-            sys.exit()
+    # tube width
+    tube_D = input_data.tube_width
+
+    # name of the desired apparatus function model
+    apparatus_fn = input_data.apparatus_fn
+    
+    # Gaussian half-width half maximum of the spectrometer apparatus function
+    gamma_G = input_data.Gaussian_HWHM
             
-    # tenth line is the Lorentzian half-width half maximum of the spectrometer apparatus function
-    tks = lines[9].split()
-    gamma_L = float(tks[1])
-    if len(tks)==3:
-        if tks[2]=="Ang" or tks[2]=="ang": gamma_L *= 1.0
-        elif tks[2]=="nm": gamma_L *= 10.0
-        else:
-            print "FWHM units: %s not understood" % tks[2]
-            sys.exit()     
+    # Lorentzian half-width half maximum of the spectrometer apparatus function
+    gamma_L = input_data.Lorentzian_HWHM    
             
-    # eleventh line is the sampling output for the plotting-program-readable output
-    tks = lines[10].split()
-    nu_sample = int(tks[1])  
+    # sampling output for the plotting-program-readable output
+    nu_sample = input_data.sampling_rate
     
     return rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, apparatus_fn, gamma_G, gamma_L, nu_sample
 
@@ -155,9 +106,13 @@ def main():
         sys.exit(0)
     #
     input_file = uoDict.get("--input-file", "none")
+    #
+    # create the input data instance
+    input_data = EqSpectraInputData()
     # 
-    # parse the input option
-    rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, apparatus_fn, gamma_G, gamma_L, nu_sample = parseInputFile(input_file)
+    # parse the input options
+    execfile(input_file)
+    rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, apparatus_fn, gamma_G, gamma_L, nu_sample = parseInputData(input_data)
 
     # setup the reactants list
     reactants = make_reactants_dictionary( species )

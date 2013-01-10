@@ -12,7 +12,7 @@ require 'reaction_rate'
 
 local transform_rate_model = reaction_rate.transform_rate_model
 
-local function transform_species_str(sp)
+function transform_species_str(sp)
    if string.match(sp, '+') then
       return string.gsub(sp, '+', '_plus')
    end

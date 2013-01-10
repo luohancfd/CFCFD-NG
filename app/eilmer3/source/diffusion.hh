@@ -167,6 +167,28 @@ protected:
     double Le_;
 };
 
+class ConstantSchmidtNumber : public DiffusionModel {
+public:
+    ConstantSchmidtNumber(const string name, int nsp);
+
+    ConstantSchmidtNumber(const ConstantSchmidtNumber &c);
+
+    virtual ~ConstantSchmidtNumber();
+
+    string str() const;
+
+    void calculate_diffusion_fluxes(const Gas_data &Q,
+                                    double D_t,
+                                    const std::vector<double> &dfdx,
+                                    const std::vector<double> &dfdy,
+                                    const std::vector<double> &dfdz,
+                                    std::vector<double> &jx,
+                                    std::vector<double> &jy,
+                                    std::vector<double> &jz);
+protected:
+    double Sc_;
+};
+
 int set_diffusion_model( const string diffusion_model="Stefan-Maxwell" );
 
 void calculate_diffusion_fluxes(const Gas_data &Q,

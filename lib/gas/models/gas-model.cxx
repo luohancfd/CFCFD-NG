@@ -770,7 +770,20 @@ get_isp_from_species_name( string name )
 	if ( s_names_[isp] == name ) return isp;
     
     cout << "Species with name: " << name << " is not part of this gas-model" << endl;
-    exit( BAD_INPUT_ERROR );
+    exit(VALUE_ERROR);
+}
+
+int
+Gas_model::
+get_imode_from_mode_name(string name)
+{
+    for ( int imode = 0; imode < nmodes_; ++imode ) {
+	if ( m_names_[imode] == name )
+	    return imode;
+    }
+    // If we get this far, then haven't found the name
+    cout << "Mode name '" << name << "' could not be found in this gas model.\n";
+    exit(VALUE_ERROR);
 }
 
 int

@@ -470,7 +470,7 @@ int main(int argc, char *argv[])
         reaction_rates_outfile << setprecision(6) << showpoint;
     }
 
-    double x = 0.0, new_dx, next_plot_x = plot_dx;
+    double x = 0.0, new_dx, next_plot_x = 0.0;
     int count = 0;
     int TS_count = 0;
     outfile << setw(20) << x << psr->psflow.str(bool(rtmodel), species_output_type, gmodel->M()) << endl;

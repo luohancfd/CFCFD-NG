@@ -94,7 +94,10 @@ LUA_MODULES := 	refprop.lua \
 	reaction_parser.lua \
 	reac.lua \
 	reaction_rate.lua \
-	tab_serialise.lua
+	tab_serialise.lua \
+	reaction_rate.lua \
+	energy_exchange_parser.lua \
+	exch.lua
 
 LUA_OBJECTS := lgas-model.o \
 	lreaction-update.o \
@@ -646,7 +649,7 @@ eq-const-from-thermo.o : $(KINETICS)/eq-const-from-thermo.hh $(KINETICS)/eq-cons
 eq-const-from-CEA-curves.o : $(KINETICS)/eq-const-from-CEA-curves.hh $(KINETICS)/eq-const-from-CEA-curves.cxx \
 	$(KINETICS)/equilibrium-constant.hh $(MODELS)/chemical-species.hh $(LUA_INCLUDE_DIR)
 	$(CXX) $(CXXFLAG) $(KINETICS)/eq-const-from-CEA-curves.cxx -I$(LUA_INCLUDE_DIR)
-	
+
 eq-const-from-partition-functions.o : $(KINETICS)/eq-const-from-partition-functions.hh $(KINETICS)/eq-const-from-partition-functions.cxx \
 	$(KINETICS)/equilibrium-constant.hh $(LUA_INCLUDE_DIR)
 	$(CXX) $(CXXFLAG) $(KINETICS)/eq-const-from-partition-functions.cxx -I$(LUA_INCLUDE_DIR)
@@ -865,6 +868,12 @@ reac.lua : $(KINETICS)/reac.lua
 
 reaction_rate.lua : $(KINETICS)/reaction_rate.lua
 	cp $(KINETICS)/reaction_rate.lua .
+
+energy_exchange_parser.lua : $(KINETICS)/energy_exchange_parser.lua
+	cp $(KINETICS)/energy_exchange_parser.lua .
+
+exch.lua : $(KINETICS)/exch.lua
+	cp $(KINETICS)/exch.lua .
 
 #------------------------------------------
 # Tools

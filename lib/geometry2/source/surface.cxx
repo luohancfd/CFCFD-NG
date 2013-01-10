@@ -16,6 +16,7 @@
 #include <iterator>
 #include <algorithm>
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <sstream>
 #include <cmath>
@@ -1537,3 +1538,91 @@ eval( double r, double s ) const
     return nurbs_surface_point(u, p, U, v, q, V, Qw_);
 }
 
+
+int write_STL(const ParametricSurface &surf, int nr, int ns, string fname)
+{
+    // s: surface
+    // nr: number of 'cells' in r direction
+    // ns: number of 'cells' in s direction
+    // fname: output name for STL surface
+    //
+    // This function first divides the surface into quad-shaped
+    // cells. Each of these is subdivided to give the triangles
+    // required for STL output.
+
+    ofstream f(fname.c_str());
+    if ( f.fail() ) {
+	cout << "Problem opening file: " << fname << " for writing in write_STL().\n";
+	cout << "Bailing out!\n";
+	exit(1);
+    }
+
+    f << setprecision(12) << scientific;
+    f << "solid dummy-name\n";
+
+    double r = 0.0;
+    double dr = 1.0/nr;
+    double s = 0.0;
+    double ds = 1.0/ns;
+    Vector3 A, B, C, D, n1, n2;
+    
+    for ( int ir = 0; ir < nr; ++ir ) {
+	r = ir*dr;
+	for ( int is = 0; is < ns; ++is ) {
+	    s = is*ds;
+	    A = surf.eval(r, s);
+	    B = surf.eval(r+dr, s);
+	    C = surf.eval(r+dr, s+ds);
+	    D = surf.eval(r, s+ds);
+	    
+	    // Tri: ADC
+	    n1 = unit(cross(D-A, C-D));
+	    f << "facet normal ";
+	    f << setw(20) << n1.x << " ";
+	    f << setw(20) << n1.y << " ";
+	    f << setw(20) << n1.z << endl;
+	    f << "outer loop\n";
+	    f << "vertex ";
+	    f << setw(20) << A.x << " ";
+	    f << setw(20) << A.y << " ";
+	    f << setw(20) << A.z << endl;
+	    f << "vertex ";
+	    f << setw(20) << D.x << " ";
+	    f << setw(20) << D.y << " ";
+	    f << setw(20) << D.z << endl;
+	    f << "vertex ";
+	    f << setw(20) << C.x << " ";
+	    f << setw(20) << C.y << " ";
+	    f << setw(20) << C.z << endl;
+	    f << "endloop\n";
+	    f << "endfacet\n";
+
+	    // Tri: BAC
+	    n2 = unit(cross(A-B, C-A));
+	    f << "facet normal ";
+	    f << setw(20) << n2.x << " ";
+	    f << setw(20) << n2.y << " ";
+	    f << setw(20) << n2.z << endl;
+	    f << "outer loop\n";
+	    f << "vertex ";
+	    f << setw(20) << B.x << " ";
+	    f << setw(20) << B.y << " ";
+	    f << setw(20) << B.z << endl;
+	    f << "vertex ";
+	    f << setw(20) << A.x << " ";
+	    f << setw(20) << A.y << " ";
+	    f << setw(20) << A.z << endl;
+	    f << "vertex ";
+	    f << setw(20) << C.x << " ";
+	    f << setw(20) << C.y << " ";
+	    f << setw(20) << C.z << endl;
+	    f << "endloop\n";
+	    f << "endfacet\n";
+	}
+    }
+
+    f << "endsolid dummy-name\n";
+    f.close();
+
+    return 0;
+}

@@ -55,6 +55,23 @@ CFLAG += -DWITH_IMPLICIT=$(WITH_IMPLICIT)
 CXXFLAG += -DWITH_IMPLICIT=$(WITH_IMPLICIT)
 LLIB += -lpopt -ldl -L/opt/local/lib
 
+# Test if we are asking for debugging information for a single cell
+ifdef PRNT_DBG_CELL
+    CXXFLAG += -DPRNT_DBG_CELL
+endif
+ifdef DBG_BLK
+    CXXFLAG += -DDBG_BLK=$(DBG_BLK)
+endif
+ifdef DBG_CELL_I
+    CXXFLAG += -DDBG_CELL_I=$(DBG_CELL_I)
+endif
+ifdef DBG_CELL_J
+    CXXFLAG += -DDBG_CELL_J=$(DBG_CELL_J)
+endif
+ifdef DBG_CELL_K
+    CXXFLAG += -DDBG_CELL_I=$(DBG_CELL_K)
+endif
+
 SRC             := ../source
 LIBE3           := libe3.a
 UTIL            := ../../../lib/util
@@ -188,6 +205,7 @@ install : $(INSTALL_DIR) $(E3_EXE_FILES) $(PY_FILES) $(E3_UTILS)
 	@echo Copying executable files to $(INSTALL_DIR)
 	cd $(GAS)/build; make TARGET=$(TARGET) OPT=$(OPT) INSTALL_DIR=$(INSTALL_DIR) install
 	cd $(RAD)/build; make TARGET=$(TARGET) OPT=$(OPT) INSTALL_DIR=$(INSTALL_DIR) install
+	cd $(GEOM2)/build; make TARGET=$(TARGET) OPT=$(OPT) INSTALL_DIR=$(INSTALL_DIR) install
 	- cp -f $(E3_EXE_FILES) $(INSTALL_DIR)
 	- cp -f $(PY_FILES) $(INSTALL_DIR)
 	- cp -f $(E3_UTILS) $(INSTALL_DIR)

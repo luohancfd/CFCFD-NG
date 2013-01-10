@@ -87,5 +87,6 @@ Examples
    :maxdepth: 1
 
    poshax3/air-Mach-12.3
+   poshax3/thivet_et_al
    poshax3/FireII-1634s
 

@@ -25,6 +25,18 @@ install : $(INSTALL_DIR) $(PROGRAMS)
 	@echo -----------------------------------------
 	@echo nenzfr and estcj should be now installed.
 	@echo -----------------------------------------
+	
+estcj : $(INSTALL_DIR) estcj.py
+	@echo Building lib/gas and installing to $(INSTALL_DIR)
+	cd $(GAS)/build; make TARGET=$(TARGET) OPT=$(OPT) INSTALL_DIR=$(INSTALL_DIR) install
+	@echo Copying cfpylib files to $(INSTALL_DIR)
+	cd ../../lib/; rsync -av --exclude=".svn" --exclude="*~" cfpylib $(INSTALL_DIR)
+	@echo Copying executable files to $(INSTALL_DIR)
+	- cp -f estcj.py $(INSTALL_DIR)
+	- chmod +x $(INSTALL_DIR)/estcj.py
+	@echo ------------------------------
+	@echo estcj should be now installed.
+	@echo ------------------------------
 
 clean :
 	@echo Deleting object files

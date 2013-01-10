@@ -4,25 +4,8 @@
 ## 
 ## Part2: Viscous solution on a finer grid
 
-from cfpylib.gasdyn.billig import x_from_y, y_from_x
-from cfpylib.nm.zero_solvers import bisection
-from math import cos, sin, tan, sqrt, pi
-from cfpylib.flow.shock_layer_surface import ShockLayerSurface
-
-def RCF(a,b,beta):
-    return RobertsClusterFunction(a, b, beta)
-
-def BRCF(a,b,c,d,beta0,beta1,gamma):
-    RCF_a = RCF(a,b,beta0)
-    RCF_b = RCF(c,d,beta1)
-    return DiscontinuousUnivariateFunction(gamma,RCF_a,RCF_b)
-
-def TRCF( a, b, c, d, e, f, beta0, beta1, beta2, gamma0, gamma1 ):
-    rcf0 = RCF(a,b,beta0)
-    rcf1 = RCF(c,d,beta1)
-    rcf2 = RCF(e,f,beta2)
-    brcf01 = DiscontinuousUnivariateFunction(gamma0,rcf0,rcf1)
-    return DiscontinuousUnivariateFunction(gamma1,brcf01,rcf2)
+from math import *
+from cfpylib.grid.shock_layer_surface import *
 
 job_title = "JAXA Hayabusa sample return capsule."
 print job_title
@@ -30,12 +13,14 @@ print job_title
 gdata.title = job_title
 gdata.axisymmetric_flag = 1
 
+fit2shock = True
+
 #
 # 1. Setup the gas model
 #
 species = select_gas_model(model='two temperature gas', species=['N2', 'N2_plus', 'NO', 'NO_plus', 'O2', 'O2_plus', 'N', 'N_plus', 'O', 'O_plus', 'e_minus'])
 set_reaction_update("Park93-s03-AIC-EIIC.lua")
-set_energy_exchange_update("TV-TE.lua")
+set_energy_exchange_update("air-TV-TE.lua")
 gm = get_gas_model_ptr()
 nsp = gm.get_number_of_species()
 ntm = gm.get_number_of_modes()
@@ -87,36 +72,16 @@ b = Node(-Rn*cos(theta),Rn*sin(theta), label='b')
 c = Node( b.x + ( D/2.0-b.y)/tan(theta), D/2.0, label='c')
 d = Node( 0.0, c.y - abs(c.x), label='d')
 
-# inflow boundary nodes
-x_limit = c.x
-inflow_nodes = []
-np = 32
-y_top = by_scale * y_from_x(-x_limit/bx_scale, M_inf, theta=0.0, axi=1, R_nose=Rn)
-dy = y_top / ( np - 1 )
-for iy in range(np):
-    y = dy * iy
-    x = - bx_scale * x_from_y(y/by_scale, M_inf, theta=0.0, axi=1, R_nose=Rn)
-    inflow_nodes.append( Node(x,y) )
+body = Polyline( [Arc(a,b,o),Line(b,c)] )
 
-# find intersection of surface normal with inflow boundary at the top most point
-global inflow_spline
-inflow_spline = Spline(inflow_nodes)
-def zero_func(y):
-    dc_line = Line( d, Node( d.x+(c.x-d.x)*2.0, d.y+(c.y-d.y)*2.0 ) )
-    t = (y-d.y)/((c.y-d.y)*2.0)
-    return inflow_spline.eval_from_y(y).x - dc_line.eval(t).x
-y_int = bisection( zero_func, by=0.0, uy=D )
-x_int = inflow_spline.eval_from_y(y_int).x
-
-# split the inflow spline
-west_nodes = []
-for node in inflow_nodes:
-    if node.y < y_int: west_nodes.append(node)
-west_nodes.append( Node( x_int, y_int ) )
-
-# curves - block0
-west0 = Spline(west_nodes)
-east0 = Polyline( [Arc(a,b,o),Line(b,c)] )
+# make the computational domain
+x_limit = c.x; gamma = 0.2
+if fit2shock:
+    shock = fit_billig2shock( initial, gdata.axisymmetric_flag, M_inf, Rn, body )
+    psurf = make_parametric_surface( M_inf=M_inf, R=Rn, axi=gdata.axisymmetric_flag, east=body, shock=shock, f_s=1.0/(1.0-gamma) )
+else:  
+    bx_scale = 1.0; by_scale = 1.0
+    psurf = make_parametric_surface( bx_scale, by_scale, M_inf, Rn, axi=gdata.axisymmetric_flag )
 
 #
 # 4. Define the blocks, boundary conditions and set the discretisation
@@ -125,16 +90,12 @@ nnx = 60; nny=60
 nbx = 2; nby = 2
 
 # clustering at shock and boundary layer [ outflow, surface, axis, inflow ]
-beta0 = 1.1; beta1 = 1.01; beta2 = 1.2
-gamma0 = 0.44; gamma1 = 0.6
-cf_list = [TRCF(0,1,1,0,0,1,beta0,beta0,beta1,gamma0,gamma1),
-           RCF(0,1,beta2),
-           TRCF(0,1,1,0,0,1,beta0,beta0,beta1,gamma0,gamma1),
-           RCF(0,1,beta2)]
-# cf_list = [RCF(0,1,beta1),
-#           RCF(1,0,beta2),
-#           RCF(0,1,beta1),
-#           RCF(1,0,beta2)]
+beta0 = 1.1; dx0 = 5.0e-1; dx1 = 2.0e-2 # gamma is previously defined
+beta1 = 1.2
+cf_list = [BHRCF(beta0,dx0,dx1,gamma),
+           RCF(0,1,beta1),
+           BHRCF(beta0,dx0,dx1,gamma),
+           RCF(0,1,beta1)]
 
 # boundary conditions [ outflow, surface, axis, inflow ]
 bc_list=[ ExtrapolateOutBC(),
@@ -148,10 +109,7 @@ wc_bc_list = [NonCatalyticWBC(),
               NonCatalyticWBC(),
               NonCatalyticWBC()]
 
-def RCF(a,b,beta):
-    return RobertsClusterFunction(a, b, beta)
-
-blk_0 = SuperBlock2D(psurf=ShockLayerSurface(east0, west0),
+blk_0 = SuperBlock2D(psurf=psurf,
 		     fill_condition=initial,
 		     nni=nnx, nnj=nny,
 		     nbi=nbx, nbj=nby,

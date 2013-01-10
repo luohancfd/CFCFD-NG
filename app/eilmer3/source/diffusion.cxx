@@ -571,7 +571,10 @@ calculate_diffusion_fluxes(const Gas_data &Q,
     
     // Calculate the species average diffusion coefficients
     for ( int isp = 0; isp < nsp_; ++isp )
-    	DAV_im_[isp] = Le_ * Q.mu / Prandtl;
+        DAV_im_[isp] = Q.mu / Q.rho / Prandtl / Le_;
+
+    // NOTE: previously this relation between D and Le was erroneously written as:
+    // DAV_im_[isp] = Le_ * Q.mu / Prandtl;
     
 #   if 0
     // Apply ambipolar diffusion correction
@@ -606,6 +609,80 @@ calculate_diffusion_fluxes(const Gas_data &Q,
     return;
 }
 
+ConstantSchmidtNumber::
+ConstantSchmidtNumber(const string name, int nsp)
+    : DiffusionModel(name, nsp)
+{
+    // Just set the Schmidt number here for the moment
+    Sc_ = 0.7;
+}
+
+ConstantSchmidtNumber::
+ConstantSchmidtNumber(const ConstantSchmidtNumber &c)
+    : DiffusionModel(c.name_, c.nsp_), Sc_( c.Sc_ )
+{}
+
+ConstantSchmidtNumber::
+~ConstantSchmidtNumber() {}
+
+string
+ConstantSchmidtNumber::
+str() const
+{
+    ostringstream ost;
+    cout << "ConstantSchmidtNumber::str() - not implemented.\n";
+    ost << "ConstantSchmidtNumber";
+    return ost.str();
+}
+
+void
+ConstantSchmidtNumber::
+calculate_diffusion_fluxes(const Gas_data &Q,
+                           double D_t,
+                           const vector<double> &dfdx,
+                           const vector<double> &dfdy,
+                           const vector<double> &dfdz,
+                           vector<double> &jx,
+                           vector<double> &jy,
+                           vector<double> &jz)
+{
+    // Calculate the species average diffusion coefficients
+    for ( int isp = 0; isp < nsp_; ++isp )
+        DAV_im_[isp] = Q.mu / Q.rho / Sc_;
+
+#   if 0
+    // Apply ambipolar diffusion correction
+    if ( e_index_ > -1 ) {
+        double Dax_ion_sum = 0.0;
+        double Mx_ion_sum = 0.0;
+        for ( int isp = 0; isp < nsp_; ++isp ) {
+            if ( Z_[isp] > 0.0 ) {
+                DAV_im_[isp] *= 2.0;
+                Dax_ion_sum += DAV_im_[isp] * x_[isp];
+                Mx_ion_sum += M_[isp] * x_[isp];
+            }
+        }
+        DAV_im_[e_index_] = M_[e_index_] * Dax_ion_sum / Mx_ion_sum;
+        if ( !finite( DAV_im_[e_index_] ) ) {
+            // Dax_ion_sum and Mx_ion_sum were probably zero
+            DAV_im_[e_index_] = 0.0;
+        }
+    }
+#   endif
+
+    // Set diffusive fluxes via Fick's first law
+    for ( int isp = 0; isp < nsp_; ++isp ) {
+        jx[isp] = -Q.rho * (DAV_im_[isp] + D_t) * dfdx[isp];
+        jy[isp] = -Q.rho * (DAV_im_[isp] + D_t) * dfdy[isp];
+        jz[isp] = -Q.rho * (DAV_im_[isp] + D_t) * dfdz[isp];
+    }
+
+
+
+
+    return;
+}
+
 static DiffusionModel* dmodel = 0;
 
 int set_diffusion_model( const string diffusion_model )
@@ -627,6 +704,9 @@ int set_diffusion_model( const string diffusion_model )
     }
     else if ( diffusion_model == "ConstantLewisNumber" ) {
 	dmodel = new ConstantLewisNumber("Constant Lewis number diffusion", nsp );
+    }
+    else if ( diffusion_model == "ConstantSchmidtNumber" ) {
+        dmodel = new ConstantSchmidtNumber("Constant Schmidt number diffusion", nsp );
     }
     else {
 	cout << "set_diffusion_model(): " << diffusion_model

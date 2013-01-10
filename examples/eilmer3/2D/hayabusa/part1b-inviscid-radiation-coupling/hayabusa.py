@@ -25,7 +25,7 @@ select_radiation_model("rad-model.lua",1000)
 #
 species = select_gas_model(model='two temperature gas', species=['N2', 'N2_plus', 'NO', 'NO_plus', 'O2', 'O2_plus', 'N', 'N_plus', 'O', 'O_plus', 'e_minus'])
 set_reaction_update("Park93-s03-AIC-EIIC.lua")
-set_energy_exchange_update("TV-TE.lua")
+set_energy_exchange_update("air-TV-TE.lua")
 gm = get_gas_model_ptr()
 nsp = gm.get_number_of_species()
 ntm = gm.get_number_of_modes()
@@ -116,7 +116,7 @@ beta1 = 0.0; beta2 = 1.1
 def RCF(a,b,beta):
     return RobertsClusterFunction(a, b, beta)
 
-blk_0 = SuperBlock2D(psurf=make_patch(north0, east0, south0, west0),
+blk_0 = SuperBlock2D(psurf=ShockLayerSurface(east0, west0),
 		     fill_condition=initial,
 		     nni=nnx, nnj=nny,
 		     nbi=nbx, nbj=nby,

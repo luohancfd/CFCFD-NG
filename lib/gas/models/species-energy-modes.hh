@@ -23,9 +23,14 @@ public:
     	                 std::string type="none", int iT=-1 );
     virtual ~Species_energy_mode() {}
     
-    void set_iT( int iT ) { iT_ = iT; }
+    void set_iT(int iT)
+    { iT_ = iT; }
     
-    int get_iT() { return iT_; }
+    int get_iT()
+    { return iT_; }
+    
+    int get_isp()
+    { return isp_; }
     
     double eval_weighted_energy( const Gas_data &Q )
     { return Q.massf[isp_]*s_eval_energy( Q ); }

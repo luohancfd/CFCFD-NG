@@ -122,6 +122,7 @@ available to me as part of cfpylib inside the cfcfd code collection.
         how well it's working now, but for better or for worse, it's in there.
     29-Nov-2012: Did some little changes to the printout at the end of the test
         to make it clearer and some of the basic syntax.
+    17-Dec-2012: Added two more test gases to the code.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -137,7 +138,7 @@ from cfpylib.gasdyn.cea2_gas import Gas, make_gas_from_name
 from cfpylib.gasdyn.gas_flow import *
 from cfpylib.gasdyn.ideal_gas_flow import p0_p, pitot_p
 
-VERSION_STRING = "29-Nov-2012"
+VERSION_STRING = "19-Dec-2012"
 
 DEBUG_PITOT = False
 
@@ -205,6 +206,12 @@ def make_test_gas(gasName, outputUnits='moles'):
     elif gasName.lower() == 'gasgiant_h215he':
         return Gas(reactants={'H2':0.85, 'He':0.15}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits), {'gam':1.2,'R':6303.2}
+    elif gasName.lower() == 'gasgiant_h210he':
+        return Gas(reactants={'H2':0.9, 'He':0.10}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), None    
+    elif gasName.lower() == 'gasgiant_h210ne':
+        return Gas(reactants={'H2':0.9, 'Ne':0.10}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), None                  
     else:
         raise Exception, 'make_gas_from_name(): unknown gasName: %s' % gasName               
     
@@ -260,10 +267,12 @@ def main():
     op.add_option('--test_gas', dest='gasName', default='air',
                   choices=['air', 'air5species', 'n2', 'titan', 
                            'gasgiant_h215ne', 'gasgiant_h215he',
-                           'gasgiant_h240ne','gasgiant_h285ne'],
+                           'gasgiant_h240ne','gasgiant_h285ne', 
+                           'gasgiant_h210he', 'gasgiant_h210ne'],
                   help=("name of test gas: "
                         "air; " "air5species; " "n2; " "titan; " "gasgiant_h215ne; "
-                        "gasgiant_h215he; " "gasgiant_h240ne; " "gasgiant_h285ne; "
+                        "gasgiant_h215he; " "gasgiant_h240ne; " "gasgiant_h285ne; " 
+                        "gasgiant_h210he; "  "gasgiant_h210ne; " 
                         "default is air"))
     op.add_option('--Vs1', dest='Vs1', type='float', default=None,
                   help=("first shock speed, in m/s"))
@@ -970,7 +979,7 @@ def main():
                     
         print " "
         
-        version_printout = "Version: {0}".format(VERSION_STRING)
+        version_printout = "Pitot Version: {0}".format(VERSION_STRING)
         print version_printout
         output.write(version_printout + '\n')
         

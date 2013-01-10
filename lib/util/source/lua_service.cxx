@@ -236,6 +236,20 @@ double get_negative_value(lua_State *L, int index, const char *key)
     return val;
 }
 
+bool get_boolean(lua_State *L, int index, const char *key)
+{
+    lua_getfield(L, index, key);
+    if ( !lua_isboolean(L, -1) ) {
+	ostringstream ost;
+	ost << "A boolean was expected in field: " << key << endl;
+	lua_pop(L, 1);
+	throw runtime_error(ost.str());
+    }
+    bool val = lua_toboolean(L, -1);
+    lua_pop(L, 1);
+    return val;
+}
+
 int read_table_as_map(lua_State *L, int index, const char *key, map<int, int> &m)
 {
     lua_getfield(L, index, key);

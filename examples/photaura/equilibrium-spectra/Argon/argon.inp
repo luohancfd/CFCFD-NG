@@ -1,0 +1,11 @@
+ rad-model-file: rad-model.lua
+   species-list: Ar    Ar_plus   e_minus
+ mole-fractions: 1.0   0.0       0.0    
+    shock-speed: 4000. m/s
+   gas-pressure: 100. Pa
+gas-temperature: 300 K
+     tube-width: 10. cm
+   apparatus-fn: Voigt
+  Gaussian-HWHM: 4 Ang
+Lorentzian-HWHM: 0 Ang
+  sampling-rate: 1

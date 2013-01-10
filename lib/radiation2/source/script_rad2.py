@@ -106,7 +106,7 @@ class GlobalRadData(object):
         if self.transport_model=="discrete transfer" or self.transport_model=="monte carlo":
             if self.nrays<1:
                 print "nrays is less than 1!"
-            sys.exit()
+                sys.exit()
             ofile.write(tab+"nrays = %d,\n" % self.nrays )
             ofile.write(tab+"clustering = 'none',\n" )
             ofile.write(tab+"binning = 'none',\n" )

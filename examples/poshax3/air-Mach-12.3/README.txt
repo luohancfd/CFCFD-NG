@@ -92,7 +92,7 @@ The calculation comes to the correct equlibrium values as expected.
 
 .. figure:: profile_T_rho.png
    :align: center
-   :scale: 150%
+   :scale: 30%
 
    Temperature and density ratio behind a normal shock in air at Mach 12.3.
 
@@ -106,7 +106,7 @@ and reaction rates used in the two calculations.
 
 .. figure:: profile_moles.png
    :align: center
-   :scale: 150%
+   :scale: 30%
 
    Species concentrations behind a normal shock in air at Mach 12.3.
 

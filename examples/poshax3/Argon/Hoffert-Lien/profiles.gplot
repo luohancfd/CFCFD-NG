@@ -1,0 +1,19 @@
+# created by make_gnuplot_file.py
+
+set term postscript eps enhanced color 'Helvetica,22'
+set size 1.0, 1.0
+set output 'temperature_profiles.eps
+set ylabel 'Temperature, T (K)'
+set xlabel 'Distance from shock, x (cm)'
+set grid
+plot 'output.data'   u ($1*100):($2) w l lw 2 lt -1 t 'T_{tr}', \
+     'output.data'   u ($1*100):($3) w l lw 5 lt  1 t 'T_{e}'
+     
+unset label
+unset arrow
+     
+set output "number_density_profiles.eps"
+set ylabel "Number density, N (cm^{-3})"
+plot 'output.data' u ($1*100):($7*$5/39.948e-3*6.022e23*1.0e-6) w l lw 5 lt 1 t "Ar", \
+     'output.data' u ($1*100):($8*$5/39.9474514e-3*6.022e23*1.0e-6) w l lw 5 lt 2 t 'Ar^+', \
+     'output.data' u ($1*100):($9*$5/0.000548579903e-3*6.022e23*1.0e-6) w l lw 5 lt 3 t 'e^-'

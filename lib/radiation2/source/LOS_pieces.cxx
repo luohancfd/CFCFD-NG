@@ -437,10 +437,13 @@ double TS_data::quick_solve_for_divq()
             // calculate optical thickness between intervals
             double tau_nu = fabs(rpoints_[irp]->ds_) * kappa_nu;
             // Attenuate incident flux )
+            // The code below can be used to confirm that the E_3() function is returning sensible results
+#           if 0
             if ( E_3( tau_nu ) > 0.5 ) {
                 cout << "E_3( tau_nu = " << tau_nu << " ) = " << E_3( tau_nu ) << endl;
                 exit(0);
             }
+#           endif
             F_->q_nu[inu] *= 2.0 * E_3( tau_nu );
             // Add contribution from this slab
 	    double tmpA = 0.0;
@@ -478,10 +481,14 @@ double TS_data::quick_solve_for_divq()
             double j_nu = rpoints_[irp]->X_->j_nu[inu];
             // calculate optical thickness between intervals
             double tau_nu = fabs(rpoints_[irp]->ds_) * kappa_nu;
+
+            // The code below can be used to confirm that the E_3() function is returning sensible results
+#           if 0
             if ( E_3( tau_nu ) > 0.5 ) {
                 cout << "E_3( tau_nu = " << tau_nu << " ) = " << E_3( tau_nu ) << endl;
                 exit(0);
             }
+#           endif
             // Attenuate incident flux )
             F_->q_nu[inu] *= 2.0 * E_3( tau_nu );
             // Add contribution from this slab

@@ -84,7 +84,8 @@ Ar_plus.Z = {
    description = 'Charge number',
    reference = 'NA'
 }
-Ar_plus.electronic_levels = {
+Ar_plus.NIST_electronic_levels = {
+   -- all individual levels from NIST
    n_levels = 207,
    -- n_levels = 3,
    ref = 'NIST ASD: http://physics.nist.gov/PhysRefData/ASD/index.html',
@@ -300,7 +301,8 @@ Ar_plus.electronic_levels = {
    ilev_206  =  { 3,   219322.16,    22,   -1,   -1,    1,    2 }
    -- ===========================================================
 }
-Ar_plus.other_electronic_levels = {
+Ar_plus.electronic_levels = {
+   -- grouped electronic levels from NIST
    n_levels = 12,
    -- n_levels = 13,
    ref = 'NIST ASD: http://physics.nist.gov/PhysRefData/ASD/index.html, 2012-04-20 14:00:49.714406',
