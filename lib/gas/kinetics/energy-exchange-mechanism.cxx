@@ -161,7 +161,7 @@ specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &mo
     // CHECKME: - from Abe and Panesi, maybe we should be scaling by molef[ie_]
     //            and NOT massf[ie_]?
     // NOTE: - scaling by molef gives a way to fast E-T equilibriation
-    double rate = 3.0 * PC_R_u * ( Q.T[iT_] - Q.T[iTe_] ) / tau_;
+    double rate = Q.massf[ie_] * 3.0 * PC_R_u * ( Q.T[iT_] - Q.T[iTe_] ) / tau_;
     
     // cout << "ET_exchange::specific_compute_rate()" << endl
     //      << "rate = " << rate << endl;
