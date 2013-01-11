@@ -24,7 +24,7 @@ public:
     virtual ~Thermal_energy_mode();
 
     int no_components()
-    { return components_.size(); };
+    { return component_names_.size(); };
 
     std::string component_name(int ic)
     { return component_names_[ic]; }
