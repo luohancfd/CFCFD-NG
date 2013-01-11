@@ -22,9 +22,7 @@ gdata.title = job_title
 gdata.axisymmetric_flag = 1
 
 # gas model
-# species = select_gas_model(model=gmodel, species=species)
-# NOTE: the auto gasfile creation tool is currently broken so we need to create the gas-model lua file by hand
-species = select_gas_model(fname="Ar-3sp-2T.lua")
+species = select_gas_model(model=gmodel, species=species)
 gm = get_gas_model_ptr()
 nsp = gm.get_number_of_species()
 ntm = gm.get_number_of_modes()
@@ -109,7 +107,7 @@ else:
 blk_0 = SuperBlock2D(psurf=psurf,
 		     fill_condition=initial,
 		     nni=nnx, nnj=nny,
-		     nbi=1, nbj=1,
+		     nbi=4, nbj=3,
 		     cf_list=cf_list,
 		     bc_list=[ExtrapolateOutBC(), FixedTBC(T_wall), SlipWallBC(), SupInBC(inflow)],
                      # wc_bc_list=[NonCatalyticWBC(),SuperCatalyticWBC([1.0,0.0,0.0]),NonCatalyticWBC(),NonCatalyticWBC()],
