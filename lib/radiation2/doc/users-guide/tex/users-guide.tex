@@ -1,0 +1,151 @@
+\documentclass[11pt,twoside,a4paper]{report}
+
+\usepackage{graphicx}
+% Use Palatino font family
+\usepackage{palatino}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{cite}
+\usepackage{chemarrow}
+
+\usepackage{afterpage}
+% ----------------------
+% Page layout details
+% ----------------------
+\usepackage[top=2cm,bottom=2cm,inner=2cm,outer=3cm,bindingoffset=1cm,
+            includehead,includefoot,twoside]{geometry}
+
+% Change the default look of section headings
+\usepackage[bf,sf,compact]{titlesec}
+
+\titleformat{\part}[display]
+{\bfseries\sffamily\Huge}
+{\filcenter\bfseries\sffamily\LARGE Part \thepart}
+{1ex}
+{\vspace{1ex}%
+\filcenter}
+
+\titleformat{\chapter}[display]
+{\bfseries\sffamily\LARGE}
+{\filleft\bfseries\sffamily\Huge\thechapter}
+{1ex}
+{\vspace{1ex}%
+\filleft}
+
+\titleformat{\section}
+{\bfseries\sffamily\large}
+{\thesection}
+{1ex}
+{\vspace{0.5ex}}
+
+\titlespacing{\section}{0pt}{2.0ex}{0.5ex}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Table of Contents formatting
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{titletoc}
+\contentsmargin{2.55em}
+
+\titlecontents{part}
+[0.0em] % 
+{\addvspace{0.5em}}
+{\bfseries\sffamily\large\contentslabel{0.0em}}
+{\bfseries\sffamily\large\hspace*{-1.8em}}
+{\hspace{1.0em}\bfseries\sffamily\large{}\contentspage}
+[\addvspace{0.5em}]
+
+\titlecontents{chapter}
+[0.0em] % 
+{\addvspace{0.5em}}
+{\bfseries\sffamily\contentslabel{2.0em}}
+{\bfseries\sffamily\hspace*{-2.0em}}
+%{\titlerule*[1pc]{ }\bfseries\sffamily\contentspage}
+{\hspace{1.0em}\bfseries\sffamily{}\contentspage}
+[\addvspace{0.5em}]
+
+\titlecontents{section}
+[2.5em] % 
+{}
+{\sffamily\contentslabel{2.5em}}
+{\sffamily\hspace*{0.0em}}
+{\hspace{1.0em}\sffamily{}\contentspage}
+
+\titlecontents{subsection}
+[5.4em]
+{}
+{\sffamily\contentslabel{3.0em}}
+{\sffamily\hspace*{0.0em}}
+{\hspace{0.5em}\sffamily{}\contentspage}
+
+
+% For better control of captions
+\usepackage[font=small,labelfont=bf,sf]{caption}
+\usepackage{lscape}
+\usepackage{ctable}
+\usepackage{afterpage}
+\usepackage[pdfborder={0 0 0}]{hyperref}
+
+% ----------------------
+% Page layout details
+% ----------------------
+\usepackage{listings}
+\lstset{basicstyle=\footnotesize\ttfamily}
+\usepackage{float}
+\floatstyle{boxed}
+\newfloat{Listing}{h}{lol}
+
+%------------------------------------------------------------------
+% a couple horizontal bars to delimit embedded code
+% the width suits the page size set above and
+% the mathmode eliminates spaces between the three elements
+% Taken from PJ, Eilmer3 user-guide
+\newcommand{\topbar}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule[2.0mm]{163.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+\newcommand{\bottombar}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule{163.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+\newcommand{\topbarshort}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule[2.0mm]{149.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+\newcommand{\bottombarshort}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule{149.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+%------------------------------------------------------------------
+
+\title{\textsf{A High Temperature Gas Radiation Module for Compressible Flow CFD:\\
+       Theory and User's Guide}}
+\author{\textsf{Daniel F. Potter}}
+\date{\textsf{11 January 2013}}
+
+\begin{document}
+\pagenumbering{roman}
+\maketitle
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+\include{preface}
+\pagenumbering{arabic}
+
+\part{Theory}
+\include{introduction}
+
+\part{User's Guide}
+\include{installation}
+\include{getting-started}
+\include{input-files}
+\include{examples}
+
+% \part{Developer's Guide}
+
+\renewcommand\bibname{References}
+\bibliographystyle{unsrt}
+\bibliography{theory,guide}
+\addcontentsline{toc}{chapter}{References}
+
+\appendix
+
+\end{document}

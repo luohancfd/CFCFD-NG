@@ -461,9 +461,12 @@ def extract_lines( NIST_line_file, energy_switch ):
             if conf_data==False: offset = -3 
             Ei = float(tks[10+offset]); Ek = float(tks[12+offset])
             gi = int(tks[14+offset]); gk = int(tks[16+offset])
-            Aki = float(tks[18+offset])        
+            if tks[16+offset]=="|": offset -= 1
+            if tks[18+offset]=="|": Aki = 0.0
+            else: Aki = float(tks[18+offset])        
             if tks[20+offset]=="|": offset -= 1
-            type_str = tks[22+offset]
+            if len(tks)<23+offset: type_str=tks[-1]
+            else: type_str = tks[22+offset]
             if type_str=="|": type = 0
             else: type = 1
         # read two lines forward
@@ -479,12 +482,21 @@ def extract_lines( NIST_line_file, energy_switch ):
             # this is a sublevel with data
             print line
             # store sublevel data
-            Eis.append( float( tks[3] ) )
-            Eks.append( float( tks[5] ) )
+            Eis.append( float( tks[3].replace("[","").replace("]","") ) )
+            Eks.append( float( tks[5].replace("[","").replace("]","") ) )
             gis.append( int( tks[7] ) )
             gks.append( int( tks[9] ) )
-            Akis.append( float( tks[11] ) )
-            type_str = tks[15]
+            if tks[11]=="|":
+                # the transition probability is missing
+                Akis.append( float( 0.0 ) )
+            else:
+                Akis.append( float( tks[11] ) )
+            if len(tks)==16:
+                type_str = tks[15]
+            elif len(tks)==15:
+                type_str = tks[14]
+            else:
+                type_str = tks[-1]
             if type_str=="|": type = 0
             else: type = 1
             types.append(type)
@@ -526,6 +538,9 @@ def extract_lines( NIST_line_file, energy_switch ):
         # decode effective line properties
         Ei = gEi / gi; Ek = gEk / gk
         Aki = gAki / gk
+        # check that the transition probability is above 0
+        if not Aki>0.0:
+            continue
         # check if this line begins or ends from above the set ionization limit (but keep in the set)
         if Ek>E_ionized or Ei>E_ionized:
             super_ionized_lines += 1
