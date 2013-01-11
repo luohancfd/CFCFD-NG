@@ -209,7 +209,7 @@ ET_AppletonBray_Ion( lua_State * L, int ie, int ic )
     X = get_library_species_pointer( ie );
     if ( X->get_Z()!=-1 ) {
 	ostringstream ost;
-	ost << "ET_AppletonBray_Neutral::ET_AppletonBray_Neutral():\n";
+	ost << "ET_AppletonBray_Ion::ET_AppletonBray_Ion():\n";
 	ost << "Error in the declaration of colliding species: " << X->get_name() << " is not an electron.\n";
 	input_error(ost);
     }
@@ -1471,6 +1471,7 @@ specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
 
 Relaxation_time* create_new_relaxation_time(lua_State *L, int ip, int iq, int itrans)
 {
+
     // 1. get name of relaxation time type to be created
     string relaxation_time = get_string(L, -1, "model");
 

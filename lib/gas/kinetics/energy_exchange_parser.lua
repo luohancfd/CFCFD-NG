@@ -66,7 +66,6 @@ function main(config_file)
 
       if not rates[ir] then
 	 rates[ir] = {}
-	 rates[ir].ip = m.ip
 	 rates[ir].imode = m.imode
 	 rates[ir].mechanisms = {m}
       else

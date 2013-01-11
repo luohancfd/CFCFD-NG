@@ -14,7 +14,6 @@ using namespace std;
 Energy_exchange_rate::
 Energy_exchange_rate(lua_State *L)
 {
-    int ip = get_int(L, -1, "ip");
     int imode = get_int(L, -1, "imode");
 
     // Now get mechanisms.
@@ -27,7 +26,7 @@ Energy_exchange_rate(lua_State *L)
     }
     for ( size_t i = 1; i <= lua_objlen(L, -1); ++i ) {
 	lua_rawgeti(L, -1, i);
-	ee_mech_.push_back(create_energy_exhange_mechanism(L, ip, imode));
+	ee_mech_.push_back(create_energy_exhange_mechanism(L, imode));
 	lua_pop(L, 1);
     }
     lua_pop(L, 1);

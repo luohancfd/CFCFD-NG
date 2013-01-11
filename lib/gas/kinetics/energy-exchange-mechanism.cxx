@@ -569,9 +569,10 @@ specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &mo
 //     return rate;
 // }
 
-Energy_exchange_mechanism* create_energy_exhange_mechanism(lua_State *L, int ip, int imode)
+Energy_exchange_mechanism* create_energy_exhange_mechanism(lua_State *L, int imode)
 {
     string type = get_string(L, -1, "type");
+    int ip = get_int(L, -1, "ip");
     
     if( type == "VT" ) {
 	return new VT_exchange(L, ip, imode);
