@@ -18423,7 +18423,7 @@ Xe.available_photoionXsection_models["hydrogenic"] = Ar_pIx
 Xe.default_QSS_model = "Drawin"
 #
 Xe_noneq_elevs = ""
-default_n_levels = len(Ar.available_level_sets[Xe.default_level_set].levels)
+default_n_levels = len(Xe.available_level_sets[Xe.default_level_set].levels)
 for i in range(default_n_levels): Xe_noneq_elevs += "%s, " % str(i)
 #
 Xe.available_QSS_models["Drawin"] = AtomicQSSModel(name="Drawin",noneq_elevs=Ar_noneq_elevs,eie_model="Drawin",eii_model="Drawin",rt_model="OpticallyThin")
@@ -18456,7 +18456,7 @@ available_radiators = { 'CN' : CN,
                         'O+' : O_plus,
                     'O_plus' : O_plus,
                         'Xe' : Xe,
-                       'Xe+' : Xe_plus,
-                   'Xe_plus' : Xe_plus,
+#                       'Xe+' : Xe_plus,
+#                   'Xe_plus' : Xe_plus,
                         'e-' : e_minus,
                    'e_minus' : e_minus  }
