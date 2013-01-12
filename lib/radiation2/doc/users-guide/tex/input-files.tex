@@ -1,2 +1,70 @@
 \chapter{Creating Input Files}
 \label{chap:input}
+
+The input data to create a new spectral radiation model is provided in a Lua file.
+This file contains all the parameters and spectroscopic data to perform a spectral radiation calculation.
+To simplify the creation of this file for the user, the Lua file can be created via the \texttt{script\_rad2.py} Python tool that interfaces with a library of spectroscopic data.
+Instructions on how to use this tool can be obtained from the command line via:
+
+\begin{lstlisting}[basicstyle=\ttfamily\small]
+$ script_rad2.py --help
+Usage: script_rad2.py -i rad_desc.py|--input-script=rad_desc.py
+                      -L LUA_output.lua|--LUA-file=LUA_output.lua
+
+Options:
+  -h, --help            show this help message and exit
+  -i INFILE, --input-script=INFILE
+                        input Python script for radiation description
+  -L LUAFILE, --LUA-file=LUAFILE
+                        output configuration file for 'librad2' C++ module in
+                        LUA format
+\end{lstlisting}
+
+\noindent where \texttt{rad-model.py} is the name of the user created Python script describing the spectral model and \texttt{rad-model.lua} is the desired name of the resulting Lua file.
+A sample user-created Python script for creating a basic radiation model for 11 species, 2 temperature air is shown below:
+
+\noindent \topbar
+\lstinputlisting[language=python,caption={Example spectral model input file, \texttt{air-radiators.py}}]{../../../testing/air-radiators.py}
+\bottombar
+
+In `\texttt{1.}', the desired spectral model is selected:
+
+\begin{lstlisting}[basicstyle=\ttfamily\small]
+# 1. Select the spectral model
+gdata.spectral_model = "photaura"
+\end{lstlisting}
+
+Here the in-house \texttt{photaura} model has been selected; other available models are \texttt{spradian} and \texttt{parade}.
+See Appendix~\ref{} for an example of how to construct an input file for these.
+The spectral grid is then defined in '\texttt{2.}':
+
+\begin{lstlisting}[basicstyle=\ttfamily\small]
+# 2. Define the spectral grid
+gdata.lambda_min = 50.0
+gdata.lambda_max = 1000.0
+gdata.spectral_points = 95000
+\end{lstlisting}
+
+\noindent Here the range $50 \leq \lambda \leq 1000$~nm has been requested, discretised by 95000 equidistant points in frequency space.
+Presently only spectral domains with consant frequency intervals are permitted.
+Finally, in '\texttt{3.}' the desired radiating species are requested and defined:
+
+\begin{lstlisting}[basicstyle=\ttfamily\small]
+# 3. Request and define the radiating species
+species   = [ "N2", "N2_plus", "NO", "NO_plus", "O2", "O2_plus",
+               "N",  "N_plus",  "O",  "O_plus", "e_minus" ]
+radiators = [ "N2", "N2_plus", "NO", "O2", "N", "N_plus",
+              "O", "O_plus", "e_minus" ]
+for rad_name in radiators:
+    rad = gdata.request_radiator(rad_name)
+    rad.default_data()
+    rad.isp = species.index(rad_name)
+    rad.iTe = 1
+    if rad.type == "diatomic_radiator":
+        rad.iTv = 1
+\end{lstlisting}
+
+A radiator is requested from the library with the \texttt{gdata.request\_radiator()} function call.
+If the radiator is not present in the library, \texttt{script\_rad2.py} will fail here with an error message indicating what species was not avaiable.  
+The \texttt{rad.default\_data()} function requests the nominal electronic level and transition probability set from the library -- for most calculations this will be suitable.
+Other data that is set here is the species index in the \texttt{rad.isp} field, the electronic temperature index in the \texttt{rad.iTe} field and the vibrational temperature index in the \texttt{rad.iTv} field.  

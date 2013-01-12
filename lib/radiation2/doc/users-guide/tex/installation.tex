@@ -1,4 +1,33 @@
 \chapter{Installation}
 \label{chap:install}
 
+The core of the radiation module is written in C++, and there are a number of tools written in Python.
+The input data is provided to the C++ binaries via Lua files.
+Assuming the Compressible-Flow CFD repository is located in \verb ~/cfcfd3-hg , the radiation module can be compiled and installed via:
 
+\begin{lstlisting}[basicstyle=\ttfamily\small]
+$ cd ~/cfcfd3-hg/lib/radiation2/build
+$ make install
+\end{lstlisting}
+
+A number of test programs can also be compiled and installed via:
+
+\begin{lstlisting}[basicstyle=\ttfamily\small]
+$ cd ~/cfcfd3-hg/lib/radiation2/build
+$ make test
+\end{lstlisting}
+
+If the user has the SPRADIAN07 code available and wishes to use it as the spectral model, this needs to be requested at compile time:
+
+\begin{lstlisting}[basicstyle=\ttfamily\small]
+$ cd ~/cfcfd3-hg/lib/radiation2/build
+$ make -DWITH_SPRADIAN=1 install
+\end{lstlisting}
+
+The SPRADIAN07 source code and input-data files need to be located in \\
+\verb ~/cfcfd3-hg/extern/spradian07 :
+
+\begin{lstlisting}[basicstyle=\ttfamily\small]
+$ ls ~/cfcfd3-hg/extern/spradian07/
+atom.dat     diatom.dat   radipac6.f90 triatom.dat
+\end{lstlisting}
