@@ -10,6 +10,7 @@ O2_plus.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermo.inp'
 }
+O2_plus.charge = 1
 O2_plus.viscosity = {
   model = "CEA",
   parameters = {

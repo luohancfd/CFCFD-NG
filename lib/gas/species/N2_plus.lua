@@ -10,6 +10,7 @@ N2_plus.M = {
    description = 'molecular mass',
    reference = 'from CEA2::thermo.inp'
 }
+N2_plus.charge = 1
 N2_plus.gamma = {
    value = 1.399, 
    units = 'non-dimensional',

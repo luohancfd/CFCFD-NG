@@ -12,6 +12,7 @@ O_plus.viscosity = {
       ref = 'from CEA2 data for O'
    }
 }
+O_plus.charge = 1
 O_plus.thermal_conductivity = {
    model = "CEA",
    parameters = {

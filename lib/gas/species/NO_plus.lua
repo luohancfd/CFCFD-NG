@@ -10,7 +10,7 @@ NO_plus.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermo.inp'
 }
-
+NO_plus.charge = 1
 NO_plus.viscosity = {
    model = "CEA",
    parameters = {
