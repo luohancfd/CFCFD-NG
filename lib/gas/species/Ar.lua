@@ -8,6 +8,8 @@ Ar.M = {
    description = 'molecular mass',
    reference = 'molecular weight from CEA2::thermo.inp'
 }
+Ar.atomic_constituents = {Ar=1}
+Ar.charge = 0
 Ar.gamma = {
    value = 5/3,
    units = 'non-dimensional',

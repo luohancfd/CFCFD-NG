@@ -10,6 +10,7 @@ e_minus.M = {
    description = 'molecular mass',
    reference = 'CEA2::therm.inp'
 }
+e_minus.charge = -1
 e_minus.gamma = {
    value = 1.667, 
    units = 'non-dimensional',
