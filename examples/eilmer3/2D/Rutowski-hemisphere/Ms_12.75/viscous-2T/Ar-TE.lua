@@ -16,29 +16,17 @@ ode_t = {
 }
 
 -- ET exchange via the Appleton model
-
-rates = {
-    {
-        mechanisms = {
-            {
-                type = 'ET_exchange',
-                relaxation_time = {
-                    type = 'ET_AppletonBray_Ion',
-                    c_name = 'Ar_plus'
-                }
-            },
-            {
-                type = 'ET_exchange',
-                relaxation_time = {
-                    type = 'ET_AppletonBray_TwoRangeNeutral',
-                    c_name = 'Ar',
-                    LT_sigma_coefficients = {  3.9e-19, -5.51e-23, 5.95e-27 },
-                    HT_sigma_coefficients = { -3.5e-19,  7.75e-23, 0.0 },
-                    T_switch = 10000.0
-                }
-            }  
-        }
-    }
+mechanism{
+   'e- ~~ Ar : E-T',
+   rt={'Appleton-Bray:TwoRangeNeutral',
+        T_switch=10000.0,
+	sigma_low_T={  3.9e-19, -5.51e-23, 5.95e-27},
+	sigma_high_T={-3.5e-19,  7.75e-23, 0.0}
+   }
 }
 
-equilibriation_mechanisms = {}
+mechanism{
+   'e- ~~ Ar+ : E-T',
+   rt={'Appleton-Bray:Ion'}
+}
+
