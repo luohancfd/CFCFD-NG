@@ -28,7 +28,10 @@ class EqSpectraInputData(object):
     The user's script does not create this object but rather just alters
     attributes of the global object.
     """
-    __slots__ = ['rad_model_file', 'gas_model_file', 'species_list', 'mole_fractions', 'mass_fractions', 'shock_speed', 'gas_pressure', 'gas_temperature', 'tube_width', 'apparatus_fn', 'Gaussian_HWHM', 'Lorentzian_HWHM', 'sampling_rate' ]
+    __slots__ = ['rad_model_file', 'gas_model_file', 'species_list', 'mole_fractions', 
+                 'mass_fractions', 'shock_speed', 'gas_pressure', 'gas_temperature', 
+                 'tube_width', 'apparatus_fn', 'Gaussian_HWHM', 'Lorentzian_HWHM', 
+                 'sampling_rate', 'problem' ]
     def __init__(self):
         self.rad_model_file = "rad-model.lua"
         self.gas_model_file = "gas-model.lua"
@@ -43,6 +46,7 @@ class EqSpectraInputData(object):
         self.Gaussian_HWHM = 0
         self.Lorentzian_HWHM = 0
         self.sampling_rate = 1
+        self.problem = "shock"
     
 def parseInputData(input_data):
     # parse the input data object
@@ -89,7 +93,10 @@ def parseInputData(input_data):
     # sampling output for the plotting-program-readable output
     nu_sample = input_data.sampling_rate
     
-    return rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, apparatus_fn, gamma_G, gamma_L, nu_sample
+    # the problem type
+    problem = input_data.problem
+    
+    return rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, apparatus_fn, gamma_G, gamma_L, nu_sample, problem
 
 def main():
     #
@@ -112,7 +119,7 @@ def main():
     # 
     # parse the input options
     execfile(input_file)
-    rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, apparatus_fn, gamma_G, gamma_L, nu_sample = parseInputData(input_data)
+    rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, apparatus_fn, gamma_G, gamma_L, nu_sample, problem = parseInputData(input_data)
 
     # setup the reactants list
     reactants = make_reactants_dictionary( species )
@@ -135,14 +142,15 @@ def main():
     # firstly without the onlyList:
     cea = Gas( reactants, with_ions=get_with_ions_flag(species), trace=0 )
     cea.set_pT(p_inf,T_inf,transProps=False)
-    cea.shock_process( Us )
-    # print "unfiltered species composition: ", cea.species
+    if problem=="shock":
+        cea.shock_process( Us )
+    print "unfiltered species composition: ", cea.species
     del cea 
     cea = Gas( reactants, onlyList=reactants.keys(), with_ions=get_with_ions_flag(species), trace=1.0e-20 )
-    cea.set_pT(p_inf,T_inf*10,transProps=False)
-    cea.T = T_inf
-    cea.shock_process( Us )
-    # print "filtered species composition: ", cea.species
+    cea.set_pT(p_inf,T_inf,transProps=False)
+    if problem=="shock":
+        cea.shock_process( Us )
+    print "filtered species composition: ", cea.species
     #over-write provided initial mass-fractions
     Q.rho = cea.rho
     for itm in range(ntm): Q.T[itm] = cea.T
