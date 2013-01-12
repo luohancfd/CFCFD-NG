@@ -55,7 +55,7 @@ local monatomic_type_list = { "species_type" }
 local electron_type_list = { "species_type" }
 local diatomic_type_list = { "species_type", "oscillator_type" }
 local polyatomic_type_list = { "species_type", "oscillator_type" }
-local base_value_list = { "M", "s_0", "h_f", "I", "Z", "eps0", "sigma" }
+local base_value_list = { "M", "s_0", "h_f", "I", "Z", "eps0", "sigma", "charge" }
 local diatomic_value_list = { "M", "s_0", "h_f", "I", "Z", "eps0", "sigma", "r0", "r_eq", "f_m", "mu", "alpha", "mu_B" }
 
 local default = {}
