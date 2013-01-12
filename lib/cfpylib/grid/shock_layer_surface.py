@@ -11,7 +11,7 @@ Version: 30-Oct-2012 : initial repository version, ported from my local version.
 
 import sys
 try:
-    from libgeom2 import Vector3, Arc, Node, Spline, Line
+    from libgeom2 import Vector3, Arc, Node, Spline, Line, vabs
 except:
     print "Could not import libgeom2."
     sys.exit()
