@@ -84,7 +84,7 @@ print "M_inf = %0.2f" % ( M_inf )
 # define the inflow and initial conditions
 inflow  = FlowCondition(p=p_inf, u=u_inf, v=0.0, T=T_inf, massf=massf_inf)
 if transfer_solution:
-    initial = ExistingSolution(rootName="hemisphere", solutionWorkDir="../inviscid-2T/", nblock=1, tindx=9999)
+    initial = ExistingSolution(rootName="hemisphere", solutionWorkDir="../inviscid-2T/", nblock=12, tindx=9999)
 else:
     initial = FlowCondition(p=p_inf/10.0, u=0.0, v=0.0, T=T_inf, massf=massf_inf)
 
@@ -122,7 +122,7 @@ identify_block_connections()
 # Do a little more setting of global data
 gdata.viscous_flag = 1
 gdata.viscous_delay = 0.1 * Rn / u_inf
-gdata.viscous_factor_increment = 1.0e-3
+gdata.viscous_factor_increment = 1.0e-5
 gdata.diffusion_flag = 1
 gdata.diffusion_model = "ConstantLewisNumber"
 gdata.reaction_time_start = 0 * Rn / u_inf
@@ -133,7 +133,7 @@ gdata.max_step = 230000
 gdata.dt = 1.0e-10
 gdata.stringent_cfl = 1
 gdata.dt_plot = Rn * 1 / u_inf    # 5 solutions
-gdata.cfl = 0.5
+gdata.cfl = 0.01
 gdata.cfl_count = 1
 gdata.print_count = 1
 
