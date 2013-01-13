@@ -1,6 +1,6 @@
 // Author: Daniel F. Potter
 // Version: 24-Mar-2010
-//          Ported from lib/radiation2/source/diatomic_radiator.hh
+//          Ported from lib/radiation/source/diatomic_radiator.hh
 
 #ifndef DIATOM_ELEC_LEV_HH
 #define DIATOM_ELEC_LEV_HH

@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "../../../lib/radiation2/source/spectral_model.hh"
+#include "../../../lib/radiation/source/spectral_model.hh"
 #include "../../../lib/util/source/lua_service.hh"
 #include "../../../lib/util/source/randomc.h"
 

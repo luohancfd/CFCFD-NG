@@ -3,8 +3,8 @@ Photaura
 
 Photaura is a spectral radiation model that is coupled to the eilmer3
 and poshax3 codes.
-It can also be used to perform spectral analyses in python via the module
-librad2.
+It can also be used to perform spectral analyses in python via the radpy
+module.
 The name Photaura comes from the Greek word photos (light) and the Latin
 word aura (wind); an appropriate name for a code that deals with plasmas.
 
@@ -13,7 +13,7 @@ Typical build and test procedure
 The parts of the Photaura code that are used by Eilmer3 and Poshax3 are
 automatically compiled and linked by the these codes own makefiles.
 To get the script_rad2.py utility, however, the user needs to do
-'make install' in the radiation2 build area:
+'make install' in the radiation build area:
 
   $ cd $HOME/cfcfd3/lib/photaura/build
   $ make install
@@ -36,7 +36,7 @@ To run the test program after running 'make test':
   $ cd $HOME/cfcfd3/lib/photaura/test
   $ ./run_test.sh
 
-This will run some simple calculations with the librad2 module
+This will run some simple calculations with the radpy module
 that tests the basic features of a Photaura spectral model.
 
 Python input script

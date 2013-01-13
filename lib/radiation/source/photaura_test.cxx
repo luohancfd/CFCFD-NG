@@ -1,5 +1,5 @@
 /** \file photaura_test.cxx
- *  \ingroup radiation2
+ *  \ingroup radiation
  *  \brief Test the photaura spectral model
  *  \author Daniel F Potter        
  *  \version 26-Aug-2009

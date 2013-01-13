@@ -18,8 +18,8 @@ extern "C" {
 #include <lualib.h>
 }
 
-#include "../../../lib/radiation2/source/spectral_model.hh"
-#include "../../../lib/radiation2/source/LOS_pieces.hh"
+#include "../../../lib/radiation/source/spectral_model.hh"
+#include "../../../lib/radiation/source/LOS_pieces.hh"
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/nm/source/exponential_integrals.hh"
 

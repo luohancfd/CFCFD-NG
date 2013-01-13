@@ -1,8 +1,8 @@
 /** \file cr_rr_coeffs.hh
- *  \ingroup radiation2
+ *  \ingroup radiation
  *
  *  \author Daniel F. Potter
- *  \version 05-04-10: Port from lib/radiation
+ *  \version 05-04-10: Improved port from old lib/radiation
  *  \brief Declarations for collisional-radiative reaction rate coefficients
  *
  **/

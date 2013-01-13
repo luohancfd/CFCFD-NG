@@ -14,7 +14,7 @@ extern "C" {
 #include <lualib.h>
 }
 
-#include "../../../lib/radiation2/source/spectral_model.hh"
+#include "../../../lib/radiation/source/spectral_model.hh"
 #include "../../../lib/util/source/useful.h"
 
 #include "poshax_radiation_transport.hh"

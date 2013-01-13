@@ -2,7 +2,7 @@
 
 import sys
 from gaspy import *
-from librad import *
+from radpy import *
 from cfpylib.gasdyn.cea2_gas import *
 from cfpylib.util.YvX import *
 from time import time

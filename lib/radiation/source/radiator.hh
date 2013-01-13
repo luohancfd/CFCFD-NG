@@ -3,7 +3,7 @@
  *
  *  \author Daniel F. Potter
  *  \version 21-Aug-07: Initial implementation
- *           06-Jul-09: Port from lib/radiation
+ *           06-Jul-09: Improved port from lib/radiation
  *
  *  \brief Declarations for class describing a generic radiating atom/molecule/electron
  *

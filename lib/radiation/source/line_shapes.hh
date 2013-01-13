@@ -1,5 +1,5 @@
 /** \file line_shapes.hh
- *  \ingroup radiation2
+ *  \ingroup radiation
  *
  *  \brief Functions for describing line profiles
  *

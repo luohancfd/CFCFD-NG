@@ -1,8 +1,8 @@
 /** \file cr_reactions.hh
- *  \ingroup radiation2
+ *  \ingroup radiation
  *
  *  \author Daniel F. Potter
- *  \version 03-04-10 (port from lib/radiation)
+ *  \version 03-04-10: Improved port from old lib/radiation
  *  \brief Declarations for nonequilibirum population model transitions
  *
  **/

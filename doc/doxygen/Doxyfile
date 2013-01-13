@@ -638,7 +638,7 @@ INPUT                  = ./mainpage.txt \
                          ../../lib/geometry2 \
                          ../../lib/nm \
                          ../../lib/plot \
-                         ../../lib/radiation2 \
+                         ../../lib/radiation \
                          ../../lib/util
 
 # This tag can be used to specify the character encoding of the source files

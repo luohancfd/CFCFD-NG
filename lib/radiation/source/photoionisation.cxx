@@ -1,5 +1,5 @@
 /** \file photoionisation.cxx
- *  \ingroup radiation2
+ *  \ingroup radiation
  *
  *  \author Daniel F. Potter
  *  \version 2-March-10: Initial implementation

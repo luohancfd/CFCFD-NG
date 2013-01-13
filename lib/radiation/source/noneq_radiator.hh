@@ -1,9 +1,9 @@
 /** \file noneq_radiators.hh
- *  \ingroup radiation2
+ *  \ingroup radiation
  *
  *  \author Daniel F. Potter
- *  \version 03-Apr-10
- *  \brief Definitions for nonequilibrium radiator class (port from lib/radiation)
+ *  \version 03-Apr-10: Improved port from old lib/radiation
+ *  \brief Definitions for nonequilibrium radiator class
  *
  **/
  

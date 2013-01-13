@@ -18,8 +18,8 @@
 #include "../../../lib/util/source/config_parser.hh"
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/gas/models/gas-model.hh"
-#include "../../../lib/radiation2/source/LOS_pieces.hh"
-#include "../../../lib/radiation2/source/photaura.hh"
+#include "../../../lib/radiation/source/LOS_pieces.hh"
+#include "../../../lib/radiation/source/photaura.hh"
 
 #include "post_shock_flow.hh"
 #include "poshax_radiation_transport.hh"

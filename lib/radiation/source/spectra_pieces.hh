@@ -1,5 +1,5 @@
 /** \file spectra_pieces.hh
- *  \ingroup radiation2
+ *  \ingroup radiation
  *
  *  \brief Functions, classes and structures for spectral calculations
  *

@@ -1,8 +1,10 @@
 /** \file radiator.cxx
- *  \ingroup radiation2
+ *  \ingroup radiation
  *
  *  \author Daniel F. Potter
- *  \version 29-Jul-2009
+ *  \version 21-Aug-07: Initial implementation
+ *           06-Jul-09: Improved port from lib/radiation
+ *
  *  \brief Definitions for class describing a generic radiating atom/molecule/electron
  *
  **/

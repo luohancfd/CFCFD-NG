@@ -15,7 +15,7 @@
 
 #include "ray_tracing_pieces.hh"
 
-#include "../../../lib/radiation2/source/spectral_model.hh"
+#include "../../../lib/radiation/source/spectral_model.hh"
 
 using namespace std;
 

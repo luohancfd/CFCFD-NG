@@ -86,9 +86,9 @@ NM_SRC          := $(NM)/source
 LIBNM           := $(NM)/build/libnm.a
 GAS             := ../../../lib/gas
 LIBGAS          := $(GAS)/build/libgas.a
-RAD             := ../../../lib/radiation2
+RAD             := ../../../lib/radiation
 RAD_SRC         := $(RAD)/source
-LIBRAD2         := $(RAD)/build/librad2.a
+LIBRAD          := $(RAD)/build/librad.a
 LIBINIPARSER    := $(UTIL)/iniparser/libiniparser.a
 LUA             := ../../../extern/lua-5.1.4
 LIBLUA          := $(LUA)/lib/liblua.a
@@ -258,8 +258,8 @@ tags:
 
 e3rad : 
 	@echo Installing a fresh copy of e3rad.exe with all dependent components rebuilt
-	- rm $(RAD)/build/librad2.a $(RAD)/build/parade.o
-	make TARGET=$(TARGET) OPT=$(OPT) $(LIBRAD2) 
+	- rm $(RAD)/build/librad.a $(RAD)/build/parade.o
+	make TARGET=$(TARGET) OPT=$(OPT) $(LIBRAD) 
 	- rm e3rad.exe e3rad.o radiation_transport.o cell_finder.o
 	make TARGET=$(TARGET) OPT=$(OPT) e3rad.exe
 	- cp -f e3rad.exe $(INSTALL_DIR)
@@ -278,7 +278,7 @@ endif
 	$(AR) rv $(LIBE3) $(E3_OBJECTS_2)
 	- ranlib $(LIBE3)
 
-$(LIBRAD2):
+$(LIBRAD):
 	cd $(RAD)/build; make TARGET=$(TARGET) OPT=$(OPT) build_new
 
 $(LIBGAS):
@@ -348,20 +348,20 @@ flux_dict.py : $(SRC)/flux_dict.py
 # This is a combination of the libgas2 and libgeom2 modules.
 
 # Dynamic link library for MINGW32 environment on MS-Windows
-_libprep3.dll : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBPYTHON) $(LIBLUA) $(LIBZLIB)
+_libprep3.dll : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBPYTHON) $(LIBLUA) $(LIBZLIB)
 	$(CXXLINK) $(LFLAG) -shared -o _libprep3.dll libprep3_wrap.o \
 		-L$(PYTHON_DIR)/libs \
-		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBPYTHON) $(LIBLUA) $(LIBZLIB) $(LLIB)
+		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBPYTHON) $(LIBLUA) $(LIBZLIB) $(LLIB)
 
 # Shared object for Unix/Linux
-_libprep3.so : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB)
+_libprep3.so : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB)
 	$(CXXLINK) $(LFLAG) -shared -o _libprep3.so libprep3_wrap.o \
-		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB) $(LLIB)
+		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB) $(LLIB)
 
 # Dynamic library for Mac OS X
-_libprep3.dylib : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB)
+_libprep3.dylib : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB)
 	$(CXXLINK) $(LFLAG) -shared -o _libprep3.dylib libprep3_wrap.o \
-		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB) $(LLIB) -framework Python
+		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB) $(LLIB) -framework Python
 
 # The SWIG interface file and corresponding documentation
 # Normally, we would not try to rebuild this file because 
@@ -370,7 +370,7 @@ _libprep3.dylib : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD2) $(LI
 # it is probably easier to make clean before a make.
 
 $(SRC)/libprep3_wrap.cxx $(SRC)/libprep3.py : $(SRC)/libprep3.i \
-		$(GAS)/models/libgas.i $(GEOM2_SRC)/libgeom2.i $(RAD_SRC)/librad2.i
+		$(GAS)/models/libgas.i $(GEOM2_SRC)/libgeom2.i $(RAD_SRC)/radpy.i
 	swig -python -c++ -w512 $(SRC)/libprep3.i
 
 libprep3.py : $(SRC)/libprep3.py
@@ -427,25 +427,25 @@ e3console.tcl: $(SRC)/e3console.tcl
 	cp $(SRC)/e3console.tcl .
 	chmod +x e3console.tcl
 
-e3shared.exe : e3shared.o $(LIBE3) $(LIBGAS) $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
+e3shared.exe : e3shared.o $(LIBE3) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
 		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB)
 	$(CXXLINK) $(PCA) $(LFLAG) e3shared.o \
-		$(LIBE3) $(LIBGAS) $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
+		$(LIBE3) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
 		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LLIB) \
 		-o e3shared.exe
 
 e3mpi.exe : e3mpi.o $(E3_OBJECTS_2_MPI) \
-		$(LIBE3) $(LIBGAS) $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
+		$(LIBE3) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
 		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB)
 	$(CXXLINK) $(PCA) $(LFLAG) e3mpi.o $(E3_OBJECTS_2_MPI) \
-		$(LIBE3) $(LIBGAS) $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
+		$(LIBE3) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
 		$(LIBINIPARSER) $(LMPI) $(LIBLUA) $(LIBZLIB) $(LLIB) \
 		-o e3mpi.exe
 
-e3rad.exe : e3rad.o $(LIBE3) $(LIBGAS) $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
+e3rad.exe : e3rad.o $(LIBE3) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
 		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB)
 	$(CXXLINK) $(PCA) $(LFLAG) e3rad.o \
-		$(LIBE3) $(LIBGAS) $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
+		$(LIBE3) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
 		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LLIB) \
 		-o e3rad.exe
 

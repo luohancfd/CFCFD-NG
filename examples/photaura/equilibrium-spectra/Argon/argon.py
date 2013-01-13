@@ -10,3 +10,4 @@ input_data.apparatus_fn = "Voigt"
 input_data.Gaussian_HWHM = 4 # Ang
 input_data.Lorentzian_HWHM = 0 # Ang
 input_data.sampling_rate = 1
+input_data.problem = "shock"

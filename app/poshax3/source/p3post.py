@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from gaspy import *
-from librad2 import *
+from radpy import *
 import sys
 
 def ndim_from_header( fname ):

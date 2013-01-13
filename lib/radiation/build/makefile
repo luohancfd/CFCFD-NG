@@ -100,35 +100,35 @@ ifeq ($(WITH_CEA2), 1)
 endif
 
 # Assume Unix/Linux
-LOADABLE_MODULE := _librad.so
+LOADABLE_MODULE := _radpy.so
 ifeq ($(findstring MINGW32, $(SYSTEM)), MINGW32)
     # MINGW32 environment on MS-Windows
-    LOADABLE_MODULE := _librad.dll
+    LOADABLE_MODULE := _radpy.dll
 endif
 ifeq ($(findstring CYGWIN, $(SYSTEM)), CYGWIN)
     # CYGWIN environment on MS-Windows
-    LOADABLE_MODULE := _librad.dll
+    LOADABLE_MODULE := _radpy.dll
 endif
 ifeq ($(findstring Darwin, $(SYSTEM)), Darwin)
     # Darwin environment on a Mac OS X
-    LOADABLE_MODULE := _librad.dylib
+    LOADABLE_MODULE := _radpy.dylib
 endif
 
 #---------------------------------------
 # main targets
 
-build_new: $(LIBRAD2)
+build_new: $(LIBRAD)
 	@echo "------------------------------------------------"
-	@echo "Radiation library (v2) should now be up to date."
+	@echo "The radiation library should now be up to date."
 	@echo "------------------------------------------------"
 
-install : build_new $(LOADABLE_MODULE) librad.py
-	@echo "Install python pieces from the librad functions."
-	- cp $(LOADABLE_MODULE) librad.py $(INSTALL_DIR)
+install : build_new $(LOADABLE_MODULE) radpy.py
+	@echo "Install python pieces from the radation library."
+	- cp $(LOADABLE_MODULE) radpy.py $(INSTALL_DIR)
 ifeq ($(findstring Darwin, $(SYSTEM)), Darwin)
-	- cp $(INSTALL_DIR)/_librad.dylib $(INSTALL_DIR)/_librad.so
+	- cp $(INSTALL_DIR)/_radpy.dylib $(INSTALL_DIR)/_radpy.so
 endif
-	- cp $(TOOLS)/radiator_library2.py $(TOOLS)/parade_radiator_library.py \
+	- cp $(TOOLS)/radiator_library.py $(TOOLS)/parade_radiator_library.py \
 		$(TOOLS)/script_rad2.py $(TOOLS)/EQ-spectra.py $(TOOLS)/extract_NIST_data.py \
 		$(INSTALL_DIR)
 	
@@ -136,6 +136,7 @@ test: install $(TEST_EXE) $(TEST_PY) $(GASPY)
 	cd ../../; rsync -av --exclude=".svn" --exclude="*~" cfpylib $(INSTALL_DIR)
 	- cp $(TEST_PY) $(INSTALL_DIR)
 	- cp $(TEST_EXE) $(INSTALL_DIR)
+	cd $(GAS)/build; make TARGET=$(TARGET) OPT=$(OPT) install
 ifeq ($(WITH_CEA2), 1)
 	- cp $(CEA2)/thermo.inp $(CEA2)/trans.inp $(INSTALL_DIR)
 	@echo "---------------------------------------------------"
@@ -153,17 +154,17 @@ else
 endif
 	
 clean :
-	- rm *.o *.py $(LIBRAD2) $(LOADABLE_MODULE) *.x *.a *.mod $(TEST_EXE)
-	- rm $(SRC)/librad.py $(SRC)/librad_wrap.cxx
+	- rm *.o *.py $(LIBRAD) $(LOADABLE_MODULE) *.x *.a *.mod $(TEST_EXE)
+	- rm $(SRC)/radpy.py $(SRC)/radpy_wrap.cxx
 	- cd $(GAS)/build; make clean
 	
 clean_local :
-	- rm *.o *.py $(LIBRAD2) $(LOADABLE_MODULE) *.x *.a *.mod $(TEST_EXE)
-	- rm $(SRC)/librad.py $(SRC)/librad_wrap.cxx
+	- rm *.o *.py $(LIBRAD) $(LOADABLE_MODULE) *.x *.a *.mod $(TEST_EXE)
+	- rm $(SRC)/radpy.py $(SRC)/radpy_wrap.cxx
 	
 clean_swig :
-	- rm librad.py $(LOADABLE_MODULE) librad_wrap.o
-	- rm $(SRC)/librad.py $(SRC)/librad_wrap.cxx
+	- rm radpy.py $(LOADABLE_MODULE) radpy_wrap.o
+	- rm $(SRC)/radpy.py $(SRC)/radpy_wrap.cxx
 
 #----------- External libraries
 $(LIBGAS) :
@@ -195,36 +196,36 @@ $(LIBZLIB):
 	cd $(ZLIB); make libz.a
 
 # -----------  Static library --------------------------------
-$(LIBRAD2) : $(RAD_OBJECTS)
-ifneq ($(strip $(wildcard $(LIBRAD2))),)
-	- rm $(LIBRAD2)
+$(LIBRAD) : $(RAD_OBJECTS)
+ifneq ($(strip $(wildcard $(LIBRAD))),)
+	- rm $(LIBRAD)
 endif
-	$(AR) rv $(LIBRAD2) $(RAD_OBJECTS)
-	- ranlib $(LIBRAD2)
+	$(AR) rv $(LIBRAD) $(RAD_OBJECTS)
+	- ranlib $(LIBRAD)
 
 # ----------  Loadable library for Python under Linux --------
-_librad.so : librad_wrap.o $(LIBRAD2) $(LIBNM) $(LIBZLIB) $(LIBGEOM)
-	$(CXXLINK) $(LDFLAG) $(FLINK) $(OMPFLAG) -shared -o _librad.so librad_wrap.o \
-		$(LIBRAD2) $(LIBNM) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
+_radpy.so : radpy_wrap.o $(LIBRAD) $(LIBNM) $(LIBZLIB) $(LIBGEOM)
+	$(CXXLINK) $(LDFLAG) $(FLINK) $(OMPFLAG) -shared -o _radpy.so radpy_wrap.o \
+		$(LIBRAD) $(LIBNM) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
 
 # ----------  Loadable library for Python under Mac OS X --------
-_librad.dylib : librad_wrap.o $(LIBRAD2) $(LIBNM) $(LIBZLIB) $(LIBGEOM)
-	$(CXXLINK) $(LDFLAG) $(FLINK) $(OMPFLAG) -o _librad.dylib librad_wrap.o \
-		$(LIBRAD2) $(LIBNM) $(LIBLUA) $(LIBZLIB) $(LIBGEOM) \
+_radpy.dylib : radpy_wrap.o $(LIBRAD) $(LIBNM) $(LIBZLIB) $(LIBGEOM)
+	$(CXXLINK) $(LDFLAG) $(FLINK) $(OMPFLAG) -o _radpy.dylib radpy_wrap.o \
+		$(LIBRAD) $(LIBNM) $(LIBLUA) $(LIBZLIB) $(LIBGEOM) \
 		-framework Python -bundle -bundle_loader $(PYTHON_BIN_DIR)/python 
 		 
 # ----------  Loadable library for Python under MS-Windows --------
-_librad.dll : librad_wrap.o $(LIBRAD2) $(LIBNM) $(LIBPYTHON) $(LIBZLIB) $(LIBGEOM)
-	$(CXXLINK) $(LDFLAG) $(FLINK) $(OMPFLAG) -shared -o _librad.dll librad_wrap.o \
+_radpy.dll : radpy_wrap.o $(LIBRAD) $(LIBNM) $(LIBPYTHON) $(LIBZLIB) $(LIBGEOM)
+	$(CXXLINK) $(LDFLAG) $(FLINK) $(OMPFLAG) -shared -o _radpy.dll radpy_wrap.o \
 		-L$(PYTHON_DIR)/libs \
-		$(LIBRAD2) $(LIBNM) $(LIBPYTHON) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
+		$(LIBRAD) $(LIBNM) $(LIBPYTHON) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
 
 # The SWIG interface file
-$(SRC)/librad_wrap.cxx $(SRC)/librad.py: $(SRC)/librad.i $(SRC)/spectral_model.hh
-	swig -python -c++ $(SRC)/librad.i
+$(SRC)/radpy_wrap.cxx $(SRC)/radpy.py: $(SRC)/radpy.i $(SRC)/spectral_model.hh
+	swig -python -c++ $(SRC)/radpy.i
 
-librad.py : $(SRC)/librad.py
-	cp $(SRC)/librad.py .
+radpy.py : $(SRC)/radpy.py
+	cp $(SRC)/radpy.py .
 
 ifeq ($(findstring MINGW32, $(SYSTEM)), MINGW32)
     # MINGW32 environment on MS-Windows
@@ -241,8 +242,8 @@ endif
 
 # -----------  Swig wrapper -----------
 
-librad_wrap.o : $(SRC)/librad_wrap.cxx $(LIBLUA)
-	$(CXX) $(CXXFLAG3) $(SRC)/librad_wrap.cxx \
+radpy_wrap.o : $(SRC)/radpy_wrap.cxx $(LIBLUA)
+	$(CXX) $(CXXFLAG3) $(SRC)/radpy_wrap.cxx \
 	-I$(PYTHON_INCLUDE_DIR) -I$(LUA_INCLUDE_DIR)
 
 # -----------  Object files -----------
@@ -346,23 +347,23 @@ radGUI.py : $(TOOLS)/radGUI.py
 cea2 : $(CEA2)/cea2.f
 	gfortran -std=legacy -o cea2 $(CEA2)/cea2.f
 
-photaura_test.x : photaura_test.o $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
+photaura_test.x : photaura_test.o $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
 	$(CXXLINK) $(LFLAG) $(FLINK) $(OMPFLAG) -o photaura_test.x photaura_test.o \
-		$(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LUALINK) $(LIBGEOM)
+		$(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LUALINK) $(LIBGEOM)
 		
 photaura_test.o : $(SRC)/photaura_test.cxx 
 	$(CXX) $(CXXFLAG) $(SRC)/photaura_test.cxx -I$(LUA_INCLUDE_DIR)
 	
-spradian_test.x : spradian_test.o $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
+spradian_test.x : spradian_test.o $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
 	$(CXXLINK) $(LFLAG) $(FLINK) $(OMPFLAG) -o spradian_test.x spradian_test.o \
-		$(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LUALINK) $(LIBGEOM)
+		$(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LUALINK) $(LIBGEOM)
 		
 spradian_test.o : $(SRC)/spradian_test.cxx $(SRC)/spradian.cxx 
 	$(CXX) $(CXXFLAG) $(SRC)/spradian_test.cxx -I$(LUA_INCLUDE_DIR)
 	
-run_spradian.x : run_spradian.o $(LIBRAD2) $(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
+run_spradian.x : run_spradian.o $(LIBRAD) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
 	$(CXXLINK) $(LFLAG) $(FLINK) -o run_spradian.x run_spradian.o \
-		$(LIBRAD2) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LUALINK) $(LIBGEOM) 
+		$(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LUALINK) $(LIBGEOM) 
 	
 run_spradian.o : $(SRC)/run_spradian.cxx 
 	$(CXX) $(CXXFLAG) $(SRC)/run_spradian.cxx -I$(LUA_INCLUDE_DIR)

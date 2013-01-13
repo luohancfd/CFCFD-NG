@@ -1,5 +1,5 @@
 /** \file radiation_constants.hh
- *  \ingroup radiation2
+ *  \ingroup radiation
  *
  *  \author Daniel F Potter
  *  \version 02-July-09

@@ -1,5 +1,5 @@
 /** \file atomic_line.hh
- *  \ingroup radiation2
+ *  \ingroup radiation
  *
  *  \author Daniel F. Potter
  *  \version 21-Aug-07

@@ -1,5 +1,5 @@
 /** \file spectral_model.cxx
- *  \ingroup radiation2
+ *  \ingroup radiation
  *
  *  \author Daniel F. Potter
  *  \version 10-July-09

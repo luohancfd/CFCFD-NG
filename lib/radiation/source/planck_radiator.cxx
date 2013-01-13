@@ -1,8 +1,8 @@
 /** \file planck_radiator.cxx
- *  \ingroup radiation2
+ *  \ingroup radiation
  *
  *  \author Daniel F. Potter
- *  \version 10-Aug-2009: New radiation2 version
+ *  \version 10-Aug-2009: Improved port from old lib/radiation
  *
  *  \brief Definitions for planck radiator classes
  *

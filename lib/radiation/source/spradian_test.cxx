@@ -1,5 +1,5 @@
 /** \file spradian_test.cxx
- *  \ingroup radiation2
+ *  \ingroup radiation
  *  \brief Test the spradian spectral model
  *  \author Daniel F Potter        
  *  \version 16-Apr-2012

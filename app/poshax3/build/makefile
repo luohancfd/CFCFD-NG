@@ -16,8 +16,8 @@ GAS             := ../../../lib/gas
 NM              := ../../../lib/nm
 UTIL_SRC        := ../../../lib/util/source
 UTIL            := ../../../lib/util
-RAD             := ../../../lib/radiation2
-RAD_SRC         := ../../../lib/radiation2/source
+RAD             := ../../../lib/radiation
+RAD_SRC         := ../../../lib/radiation/source
 GEOM            := ../../../lib/geometry2
 GEOM_SRC        := ../../../lib/geometry2/source
 
@@ -25,7 +25,7 @@ LIBPSR          := libpsr.a
 LIBGAS          := $(GAS)/build/libgas.a
 LIBNM           := $(NM)/build/libnm.a
 LIBUTIL         := $(UTIL)/build/libutil.a
-LIBRAD2         := $(RAD)/build/librad2.a
+LIBRAD         := $(RAD)/build/librad.a
 LIBGEOM         := $(GEOM)/build/libgeom2.a
 LIBINIPARSER    := $(UTIL)/iniparser/libiniparser.a
 
@@ -77,9 +77,9 @@ $(LIBUTIL) :
 	cd $(UTIL)/build; make TARGET=$(TARGET) OPT=$(OPT) libutil.a
 #	cp $(UTIL)/build/libutil.a .
 
-$(LIBRAD2) :
-	cd $(RAD)/build; make librad2.a
-#	cp $(RAD)/build/librad2.a .
+$(LIBRAD) :
+	cd $(RAD)/build; make librad.a
+#	cp $(RAD)/build/librad.a .
 
 $(LIBINIPARSER):
 	cd $(UTIL)/iniparser; make
@@ -121,10 +121,10 @@ p3post.py : $(SRC)/p3post.py
 	cp $(SRC)/p3post.py .
 
 #----------- executables -----------------
-poshax3.x : poshax.o $(LIBPSR) $(LIBGAS) $(LIBRAD2) $(LIBNM) $(LIBUTIL) \
+poshax3.x : poshax.o $(LIBPSR) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) \
                      $(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
 	$(CXXLINK) $(FLINK) -o poshax3.x poshax.o \
-		$(LIBPSR) $(LIBGAS) $(LIBRAD2) $(LIBNM) $(LIBUTIL) \
+		$(LIBPSR) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) \
 		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBGEOM) $(LUALINK)
 
 #----------- objects ---------

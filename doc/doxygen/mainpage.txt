@@ -16,6 +16,6 @@ for documentation of python sources.
 /** \defgroup libgeom2      libgeom2: Nodes, Paths, Surfaces and Volume classes */
 /** \defgroup nm            nm: Numerical Methods */
 /** \defgroup plot          plot: Plotting Programs */
-/** \defgroup radiation2    radiation2: Radiation Library */
+/** \defgroup radiation     radiation: Radiation Library */
 /** \defgroup util          util: Utility Functions */
 

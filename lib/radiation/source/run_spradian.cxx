@@ -1,5 +1,5 @@
 /** \file run_spradian.cxx
- *  \ingroup radiation2
+ *  \ingroup radiation
  *  \brief Run the spradian 'radipac' routine for a given input file
  *  \author Daniel F Potter        
  *  \version 16-Apr-2012

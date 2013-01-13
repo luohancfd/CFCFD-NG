@@ -1,5 +1,5 @@
 /** \file LOS_pieces.cxx
- *  \ingroup radiation2
+ *  \ingroup radiation
  *
  *  \author Daniel F. Potter
  *  \version 09-Dec-09

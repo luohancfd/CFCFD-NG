@@ -2,7 +2,7 @@
  *  \ingroup radiation
  *
  *  \author Daniel F. Potter
- *  \version 21-Aug-07
+ *  \version 21-Aug-07: Improved port from old lib/radiation
  *  \brief Deifinitions for Diatomic_system class; simply a place-holder for transition details.
  *
  **/

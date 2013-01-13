@@ -19,7 +19,7 @@
 %include "std_vector.i"
 %include "../../../lib/geometry2/source/libgeom2.i"
 %include "../../../lib/gas/models/libgas.i"
-%include "../../../lib/radiation2/source/librad2.i"
+%include "../../../lib/radiation/source/librad.i"
 %include "radiation_transport.hh"
 
 // The following magic allows us to pass a list of numbers

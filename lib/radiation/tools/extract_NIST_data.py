@@ -12,7 +12,7 @@ import sys, os
 from copy import copy
 from datetime import datetime 
 import matplotlib.pyplot as plt
-from librad import *
+from radpy import *
 from math import exp
 
 def energy_group( E ):
@@ -314,7 +314,7 @@ def extract_and_combine_levels( NIST_level_file ):
                 
     # write to file
     fout = open('NIST_levels.dat','w')
-    if output_format=="librad2":
+    if output_format=="librad":
         fout.write("# Levels obtained from NIST ASD:\n\
 # http://physics.nist.gov/PhysRefData/ASD/index.html\n\
 # Using file: %s\n\
@@ -590,7 +590,7 @@ def main():
         
     # set some parameters
     global output_format
-    output_format = raw_input("Select: output format [ 'tau', 'libgas', 'librad2' ]: ")
+    output_format = raw_input("Select: output format [ 'tau', 'libgas', 'librad' ]: ")
     more_options = int(raw_input("Select: maximum resolution calculation (0), or proceed to grouping and energy options (1): "))
     global test_type, fE, individual_level_limit
     global E_lev_limit, n_lev_limit

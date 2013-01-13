@@ -1,14 +1,19 @@
-/** \file librad2.i
- *  \ingroup radiation2
+/** \file radpy.i
+ *  \ingroup radiation
  *
  *  \author Daniel F. Potter
- *  \version 02-July-2009
+ *  \version 13-January-2013
+ * 
+ *  NOTE: This differs from librad.i in that this is for a 
+ *        standalone gas Python module.  It does not hook into
+ *        the larger framework of the CFD code.
+ *
  **/
 
-%define RAD2_DOCSTRING
-"Python interface to the radiation 2 library."
+%define RAD_DOCSTRING
+"Python interface to the radiation library."
 %enddef
-%module(docstring=RAD2_DOCSTRING) librad2
+%module(docstring=RAD_DOCSTRING) radpy
 
 %include "std_string.i"
 %include "std_vector.i"
@@ -59,29 +64,6 @@
 %template(vectorSB) std::vector<SpectralBin*>;
 
 %pythoncode %{
-class Bar:
-    def __init__(self):
-	self.len = 0
-	self.chars = (' ', '+')
-	self.wrap = ('[', ']')
-	self.filledc = 0
-	self.blank = 0
-    
-    def fill(self, i):
-	assert not (i > 100) or (i < 0)
-	self._setP(i)
-    
-    def _setP(self, p):
-	self.filledc = int(round(float(self.len*p)/100))
-    
-    def show(self):
-	out = []
-	out.append(self.wrap[0])
-	out.append(self.filledc*self.chars[1])
-	out.append((self.len-self.filledc)*self.chars[0])
-	out.append(self.wrap[1])
-	return "".join(out)
-
 # convert wavenumber in 1/cm to K
 def nu2T( nu_cm ):
     return RC_h_SI * RC_c * nu_cm / RC_k_SI

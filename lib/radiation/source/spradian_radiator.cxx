@@ -1,5 +1,5 @@
 /** \file spradian_radiator.cxx
- *  \ingroup radiation2
+ *  \ingroup radiation
  *
  *  \author Daniel F. Potter
  *  \version 11-Jan-2012

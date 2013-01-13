@@ -11,7 +11,7 @@ import sys
 from datetime import datetime
 from getopt import getopt
 
-import radiator_library2 as rl
+import radiator_library as rl
 import parade_radiator_library as prl
 
 tab = rl.tab
@@ -225,7 +225,7 @@ def main():
                        help="input Python script for radiation description")
     parser.add_option( "-L", "--LUA-file",
                        action="store", type="string", dest="LUAFile",
-                       help="output configuration file for 'librad2' C++ module in LUA format")
+                       help="output configuration file for 'librad' C++ module in LUA format")
 
     (options, args) = parser.parse_args()
     

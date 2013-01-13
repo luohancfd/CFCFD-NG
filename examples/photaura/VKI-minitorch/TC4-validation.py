@@ -1,7 +1,7 @@
 #! /usr/bin/python
 
 from gaspy import *
-from librad2 import *
+from radpy import *
 from cfpylib.gasdyn.cea2_gas import *
 from numpy import *
 import sys
@@ -13,7 +13,7 @@ def main():
     print "*   - Equilibrium CH4-N2 plasma torch emission                           *"
     print "*   - Optically thick line-of-sight with intensity attenuation           *"
     print "*   - Radiating species considered are  C2, CN, N2                       *"
-    print "*   - Implementing new photaura radiation model from librad2             *"
+    print "*   - Implementing photaura radiation model from librad                  *"
     print "--------------------------------------------------------------------------\n"
 
     print "Creating the gas-model for a N2-CH4 gas mix"

@@ -1,8 +1,9 @@
 /** \file ray_tracing_pieces.hh
- *  \ingroup radiation2
+ *  \ingroup eilmer3
  *
  *  \author Daniel F. Potter
- *  \version 23-Dec-09: port from lib/radiation
+ *  \version 23-Dec-09: Port from old lib/radiation
+ *  \version 2011: Moved to app/eilmer3/source
  *
  **/
 
@@ -14,7 +15,7 @@
 
 #include "../../../lib/gas/models/gas_data.hh"
 #include "../../../lib/geometry2/source/geom.hh"
-#include "../../../lib/radiation2/source/spectra_pieces.hh"
+#include "../../../lib/radiation/source/spectra_pieces.hh"
 
 // NOTE: using face definitions from cell.hh for these
 // #define NORTH  0

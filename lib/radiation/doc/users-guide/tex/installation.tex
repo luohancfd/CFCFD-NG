@@ -6,21 +6,21 @@ The input data is provided to the C++ binaries via Lua files.
 Assuming the Compressible-Flow CFD repository is located in \verb ~/cfcfd3-hg , the radiation module can be compiled and installed via:
 
 \begin{lstlisting}[basicstyle=\ttfamily\small]
-$ cd ~/cfcfd3-hg/lib/radiation2/build
+$ cd ~/cfcfd3-hg/lib/radiation/build
 $ make install
 \end{lstlisting}
 
 A number of test programs can also be compiled and installed via:
 
 \begin{lstlisting}[basicstyle=\ttfamily\small]
-$ cd ~/cfcfd3-hg/lib/radiation2/build
+$ cd ~/cfcfd3-hg/lib/radiation/build
 $ make test
 \end{lstlisting}
 
 If the user has the SPRADIAN07 code available and wishes to use it as the spectral model, this needs to be requested at compile time:
 
 \begin{lstlisting}[basicstyle=\ttfamily\small]
-$ cd ~/cfcfd3-hg/lib/radiation2/build
+$ cd ~/cfcfd3-hg/lib/radiation/build
 $ make -DWITH_SPRADIAN=1 install
 \end{lstlisting}
 
