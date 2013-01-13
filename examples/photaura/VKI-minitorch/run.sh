@@ -4,7 +4,7 @@
 gasfile N2-CH4-gas.inp gas-model.lua
 
 # 2. Prepare the radiation model
-script_rad2.py -i TC4-radiators.py -L TC4-radiators.lua
+radmodel.py -i TC4-radiators.py -L TC4-radiators.lua
 
 # 3. Run the calculation script
 ./TC4-validation.py

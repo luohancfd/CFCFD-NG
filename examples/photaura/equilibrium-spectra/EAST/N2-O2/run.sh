@@ -9,7 +9,7 @@
 #       for this example to run.
 
 # 1. Setup the radiation model LUA input file
-script_rad2.py -i air-radiators.py -L rad-model.lua
+radmodel.py -i air-radiators.py -L rad-model.lua
 
 # 2. Run EQ-spectra.py
 EQ-spectra.py --input-file=EAST.py
