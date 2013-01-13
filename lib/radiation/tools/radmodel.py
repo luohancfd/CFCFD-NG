@@ -4,7 +4,7 @@
 ## \brief Python program to create a radiation input file
 ##
 ## \author Daniel F Potter
-## \version 13-Aug-2009
+## \version 13-Jan-2013: reborn as radmodel.py (previously script_rad2.py)
 
 import os
 import sys
@@ -217,8 +217,8 @@ gdata = GlobalRadData()
 def main():
     from optparse import OptionParser
 
-    usage =  "usage: script_rad2.py -i rad_desc.py|--input-script=rad_desc.py\n"
-    usage += "                      -L LUA_output.lua|--LUA-file=LUA_output.lua"
+    usage =  "usage: radmodel.py -i rad_desc.py|--input-script=rad_desc.py\n"
+    usage += "                   -L LUA_output.lua|--LUA-file=LUA_output.lua"
     parser = OptionParser(usage=usage)
     parser.add_option( "-i", "--input-script",
                        action="store", type="string", dest="inFile",

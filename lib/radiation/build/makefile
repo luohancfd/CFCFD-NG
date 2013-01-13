@@ -129,7 +129,7 @@ ifeq ($(findstring Darwin, $(SYSTEM)), Darwin)
 	- cp $(INSTALL_DIR)/_radpy.dylib $(INSTALL_DIR)/_radpy.so
 endif
 	- cp $(TOOLS)/radiator_library.py $(TOOLS)/parade_radiator_library.py \
-		$(TOOLS)/script_rad2.py $(TOOLS)/EQ-spectra.py $(TOOLS)/extract_NIST_data.py \
+		$(TOOLS)/radmodel.py $(TOOLS)/EQ-spectra.py $(TOOLS)/extract_NIST_data.py \
 		$(INSTALL_DIR)
 	
 test: install $(TEST_EXE) $(TEST_PY) $(GASPY)

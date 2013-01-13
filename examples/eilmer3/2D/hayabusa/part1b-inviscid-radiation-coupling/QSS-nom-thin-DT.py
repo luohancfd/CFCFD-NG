@@ -1,5 +1,5 @@
 # File: QSS-nom-thin-DT.py
-# Description: Input file for script_rad2.py to create rad-model.lua
+# Description: Input file for radmodel.py to create rad-model.lua
 #              file necessary for the c++ code to create the 
 #              radiation model
 
