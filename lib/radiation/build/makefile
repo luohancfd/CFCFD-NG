@@ -1,4 +1,4 @@
-# makefile for radiation2 library
+# makefile for the radiation library
 #
 # Author: Daniel F. Potter
 # Version: 02-July-2009
@@ -59,7 +59,7 @@ endif
 #---------------------------------------
 # File name variables
 
-LIBRAD2 := librad2.a
+LIBRAD := librad.a
 
 RAD_OBJECTS := spectral_model.o \
 	equilibrium_air.o \
@@ -100,18 +100,18 @@ ifeq ($(WITH_CEA2), 1)
 endif
 
 # Assume Unix/Linux
-LOADABLE_MODULE := _librad2.so
+LOADABLE_MODULE := _librad.so
 ifeq ($(findstring MINGW32, $(SYSTEM)), MINGW32)
     # MINGW32 environment on MS-Windows
-    LOADABLE_MODULE := _librad2.dll
+    LOADABLE_MODULE := _librad.dll
 endif
 ifeq ($(findstring CYGWIN, $(SYSTEM)), CYGWIN)
     # CYGWIN environment on MS-Windows
-    LOADABLE_MODULE := _librad2.dll
+    LOADABLE_MODULE := _librad.dll
 endif
 ifeq ($(findstring Darwin, $(SYSTEM)), Darwin)
     # Darwin environment on a Mac OS X
-    LOADABLE_MODULE := _librad2.dylib
+    LOADABLE_MODULE := _librad.dylib
 endif
 
 #---------------------------------------
@@ -122,11 +122,11 @@ build_new: $(LIBRAD2)
 	@echo "Radiation library (v2) should now be up to date."
 	@echo "------------------------------------------------"
 
-install : build_new $(LOADABLE_MODULE) librad2.py
-	@echo "Install python pieces from the librad2 functions."
-	- cp $(LOADABLE_MODULE) librad2.py $(INSTALL_DIR)
+install : build_new $(LOADABLE_MODULE) librad.py
+	@echo "Install python pieces from the librad functions."
+	- cp $(LOADABLE_MODULE) librad.py $(INSTALL_DIR)
 ifeq ($(findstring Darwin, $(SYSTEM)), Darwin)
-	- cp $(INSTALL_DIR)/_librad2.dylib $(INSTALL_DIR)/_librad2.so
+	- cp $(INSTALL_DIR)/_librad.dylib $(INSTALL_DIR)/_librad.so
 endif
 	- cp $(TOOLS)/radiator_library2.py $(TOOLS)/parade_radiator_library.py \
 		$(TOOLS)/script_rad2.py $(TOOLS)/EQ-spectra.py $(TOOLS)/extract_NIST_data.py \
@@ -154,16 +154,16 @@ endif
 	
 clean :
 	- rm *.o *.py $(LIBRAD2) $(LOADABLE_MODULE) *.x *.a *.mod $(TEST_EXE)
-	- rm $(SRC)/librad2.py $(SRC)/librad2_wrap.cxx
+	- rm $(SRC)/librad.py $(SRC)/librad_wrap.cxx
 	- cd $(GAS)/build; make clean
 	
 clean_local :
 	- rm *.o *.py $(LIBRAD2) $(LOADABLE_MODULE) *.x *.a *.mod $(TEST_EXE)
-	- rm $(SRC)/librad2.py $(SRC)/librad2_wrap.cxx
+	- rm $(SRC)/librad.py $(SRC)/librad_wrap.cxx
 	
 clean_swig :
-	- rm librad2.py $(LOADABLE_MODULE) librad2_wrap.o
-	- rm $(SRC)/librad2.py $(SRC)/librad2_wrap.cxx
+	- rm librad.py $(LOADABLE_MODULE) librad_wrap.o
+	- rm $(SRC)/librad.py $(SRC)/librad_wrap.cxx
 
 #----------- External libraries
 $(LIBGAS) :
@@ -203,28 +203,28 @@ endif
 	- ranlib $(LIBRAD2)
 
 # ----------  Loadable library for Python under Linux --------
-_librad2.so : librad2_wrap.o $(LIBRAD2) $(LIBNM) $(LIBZLIB) $(LIBGEOM)
-	$(CXXLINK) $(LDFLAG) $(FLINK) $(OMPFLAG) -shared -o _librad2.so librad2_wrap.o \
+_librad.so : librad_wrap.o $(LIBRAD2) $(LIBNM) $(LIBZLIB) $(LIBGEOM)
+	$(CXXLINK) $(LDFLAG) $(FLINK) $(OMPFLAG) -shared -o _librad.so librad_wrap.o \
 		$(LIBRAD2) $(LIBNM) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
 
 # ----------  Loadable library for Python under Mac OS X --------
-_librad2.dylib : librad2_wrap.o $(LIBRAD2) $(LIBNM) $(LIBZLIB) $(LIBGEOM)
-	$(CXXLINK) $(LDFLAG) $(FLINK) $(OMPFLAG) -o _librad2.dylib librad2_wrap.o \
+_librad.dylib : librad_wrap.o $(LIBRAD2) $(LIBNM) $(LIBZLIB) $(LIBGEOM)
+	$(CXXLINK) $(LDFLAG) $(FLINK) $(OMPFLAG) -o _librad.dylib librad_wrap.o \
 		$(LIBRAD2) $(LIBNM) $(LIBLUA) $(LIBZLIB) $(LIBGEOM) \
 		-framework Python -bundle -bundle_loader $(PYTHON_BIN_DIR)/python 
 		 
 # ----------  Loadable library for Python under MS-Windows --------
-_librad2.dll : librad2_wrap.o $(LIBRAD2) $(LIBNM) $(LIBPYTHON) $(LIBZLIB) $(LIBGEOM)
-	$(CXXLINK) $(LDFLAG) $(FLINK) $(OMPFLAG) -shared -o _librad2.dll librad2_wrap.o \
+_librad.dll : librad_wrap.o $(LIBRAD2) $(LIBNM) $(LIBPYTHON) $(LIBZLIB) $(LIBGEOM)
+	$(CXXLINK) $(LDFLAG) $(FLINK) $(OMPFLAG) -shared -o _librad.dll librad_wrap.o \
 		-L$(PYTHON_DIR)/libs \
 		$(LIBRAD2) $(LIBNM) $(LIBPYTHON) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
 
 # The SWIG interface file
-$(SRC)/librad2_wrap.cxx $(SRC)/librad2.py: $(SRC)/librad2.i $(SRC)/spectral_model.hh
-	swig -python -c++ $(SRC)/librad2.i
+$(SRC)/librad_wrap.cxx $(SRC)/librad.py: $(SRC)/librad.i $(SRC)/spectral_model.hh
+	swig -python -c++ $(SRC)/librad.i
 
-librad2.py : $(SRC)/librad2.py
-	cp $(SRC)/librad2.py .
+librad.py : $(SRC)/librad.py
+	cp $(SRC)/librad.py .
 
 ifeq ($(findstring MINGW32, $(SYSTEM)), MINGW32)
     # MINGW32 environment on MS-Windows
@@ -241,8 +241,8 @@ endif
 
 # -----------  Swig wrapper -----------
 
-librad2_wrap.o : $(SRC)/librad2_wrap.cxx $(LIBLUA)
-	$(CXX) $(CXXFLAG3) $(SRC)/librad2_wrap.cxx \
+librad_wrap.o : $(SRC)/librad_wrap.cxx $(LIBLUA)
+	$(CXX) $(CXXFLAG3) $(SRC)/librad_wrap.cxx \
 	-I$(PYTHON_INCLUDE_DIR) -I$(LUA_INCLUDE_DIR)
 
 # -----------  Object files -----------

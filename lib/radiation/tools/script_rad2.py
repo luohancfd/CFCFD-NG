@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-## \file script_rad2.py
-## \ingroup radiation2
-## \brief Python program to create a radiation2 input file
+## \file radmodel.py
+## \ingroup radiation
+## \brief Python program to create a radiation input file
 ##
 ## \author Daniel F Potter
 ## \version 13-Aug-2009

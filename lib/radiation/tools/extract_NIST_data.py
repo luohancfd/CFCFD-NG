@@ -12,7 +12,7 @@ import sys, os
 from copy import copy
 from datetime import datetime 
 import matplotlib.pyplot as plt
-from librad2 import *
+from librad import *
 from math import exp
 
 def energy_group( E ):

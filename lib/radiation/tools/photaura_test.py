@@ -2,7 +2,7 @@
 
 import sys
 from gaspy import *
-from librad2 import *
+from librad import *
 try:
     from cfpylib.gasdyn.cea2_gas import *
     cea2_gas = True

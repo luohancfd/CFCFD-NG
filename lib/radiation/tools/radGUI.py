@@ -4,7 +4,7 @@
 # Based on the simple.py wxPython example. 
 #----------------------------------------------------------------------
 
-from librad2 import *
+from librad import *
 from gaspy import *
 from cfpylib.gasdyn.cea2_gas import *
 
