@@ -209,7 +209,7 @@ int ShockFittingInBC::calculate_shock_speed(FV_Cell *cL1, FV_Cell *cL0, FV_Cell 
             IFaceR->vel.transform_to_global(IFaceR->n, IFaceR->t1, IFaceR->t2);
         } else {
 	    // Probably no shock so move boundary at flow speed.
-	    wone_d_interp( *cL1, *cL0, *cR0, *cR1,
+	    mach_weighted_one_d_interp( *cL1, *cL0, *cR0, *cR1,
 			   lenL1, lenL0, lenR0, lenR1,
 			   *IFaceL->fs, *IFaceR->fs);
             IFaceR->vel.x = time_weight * min(vabs(IFaceL->fs->vel), vabs(IFaceR->fs->vel));

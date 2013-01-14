@@ -49,7 +49,7 @@ inline int one_d_interp_scalar( double qL1, double qL0, double qR0, double qR1,
     return SUCCESS;
 } // end of one_d_interp_scalar()
 
-inline int wone_d_interp_scalar( double qL1, double qL0, double qR0, double qR1, 
+inline int mach_weighted_one_d_interp_scalar( double qL1, double qL0, double qR0, double qR1, 
 				 double lenL1, double lenL0, double lenR0, double lenR1, 
 				 double &qL, double &qR, double kL, double kR,
 				 int apply_limiter, int extrema_clipping )
@@ -87,7 +87,7 @@ inline int wone_d_interp_scalar( double qL1, double qL0, double qR0, double qR1,
 	qR = MINIMUM(upper_limit, MAXIMUM(lower_limit, qR));
     }
     return SUCCESS;
-} // end of one_d_interp_scalar()
+} // end of mach_weighted_one_d_interp_scalar()
 
 
 /// \brief One-sided one-dimensional reconstruction of a scalar quantity.

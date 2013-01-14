@@ -2239,7 +2239,7 @@ int Block::calc_ghost_cell_geom_2D( void )
 /// \brief Compute the ghost cell positions and volumes.
 ///
 /// 'Compute' is a bit too strong to describe what we do here.
-//  Rather this is a first-order extrapolation
+///  Rather this is a first-order extrapolation
 /// from interior cells to estimate the position
 /// and volume of the ghost cells.
 {
@@ -2304,11 +2304,9 @@ int Block::calc_ghost_cell_geom_2D( void )
     return SUCCESS;
 }
 
-/** \brief Adjust the vertices of the grid based on calculated vertex velocity. 
- *
- *
- */
-
+/// \brief Perform Euler step using calculated vertex
+/// velocity and set the vertex position for time-level 1.
+///
 int Block::predict_vertex_positions( double dt )
 {
     int i, j, k;
@@ -2324,6 +2322,9 @@ int Block::predict_vertex_positions( double dt )
     return SUCCESS;
 }
 
+/// \brief Perform corrector step using re-calculated vertex
+/// velocity and set the vertex position for time-level 2.
+///
 int Block::correct_vertex_positions( double dt )
 {
     int i, j, k;
@@ -2396,14 +2397,16 @@ inline double Block::velocity_weighting_factor(double M)
     }
 }
 
-/// \brief Calculate inviscid fluxes based only on freestream conditions. 
+/// \brief Set vertex velocities based on previously calculated interface velocities. 
 ///
-
-/** \brief Set vertex velocities based on linear distribution of velocity from boundary to wall. 
- *  Assumes inflow at west boundary and wall at east boundary.
- */
+///  Based on Ian Johnston's thesis, see for explanation.
+///  Assumes inflow at west boundary and wall at east boundary.
+///
 int Block::set_vertex_velocities( int time_level )
 {
+    // Only works for 2D at the moment. Will be upgraded to 3D in future. AP 14-Jan-2013.
+    // Also only works with one block in the x-direction. Should work with multiple blocks
+    // in the y-direction.
     int i, j, k;
     FV_Interface *IFaceU;
     FV_Interface *IFaceD;
@@ -2424,9 +2427,9 @@ int Block::set_vertex_velocities( int time_level )
 	    IFaceU2 = get_ifi(i,j+1,k);
 	    vtx = get_vtx(i,j,k);
 	    wvtx = get_vtx(imax,j,k);
-	    trv = unit(wvtx->position[time_level] - vtx->position[time_level]); // Direction vector from vertex to body.
-	    calc_boundary_vertex_velocity(IFaceD, IFaceU,
-					  vtx, trv, time_level);
+	    // Direction vector from vertex to body.
+	    trv = unit(wvtx->position[time_level] - vtx->position[time_level]); 
+	    calc_boundary_vertex_velocity(IFaceD, IFaceU, vtx, trv, time_level);
 	} // for j
     } // for k
     // Set first and last two boundary vertex velocities
@@ -2435,8 +2438,7 @@ int Block::set_vertex_velocities( int time_level )
 	wvtx = get_vtx(imax,jmin,kmin);
 	IFaceU = get_ifi(imin,jmin,kmin);
 	trv = unit(wvtx->position[time_level] - vtx->position[time_level]); 
-	calc_boundary_vertex_velocity(IFaceU, IFaceU,     
-				      vtx, trv, time_level);
+	calc_boundary_vertex_velocity(IFaceU, IFaceU, vtx, trv, time_level);
 	// Second
 	vtx = get_vtx(imin,jmin+1,kmin);
 	wvtx = get_vtx(imax,jmin+1,kmin);
@@ -2444,8 +2446,7 @@ int Block::set_vertex_velocities( int time_level )
 	IFaceU = get_ifi(imin,jmin+1,kmin);
 	IFaceD = get_ifi(imin,jmin,kmin);
 	trv = unit(wvtx->position[time_level] - vtx->position[time_level]);
-	calc_boundary_vertex_velocity(IFaceU, IFaceD,    
-				      vtx, trv, time_level);
+	calc_boundary_vertex_velocity(IFaceU, IFaceD, vtx, trv, time_level);
     }
     // Last
     if ( bcp[NORTH]->type_code != 0 ) { // If not adjacent to another block.
@@ -2456,8 +2457,7 @@ int Block::set_vertex_velocities( int time_level )
 	IFaceD = get_ifi(imin,jmax,kmin);
 	IFaceU = get_ifi(imin,jmax-3,kmin);
 	trv = unit(wvtx->position[time_level] - vtx->position[time_level]);
-	calc_boundary_vertex_velocity(IFaceD2, IFaceD,
-				      vtx, trv, time_level);
+	calc_boundary_vertex_velocity(IFaceD2, IFaceD, vtx, trv, time_level);
 	// Second Last
 	vtx = get_vtx(imin,jmax,kmin);
 	wvtx = get_vtx(imax,jmax,kmin);
@@ -2466,10 +2466,11 @@ int Block::set_vertex_velocities( int time_level )
 	IFaceD = get_ifi(imin,jmax-1,kmin);
 	IFaceU = get_ifi(imin,jmax,kmin);
 	trv = unit(wvtx->position[time_level] - vtx->position[time_level]);
-	calc_boundary_vertex_velocity(IFaceD, IFaceU, 
-				      vtx, trv, time_level);
+	calc_boundary_vertex_velocity(IFaceD, IFaceU, vtx, trv, time_level);
     }
-    // Set interior vertex velocities 
+    // Set interior vertex velocities.
+    // Velocities are set as linear functions of how far each vertex is between
+    // the shock boundary and the wall.
     for (k = kmin; k <= kmax; ++k) {
 	for (j = jmin; j <= jmax+1; ++j) {
 	    svtx = get_vtx(imin,j,k); // Shock boundary vertex.
@@ -2477,16 +2478,20 @@ int Block::set_vertex_velocities( int time_level )
 	    length = vabs(svtx->position[time_level] - wvtx->position[time_level]);
 	    for (i = imin; i <= imax; ++i) {
 		vtx = get_vtx(i,j,k);
-		vtx->velocity[time_level] = ( vabs(vtx->position[time_level] - 
-						   wvtx->position[time_level]) / length ) * svtx->vel;
+		vtx->velocity[time_level] = (vabs(vtx->position[time_level] - 
+						  wvtx->position[time_level]) 
+					     / length ) * svtx->vel;
 	    }
 	}
     }
     return SUCCESS;
 }
 
+/// \brief Set interface velocities as average of adjacent vertex velocities. 
+///
 int Block::set_interface_velocities( int time_level )
 {
+    // Only works for 2D at the moment. Will be upgraded to 3D in future. AP 14-Jan-2013.
     int i, j, k;
     FV_Vertex *vtx;
     FV_Vertex *vtxi;

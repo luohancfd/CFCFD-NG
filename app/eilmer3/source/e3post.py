@@ -37,7 +37,7 @@ longOptions = ["help", "job=", "zip-files", "no-zip-files", "vtk-xml", "tecplot"
                "report-norms", "per-block-norm-list=", "global-norm-list=",
                "probe=", "add-pitot-p", "add-total-p",
                "add-molef", "gmodel-file=",
-               "add-total-enthalpy", "add-mach", "heat-flux-list=",
+               "add-total-enthalpy", "add-mach", "heat-flux-list=", "vertex-velocity-list=", 
                "plot3d", "omegaz=", "tangent-slab-list=", "prepare-fstc-restart", "moving-grid"]
 
 def printUsage():
@@ -521,6 +521,7 @@ class BoundaryHeatFluxData(object):
 	                               rho_cell=float(tks[11]),un_cell=float(tks[12]),Re_wall=Re_wall ) )
 	    # set ranges
 	    # lower
+            print self.iface[-1].i, self.iface[-1].j, self.iface[-1].k
 	    if self.iface[-1].i < self.irange[0]: self.irange[0] = self.iface[-1].i
 	    if self.iface[-1].j < self.jrange[0]: self.jrange[0] = self.iface[-1].j
 	    if self.iface[-1].k < self.krange[0]: self.krange[0] = self.iface[-1].k
@@ -597,6 +598,7 @@ def write_heat_flux_profile(outputFileName, heat_flux_list_str, tindx, nblock, h
     for heat_flux_str in heat_flux_lists:
 	bstr,sstr,istr,jstr,kstr = heat_flux_str.split(',')
 	bfirst,blast = decode_range_from_string(bstr, 0, nblock-1)
+        print bfirst, blast
 	for jb in range(bfirst,blast+1):
 	    sfirst,slast = decode_range_from_string(sstr, 0, len(hf_data[jb])-1)
 	    for js in range(sfirst,slast+1):
@@ -628,8 +630,176 @@ def write_heat_flux_profile(outputFileName, heat_flux_list_str, tindx, nblock, h
 						iface_data.Re_wall ) )
     
     return 0
+    
+# --------------------------------------------------------------------
+# The following functions and classes are for post-processing the vertex velocity data
+# into a human readable format
+class VertexVelocityData(object):
+    """
+    Python class to store velocity data for a single cell vertex
+    """
+    def __init__(self,i=0,j=0,k=0,x=0.0,y=0.0,z=0.0,vx=0.0,vy=0.0,vz=0.0,v=0.0):
+	"""
+	Create a VertexVelocityData object from provided data
+	"""
+	self.i = i
+	self.j = j
+	self.k = k
+	self.x = x
+	self.y = y
+	self.z = z
+	self.vx = vx
+	self.vy = vy
+	self.vz = vz
+	self.v = v	
 
 
+class BoundaryVertexVelocityData(object):
+    """
+    Python class to store vertex velocity data for a block surface/boundary
+    """
+    def __init__(self):
+	self.vtx = []
+	self.irange = [1000000000,-1]
+	self.jrange = [1000000000,-1]
+	self.krange = [1000000000,-1]
+    
+    def read(self,fp=None):
+	"""
+	Read in vertex velocity data from file.
+	"""
+	if fp==None:
+	    print "VertexVelocityData.read(): no file was provided!"
+	    sys.exit()
+	buf = fp.readline() # time
+	time_stamp = float(buf)
+	buf = fp.readline() # variable-name list
+	var_list = []
+	for token in buf.split():
+	    var_list.append(token.strip('"')) # just keep the name
+	buf = fp.readline() # surface dimensions
+	tks = buf.split()
+	ni = int(tks[0]); nj = int(tks[1]); nk = int(tks[2])
+	dim = ni*nj*nk
+	
+	for line in range(dim):
+	    buf = fp.readline() # vertex velocity data
+	    if len(buf)==0: break
+	    tks = buf.split()
+	    v = ( float(tks[6])**2 + float(tks[7])**2 + float(tks[8])**2 )**0.5
+	    self.vtx.append( VertexVelocityData(i=int(tks[0]),j=int(tks[1]),k=int(tks[2]),
+	                               x=float(tks[3]),y=float(tks[4]),z=float(tks[5]),
+	                               vx=float(tks[6]),vy=float(tks[7]),vz=float(tks[8]),
+	                               v=v) )
+                      
+	    # set ranges
+	    # lower
+            print self.vtx[-1].i, self.vtx[-1].j, self.vtx[-1].k
+	    if self.vtx[-1].i < self.irange[0]: self.irange[0] = self.vtx[-1].i
+	    if self.vtx[-1].j < self.jrange[0]: self.jrange[0] = self.vtx[-1].j
+	    if self.vtx[-1].k < self.krange[0]: self.krange[0] = self.vtx[-1].k
+	    # upper
+	    if self.vtx[-1].i > self.irange[1]: self.irange[1] = self.vtx[-1].i
+	    if self.vtx[-1].j > self.jrange[1]: self.jrange[1] = self.vtx[-1].j
+	    if self.vtx[-1].k > self.krange[1]: self.krange[1] = self.vtx[-1].k
+	    
+    def get_vtx(self,i,j,k):
+	# check if indices are in-range
+	if i < self.irange[0] or i > self.irange[1]:
+	    print "i = %d is out-of-range"
+	    sys.exit()
+	if j < self.jrange[0] or j > self.jrange[1]:
+	    print "j = %d is out-of-range"
+	    sys.exit()
+	if k < self.krange[0] or k > self.krange[1]:
+	    print "k = %d is out-of-range"
+	    sys.exit()
+	# search for this data point
+	for ihfd in self.vtx:
+	    if ihfd.i == i and ihfd.j == j and ihfd.k == k:
+		return ihfd
+	
+	print "search failed!"
+	sys.exit()
+  
+def read_all_vertex_velocity_data(rootName, nblock, tindx, zipFiles=0):
+    """
+    Returns all heat-flux data for a single flow solution.
+    """
+    velocity = []
+    for jb in range(nblock):
+	velocity.append([])
+	for js in range(6):
+	    fileName = rootName+".vel"+(".b%04d.s%04d.t%04d" % (jb, js, tindx))
+	    fileName = os.path.join("vel", "t%04d" % ( tindx ), fileName)
+	    # test if this file exists (required due to disparate 2D/3D boundaries)
+	    if os.path.isfile(fileName) == False \
+	    	and os.path.isfile(fileName+".gz") == False: 
+		# print "file %s does not exist" % ( fileName )
+		break
+	    print "Read vertex velocity data from", fileName
+	    velocity[-1].append(BoundaryVertexVelocityData())
+	    if zipFiles: 
+                fp = GzipFile(fileName+".gz", "rb")
+            else:
+                fp = open(fileName, "r")
+            velocity[jb][-1].read(fp)
+            fp.close()
+    return velocity
+
+def write_vertex_velocity_profile(outputFileName, vertex_velocity_list_str, tindx, nblock, vtxv_data ):
+    """
+    Extracts and writes to file a profile of vertex velocity data from a collection
+    of surface/boundary slices.
+    """
+    fp = open(outputFileName, "w")
+    # write header
+    fp.write("# Filename: %s\n" % outputFileName)
+    fp.write("# Column 1: Distance along surface\n")
+    fp.write("# Column 2: Vertex velocity, x-direction (m/s)\n")
+    fp.write("# Column 3: Vertex velocity, y-direction (m/s)\n")
+    fp.write("# Column 4: Vertex velocity, z-direction (m/s)\n")
+    fp.write("# Column 5: Vertex velocity, magnitude (m/s)\n")    
+    vertex_velocity_lists = vertex_velocity_list_str.split(';')
+    print "vertex_velocity_lists = ", vertex_velocity_lists
+    first = True
+    L = 0.0
+    for vertex_velocity_str in vertex_velocity_lists:
+	bstr,sstr,istr,jstr,kstr = vertex_velocity_str.split(',')
+	bfirst,blast = decode_range_from_string(bstr, 0, nblock-1)
+
+	for jb in range(bfirst,blast+1):
+	    sfirst,slast = decode_range_from_string(sstr, 0, len(vtxv_data[jb])-1)
+	    for js in range(sfirst,slast+1):
+		kfirst,klast = decode_range_from_string(kstr, vtxv_data[jb][js].krange[0], 
+		    					vtxv_data[jb][js].krange[1])
+		jfirst,jlast = decode_range_from_string(jstr, vtxv_data[jb][js].jrange[0], 
+		    					vtxv_data[jb][js].jrange[1])
+		ifirst,ilast = decode_range_from_string(istr, vtxv_data[jb][js].irange[0], 
+		    					vtxv_data[jb][js].irange[1])
+		print ("slice jb=%d js=%d i=%d:%d, j=%d:%d, k=%d:%d" %
+                   (jb,js,ifirst,ilast,jfirst,jlast,kfirst,klast))
+		for k in range(kfirst,klast+1):
+		    for j in range(jfirst,jlast+1):
+			for i in range(ifirst,ilast+1):
+			    vtx_data = vtxv_data[jb][js].get_vtx(i,j,k)
+			    pos = Vector3(vtx_data.x,vtx_data.y,vtx_data.z)
+			    if first:
+				pos_prev = Vector3(vtx_data.x,vtx_data.y,
+				    			vtx_data.z)
+				first = False
+			    L += vabs(pos-pos_prev)
+			    pos_prev = pos
+			    fp.write("%e %e %e %e %e %e %e %e \n" % ( L, vtx_data.x, 
+						vtx_data.y,
+						vtx_data.z,
+						vtx_data.vx,
+						vtx_data.vy,
+						vtx_data.vz,
+						vtx_data.v ) )
+    
+    return 0
+    
 def flatten(L):
     """
     Flatten a list of items, which may or may not be lists.
@@ -859,6 +1029,17 @@ if __name__ == '__main__':
             heat_flux_list_str = uoDict.get("--heat-flux-list", "")
             if len(heat_flux_list_str) > 0:
 		write_heat_flux_profile(outputFileName, heat_flux_list_str, tindx, nblock, hf_data )
+            else:
+                print "No heat flux profile written."
+        #
+        if uoDict.has_key("--vertex-velocity-list"):
+            print "Extract vertex velocities for t=", times_dict[tindx], "and write as text files."
+            outputFileName = uoDict.get("--output-file", "vtxv_profile.data")
+            print "    outputFileName=", outputFileName
+            vtxv_data = read_all_vertex_velocity_data(rootName, nblock, tindx, zipFiles)
+            vertex_velocity_list_str = uoDict.get("--vertex-velocity-list", "")
+            if len(vertex_velocity_list_str) > 0:
+		write_vertex_velocity_profile(outputFileName, vertex_velocity_list_str, tindx, nblock, vtxv_data )
             else:
                 print "No heat flux profile written."
         #

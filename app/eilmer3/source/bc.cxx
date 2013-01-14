@@ -811,6 +811,66 @@ read_surface_heat_flux( string filename, int dimensions, int zip_files )
 #   undef NCHAR
 }
 
+int BoundaryCondition::write_vertex_velocities( std::string filename, double sim_time, int dimensions )
+{
+    int i, j, k, irangemax, jrangemax, krangemax;
+    FV_Vertex *vtx;
+    
+    FILE *fp;
+#   if VERBOSE_BCS
+    if ( bdp.id == 0 && which_boundary == 0 ) {
+	printf( "write_vertex_velocities(): At t = %e, start block = %d, boundary = %d.\n",
+	    sim_time, bdp.id, which_boundary );
+    }
+#   endif
+    if ((fp = fopen(filename.c_str(), "w")) == NULL) {
+	cerr << "write_solution(): Could not open " << filename << "; BAILING OUT" << endl;
+	exit( FILE_ERROR );
+    }
+    fprintf(fp, "%20.12e\n", sim_time);
+    string var_list = "";
+    var_list += "\"index.i\" \"index.j\" \"index.k\" ";
+    var_list += "\"pos.x\" \"pos.y\" \"pos.z\" ";
+    var_list += "\"vel.x\" \"vel.y\" \"vel.z\" ";
+    fprintf(fp, "%s\n", var_list.c_str());
+    
+    // 2. Write dimensions of surface data to file
+    if ( ( which_boundary == NORTH ) || ( which_boundary == SOUTH ) ) {
+	fprintf(fp, "%d %d %d\n", (imax+1-imin+1), (jmax-jmin+1), (kmax-kmin+1));
+	irangemax = imax+1;
+	jrangemax = jmax;
+	krangemax = kmax+1;
+    } else if ( ( which_boundary == EAST ) || ( which_boundary == WEST ) ) {
+	fprintf(fp, "%d %d %d\n", (imax-imin+1), (jmax+1-jmin+1), (kmax-kmin+1));
+	irangemax = imax;
+	jrangemax = jmax+1;
+	krangemax = kmax+1;
+    } else if ( ( which_boundary == TOP ) || ( which_boundary == BOTTOM ) ) {
+	fprintf(fp, "%d %d %d\n", (imax-imin+1), (jmax-jmin+1), (kmax+1-kmin+1));
+	irangemax = imax+1;
+	jrangemax = jmax+1;
+	krangemax = kmax;
+    }
+// 3. Loop over all vertices
+    if ( dimensions == 2 ) {
+    	krangemax = kmax;
+    }
+    for ( k=kmin; k<=krangemax; ++k ) {
+	for ( j=jmin; j<=jrangemax; ++j ) {
+	    for ( i=imin; i<=irangemax; ++i ) {
+		vtx = bdp.get_vtx(i,j,k);
+		fprintf(fp, "%d %d %d ", i, j, k);
+		fprintf(fp, "%20.12e %20.12e %20.12e ", 
+			vtx->pos.x, vtx->pos.y, vtx->pos.z);
+		fprintf(fp, "%20.12e %20.12e %20.12e ", 
+			vtx->vel.x, vtx->vel.y, vtx->vel.z);
+	    } // end i loop
+	} // end j loop
+    } // end k loop
+    fclose(fp);
+    return SUCCESS;
+}
+
 //------------------------------------------------------------------------
 
 BoundaryCondition *create_BC( Block &bdp, int which_boundary, int type_of_BC, 

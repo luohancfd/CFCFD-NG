@@ -239,8 +239,8 @@ public:
     int decode_conserved(double omegaz=0.0);
     int decode_conserved(int time_level, double omegaz=0.0);
     int check_flow_data(void);
-    int set_geometry_to_time_level( void );
-    int set_geometry_from_time_level( int time_level );
+    int init_time_level_geometry( void );
+    int get_current_time_level_geometry( int time_level );
     int time_derivatives(int time_level, int dimensions);
     int predictor_update(double dt);
     int corrector_update(double dt);
@@ -275,11 +275,11 @@ int one_d_interp(FV_Cell &cL1, FV_Cell &cL0,
 		 double cR0Length, double cR1Length, 
 		 FlowState &Lft, FlowState &Rght);
 
-int wone_d_interp(FV_Cell &cL1, FV_Cell &cL0, 
-		 FV_Cell &cR0, FV_Cell &cR1, 
-		 double cL1Length, double cL0Length, 
-		  double cR0Length, double cR1Length, 
-		 FlowState &Lft, FlowState &Rght);
+int mach_weighted_one_d_interp(FV_Cell &cL1, FV_Cell &cL0, 
+			       FV_Cell &cR0, FV_Cell &cR1, 
+			       double cL1Length, double cL0Length, 
+			       double cR0Length, double cR1Length, 
+			       FlowState &Lft, FlowState &Rght);
 
 int onesided_interp(FV_Cell &cL0, FV_Cell &cR0, FV_Cell &cR1,
 		    double cL0Length, double cR0Length, double cR1Length,

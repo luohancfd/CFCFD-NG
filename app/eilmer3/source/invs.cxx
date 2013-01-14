@@ -59,24 +59,23 @@ int Block::inviscid_flux(int dimensions)
 		cR0 = get_cell(i,j,k);
 		cR1 = get_cell(i+1,j,k);
 		// Interpolate LEFT and RIGHT interface states from the cell-center properties.
-		if ( (i == imin && (bcp[WEST]->type_code == 21) ) ||
-		     (i == imax+1 && (bcp[EAST]->type_code == 21) ) ) {
-		    // Retain the inflow defined flux at the boundary
-		    // by doing nothing here.
+		if ( ( i == imin && (bcp[WEST]->type_code == SHOCK_FITTING_IN ) ) ||
+		     ( i == imax+1 && (bcp[EAST]->type_code == SHOCK_FITTING_IN ) ) ) {
+                    // We're shock-fitting and we're on the shock boundary.
+		    // Retain the inflow defined flux at the boundary by doing nothing here.
 		} else {
-		    if ( get_shock_fitting_flag() == 1 ) {
-			wone_d_interp(*cL1, *cL0, *cR0, *cR1,
+		    // Either we're not shock fitting or we're not on the shock boundary.
+		    if ( get_adaptive_reconstruction_flag() == 1 ) {
+			mach_weighted_one_d_interp(*cL1, *cL0, *cR0, *cR1,
 				      cL1->iLength, cL0->iLength, cR0->iLength, cR1->iLength, Lft, Rght);
 		    } else {
 			one_d_interp(*cL1, *cL0, *cR0, *cR1,
 				     cL1->iLength, cL0->iLength, cR0->iLength, cR1->iLength, Lft, Rght);
 		    }
 		    // Overwrite previous interpolation across the shock.
-		    if ( ( i == imin+1 ) && (bcp[WEST]->type_code == 21) ) {
-        		one_d_linear_interp(*cL0, *cR0,
-					    cL0->iLength, cR0->iLength,
-					    Lft);
-		    } // end if
+		    if ( ( i == imin+1 ) && ( bcp[WEST]->type_code == SHOCK_FITTING_IN ) ) {
+        		one_d_linear_interp(*cL0, *cR0, cL0->iLength, cR0->iLength, Lft);
+		    }
 		    // Save u, v, w, T for the viscous flux calculation by making a local average.
 		    // The values for u, v and T may be updated subsequently by the interface-flux function.
 		    IFace->fs->average_values_from(Lft, Rght, get_diffusion_flag()==1);
@@ -97,7 +96,8 @@ int Block::inviscid_flux(int dimensions)
 		    cout << "pos = " << IFace->pos.str() << endl;
 		    cout << "total mass flux = " << IFace->F->mass << endl;
 		    for ( size_t isp=0; isp<IFace->F->massf.size(); ++isp ) {
-		    	cout << "species[" << isp << "] mass flux = " << IFace->F->mass * IFace->F->massf[isp] << endl;
+		    	cout << "species[" << isp << "] mass flux = " 
+			     << IFace->F->mass * IFace->F->massf[isp] << endl;
 		    }
 		}
 #               endif
@@ -115,9 +115,9 @@ int Block::inviscid_flux(int dimensions)
 		cR0 = get_cell(i,j,k);
 		cR1 = get_cell(i,j+1,k);
 		// Interpolate LEFT and RIGHT interface states from the cell-center properties.
-		if ( get_shock_fitting_flag() == 1 ) {
+		if ( get_adaptive_reconstruction_flag() == 1 ) {
 		    // Use Mach number weighted 
-	            wone_d_interp(*cL1, *cL0, *cR0, *cR1, 
+	            mach_weighted_one_d_interp(*cL1, *cL0, *cR0, *cR1, 
 	                          cL1->jLength, cL0->jLength, cR0->jLength, cR1->jLength, 
 	                          Lft, Rght);
 	        } else {
@@ -152,8 +152,8 @@ int Block::inviscid_flux(int dimensions)
 		cR0 = get_cell(i,j,k);
 		cR1 = get_cell(i,j,k+1);
 		// Interpolate LEFT and RIGHT interface states from the cell-center properties.
-		if ( get_shock_fitting_flag() == 1 ) {
-		    wone_d_interp(*cL1, *cL0, *cR0, *cR1, 
+		if ( get_adaptive_reconstruction_flag() == 1 ) {
+		    mach_weighted_one_d_interp(*cL1, *cL0, *cR0, *cR1, 
 				  cL1->kLength, cL0->kLength, cR0->kLength, cR1->kLength, 
 				  Lft, Rght);
 		} else {

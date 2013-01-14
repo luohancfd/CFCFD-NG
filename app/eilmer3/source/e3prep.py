@@ -314,6 +314,9 @@ class GlobalData(object):
     * shock_fitting_decay_flag: (0/1) Set to 1 to cause the shock fitting speed factor to decay
       exponentially from the given value to 0 over the length of the simulation.
       Set to 0 (the default) for no decay.
+    * adaptive_reconstruction_flag: (0/1) Set to 1 to cause the reconstruction stencil to adapt to Mach
+      so that downwind information is not used in supersonic regions.
+      Set to 0 (the default) for no adaptation.
     * dt_shock: (float) Period (in seconds) between running the shock adaptation algorithm.
     * dt_plot: (float) Period between writing all of the flow field data to the
       solution file.
@@ -342,6 +345,7 @@ class GlobalData(object):
                 'x_order', 'flux_calc', 'compression_tolerance', 'shear_tolerance', \
                 't_order', 'stringent_cfl', 'shock_fitting_flag', 'dt_shock', \
                 'shock_fitting_decay_flag', 'shock_fitting_speed_factor', \
+                'adaptive_reconstruction_flag', \
                 't0', 'dt', 'cfl', 'dt_chem', 'dt_therm', \
                 'interpolation_type', 'sequence_blocks', \
                 'print_count', 'cfl_count', 'max_invalid_cells', 'dt_reduction_factor', \
@@ -426,6 +430,7 @@ class GlobalData(object):
         self.shock_fitting_flag = 0
         self.shock_fitting_decay_flag = 0
         self.shock_fitting_speed_factor = 0.25
+        self.adaptive_reconstruction_flag = 0
         self.dt_shock = 0.0
         self.dt_plot = 1.0e-3
         self.dt_history = 1.0e-3
@@ -489,6 +494,7 @@ class GlobalData(object):
         fp.write("shock_fitting_flag = %d\n"% self.shock_fitting_flag)
         fp.write("shock_fitting_decay_flag = %d\n"% self.shock_fitting_decay_flag)
         fp.write("shock_fitting_speed_factor = %e\n"% self.shock_fitting_speed_factor)
+        fp.write("adaptive_reconstruction = %d\n"% self.adaptive_reconstruction_flag)
         fp.write("max_mu_t_factor = %e\n"% self.max_mu_t_factor)
         fp.write("transient_mu_t_factor = %e\n"% self.transient_mu_t_factor)
         fp.write("diffusion_flag = %d\n" % self.diffusion_flag)

@@ -252,6 +252,8 @@ int read_config_parameters(const string filename, int master)
     dict.parse_int("global_data", "shock_fitting_decay_flag", i_value, 0);
     set_shock_fitting_decay_flag( i_value );
     dict.parse_double("global_data", "shock_fitting_speed_factor", G.shock_fitting_speed_factor, 0.25);
+    dict.parse_int("global_data", "adaptive_reconstruction_flag", i_value, 0);
+    set_adaptive_reconstruction_flag( i_value );
     dict.parse_int("global_data", "turbulence_flag", i_value, 0);
     set_turbulence_flag( i_value );
     // By default, turn off all turbulence models.
@@ -287,6 +289,7 @@ int read_config_parameters(const string filename, int master)
 	cout << "shock_fitting_flag = " << get_shock_fitting_flag() << endl;
 	cout << "shock_fitting_decay_flag = " << get_shock_fitting_decay_flag() << endl;
 	cout << "shock_fitting_speed_factor = " << G.shock_fitting_speed_factor << endl;
+	cout << "adaptive_reconstruction_flag = " << get_adaptive_reconstruction_flag() << endl;
 	cout << "axisymmetric_flag = " << get_axisymmetric_flag() << endl;
 	cout << "turbulence_flag = " << get_turbulence_flag() << endl;
 	cout << "k_omega_flag = " << get_k_omega_flag() << endl;

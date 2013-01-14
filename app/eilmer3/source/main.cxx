@@ -478,7 +478,7 @@ int prepare_to_integrate( int start_tindx )
 	bdp->set_base_qdot( G );  // this need be done only once per block
 	bdp->identify_reaction_zones( G );
 	bdp->identify_turbulent_zones( G );
-	bdp->apply( &FV_Cell::set_geometry_to_time_level, "set-geometry2D-level-0");
+	bdp->apply( &FV_Cell::init_time_level_geometry, "init_time_level_geometry");
 	bdp->apply( &FV_Cell::encode_conserved, bdp->omegaz, "encode_conserved" );
 	// Even though the following call appears redundant at this point,
 	// fills in some gas properties such as Prandtl number that is
@@ -1130,7 +1130,7 @@ int integrate_in_time( double target_time )
 	}
 #       endif
 
-	// 2b. Recalculate all geometry if shock fitting.
+	// 2b. Recalculate all geometry if moving grid.
 	if ( get_shock_fitting_flag() == 1 ) {
 	    if ( G.sim_time >= G.t_shock ) {
 		for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
@@ -1138,7 +1138,7 @@ int integrate_in_time( double target_time )
 		    bdp->compute_primary_cell_geometric_data(G.dimensions);
 		    bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions);
 		    bdp->compute_secondary_cell_geometric_data(G.dimensions);
-		    bdp->apply( &FV_Cell::set_geometry_to_time_level, "set-geometry2D-level-0");
+		    bdp->apply( &FV_Cell::init_time_level_geometry, "init_time_level_geometry");
 		    
 		    G.t_shock += G.dt_shock;
 		}
@@ -1254,7 +1254,7 @@ int integrate_in_time( double target_time )
 		filename = foldername+"/"+ G.base_file_name+".flow"+jbstring+"."+tindxstring;
 		bdp->write_solution(filename, G.sim_time, G.dimensions, zip_files);
 	    }
-	    if ( get_shock_fitting_flag() == 1 ) {
+	    if ( get_shock_fitting_flag() ) {
 	        foldername = "grid/"+tindxstring;
 	        ensure_directory_is_present(foldername); // includes Barrier
 	        for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
@@ -1263,6 +1263,25 @@ int integrate_in_time( double target_time )
 		        filename = foldername+"/"+ G.base_file_name+".grid"+jbstring+"."+tindxstring;
 		        bdp->write_block(filename, G.sim_time, G.dimensions, zip_files);
 	        }
+	    }
+	    if ( get_shock_fitting_flag() ) {
+		ensure_directory_is_present("vel");
+		foldername = "vel/"+tindxstring;
+		ensure_directory_is_present(foldername); // includes Barrier
+		// Loop over blocks
+		for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		    bdp = G.my_blocks[jb];
+		    sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr;
+		    final_s = ((G.dimensions == 3)? BOTTOM : WEST);
+		    // Loop over boundaries/surfaces
+		    for ( js = NORTH; js <= final_s; ++js ) {
+			sprintf( jscstr, ".s%04d", js ); jsstring = jscstr;
+			filename = foldername+"/"+ G.base_file_name+".vel" \
+			                +jbstring+jsstring+"."+tindxstring;
+			bdp->bcp[js]->write_vertex_velocities(filename, G.sim_time, G.dimensions);
+			if ( zip_files == 1 ) do_system_cmd("gzip -f "+filename);
+		    }
+		}
 	    }
 	    // Compute, store and write heat-flux data, if viscous simulation
 	    if ( get_viscous_flag() ) {
@@ -1665,25 +1684,25 @@ int gasdynamic_inviscid_increment( void )
 	/// 1: End of predictor step/start of corrector step
 	/// 2: End of corrector step
 	if ( get_shock_fitting_flag() == 1 ) {
-#       ifdef _MPI
+#           ifdef _MPI
 	    mpi_exchange_boundary_data(COPY_CELL_LENGTHS);
-#       else
+#           else
 	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	        bdp = G.my_blocks[jb];
 	        if ( bdp->active != 1 ) continue;
 	        exchange_shared_boundary_data( jb, COPY_CELL_LENGTHS );
 	    }
-#       endif
+#           endif
 	    if ( G.sim_time >= G.t_shock ) {
 		for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		    bdp = G.my_blocks[jb];
 		    bdp->set_vertex_velocities(0);
 		    bdp->set_interface_velocities(0);
 		    bdp->predict_vertex_positions(G.dt_global);
-		    bdp->calc_volumes_2D(1);
+		    bdp->calc_volumes_2D(1); // for start of next time level.
 		}
 	    }
-	}
+	} // end if shock_fitting_flag
 	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
 	    if ( bdp->active != 1 ) continue;
@@ -1695,7 +1714,7 @@ int gasdynamic_inviscid_increment( void )
 	    bdp->apply( &FV_Cell::time_derivatives, 0, G.dimensions, "time-derivatives-level-0" );
 	    bdp->apply( &FV_Cell::predictor_update, G.dt_global, "predictor-step" );
 	    bdp->apply( &FV_Cell::decode_conserved, 0, bdp->omegaz, "decode-conserved" );
-	    bdp->apply( &FV_Cell::set_geometry_from_time_level, 1, "reset-geometry2D-level-1");
+	    bdp->apply( &FV_Cell::get_current_time_level_geometry, 1, "get_current_time_level_geometry-1");
 #           define WILSON_OMEGA_FILTER 0
 #           if WILSON_OMEGA_FILTER == 1
             if ( get_k_omega_flag() ) apply_wilson_omega_correction( *bdp );
@@ -1761,15 +1780,15 @@ int gasdynamic_inviscid_increment( void )
 	    }
 		
         if ( get_shock_fitting_flag() == 1 ) {
-#       ifdef _MPI
+#           ifdef _MPI
 	    mpi_exchange_boundary_data(COPY_CELL_LENGTHS);
-#       else
+#           else
 	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	        bdp = G.my_blocks[jb];
 	        if ( bdp->active != 1 ) continue;
 	        exchange_shared_boundary_data( jb, COPY_CELL_LENGTHS );
 	    }
-#       endif
+#           endif
 	    if ( G.sim_time >= G.t_shock ) {
                 for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
                     bdp = G.my_blocks[jb];
@@ -1777,10 +1796,10 @@ int gasdynamic_inviscid_increment( void )
                     bdp->set_vertex_velocities(1);
 		    bdp->set_interface_velocities(1);
                     bdp->correct_vertex_positions(G.dt_global);
-                    bdp->calc_volumes_2D(2);
+                    bdp->calc_volumes_2D(2); // for start of next time level.
 		}
 	    }
-        }
+        } // end if shock_fitting_flag
 	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
 	    if ( bdp->active != 1 ) continue;
@@ -1792,7 +1811,7 @@ int gasdynamic_inviscid_increment( void )
 	    bdp->apply( &FV_Cell::time_derivatives, 1, G.dimensions, "time_derivatives-level-1" );
 	    bdp->apply( &FV_Cell::corrector_update, G.dt_global, "corrector-step" );
 	    bdp->apply( &FV_Cell::decode_conserved, 1, bdp->omegaz, "decode-conserved" );
-	    bdp->apply( &FV_Cell::set_geometry_from_time_level, 2, "reset-geometry2D-level-2");
+	    bdp->apply( &FV_Cell::get_current_time_level_geometry, 2, "get_current_time_level_geometry-2");
 #               if WILSON_OMEGA_FILTER == 1
 	    if ( get_k_omega_flag() ) apply_wilson_omega_correction( *bdp );
 #               endif

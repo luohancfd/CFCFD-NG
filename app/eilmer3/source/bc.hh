@@ -104,6 +104,7 @@ public:
     // a true value indicates that we want the UDF flux 
     // instead of the internally calculated flux
     void print_info( std::string lead_in );
+    int write_vertex_velocities( std::string filename, double sim_time, int dimensions );
     // Heat-flux functions
     int compute_surface_heat_flux( void );
     int compute_cell_interface_surface_heat_flux( FV_Interface * IFace, 

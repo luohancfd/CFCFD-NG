@@ -1168,23 +1168,20 @@ int FV_Cell::check_flow_data(void)
     return data_valid;
 } // end of check_flow_data()
 
-int FV_Cell::set_geometry_to_time_level( void )
+int FV_Cell::init_time_level_geometry( void )
+// Initialize or reinitialize the time-level values 
+// with the recently calculated cell geometry data.
 {
     for ( size_t j = 0; j < NL; ++j ) {
 	ar[j] = area;
 	vol[j] = volume;
 	position[j] = pos;
+	// 2D will have a few NULL pointers compared with 3D.
 	for ( int i = 0; i < NI; ++i ) {
-	    if ( iface[i] == 0 ) { // When copying from ghost cell which may
-		continue;          // not have initialised interfaces
-	    }	    
-	    iface[i]->ar[j] = iface[i]->area;
+	    if ( iface[i] != NULL ) iface[i]->ar[j] = iface[i]->area;
 	}
 	for ( int i = 0; i < NV; ++i ) {
-	    if ( vtx[i] == 0 ) { // When copying from ghost cell which may
-		continue;        // not have initialised vertices.
-	    }
-	    vtx[i]->position[j] = vtx[i]->pos;
+	    if ( vtx[i] != NULL ) vtx[i]->position[j] = vtx[i]->pos;
 	}
     }
     return SUCCESS;
@@ -1192,22 +1189,17 @@ int FV_Cell::set_geometry_to_time_level( void )
 
 /// \brief Set the cell geometry to the values calculated at the specified time level.
 ///
-int FV_Cell::set_geometry_from_time_level(int time_level)
+int FV_Cell::get_current_time_level_geometry(int time_level)
 {
     area = ar[time_level];
     volume = vol[time_level];
     pos = position[time_level];
+    // 2D will have a few NULL pointers compared with 3D.
     for ( int i = 0; i < NI; ++i ) {
-	if ( iface[i] == 0 ) { // When copying from ghost cell which may
-	    continue;          // not have initialised interfaces
-	}	    
-	iface[i]->area = iface[i]->ar[time_level];
+	if ( iface[i] != NULL ) iface[i]->area = iface[i]->ar[time_level];
     }
     for ( int i = 0; i < NV; ++i ) {
-	if ( vtx[i] == 0 ) { // When copying from ghost cell which may
-	    continue;        // not have initialised vertices.
-	}
-	vtx[i]->pos = vtx[i]->position[time_level];
+	if ( vtx[i] != NULL ) vtx[i]->pos = vtx[i]->position[time_level];
     }
     return SUCCESS;
 }
@@ -1418,6 +1410,8 @@ int FV_Cell::predictor_update(double dt)
 
 /// \brief Apply the corrector-stage of the update for a specified cell.
 /// \param dt   : size of the time-step
+///
+///
 int FV_Cell::corrector_update(double dt)
 {
     ConservedQuantities &dUdt0 = *(dUdt[0]);
@@ -1433,10 +1427,12 @@ int FV_Cell::corrector_update(double dt)
      * th = 1.0 : sort-of-implicit?
      */
     if ( get_shock_fitting_flag() == 1 ) {
-        v0 = vol[0]; // The volume at different 
+        v0 = vol[0];
 	v1 = vol[1];
 	vol_inv = 1.0 / vol[2];
     }
+    // The volumes are incorporated into the RK coefficients only for
+    // convenience.
     if (get_Torder_flag() == 3) {
 	/* 3rd order Runge-Kutta */
 	th = v1 * 5.0 / 12.0;
@@ -2541,15 +2537,15 @@ int one_d_interp(FV_Cell &cL1, FV_Cell &cL0,
     return SUCCESS;
 } // end of one_d_interp()
 
-/// \brief Reconstruct upstream weighted flow properties at an interface from FV_Cell properties.
+/// \brief Reconstruct upstream Mach number weighted flow properties at an interface from FV_Cell properties.
 ///
 /// This is essentially a one-dimensional interpolation process.  It needs only
 /// the cell-average data and the lengths of the cells in the interpolation direction.
-int wone_d_interp(FV_Cell &cL1, FV_Cell &cL0,
-				 FV_Cell &cR0, FV_Cell &cR1,
-				 double cL1Length, double cL0Length,
-				 double cR0Length, double cR1Length,
-				 FlowState &Lft, FlowState &Rght )
+int mach_weighted_one_d_interp(FV_Cell &cL1, FV_Cell &cL0,
+			       FV_Cell &cR0, FV_Cell &cR1,
+			       double cL1Length, double cL0Length,
+			       double cR0Length, double cR1Length,
+			       FlowState &Lft, FlowState &Rght )
 {
     Gas_model *gmodel = get_gas_model_ptr();
     Gas_data &gL1 = *(cL1.fs->gas);
@@ -2560,131 +2556,132 @@ int wone_d_interp(FV_Cell &cL1, FV_Cell &cL0,
     int nsp = gmodel->get_number_of_species();
     int apply_limiter_flag = get_apply_limiter_flag();
     int extrema_clipping_flag = get_extrema_clipping_flag();
-    
-	double ML = dot(cL0.fs->vel, unit(cR0.pos - cL0.pos)) / cL0.fs->gas->a;
-	double MR = dot(cR0.fs->vel, unit(cL0.pos - cR0.pos)) / cR0.fs->gas->a;
-	double kL;
-	double kR;
-	if ( ML > 1.0 ) {
-	    kL = -1.0;
-	} else {
-		kL = -max(0.0, ML);
-	}
-	if ( MR > 1.0 ) {
-	    kR = -1.0;
-	} else {
-	    kR = -max(0.0, MR);
-	}
-	// Low-order reconstruction just copies data from adjacent FV_Cell.
-	Lft.copy_values_from(*(cL0.fs));
-	Rght.copy_values_from(*(cR0.fs));
-	if ( get_Xorder_flag() > 1 ) {
-	// High-order reconstruction for some properties.
-	    wone_d_interp_scalar(cL1.fs->vel.x, cL0.fs->vel.x, cR0.fs->vel.x, cR1.fs->vel.x,
-				 cL1Length, cL0Length, cR0Length, cR1Length,
-				 Lft.vel.x, Rght.vel.x, kL, kR, apply_limiter_flag, extrema_clipping_flag);
-	    wone_d_interp_scalar(cL1.fs->vel.y, cL0.fs->vel.y, cR0.fs->vel.y, cR1.fs->vel.y,
-				 cL1Length, cL0Length, cR0Length, cR1Length,
-				 Lft.vel.y, Rght.vel.y, kL, kR, apply_limiter_flag, extrema_clipping_flag);
-	    wone_d_interp_scalar(cL1.fs->vel.z, cL0.fs->vel.z, cR0.fs->vel.z, cR1.fs->vel.z,
-				 cL1Length, cL0Length, cR0Length, cR1Length,
-				 Lft.vel.z, Rght.vel.z, kL, kR, apply_limiter_flag, extrema_clipping_flag);
-	    if ( get_mhd_flag() == 1 ) {
-		wone_d_interp_scalar(cL1.fs->B.x, cL0.fs->B.x, cR0.fs->B.x, cR1.fs->B.x,
-				     cL1Length, cL0Length, cR0Length, cR1Length,
-				     Lft.B.x, Rght.B.x, kL, kR, apply_limiter_flag, extrema_clipping_flag);
-		wone_d_interp_scalar(cL1.fs->B.y, cL0.fs->B.y, cR0.fs->B.y, cR1.fs->B.y,
-				     cL1Length, cL0Length, cR0Length, cR1Length,
-				     Lft.B.y, Rght.B.y, kL, kR, apply_limiter_flag, extrema_clipping_flag);
-		wone_d_interp_scalar(cL1.fs->B.z, cL0.fs->B.z, cR0.fs->B.z, cR1.fs->B.z,
-				     cL1Length, cL0Length, cR0Length, cR1Length,
-				     Lft.B.z, Rght.B.z, kL, kR, apply_limiter_flag, extrema_clipping_flag);
-	    }
-	    if ( get_k_omega_flag() == 1 ) {
-		wone_d_interp_scalar(cL1.fs->tke, cL0.fs->tke, cR0.fs->tke, cR1.fs->tke,
-				     cL1Length, cL0Length, cR0Length, cR1Length,
-				     Lft.tke, Rght.tke, kL, kR, apply_limiter_flag, extrema_clipping_flag);
-		wone_d_interp_scalar(cL1.fs->omega, cL0.fs->omega, cR0.fs->omega, cR1.fs->omega,
-				     cL1Length, cL0Length, cR0Length, cR1Length,
-				     Lft.omega, Rght.omega, kL, kR, apply_limiter_flag, extrema_clipping_flag);
-	    }
-	    for ( int isp = 0; isp < nsp; ++isp ) {
-		wone_d_interp_scalar(cL1.fs->gas->massf[isp], cL0.fs->gas->massf[isp],
-				     cR0.fs->gas->massf[isp], cR1.fs->gas->massf[isp],
-				     cL1Length, cL0Length, cR0Length, cR1Length,
-				     Lft.gas->massf[isp], Rght.gas->massf[isp],  kL, kR,
-				     apply_limiter_flag, extrema_clipping_flag);
-	    }
-	    
-	    // Make the thermodynamic properties consistent.
-	    // Pressure, Local Speed of Sound and Temperature.
-	    // The value of 1 indicates that the old temperature
-	    // should be used as an initial guess for the iterative
-	    // EOS functions.
-	    // If the EOS call fouls up, just copy the cell data, low-order.
-	    if ( nsp > 1 ) {
-		if ( scale_mass_fractions( Lft.gas->massf ) != 0 ) {
-		    for ( size_t isp=0; isp<Lft.gas->massf.size(); ++isp )
-			cL0.fs->gas->massf[isp] = Lft.gas->massf[isp];
-		}
-		if ( scale_mass_fractions( Rght.gas->massf ) != 0 ) {
-		    for ( size_t isp=0; isp<Rght.gas->massf.size(); ++isp )
-			cR0.fs->gas->massf[isp] = Rght.gas->massf[isp];
-		}
-	    }
-	    
-	    // Interpolate on two of the thermodynamic quantities, and fill
-	    // in the rest based on an EOS call.
-	    
-	    wone_d_interp_scalar(gL1.rho, gL0.rho, gR0.rho, gR1.rho,
-				 cL1Length, cL0Length, cR0Length, cR1Length,
-				 Lft.gas->rho, Rght.gas->rho,
-				 kL, kR,
-				 apply_limiter_flag, extrema_clipping_flag);
-	    for ( int i = 0; i < gmodel->get_number_of_modes(); ++i ) {
-		wone_d_interp_scalar(gL1.e[i], gL0.e[i], gR0.e[i], gR1.e[i],
-				     cL1Length, cL0Length, cR0Length, cR1Length,
-				     Lft.gas->e[i], Rght.gas->e[i],
-				     kL, kR,
-				     apply_limiter_flag, extrema_clipping_flag);
-	    }
-	    int status = gmodel->eval_thermo_state_rhoe(*(Lft.gas));
-	    status = gmodel->eval_thermo_state_rhoe(*(Rght.gas));
-	    if ( status != SUCCESS ) {
-		if ( status == 1 ) {
-		    // Lft state failed.
-		    Lft.copy_values_from(*(cL0.fs));
-		}
-		else if ( status == 2 ) {
-		    // Rght state failed.
-		    Rght.copy_values_from(*(cR0.fs));
-		}
-		else if ( status == 3 ) {
-		    // Both failed.
-		    Lft.copy_values_from(*(cL0.fs));
-		    Rght.copy_values_from(*(cR0.fs));
-		}
-		else {
-		    printf("one_d_interp(): Problem in flow state reconstruction.");
-		    printf("Failure status: %d is unknown.\n", status);
-		    printf("Bailing out!\n");
-		    exit(RECONSTRUCTION_ERROR);
-		}
-	    }
-	    
-	    if ( get_viscous_flag() ) {
-		gmodel->eval_transport_coefficients(*(Lft.gas));
-		gmodel->eval_transport_coefficients(*(Rght.gas));
-	    }
-	    if ( get_diffusion_flag() ) {
-		gmodel->eval_diffusion_coefficients(*(Lft.gas));
-		gmodel->eval_diffusion_coefficients(*(Rght.gas));
-	    }
-	} // end of high-order reconstruction
-	return SUCCESS;
-} // end of wone_d_interp()
 
-/// \brief Reconstruct flow properties at an interface from FV_Cell properties from one side.
+    // If flow is supersonic in the direction of the interface don't use any
+    // downstream information. Else, linearly velocity weight the upstream information.
+    double ML = dot(cL0.fs->vel, unit(cR0.pos - cL0.pos)) / cL0.fs->gas->a;
+    double MR = dot(cR0.fs->vel, unit(cL0.pos - cR0.pos)) / cR0.fs->gas->a;
+    double kL = min(1.0, max(0.0, ML));
+    double kR = min(1.0, max(0.0, MR));
+
+    // Low-order reconstruction just copies data from adjacent FV_Cell.
+    Lft.copy_values_from(*(cL0.fs));
+    Rght.copy_values_from(*(cR0.fs));
+    if ( get_Xorder_flag() > 1 ) {
+	// High-order reconstruction for some properties.
+	mach_weighted_one_d_interp_scalar(cL1.fs->vel.x, cL0.fs->vel.x, cR0.fs->vel.x, cR1.fs->vel.x,
+					  cL1Length, cL0Length, cR0Length, cR1Length,
+					  Lft.vel.x, Rght.vel.x, kL, kR, apply_limiter_flag,
+					  extrema_clipping_flag);
+	mach_weighted_one_d_interp_scalar(cL1.fs->vel.y, cL0.fs->vel.y, cR0.fs->vel.y, cR1.fs->vel.y,
+					  cL1Length, cL0Length, cR0Length, cR1Length,
+					  Lft.vel.y, Rght.vel.y, kL, kR, apply_limiter_flag,
+					  extrema_clipping_flag);
+	mach_weighted_one_d_interp_scalar(cL1.fs->vel.z, cL0.fs->vel.z, cR0.fs->vel.z, cR1.fs->vel.z,
+					  cL1Length, cL0Length, cR0Length, cR1Length,
+					  Lft.vel.z, Rght.vel.z, kL, kR, apply_limiter_flag, 
+					  extrema_clipping_flag);
+	if ( get_mhd_flag() == 1 ) {
+	    mach_weighted_one_d_interp_scalar(cL1.fs->B.x, cL0.fs->B.x, cR0.fs->B.x, cR1.fs->B.x,
+					      cL1Length, cL0Length, cR0Length, cR1Length,
+					      Lft.B.x, Rght.B.x, kL, kR, apply_limiter_flag, 
+					      extrema_clipping_flag);
+	    mach_weighted_one_d_interp_scalar(cL1.fs->B.y, cL0.fs->B.y, cR0.fs->B.y, cR1.fs->B.y,
+					      cL1Length, cL0Length, cR0Length, cR1Length,
+					      Lft.B.y, Rght.B.y, kL, kR, apply_limiter_flag,
+					      extrema_clipping_flag);
+	    mach_weighted_one_d_interp_scalar(cL1.fs->B.z, cL0.fs->B.z, cR0.fs->B.z, cR1.fs->B.z,
+					      cL1Length, cL0Length, cR0Length, cR1Length,
+					      Lft.B.z, Rght.B.z, kL, kR, apply_limiter_flag,
+					      extrema_clipping_flag);
+	}
+	if ( get_k_omega_flag() == 1 ) {
+	    mach_weighted_one_d_interp_scalar(cL1.fs->tke, cL0.fs->tke, cR0.fs->tke, cR1.fs->tke,
+					      cL1Length, cL0Length, cR0Length, cR1Length,
+					      Lft.tke, Rght.tke, kL, kR, apply_limiter_flag,
+					      extrema_clipping_flag);
+	    mach_weighted_one_d_interp_scalar(cL1.fs->omega, cL0.fs->omega, cR0.fs->omega, cR1.fs->omega,
+					      cL1Length, cL0Length, cR0Length, cR1Length,
+					      Lft.omega, Rght.omega, kL, kR, apply_limiter_flag, 
+					      extrema_clipping_flag);
+	}
+	for ( int isp = 0; isp < nsp; ++isp ) {
+	    mach_weighted_one_d_interp_scalar(cL1.fs->gas->massf[isp], cL0.fs->gas->massf[isp],
+					      cR0.fs->gas->massf[isp], cR1.fs->gas->massf[isp],
+					      cL1Length, cL0Length, cR0Length, cR1Length,
+					      Lft.gas->massf[isp], Rght.gas->massf[isp],  kL, kR,
+					      apply_limiter_flag, extrema_clipping_flag);
+	}
+	
+	// Make the thermodynamic properties consistent.
+	// Pressure, Local Speed of Sound and Temperature.
+	// The value of 1 indicates that the old temperature
+	// should be used as an initial guess for the iterative
+	// EOS functions.
+	// If the EOS call fouls up, just copy the cell data, low-order.
+	if ( nsp > 1 ) {
+	    if ( scale_mass_fractions( Lft.gas->massf ) != 0 ) {
+		for ( size_t isp=0; isp<Lft.gas->massf.size(); ++isp )
+		    cL0.fs->gas->massf[isp] = Lft.gas->massf[isp];
+	    }
+	    if ( scale_mass_fractions( Rght.gas->massf ) != 0 ) {
+		for ( size_t isp=0; isp<Rght.gas->massf.size(); ++isp )
+		    cR0.fs->gas->massf[isp] = Rght.gas->massf[isp];
+	    }
+	}
+	
+	// Interpolate on two of the thermodynamic quantities, and fill
+	// in the rest based on an EOS call.
+	
+	mach_weighted_one_d_interp_scalar(gL1.rho, gL0.rho, gR0.rho, gR1.rho,
+					  cL1Length, cL0Length, cR0Length, cR1Length,
+					  Lft.gas->rho, Rght.gas->rho,
+					  kL, kR,
+					  apply_limiter_flag, extrema_clipping_flag);
+	for ( int i = 0; i < gmodel->get_number_of_modes(); ++i ) {
+	    mach_weighted_one_d_interp_scalar(gL1.e[i], gL0.e[i], gR0.e[i], gR1.e[i],
+					      cL1Length, cL0Length, cR0Length, cR1Length,
+					      Lft.gas->e[i], Rght.gas->e[i],
+					      kL, kR,
+					      apply_limiter_flag, extrema_clipping_flag);
+	}
+	int status = gmodel->eval_thermo_state_rhoe(*(Lft.gas));
+	status = gmodel->eval_thermo_state_rhoe(*(Rght.gas));
+	if ( status != SUCCESS ) {
+	    if ( status == 1 ) {
+		// Lft state failed.
+		Lft.copy_values_from(*(cL0.fs));
+	    }
+	    else if ( status == 2 ) {
+		// Rght state failed.
+		Rght.copy_values_from(*(cR0.fs));
+	    }
+	    else if ( status == 3 ) {
+		// Both failed.
+		Lft.copy_values_from(*(cL0.fs));
+		Rght.copy_values_from(*(cR0.fs));
+	    }
+	    else {
+		printf("one_d_interp(): Problem in flow state reconstruction.");
+		printf("Failure status: %d is unknown.\n", status);
+		printf("Bailing out!\n");
+		exit(RECONSTRUCTION_ERROR);
+	    }
+	}
+	
+	if ( get_viscous_flag() ) {
+	    gmodel->eval_transport_coefficients(*(Lft.gas));
+	    gmodel->eval_transport_coefficients(*(Rght.gas));
+	}
+	if ( get_diffusion_flag() ) {
+	    gmodel->eval_diffusion_coefficients(*(Lft.gas));
+	    gmodel->eval_diffusion_coefficients(*(Rght.gas));
+	}
+    } // end of high-order reconstruction
+    return SUCCESS;
+} // end of mach_weighted_one_d_interp()
+
+/// \brief Reconstruct flow properties at an interface from FV_Cell properties from one side only.
 ///
 /// This is essentially a one-sided one-dimensional interpolation process.  It needs only
 /// the cell-average data and the lengths of the cells in the interpolation direction.

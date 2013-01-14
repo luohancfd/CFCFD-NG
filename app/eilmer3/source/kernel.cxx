@@ -190,6 +190,9 @@ int shock_fitting = 0;
 /// \brief Shock fitting decay =0 for no shock fitting decay, =1 for shock fitting decay
 int shock_fitting_decay = 0;
 
+/// \brief Adaptive reconstruction =0 for no adaptive reconstruction, =1 for adaptive reconstruction
+int adaptive_reconstruction = 0;
+
 /// \brief Axisymmetric flag =0 for 2D planar equations, =1 for 2D axisymmetric. 
 ///
 /// The flow is still 2-dimensional but may includes source terms from the
@@ -381,6 +384,29 @@ int set_shock_fitting_decay_flag(int iw)
 int get_shock_fitting_decay_flag(void)
 {
     return shock_fitting_decay;
+}
+
+/*------------------------------------------------------------------*/
+
+int set_adaptive_reconstruction_flag(int iw)
+{
+    adaptive_reconstruction = iw;
+    if (adaptive_reconstruction == 0) {
+        if ( get_verbose_flag() ) printf("Turn off adaptive reconstruction.\n");
+    }
+    else if (adaptive_reconstruction == 1) {
+        if ( get_verbose_flag() ) printf("Turn on adaptive reconstruction.\n");
+    }
+    else {
+        printf("Invalid adaptive reconstruction flag value: %d\n", adaptive_reconstruction);
+        exit(VALUE_ERROR);
+    }
+    return SUCCESS;
+}
+
+int get_adaptive_reconstruction_flag(void)
+{
+    return adaptive_reconstruction;
 }
 
 /*------------------------------------------------------------------*/
