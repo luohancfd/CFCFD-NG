@@ -521,7 +521,6 @@ class BoundaryHeatFluxData(object):
 	                               rho_cell=float(tks[11]),un_cell=float(tks[12]),Re_wall=Re_wall ) )
 	    # set ranges
 	    # lower
-            print self.iface[-1].i, self.iface[-1].j, self.iface[-1].k
 	    if self.iface[-1].i < self.irange[0]: self.irange[0] = self.iface[-1].i
 	    if self.iface[-1].j < self.jrange[0]: self.jrange[0] = self.iface[-1].j
 	    if self.iface[-1].k < self.krange[0]: self.krange[0] = self.iface[-1].k
@@ -684,7 +683,7 @@ class BoundaryVertexVelocityData(object):
 	
 	for line in range(dim):
 	    buf = fp.readline() # vertex velocity data
-	    if len(buf)==0: break
+	    #if len(buf)==0: break
 	    tks = buf.split()
 	    v = ( float(tks[6])**2 + float(tks[7])**2 + float(tks[8])**2 )**0.5
 	    self.vtx.append( VertexVelocityData(i=int(tks[0]),j=int(tks[1]),k=int(tks[2]),
@@ -694,7 +693,6 @@ class BoundaryVertexVelocityData(object):
                       
 	    # set ranges
 	    # lower
-            print self.vtx[-1].i, self.vtx[-1].j, self.vtx[-1].k
 	    if self.vtx[-1].i < self.irange[0]: self.irange[0] = self.vtx[-1].i
 	    if self.vtx[-1].j < self.jrange[0]: self.jrange[0] = self.vtx[-1].j
 	    if self.vtx[-1].k < self.krange[0]: self.krange[0] = self.vtx[-1].k
@@ -756,10 +754,14 @@ def write_vertex_velocity_profile(outputFileName, vertex_velocity_list_str, tind
     # write header
     fp.write("# Filename: %s\n" % outputFileName)
     fp.write("# Column 1: Distance along surface\n")
-    fp.write("# Column 2: Vertex velocity, x-direction (m/s)\n")
-    fp.write("# Column 3: Vertex velocity, y-direction (m/s)\n")
-    fp.write("# Column 4: Vertex velocity, z-direction (m/s)\n")
-    fp.write("# Column 5: Vertex velocity, magnitude (m/s)\n")    
+    fp.write("# Column 2: Vertex velocity, magnitude (m/s)\n")    
+    fp.write("# Column 3: Vertex velocity, x-direction (m/s)\n")
+    fp.write("# Column 4: Vertex velocity, y-direction (m/s)\n")
+    fp.write("# Column 5: Vertex velocity, z-direction (m/s)\n")
+    fp.write("# Column 6: Vertex position, x (m)\n")
+    fp.write("# Column 7: Vertex position, y (m)\n")
+    fp.write("# Column 8: Vertex position, z (m)\n")
+
     vertex_velocity_lists = vertex_velocity_list_str.split(';')
     print "vertex_velocity_lists = ", vertex_velocity_lists
     first = True
@@ -790,13 +792,14 @@ def write_vertex_velocity_profile(outputFileName, vertex_velocity_list_str, tind
 				first = False
 			    L += vabs(pos-pos_prev)
 			    pos_prev = pos
-			    fp.write("%e %e %e %e %e %e %e %e \n" % ( L, vtx_data.x, 
-						vtx_data.y,
-						vtx_data.z,
+			    fp.write("%e %e %e %e %e %e %e %e \n" % ( L,
+						vtx_data.v,
 						vtx_data.vx,
 						vtx_data.vy,
 						vtx_data.vz,
-						vtx_data.v ) )
+						vtx_data.x,
+						vtx_data.y,
+						vtx_data.z ) )
     
     return 0
     

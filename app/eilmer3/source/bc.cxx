@@ -862,7 +862,7 @@ int BoundaryCondition::write_vertex_velocities( std::string filename, double sim
 		fprintf(fp, "%d %d %d ", i, j, k);
 		fprintf(fp, "%20.12e %20.12e %20.12e ", 
 			vtx->pos.x, vtx->pos.y, vtx->pos.z);
-		fprintf(fp, "%20.12e %20.12e %20.12e ", 
+		fprintf(fp, "%20.12e %20.12e %20.12e \n", 
 			vtx->vel.x, vtx->vel.y, vtx->vel.z);
 	    } // end i loop
 	} // end j loop

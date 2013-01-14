@@ -403,6 +403,7 @@ int prepare_to_integrate( int start_tindx )
 	jbstring = jbcstr;
 	// Read grid from the tindx=0 files, always.
 	//filename = "grid/t0000/"+G.base_file_name+".grid"+jbstring+".t0000";
+	// Read grid from the specified tindx files.
 	filename = "grid/"+tindxstring+"/"+G.base_file_name+".grid"+jbstring+"."+tindxstring;
         if (bdp->read_grid(filename, G.dimensions, zip_files) != SUCCESS) {
 	    return FAILURE;
@@ -1258,13 +1259,11 @@ int integrate_in_time( double target_time )
 	        foldername = "grid/"+tindxstring;
 	        ensure_directory_is_present(foldername); // includes Barrier
 	        for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
-		        bdp = G.my_blocks[jb];
+		    bdp = G.my_blocks[jb];
 		        sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr; 
 		        filename = foldername+"/"+ G.base_file_name+".grid"+jbstring+"."+tindxstring;
 		        bdp->write_block(filename, G.sim_time, G.dimensions, zip_files);
-	        }
-	    }
-	    if ( get_moving_grid_flag() ) {
+	        }   
 		ensure_directory_is_present("vel");
 		foldername = "vel/"+tindxstring;
 		ensure_directory_is_present(foldername); // includes Barrier
@@ -1277,7 +1276,7 @@ int integrate_in_time( double target_time )
 		    for ( js = NORTH; js <= final_s; ++js ) {
 			sprintf( jscstr, ".s%04d", js ); jsstring = jscstr;
 			filename = foldername+"/"+ G.base_file_name+".vel" \
-			                +jbstring+jsstring+"."+tindxstring;
+			    +jbstring+jsstring+"."+tindxstring;
 			bdp->bcp[js]->write_vertex_velocities(filename, G.sim_time, G.dimensions);
 			if ( zip_files == 1 ) do_system_cmd("gzip -f "+filename);
 		    }
@@ -1491,6 +1490,22 @@ int finalize_simulation( void )
 	    filename = foldername+"/"+G.base_file_name+".grid"+jbstring+".t9999";
 	    bdp->write_block(filename, G.sim_time, G.dimensions, zip_files);
         }
+	foldername = "vel/t9999";
+	ensure_directory_is_present(foldername); // includes Barrier
+	// Loop over blocks
+	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	    bdp = G.my_blocks[jb];
+	    sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr;
+	    final_s = ((G.dimensions == 3)? BOTTOM : WEST);
+	    // Loop over boundaries/surfaces
+	    for ( js = NORTH; js <= final_s; ++js ) {
+		sprintf( jscstr, ".s%04d", js ); jsstring = jscstr;
+		filename = foldername+"/"+ G.base_file_name+".vel"	\
+		    +jbstring+jsstring+"."+"t9999";
+		bdp->bcp[js]->write_vertex_velocities(filename, G.sim_time, G.dimensions);
+		if ( zip_files == 1 ) do_system_cmd("gzip -f "+filename);
+	    }
+	}
     }
     // Compute, store and write heat-flux data, if viscous simulation
     if ( get_viscous_flag() ) {
