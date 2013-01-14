@@ -18,110 +18,52 @@ ode_t = {
 -- all VT exchange mechanisms identified by Park (1993)
 -- all ET exchange mechanisms from Gnoffo (1989)
 
-rates = {
-    {
-        mechanisms = {
-            {
-                type = 'VT_exchange',
-                p_name = 'N2',
-                relaxation_time = {
-                    type = 'VT_MillikanWhite_HTC',
-                    HTCS_model = {
-                        type = 'Park',
-                        sigma_dash = 3.0e-17
-                    },
-                    p_name = 'N2',
-                    q_names = { 'N2', 'NO', 'O2', 'N', 'O' },
-                    a_values = {  -1,   -1,   -1,  -1,  -1 },
-                    b_values = {  -1,   -1,   -1,  -1,  -1 }
-                }
-            },
-            {
-                type = 'VT_exchange',
-                p_name = 'NO',
-                relaxation_time = {
-                    type = 'VT_MillikanWhite_HTC',
-                    HTCS_model = {
-                        type = 'Park',
-                        sigma_dash = 3.0e-17
-                    },
-                    p_name = 'NO',
-                    q_names = { 'N2', 'NO', 'O2', 'N', 'O' },
-                    a_values = {  -1,   -1,   -1,  -1,  -1 },
-                    b_values = {  -1,   -1,   -1,  -1,  -1 }
-                }
-            },
-            {
-                type = 'VT_exchange',
-                p_name = 'O2',
-                relaxation_time = {
-                    type = 'VT_MillikanWhite_HTC',
-                    HTCS_model = {
-                        type = 'Park',
-                        sigma_dash = 3.0e-17
-                    },
-                    p_name = 'O2',
-                    q_names = { 'N2', 'NO', 'O2', 'N', 'O' },
-                    a_values = {  -1,   -1,   -1,  -1,  -1 },
-                    b_values = {  -1,   -1,   -1,  -1,  -1 }
-                }
-            },
-            {
-                type = 'ET_exchange',
-                relaxation_time = {
-                    type = 'ET_AppletonBray_Ion',
-                    c_name = 'N_plus', 
-                }
-            },
-            {
-                type = 'ET_exchange',
-                relaxation_time = {
-                    type = 'ET_AppletonBray_Ion',
-                    c_name = 'O_plus', 
-                }
-            },
-            {
-                type = 'ET_exchange',
-                relaxation_time = {
-                    type = 'ET_AppletonBray_Neutral',
-                    c_name = 'N',
-                    sigma_coefficients = { 5.0e-20, 0.0, 0.0 }
-                }
-            },
-            {
-                type = 'ET_exchange',
-                relaxation_time = {
-                    type = 'ET_AppletonBray_Neutral',
-                    c_name = 'O',
-                    sigma_coefficients = { 1.2e-20, 1.7e-24,  -2.0e-29 }
-                }
-            },
-            {
-                type = 'ET_exchange',
-                relaxation_time = {
-                    type = 'ET_AppletonBray_Neutral',
-                    c_name = 'N2',
-                    sigma_coefficients = { 7.5e-20, 5.5e-24, -1.0e-28 }
-                }
-            },
-            {
-                type = 'ET_exchange',
-                relaxation_time = {
-                    type = 'ET_AppletonBray_Neutral',
-                    c_name = 'NO',
-                    sigma_coefficients = { 1.0e-19, 0.0,      0.0 }
-                }
-            },
-            {
-                type = 'ET_exchange',
-                relaxation_time = {
-                    type = 'ET_AppletonBray_Neutral',
-                    c_name = 'O2',
-                    sigma_coefficients = { 2.0e-20, 6.0e-24,  0.0 }
-                }
-            }  
-        }
-    }
+mechanism{
+   'N2 ~~ ( N2, NO, O2, N, O ) : V-T',
+   rt={'Millikan-White:HTC', HTCS = { type = "Park", sigma_dash = 3.0e-17 } }
 }
 
-equilibriation_mechanisms = {}
+mechanism{
+   'NO ~~ ( N2, NO, O2, N, O ) : V-T',
+   rt={'Millikan-White:HTC', HTCS = { type = "Park", sigma_dash = 3.0e-17 } }
+}
+
+mechanism{
+   'O2 ~~ ( N2, NO, O2, N, O ) : V-T',
+   rt={'Millikan-White:HTC', HTCS = { type = "Park", sigma_dash = 3.0e-17 } }
+}
+
+mechanism{
+   'e- ~~ N+ : E-T',
+   rt={'Appleton-Bray:Ion'}
+}
+
+mechanism{
+   'e- ~~ O+ : E-T',
+   rt={'Appleton-Bray:Ion'}
+}
+
+mechanism{
+   'e- ~~ N : E-T',
+   rt={'Appleton-Bray:Neutral', sigma_coefficients = { 5.0e-20, 0.0, 0.0 } }
+}
+
+mechanism{
+   'e- ~~ O : E-T',
+   rt={'Appleton-Bray:Neutral', sigma_coefficients = { 1.2e-20, 1.7e-24,  -2.0e-29 } }
+}
+
+mechanism{
+   'e- ~~ N2 : E-T',
+   rt={'Appleton-Bray:Neutral', sigma_coefficients = { 7.5e-20, 5.5e-24, -1.0e-28 } }
+}
+
+mechanism{
+   'e- ~~ NO : E-T',
+   rt={'Appleton-Bray:Neutral', sigma_coefficients = { 1.0e-19, 0.0,      0.0 } }
+}
+
+mechanism{
+   'e- ~~ O2 : E-T',
+   rt={'Appleton-Bray:Neutral', sigma_coefficients = { 2.0e-20, 6.0e-24,  0.0 } }
+}
