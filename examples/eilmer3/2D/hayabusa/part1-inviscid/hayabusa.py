@@ -3,6 +3,7 @@
 ## \author DFP, 30-Oct-2012
 ## 
 ## Part1: Inviscid solution on a coarse grid
+##        Peak radiative heating condition (10.79km/s)
 
 from cfpylib.gasdyn.billig import x_from_y, y_from_x
 from cfpylib.nm.zero_solvers import bisection
@@ -28,9 +29,9 @@ ntm = gm.get_number_of_modes()
 #
 # 2. Define flow conditions
 #
-rho_inf = 1.645e-4
-T_inf = 233.25
-u_inf = 11.6e3
+rho_inf = 3.89e-4
+T_inf = 257.5
+u_inf = 10.79e3
 massf_inf = [ 0.0 ] * gm.get_number_of_species()
 massf_inf[species.index('N2')] = 0.767
 massf_inf[species.index('O2')] = 0.233
@@ -103,8 +104,8 @@ east0 = Polyline( [Arc(a,b,o),Line(b,c)] )
 #
 # 4. Define the blocks, boundary conditions and set the discretisation
 #
-nnx = 30; nny=30
-nbx = 2; nby = 2
+nnx = 40; nny=30
+nbx = 4; nby = 3
 
 blk_0 = SuperBlock2D(psurf=ShockLayerSurface(east0, west0),
 		     fill_condition=initial,

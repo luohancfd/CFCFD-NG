@@ -3,6 +3,7 @@
 ## \author DFP, 30-Oct-2012
 ## 
 ## Part2: Viscous solution on a finer grid
+##        Peak radiative heating condition (10.79km/s)
 
 from math import *
 from cfpylib.grid.shock_layer_surface import *
@@ -13,7 +14,7 @@ print job_title
 gdata.title = job_title
 gdata.axisymmetric_flag = 1
 
-fit2shock = True
+fit2shock = False
 
 #
 # 1. Setup the gas model
@@ -28,12 +29,13 @@ ntm = gm.get_number_of_modes()
 #
 # 2. Define flow conditions
 #
-rho_inf = 1.645e-4
-T_inf = 233.25
-u_inf = 11.6e3
+rho_inf = 3.89e-4
+T_inf = 257.5
+u_inf = 10.79e3
 massf_inf = [ 0.0 ] * gm.get_number_of_species()
 massf_inf[species.index('N2')] = 0.767
 massf_inf[species.index('O2')] = 0.233
+fixed_T_wall = 3000.0
 
 # do some calculations to get pressure, Mach number and total mass-flux
 Q = Gas_data(gm)
@@ -49,7 +51,7 @@ print "p_inf = %0.1f, M_inf = %0.1f" % ( p_inf, M_inf )
 inflow  = FlowCondition(p=p_inf, u=u_inf, v=0.0, T=[T_inf]*ntm, massf=massf_inf)
 
 # use the inviscid solution as the initial condition
-initial = ExistingSolution(rootName="hayabusa", solutionWorkDir="../part1-inviscid/", nblock=4, tindx=9999)
+initial = ExistingSolution(rootName="hayabusa", solutionWorkDir="../part1-inviscid/", nblock=12, tindx=9999)
 
 #
 # 3. Define the geometry
@@ -80,14 +82,14 @@ if fit2shock:
     shock = fit_billig2shock( initial, gdata.axisymmetric_flag, M_inf, Rn, body )
     psurf = make_parametric_surface( M_inf=M_inf, R=Rn, axi=gdata.axisymmetric_flag, east=body, shock=shock, f_s=1.0/(1.0-gamma) )
 else:  
-    bx_scale = 1.0; by_scale = 1.0
+    bx_scale = 0.95; by_scale = 0.95
     psurf = make_parametric_surface( bx_scale, by_scale, M_inf, Rn, axi=gdata.axisymmetric_flag )
 
 #
 # 4. Define the blocks, boundary conditions and set the discretisation
 #
-nnx = 60; nny=60
-nbx = 2; nby = 2
+nnx = 80; nny=60
+nbx = 4; nby = 4
 
 # clustering at shock and boundary layer [ outflow, surface, axis, inflow ]
 beta0 = 1.1; dx0 = 5.0e-1; dx1 = 2.0e-2 # gamma is previously defined
@@ -98,8 +100,12 @@ cf_list = [BHRCF(beta0,dx0,dx1,gamma),
            RCF(0,1,beta1)]
 
 # boundary conditions [ outflow, surface, axis, inflow ]
+if fixed_T_wall:
+    eastBC = FixedTBC(fixed_T_wall)
+else:
+    eastBC = SurfaceEnergyBalanceBC(0.9)
 bc_list=[ ExtrapolateOutBC(),
-          FixedTBC(3000.0),
+          eastBC,
           SlipWallBC(),
           SupInBC(inflow)]
 
@@ -123,7 +129,7 @@ blk_0 = SuperBlock2D(psurf=psurf,
 #
 gdata.viscous_flag = 1
 gdata.viscous_delay = 0.1 * Rn / u_inf
-gdata.viscous_factor_increment = 1.0e-4
+gdata.viscous_factor_increment = 1.0e-5
 gdata.diffusion_flag = 1
 gdata.diffusion_model = "ConstantLewisNumber"
 gdata.flux_calc = ADAPTIVE
@@ -133,7 +139,7 @@ gdata.dt = 1.0e-9
 gdata.reaction_time_start = 0
 gdata.stringent_cfl = 1
 gdata.dt_plot = Rn * 1 / u_inf    # 5 solutions
-gdata.cfl = 0.5
+gdata.cfl = 0.01
 gdata.cfl_count = 1
 gdata.print_count = 1
 
