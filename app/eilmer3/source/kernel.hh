@@ -198,6 +198,8 @@ int set_shock_fitting_flag(int iw);
 int get_shock_fitting_flag(void);
 int set_shock_fitting_decay_flag(int iw);
 int get_shock_fitting_decay_flag(void);
+int set_moving_grid_flag(int iw);
+int get_moving_grid_flag(void);
 int set_adaptive_reconstruction_flag(int iw);
 int get_adaptive_reconstruction_flag(void);
 int set_viscous_flag(int iv);

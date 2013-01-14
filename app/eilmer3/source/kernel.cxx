@@ -190,6 +190,9 @@ int shock_fitting = 0;
 /// \brief Shock fitting decay =0 for no shock fitting decay, =1 for shock fitting decay
 int shock_fitting_decay = 0;
 
+/// \brief Moving grid  =0 for no moving grid, =1 for moving grid
+int moving_grid = 0;
+
 /// \brief Adaptive reconstruction =0 for no adaptive reconstruction, =1 for adaptive reconstruction
 int adaptive_reconstruction = 0;
 
@@ -384,6 +387,29 @@ int set_shock_fitting_decay_flag(int iw)
 int get_shock_fitting_decay_flag(void)
 {
     return shock_fitting_decay;
+}
+
+/*------------------------------------------------------------------*/
+
+int set_moving_grid_flag(int iw)
+{
+    moving_grid = iw;
+    if (moving_grid == 0) {
+        if ( get_verbose_flag() ) printf("Turn off moving_grid\n");
+    }
+    else if ( moving_grid == 1 ) {
+        if ( get_verbose_flag() ) printf("Turn on moving_grid\n");
+    }
+    else {
+        printf("Invalid moving_grid flag value: %d\n", moving_grid);
+        exit(VALUE_ERROR);
+    }
+    return SUCCESS;
+}
+
+int get_moving_grid_flag(void)
+{
+    return moving_grid;
 }
 
 /*------------------------------------------------------------------*/

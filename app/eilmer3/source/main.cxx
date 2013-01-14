@@ -1131,7 +1131,7 @@ int integrate_in_time( double target_time )
 #       endif
 
 	// 2b. Recalculate all geometry if moving grid.
-	if ( get_shock_fitting_flag() == 1 ) {
+	if ( get_moving_grid_flag() == 1 ) {
 	    if ( G.sim_time >= G.t_shock ) {
 		for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		    bdp = G.my_blocks[jb];
@@ -1254,7 +1254,7 @@ int integrate_in_time( double target_time )
 		filename = foldername+"/"+ G.base_file_name+".flow"+jbstring+"."+tindxstring;
 		bdp->write_solution(filename, G.sim_time, G.dimensions, zip_files);
 	    }
-	    if ( get_shock_fitting_flag() ) {
+	    if ( get_moving_grid_flag() ) {
 	        foldername = "grid/"+tindxstring;
 	        ensure_directory_is_present(foldername); // includes Barrier
 	        for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
@@ -1264,7 +1264,7 @@ int integrate_in_time( double target_time )
 		        bdp->write_block(filename, G.sim_time, G.dimensions, zip_files);
 	        }
 	    }
-	    if ( get_shock_fitting_flag() ) {
+	    if ( get_moving_grid_flag() ) {
 		ensure_directory_is_present("vel");
 		foldername = "vel/"+tindxstring;
 		ensure_directory_is_present(foldername); // includes Barrier
@@ -1482,7 +1482,7 @@ int finalize_simulation( void )
 	    bdp->write_BGK(filename, G.sim_time, G.dimensions, zip_files);
 	}
     }
-    if ( get_shock_fitting_flag() == 1 ) {
+    if ( get_moving_grid_flag() == 1 ) {
         foldername = "grid/t9999";
         ensure_directory_is_present(foldername); // includes Barrier
         for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
