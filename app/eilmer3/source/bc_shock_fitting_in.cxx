@@ -59,7 +59,7 @@ int ShockFittingInBC::apply_inviscid( double t )
 		dest_face->fs->copy_values_from(*gsp);
 		dest_cell = bdp.get_cell(i,j+2,k);
 		dest_cell->copy_values_from(*gsp);
-		set_inflow_fluxes(dest_face, dest_face, bdp.omegaz);
+		compute_boundary_flux(dest_face, dest_face, bdp.omegaz);
 	    } // end i loop
 	} // for k
 	break;
@@ -75,7 +75,7 @@ int ShockFittingInBC::apply_inviscid( double t )
 		dest_face->fs->copy_values_from(*gsp);
 		dest_cell = bdp.get_cell(i+2,j,k);
 		dest_cell->copy_values_from(*gsp);
-		set_inflow_fluxes(dest_face, dest_face, bdp.omegaz);
+		compute_boundary_flux(dest_face, dest_face, bdp.omegaz);
 	    } // end j loop
 	} // for k
 	break;
@@ -91,7 +91,7 @@ int ShockFittingInBC::apply_inviscid( double t )
 		dest_face->fs->copy_values_from(*gsp);
 		dest_cell = bdp.get_cell(i,j-2,k);
 		dest_cell->copy_values_from(*gsp);
-		set_inflow_fluxes(dest_face, dest_face, bdp.omegaz);
+		compute_boundary_flux(dest_face, dest_face, bdp.omegaz);
 	    } // end i loop
 	} // for k
 	break;
@@ -112,11 +112,10 @@ int ShockFittingInBC::apply_inviscid( double t )
 		IFaceL->fs->copy_values_from(*gsp);
 		IFaceR = bdp.get_ifi(i,j,k);
 		IFaceR->fs->copy_values_from(*gsp);
-		
 		calculate_shock_speed(cL1, cL0, cR0, cR1, cR2, 
 				      cL1->iLength, cL0->iLength, cR0->iLength, cR1->iLength, cR2->iLength, 
 				      IFaceL, IFaceR);
-		set_inflow_fluxes(IFaceL, IFaceR, bdp.omegaz);
+		compute_boundary_flux(IFaceL, IFaceR, bdp.omegaz);
 	    } // end j loop
 	} // for k
  	break;
@@ -132,7 +131,7 @@ int ShockFittingInBC::apply_inviscid( double t )
 		dest_face->fs->copy_values_from(*gsp);
 		dest_cell = bdp.get_cell(i,j,k+2);
 		dest_cell->copy_values_from(*gsp);
-		set_inflow_fluxes(dest_face, dest_face, bdp.omegaz);
+		compute_boundary_flux(dest_face, dest_face, bdp.omegaz);
 	    } // end j loop
 	} // for i
 	break;
@@ -148,7 +147,7 @@ int ShockFittingInBC::apply_inviscid( double t )
 		dest_face->fs->copy_values_from(*gsp);
 		dest_cell = bdp.get_cell(i,j,k-2);
 		dest_cell->copy_values_from(*gsp);
-		set_inflow_fluxes(dest_face, dest_face, bdp.omegaz);
+		compute_boundary_flux(dest_face, dest_face, bdp.omegaz);
 	    } // end j loop
 	} // for i
  	break;
@@ -209,9 +208,9 @@ int ShockFittingInBC::calculate_shock_speed(FV_Cell *cL1, FV_Cell *cL0, FV_Cell 
             IFaceR->vel.transform_to_global(IFaceR->n, IFaceR->t1, IFaceR->t2);
         } else {
 	    // Probably no shock so move boundary at flow speed.
-	    mach_weighted_one_d_interp( *cL1, *cL0, *cR0, *cR1,
-			   lenL1, lenL0, lenR0, lenR1,
-			   *IFaceL->fs, *IFaceR->fs);
+	    //mach_weighted_one_d_interp(*cL1, *cL0, *cR0, *cR1,
+	    //			       lenL1, lenL0, lenR0, lenR1,
+	    //			       *IFaceL->fs, *IFaceR->fs);
             IFaceR->vel.x = time_weight * min(vabs(IFaceL->fs->vel), vabs(IFaceR->fs->vel));
             IFaceR->vel.y = 0.0;
             IFaceR->vel.z = 0.0;
@@ -229,14 +228,10 @@ int ShockFittingInBC::calculate_shock_speed(FV_Cell *cL1, FV_Cell *cL0, FV_Cell 
 /// \brief Calculate inviscid fluxes based only on freestream conditions. 
 ///
 
-int ShockFittingInBC::set_inflow_fluxes(FV_Interface *IFaceL, FV_Interface *IFaceR, double omegaz)
+int ShockFittingInBC::compute_boundary_flux(FV_Interface *IFaceL, FV_Interface *IFaceR, double omegaz)
 {
-    double rho, e, p, ke;
-    double un, vt1, vt2;
     ConservedQuantities &F = *(IFaceR->F);
     FlowState *IFace_flow_state = IFaceL->fs;
-    int nsp = get_gas_model_ptr()->get_number_of_species();
-    int nmodes = get_gas_model_ptr()->get_number_of_modes();
 
     IFaceR->vel.transform_to_local(IFaceR->n, IFaceR->t1, IFaceR->t2);
     IFace_flow_state->vel.transform_to_local(IFaceR->n, IFaceR->t1, IFaceR->t2);
@@ -244,36 +239,7 @@ int ShockFittingInBC::set_inflow_fluxes(FV_Interface *IFaceL, FV_Interface *IFac
     if (get_mhd_flag() == 1) {
 	IFace_flow_state->B.transform_to_local(IFaceR->n, IFaceR->t1, IFaceR->t2);
     }
-    rho = IFace_flow_state->gas->rho;
-    un = IFace_flow_state->vel.x - IFaceR->vel.x;
-    vt1 = IFace_flow_state->vel.y - IFaceR->vel.y;
-    vt2 = IFace_flow_state->vel.z - IFaceR->vel.z;
-    p = IFace_flow_state->gas->p;
-    e = IFace_flow_state->gas->e[0];
-    ke = 0.5 * (un*un + vt1*vt1 + vt2*vt2);
-    /* Kinetic energy per unit volume. */
-    
-    /* Mass Shock (mass / unit time / unit area) */
-    F.mass = rho * un;
-    /* Shock of normal momentum */
-    F.momentum.x = rho * un * un + p;
-    /* Shock of tangential momentum */
-    F.momentum.y = rho * un * vt1;
-    F.momentum.z = rho * un * vt2;
-    /* Shock of Total Energy */
-    F.total_energy = rho * un * (e + ke) + p * un;
-    F.tke = rho * un * IFace_flow_state->tke;  // turbulence kinetic energy
-    F.omega = rho * un * IFace_flow_state->omega;  // pseudo vorticity
-    /* Species mass Shock */
-    for ( int isp = 0; isp < nsp; ++isp ) {
-	F.massf[isp] = F.mass * IFace_flow_state->gas->massf[isp];
-    }
-    /* Individual energies. */
-    // NOTE: renergies[0] is never used so skipping (DFP 10/12/09)
-    for ( int imode = 1; imode < nmodes; ++imode ) {
-	F.energies[imode] = F.mass * IFace_flow_state->gas->e[imode];
-    }
-    
+    set_interface_flux(*IFaceR, IFace_flow_state);
     if ( omegaz != 0.0 ) {
 	// Rotating frame.
 	double x = IFaceR->pos.x;
@@ -284,10 +250,10 @@ int ShockFittingInBC::set_inflow_fluxes(FV_Interface *IFaceL, FV_Interface *IFac
 	// Note that rotating frame velocity u = omegaz * r.
 	F.total_energy -= F.mass * 0.5*omegaz*omegaz*rsq;
     }
-    IFaceR->vel.transform_to_global(IFaceR->n, IFaceR->t1, IFaceR->t2);
-    // Rotate momentum Shockes back to the global frame of reference.
+    // Rotate momentum fluxes back to the global frame of reference.
     F.momentum.transform_to_global(IFaceR->n, IFaceR->t1, IFaceR->t2);
-    
+    // also transform the interface velocities
+    IFaceR->vel.transform_to_global(IFaceR->n, IFaceR->t1, IFaceR->t2);	  
     // also transform the magnetic field
     if (get_mhd_flag() == 1) {
 	F.B.transform_to_global(IFaceR->n, IFaceR->t1, IFaceR->t2);

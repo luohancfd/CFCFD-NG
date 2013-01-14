@@ -80,13 +80,9 @@ int get_flux_calculator(void)
  */
 int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace, double omegaz)
 {
-    double rho, e, p, ke;
-    double un, vt1, vt2;
     double WSL, WSR;
     ConservedQuantities &F = *(IFace.F);
     Gas_model *gmodel = get_gas_model_ptr();
-    int nsp = get_gas_model_ptr()->get_number_of_species();
-    int nmodes = get_gas_model_ptr()->get_number_of_modes();
     if( IFace_flow_state == NULL ) {
 	IFace_flow_state = new FlowState(gmodel);
     }
@@ -105,40 +101,12 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
      */
     if (get_flux_calculator() == FLUX_AUSM ||
         get_flux_calculator() == FLUX_RIEMANN) {
-        if (get_flux_calculator() == FLUX_RIEMANN)
+        if (get_flux_calculator() == FLUX_RIEMANN) {
             rivp(Lft, Rght, *IFace_flow_state, WSL, WSR);
-        else
+        } else {
             ausm(Lft, Rght, *IFace_flow_state, WSL, WSR);
-	
-	rho = IFace_flow_state->gas->rho;
-	un = IFace_flow_state->vel.x - IFace.vel.x;
-	vt1 = IFace_flow_state->vel.y - IFace.vel.y;
-	vt2 = IFace_flow_state->vel.z - IFace.vel.z;
-	p = IFace_flow_state->gas->p;
-	e = IFace_flow_state->gas->e[0];
-	ke = 0.5 * (un*un + vt1*vt1 + vt2*vt2);
-	/* Kinetic energy per unit volume. */
-
-	/* Mass flux (mass / unit time / unit area) */
-	F.mass = rho * un;
-	/* Flux of normal momentum */
-	F.momentum.x = rho * un * un + p;
-	/* Flux of tangential momentum */
-	F.momentum.y = rho * un * vt1;
-	F.momentum.z = rho * un * vt2;
-	/* Flux of Total Energy */
-	F.total_energy = rho * un * (e + ke) + p * un;
-	F.tke = rho * un * IFace_flow_state->tke;  // turbulence kinetic energy
-	F.omega = rho * un * IFace_flow_state->omega;  // pseudo vorticity
-	/* Species mass flux */
-	for ( int isp = 0; isp < nsp; ++isp ) {
-	    F.massf[isp] = F.mass * IFace_flow_state->gas->massf[isp];
 	}
-	/* Individual energies. */
-	// NOTE: renergies[0] is never used so skipping (DFP 10/12/09)
-	for ( int imode = 1; imode < nmodes; ++imode ) {
-	    F.energies[imode] = F.mass * IFace_flow_state->gas->e[imode];
-	}
+	set_interface_flux(IFace, IFace_flow_state);
     } else if (get_flux_calculator() == FLUX_EFM) {
         efmflx(Lft, Rght, IFace);
     } else if (get_flux_calculator() == FLUX_AUSMDV) {
@@ -170,10 +138,11 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
     F.print();
 #   endif
 
-    IFace.vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+
     // Rotate momentum fluxes back to the global frame of reference.
     F.momentum.transform_to_global(IFace.n, IFace.t1, IFace.t2);
-	
+    // also transform the interface velocities
+    IFace.vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);	
     // also transform the magnetic field
     if (get_mhd_flag() == 1) {
 	F.B.transform_to_global(IFace.n, IFace.t1, IFace.t2);
@@ -190,3 +159,45 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
     return SUCCESS;
 } // end of compute_interface_flux()
 
+/// \brief Set interface flux from given flowstate.
+///
+int set_interface_flux(FV_Interface &IFace, FlowState *IFace_flow_state)
+{
+    double rho, e, p, ke;
+    double un, vt1, vt2;
+    double WSL, WSR;
+    ConservedQuantities &F = *(IFace.F);
+    Gas_model *gmodel = get_gas_model_ptr();
+    int nsp = get_gas_model_ptr()->get_number_of_species();
+    int nmodes = get_gas_model_ptr()->get_number_of_modes();
+
+    rho = IFace_flow_state->gas->rho;
+    un = IFace_flow_state->vel.x - IFace.vel.x;
+    vt1 = IFace_flow_state->vel.y - IFace.vel.y;
+    vt2 = IFace_flow_state->vel.z - IFace.vel.z;
+    p = IFace_flow_state->gas->p;
+    e = IFace_flow_state->gas->e[0];
+    ke = 0.5 * (un*un + vt1*vt1 + vt2*vt2);
+    /* Kinetic energy per unit volume. */
+    
+    /* Mass flux (mass / unit time / unit area) */
+    F.mass = rho * un;
+    /* Flux of normal momentum */
+    F.momentum.x = rho * un * un + p;
+    /* Flux of tangential momentum */
+    F.momentum.y = rho * un * vt1;
+    F.momentum.z = rho * un * vt2;
+    /* Flux of Total Energy */
+    F.total_energy = rho * un * (e + ke) + p * un;
+    F.tke = rho * un * IFace_flow_state->tke;  // turbulence kinetic energy
+    F.omega = rho * un * IFace_flow_state->omega;  // pseudo vorticity
+    /* Species mass flux */
+    for ( int isp = 0; isp < nsp; ++isp ) {
+	F.massf[isp] = F.mass * IFace_flow_state->gas->massf[isp];
+    }
+    /* Individual energies. */
+    // NOTE: renergies[0] is never used so skipping (DFP 10/12/09)
+    for ( int imode = 1; imode < nmodes; ++imode ) {
+	F.energies[imode] = F.mass * IFace_flow_state->gas->e[imode];
+    }
+}

@@ -46,6 +46,7 @@
 int set_flux_calculator(int iflux);
 int get_flux_calculator(void);
 int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace, double omegaz=0.0);
+int set_interface_flux(FV_Interface &IFace, FlowState *IFace_flow_state);
 /* rivp.c */
 int rivp(FlowState &QL, FlowState &QR, FlowState &QIF, double &WSL, double &WSR);
 int rivp_stage_3(FlowState &QL, FlowState &QR, FlowState &QLstar, FlowState &QRstar,
