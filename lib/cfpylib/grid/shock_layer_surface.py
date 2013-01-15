@@ -108,7 +108,8 @@ def make_parametric_surface(bx_scale=1.0, by_scale=1.0, M_inf=1.0, R=1.0, axi=0,
 
     # inflow boundary
     if shock == None:
-        x_limit = b.x
+        # billig curve
+        x_limit = east.eval(1).x
         inflow_nodes = []
         np = 100
         y_top = by_scale * y_from_x(-x_limit / bx_scale, M_inf, theta=0.0, axi=axi, R_nose=R)
@@ -117,8 +118,28 @@ def make_parametric_surface(bx_scale=1.0, by_scale=1.0, M_inf=1.0, R=1.0, axi=0,
             y = dy * iy
             x = -bx_scale * x_from_y(y / by_scale, M_inf, theta=0.0, axi=axi, R_nose=R)
             inflow_nodes.append(Vector3(x, y))
+        inflow = Spline(inflow_nodes)
+            
+        # find intersection of surface normal with inflow boundary at the top most point
+        ep = east.eval(1)
+        dpdt = east.dpdt(1)
+        gamma = -atan(dpdt.y / dpdt.x) + pi / 2.
+        def f(t):
+            wp = inflow.eval(t)
+            L = (wp.y - ep.y) / sin(gamma) 
+            lp = Vector3(ep.x - L * cos(gamma), ep.y + L * sin(gamma)) 
+            return wp.x - lp.x
+        t = bisection(f, 0.0, 1.0)
+        wp = inflow.eval(t)
+
+        # split the inflow spline
+        west_nodes = []
+        for node in inflow_nodes:
+            if node.y < wp.y: west_nodes.append(node)
+        west_nodes.append( Node( wp ) )
+
         # create the inflow spline
-        west = Spline(inflow_nodes)    
+        west = Spline(west_nodes)    
     else:  
         # create inflow nodes by extending the distances between the wall and the shock by some factor f_s
         inflow_nodes = []
@@ -272,3 +293,4 @@ def fit_billig2shock( sol, axi, M_inf, R, body=None ):
     shock_spline = Spline( shock_nodes )
     
     return shock_spline
+
