@@ -82,6 +82,7 @@ ideal_gas_flow
 
 .. autofunction:: beta_cone
 
+.. autofunction:: beta_cone2
 
 
 .. _cea2_gas:

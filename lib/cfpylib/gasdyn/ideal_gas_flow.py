@@ -40,7 +40,13 @@ from ..nm.zero_solvers import secant
 # Isentropic flow
 
 def A_Astar(M, g=1.4):
-    "Returns area ratio A/Astar for a specified Mach number."
+    """
+    Area ratio A/Astar for an isentropic, quasi-one-dimensional flow.
+
+    :param M: Mach number at area A
+    :param g: ratio of specific heats
+    :returns: A/Astar
+    """
     t1 = (g + 1.0) / (g - 1.0)
     m2 = M**2
     t2 = 1.0 / m2 * (2.0 / (g + 1.0) * (1.0 + (g - 1.0) * 0.5 * m2))**t1
@@ -48,58 +54,126 @@ def A_Astar(M, g=1.4):
     return t2
 
 def T0_T(M, g=1.4):
-    "Returns temperature ratio T0/T for a specified Mach number."
+    """
+    Total to static temperature ratio for an adiabatic flow.
+
+    :param M: Mach number
+    :param g: ratio of specific heats
+    :returns: T0/T
+    """
     return 1.0 + (g - 1.0) * 0.5 * M**2
 
 def p0_p(M, g=1.4):
-    "Returns pressure ratio p0/p for a specified Mach number."
+    """
+    Total to static pressure ratio for an isentropic flow.
+
+    :param M: Mach number
+    :param g: ratio of specific heats
+    :returns: p0/p
+    """
     return (T0_T(M, g))**( g / (g - 1.0) )
 
 def r0_r(M, g=1.4):
-    "Returns density ratio r0/r for a specified Mach number."
+    """
+    Stagnation to free-stream density ratio for an isentropic flow.
+
+    :param M: Mach number
+    :param g: ratio of specific heats
+    :returns: r0/r
+    """
     return (T0_T(M, g))**(1.0 / (g - 1.0))
 
 # -----------------------------------------------------------------
 # 1-D normal shock relations.
 
 def m2_shock(M1, g=1.4):
-    "Returns the Mach number M2 after a normal shock."
+    """
+    Mach number M2 after a normal shock.
+
+    :param M1: Mach number of incoming flow
+    :param g: ratio of specific heats
+    :returns: M2
+    """
     numer = 1.0 + (g - 1.0) * 0.5 * M1**2
     denom = g * M1**2 - (g - 1.0) * 0.5
     return sqrt(numer / denom)
 
 def r2_r1(M1, g=1.4):
-    "Returns the density ratio r2/r1 across a normal shock."
+    """
+    Density ratio r2/r1 across a normal shock.
+
+    :param M1: Mach number of incoming flow
+    :param g: ratio of specific heats
+    :returns: r2/r1
+    """
     numer = (g + 1.0) * M1**2
     denom = 2.0 + (g - 1.0) *M1**2
     return numer / denom
 
 def u2_u1(M1, g=1.4):
-    "Returns the velocity ratio u2/u1 across a normal shock."
+    """
+    Velocity ratio u2/u1 across a normal shock.
+
+    :param M1: Mach number of incoming flow
+    :param g: ratio of specific heats
+    :returns: u2/u1
+    """
     return 1 / r2_r1(M1, g)
 
 def p2_p1(M1, g=1.4):
-    "Returns the pressure ratio p2/p1 across a normal shock."
+    """
+    Static pressure ratio p2/p1 across a normal shock.
+
+    :param M1: Mach number of incoming flow
+    :param g: ratio of specific heats
+    :returns: p2/p1
+    """
     return 1.0 + 2.0 * g / (g + 1.0) * (M1**2 - 1.0)
 
 def T2_T1(M1, g=1.4):
-    "Returns the temperature ratio T2/T1 across a normal shock."
+    """
+    Static temperature ratio T2/T1 across a normal shock.
+
+    :param M1: Mach number of incoming flow
+    :param g: ratio of specific heats
+    :returns: T2/T1
+    """
     return  p2_p1(M1, g) / r2_r1(M1, g)
 
 def p02_p01(M1, g=1.4):
-    "Returns the ratio of stagnation pressures p02/p01 across the shock."
+    """
+    Stagnation pressure ratio p02/p01 across a normal shock.
+
+    :param M1: Mach number of incoming flow
+    :param g: ratio of specific heats
+    :returns: p02/p01
+    """
     t1 = (g + 1.0) / (2.0 * g * M1**2 - (g - 1.0)) 
     t2 = (g + 1.0) * M1**2 / (2.0 + (g - 1.0) * M1**2)
     return t1**(1.0/(g-1.0)) * t2**(g/(g-1.0))
 
 def DS_Cv(M1, g=1.4):
-    "Returns the entropy change ds across the shock normalized by Cv."
+    """
+    Nodimensional entropy change ds across a normal shock.
+
+    :param M1: Mach number of incoming flow
+    :param g: ratio of specific heats Cp/Cv
+    :returns: ds/Cv
+    """
     t1 = p2_p1(M1, g)
     t2 = r2_r1(M1, g)
     return log(t1 * t2**g)
 
 def pitot_p(p1, M1, g=1.4):
-    "Returns the pitot pressure for a specified Mach number. Will shock the gas if required."
+    """
+    Pitot pressure for a specified Mach number free-stream flow.
+
+    Will shock the gas if required.
+
+    :param M1: Mach number of incoming flow
+    :param g: ratio of specific heats
+    :returns: Pitot pressure (absolute)
+    """
     if M1 > 1.0:
         p2 = p2_p1(M1,g)*p1
         M2 = m2_shock(M1, g)
@@ -112,32 +186,79 @@ def pitot_p(p1, M1, g=1.4):
 # 1-D flow with heat addition (Rayleigh-line)
 
 def T0_T0star(M, g=1.4):
-    "Returns the total temperature ratio T0/T0star for a given Mach number."
+    """
+    Total temperature ratio for flow with heat addition.
+
+    :param M: initial Mach number
+    :param g: ratio of specific heats
+    :returns: T0/T0star where T0 is the total temperature of the initial flow
+              and T0star is the total temperature that would be achieved 
+              if enough heat is added to get to sonic conditions.
+    """
     term1 = (g + 1.0) * M**2
     term2 = (1.0 + g * M**2)**2
     term3 = 2.0 + (g - 1.0) * M**2
     return term1 / term2 * term3
 
 def M_Rayleigh(T0T0star, g=1.4):
-    "Computes M from Total Temperature ratio for Rayleigh-line flow."
-    # supersonic flow is assumed for the initial guesses
+    """
+    Computes M from Total Temperature ratio for Rayleigh-line flow.
+
+    :param T0T0star: total temperature ratio (star indicating sonic conditions)
+    :param g: ratio of specific heats
+    :returns: initial Mach number of flow
+
+    Note that supersonic flow is assumed for the initial guess.
+    """
     def f_to_solve(m): return T0_T0star(m, g) - T0T0star
     return solve(f_to_solve, 2.5, 2.4)
 
 def T_Tstar(M, g=1.4):
-    "Returns static temperature ratio T/Tstar for Rayleigh-line flow. "
+    """
+    Static temperature ratio T/Tstar for Rayleigh-line flow.
+ 
+    :param M: initial Mach number
+    :param g: ratio of specific heats
+    :returns: T/Tstar where T is the static temperature of the initial flow
+              and Tstar is the static temperature that would be achieved 
+              if enough heat is added to get to sonic conditions.
+    """
     return M**2 * ( (1.0 + g) / (1.0 + g * M**2) )**2
 
 def p_pstar(M, g=1.4):
-    " Returns static pressure ratio p/pstar for Rayleigh-line flow."
+    """
+    Static pressure ratio p/pstar for Rayleigh-line flow.
+ 
+    :param M: initial Mach number
+    :param g: ratio of specific heats
+    :returns: p/pstar where p is the static pressure of the initial flow
+              and pstar is the static pressure that would be achieved 
+              if enough heat is added to get to sonic conditions.
+    """
     return (1.0 + g) / (1.0 + g * M**2)
 
 def r_rstar(M, g=1.4):
-    "Returns density ratio r/rstar for Rayleigh-line flow."
+    """
+    Density ratio r/rstar for Rayleigh-line flow.
+ 
+    :param M: initial Mach number
+    :param g: ratio of specific heats
+    :returns: r/rstar where r is the density of the initial flow
+              and rstar is the density that would be achieved 
+              if enough heat is added to get to sonic conditions.
+    """
     return 1.0 / M**2 / (1.0 + g) * (1.0 + g * M**2)
 
 def p0_p0star(M, g=1.4):
-    "Returns stagnation pressure ratio p0/p0star for Rayleigh-line flow."
+    """
+    Stagnation pressure ratio p0/p0star for Rayleigh-line flow.
+ 
+    :param M: initial Mach number
+    :param g: ratio of specific heats
+    :returns: p0/p0star where p0 is the total pressure of the initial flow
+              and p0star is the total pressure that would be achieved 
+              if enough heat is added to get to sonic conditions.
+    """
     term1 = (2.0 + (g - 1.0) * M**2) / (g + 1.0)
     term2 = g / (g - 1.0)
     return (1.0 + g) / (1.0 + g * M**2) * term1**term2
@@ -149,7 +270,13 @@ def deg_to_rad(d): return d / 180.0 * pi
 def rad_to_deg(r): return r * 180.0 / pi
 
 def PM1(M, g=1.4):
-    "Returns the Prandtl-Meyer value (in radians) for a given Mach number."
+    """
+    Prandtl-Meyer function.
+
+    :param M: Mach number
+    :param g: ratio of specific heats
+    :returns: Prandtl-Meyer function value (in radians)
+    """
     if M > 1.0:
         t1 = M**2 - 1.0
         t2 = sqrt((g - 1.0) / (g + 1.0) * t1)
@@ -161,8 +288,15 @@ def PM1(M, g=1.4):
     return nu
 
 def PM2(nu, g=1.4):
-    "Returns the Mach number from the Prandtl-Meyer value (in radians)."
-    # Solve the equation PM1(m, g) - nu = 0, assuming supersonic flow.
+    """
+    Inverse Prandtl-Meyer function.
+
+    :param nu: Prandtl-Meyer function value (in radians)
+    :param g: ratio of specific heats
+    :returns: Mach number
+
+    Solves the equation PM1(m, g) - nu = 0, assuming supersonic flow.
+    """
     def f_to_solve(m): return PM1(m, g) - nu
     return solve(f_to_solve, 2.0, 2.1)
 
@@ -172,14 +306,25 @@ def PM2(nu, g=1.4):
 # theta is flow deflection wrt on-coming stream (in radians)
 
 def beta_obl(M1, theta, g=1.4):
-    """Returns the oblique shock wave angle
-    given the upstream Mach number and the deflection angle."""
+    """
+    Oblique shock wave angle.
+
+    :param M1: upstream Mach number
+    :param theta: flow deflection angle (radians)
+    :returns: shock angle with respect to initial flow direction (radians)
+    """
     b1 = asin(1.0/M1); b2 = b1 * 1.05
     def f_to_solve(beta): return theta_obl(M1, beta, g) - theta
     return solve(f_to_solve, b1, b2)
 
 def theta_obl(M1, beta, g=1.4):
-    "Compute the deflection angle given the shock wave angle."
+    """
+    Compute the deflection angle given the shock wave angle.
+
+    :param M1: upstream Mach number
+    :param beta: shock angle with respect to initial flow direction (radians)
+    :returns: theta, flow deflection angle (radians)
+    """
     m1sb = M1 * sin(beta)
     t1 = 2.0 / tan(beta) * (m1sb**2 - 1.0) 
     t2 = M1**2 * (g + cos(2.0 * beta)) + 2.0
@@ -187,7 +332,13 @@ def theta_obl(M1, beta, g=1.4):
     return theta
 
 def M2_obl(M1, beta, theta, g=1.4):
-    "Returns the Mach number after an oblique shock."
+    """
+    Mach number after an oblique shock.
+
+    :param M1: upstream Mach number
+    :param beta: shock angle with respect to initial flow direction (radians)
+    :returns: M2, Mach number in flow after the shock
+    """
     m1sb = M1 * sin(beta)
     numer = 1.0 + (g - 1.0) * 0.5 * m1sb**2
     denom = g * m1sb**2 - (g - 1.0) * 0.5
@@ -195,27 +346,57 @@ def M2_obl(M1, beta, theta, g=1.4):
     return m2
 
 def r2_r1_obl(M1, beta, g=1.4):
-    "Compute the density ratio r2/r1 across an oblique shock"
+    """
+    Density ratio r2/r1 across an oblique shock.
+
+    :param M1: upstream Mach number
+    :param beta: shock angle with respect to initial flow direction (radians)
+    :returns: r2/r1
+    """
     m1sb = M1 * sin(beta)
     numer = (g + 1.0) * m1sb**2
     denom = 2.0 + (g - 1.0) * m1sb**2
     return numer / denom
 
 def u2_u1_obl(M1, beta, g=1.4):
-    "Compute the flow-speed ratio u2/u1 across an oblique shock."
+    """
+    Flow-speed ratio u2/u1 across an oblique shock.
+
+    :param M1: upstream Mach number
+    :param beta: shock angle with respect to initial flow direction (radians)
+    :returns: u2/u1
+    """
     return sqrt((sin(beta) / r2_r1_obl(M1, beta, g))**2 + (cos(beta))**2)
 
 def p2_p1_obl(M1, beta, g=1.4):
-    "Compute the pressure ratio p2/p1 across an oblique shock."
+    """
+    Static pressure ratio p2/p1 across an oblique shock.
+
+    :param M1: upstream Mach number
+    :param beta: shock angle with respect to initial flow direction (radians)
+    :returns: p2/p1
+    """
     m1sb = M1 * sin(beta)
     return 1.0 + 2.0 * g / (g + 1.0) * (m1sb**2 - 1.0)
 
 def T2_T1_obl(M1, beta, g=1.4):
-    "Compute the temperature ratio T2/T1 across a normal shock."
+    """
+    Static temperature ratio T2/T1 across an oblique shock.
+
+    :param M1: upstream Mach number
+    :param beta: shock angle with respect to initial flow direction (radians)
+    :returns: T2/T1
+    """
     return p2_p1_obl(M1, beta, g) / r2_r1_obl(M1, beta, g)
 
 def p02_p01_obl(M1, beta, g=1.4):
-    "Compute the ratio of stagnation pressures p02/p01 across an oblique shock."
+    """
+    Ratio of stagnation pressures p02/p01 across an oblique shock.
+
+    :param M1: upstream Mach number
+    :param beta: shock angle with respect to initial flow direction (radians)
+    :returns: p02/p01
+    """
     m1sb = M1 * sin(beta)
     t1 = (g + 1.0) / (2.0 * g * m1sb**2 - (g - 1.0)) 
     t2 = (g + 1.0) * m1sb**2 / (2.0 + (g - 1.0) * m1sb**2)
@@ -264,11 +445,10 @@ def theta_cone(V1, p1, T1, beta, R=287.1, g=1.4):
     across theta until V_theta goes through zero.
     The cone surface corresponds to V_theta == 0.
 
-    This ideal-gas version adapted from the cea2_gas_flow version, 08-Mar-2012.
-
-    24-Jun-2012 : RJG added checks to catch the limiting case when beta < mu
-                : and a linear interpolation when beta is only slightly larger
-                : than mu (1% larger)
+    .. Versions: This ideal-gas version adapted from the cea2_gas_flow version, 08-Mar-2012.
+       24-Jun-2012 : RJG added checks to catch the limiting case when beta < mu
+                   : and a linear interpolation when beta is only slightly larger
+                   : than mu (1% larger)
     """
     # When beta is only this fraction larger than mu,
     # we'll apply a linear interpolation
@@ -349,7 +529,7 @@ def beta_cone(V1, p1, T1, theta, R=287.1, g=1.4):
     :param g: ratio of specific heats
     :returns: shock wave angle wrt incoming stream direction (in radians)
 
-    This ideal-gas version adapted from the cea2_gas_flow version, 08-Mar-2012.
+    .. This ideal-gas version adapted from the cea2_gas_flow version, 08-Mar-2012.
     """
     # Free-stream properties and gas model.
     a1 = sqrt(g*R*T1)
@@ -376,7 +556,7 @@ def beta_cone2(M1, theta, R=287.1, g=1.4):
     :param g: ratio of specific heats
     :returns: shock wave angle wrt incoming stream direction (in radians)
 
-    This version basically delegates work to beta_cone().
+    .. This version basically delegates work to beta_cone().
     """
     # Compute free stream velocity assuming unit value temperature
     T1 = 1.0
@@ -422,7 +602,7 @@ def demo():
           M2_obl(M, beta, theta)
     print "Computed: T2/T1=%g, p2/p1=%g, r2/r1=%g" % \
           (T2_T1_obl(M, beta), p2_p1_obl(M, beta), r2_r1_obl(M, beta))
-    print "Expected: T2/T1=1.249, p2/p1=2.088, r2/r1=1.673 (arox. table M=1.390)"
+    print "Expected: T2/T1=1.249, p2/p1=2.088, r2/r1=1.673 (approx. normal-shock table M=1.390)"
     print "u2/u1=%g, p02/p01=%g" % \
           (u2_u1_obl(M, beta), p02_p01_obl(M, beta))
     print "Expected: u2/u1=0.8304=sin(B)/sin(B-d)*r1/r2"

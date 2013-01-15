@@ -1,9 +1,13 @@
 """
-sutherland.py: Sutherland form of viscosity and thermal conductivity for a few gases.
+sutherland.py -- Sutherland form of viscosity and thermal conductivity for a few gases.
 
-Authors: Wilson (original) and PJ (refactor) 29-Oct-2010
+Species available: Air, N2, O2, H2, CO2, CO, Ar.
 
 Reference for coefficients: White FM (2006) Viscous Fluid Flow, pp.28
+
+.. Versions: Wilson (original)
+             PJ (refactor) 29-Oct-2010
+             Sphinx doc-comments 15-Jan-2013
 """
 
 mu_ref = {'Air':1.716e-5, 'N2':1.663e-5, 'O2':1.919e-5, 'H2':8.411e-6,
@@ -21,26 +25,33 @@ def sutherland(T, T_ref, S):
     """
     Sutherland's expression relating the quantity, at temperature T,
     to the value at the reference temperature.
+
+    :param T: temperature in degrees K
+    :param T_ref: reference temperature (degrees K)
+    :param S: Sutherland constant (degrees K)
+    :returns: ratio of property at temperature T to reference value.
     """
     return (T / T_ref)**1.5 * (T_ref + S)/(T + S)
 
-def mu(T, g):
+def mu(T, gname):
     """
-    Returns coefficient of dynamic viscosity, in Pa.s.
+    Coefficient of dynamic viscosity.
 
-    T: temperature in degrees K
-    g: string specifying gas name (for dictionary look-up)
+    :param T: temperature in degrees K
+    :param gname: string specifying gas name (for dictionary look-up)
+    :returns: coefficient of dynamic viscosity, in Pa.s.
     """
-    return mu_ref[g] * sutherland(T, T_ref[g], S_mu[g]);
+    return mu_ref[gname] * sutherland(T, T_ref[gname], S_mu[gname]);
 
-def k(T, g):
+def k(T, gname):
     """
-    Returns thermal conductivity, in W/(m.K)
+    Coefficient of thermal conductivity.
 
-    T: temperature in degrees K
-    g: string specifying gas name (for dictionary look-up)
+    :param T: temperature in degrees K
+    :param gname: string specifying gas name (for dictionary look-up)
+    :returns: thermal conductivity, in W/(m.K)
     """
-    return k_ref[g] * sutherland(T, T_ref[g], S_k[g]);
+    return k_ref[gname] * sutherland(T, T_ref[gname], S_k[gname]);
 
 if __name__ == '__main__':
     print "Sutherland expression for evaluating transport coefficients."
