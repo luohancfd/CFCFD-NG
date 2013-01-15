@@ -1,0 +1,27 @@
+$ estcj.py --help
+Usage: estcj.py [options]
+
+Options:
+  --version             show program's version number and exit
+  -h, --help            show this help message and exit
+  --task=TASK           particular calculation to make: st = reflected shock
+                        tube; stn = reflected shock tube with nozzle; stnp =
+                        reflected shock tube with nozzle expanded to pitot;
+                        ishock = incident shock only; total = free-stream to
+                        total condition; pitot = free-stream to Pitot
+                        condition; cone = free-stream to Taylor-Maccoll cone
+                        flow
+  --gas=GASNAME         name of gas model: air; air5species; n2; co2; h2ne; Ar
+  --p1=P1               shock tube fill pressure or static pressure, in Pa
+  --T1=T1               shock tube fill temperature, in degrees K
+  --V1=V1               initial speed of gas in lab frame [default: none], in
+                        m/s
+  --Vs=VS               incident shock speed, in m/s
+  --pe=PE               equilibrium pressure (after shock reflection), in Pa
+  --pp_on_pe=PP_ON_PE   nozzle supply to exit pitot pressure ratio
+  --ar=AREA_RATIO       exit-to-throat area ratio of the nozzle
+  --sigma-deg=CONE_HALF_ANGLE_DEG
+                        half-angle of the cone, in degrees
+  --ofn=OUTFILENAME     name of file in which to accumulate output. file name
+                        will be: outFileName-estcj.dat (Note that output
+                        defaults to stdout.)

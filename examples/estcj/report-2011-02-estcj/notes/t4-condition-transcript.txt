@@ -1,0 +1,42 @@
+estcj: Equilibrium Shock Tube Conditions
+Version: 07-Mar-2012
+Input parameters:
+    Gas is air, p1: 125000 Pa, T1: 300 K, Vs: 2414 m/s
+Write pre-shock condition.
+Start incident-shock calculation.
+Start reflected-shock calculation.
+Start calculation of isentropic relaxation.
+Start isentropic relaxation to throat (Mach 1)
+Start isentropic relaxation to nozzle exit.
+Done with reflected shock tube calculation.
+State 1: pre-shock condition
+    p: 125000 Pa, T: 300 K, rho: 1.4515 kg/m**3, e: -88591 J/kg, h: -2475 J/kg, a: 347.2 m/s, s:6806.3 kJ/(kg.K)
+    R: 287.036 J/(kg.K), gam: 1.3999, Cp: 1004.8 J/(kg.K), mu: 1.8746e-05 Pa.s, k: 0.02639 W/(m.K)
+    species massf: {'N2': 0.75518, 'Ar': 0.012916, 'CO2': 0.00048469, 'O2': 0.23142}
+State 2: post-shock condition.
+    p: 7.3158e+06 Pa, T: 2629.98 K, rho: 9.6848 kg/m**3, e: 2.09038e+06 J/kg, h: 2.84577e+06 J/kg, a: 971 m/s, s:8128.4 kJ/(kg.K)
+    R: 287.205 J/(kg.K), gam: 1.2482, Cp: 1280.8 J/(kg.K), mu: 8.4069e-05 Pa.s, k: 0.16977 W/(m.K)
+    species massf: {'CO2': 0.00047578, 'NO': 0.02814, 'O': 0.0007597, 'Ar': 0.012916, 'N2': 0.74195, 'O2': 0.21545, 'NO2': 0.00028032}
+    V2: 361.796 m/s, Vg: 2052.2 m/s
+State 5: reflected-shock condition.
+    p: 5.95e+07 Pa, T: 4551.12 K, rho: 44.33 kg/m**3, e: 4.78627e+06 J/kg, h: 6.12847e+06 J/kg, a: 1277.7 m/s, s:8446.5 kJ/(kg.K)
+    R: 294.896 J/(kg.K), gam: 1.2163, Cp: 1326.1 J/(kg.K), mu: 0.00012602 Pa.s, k: 0.41556 W/(m.K)
+    species massf: {'CO2': 0.00018873, 'CO': 0.00018836, 'NO': 0.12328, 'O': 0.030423, 'N': 0.00017756, 'Ar': 0.012916, 'N2O': 0.00026787, 'N2': 0.69698, 'O2': 0.13453, 'NO2': 0.001022}
+    Vr: 573.53 m/s
+State 5s: equilibrium condition (relaxation to pe)
+    p: 3.437e+07 Pa, T: 4161.9 K, rho: 28.201 kg/m**3, e: 4.20992e+06 J/kg, h: 5.42867e+06 J/kg, a: 1215.5 m/s, s:8447 kJ/(kg.K)
+    R: 292.819 J/(kg.K), gam: 1.2123, Cp: 1319.6 J/(kg.K), mu: 0.00011762 Pa.s, k: 0.37811 W/(m.K)
+    species massf: {'CO2': 0.00024217, 'CO': 0.00015435, 'NO': 0.1058, 'O': 0.022439, 'Ar': 0.012916, 'N2O': 0.00017027, 'N2': 0.70537, 'O2': 0.15202, 'NO2': 0.00079754}
+Enthalpy difference (H5s - H1): 5.43114e+06 J/kg
+State 6: Nozzle-throat condition (relaxation to M=1)
+    p: 1.9291e+07 Pa, T: 3788.25 K, rho: 17.503 kg/m**3, e: 3.65885e+06 J/kg, h: 4.76102e+06 J/kg, a: 1155.5 m/s, s:8447.5 kJ/(kg.K)
+    R: 290.923 J/(kg.K), gam: 1.2114, Cp: 1312.8 J/(kg.K), mu: 0.00010952 Pa.s, k: 0.333 W/(m.K)
+    species massf: {'CO2': 0.00030528, 'CO': 0.00011418, 'NO': 0.087056, 'O': 0.015137, 'Ar': 0.012916, 'N2O': 0.00010259, 'N2': 0.71427, 'O2': 0.16946, 'NO2': 0.00059814}
+    V6: 1155.57 m/s, M6: 1.00006, mflux6: 20225.9 kg/s/m**2
+State 7: Nozzle-exit condition (relaxation to correct mass flux)
+    p: 93566 Pa, T: 1283.91 K, rho: 0.25388 kg/m**3, e: 706900 J/kg, h: 1.07545e+06 J/kg, a: 696.6 m/s, s:8447.5 kJ/(kg.K)
+    R: 287.036 J/(kg.K), gam: 1.3166, Cp: 1186.2 J/(kg.K), mu: 5.1628e-05 Pa.s, k: 0.08122 W/(m.K)
+    species massf: {'N2': 0.75501, 'Ar': 0.012916, 'O2': 0.23122, 'CO2': 0.00048469, 'NO': 0.00036646}
+    V7: 2950.67 m/s, M7: 4.23582, mflux7: 20226.1 kg/s/m**2, area_ratio: 27, pitot: 2.1426e+06 Pa
+    pitot7_on_p5s: 0.0623392
+

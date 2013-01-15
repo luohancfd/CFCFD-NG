@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-hadas85.py -- Hadas' 8.5 expansion-tube condition.
+classic_expansion_tube.py -- Hadas' 8.5 expansion-tube condition.
 
 Done as an example of using gas_flow functions.
 PJ, 21-Mar-2012
