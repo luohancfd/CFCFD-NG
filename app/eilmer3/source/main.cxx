@@ -1641,10 +1641,11 @@ int gasdynamic_inviscid_increment( void )
 	    int ruf = get_radiation_update_frequency();
 	    if ( ( ruf == 0 ) || ( ( G.step / ruf ) * ruf != G.step ) ) {
 		// rescale
+                int jb;
 #		ifdef _OPENMP
 #		pragma omp parallel for private(jb) schedule(runtime)
 #		endif
-		for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		for ( jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		    bdp = G.my_blocks[jb];
 		    if ( bdp->active != 1 ) continue;
 		    bdp->apply( &FV_Cell::rescale_Q_rE_rad, "rescale-Q_rE_rad" );
@@ -1654,10 +1655,11 @@ int gasdynamic_inviscid_increment( void )
 		// recompute
 		rtm->compute_Q_rad_for_flowfield();
 		// store the radiation scaling parameters for each cell
+                int jb;
 #		ifdef _OPENMP
 #		pragma omp parallel for private(jb) schedule(runtime)
 #		endif
-		for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		for ( jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		    bdp = G.my_blocks[jb];
 		    if ( bdp->active != 1 ) continue;
 		    bdp->apply( &FV_Cell::store_rad_scaling_params, "store-rad-scaling-params" );
