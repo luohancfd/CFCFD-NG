@@ -5,10 +5,8 @@
 ## Part1: Inviscid solution on a coarse grid
 ##        Peak radiative heating condition (10.79km/s)
 
-from cfpylib.gasdyn.billig import x_from_y, y_from_x
-from cfpylib.nm.zero_solvers import bisection
 from math import cos, sin, tan, sqrt, pi
-from cfpylib.grid.shock_layer_surface import ShockLayerSurface
+from cfpylib.grid.shock_layer_surface import *
 
 job_title = "JAXA Hayabusa sample return capsule."
 print job_title
@@ -70,44 +68,18 @@ a = Node(-Rn,0.0, label='a')
 b = Node(-Rn*cos(theta),Rn*sin(theta), label='b')
 c = Node( b.x + ( D/2.0-b.y)/tan(theta), D/2.0, label='c')
 d = Node( 0.0, c.y - abs(c.x), label='d')
+east = Polyline( [Arc(a,b,o),Line(b,c)] )
 
-# inflow boundary nodes
-x_limit = c.x
-inflow_nodes = []
-np = 32
-y_top = by_scale * y_from_x(-x_limit/bx_scale, M_inf, theta=0.0, axi=1, R_nose=Rn)
-dy = y_top / ( np - 1 )
-for iy in range(np):
-    y = dy * iy
-    x = - bx_scale * x_from_y(y/by_scale, M_inf, theta=0.0, axi=1, R_nose=Rn)
-    inflow_nodes.append( Node(x,y) )
+# parametric surface
+psurf = make_parametric_surface(bx_scale, by_scale, M_inf, Rn, gdata.axisymmetric_flag, east, shock=None)
 
-# find intersection of surface normal with inflow boundary at the top most point
-global inflow_spline
-inflow_spline = Spline(inflow_nodes)
-def zero_func(y):
-    dc_line = Line( d, Node( d.x+(c.x-d.x)*2.0, d.y+(c.y-d.y)*2.0 ) )
-    t = (y-d.y)/((c.y-d.y)*2.0)
-    return inflow_spline.eval_from_y(y).x - dc_line.eval(t).x
-y_int = bisection( zero_func, by=0.0, uy=D )
-x_int = inflow_spline.eval_from_y(y_int).x
-
-# split the inflow spline
-west_nodes = []
-for node in inflow_nodes:
-    if node.y < y_int: west_nodes.append(node)
-west_nodes.append( Node( x_int, y_int ) )
-
-# curves - block0
-west0 = Spline(west_nodes)
-east0 = Polyline( [Arc(a,b,o),Line(b,c)] )
 #
 # 4. Define the blocks, boundary conditions and set the discretisation
 #
 nnx = 40; nny=30
 nbx = 4; nby = 3
 
-blk_0 = SuperBlock2D(psurf=ShockLayerSurface(east0, west0),
+blk_0 = SuperBlock2D(psurf=psurf,
 		     fill_condition=initial,
 		     nni=nnx, nnj=nny,
 		     nbi=nbx, nbj=nby,

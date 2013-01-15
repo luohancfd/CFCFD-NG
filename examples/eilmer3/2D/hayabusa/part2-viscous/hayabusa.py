@@ -83,7 +83,7 @@ if fit2shock:
     psurf = make_parametric_surface( M_inf=M_inf, R=Rn, axi=gdata.axisymmetric_flag, east=body, shock=shock, f_s=1.0/(1.0-gamma) )
 else:  
     bx_scale = 0.95; by_scale = 0.95
-    psurf = make_parametric_surface( bx_scale, by_scale, M_inf, Rn, axi=gdata.axisymmetric_flag )
+    psurf = make_parametric_surface( bx_scale=bx_scale, by_scale=by_scale, M_inf=M_inf, R=Rn, axi=gdata.axisymmetric_flag, east=body, shock=None, f_s=1.0/(1.0-gamma) )
 
 #
 # 4. Define the blocks, boundary conditions and set the discretisation
