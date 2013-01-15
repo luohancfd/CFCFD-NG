@@ -401,10 +401,13 @@ int prepare_to_integrate( int start_tindx )
         if ( get_verbose_flag() ) printf( "----------------------------------\n" );
 	sprintf( jbcstr, ".b%04d", bdp->id );
 	jbstring = jbcstr;
-	// Read grid from the tindx=0 files, always.
-	//filename = "grid/t0000/"+G.base_file_name+".grid"+jbstring+".t0000";
 	// Read grid from the specified tindx files.
-	filename = "grid/"+tindxstring+"/"+G.base_file_name+".grid"+jbstring+"."+tindxstring;
+	if ( get_moving_grid_flag() ) {
+	    filename = "grid/"+tindxstring+"/"+G.base_file_name+".grid"+jbstring+"."+tindxstring;
+	} else {
+	    // Read grid from the tindx=0 files, always.
+	    filename = "grid/t0000/"+G.base_file_name+".grid"+jbstring+".t0000";
+	}
         if (bdp->read_grid(filename, G.dimensions, zip_files) != SUCCESS) {
 	    return FAILURE;
 	}
