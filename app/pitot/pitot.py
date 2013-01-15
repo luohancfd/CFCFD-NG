@@ -82,21 +82,21 @@ calculations.
 Someday I'll make a proper makefile for this guy, but for now,
 just make sure cfpylib is in your Python $PATH.
 
-You may then call upon pitot.py so long as you have suitable
+You may then call upon pitot.py as long as you have suitable
 enviroment variables set, as per the installation instructions
 for Eilmer3.
 
 
 Some History
 ------------
-Since the dawn of the time, Richard Morgan used the program pitot to
-do basic calculations and create new expansion tube conditions.
+Since the dawn of time, Richard Morgan used the program pitot to perform
+basic calculations and create new expansion tube conditions.
 The code was originally written in GWBasic, and as an exercise in 
 programming (and to hopefully make the life of my colleagues and I
 easier) I learnt some basic GWBasic syntax and ported the program to
 Python at the start of 2012. It has since become an ongoing project
 and this latest version has completely rebuilt the code from the 
-ground up as an new program that makes use of the classes and functions
+ground up as a new program that makes use of the classes and functions
 available to me as part of cfpylib inside the cfcfd code collection.
 
 .. Author: Chris James (c.james4@uq.edu.au)
@@ -123,6 +123,7 @@ available to me as part of cfpylib inside the cfcfd code collection.
     29-Nov-2012: Did some little changes to the printout at the end of the test
         to make it clearer and some of the basic syntax.
     17-Dec-2012: Added two more test gases to the code.
+    15-Jan-2013: added basic test time calculation from the work of Paull and Stalker (1992) to the code
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -138,7 +139,7 @@ from cfpylib.gasdyn.cea2_gas import Gas, make_gas_from_name
 from cfpylib.gasdyn.gas_flow import *
 from cfpylib.gasdyn.ideal_gas_flow import p0_p, pitot_p
 
-VERSION_STRING = "19-Dec-2012"
+VERSION_STRING = "15-Jan-2013"
 
 DEBUG_PITOT = False
 
@@ -515,7 +516,7 @@ def main():
             M['s3s']=primary_driver_x2[driver_gas][1]
             
         elif facility == 'x3':
-            states['s4']=primary_driver_x3[driver_gas][0],clone()
+            states['s4']=primary_driver_x3[driver_gas][0].clone()
             states['s4'].set_pT(2.79e7,2700.0)
             V['s4']=0.0
             M['s4']=0.0
@@ -808,7 +809,7 @@ def main():
                 states['s5'].p = states['s5'].p/2.0
                 Vs1 = secant(primary_shock_speed_reflected_iterator, 2000.0, 4000.0, tol=1.0e-3,limits=[500.0,1000000.0])
             else: #just do the expansion
-                Vs1 = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, 2000.0, 4000.0, tol=1.0e-3,limits=[1000.0,1000000.0])
+                Vs1 = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, 4000.0, 6000.0, tol=1.0e-3,limits=[1000.0,1000000.0])
             if PRINT_STATUS: print "From secant solve: Vs1 = {0} m/s".format(Vs1)
             #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
             if PRINT_STATUS: print "Once Vs1 is known, find conditions at state 1 and 2."
@@ -844,10 +845,13 @@ def main():
         
         if p5: #just use the gas guess if you don't know
             ideal_gas_guess = gas_guess
+	    ideal_gas_guess_air = {'gam':1.35,'R':571.49}
         elif Vs2 >= 9000.0:
             ideal_gas_guess = gas_guess
+	    ideal_gas_guess_air = {'gam':1.35,'R':571.49}
         else:
             ideal_gas_guess = None
+	    ideal_gas_guess_air = None
 
 #--------------------- acceleration tube -----------------------------------
                     
@@ -858,7 +862,7 @@ def main():
         def error_in_velocity_s2_expansion_pressure_iterator(p5, state2=states['s2'], 
                                            V2g=V['s2'], state5=states['s5'],
                                             state6=states['s6'],Vs2=Vs2,
-                                            ideal_gas_guess=ideal_gas_guess):
+                                            ideal_gas_guess=ideal_gas_guess_air):
             """Compute the velocity mismatch for a given pressure ratio across the 
             unsteady expansion from state 2 to state 7."""
             
@@ -879,7 +883,7 @@ def main():
         def error_in_pressure_s2_expansion_shock_speed_iterator(Vs2, state2=states['s2'], 
                                            V2g=V['s2'], state5=states['s5'],
                                             state6=states['s6'],
-                                            ideal_gas_guess=ideal_gas_guess):
+                                            ideal_gas_guess=ideal_gas_guess_air):
             """Compute the velocity mismatch for a given shock speed in front of the 
             unsteady expansion from state 2 to state 7."""
             
@@ -912,9 +916,9 @@ def main():
         elif test == 'fulltheory-pressure': #compute the shock speed for the chosen fill pressure, uses Vs1 as starting guess
             #put two sets of starting guesses here to try and make more stuff work
             if Vs1 < 2000.0:
-                Vs2 = secant(error_in_pressure_s2_expansion_shock_speed_iterator, Vs1+3000.0, 12000.0, tol=1.0e-3,limits=[Vs1,100000.0])
+                Vs2 = secant(error_in_pressure_s2_expansion_shock_speed_iterator, Vs1+7000.0, 15100.0, tol=1.0e-3,limits=[Vs1,100000.0])
             else:
-                Vs2 = secant(error_in_pressure_s2_expansion_shock_speed_iterator, Vs1+3000.0, 12000.0, tol=1.0e-3,limits=[Vs1,100000.0])
+                Vs2 = secant(error_in_pressure_s2_expansion_shock_speed_iterator, Vs1+7000.0, 15100.0, tol=1.0e-3,limits=[Vs1,100000.0])
             if PRINT_STATUS: print "From secant solve: Vs2 = {0} m/s".format(Vs2)
             #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
             if PRINT_STATUS: print "Once Vs2 is known, find conditions at state 5 and 6."            
@@ -929,7 +933,7 @@ def main():
         
 #------------------- finishing off any other needed calculations -------------
                           
-        #do the nozzle calc up to s8 now
+        #-------------- do the nozzle calc up to s8 now --------------------
         if nozzle:
             if PRINT_STATUS: print "Start steady expansion through the nozzle."
             (V['s8'], states['s8']) = steady_flow_with_area_change(states['s7'], V['s7'], area_ratio)
@@ -938,7 +942,7 @@ def main():
         else:
             state_over_model = 's7'             
         
-        #do normal shock over model
+        #-------------- do normal shock over model --------------------------
         
         if PRINT_STATUS: print "Start frozen normal shock calculation over the test model."  
         states['s10f'] = states[state_over_model].clone()
@@ -949,6 +953,8 @@ def main():
         states['s10e'] = states[state_over_model].clone()
         (V10, V['s10e']) = normal_shock(states[state_over_model], V[state_over_model], states['s10e'])
         M['s10e']= V['s10e']/states['s10e'].son
+        
+        #------------- do conehead calculations if asked to do so -----------
         
         if conehead:
             if PRINT_STATUS: print 'Doing taylor maccoll conehead calculation on 15 degree conehead.'
@@ -962,6 +968,8 @@ def main():
             if PRINT_STATUS: states['s10c'].write_state(sys.stdout)
             # Need to check whether the pressure are the same
             if PRINT_STATUS: print "Computed conehead pressure is {0} Pa".format(states['s10c'].p)
+            
+        #-------------- if the normal shock thing was done, fix it up before print out ----------
 
         if test == "fulltheory-pressure" and shock_switch: #restore the fill pressure's back to normal
             states['s1'].p = states['s1'].p*2.0
@@ -970,7 +978,69 @@ def main():
         if test == "fulltheory-shock" and shock_switch: #cut fill pressure's in half at the end
             states['s1'].p = states['s1'].p*2.0
             states['s5'].p = states['s5'].p*2.0
+            
+        #----------- test time calculations -------------------------------
+        
+        #This was based off code written by David Gildfind that was based off a paper
+        #by Allan Paull and Ray Stalker. I've only considered the basic test time case here
+        # A. Paull & R. J. Stalker, "Test Flow Disturbances in an Expansion Tube", J. Fluid Mech. (1992), vol. 245, pp. 493-521 (p499).
+        
+        
+        if facility == 'x2':
+            #a few different tunnel scenarios give different lengths
+            #all the distances are taken from my L1D run file, written by David Gildfind
+            #0m is the primary diaphragm burst location
+            if config == 'basic':
+                distances = [3.418, 8.979] #secondary diaphragm, and then end of acc tube (m)
+            elif config == 'sec':
+                distances = [3.418, 5.976, 8.979] #secondary diaphragm, tertiary diaphragm, end of acc tube (m)
+            elif config == 'nozzle':
+                distances = [3.418, 8.585] #secondary diaphragm, entrance to nozzle (m)
+            elif config == 'sec-nozzle':
+                distances = [3.418, 5.976, 8.585] #secondary diaphragm, tertiary, entrance to nozzle (m)
+        
+            t_start = 0.0 #time of primary diaphragm burst
+        
+            if secondary: #if secondary we have a third tube to consider
+                #calculate some lengths
+                L_sec_drv = distances[0]
+                L_shk_tube = distances[1] - distances[0]
+                L_acc_tube = distances[2] - distances[1]
                 
+                #shocks
+                t_inc_shock_sd = t_start + L_sec_drv/Vsd
+                t_inc_shock_st = t_inc_shock_sd + L_shk_tube/Vs1
+                t_inc_shock_at = t_inc_shock_st + L_acc_tube/Vs2
+                
+                #contact surfaces
+                t_cs_sd = t_start + L_sec_drv/V['sd3']
+                t_cs_st = t_inc_shock_sd + L_shk_tube/V['s3']
+                t_cs_at = t_inc_shock_st + L_acc_tube/V['s7']
+
+            
+            else: #so we're going straight from primary driver to shock tube now
+                #calculate some lengths
+                L_shk_tube = distances[0]
+                L_acc_tube = distances[1] - distances[0]
+                
+                #shocks
+                t_inc_shock_st = t_start + L_shk_tube/Vs1
+                t_inc_shock_at = t_inc_shock_st +  L_acc_tube/Vs2
+                
+                #contact surfaces
+                t_cs_sd = t_start + L_shk_tube/V['s3']
+                t_cs_at = t_inc_shock_st +  L_acc_tube/V['s7']
+                
+            
+            #now we can actually calculate the basic test time...
+            # (borrowed from the procedure David Gildfind used in his PhD)
+            
+            #now we just need to calculate the time taken for the unsteady 
+            #expansion to hit the end of the acc tube
+            
+            t_final_usx = t_inc_shock_st + L_acc_tube/(V['s7']-states['s7'].son)
+            
+            t_test_basic = t_final_usx - t_cs_at
         
       
 #--------------------------- output --------------------------------
@@ -1115,11 +1185,18 @@ def main():
         print stag_enth
         output.write(stag_enth + '\n')
         
-        #calculate flight equivalent speed
-        u_eq = math.sqrt(2.0*stagnation_enthalpy) #supposedly why this is is discussed in Bianca's thesis
-        u_eq_print = 'The flight equivalent speed is {0:<.5g} m/s.'.format(u_eq)
+        #calculate flight equivalent velocity
+        #for a description of why this is, refer to Bianca Capra's thesis page 104 - 105
+        #Capra, B., Aerothermodynamic Simulation of Subscale Models of the FIRE II and
+        #Titan Explorer Vehicles in Expansion Tubes, Ph.D. thesis, the University of Queens-
+        #land, St. Lucia, Australia, 2006.
+        u_eq = math.sqrt(2.0*stagnation_enthalpy) 
+        u_eq_print = 'The flight equivalent velocity (Ue) is {0:<.5g} m/s.'.format(u_eq)
         print u_eq_print
         output.write(u_eq_print + '\n')
+        
+        #if the test time calculation has been done, print it
+        if t_test_basic: print 'Basic test time = {0} microseconds'.format(t_test_basic*1.0e6)
         
         #added ability to get the species in the post-shock condition
         
