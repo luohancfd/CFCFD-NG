@@ -1,0 +1,83 @@
+% estcj.py
+
+\documentclass[10pt,a4paper]{article}
+\usepackage[body={16cm,23cm}]{geometry}
+\usepackage{graphicx}
+\usepackage{listings}
+
+%------------------------------------------------------------------
+% Extra formatting for codes (from report style)
+%------------------------------------------------------------------
+% a couple horizontal bars to delimit embedded code
+% the width suits that set above and
+% the mathmode eliminates spaces between the three elements
+\newcommand{\topbar}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule[2.0mm]{159.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+\newcommand{\bottombar}{\ensuremath{
+    \rule{0.1mm}{2.0mm} \rule{159.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+}}
+
+%------------------------------------------------------------------
+% Title page information
+%------------------------------------------------------------------
+
+\title{
+  Estimation of high-enthalpy flow conditions
+  for simple shock and expansion processes.
+}
+\author{
+  Mechanical Engineering Report 2011/02 \\
+  P.~A.~Jacobs, R.~J.~Gollan, D.~F.~Potter, F.~Zander and W.~K.~Y.~Chan \\
+  Centre for Hypersonics\\
+  The University of Queensland
+}
+
+\begin{document}
+\maketitle
+
+%------------------------------------------------------------------
+% Main body of document
+%------------------------------------------------------------------
+
+\baselineskip = 1.5pc
+
+\begin{abstract}
+This report presents the software tools that we have built to do simple
+flow process calculations for ideal gases and gases in chemical equilibrium.
+The software comes in the form of a library for the most fundamental processes and
+a couple of application programs for convenient calculation of 
+the combined flow processes relevant to shock- and expansion-tube operation.
+\end{abstract}
+
+%------------------------------------------------------------------
+
+\newpage
+\section{Introduction}
+These functions are a reworking of the ESTC code written by Malcom McIntosh in the 1960s.
+
+
+%------------------------------------------------------------------
+
+
+%--------------------------------------------------------------------
+% Appendix
+%--------------------------------------------------------------------
+
+\newpage
+\appendix
+\section{Source code}
+%
+\subsection{ideal\_gas\_flow.py}
+\label{ideal-gas-flow-py}
+%
+Basic flow relations for an ideal gas.
+
+\scriptsize
+\noindent\topbar
+\lstinputlisting[language={}]{../../../../lib/cfpylib/gasdyn/ideal_gas_flow.py}
+\bottombar
+\normalsize
+
+\end{document}
+
