@@ -10,30 +10,30 @@ def main():
     print "--------------------------------------------------------------------------"
     print "|       RADIATION OF HIGH TEMPERATURE GASES TESTCASE TC4 LEVEL 1         |"
     print "--------------------------------------------------------------------------"
-    print "*   - Equilibrium CH4-N2 plasma torch emission                           *"
+    print "*   - Equilibrium N2-CH4 plasma torch emission                           *"
     print "*   - Optically thick line-of-sight with intensity attenuation           *"
     print "*   - Radiating species considered are  C2, CN, N2                       *"
     print "*   - Implementing photaura radiation model from librad                  *"
     print "--------------------------------------------------------------------------\n"
 
+    # 1. Setup the gas model
     print "Creating the gas-model for a N2-CH4 gas mix"
     gm = create_gas_model("gas-model.lua")
     nsp = gm.get_number_of_species()
-    ntm = gm.get_number_of_modes()
-    
+    ntm = gm.get_number_of_modes()    
     # make the species list
     species = []
     for isp in range(nsp):
         species.append( gm.species_name(isp) )
-
-    print "Initializing the gas data structure."
+    # initialise a new gas-data instance
     Q = Gas_data(gm)
     
+    # 2. Setup the radiation model
     print "Setting up a photaura spectral radiation model"
     rsm = create_radiation_spectral_model("TC4-radiators.lua")
     
-    # calculation control parameters
-    HWHM = 11 / 2
+    # 3. Setup calculation control parameters
+    HWHM = 11.0 / 2
     print "Using a spectrometer HWHM of %0.2f Angstroms" % HWHM
     nu_skip = 100
     do_LOS_integration = True
@@ -41,21 +41,21 @@ def main():
     n_slabs = 5 # there are approximately 110 temperature data points, so 110 should be the maximum value used here
     x_list= [ 1.24e-3, 3.82e-3, 8.43e-3 ] # list of locations to extract the emissivities at
 
-    # Use my_cea_gas.py to determine gas state condition for each discrete slab
+    # 4. Setup the CEA equilibrium calculator 
     p_plasma = 30.0e3     # Pa
     Q.p = p_plasma
     CH4_mw = gm.molecular_weight( gm.get_isp_from_species_name( "CH4" ) )
     N2_mw = gm.molecular_weight( gm.get_isp_from_species_name( "N2" ) )
-    
     # 98.1% N2 by volume
     CH4_mf = 0.019 * CH4_mw / ( 0.019 * CH4_mw + 0.981 * N2_mw )
     N2_mf  = 0.981 * N2_mw / ( 0.019 * CH4_mw + 0.981 * N2_mw )
-    
+    #
     reactants = make_reactants_dictionary( species )
     reactants["CH4"] = CH4_mf
     reactants["N2"] = N2_mf
     cea = Gas( reactants, onlyList=reactants.keys(), with_ions=True, trace=1.0e-10 )
     
+    # 5. Perform line-of-sight integration
     if do_LOS_integration:
         # Initialise line-of-sight class instance (f_res and radial limit previously defined)
         T_i = 0.0; T_f = 0.0
@@ -81,6 +81,7 @@ def main():
         # slabs.plot_spline(show_plot=True, include_integral=False)
         slab_width = ( x_points[-1] - x_points[0] )/n_slabs
     
+        # write the temperature profile to file
         if 0:
             ofile = open( "spline.txt", 'w' )
             dx = 1.0e-4
@@ -90,9 +91,8 @@ def main():
                 x += dx
             ofile.close()
     
-        # make a list of divq values to use
+        # calculate and store the spectral coefficients through the plume
         divqs = []
-    
         for islb in range(n_slabs):
             x = (islb + 0.5) * slab_width + x_points[0]
             # find what temp fits this x through linear interpolation
@@ -123,10 +123,12 @@ def main():
         print "\nperforming spatial integration through plasma torch..."
         I_total = Plasma.integrate_LOS(S)
     
-        # make a copy
+        # make a copy to retain unsmeared spectrum
         S_copy = SpectralIntensity(S)
+        # create the Gaussian apparatus function
+        A = Voigt(0.0, HWHM, nu_skip)
         # apply apparatus function
-        S.apply_apparatus_function( HWHM, nu_skip )
+        S.apply_apparatus_function( A )
     
         # write to file
         outfile = "plasma-transported-intensity.txt"
@@ -140,7 +142,7 @@ def main():
             for inu in range(S_copy.nu.size()):
                 S_copy.I_nu[inu] += Plasma.get_rpoint_pointer(islb).X_.j_nu[inu] * slab_width
         # apply apparatus function
-        S_copy.apply_apparatus_function( HWHM, nu_skip )
+        S_copy.apply_apparatus_function( A )
         # write to file
         outfile = "plasma-transported-intensity-optically-thin.txt"
         I_total = S_copy.write_to_file( outfile )
@@ -150,16 +152,18 @@ def main():
         del S, S_copy
         for divq in divqs:
             delete_doublep( divq )
-    
+
+    # 6. extract emissivities for comparison with Abel inversions    
     if extract_emissivities:
-        # extract emissivities for comparison with Abel inversions
         for x in x_list:
+            # gas state at this location
             T = slabs(x)
             cea.set_pT(p_plasma,T)
             for itm in range(ntm): Q.T[itm] = T
             for isp,sp in enumerate(species):
                 Q.massf[isp] = get_species_composition(sp,cea.species)
             gm.eval_thermo_state_pT(Q)
+            
             # check the CN and C2 mole-fractions
             M = vectord(nsp)
             molef = vectord(nsp)
@@ -169,28 +173,20 @@ def main():
             print "x = %e m" % x
             print "X[CN] = ", molef[species.index("CN")]
             print "X[C2] = ", molef[species.index("C2")]
+            
+            # calculate emission and absorption coefficient spectra
             X = CoeffSpectra(rsm)
             rsm.radiative_spectra_for_gas_state(Q,X)
-            # apply apparatus function
-            S = SpectralIntensity(rsm)
-            for inu in range(S.nu.size()):
-                S.I_nu[inu] = X.j_nu[inu]
-            S.apply_apparatus_function( HWHM, nu_skip )
-            X.nu.resize(S.nu.size())
-            X.j_nu.resize(S.nu.size())
-            X.kappa_nu.resize(S.nu.size())
-            X.j_int.resize(S.nu.size())
-            for inu in range(S.nu.size()):
-                X.nu[inu] = S.nu[inu]
-                X.j_nu[inu] = S.I_nu[inu]
-                X.kappa_nu[inu] = 0.0
-                X.j_int[inu] = 0.0
+            
+            # apply apparatus function to the coefficient spectra
+            X.apply_apparatus_function( A )
             X.integrate_emission_spectra()
+            
             # write to file
             X.write_to_file("emissivities_at_%d_microns.txt" % int(x*1000000) )
             del X,S
 
-    print "\nDeleting gas and spectral radiation models..."
+    # delete the gas and spectral radiation models
     del gm, rsm
 
     print "\nTC4 testcase validation complete."
