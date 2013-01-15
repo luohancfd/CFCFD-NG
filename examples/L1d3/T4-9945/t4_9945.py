@@ -29,7 +29,7 @@ add_break_point(36.05, 0.025)  # end of nozzle throat
 add_break_point(37.00, 0.262)  # exit-plane of nozzle, start of test section
 
 # for loss regions...
-add_loss_region(-2.00, -0.10,  0.5)
+add_loss_region(-0.20, -0.10,  0.5)
 add_loss_region(26.00, 26.10,  0.5)
 add_loss_region(28.00, 28.50,  1.0)
 add_loss_region(36.95, 36.05, 0.25)
