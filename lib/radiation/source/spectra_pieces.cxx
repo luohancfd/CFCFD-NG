@@ -27,7 +27,8 @@ using namespace std;
 
 /* ------------ SpectralContainer class ------------ */
 
-SpectralContainer::SpectralContainer() {}
+SpectralContainer::SpectralContainer()
+ : nwidths( NWIDTHS ) {}
 
 SpectralContainer::SpectralContainer( RadiationSpectralModel * rsm )
 {
@@ -43,10 +44,13 @@ SpectralContainer::SpectralContainer( RadiationSpectralModel * rsm )
 	nu[inu] = nu_val;
 	nu_val+=dnu;
     }
+
+    // Set nwidths to the default value
+    nwidths = NWIDTHS;
 }
 
 SpectralContainer::SpectralContainer(SpectralContainer &C)
-: nu( C.nu ) {}
+: nu( C.nu ), nwidths ( C.nwidths ) {}
 
 SpectralContainer::~SpectralContainer()
 {
@@ -383,6 +387,93 @@ double CoeffSpectra::kappa_from_nu( double nu_interval )
     return kappa;
 }
 
+void CoeffSpectra::apply_apparatus_function( ApparatusFunction * A  )
+{
+    // Quick exit if the representative width is too small
+    if ( A->gamma_star < 1.0e-10 ) return;
+
+    // Initialise the Apparatus function
+    A->initialise();
+
+    // A vector to temporarily hold smeared data
+    vector<double> nu_temp;
+    int count = 0;
+    for( size_t inu=0; inu<nu.size(); inu++) {
+	count++;
+        if ( count==A->nu_sample ) {
+            nu_temp.push_back(nu[inu]);
+            count = 0;
+        }
+    }
+    vector<double> j_nu_temp( nu_temp.size() );
+    vector<double> kappa_nu_temp( nu_temp.size() );
+
+    int percentage=0;
+    for( size_t inu=0; inu<nu_temp.size(); inu++) {
+	double nu_val = nu_temp[inu];
+	double lambda_ang = 10.0 * nu2lambda( nu_val );
+	// convert HWHM's to Hz
+	double gamma_star_Hz = A->gamma_star / lambda_ang * nu_val;
+	double nu_lower = nu_val - double(nwidths) * gamma_star_Hz;
+	double nu_upper = nu_val + double(nwidths) * gamma_star_Hz;
+	int jnu_start = get_nu_index(nu,nu_lower) + 1;
+	int jnu_end = get_nu_index(nu,nu_upper) + 1;
+
+	if((double(inu)/double(nu_temp.size())*100.0+1.0)>double(percentage)) {
+	    cout << "Smearing spectrum: | " << percentage << "% |, jnu_start = " << jnu_start << ", jnu_end = " << jnu_end << " \r" << flush;
+	    percentage += 10;
+        }
+
+	// Apply convolution integral over this frequency range with trapezoidal method
+	double j_nu_conv = 0.0;
+	double kappa_nu_conv = 0.0;
+	double AF_integral = 0.0;
+	for ( int jnu=jnu_start+1; jnu<jnu_end; jnu++ ) {
+            double dnu0 = nu[jnu-1] - nu_val;
+            double dnu1 = nu[jnu] - nu_val;
+            double f_nu0 = A->eval(nu_val, dnu0);
+            double f_nu1 = A->eval(nu_val, dnu1);
+            j_nu_conv += 0.5 * ( j_nu[jnu-1]*f_nu0 + j_nu[jnu]*f_nu1 ) * ( nu[jnu] - nu[jnu-1] );
+            kappa_nu_conv += 0.5 * ( kappa_nu[jnu-1]*f_nu0 + kappa_nu[jnu]*f_nu1 ) * ( nu[jnu] - nu[jnu-1] );
+            AF_integral += 0.5 * ( f_nu0 + f_nu1 ) * ( nu[jnu] - nu[jnu-1] );
+	}
+
+	// cout << "AF_integral = " << AF_integral << endl;
+
+	// Make sure a zero value is not returned if nwidths is too small
+	if ( jnu_start==(jnu_end-1) ) {
+	    cout << "SpectralIntensity::apply_apparatus_function()" << endl
+	         << "WARNING: nwidths is too small!" << endl;
+	    j_nu_conv = j_nu[inu];
+	    kappa_nu_conv = kappa_nu[inu];
+	}
+
+	// Save result (and rescale to ensure the integral remains the same)
+	j_nu_temp[inu] = j_nu_conv / AF_integral;
+	kappa_nu_temp[inu] = kappa_nu_conv / AF_integral;
+    }
+
+    cout << endl;
+
+    // Loop again to overwrite old I_nu values in S
+    nu.resize(nu_temp.size());
+    j_nu.resize(nu_temp.size());
+    kappa_nu.resize(nu_temp.size());
+    j_int.resize(nu_temp.size());
+    for( size_t inu=0; inu<nu_temp.size(); inu++) {
+	nu[inu] = nu_temp[inu];
+    	j_nu[inu] = j_nu_temp[inu];
+    	kappa_nu[inu] = kappa_nu_temp[inu];
+    	// recompute cumulative emissivity
+    	if ( inu==0.0 )
+    	    j_int[inu] = 0.0;
+    	else
+    	    j_int[inu] = 0.5 * ( j_nu[inu] + j_nu[inu-1] ) * ( nu[inu] - nu[inu-1] );
+    }
+
+    return;
+}
+
 /* ------------ SpectralBin class ------------ */
 
 SpectralBin::SpectralBin(vector<double> & pvec, double p_min, double p_max )
@@ -618,16 +709,13 @@ double Gaussian_profile::eval( double nu, double delta_nu )
 
 /* ------------ SpectralIntensity class ------------ */
 
-SpectralIntensity::SpectralIntensity()
-: nwidths( NWIDTHS ) {}
+SpectralIntensity::SpectralIntensity() {}
 
 SpectralIntensity::SpectralIntensity( RadiationSpectralModel * rsm )
  : SpectralContainer( rsm )
 {
     I_nu.resize( nu.size() );
     I_int.resize( nu.size() );
-    
-    nwidths = NWIDTHS;
 }
 
 SpectralIntensity::SpectralIntensity( RadiationSpectralModel * rsm, double T )
@@ -635,8 +723,6 @@ SpectralIntensity::SpectralIntensity( RadiationSpectralModel * rsm, double T )
 {
     I_nu.resize( nu.size() );
     I_int.resize( nu.size() );
-    
-    nwidths = NWIDTHS;
 
     for ( size_t inu=0; inu<nu.size(); ++inu ) {
     	I_nu[inu] = planck_intensity( nu[inu], T );
@@ -644,7 +730,7 @@ SpectralIntensity::SpectralIntensity( RadiationSpectralModel * rsm, double T )
 }
 
 SpectralIntensity::SpectralIntensity(SpectralIntensity &S )
- : SpectralContainer( S ), I_nu( S.I_nu ), I_int( S.I_int ), nwidths( S.nwidths )
+ : SpectralContainer( S ), I_nu( S.I_nu ), I_int( S.I_int )
 {}
 
 SpectralIntensity::~SpectralIntensity()
@@ -737,6 +823,11 @@ void SpectralIntensity::apply_apparatus_function( ApparatusFunction * A  )
     for( size_t inu=0; inu<nu_temp.size(); inu++) {
 	nu[inu] = nu_temp[inu];
     	I_nu[inu] = I_nu_temp[inu];
+    	// recompute cumulative intensity
+    	if ( inu==0.0 )
+    	    I_int[inu] = 0.0;
+    	else
+    	    I_int[inu] = 0.5 * ( I_nu[inu] + I_nu[inu-1] ) * ( nu[inu] - nu[inu-1] );
     }
 
     return;

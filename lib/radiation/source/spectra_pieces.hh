@@ -52,6 +52,7 @@ public:
     
 public:
     std::vector<double> nu;
+    int nwidths;
 };
 
 class CoeffSpectra : public SpectralContainer {
@@ -103,6 +104,9 @@ public:
 
     /// \brief Calculate the absorption coefficient for the given frequency (via interpolation if necessary)
     double kappa_from_nu( double nu );
+
+    /// \brief Apply an apparatus (smearing) function to the spectra
+    void apply_apparatus_function( ApparatusFunction * A );
 };
 
 #define NO_BINNING        0
@@ -174,7 +178,6 @@ public:
 public:
     std::vector<double> I_nu;
     std::vector<double> I_int;
-    int nwidths;
 };
 
 class BinnedSpectralIntensity {
