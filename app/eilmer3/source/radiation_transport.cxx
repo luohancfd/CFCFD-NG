@@ -1356,8 +1356,9 @@ int MonteCarlo::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, 
     	RayTracingInterface * RTinterface =  RTcell->interfaces_[ray->status_];
     	if ( RTinterface==0 ) {
     	    cout << "MonteCarlo::trace_ray" << endl
-    	         << "bad RayTracingInterface pointer on RayTracingCell" << endl
-    	         << "Bailing ouT!" << endl;
+    	         << "bad RayTracingInterface pointer on RayTracingCell" << endl;
+#           if EXIT_ON_RT_FAILURE
+    	    cout << "Bailing out!" << endl;
     	    cout << "ray->status_ = " << ray->status_ << endl;
     	    cout << "RTcell->interfaces_[NORTH] = " << RTcell->interfaces_[NORTH] << endl;
     	    cout << "RTcell->interfaces_[SOUTH] = " << RTcell->interfaces_[SOUTH] << endl;
@@ -1366,6 +1367,7 @@ int MonteCarlo::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, 
     	    cout << "cell->pos = " << RTcell->origin_.str() << endl;
     	    cout << "point = " << p.str() << endl;
     	    exit( BAD_INPUT_ERROR );
+#           endif
     	}
     	RTinterface->q_rad_temp_[omp_get_thread_num()] += E / RTinterface->area_;
     }
@@ -1421,8 +1423,9 @@ int MonteCarlo::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, 
         RayTracingInterface * RTinterface =  RTcell->interfaces_[ray->status_];
         if ( RTinterface==0 ) {
             cout << "MonteCarlo::trace_ray" << endl
-                 << "bad RayTracingInterface pointer on RayTracingCell" << endl
-                 << "Bailing ouT!" << endl;
+                 << "bad RayTracingInterface pointer on RayTracingCell" << endl;
+#           if EXIT_ON_RT_FAILURE
+            cout << "Bailing out!" << endl;
             cout << "ray->status_ = " << ray->status_ << endl;
             cout << "RTcell->interfaces_[NORTH] = " << RTcell->interfaces_[NORTH] << endl;
             cout << "RTcell->interfaces_[SOUTH] = " << RTcell->interfaces_[SOUTH] << endl;
@@ -1431,6 +1434,7 @@ int MonteCarlo::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, 
             cout << "cell->pos = " << RTcell->origin_.str() << endl;
             cout << "point = " << p.str() << endl;
             exit( BAD_INPUT_ERROR );
+#           endif
         }
         RTinterface->q_rad_temp_[omp_get_thread_num()] += E / RTinterface->area_;
     }

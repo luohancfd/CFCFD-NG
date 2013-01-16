@@ -17,6 +17,8 @@
 #include "cell_finder.hh"
 #include "ray_tracing_pieces.hh"
 
+#define EXIT_ON_RT_FAILURE 1
+
 class RadiationTransportModel {
 public:
     RadiationTransportModel( void ) {}
