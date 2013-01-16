@@ -15,33 +15,65 @@ The radiation transport model is defined the \texttt{transport\_data} field of t
 
 \subsection{Discrete transfer model}
 
-The discrete transfer model can be selected via:
+The discrete transfer model can be selected via setting the \texttt{transport\_model} field in the \texttt{transport\_data} table to	 \texttt{discrete transfer}.
+The following code snippet gives an example of selecting and defining the parameters for the discrete transfer model:
 
 \noindent \topbar
 \begin{lstlisting}[basicstyle=\ttfamily\normalsize]
-{
-transport\_data = {
-   transport\_model = 'discrete transfer',
+transport_data = {
+   transport_model = 'discrete transfer',
    nrays = 8,
    clustering = "none",
    binning = "none"
 }
-\end{lstlisting}[basicstyle=\ttfamily\normalsize]
+\end{lstlisting}
 \bottombar
 
 A description of the Lua input fields for the discrete transfer radiation transport model is given in Table~\ref {tab:DTM-input}.
 
-\begin{table}
+\begin{table}[h]
  \begin{center}
   \caption{Description of Lua input fields for the discrete transfer radiation transport models}
   \label{tab:DTM-input}
-\begin{tabular}{llp{6cm}}
+\begin{tabular}{llp{8cm}}
  \hline \hline
  Field                        & Type              &  Description \\ \hline
-\texttt{nrays}            & \textit{int}       &  Number of rays emitted per cell and per frequency \\
+\texttt{nrays}            & \textit{int}       &  Number of rays emitted per cell and per frequency interval \\
 \texttt{clustering}    & \textit{string}  &  Ray clustering: \texttt{by volume}, \texttt{by area} or \texttt{none} \\
 \texttt{binning}        & \textit{string}  &  Binning model: \texttt{opacity}, \texttt{frequency} or \texttt{none} \\
 \texttt{N\_bins}         & \textit{int}       &  Number of bins \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\subsection{Photon Monte-Carlo model}
+
+The photon Monte-Carlo model can be selected via setting the \texttt{transport\_model} field in the \texttt{transport\_data} table to \texttt{monte carlo}.
+The following code snippet gives an example of selecting and defining the parameters for the photon Monte-Carlo model:
+
+\noindent \topbar
+\begin{lstlisting}[basicstyle=\ttfamily\normalsize]
+transport_data = {
+   transport_model = 'monte carlo',
+   nrays = 512,
+   clustering = "none"
+}
+\end{lstlisting}
+\bottombar
+
+A description of the Lua input fields for the photon Monte-Carlo radiation transport model is given in Table~\ref {tab:PMC-input}.
+Note that here \texttt{nrays} is the total number of rays emitted per cell, whereas for the discrete transfer model \texttt{nrays} is the number of rays emitted per cell per frequency interval.
+
+\begin{table}[h]
+ \begin{center}
+  \caption{Description of Lua input fields for the photon Monte-Carlo radiation transport model}
+  \label{tab:PMC-input}
+\begin{tabular}{llp{8cm}}
+ \hline \hline
+ Field                        & Type              &  Description \\ \hline
+\texttt{nrays}            & \textit{int}       &  Number of rays emitted per cell \\
+\texttt{clustering}    & \textit{string}  &  Ray clustering: \texttt{by volume}, \texttt{by area} or \texttt{none} \\
 \hline
 \end{tabular}
 \end{center}
