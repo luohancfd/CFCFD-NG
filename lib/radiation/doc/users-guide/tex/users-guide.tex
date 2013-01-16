@@ -95,6 +95,14 @@
 \floatstyle{boxed}
 \newfloat{Listing}{h}{lol}
 
+% ----------------------------------
+% packages for thesis parts
+% ----------------------------------
+\usepackage{subfig}
+\usepackage{threeparttable}
+\usepackage{supertabular}
+\usepackage[section]{placeins} % floats in their correct section
+
 %------------------------------------------------------------------
 % a couple horizontal bars to delimit embedded code
 % the width suits the page size set above and
@@ -114,6 +122,119 @@
 }}
 %------------------------------------------------------------------
 
+%------------------------------------------------------------------------------------------------------------------------
+% convenience definitions from my thesis class
+\newcommand {\tbf}[1] {\textbf{#1}}
+\newcommand {\tit}[1] {\textit{#1}}
+\newcommand {\tmd}[1] {\textmd{#1}}
+\newcommand {\trm}[1] {\textrm{#1}}
+\newcommand {\tsc}[1] {\textsc{#1}}
+\newcommand {\tsf}[1] {\textsf{#1}}
+\newcommand {\tsl}[1] {\textsl{#1}}
+\newcommand {\ttt}[1] {\texttt{#1}}
+\newcommand {\tup}[1] {\textup{#1}}
+
+\newcommand {\mbf}[1] {$\mathbf{#1}$}
+\newcommand {\mmd}[1] {\mathmd{#1}}
+\newcommand {\mrm}[1] {\mathrm{#1}}
+\newcommand {\msc}[1] {\mathsc{#1}}
+\newcommand {\msf}[1] {\mathsf{#1}}
+\newcommand {\msl}[1] {\mathsl{#1}}
+\newcommand {\mtt}[1] {\mathtt{#1}}
+\newcommand {\mup}[1] {\mathup{#1}}
+
+\newcommand {\figwidth} {100mm}
+\newcommand {\Ref}[1] {Reference~\cite{#1}}
+\newcommand {\Sec}[1] {Section~\ref{#1}}
+\newcommand {\App}[1] {Appendix~\ref{#1}}
+\newcommand {\Chap}[1] {Chapter~\ref{#1}}
+\newcommand {\etal} {\emph{~et~al.}}
+\newcommand {\bul} {$\bullet$ }   % bullet
+\newcommand {\fig}[1] {Figure~\ref{#1}}   % references Figure x
+\newcommand {\imp} {$\Rightarrow$}   % implication symbol (default)
+\newcommand {\impt} {$\Rightarrow$}   % implication symbol (text mode)
+\newcommand {\impm} {\Rightarrow}   % implication symbol (math mode)
+\newcommand {\vect}[1] {\mathbf{#1}} 
+\newcommand {\hvect}[1] {\hat{\mathbf{#1}}}
+\newcommand {\del} {\partial}
+\newcommand {\eqn}[1] {Equation~(\ref{#1})} 
+\newcommand {\tab}[1] {Table~\ref{#1}} % references Table x
+\newcommand {\half} {\frac{1}{2}} 
+\newcommand {\ten}[1] {\times10^{#1}}
+\newcommand {\bra}[2] {\mbox{}_{#2}\langle #1 |}
+\newcommand {\ket}[2] {| #1 \rangle_{#2}}
+\newcommand {\Bra}[2] {\mbox{}_{#2}\left.\left\langle #1 \right.\right|}
+\newcommand {\Ket}[2] {\left.\left| #1 \right.\right\rangle_{#2}}
+\newcommand {\im} {\mathrm{Im}}
+\newcommand {\re} {\mathrm{Re}}
+\newcommand {\braket}[4] {\mbox{}_{#3}\langle #1 | #2 \rangle_{#4}} 
+\newcommand {\dotprod}[4] {\mbox{}_{#3}\langle #1 | #2 \rangle_{#4}} 
+\newcommand {\trace}[1] {\text{tr}\left(#1\right)}
+% Atomic electronic multiplet labels
+% C
+\newcommand {\Clevone} {2s^2 2p \text{ } ^2P^\circ}
+\newcommand {\Clevtwo} {2s 2p^2 \text{ } ^4P}
+\newcommand {\Clevthree} {2s 2p^2 \text{ } ^2D}
+\newcommand {\Clevfive} {2s2p^2 \text{ } ^2P}
+\newcommand {\Clevfifteen} {2p^3 \text{ } ^2P^\circ}
+\newcommand {\Cleveighteen} {2s^2 5p \text{ } ^2P^\circ}
+\newcommand {\Clevtwenty} {2s^2 5d \text{ } ^2D}
+\newcommand {\Clevtwentytwo} {2s^2 5g \text{ } ^2G}
+% N
+\newcommand {\Nlevone} {2s^2 2p^3\text{ }^4S^\circ}
+\newcommand {\Nlevtwo} {2s^2 2p^3 \text{ }^2D^\circ}
+\newcommand {\Nlevthree} {2s^2 2p^3 \text{ }^2P^\circ}
+\newcommand {\Nlevfive} {2s^2 2p^2 (^3P)3s \text{ }^4P}
+\newcommand {\Nlevthirteen} {2s^2 2p^2(^1D)3s \text{ }^2D}
+\newcommand {\Nlevfifteen} {2s^2 2p^2(^3P)4s \text{ }^2P}
+\newcommand {\Nlevtwenty} {2s^2 2p^2(^3P)3d \text{ }^4D}
+% O
+\newcommand {\Olevone} {2s^2 2p^4 \text{ } ^3P}
+\newcommand {\Olevtwo} {2s^2 2p^4 \text{ } ^1D}
+\newcommand {\Olevthree} {2s^2 2p^4 \text{ } ^1S}
+\newcommand {\Olevfive} {2s^2 2p^3(^4S^\circ)3p \text{ } ^5p}
+\newcommand {\Olevseven} {2s^2 2p^3 (^4S^\circ)3p \text{ } ^3S}
+\newcommand {\Olevten} {2s^2 2p^3 (^4S^\circ)3d \text{ } ^5D^\circ}
+\newcommand {\Olevsixteen} {2s^2 2p^3 (^4S^\circ)5s \text{ } ^3S^\circ}
+\newcommand {\Olevseventeen} {2s^2 2p^3 (^2D^\circ)3s \text{ } ^1D^\circ}
+\newcommand {\Olevtwenty} {2s^2 2p^3 (^4S^\circ)4f \text{ } ^5F}
+% General CR
+\newcommand{\CRreact}[4]{$\text{#1}\left(#3\right) + \text{#2} \Longleftrightarrow \text{#1}\left(#4\right) + \text{#2}$}
+\newcommand{\CRdecay}[3]{$\text{#1}\left(#2\right) \Longrightarrow \text{#1}\left(#3\right) + h\nu$}
+\newcommand{\RadTrans}[2]{$#1 \rightarrow #2$}
+\newcommand{\PIEreac}[4]{$\text{#1}\left(#3\right) + \text{#2}  \Longleftrightarrow \text{#1}\left(#4\right) + \text{#2}$}
+\newcommand{\PIDreac}[5]{$\text{#1}\left(#3\right) + \text{#2}  \Longleftrightarrow \text{#4} + \text{#5} + \text{#2}$}
+\newcommand{\PIIreac}[3]{$\text{#1} + \text{#2}  \Longleftrightarrow \text{#3} + \text{#2} + \text{#2}$}
+\newcommand{\BBRTreac}[3]{$\text{#1}\left(#2\right) \Longrightarrow \text{#1}\left(#3\right) + h\nu$}
+% Diatomic electronic levels
+% N2
+\newcommand {\NNlevX} {X^1 \Sigma_g^+}
+\newcommand {\NNlevA} {A^3 \Sigma_u^+}
+\newcommand {\NNlevB} {B^3 \Pi_g}
+\newcommand {\NNlevC} {C^3 \Pi_u}
+% N2_plus
+\newcommand {\NNplevX} {X^2 \Sigma_g^+}
+\newcommand {\NNplevA} {A^2 \Pi_u}
+\newcommand {\NNplevB} {B^2 \Sigma_u^+}
+\newcommand {\NNplevC} {C^2 \Sigma_u^+}
+% CN
+\newcommand {\CNlevX} {X^{2}\Sigma^{+}}
+\newcommand {\CNlevA} {A^{2}\Pi}
+\newcommand {\CNlevB} {B^{2}\Sigma^{+}}
+\newcommand {\CNlevD} {D^{2}\Pi}
+\newcommand {\CNleva} {a^{4} \Sigma^+}
+% CO
+\newcommand {\COlevX} {X^{1}\Sigma^{+}}
+\newcommand {\COleva} {a^2\Pi}
+\newcommand {\COlevap} {a'^3\Sigma^+}
+\newcommand {\COlevd} {d^3 \Delta}
+\newcommand {\COleve} {e^3 \Sigma^-}
+\newcommand {\COlevA} {A^{1}\Pi}
+% C2
+\newcommand {\CClevX} {X^{1}\Sigma_g^{+}}
+\newcommand {\CClevd} {d^{3}\Pi_g}
+%------------------------------------------------------------------------------------------------------------------------
+
 \title{\textsf{A High Temperature Gas Radiation Module for Compressible Flow CFD:\\
        Theory and User's Guide}}
 \author{\textsf{Daniel F. Potter}}
@@ -130,14 +251,21 @@
 \include{preface}
 \pagenumbering{arabic}
 
-\part{Theory}
 \include{introduction}
 
+\part{Theory}
+
+\include{spectral-modelling/spectral-modelling}
+\include{collisional-radiative-modelling/collisional-radiative-modelling}
+
 \part{User's Guide}
+
 \include{installation}
 \include{getting-started}
 \include{input-files}
 \include{examples}
+% TC4 plasma torch
+% 
 
 % \part{Developer's Guide}
 
