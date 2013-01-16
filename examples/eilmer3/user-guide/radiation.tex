@@ -17,16 +17,16 @@ The radiation transport model is defined the \texttt{transport\_data} field of t
 
 The discrete transfer model can be selected via:
 
-\topbar
-\lstinputlisting[language={}]
+\noindent \topbar
+\begin{lstlisting}[basicstyle=\ttfamily\normalsize]
 {
-transport_data = {
-   transport_model = 'discrete transfer',
+transport\_data = {
+   transport\_model = 'discrete transfer',
    nrays = 8,
    clustering = "none",
    binning = "none"
 }
-}
+\end{lstlisting}[basicstyle=\ttfamily\normalsize]
 \bottombar
 
 A description of the Lua input fields for the discrete transfer radiation transport model is given in Table~\ref {tab:DTM-input}.
