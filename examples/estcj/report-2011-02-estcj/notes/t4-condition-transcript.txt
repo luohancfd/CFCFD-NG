@@ -1,3 +1,4 @@
+$ estcj.py --task=stn --gas=air --T1=300 --p1=125.0e3 --Vs=2414 --pe=34.37e6 --ar=27.0
 estcj: Equilibrium Shock Tube Conditions
 Version: 07-Mar-2012
 Input parameters:
