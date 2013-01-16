@@ -38,10 +38,7 @@ extern "C" {
 using namespace std;
 
 /* --------- Model: "RadiationTransportModel: ----------- */
-RadiationTransportModel::RadiationTransportModel( lua_State *L )
-{
-    spectrally_resolved_ = get_int(L,-1,"spectrally_resolved");
-}
+RadiationTransportModel::RadiationTransportModel( lua_State *L ) {}
 
 RadiationTransportModel::~RadiationTransportModel()
 {
@@ -91,7 +88,11 @@ void NoRadiationTransportModel::compute_Q_rad_for_flowfield()
 /* --------- Model: "OpticallyThin" --------- */
 
 OpticallyThin::OpticallyThin( lua_State *L )
-: RadiationTransportModel(L) {}
+: RadiationTransportModel(L)
+{
+    // Why aren't we using get_int()? Booleans makes the input file more neat
+    spectrally_resolved_ = (int) get_boolean(L,-1,"spectrally_resolved");
+}
 
 OpticallyThin::~OpticallyThin() {}
 
@@ -163,14 +164,7 @@ void OpticallyThin::compute_Q_rad_for_block( Block * A )
 /* --------- Model: "TangentSlab" --------- */
 
 TangentSlab::TangentSlab( lua_State *L )
- : RadiationTransportModel(L)
-{
-    if ( !spectrally_resolved_ ) {
-    	cout << "TangentSlab::TangentSlab()" << endl
-    	     << "Spectrally unresolved calculations are not yet possible." << endl;
-    	exit( BAD_INPUT_ERROR );
-    }
-}
+ : RadiationTransportModel(L) {}
 
 TangentSlab::~TangentSlab()
 {}
@@ -263,12 +257,6 @@ void TangentSlab::compute_Q_rad_for_block( Block * A )
 DiscreteTransfer::DiscreteTransfer( lua_State *L )
  : RadiationTransportModel(L)
 {
-    if ( !spectrally_resolved_ ) {
-    	cout << "DiscreteTransfer::DiscreteTransfer()" << endl
-    	     << "Spectrally unresolved calculations are not yet possible." << endl;
-    	exit( BAD_INPUT_ERROR );
-    }
-    
     nrays_ = get_int(L,-1,"nrays");
     
     dl_lmin_ratio_ = 0.9;	// ratio of RT step to min cell length scale
@@ -943,12 +931,6 @@ int DiscreteTransfer::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, in
 MonteCarlo::MonteCarlo( lua_State *L )
  : RadiationTransportModel(L)
 {
-    if ( !spectrally_resolved_ ) {
-    	cout << "MonteCarlo::MonteCarlo()" << endl
-    	     << "Spectrally unresolved calculations are not yet possible." << endl;
-    	exit( BAD_INPUT_ERROR );
-    }
-
     nrays_ = get_int(L,-1,"nrays");	// average number of rays/photons per cell/interface
     
     dl_lmin_ratio_ = 0.3;	// ratio of RT step to min cell length scale
@@ -1123,7 +1105,10 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 		}
 		cout << "Thread " << omp_get_thread_num() << ": Recomputing spectra for cell: " << ic << " in block: " << ib;
 		cell->recompute_spectra( rsm_[omp_get_thread_num()] );
-		cout << " - j_total = " << cell->X_->integrate_emission_spectra() << endl;
+		if ( rsm_[omp_get_thread_num()]->get_spectral_points()==1 )
+		    cout << " - j_total = " << cell->X_->j_int[0] << endl;
+		else
+		    cout << " - j_total = " << cell->X_->integrate_emission_spectra() << endl;
 	    }
 	    int iface;
 #	    ifdef _OPENMP
@@ -1133,7 +1118,10 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 	    	RayTracingInterface * interface = interfaces_[ib][iface];
 		cout << "Thread " << omp_get_thread_num() << ": Recomputing spectra for interface: " << iface << " in block: " << ib;
 		interface->recompute_spectra( rsm_[omp_get_thread_num()] );
-		cout << " - I_total = " << interface->S_->integrate_intensity_spectra() << endl;
+		if ( rsm_[omp_get_thread_num()]->get_spectral_points()==1 )
+		    cout << " - I_total = " << interface->S_->I_int[0] << endl;
+		else
+		    cout << " - I_total = " << interface->S_->integrate_intensity_spectra() << endl;
 	    }
 	}
 	

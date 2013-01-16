@@ -3,7 +3,7 @@
  *
  *  \author Rowan J. Gollan
  *  \version 13-Jan-07 : ported from work of Sep-Oct 2003
- *           06-Jul-09 : ported from lib/radiation
+ *           06-Jul-09 : ported from old lib/radiation
  *
  **/
 
@@ -17,6 +17,8 @@
 
 class EquilibriumAir : public RadiationSpectralModel {
 public:
+    EquilibriumAir();
+
     ~EquilibriumAir();
     
     std::string str() const;

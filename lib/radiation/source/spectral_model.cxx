@@ -28,7 +28,13 @@
 using namespace std;
 
 RadiationSpectralModel::
-RadiationSpectralModel() {}
+RadiationSpectralModel()
+{
+    lambda_min = 0.0;
+    lambda_max = 0.0;
+    spectral_points = 1;
+    spectral_blocks = 1;
+}
 
 RadiationSpectralModel::
 RadiationSpectralModel( lua_State * L )
@@ -235,7 +241,7 @@ RadiationSpectralModel * create_radiation_spectral_model( const string input_fil
    	     << " from file: " << input_file << " ---" << endl;
     
     // 2. Create the spectral model
-    if( spectral_model == "equilibrium_air" ) {
+    if( spectral_model == "equilibrium air" ) {
 	rsm = new EquilibriumAir();
     }
     else if( spectral_model == "photaura" ) {

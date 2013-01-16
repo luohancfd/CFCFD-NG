@@ -366,6 +366,8 @@ int CoeffSpectra::random_frequency_interval( double R )
 
 double CoeffSpectra::kappa_from_nu( double nu_interval )
 {
+    if ( nu.size()==1 ) return kappa_nu[0];
+
     int inu_b = 0, inu_u = int( nu.size() - 1 ), inu_mp = 0;
     double f_b = 0.0, f_mp;
     while ( abs( inu_u - inu_b ) > 1 ) {

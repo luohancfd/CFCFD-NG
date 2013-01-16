@@ -34,8 +34,6 @@ public:
     int set_radiation_spectral_model( std::string file_name, int nthreads );
     
 protected:
-    int spectrally_resolved_;
-    
     std::vector<RadiationSpectralModel*> rsm_;
 };
 
@@ -65,6 +63,9 @@ public:
     void compute_Q_rad_for_flowfield();
 
     void compute_Q_rad_for_block( Block * A );
+
+private:
+    int spectrally_resolved_;
 };
 
 class TangentSlab : public RadiationTransportModel {

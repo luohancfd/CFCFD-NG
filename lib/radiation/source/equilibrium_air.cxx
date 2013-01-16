@@ -15,6 +15,9 @@
 
 using namespace std;
 
+EquilibriumAir::EquilibriumAir()
+ : RadiationSpectralModel() {}
+
 EquilibriumAir::
 ~EquilibriumAir() {}
 

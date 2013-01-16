@@ -16,6 +16,7 @@
 #include "ray_tracing_pieces.hh"
 
 #include "../../../lib/radiation/source/spectral_model.hh"
+#include "../../../lib/radiation/source/radiation_constants.hh"
 
 using namespace std;
 
@@ -113,9 +114,16 @@ RayTracingCell::~RayTracingCell()
 void RayTracingCell::recompute_spectra( RadiationSpectralModel * rsm ) 
 {
     rsm->radiative_spectra_for_gas_state( *Q_, *X_ );
-    
+
     // Also store the cumulative (integrated) emission coefficient
-    X_->calculate_cumulative_emission(true);
+    if ( rsm->get_spectral_points()==1 ) {
+	// This is the equilibrum air model
+	X_->j_int.resize(1);
+        X_->j_int[0] = X_->j_nu[0];
+    }
+    else {
+        X_->calculate_cumulative_emission(true);
+    }
     
     return;
 }
@@ -270,16 +278,28 @@ RayTracingInterface::~RayTracingInterface()
 
 void RayTracingInterface::recompute_spectra( RadiationSpectralModel * rsm ) 
 {
-    rsm->radiative_spectral_distribution_for_gas_state( *Q_, S_->nu );
-    S_->I_nu.resize( S_->nu.size(), 0.0 );
-    S_->I_int.resize( S_->nu.size(), 0.0 );
+    if ( rsm->get_spectral_points()==1 ) {
+	// This is the equilibrum air model
+	S_->nu.resize( 1, 1.0 );
+        S_->I_nu.resize( 1, 0.0 );
+        S_->I_int.resize( 1, 0.0 );
+
+        double T = Q_->T[0];
+        S_->I_nu[0] = RC_sigma_SI * pow( T, 4 ) / 4.0 / M_PI;
+        S_->I_int[0] = S_->I_nu[0];
+    }
+    else {
+        rsm->radiative_spectral_distribution_for_gas_state( *Q_, S_->nu );
+        S_->I_nu.resize( S_->nu.size(), 0.0 );
+        S_->I_int.resize( S_->nu.size(), 0.0 );
     
-    double T = Q_->T[0];
-    double I_total = 0.0;
-    for ( size_t inu=0; inu<S_->nu.size(); ++inu ) {
-    	S_->I_nu[inu] = planck_intensity( S_->nu[inu], T );
-    	if ( inu>0 ) I_total += 0.5 * ( S_->I_nu[inu] + S_->I_nu[inu-1] ) * fabs(S_->nu[inu]-S_->nu[inu-1]);
-    	S_->I_int[inu] = I_total;
+        double T = Q_->T[0];
+        double I_total = 0.0;
+        for ( size_t inu=0; inu<S_->nu.size(); ++inu ) {
+    	    S_->I_nu[inu] = planck_intensity( S_->nu[inu], T );
+    	    if ( inu>0 ) I_total += 0.5 * ( S_->I_nu[inu] + S_->I_nu[inu-1] ) * fabs(S_->nu[inu]-S_->nu[inu-1]);
+    	    S_->I_int[inu] = I_total;
+        }
     }
     
     return;
