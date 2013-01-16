@@ -1353,10 +1353,14 @@ int MonteCarlo::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, 
     else if ( count>0 && A->bcp[ray->status_]->is_wall_flag ) {
     	// dump energy onto interface (only if more than one point and this is a wall)
     	// int index = A->bcp[ ray->status_ ]->get_heat_flux_index( ic, jc, kc );
+	// FIXME: need a way of finding the nearest interface to an exited photons
+	//        location when the photon exits on a corner
     	RayTracingInterface * RTinterface =  RTcell->interfaces_[ray->status_];
+    	bool skip_interface = false;
     	if ( RTinterface==0 ) {
     	    cout << "MonteCarlo::trace_ray" << endl
     	         << "bad RayTracingInterface pointer on RayTracingCell" << endl;
+    	    skip_interface = true;
 #           if EXIT_ON_RT_FAILURE
     	    cout << "Bailing out!" << endl;
     	    cout << "ray->status_ = " << ray->status_ << endl;
@@ -1369,7 +1373,8 @@ int MonteCarlo::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, 
     	    exit( BAD_INPUT_ERROR );
 #           endif
     	}
-    	RTinterface->q_rad_temp_[omp_get_thread_num()] += E / RTinterface->area_;
+    	if ( ! skip_interface )
+    	    RTinterface->q_rad_temp_[omp_get_thread_num()] += E / RTinterface->area_;
     }
     
     return SUCCESS;
@@ -1420,10 +1425,14 @@ int MonteCarlo::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, 
     else if ( count>0 && A->bcp[ray->status_]->is_wall_flag ) {
         // dump energy onto interface (only if more than one point and this is a wall)
         // int index = A->bcp[ ray->status_ ]->get_heat_flux_index( ic, jc, kc );
+	// FIXME: need a way of finding the nearest interface to an exited photons
+	//        location when the photon exits on a corner
         RayTracingInterface * RTinterface =  RTcell->interfaces_[ray->status_];
+        bool skip_interface = false;
         if ( RTinterface==0 ) {
             cout << "MonteCarlo::trace_ray" << endl
                  << "bad RayTracingInterface pointer on RayTracingCell" << endl;
+            skip_interface = true;
 #           if EXIT_ON_RT_FAILURE
             cout << "Bailing out!" << endl;
             cout << "ray->status_ = " << ray->status_ << endl;
@@ -1436,7 +1445,8 @@ int MonteCarlo::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, 
             exit( BAD_INPUT_ERROR );
 #           endif
         }
-        RTinterface->q_rad_temp_[omp_get_thread_num()] += E / RTinterface->area_;
+        if ( ! skip_interface )
+            RTinterface->q_rad_temp_[omp_get_thread_num()] += E / RTinterface->area_;
     }
 
     return SUCCESS;
