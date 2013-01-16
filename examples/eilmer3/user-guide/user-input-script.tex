@@ -454,6 +454,22 @@ inflow  = FlowCondition(p=4464.0, u=10284.0, v=0.0, T=10140.42,
 }
 \noindent\bottombar
 
+%------------------------------------------------------------------
+\section{Radiation transport model}
+\label{radiation-transport-sec}\index{radiation models}\index{module!librad}
+%
+The selection of the radiation transport model and the definition of its parameters
+is done in a Lua file.
+The following text in the input script requests the radiative source terms and heat fluxes
+ are recomputed every 100 time steps and directs e3prep to the file \texttt{rad-model.lua} 
+ for the details of the desired model:
+
+\topbar\\
+\texttt{select\_radiation\_model( input\_file="rad-model.lua", update\_frequency=10 )}\\ \index{select\_radiation\_model}
+\bottombar\\
+
+%
+The format for the Lua file is give in Section~\ref{}.
 
 %-------------------------------------------------------------------
 \section{Boundary representation of the gas domain}

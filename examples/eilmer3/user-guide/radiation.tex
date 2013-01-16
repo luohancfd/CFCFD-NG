@@ -1,0 +1,48 @@
+% radiation.tex
+\section{Radiation transport models}
+\label{app:rt-models}
+
+A variety of radiation transport models are implemented in Eilmer3:
+
+\begin{itemize}
+ \item Optically thin
+ \item Discrete transfer
+ \item Monte Carlo
+ \item Tangent slab
+\end{itemize}
+
+The radiation transport model is defined the \texttt{transport\_data} field of the radiation Lua input file.
+
+\subsection{Discrete transfer model}
+
+The discrete transfer model can be selected via:
+
+\topbar
+\lstinputlisting[language={}]
+{
+transport_data = {
+   transport_model = 'discrete transfer',
+   nrays = 8,
+   clustering = "none",
+   binning = "none"
+}
+}
+\bottombar
+
+A description of the Lua input fields for the discrete transfer radiation transport model is given in Table~\ref {tab:DTM-input}.
+
+\begin{table}
+ \begin{center}
+  \caption{Description of Lua input fields for the discrete transfer radiation transport models}
+  \label{tab:DTM-input}
+\begin{tabular}{llp{6cm}}
+ \hline \hline
+ Field                        & Type              &  Description \\ \hline
+\texttt{nrays}            & \textit{int}       &  Number of rays emitted per cell and per frequency \\
+\texttt{clustering}    & \textit{string}  &  Ray clustering: \texttt{by volume}, \texttt{by area} or \texttt{none} \\
+\texttt{binning}        & \textit{string}  &  Binning model: \texttt{opacity}, \texttt{frequency} or \texttt{none} \\
+\texttt{N\_bins}         & \textit{int}       &  Number of bins \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
