@@ -166,7 +166,39 @@ Finally, we have redirected the standard output from the main simulation
 to the file LOGFILE so that we can monitor progress with the command::
 
     $ tail -f LOGFILE
+    
+Building and running the radiation transport solver
+----------------------------------------------------
+While a flowfield calculation with coupled radiation can be performed via the single 
+processor version of eilmer3 (e3shared.exe), the radiation transport portion of such 
+calculations can often take a very long time to run.
+The obvious solution is to implement the radiation transport calculation in parallel.
+Due to the non-local nature of the radiation transport problem, however, it is necessary
+to implement the parallelisation via the shared memory multiprocessor approach.
+The radiation transport solver in eilmer3 has therefore been written to make use of the
+OpenMP API.
+As the Eilmer3 flowfield solver does not currently support an OpenMP build, the radiation
+transport solver can be built as a separate executable, e3rad.exe.
 
+The typical build procedure for the OpenMP version of the radiation transport solver using 
+the GNU compiler is::
+
+  $ cd $HOME/cfcfd3/app/eilmer3/build
+  $ make TARGET=for_gnu_openmp e3rad
+  $ make clean
+  
+Then, try out the radiating-cylinder example::
+
+  $ mkdir $HOME/work; cd $HOME/work; mkdir 2D; cd 2D
+  $ mkdir radiating-cylinder; cd radiating-cylinder
+  $ cp $HOME/cfcfd3/examples/eilmer3/2D/radiating-cylinder/* .
+  $ tclsh cyl.test
+  
+On the barrine cluster, the Intel compiler should be used for best performance::
+
+  $ cd $HOME/cfcfd3/app/eilmer3/build
+  $ make TARGET=for_intel_openmp e3rad
+  $ make clean
 
 When things go wrong
 --------------------
