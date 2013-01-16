@@ -44,7 +44,7 @@ you get the feel of it everything:
 
 $ pitot.py --driver_gas He:1.0 --test_gas air --p1 3000.0 --p5 10.0
     
-The full output is a bit too much to include here, but you should see that the
+The full txt_output is a bit too much to include here, but you should see that the
 stagnation enthalpy leaving the nozzle is 62.87 MJ/kg, and the velocity exiting
 the nozzle (V in state 8) should be 10639.5 m/s.
 
@@ -124,6 +124,7 @@ available to me as part of cfpylib inside the cfcfd code collection.
         to make it clearer and some of the basic syntax.
     17-Dec-2012: Added two more test gases to the code.
     15-Jan-2013: added basic test time calculation from the work of Paull and Stalker (1992) to the code
+    16-Jan-2013: added a second csv output to the code that should be handy for pulling the data into spreadsheets etc.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -139,7 +140,7 @@ from cfpylib.gasdyn.cea2_gas import Gas, make_gas_from_name
 from cfpylib.gasdyn.gas_flow import *
 from cfpylib.gasdyn.ideal_gas_flow import p0_p, pitot_p
 
-VERSION_STRING = "15-Jan-2013"
+VERSION_STRING = "16-Jan-2013"
 
 DEBUG_PITOT = False
 
@@ -644,7 +645,7 @@ def main():
             (Vsd2, V['sd2']) = normal_shock(states['sd1'], Vsd, states['sd2'])
             V['sd3'], states['sd3'] = finite_wave_dv('cplus', V['s3s'], states['s3s'], V['sd2'])
         
-            #get mach numbers for the output
+            #get mach numbers for the txt_output
             Msd1 = Vsd/states['sd1'].son
             M['sd2'] = V['sd2']/states['sd2'].son
             M['sd3']= V['sd3']/states['sd3'].son
@@ -787,13 +788,13 @@ def main():
                 if Vsd > Vs1: #we get a shock into the shock tube, not an expansion
                     shock_switch = True #flip over this switch
                     if PRINT_STATUS: print "Vsd is a stronger shock than Vs1. Therefore a normal shock processes the secondary driver gas moving into the shock tube."
-                    p1 = secant(p1_reflected_iterator, 1000.0, 100000.0, tol=1.0e-3,limits=[100.0,1000000.0])
+                    p1 = secant(p1_reflected_iterator, 1000.0, 100000.0, tol=1.0e-4,limits=[100.0,1000000.0])
                 else: #same expansion as we're used to
                     if PRINT_STATUS: print "Start unsteady expansion of the secondary driver gas into the shock tube."
-                    p1 = secant(error_in_velocity_shock_tube_expansion_pressure_iterator, 1000.0, 100000.0, tol=1.0e-3,limits=[100.0,1000000.0])
+                    p1 = secant(error_in_velocity_shock_tube_expansion_pressure_iterator, 1000.0, 100000.0, tol=1.0e-4,limits=[100.0,1000000.0])
             else: #just do the expansion
                 if PRINT_STATUS: print "Start unsteady expansion of the driver gas into the shock tube."
-                p1 = secant(error_in_velocity_shock_tube_expansion_pressure_iterator, 1000.0, 100000.0, tol=1.0e-3,limits=[100.0,1000000.0])
+                p1 = secant(error_in_velocity_shock_tube_expansion_pressure_iterator, 1000.0, 100000.0, tol=1.0e-4,limits=[100.0,1000000.0])
 
             if PRINT_STATUS: print "From secant solve: p1 = {0} Pa".format(p1)
             #start using p1 now, compute states 1,2 and 3 using the correct p1
@@ -807,7 +808,7 @@ def main():
                 if PRINT_STATUS: print "the fill pressure's will be returned back to normal when the results are printed at the end..."
                 states['s1'].p = states['s1'].p/2.0
                 states['s5'].p = states['s5'].p/2.0
-                Vs1 = secant(primary_shock_speed_reflected_iterator, 2000.0, 4000.0, tol=1.0e-3,limits=[500.0,1000000.0])
+                Vs1 = secant(primary_shock_speed_reflected_iterator, 2000.0, 4000.0, tol=1.0e-4,limits=[500.0,1000000.0])
             else: #just do the expansion
                 Vs1 = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, 4000.0, 6000.0, tol=1.0e-3,limits=[1000.0,1000000.0])
             if PRINT_STATUS: print "From secant solve: Vs1 = {0} m/s".format(Vs1)
@@ -836,7 +837,7 @@ def main():
         else:
             V['s3'], states['s3'] = finite_wave_dv('cplus', V[shock_tube_expansion], states[shock_tube_expansion], V['s2'])
         
-        #get mach numbers for the output
+        #get mach numbers for the txt_output
         Ms1 = Vs1/states['s1'].son
         M['s2'] = V['s2']/states['s2'].son
         M['s3']= V['s3']/states['s3'].son
@@ -916,9 +917,9 @@ def main():
         elif test == 'fulltheory-pressure': #compute the shock speed for the chosen fill pressure, uses Vs1 as starting guess
             #put two sets of starting guesses here to try and make more stuff work
             if Vs1 < 2000.0:
-                Vs2 = secant(error_in_pressure_s2_expansion_shock_speed_iterator, Vs1+7000.0, 15100.0, tol=1.0e-3,limits=[Vs1,100000.0])
+                Vs2 = secant(error_in_pressure_s2_expansion_shock_speed_iterator, Vs1+7000.0, 15100.0, tol=1.0e-5,limits=[Vs1,100000.0])
             else:
-                Vs2 = secant(error_in_pressure_s2_expansion_shock_speed_iterator, Vs1+7000.0, 15100.0, tol=1.0e-3,limits=[Vs1,100000.0])
+                Vs2 = secant(error_in_pressure_s2_expansion_shock_speed_iterator, Vs1+7000.0, 15100.0, tol=1.0e-5,limits=[Vs1,100000.0])
             if PRINT_STATUS: print "From secant solve: Vs2 = {0} m/s".format(Vs2)
             #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
             if PRINT_STATUS: print "Once Vs2 is known, find conditions at state 5 and 6."            
@@ -926,7 +927,7 @@ def main():
         (V6, V['s6']) = normal_shock(states['s5'], Vs2, states['s6'],ideal_gas_guess)
         V['s7'], states['s7'] = finite_wave_dv('cplus', V['s2'], states['s2'], (V['s6']*expansion))
         
-        #get mach numbers for the output
+        #get mach numbers for the txt_output
         Ms2 = Vs2/states['s5'].son
         M['s6'] = V['s6']/states['s6'].son
         M['s7']= V['s7']/states['s7'].son
@@ -1043,78 +1044,78 @@ def main():
             t_test_basic = t_final_usx - t_cs_at
         
       
-#--------------------------- output --------------------------------
+#--------------------------- txt_output --------------------------------
 
-        output = open(filename,"w")  #output file creation
+        txt_output = open(filename+'.txt',"w")  #txt_output file creation
                     
         print " "
         
         version_printout = "Pitot Version: {0}".format(VERSION_STRING)
         print version_printout
-        output.write(version_printout + '\n')
+        txt_output.write(version_printout + '\n')
         
         if secondary:
             description_sd = 'sd1 is secondary driver fill.'
             print description_sd
-            output.write(description_sd + '\n')   
+            txt_output.write(description_sd + '\n')   
             
         description_1 = 'state 1 is shock tube fill. state 5 is acceleration tube fill.'    
         print description_1
-        output.write(description_1 + '\n')
+        txt_output.write(description_1 + '\n')
             
         description_2 = 'state 7 is expanded test gas entering the nozzle.'
         print description_2
-        output.write(description_2 + '\n')
+        txt_output.write(description_2 + '\n')
             
         description_3 = 'state 8 is test gas exiting the nozzle (using area ratio of {0}).'.format(area_ratio)
         print description_3
-        output.write(description_3 + '\n')
+        txt_output.write(description_3 + '\n')
             
         description_4 = 'state 10f is frozen shocked test gas flowing over the model.'
         print description_4
-        output.write(description_4 + '\n')  
+        txt_output.write(description_4 + '\n')  
         
         description_5 = 'state 10e is equilibrium shocked test gas flowing over the model.'
         print description_5
-        output.write(description_5 + '\n')        
+        txt_output.write(description_5 + '\n')        
             
         facility_used = 'Facility is {0}.'.format(facility)        
         print facility_used
-        output.write(facility_used + '\n')
+        txt_output.write(facility_used + '\n')
         
         test_gas_used = 'Test gas is {0} (gamma = {1}, R = {2}, {3}).'.format(gasName,states['s1'].gam,states['s1'].R,states['s1'].reactants)
         print test_gas_used
-        output.write(test_gas_used + '\n')  
+        txt_output.write(test_gas_used + '\n')  
         
         driver_gas_used = 'Driver gas is {0}.'.format(driver_gas)       
         print driver_gas_used
-        output.write(driver_gas_used + '\n') 
+        txt_output.write(driver_gas_used + '\n') 
                 
         if shock_switch:
             shock_warning1 = "NOTE: a reflected shock was done into the shock tube and as such,"
             print shock_warning1
-            output.write(shock_warning1 + '\n')
+            txt_output.write(shock_warning1 + '\n')
             
             shock_warning2 = "fill pressure's have been artifically modified by the code to match with xpt."
             print shock_warning2
-            output.write(shock_warning2 + '\n')
+            txt_output.write(shock_warning2 + '\n')
 
         if secondary:
             secondary_shockspeeds = "Vsd = {0:.2f} m/s, Msd1 = {1:.2f}".format(Vsd,Msd1)
             print secondary_shockspeeds
-            output.write(secondary_shockspeeds + '\n')
+            txt_output.write(secondary_shockspeeds + '\n')
         
         shockspeeds = "Vs1 = {0:.2f} m/s, Ms1 = {1:.2f} ,Vs2 = {2:.2f} m/s, Ms2 = {3:.2f}".format(Vs1,Ms1,Vs2,Ms2) 
         print shockspeeds #prints above line in console
-        output.write(shockspeeds + '\n') #writes above line to output file (input to write command must be a string)
+        txt_output.write(shockspeeds + '\n') #writes above line to txt_output file (input to write command must be a string)
                 
         key = "{0:6}{1:11}{2:9}{3:6}{4:9}{5:6}{6:9}{7:8}{8:9}".format("state","P","T","a","V","M","rho","pitot","stgn")
         print key
-        output.write(key + '\n')
+        txt_output.write(key + '\n')
         
         units = "{0:6}{1:11}{2:9}{3:6}{4:9}{5:6}{6:9}{7:9}{8:9}".format("","Pa","K","m/s","m/s","","m^3/kg","kPa","MPa")
         print units
-        output.write(units + '\n')
+        txt_output.write(units + '\n')
         
         #new dictionaries here to add pitot and stagnation pressure calcs
         
@@ -1123,7 +1124,7 @@ def main():
         
         def condition_printer(it_string):
             """Prints the values of a specified condition to the screen and to 
-            the output file. 
+            the txt_output file. 
             
             I made a function of this so I didn't have to keep pasting the code in."""
             
@@ -1142,7 +1143,8 @@ def main():
                         states[it_string].rho, pitot[it_string], p0[it_string])
                         
                 print conditions
-                output.write(conditions + '\n')   
+                txt_output.write(conditions + '\n')
+
                 
         #print the driver related stuff first
         
@@ -1183,7 +1185,7 @@ def main():
         else:
             stag_enth = 'The stagnation enthalpy (Ht) at the end of the acceleration tube {0:<.5g} MJ/kg.'.format(stagnation_enthalpy/10**6)
         print stag_enth
-        output.write(stag_enth + '\n')
+        txt_output.write(stag_enth + '\n')
         
         #calculate flight equivalent velocity
         #for a description of why this is, refer to Bianca Capra's thesis page 104 - 105
@@ -1193,10 +1195,13 @@ def main():
         u_eq = math.sqrt(2.0*stagnation_enthalpy) 
         u_eq_print = 'The flight equivalent velocity (Ue) is {0:<.5g} m/s.'.format(u_eq)
         print u_eq_print
-        output.write(u_eq_print + '\n')
+        txt_output.write(u_eq_print + '\n')
         
         #if the test time calculation has been done, print it
-        if t_test_basic: print 'Basic test time = {0} microseconds'.format(t_test_basic*1.0e6)
+        if t_test_basic: 
+            basic_test_time_printout = 'Basic test time = {0:.2f} microseconds'.format(t_test_basic*1.0e6)
+            print  basic_test_time_printout
+            txt_output.write(basic_test_time_printout + '\n')
         
         #added ability to get the species in the post-shock condition
         
@@ -1205,15 +1210,109 @@ def main():
         if show_species:
             species1 = 'species in the shock layer at equilibrium:'        
             print species1
-            output.write(species1 + '\n')
+            txt_output.write(species1 + '\n')
             
             species2 = '{0}'.format(states['s10e'].species)
             print species2
-            output.write(species2 + '\n')
+            txt_output.write(species2 + '\n')
         
         #added taylor maccoll conehead calcs if people want to use them, appropriated from Fabs (thankyou)
                     
-        output.close()
+        txt_output.close()
+        
+#------------------------- cut down csv output -----------------------------
+        
+        csv_output = open(filename+'.csv',"w")  #csv_output file creation
+              
+        csv_version_printout = "Pitot Version,{0}".format(VERSION_STRING)
+        csv_output.write(csv_version_printout + '\n')
+            
+        csv_facility_used = 'Facility,{0}.'.format(facility)        
+        csv_output.write(csv_facility_used + '\n')
+        
+        csv_test_gas_used = 'Test gas,{0},gamma,{1},R,{2}'.format(gasName,states['s1'].gam,states['s1'].R)
+        csv_output.write(csv_test_gas_used + '\n')  
+        
+        csv_driver_gas_used = 'Driver gas,{0}.'.format(driver_gas)       
+        csv_output.write(csv_driver_gas_used + '\n') 
+                
+        if secondary:
+            csv_secondary_shockspeeds = "Vsd,{0:.2f} m/s,Msd1,{1:.2f}".format(Vsd,Msd1)
+            csv_output.write(csv_secondary_shockspeeds + '\n')
+        
+        csv_shockspeeds = "Vs1,{0:.2f} m/s,Ms1,{1:.2f},Vs2,{2:.2f} m/s,Ms2,{3:.2f}".format(Vs1,Ms1,Vs2,Ms2) 
+        csv_output.write(csv_shockspeeds + '\n')
+                
+        csv_key = "{0:6},{1:11},{2:9},{3:6},{4:9},{5:6},{6:9},{7:8},{8:9}".format("state","P","T","a","V","M","rho","pitot","stgn")
+        csv_output.write(csv_key + '\n')
+        
+        csv_units = "{0:6},{1:11},{2:9},{3:6},{4:9},{5:6},{6:9},{7:9},{8:9}".format("","Pa","K","m/s","m/s","","m^3/kg","kPa","MPa")
+        csv_output.write(csv_units + '\n')
+               
+        def csv_condition_printer(it_string):
+            """Prints the values of a specified condition to the screen and to 
+            the txt_output file. 
+            
+            I made a function of this so I didn't have to keep pasting the code in."""
+            
+            if states.has_key(it_string):
+                    
+                if M[it_string] == 0:
+                    pitot[it_string] = 0
+                    p0[it_string] = 0
+                else:
+                    pitot[it_string] = pitot_p(states[it_string].p,M[it_string],states[it_string].gam)/1000.0
+                    p0[it_string] = p0_p(M[it_string], states[it_string].gam)*states[it_string].p/1.0e6
+                
+                csv_conditions = "{0:<6},{1:<11.7},{2:<9.1f},{3:<6.0f},{4:<9.1f},{5:<6.2f},{6:<9.4f},{7:<8.0f},{8:<9.1f}"\
+                .format(it_string, states[it_string].p, states[it_string].T,
+                        states[it_string].son,V[it_string],M[it_string],
+                        states[it_string].rho, pitot[it_string], p0[it_string])
+
+                csv_output.write(csv_conditions + '\n')
+
+                
+        #print the driver related stuff first
+        
+        csv_condition_printer('s4')
+        csv_condition_printer('s3s')
+        
+        if secondary: #need a separate printing thing for the secondary driver
+            
+            for i in range(1,4): #will do 1 - 3
+            
+                it_string = 'sd{0}'.format(i)
+                csv_condition_printer(it_string)
+                        
+        for i in range(1,4): #shock tube stuff
+            
+            it_string = 's{0}'.format(i)
+            csv_condition_printer(it_string)
+            
+        for i in range(5,9): #acc tube and nozzle if it's there
+        
+            it_string = 's{0}'.format(i)
+            csv_condition_printer(it_string)
+            
+        #do the conditions over the model
+        csv_condition_printer('s10f')
+        csv_condition_printer('s10e')
+                
+        if conehead:
+            csv_condition_printer('s10c')
+                                       
+
+        csv_stag_enth = 'Ht,{0:<.5g} MJ/kg.'.format(stagnation_enthalpy/10**6)
+        csv_output.write(csv_stag_enth + '\n')
+        
+        csv_u_eq_print = 'Ue,{0:<.5g} m/s.'.format(u_eq)
+        csv_output.write(csv_u_eq_print + '\n')
+
+        if t_test_basic: 
+            csv_basic_test_time_printout = 'Basic test time,{0:.2f} microseconds'.format(t_test_basic*1.0e6)
+            csv_output.write(csv_basic_test_time_printout + '\n')   
+        
+        csv_output.close()
         
 #--------------------------- user commands -----------------------------------
         
@@ -1305,13 +1404,13 @@ if __name__ == '__main__':
             print "Fill pressure's we are aiming for are p1 = 3000 Pa, p5 = 10 Pa"
             print " "
             sys.argv = ['pitot.py', '--test','fulltheory-shock', '--Vs1','5645.0',
-                        '--Vs2','11600.0','--filename','demo_s.txt']
+                        '--Vs2','11600.0','--filename','demo_s']
             main()
             
         elif demo == "demo_p":
             print "This is demo of pitot recreating Umar Sheikh's high speed air condition where fill pressure's are specified."
             print " "            
-            sys.argv = ['pitot.py', '--p1','3000.0','--p5','10.0','--filename','demo_p.txt']
+            sys.argv = ['pitot.py', '--p1','3000.0','--p5','10.0','--filename','demo_p']
             main()
             
         elif demo == 'hadas85-fulltheory':
@@ -1328,7 +1427,7 @@ if __name__ == '__main__':
             sys.argv = ['pitot.py', '--test','test', '--driver_gas','He:0.80,Ar:0.20',
                         '--test_gas','titan', '--p1','3200.0','--p5','10.0', 
                         '--Vs1','4100.0','--Vs2','8620.0','--ar','3.0', 
-                        '--filename','hadas85-tunnel.txt']
+                        '--filename','hadas85-tunnel']
             main()
             
         elif demo == 'chrishe-fulltheory':
@@ -1337,7 +1436,7 @@ if __name__ == '__main__':
             sys.argv = ['pitot.py', '--test','fulltheory-pressure', '--config',
                         'sec-nozzle','--driver_gas','He:1.0', '--test_gas',
                         'gasgiant_h215he','--psd1','17500','--p1','4700',
-                        '--p5','4.0','--filename','chrishe-fulltheory.txt']
+                        '--p5','4.0','--filename','chrishe-fulltheory']
             main()
             
         elif demo == 'dave-scramjet-p':
@@ -1346,7 +1445,7 @@ if __name__ == '__main__':
             sys.argv = ['pitot.py', '--test','fulltheory-pressure', '--config',
                         'sec-nozzle','--driver_gas','He:0.80,Ar:0.20', '--test_gas',
                         'air','--psd1','100000','--p1','486000',
-                        '--p5','1500.0','--filename','dave-scramjet-p.txt','--shock_switch','True']
+                        '--p5','1500.0','--filename','dave-scramjet-p','--shock_switch','True']
             main()
             
                     
@@ -1356,7 +1455,7 @@ if __name__ == '__main__':
             sys.argv = ['pitot.py', '--test','fulltheory-shock', '--config',
                         'sec-nozzle','--driver_gas','He:0.80,Ar:0.20', '--test_gas',
                         'air','--Vsd','4290.0','--Vs1','1588.0',
-                        '--Vs2','3424.0','--filename','dave-scramjet-s.txt']
+                        '--Vs2','3424.0','--filename','dave-scramjet-s']
             main()
         
         elif demo == 'dave-scramjet-tunnel':
@@ -1366,7 +1465,7 @@ if __name__ == '__main__':
                         'sec','--driver_gas','He:0.80,Ar:0.20', '--test_gas',
                         'air','--Vsd','4178.0','--Vs1','1417.0',
                         '--Vs2','3264.0','--psd1','100000','--p1','690800','--p5','288.2',
-                        '--filename','dave-scramjet-tunnel.txt']
+                        '--filename','dave-scramjet-tunnel']
             main()
             
         elif demo == 'x3':
@@ -1375,7 +1474,7 @@ if __name__ == '__main__':
             sys.argv = ['pitot.py', '--facility', 'x3', '--test','fulltheory-pressure', '--config',
                         'sec','--driver_gas','He:0.60,Ar:0.40', '--test_gas',
                         'air','--psd1','133000','--p1','73000',
-                        '--p5','210.0','--filename','x3.txt']
+                        '--p5','210.0','--filename','x3']
             main()
     
     else:
