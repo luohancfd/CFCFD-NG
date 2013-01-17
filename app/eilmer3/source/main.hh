@@ -25,5 +25,7 @@ int gasdynamic_viscous_increment( void );
 int do_bad_cell_count( void );
 int write_finishing_data( global_data *G, std::string filename );
 int check_radiation_scaling( void );
+int radiation_calculation( void );
+void perform_radiation_transport( void );
 
 #endif

@@ -173,7 +173,12 @@ int main(int argc, char **argv)
 #   elif E3RAD
     master = 1;
     sprintf(log_file_name, "e3rad.log");
-    printf("e3main: C++,OpenMP version for radiation calculations.\n");
+    printf("e3rad: C++ version for radiation transport calculations.\n");
+    printf(\
+"------------------------------------------------------------------\n\
+WARNING: This executable only computes the radiative source\n\
+         terms and heat fluxes - no time integration is performed!\n\
+------------------------------------------------------------------\n");
 #   ifdef _OPENMP
     printf("OpenMP version using %d thread(s).\n", omp_get_max_threads());
 #   endif
@@ -279,6 +284,7 @@ int main(int argc, char **argv)
 	/* The simulation proper. */
 	run_status = prepare_to_integrate(start_tindx);
 	if (run_status != SUCCESS) goto Quit;
+#       ifndef E3RAD
 	if ( G.sequence_blocks ) {
 	    run_status = integrate_blocks_in_sequence();
 	    if (run_status != SUCCESS) goto Quit;
@@ -286,6 +292,10 @@ int main(int argc, char **argv)
 	    run_status = integrate_in_time(-1.0);
 	    if (run_status != SUCCESS) goto Quit;
 	}
+#       else
+	run_status = radiation_calculation();
+	if (run_status != SUCCESS) goto Quit;
+#       endif
 	finalize_simulation();
     } else {
 	printf( "NOTHING DONE -- because you didn't ask...\n" );
@@ -302,6 +312,8 @@ int main(int argc, char **argv)
 	MPI_Abort(MPI_COMM_WORLD, program_return_flag);
     else
 	MPI_Finalize();
+#   elif E3RAD
+    printf("e3rad: done.\n");
 #   else
     printf("e3main: done.\n");
 #   endif
@@ -1632,40 +1644,8 @@ int gasdynamic_inviscid_increment( void )
 	
 	// Non-local radiation transport needs to be performed a-priori for parallelization.
 	// Note that Q_rad is not re-evaluated for corrector step.
-	if ( get_radiation_flag() ) {
-	    RadiationTransportModel * rtm = get_radiation_transport_model_ptr();
-	    global_data &G = *get_global_data_ptr();
-	    Block * bdp;
-	    
-	    // Determine if a scaled or complete radiation call is required
-	    int ruf = get_radiation_update_frequency();
-	    if ( ( ruf == 0 ) || ( ( G.step / ruf ) * ruf != G.step ) ) {
-		// rescale
-                int jb;
-#		ifdef _OPENMP
-#		pragma omp parallel for private(jb) schedule(runtime)
-#		endif
-		for ( jb = 0; jb < G.my_blocks.size(); ++jb ) {
-		    bdp = G.my_blocks[jb];
-		    if ( bdp->active != 1 ) continue;
-		    bdp->apply( &FV_Cell::rescale_Q_rE_rad, "rescale-Q_rE_rad" );
-		}
-	    }
-	    else {
-		// recompute
-		rtm->compute_Q_rad_for_flowfield();
-		// store the radiation scaling parameters for each cell
-                int jb;
-#		ifdef _OPENMP
-#		pragma omp parallel for private(jb) schedule(runtime)
-#		endif
-		for ( jb = 0; jb < G.my_blocks.size(); ++jb ) {
-		    bdp = G.my_blocks[jb];
-		    if ( bdp->active != 1 ) continue;
-		    bdp->apply( &FV_Cell::store_rad_scaling_params, "store-rad-scaling-params" );
-		}
-	    }
-	}
+	if ( get_radiation_flag() )
+	    perform_radiation_transport();
 
 #       if 0
 	// The troublesome cell in Rolf's duct6 grid.
@@ -2171,3 +2151,66 @@ int check_radiation_scaling( void )
     else
     	return SUCCESS;
 }
+
+//---------------------------------------------------------------------------
+
+int radiation_calculation()
+{
+    global_data &G = *get_global_data_ptr();  // set up a reference
+    Block *bdp;
+
+    // Apply viscous THEN inviscid boundary conditions to match environment for
+    // radiation calculation in gasdynamic_inviscid_increment()
+    for ( int jb = 0; jb < (int) G.my_blocks.size(); ++jb ) {
+	bdp = G.my_blocks[jb];
+	if ( bdp->active != 1 ) continue;
+	if ( get_viscous_flag() ) {
+	    apply_viscous_bc( *bdp, G.sim_time, G.dimensions );
+	}
+	apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
+    }
+
+    // Do the radiation transport
+    if ( get_radiation_flag() )
+        perform_radiation_transport();
+
+    return SUCCESS;
+} // end radiation_calculation()
+
+void perform_radiation_transport()
+{
+    RadiationTransportModel * rtm = get_radiation_transport_model_ptr();
+    global_data &G = *get_global_data_ptr();
+    Block * bdp;
+
+    // Determine if a scaled or complete radiation call is required
+    int ruf = get_radiation_update_frequency();
+    if ( ( ruf == 0 ) || ( ( G.step / ruf ) * ruf != G.step ) ) {
+	// rescale
+        int jb;
+#	ifdef _OPENMP
+#	pragma omp parallel for private(jb) schedule(runtime)
+#	endif
+	for ( jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	    bdp = G.my_blocks[jb];
+	    if ( bdp->active != 1 ) continue;
+	    bdp->apply( &FV_Cell::rescale_Q_rE_rad, "rescale-Q_rE_rad" );
+	}
+    }
+    else {
+	// recompute
+	rtm->compute_Q_rad_for_flowfield();
+	// store the radiation scaling parameters for each cell
+        int jb;
+#	ifdef _OPENMP
+#	pragma omp parallel for private(jb) schedule(runtime)
+#	endif
+	for ( jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	    bdp = G.my_blocks[jb];
+	    if ( bdp->active != 1 ) continue;
+	    bdp->apply( &FV_Cell::store_rad_scaling_params, "store-rad-scaling-params" );
+	}
+    }
+
+    return;
+} // end perform_radiation_transport()
