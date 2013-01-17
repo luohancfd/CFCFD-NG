@@ -108,6 +108,36 @@ H2.sigma = {
    description = 'Hard sphere collision diameter',
    reference = 'Svehla (1962) NASA Technical Report R-132'
 }
+H2.r0 = {
+   value = 2.827e-10,
+   units = 'm',
+   description = 'Zero of the intermolecular potential',
+   reference = 'Take the value for sigma, suggested by Thivet et al.'
+}
+H2.r_eq = {
+   value = 0.7414e-10,
+   units = 'm',
+   description = 'Equilibrium intermolecular distance',
+   reference = 'See ilev_0 data below'
+}
+H2.f_m = {
+   value = 1.0,
+   units = 'ND',
+   description = 'Mass factor = ( M ( Ma^2 + Mb^2 ) / ( 2 Ma Mb ( Ma + Mb ) )',
+   reference = 'Thivet et al (1991) Phys. Fluids A 3 (11)'
+}
+H2.mu = {
+   value = 1.67372395859e-27,
+   units = 'kg/particle',
+   description = 'Reduced mass of constituent atoms',
+   reference = 'See molecular weight for H'
+}
+H2.alpha = {
+   value = 0.787,
+   units = 'Angstrom^3',
+   description = 'Polarizability',
+   reference = 'http://cccbdb.nist.gov cites Olney et al. (1997)'
+}
 H2.s_0 = {
    value = 64825.29,
    units = 'J/kg-K',

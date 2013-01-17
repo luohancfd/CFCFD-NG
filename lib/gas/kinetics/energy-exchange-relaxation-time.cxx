@@ -888,7 +888,7 @@ specific_transition_probability(Gas_data &Q, vector<double> &molef)
     double del_star = SSH_del_star(beta, r_);
     double alpha_pq = SSH_alpha_pq(mu_, delta_E_, del_star);
     double chi_pq = SSH_chi_pq(alpha_pq, T);
-    
+
     // The steric factors
     double Z_0 = SSH_Z_0(del_star, r_eq_p_);
     double Z_V = SSH_Z_V(f_m_p_, mu_p_, mu_, alpha_pq, theta_v_p_, delta_E_, 0);
@@ -924,6 +924,7 @@ specific_relaxation_time(Gas_data &Q, vector<double> &molef)
     // The Mathematical Theory of Non-Uniform Gases, Third edition
     // Cambridge University Press, London
     //
+    
     double n_q = molef[iq_]*Q.p/(PC_k_SI*T);
     double Z = collision_frequency(sigma_, mu_, T, n_q);
     double P = specific_transition_probability(Q, molef);

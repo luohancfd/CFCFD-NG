@@ -491,7 +491,7 @@ Diatomic_species::Diatomic_species( string name, string type, int isp, double mi
     lua_getfield(L, -1, "r0");
     if ( !lua_istable(L, -1) ) {
 	cout << "Diatomic_species::Diatomic_species()\n";
-	cout << "Could not find 'r0' table" << endl;
+	cout << "Could not find 'r0' table for species: " << name << endl;
 	cout << "Initialising all SSH related parameters to zero" << endl;
 	r0_ = 0.0; r_eq_ = 0.0; f_m_ = 0.0;
 	mu_ = 0.0; alpha_ = 0.0; mu_B_ = 0.0;
@@ -503,8 +503,14 @@ Diatomic_species::Diatomic_species( string name, string type, int isp, double mi
 	r_eq_ = get_positive_value( L, -1, "r_eq" );
 	f_m_ = get_positive_value( L, -1, "f_m" );
 	mu_ = get_positive_value( L, -1, "mu" );
-	alpha_ = get_positive_value( L, -1, "alpha" );
-	mu_B_ = get_positive_value( L, -1, "mu_B" );
+	if ( polar_flag_ ) {
+	    // We might need the dipole moment
+	    mu_B_ = get_positive_value( L, -1, "mu_B" );
+	}
+	else {
+	    // We might need the electric polarizability
+	    alpha_ = get_positive_value( L, -1, "alpha" );
+	}
     }
     
     lua_getfield(L, -1, "electronic_levels");

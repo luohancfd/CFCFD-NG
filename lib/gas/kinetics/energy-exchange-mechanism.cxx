@@ -184,7 +184,6 @@ VV_THO_exchange(lua_State *L, int ip, int imode)
 
     iq_ = get_int(L, -1, "iq");
     iT_ = get_int(L, -1, "itrans");
-    iTvq_ = get_int(L, -1, "iTvq");
 
     X = get_library_species_pointer(iq_);
     q_vib_ = dynamic_cast<Truncated_harmonic_vibration*>(X->get_mode_pointer_from_type("vibration"));
@@ -195,6 +194,7 @@ VV_THO_exchange(lua_State *L, int ip, int imode)
 	exit(BAD_INPUT_ERROR);
     }
 
+    iTvq_ = q_vib_->get_iT();
     theta_v_p_ = p_vib_->get_theta();
     theta_v_q_ = q_vib_->get_theta();
 

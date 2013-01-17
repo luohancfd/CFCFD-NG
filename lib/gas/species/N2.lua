@@ -132,15 +132,9 @@ N2.mu = {
 }
 N2.alpha = {
    value = 1.09,
-   units = 'ND',
+   units = 'Angstrom^3',
    description = 'Polarizability',
    reference = 'Hirschfelder, Curtiss, and Bird (1954). Molecular theory of gases and liquids.'
-}
-N2.mu_B = {
-   value = 1.561317e-18,
-   units = 'Debye',
-   description = 'Dipole moment',
-   reference = 'FIXME: Rowans mTg_input.dat'
 }
 N2.s_0 = {
    value = 6839.91,
