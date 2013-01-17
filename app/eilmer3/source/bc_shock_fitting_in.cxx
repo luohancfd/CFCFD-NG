@@ -48,52 +48,19 @@ int ShockFittingInBC::apply_inviscid( double t )
 
     switch ( which_boundary ) {
     case NORTH:
-	j = bdp.jmax;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		dest_cell = bdp.get_cell(i,j+1,k);
-		dest_cell->copy_values_from(*gsp);
-		// Although this is principally an inviscid BC,
-		// we need the face values for derivatives.
-		dest_face = bdp.get_ifj(i,j+1,k);
-		dest_face->fs->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i,j+2,k);
-		dest_cell->copy_values_from(*gsp);
-		compute_boundary_flux(dest_face, dest_face, bdp.omegaz);
-	    } // end i loop
-	} // for k
+	printf( "Error: ShockFittingInBC not implemented for boundary %d\n, please use West boundary.", 
+		which_boundary );
+	exit(NOT_IMPLEMENTED_ERROR);
 	break;
     case EAST:
-	i = bdp.imax;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		dest_cell = bdp.get_cell(i+1,j,k);
-		dest_cell->copy_values_from(*gsp);
-		// Although this is principally an inviscid BC,
-		// we need the face values for derivatives.
-		dest_face = bdp.get_ifi(i+1,j,k);
-		dest_face->fs->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i+2,j,k);
-		dest_cell->copy_values_from(*gsp);
-		compute_boundary_flux(dest_face, dest_face, bdp.omegaz);
-	    } // end j loop
-	} // for k
+	printf( "Error: ShockFittingInBC not implemented for boundary %d\n, please use West boundary.", 
+		which_boundary );
+	exit(NOT_IMPLEMENTED_ERROR);
 	break;
     case SOUTH:
-	j = bdp.jmin;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		dest_cell = bdp.get_cell(i,j-1,k);
-		dest_cell->copy_values_from(*gsp);
-		// Although this is principally an inviscid BC,
-		// we need the face values for derivatives.
-		dest_face = bdp.get_ifj(i,j,k);
-		dest_face->fs->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i,j-2,k);
-		dest_cell->copy_values_from(*gsp);
-		compute_boundary_flux(dest_face, dest_face, bdp.omegaz);
-	    } // end i loop
-	} // for k
+	printf( "Error: ShockFittingInBC not implemented for boundary %d\n, please use West boundary.", 
+		which_boundary );
+	exit(NOT_IMPLEMENTED_ERROR);
 	break;
     case WEST:
 	i = bdp.imin;
@@ -120,41 +87,19 @@ int ShockFittingInBC::apply_inviscid( double t )
 	} // for k
  	break;
     case TOP:
-	k = bdp.kmax;
-        for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		dest_cell = bdp.get_cell(i,j,k+1);
-		dest_cell->copy_values_from(*gsp);
-		// Although this is principally an inviscid BC,
-		// we need the face values for derivatives.
-		dest_face = bdp.get_ifk(i,j,k+1);
-		dest_face->fs->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i,j,k+2);
-		dest_cell->copy_values_from(*gsp);
-		compute_boundary_flux(dest_face, dest_face, bdp.omegaz);
-	    } // end j loop
-	} // for i
+	printf( "Error: ShockFittingInBC not implemented for boundary %d\n, please use West boundary.", 
+		which_boundary );
+	exit(NOT_IMPLEMENTED_ERROR);
 	break;
     case BOTTOM:
-	k = bdp.kmin;
-        for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		dest_cell = bdp.get_cell(i,j,k-1);
-		dest_cell->copy_values_from(*gsp);
-		// Although this is principally an inviscid BC,
-		// we need the face values for derivatives.
-		dest_face = bdp.get_ifk(i,j,k);
-		dest_face->fs->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i,j,k-2);
-		dest_cell->copy_values_from(*gsp);
-		compute_boundary_flux(dest_face, dest_face, bdp.omegaz);
-	    } // end j loop
-	} // for i
+	printf( "Error: ShockFittingInBC not implemented for boundary %d\n, please use West boundary.", 
+		which_boundary );
+	exit(NOT_IMPLEMENTED_ERROR);
  	break;
     default:
 	printf( "Error: apply_inviscid not implemented for boundary %d\n", 
 		which_boundary );
-	return NOT_IMPLEMENTED_ERROR;
+	exit(NOT_IMPLEMENTED_ERROR);
     } // end switch
 
     return SUCCESS;

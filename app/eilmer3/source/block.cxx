@@ -2405,8 +2405,8 @@ inline double Block::velocity_weighting_factor(double M)
 int Block::set_vertex_velocities( int time_level )
 {
     // Only works for 2D at the moment. Will be upgraded to 3D in future. AP 14-Jan-2013.
-    // Also only works with one block in the x-direction. Should work with multiple blocks
-    // in the y-direction.
+    // Also only works with one block in the i-direction. Should work with multiple blocks
+    // in the j-direction.
     int i, j, k;
     FV_Interface *IFaceU;
     FV_Interface *IFaceD;
