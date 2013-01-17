@@ -2377,7 +2377,9 @@ int number_of_values_in_cell_copy(int type_of_copy)
         type_of_copy == COPY_CELL_LENGTHS) {
         number += 6;
 	if ( get_shock_fitting_flag() ) {
-	    number += 24; // Velocity and position for each interface (2D)	
+	    number += gmodel->number_of_values_in_gas_data_copy();
+	    number += 8; // FlowState data
+	    number += 4 * 8; // Velocity and position for each interface (2D)	
 	}
     }
     return number;

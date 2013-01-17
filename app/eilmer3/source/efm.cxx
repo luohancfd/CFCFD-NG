@@ -51,6 +51,10 @@
  */
 int efmflx(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
 {
+    if ( get_shock_fitting_flag() ) {
+	cerr << "Error, we have not implemented EFM with shock fitting. Please use AUSMDV." << endl;
+	exit(NOT_IMPLEMENTED_ERROR);
+    }
     /*
      * Local variable names reflect the names used in the original
      * FORTRAN code by MNM.
@@ -86,9 +90,9 @@ int efmflx(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
     presL = Lft.gas->p;
     hL = Lft.gas->e[0] + presL/rhoL;
     tL = Lft.gas->T[0];
-    vnL = Lft.vel.x - IFace.vel.x;
-    vpL = Lft.vel.y - IFace.vel.y;
-    vqL = Lft.vel.z - IFace.vel.z;
+    vnL = Lft.vel.x;
+    vpL = Lft.vel.y;
+    vqL = Lft.vel.z;
 
     /*
      * Unpack Right flow state
@@ -97,9 +101,9 @@ int efmflx(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
     presR = Rght.gas->p;
     hR = Rght.gas->e[0] + presR/rhoR;
     tR = Rght.gas->T[0];
-    vnR = Rght.vel.x - IFace.vel.x;
-    vpR = Rght.vel.y - IFace.vel.y;
-    vqR = Rght.vel.z - IFace.vel.z;
+    vnR = Rght.vel.x;
+    vpR = Rght.vel.y;
+    vqR = Rght.vel.z;
 
     /* Derive the gas "constants" from the local conditions. */
     cvL = gmodel->Cv(*(Lft.gas), statusf);

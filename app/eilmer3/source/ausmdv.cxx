@@ -78,9 +78,9 @@ int ausmdv(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
     rL = Lft.gas->rho;
     pL = Lft.gas->p;
     pLrL = pL / rL;
-    uL = Lft.vel.x - IFace.vel.x;
-    vL = Lft.vel.y - IFace.vel.y;
-    wL = Lft.vel.z - IFace.vel.z;
+    uL = Lft.vel.x;
+    vL = Lft.vel.y;
+    wL = Lft.vel.z;
     eL = Lft.gas->e[0];
     aL = Lft.gas->a;
     keL = 0.5 * (uL * uL + vL * vL + wL * wL);
@@ -89,9 +89,9 @@ int ausmdv(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
     rR = Rght.gas->rho;
     pR = Rght.gas->p;
     pRrR = pR / rR;
-    uR = Rght.vel.x - IFace.vel.x;
-    vR = Rght.vel.y - IFace.vel.y;
-    wR = Rght.vel.z - IFace.vel.z;
+    uR = Rght.vel.x;
+    vR = Rght.vel.y;
+    wR = Rght.vel.z;
     eR = Rght.gas->e[0];
     aR = Rght.gas->a;
     keR = 0.5 * (uR * uR + vR * vR + wR * wR);
@@ -144,7 +144,8 @@ int ausmdv(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
     /*
      * Mass Flux (eqn 29)
      */
-    ru_half = uLplus * rL + uRminus * rR;
+    // The mass flux is relative to the moving interface.
+    ru_half = (uLplus - IFace.vel.x) * rL + (uRminus - IFace.vel.x) * rR;
     /*
      * Pressure flux (eqn 34)
      */

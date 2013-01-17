@@ -172,7 +172,7 @@ int ShockFittingInBC::calculate_shock_speed(FV_Cell *cL1, FV_Cell *cL0, FV_Cell 
     global_data &gdp = *get_global_data_ptr();
     double time_weight = gdp.shock_fitting_speed_factor;
     if ( get_shock_fitting_decay_flag() ) {
-        double time_weight = time_weight - time_weight*(exp(-gdp.sim_time/gdp.max_time) - 1.0) / 
+        time_weight = time_weight - time_weight*(exp(-gdp.sim_time/gdp.max_time) - 1.0) / 
                              (exp(-1.0) - 1.0);
     }
     // Downwind pressure recontruction as per Ian Johnston's thesis.

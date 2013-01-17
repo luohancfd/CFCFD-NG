@@ -32,6 +32,10 @@
 /** \brief Compute the fluxes across an interface. */
 int hlle(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
 {
+    if ( get_shock_fitting_flag() ) {
+	cerr << "Error, we have not implemented HLLE with shock fitting. Please use AUSMDV." << endl;
+	exit(NOT_IMPLEMENTED_ERROR);
+    }
     Gas_model *gmodel = get_gas_model_ptr();
     int nsp = gmodel->get_number_of_species();
     int nmodes = gmodel->get_number_of_modes();
@@ -44,9 +48,9 @@ int hlle(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
 
     rL = Lft.gas->rho;
     pL = Lft.gas->p;
-    uL = Lft.vel.x - IFace.vel.x;
-    vL = Lft.vel.y - IFace.vel.y;
-    wL = Lft.vel.z - IFace.vel.z;
+    uL = Lft.vel.x;
+    vL = Lft.vel.y;
+    wL = Lft.vel.z;
     BxL = Lft.B.x;
     ByL = Lft.B.y;
     BzL = Lft.B.z;
@@ -55,9 +59,9 @@ int hlle(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
 
     rR = Rght.gas->rho;
     pR = Rght.gas->p;
-    uR = Rght.vel.x - IFace.vel.x;
-    vR = Rght.vel.y - IFace.vel.y;
-    wR = Rght.vel.z - IFace.vel.z;
+    uR = Rght.vel.x;
+    vR = Rght.vel.y;
+    wR = Rght.vel.z;
     BxR = Rght.B.x;
     ByR = Rght.B.y;
     BzR = Rght.B.z;

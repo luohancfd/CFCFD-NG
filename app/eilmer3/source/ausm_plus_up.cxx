@@ -42,6 +42,10 @@
 /** \brief Compute the fluxes across an interface. */
 int ausm_plus_up(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
 {
+    if ( get_shock_fitting_flag() ) {
+	cerr << "Error, we have not implemented AUSM_PLUS_UP with shock fitting. Please use AUSMDV." << endl;
+	exit(NOT_IMPLEMENTED_ERROR);
+    }
     double rL, rR;
     double pL, pR;
     double uL, uR;
@@ -75,9 +79,9 @@ int ausm_plus_up(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
      */
     rL = Lft.gas->rho;
     pL = Lft.gas->p;
-    uL = Lft.vel.x - IFace.vel.x;
-    vL = Lft.vel.y - IFace.vel.y;
-    wL = Lft.vel.z - IFace.vel.z;
+    uL = Lft.vel.x;
+    vL = Lft.vel.y;
+    wL = Lft.vel.z;
     aL = Lft.gas->a;
     eL = Lft.gas->e[0];
     keL = 0.5 * (uL * uL + vL * vL + wL * wL);
@@ -85,9 +89,9 @@ int ausm_plus_up(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
 
     rR = Rght.gas->rho;
     pR = Rght.gas->p;
-    uR = Rght.vel.x - IFace.vel.x;
-    vR = Rght.vel.y - IFace.vel.y;
-    wR = Rght.vel.z - IFace.vel.z;
+    uR = Rght.vel.x;
+    vR = Rght.vel.y;
+    wR = Rght.vel.z;
     aR = Rght.gas->a;
     eR = Rght.gas->e[0];
     keR = 0.5 * (uR * uR + vR * vR + wR * wR);

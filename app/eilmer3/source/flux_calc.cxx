@@ -172,25 +172,25 @@ int set_interface_flux(FV_Interface &IFace, FlowState *IFace_flow_state)
     int nmodes = get_gas_model_ptr()->get_number_of_modes();
 
     rho = IFace_flow_state->gas->rho;
-    un = IFace_flow_state->vel.x - IFace.vel.x;
-    vt1 = IFace_flow_state->vel.y - IFace.vel.y;
-    vt2 = IFace_flow_state->vel.z - IFace.vel.z;
+    un = IFace_flow_state->vel.x;
+    vt1 = IFace_flow_state->vel.y;
+    vt2 = IFace_flow_state->vel.z;
     p = IFace_flow_state->gas->p;
     e = IFace_flow_state->gas->e[0];
     ke = 0.5 * (un*un + vt1*vt1 + vt2*vt2);
     /* Kinetic energy per unit volume. */
     
     /* Mass flux (mass / unit time / unit area) */
-    F.mass = rho * un;
+    F.mass = rho * (un - IFace.vel.x); // The mass flux is relative to the moving interface.
     /* Flux of normal momentum */
-    F.momentum.x = rho * un * un + p;
+    F.momentum.x = F.mass * un + p;
     /* Flux of tangential momentum */
-    F.momentum.y = rho * un * vt1;
-    F.momentum.z = rho * un * vt2;
+    F.momentum.y = F.mass * vt1;
+    F.momentum.z = F.mass * vt2;
     /* Flux of Total Energy */
-    F.total_energy = rho * un * (e + ke) + p * un;
-    F.tke = rho * un * IFace_flow_state->tke;  // turbulence kinetic energy
-    F.omega = rho * un * IFace_flow_state->omega;  // pseudo vorticity
+    F.total_energy = F.mass * (e + ke) + p * un;
+    F.tke = F.mass * IFace_flow_state->tke;  // turbulence kinetic energy
+    F.omega = F.mass * IFace_flow_state->omega;  // pseudo vorticity
     /* Species mass flux */
     for ( int isp = 0; isp < nsp; ++isp ) {
 	F.massf[isp] = F.mass * IFace_flow_state->gas->massf[isp];

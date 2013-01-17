@@ -1705,6 +1705,7 @@ int gasdynamic_inviscid_increment( void )
 	/// 2: End of corrector step
 	if ( get_shock_fitting_flag() == 1 ) {
 #           ifdef _MPI
+	    MPI_Barrier( MPI_COMM_WORLD );
 	    mpi_exchange_boundary_data(COPY_CELL_LENGTHS);
 #           else
 	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {

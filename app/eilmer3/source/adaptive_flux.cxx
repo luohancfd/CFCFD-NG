@@ -35,6 +35,10 @@
 /// \param IFace  : IN-OUT : reference to interface flux data structure
 int adaptive_flux( FlowState &Lft, FlowState &Rght, FV_Interface &IFace )
 {
+    if ( get_shock_fitting_flag() ) {
+	cerr << "Error, we have not implemented the ADAPTIVE flux calculator with shock fitting. Please use AUSMDV." << endl;
+	exit(NOT_IMPLEMENTED_ERROR);
+    }
     double sound_speed = 0.5 * (Lft.gas->a + Rght.gas->a);
     double shear_y = fabs(Lft.vel.y - Rght.vel.y) / sound_speed;
     double shear_z = fabs(Lft.vel.z - Rght.vel.z) / sound_speed;
