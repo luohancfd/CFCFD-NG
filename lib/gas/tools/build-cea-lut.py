@@ -149,9 +149,9 @@ if __name__ == '__main__':
                      help="reactant fractions in dictionary form")
     group.add_option("-o", "--only-list", action="store", type="string", dest="onlyList",
                      help="limit species to this list")
-    group.add_option("-m", "--moles", action="store_const", dest="inputUnits", default="moles",
+    group.add_option("-m", "--moles", action="store_const", dest="inputUnits", default="moles", const="moles",
                      help="reactant fractions as mole fractions [default]")
-    group.add_option("-f", "--massf", action="store_const", dest="inputUnits",
+    group.add_option("-f", "--massf", action="store_const", dest="inputUnits", const="massf",
                      help="reactant fractions as mass fractions")
     group.add_option("-n", "--no-ions", action="store_false", dest="withIons", default=False,
                      help="excluding ions [default]")
