@@ -2,7 +2,7 @@
 
 # first the transport model
 gdata.transport_model = "monte carlo"
-gdata.nrays = 512
+gdata.nrays = 19500
 gdata.clustering = "by area"
 gdata.absorption = "partitioned energy"
 

@@ -9,11 +9,11 @@ print job_title
 
 # job control parameters
 LINEAR_GRADIENT = False
-L_SCALE = 1.0
+L_SCALE = 0.1
 NXBLOCKS = 2
 NYBLOCKS = 1
-nnx = 16        
-nny = 16      
+nnx = 32        
+nny = 32      
 ar = 0.1       # aspect ratio
 
 # We can set individual attributes of the global data object.
@@ -90,6 +90,7 @@ if LINEAR_GRADIENT:
 else:
     # calculate equilibrium mass-fractions
     cea.set_pT(p,T_f,transProps=False)
+    print cea.species
     massfs = []; mf_sum = 0.0
     for isp,sp in enumerate(species):
         massfs.append(get_species_composition(sp,cea.species))
