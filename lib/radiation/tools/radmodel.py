@@ -43,6 +43,9 @@ class GlobalRadData(object):
         self.lower_escape_factor = 0.0
         self.optical_switch = 0.0
         self.electronic_mode_factor = 0.0
+        self.absorption = "partitioned energy"
+        self.binning = "none"
+        self.N_bins = 0
 
         GlobalRadData.count = 1
         return
@@ -109,7 +112,11 @@ class GlobalRadData(object):
                 sys.exit()
             ofile.write(tab+"nrays = %d,\n" % self.nrays )
             ofile.write(tab+"clustering = 'none',\n" )
-            ofile.write(tab+"binning = 'none',\n" )
+        if self.transport_model=="discrete transfer":
+            ofile.write(tab+"binning = '%s',\n" % self.binning )
+            ofile.write(tab+"N_bins = '%d',\n" % self.N_bins )
+        elif self.transport_model=="monte carlo":
+            ofile.write(tab+"absorption = '%s',\n" % self.absorption )
         elif self.transport_model=="optically variable":
             ofile.write(tab+"optical_switch = %f,\n" % self.optical_switch )
             ofile.write(tab+"lower_escape_factor = %f,\n" % self.lower_escape_factor )
