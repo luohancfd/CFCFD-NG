@@ -15,6 +15,7 @@ transport_data = {
    spectrally_resolved = 1,
    nrays = 512,
    clustering = "none",
+   absorption = "partitioned energy"
 }
 
 air = {}
