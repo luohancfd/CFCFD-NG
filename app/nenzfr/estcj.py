@@ -136,12 +136,13 @@ def reflected_shock_tube_calculation(gasName, p1, T1, Vs, pe, pp_on_pe, area_rat
     #
     if PRINT_STATUS: print 'Start calculation of isentropic relaxation.'
     state5s = make_gas_from_name(gasName)
-    state5s.set_pT(state5.p, state5.T);  # entropy is set
+    # entropy is set, then pressure is relaxed via an isentropic process
+    state5s.set_pT(state5.p, state5.T);  
     if pe==None:
         state5s.p = state5.p
     else:
-        state5s.p = pe;                    # then pressure is relaxed
-    state5s.EOS(problemType='ps');     # via an isentropic process
+        state5s.p = pe;
+    state5s.EOS(problemType='ps')
     result['state5s'] = state5s
     H5s = state5s.e + state5s.p/state5s.rho # stagnation enthalpy
     result['H5s'] = H5s

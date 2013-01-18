@@ -34,7 +34,7 @@
 \author{
   Mechanical Engineering Report 2011/02 \\
   P.~A.~Jacobs, R.~J.~Gollan, D.~F.~Potter, F.~Zander,\\
-  D.~E.~Gildfind, P.~Blyton and W.~K.~Y.~Chan \\
+  D.~E.~Gildfind, P.~Blyton, W.~K.~Y.~Chan and L.~Doherty \\
   Centre for Hypersonics\\
   The University of Queensland
 }
@@ -149,6 +149,8 @@ with a flow speed of $V_7$ = 2.95\,km/s.
 Note that we have selected to stop the expansion at a particular nozzle area ratio.
 Alternatively, we may stop the expansion at a particular Pitot pressure by specifying
 \verb?--task=stnp? and a suitable ratio for the option \verb?--pp_on_pe?.
+If you don't want to specify a relaxation pressure with option \verb?--pe?,
+the reflected-shock conditions (5) will be used directly as the nozzle supply conditions.
 
 \medskip
 \noindent\topbar
@@ -157,7 +159,7 @@ Alternatively, we may stop the expansion at a particular Pitot pressure by speci
 
 \medskip
 Subset calculations can be done by selecting a different task.
-For example, just the incident shock processing can be computed with the task ``ishock'',
+For example, just the incident shock processing can be computed with the \verb?--task=ishock?,
 specifying only the gas, initial pressure, temperature and incident shock speed.
 
 \medskip
