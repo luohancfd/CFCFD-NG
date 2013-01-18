@@ -143,12 +143,13 @@ and the thermal energy-exchange source term vector is
 \end{equation}
 The radiation source term vector is
 \begin{equation}
- Q_{\text{rad.}} = \left [ \begin{array}{c} 0 \\ 0 \\ 0 \\ -\nabla \cdot q_{rad} \\ 0 \\ -\nabla \cdot q_{rad} \\ 0 \end{array} \right ]
+ Q_{\text{rad.}} = \left [ \begin{array}{c} 0 \\ 0 \\ 0 \\ -\nabla \cdot \vec{q}_{rad} \\ 0 \\ -\nabla \cdot \vec{q}_{rad} \\ 0 \end{array} \right ]
  \label{eq:Q_rad}
 \end{equation}
 where any purely vibrational component of radiative heat loss (or gain) has been neglected.
 The transport, thermodynamic and chemical kinetic source term models 
-will be discussed in detail in Section~\ref{thermochem-sec}.
+will be discussed in detail in Section~\ref{thermochem-sec}, while the radiation transport models
+used for computing $-\nabla \cdot \vec{q}_{rad}$ will be presented in Section~\ref{sec:radiation_transport}.
 
 
 \subsection{Conserved Quantities and Fluxes for Three-Dimensional Flow}

@@ -13,6 +13,8 @@
 \usepackage{listings}
 \usepackage{lscape}
 \usepackage{longtable}
+\usepackage{subfig}
+\usepackage{threeparttable}
 \lstset{basicstyle=\ttfamily\scriptsize,identifierstyle=,keywordstyle=}
 
 %------------------------------------------------------------------
@@ -34,14 +36,15 @@
 %------------------------------------------------------------------
 
 \title{
-    Eilmer's Theory Book: Basic Models for Gas Dynamics and Thermochemistry.
+    Eilmer's Theory Book: Basic Models for Gas Dynamics, Thermochemistry and Radiation Transport.
 }
 \author{
     Mechanical Engineering Report 2010/09\\
     P. A. Jacobs\thanks{Queensland Geothermal Energy Centre of Excellence, The University of Queensland, Brisbane, Australia.}, 
     R. J. Gollan\thanks{Centre for Hypersonics, The University of Queensland, Brisbane, Australia.},
+    D. F. Potter,
     A. J. Denman, B. T. O'Flaherty, \\
-    D. F. Potter, P. J. Petrie-Repar and I. A. Johnston.
+    P. J. Petrie-Repar and I. A. Johnston.
 }
 % \date{May 2010}
 \makeindex
@@ -56,6 +59,7 @@ It is based on a finite-volume formulation of the mass, momentum, energy and spe
 and is implemented on block-structured grids.
 Starting from an initial flow state with boundary conditions, state quantities in each finite-volume cell 
 are updated in time to provide a simulation of the evolving flow field.
+High temperature phenomena such as chemical reactions and radiation are able to be modelled via source terms in the governing equations.
 \end{abstract}
 
 \clearpage
@@ -72,16 +76,21 @@ $a$	& : speed of sound, m/s \\
 $C_v$	& : specific heat at constant volume, $\rm J/kg \cdot K$ \\
 $C_p$	& : specific heat at constant pressure, $\rm J/kg \cdot K$ \\
 $E$	& : total energy per unit mass $e + \frac{1}{2} u^2$, J/kg \\
+$E$  & : radiative power, W \\
 $e$	& : specific internal energy, J/kg \\
+$e$  & : radiative power density, $\rm W/m^3$ \\
 $\overline{F}$ & : array of flux terms \\
 $f$            & : species mass fraction \\
 $H$	& : total enthalpy, J/kg \\
 $h$            & : specific enthalpy, J/kg \\
+$\vec{I}_\nu$     & : Spectral radiative intensity vector,$\rm W/m^2 \cdot sr$ \\
 $\hat{i}, 
  \hat{j},
  \hat{k}$      & : unit vectors for the cartesian coordinates \\
 $i,j,k$	& : cell index \\
+$j_\nu$     & : spectral emission coefficient, $\rm W/m^3-sr-Hz$ \\
 $k$            & : coefficient of thermal conductivity \\
+$\kappa_\nu$ & : spectral absorption coefficient, $\rm 1/m$ \\
 $M$	& : Mach number \\
 $MW$	& : molecular weight \\
 $n$            & : direction cosine \\
@@ -92,10 +101,13 @@ $P, p$	& : pressure, Pa \\
 $Pr$	& : Prandtl number \\
 $Q$	& : source vector in the gas-dynamic equations \\
 $q$     & : heat flux, W/m$^2$ \\
+$\nabla \cdot \vec{q}_\text{rad}$  & : radiative divergence, $\rm W/m3$ \\
 $R$	& : gas constant, $\rm J/kg \cdot K$ \\
+$R$  & : uniformally distributed random number \\
 $R_0$	& : universal gas constant, $\rm 8.314~J/mole \cdot K$ \\
 $Re$	& : Reynolds number \\
 $r$            & : radial coordinate, m \\
+$s$           & : line-of-sight coordinate, m \\
 $S$            & : control surface of the cell \\
 $T$	& : temperature, K \\
 $t$	& : time, s \\
@@ -108,25 +120,31 @@ $x, y, z$      & : cartesian coordinates, m \\
 \begin{tabular}{ll}
 $\alpha$	& : weighting parameter \\
 $\Delta\pm$     & : intermediate variable for interpolation \\
+$\gamma$       & : ratio of specific heats \\
+$\Gamma$      & : Goulard number \\        
 $\lambda$ & : second coefficients of viscosity, Pa.s \\
 $\mu$		& : viscosity, Pa.s; friction coefficient \\
 $\rho$         & : density, kg/m$^3$ \\
-$\gamma$       & : ratio of specific heats \\
 $\tau$		& : wall shear stress, Pa \\
+$\tau$                 & : optical thickness \\
+$\theta, \phi$     & : elevation and azimuth angles \\              
 \end{tabular}
 
 
 \subsection*{Subscripts}
 \begin{tabular}{ll}
+$e$    & : free-electrons \\
 $i$     & : cell index, inviscid \\
 $j,k$	& : cell indices \\
 $L,~R$	& : left and right states for the Riemann solver or flux calculator \\
 $max$	& : maximum value \\
 $n$        & : normal to the cell interface \\
 $p,q$      & : tangent to the cell interface \\
+$\text{rad}$  & : radiative \\
 $s$	& ~~/ species index \\
 $v$        & : viscous \\
 $x,y,z$  & : coordinate directions \\
+$\nu$    & : Frequency, Hz
 \end{tabular}
 
 
@@ -207,9 +225,12 @@ a number of case studies.
 % \clearpage
 \input{thermochem}
 
+% \clearpage
+\input{radiation/radiation}
+
 %--------------------------------------------------------------------
 \clearpage
 \bibliographystyle{unsrt}
-\bibliography{../user-guide/bibtex/pj,../user-guide/bibtex/computing,../user-guide/bibtex/upwind,../user-guide/bibtex/gas_dynamic,../user-guide/bibtex/adm,../user-guide/bibtex/gas,../user-guide/bibtex/dan,../user-guide/bibtex/parallel,../user-guide/bibtex/rg-thesis,../user-guide/bibtex/shocktube}
+\bibliography{../user-guide/bibtex/pj,../user-guide/bibtex/computing,../user-guide/bibtex/upwind,../user-guide/bibtex/gas_dynamic,../user-guide/bibtex/adm,../user-guide/bibtex/gas,../user-guide/bibtex/dan,../user-guide/bibtex/parallel,../user-guide/bibtex/rg-thesis,../user-guide/bibtex/shocktube,radiation/radiation}
 
 \end{document}
