@@ -124,7 +124,7 @@ and it is easy to add entries for other gas mixtures.
 %
 Built into ESTCj is an idealized model of a reflected shock tube.
 This model is composed of quasi-one-dimensional wave processes 
-as shown in the following figure\,\cite{krek_jacobs_93}.
+as shown in the following figure that has been taken from Ref.\,\cite{krek_jacobs_93}.
 The numbers denote states of the gases between processes.
 
 \begin{center}
@@ -148,7 +148,7 @@ has a pressure of $P_7$~=~93.6\,kPa and a static temperature of $T_7$~=~1284\,K,
 with a flow speed of $V_7$ = 2.95\,km/s.
 Note that we have selected to stop the expansion at a particular nozzle area ratio.
 Alternatively, we may stop the expansion at a particular Pitot pressure by specifying
-a suitable ratio for the option \verb?--pp_on_pe?.
+\verb?--task=stnp? and a suitable ratio for the option \verb?--pp_on_pe?.
 
 \medskip
 \noindent\topbar
@@ -180,20 +180,31 @@ compute the expected Pitot pressure to be 2.14\,MPa.
 \subsection{Cone surface pressure calculation}
 %
 Alternatively, the conditions on the surface of a conical pressure probe
-(with 15$^o$ half-angle) can be computed as.
+(with 15$^o$ half-angle) can be computed as:
 
 \medskip
 \noindent\topbar
 \lstinputlisting[language={},breaklines=true]{../notes/cone-transcript.txt}
 \bottombar
 
+\bigskip
+\subsection{Total condition calculation}
+%
+The hypothetical stagnation conditions for a specified free stream
+can be computed as:
+
+\medskip
+\noindent\topbar
+\lstinputlisting[language={},breaklines=true]{../notes/total-transcript.txt}
+\bottombar
+
 \newpage
 \section{The supporting libraries}
 \label{the-libraries}
 %
-Although the ESTCj is built specifically to do the calculations needed for a
-flow conditions typical of the T4 reflected shock tunnel,
-the backing libraries are more general.
+Although the ESTCj is built specifically to do the calculations 
+needed for flow conditions typical of the T4 reflected shock tunnel,
+the supporting libraries are more general.
 There are gas modules for:
 \begin{itemize}
  \item a perfect gas, with user specified properties (Appendix\,\ref{ideal-gas-py}).

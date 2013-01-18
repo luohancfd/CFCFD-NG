@@ -1,0 +1,10 @@
+$ estcj.py --gas=air --task=total --p1=93.6e3 --T1=1284 --V1=2.95e3
+estcj: Equilibrium Shock Tube Conditions
+Version: 07-Mar-2012
+Input parameters:
+    Gas is air, p1: 93600 Pa, T1: 1284 K, V1: 2950 m/s
+Total condition:
+    p: 3.42e+07 Pa, T: 4160.57 K, rho: 28.07 kg/m**3, e: 4.2084e+06 J/kg, h: 5.42677e+06 J/kg, a: 1215.3 m/s, s:8448 kJ/(kg.K)
+    R: 292.819 J/(kg.K), gam: 1.2123, Cp: 1319.6 J/(kg.K), mu: 0.00011759 Pa.s, k: 0.37814 W/(m.K)
+    species massf: {'CO2': 0.00024218, 'CO': 0.00015434, 'NO': 0.10572, 'O': 0.022444, 'Ar': 0.012916, 'N2O': 0.00016972, 'N2': 0.70541, 'O2': 0.15205, 'NO2': 0.00079546}
+
