@@ -10,15 +10,15 @@ print job_title
 # job control parameters
 LINEAR_GRADIENT = False
 L_SCALE = 0.1
-NXBLOCKS = 2
+NXBLOCKS = 1
 NYBLOCKS = 1
 nnx = 32        
-nny = 32      
-ar = 0.1       # aspect ratio
+nny = 32     
+ar = 0.05       # aspect ratio
 
 # We can set individual attributes of the global data object.
 gdata.title = job_title
-gdata.axisymmetric_flag = 1 
+gdata.axisymmetric_flag = 1
 gdata.viscous_flag = 1
 gdata.dt = 1.0e-9
 gdata.max_time = 1.0e-4
@@ -100,10 +100,10 @@ else:
     initial = FlowCondition(p=p,  u=0.0, v=0.0, T=T_f,  massf=massfs)
 
 # Define the geometry
-a = Node(           0.0,        0.00, label="A")
-b = Node(1.0*L_SCALE/ar,        0.00, label="B")
-c = Node(1.0*L_SCALE/ar, 1.0*L_SCALE, label="C")
-d = Node(           0.0, 1.0*L_SCALE, label="D")
+a = Node(-0.5*L_SCALE, 0.0, label="A")
+b = Node( 0.5*L_SCALE, 0.0, label="B")
+c = Node( 0.5*L_SCALE, 0.5*L_SCALE/ar, label="C")
+d = Node(-0.5*L_SCALE, 0.5*L_SCALE/ar, label="D")
 
 ab = Line(a, b) # southern boundary
 bc = Line(b, c) # eastern boundary

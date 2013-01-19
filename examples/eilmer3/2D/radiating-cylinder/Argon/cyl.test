@@ -21,7 +21,8 @@ test run-simulation {Run the shared-memory radiation transport code.} -body {
 } -result {} -returnCodes {0}
 
 test run-postprocessor {Run the postprocessing stage.} -body {
-    exec e3post.py --job=cyl --tindx=9999 --slice-list=1,0,:,: > LOGFILE_POST
+    exec e3post.py --job=cyl --tindx=9999 --heat-flux-list=0,3,:,:,: > LOGFILE_POST
+    exec e3post.py --job=cyl --tindx=9999 --slice-list="0,:,0,:" >> LOGFILE_POST
     exec ./compute_RMS.py profile.data 2 18 analytical_solution.txt 1 5 >> LOGFILE_POST
 } -result {} -returnCodes {0}
 
