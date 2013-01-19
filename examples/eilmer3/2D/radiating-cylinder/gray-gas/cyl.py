@@ -30,7 +30,7 @@ gm = get_gas_model_ptr()
 global nsp, ntm
 nsp = gm.get_number_of_species()
 ntm = gm.get_number_of_modes()
-select_radiation_model( input_file="grey-gas-MC.lua", update_frequency=1 )
+select_radiation_model( input_file="gray-gas-MC.lua", update_frequency=1 )
 
 # Define flow conditions
 global u, v, w
