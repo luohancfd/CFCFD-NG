@@ -33,6 +33,8 @@ extern "C" {
 #define NO_CLUSTERING        0
 #define CLUSTERING_BY_VOLUME 1
 #define CLUSTERING_BY_AREA   2
+#define STANDARD_ABSORPTION           0
+#define PARTITIONED_ENERGY_ABSORPTION 1
 
 
 using namespace std;
@@ -939,6 +941,18 @@ MonteCarlo::MonteCarlo( lua_State *L )
     
     E_min_ = 1.0e-30;		// min energy per photon packet to be considered
     
+    string absorption = get_string(L,-1,"absorption");
+    if ( absorption == "standard" )
+	absorption_ = STANDARD_ABSORPTION;
+    else if ( absorption == "partitioned energy" )
+	absorption_ = PARTITIONED_ENERGY_ABSORPTION;
+    else {
+	cout << "MonteCarlo::MonteCarlo()" << endl
+	     << "Absorption method: " << absorption << " not implemented" << endl
+	     << "Exiting program." << endl;
+	exit( NOT_IMPLEMENTED_ERROR );
+    }
+
     string clustering = get_string(L,-1,"clustering");
     if ( clustering == "by volume" )
     	clustering_ = CLUSTERING_BY_VOLUME;
@@ -1176,7 +1190,10 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 		    if ( E < E_min_ ) continue;
 		    // subtract emitted energy from origin cell
 		    cell->Q_rE_rad_temp_[omp_get_thread_num()] -= E / cell->vol_;
-		    this->trace_ray( ray, ib, ii, jj, kk, nu, E );
+		    if ( absorption_ == STANDARD_ABSORPTION )
+		        this->trace_ray_standard( ray, ib, ii, jj, kk, nu, E );
+		    else
+			this->trace_ray_partitioned_energy( ray, ib, ii, jj, kk, nu, E );
 		    delete ray;
 		}
 	    }
@@ -1203,7 +1220,10 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
                     double nu = interface->S_->random_frequency( rg_->Random() );
 		    double E = interface->S_->I_int.back() * interface->area_ * ray->domega_;
 		    if ( E < E_min_ ) continue;
-		    this->trace_ray( ray, ib, ii, jj, kk, nu, E );
+		    if ( absorption_ == STANDARD_ABSORPTION )
+		        this->trace_ray_standard( ray, ib, ii, jj, kk, nu, E );
+		    else
+			this->trace_ray_partitioned_energy( ray, ib, ii, jj, kk, nu, E );
 		    delete ray;
 		}
 	    }
@@ -1297,9 +1317,9 @@ RayTracingRay * MonteCarlo::create_new_ray_for_interface( RayTracingInterface * 
     
     return ray;
 }
-# if 0
-// statistical approach
-int MonteCarlo::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, double nu, double E )
+
+
+int MonteCarlo::trace_ray_standard( RayTracingRay * ray, int ib, int ic, int jc, int kc, double nu, double E )
 {
     // 1. Initialise pointers
     Block * A = get_block_data_ptr( ib );
@@ -1379,8 +1399,8 @@ int MonteCarlo::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, 
     
     return SUCCESS;
 }
-# else
-int MonteCarlo::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, double nu, double E )
+
+int MonteCarlo::trace_ray_partitioned_energy( RayTracingRay * ray, int ib, int ic, int jc, int kc, double nu, double E )
 {
     // 1. Initialise pointers
     Block * A = get_block_data_ptr( ib );
@@ -1451,7 +1471,6 @@ int MonteCarlo::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, 
 
     return SUCCESS;
 }
-# endif
 
 RadiationTransportModel * create_radiation_transport_model( const string file_name )
 {

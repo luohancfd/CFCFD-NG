@@ -8,4 +8,5 @@ input_data.tube_width = 10.15e-2 # m
 input_data.apparatus_fn = "Voigt"
 input_data.Gaussian_HWHM = 8 # Ang
 input_data.Lorentzian_HWHM = 0 # Ang
-input_data.sampling_rate = 1
+input_data.sampling_rate = 10
+input_data.planck_spectrum = True

@@ -31,7 +31,7 @@ class EqSpectraInputData(object):
     __slots__ = ['rad_model_file', 'gas_model_file', 'species_list', 'mole_fractions', 
                  'mass_fractions', 'shock_speed', 'gas_pressure', 'gas_temperature', 
                  'tube_width', 'apparatus_fn', 'Gaussian_HWHM', 'Lorentzian_HWHM', 
-                 'sampling_rate', 'problem' ]
+                 'sampling_rate', 'problem', 'planck_spectrum' ]
     def __init__(self):
         self.rad_model_file = "rad-model.lua"
         self.gas_model_file = "gas-model.lua"
@@ -47,6 +47,7 @@ class EqSpectraInputData(object):
         self.Lorentzian_HWHM = 0
         self.sampling_rate = 1
         self.problem = "shock"
+        self.planck_spectrum = False
     
 def parseInputData(input_data):
     # parse the input data object
@@ -96,7 +97,10 @@ def parseInputData(input_data):
     # the problem type
     problem = input_data.problem
     
-    return rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, apparatus_fn, gamma_G, gamma_L, nu_sample, problem
+    # planck spectrum request
+    planck_spectrum = input_data.planck_spectrum
+    
+    return rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, apparatus_fn, gamma_G, gamma_L, nu_sample, problem, planck_spectrum
 
 def main():
     #
@@ -119,7 +123,7 @@ def main():
     # 
     # parse the input options
     execfile(input_file)
-    rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, apparatus_fn, gamma_G, gamma_L, nu_sample, problem = parseInputData(input_data)
+    rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, apparatus_fn, gamma_G, gamma_L, nu_sample, problem, planck_spectrum = parseInputData(input_data)
 
     # setup the reactants list
     reactants = make_reactants_dictionary( species )
@@ -184,11 +188,11 @@ def main():
         A = Voigt(gamma_L, gamma_G, nu_sample)
     elif apparatus_fn=="SQRT_Voigt":
         A = SQRT_Voigt(gamma_L, gamma_G, nu_sample)
-    elif apparatus_fn=="none" or apparatus_fn=="None":
+    elif apparatus_fn=="none" or apparatus_fn=="None" or apparatus_fn==None:
         A = None
     else:
         print "Apparatus function with name: %s not recognised." % apparatus_fn
-        sys.exiit()
+        sys.eiit()
     
     # apply apparatus function
     if A!=None:
@@ -198,7 +202,13 @@ def main():
     IvW = YvX("intensity_spectra.txt" )
     IvW.plot_data(xlabel="Wavelength, lambda (nm)", ylabel="Intensity, I (W/m2-m-sr)", new_plot=True, show_plot=True, include_integral=False, logscale_y=True )
     
-    del IvW
+    # check if the planck intensity spectrum has been requested
+    if planck_spectrum:
+        del S
+        S = SpectralIntensity(rsm,cea.T)
+        S.write_to_file("planck_intensity_spectra.txt" )
+    
+    del S, IvW
     
     del rsm, gm
     

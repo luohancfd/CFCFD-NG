@@ -173,8 +173,9 @@ While a flowfield calculation with coupled radiation can be performed via the si
 processor version of eilmer3 (e3shared.exe), the radiation transport portion of such 
 calculations can often take a very long time to run.
 The obvious solution is to implement the radiation transport calculation in parallel.
-Due to the non-local nature of the radiation transport problem, however, it is necessary
-to implement the parallelisation via the shared memory multiprocessor approach.
+Due to the non-local nature of the radiation transport problem, however, for most 
+radiation transport models it is necessary to implement the parallelisation via the shared 
+memory multiprocessor approach.
 The radiation transport solver in eilmer3 has therefore been written to make use of the
 OpenMP API.
 As the Eilmer3 flowfield solver does not currently support an OpenMP build, the radiation
@@ -199,6 +200,12 @@ On the barrine cluster, the Intel compiler should be used for best performance::
   $ cd $HOME/cfcfd3/app/eilmer3/build
   $ make TARGET=for_intel_openmp e3rad
   $ make clean
+  
+It should be noted that the e3mpi.exe executable is able to run radiation transport calculations 
+in parallel when either the `optically thin' or `tangent slab' models are implemented, however a specific 
+blocking layout is required for the `tangent slab' model.
+See the radiatively coupled Hayabusa simulation in $HOME/cfcfd3/examples/eilmer3/2D/hayabusa for 
+an example of this blocking layout.
 
 When things go wrong
 --------------------

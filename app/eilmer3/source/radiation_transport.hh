@@ -138,8 +138,10 @@ private:
     
     RayTracingRay * create_new_ray_for_interface( RayTracingInterface * interface, int nrays, int ndim, bool planar );
     
-    int trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc, double nu, double E );
+    int trace_ray_standard( RayTracingRay * ray, int ib, int ic, int jc, int kc, double nu, double E );
     
+    int trace_ray_partitioned_energy( RayTracingRay * ray, int ib, int ic, int jc, int kc, double nu, double E );
+
     int get_cell_index( Block * A, int i, int j, int k )
     { return (k-A->kmin)*(A->nnj*A->nni)+(j-A->jmin)*A->nni+(i-A->imin); }
     
@@ -152,6 +154,7 @@ private:
     double dl_min_;
     double E_min_;
     int clustering_;
+    int absorption_;
     CRandomMersenne *rg_;
 };
 

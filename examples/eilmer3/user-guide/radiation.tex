@@ -5,26 +5,70 @@
 A variety of radiation transport models are implemented in Eilmer3:
 
 \begin{itemize}
- \item Optically thin
- \item Discrete transfer
- \item Monte Carlo
- \item Tangent slab
+ \item Optically thin model
+ \item Tangent slab model 
+ \item Modified discrete transfer model
+ \item Photon Monte-Carlo model
 \end{itemize}
 
-The radiation transport model is defined the \texttt{transport\_data} field of the radiation Lua input file.
+The radiation transport model is defined the \texttt{transport\_data} table of the radiation Lua input file.
 
-\subsection{Discrete transfer model}
+\subsection{Optically thin model}
 
-The discrete transfer model can be selected via setting the \texttt{transport\_model} field in the \texttt{transport\_data} table to	 \texttt{discrete transfer}.
+The optical thin radiation transport model is selected by setting the \texttt{transport\_model} field in the \texttt{transport\_data} field to \texttt{"optically thin"}.
+The following code snippet gives an example of selecting and defining the parameters for the optically thin model:
+
+\noindent \topbar
+\begin{lstlisting}[basicstyle=\ttfamily\normalsize]
+transport_data = {
+   transport_model = "optically thin",
+   spectrally_resolved = true
+}
+\end{lstlisting}
+\bottombar
+
+A description of the Lua input fields for the discrete transfer radiation transport model is given in Table~\ref {tab:OT-input}.
+
+\begin{table}[h]
+ \begin{center}
+  \caption{Description of Lua input fields for the optically thin radiation transport model}
+  \label{tab:OT-input}
+\begin{tabular}{llp{8cm}}
+ \hline \hline
+ Field                                                   & Type                 &  Description \\ \hline
+\texttt{spectrally\_resolved}            & \textit{bool}       &  Flag to request a spectrally resolved or unresolved determination of the radiative power density \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\subsection{Tangent slab model}
+
+The tangent slab radiation transport model is selected by setting the \texttt{transport\_model} field in the \texttt{transport\_data} field to \texttt{"tangent slab"}.
+No other input parameters need to be set.
+The following code snippet gives an example of selecting and defining the parameters for the optically thin model:
+
+\noindent \topbar
+\begin{lstlisting}[basicstyle=\ttfamily\normalsize]
+transport_data = {
+   transport_model = "tangent slab"
+}
+\end{lstlisting}
+\bottombar
+
+\subsection{Modified discrete transfer model}
+
+The modified discrete transfer radiation transport model is selected by setting the \texttt{transport\_model} field in the \texttt{transport\_data} field to \texttt{"discrete transfer"}.
 The following code snippet gives an example of selecting and defining the parameters for the discrete transfer model:
 
 \noindent \topbar
 \begin{lstlisting}[basicstyle=\ttfamily\normalsize]
 transport_data = {
-   transport_model = 'discrete transfer',
-   nrays = 8,
-   clustering = "none",
-   binning = "none"
+   transport_model = "discrete transfer",
+   nrays = 32,
+   clustering = "by volume",
+   binning = "opacity",
+   N_bins = 10
 }
 \end{lstlisting}
 \bottombar
@@ -33,7 +77,7 @@ A description of the Lua input fields for the discrete transfer radiation transp
 
 \begin{table}[h]
  \begin{center}
-  \caption{Description of Lua input fields for the discrete transfer radiation transport models}
+  \caption{Description of Lua input fields for the discrete transfer radiation transport model}
   \label{tab:DTM-input}
 \begin{tabular}{llp{8cm}}
  \hline \hline
@@ -41,7 +85,7 @@ A description of the Lua input fields for the discrete transfer radiation transp
 \texttt{nrays}            & \textit{int}       &  Number of rays emitted per cell and per frequency interval \\
 \texttt{clustering}    & \textit{string}  &  Ray clustering: \texttt{by volume}, \texttt{by area} or \texttt{none} \\
 \texttt{binning}        & \textit{string}  &  Binning model: \texttt{opacity}, \texttt{frequency} or \texttt{none} \\
-\texttt{N\_bins}         & \textit{int}       &  Number of bins \\
+\texttt{N\_bins}         & \textit{int}       &  Number of bins (does not need to be set if \texttt{ binning = "none" }) \\
 \hline
 \end{tabular}
 \end{center}
@@ -49,15 +93,16 @@ A description of the Lua input fields for the discrete transfer radiation transp
 
 \subsection{Photon Monte-Carlo model}
 
-The photon Monte-Carlo model can be selected via setting the \texttt{transport\_model} field in the \texttt{transport\_data} table to \texttt{monte carlo}.
+The photon Monte-Carlo radiation transport model is selected by setting the \texttt{transport\_model} field in the \texttt{transport\_data} field to \texttt{"monte carlo"}.
 The following code snippet gives an example of selecting and defining the parameters for the photon Monte-Carlo model:
 
 \noindent \topbar
 \begin{lstlisting}[basicstyle=\ttfamily\normalsize]
 transport_data = {
-   transport_model = 'monte carlo',
+   transport_model = "monte carlo",
    nrays = 512,
-   clustering = "none"
+   clustering = "by area",
+   absorption = "partitioned energy"
 }
 \end{lstlisting}
 \bottombar
@@ -74,6 +119,7 @@ Note that here \texttt{nrays} is the total number of rays emitted per cell, wher
  Field                        & Type              &  Description \\ \hline
 \texttt{nrays}            & \textit{int}       &  Number of rays emitted per cell \\
 \texttt{clustering}    & \textit{string}  &  Ray clustering: \texttt{by volume}, \texttt{by area} or \texttt{none} \\
+\texttt{absorption}  & \textit{string}  &   Absorption model: \texttt{standard}, or \texttt{partitioned energy} \\
 \hline
 \end{tabular}
 \end{center}
