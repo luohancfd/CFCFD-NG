@@ -165,7 +165,7 @@ we are reasonably sure that our job will not be in competition with another job
 on the same nodes.
 Note the -A accounting option.  
 You will have to use an appropriate group name and you can determine 
-which groups you are part of with the "groups" command.
+which groups you are part of with the ``groups`` command.
 Unlike SGE on Blackhole, we seem to need to change to the working directory 
 before running the simulation code.
 Finally, we have redirected the standard output from the main simulation 
@@ -208,8 +208,8 @@ On the barrine cluster, the Intel compiler should be used for best performance::
   $ make clean
   
 It should be noted that the e3mpi.exe executable is able to run radiation transport calculations 
-in parallel when either the `optically thin' or `tangent slab' models are implemented, however a specific 
-blocking layout is required for the `tangent slab' model.
+in parallel when either the "optically thin" or "tangent slab" models are implemented, however a specific 
+blocking layout is required for the "tangent slab" model.
 See the radiatively coupled Hayabusa simulation in $HOME/cfcfd3/examples/eilmer3/2D/hayabusa for 
 an example of this blocking layout.
 
