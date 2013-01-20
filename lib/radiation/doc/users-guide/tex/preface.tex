@@ -1,19 +1,11 @@
 \chapter*{Preface}
 \addcontentsline{toc}{chapter}{Preface}
 
-This document is intended to serve as a reference for the high temperature gas radiation module that is part of the University of Queensland's Compressible Flow CFD group's code collection~\cite{cfcfd}.
-The radiation module began its life in 2004 as a means to computer equilibrium air radiation with the grey gas approximation.
+This document is intended to serve as a reference for the high temperature gas radiation module that is part of the University of Queensland's Compressible Flow CFD group's current code collection, \cite{cfcfd3}.
+The radiation module began its life in 2004 as a means to computer equilibrium air radiation with the gray gas approximation.
 In 2006 work began to expand the radiation module to treat high temperature gases in a spectrally resolved manner.
-Presently the radiation module can implement a number of spectral models, including the original equilibrium air model and an in-house line-by-line model called \texttt{photaura}.
-If the user has access to Fluid Gravity's \texttt{parade} code~\cite{SBF+11} or KAIST's \texttt{spradian07} code~\cite{hyun_phd}, an interfacing framework exists so that these programs can also be implemented as the spectral model within code collection.  
-The focus of this documentation will be on the \texttt{photaura} model, which can presently treat bound-bound transitions of monatomic and diatomic species in a line-by-line manner and monatomic continuum processes via hydrogenic approximations or tabulated cross-sections.
-The \texttt{photaura} model is described and implemented in the PhD thesis of Potter~\cite{Potter_PhD} where good agreement with air and CO$_2$--N$_2$ shock tube spectroscopy measurements in the NASA Ames EAST facility was found.  
-The \texttt{photaura} model was also found by Sobbia et al~\cite{SLB+2012} to accurately reproduce intensity spectra measured in an ICP facility with a N$_2$--CH$_4$ test gas.
-
-\par
-
-The first part of this report gives an outline of the theory behind high temperature gas radiation, while the second part provides a practical user guide for performing radiation calculations with worked examples.
-
+Presently the radiation module can implement a number of spectral models, including the original equilibrium air model and an in-house line-by-line model called Photaura.
+If the user has access to Fluid Gravity's Parade code~\cite{SBF+11} or KAIST's Spradian07 code~\cite{hyun_phd}, an interfacing framework exists so that these programs can also be implemented as the spectral model within code collection.  
 
 \section*{Acknowledgements}
 

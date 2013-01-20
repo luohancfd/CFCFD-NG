@@ -1,69 +1,18 @@
 \chapter{Introduction}
 
-The radiation module has three principle applications:
+The general differential form of the radiative transfer equation in a participating medium can be written as~\cite{Mod03}:
 
-\begin{enumerate}
- \item Determination of the radiance heat flux on a solid surface (e.g. the TPS of a re-entry vehicle)
- \item Determination of the radiative divergence field for a CFD flowfield (e.g. \texttt{eilmer3})
- \item Determination of radiance spectra along optical lines-of-sight for comparison with spectroscopy measurements
-\end{enumerate}
-
-The determination of the radiative divergence field is required in a CFD calculation to account for the effect of energy losses or gains due to radiative processes.
-This phenomena is often referred to as radiation-flowfield coupling.  
-
-\section{Surface heating due to radiation}
-
-
-
-\section{Radiation-flowfield coupling}
-
-The three-dimensional Navier--Stokes equations can be expressed in integral form as
-\begin{equation}
- \frac{\partial}{\partial t} \int_{V} U dV = - \oint_{S} \left ( \overline{F}_{i} - \overline{F}_{v} \right ) \cdot \hat{n}~dA + \int_{V} Q dV \text{ , }
- \label{eq:conservation}
-\end{equation}
-where $S$ is the bounding surface and $\hat{n}$ is the outward-facing unit normal of the control surface.
-The vector of conserved quantities for a multi-component and multi-temperature gas are:
-\begin{equation}
- U = \left [ \begin{array}{c} \rho \\ 
-                              \rho u \\ 
-                              \rho v \\ 
-                              \rho w \\ 
-                              \rho E \\ 
-                              \rho e_m \\
-                              \rho_s \\
-             \end{array} \right ] \text{ . }
- \label{eq:U_vector_3D}
-\end{equation}
-Here, the conserved quantities are respectively density, $x$-momentum per volume,
-$y$-momentum per volume, $z$-momentum per volume, total energy per volume, energy per volume for nonequilibrium thermal mode $m$ and density for species $s$.
-The accompanying vector of source terms for a radiating and thermochemically relaxing gas are:
-
-\begin{equation}
- Q = \left [  \begin{array}{c} 0 \\ 
-                  0 \\ 
-                  0 \\ 
-                  0 \\ 
-                   -\nabla \cdot \vec{q}_\text{rad} \\ 
-                   -\nabla \cdot \vec{q}_{\text{rad},m} + \Omega_m \\
-                   \dot{\omega_{s}}  \\
-             \end{array} \right ] \text{ . }
- \label{eq:U_vector_3D}
-\end{equation}
-
-\noindent where $\nabla \cdot \vec{q}_\text{rad}$ is the total divergence of the radiative heat flux vector, $\nabla \cdot \vec{q}_{\text{rad},m}$ is the component of the radiative divergence due to thermal mode $m$, $\Omega_m$ is the rate of thermal energy exchange for thermal mode $m$ due to particle collisions and $\dot{\omega_{s}}$ is the chemical species mass production rate.
-%When bulk species are considered, the radiation modelling only affects the radiative divergence terms; when electronic level specific species are considered however, the species mass production rates are also influenced by the radiation modelling.
+ \begin{equation}
+  \underbrace{ \frac{1}{c} \frac{ \partial I_\nu }{ \partial t } }_\text{temporal var.} + \underbrace{\frac{ \partial I_\nu }{ \partial s }}_\text {spatial var.} = \underbrace{j_\nu}_\text{emission} - \underbrace{\kappa_\nu I_\nu}_\text{absorption} - \underbrace{ \sigma_{s,\nu} I_\nu + \frac{\sigma_{s,\nu}}{4 \pi} \int I_\nu ( \hat{s}_i ) \phi ( \hat{s}_i, \hat{s} ) d \Omega_i }_\text{scattering} \label{eq:RTE}
+ \end{equation}
+ 
+ \noindent This radiation module allows the spectral emission and absorption coefficients, $j_\nu$ and $\kappa_\nu$, to be calculated for high temperatures gases.
+ The radiation transport models within the Eilmer3 and Poshax3 programs make use of this radiation module when solving for the radiative divergence and radiative heat fluxes within a given computational domain.
+ A number of tools also are provided within the radiation module to solve the radiative transfer equation along a line-of-sight for a non-scattering medium.
+ The spectral models and line-of-sight tools can be used via the provided Python programs, or in a user-created Python script by loading the \texttt{radpy} module.
 
 \section{Structure of the report}
 
-
-
-
-
-
-
-
-
-
-
-
+Part 1 presents the theoretical formulation of the \texttt{photaura} spectral model for high temperature gases.
+In \textsection~\ref{sec:spec_rad} the calculation method for the spectral coefficients is described, while in \textsection~\ref{sec:CR} the collisional-radiative model is described.
+Part 2 presents a user guide for the radiation module software.  

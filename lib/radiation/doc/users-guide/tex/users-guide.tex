@@ -124,6 +124,7 @@
 
 %------------------------------------------------------------------------------------------------------------------------
 % convenience definitions from my thesis class
+\newcommand{\tensor}[1]{#1}
 \newcommand {\tbf}[1] {\textbf{#1}}
 \newcommand {\tit}[1] {\textit{#1}}
 \newcommand {\tmd}[1] {\textmd{#1}}
@@ -247,16 +248,18 @@
 \tableofcontents
 \listoffigures
 \listoftables
+\include{listofsymbols}
 
 \include{preface}
+
 \pagenumbering{arabic}
 
 \include{introduction}
 
 \part{Theory}
 
-\include{spectral-modelling/spectral-modelling}
-\include{collisional-radiative-modelling/collisional-radiative-modelling}
+\include{photaura}
+\include{other_spectral_models}
 
 \part{User's Guide}
 
@@ -271,9 +274,11 @@
 
 \renewcommand\bibname{References}
 \bibliographystyle{unsrt}
-\bibliography{preface}
+\bibliography{users-guide}
 \addcontentsline{toc}{chapter}{References}
 
 \appendix
+
+\include{diatomic_collisional_radiative_models}
 
 \end{document}

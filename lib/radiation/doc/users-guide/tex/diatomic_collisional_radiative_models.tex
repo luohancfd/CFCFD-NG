@@ -1,0 +1,219 @@
+\chapter{Diatomic collisional-radiative models}
+\label{app:diatomic_CR_models}
+
+In this Appendix the collisional-radiative models for diatomic molecules implemented in this work are presented.
+The collisional rates are expressed in generalised Arrhenius form (see Equation~\ref{eq:CR_GA}), and the radiative transitions are expressed via the average radiative transition probability for the system.
+If the radiative transition rates are not provided in the literature, they are calculated from the electronic-vibration transition moments via Equation~\ref{eq:A_av_diatomic}.
+The collisional-radiative models for C$_2$, CN, CO, N$_2$ and N$_2^+$ are presented in \textsection~\ref{sec:C2_CR} to~\ref{sec:N2p_CR} respectively.
+
+\clearpage
+
+\section{Collisional-radiative model for C$_2$}
+\label{sec:C2_CR}
+
+The implemented collisional-radiative model for C$_2$ is from Zalogin~\cite{zalogin_2001}, and is presented in Table~\ref{tab:C2_CR_model}.
+
+\begin{table}[h]
+ \centering
+ \begin{threeparttable}
+ \label{tab:CR-excite}
+ \begin{tabular*}{1.0\textwidth}%
+     {@{\extracolsep{\fill}}lcccc}
+ \hline \hline Reaction                                                                     & $A$ (cm$^{3}$/s)                   &  $n$    & $E_{a}$ (K) &  Source \\
+ \hline  \multicolumn{1}{l}{\emph{Electron impact excitation}} \\
+           \PIEreac{C$_2$}{e$^-$}{\CClevX}{\CClevd}                        & $1.3 \times 10^{-8}$             &  0.00   &  28,807       &  Zalogin~\cite{zalogin_2001}  \\
+ \hline  \multicolumn{1}{l}{\emph{Heavy particle impact excitation}} \\
+           \PIEreac{C$_2$}{M}{\CClevX}{\CClevd}                              & $8.6 \times 10^{-11}$           &  0.00   &  28,807        &  Zalogin~\cite{zalogin_2001} \\
+ \hline  \multicolumn{1}{l}{\emph{Radiative transitions}} \\
+           \hline Reaction                                                                     & $A$ (s$^{-1}$)                       &          &                     & Source \\
+           \BBRTreac{C$_2$}{\CClevX}{\CClevd}                                & $9.3 \times 10^{6}$               &           &                    &  Zalogin~\cite{zalogin_2001}  \\
+ \hline
+ \end{tabular*}
+ \end{threeparttable}
+ \caption{Implemented collisional-radiative model for C$_2$.}
+ \label{tab:C2_CR_model}
+\end{table}
+
+\FloatBarrier
+
+\clearpage
+
+\section{Collisional-radiative model for CN}
+
+The implemented collisional-radiative model for CN uses the electron impact excitation cross sections and electron impact dissociation coefficients compiled by Park~\cite{park2008a}, and is presented in Table~\ref{tab:CN_CR_model}.
+The electron impact excitation rate coefficients have been calculated from the cross sections given in Reference~\cite{park2008a} via Equations~\ref{eq:within} to~\ref{eq:without}, and then curve-fitted to the generalised Arrhenius expression. 
+Heavy particle impact processes are omitted and the radiative transition probabilities have been calculated via Equation~\ref{eq:A_av_diatomic}.
+
+\begin{table}[h]
+ \centering
+ \begin{threeparttable}
+ \label{tab:CR-excite}
+ \begin{tabular*}{1.0\textwidth}%
+     {@{\extracolsep{\fill}}lcccc}
+ \hline \hline Reaction                                                            & $A$ (cm$^{3}$/s)                       &  $n$    & $E_{a}$ (K) &  Source \\
+ \hline  \multicolumn{1}{l}{\emph{Electron impact excitation}} \\
+           \PIEreac{CN}{e$^-$}{\CNlevX}{\CNlevA}                    &               $1.9 \times 10^{-9}$    &  0.24  &  13,302   &  Same as N$_2$ \\
+           \PIEreac{CN}{e$^-$}{\CNlevX}{\CNlevB}                    &               $3.1 \times 10^{-7}$    & -0.25  &  37,052   &  Same as N$_2$ \\
+           \PIEreac{CN}{e$^-$}{\CNlevX}{\CNleva}                    &               $1.6 \times 10^{-14}$  &  1.09  &  46,616   &  Same as N$_2$ \\
+           \PIEreac{CN}{e$^-$}{\CNlevX}{\CNlevD}                   &               $3.0 \times 10^{-9}$    &  0.16  &  78,393    &  Same as N$_2$ \\
+           \PIEreac{CN}{e$^-$}{\CNlevA}{\CNlevB}                   &               $1.0 \times 10^{-5}$    & -0.22  &  23,750    &  Huo \textit{et al.}~\cite{HT1995} \\
+           \PIEreac{CN}{e$^-$}{\CNlevA}{\CNleva}                   &               $5.9 \times 10^{-8}$    &  0.18  &  33,314    &  Huo \textit{et al.}~\cite{HT1995} \\
+           \PIEreac{CN}{e$^-$}{\CNlevA}{\CNlevD}                   &               $2.0 \times 10^{-5}$    & -0.29  &  65,091    &  Huo \textit{et al.}~\cite{HT1995}  \\
+           \PIEreac{CN}{e$^-$}{\CNlevB}{\CNleva}                   &               $5.2 \times 10^{-12}$  &  0.70  &  9,564      &  Huo \textit{et al.}~\cite{HT1995} \\
+           \PIEreac{CN}{e$^-$}{\CNlevB}{\CNlevD}                   &               $4.6 \times 10^{-8}$   &  0.22  &  41,341    &  Huo \textit{et al.}~\cite{HT1995} \\
+           \PIEreac{CN}{e$^-$}{\CNleva}{\CNlevD}                   &               $6.9 \times 10^{-5}$   &  -0.40  &  31,777    &  Huo \textit{et al.}~\cite{HT1995} \\
+      \multicolumn{1}{l}{\emph{Electron impact dissociation}} \\
+           \PIDreac{CN}{e$^-$}{\CNlevX}{C}{N}                       &               $1.3 \times 10^{15}$    &  0.43  &  88,966     &  Park~\cite{park2008a} \\
+           \PIDreac{CN}{e$^-$}{\CNlevA}{C}{N}                       &               $5.9 \times 10^{15}$   &  0.46  &  75,564     &  Park~\cite{park2008a} \\
+           \PIDreac{CN}{e$^-$}{\CNlevB}{C}{N}                       &               $2.4 \times 10^{15}$   &  0.55  &  51,576     &  Park~\cite{park2008a} \\
+           \PIDreac{CN}{e$^-$}{\CNleva}{C}{N}                       &               $1.6 \times 10^{15}$   &  0.60  &  41,890     &  Park~\cite{park2008a} \\
+           \PIDreac{CN}{e$^-$}{\CNlevD}{C}{N}                       &              $6.3 \times 10^{15}$   &  0.92  &  9,964      &  Park~\cite{park2008a} \\
+ \hline  \multicolumn{1}{l}{\emph{Radiative transitions}} \\
+           \hline Reaction                                                         & $A$ (s$^{-1}$)            &              &                         & Source \\
+           \BBRTreac{CN}{\CNlevA}{\CNlevB}                         &  $9.3 \times 10^{5}$   &              &                         &  This work (Eq.~\ref{eq:A_av_diatomic}) \\
+           \BBRTreac{CN}{\CNlevX}{\CNlevA}                         &  $1.7 \times 10^{6}$   &              &                         &  This work (Eq.~\ref{eq:A_av_diatomic}) \\
+           \BBRTreac{CN}{\CNlevX}{\CNlevB}                         &  $2.0 \times 10^{8}$   &              &                         &  This work (Eq.~\ref{eq:A_av_diatomic}) \\
+ \hline
+ \end{tabular*}
+ \end{threeparttable}
+ \caption{Implemented collisional-radiative model for CN.}
+ \label{tab:CN_CR_model}
+\end{table}
+
+\FloatBarrier
+
+\clearpage
+
+\section{Collisional-radiative model for CO}
+\label{sec:CO_CR}
+
+The implemented collisional-radiative model for CO uses the electron impact excitation cross sections and electron impact dissociation coefficients compiled by Park~\cite{park2008a}, and is presented in Table~\ref{tab:CO_CR_model}.
+The electron impact excitation rate coefficients have been calculated from the cross sections given in Reference~\cite{park2008a} via Equations~\ref{eq:within} to~\ref{eq:without}, and then curve-fitted to the generalised Arrhenius expression. 
+Heavy particle impact processes are omitted and the radiative transition probabilities have been calculated via Equation~\ref{eq:A_av_diatomic}.
+
+\begin{table}[h]
+ \centering
+ \begin{threeparttable}
+ \label{tab:CR-excite}
+ \begin{tabular*}{1.0\textwidth}%
+     {@{\extracolsep{\fill}}lcccc}
+ \hline \hline Reaction                                                            & $A$ (cm$^{3}$/s)                         &  $n$   & $E_{a}$ (K) & Source \\
+ \hline  \multicolumn{1}{l}{\emph{Electron impact excitation}} \\
+           \PIEreac{CO}{e$^-$}{\COlevX}{\COleva}                &               $3.9 \times 10^{-6}$   &  -0.34  &  70,049        & Zobel \textit{et al.}~\cite{ZMJ+1996}  \\
+           \PIEreac{CO}{e$^-$}{\COlevX}{\COlevap}              &               $1.2 \times 10^{-6}$   &  -0.28  &  80,320        & Zobel \textit{et al.}~\cite{ZMJ+1996} \\
+           \PIEreac{CO}{e$^-$}{\COlevX}{\COlevd}                &               $3.5 \times 10^{-7}$    & -0.27  &  87,938        & Zobel \textit{et al.}~\cite{ZMJ+1996} \\
+           \PIEreac{CO}{e$^-$}{\COlevX}{\COleve}                &               $5.3 \times 10^{-7}$   &  -0.22  &  92,412        & Morgan \textit{et al.}~\cite{MT1993}  \\
+           \PIEreac{CO}{e$^-$}{\COlevX}{\COlevA}                &               $1.3 \times 10^{-5}$   &  -0.43  &  93,629        & Olszewski \textit{et al.}~\cite{OWZ1998}  \\
+           \PIEreac{CO}{e$^-$}{\COleva}{\COlevap}              &               $5.6 \times 10^{-7}$   &  -0.07  &  10,271        & Huo \textit{et al.}~\cite{HT1995}  \\
+           \PIEreac{CO}{e$^-$}{\COleva}{\COlevd}                &               $5.4 \times 10^{-6}$   &  -0.31  &  17,889        & Huo \textit{et al.}~\cite{HT1995}  \\
+           \PIEreac{CO}{e$^-$}{\COleva}{\COleve}                &              $9.4 \times 10^{-6}$   &  -0.36  &  22,364        & Huo \textit{et al.}~\cite{HT1995}  \\
+           \PIEreac{CO}{e$^-$}{\COleva}{\COlevA}                &               $2.1 \times 10^{-6}$   & -0.25  &  23,580        & Huo \textit{et al.}~\cite{HT1995}  \\
+           \PIEreac{CO}{e$^-$}{\COlevap}{\COlevd}              &               $8.8 \times 10^{-7}$   & -0.14  &  7,618          & Huo \textit{et al.}~\cite{HT1995}  \\
+           \PIEreac{CO}{e$^-$}{\COlevap}{\COleve}              &               $8.2 \times 10^{-6}$   & -0.38  &  12,092        & Huo \textit{et al.}~\cite{HT1995}  \\
+           \PIEreac{CO}{e$^-$}{\COlevap}{\COlevA}              &               $1.3 \times 10^{-6}$   & -0.27  &  13,309        & Huo \textit{et al.}~\cite{HT1995}  \\
+           \PIEreac{CO}{e$^-$}{\COlevd}{\COleve}                &               $1.0 \times 10^{-7}$   &  0.07  &  4,475           & Huo \textit{et al.}~\cite{HT1995}  \\
+           \PIEreac{CO}{e$^-$}{\COlevd}{\COlevA}                &               $4.6 \times 10^{-8}$   &  0.09  &  5,691           & Huo \textit{et al.}~\cite{HT1995} \\
+           \PIEreac{CO}{e$^-$}{\COleve}{\COlevA}                &               $1.8 \times 10^{-9}$   &  0.36  &  1,216           & Huo \textit{et al.}~\cite{HT1995} \\
+         \multicolumn{1}{l}{\emph{Electron impact dissociation}} \\
+           \PIDreac{CO}{e$^-$}{\COlevX}{C}{O}                      &              $2.1 \times 10^{14}$   &  0.37  &  129,271      &  Park~\cite{park2008a} \\
+           \PIDreac{CO}{e$^-$}{\COleva}{C}{O}                      &              $3.1 \times 10^{15}$   &  0.52  &  58,742        & Park~\cite{park2008a}  \\
+           \PIDreac{CO}{e$^-$}{\COlevap}{C}{O}                    &              $3.3 \times 10^{15}$   &  0.56  &  48,352        & Park~\cite{park2008a}  \\
+           \PIDreac{CO}{e$^-$}{\COlevd}{C}{O}                      &              $4.2 \times 10^{15}$   &  0.61  &  40,635        & Park~\cite{park2008a}  \\
+           \PIDreac{CO}{e$^-$}{\COleve}{C}{O}                      &              $3.9 \times 10^{15}$   &  0.64  &  36,098        & Park~\cite{park2008a}  \\
+           \PIDreac{CO}{e$^-$}{\COlevA}{C}{O}                      &              $4.8 \times 10^{15}$   &  0.64  &  34,864        & Park~\cite{park2008a}  \\
+ \hline  \multicolumn{1}{l}{\emph{Radiative transitions}} \\
+           \hline Reaction                                                          & $A$ (s$^{-1}$)                            &            &                    & Source  \\
+           \BBRTreac{CO}{\COlevX}{\COlevA}                         &  $1.4 \times 10^9$                      &            &                    & This work (Eq.~\ref{eq:A_av_diatomic}) \\
+ \hline
+ \end{tabular*}
+ \end{threeparttable}
+ \caption{Implemented collisional-radiative model for CO.}
+ \label{tab:CO_CR_model}
+\end{table}
+
+\FloatBarrier
+
+\clearpage
+
+\section{Collisional-radiative model for N$_2$}
+\label{sec:N2_CR}
+
+The implemented collisional-radiative model for N$_2$ is that compiled by Johnston~\cite{JohnPhd}, and is presented in Table~\ref{tab:CJ_N2_CR_model}.
+
+\begin{table}[h]
+ \centering
+ \begin{threeparttable}
+ \label{tab:CR-excite}
+ \begin{tabular*}{1.0\textwidth}%
+     {@{\extracolsep{\fill}}lcccc}
+ \hline \hline Reaction                                                            & $A$ (cm$^{3}$/s)           &  $n$   & $E_{a}$ (K) &  Source \\
+ \hline \multicolumn{1}{l}{\emph{Electron impact excitation}} \\
+           \PIEreac{N$_2$}{e$^-$}{\NNlevX}{\NNlevA}              & $4.0 \times 10^{-9}$       &   0.1     &  71,610         & Chernyi~\cite{losev_1999} \\
+           \PIEreac{N$_2$}{e$^-$}{\NNlevX}{\NNlevB}              & $4.6 \times 10^{-8}$       & - 0.1     &  85,740         & Chernyi~\cite{losev_1999} \\
+           \PIEreac{N$_2$}{e$^-$}{\NNlevX}{\NNlevC}              & $3.8 \times 10^{-9}$       &   0.1     & 127,900        & Capitelli~\cite{CFG+2000} \\
+           \PIEreac{N$_2$}{e$^-$}{\NNlevA}{\NNlevB}              & $5.0 \times 10^{-9}$       &   0.0     &  13,495          & Chernyi~\cite{losev_1999} \\
+           \PIEreac{N$_2$}{e$^-$}{\NNlevB}{\NNlevC}              & $2.9 \times 10^{-9}$       &   0.28   &  46,655         & Teulet~\cite{TSG1999} \\
+  \multicolumn{1}{l}{\emph{Electron impact dissociation}} \\
+           \PIDreac{N$_2$}{e$^-$}{\NNlevX}{N}{N}                   & $4.11 \times 10^{-33}$   &   6.16     &  113,263    & Teulet~\cite{TSG1999} \\
+           \PIDreac{N$_2$}{e$^-$}{\NNlevA}{N}{N}                   & $6.61 \times 10^{-20}$   &   2.98     &    41,669    & Teulet~\cite{TSG1999} \\
+           \PIDreac{N$_2$}{e$^-$}{\NNlevB}{N}{N}                   & $4.50 \times 10^{-23}$   &   3.73     &    55,586    & Teulet~\cite{TSG1999} \\
+           \PIDreac{N$_2$}{e$^-$}{\NNlevC}{N}{N}                   & $5.14 \times 10^{-21}$   &   3.27     &    12,892    & Teulet~\cite{TSG1999} \\
+   \multicolumn{1}{l}{\emph{Heavy particle impact excitation}} \\  
+           \PIEreac{N$_2$}{N$_2$}{\NNlevX}{\NNlevA}              & $1.83 \times 10^{-12}$   &   -0.5    &  71,600          & Kurochkin~\cite{KPP+1978} \\
+           \PIEreac{N$_2$}{N$_2$}{\NNlevA}{\NNlevB}              & $1.99 \times 10^{-11}$   &   0.0     &  13,495          & Chernyi~\cite{losev_1999} \\
+           \PIEreac{N$_2$}{N$_2$}{\NNlevB}{\NNlevC}              & $8.47 \times 10^{-11}$   &   0.0     &  42,476          & Fresnet~\cite{FBM+2002} \\
+           \hline Reaction                                                             & $A$ (s$^{-1}$)                &             &                         & Source \\
+    \hline  \BBRTreac{N$_2$}{\NNlevB}{\NNlevA}                    & $1.4 \times 10^5$           &              &                         & Chernyi~\cite{losev_1999} \\
+            \BBRTreac{N$_2$}{\NNlevC}{\NNlevB}                      & $2.6 \times 10^7$           &              &                         & Pancheshnyi~\cite{PSS2000} \\
+ \hline
+ \end{tabular*}
+ \end{threeparttable}
+ \caption{Implemented collisional-radiative model for N$_2$.}
+ \label{tab:CJ_N2_CR_model}
+\end{table}
+
+\FloatBarrier
+
+\clearpage
+
+\section{Collisional-radiative model for N$_2^+$}
+\label{sec:N2p_CR}
+
+The implemented collisional-radiative model for N$_2^+$ is that compiled by Johnston~\cite{JohnPhd}, and is presented in Table~\ref{tab:CJ_N2p_CR_model}.
+
+\begin{table}[h]
+ \centering
+ \begin{threeparttable}
+ \label{tab:CR-excite}
+ \begin{tabular*}{1.0\textwidth}%
+     {@{\extracolsep{\fill}}lcccc}
+ \hline \hline Reaction                                                            & $A$ (cm$^{3}$/s)                   &  $n$    & $E_{a}$ (K) &  Source \\
+ \hline  \multicolumn{1}{l}{\emph{Electron impact excitation}} \\
+           \PIEreac{N$_2^+$}{e$^-$}{\NNplevX}{\NNplevA}         & $7.1 \times 10^{-11}$   &   0.0      &  13,300       & Gorelov~\cite{GGK+1998}\\
+           \PIEreac{N$_2^+$}{e$^-$}{\NNplevX}{\NNplevB}         & $2.0 \times 10^{-11}$   &  0.73     &  36,649       & Nagy~\cite{nagy2003} \\
+           \PIEreac{N$_2^+$}{e$^-$}{\NNplevX}{\NNplevC}         & $6.6 \times 10^{-9}$    &   0.41     &  85,038       & Teulet~\cite{TSG1999} \\
+           \PIEreac{N$_2^+$}{e$^-$}{\NNplevA}{\NNplevB}         & $1.0 \times 10^{-9}$    &   0.0       &  23,500        & Gorelov~\cite{GGK+1998} \\
+           \PIEreac{N$_2^+$}{e$^-$}{\NNplevA}{\NNplevC}         & $1.3 \times 10^{-7}$    &   0.11     &  78,403        & Teulet~\cite{TSG1999} \\
+           \PIEreac{N$_2^+$}{e$^-$}{\NNplevB}{\NNplevC}         & $3.9 \times 10^{-9}$    &   0.34     &  49,622        & Teulet~\cite{TSG1999} \\
+  \multicolumn{1}{l}{\emph{Electron impact dissociation}} \\
+           \PIDreac{N$_2^+$}{e$^-$}{\NNplevX}{N$^+$}{N}   & $8.02\times 10^{-31}$   &   5.54    &   101,117   & Teulet~\cite{TSG1999} \\
+           \PIDreac{N$_2^+$}{e$^-$}{\NNplevA}{N$^+$}{N}   & $8.27\times 10^{-26}$   &   4.38    &    88,142   & Teulet~\cite{TSG1999} \\
+           \PIDreac{N$_2^+$}{e$^-$}{\NNplevB}{N$^+$}{N}   & $2.58\times 10^{-32}$   &   5.81    &    64,328   & Teulet~\cite{TSG1999} \\
+           \PIDreac{N$_2^+$}{e$^-$}{\NNplevC}{N$^+$}{N}   & $1.31\times 10^{-28}$   &   4.93    &    35,906   & Teulet~\cite{TSG1999} \\
+   \multicolumn{1}{l}{\emph{Heavy particle impact excitation}} \\  
+           \PIEreac{N$_2^+$}{N$_2$}{\NNplevX}{\NNplevA}         & $3.8\times 10^{-2}$   &  -2.33    &   12,978                  & Nagy~\cite{nagy2003} \\
+           \PIEreac{N$_2^+$}{N$_2$}{\NNplevX}{\NNplevB}         & $1.9\times 10^{-2}$   &  -2.33    &    36,600                 & Flagan~\cite{FA1972} \\
+           \hline Reaction                                                                      & $A$ (s$^{-1}$)             &              &                        & Source \\
+  \hline\BBRTreac{N$_2^+$}{\NNplevA}{\NNplevX}                  & $6.7 \times 10^4$       &              &                                & Chernyi~\cite{losev_1999} \\
+           \BBRTreac{N$_2^+$}{\NNplevB}{\NNplevX}                  & $1.5 \times 10^7$       &              &                               & Gorelov~\cite{GGK+1998} \\
+           \BBRTreac{N$_2^+$}{\NNplevC}{\NNplevX}                  & $1.4 \times 10^7$       &              &                              & Chernyi~\cite{losev_1999} \\
+ \hline
+ \end{tabular*}
+ \end{threeparttable}
+ \caption{Implemented collisional-radiative model for N$_2^+$.}
+ \label{tab:CJ_N2p_CR_model}
+\end{table}
+
+\FloatBarrier
+
+

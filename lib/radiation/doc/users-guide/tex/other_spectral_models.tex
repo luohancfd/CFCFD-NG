@@ -1,0 +1,20 @@
+\chapter{The equilibrium air model}
+
+The equilibrium air spectral model makes the gray-gas approximation to define a mean absorption coefficient.
+The empirical correlation of Olstad~\cite{Olstad65} is implemented:
+
+\begin{equation}
+ \kappa_P = 7.94 \left ( \frac{\rho}{\rho_0} \right )^1.10 \left ( \frac{T}{10^4} \right )^6.95
+\end{equation}
+
+\noindent where the numerical factor at the front has been changed so that $\kappa_P$ has units of m$^{-1}$ instead of ft$^{-1}$ and $rho_0$ is sea-level density, taken to be 1.225~kg/m$^3$.
+The total emissivity is then calculated from the Stefan-Boltzmann equation: 
+
+\begin{equation}
+ j = \frac{\kappa_P \sigma T^4}{\pi}
+\end{equation} 
+
+\chapter{Other spectral models}
+
+Fluid Gravity's Parade code and KAIST's Spradian07 code can be used to compute the spectral coefficients within the \texttt{cfcfd3} framework if the user has access to these codes.
+For documentation on the Parade and Spradian07 codes see References~\cite{SBF+11} and~\cite{hyun_phd}, respectively.  
