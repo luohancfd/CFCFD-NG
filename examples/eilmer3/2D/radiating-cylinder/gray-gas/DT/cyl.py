@@ -10,8 +10,8 @@ LINEAR_GRADIENT = False
 L_SCALE = 1.0
 NXBLOCKS = 2
 NYBLOCKS = 1
-nnx = 32        
-nny = 32      
+nnx = 16        
+nny = 16      
 ar = 0.1       # aspect ratio
 
 # We can set individual attributes of the global data object.
@@ -30,7 +30,7 @@ gm = get_gas_model_ptr()
 global nsp, ntm
 nsp = gm.get_number_of_species()
 ntm = gm.get_number_of_modes()
-select_radiation_model( input_file="gray-gas-MC.lua", update_frequency=1 )
+select_radiation_model( input_file="gray-gas-DT.lua", update_frequency=1 )
 
 # Define flow conditions
 global u, v, w

@@ -10,7 +10,7 @@ from math import sqrt
 make_plots = False
 
 def printUsage():
-    print "compute_RMS.py"
+    print "compute_divq_error.py"
     print "Compute the relative errors between columns of values from two different files."
     print "NOTE: first file is the data of interest, second file is the reference solution."
     print "Usage:"
@@ -37,7 +37,7 @@ def main():
     
     rms_error = compute_RMS_error( sol, ref )
     
-    print "RMS error = %0.2f percent" % ( rms_error * 100 )
+    print "divq error = %0.2f percent" % ( rms_error * 100 )
     
     if make_plots:
         sol.plot_data( title="radiative divergence across center of slab", xlabel="distance", ylabel="radiative divergence", label="e3: MC", new_plot=True, show_plot=False, include_integral=False, rep='-', logscale_y=False, xrange=None, yrange=None ) 

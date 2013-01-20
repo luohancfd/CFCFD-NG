@@ -1,0 +1,59 @@
+# cyl.test
+# Axisymmetric radiating cylinder test case from Sebastian Karl's
+# VKI masters thesis.
+#
+# This test case exercises the e3rad.exe executable to compute the 
+# radiative divergence field throughout a simple cylinder.
+#
+# DFP, 09-Sept-2012
+#
+# DFP, 20-Jan-2013 - updated to check the qrad error as well as divq
+
+package require tcltest 2.0
+namespace import ::tcltest::*
+configure -verbose {start body error}
+
+test run-preprocessor {Run the preprocessing stage.} -body {
+    exec e3prep.py --job=cyl > LOGFILE_PREP
+} -result {} -returnCodes {0}
+
+test run-simulation {Run the shared-memory radiation transport code.} -body {
+    exec e3rad.exe --job=cyl --run > LOGFILE_MAIN
+} -result {} -returnCodes {0}
+
+test run-postprocessor {Run the postprocessing stage.} -body {
+    exec e3post.py --job=cyl --tindx=9999 --slice-list=1,0,:,: > LOGFILE_POST
+    exec e3post.py --job=cyl --tindx=9999 --heat-flux-list=0,0,:,:,: >> LOGFILE_POST
+    exec ./compute_divq_error.py profile.data 2 18 analytical_solution.txt 1 5 >> LOGFILE_POST
+    exec ./compute_qrad_error.py hf_profile.data 1 4 3 7 456942370.0 >> LOGFILE_POST
+} -result {} -returnCodes {0}
+
+test check-divq-error {The divergence RMS error with respect to the analytic solution.} -body {
+    set divq_RMS_error 0
+    # Looking for a line starting with 'divq error'
+    set fp [open LOGFILE_POST r]
+    set results [read $fp]
+    close $fp
+    foreach line [split $results "\n"] {
+        if {[string first "divq error" $line] == 0} {
+	        set divq_RMS_error [lindex [split $line] 3]
+	    }
+    }
+    expr abs($divq_RMS_error) < 5.0
+} -result {1}
+
+test check-qrad-error {The heat flux error with respect to the analytic solution.} -body {
+    set qrad_error 0
+    # Looking for a line starting with 'qrad error'
+    set fp [open LOGFILE_POST r]
+    set results [read $fp]
+    close $fp
+    foreach line [split $results "\n"] {
+        if {[string first "qrad error" $line] == 0} {
+	        set qrad_error [lindex [split $line] 3]
+	    }
+    }
+    expr abs($qrad_error) < 5.0
+} -result {1}
+
+cleanupTests

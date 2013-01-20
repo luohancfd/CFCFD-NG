@@ -11,11 +11,11 @@ spectral_data = {
 }
 
 transport_data = {
-   transport_model = 'monte carlo',
+   transport_model = 'discrete transfer',
    spectrally_resolved = 1,
-   nrays = 512,
+   nrays = 32,
    clustering = "none",
-   absorption = "partitioned energy"
+   binning = "none"
 }
 
 air = {}
