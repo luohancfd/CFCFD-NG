@@ -44,6 +44,12 @@ to your bash configuration::
   $ export LUA_CPATH=${HOME}/e3bin/?.so
   $ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${HOME}/e3bin
 
+If you wish to make use of the cfpylib functions 
+from your own stand-alone Python scripts,
+it may be convenient to set the PYTHONPATH environment variable::
+
+  $ export PYTHONPATH=${PYTHONPATH}:${HOME}/e3bin/
+
 .. _label-nonstandard-install-path:
 
 If you choose to install eilmer3 in a different location from the
