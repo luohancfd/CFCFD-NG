@@ -402,235 +402,6 @@ This is necessary when the CFD and spectral grids are vey fine.
 This procedure is parallelised via \verb OpenMP  where each processor has access to all data describing the computational domain.
 The calculation is divided amongst the available processors on a cell-by-cell basis when computing spectra, and a ray-by-ray basis when tracing and integrating along lines-of-sight.
 
-%\subsubsection{Verification and validation}
-
-%It is necessary at this point to verify the implementation and validate the theory of the ray-tracing radiation transport model.
-%For this purpose, the infinite-cylinder test case proposed by Karl~\cite{karl2001} is considered.
-%This test case is performed at four different grid and ray resolutions and with 1, 2 and 4 CPU cores to test the convergence and parallelisibility of the method.
-
-%\par
-
-%\begin{figure}[b!]
-%\centering
-%\includegraphics[width=\linewidth]{radiation/figures/greyslab_1B.pdf}
-%\caption{Single-block computational domains for the infinite-slab and infinite-cylinder test cases (not-to-scale).}
-%\label{fig:GS_domains}
-%\end{figure}
-
-%The computational domain for the planar and axisymmetric test cases is shown in Figure~\ref{fig:GS_domains}.
-%The present implementation of the ray-tracing algorithm only permits reflective boundary conditions along the $y = 0$ line; the east and west boundaries are therefore considered to be walls, rather than symmetry boundaries.
-%As will be demonstrated, however, the aspect ratio of 10:1 is sufficient to permit the infinite-slab and infinite-cylinder approximations at the slab mid-section ($x=5$\,m).
-%Grid resolutions of $8 \times 8$,  $16 \times 16$, $32 \times 32$ and $64 \times 64$ uniformly spaced cells are considered, with the number of rays set to 8, 16, 32 and 64 for the planar case and 32, 64, 128 and 256 rays for the axisymmetric case\footnote{More rays are required for axisymmetric geometries compared with planar geometries to achieve similar accuracy as the radiation sub-grid must be formed in three dimensions rather than just two.}.
-%For the planar test case a temperature gradient is applied from $T_i = 0$~K at y = 0~m to $T_f = 10,000$~K at y = 1~m, while for the axisymmetric test case the temperature is constant at 10,000~K.
-%A `grey-gas' is assumed with a constant absorption coefficient of $\kappa$ = 1.0~m$^{-1}$, making the total emissive power density:
-
-%\begin{equation}
-% J = \frac{\kappa \sigma T^{4}}{\pi}
-% \label{eq:grey_emission}
-%\end{equation}
-
-%
-%Although the radiation from a grey-gas can be described without considering spectral distributions, for this test case this is desirable so as to maintain similarity with the non-Planck spectra the model is designed to be applied to.
-%The spectral emission and absorption coefficients are then calculated as:
-
-%\begin{eqnarray}
-%      j_{\nu} &=& \kappa B_{\nu}(T) \\
-% \kappa_{\nu} &=& \kappa 
-%\end{eqnarray}
-
-%\noindent where $B_{\nu}(T)$ is the Planck function:
-
-%\begin{equation}
-% B_{\nu}(T) = \frac{2 h}{c^3} \frac{\nu^3}{e^\frac{h \nu }{k T} -1 }
-%\end{equation}
-
-%The spectral range considered is 10 to 3000\,nm, and is discretised with 500 intervals.
-%Integrating the Planck function with this discretisation matches the Stephan-Maxwell equation to within 0.1\%.
-%The exact solution for the planar test case is obtained from the tangent-slab approximation presented in Equations~\ref{eq:divq_TS} to~\ref{eq:qwall}, and the exact solution for the axisymmetric test case is obtained from the analytical expressions presented by Sakai \textit{et al.}~\cite{SSM1998}.
-
-%\paragraph{Planar infinite-slab test case}
-
-%Before analysing the radiative diverge fields, it is useful to consider the heat flux profiles to verify the tangent-slab approximation.
-%Figure~\ref{fig:planar_heat_flux} presents the heat-flux profiles along the top edge of the planar infinite-slab from the $8 \times 8$ grid with 8 rays, the  $16 \times 16$ grid with 16 rays and the $32 \times 32$ grid with 32 rays.
-%The heat flux profiles for the ray-tracing calculations are approximately uniform for $3 \leq x \leq 7$, and the heat flux at x=5\,m converges to the tangent-slab approximation with increasing resolution.
-%The test case is therefore well described by the tangent-slab approximation for the mid-point cross section at $x=5$\,m.
-
-%\begin{figure}[t]
-% \centering
-% \includegraphics[width=0.85\linewidth]{radiation/figures/planar/heat_flux.pdf}
-% \caption{Comparison of heat-flux profiles along the top edge of the planar infinite-slab.}
-% \label{fig:planar_heat_flux}
-%\end{figure}
-
-%\par
-
-%Figure~\ref{fig:planar_divq_profiles} presents the radiative divergence results for the planar infinite-slab test case; comparisons of radiative divergence are shown in the left column, and the resulting errors compared with the tangent-slab solution are shown in the right column.
-%The profiles are taken from the mid-point cross section where $x=5$\,m.
-%In all plots the optical thickness $\tau_y$ is used as the spatial coordinate, defined as:
-
-%\begin{equation}
-% \tau_y = \int_0^y \kappa_y dy \label{eq:OT}
-%\end{equation}
-
-%A complete summary of the planar infinite-slab results is presented in Table~\ref{tab:planar_results}.
-%The quoted error in $\nabla \cdot \vec{q}_\text{rad}$ is the average of the absolute percentage difference along the $x=5$\,m profile referenced to the tangent-slab solution, and the quoted error in $q_\text{rad}$ is the percentage difference from the tangent-slab solution at $x=5$\,m and $y=1$\,m.
-%All simulations were run using the serial version of the code on a single core of a Linux workstation with two Intel Dual Core Xeon Pro 5130 CPU's (4MB cache, 2.00GHz, 1333MHz FSB).
-
-%\begin{figure}[p!]
-%\centering
-%\subfloat[$8 \times 8$ grid]{\scalebox{0.6}{\includegraphics{radiation/figures/planar/Q_rad_profiles_8x8-grid.pdf}} \scalebox{0.6}{\includegraphics{radiation/figures/planar/Q_rad_errors_8x8-grid.pdf}}} \\
-%\subfloat[$16 \times 16$ grid]{\scalebox{0.6}{\includegraphics{radiation/figures/planar/Q_rad_profiles_16x16-grid.pdf}} \scalebox{0.6}{\includegraphics{radiation/figures/planar/Q_rad_errors_16x16-grid.pdf}}} \\
-%\subfloat[$32 \times 32$ grid]{\scalebox{0.6}{\includegraphics{radiation/figures/planar/Q_rad_profiles_32x32-grid.pdf}} \scalebox{0.6}{\includegraphics{radiation/figures/planar/Q_rad_errors_32x32-grid.pdf}}} \\
-%\caption{Comparison of radiative divergence solution and error profiles at $x=5$\,m for the planar infinite-slab radiation transport test case. The spatial coordinate is the optical thickness as defined in Equation~\ref{eq:OT}.}
-%\label{fig:planar_divq_profiles}
-%\end{figure}
-% 
-%\begin{table}[h]
-% \centering
-% \small
-% \caption{Tabulated results for the planar infinite-slab radiation transport test case.}
-% \label{tab:planar_results}
-%  \begin{threeparttable}
-% \begin{tabular*}{0.95\textwidth}%
-%     {@{\extracolsep{\fill}}cccccc}
-%  \hline \hline \textbf{Grid Resolution}                                 & \textbf{Ray resolution}      & \textbf{Memory}  &  \textbf{Wall time} & \textbf{Av. $\mathbf{| \nabla \cdot \vec{q}_\text{rad}|}$} & \textbf{$\mathbf{q_\text{rad}}$}  \\
-%$\mathbf{(N_{\text{cells,x}}\times N_{\text{cells,y}})}$     & $\mathbf{N_\text{rays}}$ & \textbf{(MB)}        & \textbf{(s)}                      & \textbf{Error (\%)}                                                                & \textbf{Error (\%)}                \\
-%  \hline  $8 \times 8$                                                               & 8                                          &  -                            &  0.46                               & 25.63                                                                                    &  -28.07  \\
-%                                                                                                   & 16                                       &   -                           &   0.48                               & 5.17                                                                                      &  -4.51  \\
-%                                                                                                   & 32                                       &  -                            &   0.79                               & 5.24                                                                                      &   1.19  \\
-%              $16 \times 16$                                                          & 8                                         &  70                        &    1.46                              & 27.90                                                                                    &   -28.75 \\ 
-%                                                                                                   & 16                                      &   76                       &    2.37                              & 5.35                                                                                      &   -5.95 \\
-%                                                                                                   & 32                                      &   89                       &   4.36                               & 1.86                                                                                      &    0.67 \\
-%              $32 \times 32$                                                          & 8                                         & 129                       &   9.95                               & 29.34                                                                                   &    -29.58 \\
-%                                                                                                   & 16                                      & 168                       &   16.66                             & 6.70                                                                                     &   -7.18 \\
-%                                                                                                   & 32                                      &  254                      &   31.69                             & 0.87                                                                                     &   -0.23 \\
-%         
-% \hline
-% \end{tabular*}
-% \end{threeparttable}
-%\end{table}
-
-%In general, the results demonstrate the ray-tracing radiation transport model converges towards the exact solution with increasing grid and ray resolution for planar geometries.
-%An exception is the $8 \times 8$ cell grid with 32 rays, where the average error in $\nabla \cdot \vec{q}_\text{rad}$ increases from 5.17\% for the 16 ray case to 5.24\%.
-%This anomaly can be attributed to the coarse grid resolution providing an inadequate description of the temperature gradient, resulting in convergence towards a solution with significant error.
-%For the $16 \times 16$ and $32 \times 32$ grid cases, the error in both $\nabla \cdot \vec{q}_\text{rad}$ and $q_\text{rad}$ reduces in magnitude approximately in proportion to the number of rays squared.
-%From Figure~\ref{fig:planar_divq_profiles}, the ray-traced solutions are observed to be most accurate close to the symmetry boundary at $\tau_y=0$ and least accurate at the outer boundary where $\tau_y=1$.
-%This is due to the linear temperature gradient that has a maximum at $\tau_y=1$; as $\tau_y$ increases, the total emission increases due to the higher temperature, and thus the absolute error is able to increase.
-%Overall the ray-tracing model performs very well for the planar test case.
-
-%\paragraph{Axisymmetric infinite-cylinder test case}
-
-%Figure~\ref{fig:axi_heat_flux} presents the heat-flux profiles along the outer surface ($y=1$\,m) of the cylinder from the $8 \times 8$ grid with 32 rays, the  $16 \times 16$ grid with 64 rays, the $32 \times 32$ grid with 128 rays and the $64 \times 64$ grid with 256 rays.
-%The heat flux profiles are approximately uniform for $3 \leq x \leq 7$\,m, and the heat flux at x=5\,m is seen to converge towards the infinite-cylinder approximation with increasing resolution.
-%The test case is therefore well described by the infinite-cylinder approximation for the mid-point cross section at $x=5$\,m.
-
-%\begin{figure}[h!]
-% \centering
-% \subfloat[$ 0 \leq x \leq 10$\,m profile]{\includegraphics[width=0.85\linewidth]{radiation/figures/axi/heat_flux.pdf}} \\
-% \subfloat[$ 3 \leq x \leq 7$\,m profile]{\includegraphics[width=0.85\linewidth]{radiation/figures/axi/heat_flux_detail.pdf}}
-% \caption{Comparison of heat-flux profiles for the axisymmetric infinite-cylinder test case along the outer surface ($y=1$\,m).}
-% \label{fig:axi_heat_flux}
-%\end{figure}
-
-%\par
-
-%\begin{figure}[p]
-%\centering
-%\subfloat[$8 \times 8$ grid]{\scalebox{0.6}{\includegraphics{radiation/figures/axi/Q_rad_profiles_8x8-grid.pdf}} \scalebox{0.6}{\includegraphics{radiation/figures/axi/Q_rad_errors_8x8-grid.pdf}}} \\
-%\subfloat[$16 \times 16$ grid]{\scalebox{0.6}{\includegraphics{radiation/figures/axi/Q_rad_profiles_16x16-grid.pdf}} \scalebox{0.6}{\includegraphics{radiation/figures/axi/Q_rad_errors_16x16-grid.pdf}}} \\
-%\subfloat[$32 \times 32$ grid]{\scalebox{0.6}{\includegraphics{radiation/figures/axi/Q_rad_profiles_32x32-grid.pdf}} \scalebox{0.6}{\includegraphics{radiation/figures/axi/Q_rad_errors_32x32-grid.pdf}}} \\
-%\caption{Comparison of radiative divergence solution and error profiles at $x=5$\,m for the axisymmetric infinite-cylinder radiation transport test case. The spatial coordinate is the optical thickness as defined in Equation~\ref{eq:OT}.}
-%\label{fig:axi_divq_profiles}
-%\end{figure}
-
-%\begin{figure}[t]
-%\ContinuedFloat
-%\centering
-%\subfloat[$64 \times 64$ grid]{\scalebox{0.6}{\includegraphics{radiation/figures/axi/Q_rad_profiles_64x64-grid.pdf}} \scalebox{0.6}{\includegraphics{radiation/figures/axi/Q_rad_errors_64x64-grid.pdf}}} \\
-%\caption{(\textit{Continued}) Comparison of radiative divergence solution and error profiles at $x=5$\,m for the axisymmetric infinite-cylinder radiation transport test case. The spatial coordinate is the optical thickness as defined in Equation~\ref{eq:OT}.}
-%\label{fig:axi_divq_profiles}
-%\end{figure}
-
-%Figure~\ref{fig:axi_divq_profiles} presents radiative divergence and error profiles for the infinite-cylinder test case; comparisons of radiative divergence are shown in the left column, and the resulting absolute errors compared with the infinite-cylinder solution are shown in the right column.
-%The profiles are taken from the mid-point cross section where $x=5$\,m.
-%A quantitative summary of the infinite-cylinder results are presented in Table~\ref{tab:axi_results}.
-%The quoted error in $\nabla \cdot \vec{q}_\text{rad}$ is the average of the absolute percentage difference along the $x=5$\,m profile referenced to the infinite-cylinder solution, and the quoted error in $q_\text{rad}$ is the percentage difference from the infinite-cylinder solution at $x=5$\,m and $\tau_y=1$\,m.
-%All simulations were run using the serial version of the code on a single core of a Linux workstation with two Intel Dual Core Xeon Pro 5130 CPU's.
-
-%\begin{table}[h]
-% \centering
-% \small
-% \caption{Tabulated results for the axisymmetric infinite-cylinder radiation transport test case.}
-% \label{tab:axi_results}
-%  \begin{threeparttable}
-% \begin{tabular*}{0.95\textwidth}%
-%     {@{\extracolsep{\fill}}cccccc}
-%  \hline \hline \textbf{Grid Resolution}                                & \textbf{Ray resolution}      & \textbf{Memory}  &  \textbf{Wall time} & \textbf{Av. $\mathbf{\nabla \cdot \vec{q}_\text{rad}}$} & \textbf{$\mathbf{q_\text{rad}}$} \\
-%$\mathbf{(N_{\text{cells,x}}\times N_{\text{cells,y}})}$    & $\mathbf{N_\text{rays}}$  & \textbf{(MB)}        & \textbf{(s)}              & \textbf{Error (\%)}                                                      & \textbf{Error (\%)}                \\
-%  \hline  $8 \times 8$                                                              & 32                                         &   27                        & 0.53                        & 9.08                                                                             & 4.37 \\
-%                                                                                                  & 64                                         &    29                       &  1.02                       & 6.42                                                                             & 4.22 \\
-%                                                                                                  & 128                                      &    32                        & 1.97                        & 4.58                                                                             & 4.40\\\
-%                                                                                                  & 256                                      &    43                        &  3.86                       & 4.88                                                                             & 4.55 \\
-%              $16 \times 16$                                                         & 32                                         &   43                        & 3.79                        & 9.57                                                                             & 1.84 \\
-%                                                                                                  & 64                                        &    60                        & 7.30                       & 4.59                                                                            & 2.07 \\
-%                                                                                                  & 128                                      &   95                        & 14.63                      & 4.32                                                                             & 2.36 \\
-%                                                                                                  & 256                                      &    161                    & 29.09                      & 2.49                                                                            & 2.20 \\
-%              $32 \times 32$                                                         & 32                                         &  162                      & 29.39                      & 12.65                                                                          & 0.79 \\
-%                                                                                                  & 64                                        &   278                      & 56.89                      & 4.74                                                                            & 0.86 \\
-%                                                                                                  & 128                                      &   526                     & 113.64                    & 3.34                                                                            & 1.07 \\        
-%                                                                                                  & 256                                      &  1003                   & 225.77                     & 1.40                                                                            & 9.58 \\
-%              $64 \times 64$                                                         & 32                                         &  1006                   & 231.69                     & 15.39                                                                         & 0.17 \\
-%                                                                                                  & 64                                        &   1876                   & 449.81                      & 6.38                                                                           & 0.21 \\
-%                                                                                                  & 128                                      &   3676                   & 902.20                     & 3.17                                                                           & 0.42 \\        
-%                                                                                                  & 256                                      &   7281                   & 1812.17                    & 1.24                                                                            & 0.34 \\
-% \hline
-% \end{tabular*}
-% \end{threeparttable}
-%\end{table}
-
-%
-%In general, the results demonstrate the ray-tracing model converges towards the exact solution with increasing grid and ray resolution for axisymmetric geometries.
-%For all grid resolutions the average error in $\nabla \cdot \vec{q}_\text{rad}$ decreases with increasing ray resolution, and the smallest average error in $\nabla \cdot \vec{q}_\text{rad}$ is obtained from the simulation with the largest number of total rays ($32 \times 32$ cell grid with 128 rays per cell).
-%While the error in $q_\text{rad}$ improves with increasing grid resolution, it is approximately constant for each grid resolution and only weakly dependent on ray resolution.
-%The total memory usage and wall time is approximately linearly proportional to the total number of rays ( $N_{\text{cells,x}}\times N_{\text{cells,y}} \times N_\text{rays}$ ) as is to be expected.
-%From the results in Figure~\ref{fig:axi_divq_profiles}, however, it is evident the ray-tracing model performs poorly close to the symmetry axis at $y=0$.
-%For the $32 \times 32$ cell grid with 128 rays, for example, the error in $\nabla \cdot \vec{q}_\text{rad}$ at $\tau_y = 0.016$ is approximately 27.3\% whilst the error in $\nabla \cdot \vec{q}_\text{rad}$ at $\tau_y = 0.984$ is approximately  0.1\%.
-%This behaviour is due to the vanishingly small volume per radian for cells close to the symmetry axis; rays emitted from elsewhere in the grid are unlikely to intersect such a small target volume.
-%In an attempt to provide more rays in this region, the ray density was clustered towards the symmetry axis.
-%With the same number of total rays, however, this strategy did not provide a consistent improvement in accuracy.
-%Therefore it is suggested the ray density $N_\text{rays}$ be increased uniformly for all cells until the solution at the symmetry axis is acceptable.
-
-%\par
-
-%Table~\ref{tab:slab_resource_usage} compares the computational resource usage for the $32 \times 32$ cell grid and 128 ray case run with the \verb OpenMP  version of the code using 1, 2 and 4 CPU cores of the same Linux workstation used for the resolution studies. %  (2 x Intel Xeon Pro 5130 CPU's at 2.00GHz, 4MB cache, and 1333MHz FSB).
-%The results indicate the ray-tracing model performs reasonably well under parallelisation for simple grids.
-%The speed-ups for the 2 and 4 block cases are 1.70 and 3.19 respectively, giving parallelised code fractions of 70 and 73\% according to Gustafson's law~\cite{gustafson88}.
-%Furthermore, the increase in the memory usage for the 2 and 4 core cases is minimal, being only 7.6 and 12.5\% respectively.
-%Unfortunately there is significant efficiency penalty paid by using the \verb OpenMP  version of the code on a single core compared to using the serial version of the code.
-%The serial version of the code completes the calculation in 113.64\,s, whilst the \verb OpenMP  version of the code completes the calculation is 160.75\,s -- a 42\% efficiency drop.
-%This is due to the overhead associated with the \verb OpenMP  threading and is unavoidable.
-%% Nevertheless, the speedup of the code under multiple processors is respectable.
-
-%\begin{table}[b!]
-% \centering
-% \small
-% \caption{Comparison of resource usage for the $32 \times 32$ cell grid and 128 ray infinite-cylinder radiation transport test case with 1, 2 and 4 blocks.}
-% \label{tab:slab_resource_usage}
-%  \begin{threeparttable}
-% \begin{tabular*}{0.95\textwidth}%
-%     {@{\extracolsep{\fill}}cccccc}
-%  \hline \hline \textbf{Number of CPU cores}, $\mathbf{N_\text{core}}$                          &  \textbf{Memory (MB)}  &  \textbf{Wall time (s)} &   \textbf{Speed up} \\
-% \hline                                                    1                                                                                   & 526                                  &   160.75                       &  - \\
-%                                                               2                                                                                   & 566                                  &   94.39                         & 1.70 \\
-%                                                               4                                                                                   & 592                                  &   50.47                         & 3.19 \\
-%  \hline
-% \end{tabular*}
-% \end{threeparttable}
-%\end{table}
-
-%\newpage
-
-
 \subsection{Photon Monte-Carlo model}
 \label{sec:photon_monte_carlo}
 
@@ -745,3 +516,121 @@ The procedure for calculating the radiative divergence fields and heat-flux prof
 
 This procedure is parallelised via \verb OpenMP  where each processor has access to all data describing the computational domain.
 The photon Monte-Carlo calculation is divided amongst the available processors on a cell-by-cell basis when computing spectra, and a ray-by-ray basis when transporting photons.
+
+\subsection{Validation of ray tracing models}
+
+It is necessary at this point to verify the implementation and validate the theory of the two ray-tracing based radiation transport models; the modified Discrete Transfer model (mDTM) and photon Monte-Carlo model (pMC).
+For this purpose, the infinite-cylinder test case proposed by Karl~\cite{karl2001} is considered.
+This test case is performed at four different grid and ray resolutions and with 1, 2 and 4 CPU cores to test the convergence and parallelisibility of the method.
+
+\par
+
+\begin{figure}[b!]
+\centering
+\includegraphics[width=\linewidth]{radiation/figures/grayslab_1B.pdf}
+\caption{Single-block computational domains for the infinite-cylinder test case (not-to-scale).}
+\label{fig:GS_domains}
+\end{figure}
+
+The computational domain for the test case is shown in Figure~\ref{fig:GS_domains}.
+The present implementation of the ray-tracing algorithm only permits reflective boundary conditions along the $y = 0$ line; the east and west boundaries are therefore considered to be walls, rather than symmetry boundaries.
+As will be demonstrated, however, the aspect ratio of 10:1 is sufficient to permit the infinite-slab and infinite-cylinder approximations at the slab mid-section ($x=5$\,m).
+Grid resolutions of $8 \times 8$,  $16 \times 16$, $32 \times 32$ and $64 \times 64$ uniformly spaced cells are considered.
+The cylinder is filled gas at a constant temperature of 10,000~K.
+A `gray-gas' is assumed with a constant absorption coefficient of $\kappa$ = 1.0~m$^{-1}$, making the total emissive power density:
+
+\begin{equation}
+ j = \frac{\kappa \sigma T^{4}}{\pi}
+ \label{eq:grey_emission}
+\end{equation}
+
+
+Although the radiation from a grey-gas can be described without considering spectral distributions, for this test case this is desirable so as to maintain similarity with the non-Planck spectra the model is designed to be applied to.
+The spectral emission and absorption coefficients are then calculated as:
+
+\begin{eqnarray}
+      j_{\nu} &=& \kappa B_{\nu}(T) \\
+ \kappa_{\nu} &=& \kappa 
+\end{eqnarray}
+
+\noindent where $B_{\nu}(T)$ is the Planck function:
+
+\begin{equation}
+ B_{\nu}(T) = \frac{2 h}{c^3} \frac{\nu^3}{e^\frac{h \nu }{k T} -1 }
+\end{equation}
+
+The spectral range considered is 10 to 3000\,nm, and is discretised with 500 intervals.
+Integrating the Planck function with this discretisation matches the Stephan-Maxwell equation to within 0.1\%.
+The exact solution for the axisymmetric test case is obtained from the analytical expressions presented by Sakai \textit{et al.}~\cite{SSM1998}.
+
+\paragraph{Resuls}
+
+Figure~\ref{fig:axi_divq_profiles} presents radiative divergence profiles at $x=5$\,m for the infinite-cylinder test case and a quantitative summary of the results are presented in Table~\ref{tab:axi_results}.
+The quoted error in $\nabla \cdot \vec{q}_\text{rad}$ is the RMS of the absolute percentage difference along the $x=5$\,m profile referenced to the infinite-cylinder solution, and the quoted error in $q_\text{rad}$ is the average of the percentage difference from the infinite-cylinder solution at $3 \leq x \leq 7$\,m and $\tau_y=1$\,m.
+All simulations were run using the serial version of the code on a single 2.2GHz AMD Opteron 6174 core of a Linux workstation with 132GB of RAM.
+Note that more rays are required for the photon Monte-Carlo simulations as $N_\text{rays}$ is the total number of cells emitted per cell, whereas in the modified Discrete Transfer model $N_\text{rays}$ is the number rays emitted per cell \textit{per frequency interval}.
+
+\begin{figure}[htb]
+\centering
+\subfloat[Modified Discrete Transfer model]{\scalebox{0.6}{\includegraphics{radiation/figures/DT_divergence.pdf}}}
+\subfloat[Photon Monte--Carlo model]{\scalebox{0.6}{\includegraphics{radiation/figures/MC_divergence.pdf}}}
+\caption{Comparison of radiative divergence solution profiles at $x=5$\,m for the axisymmetric infinite-cylinder radiation transport test case.}
+\label{fig:axi_divq_profiles}
+\end{figure}
+
+\begin{table}[h]
+ \centering
+ \small
+ \caption{Tabulated results for the axisymmetric infinite-cylinder radiation transport test case.}
+ \label{tab:axi_results}
+  \begin{threeparttable}
+ \begin{tabular*}{0.95\textwidth}%
+     {@{\extracolsep{\fill}}cccccc}
+  \hline \hline \textbf{Grid Resolution}                                & \textbf{Ray resolution}      & \textbf{Memory}  &  \textbf{Wall time} & \textbf{RMS $\mathbf{\nabla \cdot \vec{q}_\text{rad}}$} & \textbf{$\mathbf{q_\text{rad}}$} \\
+$\mathbf{(N_{\text{cells,x}}\times N_{\text{cells,y}})}$    & $\mathbf{N_\text{rays}}$  & \textbf{(MB)}        & \textbf{(s)}              & \textbf{Error (\%)}                                                      & \textbf{Error (\%)}                \\
+\hline \multicolumn{6}{c}{\underline{Modified discrete transfer model}} \\
+              $8 \times 8$                                                              & 16                                        &                                &   0.28                     &  10.71                                                                         & 4.32 \\
+              $16 \times 16$                                                         &  32                                        &                                &  4.57                      & 4.54                                                                            & 2.51 \\
+              $32 \times 32$                                                         & 64                                         &    290                     &  62.02                    & 6.49                                                                            & 1.65 \\
+              $64 \times 64$                                                         & 128                                       &    3703                  &  1002.97                & 1.44                                                                            & 1.20 \\
+\hline \multicolumn{6}{c}{\underline{Photon Monte-Carlo model}} \\
+              $8 \times 8$                                                              & 128                                       &                                &  0.24                       &  14.78                                                                       & 4.10 \\
+              $16 \times 16$                                                         &  256                                      &   13                         &  3.50                      & 1.18                                                                           & 1.22 \\
+              $32 \times 32$                                                         & 512                                       &    54                        &  55.47                    & 3.57                                                                           & 1.34 \\
+              $64 \times 64$                                                         & 1024                                     &    128                     &  921.34                  & 0.25                                                                           & 0.85  \\
+ \hline
+ \end{tabular*}
+ \end{threeparttable}
+\end{table}
+
+Overall, the results demonstrate that both ray-tracing models converge towards the exact solution with increasing grid and ray resolution for axisymmetric geometries.
+While the error in both $\nabla \cdot \vec{q}_\text{rad}$  and $q_\text{rad}$ drops for most successive grid refinements, this is not the case from the $16 \times 16$ to the $32 \times 32$ cell grid.
+Such behaviour requires that a thorough grid resolution study is performed when implementing these models.
+Of the two models, the photon Monte--Carlo model exhibits both superior accuracy per CPU-time and memory usage efficiency.
+For example, for the $64 \times 64$ cell grid, both models have approximately the same wall time yet the Monte--Carlo model uses 29 times less memory and is almost 6 times more accurate in calculating $\nabla \cdot \vec{q}_\text{rad}$.
+Furthermore, the photon Monte--Carlo model does not suffer from the Discrete Transfer models poor performance near the axis of symmetry.
+This is due to the Monte--Carlo models statistical selection of photon trajectories, whereas the Discrete Transfer model considers a regular radiation sub-grid.
+
+\par
+
+Table~\ref{tab:slab_resource_usage} compares the computational resource usage for the $32 \times 32$ cell grid and 512 photon Monte--Carlo case run with the \verb OpenMP  version of the code using 1, 2 and 4 CPU cores of the same Linux workstation used for the resolution studies.
+The results indicate the ray-tracing model performs reasonably well under parallelisation for simple grids.
+The speed-ups for the 2 and 4 block cases are 1.52 and 2.97 respectively, giving parallelised code fractions of 48 and 34\% according to Gustafson's law~\cite{gustafson88}.
+% Furthermore, the increase in the memory usage for the 2 and 4 core cases is minimal, being only 7.6 and 12.5\% respectively.
+
+\begin{table}[b!]
+ \centering
+ \small
+ \caption{Comparison of resource usage for the $32 \times 32$ cell grid and 512 photon Monte--Carlo infinite-cylinder radiation transport test case with 1, 2 and 4 blocks.}
+ \label{tab:slab_resource_usage}
+  \begin{threeparttable}
+ \begin{tabular*}{0.95\textwidth}%
+     {@{\extracolsep{\fill}}cccccc}
+  \hline \hline \textbf{Number of CPU cores}, $\mathbf{N_\text{core}}$                          &  \textbf{Memory (MB)}  &  \textbf{Wall time (s)} &   \textbf{Speed up} \\
+ \hline                                                    1                                                                                   & 54                                    &   55.47                         &  - \\
+                                                               2                                                                                   & 119                                  &   36.45                         & 1.52 \\
+                                                               4                                                                                   & 260                                  &   18.70                         & 2.97 \\
+  \hline
+ \end{tabular*}
+ \end{threeparttable}
+\end{table}
