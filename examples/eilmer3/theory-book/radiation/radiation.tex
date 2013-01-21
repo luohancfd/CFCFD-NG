@@ -165,15 +165,15 @@ The total radiative divergence for a finite-volume cell is calculated as the dif
 \noindent where:
 
 \begin{eqnarray}
- E_{\text{ems.}} &=& \int_{V} \int_{0}^{{4\pi}} \int_{\nu_{\text{min}}}^{\nu_{\text{max}}} j_{\nu} d\nu d\omega dV = \sum_{r}^{N_{\text{ems. rays}}} \sum_{n}^{N_{\nu}} E_{r,p}^0 \label{eq:E_emission} \\
- E_{\text{abs.}} &=& \sum_{r}^{N_{\text{abs. rays}}} \sum_{n}^{N_{\nu}} \left ( - \Delta E_{r,p} \right ) \label{eq:E_absorption} 
+ E_{\text{ems.}} &=& \int_{V} \int_{0}^{{4\pi}} \int_{\nu_{\text{min}}}^{\nu_{\text{max}}} j_{\nu} d\nu d\omega dV = \sum_{r}^{N_{\text{ems. rays}}} \sum_{n}^{N_{\nu}} E_{r,n}^0 \label{eq:E_emission} \\
+ E_{\text{abs.}} &=& \sum_{r}^{N_{\text{abs. rays}}} \sum_{n}^{N_{\nu}} \left ( - \Delta E_{r,n} \right ) \label{eq:E_absorption} 
 \end{eqnarray}
 
 \noindent Here $N_{\text{abs. rays}}$ is the total number of ray segments traversing the current cell, $N_{\text{ems. rays}}$ is the total number of rays emitted by this cell and the frequency domain has been divided into $N_{\nu}$ intervals between $\nu_{min}$ and $\nu_{max}$. 
 $E_{r,n}^0$ is the initial power carried by photon packet $n$ with frequency interval $\Delta \nu_{n}$ from ray $r$ with solid angle $\Delta \omega_{r}$:
 
 \begin{equation}
- E_{r,p}^0 = j_{\nu} \Delta \nu_{n} \Delta \omega_{r} V
+ E_{r,n}^0 = j_{\nu} \Delta \nu_{n} \Delta \omega_{r} V
 \end{equation}
 
 The radiative heat flux incident on wall elements $q_\text{rad}$ is calculated as the sum of the remaining energy $E_{r,n}$ from all incident rays $N_\text{inc. rays}$ divided by the wall element area $A$:
@@ -563,7 +563,7 @@ The spectral range considered is 10 to 3000\,nm, and is discretised with 500 int
 Integrating the Planck function with this discretisation matches the Stephan-Maxwell equation to within 0.1\%.
 The exact solution for the axisymmetric test case is obtained from the analytical expressions presented by Sakai \textit{et al.}~\cite{SSM1998}.
 
-\paragraph{Resuls}
+\paragraph{Results}
 
 Figure~\ref{fig:axi_divq_profiles} presents radiative divergence profiles at $x=5$\,m for the infinite-cylinder test case and a quantitative summary of the results are presented in Table~\ref{tab:axi_results}.
 The quoted error in $\nabla \cdot \vec{q}_\text{rad}$ is the RMS of the absolute percentage difference along the $x=5$\,m profile referenced to the infinite-cylinder solution, and the quoted error in $q_\text{rad}$ is the average of the percentage difference from the infinite-cylinder solution at $3 \leq x \leq 7$\,m and $\tau_y=1$\,m.
