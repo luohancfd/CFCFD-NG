@@ -8,7 +8,121 @@ In a similar fashion as for chemical reactions (see Appendix~\ref{app:chem}),
 thermal energy exchange mechanisms are described in a Lua input file prepared by
 the user.
 
-\par
+As a first example, let's look at an input file for a two-temperature
+simulation of nitrogen flow (although this is not explicit in the
+the energy exchange file: this information appears in the accompanying
+gas model file).
+The two temperatures are a transrotational temperature (translational and
+rotational energy modes are assumed to be equilibriated at a common temperature)
+and a vibroelectronic temperature (the vibrational and electronic energy modes
+are assumed to equilibriated a common temperature, different from the transrotational
+temperature).
+The user-created energy exchange input file describes the mechanism and rate
+by which these two temperature modes relax (or equilibriate) with one another.
+In this example, we just consider a V-T exchange: a mechanism for the vibrational
+energy mode to exchange energy with the translational energy mode.
+The input file is listed here.\\
+\topbar\\
+\lstinputlisting[language={}]{../2D/giordano/N2-TV.lua}
+\bottombar\\
+There is only one mechanism listed here.
+What this says is that in the collision between a nitrogen molecule
+and another nitrogen molecule, the vibrational energy may be altered and
+the change in energy is soaked up in the translational mode.
+This energy exchange occurs at a particular rate which is controlled
+by a relaxation time which is dependent on the local thermodynamic state.
+In this case, the relaxation time is modelled as a curve fit to a
+Landau-Teller type relaxation.
+The parameters $A$, $B$ and $C$ control the shape of the curve fit and
+have been determined to a give a best fit to experimental measurement
+of the relaxation time.
+In this example, there is only one energy exchange mechanism.
+For certain gas mixtures, there may be several mechanisms of energy exchange
+amongst the various energy modes.
+Each of these mechanisms is listed in separate \texttt{mechanism} tables.
+
+
+\subsection{Overview of the input file format}
+The Lua programming language is used for the input data description.
+Any legal Lua code may appear in the energy exchange file.
+However, the user should not rename the following special
+pre-defined functions:
+\begin{enumerate}
+\item \texttt{mechanism}
+\item \texttt{scheme}
+\item \texttt{ode\_solver}
+\end{enumerate}
+
+There are supplied default values for the selection of a \texttt{scheme}
+(how the energy exchange relaxation is computed) and the \texttt{ode\_solver}
+(if used).
+These defaults should be adequate for the vast majority of cases.
+The bulk of the work for the user is usually specifying a set of
+appropriate \texttt{mechanism} entries.
+The format for a \texttt{mechanism} entry is discussed next.
+
+\subsection{Details of the \texttt{mechanism} table}
+The \texttt{mechanism} table consists of two mandatory fields, and an optional
+\texttt{list} field used in certain circumstances.
+The first mandatory field is unnamed and always appears first.
+It is a string describing the particular energy exchange mechanism.
+The second mandatory entry is a named field \texttt{rt} which stands for
+`relaxation time'.
+This field is used to select the model for how the relaxation time
+of the particular energy exchange mechanism is computed.
+Thus, the minimal format of the mechanism table is:
+\begin{verbatim}
+mechanism{
+  'mechanism string',
+  rt={...}
+}
+\end{verbatim}
+If the \texttt{'mechanism string'} makes use of the symbol \texttt{(*list)},
+then a \texttt{list} entry should also appear in the \texttt{mechanism} table.
+
+The \texttt{'mechanism string'} is used to list which species and which
+energy modes are involved in a particular energy exchange mechanism.
+This string must conform to a strict syntax in order to be a valid
+description of an energy exchange system.\footnote{For those interested
+in computer programming, the syntactical parsing of the 
+mechanism string is an example of an embedded domain specific language.}
+The general form of the mechanism string is:
+\begin{verbatim}
+'A ~~ <colliders> : A_mode-C_mode'
+\end{verbatim}
+The first part of the string (before the colon), declares which main species
+is having one of its energy modes changed due to collisions with certain
+other species.
+So in this declaration, our attention is focussed on how a particular
+energy mode of species A is altered due to collisions with other
+particles.
+The second part of the string (after the colon) tells us which energy modes are
+affected.
+There should always be two modes affected: the first corresponds to a mode
+of species A and the second to a mode of the colliding species.
+The details and allowable values for the generic fields in the mechanism string are:
+\begin{description}
+\item[\texttt{A}] is the name of a single species. This is the main species of interest.
+                  We are going to consider how collisions of other particles with this
+                  species affect the energy in one of its energy modes.
+\item[\texttt{<colliders>}] is the list of colliding species which will affect the
+                  energy content of the main species \texttt{A}. There are four possible
+                  values allowed.
+  \begin{enumerate}
+  \item a single species name, e.g. \texttt{'O2'}
+  \item a bracketed list of species, e.g. \texttt{('O2', 'N2')}
+  \item the special keyword `all' to denote collisions with all species in the mix, e.g. \texttt{(*all)}
+  \item the special keyword `list' to denote collisions with a specific list of species, e.g. 
+        \texttt{(*list)}. If this value is used, a \texttt{list} field should appear in
+        the mechanism table. Basically, this is used to instruct the parser to look in the
+        mechanism table for a list of colliding species.
+  \end{enumerate}
+\item[\texttt{A\_mode}] kklk
+\item[\texttt{C\_mode}] kl
+\end{description}
+
+
+
 
 Creating the Lua input file for thermal energy exchange, however, is presently less user-friendly
 than for chemical reactions.

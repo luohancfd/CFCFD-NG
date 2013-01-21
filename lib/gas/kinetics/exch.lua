@@ -51,8 +51,8 @@ ColliderG = lpeg.P{ Colliders,
 		    Colliders = lpeg.Ct(Species * Space * (Tilde*Tilde) * Space *
 					( Species + -- e.g. N2 ~~ O2
 					   lpeg.Ct((Open*Species*Space*(Comma*Species)^0*Close)) +  -- e.g. O2 ~~ (N2, H2)
-					   (Open*ListKw*Close) + -- e.g. N2 + (*list)
-					   (Open*AllKw*Close) )) } -- e.g. N2 + (*all) 
+					   (Open*ListKw*Close) + -- e.g. N2 ~~ (*list)
+					   (Open*AllKw*Close) )) } -- e.g. N2 ~~ (*all) 
 ExchangeG = lpeg.P{ Exchange,
 		    Exchange = lpeg.Ct(ExchType * Dash * ExchType*(Space*ExchDesc)^0)}
 
