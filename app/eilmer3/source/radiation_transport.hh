@@ -83,6 +83,9 @@ public:
     void compute_Q_rad_for_flowfield();
     
     void compute_Q_rad_for_block( Block * A );
+
+private:
+    bool exact_;
 };
 
 class DiscreteTransfer : public RadiationTransportModel {

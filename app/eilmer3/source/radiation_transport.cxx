@@ -29,7 +29,6 @@ extern "C" {
 #include "bc.hh"
 
 #define VERBOSE_RADIATION_TRANSPORT 1
-#define USE_EXACT_TANGENT_SLAB_EQUATIONS 0
 #define NO_CLUSTERING        0
 #define CLUSTERING_BY_VOLUME 1
 #define CLUSTERING_BY_AREA   2
@@ -166,7 +165,10 @@ void OpticallyThin::compute_Q_rad_for_block( Block * A )
 /* --------- Model: "TangentSlab" --------- */
 
 TangentSlab::TangentSlab( lua_State *L )
- : RadiationTransportModel(L) {}
+ : RadiationTransportModel(L)
+{
+    exact_ = get_boolean( L, -1, "exact_formulation" );
+}
 
 TangentSlab::~TangentSlab()
 {}
@@ -241,14 +243,15 @@ void TangentSlab::compute_Q_rad_for_block( Block * A )
 	    // index into 1D heat-flux vectors (i parts are omitted as we assume this is always the easterly face)
 	    index = (A->jmax-A->jmin+1)*(k-A->kmin) + (j-A->jmin);
 	    // perform tangent-slab integration
-#           if USE_EXACT_TANGENT_SLAB_EQUATIONS
-	    // Exact but slow version
-	    A->bcp[EAST]->q_rad[index] = TS.exact_solve_for_divq();
-#           else
-	    // Approximate but speedy version
-    	    A->bcp[EAST]->q_rad[index] = TS.quick_solve_for_divq();
-#           endif
-	}
+            if ( exact_ ) {
+	        // Exact but slow version
+	        A->bcp[EAST]->q_rad[index] = TS.exact_solve_for_divq();
+            }
+            else {
+	        // Approximate but speedy version
+    	        A->bcp[EAST]->q_rad[index] = TS.quick_solve_for_divq();
+            }
+        }
     }
     
     return;

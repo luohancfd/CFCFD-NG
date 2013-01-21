@@ -46,6 +46,7 @@ class GlobalRadData(object):
         self.absorption = "partitioned energy"
         self.binning = "none"
         self.N_bins = 0
+        self.exact_formulation = False
 
         GlobalRadData.count = 1
         return
@@ -121,6 +122,8 @@ class GlobalRadData(object):
             ofile.write(tab+"optical_switch = %f,\n" % self.optical_switch )
             ofile.write(tab+"lower_escape_factor = %f,\n" % self.lower_escape_factor )
             ofile.write(tab+"upper_escape_factor = %f,\n" % self.upper_escape_factor )
+        elif self.transport_model=="tangent slab":
+            ofile.write(tab+"exact_formulation = %s,\n" % str(self.exact_formulation) )
         ofile.write("}\n\n")
             # radiator data
         for rad in self.radiators:
