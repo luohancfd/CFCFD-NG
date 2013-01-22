@@ -125,10 +125,11 @@ available to me as part of cfpylib inside the cfcfd code collection.
     17-Dec-2012: Added two more test gases to the code.
     15-Jan-2013: added basic test time calculation from the work of Paull and Stalker (1992) to the code
     16-Jan-2013: added a second csv output to the code that should be handy for pulling the data into spreadsheets etc.
-    17-Jan-2031: started implementing changes suggested by Peter Jacobs and Fabian Zander:
+    17-Jan-2013: started implementing changes suggested by Peter Jacobs and Fabian Zander:
         Changed the variable 'state_over_model' to 'test_section_state' so it's less ambiguous.
         Did a general tidy up of my print statements and comments.
         Cut out the section at the end of the code where variables can be changed, the user can do this externally.
+    22-Jan-2013: added perfect gas solver to the code so it can now do equilibrium and perfect gas calculations
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -144,7 +145,11 @@ from cfpylib.gasdyn.cea2_gas import Gas, make_gas_from_name
 from cfpylib.gasdyn.gas_flow import *
 from cfpylib.gasdyn.ideal_gas_flow import p0_p, pitot_p
 
-VERSION_STRING = "17-Jan-2013"
+#to do some perfect gas stuff
+
+import cfpylib.gasdyn.ideal_gas as pg
+
+VERSION_STRING = "22-Jan-2013"
 
 DEBUG_PITOT = False
 
@@ -240,6 +245,12 @@ def main():
     import optparse
     
     op = optparse.OptionParser(version=VERSION_STRING)
+    op.add_option('--solver', dest='solver', default='eq',
+                 choices=['eq','pg'],
+                 help=("solver to use; "
+                        "eq = equilibrium calculations using CEA code; "
+                        "pg = perfect gas solver; "
+                        "defaults to eq "))
     op.add_option('--facility', dest='facility', default='x2',
                   choices=['x2','x3'],
                   help=("facility to use; "
@@ -316,6 +327,7 @@ def main():
     
     opt, args = op.parse_args()
     
+    solver = opt.solver
     facility = opt.facility
     test = opt.test
     config = opt.config
@@ -347,7 +359,6 @@ def main():
             area_ratio = 5.8 #geometric area ratio of x3's nozzle
     
     if test == 'fulltheory-shock': #shows we're going to solve fill pressures from shock speeds
-        solver = 'shock_speeds'
         if p1: #if they specify both pressures and shock speefs, bail out
             print "You need to choose either pressures or shock speeds to solve for. Bailing out here."
             bad_input = True
@@ -391,7 +402,6 @@ def main():
 
         
     elif test == 'fulltheory-pressure':  #shows we're going to solve shock speeds from fill pressures
-        solver = 'fill_pressures'
         if Vs1: #if they specify both pressures and shock speeds, bail out
             print "You need to choose either pressures or shock speeds to solve for. Bailing out here."
             bad_input = True
@@ -503,8 +513,10 @@ def main():
             return -2
 
   
- #---------------- building initial states ----------------------------------    
-           
+#---------------- building initial states ---------------------------------- 
+    #here the states are made as CEA2 gas states, and then the ideal gam and MW are pulled out if required   
+    #and the gas objects are redefined to be perfect gas
+       
     states = {} #states dictionary that we'll fill up later
     V = {} #same for velocity
     M = {} #same for Mach number
@@ -514,17 +526,29 @@ def main():
     
     if facility == 'x2':
         states['s4']=primary_driver_x2[driver_gas][0].clone()
-        states['s4'].set_pT(2.79e7,2700.0)
+        p4 = 2.79e7; T4 = 2700.0 #Pa, K
+        states['s4'].set_pT(p4,T4)
         V['s4']=0.0
         M['s4']=0.0
+        
+        if solver == 'pg': #make perfect gas object, and then re-set the state
+            states['s4']=pg.Gas(Mmass=states['s4'].Mmass,
+                                        gamma=states['s4'].gam, name='s4')
+            states['s4'].set_pT(p4,T4)
     
         M['s3s']=primary_driver_x2[driver_gas][1]
         
     elif facility == 'x3':
         states['s4']=primary_driver_x3[driver_gas][0].clone()
-        states['s4'].set_pT(2.79e7,2700.0)
+        p4 = 2.79e7; T4 = 2700.0 #Pa, K
+        states['s4'].set_pT(p4,T4)
         V['s4']=0.0
         M['s4']=0.0
+        
+        if solver == 'pg': #make perfect gas object if asked to do so, and then re-set the state
+            states['s4']=pg.Gas(Mmass=states['s4'].Mmass,
+                                        gamma=states['s4'].gam, name='s4')
+            states['s4'].set_pT(p4, T4)
     
         M['s3s']=primary_driver_x3[driver_gas][1]
 
@@ -542,32 +566,40 @@ def main():
     
     if secondary: #state sd1 is pure He secondary driver
         states['sd1'] =  Gas({'He':1.0,},outputUnits='moles')
-        if psd1:
+        if not psd1: #set atmospheric state if a pressure was not specified
+            psd1 = p0
+        states['sd1'].set_pT(psd1,T0)
+        if solver == 'pg': #make perfect gas object if asked to do so, then re-set the gas state
+            states['sd1']=pg.Gas(Mmass=states['sd1'].Mmass,
+                                 gamma=states['sd1'].gam, name='sd1')
             states['sd1'].set_pT(psd1,T0)
-        else:
-            states['sd1'].set_pT(p0,T0)
         V['sd1']=0.0
         M['sd1']=0.0
 
     #state 1 is shock tube
     states['s1'], gas_guess = make_test_gas(gasName)
-    if p1:
+    if not p1: #set atmospheric state if a pressure was not specified
+        p1 = p0
+    states['s1'].set_pT(p1,T0)
+    if solver == 'pg': #make perfect gas object if asked to do so, then re-set the gas state
+        states['s1']=pg.Gas(Mmass=states['s1'].Mmass,
+                            gamma=states['s1'].gam, name='s1')
         states['s1'].set_pT(p1,T0)
-    else:
-        states['s1'].set_pT(p0,T0)
     V['s1']=0.0
     M['s1']=0.0
         
 
     #state 5 is acceleration tube
     states['s5'] = Gas({'Air':1.0,},outputUnits='moles')
-    if p5:
+    if not p5: #set atmospheric state if a pressure was not specified
+        p5 = p0
+    states['s5'].set_pT(p5,T0)
+    if solver == 'pg': #make perfect gas object if asked to do so, then re-set the gas state
+        states['s5']=pg.Gas(Mmass=states['s5'].Mmass,
+                            gamma=states['s5'].gam, name='s5')
         states['s5'].set_pT(p5,T0)
-    else:
-        states['s5'].set_pT(p0,T0)
     V['s5']=0.0
     M['s5']=0.0
-           
     #now let's clone the states we just defined to get the states derved from these
    
     if secondary:
@@ -817,7 +849,7 @@ def main():
         if PRINT_STATUS: print "From secant solve: Vs1 = {0} m/s".format(Vs1)
         #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
         if PRINT_STATUS: print "Once Vs1 is known, find conditions at state 1 and 2."
-    
+
     (V2, V['s2']) = normal_shock(states['s1'], Vs1, states['s2'])
     if shock_switch: #do a shock here if required
         V['s3'] = V['s2']
@@ -854,6 +886,10 @@ def main():
         ideal_gas_guess = gas_guess
         ideal_gas_guess_air = {'gam':1.35,'R':571.49}
     else:
+        ideal_gas_guess = None
+        ideal_gas_guess_air = None
+    
+    if solver == 'pg': #if using the pg solver the ideal gas guess causes problems, so just get rid of it!
         ideal_gas_guess = None
         ideal_gas_guess_air = None
 
@@ -920,9 +956,9 @@ def main():
     elif test == 'fulltheory-pressure': #compute the shock speed for the chosen fill pressure, uses Vs1 as starting guess
         #put two sets of starting guesses here to try and make more stuff work
         if Vs1 < 2000.0:
-            Vs2 = secant(error_in_pressure_s2_expansion_shock_speed_iterator, Vs1+7000.0, 15100.0, tol=1.0e-5,limits=[Vs1,100000.0])
+            Vs2 = secant(error_in_pressure_s2_expansion_shock_speed_iterator, Vs1+7000.0, 15100.0, tol=1.0e-5,limits=[Vs1+1000.0,100000.0])
         else:
-            Vs2 = secant(error_in_pressure_s2_expansion_shock_speed_iterator, Vs1+7000.0, 15100.0, tol=1.0e-5,limits=[Vs1,100000.0])
+            Vs2 = secant(error_in_pressure_s2_expansion_shock_speed_iterator, Vs1+7000.0, 15100.0, tol=1.0e-5,limits=[Vs1+1000.0,100000.0])
         if PRINT_STATUS: print "From secant solve: Vs2 = {0} m/s".format(Vs2)
         #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
         if PRINT_STATUS: print "Once Vs2 is known, find conditions at state 5 and 6."            
@@ -1082,13 +1118,22 @@ def main():
     
         description_5 = 'state 10e is equilibrium shocked test gas flowing over the model.'
         print description_5
-        txt_output.write(description_5 + '\n')        
+        txt_output.write(description_5 + '\n')
+        
+    if solver == 'eq':
+        solver_printout = "Solver used is equilibrium."
+    elif solver == 'pg':
+        solver_printout = "Solver used is perfect gas."
+    print solver_printout
+    txt_output.write(solver_printout + '\n')        
         
     facility_used = 'Facility is {0}.'.format(facility)        
     print facility_used
     txt_output.write(facility_used + '\n')
-    
-    test_gas_used = 'Test gas is {0} (gamma = {1}, R = {2}, {3}).'.format(gasName,states['s1'].gam,states['s1'].R,states['s1'].reactants)
+    if solver == 'eq':
+        test_gas_used = 'Test gas is {0} (gamma = {1}, R = {2}, {3}).'.format(gasName,states['s1'].gam,states['s1'].R,states['s1'].reactants)
+    elif solver == 'pg':
+        test_gas_used = 'Test gas is {0} (gamma = {1}, R = {2}).'.format(gasName,states['s1'].gam,states['s1'].R)
     print test_gas_used
     txt_output.write(test_gas_used + '\n')  
     
@@ -1144,10 +1189,16 @@ def main():
                 total_state = total_condition(states[it_string], V[it_string])
                 p0[it_string] = total_state.h/1.0e6
             
-            conditions = "{0:<6}{1:<11.7}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.4f}{7:<8.0f}{8:<9.1f}"\
-            .format(it_string, states[it_string].p, states[it_string].T,
-                    states[it_string].son,V[it_string],M[it_string],
-                    states[it_string].rho, pitot[it_string], p0[it_string])
+            if states[it_string].p < 1.0e6: #change how the pressure is printed if it's too big, it keeps ruining the printouts!
+                conditions = "{0:<6}{1:<11.7}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.5f}{7:<7.0f}{8:<9.1f}"\
+                .format(it_string, states[it_string].p, states[it_string].T,
+                        states[it_string].son,V[it_string],M[it_string],
+                        states[it_string].rho, pitot[it_string], p0[it_string])
+            else:
+                conditions = "{0:<6}{1:<11.3e}{2:<9.1f}{3:<6.0f}{4:<9.1f}{5:<6.2f}{6:<9.5f}{7:<7.0f}{8:<9.1f}"\
+                .format(it_string, states[it_string].p, states[it_string].T,
+                        states[it_string].son,V[it_string],M[it_string],
+                        states[it_string].rho, pitot[it_string], p0[it_string])
                     
             print conditions
             txt_output.write(conditions + '\n')
@@ -1232,6 +1283,12 @@ def main():
           
     csv_version_printout = "Pitot Version,{0}".format(VERSION_STRING)
     csv_output.write(csv_version_printout + '\n')
+    
+    if solver == 'eq':
+        csv_solver_printout = "Solver,equilibrium."
+    elif solver == 'pg':
+        csv_solver_printout = "Solver,perfect gas"
+    csv_output.write(csv_solver_printout + '\n')     
         
     csv_facility_used = 'Facility,{0}.'.format(facility)        
     csv_output.write(csv_facility_used + '\n')
@@ -1343,36 +1400,45 @@ if __name__ == '__main__':
         print "pitot - Equilibrium expansion tube simulator"
         print "start with --help for help with inputs"
         print "There are a few demos here that you can run to see how the program works:"
-        print "demo_s: demo of Umar's high speed air condition where shock speeds are guessed to find the fill pressure's he used."
-        print "demo_p: demo of Umar's high speed air condition where the fill pressure's are specified."
-        print "hadas85-fulltheory: fully theoretical demo of Hadas' 8.5km/s titan condition where fill pressure's are specified."
+        print "demo-s-eq: demo of Umar's high speed air condition where shock speeds are guessed to find the fill pressure's he used."
+        print "demo-p-eq: equilibrium demo of Umar's high speed air condition where the fill pressure's are specified."
+        print "demo-p-pg: perfect gas demo of Umar's high speed air condition where the fill pressure's are specified."
+        print "hadas85-full-theory: fully theoretical demo of Hadas' 8.5km/s titan condition where fill pressure's are specified."
         print "hadas85-experiment: run through of Hadas' 8.5km/s titan condition with both fill pressure's and shock speed's from xpt specified."
-        print "chrishe-fulltheory: full theoretical demo of one of my He conditions with secondary driver."
+        print "chrishe-full-theory-eq: fully theoretical equilibrium demo of one of my He conditions with secondary driver."
+        print "chrishe-full-theory-pg: fully theoretical perfect gas demo of one of my He conditions with secondary driver."
         print "dave-scramjet-p: a fully theoretical test of one of David Gildfind's scramjet conditions that iterates through fill pressures."
         print "dave-scramjet-s: a fully theoretical test of one of David Gildfind's scramjet conditions that iterates through shock speeds."
         print "dave-scramjet-tunnel: a recreation of one of Dave's scramjet conditions using test data."
         print "x3: basic x3 scramjet condition example."
         demo = raw_input("Type one of the demo commands for a demo run or anything else to quit ")
-        if demo == 'demo_s':
-            print "This is a demo of pitot recreating Umar Sheikh's high speed air condition where shock speeds are guessed to find the fill pressure's he used"
+        
+        if demo == 'demo-s-eq':
+            print "This is an equilibrium demo of pitot recreating Umar Sheikh's high speed air condition where shock speeds are guessed to find the fill pressure's he used"
             print "Fill pressure's we are aiming for are p1 = 3000 Pa, p5 = 10 Pa"
             print " "
-            sys.argv = ['pitot.py', '--test','fulltheory-shock', '--Vs1','5645.0',
-                        '--Vs2','11600.0','--filename','demo_s']
+            sys.argv = ['pitot.py', '--solver','eq','--test','fulltheory-shock', '--Vs1','5645.0',
+                        '--Vs2','11600.0','--filename','demo-s']
             main()
             
-        elif demo == "demo_p":
-            print "This is demo of pitot recreating Umar Sheikh's high speed air condition where fill pressure's are specified."
+        elif demo == "demo-p-eq":
+            print "This is equilibrium demo of pitot recreating Umar Sheikh's high speed air condition where fill pressure's are specified."
             print " "            
-            sys.argv = ['pitot.py', '--p1','3000.0','--p5','10.0','--filename','demo_p']
+            sys.argv = ['pitot.py', '--p1','3000.0','--p5','10.0','--filename','demo-p-eq']
             main()
             
-        elif demo == 'hadas85-fulltheory':
+        elif demo == "demo-p-pg":
+            print "This is perfect gas demo of pitot recreating Umar Sheikh's high speed air condition where fill pressure's are specified."
+            print " "            
+            sys.argv = ['pitot.py', '--solver','pg', '--p1','3000.0','--p5','10.0','--filename','demo-p-pg']
+            main()
+            
+        elif demo == 'hadas85-full-theory':
             print "This is the fully theoretical demo of pitot recreating Hadas' 8.5 km/s titan condition."
             print " "
             sys.argv = ['pitot.py', '--driver_gas','He:0.80,Ar:0.20','--test_gas','titan', 
                         '--p1','3200.0','--p5','10.0', '--ar','3.0', '--conehead','yes'
-                        '--filename','hadas85-fulltheory']
+                        '--filename','hadas85-full-theory']
             main()  
             
         elif demo == 'hadas85-experiment':
@@ -1384,13 +1450,22 @@ if __name__ == '__main__':
                         '--filename','hadas85-tunnel']
             main()
             
-        elif demo == 'chrishe-fulltheory':
-            print "This is the demo of pitot recreating my 14 km/s 85%H2:15%He condition fully theoretically."
+        elif demo == 'chrishe-full-theory-eq':
+            print "This is the equilibrium demo of pitot recreating my 14 km/s 85%H2:15%He condition fully theoretically."
             print " "
             sys.argv = ['pitot.py', '--test','fulltheory-pressure', '--config',
                         'sec-nozzle','--driver_gas','He:1.0', '--test_gas',
                         'gasgiant_h215he','--psd1','17500','--p1','4700',
-                        '--p5','4.0','--filename','chrishe-fulltheory']
+                        '--p5','6.37','--filename','chrishe-fulltheory']
+            main()
+            
+        elif demo == 'chrishe-full-theory-pg':
+            print "This is the perfect gas demo of pitot recreating my 14 km/s 85%H2:15%He condition fully theoretically."
+            print " "
+            sys.argv = ['pitot.py', '--solver','pg', '--test','fulltheory-pressure', '--config',
+                        'sec-nozzle','--driver_gas','He:1.0', '--test_gas',
+                        'gasgiant_h215he','--psd1','17500','--p1','4700',
+                        '--p5','6.37','--filename','chrishe-fulltheory']
             main()
             
         elif demo == 'dave-scramjet-p':
