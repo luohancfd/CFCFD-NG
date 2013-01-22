@@ -7,7 +7,7 @@
 \subsection{Sutherland's law for viscosity}
 
 \paragraph{Description}
-Sutherland's law for viscosity is an approximation dervied from kinetic theory.
+Sutherland's law for viscosity is an approximation derived from kinetic theory.
 The approximation is based on an idealised intermolecular force
 potential.
 Sutherland's law is applicable in the low-density limit for gases where
@@ -46,10 +46,99 @@ described in Appendix~\ref{app:cea-visc}.
 
 \section{Thermal conductivity of single components}
 
+\subsection{Sutherland's law for thermal conductivity}
 
+\paragraph{Description}
+Analogously to Sutherland's law for viscosity, a similar expression can be
+written for the thermal conductivity of a gas.
+
+\paragraph{Equation}
+
+\begin{equation}
+k = k_{\text{ref}} \left(\frac{T}{T_{\text{ref}}}\right)^{3/2} \frac{T_{\text{ref}} + S}{T + S}
+\end{equation}
+
+\paragraph{Parameters}
+The parameters of the model are described in Table~\ref{tab:Suth-k}.
+The values of these constants for some common gases are given in the text by White~\cite{white_2006}.
+
+\begin{table}[h]
+\caption{Parameters for Sutherland's thermal conductivity law}
+\label{tab:Suth-k}
+\begin{tabular}{llp{10cm}}
+\toprule
+Parameter        & Units     & Description \\ \midrule
+$k_{\text{ref}}$   & W/(m.K)   & reference thermal conductivity \\
+$T_{\text{ref}}$   & K         & reference temperature  \\
+$S$              & K         & Sutherland's constant; an effective temperature \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Thermal conductivity from curve fits}
+Just as with viscosity, there is curve fit data for the thermal conductivity
+of various species available in the CEA program database.
+The library implements these curve fits, the form of which is
+given in Appendix~\ref{app:cea-visc}
 
 \section{Mixing rules}
+The transport properties for a gas mixture may be computed from the individual
+component transport properties and the use of an appropriate mixing rule.
+In this section, the various mixing rules available in the library
+are presented.
+
+\subsection{Wilke's mixing rule}
+
+\paragraph{Description}
+
+At low densities, the semi-empirical mixing rule of Wilke~\cite{wilke_1950}
+serves well.
+The library implements a modified version of Wilke's rule as used
+by Gordon and McBride~\cite{gordon_mcbride_1996} in the CEA program.
+
+\paragraph{Equation}
+
+\begin{equation}
+   \mu_{mix} = \sum_{i=1}^N \frac{x_i \mu_i}{x_i + \sum_{\genfrac{}{}{0pt}{}{j=1}{j\neq i}}^N x_j \phi_{ij}}
+\end{equation}
+and
+\begin{equation}
+   k_{mix} = \sum_{i=1}^N \frac{x_i k_i}{x_i + \sum_{\genfrac{}{}{0pt}{}{j=1}{j\neq i}}^N x_j \psi_{ij}}
+\end{equation}
+where $x_i$ is the mole fraction of species $i$.
+
+The interaction potentials, $\phi_{ij}$ and $\psi_{ij}$, can be calculated a number of ways.
+Again, the formulae suggested by Gordon and McBride~\cite{gordon_mcbride_94} have been used,
+\begin{equation}
+   \phi_{ij} = \frac{1}{4} \left[ 1 + \left(\frac{\mu_i}{\mu_j}\right)^{1/2} 
+               \left(\frac{M_j}{M_i}\right)^{1/4} \right]^2\left(\frac{2M_j}{M_i + M_j}\right)^{1/2}
+\end{equation}
+and
+\begin{equation}
+\psi_{ij} = \phi_{ij} \left[ 1 + \frac{2.41(M_i - M_j)(M_i - 0.142M_j)}{(M_i + M_j)^2}\right]
+\end{equation}
+where $M_i$ and $M_j$ refer to the molecular weights of species $i$ and $j$ respectively.
+
+\subsection{The mixing rule of Gupta and Yos}
+
+DAN to provide equations.
 
 \section{Diffusion coefficients}
+The rigorous way to compute multi-component mass diffusion involves the computation of binary diffusion coefficients for all interacting species.
+This section discusses the various models available to compute the binary
+difussion coefficient for diffusion of species A into B.
+
+\subsection{Hard sphere model}
+
+To document.
+
+\subsection{Model based on Lennard-Jones potential}
+
+To implement.
+
+\subsection{Gupta-Yos model}
+
+
+
 
 
