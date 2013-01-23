@@ -105,7 +105,7 @@ class GlobalRadData(object):
         # transport data
         ofile.write("transport_data = {\n")
         ofile.write(tab+"transport_model = '%s',\n" % self.transport_model )
-        ofile.write(tab+"spectrally_resolved = %d,\n" % self.spectrally_resolved )
+        ofile.write(tab+"spectrally_resolved = %s,\n" % str(self.spectrally_resolved).lower() )
         ofile.write(tab+"electronic_mode_factor = %d,\n" % self.electronic_mode_factor )
         if self.transport_model=="discrete transfer" or self.transport_model=="monte carlo":
             if self.nrays<1:
