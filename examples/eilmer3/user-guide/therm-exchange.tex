@@ -9,28 +9,30 @@ thermal energy exchange mechanisms are described in a Lua input file prepared by
 the user.
 
 As a first example, let's look at an input file for a two-temperature
-simulation of nitrogen flow (although this is not explicit in the
-the energy exchange file: this information appears in the accompanying
-gas model file).
+simulation of nitrogen flow.
+The fact that it is a two-temperature flow is not explicit in the
+the energy exchange file; this information appears in the accompanying
+gas model file.
 The two temperatures are a transrotational temperature (translational and
 rotational energy modes are assumed to be equilibriated at a common temperature)
 and a vibroelectronic temperature (the vibrational and electronic energy modes
 are assumed to equilibriated a common temperature, different from the transrotational
 temperature).
-The user-created energy exchange input file describes the mechanism and rate
-by which these two temperature modes relax (or equilibriate) with one another.
+The user-created energy exchange input file lists the mechanism and relaxation times
+which describe how these two temperature modes relax (or equilibriate) with one another.
 In this example, we just consider a V-T exchange: a mechanism for the vibrational
 energy mode to exchange energy with the translational energy mode.
 The input file is listed here.\\
-\topbar\\
+\topbar
 \lstinputlisting[language={}]{../2D/giordano/N2-TV.lua}
-\bottombar\\
+\bottombar
 There is only one mechanism listed here.
 What this says is that in the collision between a nitrogen molecule
 and another nitrogen molecule, the vibrational energy may be altered and
 the change in energy is soaked up in the translational mode.
 This energy exchange occurs at a particular rate which is controlled
-by a relaxation time which is dependent on the local thermodynamic state.
+by a relaxation time.
+The relaxation time depends on the local thermodynamic state.
 In this case, the relaxation time is modelled as a curve fit to a
 Landau-Teller type relaxation.
 The parameters $A$, $B$ and $C$ control the shape of the curve fit and
@@ -39,8 +41,9 @@ of the relaxation time.
 In this example, there is only one energy exchange mechanism.
 For certain gas mixtures, there may be several mechanisms of energy exchange
 amongst the various energy modes.
-Each of these mechanisms is listed in separate \texttt{mechanism} tables.
-
+Each of these mechanisms is listed in separate \texttt{mechanism} tables,
+and strictly speaking, there is also the facility to group families
+of mechanisms in one table (more on that later).
 
 \subsection{Overview of the input file format}
 The Lua programming language is used for the input data description.
@@ -83,12 +86,12 @@ then a \texttt{list} entry should also appear in the \texttt{mechanism} table.
 The \texttt{'mechanism string'} is used to list which species and which
 energy modes are involved in a particular energy exchange mechanism.
 This string must conform to a strict syntax in order to be a valid
-description of an energy exchange system.\footnote{For those interested
+description of an energy exchange system.\footnote{For those with an interest
 in computer programming, the syntactical parsing of the 
 mechanism string is an example of an embedded domain specific language.}
 The general form of the mechanism string is:
 \begin{verbatim}
-'A ~~ <colliders> : A_mode-C_mode'
+'A ~~ <colliders> : modeA-modeC'
 \end{verbatim}
 The first part of the string (before the colon), declares which main species
 is having one of its energy modes changed due to collisions with certain
@@ -117,19 +120,131 @@ The details and allowable values for the generic fields in the mechanism string 
         the mechanism table. Basically, this is used to instruct the parser to look in the
         mechanism table for a list of colliding species.
   \end{enumerate}
-\item[\texttt{A\_mode}] kklk
-\item[\texttt{C\_mode}] kl
+  Options 2, 3 and 4 are means by which to group families of mechanisms into one entry.
+  This can be used when a number of different $B$ colliders all alter the energy state
+  of the $A$ molecule in the \emph{same} way. Internally, the code will expand out
+  the colliders list and treat each $A$-$B$ interaction pair as a separate mechanism.
+\item[\texttt{modeA-modeC}] This is a string which denotes which mode of collider $A$ is altered
+  during the collision and which mode of the other colliders is altered.
+  The possible values for this string are:
+  \begin{description}
+  \item[\texttt{V-T}] A vibration-translation energy exchange between vibrational mode of 
+                      collider $A$ and the translational energy of the colliding partners.
+  \item[\texttt{V-V}] A vibration-vibration energy exchange between the vibrational mode
+                      of collider $A$ and the vibrational mode of another collider.
+                      Whenever this entry is present for a pair $A$-$B$, there should usually
+                      be a reciprocal \texttt{mechanism} listed. For example, a V-V exchange
+                      for N$_2$-O$_2$ should have a matching V-V exchange written for O$_2$-N$_2$.\footnote{
+                      The user might think that it is redundant having to specify two mechanisms
+                      for reciprocal pairs of V-V exchanges. There is a subtle  reason for this:
+                      the relaxation times calculated for V-V exchanges are the relaxation time
+                      for an upper vibrational energy level of collider $A$ to drop down a level
+                      due to collisions with collider $B$, and at the same time the vibrational energy
+                      level of collider $B$ is raised a level. However, we have not looked at the
+                      relaxation time for the process of an upper vibrational level of $B$ dropping
+                      due to collisions with $A$, and the accompanying promotion of the vibrational
+                      energy level of $A$. This will have a different relaxation time associated with
+                      the process, and so requires a separate \texttt{mechanism} entry.}
+  \item[\texttt{E-T}] An electron-translation energy exchange. This is actually a translation-translation
+                      energy exchange. It is the exchange of translational energy of the electron species
+                      with the translational energy of the heavy particles.
+  \end{description}
 \end{description}
 
+When writing the mechanism string, the guiding rule is that it is written from the perspective
+of collider $A$.
+You are listing how collisions with other particles affect a certain energy mode of collider $A$.
 
+Next we describe the \texttt{rt} field which is required as part of specifiying a mechanim.
+The \texttt{rt} field is used to select a model for the relaxation time related to the particular
+mechanism.
+For example, the Landau-Teller relaxation time model was selected
+in the first example by setting
+\begin{verbatim}
+rt={'Landau-Teller-cf', A=7.12e-9, B=124.07, C=0.0}
+\end{verbatim}
+The value for the \texttt{rt} field is always a table.
+The first entry of this table is always a string which denotes a particular
+relaxation time model.
+The remaining key-value pairs in the table are specific to the chosen model.
+The relaxation time model must be appropriate for the type of mechanism.
+So for V-T exchanges, there is a certain set of relaxation time models available.
+For V-V exchanges, there is a different set of relaxation time models availables,
+as so on for other energy exchange mechanism types.
+The list of available relaxation time models and their required key-value pairs
+are grouped accodring to mechanism type in Table~\ref{tab:rt}.
+Any keys which are enclosed in bracket $[ ]$ are optional values.
+There will usually be a default method to compute the optional values if not supplied.
 
+\begin{landscape}
+\begin{center}
+\setlength{\LTcapwidth}{15cm}
+\begin{longtable}{p{7cm}p{15cm}}
+\caption{Relaxation time models for energy exchange mechanisms \label{tab:rt}}\\
+\toprule Model & Format \\ \midrule
+\endfirsthead
+\toprule Model & Format \\ \midrule
+\endhead
+\midrule
+\endfoot
+\multicolumn{2}{c}{\emph{--- for V-T exchanges ---}} \\ \midrule
+Millikan-White
+\[ \tau  = (1/p_{\text{bath}}) \left( \exp(a T^{-1/3} - b) - 18.42 \right) \]
+                        & \texttt{\{'Millikan-White', [a=...], [b=...]\}}
+                          \begin{itemize}
+                          \item \texttt{'Millikan-White'} appears first to name the model 
+                          \item \texttt{a} is a constant of the model.
+                                If not supplied it can be calculated based on the reduced mass ($\mu$) of the colliders
+                                and the charateristic vibrational temperature ($\Theta_v$) of collider $A$ as
+                                \[ a = 1.16e^{-3} \sqrt{\mu} \Theta_V^{4/3} .\]
+                          \item \texttt{b} is a constant of the model.
+                                If not supplied, it can be computed based on the reduced mass ($\mu$) as
+                                \[ b = 0.015 \mu^{1/4} .\]
+                         \end{itemize} \\
+Millikan-White with a high-temperature correction
+                        & \texttt{\{'Millikan-White:HTCS', [a=...], [b=...], HTCS=\{\}\}}
 
-Creating the Lua input file for thermal energy exchange, however, is presently less user-friendly
-than for chemical reactions.
-Users are advised to use the input file \verb TV-TE_exchange.lua  from the thermal nonequilibrium
-3D cylinder simulation described in Section~\ref{finite-cyl-therm-noneq} as a template when
-creating their own energy exchange schemes.
-The input file must have the following general structure:
+                          Parameters \texttt{a} and \texttt{b} as above.
+                          
+                          \begin{itemize}
+                          \item \texttt{'Millikan-White:HTCS'} appears first to name the model 
+                          \item \texttt{HTCS} is a model for the high-temperature correction cross-section.
+                                 Allowable values are:
+                                \begin{description}
+                                \item[\texttt{'Park'}] The user also supplies a value for \texttt{sigma\_dash}.
+                                So the selection looks like \texttt{HTCS=\{'Park', sigma\_dash=3.0e-17\}}.
+                                \item[\texttt{'Fujita'}] In this case, no other parameters are required. The selection is \texttt{HTCS=\{'Fujita'\}}.
+                                 \end{description}
+                         \end{itemize} \\ 
+Landau-Teller curve fit
+\[ \tau = (A/p_{bath})\exp(B/T^{1/3} + C) \] &
+                       \texttt{\{'Landau-Teller-cf', A=..., B=..., C=...\}}
+                          \begin{itemize}
+                          \item \texttt{'Landau-Teller-cf'} appears first to name the model 
+                          \item \texttt{A} is a constant of the model.
+                          \item \texttt{B} is a constant of the model.
+                          \item \texttt{C} is a constant of the model.
+                         \end{itemize} \\
+Schwartz-Slawsky-Herzfeld relaxation time
+model for V-T transfers &
+                       \texttt{\{'SSH-VT'\}}
+
+                        This model uses molecular parameters to compute the relaxation time for V-T transfers. No other information is required from the user. \\ \midrule
+\multicolumn{2}{c}{\emph{--- for V-V exchanges ---}} \\ \midrule
+Schwartz-Slawsky-Herzfeld relaxation time
+model for V-V transfers &
+                       \texttt{\{'SSH-VV'\}}
+
+                        This model uses molecular parameters to compute the relaxation time for V-V transfers. No other information is required from the user. \\ \midrule
+\multicolumn{2}{c}{\emph{--- for E-T exchanges ---}} \\ \midrule
+Appleton-Bray model for ions & ... \\
+Appleton-Bray model for neutrals & ... \\
+Appleton-Bray model for neutrals with two ranges & ... \\
+\bottomrule
+\end{longtable}
+\end{center}
+\end{landscape}
+
 
 \begin{verbatim}
 scheme_t = {...}
