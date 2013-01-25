@@ -3,7 +3,7 @@
 ## \author DFP, 30-Oct-2012
 ## 
 ## Part2: Viscous solution on a finer grid
-##        Peak radiative heating condition (10.79km/s)
+##             Condition from Dan's thesis
 
 from math import *
 from cfpylib.grid.shock_layer_surface import *
@@ -29,9 +29,9 @@ ntm = gm.get_number_of_modes()
 #
 # 2. Define flow conditions
 #
-rho_inf = 3.89e-4
-T_inf = 257.5
-u_inf = 10.79e3
+rho_inf = 1.73e-4
+T_inf = 230.0
+u_inf = 9.679e3
 massf_inf = [ 0.0 ] * gm.get_number_of_species()
 massf_inf[species.index('N2')] = 0.767
 massf_inf[species.index('O2')] = 0.233
@@ -88,7 +88,7 @@ else:
 #
 # 4. Define the blocks, boundary conditions and set the discretisation
 #
-nnx = 80; nny=60
+nnx = 60; nny=40
 nbx = 4; nby = 4
 
 # clustering at shock and boundary layer [ outflow, surface, axis, inflow ]
@@ -139,7 +139,7 @@ gdata.dt = 1.0e-10
 gdata.reaction_time_start = 0
 gdata.stringent_cfl = 1
 gdata.dt_plot = Rn * 1 / u_inf    # 5 solutions
-gdata.cfl = 0.01
+gdata.cfl = 0.05		# reduce for finer resolution
 gdata.cfl_count = 1
 gdata.print_count = 1
 

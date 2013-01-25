@@ -3,7 +3,7 @@
 ## \author DFP, 30-Oct-2012
 ## 
 ## Part1b: Radiation coupled (and inviscid) simulation on a coarse grid 
-##         Peak radiative heating condition (10.79km/s)
+##               Condition from Dan's thesis
 
 from cfpylib.gasdyn.billig import x_from_y, y_from_x
 from cfpylib.nm.zero_solvers import bisection
@@ -34,9 +34,9 @@ ntm = gm.get_number_of_modes()
 #
 # 2. Define flow conditions
 #
-rho_inf = 3.89e-4
-T_inf = 257.5
-u_inf = 10.79e3
+rho_inf = 1.73e-4
+T_inf = 230.0
+u_inf = 9.679e3
 massf_inf = [ 0.0 ] * gm.get_number_of_species()
 massf_inf[species.index('N2')] = 0.767
 massf_inf[species.index('O2')] = 0.233
