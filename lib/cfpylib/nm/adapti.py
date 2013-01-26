@@ -1,21 +1,31 @@
-## \file adapti.py
-## \ingroup nm
-##
-## \brief Adaptive quadrature using Newton-Cotes 5- and 3-point rules.
-##
-## \author PA Jacobs
-##         School of Engineering, UQ
-##
-## \version 18-Nov-2003
+# adapti.py
+"""
+Adaptive quadrature using Newton-Cotes 5- and 3-point rules.
 
-def rinteg( f, a, b, tol ):
-    """Apply Newton-Cotes 5- and 3-point quadrature rules to the segment [a,b].
+.. Author: PA Jacobs, School of Engineering, UQ
+.. MECH2700 demonstration code.
+.. Version 18-Nov-2003
+.. Version 26-jan-2013 Sphinx docs
 
-    Input...
-    f   : user-supplied function, f(x)
-    a, b: range of integration
-    tol : maximum difference between rules above which the range is split
-    Returns integral of f(x) from a to b.
+Example transcript::
+
+    $ python ~/e3bin/cfpylib/nm/adapti.py
+    Begin adapti...
+    Estimates of pi/4:  0.785397761493 0.785398163427
+    errors: 4.01904837855e-07 -2.95610202983e-11
+    number of function calls: 165 75
+    Done.
+"""
+
+def rinteg(f, a, b, tol):
+    """
+    Apply Newton-Cotes 5- and 3-point quadrature rules to the segment [a,b].
+
+    :param f: user-supplied function, f(x)
+    :param a, b: range of integration
+    :param tol: maximum difference between rules,
+                above which the range is split
+    :returns: integral of f(x) from a to b.
     """
     dx = b - a
     f0 = f(a)

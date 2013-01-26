@@ -10,6 +10,52 @@ zero_solvers.py
    16-Apr-2012: PJ, make more efficient by not evaluating f redundantly
                 Also, make the code more compact (so that the full 
                 function fits in the editor window).
+
+Example transcript::
+
+    python ~/e3bin/cfpylib/nm/zero_solvers.py
+    Begin zero_solvers self-test...
+
+    Test function 1.
+    ----------------
+    Example from Gerald and Wheatley, p. 45
+    Solve f(x) = x^3 + x^2 - 3x -3 = 0 with initial
+    guesses of x0 = 1 and x1 = 2.
+    Begin function call secant()...
+
+    Iteration 	 x0 		x1 		x2 	 f(x2) 
+    -----------------------------------------------------------------------
+    1 	  1.000000 	 2.000000 	 1.571429 	 -1.364431e+00
+    2 	  2.000000 	 1.571429 	 1.705411 	 -2.477451e-01
+    3 	  1.571429 	 1.705411 	 1.735136 	 2.925540e-02
+    4 	  1.705411 	 1.735136 	 1.731996 	 -5.151769e-04
+    5 	  1.735136 	 1.731996 	 1.732051 	 -1.039000e-06
+    6 	  1.731996 	 1.732051 	 1.732051 	 3.702993e-11
+    7 	  1.732051 	 1.732051 	 1.732051 	 1.776357e-15
+    -----------------------------------------------------------------------
+    Final result x =  1.73205080757
+    Gerald and Wheatley report x = 1.732051
+    Using bisection... x = 1.73205080757
+
+    Test function 2.
+    ----------------
+    Example from Gerald and Wheatley, p.45
+    Solve f(x) = 3*x + sin(x) - e^x = 0 with initial
+    guesses of x0 = 0 and x1 = 1.
+    Begin function call secant()...
+
+    Iteration 	 x0 		x1 		x2 	 f(x2) 
+    -----------------------------------------------------------------------
+    1 	  1.000000 	 0.000000 	 0.470990 	 2.651588e-01
+    2 	  0.000000 	 0.470990 	 0.372277 	 2.953367e-02
+    3 	  0.470990 	 0.372277 	 0.359904 	 -1.294813e-03
+    4 	  0.372277 	 0.359904 	 0.360424 	 5.530053e-06
+    5 	  0.359904 	 0.360424 	 0.360422 	 1.021329e-09
+    6 	  0.360424 	 0.360422 	 0.360422 	 -8.881784e-16
+    -----------------------------------------------------------------------
+    Final result x =  0.36042170296
+    Gerald and Wheatley report x = 0.3604217
+    Using bisection... x = 0.360421702961
 """
 
 TEST_MODULE = 0
@@ -17,6 +63,14 @@ TEST_MODULE = 0
 def secant(f, x0, x1, tol=1.0e-11, limits=[], max_iterations=1000):
     """
     The iterative secant method for zero-finding in one-dimension.
+
+    :param f: user-defined function f(x)
+    :param x0: first guess
+    :param x1: second guess, presumably close to x0
+    :tol: stopping tolerance for f(x)=0
+    :max_iterations: to stop the iterations running forever, just in case...
+
+    :returns: x such that f(x)=0 or the string 'FAIL'
     """
     # We're going to arrange x0 as the oldest (furtherest) point
     # and x1 and the closer-to-the-solution point.
@@ -43,17 +97,24 @@ def secant(f, x0, x1, tol=1.0e-11, limits=[], max_iterations=1000):
 
 # -------------------------------------------------------------------
 
-def bisection(f, by, uy, tol=1.0e-6):
+def bisection(f, bx, ux, tol=1.0e-6):
     """
     The iterative bisection method for zero-finding in one-dimension.
+
+    :param f: user-defined function f(x)
+    :param bx: bottom-limit of bracket
+    :param ux: upper-limit of bracket
+    :tol: stopping tolerance on bracket size
+
+    :returns: x such that f(x)=0
     """
-    while abs(uy-by) > tol:
-        midpoint = 0.5*(by+uy)
-        if f(by) * f(midpoint) > 0:
-            by = midpoint
+    while abs(ux-bx) > tol:
+        midpoint = 0.5*(bx+ux)
+        if f(bx) * f(midpoint) > 0:
+            bx = midpoint
         else:
-            uy = midpoint
-    return 0.5*(by+uy)
+            ux = midpoint
+    return 0.5*(bx+ux)
 
 # -------------------------------------------------------------------
 

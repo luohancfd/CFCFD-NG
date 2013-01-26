@@ -2,8 +2,16 @@
 """
 Implementation of an algorithm for optimization from Gerald and Wheatley.
 
-A class demo for mech2700.
-PJ, 23-Oct-2008 
+.. A class demo for mech2700.
+.. Author: PJ, 23-Oct-2008 
+
+Example transcript::
+
+    $ python ~/e3bin/cfpylib/nm/line_search.py
+    Begin...
+    x= -1.4721 f( -1.4721 )= 2.13090697639
+    bracket= (-0.5885337725265346, -0.5885329531539197)
+    Done.
 """
 
 def minimize(f, a, b, tolerance=1.0e-4):

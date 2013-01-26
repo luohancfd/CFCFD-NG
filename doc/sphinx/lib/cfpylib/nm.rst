@@ -10,6 +10,13 @@ collect_run_stats
 
 .. automodule:: cfpylib.nm.collect_run_stats
 
+adapti
+------
+
+.. automodule:: cfpylib.nm.adapti
+
+.. autofunction:: rinteg
+
 least_squares
 -------------
 

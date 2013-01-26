@@ -1,12 +1,12 @@
 """
 sode.py: Integrate a set of stiff ODEs.
 
-Author: P.Jacobs
+.. Author: P.Jacobs
+.. Version: 1.0, 21-Feb-2005
 
-Version: 1.0, 21-Feb-2005
+Example transcript::
 
-Transcript::
-
+    $ python ~/e3bin/cfpylib/nm/sode.py
     Start sample integrations...
     (1) Constant derivatives with semi-implicit RK1 method:
     t1= 10.0
@@ -24,17 +24,9 @@ Transcript::
 """
 
 from math import sqrt, pi
-
-try:
-    from numpy import array, identity
-    from numpy import float as Float
-    from numpy.linalg import solve as solve_linear_equations
-except:
-    try:
-        from Numeric import array, identity, Float
-        from LinearAlgebra import solve_linear_equations
-    except:
-        print "Could import neither numpy nor Numeric."
+from numpy import array, identity
+from numpy import float as Float
+from numpy.linalg import solve as solve_linear_equations
 
 
 def ode_integrate(t0, tlast, dt, F, n, y0, dFdt=None, dFdy=None, method="rk1"):
@@ -60,6 +52,8 @@ def ode_integrate(t0, tlast, dt, F, n, y0, dFdt=None, dFdy=None, method="rk1"):
     :param n: the number of dependent variables (in y)
     :param y0: an array of starting values for the dependent variables
                It is assumed that the y-elements are indexed 0..n-1
+    :param dFdt: user-defined function that returns the vector of partial derivatives
+    :param dFdy: user-defined function that returns the matrix of partial derivatives
     :param method: a string specifying which stepping method to use.
                    "rk1", "rk2"
 
@@ -92,6 +86,20 @@ def ode_integrate(t0, tlast, dt, F, n, y0, dFdt=None, dFdy=None, method="rk1"):
 def rk1_step(t0, h, F, n, y0, dFdt, dFdy):
     """
     Steps the set of ODEs by the semi-implicit one-stage Runge-Kutta method.
+
+    :param t0: the starting value of the independent variable
+    :param h: the step size in t
+    :param F: a callable function that returns the derivative of y wrt t
+              The signature of this function is F(t, y, n) where
+              t is a float value, y is a list (or array) or float values
+              and n is an integer specifying the number of equations.
+    :param n: the number of dependent variables (in y)
+    :param y0: an array of starting values for the dependent variables
+               It is assumed that the y-elements are indexed 0..n-1
+    :param dFdt: user-defined function that returns the vector of partial derivatives
+    :param dFdy: user-defined function that returns the matrix of partial derivatives
+
+    :returns: final values of t, y, and error estimates for y values as a tuple.    
     """
     t = t0
     y = y0.copy()  # ...so that the user's function cannot mangle y0
@@ -110,6 +118,20 @@ def rk1_step(t0, h, F, n, y0, dFdt, dFdy):
 def rk2_step(t0, h, F, n, y0, dFdt, dFdy):
     """
     Steps the set of ODEs by the semi-implicit two-stage Runge-Kutta method.
+
+    :param t0: the starting value of the independent variable
+    :param h: the step size in t
+    :param F: a callable function that returns the derivative of y wrt t
+              The signature of this function is F(t, y, n) where
+              t is a float value, y is a list (or array) or float values
+              and n is an integer specifying the number of equations.
+    :param n: the number of dependent variables (in y)
+    :param y0: an array of starting values for the dependent variables
+               It is assumed that the y-elements are indexed 0..n-1
+    :param dFdt: user-defined function that returns the vector of partial derivatives
+    :param dFdy: user-defined function that returns the matrix of partial derivatives
+
+    :returns: final values of t, y, and error estimates for y values as a tuple.    
     """
     t = t0
     y = y0.copy()  # ...so that the user's function cannot mangle y0

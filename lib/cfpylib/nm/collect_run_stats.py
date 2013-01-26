@@ -3,18 +3,15 @@
 collect_run_stats.py: Run an executable a number of times and report.
 
 This is a small application program rather than a library function.
+Usage::
+
+    $ ${E3BIN}/cfpylib/nm/collect_run_stats.py executable no_times
 """
 
 import sys, os
 
 from time import time
-try:
-    from numpy import zeros
-except:
-    try:
-        from Numeric import zeros
-    except:
-        print "Failed to import zeros from either numpy or Numeric"
+from numpy import zeros
 
 try:
     from scipy.stats import mean, std

@@ -29,23 +29,15 @@ Running this module as a Python script gives me the following transcript::
     err1= [  5.12421830e-11   5.12821769e-11]
     Done.
 
-Author: P. Jacobs
-        School of Engineering, UQ
+.. Author: P. Jacobs, School of Engineering, UQ
 
-Version:
+.. Version:
     05-Oct-03 implementation with lists for storage
     21-Feb-05 use Numeric arrays for storage and manipulation of the state data.
 """
 
 from math import pi
-try:
-    from numpy import array
-except:
-    try:
-        from Numeric import array
-    except:
-        print "Could import neither numpy nor Numeric."
-
+from numpy import array
 
 def ode_integrate(t0, tlast, dt, F, n, y0, method="euler"):
     """
@@ -102,7 +94,20 @@ def ode_integrate(t0, tlast, dt, F, n, y0, method="euler"):
 
 def euler_step(t0, h, F, n, y0):
     """
-    Steps the set of ODEs by the Euler method.
+    Single steps the set of ODEs by the Euler method.
+
+    :param t0: is the starting value of the independent variable
+    :param h: the requested step size
+    :param F: a callable function that returns the derivative of y wrt t
+              The signature of this function is F(t, y, n) where
+              t is a float value, y is a list (or array) or float values
+              and n is an integer specifying the number of equations.
+    :param n: the number of dependent variables (in y)
+    :param y0: an array of starting values for the dependent variables
+               It is assumed that the y-elements are indexed 0..n-1
+
+    :returns: final values of t, y, and error estimates for y values
+              are returned as a tuple.    
     """
     # The Euler step itself.
     t = t0
@@ -127,6 +132,19 @@ def euler_step(t0, h, F, n, y0):
 def rkf45_step(t0, h, F, n, y0):
     """
     Steps the set of ODEs by the Runge-Kutta-Fehlberg method.
+
+    :param t0: is the starting value of the independent variable
+    :param h: the requested step size
+    :param F: a callable function that returns the derivative of y wrt t
+              The signature of this function is F(t, y, n) where
+              t is a float value, y is a list (or array) or float values
+              and n is an integer specifying the number of equations.
+    :param n: the number of dependent variables (in y)
+    :param y0: an array of starting values for the dependent variables
+               It is assumed that the y-elements are indexed 0..n-1
+
+    :returns: final values of t, y, and error estimates for y values
+              are returned as a tuple.    
     """
     # Build up the sample point information.
     k1 = F(t0, y0.copy(), n)

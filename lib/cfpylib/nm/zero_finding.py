@@ -2,12 +2,22 @@
 """
 zero_finding.py
 
-Author:  Brendan O'Flaherty
+.. Author:  Brendan O'Flaherty
 
-Versions:
+.. Versions:
+    23 Oct 2007 -- File created
+    12 Nov 2007 -- Implemented bisection and golden methods
 
-   | 23 Oct 2007 -- File created
-   | 12 Nov 2007 -- Implemented bisection and golden methods
+Example transcript::
+
+    $ python ~/e3bin/cfpylib/nm/zero_finding.py
+    bisection method
+    find x for f0(x) < 1.000000e-06 for x(2.20:4.08)
+    f0(3.141593) = 4.494084e-07
+
+    golden section method
+    find x for min(f1(x)) < 1.000000e-06 for x(0.94:2.20)
+    f1(1.570796) = -1.000000
 """
 
 import sys

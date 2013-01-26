@@ -2,14 +2,27 @@
 secant_method.py: Function solver, using the secant method.
 
 .. Author: PAJ
-
 .. Version: 17-May-04
+
+Example transcript::
+
+    $ python ~/e3bin/cfpylib/nm/secant_method.py
+    Begin secant_method test...
+    one solution at x= 6.28318530718
+    expected x= 6.28318530718
+    Done.
 """
 
 def solve(f, x1, x2, tol=1.0e-9):
     """
-    Computes x that satisfies f(x) = 0,
-    given f and two initial guesses x1 and x2.
+    Computes x that satisfies f(x) = 0.
+
+    :param f: user-defined function
+    :param x1: first guess
+    :param x2: second guess, presumably close to x1
+    :param tol: stopping tolerance on f(x)=0
+
+    :returns: x for best solution
     """
     assert callable(f)
     f1 = f(x1)

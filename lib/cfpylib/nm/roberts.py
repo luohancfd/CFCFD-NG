@@ -4,18 +4,12 @@ roberts.py: Node distribution and coordinate stretching functions.
 
 These functions should behave the same as the C code functions.
 
-Author PA Jacobs
+.. Author PA Jacobs
 
-Version: 1.0, 22-Mar-2005
+.. Version: 1.0, 22-Mar-2005
 """
 
-try:
-    from numpy import arange, power
-except:
-    try:
-        from Numeric import arange, power
-    except:
-        print "Could import neither numpy nor Numeric."
+from numpy import arange, power
 
 def roberts(eta, alpha, beta):
     """

@@ -24,10 +24,38 @@ For a fairly recent and popular incarnation of this minimizer,
 see the amoeba function in the famous "Numerical Recipes" text.
 The programming interface is via the minimize() function; see below.
 
-Author: PA Jacobs
-        School of Engineering, The University of Queensland
+.. Author: PA Jacobs, School of Engineering, The University of Queensland
 
-Version: 07-Jan-04
+.. Version: 07-Jan-04
+
+Example transcript::
+
+    $ python ~/e3bin/cfpylib/nm/nelmin.py
+    Begin nelmin self-test...
+    ---------------------------------------------------
+    test 1: simple quadratic with zero at (1,1,...)
+    x= [1.0000000651818255, 1.000000021516589, 0.9999999925111813]
+    fx= 4.76771637998e-15
+    convergence-flag= 0
+    number-of-fn-evaluations= 300
+    number-of-restarts= 3
+    ---------------------------------------------------
+    test 2: Example 3.3 in Olsson and Nelson f(0.811,-0.585)=-67.1
+    x= [0.8112948625421268, -0.5846355980866065]
+    fx= -67.1077410608
+    convergence-flag= 1
+    number-of-fn-evaluations= 127
+    number-of-restarts= 0
+    ---------------------------------------------------
+    test 3: Example 3.5 in Olsson and Nelson, nonlinear least-squares
+    f(1.801, -1.842, -0.463, -1.205)=0.0009
+    x= [1.8010249070374442, -1.8417283432511073, -0.46337704853342615, -1.205053720578973]
+    fx= 0.000908952916125
+    convergence-flag= 1
+    number-of-fn-evaluations= 618
+    number-of-restarts= 0
+    ---------------------------------------------------
+    Done.
 """
 
 from copy import copy
@@ -57,7 +85,7 @@ def minimize(f, x, dx=None, tol=1.0e-6,
     :param Kextend:
     :param Kcontract: coefficients for locating the new vertex
 
-    :Returns: a tuple consisting of:
+    :Returns: a tuple consisting of::
 
         [0] a list of coordinates for the best x location, corresponding to min(f(x)),
         [1] the function value at that point,
