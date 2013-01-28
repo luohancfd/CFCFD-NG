@@ -183,6 +183,19 @@ reset_spectral_params( int isb )
 
 void
 RadiationSpectralModel::
+new_spectral_params( double _lambda_min, double _lambda_max, int _spectral_points, int _spectral_blocks )
+{
+    lambda_min = _lambda_min;
+    lambda_max = _lambda_max;
+    spectral_points = _spectral_points;
+    spectral_blocks = _spectral_blocks;
+    spectral_block = 0;
+    this->reset_spectral_params(spectral_block);
+}
+
+
+void
+RadiationSpectralModel::
 prep_rad_pop_files()
 {
     cout << "RadiationSpectralModel::prep_rad_pop_files()" << endl

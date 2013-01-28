@@ -65,6 +65,9 @@ public:
     /// \brief Constructor 
     CoeffSpectra( RadiationSpectralModel * rsm );
     
+    /// \brief Copy constructor
+    CoeffSpectra( CoeffSpectra * X );
+
     /// \brief Deconstructor
     ~CoeffSpectra();
     

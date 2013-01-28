@@ -165,6 +165,22 @@ CoeffSpectra::CoeffSpectra( RadiationSpectralModel * rsm )
     j_int.resize( nu.size() );
 }
 
+CoeffSpectra::CoeffSpectra( CoeffSpectra * X )
+{
+    // FIXME: use C++ vector copying functions here
+    nu.resize( X->nu.size() );
+    j_nu.resize( nu.size() );
+    kappa_nu.resize( nu.size() );
+    j_int.resize( nu.size() );
+
+    for ( size_t inu=0; inu<X->nu.size(); ++inu) {
+        nu[inu] = X->nu[inu];
+        j_nu[inu] = X->j_nu[inu];
+        kappa_nu[inu] = X->kappa_nu[inu];
+        j_int[inu] = X->j_int[inu];
+    }
+}
+
 CoeffSpectra::~CoeffSpectra()
 {
     j_nu.resize(0);
@@ -853,8 +869,13 @@ void SpectralIntensity::reverse_data_order()
 
 void SpectralIntensity::reset_intensity_vectors()
 {
-    I_nu.resize( nu.size(), 0.0 );
-    I_int.resize( nu.size(), 0.0 );
+    I_nu.resize( nu.size() );
+    I_int.resize( nu.size() );
+    // FIXME: find the c++ function that sets all values in a vector to zero
+    for ( size_t inu=0; inu<nu.size(); ++inu ) {
+        I_nu[inu] = 0.0;
+        I_int[inu] = 0.0;
+    }
     
     return;
 }

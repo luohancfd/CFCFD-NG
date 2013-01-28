@@ -60,6 +60,8 @@ public:
     
     int get_spectral_blocks() { return spectral_blocks; }
     
+    void new_spectral_params( double _lambda_min, double _lambda_max, int _spectral_points, int _spectral_blocks );
+
     double get_delta_nu() { return delta_nu; }
 
     void write_line_widths_to_file( Gas_data &Q )

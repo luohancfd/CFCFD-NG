@@ -41,9 +41,14 @@ class BarsFrame(wx.Frame):
         self.create_status_bar()
         self.create_main_panel()
         
-        self.U_box.SetValue(str(10000.))
+        # Set some default parameters
         self.p_box.SetValue(str(10.))
         self.T_box.SetValue(str(300.))
+        self.U_box.SetValue(str(10000.))
+        self.slab_width_box.SetValue(str(0.1))
+        self.lambda_min_box.SetValue(str(self.psm.get_lambda_min()))
+        self.lambda_max_box.SetValue(str(self.psm.get_lambda_max()))
+        self.spectral_points_box.SetValue(str(self.psm.get_spectral_points()))
         self.apparatus_function_type = "Voigt"
         self.gaussian_box.SetValue(str(5.))
         self.lorentzian_box.SetValue(str(5.))
@@ -69,46 +74,24 @@ class BarsFrame(wx.Frame):
         self.X = CoeffSpectra(self.psm)
         self.I = SpectralIntensity(self.psm)
         
-    def calculate_spectra(self, ds=0.1, hwhm=5):        
+    def calculate_spectra(self):
         s0 = 0.0; T0 = 0.0
-        s1 = ds; T1 = 0.0
+        s1 = self.slab_width; T1 = 0.0
         
         LOS = LOS_data(self.psm,1,T0,T1)
         divq = new_doublep()
-        LOS.set_rad_point(0,self.Q,divq,s0+0.5*ds,ds)
+        LOS.set_rad_point(0,self.Q,divq,s0+0.5*self.slab_width,self.slab_width)
+        print "j_total = %e W/m3-sr" % LOS.get_rpoint_pointer(0).X_.integrate_emission_spectra()
         self.I.compute_spectral_distribution( self.psm )
         self.I.reset_intensity_vectors()
         I_total = LOS.integrate_LOS(self.I)
-        print "I_total = %e W/m3-sr" % I_total
+        print "I_total = %e W/m2-sr" % I_total
         
-        self.X = LOS.get_rpoint_pointer(0).X_
+        self.X = LOS.get_rpoint_pointer(0).X_.clone()
         
     def prepare_spectra(self):
-        # lorentzian width
-        str = self.lorentzian_box.GetValue()
-        tks = str.split()
-        if len(tks)!=1:
-            print "Lorentzian HWHM: %s not understood." % str
-            return
-        lorentzian_hwhm = float(tks[0])
-        
-        # gaussian width
-        str = self.gaussian_box.GetValue()
-        tks = str.split()
-        if len(tks)!=1:
-            print "Gaussian HWHM: %s not understood." % str
-            return
-        gaussian_hwhm = float(tks[0])
-        
-        # FIXME: nu_sample
-        nu_sample = 10
-    
-        if lorentzian_hwhm + gaussian_hwhm > 0:
-            if self.apparatus_function_type=="Voigt":
-                A = Voigt( lorentzian_hwhm, gaussian_hwhm, nu_sample )
-            elif self.apparatus_function_type=="SQRT_Voigt":
-                A = SQRT_Voigt( lorentzian_hwhm, gaussian_hwhm, nu_sample )
-            self.I.apply_apparatus_function( A ) 
+        if self.A:
+            self.I.apply_apparatus_function( self.A ) 
         
         self.lambda_nm = []
         self.I_lambda = []
@@ -178,6 +161,11 @@ class BarsFrame(wx.Frame):
             size=(100,-1),
             style=wx.TE_PROCESS_ENTER)
             
+        self.slab_width_box = wx.TextCtrl(
+            self.panel, 
+            size=(100,-1),
+            style=wx.TE_PROCESS_ENTER)
+            
         self.problem_choice = wx.Choice(
             self.panel, 
             size=(100, -1),
@@ -190,10 +178,25 @@ class BarsFrame(wx.Frame):
             choices = [ "air", "Mars", "nitrogen", "argon" ])
         self.Bind(wx.EVT_CHOICE, self.select_gas_mixture, self.gas_choice)
         
+        self.lambda_min_box = wx.TextCtrl(
+            self.panel, 
+            size=(100,-1),
+            style=wx.TE_PROCESS_ENTER)
+            
+        self.lambda_max_box = wx.TextCtrl(
+            self.panel, 
+            size=(100,-1),
+            style=wx.TE_PROCESS_ENTER)
+            
+        self.spectral_points_box = wx.TextCtrl(
+            self.panel, 
+            size=(100,-1),
+            style=wx.TE_PROCESS_ENTER)
+        
         self.apparatus_choice = wx.Choice(
             self.panel, 
             size=(100, -1),
-            choices = [ "Voigt", "SQRT_Voigt" ])
+            choices = [ "Voigt", "SQRT_Voigt", "none" ])
         self.Bind(wx.EVT_CHOICE, self.select_apparatus_function, self.apparatus_choice)
         
         self.gaussian_box = wx.TextCtrl(
@@ -208,6 +211,9 @@ class BarsFrame(wx.Frame):
                        
         self.computebutton = wx.Button(self.panel, -1, "Compute")
         self.Bind(wx.EVT_BUTTON, self.on_compute_button, self.computebutton)
+        
+        self.writebutton = wx.Button(self.panel, -1, "Write to file")
+        self.Bind(wx.EVT_BUTTON, self.on_write_button, self.writebutton)
 
         self.cb_grid = wx.CheckBox(self.panel, -1, 
             "Show Grid",
@@ -241,22 +247,34 @@ class BarsFrame(wx.Frame):
         self.hbox2.AddSpacer(10)
         
         self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox3.Add(self.apparatus_choice, 0, border=3, flag=flags)
-        self.hbox3.Add(self.gaussian_box, 0, border=3, flag=flags)
-        self.hbox3.Add(self.lorentzian_box, 0, border=3, flag=flags)
+        self.hbox3.Add(self.slab_width_box, 0, border=3, flag=flags)
         self.hbox3.AddSpacer(10)
         
         self.hbox4 = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox4.Add(self.computebutton, 0, border=3, flag=flags)
-        self.hbox4.Add(self.cb_grid, 0, border=3, flag=flags)
+        self.hbox4.Add(self.lambda_min_box, 0, border=3, flag=flags)
+        self.hbox4.Add(self.lambda_max_box, 0, border=3, flag=flags)
+        self.hbox4.Add(self.spectral_points_box, 0, border=3, flag=flags)
         self.hbox4.AddSpacer(10)
+        
+        self.hbox5 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox5.Add(self.apparatus_choice, 0, border=3, flag=flags)
+        self.hbox5.Add(self.gaussian_box, 0, border=3, flag=flags)
+        self.hbox5.Add(self.lorentzian_box, 0, border=3, flag=flags)
+        self.hbox5.AddSpacer(10)
+        
+        self.hbox6 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox6.Add(self.computebutton, 0, border=3, flag=flags)
+        self.hbox6.Add(self.writebutton, 0, border=3, flag=flags)
+        self.hbox6.Add(self.cb_grid, 0, border=3, flag=flags)
+        self.hbox6.AddSpacer(10)
         
         self.vbox.Add(self.hbox, 0, flag = wx.ALIGN_LEFT | wx.TOP)
         self.vbox.Add(self.hbox2, 0, flag = wx.ALIGN_LEFT | wx.TOP)
         self.vbox.Add(self.hbox3, 0, flag = wx.ALIGN_LEFT | wx.TOP)
         self.vbox.Add(self.hbox4, 0, flag = wx.ALIGN_LEFT | wx.TOP)
-
-        
+        self.vbox.Add(self.hbox5, 0, flag = wx.ALIGN_LEFT | wx.TOP)
+        self.vbox.Add(self.hbox6, 0, flag = wx.ALIGN_LEFT | wx.TOP)
+                
         self.panel.SetSizer(self.vbox)
         self.vbox.Fit(self)
         
@@ -282,6 +300,9 @@ class BarsFrame(wx.Frame):
         elif event.GetString() == 'SQRT_Voigt':
             print 'Square-root Voigt apparatus function selected.'
             self.apparatus_function_type = "SQRT_Voigt"
+        elif event.GetString() == 'none':
+            print 'No apparatus function selected.'
+            self.apparatus_function_type = "none"
         else:
             print 'apparatus function type: %s not recognised.' % event.GetString()
             sys.exit()
@@ -312,21 +333,30 @@ class BarsFrame(wx.Frame):
         nsp = self.gm.get_number_of_species()
         ntm = self.gm.get_number_of_modes()
         
-        # velocity
-        str = self.U_box.GetValue()
-        tks = str.split()
-        if len(tks)!=1:
-            print "Velocity: %s not understood." % str
-            return
-        U_inf = float(tks[0])
+        # compute equilibrium post-shock gas state
+        self.cea.set_pT(self.p,self.T)
+        if self.problem_type=="shock":
+            self.cea.shock_process( self.U_inf )
         
+        # fill out the full gas-state with EOS call
+        for iT in range(ntm):
+            self.Q.T[iT] = self.cea.T
+        self.Q.rho = self.cea.rho
+        for isp,sp in enumerate(self.species):
+            self.Q.massf[isp] = get_species_composition(sp,self.cea.species)
+        self.gm.eval_thermo_state_rhoT(self.Q)
+        self.Q.print_values(False)
+        
+    def read_parameter_boxes(self):
+        """ Reads in the user-defined parameters from the GUI boxes
+        """     
         # pressure
         str = self.p_box.GetValue()
         tks = str.split()
         if len(tks)!=1:
            print "Pressure: %s not understood." % str
            return
-        p = float(tks[0])
+        self.p = float(tks[0])
         
         # temperature
         str = self.T_box.GetValue()
@@ -334,7 +364,16 @@ class BarsFrame(wx.Frame):
         if len(tks)!=1:
             print "Temperature: %s not understood." % str
             return
-        T = float(tks[0])
+        self.T = float(tks[0])
+        
+        # velocity
+        if self.problem_type=="shock":
+            str = self.U_box.GetValue()
+            tks = str.split()
+            if len(tks)!=1:
+                print "Velocity: %s not understood." % str
+                return
+            self.U_inf = float(tks[0])
         
         # composition
         for isp in range(len(self.cea.reactants)):
@@ -353,25 +392,77 @@ class BarsFrame(wx.Frame):
             print "Gas mixture: %s not understood." % self.gas_mixture
             return
         
-        # compute equilibrium post-shock gas state
-        self.cea.set_pT(p,T)
-        if self.problem_type=="shock":
-            self.cea.shock_process( U_inf )
+        # read and set the spectral parameters
+        # lambda_min
+        str = self.lambda_min_box.GetValue()
+        tks = str.split()
+        if len(tks)!=1:
+            print "Lambda min: %s not understood." % str
+            return
+        lambda_min = float(tks[0])
+        # lambda_max
+        str = self.lambda_max_box.GetValue()
+        tks = str.split()
+        if len(tks)!=1:
+            print "Lambda max: %s not understood." % str
+            return
+        lambda_max = float(tks[0])
+        # spectral_points
+        str = self.spectral_points_box.GetValue()
+        tks = str.split()
+        if len(tks)!=1:
+            print "spectral points: %s not understood." % str
+            return
+        spectral_points = int(tks[0])
+        # set the new parameters in the spectral model (spectral blocks is assumed to be one)
+        self.psm.new_spectral_params(lambda_min,lambda_max,spectral_points,1)
+        print "lambda_min = ", self.psm.get_lambda_min()
+        print "lambda_max = ", self.psm.get_lambda_max()
+        print "spectral_points = ", self.psm.get_spectral_points()
+    
+        # read the slab width
+        str = self.slab_width_box.GetValue()
+        tks = str.split()
+        if len(tks)!=1:
+            print "Slab width: %s not understood." % str
+            return
+        self.slab_width = float(tks[0])
+            
+        # lorentzian width
+        str = self.lorentzian_box.GetValue()
+        tks = str.split()
+        if len(tks)!=1:
+            print "Lorentzian HWHM: %s not understood." % str
+            return
+        lorentzian_hwhm = float(tks[0])
         
-        # fill out the full gas-state with EOS call
-        for iT in range(ntm):
-            self.Q.T[iT] = self.cea.T
-        self.Q.rho = self.cea.rho
-        for isp,sp in enumerate(self.species):
-            self.Q.massf[isp] = get_species_composition(sp,self.cea.species)
-        self.gm.eval_thermo_state_rhoT(self.Q)
-        self.Q.print_values(False)
+        # gaussian width
+        str = self.gaussian_box.GetValue()
+        tks = str.split()
+        if len(tks)!=1:
+            print "Gaussian HWHM: %s not understood." % str
+            return
+        gaussian_hwhm = float(tks[0])
+        
+        # FIXME: nu_sample
+        nu_sample = 10
+    
+        if lorentzian_hwhm + gaussian_hwhm > 0:
+            if self.apparatus_function_type=="Voigt":
+                self.A = Voigt( lorentzian_hwhm, gaussian_hwhm, nu_sample )
+            elif self.apparatus_function_type=="SQRT_Voigt":
+                self.A = SQRT_Voigt( lorentzian_hwhm, gaussian_hwhm, nu_sample )
+            elif self.apparatus_function_type=="none":
+                self.A = None
+        else:
+            self.A = None
 
     def draw_figure(self):
         """ Draws the figure with new data
         """
+        self.read_parameter_boxes()
         self.calculate_gas_state()
-        self.calculate_spectra(ds=0.1)
+        self.calculate_spectra()
         self.prepare_spectra()
         self.redraw_figure()
         
@@ -400,6 +491,12 @@ class BarsFrame(wx.Frame):
     
     def on_compute_button(self, event):
         self.draw_figure()
+        
+    def on_write_button(self, event):
+        print "Writing intensity spectra to file: intensity-spectra.txt"
+        self.I.write_to_file("intensity-spectra.txt")
+        print "Writing coefficient spectra to file: intensity-spectra.txt"
+        self.X.write_to_file("coefficient-spectra.txt")
     
     def on_pick(self, event):
         # The event received here is of the type
