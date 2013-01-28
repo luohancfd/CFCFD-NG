@@ -50,6 +50,8 @@ public:
     		    	       std::vector<double> &Y1, std::string Y1_label, std::string Y1_int_label,
     		    	       std::vector<double> &Y2 = zero_vec, std::string Y2_label = "" );
     
+    void compute_spectral_distribution( RadiationSpectralModel * rsm );
+
 public:
     std::vector<double> nu;
     int nwidths;
@@ -165,7 +167,7 @@ public:
 
     void reverse_data_order();
     
-    void reset_intensity_vector();
+    void reset_intensity_vectors();
     
     double integrate_intensity_spectra( double lambda_min=-1.0, double lambda_max=-1.0 );
     

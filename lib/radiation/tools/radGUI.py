@@ -23,28 +23,6 @@ from matplotlib.backends.backend_wxagg import \
     FigureCanvasWxAgg as FigCanvas, \
     NavigationToolbar2WxAgg as NavigationToolbar
 from matplotlib import rc
-    
-def make_cea2_dictionary( species_list ):
-    nsp = len(species_list)
-    reactants = dict()
-    for sp in species_list:
-        # replace names containing '_plus' with '+' 
-        if ( sp.find("_plus")>=0 ): sp = sp[0:sp.find("_plus")] + "+"
-        # replace names containing '_minus' with '-' 
-        if ( sp.find("_minus")>=0 ): sp = sp[0:sp.find("_minus")] + "-"
-        reactants.setdefault(sp,0.0)
-    return reactants
-    
-def get_cea2_composition( sp, species_data ):
-    # replace names containing '_plus' with '+' 
-    if ( sp.find("_plus")>=0 ): sp = sp[0:sp.find("_plus")] + "+"
-    # replace names containing '_minus' with '-' 
-    if ( sp.find("_minus")>=0 ): sp = sp[0:sp.find("_minus")] + "-"
-    if sp in species_data.keys():
-        return species_data[sp]
-    else:
-        return 0.0
-
 
 class BarsFrame(wx.Frame):
     """ The main frame of the application
@@ -66,6 +44,11 @@ class BarsFrame(wx.Frame):
         self.U_box.SetValue(str(10000.))
         self.p_box.SetValue(str(10.))
         self.T_box.SetValue(str(300.))
+        self.apparatus_function_type = "Voigt"
+        self.gaussian_box.SetValue(str(5.))
+        self.lorentzian_box.SetValue(str(5.))
+        self.problem_type = "shock"
+        self.gas_mixture = "air"
         self.draw_figure()
         
     def load_models(self):
@@ -78,7 +61,7 @@ class BarsFrame(wx.Frame):
         self.species = []
         for isp in range(nsp):
             self.species.append( self.gm.species_name(isp) )
-        reactants = make_cea2_dictionary( self.species )
+        reactants = make_reactants_dictionary( self.species )
         self.cea = Gas( reactants, with_ions=True, trace=1.0e-15 )
         
         # also initialise some other useful objects
@@ -93,21 +76,44 @@ class BarsFrame(wx.Frame):
         LOS = LOS_data(self.psm,1,T0,T1)
         divq = new_doublep()
         LOS.set_rad_point(0,self.Q,divq,s0+0.5*ds,ds)
-        for inu in range(self.psm.get_spectral_points()):
-            self.I.I_nu[inu] = 0.0
+        self.I.compute_spectral_distribution( self.psm )
+        self.I.reset_intensity_vectors()
         I_total = LOS.integrate_LOS(self.I)
         print "I_total = %e W/m3-sr" % I_total
         
         self.X = LOS.get_rpoint_pointer(0).X_
         
-    def prepare_spectra(self, hwhm):
-        if hwhm>0.0:
-            self.I.apply_apparatus_function( hwhm )
+    def prepare_spectra(self):
+        # lorentzian width
+        str = self.lorentzian_box.GetValue()
+        tks = str.split()
+        if len(tks)!=1:
+            print "Lorentzian HWHM: %s not understood." % str
+            return
+        lorentzian_hwhm = float(tks[0])
+        
+        # gaussian width
+        str = self.gaussian_box.GetValue()
+        tks = str.split()
+        if len(tks)!=1:
+            print "Gaussian HWHM: %s not understood." % str
+            return
+        gaussian_hwhm = float(tks[0])
+        
+        # FIXME: nu_sample
+        nu_sample = 10
+    
+        if lorentzian_hwhm + gaussian_hwhm > 0:
+            if self.apparatus_function_type=="Voigt":
+                A = Voigt( lorentzian_hwhm, gaussian_hwhm, nu_sample )
+            elif self.apparatus_function_type=="SQRT_Voigt":
+                A = SQRT_Voigt( lorentzian_hwhm, gaussian_hwhm, nu_sample )
+            self.I.apply_apparatus_function( A ) 
         
         self.lambda_nm = []
         self.I_lambda = []
         
-        for inu in range(self.psm.get_spectral_points()):
+        for inu in range(self.I.nu.size()):
             nu = self.I.nu[inu]
             self.lambda_nm.append( nu2lambda(nu) )
             self.I_lambda.append( self.I.I_nu[inu] * nu**2 / RC_c_SI *1.0e-10 )
@@ -159,19 +165,47 @@ class BarsFrame(wx.Frame):
         
         self.U_box = wx.TextCtrl(
             self.panel, 
-            size=(200,-1),
+            size=(100,-1),
             style=wx.TE_PROCESS_ENTER)
         
         self.p_box = wx.TextCtrl(
             self.panel, 
-            size=(200,-1),
+            size=(100,-1),
             style=wx.TE_PROCESS_ENTER)
         
         self.T_box = wx.TextCtrl(
             self.panel, 
-            size=(200,-1),
+            size=(100,-1),
             style=wx.TE_PROCESS_ENTER)
+            
+        self.problem_choice = wx.Choice(
+            self.panel, 
+            size=(100, -1),
+            choices = [ "shock", "pT" ])
+        self.Bind(wx.EVT_CHOICE, self.select_problem_type, self.problem_choice)
         
+        self.gas_choice = wx.Choice(
+            self.panel, 
+            size=(100, -1),
+            choices = [ "air", "Mars", "nitrogen", "argon" ])
+        self.Bind(wx.EVT_CHOICE, self.select_gas_mixture, self.gas_choice)
+        
+        self.apparatus_choice = wx.Choice(
+            self.panel, 
+            size=(100, -1),
+            choices = [ "Voigt", "SQRT_Voigt" ])
+        self.Bind(wx.EVT_CHOICE, self.select_apparatus_function, self.apparatus_choice)
+        
+        self.gaussian_box = wx.TextCtrl(
+            self.panel, 
+            size=(100,-1),
+            style=wx.TE_PROCESS_ENTER)
+            
+        self.lorentzian_box = wx.TextCtrl(
+            self.panel, 
+            size=(100,-1),
+            style=wx.TE_PROCESS_ENTER)
+                       
         self.computebutton = wx.Button(self.panel, -1, "Compute")
         self.Bind(wx.EVT_BUTTON, self.on_compute_button, self.computebutton)
 
@@ -192,21 +226,85 @@ class BarsFrame(wx.Frame):
         self.vbox.Add(self.canvas, 1, wx.LEFT | wx.TOP | wx.GROW)
         self.vbox.Add(self.toolbar, 0, wx.EXPAND)
         self.vbox.AddSpacer(10)
-        
+
+        flags = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL        
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
-        flags = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL
-        self.hbox.Add(self.p_box, 0, border=3, flag=flags)
-        self.hbox.Add(self.T_box, 0, border=3, flag=flags)
-        self.hbox.Add(self.U_box, 0, border=3, flag=flags)
-        self.hbox.Add(self.computebutton, 0, border=3, flag=flags)
-        self.hbox.Add(self.cb_grid, 0, border=3, flag=flags)
-        self.hbox.AddSpacer(30)
+        # self.ptype = wx.StaticText(self, -1, "Problem type: ")
+        # self.hbox.Add(self.ptype, 0, border=3, flag=flags)
+        self.hbox.Add(self.problem_choice, 0, border=3, flag=flags)
+        self.hbox.Add(self.gas_choice, 0, border=3, flag=flags)
+        
+        self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox2.Add(self.p_box, 0, border=3, flag=flags)
+        self.hbox2.Add(self.T_box, 0, border=3, flag=flags)
+        self.hbox2.Add(self.U_box, 0, border=3, flag=flags)
+        self.hbox2.AddSpacer(10)
+        
+        self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox3.Add(self.apparatus_choice, 0, border=3, flag=flags)
+        self.hbox3.Add(self.gaussian_box, 0, border=3, flag=flags)
+        self.hbox3.Add(self.lorentzian_box, 0, border=3, flag=flags)
+        self.hbox3.AddSpacer(10)
+        
+        self.hbox4 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox4.Add(self.computebutton, 0, border=3, flag=flags)
+        self.hbox4.Add(self.cb_grid, 0, border=3, flag=flags)
+        self.hbox4.AddSpacer(10)
         
         self.vbox.Add(self.hbox, 0, flag = wx.ALIGN_LEFT | wx.TOP)
+        self.vbox.Add(self.hbox2, 0, flag = wx.ALIGN_LEFT | wx.TOP)
+        self.vbox.Add(self.hbox3, 0, flag = wx.ALIGN_LEFT | wx.TOP)
+        self.vbox.Add(self.hbox4, 0, flag = wx.ALIGN_LEFT | wx.TOP)
+
         
         self.panel.SetSizer(self.vbox)
         self.vbox.Fit(self)
-    
+        
+    def select_problem_type(self,event):
+        print 'select_problem_type: %s\n' % event.GetString()
+        
+        if event.GetString() == 'pT':
+            print 'pressure-temperature problem selected.'
+            self.problem = "pT"
+        elif event.GetString() == 'shock':
+            print 'shock problem selected.'
+            self.problem = "shock"
+        else:
+            print 'problem type: %s not recognised.' % event.GetString()
+            sys.exit()
+            
+    def select_apparatus_function(self,event):
+        print 'select_apparatus_function: %s\n' % event.GetString()
+        
+        if event.GetString() == 'Voigt':
+            print 'Voigt apparatus function selected.'
+            self.apparatus_function_type = "Voigt"
+        elif event.GetString() == 'SQRT_Voigt':
+            print 'Square-root Voigt apparatus function selected.'
+            self.apparatus_function_type = "SQRT_Voigt"
+        else:
+            print 'apparatus function type: %s not recognised.' % event.GetString()
+            sys.exit()
+            
+    def select_gas_mixture(self,event):
+        print 'select_problem_type: %s' % event.GetString()
+        
+        if event.GetString() == 'air':
+            print 'air selected. mass-fractions: 23.3% O2, 76.7% N2.'
+            self.gas_mixture = "air"
+        elif event.GetString() == 'Mars':
+            print 'Mars gas selected. mass-fractions: 97% CO2, 3% N2.'
+            self.gas_mixture = "Mars"
+        elif event.GetString() == 'nitrogen':
+            print 'nitrogen gas selected. mass-fractions: 100% N2.'
+            self.gas_mixture = "nitrogen"
+        elif event.GetString() == 'argon':
+            print 'argon gas selected. mass-fractions: 100% Ar.'
+            self.gas_mixture = "argon"
+        else:
+            print 'gas mixture: %s not recognised.' % event.GetString()
+            sys.exit()
+
     def create_status_bar(self):
         self.statusbar = self.CreateStatusBar()
         
@@ -218,7 +316,7 @@ class BarsFrame(wx.Frame):
         str = self.U_box.GetValue()
         tks = str.split()
         if len(tks)!=1:
-            print "Temperature: %s not understood." % str
+            print "Velocity: %s not understood." % str
             return
         U_inf = float(tks[0])
         
@@ -228,30 +326,44 @@ class BarsFrame(wx.Frame):
         if len(tks)!=1:
            print "Pressure: %s not understood." % str
            return
-        p_inf = float(tks[0])
+        p = float(tks[0])
         
         # temperature
         str = self.T_box.GetValue()
         tks = str.split()
         if len(tks)!=1:
-            print "Pressure: %s not understood." % str
+            print "Temperature: %s not understood." % str
             return
-        T_inf = float(tks[0])
+        T = float(tks[0])
         
         # composition
-        self.cea.reactants["N2"] = 0.767
-        self.cea.reactants["O2"] = 0.233
+        for isp in range(len(self.cea.reactants)):
+            self.cea.reactants[isp] = 0.0
+        if self.gas_mixture=="air":
+            self.cea.reactants["N2"] = 0.767
+            self.cea.reactants["O2"] = 0.233
+        elif self.gas_mixture=="Mars":
+            self.cea.reactants["CO2"] = 0.97
+            self.cea.reactants["O2"] = 0.03
+        elif self.gas_mixture=="nitrogen":
+            self.cea.reactants["N2"] = 1.0
+        elif self.gas_mixture=="argon":
+            self.cea.reactants["Ar"] = 1.0
+        else:
+            print "Gas mixture: %s not understood." % self.gas_mixture
+            return
         
         # compute equilibrium post-shock gas state
-        self.cea.set_pT(p_inf,T_inf)
-        self.cea.shock_process( U_inf )
+        self.cea.set_pT(p,T)
+        if self.problem_type=="shock":
+            self.cea.shock_process( U_inf )
         
         # fill out the full gas-state with EOS call
         for iT in range(ntm):
             self.Q.T[iT] = self.cea.T
         self.Q.rho = self.cea.rho
         for isp,sp in enumerate(self.species):
-            self.Q.massf[isp] = get_cea2_composition(sp,self.cea.species)
+            self.Q.massf[isp] = get_species_composition(sp,self.cea.species)
         self.gm.eval_thermo_state_rhoT(self.Q)
         self.Q.print_values(False)
 
@@ -260,7 +372,7 @@ class BarsFrame(wx.Frame):
         """
         self.calculate_gas_state()
         self.calculate_spectra(ds=0.1)
-        self.prepare_spectra(hwhm=5)
+        self.prepare_spectra()
         self.redraw_figure()
         
     def redraw_figure(self):

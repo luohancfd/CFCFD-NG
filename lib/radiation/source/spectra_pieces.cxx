@@ -32,18 +32,7 @@ SpectralContainer::SpectralContainer()
 
 SpectralContainer::SpectralContainer( RadiationSpectralModel * rsm )
 {
-    // Assuming uniform spectral distribution
-    int nnus = rsm->get_spectral_points();
-    nu.resize( nnus );
-    
-    // Uniformally distributed spectral points with constant frequency spacing
-    double nu_val = lambda2nu( rsm->get_lambda_max() );
-    double dnu = ( lambda2nu( rsm->get_lambda_min() ) - lambda2nu( rsm->get_lambda_max() ) ) 
-		/ double ( ( rsm->get_spectral_points() - 1 ) );
-    for( int inu=0; inu<rsm->get_spectral_points(); ++inu ){
-	nu[inu] = nu_val;
-	nu_val+=dnu;
-    }
+    this->compute_spectral_distribution( rsm );
 
     // Set nwidths to the default value
     nwidths = NWIDTHS;
@@ -144,6 +133,24 @@ write_data_to_file( string fname, int spectral_units,
     specfile.close();
     
     return Y1_int;
+}
+
+void SpectralContainer::compute_spectral_distribution( RadiationSpectralModel * rsm )
+{
+    // Assuming uniform spectral distribution
+    int nnus = rsm->get_spectral_points();
+    nu.resize( nnus );
+
+    // Uniformally distributed spectral points with constant frequency spacing
+    double nu_val = lambda2nu( rsm->get_lambda_max() );
+    double dnu = ( lambda2nu( rsm->get_lambda_min() ) - lambda2nu( rsm->get_lambda_max() ) )
+		/ double ( ( rsm->get_spectral_points() - 1 ) );
+    for( int inu=0; inu<rsm->get_spectral_points(); ++inu ){
+	nu[inu] = nu_val;
+	nu_val+=dnu;
+    }
+
+    return;
 }
 
 /* ------------ CoeffSpectra class ------------ */
@@ -844,13 +851,10 @@ void SpectralIntensity::reverse_data_order()
     return;
 }
 
-void SpectralIntensity::reset_intensity_vector()
+void SpectralIntensity::reset_intensity_vectors()
 {
-    for ( size_t inu=0; inu<I_nu.size(); ++inu ) 
-    	I_nu[inu] = 0.0;
-    
-    for ( size_t inu=0; inu<I_int.size(); ++inu )
-    	I_int[inu] = 0.0;
+    I_nu.resize( nu.size(), 0.0 );
+    I_int.resize( nu.size(), 0.0 );
     
     return;
 }
