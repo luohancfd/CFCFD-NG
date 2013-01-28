@@ -40,7 +40,7 @@ Cl2.eps0 = {
 Cl2.r_eq = {
    value = 1.987e-10,
    units = 'm',
-   description = 'equilibrium intermolecular distance'
+   description = 'equilibrium intermolecular distance',
    reference = 'Svehla (1962), NASA Technical Report R-132'
 }
 Cl2.f_m = {
@@ -76,7 +76,7 @@ Cl2.CEA_coeffs = {
      T_high = 1000.0,
      coeffs = { 3.462815170e+04, -5.547126520e+02,  6.207589370e+00,
 		-2.989632078e-03, 3.173027290e-06, -1.793629562e-09,
-		4.260043590e-13,  1.534069331e+03, -9.438331107D+00 }
+		4.260043590e-13,  1.534069331e+03, -9.438331107e+00 }
    },
    { T_low = 1000.0,
      T_high = 6000.0,
@@ -90,7 +90,7 @@ Cl2.viscosity = {
    parameters = {
       {T_low = 300.0, T_high = 1000.0, A = 0.53516134e+00, B = -0.23624735e+03, C= 0.13738454e+05, D = 0.24970463e+01 },
       {T_low = 1000.0, T_high = 5000.0, A = 0.63348430e+00, B = -0.38786240e+02, C = -0.35830615e+05, D = 0.16699633e+01}
-   }
+   },
    reference = 'from CEA2::trans.inp which cites Svehla (1994)'
 }
 Cl2.thermal_conductivity = {
@@ -98,7 +98,7 @@ Cl2.thermal_conductivity = {
    parameters = {
       {T_low = 300.0, T_high = 1000.0, A = 0.34156262e+00, B = -0.46059166e+03, C = 0.34712872e+05, D = 0.37412367e+01},
       {T_low = 1000.0, T_high = 5000.0, A = 0.87392526e+00, B = 0.19876120e+03, C = -0.28784264e+05, D = -0.53204988e+00 }
-   }
+   },
    reference = 'from CEA2::trans.inp which cites Svehla (1994)'
 }
 Cl2.theta_v = {
