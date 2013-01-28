@@ -513,6 +513,8 @@ Diatomic_species::Diatomic_species( string name, string type, int isp, double mi
 	}
     }
     
+    
+
     lua_getfield(L, -1, "electronic_levels");
     if ( !lua_istable(L, -1) ) {
 	ostringstream ost;
@@ -584,7 +586,21 @@ Diatomic_species::Diatomic_species( string name, string type, int isp, double mi
     
     // Vibrational oscillator type
     oscillator_type_ = get_string( L, -1, "oscillator_type" );
-    
+
+    // We already set characteristic vibrational temperature based 
+    // on the energy levels, BUT we'll pick up an explicit value for
+    // theta_v if given.
+
+    lua_getfield(L, -1, "theta_v");
+    if ( !lua_istable(L, -1) ) {
+	lua_pop(L, 1);
+    }
+    else {
+	lua_pop(L, 1);
+	theta_v = get_positive_value(L, -1, "theta_v");
+	theta_v_ = theta_v;
+    }
+
     // Create energy modes
     // [0] Translation
     modes_.push_back( new Fully_excited_translation( isp_, R_, min_massf_ ) );
