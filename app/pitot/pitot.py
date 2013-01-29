@@ -130,7 +130,8 @@ available to me as part of cfpylib inside the cfcfd code collection.
         Did a general tidy up of my print statements and comments.
         Cut out the section at the end of the code where variables can be changed, the user can do this externally.
     22-Jan-2013: added perfect gas solver to the code so it can now do equilibrium and perfect gas calculations
-    29-Jan-2013: added non-reflected shock tunnel mode to the code
+    29-Jan-2013: added non-reflected shock tunnel mode to the code.
+    29-Jan-2013: added a 'cea-printout' mode that does some of the default cfcfd condition printouts
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -247,10 +248,11 @@ def main():
     
     op = optparse.OptionParser(version=VERSION_STRING)
     op.add_option('--mode', dest='mode', default='printout',
-                 choices=['printout','return'],
+                 choices=['printout','return','cea-printout'],
                  help=("software mode; "
                         "printout = normal run, prints out a summary to the screen, a txt file and a csv file at the end of the program, then quits; "
                         "return = simpler run, useful if pitot is to be used inside a bigger program, returns a set of values at the end of the run, then quits; "
+                        "cea-printout = same as printout but does some cfcfd gas object printouts at the end; "
                         "defaults to printout "))
     op.add_option('--solver', dest='solver', default='eq',
                  choices=['eq','pg'],
@@ -325,8 +327,15 @@ def main():
                   help=("filename the result will be saved to "
                           "defaults to x2run"
                           "no need to specify .txt or .csv units as this is added by the code"))
-    op.add_option('--expansion',dest='expansion',type='float',default='1.0',
-                  help=("Use this to expand the test gas further into the acceleration tube "
+    op.add_option('--expand_to', dest='expand_to', default = 'flow-behind-shock',
+                  choices=['flow-behind-shock','shock-speed'],
+                  help = 'This is used to choose whether to expand the test flow to the ideal gas\
+                          velocity behind the shock in the acc tube, or the shock speed itself.'
+                          'flow-behind-shock = expand test gas to ideal flow behind shock; '
+                          'shock-speed = expand the test gas to the shock speed; '
+                          'default is to expand to the flow velocity.')
+    op.add_option('--expansion_factor',dest='expansion_factor',type='float',default='1.0',
+                  help=("This controls the severity of the unsteady expansion in the acceleration tube "
                         "Basically just multiplies V7 by this percentage before the final expansion is done "
                         "Defaults to 1.0 "))
     op.add_option('--shock_switch',dest='shock_switch', default=None,
@@ -360,8 +369,10 @@ def main():
     area_ratio = opt.ar
     conehead = opt.conehead
     shock_switch = opt.shock_switch
-    expansion = opt.expansion
     tunnel_mode = opt.tunnel_mode
+    
+    expand_to = opt.expand_to
+    expansion_factor = opt.expansion_factor
 
     bad_input = False
 
@@ -408,6 +419,7 @@ def main():
             return -2
             
         if PRINT_STATUS: print "Let's get started, shall we:"
+        if PRINT_STATUS: print "Facility is {0}. Driver gas is {1}.".format(facility, driver_gas)
         if PRINT_STATUS: 
             if secondary:
                 print 'Selected Vsd = {0} m/s'.format(Vsd)
@@ -453,6 +465,7 @@ def main():
             return -2
 
         if PRINT_STATUS: print "Let's get started, shall we:"
+        if PRINT_STATUS: print "Facility is {0}. Driver gas is {1}.".format(facility, driver_gas)
         if PRINT_STATUS: 
             if secondary:
                 print 'Selected secondary driver fill pressure (psd1) = {0} Pa.'.format(psd1)
@@ -513,6 +526,7 @@ def main():
             return -2
             
         if PRINT_STATUS: print "Let's get started, shall we:"
+        if PRINT_STATUS: print "Facility is {0}. Driver gas is {1}.".format(facility, driver_gas)
         if PRINT_STATUS: 
             if secondary:
                 print 'Selected Vsd = {0} m/s'.format(Vsd)
@@ -930,7 +944,9 @@ def main():
         def error_in_velocity_s2_expansion_pressure_iterator(p5, state2=states['s2'], 
                                            V2g=V['s2'], state5=states['s5'],
                                             state6=states['s6'],Vs2=Vs2,
-                                            ideal_gas_guess=ideal_gas_guess_air):
+                                            ideal_gas_guess=ideal_gas_guess_air,
+                                            expand_to = expand_to, 
+                                            expansion_factor = expansion_factor):
             """Compute the velocity mismatch for a given pressure ratio across the 
             unsteady expansion from state 2 to state 7."""
             
@@ -951,7 +967,9 @@ def main():
         def error_in_pressure_s2_expansion_shock_speed_iterator(Vs2, state2=states['s2'], 
                                            V2g=V['s2'], state5=states['s5'],
                                             state6=states['s6'],
-                                            ideal_gas_guess=ideal_gas_guess_air):
+                                            ideal_gas_guess=ideal_gas_guess_air,
+                                            expand_to = expand_to, 
+                                            expansion_factor = expansion_factor):
             """Compute the velocity mismatch for a given shock speed in front of the 
             unsteady expansion from state 2 to state 7."""
             
@@ -992,7 +1010,12 @@ def main():
             if PRINT_STATUS: print "Once Vs2 is known, find conditions at state 5 and 6."            
             
         (V6, V['s6']) = normal_shock(states['s5'], Vs2, states['s6'],ideal_gas_guess)
-        V['s7'], states['s7'] = finite_wave_dv('cplus', V['s2'], states['s2'], (V['s6']*expansion))
+        #do any modification to the velocity behind the shock here that were requested
+        if expand_to == 'flow-behind-shock':
+            V['s6'] = V['s6']*expansion_factor
+        elif expand_to == 'shock-speed':
+            V['s6'] = Vs2*expansion_factor
+        V['s7'], states['s7'] = finite_wave_dv('cplus', V['s2'], states['s2'], V['s6'])
         
         #get mach numbers for the txt_output
         Ms2 = Vs2/states['s5'].son
@@ -1043,8 +1066,8 @@ def main():
         delta_s, V['s10c'], states['s10c'] = theta_cone(states[test_section_state], V[test_section_state], shock_angle)
         M['s10c'] = V['s10c']/states['s10c'].son
         if PRINT_STATUS: print "Surface angle should be the same.....: 15deg = ", math.degrees(delta_s), "deg"
-        if PRINT_STATUS: print "\nConehead surface conditions:"
-        if PRINT_STATUS: states['s10c'].write_state(sys.stdout)
+        #if PRINT_STATUS: print "\nConehead surface conditions:"
+        #if PRINT_STATUS: states['s10c'].write_state(sys.stdout)
         # Need to check whether the pressure are the same
         if PRINT_STATUS: print "Computed conehead pressure is {0} Pa".format(states['s10c'].p)
         
@@ -1125,7 +1148,7 @@ def main():
         
         t_test_basic = t_final_usx - t_cs_at
     
-    if mode == 'printout':
+    if mode == 'printout' or 'cea-printout':
      
     #--------------------------- txt_output --------------------------------
     
@@ -1287,9 +1310,10 @@ def main():
                                        
         #some other useful calculations at the end
               
-        total = total_condition(states[test_section_state], V[test_section_state])
+        states['test_section_total'] = total_condition(states[test_section_state], V[test_section_state])
+        states['test_section_pitot'] = total_condition(states[test_section_state], V[test_section_state])
         
-        stagnation_enthalpy = total.h #J/kg
+        stagnation_enthalpy = states['test_section_total'].h #J/kg
         if nozzle:        
             stag_enth = 'The total enthalpy (Ht) leaving the nozzle is {0:<.5g} MJ/kg.'.format(stagnation_enthalpy/10**6)
         else:
@@ -1324,7 +1348,118 @@ def main():
             print species2
             txt_output.write(species2 + '\n')
         
-        #added taylor maccoll conehead calcs if people want to use them, appropriated from Fabs (thankyou)
+        if mode == 'cea-printout':
+            cea_printout_intro = "Printing gas state printouts for certain conditions..."
+            print cea_printout_intro
+            txt_output.write(cea_printout_intro + '\n')
+            
+            def eq_gas_condition_printer(state, title):
+                """This is a function designed to mimic the cea2 gas printer 
+                    from the gas object. I needed to be able to output the strings to 
+                    a text document as well as to the screen, so I just wrote my own
+                    function based on the other one.
+                    
+                    Chris James (c.james4@uq.edu.au) - 29-Jan-2013."""
+                    
+                #make the strings we need
+                    
+                line_one = '    p: {0:g} Pa, T: {1:g} K, rho: {2:g} kg/m**3, e: {3:g} J/kg, h: {4:g} J/kg, a: {5:g} m/s, s:{6:g} kJ/(kg.K)'\
+                .format(state.p, state.T, state.rho, state.u, state.h, state.son, state.s)
+                line_two = '    R: {0:g} J/(kg.K), gam: {1:g}, Cp: {2:g} J/(kg.K), mu: {3:g} Pa.s, k: {4:g} W/(m.K)'\
+                .format(state.R, state.gam, state.cp, state.mu, state.k)
+                line_three = '    species {0:s}: {1:s}'.format(state.outputUnits, str(state.species))
+                
+                #then start printing to screen /storing data
+                
+                intro_line = title
+                print intro_line
+                txt_output.write(intro_line + '\n')
+                print line_one
+                txt_output.write(line_one + '\n')
+                print line_two
+                txt_output.write(line_two + '\n')
+                print line_three
+                txt_output.write(line_three + '\n')
+                
+                return
+                
+            def pg_gas_condition_printer(state, title):
+                """This is a function designed to mimic the ideal gas printer 
+                    from the gas object. I needed to be able to output the strings to 
+                    a text document as well as to the screen, so I just wrote my own
+                    function based on the other one.
+                    
+                    Chris James (c.james4@uq.edu.au) - 29-Jan-2013."""
+                    
+                #make the strings we need
+                    
+                line_one = '    p: {0:g} Pa, T: {1:g} K, rho: {2:g} kg/m**3, e: {3:g} J/kg, h: {4:g} J/kg, a: {5:g} m/s, s:{6:g} kJ/(kg.K)'\
+                .format(state.p, state.T, state.rho, state.u, state.h, state.son, state.s)
+                line_two = '    R: {0:g} J/(kg.K), gam: {1:g}, Cp: {2:g} J/(kg.K), mu: {3:g} Pa.s, k: {4:g} W/(m.K)'\
+                .format(state.R, state.gam, state.C_p, state.mu, state.k)
+                line_three = '    name: {0:s}'.format(state.name)
+                
+                #then start printing to screen /storing data
+                
+                intro_line = title
+                print intro_line
+                txt_output.write(intro_line + '\n')
+                print line_one
+                txt_output.write(line_one + '\n')
+                print line_two
+                txt_output.write(line_two + '\n')
+                print line_three
+                txt_output.write(line_three + '\n')
+                
+                return
+                
+            if solver == 'eq': 
+                eq_gas_condition_printer(states[test_section_state], 'Test section state ({0}):'\
+                .format(test_section_state))
+            elif solver == 'pg':
+                pg_gas_condition_printer(states[test_section_state], 'Test section state ({0}):'\
+                .format(test_section_state))
+            
+            if solver == 'eq':
+                eq_gas_condition_printer(states['test_section_total'],\
+                'Test section state ({0}) total condition:'.format(test_section_state))
+            elif solver == 'pg':
+                pg_gas_condition_printer(states['test_section_total'],\
+                'Test section state ({0}) total condition:'.format(test_section_state))
+            
+            if solver == 'eq':
+                eq_gas_condition_printer(states['test_section_pitot'], \
+                'Test section state ({0}) total condition:'.format(test_section_state))
+            elif solver == 'pg':
+                pg_gas_condition_printer(states['test_section_pitot'], \
+                'Test section state ({0}) pitot condition:'.format(test_section_state))
+          
+          
+            if conehead:
+                if solver == 'eq':
+                    eq_gas_condition_printer(states['s10c'], \
+                    "Conditions behind 15 degree conehead ('s10c'):")
+                elif solver == 'pg':
+                    pg_gas_condition_printer(states['s10c'], \
+                    "Conditions behind 15 degree conehead ('s10c'):")
+                               
+            if shock_over_model:
+                if solver == 'eq':
+                    eq_gas_condition_printer(states['s10f'], \
+                    "Conditions behind frozen normal shock over test model ('s10f')")
+                elif solver == 'pg':
+                    pg_gas_condition_printer(states['s10f'], \
+                    "Conditions behind frozen normal shock over test model ('s10f')")
+
+                if solver == 'eq':
+                    eq_gas_condition_printer(states['s10e'], \
+                    "Conditions behind equilibrium normal shock over test model ('s10e')")
+                elif solver == 'pg':
+                    pg_gas_condition_printer(states['s10e'], \
+                    "Conditions behind equilibrium normal shock over test model ('s10e')")
+
+            
+            
                     
         txt_output.close()
         
@@ -1520,7 +1655,7 @@ if __name__ == '__main__':
             print " "
             sys.argv = ['pitot.py', '--driver_gas','He:0.80,Ar:0.20','--test_gas','titan', 
                         '--p1','3200.0','--p5','10.0', '--ar','3.0', '--conehead','yes'
-                        '--filename',demo]
+                        '--filename',demo, '--mode','cea-printout']
             main() 
             
         elif demo == 'hadas85-full-theory-pg':
@@ -1528,7 +1663,7 @@ if __name__ == '__main__':
             print " "
             sys.argv = ['pitot.py', '--driver_gas','He:0.80,Ar:0.20','--test_gas','titan', 
                         '--p1','3200.0','--p5','10.0', '--ar','3.0', '--conehead','yes'
-                        '--filename',demo, '--solver','pg']
+                        '--filename',demo, '--solver','pg',  '--mode','cea-printout']
             main()  
             
         elif demo == 'hadas85-experiment-eq':
