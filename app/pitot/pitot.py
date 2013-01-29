@@ -316,13 +316,13 @@ def main():
     op.add_option('--area_ratio', dest='ar', type='float', default=None,
                   help=("nozzle area ratio"
                         "default value is 2.5"))
-    op.add_option('--conehead', dest='conehead', default=None,
-                  help=("switch to calculate conehead pressure over a 15 degree conehead "
-                        "default is don't do it, type yes or anything else to make it happen "))    
-    op.add_option('--shock_over_model', dest='shock_over_model', default=None,
+    op.add_option('--conehead', dest='conehead', action="store_true", default=False,
+                  help=("switch to calculate conehead pressure over a 15 degree conehead; "
+                        "Use this argument to turn it on."))    
+    op.add_option('--shock_over_model', dest='shock_over_model', action="store_true", default=False,
                   help=("switch to calculate conditions along the stagnation streamline " 
                         "behind the normal shock over the test model "
-                        "default is don't do it, type yes or anything else to make it happen "))   
+                        "Use this argument to turn it on."))   
     op.add_option('--filename',dest='filename',type='string',default='x2run',
                   help=("filename the result will be saved to "
                           "defaults to x2run"
@@ -338,7 +338,7 @@ def main():
                   help=("This controls the severity of the unsteady expansion in the acceleration tube "
                         "Basically just multiplies V7 by this percentage before the final expansion is done "
                         "Defaults to 1.0 "))
-    op.add_option('--shock_switch',dest='shock_switch', default=None,
+    op.add_option('--shock_switch',dest='shock_switch', action="store_true", default=False,
                   help=("Used to trigger a shock instead of an expansion from the secondary driver gas moving into the shock tube"))
     op.add_option('--tunnel_mode',dest='tunnel_mode',default='expansion-tube',
                   choices=['expansion-tube','nr-shock-tunnel'],
@@ -956,6 +956,13 @@ def main():
             
             (V6, V6g) = normal_shock(state5, Vs2, state6,ideal_gas_guess)
             
+            #do any modifications that were requested to the velocity behind the shock here 
+            if expand_to == 'flow-behind-shock':
+                V6g = V6g*expansion_factor
+            elif expand_to == 'shock-speed':
+                V6g = Vs2*expansion_factor
+            
+            
             #Across the contact surface, p3 == p2
             p7 = state6.p
             
@@ -976,6 +983,12 @@ def main():
             print "current guess for Vs2 = {0} m/s".format(Vs2)
             
             (V6, V6g) = normal_shock(state5, Vs2, state6, ideal_gas_guess)
+            
+            #do any modifications that were requested to the velocity behind the shock here 
+            if expand_to == 'flow-behind-shock':
+                V6g = V6g*expansion_factor
+            elif expand_to == 'shock-speed':
+                V6g = Vs2*expansion_factor
             
             #Across the contact surface, p3 == p2
             p7 = state6.p
@@ -1010,7 +1023,7 @@ def main():
             if PRINT_STATUS: print "Once Vs2 is known, find conditions at state 5 and 6."            
             
         (V6, V['s6']) = normal_shock(states['s5'], Vs2, states['s6'],ideal_gas_guess)
-        #do any modification to the velocity behind the shock here that were requested
+        #do any modifications that were requested to the velocity behind the shock here 
         if expand_to == 'flow-behind-shock':
             V['s6'] = V['s6']*expansion_factor
         elif expand_to == 'shock-speed':
@@ -1148,7 +1161,7 @@ def main():
         
         t_test_basic = t_final_usx - t_cs_at
     
-    if mode == 'printout' or 'cea-printout':
+    if mode == 'printout' or mode == 'cea-printout':
      
     #--------------------------- txt_output --------------------------------
     
@@ -1654,7 +1667,7 @@ if __name__ == '__main__':
             print "This is the equilibrium fully theoretical demo of pitot recreating Hadas' 8.5 km/s titan condition."
             print " "
             sys.argv = ['pitot.py', '--driver_gas','He:0.80,Ar:0.20','--test_gas','titan', 
-                        '--p1','3200.0','--p5','10.0', '--ar','3.0', '--conehead','yes'
+                        '--p1','3200.0','--p5','10.0', '--ar','3.0', '--conehead',
                         '--filename',demo, '--mode','cea-printout']
             main() 
             
@@ -1662,7 +1675,7 @@ if __name__ == '__main__':
             print "This is the perfect gas fully theoretical demo of pitot recreating Hadas' 8.5 km/s titan condition."
             print " "
             sys.argv = ['pitot.py', '--driver_gas','He:0.80,Ar:0.20','--test_gas','titan', 
-                        '--p1','3200.0','--p5','10.0', '--ar','3.0', '--conehead','yes'
+                        '--p1','3200.0','--p5','10.0', '--ar','3.0', '--conehead',
                         '--filename',demo, '--solver','pg',  '--mode','cea-printout']
             main()  
             
