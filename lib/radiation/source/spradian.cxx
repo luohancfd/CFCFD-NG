@@ -489,6 +489,20 @@ void SpradianParams::read_from_file( string fname )
 
 int SpradianParams::call_radipac()
 {
+    /* Firstly test for atom.dat, diatom.dat and triatom.dat */
+    const char *args[] = { "atom.dat", "diatom.dat", "triatom.dat" };
+    vector<string> files(args, args+3);
+    for ( size_t i=0; i<files.size(); ++i ) {
+        string file = files[i];
+	ifstream infile(file.c_str());
+	if ( !infile.good() ) { 
+	    cout << "SpradianParams::call_radipac()" << endl
+	         << "The file: " << file << " is missing from the working directory." << endl
+		 << "Exiting program." << endl;
+	    exit( FAILURE );
+        }
+    }
+
     return radipac_( z, &nnode, &depth, &method, tblack, &stand_off, &nose_radius, \
                  &wavmin, &wavmax, &nwav, &avg_num, atom_noneqs, atom_rads, diatom_noneqs, diatom_bands, triatom_bands, \
                   tran, trot, tvib, telec, concC, concC2, concC2H, concC3, concCH, concCN, concCO, concCp, concH, concH2, \
@@ -586,7 +600,7 @@ void Spradian::initialise( lua_State * L )
             oss << "mkdir spradian_working_dir_" << i;
             system(oss.str().c_str());
             oss.clear(); oss.str("");
-            oss << "cp atom.dat diatom.dat triatom.dat spradian_working_dir_" << i << "/";
+            oss << "cp $HOME/e3bin/atom.dat $HOME/e3bin/diatom.dat $HOME/e3bin/triatom.dat spradian_working_dir_" << i << "/";
             system(oss.str().c_str());
         }
     }

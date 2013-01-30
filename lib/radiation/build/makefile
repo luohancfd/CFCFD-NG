@@ -90,7 +90,8 @@ endif
 TEST_EXE := photaura_test.x
 
 ifeq ($(WITH_SPRADIAN), 1)
-    TEST_EXE += spradian_test.x run_spradian.x
+    TEST_EXE += spradian_test.x
+    EXE := run_spradian.x
 endif
 
 TEST_PY := photaura_test.py radGUI.py
@@ -122,7 +123,7 @@ build_new: $(LIBRAD)
 	@echo "The radiation library should now be up to date."
 	@echo "------------------------------------------------"
 
-install : build_new $(LOADABLE_MODULE) radpy.py
+install : build_new $(LOADABLE_MODULE) radpy.py $(EXE)
 	@echo "Install python pieces from the radation library."
 	- cp $(LOADABLE_MODULE) radpy.py $(INSTALL_DIR)
 ifeq ($(findstring Darwin, $(SYSTEM)), Darwin)
@@ -131,6 +132,10 @@ endif
 	- cp $(TOOLS)/radiator_library.py $(TOOLS)/parade_radiator_library.py \
 		$(TOOLS)/radmodel.py $(TOOLS)/EQ-spectra.py $(TOOLS)/extract_NIST_data.py \
 		$(INSTALL_DIR)
+ifeq ($(WITH_SPRADIAN), 1)
+	- cp $(EXE) $(INSTALL_DIR)
+	- rsync -va $(SPRADIAN_SRC)/*.dat $(INSTALL_DIR)
+endif
 	
 test: install $(TEST_EXE) $(TEST_PY) $(GASPY)
 	cd ../../; rsync -av --exclude=".svn" --exclude="*~" cfpylib $(INSTALL_DIR)
