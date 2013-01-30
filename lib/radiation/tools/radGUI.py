@@ -11,7 +11,12 @@ from cfpylib.gasdyn.cea2_gas import *
 import os
 import pprint
 import random
-import wx
+try:
+    import wx
+except:
+    print "radGUI uses the wxPython library to create the graphical user-interface."
+    print "Install wxPython and try again."
+    sys.exit()
 
 # The recommended way to use wx with mpl is with the WXAgg
 # backend. 
