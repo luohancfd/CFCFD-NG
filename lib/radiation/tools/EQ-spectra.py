@@ -31,7 +31,7 @@ class EqSpectraInputData(object):
     __slots__ = ['rad_model_file', 'gas_model_file', 'species_list', 'mole_fractions', 
                  'mass_fractions', 'shock_speed', 'gas_pressure', 'gas_temperature', 
                  'tube_width', 'apparatus_fn', 'Gaussian_HWHM', 'Lorentzian_HWHM', 
-                 'sampling_rate', 'problem', 'planck_spectrum' ]
+                 'sampling_rate', 'problem', 'planck_spectrum', 'show_plots' ]
     def __init__(self):
         self.rad_model_file = "rad-model.lua"
         self.gas_model_file = "gas-model.lua"
@@ -48,6 +48,7 @@ class EqSpectraInputData(object):
         self.sampling_rate = 1
         self.problem = "shock"
         self.planck_spectrum = False
+        self.show_plots = True
     
 def parseInputData(input_data):
     # parse the input data object
@@ -100,7 +101,9 @@ def parseInputData(input_data):
     # planck spectrum request
     planck_spectrum = input_data.planck_spectrum
     
-    return rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, apparatus_fn, gamma_G, gamma_L, nu_sample, problem, planck_spectrum
+    show_plots = input_data.show_plots
+    
+    return rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, apparatus_fn, gamma_G, gamma_L, nu_sample, problem, planck_spectrum, show_plots
 
 def main():
     #
@@ -123,7 +126,7 @@ def main():
     # 
     # parse the input options
     execfile(input_file)
-    rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, apparatus_fn, gamma_G, gamma_L, nu_sample, problem, planck_spectrum = parseInputData(input_data)
+    rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, apparatus_fn, gamma_G, gamma_L, nu_sample, problem, planck_spectrum, show_plots = parseInputData(input_data)
 
     # setup the reactants list
     reactants = make_reactants_dictionary( species )
@@ -192,15 +195,17 @@ def main():
         A = None
     else:
         print "Apparatus function with name: %s not recognised." % apparatus_fn
-        sys.eiit()
+        sys.exit()
     
     # apply apparatus function
     if A!=None:
         S.apply_apparatus_function(A)
     S.write_to_file("intensity_spectra.txt" ) 
     
-    IvW = YvX("intensity_spectra.txt" )
-    IvW.plot_data(xlabel="Wavelength, lambda (nm)", ylabel="Intensity, I (W/m2-m-sr)", new_plot=True, show_plot=True, include_integral=False, logscale_y=True )
+    if show_plots:
+        IvW = YvX("intensity_spectra.txt" )
+        IvW.plot_data(xlabel="Wavelength, lambda (nm)", ylabel="Intensity, I (W/m2-m-sr)", new_plot=True, show_plot=True, include_integral=False, logscale_y=True )
+        del IvW
     
     # check if the planck intensity spectrum has been requested
     if planck_spectrum:
@@ -208,7 +213,7 @@ def main():
         S = SpectralIntensity(rsm,cea.T)
         S.write_to_file("planck_intensity_spectra.txt" )
     
-    del S, IvW
+    del S
     
     del rsm, gm
     
