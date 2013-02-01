@@ -141,11 +141,13 @@ void SpectralContainer::compute_spectral_distribution( RadiationSpectralModel * 
     int nnus = rsm->get_spectral_points();
     nu.resize( nnus );
 
+    cout << "nnus = " << nnus << endl;
+
     // Uniformally distributed spectral points with constant frequency spacing
     double nu_val = lambda2nu( rsm->get_lambda_max() );
     double dnu = ( lambda2nu( rsm->get_lambda_min() ) - lambda2nu( rsm->get_lambda_max() ) )
 		/ double ( ( rsm->get_spectral_points() - 1 ) );
-    for( int inu=0; inu<rsm->get_spectral_points(); ++inu ){
+    for( int inu=0; inu<nnus; ++inu ){
 	nu[inu] = nu_val;
 	nu_val+=dnu;
     }

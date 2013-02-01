@@ -17,13 +17,13 @@ longOptions = ["help", "input-file="]
 
 def printUsage():
     print ""
-    print "Usage: eq-spectra.py [--help] [--input-file=<fileName>]"
-    print "e.g. eq-spectra.py --input-file='eqs.py'"
+    print "Usage: EQ_spectra.py [--help] [--input-file=<fileName>]"
+    print "e.g. EQ_spectra.py --input-file='eqs.py'"
     print ""
     return
     
 class EqSpectraInputData(object):
-    """Python class to organize the global data for the EQ-spectra calculation.
+    """Python class to organize the global data for the EQ_spectra calculation.
 
     The user's script does not create this object but rather just alters
     attributes of the global object.
@@ -104,28 +104,8 @@ def parseInputData(input_data):
     show_plots = input_data.show_plots
     
     return rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, apparatus_fn, gamma_G, gamma_L, nu_sample, problem, planck_spectrum, show_plots
-
-def main():
-    #
-    try:
-        userOptions = getopt(sys.argv[1:], [], longOptions)
-    except GetoptError, e:
-        print "One (or more) of your command-line options was no good."
-        print "    ", e
-        printUsage()
-        sys.exit(1)
-    uoDict = dict(userOptions[0])
-    if len(userOptions[0]) == 0 or uoDict.has_key("--help"):
-        printUsage()
-        sys.exit(0)
-    #
-    input_file = uoDict.get("--input-file", "none")
-    #
-    # create the input data instance
-    input_data = EqSpectraInputData()
-    # 
-    # parse the input options
-    execfile(input_file)
+   
+def run_calculation(input_data):
     rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, apparatus_fn, gamma_G, gamma_L, nu_sample, problem, planck_spectrum, show_plots = parseInputData(input_data)
 
     # setup the reactants list
@@ -214,10 +194,35 @@ def main():
         S.write_to_file("planck_intensity_spectra.txt" )
     
     del S
-    
     del rsm, gm
     
-    print "done."
+    return I_total, t1-t0
+    
+def main():
+    #
+    try:
+        userOptions = getopt(sys.argv[1:], [], longOptions)
+    except GetoptError, e:
+        print "One (or more) of your command-line options was no good."
+        print "    ", e
+        printUsage()
+        sys.exit(1)
+    uoDict = dict(userOptions[0])
+    if len(userOptions[0]) == 0 or uoDict.has_key("--help"):
+        printUsage()
+        sys.exit(0)
+    #
+    input_file = uoDict.get("--input-file", "none")
+    #
+    # create the input data instance
+    input_data = EqSpectraInputData()
+    # 
+    # parse the input options
+    execfile(input_file)
+    
+    run_calculation(input_data)
+    
+    print "EQ_spectra.py: done."
     
 if __name__ == '__main__':
     main()

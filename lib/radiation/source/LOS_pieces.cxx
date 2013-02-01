@@ -172,6 +172,7 @@ double LOS_data::integrate_LOS( SpectralIntensity &S )
 	if ( inu>0 )
 	    I_total += 0.5 * ( S.I_nu[inu] + S.I_nu[inu-1] ) * ( S.nu[inu] - S.nu[inu-1] );
     }
+    if ( nnus_== 1 ) I_total = S.I_nu[0];
 
     return I_total;
 }

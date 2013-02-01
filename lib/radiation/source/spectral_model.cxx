@@ -34,6 +34,8 @@ RadiationSpectralModel()
     lambda_max = 0.0;
     spectral_points = 1;
     spectral_blocks = 1;
+
+    reset_spectral_params(0);
 }
 
 RadiationSpectralModel::

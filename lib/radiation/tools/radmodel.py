@@ -27,9 +27,6 @@ class GlobalRadData(object):
     """
     count = 0
     def __init__(self):
-
-        if GlobalRadData.count >= 1:
-            raise Exception, "Already have a GlobalNoneqData object defined."
         self.spectral_model = "none"
         self.radiators = []
         self.lambda_min = 0.0
@@ -48,7 +45,6 @@ class GlobalRadData(object):
         self.N_bins = 0
         self.exact_formulation = False
 
-        GlobalRadData.count = 1
         return
     
     def write_LUA_file( self, ofile_str, ifile_str ):
@@ -221,8 +217,6 @@ class GlobalRadData(object):
             ofile.write("9       17      29      70\n")
             ofile.write("x       i\n")
             ofile.close()
-        
-gdata = GlobalRadData()
 
 def main():
     from optparse import OptionParser
@@ -243,6 +237,7 @@ def main():
         print usage
         sys.exit()
     
+    gdata = GlobalRadData()
     execfile(options.inFile)
     
     if ( options.LUAFile != None ):
