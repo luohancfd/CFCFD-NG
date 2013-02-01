@@ -23,6 +23,8 @@ else:
     
 def eval_gaussian(x,gamma):
     return 1.0 / ( gamma * sqrt(2*pi) ) * exp( - x**2 / ( 2.0 * gamma**2 ) )
+    
+labels = []
 
 class YvX:
     """a class describing structure containing some property Y against some property X"""
@@ -109,17 +111,20 @@ class YvX:
         if xrange: pylab.xlim(xrange[0],xrange[1])
         if yrange: pylab.ylim(yrange[0],yrange[1])
         pylab.plot( self.x_array, self.y_array, rep )
-        labels = [ label ]
-        if new_plot:
+        global labels
+        labels.append( label )
+        if show_plot:
             pylab.legend( labels, loc="best" )
         if include_integral:
             pylab.subplot(212)
             if xrange: pylab.xlim(xrange[0],xrange[1])
             self.integrate()
             pylab.plot( self.x_array, self.integral, rep )
-            labels = [ label + " integral" ]
-            if new_plot: 
-                pylab.legend( labels, loc="best" )
+            if show_plot:
+                labels_ = []
+                for label in labels:
+                    labels_.append( label + " integral" ) 
+                    pylab.legend( labels_, loc="best" )
         if show_plot:
             pylab.show()
     def plot_spline( self, title="", xlabel="", ylabel="", label="YvX_data", new_plot=True, show_plot=False, include_integral=False, rep='-', logscale_y=False, xrange=None, yrange=None  ):
