@@ -232,33 +232,36 @@ def main():
     
     # The default values for the following inputs are based on those given in 
     # Rainer Kirchhartz' PhD Thesis (Appendix B)
-    op.add_option('--Xp1', dest='p1', default=0.0325,
+    op.add_option('--Xp1', dest='p1', default=0.0325, type='float',
                   help=("relative uncertainty in shock tube fill pressure. "
                         "[default: %default]" ))
-    op.add_option('--XT1', dest='T1', default=0.02,
+    op.add_option('--XT1', dest='T1', default=0.02, type='float',
                   help=("relative uncertainty in shock tube fill temperature. "
                         "[default: %default]"))
-    op.add_option('--XVs', dest='Vs', default=0.05,
+    op.add_option('--XVs', dest='Vs', default=0.05, type='float',
                   help=("relative uncertainty in the incident shock speed. "
                         "[default: %default]"))
-    op.add_option('--Xpe', dest='pe', default=0.025,
+    op.add_option('--Xpe', dest='pe', default=0.025, type='float',
                   help=("relative uncertainty in the equilibrium pressure "
                         "(after shock reflection). [default: %default]"))
     # The default values for the following inputs are guestimates :)
-    op.add_option('--XTwall', dest='Tw', default=0.04,
+    op.add_option('--XTwall', dest='Tw', default=0.04, type='float',
                   help=("relative uncertainty in nozzle wall temperature. "
                         "[default: %default]"))
-    op.add_option('--XBLTrans', dest='BLTrans', default=1.00,
+    op.add_option('--XBLTrans', dest='BLTrans', default=1.00, type='float',
                   help=("relative uncertainty in the boundary layer "
                         "transition location. [default: %default]"))
     op.add_option('--XTurbVisRatio', dest='TurbVisRatio', default=1.00,
+                  type='float',
                   help=("relative uncertainty in turbulent-to-laminar "
                         "viscosity ratio at the throat. "
                         "[default: %default]"))
     op.add_option('--XTurbIntensity', dest='TurbInten', default=0.8,
+                  type='float',
                   help=("relative uncertainty in turbulence intensity "
                         "at the throat. [default: %default]"))
     op.add_option('--XCoreRadiusFraction', dest="coreRfraction", default=0.05,
+                  type='float',
                   help=("relative uncertainty in the core flow radius "
                         "fraction. [default: %default]")) 
     opt, args = op.parse_args()

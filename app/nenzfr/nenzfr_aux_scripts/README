@@ -1,0 +1,13 @@
+This folder contains a set of auxiliary scripts that
+the author has developed in order to accomplish specific
+post-processing tasks using nenzfr data.
+
+They are included here because they may be of interest 
+to other nenzfr users.
+
+Note that while each of the scripts work, they are in
+varying states of completedness. Many could likely do
+with a clean up and generalisation.
+
+Luke Doherty
+02-Feb-2013
