@@ -18,26 +18,19 @@ To work with the standalone library, however, the user needs to do
   $ cd $HOME/cfcfd3/lib/radiation/build
   $ make install
 
-In order to run the test programs, the test target needs to be requested:
+The installation can then be verified by running an automated test script:
 
   $ cd $HOME/cfcfd3/lib/radiation/build
   $ make test
 
-Note that for best performance of the test programs the cea2 source code
-should be placed in cfcfd3/extern/cea2.
-The 'make test' command will then build the cea2 executable so that 
-it can be used via the cea2_gas.py interface.
+Note that a number of the python tools provided in the radiation library 
+make use of the cea2 interface located in lib/cfpylib/gasdyn/cea2_gas.py.
+The successful use of this interface requires the cea2 source file be 
+be placed in cfcfd3/extern/cea2 when building the code
+(see http://www.grc.nasa.gov/WWW/CEAWeb/).
 Also, to enable plotting to the screen the matplotlib python module
 (which provides pylab) should also be installed 
 (see http://matplotlib.sourceforge.net/).
-
-To run the test program after running 'make test':
-
-  $ cd $HOME/cfcfd3/lib/radiation/test
-  $ ./run_test.sh
-
-This will run some simple calculations with the radpy module
-that tests the basic features of a Photaura spectral model.
 
 Python input script
 -------------------

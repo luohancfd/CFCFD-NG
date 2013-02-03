@@ -10,7 +10,7 @@ $ cd ~/cfcfd3-hg/lib/radiation/build
 $ make install
 \end{lstlisting}
 
-A number of test programs can also be compiled, installed and run via:
+The installation of the radiation library can then be tested via an automated script:
 
 \begin{lstlisting}[basicstyle=\ttfamily\small]
 $ cd ~/cfcfd3-hg/lib/radiation/build
@@ -32,3 +32,11 @@ $ ls ~/cfcfd3-hg/extern/spradian07/
 atom.dat     diatom.dat   radipac6.f90 triatom.dat
 \end{lstlisting}
 
+If the Parade code is availale to the user, no additional compilation arguments are need 
+to use it as the spectral model.
+To test all the spectral models the following make command can be run:
+
+\begin{lstlisting}[basicstyle=\ttfamily\small]
+$ cd ~/cfcfd3-hg/lib/radiation/build
+$ make WITH_SPRADIAN=1 WITH_PARADE=1 test
+\end{lstlisting}
