@@ -8,6 +8,8 @@ HNO.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermo.inp'
 }
+HNO.atomic_constituents = {H=1,N=1,O=1}
+HNO.charge = 0
 HNO.gamma = {
    value = 1.325,
    units = 'non-dimensional',
