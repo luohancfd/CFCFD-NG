@@ -4,10 +4,6 @@
 # Based on the simple.py wxPython example. 
 #----------------------------------------------------------------------
 
-from radpy import *
-from gaspy import *
-from cfpylib.gasdyn.cea2_gas import *
-
 import os
 import pprint
 import random
@@ -28,6 +24,13 @@ from matplotlib.backends.backend_wxagg import \
     FigureCanvasWxAgg as FigCanvas, \
     NavigationToolbar2WxAgg as NavigationToolbar
 from matplotlib import rc
+
+from radpy import *
+from radmodel import *
+from radiator_library import *
+
+from gaspy import *
+from cfpylib.gasdyn.cea2_gas import *
 
 class BarsFrame(wx.Frame):
     """ The main frame of the application
@@ -61,21 +64,51 @@ class BarsFrame(wx.Frame):
         self.gas_mixture = "air"
         self.draw_figure()
         
+    def create_default_radiation_input_file(self):
+        gdata = GlobalRadData()
+        
+        # first the spectral data
+        gdata.spectral_model = "photaura"
+        gdata.lambda_min = 50.0
+        gdata.lambda_max = 2000.0
+        gdata.spectral_points = 195000
+
+        # now the radiators
+        radiators = available_radiators.keys()
+        for rad_name in radiators:
+            if rad_name.find("+")>=0 or rad_name.find("-")>=0: continue
+	    rad = gdata.request_radiator(rad_name)
+	    rad.isp = self.species.index(rad_name)
+	    rad.iT = 0
+	    rad.iTe = 3
+	    rad.default_data()
+	    if rad.type == "atomic_radiator":
+                rad.line_set = rad.available_line_sets["all_lines"]
+            if rad.type == "diatomic_radiator":
+                rad.iTr = 1
+                rad.iTv = 2
+                
+        # create the lua file
+        gdata.write_LUA_file( "rad-model.lua", "radGUI.py" )
+        
     def load_models(self):
-        # radiation and gas-model
+        # species list
+        self.species = [ 'Ar', 'Ar_plus', 'C', 'C_plus', 'C2', 'CN', 'CN_plus', 'CO2', 'CO', 'CO_plus',
+                         'H', 'H_plus', 'H2', 'N', 'N_plus', 'N2', 'N2_plus', 'NCO', 'NO', 'NO_plus',
+                         'O', 'O_plus', 'O2', 'O2_plus', 'Xe', 'Xe_minus', 'e_minus' ]
+
+        # radiation model
+        self.create_default_radiation_input_file()
         self.psm = Photaura("rad-model.lua")
-        self.gm = create_gas_model("gas-model.lua")
         
         # cea2 gas interface
-        nsp = self.gm.get_number_of_species()
-        self.species = []
-        for isp in range(nsp):
-            self.species.append( self.gm.species_name(isp) )
         reactants = make_reactants_dictionary( self.species )
         self.cea = Gas( reactants, with_ions=True, trace=1.0e-15 )
         
         # also initialise some other useful objects
-        self.Q = Gas_data(self.gm)
+        self.nsp = len(self.species)
+        self.ntm = 4
+        self.Q = Gas_data(self.nsp,self.ntm)
         self.X = CoeffSpectra(self.psm)
         self.I = SpectralIntensity(self.psm)
         
@@ -334,22 +367,22 @@ class BarsFrame(wx.Frame):
     def create_status_bar(self):
         self.statusbar = self.CreateStatusBar()
         
-    def calculate_gas_state(self):
-        nsp = self.gm.get_number_of_species()
-        ntm = self.gm.get_number_of_modes()
-        
+    def calculate_gas_state(self):      
         # compute equilibrium post-shock gas state
         self.cea.set_pT(self.p,self.T)
         if self.problem_type=="shock":
             self.cea.shock_process( self.U_inf )
         
         # fill out the full gas-state with EOS call
-        for iT in range(ntm):
+        for iT in range(self.ntm):
             self.Q.T[iT] = self.cea.T
         self.Q.rho = self.cea.rho
         for isp,sp in enumerate(self.species):
             self.Q.massf[isp] = get_species_composition(sp,self.cea.species)
-        self.gm.eval_thermo_state_rhoT(self.Q)
+        self.Q.p = self.cea.p
+        if "e_minus" in self.species:
+            ie = self.species.index("e_minus")
+            self.Q.p_e = self.Q.massf[ie] * self.Q.rho / RC_m_SI * RC_k_SI * self.Q.T[self.ntm-1]
         self.Q.print_values(False)
         
     def read_parameter_boxes(self):

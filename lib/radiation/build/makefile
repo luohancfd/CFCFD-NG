@@ -10,6 +10,7 @@ TARGET ?= for_gnu
 OPT ?= -O2
 INSTALL_DIR ?= $(HOME)/e3bin
 WITH_SPRADIAN ?= 0
+WITH_PARADE ?= 0
 SPRADIAN_SRC ?= ../../../extern/spradian07
 include ../../util/source/systems.mk
 
@@ -87,17 +88,15 @@ ifeq ($(WITH_SPRADIAN), 1)
     RAD_OBJECTS += spradian.o spradian_radiator.o radipac6.o
 endif
 
-TEST_EXE := photaura_test.x
+EXE      :=
+TEST_EXE := 
 
 ifeq ($(WITH_SPRADIAN), 1)
-    TEST_EXE += spradian_test.x
-    EXE := run_spradian.x
+    EXE += run_spradian.x
 endif
 
-TEST_PY := photaura_test.py radGUI.py
-
 ifeq ($(WITH_CEA2), 1)
-	TEST_EXE += cea2
+    EXE += cea2
 endif
 
 # Assume Unix/Linux
@@ -123,7 +122,7 @@ build_new: $(LIBRAD)
 	@echo "The radiation library should now be up to date."
 	@echo "------------------------------------------------"
 
-install : build_new $(LOADABLE_MODULE) radpy.py $(EXE)
+install : build_new $(LOADABLE_MODULE) radpy.py $(EXE) $(GASPY)
 	@echo "Install python pieces from the radation library."
 	- cp $(LOADABLE_MODULE) radpy.py $(INSTALL_DIR)
 ifeq ($(findstring Darwin, $(SYSTEM)), Darwin)
@@ -131,26 +130,23 @@ ifeq ($(findstring Darwin, $(SYSTEM)), Darwin)
 endif
 	- cp $(TOOLS)/radiator_library.py $(TOOLS)/parade_radiator_library.py \
 		$(TOOLS)/radmodel.py $(TOOLS)/EQ_spectra.py $(TOOLS)/extract_NIST_data.py \
-		$(INSTALL_DIR)
+		$(TOOLS)/radGUI.py $(INSTALL_DIR)
 ifeq ($(WITH_SPRADIAN), 1)
-	- cp $(EXE) $(INSTALL_DIR)
 	- rsync -va $(SPRADIAN_SRC)/*.dat $(INSTALL_DIR)
 endif
-	
-test: install $(TEST_EXE) $(TEST_PY) $(GASPY)
-	cd ../../; rsync -av --exclude=".svn" --exclude="*~" cfpylib $(INSTALL_DIR)
-	- cp $(TEST_PY) $(INSTALL_DIR)
-	- cp $(TEST_EXE) $(INSTALL_DIR)
-	cd $(GAS)/build; make TARGET=$(TARGET) OPT=$(OPT) install
+	- cd ../../; rsync -av --exclude=".svn" --exclude="*~" cfpylib $(INSTALL_DIR)
+ifneq ($(EXE), )
+	- cp $(EXE) $(INSTALL_DIR)
+endif
 ifeq ($(WITH_CEA2), 1)
 	- cp $(CEA2)/thermo.inp $(CEA2)/trans.inp $(INSTALL_DIR)
-	@echo "---------------------------------------------------"
-	@echo "Installation of radiation test components complete."
+	@echo "--------------------------------------------------------------------"
+	@echo "Installation of stand-alone radiation library components complete."
 	@echo "CEA2 has been included in the build."
-	@echo "---------------------------------------------------"
+	@echo "--------------------------------------------------------------------"
 else
 	@echo "--------------------------------------------------------------------"
-	@echo "Installation of radiation test components complete."
+	@echo "Installation of stand-alone radiation library components complete."
 	@echo "The cea2_gas python module will NOT be functional"
 	@echo "because the CEA2 program has not been found in $(CEA2)."
 	@echo "Contact the NASA Glenn Research Center to request the software:"
@@ -158,8 +154,11 @@ else
 	@echo "--------------------------------------------------------------------"
 endif
 	
+test: install
+	cd ../test; make test WITH_SPRADIAN=$(WITH_SPRADIAN) WITH_PARADE=$(WITH_PARADE) 
+	
 clean :
-	- rm *.o *.py $(LIBRAD) $(LOADABLE_MODULE) *.x *.a *.mod $(TEST_EXE)
+	- rm *.o *.py $(LIBRAD) $(LOADABLE_MODULE) *.x *.a *.mod $(TEST_EXE) $(EXE) _librad.*
 	- rm $(SRC)/radpy.py $(SRC)/radpy_wrap.cxx
 	- cd $(GAS)/build; make clean
 	
@@ -338,33 +337,13 @@ mersenne.o : $(UTIL_SRC)/mersenne.cpp $(UTIL_SRC)/randomc.h
 	
 line_shapes.o : $(SRC)/line_shapes.cxx $(SRC)/line_shapes.hh 
 	$(CXX) $(CXXFLAG) $(SRC)/line_shapes.cxx  -I$(LUA_INCLUDE_DIR)
-	
-# ------------ Test python libraries and executables -------
-	
-photaura_test.py : $(TOOLS)/photaura_test.py
-	- cp $(TOOLS)/photaura_test.py .
-	
-radGUI.py : $(TOOLS)/radGUI.py
-	- cp $(TOOLS)/radGUI.py .
 
 # ------------ Test executables ------------
 
 cea2 : $(CEA2)/cea2.f
 	gfortran -std=legacy -o cea2 $(CEA2)/cea2.f
-
-photaura_test.x : photaura_test.o $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
-	$(CXXLINK) $(LFLAG) $(FLINK) $(OMPFLAG) -o photaura_test.x photaura_test.o \
-		$(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LUALINK) $(LIBGEOM)
-		
-photaura_test.o : $(SRC)/photaura_test.cxx 
-	$(CXX) $(CXXFLAG) $(SRC)/photaura_test.cxx -I$(LUA_INCLUDE_DIR)
 	
-spradian_test.x : spradian_test.o $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
-	$(CXXLINK) $(LFLAG) $(FLINK) $(OMPFLAG) -o spradian_test.x spradian_test.o \
-		$(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LUALINK) $(LIBGEOM)
-		
-spradian_test.o : $(SRC)/spradian_test.cxx $(SRC)/spradian.cxx 
-	$(CXX) $(CXXFLAG) $(SRC)/spradian_test.cxx -I$(LUA_INCLUDE_DIR)
+# ------------ Executables -----------------
 	
 run_spradian.x : run_spradian.o $(LIBRAD) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
 	$(CXXLINK) $(LFLAG) $(FLINK) -o run_spradian.x run_spradian.o \

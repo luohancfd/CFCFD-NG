@@ -1,2 +1,0 @@
-model = "four temperature gas"
-species = { 'Ar', 'Ar_plus', 'C', 'C_plus', 'C2', 'CN', 'CN_plus', 'CO2', 'CO', 'CO_plus', 'H', 'H_plus', 'H2', 'N', 'N_plus', 'N2', 'N2_plus', 'NCO', 'NO', 'NO_plus', 'O', 'O_plus', 'O2', 'O2_plus', 'e_minus'}
