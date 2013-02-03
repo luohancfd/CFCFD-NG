@@ -8,6 +8,8 @@ NO2.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermo.inp'
 }
+NO2.atomic_constituents = {N=1,O=2}
+NO2.charge = 0
 NO2.gamma = {
    value = 1.287,
    units = 'non-dimensional',

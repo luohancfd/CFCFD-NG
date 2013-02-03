@@ -8,6 +8,8 @@ HO2.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermo.inp'
 }
+HO2.atomic_constituents = {H=1,O=2}
+HO2.charge = 0
 HO2.gamma = {
    value = 1.312,
    units = 'non-dimensional',

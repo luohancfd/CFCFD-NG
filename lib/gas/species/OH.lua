@@ -8,6 +8,8 @@ OH.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermo.inp'
 }
+OH.atomic_constituents = {O=1,H=1}
+OH.charge = 0
 OH.gamma = {
    value = 1.386,
    units = 'non-dimensional',

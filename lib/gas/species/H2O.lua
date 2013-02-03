@@ -8,6 +8,8 @@ H2O.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermo.inp'
 }
+H2O.atomic_constituents = {H=2,O=1}
+H2O.charge = 0
 H2O.gamma = {
    value = 1.329,
    units = 'non-dimensional',
