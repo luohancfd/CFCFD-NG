@@ -111,9 +111,13 @@ Chemical_kinetic_MC_system(string cfile, Gas_model &g, int nreac, double error_t
     lua_setglobal(L, "species");
 
     // Path to reaction parsing script
-    string home(getenv("HOME"));
+    string home(getenv("E3BIN"));
+    if ( home.empty() ) {
+	// Assume default location of $HOME/e3bin
+	home.append(getenv("HOME")); home.append("/e3bin");
+    }
     string script_file(home);
-    script_file.append("/e3bin/reaction_parser.lua");
+    script_file.append("/reaction_parser.lua");
 
     if ( luaL_dofile(L, script_file.c_str()) != 0 ) {
 	ostringstream ost;

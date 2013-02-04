@@ -1560,9 +1560,17 @@ Relaxation_time* get_rt_from_file(int irt, string cfile, Gas_model &g)
 
     cout << "Loading parser." << endl;
     // Path to reaction parsing script
-    string home(getenv("HOME"));
+    char *e3bin = getenv("E3BIN");
+    string home;
+    if ( e3bin == NULL ) {
+	// Assume default location of $HOME/e3bin
+	home.append(getenv("HOME")); home.append("/e3bin");
+    }
+    else {
+	home.append(e3bin);
+    }
     string script_file(home);
-    script_file.append("/e3bin/energy_exchange_parser.lua");
+    script_file.append("/energy_exchange_parser.lua");
     
     if ( luaL_dofile(L, script_file.c_str()) != 0 ) {
 	ostringstream ost;

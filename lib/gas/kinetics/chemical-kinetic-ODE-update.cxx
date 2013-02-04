@@ -274,9 +274,17 @@ Chemical_kinetic_system * create_chemical_kinetic_system( std::string cfile, Gas
     lua_setglobal(L, "species");
 
     // Path to reaction parsing script
-    string home(getenv("HOME"));
+    char *e3bin = getenv("E3BIN");
+    string home;
+    if ( e3bin == NULL ) {
+	// Assume default location of $HOME/e3bin
+	home.append(getenv("HOME")); home.append("/e3bin");
+    }
+    else {
+	home.append(e3bin);
+    }
     string script_file(home);
-    script_file.append("/e3bin/reaction_parser.lua");
+    script_file.append("/reaction_parser.lua");
 
     if ( luaL_dofile(L, script_file.c_str()) != 0 ) {
 	ostringstream ost;
