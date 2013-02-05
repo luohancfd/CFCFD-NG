@@ -79,7 +79,7 @@ int main(int argc, char **argv)
     printf("\n\n");
 
     strcpy(base_file_name, "default");
-    maxsol = 20000;
+    maxsol = 2000000;
     tstart = 0.0;
     tstop = 0.0;
     ixloc = 0;
