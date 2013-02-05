@@ -330,7 +330,9 @@ private:
 // };
 
 Relaxation_time* create_new_relaxation_time(lua_State *L, int ip, int iq, int itrans);
+void parse_input_for_rts(std::string cfile, Gas_model &g, lua_State *L);
 Relaxation_time* get_rt_from_file(int irt, std::string cfile, Gas_model &g);
+int get_no_rts_from_file(std::string cfile, Gas_model &g);
 
 
 #endif

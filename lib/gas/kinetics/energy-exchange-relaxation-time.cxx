@@ -1,6 +1,7 @@
 // Author: Daniel F. Potter
 // Date: 18-Nov-2009
 
+
 #include <cmath>
 #include <iostream>
 #include <cstdlib>
@@ -1065,6 +1066,8 @@ specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
     double P = specific_transition_probability(Q, molef);
     double tau = (1.0/(Z*P))*exp(-1.0*(theta_v_p_ - theta_v_q_)/T);
 
+    //cout << "T= " << T << " tau= " << tau << endl;
+
     return tau;
 }
 
@@ -1526,12 +1529,8 @@ Relaxation_time* create_new_relaxation_time(lua_State *L, int ip, int iq, int it
     }
 }
 
-Relaxation_time* get_rt_from_file(int irt, string cfile, Gas_model &g)
+void parse_input_for_rts(string cfile, Gas_model &g, lua_State *L)
 {
-    // Setup lua_State for parsing as per energy_exchange_update.cxx
-    lua_State *L = luaL_newstate();
-    luaL_openlibs(L);
-
     // Set up a species table
     lua_newtable(L);
     for ( int isp = 0; isp < g.get_number_of_species(); ++isp ) {
@@ -1550,15 +1549,26 @@ Relaxation_time* get_rt_from_file(int irt, string cfile, Gas_model &g)
     lua_setfield(L, -2, "size");
     lua_setglobal(L, "species");
     
-    // Setup a map of thermal modes to integer
+    // Setup a table of thermal modes
     lua_newtable(L);
     for ( int imode = 0; imode < g.get_number_of_modes(); ++imode ) {
-	lua_pushinteger(L, imode);
+	lua_newtable(L);
+	for ( int ic = 0; ic < g.mode_no_components(imode); ++ic ) {
+	    lua_pushinteger(L, ic);
+	    lua_setfield(L, -2, g.mode_component_name(imode, ic).c_str());
+	}
 	lua_setfield(L, -2, g.mode_name(imode).c_str());
     }
     lua_setglobal(L, "modes");
 
-    cout << "Loading parser." << endl;
+    // Setup a table to find index of a given mode name
+    lua_newtable(L);
+    for ( int imode = 0; imode < g.get_number_of_modes(); ++imode) {
+	lua_pushinteger(L, imode);
+	lua_setfield(L, -2, g.mode_name(imode).c_str());
+    }
+    lua_setglobal(L, "mode_idx");
+
     // Path to reaction parsing script
     char *e3bin = getenv("E3BIN");
     string home;
@@ -1585,11 +1595,20 @@ Relaxation_time* get_rt_from_file(int irt, string cfile, Gas_model &g)
     lua_pushstring(L, cfile.c_str());
     if ( lua_pcall(L, 1, 0, 0) != 0 ) {
 	ostringstream ost;
-	ost << "get_rt_from_file():\n";
+	ost << "parse_input_for_rts():\n";
 	ost << "Error trying to load/parse energy exchange input file: " << cfile << endl;
 	ost << lua_tostring(L, -1) << endl;
 	input_error(ost);
     }
+}
+
+Relaxation_time* get_rt_from_file(int irt, string cfile, Gas_model &g)
+{
+    // Setup lua_State for parsing as per energy_exchange_update.cxx
+    lua_State *L = luaL_newstate();
+    luaL_openlibs(L);
+
+    parse_input_for_rts(cfile, g, L);
 
     lua_getglobal(L, "mechs");
     if ( !lua_istable(L, -1) ) {
@@ -1618,6 +1637,27 @@ Relaxation_time* get_rt_from_file(int irt, string cfile, Gas_model &g)
     lua_close(L);
 
     return rt;
+}
+
+int get_no_rts_from_file(string cfile, Gas_model &g)
+{
+    // Setup lua_State for parsing as per energy_exchange_update.cxx
+    lua_State *L = luaL_newstate();
+    luaL_openlibs(L);
+
+    parse_input_for_rts(cfile, g, L);
+
+    lua_getglobal(L, "mechs");
+    if ( !lua_istable(L, -1) ) {
+	ostringstream ost;
+	ost << "get_rt_from_file():\n";
+	ost << "Error finding 'mechs' table.\n";
+	input_error(ost);
+    }
+    
+    int nmechs = lua_objlen(L, -1);
+    lua_close(L);
+    return nmechs;
 }
 
 

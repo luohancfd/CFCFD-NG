@@ -43,6 +43,7 @@
 #include "chemical-equilibrium-system.hh"
 #include "chemical-species-library.hh"
 #include "species-energy-modes.hh"
+#include "../kinetics/energy-exchange-update.hh"
 #include "../kinetics/energy-exchange-mechanism.hh"
 #include "../kinetics/energy-exchange-relaxation-time.hh"
 #include "CI-functor.hh"
@@ -63,6 +64,7 @@
 %include "chemical-equilibrium-system.hh"
 %include "chemical-species-library.hh"
 %include "species-energy-modes.hh"
+%include "../kinetics/energy-exchange-update.hh"
 %include "../kinetics/energy-exchange-mechanism.hh"
 %include "../kinetics/energy-exchange-relaxation-time.hh"
 %include "../../nm/source/functor.hh"
@@ -76,4 +78,14 @@
 
 %pythoncode %{
 initialise_gas_model = create_gas_model
+
+def get_all_rts_from_file(fname, gmodel):
+    nrt = get_no_rts_from_file(fname, gmodel)
+    rts = []
+    for i in range(nrt):
+        rts.append(get_rt_from_file(i, fname, gmodel))
+    return rts
+
+initialise_energy_exchange_update = create_Energy_exchange_update
+
 %}
