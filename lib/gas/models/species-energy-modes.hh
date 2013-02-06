@@ -332,7 +332,7 @@ private:
     double s_eval_entropy_from_T( double T );
     double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
     double s_eval_Cv_from_T( double T );
-    double s_eval_Q( double T, double A ) { return 0.0; }
+    double s_eval_Q( double T, double A );
 };
 
 #if TABULATED_COUPLED_DIATOMIC_MODES==0

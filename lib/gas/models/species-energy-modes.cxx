@@ -541,6 +541,13 @@ s_eval_Cv_from_T( double T  )
     return Cv_;
 }
 
+double
+Fully_excited_nonlinear_rotation::
+s_eval_Q( double T, double A )
+{
+    return  sqrt( T*T*T * M_PI / ( theta_A0_ * theta_B0_ * theta_C0_ ) );
+}
+
 /* ------- Coupled diatomic rotation ------- */
 
 #if TABULATED_COUPLED_DIATOMIC_MODES==0
