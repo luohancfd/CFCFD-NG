@@ -24,7 +24,8 @@ Energy_exchange_system(lua_State *L, Gas_model &g, double error_tol)
 	ost << "Error interpreting 'rates'; a table of rates is expected.\n";
 	input_error(ost);
     }
-    for ( size_t i = 1; i <= lua_objlen(L, -1); ++i ) {
+    int nrates = lua_objlen(L, -1);
+    for ( size_t i = 1; i <= nrates; ++i ) {
 	lua_rawgeti(L, -1, i);
 	ee_rate_.push_back( create_energy_exchange_rate(L) );
 	lua_pop(L, 1);

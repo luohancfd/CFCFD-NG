@@ -24,13 +24,13 @@ Energy_exchange_rate(lua_State *L)
 	ost << "Error interpreting 'mechanisms'; a table of mechanisms is expected.\n";
 	input_error(ost);
     }
-    for ( size_t i = 1; i <= lua_objlen(L, -1); ++i ) {
+    int nmechs = lua_objlen(L, -1);
+    for ( size_t i = 1; i <= nmechs; ++i ) {
 	lua_rawgeti(L, -1, i);
 	ee_mech_.push_back(create_energy_exhange_mechanism(L, imode));
 	lua_pop(L, 1);
     }
     lua_pop(L, 1);
-    cout << "Done." << endl;
 }
 
 
@@ -57,9 +57,7 @@ compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &molef)
 {
     double rate = 0.0;
     for( size_t i = 0; i < ee_mech_.size(); ++i ) {
-	//	cout << "i= " << i << endl;
 	rate += ee_mech_[i]->compute_rate(y, Q, molef);
-	//	cout << "rate-acc= " << rate << endl;
     }
     return rate;
 }

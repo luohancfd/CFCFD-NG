@@ -37,7 +37,7 @@ VT_MillikanWhite(lua_State *L, int ip, int iq, int itrans)
     M_q_ = q->get_M();
     Diatomic_species *P = dynamic_cast<Diatomic_species*>(p);
     theta_ = P->get_theta_v();
-    mu_ = (M_p_ * M_q_)/(M_p_ + M_q_)*1000.0;
+    mu_ = ((M_p_ * M_q_) / (M_p_ + M_q_))*1000.0;
 
     lua_getfield(L, -1, "a");
     if ( lua_isnil(L, -1) ) {
@@ -59,6 +59,7 @@ VT_MillikanWhite(lua_State *L, int ip, int iq, int itrans)
 	// Take directly from table.
 	b_ = luaL_checknumber(L, -1);
     }
+    lua_pop(L, 1);
 }
 
 VT_MillikanWhite::
