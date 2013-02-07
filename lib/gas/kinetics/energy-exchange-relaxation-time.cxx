@@ -150,7 +150,6 @@ VT_MillikanWhite_HTC(lua_State *L, int ip, int iq, int itrans)
 {
     // 1. Set Millikan-White relaxation time model
     VT_MW_ = new VT_MillikanWhite(L, ip, iq, itrans);
-    lua_pop(L,1); // pop VT_MillikanWhite
     Chemical_species *p = get_library_species_pointer(ip);
     double M_p = p->get_M();
     if ( ip == iq ) {
