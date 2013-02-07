@@ -280,7 +280,7 @@ class Gas(object):
         """
         Writes the gas state data to the specified stream.
         """
-        strm.write('    p: %g Pa, T: %g K, rho: %g kg/m**3, e: %g J/kg, h: %g J/kg, a: %g m/s, s:%g kJ/(kg.K)\n'
+        strm.write('    p: %g Pa, T: %g K, rho: %g kg/m**3, e: %g J/kg, h: %g J/kg, a: %g m/s, s: %g J/(kg.K)\n'
                    % (self.p, self.T, self.rho, self.u, self.h, self.son, self.s) )
         strm.write('    R: %g J/(kg.K), gam: %g, Cp: %g J/(kg.K), mu: %g Pa.s, k: %g W/(m.K)\n'
                    % (self.R, self.gam, self.cp, self.mu, self.k) )
