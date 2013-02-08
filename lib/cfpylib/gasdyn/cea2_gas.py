@@ -592,7 +592,11 @@ def make_gas_from_name(gasName, outputUnits='massf'):
     elif gasName.lower() == 'air11species':
         return Gas(reactants={'N2':0.79, 'O2':0.21}, inputUnits='moles', 
                    onlyList=['N2','O2','N','O','NO','N+','O+','N2+','O2+','NO+','e-'],
-                   outputUnits=outputUnits, with_ions=True)
+                   outputUnits=outputUnits, with_ions=True, trace=1.0e-30)
+    elif gasName.lower() == 'air13species':
+        return Gas(reactants={'N2':0.7811, 'O2':0.2095, 'Ar':0.0093}, inputUnits='moles', 
+                   onlyList=['N2','O2','Ar','N','O','NO','Ar+','N+','O+','N2+','O2+','NO+','e-'],
+                   outputUnits=outputUnits, with_ions=True, trace=1.0e-30)
     elif gasName.lower() == 'n2':
         return Gas(reactants={'N2':1.0, 'N':0.0}, onlyList=['N2','N'],
                    outputUnits=outputUnits)
@@ -632,7 +636,7 @@ def list_gas_names():
     :returns: the list of gases available in make_gas_from_name()
     """
     return ['air', 'air-ions', 'air5species', 'air7species', 'air11species',
-            'n2', 'n2-ions', 'co2', 'co2-ions', 'mars-basic',
+            'air13species', 'n2', 'n2-ions', 'co2', 'co2-ions', 'mars-basic',
             'h2ne', 'h2ne-ions', 'ar']
     
 def make_reactants_dictionary( species_list ):

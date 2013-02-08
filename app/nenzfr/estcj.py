@@ -242,9 +242,11 @@ def main():
                         "pitot = free-stream to Pitot condition; "
                         "cone = free-stream to Taylor-Maccoll cone flow"))
     op.add_option('--gas', dest='gasName', default='air',
-                  choices=['air', 'air5species', 'n2', 'co2', 'h2ne', 'ar'],
+                  choices=['air', 'air5species', 'air11species', 'air13species', 
+                           'n2', 'co2', 'h2ne', 'ar'],
                   help=("name of gas model: "
-                        "air; " "air5species; " "n2; " "co2; " "h2ne; " "Ar"))
+                        "air; " "air5species; " "air11species; " "air13species; " 
+                        "n2; " "co2; " "h2ne; " "Ar"))
     op.add_option('--p1', dest='p1', type='float', default=None,
                   help=("shock tube fill pressure or static pressure, in Pa"))
     op.add_option('--T1', dest='T1', type='float', default=None,
