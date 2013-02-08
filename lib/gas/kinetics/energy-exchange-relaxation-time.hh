@@ -64,6 +64,20 @@ private:
     { return 0.0; }
 };
 
+class VT_Thivet_cf : public Relaxation_time {
+public:
+    VT_Thivet_cf(lua_State *L, int ip, int iq, int itrans);
+
+    ~VT_Thivet_cf();
+private:
+    int ip_, iq_, iT_;
+    double B_, C_;
+
+    double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
+    double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
+    { return 0.0; }
+};
+
 class VT_high_temperature_cross_section {
 public:
     VT_high_temperature_cross_section() {}

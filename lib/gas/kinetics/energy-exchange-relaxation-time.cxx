@@ -105,6 +105,32 @@ specific_relaxation_time(Gas_data &Q, vector<double> &molef)
     return tau;
 }
 
+VT_Thivet_cf::
+VT_Thivet_cf(lua_State *L, int ip, int iq, int itrans)
+    : Relaxation_time(), ip_(ip), iq_(iq), iT_(itrans)
+{
+    B_ = get_number(L, -1, "B");
+    C_ = get_number(L, -1, "C");
+}
+
+VT_Thivet_cf::
+~VT_Thivet_cf() {}
+
+double
+VT_Thivet_cf::
+specific_relaxation_time(Gas_data &Q, vector<double> &molef)
+{
+    double p_bath;
+    double tau;
+    double T = Q.T[iT_];
+    if ( T > 5.0e4 ) T = 5.0e4;
+    // Set the 'bath' pressure as that of the 'q' colliders
+    // and compute in atm for use in Millikan-White expression
+    p_bath = molef[iq_]*Q.p/PC_P_atm;
+    tau = (1.0/p_bath) * pow(T, 2.0/3.0) * exp((B_/pow(T, 1.0/3.0)) + C_);
+    return tau;
+}
+
 VT_high_temperature_cross_section *
 create_VT_high_temperature_cross_section_model(lua_State *L)
 {
@@ -1485,6 +1511,9 @@ Relaxation_time* create_new_relaxation_time(lua_State *L, int ip, int iq, int it
     }
     else if ( relaxation_time == "Landau-Teller-cf" ) {
 	return new VT_LandauTeller_cf(L, ip, iq, itrans);
+    }
+    else if ( relaxation_time == "Thivet-cf" ) {
+        return new VT_Thivet_cf(L, ip, iq, itrans);
     }
     else if ( relaxation_time == "SSH-VT" ) {
 	return new VT_SSH(L, ip, iq, itrans);
