@@ -33,6 +33,9 @@ if nsp>1:
 if ntm>1:
     set_energy_exchange_update(eemodel)
 
+# radiation
+select_radiation_model("rad-model.lua",1000)
+
 # Define flow conditions - shock heated argon, initially at 10 Torr and 300K
 T_wall = 300.0
 if inflow_source=="cea2":
@@ -84,7 +87,7 @@ print "M_inf = %0.2f" % ( M_inf )
 # define the inflow and initial conditions
 inflow  = FlowCondition(p=p_inf, u=u_inf, v=0.0, T=T_inf, massf=massf_inf)
 if transfer_solution:
-    initial = ExistingSolution(rootName="hemisphere", solutionWorkDir="../part1-inviscid/", nblock=4, tindx=9999)
+    initial = ExistingSolution(rootName="hemisphere", solutionWorkDir="../part2-viscous/", nblock=4, tindx=9999)
 else:
     initial = FlowCondition(p=p_inf/10.0, u=0.0, v=0.0, T=T_inf, massf=massf_inf)
 
@@ -121,7 +124,7 @@ identify_block_connections()
 
 # Do a little more setting of global data
 gdata.viscous_flag = 1
-gdata.viscous_delay = 0.1 * Rn / u_inf
+gdata.viscous_delay = 0 Rn / u_inf
 gdata.viscous_factor_increment = 1.0e-5
 gdata.diffusion_flag = 1
 gdata.diffusion_model = "ConstantLewisNumber"
@@ -133,8 +136,7 @@ gdata.max_step = 230000
 gdata.dt = 1.0e-10
 gdata.stringent_cfl = 1
 gdata.dt_plot = Rn * 1 / u_inf    # 5 solutions
-# NOTE: the CFL number can be increased to 0.05 after the viscous terms have been added
-gdata.cfl = 0.01
+gdata.cfl = 0.05
 gdata.cfl_count = 1
 gdata.print_count = 1
 

@@ -107,7 +107,7 @@ else:
 blk_0 = SuperBlock2D(psurf=psurf,
 		     fill_condition=initial,
 		     nni=nnx, nnj=nny,
-		     nbi=4, nbj=3,
+		     nbi=2, nbj=2,
 		     cf_list=cf_list,
 		     bc_list=[ExtrapolateOutBC(), FixedTBC(T_wall), SlipWallBC(), SupInBC(inflow)],
                      # wc_bc_list=[NonCatalyticWBC(),SuperCatalyticWBC([1.0,0.0,0.0]),NonCatalyticWBC(),NonCatalyticWBC()],
