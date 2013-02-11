@@ -132,6 +132,9 @@ available to me as part of cfpylib inside the cfcfd code collection.
     22-Jan-2013: added perfect gas solver to the code so it can now do equilibrium and perfect gas calculations
     29-Jan-2013: added non-reflected shock tunnel mode to the code.
     29-Jan-2013: added a 'cea-printout' mode that does some of the default cfcfd condition printouts
+    11-Feb-2013: turned off the clean-up lines (that remove temp files) as default and added
+        a switch to turn it back on. (it will run faster if the program is not adding and removing these files 
+        everytime it runs)
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -345,6 +348,9 @@ def main():
                   help=("Used to run the calculations for a non-reflected shock tunnel if required; "
                         "expansion-tube = normal expansion tube mode "
                         "nr-shock-tunnel = non-reflected shock tunnel mode "))
+    op.add_option('--cleanup',dest='cleanup', action="store_true", default=False,
+                  help=("If selected, the program will remove temporary files created after it runs."
+                        "Turning this on will make the program run slower if you plan on running it multiple times as these files need to be created everytime the program is run."))
     
     opt, args = op.parse_args()
     
@@ -356,7 +362,8 @@ def main():
     driver_gas = opt.driver_gas
     gasName = opt.gasName
     filename =opt.filename
-    
+    cleanup = opt.cleanup
+       
     Vs1 = opt.Vs1
     Vs2 = opt.Vs2
     Vsd = opt.Vsd
@@ -463,7 +470,6 @@ def main():
 
         if bad_input: #bail out here if you end up having issues with your input
             return -2
-
         if PRINT_STATUS: print "Let's get started, shall we:"
         if PRINT_STATUS: print "Facility is {0}. Driver gas is {1}.".format(facility, driver_gas)
         if PRINT_STATUS: 
@@ -1582,31 +1588,33 @@ def main():
         csv_output.close()
          
         if solver == 'eq': 
-            if PRINT_STATUS: 
-                print " "
-                print "Removing temporary files and leaving the program."
-            if os.path.isfile('thermo.inp'): os.remove('thermo.inp')
-            if os.path.isfile('thermo.out'): os.remove('thermo.out')
-            if os.path.isfile('thermo.lib'): os.remove('thermo.lib')
-            if os.path.isfile('tmp.inp'): os.remove('tmp.inp')
-            if os.path.isfile('tmp.out'): os.remove('tmp.out')
-            if os.path.isfile('trans.inp'): os.remove('trans.inp')
-            if os.path.isfile('trans.out'): os.remove('trans.out')
-            if os.path.isfile('trans.lib'): os.remove('trans.lib')
+            if cleanup:
+                if PRINT_STATUS: 
+                    print " "
+                    print "Removing temporary files and leaving the program."
+                if os.path.isfile('thermo.inp'): os.remove('thermo.inp')
+                if os.path.isfile('thermo.out'): os.remove('thermo.out')
+                if os.path.isfile('thermo.lib'): os.remove('thermo.lib')
+                if os.path.isfile('tmp.inp'): os.remove('tmp.inp')
+                if os.path.isfile('tmp.out'): os.remove('tmp.out')
+                if os.path.isfile('trans.inp'): os.remove('trans.inp')
+                if os.path.isfile('trans.out'): os.remove('trans.out')
+                if os.path.isfile('trans.lib'): os.remove('trans.lib')
         
     elif mode == 'return': #return a few values and then quit
         if solver == 'eq':
-            if PRINT_STATUS: 
-                print " "
-                print "Removing temporary files and leaving the program."
-            if os.path.isfile('thermo.inp'): os.remove('thermo.inp')
-            if os.path.isfile('thermo.out'): os.remove('thermo.out')
-            if os.path.isfile('thermo.lib'): os.remove('thermo.lib')
-            if os.path.isfile('tmp.inp'): os.remove('tmp.inp')
-            if os.path.isfile('tmp.out'): os.remove('tmp.out')
-            if os.path.isfile('trans.inp'): os.remove('trans.inp')
-            if os.path.isfile('trans.out'): os.remove('trans.out')
-            if os.path.isfile('trans.lib'): os.remove('trans.lib')
+            if cleanup:
+                if PRINT_STATUS: 
+                    print " "
+                    print "Removing temporary files and leaving the program."
+                if os.path.isfile('thermo.inp'): os.remove('thermo.inp')
+                if os.path.isfile('thermo.out'): os.remove('thermo.out')
+                if os.path.isfile('thermo.lib'): os.remove('thermo.lib')
+                if os.path.isfile('tmp.inp'): os.remove('tmp.inp')
+                if os.path.isfile('tmp.out'): os.remove('tmp.out')
+                if os.path.isfile('trans.inp'): os.remove('trans.inp')
+                if os.path.isfile('trans.out'): os.remove('trans.out')
+                if os.path.isfile('trans.lib'): os.remove('trans.lib')
         
         if secondary:
             if tunnel_mode == 'expansion-tube':
