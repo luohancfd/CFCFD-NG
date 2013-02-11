@@ -77,62 +77,50 @@ specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, vector<double
     return rate;
 }
 
-// Polymodal_VT_exchange::
-// Polymodal_VT_exchange( lua_State *L )
-//     : Energy_exchange_mechanism()
-// {
-//     // 1. Get vibrating species pointer
-//     string p_name = get_string(L, -1, "p_name");
-//     Chemical_species * X = get_library_species_pointer_from_name( p_name );
-    
-//     // 2. Vibrating species isp index
-//     ip_ = X->get_isp();
-    
-//     // 3. Translational energy mode index
-//     iT_ = X->get_mode_pointer_from_type("translation")->get_iT();
-    
-//     // 4. Pointers to vibrational modes
-//     for ( int imode=0; imode<X->get_n_modes(); ++imode ) {
-//     	if ( X->get_mode_pointer(imode)->get_type()=="vibration" ) {
-//     	    p_vib_.push_back( X->get_mode_pointer(imode) );
-//     	}
-//     }
-    
-//     // 5. Vibrational energy mode index
-//     iTv_ = p_vib_[0]->get_iT();
-    
-//     // 6. Initialise relaxation time
-//     lua_getfield(L,-1,"relaxation_time");
-//     tau_VT_ = create_new_relaxation_time( L );
-//     lua_pop(L, 1 );
-// }
+Polyatomic_VT_exchange::
+Polyatomic_VT_exchange(lua_State *L, int ip, int imode)
+    : Energy_exchange_mechanism(), ip_(ip), iTv_(imode)
+{
+    Chemical_species *X = get_library_species_pointer(ip_);
+    for ( int imode=0; imode<X->get_n_modes(); ++imode ) {
+        if ( X->get_mode_pointer(imode)->get_type()=="vibration" ) {
+            p_vib_.push_back( X->get_mode_pointer(imode) );
+        }
+    }
 
-// Polymodal_VT_exchange::
-// ~Polymodal_VT_exchange()
-// {
-//     delete tau_VT_;
-// }
+    int iq = get_int(L, -1, "iq");
+    iT_ = get_int(L, -1, "itrans");
 
-// double
-// Polymodal_VT_exchange::
-// specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, vector<double> &molef)
-// {
-//     // tau_ will be present and correct before beginning this
-//     // functionm ie. a call to compute_tau is expected earlier.
+    lua_getfield(L,-1,"relaxation_time");
+    tau_VT_ = create_new_relaxation_time(L, ip, iq, iT_);
+    lua_pop(L, 1 );
+}
 
-//     double e_vib_eq = 0.0;
-//     double e_vib = 0.0;
-//     for ( size_t ivib=0; ivib<p_vib_.size(); ++ivib ) {
-//     	e_vib_eq += p_vib_[ivib]->eval_energy_from_T(Q.T[iT_]);
-//         e_vib += p_vib_[ivib]->eval_energy_from_T(Q.T[iTv_]);
-//     }
+Polyatomic_VT_exchange::
+~Polyatomic_VT_exchange()
+{
+    delete tau_VT_;
+}
+
+double
+Polyatomic_VT_exchange::
+specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, vector<double> &molef)
+{
+    // tau_ will be present and correct before beginning this
+    // functionm ie. a call to compute_tau is expected earlier.
+    double e_vib_eq = 0.0;
+    double e_vib = 0.0;
+    for ( size_t ivib=0; ivib<p_vib_.size(); ++ivib ) {
+    	e_vib_eq += p_vib_[ivib]->eval_energy_from_T(Q.T[iT_]);
+        e_vib += p_vib_[ivib]->eval_energy_from_T(Q.T[iTv_]);
+    }
     
-//     // NOTE: - tau_ needs to be (already) weighted by colliding mole fractions
-//     //       - massf scaling is to convert J/s/kg-of-species-ip to J/s/kg-of-mixture
-//     double rate = Q.massf[ip_] * (e_vib_eq - e_vib) / tau_;
+    // NOTE: - tau_ needs to be (already) weighted by colliding mole fractions
+    //       - massf scaling is to convert J/s/kg-of-species-ip to J/s/kg-of-mixture
+    double rate = (e_vib_eq - e_vib) / tau_;
 
-//     return rate;
-// }
+    return rate;
+}
 
 ET_exchange::
 ET_exchange(lua_State *L, int ie, int iTe)
@@ -575,11 +563,12 @@ Energy_exchange_mechanism* create_energy_exhange_mechanism(lua_State *L, int imo
     int ip = get_int(L, -1, "ip");
     
     if( type == "VT" ) {
-	return new VT_exchange(L, ip, imode);
+        Chemical_species *X = get_library_species_pointer(ip);
+        if ( X->get_type().find("polyatomic")!=string::npos )
+            return new Polyatomic_VT_exchange(L, ip, imode);
+        else
+            return new VT_exchange(L, ip, imode);
     }
-//     // if( type == "Polymodal_VT_exchange" ) {
-//     // 	return new Polymodal_VT_exchange(L);
-//     // }
     else if( type == "VV-THO" ) {
  	return new VV_THO_exchange(L, ip, imode);
     }
