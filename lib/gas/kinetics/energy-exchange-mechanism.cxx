@@ -68,7 +68,7 @@ specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, vector<double
     double e_vib = p_vib_->eval_energy_from_T(Q.T[iTv_]);
     // NOTE: - tau_ needs to be (already) weighted by colliding mole fractions
     //       - massf scaling is to convert J/s/kg-of-species-ip to J/s/kg-of-mixture
-    double rate = (e_vib_eq - e_vib) / tau_;
+    double rate = Q.massf[ip_] * (e_vib_eq - e_vib) / tau_;
     //    cout << "e_vib_eq= " << e_vib_eq << endl;
     //    cout << "e_vib= " << e_vib << endl;
     //    cout << "massf= " << Q.massf[ip_] << endl;
@@ -117,7 +117,7 @@ specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, vector<double
     
     // NOTE: - tau_ needs to be (already) weighted by colliding mole fractions
     //       - massf scaling is to convert J/s/kg-of-species-ip to J/s/kg-of-mixture
-    double rate = (e_vib_eq - e_vib) / tau_;
+    double rate = Q.massf[ip_] * (e_vib_eq - e_vib) / tau_;
 
     return rate;
 }
@@ -146,9 +146,7 @@ specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &mo
 {
     // tau_ET_ will be present and correct before beginning this
     // functionm ie. a call to compute_tau is expected earlier.
-    // CHECKME: - from Abe and Panesi, maybe we should be scaling by molef[ie_]
-    //            and NOT massf[ie_]?
-    // NOTE: - scaling by molef gives a way to fast E-T equilibriation
+    // NOTE: - massf[ie_] scaling is to convert J/s/kg-of-electrons to J/s/kg-of-mixture
     double rate = Q.massf[ie_] * 3.0 * PC_R_u * ( Q.T[iT_] - Q.T[iTe_] ) / tau_;
     
     // cout << "ET_exchange::specific_compute_rate()" << endl
@@ -226,6 +224,9 @@ specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &mo
     double tmp_c = (e_p/e_q_hat)*(e_q_bar - e_q);
     double rate = tmp_a*(tmp_b - tmp_c);
     
+    // NOTE:massf scaling is to convert J/s/kg-of-species-ip to J/s/kg-of-mixture
+    rate *= Q.massf[ip_];
+
     //    cout << "VV-rate= " << rate << endl;
     return rate;
 }

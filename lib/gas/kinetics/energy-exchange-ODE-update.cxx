@@ -176,15 +176,18 @@ s_rate_of_change(Gas_data &Q, vector<double> &dedt)
     convert_massf2molef( Q.massf, g_->M(), molef_ );
     ees_->set_gas_data_ptr(Q);
     ees_->set_molef_ptr(molef_);
-    // Note starting at itm=1 to skip total energy
-    for ( size_t itm=1; itm<Q.e.size(); ++itm ) yin_[itm-1] = Q.e[itm];
+    // NOTES: - starting at itm=1 to skip total energy
+    //        - scaling by modal_massf to convert J/modal-kg to J/total-kg
+    for ( size_t itm=1; itm<Q.e.size(); ++itm )
+        yin_[itm-1] = Q.e[itm]*g_->modal_massf(Q,itm);
     ees_->called_at_least_once = false;
     ees_->eval(yin_, ydot_);
 
     // Total energy doesn't change
     dedt[0] = 0.0;
+    // NOTE: - scaling by 1/modal_massf to convert W/total-kg to W/modal-kg
     for ( size_t itm = 1; itm < dedt.size(); ++itm ) {
-	dedt[itm] = ydot_[itm-1];
+	dedt[itm] = ydot_[itm-1]/g_->modal_massf(Q,itm);
     }
 
     return SUCCESS;
@@ -197,8 +200,10 @@ perform_increment(Gas_data &Q, double t_interval, double &dt_suggest)
     // SETUP
     ees_->set_gas_data_ptr(Q);
     ees_->set_molef_ptr(molef_);
-    // Note starting at itm=1 to skip total energy
-    for ( size_t itm=1; itm<Q.e.size(); ++itm ) yin_[itm-1] = Q.e[itm];
+    // NOTES: - starting at itm=1 to skip total energy
+    //        - scaling by modal_massf to convert J/modal-kg to J/total-kg
+    for ( size_t itm=1; itm<Q.e.size(); ++itm )
+        yin_[itm-1] = Q.e[itm]*g_->modal_massf(Q,itm);
     ees_->called_at_least_once = false;
     
     double h = dt_suggest;
@@ -235,11 +240,9 @@ perform_increment(Gas_data &Q, double t_interval, double &dt_suggest)
 
     // 2. If we've made it this far than we're doing well.
     //    Let's update the gas state and leave.
-    
-    for ( size_t itm=1; itm<Q.e.size(); ++itm ) {
-    	Q.e[itm] = yout_[itm-1];
-	//	cout << "itm= " << itm << " e= " << Q.e[itm] << endl;
-    }
+    // NOTE: - scaling by 1/modal_massf to convert W/total-kg to W/modal-kg
+    for ( size_t itm=1; itm<Q.e.size(); ++itm )
+    	Q.e[itm] = yout_[itm-1]/g_->modal_massf(Q,itm);
     
     // 3. But first apply equilibriation mechanisms
     for ( size_t ieq=0; ieq<eq_mechs_.size(); ++ieq ) {

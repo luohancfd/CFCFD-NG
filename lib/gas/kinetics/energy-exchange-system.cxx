@@ -25,7 +25,7 @@ Energy_exchange_system(lua_State *L, Gas_model &g, double error_tol)
 	input_error(ost);
     }
     int nrates = lua_objlen(L, -1);
-    for ( size_t i = 1; i <= nrates; ++i ) {
+    for ( size_t i = 1; i <= (size_t)nrates; ++i ) {
 	lua_rawgeti(L, -1, i);
 	ee_rate_.push_back( create_energy_exchange_rate(L) );
 	lua_pop(L, 1);
@@ -52,8 +52,9 @@ eval(const valarray<double> &y, valarray<double> &ydot)
     //       use temperature to evaluate the rate of energy exchange
     
     // 1. Update the gas-data structure based on the given y array
+    // NOTE: scaling by 1/modal_massf to convert J/total-kg to J/modal-kg
     for ( size_t itm=1; itm<Q_->e.size(); ++itm ) {
-    	Q_->e[itm] = y[itm-1];
+        Q_->e[itm] = y[itm-1] / g_->modal_massf(*Q_, itm);
     }
     g_->eval_thermo_state_rhoe(*Q_); 
     
