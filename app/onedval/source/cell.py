@@ -193,7 +193,11 @@ def create_cells_from_slice(fname, var_map, scale):
     
     return cells
 
-
+def area(cells):
+    A = 0.0
+    for c in cells:
+        A = A + c.area()
+    return A
 
 
     

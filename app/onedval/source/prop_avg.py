@@ -15,10 +15,18 @@ from libprep3 import Gas_data, set_massf
 from cfpylib.nm.zero_solvers import secant
 from cfpylib.nm.nelmin import minimize
 
-def compute_fluxes(cells, var_map):
+def area(cells):
+    A = 0.0
+    for c in cells:
+        A = A + c.area()
+    return A
+
+def compute_fluxes(cells, var_map, species, gmodel):
     f_mass = 0.0
     f_mom = Vector3(0.0, 0.0, 0.0)
     f_energy = 0.0
+    f_sp = [0.0,]*len(species)
+    nsp = gmodel.get_number_of_species()
     N = Vector3(0.0, 0.0, 0.0)
     A = 0.0
     rholabel = var_map['rho']
@@ -28,7 +36,7 @@ def compute_fluxes(cells, var_map):
     wlabel = var_map['w']
     h0label = var_map['h0']
     for c in cells:
-        dA = c.area()*R0*R0
+        dA = c.area()
         n = c.normal()
         rho = c.get(rholabel)
         p = c.get(plabel)
@@ -40,7 +48,11 @@ def compute_fluxes(cells, var_map):
         f_mass = f_mass + rho*dot(vel, n)*dA
         f_mom = f_mom + (rho*dot(vel, n)*vel + p*n)*dA
         f_energy = f_energy + (rho*dot(vel, n)*h0)*dA
-    return {'mass': f_mass, 'mom': f_mom, 'energy': f_energy}
+        if nsp > 1:
+            for isp, sp in enumerate(species):
+                massf = c.get(sp)
+                f_sp[isp] = f_sp[isp] + rho*massf*u_n*dA
+    return {'mass': f_mass, 'mom': f_mom, 'energy': f_energy, 'species':f_sp}
 
 def area_weighted_avg(cells, props, var_map):
     phis = dict.fromkeys(props, 0.0)
@@ -131,6 +143,9 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel):
     else:
         Q.massf[0] = 1.0
     
+    # Compute an initial guess based on mass-flux weighted averages
+    mfw_props = mass_flux_weighted_avg(cells, ['rho', 'T', 'u', 'v', 'w', 'M'], var_map)
+    mfw_Mach = mfw_props['M']
 
     def f_to_minimize(x):
         rho, T, u = x
@@ -140,25 +155,43 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel):
         gmodel.eval_thermo_state_rhoT(Q)
         h = gmodel.mixture_enthalpy(Q)
         p = Q.p
+        M = u/Q.a
         # Compute errors
         fmass_err = abs(f_mass - rho*u*A)/(abs(f_mass) + 1.0)
         fmom_err = abs(f_mom_s - (rho*u*u + p)*A)/(abs(f_mom_s) + 1.0)
         fe_err = abs(f_energy - (rho*u*A*(h + 0.5*u*u)))/abs(f_energy + 1.0)
+        mach_err = abs(M - mfw_Mach)/(abs(M) + 1.0)
         # Total error is the sum
         return fmass_err + fmom_err + fe_err
 
     # Compute an initial guess based on mass-flux weighted averages
-    mfw_props = mass_flux_weighted_avg(cells, ['rho', 'T', 'u', 'v', 'w'], var_map)
-    print "mfw_props= ", mfw_props
     u = sqrt(mfw_props['u']**2 + mfw_props['v']**2 + mfw_props['w']**2)
-    guess = [mfw_props['rho'], mfw_props['T'], u]
-    x, fx, conv_flag, nfe, nres = minimize(f_to_minimize, guess, [0.01, 10.0, 10.0])
+    guess = [1.2*mfw_props['rho'], 1.4*mfw_props['T'], u]
+    x, fx, conv_flag, nfe, nres = minimize(f_to_minimize, guess)
     rho, T, u = x
     Q.rho = rho; Q.T[0] = T
     gmodel.eval_thermo_state_rhoT(Q)
-    Q.print_values()
-    sys.exit(1)
-    return
+
+    phis = dict.fromkeys(props, 0.0)
+
+    for k in phis:
+        if k == 'rho':
+            phis[k] = rho
+        elif k == 'p':
+            phis[k] = Q.p
+        elif k == 'T':
+            phis[k] = T
+        elif k == 'M':
+            phis[k] = u/Q.a
+        elif k == 'u':
+            phis[k] = u
+        elif k in species:
+            isp = gmodel.get_isp_from_species_name(k)
+            phis[k] = massf[isp]
+        else:
+            print "Do not know what to do for flux-conserved average of:", k
+    
+    return phis
     
     
     
