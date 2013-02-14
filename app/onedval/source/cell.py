@@ -148,18 +148,16 @@ def create_cells_from_slice(fname, var_map, scale):
     var_list = []
     while 1:
         line = f.readline()
-        if line.startswith('DATASETAUXDATA'):
+        if line.startswith('ZONE'):
             break
+        if line.startswith('DATASETAUXDATA'):
+            continue
         if line.startswith('VARIABLES'):
             tks = line.split()
             var_list.append(tks[2].strip('"'))
         else:
             v = line.strip().strip('"')
             var_list.append(v)
-    # Read next DATASETAUXDATA line and discard
-    f.readline()
-    # Read Zone info and discard
-    f.readline()
     # Read Strand and Soltime info and discard
     f.readline()
     # Read Nodes, elements -- pick these up

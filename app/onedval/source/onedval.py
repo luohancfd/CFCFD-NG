@@ -17,7 +17,7 @@ the 2D surface based on the methods selected by the user.
 import sys
 
 from e3prep import select_gas_model
-from libprep3 import get_gas_model_ptr
+from libprep3 import get_gas_model_ptr, vabs
 from cell import create_cells_from_slice
 from prop_avg import *
 
@@ -43,15 +43,15 @@ pretty_var_names = {'rho':'density (kg/m^3)',
                     'v':'V velocity (m/s)',
                     'w':'W velocity (m/s)'}
 
-def pretty_print_props(f, props, species):
-    for k,v in props.iteritems():
-        if k in pretty_var_names:
-            f.write("%s\n" % pretty_var_names[k])
-            f.write("%s = %.6e\n" % (k, v))
+def pretty_print_props(f, props, species, outputs):
+    for o in outputs:
+        if o in pretty_var_names:
+            f.write("%s\n" % pretty_var_names[o])
+            f.write("%s = %.6e\n" % (o, props[o]))
         elif k in species:
-            f.write("mass fraction of %s : %.6e\n" % (k, v))
+            f.write("mass fraction of %s : %.6e\n" % (o, props[o]))
         else:
-            f.write("%s : %.6e\n" % (k, v))
+            f.write("%s : %.6e\n" % (o, props[o]))
         f.write("\n")
     return
 
@@ -157,7 +157,7 @@ def main():
             f.write("m_dot = %.6e\n" % fluxes['mass'])
         elif flux == 'momentum flux':
             f.write("momentum flux (kg.m/s^2)\n")
-            f.write("mom_dot = %.6e\n" % fluxes['mom'])
+            f.write("mom_dot = %s\n" % fluxes['mom'])
         elif flux == 'energy flux':
             f.write("energy flux (W)\n")
             f.write("e_dot = %.6e\n" % fluxes['energy'])
@@ -187,17 +187,17 @@ def main():
         if avg == 'area-weighted':
             f.write("=== area-weighted average\n\n")
             phis = area_weighted_avg(cells, cfg['one_d_outputs'], cfg['variable_map'])
-            pretty_print_props(f, phis, cfg['species'])
+            pretty_print_props(f, phis, cfg['species'], cfg['one_d_outputs'])
             f.write("\n")
         elif avg == 'mass-flux-weighted':
             f.write("=== mass flux weighted average\n\n")
             phis = mass_flux_weighted_avg(cells, cfg['one_d_outputs'], cfg['variable_map'])
-            pretty_print_props(f, phis, cfg['species'])
+            pretty_print_props(f, phis, cfg['species'], cfg['one_d_outputs'])
             f.write("\n")
         elif avg == 'flux-conserved':
             f.write("=== flux-conserved average\n\n")
             phis = stream_thrust_avg(cells, cfg['one_d_outputs'], cfg['variable_map'], cfg['species'], gmodel)
-            pretty_print_props(f, phis, cfg['species'])
+            pretty_print_props(f, phis, cfg['species'], cfg['one_d_outputs'])
         else:
             print "Requested one-D averaging method: ", avg
             print "is not known or not implemented."
