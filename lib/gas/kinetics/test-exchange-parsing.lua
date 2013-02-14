@@ -5,10 +5,11 @@ print("Testing 'collider' grammar.")
 local CG = exch.ColliderG
 
 local t1 = "N2 ~~ O2"
-local t2 = "N2 ~~ (N2, O2)"
+local t2 = "N2 ~~ (N2, O2, H2, N2)"
 local t3 = "N2 ~~ (*list)"
+local t4 = "N2 ~~ ( N2_4So, N2_X, CO_X, CO2 )"
 
-local tests = {t1, t2, t3}
+local tests = {t1, t2, t3, t4}
 
 for _,t in ipairs(tests) do
    result = lpeg.match(CG, t)
@@ -29,6 +30,7 @@ for _,t in ipairs(tests) do
 end
 print("Done.\n")
 
+--[=[
 print("Testing 'exchange' grammar.")
 local EG = exch.ExchangeG
 
@@ -81,3 +83,4 @@ end
 print("Done.\n")
 
 
+   --]=]

@@ -29,15 +29,14 @@ local Number = lpeg.R("09")^1
 local Underscore = lpeg.S("_")
 local Element = ((lpeg.R("AZ") * lpeg.R("az")^0) + lpeg.P("e"))
 local Solid = lpeg.P("S")
-local ElecLevel = lpeg.R("%w")^(-3) -- %w matches alphanumeric characters
-                                    -- ^(-3) says to match at most 3 occurrences
+local ElecLevel = (lpeg.R("az", "AZ", "09"))^-3 -- ^-3 says to match at most 3 occurrences
 local PM = lpeg.S("+-")
 local Species = lpeg.C(((Element * Number^0)^1 * PM^0)^1 * (Underscore * (Solid + ElecLevel))^0)
 local FArrow = lpeg.C(lpeg.P("=>")) * Space
 local RArrow = lpeg.C(lpeg.P("<=>")) * Space
 local Plus = lpeg.P("+") * Space
 local Open = "(" * Space
-local Close = ")" * Space
+local Close = Space * ")" * Space
 local PressureDependent = Open * Plus * "M" * Space * Close
 local function pdstring() return "pressure dependent" end
 
