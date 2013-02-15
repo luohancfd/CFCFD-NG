@@ -115,7 +115,6 @@ end
 
 function transform_mechanism(m, species, thermal_modes)
    local t = parse_energy_exch_string(m[1])
-   print("t[1][1]= ", t[1][1])
    local p = transform_species_str(t[1][1]) -- species p as string
    local ip = species[p]
    local q = t[1][2] -- species q(s): could be string, list, or table

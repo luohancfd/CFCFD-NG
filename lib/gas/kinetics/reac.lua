@@ -18,7 +18,6 @@ function transform_species_str(sp)
       return string.gsub(sp, '+', '_plus')
    end
    if sp == 'e-' then
-      print("matched e-, transforming to e_minus")
       return 'e_minus'
    end
    -- In all other cases return string unaltered
