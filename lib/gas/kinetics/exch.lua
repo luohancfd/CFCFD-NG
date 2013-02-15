@@ -6,6 +6,7 @@
 module(..., package.seeall)
 
 require 'reac'
+require 'lex_elems'
 
 local transform_species_str = reac.transform_species_str
 
@@ -13,20 +14,11 @@ local transform_species_str = reac.transform_species_str
 ITRANS = 0
 
 -- lexical elements
-local Space = lpeg.S(" \n\t")^0
-local Number = lpeg.R("09")^1
-local Underscore = lpeg.S("_")
-local Element = ((lpeg.R("AZ") * lpeg.R("az")^0) + lpeg.P("e"))
-local Solid = lpeg.P("S")
-local ElecLevel = (lpeg.R("az", "AZ", "09"))^-3 -- ^-3 says to match at most 3 occurrences
-local PM = lpeg.S("+-")
-Species = lpeg.C(((Element * Number^0)^1 * PM^0)^1 * (Underscore * (Solid + ElecLevel))^0)
-local Tilde = lpeg.P("~")
-local Dash = lpeg.P("-") * Space
-local Comma = Space * lpeg.P(",") * Space
-local Colon = lpeg.P(":") * Space
-local Open = "(" * Space
-local Close = Space * ")" * Space
+-- get common elements from lex_elems.lua
+for k,v in pairs(lex_elems) do
+   _G[k] = v
+end
+-- List some specific elements for this module
 local ListKw = lpeg.C(lpeg.P("*list")) * Space
 local AllKw = lpeg.C(lpeg.P("*all")) * Space
 local ExchType = lpeg.C(lpeg.S("VTE")) * Space -- letters designating exchange types
@@ -38,7 +30,7 @@ local Exchange = lpeg.V"Exchange"
 local Mechanism = lpeg.V"Mechanism"
 
 local G = lpeg.P{ Mechanism,
-		  Mechanism = lpeg.Ct(Colliders * Colon * Exchange),
+		  Mechanism = lpeg.Ct(Colliders * Space * Colon * Space * Exchange),
 		  Colliders = lpeg.Ct(Species * Space * (Tilde*Tilde) * Space *
 					( Species + -- e.g. N2 ~~ O2
 					 lpeg.Ct((Open*Species*(Comma*Species)^0*Close)) +  -- e.g. O2 ~~ (N2, H2)
@@ -59,6 +51,13 @@ ExchangeG = lpeg.P{ Exchange,
 
 function parse_energy_exch_string(s)
    local t = lpeg.match(ThermMechG, s)
+   if t == nil then
+      print("Problem parsing energy exchange string:")
+      print(s)
+      print("Please check input for energy exchange mechanisms.")
+      print("Bailing out!")
+      os.exit(1)
+   end
    return t
 end
 
@@ -116,6 +115,7 @@ end
 
 function transform_mechanism(m, species, thermal_modes)
    local t = parse_energy_exch_string(m[1])
+   print("t[1][1]= ", t[1][1])
    local p = transform_species_str(t[1][1]) -- species p as string
    local ip = species[p]
    local q = t[1][2] -- species q(s): could be string, list, or table

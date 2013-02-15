@@ -8,8 +8,9 @@ local t1 = "N2 ~~ O2"
 local t2 = "N2 ~~ (N2, O2, H2, N2)"
 local t3 = "N2 ~~ (*list)"
 local t4 = "N2 ~~ ( N2_4So, N2_X, CO_X, CO2 )"
+local t5 = "e- ~~ O+"
 
-local tests = {t1, t2, t3, t4}
+local tests = {t1, t2, t3, t4, t5}
 
 for _,t in ipairs(tests) do
    result = lpeg.match(CG, t)

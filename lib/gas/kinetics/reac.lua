@@ -9,6 +9,7 @@
 module(..., package.seeall)
 
 require 'reaction_rate'
+require 'lex_elems'
 
 local transform_rate_model = reaction_rate.transform_rate_model
 
@@ -17,6 +18,7 @@ function transform_species_str(sp)
       return string.gsub(sp, '+', '_plus')
    end
    if sp == 'e-' then
+      print("matched e-, transforming to e_minus")
       return 'e_minus'
    end
    -- In all other cases return string unaltered
@@ -24,19 +26,11 @@ function transform_species_str(sp)
 end
 
 -- lexical elements for parsing the whole reaction string
-local Space = lpeg.S(" \n\t")^0
-local Number = lpeg.R("09")^1
-local Underscore = lpeg.S("_")
-local Element = ((lpeg.R("AZ") * lpeg.R("az")^0) + lpeg.P("e"))
-local Solid = lpeg.P("S")
-local ElecLevel = (lpeg.R("az", "AZ", "09"))^-3 -- ^-3 says to match at most 3 occurrences
-local PM = lpeg.S("+-")
-local Species = lpeg.C(((Element * Number^0)^1 * PM^0)^1 * (Underscore * (Solid + ElecLevel))^0)
-local FArrow = lpeg.C(lpeg.P("=>")) * Space
-local RArrow = lpeg.C(lpeg.P("<=>")) * Space
-local Plus = lpeg.P("+") * Space
-local Open = "(" * Space
-local Close = Space * ")" * Space
+-- get common elements from lex_elems.lua
+for k,v in pairs(lex_elems) do
+   _G[k] = v
+   end
+-- module-specific elements
 local PressureDependent = Open * Plus * "M" * Space * Close
 local function pdstring() return "pressure dependent" end
 
