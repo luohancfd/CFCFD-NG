@@ -78,7 +78,7 @@ public:
     { return s_eval_Cp_from_T( T ); }
 
     double eval_Q_from_T( double T=0.0, double A=-1.0 )
-    { return s_eval_Q(T,A); }
+    { return s_eval_Q_from_T(T,A); }
     
     std::string get_type()
     { return type_; }
@@ -101,7 +101,7 @@ protected:
     virtual double s_eval_Cp( const Gas_data &Q  ) = 0;
     virtual double s_eval_Cp_from_T( double T ) = 0;
 
-    virtual double s_eval_Q( double T, double A ) = 0;
+    virtual double s_eval_Q_from_T( double T, double A ) = 0;
     
 };
 
@@ -136,7 +136,7 @@ private:
     double s_eval_entropy_from_T( double T );
     double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
     double s_eval_Cv_from_T( double T );
-    double s_eval_Q( double T, double A );
+    double s_eval_Q_from_T( double T, double A );
 };
 
 class Two_level_electronic : public Electronic {
@@ -156,7 +156,7 @@ private:
     double s_eval_entropy_from_T( double T );
     double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
     double s_eval_Cv_from_T( double T );
-    double s_eval_Q( double T, double A ) { return 0.0; }
+    double s_eval_Q_from_T( double T, double A ) { return 0.0; }
 };
 
 class Multi_level_electronic : public Electronic {
@@ -184,7 +184,7 @@ private:
     double s_eval_entropy_from_T( double T );
     double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
     double s_eval_Cv_from_T( double T );
-    double s_eval_Q( double T, double A );
+    double s_eval_Q_from_T( double T, double A );
 };
 
 #if TABULATED_COUPLED_DIATOMIC_MODES==0
@@ -220,7 +220,7 @@ private:
     double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
     double s_eval_Cv_from_T( double T ) { return s_eval_Cv_from_Ts(T,T,T); }
     double s_eval_Cv_from_Ts( double T_el, double T_vib, double T_rot );
-    double s_eval_Q( double T, double A ) { return 0.0; }
+    double s_eval_Q_from_T( double T, double A ) { return 0.0; }
 };
 #else
 class Coupled_diatomic_electronic : public Electronic {
@@ -249,7 +249,7 @@ private:
     double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
     double s_eval_Cv_from_T( double T ) { return s_eval_Cv_from_Ts(T,T,T); }
     double s_eval_Cv_from_Ts( double T_el, double T_vib, double T_rot );
-    double s_eval_Q( double T, double A ) { return 0.0; }
+    double s_eval_Q_from_T( double T, double A ) { return 0.0; }
 };
 #endif
 
@@ -273,7 +273,7 @@ private:
     double s_eval_Cv_from_T( double T );
     double s_eval_Cp( const Gas_data &Q ) { return s_eval_Cp_from_T(Q.T[iT_]); }
     double s_eval_Cp_from_T( double T );
-    double s_eval_Q( double T, double A );
+    double s_eval_Q_from_T( double T, double A );
 };
 
 class Rotation : public Species_energy_mode {
@@ -309,7 +309,7 @@ private:
     double s_eval_entropy_from_T( double T );
     double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
     double s_eval_Cv_from_T( double T );
-    double s_eval_Q( double T, double A );
+    double s_eval_Q_from_T( double T, double A );
 };
 
 class Fully_excited_nonlinear_rotation : public Rotation {
@@ -332,7 +332,7 @@ private:
     double s_eval_entropy_from_T( double T );
     double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
     double s_eval_Cv_from_T( double T );
-    double s_eval_Q( double T, double A );
+    double s_eval_Q_from_T( double T, double A );
 };
 
 #if TABULATED_COUPLED_DIATOMIC_MODES==0
@@ -365,7 +365,7 @@ private:
     double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
     double s_eval_Cv_from_T( double T ) { return s_eval_Cv_from_Ts(T,T,T); }
     double s_eval_Cv_from_Ts( double T_el, double T_vib, double T_rot );
-    double s_eval_Q( double T, double A ) { return 0.0; }
+    double s_eval_Q_from_T( double T, double A ) { return 0.0; }
 };
 #else
 class Coupled_diatomic_rotation : public Rotation {
@@ -400,7 +400,7 @@ private:
     double s_eval_Cp( const Gas_data &Q ) { return s_eval_Cv_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
     double s_eval_Cp_from_T( double T ) { return s_eval_Cv_from_Ts(T,T,T); }
     double s_eval_Cp_from_Ts( double T_el, double T_vib, double T_rot ) { return s_eval_Cv_from_Ts(T_el,T_vib,T_rot); }
-    double s_eval_Q( double T, double A ) { return 0.0; }
+    double s_eval_Q_from_T( double T, double A ) { return 0.0; }
 };
 #endif
 
@@ -433,7 +433,7 @@ private:
     double s_eval_entropy_from_T( double T );
     double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
     double s_eval_Cv_from_T( double T );
-    double s_eval_Q( double T, double A );
+    double s_eval_Q_from_T( double T, double A );
 };
 
 class Truncated_harmonic_vibration : public Vibration {
@@ -455,7 +455,7 @@ private:
     double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
     double s_eval_Cv_from_T( double T );
     double s_eval_HO_energy( double T );
-    double s_eval_Q( double T, double A );
+    double s_eval_Q_from_T( double T, double A );
 };
 
 #if TABULATED_COUPLED_DIATOMIC_MODES==0
@@ -494,7 +494,7 @@ private:
     double s_eval_Cp( const Gas_data &Q ) { return s_eval_Cv_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
     double s_eval_Cp_from_T( double T ) { return s_eval_Cv_from_Ts(T,T,T); }
     double s_eval_Cp_from_Ts( double T_el, double T_vib, double T_rot ) { return s_eval_Cv_from_Ts(T_el,T_vib,T_rot); }
-    double s_eval_Q( double T, double A ) { return 0.0; }
+    double s_eval_Q_from_T( double T, double A ) { return 0.0; }
 };
 #else
 class Coupled_diatomic_vibration : public Vibration {
@@ -529,7 +529,7 @@ private:
     double s_eval_Cp( const Gas_data &Q ) { return s_eval_Cv_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
     double s_eval_Cp_from_T( double T ) { return s_eval_Cv_from_Ts(T,T,T); }
     double s_eval_Cp_from_Ts( double T_el, double T_vib, double T_rot ) { return s_eval_Cv_from_Ts(T_el,T_vib,T_rot); }
-    double s_eval_Q( double T, double A ) { return 0.0; }
+    double s_eval_Q_from_T( double T, double A ) { return 0.0; }
 };
 #endif
 
@@ -560,7 +560,7 @@ private:
     double s_eval_Cv_from_T( double T );
     double s_eval_Cp( const Gas_data &Q  ) { return s_eval_Cv_from_T(Q.T[iT_]); }
     double s_eval_Cp_from_T( double T  ) { return s_eval_Cv_from_T(T); }
-    double s_eval_Q( double T, double A );
+    double s_eval_Q_from_T( double T, double A );
 };
 #else
 class Fully_coupled_diatom_internal : public Species_energy_mode {
@@ -584,7 +584,7 @@ private:
     double s_eval_Cv_from_T( double T );
     double s_eval_Cp( const Gas_data &Q  ) { return s_eval_Cv_from_T(Q.T[iT_]); }
     double s_eval_Cp_from_T( double T  ) { return s_eval_Cv_from_T(T); }
-    double s_eval_Q( double T, double A ) { return 0.0; }
+    double s_eval_Q_from_T( double T, double A ) { return 0.0; }
 };
 #endif
 
@@ -613,7 +613,7 @@ private:
     double s_eval_Cv_from_T( double T );
     double s_eval_Cp( const Gas_data &Q  ) { return s_eval_Cv_from_T(Q.T[iT_]); }
     double s_eval_Cp_from_T( double T  ) { return s_eval_Cv_from_T(T); }
-    double s_eval_Q( double T, double A ) { return 0.0; }
+    double s_eval_Q_from_T( double T, double A );
 };
 
 #endif

@@ -67,7 +67,7 @@ s_eval_Cv_from_T( double T )
 
 double
 One_level_electronic::
-s_eval_Q( double T, double A )
+s_eval_Q_from_T( double T, double A )
 {
     UNUSED_VARIABLE(A);
     return g_*exp( - theta_ / T );
@@ -179,7 +179,7 @@ s_eval_Cv_from_T( double T )
 
 double
 Multi_level_electronic::
-s_eval_Q( double T, double A )
+s_eval_Q_from_T( double T, double A )
 {
     double Q = 0.0;
     for ( size_t i=0; i<theta_vec_.size(); ++i ) {
@@ -454,7 +454,7 @@ s_eval_Cp_from_T( double T  )
 
 double
 Fully_excited_translation::
-s_eval_Q( double T, double A )
+s_eval_Q_from_T( double T, double A )
 {
     // NOTE: must divide by avogadro's number to get units of 1/m3 (I think)
     return pow( 2.0 * M_PI * PC_R_u / R_ / PC_Avogadro * PC_k_SI * T / PC_h_SI / PC_h_SI, 1.5 ) / PC_Avogadro;
@@ -500,7 +500,7 @@ s_eval_Cv_from_T( double T  )
 
 double
 Fully_excited_rotation::
-s_eval_Q( double T, double A )
+s_eval_Q_from_T( double T, double A )
 {
     return T / sigma_ / theta_ + 1.0 / ( 3.0 * sigma_);
 }
@@ -543,7 +543,7 @@ s_eval_Cv_from_T( double T  )
 
 double
 Fully_excited_nonlinear_rotation::
-s_eval_Q( double T, double A )
+s_eval_Q_from_T( double T, double A )
 {
     return  sqrt( T*T*T * M_PI / ( theta_A0_ * theta_B0_ * theta_C0_ ) );
 }
@@ -773,7 +773,7 @@ s_eval_Cv_from_T( double T  )
 
 double
 Harmonic_vibration::
-s_eval_Q( double T, double A )
+s_eval_Q_from_T( double T, double A )
 {
     // Ref: Vincenti and Kruger (1975) p 135
     return 1.0 / ( 1.0 - exp( - theta_ / T ) );
@@ -834,7 +834,7 @@ s_eval_Cv_from_T( double T  )
 
 double
 Truncated_harmonic_vibration::
-s_eval_Q( double T, double A )
+s_eval_Q_from_T( double T, double A )
 {
     double theta_lim = A;
     if ( theta_lim < 0.0 ) theta_lim = theta_D_;
@@ -1155,7 +1155,7 @@ s_eval_Cv_from_T( double T  )
 
 double
 Fully_coupled_diatom_internal::
-s_eval_Q( double T, double A )
+s_eval_Q_from_T( double T, double A )
 {
     // Loop over all rovibronic levels, sum up contributions from definition
     double Q_total = 0.0;
@@ -1270,4 +1270,30 @@ Fully_coupled_polyatom_internal::
 s_eval_Cv_from_T( double T  )
 {
     return 0.0;
+}
+
+double
+Fully_coupled_polyatom_internal::
+s_eval_Q_from_T( double T, double A )
+{
+    // Loop over all rovibronic levels, sum up contributions from definition
+    double Q_total = 0.0;
+    for ( size_t ilev=0; ilev<elevs_.size(); ++ilev ) {
+        double E_el = elevs_[ilev]->E;
+        for ( size_t ivm=0; ivm<elevs_[ilev]->vmodes.size(); ++ivm ) {
+            for ( int iV=0; iV<elevs_[ilev]->vmodes[ivm]->Vmax; ++iV ) {
+                double E_rot_0 = elevs_[ilev]->eval_E_rot(ivm,iV,0);
+                double E_vib = elevs_[ilev]->eval_E_vib( ivm, iV ) + E_rot_0;
+                for ( int iJ=0; iJ<elevs_[ilev]->vmodes[ivm]->Jmax[iV]; ++iJ ){
+                    double E_rot = elevs_[ilev]->eval_E_rot(ivm,iV,iJ) - E_rot_0;
+                    double E_rot_dash = E_el + E_vib + E_rot;
+                    double Q_rot_dash = elevs_[ilev]->g * double(2*iJ+1) / double(elevs_[ilev]->sigma) * exp( - E_rot_dash / PC_k_SI / T );
+                    if ( isnan(Q_rot_dash) || isinf( Q_rot_dash ) ) continue;
+                    Q_total += Q_rot_dash;
+                }
+            }
+        }
+    }
+
+    return Q_total;
 }
