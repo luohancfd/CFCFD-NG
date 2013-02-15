@@ -96,7 +96,8 @@ LUA_MODULES := 	refprop.lua \
 	reaction_rate.lua \
 	tab_serialise.lua \
 	energy_exchange_parser.lua \
-	exch.lua
+	exch.lua \
+	lex_elems.lua 
 
 LUA_OBJECTS := lgas-model.o \
 	lreaction-update.o \
@@ -874,6 +875,8 @@ energy_exchange_parser.lua : $(KINETICS)/energy_exchange_parser.lua
 exch.lua : $(KINETICS)/exch.lua
 	cp $(KINETICS)/exch.lua .
 
+lex_elems.lua : $(KINETICS)/lex_elems.lua
+	cp $(KINETICS)/lex_elems.lua .
 #------------------------------------------
 # Tools
 #
