@@ -1,3 +1,3 @@
 #!/bin/bash
 
-onedval thrt.config thrt-slice.dat 
+onedval exit.config exit-slice.dat 

@@ -227,13 +227,13 @@ def main():
                 for flux in cfg['integrated_outputs']:
                     if flux == 'mass flux':
                         f.write("mass flux (kg/s)\n")
-                        f.write("m_dot = %.6e\n" % fluxes['mass'])
+                        f.write("m_dot = %.6e\n\n" % fluxes['mass'])
                     elif flux == 'momentum flux':
                         f.write("momentum flux (kg.m/s^2)\n")
-                        f.write("mom_dot = %s\n" % fluxes['mom'])
+                        f.write("mom_dot = %s\n\n" % fluxes['mom'])
                     elif flux == 'energy flux':
                         f.write("energy flux (W)\n")
-                        f.write("e_dot = %.6e\n" % fluxes['energy'])
+                        f.write("e_dot = %.6e\n\n" % fluxes['energy'])
                     elif flux == 'species mass flux':
                         for sp in cfg['species']:
                             isp = gmodel.get_isp_from_species_name(sp)
@@ -271,7 +271,6 @@ def main():
                 f.write("\n------------------------------\n")
                 f.write("One-dimensionalised quantities\n")
                 f.write("------------------------------\n")
-                f.write("\n")
 
         phis_all = {}
         for avg in cfg['one_d_averages']:
@@ -279,21 +278,21 @@ def main():
                 phis = area_weighted_avg(cells, cfg['one_d_outputs'], cfg['variable_map'])
                 phis_all[avg] = copy(phis)
                 if cfg['output_format'] == 'verbose':
-                    f.write("=== area-weighted average\n\n")
+                    f.write("-- area-weighted average --\n\n")
                     pretty_print_props(f, phis, cfg['species'], cfg['one_d_outputs'])
                     f.write("\n")
             elif avg == 'mass-flux-weighted':
                 phis = mass_flux_weighted_avg(cells, cfg['one_d_outputs'], cfg['variable_map'])
                 phis_all[avg] = copy(phis)
                 if cfg['output_format'] == 'verbose':
-                    f.write("=== mass flux weighted average\n\n")
+                    f.write("-- mass-flux-weighted average --\n\n")
                     pretty_print_props(f, phis, cfg['species'], cfg['one_d_outputs'])
                     f.write("\n")
             elif avg == 'flux-conserved':
                 phis = stream_thrust_avg(cells, cfg['one_d_outputs'], cfg['variable_map'], cfg['species'], gmodel)
                 phis_all[avg] = copy(phis)
                 if cfg['output_format'] == 'verbose':
-                    f.write("=== flux-conserved average\n\n")
+                    f.write("-- flux-conserved average --\n\n")
                     pretty_print_props(f, phis, cfg['species'], cfg['one_d_outputs'])
                     f.write("\n")
             else:

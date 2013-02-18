@@ -1,5 +1,5 @@
 ========================================================
-One-dimensionalised properties at the throat of an inlet
+ One-dimensionalised properties at the exit of an inlet
 ========================================================
 
 .. Author: Rowan J. Gollan <r.gollan@uq.edu.au>
@@ -7,10 +7,10 @@ One-dimensionalised properties at the throat of an inlet
 
 Files:
 ------
-thrt-slice.dat
+exit-slice.dat
   A Tecplot file. This data is an extracted slice written out
   in ASCII block format.
 
-thrt.config
+exit.config
   The config file to control what calculations onedval does.
 
