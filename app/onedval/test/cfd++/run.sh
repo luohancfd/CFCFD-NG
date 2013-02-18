@@ -1,6 +1,6 @@
 #!/bin/bash
 
 gunzip test.dat.gz
-onedval test.dat test.config one-d-props.txt
+onedval test.config test.dat 
 gzip test.dat
 

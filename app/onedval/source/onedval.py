@@ -20,19 +20,20 @@ from e3prep import select_gas_model
 from libprep3 import get_gas_model_ptr, vabs
 from cell import create_cells_from_slice
 from prop_avg import *
+from copy import copy
+
+output_formats = ['verbose', 'as_data_file']
 
 default_var_map = {'x':'x', 'y':'y', 'z':'z', 'u':'u', 'v':'v', 'w':'w',
                    'rho':'rho', 'p':'p', 'T':'T', 'M':'M', 'h0':'h0'}
 
 def print_usage():
     print ""
-    print "Usage: onedval INPUT CONFIG [OUTPUT]"
+    print "Usage: onedval CONFIG INPUT_FILE(S)"
     print ""
     print "where:"
-    print "INPUT  -- name of Tecplot file with slice data"
     print "CONFIG -- name of config file to control calculation"
-    print "OUTPUT -- optional name of file for output data"
-    print "          if not supplied default output is 'onedval-props.txt'"
+    print "INPUT_FILE(S)  -- a list of one or more Tecplot files with slice data"
     print ""
 
 pretty_var_names = {'rho':'density (kg/m^3)',
@@ -55,6 +56,51 @@ def pretty_print_props(f, props, species, outputs):
         f.write("\n")
     return
 
+short_one_d_av_names = {'area-weighted':'a-w',
+                        'mass-flux-weighted':'m-w',
+                        'flux-conserved':'f-c'}
+units = {'rho':'kg/m^3',
+         'p':'Pa',
+         'T':'K',
+         'M':'-',
+         'u':'m/s',
+         'v':'m/s',
+         'w':'m/s',
+         'mass flux':'kg/s',
+         'momentum flux':'kg.m/s^2',
+         'energy flux':'W'}
+
+def data_file_header(f, one_d_av, one_d_out, int_out, species):
+    f.write("# x[m]     y[m]     z[m]    ")
+    
+    for av in one_d_av:
+        for o in one_d_out:
+            f.write("%s[%s]:%s    " % (o, units[o], short_one_d_av_names[av]))
+    
+    for i_out in int_out:
+        if i_out == 'species mass flux':
+            for sp in species:
+                f.write("%s-flux[kg/s]    " % sp)
+        else:
+            f.write("%s[%s]    " % (i_out, units[i_out]))
+    f.write("\n")
+    return
+
+def data_file_row(f, pos, phis, int_quants, one_d_av, one_d_out, int_out, species):
+    f.write("%20.12e %20.12e %20.12e " % (pos.x, pos.y, pos.z))
+    for av in one_d_av:
+        for o in one_d_out:
+            f.write("%20.12e " % (phis[av][o]))
+    
+    for i_out in int_out:
+        if i_out == 'species mass flux':
+            for sp in species:
+                f.write("%20.12e " % int_quants['species mass flux'][sp])
+        else:
+            f.write("%20.12e  " % (int_quants[i_out]))
+    f.write("\n")
+
+
 def main():
     """
     Top-level function for the onedval program.
@@ -67,11 +113,7 @@ def main():
         print_usage()
         sys.exit(1)
 
-    slice_file = sys.argv[1]
-    config_file = sys.argv[2]
-    output_file = 'onedval-props.txt'
-    if len(sys.argv) == 4:
-        output_file = sys.argv[3]
+    config_file = sys.argv[1]
     
     # 1. Gather info from config file
     # Set some defaults.
@@ -121,88 +163,149 @@ def main():
     if not 'integrated_outputs' in cfg:
         cfg['integrated_outputs'] = []
 
-    print "onedval: Reading in data from slice and creating cells"
-    # 2. Read data from slice
-    cells = create_cells_from_slice(slice_file, cfg['variable_map'], cfg['grid_scale'])
-    print "Total number of cells created from slice: ", len(cells)
-    # 2a. apply filtering if required
-    if 'filter_function' in cfg:
-        print "Using filter function to remove unwanted or unimportant cells."
-        cells = filter(cfg['filter_function'], cells)
-        print "Number of cells after filtering: ", len(cells)
+    # 1g. Looking for output options
+    if not 'output_file' in cfg:
+        print "No 'output_file' was set."
+        print "An output file name must be set by the user."
+        print "Bailing out!"
+        sys.exit(1)
+    
+    if not 'output_format' in cfg:
+        print "No 'output_format' was set."
+        print "An output format must be set by the user."
+        print "Bailing out!"
+        sys.exit(1)
+
+    if not cfg['output_format'] in output_formats:
+        print "The selected output format: ", cfg['output_format']
+        print "is not one of the available options. The available options are:"
+        for o in output_formats:
+            print "'%s'" % o
+        print "Bailing out!"
+        sys.exit(1)
+        
+    
+    # 2. Read data from slices and process
+    print "onedval: Reading in data from slice(s)"
+    f = open(cfg['output_file'], 'w')
+    phis = {}
+    int_quants = {}
+    if cfg['output_format'] == 'as_data_file':
+        data_file_header(f, cfg['one_d_averages'], cfg['one_d_outputs'], cfg['integrated_outputs'], cfg['species'])
 
     
-    print "onedval: Doing the requested calculations"
-    # 3. Do some work.
-    f = open(output_file, 'w')
-    f.write("------------------- onedval output ---------------------\n\n")
-    f.write("number of cells in averaging:\n")
-    f.write("ncells = %d\n" % len(cells))
-    f.write("cumulative area of cells (m^2):\n")
-    f.write("area = %.6e\n" % area(cells))
+    for slice_file in sys.argv[2:]:
+        print "onedval: Creating cells from slice: ", slice_file
+        cells = create_cells_from_slice(slice_file, cfg['variable_map'], cfg['grid_scale'])
+        print "Total number of cells created from slice: ", len(cells)
+        # 2a. apply filtering if required
+        if 'filter_function' in cfg:
+            print "Using filter function to remove unwanted or unimportant cells."
+            cells = filter(cfg['filter_function'], cells)
+            print "Number of cells after filtering: ", len(cells)
 
-    # 3a. Compute requested integrated quantities (if required)
-    if len(cfg['integrated_outputs']) > 0:
-        print "onedval: Writing out integrated quantities"
-        f.write("\n---------------------\n")
-        f.write("Integrated quantities\n")
-        f.write("---------------------\n")
-        f.write("\n")
+        # 3. Do some work.
+        print "onedval: Doing the requested calculations"
+        if cfg['output_format'] == 'verbose':
+            f.write("------------------- onedval output ---------------------\n\n")
+            f.write("number of cells in averaging:\n")
+            f.write("ncells = %d\n" % len(cells))
+            f.write("cumulative area of cells (m^2):\n")
+            f.write("area = %.6e\n" % area(cells))
 
-    fluxes = compute_fluxes(cells, cfg['variable_map'], cfg['species'], gmodel)
+        # 3a. Compute requested integrated quantities (if required)
+        fluxes = compute_fluxes(cells, cfg['variable_map'], cfg['species'], gmodel)
+            
+        if cfg['output_format'] == 'verbose':
+            if len(cfg['integrated_outputs']) > 0:
+                print "onedval: Writing out integrated quantities"
+                f.write("\n---------------------\n")
+                f.write("Integrated quantities\n")
+                f.write("---------------------\n")
+                f.write("\n")
 
-    for flux in cfg['integrated_outputs']:
-        if flux == 'mass flux':
-            f.write("mass flux (kg/s)\n")
-            f.write("m_dot = %.6e\n" % fluxes['mass'])
-        elif flux == 'momentum flux':
-            f.write("momentum flux (kg.m/s^2)\n")
-            f.write("mom_dot = %s\n" % fluxes['mom'])
-        elif flux == 'energy flux':
-            f.write("energy flux (W)\n")
-            f.write("e_dot = %.6e\n" % fluxes['energy'])
-        elif flux == 'species mass flux':
-            if nsp == 1:
-                continue
-            for sp in cfg['species']:
-                isp = gmodel.get_isp_from_species_name(sp)
-                f.write("mass flux of %s (kg/s)\n" % sp)
-                f.write("m%s_dot = %.6e\n" % (sp, fluxes['species'][isp]))
-        else:
-            print "Requested integrated quantity: ", f
-            print "is not part of the list of available integrated quantities."
-            print "Bailing out!"
-            sys.exit(1)
+                for flux in cfg['integrated_outputs']:
+                    if flux == 'mass flux':
+                        f.write("mass flux (kg/s)\n")
+                        f.write("m_dot = %.6e\n" % fluxes['mass'])
+                    elif flux == 'momentum flux':
+                        f.write("momentum flux (kg.m/s^2)\n")
+                        f.write("mom_dot = %s\n" % fluxes['mom'])
+                    elif flux == 'energy flux':
+                        f.write("energy flux (W)\n")
+                        f.write("e_dot = %.6e\n" % fluxes['energy'])
+                    elif flux == 'species mass flux':
+                        for sp in cfg['species']:
+                            isp = gmodel.get_isp_from_species_name(sp)
+                            f.write("mass flux of %s (kg/s)\n" % sp)
+                            f.write("m%s_dot = %.6e\n\n" % (sp, fluxes['species'][isp]))
+                    else:
+                        print "Requested integrated quantity: ", flux
+                        print "is not part of the list of available integrated quantities."
+                        print "Bailing out!"
+                        sys.exit(1)
 
-    # 3b. Compute requested one_d_properties
-    if len(cfg['one_d_averages']) > 0:
-        print "onedval: Writing out one-dimensionalised quantities"
-        f.write("\n------------------------------\n")
-        f.write("One-dimensionalised quantities\n")
-        f.write("------------------------------\n")
-        f.write("\n")
+        if cfg['output_format'] == 'as_data_file':
+            for flux in cfg['integrated_outputs']:
+                if flux == 'mass flux':
+                    int_quants['mass flux'] = fluxes['mass']
+                elif flux == 'momentum flux':
+                    int_quants['momentum flux'] = vabs(fluxes['mom'])
+                elif flux == 'energy flux':
+                    int_quants['energy flux'] = fluxes['energy']
+                elif flux == 'species mass flux':
+                    int_quants['species mass flux'] = {}
+                    for sp in cfg['species']:
+                        isp = gmodel.get_isp_from_species_name(sp)
+                        int_quants['species mass flux'][sp] = fluxes['species'][isp]
+                else:
+                    print "Requested integrated quantity: ", flux
+                    print "is not part of the list of available integrated quantities."
+                    print "Bailing out!"
+                    sys.exit(1)
+        
+        # 3b. Compute requested one_d_properties
+        if cfg['output_format'] == 'verbose':
+            if len(cfg['one_d_averages']) > 0:
+                print "onedval: Writing out one-dimensionalised quantities"
+                f.write("\n------------------------------\n")
+                f.write("One-dimensionalised quantities\n")
+                f.write("------------------------------\n")
+                f.write("\n")
 
+        phis_all = {}
+        for avg in cfg['one_d_averages']:
+            if avg == 'area-weighted':
+                phis = area_weighted_avg(cells, cfg['one_d_outputs'], cfg['variable_map'])
+                phis_all[avg] = copy(phis)
+                if cfg['output_format'] == 'verbose':
+                    f.write("=== area-weighted average\n\n")
+                    pretty_print_props(f, phis, cfg['species'], cfg['one_d_outputs'])
+                    f.write("\n")
+            elif avg == 'mass-flux-weighted':
+                phis = mass_flux_weighted_avg(cells, cfg['one_d_outputs'], cfg['variable_map'])
+                phis_all[avg] = copy(phis)
+                if cfg['output_format'] == 'verbose':
+                    f.write("=== mass flux weighted average\n\n")
+                    pretty_print_props(f, phis, cfg['species'], cfg['one_d_outputs'])
+                    f.write("\n")
+            elif avg == 'flux-conserved':
+                phis = stream_thrust_avg(cells, cfg['one_d_outputs'], cfg['variable_map'], cfg['species'], gmodel)
+                phis_all[avg] = copy(phis)
+                if cfg['output_format'] == 'verbose':
+                    f.write("=== flux-conserved average\n\n")
+                    pretty_print_props(f, phis, cfg['species'], cfg['one_d_outputs'])
+                    f.write("\n")
+            else:
+                print "Requested one-D averaging method: ", avg
+                print "is not known or not implemented."
+                print "Bailing out!"
+                sys.exit(1)
 
-    for avg in cfg['one_d_averages']:
-        if avg == 'area-weighted':
-            f.write("=== area-weighted average\n\n")
-            phis = area_weighted_avg(cells, cfg['one_d_outputs'], cfg['variable_map'])
-            pretty_print_props(f, phis, cfg['species'], cfg['one_d_outputs'])
-            f.write("\n")
-        elif avg == 'mass-flux-weighted':
-            f.write("=== mass flux weighted average\n\n")
-            phis = mass_flux_weighted_avg(cells, cfg['one_d_outputs'], cfg['variable_map'])
-            pretty_print_props(f, phis, cfg['species'], cfg['one_d_outputs'])
-            f.write("\n")
-        elif avg == 'flux-conserved':
-            f.write("=== flux-conserved average\n\n")
-            phis = stream_thrust_avg(cells, cfg['one_d_outputs'], cfg['variable_map'], cfg['species'], gmodel)
-            pretty_print_props(f, phis, cfg['species'], cfg['one_d_outputs'])
-        else:
-            print "Requested one-D averaging method: ", avg
-            print "is not known or not implemented."
-            print "Bailing out!"
-            sys.exit(1)
+        if cfg['output_format'] == 'as_data_file':
+            pos = avg_pos(cells, cfg['variable_map'])
+            data_file_row(f, pos, phis_all, int_quants, cfg['one_d_averages'], cfg['one_d_outputs'],
+                          cfg['integrated_outputs'], cfg['species'])
 
     f.close()
     print "onedval: Done."

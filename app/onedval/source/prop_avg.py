@@ -21,6 +21,23 @@ def area(cells):
         A = A + c.area()
     return A
 
+def avg_pos(cells, var_map):
+    x = 0.0; y = 0.0; z = 0.0
+    xlabel = var_map['x']
+    ylabel = var_map['y']
+    zlabel = var_map['z']
+    A = area(cells)
+    for c in cells:
+        dA = c.area()
+        x += c.get(xlabel)*dA
+        y += c.get(ylabel)*dA
+        z += c.get(zlabel)*dA
+    x /= A
+    y /= A
+    z /= A
+    return Vector3(x, y, z)
+    
+
 def compute_fluxes(cells, var_map, species, gmodel):
     f_mass = 0.0
     f_mom = Vector3(0.0, 0.0, 0.0)
@@ -49,10 +66,10 @@ def compute_fluxes(cells, var_map, species, gmodel):
         f_mass = f_mass + rho*u_n*dA
         f_mom = f_mom + (rho*u_n*vel + p*n)*dA
         f_energy = f_energy + (rho*u_n*h0)*dA
-        if nsp > 1:
-            for isp, sp in enumerate(species):
-                massf = c.get(sp)
-                f_sp[isp] = f_sp[isp] + rho*massf*u_n*dA
+        for isp, sp in enumerate(species):
+            # Try to grab mass fraction or set to 1.0 if not found
+            massf = c.get(sp, 1.0)
+            f_sp[isp] = f_sp[isp] + rho*massf*u_n*dA
     return {'mass': f_mass, 'mom': f_mom, 'energy': f_energy, 'species':f_sp}
 
 def area_weighted_avg(cells, props, var_map):

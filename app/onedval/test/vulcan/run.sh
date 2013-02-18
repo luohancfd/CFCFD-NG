@@ -1,3 +1,3 @@
 #!/bin/bash
 
-onedval thrt-slice.dat thrt.config thrt-props.txt
+onedval thrt.config thrt-slice.dat 
