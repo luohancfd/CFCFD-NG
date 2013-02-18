@@ -35,8 +35,20 @@ VT_MillikanWhite(lua_State *L, int ip, int iq, int itrans)
 
     M_p_ = p->get_M();
     M_q_ = q->get_M();
-    Diatomic_species *P = dynamic_cast<Diatomic_species*>(p);
-    theta_ = P->get_theta_v();
+    if ( p->get_type().find("diatomic")!=string::npos ) {
+        Diatomic_species *P = dynamic_cast<Diatomic_species*>(p);
+        theta_ = P->get_theta_v();
+    }
+    else if ( p->get_type().find("polyatomic")!=string::npos ) {
+        Polyatomic_species *P = dynamic_cast<Polyatomic_species*>(p);
+        theta_ = P->get_theta_v();
+    }
+    else {
+        cout << "VT_MillikanWhite::VT_MillikanWhite()" << endl
+             << "Species: " << p->get_name() << " is not declared as a molecule!" << endl;
+        exit( BAD_INPUT_ERROR );
+    }
+
     mu_ = ((M_p_ * M_q_) / (M_p_ + M_q_))*1000.0;
 
     lua_getfield(L, -1, "a");
