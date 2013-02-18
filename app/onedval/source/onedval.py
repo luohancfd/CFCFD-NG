@@ -18,7 +18,7 @@ import sys
 
 from e3prep import select_gas_model
 from libprep3 import get_gas_model_ptr, vabs
-from cell import create_cells_from_slice
+from cell import create_cells_from_slice, area
 from prop_avg import *
 from copy import copy
 
@@ -71,7 +71,7 @@ units = {'rho':'kg/m^3',
          'energy flux':'W'}
 
 def data_file_header(f, one_d_av, one_d_out, int_out, species):
-    f.write("# x[m]     y[m]     z[m]    ")
+    f.write("# x[m]     y[m]     z[m]    area[m^2]     ")
     
     for av in one_d_av:
         for o in one_d_out:
@@ -86,8 +86,8 @@ def data_file_header(f, one_d_av, one_d_out, int_out, species):
     f.write("\n")
     return
 
-def data_file_row(f, pos, phis, int_quants, one_d_av, one_d_out, int_out, species):
-    f.write("%20.12e %20.12e %20.12e " % (pos.x, pos.y, pos.z))
+def data_file_row(f, pos, area, phis, int_quants, one_d_av, one_d_out, int_out, species):
+    f.write("%20.12e %20.12e %20.12e %20.12e " % (pos.x, pos.y, pos.z, area))
     for av in one_d_av:
         for o in one_d_out:
             f.write("%20.12e " % (phis[av][o]))
@@ -303,8 +303,9 @@ def main():
                 sys.exit(1)
 
         if cfg['output_format'] == 'as_data_file':
+            A = area(cells)
             pos = avg_pos(cells, cfg['variable_map'])
-            data_file_row(f, pos, phis_all, int_quants, cfg['one_d_averages'], cfg['one_d_outputs'],
+            data_file_row(f, pos, A, phis_all, int_quants, cfg['one_d_averages'], cfg['one_d_outputs'],
                           cfg['integrated_outputs'], cfg['species'])
 
     f.close()
