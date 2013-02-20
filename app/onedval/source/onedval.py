@@ -14,7 +14,7 @@ the 2D surface based on the methods selected by the user.
    12-Feb-2013  Initial coding.
 """
 
-import sys
+import sys, gc
 
 from e3prep import select_gas_model
 from libprep3 import get_gas_model_ptr, vabs
@@ -70,6 +70,10 @@ units = {'rho':'kg/m^3',
          'momentum flux':'kg.m/s^2',
          'energy flux':'W'}
 
+column_names = {'mass flux' : 'mass-flux',
+                'momentum flux' : 'mom.-flux',
+                'energy flux' : 'energy-flux' }
+
 def data_file_header(f, one_d_av, one_d_out, int_out, species):
     f.write("# x[m]     y[m]     z[m]    area[m^2]     ")
     
@@ -82,7 +86,7 @@ def data_file_header(f, one_d_av, one_d_out, int_out, species):
             for sp in species:
                 f.write("%s-flux[kg/s]    " % sp)
         else:
-            f.write("%s[%s]    " % (i_out, units[i_out]))
+            f.write("%s[%s]    " % (column_names[i_out], units[i_out]))
     f.write("\n")
     return
 
