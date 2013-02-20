@@ -5,7 +5,7 @@
 
 O2 = {}
 O2.M = { 
-   value = 31.999e-3,
+   value = 31.9988e-3,
    units = 'kg/mol',
    description = 'molecular mass',
    reference = 'from CEA2::thermo.inp'
