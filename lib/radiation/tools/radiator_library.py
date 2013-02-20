@@ -459,32 +459,42 @@ class PolyatomicRadiator(Radiator):
     """Derived diatomic radiator class"""
     def __init__(self, name=""):
         Radiator.__init__(self, name, "polyatomic_radiator")
+        self.available_level_sets = {}
+        self.photoionXsection_model = PhotoIonXSectionModel()
+        self.available_photoionXsection_models = {}
+        self.default_photoionXsection_model = ""
         self.iTv = 0
         self.iTr = 0
-        self.available_level_sets = {}
+        self.linear = True
+        self.eta_D = 0
         
     def get_LUA_string(self):
         ostring  = Radiator.get_LUA_string(self)
         ostring += "%s.iTv = %d\n" % ( self.name, self.iTv )
         ostring += "%s.iTr = %d\n" % ( self.name, self.iTr )
+        ostring += "%s.linear = %d\n" % ( self.name, int(self.linear) )
         ostring += "%s.eta_D = %e\n" % ( self.name, self.eta_D )
         ostring += self.level_set.get_LUA_string(mname=self.name)
+        # FIXME: need to check that the level set is compatible with PICS model
+        ostring += self.photoionXsection_model.get_LUA_string(species=self.name)
         return ostring
 
     def default_data(self):
         self.level_set = self.available_level_sets[self.default_level_set]
+        self.photoionXsection_model = self.available_photoionXsection_models[self.default_photoionXsection_model]
+
 
 #  ==== Polyatomic radiators ========
 #  ==== CO2 =========================
 CO2 = PolyatomicRadiator()
-CO2.general_comments = "# under development!"
+CO2.general_comments = "# under development!\n"
 CO2.name = "CO2"
 CO2.mol_weight = 44.009500e-3
 CO2.h_f = -8941478.54
 CO2.Z = 0
 CO2.eta_I = 0.0 # dummy value
 CO2.eta_D = 0.0 # dummy value
-CO2.type = "linear nonpolar"
+CO2.linear = True
 # Spectroscopic data
 #
 CO2.default_level_set = "Rothman"
@@ -754,6 +764,12 @@ CO2_rothman = PolyatomicLevelSet()
 CO2_rothman.levels = [ ground ]
 #
 CO2.available_level_sets["Rothman"] = CO2_rothman
+#
+# ----- Photoionization cross-section models -----
+CO2.default_photoionXsection_model = "none"
+#
+CO2_pIx = PhotoIonXSectionModel(elevel_set="NA",model="none")
+CO2.available_photoionXsection_models["none"] = CO2_pIx
         
 #  ==== Electron data ===============
 e_minus = ElectronRadiator()

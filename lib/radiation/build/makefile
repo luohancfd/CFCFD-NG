@@ -67,11 +67,12 @@ RAD_OBJECTS := spectral_model.o \
 	photaura.o \
 	lua_service.o \
 	radiator.o \
+	atomic_radiator.o \
+	atomic_line.o \
 	diatomic_radiator.o \
 	diatomic_system.o \
 	diatomic_band.o \
-	atomic_radiator.o \
-	atomic_line.o \
+	polyatomic_radiator.o \
 	electron_radiator.o \
 	planck_radiator.o \
 	spectra_pieces.o \
@@ -271,6 +272,13 @@ photaura.o : $(SRC)/photaura.cxx $(SRC)/photaura.hh \
 	
 radiator.o : $(SRC)/radiator.cxx $(SRC)/radiator.hh $(SRC)/photoionisation.hh
 	$(CXX) $(CXXFLAG) $(SRC)/radiator.cxx -I$(LUA_INCLUDE_DIR)
+
+atomic_radiator.o : $(SRC)/atomic_radiator.cxx $(SRC)/atomic_radiator.hh \
+		$(SRC)/radiator.hh $(SRC)/spectral_model.hh
+	$(CXX) $(CXXFLAG) $(SRC)/atomic_radiator.cxx -I$(LUA_INCLUDE_DIR)
+	
+atomic_line.o : $(SRC)/atomic_line.cxx $(SRC)/atomic_line.hh
+	$(CXX) $(CXXFLAG) $(SRC)/atomic_line.cxx -I$(LUA_INCLUDE_DIR)
 	
 diatomic_radiator.o : $(SRC)/diatomic_radiator.cxx $(SRC)/diatomic_radiator.hh \
 		$(SRC)/radiator.hh $(SRC)/spectral_model.hh
@@ -282,13 +290,10 @@ diatomic_system.o : $(SRC)/diatomic_system.cxx $(SRC)/diatomic_system.hh \
 	
 diatomic_band.o : $(SRC)/diatomic_band.cxx $(SRC)/diatomic_band.hh
 	$(CXX) $(CXXFLAG) $(SRC)/diatomic_band.cxx -I$(LUA_INCLUDE_DIR)
-
-atomic_radiator.o : $(SRC)/atomic_radiator.cxx $(SRC)/atomic_radiator.hh \
-		$(SRC)/radiator.hh $(SRC)/spectral_model.hh
-	$(CXX) $(CXXFLAG) $(SRC)/atomic_radiator.cxx -I$(LUA_INCLUDE_DIR)
 	
-atomic_line.o : $(SRC)/atomic_line.cxx $(SRC)/atomic_line.hh
-	$(CXX) $(CXXFLAG) $(SRC)/atomic_line.cxx -I$(LUA_INCLUDE_DIR)
+polyatomic_radiator.o : $(SRC)/polyatomic_radiator.cxx $(SRC)/polyatomic_radiator.hh \
+		$(SRC)/radiator.hh $(SRC)/spectral_model.hh
+	$(CXX) $(CXXFLAG) $(SRC)/polyatomic_radiator.cxx -I$(LUA_INCLUDE_DIR)
 
 electron_radiator.o : $(SRC)/electron_radiator.cxx $(SRC)/electron_radiator.hh \
 		$(SRC)/radiator.hh

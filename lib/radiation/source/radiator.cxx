@@ -21,6 +21,7 @@
 #include "radiator.hh"
 #include "atomic_radiator.hh"
 #include "diatomic_radiator.hh"
+#include "polyatomic_radiator.hh"
 #include "electron_radiator.hh"
 #include "planck_radiator.hh"
 #include "radiation_constants.hh"
@@ -267,7 +268,29 @@ Radiator * create_new_radiator( lua_State * L, const std::string name )
     if ( ECHO_RAD_INPUT > 0 )
 	cout << "-> Creating " << name << " as a " << E_pop_method << " " << type << endl;
 
-    if( type == "diatomic_radiator" ) {
+    if ( type == "polyatomic_radiator" ) {
+        int linear = get_int(L, -1, "linear");
+        if ( linear ) {
+            if ( E_pop_method=="boltzmann" )
+                new_radiator = new BoltzLinearPolyatomicRadiator(L,name);
+            else {
+                ostringstream ost;
+                ost << "create_new_radiator()" << endl
+                    << "Error creating the radiator: " << name << endl
+                    << "The population method: " << E_pop_method
+                    << "is not yet implemented for polyatomics" << endl;
+                input_error(ost);
+            }
+        }
+        else {
+            ostringstream ost;
+            ost << "create_new_radiator()" << endl
+                << "Error creating the radiator: " << name << endl
+                << "nonlinear polyatomics are not implemented yet" << endl;
+            input_error(ost);
+        }
+    }
+    else if( type == "diatomic_radiator" ) {
 	if ( E_pop_method=="boltzmann" )
 	    new_radiator = new BoltzDiatomicRadiator(L,name);
 	else if ( E_pop_method=="QSS" )
