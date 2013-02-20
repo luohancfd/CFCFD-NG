@@ -186,8 +186,14 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel):
     guess = [mfw_props['rho'], mfw_props['T'], u]
     result = minimize(f_to_minimize, guess, method='Nelder-Mead')
     if not result.success:
-        print "The minimizer had difficulty finding the best set of one-d values: rho, T, u"
-        print result
+        # Try again but use area-weigthed average as starting point
+        aw_props =  area_weighted_avg(cells, ['rho', 'T', 'u', 'v', 'w', 'M'], var_map)
+        u = sqrt(aw_props['u']**2 + aw_props['v']**2 + aw_props['w']**2)
+        guess = [aw_props['rho'], aw_props['T'], u]
+        result = minimize(f_to_minimize, guess, method='Nelder-Mead')
+        if not result.success:
+            print "The minimizer had difficulty finding the best set of one-d values: rho, T, u"
+            print result
     rho, T, u = result.x
     Q.rho = rho; Q.T[0] = T
     gmodel.eval_thermo_state_rhoT(Q)
