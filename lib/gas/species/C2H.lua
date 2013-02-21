@@ -25,9 +25,9 @@ C2H.CEA_coeffs = {
    },
    { T_low  = 1000.0,
      T_high = 6000.0,
-     coeffs = { 3.922334570e+06    -1.204751703e+04     1.756172920e+01,
-               -3.655442940e-03     6.987685430e-07    -6.825162010e-11,
-                2.719262793e-15     1.433266627e+05    -9.561634380e+01 }
+     coeffs = { 3.922334570e+06,    -1.204751703e+04,     1.756172920e+01,
+               -3.655442940e-03,     6.987685430e-07,    -6.825162010e-11,
+                2.719262793e-15,     1.433266627e+05,    -9.561634380e+01 }
    },
    ref="Ervin (1990), Jacox (1998), Peric (1990), and Kanamori (1988) from cea2::thermo.inp"
 }
@@ -70,6 +70,12 @@ C2H.h_f = {
    units = 'J/kg',
    description = 'Heat of formation',
    reference = 'from CEA2::thermo.inp'
+}
+C2H.s_0 = {
+   value = 0.0,
+   units = 'J/kg-K',
+   description = 'Standard state entropy at 1 bar',
+   reference = 'none'
 }
 C2H.I = {
    value = 0.0,
