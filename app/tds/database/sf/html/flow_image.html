@@ -1,0 +1,131 @@
+<html>
+
+<head>
+<title>Centre for Hypersonic's Flow Image Upload Page</title>
+</head>
+
+<body bgcolor="#ffffff" text="000000">
+<font face=Arial, Helvetica, sans-serif>
+
+<!-- Title Bar start -->
+<table border="0" cellspacing="0" cellpadding="0" width="100%">
+
+  <tr>
+  <td width="10%" rowspan="2"><a href="http://www.uq.edu.au/">
+  <img src="uq_logo.gif" width="200" height="72" 
+  alt="The University of Queensland Homepage" border="0" /></a></td>
+  <td width="90%" bgColor=#003399>
+  <font face=Arial, Helvetica, sans-serif color=#ffffff size=-1>
+
+  <a> &nbsp </a>
+  <font face=Arial, Helvetica, sans-serif color=#ffffff size=+1>
+  <b> Centre for Hypersonics' T4 Shock Tunnel Web Browser</b></font><br>
+  <font face=Arial, Helvetica, sans-serif size=-1 color=#ffffff>
+  <a> &nbsp </a>
+  an online database for Meta-data of T4 Shock Tunnel Facility
+  </font>
+  </td>
+  </tr>
+
+  <tr>
+  <td valign=middle bgColor=#7f7f7f>
+  <font face=Arial, Helvetica, sans-serif size=-1 color=#999999>
+  <a> &nbsp </a>
+  </td>
+  </tr>
+
+  <tr background=gradient.gif>
+  <td valign=absmiddle align=right colspan=2 height=25>
+  <font face=Arial, Helvetica, sans-serif size=-3 color=#999999>
+  </td>
+  </tr>
+
+</table>
+<!-- Title Bar end -->
+
+<u><h2>Flow Image Data Upload Form</h2></u>
+
+<p>Welcome to Centre for Hypersonics' Flow Image Data Upload Page.</p>
+<p>This is a form designed specifically for flow image data. Please fill in 
+   the experimental details and a short descriptions on the experiment.
+   Most importantly, don't forget to upload the flow image data and 
+   press <b><i>Add Record</i></b> to submit it.</p>
+
+
+<!-- Form start -->
+
+<form method="post" action="">
+
+<br /><hr size="3" width="100%" noshade="noshade" /><br />
+
+<!-- To select the type of Facility -->
+<b>Facility:</b>
+<select name="facility_name">
+<option value="T4">T4 Shock Tunnel</option>
+<option value="X1">X1 Expansion Tube</option>
+<option value="X2">X2 Expansion Tube</option>
+<option value="X3">X3 Expansion Tube</option>
+<option value="Drummond">Drummond Shock Tunnel</option>
+<option value="Supersonic_B">Supersonic Blowdown Tunnel</option>
+</select><br />
+
+<br />
+<table width="100%" valign="top" border="0" cellspacing="2" cellpadding="2">
+<td width="25%"><b>Shot Number:</b></td>
+<td width="75%"><input type="text" name="shot_number" /></td>
+<tr><td width="25%"><b>Project Name:</b></td>
+<td width="75%"><input type="text" name="project" /></td></tr>
+<tr><td width="25%"><b>Blame:</b></td>
+<td width="75%"><input type="text" name="blame" /></td></tr>
+<tr><td width="25%"><b>Date:</b></td>
+<td width="75%"><input type="text" name="date_string" /></td></tr>
+<tr><td width="25%"><b>Diaphragm:</b></td>
+<td width="75%"><input type="text" name="diaphragm" /></td></tr>
+<tr><td width="25%"><b>Nozzle:</b></td>
+<td width="75%"><input type="text" name="nozzle" /></td></tr>
+<tr><td width="25%"><b>Initial Temperature:</b></td>
+<td width="75%"><input type="text" name="initial_temp" /></td></tr>
+<tr><td width="25%"><b>Final Temperature:</b></td>
+<td width="75%"><input type="text" name="final_temp" /></td></tr>
+<tr><td width="25%"><b>Delays C:</b></td>
+<td width="75%"><input type="text" name="delay_c" /></td></tr>
+<tr><td width="25%"><b>Delays D:</b></td>
+<td width="75%"><input type="text" name="delay_d" /></td></tr>
+<tr><td width="25%"><b>Delays E:</b></td>
+<td width="75%"><input type="text" name="delay_e" /></td></tr>
+<tr><td width="25%"><b>Recoil Trigger:</b></td>
+<td width="75%"><input type="text" name="recoil_tri" /></td></tr>
+<tr><td width="25%"><b>Starting Condition:</b></td>
+<td width="75%"><input type="text" name="start_c" /></td></tr>
+<tr><td width="25%"><b>Stagnation:</b></td>
+<td width="75%"><input type="text" name="stagn" /></td></tr>
+
+<!-- For entering some descriptions of the experiment -->
+<tr><td width="25%" valign="top"><b>Remarks:</b></td>
+<td width="75%">
+<textarea name="remarks" rows="3" cols="80" wrap="wrap">
+</textarea></td></tr>
+
+<!-- To upload the flow image data -->
+<tr><td width="25%" valign="top"><b>Flow Image:</b></td>
+<td width="75%">
+<input type="file" name="uploadimage" size="70" /></td></tr>
+
+<!-- To add record into the database or to clear the current record -->
+<tr><td width="25%"></td>
+<td width="75%"><input type="submit" value="Add Record" />&nbsp;
+<input type="reset" value="Clear Record" />
+</td></tr>
+
+<tr><td colspan="2"></td></tr>
+
+<!-- Add a horizontal line to end the form -->
+<tr><td width="100%" colspan="2">
+<hr size="3" noshade="noshade" />
+</td><tr>
+</table>
+
+<!-- Form end -->
+
+</form>
+</body></html>

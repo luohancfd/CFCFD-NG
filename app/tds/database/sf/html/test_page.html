@@ -1,0 +1,94 @@
+<html>
+<head>
+<title>SF Testing Page</title>
+
+<?php include("header.html"); ?>
+
+<table>
+<tr>
+<td>
+<p>
+<br>
+<font face=<?php echo $font?> size=-1>
+Welcome <b><?php echo $fullname?></b>, 
+you last logged in on <?php echo $laston?><br>
+There are currently <b><?php echo $total_articles?></b> articles in the 
+database.</font>
+<br><br>
+</p></td>
+</tr>
+</table>
+
+<table width=100%>
+
+<tr>
+<td width=50% valign=top>
+<font face=<?php echo $font?> size=-1>
+<b>Options</b><br>
+<a href="addedit.php">Add</a> a new record to the database<br>
+<a href="dump.php">View</a> all existing records (view and edit)<br>
+<a href="listfolders.php">List</a> all primary areas<br>
+<a href="passwd.php">Change your password</a><br>
+<a href="index.php?newuser=yes">Logout</a><br>
+<br>
+<p>
+<font face=<?php echo $font?> size=-1>
+<b>Other online databases</b><br>
+<a href="http://www.aiaa.org/search/index.hfm?sea=-1">AIAA Search Page</a><br>
+<a href="http://ntrs.nasa.gov/">NASA Technical Reports Server</a><br>
+<a href="http://wos.isiglobalnet.com/">Web of Science</a><br>
+<a href="http://www.sciencedirect.com/">Elsevier Science Direct</a><br>
+<a href="http://library.uq.edu.au/screens/opacmenu.html">UQ Library Catalogue</a>
+</p>
+<p>
+<font face=<?php echo $font?> size=-1>
+<b>Relevant Journals</b><br>
+<a href="http://www.catchword.com/titles/00011452.htm">AIAA Journal</a><br>
+<a href="http://www.idealibrary.com/cgi-bin/links/toc/jcph">Journal of Computational Physics</a><br>
+<a href="http://ojps.aip.org/phf/">Physics of Fluids</a><br>
+<a href="http://www.journals.cup.org/owa_dba/owa/ISSUES_IN_JOURNAL?JID=FLM">Journal of Fluid Mechanics</a><br>
+</p>
+<font face=<?php echo $font?> size=-1>
+<b>List of CDs</b><br>
+<a href="cds.php">AIAA and conference CDs</a><br>
+</p>
+</td>
+
+<td valign=top>
+<font face=<?php echo $font?> size=-1>
+This database is essentially a mini hypersonics library.  It contains hypersonics references which are held on a shelf in room 207 in the Mechanical Engineering building.  The papers are contained in blue boxes each labelled with the primary area of research pertaining to the article on the front of the box.  The papers are there to be borrowed, photocopied and RETURNED.  If you borrow a paper can you please fill in the book on top of the cabinet and then bring it back as quick as possible.  If people don't return papers I shall have to chase them down and beat them with a stick. <br><br>
+
+A search for a specific paper or a general field can be made by entering text in the search box above.  This searches through all the fields in the database.  e.g. if you are looking for an author by the name of Smith just type "Smith" in or if you wish to look for papers about expansion tubes just type "expansion tubes" <br><br>
+
+If you wish to dump a bibtex file of all the entries or just a specific search, at the bottom of the page with the list of entries will be an option to do this.  <br><br>
+
+If you have any references you have order in and you think other people may find them useful please photocopy an extra version for the database.  To keep consistency and order with the entries please bring the copy to Michael Scott (Rm 45-215) to add.  Thanks.    <br><br>
+
+<br>
+</td>
+</tr>
+
+</table>
+
+<table>
+<tr>
+<td>
+<font face=<?php echo $font?> size=-1>
+<p>
+<b>The following articles have been added since you last logged on</b>
+</p></td>
+</tr>
+</table>
+
+<?php
+
+  // List all articles newer than the when the user last logged on
+
+  $sql = "SELECT * from articles WHERE whenadded > '$laston' ORDER by id";
+  listarticles($sql,$db,'yes');
+
+?>
+
+</form>
+</body>
+</html>

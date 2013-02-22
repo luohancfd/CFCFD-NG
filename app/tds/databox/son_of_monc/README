@@ -1,0 +1,28 @@
+SON_of_MONC databox supervisory program.
+Notes for January 2007.
+
+There are two versions of the program:
+(1) the older ISA version that depends on a separate device driver 
+    to provide access to the BCD-databox registers and memory space.
+(2) the newer USB version that talks to the databox via Luke Hillyard's 
+    embedded card and either a USB port or an RS232 serial port.
+    This is the one that most people should use because it allows
+    almost any computer to collect data from the BCD databox.
+
+If you are using a MS-windows computer, Rainer found that you should install
+the following packages.
+(1) ActivePython 2.4 (or later, presumably)
+(2) ActiveTcl 8.4 (for td_browser.tcl)
+(3) egenix mx_base
+(4) numpy (preferred for new work) or Numeric (in case some packages need it)
+(5) Pmw (Python MegaWidgets for Tkinter, download source from web)
+(6) PmwContribD_r2_0_2 (Contributed widgets for Pmw, download source from web)
+(7) pyserial
+(8) pywin32
+
+On Linux, you probably have python already but you may need to install
+(1) tkinter (and friends)
+(2) numpy or Numeric
+(3) egenix mx (or whatever packege name is used on your distribution)
+(4) Pmw + PmwContribD (download source from web)
+(5) pyserial

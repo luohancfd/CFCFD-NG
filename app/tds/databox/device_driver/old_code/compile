@@ -1,0 +1,2 @@
+gcc -O3 -D__KERNEL__ -isystem /lib/modules/2.4.26/build/include -o tranrec tr.c /home/zsmith/fusd-1.10/obj.i686-linux/libfusd.a
+

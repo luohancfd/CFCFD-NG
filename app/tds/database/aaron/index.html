@@ -1,0 +1,348 @@
+<HTML>
+<HEAD>
+<TITLE>Tunnel Data Server.</TITLE>
+</HEAD>
+
+<BODY>
+<CENTER>
+<H2>Shock Tunnel Database</H2>
+    A. M. Brandis<BR>
+    Report <B>2002/02</B>
+    Department of Mechanical Engineering<BR>
+    The University of Queensland<BR>
+    Brisbane Qld 4072
+</CENTER>
+
+<H3>Contents</H3>
+<UL> 
+   <LI> <A HREF="#intro">Introduction</A></LI>
+   <LI> <A HREF="#user_ops">Commands required the from user to add information to the database</A></LI>
+   <LI> <A HREF="#plan">Basic plan of my script that stores information in the database</A></LI>
+   <LI> <A HREF="#original_database">A Description of the original database state</A></LI>
+   <LI> <A HREF="#query">Structure of a MySQL query with examples</A></LI>
+   <LI> <A HREF="#database_ops">Database maintenance operations</A></LI>
+   <LI> <A HREF="#notes">Notes on getting maximum information into the database</A></LI>
+   <LI> <A HREF="#add">Possible additions/improvements to Tcl script</A></LI>
+   <LI> <A HREF="#my_over_pos">Why MySQL was chosen over PostgreSQL</A></LI>
+   <LI> <A HREF="#get_mysql">Where to download and how to install MySQL</A></LI>
+</UL>
+
+<HR>
+<H3><A NAME="intro">Introduction</A></H3>
+<P> 
+The shock tunnel database is a collection of all the information stored in the
+run description text files.  
+This information can then be queried and searched through
+the use of the MySQL database server.  
+This document will describe the basic structure of a MySQL query.
+</P>
+
+<HR>
+<H3><A NAME="user_ops">Commands required from the user to add information to the database</A></H3>
+<UL> 
+    <LI> Obtain all shots already in the database:  <br>
+         <code>prompt> mysql -t -e 'select Run_ID from test_data_X3' test > \</code><br>
+         <code>        /home/moncdata/databaseScripts/currentShots.txt</code> </LI>
+    <LI> Run the searchForNewData.tcl script:<br>
+         <code>prompt> ./searchForNewData.tcl </code><br>
+	 with required arguments, specified below or when typing in the command 
+	 without any arguments. </LI>
+    <LI> Import shots into the database:<br>
+         <code>prompt> mysqlimport --local test test_data_X3.txt</code><br>
+	 Note that this command must be typed in the directory of the text file.
+	 By default, this would be, for X3, <code>/home/moncdata/X3/</code></LI>
+    <LI> Delete null rows in database: Go into MySQL with the command: <code>mysql</code>.
+         Then, at the MySQL prompt, type the following: <br>
+	 <code>mysql> use test</code> <br>
+	 <code>mysql> delete from test_data_T4 where Notes is NULL and Run_ID is null</code>
+	 </LI> 
+</UL>
+
+<HR>
+
+<H3><A NAME="plan">Basic plan of my script that stores information in the
+   database</A></H3>
+<P> 
+Firstly the user must create a text file containing a list of all the shots currently stored in the database.  
+This is perfomed by the command (as an example I imagine I am using X3)<br>
+<code>prompt> mysql -t -e 'select Run_ID from test_data_X3' test > \</code><br>
+<code>        /home/moncdata/databaseScripts/currentData.txt</code><br>  
+The user can then execute the script by typing in the command
+<code>./searchForNewData.tcl</code> in the directory that this file is located in.
+By default this directory is <code>/$HOME/databaseScripts/</code>.  
+This command takes a few arguements to execute.  
+The amount of new data to be added to the database (either 1 or all), 
+the name of the shocktube (ie T4, X3 ...), 
+the directory where the shot/s is/are located and, 
+if 1 file was selected, the name of the shot.
+An overview of these arguments is given if the command is executed without any arguments.
+</P>
+<P>
+The search procedure firstly creates the text file 
+<code>mysqldata_&lt;<em>tube_name</em>&gt;.txt</code> if it hasn't
+already been created.
+The program will then search through all the files in the specify
+directory looking for shot number directories.
+Each shot number found is then compared to the shot number IDs in the
+file <code>currentData.txt</code>.
+If the shot number is not in the database, it will add the shot's
+information into the <code>test_data_X3.txt</code> file.
+Each column of information is separated by a tab and their
+positions coincide with their respective column names in the database.  
+The program will then add the new information to the database through
+the command: <br>
+<code>mysqlimport --local test test_data_X3.txt</code><br>
+If the program finds that there are new columns not yet in the
+database the user will be prompted to view the maintenance problems
+text file for more details.
+</P>
+
+<HR>
+<H3><A NAME="original_database">A description of the original database state</A></H3>
+<P> 
+A description of the current database can be obtained by typing the commands:<br>
+<code>USE <I>database</I>;</code><br>
+<code>SHOW TABLES;</code><br>
+To find information specifically relating to a certain table, 
+the following command can be used:<br>
+<code>DESCRIBE <I>table</I>;</code><br>
+This will output all the column names of the table along with there attributes 
+(e.g. data type, not null/null...).
+In the original set up the database was test with a table for each tube: 
+test_data_T4, test_data_X3, test_data_X2 ... 
+Originally for T4, the table contained the following columns: <BR> 
+<code>Project (text), Run_ID (text),
+Date (date), Blame (text), Reservoir (text), Driver (text), Diaphragm (text),
+Shocktube (text), Nozzle (text), Acceln_tube (text), Jackoff (text), Bridge (text), 
+Evac_Press (text), Piston (text), Pressure (text), Electron (text), Skimmers (text), 
+Condition (text), Notes (text)</code>.<BR>
+Originally for X3: <BR>
+<code>Project (text), Run_ID (text),
+Date (date), Blame (text), Reservoir (text), Driver (text), 2nd_Driver (text), Diaphragm_1 (text),
+Diaphragm_2 (text), Diaphragm_3 (text), Shocktube (text), Nozzle (text), Acceln_tube (text), Piston (text), 
+1st_Driven (text), Notes (text)</code>.
+</P>
+
+<HR>
+<H3><A NAME="query">Structure of a MySQL query with examples</A></H3>
+<P>
+In the following description, words in capital letters indicate a
+MySQL command but don't need to be in capitals when constructing a
+query.
+Words in italics indicate that the word needs to be substituted with
+the name of the database, table, column, etc...
+
+The MySQL database program can be loaded up by simply typing <code>mysql</code>. 
+All of the following queries will assume that the user is in MySQL.  
+The first command that needs to be type is <br>
+<code>USE <I>database</I>;</code><br>
+The database I have used so far is <code>test</code>. 
+The queries can also be used from a command prompt.  
+A command prompt query is just in the following form: <br>
+<code>mysql -e '<I>normal-MySQL-select-query</I>' <I>database</I></code><br>
+An example of this will be given for the first query. 
+</P>
+
+The basic form of a select query is as follows:<BR> 
+<code>SELECT <em>Arguments1</em> FROM <em>Arguments2</em>;</code><br>
+<em>Arguments1</em> consists of the data fields / columns (eg Project, Date, etc) 
+of the table that the user wishes to view.<br>  
+If the user wishes to view all the data, * can be used for <em>Arguments1</em>.  
+<em>Arguments2</em> is the table/s from where the data is to be selected. 
+In this case there is only one table and that is data.  
+Following the <code>FROM</code> statement can be commands to select 
+more specific information.  
+These commands include:<BR>
+<UL>
+<LI> <code>WHERE</code> is used to select specific rows, or rows having a value 
+     greater than / less than a certain value.
+     For example:
+     <code>SELECT * FROM <I>table</I> WHERE Run_ID = 7319;</code> <BR>
+     From the command prompt this would be specified as:<br> 
+     <code>prompt> mysql -e 'SELECT * FROM <I>table</I> WHERE Run_ID = 7319' <I>database</I></code> <BR>
+     Example:<br>
+     <code>SELECT * FROM tubes WHERE Diaphragm > 3 and Diaphragm < 6;</code></LI>
+<LI> <code>WHERE .... LIKE</code> is used to select specific rows that contain 
+     certain information.  
+     Eg If the user wishes to find which Drivers used 35% Argon the query would be:
+     SELECT * FROM tubes WHERE Driver LIKE "%35_Ar%" OR Driver LIKE "%35__Ar%";  
+     The % sign is a symbol that represents any number of characters 
+     and the _ is a symbol that represents one character.
+     Both the one _ and the two __ need to be used as
+     sometimes the data is stored 35%Ar and sometimes 35% Ar.<BR>
+     If you then wanted to find out specifically what projects used this driver.  
+     The following query could be used:<BR>
+     <code>SELECT Project FROM tubes WHERE Driver LIKE "%35_Ar%" OR Driver LIKE "%35__Ar%" GROUP BY Project;</code></LI>
+<LI> <code>GROUP BY</code> - This command is used to group duplicate fields together.  
+     For example, if the user just wanted to view the titles of all 
+     the different projects:<BR>
+     <code>SELECT Project FROM data GROUP BY Project;</code></LI>
+<LI> <code>ORDER BY</code> - used to order the data into either ascending 
+     or descending order.
+     The results can also be ordered by more than one column.<BR> 
+     For example, to order by Run_ID: <br>
+     <code>SELECT * FROM <I>table</I> ORDER BY Run_ID;</code><BR>
+     or to reverse the order: <br>
+     <code>SELECT * FROM <I>table</I> ORDER BY Run_ID desc;</code></LI>
+</UL>
+
+<P> 
+Some more examples with links to web documentation about the commands.
+<UL>
+<LI> Select everything from <I>table</I>: <br>
+     <code>SELECT * FROM <I>table</I>;</code><br>
+     This can also be done from a command prompt in the standard shell: <br>
+     <code>mysql -e 'SELECT * FROM <I>table</I>' <I>database</I></code><br>
+     More information about 
+     <A HREF="http://www.mysql.com/doc/S/E/SELECT.html">SELECT</A> </LI>
+<LI> Select specific data (in this case Project and Run_ID) from <I>table</I>:<br> 
+     <code>SELECT Project,Run_ID FROM <I>table</I>;</code> </LI>
+<LI> Select data with diaphragm thickness greater than 3mm:</br>
+     <code>SELECT * FROM data WHERE Diaphragm > 3; </code></LI>
+<LI> Select Project, Run_ID and Acceleration Tube for only those project that
+     used an Acceleration Tube:<br>
+     <code>SELECT Project, Run_ID, Acceln_tube FROM data WHERE Acceln_tube is NOT NULL;</code> </LI>
+<LI> Select data and order by date then by run ID:<br>
+     <code>SELECT * FROM data ORDER BY date, Run_ID;</code> <br>
+      More information about 
+      <A HREF="http://www.mysql.com/doc/O/R/ORDER_BY_optimisation.html">ORDER BY</A> </LI>
+<LI> Select data and order by date and reverse the order to descending:<br>
+     <code>SELECT * FROM data ORDER BY date desc;</code> </LI>
+<LI> Select data and group by project:<br>
+     <code>SELECT * FROM data GROUP BY Project;</code> <br>
+     More information about 
+     <A HREF="http://www.mysql.com/doc/G/r/Group_by_functions.html">GROUP BY</A> </LI>
+<LI> See how many Runs where performed on what dates:<br>
+     <code>SELECT Date, count(*) FROM data GROUP BY Date;</code> </LI>
+<LI> See what dates more than 3 runs where performed:<br>
+     <code>SELECT Date, count(*) FROM data GROUP BY Date HAVING count(*) > 3;</code> </LI>
+<LI> Searching For Driver with specific gas content (in this case 65% He):<br>
+     <code>SELECT * FROM data WHERE Driver like "%65_He%" or Driver like "%65__He%";</code> <br>
+     More information about 
+     <A HREF="http://www.mysql.com/doc/P/a/Pattern_matching.html">LIKE and Pattern Matching</A> </LI>
+<LI> To redirect the output of the query (to a text for example), 
+     type in the following before a query:<br>
+     <code>pager cat > <I>name_of_text_file</I>.txt;</code> <br>
+     More information about 
+     <A HREF="http://www.mysql.com/doc/m/y/mysql.html">Redirecting Output</A> </LI>
+</UL>
+
+<HR>
+<H3><A NAME="database_ops">Database maintenance operations</A></H3>
+<UL>
+<LI> Creating a database:<br>
+     <code>CREATE DATABASE <I>database</I>;</code></br>
+     More information about 
+     <A HREF="http://www.mysql.com/doc/C/r/CREATE_DATABASE.html">Creating a Database</A> </LI>
+<LI> Creating a table:<br> 
+     <code>CREATE TABLE <I>table</I> (column_1_name int not null primary key, 
+	                              column_2_name text not null, column_3_name text);</code><br>
+     More information about 
+     <A HREF="http://www.mysql.com/doc/C/R/CREATE_TABLE.html">Creating a Table</A> </LI>
+<LI> Adding a column:<br> 
+     <code>ALTER TABLE <I>table</I> ADD COLUMN (column_name int);</code><br>
+     More information about 
+     <A HREF="http://www.mysql.com/doc/A/L/ALTER_TABLE.html">Altering a Table</A> </LI>
+<LI> Modifying column properties:<br>
+     <code>ALTER TABLE <I>table</I> MODIFY <I>column_name</I> 
+           <I>new properties eg not null, text...</I>;</code></br>
+     More information about 
+     <A HREF="http://www.mysql.com/doc/A/L/ALTER_TABLE.html">Altering Column Properties</A> </LI>
+<LI> Inserting a row:<br> 
+     <code>INSERT INTO <I>table</I> (column_1_name,column_2_name) 
+           VALUES (value_1, value_2);</code><br>
+     More information about 
+     <A HREF="http://www.mysql.com/doc/I/N/INSERT.html">Inserting Values</A> </LI>
+<LI> Deleting a specific Run_ID row (in this case a Run_ID of 7023):<br>  
+     <code>DELETE FROM <I>table</I> WHERE Run_ID = 7023;</code></br> 
+     More information about 
+     <A HREF="http://www.mysql.com/doc/D/E/DELETE.html">Deleting a Row</A> </LI>
+</UL>
+<P>
+For a list of most commands available in MySQL, 
+just search for 
+<A HREF="http://www.mysql.com/doc/manual.php?search_query=syntax&submit=Search&depth=2">syntax</A>
+in the online documentation.
+</P>
+
+<HR>
+<H3><A NAME="notes">Notes on getting maximum information into the database </A></H3>
+<UL> 
+<LI> Keep the amount of non-essential folders in the individual tube directories 
+     to a minimum.  
+     This prevents the script from trying to find information in folders that aren't relevate.</LI>
+<LI> If new data fields are going to be added to the run description file, 
+     please make sure there is at least 2 full stops between the data name 
+     and the data information.  
+     This is so the program can find the new data fields.</LI>
+<LI> The date in the run description file needs to able to be converted to a format that
+     MySQL can recognise.  
+     This means that the date in these files can be written in the
+     following formats: dd/mm/yy, dd/mm/yyyy, dd month (eg Jan or January etc) yy, or
+     dd month (eg Jan or January etc) yyyy.  
+     Any other format and the date won't be converted to a format that MySQL recognises.</LI>
+<LI> Keep all the different data fields (eg Project, Date, Blame, etc....) on different lines</LI>
+<LI> Making sure the shot folder, the <em>mod</em> file and <em>text</em> file have the same name. 
+     In the case of X2, Run can still be added to the front of the text file if you wish.</LI>
+<LI> At the moment, due to the data I had received the X2 run description files had RUN 
+     (in capitals) at the front of them.
+     If this changes to Run for example, this would also need to be changed in the 
+     <code>X2RunAndModNames</code> procedure.</LI>
+</UL>
+
+<HR>
+<H3><A NAME="add">Possible additions/improvements to Tcl script</A></H3>
+<P> 
+Here are some possible improvements the could be added to the Tcl script:
+<UL>
+    <LI> Automate the MySQL interaction with Tcl.
+         This would mean that the user would not need
+         to type in the two mysql commands. </LI>
+    <LI> Automate adding a new column to the database rather than having to change code.</LI>
+    <LI> Adding the ability to search for &gt; and &lt; a value for the Driver data.</LI>
+    <LI> Using a graphical user interface with the MySQL results and queries.</LI>
+    <LI> Adding the descript mod file information into the database.</LI>
+</UL>
+</P>
+
+<HR>
+<H3><A NAME="my_over_pos">Why MySQL was chosen over PostgreSQL</A></H3>
+<P> 
+MySQL was chosen over PostgreSQL due to MySQL being very easy to use, extensive
+online documentation and very easy to download and install.  
+PostGreSQL seems to be more powerful and have more options than MySQL.  
+However, most of its advantages seem to relate to the use of more complex relational databases.  
+Because run description database contains only the one table, this power and further
+complexity was not required.
+</P>
+
+<HR>
+<H3><A NAME="get_mysql">Where to download and how to install MySQL</A></H3>
+<P> 
+MySQL can be download from the 
+<A HREF="http://www.mysql.com/downloads/mysql-3.23.html">MySQL official site</A>. 
+I installed the <code>rpm</code> packages and so will give some intructions on how to do that.  
+Firstly, both the MySQL 3.23.47 Server (i386) and MySQL 3.23.47 Client
+programs (i386) files need to be downloaded.  
+Then at the command shell prompt type:<br>
+<code>shell> rpm -i MySQL-3.23.47.i386.rpm MySQL-client-3.23.47.i386.rpm</code></br>
+When I installed the program the command that worked for me is slightly
+different to what the MySQL website suggests.  
+At the shell prompt I typed:<br>
+<code>shell> mysql_install_db</code><br>
+This is all that I was required to do to install the program.  
+If this doesn't work, have a look at the 
+<A HREF="http://www.mysql.com/doc/P/o/Post-installation.html">
+     MySQL Post-installation Setup and Testing Page</A>.
+For any further questions, the MySQL website has extensive, searchable 
+<A HREF="http://www.mysql.com/doc/">online documentation</A>
+that may be useful.
+</P>
+
+<HR>
+<ADDRESS>
+AB, 8-Feb-2002; Updated PJ, Apr-2004.
+</ADDRESS>
+</BODY>
+
+</HTML>

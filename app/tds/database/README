@@ -1,0 +1,71 @@
+            README for the database maintenance scripts
+                   Peter Jacobs, April 2004.
+                     (Updated 20-Jan-2005)
+
+1. Installation
+---------------
+On RedHat/Fedora, the PostgreSQL server is readily available.  If it
+is already installed (via RPM) then a database cluster already exists
+as does the user "postgres" and the group "postgres".  The cluster
+files are in /var/lib/pgsql (on Fedora).
+
+Add a PostgreSQL user (who is allowed to make databases) with the commands:
+$ su -u postgres createuser peterj
+Answer "y" to the questions about allowing the new user to create databases
+and other users.
+
+Add the Apache web server as a user with read privileges.
+$ su -u postgres creatuser apache
+Again, answer "y" to the questions about allowing the new user to 
+create databases and other users.
+
+
+2. Database Management
+----------------------
+Now, as user peterj, we can manage the database.  First, create the
+database for MONC data:
+$ createdb moncdata
+
+Gather the shot description data for the T4 facility:
+$ ~/cfcfd/code/tds/database/makeSQLtable.tcl T4 /home/moncdata all -createcmd
+Note that this Tcl script needs the Tcl interpreter and tcllib installed.
+
+And, insert it into the database:
+$ cd ~/work/moncdata/T4/
+$ psql moncdata < shot_descriptions.sql
+
+For future passes, we can eliminate already inserted shot descriptions
+by gathering their identities into the file current_data.txt in
+/home/moncdata/T4/
+$ ~/cfcfd/code/tds/getCurrentData.tcl T4 /home/moncdata
+Run the scanning script again and insert the new shot descriptions, if any.
+$ ~/cfcfd/code/tds/database/makeSQLtable.tcl T4 /home/moncdata all
+$ cd /home/moncdata/T4/
+$ psql moncdata < shot_descriptions.sql
+
+Shot descriptions for other facility names can be added to the same
+database because the facility_name is a field within each record.
+
+To remove the database, use the command:
+$ dropdb moncdata
+
+
+3. Database Access
+------------------
+To access the database, one may use the interactive terminal program:
+$ psql
+> \d shot_descriptions
+> select * from shot_descriptions;
+> select basic_file_name, project from shot_descriptions;
+
+
+4. Web Access
+-------------
+This is provided by Soo Fern Chong (fourth-year thesis 2004) as a set of 
+HTML pages and Python scripts.  
+Accessed starts at the URL: "http://www.mech.uq.edu.au/sf/"
+
+
+
+------------------------------------------------------------------------------
+

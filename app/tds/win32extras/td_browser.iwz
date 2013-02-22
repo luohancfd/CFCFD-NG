@@ -1,0 +1,194 @@
+
+[InstallShield Wizard]
+iDate=0
+iTime=0
+Flag=0
+ISX.EXE Size=679936
+ISX.EXE Date=11:21:52AM  4/8/1999
+ISX.EXE Ver=2.1.2.62
+SETUP.EXE Size=45312
+SETUP.EXE Date=9:12:24AM  3/23/1999
+SETUP.EXE Ver=3.0.111.0
+SETUP.INS Size=81342
+SETUP.INS Date=11:26:40AM  4/8/1999
+SETUP.INS Ver=Not available
+_INST16.EX_ Size=81342
+_INST16.EX_ Date=11:26:40AM  4/8/1999
+_INST16.EX_ Ver=Not available
+_INST32I.EX_ Size=294079
+_INST32I.EX_ Date=9:12:22AM  3/23/1999
+_INST32I.EX_ Ver=Not available
+ISDEPEND.INI Size=6857
+ISDEPEND.INI Date=1:24:36PM  12/27/1999
+ISDEPEND.INI Ver=Not available
+SWDEPEND.INI Size=9711
+SWDEPEND.INI Date=1:24:40PM  12/27/1999
+SWDEPEND.INI Ver=Not available
+ICOMP.EXE Size=119808
+ICOMP.EXE Date=9:12:24AM  3/23/1999
+ICOMP.EXE Ver=3.00.062
+SPLIT.EXE Size=90624
+SPLIT.EXE Date=9:12:24AM  3/23/1999
+SPLIT.EXE Ver=3.00.060
+PACKLIST.EXE Size=87552
+PACKLIST.EXE Date=9:12:24AM  3/23/1999
+PACKLIST.EXE Ver=3.00.060
+Version=2.12
+DevTool=Borland C++Builder 5
+Platform=Win32
+DisksBuilt=1
+DisksDir=TD_BRO~1\144MB\
+TabsVisit=11111111100001111
+LangNum=0
+LangDir=
+
+[VisualDesign]
+AppName=td_browser
+AppExe=
+AppExeFile=
+Version=1.0
+Company=UQ - Dept of Mech Engineering
+Title=Tunnel Data Browser
+TitleType=1
+BackgrndBmp=
+BackgrndAlign=4
+Backgrnd=1
+BackgrndColor=10
+Uninstall=1
+UninstallChecked=1
+Silent=1
+SmsMode=0
+
+[Types]
+Types=1
+Type1Components=1
+Type1Name=Complete
+Type1ComponentList=1 
+
+[Components]
+Components=1
+Component1Groups=4
+Component1Name=Application Files
+Component1Description=Application files needed to run the application
+Component1GroupList=1 2 3 4 
+
+[Groups]
+Groups=4
+Group1Size=152276
+Group1Files=11
+Group1Name=Program Files
+Group1Dir=<INSTALLDIR>\browser
+Group1Update=0
+Group1TargetOS=-1
+Group1File1=D:\home\peterj\cfd\tds\browser\td_br_config.tcl
+Group1File2=D:\home\peterj\cfd\tds\browser\td_br_fetch.tcl
+Group1File3=D:\home\peterj\cfd\tds\browser\td_br_data.tcl
+Group1File4=D:\home\peterj\cfd\tds\browser\td_br_filter.dll
+Group1File5=D:\home\peterj\cfd\tds\browser\td_br_gui_elements.tcl
+Group1File6=D:\home\peterj\cfd\tds\browser\td_br_gui_procs.tcl
+Group1File7=D:\home\peterj\cfd\tds\browser\td_br_read.tcl
+Group1File8=D:\home\peterj\cfd\tds\browser\td_br_menu.tcl
+Group1File9=D:\home\peterj\cfd\tds\browser\td_browser.tcl
+Group1File10=D:\home\peterj\cfd\tds\browser\td_browser.ini
+Group1File11=D:\home\peterj\cfd\tds\browser\td_browser.help
+Group2Size=73728
+Group2Files=1
+Group2Name=Win32 Extras
+Group2Dir=<WINDIR>
+Group2Update=0
+Group2TargetOS=-1
+Group2File1=D:\home\peterj\cfd\tds\win32extras\gzip.exe
+Group3Size=40787
+Group3Files=2
+Group3Name=Defrock
+Group3Dir=<INSTALLDIR>\defrock
+Group3Update=0
+Group3TargetOS=-1
+Group3File1=D:\home\peterj\cfd\tds\defrock\defrock.exe
+Group3File2=D:\home\peterj\cfd\tds\defrock\monc.val
+Group4Size=4411
+Group4Files=1
+Group4Name=Documentation
+Group4Dir=<INSTALLDIR>
+Group4Update=0
+Group4TargetOS=-1
+Group4File1=D:\home\peterj\cfd\tds\index.html
+
+[Sequence]
+DestinationLocationDir=<ProgramFilesDir>\td_browser
+DatabaseLocationDir=<INSTALLDIR>\data
+SelectProgramFolderName=td_browser
+WelcomeMessage=1
+WelcomeMessageFile=
+DestinationLocation=1
+SelectProgramFolder=1
+BeginFileTransfer=1
+ProgressBar=1
+SetupComplete=1
+SetupCompleteExec=
+SetupCompleteExecParam=
+SetupCompleteExecReadme=
+
+[RegEntries]
+Reg1Path=HKEY_CLASSES_ROOT
+Reg1Val1Type=0
+Reg1Val1Name=(Default)
+Reg1Val1Data=(value not set)
+Reg1Vals=1
+Reg2Path=HKEY_CURRENT_USER
+Reg2Val1Type=0
+Reg2Val1Name=(Default)
+Reg2Val1Data=(value not set)
+Reg2Vals=1
+Reg3Path=HKEY_LOCAL_MACHINE
+Reg3Val1Type=0
+Reg3Val1Name=(Default)
+Reg3Val1Data=(value not set)
+Reg3Vals=1
+Reg4Path=HKEY_USERS
+Reg4Val1Type=0
+Reg4Val1Name=(Default)
+Reg4Val1Data=(value not set)
+Reg4Vals=1
+Reg5Path=HKEY_CURRENT_CONFIG
+Reg5Val1Type=0
+Reg5Val1Name=(Default)
+Reg5Val1Data=(value not set)
+Reg5Vals=1
+Reg6Path=HKEY_DYN_DATA
+Reg6Val1Type=0
+Reg6Val1Name=(Default)
+Reg6Val1Data=(value not set)
+Reg6Vals=1
+Regs=6
+
+[Registry]
+
+[Icons]
+Icons=1
+Icon1Param=
+Icon1Cmd=[Program Files]\td_browser.tcl
+Icon1Description=td_browser
+Icon1WorkingDir=[Program Files]
+Icon1IconFile=
+Icon1RealFile=D:\home\peterj\cfd\tds\browser\td_browser.tcl
+Icon1WhichIcon=0
+Icon1KeyVirtual=0
+Icon1KeyFlags=0
+Icon1StartMenu=0
+Icon1Window=0
+
+[Autoexec]
+PathDir=
+ShareLocks=
+ShareFiles=
+Command=
+
+[CopyToFloppy]
+DriveOption=Path
+DestinationPath=D:\home\peterj\
+DestinationPathOneFile=
+Password=
+
+[Uninstall]
+UserUninstall=0

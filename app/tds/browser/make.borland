@@ -1,0 +1,37 @@
+# makefile for Borland C on Win32
+
+TCL=c:\Tcl
+TCLVER=84
+BCB=c:\progra~1\Borland\CBuilder5
+
+IPATH=.;$(TCL)/include
+COPTIONS=-c -3 -pc -tWD -tWM- -r- -X -Od -k -y -v -w-8004 -w-8057 -I$(IPATH)
+LOPTIONS=-aa -Tpd -x -Gn -v -L$(BCB)\Lib
+
+td_br_filter.dll : td_br_filter_wrap.obj td_br_filter.obj \
+                tcl$(TCLVER)_import.lib blt24_for_tcl$(TCLVER)_import.lib
+        ilink32 $(LOPTIONS) c0d32.obj td_br_filter.obj td_br_filter_wrap.obj, td_br_filter,, tcl$(TCLVER)_import blt24_for_tcl$(TCLVER)_import IMPORT32 CW32
+
+td_br_filter.obj : td_br_filter.c td_br_filter.h
+	bcc32 $(COPTIONS) td_br_filter.c
+
+td_br_filter_wrap.obj : td_br_filter_wrap.c
+	bcc32 $(COPTIONS) td_br_filter_wrap.c
+
+# One of the extra tasks on Win32 is to generate an import library
+# so that the object files can be linked against it.
+
+tcl$(TCLVER)_import.lib : $(TCL)/bin/tcl$(TCLVER).dll
+	impdef tcl.def0 $(TCL)\bin\tcl$(TCLVER).dll
+	$(TCL)\bin\tclsh alias.tcl tcl.def tcl.def0
+        implib tcl$(TCLVER)_import.lib tcl.def
+	- del tcl.def
+	- del tcl.def0
+
+blt24_for_tcl$(TCLVER)_import.lib : $(TCL)/bin/BLT24.dll
+	impdef blt.def0 $(TCL)\bin\BLT24.dll
+	$(TCL)\bin\tclsh alias.tcl blt.def blt.def0
+        implib blt24_for_tcl$(TCLVER)_import blt.def
+	- del blt.def
+	- del blt.def0
+

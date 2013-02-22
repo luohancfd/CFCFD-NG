@@ -1,0 +1,9 @@
+# .htaccess for td_server
+# This file needs to be installed as /var/www/cgi-bin/tds/.htaccess
+#                                    /home/httpd/cgi-bin/tds/.htaccess
+ 
+AuthName "tds"
+AuthType Basic
+AuthUserFile /etc/httpd/conf/users
+
+require user tdguest peterj ben anne martinknell martin.knell mee anne mel morgan hyshot xtube hyper

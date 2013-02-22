@@ -1,0 +1,1 @@
+gcc -O2 -D__KERNEL__ -isystem /lib/modules/2.4.26/build/include -o memread memread.c /home/zsmith/fusd-1.10/obj.i686-linux/libfusd.a

@@ -1,0 +1,26 @@
+
+Project.... Compression ratio of 60 with new driver + Caller UG thesis
+Run number. 7319
+Date....... 17/10/01
+Blame...... DJM/SR/PAJ/MH/AC
+Reservoir.. 3.4 MPa
+Driver..... 53.6 kPa 65%He 35%Ar
+Diaphragm.. 4 mm
+Shocktube.. 70 kPa air
+Nozzle..... Mach 6
+
+Pitot probe only in test section.  Off centre-line. 
+Estimate recoil to be 100 mm.  Probe is 100 mm downstream of exit plane 
+before recoil. 
+
+Acceleration sensor measuring acceleration of dancefloor:
+on PCB Charge amp (M3994) at 0.49 pC/unit and 100 unit/V.
+Accelerometer sens is 49 pC/g.  Thus we have 1 V/g.
+
+Andrew Caller's flat plate in test section
+
+
+
+
+
+

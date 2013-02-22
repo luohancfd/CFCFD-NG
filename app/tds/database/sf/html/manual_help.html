@@ -1,0 +1,276 @@
+<html>
+
+<head>
+
+<!-- Tell the browser that any relative URLs within this document -->
+<!-- are relative to this directory -->
+<base = "http://www.mech.uq.edu.au/sf">
+
+<title>Manual Search Site - Help Page</title>
+</head>
+
+<!-- Table of the whole page containing tables within tables start -->
+
+<!-- Indicating the background and text colour -->
+<body bgcolor="#FFFFFF" text="#000000">
+<!-- Indicating the font type -->
+<font face=Arial, Helvetica, sans-serif>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0" valign="top" align="center">
+
+
+<td align="center">
+<!-- Title Bar start -->
+<table border="0" cellspacing="0" cellpadding="0" width="100%">
+
+  <tr>
+  <td width="10%" rowspan="2"><a href="http://www.uq.edu.au/">
+  <img src="http://www.mech.uq.edu.au/sf/uq_logo.gif" width="200" height="72" alt="The University of Queensland Homepage" border="0" /></a></td>
+  <td width="90%" bgColor=#003399>
+  <font face=Arial, Helvetica, sans-serif color=#ffffff size=-1>
+
+  <a> &nbsp </a>
+  <font face=Arial, Helvetica, sans-serif color=#ffffff size=+1>
+  <b> Centre for Hypersonics' T4 Shock Tunnel Run Description Data Web Browser</b></font><br>
+  <font face=Arial, Helvetica, sans-serif size=-1 color=#ffffff>
+  <a> &nbsp </a>
+  an online database for Run Description text files of T4 Shock Tunnel Facility
+  </font>
+  </td>
+  </tr>
+
+  <tr>
+  <td valign=middle bgColor=#7f7f7f>
+  <font face=Arial, Helvetica, sans-serif size=-1 color=#999999>
+  <a> &nbsp </a>
+  </td>
+  </tr>
+
+  <tr background= "http://www.mech.uq.edu.au/sf/gradient.gif">
+  <td valign=absmiddle align=right colspan=2 height=25>
+  <font face=Arial, Helvetica, sans-serif size=-3 color=#999999>
+  </td>
+  </tr>
+
+</table>
+<!-- Title Bar end -->
+</td>
+
+
+<tr><td valign="top">
+<!-- Table containing main content start -->
+
+  <body bgcolor="#FFFFFF" text="#000000">
+  <font face=Arial, Helvetica, sans-serif>
+  <table width="100%" border="0" cellspacing="1" cellpadding="1" valign="top" align="left">
+
+
+  <tr><td>
+  <!-- Table containing the help content start -->
+  <table width="100%" border="0" cellspacing="2" cellpadding="2" valign="top" align="left">
+
+
+  <td width="100%">
+  <h3><u>SQL HELP PAGE</u></h3></td>
+
+  <!-- Creating a link back to the manual search page -->
+  <td><a href="http://www.mech.uq.edu.au/cgi-bin/sf/manual_s.py">Back<a/></td>
+
+  <tr><td width="100%">
+  Welcome to the SQL Help Page for Manual Search Site!
+  </td></tr>
+  
+  <tr><td width="100%">
+  <b> Are you: </b>
+  </td></tr>
+
+  <tr><td width="100%" align="justify">
+  1. One that had learned SQL before but long forgotten? OR
+  </td></tr>
+
+  <tr><td width="100%" align="justify">
+  2. One that has some knowledge of SQL but not very sure about
+  the types of query you can make to perform a search in the manual 
+  search site?</td></tr>
+
+
+  <tr><td width="100%" align="justify">
+  No Worries! This page will show you some useful queries examples 
+  in questions and answer form to assist you.
+
+  <tr><td><br /></td></tr>  
+
+  <tr><td>
+  <!-- Row containing horizontal line start -->
+
+  <hr size="3" width="100%" align="middle" noshade="noshade"/>
+
+  <!-- Row containing horizontal line end -->
+  </td></tr>
+
+  <tr><td width="100%" align="justify">
+  <i>Reminder:</i><td></tr>
+
+  <tr><td width="100%" align="justify">
+  <i>SQL syntax is clear, simple and reasonably easy to understand if 
+  you have some relevant SQL knowledge. But it can be a nightmare if 
+  you do not understand them at all. 
+  Hence, please use "Quick Search" if you are new to SQL.</i><td></tr>
+
+  <tr><td><br /></td></tr>  
+
+  <tr><td>
+  <!-- Row containing horizontal line start -->
+
+  <hr size="3" width="100%" align="middle" noshade="noshade"/>
+
+  <!-- Row containing horizontal line end -->
+  </td></tr>
+
+  <tr><td width="100%">
+  <h4><u>DIFFERENT QUERY TYPES</u></h4></td></tr>
+  
+  <tr><td><br></td></tr>
+
+  <tr><td>
+  <!-- A small table containing different types of query start -->
+  <table border="0" width="100%" align="left" cellspacing="2" cellpadding="2">
+  
+  <td width="6%" valign="top"><b>Qn 1</b></td>
+  <td width="94%" valign="top">: If I only need project, blame, date and shot number 
+  for shot number = 7966, how should I type?</td>
+  <tr><td width="6%" valign="top"><b>Ans</b></td>
+  <td width="94%" valign="top">: SELECT project, blame, date_string, shot_number
+  FROM shot_descriptions WHERE shot_number=7966</td></tr>
+  <tr><td></td></tr>
+
+  <td width="6%" valign="top"><b>Qn 2</b></td>
+  <td width="94%" valign="top">: If I need to look for the experiments that
+  I done before such as project and shot number, how should I type?</td>  
+  <tr><td width="6%" valign="top"><b>Ans</b></td>
+  <td width="94%" valign="top">
+  : SELECT project, shot_number FROM shot_descriptions 
+  WHERE blame ~ 'your initial'</td></tr>
+  <tr><td></td></tr>
+
+  <td width="6%" valign="top"><b>Qn 3</b></td>
+  <td width="94%" valign="top">
+  : If I need find everything related to scramjet 
+  project, how should I type?</td>  
+  <tr><td width="6%" valign="top"><b>Ans</b></td>
+  <td width="94%" valign="top">: SELECT * FROM shot_descriptions 
+  WHERE project ~ 'scramjet'</td></tr>
+  <tr><td></td></tr> 
+
+  <td width="6%" valign="top"><b>Qn 4</b></td>
+  <td width="94%" valign="top">
+  : If I need to look for everything between shot number
+  8000 to 8100, how should I type?</td>  
+  <tr><td width="6%" valign="top"><b>Ans</b></td>
+  <td width="94%" valign="top">
+  : SELECT *  FROM shot_descriptions WHERE 
+  (shot_number > 8000 and shot_number < 8100)</td></tr>
+  <tr><td><br /></td></tr> 
+
+  <tr><td width="5%" valign="top"><i>Note:</i></td>
+  <td width="95%" valign="top">
+  <i>Please note that the searching time is very much dependent on the number
+  of stuffs that you search for. So please wait patiently if it takes quite a while.</i></td></tr>
+
+  </table>
+  <!-- A small table containing different types of query end -->
+  </td></tr>
+
+
+  </table>
+  <!-- Table containing the help content end -->
+  </td></tr>
+
+  <tr><td><br /></td></tr> 
+
+  <tr><td>
+  <!-- Row containing horizontal line start -->
+
+  <hr size="3" width="100%" align="middle" noshade="noshade"/>
+
+  <!-- Row containing horizontal line end -->
+  </td></tr>
+
+  <tr><td>
+  <!-- Table containing quicklinks to SQL tutorials start -->
+  <table width="100%" align="right" border="0" cellspacing="2" cellpadding="2">
+
+  <td width="100%" colspan="4">
+  <h4><u>LINKS TO SOME USEFUL SQL TUTORIALS</u></h4>
+  </td>
+
+  <tr><td width="100%" colspan="4"><br /></td></tr> 
+
+  <tr>
+  <td width="3%"><img src="http://www.mech.uq.edu.au/sf/arrow_green.gif" width="9" height="8" alt="" /></td>
+  <td width="47%"><font face=Arial, Helvetica, sans-serif><a href="http://www.w3schools.com/sql/default.asp">
+  http://www.w3schools.com/sql/default.asp</a></td>
+
+  <td width="3%"><img src="http://www.mech.uq.edu.au/sf/arrow_green.gif" width="9" height="8" alt="" /></td>
+  <td width="47%"><font face=Arial, Helvetica, sans-serif><a href="http://www.1keydata.com/sql/sql.html">
+  http://www.1keydata.com/sql/sql.html</a></td></tr>
+
+  <tr>
+  <td width="3%"><img src="http://www.mech.uq.edu.au/sf/arrow_green.gif" width="9" height="8" alt="" /></td>
+  <td width="47%"><font face=Arial, Helvetica, sans-serif><a href="http://www.sqlcourse.com/">
+  http://www.sqlcourse.com/</a></td>
+
+  <td width="4%"><img src="http://www.mech.uq.edu.au/sf/arrow_green.gif" width="9" height="8" alt="" /></td>
+  <td width="47%"><font face=Arial, Helvetica, sans-serif><a href="http://sqlzoo.net">
+  http://sqlzoo.net</a></td></tr>
+
+  <tr>
+  <td width="3%"><img src="http://www.mech.uq.edu.au/sf/arrow_green.gif" width="9" height="8" alt="" /></td>
+  <td width="47%"><font face=Arial, Helvetica, sans-serif><a href="http://www.baycongroup.com/tocsql.htm">
+  http://www.baycongroup.com/tocsql.htm</a></td>
+
+  <td width="4%"><img src="http://www.mech.uq.edu.au/sf/arrow_green.gif" width="9" height="8" alt="" /></td>
+  <td width="47%"><font face=Arial, Helvetica, sans-serif><a href="http://www.webdevelopersnotes.com/tutorials/sql/index.php3">
+  http://www.webdevelopersnotes.com/tutorials/sql/index.php3</a></td></tr>
+
+
+  </table>
+  <!-- Table containing quicklinks to SQL tutorials end -->
+  </td></tr>
+
+
+  <tr><td><br /></td></tr> 
+
+  <tr><td>
+  <!-- Row containing horizontal line start -->
+
+  <hr size="3" width="100%" align="middle" noshade="noshade"/>
+
+  <!-- Row containing horizontal line end -->
+  </td></tr>
+
+  <tr><td>
+  <!-- Table containing Python and Apache images start -->
+  <table width="100%" align="right" border="0" cellspacing="1" cellpadding="1">
+
+  <td width="100%" colspan="2"><br /></td>
+  <tr><td width="40%" align="center"><a href="http://www.python.org">
+  <img src="http://www.mech.uq.edu.au/sf/PythonPoweredAnim.gif" alt="Powered by Python" border="0"></a></td>
+  
+  <td width="60%" align="center"><a href="http://www.apache.org">
+  <img src="http://www.mech.uq.edu.au/sf/apache_pb.gif" alt="Powered by Apache" border="0"></a></td></tr>
+
+  </table>
+  <!-- Table containing Python and Apache images end -->
+  </td></tr>
+
+</table>
+<!-- Table containing main content end -->
+</td></tr>
+
+
+</table>
+<!-- Table of the whole page containing tables within tables end -->
+
+</body>
+</html>

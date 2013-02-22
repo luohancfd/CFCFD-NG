@@ -1,0 +1,1 @@
+sudo ncpmount -S uqspace -U peterj -b /mnt/uqspace

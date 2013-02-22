@@ -1,0 +1,149 @@
+
+# auto-dependency generation makefile
+
+
+#### Default values
+
+SRCEXTENSIONS := c C cpp
+CC := gcc
+CPP := g++
+LD := ld
+AR := ar
+
+#### build object directory token 
+
+CPU := $(shell uname -m)
+OS := $(shell uname -s | tr '[A-Z]' '[a-z]')
+
+DEFAULT_ARCH := $(CPU)-$(OS)
+
+ifeq ($(strip $(ARCH)),)
+	ARCH := $(DEFAULT_ARCH)
+endif
+
+OBJTOKEN := obj.$(ARCH)
+
+#
+#  Under most circumstances, paths are simple
+#
+
+ifeq ($(POSTROOT),..)
+	MODPATH := .
+	OBJDIR := $(OBJTOKEN)
+else
+	MODPATH := $(POSTROOT)/$(MODULENAME)
+	OBJDIR := $(MODPATH)/$(OBJTOKEN)
+endif
+
+
+#
+# Directories
+#
+
+MODLIBS := \
+	-L$(OBJDIR) \
+	$(foreach dir, $(MODULES), -L$(POSTROOT)/$(dir)/$(OBJTOKEN))
+MODINCLUDES := \
+	-I$(MODPATH)/include \
+	$(foreach dir, $(MODULES), -I$(POSTROOT)/$(dir)/include)
+ALLTARGETS := \
+	$(foreach targ, $(TARGETS), $(OBJDIR)/$(targ))
+VPATH := \
+	$(MODPATH)/include \
+	$(foreach dir, $(SRCDIRS), $(MODPATH)/$(dir)) \
+	$(foreach dir, $(MODULES), $(POSTROOT)/$(dir)/include)
+
+
+#### include paths
+
+LIBPATH := $(MODLIBS)
+INCLUDEPATH += -I. -Iinclude $(MODINCLUDES)
+KCFLAGS = -O2 \
+ -Wall -Werror -Wstrict-prototypes \
+ -fno-strict-aliasing -fomit-frame-pointer \
+ -DMODULE -D__KERNEL__ 
+
+CFLAGS :=  -fPIC -Wall -O2 -g
+CCFLAGS := -Werror
+CPPFLAGS := -ftemplate-depth-30
+
+#### Architecture deps
+
+KERNEL_INCLUDE := $(KERNEL_HOME)/include
+BINSTRIP := strip
+
+KCFLAGS += -I$(KERNEL_INCLUDE) $(INCLUDEPATH)
+CFLAGS += $(INCLUDEPATH) $(LIBPATH)
+
+CCFLAGS += $(CFLAGS)
+CPPFLAGS += $(CFLAGS)
+
+#
+#  targets
+# 
+
+default:	$(ALLTARGETS)
+
+####################################################
+
+
+#
+#  Dependency generation
+#
+
+
+# Get list of all source files
+SOURCES := \
+	$(notdir $(wildcard \
+		$(foreach dir, $(SRCDIRS), \
+			$(foreach ext, $(SRCEXTENSIONS), $(dir)/*.$(ext)))))
+
+# Convert all .c, .cpp, .C to .d
+SRC_AND_DEPENDS := $(foreach ext, $(SRCEXTENSIONS),\
+	$(patsubst %.$(ext),%.d,$(SOURCES)))
+
+DEPENDS := $(foreach file, $(filter %.d,$(SRC_AND_DEPENDS)), $(OBJDIR)/$(file))
+
+
+
+BASE = $(subst /,\/,$*)
+ODIR = $(subst /,\/,$(OBJDIR))
+
+# This magic is from the 'make' manual (with mods by jelson)
+$(OBJDIR)/%.d: %.c 
+	@mkdir -p $(OBJDIR)
+	set -e; $(CC) -MM -I$(KERNEL_INCLUDE) $(CFLAGS) $< \
+	| sed 's/\($(BASE)\)\.o[ :]*/$(ODIR)\/$(BASE).o $(ODIR)\/$(BASE).d : /g' > $@; \
+	[ -s $@ ] || rm -f $@
+
+$(OBJDIR)/%.d: %.C 
+	@mkdir -p $(OBJDIR)
+	set -e; $(CC) -MM $(CPPFLAGS) $< \
+	| sed 's/\($(BASE)\)\.o[ :]*/$(ODIR)\/$(BASE).o $(ODIR)\/$(BASE).d : /g' > $@; \
+	[ -s $@ ] || rm -f $@
+
+$(OBJDIR)/%.d: %.cpp 
+	@mkdir -p $(OBJDIR)
+	set -e; $(CC) -MM $(CPPFLAGS) $< \
+	| sed 's/\($(BASE)\)\.o[ :]*/$(ODIR)\/$(BASE).o $(ODIR)\/$(BASE).d : /g' > $@; \
+	[ -s $@ ] || rm -f $@
+
+
+#
+# Rules
+#
+
+$(OBJDIR)/%.o: %.cpp
+	$(CPP) $(CPPFLAGS) $< -c -o $@
+
+$(OBJDIR)/%.o: %.C
+	$(CPP) $(CPPFLAGS) $< -c -o $@
+
+$(OBJDIR)/%.o: %.c
+	$(CC) $(CCFLAGS) $< -c -o $@
+
+clean:
+	rm -f $(ALLTARGETS) $(OBJDIR)/*.[oa] $(OBJDIR)/*.so.* $(DEPENDS)
+
+
+#include $(DEPENDS)

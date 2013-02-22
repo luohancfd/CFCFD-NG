@@ -1,0 +1,92 @@
+==============================================================
+                  HELP for td_browser:
+--------------------------------------------------------------
+
+Left mouse button sets "Left" marker on graph.
+Right mouse button sets "Right" marker on graph.
+These markers indicate the selected data.
+The average value is computed for this selected data.
+You need both markers set in order to zoom to selected range.
+
+Control-Left mouse button sets "Top" marker on graph.
+Control-Right mouse button sets "Bottom" marker on graph.
+If either of these markers are set, the y-axes are adjusted
+when zooming to selected range.
+
+When you "fetch" a data set, it becomes the "current" set.
+Previously fetched data remains as part of the graph until
+either the trace is deleted or the graph is cleared.  
+Most of the operations (saving, filtering, estimating 
+average value, etc) are on the current set.
+
+==============================================================
+            Commands bound to function keys:
+--------------------------------------------------------------
+      F1    Fetch Data and map to (left) y-axis
+      F2    Filter (using default nhalf)
+      F3    Zoom to Selected Time and/or y Range
+      F4    Delete Current Trace
+      F5    Display Channel Names
+      F6    Display Channel Header
+      F7    Display Run Description
+      F8    Display Shot List
+      F9
+      F10   Apply Defrock to Generate ASCII files
+--------------------------------------------------------------
+Shift or Control Keys
+Shift-F1    Fetch Data and map to (right) y2-axis
+Shift-F2    Restore Original Trace
+Shift-F3    Zoom to Include All
+Shift-F4    Clear Graph
+Shift-F5
+==============================================================
+
+If you want to change some settings and there is no obvious
+menu item or widget, just use the Tcl console.  All of the
+Tcl commands are available from there.
+
+One application of the command-line interface is to add annotation
+to the displayed graph.  For example, one might add a note with 
+connecting line to the demonstration T4 trace with the commands:
+  % $mygraph marker create text -text "Stagnation Trace" -anchor w \
+             -coords {10000 32000}
+  % $mygraph marker create line -coords {10000 32000 7565 27920}
+Here, the % character indicates the command-line prompt, the $ in
+$mygraph fetches the name of the graph widget and the lists
+of numbers in braces are the (x,y)-coordinates in the displayed
+units.  Each time you create a marker, its name is returned.
+If you want to delete a marker, use the command:
+  % $mygraph marker delete <marker-name>
+You can get a list of the names of all markers with the command
+  % $mygraph marker names
+You can, of course, use the GUI menus to do this.  As Tony Gardner
+pointed out to me, using the command-line interface to annotate the
+graph really is the hard way to do it.
+
+If you are a sucker for punishment, another application of the 
+command-line interface is to manipulate the vectors of data values.  
+Each of the displayed graph elements is linked to two vectors of data.  
+To get a list of currently existing vectors, use the command
+  % blt::vector names
+For the state where just one set of data has been fetched and 
+plotted, you should see the following (global) names
+  ::vVec ::plotXVec1 ::tVec ::plotYVec1
+Of these, the ::plotXVec1 and ::plotYVec1 vectors are linked to
+graph element.  To change the pressures fro kPa to MPa, apply 
+the command
+  % ::plotYVec1 expr { ::plotYVec1 * 0.001 }
+and, to convert the time values to milliseconds and shift the
+data by 5 milliseconds, use the command
+  % ::plotXVec1 expr { ::plotXVec1 / 1000.0 - 5.0 }
+You can use all sorts of vector and scalar expressions within
+the braces.  Just remember to manually change the axis labels 
+to suit.  When more than one trace has been added to the graph
+there should be corresponding vector names with the ::plotYVec2,
+::plotXVec2, etc.
+
+The BLT graph widget has lots of functionality that the basic 
+browser doesn't directly use.  Read the BLT manual to see what 
+you're missing.  You can rotate the text, change the font...
+
+--------------------------------------------------------------
+

@@ -1,0 +1,8 @@
+# .htaccess file for td_server on RedHat 8.0
+# installed as /var/www/cgi-bin/tds/.htaccess
+
+AuthName "tds"
+AuthType Basic
+AuthUserFile /etc/httpd/conf/users
+
+require user tdguest peterj
