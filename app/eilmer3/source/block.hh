@@ -250,6 +250,8 @@ public:
 	      int param1, string failure_message_header);
     int apply(int (*f)(FV_Cell *cellp, int param1, int param2), 
 	      int param1, int param2, string failure_message_header);
+    int apply(int (*f)(FV_Cell *cellp, int param1, double param2), 
+	      int param1, double param2, string failure_message_header);
 
     int bind_interfaces_to_cells( int dimensions );
     int set_base_qdot( global_data &gdp ); 
@@ -258,25 +260,40 @@ public:
     int clear_fluxes_of_conserved_quantities( int dimensions );
     int propagate_data_west_to_east( int dimensions );
 
-    int compute_primary_cell_geometric_data( int dimensions );
+    int compute_initial_primary_cell_geometric_data( int dimensions );
+    int compute_primary_cell_geometric_data( int dimensions, int time_level );
     int compute_distance_to_nearest_wall_for_all_cells( int dimensions );
     int compute_secondary_cell_geometric_data( int dimensions );
-    int calc_volumes_2D( void );
+    int calc_initial_volumes_2D( void );
     int calc_volumes_2D( int time_level );
     int secondary_areas_2D( void );
-    int calc_faces_2D( void );
+    int calc_initial_faces_2D( void );
     int calc_faces_2D( int time_level );
-    int calc_ghost_cell_geom_2D( void );
-    int predict_vertex_positions( double dt );
-	int correct_vertex_positions( double dt );
-    int set_vertex_velocities( int time_level );
-    int set_interface_velocities( int time_level );
-	int calc_boundary_vertex_velocity(FV_Interface *IFaceU, FV_Interface *IFaceD,     
-                                           FV_Vertex *vtx, Vector3 trv, int time_level);
-	int calc_boundary_vertex_velocity(FV_Interface *IFaceD2, FV_Interface *IFaceD,     
-                                           FV_Interface *IFaceU, FV_Interface *IFaceU2,
-                                           FV_Vertex *vtx, Vector3 trv, int time_level);
-	double velocity_weighting_factor(double M);
+    int calc_initial_ghost_cell_geom_2D( void );
+    int calc_ghost_cell_geom_2D( int time_level );
+    int predict_vertex_positions( int dimensions, double dt );
+    int correct_vertex_positions( int dimensions, double dt );
+    int rk3_vertex_positions( int dimensions, double dt );
+    int set_geometry_velocities( int dimensions, int time_level );
+    int set_vertex_velocities2D( int time_level );
+    int set_gcl_test_vertex_velocities2D( int time_level );
+    int set_gcl_test_vertex_velocities3D( int time_level );
+    int set_gcl_test_random_vertex_velocities2D( int time_level );
+    int set_gcl_interface_properties( int dimensions, int time_level, double dt );
+    int set_gcl_interface_properties2D( int time_level, double dt );
+    int set_gcl_interface_properties3D( int time_level, double dt );
+    int set_interface_velocities2D( int time_level );
+    int set_vertex_velocities3D( int time_level );
+    int set_interface_velocities3D( int time_level );
+    int calc_boundary_vertex_velocity(FV_Interface &IFace1, FV_Interface &IFace2,     
+				      FV_Vertex &vtx, Vector3 trv, int time_level);
+    int calc_boundary_vertex_velocity(FV_Interface &IFace1, FV_Interface &IFace2,     
+				      FV_Interface &IFace3, FV_Interface &IFace4,
+				      FV_Vertex &vtx, Vector3 trv, int time_level);
+    int velocity_weighting_factor(FV_Interface &IFace, Vector3 vp, double &w, Vector3 &ws);
+    int diffuse_vertex_velocities(double mu, int npass, int dimensions, int time_level);
+    int anti_diffuse_vertex_velocities(double mu, int npass, int dimensions, int time_level);
+    int compute_boundary_flux(FV_Interface *IFaceL, FV_Interface *IFaceR, double omegaz);
     
     void compute_x_forces( char *text_string, int ibndy, int dimensions );
     int print_forces( FILE *fp, double t, int dimensions );
@@ -301,7 +318,9 @@ public:
 
     int determine_time_step_size( double cfl_target, int dimensions );
     int detect_shock_points( int dimensions );
-    int apply_spatial_filter( double alpha, int npass, int dimensions );
+    int apply_spatial_filter_diffusion( double alpha, int npass, int dimensions );
+    int apply_spatial_filter_anti_diffusion( double alpha, int npass, int dimensions );
+    double calc_anti_diffusive_flux(double m2, double m1, double p1, double p2, double mu);
 
     // The implementation for the following function is in invs.cxx
     int inviscid_flux( int dimensions );

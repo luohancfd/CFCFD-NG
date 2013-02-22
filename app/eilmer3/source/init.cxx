@@ -57,17 +57,6 @@ int read_config_parameters(const string filename, int master)
     G.dimensions = 2;
     set_radiation_flag(0);
 
-    // --FIX ME--
-    // Note to Andrew D. -- adjust the following lines as appropriate.
-    // Filter application parameters.
-    G.do_filter = 0;
-    G.filter_tstart = 0.0;
-    G.filter_tend = 0.0;
-    G.filter_dt = 0.0;
-    G.filter_next_time = 0.0;
-    G.filter_alpha = 0.0;
-    G.filter_npass = 0;
-
     // variables for Andrew's time averaging routine.
     G.nav = 0;
     G.tav_0 = 0.0;
@@ -333,6 +322,18 @@ int read_config_parameters(const string filename, int master)
 	cout << "apply_limiter_flag = " << get_apply_limiter_flag() << endl;
 	cout << "extrema_clipping_flag = " << get_extrema_clipping_flag() << endl;
     }
+
+    dict.parse_int("global_data", "filter_flag", i_value, 0);
+    set_filter_flag( i_value );
+    dict.parse_double("global_data", "filter_tstart", G.filter_tstart, 0.0);
+    //set_filter_tstart(d_value);
+    dict.parse_double("global_data", "filter_tend", G.filter_tend, 0.0);
+    //set_filter_tend(d_value);
+    dict.parse_double("global_data", "filter_dt", G.filter_dt, 0.0);
+    //set_filter_dt(d_value);
+    dict.parse_double("global_data", "filter_mu", G.filter_mu, 0.0);
+    //set_filter_mu(d_value);
+    dict.parse_int("global_data", "filter_npass", G.filter_npass, 0);
 
     dict.parse_int("global_data", "sequence_blocks", i_value, 0);
     G.sequence_blocks = (i_value == 1);
@@ -620,7 +621,7 @@ int assign_blocks_to_mpi_rank(const string filename, int master)
 		dummy_block_ids.resize(nblock);
 		for ( int i = 0; i < nblock; ++i ) dummy_block_ids[i] = -1;
 		dict.parse_vector_of_ints(section, "blocks", block_ids, dummy_block_ids);
-		if ( nblock != block_ids.size() ) {
+		if ( nblock != (int)block_ids.size() ) {
 		    if ( master ) {
 			printf("    Did not pick up correct number of block_ids:\n");
 			printf("        rank=%d, nblock=%d, block_ids.size()=%d\n",
@@ -641,7 +642,7 @@ int assign_blocks_to_mpi_rank(const string filename, int master)
 	    } // end for rank
 	    if ( get_verbose_flag() ) {
 		printf("    my_rank=%d, block_ids=", G.my_mpi_rank);
-		for ( int i=0; i < G.my_blocks.size(); ++i ) {
+		for ( size_t i=0; i < G.my_blocks.size(); ++i ) {
 		    printf(" %d", G.my_blocks[i]->id);
 		}
 		printf("\n");

@@ -27,6 +27,7 @@
 #define COPY_ALL_CELL_DATA 0
 #define COPY_FLOW_STATE    1
 #define COPY_CELL_LENGTHS  2
+#define COPY_INTERFACE_DATA  3
 
 /** Symbolic labels and indices for the cell's faces. 
  *
@@ -51,7 +52,7 @@
  *
  * Used below to dimension some time-derivative arrays.
  */
-#define NL 3
+#define NL 4
 #define NI 6
 #define NV 8
 
@@ -125,7 +126,7 @@ public:
     Vector3 vel;       /* velocity, m/s    */
     double Ybar;       /* Y-coordinate of the mid-point     */
     double length;     /* Interface length in the x,y-plane */
-    double ar[NL];
+    double ar[NL];     /* Area m**2 in 2D geometries for each integration time level */
     double area;       /* Area m**2 in 2D geometries        */
                        /* Area per radian in axisymmetric g */
     Vector3 n;         /* Direction cosines for unit normal */
@@ -143,7 +144,7 @@ public:
     FV_Interface(Gas_model *gm);
     ~FV_Interface();
     int print(int to_stdout);
-    int copy_values_from(FV_Interface &dest, int type_of_copy);
+    int copy_values_from(FV_Interface &src, int type_of_copy);
 }; // end of class FV_Interface
 
 
@@ -285,8 +286,8 @@ int onesided_interp(FV_Cell &cL0, FV_Cell &cR0, FV_Cell &cR1,
 		    double cL0Length, double cR0Length, double cR1Length,
 		    FlowState &Rght );
 
-int one_d_linear_interp(FV_Cell &cL0, FV_Cell &cR0,
-			double cL0Length, double cR0Length,
-			FlowState &Lft);
+int one_d_interior_interp(FV_Cell &cL0, FV_Cell &cR0, FV_Cell &cR1, FV_Cell &cR2,
+			  double cL0Length, double cR0Length, double cR1Length, double cR2Length,
+			  FlowState &Lft, FlowState &Rght );
 
 #endif

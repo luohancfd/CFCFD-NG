@@ -184,17 +184,20 @@ int viscous_upwinding = 0;
 //  calculation.
 int diffusion = 0;           
 
-/// \brief Shock fitting =0 for no shock fitting, =1 for shock fitting
+/// \brief Shock fitting =0 for no shock fitting, =1 for shock fitting.
 int shock_fitting = 0;
 
-/// \brief Shock fitting decay =0 for no shock fitting decay, =1 for shock fitting decay
+/// \brief Shock fitting decay =0 for no shock fitting decay, =1 for shock fitting decay.
 int shock_fitting_decay = 0;
 
-/// \brief Moving grid  =0 for no moving grid, =1 for moving grid
+/// \brief Moving grid  =0 for no moving grid, =1 for moving grid.
 int moving_grid = 0;
 
-/// \brief Adaptive reconstruction =0 for no adaptive reconstruction, =1 for adaptive reconstruction
+/// \brief Adaptive reconstruction =0 for no adaptive reconstruction, =1 for adaptive reconstruction.
 int adaptive_reconstruction = 0;
+
+/// \brief Filter =0 for no spatial filter, =1 for spatial filter.
+int filter = 0;
 
 /// \brief Axisymmetric flag =0 for 2D planar equations, =1 for 2D axisymmetric. 
 ///
@@ -393,6 +396,7 @@ int get_shock_fitting_decay_flag(void)
 
 int set_moving_grid_flag(int iw)
 {
+    cout << "set_moving_grid(): iw= " << iw << endl;
     moving_grid = iw;
     if (moving_grid == 0) {
         if ( get_verbose_flag() ) printf("Turn off moving_grid\n");
@@ -433,6 +437,29 @@ int set_adaptive_reconstruction_flag(int iw)
 int get_adaptive_reconstruction_flag(void)
 {
     return adaptive_reconstruction;
+}
+
+/*------------------------------------------------------------------*/
+
+int set_filter_flag(int iw)
+{
+    filter = iw;
+    if (filter == 0) {
+        if ( get_verbose_flag() ) printf("Turn off spatial filter.\n");
+    }
+    else if (filter == 1) {
+        if ( get_verbose_flag() ) printf("Turn on spatial filter.\n");
+    }
+    else {
+        printf("Invalid filter flag value: %d\n", filter);
+        exit(VALUE_ERROR);
+    }
+    return SUCCESS;
+}
+
+int get_filter_flag(void)
+{
+    return filter;
 }
 
 /*------------------------------------------------------------------*/

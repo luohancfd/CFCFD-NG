@@ -1896,7 +1896,7 @@ double Piston::compute_signal_frequency()
 int activate_cells(global_data &G, Block *(bd[])) 
 {
     string failure_message("error in activate_cells()");
-    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	G.my_blocks[jb]->apply(set_cell_status, NORMAL_CELL, failure_message); 
     }
     return SUCCESS;
@@ -1910,7 +1910,7 @@ int print_cell_status( FV_Cell *c )
 
 int print_all_cells_status(global_data &G, Block *(bd[]))
 {
-    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	G.my_blocks[jb]->apply(print_cell_status, "print cell status");
     }
     return SUCCESS;

@@ -145,7 +145,7 @@ int ausmdv(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
      * Mass Flux (eqn 29)
      */
     // The mass flux is relative to the moving interface.
-    ru_half = (uLplus - IFace.vel.x) * rL + (uRminus - IFace.vel.x) * rR;
+    ru_half = uLplus * rL + uRminus * rR;
     /*
      * Pressure flux (eqn 34)
      */

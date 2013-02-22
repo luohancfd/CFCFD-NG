@@ -850,14 +850,18 @@ int BoundaryCondition::write_vertex_velocities( std::string filename, double sim
 	irangemax = imax+1;
 	jrangemax = jmax+1;
 	krangemax = kmax;
+    } else {
+	printf( "Error: Boundary %d\n not implemented.", 
+		which_boundary );
+	exit(NOT_IMPLEMENTED_ERROR);
     }
 // 3. Loop over all vertices
     if ( dimensions == 2 ) {
     	krangemax = kmax;
     }
-    for ( k=kmin; k<=krangemax; ++k ) {
-	for ( j=jmin; j<=jrangemax; ++j ) {
-	    for ( i=imin; i<=irangemax; ++i ) {
+    for ( k = kmin; k <= krangemax; ++k ) {
+	for ( j = jmin; j <= jrangemax; ++j ) {
+	    for ( i = imin; i <= irangemax; ++i ) {
 		vtx = bdp.get_vtx(i,j,k);
 		fprintf(fp, "%d %d %d ", i, j, k);
 		fprintf(fp, "%20.12e %20.12e %20.12e ", 

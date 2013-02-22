@@ -129,12 +129,12 @@ struct global_data
     int n_gas_state;
 
     // Filter application parameters.
-    int    do_filter;
+    int    filter_flag;
     double filter_tstart;
     double filter_tend;
     double filter_dt;
     double filter_next_time;
-    double filter_alpha;
+    double filter_mu;
     int    filter_npass;
 
     // variables for Andrew's time averaging routine.
@@ -202,6 +202,8 @@ int set_moving_grid_flag(int iw);
 int get_moving_grid_flag(void);
 int set_adaptive_reconstruction_flag(int iw);
 int get_adaptive_reconstruction_flag(void);
+int set_filter_flag(int iw);
+int get_filter_flag(void);
 int set_viscous_flag(int iv);
 int get_viscous_flag(void);
 int set_viscous_upwinding_flag(int iw);

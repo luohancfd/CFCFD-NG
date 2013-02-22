@@ -319,6 +319,15 @@ class GlobalData(object):
     * adaptive_reconstruction_flag: (0/1) Set to 1 to cause the reconstruction stencil to adapt to Mach
       so that downwind information is not used in supersonic regions.
       Set to 0 (the default) for no adaptation.
+    * filter_flag: (0/1) Set to 1 to periodically apply a flux corrected transport filter consisting of a
+      diffusion and an anti-diffusion step.
+      Set to 0 (the default) for no filtering
+    * filter_tstart: (float) Time at which to start filtering.
+    * filter_tstop: (float) Time at which to stop filtering.
+    * filter_dt: (float) Period (in seconds) between applying the FCT filter.
+    * filter_mu: (float) Amount of diffusion to apply when filtering. 0.0 is no diffusion,
+      1.0 replaces the cell information with the average of the adjacent cells.
+    * filter_npass: (int) Number of passes of the filter to apply at each interval.
     * dt_shock: (float) Period (in seconds) between running the shock adaptation algorithm.
     * dt_plot: (float) Period between writing all of the flow field data to the
       solution file.
@@ -348,6 +357,8 @@ class GlobalData(object):
                 't_order', 'stringent_cfl', 'shock_fitting_flag', 'dt_shock', \
                 'shock_fitting_decay_flag', 'shock_fitting_speed_factor', \
                 'moving_grid_flag', 'adaptive_reconstruction_flag', \
+                'filter_flag', 'filter_tstart', 'filter_tend', \
+                'filter_dt', 'filter_mu', 'filter_npass', \
                 't0', 'dt', 'cfl', 'dt_chem', 'dt_therm', \
                 'interpolation_type', 'sequence_blocks', \
                 'print_count', 'cfl_count', 'max_invalid_cells', 'dt_reduction_factor', \
@@ -434,6 +445,12 @@ class GlobalData(object):
         self.shock_fitting_speed_factor = 1.0
         self.moving_grid_flag = 0
         self.adaptive_reconstruction_flag = 0
+        self.filter_flag = 0
+        self.filter_tstart = 0.0
+        self.filter_tend = 0.0
+        self.filter_dt = 0.0
+        self.filter_mu = 0.0
+        self.filter_npass = 0
         self.dt_shock = 0.0
         self.dt_plot = 1.0e-3
         self.dt_history = 1.0e-3
@@ -499,6 +516,12 @@ class GlobalData(object):
         fp.write("shock_fitting_speed_factor = %e\n" % self.shock_fitting_speed_factor)
         fp.write("moving_grid_flag = %d\n" % self.moving_grid_flag)
         fp.write("adaptive_reconstruction_flag = %d\n" % self.adaptive_reconstruction_flag)
+        fp.write("filter_flag = %d\n" % self.filter_flag)
+        fp.write("filter_tstart = %e\n" % self.filter_tstart)
+        fp.write("filter_tend = %e\n" % self.filter_tend)
+        fp.write("filter_dt = %e\n" % self.filter_dt)
+        fp.write("filter_mu = %e\n" % self.filter_mu)
+        fp.write("filter_npass = %d\n" % self.filter_npass)
         fp.write("max_mu_t_factor = %e\n" % self.max_mu_t_factor)
         fp.write("transient_mu_t_factor = %e\n" % self.transient_mu_t_factor)
         fp.write("diffusion_flag = %d\n" % self.diffusion_flag)

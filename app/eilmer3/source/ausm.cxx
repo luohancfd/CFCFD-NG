@@ -50,8 +50,8 @@
 int ausm(FlowState &QL, FlowState &QR, FlowState &QIF, double &WSL, double &WSR)
 {
     if ( get_shock_fitting_flag() ) {
-	cerr << "Error, we have not implemented AUSM with shock fitting. Please use AUSMDV." << endl;
-	exit(NOT_IMPLEMENTED_ERROR);
+    	cerr << "Error, we have not implemented AUSM with shock fitting. Please use AUSMDV." << endl;
+    	exit(NOT_IMPLEMENTED_ERROR);
     }
     Gas_model *gmodel = get_gas_model_ptr();
 

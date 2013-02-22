@@ -16,7 +16,7 @@ void ensure_directory_is_present( string pathname );
 void do_system_cmd( string commandstring );
 int prepare_to_integrate( int start_tindx );
 int call_udf( double t, int step, std::string udf_fn_name );
-int udf_source_vector_for_cell( FV_Cell *cell, double t );
+int udf_source_vector_for_cell( FV_Cell *cell, int time_level, double t );
 int integrate_blocks_in_sequence( void );
 int integrate_in_time( double target_time );
 int finalize_simulation( void );

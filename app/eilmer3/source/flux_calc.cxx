@@ -37,21 +37,21 @@ FlowState *IFace_flow_state = NULL;
 int set_flux_calculator(int iflux)
 {
     flux_calculator = iflux;
-    if (flux_calculator == FLUX_RIEMANN)
+    if (flux_calculator == FLUX_RIEMANN) {
         if ( get_verbose_flag() ) printf("Fluxes calculated via Riemann solver\n");
-    else if (flux_calculator == FLUX_AUSM)
+    } else if (flux_calculator == FLUX_AUSM) {
         if ( get_verbose_flag() ) printf("Fluxes calculated via AUSM\n");
-    else if (flux_calculator == FLUX_EFM)
+    } else if (flux_calculator == FLUX_EFM) {
         if ( get_verbose_flag() ) printf("Fluxes calculated via EFM\n");
-    else if (flux_calculator == FLUX_AUSMDV)
+    } else if (flux_calculator == FLUX_AUSMDV) {
         if ( get_verbose_flag() ) printf("Fluxes calculated via AUSMDV\n");
-    else if (flux_calculator == FLUX_ADAPTIVE)
+    } else if (flux_calculator == FLUX_ADAPTIVE) {
         if ( get_verbose_flag() )  printf("Fluxes calculated via ADAPTIVE\n");
-    else if (flux_calculator == FLUX_AUSM_PLUS_UP)
+    } else if (flux_calculator == FLUX_AUSM_PLUS_UP) {
         if ( get_verbose_flag() ) printf("Fluxes calculated via AUSM_PLUS_UP\n");
-    else if (flux_calculator == FLUX_HLLE)
+    } else if (flux_calculator == FLUX_HLLE) {
         if ( get_verbose_flag() ) printf("Fluxes calculated via HLLE\n");
-    else {
+    } else {
         printf("Invalid flux calculator: %d. Riemann solver assumed\n",
 	       flux_calculator);
         flux_calculator = FLUX_RIEMANN;
@@ -86,6 +86,14 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
     if( IFace_flow_state == NULL ) {
 	IFace_flow_state = new FlowState(gmodel);
     }
+
+    // IFace.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+    // Lft.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+    // Rght.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+
+    // Transform to interface frame of reference.
+    Lft.vel -= IFace.vel;
+    Rght.vel -= IFace.vel;
     IFace.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
     Lft.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
     Rght.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
@@ -138,11 +146,16 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
     F.print();
 #   endif
 
-
+    // Transform fluxes back from interface frame of reference to local frame of reference.
+    /* Flux of Total Energy */
+    F.total_energy += 0.5 * F.mass * pow(vabs(IFace.vel),2) + dot(F.momentum, IFace.vel);
+    /* Flux of momentum */
+    F.momentum += F.mass * IFace.vel;
+ 
     // Rotate momentum fluxes back to the global frame of reference.
     F.momentum.transform_to_global(IFace.n, IFace.t1, IFace.t2);
     // also transform the interface velocities
-    IFace.vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);	
+    IFace.vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
     // also transform the magnetic field
     if (get_mhd_flag() == 1) {
 	F.B.transform_to_global(IFace.n, IFace.t1, IFace.t2);
@@ -165,11 +178,10 @@ int set_interface_flux(FV_Interface &IFace, FlowState *IFace_flow_state)
 {
     double rho, e, p, ke;
     double un, vt1, vt2;
-    double WSL, WSR;
     ConservedQuantities &F = *(IFace.F);
     Gas_model *gmodel = get_gas_model_ptr();
-    int nsp = get_gas_model_ptr()->get_number_of_species();
-    int nmodes = get_gas_model_ptr()->get_number_of_modes();
+    int nsp = gmodel->get_number_of_species();
+    int nmodes = gmodel->get_number_of_modes();
 
     rho = IFace_flow_state->gas->rho;
     un = IFace_flow_state->vel.x;
@@ -181,7 +193,7 @@ int set_interface_flux(FV_Interface &IFace, FlowState *IFace_flow_state)
     /* Kinetic energy per unit volume. */
     
     /* Mass flux (mass / unit time / unit area) */
-    F.mass = rho * (un - IFace.vel.x); // The mass flux is relative to the moving interface.
+    F.mass = rho * un; // The mass flux is relative to the moving interface.
     /* Flux of normal momentum */
     F.momentum.x = F.mass * un + p;
     /* Flux of tangential momentum */
@@ -200,4 +212,5 @@ int set_interface_flux(FV_Interface &IFace, FlowState *IFace_flow_state)
     for ( int imode = 1; imode < nmodes; ++imode ) {
 	F.energies[imode] = F.mass * IFace_flow_state->gas->e[imode];
     }
+    return SUCCESS;
 }
