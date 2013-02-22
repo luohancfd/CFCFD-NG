@@ -22,14 +22,14 @@ from cfpylib.util.YvX import *
 try:
     import matplotlib.pyplot as plt
 except:
-    print "Could not import matplotlib - plotting disabled."
+    # print "Could not import matplotlib - plotting disabled."
     with_mpl = False
 else:
     with_mpl = True
 try:
     from scipy.optimize import *
 except:
-    print "Could not import scipy - shock fitting disabled."
+    # print "Could not import scipy - shock fitting disabled."
     with_scipy = False
 else:
     import scipy
@@ -48,7 +48,7 @@ else:
 try:
     from numpy import *
 except:
-    print "Could not import numpy - shock fitting disabled."
+    # print "Could not import numpy - shock fitting disabled."
     with_numpy = False
 else:
     with_numpy = True
