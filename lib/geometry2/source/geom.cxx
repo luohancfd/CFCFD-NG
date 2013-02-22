@@ -18,6 +18,7 @@
 #include <string>
 #include <sstream>
 #include <math.h>
+#include <stdexcept>
 #include "../../util/source/useful.h"
 #include "geom.hh"
 using namespace std;

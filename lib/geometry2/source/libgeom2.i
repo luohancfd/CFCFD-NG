@@ -6,12 +6,26 @@
  *  \version 31-Dec-2005 eliminated label from Vector3 but kept it in Node3.
  *  \version 13-Jan-2006 up to volume classes.
  *  \version 17-Jan-2006 Node class moved from C++ into Python code.
+ *  \version 21-Feb-2013 Exception handler added.
  */
 %define GEOM2_DOCSTRING
 "Python interface to the geometry and path-defining classes, now in implemented C++"
 %enddef
 %module(docstring=GEOM2_DOCSTRING) libgeom2
 
+%include "exception.i"
+%exception {
+    try {
+        $action
+    }
+    // Could put custom exception catches here.
+    // catch ( const std::exception & e ) {
+    //    std::cout << "hello from my exception handler" << endl;
+    //    SWIG_exception(SWIG_RuntimeError, e.what());
+    // }
+    // but, for the moment, we're happy with the standard set.
+    SWIG_CATCH_STDEXCEPT
+}
 %include "std_string.i"
 %include "std_vector.i"
 

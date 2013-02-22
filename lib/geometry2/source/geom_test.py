@@ -28,6 +28,8 @@ a = Vector(1.1, 2.0, 3.0)
 print "initial : a=", a
 a += 2.0
 print "a+=2 : a=", a
+# a /= 1.0e-40
+# print "a/=0.0 : a=", a
 b = a
 b += a
 print "b=a; b+=a : b=", b
