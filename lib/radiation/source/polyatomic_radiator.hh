@@ -22,30 +22,104 @@ extern "C" {
 #include "../../gas/models/gas_data.hh"
 #include "radiator.hh"
 
+class PolyatomicVibState {
+public:
+  PolyatomicVibState( std::string type, int iV, lua_State * L  );
+
+    /// \brief Deconstructor
+    virtual ~PolyatomicVibState() {};
+
+public:
+    double get_E_vib() { return G_v; }
+
+    int get_J_max() { return J_max; }
+
+    virtual double calculate_E_rot( int iJ, int iK ) = 0;
+
+    double calculate_Q_rot( double T );
+
+protected:
+    /* Designation */
+    std::string type;
+    int iV;
+    std::string label;
+
+    /* Spectroscopic data */
+    int g;              // vibrational state degeneracy
+    double G_v;         // vibrational energy (J)
+    double A_v;         // First rotational (inertia) constant (J)
+    double B_v;         // Second rotational (inertia) constant (J)
+    double C_v;         // Third rotational (inertia) constant (J)
+    double D_v;         // First anharmonicity constant (J)
+    double H_v;         // Second anharmonicity constant (J)
+    int J_max;          // Maximum rotational quantum number
+};
+
+class SphericalTopPolyatomicVibState : public PolyatomicVibState {
+public:
+    SphericalTopPolyatomicVibState( int iV, lua_State * L  );
+
+    /// \brief Deconstructor
+    virtual ~SphericalTopPolyatomicVibState() {};
+
+public:
+    double calculate_E_rot( int iJ, int iK ); 
+};
+
+class SymmetricalTopPolyatomicVibState : public PolyatomicVibState {
+public:
+    SymmetricalTopPolyatomicVibState( int iV, lua_State * L  );
+
+    /// \brief Deconstructor
+    virtual ~SymmetricalTopPolyatomicVibState() {};
+
+public:
+    double calculate_E_rot( int iJ, int iK );
+};
+
+class AxisymmetricTopPolyatomicVibState : public PolyatomicVibState {
+public:
+    AxisymmetricTopPolyatomicVibState( int iV, lua_State * L  );
+
+    /// \brief Deconstructor
+    virtual ~AxisymmetricTopPolyatomicVibState() {};
+
+public:
+    double calculate_E_rot( int iJ, int iK );
+};
+
+PolyatomicVibState * create_new_polyatomic_vib_state( std::string type, int iV, lua_State * L );
+
 class PolyatomicElecLev : public ElecLev {
 public:
     /// \brief Constructor
     PolyatomicElecLev( int ilev, double E, int g, lua_State * L );
     
     /// \brief Deconstructor
-    virtual ~PolyatomicElecLev() {};
+    virtual ~PolyatomicElecLev();
 
 public:
     /// \brief String representation
-    std::string string();
+    virtual std::string string();
 
-    /// \brief Calculate equilibrium total partion function (QelQvQr)
+    /// \brief Calculate equilibrium total partition function (QelQvQr)
     double calculate_equilibrium_Q_total( double T );
 
-    /// \brief Calculate rovibrational partion function (QvQr)
+    /// \brief Calculate rovibrational partition function (QvQr)
     double calculate_Q_vib( double T_vib, double T_rot );
 
-    /// \brief Calculate and store rovibrational partion function (QvQr)
+    /// \brief Calculate and store rovibrational partition function (QvQr)
     double calculate_and_store_Q_vib( double T_vib, double T_rot );
 
 private:
+    /* Symmetry type */
+    std::string type;
+
     /* Energy terms */
     double D;           // Dissociation energy
+
+    /* Vibrational states */
+    std::vector<PolyatomicVibState*> vstates;
 
     /* Partition functions */
     double QvQr;
@@ -70,10 +144,11 @@ public:
     double get_D();
 
 protected:
-    /* Energy terms */
-    double D;           // Dissociation energy
-    
-protected:
+    /*** Initialisation functions ***/
+
+    /// \brief Read electronic level data
+    void read_elevel_data( lua_State * L );
+
     /*** Thermodynamics functions ***/
     
     /// \brief Calculate and store internal partition functions (QvQr[], Q_el)
@@ -112,6 +187,9 @@ public:
     int iTv, iTr;
     
 protected:
+    /* Energy terms */
+    double D;           // Dissociation energy
+
     // std::vector<PolyatomicSystem*> systems;
     std::vector<PolyatomicElecLev*> elevs;
 };

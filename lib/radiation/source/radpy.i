@@ -47,6 +47,7 @@
 #include "diatomic_radiator.hh"
 #include "diatomic_system.hh"
 #include "cr_rr_coeffs.hh"
+#include "polyatomic_radiator.hh"
 %}
 
 %include "spectral_model.hh"
@@ -60,6 +61,7 @@
 %include "diatomic_radiator.hh"
 %include "diatomic_system.hh"
 %include "cr_rr_coeffs.hh"
+%include "polyatomic_radiator.hh"
 
 %template(vectorSB) std::vector<SpectralBin*>;
 

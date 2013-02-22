@@ -21,8 +21,8 @@ extern "C" {
 #include "../../gas/models/gas_data.hh"
 #include "spectra_pieces.hh"
 
-#define ECHO_RAD_INPUT 1
-#define DEBUG_RAD      0
+#define ECHO_RAD_INPUT 2
+#define DEBUG_RAD      1
 
 class Radiator;
 
