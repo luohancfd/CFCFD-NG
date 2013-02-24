@@ -68,7 +68,7 @@ void Parade::initialise( lua_State * L )
 {
     // system return value
     int srv;
-    
+
     string control_template_filename = get_string(L, -1, "control_template");
 
     if ( ECHO_RAD_INPUT > 0 )
@@ -128,6 +128,8 @@ void Parade::initialise( lua_State * L )
             srv = system(oss.str().c_str());
         }
     }
+
+    UNUSED_VARIABLE(srv);
 }
 
 Parade::~Parade()
@@ -184,7 +186,6 @@ spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
     create_parade_control_files( Q );
     
     // 2. Run the parade executable
-
     srv = system("parade > parade.out");
 
     // 3. Pick up the solution and insert it into CoeffSpectra
@@ -223,6 +224,8 @@ spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
     // Move out of the working directory
     srv = chdir("..");
 
+    UNUSED_VARIABLE( srv );
+
     return;
 }
 
@@ -230,6 +233,9 @@ void
 Parade::
 spectral_distribution_for_gas_state(Gas_data &Q, vector<double> &nus)
 {
+    // System return value
+    int srv;
+
     // 0. Make sure the nu vector is of size zero
     nus.clear();
 
@@ -237,7 +243,7 @@ spectral_distribution_for_gas_state(Gas_data &Q, vector<double> &nus)
     create_parade_control_files( Q );
 
     // 2. Run the parade executable
-    system("parade > parade.out");
+    srv = system("parade > parade.out");
 
     // 3. Pick up the solution and insert it into CoeffSpectra
     ifstream specfile( "par_res.txt" );
@@ -261,6 +267,8 @@ spectral_distribution_for_gas_state(Gas_data &Q, vector<double> &nus)
     if ( nus.front() > nus.back() ) {
         reverse( nus.begin(), nus.end() );
     }
+
+    UNUSED_VARIABLE(srv);
 
     return;
 }
