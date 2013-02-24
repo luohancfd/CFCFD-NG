@@ -34,6 +34,8 @@ public:
 
     int get_J_max() { return J_max; }
 
+    int get_p_vib() { return p_v; }
+
     virtual double calculate_E_rot( int iJ, int iK ) = 0;
 
     double calculate_Q_rot( double T );
@@ -45,7 +47,8 @@ protected:
     std::string label;
 
     /* Spectroscopic data */
-    int g;              // vibrational state degeneracy
+    int g;		// vibrational degeneracy?
+    int p_v;            // statistical weight of the vibrational state
     double G_v;         // vibrational energy (J)
     double A_v;         // First rotational (inertia) constant (J)
     double B_v;         // Second rotational (inertia) constant (J)
@@ -77,12 +80,12 @@ public:
     double calculate_E_rot( int iJ, int iK );
 };
 
-class AxisymmetricTopPolyatomicVibState : public PolyatomicVibState {
+class AsymmetricTopPolyatomicVibState : public PolyatomicVibState {
 public:
-    AxisymmetricTopPolyatomicVibState( int iV, lua_State * L  );
+    AsymmetricTopPolyatomicVibState( int iV, lua_State * L  );
 
     /// \brief Deconstructor
-    virtual ~AxisymmetricTopPolyatomicVibState() {};
+    virtual ~AsymmetricTopPolyatomicVibState() {};
 
 public:
     double calculate_E_rot( int iJ, int iK );

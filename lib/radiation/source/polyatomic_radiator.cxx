@@ -41,13 +41,14 @@ PolyatomicVibState::PolyatomicVibState( string type, int iV, lua_State * L )
     }
 
     g = (int) state_data[0];
-    G_v = state_data[1] * RC_c * RC_h_SI;                // cm-1 -> J
-    A_v = state_data[2] * RC_c * RC_h_SI;
-    B_v = state_data[3] * RC_c * RC_h_SI;
-    C_v = state_data[4] * RC_c * RC_h_SI;
-    D_v = state_data[5] * 1.0e-7 * RC_c * RC_h_SI;
-    H_v = state_data[6] * 1.0e-13 * RC_c * RC_h_SI;
-    J_max = (int) state_data[7];
+    p_v = (int) state_data[1];
+    G_v = state_data[2] * RC_c * RC_h_SI;                // cm-1 -> J
+    A_v = state_data[3] * RC_c * RC_h_SI;
+    B_v = state_data[4] * RC_c * RC_h_SI;
+    C_v = state_data[5] * RC_c * RC_h_SI;
+    D_v = state_data[6] * 1.0e-7 * RC_c * RC_h_SI;
+    H_v = state_data[7] * 1.0e-13 * RC_c * RC_h_SI;
+    J_max = (int) state_data[8];
 }
 
 double
@@ -113,15 +114,15 @@ SymmetricalTopPolyatomicVibState::calculate_E_rot( int iJ, int iK )
     return E_r;
 }
 
-AxisymmetricTopPolyatomicVibState::AxisymmetricTopPolyatomicVibState( int iV, lua_State * L )
-  : PolyatomicVibState( "AxisymmetricTop", iV, L )
+AsymmetricTopPolyatomicVibState::AsymmetricTopPolyatomicVibState( int iV, lua_State * L )
+  : PolyatomicVibState( "AsymmetricTop", iV, L )
 {}
 
 double
-AxisymmetricTopPolyatomicVibState::calculate_E_rot( int iJ, int iK )
+AsymmetricTopPolyatomicVibState::calculate_E_rot( int iJ, int iK )
 {
     /*
-     * Rotational state energy for an axisymmetric top (no spin splitting)
+     * Rotational state energy for an Asymmetric top (no spin splitting)
      * Ref: Equation 44 in Capitelli (2005)
      */
 
@@ -145,8 +146,8 @@ PolyatomicVibState * create_new_polyatomic_vib_state( string type, int iV, lua_S
         PVS = new SphericalTopPolyatomicVibState( iV, L );
     else if ( type.find("SymmetricalTop")!=string::npos )
         PVS = new SymmetricalTopPolyatomicVibState( iV, L );
-    else if ( type.find("AxisymmetricTop")!=string::npos )
-        PVS = new AxisymmetricTopPolyatomicVibState( iV, L );
+    else if ( type.find("AsymmetricTop")!=string::npos )
+        PVS = new AsymmetricTopPolyatomicVibState( iV, L );
     else {
         ostringstream ost;
         ost << "create_new_polyatomic_vib_state()\n";
@@ -213,9 +214,11 @@ calculate_Q_vib( double T_vib, double T_rot )
     for (size_t iV=0; iV<vstates.size(); iV++) {
         // Vibrational energy
         double E_v = vstates[iV]->get_E_vib();
+        // Vibrational statistical weight
+        int p_v = vstates[iV]->get_p_vib();
         // Rotational partition function
         double Q_rot = vstates[iV]->calculate_Q_rot(T_rot);
-        QvibQrot += Q_rot * exp( - E_v / ( RC_k_SI * T_vib ) );
+        QvibQrot += Q_rot * p_v * exp( - E_v / ( RC_k_SI * T_vib ) );
     }
     
     return QvibQrot;
@@ -225,12 +228,7 @@ double
 PolyatomicElecLev::
 calculate_and_store_Q_vib( double T_vib, double T_rot )
 {
-    /* Full summation expression for vibrational partition function */
-    QvQr = 0.0;
-
-    cout << "calculate_and_store_Q_vib::calculate_and_store_Q_vib()" << endl
-         << "Fix me!" << endl;
-    exit( NOT_IMPLEMENTED_ERROR );
+    QvQr = calculate_Q_vib(T_vib,T_rot);
 
     return QvQr;
 }

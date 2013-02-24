@@ -1,4 +1,6 @@
 import sys
+from radpy import nu2T
+from math import factorial
 
 def add_commas( string ):
     tks = string.split()
@@ -13,13 +15,13 @@ class PhotoIonXSectionModel(object):
     def __init__(self, elevel_set="", model=""):
             self.model = model
             self.elevel_set = elevel_set
-            self.comments = ""
+            self.comments = "# Description of the photoionization cross-section model"
             
     def get_LUA_string(self, species):
         ostring  = ""
         ostring += "%s.photoionXsection_model = {\n" % ( species )
         comments = self.comments.replace('#','   --')
-        ostring += "%s" % ( comments )
+        ostring += "%s\n" % ( comments )
         ostring += tab+"model = '%s',\n" % ( self.model )
         ostring += "}\n"
         return ostring
@@ -35,7 +37,7 @@ class JohnstonModel(PhotoIonXSectionModel):
         ostring  = ""
         ostring += "%s.photoionXsection_model = {\n" % ( species )
         comments = self.comments.replace('#','   --')
-        ostring += "%s" % ( comments )
+        ostring += "%s\n" % ( comments )
         ostring += tab+"model = '%s',\n" % ( self.model )
         ostring += tab+"nsteps = %d,\n" % ( len(self.steps) )
         tks = self.steps[-1].split()
@@ -68,7 +70,7 @@ class AtomicQSSModel(object):
             self.eii_model = eii_model
             self.rt_model = rt_model
             self.special = special
-            self.comments = ""
+            self.comments = "# Description of the atomic QSS model"
             self.inc_eq_elevs = 1
             self.T_lower = 4000.0
             
@@ -76,7 +78,7 @@ class AtomicQSSModel(object):
         ostring  = ""
         ostring += "%s.QSS_model = {\n" % ( aname )
         comments = self.comments.replace('#','   --')
-        ostring += "%s" % ( comments )
+        ostring += "%s\n" % ( comments )
         ostring += tab+"noneq_elevs = { %s },\n" % ( self.noneq_elevs )
         ostring += tab+"inc_eq_elevs = %d,\n" % ( self.inc_eq_elevs )
         ostring += tab+"T_lower = %e,\n" % ( self.T_lower )
@@ -94,7 +96,7 @@ class DiatomicQSSModel(object):
             self.noneq_elevs = noneq_elevs
             self.noneq_elev_labels = noneq_elev_labels
             self.reactions = reactions
-            self.comments = ""
+            self.comments = "# Description of the diatomic QSS model"
             self.inc_eq_elevs = 1
             self.T_lower = 4000.0
             
@@ -102,7 +104,7 @@ class DiatomicQSSModel(object):
         ostring  = ""
         ostring += "%s.QSS_model = {\n" % ( mname )
         comments = self.comments.replace('#','   --')
-        ostring += "%s" % ( comments )
+        ostring += "%s\n" % ( comments )
         ostring += tab+"noneq_elevs = { %s },\n" % ( self.noneq_elevs )
         ostring += tab+"noneq_elev_labels = { %s },\n" % ( self.noneq_elev_labels )
         ostring += tab+"inc_eq_elevs = %d,\n" % ( self.inc_eq_elevs )
@@ -130,13 +132,13 @@ class Radiator(object):
         self.iTe = 0
         self.E_pop_method = "boltzmann"
         self.isp = -1
-        self.general_comments = ""
+        self.comments = "# Description of the radiator"
         
     def get_LUA_string(self):
         ostring  = ""
         ostring += "%s = {}\n" % ( self.name )
-        general_comments = self.general_comments.replace('#','--')
-        ostring += "%s" % ( general_comments )
+        comments = self.comments.replace('#','--')
+        ostring += "%s\n" % ( comments )
         ostring += "%s.isp = %d\n" % ( self.name, self.isp )
         ostring += "%s.type = '%s'\n" % ( self.name, self.type )
         ostring += "%s.mol_weight = %e\n" % ( self.name, self.mol_weight )
@@ -158,8 +160,8 @@ class ElectronRadiator(Radiator):
     def get_LUA_string(self):
         ostring  = ""
         ostring += "%s = {}\n" % ( self.name )
-        general_comments = self.general_comments.replace('#','--')
-        ostring += "%s" % ( general_comments )
+        comments = self.comments.replace('#','--')
+        ostring += "%s\n" % ( comments )
         ostring += "%s.isp = %d\n" % ( self.name, self.isp )
         ostring += "%s.type = '%s'\n" % ( self.name, self.type )
         ostring += "%s.mol_weight = %e\n" % ( self.name, self.mol_weight )
@@ -218,12 +220,12 @@ class AtomicLineSet(object):
     """Atomic line set class"""
     def __init__(self):
         self.lines = []
-        self.comments = ""
+        self.comments = "# Description of the atomic line set"
         
     def get_LUA_string(self, aname):
         ostring  = "%s.line_data = {\n" % ( aname )
         comments = self.comments.replace('#','   --')
-        ostring += "%s" % ( comments )
+        ostring += "%s\n" % ( comments )
         ostring += tab+"n_lines = %d,\n" % ( len(self.lines) )
         ostring += tab+"-- ============================================================================\n"
         ostring += tab+"--    No.         Ei(cm-1)  Ek(cm-1)    gi    gk  Aki(1/s)    ie_i  ie_k  type \n"
@@ -241,11 +243,11 @@ class AtomicLevelSet(object):
     def __init__(self):
         self.levels = []
         self.isp_list = []
-        self.comments = ""
+        self.comments = "# Description of the atomic level set"
     def get_LUA_string(self, aname):
         ostring  = "%s.level_data = {\n" % ( aname )
         comments = self.comments.replace('#','   --')
-        ostring += "%s" % ( comments )
+        ostring += "%s\n" % ( comments )
         ostring += tab+"n_levels = %d,\n" % ( len(self.levels) )
         ostring += tab+"isp_list = { "
         for isp in self.isp_list:
@@ -319,12 +321,12 @@ class DiatomicLevelSet(object):
     def __init__(self):
         self.levels = []
         self.isp_list = []
-        self.comments = ""
+        self.comments = "# Description of the diatomic level set"
         
     def get_LUA_string(self, mname):
         ostring  = "%s.level_data = {\n" % ( mname )
         comments = self.comments.replace("#",tab+"--")
-        ostring += comments
+        ostring += "%s\n" % comments
         ostring += tab+"n_levels = %d,\n" % ( len(self.levels) )
         ostring += tab+"isp_list = { "
         for isp in self.isp_list:
@@ -350,13 +352,13 @@ class DiatomicSystem:
         self.sigma_nm = 0.5
         self.band_set = DiatomicBandSet()
         self.available_band_sets = {}
-        self.comments = ""
+        self.comments = "# Description of the diatomic system"
         self.default_band_set = ""
         
     def get_LUA_string(self,mname):
         ostring  = "   %s = {\n" % ( self.name )
         comments = self.comments.replace("#",tab+"--")
-        ostring += comments
+        ostring += 2*tab+"%s\n" % comments
         ostring += 2*tab+"band_method = '%s',\n" % ( self.band_method )
         ostring += 2*tab+"sigma_nm = %f,\n" % ( self.sigma_nm )
         ostring += 2*tab+"ie_l = %d,\n" % ( self.ie_l )
@@ -367,7 +369,7 @@ class DiatomicSystem:
         
 class DiatomicBandSet:
     def __init__(self):
-        self.comments = ""
+        self.comments = "# Description of the diatomic band set"
         self.uRe_dim = 0
         self.lRe_dim = 0
         self.bands = []
@@ -376,7 +378,7 @@ class DiatomicBandSet:
     def get_LUA_string(self,mname,sname):
         ostring  = tab*2+"band_data = {\n"
         comments = self.comments.replace("#",tab*3+"--")
-        ostring += comments
+        ostring += tab*3 + "%s\n" % comments
         ostring += tab*3+"format = '%s',\n" % ( self.format )
         ostring += tab*3+"uRe_dim = %d,\n" % ( self.uRe_dim )
         ostring += tab*3+"lRe_dim = %d,\n" % ( self.lRe_dim )
@@ -404,18 +406,20 @@ class DiatomicBandSet:
 
 class PolyatomicElectronicLevel:
     def __init__(self, type):
-        self.comments = ""
+        self.comments = "# Description of the polyatomic electronic level"
         self.type = type
         self.vib_states = []
         self.theta = 0.0
         self.g = 1
 
     def get_LUA_string(self):
-        ostring  = 2*tab + "type = '%s',\n" % self.type
+        comments = self.comments.replace('#','       --')
+        ostring  = "%s\n" % ( comments )
+        ostring += 2*tab + "type = '%s',\n" % self.type
         ostring += 2*tab + "theta = %0.2f,\n" % self.theta
         ostring += 2*tab + "g = %d,\n" % self.g
         ostring += 2*tab + "Nvib_states = %d,\n" % len(self.vib_states)
-        ostring += 2*tab + "-- Index               v    g           Gv    Av       Bv       Cv    Dv*10^7  Hv*10^13 Jmax\n"
+        ostring += 2*tab + "-- Index               v    g    pv           Gv    Av       Bv       Cv    Dv*10^7  Hv*10^13 Jmax\n"
         for ivs,vs in enumerate(self.vib_states):
             tks = vs[0].split()
             band = tks[0]
@@ -427,26 +431,51 @@ class PolyatomicElectronicLevel:
             Dv = float(tks[6])
             Hv = float(tks[7])
             Jmax = int(tks[8])
+            pv = self.calculate_statistical_weight(ivs)
+            if 0:
+                print "ivs = %d, label = %s, g = %d, pv = %d, Gv = %f" % ( ivs, band, g, pv, Gv )
             if ivs<10:
                 spaces = "   "
             elif ivs<100:
                 spaces = "  "
             elif ivs<1000:
                 spaces = " "
-            ostring += 2*tab + "vibstate_%d%s= { '%6s', %2d, %11.5f, %4.1f, %11.8f, %4.1f, %8.5f, %7.3f, %4d },\n" % ( ivs,spaces,band, g, Gv, Av, Bv, Cv, Dv, Hv, Jmax )
+            ostring += 2*tab + "vibstate_%d%s= { '%6s', %2d, %2d, %11.5f, %4.1f, %11.8f, %4.1f, %8.5f, %7.3f, %4d },\n" % ( ivs,spaces,band, g, pv, Gv, Av, Bv, Cv, Dv, Hv, Jmax )
         return ostring
+        
+    def calculate_statistical_weight(self,ivs):
+        vs = self.vib_states[ivs]
+        tks = vs[0].split()
+        band = tks[0]
+        g = int(tks[1])
+        if len(band)!=6:
+            print "Unexpected size of the vibrational band label!"
+            print "Assuming v1=v2=v3=0"
+            v = [ 0 ] * 3
+        else:
+            # currently we only know the format for CO2... (see Lino da Silva phd p218, or Rothman 1981 section 2a)
+            v = []
+            v.append(int(band[0]))
+            v.append(int(band[1]))
+            v.append(int(band[3]))
+        d = [ 1,2,1 ]
+        m = 3
+        pv = 1.0
+        for im in range(m):
+            pv*= factorial(v[im] + d[im] - 1) / factorial(v[im]) / factorial(d[im] - 1)
+        return pv
         
 class PolyatomicLevelSet(object):
     """Polyatomic level set class"""
     def __init__(self):
         self.levels = []
         self.isp_list = []
-        self.comments = ""
+        self.comments = "# Description of the polyatomic level set"
         
     def get_LUA_string(self, mname):
         ostring  = "%s.level_data = {\n" % ( mname )
         comments = self.comments.replace("#",tab+"--")
-        ostring += comments
+        ostring += "%s\n" % comments
         ostring += tab+"n_levels = %d,\n" % ( len(self.levels) )
         ostring += tab+"isp_list = { "
         for isp in self.isp_list:
@@ -455,7 +484,7 @@ class PolyatomicLevelSet(object):
         for i,level in enumerate(self.levels):
             ostring += tab+"ilev_%d  = {\n" % i
             ostring += "%s" % level.get_LUA_string()
-            ostring += tab + "}\n"
+            ostring += tab + "},\n"
         ostring += "}\n"
         return ostring
 
@@ -491,7 +520,7 @@ class PolyatomicRadiator(Radiator):
 #  ==== Polyatomic radiators ========
 #  ==== CO2 =========================
 CO2 = PolyatomicRadiator()
-CO2.general_comments = "# under development!\n"
+CO2.comments = "# under development!"
 CO2.name = "CO2"
 CO2.mol_weight = 44.009500e-3
 CO2.h_f = -8941478.54
@@ -505,6 +534,8 @@ CO2.default_level_set = "Rothman"
 #
 ground = PolyatomicElectronicLevel(type = "SphericalTop")
 ground.comments = "# Reference: Rothman (1992), Lino da Silva (2004)"
+ground.theta = 0.0
+ground.g = 1
 ground.vib_states = [''] * 256
 #                             v     g          Gv   Av     Bv        Cv    Dv*10^7  Hv*10^13 Jmax
 ground.vib_states[0]   = [ '00001c  1     0.00000  0.0  0.39021889  0.0   1.33338   0.077  140' ]
@@ -764,6 +795,32 @@ ground.vib_states[253] = [ ' 000X1  2 22373.14890  0.0  0.35957386  0.0   1.3065
 ground.vib_states[254] = [ ' 000Y1  2 24474.84685  0.0  0.35652993  0.0   1.30196   0.000   55' ]
 ground.vib_states[255] = [ ' 000Z1  2 26552.21158  0.0  0.35349217  0.0   1.29624   0.000   34' ]
 #
+# leaving these levels out for the moment
+#
+first_excited = PolyatomicElectronicLevel(type = "SphericalTop")
+first_excited.comments = "# Reference: Capitelli (2005)"
+first_excited.theta = nu2T(30000.)
+first_excited.g = 3
+first_excited.vib_states = [''] * 0
+#
+second_excited = PolyatomicElectronicLevel(type = "SphericalTop")
+second_excited.comments = "# Reference: Capitelli (2005)"
+second_excited.theta = nu2T(33000.)
+second_excited.g = 6
+second_excited.vib_states = [''] * 0
+#
+third_excited = PolyatomicElectronicLevel(type = "SphericalTop")
+third_excited.comments = "# Reference: Capitelli (2005)"
+third_excited.theta = nu2T(36000.)
+third_excited.g = 3
+third_excited.vib_states = [''] * 0
+#
+fourth_excited = PolyatomicElectronicLevel(type = "SphericalTop")
+fourth_excited.comments = "# Reference: Capitelli (2005)"
+fourth_excited.theta = nu2T(46000.)
+fourth_excited.g = 2
+fourth_excited.vib_states = [''] * 0
+#
 CO2_rothman = PolyatomicLevelSet()
 CO2_rothman.levels = [ ground ]
 #
@@ -777,9 +834,9 @@ CO2.available_photoionXsection_models["none"] = CO2_pIx
         
 #  ==== Electron data ===============
 e_minus = ElectronRadiator()
-e_minus.general_comments  = "# - Basic data required for free electrons\n"
-e_minus.general_comments += "# - Thermo data from CEA2\n"
-e_minus.general_comments += "# - Continuum systems are 'owned' by this electron radiator\n"
+e_minus.comments  = "# - Basic data required for free electrons\n"
+e_minus.comments += "# - Thermo data from CEA2\n"
+e_minus.comments += "# - Continuum systems are 'owned' by this electron radiator"
 e_minus.name = "e_minus"
 e_minus.mol_weight = 0.000548579903e-3
 e_minus.h_f = 0.0
@@ -790,7 +847,7 @@ e_minus.available_systems["bf"] = "bound-free"
 #  ==== Diatomic Radiators ==========
 #  ==== CN ==========================
 CN = DiatomicRadiator()
-CN.general_comments = "# source -> Spradian07 diatom.dat\n"
+CN.comments = "# source -> Spradian07 diatom.dat"
 CN.name = "CN"
 CN.mol_weight = 26.0174000e-3
 CN.h_f = 16861160.3
@@ -815,7 +872,7 @@ CN_Spradian_levels.levels[4] = '54486.30  1.4980  4  26970.00  1004.710   8.7800
 CN_Spradian_levels.levels[5] = '59151.18  1.3245  2  21970.00  1681.430   3.6000 -1.020E+00  0.000E+00  1.48710  6.430E-03  5.000E-06  0.000E+00  0.000E+00  0  2  0  0'
 CN_Spradian_levels.levels[6] = '60095.64  1.3732  4  21250.00  1239.500  12.7500  0.000E+00  0.000E+00  1.38340  1.870E-02  7.000E-06  0.000E+00  2.786E+01  2  2  0  0'
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------
-CN_Spradian_levels.comments += "# Spin-rotation constants ref: Prasad and Bernath (1992) JSM 156 pp 327-340\n"
+CN_Spradian_levels.comments += "# Spin-rotation constants ref: Prasad and Bernath (1992) JSM 156 pp 327-340"
 # -------------------------------------------------- Spin-rotation 'gamma_v' constants (x1000) -----------------------------------------------------------
 #                 n                v=0        1        2      3       4       5       6       7       8       9       10      11    12    13    14    15  
 # --------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -824,7 +881,7 @@ CN_Spradian_levels.levels[2] += ' 17.155   18.03    18.29   24.06   18.92   11.1
 # --------------------------------------------------------------------------------------------------------------------------------------------------------
 CN.available_level_sets["Spradian_levels"] = CN_Spradian_levels
 CN_Violet = DiatomicSystem()
-CN_Violet.comments = "# B - X transition\n"
+CN_Violet.comments = "# B - X transition"
 CN_Violet.name = "Violet"
 CN_Violet.ie_l = 0
 CN_Violet.ie_u = 2
@@ -836,7 +893,7 @@ CN_Violet_Spradian_bands.lRe_dim = 11
 CN_Violet_Spradian_bands.uRe_dim = 11
 CN_Violet_Spradian_bands.bands = [ '' ] * CN_Violet_Spradian_bands.uRe_dim
 CN_Violet_Spradian_bands.comments  = "# Electronic transition moments (Re) for the CN Violet system\n"
-CN_Violet_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+CN_Violet_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 # ----------------------------------------------------------------------------------------------------------------------------
 #                              Vl  =    0       1       2       3       4       5       6       7       8       9      10 
 # ----------------------------------------------------------------------------------------------------------------------------
@@ -859,7 +916,7 @@ CN_Violet_EM2C_bands.lRe_dim = 37
 CN_Violet_EM2C_bands.uRe_dim = 26
 CN_Violet_EM2C_bands.bands = [ '' ] * CN_Violet_EM2C_bands.uRe_dim
 CN_Violet_EM2C_bands.comments  = "# Vibrational Einstein coefficients (A_vib) for the CN_Violet system\n"
-CN_Violet_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108\n"
+CN_Violet_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108"
 # --------------------------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0           1           2           3           4           5            6           7           8            9     
 # --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -893,7 +950,7 @@ CN_Violet_EM2C_bands.bands[25] = '1.53839e-06 1.33843e-04 6.70059e-05 8.41130e-0
 CN_Violet.available_band_sets["EM2C_bands"] = CN_Violet_EM2C_bands
 #
 CN_Red = DiatomicSystem()
-CN_Red.comments = "# A - X transition\n"
+CN_Red.comments = "# A - X transition"
 CN_Red.name = "Red"
 CN_Red.ie_l = 0
 CN_Red.ie_u = 1
@@ -905,7 +962,7 @@ CN_Red_Spradian_bands.lRe_dim = 10
 CN_Red_Spradian_bands.uRe_dim = 10 
 CN_Red_Spradian_bands.bands = [ '' ] * CN_Red_Spradian_bands.uRe_dim
 CN_Red_Spradian_bands.comments  = "# Electronic transition moments (Re) for the CN Red system\n"
-CN_Red_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+CN_Red_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 # -----------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0       1       2       3       4       5       6       7       8       9   
 # -----------------------------------------------------------------------------------------------------------------
@@ -927,7 +984,7 @@ CN_Red_EM2C_bands.lRe_dim = 35
 CN_Red_EM2C_bands.uRe_dim = 39
 CN_Red_EM2C_bands.bands = [ '' ] * CN_Red_EM2C_bands.uRe_dim
 CN_Red_EM2C_bands.comments  = "# Vibrational Einstein coefficients (A_vib) for the CN_Red system\n"
-CN_Red_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108\n"
+CN_Red_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108"
 # --------------------------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0           1           2           3           4           5            6           7           8            9     
 # --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -975,7 +1032,7 @@ CN_Red.available_band_sets["EM2C_bands"] = CN_Red_EM2C_bands
 
 #
 CN_leBlanc = DiatomicSystem()
-CN_leBlanc.comments = "# B - A transition\n"
+CN_leBlanc.comments = "# B - A transition"
 CN_leBlanc.name = "LeBlanc"
 CN_leBlanc.ie_l = 1
 CN_leBlanc.ie_u = 2
@@ -988,7 +1045,7 @@ CN_leBlanc_EM2C_bands.lRe_dim = 39
 CN_leBlanc_EM2C_bands.uRe_dim = 26
 CN_leBlanc_EM2C_bands.bands = [ '' ] * CN_leBlanc_EM2C_bands.uRe_dim
 CN_leBlanc_EM2C_bands.comments  = "# Vibrational Einstein coefficients (A_vib) for the CN_leBlanc system\n"
-CN_leBlanc_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108\n"
+CN_leBlanc_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108"
 # --------------------------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0           1           2           3           4           5            6           7           8            9     
 # --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1470,7 +1527,7 @@ CN.available_QSS_models["Johnston"] = DiatomicQSSModel(name="Johnston",noneq_ele
 
 #  ==== CO ===========================
 CO = DiatomicRadiator()
-CO.general_comments = "# source -> Spradian07 diatom.dat\n"
+CO.comments = "# source -> Spradian07 diatom.dat"
 CO.name = "CO"
 CO.mol_weight = 2.80101e-2
 CO.h_f = -3946262.098
@@ -1503,7 +1560,7 @@ CO_Spradian_levels.levels[13] = '105750.00  1.1190  2  35000.00  1097.000  11.00
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 CO.available_level_sets["Spradian_levels"] = CO_Spradian_levels
 CO_Infrared = DiatomicSystem()
-CO_Infrared.comments = "# NOTE: A ground-ground electronic transition\n"
+CO_Infrared.comments = "# NOTE: A ground-ground electronic transition"
 CO_Infrared.name = "Infrared"
 CO_Infrared.ie_l = 0
 CO_Infrared.ie_u = 0
@@ -1516,7 +1573,7 @@ CO_Infrared_EM2C_bands.lRe_dim = 50
 CO_Infrared_EM2C_bands.uRe_dim = 51
 CO_Infrared_EM2C_bands.bands = [ '' ] * CO_Infrared_EM2C_bands.uRe_dim
 CO_Infrared_EM2C_bands.comments  = "# Vibrational Einstein coefficients (A_vib) for the CO_Infrared system\n"
-CO_Infrared_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108\n"
+CO_Infrared_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108"
 # --------------------------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0           1           2           3           4           5            6           7           8            9     
 # --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1574,7 +1631,7 @@ CO_Infrared_EM2C_bands.bands[50] = '1.61275e-08 1.69414e-08 3.68668e-08 7.23213e
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 CO_Infrared.available_band_sets["EM2C_bands"] = CO_Infrared_EM2C_bands
 CO_ThirdPositive = DiatomicSystem()
-CO_ThirdPositive.comments = "# NOTE: Spradian07 had transition as 4 - 0, this is incorrect\n"
+CO_ThirdPositive.comments = "# NOTE: Spradian07 had transition as 4 - 0, this is incorrect"
 CO_ThirdPositive.name = "ThirdPositive"
 CO_ThirdPositive.ie_l = 1
 CO_ThirdPositive.ie_u = 8
@@ -1587,7 +1644,7 @@ CO_ThirdPositive_EM2C_bands.lRe_dim = 19
 CO_ThirdPositive_EM2C_bands.uRe_dim = 3
 CO_ThirdPositive_EM2C_bands.bands = [ '' ] * CO_ThirdPositive_EM2C_bands.uRe_dim
 CO_ThirdPositive_EM2C_bands.comments  = "# Vibrational Einstein coefficients (A_vib) for the CO_ThirdPositive system\n"
-CO_ThirdPositive_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108\n"
+CO_ThirdPositive_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108"
 # --------------------------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0           1           2           3           4           5            6           7           8            9     
 # --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1597,7 +1654,7 @@ CO_ThirdPositive_EM2C_bands.bands[2]  = '3.35671e+06 1.15887e+06 2.71456e+06 4.4
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 CO_ThirdPositive.available_band_sets["EM2C_bands"] = CO_ThirdPositive_EM2C_bands
 CO_FourthPositive = DiatomicSystem()
-CO_FourthPositive.comments = "# NOTE: Spradian07 had transition as 4 - 0, this is incorrect\n"
+CO_FourthPositive.comments = "# NOTE: Spradian07 had transition as 4 - 0, this is incorrect"
 CO_FourthPositive.name = "FourthPositive"
 CO_FourthPositive.ie_l = 0
 CO_FourthPositive.ie_u = 5
@@ -1609,7 +1666,7 @@ CO_FourthPositive_Spradian_bands.lRe_dim = 6
 CO_FourthPositive_Spradian_bands.uRe_dim = 10 
 CO_FourthPositive_Spradian_bands.bands = [ '' ] * CO_FourthPositive_Spradian_bands.uRe_dim
 CO_FourthPositive_Spradian_bands.comments  = "# Electronic transition moments (Re) for the CO Fourth Positive system\n"
-CO_FourthPositive_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+CO_FourthPositive_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #-----------------------------------------------------------------------------------
 #                            Vl  =    0       1       2       3       4       5
 #-----------------------------------------------------------------------------------
@@ -1631,7 +1688,7 @@ CO_FourthPositive_EM2C_bands.lRe_dim = 51
 CO_FourthPositive_EM2C_bands.uRe_dim = 24
 CO_FourthPositive_EM2C_bands.bands = [ '' ] * CO_FourthPositive_EM2C_bands.uRe_dim
 CO_FourthPositive_EM2C_bands.comments  = "# Vibrational Einstein coefficients (A_vib) for the CO_FourthPositive system\n"
-CO_FourthPositive_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108\n"
+CO_FourthPositive_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108"
 # --------------------------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0           1           2           3           4           5            6           7           8            9     
 # --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1675,7 +1732,7 @@ CO_HopfieldBirge_Spradian_bands.lRe_dim = 10
 CO_HopfieldBirge_Spradian_bands.uRe_dim = 10 
 CO_HopfieldBirge_Spradian_bands.bands = [ '' ] * CO_HopfieldBirge_Spradian_bands.uRe_dim
 CO_HopfieldBirge_Spradian_bands.comments  = "# Electronic transition moments (Re) for the CO HopfieldBirge system\n"
-CO_HopfieldBirge_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+CO_HopfieldBirge_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #-----------------------------------------------------------------------------------------------------------------
 #           Vl  =    0       1       2       3       4       5       6       7       8       9
 #-----------------------------------------------------------------------------------------------------------------
@@ -1697,7 +1754,7 @@ CO_HopfieldBirge_EM2C_bands.lRe_dim = 51
 CO_HopfieldBirge_EM2C_bands.uRe_dim = 3
 CO_HopfieldBirge_EM2C_bands.bands = [ '' ] * CO_HopfieldBirge_EM2C_bands.uRe_dim
 CO_HopfieldBirge_EM2C_bands.comments  = "# Vibrational Einstein coefficients (A_vib) for the CO_HopfieldBirge system\n"
-CO_HopfieldBirge_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108\n"
+CO_HopfieldBirge_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108"
 # --------------------------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0           1           2           3           4           5            6           7           8            9     
 # --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1719,7 +1776,7 @@ CO_CX_Spradian_bands.lRe_dim = 10
 CO_CX_Spradian_bands.uRe_dim = 10 
 CO_CX_Spradian_bands.bands = [ '' ] * CO_CX_Spradian_bands.uRe_dim
 CO_CX_Spradian_bands.comments  = "# Electronic transition moments (Re) for the CO CX system\n"
-CO_CX_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+CO_CX_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #-----------------------------------------------------------------------------------------------------------------
 #                          Vl  =    0       1       2       3       4       5       6       7       8       9
 #-----------------------------------------------------------------------------------------------------------------
@@ -1748,7 +1805,7 @@ CO_EX_Spradian_bands.lRe_dim = 6
 CO_EX_Spradian_bands.uRe_dim = 6 
 CO_EX_Spradian_bands.bands = [ '' ] * CO_EX_Spradian_bands.uRe_dim
 CO_EX_Spradian_bands.comments  = "# Electronic transition moments (Re) for the CO EX system\n"
-CO_EX_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+CO_EX_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #---------------------------------------------------------------------------------
 #                          Vl  =    0       1       2       3       4       5     
 #---------------------------------------------------------------------------------
@@ -1773,7 +1830,7 @@ CO_FX_Spradian_bands.lRe_dim = 1
 CO_FX_Spradian_bands.uRe_dim = 2
 CO_FX_Spradian_bands.bands = [ '' ] * CO_FX_Spradian_bands.uRe_dim
 CO_FX_Spradian_bands.comments  = "# Electronic transition moments (Re) for the CO FX system\n"
-CO_FX_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+CO_FX_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #-----------------------------------------
 #                          Vl  =    0        
 #-----------------------------------------
@@ -1794,7 +1851,7 @@ CO_GX_Spradian_bands.lRe_dim = 1
 CO_GX_Spradian_bands.uRe_dim = 3
 CO_GX_Spradian_bands.bands = [ '' ] * CO_GX_Spradian_bands.uRe_dim
 CO_GX_Spradian_bands.comments  = "# Electronic transition moments (Re) for the CO GX system\n"
-CO_GX_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+CO_GX_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #-----------------------------------------
 #                          Vl  =    0        
 #-----------------------------------------
@@ -2486,7 +2543,7 @@ CO.available_QSS_models["Park"] = DiatomicQSSModel(name="Park",noneq_elevs=CO_no
 
 #  ==== CO+ ===========================
 CO_plus = DiatomicRadiator()
-CO_plus.general_comments = "# source -> NIST Chemistry Webbook [http://webbook.nist.gov]\n"
+CO_plus.comments = "# source -> NIST Chemistry Webbook [http://webbook.nist.gov]"
 CO_plus.name = "CO_plus"
 CO_plus.mol_weight = 28.0095514e-3
 CO_plus.h_f = 44548703.63
@@ -2521,7 +2578,7 @@ CO_plus_CometTail_EM2C_bands.lRe_dim = 32
 CO_plus_CometTail_EM2C_bands.uRe_dim = 34
 CO_plus_CometTail_EM2C_bands.bands = [ '' ] * CO_plus_CometTail_EM2C_bands.uRe_dim
 CO_plus_CometTail_EM2C_bands.comments  = "# Vibrational Einstein coefficients (A_vib) for the CO_plus_CometTail system\n"
-CO_plus_CometTail_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108\n"
+CO_plus_CometTail_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108"
 # --------------------------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0           1           2           3           4           5            6           7           8            9     
 # --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2575,7 +2632,7 @@ CO_plus_BaldetJohnson_EM2C_bands.lRe_dim = 51
 CO_plus_BaldetJohnson_EM2C_bands.uRe_dim = 34
 CO_plus_BaldetJohnson_EM2C_bands.bands = [ '' ] * CO_plus_BaldetJohnson_EM2C_bands.uRe_dim
 CO_plus_BaldetJohnson_EM2C_bands.comments  = "# Vibrational Einstein coefficients (A_vib) for the CO_plus_BaldetJohnson system\n"
-CO_plus_BaldetJohnson_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108\n"
+CO_plus_BaldetJohnson_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108"
 # --------------------------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0           1           2           3           4           5            6           7           8            9     
 # --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2629,7 +2686,7 @@ CO_plus_FirstNegative_EM2C_bands.lRe_dim = 36
 CO_plus_FirstNegative_EM2C_bands.uRe_dim = 23
 CO_plus_FirstNegative_EM2C_bands.bands = [ '' ] * CO_plus_FirstNegative_EM2C_bands.uRe_dim
 CO_plus_FirstNegative_EM2C_bands.comments  = "# Vibrational Einstein coefficients (A_vib) for the CO_plus_FirstNegative system\n"
-CO_plus_FirstNegative_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108\n"
+CO_plus_FirstNegative_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108"
 # --------------------------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0           1           2           3           4           5            6           7           8            9     
 # --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2675,7 +2732,7 @@ CO_plus.available_QSS_models["None"] =  DiatomicQSSModel()
 
 #  ==== C2 ==========================
 C2 = DiatomicRadiator()
-C2.general_comments = "# source -> Spradian07 diatom.dat\n"
+C2.comments = "# source -> Spradian07 diatom.dat"
 C2.name = "C2"
 C2.mol_weight = 24.0214000e-3
 C2.h_f = 34571562.11
@@ -2718,7 +2775,7 @@ C2_Swan_Spradian_bands.lRe_dim = 10
 C2_Swan_Spradian_bands.uRe_dim = 11 
 C2_Swan_Spradian_bands.bands = [ '' ] * C2_Swan_Spradian_bands.uRe_dim
 C2_Swan_Spradian_bands.comments  = "# Electronic transition moments (Re) for the C2 Swan system\n"
-C2_Swan_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+C2_Swan_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #-------------------------------------------------------------------------------------------------------------------
 #                            Vl  =    0       1       2       3       4       5       6       7       8       9
 #-------------------------------------------------------------------------------------------------------------------
@@ -2741,7 +2798,7 @@ C2_Swan_EM2C_bands.lRe_dim = 34
 C2_Swan_EM2C_bands.uRe_dim = 19
 C2_Swan_EM2C_bands.bands = [ '' ] * C2_Swan_EM2C_bands.uRe_dim
 C2_Swan_EM2C_bands.comments  = "# Vibrational Einstein coefficients (A_vib) for the C2_Swan system\n"
-C2_Swan_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108\n"
+C2_Swan_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108"
 # --------------------------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0           1           2           3           4           5            6           7           8            9     
 # --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2779,7 +2836,7 @@ C2_Phillips_Spradian_bands.lRe_dim = 9
 C2_Phillips_Spradian_bands.uRe_dim = 11 
 C2_Phillips_Spradian_bands.bands = [ '' ] * C2_Phillips_Spradian_bands.uRe_dim
 C2_Phillips_Spradian_bands.comments  = "# Electronic transition moments (Re) for the C2 Phillips system\n"
-C2_Phillips_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+C2_Phillips_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #---------------------------------------------------------------------------------------------------------------
 #                                Vl  =    0       1       2       3       4       5       6       7       8   
 #---------------------------------------------------------------------------------------------------------------
@@ -2802,7 +2859,7 @@ C2_Phillips_EM2C_bands.lRe_dim = 22
 C2_Phillips_EM2C_bands.uRe_dim = 36
 C2_Phillips_EM2C_bands.bands = [ '' ] * C2_Phillips_EM2C_bands.uRe_dim
 C2_Phillips_EM2C_bands.comments  = "# Vibrational Einstein coefficients (A_vib) for the C2_Phillips system\n"
-C2_Phillips_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108\n"
+C2_Phillips_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108"
 # --------------------------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0           1           2           3           4           5            6           7           8            9     
 # --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2857,7 +2914,7 @@ C2_BallikRamsay_Spradian_bands.lRe_dim = 9
 C2_BallikRamsay_Spradian_bands.uRe_dim = 11 
 C2_BallikRamsay_Spradian_bands.bands = [ '' ] * C2_BallikRamsay_Spradian_bands.uRe_dim
 C2_BallikRamsay_Spradian_bands.comments  = "# Electronic transition moments (Re) for the C2 BallikRamsay system\n"
-C2_BallikRamsay_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+C2_BallikRamsay_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #-------------------------------------------------------------------------------------------------------------------
 #                                    Vl  =    0       1       2       3       4       5       6       7       8   
 #-------------------------------------------------------------------------------------------------------------------
@@ -2880,7 +2937,7 @@ C2_BallikRamsay_EM2C_bands.lRe_dim = 40
 C2_BallikRamsay_EM2C_bands.uRe_dim = 42
 C2_BallikRamsay_EM2C_bands.bands = [ '' ] * C2_BallikRamsay_EM2C_bands.uRe_dim
 C2_BallikRamsay_EM2C_bands.comments  = "# Vibrational Einstein coefficients (A_vib) for the C2_BallikRamsay system\n"
-C2_BallikRamsay_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108\n"
+C2_BallikRamsay_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108"
 # --------------------------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0           1           2           3           4           5            6           7           8            9     
 # --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2942,7 +2999,7 @@ C2_Freymark_Spradian_bands.lRe_dim = 5
 C2_Freymark_Spradian_bands.uRe_dim = 7 
 C2_Freymark_Spradian_bands.bands = [ '' ] * C2_Freymark_Spradian_bands.uRe_dim
 C2_Freymark_Spradian_bands.comments  = "# Electronic transition moments (Re) for the C2 Freymark system\n"
-C2_Freymark_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+C2_Freymark_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #-------------------------------------------------------------------------------
 #                                Vl  =    0       1       2       3       4    
 #-------------------------------------------------------------------------------
@@ -2968,7 +3025,7 @@ C2_FoxHerzberg_Spradian_bands.lRe_dim = 10
 C2_FoxHerzberg_Spradian_bands.uRe_dim = 6 
 C2_FoxHerzberg_Spradian_bands.bands = [ '' ] * C2_FoxHerzberg_Spradian_bands.uRe_dim
 C2_FoxHerzberg_Spradian_bands.comments  = "# Electronic transition moments (Re) for the C2 FoxHerzberg system\n"
-C2_FoxHerzberg_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+C2_FoxHerzberg_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #--------------------------------------------------------------------------------------------------------------------------
 #                                   Vl  =    0       1       2       3       4       5       6       7       8       9
 #--------------------------------------------------------------------------------------------------------------------------
@@ -2986,7 +3043,7 @@ C2_FoxHerzberg_EM2C_bands.lRe_dim = 36
 C2_FoxHerzberg_EM2C_bands.uRe_dim = 16
 C2_FoxHerzberg_EM2C_bands.bands = [ '' ] * C2_FoxHerzberg_EM2C_bands.uRe_dim
 C2_FoxHerzberg_EM2C_bands.comments  = "# Vibrational Einstein coefficients (A_vib) for the C2_FoxHerzberg system\n"
-C2_FoxHerzberg_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108\n"
+C2_FoxHerzberg_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108"
 # --------------------------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0           1           2           3           4           5            6           7           8            9     
 # --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3021,7 +3078,7 @@ C2_Mulliken_Spradian_bands.lRe_dim = 10
 C2_Mulliken_Spradian_bands.uRe_dim = 11 
 C2_Mulliken_Spradian_bands.bands = [ '' ] * C2_Mulliken_Spradian_bands.uRe_dim
 C2_Mulliken_Spradian_bands.comments  = "# Electronic transition moments (Re) for the C2 Mulliken system\n"
-C2_Mulliken_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+C2_Mulliken_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #-----------------------------------------------------------------------------------------------------------------------
 #                                Vl  =    0       1       2       3       4       5       6       7       8       9
 #-----------------------------------------------------------------------------------------------------------------------
@@ -3044,7 +3101,7 @@ C2_Mulliken_EM2C_bands.lRe_dim = 22
 C2_Mulliken_EM2C_bands.uRe_dim = 23
 C2_Mulliken_EM2C_bands.bands = [ '' ] * C2_Mulliken_EM2C_bands.uRe_dim
 C2_Mulliken_EM2C_bands.comments  = "# Vibrational Einstein coefficients (A_vib) for the C2_Mulliken system\n"
-C2_Mulliken_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108\n"
+C2_Mulliken_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108"
 # --------------------------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0           1           2           3           4           5            6           7           8            9     
 # --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3086,7 +3143,7 @@ C2_DesandresdAzambuja_Spradian_bands.lRe_dim = 10
 C2_DesandresdAzambuja_Spradian_bands.uRe_dim = 11 
 C2_DesandresdAzambuja_Spradian_bands.bands = [ '' ] * C2_DesandresdAzambuja_Spradian_bands.uRe_dim
 C2_DesandresdAzambuja_Spradian_bands.comments  = "# Electronic transition moments (Re) for the C2 DesandresdAzambuja system\n"
-C2_DesandresdAzambuja_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+C2_DesandresdAzambuja_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #---------------------------------------------------------------------------------------------------------------------------------
 #                                          Vl  =    0       1       2       3       4       5       6       7       8       9
 #---------------------------------------------------------------------------------------------------------------------------------
@@ -3109,7 +3166,7 @@ C2_DesandresdAzambuja_EM2C_bands.lRe_dim = 33
 C2_DesandresdAzambuja_EM2C_bands.uRe_dim = 10
 C2_DesandresdAzambuja_EM2C_bands.bands = [ '' ] * C2_DesandresdAzambuja_EM2C_bands.uRe_dim
 C2_DesandresdAzambuja_EM2C_bands.comments  = "# Vibrational Einstein coefficients (A_vib) for the C2_DesandresdAzambuja system\n"
-C2_DesandresdAzambuja_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108\n"
+C2_DesandresdAzambuja_EM2C_bands.comments += "# Source: Babou et al (2009) JQRST vol. 110 pp 89-108"
 # --------------------------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0           1           2           3           4           5            6           7           8            9     
 # --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3172,7 +3229,7 @@ C2.available_QSS_models["Zalogin"] = DiatomicQSSModel(name="Zalogin",noneq_elevs
 
 #  ==== H2 ==========================
 H2 = DiatomicRadiator()
-H2.general_comments = "# source -> Spradian07 diatom.dat\n"
+H2.comments = "# source -> Spradian07 diatom.dat"
 H2.name = "H2"
 H2.mol_weight = 2.0160e-3
 H2.h_f = 0.0
@@ -3216,7 +3273,7 @@ H2_BX_Spradian_bands.lRe_dim = 5
 H2_BX_Spradian_bands.uRe_dim = 6 
 H2_BX_Spradian_bands.bands = [ '' ] * H2_BX_Spradian_bands.uRe_dim
 H2_BX_Spradian_bands.comments  = "# Electronic transition moments (Re) for the H2 BX system\n"
-H2_BX_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+H2_BX_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #--------------------------------------------------------------------------
 #                          Vl  =    0       1       2       3       4    
 #--------------------------------------------------------------------------
@@ -3241,7 +3298,7 @@ H2_CX_Spradian_bands.lRe_dim = 5
 H2_CX_Spradian_bands.uRe_dim = 6 
 H2_CX_Spradian_bands.bands = [ '' ] * H2_CX_Spradian_bands.uRe_dim
 H2_CX_Spradian_bands.comments  = "# Electronic transition moments (Re) for the H2 CX system\n"
-H2_CX_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+H2_CX_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #--------------------------------------------------------------------------
 #                          Vl  =    0       1       2       3       4    
 #--------------------------------------------------------------------------
@@ -3268,7 +3325,7 @@ H2.available_QSS_models["None"] =  DiatomicQSSModel()
 
 #  ==== N2 ==========================
 N2 = DiatomicRadiator()
-N2.general_comments = "# source -> Spradian07 diatom.dat\n"
+N2.comments = "# source -> Spradian07 diatom.dat"
 N2.name = "N2"
 N2.mol_weight = 28.01348e-3
 N2.h_f = 0.0
@@ -3318,7 +3375,7 @@ N2_FirstPositive_Spradian_bands.lRe_dim = 14
 N2_FirstPositive_Spradian_bands.uRe_dim = 16 
 N2_FirstPositive_Spradian_bands.bands = [ '' ] * N2_FirstPositive_Spradian_bands.uRe_dim
 N2_FirstPositive_Spradian_bands.comments  = "# Electronic transition moments (Re) for the N2 FirstPositive system\n"
-N2_FirstPositive_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+N2_FirstPositive_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #------------------------------------------------------------------------------------------------------------------------------------------------------------
 #                                          Vl  =    0       1       2       3       4       5       6       7       8       9      10     11      12      13
 #------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3347,7 +3404,7 @@ N2_FirstPositive_EM2C_bands.lRe_dim = 17
 N2_FirstPositive_EM2C_bands.uRe_dim = 22
 N2_FirstPositive_EM2C_bands.bands = [ '' ] * N2_FirstPositive_EM2C_bands.uRe_dim
 N2_FirstPositive_EM2C_bands.comments  = "# Electronic transition moments for the N2_FirstPositive system\n"
-N2_FirstPositive_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530\n"
+N2_FirstPositive_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530"
 # -----------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0         1         2         3         4         5         6         7         8         9     
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -3388,7 +3445,7 @@ N2_SecondPositive_Spradian_bands.lRe_dim = 12
 N2_SecondPositive_Spradian_bands.uRe_dim = 5
 N2_SecondPositive_Spradian_bands.bands = [ '' ] * N2_SecondPositive_Spradian_bands.uRe_dim
 N2_SecondPositive_Spradian_bands.comments  = "# Electronic transition moments (Re) for the N2 SecondPositive system\n"
-N2_SecondPositive_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+N2_SecondPositive_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #---------------------------------------------------------------------------------------------------------------------------------------------
 #                                      Vl  =    0       1       2       3       4       5       6       7       8       9      10     11     
 #---------------------------------------------------------------------------------------------------------------------------------------------
@@ -3406,7 +3463,7 @@ N2_SecondPositive_EM2C_bands.lRe_dim = 22
 N2_SecondPositive_EM2C_bands.uRe_dim = 5
 N2_SecondPositive_EM2C_bands.bands = [ '' ] * N2_SecondPositive_EM2C_bands.uRe_dim
 N2_SecondPositive_EM2C_bands.comments  = "# Electronic transition moments for the N2_SecondPositive system\n"
-N2_SecondPositive_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530\n"
+N2_SecondPositive_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530"
 # -----------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0         1         2         3         4         5         6         7         8         9     
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -3430,7 +3487,7 @@ N2_Worley_Spradian_bands.lRe_dim = 13
 N2_Worley_Spradian_bands.uRe_dim = 5
 N2_Worley_Spradian_bands.bands = [ '' ] * N2_Worley_Spradian_bands.uRe_dim
 N2_Worley_Spradian_bands.comments  = "# Electronic transition moments (Re) for the N2 Worley system\n"
-N2_Worley_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+N2_Worley_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #---------------------------------------------------------------------------------------------------------------------------------------------
 #                              Vl  =    0       1       2       3       4       5       6       7       8       9      10     11        12 
 #---------------------------------------------------------------------------------------------------------------------------------------------
@@ -3448,7 +3505,7 @@ N2_Worley_EM2C_bands.lRe_dim = 16
 N2_Worley_EM2C_bands.uRe_dim = 5
 N2_Worley_EM2C_bands.bands = [ '' ] * N2_Worley_EM2C_bands.uRe_dim
 N2_Worley_EM2C_bands.comments  = "# Absorption oscillator strengths for the N2_Worley system\n"
-N2_Worley_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530\n"
+N2_Worley_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530"
 # -----------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0         1         2         3         4         5         6         7         8         9     
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -3472,7 +3529,7 @@ N2_BirgeHopfieldOne_Spradian_bands.lRe_dim = 14
 N2_BirgeHopfieldOne_Spradian_bands.uRe_dim = 16
 N2_BirgeHopfieldOne_Spradian_bands.bands = [ '' ] * N2_BirgeHopfieldOne_Spradian_bands.uRe_dim
 N2_BirgeHopfieldOne_Spradian_bands.comments  = "# Electronic transition moments (Re) for the N2 BirgeHopfieldOne system\n"
-N2_BirgeHopfieldOne_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+N2_BirgeHopfieldOne_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------
 #                                        Vl  =    0       1       2       3       4       5       6       7       8       9      10     11        12      13
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3500,7 +3557,7 @@ N2_BirgeHopfieldOne_EM2C_bands.lRe_dim = 16
 N2_BirgeHopfieldOne_EM2C_bands.uRe_dim = 20
 N2_BirgeHopfieldOne_EM2C_bands.bands = [ '' ] * N2_BirgeHopfieldOne_EM2C_bands.uRe_dim
 N2_BirgeHopfieldOne_EM2C_bands.comments  = "# Absorption oscillator strengths for the N2_BirgeHopfieldOne system\n"
-N2_BirgeHopfieldOne_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530\n"
+N2_BirgeHopfieldOne_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530"
 # -----------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0         1         2         3         4         5         6         7         8         9     
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -3539,7 +3596,7 @@ N2_BirgeHopfieldTwo_Spradian_bands.lRe_dim = 14
 N2_BirgeHopfieldTwo_Spradian_bands.uRe_dim = 16
 N2_BirgeHopfieldTwo_Spradian_bands.bands = [ '' ] * N2_BirgeHopfieldTwo_Spradian_bands.uRe_dim
 N2_BirgeHopfieldTwo_Spradian_bands.comments  = "# Electronic transition moments (Re) for the N2 BirgeHopfieldTwo system\n"
-N2_BirgeHopfieldTwo_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+N2_BirgeHopfieldTwo_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------
 #                                        Vl  =    0       1       2       3       4       5       6       7       8       9      10     11        12      13
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3567,7 +3624,7 @@ N2_BirgeHopfieldTwo_EM2C_bands.lRe_dim = 16
 N2_BirgeHopfieldTwo_EM2C_bands.uRe_dim = 29
 N2_BirgeHopfieldTwo_EM2C_bands.bands = [ '' ] * N2_BirgeHopfieldTwo_EM2C_bands.uRe_dim
 N2_BirgeHopfieldTwo_EM2C_bands.comments  = "# Absorption oscillator strengths for the N2_BirgeHopfieldTwo system\n"
-N2_BirgeHopfieldTwo_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530\n"
+N2_BirgeHopfieldTwo_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530"
 # -----------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0         1         2         3         4         5         6         7         8         9     
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -3615,7 +3672,7 @@ N2_WorleyJenkins_Spradian_bands.lRe_dim = 14
 N2_WorleyJenkins_Spradian_bands.uRe_dim = 5
 N2_WorleyJenkins_Spradian_bands.bands = [ '' ] * N2_WorleyJenkins_Spradian_bands.uRe_dim
 N2_WorleyJenkins_Spradian_bands.comments  = "# Electronic transition moments (Re) for the N2 WorleyJenkins system\n"
-N2_WorleyJenkins_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+N2_WorleyJenkins_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------
 #                                     Vl  =    0       1       2       3       4       5       6       7       8       9      10     11        12      13
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3633,7 +3690,7 @@ N2_WorleyJenkins_EM2C_bands.lRe_dim = 16
 N2_WorleyJenkins_EM2C_bands.uRe_dim = 5
 N2_WorleyJenkins_EM2C_bands.bands = [ '' ] * N2_WorleyJenkins_EM2C_bands.uRe_dim
 N2_WorleyJenkins_EM2C_bands.comments  = "# Absorption oscillator strengths for the N2_WorleyJenkins system\n"
-N2_WorleyJenkins_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530\n"
+N2_WorleyJenkins_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530"
 # -----------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0         1         2         3         4         5         6         7         8         9     
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -3657,7 +3714,7 @@ N2_CarrollYoshino_Spradian_bands.lRe_dim = 12
 N2_CarrollYoshino_Spradian_bands.uRe_dim = 9
 N2_CarrollYoshino_Spradian_bands.bands = [ '' ] * N2_CarrollYoshino_Spradian_bands.uRe_dim
 N2_CarrollYoshino_Spradian_bands.comments  = "# Electronic transition moments (Re) for the N2 CarrollYoshino system\n"
-N2_CarrollYoshino_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+N2_CarrollYoshino_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #---------------------------------------------------------------------------------------------------------------------------------------------
 #                                      Vl  =    0       1       2       3       4       5       6       7       8       9      10     11      
 #---------------------------------------------------------------------------------------------------------------------------------------------
@@ -3678,7 +3735,7 @@ N2_CarrollYoshino_EM2C_bands.lRe_dim = 16
 N2_CarrollYoshino_EM2C_bands.uRe_dim = 9
 N2_CarrollYoshino_EM2C_bands.bands = [ '' ] * N2_CarrollYoshino_EM2C_bands.uRe_dim
 N2_CarrollYoshino_EM2C_bands.comments  = "# Absorption oscillator strengths for the N2_CarrollYoshino system\n"
-N2_CarrollYoshino_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530\n"
+N2_CarrollYoshino_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530"
 # -----------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0         1         2         3         4         5         6         7         8         9     
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -3706,7 +3763,7 @@ N2_LymanBirgeHopfield_Spradian_bands.lRe_dim = 15
 N2_LymanBirgeHopfield_Spradian_bands.uRe_dim = 11
 N2_LymanBirgeHopfield_Spradian_bands.bands = [ '' ] * N2_LymanBirgeHopfield_Spradian_bands.uRe_dim
 N2_LymanBirgeHopfield_Spradian_bands.comments  = "# Electronic transition moments (Re) for the N2 LymanBirgeHopfield system\n"
-N2_LymanBirgeHopfield_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+N2_LymanBirgeHopfield_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #                                          Vl  =    0       1       2       3       4       5       6       7       8       9      10     11        12      13       14
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3736,7 +3793,7 @@ N2_VegardKaplan_Spradian_bands.lRe_dim = 15
 N2_VegardKaplan_Spradian_bands.uRe_dim = 11
 N2_VegardKaplan_Spradian_bands.bands = [ '' ] * N2_VegardKaplan_Spradian_bands.uRe_dim
 N2_VegardKaplan_Spradian_bands.comments  = "# Electronic transition moments (Re) for the N2 VegardKaplan system\n"
-N2_VegardKaplan_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+N2_VegardKaplan_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #                                    Vl  =    0       1       2       3       4       5       6       7       8       9      10     11        12      13       14
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -4389,7 +4446,7 @@ N2.available_QSS_models["Park"] =  DiatomicQSSModel(name="Park",noneq_elevs=N2_n
 
 #  ==== N2+ ==========================
 N2_plus = DiatomicRadiator()
-N2_plus.general_comments = "# source -> Spradian07 diatom.dat\n"
+N2_plus.comments = "# source -> Spradian07 diatom.dat"
 N2_plus.name = "N2_plus"
 N2_plus.mol_weight = 28.012931e-3
 N2_plus.h_f = 53886282.0
@@ -4427,7 +4484,7 @@ N2_plus_FirstNegative_Spradian_bands.lRe_dim = 11
 N2_plus_FirstNegative_Spradian_bands.uRe_dim = 11 
 N2_plus_FirstNegative_Spradian_bands.bands = [ '' ] * N2_plus_FirstNegative_Spradian_bands.uRe_dim
 N2_plus_FirstNegative_Spradian_bands.comments  = "# Electronic transition moments (Re) for the N2+ FirstNegative system\n"
-N2_plus_FirstNegative_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+N2_plus_FirstNegative_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #-----------------------------------------------------------------------------------------------------------------------------------------
 #                                          Vl  =    0       1       2       3       4       5       6       7       8       9      10    
 #-----------------------------------------------------------------------------------------------------------------------------------------
@@ -4451,7 +4508,7 @@ N2_plus_FirstNegative_EM2C_bands.lRe_dim = 22
 N2_plus_FirstNegative_EM2C_bands.uRe_dim = 9
 N2_plus_FirstNegative_EM2C_bands.bands = [ '' ] * N2_plus_FirstNegative_EM2C_bands.uRe_dim
 N2_plus_FirstNegative_EM2C_bands.comments  = "# Electronic transition moments for the N2_plus_FirstNegative system\n"
-N2_plus_FirstNegative_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530\n"
+N2_plus_FirstNegative_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530"
 # -----------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0         1         2         3         4         5         6         7         8         9     
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -4479,7 +4536,7 @@ N2_plus_SecondNegative_Spradian_bands.lRe_dim = 11
 N2_plus_SecondNegative_Spradian_bands.uRe_dim = 8
 N2_plus_SecondNegative_Spradian_bands.bands = [ '' ] * N2_plus_SecondNegative_Spradian_bands.uRe_dim
 N2_plus_SecondNegative_Spradian_bands.comments  = "# Electronic transition moments (Re) for the N2+ SecondNegative system\n"
-N2_plus_SecondNegative_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+N2_plus_SecondNegative_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #------------------------------------------------------------------------------------------------------------------------------------------
 #                                           Vl  =    0       1       2       3       4       5       6       7       8       9      10    
 #------------------------------------------------------------------------------------------------------------------------------------------
@@ -4500,7 +4557,7 @@ N2_plus_SecondNegative_EM2C_bands.lRe_dim = 22
 N2_plus_SecondNegative_EM2C_bands.uRe_dim = 7
 N2_plus_SecondNegative_EM2C_bands.bands = [ '' ] * N2_plus_SecondNegative_EM2C_bands.uRe_dim
 N2_plus_SecondNegative_EM2C_bands.comments  = "# Electronic transition moments for the N2_plus_SecondNegative system\n"
-N2_plus_SecondNegative_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530\n"
+N2_plus_SecondNegative_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530"
 # -----------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0         1         2         3         4         5         6         7         8         9     
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -4526,7 +4583,7 @@ N2_plus_Meinel_Spradian_bands.lRe_dim = 15
 N2_plus_Meinel_Spradian_bands.uRe_dim = 15
 N2_plus_Meinel_Spradian_bands.bands = [ '' ] * N2_plus_Meinel_Spradian_bands.uRe_dim
 N2_plus_Meinel_Spradian_bands.comments  = "# Electronic transition moments (Re) for the N2+ Meinel system\n"
-N2_plus_Meinel_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+N2_plus_Meinel_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #                                   Vl  =    0       1       2       3       4       5       6       7       8       9      10     11      12      13      14
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -4554,7 +4611,7 @@ N2_plus_Meinel_EM2C_bands.lRe_dim = 22
 N2_plus_Meinel_EM2C_bands.uRe_dim = 28
 N2_plus_Meinel_EM2C_bands.bands = [ '' ] * N2_plus_Meinel_EM2C_bands.uRe_dim
 N2_plus_Meinel_EM2C_bands.comments  = "# Electronic transition moments for the N2_plus_Meinel system\n"
-N2_plus_Meinel_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530\n"
+N2_plus_Meinel_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530"
 # -----------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0         1         2         3         4         5         6         7         8         9     
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -5106,7 +5163,7 @@ N2_plus.available_QSS_models["Park"] =  DiatomicQSSModel(name="Park",noneq_elevs
 
 #  ==== NO ==========================
 NO = DiatomicRadiator()
-NO.general_comments = "# source -> Spradian07 diatom.dat\n"
+NO.comments = "# source -> Spradian07 diatom.dat"
 NO.name = "NO"
 NO.mol_weight = 3.00061e-2
 NO.h_f = 3.041758509e+6
@@ -5151,7 +5208,7 @@ NO_Infrared_EM2C_bands.lRe_dim = 22
 NO_Infrared_EM2C_bands.uRe_dim = 23
 NO_Infrared_EM2C_bands.bands = [ '' ] * NO_Infrared_EM2C_bands.uRe_dim
 NO_Infrared_EM2C_bands.comments  = "# Electronic transition moments for the NO_Infrared system\n"
-NO_Infrared_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530\n"
+NO_Infrared_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530"
 # -----------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0         1         2         3         4         5         6         7         8         9     
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -5193,7 +5250,7 @@ NO_Gamma_Spradian_bands.lRe_dim = 16
 NO_Gamma_Spradian_bands.uRe_dim = 9 
 NO_Gamma_Spradian_bands.bands = [ '' ] * NO_Gamma_Spradian_bands.uRe_dim
 NO_Gamma_Spradian_bands.comments  = "# Electronic transition moments (Re) for the NO Gamma system\n"
-NO_Gamma_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+NO_Gamma_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #                             Vl  =    0       1       2       3       4       5       6       7       8       9      10     11      12      13      14      15 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -5214,7 +5271,7 @@ NO_Gamma_EM2C_bands.lRe_dim = 23
 NO_Gamma_EM2C_bands.uRe_dim = 9
 NO_Gamma_EM2C_bands.bands = [ '' ] * NO_Gamma_EM2C_bands.uRe_dim
 NO_Gamma_EM2C_bands.comments  = "# Electronic transition moments for the NO_Gamma system\n"
-NO_Gamma_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530\n"
+NO_Gamma_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530"
 # -----------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0         1         2         3         4         5         6         7         8         9     
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -5242,7 +5299,7 @@ NO_Beta_Spradian_bands.lRe_dim = 16
 NO_Beta_Spradian_bands.uRe_dim = 15
 NO_Beta_Spradian_bands.bands = [ '' ] * NO_Beta_Spradian_bands.uRe_dim
 NO_Beta_Spradian_bands.comments  = "# Electronic transition moments (Re) for the NO Beta system\n"
-NO_Beta_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+NO_Beta_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #                            Vl  =    0       1       2       3       4       5       6       7       8       9      10     11      12      13      14      15 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -5270,7 +5327,7 @@ NO_Beta_EM2C_bands.lRe_dim = 23
 NO_Beta_EM2C_bands.uRe_dim = 38
 NO_Beta_EM2C_bands.bands = [ '' ] * NO_Beta_EM2C_bands.uRe_dim
 NO_Beta_EM2C_bands.comments  = "# Electronic transition moments for the NO_Beta system\n"
-NO_Beta_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530\n"
+NO_Beta_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530"
 # -----------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0         1         2         3         4         5         6         7         8         9     
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -5327,7 +5384,7 @@ NO_Delta_Spradian_bands.lRe_dim = 16
 NO_Delta_Spradian_bands.uRe_dim = 5
 NO_Delta_Spradian_bands.bands = [ '' ] * NO_Delta_Spradian_bands.uRe_dim
 NO_Delta_Spradian_bands.comments  = "# Electronic transition moments (Re) for the NO Delta system\n"
-NO_Delta_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+NO_Delta_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #                             Vl  =    0       1       2       3       4       5       6       7       8       9      10     11      12      13      14      15 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -5344,7 +5401,7 @@ NO_Delta_EM2C_bands.lRe_dim = 23
 NO_Delta_EM2C_bands.uRe_dim = 10
 NO_Delta_EM2C_bands.bands = [ '' ] * NO_Delta_EM2C_bands.uRe_dim
 NO_Delta_EM2C_bands.comments  = "# Electronic transition moments for the NO_Delta system\n"
-NO_Delta_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530\n"
+NO_Delta_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530"
 # -----------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0         1         2         3         4         5         6         7         8         9     
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -5373,7 +5430,7 @@ NO_Epsilon_Spradian_bands.lRe_dim = 16
 NO_Epsilon_Spradian_bands.uRe_dim = 6
 NO_Epsilon_Spradian_bands.bands = [ '' ] * NO_Epsilon_Spradian_bands.uRe_dim
 NO_Epsilon_Spradian_bands.comments  = "# Electronic transition moments (Re) for the NO Epsilon system\n"
-NO_Epsilon_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+NO_Epsilon_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #                               Vl  =    0       1       2       3       4       5       6       7       8       9      10     11      12      13      14      15 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -5391,7 +5448,7 @@ NO_Epsilon_EM2C_bands.lRe_dim = 23
 NO_Epsilon_EM2C_bands.uRe_dim = 6
 NO_Epsilon_EM2C_bands.bands = [ '' ] * NO_Epsilon_EM2C_bands.uRe_dim
 NO_Epsilon_EM2C_bands.comments  = "# Electronic transition moments for the NO_Epsilon system\n"
-NO_Epsilon_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530\n"
+NO_Epsilon_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530"
 # -----------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0         1         2         3         4         5         6         7         8         9     
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -5417,7 +5474,7 @@ NO_BetaPrime_EM2C_bands.lRe_dim = 23
 NO_BetaPrime_EM2C_bands.uRe_dim = 7
 NO_BetaPrime_EM2C_bands.bands = [ '' ] * NO_BetaPrime_EM2C_bands.uRe_dim
 NO_BetaPrime_EM2C_bands.comments  = "# Electronic transition moments for the NO_BetaPrime system\n"
-NO_BetaPrime_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530\n"
+NO_BetaPrime_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530"
 # -----------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0         1         2         3         4         5         6         7         8         9     
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -5444,7 +5501,7 @@ NO_GammaPrime_EM2C_bands.lRe_dim = 23
 NO_GammaPrime_EM2C_bands.uRe_dim = 6
 NO_GammaPrime_EM2C_bands.bands = [ '' ] * NO_GammaPrime_EM2C_bands.uRe_dim
 NO_GammaPrime_EM2C_bands.comments  = "# Electronic transition moments for the NO_GammaPrime system\n"
-NO_GammaPrime_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530\n"
+NO_GammaPrime_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530"
 # -----------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0         1         2         3         4         5         6         7         8         9     
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -5470,7 +5527,7 @@ NO_ElevenThousandAngstroms_EM2C_bands.lRe_dim = 9
 NO_ElevenThousandAngstroms_EM2C_bands.uRe_dim = 6
 NO_ElevenThousandAngstroms_EM2C_bands.bands = [ '' ] * NO_ElevenThousandAngstroms_EM2C_bands.uRe_dim
 NO_ElevenThousandAngstroms_EM2C_bands.comments  = "# Electronic transition moments for the NO_ElevenThousandAngstroms system\n"
-NO_ElevenThousandAngstroms_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530\n"
+NO_ElevenThousandAngstroms_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530"
 # -----------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0         1         2         3         4         5         6         7         8         9     
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -6018,7 +6075,7 @@ NO.available_QSS_models["Park"] = DiatomicQSSModel(name="Park",noneq_elevs=NO_no
 
 #  ==== O2 ==========================
 O2 = DiatomicRadiator()
-O2.general_comments = "# source -> Spradian07 diatom.dat\n"
+O2.comments = "# source -> Spradian07 diatom.dat"
 O2.name = "O2"
 O2.mol_weight = 31.99880e-3
 O2.h_f = 0.0
@@ -6061,7 +6118,7 @@ O2_SchumannRunge_Spradian_bands.lRe_dim = 13
 O2_SchumannRunge_Spradian_bands.uRe_dim = 15
 O2_SchumannRunge_Spradian_bands.bands = [ '' ] * O2_SchumannRunge_Spradian_bands.uRe_dim
 O2_SchumannRunge_Spradian_bands.comments  = "# Electronic transition moments (Re) for the O2 SchumannRunge system\n"
-O2_SchumannRunge_Spradian_bands.comments += "# Source: Spradian07 diatom.dat\n"
+O2_SchumannRunge_Spradian_bands.comments += "# Source: Spradian07 diatom.dat"
 #----------------------------------------------------------------------------------------------------------------------------------------------------
 #                             Vl  =    0       1       2       3       4       5       6       7       8       9      10     11      12      13      
 #----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -6088,7 +6145,7 @@ O2_SchumannRunge_EM2C_bands.lRe_dim = 22
 O2_SchumannRunge_EM2C_bands.uRe_dim = 20
 O2_SchumannRunge_EM2C_bands.bands = [ '' ] * O2_SchumannRunge_EM2C_bands.uRe_dim
 O2_SchumannRunge_EM2C_bands.comments  = "# Electronic transition moments for the O2_SchumannRunge system\n"
-O2_SchumannRunge_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530\n"
+O2_SchumannRunge_EM2C_bands.comments += "# Source: Chauveau et al (2002) JQSRT vol. 72 pp 503-530"
 # -----------------------------------------------------------------------------------------------------------------------------------
 #                           Vl  =    0         1         2         3         4         5         6         7         8         9     
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -6512,7 +6569,7 @@ Ar.eta_I = 127109.80
 Ar.default_level_set = "my_levels"
 Ar_NIST_levels = AtomicLevelSet()
 Ar_NIST_levels.levels = [ '' ] * 262
-Ar_NIST_levels.comments = "# - All levels from the NIST database\n"
+Ar_NIST_levels.comments = "# - All levels from the NIST database"
 # -----------------------------------------------------------------------------
 #   No.                           n     E(cm-1)       g    l    L    S   parity
 # -----------------------------------------------------------------------------
@@ -6783,7 +6840,7 @@ Ar.available_level_sets["all_NIST_levels"] = Ar_NIST_levels
 #
 Ar_my_levels = AtomicLevelSet()
 Ar_my_levels.levels = [ '' ] * 29
-Ar_my_levels.comments = "# - Multiplets from NIST up to 120,000cm-1, 5% groupings above\n"
+Ar_my_levels.comments = "# - Multiplets from NIST up to 120,000cm-1, 5% groupings above"
 # -----------------------------------------------------------------------------
 #   No.                           n     E(cm-1)       g    l    L    S   parity
 # -----------------------------------------------------------------------------
@@ -6825,7 +6882,7 @@ Ar_all_lines = AtomicLineSet()
 Ar_all_lines.lines = [ '' ] * 428
 Ar_all_lines.comments  = "# Individual lines obtained from NIST ASD:\n"
 Ar_all_lines.comments += "# http://physics.nist.gov/PhysRefData/ASD/index.html\n"
-Ar_all_lines.comments += "# Missing multiplets have been independently derived\n"
+Ar_all_lines.comments += "# Missing multiplets have been independently derived"
 #---------------------------------------------------------------------------------------
 #                     No.        Ei(cm-1)   Ek(cm-1)   gi   gk Aki(1/s)  ie_i ie_k type
 #---------------------------------------------------------------------------------------
@@ -7264,7 +7321,7 @@ Ar_my_lines = AtomicLineSet()
 Ar_my_lines.lines = [ '' ] * 210
 Ar_my_lines.comments  = "# Individual lines for delta_E > 6eV obtained from NIST ASD:\n"
 Ar_my_lines.comments += "# http://physics.nist.gov/PhysRefData/ASD/index.html\n"
-Ar_my_lines.comments += "# Missing multiplets have been independently derived\n"
+Ar_my_lines.comments += "# Missing multiplets have been independently derived"
 #---------------------------------------------------------------------------------------
 #                     No.        Ei(cm-1)   Ek(cm-1)   gi   gk Aki(1/s)  ie_i ie_k type
 #---------------------------------------------------------------------------------------
@@ -7507,7 +7564,7 @@ Ar_plus.eta_I = 222848.2
 Ar_plus.default_level_set = "my_levels"
 Ar_plus_NIST_levels = AtomicLevelSet()
 Ar_plus_NIST_levels.levels = [ '' ] * 206
-Ar_plus_NIST_levels.comments = "# - All levels from the NIST database\n"
+Ar_plus_NIST_levels.comments = "# - All levels from the NIST database"
 # -----------------------------------------------------------------------------
 #   No.                           n     E(cm-1)       g    l    L    S   parity
 # -----------------------------------------------------------------------------
@@ -7723,7 +7780,7 @@ Ar_plus.available_level_sets["all_NIST_levels"] = Ar_plus_NIST_levels
 Ar_plus.default_level_set = "my_levels"
 Ar_plus_my_levels = AtomicLevelSet()
 Ar_plus_my_levels.levels = [ '' ] * 10
-Ar_plus_my_levels.comments = "# - All levels from the NIST database\n"
+Ar_plus_my_levels.comments = "# - All levels from the NIST database"
 # -----------------------------------------------------------------------------
 #   No.                           n     E(cm-1)       g    l    L    S   parity
 # -----------------------------------------------------------------------------
@@ -7746,7 +7803,7 @@ Ar_plus_all_lines = AtomicLineSet()
 Ar_plus_all_lines.lines = [ '' ] * 307
 Ar_plus_all_lines.comments  = "# Individual lines obtained from NIST ASD:\n"
 Ar_plus_all_lines.comments += "# http://physics.nist.gov/PhysRefData/ASD/index.html\n"
-Ar_plus_all_lines.comments += "# Missing multiplets have been independently derived\n"
+Ar_plus_all_lines.comments += "# Missing multiplets have been independently derived"
 #---------------------------------------------------------------------------------------
 #                     No.        Ei(cm-1)   Ek(cm-1)   gi   gk Aki(1/s)  ie_i ie_k type
 #---------------------------------------------------------------------------------------
@@ -8064,7 +8121,7 @@ Ar_plus_my_lines = AtomicLineSet()
 Ar_plus_my_lines.lines = [ '' ] * 108
 Ar_plus_my_lines.comments  = "# Individual lines obtained from NIST ASD:\n"
 Ar_plus_my_lines.comments += "# http://physics.nist.gov/PhysRefData/ASD/index.html\n"
-Ar_plus_my_lines.comments += "# Missing multiplets have been independently derived\n"
+Ar_plus_my_lines.comments += "# Missing multiplets have been independently derived"
 #---------------------------------------------------------------------------------------
 #                     No.        Ei(cm-1)   Ek(cm-1)   gi   gk Aki(1/s)  ie_i ie_k type
 #---------------------------------------------------------------------------------------
@@ -8201,7 +8258,7 @@ C.eta_I = 90820.42
 C.default_level_set = "my_levels"
 C_Spradian_levels = AtomicLevelSet()
 C_Spradian_levels.levels = [ '' ] * 22
-C_Spradian_levels.comments = "# - All levels from Spradian07 (Park) with grouping of high lying states\n"
+C_Spradian_levels.comments = "# - All levels from Spradian07 (Park) with grouping of high lying states"
 # -----------------------------------------------------------------------------
 #   No.                           n     E(cm-1)       g    l    L    S   parity
 # -----------------------------------------------------------------------------
@@ -8232,7 +8289,7 @@ C.available_level_sets["Spradian_levels"] = C_Spradian_levels
 #
 C_my_levels = AtomicLevelSet()
 C_my_levels.levels = [ '' ] * 43
-C_my_levels.comments = "# - NIST levels with Park data for high lying states\n"
+C_my_levels.comments = "# - NIST levels with Park data for high lying states"
 # -----------------------------------------------------------------------------
 #   No.                      n     E(cm-1)     g    l    L    S   parity
 # -----------------------------------------------------------------------------
@@ -8284,7 +8341,7 @@ C.available_level_sets["my_levels"] = C_my_levels
 #
 C_all_NIST_levels = AtomicLevelSet()
 C_all_NIST_levels.levels = [ '' ] * 176
-C_all_NIST_levels.comments = "# all NIST levels\n"
+C_all_NIST_levels.comments = "# all NIST levels"
 # -----------------------------------------------------------------------------
 #   No.                      n     E(cm-1)     g    l    L    S   parity
 # -----------------------------------------------------------------------------
@@ -8473,7 +8530,7 @@ C_multiplet_lines = AtomicLineSet()
 C_multiplet_lines.lines = [ '' ] * 418
 C_multiplet_lines.comments  = "# Multiplets obtained from NIST ASD:\n"
 C_multiplet_lines.comments += "# http://physics.nist.gov/PhysRefData/ASD/index.html\n"
-C_multiplet_lines.comments += "# Missing multiplets have been independently derived\n"
+C_multiplet_lines.comments += "# Missing multiplets have been independently derived"
 #---------------------------------------------------------------------------------------
 #                     No.        Ei(cm-1)   Ek(cm-1)   gi   gk Aki(1/s)  ie_i ie_k type
 #---------------------------------------------------------------------------------------
@@ -8902,7 +8959,7 @@ C_my_lines = AtomicLineSet()
 C_my_lines.lines = [ '' ] * 547
 C_my_lines.comments  = "# Lines obtained from NIST ASD:\n"
 C_my_lines.comments += "# http://physics.nist.gov/PhysRefData/ASD/index.html\n"
-C_my_lines.comments += "# Multiplets for delta_E < 6eV, individual lines for delta_E > 6eV\n"
+C_my_lines.comments += "# Multiplets for delta_E < 6eV, individual lines for delta_E > 6eV"
 #---------------------------------------------------------------------------------------
 #                No.        Ei(cm-1)   Ek(cm-1)   gi   gk Aki(1/s)  ie_i ie_k type
 #---------------------------------------------------------------------------------------
@@ -9460,7 +9517,7 @@ C_all_lines = AtomicLineSet()
 C_all_lines.lines = [ '' ] * 1298
 C_all_lines.comments  = "# Lines obtained from NIST ASD:\n"
 C_all_lines.comments += "# http://physics.nist.gov/PhysRefData/ASD/index.html\n"
-C_all_lines.comments += "# All individual lines\n"
+C_all_lines.comments += "# All individual lines"
 #---------------------------------------------------------------------------------------
 #                No.        Ei(cm-1)   Ek(cm-1)   gi   gk Aki(1/s)  ie_i ie_k type
 #---------------------------------------------------------------------------------------
@@ -10915,7 +10972,7 @@ C_plus.eta_I = 196659.0
 C_plus.default_level_set = "NIST_levels"
 C_plus_Spradian_levels = AtomicLevelSet()
 C_plus_Spradian_levels.levels = [ '' ] * 12
-C_plus_Spradian_levels.comments = "# - Park/Spradian07 levels, shell numbers from NIST\n"
+C_plus_Spradian_levels.comments = "# - Park/Spradian07 levels, shell numbers from NIST"
 # --------------------------------------------------------
 #   Co.                            n     E(cm-1)       g  
 # --------------------------------------------------------
@@ -10936,7 +10993,7 @@ C_plus.available_level_sets["Spradian_levels"] = C_plus_Spradian_levels
 #
 C_plus_NIST_levels = AtomicLevelSet()
 C_plus_NIST_levels.levels = [ '' ] * 11
-C_plus_NIST_levels.comments = "# - < 160,000 cm-1 multiplet levels from NIST\n"
+C_plus_NIST_levels.comments = "# - < 160,000 cm-1 multiplet levels from NIST"
 # --------------------------------------------------------------------------------
 #   No.                            n     E(cm-1)       g    l    L    S   parity
 # --------------------------------------------------------------------------------
@@ -10956,7 +11013,7 @@ C_plus.available_level_sets["NIST_levels"] = C_plus_NIST_levels
 #
 C_plus_all_NIST_levels = AtomicLevelSet()
 C_plus_all_NIST_levels.levels = [ '' ] * 42
-C_plus_all_NIST_levels.comments = "# all NIST levels\n"
+C_plus_all_NIST_levels.comments = "# all NIST levels"
 # -----------------------------------------------------------------------------
 #   No.                      n     E(cm-1)     g    l    L    S   parity
 # -----------------------------------------------------------------------------
@@ -11008,14 +11065,14 @@ C_plus.available_level_sets["all_NIST_levels"] = C_plus_all_NIST_levels
 C_plus.default_line_set = "no_lines"
 C_plus_no_lines = AtomicLineSet()
 C_plus_no_lines.lines = [ '' ] * 0
-C_plus_no_lines.comments = "# no lines considered\n"
+C_plus_no_lines.comments = "# no lines considered"
 C_plus.available_line_sets["no_lines"] = C_plus_no_lines
 #
 C_plus_all_NIST_lines = AtomicLineSet()
 C_plus_all_NIST_lines.lines = [ '' ] * 636
 C_plus_all_NIST_lines.comments  = "# Lines obtained from NIST ASD:\n"
 C_plus_all_NIST_lines.comments += "# http://physics.nist.gov/PhysRefData/ASD/index.html\n"
-C_plus_all_NIST_lines.comments += "# All individual NIST lines (those with 'A_ul' data)\n"
+C_plus_all_NIST_lines.comments += "# All individual NIST lines (those with 'A_ul' data)"
 #----------------------------------------------------------------------------------------------
 #                No.                   Ei(cm-1)   Ek(cm-1)   gi   gk Aki(1/s)  ie_i ie_k type
 #----------------------------------------------------------------------------------------------
@@ -11678,7 +11735,7 @@ H.eta_I = 109678.8
 H.default_level_set = "Park_levels"
 H_Park_levels = AtomicLevelSet()
 H_Park_levels.levels = [ '' ] * 20
-H_Park_levels.comments = "# - NEQAInfrared/SPRADIAN levels from Park\n"
+H_Park_levels.comments = "# - NEQAInfrared/SPRADIAN levels from Park"
 # ------------------------------------------------------------------------
 #   No.                        n     E(cm-1)     g    l    L    S   parity
 # ------------------------------------------------------------------------
@@ -11710,7 +11767,7 @@ H_all_lines = AtomicLineSet()
 H_all_lines.lines = [ '' ] * 137
 H_all_lines.comments  = "# Lines obtained from NIST ASD:\n"
 H_all_lines.comments += "# http://physics.nist.gov/PhysRefData/ASD/index.html\n"
-H_all_lines.comments += "# Using file: H-I_NIST_lines.txt (all individual lines)\n"
+H_all_lines.comments += "# Using file: H-I_NIST_lines.txt (all individual lines)"
 #----------------------------------------------------------------------------------
 #                No.        Ei(cm-1)   Ek(cm-1)   gi   gk Aki(1/s)  ie_i ie_k type
 #----------------------------------------------------------------------------------
@@ -11857,7 +11914,7 @@ H_my_lines = AtomicLineSet()
 H_my_lines.lines = [ '' ] * 59
 H_my_lines.comments  = "# Lines obtained from NIST ASD:\n"
 H_my_lines.comments += "# http://physics.nist.gov/PhysRefData/ASD/index.html\n"
-H_my_lines.comments += "# Using file: H-I_NIST_lines.txt (mutliplets < 6.0eV)\n"
+H_my_lines.comments += "# Using file: H-I_NIST_lines.txt (mutliplets < 6.0eV)"
 #----------------------------------------------------------------------------------
 #                No.        Ei(cm-1)   Ek(cm-1)   gi   gk Aki(1/s)  ie_i ie_k type
 #----------------------------------------------------------------------------------
@@ -11945,7 +12002,7 @@ H_plus.eta_I = 0.0
 H_plus.default_level_set = "default"
 H_plus_levels = AtomicLevelSet()
 H_plus_levels.levels = [ '' ] * 1
-H_plus_levels.comments = "# - Dummy level as H+ has no electrons\n"
+H_plus_levels.comments = "# - Dummy level as H+ has no electrons"
 # --------------------------------------------------------
 #   No.                       n     E(cm-1)       g  
 # --------------------------------------------------------
@@ -11956,7 +12013,7 @@ H_plus.available_level_sets["default"] = H_plus_levels
 H_plus.default_line_set = "no_lines"
 H_plus_no_lines = AtomicLineSet()
 H_plus_no_lines.lines = [ '' ] * 0
-H_plus_no_lines.comments = "# no lines considered\n"
+H_plus_no_lines.comments = "# no lines considered"
 H_plus.available_line_sets["no_lines"] = H_plus_no_lines
 H_plus.available_line_sets["all_lines"] = H_plus_no_lines
 # ----- Photoionization cross-section models -----
@@ -11981,7 +12038,7 @@ N.default_level_set = "CJ_levels"
 #
 N_Spradian_levels = AtomicLevelSet()
 N_Spradian_levels.levels = [ '' ] * 22
-N_Spradian_levels.comments = "# - All levels from Spradian/Park\n"
+N_Spradian_levels.comments = "# - All levels from Spradian/Park"
 # ----------------------------------------------------------------------
 #   No.                      n      E(cm-1)     g    l    L    S   parity
 # ----------------------------------------------------------------------
@@ -12012,7 +12069,7 @@ N.available_level_sets["Spradian_levels"] = N_Spradian_levels
 #
 N_CJ_levels = AtomicLevelSet()
 N_CJ_levels.levels = [ '' ] * 37
-N_CJ_levels.comments = "# - All levels from NIST with grouping of high lying states\n"
+N_CJ_levels.comments = "# - All levels from NIST with grouping of high lying states"
 # ----------------------------------------------------------------------
 #   No.                     n     E(cm-1)     g    l    L    S   parity
 # ----------------------------------------------------------------------
@@ -12058,7 +12115,7 @@ N.available_level_sets["CJ_levels"] = N_CJ_levels
 #
 N_all_NIST_levels = AtomicLevelSet()
 N_all_NIST_levels.levels = [ '' ] * 155
-N_all_NIST_levels.comments = "# all NIST levels\n"
+N_all_NIST_levels.comments = "# all NIST levels"
 # -----------------------------------------------------------------------------
 #   No.                      n     E(cm-1)     g    l    L    S   parity
 # -----------------------------------------------------------------------------
@@ -12226,7 +12283,7 @@ N_CJ_lines = AtomicLineSet()
 N_CJ_lines.lines = [ '' ] * 352
 N_CJ_lines.comments  = "# Lines obtained from NIST ASD:\n"
 N_CJ_lines.comments += "# http://physics.nist.gov/PhysRefData/ASD/index.html\n"
-N_CJ_lines.comments += "# Multiplets for delta_E < 6eV, individual lines for delta_E > 6eV\n"
+N_CJ_lines.comments += "# Multiplets for delta_E < 6eV, individual lines for delta_E > 6eV"
 #----------------------------------------------------------------------------------
 #                No.        Ei(cm-1)   Ek(cm-1)   gi   gk Aki(1/s)  ie_i ie_k type
 #----------------------------------------------------------------------------------
@@ -12589,7 +12646,7 @@ N_all_lines = AtomicLineSet()
 N_all_lines.lines = [ '' ] * 1099
 N_all_lines.comments  = "# Lines obtained from NIST ASD:\n"
 N_all_lines.comments += "# http://physics.nist.gov/PhysRefData/ASD/index.html\n"
-N_all_lines.comments += "# All individual lines (that are available)\n"
+N_all_lines.comments += "# All individual lines (that are available)"
 #----------------------------------------------------------------------------------
 #                No.        Ei(cm-1)   Ek(cm-1)   gi   gk Aki(1/s)  ie_i ie_k type
 #----------------------------------------------------------------------------------
@@ -13701,7 +13758,7 @@ N_pIx = PhotoIonXSectionModel(elevel_set="NA",model="hydrogenic")
 N.available_photoionXsection_models["hydrogenic"] = N_pIx
 #
 N_CJ_pIx = JohnstonModel(elevel_set="CJ_levels")
-N_CJ_pIx.comments = "# Step model for photo-ionization cross-sections from Johnston 2006\n"
+N_CJ_pIx.comments = "# Step model for photo-ionization cross-sections from Johnston 2006"
 N_CJ_pIx.steps = [''] * 35
 # ----------------------------------------------------------------------------
 #   No.                ilev   E_a(eV)   E_b(eV)    sigma_bf x 10^18 (cm^2)
@@ -13910,7 +13967,7 @@ N_plus.default_level_set = "NIST_set1_levels"
 #
 N_plus_Spradian_levels = AtomicLevelSet()
 N_plus_Spradian_levels.levels = [ '' ] * 12
-N_plus_Spradian_levels.comments = "# - Park/Spradian07 levels, shell numbers from NIST\n"
+N_plus_Spradian_levels.comments = "# - Park/Spradian07 levels, shell numbers from NIST"
 # --------------------------------------------------------------------------------
 #   No.                             n     E(cm-1)       g    l    L    S   parity
 # --------------------------------------------------------------------------------
@@ -13931,7 +13988,7 @@ N_plus.available_level_sets["Spradian_levels"] = N_plus_Spradian_levels
 #
 N_plus_NIST_set1_levels = AtomicLevelSet()
 N_plus_NIST_set1_levels.levels = [ '' ] * 10
-N_plus_NIST_set1_levels.comments = "# - Multiplet NIST levels below 160,000 cm-1\n"
+N_plus_NIST_set1_levels.comments = "# - Multiplet NIST levels below 160,000 cm-1"
 # --------------------------------------------------------------------------------
 #   No.                             n     E(cm-1)       g    l    L    S   parity
 # --------------------------------------------------------------------------------
@@ -13950,7 +14007,7 @@ N_plus.available_level_sets["NIST_set1_levels"] = N_plus_NIST_set1_levels
 #
 N_plus_all_NIST_levels = AtomicLevelSet()
 N_plus_all_NIST_levels.levels = [ '' ] * 81
-N_plus_all_NIST_levels.comments = "# all NIST levels\n"
+N_plus_all_NIST_levels.comments = "# all NIST levels"
 # -----------------------------------------------------------------------------
 #   No.                      n     E(cm-1)     g    l    L    S   parity
 # -----------------------------------------------------------------------------
@@ -14042,14 +14099,14 @@ N_plus.default_line_set = "no_lines"
 #
 N_plus_no_lines = AtomicLineSet()
 N_plus_no_lines.lines = [ '' ] * 0
-N_plus_no_lines.comments = "# no lines considered\n"
+N_plus_no_lines.comments = "# no lines considered"
 N_plus.available_line_sets["no_lines"] = N_plus_no_lines
 #
 N_plus_NIST_set1a_lines = AtomicLineSet()
 N_plus_NIST_set1a_lines.lines = [ '' ] * 722
 N_plus_NIST_set1a_lines.comments  = "# Lines obtained from NIST ASD:\n"
 N_plus_NIST_set1a_lines.comments += "# http://physics.nist.gov/PhysRefData/ASD/index.html\n"
-N_plus_NIST_set1a_lines.comments += "# All individual NIST lines\n"
+N_plus_NIST_set1a_lines.comments += "# All individual NIST lines"
 #----------------------------------------------------------------------------------
 #                No.        Ei(cm-1)   Ek(cm-1)   gi   gk Aki(1/s)  ie_i ie_k type
 #----------------------------------------------------------------------------------
@@ -14783,7 +14840,7 @@ N_plus_NIST_set1b_lines = AtomicLineSet()
 N_plus_NIST_set1b_lines.lines = [ '' ] * 412
 N_plus_NIST_set1b_lines.comments  = "# Lines obtained from NIST ASD:\n"
 N_plus_NIST_set1b_lines.comments += "# http://physics.nist.gov/PhysRefData/ASD/index.html\n"
-N_plus_NIST_set1b_lines.comments += "# Multiplets for delta_E < 6eV, individual lines for delta_E > 6eV\n"
+N_plus_NIST_set1b_lines.comments += "# Multiplets for delta_E < 6eV, individual lines for delta_E > 6eV"
 #----------------------------------------------------------------------------------
 #                No.        Ei(cm-1)   Ek(cm-1)   gi   gk Aki(1/s)  ie_i ie_k type
 #----------------------------------------------------------------------------------
@@ -15225,7 +15282,7 @@ O_Spradian_levels.levels = [ '' ] * 19
 O_Spradian_levels.comments  = "# Source: - Johnston PhD (2006) for the idea\n"
 O_Spradian_levels.comments += "#         - NIST for level data up to ilev_26\n"
 O_Spradian_levels.comments += "#         - Park (1991) for high-lying level data\n"
-O_Spradian_levels.comments += "# Rationale for using Park's data is that the high degeneracies account for (pseudo-)ionized states\n"
+O_Spradian_levels.comments += "# Rationale for using Park's data is that the high degeneracies account for (pseudo-)ionized states"
 # --------------------------------------------------------------------------------
 #   No.                            n     E(cm-1)     g    l    L    S   parity
 # --------------------------------------------------------------------------------
@@ -15256,7 +15313,7 @@ O_CJ_levels.levels = [ '' ] * 32
 O_CJ_levels.comments  = "# Source: - Johnston PhD (2006) for the idea\n"
 O_CJ_levels.comments += "#         - NIST for level data up to ilev_26\n"
 O_CJ_levels.comments += "#         - Park (1991) for high-lying level data\n"
-O_CJ_levels.comments += "# Rationale for using Park's data is that the high degeneracies account for (pseudo-)ionized states\n"
+O_CJ_levels.comments += "# Rationale for using Park's data is that the high degeneracies account for (pseudo-)ionized states"
 # --------------------------------------------------------------------------------
 #   No.                      n     E(cm-1)     g    l    L    S   parity
 # --------------------------------------------------------------------------------
@@ -15297,7 +15354,7 @@ O.available_level_sets["CJ_levels"] = O_CJ_levels
 #
 O_all_NIST_levels = AtomicLevelSet()
 O_all_NIST_levels.levels = [ '' ] * 283
-O_all_NIST_levels.comments = "# all NIST levels\n"
+O_all_NIST_levels.comments = "# all NIST levels"
 # -----------------------------------------------------------------------------
 #   No.                      n     E(cm-1)     g    l    L    S   parity
 # -----------------------------------------------------------------------------
@@ -15593,7 +15650,7 @@ O_CJ_lines = AtomicLineSet()
 O_CJ_lines.lines = [ '' ] * 288
 O_CJ_lines.comments  = "# Lines obtained from NIST ASD:\n"
 O_CJ_lines.comments += "# http://physics.nist.gov/PhysRefData/ASD/index.html\n"
-O_CJ_lines.comments += "# Multiplets for delta_E < 6eV, individual lines for delta_E > 6eV\n"
+O_CJ_lines.comments += "# Multiplets for delta_E < 6eV, individual lines for delta_E > 6eV"
 #----------------------------------------------------------------------------------
 #                No.        Ei(cm-1)   Ek(cm-1)   gi   gk Aki(1/s)  ie_i ie_k type
 #----------------------------------------------------------------------------------
@@ -15892,7 +15949,7 @@ O_all_lines = AtomicLineSet()
 O_all_lines.lines = [ '' ] * 854
 O_all_lines.comments  = "# Lines obtained from NIST ASD:\n"
 O_all_lines.comments += "# http://physics.nist.gov/PhysRefData/ASD/index.html\n"
-O_all_lines.comments += "# All individual lines (that are available from NIST)\n"
+O_all_lines.comments += "# All individual lines (that are available from NIST)"
 #----------------------------------------------------------------------------------
 #                No.        Ei(cm-1)   Ek(cm-1)   gi   gk Aki(1/s)  ie_i ie_k type
 #----------------------------------------------------------------------------------
@@ -16759,7 +16816,7 @@ O_pIx = PhotoIonXSectionModel(elevel_set="NA",model="hydrogenic")
 O.available_photoionXsection_models["hydrogenic"] = O_pIx
 #
 O_CJ_pIx = JohnstonModel(elevel_set="CJ_levels")
-O_CJ_pIx.comments = "# Step model for photo-ionization cross-sections from Johnston 2006\n"
+O_CJ_pIx.comments = "# Step model for photo-ionization cross-sections from Johnston 2006"
 O_CJ_pIx.steps = [''] * 17
 # ----------------------------------------------------------------------------
 #   No.                 ilev   E_a(eV)   E_b(eV)    sigma_bf x 10^18 (cm^2)
@@ -16925,7 +16982,7 @@ O_plus.default_level_set = "NIST_set1_levels"
 #
 O_plus_Spradian_levels = AtomicLevelSet()
 O_plus_Spradian_levels.levels = [ '' ] * 11
-O_plus_Spradian_levels.comments = "# - Park/Spradian07 levels, shell numbers from NIST\n"
+O_plus_Spradian_levels.comments = "# - Park/Spradian07 levels, shell numbers from NIST"
 # --------------------------------------------------------------------------------
 #   No.                            n     E(cm-1)       g    l    L    S   parity
 # --------------------------------------------------------------------------------
@@ -16945,7 +17002,7 @@ O_plus.available_level_sets["Spradian_levels"] = O_plus_Spradian_levels
 #
 O_plus_NIST_set1_levels = AtomicLevelSet()
 O_plus_NIST_set1_levels.levels = [ '' ] * 8
-O_plus_NIST_set1_levels.comments = "# - Multiplet NIST levels below 200,000 cm-1\n"
+O_plus_NIST_set1_levels.comments = "# - Multiplet NIST levels below 200,000 cm-1"
 # --------------------------------------------------------------------------------
 #   No.                            n     E(cm-1)       g    l    L    S   parity
 # --------------------------------------------------------------------------------
@@ -16962,7 +17019,7 @@ O_plus.available_level_sets["NIST_set1_levels"] = O_plus_NIST_set1_levels
 #
 O_plus_all_NIST_levels = AtomicLevelSet()
 O_plus_all_NIST_levels.levels = [ '' ] * 120
-O_plus_all_NIST_levels.comments = "# all NIST levels\n"
+O_plus_all_NIST_levels.comments = "# all NIST levels"
 # -----------------------------------------------------------------------------
 #   No.                      n     E(cm-1)     g    l    L    S   parity
 # -----------------------------------------------------------------------------
@@ -17093,14 +17150,14 @@ O_plus.default_line_set = "no_lines"
 #
 O_plus_no_lines = AtomicLineSet()
 O_plus_no_lines.lines = [ '' ] * 0
-O_plus_no_lines.comments = "# no lines considered\n"
+O_plus_no_lines.comments = "# no lines considered"
 O_plus.available_line_sets["no_lines"] = O_plus_no_lines
 #
 O_plus_NIST_set1a_lines = AtomicLineSet()
 O_plus_NIST_set1a_lines.lines = [ '' ] * 876
 O_plus_NIST_set1a_lines.comments  = "# Lines obtained from NIST ASD:\n"
 O_plus_NIST_set1a_lines.comments += "# http://physics.nist.gov/PhysRefData/ASD/index.html\n"
-O_plus_NIST_set1a_lines.comments += "# All individual NIST lines (those with 'A_ul' data)\n"
+O_plus_NIST_set1a_lines.comments += "# All individual NIST lines (those with 'A_ul' data)"
 #----------------------------------------------------------------------------------
 #                No.        Ei(cm-1)   Ek(cm-1)   gi   gk Aki(1/s)  ie_i ie_k type
 #----------------------------------------------------------------------------------
@@ -17988,7 +18045,7 @@ O_plus_NIST_set1b_lines = AtomicLineSet()
 O_plus_NIST_set1b_lines.lines = [ '' ] * 434
 O_plus_NIST_set1b_lines.comments  = "# Lines obtained from NIST ASD:\n"
 O_plus_NIST_set1b_lines.comments += "# http://physics.nist.gov/PhysRefData/ASD/index.html\n"
-O_plus_NIST_set1b_lines.comments += "# Individual lines for E > 6.0eV, multiplet lines otherwise\n"
+O_plus_NIST_set1b_lines.comments += "# Individual lines for E > 6.0eV, multiplet lines otherwise"
 #----------------------------------------------------------------------------------
 #                No.        Ei(cm-1)   Ek(cm-1)   gi   gk Aki(1/s)  ie_i ie_k type
 #----------------------------------------------------------------------------------
@@ -18449,7 +18506,7 @@ Xe.eta_I = 127109.80
 Xe.default_level_set = "all_levels"
 Xe_all_levels = AtomicLevelSet()
 Xe_all_levels.levels = [ '' ] * 276
-Xe_all_levels.comments = "# - All levels from the NIST database\n"
+Xe_all_levels.comments = "# - All levels from the NIST database"
 # -----------------------------------------------------------------------------
 #   No.                       n     E(cm-1)       g    l    L    S   parity
 # -----------------------------------------------------------------------------
@@ -18738,7 +18795,7 @@ Xe_all_lines = AtomicLineSet()
 Xe_all_lines.lines = [ '' ] * 42
 Xe_all_lines.comments  = "# Individual lines obtained from NIST ASD:\n"
 Xe_all_lines.comments += "# http://physics.nist.gov/PhysRefData/ASD/index.html\n"
-Xe_all_lines.comments += "# Missing multiplets have been independently derived\n"
+Xe_all_lines.comments += "# Missing multiplets have been independently derived"
 #---------------------------------------------------------------------------------------
 #                     No.        Ei(cm-1)   Ek(cm-1)   gi   gk Aki(1/s)  ie_i ie_k type
 #---------------------------------------------------------------------------------------
