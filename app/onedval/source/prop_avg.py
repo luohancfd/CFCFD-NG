@@ -36,6 +36,17 @@ def avg_pos(cells, var_map):
     y /= A
     z /= A
     return Vector3(x, y, z)
+
+def oriented_normal(n):
+    """Orients the normal in a consistent direction.
+
+    Tecplot does not list the corners of cells in a consistent
+    manner, so the orientation (outward or inward facing)
+    of the computed normals can differ between adjacent cells.
+    Presently, we'll enforce the assumption
+    of a positive-x sense to all normals.
+    """
+    return Vector3(abs(n.x), n.y, n.z)
     
 
 def compute_fluxes(cells, var_map, species, gmodel):
@@ -54,7 +65,7 @@ def compute_fluxes(cells, var_map, species, gmodel):
     h0label = var_map['h0']
     for c in cells:
         dA = c.area()
-        n = c.normal()
+        n = oriented_normal(c.normal())
         rho = c.get(rholabel)
         p = c.get(plabel)
         vel = Vector3(c.get(ulabel),
@@ -102,7 +113,7 @@ def mass_flux_weighted_avg(cells, props, var_map):
         vel = Vector3(c.get(ulabel),
                       c.get(vlabel),
                       c.get(wlabel))
-        n = c.normal()
+        n = oriented_normal(c.normal())
         w = rho*dot(vel, n)
         f_mass = f_mass + w*dA
         for p in props:
@@ -133,7 +144,7 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel):
     h0label = var_map['h0']
     for c in cells:
         dA = c.area() 
-        n = c.normal()
+        n = oriented_normal(c.normal())
         rho = c.get(rholabel)
         p = c.get(plabel)
         vel = Vector3(c.get(ulabel),
@@ -161,19 +172,23 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel):
     else:
         Q.massf[0] = 1.0
     
-    # Compute an initial guess based on mass-flux weighted averages
-    mfw_props = mass_flux_weighted_avg(cells, ['rho', 'T', 'u', 'v', 'w', 'M'], var_map)
-    mfw_Mach = mfw_props['M']
+    LARGE_PENALTY = 1.0e6
 
     def f_to_minimize(x):
         rho, T, u = x
+        if rho < 0.0 or T < 0.0:
+            # Give a big penalty
+            return LARGE_PENALTY
         # Use equation of state to compute other thermo quantities
         Q.rho = rho
         Q.T[0] = T
-        gmodel.eval_thermo_state_rhoT(Q)
+        flag = gmodel.eval_thermo_state_rhoT(Q)
+        if flag != 0:
+            # If there are problems, then these are NOT good values
+            # so return a large error
+            return LARGE_PENALTY
         h = gmodel.mixture_enthalpy(Q)
         p = Q.p
-        M = u/Q.a
         # Compute errors
         fmass_err = abs(f_mass - rho*u*A)/(abs(f_mass) + 1.0)
         fmom_err = abs(f_mom_s - (rho*u*u + p)*A)/(abs(f_mom_s) + 1.0)
@@ -182,19 +197,30 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel):
         return fmass_err + fmom_err + fe_err
 
     # Compute an initial guess based on mass-flux weighted averages
+    mfw_props = mass_flux_weighted_avg(cells, ['rho', 'p', 'T', 'u', 'v', 'w', 'M'], var_map)
     u = sqrt(mfw_props['u']**2 + mfw_props['v']**2 + mfw_props['w']**2)
     guess = [mfw_props['rho'], mfw_props['T'], u]
     result = minimize(f_to_minimize, guess, method='Nelder-Mead')
+    rho, T, u = result.x
+    # Check the results make sense
+    if rho < 0.0 or T < 0.0:
+        result.success = False
+
     if not result.success:
         # Try again but use area-weigthed average as starting point
-        aw_props =  area_weighted_avg(cells, ['rho', 'T', 'u', 'v', 'w', 'M'], var_map)
+        aw_props =  area_weighted_avg(cells, ['rho', 'p', 'T', 'u', 'v', 'w', 'M'], var_map)
         u = sqrt(aw_props['u']**2 + aw_props['v']**2 + aw_props['w']**2)
         guess = [aw_props['rho'], aw_props['T'], u]
         result = minimize(f_to_minimize, guess, method='Nelder-Mead')
+        rho, T, u = result.x
         if not result.success:
             print "The minimizer had difficulty finding the best set of one-d values: rho, T, u"
-            print result
-    rho, T, u = result.x
+            print "result [rho, T, u]= ", result.x
+
+        if rho < 0.0 or T < 0.0:
+            print "The minimizer claims a successful finish, but the gas state is non-physical."
+            print "result [rho, T, u]= ", result.x
+
     Q.rho = rho; Q.T[0] = T
     gmodel.eval_thermo_state_rhoT(Q)
 
