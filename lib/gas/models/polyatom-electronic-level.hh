@@ -12,16 +12,31 @@
 class Polyatom_vibrational_mode {
 public:
     /// \brief Constructor
-    Polyatom_vibrational_mode( double omega, int Vmax, std::vector<int> Jmax );
+    Polyatom_vibrational_mode( int g, double omega, int Vmax );
 
     /// \brief Deconstructor
     virtual ~Polyatom_vibrational_mode() {};
 
 public:
-    double omega;
+    /// \brief compute the statistical weight for the vibrational state
+    int calculate_p( int iV );
+
+    /// \brief return the degeneracy
+    int get_g() { return g; }
+
+    /// \brief return the characteristic energy
+    double get_omega() { return omega; }
+
+    /// \brief evaluate the vibrational energy for a given quantum state
+    double eval_E_vib( int iV );
+
+    int get_Vmax() { return Vmax; }
+
+private:
+    int g;		// Degeneracy
+    double omega;	// Characteristic energy
 
     int Vmax;
-    std::vector<int> Jmax;
 };
 
 class Polyatom_electronic_level {
@@ -33,13 +48,17 @@ public:
     virtual ~Polyatom_electronic_level();
     
 public:
+    /// \brief Calculate maximum vibrational quantum numbers
     int calculate_V_max( int ivm );
 
-    int calculate_J_max( int ivm, int iV );
+    /// \brief Calculate the vibrational energy for a given set of quantum numbers
+    double eval_E_vib( std::vector<int> iV);
 
-    double eval_E_vib( int ivm, int iV );
-
+    /// \brief Calculate rotational energy
     double eval_E_rot( int ivm, int iV, int iJ );
+
+    /// \brief Calculate all the possible vibrational states
+    void vib_loop( int im, std::vector<int> vib_state, std::vector< std::vector<int> > &results );
 
 public:
     /* Fundamental level data */
@@ -57,10 +76,12 @@ public:
     /* Vibrational modes */
     std::vector<Polyatom_vibrational_mode*> vmodes;
 
-    /* Rotational coefficients */
+    /* Rotational characteristic frequencies */
     double A0;
     double B0;
     double C0;
+
+    /* Rotational symmetry (?) factors */
     double sigma;
     double sigma_r;
 };

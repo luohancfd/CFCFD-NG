@@ -1276,24 +1276,5 @@ double
 Fully_coupled_polyatom_internal::
 s_eval_Q_from_T( double T, double A )
 {
-    // Loop over all rovibronic levels, sum up contributions from definition
-    double Q_total = 0.0;
-    for ( size_t ilev=0; ilev<elevs_.size(); ++ilev ) {
-        double E_el = elevs_[ilev]->E;
-        for ( size_t ivm=0; ivm<elevs_[ilev]->vmodes.size(); ++ivm ) {
-            for ( int iV=0; iV<elevs_[ilev]->vmodes[ivm]->Vmax; ++iV ) {
-                double E_rot_0 = elevs_[ilev]->eval_E_rot(ivm,iV,0);
-                double E_vib = elevs_[ilev]->eval_E_vib( ivm, iV ) + E_rot_0;
-                for ( int iJ=0; iJ<elevs_[ilev]->vmodes[ivm]->Jmax[iV]; ++iJ ){
-                    double E_rot = elevs_[ilev]->eval_E_rot(ivm,iV,iJ) - E_rot_0;
-                    double E_rot_dash = E_el + E_vib + E_rot;
-                    double Q_rot_dash = elevs_[ilev]->g * double(2*iJ+1) / double(elevs_[ilev]->sigma) * exp( - E_rot_dash / PC_k_SI / T );
-                    if ( isnan(Q_rot_dash) || isinf( Q_rot_dash ) ) continue;
-                    Q_total += Q_rot_dash;
-                }
-            }
-        }
-    }
-
-    return Q_total;
+    return 0.0;
 }
