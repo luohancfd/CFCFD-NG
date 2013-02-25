@@ -86,40 +86,40 @@ def write_RSA_file(beta, exitVar, DictOfCases, RSAtype, FileToWrite):
     fout.write('{0:>9}'.format(RSAtype))
     fout.write('\n')
     # Write out title line
-    fout.write('{0:>9}'.format('variable'))
+    fout.write('{0:>12}\t'.format('variable'))
     for case in DictOfCases.keys():
-        fout.write('{0:>15}'.format(case))
+        fout.write('{0:>15}\t'.format(case))
     fout.write('\n')
     # Write out the Vs values for each case
-    fout.write('{0:>9}'.format('Vs'))
+    fout.write('{0:>12}\t'.format('Vs'))
     for values in DictOfCases.values():
-        fout.write('{0:>15.5g}'.format(values[0]))
+        fout.write('{0:>15.5g}\t'.format(values[0]))
     fout.write('\n')
     # Write out the pe values for each case
-    fout.write('{0:>9}'.format('pe'))
+    fout.write('{0:>12}\t'.format('pe'))
     for values in DictOfCases.values():
-        fout.write('{0:>15.6g}'.format(values[1]))
+        fout.write('{0:>15.6g}\t'.format(values[1]))
     fout.write('\n')
     # Write out a horizontal line
     for k in range(len(DictOfCases)):
         fout.write('{0:->15}'.format('-'))
-    fout.write('{0:->9}'.format('-'))
+    fout.write('{0:->24}'.format('-'))
     fout.write('\n')
     # For 2nd-order RS we write out what each beta is for
     if RSAtype in ['2nd-order']:
-        fout.write('{0:>9}{1:>15}{2:>15}{3:>15}{4:>15}{5:>15}{6:>15}'.\
+        fout.write('{0:>12}\t{1:>15}\t{2:>15}\t{3:>15}\t{4:>15}\t{5:>15}\t{6:>15}'.\
                    format('','1','Vs','pe','Vs**2','pe**2','Vs*pe'))
         fout.write('\n')
         for k in range(6):
             fout.write('{0:->15}'.format('-'))
-        fout.write('{0:->9}'.format('-'))
+        fout.write('{0:->21}'.format('-'))
         fout.write('\n')    
     # Now write out the radial basis function coefficients
     # for each freestream property
     for var in exitVar:
-        fout.write('{0:>9}'.format(var))
+        fout.write('{0:>12}\t'.format(var))
         for b in beta[var][0]:
-            fout.write('{0:>15.7g}'.format(b))
+            fout.write('{0:>15.7g}\t'.format(b))
         fout.write('\n')
     fout.close()
     return 0
@@ -146,13 +146,13 @@ def read_RSA_file(FileToRead):
     # Get the type of response surface that we are loading
     RSAtype = fp.readline().strip()
     # Get case names
-    titles = fp.readline().strip().split(" ")
-    titleList = [k for k in titles if k!="" and k!="variable"]
+    titles = fp.readline().strip().split("\t")
+    titleList = [k.strip() for k in titles if k!="" and k!="variable"]
     # Get  Vs value for each case
-    values = fp.readline().strip().split(" ")
+    values = fp.readline().strip().split("\t")
     caseVs = [float(k) for k in values if k!="" and k!="Vs"]
     # Get pe value for each case
-    values = fp.readline().strip().split(" ")
+    values = fp.readline().strip().split("\t")
     casePe = [float(k) for k in values if k!="" and k!="pe"]
     # Assemble a Dictionary of Cases
     DictOfCases = {}
@@ -168,7 +168,7 @@ def read_RSA_file(FileToRead):
     fileLines = fp.readlines()
     exitVar = []
     for line in fileLines:
-        data = line.strip().split(" ")
+        data = line.strip().split("\t")
         values = [k for k in data if k!=""]
         var = values[0]
         exitVar.append(var)
