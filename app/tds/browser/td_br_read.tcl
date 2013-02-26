@@ -219,13 +219,13 @@ proc readChannelData { channel_id newIndex } {
 
     # Put the new data into fresh vectors
     if { [info exists ::tVec$newIndex] } {
-        blt::vector destroy ::tVec$newIndex
+        rbc::vector destroy ::tVec$newIndex
     }; # end if
     if { [info exists ::vVec$newIndex] } {
-        blt::vector destroy ::vVec$newIndex
+        rbc::vector destroy ::vVec$newIndex
     }; # end if
-    blt::vector create ::tVec$newIndex
-    blt::vector create ::vVec$newIndex
+    rbc::vector create ::tVec$newIndex
+    rbc::vector create ::vVec$newIndex
     # puts "After creating vectors: [timer_now]"
 
     if {[string length $td(currentTimeUnits)] == 0} {
@@ -362,13 +362,13 @@ proc readPlainOldData { newIndex fileName } {
 
     # Put the new data into fresh vectors
     if { [info exists ::tVec$newIndex] } {
-        blt::vector destroy ::tVec$newIndex
+        rbc::vector destroy ::tVec$newIndex
     }; # end if
     if { [info exists ::vVec$newIndex] } {
-        blt::vector destroy ::vVec$newIndex
+        rbc::vector destroy ::vVec$newIndex
     }; # end if
-    blt::vector create ::tVec$newIndex
-    blt::vector create ::vVec$newIndex
+    rbc::vector create ::tVec$newIndex
+    rbc::vector create ::vVec$newIndex
     ::tVec$newIndex set $tlist
     ::vVec$newIndex set $vlist
     puts "New vectors set up."

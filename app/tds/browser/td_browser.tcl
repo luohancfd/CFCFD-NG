@@ -37,7 +37,7 @@ exec wish "$0" ${1+"$@"}
 
 package require http
 package require base64
-package require BLT
+package require rbc
 package require BWidget
 
 # --------------------------------------------------------------

@@ -127,13 +127,13 @@ proc fetchChannelData { channel_id newIndex } {
     } else {
         # Put the new data into fresh vectors
         if { [info exists ::tVec$newIndex] } {
-            blt::vector destroy ::tVec$newIndex
+            rbc::vector destroy ::tVec$newIndex
         }; # end if
         if { [info exists ::vVec$newIndex] } {
-            blt::vector destroy ::vVec$newIndex
+            rbc::vector destroy ::vVec$newIndex
         }; # end if
-        blt::vector create ::tVec$newIndex
-        blt::vector create ::vVec$newIndex
+        rbc::vector create ::tVec$newIndex
+        rbc::vector create ::vVec$newIndex
 	if {[string length $td(currentTimeUnits)] == 0} {
 	    set td(currentTimeUnits) $td(header.timeUnits)
 	}

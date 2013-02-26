@@ -154,7 +154,7 @@ pack $textScrollBar -side left -fill y
 # The plot window featuring the BLT graph widget
 #
 set graphFrame [frame $upperFrame.gf -borderwidth 3 -relief groove]
-set ::mygraph [blt::graph $graphFrame.g -height $td(height) -width $td(width)]
+set ::mygraph [rbc::graph $graphFrame.g -height $td(height) -width $td(width)]
 $::mygraph axis configure x -titlefont $td(plotFont)
 $::mygraph axis configure y -titlefont $td(plotFont)
 $::mygraph axis configure y2 -titlefont $td(plotFont)

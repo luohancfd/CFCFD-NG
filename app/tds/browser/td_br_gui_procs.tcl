@@ -9,7 +9,7 @@ proc myBusy { action widget } {
     #     action is expected to be either "hold" or "forget"
     #     widget is usually the toplevel "."
     if { $::td(useBltBusy) == 1 } {
-        blt::busy $action $widget
+        rbc::busy $action $widget
     } else {
 	if { [string equal $action hold] } {
 	    # Put up a transparent toplevel and give it focus.
@@ -587,8 +587,8 @@ proc clearGraph {} {
         $::mygraph element delete $name
     }; # end foreach
     for {set i 1} {$i <= $numberOfTraces} {incr i} {
-        catch { blt::vector destroy ::plotXVec$i }
-        catch { blt::vector destroy ::plotYVec$i }
+        catch { rbc::vector destroy ::plotXVec$i }
+        catch { rbc::vector destroy ::plotYVec$i }
         set ::traceIsPlotted($i) 0
     };
     set numberOfTraces 0
@@ -886,7 +886,7 @@ proc zoomToSelectedRange {} {
         # We are going to assume that the most-recently obtained
         # data set is usable.
         # Set the time range with this data.
-        blt::vector create ::subsetT
+        rbc::vector create ::subsetT
         ::plotXVec$numberOfTraces dup ::tmpV
         ::subsetT set $::tmpV($i1:$i2)
         set tmin $::subsetT(min)
@@ -896,7 +896,7 @@ proc zoomToSelectedRange {} {
         set vmax {}
         set v2min {}
         set v2max {}
-        blt::vector create ::subsetV
+        rbc::vector create ::subsetV
 	for {set j 1} {$j <= $numberOfTraces} {incr j} {
             # Check the limits for each trace, skipping those
             # that are not plotted.

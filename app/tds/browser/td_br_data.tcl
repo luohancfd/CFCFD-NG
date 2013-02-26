@@ -211,8 +211,8 @@ proc computeAverageValue {} {
          [string length $i2] > 0 } {
         if { $i2 < $i1 } { set ii $i1; set i1 $i2; set i2 $ii }
         ::plotYVec$current dup ::tmpV
-        set td(averageValue) [blt::vector expr mean(::tmpV($i1:$i2))]
-        set td(stddevValue) [blt::vector expr sdev(::tmpV($i1:$i2))]
+        set td(averageValue) [rbc::vector expr mean(::tmpV($i1:$i2))]
+        set td(stddevValue) [rbc::vector expr sdev(::tmpV($i1:$i2))]
     } else {
         set td(averageValue) ""
     }; # end if
@@ -294,7 +294,7 @@ proc normalizeData {} {
 	::vVec$current expr "::vdata / ::vnorm"
 	::tVec$current expr "::tdata"
 
-	blt::vector destroy ::vdata ::tdata ::vnorm ::tnorm
+	rbc::vector destroy ::vdata ::tdata ::vnorm ::tnorm
     }; # end if
 }; # end proc
 
@@ -317,9 +317,9 @@ proc filterData {} {
             ::vVec dup ::plotYVec$current
         } else {
             if { [info exists ::fVec] } {
-                blt::vector destroy ::fVec
+                rbc::vector destroy ::fVec
             }; # end if
-            blt::vector create ::fVec
+            rbc::vector create ::fVec
             set i0 0
             set ilast [expr [::vVec length] - 1]
             for { set i $i0 } { $i <= $ilast } { incr i } {
@@ -330,7 +330,7 @@ proc filterData {} {
                 # Yes, this is the slow way to do it -- but, it is easy.
                 # One day, we should try to do it via the C API so that
                 # we can implement a much faster filter.
-                ::fVec append [blt::vector expr mean(::vVec($i1:$i2))]
+                ::fVec append [rbc::vector expr mean(::vVec($i1:$i2))]
             }; # end for
             ::fVec dup ::plotYVec$current
         }; # end if
