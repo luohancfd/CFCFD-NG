@@ -128,6 +128,12 @@ CO2.Z = {
    description = 'Charge number',
    reference = 'NA'
 }
+CO2.theta_vib = {
+   value = 960.1,
+   units = 'K',
+   description = 'Characteristic vibrational temperature',
+   reference = 'Bending mode from Capitelli (2005) ESA STR-246'
+}
 CO2.electronic_levels = {
    -- n_levels = 22,
    n_levels = 5,

@@ -841,6 +841,9 @@ double Fully_coupled_diatomic_species::s_eval_partition_function( double T )
 Polyatomic_species::Polyatomic_species( string name, string type, int isp, double min_massf, lua_State * L )
  : Chemical_species( name, type, isp, min_massf, L )
 {
+    // Now explicitly setting the characteristic vibrational temperature
+    theta_v_ = get_positive_value( L, -1, "theta_vib" );
+
     lua_getfield(L, -1, "electronic_levels");
     if ( !lua_istable(L, -1) ) {
 	ostringstream ost;
@@ -880,8 +883,6 @@ Polyatomic_species::Polyatomic_species( string name, string type, int isp, doubl
     int sigma_r = int(lev_data[8]);
     for ( size_t i=9; i<lev_data.size(); ++i )
     	theta_v_vec.push_back( lev_data[i]*PC_c*PC_h_SI/PC_k_SI );
-    // Set the primary characteristic vibrational temperature in kelvin
-    theta_v_ = theta_v_vec[0];
     // Currently sigma_r is not being used
     UNUSED_VARIABLE(sigma_r);
     

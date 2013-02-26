@@ -89,6 +89,12 @@ C2H.Z = {
    description = 'Charge number',
    reference = 'NA'
 }
+C2H.theta_vib = {
+   value = 559.7,
+   units = 'K',
+   description = 'Characteristic vibrational temperature',
+   reference = 'Bending mode from Cui & Morokuma (2011) ESA STR-246'
+}
 C2H.electronic_levels = {
    n_levels = 2,
    ref = "Cui & Morokuma (2011) Studies on Excited States of C2H",
