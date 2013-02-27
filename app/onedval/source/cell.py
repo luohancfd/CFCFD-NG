@@ -187,7 +187,11 @@ def create_cells_from_slice(fname, var_map, scale):
     
     cells = []
     for i in range(nelems):
-        cells.append(create_cell(i, data, cell_cnrs, var_map, scale))
+        try:
+            cells.append(create_cell(i, data, cell_cnrs, var_map, scale))
+        except ZeroDivisionError:
+            print "An attempt to create a cell with essentially zero area was made."
+            
     
     return cells
 
