@@ -842,7 +842,7 @@ Polyatomic_species::Polyatomic_species( string name, string type, int isp, doubl
  : Chemical_species( name, type, isp, min_massf, L )
 {
     // Now explicitly setting the characteristic vibrational temperature
-    theta_v_ = get_positive_value( L, -1, "theta_vib" );
+    theta_v_ = get_positive_value( L, -1, "theta_v" );
 
     lua_getfield(L, -1, "electronic_levels");
     if ( !lua_istable(L, -1) ) {

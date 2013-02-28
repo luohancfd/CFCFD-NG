@@ -77,6 +77,12 @@ CO2.sigma = {
   description = "Hard sphere collision diameter",
   units = "m",
 }
+CO2.theta_v = {
+   value = 960.1,
+   units = 'K',
+   description = 'Characteristic vibrational temperature',
+   reference = 'Bending mode from Capitelli (2005) ESA STR-246'
+}
 CO2.electronic_levels = {
   n_levels = 5,
   ref = "Capitelli (2005) ESA STR-246",

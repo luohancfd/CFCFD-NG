@@ -128,7 +128,7 @@ CO2.Z = {
    description = 'Charge number',
    reference = 'NA'
 }
-CO2.theta_vib = {
+CO2.theta_v = {
    value = 960.1,
    units = 'K',
    description = 'Characteristic vibrational temperature',

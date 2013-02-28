@@ -89,7 +89,7 @@ C2H2.Z = {
    description = 'Charge number',
    reference = 'NA'
 }
-C2H2.theta_vib = {
+C2H2.theta_v = {
    value = 875.8,
    units = 'K',
    description = 'Characteristic vibrational temperature',

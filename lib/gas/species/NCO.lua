@@ -68,7 +68,7 @@ NCO.Z = {
    description = 'Charge number',
    reference = 'NA'
 }
-NCO.theta_vib = {
+NCO.theta_v = {
    value = 766.4,
    units = 'K',
    description = 'Characteristic vibrational temperature',
