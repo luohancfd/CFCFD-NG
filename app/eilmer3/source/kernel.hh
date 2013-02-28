@@ -200,6 +200,8 @@ int set_shock_fitting_decay_flag(int iw);
 int get_shock_fitting_decay_flag(void);
 int set_moving_grid_flag(int iw);
 int get_moving_grid_flag(void);
+int set_write_vertex_velocities_flag(int iw);
+int get_write_vertex_velocities_flag(void);
 int set_adaptive_reconstruction_flag(int iw);
 int get_adaptive_reconstruction_flag(void);
 int set_filter_flag(int iw);

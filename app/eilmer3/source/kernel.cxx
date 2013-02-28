@@ -193,6 +193,9 @@ int shock_fitting_decay = 0;
 /// \brief Moving grid  =0 for no moving grid, =1 for moving grid.
 int moving_grid = 0;
 
+/// \brief Write vertex velocities  =0 to write vertex velocities to file, =1 for no files.
+int write_vertex_velocities = 0;
+
 /// \brief Adaptive reconstruction =0 for no adaptive reconstruction, =1 for adaptive reconstruction.
 int adaptive_reconstruction = 0;
 
@@ -396,7 +399,6 @@ int get_shock_fitting_decay_flag(void)
 
 int set_moving_grid_flag(int iw)
 {
-    cout << "set_moving_grid(): iw= " << iw << endl;
     moving_grid = iw;
     if (moving_grid == 0) {
         if ( get_verbose_flag() ) printf("Turn off moving_grid\n");
@@ -414,6 +416,30 @@ int set_moving_grid_flag(int iw)
 int get_moving_grid_flag(void)
 {
     return moving_grid;
+}
+
+/*------------------------------------------------------------------*/
+
+int set_write_vertex_velocities_flag(int iw)
+{
+    cout << "set_write_vertex_velocities(): iw= " << iw << endl;
+    write_vertex_velocities = iw;
+    if (write_vertex_velocities == 0) {
+        if ( get_verbose_flag() ) printf("Turn off write_vertex_velocities\n");
+    }
+    else if ( write_vertex_velocities == 1 ) {
+        if ( get_verbose_flag() ) printf("Turn on write_vertex_velocities\n");
+    }
+    else {
+        printf("Invalid write_vertex_velocities flag value: %d\n", write_vertex_velocities);
+        exit(VALUE_ERROR);
+    }
+    return SUCCESS;
+}
+
+int get_write_vertex_velocities_flag(void)
+{
+    return write_vertex_velocities;
 }
 
 /*------------------------------------------------------------------*/

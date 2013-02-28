@@ -1,0 +1,106 @@
+# file: sphere.input.template
+#
+# Sphere in ideal air demonstrating the shock-fitting features.
+# This input file template is specialized for each stage of the simulation.
+# The $$name items seen below will be substituted with specific values.
+#
+# PJ, 22-Feb-2010
+# AP, 09-Jan-2013 - Added features for shock fititng simulations.
+
+from cfpylib.grid.shock_layer_surface import ShockLayerSurface
+jobName = '$jobName'; stage = $stage; np = $np; np0 = $np0
+
+# For equilibrium chemistry, use the look-up-table.
+species = select_gas_model(model='ideal gas', species=['air'])
+inflow = FlowCondition(p=$p_inf, u=$u_inf, T=$T_inf)
+initial = FlowCondition(p=$p_init, T=$T_inf)
+
+# Job-control information
+t_final = $body_lengths * $R / $u_inf  # allow time to settle at nose
+t_plot = t_final / 100.0           # plot 100 times
+gdata.title = "Spherical Blunt Body: R=" + str($R) + \
+            ", p=" + str($p_inf) + ", v=" + str($u_inf) + \
+            ", T=" + str($T_inf) + ", viscous=" + str($viscous_flag)
+gdata.viscous_flag = $viscous_flag
+gdata.viscous_delay = $viscous_delay
+gdata.viscous_factor_increment = 0.02
+gdata.axisymmetric_flag = 1
+gdata.flux_calc = AUSMDV
+gdata.max_time = t_final
+gdata.max_step = 1000000
+gdata.dt = 1.0e-10
+gdata.cfl = 0.5
+
+gdata.dt_plot = t_plot
+gdata.dt_history = 1.0e-6
+gdata.shock_fitting_flag = $shock_fitting_flag
+gdata.t_order = 2
+                    
+## Returns a Polyline of the west boundary,
+## assuming one block in the i direction.
+def create_boundary_path_from_grids(grids):
+    p = []
+    for grid in grids: 
+        x = grid.x[0,:,0]
+        y = grid.y[0,:,0]
+        m = []
+        for i in range(len(x)):
+            m.append(Node(x[i],y[i]))
+        l = Spline(m)
+        p.append(l)
+    return Polyline(p)
+    
+# Begin geometry details for a single region around a spherical nose.
+# The node coordinates are scaled with the body radius.
+a = Node(0.0, 0.0, label="a")
+b = Node(-1.0*$R, 0.0, label="b")
+c = Node(0.0, $R, label="c")
+# The inflow boundary is a Bezier curve.
+d = []; x_d = $x_d; y_d = $y_d
+for i in range(len(x_d)):
+    d.append(Node(x_d[i], y_d[i], label="d[%d]"%i))
+# order of boundaries: N, E, S, W
+flow_domain0 = ShockLayerSurface(Arc(b,c,a), Bezier(d,"BEZIER0",0.0,1.0,1))
+
+if $clustering:
+    cluster_functions0 = [RobertsClusterFunction(0, 1, 1.02), RobertsClusterFunction(1, 0, 1.02),
+                          RobertsClusterFunction(0, 1, 1.02), RobertsClusterFunction(1, 0, 1.02)]
+else:
+    cluster_functions0 = [None, None,
+                          None, None]
+                              
+if $shock_fitting_bc == True:
+    boundary_conditions0 = [ExtrapolateOutBC(x_order=1), FixedTBC($T_body),
+                            SlipWallBC(), ShockFittingInBC(inflow)]
+else:
+    boundary_conditions0 = [ExtrapolateOutBC(x_order=1), FixedTBC($T_body),
+                            SlipWallBC(), SupInBC(inflow)]
+                            
+if stage == 0:
+    # We start from scratch.
+    fill_condition0 = initial
+    
+else:
+    # We start with the previous solution.
+    rootName = jobName + str(stage-1)
+    fill_condition0 = ExistingSolution(rootName, '.', np0, 9999)
+    
+    if $use_same_grid:
+        # The shock-fitting grid from the previous solution is used.
+        rootName = jobName + str(stage-1)
+        grids, g, h, j = read_all_blocks(rootName, np0, 9999, zipFiles=1, movingGrid=1)
+        fill_condition0 = ExistingSolution(rootName, '.', np0, 9999)
+        p = create_boundary_path_from_grids(grids)
+        flow_domain0 = ShockLayerSurface(Arc(b,c,a), p)
+        
+    else:
+        surfname = flow_domain0
+
+blk = SuperBlock2D(psurf=flow_domain0,			   
+				   fill_condition=fill_condition0,
+               	   nni=$ni, nnj=$nj,
+                   nbi=$nbi, nbj=$nbj,
+                   cf_list=cluster_functions0, bc_list=boundary_conditions0,
+                   label="blk")
+
+

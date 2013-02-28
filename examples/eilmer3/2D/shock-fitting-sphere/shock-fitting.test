@@ -1,0 +1,33 @@
+# shock-fitting.test
+# Functional test for a staged shock-fitting simulation.
+#
+# This test uses 
+#
+# PJ, 11-Jan-2011: cone20.test
+# AP, 28-Feb-2013: Adapted for shock-fitting
+
+package require tcltest 2.0
+namespace import ::tcltest::*
+configure -verbose {start body error}
+
+test run-simulation {Run the staged simulation script.} -body {
+    exec python run_adaptive_simulation.py > LOGFILE_MAIN
+} -result {} -returnCodes {0}
+
+test shock-standoff {The shock standoff distance should be close to 0.01 m.} -body {
+    set shock_standoff 0
+    if { [catch {exec /usr/bin/env python compute_shock_standoff.py} results] } {
+        puts "specialized postprocessing command failed"
+        puts $results
+    } else {
+	foreach line [split $results "\n"] {
+	    if {[string first shock_standoff_distance $line] >= 0} {
+		set shock_standoff [lindex [split $line] 1]
+	    }
+	}
+    }
+    # The shock wave angle should be within 1% of expected. 
+    list [expr abs($shock_standoff - 0.010042895347) / 0.010042895347 < 1.0]
+} -result {1}
+
+cleanupTests

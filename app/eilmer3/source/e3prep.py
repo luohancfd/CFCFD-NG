@@ -316,6 +316,8 @@ class GlobalData(object):
       Set to 0 (the default) for no decay.
     * moving_grid_flag: (0/1) Set to 1 to activate functions that allow the grid to move.
       Set to 0 (the default) for a static grid.
+    * write_vertex_velocities_flag: (0/1) Set to 1 to write the vertex velocities to file.
+      Set to 0 (the default) for no files.
     * adaptive_reconstruction_flag: (0/1) Set to 1 to cause the reconstruction stencil to adapt to Mach
       so that downwind information is not used in supersonic regions.
       Set to 0 (the default) for no adaptation.
@@ -356,7 +358,7 @@ class GlobalData(object):
                 'x_order', 'flux_calc', 'compression_tolerance', 'shear_tolerance', \
                 't_order', 'stringent_cfl', 'shock_fitting_flag', 'dt_shock', \
                 'shock_fitting_decay_flag', 'shock_fitting_speed_factor', \
-                'moving_grid_flag', 'adaptive_reconstruction_flag', \
+                'moving_grid_flag', 'write_vertex_velocities_flag', 'adaptive_reconstruction_flag', \
                 'filter_flag', 'filter_tstart', 'filter_tend', \
                 'filter_dt', 'filter_mu', 'filter_npass', \
                 't0', 'dt', 'cfl', 'dt_chem', 'dt_therm', \
@@ -444,6 +446,7 @@ class GlobalData(object):
         self.shock_fitting_decay_flag = 0
         self.shock_fitting_speed_factor = 1.0
         self.moving_grid_flag = 0
+        self.write_vertex_velocities_flag = 0
         self.adaptive_reconstruction_flag = 0
         self.filter_flag = 0
         self.filter_tstart = 0.0
@@ -515,6 +518,7 @@ class GlobalData(object):
         fp.write("shock_fitting_decay_flag = %d\n" % self.shock_fitting_decay_flag)
         fp.write("shock_fitting_speed_factor = %e\n" % self.shock_fitting_speed_factor)
         fp.write("moving_grid_flag = %d\n" % self.moving_grid_flag)
+        fp.write("write_vertex_velocities_flag = %d\n" % self.write_vertex_velocities_flag)
         fp.write("adaptive_reconstruction_flag = %d\n" % self.adaptive_reconstruction_flag)
         fp.write("filter_flag = %d\n" % self.filter_flag)
         fp.write("filter_tstart = %e\n" % self.filter_tstart)

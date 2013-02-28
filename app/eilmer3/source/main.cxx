@@ -1277,22 +1277,24 @@ int integrate_in_time( double target_time )
 		        sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr; 
 		        filename = foldername+"/"+ G.base_file_name+".grid"+jbstring+"."+tindxstring;
 		        bdp->write_block(filename, G.sim_time, G.dimensions, zip_files);
-	        }   
-		ensure_directory_is_present("vel");
-		foldername = "vel/"+tindxstring;
-		ensure_directory_is_present(foldername); // includes Barrier
-		// Loop over blocks
-		for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-		    bdp = G.my_blocks[jb];
-		    sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr;
-		    final_s = ((G.dimensions == 3)? BOTTOM : WEST);
-		    // Loop over boundaries/surfaces
-		    for ( js = NORTH; js <= final_s; ++js ) {
-			sprintf( jscstr, ".s%04d", js ); jsstring = jscstr;
-			filename = foldername+"/"+ G.base_file_name+".vel" \
-			    +jbstring+jsstring+"."+tindxstring;
-			bdp->bcp[js]->write_vertex_velocities(filename, G.sim_time, G.dimensions);
-			if ( zip_files == 1 ) do_system_cmd("gzip -f "+filename);
+	        }
+		if ( get_write_vertex_velocities_flag() ) {
+		    ensure_directory_is_present("vel");
+		    foldername = "vel/"+tindxstring;
+		    ensure_directory_is_present(foldername); // includes Barrier
+		    // Loop over blocks
+		    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
+			bdp = G.my_blocks[jb];
+			sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr;
+			final_s = ((G.dimensions == 3)? BOTTOM : WEST);
+			// Loop over boundaries/surfaces
+			for ( js = NORTH; js <= final_s; ++js ) {
+			    sprintf( jscstr, ".s%04d", js ); jsstring = jscstr;
+			    filename = foldername+"/"+ G.base_file_name+".vel" \
+				+jbstring+jsstring+"."+tindxstring;
+			    bdp->bcp[js]->write_vertex_velocities(filename, G.sim_time, G.dimensions);
+			    if ( zip_files == 1 ) do_system_cmd("gzip -f "+filename);
+			}
 		    }
 		}
 	    }
@@ -1540,7 +1542,7 @@ int finalize_simulation( void )
 	    bdp->write_BGK(filename, G.sim_time, G.dimensions, zip_files);
 	}
     }
-    if ( get_moving_grid_flag() == 1 ) {
+    if ( get_moving_grid_flag() ) {
         foldername = "grid/t9999";
         ensure_directory_is_present(foldername); // includes Barrier
         for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
@@ -1549,21 +1551,23 @@ int finalize_simulation( void )
 	    filename = foldername+"/"+G.base_file_name+".grid"+jbstring+".t9999";
 	    bdp->write_block(filename, G.sim_time, G.dimensions, zip_files);
         }
-	ensure_directory_is_present("vel");
-	foldername = "vel/t9999";
-	ensure_directory_is_present(foldername); // includes Barrier
-	// Loop over blocks
-	for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-	    bdp = G.my_blocks[jb];
-	    sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr;
-	    final_s = ((G.dimensions == 3)? BOTTOM : WEST);
-	    // Loop over boundaries/surfaces
-	    for ( js = NORTH; js <= final_s; ++js ) {
-		sprintf( jscstr, ".s%04d", js ); jsstring = jscstr;
-		filename = foldername+"/"+ G.base_file_name+".vel"	\
-		    +jbstring+jsstring+"."+"t9999";
-		bdp->bcp[js]->write_vertex_velocities(filename, G.sim_time, G.dimensions);
-		if ( zip_files == 1 ) do_system_cmd("gzip -f "+filename);
+	if ( get_write_vertex_velocities_flag() ) {
+	    ensure_directory_is_present("vel");
+	    foldername = "vel/t9999";
+	    ensure_directory_is_present(foldername); // includes Barrier
+	    // Loop over blocks
+	    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
+		bdp = G.my_blocks[jb];
+		sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr;
+		final_s = ((G.dimensions == 3)? BOTTOM : WEST);
+		// Loop over boundaries/surfaces
+		for ( js = NORTH; js <= final_s; ++js ) {
+		    sprintf( jscstr, ".s%04d", js ); jsstring = jscstr;
+		    filename = foldername+"/"+ G.base_file_name+".vel"	\
+			+jbstring+jsstring+"."+"t9999";
+		    bdp->bcp[js]->write_vertex_velocities(filename, G.sim_time, G.dimensions);
+		    if ( zip_files == 1 ) do_system_cmd("gzip -f "+filename);
+		}
 	    }
 	}
     }

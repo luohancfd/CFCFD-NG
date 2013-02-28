@@ -243,6 +243,8 @@ int read_config_parameters(const string filename, int master)
     dict.parse_double("global_data", "shock_fitting_speed_factor", G.shock_fitting_speed_factor, 1.0);
     dict.parse_int("global_data", "moving_grid_flag", i_value, 0);
     set_moving_grid_flag( get_shock_fitting_flag() );
+    dict.parse_int("global_data", "write_vertex_velocities_flag", i_value, 0);
+    set_write_vertex_velocities_flag( i_value );
     dict.parse_int("global_data", "adaptive_reconstruction_flag", i_value, 0);
     set_adaptive_reconstruction_flag( i_value );
     dict.parse_int("global_data", "turbulence_flag", i_value, 0);
@@ -281,6 +283,7 @@ int read_config_parameters(const string filename, int master)
 	cout << "shock_fitting_decay_flag = " << get_shock_fitting_decay_flag() << endl;
 	cout << "shock_fitting_speed_factor = " << G.shock_fitting_speed_factor << endl;
 	cout << "moving_grid_flag = " << get_moving_grid_flag() << endl;
+	cout << "write_vertex_velocities_flag = " << get_write_vertex_velocities_flag() << endl;
 	cout << "adaptive_reconstruction_flag = " << get_adaptive_reconstruction_flag() << endl;
 	cout << "axisymmetric_flag = " << get_axisymmetric_flag() << endl;
 	cout << "turbulence_flag = " << get_turbulence_flag() << endl;

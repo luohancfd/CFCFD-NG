@@ -1,0 +1,10 @@
+Shock fitting:
+
+The grid movement is usably stable, but is still very sensitive to the grid and gas model.
+Simulations should be started on very coarse grids, and additional complications such as viscous effects, clustering and reaction schemes should be introduced gradually.
+
+Multiple blocks are supported in the body tangential directions, but only one block will work in the 
+body normal direction.
+
+3D should work, but is not well tested.
+
