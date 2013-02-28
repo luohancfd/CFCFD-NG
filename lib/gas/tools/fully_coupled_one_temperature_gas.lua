@@ -57,6 +57,7 @@ local diatomic_type_list = { "species_type", "oscillator_type" }
 local polyatomic_type_list = { "species_type", "oscillator_type" }
 local base_value_list = { "M", "s_0", "h_f", "I", "Z", "eps0", "sigma", "charge" }
 local diatomic_value_list = { "M", "s_0", "h_f", "I", "Z", "eps0", "sigma", "charge", "r0", "r_eq", "f_m", "mu", "alpha", "mu_B" }
+local polyatomic_value_list = { "M", "s_0", "h_f", "I", "Z", "eps0", "sigma", "charge", "theta_v" }
 
 local default = {}
 default.min_massf = 1.0e-15
@@ -138,7 +139,7 @@ function create_fully_coupled_one_temperature_gas(species, f)
          _G[sp]["oscillator_type"] = "truncated anharmonic"
       elseif string.find(_G[sp]["species_type"],"polyatomic") then
          type_list = polyatomic_type_list
-         value_list = base_value_list
+         value_list = polyatomic_value_list
          if string.find( _G[sp]["species_type"], "nonpolar" ) then
             if string.find( _G[sp]["species_type"], "nonlinear" ) then
                _G[sp]["species_type"] = "nonlinear nonpolar fully coupled polyatomic"
