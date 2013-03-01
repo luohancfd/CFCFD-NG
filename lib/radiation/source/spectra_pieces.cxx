@@ -515,7 +515,7 @@ SpectralBin::SpectralBin(vector<double> & pvec, double p_min, double p_max )
 SpectralBin::SpectralBin(vector<int> & inus )
  : inu( inus ) {}
 
-void create_spectral_bin_vector( std::vector<double> & pvec, int binning_type, int N_bins, std::vector<SpectralBin*> & B )
+int create_spectral_bin_vector( std::vector<double> & pvec, int binning_type, int N_bins, std::vector<SpectralBin*> & B )
 {
     if ( N_bins<1 ) {
 	cout << "create_spectral_bin_vector()" << endl
@@ -579,12 +579,19 @@ void create_spectral_bin_vector( std::vector<double> & pvec, int binning_type, i
         p_limits.back() *= 1.01;
 	int nnu_inc = 0.0;
 	for ( int iB=1; iB<N_bins+1; ++iB ) {
-	    B.push_back( new SpectralBin( pvec, p_limits[iB-1], p_limits[iB] ) );
+	    SpectralBin * SB = new SpectralBin( pvec, p_limits[iB-1], p_limits[iB] );
+	    nnu_inc +=  SB->inu.size();
+	    if ( SB->inu.size()==0 ) {
+	        delete SB;      // is this necessary?
+	        continue;
+	    }
+	    B.push_back( SB );
 	    // cout << "Created a new spectral bin with " << B.back()->inu.size() << " entries" << endl;
-	    nnu_inc +=  B.back()->inu.size();
 	}
 	// cout << nnu_inc << " spectral points have been included from a total of " << nps << endl;
     }
+
+    return (int) B.size();
 }
 
 /* ------------ BinnedCoeffSpectra class ------------ */
@@ -627,6 +634,20 @@ double BinnedCoeffSpectra::sum_emission()
     for ( size_t ib=0; ib<j_bin.size(); ++ib )
 	j_total += j_bin[ib];
     return j_total;
+}
+
+int BinnedCoeffSpectra::random_bin( double R )
+{
+    double j_interval = R * this->sum_emission();
+    double j_sum = 0.0;
+    for ( size_t ib=0; ib<j_bin.size(); ++ib ) {
+        j_sum += j_bin[ib];
+        if ( j_sum > j_interval ) return (int) ib;
+    }
+
+    // If we get here something has gone wrong (R probably was greater than 1)
+    cout << "BinnedCoeffSpectra::random_bin() failed!" << endl;
+    exit( FAILURE );
 }
 
 ApparatusFunction::ApparatusFunction( string name, double nu_sample )

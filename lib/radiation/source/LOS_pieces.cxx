@@ -94,7 +94,7 @@ void LOS_data::clone_rad_point( int iprp, int irp, double * Q_rE_rad, double s, 
     rpoints_[irp]->X_ = rpoints_[iprp]->X_->clone();
 }
 
-void LOS_data::create_spectral_bins( int binning_type, int N_bins, vector<SpectralBin*> & B )
+int LOS_data::create_spectral_bins( int binning_type, int N_bins, vector<SpectralBin*> & B )
 {
     // check that we have some rpoints_
     if ( rpoints_.size()==0 ) {
@@ -104,8 +104,10 @@ void LOS_data::create_spectral_bins( int binning_type, int N_bins, vector<Spectr
 	exit(FAILURE);
     }
 
+    int N_bins_star = 0;
+
     if ( binning_type==FREQUENCY_BINNING ) {
-	create_spectral_bin_vector( rpoints_[0]->X_->nu, binning_type, N_bins, B );
+	N_bins_star = create_spectral_bin_vector( rpoints_[0]->X_->nu, binning_type, N_bins, B );
     }
     else if ( binning_type==OPACITY_BINNING ) {
 	// We need to solve for the spatially independent mean opacity/absorption (see Eq 2.2 of Wray, Ripoll and Prabhu)
@@ -126,8 +128,10 @@ void LOS_data::create_spectral_bins( int binning_type, int N_bins, vector<Spectr
 	    else
 		kappa_mean.push_back( j_nu_dV / S_nu_dV );
 	}
-	create_spectral_bin_vector( kappa_mean, binning_type, N_bins, B );
+	N_bins_star = create_spectral_bin_vector( kappa_mean, binning_type, N_bins, B );
     }
+
+    return N_bins_star;
 }
 
 double LOS_data::integrate_LOS( SpectralIntensity &S )
@@ -184,7 +188,7 @@ double LOS_data::integrate_LOS_with_binning( int binning_type, int N_bins )
 
     // 0. Create the spectral bins
     vector<SpectralBin*> B;
-    this->create_spectral_bins( binning_type, N_bins, B);
+    int N_bins_star = this->create_spectral_bins( binning_type, N_bins, B);
 
     // 1. Create set of Binned coefficient spectra
     for ( int irp=0; irp<nrps_; irp++ ) {
@@ -199,7 +203,7 @@ double LOS_data::integrate_LOS_with_binning( int binning_type, int N_bins )
     for ( int irp=0; irp<nrps_; irp++ ) {
 	double ds = rpoints_[irp]->ds_;
 	// Spatial integration for each spectral bin
-	for ( int iB=0; iB < N_bins; iB++ ) {
+	for ( int iB=0; iB < N_bins_star; iB++ ) {
 	    // exact solution for constant property slab
 	    double decay_factor = exp( - ds * rpoints_[irp]->Y_->kappa_bin[iB] );
 	    // newly radiated intensity
@@ -216,7 +220,7 @@ double LOS_data::integrate_LOS_with_binning( int binning_type, int N_bins )
     }
     // Subtract out Planck intensity from outer BC and cumpute integrated (via summing) intensity
     double I_total = 0.0;
-    for ( int iB=0; iB < N_bins; iB++ ) {
+    for ( int iB=0; iB < N_bins_star; iB++ ) {
 	I_i.I_bin[iB] -= I_f.I_bin[iB];
         I_total += I_i.I_bin[iB];
     }
@@ -662,7 +666,7 @@ double TS_data::quick_solve_for_divq_with_binning( int binning_type, int N_bins 
 
     // 0. Create the spectral bins
     vector<SpectralBin*> B;
-    this->create_spectral_bins( binning_type, N_bins, B);
+    int N_bins_star = this->create_spectral_bins( binning_type, N_bins, B);
 
     // 1. Create set of Binned coefficient spectra
     for ( int irp=0; irp<nrps_; irp++ ) {
@@ -674,7 +678,7 @@ double TS_data::quick_solve_for_divq_with_binning( int binning_type, int N_bins 
     // Outer-boundary blackbody intensity (note optical thickness = 0)
     BinnedSpectralFlux F_f( rsm_, T_f_, B );
     double q_int = 0.0;
-    for ( int iB=0; iB < N_bins; iB++ ) {
+    for ( int iB=0; iB < N_bins_star; iB++ ) {
 	q_int += F_f.q_bin[iB];
     }
 
@@ -685,7 +689,7 @@ double TS_data::quick_solve_for_divq_with_binning( int binning_type, int N_bins 
     for ( int irp=(nrps_-1); irp >= 0; --irp ) {
         // cout << "Spatial location: | " << irp << " | \r" << flush;
         q_int = 0.0;
-        for ( int iB=0; iB < N_bins; iB++ ) {
+        for ( int iB=0; iB < N_bins_star; iB++ ) {
             // emission and absorption coefficients for this slab
             double kappa = rpoints_[irp]->Y_->kappa_bin[iB];
             double j = rpoints_[irp]->Y_->j_bin[iB];
@@ -709,7 +713,7 @@ double TS_data::quick_solve_for_divq_with_binning( int binning_type, int N_bins 
     // Outer-boundary blackbody intensity (note optical thickness = 0)
     BinnedSpectralFlux F_i( rsm_, T_i_, B );
     q_int = 0.0;
-    for ( int iB=0; iB < N_bins; iB++ ) {
+    for ( int iB=0; iB < N_bins_star; iB++ ) {
 	q_int += F_i.q_bin[iB];
     }
 
@@ -720,7 +724,7 @@ double TS_data::quick_solve_for_divq_with_binning( int binning_type, int N_bins 
     for ( int irp=0; irp < nrps_; irp++ ) {
         // cout << "Spatial location: | " << irp << " | \r" << flush;
         q_int = 0.0;
-        for ( int iB=0; iB < N_bins; iB++ ) {
+        for ( int iB=0; iB < N_bins_star; iB++ ) {
             // emission and absorption coefficients for this slab
             double kappa = rpoints_[irp]->Y_->kappa_bin[iB];
             double j = rpoints_[irp]->Y_->j_bin[iB];

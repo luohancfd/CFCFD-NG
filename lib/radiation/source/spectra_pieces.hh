@@ -127,11 +127,11 @@ public:
     std::vector<int> inu;
 };
 
-void create_spectral_bin_vector( std::vector<double> & pvec, int binning_type, int N_bins, std::vector<SpectralBin*> & B );
+int create_spectral_bin_vector( std::vector<double> & pvec, int binning_type, int N_bins, std::vector<SpectralBin*> & B );
 
 class BinnedCoeffSpectra {
 public:
-    /// \brief Minimal Constructor
+    /// \brief A constructor
     BinnedCoeffSpectra( CoeffSpectra * X, std::vector<SpectralBin*> & B );
 
     /// \brief Deconstructor
@@ -139,6 +139,9 @@ public:
 
 public:
     double sum_emission();
+
+    /// \brief Determine a random bin for this spectra via the Monte Carlo method
+    int random_bin( double R );
 
 public:
     std::vector<double> kappa_bin;

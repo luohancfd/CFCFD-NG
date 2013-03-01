@@ -458,7 +458,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 	
 	// 3. Create spectral bins
 	if ( binning_==FREQUENCY_BINNING ) {
-	    create_spectral_bin_vector( cells_[0][0]->X_->nu, binning_, N_bins_, B_ );
+	    N_bins_ = create_spectral_bin_vector( cells_[0][0]->X_->nu, binning_, N_bins_, B_ );
 	}
 	else if ( binning_==OPACITY_BINNING ) {
 	    // We need to solve for the spatially independent mean opacity/absorption (see Eq 2.2 of Wray, Ripoll and Prabhu)
@@ -482,7 +482,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 		// If the source function is zero then kappa should also be zero
 		kappa_mean[inu] = ( S_nu_dV==0.0 ) ? 0.0 : j_nu_dV / S_nu_dV;
 	    }
-	    create_spectral_bin_vector( kappa_mean, binning_, N_bins_, B_ );
+	    N_bins_ = create_spectral_bin_vector( kappa_mean, binning_, N_bins_, B_ );
 	}
 
 	// 4. Create binned spectra

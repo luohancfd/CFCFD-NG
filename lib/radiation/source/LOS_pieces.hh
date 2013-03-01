@@ -59,7 +59,7 @@ public:
     
     void clone_rad_point( int iprp, int irp, double * Q_rE_rad, double s, double ds );
     
-    void create_spectral_bins( int bining_type, int N_bins, std::vector<SpectralBin*> & B );
+    int create_spectral_bins( int bining_type, int N_bins, std::vector<SpectralBin*> & B );
 
     double integrate_LOS( SpectralIntensity &S );
     
