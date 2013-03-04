@@ -1,13 +1,15 @@
-#    filename: YvX.py
+# filename: YvX.py
 # description: A class describing some property Y against some property X
+# ..Author: Dan Potter
+# ..Version: 04-Mar-2013: simple edits by PJ, mainly format
 
 import sys
 from numpy import *
 try:
     from scipy import interpolate
 except:
-    print "Cannot import scipy.interpolate."
-    print "Interpolation will not be functional"
+    # print "Cannot import scipy.interpolate."
+    # print "Interpolation will not be functional"
     with_scipy = False
 else:
     with_scipy = True
@@ -15,8 +17,8 @@ from datetime import datetime
 try:
     import pylab
 except:
-    print "Cannot import pylab."
-    print "Plotting will not be functional"
+    # print "Cannot import pylab."
+    # print "Plotting will not be functional"
     with_pylab = False
 else:
     with_pylab = True
@@ -27,7 +29,9 @@ def eval_gaussian(x,gamma):
 labels = []
 
 class YvX:
-    """a class describing structure containing some property Y against some property X"""
+    """
+    Structure containing some property Y against some property X
+    """
     def __init__( self, argA, argB=0, argC=1, argD=True ):
         if isinstance(argA,str):
             # initialise from input file
@@ -35,6 +39,7 @@ class YvX:
         else:
             # initialise from lists or arrays
             self.create_from_lists( argA, argB, argD )
+
     def create_from_lists(self, x_list, y_list, with_spline=True ):
         if len(x_list)!=len(y_list):
             print "YvX: x and y lists are not the same length"
@@ -46,6 +51,7 @@ class YvX:
                 self.spline_fit = interpolate.splrep( self.x_array, self.y_array )
             self.linear_fit = interpolate.interp1d( self.x_array, self.y_array )
         print "Successfully created a YvX class from provided x and y lists of length: ", len(x_list)
+
     def create_from_file(self, infile_name, x_col=0, y_col=1, with_spline=True ):
         iFile = open( infile_name, "r" )
         x_list = []; y_list = []
@@ -63,6 +69,7 @@ class YvX:
                 self.spline_fit = interpolate.splrep( self.x_array, self.y_array )
             self.linear_fit = interpolate.interp1d( self.x_array, self.y_array )
         print "Successfully created a YvX class of size: %d from file: %s\n" % (len(x_list), infile_name)
+
     def y_from_x(self, x_val, use_spline=True):
         # NOTE: x_val can be an array
         if not with_scipy:
@@ -82,9 +89,11 @@ class YvX:
                     return interpolate.splev( x_val, self.spline_fit, der=0 )
             else:
                     return self.linear_fit( x_val )
+
     def check_range(self, x_val):
         if x_val<self.x_array[0] or x_val>self.x_array[-1]: return False
         else: return True
+
     def write_to_file( self, outfile_name="YvX.txt", header="", include_integral=False ):
         print "Writing %d datapoints to file: %s" % ( len(self.x_array), outfile_name )
         oFile = open( outfile_name, 'w' )
@@ -98,7 +107,10 @@ class YvX:
                 oFile.write("%e \t %e\n" % ( self.x_array[i], self.y_array[i] ) )
         oFile.close()
         print "Done"
-    def plot_data( self, title="", xlabel="", ylabel="", label="YvX_data", new_plot=True, show_plot=False, include_integral=False, rep='-', logscale_y=False, xrange=None, yrange=None ):
+
+    def plot_data( self, title="", xlabel="", ylabel="", label="YvX_data", 
+                   new_plot=True, show_plot=False, include_integral=False, 
+                   rep='-', logscale_y=False, xrange=None, yrange=None ):
         if not with_pylab:
             print "Cannot plot data as pylab was not loaded."
             sys.exit()
@@ -127,7 +139,10 @@ class YvX:
                     pylab.legend( labels_, loc="best" )
         if show_plot:
             pylab.show()
-    def plot_spline( self, title="", xlabel="", ylabel="", label="YvX_data", new_plot=True, show_plot=False, include_integral=False, rep='-', logscale_y=False, xrange=None, yrange=None  ):
+
+    def plot_spline( self, title="", xlabel="", ylabel="", label="YvX_data", 
+                     new_plot=True, show_plot=False, include_integral=False, 
+                     rep='-', logscale_y=False, xrange=None, yrange=None  ):
         if not with_pylab:
             print "Cannot plot data as pylab was not loaded."
             sys.exit()
@@ -157,6 +172,7 @@ class YvX:
             pylab.legend( labels, loc='best' )
         if show_plot:
             pylab.show()
+
     def limit_x_range( self, x_min, x_max ):
         # NOTE: x_array must contain ascending ordered values for this to work
         ix_min = searchsorted( self.x_array, x_min )
@@ -166,6 +182,7 @@ class YvX:
         self.recompute_spline()
         print "Requested x_min = %f, new x_min = %f" % ( x_min, self.x_array[0] )
         print "Requested x_max = %f, new x_max = %f" % ( x_max, self.x_array[-1] )
+
     def integrate( self, x_min=None, x_max=None):
         if x_min==None: x_min = self.x_array[0]
         if x_max==None: x_max = self.x_array[-1]
@@ -181,11 +198,13 @@ class YvX:
             self.integral.append( integral )
         print "integral = ", integral
         return integral
+
     def recompute_spline(self, s=0):
         if not with_scipy:
             print "scipy is required for interpolation"
             sys.exit()
         self.spline_fit = interpolate.splrep( self.x_array, self.y_array, s=s )
+
     def apply_filter(self,name,params):
         if name=="gaussian":
             gamma = params["gamma"]
