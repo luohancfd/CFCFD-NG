@@ -1,7 +1,7 @@
 // bc_catalytic.hh
 
 
-const int MAX_EQ_WC_TABLE_ENTRIES = 100;
+const size_t MAX_EQ_WC_TABLE_ENTRIES = 100;
 
 //-----------------------------------------------------------------
 // A class to apply the catalytic-wall BC
@@ -40,5 +40,5 @@ public:
 private:
     std::vector<double> fC[MAX_EQ_WC_TABLE_ENTRIES];
     double lpmin, dlp;
-    int ipmax;
+    size_t ipmax;
 };

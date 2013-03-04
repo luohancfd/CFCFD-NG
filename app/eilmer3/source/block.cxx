@@ -4035,16 +4035,16 @@ int Block::count_invalid_cells( int dimensions )
 // To do: We should probably make this function more 3D friendly, however,
 // it should not be invoked (ever) if the code is working well!
 {
-    FV_Cell *cell, *neighbours[5], *other_cell;
-    int  number_of_invalid_cells, ncell;
+    FV_Cell *cell;
+    int  number_of_invalid_cells;
     Gas_model *gmodel = get_gas_model_ptr();
     FV_Cell dummy_cell(gmodel);
     
     number_of_invalid_cells = 0;
 
     for ( int k = kmin; k <= kmax; ++k ) {
-	for ( int i = imin; i <= imax; ++i) {
-	    for (int j = jmin; j <= jmax; ++j) {
+	for ( int i = imin; i <= imax; ++i ) {
+	    for ( int j = jmin; j <= jmax; ++j ) {
 		cell = get_cell(i,j,k);
 		if ( cell->check_flow_data() != 1 ) {
 		    ++number_of_invalid_cells;
@@ -4057,6 +4057,7 @@ int Block::count_invalid_cells( int dimensions )
 #                   if ADJUST_INVALID_CELL_DATA == 1
 		    // We shall set the cell data to something that
 		    // is valid (and self consistent).
+		    FV_Cell *other_cell;
 #                   if PREFER_COPY_FROM_LEFT == 1
 		    if ( get_bad_cell_complain_flag() ) {
 			printf( "Adjusting cell data by copying data from left.\n" );
@@ -4064,10 +4065,11 @@ int Block::count_invalid_cells( int dimensions )
 		    other_cell = get_cell(i-1,j,k);
 		    cell->copy_values_from(other_cell, COPY_FLOW_STATE);
 #                   else
+		    FV_Cell *neighbours[5];
 		    if ( get_bad_cell_complain_flag() ) {
 			printf( "Adjusting cell data to a local average.\n" );
 		    }
-		    ncell = 0;
+		    int ncell = 0;
 		    other_cell = get_cell(i-1,j,k);
 		    if ( other_cell->check_flow_data() ) {
 			neighbours[ncell] = other_cell;

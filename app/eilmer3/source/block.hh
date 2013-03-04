@@ -385,43 +385,20 @@ int locate_cell(double x, double y, double z,
  */
 
 
-/// Indexing Macros for the 3D data -- see page 8 in 3D CFD workbook.
+/// Indexing for the 3D data -- see page 8 in 3D CFD workbook.
 ///
 /// These macros should make indexing over the vertices
 /// and over the interfaces more readable.
 /// We shall use VTK notation for a hexahedral cell and
 /// define the macros with respect to the [i][j][k] cell.
-#define IVTX0 (i)
-#define JVTX0 (j)
-#define KVTX0 (k)
-
-#define IVTX1 (i+1)
-#define JVTX1 (j)
-#define KVTX1 (k)
-
-#define IVTX2 (i+1)
-#define JVTX2 (j+1)
-#define KVTX2 (k)
-
-#define IVTX3 (i)
-#define JVTX3 (j+1)
-#define KVTX3 (k)
-
-#define IVTX4 (i)
-#define JVTX4 (j)
-#define KVTX4 (k+1)
-
-#define IVTX5 (i+1)
-#define JVTX5 (j)
-#define KVTX5 (k+1)
-
-#define IVTX6 (i+1)
-#define JVTX6 (j+1)
-#define KVTX6 (k+1)
-
-#define IVTX7 (i)
-#define JVTX7 (j+1)
-#define KVTX7 (k+1)
+/// 0 i   j   k
+/// 1 i+1 j   k
+/// 2 i+1 j+1 k
+/// 3 i   j+1 k
+/// 4 i   j   k+1
+/// 5 i+1 j   k+1
+/// 6 i+1 j+1 k+1
+/// 7 i   j+1 k+1
 
 /// Corners of the 2D secondary cell in 2D, located at vtx[i][j].
 /// Note that these are indices of cell-centres wrt vtx[i][j].

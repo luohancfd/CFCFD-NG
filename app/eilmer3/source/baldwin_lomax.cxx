@@ -110,7 +110,6 @@ int baldwin_lomax_turbulence_model(global_data& gdata, Block& blk)
     double factor, temporary;
     double F_MAX, eta_MAX, U_MAX, U_MIN, U_DIFF, F_A, F_B, F_WAKE;
     double Pr_t = get_turbulence_prandtl_number();
-    double mu_freestream, mu_t_max;
 
     // Dimension of the work arrays, allowing for ghost cells.
     int ndim = blk.nnj + 4;
@@ -301,13 +300,13 @@ int baldwin_lomax_turbulence_model(global_data& gdata, Block& blk)
             // if the maximum mu_t in the profile from the wall for this x index is less 
             // than some specified transition level, discard the turbulent transport.
 #           if TRANSITIONAL == 1
-  	    mu_t_max = 0.0;
+  	    double mu_t_max = 0.0;
 	    for ( j = jfirst; j >= jlast; --j ) {
 	        if ( mu_t[j] > mu_t_max ) mu_t_max = mu_t[j];
 	    }
 	    // comparing to the viscosity of the cell in the middle of the duct
 	    // which is assumed to be at index jmin for "tube-type" calculations.
-	    mu_freestream = blk.get_cell(i,blk.jmin)->fs->gas->mu;
+	    double mu_freestream = blk.get_cell(i,blk.jmin)->fs->gas->mu;
 	    keep_turbulent_viscosity = (mu_t_max >= C_mutm * mu_freestream);
 #           else
             keep_turbulent_viscosity = 1;

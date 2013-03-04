@@ -52,9 +52,9 @@ const int MASKED_IFACE = 1;
  *
  * Used below to dimension some time-derivative arrays.
  */
-const int NL = 4;
-const int NI = 6;
-const int NV = 8;
+const size_t NL = 4;
+const size_t NI = 6;
+const size_t NV = 8;
 
 /// We might update the k-omega properties in with the main predictor-corrector
 /// time-stepping function or we might choose to update it separately, 

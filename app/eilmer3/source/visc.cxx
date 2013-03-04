@@ -570,52 +570,52 @@ int viscous_derivatives_2D( Block *A )
         for (j = A->jmin+1; j <= A->jmax; ++j) {
             area_inv = 1.0 / A->get_vtx(i,j)->area;
 	    // These are the corners of the secondary cell.
-            xA = A->get_cell(IADSH,JADSH)->pos.x;
-            yA = A->get_cell(IADSH,JADSH)->pos.y;
-            xB = A->get_cell(IBDSH,JBDSH)->pos.x;
-            yB = A->get_cell(IBDSH,JBDSH)->pos.y;
-            xC = A->get_cell(ICDSH,JCDSH)->pos.x;
-            yC = A->get_cell(ICDSH,JCDSH)->pos.y;
-            xD = A->get_cell(IDDSH,JDDSH)->pos.x;
-            yD = A->get_cell(IDDSH,JDDSH)->pos.y;
+            xA = A->get_cell(i,j-1)->pos.x;
+            yA = A->get_cell(i,j-1)->pos.y;
+            xB = A->get_cell(i,j)->pos.x;
+            yB = A->get_cell(i,j)->pos.y;
+            xC = A->get_cell(i-1,j)->pos.x;
+            yC = A->get_cell(i-1,j)->pos.y;
+            xD = A->get_cell(i-1,j-1)->pos.x;
+            yD = A->get_cell(i-1,j-1)->pos.y;
 	    // These are the flow properties at the corners.
-            uA = A->get_cell(IADSH,JADSH)->fs->vel.x;
-            uB = A->get_cell(IBDSH,JBDSH)->fs->vel.x;
-            uC = A->get_cell(ICDSH,JCDSH)->fs->vel.x;
-            uD = A->get_cell(IDDSH,JDDSH)->fs->vel.x;
+            uA = A->get_cell(i,j-1)->fs->vel.x;
+            uB = A->get_cell(i,j)->fs->vel.x;
+            uC = A->get_cell(i-1,j)->fs->vel.x;
+            uD = A->get_cell(i-1,j-1)->fs->vel.x;
 	    //
-            vA = A->get_cell(IADSH,JADSH)->fs->vel.y;
-            vB = A->get_cell(IBDSH,JBDSH)->fs->vel.y;
-            vC = A->get_cell(ICDSH,JCDSH)->fs->vel.y;
-            vD = A->get_cell(IDDSH,JDDSH)->fs->vel.y;
+            vA = A->get_cell(i,j-1)->fs->vel.y;
+            vB = A->get_cell(i,j)->fs->vel.y;
+            vC = A->get_cell(i-1,j)->fs->vel.y;
+            vD = A->get_cell(i-1,j-1)->fs->vel.y;
 	    //
 	    for ( int itm=0; itm<ntm; ++itm ) {
-		TA[itm] = A->get_cell(IADSH,JADSH)->fs->gas->T[itm];
-		TB[itm] = A->get_cell(IBDSH,JBDSH)->fs->gas->T[itm];
-		TC[itm] = A->get_cell(ICDSH,JCDSH)->fs->gas->T[itm];
-		TD[itm] = A->get_cell(IDDSH,JDDSH)->fs->gas->T[itm];
+		TA[itm] = A->get_cell(i,j-1)->fs->gas->T[itm];
+		TB[itm] = A->get_cell(i,j)->fs->gas->T[itm];
+		TC[itm] = A->get_cell(i-1,j)->fs->gas->T[itm];
+		TD[itm] = A->get_cell(i-1,j-1)->fs->gas->T[itm];
             }
 	    //
 	    if( get_diffusion_flag() == 1 ) {
 		for( int isp = 0; isp < nsp; ++isp ) {
-		    fA[isp] = A->get_cell(IADSH,JADSH)->fs->gas->massf[isp];
-		    fB[isp] = A->get_cell(IBDSH,JBDSH)->fs->gas->massf[isp];
-		    fC[isp] = A->get_cell(ICDSH,JCDSH)->fs->gas->massf[isp];
-		    fD[isp] = A->get_cell(IDDSH,JDDSH)->fs->gas->massf[isp];
+		    fA[isp] = A->get_cell(i,j-1)->fs->gas->massf[isp];
+		    fB[isp] = A->get_cell(i,j)->fs->gas->massf[isp];
+		    fC[isp] = A->get_cell(i-1,j)->fs->gas->massf[isp];
+		    fD[isp] = A->get_cell(i-1,j-1)->fs->gas->massf[isp];
 		}
 	    }
 	    //
 	    APPLY_DIVERGENCE_THEOREM()
 	    //
-            tkeA = A->get_cell(IADSH,JADSH)->fs->tke;
-            tkeB = A->get_cell(IBDSH,JBDSH)->fs->tke;
-            tkeC = A->get_cell(ICDSH,JCDSH)->fs->tke;
-            tkeD = A->get_cell(IDDSH,JDDSH)->fs->tke;
+            tkeA = A->get_cell(i,j-1)->fs->tke;
+            tkeB = A->get_cell(i,j)->fs->tke;
+            tkeC = A->get_cell(i-1,j)->fs->tke;
+            tkeD = A->get_cell(i-1,j-1)->fs->tke;
 	    //
-            omegaA = A->get_cell(IADSH,JADSH)->fs->omega;
-            omegaB = A->get_cell(IBDSH,JBDSH)->fs->omega;
-            omegaC = A->get_cell(ICDSH,JCDSH)->fs->omega;
-            omegaD = A->get_cell(IDDSH,JDDSH)->fs->omega;
+            omegaA = A->get_cell(i,j-1)->fs->omega;
+            omegaB = A->get_cell(i,j)->fs->omega;
+            omegaC = A->get_cell(i-1,j)->fs->omega;
+            omegaD = A->get_cell(i-1,j-1)->fs->omega;
 	    //
 	    APPLY_DIVERGENCE_THEOREM_2()
         } // j loop
@@ -669,35 +669,35 @@ int viscous_derivatives_edges( Block *A )
 	yA = A->get_ifi(i,j-1)->pos.y;
 	xB = A->get_ifi(i,j)->pos.x;
 	yB = A->get_ifi(i,j)->pos.y;
-        xC = A->get_cell(ICDSH,JCDSH)->pos.x;
-        yC = A->get_cell(ICDSH,JCDSH)->pos.y;
-        xD = A->get_cell(IDDSH,JDDSH)->pos.x;
-        yD = A->get_cell(IDDSH,JDDSH)->pos.y;
+        xC = A->get_cell(i-1,j)->pos.x;
+        yC = A->get_cell(i-1,j)->pos.y;
+        xD = A->get_cell(i-1,j-1)->pos.x;
+        yD = A->get_cell(i-1,j-1)->pos.y;
 	//
 	// These are the flow properties at the corners of the secondary cell.
 	uA = A->get_ifi(i,j-1)->fs->vel.x;
 	uB = A->get_ifi(i,j)->fs->vel.x;
-        uC = A->get_cell(ICDSH,JCDSH)->fs->vel.x;
-        uD = A->get_cell(IDDSH,JDDSH)->fs->vel.x;
+        uC = A->get_cell(i-1,j)->fs->vel.x;
+        uD = A->get_cell(i-1,j-1)->fs->vel.x;
 	//
 	vA = A->get_ifi(i,j-1)->fs->vel.y;
 	vB = A->get_ifi(i,j)->fs->vel.y;
-        vC = A->get_cell(ICDSH,JCDSH)->fs->vel.y;
-        vD = A->get_cell(IDDSH,JDDSH)->fs->vel.y;
+        vC = A->get_cell(i-1,j)->fs->vel.y;
+        vD = A->get_cell(i-1,j-1)->fs->vel.y;
 	//
 	for ( int itm=0; itm<ntm; ++itm ) {
 	    TA[itm] = A->get_ifi(i,j-1)->fs->gas->T[itm];
 	    TB[itm] = A->get_ifi(i,j)->fs->gas->T[itm];
-	    TC[itm] = A->get_cell(ICDSH,JCDSH)->fs->gas->T[itm];
-	    TD[itm] = A->get_cell(IDDSH,JDDSH)->fs->gas->T[itm];
+	    TC[itm] = A->get_cell(i-1,j)->fs->gas->T[itm];
+	    TD[itm] = A->get_cell(i-1,j-1)->fs->gas->T[itm];
 	}
 	//
 	if( get_diffusion_flag() == 1) {
 	    for( int isp = 0; isp < nsp; ++isp ) {
 		fA[isp] = A->get_ifi(i,j-1)->fs->gas->massf[isp];
 		fB[isp] = A->get_ifi(i,j)->fs->gas->massf[isp];
-		fC[isp] = A->get_cell(ICDSH,JCDSH)->fs->gas->massf[isp];
-		fD[isp] = A->get_cell(IDDSH,JDDSH)->fs->gas->massf[isp];
+		fC[isp] = A->get_cell(i-1,j)->fs->gas->massf[isp];
+		fD[isp] = A->get_cell(i-1,j-1)->fs->gas->massf[isp];
 	    }
 	}
 	//
@@ -705,13 +705,13 @@ int viscous_derivatives_edges( Block *A )
 	//
 	tkeA = A->get_ifi(i,j-1)->fs->tke;
 	tkeB = A->get_ifi(i,j)->fs->tke;
-	tkeC = A->get_cell(ICDSH,JCDSH)->fs->tke;
-	tkeD = A->get_cell(IDDSH,JDDSH)->fs->tke;
+	tkeC = A->get_cell(i-1,j)->fs->tke;
+	tkeD = A->get_cell(i-1,j-1)->fs->tke;
 	//
 	omegaA = A->get_ifi(i,j-1)->fs->omega;
 	omegaB = A->get_ifi(i,j)->fs->omega;
-	omegaC = A->get_cell(ICDSH,JCDSH)->fs->omega;
-	omegaD = A->get_cell(IDDSH,JDDSH)->fs->omega;
+	omegaC = A->get_cell(i-1,j)->fs->omega;
+	omegaD = A->get_cell(i-1,j-1)->fs->omega;
 	//
 	APPLY_DIVERGENCE_THEOREM_2()
 	//
@@ -722,36 +722,36 @@ int viscous_derivatives_edges( Block *A )
     for (j = A->jmin+1; j <= A->jmax; ++j) {
         area_inv = 1.0 / A->get_vtx(i,j)->area;
 	// These are the corners of the secondary cell.
-        xA = A->get_cell(IADSH,JADSH)->pos.x;
-        yA = A->get_cell(IADSH,JADSH)->pos.y;
-        xB = A->get_cell(IBDSH,JBDSH)->pos.x;
-        yB = A->get_cell(IBDSH,JBDSH)->pos.y;
+        xA = A->get_cell(i,j-1)->pos.x;
+        yA = A->get_cell(i,j-1)->pos.y;
+        xB = A->get_cell(i,j)->pos.x;
+        yB = A->get_cell(i,j)->pos.y;
 	xC = A->get_ifi(i,j)->pos.x;
 	yC = A->get_ifi(i,j)->pos.y;
 	xD = A->get_ifi(i,j-1)->pos.x;
 	yD = A->get_ifi(i,j-1)->pos.y;
 	// These are the flow properties at the corners of the secondary cell.
-        uA = A->get_cell(IADSH,JADSH)->fs->vel.x;
-        uB = A->get_cell(IBDSH,JBDSH)->fs->vel.x;
+        uA = A->get_cell(i,j-1)->fs->vel.x;
+        uB = A->get_cell(i,j)->fs->vel.x;
 	uC = A->get_ifi(i,j)->fs->vel.x;
 	uD = A->get_ifi(i,j-1)->fs->vel.x;
 	//
-        vA = A->get_cell(IADSH,JADSH)->fs->vel.y;
-        vB = A->get_cell(IBDSH,JBDSH)->fs->vel.y;
+        vA = A->get_cell(i,j-1)->fs->vel.y;
+        vB = A->get_cell(i,j)->fs->vel.y;
 	vC = A->get_ifi(i,j)->fs->vel.y;
 	vD = A->get_ifi(i,j-1)->fs->vel.y;
 	//
 	for ( int itm=0; itm<ntm; ++itm ) {
-	    TA[itm] = A->get_cell(IADSH,JADSH)->fs->gas->T[itm];
-	    TB[itm] = A->get_cell(IBDSH,JBDSH)->fs->gas->T[itm];
+	    TA[itm] = A->get_cell(i,j-1)->fs->gas->T[itm];
+	    TB[itm] = A->get_cell(i,j)->fs->gas->T[itm];
 	    TC[itm] = A->get_ifi(i,j)->fs->gas->T[itm];
 	    TD[itm] = A->get_ifi(i,j-1)->fs->gas->T[itm];
 	}
         //
 	if( get_diffusion_flag() == 1) {
 	    for( int isp = 0; isp < nsp; ++isp ) {
-		fA[isp] = A->get_cell(IADSH,JADSH)->fs->gas->massf[isp];
-		fB[isp] = A->get_cell(IBDSH,JBDSH)->fs->gas->massf[isp];
+		fA[isp] = A->get_cell(i,j-1)->fs->gas->massf[isp];
+		fB[isp] = A->get_cell(i,j)->fs->gas->massf[isp];
 		fC[isp] = A->get_ifi(i,j)->fs->gas->massf[isp];
 		fD[isp] = A->get_ifi(i,j-1)->fs->gas->massf[isp];
 	    }
@@ -759,13 +759,13 @@ int viscous_derivatives_edges( Block *A )
 	//
 	APPLY_DIVERGENCE_THEOREM()
 	//
-        tkeA = A->get_cell(IADSH,JADSH)->fs->tke;
-        tkeB = A->get_cell(IBDSH,JBDSH)->fs->tke;
+        tkeA = A->get_cell(i,j-1)->fs->tke;
+        tkeB = A->get_cell(i,j)->fs->tke;
 	tkeC = A->get_ifi(i,j)->fs->tke;
 	tkeD = A->get_ifi(i,j-1)->fs->tke;
 	//
-        omegaA = A->get_cell(IADSH,JADSH)->fs->omega;
-        omegaB = A->get_cell(IBDSH,JBDSH)->fs->omega;
+        omegaA = A->get_cell(i,j-1)->fs->omega;
+        omegaB = A->get_cell(i,j)->fs->omega;
 	omegaC = A->get_ifi(i,j)->fs->omega;
 	omegaD = A->get_ifi(i,j-1)->fs->omega;
 	//
@@ -778,53 +778,53 @@ int viscous_derivatives_edges( Block *A )
     for (i = A->imin+1; i <= A->imax; ++i) {
         area_inv = 1.0 / A->get_vtx(i,j)->area;
 	// These are the corners of the secondary cell.
-        xA = A->get_cell(IADSH,JADSH)->pos.x;
-        yA = A->get_cell(IADSH,JADSH)->pos.y;
+        xA = A->get_cell(i,j-1)->pos.x;
+        yA = A->get_cell(i,j-1)->pos.y;
 	xB = A->get_ifj(i,j)->pos.x;
 	yB = A->get_ifj(i,j)->pos.y;
 	xC = A->get_ifj(i-1,j)->pos.x;
 	yC = A->get_ifj(i-1,j)->pos.y;
-        xD = A->get_cell(IDDSH,JDDSH)->pos.x;
-        yD = A->get_cell(IDDSH,JDDSH)->pos.y;
+        xD = A->get_cell(i-1,j-1)->pos.x;
+        yD = A->get_cell(i-1,j-1)->pos.y;
 	// These are the flow properties at the corners of
 	// the secondary cell.
-        uA = A->get_cell(IADSH,JADSH)->fs->vel.x;
+        uA = A->get_cell(i,j-1)->fs->vel.x;
 	uB = A->get_ifj(i,j)->fs->vel.x;
 	uC = A->get_ifj(i-1,j)->fs->vel.x;
-        uD = A->get_cell(IDDSH,JDDSH)->fs->vel.x;
+        uD = A->get_cell(i-1,j-1)->fs->vel.x;
 	//
-        vA = A->get_cell(IADSH,JADSH)->fs->vel.y;
+        vA = A->get_cell(i,j-1)->fs->vel.y;
 	vB = A->get_ifj(i,j)->fs->vel.y;
 	vC = A->get_ifj(i-1,j)->fs->vel.y;
-        vD = A->get_cell(IDDSH,JDDSH)->fs->vel.y;
+        vD = A->get_cell(i-1,j-1)->fs->vel.y;
 	//
 	for ( int itm=0; itm<ntm; ++itm ) {
-	    TA[itm] = A->get_cell(IADSH,JADSH)->fs->gas->T[itm];
+	    TA[itm] = A->get_cell(i,j-1)->fs->gas->T[itm];
 	    TB[itm] = A->get_ifj(i,j)->fs->gas->T[itm];
 	    TC[itm] = A->get_ifj(i-1,j)->fs->gas->T[itm];
-	    TD[itm] = A->get_cell(IDDSH,JDDSH)->fs->gas->T[itm];
+	    TD[itm] = A->get_cell(i-1,j-1)->fs->gas->T[itm];
 	}
 	//
 	if( get_diffusion_flag() == 1) {
 	    for( int isp = 0; isp < nsp; ++isp ) {
-		fA[isp] = A->get_cell(IADSH,JADSH)->fs->gas->massf[isp];
+		fA[isp] = A->get_cell(i,j-1)->fs->gas->massf[isp];
 		fB[isp] = A->get_ifj(i,j)->fs->gas->massf[isp];
 		fC[isp] = A->get_ifj(i-1,j)->fs->gas->massf[isp];
-		fD[isp] = A->get_cell(IDDSH,JDDSH)->fs->gas->massf[isp];
+		fD[isp] = A->get_cell(i-1,j-1)->fs->gas->massf[isp];
 	    }
 	}
 	//
 	APPLY_DIVERGENCE_THEOREM()
 	//
-        tkeA = A->get_cell(IADSH,JADSH)->fs->tke;
+        tkeA = A->get_cell(i,j-1)->fs->tke;
 	tkeB = A->get_ifj(i,j)->fs->tke;
 	tkeC = A->get_ifj(i-1,j)->fs->tke;
-        tkeD = A->get_cell(IDDSH,JDDSH)->fs->tke;
+        tkeD = A->get_cell(i-1,j-1)->fs->tke;
 	//
-        omegaA = A->get_cell(IADSH,JADSH)->fs->omega;
+        omegaA = A->get_cell(i,j-1)->fs->omega;
 	omegaB = A->get_ifj(i,j)->fs->omega;
 	omegaC = A->get_ifj(i-1,j)->fs->omega;
-        omegaD = A->get_cell(IDDSH,JDDSH)->fs->omega;
+        omegaD = A->get_cell(i-1,j-1)->fs->omega;
 	//
 	APPLY_DIVERGENCE_THEOREM_2()
 	//
@@ -837,35 +837,35 @@ int viscous_derivatives_edges( Block *A )
 	// These are the corners of the secondary cell.
 	xA = A->get_ifj(i,j)->pos.x;
 	yA = A->get_ifj(i,j)->pos.y;
-        xB = A->get_cell(IBDSH,JBDSH)->pos.x;
-        yB = A->get_cell(IBDSH,JBDSH)->pos.y;
-        xC = A->get_cell(ICDSH,JCDSH)->pos.x;
-        yC = A->get_cell(ICDSH,JCDSH)->pos.y;
+        xB = A->get_cell(i,j)->pos.x;
+        yB = A->get_cell(i,j)->pos.y;
+        xC = A->get_cell(i-1,j)->pos.x;
+        yC = A->get_cell(i-1,j)->pos.y;
 	xD = A->get_ifj(i-1,j)->pos.x;
 	yD = A->get_ifj(i-1,j)->pos.y;
 	// These are the flow properties at the corners of the secondary cell.
 	uA = A->get_ifj(i,j)->fs->vel.x;
-        uB = A->get_cell(IBDSH,JBDSH)->fs->vel.x;
-        uC = A->get_cell(ICDSH,JCDSH)->fs->vel.x;
+        uB = A->get_cell(i,j)->fs->vel.x;
+        uC = A->get_cell(i-1,j)->fs->vel.x;
 	uD = A->get_ifj(i-1,j)->fs->vel.x;
 	//
 	vA = A->get_ifj(i,j)->fs->vel.y;
-        vB = A->get_cell(IBDSH,JBDSH)->fs->vel.y;
-        vC = A->get_cell(ICDSH,JCDSH)->fs->vel.y;
+        vB = A->get_cell(i,j)->fs->vel.y;
+        vC = A->get_cell(i-1,j)->fs->vel.y;
 	vD = A->get_ifj(i-1,j)->fs->vel.y;
 	//
 	for ( int itm=0; itm<ntm; ++itm ) {
 	    TA[itm] = A->get_ifj(i,j)->fs->gas->T[itm];
-	    TB[itm] = A->get_cell(IBDSH,JBDSH)->fs->gas->T[itm];
-	    TC[itm] = A->get_cell(ICDSH,JCDSH)->fs->gas->T[itm];
+	    TB[itm] = A->get_cell(i,j)->fs->gas->T[itm];
+	    TC[itm] = A->get_cell(i-1,j)->fs->gas->T[itm];
 	    TD[itm] = A->get_ifj(i-1,j)->fs->gas->T[itm];
 	}
 	//
 	if( get_diffusion_flag() == 1) { 
 	    for( int isp = 0; isp < nsp; ++isp ) {
 		fA[isp] = A->get_ifj(i,j)->fs->gas->massf[isp];
-		fB[isp] = A->get_cell(IBDSH,JBDSH)->fs->gas->massf[isp];
-		fC[isp] = A->get_cell(ICDSH,JCDSH)->fs->gas->massf[isp];
+		fB[isp] = A->get_cell(i,j)->fs->gas->massf[isp];
+		fC[isp] = A->get_cell(i-1,j)->fs->gas->massf[isp];
 		fD[isp] = A->get_ifj(i-1,j)->fs->gas->massf[isp];
 	    }
 	}
@@ -873,13 +873,13 @@ int viscous_derivatives_edges( Block *A )
 	APPLY_DIVERGENCE_THEOREM()
 	//
 	tkeA = A->get_ifj(i,j)->fs->tke;
-        tkeB = A->get_cell(IBDSH,JBDSH)->fs->tke;
-        tkeC = A->get_cell(ICDSH,JCDSH)->fs->tke;
+        tkeB = A->get_cell(i,j)->fs->tke;
+        tkeC = A->get_cell(i-1,j)->fs->tke;
 	tkeD = A->get_ifj(i-1,j)->fs->tke;
 	//
 	omegaA = A->get_ifj(i,j)->fs->omega;
-        omegaB = A->get_cell(IBDSH,JBDSH)->fs->omega;
-        omegaC = A->get_cell(ICDSH,JCDSH)->fs->omega;
+        omegaB = A->get_cell(i,j)->fs->omega;
+        omegaC = A->get_cell(i-1,j)->fs->omega;
 	omegaD = A->get_ifj(i-1,j)->fs->omega;
 	//
 	APPLY_DIVERGENCE_THEOREM_2()

@@ -612,7 +612,7 @@ int FV_Cell::copy_values_from(FV_Cell &src, int type_of_copy)
 	pos.x = src.pos.x; pos.y = src.pos.y; pos.z = src.pos.z;
     }
     if (type_of_copy == COPY_INTERFACE_DATA) {
-	for ( int j = 0; j < NI; ++j ) {
+	for ( size_t j = 0; j < NI; ++j ) {
 	    if ( src.iface[j] == 0 || iface[j] == 0 ) { // When copying from ghost cell which may
 		continue;                               // not have initialised interfaces, or when 2D.
 	    }
@@ -641,7 +641,7 @@ double * FV_Cell::copy_values_to_buffer(double *buf, int type_of_copy)
         *buf++ = pos.x; *buf++ = pos.y; *buf++ = pos.z;
     }
     if (type_of_copy == COPY_INTERFACE_DATA) {
-	for ( int j = 0; j < NI; ++j ) {
+	for ( size_t j = 0; j < NI; ++j ) {
 	    if ( iface[j] == 0 ) { // When copying from ghost cell which may
 		continue;          // not have initialised interfaces, or when 2D.
 	    }
@@ -671,7 +671,7 @@ double * FV_Cell::copy_values_from_buffer(double *buf, int type_of_copy)
         pos.x = *buf++; pos.y = *buf++; pos.z = *buf++;
     }
     if (type_of_copy == COPY_INTERFACE_DATA) {
-	for ( int j = 0; j < NI; ++j ) {
+	for ( size_t j = 0; j < NI; ++j ) {
 	    if ( iface[j] == 0 ) { // When copying from ghost cell which may
 		continue;          // not have initialised interfaces, or when 2D.
 	    }
@@ -1171,15 +1171,15 @@ int FV_Cell::init_time_level_geometry( void )
 // Initialize or reinitialize the time-level values 
 // with the recently calculated cell geometry data.
 {
-    for ( int j = 0; j < NL; ++j ) {
+    for ( size_t j = 0; j < NL; ++j ) {
 	ar[j] = area;
 	vol[j] = volume;
 	position[j] = pos;
 	// 2D will have a few NULL pointers compared with 3D.
-	for ( int i = 0; i < NI; ++i ) {
+	for ( size_t i = 0; i < NI; ++i ) {
 	    if ( iface[i] != NULL ) iface[i]->ar[j] = iface[i]->area;
 	}
-	for ( int i = 0; i < NV; ++i ) {
+	for ( size_t i = 0; i < NV; ++i ) {
 	    if ( vtx[i] != NULL ) vtx[i]->position[j] = vtx[i]->pos;
 	}
     }
@@ -1194,10 +1194,10 @@ int FV_Cell::get_current_time_level_geometry( int time_level )
     volume = vol[time_level];
     pos = position[time_level];
     // 2D will have a few NULL pointers compared with 3D.
-    for ( int i = 0; i < NI; ++i ) {
+    for ( size_t i = 0; i < NI; ++i ) {
 	if ( iface[i] != NULL ) iface[i]->area = iface[i]->ar[time_level];
     }
-    for ( int i = 0; i < NV; ++i ) {
+    for ( size_t i = 0; i < NV; ++i ) {
 	if ( vtx[i] != NULL ) vtx[i]->pos = vtx[i]->position[time_level];
     }
     return SUCCESS;

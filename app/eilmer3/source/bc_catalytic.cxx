@@ -58,7 +58,7 @@ EquilibriumCatalyticWallBC::EquilibriumCatalyticWallBC( string fname )
     string line, buffer;
     istringstream ss;
     vector<string> tokens;
-    int n_entries;
+    size_t n_entries;
     
     Gas_model * gm = get_gas_model_ptr();
     int nsp = gm->get_number_of_species();
@@ -93,7 +93,7 @@ EquilibriumCatalyticWallBC::EquilibriumCatalyticWallBC( string fname )
     	ipmax = n_entries - 1;
     }
     
-    for( int i = 0; i < MAX_EQ_WC_TABLE_ENTRIES; ++i ) {
+    for( size_t i = 0; i < MAX_EQ_WC_TABLE_ENTRIES; ++i ) {
    	if( i > ipmax ) break;
 	// Read in logp and f[] information
 	getline( infile, line, '\n' );
