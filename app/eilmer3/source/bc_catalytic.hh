@@ -1,7 +1,7 @@
 // bc_catalytic.hh
 
 
-#define MAX_EQ_WC_TABLE_ENTRIES 100
+const int MAX_EQ_WC_TABLE_ENTRIES = 100;
 
 //-----------------------------------------------------------------
 // A class to apply the catalytic-wall BC

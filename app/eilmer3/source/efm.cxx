@@ -28,7 +28,7 @@
 
 /*------------------------------------------------------------*/
 
-#define PHI 1.0
+const double PHI = 1.0;
 
 /** \brief Compute the fluxes across an interface using
  * the Equilibrium Flux	Method of Macrossan & Pullin
@@ -81,7 +81,7 @@ int efmflx(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
      * Calculate Constants
      */
     /* dtwspi = 1.0 / (2.0 * sqrt ( 3.14159265359 )); */
-#   define  dtwspi  0.282094792
+    const double dtwspi = 0.282094792;
 
     /*
      * Unpack Left flow state
@@ -223,15 +223,15 @@ int exxef( double sn, double &exx, double &ef )
 {
     double snsq, ef1, y;
 
-#   define P      0.327591100
-#   define A1     0.254829592
-#   define A2    -0.284496736
-#   define A3     1.421413741
-#   define A4    -1.453152027
-#   define A5     1.061405429
-#   define LIMIT  5.0
-#   define EXLIM  0.138879e-10
-#   define EFLIM  1.0
+    const double P = 0.327591100;
+    const double A1 = 0.254829592;
+    const double A2 = -0.284496736;
+    const double A3 = 1.421413741;
+    const double A4 = -1.453152027;
+    const double A5 = 1.061405429;
+    const double LIMIT = 5.0;
+    const double EXLIM = 0.138879e-10;
+    const double EFLIM = 1.0;
 
 #   define DSIGN(val,sgn) ( (sgn >= 0.0)? fabs(val): -fabs(val) )
 

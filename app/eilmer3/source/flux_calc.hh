@@ -18,7 +18,7 @@
 #include "c-flow-condition.hh"
 #include "cell.hh"
 
-#define DEBUG_FLUX 0
+const int DEBUG_FLUX = 0;
 
 /** \brief Type of flux calculation...
  *
@@ -32,13 +32,13 @@
  * FLUX_HLLE     : MHD HLLE approximate Riemann solver
  * \endverbatim
  */
-#define FLUX_RIEMANN       0
-#define FLUX_AUSM          1
-#define FLUX_EFM           2
-#define FLUX_AUSMDV        3
-#define FLUX_ADAPTIVE      4
-#define FLUX_AUSM_PLUS_UP  5
-#define FLUX_HLLE          6
+const int FLUX_RIEMANN = 0;
+const int FLUX_AUSM = 1;
+const int FLUX_EFM = 2;
+const int FLUX_AUSMDV = 3;
+const int FLUX_ADAPTIVE = 4;
+const int FLUX_AUSM_PLUS_UP = 5;
+const int FLUX_HLLE = 6;
 
 /*
  * Function prototypes...

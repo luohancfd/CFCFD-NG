@@ -17,15 +17,9 @@
 #include "../../../lib/geometry2/source/geom.hh"
 #include "../../../lib/radiation/source/spectra_pieces.hh"
 
-// NOTE: using face definitions from cell.hh for these
-// #define NORTH  0
-// #define EAST   1
-// #define SOUTH  2
-// #define WEST   3
-// #define TOP    4
-// #define BOTTOM 5
-#define INSIDE_GRID    6
-#define ERROR          7
+// NOTE: using face definitions from cell.hh for NORTH,EAST,SOUTH,WEST,TOP,BOTTOM
+const int INSIDE_GRID = 6;
+const int ERROR = 7;
 
 class RayTracingPoint {
 public:

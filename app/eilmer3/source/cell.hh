@@ -24,46 +24,46 @@
 /** These values are used by the cell data copying functions
  * to specify which parts of the cell data to copy.
  */
-#define COPY_ALL_CELL_DATA 0
-#define COPY_FLOW_STATE    1
-#define COPY_CELL_LENGTHS  2
-#define COPY_INTERFACE_DATA  3
+const int COPY_ALL_CELL_DATA = 0;
+const int COPY_FLOW_STATE = 1;
+const int COPY_CELL_LENGTHS = 2;
+const int COPY_INTERFACE_DATA = 3;
 
 /** Symbolic labels and indices for the cell's faces. 
  *
  * The names of the faces of the structured-grid blocks will be the same.
  */
-#define NORTH  0
-#define EAST   1
-#define SOUTH  2
-#define WEST   3
-#define TOP    4
-#define BOTTOM 5
+const int NORTH = 0;
+const int EAST = 1;
+const int SOUTH = 2;
+const int WEST = 3;
+const int TOP = 4;
+const int BOTTOM = 5;
 
 /// States that a cell-center may be in with respect to pistons.
-#define NORMAL_CELL   0
-#define MASKED_CELL   1
-#define SHADOWED_CELL 2
+const int NORMAL_CELL = 0;
+const int MASKED_CELL = 1;
+const int SHADOWED_CELL = 2;
 /// States that cell-interfaces may be in with respect to pistons.
-#define NORMAL_IFACE  0
-#define MASKED_IFACE  1
+const int NORMAL_IFACE = 0;
+const int MASKED_IFACE = 1;
 
 /** \brief Number of levels in the time-stepping procedure.
  *
  * Used below to dimension some time-derivative arrays.
  */
-#define NL 4
-#define NI 6
-#define NV 8
+const int NL = 4;
+const int NI = 6;
+const int NV = 8;
 
 /// We might update the k-omega properties in with the main predictor-corrector
 /// time-stepping function or we might choose to update it separately, 
 /// like the chemistry update.
-#define SEPARATE_UPDATE_FOR_K_OMEGA_SOURCE 1
+const int SEPARATE_UPDATE_FOR_K_OMEGA_SOURCE = 1;
 /// Minimum values for turbulent kinetic energy (m^2/s^2) and frequency (1/s)
 /// for applying limiters in the k-omega model.
-#define SMALL_TKE 0.1
-#define SMALL_OMEGA 1.0
+const double SMALL_TKE = 0.1;
+const double SMALL_OMEGA = 1.0;
 
 int get_face_index(const std::string name);
 std::string  get_face_name(int face_index);
@@ -89,7 +89,8 @@ public:
     int copy_values_from(FlowState &src);
     int copy_values_from(CFlowCondition &src);
     int average_values_from(FlowState &src0, FlowState &src1, bool with_diff_coeff);
-    int average_values_from(FlowState &src0, double alpha0, FlowState &src1, double alpha1, bool with_diff_coeff);
+    int average_values_from(FlowState &src0, double alpha0, 
+			    FlowState &src1, double alpha1, bool with_diff_coeff);
     double * copy_values_to_buffer(double *buf);
     double * copy_values_from_buffer(double *buf);
     int BGK_equilibrium(void);

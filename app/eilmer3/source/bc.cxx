@@ -53,7 +53,7 @@ extern "C" {
 
 using namespace std;
 
-#define VERBOSE_BCS 0	// Set to 1 to print mem usage, writing of data etc
+const int VERBOSE_BCS = 0; // Set to 1 to print mem usage, writing of data etc
 
 //-----------------------------------------------------------------
 // Class-based boundary conditions in which all information about 

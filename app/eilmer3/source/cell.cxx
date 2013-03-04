@@ -25,7 +25,7 @@
 #include "diffusion.hh"
 #include "bgk.hh"
 
-#define VISCOUS_TIME_LIMIT_MODEL 0 // (0) original Swanson model, (1) Ramshaw model
+const int VISCOUS_TIME_LIMIT_MODEL = 0; // (0) original Swanson model, (1) Ramshaw model
 
 /*----------------------------------------------------------------*/
 

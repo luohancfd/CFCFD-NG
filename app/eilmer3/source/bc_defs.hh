@@ -32,33 +32,33 @@
  *            apply_viscous_bc().
  * \endverbatim
  */
-#define ADJACENT        0
-#define COMMON          0
-#define SUP_IN          1
-#define SUP_OUT         2
-#define EXTRAPOLATE_OUT 2
-#define SLIP            3
-#define SLIP_WALL       3
-#define ADIABATIC       4
-#define FIXED_T         5
-#define SUBSONIC_IN     6
-#define SUBSONIC_OUT    7
-#define TRANSIENT_UNI   8
-#define TRANSIENT_PROF  9
-#define STATIC_PROF    10
-#define FIXED_P_OUT    11
-#define RRM            12
-#define TRANSIENT_T_WALL 13
-// WAS #define EULER_MANUFACTURED 14
-#define SEB            15
-#define USER_DEFINED   16
-#define ADJACENT_PLUS_UDF 17
-#define ABLATING       18
-#define SLIDING_T      19
-#define FSTC           20
-#define SHOCK_FITTING_IN 21
+const int ADJACENT = 0;
+const int COMMON = 0;
+const int SUP_IN = 1;
+const int SUP_OUT = 2;
+const int EXTRAPOLATE_OUT = 2;
+const int SLIP = 3;
+const int SLIP_WALL = 3;
+const int ADIABATIC = 4;
+const int FIXED_T = 5;
+const int SUBSONIC_IN = 6;
+const int SUBSONIC_OUT = 7;
+const int TRANSIENT_UNI = 8;
+const int TRANSIENT_PROF = 9;
+const int STATIC_PROF = 10;
+const int FIXED_P_OUT = 11;
+const int RRM = 12;
+const int TRANSIENT_T_WALL = 13;
+// WAS const int EULER_MANUFACTURED = 14;
+const int SEB = 15;
+const int USER_DEFINED = 16;
+const int ADJACENT_PLUS_UDF = 17;
+const int ABLATING = 18;
+const int SLIDING_T = 19;
+const int FSTC = 20;
+const int SHOCK_FITTING_IN = 21;
 
-#define SPECIAL        -1
+const int SPECIAL = -1;
 
 /** \brief Types of wall catalycity available as boundary
  *         conditions for diffusive terms.
@@ -73,9 +73,9 @@
  * \endverbatim
  **/
 
-#define NON_CATALYTIC       21
-#define EQUIL_CATALYTIC     22
-#define SUPER_CATALYTIC     23
+const int NON_CATALYTIC = 21;
+const int EQUIL_CATALYTIC = 22;
+const int SUPER_CATALYTIC = 23;
 
 /* Before leaving, leave a mark... */
 #define BC_DEFS_HH

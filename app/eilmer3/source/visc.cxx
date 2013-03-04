@@ -35,7 +35,7 @@
 #include "diffusion.hh"
 #include "baldwin_lomax.hh"
 
-#define VERY_SMALL  1.0e-10
+const double VERY_SMALL = 1.0e-10;
 
 // Working arrays for species derivatives
 static std::vector<double> dfdx, dfdy, dfdz, jx, jy, jz;

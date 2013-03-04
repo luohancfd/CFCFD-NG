@@ -10,7 +10,7 @@ extern "C" {
 #include <lualib.h>
 }
 
-#define CHECK_RADIATION_SCALING 0
+const int CHECK_RADIATION_SCALING = 0;
 
 void ensure_directory_is_present( string pathname );
 void do_system_cmd( string commandstring );

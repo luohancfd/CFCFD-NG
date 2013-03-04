@@ -28,12 +28,12 @@ extern "C" {
 #include "kernel.hh"
 #include "bc.hh"
 
-#define VERBOSE_RADIATION_TRANSPORT 1
-#define NO_CLUSTERING        0
-#define CLUSTERING_BY_VOLUME 1
-#define CLUSTERING_BY_AREA   2
-#define STANDARD_ABSORPTION           0
-#define PARTITIONED_ENERGY_ABSORPTION 1
+const int VERBOSE_RADIATION_TRANSPORT = 1;
+const int NO_CLUSTERING = 0;
+const int CLUSTERING_BY_VOLUME = 1;
+const int CLUSTERING_BY_AREA = 2;
+const int STANDARD_ABSORPTION = 0;
+const int PARTITIONED_ENERGY_ABSORPTION = 1;
 
 
 using namespace std;

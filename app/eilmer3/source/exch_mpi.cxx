@@ -102,7 +102,9 @@ int delete_send_and_receive_buffers(void)
 	bdp = G.my_blocks[jb];
 	for ( int face = 0; face < 6; ++face ) {
 	    free(send_buffer[jb*6+face]);
+	    send_buffer[jb*6+face] = 0;
 	    free(receive_buffer[jb*6+face]);
+	    receive_buffer[jb*6+face] = 0;
 	}
     } // end for jb...
     status.clear();

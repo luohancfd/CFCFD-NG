@@ -36,9 +36,9 @@ typedef int (FV_Cell::*FV_Cell_MemberFunction_int_int)(int,int);
 /// \brief Number of ghost cells surrounding the active cells.
 ///
 /// This sets the size of the ghost-cell buffer around a block.
-#define NGHOST 2
+const int NGHOST = 2;
 
-#define MAX_HNCELL 200
+const int MAX_HNCELL = 200;
 
 /// \brief Parameters for cell checking...
 ///
@@ -50,10 +50,10 @@ typedef int (FV_Cell::*FV_Cell_MemberFunction_int_int)(int,int);
 /// the new values are obtained from the cell to the left, else
 /// the values are obtained by averaging the properties in nearby cells.
 /// These parameters affect the behaviour of function count_invalid_cells().
-#define ADJUST_INVALID_CELL_DATA 1
-#define PREFER_COPY_FROM_LEFT    0
+const int ADJUST_INVALID_CELL_DATA = 1;
+const int PREFER_COPY_FROM_LEFT = 0;
 
-#define CHECK_ARRAY_BOUNDS 1
+const int CHECK_ARRAY_BOUNDS = 1;
 
 /*----------------------------------------------------------------*/
 

@@ -568,8 +568,8 @@ calculate_ghost_cell_flow_state( FV_Cell *cell1, FV_Interface *wall, FV_Cell *ce
     return SUCCESS;
 }
 
-#define WITH_TOTAL_MASS_CONSERVATION 1
-#define NORMALISE_G 1
+const int WITH_TOTAL_MASS_CONSERVATION = 1;
+const int NORMALISE_G = 1;
 
 int AblatingBC::f( const valarray<double> &y, valarray<double> &G )
 {

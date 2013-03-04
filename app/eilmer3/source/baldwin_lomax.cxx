@@ -42,25 +42,25 @@
 // Coefficients for the Baldwin-Lomax Eddy Viscosity Model 
 
 // Overall characteristics of the boundary layer model.
-#define COMPRESSIBILITY 1
-#define TRANSITIONAL 1
+const int COMPRESSIBILITY = 1;
+const int TRANSITIONAL = 1;
 
 // Parameters that are not often varied.
-#define C_mutm  14.0
-#define C_WK    1.0
-#define K       0.0168
+const double C_mutm = 14.0;
+const double C_WK = 1.0;
+const double K = 0.0168;
 
 // A_plus should be varied for boundary layers in pressure gradients.
-#define A_plus  26
+const double A_plus = 26.0;
 
 // Baldwin and Lomax (1978) parameters for the flat plate boundary layer.
 // Used successfully in Peter's models of a Mach 8 nozzle using air but
 // worked badly in Richard Goozee's simulations of the entire Drummond tunnel. 
 //
 // See the turbulence model code in mbcns2 for more detail.
- #define C_CP    1.6
- #define C_KLEB  0.3
- #define k_inner 0.4
+const double C_CP = 1.6;
+const double C_KLEB = 0.3;
+const double k_inner = 0.4;
 
 
 //---------------------------------------------------------------------------

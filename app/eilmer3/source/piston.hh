@@ -36,7 +36,7 @@ struct global_data;
 #define SIGN(a) (((a) == 0.0) ? 0.0 : (a)/(FABS(a)))
 
 // Piston exit codes
-#define END_OF_BLOCK 2
+const int END_OF_BLOCK = 2;
 
 enum PistonFaceType { EAST_FACE, WEST_FACE, UNSPECIFIED };
 

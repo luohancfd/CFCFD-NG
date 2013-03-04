@@ -24,12 +24,12 @@
 #include "bc.hh"
 #include "piston.hh"
 
-#define DB0 0 // function calls
-#define DB1 0 // index checking
-#define DB2 0 // initialising
-#define DB3 0 // derivatives
-#define DB4 0 // piston information
-#define DB5 0 // cell information
+const int DB0 = 0; // function calls
+const int DB1 = 0; // index checking
+const int DB2 = 0; // initialising
+const int DB3 = 0; // derivatives
+const int DB4 = 0; // piston information
+const int DB5 = 0; // cell information
 
 using namespace std;
 
