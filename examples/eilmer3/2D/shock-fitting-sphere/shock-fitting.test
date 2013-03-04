@@ -26,8 +26,8 @@ test shock-standoff {The shock standoff distance should be close to 0.01 m.} -bo
 	    }
 	}
     }
-    # The shock wave stand-off distance should be within 10% of expected. 
-    list [expr abs($shock_standoff - 0.010042895347) / 0.010042895347 < 0.1]
+    # The shock stand-off distance should be within 1% of expected. 
+    list [expr abs($shock_standoff - 0.010042895347) / 0.010042895347 < 0.01]
 } -result {1}
 
 cleanupTests

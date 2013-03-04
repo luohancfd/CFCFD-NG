@@ -422,7 +422,6 @@ int get_moving_grid_flag(void)
 
 int set_write_vertex_velocities_flag(int iw)
 {
-    cout << "set_write_vertex_velocities(): iw= " << iw << endl;
     write_vertex_velocities = iw;
     if (write_vertex_velocities == 0) {
         if ( get_verbose_flag() ) printf("Turn off write_vertex_velocities\n");
