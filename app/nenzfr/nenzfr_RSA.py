@@ -14,7 +14,7 @@
 # School of Mechancial and Mining Engineering
 # The University of Queensland
 
-VERSION_STRING = "21-June-2012"
+VERSION_STRING = "04-Feb-2013"
 
 import string
 import sys, os, gzip
@@ -23,6 +23,7 @@ from numpy import *
 from math import copysign
 from nenzfr_utils import run_command, quote, read_case_summary, \
      read_nenzfr_outfile, read_estcj_outfile
+from nenzfr_sensitivity import add_extra_variables
 E3BIN = os.path.expandvars("$HOME/e3bin")
 sys.path.append(E3BIN)
 
@@ -281,12 +282,15 @@ def calculate_residuals(freeStreamValues, nozzleData, exitVar, \
             
             rsaFreestream[case] = calculate_freestream(Vs,pe,exitVar,\
                                                 DictOfCases,RSAtype,beta)
+            
+                
         # Now calculate the residuals (as percentages) and put them into 
         # a dictionary that has a similar structure as to the "beta" 
         # dictionary.
         for var in exitVar:
             residuals[var] = []
             for case in DictOfCases.keys():
+                # Return the residuals as PERCENTAGE values
                 res = (rsaFreestream[case][var]-nozzleData[case][var])\
                                                /nozzleData[case][var]*100.0
                 residuals[var].append(res)
@@ -366,6 +370,10 @@ def main():
     op.add_option('--exitFile', dest='exitFileName', default='nozzle-exit.RSAdat',
                   help="file for holding the RSA calculated nozzle exit data "
                        "[default: %default]")
+    op.add_option('--add-extra-variables', dest='addExtraVariables', action='store_true',
+                  default=False, help=("specify whether q, rho*u_x, Re_u and p/q should "
+                       "also be calculated. Not used when creating an RSA. "
+                       "[default: %default]"))
 
     opt, args = op.parse_args()
         
@@ -390,6 +398,9 @@ def main():
         if not os.path.exists('perturbation_cases.dat'):
             print "'perturbation_cases.dat' does not exist in current directory"
             bad_input = True    
+        if opt.addExtraVariables is True:
+            print "Ignoring option --add-extra-variables for calculation of RSA"
+            opt.addExtraVariables = False
     if bad_input:
         return -2
     
@@ -449,6 +460,12 @@ def main():
         freeStreamValues = calculate_freestream(opt.Vs,opt.pe,exitVar,\
                                                DictOfCases,opt.RSAtype,beta)
         
+        # If desired we add dynamic pressure, mass flux, unit Reynolds number
+        # and p/q to the calculated freestream variables
+        if opt.addExtraVariables:
+            freeStreamValues, exitVar = \
+                               add_extra_variables(freeStreamValues, exitVar)
+        
         # Write an output file
         write_flow_summary(opt.Vs,opt.pe,freeStreamValues,\
                                                  opt.exitFileName,exitVar)
@@ -465,6 +482,9 @@ def main():
             nenzfrData['supply_h'] = nenzfrSupply['h']
             exitVar.insert(0,'supply_T')
             exitVar.insert(1,'supply_h')
+            
+            if opt.addExtraVariables:
+                nenzfrData, exitVar = add_extra_variables(nenzfrData, exitVar)
             
             residuals = calculate_residuals(freeStreamValues,nenzfrData,\
                                                                  exitVar)

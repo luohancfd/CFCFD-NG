@@ -2,17 +2,17 @@
 # nenzfr_evaluate_RSA.py
 # 
 # Used when evaluating the Mach 4 nozzle simulations.
-# Script needs a clean up/comments corrected and added.
-# 
-# Code used to loop over a set of nozzle simulations 
-# and compare the freestream properties to those 
-# calculated using a nominated nenzfr response surface.
+# Script needs a clean up/commenting corrected and added.
 # 
 # Luke Doherty
 # School of Mechancial and Mining Engineering
 # The University of Queensland
-
-VERSION_STRING = "08-May-2012"
+#
+# Version: 08-May-2012 - Initial completed and working code
+#          04-Feb-2013 - Added --RSAfile and --add-extra-variables
+#                        options. 
+# 
+VERSION_STRING = "04-Feb-2013"
 
 import shlex, subprocess, string
 from subprocess import PIPE
@@ -84,41 +84,54 @@ def write_summaryFile(residuals, exitVar, DictOfCases, casesList=None):
         del casesList[casesList.index('case00')]
      
     # Write out title line
-    fout.write('{0:>9}'.format('variable'))
+    fout.write('{0:>12}'.format('variable'))
     for case in casesList:
         fout.write('{0:>15}'.format(case))
+    fout.write('{0:>15}'.format('Root-Sum-'))
     fout.write('\n')
     # Write out the Vs values for each case
-    fout.write('{0:>9}'.format('Vs'))
+    fout.write('{0:>12}'.format('Vs'))
     for case in casesList:
         fout.write('{0:>15.5g}'.format(DictOfCases[case][0]))
+    fout.write('{0:>15}'.format('Square'))
     fout.write('\n')
     # Write out the pe values for each case
-    fout.write('{0:>9}'.format('pe'))
+    fout.write('{0:>12}'.format('pe'))
     for case in casesList:
         fout.write('{0:>15.6g}'.format(DictOfCases[case][1]))
+    fout.write('{0:>15}'.format(''))
     fout.write('\n')
     # Write out a horizontal line
-    for k in range(len(DictOfCases)-1):
+    for k in range(len(DictOfCases)):
         fout.write('{0:->15}'.format('-'))
-    fout.write('{0:->9}'.format('-'))
+    fout.write('{0:->27}'.format('-'))
     fout.write('\n')
     
+    # Write out data for each case and exit variable. We
+    # also calculate and write out the root-sum-square
+    # residual
     for var in exitVar:
-        fout.write('{0:>9}'.format(var))
+        fout.write('{0:>12}'.format(var))
+        sumSquare = 0.0
         for case in casesList:
+            sumSquare += float(square(residuals[case][var]))
             fout.write('{0:>15.7g}'.format(residuals[case][var]))
+        fout.write('{0:>15.7g}'.format(sqrt(sumSquare)))
         fout.write('\n')
     fout.close()
     return 0
         
 def main():
     """
+    Examine the command-line options to decide what to do.
     """
     op = optparse.OptionParser(version=VERSION_STRING)
     
     op.add_option('--run-defaults', dest='runDefaults', action='store_true',
                   default=True, help="[default: %default]")
+    op.add_option('--RSA-file', dest='RSAfile', default='response-surface.dat',
+                  help="specify the Response-Surface file name "
+                  "[default: %default]")
     op.add_option('--perturb-file', dest='perturbFile', default='perturbation_cases.dat',
                   help="specify the file name holding the perturbation case information "
                   "[default: %default]")
@@ -127,15 +140,18 @@ def main():
                   "[default: %default]")
     op.add_option('--write-summary', dest='writeSummary', action='store_true',
                   default=False, help="[default: %default]")
+    op.add_option('--add-extra-variables', dest='addExtraVariables', action='store_true',
+                  default=False, help=("specify whether q, rho*u_x, Re_u and p/q should "
+                       "also be calculated. [default: %default]"))
     opt, args = op.parse_args()
     
     # Read the perturbation summary  file to get the perturbed
     # variables and their various values
     perturbedVariables, DictOfCases = read_case_summary(opt.perturbFile)
     
-    if os.path.exists('./case00'):
+    if os.path.exists('./case00') or os.path.exists('./caseA'):
         runCMD = './'
-    elif os.path.exists('../case00'):
+    elif os.path.exists('../case00') or os.path.exists('../caseA'):
         runCMD = '../'
     else:
         print "Cannot find case folders"
@@ -144,10 +160,21 @@ def main():
     # Loop through each case
     for case in DictOfCases.keys():
         if case not in ['case00',]:
+            #command_text = "nenzfr_RSA.py --Vs="+str(DictOfCases[case][0])+" --pe="+\
+            #           str(DictOfCases[case][1])+" --exitFile="+case+"-exit.RSAdat"+\
+            #           " --calculate-residuals --estcjFile="+runCMD+case+"/nozzle-estcj.dat"+\
+            #           " --exitStatsFile="+runCMD+case+"/nozzle-exit.stats"
+            if opt.addExtraVariables is True:
+                addExtraVariables = " --add-extra-variables"
+            else:
+                addExtraVariables = ""
+            
             command_text = "nenzfr_RSA.py --Vs="+str(DictOfCases[case][0])+" --pe="+\
                        str(DictOfCases[case][1])+" --exitFile="+case+"-exit.RSAdat"+\
                        " --calculate-residuals --estcjFile="+runCMD+case+"/nozzle-estcj.dat"+\
-                       " --exitStatsFile="+runCMD+case+"/nozzle-exit.stats"
+                       " --exitStatsFile="+runCMD+case+"/nozzle-exit.stats"+\
+                       " --RSA-file="+opt.RSAfile+addExtraVariables
+            
             #print command_text
             #run_command(command_text)
             print ""
@@ -165,12 +192,13 @@ def main():
     
     if opt.writeSummary:
         residuals = {}
-        caseList = [         'case23',         'case13',\
-                    'case41',         'case01',         'case31',\
-                             'case20',         'case10',\
-                    'case42',         'case02',         'case32',\
-                             'case24',         'case14',\
-                    'caseA','caseB','caseC','caseD']
+        #caseList = [         'case23',         'case13',\
+        #            'case41',         'case01',         'case31',\
+        #                     'case20',         'case10',\
+        #            'case42',         'case02',         'case32',\
+        #                     'case24',         'case14',\
+        #            'caseA','caseB','caseC','caseD']
+        caseList = ['caseA','caseB','caseC','caseD','caseE','caseF']
         for case in DictOfCases.keys():
             if case not in ['case00']:
                 residuals[case], exitProperty = read_outfile(case+'-exit.RSAdat_residuals')
