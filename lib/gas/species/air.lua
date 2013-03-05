@@ -8,6 +8,8 @@ air.M = {
    description = 'molecular mass',
    reference = 'Bird, Stewart and Lightfoot (2001), p. 864 & 867'
 }
+air.atomic_constituents = {air=1}
+air.charge = 0
 air.gamma = {
    value = 1.4,
    units = 'non-dimensional',

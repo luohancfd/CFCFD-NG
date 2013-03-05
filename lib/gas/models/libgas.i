@@ -152,7 +152,9 @@ def create_gas_file(model, species, fname="gas-model.lua", lut_file=None):
     lut_file: (string) name of the Look-up table file, if any.
 
     Note that the species list does not contain the LUT species
-    which will the automatically prepended if the lut_fule is specified. 
+    which will the automatically prepended if the lut_fule is specified.
+    This addition only works if the original gas model is a composite-gas.
+    The resulting gas model is LUT-plus-composite.
     """
     # Prepare the basic gas model file by invoking Rowan's gasfile.lua program.
     tmpfile = "gas-tmp.txt"
@@ -172,6 +174,9 @@ def create_gas_file(model, species, fname="gas-model.lua", lut_file=None):
         fp = open(fname, "r")
         lines_of_text = fp.readlines()
         fp.close()
+        if " ".join(lines_of_text).find("composite gas") < 0:
+            print "A LUT gas can only be added to a composite-gas model."
+            sys.exit(-1) 
         lines_of_text.insert(1, "-- modified by create_gas_file() to add LUT\n")
         lines_of_text.insert(2, "lut_file = '%s'\n" % lut_file)
         fp = open(fname, "w")
@@ -180,7 +185,7 @@ def create_gas_file(model, species, fname="gas-model.lua", lut_file=None):
                 line = line.replace("composite gas", "LUT-plus-composite")
             fp.write(line)
         fp.close()
-    
+    #
     return create_gas_model(fname)
 
 

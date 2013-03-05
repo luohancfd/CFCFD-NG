@@ -8,6 +8,8 @@ air13.M = {
    description = 'molecular mass',
    reference = 'Bird, Stewart and Lightfoot (2001), p. 864 & 867'
 }
+air13.atomic_constituents = {air13=1}
+air13.charge = 0
 air13.gamma = {
    value = 1.3,
    units = 'non-dimensional',

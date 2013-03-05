@@ -102,19 +102,6 @@ sys.path.append(os.path.expandvars("$HOME/e3bin")) # installation directory
 sys.path.append("") # so that we can find user's scripts in current directory
 from getopt import getopt
 from gaspy import *
-# from e3_gas import * # moved to gaspy.i
-
-from copy import copy
-import math
-try:
-    import numpy as Numeric
-except:
-    try:
-        import Numeric
-    except:
-        print "Could import neither numpy nor Numeric."
-
-from gaspy import *
 
 shortOptions = "hf:"
 longOptions = ["help", "job="]
@@ -402,7 +389,7 @@ def select_gas_model(model=None, species=None, fname=None):
     and stores the name for later user at simulation time.
 
     If you already have a gas-model.lua file already set up,
-    give its name af fname.
+    give its name as fname.
     
     If you have not already set up the gas-model.lua file,
     this function is provided as a simple but limited means to do so.
@@ -413,8 +400,10 @@ def select_gas_model(model=None, species=None, fname=None):
     file externally and supply the name of that file as fname.
     If you want a LUT-plus-composite gas model, set up the LUT table
     externally and then set up the rest of the composite gas model
-    using create_gas_file(), which has the capability of prepending 
-    the LUT gas species.
+    using create_gas_file() directly, then select the gas model
+    by specifying the gas file name when calling this function.
+    The create_gas_file() function has the capability of prepending
+    the LUT gas species to the composite gas species list.
     """
     if fname is None:
         # Help the user to set up the gas-model file.
@@ -430,6 +419,7 @@ def select_gas_model(model=None, species=None, fname=None):
             print "    Bailing out!"
             sys.exit(1)
         create_gas_file(model, species, fname)
+    # At this point, the gas model file exists as required.
     gdata.gmodel = create_gas_model(fname)
     gdata.gas_model_file = fname
     nsp = gdata.gmodel.get_number_of_species()

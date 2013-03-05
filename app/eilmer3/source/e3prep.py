@@ -125,8 +125,10 @@ def select_gas_model(model=None, species=None, fname=None):
     file externally and supply the name of that file as fname.
     If you want a LUT-plus-composite gas model, set up the LUT table
     externally and then set up the rest of the composite gas model
-    using create_gas_file(), which has the capability of prepending 
-    the LUT gas species.
+    using create_gas_file() directly, then select the gas model
+    by specifying the gas file name when calling this function.
+    The create_gas_file() function has the capability of prepending
+    the LUT gas species to the composite gas species list.
     """
     if fname is None:
         # Help the user to set up the gas-model file.
