@@ -2,11 +2,10 @@
 """
 e3post.py -- Python program to pick up the data after a simulation.
 
-e3post.py is the principal post-processing file for slicing and dicing
-your flow data.
+e3post.py is the principal post-processor for slicing and dicing your flow data.
 Try invoking it with the --help option to see more information.
 
-.. Author: P.Jacobs
+.. Author: P.Jacobs and many others
 
 .. Versions:
    19-March-2008
@@ -17,13 +16,11 @@ Try invoking it with the --help option to see more information.
 import sys
 import os
 import ConfigParser
-sys.path.append("/sw/lib/python2.3/site-packages/Numeric") # for Tim's MacOSX
 sys.path.append(os.path.expandvars("$HOME/e3bin")) # installation directory
 sys.path.append("") # so that we can find user's scripts in current directory
 from getopt import getopt, GetoptError
 from glob import glob
 from gzip import GzipFile
-# from libprep import *
 from e3_defs import *
 from e3_grid import *
 from e3_block import *
@@ -44,6 +41,7 @@ def printUsage():
     print ""
     print "Usage: e3post.py [--help] [--job=<jobFileName>] [--tindx=<index|all>]"
     print "                 [--zip-files|--no-zip-files]"
+    print "                 [--moving-grid]"
     print "                 [--vtk-xml] [--tecplot] [--plot3d]"
     print "                 [--prepare-restart] [--prepare-fstc-restart]"
     print "                 [--put-into-folders]"
