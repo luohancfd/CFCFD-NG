@@ -102,9 +102,9 @@ public:
     /// Subtract v from this vector.
     Vector3& operator-=( const Vector3 &v );
     /// Scale by v (real number).
-    Vector3& operator*=( double v );
+    Vector3& operator*=( double val );
     /// Scale by 1/v.
-    Vector3& operator/=( double v );
+    Vector3& operator/=( double val );
     /// Normalize the vector (so that it is a unit vector.
     Vector3& norm();
 };

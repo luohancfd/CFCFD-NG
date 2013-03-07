@@ -59,28 +59,37 @@ std::string get_face_name(int index)
 //---------------------------------------------------------------------------
 
 FlowState::FlowState(Gas_model *gm)
+    : gas(new Gas_data(gm)),
+    vel(0.0,0.0,0.0), shock_vel(0.0,0.0,0.0), B(0.0,0.0,0.0),
+    S(0), tke(0.0), omega(0.0), mu_t(0.0), k_t(0.0), 
+    G(get_velocity_buckets(),0.0), H(get_velocity_buckets(),0.0)
+{}
+
+FlowState::FlowState(const FlowState &fs)
+    : gas(new Gas_data(*(fs.gas))),
+    vel(fs.vel), shock_vel(fs.shock_vel), B(fs.B),
+    S(fs.S), tke(fs.tke), omega(fs.omega), mu_t(fs.mu_t), k_t(fs.k_t), 
+    G(fs.G), H(fs.H)
+{}
+
+FlowState & FlowState::operator=(const FlowState &fs)
 {
-    gas = new Gas_data(gm);
-    vel.x = 0.0; vel.y = 0.0; vel.z = 0.0;
-    B.x = 0.0; B.y = 0.0; B.z = 0.0;
-    shock_vel.x = 0.0; shock_vel.y = 0.0; shock_vel.z = 0.0;
-    S = 0;
-    tke = 0.0;
-    omega = 0.0;
-    mu_t = 0.0;
-    k_t = 0.0;
-    G.resize(get_velocity_buckets(), 0.0);
-    H.resize(get_velocity_buckets(), 0.0);
+    if ( this != &fs ) { // Avoid aliasing
+	gas = new Gas_data(*(fs.gas));
+        vel = fs.vel; shock_vel = fs.shock_vel; B = fs.B;
+	S = fs.S; tke = fs.tke; omega=fs.omega;
+	mu_t = fs.mu_t; k_t = fs.k_t;
+	G = fs.G; H = fs.H;
+    }
+    return *this;
 }
 
 FlowState::~FlowState()
 {
     delete gas;
-    G.resize(0, 0.0);
-    H.resize(0, 0.0);
 }
 
-int FlowState::print()
+int FlowState::print() const
 {
     printf("----------- Data for a flow state... ------------\n");
     gas->print_values();
@@ -99,7 +108,7 @@ int FlowState::print()
     return SUCCESS;
 }
 
-int FlowState::copy_values_from(FlowState &src)
+int FlowState::copy_values_from(const FlowState &src)
 {
     gas->copy_values_from(*(src.gas));
     vel.x = src.vel.x; vel.y = src.vel.y; vel.z = src.vel.z;
@@ -116,7 +125,7 @@ int FlowState::copy_values_from(FlowState &src)
     return SUCCESS;
 }
 
-int FlowState::copy_values_from(CFlowCondition &src)
+int FlowState::copy_values_from(const CFlowCondition &src)
 {
     gas->copy_values_from(*(src.gas));
     vel.x = src.u; vel.y = src.v; vel.z = src.w;
@@ -131,7 +140,8 @@ int FlowState::copy_values_from(CFlowCondition &src)
     return SUCCESS;
 }
 
-int FlowState::average_values_from(FlowState &src0, FlowState &src1, bool with_diff_coeff)
+int FlowState::average_values_from(const FlowState &src0, const FlowState &src1,
+				   bool with_diff_coeff)
 {
     gas->average_values_from(*(src0.gas), 0.5, *(src1.gas), 0.5, with_diff_coeff);
     vel.x = 0.5 * (src0.vel.x + src1.vel.x);
@@ -157,7 +167,7 @@ int FlowState::average_values_from(FlowState &src0, FlowState &src1, bool with_d
 /// \brief Copy the FlowState data into a linear data buffer.
 /// \param buf : pointer to the current element somewhere in buffer
 /// \returns a pointer to the next available location in the data buffer.
-double * FlowState::copy_values_to_buffer(double *buf)
+double * FlowState::copy_values_to_buffer(double *buf) const
 {
     buf = gas->copy_values_to_buffer(buf);
     *buf++ = vel.x;
@@ -234,28 +244,40 @@ int FlowState::BGK_equilibrium(void)
 //----------------------------------------------------------------------------
 
 ConservedQuantities::ConservedQuantities(Gas_model *gm)
+    : mass(0.0), momentum(0.0,0.0,0.0), B(0.0,0.0,0.0),
+      total_energy(0.0),
+      massf(gm->get_number_of_species(),0.0),
+      energies(gm->get_number_of_modes(),0.0),
+      tke(0.0), omega(0.0),
+      G(get_velocity_buckets(),0.0), H(get_velocity_buckets(),0.0)
+{}
+
+ConservedQuantities::ConservedQuantities(const ConservedQuantities &Q)
+    : mass(Q.mass), momentum(Q.momentum), B(Q.B),
+      total_energy(Q.total_energy),
+      massf(Q.massf),
+      energies(Q.energies),
+      tke(Q.tke), omega(Q.omega),
+      G(Q.G), H(Q.H)
+{}
+
+ConservedQuantities & ConservedQuantities::operator=(const ConservedQuantities &Q)
 {
-    mass = 0.0;
-    momentum.x = 0.0; momentum.y = 0.0; momentum.z = 0.0;
-    B.x = 0.0; B.y = 0.0; B.z = 0.0;
-    total_energy = 0.0;
-    massf.resize(gm->get_number_of_species(), 0.0);
-    energies.resize(gm->get_number_of_modes(), 0.0);
-    tke = 0.0;
-    omega = 0.0;
-    G.resize(get_velocity_buckets(), 0.0);
-    H.resize(get_velocity_buckets(), 0.0);
+    if ( this != &Q ) { // Avoid aliasing
+	mass = Q.mass; momentum = Q.momentum; B = Q.B;
+	total_energy = Q.total_energy;
+	massf = Q.massf;
+	energies = Q.energies;
+	tke = Q.tke;
+	G = Q.G; H = Q.H;
+    }
+    return *this;
 }
 
 ConservedQuantities::~ConservedQuantities()
-{
-    massf.clear();
-    energies.clear();
-    G.clear();
-    H.clear();
-}
+{}
 
-int ConservedQuantities::print()
+int ConservedQuantities::print() const
 {
     cout << "mass= " << mass << endl;
     cout << "momentum.x= " << momentum.x << " .y= " << momentum.y
@@ -283,7 +305,7 @@ int ConservedQuantities::print()
     return SUCCESS;
 }
 
-int ConservedQuantities::copy_values_from(ConservedQuantities &src)
+int ConservedQuantities::copy_values_from(const ConservedQuantities &src)
 {
     mass = src.mass;
     momentum.x = src.momentum.x;

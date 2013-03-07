@@ -52,9 +52,10 @@ const int MASKED_IFACE = 1;
  *
  * Used below to dimension some time-derivative arrays.
  */
-const size_t NL = 4;
-const size_t NI = 6;
-const size_t NV = 8;
+const size_t NL = 4; // Number of levels for derivative calcs and ODE updates.
+
+const size_t NI = 6; // Number of interfaces per cell
+const size_t NV = 8; // Number of vertices per cell
 
 /// We might update the k-omega properties in with the main predictor-corrector
 /// time-stepping function or we might choose to update it separately, 
@@ -84,14 +85,18 @@ public:
     std::vector<double> H; ///> \brief velocity dist. partial densities, (kg*s**2)/(m**5)
     //
     FlowState(Gas_model *gm);
+    FlowState(const FlowState &fs);
+    FlowState & operator=(const FlowState &fs);
     ~FlowState();
-    int print();
-    int copy_values_from(FlowState &src);
-    int copy_values_from(CFlowCondition &src);
-    int average_values_from(FlowState &src0, FlowState &src1, bool with_diff_coeff);
-    int average_values_from(FlowState &src0, double alpha0, 
-			    FlowState &src1, double alpha1, bool with_diff_coeff);
-    double * copy_values_to_buffer(double *buf);
+    int print() const;
+    int copy_values_from(const FlowState &src);
+    int copy_values_from(const CFlowCondition &src);
+    int average_values_from(const FlowState &src0, const FlowState &src1,
+			    bool with_diff_coeff);
+    // int average_values_from(const FlowState &src0, double alpha0, 
+    // 			    const FlowState &src1, double alpha1,
+    // 			    bool with_diff_coeff);
+    double * copy_values_to_buffer(double *buf) const;
     double * copy_values_from_buffer(double *buf);
     int BGK_equilibrium(void);
 };
@@ -111,9 +116,11 @@ public:
     std::vector<double> H; ///> \brief velocity dist. partial densities, (kg*s**2)/(m**5)
     //
     ConservedQuantities(Gas_model *gm);
+    ConservedQuantities(const ConservedQuantities &Q);
+    ConservedQuantities & operator=(const ConservedQuantities &Q);
     ~ConservedQuantities();
-    int print();
-    int copy_values_from(ConservedQuantities &src);
+    int print() const;
+    int copy_values_from(const ConservedQuantities &src);
     int clear_values();
 };
 
