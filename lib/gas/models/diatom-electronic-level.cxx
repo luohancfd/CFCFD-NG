@@ -231,6 +231,13 @@ eval_E_vib( int iV )
           yomega_e * pow ( 0.5 + double(iV), 3 ) + \
           zomega_e * pow ( 0.5 + double(iV), 4 );
     
+#   if E_VIB_RELATIVE_TO_GROUND_STATE
+    E_v -= omega_e * ( 0.5 ) - \
+	   xomega_e * pow ( 0.5, 2 ) + \
+	   yomega_e * pow ( 0.5, 3 ) + \
+	   zomega_e * pow ( 0.5, 4 );
+#   endif
+
     return E_v;
 }
 
@@ -243,11 +250,13 @@ eval_E_rot( int iV, int iJ )
        Huber and Herzberg (1950) Constants of Diatomic Molecules p 118, 169 */
     
     // Coupling terms
+    double v = (double) iV;
+    double J = (double) iJ;
     
-    double D_v = D_e + (double(iV) + 0.5) * beta_e;
-    double B_v = B_e - (double(iV) + 0.5) * alpha_e;
+    double D_v = D_e + (v + 0.5) * beta_e;
+    double B_v = B_e - (v + 0.5) * alpha_e;
     // Energy
-    double E_r = B_v*iJ*(iJ+1.0) + (A_spin-B_v)*double(Lambda*Lambda) - D_v*iJ*iJ*(iJ+1.0)*(iJ+1.0);
+    double E_r = B_v*J*(J+1.0) + (A_spin-B_v)*double(Lambda*Lambda) - D_v*J*J*(J+1.0)*(J+1.0);
     
     return E_r;
 }

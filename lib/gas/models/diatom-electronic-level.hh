@@ -5,6 +5,8 @@
 #ifndef DIATOM_ELEC_LEV_HH
 #define DIATOM_ELEC_LEV_HH
 
+#define E_VIB_RELATIVE_TO_GROUND_STATE 1
+
 #include <vector>
 
 #include "gas_data.hh"
