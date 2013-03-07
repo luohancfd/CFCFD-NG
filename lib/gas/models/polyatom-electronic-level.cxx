@@ -72,7 +72,7 @@ Polyatom_electronic_level( vector<double> lev_data )
     for ( size_t ivm=0; ivm<omega_e_vec.size(); ++ivm ) {
 	// calculate level degeneracy
 	int g_vib = 0;
-	for ( size_t jvm=0; ivm<omega_e_vec.size(); ++jvm ) {
+	for ( size_t jvm=0; jvm<omega_e_vec.size(); ++jvm ) {
 	    if ( fabs(omega_e_vec[jvm]-omega_e_vec[ivm])/omega_e_vec[ivm] < 1.0e-6 )
 	        g_vib++;
 	}
