@@ -660,8 +660,14 @@ Fully_coupled_diatomic_species( string name, string type, int isp, double min_ma
 	r_eq_ = get_positive_value( L, -1, "r_eq" );
 	f_m_ = get_positive_value( L, -1, "f_m" );
 	mu_ = get_positive_value( L, -1, "mu" );
-	alpha_ = get_positive_value( L, -1, "alpha" );
-	mu_B_ = get_positive_value( L, -1, "mu_B" );
+	if ( polar_flag_ ) {
+	    // We might need the dipole moment
+	    mu_B_ = get_positive_value( L, -1, "mu_B" );
+	}
+	else {
+	    // We might need the electric polarizability
+	    alpha_ = get_positive_value( L, -1, "alpha" );
+	}
     }
     
 #   if TABULATED_COUPLED_DIATOMIC_MODES==0
