@@ -241,3 +241,74 @@ Reaction* create_Reaction(lua_State *L, Gas_model &g)
 
     return r;
 }
+
+
+Reaction* get_reaction_from_file(int ir, string cfile, Gas_model &g)
+{
+    // Setup lua_State for parsing.
+    lua_State *L = luaL_newstate();
+    luaL_openlibs(L);
+
+    // Set up species table
+    lua_newtable(L);
+    for ( int isp = 0; isp < g.get_number_of_species(); ++isp ) {
+	// This species table maps to C++ indices, because
+	// it is used to setup the integer maps for
+	// the reaction coefficients.
+	lua_pushinteger(L, isp);
+	lua_setfield(L, -2, g.species_name(isp).c_str());
+    }
+    // Plus add a field 'size': no of species
+    lua_pushinteger(L, g.get_number_of_species());
+    lua_setfield(L, -2, "size");
+    lua_setglobal(L, "species");
+
+    // Path to reaction parsing script
+    char *e3bin = getenv("E3BIN");
+    string home;
+    if ( e3bin == NULL ) {
+	// Assume default location of $HOME/e3bin
+	home.append(getenv("HOME")); home.append("/e3bin");
+    }
+    else {
+	home.append(e3bin);
+    }
+    string script_file(home);
+    script_file.append("/reaction_parser.lua");
+
+    if ( luaL_dofile(L, script_file.c_str()) != 0 ) {
+	ostringstream ost;
+	ost << "create_reaction_update():\n";
+	ost << "Error in loading script file: " << script_file << endl;
+	input_error(ost);
+    }
+    
+    // Parse the input file...
+    lua_getglobal(L, "main");
+    lua_pushstring(L, cfile.c_str());
+    if ( lua_pcall(L, 1, 0, 0) != 0 ) {
+	ostringstream ost;
+	ost << "create_reaction_update():\n";
+	ost << "Error trying to load reaction scheme file: " << cfile << endl;
+	ost << "Lua error message: " << lua_tostring(L, -1) << endl;
+	input_error(ost);
+    }
+    
+    lua_getglobal(L, "reactions");
+    if ( !lua_istable(L, -1) ) {
+	ostringstream ost;
+	ost << "reaction-rate-coeff.cxx::\n";
+	ost << "Error interpreting 'reactions'; a table of reactions is expected.\n";
+	input_error(ost);
+    }
+
+    lua_rawgeti(L, -1, ir);
+
+    Reaction *reac = create_Reaction(L, g);
+
+    lua_close(L);
+    return reac;
+}
+    
+    
+    
