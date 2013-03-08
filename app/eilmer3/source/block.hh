@@ -38,8 +38,6 @@ typedef int (FV_Cell::*FV_Cell_MemberFunction_int_int)(int,int);
 /// This sets the size of the ghost-cell buffer around a block.
 const int NGHOST = 2;
 
-const int MAX_HNCELL = 200;
-
 /// \brief Parameters for cell checking...
 ///
 /// When decoding the array of conserved quantities, 
@@ -77,7 +75,7 @@ public:
     Vector3 mass_residual_loc, energy_residual_loc; // locations of worst case
 
     int hncell;                 // number of sample cells
-    int hicell[MAX_HNCELL], hjcell[MAX_HNCELL], hkcell[MAX_HNCELL]; // location of sample cell
+    std::vector<int> hicell, hjcell, hkcell; // location of sample cells
 
     // Total number of cells in each direction for this block.
     // these will be used in the array allocation routines.
@@ -100,7 +98,10 @@ public:
     int baldwin_lomax_iturb;
 
     // boundary-condition object pointers.
-    BoundaryCondition *bcp[6];
+    std::vector<BoundaryCondition *> bcp;
+
+    // Positions of interfaces marked as shocks
+    // std::vector<Vector3 *> shock_iface_pos;
 
 private:
     // Most of the data is stored in the following arrays.
@@ -122,8 +123,9 @@ private:
 
 public:
     Block();
+    Block(const Block &b);
     ~Block();
-    std::vector<Vector3 *> shock_iface_pos; // Positions of interfaces marked as shocks
+    Block & operator=(const Block &b);
 
     int array_alloc(int dimensions);
     int array_cleanup(int dimensions);

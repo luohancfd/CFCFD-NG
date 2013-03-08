@@ -65,6 +65,13 @@ FlowState::FlowState(Gas_model *gm)
     G(get_velocity_buckets(),0.0), H(get_velocity_buckets(),0.0)
 {}
 
+FlowState::FlowState()
+    : gas(new Gas_data(get_gas_model_ptr())),
+    vel(0.0,0.0,0.0), shock_vel(0.0,0.0,0.0), B(0.0,0.0,0.0),
+    S(0), tke(0.0), omega(0.0), mu_t(0.0), k_t(0.0), 
+    G(get_velocity_buckets(),0.0), H(get_velocity_buckets(),0.0)
+{}
+
 FlowState::FlowState(const FlowState &fs)
     : gas(new Gas_data(*(fs.gas))),
     vel(fs.vel), shock_vel(fs.shock_vel), B(fs.B),
@@ -252,6 +259,15 @@ ConservedQuantities::ConservedQuantities(Gas_model *gm)
       G(get_velocity_buckets(),0.0), H(get_velocity_buckets(),0.0)
 {}
 
+ConservedQuantities::ConservedQuantities()
+    : mass(0.0), momentum(0.0,0.0,0.0), B(0.0,0.0,0.0),
+      total_energy(0.0),
+      massf(get_gas_model_ptr()->get_number_of_species(),0.0),
+      energies(get_gas_model_ptr()->get_number_of_modes(),0.0),
+      tke(0.0), omega(0.0),
+      G(get_velocity_buckets(),0.0), H(get_velocity_buckets(),0.0)
+{}
+
 ConservedQuantities::ConservedQuantities(const ConservedQuantities &Q)
     : mass(Q.mass), momentum(Q.momentum), B(Q.B),
       total_energy(Q.total_energy),
@@ -350,27 +366,44 @@ int ConservedQuantities::clear_values()
 //----------------------------------------------------------------------------
 
 FV_Interface::FV_Interface(Gas_model *gm)
+    : id(0), status(0), pos(0.0,0.0,0.0), vel(0.0,0.0,0.0),
+      Ybar(0.0), length(0.0), area(0.0), ar(NL, 0.0),
+      n(0.0,0.0,0.0), t1(0.0,0.0,0.0), t2(0.0,0.0,0.0),
+      fs(new FlowState(gm)), F(new ConservedQuantities(gm))
 {
-    id = 0;
-    status = 0;
-    pos.x = 0.0; pos.y = 0.0; pos.z = 0.0;
-    vel.x = 0.0; vel.y = 0.0; vel.z = 0.0;
-    Ybar = 0.0;
-    length = 0.0;
-    for ( size_t i = 0; i < NL; ++i ) {
-	ar[i] = 0.0;	
-    }
-    area = 0.0;
-    n.x = 0.0; n.y = 0.0; n.z = 0.0;
-    t1.x = 0.0; t1.y = 0.0; t1.z = 0.0;
-    t2.x = 0.0; t2.y = 0.0; t2.z = 0.0;
-    fs = new FlowState(gm);
-    F = new ConservedQuantities(gm);
 #   if WITH_IMPLICIT == 1
-    // Ojas, may be good to initialize point-implicit variables
+    // Ojas, FIX-ME, may be good to initialize point-implicit variables
     // double Lambda[6][2], R[6][6], R_inv[6][6], sl[6][2], sl_min[6][2];
     // double A[6][6], J[6][6], hl[6][2], gl[6][2];
 #   endif
+}
+
+FV_Interface::FV_Interface()
+    : id(0), status(0), pos(0.0,0.0,0.0), vel(0.0,0.0,0.0),
+      Ybar(0.0), length(0.0), area(0.0), ar(NL, 0.0),
+      n(0.0,0.0,0.0), t1(0.0,0.0,0.0), t2(0.0,0.0,0.0),
+      fs(new FlowState(get_gas_model_ptr())),
+      F(new ConservedQuantities(get_gas_model_ptr()))
+{}
+
+FV_Interface::FV_Interface(const FV_Interface &iface)
+    : id(iface.id), status(iface.status), pos(iface.pos), vel(iface.vel),
+      Ybar(iface.Ybar), length(iface.length), area(iface.area), 
+      ar(iface.ar), n(iface.n), t1(iface.t1), t2(iface.t2),
+      fs(new FlowState(*iface.fs)), F(new ConservedQuantities(*iface.F))
+{}
+
+FV_Interface & FV_Interface::operator=(const FV_Interface &iface)
+{
+    if ( this != &iface ) { // Avoid aliasing
+	id = iface.id; status = iface.status;
+	pos = iface.pos; vel = iface.vel;
+	Ybar = iface.Ybar; length = iface.length; area = iface.area;
+	ar = iface.ar; n = iface.n; t1 = iface.t1; t2 = iface.t2;
+	fs = new FlowState(*iface.fs);
+	F = new ConservedQuantities(*iface.F);
+    }
+    return *this;
 }
 
 FV_Interface::~FV_Interface()
@@ -379,7 +412,7 @@ FV_Interface::~FV_Interface()
     delete F;
 }
 
-int FV_Interface::print(int to_stdout)
+int FV_Interface::print(int to_stdout) const
 {
     printf( "----------- Begin data for interface -----------\n");
     // printf( "id = %i\n", iface->id);
@@ -397,7 +430,7 @@ int FV_Interface::print(int to_stdout)
 }
 
 /// \brief Copies data between two interface structures
-int FV_Interface::copy_values_from(FV_Interface &src, int type_of_copy)
+int FV_Interface::copy_values_from(const FV_Interface &src, int type_of_copy)
 {
     if ( type_of_copy == COPY_ALL_CELL_DATA ||
 	 type_of_copy == COPY_FLOW_STATE ) {
@@ -419,36 +452,56 @@ int FV_Interface::copy_values_from(FV_Interface &src, int type_of_copy)
 //----------------------------------------------------------------------------
 
 FV_Vertex::FV_Vertex(Gas_model *gm)
-{
-    int nsp = gm->get_number_of_species();
-    int nmodes = gm->get_number_of_modes();
-    id = 0;
-    pos.x = 0.0; pos.y = 0.0; pos.z = 0.0;
-    for ( size_t i = 0; i < NL; ++i ) {
-	    position[i].x = 0.0; position[i].y = 0.0; position[i].z = 0.0;
-    }
-    vel.x = 0.0; vel.y = 0.0; vel.z = 0.0;
-    for ( size_t i = 0; i < NL; ++i ) {
-	    velocity[i].x = 0.0; velocity[i].y = 0.0; velocity[i].z = 0.0;
-    }
-    area = 0.0;
-    volume = 0.0;
-    dudx = 0.0; dudy = 0.0; dudz = 0.0;
-    dvdx = 0.0; dvdy = 0.0; dvdz = 0.0;
-    dwdx = 0.0; dwdy = 0.0; dwdz = 0.0;
-    dTdx.resize(nmodes, 0.0); dTdy.resize(nmodes, 0.0); dTdz.resize(nmodes, 0.0);
-    dtkedx = 0.0; dtkedy = 0.0; dtkedz = 0.0;
-    domegadx = 0.0; domegady = 0.0; domegadz = 0.0;
-    dfdx.resize(nsp, 0.0); dfdy.resize(nsp, 0.0); dfdz.resize(nsp, 0.0);
-}
+    : id(0), pos(0.0,0.0,0.0), position(NL,Vector3(0.0,0.0,0.0)),
+      vel(0.0,0.0,0.0), velocity(NL,Vector3(0.0,0.0,0.0)),
+      area(0.0), volume(0.0),
+      dudx(0.0), dudy(0.0), dudz(0.0),
+      dvdx(0.0), dvdy(0.0), dvdz(0.0),
+      dwdx(0.0), dwdy(0.0), dwdz(0.0),
+      dTdx(gm->get_number_of_modes(),0.0),
+      dTdy(gm->get_number_of_modes(),0.0),
+      dTdz(gm->get_number_of_modes(),0.0),
+      dtkedx(0.0), dtkedy(0.0), dtkedz(0.0),
+      domegadx(0.0), domegady(0.0), domegadz(0.0),
+      dfdx(gm->get_number_of_species(),0.0),
+      dfdy(gm->get_number_of_species(),0.0),
+      dfdz(gm->get_number_of_species(),0.0)
+{}
+
+FV_Vertex::FV_Vertex()
+    : id(0), pos(0.0,0.0,0.0), position(NL,Vector3(0.0,0.0,0.0)),
+      vel(0.0,0.0,0.0), velocity(NL,Vector3(0.0,0.0,0.0)),
+      area(0.0), volume(0.0),
+      dudx(0.0), dudy(0.0), dudz(0.0),
+      dvdx(0.0), dvdy(0.0), dvdz(0.0),
+      dwdx(0.0), dwdy(0.0), dwdz(0.0),
+      dTdx(get_gas_model_ptr()->get_number_of_modes(),0.0),
+      dTdy(get_gas_model_ptr()->get_number_of_modes(),0.0),
+      dTdz(get_gas_model_ptr()->get_number_of_modes(),0.0),
+      dtkedx(0.0), dtkedy(0.0), dtkedz(0.0),
+      domegadx(0.0), domegady(0.0), domegadz(0.0),
+      dfdx(get_gas_model_ptr()->get_number_of_species(),0.0),
+      dfdy(get_gas_model_ptr()->get_number_of_species(),0.0),
+      dfdz(get_gas_model_ptr()->get_number_of_species(),0.0)
+{}
+
+FV_Vertex::FV_Vertex(const FV_Vertex &vtx)
+    : id(vtx.id), pos(vtx.pos), position(vtx.position),
+      vel(vtx.vel), velocity(vtx.velocity),
+      area(vtx.area), volume(vtx.volume),
+      dudx(vtx.dudx), dudy(vtx.dudy), dudz(vtx.dudz),
+      dvdx(vtx.dvdx), dvdy(vtx.dvdy), dvdz(vtx.dvdz),
+      dwdx(vtx.dwdx), dwdy(vtx.dwdy), dwdz(vtx.dwdz),
+      dTdx(vtx.dTdx), dTdy(vtx.dTdy), dTdz(vtx.dTdz),
+      dtkedx(vtx.dtkedx), dtkedy(vtx.dtkedy), dtkedz(vtx.dtkedz),
+      domegadx(vtx.domegadx), domegady(vtx.domegady), domegadz(vtx.domegadz),
+      dfdx(vtx.dfdx), dfdy(vtx.dfdy), dfdz(vtx.dfdz)
+{}
 
 FV_Vertex::~FV_Vertex()
-{
-    dTdx.clear(); dTdy.clear(); dTdz.clear();
-    dfdx.clear(); dfdy.clear(); dfdz.clear();
-}
+{}
 
-int FV_Vertex::copy_values_from(FV_Vertex &src)
+int FV_Vertex::copy_values_from(const FV_Vertex &src)
 {
     // don't copy id
     pos = src.pos; area = src.area; volume = src.volume;
@@ -471,50 +524,113 @@ int FV_Vertex::copy_values_from(FV_Vertex &src)
 //----------------------------------------------------------------------------
 
 FV_Cell::FV_Cell(Gas_model *gm)
+    : id(0), status(NORMAL_CELL), fr_reactions_allowed(0),
+      dt_chem(0.0), dt_therm(0.0), in_turbulent_zone(0),
+      base_qdot(0.0), pos(0.0,0.0,0.0), position(NL,Vector3(0.0,0.0,0.0)),
+      volume(0.0), vol(NL,0.0), area(0.0), ar(NL,0.0), uf(0.0),
+      iLength(0.0), jLength(0.0), kLength(0.0), L_min(0.0),
+      distance_to_nearest_wall(0.0), half_cell_width_at_wall(0.0),
+      cell_at_nearest_wall(NULL), iface(NI,NULL), vtx(NV,NULL),
+      fs(new FlowState(gm)), U(new ConservedQuantities(gm)),
+      U_old(new ConservedQuantities(gm)),
+      Q(new ConservedQuantities(gm)),
+      Q_rad_org(0.0), f_rad_org(0.0), Q_rE_rad(0.0),
+      rho_at_start_of_step(0.0), rE_at_start_of_step(0.0)
 {
-    id = 0;
-    status = NORMAL_CELL;
-    fr_reactions_allowed = 0;
-    dt_chem = 0.0;
-    dt_therm = 0.0;
-    in_turbulent_zone = 0;
-    base_qdot = 0.0;
-    pos.x = 0.0; pos.y = 0.0; pos.z = 0.0;
+    // Maybe we could put the following into the init section as
+    // dUdt(NL,new ConservedQuantities(gm))
     for ( size_t i = 0; i < NL; ++i ) {
-	position[i].x = 0.0; position[i].y = 0.0; position[i].z = 0.0;
+	dUdt.push_back(new ConservedQuantities(gm));
     }
-    for ( size_t i = 0; i < NL; ++i ) {
-	vol[i] = 0.0;
-    }
-    volume = 0.0;
-    area = 0.0;
-    for ( size_t i = 0; i < NL; ++i ) {
-	ar[i] = 0.0;	
-    }
-    uf = 0.0;
-    iLength = 0.0; jLength = 0.0; kLength = 0.0;
-    L_min = 0.0;
-    distance_to_nearest_wall = 0.0;
-    half_cell_width_at_wall = 0.0;
-    cell_at_nearest_wall = (FV_Cell *) NULL;
-    for ( size_t i = 0; i < 6; ++i ) iface[i] = (FV_Interface *) NULL;
-    for ( size_t i = 0; i < 8; ++i ) vtx[i] = (FV_Vertex *) NULL;
-    fs = new FlowState(gm);
-    U = new ConservedQuantities(gm);
-    U_old = new ConservedQuantities(gm);
-    for ( size_t i = 0; i < NL; ++i ) {
-	dUdt[i] = new ConservedQuantities(gm);
-    }
-    Q = new ConservedQuantities(gm);
-    Q_rad_org = 0.0;
-    f_rad_org = 0.0;
-    Q_rE_rad = 0.0;
-    rho_at_start_of_step = 0.0;
-    rE_at_start_of_step = 0.0;
 #   if WITH_IMPLICIT == 1
     // Ojas, it may be good to initialize point-implicit variables.
     // double piM[6][6], pir[6][2], qL[6][2], g_Ll[6][2], gjvec[6][2], gjmtx[6][6];
 #   endif
+}
+
+FV_Cell::FV_Cell()
+    : id(0), status(NORMAL_CELL), fr_reactions_allowed(0),
+      dt_chem(0.0), dt_therm(0.0), in_turbulent_zone(0),
+      base_qdot(0.0), pos(0.0,0.0,0.0), position(NL,Vector3(0.0,0.0,0.0)),
+      volume(0.0), vol(NL,0.0), area(0.0), ar(NL,0.0), uf(0.0),
+      iLength(0.0), jLength(0.0), kLength(0.0), L_min(0.0),
+      distance_to_nearest_wall(0.0), half_cell_width_at_wall(0.0),
+      cell_at_nearest_wall(NULL), iface(NI,NULL), vtx(NV,NULL),
+      fs(new FlowState(get_gas_model_ptr())),
+      U(new ConservedQuantities(get_gas_model_ptr())),
+      U_old(new ConservedQuantities(get_gas_model_ptr())),
+      Q(new ConservedQuantities(get_gas_model_ptr())),
+      Q_rad_org(0.0), f_rad_org(0.0), Q_rE_rad(0.0),
+      rho_at_start_of_step(0.0), rE_at_start_of_step(0.0)
+{
+    Gas_model *gm = get_gas_model_ptr();
+    for ( size_t i = 0; i < NL; ++i ) {
+	dUdt.push_back(new ConservedQuantities(gm));
+    }
+}
+
+FV_Cell::FV_Cell(const FV_Cell &cell)
+    : id(cell.id), status(cell.status), 
+      fr_reactions_allowed(cell.fr_reactions_allowed),
+      dt_chem(cell.dt_chem), dt_therm(cell.dt_therm),
+      in_turbulent_zone(cell.in_turbulent_zone),
+      base_qdot(cell.base_qdot), pos(cell.pos), position(cell.position),
+      volume(cell.volume), vol(cell.vol), area(cell.area), ar(cell.ar), uf(cell.uf),
+      iLength(cell.iLength), jLength(cell.jLength), kLength(cell.kLength),
+      L_min(cell.L_min),
+      distance_to_nearest_wall(cell.distance_to_nearest_wall),
+      half_cell_width_at_wall(cell.half_cell_width_at_wall),
+      cell_at_nearest_wall(cell.cell_at_nearest_wall),
+      iface(cell.iface), vtx(cell.vtx),
+      fs(new FlowState(*cell.fs)), U(new ConservedQuantities(*cell.U)),
+      U_old(new ConservedQuantities(*cell.U_old)), Q(cell.Q),
+      Q_rad_org(cell.Q_rad_org), f_rad_org(cell.f_rad_org), Q_rE_rad(cell.Q_rE_rad),
+      rho_at_start_of_step(cell.rho_at_start_of_step),
+      rE_at_start_of_step(cell.rE_at_start_of_step)
+{
+    for ( size_t i = 0; i < NL; ++i ) {
+	dUdt.push_back(new ConservedQuantities(*cell.dUdt[i]));
+    }
+#   if WITH_IMPLICIT == 1
+    // Ojas, it may be good to initialize point-implicit variables.
+    // double piM[6][6], pir[6][2], qL[6][2], g_Ll[6][2], gjvec[6][2], gjmtx[6][6];
+#   endif
+}
+
+FV_Cell & FV_Cell::operator=(const FV_Cell &cell)
+{
+    if ( this != &cell ) { // Avoid aliasing
+	id = cell.id; status = cell.status;
+	fr_reactions_allowed = cell.fr_reactions_allowed;
+	dt_chem = cell.dt_chem; dt_therm = cell.dt_therm;
+	in_turbulent_zone = cell.in_turbulent_zone;
+	base_qdot = cell.base_qdot;
+	pos = cell.pos; position = cell.position;
+	volume = cell.volume; vol = cell.vol;
+	area = cell.area; ar = cell.ar; uf = cell.uf;
+	iLength = cell.iLength; jLength = cell.jLength;
+	kLength = cell.kLength; L_min = cell.L_min;
+	distance_to_nearest_wall = cell.distance_to_nearest_wall;
+	half_cell_width_at_wall = cell.half_cell_width_at_wall;
+	cell_at_nearest_wall = cell.cell_at_nearest_wall;
+	iface =cell.iface; vtx = cell.vtx;
+	delete fs; fs = new FlowState(*cell.fs);
+	delete U; U = new ConservedQuantities(*cell.U);
+	delete U_old; U_old = new ConservedQuantities(*cell.U_old);
+	for ( size_t i = 0; i < dUdt.size(); ++i ) {
+	    delete dUdt[i];
+	}
+	for ( size_t i = 0; i < NL; ++i ) {
+	    dUdt.push_back(new ConservedQuantities(*cell.dUdt[i]));
+	}
+	Q = cell.Q;
+	Q_rad_org = cell.Q_rad_org;
+	f_rad_org = cell.f_rad_org;
+	Q_rE_rad = cell.Q_rE_rad;
+	rho_at_start_of_step = cell.rho_at_start_of_step;
+	rE_at_start_of_step = cell.rE_at_start_of_step;
+    }
+    return *this;
 }
 
 FV_Cell::~FV_Cell()
@@ -528,7 +644,7 @@ FV_Cell::~FV_Cell()
     delete Q;
 }
 
-int FV_Cell::print()
+int FV_Cell::print() const
 {
     Gas_model *gmodel = get_gas_model_ptr();
     printf("----------- Begin data for cell -----------\n");
@@ -547,7 +663,7 @@ int FV_Cell::print()
     return SUCCESS;
 }
 
-int FV_Cell::point_is_inside(Vector3 &p, int dimensions)
+int FV_Cell::point_is_inside(Vector3 &p, int dimensions) const
 /// \brief Returns 1 if the point p is inside or on the cell surface.
 {
     if ( dimensions == 2 ) {
@@ -600,7 +716,7 @@ int FV_Cell::point_is_inside(Vector3 &p, int dimensions)
     } // end dimensions != 2
 } // end point_is_inside()
 
-int FV_Cell::copy_values_from(CFlowCondition &src)
+int FV_Cell::copy_values_from(const CFlowCondition &src)
 {
     fs->gas->copy_values_from(*(src.gas));
     fs->vel.x = src.u; fs->vel.y = src.v; fs->vel.z = src.w;
@@ -620,7 +736,7 @@ int FV_Cell::copy_values_from(CFlowCondition &src)
 ///
 /// \param src: pointer to the source cell structure
 ///\param type_of_copy indicates whether we copy the cell geometry along with the FlowState data
-int FV_Cell::copy_values_from(FV_Cell &src, int type_of_copy)
+int FV_Cell::copy_values_from(const FV_Cell &src, int type_of_copy)
 {
     if ( type_of_copy == COPY_ALL_CELL_DATA ||
 	 type_of_copy == COPY_FLOW_STATE ) {
@@ -635,8 +751,10 @@ int FV_Cell::copy_values_from(FV_Cell &src, int type_of_copy)
     }
     if (type_of_copy == COPY_INTERFACE_DATA) {
 	for ( size_t j = 0; j < NI; ++j ) {
-	    if ( src.iface[j] == 0 || iface[j] == 0 ) { // When copying from ghost cell which may
-		continue;                               // not have initialised interfaces, or when 2D.
+	    if ( src.iface[j] == 0 || iface[j] == 0 ) {
+		// When copying from ghost cell which may
+		// not have initialised interfaces, or when 2D.
+		continue;
 	    }
 	    iface[j]->copy_values_from(*(src.iface[j]), COPY_ALL_CELL_DATA);
 	}
@@ -649,7 +767,7 @@ int FV_Cell::copy_values_from(FV_Cell &src, int type_of_copy)
 ///
 /// \param buf : pointer to the current element somewhere in buffer
 /// \returns a pointer to the next available location in the data buffer.
-double * FV_Cell::copy_values_to_buffer(double *buf, int type_of_copy)
+double * FV_Cell::copy_values_to_buffer(double *buf, int type_of_copy) const
 {
     if (type_of_copy == COPY_ALL_CELL_DATA ||
 	type_of_copy == COPY_FLOW_STATE) {
@@ -708,9 +826,10 @@ double * FV_Cell::copy_values_from_buffer(double *buf, int type_of_copy)
 
 
 /// \brief Replace the flow data in a cell with the average from neighbour cells.
-int FV_Cell::replace_flow_data_with_average(FV_Cell *src[], int ncell)
+int FV_Cell::replace_flow_data_with_average(std::vector<FV_Cell *> src)
 {
-    int ii;
+    size_t ncell = src.size(); 
+    size_t ii = 0;
     if ( ncell < 1 ) return 0;  /* nothing to work with. */
 
     /* First, replace the crappy data with that from the first cell. */
@@ -829,7 +948,7 @@ int FV_Cell::scan_values_from_string(char *bufptr)
 } // end scan_values_from_string()
 
 /// \brief Write the flow solution (i.e. the primary variables) to a string.
-std::string FV_Cell::write_values_to_string()
+std::string FV_Cell::write_values_to_string() const
 {
     // The new format for Elmer3 puts everything onto one line.
     ostringstream ost;
@@ -891,7 +1010,7 @@ int FV_Cell::scan_BGK_from_string(char *bufptr)
 } // end scan_BGK_from_string()
 
 /// \brief Write the discrete samples of the BGK velocity distribution function to a string.
-std::string FV_Cell::write_BGK_to_string()
+std::string FV_Cell::write_BGK_to_string() const
 {
     // The new format for Elmer3 puts everything onto one line.
     ostringstream ost;
@@ -2379,7 +2498,7 @@ int FV_Cell::reset_Q_rad_to_zero(void)
 
 
 /// \brief Calculate fabs( f_rad - f_rad_org ) / f_rad_org
-double FV_Cell::rad_scaling_ratio(void)
+double FV_Cell::rad_scaling_ratio(void) const
 {
     // 1. Compute the current scaling factor based on local gas properties
     double T = fs->gas->T[0];
@@ -2465,8 +2584,8 @@ std::string variable_list_for_cell( void )
 ///
 /// This is essentially a one-dimensional interpolation process.  It needs only
 /// the cell-average data and the lengths of the cells in the interpolation direction.
-int one_d_interp(FV_Cell &cL1, FV_Cell &cL0,
-		 FV_Cell &cR0, FV_Cell &cR1,
+int one_d_interp(const FV_Cell &cL1, const FV_Cell &cL0,
+		 const FV_Cell &cR0, const FV_Cell &cR1,
 		 double cL1Length, double cL0Length,
 		 double cR0Length, double cR1Length,
 		 FlowState &Lft, FlowState &Rght )
@@ -2579,8 +2698,8 @@ int one_d_interp(FV_Cell &cL1, FV_Cell &cL0,
 ///
 /// This is essentially a one-dimensional interpolation process.  It needs only
 /// the cell-average data and the lengths of the cells in the interpolation direction.
-int mach_weighted_one_d_interp(FV_Cell &cL1, FV_Cell &cL0,
-			       FV_Cell &cR0, FV_Cell &cR1,
+int mach_weighted_one_d_interp(const FV_Cell &cL1, const FV_Cell &cL0,
+			       const FV_Cell &cR0, const FV_Cell &cR1,
 			       double cL1Length, double cL0Length,
 			       double cR0Length, double cR1Length,
 			       FlowState &Lft, FlowState &Rght )
@@ -2723,7 +2842,7 @@ int mach_weighted_one_d_interp(FV_Cell &cL1, FV_Cell &cL0,
 /// This scheme uses the three cells to the right of the interface to do
 /// a one-sided extrapolation of the flow properties. This is done to determine the shock
 /// speed when shock-fitting.
-int onesided_interp(FV_Cell &cL0, FV_Cell &cR0, FV_Cell &cR1,
+int onesided_interp(const FV_Cell &cL0, const FV_Cell &cR0, const FV_Cell &cR1,
 		    double cL0Length, double cR0Length, double cR1Length,
 		    FlowState &Rght )
 {
@@ -2822,8 +2941,10 @@ int onesided_interp(FV_Cell &cL0, FV_Cell &cR0, FV_Cell &cR1,
 /// a one-sided extrapolation of the flow properties and two cells to the left and one to the right
 /// to perform an interpolation of the flow properties. This is to maintain the same interpolation order 
 /// when reconstructing the flow properties of the first interface after the shock when shock-fitting.
-int one_d_interior_interp(FV_Cell &cL0, FV_Cell &cR0, FV_Cell &cR1, FV_Cell &cR2,
-			  double cL0Length, double cR0Length, double cR1Length, double cR2Length,
+int one_d_interior_interp(const FV_Cell &cL0, const FV_Cell &cR0, 
+			  const FV_Cell &cR1, const FV_Cell &cR2,
+			  double cL0Length, double cR0Length,
+			  double cR1Length, double cR2Length,
 			  FlowState &Lft, FlowState &Rght )
 {
     Gas_model *gmodel = get_gas_model_ptr();

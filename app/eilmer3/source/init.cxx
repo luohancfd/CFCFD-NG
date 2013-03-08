@@ -870,17 +870,22 @@ int set_block_parameters(int id, ConfigParser &dict, int master)
     // History Cells.
     section = "block/" + tostring(indx);
     dict.parse_int(section, "nhcell", bdp.hncell, 0);
-    bdp.hncell = MINIMUM(bdp.hncell, MAX_HNCELL); // limit to array size
     for ( int ih = 0; ih < bdp.hncell; ++ih ) {
 	section = "block/" + tostring(indx);
 	string key = "history-cell-" + tostring(ih);
 	dict.parse_string(section, key, value_string, "0 0 0");
 	if ( G.dimensions == 3 ) {
-	    sscanf( value_string.c_str(), "%d %d %d", &(bdp.hicell[ih]), &(bdp.hjcell[ih]),
-		    &(bdp.hkcell[ih]) );
+	    int hicell, hjcell, hkcell;
+	    sscanf( value_string.c_str(), "%d %d %d", &hicell, &hjcell, &hkcell );
+	    bdp.hicell.push_back(hicell);
+	    bdp.hjcell.push_back(hjcell);
+	    bdp.hkcell.push_back(hkcell);
 	} else {
-	    sscanf( value_string.c_str(), "%d %d", &(bdp.hicell[ih]), &(bdp.hjcell[ih]) );
-	    bdp.hkcell[ih] = 0;
+	    int hicell, hjcell;
+	    sscanf( value_string.c_str(), "%d %d", &hicell, &hjcell );
+	    bdp.hicell.push_back(hicell);
+	    bdp.hjcell.push_back(hjcell);
+	    bdp.hkcell.push_back(0);
 	}
 	if ( get_verbose_flag() ) {
 	    printf( "    History cell[%d] located at indices [%d][%d][%d]\n",

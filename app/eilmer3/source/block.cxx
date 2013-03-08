@@ -48,12 +48,65 @@ extern "C" {
 
 
 Block::Block()
+    : bcp(NI,NULL) // Let everything else default initialize.
+{}
+
+Block::Block(const Block &b)
+    : id(b.id), active(b.active), omegaz(b.omegaz),
+      dt_allow(b.dt_allow),
+      cfl_min(b.cfl_min), cfl_max(b.cfl_max),
+      mass_residual(b.mass_residual),
+      energy_residual(b.energy_residual),
+      mass_residual_loc(b.mass_residual_loc),
+      energy_residual_loc(b.energy_residual_loc),
+      hncell(b.hncell),
+      hicell(b.hicell), hjcell(b.hjcell), hkcell(b.hkcell),
+      nidim(b.nidim), njdim(b.njdim), nkdim(b.nkdim),
+      nni(b.nni), nnj(b.nnj), nnk(b.nnk),
+      imin(b.imin), imax(b.imax),
+      jmin(b.jmin), jmax(b.jmax),
+      kmin(b.kmin), kmax(b.kmax),
+      baldwin_lomax_iturb(b.baldwin_lomax_iturb),
+      bcp(b.bcp),
+      ctr_(b.ctr_),
+      ifi_(b.ifi_), ifj_(b.ifj_), ifk_(b.ifk_),
+      vtx_(b.vtx_),
+      sifi_(b.sifi_), sifj_(b.sifj_), sifk_(b.sifk_)
+{}
+
+Block & Block::operator=(const Block &b)
 {
-    // Constructor does nothing so far.
+    if ( this != &b ) { // Avoid aliasing
+	id = b.id; active = b.active; omegaz = b.omegaz;
+	dt_allow = b.dt_allow;
+	cfl_min = b.cfl_min; cfl_max = b.cfl_max;
+	mass_residual = b.mass_residual;
+	energy_residual = b.energy_residual;
+	mass_residual_loc = b.mass_residual_loc;
+	energy_residual_loc = b.energy_residual_loc;
+	hncell = b.hncell;
+	hicell = b.hicell; hjcell = b.hjcell; hkcell = b.hkcell;
+	nidim = b.nidim; njdim = b.njdim; nkdim = b.nkdim;
+	nni = b.nni; nnj = b.nnj; nnk = b.nnk;
+	imin = b.imin; imax = b.imax;
+	jmin = b.jmin; jmax = b.jmax;
+	kmin = b.kmin; kmax = b.kmax;
+	baldwin_lomax_iturb = b.baldwin_lomax_iturb;
+	bcp = b.bcp;
+	ctr_ = b.ctr_;
+	ifi_ = b.ifi_; ifj_ = b.ifj_; ifk_ = b.ifk_;
+	vtx_ = b.vtx_;
+	sifi_ = b.sifi_; sifj_ = b.sifj_; sifk_ = b.sifk_;
+    }
+    return *this;
 }
 
-Block::~Block() {
-    for ( int i=0; i < 6; ++i ) bcp[i] = 0;
+Block::~Block() 
+{
+    for ( size_t i = 0; i < bcp.size(); ++i )
+	delete bcp[i];
+    // for ( size_t i = 0; i < shock_iface_pos.size(); ++i )
+    //	delete shock_iface_pos[i];
 }
 
 /// \brief Allocate memory for the internal arrays of the block.
@@ -123,14 +176,6 @@ int Block::array_cleanup(int dimensions)
     sifi_.clear();
     sifj_.clear();
     sifk_.clear();
-
-    delete bcp[NORTH];
-    delete bcp[EAST];
-    delete bcp[SOUTH];
-    delete bcp[WEST];
-    if ( dimensions == 3 ) delete bcp[TOP];
-    if ( dimensions == 3 ) delete bcp[BOTTOM];
-    
     return SUCCESS;
 } // end of array_cleanup()
 
@@ -4065,36 +4110,24 @@ int Block::count_invalid_cells( int dimensions )
 		    other_cell = get_cell(i-1,j,k);
 		    cell->copy_values_from(other_cell, COPY_FLOW_STATE);
 #                   else
-		    FV_Cell *neighbours[5];
 		    if ( get_bad_cell_complain_flag() ) {
 			printf( "Adjusting cell data to a local average.\n" );
 		    }
-		    int ncell = 0;
+		    // Presently, only searches around in the i,j plane
+		    std::vector<FV_Cell *> neighbours;
 		    other_cell = get_cell(i-1,j,k);
-		    if ( other_cell->check_flow_data() ) {
-			neighbours[ncell] = other_cell;
-			++ncell;
-		    }
+		    if ( other_cell->check_flow_data() ) neighbours.push_back(other_cell);
 		    other_cell = get_cell(i+1,j,k);
-		    if ( other_cell->check_flow_data() ) {
-			neighbours[ncell] = other_cell;
-			++ncell;
-		    }
+		    if ( other_cell->check_flow_data() ) neighbours.push_back(other_cell);
 		    other_cell = get_cell(i,j-1,k);
-		    if ( other_cell->check_flow_data() ) {
-			neighbours[ncell] = other_cell;
-			++ncell;
-		    }
+		    if ( other_cell->check_flow_data() ) neighbours.push_back(other_cell);
 		    other_cell = get_cell(i,j+1,k);
-		    if ( other_cell->check_flow_data() ) {
-			neighbours[ncell] = other_cell;
-			++ncell;
-		    }
-		    if ( ncell == 0 ) {
+		    if ( other_cell->check_flow_data() ) neighbours.push_back(other_cell);
+		    if ( neighbours.size() == 0 ) {
 			printf( "It seems that there were no valid neighbours, I give up.\n" );
 			exit( BAD_CELLS_ERROR );
 		    }
-		    cell->replace_flow_data_with_average(neighbours, ncell);
+		    cell->replace_flow_data_with_average(neighbours);
 #                   endif
 		    cell->encode_conserved(omegaz);
 		    cell->decode_conserved(omegaz);
