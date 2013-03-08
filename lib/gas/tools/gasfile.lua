@@ -259,7 +259,7 @@ function create_gas_file(species, t, f)
 	 f:write("\n")
       end
       
-      models_w_CEA_coeffs = {'constant specific heats', 'thermally perfect', 'thermally real'}
+      models_w_CEA_coeffs = {'thermally perfect', 'thermally real'}
       for _,v in ipairs(models_w_CEA_coeffs) do
 	 if t.TBM == v then
 	    var = sp..".CEA_coeffs"
