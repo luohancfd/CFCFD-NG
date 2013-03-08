@@ -16,6 +16,8 @@ HI.gamma = {
    description = '(ideal) ratio of specific heats at room temperature',
    reference = 'diatomic molecule at low temperatures, gamma = 7/5'
 }
+HI.atomic_constituents = {H=1, I=1}
+HI.charge = 0
 
 HI.e_zero = {
    value = 206070.7,

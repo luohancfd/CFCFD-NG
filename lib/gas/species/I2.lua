@@ -17,6 +17,8 @@ I2.gamma = {
    reference = 'diatomic molecule at low temperatures, gamma = 7/5'
 }
 
+I2.atomic_constituents = {I=2}
+I2.charge = 0
 -- Presently these values are oxygen values.
 I2.d = { 
    value = 3.433e-10,
