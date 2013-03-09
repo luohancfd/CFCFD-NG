@@ -12,7 +12,6 @@
 #include <stdexcept>
 
 #include "../../util/source/useful.h"
-// #include "../../util/source/dbc_assert.hh"
 #include "../../util/source/lua_service.hh"
 #include "../../nm/source/Richardson_extrapolation.hh"
 #include "gas-model.hh"
@@ -766,7 +765,6 @@ Gibbs_free_energy(const Gas_data &Q, int isp)
     double h = s_enthalpy(Q, isp);
     double s = s_entropy(Q, isp);
     double g = h - Q.T[0]*s;
-    //printf("h=%12.11e, s=%12.11e, g=%12.11e\n", h*M_[isp], s*M_[isp], g*M_[isp]);
     return g;
 }
 

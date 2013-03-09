@@ -55,6 +55,7 @@ Constant_specific_heats(lua_State *L)
 	e_zero_.push_back(e_zero);
 	double q = get_value(L, -1, "q");
 	q_.push_back(q);
+	s_ref_.push_back(Cp*log(PC_T_ref));
 	
 	lua_pop(L, 1); // pop "sp" off stack
     }
@@ -133,7 +134,8 @@ double
 Constant_specific_heats::
 s_eval_entropy_isp(const Gas_data &Q, Equation_of_state *EOS_, int isp)
 {
-    return Cp_[isp]*log(Q.T[0]/PC_T_ref);
+    double R = Cp_[isp] - Cv_[isp];
+    return Cp_[isp]*log(Q.T[0]/PC_T_ref) - R*log(Q.p/PC_P_atm) + s_ref_[isp];
 }
 
 double
