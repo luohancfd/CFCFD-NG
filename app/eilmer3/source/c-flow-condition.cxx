@@ -27,10 +27,10 @@ CFlowCondition::CFlowCondition( Gas_model *gmodel,
 				double mu_t, double k_t,
 				int S,
 				double Bx, double By, double Bz )
-    : u(u), v(v), w(w), Bx(Bx), By(By), Bz(Bz), label(label),
+    : gas(new Gas_data(gmodel)), 
+      u(u), v(v), w(w), Bx(Bx), By(By), Bz(Bz), label(label),
       tke(tke), omega(omega), mu_t(mu_t), k_t(k_t), S(S)
 {
-    gas = new Gas_data(gmodel);
     gas->p = p;
     int nmodes = gmodel->get_number_of_modes();
     if ( nmodes != (int)T.size() ) {
@@ -66,6 +66,35 @@ CFlowCondition::CFlowCondition( const CFlowCondition &cfc )
     // made a complete copy of the gas_data.
     gmodel->eval_thermo_state_pT(*gas);
     gmodel->eval_transport_coefficients(*gas);
+}
+
+CFlowCondition::CFlowCondition()
+    : u(0.0), v(0.0), w(0.0), Bx(0.0), By(0.0), Bz(0.0), label(""),
+      tke(0.0), omega(1.0), mu_t(0.0), k_t(0.0), S(0)
+{
+    Gas_model *gmodel = get_gas_model_ptr();
+    gas = new Gas_data(gmodel);
+    gas->p = 1.0e5;
+    int nmodes = gmodel->get_number_of_modes();
+    gas->T = std::vector<double>(nmodes,300.0);
+    int nsp = gmodel->get_number_of_species();
+    gas->massf = std::vector<double>(nsp, 0.0);
+    gas->massf[0] = 1.0;
+    gmodel->eval_thermo_state_pT(*gas);
+    gmodel->eval_transport_coefficients(*gas);
+}
+
+CFlowCondition & CFlowCondition::operator=(const CFlowCondition & cfc)
+{
+    if ( this != &cfc ) { // Avoid self-assignment.
+	gas = new Gas_data(*cfc.gas);
+	u = cfc.u; v = cfc.v; w = cfc.w;
+	Bx = cfc.Bx; By = cfc.By; Bz = cfc.Bz;
+	label = cfc.label; 
+	tke = cfc.tke; omega = cfc.omega;
+        mu_t = cfc.mu_t; k_t = cfc.k_t; S = cfc.S;
+    }
+    return *this;
 }
 
 CFlowCondition::~CFlowCondition() 

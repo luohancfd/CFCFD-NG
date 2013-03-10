@@ -11,18 +11,34 @@
 
 //------------------------------------------------------------------------
 
-SupersonicInBC::SupersonicInBC( Block &bdp, int which_boundary, 
+SupersonicInBC::SupersonicInBC( Block *bdp, int which_boundary, 
 				int inflow_condition_id )
     : BoundaryCondition(bdp, which_boundary, SUP_IN, "SupersonicIn", 
 			0, false, false, -1, -1, 0), 
-      inflow_condition_id(inflow_condition_id) {}
+      inflow_condition_id(inflow_condition_id) 
+{}
 
 SupersonicInBC::SupersonicInBC( const SupersonicInBC &bc )
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
 			bc.x_order, bc.is_wall_flag, bc.use_udf_flux_flag,
 			bc.neighbour_block, bc.neighbour_face,
 			bc.neighbour_orientation),
-      inflow_condition_id(bc.inflow_condition_id) {}
+      inflow_condition_id(bc.inflow_condition_id) 
+{}
+
+SupersonicInBC::SupersonicInBC()
+    : BoundaryCondition(0, 0, SUP_IN, "SupersonicIn", 
+			0, false, false, -1, -1, 0), 
+      inflow_condition_id(0) 
+{}
+
+SupersonicInBC & 
+SupersonicInBC::operator=(const SupersonicInBC &bc)
+{
+    BoundaryCondition::operator=(bc);
+    inflow_condition_id = bc.inflow_condition_id; // Benign for self-assignment.
+    return *this;
+}
 
 SupersonicInBC::~SupersonicInBC() {}
 
@@ -32,96 +48,97 @@ int SupersonicInBC::apply_inviscid( double t )
     int i, j, k;
     FV_Cell *dest_cell;
     FV_Interface *dest_face;
-    global_data &gdp = *get_global_data_ptr();
-    CFlowCondition *gsp = gdp.gas_state[inflow_condition_id];
+    global_data &gd = *get_global_data_ptr();
+    CFlowCondition *gsp = gd.gas_state[inflow_condition_id];
+    Block & bd = *bdp;
 
     switch ( which_boundary ) {
     case NORTH:
-	j = bdp.jmax;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		dest_cell = bdp.get_cell(i,j+1,k);
+	j = bd.jmax;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		dest_cell = bd.get_cell(i,j+1,k);
 		dest_cell->copy_values_from(*gsp);
 		// Although this is principally an inviscid BC,
 		// we need the face values for derivatives.
-		dest_face = bdp.get_ifj(i,j+1,k);
+		dest_face = bd.get_ifj(i,j+1,k);
 		dest_face->fs->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i,j+2,k);
+		dest_cell = bd.get_cell(i,j+2,k);
 		dest_cell->copy_values_from(*gsp);
 	    } // end i loop
 	} // for k
 	break;
     case EAST:
-	i = bdp.imax;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		dest_cell = bdp.get_cell(i+1,j,k);
+	i = bd.imax;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		dest_cell = bd.get_cell(i+1,j,k);
 		dest_cell->copy_values_from(*gsp);
 		// Although this is principally an inviscid BC,
 		// we need the face values for derivatives.
-		dest_face = bdp.get_ifi(i+1,j,k);
+		dest_face = bd.get_ifi(i+1,j,k);
 		dest_face->fs->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i+2,j,k);
+		dest_cell = bd.get_cell(i+2,j,k);
 		dest_cell->copy_values_from(*gsp);
 	    } // end j loop
 	} // for k
 	break;
     case SOUTH:
-	j = bdp.jmin;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		dest_cell = bdp.get_cell(i,j-1,k);
+	j = bd.jmin;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		dest_cell = bd.get_cell(i,j-1,k);
 		dest_cell->copy_values_from(*gsp);
 		// Although this is principally an inviscid BC,
 		// we need the face values for derivatives.
-		dest_face = bdp.get_ifj(i,j,k);
+		dest_face = bd.get_ifj(i,j,k);
 		dest_face->fs->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i,j-2,k);
+		dest_cell = bd.get_cell(i,j-2,k);
 		dest_cell->copy_values_from(*gsp);
 	    } // end i loop
 	} // for k
 	break;
     case WEST:
-	i = bdp.imin;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		dest_cell = bdp.get_cell(i-1,j,k);
+	i = bd.imin;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		dest_cell = bd.get_cell(i-1,j,k);
 		dest_cell->copy_values_from(*gsp);
 		// Although this is principally an inviscid BC,
 		// we need the face values for derivatives.
-		dest_face = bdp.get_ifi(i,j,k);
+		dest_face = bd.get_ifi(i,j,k);
 		dest_face->fs->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i-2,j,k);
+		dest_cell = bd.get_cell(i-2,j,k);
 		dest_cell->copy_values_from(*gsp);
 	    } // end j loop
 	} // for k
  	break;
     case TOP:
-	k = bdp.kmax;
-        for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		dest_cell = bdp.get_cell(i,j,k+1);
+	k = bd.kmax;
+        for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		dest_cell = bd.get_cell(i,j,k+1);
 		dest_cell->copy_values_from(*gsp);
 		// Although this is principally an inviscid BC,
 		// we need the face values for derivatives.
-		dest_face = bdp.get_ifk(i,j,k+1);
+		dest_face = bd.get_ifk(i,j,k+1);
 		dest_face->fs->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i,j,k+2);
+		dest_cell = bd.get_cell(i,j,k+2);
 		dest_cell->copy_values_from(*gsp);
 	    } // end j loop
 	} // for i
 	break;
     case BOTTOM:
-	k = bdp.kmin;
-        for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		dest_cell = bdp.get_cell(i,j,k-1);
+	k = bd.kmin;
+        for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		dest_cell = bd.get_cell(i,j,k-1);
 		dest_cell->copy_values_from(*gsp);
 		// Although this is principally an inviscid BC,
 		// we need the face values for derivatives.
-		dest_face = bdp.get_ifk(i,j,k);
+		dest_face = bd.get_ifk(i,j,k);
 		dest_face->fs->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i,j,k-2);
+		dest_cell = bd.get_cell(i,j,k-2);
 		dest_cell->copy_values_from(*gsp);
 	    } // end j loop
 	} // for i

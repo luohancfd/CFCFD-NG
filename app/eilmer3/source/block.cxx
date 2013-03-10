@@ -48,12 +48,65 @@ extern "C" {
 
 
 Block::Block()
+    : bcp(NI,NULL) // Let everything else default initialize.
+{}
+
+Block::Block(const Block &b)
+    : id(b.id), active(b.active), omegaz(b.omegaz),
+      dt_allow(b.dt_allow),
+      cfl_min(b.cfl_min), cfl_max(b.cfl_max),
+      mass_residual(b.mass_residual),
+      energy_residual(b.energy_residual),
+      mass_residual_loc(b.mass_residual_loc),
+      energy_residual_loc(b.energy_residual_loc),
+      hncell(b.hncell),
+      hicell(b.hicell), hjcell(b.hjcell), hkcell(b.hkcell),
+      nidim(b.nidim), njdim(b.njdim), nkdim(b.nkdim),
+      nni(b.nni), nnj(b.nnj), nnk(b.nnk),
+      imin(b.imin), imax(b.imax),
+      jmin(b.jmin), jmax(b.jmax),
+      kmin(b.kmin), kmax(b.kmax),
+      baldwin_lomax_iturb(b.baldwin_lomax_iturb),
+      bcp(b.bcp),
+      ctr_(b.ctr_),
+      ifi_(b.ifi_), ifj_(b.ifj_), ifk_(b.ifk_),
+      vtx_(b.vtx_),
+      sifi_(b.sifi_), sifj_(b.sifj_), sifk_(b.sifk_)
+{}
+
+Block & Block::operator=(const Block &b)
 {
-    // Constructor does nothing so far.
+    if ( this != &b ) { // Avoid aliasing
+	id = b.id; active = b.active; omegaz = b.omegaz;
+	dt_allow = b.dt_allow;
+	cfl_min = b.cfl_min; cfl_max = b.cfl_max;
+	mass_residual = b.mass_residual;
+	energy_residual = b.energy_residual;
+	mass_residual_loc = b.mass_residual_loc;
+	energy_residual_loc = b.energy_residual_loc;
+	hncell = b.hncell;
+	hicell = b.hicell; hjcell = b.hjcell; hkcell = b.hkcell;
+	nidim = b.nidim; njdim = b.njdim; nkdim = b.nkdim;
+	nni = b.nni; nnj = b.nnj; nnk = b.nnk;
+	imin = b.imin; imax = b.imax;
+	jmin = b.jmin; jmax = b.jmax;
+	kmin = b.kmin; kmax = b.kmax;
+	baldwin_lomax_iturb = b.baldwin_lomax_iturb;
+	bcp = b.bcp;
+	ctr_ = b.ctr_;
+	ifi_ = b.ifi_; ifj_ = b.ifj_; ifk_ = b.ifk_;
+	vtx_ = b.vtx_;
+	sifi_ = b.sifi_; sifj_ = b.sifj_; sifk_ = b.sifk_;
+    }
+    return *this;
 }
 
-Block::~Block() {
-    for ( int i=0; i < 6; ++i ) bcp[i] = 0;
+Block::~Block() 
+{
+    for ( size_t i = 0; i < bcp.size(); ++i )
+	delete bcp[i];
+    // for ( size_t i = 0; i < shock_iface_pos.size(); ++i )
+    //	delete shock_iface_pos[i];
 }
 
 /// \brief Allocate memory for the internal arrays of the block.
@@ -123,14 +176,6 @@ int Block::array_cleanup(int dimensions)
     sifi_.clear();
     sifj_.clear();
     sifk_.clear();
-
-    delete bcp[NORTH];
-    delete bcp[EAST];
-    delete bcp[SOUTH];
-    delete bcp[WEST];
-    if ( dimensions == 3 ) delete bcp[TOP];
-    if ( dimensions == 3 ) delete bcp[BOTTOM];
-    
     return SUCCESS;
 } // end of array_cleanup()
 
@@ -642,7 +687,7 @@ int Block::bind_interfaces_to_cells( int dimensions )
 
 
 /// \brief Set the base heat source values for this block.
-int Block::set_base_qdot( global_data &gdp )
+int Block::set_base_qdot( global_data &gd )
 {
     double total_qdot_for_block = 0.0;
     CHeatZone *hzp;
@@ -654,11 +699,11 @@ int Block::set_base_qdot( global_data &gdp )
 	    for ( int j = jmin; j <= jmax; ++j ) {
 		cellp = get_cell(i,j,k);
 		cellp->base_qdot = 0.0;
-		for ( int indx = 0; indx < gdp.n_heat_zone; ++indx ) {
-		    hzp = &(gdp.heat_zone[indx]);
+		for ( int indx = 0; indx < gd.n_heat_zone; ++indx ) {
+		    hzp = &(gd.heat_zone[indx]);
 		    if ( cellp->pos.x >= hzp->x0 && cellp->pos.x <= hzp->x1 &&
 			 cellp->pos.y >= hzp->y0 && cellp->pos.y <= hzp->y1 &&
-			 (gdp.dimensions == 2 || 
+			 (gd.dimensions == 2 || 
 			  (cellp->pos.z >= hzp->z0 && cellp->pos.z <= hzp->z1)) ) {
 			cellp->base_qdot += hzp->qdot;
 		    }
@@ -676,7 +721,7 @@ int Block::set_base_qdot( global_data &gdp )
 
 
 /// \brief Set the reactions-allowed flag for cells in this block.
-int Block::identify_reaction_zones( global_data &gdp )
+int Block::identify_reaction_zones( global_data &gd )
 {
     int total_cells_in_reaction_zones = 0;
     int total_cells = 0;
@@ -687,14 +732,14 @@ int Block::identify_reaction_zones( global_data &gdp )
 	for ( int i = imin; i <= imax; ++i ) {
 	    for ( int j = jmin; j <= jmax; ++j ) {
 		cellp = get_cell(i,j,k);
-		if ( gdp.n_reaction_zone > 0 ) {
+		if ( gd.n_reaction_zone > 0 ) {
 		    // User-specified reaction zones; mask off reacting/nonreacting zones.
 		    cellp->fr_reactions_allowed = 0;
-		    for ( int indx = 0; indx < gdp.n_reaction_zone; ++indx ) {
-			rzp = &(gdp.reaction_zone[indx]);
+		    for ( int indx = 0; indx < gd.n_reaction_zone; ++indx ) {
+			rzp = &(gd.reaction_zone[indx]);
 			if ( cellp->pos.x >= rzp->x0 && cellp->pos.x <= rzp->x1 &&
 			     cellp->pos.y >= rzp->y0 && cellp->pos.y <= rzp->y1 &&
-			     (gdp.dimensions == 2 || 
+			     (gd.dimensions == 2 || 
 			      (cellp->pos.z >= rzp->z0 && cellp->pos.z <= rzp->z1)) ) {
 			    cellp->fr_reactions_allowed = 1;
 			}
@@ -712,7 +757,7 @@ int Block::identify_reaction_zones( global_data &gdp )
 	cout << "identify_reaction_zones(): block " << id
 	     << " cells inside zones = " << total_cells_in_reaction_zones 
 	     << " out of " << total_cells << endl;
-	if ( gdp.n_reaction_zone == 0 ) {
+	if ( gd.n_reaction_zone == 0 ) {
 	    cout << "Note that for no user-specified zones,"
 		 << " the whole domain is allowed to be reacting." << endl;
 	}
@@ -722,7 +767,7 @@ int Block::identify_reaction_zones( global_data &gdp )
 
 
 /// \brief Set the in-turbulent-zone flag for cells in this block.
-int Block::identify_turbulent_zones( global_data &gdp )
+int Block::identify_turbulent_zones( global_data &gd )
 {
     int total_cells_in_turbulent_zones = 0;
     int total_cells = 0;
@@ -733,13 +778,13 @@ int Block::identify_turbulent_zones( global_data &gdp )
 	for ( int i = imin; i <= imax; ++i ) {
 	    for ( int j = jmin; j <= jmax; ++j ) {
 		cellp = get_cell(i,j,k);
-		if ( gdp.n_turbulent_zone > 0 ) {
+		if ( gd.n_turbulent_zone > 0 ) {
 		    cellp->in_turbulent_zone = 0;
-		    for ( int indx = 0; indx < gdp.n_turbulent_zone; ++indx ) {
-			tzp = &(gdp.turbulent_zone[indx]);
+		    for ( int indx = 0; indx < gd.n_turbulent_zone; ++indx ) {
+			tzp = &(gd.turbulent_zone[indx]);
 			if ( cellp->pos.x >= tzp->x0 && cellp->pos.x <= tzp->x1 &&
 			     cellp->pos.y >= tzp->y0 && cellp->pos.y <= tzp->y1 &&
-			     (gdp.dimensions == 2 || 
+			     (gd.dimensions == 2 || 
 			      (cellp->pos.z >= tzp->z0 && cellp->pos.z <= tzp->z1)) ) {
 			    cellp->in_turbulent_zone = 1;
 			}
@@ -756,7 +801,7 @@ int Block::identify_turbulent_zones( global_data &gdp )
 	cout << "identify_turbulent_zones(): block " << id
 	     << " cells inside zones = " << total_cells_in_turbulent_zones 
 	     << " out of " << total_cells << endl;
-	if ( gdp.n_turbulent_zone == 0 ) {
+	if ( gd.n_turbulent_zone == 0 ) {
 	    cout << "Note that for no user-specified zones,"
 		 << " the whole domain is allowed to be turbulent." << endl;
 	}
@@ -2188,14 +2233,14 @@ int Block::secondary_areas_2D( void )
     for (i = imin+1; i <= imax; ++i) {
         for (j = jmin+1; j <= jmax; ++j) {
 	    // These are the corners.
-            xA = get_cell(IADSH,JADSH)->pos.x;
-            yA = get_cell(IADSH,JADSH)->pos.y;
-            xB = get_cell(IBDSH,JBDSH)->pos.x;
-            yB = get_cell(IBDSH,JBDSH)->pos.y;
-            xC = get_cell(ICDSH,JCDSH)->pos.x;
-            yC = get_cell(ICDSH,JCDSH)->pos.y;
-            xD = get_cell(IDDSH,JDDSH)->pos.x;
-            yD = get_cell(IDDSH,JDDSH)->pos.y;
+            xA = get_cell(i,j-1)->pos.x;
+            yA = get_cell(i,j-1)->pos.y;
+            xB = get_cell(i,j)->pos.x;
+            yB = get_cell(i,j)->pos.y;
+            xC = get_cell(i-1,j)->pos.x;
+            yC = get_cell(i-1,j)->pos.y;
+            xD = get_cell(i-1,j-1)->pos.x;
+            yD = get_cell(i-1,j-1)->pos.y;
 	    // Cell area in the (x,y)-plane.
             xyarea = 0.5 * ((xB + xA) * (yB - yA) + (xC + xB) * (yC - yB) +
                             (xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
@@ -2219,10 +2264,10 @@ int Block::secondary_areas_2D( void )
 	yA = get_ifi(i,j-1)->pos.y;
 	xB = get_ifi(i,j)->pos.x;
 	yB = get_ifi(i,j)->pos.y;
-        xC = get_cell(ICDSH,JCDSH)->pos.x;
-        yC = get_cell(ICDSH,JCDSH)->pos.y;
-        xD = get_cell(IDDSH,JDDSH)->pos.x;
-        yD = get_cell(IDDSH,JDDSH)->pos.y;
+        xC = get_cell(i-1,j)->pos.x;
+        yC = get_cell(i-1,j)->pos.y;
+        xD = get_cell(i-1,j-1)->pos.x;
+        yD = get_cell(i-1,j-1)->pos.y;
 	// Cell area in the (x,y)-plane.
         xyarea = 0.5 * ((xB + xA) * (yB - yA) + (xC + xB) * (yC - yB) +
                         (xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
@@ -2243,10 +2288,10 @@ int Block::secondary_areas_2D( void )
     // West boundary.
     i = imin;
     for (j = jmin+1; j <= jmax; ++j) {
-        xA = get_cell(IADSH,JADSH)->pos.x;
-        yA = get_cell(IADSH,JADSH)->pos.y;
-        xB = get_cell(IBDSH,JBDSH)->pos.x;
-        yB = get_cell(IBDSH,JBDSH)->pos.y;
+        xA = get_cell(i,j-1)->pos.x;
+        yA = get_cell(i,j-1)->pos.y;
+        xB = get_cell(i,j)->pos.x;
+        yB = get_cell(i,j)->pos.y;
 	xC = get_ifi(i,j)->pos.x;
 	yC = get_ifi(i,j)->pos.y;
 	xD = get_ifi(i,j-1)->pos.x;
@@ -2272,14 +2317,14 @@ int Block::secondary_areas_2D( void )
     j = jmax+1;
     for (i = imin+1; i <= imax; ++i) {
 	// These are the corners.
-        xA = get_cell(IADSH,JADSH)->pos.x;
-        yA = get_cell(IADSH,JADSH)->pos.y;
+        xA = get_cell(i,j-1)->pos.x;
+        yA = get_cell(i,j-1)->pos.y;
 	xB = get_ifj(i,j)->pos.x;
 	yB = get_ifj(i,j)->pos.y;
 	xC = get_ifj(i-1,j)->pos.x;
 	yC = get_ifj(i-1,j)->pos.y;
-        xD = get_cell(IDDSH,JDDSH)->pos.x;
-        yD = get_cell(IDDSH,JDDSH)->pos.y;
+        xD = get_cell(i-1,j-1)->pos.x;
+        yD = get_cell(i-1,j-1)->pos.y;
 	// Cell area in the (x,y)-plane.
         xyarea = 0.5 * ((xB + xA) * (yB - yA) + (xC + xB) * (yC - yB) +
                         (xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
@@ -2302,10 +2347,10 @@ int Block::secondary_areas_2D( void )
     for (i = imin+1; i <= imax; ++i) {
 	xA = get_ifj(i,j)->pos.x;
 	yA = get_ifj(i,j)->pos.y;
-        xB = get_cell(IBDSH,JBDSH)->pos.x;
-        yB = get_cell(IBDSH,JBDSH)->pos.y;
-        xC = get_cell(ICDSH,JCDSH)->pos.x;
-        yC = get_cell(ICDSH,JCDSH)->pos.y;
+        xB = get_cell(i,j)->pos.x;
+        yB = get_cell(i,j)->pos.y;
+        xC = get_cell(i-1,j)->pos.x;
+        yC = get_cell(i-1,j)->pos.y;
 	xD = get_ifj(i-1,j)->pos.x;
 	yD = get_ifj(i-1,j)->pos.y;
 	// Cell area in the (x,y)-plane.
@@ -4065,36 +4110,24 @@ int Block::count_invalid_cells( int dimensions )
 		    other_cell = get_cell(i-1,j,k);
 		    cell->copy_values_from(other_cell, COPY_FLOW_STATE);
 #                   else
-		    FV_Cell *neighbours[5];
 		    if ( get_bad_cell_complain_flag() ) {
 			printf( "Adjusting cell data to a local average.\n" );
 		    }
-		    int ncell = 0;
+		    // Presently, only searches around in the i,j plane
+		    std::vector<FV_Cell *> neighbours;
 		    other_cell = get_cell(i-1,j,k);
-		    if ( other_cell->check_flow_data() ) {
-			neighbours[ncell] = other_cell;
-			++ncell;
-		    }
+		    if ( other_cell->check_flow_data() ) neighbours.push_back(other_cell);
 		    other_cell = get_cell(i+1,j,k);
-		    if ( other_cell->check_flow_data() ) {
-			neighbours[ncell] = other_cell;
-			++ncell;
-		    }
+		    if ( other_cell->check_flow_data() ) neighbours.push_back(other_cell);
 		    other_cell = get_cell(i,j-1,k);
-		    if ( other_cell->check_flow_data() ) {
-			neighbours[ncell] = other_cell;
-			++ncell;
-		    }
+		    if ( other_cell->check_flow_data() ) neighbours.push_back(other_cell);
 		    other_cell = get_cell(i,j+1,k);
-		    if ( other_cell->check_flow_data() ) {
-			neighbours[ncell] = other_cell;
-			++ncell;
-		    }
-		    if ( ncell == 0 ) {
+		    if ( other_cell->check_flow_data() ) neighbours.push_back(other_cell);
+		    if ( neighbours.size() == 0 ) {
 			printf( "It seems that there were no valid neighbours, I give up.\n" );
 			exit( BAD_CELLS_ERROR );
 		    }
-		    cell->replace_flow_data_with_average(neighbours, ncell);
+		    cell->replace_flow_data_with_average(neighbours);
 #                   endif
 		    cell->encode_conserved(omegaz);
 		    cell->decode_conserved(omegaz);

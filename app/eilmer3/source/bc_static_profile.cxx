@@ -25,7 +25,7 @@
 
 //------------------------------------------------------------------------
 
-StaticProfileBC::StaticProfileBC( Block &bdp, int which_boundary,
+StaticProfileBC::StaticProfileBC( Block *bdp, int which_boundary,
 				  const std::string filename, int n_profile )
     : BoundaryCondition(bdp, which_boundary, STATIC_PROF, "StaticProfileBC",
 			0, false, false, -1, -1, 0),
@@ -159,9 +159,9 @@ StaticProfileBC::StaticProfileBC( Block &bdp, int which_boundary,
     }
     // Check for that the number of cells is appropriate for this boundary
     if ( which_boundary == NORTH || which_boundary == SOUTH ) {
-	ncell = bdp.nni;
+	ncell = bdp->nni;
     } else {
-	ncell = bdp.nnj;
+	ncell = bdp->nnj;
     }
     ncell_for_profile = ncell_read_from_file / n_profile;
     if ( ncell != ncell_for_profile ) {
@@ -188,10 +188,32 @@ StaticProfileBC::StaticProfileBC( const StaticProfileBC &bc )
     exit( NOT_IMPLEMENTED_ERROR );
 }
 
+StaticProfileBC::StaticProfileBC()
+    : BoundaryCondition(0, 0, STATIC_PROF, "StaticProfileBC",
+			0, false, false, -1, -1, 0),
+      filename(""), n_profile(0)
+{}
+
+StaticProfileBC & StaticProfileBC::operator=(const StaticProfileBC &bc)
+{
+    if ( this != &bc ) {
+	BoundaryCondition::operator=(bc);
+	filename = bc.filename;
+	n_profile = bc.n_profile;
+	nsp = bc.nsp;
+	ncell_for_profile = bc.ncell_for_profile;
+	for ( size_t i = 0; i < bc.flow_profile.size(); ++i ) {
+	    flow_profile.push_back(new CFlowCondition(*(bc.flow_profile[i])));
+	}
+    }
+    return *this;
+}
+
 StaticProfileBC::~StaticProfileBC() 
 {
     for ( size_t i = 0; i < flow_profile.size(); ++i ) {
 	delete flow_profile[i];
+	flow_profile[i] = 0;
     }
     flow_profile.clear();
 }
@@ -201,67 +223,68 @@ int StaticProfileBC::apply_inviscid( double t )
     int i, ifirst, ilast, j, jfirst, jlast, ncell_for_profile;
     FV_Cell *dest_cell;
     CFlowCondition *gsp;
+    Block & bd = *bdp;
 
     ncell_for_profile = flow_profile.size() / n_profile;
 
     switch ( which_boundary ) {
     case NORTH:
-	j = bdp.jmax;
-	ifirst = bdp.imin;
-	ilast = bdp.imax;
+	j = bd.jmax;
+	ifirst = bd.imin;
+	ilast = bd.imax;
         for (i = ifirst; i <= ilast; ++i) {
             gsp = flow_profile[i - ifirst];
-            dest_cell = bdp.get_cell(i,j+1);
+            dest_cell = bd.get_cell(i,j+1);
             dest_cell->copy_values_from(*gsp);
             if (n_profile == 2) {
                 gsp = flow_profile[(i - ifirst) + ncell_for_profile];
             }
-            dest_cell = bdp.get_cell(i,j+2);
+            dest_cell = bd.get_cell(i,j+2);
             dest_cell->copy_values_from(*gsp);
         } // end i loop
 	break;
     case EAST:
-	i = bdp.imax;
-	jfirst = bdp.jmin;
-	jlast = bdp.jmax;
+	i = bd.imax;
+	jfirst = bd.jmin;
+	jlast = bd.jmax;
         for (j = jfirst; j <= jlast; ++j) {
             gsp = flow_profile[j - jfirst];
-            dest_cell = bdp.get_cell(i+1,j);
+            dest_cell = bd.get_cell(i+1,j);
             dest_cell->copy_values_from(*gsp);
             if (n_profile == 2) {
                 gsp = flow_profile[(j - jfirst) + ncell_for_profile];
             }
-            dest_cell = bdp.get_cell(i+2,j);
+            dest_cell = bd.get_cell(i+2,j);
             dest_cell->copy_values_from(*gsp);
 	} // end j loop
 	break;
     case SOUTH:
-	j = bdp.jmin;
-	ifirst = bdp.imin;
-	ilast = bdp.imax;
+	j = bd.jmin;
+	ifirst = bd.imin;
+	ilast = bd.imax;
         for (i = ifirst; i <= ilast; ++i) {
             gsp = flow_profile[i - ifirst];
-            dest_cell = bdp.get_cell(i,j-1);
+            dest_cell = bd.get_cell(i,j-1);
             dest_cell->copy_values_from(*gsp);
             if (n_profile == 2) {
                 gsp = flow_profile[(i - ifirst) + ncell_for_profile];
             }
-            dest_cell = bdp.get_cell(i,j-2);
+            dest_cell = bd.get_cell(i,j-2);
             dest_cell->copy_values_from(*gsp);
         } // end i loop
 	break;
     case WEST:
-	i = bdp.imin;
-	jfirst = bdp.jmin;
-	jlast = bdp.jmax;
+	i = bd.imin;
+	jfirst = bd.jmin;
+	jlast = bd.jmax;
         for (j = jfirst; j <= jlast; ++j) {
             gsp = flow_profile[j - jfirst];
-            dest_cell = bdp.get_cell(i-1,j);
+            dest_cell = bd.get_cell(i-1,j);
             dest_cell->copy_values_from(*gsp);
             if (n_profile == 2) {
                 gsp = flow_profile[(j - jfirst) + ncell_for_profile];
             }
-            dest_cell = bdp.get_cell(i-2,j);
+            dest_cell = bd.get_cell(i-2,j);
             dest_cell->copy_values_from(*gsp);
         } // end j loop
  	break;

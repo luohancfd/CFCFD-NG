@@ -34,6 +34,7 @@
 #include "user-defined-gas-model.hh"
 #include "lservice_gas_data.hh"
 #include "physical_constants.hh"
+#include "../kinetics/reaction.cxx"
 #include "../kinetics/reaction-rate-coeff.hh"
 #include "../kinetics/reaction-update.hh"
 #include "../kinetics/generalised-Arrhenius.hh"

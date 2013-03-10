@@ -37,6 +37,8 @@ public:
 		    int S=0,
 		    double Bx=0.0, double By=0.0, double Bz=0.0 );
     CFlowCondition( const CFlowCondition &cfc );
+    CFlowCondition();
+    CFlowCondition & operator=(const CFlowCondition &cfc);
     ~CFlowCondition();
     /// \brief Returns a string representation of the CFlowCondition.
     std::string str() const;

@@ -1,5 +1,5 @@
 // bc_catalytic.hh
-
+// FIX-ME Haven't put in default-constructors and copy-assignment operators. PJ 10-Mar-2013
 
 const size_t MAX_EQ_WC_TABLE_ENTRIES = 100;
 

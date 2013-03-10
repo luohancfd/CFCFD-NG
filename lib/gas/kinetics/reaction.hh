@@ -75,5 +75,5 @@ private:
 };
 
 Reaction* create_Reaction(lua_State *L, Gas_model &g);
-
+Reaction* get_reaction_from_file(int ir, std::string cfile, Gas_model &g);
 #endif

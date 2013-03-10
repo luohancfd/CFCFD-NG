@@ -108,19 +108,19 @@ Vector3& Vector3::operator-=( const Vector3 &v )
     x -= v.x; y -= v.y; z -= v.z;
     return *this;
 }
-Vector3& Vector3::operator*=( double v )
+Vector3& Vector3::operator*=( double val )
 {
-    x *= v; y *= v; z *= v;
+    x *= val; y *= val; z *= val;
     return *this;
 }
-Vector3& Vector3::operator/=( double v )
+Vector3& Vector3::operator/=( double val )
 {
-    x /= v; y /= v; z /= v;
+    x /= val; y /= val; z /= val;
     return *this;
 }
 Vector3& Vector3::operator=( const Vector3 &v )
 {
-    x = v.x; y = v.y; z = v.z;
+    x = v.x; y = v.y; z = v.z; // OK for copy-to-self
     return *this;
 }
 Vector3& Vector3::norm()

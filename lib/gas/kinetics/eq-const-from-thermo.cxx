@@ -48,12 +48,9 @@ s_eval(const Gas_data &Q)
 	// We want to use G in J/mol, hence conversion based on molecular weight.
 	dG += it->second * g_.Gibbs_free_energy(*Q_, it->first)*(g_.molecular_weight(it->first));
 	nu_sum += it->second;
-	// printf("G=%16.15e\n",g_.Gibbs_free_energy(Q_, it->first)*(g_.molecular_weight(it->first)));
     }
     double K_p = exp(-dG/(PC_R_u*Q_->T[0]));
     double K_c = K_p*pow(PC_P_atm/(PC_R_u*Q_->T[0]), nu_sum);
-
-    // printf("K_c=%16.15e\n", K_c);
     return K_c;
 }
 

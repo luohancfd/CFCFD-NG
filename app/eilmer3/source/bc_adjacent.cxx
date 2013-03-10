@@ -10,7 +10,7 @@
 
 //------------------------------------------------------------------------
 
-AdjacentBC::AdjacentBC( Block &bdp, int which_boundary, 
+AdjacentBC::AdjacentBC( Block *bdp, int which_boundary, 
 			int other_block, int other_face,
 			int neighbour_orientation)
     : BoundaryCondition(bdp, which_boundary, ADJACENT, "AdjacentBC", 0, false, false, 
@@ -23,6 +23,16 @@ AdjacentBC::AdjacentBC( const AdjacentBC &bc )
 			bc.neighbour_block, bc.neighbour_face,
 			bc.neighbour_orientation) 
 {}
+
+AdjacentBC::AdjacentBC()
+    : BoundaryCondition(0, 0, ADJACENT, "AdjacentBC", 0, false, false, -1, -1, 0)
+{}
+
+AdjacentBC & AdjacentBC::operator=(const AdjacentBC &bc)
+{
+    BoundaryCondition::operator=(bc);
+    return *this;
+}
 
 AdjacentBC::~AdjacentBC() {}
 

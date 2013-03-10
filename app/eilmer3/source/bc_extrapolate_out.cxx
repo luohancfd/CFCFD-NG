@@ -11,7 +11,7 @@
 
 //------------------------------------------------------------------------
 
-ExtrapolateOutBC::ExtrapolateOutBC( Block &bdp, int which_boundary, int x_order, int _sponge_flag )
+ExtrapolateOutBC::ExtrapolateOutBC( Block *bdp, int which_boundary, int x_order, int _sponge_flag )
     : BoundaryCondition(bdp, which_boundary, EXTRAPOLATE_OUT, "ExtrapolateOutBC",
 			x_order, false, false, -1, -1, 0) 
 {}
@@ -22,6 +22,17 @@ ExtrapolateOutBC::ExtrapolateOutBC( const ExtrapolateOutBC &bc )
 			bc.neighbour_block, bc.neighbour_face,
 			bc.neighbour_orientation) 
 {}
+
+ExtrapolateOutBC::ExtrapolateOutBC()
+    : BoundaryCondition(0, 0, EXTRAPOLATE_OUT, "ExtrapolateOutBC",
+			0, false, false, -1, -1, 0) 
+{}
+
+ExtrapolateOutBC & ExtrapolateOutBC::operator=(const ExtrapolateOutBC &bc)
+{
+    BoundaryCondition::operator=(bc);
+    return *this;
+}
 
 ExtrapolateOutBC::~ExtrapolateOutBC() {}
 
@@ -36,12 +47,13 @@ int ExtrapolateOutBC::apply_inviscid( double t )
     Gas_model *gmodel = get_gas_model_ptr();
     int nsp = gmodel->get_number_of_species();
     int nmodes = gmodel->get_number_of_modes();
+    Block & bd = *bdp;
 
     switch ( which_boundary ) {
     case NORTH:
-	j = bdp.jmax;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
+	j = bd.jmax;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
 		if ( x_order == 1 ) {
 		    //  |--- [2] ---|--- [1] ---|||--- [dest] ---|---[ghost cell 2]----
 		    //      (j-1)        (j)           (j+1)
@@ -50,9 +62,9 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    //  [2]: second interior cell
 		    // This extrapolation assumes that cell-spacing between
 		    // cells 1 and 2 continues on in the exterior
-		    cell_1 = bdp.get_cell(i,j,k);
-		    cell_2 = bdp.get_cell(i,j-1,k);
-		    dest_cell = bdp.get_cell(i,j+1,k);
+		    cell_1 = bd.get_cell(i,j,k);
+		    cell_2 = bd.get_cell(i,j-1,k);
+		    dest_cell = bd.get_cell(i,j+1,k);
 		    // Extrapolate on primitive variables
 		    // 1. First exterior point
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
@@ -79,7 +91,7 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    //      (j)        (j+1)       (j+2)
 		    cell_2 = cell_1;
 		    cell_1 = dest_cell;
-		    dest_cell = bdp.get_cell(i,j+2,k);
+		    dest_cell = bd.get_cell(i,j+2,k);
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
 		    for ( int imode = 0; imode < nmodes; ++imode ) {
 			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2->fs->gas->e[imode];
@@ -102,19 +114,19 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		}
 		else {
 		    // Zero-order extrapolation
-		    src_cell = bdp.get_cell(i,j,k);
-		    dest_cell = bdp.get_cell(i,j+1,k);
+		    src_cell = bd.get_cell(i,j,k);
+		    dest_cell = bd.get_cell(i,j+1,k);
 		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
-		    dest_cell = bdp.get_cell(i,j+2,k);
+		    dest_cell = bd.get_cell(i,j+2,k);
 		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		} 
 	    } // end i loop
 	} // for k
 	break;
     case EAST:
-	i = bdp.imax;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
+	i = bd.imax;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		if ( x_order == 1 ) {
 		    //  |--- [2] ---|--- [1] ---|||--- [dest] ---|---[ghost cell 2]----
 		    //      (i-1)        (i)           (i+1)
@@ -123,9 +135,9 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    //  [2]: second interior cell
 		    // This extrapolation assumes that cell-spacing between
 		    // cells 1 and 2 continues on in the exterior
-		    cell_1 = bdp.get_cell(i,j,k);
-		    cell_2 = bdp.get_cell(i-1,j,k);
-		    dest_cell = bdp.get_cell(i+1,j,k);
+		    cell_1 = bd.get_cell(i,j,k);
+		    cell_2 = bd.get_cell(i-1,j,k);
+		    dest_cell = bd.get_cell(i+1,j,k);
 		    // Extrapolate on primitive variables
 		    // 1. First exterior point
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
@@ -152,7 +164,7 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    //      (i)        (i+1)       (i+2)
 		    cell_2 = cell_1;
 		    cell_1 = dest_cell;
-		    dest_cell = bdp.get_cell(i+2,j,k);
+		    dest_cell = bd.get_cell(i+2,j,k);
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
 		    for ( int imode = 0; imode < nmodes; ++imode ) {
 			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2->fs->gas->e[imode];
@@ -174,19 +186,19 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    dest_cell->fs->k_t = 2.0*cell_1->fs->k_t - cell_2->fs->k_t;
 		}
 		else {
-		    src_cell = bdp.get_cell(i,j,k);
-		    dest_cell = bdp.get_cell(i+1,j,k);
+		    src_cell = bd.get_cell(i,j,k);
+		    dest_cell = bd.get_cell(i+1,j,k);
 		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
-		    dest_cell = bdp.get_cell(i+2,j,k);
+		    dest_cell = bd.get_cell(i+2,j,k);
 		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		}
 	    } // end j loop
 	} // for k
 	break;
     case SOUTH:
-	j = bdp.jmin;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
+	j = bd.jmin;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
 		if ( x_order == 1 ) {
 		    //  |--- [2] ---|--- [1] ---|||--- [dest] ---|---[ghost cell 2]----
 		    //      (j+1)        (j)           (j-1)
@@ -195,9 +207,9 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    //  [2]: second interior cell
 		    // This extrapolation assumes that cell-spacing between
 		    // cells 1 and 2 continues on in the exterior
-		    cell_1 = bdp.get_cell(i,j,k);
-		    cell_2 = bdp.get_cell(i,j+1,k);
-		    dest_cell = bdp.get_cell(i,j-1,k);
+		    cell_1 = bd.get_cell(i,j,k);
+		    cell_2 = bd.get_cell(i,j+1,k);
+		    dest_cell = bd.get_cell(i,j-1,k);
 		    // Extrapolate on primitive variables
 		    // 1. First exterior point
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
@@ -224,7 +236,7 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    //      (j)        (j-1)       (j-2)
 		    cell_2 = cell_1;
 		    cell_1 = dest_cell;
-		    dest_cell = bdp.get_cell(i,j-2,k);
+		    dest_cell = bd.get_cell(i,j-2,k);
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
 		    for ( int imode = 0; imode < nmodes; ++imode ) {
 			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2->fs->gas->e[imode];
@@ -246,19 +258,19 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    dest_cell->fs->k_t = 2.0*cell_1->fs->k_t - cell_2->fs->k_t;
 		}
 		else {
-		    src_cell = bdp.get_cell(i,j,k);
-		    dest_cell = bdp.get_cell(i,j-1,k);
+		    src_cell = bd.get_cell(i,j,k);
+		    dest_cell = bd.get_cell(i,j-1,k);
 		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
-		    dest_cell = bdp.get_cell(i,j-2,k);
+		    dest_cell = bd.get_cell(i,j-2,k);
 		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		}
 	    } // end i loop
 	} // for k
 	break;
     case WEST:
-	i = bdp.imin;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
+	i = bd.imin;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		if ( x_order == 1 ) {
 		    //  ---[ghost cell 2]---|--- [dest] ---|||--- [1] ---|---[2]----
 		    //      (i-2)                 (i-1)           (i)       (i+1)
@@ -267,9 +279,9 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    //  [2]: second interior cell
 		    // This extrapolation assumes that cell-spacing between
 		    // cells 1 and 2 continues on in the exterior
-		    cell_1 = bdp.get_cell(i,j,k);
-		    cell_2 = bdp.get_cell(i+1,j,k);
-		    dest_cell = bdp.get_cell(i-1,j,k);
+		    cell_1 = bd.get_cell(i,j,k);
+		    cell_2 = bd.get_cell(i+1,j,k);
+		    dest_cell = bd.get_cell(i-1,j,k);
 		    // Extrapolate on primitive variables
 		    // 1. First exterior point
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
@@ -296,7 +308,7 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    //       (i-2)       (i-1)       (i)
 		    cell_2 = cell_1;
 		    cell_1 = dest_cell;
-		    dest_cell = bdp.get_cell(i-2,j,k);
+		    dest_cell = bd.get_cell(i-2,j,k);
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
 		    for ( int imode = 0; imode < nmodes; ++imode ) {
 			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2->fs->gas->e[imode];
@@ -319,19 +331,19 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		}
 		else {
 		    // Zero-order extrapolation
-		    src_cell = bdp.get_cell(i,j,k);
-		    dest_cell = bdp.get_cell(i-1,j,k);
+		    src_cell = bd.get_cell(i,j,k);
+		    dest_cell = bd.get_cell(i-1,j,k);
 		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
-		    dest_cell = bdp.get_cell(i-2,j,k);
+		    dest_cell = bd.get_cell(i-2,j,k);
 		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		}
 	    } // end j loop
 	} // for k
  	break;
     case TOP:
-	k = bdp.kmax;
-        for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
+	k = bd.kmax;
+        for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		if ( x_order == 1 ) {
 		    //  |--- [2] ---|--- [1] ---|||--- [dest] ---|---[ghost cell 2]----
 		    //      (k-1)        (k)           (k+1)
@@ -340,9 +352,9 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    //  [2]: second interior cell
 		    // This extrapolation assumes that cell-spacing between
 		    // cells 1 and 2 continues on in the exterior
-		    cell_1 = bdp.get_cell(i,j,k);
-		    cell_2 = bdp.get_cell(i,j,k-1);
-		    dest_cell = bdp.get_cell(i,j,k+1);
+		    cell_1 = bd.get_cell(i,j,k);
+		    cell_2 = bd.get_cell(i,j,k-1);
+		    dest_cell = bd.get_cell(i,j,k+1);
 		    // Extrapolate on primitive variables
 		    // 1. First exterior point
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
@@ -369,7 +381,7 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    //      (k)        (k+1)       (k+2)
 		    cell_2 = cell_1;
 		    cell_1 = dest_cell;
-		    dest_cell = bdp.get_cell(i,j,k+2);
+		    dest_cell = bd.get_cell(i,j,k+2);
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
 		    for ( int imode = 0; imode < nmodes; ++imode ) {
 			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2->fs->gas->e[imode];
@@ -392,19 +404,19 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		}
 		else {
 		    // Zero-order extrapolation
-		    src_cell = bdp.get_cell(i,j,k);
-		    dest_cell = bdp.get_cell(i,j,k+1);
+		    src_cell = bd.get_cell(i,j,k);
+		    dest_cell = bd.get_cell(i,j,k+1);
 		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
-		    dest_cell = bdp.get_cell(i,j,k+2);
+		    dest_cell = bd.get_cell(i,j,k+2);
 		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		}
 	    } // end j loop
 	} // for i
 	break;
     case BOTTOM:
-	k = bdp.kmin;
-        for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
+	k = bd.kmin;
+        for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		if ( x_order == 1 ) {
 		    //  |--- [2] ---|--- [1] ---|||--- [dest] ---|---[ghost cell 2]----
 		    //      (k+1)        (k)           (k-1)
@@ -413,9 +425,9 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    //  [2]: second interior cell
 		    // This extrapolation assumes that cell-spacing between
 		    // cells 1 and 2 continues on in the exterior
-		    cell_1 = bdp.get_cell(i,j,k);
-		    cell_2 = bdp.get_cell(i,j,k+2);
-		    dest_cell = bdp.get_cell(i,j,k-1);
+		    cell_1 = bd.get_cell(i,j,k);
+		    cell_2 = bd.get_cell(i,j,k+2);
+		    dest_cell = bd.get_cell(i,j,k-1);
 		    // Extrapolate on primitive variables
 		    // 1. First exterior point
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
@@ -442,7 +454,7 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    //      (k)        (k-1)       (k-2)
 		    cell_2 = cell_1;
 		    cell_1 = dest_cell;
-		    dest_cell = bdp.get_cell(i,j,k-2);
+		    dest_cell = bd.get_cell(i,j,k-2);
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
 		    for ( int imode = 0; imode < nmodes; ++imode ) {
 			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2->fs->gas->e[imode];
@@ -464,10 +476,10 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    dest_cell->fs->k_t = 2.0*cell_1->fs->k_t - cell_2->fs->k_t;
 		}
 		else {
-		    src_cell = bdp.get_cell(i,j,k);
-		    dest_cell = bdp.get_cell(i,j,k-1);
+		    src_cell = bd.get_cell(i,j,k);
+		    dest_cell = bd.get_cell(i,j,k-1);
 		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
-		    dest_cell = bdp.get_cell(i,j,k-2);
+		    dest_cell = bd.get_cell(i,j,k-2);
 		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		}
 	    } // end j loop

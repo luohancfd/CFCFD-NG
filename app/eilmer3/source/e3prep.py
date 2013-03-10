@@ -311,6 +311,7 @@ class GlobalData(object):
       this number of steps.
     * shock_fitting_flag: (0/1) Set to 1 to activate adaptation of the grid to the shock.
       Set to 0 (the default) for no shock adaptation.
+      Note that shock-fitting implies a moving grid so moving_grid_flag will also be set.
     * shock_fitting_speed_factor: (float) The calcuated boundary interface velocity is multiplied
       by this number. It may need to be reduced below the default of 1.0 for stability on fine grids.
     * shock_fitting_decay_flag: (0/1) Set to 1 to cause the shock fitting speed factor to decay
@@ -460,6 +461,16 @@ class GlobalData(object):
         self.dt_plot = 1.0e-3
         self.dt_history = 1.0e-3
         GlobalData.count += 1
+        return
+
+    def check_parameter_constraints(self):
+        """
+        Check and apply constraints to parameters that have been set by the user.
+
+        Some combinations of parameters are not compatible and need
+        to be adjusted before writing the control and config files.
+        """
+        if self.shock_fitting_flag: self.moving_grid_flag = 1
         return
 
     def write_to_control_file(self, fp):
@@ -1150,6 +1161,7 @@ def main(uoDict):
     # The user-specified input comes in the form of Python code.
     # In a parallel calculation, all processes should see the same setup.
     execfile(jobFileName, globals())
+    gdata.check_parameter_constraints()
     #
     if uoDict.has_key("--split-input-file"):
         # Split input file

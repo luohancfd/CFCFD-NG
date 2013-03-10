@@ -25,6 +25,7 @@ private:
     std::vector<double> Cp_;
     std::vector<double> e_zero_;
     std::vector<double> q_;
+    std::vector<double> s_ref_;
     
     int s_decode_conserved_energy(Gas_data &Q, const std::vector<double> &rhoe);
     int s_encode_conserved_energy(const Gas_data &Q, std::vector<double> &rhoe);

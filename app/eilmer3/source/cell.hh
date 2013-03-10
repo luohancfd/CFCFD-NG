@@ -52,9 +52,10 @@ const int MASKED_IFACE = 1;
  *
  * Used below to dimension some time-derivative arrays.
  */
-const size_t NL = 4;
-const size_t NI = 6;
-const size_t NV = 8;
+const size_t NL = 4; // Number of levels for derivative calcs and ODE updates.
+
+const size_t NI = 6; // Number of interfaces per cell
+const size_t NV = 8; // Number of vertices per cell
 
 /// We might update the k-omega properties in with the main predictor-corrector
 /// time-stepping function or we might choose to update it separately, 
@@ -84,14 +85,19 @@ public:
     std::vector<double> H; ///> \brief velocity dist. partial densities, (kg*s**2)/(m**5)
     //
     FlowState(Gas_model *gm);
+    FlowState();
+    FlowState(const FlowState &fs);
+    FlowState & operator=(const FlowState &fs);
     ~FlowState();
-    int print();
-    int copy_values_from(FlowState &src);
-    int copy_values_from(CFlowCondition &src);
-    int average_values_from(FlowState &src0, FlowState &src1, bool with_diff_coeff);
-    int average_values_from(FlowState &src0, double alpha0, 
-			    FlowState &src1, double alpha1, bool with_diff_coeff);
-    double * copy_values_to_buffer(double *buf);
+    int print() const;
+    int copy_values_from(const FlowState &src);
+    int copy_values_from(const CFlowCondition &src);
+    int average_values_from(const FlowState &src0, const FlowState &src1,
+			    bool with_diff_coeff);
+    // int average_values_from(const FlowState &src0, double alpha0, 
+    // 			    const FlowState &src1, double alpha1,
+    // 			    bool with_diff_coeff);
+    double * copy_values_to_buffer(double *buf) const;
     double * copy_values_from_buffer(double *buf);
     int BGK_equilibrium(void);
 };
@@ -111,9 +117,12 @@ public:
     std::vector<double> H; ///> \brief velocity dist. partial densities, (kg*s**2)/(m**5)
     //
     ConservedQuantities(Gas_model *gm);
+    ConservedQuantities();
+    ConservedQuantities(const ConservedQuantities &Q);
+    ConservedQuantities & operator=(const ConservedQuantities &Q);
     ~ConservedQuantities();
-    int print();
-    int copy_values_from(ConservedQuantities &src);
+    int print() const;
+    int copy_values_from(const ConservedQuantities &src);
     int clear_values();
 };
 
@@ -123,19 +132,20 @@ public:
     int    id;
     int status; // state of the interface with respect to pistons
     // Geometry
-    Vector3 pos;       /* position of the (approx) midpoint */
-    Vector3 vel;       /* velocity, m/s    */
-    double Ybar;       /* Y-coordinate of the mid-point     */
-    double length;     /* Interface length in the x,y-plane */
-    double ar[NL];     /* Area m**2 in 2D geometries for each integration time level */
-    double area;       /* Area m**2 in 2D geometries        */
-                       /* Area per radian in axisymmetric g */
-    Vector3 n;         /* Direction cosines for unit normal */
-    Vector3 t1;        /* tangent vector 1 (aka p)          */
-    Vector3 t2;        /* tangent vector 2 (aka q)          */
+    Vector3 pos;       ///< \brief position of the (approx) midpoint
+    Vector3 vel;       ///< \brief velocity, m/s
+    double Ybar;       ///< \brief Y-coordinate of the mid-point
+    double length;     ///< \brief Interface length in the x,y-plane
+    double area;       ///<        Area m**2 in 2D geometries
+                       ///< \brief Area per radian in axisymmetric geometry
+    std::vector<double> ar; ///< \brief Area m**2 in 2D geometries
+                            ///  for each integration time level.
+    Vector3 n;         ///< \brief Direction cosines for unit normal
+    Vector3 t1;        ///< \brief tangent vector 1 (aka p)
+    Vector3 t2;        ///< \brief tangent vector 2 (aka q)
     // Flow
-    FlowState *fs;
-    ConservedQuantities *F; // flux conserved quantity per unit area
+    FlowState *fs;     ///< \brief Flow properties
+    ConservedQuantities *F; ///< \brief Flux conserved quantity per unit area
 #   if WITH_IMPLICIT == 1
     // Point-implicit variables
     double Lambda[6][2], R[6][6], R_inv[6][6], sl[6][2], sl_min[6][2];
@@ -143,9 +153,12 @@ public:
 #   endif
     //
     FV_Interface(Gas_model *gm);
+    FV_Interface();
+    FV_Interface(const FV_Interface &iface);
+    FV_Interface & operator=(const FV_Interface &iface);
     ~FV_Interface();
-    int print(int to_stdout);
-    int copy_values_from(FV_Interface &src, int type_of_copy);
+    int print(int to_stdout) const;
+    int copy_values_from(const FV_Interface &src, int type_of_copy);
 }; // end of class FV_Interface
 
 
@@ -154,64 +167,67 @@ class FV_Vertex {
 public:
     int    id;
     // Geometry
-    Vector3 pos;  // x,y,z-Coordinates, m
-    Vector3 position[NL];  // x,y,z-Coordinates for different integration time levels, m
-    Vector3 vel;  // velocity, m/s
-    Vector3 velocity[NL];  // velocity for different integration time levels, m/s
-    double area;  // x,y-plane area of secondary cells
-    double volume;  // volume of 3D secondary cells
+    Vector3 pos;                    ///< \brief x,y,z-Coordinates, m
+    std::vector<Vector3> position;  ///< \brief x,y,z-Coordinates for different integration time levels, m
+    Vector3 vel;                    ///< \brief velocity, m/s
+    std::vector<Vector3> velocity;  ///< \brief velocity for different integration time levels, m/s
+    double area;                    ///< \brief x,y-plane area of secondary cells
+    double volume;                  ///< \brief volume of 3D secondary cells
     // Derivatives of primary-cell variables.
-    double dudx, dudy, dudz; // velocity derivatives
-    double dvdx, dvdy, dvdz; // velocity derivatives
-    double dwdx, dwdy, dwdz; // velocity derivatives
-    std::vector<double> dTdx, dTdy, dTdz; // Temperature derivatives
-    double dtkedx, dtkedy, dtkedz; // turbulence kinetic energy
-    double domegadx, domegady, domegadz; // pseudo vorticity for k-omega turbulence
-    std::vector<double> dfdx, dfdy, dfdz; // mass fraction derivatives
+    double dudx, dudy, dudz;        ///< \brief velocity derivatives
+    double dvdx, dvdy, dvdz;        ///< \brief velocity derivatives
+    double dwdx, dwdy, dwdz;        ///< \brief velocity derivatives
+    std::vector<double> dTdx, dTdy, dTdz; ///< \brief Temperature derivatives
+    double dtkedx, dtkedy, dtkedz;        ///< \brief turbulence kinetic energy
+    double domegadx, domegady, domegadz;  ///< \brief pseudo vorticity for k-omega turbulence
+    std::vector<double> dfdx, dfdy, dfdz; ///< \brief mass fraction derivatives
     //
     FV_Vertex(Gas_model *gm);
+    FV_Vertex();
+    FV_Vertex(const FV_Vertex &vtx);
+    FV_Vertex & operator=(const FV_Vertex &vtx);
     ~FV_Vertex();
-    int copy_values_from(FV_Vertex &src);
+    int copy_values_from(const FV_Vertex &src);
 };
 
 
 /// \brief Cell-averaged data forms the core of the flow field data.
 class FV_Cell {
 public:
-    int id;  // may be used as a global identity in VTK files
-    int status; // state of the cell with respect to pistons
-    int fr_reactions_allowed; // ==1, will call chemical_increment (also thermal_increment)
-    double dt_chem; // acceptable time step for finite-rate chemistry
-    double dt_therm; // acceptable time step for thermal relaxation
-    int in_turbulent_zone; // ==1, we will keep the turbulence viscosity
-    double base_qdot;       // base-level of heat addition to cell, W/m**3
+    int id;  ///> \brief may be used as a global identity in VTK files
+    int status; ///> \brief state of the cell with respect to pistons
+    int fr_reactions_allowed; ///> \brief ==1, will call chemical_increment (also thermal_increment)
+    double dt_chem; ///> \brief acceptable time step for finite-rate chemistry
+    double dt_therm; ///> \brief acceptable time step for thermal relaxation
+    int in_turbulent_zone; ///> \brief ==1, we will keep the turbulence viscosity
+    double base_qdot; ///> \brief base-level of heat addition to cell, W/m**3
     // Geometry
-    Vector3 pos;            /* Centre x,y,z-coordinates, m    */
-    Vector3 position[NL];   /* Centre x,y,z-coordinates for different integration time levels, m	*/
-    double vol[NL];         /* Cell volume (unit depth), m**3 */
-    double volume;
-    double ar[NL];          /* (x,y)-plane area for different integration time levels, m**2         */
-    double area;            /* (x,y)-plane area, m**2         */
-    double uf;              /* uncovered fraction */
-    double iLength;         /* length in the i-index direction */
-    double jLength;         /* length in the j-index direction */
-    double kLength;         /* length in the k-index direction */
-    double L_min;           /* minimum length scale for cell  */
-    double distance_to_nearest_wall; /* for turbulence model correction. */
-    double half_cell_width_at_wall;  /* ditto                            */
-    FV_Cell *cell_at_nearest_wall;   /* ditto                            */
+    Vector3 pos; ///> \brief Centre x,y,z-coordinates, m
+    std::vector<Vector3> position; ///> \brief Centre x,y,z-coordinates for different integration time levels
+    double volume; ///> \brief Cell volume (per unit depth or radian in 2D), m**3
+    std::vector<double> vol; ///> \brief cell volume for different integration levels
+    double area; ///> \brief (x,y)-plane area, m**2
+    std::vector<double> ar; ///> \brief (x,y)-plane area for different integration time levels, m**2
+    double uf; ///> \brief uncovered fraction */
+    double iLength; ///> \brief length in the i-index direction
+    double jLength; ///> \brief length in the j-index direction
+    double kLength; ///> \brief length in the k-index direction
+    double L_min;   ///> \brief minimum length scale for cell
+    double distance_to_nearest_wall; ///> \brief for turbulence model correction.
+    double half_cell_width_at_wall;  ///> \brief ditto
+    FV_Cell *cell_at_nearest_wall;   ///> \brief ditto
     // Connections
-    FV_Interface *iface[6];  // pointers to defining interfaces of cell
-    FV_Vertex *vtx[8];  // pointers to vertices for quad (2D) and hexahedral (3D) cells
+    std::vector<FV_Interface *> iface;  ///> \brief pointers to defining interfaces of cell
+    std::vector<FV_Vertex *> vtx;  ///> \brief pointers to vertices for quad (2D) and hexahedral (3D) cells
     // Flow
-    FlowState *fs;
-    ConservedQuantities *U, *U_old; // current conserved quantities, and at time-step start
-    ConservedQuantities *dUdt[NL];  // time derivatives
-    ConservedQuantities *Q;         // source (or production) terms
+    FlowState *fs; ///> \brief Flow properties
+    ConservedQuantities *U, *U_old; ///> \brief current conserved quantities, and at time-step start
+    std::vector<ConservedQuantities *> dUdt;  ///> \brief time derivatives
+    ConservedQuantities *Q; ///> \brief source (or production) terms
     // Terms for loose-coupling of radiation.
     double Q_rad_org;
     double f_rad_org;
-    double Q_rE_rad; //Rate of energy addition to cell via radiation.
+    double Q_rE_rad; ///> \brief Rate of energy addition to cell via radiation.
     // Data for computing residuals.
     double rho_at_start_of_step, rE_at_start_of_step;
 #   if WITH_IMPLICIT == 1
@@ -220,18 +236,21 @@ public:
 #   endif
     //
     FV_Cell(Gas_model *gm);
+    FV_Cell();
+    FV_Cell(const FV_Cell &cell);
+    FV_Cell & operator=(const FV_Cell &cell);
     ~FV_Cell();
-    int print();
-    int point_is_inside(Vector3 &p, int dimensions);
-    int copy_values_from(CFlowCondition &src);
-    int copy_values_from(FV_Cell &src, int type_of_copy);
-    double * copy_values_to_buffer(double *buf, int type_of_copy);
+    int print() const;
+    int point_is_inside(Vector3 &p, int dimensions) const;
+    int copy_values_from(const CFlowCondition &src);
+    int copy_values_from(const FV_Cell &src, int type_of_copy);
+    double * copy_values_to_buffer(double *buf, int type_of_copy) const;
     double * copy_values_from_buffer(double *buf, int type_of_copy);
-    int replace_flow_data_with_average(FV_Cell *src[], int ncell);
+    int replace_flow_data_with_average(std::vector<FV_Cell *> src);
     int scan_values_from_string(char *bufptr);
-    std::string write_values_to_string();
+    std::string write_values_to_string() const;
     int scan_BGK_from_string(char *bufptr);
-    std::string write_BGK_to_string();
+    std::string write_BGK_to_string() const;
     int impose_chemistry_timestep(double dt);
     int impose_thermal_timestep(double dt);
     int set_fr_reactions_allowed(int flag);
@@ -263,7 +282,7 @@ public:
     int store_rad_scaling_params(void);
     int rescale_Q_rE_rad(void);
     int reset_Q_rad_to_zero(void);
-    double rad_scaling_ratio(void);
+    double rad_scaling_ratio(void) const;
 }; // end of class FV_cell
 
 //--------------------------------------------------------------
@@ -271,24 +290,26 @@ public:
 int number_of_values_in_cell_copy(int type_of_copy);
 std::string variable_list_for_cell(void);
 
-int one_d_interp(FV_Cell &cL1, FV_Cell &cL0, 
-		 FV_Cell &cR0, FV_Cell &cR1, 
+int one_d_interp(const FV_Cell &cL1, const FV_Cell &cL0, 
+		 const FV_Cell &cR0, const FV_Cell &cR1, 
 		 double cL1Length, double cL0Length, 
 		 double cR0Length, double cR1Length, 
 		 FlowState &Lft, FlowState &Rght);
 
-int mach_weighted_one_d_interp(FV_Cell &cL1, FV_Cell &cL0, 
-			       FV_Cell &cR0, FV_Cell &cR1, 
+int mach_weighted_one_d_interp(const FV_Cell &cL1, const FV_Cell &cL0, 
+			       const FV_Cell &cR0, const FV_Cell &cR1, 
 			       double cL1Length, double cL0Length, 
 			       double cR0Length, double cR1Length, 
 			       FlowState &Lft, FlowState &Rght);
 
-int onesided_interp(FV_Cell &cL0, FV_Cell &cR0, FV_Cell &cR1,
+int onesided_interp(const FV_Cell &cL0, const FV_Cell &cR0, const FV_Cell &cR1,
 		    double cL0Length, double cR0Length, double cR1Length,
 		    FlowState &Rght );
 
-int one_d_interior_interp(FV_Cell &cL0, FV_Cell &cR0, FV_Cell &cR1, FV_Cell &cR2,
-			  double cL0Length, double cR0Length, double cR1Length, double cR2Length,
+int one_d_interior_interp(const FV_Cell &cL0, const FV_Cell &cR0,
+			  const FV_Cell &cR1, const FV_Cell &cR2,
+			  double cL0Length, double cR0Length,
+			  double cR1Length, double cR2Length,
 			  FlowState &Lft, FlowState &Rght );
 
 #endif
