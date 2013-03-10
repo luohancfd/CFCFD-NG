@@ -22,5 +22,16 @@ SlipWallBC::SlipWallBC( const SlipWallBC &bc )
 			bc.neighbour_block, bc.neighbour_face) 
 {}
 
+SlipWallBC::SlipWallBC()
+    : BoundaryCondition(0, 0, SLIP_WALL, "SlipWallBC",
+			0, true, false, -1, -1) 
+{}
+
+SlipWallBC & SlipWallBC::operator=(const SlipWallBC &bc)
+{
+    BoundaryCondition::operator=(bc);
+    return *this;
+}
+
 SlipWallBC::~SlipWallBC() {}
 

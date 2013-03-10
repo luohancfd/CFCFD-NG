@@ -10,6 +10,8 @@ public:
     SubsonicInBC( Block *bdp, int which_boundary, int inflow_condition_id,
 		  int assume_ideal=0 );
     SubsonicInBC( const SubsonicInBC &bc );
+    SubsonicInBC();
+    SubsonicInBC & operator=(const SubsonicInBC &bc);
     virtual ~SubsonicInBC();
     virtual int apply_inviscid( double t );
     // default apply_viscous() (does nothing)

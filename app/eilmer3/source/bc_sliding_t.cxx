@@ -27,6 +27,22 @@ SlidingTBC::SlidingTBC( const SlidingTBC &bc )
       Twall_i(bc.Twall_i), Twall_f(bc.Twall_f), t_i(bc.t_i), t_f(bc.t_f)
 {}
 
+SlidingTBC::SlidingTBC()
+    : BoundaryCondition(bdp, which_boundary, SLIDING_T, "SlidingTBC",
+			0, true, false, -1, -1, 0),
+      Twall_i(0.0), Twall_f(0.0), t_i(0.0), t_f(0.0)
+{}
+
+SlidingTBC & SlidingTBC::operator=(const SlidingTBC &bc)
+{
+    BoundaryCondition::operator=(bc);
+    Twall_i = bc.Twall_i;
+    Twall_f = bc.Twall_f;
+    t_i = bc.t_i;
+    t_f = bc.t_f;
+    return *this;
+}
+
 SlidingTBC::~SlidingTBC() {}
 
 int SlidingTBC::apply_viscous( double t )

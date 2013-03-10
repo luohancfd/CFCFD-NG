@@ -8,6 +8,8 @@ public:
 public:
     SupersonicInBC( Block *bdp, int which_boundary, int inflow_condition_id );
     SupersonicInBC( const SupersonicInBC &bc );
+    SupersonicInBC();
+    SupersonicInBC & operator=(const SupersonicInBC &bc);
     virtual ~SupersonicInBC();
     virtual int apply_inviscid( double t ); // copies from FlowCondition to ghost cells
     // default apply_viscous() (does nothing)

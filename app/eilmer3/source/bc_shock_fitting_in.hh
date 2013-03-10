@@ -8,9 +8,11 @@ public:
 public:
     ShockFittingInBC( Block *bdp, int which_boundary, int inflow_condition_id );
     ShockFittingInBC( const ShockFittingInBC &bc );
+    ShockFittingInBC();
+    ShockFittingInBC & operator=(const ShockFittingInBC &bc);
     virtual ~ShockFittingInBC();
-    virtual int apply_inviscid( double t ); // copies from FlowCondition to ghost cells
-    virtual int apply_viscous( double t ); // copies interior cell property to interface
+    virtual int apply_inviscid( double t );
+    virtual int apply_viscous( double t );
 private:
     int calculate_shock_speed(const FV_Cell &cL0, const FV_Cell &cR0,
 			      const FV_Cell &cR1, const FV_Cell &cR2, 

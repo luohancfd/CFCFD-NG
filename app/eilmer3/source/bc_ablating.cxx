@@ -43,9 +43,9 @@ AblatingBC::AblatingBC( Block *bdp, int which_boundary, double Twall,
 
     // Get number of cells for this boundary
     if ( which_boundary == NORTH || which_boundary == SOUTH ) {
-	    ncell = bdp->nni;
+	ncell = bdp->nni;
     } else {
-	    ncell = bdp->nnj;
+	ncell = bdp->nnj;
     }
     // Use fixed boundary temperature if there is no input file
     fp = fopen(filename.c_str(), "r");
@@ -143,6 +143,41 @@ AblatingBC::AblatingBC( const AblatingBC &bc )
     y_guess.resize(nsp+1);
     y_out.resize(nsp+1);
     zero_solver = new NewtonRaphsonZF(nsp+1, tol, max_iterations, true);
+}
+
+AblatingBC::AblatingBC()
+    : BoundaryCondition(0, 0, ABLATING, "AblatingBC",
+			0, false, false, -1, -1, 0)
+      // Default-initialize everything else since we really can't use 
+      // this default-initialized BC.
+{}
+
+AblatingBC & AblatingBC::operator=(const AblatingBC &bc)
+{
+    BoundaryCondition::operator=(bc);
+    if ( this != &bc ) {
+	Twall = bc.Twall;
+	mdot = bc.mdot;
+	filename = bc.filename;
+	TProfile = bc.TProfile;
+	ncell_for_profile = bc.ncell_for_profile;
+	mdot_total = bc.mdot_total;
+	// 0. Get gas-model pointer
+	gmodel = bc.gmodel;
+	int nsp = gmodel->get_number_of_species();
+	// 1. Calculate the total mass flux from the given species-specific components
+	// -> copied explicitly above
+	// 2. Initialise the local gas-data structure (used for EOS calls)
+	Q = new Gas_data(gmodel);
+	// 3. Size the CFD cell mass-fraction vector
+	cell_massf = std::vector<double>(bc.cell_massf);
+	// 4. initialise the zero system components
+	// -> u0_index already copied
+	y_guess = std::valarray<double>(bc.y_guess);
+	y_out = std::valarray<double>(bc.y_guess);
+	zero_solver = new NewtonRaphsonZF(nsp+1, tol, max_iterations, true);
+    }
+    return *this;
 }
 
 AblatingBC::~AblatingBC()

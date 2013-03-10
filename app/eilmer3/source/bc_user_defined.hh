@@ -22,10 +22,13 @@ public:
 		   const std::string filename="udf.lua",
 		   bool is_wall=false, bool use_udf_flux=false );
     UserDefinedBC( const UserDefinedBC &bc );
+    UserDefinedBC();
+    UserDefinedBC & operator=(const UserDefinedBC &bc);
     virtual ~UserDefinedBC();
     virtual int apply_inviscid( double t ); // copies flow data to ghost cells
     virtual int apply_viscous( double t ); // sets wall T to user-defined value
 private:
+    int start_interpreter();
     int eval_flux_udf( double t, int i, int j, int k, FV_Interface *IFace );
     int eval_inviscid_udf( double t, int i, int j, int k, FV_Interface *IFace );
     CFlowCondition *unpack_flow_table( void );

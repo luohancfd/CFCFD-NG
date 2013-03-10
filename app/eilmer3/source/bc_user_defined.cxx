@@ -39,59 +39,7 @@ UserDefinedBC::UserDefinedBC( Block *bdp, int which_boundary,
 			0, is_wall, use_udf_flux),
       filename(filename)
 {
-    // Set up an instance of the Lua interpreter and run the specified script file
-    // to define the flow() and wall() functions.
-    gmodel = get_gas_model_ptr();
-    nsp = gmodel->get_number_of_species();
-    nmodes = gmodel->get_number_of_modes();
-
-#   if ECHO_ALL
-    cout << "UserDefinedBC(): start a Lua interpreter on file " << filename << endl;
-#   endif
-    L = luaL_newstate();
-    luaL_openlibs(L); // load the standard libraries
-
-    // Set up some global variables that might be handy in 
-    // the Lua environment.
-    lua_pushinteger(L, bdp->id);  // we may need the id for the current block
-    lua_setglobal(L, "block_id");
-    lua_pushinteger(L, nsp);
-    lua_setglobal(L, "nsp");
-    lua_pushinteger(L, nmodes);
-    lua_setglobal(L, "nmodes");
-    lua_pushinteger(L, bdp->nni);
-    lua_setglobal(L, "nni");
-    lua_pushinteger(L, bdp->nnj);
-    lua_setglobal(L, "nnj");
-    lua_pushinteger(L, bdp->nnk);
-    lua_setglobal(L, "nnk");
-    lua_pushinteger(L, NORTH);
-    lua_setglobal(L, "NORTH");
-    lua_pushinteger(L, EAST);
-    lua_setglobal(L, "EAST");
-    lua_pushinteger(L, SOUTH);
-    lua_setglobal(L, "SOUTH");
-    lua_pushinteger(L, WEST);
-    lua_setglobal(L, "WEST");
-    lua_pushinteger(L, TOP);
-    lua_setglobal(L, "TOP");
-    lua_pushinteger(L, BOTTOM);
-    lua_setglobal(L, "BOTTOM");
-
-    // Register functions so that they are accessible 
-    // from the Lua environment.
-    lua_pushcfunction(L, luafn_sample_flow);
-    lua_setglobal(L, "sample_flow");
-    lua_pushcfunction(L, luafn_locate_cell);
-    lua_setglobal(L, "locate_cell");
-    lua_pushcfunction(L, luafn_compute_diffusion_coefficient);
-    lua_setglobal(L, "compute_diffusion_coefficient");
-
-    // Presume that the user-defined functions are in the specified file.
-    if ( luaL_loadfile(L, filename.c_str()) || lua_pcall(L, 0, 0, 0) ) {
-	handle_lua_error(L, "Could not run user file: %s", lua_tostring(L, -1));
-    }
-    lua_settop(L, 0); // clear the stack
+    start_interpreter();
 } // end constructor
 
 UserDefinedBC::UserDefinedBC( const UserDefinedBC &bc )
@@ -101,8 +49,26 @@ UserDefinedBC::UserDefinedBC( const UserDefinedBC &bc )
 			bc.neighbour_orientation),
       filename(bc.filename) 
 {
-    cerr << "UserDefinedBC() copy constructor is not implemented. FIX-ME." << endl;
-    exit( NOT_IMPLEMENTED_ERROR );
+    start_interpreter();
+}
+
+UserDefinedBC::UserDefinedBC()
+    : BoundaryCondition(0, 0, USER_DEFINED, "UserDefinedBC",
+			0, false, false),
+      filename("")
+{
+    // Cannot do much useful here because we don't have a filename.
+}
+
+UserDefinedBC & UserDefinedBC::operator=(const UserDefinedBC &bc)
+{
+    // Don't start a new interpreter for assignment to self.
+    if ( this != &bc ) {
+	BoundaryCondition::operator=(bc);
+	filename = bc.filename;
+	start_interpreter();
+    }
+    return *this;
 }
 
 UserDefinedBC::~UserDefinedBC() 
@@ -319,6 +285,64 @@ int UserDefinedBC::apply_viscous( double t )
     }
     return SUCCESS;
 } // end UserDefinedBC::apply_viscous()
+
+int UserDefinedBC::start_interpreter()
+{
+    // Set up an instance of the Lua interpreter and run the specified script file
+    // to define the flow() and wall() functions.
+    gmodel = get_gas_model_ptr();
+    nsp = gmodel->get_number_of_species();
+    nmodes = gmodel->get_number_of_modes();
+
+#   if ECHO_ALL
+    cout << "UserDefinedBC(): start a Lua interpreter on file " << filename << endl;
+#   endif
+    L = luaL_newstate();
+    luaL_openlibs(L); // load the standard libraries
+
+    // Set up some global variables that might be handy in 
+    // the Lua environment.
+    lua_pushinteger(L, bdp->id);  // we may need the id for the current block
+    lua_setglobal(L, "block_id");
+    lua_pushinteger(L, nsp);
+    lua_setglobal(L, "nsp");
+    lua_pushinteger(L, nmodes);
+    lua_setglobal(L, "nmodes");
+    lua_pushinteger(L, bdp->nni);
+    lua_setglobal(L, "nni");
+    lua_pushinteger(L, bdp->nnj);
+    lua_setglobal(L, "nnj");
+    lua_pushinteger(L, bdp->nnk);
+    lua_setglobal(L, "nnk");
+    lua_pushinteger(L, NORTH);
+    lua_setglobal(L, "NORTH");
+    lua_pushinteger(L, EAST);
+    lua_setglobal(L, "EAST");
+    lua_pushinteger(L, SOUTH);
+    lua_setglobal(L, "SOUTH");
+    lua_pushinteger(L, WEST);
+    lua_setglobal(L, "WEST");
+    lua_pushinteger(L, TOP);
+    lua_setglobal(L, "TOP");
+    lua_pushinteger(L, BOTTOM);
+    lua_setglobal(L, "BOTTOM");
+
+    // Register functions so that they are accessible 
+    // from the Lua environment.
+    lua_pushcfunction(L, luafn_sample_flow);
+    lua_setglobal(L, "sample_flow");
+    lua_pushcfunction(L, luafn_locate_cell);
+    lua_setglobal(L, "locate_cell");
+    lua_pushcfunction(L, luafn_compute_diffusion_coefficient);
+    lua_setglobal(L, "compute_diffusion_coefficient");
+
+    // Presume that the user-defined functions are in the specified file.
+    if ( luaL_loadfile(L, filename.c_str()) || lua_pcall(L, 0, 0, 0) ) {
+	handle_lua_error(L, "Could not run user file: %s", lua_tostring(L, -1));
+    }
+    lua_settop(L, 0); // clear the stack
+    return SUCCESS;
+} // end start_interpreter()
 
 int UserDefinedBC::eval_flux_udf( double t, int i, int j, int k, FV_Interface *IFace )
 {

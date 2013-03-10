@@ -15,6 +15,8 @@ public:
     TransientUniformBC( Block *bdp, int which_boundary, 
 			std::string filename="transient_uniform.dat" );
     TransientUniformBC( const TransientUniformBC &bc );
+    TransientUniformBC();
+    TransientUniformBC & operator=(const TransientUniformBC &bc);
     virtual ~TransientUniformBC();
     virtual int apply_inviscid( double t );
     // default apply_viscous() (does nothing)

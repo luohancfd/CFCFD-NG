@@ -59,6 +59,29 @@ SurfaceEnergyBalanceBC::SurfaceEnergyBalanceBC( const SurfaceEnergyBalanceBC &bc
     Q = new Gas_data(gmodel);
 }
 
+SurfaceEnergyBalanceBC & 
+SurfaceEnergyBalanceBC::operator=(const SurfaceEnergyBalanceBC &bc)
+{
+    if ( this != &bc ) {
+	epsilon = bc.epsilon;
+	tol = bc.tol;
+	max_iterations = bc.max_iterations;
+	f_relax = bc.f_relax;
+	Q = new Gas_data(*(bc.Q));
+    }
+    return *this;
+}
+
+SurfaceEnergyBalanceBC::SurfaceEnergyBalanceBC()
+    : BoundaryCondition(0, 0, SEB, "SurfaceEnergyBalanceBC",
+			0, true, false, -1, -1, 0),
+      epsilon(0.0), tol(1.0e-4), max_iterations(100), f_relax(0.05)
+{
+    // Initialise the local gas-data structure (used for EOS calls)
+    Gas_model * gmodel = get_gas_model_ptr();
+    Q = new Gas_data(gmodel);
+}
+
 SurfaceEnergyBalanceBC::~SurfaceEnergyBalanceBC() 
 {
     delete Q;

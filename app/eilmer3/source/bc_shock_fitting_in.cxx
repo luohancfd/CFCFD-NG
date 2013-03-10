@@ -4,6 +4,7 @@
 #include "../../../lib/gas/models/gas_data.hh"
 #include "../../../lib/gas/models/gas-model.hh"
 #include "../../../lib/gas/models/physical_constants.hh"
+#include "cell.hh"
 #include "block.hh"
 #include "bc.hh"
 #include "bc_shock_fitting_in.hh"
@@ -12,22 +13,42 @@
 
 //------------------------------------------------------------------------
 
-ShockFittingInBC::ShockFittingInBC( Block *bdp, int which_boundary, 
-				    int inflow_condition_id )
+ShockFittingInBC::
+ShockFittingInBC( Block *bdp, int which_boundary, int inflow_condition_id )
     : BoundaryCondition(bdp, which_boundary, SHOCK_FITTING_IN, "ShockFittingIn", 
 			0, false, false, -1, -1, 0), 
-      inflow_condition_id(inflow_condition_id) {}
+      inflow_condition_id(inflow_condition_id) 
+{}
 
-ShockFittingInBC::ShockFittingInBC( const ShockFittingInBC &bc )
+ShockFittingInBC::
+ShockFittingInBC( const ShockFittingInBC &bc )
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
 			bc.x_order, bc.is_wall_flag, bc.use_udf_flux_flag,
 			bc.neighbour_block, bc.neighbour_face,
 			bc.neighbour_orientation),
-      inflow_condition_id(bc.inflow_condition_id) {}
+      inflow_condition_id(bc.inflow_condition_id) 
+{}
+
+ShockFittingInBC::
+ShockFittingInBC()
+    : BoundaryCondition(0, 0, SHOCK_FITTING_IN, "ShockFittingIn", 
+			0, false, false, -1, -1, 0), 
+      inflow_condition_id(0) 
+{}
+
+ShockFittingInBC & 
+ShockFittingInBC::operator=(const ShockFittingInBC &bc)
+{
+    BoundaryCondition::operator=(bc);
+    inflow_condition_id = bc.inflow_condition_id; // Benign for self-assignment.
+    return *this;
+}
 
 ShockFittingInBC::~ShockFittingInBC() {}
 
-int ShockFittingInBC::apply_inviscid( double t )
+int ShockFittingInBC::
+apply_inviscid( double t )
+// Copies from FlowCondition to ghost cells.
 {
     // Set up ghost cells with inflow state. 
     int i, j, k;
@@ -38,19 +59,10 @@ int ShockFittingInBC::apply_inviscid( double t )
     Block & bd = *bdp;
 
     switch ( which_boundary ) {
-    case NORTH:
-	printf( "Error: ShockFittingInBC not implemented for boundary %d\n, please use West boundary.", 
-		which_boundary );
-	exit(NOT_IMPLEMENTED_ERROR);
-	break;
-    case EAST:
-	printf( "Error: ShockFittingInBC not implemented for boundary %d\n, please use West boundary.", 
-		which_boundary );
-	exit(NOT_IMPLEMENTED_ERROR);
-	break;
-    case SOUTH:
-	printf( "Error: ShockFittingInBC not implemented for boundary %d\n, please use West boundary.", 
-		which_boundary );
+    case NORTH: case EAST: case SOUTH: case TOP: case BOTTOM:
+	cout << "ShockFittingInBC not implemented for " 
+	     << get_face_name(which_boundary) << " boundary." << endl;
+        cout << "    Please use West boundary." << endl;
 	exit(NOT_IMPLEMENTED_ERROR);
 	break;
     case WEST:
@@ -77,16 +89,6 @@ int ShockFittingInBC::apply_inviscid( double t )
 	    } // end j loop
 	} // for k
  	break;
-    case TOP:
-	printf( "Error: ShockFittingInBC not implemented for boundary %d\n, please use West boundary.", 
-		which_boundary );
-	exit(NOT_IMPLEMENTED_ERROR);
-	break;
-    case BOTTOM:
-	printf( "Error: ShockFittingInBC not implemented for boundary %d\n, please use West boundary.", 
-		which_boundary );
-	exit(NOT_IMPLEMENTED_ERROR);
- 	break;
     default:
 	printf( "Error: apply_inviscid not implemented for boundary %d\n", 
 		which_boundary );
@@ -97,6 +99,7 @@ int ShockFittingInBC::apply_inviscid( double t )
 }
 
 int ShockFittingInBC::apply_viscous( double t )
+// Copies interior-cell flow-properties to interface.
 {
     int i, j, k;
     FV_Cell *cell;

@@ -27,6 +27,21 @@ SubsonicInBC::SubsonicInBC( const SubsonicInBC &bc )
       inflow_condition_id(bc.inflow_condition_id) 
 {}
 
+SubsonicInBC::SubsonicInBC()
+    : BoundaryCondition(0, 0, SUBSONIC_IN, "SubsonicInBC",
+			0, false, false, -1, -1, 0), 
+      inflow_condition_id(0), use_ideal_gas_relations(0)
+{}
+
+SubsonicInBC & SubsonicInBC::operator=(const SubsonicInBC &bc)
+{
+    // Benign for self-assignment.
+    BoundaryCondition::operator=(bc);
+    inflow_condition_id = bc.inflow_condition_id;
+    use_ideal_gas_relations = bc.use_ideal_gas_relations;
+    return *this;
+}
+
 SubsonicInBC::~SubsonicInBC() {}
 
 int SubsonicInBC::apply_inviscid( double t )

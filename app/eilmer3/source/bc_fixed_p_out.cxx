@@ -25,6 +25,19 @@ FixedPOutBC::FixedPOutBC( const FixedPOutBC &bc )
       Pout(Pout) 
 {}
 
+FixedPOutBC::FixedPOutBC()
+    : BoundaryCondition(0, 0, FIXED_P_OUT, "FixedPOutBC",
+			0, false, false, -1, -1, 0), 
+      Pout(0.0) 
+{}
+
+FixedPOutBC & FixedPOutBC::operator=(const FixedPOutBC &bc)
+{
+    BoundaryCondition::operator=(bc);
+    Pout = bc.Pout; // Ok for self-assignment.
+    return *this;
+}
+
 FixedPOutBC::~FixedPOutBC() {}
 
 int FixedPOutBC::apply_inviscid( double t )

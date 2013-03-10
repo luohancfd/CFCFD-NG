@@ -121,6 +121,27 @@ TransientUniformBC::TransientUniformBC( const TransientUniformBC &bc )
     exit( NOT_IMPLEMENTED_ERROR );
 }
 
+TransientUniformBC::TransientUniformBC()
+    : BoundaryCondition(0, 0, TRANSIENT_UNI, "TransientUniformBC",
+			0, false, false, -1, -1, 0),
+      filename("")
+{ /* Cannot do much without more information. */ }
+
+TransientUniformBC & 
+TransientUniformBC::operator=(const TransientUniformBC &bc)
+{
+    BoundaryCondition::operator=(bc);
+    if ( this != &bc ) {
+	filename = bc.filename;
+	tta = bc.tta; pa = bc.pa; ua = bc.ua;
+	va = bc.va; wa = bc.wa; Ta = bc.Ta;
+	massfa = bc.massfa;
+	gmodel = bc.gmodel;
+	nsample = bc.nsample; nsp = bc.nsp; nmodes=bc.nmodes;
+    }
+    return *this;
+}
+
 TransientUniformBC::~TransientUniformBC() 
 {}
 

@@ -27,6 +27,19 @@ FixedTBC::FixedTBC( const FixedTBC &bc )
       Twall(bc.Twall) 
 {}
 
+FixedTBC::FixedTBC()
+    : BoundaryCondition(0, 0, FIXED_T, "FixedTBC",
+			0, true, false, -1, -1, 0),
+      Twall(300.0) 
+{}
+
+FixedTBC & FixedTBC::operator=(const FixedTBC &bc)
+{
+    BoundaryCondition::operator=(bc);
+    Twall = bc.Twall; // Ok for self-assignment.
+    return *this;
+}
+
 FixedTBC::~FixedTBC() {}
 
 int FixedTBC::apply_viscous( double t )

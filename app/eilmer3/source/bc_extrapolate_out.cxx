@@ -23,6 +23,17 @@ ExtrapolateOutBC::ExtrapolateOutBC( const ExtrapolateOutBC &bc )
 			bc.neighbour_orientation) 
 {}
 
+ExtrapolateOutBC::ExtrapolateOutBC()
+    : BoundaryCondition(0, 0, EXTRAPOLATE_OUT, "ExtrapolateOutBC",
+			0, false, false, -1, -1, 0) 
+{}
+
+ExtrapolateOutBC & ExtrapolateOutBC::operator=(const ExtrapolateOutBC &bc)
+{
+    BoundaryCondition::operator=(bc);
+    return *this;
+}
+
 ExtrapolateOutBC::~ExtrapolateOutBC() {}
 
 int ExtrapolateOutBC::apply_inviscid( double t )

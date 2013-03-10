@@ -188,10 +188,32 @@ StaticProfileBC::StaticProfileBC( const StaticProfileBC &bc )
     exit( NOT_IMPLEMENTED_ERROR );
 }
 
+StaticProfileBC::StaticProfileBC()
+    : BoundaryCondition(0, 0, STATIC_PROF, "StaticProfileBC",
+			0, false, false, -1, -1, 0),
+      filename(""), n_profile(0)
+{}
+
+StaticProfileBC & StaticProfileBC::operator=(const StaticProfileBC &bc)
+{
+    if ( this != &bc ) {
+	BoundaryCondition::operator=(bc);
+	filename = bc.filename;
+	n_profile = bc.n_profile;
+	nsp = bc.nsp;
+	ncell_for_profile = bc.ncell_for_profile;
+	for ( size_t i = 0; i < bc.flow_profile.size(); ++i ) {
+	    flow_profile.push_back(new CFlowCondition(*(bc.flow_profile[i])));
+	}
+    }
+    return *this;
+}
+
 StaticProfileBC::~StaticProfileBC() 
 {
     for ( size_t i = 0; i < flow_profile.size(); ++i ) {
 	delete flow_profile[i];
+	flow_profile[i] = 0;
     }
     flow_profile.clear();
 }

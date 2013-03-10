@@ -401,18 +401,6 @@ int locate_cell(double x, double y, double z,
 /// 5 i+1 j   k+1
 /// 6 i+1 j+1 k+1
 /// 7 i   j+1 k+1
-
-/// Corners of the 2D secondary cell in 2D, located at vtx[i][j].
-/// Note that these are indices of cell-centres wrt vtx[i][j].
-#define  IADSH  (i)
-#define  JADSH  (j-1)
-#define  IBDSH  (i)
-#define  JBDSH  (j)
-#define  ICDSH  (i-1)
-#define  JCDSH  (j)
-#define  IDDSH  (i-1)
-#define  JDDSH  (j-1)
-
  
 /*-------------------------------------------------------------------*/
 

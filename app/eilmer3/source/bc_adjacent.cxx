@@ -24,6 +24,16 @@ AdjacentBC::AdjacentBC( const AdjacentBC &bc )
 			bc.neighbour_orientation) 
 {}
 
+AdjacentBC::AdjacentBC()
+    : BoundaryCondition(0, 0, ADJACENT, "AdjacentBC", 0, false, false, -1, -1, 0)
+{}
+
+AdjacentBC & AdjacentBC::operator=(const AdjacentBC &bc)
+{
+    BoundaryCondition::operator=(bc);
+    return *this;
+}
+
 AdjacentBC::~AdjacentBC() {}
 
 int AdjacentBC::apply_inviscid( double t )

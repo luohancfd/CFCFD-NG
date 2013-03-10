@@ -24,6 +24,16 @@ AdiabaticBC::AdiabaticBC( const AdiabaticBC &bc )
 			bc.neighbour_orientation) 
 {}
 
+AdiabaticBC::AdiabaticBC()
+    : BoundaryCondition(0, 0, ADIABATIC, "AdiabaticBC",
+			0, true, false, -1, -1, 0) 
+{}
+
+AdiabaticBC & AdiabaticBC::operator=(const AdiabaticBC &bc)
+{
+    BoundaryCondition::operator=(bc);
+}
+
 AdiabaticBC::~AdiabaticBC() {}
 
 int AdiabaticBC::apply_viscous( double t )

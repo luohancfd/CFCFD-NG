@@ -95,6 +95,22 @@ fstcBC::fstcBC( const fstcBC &bc )
       filename(bc.filename)
 {}
 
+fstcBC::fstcBC()
+    : BoundaryCondition(0, 0, FSTC, "fstcBC",
+			0, true, false, -1, -1, 0),
+      filename("")
+{ /* Cannot do anything useful here. */ }
+
+fstcBC & fstcBC::operator=(const fstcBC &bc)
+{
+    BoundaryCondition::operator=(bc);
+    filename = bc.filename;
+    cerr << "fstcBC() assignment operator with file: " << filename
+	 << "Not implemented. " << endl;
+    exit(NOT_IMPLEMENTED_ERROR);
+    return *this;
+}
+
 fstcBC::~fstcBC() {}
 
 int fstcBC::apply_viscous( double t )

@@ -2233,14 +2233,14 @@ int Block::secondary_areas_2D( void )
     for (i = imin+1; i <= imax; ++i) {
         for (j = jmin+1; j <= jmax; ++j) {
 	    // These are the corners.
-            xA = get_cell(IADSH,JADSH)->pos.x;
-            yA = get_cell(IADSH,JADSH)->pos.y;
-            xB = get_cell(IBDSH,JBDSH)->pos.x;
-            yB = get_cell(IBDSH,JBDSH)->pos.y;
-            xC = get_cell(ICDSH,JCDSH)->pos.x;
-            yC = get_cell(ICDSH,JCDSH)->pos.y;
-            xD = get_cell(IDDSH,JDDSH)->pos.x;
-            yD = get_cell(IDDSH,JDDSH)->pos.y;
+            xA = get_cell(i,j-1)->pos.x;
+            yA = get_cell(i,j-1)->pos.y;
+            xB = get_cell(i,j)->pos.x;
+            yB = get_cell(i,j)->pos.y;
+            xC = get_cell(i-1,j)->pos.x;
+            yC = get_cell(i-1,j)->pos.y;
+            xD = get_cell(i-1,j-1)->pos.x;
+            yD = get_cell(i-1,j-1)->pos.y;
 	    // Cell area in the (x,y)-plane.
             xyarea = 0.5 * ((xB + xA) * (yB - yA) + (xC + xB) * (yC - yB) +
                             (xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
@@ -2264,10 +2264,10 @@ int Block::secondary_areas_2D( void )
 	yA = get_ifi(i,j-1)->pos.y;
 	xB = get_ifi(i,j)->pos.x;
 	yB = get_ifi(i,j)->pos.y;
-        xC = get_cell(ICDSH,JCDSH)->pos.x;
-        yC = get_cell(ICDSH,JCDSH)->pos.y;
-        xD = get_cell(IDDSH,JDDSH)->pos.x;
-        yD = get_cell(IDDSH,JDDSH)->pos.y;
+        xC = get_cell(i-1,j)->pos.x;
+        yC = get_cell(i-1,j)->pos.y;
+        xD = get_cell(i-1,j-1)->pos.x;
+        yD = get_cell(i-1,j-1)->pos.y;
 	// Cell area in the (x,y)-plane.
         xyarea = 0.5 * ((xB + xA) * (yB - yA) + (xC + xB) * (yC - yB) +
                         (xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
@@ -2288,10 +2288,10 @@ int Block::secondary_areas_2D( void )
     // West boundary.
     i = imin;
     for (j = jmin+1; j <= jmax; ++j) {
-        xA = get_cell(IADSH,JADSH)->pos.x;
-        yA = get_cell(IADSH,JADSH)->pos.y;
-        xB = get_cell(IBDSH,JBDSH)->pos.x;
-        yB = get_cell(IBDSH,JBDSH)->pos.y;
+        xA = get_cell(i,j-1)->pos.x;
+        yA = get_cell(i,j-1)->pos.y;
+        xB = get_cell(i,j)->pos.x;
+        yB = get_cell(i,j)->pos.y;
 	xC = get_ifi(i,j)->pos.x;
 	yC = get_ifi(i,j)->pos.y;
 	xD = get_ifi(i,j-1)->pos.x;
@@ -2317,14 +2317,14 @@ int Block::secondary_areas_2D( void )
     j = jmax+1;
     for (i = imin+1; i <= imax; ++i) {
 	// These are the corners.
-        xA = get_cell(IADSH,JADSH)->pos.x;
-        yA = get_cell(IADSH,JADSH)->pos.y;
+        xA = get_cell(i,j-1)->pos.x;
+        yA = get_cell(i,j-1)->pos.y;
 	xB = get_ifj(i,j)->pos.x;
 	yB = get_ifj(i,j)->pos.y;
 	xC = get_ifj(i-1,j)->pos.x;
 	yC = get_ifj(i-1,j)->pos.y;
-        xD = get_cell(IDDSH,JDDSH)->pos.x;
-        yD = get_cell(IDDSH,JDDSH)->pos.y;
+        xD = get_cell(i-1,j-1)->pos.x;
+        yD = get_cell(i-1,j-1)->pos.y;
 	// Cell area in the (x,y)-plane.
         xyarea = 0.5 * ((xB + xA) * (yB - yA) + (xC + xB) * (yC - yB) +
                         (xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
@@ -2347,10 +2347,10 @@ int Block::secondary_areas_2D( void )
     for (i = imin+1; i <= imax; ++i) {
 	xA = get_ifj(i,j)->pos.x;
 	yA = get_ifj(i,j)->pos.y;
-        xB = get_cell(IBDSH,JBDSH)->pos.x;
-        yB = get_cell(IBDSH,JBDSH)->pos.y;
-        xC = get_cell(ICDSH,JCDSH)->pos.x;
-        yC = get_cell(ICDSH,JCDSH)->pos.y;
+        xB = get_cell(i,j)->pos.x;
+        yB = get_cell(i,j)->pos.y;
+        xC = get_cell(i-1,j)->pos.x;
+        yC = get_cell(i-1,j)->pos.y;
 	xD = get_ifj(i-1,j)->pos.x;
 	yD = get_ifj(i-1,j)->pos.y;
 	// Cell area in the (x,y)-plane.
