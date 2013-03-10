@@ -242,7 +242,7 @@ int read_config_parameters(const string filename, int master)
     set_shock_fitting_decay_flag( i_value );
     dict.parse_double("global_data", "shock_fitting_speed_factor", G.shock_fitting_speed_factor, 1.0);
     dict.parse_int("global_data", "moving_grid_flag", i_value, 0);
-    set_moving_grid_flag( get_shock_fitting_flag() );
+    set_moving_grid_flag( i_value );
     dict.parse_int("global_data", "write_vertex_velocities_flag", i_value, 0);
     set_write_vertex_velocities_flag( i_value );
     dict.parse_int("global_data", "adaptive_reconstruction_flag", i_value, 0);
