@@ -2,14 +2,16 @@
 # prep.sh
 echo "Methane combustion in a constant-volume reactor."
 
-INPUTFILES=${HOME}/cfcfd3/lib/gas/reaction-schemes/methane-combustion
+if [ -z ${CFCFD_SRC} ]; then CFCFD_SRC=${HOME}/cfcfd3; fi
+
+INPUTFILES=${CFCFD_SRC}/lib/gas/reaction-schemes/methane-combustion
 cp ${INPUTFILES}/grimech30.lua .
 cp ${INPUTFILES}/grimech30.inp .
 gasfile grimech30.inp thermally-perfect-grimech30.lua
 
 echo "Run Brendan's simple_reactor with constant-volume."
 echo "This should take about half a minite."
-cp ${HOME}/cfcfd3/examples/perfectly-stirred-reactor/simple_reactor.py .
+cp ${CFCFD_SRC}/examples/perfectly-stirred-reactor/simple_reactor.py .
 python simple_reactor.py \
     --type=cvfm \
     --gas=thermally-perfect-grimech30.lua \
