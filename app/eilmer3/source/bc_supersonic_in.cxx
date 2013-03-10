@@ -32,8 +32,8 @@ int SupersonicInBC::apply_inviscid( double t )
     int i, j, k;
     FV_Cell *dest_cell;
     FV_Interface *dest_face;
-    global_data &gdp = *get_global_data_ptr();
-    CFlowCondition *gsp = gdp.gas_state[inflow_condition_id];
+    global_data &gd = *get_global_data_ptr();
+    CFlowCondition *gsp = gd.gas_state[inflow_condition_id];
     Block & bd = *bdp;
 
     switch ( which_boundary ) {

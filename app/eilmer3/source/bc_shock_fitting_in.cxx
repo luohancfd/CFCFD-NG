@@ -33,8 +33,8 @@ int ShockFittingInBC::apply_inviscid( double t )
     int i, j, k;
     FV_Cell *cL1, *cL0, *cR0, *cR1, *cR2;
     FV_Interface *IFaceL, *IFaceR;
-    global_data &gdp = *get_global_data_ptr();
-    CFlowCondition *gsp = gdp.gas_state[inflow_condition_id];
+    global_data &gd = *get_global_data_ptr();
+    CFlowCondition *gsp = gd.gas_state[inflow_condition_id];
     Block & bd = *bdp;
 
     switch ( which_boundary ) {
@@ -123,16 +123,16 @@ int ShockFittingInBC::calculate_shock_speed(const FV_Cell &cL0, const FV_Cell &c
 {
 #   define EPSILON 1.0e-12
 #   define ALPHA 0.5
-    global_data &gdp = *get_global_data_ptr();
-    double time_weight = gdp.shock_fitting_speed_factor;
+    global_data &gd = *get_global_data_ptr();
+    double time_weight = gd.shock_fitting_speed_factor;
     if ( get_shock_fitting_decay_flag() ) {
-        time_weight = time_weight - time_weight*(exp(-gdp.sim_time/gdp.max_time) - 1.0) / 
+        time_weight = time_weight - time_weight*(exp(-gd.sim_time/gd.max_time) - 1.0) / 
                              (exp(-1.0) - 1.0);
     }
     Gas_data &gL = *(IFaceL.fs->gas);
     Gas_data &gR = *(IFaceR.fs->gas);
     
-    if ( gdp.sim_time >= gdp.t_shock ) {
+    if ( gd.sim_time >= gd.t_shock ) {
 	// Detect shock from density jump.
         if ( fabs(cR0.fs->gas->rho - cL0.fs->gas->rho) / 
              max(cL0.fs->gas->rho, cR0.fs->gas->rho) > 0.2 ) {
@@ -166,4 +166,4 @@ int ShockFittingInBC::calculate_shock_speed(const FV_Cell &cL0, const FV_Cell &c
         IFaceR.vel.transform_to_global(IFaceR.n, IFaceR.t1, IFaceR.t2);
     }
     return SUCCESS;
-} // end ShockFittingInBC::calculate_post_shock_properties()
+} // end ShockFittingInBC::calculate_shock_speed()

@@ -687,7 +687,7 @@ int Block::bind_interfaces_to_cells( int dimensions )
 
 
 /// \brief Set the base heat source values for this block.
-int Block::set_base_qdot( global_data &gdp )
+int Block::set_base_qdot( global_data &gd )
 {
     double total_qdot_for_block = 0.0;
     CHeatZone *hzp;
@@ -699,11 +699,11 @@ int Block::set_base_qdot( global_data &gdp )
 	    for ( int j = jmin; j <= jmax; ++j ) {
 		cellp = get_cell(i,j,k);
 		cellp->base_qdot = 0.0;
-		for ( int indx = 0; indx < gdp.n_heat_zone; ++indx ) {
-		    hzp = &(gdp.heat_zone[indx]);
+		for ( int indx = 0; indx < gd.n_heat_zone; ++indx ) {
+		    hzp = &(gd.heat_zone[indx]);
 		    if ( cellp->pos.x >= hzp->x0 && cellp->pos.x <= hzp->x1 &&
 			 cellp->pos.y >= hzp->y0 && cellp->pos.y <= hzp->y1 &&
-			 (gdp.dimensions == 2 || 
+			 (gd.dimensions == 2 || 
 			  (cellp->pos.z >= hzp->z0 && cellp->pos.z <= hzp->z1)) ) {
 			cellp->base_qdot += hzp->qdot;
 		    }
@@ -721,7 +721,7 @@ int Block::set_base_qdot( global_data &gdp )
 
 
 /// \brief Set the reactions-allowed flag for cells in this block.
-int Block::identify_reaction_zones( global_data &gdp )
+int Block::identify_reaction_zones( global_data &gd )
 {
     int total_cells_in_reaction_zones = 0;
     int total_cells = 0;
@@ -732,14 +732,14 @@ int Block::identify_reaction_zones( global_data &gdp )
 	for ( int i = imin; i <= imax; ++i ) {
 	    for ( int j = jmin; j <= jmax; ++j ) {
 		cellp = get_cell(i,j,k);
-		if ( gdp.n_reaction_zone > 0 ) {
+		if ( gd.n_reaction_zone > 0 ) {
 		    // User-specified reaction zones; mask off reacting/nonreacting zones.
 		    cellp->fr_reactions_allowed = 0;
-		    for ( int indx = 0; indx < gdp.n_reaction_zone; ++indx ) {
-			rzp = &(gdp.reaction_zone[indx]);
+		    for ( int indx = 0; indx < gd.n_reaction_zone; ++indx ) {
+			rzp = &(gd.reaction_zone[indx]);
 			if ( cellp->pos.x >= rzp->x0 && cellp->pos.x <= rzp->x1 &&
 			     cellp->pos.y >= rzp->y0 && cellp->pos.y <= rzp->y1 &&
-			     (gdp.dimensions == 2 || 
+			     (gd.dimensions == 2 || 
 			      (cellp->pos.z >= rzp->z0 && cellp->pos.z <= rzp->z1)) ) {
 			    cellp->fr_reactions_allowed = 1;
 			}
@@ -757,7 +757,7 @@ int Block::identify_reaction_zones( global_data &gdp )
 	cout << "identify_reaction_zones(): block " << id
 	     << " cells inside zones = " << total_cells_in_reaction_zones 
 	     << " out of " << total_cells << endl;
-	if ( gdp.n_reaction_zone == 0 ) {
+	if ( gd.n_reaction_zone == 0 ) {
 	    cout << "Note that for no user-specified zones,"
 		 << " the whole domain is allowed to be reacting." << endl;
 	}
@@ -767,7 +767,7 @@ int Block::identify_reaction_zones( global_data &gdp )
 
 
 /// \brief Set the in-turbulent-zone flag for cells in this block.
-int Block::identify_turbulent_zones( global_data &gdp )
+int Block::identify_turbulent_zones( global_data &gd )
 {
     int total_cells_in_turbulent_zones = 0;
     int total_cells = 0;
@@ -778,13 +778,13 @@ int Block::identify_turbulent_zones( global_data &gdp )
 	for ( int i = imin; i <= imax; ++i ) {
 	    for ( int j = jmin; j <= jmax; ++j ) {
 		cellp = get_cell(i,j,k);
-		if ( gdp.n_turbulent_zone > 0 ) {
+		if ( gd.n_turbulent_zone > 0 ) {
 		    cellp->in_turbulent_zone = 0;
-		    for ( int indx = 0; indx < gdp.n_turbulent_zone; ++indx ) {
-			tzp = &(gdp.turbulent_zone[indx]);
+		    for ( int indx = 0; indx < gd.n_turbulent_zone; ++indx ) {
+			tzp = &(gd.turbulent_zone[indx]);
 			if ( cellp->pos.x >= tzp->x0 && cellp->pos.x <= tzp->x1 &&
 			     cellp->pos.y >= tzp->y0 && cellp->pos.y <= tzp->y1 &&
-			     (gdp.dimensions == 2 || 
+			     (gd.dimensions == 2 || 
 			      (cellp->pos.z >= tzp->z0 && cellp->pos.z <= tzp->z1)) ) {
 			    cellp->in_turbulent_zone = 1;
 			}
@@ -801,7 +801,7 @@ int Block::identify_turbulent_zones( global_data &gdp )
 	cout << "identify_turbulent_zones(): block " << id
 	     << " cells inside zones = " << total_cells_in_turbulent_zones 
 	     << " out of " << total_cells << endl;
-	if ( gdp.n_turbulent_zone == 0 ) {
+	if ( gd.n_turbulent_zone == 0 ) {
 	    cout << "Note that for no user-specified zones,"
 		 << " the whole domain is allowed to be turbulent." << endl;
 	}

@@ -35,8 +35,8 @@ int SubsonicInBC::apply_inviscid( double t )
     int i, j, k;
     FV_Cell *src_cell, *dest_cell;
     double u, v, w, velocity;
-    global_data &gdp = *get_global_data_ptr();
-    CFlowCondition *gstagp = gdp.gas_state[inflow_condition_id];
+    global_data &gd = *get_global_data_ptr();
+    CFlowCondition *gstagp = gd.gas_state[inflow_condition_id];
     CFlowCondition *gsp = new CFlowCondition(*gstagp);
 
     switch ( which_boundary ) {

@@ -194,8 +194,8 @@ BoundaryCondition( Block *bdp, int which_boundary, int type_code,
 #   endif
 }
 
-// Can't really have a bounday condition object created without
-// reference to a particular block.
+// Shouldn't really have a boundary condition object created without
+// reference to a particular block but, just in case the compiler wants it...
 BoundaryCondition::
 BoundaryCondition()
     : bdp(0), which_boundary(0), type_code(0),
