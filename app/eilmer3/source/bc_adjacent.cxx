@@ -10,7 +10,7 @@
 
 //------------------------------------------------------------------------
 
-AdjacentBC::AdjacentBC( Block &bdp, int which_boundary, 
+AdjacentBC::AdjacentBC( Block *bdp, int which_boundary, 
 			int other_block, int other_face,
 			int neighbour_orientation)
     : BoundaryCondition(bdp, which_boundary, ADJACENT, "AdjacentBC", 0, false, false, 

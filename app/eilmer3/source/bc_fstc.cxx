@@ -25,7 +25,7 @@
 #include <string.h>
 #include <vector>
 
-fstcBC::fstcBC( Block &bdp, int which_boundary, const std::string filename )
+fstcBC::fstcBC( Block *bdp, int which_boundary, const std::string filename )
     : BoundaryCondition(bdp, which_boundary, FSTC, "fstcBC",
 			0, true, false, -1, -1, 0),
       filename(filename)
@@ -61,9 +61,9 @@ fstcBC::fstcBC( Block &bdp, int which_boundary, const std::string filename )
 
     // Check for that the number of cells is appropriate for this boundary
     if ( which_boundary == NORTH || which_boundary == SOUTH ) {
-	ncell = bdp.nni;
+	ncell = bdp->nni;
     } else {
-	ncell = bdp.nnj;
+	ncell = bdp->nnj;
     }
 
     if ( ncell != ncell_for_profile ) {
@@ -102,124 +102,125 @@ int fstcBC::apply_viscous( double t )
     int i, j, k;
     FV_Cell *cell;
     FV_Interface *IFace;
+    Block & bd = *bdp;
     int nmodes = get_gas_model_ptr()->get_number_of_modes();
 
     switch ( which_boundary ) {
     case NORTH:
-	j = bdp.jmax;
-	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		cell = bdp.get_cell(i,j,k);
+	j = bd.jmax;
+	for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[NORTH];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
 		for ( int imode=0; imode < nmodes; ++imode ) {
-            fs.gas->T[imode] = fstc_TProfile[i-bdp.imin];
+            fs.gas->T[imode] = fstc_TProfile[i-bd.imin];
 		}
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
-		if (bdp.bcp[NORTH]->wc_bc != NON_CATALYTIC) {
+		if (bd.bcp[NORTH]->wc_bc != NON_CATALYTIC) {
 		    cw->apply(*(cell->fs->gas), fs.gas->massf);
 		}
 	    } // end i loop
 	} // for k
 	break;
     case EAST:
-	i = bdp.imax;
-	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		cell = bdp.get_cell(i,j,k);
+	i = bd.imax;
+	for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[EAST];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
 		for ( int imode=0; imode < nmodes; ++imode ) {
-            fs.gas->T[imode] = fstc_TProfile[j-bdp.jmin];
+            fs.gas->T[imode] = fstc_TProfile[j-bd.jmin];
 		}
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
-		if (bdp.bcp[EAST]->wc_bc != NON_CATALYTIC) {
+		if (bd.bcp[EAST]->wc_bc != NON_CATALYTIC) {
 		    cw->apply(*(cell->fs->gas), fs.gas->massf);
 		}
 	    } // end j loop
 	} // for k
 	break;
     case SOUTH:
-	j = bdp.jmin;
-	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		cell = bdp.get_cell(i,j,k);
+	j = bd.jmin;
+	for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[SOUTH];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
 		for ( int imode=0; imode < nmodes; ++imode ) {
-            fs.gas->T[imode] = fstc_TProfile[i-bdp.imin];
+            fs.gas->T[imode] = fstc_TProfile[i-bd.imin];
 		}
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
-		if (bdp.bcp[SOUTH]->wc_bc != NON_CATALYTIC) {
+		if (bd.bcp[SOUTH]->wc_bc != NON_CATALYTIC) {
 		    cw->apply(*(cell->fs->gas), fs.gas->massf);
 		}
 	    } // end i loop
 	} // for k
 	break;
     case WEST:
-	i = bdp.imin;
-	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		cell = bdp.get_cell(i,j,k);
+	i = bd.imin;
+	for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[WEST];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
 		for ( int imode=0; imode < nmodes; ++imode ) {
-            fs.gas->T[imode] = fstc_TProfile[j-bdp.jmin];
+            fs.gas->T[imode] = fstc_TProfile[j-bd.jmin];
 		}
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
-		if (bdp.bcp[WEST]->wc_bc != NON_CATALYTIC) {
+		if (bd.bcp[WEST]->wc_bc != NON_CATALYTIC) {
 		    cw->apply(*(cell->fs->gas), fs.gas->massf);
 		}
 	    } // end j loop
 	} // for k
  	break;
     case TOP:
-	k = bdp.kmax;
-	for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		cell = bdp.get_cell(i,j,k);
+	k = bd.kmax;
+	for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[TOP];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
 		for ( int imode=0; imode < nmodes; ++imode ) {
-            fs.gas->T[imode] = fstc_TProfile[j-bdp.jmin];
+            fs.gas->T[imode] = fstc_TProfile[j-bd.jmin];
 		}
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
-		if (bdp.bcp[TOP]->wc_bc != NON_CATALYTIC) {
+		if (bd.bcp[TOP]->wc_bc != NON_CATALYTIC) {
 		    cw->apply(*(cell->fs->gas), fs.gas->massf);
 		}
 	    } // end j loop
 	} // for i
 	break;
     case BOTTOM:
-	k = bdp.kmin;
-	for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		cell = bdp.get_cell(i,j,k);
+	k = bd.kmin;
+	for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[BOTTOM];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
 		for ( int imode=0; imode < nmodes; ++imode ) {
-            fs.gas->T[imode] = fstc_TProfile[j-bdp.jmin];
+            fs.gas->T[imode] = fstc_TProfile[j-bd.jmin];
 		}
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
-		if (bdp.bcp[BOTTOM]->wc_bc != NON_CATALYTIC) {
+		if (bd.bcp[BOTTOM]->wc_bc != NON_CATALYTIC) {
 		    cw->apply(*(cell->fs->gas), fs.gas->massf);
 		}
 	    } // end j loop

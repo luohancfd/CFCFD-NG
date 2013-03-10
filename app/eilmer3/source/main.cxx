@@ -745,7 +745,7 @@ int integrate_blocks_in_sequence( void )
     // Save the original east boundary condition and apply the temporary
     // ExtrapolateOutBC for the calculation
     bcp_save = bdp->bcp[EAST];
-    bdp->bcp[EAST] = new ExtrapolateOutBC(*bdp, EAST, 0);
+    bdp->bcp[EAST] = new ExtrapolateOutBC(bdp, EAST, 0);
     // Read in data from block 0 and propogate across the block
     exchange_shared_boundary_data( 1, COPY_FLOW_STATE);
     bdp->propagate_data_west_to_east( G.dimensions );
@@ -780,7 +780,7 @@ int integrate_blocks_in_sequence( void )
 	    // Cut off the east boundary of the current block 
 	    // from the downstream blocks if there are any.
 	    bcp_save = bdp->bcp[EAST];
-	    bdp->bcp[EAST] = new ExtrapolateOutBC(*bdp, EAST, 0);
+	    bdp->bcp[EAST] = new ExtrapolateOutBC(bdp, EAST, 0);
 	}
 	// Now copy the starting data into the WEST ghost cells
 	// and propagate it across the current block.

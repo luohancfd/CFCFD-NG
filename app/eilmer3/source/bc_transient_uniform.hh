@@ -12,7 +12,7 @@ private:
     Gas_model *gmodel;
     int nsample, nsp, nmodes;
 public:
-    TransientUniformBC( Block &bdp, int which_boundary, 
+    TransientUniformBC( Block *bdp, int which_boundary, 
 			std::string filename="transient_uniform.dat" );
     TransientUniformBC( const TransientUniformBC &bc );
     virtual ~TransientUniformBC();

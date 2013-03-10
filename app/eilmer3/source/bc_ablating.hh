@@ -13,7 +13,7 @@ private:
     double mdot_total;
     Gas_model *gmodel;
 public:
-    AblatingBC( Block &bdp, int which_boundary, double Twall, 
+    AblatingBC( Block *bdp, int which_boundary, double Twall, 
 		std::vector<double> &mdot, const std::string filename="fstc_temp.txt" );
     AblatingBC( const AblatingBC &bc );
     virtual ~AblatingBC();

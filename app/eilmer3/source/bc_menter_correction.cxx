@@ -33,7 +33,7 @@ double ideal_omega(FV_Cell *cell)
     return ideal_omega_at_wall(cell) * (d0 * d0) / ((d0 + d) * (d0 + d));
 }
 
-int apply_menter_boundary_correction(Block &bdp)
+int apply_menter_boundary_correction(Block &bd)
 {
     int i, j, k;
     int layer_depth;
@@ -47,15 +47,15 @@ int apply_menter_boundary_correction(Block &bdp)
     //         Do not apply Menter boundary correction if we are in a laminar region.
 
     // NORTH boundary
-    if ( bdp.bcp[NORTH]->is_wall() && bdp.bcp[NORTH]->type_code != SLIP_WALL ) {
+    if ( bd.bcp[NORTH]->is_wall() && bd.bcp[NORTH]->type_code != SLIP_WALL ) {
         // Use the smaller value of either half the number of cells in 
         // the j-direction or the specified nominal_layer_depth. 
-        layer_depth = min(bdp.nnj/2, nominal_layer_depth);
-	for ( i = bdp.imin; i <= bdp.imax; ++i ) {
-            for ( k = bdp.kmin; k <= bdp.kmax; ++k ) {
+        layer_depth = min(bd.nnj/2, nominal_layer_depth);
+	for ( i = bd.imin; i <= bd.imax; ++i ) {
+            for ( k = bd.kmin; k <= bd.kmax; ++k ) {
 		for ( int indx = 0; indx < layer_depth; ++indx ) {
-		    j =  bdp.jmax - indx;
-		    cell = bdp.get_cell(i,j,k);
+		    j =  bd.jmax - indx;
+		    cell = bd.get_cell(i,j,k);
 		    if ( cell->in_turbulent_zone == 0 ) continue;
 		    cell->fs->omega = MINIMUM(ideal_omega(cell), cell->fs->omega);
 		    cell->U->omega = cell->fs->gas->rho * cell->fs->omega;
@@ -65,15 +65,15 @@ int apply_menter_boundary_correction(Block &bdp)
     }
 
     // SOUTH boundary
-    if ( bdp.bcp[SOUTH]->is_wall() && bdp.bcp[SOUTH]->type_code != SLIP_WALL ) {
+    if ( bd.bcp[SOUTH]->is_wall() && bd.bcp[SOUTH]->type_code != SLIP_WALL ) {
         // Use the smaller value of either half the number of cells in 
         // the j-direction or the specified nominal_layer_depth. 
-        layer_depth = min(bdp.nnj/2, nominal_layer_depth);
-	for ( i = bdp.imin; i <= bdp.imax; ++i ) {
-            for ( k = bdp.kmin; k <= bdp.kmax; ++k ) {
+        layer_depth = min(bd.nnj/2, nominal_layer_depth);
+	for ( i = bd.imin; i <= bd.imax; ++i ) {
+            for ( k = bd.kmin; k <= bd.kmax; ++k ) {
 		for ( int indx = 0; indx < layer_depth; ++indx ) {
-		    j = bdp.jmin + indx;
-		    cell = bdp.get_cell(i,j,k);
+		    j = bd.jmin + indx;
+		    cell = bd.get_cell(i,j,k);
 		    if ( cell->in_turbulent_zone == 0 ) continue;
 		    cell->fs->omega = MINIMUM(ideal_omega(cell), cell->fs->omega);
 		    cell->U->omega = cell->fs->gas->rho * cell->fs->omega;
@@ -83,15 +83,15 @@ int apply_menter_boundary_correction(Block &bdp)
     }
 
     // EAST boundary
-    if ( bdp.bcp[EAST]->is_wall() && bdp.bcp[EAST]->type_code != SLIP_WALL ) {
+    if ( bd.bcp[EAST]->is_wall() && bd.bcp[EAST]->type_code != SLIP_WALL ) {
         // Use the smaller value of either half the number of cells in 
         // the i-direction or the specified nominal_layer_depth. 
-        layer_depth = min(bdp.nni/2, nominal_layer_depth);
-	for ( j = bdp.jmin; j <= bdp.jmax; ++j ) {
-            for ( k = bdp.kmin; k <= bdp.kmax; ++k ) {
+        layer_depth = min(bd.nni/2, nominal_layer_depth);
+	for ( j = bd.jmin; j <= bd.jmax; ++j ) {
+            for ( k = bd.kmin; k <= bd.kmax; ++k ) {
 		for ( int indx = 0; indx < layer_depth; ++indx ) {
-		    i = bdp.imax - indx;
-		    cell = bdp.get_cell(i,j,k);
+		    i = bd.imax - indx;
+		    cell = bd.get_cell(i,j,k);
 		    if ( cell->in_turbulent_zone == 0 ) continue;
 		    cell->fs->omega = MINIMUM(ideal_omega(cell), cell->fs->omega);
 		    cell->U->omega = cell->fs->gas->rho * cell->fs->omega;
@@ -101,15 +101,15 @@ int apply_menter_boundary_correction(Block &bdp)
     }
 
     // WEST boundary
-    if ( bdp.bcp[WEST]->is_wall() && bdp.bcp[WEST]->type_code != SLIP_WALL ) {
+    if ( bd.bcp[WEST]->is_wall() && bd.bcp[WEST]->type_code != SLIP_WALL ) {
         // Use the smaller value of either half the number of cells in 
         // the i-direction or the specified nominal_layer_depth. 
-        layer_depth = min(bdp.nni/2, nominal_layer_depth);
-	for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-            for ( k = bdp.kmin; k <= bdp.kmax; ++k ) {
+        layer_depth = min(bd.nni/2, nominal_layer_depth);
+	for (j = bd.jmin; j <= bd.jmax; ++j) {
+            for ( k = bd.kmin; k <= bd.kmax; ++k ) {
 		for ( int indx = 0; indx < layer_depth; ++indx ) {
-		    i = bdp.imin + indx;
-		    cell = bdp.get_cell(i,j,k);
+		    i = bd.imin + indx;
+		    cell = bd.get_cell(i,j,k);
 		    if ( cell->in_turbulent_zone == 0 ) continue;
 		    cell->fs->omega = MINIMUM(ideal_omega(cell), cell->fs->omega);
 		    cell->U->omega = cell->fs->gas->rho * cell->fs->omega;
@@ -120,15 +120,15 @@ int apply_menter_boundary_correction(Block &bdp)
 
     if ( G.dimensions == 3 ) {
 	// TOP boundary
-	if ( bdp.bcp[TOP]->is_wall() && bdp.bcp[TOP]->type_code != SLIP_WALL ) {
+	if ( bd.bcp[TOP]->is_wall() && bd.bcp[TOP]->type_code != SLIP_WALL ) {
         // Use the smaller value of either half the number of cells in 
         // the k-direction or the specified nominal_layer_depth. 
-        layer_depth = min(bdp.nnk/2, nominal_layer_depth);
-	    for ( i = bdp.imin; i <= bdp.imax; ++i ) {
-		for ( j = bdp.jmin; j <= bdp.jmax; ++j ) {
+        layer_depth = min(bd.nnk/2, nominal_layer_depth);
+	    for ( i = bd.imin; i <= bd.imax; ++i ) {
+		for ( j = bd.jmin; j <= bd.jmax; ++j ) {
 		    for ( int indx = 0; indx < layer_depth; ++indx ) {
-			k = bdp.kmax - indx;
-			cell = bdp.get_cell(i,j,k);
+			k = bd.kmax - indx;
+			cell = bd.get_cell(i,j,k);
 			if ( cell->in_turbulent_zone == 0 ) continue;
 			cell->fs->omega = MINIMUM(ideal_omega(cell), cell->fs->omega);
 			cell->U->omega = cell->fs->gas->rho * cell->fs->omega;
@@ -138,15 +138,15 @@ int apply_menter_boundary_correction(Block &bdp)
 	}
         
 	// BOTTOM boundary
-	if ( bdp.bcp[BOTTOM]->is_wall() && bdp.bcp[BOTTOM]->type_code != SLIP_WALL ) {
+	if ( bd.bcp[BOTTOM]->is_wall() && bd.bcp[BOTTOM]->type_code != SLIP_WALL ) {
         // Use the smaller value of either half the number of cells in 
         // the k-direction or the specified nominal_layer_depth. 
-        layer_depth = min(bdp.nnk/2, nominal_layer_depth);
-	    for ( i = bdp.imin; i <= bdp.imax; ++i ) {
-		for ( j = bdp.jmin; j <= bdp.jmax; ++j ) {
+        layer_depth = min(bd.nnk/2, nominal_layer_depth);
+	    for ( i = bd.imin; i <= bd.imax; ++i ) {
+		for ( j = bd.jmin; j <= bd.jmax; ++j ) {
 		    for ( int indx = 0; indx < layer_depth; ++indx ) {
-			k = bdp.kmin + indx;
-			cell = bdp.get_cell(i,j,k);
+			k = bd.kmin + indx;
+			cell = bd.get_cell(i,j,k);
 			if ( cell->in_turbulent_zone == 0 ) continue;
 			cell->fs->omega = MINIMUM(ideal_omega(cell), cell->fs->omega);
 			cell->U->omega = cell->fs->gas->rho * cell->fs->omega;
@@ -162,12 +162,12 @@ int apply_menter_boundary_correction(Block &bdp)
     //         been corrected at other boundaries.
 
     // NORTH boundary
-    if ( bdp.bcp[NORTH]->type_code == SLIP_WALL || 
-	 bdp.bcp[NORTH]->type_code == EXTRAPOLATE_OUT ) {
-	for ( i = bdp.imin; i <= bdp.imax; ++i ) {
-            for ( k = bdp.kmin; k <= bdp.kmax; ++k ) {
-	        j = bdp.jmax;
-                cell = bdp.get_cell(i,j,k);
+    if ( bd.bcp[NORTH]->type_code == SLIP_WALL || 
+	 bd.bcp[NORTH]->type_code == EXTRAPOLATE_OUT ) {
+	for ( i = bd.imin; i <= bd.imax; ++i ) {
+            for ( k = bd.kmin; k <= bd.kmax; ++k ) {
+	        j = bd.jmax;
+                cell = bd.get_cell(i,j,k);
 	        IFace = cell->iface[NORTH];
 		IFace->fs->omega = cell->fs->omega;
             } // k-loop
@@ -175,12 +175,12 @@ int apply_menter_boundary_correction(Block &bdp)
     }
 
     // SOUTH boundary
-    if ( bdp.bcp[SOUTH]->type_code == SLIP_WALL ||
-	 bdp.bcp[SOUTH]->type_code == EXTRAPOLATE_OUT ) {
-	for ( i = bdp.imin; i <= bdp.imax; ++i ) {
-            for ( k = bdp.kmin; k <= bdp.kmax; ++k ) {
-		j = bdp.jmin;
-		cell = bdp.get_cell(i,j,k);
+    if ( bd.bcp[SOUTH]->type_code == SLIP_WALL ||
+	 bd.bcp[SOUTH]->type_code == EXTRAPOLATE_OUT ) {
+	for ( i = bd.imin; i <= bd.imax; ++i ) {
+            for ( k = bd.kmin; k <= bd.kmax; ++k ) {
+		j = bd.jmin;
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[SOUTH];
 		IFace->fs->omega = cell->fs->omega;
 	    } // k-loop
@@ -188,12 +188,12 @@ int apply_menter_boundary_correction(Block &bdp)
     }
 
     // EAST boundary
-    if ( bdp.bcp[EAST]->type_code == SLIP_WALL ||
-	 bdp.bcp[EAST]->type_code == EXTRAPOLATE_OUT ) {
-	for ( j = bdp.jmin; j <= bdp.jmax; ++j ) {
-            for ( k = bdp.kmin; k <= bdp.kmax; ++k ) {
-	        i = bdp.imax;
-	        cell = bdp.get_cell(i,j,k);
+    if ( bd.bcp[EAST]->type_code == SLIP_WALL ||
+	 bd.bcp[EAST]->type_code == EXTRAPOLATE_OUT ) {
+	for ( j = bd.jmin; j <= bd.jmax; ++j ) {
+            for ( k = bd.kmin; k <= bd.kmax; ++k ) {
+	        i = bd.imax;
+	        cell = bd.get_cell(i,j,k);
 	        IFace = cell->iface[EAST];
 		IFace->fs->omega = cell->fs->omega;
             } // k-loop
@@ -201,12 +201,12 @@ int apply_menter_boundary_correction(Block &bdp)
     }
 
     // WEST boundary
-    if ( bdp.bcp[WEST]->type_code == SLIP_WALL ||
-	 bdp.bcp[WEST]->type_code == EXTRAPOLATE_OUT ) {
-	for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-            for ( k = bdp.kmin; k <= bdp.kmax; ++k ) {
-	        i = bdp.imin;
-	        cell = bdp.get_cell(i,j,k);
+    if ( bd.bcp[WEST]->type_code == SLIP_WALL ||
+	 bd.bcp[WEST]->type_code == EXTRAPOLATE_OUT ) {
+	for (j = bd.jmin; j <= bd.jmax; ++j) {
+            for ( k = bd.kmin; k <= bd.kmax; ++k ) {
+	        i = bd.imin;
+	        cell = bd.get_cell(i,j,k);
 	        IFace = cell->iface[WEST];
 		IFace->fs->omega = cell->fs->omega;
             } // k-loop
@@ -215,12 +215,12 @@ int apply_menter_boundary_correction(Block &bdp)
 
     if ( G.dimensions == 3 ) {
 	// TOP boundary
-	if ( bdp.bcp[TOP]->type_code == SLIP_WALL ||
-	     bdp.bcp[TOP]->type_code == EXTRAPOLATE_OUT ) {
-	    for ( i = bdp.imin; i <= bdp.imax; ++i ) {
-		for ( j = bdp.jmin; j <= bdp.jmax; ++j ) {
-		    k = bdp.kmax;
-		    cell = bdp.get_cell(i,j,k);
+	if ( bd.bcp[TOP]->type_code == SLIP_WALL ||
+	     bd.bcp[TOP]->type_code == EXTRAPOLATE_OUT ) {
+	    for ( i = bd.imin; i <= bd.imax; ++i ) {
+		for ( j = bd.jmin; j <= bd.jmax; ++j ) {
+		    k = bd.kmax;
+		    cell = bd.get_cell(i,j,k);
 		    IFace = cell->iface[TOP];
 		    IFace->fs->omega = cell->fs->omega;
 		} // j-loop
@@ -228,12 +228,12 @@ int apply_menter_boundary_correction(Block &bdp)
 	}
         
 	// BOTTOM boundary
-	if ( bdp.bcp[BOTTOM]->type_code == SLIP_WALL ||
-	     bdp.bcp[BOTTOM]->type_code == EXTRAPOLATE_OUT ) {
-	    for ( i = bdp.imin; i <= bdp.imax; ++i ) {
-		for ( j = bdp.jmin; j <= bdp.jmax; ++j ) {
-		    k = bdp.kmin;
-		    cell = bdp.get_cell(i,j,k);
+	if ( bd.bcp[BOTTOM]->type_code == SLIP_WALL ||
+	     bd.bcp[BOTTOM]->type_code == EXTRAPOLATE_OUT ) {
+	    for ( i = bd.imin; i <= bd.imax; ++i ) {
+		for ( j = bd.jmin; j <= bd.jmax; ++j ) {
+		    k = bd.kmin;
+		    cell = bd.get_cell(i,j,k);
 		    IFace = cell->iface[BOTTOM];
 		    IFace->fs->omega = cell->fs->omega;
 		} // j-loop
@@ -246,7 +246,7 @@ int apply_menter_boundary_correction(Block &bdp)
 
 # define WILSON_OMEGA_FILTER 0
 # if WILSON_OMEGA_FILTER == 1
-int apply_wilson_omega_correction(Block &bdp)
+int apply_wilson_omega_correction(Block &bd)
 {
     // bc_wilson_omega_correction.cxx
     /// \brief Apply Wilson's omega smoothing correction to the cells near solid walls.
@@ -283,29 +283,29 @@ int apply_wilson_omega_correction(Block &bdp)
     global_data &G = *get_global_data_ptr();
 
     // NORTH boundary
-    if ( bdp.bcp[NORTH]->is_wall() && bdp.bcp[NORTH]->type_code != SLIP_WALL ) {
+    if ( bd.bcp[NORTH]->is_wall() && bd.bcp[NORTH]->type_code != SLIP_WALL ) {
         // Use the smaller value of either the number of cells in 
         // the j-direction or the specified nominal_layer_depth. 
-        layer_depth = min(bdp.nnj, nominal_layer_depth);
+        layer_depth = min(bd.nnj, nominal_layer_depth);
         for ( int indx = 0; indx < layer_depth; ++indx ) {
-            j =  bdp.jmax - indx;
+            j =  bd.jmax - indx;
             // Am too lazy to think of corner and edge cases, so
             // we will just average over the internal cells first
-//            for ( k = bdp.kmin+1; k <= bdp.kmax-1; ++k ) {
-//                for ( i = bdp.imin+1; i <= bdp.imax-1; ++i ) {
-            for ( k = bdp.kmin; k <= bdp.kmax; ++k ) {
-                for ( i = bdp.imin; i <= bdp.imax; ++i ) {
+//            for ( k = bd.kmin+1; k <= bd.kmax-1; ++k ) {
+//                for ( i = bd.imin+1; i <= bd.imax-1; ++i ) {
+            for ( k = bd.kmin; k <= bd.kmax; ++k ) {
+                for ( i = bd.imin; i <= bd.imax; ++i ) {
                     // Step 1 : Average all density and omega values in 
                     //          surrounding cells in j-k plane.
-                    cell = bdp.get_cell(i,j,k);
-                    cN = bdp.get_cell(i,j,k+1);
-                    cE = bdp.get_cell(i+1,j,k);
-                    cS = bdp.get_cell(i,j,k-1);
-                    cW = bdp.get_cell(i-1,j,k);
-                    cNE = bdp.get_cell(i+1,j,k+1);
-                    cSE = bdp.get_cell(i+1,j,k-1);
-                    cSW = bdp.get_cell(i-1,j,k-1);
-                    cNW = bdp.get_cell(i-1,j,k+1);
+                    cell = bd.get_cell(i,j,k);
+                    cN = bd.get_cell(i,j,k+1);
+                    cE = bd.get_cell(i+1,j,k);
+                    cS = bd.get_cell(i,j,k-1);
+                    cW = bd.get_cell(i-1,j,k);
+                    cNE = bd.get_cell(i+1,j,k+1);
+                    cSE = bd.get_cell(i+1,j,k-1);
+                    cSW = bd.get_cell(i-1,j,k-1);
+                    cNW = bd.get_cell(i-1,j,k+1);
                     if ( cell->in_turbulent_zone == 0 ) continue;
                     omegaAvg = 1.0 / 9.0 * (cell->fs->omega + cN->fs->omega + cE->fs->omega +
                                cS->fs->omega + cW->fs->omega + cNE->fs->omega +
@@ -324,29 +324,29 @@ int apply_wilson_omega_correction(Block &bdp)
     }
 
     // SOUTH boundary
-    if ( bdp.bcp[SOUTH]->is_wall() && bdp.bcp[SOUTH]->type_code != SLIP_WALL ) {
+    if ( bd.bcp[SOUTH]->is_wall() && bd.bcp[SOUTH]->type_code != SLIP_WALL ) {
         // Use the smaller value of either the number of cells in 
         // the j-direction or the specified nominal_layer_depth. 
-        layer_depth = min(bdp.nnj, nominal_layer_depth);
+        layer_depth = min(bd.nnj, nominal_layer_depth);
         for ( int indx = 0; indx < layer_depth; ++indx ) {
-            j = bdp.jmin + indx;
+            j = bd.jmin + indx;
             // Am too lazy to think of corner and edge cases, so
             // we will just average over the internal cells first
-//            for ( k = bdp.kmin+1; k <= bdp.kmax-1; ++k ) {
-//                for ( i = bdp.imin+1; i <= bdp.imax-1; ++i ) {
-            for ( k = bdp.kmin; k <= bdp.kmax; ++k ) {
-                for ( i = bdp.imin; i <= bdp.imax; ++i ) {
+//            for ( k = bd.kmin+1; k <= bd.kmax-1; ++k ) {
+//                for ( i = bd.imin+1; i <= bd.imax-1; ++i ) {
+            for ( k = bd.kmin; k <= bd.kmax; ++k ) {
+                for ( i = bd.imin; i <= bd.imax; ++i ) {
                     // Step 1 : Average all density and omega values in 
                     //          surrounding cells in j-k plane.
-		    cell = bdp.get_cell(i,j,k);
-                    cN = bdp.get_cell(i,j,k+1);
-                    cE = bdp.get_cell(i+1,j,k);
-                    cS = bdp.get_cell(i,j,k-1);
-                    cW = bdp.get_cell(i-1,j,k);
-                    cNE = bdp.get_cell(i+1,j,k+1);
-                    cSE = bdp.get_cell(i+1,j,k-1);
-                    cSW = bdp.get_cell(i-1,j,k-1);
-                    cNW = bdp.get_cell(i-1,j,k+1);
+		    cell = bd.get_cell(i,j,k);
+                    cN = bd.get_cell(i,j,k+1);
+                    cE = bd.get_cell(i+1,j,k);
+                    cS = bd.get_cell(i,j,k-1);
+                    cW = bd.get_cell(i-1,j,k);
+                    cNE = bd.get_cell(i+1,j,k+1);
+                    cSE = bd.get_cell(i+1,j,k-1);
+                    cSW = bd.get_cell(i-1,j,k-1);
+                    cNW = bd.get_cell(i-1,j,k+1);
 		    if ( cell->in_turbulent_zone == 0 ) continue;
                     omegaAvg = 1.0 / 9.0 * (cell->fs->omega + cN->fs->omega + cE->fs->omega +
                                cS->fs->omega + cW->fs->omega + cNE->fs->omega +
@@ -365,7 +365,7 @@ int apply_wilson_omega_correction(Block &bdp)
     }
 
     // EAST boundary
-    if ( bdp.bcp[EAST]->is_wall() && bdp.bcp[EAST]->type_code != SLIP_WALL ) {
+    if ( bd.bcp[EAST]->is_wall() && bd.bcp[EAST]->type_code != SLIP_WALL ) {
         // Make a copy of the current flow state and conserved quantities
         // so that we have the actual values to average over and not average
         // over averaged values.
@@ -375,26 +375,26 @@ int apply_wilson_omega_correction(Block &bdp)
         //tempCell->U->copy_values_from(*(cell->U));
         // Use the smaller value of the number of cells in 
         // the i-direction or the specified nominal_layer_depth. 
-        layer_depth = min(bdp.nni, nominal_layer_depth);
+        layer_depth = min(bd.nni, nominal_layer_depth);
         for ( int indx = 0; indx < layer_depth; ++indx ) {
-            i = bdp.imax - indx;
+            i = bd.imax - indx;
             // Am too lazy to think of corner and edge cases, so
             // we will just average over the internal cells first
-//            for ( k = bdp.kmin+1; k <= bdp.kmax-1; ++k ) {
-//                for ( j = bdp.jmin+1; j <= bdp.jmax-1; ++j ) {
-            for ( k = bdp.kmin; k <= bdp.kmax; ++k ) {
-                for ( j = bdp.jmin; j <= bdp.jmax; ++j ) {
+//            for ( k = bd.kmin+1; k <= bd.kmax-1; ++k ) {
+//                for ( j = bd.jmin+1; j <= bd.jmax-1; ++j ) {
+            for ( k = bd.kmin; k <= bd.kmax; ++k ) {
+                for ( j = bd.jmin; j <= bd.jmax; ++j ) {
                     // Step 1 : Average all density and omega values in 
                     //          surrounding cells in j-k plane.
-		    cell = bdp.get_cell(i,j,k);
-                    cN = bdp.get_cell(i,j,k+1);
-                    cE = bdp.get_cell(i,j+1,k);
-                    cS = bdp.get_cell(i,j,k-1);
-                    cW = bdp.get_cell(i,j-1,k);
-                    cNE = bdp.get_cell(i,j+1,k+1);
-                    cSE = bdp.get_cell(i,j+1,k-1);
-                    cSW = bdp.get_cell(i,j-1,k-1);
-                    cNW = bdp.get_cell(i,j-1,k+1);
+		    cell = bd.get_cell(i,j,k);
+                    cN = bd.get_cell(i,j,k+1);
+                    cE = bd.get_cell(i,j+1,k);
+                    cS = bd.get_cell(i,j,k-1);
+                    cW = bd.get_cell(i,j-1,k);
+                    cNE = bd.get_cell(i,j+1,k+1);
+                    cSE = bd.get_cell(i,j+1,k-1);
+                    cSW = bd.get_cell(i,j-1,k-1);
+                    cNW = bd.get_cell(i,j-1,k+1);
 		    if ( cell->in_turbulent_zone == 0 ) continue;
                     omegaAvg = 1.0 / 9.0 * (cell->fs->omega + cN->fs->omega + cE->fs->omega + 
                                cS->fs->omega + cW->fs->omega + cNE->fs->omega + 
@@ -413,15 +413,15 @@ int apply_wilson_omega_correction(Block &bdp)
     }
 
 /*  // WEST boundary
-    if ( bdp.bcp[WEST]->is_wall() && bdp.bcp[WEST]->type_code != SLIP_WALL ) {
+    if ( bd.bcp[WEST]->is_wall() && bd.bcp[WEST]->type_code != SLIP_WALL ) {
         // Use the smaller value of either half the number of cells in 
         // the i-direction or the specified nominal_layer_depth. 
-        layer_depth = min(bdp.nni, nominal_layer_depth);
-	for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-            for ( k = bdp.kmin; k <= bdp.kmax; ++k ) {
+        layer_depth = min(bd.nni, nominal_layer_depth);
+	for (j = bd.jmin; j <= bd.jmax; ++j) {
+            for ( k = bd.kmin; k <= bd.kmax; ++k ) {
 		for ( int indx = 0; indx < layer_depth; ++indx ) {
-		    i = bdp.imin + indx;
-		    cell = bdp.get_cell(i,j,k);
+		    i = bd.imin + indx;
+		    cell = bd.get_cell(i,j,k);
 		    if ( cell->in_turbulent_zone == 0 ) continue;
 		    cell->fs->omega = MINIMUM(ideal_omega(cell), cell->fs->omega);
 		    cell->U->omega = cell->fs->gas->rho * cell->fs->omega;
@@ -432,29 +432,29 @@ int apply_wilson_omega_correction(Block &bdp)
 */
     if ( G.dimensions == 3 ) {
 	// TOP boundary
-	if ( bdp.bcp[TOP]->is_wall() && bdp.bcp[TOP]->type_code != SLIP_WALL ) {
+	if ( bd.bcp[TOP]->is_wall() && bd.bcp[TOP]->type_code != SLIP_WALL ) {
         // Use the smaller value of either the number of cells in 
         // the k-direction or the specified nominal_layer_depth. 
-        layer_depth = min(bdp.nnk, nominal_layer_depth);
+        layer_depth = min(bd.nnk, nominal_layer_depth);
         for ( int indx = 0; indx < layer_depth; ++indx ) {
-            k = bdp.kmax - indx;
+            k = bd.kmax - indx;
             // Am too lazy to think of corner and edge cases, so
             // we will just average over the internal cells first
-//            for ( j = bdp.jmin+1; j <= bdp.jmax-1; ++j ) {
-//                for ( i = bdp.imin+1; i <= bdp.imax-1; ++i ) {
-            for ( j = bdp.jmin; j <= bdp.jmax; ++j ) {
-                for ( i = bdp.imin; i <= bdp.imax; ++i ) {
+//            for ( j = bd.jmin+1; j <= bd.jmax-1; ++j ) {
+//                for ( i = bd.imin+1; i <= bd.imax-1; ++i ) {
+            for ( j = bd.jmin; j <= bd.jmax; ++j ) {
+                for ( i = bd.imin; i <= bd.imax; ++i ) {
                     // Step 1 : Average all density and omega values in 
                     //          surrounding cells in j-k plane.
-                    cell = bdp.get_cell(i,j,k);
-                    cN = bdp.get_cell(i,j+1,k);
-                    cE = bdp.get_cell(i+1,j,k);
-                    cS = bdp.get_cell(i,j-1,k);
-                    cW = bdp.get_cell(i-1,j,k);
-                    cNE = bdp.get_cell(i+1,j+1,k);
-                    cSE = bdp.get_cell(i+1,j-1,k);
-                    cSW = bdp.get_cell(i-1,j-1,k);
-                    cNW = bdp.get_cell(i-1,j+1,k);
+                    cell = bd.get_cell(i,j,k);
+                    cN = bd.get_cell(i,j+1,k);
+                    cE = bd.get_cell(i+1,j,k);
+                    cS = bd.get_cell(i,j-1,k);
+                    cW = bd.get_cell(i-1,j,k);
+                    cNE = bd.get_cell(i+1,j+1,k);
+                    cSE = bd.get_cell(i+1,j-1,k);
+                    cSW = bd.get_cell(i-1,j-1,k);
+                    cNW = bd.get_cell(i-1,j+1,k);
                     if ( cell->in_turbulent_zone == 0 ) continue;
                     omegaAvg = 1.0 / 9.0 * (cell->fs->omega + cN->fs->omega + cE->fs->omega +
                                cS->fs->omega + cW->fs->omega + cNE->fs->omega +
@@ -473,15 +473,15 @@ int apply_wilson_omega_correction(Block &bdp)
     }
         
 /*	// BOTTOM boundary
-	if ( bdp.bcp[BOTTOM]->is_wall() && bdp.bcp[BOTTOM]->type_code != SLIP_WALL ) {
+	if ( bd.bcp[BOTTOM]->is_wall() && bd.bcp[BOTTOM]->type_code != SLIP_WALL ) {
         // Use the smaller value of either half the number of cells in 
         // the k-direction or the specified nominal_layer_depth. 
-        layer_depth = min(bdp.nnk, nominal_layer_depth);
-	    for ( i = bdp.imin; i <= bdp.imax; ++i ) {
-		for ( j = bdp.jmin; j <= bdp.jmax; ++j ) {
+        layer_depth = min(bd.nnk, nominal_layer_depth);
+	    for ( i = bd.imin; i <= bd.imax; ++i ) {
+		for ( j = bd.jmin; j <= bd.jmax; ++j ) {
 		    for ( int indx = 0; indx < layer_depth; ++indx ) {
-			k = bdp.kmin + indx;
-			cell = bdp.get_cell(i,j,k);
+			k = bd.kmin + indx;
+			cell = bd.get_cell(i,j,k);
 			if ( cell->in_turbulent_zone == 0 ) continue;
 			cell->fs->omega = MINIMUM(ideal_omega(cell), cell->fs->omega);
 			cell->U->omega = cell->fs->gas->rho * cell->fs->omega;

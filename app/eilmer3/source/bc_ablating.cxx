@@ -27,7 +27,7 @@
 
 //------------------------------------------------------------------------
 
-AblatingBC::AblatingBC( Block &bdp, int which_boundary, double Twall, 
+AblatingBC::AblatingBC( Block *bdp, int which_boundary, double Twall, 
 			vector<double> &mdot, const std::string filename )
     : BoundaryCondition(bdp, which_boundary, ABLATING, "AblatingBC",
 			0, true, false, -1, -1, 0),
@@ -43,9 +43,9 @@ AblatingBC::AblatingBC( Block &bdp, int which_boundary, double Twall,
 
     // Get number of cells for this boundary
     if ( which_boundary == NORTH || which_boundary == SOUTH ) {
-	    ncell = bdp.nni;
+	    ncell = bdp->nni;
     } else {
-	    ncell = bdp.nnj;
+	    ncell = bdp->nnj;
     }
     // Use fixed boundary temperature if there is no input file
     fp = fopen(filename.c_str(), "r");
@@ -158,106 +158,107 @@ int AblatingBC::apply_inviscid( double t )
     int i, j, k;
     FV_Cell *src_cell, *dest_cell;
     FV_Interface *IFace;
+    Block & bd = *bdp;
 
     switch ( which_boundary ) {
     case NORTH:
-	j = bdp.jmax;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		src_cell = bdp.get_cell(i,j,k);
+	j = bd.jmax;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		src_cell = bd.get_cell(i,j,k);
 		IFace = src_cell->iface[NORTH];
 		// ghost cell 1
-		dest_cell = bdp.get_cell(i,j+1,k);
+		dest_cell = bd.get_cell(i,j+1,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		calculate_ghost_cell_flow_state( src_cell, IFace, dest_cell );
 		// ghost cell 2 (copy of 1)
-		src_cell = bdp.get_cell(i,j+1,k);
-		dest_cell = bdp.get_cell(i,j+2,k);
+		src_cell = bd.get_cell(i,j+1,k);
+		dest_cell = bd.get_cell(i,j+2,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 	    } // end i loop
 	} // for k
 	break;
     case EAST:
-	i = bdp.imax;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		src_cell = bdp.get_cell(i,j,k);
+	i = bd.imax;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		src_cell = bd.get_cell(i,j,k);
 		IFace = src_cell->iface[EAST];
 		// ghost cell 1
-		dest_cell = bdp.get_cell(i+1,j,k);
+		dest_cell = bd.get_cell(i+1,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		calculate_ghost_cell_flow_state( src_cell, IFace, dest_cell );
 		// ghost cell 2 (copy of 1)
-		src_cell = bdp.get_cell(i+1,j,k);
-		dest_cell = bdp.get_cell(i+2,j,k);
+		src_cell = bd.get_cell(i+1,j,k);
+		dest_cell = bd.get_cell(i+2,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 	    } // end j loop
 	} // for k
 	break;
     case SOUTH:
-	j = bdp.jmin;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		src_cell = bdp.get_cell(i,j,k);
+	j = bd.jmin;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		src_cell = bd.get_cell(i,j,k);
 		IFace = src_cell->iface[SOUTH];
 		// ghost cell 1
-		dest_cell = bdp.get_cell(i,j-1,k);
+		dest_cell = bd.get_cell(i,j-1,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		calculate_ghost_cell_flow_state( src_cell, IFace, dest_cell );
 		// ghost cell 2 (copy of 1)
-		src_cell = bdp.get_cell(i,j-1,k);
-		dest_cell = bdp.get_cell(i,j-1,k);
+		src_cell = bd.get_cell(i,j-1,k);
+		dest_cell = bd.get_cell(i,j-1,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 	    } // end i loop
 	} // for k
 	break;
     case WEST:
-	i = bdp.imin;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		src_cell = bdp.get_cell(i,j,k);
+	i = bd.imin;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		src_cell = bd.get_cell(i,j,k);
 		IFace = src_cell->iface[WEST];
 		// ghost cell 1
-		dest_cell = bdp.get_cell(i-1,j,k);
+		dest_cell = bd.get_cell(i-1,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		calculate_ghost_cell_flow_state( src_cell, IFace, dest_cell );
 		// ghost cell 2 (copy of 1)
-		src_cell = bdp.get_cell(i-1,j,k);
-		dest_cell = bdp.get_cell(i-2,j,k);
+		src_cell = bd.get_cell(i-1,j,k);
+		dest_cell = bd.get_cell(i-2,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 	    } // end j loop
 	} // for k
  	break;
     case TOP:
-	k = bdp.kmax;
-        for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		src_cell = bdp.get_cell(i,j,k);
+	k = bd.kmax;
+        for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		src_cell = bd.get_cell(i,j,k);
 		IFace = src_cell->iface[WEST];
 		// ghost cell 1
-		dest_cell = bdp.get_cell(i,j,k+1);
+		dest_cell = bd.get_cell(i,j,k+1);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		calculate_ghost_cell_flow_state( src_cell, IFace, dest_cell );
 		// ghost cell 2 (copy of 1)
-		src_cell = bdp.get_cell(i,j,k+1);
-		dest_cell = bdp.get_cell(i,j,k+2);
+		src_cell = bd.get_cell(i,j,k+1);
+		dest_cell = bd.get_cell(i,j,k+2);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 	    } // end j loop
 	} // for i
 	break;
     case BOTTOM:
-	k = bdp.kmin;
-        for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		src_cell = bdp.get_cell(i,j,k);
+	k = bd.kmin;
+        for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		src_cell = bd.get_cell(i,j,k);
 		IFace = src_cell->iface[WEST];
 		// ghost cell 1
-		dest_cell = bdp.get_cell(i,j,k-1);
+		dest_cell = bd.get_cell(i,j,k-1);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		calculate_ghost_cell_flow_state( src_cell, IFace, dest_cell );
 		// ghost cell 2 (copy of 1)
-		src_cell = bdp.get_cell(i,j,k-1);
-		dest_cell = bdp.get_cell(i,j,k-2);
+		src_cell = bd.get_cell(i,j,k-1);
+		dest_cell = bd.get_cell(i,j,k-2);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 	    } // end j loop
 	} // for i
@@ -276,93 +277,94 @@ int AblatingBC::apply_viscous( double t )
     FV_Cell *cell;
     FV_Interface *IFace;
     int nmodes = gmodel->get_number_of_modes();
+    Block & bd = *bdp;
 
     switch ( which_boundary ) {
     case NORTH:
-	j = bdp.jmax;
-	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		cell = bdp.get_cell(i,j,k);
+	j = bd.jmax;
+	for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[NORTH];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
 		for ( int imode=0; imode < nmodes; ++imode ) { 
-		    fs.gas->T[imode] = TProfile[i-bdp.imin];
+		    fs.gas->T[imode] = TProfile[i-bd.imin];
 	    }
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
-		if (bdp.bcp[NORTH]->wc_bc != NON_CATALYTIC) {
+		if (bd.bcp[NORTH]->wc_bc != NON_CATALYTIC) {
 		    cw->apply(*(cell->fs->gas), fs.gas->massf);
 		}
 	    } // end i loop
 	} // for k
 	break;
     case EAST:
-	i = bdp.imax;
-	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		cell = bdp.get_cell(i,j,k);
+	i = bd.imax;
+	for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[EAST];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
 		for ( int imode=0; imode < nmodes; ++imode ) {
-		    fs.gas->T[imode] = TProfile[j-bdp.jmin];
+		    fs.gas->T[imode] = TProfile[j-bd.jmin];
 		}
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
-		if (bdp.bcp[EAST]->wc_bc != NON_CATALYTIC) {
+		if (bd.bcp[EAST]->wc_bc != NON_CATALYTIC) {
 		    cw->apply(*(cell->fs->gas), fs.gas->massf);
 		}
 	    } // end j loop
 	} // for k
 	break;
     case SOUTH:
-	j = bdp.jmin;
-	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		cell = bdp.get_cell(i,j,k);
+	j = bd.jmin;
+	for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[SOUTH];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
 		for ( int imode=0; imode < nmodes; ++imode ) {
-		    fs.gas->T[imode] = TProfile[i-bdp.imin];
+		    fs.gas->T[imode] = TProfile[i-bd.imin];
 	    }
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
-		if (bdp.bcp[SOUTH]->wc_bc != NON_CATALYTIC) {
+		if (bd.bcp[SOUTH]->wc_bc != NON_CATALYTIC) {
 		    cw->apply(*(cell->fs->gas), fs.gas->massf);
 		}
 	    } // end i loop
 	} // for k
 	break;
     case WEST:
-	i = bdp.imin;
-	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		cell = bdp.get_cell(i,j,k);
+	i = bd.imin;
+	for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[WEST];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
 		for ( int imode=0; imode < nmodes; ++imode ) {
-		    fs.gas->T[imode] = TProfile[j-bdp.jmin];
+		    fs.gas->T[imode] = TProfile[j-bd.jmin];
 	    }
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
-		if (bdp.bcp[WEST]->wc_bc != NON_CATALYTIC) {
+		if (bd.bcp[WEST]->wc_bc != NON_CATALYTIC) {
 		    cw->apply(*(cell->fs->gas), fs.gas->massf);
 		}
 	    } // end j loop
 	} // for k
  	break;
     case TOP:
-	k = bdp.kmax;
-	for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		cell = bdp.get_cell(i,j,k);
+	k = bd.kmax;
+	for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[TOP];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
@@ -370,17 +372,17 @@ int AblatingBC::apply_viscous( double t )
 		for ( int imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
-		if (bdp.bcp[TOP]->wc_bc != NON_CATALYTIC) {
+		if (bd.bcp[TOP]->wc_bc != NON_CATALYTIC) {
 		    cw->apply(*(cell->fs->gas), fs.gas->massf);
 		}
 	    } // end j loop
 	} // for i
 	break;
     case BOTTOM:
-	k = bdp.kmin;
-	for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		cell = bdp.get_cell(i,j,k);
+	k = bd.kmin;
+	for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[BOTTOM];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
@@ -388,7 +390,7 @@ int AblatingBC::apply_viscous( double t )
 		for ( int imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
-		if (bdp.bcp[BOTTOM]->wc_bc != NON_CATALYTIC) {
+		if (bd.bcp[BOTTOM]->wc_bc != NON_CATALYTIC) {
 		    cw->apply(*(cell->fs->gas), fs.gas->massf);
 		}
 	    } // end j loop

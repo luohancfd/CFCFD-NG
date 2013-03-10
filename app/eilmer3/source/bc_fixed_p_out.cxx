@@ -11,7 +11,7 @@
 
 //------------------------------------------------------------------------
 
-FixedPOutBC::FixedPOutBC( Block &bdp, int which_boundary, double Pout, int x_order )
+FixedPOutBC::FixedPOutBC( Block *bdp, int which_boundary, double Pout, int x_order )
     : BoundaryCondition(bdp, which_boundary, FIXED_P_OUT, "FixedPOutBC",
 			x_order, false, false, -1, -1, 0), 
       Pout(Pout) 
@@ -37,18 +37,19 @@ int FixedPOutBC::apply_inviscid( double t )
     int i, j, k;
     FV_Cell *src_cell, *dest_cell;
     Gas_model *gmodel = get_gas_model_ptr();
+    Block & bd = *bdp;
 
     switch ( which_boundary ) {
     case NORTH:
-	j = bdp.jmax;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		src_cell = bdp.get_cell(i,j,k);
-		dest_cell = bdp.get_cell(i,j+1,k);
+	j = bd.jmax;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		src_cell = bd.get_cell(i,j,k);
+		dest_cell = bd.get_cell(i,j+1,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
-		dest_cell = bdp.get_cell(i,j+2,k);
+		dest_cell = bd.get_cell(i,j+2,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
@@ -56,15 +57,15 @@ int FixedPOutBC::apply_inviscid( double t )
 	} // for k
 	break;
     case EAST:
-	i = bdp.imax;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		src_cell = bdp.get_cell(i,j,k);
-		dest_cell = bdp.get_cell(i+1,j,k);
+	i = bd.imax;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		src_cell = bd.get_cell(i,j,k);
+		dest_cell = bd.get_cell(i+1,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
-		dest_cell = bdp.get_cell(i+2,j,k);
+		dest_cell = bd.get_cell(i+2,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
@@ -72,15 +73,15 @@ int FixedPOutBC::apply_inviscid( double t )
 	} // for k
 	break;
     case SOUTH:
-	j = bdp.jmin;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		src_cell = bdp.get_cell(i,j,k);
-		dest_cell = bdp.get_cell(i,j-1,k);
+	j = bd.jmin;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		src_cell = bd.get_cell(i,j,k);
+		dest_cell = bd.get_cell(i,j-1,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
-		dest_cell = bdp.get_cell(i,j-2,k);
+		dest_cell = bd.get_cell(i,j-2,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
@@ -88,15 +89,15 @@ int FixedPOutBC::apply_inviscid( double t )
 	} // for k
 	break;
     case WEST:
-	i = bdp.imin;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		src_cell = bdp.get_cell(i,j,k);
-		dest_cell = bdp.get_cell(i-1,j,k);
+	i = bd.imin;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		src_cell = bd.get_cell(i,j,k);
+		dest_cell = bd.get_cell(i-1,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
-		dest_cell = bdp.get_cell(i-2,j,k);
+		dest_cell = bd.get_cell(i-2,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
@@ -104,15 +105,15 @@ int FixedPOutBC::apply_inviscid( double t )
 	} // for k
  	break;
     case TOP:
-	k = bdp.kmax;
-        for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		src_cell = bdp.get_cell(i,j,k);
-		dest_cell = bdp.get_cell(i,j,k+1);
+	k = bd.kmax;
+        for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		src_cell = bd.get_cell(i,j,k);
+		dest_cell = bd.get_cell(i,j,k+1);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
-		dest_cell = bdp.get_cell(i,j,k+2);
+		dest_cell = bd.get_cell(i,j,k+2);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
@@ -120,15 +121,15 @@ int FixedPOutBC::apply_inviscid( double t )
 	} // for i
 	break;
     case BOTTOM:
-	k = bdp.kmin;
-        for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		src_cell = bdp.get_cell(i,j,k);
-		dest_cell = bdp.get_cell(i,j,k-1);
+	k = bd.kmin;
+        for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		src_cell = bd.get_cell(i,j,k);
+		dest_cell = bd.get_cell(i,j,k-1);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
-		dest_cell = bdp.get_cell(i,j,k-2);
+		dest_cell = bd.get_cell(i,j,k-2);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent

@@ -11,7 +11,7 @@
 
 //------------------------------------------------------------------------
 
-SlipWallBC::SlipWallBC( Block &bdp, int which_boundary )
+SlipWallBC::SlipWallBC( Block *bdp, int which_boundary )
     : BoundaryCondition(bdp, which_boundary, SLIP_WALL, "SlipWallBC",
 			0, true, false, -1, -1) 
 {}

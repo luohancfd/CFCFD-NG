@@ -756,7 +756,7 @@ CFlowCondition *read_flow_condition_from_ini_dict(ConfigParser &dict, int indx, 
 int set_block_parameters(int id, ConfigParser &dict, int master)
 {
     global_data &G = *get_global_data_ptr();
-    Block &bdp = *get_block_data_ptr(id);
+    Block &bd = *get_block_data_ptr(id);
     int indx, iface, other_block, other_face, neighbour_orientation;
     int wc_bc, x_order, sponge_flag, xforce_flag, n_profile;
     string value_string, block_label, filename, wcbc_fname;
@@ -768,7 +768,7 @@ int set_block_parameters(int id, ConfigParser &dict, int master)
     double Twall_i, Twall_f, t_i, t_f;
     vnf.resize(get_gas_model_ptr()->get_number_of_species(), 0.0);
 
-    bdp.id = id;
+    bd.id = id;
   
     // Read parameters from INI-file dictionary.
     indx = id;
@@ -778,44 +778,44 @@ int set_block_parameters(int id, ConfigParser &dict, int master)
     // Assume all blocks are active. 
     // The active flag will be used to skip over inactive
     // or unused blocks in later sections of code.
-    dict.parse_int(section, "active", bdp.active, 1);
+    dict.parse_int(section, "active", bd.active, 1);
     if ( get_verbose_flag() ) {
 	cout << section << ":label = " << block_label << endl;
-	cout << "    active = " << bdp.active << endl;
+	cout << "    active = " << bd.active << endl;
     }
 
     // Number of active cells in block.
-    dict.parse_int(section, "nni", bdp.nni, 2);
-    dict.parse_int(section, "nnj", bdp.nnj, 2);
+    dict.parse_int(section, "nni", bd.nni, 2);
+    dict.parse_int(section, "nnj", bd.nnj, 2);
     // Allow for ghost cells
-    bdp.nidim = bdp.nni + 2 * NGHOST;
-    bdp.njdim = bdp.nnj + 2 * NGHOST;
+    bd.nidim = bd.nni + 2 * NGHOST;
+    bd.njdim = bd.nnj + 2 * NGHOST;
     // Set up min and max indices for convenience in later work.
     // Active cells should then be addressible as
     // get_cell(i,j), imin <= i <= imax, jmin <= j <= jmax.
-    bdp.imin = NGHOST;
-    bdp.imax = bdp.imin + bdp.nni - 1;
-    bdp.jmin = NGHOST;
-    bdp.jmax = bdp.jmin + bdp.nnj - 1;
+    bd.imin = NGHOST;
+    bd.imax = bd.imin + bd.nni - 1;
+    bd.jmin = NGHOST;
+    bd.jmax = bd.jmin + bd.nnj - 1;
     if ( G.dimensions == 3 ) {
-	dict.parse_int(section, "nnk", bdp.nnk, 2);
-	bdp.nkdim = bdp.nnk + 2 * NGHOST;
-	bdp.kmin = NGHOST;
-	bdp.kmax = bdp.kmin + bdp.nnk - 1;
+	dict.parse_int(section, "nnk", bd.nnk, 2);
+	bd.nkdim = bd.nnk + 2 * NGHOST;
+	bd.kmin = NGHOST;
+	bd.kmax = bd.kmin + bd.nnk - 1;
     } else {
 	// For purely 2D flow geometry, we keep only one layer of cells.
-	bdp.nnk = 1;
-	bdp.nkdim = 1;
-	bdp.kmin = 0;
-	bdp.kmax = 0;
+	bd.nnk = 1;
+	bd.nkdim = 1;
+	bd.kmin = 0;
+	bd.kmax = 0;
     }
     if ( get_verbose_flag() ) {
-	printf( "    nni = %d, nnj = %d, nnk = %d\n", bdp.nni, bdp.nnj, bdp.nnk );
-	printf( "    nidim = %d, njdim = %d, nkdim = %d\n", bdp.nidim, bdp.njdim, bdp.nkdim );
+	printf( "    nni = %d, nnj = %d, nnk = %d\n", bd.nni, bd.nnj, bd.nnk );
+	printf( "    nidim = %d, njdim = %d, nkdim = %d\n", bd.nidim, bd.njdim, bd.nkdim );
     }
 
     // Rotating frame of reference.
-    dict.parse_double(section, "omegaz", bdp.omegaz, 0.0);
+    dict.parse_double(section, "omegaz", bd.omegaz, 0.0);
 
     // Boundary condition flags, 
     for ( iface = NORTH; iface <= ((G.dimensions == 3)? BOTTOM : WEST); ++iface ) {
@@ -852,7 +852,7 @@ int set_block_parameters(int id, ConfigParser &dict, int master)
 	dict.parse_string(section, "wcbc_input_file", wcbc_fname, "");
 	dict.parse_vector_of_doubles(section, "f_wall", f_wall, vnf);
 
-	bdp.bcp[iface] = create_BC( bdp, iface, bc_type_code, inflow_condition_id, 
+	bd.bcp[iface] = create_BC( &bd, iface, bc_type_code, inflow_condition_id, 
 				    filename, n_profile, Twall, Pout,
 				    x_order, is_wall, use_udf_flux,
 				    other_block, other_face, neighbour_orientation,
@@ -861,7 +861,7 @@ int set_block_parameters(int id, ConfigParser &dict, int master)
 				    Twall_i, Twall_f, t_i, t_f, assume_ideal);
 	if ( get_verbose_flag() ) {
 	    cout << "    " << get_face_name(iface) << " face:" << endl;
-	    bdp.bcp[iface]->print_info("        ");
+	    bd.bcp[iface]->print_info("        ");
 	    cout << "        Pout= " << Pout << endl;
 	    cout << "        Twall= " << Twall << endl;
 	}
@@ -869,27 +869,27 @@ int set_block_parameters(int id, ConfigParser &dict, int master)
 
     // History Cells.
     section = "block/" + tostring(indx);
-    dict.parse_int(section, "nhcell", bdp.hncell, 0);
-    for ( int ih = 0; ih < bdp.hncell; ++ih ) {
+    dict.parse_int(section, "nhcell", bd.hncell, 0);
+    for ( int ih = 0; ih < bd.hncell; ++ih ) {
 	section = "block/" + tostring(indx);
 	string key = "history-cell-" + tostring(ih);
 	dict.parse_string(section, key, value_string, "0 0 0");
 	if ( G.dimensions == 3 ) {
 	    int hicell, hjcell, hkcell;
 	    sscanf( value_string.c_str(), "%d %d %d", &hicell, &hjcell, &hkcell );
-	    bdp.hicell.push_back(hicell);
-	    bdp.hjcell.push_back(hjcell);
-	    bdp.hkcell.push_back(hkcell);
+	    bd.hicell.push_back(hicell);
+	    bd.hjcell.push_back(hjcell);
+	    bd.hkcell.push_back(hkcell);
 	} else {
 	    int hicell, hjcell;
 	    sscanf( value_string.c_str(), "%d %d", &hicell, &hjcell );
-	    bdp.hicell.push_back(hicell);
-	    bdp.hjcell.push_back(hjcell);
-	    bdp.hkcell.push_back(0);
+	    bd.hicell.push_back(hicell);
+	    bd.hjcell.push_back(hjcell);
+	    bd.hkcell.push_back(0);
 	}
 	if ( get_verbose_flag() ) {
 	    printf( "    History cell[%d] located at indices [%d][%d][%d]\n",
-		    ih, bdp.hicell[ih], bdp.hjcell[ih], bdp.hkcell[ih] );
+		    ih, bd.hicell[ih], bd.hjcell[ih], bd.hkcell[ih] );
 	}
     }
 

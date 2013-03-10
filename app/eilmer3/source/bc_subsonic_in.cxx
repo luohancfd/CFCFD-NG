@@ -11,7 +11,7 @@
 
 //------------------------------------------------------------------------
 
-SubsonicInBC::SubsonicInBC( Block &bdp, int which_boundary, 
+SubsonicInBC::SubsonicInBC( Block *bdp, int which_boundary, 
 			    int inflow_condition_id, int assume_ideal )
     : BoundaryCondition(bdp, which_boundary, SUBSONIC_IN, "SubsonicInBC",
 			0, false, false, -1, -1, 0), 
@@ -31,6 +31,7 @@ SubsonicInBC::~SubsonicInBC() {}
 
 int SubsonicInBC::apply_inviscid( double t )
 {
+    Block & bd = *bdp;
     int i, j, k;
     FV_Cell *src_cell, *dest_cell;
     double u, v, w, velocity;
@@ -40,103 +41,103 @@ int SubsonicInBC::apply_inviscid( double t )
 
     switch ( which_boundary ) {
     case NORTH:
-	j = bdp.jmax;
-	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		src_cell = bdp.get_cell(i,j,k);
+	j = bd.jmax;
+	for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		src_cell = bd.get_cell(i,j,k);
 		u = src_cell->fs->vel.x;
 		v = src_cell->fs->vel.y;
 		w = src_cell->fs->vel.z;
 		velocity = sqrt(u*u + v*v + w*w);
 		subsonic_inflow_properties(gstagp, gsp, velocity);
-		dest_cell = bdp.get_cell(i,j+1,k);
+		dest_cell = bd.get_cell(i,j+1,k);
 		dest_cell->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i,j+2,k);
+		dest_cell = bd.get_cell(i,j+2,k);
 		dest_cell->copy_values_from(*gsp);
 	    } // end i loop
 	} // for k
 	break;
     case EAST:
-	i = bdp.imax;
-	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		src_cell = bdp.get_cell(i,j,k);
+	i = bd.imax;
+	for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		src_cell = bd.get_cell(i,j,k);
 		u = src_cell->fs->vel.x;
 		v = src_cell->fs->vel.y;
 		w = src_cell->fs->vel.z;
 		velocity = sqrt(u*u + v*v + w*w);
 		subsonic_inflow_properties(gstagp, gsp, velocity);
-		dest_cell = bdp.get_cell(i+1,j,k);
+		dest_cell = bd.get_cell(i+1,j,k);
 		dest_cell->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i+2,j,k);
+		dest_cell = bd.get_cell(i+2,j,k);
 		dest_cell->copy_values_from(*gsp);
 	    } // end j loop
 	} // for k
 	break;
     case SOUTH:
-	j = bdp.jmin;
-	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		src_cell = bdp.get_cell(i,j,k);
+	j = bd.jmin;
+	for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		src_cell = bd.get_cell(i,j,k);
 		u = src_cell->fs->vel.x;
 		v = src_cell->fs->vel.y;
 		w = src_cell->fs->vel.z;
 		velocity = sqrt(u*u + v*v + w*w);
 		subsonic_inflow_properties(gstagp, gsp, velocity);
-		dest_cell = bdp.get_cell(i,j-1,k);
+		dest_cell = bd.get_cell(i,j-1,k);
 		dest_cell->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i,j-2,k);
+		dest_cell = bd.get_cell(i,j-2,k);
 		dest_cell->copy_values_from(*gsp);
 	    } // end i loop
 	} // for k
 	break;
     case WEST:
-	i = bdp.imin;
-	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		src_cell = bdp.get_cell(i,j,k);
+	i = bd.imin;
+	for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		src_cell = bd.get_cell(i,j,k);
 		u = src_cell->fs->vel.x;
 		v = src_cell->fs->vel.y;
 		w = src_cell->fs->vel.z;
 		velocity = sqrt(u*u + v*v + w*w);
 		subsonic_inflow_properties(gstagp, gsp, velocity);
-		dest_cell = bdp.get_cell(i-1,j,k);
+		dest_cell = bd.get_cell(i-1,j,k);
 		dest_cell->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i-2,j,k);
+		dest_cell = bd.get_cell(i-2,j,k);
 		dest_cell->copy_values_from(*gsp);
 	    } // end j loop
 	} // for k
  	break;
     case TOP:
-	k = bdp.kmax;
-	for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		src_cell = bdp.get_cell(i,j,k);
+	k = bd.kmax;
+	for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		src_cell = bd.get_cell(i,j,k);
 		u = src_cell->fs->vel.x;
 		v = src_cell->fs->vel.y;
 		w = src_cell->fs->vel.z;
 		velocity = sqrt(u*u + v*v + w*w);
 		subsonic_inflow_properties(gstagp, gsp, velocity);
-		dest_cell = bdp.get_cell(i,j,k+1);
+		dest_cell = bd.get_cell(i,j,k+1);
 		dest_cell->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i,j,k+2);
+		dest_cell = bd.get_cell(i,j,k+2);
 		dest_cell->copy_values_from(*gsp);
 	    } // end j loop
 	} // for i
 	break;
     case BOTTOM:
-	k = bdp.kmin;
-	for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		src_cell = bdp.get_cell(i,j,k);
+	k = bd.kmin;
+	for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		src_cell = bd.get_cell(i,j,k);
 		u = src_cell->fs->vel.x;
 		v = src_cell->fs->vel.y;
 		w = src_cell->fs->vel.z;
 		velocity = sqrt(u*u + v*v + w*w);
 		subsonic_inflow_properties(gstagp, gsp, velocity);
-		dest_cell = bdp.get_cell(i,j,k-1);
+		dest_cell = bd.get_cell(i,j,k-1);
 		dest_cell->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i,j,k-2);
+		dest_cell = bd.get_cell(i,j,k-2);
 		dest_cell->copy_values_from(*gsp);
 	    } // end j loop
 	} // for i
@@ -162,7 +163,7 @@ int SubsonicInBC::apply_inviscid( double t )
 /// is likewise ignored.
 ///
 /// TODO: make this like Hannes' subsonic inflow UDF for use in turbomachinery calcs.
-int SubsonicInBC::subsonic_inflow_properties(CFlowCondition *stagnation, 
+int SubsonicInBC::subsonic_inflow_properties(const CFlowCondition *stagnation, 
 					     CFlowCondition *inflow_state, 
 					     double inflow_velocity)
 {

@@ -27,7 +27,7 @@
 
 //------------------------------------------------------------------------
 
-SurfaceEnergyBalanceBC::SurfaceEnergyBalanceBC( Block &bdp, int which_boundary, double epsilon )
+SurfaceEnergyBalanceBC::SurfaceEnergyBalanceBC( Block *bdp, int which_boundary, double epsilon )
     : BoundaryCondition(bdp, which_boundary, SEB, "SurfaceEnergyBalanceBC",
 			0, true, false, -1, -1, 0),
       epsilon(epsilon), tol(1.0e-4), max_iterations(100), f_relax(0.05)
@@ -70,15 +70,16 @@ int SurfaceEnergyBalanceBC::apply_viscous( double t )
     FV_Cell *cell;
     FV_Interface *IFace;
     int index;
+    Block & bd = *bdp;
 
     switch ( which_boundary ) {
     case NORTH:
-	j = bdp.jmax;
-	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		index = (bdp.jmax-jmin+1)*(imax-imin+1)*(k-kmin) + \
+	j = bd.jmax;
+	for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		index = (bd.jmax-jmin+1)*(imax-imin+1)*(k-kmin) + \
 			(imax-imin+1)*(j-jmin) + (i-imin);
-		cell = bdp.get_cell(i,j,k);
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[NORTH];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
@@ -86,25 +87,25 @@ int SurfaceEnergyBalanceBC::apply_viscous( double t )
 		if ( solve_for_wall_temperature( IFace, cell, index ) ) {
 		    cerr << "SurfaceEnergyBalanceBC::apply_viscous()" << endl
 		    	 << "solve_for_wall_temperature() failed for index:"
-		    	 << index << " of block: " << bdp.id << ", boundary: " 
+		    	 << index << " of block: " << bd.id << ", boundary: " 
 		    	 << which_boundary << endl;
 		    return FAILURE;
 		}
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
-		if (bdp.bcp[NORTH]->wc_bc != NON_CATALYTIC) {
+		if (bd.bcp[NORTH]->wc_bc != NON_CATALYTIC) {
 		    cw->apply(*(cell->fs->gas), fs.gas->massf);
 		}
 	    } // end i loop
 	} // for k
 	break;
     case EAST:
-	i = bdp.imax;
-	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
+	i = bd.imax;
+	for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 	    	index = (jmax-jmin+1)*(imax-imin+1)*(k-kmin) + 
 			(imax-imin+1)*(j-jmin) + (i-imin);
-		cell = bdp.get_cell(i,j,k);
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[EAST];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
@@ -112,25 +113,25 @@ int SurfaceEnergyBalanceBC::apply_viscous( double t )
 		if ( solve_for_wall_temperature(IFace, cell, index) ) {
 		    cerr << "SurfaceEnergyBalanceBC::apply_viscous()" << endl
 		    	 << "solve_for_wall_temperature() failed for index:"
-		    	 << index << " of block: " << bdp.id << ", boundary: " 
+		    	 << index << " of block: " << bd.id << ", boundary: " 
 		    	 << which_boundary << endl;
 		    return FAILURE;
 		}
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
-		if (bdp.bcp[EAST]->wc_bc != NON_CATALYTIC) {
+		if (bd.bcp[EAST]->wc_bc != NON_CATALYTIC) {
 		    cw->apply(*(cell->fs->gas), fs.gas->massf);
 		}
 	    } // end j loop
 	} // for k
 	break;
     case SOUTH:
-	j = bdp.jmin;
-	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
+	j = bd.jmin;
+	for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
 	    	index = (jmax-jmin+1)*(imax-imin+1)*(k-kmin) + 
 			(imax-imin+1)*(j-jmin) + (i-imin);
-		cell = bdp.get_cell(i,j,k);
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[SOUTH];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
@@ -138,25 +139,25 @@ int SurfaceEnergyBalanceBC::apply_viscous( double t )
 		if ( solve_for_wall_temperature(IFace, cell, index) ) {
 		    cerr << "SurfaceEnergyBalanceBC::apply_viscous()" << endl
 		    	 << "solve_for_wall_temperature() failed for index:"
-		    	 << index << " of block: " << bdp.id << ", boundary: " 
+		    	 << index << " of block: " << bd.id << ", boundary: " 
 		    	 << which_boundary << endl;
 		    return FAILURE;
 		}
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
-		if (bdp.bcp[SOUTH]->wc_bc != NON_CATALYTIC) {
+		if (bd.bcp[SOUTH]->wc_bc != NON_CATALYTIC) {
 		    cw->apply(*(cell->fs->gas), fs.gas->massf);
 		}
 	    } // end i loop
 	} // for k
 	break;
     case WEST:
-	i = bdp.imin;
-	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
+	i = bd.imin;
+	for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 	    	index = (jmax-jmin+1)*(imax-imin+1)*(k-kmin) + 
 			(imax-imin+1)*(j-jmin) + (i-imin);
-		cell = bdp.get_cell(i,j,k);
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[WEST];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
@@ -164,25 +165,25 @@ int SurfaceEnergyBalanceBC::apply_viscous( double t )
 		if ( solve_for_wall_temperature(IFace, cell, index) ) {
 		    cerr << "SurfaceEnergyBalanceBC::apply_viscous()" << endl
 		    	 << "solve_for_wall_temperature() failed for index:"
-		    	 << index << " of block: " << bdp.id << ", boundary: " 
+		    	 << index << " of block: " << bd.id << ", boundary: " 
 		    	 << which_boundary << endl;
 		    return FAILURE;
 		}
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
-		if (bdp.bcp[WEST]->wc_bc != NON_CATALYTIC) {
+		if (bd.bcp[WEST]->wc_bc != NON_CATALYTIC) {
 		    cw->apply(*(cell->fs->gas), fs.gas->massf);
 		}
 	    } // end j loop
 	} // for k
  	break;
     case TOP:
-	k = bdp.kmax;
-	for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
+	k = bd.kmax;
+	for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 	    	index = (jmax-jmin+1)*(imax-imin+1)*(k-kmin) + 
 			(imax-imin+1)*(j-jmin) + (i-imin);
-		cell = bdp.get_cell(i,j,k);
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[TOP];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
@@ -190,25 +191,25 @@ int SurfaceEnergyBalanceBC::apply_viscous( double t )
 		if ( solve_for_wall_temperature(IFace, cell, index) ) {
 		    cerr << "SurfaceEnergyBalanceBC::apply_viscous()" << endl
 		    	 << "solve_for_wall_temperature() failed for index:"
-		    	 << index << " of block: " << bdp.id << ", boundary: " 
+		    	 << index << " of block: " << bd.id << ", boundary: " 
 		    	 << which_boundary << endl;
 		    return FAILURE;
 		}
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
-		if (bdp.bcp[TOP]->wc_bc != NON_CATALYTIC) {
+		if (bd.bcp[TOP]->wc_bc != NON_CATALYTIC) {
 		    cw->apply(*(cell->fs->gas), fs.gas->massf);
 		}
 	    } // end j loop
 	} // for i
 	break;
     case BOTTOM:
-	k = bdp.kmin;
-	for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
+	k = bd.kmin;
+	for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 	    	index = (jmax-jmin+1)*(imax-imin+1)*(k-kmin) + 
 			(imax-imin+1)*(j-jmin) + (i-imin);
-		cell = bdp.get_cell(i,j,k);
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[BOTTOM];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
@@ -216,13 +217,13 @@ int SurfaceEnergyBalanceBC::apply_viscous( double t )
 		if ( solve_for_wall_temperature(IFace, cell, index) ) {
 		    cerr << "SurfaceEnergyBalanceBC::apply_viscous()" << endl
 		    	 << "solve_for_wall_temperature() failed for index:"
-		    	 << index << " of block: " << bdp.id << ", boundary: " 
+		    	 << index << " of block: " << bd.id << ", boundary: " 
 		    	 << which_boundary << endl;
 		    return FAILURE;
 		}
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
-		if (bdp.bcp[BOTTOM]->wc_bc != NON_CATALYTIC) {
+		if (bd.bcp[BOTTOM]->wc_bc != NON_CATALYTIC) {
 		    cw->apply(*(cell->fs->gas), fs.gas->massf);
 		}
 	    } // end j loop

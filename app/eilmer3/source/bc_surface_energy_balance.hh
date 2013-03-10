@@ -4,7 +4,7 @@
 
 class SurfaceEnergyBalanceBC : public BoundaryCondition {
 public:
-    SurfaceEnergyBalanceBC( Block &bdp, int which_boundary, double epsilon );
+    SurfaceEnergyBalanceBC( Block *bdp, int which_boundary, double epsilon );
     SurfaceEnergyBalanceBC( const SurfaceEnergyBalanceBC &bc );
     virtual ~SurfaceEnergyBalanceBC();
     // default apply_inviscid() is just to reflect normal velocity

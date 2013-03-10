@@ -25,7 +25,7 @@
 
 //------------------------------------------------------------------------
 
-TransientUniformBC::TransientUniformBC( Block &bdp, int which_boundary,
+TransientUniformBC::TransientUniformBC( Block *bdp, int which_boundary,
 					std::string filename )
     : BoundaryCondition(bdp, which_boundary, TRANSIENT_UNI, "TransientUniformBC",
 			0, false, false, -1, -1, 0),
@@ -122,10 +122,7 @@ TransientUniformBC::TransientUniformBC( const TransientUniformBC &bc )
 }
 
 TransientUniformBC::~TransientUniformBC() 
-{
-    for ( size_t ii = 0; ii < massfa.size(); ++ii ) massfa[ii].clear();
-    massfa.clear();
-}
+{}
 
 int TransientUniformBC::apply_inviscid( double t )
 {
@@ -134,7 +131,8 @@ int TransientUniformBC::apply_inviscid( double t )
     std::vector<double> T;
     std::vector<double> mf;
     double alpha;
-    
+    Block & bd = *bdp;
+
     // Check the ends of the time range.
     if ( t <= tta[0] || t >= tta[nsample - 1] ) {
         if ( t <= tta[0] ) ii = 0; else ii = nsample - 1;
@@ -182,67 +180,67 @@ int TransientUniformBC::apply_inviscid( double t )
 
     switch ( which_boundary ) {
     case NORTH:
-	j = bdp.jmax;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		dest_cell = bdp.get_cell(i,j+1,k);
+	j = bd.jmax;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		dest_cell = bd.get_cell(i,j+1,k);
 		dest_cell->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i,j+2,k);
+		dest_cell = bd.get_cell(i,j+2,k);
 		dest_cell->copy_values_from(*gsp);
 	    } // end i loop
 	} // for k
 	break;
     case EAST:
-	i = bdp.imax;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		dest_cell = bdp.get_cell(i+1,j,k);
+	i = bd.imax;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		dest_cell = bd.get_cell(i+1,j,k);
 		dest_cell->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i+2,j,k);
+		dest_cell = bd.get_cell(i+2,j,k);
 		dest_cell->copy_values_from(*gsp);
 	    } // end j loop
 	} // for k
 	break;
     case SOUTH:
-	j = bdp.jmin;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		dest_cell = bdp.get_cell(i,j-1,k);
+	j = bd.jmin;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		dest_cell = bd.get_cell(i,j-1,k);
 		dest_cell->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i,j-2,k);
+		dest_cell = bd.get_cell(i,j-2,k);
 		dest_cell->copy_values_from(*gsp);
 	    } // end i loop
 	} // for k
 	break;
     case WEST:
-	i = bdp.imin;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		dest_cell = bdp.get_cell(i-1,j,k);
+	i = bd.imin;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		dest_cell = bd.get_cell(i-1,j,k);
 		dest_cell->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i-2,j,k);
+		dest_cell = bd.get_cell(i-2,j,k);
 		dest_cell->copy_values_from(*gsp);
 	    } // end j loop
 	} // for k
  	break;
     case TOP:
-	k = bdp.kmax;
-        for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		dest_cell = bdp.get_cell(i,j,k+1);
+	k = bd.kmax;
+        for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		dest_cell = bd.get_cell(i,j,k+1);
 		dest_cell->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i,j,k+2);
+		dest_cell = bd.get_cell(i,j,k+2);
 		dest_cell->copy_values_from(*gsp);
 	    } // end j loop
 	} // for i
 	break;
     case BOTTOM:
-	k = bdp.kmin;
-        for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		dest_cell = bdp.get_cell(i,j,k-1);
+	k = bd.kmin;
+        for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		dest_cell = bd.get_cell(i,j,k-1);
 		dest_cell->copy_values_from(*gsp);
-		dest_cell = bdp.get_cell(i,j,k-2);
+		dest_cell = bd.get_cell(i,j,k-2);
 		dest_cell->copy_values_from(*gsp);
 	    } // end j loop
 	} // for k

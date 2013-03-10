@@ -65,40 +65,41 @@ const int VERBOSE_BCS = 0; // Set to 1 to print mem usage, writing of data etc
 /// \brief Set up ghost-cell values for the inviscid flux calculations.
 ///
 /// This is a coordinating function for use in the main time-stepping loop.
-int apply_inviscid_bc( Block &bdp, double t, int dimensions )
+int apply_inviscid_bc( Block &bd, double t, int dimensions )
 {
-    bdp.bcp[NORTH]->apply_inviscid(t);
-    bdp.bcp[EAST]->apply_inviscid(t);
-    bdp.bcp[SOUTH]->apply_inviscid(t);
-    bdp.bcp[WEST]->apply_inviscid(t);
+    bd.bcp[NORTH]->apply_inviscid(t);
+    bd.bcp[EAST]->apply_inviscid(t);
+    bd.bcp[SOUTH]->apply_inviscid(t);
+    bd.bcp[WEST]->apply_inviscid(t);
     if ( dimensions == 3 ) {
-	bdp.bcp[TOP]->apply_inviscid(t);
-	bdp.bcp[BOTTOM]->apply_inviscid(t);
+	bd.bcp[TOP]->apply_inviscid(t);
+	bd.bcp[BOTTOM]->apply_inviscid(t);
     }
     return SUCCESS;
 }
 
-int apply_viscous_bc( Block &bdp, double t, int dimensions )
+int apply_viscous_bc( Block &bd, double t, int dimensions )
 {
-    bdp.bcp[NORTH]->apply_viscous(t);
-    bdp.bcp[EAST]->apply_viscous(t);
-    bdp.bcp[SOUTH]->apply_viscous(t);
-    bdp.bcp[WEST]->apply_viscous(t);
+    bd.bcp[NORTH]->apply_viscous(t);
+    bd.bcp[EAST]->apply_viscous(t);
+    bd.bcp[SOUTH]->apply_viscous(t);
+    bd.bcp[WEST]->apply_viscous(t);
     if ( dimensions == 3 ) {
-	bdp.bcp[TOP]->apply_viscous(t);
-	bdp.bcp[BOTTOM]->apply_viscous(t);
+	bd.bcp[TOP]->apply_viscous(t);
+	bd.bcp[BOTTOM]->apply_viscous(t);
     }
     return SUCCESS;
 }
 
 //-----------------------------------------------------------------------
 
-BoundaryCondition::BoundaryCondition( Block &bdp, int which_boundary, int type_code,
-				      std::string name_of_BC, int x_order,
-				      bool is_wall, bool use_udf_flux,
-				      int neighbour_block, int neighbour_face,
-				      int neighbour_orientation,
-				      int wc_bc, int sponge_flag, int xforce_flag )
+BoundaryCondition::
+BoundaryCondition( Block *bdp, int which_boundary, int type_code,
+		   std::string name_of_BC, int x_order,
+		   bool is_wall, bool use_udf_flux,
+		   int neighbour_block, int neighbour_face,
+		   int neighbour_orientation,
+		   int wc_bc, int sponge_flag, int xforce_flag )
     : bdp(bdp), which_boundary(which_boundary), type_code(type_code),
       name_of_BC(name_of_BC), x_order(x_order),
       is_wall_flag(is_wall), use_udf_flux_flag(use_udf_flux),
@@ -106,32 +107,33 @@ BoundaryCondition::BoundaryCondition( Block &bdp, int which_boundary, int type_c
       neighbour_orientation(neighbour_orientation),
       wc_bc(wc_bc), sponge_flag(sponge_flag), xforce_flag(xforce_flag)
 {
+    Block & bd = *bdp;
     // 1. Determine size heat flux vectors
     int dim = 1;
     switch ( which_boundary ) {
     case NORTH:
 	// j = constant at jmax
-	dim = bdp.nni * bdp.nnk;
+	dim = bd.nni * bd.nnk;
 	break;
     case EAST:
 	// i = constant at imax
-	dim = bdp.nnj * bdp.nnk;
+	dim = bd.nnj * bd.nnk;
 	break;
     case SOUTH:
 	// j = constant at jmin
-	dim = bdp.nni * bdp.nnk;
+	dim = bd.nni * bd.nnk;
 	break;
     case WEST:
 	// i = constant at imin
-	dim = bdp.nnj * bdp.nnk;
+	dim = bd.nnj * bd.nnk;
 	break;
     case TOP:
 	// k = constant at kmax
-	dim = bdp.nni * bdp.nnj;
+	dim = bd.nni * bd.nnj;
 	break;
     case BOTTOM:
 	// k = constant at kmin
-	dim = bdp.nni * bdp.nnj;
+	dim = bd.nni * bd.nnj;
 	break;
     default:
 	printf( "Error: which_boundary %d was not understood\n", 
@@ -147,34 +149,34 @@ BoundaryCondition::BoundaryCondition( Block &bdp, int which_boundary, int type_c
     // 3. Determine boundary cell indice limits
     switch( which_boundary ) {
     case NORTH:
-	kmin = bdp.kmin; kmax = bdp.kmax;
-	jmin = bdp.jmax; jmax = bdp.jmax;
-	imin = bdp.imin; imax = bdp.imax;
+	kmin = bd.kmin; kmax = bd.kmax;
+	jmin = bd.jmax; jmax = bd.jmax;
+	imin = bd.imin; imax = bd.imax;
 	break;
     case EAST:
-	kmin = bdp.kmin; kmax = bdp.kmax;
-	jmin = bdp.jmin; jmax = bdp.jmax;
-	imin = bdp.imax; imax = bdp.imax;
+	kmin = bd.kmin; kmax = bd.kmax;
+	jmin = bd.jmin; jmax = bd.jmax;
+	imin = bd.imax; imax = bd.imax;
 	break;
     case SOUTH:
-	kmin = bdp.kmin; kmax = bdp.kmax;
-	jmin = bdp.jmin; jmax = bdp.jmin;
-	imin = bdp.imin; imax = bdp.imax;
+	kmin = bd.kmin; kmax = bd.kmax;
+	jmin = bd.jmin; jmax = bd.jmin;
+	imin = bd.imin; imax = bd.imax;
 	break;
     case WEST:
-	kmin = bdp.kmin; kmax = bdp.kmax;
-	jmin = bdp.jmin; jmax = bdp.jmax;
-	imin = bdp.imin; imax = bdp.imin;
+	kmin = bd.kmin; kmax = bd.kmax;
+	jmin = bd.jmin; jmax = bd.jmax;
+	imin = bd.imin; imax = bd.imin;
 	break;
     case TOP:
-	kmin = bdp.kmax; kmax = bdp.kmax;
-	jmin = bdp.jmin; jmax = bdp.jmax;
-	imin = bdp.imin; imax = bdp.imax;
+	kmin = bd.kmax; kmax = bd.kmax;
+	jmin = bd.jmin; jmax = bd.jmax;
+	imin = bd.imin; imax = bd.imax;
 	break;
     case BOTTOM:
-	kmin = bdp.kmin; kmax = bdp.kmin;
-	jmin = bdp.jmin; jmax = bdp.jmax;
-	imin = bdp.imin; imax = bdp.imax;
+	kmin = bd.kmin; kmax = bd.kmin;
+	jmin = bd.jmin; jmax = bd.jmax;
+	imin = bd.imin; imax = bd.imax;
 	break;
     default:
 	printf( "Error: Boundary code %d not understood.\n", which_boundary );
@@ -187,114 +189,75 @@ BoundaryCondition::BoundaryCondition( Block &bdp, int which_boundary, int type_c
 #   if VERBOSE_BCS
     int total_bytes = 3 * dim * sizeof(double);
     
-    cout << "Block " << bdp.id << ", boundary " << which_boundary
+    cout << "Block " << bd.id << ", boundary " << which_boundary
 	 << ": Have allocated " << total_bytes << " bytes of memory." << endl;
 #   endif
 }
 
-BoundaryCondition::BoundaryCondition( const BoundaryCondition &bc )
-    : bdp(bc.bdp), which_boundary(bc.which_boundary), type_code(bc.type_code),
+// Can't really have a bounday condition object created without
+// reference to a particular block.
+BoundaryCondition::
+BoundaryCondition()
+    : bdp(0), which_boundary(0), type_code(0),
+      name_of_BC("Unspecified"), x_order(0),
+      is_wall_flag(false), use_udf_flux_flag(false),
+      neighbour_block(-1), neighbour_face(-1),
+      neighbour_orientation(0),
+      wc_bc(NON_CATALYTIC), sponge_flag(0), xforce_flag(0),
+      cw(0)
+{}
+
+BoundaryCondition::
+BoundaryCondition( const BoundaryCondition &bc )
+    : bdp(bc.bdp), // Still bound to the original block.
+      which_boundary(bc.which_boundary), type_code(bc.type_code),
       name_of_BC(bc.name_of_BC), x_order(bc.x_order),
       is_wall_flag(bc.is_wall_flag), use_udf_flux_flag(bc.use_udf_flux_flag),
       neighbour_block(bc.neighbour_block), neighbour_face(bc.neighbour_face),
-      neighbour_orientation(bc.neighbour_orientation), cw( bc.cw )
+      neighbour_orientation(bc.neighbour_orientation),
+      wc_bc(bc.wc_bc), sponge_flag(bc.sponge_flag), xforce_flag(bc.xforce_flag),
+      q_conv(bc.q_conv), q_diff(bc.q_diff), q_rad(bc.q_rad),
+      imin(bc.imin), imax(bc.imax), jmin(bc.jmin), jmax(bc.jmax)
 {
-    // 1. Determine size heat flux vectors
-    int dim = 1;
-    switch ( which_boundary ) {
-    case NORTH:
-	// j = constant at jmax
-	dim = bdp.nni * bdp.nnk;
-	break;
-    case EAST:
-	// i = constant at imax
-	dim = bdp.nnj * bdp.nnk;
-	break;
-    case SOUTH:
-	// j = constant at jmin
-	dim = bdp.nni * bdp.nnk;
-	break;
-    case WEST:
-	// i = constant at imin
-	dim = bdp.nnj * bdp.nnk;
-	break;
-    case TOP:
-	// k = constant at kmax
-	dim = bdp.nni * bdp.nnj;
-	break;
-    case BOTTOM:
-	// k = constant at kmin
-	dim = bdp.nni * bdp.nnj;
-	break;
-    default:
-	printf( "Error: which_boundary %d was not understood\n", 
-		which_boundary );
-	exit(NOT_IMPLEMENTED_ERROR);
+    // if ( bc.cw ) cw = new CatalyticWallBC(*bc.cw);
+    cw = 0;
+}
+
+BoundaryCondition & BoundaryCondition::operator=( const BoundaryCondition &bc )
+{
+    if ( this != &bc ) {
+	bdp = bc.bdp; // This new BC is still bound to the original block.
+	which_boundary = bc.which_boundary; 
+	type_code = bc.type_code;
+	name_of_BC = bc.name_of_BC;
+	x_order = bc.x_order;
+	is_wall_flag = bc.is_wall_flag;
+	use_udf_flux_flag = bc.use_udf_flux_flag;
+	neighbour_block = bc.neighbour_block;
+	neighbour_face = bc.neighbour_face;
+	neighbour_orientation = bc.neighbour_orientation;
+	wc_bc = bc.wc_bc;
+	sponge_flag = bc.sponge_flag;
+	xforce_flag = bc.xforce_flag;
+	q_conv = bc.q_conv;
+	q_diff = bc.q_diff;
+	q_rad = bc.q_rad;
+	imin = bc.imin; imax = bc.imax; jmin = bc.jmin; jmax = bc.jmax;
+	// if ( bc.cw ) cw = new CatalyticWallBC(*bc.cw);
+	cw = 0;
     }
-    
-    // 2. Size heat flux vectors
-    q_conv.resize( dim );
-    q_diff.resize( dim );
-    q_rad.resize( dim );
-    
-    // 3. Determine boundary cell indice limits
-    switch( which_boundary ) {
-    case NORTH:
-	kmin = bdp.kmin; kmax = bdp.kmax;
-	jmin = bdp.jmax; jmax = bdp.jmax;
-	imin = bdp.imin; imax = bdp.imax;
-	break;
-    case EAST:
-	kmin = bdp.kmin; kmax = bdp.kmax;
-	jmin = bdp.jmin; jmax = bdp.jmax;
-	imin = bdp.imax; imax = bdp.imax;
-	break;
-    case SOUTH:
-	kmin = bdp.kmin; kmax = bdp.kmax;
-	jmin = bdp.jmin; jmax = bdp.jmin;
-	imin = bdp.imin; imax = bdp.imax;
-	break;
-    case WEST:
-	kmin = bdp.kmin; kmax = bdp.kmax;
-	jmin = bdp.jmin; jmax = bdp.jmax;
-	imin = bdp.imin; imax = bdp.imin;
-	break;
-    case TOP:
-	kmin = bdp.kmax; kmax = bdp.kmax;
-	jmin = bdp.jmin; jmax = bdp.jmax;
-	imin = bdp.imin; imax = bdp.imax;
-	break;
-    case BOTTOM:
-	kmin = bdp.kmin; kmax = bdp.kmin;
-	jmin = bdp.jmin; jmax = bdp.jmax;
-	imin = bdp.imin; imax = bdp.imax;
-	break;
-    default:
-	printf( "Error: Boundary code %d not understood.\n", which_boundary );
-	exit(NOT_IMPLEMENTED_ERROR);
-    }
-    
-#   if VERBOSE_BCS
-    int total_bytes = 3 * dim * sizeof(double);
-    
-    cout << "Block " << bdp.id << ", boundary " << which_boundary
-	 << ": Have allocated " << total_bytes << " bytes of memory." << endl;
-#   endif
+    return *this;
 }
 
 BoundaryCondition::~BoundaryCondition()
 {
-    // Clear heat flux vectors (superfluous, but tidy)
-    q_conv.resize( 0 );
-    q_diff.resize( 0 );
-    q_rad.resize( 0 );
-    
     // Delete the catalytic BC object
     if ( cw ) delete cw;
 }
 
 void BoundaryCondition::print_info( std::string lead_in )
 {
+    cout << lead_in << "block_id" << bdp->id << endl;
     cout << lead_in << "which_boundary=" << which_boundary 
 	 << "(" << get_face_name(which_boundary) << ")" << endl;
     cout << lead_in << "type_code=" << type_code 
@@ -320,24 +283,25 @@ int BoundaryCondition::apply_inviscid( double t )
     int i, j, k;
     FV_Cell *src_cell, *dest_cell;
     FV_Interface *IFace;
+    Block & bd = *bdp;
 
     switch ( which_boundary ) {
     case NORTH:
-	j = bdp.jmax;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
+	j = bd.jmax;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
 		// ghost cell 1.
-		src_cell = bdp.get_cell(i,j,k);
+		src_cell = bd.get_cell(i,j,k);
 		IFace = src_cell->iface[NORTH];
-		dest_cell = bdp.get_cell(i,j+1,k);
+		dest_cell = bd.get_cell(i,j+1,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		reflect_normal_velocity(dest_cell, IFace);
 		if (get_mhd_flag() == 1) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 		// ghost cell 2.
-		src_cell = bdp.get_cell(i,j-1,k);
-		dest_cell = bdp.get_cell(i,j+2,k);
+		src_cell = bd.get_cell(i,j-1,k);
+		dest_cell = bd.get_cell(i,j+2,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		reflect_normal_velocity(dest_cell, IFace);
 		if (get_mhd_flag() == 1) {
@@ -347,21 +311,21 @@ int BoundaryCondition::apply_inviscid( double t )
 	} // for k
 	break;
     case EAST:
-	i = bdp.imax;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
+	i = bd.imax;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		// ghost cell 1.
-		src_cell = bdp.get_cell(i,j,k);
+		src_cell = bd.get_cell(i,j,k);
 		IFace = src_cell->iface[EAST];
-		dest_cell = bdp.get_cell(i+1,j,k);
+		dest_cell = bd.get_cell(i+1,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		reflect_normal_velocity(dest_cell, IFace);
 		if (get_mhd_flag() == 1) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 		// ghost cell 2.
-		src_cell = bdp.get_cell(i-1,j,k);
-		dest_cell = bdp.get_cell(i+2,j,k);
+		src_cell = bd.get_cell(i-1,j,k);
+		dest_cell = bd.get_cell(i+2,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		reflect_normal_velocity(dest_cell, IFace);
 		if (get_mhd_flag() == 1) {
@@ -371,21 +335,21 @@ int BoundaryCondition::apply_inviscid( double t )
 	} // for k
 	break;
     case SOUTH:
-	j = bdp.jmin;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
+	j = bd.jmin;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
 		// ghost cell 1.
-		src_cell = bdp.get_cell(i,j,k);
+		src_cell = bd.get_cell(i,j,k);
 		IFace = src_cell->iface[SOUTH];
-		dest_cell = bdp.get_cell(i,j-1,k);
+		dest_cell = bd.get_cell(i,j-1,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		reflect_normal_velocity(dest_cell, IFace);
 		if (get_mhd_flag() == 1) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 		// ghost cell 2.
-		src_cell = bdp.get_cell(i,j+1,k);
-		dest_cell = bdp.get_cell(i,j-2,k);
+		src_cell = bd.get_cell(i,j+1,k);
+		dest_cell = bd.get_cell(i,j-2,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		reflect_normal_velocity(dest_cell, IFace);
 		if (get_mhd_flag() == 1) {
@@ -395,21 +359,21 @@ int BoundaryCondition::apply_inviscid( double t )
 	} // for k
 	break;
     case WEST:
-	i = bdp.imin;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
+	i = bd.imin;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		// ghost cell 1.
-		src_cell = bdp.get_cell(i,j,k);
+		src_cell = bd.get_cell(i,j,k);
 		IFace = src_cell->iface[WEST];
-		dest_cell = bdp.get_cell(i-1,j,k);
+		dest_cell = bd.get_cell(i-1,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		reflect_normal_velocity(dest_cell, IFace);
 		if (get_mhd_flag() == 1) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 		// ghost cell 2.
-		src_cell = bdp.get_cell(i+1,j,k);
-		dest_cell = bdp.get_cell(i-2,j,k);
+		src_cell = bd.get_cell(i+1,j,k);
+		dest_cell = bd.get_cell(i-2,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		reflect_normal_velocity(dest_cell, IFace);
 		if (get_mhd_flag() == 1) {
@@ -419,21 +383,21 @@ int BoundaryCondition::apply_inviscid( double t )
 	} // for k
  	break;
     case TOP:
-	k = bdp.kmax;
-        for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
+	k = bd.kmax;
+        for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		// ghost cell 1.
-		src_cell = bdp.get_cell(i,j,k);
+		src_cell = bd.get_cell(i,j,k);
 		IFace = src_cell->iface[TOP];
-		dest_cell = bdp.get_cell(i,j,k+1);
+		dest_cell = bd.get_cell(i,j,k+1);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		reflect_normal_velocity(dest_cell, IFace);
 		if (get_mhd_flag() == 1) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 		// ghost cell 2.
-		src_cell = bdp.get_cell(i,j,k-1);
-		dest_cell = bdp.get_cell(i,j,k+2);
+		src_cell = bd.get_cell(i,j,k-1);
+		dest_cell = bd.get_cell(i,j,k+2);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		reflect_normal_velocity(dest_cell, IFace);
 		if (get_mhd_flag() == 1) {
@@ -443,18 +407,18 @@ int BoundaryCondition::apply_inviscid( double t )
 	} // for i
 	break;
     case BOTTOM:
-	k = bdp.kmin;
-        for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
+	k = bd.kmin;
+        for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		// ghost cell 1.
-		src_cell = bdp.get_cell(i,j,k);
+		src_cell = bd.get_cell(i,j,k);
 		IFace = src_cell->iface[BOTTOM];
-		dest_cell = bdp.get_cell(i,j,k-1);
+		dest_cell = bd.get_cell(i,j,k-1);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		reflect_normal_velocity(dest_cell, IFace);
 		// ghost cell 2.
-		src_cell = bdp.get_cell(i,j,k+1);
-		dest_cell = bdp.get_cell(i,j,k-2);
+		src_cell = bd.get_cell(i,j,k+1);
+		dest_cell = bd.get_cell(i,j,k-2);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
 		reflect_normal_velocity(dest_cell, IFace);
 		if (get_mhd_flag() == 1) {
@@ -496,6 +460,7 @@ int BoundaryCondition::compute_surface_heat_flux( void )
     Vector3 cc, ic, i0c;
     int i, j, k;
     int index;
+    Block & bd = *bdp;
     
     // 1. Check if this BC represents a wall
     if ( is_wall_flag ) {
@@ -507,7 +472,7 @@ int BoundaryCondition::compute_surface_heat_flux( void )
 		for ( i=imin; i<=imax; ++i ) {
 		    // calc. index into 1D heat-flux vectors
 		    index = get_heat_flux_index( i, j, k );
-		    cell_one = bdp.get_cell(i,j,k);
+		    cell_one = bd.get_cell(i,j,k);
 		    IFace = cell_one->iface[which_boundary];
 		    if ( compute_cell_interface_surface_heat_flux( IFace, cell_one, index ) ) {
 			cerr << "BoundaryCondition::compute_surface_heat_flux()" << endl
@@ -590,12 +555,13 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
     int i, j, k;
     int index;
     double Re_wall;
+    Block & bd = *bdp;
     
     FILE *fp;
 #   if VERBOSE_BCS
-    if ( bdp.id == 0 && which_boundary == 0 ) {
+    if ( bd.id == 0 && which_boundary == 0 ) {
 	printf( "write_surface_heat_flux(): At t = %e, start block = %d, boundary = %d.\n",
-	    sim_time, bdp.id, which_boundary );
+	    sim_time, bd.id, which_boundary );
     }
 #   endif
     if ((fp = fopen(filename.c_str(), "w")) == NULL) {
@@ -623,7 +589,7 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
 		    // calc. index into 1D heat-flux vectors
 		    index = (jmax-jmin+1)*(imax-imin+1)*(k-kmin) + 
 			    (imax-imin+1)*(j-jmin) + (i-imin);
-		    cell = bdp.get_cell(i,j,k);
+		    cell = bd.get_cell(i,j,k);
 		    IFace = cell->iface[which_boundary];
 		    cell->fs->vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
 		    Re_wall = cell->calculate_wall_Reynolds_number(which_boundary);
@@ -658,12 +624,13 @@ int BoundaryCondition::write_fstc_heat_flux( string filename, double sim_time )
     FV_Interface * IFace;
     int i, j, k;
     int index;
+    Block & bd = *bdp;
 
     FILE *fp;
 #   if VERBOSE_BCS
-    if ( bdp.id == 0 && which_boundary == 0 ) {
+    if ( bd.id == 0 && which_boundary == 0 ) {
 	printf( "write_surface_heat_flux(): At t = %e, start block = %d, boundary = %d.\n",
-	    sim_time, bdp.id, which_boundary );
+	    sim_time, bd.id, which_boundary );
     }
 #   endif
     if ((fp = fopen(filename.c_str(), "w")) == NULL) {
@@ -691,7 +658,7 @@ int BoundaryCondition::write_fstc_heat_flux( string filename, double sim_time )
 		    // calc. index into 1D heat-flux vectors
 		    index = (jmax-jmin+1)*(imax-imin+1)*(k-kmin) +
 			    (imax-imin+1)*(j-jmin) + (i-imin);
-		    cell = bdp.get_cell(i,j,k);
+		    cell = bd.get_cell(i,j,k);
 		    IFace = cell->iface[which_boundary];
 		    // 5. Write heat-flux data for interface to file
 		    fprintf(fp, "%d %d %d ", i, j, k);
@@ -725,6 +692,7 @@ read_surface_heat_flux( string filename, int dimensions, int zip_files )
     int i, j, k;
     int index;
     double sim_time;
+
     if ( get_verbose_flag() && which_boundary == 0 ) 
 	printf("read_surface_heat_flux(): Start surface %d.\n", which_boundary);
     if (zip_files) {
@@ -815,12 +783,13 @@ int BoundaryCondition::write_vertex_velocities( std::string filename, double sim
 {
     int i, j, k, irangemax, jrangemax, krangemax;
     FV_Vertex *vtx;
+    Block & bd = *bdp;
     
     FILE *fp;
 #   if VERBOSE_BCS
-    if ( bdp.id == 0 && which_boundary == 0 ) {
+    if ( bd.id == 0 && which_boundary == 0 ) {
 	printf( "write_vertex_velocities(): At t = %e, start block = %d, boundary = %d.\n",
-	    sim_time, bdp.id, which_boundary );
+	    sim_time, bd.id, which_boundary );
     }
 #   endif
     if ((fp = fopen(filename.c_str(), "w")) == NULL) {
@@ -862,7 +831,7 @@ int BoundaryCondition::write_vertex_velocities( std::string filename, double sim
     for ( k = kmin; k <= krangemax; ++k ) {
 	for ( j = jmin; j <= jrangemax; ++j ) {
 	    for ( i = imin; i <= irangemax; ++i ) {
-		vtx = bdp.get_vtx(i,j,k);
+		vtx = bd.get_vtx(i,j,k);
 		fprintf(fp, "%d %d %d ", i, j, k);
 		fprintf(fp, "%20.12e %20.12e %20.12e ", 
 			vtx->pos.x, vtx->pos.y, vtx->pos.z);
@@ -877,7 +846,7 @@ int BoundaryCondition::write_vertex_velocities( std::string filename, double sim
 
 //------------------------------------------------------------------------
 
-BoundaryCondition *create_BC( Block &bdp, int which_boundary, int type_of_BC, 
+BoundaryCondition *create_BC( Block *bdp, int which_boundary, int type_of_BC, 
 			      int inflow_condition_id, std::string filename, int n_profile,
 			      double Twall, double Pout, int x_order, int is_wall, int use_udf_flux,
 			      int other_block, int other_face, int neighbour_orientation,

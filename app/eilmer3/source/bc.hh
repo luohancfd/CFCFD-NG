@@ -58,14 +58,14 @@ inline int reflect_normal_magnetic_field(FV_Cell *cell, FV_Interface *IFace)
 // The trade-off is that we have to have boundary selection within 
 // the new functions.
 
-int apply_inviscid_bc( Block &bdp, double t, int dimensions );
-int apply_viscous_bc( Block &bdp, double t, int dimensions );
+int apply_inviscid_bc( Block &bd, double t, int dimensions );
+int apply_viscous_bc( Block &bd, double t, int dimensions );
 
 class CatalyticWallBC; // forward declaration needed below
 
 class BoundaryCondition {
 public:
-    Block &bdp; // reference to the relevant block
+    Block *bdp; // reference to the relevant block
     int which_boundary; // identity of the relevant boundary
     int type_code; // value matches one of the integer type codes in bc_defs.hh
     string name_of_BC;
@@ -85,7 +85,7 @@ public:
     CatalyticWallBC * cw;
 
 public:
-    BoundaryCondition( Block &bdp, int which_boundary, int type_code,
+    BoundaryCondition( Block *bdp, int which_boundary, int type_code,
 		       std::string name_of_BC="Unspecified", 
 		       int x_order=0,
 		       bool is_wall=false, bool use_udf_flux=false,
@@ -93,7 +93,9 @@ public:
 		       int neighbour_orientation=0,
 		       int wc_bc=NON_CATALYTIC, int sponge_flag=0, 
 		       int xforce_flag=0 );
+    BoundaryCondition(); // Shouldn't have one without referring to a Block.
     BoundaryCondition( const BoundaryCondition &bc );
+    BoundaryCondition & operator=( const BoundaryCondition &bc );
     virtual ~BoundaryCondition();
     virtual int apply_inviscid( double t ); // reflect normal velocity
     virtual int apply_viscous( double t );  // does nothing
@@ -117,7 +119,7 @@ public:
     { return (jmax-jmin+1)*(imax-imin+1)*(k-kmin) + (imax-imin+1)*(j-jmin) + (i-imin); }
 };
 
-BoundaryCondition *create_BC( Block &bdp, int which_boundary, int type_of_BC,
+BoundaryCondition *create_BC( Block *bdp, int which_boundary, int type_of_BC,
 			      int inflow_condition_id, std::string filename, int n_profile,
 			      double Twall, double Pout, int x_order, int is_wall, int use_udf_flux,
 			      int other_block, int other_face, int neighbour_orientation,

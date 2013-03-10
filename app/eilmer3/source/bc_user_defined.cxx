@@ -32,7 +32,7 @@ extern "C" {
 
 //----------------------------------------------------------------------------
 
-UserDefinedBC::UserDefinedBC( Block &bdp, int which_boundary,
+UserDefinedBC::UserDefinedBC( Block *bdp, int which_boundary,
 			      const std::string filename,
 			      bool is_wall, bool use_udf_flux )
     : BoundaryCondition(bdp, which_boundary, USER_DEFINED, "UserDefinedBC",
@@ -53,17 +53,17 @@ UserDefinedBC::UserDefinedBC( Block &bdp, int which_boundary,
 
     // Set up some global variables that might be handy in 
     // the Lua environment.
-    lua_pushinteger(L, bdp.id);  // we may need the id for the current block
+    lua_pushinteger(L, bdp->id);  // we may need the id for the current block
     lua_setglobal(L, "block_id");
     lua_pushinteger(L, nsp);
     lua_setglobal(L, "nsp");
     lua_pushinteger(L, nmodes);
     lua_setglobal(L, "nmodes");
-    lua_pushinteger(L, bdp.nni);
+    lua_pushinteger(L, bdp->nni);
     lua_setglobal(L, "nni");
-    lua_pushinteger(L, bdp.nnj);
+    lua_pushinteger(L, bdp->nnj);
     lua_setglobal(L, "nnj");
-    lua_pushinteger(L, bdp.nnk);
+    lua_pushinteger(L, bdp->nnk);
     lua_setglobal(L, "nnk");
     lua_pushinteger(L, NORTH);
     lua_setglobal(L, "NORTH");
@@ -115,21 +115,22 @@ int UserDefinedBC::apply_inviscid( double t )
     int i, j, k;
     FV_Cell *cell, *dest_cell;
     FV_Interface *IFace;
+    Block & bd = *bdp;
 
     switch ( which_boundary ) {
     case NORTH:
-	j = bdp.jmax;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		cell = bdp.get_cell(i,j,k);
+	j = bd.jmax;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[NORTH];
-		dest_cell = bdp.get_cell(i,j+1,k);
+		dest_cell = bd.get_cell(i,j+1,k);
 		eval_inviscid_udf( t, i, j, k, IFace );
 		if ( use_udf_flux_flag ) {
 		    eval_flux_udf( t, i, j, k, IFace );
 		}
 		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
-		dest_cell = bdp.get_cell(i,j+2,k);
+		dest_cell = bd.get_cell(i,j+2,k);
 		if ( fdata2 ) dest_cell->copy_values_from(*fdata2);
 		// Clean up memory allocated fdata1 and fdata2. 
 		// This allocation was done inside unpack_flow_table()
@@ -140,18 +141,18 @@ int UserDefinedBC::apply_inviscid( double t )
 	} // for k
 	break;
     case EAST:
-	i = bdp.imax;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		cell = bdp.get_cell(i,j,k);
+	i = bd.imax;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[EAST];
-		dest_cell = bdp.get_cell(i+1,j,k);
+		dest_cell = bd.get_cell(i+1,j,k);
 		eval_inviscid_udf( t, i, j, k, IFace );
 		if ( use_udf_flux_flag ) {
 		    eval_flux_udf( t, i, j, k, IFace );
 		}
 		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
-		dest_cell = bdp.get_cell(i+2,j,k);
+		dest_cell = bd.get_cell(i+2,j,k);
 		if ( fdata2 ) dest_cell->copy_values_from(*fdata2);
 		delete fdata1;
 		delete fdata2;
@@ -159,18 +160,18 @@ int UserDefinedBC::apply_inviscid( double t )
 	} // for k
 	break;
     case SOUTH:
-	j = bdp.jmin;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		cell = bdp.get_cell(i,j,k);
+	j = bd.jmin;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[SOUTH];
-		dest_cell = bdp.get_cell(i,j-1,k);
+		dest_cell = bd.get_cell(i,j-1,k);
 		eval_inviscid_udf( t, i, j, k, IFace );
 		if ( use_udf_flux_flag ) {
 		    eval_flux_udf( t, i, j, k, IFace );
 		}
 		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
-		dest_cell = bdp.get_cell(i,j-2,k);
+		dest_cell = bd.get_cell(i,j-2,k);
 		if ( fdata2 ) dest_cell->copy_values_from(*fdata2);
 		delete fdata1;
 		delete fdata2;
@@ -178,18 +179,18 @@ int UserDefinedBC::apply_inviscid( double t )
 	} // for k
 	break;
     case WEST:
-	i = bdp.imin;
-        for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		cell = bdp.get_cell(i,j,k);
+	i = bd.imin;
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[WEST];
-		dest_cell = bdp.get_cell(i-1,j,k);
+		dest_cell = bd.get_cell(i-1,j,k);
 		eval_inviscid_udf( t, i, j, k, IFace );
 		if ( use_udf_flux_flag ) {
 		    eval_flux_udf( t, i, j, k, IFace );
 		}
 		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
-		dest_cell = bdp.get_cell(i-2,j,k);
+		dest_cell = bd.get_cell(i-2,j,k);
 		if ( fdata2 ) dest_cell->copy_values_from(*fdata2);
 		delete fdata1;
 		delete fdata2;
@@ -197,18 +198,18 @@ int UserDefinedBC::apply_inviscid( double t )
 	} // for k
  	break;
     case TOP:
-	k = bdp.kmax;
-        for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		cell = bdp.get_cell(i,j,k);
+	k = bd.kmax;
+        for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[TOP];
-		dest_cell = bdp.get_cell(i,j,k+1);
+		dest_cell = bd.get_cell(i,j,k+1);
 		eval_inviscid_udf( t, i, j, k, IFace );
 		if ( use_udf_flux_flag ) {
 		    eval_flux_udf( t, i, j, k, IFace );
 		}
 		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
-		dest_cell = bdp.get_cell(i,j,k+2);
+		dest_cell = bd.get_cell(i,j,k+2);
 		if ( fdata2 ) dest_cell->copy_values_from(*fdata2);
 		delete fdata1;
 		delete fdata2;
@@ -216,18 +217,18 @@ int UserDefinedBC::apply_inviscid( double t )
 	} // for i
 	break;
     case BOTTOM:
-	k = bdp.kmin;
-        for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		cell = bdp.get_cell(i,j,k);
+	k = bd.kmin;
+        for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[BOTTOM];
-		dest_cell = bdp.get_cell(i,j,k-1);
+		dest_cell = bd.get_cell(i,j,k-1);
 		eval_inviscid_udf( t, i, j, k, IFace );
 		if ( use_udf_flux_flag ) {
 		    eval_flux_udf( t, i, j, k, IFace );
 		}
 		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
-		dest_cell = bdp.get_cell(i,j,k-2);
+		dest_cell = bd.get_cell(i,j,k-2);
 		if ( fdata2 ) dest_cell->copy_values_from(*fdata2);
 		delete fdata1;
 		delete fdata2;
@@ -248,63 +249,64 @@ int UserDefinedBC::apply_viscous( double t )
     int i, j, k;
     FV_Cell *cell;
     FV_Interface *IFace;
+    Block & bd = *bdp;
 
     switch ( which_boundary ) {
     case NORTH:
-	j = bdp.jmax;
-	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		cell = bdp.get_cell(i,j,k);
+	j = bd.jmax;
+	for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[NORTH];
 		eval_viscous_udf( t, i, j, k, IFace, cell );
 	    } // end i loop
 	} // for k
 	break;
     case EAST:
-	i = bdp.imax;
-	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		cell = bdp.get_cell(i,j,k);
+	i = bd.imax;
+	for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[EAST];
 		eval_viscous_udf( t, i, j, k, IFace, cell );
 	    } // end j loop
 	} // for k
 	break;
     case SOUTH:
-	j = bdp.jmin;
-	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (i = bdp.imin; i <= bdp.imax; ++i) {
-		cell = bdp.get_cell(i,j,k);
+	j = bd.jmin;
+	for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[SOUTH];
 		eval_viscous_udf( t, i, j, k, IFace, cell );
 	    } // end i loop
 	} // for k
 	break;
     case WEST:
-	i = bdp.imin;
-	for (k = bdp.kmin; k <= bdp.kmax; ++k) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		cell = bdp.get_cell(i,j,k);
+	i = bd.imin;
+	for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[WEST];
 		eval_viscous_udf( t, i, j, k, IFace, cell );
 	    } // end j loop
 	} // for k
  	break;
     case BOTTOM:
-	k = bdp.kmin;
-	for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		cell = bdp.get_cell(i,j,k);
+	k = bd.kmin;
+	for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[BOTTOM];
 		eval_viscous_udf( t, i, j, k, IFace, cell );
 	    } // end j loop
 	} // for k
  	break;
     case TOP:
-	k = bdp.kmax;
-	for (i = bdp.imin; i <= bdp.imax; ++i) {
-	    for (j = bdp.jmin; j <= bdp.jmax; ++j) {
-		cell = bdp.get_cell(i,j,k);
+	k = bd.kmax;
+	for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[TOP];
 		eval_viscous_udf( t, i, j, k, IFace, cell );
 	    } // end j loop
@@ -490,7 +492,7 @@ CFlowCondition * UserDefinedBC::unpack_flow_table( void )
 
 int UserDefinedBC::eval_viscous_udf( double t, int i, int j, int k, 
 				     FV_Interface *IFace,
-				     FV_Cell *cell )
+				     const FV_Cell *cell )
 {
     double x = IFace->pos.x; 
     double y = IFace->pos.y;
@@ -565,7 +567,7 @@ void UserDefinedBC::handle_lua_error(lua_State *L, const char *fmt, ...)
     va_list argp;
     va_start(argp, fmt);
     fprintf(stderr, "Error in UserDefinedBC or AdjacentPlusUDFBC: block %d, face %d\n",
-	    bdp.id, which_boundary);
+	    bdp->id, which_boundary);
     vfprintf(stderr, fmt, argp);
     fprintf(stderr, "\n");
     va_end(argp);
@@ -586,7 +588,7 @@ int luafn_sample_flow(lua_State *L)
     int k = lua_tointeger(L, 4);
 
     Gas_model *gmodel = get_gas_model_ptr();
-    Block *bdp = get_block_data_ptr(jb);
+    Block *bdp= get_block_data_ptr(jb);
     FV_Cell *cell = bdp->get_cell(i,j,k);
     FlowState &fs = *(cell->fs);
 
@@ -755,7 +757,7 @@ int luafn_compute_diffusion_coefficient(lua_State *L)
 
 //------------------------------------------------------------------------
 
-AdjacentPlusUDFBC::AdjacentPlusUDFBC( Block &bdp, int which_boundary, 
+AdjacentPlusUDFBC::AdjacentPlusUDFBC( Block *bdp, int which_boundary, 
 				      int other_block, int other_face,
 				      int _neighbour_orientation,
 				      const std::string filename,
