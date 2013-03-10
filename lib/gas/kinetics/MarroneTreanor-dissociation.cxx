@@ -16,7 +16,30 @@ using namespace std;
 MarroneTreanor_dissociation::
 MarroneTreanor_dissociation(lua_State *L, Gas_model &g)
     : Generalised_Arrhenius(L,g)
-{}
+{
+    U_ = get_number(L,-1,"U");
+
+    string v_name = get_string(L,-1,"v_name");
+    Chemical_species * X = get_library_species_pointer_from_name( v_name );
+    // Search for the corresponding energy modes
+    bool found = false;
+    for ( int itm=0; itm<X->get_n_modes(); ++itm ) {
+    	Species_energy_mode * sem = X->get_mode_pointer(itm);
+    	if ( sem->get_type()=="vibration" ) {
+    	    found = true;
+    	    vib_modes_.push_back( sem );
+    	}
+    }
+    if ( !found ) {
+    	cout << "MarroneTreanor_dissociation::MarroneTreanor_dissociation()" << endl
+    	     << "mode: vibration not found for species: "
+    	     << X->get_name() << endl
+    	     << "Exiting." << endl;
+    	exit( BAD_INPUT_ERROR );
+    }
+
+    iTv_ = vib_modes_[0]->get_iT();
+}
 
 MarroneTreanor_dissociation::
 MarroneTreanor_dissociation(double A, double n, double E_a, double U, string v_name)
