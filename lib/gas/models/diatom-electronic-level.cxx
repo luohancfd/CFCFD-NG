@@ -249,13 +249,15 @@ eval_E_rot( int iV, int iJ )
     /* Expression for a (singlet) non-rigid, vibrating symmetric top from ref:
        Huber and Herzberg (1950) Constants of Diatomic Molecules p 118, 169 */
     
-    // Coupling terms
+    // Quantum numbers
     double v = (double) iV;
     double J = (double) iJ;
     
+    // Coupling terms
     double D_v = D_e + (v + 0.5) * beta_e;
     double B_v = B_e - (v + 0.5) * alpha_e;
-    // Energy
+
+    // Energy:    rigid rotator     influence of spinning electrons       non-rigid rotator
     double E_r = B_v*J*(J+1.0) + (A_spin-B_v)*double(Lambda*Lambda) - D_v*J*J*(J+1.0)*(J+1.0);
     
     return E_r;

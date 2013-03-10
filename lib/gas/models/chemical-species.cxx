@@ -1022,8 +1022,15 @@ Fully_coupled_polyatomic_species( string name, string type, int isp, double min_
             lua_pop(L, 1 );
         }
         cout << "Fully_coupled_polyatomic_species::Fully_coupled_polyatomic_species()" << endl
-        << "Attempting to create ilev = " << ilev << " for species: " << name << endl;
-        elevs_.push_back( new Polyatom_electronic_level( elev_data ) );
+             << "Attempting to create ilev = " << ilev << " for species: " << name << endl;
+        int sigma_rot = elev_data[8];
+        if ( sigma_rot==0 )
+            elevs_.push_back( new Spherical_top_polyatom_electronic_level( elev_data ) );
+        else {
+            // Need to decide between symmetrical and asymmetric top...
+            // FIXME: assuming asymmetrical top as most non-linear levels have a non-zero C0
+            elevs_.push_back( new Asymmetric_top_polyatom_electronic_level( elev_data ) );
+        }
         lua_pop(L,1);   // pop ilev
     }
 

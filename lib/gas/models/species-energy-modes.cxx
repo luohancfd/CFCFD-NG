@@ -1276,5 +1276,10 @@ double
 Fully_coupled_polyatom_internal::
 s_eval_Q_from_T( double T, double A )
 {
-    return 0.0;
+    double Q_total = 0.0;
+    for ( size_t ilev=0; ilev<elevs_.size(); ++ilev ) {
+        Q_total += elevs_[ilev]->eval_Q_from_T(T);
+    }
+
+    return Q_total;
 }
