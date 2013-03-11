@@ -3,12 +3,12 @@
 
 The input data to create a new spectral radiation model is provided in a Lua file.
 This file contains all the parameters and spectroscopic data to perform a spectral radiation calculation.
-To simplify the creation of this file for the user, the Lua file can be created via the \texttt{script\_rad2.py} Python tool that interfaces with a library of spectroscopic data.
+To simplify the creation of this file for the user, the Lua file can be created via the \texttt{radmodel.py} Python tool that interfaces with a library of spectroscopic data.
 Instructions on how to use this tool can be obtained from the command line via:
 
 \begin{lstlisting}[basicstyle=\ttfamily\small]
-$ script_rad2.py --help
-Usage: script_rad2.py -i rad_desc.py|--input-script=rad_desc.py
+$ radmodel.py --help
+Usage: radmodel.py -i rad_desc.py|--input-script=rad_desc.py
                       -L LUA_output.lua|--LUA-file=LUA_output.lua
 
 Options:
@@ -24,7 +24,7 @@ Options:
 A sample user-created Python script for creating a basic radiation model for 11 species, 2 temperature air is shown below:
 
 \noindent \topbar
-\lstinputlisting[language=python,caption={Example spectral model input file, \texttt{air-radiators.py}}]{../../../testing/air-radiators.py}
+\lstinputlisting[language=python,caption={Example spectral model input file, \texttt{air-radiators.py}}]{files/air-radiators.py}
 \bottombar
 
 In `\texttt{1.}', the desired spectral model is selected:
@@ -40,12 +40,12 @@ The spectral grid is then defined in '\texttt{2.}':
 
 \begin{lstlisting}[basicstyle=\ttfamily\small]
 # 2. Define the spectral grid
-gdata.lambda_min = 50.0
-gdata.lambda_max = 1000.0
-gdata.spectral_points = 95000
+gdata.lambda_min = 70.0
+gdata.lambda_max = 1200.0
+gdata.spectral_points = 113000
 \end{lstlisting}
 
-\noindent Here the range $50 \leq \lambda \leq 1000$~nm has been requested, discretised by 95000 equidistant points in frequency space.
+\noindent Here the range $70 \leq \lambda \leq 1200$~nm has been requested, discretised by 113000 equidistant points in frequency space.
 Presently only spectral domains with consant frequency intervals are permitted.
 Finally, in '\texttt{3.}' the desired radiating species are requested and defined:
 
@@ -65,6 +65,6 @@ for rad_name in radiators:
 \end{lstlisting}
 
 A radiator is requested from the library with the \texttt{gdata.request\_radiator()} function call.
-If the radiator is not present in the library, \texttt{script\_rad2.py} will fail here with an error message indicating what species was not avaiable.  
+If the radiator is not present in the library, \texttt{radmodel.py} will fail here with an error message indicating what species was not avaiable.  
 The \texttt{rad.default\_data()} function requests the nominal electronic level and transition probability set from the library -- for most calculations this will be suitable.
 Other data that is set here is the species index in the \texttt{rad.isp} field, the electronic temperature index in the \texttt{rad.iTe} field and the vibrational temperature index in the \texttt{rad.iTv} field.  
