@@ -10,12 +10,12 @@ Version: 30-Oct-2012 : initial repository version, ported from my local version.
 """
 
 import sys
-try:
-    from libgeom2 import Vector3, Arc, Node, Spline, Line, vabs
-except:
-    print "Could not import libgeom2."
-    sys.exit()
 from math import *
+# Assume that this module is only used in the context of Eilmer3,
+# maybe in preparing a mesh for simulation. (PJ, 11-Mar-2013)
+# Importing from libgeom2 seems to play havoc with the class 
+# namespaces when we later want to test for types.
+from libprep3 import Vector3, Arc, Node, Spline, Line, vabs
 from cfpylib.nm.zero_solvers import bisection
 from cfpylib.gasdyn.billig import *
 from cfpylib.util.YvX import *

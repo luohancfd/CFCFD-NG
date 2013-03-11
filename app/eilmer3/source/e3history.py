@@ -17,7 +17,6 @@ Try invoking it with the --help option to see more information.
 import sys
 import os
 import math
-sys.path.append("/sw/lib/python2.3/site-packages/Numeric") # for Tim's MacOSX
 sys.path.append(os.path.expandvars("$HOME/e3bin")) # installation directory
 sys.path.append("") # so that we can find user's scripts in current directory
 from getopt import getopt

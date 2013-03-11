@@ -13,13 +13,7 @@ while preparing and post-processing the flow field data.
      20 Oct 2008 : select surfaces from 3D blocks
 """
 
-try:
-    from numpy import array, zeros
-except:
-    try:
-        from Numeric import array, zeros
-    except:
-        print "Could import neither numpy nor Numeric."
+from numpy import array, zeros
 from gzip import GzipFile
 from libprep3 import *
 from e3_grid import *

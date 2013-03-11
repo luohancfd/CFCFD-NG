@@ -13,13 +13,7 @@ Builds on the path and basic geometric functions.
 
 import sys
 import math
-try:
-    from numpy import array, zeros
-except:
-    try:
-        from Numeric import array, zeros
-    except:
-        print "Could import neither numpy nor Numeric."
+from numpy import array, zeros
 from libprep3 import *
 from e3_defs import *
 from cfpylib.util.FortranFile import FortranFile
