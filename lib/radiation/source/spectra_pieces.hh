@@ -53,8 +53,14 @@ public:
     void compute_spectral_distribution( RadiationSpectralModel * rsm );
 
 public:
+    /// \brief Frequency vector
     std::vector<double> nu;
+
+    /// \brief Number of line-widths to include in spectral convolution
     int nwidths;
+
+    /* Adaptive spectral grid flag */
+    bool adaptive;
 };
 
 class CoeffSpectra : public SpectralContainer {
@@ -78,7 +84,7 @@ public:
     
     /* Cumulative emission vector */
     std::vector<double> j_int;
-    
+
 public:
     /// \brief Clone function
     CoeffSpectra * clone();
@@ -184,7 +190,10 @@ public:
     int random_frequency_interval( double R );
 
 public:
+    /* Spectral intensity vector */
     std::vector<double> I_nu;
+
+    /* Cumulative intensity vector */
     std::vector<double> I_int;
 };
 
@@ -370,6 +379,6 @@ double lambda2nu(double lambda_nm);
 double planck_intensity(const double nu, const double T);
 
 /// \brief Get the frequency index in 'nus' that is just below 'nu'
-int get_nu_index( std::vector<double> &nus, double nu );
+int get_nu_index( std::vector<double> &nus, double nu, bool adaptive=false );
 
 #endif

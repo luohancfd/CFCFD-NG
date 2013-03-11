@@ -114,7 +114,7 @@ BoundFreeHydrogenic::calculate_spectrum( Gas_data &Q, CoeffSpectra &X, double n_
         double E_i = Rn->get_elev_pointer(ilev)->E;
         // Determine minimum frequency
         double nu_min = ( Rn->I - E_i ) / RC_h_SI;
-        int inu_min = get_nu_index( X.nu, nu_min ) + 1;
+        int inu_min = get_nu_index( X.nu, nu_min, X.adaptive ) + 1;
         /* 2a. Loop over frequency and add contributions */
         for ( int inu=inu_min; inu<nnu; ++inu ) {
             double nu = X.nu[inu];

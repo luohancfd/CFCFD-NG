@@ -28,7 +28,7 @@ using namespace std;
 /* ------------ SpectralContainer class ------------ */
 
 SpectralContainer::SpectralContainer()
- : nwidths( NWIDTHS ) {}
+ : nwidths( NWIDTHS ), adaptive( false ) {}
 
 SpectralContainer::SpectralContainer( RadiationSpectralModel * rsm )
 {
@@ -36,10 +36,13 @@ SpectralContainer::SpectralContainer( RadiationSpectralModel * rsm )
 
     // Set nwidths to the default value
     nwidths = NWIDTHS;
+
+    // Set the adaptive flag from the spectral model
+    adaptive = rsm->get_adaptive_spectral_grid();
 }
 
 SpectralContainer::SpectralContainer(SpectralContainer &C)
-: nu( C.nu ), nwidths ( C.nwidths ) {}
+: nu( C.nu ), nwidths ( C.nwidths ), adaptive( C.adaptive ) {}
 
 SpectralContainer::~SpectralContainer()
 {
@@ -181,6 +184,9 @@ CoeffSpectra::CoeffSpectra( CoeffSpectra * X )
         kappa_nu[inu] = X->kappa_nu[inu];
         j_int[inu] = X->j_int[inu];
     }
+
+    nwidths = X->nwidths;
+    adaptive = X->adaptive;
 }
 
 CoeffSpectra::~CoeffSpectra()
@@ -198,6 +204,9 @@ CoeffSpectra * CoeffSpectra::clone()
     X->kappa_nu.assign( kappa_nu.begin(), kappa_nu.end() );
     X->j_int.assign( j_int.begin(), j_int.end() );
     
+    X->nwidths = nwidths;
+    X->adaptive = adaptive;
+
     return X;
 }
 
@@ -443,8 +452,8 @@ void CoeffSpectra::apply_apparatus_function( ApparatusFunction * A  )
 	double gamma_star_Hz = A->gamma_star / lambda_ang * nu_val;
 	double nu_lower = nu_val - double(nwidths) * gamma_star_Hz;
 	double nu_upper = nu_val + double(nwidths) * gamma_star_Hz;
-	int jnu_start = get_nu_index(nu,nu_lower) + 1;
-	int jnu_end = get_nu_index(nu,nu_upper) + 1;
+	int jnu_start = get_nu_index(nu,nu_lower,adaptive) + 1;
+	int jnu_end = get_nu_index(nu,nu_upper,adaptive) + 1;
 
 	if((double(inu)/double(nu_temp.size())*100.0+1.0)>double(percentage)) {
 	    cout << "Smearing spectrum: | " << percentage << "% |, jnu_start = " << jnu_start << ", jnu_end = " << jnu_end << " \r" << flush;
@@ -829,8 +838,8 @@ void SpectralIntensity::apply_apparatus_function( ApparatusFunction * A  )
 	double gamma_star_Hz = A->gamma_star / lambda_ang * nu_val;
 	double nu_lower = nu_val - double(nwidths) * gamma_star_Hz;
 	double nu_upper = nu_val + double(nwidths) * gamma_star_Hz;
-	int jnu_start = get_nu_index(nu,nu_lower) + 1;
-	int jnu_end = get_nu_index(nu,nu_upper) + 1;
+	int jnu_start = get_nu_index(nu,nu_lower,adaptive) + 1;
+	int jnu_end = get_nu_index(nu,nu_upper,adaptive) + 1;
 
 	if((double(inu)/double(nu_temp.size())*100.0+1.0)>double(percentage)) {
 	    cout << "Smearing spectrum: | " << percentage << "% |, jnu_start = " << jnu_start << ", jnu_end = " << jnu_end << " \r" << flush;
@@ -907,10 +916,10 @@ double SpectralIntensity::integrate_intensity_spectra( double lambda_min, double
 {
     // 1. Find spectral indice range to integrate over
     int inu_start = 0;
-    if ( lambda_max > 0.0 ) inu_start = get_nu_index(nu, lambda2nu(lambda_max)) + 1;
+    if ( lambda_max > 0.0 ) inu_start = get_nu_index(nu, lambda2nu(lambda_max), adaptive) + 1;
     
     int inu_end = nu.size() - 1;
-    if ( lambda_min > 0.0 ) inu_end = get_nu_index(nu, lambda2nu(lambda_min)) + 1;
+    if ( lambda_min > 0.0 ) inu_end = get_nu_index(nu, lambda2nu(lambda_min), adaptive) + 1;
 
     double I_total = 0.0;
     for( int inu=inu_start+1; inu<=inu_end; ++inu ) {
@@ -1315,8 +1324,8 @@ extract_intensity_profile( double lambda_l, double lambda_u )
     }
     
     // 1. Find spectral indice range to integrate over
-    int inu_start = get_nu_index(S_vec[0]->nu, lambda2nu(lambda_u)) + 1;
-    int inu_end = get_nu_index(S_vec[0]->nu, lambda2nu(lambda_l)) + 1;
+    int inu_start = get_nu_index(S_vec[0]->nu, lambda2nu(lambda_u), S_vec[0]->adaptive) + 1;
+    int inu_end = get_nu_index(S_vec[0]->nu, lambda2nu(lambda_l), S_vec[0]->adaptive) + 1;
     
     // 2. Loop over LOS_points and spectrally integrate
     IntensityProfile IvX;
@@ -1360,7 +1369,7 @@ double planck_intensity(const double nu, const double T)
     return B_nu;
 }
 
-int get_nu_index( vector<double> &nus, double nu )
+int get_nu_index( vector<double> &nus, double nu, bool adaptive )
 {
     // NOTE: this function only works for uniform spectral distribution
     // 0. Firstly check if nu is in range
@@ -1368,15 +1377,16 @@ int get_nu_index( vector<double> &nus, double nu )
     int inu;
     if ( nu < nus.front() ) inu=-1;
     else if ( nu > nus.back() ) inu=nnu-1;
+    // 1. nu is in range, so find the appropriate index
+    else if ( adaptive ){
+        // The grid is non-uniform
+        vector<double>::iterator iter = lower_bound( nus.begin(), nus.end(), nu );
+        inu = distance( nus.begin(), iter );
+    }
     else {
-	// 1. nu is in range, so find the appropriate index
-#	if SPECTRAL_DISTRIBUTION == UNIFORM
+        // The grid is uniform in frequency space
 	double dnu = ( nus.back() - nus.front() ) / double ( nnu - 1 );
 	inu = int ( ( nu - nus.front() ) / dnu );
-#	elif SPECTRAL_DISTRIBUTION == OPTIMISE
-	vector<double>::iterator iter = lower_bound( nus.begin(), nus.end(), nu );
-	inu = distance( nus.begin(), iter );
-#       endif
     }
 
     // cout << "nu = " << nu << "inu = " << inu << ", nus.front() = " << nus.front() << ", nus.back() = " << nus.back() << endl;

@@ -33,6 +33,7 @@ class GlobalRadData(object):
         self.lambda_max = 0.0
         self.spectral_points = 0
         self.spectral_blocks = 1
+        self.adaptive_spectral_grid = False
         self.transport_model = "none"
         self.nrays = 0
         self.spectrally_resolved = True
@@ -97,6 +98,7 @@ class GlobalRadData(object):
             print "spectral_blocks is less than 1!"
             sys.exit()
         ofile.write(tab+"spectral_blocks = %d,\n" % self.spectral_blocks )
+        ofile.write(tab+"adaptive_spectral_grid = %s,\n" % str(self.adaptive_spectral_grid).lower() )
         ofile.write("}\n\n")
         # transport data
         ofile.write("transport_data = {\n")

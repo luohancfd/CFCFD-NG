@@ -18,9 +18,6 @@
 #include "atomic_radiator.hh"
 
 /* 'Hardcoded' Photaura control parameters */
-#define UNIFORM 0
-#define OPTIMISE 1
-#define SPECTRAL_DISTRIBUTION UNIFORM
 #define MIN_CONC 1.0e-20
 #define DELTA_NU_MIN 3.0e9	// min frequency interval in Hz for optimization
 

@@ -398,37 +398,38 @@ void
 Photaura::
 spectral_distribution_for_gas_state(Gas_data &Q, vector<double> &nus)
 {
-#   if SPECTRAL_DISTRIBUTION ==  UNIFORM
-    /* Uniformally distributed spectral points with constant frequency spacing */
-    double nu = lambda2nu( this->get_lambda_max() );
-    double dnu = ( lambda2nu( this->get_lambda_min() ) - lambda2nu( this->get_lambda_max() ) ) 
-		/ double ( ( this->get_spectral_points() - 1 ) );
-    nus.resize( this->get_spectral_points() );
-    for( int inu=0; inu<this->get_spectral_points(); ++inu ){
-	nus[inu] = nu;
-	nu+=dnu;
+    if ( adaptive_spectral_grid ) {
+        /* Obtain an optimised spectral distribution */
+        nus.reserve( this->get_spectral_points() );
+        for( int irad=0; irad<nrad; ++irad ) {
+            // impose lower concentration limit
+            if ( get_rad_conc( Q, irad ) > MIN_CONC) {
+                radiators[irad]->get_spectral_distribution(nus);
+            }
+        }
+        /* Sort the entries into ascending order */
+        sort(nus.begin(), nus.end(), less<double>());
+        /* Impose spectral limits */
+        nus.erase( nus.begin(), lower_bound( nus.begin(), nus.end(), lambda2nu( this->get_lambda_max() ) ) );
+        nus.erase( lower_bound( nus.begin(), nus.end(), lambda2nu( this->get_lambda_min() ) ), nus.end() );
+        /* Ensure the smallest frequency interval is greater than DELTA_NU_MIN */
+        impose_min_interval( nus, DELTA_NU_MIN );
+#       if DEBUG_RAD > 0
+        cout << "spectral_distribution_for_gas_state()" << endl
+             << "nus.size() = " << nus.size() << endl;
+#       endif       // DEBUG
     }
-#   elif SPECTRAL_DISTRIBUTION == OPTIMISE
-    /* Obtain an optimised spectral distribution */
-    nus.reserve( this->get_spectral_points() );
-    for( int irad=0; irad<nrad; ++irad ) {
-	// impose lower concentration limit
-	if ( get_rad_conc( Q, irad ) > MIN_CONC) {
-	    radiators[irad]->get_spectral_distribution(nus);
-	}
+    else {
+        /* Uniformally distributed spectral points with constant frequency spacing */
+        double nu = lambda2nu( this->get_lambda_max() );
+        double dnu = ( lambda2nu( this->get_lambda_min() ) - lambda2nu( this->get_lambda_max() ) )
+                    / double ( ( this->get_spectral_points() - 1 ) );
+        nus.resize( this->get_spectral_points() );
+        for( int inu=0; inu<this->get_spectral_points(); ++inu ){
+            nus[inu] = nu;
+            nu+=dnu;
+        }
     }
-    /* Sort the entries into ascending order */
-    sort(nus.begin(), nus.end(), less<double>());
-    /* Impose spectral limits */
-    nus.erase( nus.begin(), lower_bound( nus.begin(), nus.end(), lambda2nu( this->get_lambda_max() ) ) );
-    nus.erase( lower_bound( nus.begin(), nus.end(), lambda2nu( this->get_lambda_min() ) ), nus.end() );
-    /* Ensure the smallest frequency interval is greater than DELTA_NU_MIN */
-    impose_min_interval( nus, DELTA_NU_MIN );
-    #   if DEBUG_RAD > 0
-    cout << "spectral_distribution_for_gas_state()" << endl
-         << "nus.size() = " << nus.size() << endl;
-#   endif	// DEBUG
-#   endif	// SPECTRAL_DISTRIBUTION
     return;
 }
 

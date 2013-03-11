@@ -132,8 +132,8 @@ calculate_spectrum( CoeffSpectra &X )
 #   if LIMITED_ATOMIC_LINE_EXTENT
     double nu_lower = nu_ul - double(ATOMIC_LINE_EXTENT) * gamma_V;
     double nu_upper = nu_ul + double(ATOMIC_LINE_EXTENT) * gamma_V;
-    inu_start = get_nu_index(X.nu,nu_lower) + 1;
-    inu_end = get_nu_index(X.nu,nu_upper) + 1;
+    inu_start = get_nu_index(X.nu,nu_lower,X.adaptive) + 1;
+    inu_end = get_nu_index(X.nu,nu_upper,X.adaptive) + 1;
 #   endif
 
     double nu, delta_nu, b_nu;

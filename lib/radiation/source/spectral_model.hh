@@ -64,6 +64,8 @@ public:
 
     double get_delta_nu() { return delta_nu; }
 
+    bool get_adaptive_spectral_grid() { return adaptive_spectral_grid; }
+
     void write_line_widths_to_file( Gas_data &Q )
     { write_line_widths(Q); }
     
@@ -99,6 +101,7 @@ protected:
     int spectral_points, spectral_points_star;
     int spectral_blocks, spectral_block;
     double delta_nu;
+    bool adaptive_spectral_grid;
 };
 
 /* Functions for creating a RadiationSpectralModel */

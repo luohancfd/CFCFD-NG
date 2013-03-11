@@ -74,6 +74,8 @@ RadiationSpectralModel( lua_State * L )
     
     reset_spectral_params(0);
     
+    adaptive_spectral_grid = get_boolean( L, -1, "adaptive_spectral_grid");
+
     lua_pop(L,1);	// pop spectral_data
 }
 
