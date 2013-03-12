@@ -32,7 +32,7 @@ def get_boundary_position(grids, boundary=3):
     return X, Y
     
 rootName = 'sphere3'
-grids, g, h, j = read_all_blocks(rootName, 4, 9999, zipFiles=1, movingGrid=1)
+grids, g, j = read_all_blocks(rootName, 4, 9999, zipFiles=1, movingGrid=1)
 x3,y3 = get_boundary_position(grids) # West boundary, i.e. the shock
 x1,y1 = get_boundary_position(grids, boundary=1) # East boundary, i.e. the body
 

@@ -811,7 +811,7 @@ class ExistingSolution(object):
                 raise TypeError("add_velocity parameter is incorrect")
         self.dimensions = dimensions
         self.assume_same_grid = assume_same_grid
-        self.grid, self.flow, self.bgk, stored_dims = read_all_blocks(rootName, nblock, tindx, zipFiles)
+        self.grid, self.flow, stored_dims = read_all_blocks(rootName, nblock, tindx, zipFiles)
         if stored_dims != dimensions:
             print "Oops: store_dims=", stored_dims, "dimensions=", dimensions
             print "These values of dimensions should be the same."

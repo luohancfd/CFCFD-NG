@@ -88,7 +88,7 @@ else:
     if $use_same_grid:
         # The shock-fitting grid from the previous solution is used.
         rootName = jobName + str(stage-1)
-        grids, g, h, j = read_all_blocks(rootName, np0, 9999, zipFiles=1, movingGrid=1)
+        grids, g, j = read_all_blocks(rootName, np0, 9999, zipFiles=1, movingGrid=1)
         fill_condition0 = ExistingSolution(rootName, '.', np0, 9999)
         p = create_boundary_path_from_grids(grids)
         flow_domain0 = ShockLayerSurface(Arc(b,c,a), p)
