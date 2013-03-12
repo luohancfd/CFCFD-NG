@@ -95,11 +95,12 @@ double
 Two_level_electronic::
 s_eval_entropy_from_T( double T )
 {
-    // Ref: Vincenti and Kruger (1975) Ex. 12.3 p 139
-    double tmp = double(g1_)/double(g0_) * exp( - delta_theta_ / T );
-    double n1 = tmp / ( 1.0 + tmp );
-    
-    return R_ * ( log(double(g0_)) + log( 1.0 + tmp ) + n1 );
+    // Ref: My own derivation from the definition of entropy as a function of
+    //      the partition function and temperature (see Eq 3.2 in PhD thesis)
+    double tmp = double(g1_) * exp( -delta_theta_ / T );
+    double Q = double(g0_) + tmp;
+
+    return R_ * ( log(Q) + delta_theta_ / T / ( double(g0_) / tmp + 1.0 ) );
 }
 
 double
@@ -110,6 +111,15 @@ s_eval_Cv_from_T( double T )
     double tmp = double(g1_)/double(g0_) * exp( - delta_theta_ / T );
     return R_ * tmp / pow( T / delta_theta_ * ( 1.0 + tmp ), 2 );
     // return R_ * pow( delta_theta_ / T, 2 ) * tmp / pow( 1.0 + tmp, 2 );
+}
+
+double
+Two_level_electronic::
+s_eval_Q_from_T( double T, double A )
+{
+    double Q = double(g0_) + double(g1_) * exp( - delta_theta_ / T );
+
+    return Q;
 }
 
 /* ------- Multi level electronic species energy mode ------- */
@@ -152,7 +162,7 @@ s_eval_entropy_from_T( double T )
     	tmpA += theta_vec_[i] * tmpC;
     	tmpB += tmpC;
     }
-    return R_*log( tmpB) + R_/T*log( tmpA/tmpB );
+    return R_*log( tmpB) + R_/T*tmpA/tmpB;
 }
 
 double
@@ -804,7 +814,8 @@ double
 Truncated_harmonic_vibration::
 s_eval_entropy_from_T( double T  )
 {
-    // Ref: My own derivation from Vincenti and Kruger's s(Q,T) entropy expression
+    // Ref: My own derivation from the definition of entropy as a function of
+    //      the partition function and temperature (see Eq 3.2 in PhD thesis)
     double exp_theta_v_T = exp( - theta_ / T );
     double exp_theta_D_T = exp( - theta_D_ / T );
     
@@ -817,8 +828,8 @@ double
 Truncated_harmonic_vibration::
 s_eval_Cv_from_T( double T  )
 {
-    // Ref: lib/gas_models2/source/molecule.cxx::Diatomic_molecule_THO
-    //      (my own derivation)
+    // Ref: My own derivation from the definition of Cv as the derivative of
+    //      energy w.r.t temperature
     double tmpA = theta_ / T;
     double tmpB = theta_D_ / T;
     double exp_tmpA = exp( tmpA );
@@ -839,7 +850,7 @@ s_eval_Q_from_T( double T, double A )
     double theta_lim = A;
     if ( theta_lim < 0.0 ) theta_lim = theta_D_;
     // Ref: DFP thesis
-    return ( 1.0 - exp( - theta_ / T ) ) / ( 1.0 - exp( - theta_lim / T ) );
+    return ( 1.0 - exp( - theta_lim / T ) ) / ( 1.0 - exp( - theta_ / T ) );
 }
 
 double

@@ -1,6 +1,6 @@
 // Author: Daniel F. Potter
 // Date: 30-Oct-2012
-// Place: Gšttingen, Germany
+// Place: Goettingen, Germany
 //
 
 #include <iostream>
