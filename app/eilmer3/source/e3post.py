@@ -883,21 +883,21 @@ if __name__ == '__main__':
         if uoDict.has_key("--vtk-xml"):
             print "Assemble VTK-XML files for t=", times_dict[tindx]
             if uoDict.has_key("--moving-grid"):
-                grid, flow, bgk, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles, movingGrid=1)
+                grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles, movingGrid=1)
             else:
-                grid, flow, bgk, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
+                grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz)
             write_VTK_XML_files(rootName, tindx, nblock, grid, flow, times_dict[tindx])
         #
         if uoDict.has_key("--tecplot"):
             print "Assemble Tecplot file for t=", times_dict[tindx]
-            grid, flow, bgk, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
+            grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz)
             write_Tecplot_file(rootName, tindx, nblock, grid, flow, times_dict[tindx])
         #
         if uoDict.has_key("--plot3d"):
             print "Write out Plot3d grid for t=", times_dict[tindx]
-            grid, flow, bgk, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
+            grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz)
             fname = rootName+(".t%04d" % tindx)+".grd"
             plotPath = "plot"
@@ -914,7 +914,7 @@ if __name__ == '__main__':
             outputFileName = uoDict.get("--output-file", "profile.data")
             print "    outputFileName=", outputFileName
             slice_list_str = uoDict.get("--slice-list", "")
-            grid, flow, bgk, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
+            grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz)
             if uoDict.has_key("--slice-at-point"):
                 slice_list_str += convert_string(uoDict.get("--slice-at-point", ""),
@@ -933,7 +933,7 @@ if __name__ == '__main__':
             outputFileName = uoDict.get("--output-file", "profile.data")
             print "    outputFileName=", outputFileName
             slice_line_str = uoDict.get("--slice-along-line", "")
-            grid, flow, bgk, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
+            grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz)
             if len(slice_line_str) > 0:
                 write_profile_along_line(outputFileName, slice_line_str, tindx, nblock, 
@@ -947,7 +947,7 @@ if __name__ == '__main__':
             if len(aScriptName) > 0:
                 print "   ref_function is from script:", aScriptName
                 execfile(aScriptName)
-                grid, flow, bgk, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
+                grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
                 add_auxiliary_variables(nblock, flow, uoDict, omegaz)
                 compute_difference_in_flow_data(ref_function, nblock, grid, flow, 
                                                 times_dict[tindx])
@@ -963,9 +963,9 @@ if __name__ == '__main__':
             compareRootName, compareExt = os.path.splitext(compareJobName)
             compareTindx = int(uoDict.get("--compare-tindx", "9999"))
             print "   Comparison solution:", compareRootName, " compareTindx=", compareTindx
-            grid, flow, bgk, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
+            grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz)
-            grid2, flow2, bgk, dimensions = read_all_blocks(compareRootName, nblock, compareTindx, zipFiles)
+            grid2, flow2, dimensions = read_all_blocks(compareRootName, nblock, compareTindx, zipFiles)
             add_auxiliary_variables(nblock, flow2, uoDict, omegaz)
             compute_difference_in_flow_data2(nblock, grid, flow, grid2, flow2, times_dict[tindx])
             write_VTK_XML_files(rootName, tindx, nblock, grid, flow, times_dict[tindx])
@@ -976,7 +976,7 @@ if __name__ == '__main__':
         #
         if uoDict.has_key("--report-norms"):
             print "Report norms for t=", times_dict[tindx]
-            grid, flow, bgk, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
+            grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz)
             norms = compute_volume_weighted_norms(nblock, grid, flow)
             pretty_print_norms(norms, 
@@ -985,7 +985,7 @@ if __name__ == '__main__':
         #
         if uoDict.has_key("--surface-list"):
             print "Extract a set of surfaces for t=", times_dict[tindx], "and write as VTK files."
-            grid, flow, bgk, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
+            grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz)
             surface_list_str = uoDict.get("--surface-list", "")
             surface_list_str = surface_list_str.lower().strip()
@@ -1007,7 +1007,7 @@ if __name__ == '__main__':
         #
         if uoDict.has_key("--probe"):
             print "Probe data for t=", times_dict[tindx]
-            grid, flow, bgk, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
+            grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz)
             # Pull apart coordinates list
             coordinate_list_str = uoDict.get("--probe", "")
@@ -1049,7 +1049,7 @@ if __name__ == '__main__':
             outputFileName = uoDict.get("--output-file", "TS-profile.data")
             print "    outputFileName=", outputFileName
             slice_list_str = uoDict.get("--tangent-slab-list", "")
-            grid, flow, bgk, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
+            grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
             if len(slice_list_str) > 0:
                 if slice_list_str[0] == ';':
                     # Drop the leading semicolon if it is present.

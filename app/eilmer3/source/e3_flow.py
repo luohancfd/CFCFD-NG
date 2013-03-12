@@ -619,7 +619,7 @@ def read_all_blocks(rootName, nblock, tindx, zipFiles=0, movingGrid=0):
     """
     Returns all grids and flow blocks for a single flow solution.
     """
-    grid = []; flow = []; bgk = []
+    grid = []; flow = []
     for jb in range(nblock):
         if movingGrid == 0:
             fileName = rootName+".grid"+(".b%04d.t%04d" % (jb, 0))
@@ -656,15 +656,20 @@ def read_all_blocks(rootName, nblock, tindx, zipFiles=0, movingGrid=0):
                 fp = GzipFile(fileName+".gz", "rb")
             else:
                 fp = open(fileName, "r")
-            bgk.append(StructuredGridFlow())
-            bgk[-1].read(fp)
-            fp.close()        
+            bgk = StructuredGridFlow()
+            bgk.read(fp)
+            fp.close()
+            print "Append velocity distribution data to flow data"
+            for var in bgk.vars:
+                if var not in flow[-1].vars:
+                    flow[-1].vars.append(var)
+                    flow[-1].data[var] = bgk.data[var]
     #
     if grid[0].nk == 1:
         dimensions = 2
     else:
         dimensions = 3
-    return grid, flow, bgk, dimensions
+    return grid, flow, dimensions
 
 def add_auxiliary_variables(nblock, flow, cmdLineDict, omegaz_list=None):
     """

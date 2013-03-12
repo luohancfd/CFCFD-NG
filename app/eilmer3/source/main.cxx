@@ -443,7 +443,9 @@ int prepare_to_integrate( int start_tindx )
 	    if (bdp->initialise_BGK_equilibrium() != SUCCESS) {
 		return FAILURE;
 	    }
-	}		
+	    filename = "flow/"+tindxstring+"/"+G.base_file_name+".BGK"+jbstring+"."+tindxstring;
+	    bdp->write_BGK(filename, G.sim_time, G.dimensions, zip_files);
+	}
     }
 
     // History file header is only written for a fresh start.
