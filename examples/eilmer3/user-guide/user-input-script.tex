@@ -1,4 +1,5 @@
 % user-input-script.tex
+\newpage
 \section{Input Script Overview}
 Currently, \texttt{e3prep.py}\index{e3prep.py} is implemented as 
 a Python program that has a library of classes specialized for constructing
@@ -38,6 +39,8 @@ An input script usually does the following:
 Most examples in this manual do just these things, however, it is possible to do much more.
 The example that computes the heat transfer to a sphere (Section\,\ref{sphere-heat-transfer-sec}) uses a top-level Python
 script to coordinate a number of simulations with increasingly-refined grids as a crude multigrid simulation.
+
+\clearpage
 
 \medskip
 To aid with debugging, it is easy to process part of your input script and
@@ -174,8 +177,55 @@ The names of these files (excluding the \texttt{.lua} extension) correspond to t
 names of available species.  The \texttt{defaults.lua} file is not a species name.
 Rather, this file provides a set of default values when no other data is available.
 
+\subsection{Specifying the gas model with \texttt{gasmodel.py}}
+Since the gas model module gets all its information about the gas from an external
+file (typically called \texttt{gas-model.lua}), it is reasonable to prepare the gas
+model specification external to your input script.
+To assist with this process, the program \texttt{gasmodel.py} is available.
+Running this program without specifying any options provided the following usage message:
+
+\noindent
+{\footnotesize
+\begin{verbatim}
+$ gasmodel.py 
+
+Use this program to construct a simple or composite gas model for use with
+the simulation codes Eilmer3 of L1d3.
+
+Usage: 
+  gasmodel.py [--help] [--model=<modelName>] [--species=<speciesList|none>] \
+              [--lut-file=<LUTFileName>] \
+              [--output=<luaFile|gas-model.lua>]
+
+Input parameters:
+  model   : name of the gas model, may have embedded spaces.
+  species : list of species names (space delimited) in a single string.
+  output  : name of the gas-model file to be written.
+  lut-file: name of the preexisting LUT-gas model file, if relevant.
+
+Examples:
+  $ gasmodel.py --model='thermally perfect gas' --species='N2 N' \
+                --output='nitrogen.lua'
+
+  $ gasmodel.py --model='ideal gas' --species='Ar He' \
+                --lut-file='cea-lut-custom.lua.gz' \
+                --output='LUT-plus-Ar-He.lua'
+
+Notes:
+  If you want a LUT-plus-composite gas model, set up the LUT table
+  externally. Invoke this program, specifying the rest of the species
+  for the composite gas model.  The LUT gas species is prepended to 
+  the composite gas species list.  You will need both gas model files
+  in place to use the resulting LUT-plus-composite gas model.
+\end{verbatim}
+} % end footnotesize
+
+\noindent
+Once you have your gas-model file generated, just give its file name to 
+the \texttt{select\_gas\_model} function call in your input script.
+
 \subsection{10 minute version: the detail of gas model configuration}
-In the last two examples, the \texttt{select\_gas\_model} function was called using
+In the earlier examples, the \texttt{select\_gas\_model} function was called using
 the two keyword arguments \texttt{model} and \texttt{species}.
 Behind the scenes, this function calls an auxiliary set of tools to build
 a stand-alone text file which is a configuration file for the gas model.
@@ -431,7 +481,7 @@ conversion to a list of mass fractions easy.
 Here is an extract from Umar's standing-shock script showing the creation of a fairly complex gas mix
 using a dictionary of mole fractions.
 
-\medskip\noindent\topbar\\
+\medskip\noindent\topbar
 {\small %\scriptsize
 \begin{verbatim}
 select_gas_model(model='thermally perfect gas', 
@@ -465,13 +515,15 @@ The following text in the input script requests the radiative source terms and h
  for the details of the desired radiation modelling:
 
 \noindent\topbar\\
-\texttt{select\_radiation\_model( input\_file="rad-model.lua", update\_frequency=100 )}\\ \index{select\_radiation\_model}
+\texttt{select\_radiation\_model( input\_file="rad-model.lua", update\_frequency=100 )} 
+\index{select\_radiation\_model} \\
 \bottombar\\
 
 %
 The format for the Lua file describing the radiation transport model is give in Appendix~\ref{app:rt-models}.
 
 %-------------------------------------------------------------------
+\newpage
 \section{Boundary representation of the gas domain}
 %
 Most of the effort required to set up a simulation goes into defining the
@@ -518,7 +570,7 @@ Also, you can \texttt{clone} and transform a point.
 For example, to create a point and its mirror image in the (x,z)-plane, you could use\\
 \topbar\\
 \texttt{a = Vector(0.5, 0.6)}\\
-\texttt{b = a.clone().mirror\_image(Vector(0.0,0.0), Vector(0.0,1.0)}\\
+\texttt{b = a.clone().mirror\_image(Vector(0.0,0.0), Vector(0.0,1.0))}\\
 \bottombar\\
  
 \subsubsection{Paths}
@@ -542,6 +594,11 @@ Types of paths that are available include:
   Internally, it is stored as the helical path described above.
 \item \texttt{Bezier}([$b_0, b_1, ..., b_n$]): a Bezier curve from $b_0$ to
   $b_n$.\index{geometric element!Bezier}
+  Sometimes the curve may have control points distributed such that the grid is not clustered in a good way.
+  To fix this, it may be useful to specfy the Bezier curve to be parameterized by arc length.
+  You need to specify all parameters, including the final \texttt{arc\_length\_p} parameter, \textit{i.e.}
+  \texttt{Bezier}([$b_0, b_1, ..., b_n$], ``label'', 0.0, 1.0, 1).
+  The 3rd and 4th parameters here specify that we want to use the full range of the Bezier curve.
 \item \texttt{Nurbs}($CP[.]$, $w[.]$,$degree$, $U[.]$): nonuniform rational B-spline with
   control points vector $CP[.]$, weights vector $w[.]$, and knot vector $U[.]$.\index{geometric element!Nurbs}
 \item \texttt{Polyline}([$p_0, p_1, ..., p_n$]): a composite path made up of 
@@ -919,6 +976,119 @@ and \texttt{faceA} and \texttt{faceB} are their adjoining edges (NORTH, EAST, SO
 Most of the time you can just ignore the default arguments associated with user-defined functions
 (\textit{i.e.} \texttt{with\_udf, filename, is\_wall, use\_udf\_flux}).
 These are used to implement slowly-opening diaphragms and the like. 
+
+\subsection{Putting a 2D description together}
+%
+As a motivational example, for MECH4480 students of CFD in particular,
+consider the construction of a grid around a bottle of \textit{James Boag's Premium}.
+Figure\,\ref{the-clustered-bottle-svg-fig} shows the final block arrangement with 
+the bottle lying on its side.
+You can see the profile of the bottle in the curves from $x$=0 to $x$=0.2 metres.
+We model only the upper half plane, with the gas domain being the region around the bottle.
+Also, we'll do the modelling in stages, starting with a single block defining a limited 
+subregion.
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=\textwidth]{../2D/beer-bottle/the_clustered_bottle_edited.pdf}
+\end{center}
+\caption{Schematic diagram of Ingo's beer bottle aligned with the x-axis.
+	 This PDF figure was generated from the SVG file with some edits 
+	 to move the boundary labels to nicer positions.}
+\label{the-clustered-bottle-svg-fig}
+\end{figure}
+
+\subsubsection*{Making a simple 2D grid}
+%
+We start with just block [3] above the main body of the bottle
+and define just the 4 nodes E,F,K and L that mark the corners of our
+region of interest (Figure\,\ref{the-minimal-grid-fig}).
+These are created as \texttt{Nodes} with labels so that they show up in
+the generated SVG plot.
+The simplest way to define the region is to make a patch with 4 sides
+specified as staight-line paths.
+The \texttt{Block2D} is initialized with this patch, the number of cells
+in each direction and the initial gas state within the region.
+
+\noindent
+\topbar
+\lstinputlisting[language={}]{../2D/beer-bottle/the_minimal_grid.py}
+\bottombar
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[height=5.5cm]{../2D/beer-bottle/the_minimal_grid_edited.pdf}
+\rule{0.5cm}{0cm}
+\includegraphics[height=5.5cm]{../2D/beer-bottle/the_minimal_grid.png}
+\end{center}
+\caption{A single block for a simple subregion from the eventual model 
+         of the Ingo's beer bottle.}
+\label{the-minimal-grid-fig}
+\end{figure}
+
+\subsubsection*{Making a multiblock grid}
+%
+When making a flow domain that is reasonably complicated, it's probably best
+to make a collection of blocks where each block is roughly a quadrilateral,
+but with the bounding paths fitted to the curves of the object to be modelled.
+Figure~\ref{the-plain-bottle-fig} shows the resulting grid from dividing up 
+the full gas-flow region into 6 blocks.
+
+\noindent
+\topbar
+\lstinputlisting[language={}]{../2D/beer-bottle/the_plain_bottle.py}
+\bottombar
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=\textwidth]{../2D/beer-bottle/the_plain_bottle.png}
+\end{center}
+\caption{A multiple-block model of the region around Ingo's beer bottle.}
+\label{the-plain-bottle-fig}
+\end{figure}
+
+\medskip
+Each of the blocks is generated independently og the others.
+It is the user's responsibility to ensure that the common defining edges are 
+consistent and that the cell-discretization along each of these edges 
+is consistent with the corresponding discretization of any adjacent edge 
+of another block.
+
+\medskip
+The first constraint is easy to meet by defining each edge once only and
+reusing that path in the definition of different blocks.
+Sometimes, the orientation of a pair of blocks and 
+the particular directions of the paths within each block means that 
+one defining edge needs to be in the opposite sense tothe original.
+In this case the \texttt{clone} and \texttt{reverse} methods may be useful.
+The script actually uses the equivalent \texttt{copy(direction=-1)} method call.
+
+\subsubsection*{Improving the grid with clustering}
+%
+We can now tweak the grid and improve the distribution and shape of the cells
+by adjusting the clustering of the points along each of the block edges.
+See Figure~\ref{the-clustered-bottle-fig} for the result of the following script.
+The partular values used for the strength of the clustering are ad-hoc and some
+trial and error has been used to get these particular values.
+
+\medskip
+Again, the distribution of points along each edge of each block is computed independently,
+so it is the responsibility of the user to ensure that the cells along the 
+corresponding edges of adjoining blocks are aligned.
+This will require the use of matching clustering functions on these edges.
+
+\noindent
+\topbar
+\lstinputlisting[language={}]{../2D/beer-bottle/the_clustered_bottle.py}
+\bottombar
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=\textwidth]{../2D/beer-bottle/the_clustered_bottle.png}
+\end{center}
+\caption{An improved multiple-block grid around Ingo's beer bottle.}
+\label{the-clustered-bottle-fig}
+\end{figure}
 
 
 %------------------------------------------------------------------
