@@ -6,6 +6,9 @@ This program takes the userinput, in the form of a Python script,
 and generates the files needed to start a simulation.
 There are a number of functions that may be called by the user's script. 
 
+Usage
+-----
+
 It is intended for the user to define the flow simulation in terms of
 the data objects defined in this program.
 As part of its initialization, e3prep.py will execute a user-specified
@@ -33,6 +36,41 @@ boundary-condition information.
 In 3D flow, there will be 6 bounding surfaces for each Block3D object.
 
 Note that physical quantities should be specified in MKS units.
+
+Command line::
+
+  e3prep.py [options]
+
+Options::
+
+| e3prep.py [--help] [--job=<jobFileName>]
+|           [--do-svg] [--do-vrml] [--zip-files|--no-zip-files]
+|           [--show-names] [--split-input-file]
+
+Example
+-------
+
+* Prepare the simulation input files along with a scalable-vector-graphic
+  representation of the 2D flow domain::
+
+    e3prep.py --job=cone20 --do-svg
+
+* There are many details to preparing the input script.
+  Study the User Guide and the many examples contained therein. 
+
+Notes
+-----
+
+* Files that are generated will have names constructed with jobFileName
+  as the root.
+
+* The SVG file, with some careful editing, will be useful for documentation
+  of your simulation.  It includes annotated boundary conditions.
+
+* The 3D equivalent is to geerate a VRML file. (Needs work.)
+
+* These days, the default behaviour is to have individual blocks split into
+  individual times and read/write gzip-compressed solution files.
 
 Globally-defined objects
 ------------------------

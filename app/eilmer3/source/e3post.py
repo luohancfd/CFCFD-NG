@@ -1,14 +1,120 @@
 #! /usr/bin/env python
 """
-e3post.py -- Python program to pick up the data after a simulation.
+Python program to pick up the data after a simulation.
 
 e3post.py is the principal post-processor for slicing and dicing your flow data.
-Try invoking it with the --help option to see more information.
+There are so many things that you might want to do with your data from
+a simulation that this program is structured as a library of functions 
+to pick up the data, maybe add a few items, and then write the data to some 
+other format.  Invoking it with the --help option will present the summary of options.
+
+Usage
+----- 
+
+Command line::
+
+  e3post.py [options]
+
+Summary of options::
+
+| e3post.py [--help] [--job=<jobFileName>] [--tindx=<index|all>]
+|           [--zip-files|--no-zip-files]
+|           [--moving-grid]
+|           [--omegaz="[omegaz0,omegaz1,...]"]
+| 
+|           [--add-pitot-p] [--add-total-p] [--add-mach] [--add-total-enthalpy]
+|           [--add-molef --gmodel-file="gas-model.lua"]
+| 
+|           [--vtk-xml] [--tecplot] [--plot3d]
+| 
+|           [--output-file=<profile-data-file>]
+|           [--slice-list="blk-range,i-range,j-range,k-range;..."]
+|           [--slice-at-point="blk-range,index-pair,x,y,z;..."]
+|           [--slice-along-line="x0,y0,z0,x1,y1,z1,N"]
+|           [--surface-list="blk,surface-name;..."]
+| 
+|           [--heat-flux-list="blk-range,surf-range,i-range,j-range,k-range;..."]
+|           [--tangent-slab-list="blk-range,i-range,j-range,k-range;..."]
+| 
+|           [--probe="x,y,z;..."]
+| 
+|           [--report-norms]
+|           [--per-block-norm-list="jb,var-name,norm-name;..."
+|           [--global-norm-list="var-name,norm-name;..."
+|           [--ref-function=<python-script>]
+|           [--compare-job=<jobFileName> [--compare-tindx=<index>]]
+| 
+|           [--prepare-restart] [--prepare-fstc-restart]
+|           [--put-into-folders]
+
+Examples
+--------
+
+* Extract the final solution frame and write VTK files for Paraview::
+
+    e3post.py --job=cone20 --vtk-xml
+
+* Extract a particular solution frame::
+
+    e3post.py --job=n90 --tindx=5 --vtk-xml
+
+* Extract a slice of a particular solution frame::
+
+    e3post.py --job=n90 --output-file=n90_100_iy1.data --tindx=5 \\
+        --slice-list="0,:,1,0"
+
+* Compare one solution frame with another::
+
+    e3post.py --job=euler_manufactured --tindx=6 \\
+        --compare-job=euler_manufactured --compare-tindx=20
+
+* Compare a solution frame with data provided by a function and write
+  particular norms::
+
+    e3post.py --job=euler_manufactured --tindx=20 \\
+        --ref-function=euler_wrapper.py \\
+        --per-block-norm-list="0,rho,L2;0,rho,L1" \\
+        --global-norm-list="rho,L2" \\
+
+
+Notes
+-----
+
+* slice-list:
+  Several slices (separated by semicolons) may be specified 
+  in the one string.  Each slice specification consists of 
+  4 indices or index ranges separated by commas.  
+  An index is a single integer value.  An index range may be 
+  a colon-separated pair of integers, a colon and one limit 
+  or just a colon by itself (to indicate the full range).
+  The range limits are inclusive.
+* slice-at-point:
+  The index-pair is one of ij, jk or ki.  
+  The program sets these indices to zero and searches along 
+  the remaining index to find the cell nearest the specified 
+  (x,y,z) point.  Once found, the slice over the index pair 
+  is selected for output (by adding it to the slice-list.
+  Beware that, for each block selected, slice-at-point will 
+  always select a slice to output, even if it is not very close. 
+* Note that you must use double-quotes to prevent the 
+  command shell from pulling the string apart.
+* add-pitot-p, add-total-p and add-mach work for writing profile files,
+  surface (VTK) files, TECPLOT files, VTK-XML files and Plot3D files.
+* When choosing Plot3D output, two grid files are generated.  The first,
+  with .grd extension, is the true grid as used by the simulation with
+  mesh location at the nodes.  The second, with extension .g, has
+  cell-centred values and accompanies the cell-centred values in 
+  the .f file.
+* The angular velocities of the rotating blocks are written as 
+  a list with Python syntax.
+* The addition of mole-fractions needs to be done in the context
+  of a valid gas model (because we need species and molecular masses).
 
 .. Author: P.Jacobs and many others
 
 .. Versions:
-   19-March-2008
+   19-March-2008 initial code
+   Look at the revision control system logs for the many additions. 
 """
 
 # ----------------------------------------------------------------------
@@ -39,60 +145,39 @@ longOptions = ["help", "job=", "zip-files", "no-zip-files", "vtk-xml", "tecplot"
 
 def printUsage():
     print ""
-    print "Usage: e3post.py [--help] [--job=<jobFileName>] [--tindx=<index|all>]"
-    print "                 [--zip-files|--no-zip-files]"
-    print "                 [--moving-grid]"
-    print "                 [--vtk-xml] [--tecplot] [--plot3d]"
-    print "                 [--prepare-restart] [--prepare-fstc-restart]"
-    print "                 [--put-into-folders]"
-    print "                 [--ref-function=<python-script>]"
-    print "                 [--report-norms]"
-    print "                 [--per-block-norm-list=\"jb,var-name,norm-name;...\""
-    print "                 [--global-norm-list=\"var-name,norm-name;...\""
-    print "                 [--compare-job=<jobFileName> [--compare-tindx=<index>]]"
-    print "                 [--output-file=<profile-data-file>]"
-    print "                 [--slice-list=\"blk-range,i-range,j-range,k-range;...\"]"
-    print "                 [--slice-at-point=\"blk-range,index-pair,x,y,z;...\"]"
-    print "                 [--slice-along-line=\"x0,y0,z0,x1,y1,z1,N\"]"
-    print "                 [--surface-list=\"blk,surface-name;...\"]"
-    print "                 [--add-pitot-p] [--add-total-p] [--add-mach] [--add-total-enthalpy]"
-    print "                 [--add-molef --gmodel-file=\"gas-model.lua\"]"
-    print "                 [--probe=\"x,y,z;...\"]"
-    print "                 [--heat-flux-list=\"blk-range,surf-range,i-range,j-range,k-range;...\"]"
-    print "                 [--omegaz=\"[omegaz0,omegaz1,...]\"]"
-    print "                 [--tangent-slab-list=\"blk-range,i-range,j-range,k-range;...\"]"
+    print "Usage:"
+    print "e3post.py [--help] [--job=<jobFileName>] [--tindx=<index|all>]"
+    print "          [--zip-files|--no-zip-files]"
+    print "          [--moving-grid]"
+    print "          [--omegaz=\"[omegaz0,omegaz1,...]\"]"
     print ""
-    print """Notes:
-(1) slice-list
-    Several slices (separated by semicolons) may be specified 
-    in the one string.  Each slice specification consists of 
-    4 indices or index ranges separated by commas.  
-    An index is a single integer value.  An index range may be 
-    a colon-separated pair of integers, a colon and one limit 
-    or just a colon by itself (to indicate the full range).
-    The range limits are inclusive.
-(2) slice-at-point
-    The index-pair is one of ij, jk or ki.  
-    The program sets these indices to zero and searches along 
-    the remaining index to find the cell nearest the specified 
-    (x,y,z) point.  Once found, the slice over the index pair 
-    is selected for output (by adding it to the slice-list.
-    Beware that, for each block selected, slice-at-point will 
-    always select a slice to output, even if it is not very close. 
-(3) Note that you must use double-quotes to prevent the 
-    command shell from pulling the string apart.
-(4) add-pitot-p, add-total-p and add-mach work for writing profile files,
-    surface (VTK) files, TECPLOT files, VTK-XML files and Plot3D files.
-(5) When choosing Plot3D output, two grid files are generated.  The first,
-    with .grd extension, is the true grid as used by the simulation with
-    mesh location at the nodes.  The second, with extension .g, has
-    cell-centred values and accompanies the cell-centred values in the
-    .f file.
-(6) The angular velocities of the rotating blocks are written as 
-    a list with Python syntax.
-(7) The addition of mole-fractions needs to be done in the context
-    of a valid gas model (because we need species and molecular masses).
-"""
+    print "          [--add-pitot-p] [--add-total-p] [--add-mach] [--add-total-enthalpy]"
+    print "          [--add-molef --gmodel-file=\"gas-model.lua\"]"
+    print ""
+    print "          [--vtk-xml] [--tecplot] [--plot3d]"
+    print ""
+    print "          [--output-file=<profile-data-file>]"
+    print "          [--slice-list=\"blk-range,i-range,j-range,k-range;...\"]"
+    print "          [--slice-at-point=\"blk-range,index-pair,x,y,z;...\"]"
+    print "          [--slice-along-line=\"x0,y0,z0,x1,y1,z1,N\"]"
+    print "          [--surface-list=\"blk,surface-name;...\"]"
+    print ""
+    print "          [--heat-flux-list=\"blk-range,surf-range,i-range,j-range,k-range;...\"]"
+    print "          [--tangent-slab-list=\"blk-range,i-range,j-range,k-range;...\"]"
+    print ""
+    print "          [--probe=\"x,y,z;...\"]"
+    print ""
+    print "          [--report-norms]"
+    print "          [--per-block-norm-list=\"jb,var-name,norm-name;...\""
+    print "          [--global-norm-list=\"var-name,norm-name;...\""
+    print "          [--ref-function=<python-script>]"
+    print "          [--compare-job=<jobFileName> [--compare-tindx=<index>]]"
+    print ""
+    print "          [--prepare-restart] [--prepare-fstc-restart]"
+    print "          [--put-into-folders]"
+    print ""
+    print "For further information, see the online documentation, the Eilmer3 User Guide"
+    print "and the source code."
     return
 
 #----------------------------------------------------------------------
