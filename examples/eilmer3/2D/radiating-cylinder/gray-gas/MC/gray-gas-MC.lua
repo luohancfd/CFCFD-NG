@@ -8,6 +8,7 @@ spectral_data = {
    lambda_max = 3000.000000,
    spectral_points = 501,
    spectral_blocks = 1,
+   adaptive_spectral_grid = false
 }
 
 transport_data = {
