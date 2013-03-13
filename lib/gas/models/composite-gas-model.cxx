@@ -206,6 +206,13 @@ int
 Composite_gas_model::
 s_eval_thermo_state_rhoe(Gas_data &Q)
 {
+    // 0. Check we have useful inputs
+    if ( Q.rho <= 0.0 )
+	return FAILURE;
+
+    if ( Q.e[0] <= 0.0 )
+	return FAILURE;
+
     // 1. Evalaute temperatures from energies
     if ( TBM_->eval_temperature(Q, EOS_) != SUCCESS )
 	return FAILURE;
@@ -226,6 +233,13 @@ int
 Composite_gas_model::
 s_eval_thermo_state_pT(Gas_data &Q)
 {
+    // 0. Check we have useful inputs
+    if ( Q.p <= 0.0 )
+	return FAILURE;
+
+    if ( Q.T[0] <= 0.0 )
+	return FAILURE;
+
     // 1. Evaluate the density from p and T
     if ( EOS_->eval_density(Q) != SUCCESS )
 	return FAILURE;
@@ -247,6 +261,13 @@ int
 Composite_gas_model::
 s_eval_thermo_state_rhoT(Gas_data &Q)
 {
+    // 0. Check we have useful inputs
+    if ( Q.rho <= 0.0 )
+	return FAILURE;
+
+    if ( Q.T[0] <= 0.0 )
+	return FAILURE;
+
     // 1. Evaluate the pressure from rho and T
     if ( EOS_->eval_pressure(Q) != SUCCESS )
 	return FAILURE;
@@ -267,6 +288,13 @@ int
 Composite_gas_model::
 s_eval_thermo_state_rhop(Gas_data &Q)
 {
+    // 0. Check we have useful inputs
+    if ( Q.rho <= 0.0 )
+	return FAILURE;
+
+    if ( Q.p <= 0.0 )
+	return FAILURE;
+
     // 1. Evaluate the temperature from rho and p
     if ( EOS_->eval_temperature(Q) != SUCCESS )
 	return FAILURE;

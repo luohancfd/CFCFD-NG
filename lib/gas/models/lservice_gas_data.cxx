@@ -46,6 +46,7 @@ int push_gas_data_as_table(lua_State *L, const Gas_data &Q)
 
 void set_gas_data_at_table(lua_State *L, int tindex, const Gas_data &Q)
 {
+
     lua_pushnumber(L, Q.rho);
     lua_setfield(L, tindex, "rho");
 
@@ -164,10 +165,8 @@ void get_table_as_matrix(lua_State *L, matrix &mat)
     }
 }
 
-int create_empty_gas_table(lua_State *L)
+int create_empty_gas_table(lua_State *L, int nsp, int nmodes)
 {
-    int nsp = 1;
-    int nmodes = 1;
     int narg = lua_gettop(L);
     if ( narg == 0 ) {
 	nsp = 1;
@@ -224,4 +223,16 @@ int create_empty_gas_table(lua_State *L)
     lua_setfield(L, tindex, "massf");
 
     return 1;
+}
+
+int create_empty_gas_table(lua_State *L, Gas_model &gmodel)
+{
+    int nsp = gmodel.get_number_of_species();
+    int nmodes = gmodel.get_number_of_modes();
+    return create_empty_gas_table(L, nsp, nmodes);
+}
+
+int create_empty_gas_table(lua_State *L)
+{
+    return create_empty_gas_table(L, 1, 1);
 }
