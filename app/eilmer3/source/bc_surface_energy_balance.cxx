@@ -293,7 +293,7 @@ solve_for_wall_temperature( FV_Interface * IFace, FV_Cell * cell_one, int index 
     	    return FAILURE;
     	}
     	// 2. calculate total heat flux incident on this interface
-    	q_total = q_rad[index] + q_conv[index] + q_diff[index];
+    	q_total = q_rad[index] + q_cond[index] + q_diff[index];
     	// 3. calculate Twall by assuming radiative equilibrium at the wall
     	Twall = pow( q_total / ( epsilon * PC_sigma_SI ), 0.25 );
         // 4. calculate new guess as a weighted average so we don't take too big a step

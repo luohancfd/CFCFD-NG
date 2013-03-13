@@ -142,7 +142,7 @@ BoundaryCondition( Block *bdp, int which_boundary, int type_code,
     }
     
     // 2. Size heat flux vectors
-    q_conv.resize( dim );
+    q_cond.resize( dim );
     q_diff.resize( dim );
     q_rad.resize( dim );
     
@@ -216,7 +216,7 @@ BoundaryCondition( const BoundaryCondition &bc )
       neighbour_block(bc.neighbour_block), neighbour_face(bc.neighbour_face),
       neighbour_orientation(bc.neighbour_orientation),
       wc_bc(bc.wc_bc), sponge_flag(bc.sponge_flag), xforce_flag(bc.xforce_flag),
-      q_conv(bc.q_conv), q_diff(bc.q_diff), q_rad(bc.q_rad),
+      q_cond(bc.q_cond), q_diff(bc.q_diff), q_rad(bc.q_rad),
       imin(bc.imin), imax(bc.imax), jmin(bc.jmin), jmax(bc.jmax)
 {
     // if ( bc.cw ) cw = new CatalyticWallBC(*bc.cw);
@@ -239,7 +239,7 @@ BoundaryCondition & BoundaryCondition::operator=( const BoundaryCondition &bc )
 	wc_bc = bc.wc_bc;
 	sponge_flag = bc.sponge_flag;
 	xforce_flag = bc.xforce_flag;
-	q_conv = bc.q_conv;
+	q_cond = bc.q_cond;
 	q_diff = bc.q_diff;
 	q_rad = bc.q_rad;
 	imin = bc.imin; imax = bc.imax; jmin = bc.jmin; jmax = bc.jmax;
@@ -507,11 +507,11 @@ compute_cell_interface_surface_heat_flux(FV_Interface * IFace,
     ic = IFace->pos;
     i0c = cc - ic;
     d1 = - dot(i0c,IFace->n);
-    // 1. Calculate convective heat flux 
-    q_conv[index] = 0.0;
+    // 1. Calculate conductive heat flux
+    q_cond[index] = 0.0;
     for ( iT=0; iT<nTs; ++iT ){
 	dTds = ( cell_one->fs->gas->T[iT] - IFace->fs->gas->T[iT] ) / d1;
-	q_conv[index] += dTds * IFace->fs->gas->k[iT];
+	q_cond[index] += dTds * IFace->fs->gas->k[iT];
     }
     // 2. Calculate diffusive heat flux
     q_diff[index] = 0.0;
@@ -537,7 +537,7 @@ compute_cell_interface_surface_heat_flux(FV_Interface * IFace,
 	// the purpose of thermal structural modelling. This code simply switches the sign of the output so that it is going
 	// out of the cell and into the structure for all faces
 	if ( which_boundary == SOUTH or which_boundary == WEST or which_boundary == BOTTOM ) {
-		q_conv[index] = q_conv[index] * (-1.0);
+		q_cond[index] = q_cond[index] * (-1.0);
 	}
 
     // 3. Calculate radiative heat flux - should be already stored in q_rad[]
@@ -572,7 +572,7 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
     string var_list = "";
     var_list += "\"index.i\" \"index.j\" \"index.k\" ";
     var_list += "\"pos.x\" \"pos.y\" \"pos.z\" ";
-    var_list += "\"q_conv\" \"q_diff\" \"q_rad\" \"T_wall\"";
+    var_list += "\"q_cond\" \"q_diff\" \"q_rad\" \"T_wall\"";
     var_list += "\"T_cell\" \"rho_cell\" \"un_cell\" \"Re_wall\"";
     fprintf(fp, "%s\n", var_list.c_str());
     
@@ -598,7 +598,7 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
 		    fprintf(fp, "%20.12e %20.12e %20.12e ", 
 			    IFace->pos.x, IFace->pos.y, IFace->pos.z);
 		    fprintf(fp, "%20.12e %20.12e %20.12e ", 
-			    q_conv[index], q_diff[index], q_rad[index]);
+			    q_cond[index], q_diff[index], q_rad[index]);
 		    fprintf(fp, "%20.12e ", IFace->fs->gas->T[0]);
 		    fprintf(fp, "%20.12e %20.12e %20.12e %20.12e \n", 
 		    	    cell->fs->gas->T[0], cell->fs->gas->rho, cell->fs->vel.x, Re_wall );
@@ -641,7 +641,7 @@ int BoundaryCondition::write_fstc_heat_flux( string filename, double sim_time )
     string var_list = "";
     var_list += "\"index.i\" \"index.j\" \"index.k\" ";
     var_list += "\"pos.x\" \"pos.y\" \"pos.z\" ";
-    var_list += "\"q_conv\" \"q_diff\" \"q_rad\" \"q_tot\" ";
+    var_list += "\"q_cond\" \"q_diff\" \"q_rad\" \"q_tot\" ";
     var_list += "\"T_wall\" \"T_cell\" ";
     fprintf(fp, "%s\n", var_list.c_str());
 
@@ -665,8 +665,8 @@ int BoundaryCondition::write_fstc_heat_flux( string filename, double sim_time )
 		    fprintf(fp, "%12.4e %12.4e %12.4e ",
 			    IFace->pos.x, IFace->pos.y, IFace->pos.z);
 		    fprintf(fp, "%12.4e %12.4e %12.4e ",
-			    q_conv[index], q_diff[index], q_rad[index]);
-                    fprintf(fp, "%12.4e ", q_conv[index]+q_diff[index]+q_rad[index]);
+			    q_cond[index], q_diff[index], q_rad[index]);
+                    fprintf(fp, "%12.4e ", q_cond[index]+q_diff[index]+q_rad[index]);
 		    fprintf(fp, "%12.4e ", IFace->fs->gas->T[0]);
 		    fprintf(fp, "%12.4e \n", cell->fs->gas->T[0] );
 		} // end i loop
@@ -766,7 +766,7 @@ read_surface_heat_flux( string filename, int dimensions, int zip_files )
 		    printf("read_surface_heat_flux(): Empty flow field file while reading surface element data.\n");
 		    exit(BAD_INPUT_ERROR);
 		}
-		scan_string_for_surface_heat_flux( q_conv[index], q_diff[index], q_rad[index], line );
+		scan_string_for_surface_heat_flux( q_cond[index], q_diff[index], q_rad[index], line );
 	    }
 	}
     }
@@ -1050,7 +1050,7 @@ int check_connectivity()
 ///
 /// DFP, June 2010
 int
-scan_string_for_surface_heat_flux( double &q_conv, double &q_diff, double &q_rad, char *bufptr )
+scan_string_for_surface_heat_flux( double &q_cond, double &q_diff, double &q_rad, char *bufptr )
 // There isn't any checking of the file content.
 // If anything gets out of place, the result is wrong data.
 {
@@ -1064,7 +1064,7 @@ scan_string_for_surface_heat_flux( double &q_conv, double &q_diff, double &q_rad
     double x = atof(strtok( NULL, " " )); 
     double y = atof(strtok( NULL, " " )); 
     double z = atof(strtok( NULL, " " ));
-    q_conv = atof(strtok( NULL, " " ));
+    q_cond = atof(strtok( NULL, " " ));
     q_diff = atof(strtok( NULL, " " ));
     q_rad = atof(strtok( NULL, " " ));
 

@@ -78,7 +78,7 @@ public:
     int wc_bc;
     int sponge_flag;
     int xforce_flag;
-    std::vector<double> q_conv;		// 1D vectors representing heat flux fields
+    std::vector<double> q_cond;		// 1D vectors representing heat flux fields
     std::vector<double> q_diff;		// at surfaces (which are 2D for 3D grids)
     std::vector<double> q_rad;
     int imin, imax, jmin, jmax, kmin, kmax;	// boundary cell indice limits
@@ -131,6 +131,6 @@ BoundaryCondition *create_BC( Block *bdp, int which_boundary, int type_of_BC,
 
 int check_connectivity( void );
 
-int scan_string_for_surface_heat_flux( double &q_conv, double &q_diff, double &q_rad, char *bufptr );
+int scan_string_for_surface_heat_flux( double &q_cond, double &q_diff, double &q_rad, char *bufptr );
 
 #endif

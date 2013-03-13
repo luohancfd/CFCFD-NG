@@ -665,7 +665,7 @@ def write_heat_flux_profile(outputFileName, heat_flux_list_str, tindx, nblock, h
     # write header
     fp.write("# Filename: %s\n" % outputFileName)
     fp.write("# Column 1: Distance along surface\n")
-    fp.write("# Column 2: Convective heat flux, q_conv (W/m**2)\n")
+    fp.write("# Column 2: Conductive heat flux, q_cond (W/m**2)\n")
     fp.write("# Column 3: Diffusive heat flux, q_diff (W/m**2)\n")
     fp.write("# Column 4: Radiative heat flux, q_rad (W/m**2)\n")
     fp.write("# Column 5: Wall temperature, T_wall (K)\n")
