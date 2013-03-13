@@ -26,6 +26,9 @@ int luafn_eval_thermo_state_pT(lua_State *L);
 int luafn_eval_thermo_state_rhoe(lua_State *L);
 int luafn_eval_thermo_state_rhoT(lua_State *L);
 int luafn_eval_thermo_state_rhop(lua_State *L);
+int luafn_eval_sound_speed(lua_State *L);
+int luafn_eval_transport_coefficients(lua_State *L);
+int luafn_eval_diffusion_coefficients(lua_State *L);
 int apply_gas_method(Gas_model_Method_gas_data f, Gas_data &Q);
 int register_luafns(lua_State *L);
 

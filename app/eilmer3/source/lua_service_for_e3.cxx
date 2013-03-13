@@ -128,7 +128,7 @@ int luafn_eval_thermo_state_pT(lua_State *L)
     }
     // Modify table at top of stack
     set_gas_data_at_table(L, tindex, Q);
-    return 1;
+    return 0;
 }
 
 int luafn_eval_thermo_state_rhoe(lua_State *L)
@@ -141,7 +141,7 @@ int luafn_eval_thermo_state_rhoe(lua_State *L)
     get_table_as_gas_data(L, Q);
     int flag = apply_gas_method(&Gas_model::eval_thermo_state_rhoe, Q);
     if ( flag != SUCCESS ) {
-	cout << "luafn_eval_thermo_state_pT(): " << endl;
+	cout << "luafn_eval_thermo_state_rhoe(): " << endl;
 	cout << "There was a problem calling eval_thermo_state_rhoe()." << endl;
 	cout << "This was called inside a user-defined function." << endl;
 	cout << "Supplied gas_data was:" << endl;
@@ -151,7 +151,7 @@ int luafn_eval_thermo_state_rhoe(lua_State *L)
     }
     // Modify table at top of stack
     set_gas_data_at_table(L, tindex, Q);
-    return 1;
+    return 0;
 }
 
 int luafn_eval_thermo_state_rhoT(lua_State *L)
@@ -164,7 +164,7 @@ int luafn_eval_thermo_state_rhoT(lua_State *L)
     get_table_as_gas_data(L, Q);
     int flag = apply_gas_method(&Gas_model::eval_thermo_state_rhoT, Q);
     if ( flag != SUCCESS ) {
-	cout << "luafn_eval_thermo_state_pT(): " << endl;
+	cout << "luafn_eval_thermo_state_rhoT(): " << endl;
 	cout << "There was a problem calling eval_thermo_state_rhoT()." << endl;
 	cout << "This was called inside a user-defined function." << endl;
 	cout << "Supplied gas_data was:" << endl;
@@ -174,7 +174,7 @@ int luafn_eval_thermo_state_rhoT(lua_State *L)
     }
     // Modify table at top of stack
     set_gas_data_at_table(L, tindex, Q);
-    return 1;
+    return 0;
 }
 
 int luafn_eval_thermo_state_rhop(lua_State *L)
@@ -187,7 +187,7 @@ int luafn_eval_thermo_state_rhop(lua_State *L)
     get_table_as_gas_data(L, Q);
     int flag = apply_gas_method(&Gas_model::eval_thermo_state_rhop, Q);
     if ( flag != SUCCESS ) {
-	cout << "luafn_eval_thermo_state_pT(): " << endl;
+	cout << "luafn_eval_thermo_state_rhop(): " << endl;
 	cout << "There was a problem calling eval_thermo_state_rhop()." << endl;
 	cout << "This was called inside a user-defined function." << endl;
 	cout << "Supplied gas_data was:" << endl;
@@ -197,7 +197,76 @@ int luafn_eval_thermo_state_rhop(lua_State *L)
     }
     // Modify table at top of stack
     set_gas_data_at_table(L, tindex, Q);
-    return 1;
+    return 0;
+}
+
+int luafn_eval_sound_speed(lua_State *L)
+{
+    // Assume gas_data is a top of stack and store this index
+    int tindex = lua_gettop(L);
+    Gas_model *gmodel = get_gas_model_ptr();
+    Gas_data Q(gmodel);
+    // Expect a gas_data as lua table at top of stack.
+    get_table_as_gas_data(L, Q);
+    int flag = apply_gas_method(&Gas_model::eval_sound_speed, Q);
+    if ( flag != SUCCESS ) {
+	cout << "luafn_eval_thermo_sound_speed(): " << endl;
+	cout << "There was a problem calling eval_sound_speed()." << endl;
+	cout << "This was called inside a user-defined function." << endl;
+	cout << "Supplied gas_data was:" << endl;
+	Q.print_values();
+	cout << "Bailing out!" << endl;
+	exit(UDF_ERROR);
+    }
+    // Modify table at top of stack
+    set_gas_data_at_table(L, tindex, Q);
+    return 0;
+}
+
+int luafn_eval_transport_coefficients(lua_State *L)
+{
+    // Assume gas_data is a top of stack and store this index
+    int tindex = lua_gettop(L);
+    Gas_model *gmodel = get_gas_model_ptr();
+    Gas_data Q(gmodel);
+    // Expect a gas_data as lua table at top of stack.
+    get_table_as_gas_data(L, Q);
+    int flag = apply_gas_method(&Gas_model::eval_transport_coefficients, Q);
+    if ( flag != SUCCESS ) {
+	cout << "luafn_eval_transport_coefficients(): " << endl;
+	cout << "There was a problem calling eval_transport_coefficients()." << endl;
+	cout << "This was called inside a user-defined function." << endl;
+	cout << "Supplied gas_data was:" << endl;
+	Q.print_values();
+	cout << "Bailing out!" << endl;
+	exit(UDF_ERROR);
+    }
+    // Modify table at top of stack
+    set_gas_data_at_table(L, tindex, Q);
+    return 0;
+}
+
+int luafn_eval_diffusion_coefficients(lua_State *L)
+{
+    // Assume gas_data is a top of stack and store this index
+    int tindex = lua_gettop(L);
+    Gas_model *gmodel = get_gas_model_ptr();
+    Gas_data Q(gmodel);
+    // Expect a gas_data as lua table at top of stack.
+    get_table_as_gas_data(L, Q);
+    int flag = apply_gas_method(&Gas_model::eval_diffusion_coefficients, Q);
+    if ( flag != SUCCESS ) {
+	cout << "luafn_eval_diffusion_coefficients(): " << endl;
+	cout << "There was a problem calling eval_iffusion_coefficients()." << endl;
+	cout << "This was called inside a user-defined function." << endl;
+	cout << "Supplied gas_data was:" << endl;
+	Q.print_values();
+	cout << "Bailing out!" << endl;
+	exit(UDF_ERROR);
+    }
+    // Modify table at top of stack
+    set_gas_data_at_table(L, tindex, Q);
+    return 0;
 }
 
 int apply_gas_method(Gas_model_Method_gas_data f, Gas_data &Q)
