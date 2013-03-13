@@ -164,7 +164,7 @@ def run_calculation(input_data):
     print "Wall time = %f seconds" % ( t1-t0 ) 
     LOS.write_point_to_file(0,"coefficient_spectra.txt")
     S = SpectralIntensity( rsm )
-    I_total = LOS.integrate_LOS( S )
+    I_total = LOS.integrate_LOS( S ) 
     print "I_total = %0.3e W/m2" % I_total
     # initialise apparatus function
     if apparatus_fn=="Voigt":
@@ -183,8 +183,11 @@ def run_calculation(input_data):
     S.write_to_file("intensity_spectra.txt" ) 
     
     if show_plots:
+        JvW = YvX("coefficient_spectra.txt" )
+        JvW.plot_data(xlabel="Wavelength, lambda (nm)", ylabel="Emission coefficient, j_lambda (W/m2-m-sr)", new_plot=True, show_plot=True, include_integral=False, logscale_y=True )
+        del JvW
         IvW = YvX("intensity_spectra.txt" )
-        IvW.plot_data(xlabel="Wavelength, lambda (nm)", ylabel="Intensity, I (W/m2-m-sr)", new_plot=True, show_plot=True, include_integral=False, logscale_y=True )
+        IvW.plot_data(xlabel="Wavelength, lambda (nm)", ylabel="Spectral radiance, I_lambda (W/m2-m-sr)", new_plot=True, show_plot=True, include_integral=False, logscale_y=True )
         del IvW
     
     # check if the planck intensity spectrum has been requested

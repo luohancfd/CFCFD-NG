@@ -236,14 +236,15 @@ integrate_emission_spectrum_for_radiator( Gas_data &Q, int irad, bool write_to_f
 {
     // 0. Create a CoeffSpectra class to perform the spectral calculations
     CoeffSpectra S;
-    
+    S.adaptive = adaptive_spectral_grid;
+
     // 1. Initialise the radiator
     radiators[irad]->calc_partition_functions(Q);
     radiators[irad]->calc_elec_pops(Q);
     radiators[irad]->init_mechanisms(Q);
-    
-    // 2. Store the radiation spectrum for the specified gas-state
-    spectral_distribution_for_gas_state(Q,S.nu);
+
+    // 2. Store the radiation spectrum for the currently initialised radiators
+    make_spectral_grid(S.nu);
     
     // 3. Resize j_nu and kappa_nu vectors (and initialise to zero)
     S.j_nu.resize(S.nu.size(),0.0);
@@ -360,11 +361,14 @@ void
 Photaura::
 spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
 {
+    /* 0. Set the adaptive flag */
+    X.adaptive = adaptive_spectral_grid;
+
     /* 1. Initialise all radiator mechanisms (partition functions, populations, linewidths) */
     initialise_all_radiators(Q);
     
     /* 2. Calculate the frequency distribution to be used for the spectrum. */
-    spectral_distribution_for_gas_state(Q,X.nu);
+    make_spectral_grid(X.nu);
 #   if DEBUG_RAD > 0
     cout << "Photaura::spectra_for_gas_state() - X.nu.size() = " << X.nu.size() << endl;
     cout << "lambda_min = " << nu2lambda(X.nu.back()) << ", lambda_max = " << nu2lambda(X.nu.front()) << endl;
@@ -396,17 +400,20 @@ spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
 
 void
 Photaura::
-spectral_distribution_for_gas_state(Gas_data &Q, vector<double> &nus)
+make_spectral_grid(vector<double> &nus)
 {
     if ( adaptive_spectral_grid ) {
         /* Obtain an optimised spectral distribution */
         nus.reserve( this->get_spectral_points() );
         for( int irad=0; irad<nrad; ++irad ) {
-            // impose lower concentration limit
-            if ( get_rad_conc( Q, irad ) > MIN_CONC) {
+            // Apply minimum concentration limit
+            if ( radiators[irad]->sum_level_populations() / RC_Na > MIN_CONC )
                 radiators[irad]->get_spectral_distribution(nus);
-            }
         }
+#       if DEBUG_RAD > 0
+        cout << "make_spectral_grid()" << endl
+             << "before filtering: nus.size() = " << nus.size() << endl;
+#       endif       // DEBUG
         /* Sort the entries into ascending order */
         sort(nus.begin(), nus.end(), less<double>());
         /* Impose spectral limits */
@@ -415,8 +422,8 @@ spectral_distribution_for_gas_state(Gas_data &Q, vector<double> &nus)
         /* Ensure the smallest frequency interval is greater than DELTA_NU_MIN */
         impose_min_interval( nus, DELTA_NU_MIN );
 #       if DEBUG_RAD > 0
-        cout << "spectral_distribution_for_gas_state()" << endl
-             << "nus.size() = " << nus.size() << endl;
+        cout << "make_spectral_grid()" << endl
+             << "after filtering: nus.size() = " << nus.size() << endl;
 #       endif       // DEBUG
     }
     else {

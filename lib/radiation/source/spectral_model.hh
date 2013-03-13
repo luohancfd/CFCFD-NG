@@ -22,7 +22,7 @@ extern "C" {
 #include "spectra_pieces.hh"
 
 #define ECHO_RAD_INPUT 1
-#define DEBUG_RAD      0
+#define DEBUG_RAD      1
 
 class Radiator;
 
@@ -47,8 +47,8 @@ public:
     void radiative_spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
     { return spectra_for_gas_state( Q, X ); }
     
-    void radiative_spectral_distribution_for_gas_state( Gas_data &Q, std::vector<double> &nus )
-    { return spectral_distribution_for_gas_state( Q, nus ); }
+    void radiative_spectral_grid( std::vector<double> &nus )
+    { return make_spectral_grid( nus ); }
     
     void reset_spectral_params( int isb );
     
@@ -85,10 +85,10 @@ protected:
     
     virtual void spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X ) = 0;
     
-    virtual void spectral_distribution_for_gas_state( Gas_data &Q, std::vector<double> &nus ) = 0;
-    
+    virtual void make_spectral_grid( std::vector<double> &nus );
+
     virtual void write_line_widths( Gas_data &Q ) = 0;
-    
+
     virtual void prep_rad_pop_files();
     
     virtual void append_current_rad_pops( double x );

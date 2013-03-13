@@ -62,7 +62,7 @@ public:
     int create_spectral_bins( int bining_type, int N_bins, std::vector<SpectralBin*> & B );
 
     double integrate_LOS( SpectralIntensity &S );
-    
+
     double integrate_LOS_with_binning( int binning_type, int N_bins );
 
     double integrate_LOS_MC( SpectralIntensity &S, int nphotons );

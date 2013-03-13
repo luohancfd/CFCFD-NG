@@ -289,7 +289,7 @@ void RayTracingInterface::recompute_spectra( RadiationSpectralModel * rsm )
         S_->I_int[0] = S_->I_nu[0];
     }
     else {
-        rsm->radiative_spectral_distribution_for_gas_state( *Q_, S_->nu );
+        rsm->radiative_spectral_grid( S_->nu );
         S_->I_nu.resize( S_->nu.size(), 0.0 );
         S_->I_int.resize( S_->nu.size(), 0.0 );
     

@@ -42,8 +42,6 @@ private:
     
     void spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X );
     
-    void spectral_distribution_for_gas_state(Gas_data &Q, std::vector<double> &nus);
-    
     void write_line_widths( Gas_data &Q );
     
     void prep_rad_pop_files();

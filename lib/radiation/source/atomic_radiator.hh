@@ -112,7 +112,7 @@ protected:
     /// \brief Calculate the spectrally unresolved emission coeffient
     virtual double calculate_unresolved_emission_coefficient( Gas_data &Q ); 
     
-    /// \brief Calculate the spectrally unresolved emission coeffient
+    /// \brief Calculate the spectrally unresolved optically variable emission coeffient
     virtual double calculate_unresolved_OV_emission_coefficient( Gas_data &Q, double wavel_switch, double Lambda_l, double Lambda_u);
     
     /*** Spectral generation functions ***/

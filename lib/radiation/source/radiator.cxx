@@ -244,6 +244,17 @@ Radiator::optically_allowed_transition_test( int ilev_i, int ilev_f )
     exit( BAD_INPUT_ERROR );
 }
 
+double
+Radiator::sum_level_populations()
+{
+    double N_total = 0;
+
+    for ( int ilev=0; ilev<nlevs; ++ilev )
+        N_total += get_elev_pointer(ilev)->get_N();
+
+    return N_total;
+}
+
 Radiator * create_new_radiator( lua_State * L, const std::string name )
 {
     Radiator * new_radiator = 0;

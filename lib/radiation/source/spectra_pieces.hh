@@ -49,8 +49,6 @@ public:
     double write_data_to_file( std::string fname, int spectral_units,
     		    	       std::vector<double> &Y1, std::string Y1_label, std::string Y1_int_label,
     		    	       std::vector<double> &Y2 = zero_vec, std::string Y2_label = "" );
-    
-    void compute_spectral_distribution( RadiationSpectralModel * rsm );
 
 public:
     /// \brief Frequency vector
@@ -115,6 +113,9 @@ public:
 
     /// \brief Calculate the absorption coefficient for the given frequency (via interpolation if necessary)
     double kappa_from_nu( double nu );
+
+    /// \brief Calculate the absorption and emission coefficients for the given frequency (via interpolation if necessary)
+    void coeffs_from_nu( double nu_star, double &j_nu_star, double &kappa_nu_star );
 
     /// \brief Apply an apparatus (smearing) function to the spectra
     void apply_apparatus_function( ApparatusFunction * A );
@@ -379,6 +380,6 @@ double lambda2nu(double lambda_nm);
 double planck_intensity(const double nu, const double T);
 
 /// \brief Get the frequency index in 'nus' that is just below 'nu'
-int get_nu_index( std::vector<double> &nus, double nu, bool adaptive=false );
+int get_nu_index( std::vector<double> &nu, double nu_star, bool adaptive=false );
 
 #endif

@@ -19,7 +19,7 @@
 #define ATOMIC_STARK_WIDTH          0      /* [0] Johnston 2006 curve fit, [1] Cowley 1971, [2] Arnold 1979 */
 #define ATOMIC_LINE_TYPE            0      /* Select Voigt [0], Lorentz [1] or Doppler [2]        */
 #define ATOMIC_LINE_EXTENT       1000      /* One-sided line extent in Voigt half-width units     */
-#define ATOMIC_LINE_POINTS          4      /* Points-per-VHW describing an atomic line            */
+#define ATOMIC_LINE_POINTS        100      /* Points-per-VHW describing an atomic line            */
 #define LIMITED_ATOMIC_LINE_EXTENT  1      /* Line extents are unlimited [0] or limited [1]       */
 
 // Forward declaration of AtomicElecLev

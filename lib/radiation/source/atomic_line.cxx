@@ -106,16 +106,16 @@ void
 AtomicLine::
 spectral_distribution( vector<double> &nus )
 {
-    int scaled_points = int ( ATOMIC_LINE_POINTS * ATOMIC_LINE_EXTENT * 2 );
+    int line_points = int ( ATOMIC_LINE_POINTS );
     
     // The number of line points should be odd to capture the apex 
-    if ( scaled_points % 2 == 0 ) scaled_points++;
+    if ( line_points % 2 == 0 ) line_points++;
     
     double nu_lower = nu_ul - ( gamma_V * double(ATOMIC_LINE_EXTENT) );
     double nu_upper = nu_ul + ( gamma_V * double(ATOMIC_LINE_EXTENT) );
-    double dnu = ( nu_upper - nu_lower ) / double(scaled_points-1);
+    double dnu = ( nu_upper - nu_lower ) / double(line_points-1);
     
-    for ( int inu = 0; inu < scaled_points; inu++ ) {
+    for ( int inu = 0; inu < line_points; inu++ ) {
         nus.push_back( nu_lower + inu * dnu );
     }
     

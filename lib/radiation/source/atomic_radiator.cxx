@@ -18,6 +18,7 @@
 
 #include "../../util/source/useful.h"
 #include "../../util/source/lua_service.hh"
+#include "../../nm/source/fobject.hh"
 #include "../../gas/models/gas_data.hh"
 
 #include "atomic_radiator.hh"
@@ -383,6 +384,9 @@ void
 AtomicRadiator::
 spectral_distribution( std::vector<double> &nus )
 {
+    // 0. Make an instance of the Roberts cluster function
+    RobertsClusterFunction rcf(0,1,1.01);
+
     // 1. Loop over all atomic lines (work delegated to lines)
     for ( int iline=0; iline<nlines; ++iline ) {
     	lines[iline]->spectral_distribution(nus);

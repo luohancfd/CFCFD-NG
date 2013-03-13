@@ -137,44 +137,40 @@ int LOS_data::create_spectral_bins( int binning_type, int N_bins, vector<Spectra
 double LOS_data::integrate_LOS( SpectralIntensity &S )
 {
     /* Spectral LOS integration using the exact transport eq. sol. for constant property slabs */
-    
-    // Check vector sizes in S for consistency
-    if ( int(S.nu.size()) != nnus_ || int(S.I_nu.size()) != nnus_ ) {
-	cout << "Mismatch in size of spectral vector in structure S. " << endl
-	     << "nnus = " << nnus_ << ", S.nu.size() = " << S.nu.size() << endl
-	     << "Bailing out!" << endl;
-	exit( BAD_INPUT_ERROR );
-    }
-    
+    double j_nu, kappa_nu;
+
+    // FIXME: should firstly calculate a spectrum to use for S
+
     // Compute and append Planck backlight intensity
-    for ( int inu=0; inu < nnus_; inu++ )
-	S.I_nu[inu] += planck_intensity( S.nu[inu], T_i_ );
-    
+    for ( size_t inu=0; inu < S.nu.size(); inu++ )
+        S.I_nu[inu] += planck_intensity( S.nu[inu], T_i_ );
+
     // Spatial integration over discretised points
     for ( int irp=0; irp<nrps_; irp++ ) {
-	double ds = rpoints_[irp]->ds_;
-	// Spatial integration for each spectral interval
-	for ( int inu=0; inu < nnus_; inu++ ) {
-	    // exact solution for constant property slab
-	    double decay_factor = exp( - ds * rpoints_[irp]->X_->kappa_nu[inu] );
-	    // newly radiated intensity
-	    double tmpA = rpoints_[irp]->X_->j_nu[inu] / rpoints_[irp]->X_->kappa_nu[inu] * ( 1.0 - decay_factor );
-	    if ( isnan(tmpA) ) {
-		// tmpA will go NaN when kappa_nu is zero.  Intensity is zero.
-		tmpA = 0.0;
-	    }
-	    // incoming intensity
-	    double tmpB = S.I_nu[inu] * decay_factor;
-	    // write-over old I_nu with new I_nu
-	    S.I_nu[inu] = tmpA + tmpB;
-	}
+        double ds = rpoints_[irp]->ds_;
+        // Spatial integration for each spectral interval
+        for ( size_t inu=0; inu < S.nu.size(); inu++ ) {
+            // exact solution for constant property slab
+            rpoints_[irp]->X_->coeffs_from_nu(S.nu[inu],j_nu,kappa_nu);
+            double decay_factor = exp( - ds * kappa_nu );
+            // newly radiated intensity
+            double tmpA = j_nu / kappa_nu * ( 1.0 - decay_factor );
+            if ( isnan(tmpA) ) {
+                // tmpA will go NaN when kappa_nu is zero.  Intensity is zero.
+                tmpA = 0.0;
+            }
+            // incoming intensity
+            double tmpB = S.I_nu[inu] * decay_factor;
+            // write-over old I_nu with new I_nu
+            S.I_nu[inu] = tmpA + tmpB;
+        }
     }
     // Subtract out Planck intensity from outer BC and cumpute integrated intensity
     double I_total = 0.0;
-    for ( int inu=0; inu < nnus_; inu++ ) {
-	S.I_nu[inu] -= planck_intensity( S.nu[inu], T_f_ );
-	if ( inu>0 )
-	    I_total += 0.5 * ( S.I_nu[inu] + S.I_nu[inu-1] ) * ( S.nu[inu] - S.nu[inu-1] );
+    for ( size_t inu=0; inu < S.nu.size(); inu++ ) {
+        S.I_nu[inu] -= planck_intensity( S.nu[inu], T_f_ );
+        if ( inu>0 )
+            I_total += 0.5 * ( S.I_nu[inu] + S.I_nu[inu-1] ) * ( S.nu[inu] - S.nu[inu-1] );
     }
     if ( nnus_== 1 ) I_total = S.I_nu[0];
 

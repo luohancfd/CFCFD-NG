@@ -184,6 +184,8 @@ public:
     std::string get_CR_model_latex_string()
     { return CR_model_latex_string(); }
     
+    double sum_level_populations();
+
 protected:
     /*** Data-input functions ***/
     

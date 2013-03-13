@@ -32,13 +32,15 @@ SpectralContainer::SpectralContainer()
 
 SpectralContainer::SpectralContainer( RadiationSpectralModel * rsm )
 {
-    this->compute_spectral_distribution( rsm );
-
     // Set nwidths to the default value
     nwidths = NWIDTHS;
 
     // Set the adaptive flag from the spectral model
     adaptive = rsm->get_adaptive_spectral_grid();
+
+    // Fill out the spectral grid
+    // WARNING: if adaptive, this will use the currently set linewidths
+    rsm->radiative_spectral_grid( nu );
 }
 
 SpectralContainer::SpectralContainer(SpectralContainer &C)
@@ -138,26 +140,6 @@ write_data_to_file( string fname, int spectral_units,
     return Y1_int;
 }
 
-void SpectralContainer::compute_spectral_distribution( RadiationSpectralModel * rsm )
-{
-    // Assuming uniform spectral distribution
-    int nnus = rsm->get_spectral_points();
-    nu.resize( nnus );
-
-    cout << "nnus = " << nnus << endl;
-
-    // Uniformally distributed spectral points with constant frequency spacing
-    double nu_val = lambda2nu( rsm->get_lambda_max() );
-    double dnu = ( lambda2nu( rsm->get_lambda_min() ) - lambda2nu( rsm->get_lambda_max() ) )
-		/ double ( ( rsm->get_spectral_points() - 1 ) );
-    for( int inu=0; inu<nnus; ++inu ){
-	nu[inu] = nu_val;
-	nu_val+=dnu;
-    }
-
-    return;
-}
-
 /* ------------ CoeffSpectra class ------------ */
 
 CoeffSpectra::CoeffSpectra() {}
@@ -165,9 +147,9 @@ CoeffSpectra::CoeffSpectra() {}
 CoeffSpectra::CoeffSpectra( RadiationSpectralModel * rsm )
  : SpectralContainer( rsm )
 {
-    j_nu.resize( nu.size() );
-    kappa_nu.resize( nu.size() );
-    j_int.resize( nu.size() );
+    j_nu.resize( nu.size(), 0.0 );
+    kappa_nu.resize( nu.size(), 0.0 );
+    j_int.resize( nu.size(), 0.0 );
 }
 
 CoeffSpectra::CoeffSpectra( CoeffSpectra * X )
@@ -421,6 +403,35 @@ double CoeffSpectra::kappa_from_nu( double nu_interval )
     // cout << "kappa = " << kappa << ", kappa_nu[inu_b] = " << kappa_nu[inu_b] << ", kappa_nu[inu_u] = " << kappa_nu[inu_u] << endl;
 
     return kappa;
+}
+
+void CoeffSpectra::coeffs_from_nu( double nu_star, double &j_nu_star, double &kappa_nu_star )
+{
+    if ( nu.size()==1 ) {
+        j_nu_star = j_nu[0];
+        kappa_nu_star = kappa_nu[0];
+        return;
+    }
+
+    int inu_b = 0, inu_u = int( nu.size() - 1 ), inu_mp = 0;
+    double f_b = 0.0, f_mp;
+    while ( abs( inu_u - inu_b ) > 1 ) {
+        f_b = nu[inu_b] - nu_star;
+        inu_mp = int( ( inu_u + inu_b ) / 2.0 );
+        f_mp = nu[inu_mp] - nu_star;
+        ( f_b * f_mp > 0.0 ) ? ( inu_b = inu_mp ) : ( inu_u = inu_mp );
+    }
+
+    double dnu = nu_star - nu[inu_b];
+    double m;
+    // Absorption coefficient
+    m = ( kappa_nu[inu_u] - kappa_nu[inu_b] ) / ( nu[inu_u] - nu[inu_b] );
+    kappa_nu_star = kappa_nu[inu_b] + m * dnu;
+    // Emission coefficient
+    m = ( j_nu[inu_u] - j_nu[inu_b] ) / ( nu[inu_u] - nu[inu_b] );
+    j_nu_star = j_nu[inu_b] + m * dnu;
+
+    return;
 }
 
 void CoeffSpectra::apply_apparatus_function( ApparatusFunction * A  )
@@ -771,15 +782,15 @@ SpectralIntensity::SpectralIntensity() {}
 SpectralIntensity::SpectralIntensity( RadiationSpectralModel * rsm )
  : SpectralContainer( rsm )
 {
-    I_nu.resize( nu.size() );
-    I_int.resize( nu.size() );
+    I_nu.resize( nu.size(), 0.0 );
+    I_int.resize( nu.size(), 0.0 );
 }
 
 SpectralIntensity::SpectralIntensity( RadiationSpectralModel * rsm, double T )
  : SpectralContainer( rsm )
 {
-    I_nu.resize( nu.size() );
-    I_int.resize( nu.size() );
+    I_nu.resize( nu.size(), 0.0 );
+    I_int.resize( nu.size(), 0.0 );
 
     for ( size_t inu=0; inu<nu.size(); ++inu ) {
     	I_nu[inu] = planck_intensity( nu[inu], T );
@@ -1054,7 +1065,7 @@ SpectralFlux::SpectralFlux() {}
 SpectralFlux::SpectralFlux( RadiationSpectralModel * rsm )
  : SpectralContainer( rsm )
 {
-    q_nu.resize( nu.size() );
+    q_nu.resize( nu.size(), 0.0 );
 }
 
 SpectralFlux::SpectralFlux( RadiationSpectralModel * rsm, double T )
@@ -1369,27 +1380,35 @@ double planck_intensity(const double nu, const double T)
     return B_nu;
 }
 
-int get_nu_index( vector<double> &nus, double nu, bool adaptive )
+int get_nu_index( vector<double> &nu, double nu_star, bool adaptive )
 {
-    // NOTE: this function only works for uniform spectral distribution
     // 0. Firstly check if nu is in range
-    int nnu = int ( nus.size() );
+    int nnu = int ( nu.size() );
     int inu;
-    if ( nu < nus.front() ) inu=-1;
-    else if ( nu > nus.back() ) inu=nnu-1;
+    if ( nu_star < nu.front() ) inu=-1;
+    else if ( nu_star > nu.back() ) inu=nnu-1;
     // 1. nu is in range, so find the appropriate index
     else if ( adaptive ){
         // The grid is non-uniform
-        vector<double>::iterator iter = lower_bound( nus.begin(), nus.end(), nu );
-        inu = distance( nus.begin(), iter );
+        int inu_b = 0, inu_u = int( nu.size() - 1 ), inu_mp = 0;
+        double f_b = 0.0, f_mp;
+        while ( abs( inu_u - inu_b ) > 1 ) {
+            f_b = nu[inu_b] - nu_star;
+            inu_mp = int( ( inu_u + inu_b ) / 2.0 );
+            f_mp = nu[inu_mp] - nu_star;
+            ( f_b * f_mp > 0.0 ) ? ( inu_b = inu_mp ) : ( inu_u = inu_mp );
+        }
+        inu = inu_b;
     }
     else {
         // The grid is uniform in frequency space
-	double dnu = ( nus.back() - nus.front() ) / double ( nnu - 1 );
-	inu = int ( ( nu - nus.front() ) / dnu );
+	double dnu = ( nu.back() - nu.front() ) / double ( nnu - 1 );
+	inu = int ( ( nu_star - nu.front() ) / dnu );
     }
 
-    // cout << "nu = " << nu << "inu = " << inu << ", nus.front() = " << nus.front() << ", nus.back() = " << nus.back() << endl;
+    if ( inu>0 && inu<nnu-1 ) {
+        cout << "adaptive = " << adaptive << ", nu_star = " << nu_star << ", nu[inu-1] = " << nu[inu-1] << ", nu[inu+1] = " << nu[inu+1] << endl;
+    }
     
     return inu;
 }

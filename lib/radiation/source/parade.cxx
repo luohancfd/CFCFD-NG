@@ -176,6 +176,9 @@ spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
     oss << "parade_working_dir_" << omp_get_thread_num();
     srv = chdir(oss.str().c_str());
 
+    // Set the adaptive flag
+    X.adaptive = adaptive_spectral_grid;
+
     // 0. Make sure the vectors in CoeffSpectra are sized to zero.
     //    This is required for adaptive spectral distributions.
     X.nu.clear();
@@ -231,56 +234,12 @@ spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
 
 void
 Parade::
-spectral_distribution_for_gas_state(Gas_data &Q, vector<double> &nus)
-{
-    // System return value
-    int srv;
-
-    // 0. Make sure the nu vector is of size zero
-    nus.clear();
-
-    // 1. Create the parade control file
-    create_parade_control_files( Q );
-
-    // 2. Run the parade executable
-    srv = system("parade > parade.out");
-
-    // 3. Pick up the solution and insert it into CoeffSpectra
-    ifstream specfile( "par_res.txt" );
-    if ( !specfile.is_open() ) {
-        cout << "Parade::spectral_distribution_for_gas_state()" << endl
-             << "Could not open parade spectra file 'par_res.dat'." << endl
-             << "Exiting program." << endl;
-        exit( FAILURE );
-    }
-
-    // Remaining lines should be spectral data
-    // Note that the parade data starts from the lower wavelength whereas our
-    // spectra classes start from the highest wavelength
-    double lambda_ang, j_lambda, kappa;
-    while ( specfile >> lambda_ang >> j_lambda >> kappa ) {
-        nus.push_back( lambda2nu( lambda_ang/10.0 ) );
-    }
-    specfile.close();
-
-    // We want ascending frequencies for consistency with photaura model
-    if ( nus.front() > nus.back() ) {
-        reverse( nus.begin(), nus.end() );
-    }
-
-    UNUSED_VARIABLE(srv);
-
-    return;
-}
-
-void
-Parade::
 write_line_widths( Gas_data &Q )
 {
     cout << "Parade::write_line_widths()" << endl
          << "This function is not available for the parade radiation model." << endl
          << "Exiting program!" << endl;
-    exit( BAD_INPUT_ERROR );
+    exit( NOT_IMPLEMENTED_ERROR );
 }
 
 void
@@ -290,7 +249,7 @@ prep_rad_pop_files()
     cout << "Parade::prep_rad_pop_files()" << endl
          << "This function is not available for the parade radiation model." << endl
          << "Exiting program!" << endl;
-    exit( BAD_INPUT_ERROR );
+    exit( NOT_IMPLEMENTED_ERROR );
 }
 
 void
@@ -300,7 +259,7 @@ append_current_rad_pops( double x )
     cout << "Parade::append_current_rad_pops()" << endl
          << "This function is not available for the parade radiation model." << endl
          << "Exiting program!" << endl;
-    exit( BAD_INPUT_ERROR );
+    exit( NOT_IMPLEMENTED_ERROR );
 }
 
 void
@@ -310,7 +269,7 @@ write_QSS_analysis_files( Gas_data &Q, int index )
     cout << "Parade::write_QSS_analysis_files()" << endl
          << "This function is not available for the parade radiation model." << endl
          << "Exiting program!" << endl;
-    exit( BAD_INPUT_ERROR );
+    exit( NOT_IMPLEMENTED_ERROR );
 }
 
 void

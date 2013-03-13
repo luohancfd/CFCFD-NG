@@ -197,6 +197,29 @@ new_spectral_params( double _lambda_min, double _lambda_max, int _spectral_point
     this->reset_spectral_params(spectral_block);
 }
 
+void
+RadiationSpectralModel::
+make_spectral_grid( vector<double> &nus)
+{
+    if ( adaptive_spectral_grid ) {
+        cout << "RadiationSpectralModel::make_spectral_grid()" << endl
+             << "This function is not available for adaptive spectral grids" << endl
+             << "Bailing out!" << endl;
+        exit( NOT_IMPLEMENTED_ERROR );
+    }
+    else {
+        /* Uniformally distributed spectral points with constant frequency spacing */
+        double nu = lambda2nu( this->get_lambda_max() );
+        double dnu = ( lambda2nu( this->get_lambda_min() ) - lambda2nu( this->get_lambda_max() ) )
+                    / double ( ( this->get_spectral_points() - 1 ) );
+        nus.resize( this->get_spectral_points() );
+        for( int inu=0; inu<this->get_spectral_points(); ++inu ){
+            nus[inu] = nu;
+            nu+=dnu;
+        }
+    }
+}
+
 
 void
 RadiationSpectralModel::

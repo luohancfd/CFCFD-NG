@@ -644,6 +644,9 @@ void
 Spradian::
 spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
 {
+    // Set the adaptive flag
+    X.adaptive = adaptive_spectral_grid;
+
     // 0. Make sure the vectors in CoeffSpectra are sized to zero.
     //    This is required for adaptive spectral distributions.
     X.nu.clear();
