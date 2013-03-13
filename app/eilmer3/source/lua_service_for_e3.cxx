@@ -257,7 +257,7 @@ int luafn_eval_diffusion_coefficients(lua_State *L)
     int flag = apply_gas_method(&Gas_model::eval_diffusion_coefficients, Q);
     if ( flag != SUCCESS ) {
 	cout << "luafn_eval_diffusion_coefficients(): " << endl;
-	cout << "There was a problem calling eval_iffusion_coefficients()." << endl;
+	cout << "There was a problem calling eval_diffusion_coefficients()." << endl;
 	cout << "This was called inside a user-defined function." << endl;
 	cout << "Supplied gas_data was:" << endl;
 	Q.print_values();
@@ -269,10 +269,108 @@ int luafn_eval_diffusion_coefficients(lua_State *L)
     return 0;
 }
 
+int luafn_eval_Cv(lua_State *L)
+{
+    // Assume gas_data is a top of stack and store this index
+    Gas_model *gmodel = get_gas_model_ptr();
+    Gas_data Q(gmodel);
+    // Expect a gas_data as lua table at top of stack.
+    get_table_as_gas_data(L, Q);
+    int status;
+    double Cv = apply_gas_method(&Gas_model::Cv, Q, status);
+    if ( status != SUCCESS ) {
+	cout << "luafn_eval_Cv(): " << endl;
+	cout << "There was a problem calling eval_Cv()." << endl;
+	cout << "This was called inside a user-defined function." << endl;
+	cout << "Supplied gas_data was:" << endl;
+	Q.print_values();
+	cout << "Bailing out!" << endl;
+	exit(UDF_ERROR);
+    }
+    // Put Cv at top of stack
+    lua_pushnumber(L, Cv);
+    return 1;
+}
+
+int luafn_eval_Cp(lua_State *L)
+{
+    // Assume gas_data is a top of stack and store this index
+    Gas_model *gmodel = get_gas_model_ptr();
+    Gas_data Q(gmodel);
+    // Expect a gas_data as lua table at top of stack.
+    get_table_as_gas_data(L, Q);
+    int status;
+    double Cp = apply_gas_method(&Gas_model::Cp, Q, status);
+    if ( status != SUCCESS ) {
+	cout << "luafn_eval_Cp(): " << endl;
+	cout << "There was a problem calling eval_Cp()." << endl;
+	cout << "This was called inside a user-defined function." << endl;
+	cout << "Supplied gas_data was:" << endl;
+	Q.print_values();
+	cout << "Bailing out!" << endl;
+	exit(UDF_ERROR);
+    }
+    // Put Cp at top of stack
+    lua_pushnumber(L, Cp);
+    return 1;
+}
+
+int luafn_eval_R(lua_State *L)
+{
+    // Assume gas_data is a top of stack and store this index
+    Gas_model *gmodel = get_gas_model_ptr();
+    Gas_data Q(gmodel);
+    // Expect a gas_data as lua table at top of stack.
+    get_table_as_gas_data(L, Q);
+    int status;
+    double R = apply_gas_method(&Gas_model::R, Q, status);
+    if ( status != SUCCESS ) {
+	cout << "luafn_eval_R(): " << endl;
+	cout << "There was a problem calling eval_R()." << endl;
+	cout << "This was called inside a user-defined function." << endl;
+	cout << "Supplied gas_data was:" << endl;
+	Q.print_values();
+	cout << "Bailing out!" << endl;
+	exit(UDF_ERROR);
+    }
+    // Put R at top of stack
+    lua_pushnumber(L, R);
+    return 1;
+}
+
+int luafn_eval_gamma(lua_State *L)
+{
+    // Assume gas_data is a top of stack and store this index
+    Gas_model *gmodel = get_gas_model_ptr();
+    Gas_data Q(gmodel);
+    // Expect a gas_data as lua table at top of stack.
+    get_table_as_gas_data(L, Q);
+    int status;
+    double gamma = apply_gas_method(&Gas_model::gamma, Q, status);
+    if ( status != SUCCESS ) {
+	cout << "luafn_eval_R(): " << endl;
+	cout << "There was a problem calling eval_gamma()." << endl;
+	cout << "This was called inside a user-defined function." << endl;
+	cout << "Supplied gas_data was:" << endl;
+	Q.print_values();
+	cout << "Bailing out!" << endl;
+	exit(UDF_ERROR);
+    }
+    // Put gamma at top of stack
+    lua_pushnumber(L, gamma);
+    return 1;
+}
+
 int apply_gas_method(Gas_model_Method_gas_data f, Gas_data &Q)
 {
     Gas_model *gmodel = get_gas_model_ptr();
     return CALL_MEMBER_FN(*gmodel,f)(Q);
+}
+
+double apply_gas_method(Gas_model_Method_gas_data_int f, Gas_data &Q, int &status)
+{
+    Gas_model *gmodel = get_gas_model_ptr();
+    return CALL_MEMBER_FN(*gmodel,f)(Q, status);
 }
 
 int register_luafns(lua_State *L)
@@ -291,7 +389,21 @@ int register_luafns(lua_State *L)
     lua_setglobal(L, "eval_thermo_state_rhoT");
     lua_pushcfunction(L, luafn_eval_thermo_state_rhop);
     lua_setglobal(L, "eval_thermo_state_rhop");
-
+    lua_pushcfunction(L, luafn_eval_sound_speed);
+    lua_setglobal(L, "eval_sound_speed");
+    lua_pushcfunction(L, luafn_eval_transport_coefficients);
+    lua_setglobal(L, "eval_transport_coefficients");
+    lua_pushcfunction(L, luafn_eval_diffusion_coefficients);
+    lua_setglobal(L, "eval_diffusion_coefficients");
+    lua_pushcfunction(L, luafn_eval_Cv);
+    lua_setglobal(L, "eval_Cv");
+    lua_pushcfunction(L, luafn_eval_Cp);
+    lua_setglobal(L, "eval_Cp");
+    lua_pushcfunction(L, luafn_eval_R);
+    lua_setglobal(L, "eval_R");
+    lua_pushcfunction(L, luafn_eval_gamma);
+    lua_setglobal(L, "eval_gamma");
+    
     return 0;
 }
 

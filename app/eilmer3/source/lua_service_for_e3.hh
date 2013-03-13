@@ -17,6 +17,7 @@ extern "C" {
 }
 
 typedef int (Gas_model::*Gas_model_Method_gas_data)(Gas_data &);
+typedef double (Gas_model::*Gas_model_Method_gas_data_int)(const Gas_data &, int &);
 #define CALL_MEMBER_FN(object,ptrToMember) ((object).*(ptrToMember))
 
 int luafn_sample_flow(lua_State *L);
@@ -29,7 +30,12 @@ int luafn_eval_thermo_state_rhop(lua_State *L);
 int luafn_eval_sound_speed(lua_State *L);
 int luafn_eval_transport_coefficients(lua_State *L);
 int luafn_eval_diffusion_coefficients(lua_State *L);
+int luafn_eval_Cv(lua_State *L);
+int luafn_eval_Cp(lua_State *L);
+int luafn_eval_R(lua_State *L);
+int luafn_eval_gamma(lua_State *L);
 int apply_gas_method(Gas_model_Method_gas_data f, Gas_data &Q);
+double apply_gas_method(Gas_model_Method_gas_data_int f, Gas_data &Q, int &status);
 int register_luafns(lua_State *L);
 
 #endif
