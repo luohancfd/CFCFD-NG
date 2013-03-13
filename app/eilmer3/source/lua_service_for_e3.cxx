@@ -403,7 +403,12 @@ int register_luafns(lua_State *L)
     lua_setglobal(L, "eval_R");
     lua_pushcfunction(L, luafn_eval_gamma);
     lua_setglobal(L, "eval_gamma");
-    
+    // Set some of the physical constants
+    lua_pushnumber(L, PC_R_u);
+    lua_setglobal(L, "PC_R_u");
+    lua_pushnumber(L, PC_P_atm);
+    lua_setglobal(L, "PC_P_atm");
+
     return 0;
 }
 
