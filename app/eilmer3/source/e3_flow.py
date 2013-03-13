@@ -834,7 +834,7 @@ class ExistingSolution(object):
                                                  i, j, k, blk_indx, x, y, z)
             block_flow = self.flow[jb]
             block_number = jb
-            if self.bgk:
+            if False and self.bgk:
                 block_bgk = self.bgk[jb]
                 
         flow_data_for_cell = block_flow.get_cell_data(i, j, k, x, y, z, vol, replace_geom=True)
@@ -842,7 +842,7 @@ class ExistingSolution(object):
         flow_data_for_cell['vel.y'] += self.add_velocity.y
         flow_data_for_cell['vel.z'] += self.add_velocity.z
         
-        if self.bgk:
+        if False and self.bgk:
             bgk_data_for_cell = block_bgk.get_cell_data(i, j, k, x, y, z, vol, replace_geom=True)
             return (flow_data_for_cell, bgk_data_for_cell, i, j, k, block_number)
         else:
