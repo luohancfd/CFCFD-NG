@@ -97,3 +97,11 @@ int luafn_locate_cell(lua_State *L)
     return 5; // We leave jb, i, j, k and found_cell on the stack.
 }
 
+int register_luafns(lua_State *L)
+{
+    lua_pushcfunction(L, luafn_sample_flow);
+    lua_setglobal(L, "sample_flow");
+    lua_pushcfunction(L, luafn_locate_cell);
+    lua_setglobal(L, "locate_cell");
+    return 0;
+}

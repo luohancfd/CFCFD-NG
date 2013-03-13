@@ -29,9 +29,11 @@ AdiabaticBC::AdiabaticBC()
 			0, true, false, -1, -1, 0) 
 {}
 
-AdiabaticBC & AdiabaticBC::operator=(const AdiabaticBC &bc)
+AdiabaticBC&
+AdiabaticBC::operator=(const AdiabaticBC &bc)
 {
     BoundaryCondition::operator=(bc);
+    return *this;
 }
 
 AdiabaticBC::~AdiabaticBC() {}

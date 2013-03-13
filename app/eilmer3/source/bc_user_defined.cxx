@@ -330,10 +330,7 @@ int UserDefinedBC::start_interpreter()
 
     // Register functions so that they are accessible 
     // from the Lua environment.
-    lua_pushcfunction(L, luafn_sample_flow);
-    lua_setglobal(L, "sample_flow");
-    lua_pushcfunction(L, luafn_locate_cell);
-    lua_setglobal(L, "locate_cell");
+    register_luafns(L);
 
     // Presume that the user-defined functions are in the specified file.
     if ( luaL_loadfile(L, filename.c_str()) || lua_pcall(L, 0, 0, 0) ) {

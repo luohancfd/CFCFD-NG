@@ -131,7 +131,7 @@ EquilibriumCatalyticWallBC::
 apply( Gas_data &Q, vector<double> &massf )
 {
     double logp, lpfrac;
-    int ip;
+    size_t ip;
 
     logp = log10( Q.p );
     ip = (int) ((logp - lpmin) / dlp );

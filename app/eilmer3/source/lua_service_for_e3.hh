@@ -15,3 +15,6 @@ extern "C" {
 
 int luafn_sample_flow(lua_State *L);
 int luafn_locate_cell(lua_State *L);
+
+
+int register_luafns(lua_State *L);
