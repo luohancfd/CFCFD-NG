@@ -57,7 +57,7 @@ extern "C" {
 #include "init.hh"
 #include "bc.hh"
 #include "bc_extrapolate_out.hh"
-#include "bc_user_defined.hh"
+#include "lua_service_for_e3.hh"
 #include "bc_menter_correction.hh"
 #include "exch2d.hh"
 #include "visc.hh"

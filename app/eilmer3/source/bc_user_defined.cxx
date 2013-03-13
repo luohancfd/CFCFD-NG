@@ -29,6 +29,7 @@ extern "C" {
 #include "bc.hh"
 #include "bc_user_defined.hh"
 #include "bc_menter_correction.hh"
+#include "lua_service_for_e3.hh"
 
 //----------------------------------------------------------------------------
 
@@ -333,8 +334,6 @@ int UserDefinedBC::start_interpreter()
     lua_setglobal(L, "sample_flow");
     lua_pushcfunction(L, luafn_locate_cell);
     lua_setglobal(L, "locate_cell");
-    lua_pushcfunction(L, luafn_compute_diffusion_coefficient);
-    lua_setglobal(L, "compute_diffusion_coefficient");
 
     // Presume that the user-defined functions are in the specified file.
     if ( luaL_loadfile(L, filename.c_str()) || lua_pcall(L, 0, 0, 0) ) {
@@ -597,186 +596,6 @@ void UserDefinedBC::handle_lua_error(lua_State *L, const char *fmt, ...)
     va_end(argp);
     lua_close(L);
     exit(LUA_ERROR);
-}
-
-//-----------------------------------------------------------------------
-// Functions that provide information to the Lua interpreter
-// and need access to the global_data and array of Block structures.
-
-int luafn_sample_flow(lua_State *L)
-{
-    // Get arguments from stack.
-    int jb = lua_tointeger(L, 1);
-    int i = lua_tointeger(L, 2);
-    int j = lua_tointeger(L, 3);
-    int k = lua_tointeger(L, 4);
-
-    Gas_model *gmodel = get_gas_model_ptr();
-    Block *bdp= get_block_data_ptr(jb);
-    FV_Cell *cell = bdp->get_cell(i,j,k);
-    FlowState &fs = *(cell->fs);
-
-    // Return the interesting data in a table with named fields.
-    lua_newtable(L); // creates a table that is now at the TOS
-    lua_pushnumber(L, cell->pos.x); lua_setfield(L, -2, "x");
-    lua_pushnumber(L, cell->pos.y); lua_setfield(L, -2, "y");
-    lua_pushnumber(L, cell->pos.z); lua_setfield(L, -2, "z");
-    lua_pushnumber(L, cell->volume); lua_setfield(L, -2, "vol");
-    lua_pushnumber(L, fs.gas->p); lua_setfield(L, -2, "p");
-    lua_pushnumber(L, fs.gas->T[0]); lua_setfield(L, -2, "T_wall");
-    lua_pushnumber(L, fs.gas->rho); lua_setfield(L, -2, "rho"); 
-    lua_pushnumber(L, fs.vel.x); lua_setfield(L, -2, "u"); 
-    lua_pushnumber(L, fs.vel.y); lua_setfield(L, -2, "v");
-    lua_pushnumber(L, fs.vel.z); lua_setfield(L, -2, "w");
-    lua_pushnumber(L, fs.gas->a); lua_setfield(L, -2, "a");
-    lua_pushnumber(L, fs.mu_t); lua_setfield(L, -2, "mu_t");
-    lua_pushnumber(L, fs.k_t); lua_setfield(L, -2, "k_t");
-    lua_pushnumber(L, fs.tke); lua_setfield(L, -2, "tke");
-    lua_pushnumber(L, fs.omega); lua_setfield(L, -2, "omega");
-    lua_pushnumber(L, fs.S); lua_setfield(L, -2, "S");
-    lua_newtable(L); // A table for the individual temperatures
-    int nmodes = gmodel->get_number_of_modes();
-    for ( int imode = 0; imode < nmodes; ++imode ) {
-	lua_pushinteger(L, imode);
-	lua_pushnumber(L, fs.gas->T[imode]);
-	lua_settable(L, -3);
-    }
-    // At this point, the table of temperatures should be TOS.
-    lua_setfield(L, -2, "T");
-    lua_newtable(L); // Another table for the mass fractions
-    int nsp = gmodel->get_number_of_species();
-    for ( int isp = 0; isp < nsp; ++isp ) {
-	lua_pushinteger(L, isp);
-	lua_pushnumber(L, fs.gas->massf[isp]);
-	lua_settable(L, -3);
-    }
-    // At this point, the table of mass fractions should be TOS.
-    lua_setfield(L, -2, "massf");
-    // Parameters for computing density and energy residuals
-    lua_pushnumber(L, cell->U_old->mass); lua_setfield(L, -2, "rho_old");
-    lua_pushnumber(L, cell->U->total_energy); lua_setfield(L, -2, "rE");
-    lua_pushnumber(L, cell->U_old->total_energy); lua_setfield(L, -2, "rE_old");
-    
-    return 1; // Just the one table is left on Lua stack
-}
-
-int luafn_locate_cell(lua_State *L)
-{
-    double x = lua_tonumber(L, 1);
-    double y = lua_tonumber(L, 2);
-    double z = 0.0;
-    global_data *gdp = get_global_data_ptr();
-    if ( gdp->dimensions == 3 ) {
-	z = lua_tonumber(L, 3);
-    }
-    int jb, i, j, k, found_cell;
-    found_cell = locate_cell(x, y, z, &jb, &i, &j, &k);
-    if ( !found_cell ) {
-	found_cell = find_nearest_cell(x, y, z, &jb, &i, &j, &k);
-	if ( !found_cell ) {
-	    printf("luafn_locate_cell(): no cells near pos=(%g,%g,%g)", x, y, z);
-	}
-    }
-    lua_pushinteger(L, jb);
-    lua_pushinteger(L, i);
-    lua_pushinteger(L, j);
-    lua_pushinteger(L, k);
-    lua_pushinteger(L, found_cell);
-    return 5; // We leave jb, i, j, k and found_cell on the stack.
-}
-
-// static gas_data Q;
-// static vector<double> x;
-
-int luafn_compute_diffusion_coefficient(lua_State *L)
-{
-    // Author: R. Gollan
-    //
-    // This function makes some strong assumptions:
-    // 1. We are using a thermally perfect gas mix, and
-    // 2. A diffusion model has been initialised.
-    //
-//     int nsp = get_number_of_species();
-//     if( Q.f.size() != size_t(nsp) ) {
-// 	set_array_sizes_in_gas_data(Q, nsp,
-// 				    get_number_of_vibrational_species());
-// 	x.resize(nsp);
-//     }
-
-    // Accept a call from Lua of the form
-    // compute_diffusion_coefficient(p, T, mf, "name")
-    // where:
-    // p      -- pressure in Pa (number)
-    // T      -- temperature in K (number)
-    // mf     -- mass fractiona (array, indexed from 0)
-    // "name" -- name of the species of interest (string) 
-    // Get arguments from stack
-//     Q.p = luaL_checknumber(L, 1);
-//     Q.T = luaL_checknumber(L, 2);
-
-//     if( !lua_istable(L, 3) ) {
-// 	cout << "Error in Lua script, problem with call to:\n"
-// 	     << "compute_diffusion_coefficient()\n"
-// 	     << "An array of mass fractions is expected as the 3rd argument.\n"
-// 	     << "Bailing out!\n";
-// 	exit(LUA_ERROR);
-//     }
-
-//     for( size_t i = 0; i < Q.f.size(); ++i ) {
-// 	lua_rawgeti(L, 3, i);
-// 	Q.f[i] = luaL_checknumber(L, -1);
-// 	lua_pop(L, 1);
-//     }
-//     const char* sp_name = luaL_checkstring(L, 4);
-    // FIX-ME
-    // Need to cast gas_model as a ThermallyPerfectGasMix
-    // ThermallyPerfectGasMix *tpgm = dynamic_cast<ThermallyPerfectGasMix*>(get_gas_model_pointer());
-//     if( tpgm == 0 ) {
-// 	ostringstream ost;
-// 	ost << "error in call to compute_diffusion_coefficient():\n"
-// 	    << "   This function is only appropriate with the \"perf_gas_mix\" gas model.\n"
-// 	    << "Bailing out!\n";
-// 	luaL_error(L, ost.str().c_str());
-// 	exit(1);
-//     }
-//     int idx = tpgm->species_index(string(sp_name));
-//     if( idx == -1 ) {
-// 	ostringstream ost;
-// 	ost << "error in call to compute_diffusion_coefficient():\n"
-// 	    << "   The species name: " << sp_name << " could not be found in the species mix.\n"
-// 	    << "Bailing out!\n";
-// 	luaL_error(L, ost.str().c_str());
-// 	exit(1);
-//     }
-
-    // Call equation of state to fill in values
-    // of all binary diffusion coefficients.
-//     EOS_pT(Q, true, true);
-
-    // Compute averaged diffusion coefficients.
-    // This code is copy-n-pasted from FicksFirstLaw class in cns_diffusion.cxx
-    // (In other words, it is duplicated BUT it's easier than instantiating
-    // a dummy FicksFirstLaw object.)
-
-    // Compute mole fractions
-//     for( int isp = 0; isp < nsp; ++isp ) {
-// 	x[isp] = Q.c[isp] / Q.c_tot;
-//     }
-
-//     double sum = 0.0;
-//     for( int jsp = 0; jsp < nsp; ++jsp ) {
-// 	if( idx == jsp ) continue;
-// 	sum += x[jsp] / Q.D_AB.get(idx,jsp);
-//     }
-
-//     double D = 0.0;
-//     if( sum > 0.0 ) 
-// 	D = (1.0 - x[idx]) / sum;
-    
-//     // Finally return a single number to the
-//     // caller
-//     lua_pushnumber(L, D);
-    return 1;
 }
 
 //------------------------------------------------------------------------

@@ -154,6 +154,7 @@ E3_OBJECTS_2 := kernel.o \
 	time_to_go.o \
 	c-flow-condition.o \
 	lua_service.o \
+	lua_service_for_e3.o \
 	dbc_assert.o \
 	thermo-interpolator.o \
 	rhoe-interpolator.o \
@@ -165,7 +166,7 @@ E3_OBJECTS_2 := kernel.o \
 	cell_finder.o \
 	mersenne.o \
 	ray_tracing_pieces.o \
-	bgk.o
+	bgk.o 
 
 ifeq ($(LES_DATA), 1)
     E3_OBJECTS_2 += les.o
@@ -514,7 +515,7 @@ bc_extrapolate_out.o : $(SRC)/bc_extrapolate_out.cxx $(SRC)/block.hh $(SRC)/kern
 bc_shock_fitting_in.o : $(SRC)/bc_shock_fitting_in.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh $(SRC)/bc.hh
 	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_shock_fitting_in.cxx -o bc_shock_fitting_in.o
-	
+
 bc_slip_wall.o : $(SRC)/bc_slip_wall.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
 	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_slip_wall.cxx -o bc_slip_wall.o
@@ -634,6 +635,9 @@ c-flow-condition.o : $(SRC)/c-flow-condition.cxx $(SRC)/c-flow-condition.hh $(GA
 
 lua_service.o : $(UTIL_SRC)/lua_service.hh $(UTIL_SRC)/lua_service.cxx
 	$(CXX) $(CXXFLAG) $(UTIL_SRC)/lua_service.cxx -I$(LUA_INCLUDE_DIR) -I$(ZLIB)
+
+lua_service_for_e3.o : $(SRC)/lua_service_for_e3.cxx $(SRC)/lua_service_for_e3.hh
+	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/lua_service_for_e3.cxx
 
 dbc_assert.o : $(UTIL_SRC)/dbc_assert.cxx $(UTIL_SRC)/dbc_assert.hh
 	$(CXX) $(CXXFLAG) $(UTIL_SRC)/dbc_assert.cxx

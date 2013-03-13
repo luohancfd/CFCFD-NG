@@ -37,14 +37,6 @@ private:
 };
 
 //--------------------------------------------------------------------
-// Functions that are registered with the Lua interpreter have to be
-// outside the class definitions.
-
-int luafn_sample_flow(lua_State *L);
-int luafn_locate_cell(lua_State *L);
-int luafn_compute_diffusion_coefficient(lua_State *L);
-
-//--------------------------------------------------------------------
 
 class AdjacentPlusUDFBC : public UserDefinedBC {
 public:
