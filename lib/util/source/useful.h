@@ -72,8 +72,8 @@
 				       * with the Lua interpreter. */
 #define RECONSTRUCTION_ERROR    125   /* For problems with interpolation/reconstruction of
 					 flow quantities. */
-#define BAD_REACTION_RATE_ERROR 125
-#define UDF_ERROR               126
+#define BAD_REACTION_RATE_ERROR 126
+#define UDF_ERROR               127
 
 #define USEFUL_HEADER_ALREADY_INCLUDED
 #endif
