@@ -1173,7 +1173,7 @@ Vector3 RevolvedSurface::eval( double r, double s ) const
     double radius = sqrt(p.y * p.y + p.z * p.z);
     double theta = atan2(p.z, p.y);
     // 0 <= s <= 1.0 is mapped to angle 0 <= theta <= 2 pi, in radians
-    theta =+ (s * 2.0 * M_PI);
+    theta += (s * 2.0 * M_PI);
     p.y = radius * cos(theta);
     p.z = radius * sin(theta);
     return p;

@@ -137,11 +137,11 @@ apply( Gas_data &Q, vector<double> &massf )
     ip = (int) ((logp - lpmin) / dlp );
     
     /*
-     * Ensure that index is in bounds of array
+     * Ensure that index is in bounds of array.
      */
-    if( ip < 0 ) {
-	ip = 0;
-    }
+    // if( ip < 0 ) { // Unnecessary test for unsigned values.
+    //	ip = 0;
+    //}
     if( ip > (ipmax - 1) ) {
 	ip = ipmax - 1;
     }

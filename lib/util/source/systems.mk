@@ -93,6 +93,19 @@ ifneq ($(MARCH),)
 	MARCH_FLAG := -march=$(MARCH)
 endif
 
+ifeq ($(TARGET), for_clang)
+    # UNIX/Linux workstation with the Clang C, C++ compiler
+    COMPILE := clang 
+    LINK    := clang
+    CXX     := clang
+    CXXLINK := clang
+    # Unix/Linux is default
+    CFLAG   := -c $(OPT)
+    LFLAG   := $(OPT)
+    CXXFLAG := -c $(OPT)
+    LLIB := -lstdc++ -lm
+endif
+
 ifeq ($(TARGET), for_gnu)
     # UNIX/Linux workstation with the default GNU C compiler
     # Don't specify the processor architecture.

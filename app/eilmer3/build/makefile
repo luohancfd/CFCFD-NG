@@ -463,19 +463,19 @@ time_to_go.o : $(UTIL_SRC)/time_to_go.c $(UTIL_SRC)/time_to_go.h
 
 e3shared.o : $(SRC)/main.cxx $(SRC)/main.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh \
 		$(SRC)/init.hh $(SRC)/exch2d.hh $(SRC)/visc.hh $(SRC)/piston.hh $(LIBLUA)
-	$(CXX) $(PCA) $(CXXFLAG) -DSHARED -L/opt/local/lib -I/sw/include -I/opt/local/include -I$(LUA_INCLUDE_DIR) \
+	$(CXX) $(PCA) $(CXXFLAG) -DSHARED -I/sw/include -I/opt/local/include -I$(LUA_INCLUDE_DIR) \
 		$(SRC)/main.cxx -o e3shared.o
 
 e3mpi.o : $(SRC)/main.cxx $(SRC)/main.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh \
 		$(SRC)/init.hh $(SRC)/exch2d.hh $(SRC)/exch_mpi.hh \
 		$(SRC)/visc.hh $(SRC)/piston.hh $(LIBLUA)
-	$(CXX) $(PCA) $(CXXFLAG) $(CFLAG_MPI) -L/opt/local/lib -D_MPI -I/sw/include -I/opt/local/include -I$(LUA_INCLUDE_DIR) \
+	$(CXX) $(PCA) $(CXXFLAG) $(CFLAG_MPI) -D_MPI -I/sw/include -I/opt/local/include -I$(LUA_INCLUDE_DIR) \
 		$(SRC)/main.cxx -o e3mpi.o
 
 e3rad.o : $(SRC)/main.cxx $(SRC)/main.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh \
 		$(SRC)/init.hh $(SRC)/exch2d.hh $(SRC)/visc.hh $(SRC)/piston.hh \
 		$(SRC)/radiation_transport.hh $(LIBLUA)
-	$(CXX) $(PCA) $(CXXFLAG) -DSHARED -DE3RAD -L/opt/local/lib -I/sw/include -I/opt/local/include -I$(LUA_INCLUDE_DIR) \
+	$(CXX) $(PCA) $(CXXFLAG) -DSHARED -DE3RAD -I/sw/include -I/opt/local/include -I$(LUA_INCLUDE_DIR) \
 		$(SRC)/main.cxx -o e3rad.o
 
 exch2d.o : $(SRC)/exch2d.cxx $(SRC)/exch3d.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)

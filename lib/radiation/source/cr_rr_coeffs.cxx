@@ -1157,7 +1157,7 @@ KuncSoonElectronImpactIonization( lua_State * L, ElecLev * elev, double I )
 
 KuncSoonElectronImpactIonization::
 KuncSoonElectronImpactIonization( double A, double xi, double Q, ElecLev * elev, double I )
-: E_l( elev->get_E() ), I( I ), A( A ), chi( chi ), Q_val( Q )
+: E_l( elev->get_E() ), I( I ), A( A ), chi( xi ), Q_val( Q ) // FIX-ME: Dan, please check.
 {
     type = "KuncSoonElectronImpactIonization";
     

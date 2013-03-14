@@ -113,7 +113,7 @@ TransientUniformBC::TransientUniformBC( const TransientUniformBC &bc )
 			bc.x_order, bc.is_wall_flag, bc.use_udf_flux_flag,
 			bc.neighbour_block, bc.neighbour_face,
 			bc.neighbour_orientation), 
-      filename(filename)
+      filename(bc.filename)
 {
     nsp = bc.nsp;
     nmodes = bc.nmodes;

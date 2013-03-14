@@ -734,20 +734,20 @@ create_electron_impact_ionization_reactions( lua_State * L, string model )
     for ( size_t ilev=0; ilev<noneq_elevs.size(); ++ilev ) {
     	// N and O preference the curve fits of Kunc and Soon
     	if ( model=="KuncSoon and CJDrawin" ) {
-    	    if ( ilev>=0 && ilev<=2 ) _model = "KuncSoon";
+    	    if ( ilev<=2 ) _model = "KuncSoon";
     	    else _model = "CJDrawin";
     	}
     	else if ( model=="KuncSoon and Drawin" ) {
-    	    if ( ilev>=0 && ilev<=2 ) _model = "KuncSoon";
+    	    if ( ilev<=2 ) _model = "KuncSoon";
     	    else _model = "Drawin";
     	}
     	// Panesi preferences the GA fits of Bultel for N and O
     	if ( model=="Bultel and CJDrawin" ) {
-    	    if ( ilev>=0 && ilev<=2 ) _model = "Bultel";
+    	    if ( ilev<=2 ) _model = "Bultel";
     	    else _model = "CJDrawin";
     	}
     	else if ( model=="Bultel and Drawin" ) {
-    	    if ( ilev>=0 && ilev<=2 ) _model = "Bultel";
+    	    if ( ilev<=2 ) _model = "Bultel";
     	    else _model = "Drawin";
     	}
     	// C preferences the data of Suno and Kato

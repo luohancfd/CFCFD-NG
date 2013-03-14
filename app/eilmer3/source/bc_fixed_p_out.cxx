@@ -22,7 +22,7 @@ FixedPOutBC::FixedPOutBC( const FixedPOutBC &bc )
 			bc.x_order, bc.is_wall_flag, bc.use_udf_flux_flag,
 			bc.neighbour_block, bc.neighbour_face,
 			bc.neighbour_orientation), 
-      Pout(Pout) 
+      Pout(bc.Pout) 
 {}
 
 FixedPOutBC::FixedPOutBC()
