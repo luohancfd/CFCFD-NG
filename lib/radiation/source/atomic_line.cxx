@@ -24,8 +24,8 @@
 using namespace std;
 
 AtomicLine::
-AtomicLine( vector<double> line_data, double m_w, double I )
-: m_w( m_w ), I( I )
+AtomicLine( vector<double> line_data, double m_w, double I, int npoints, int nwidths, double beta )
+: m_w( m_w ), I( I ), npoints( npoints ), nwidths( nwidths )
 {
     // 0. Check size of line data vector
     // -> now done by AtomicRadiator constructor
@@ -59,10 +59,17 @@ AtomicLine( vector<double> line_data, double m_w, double I )
     		( 8.0 * M_PI * RC_h_SI ) / ( nu_ul * nu_ul * nu_ul );
     f_lu = RC_m * RC_c * RC_c * RC_c / ( 8.0 * M_PI * M_PI * RC_e * RC_e ) * \
     		( double(g_u) / double(g_l) ) / ( nu_ul * nu_ul ) * A_ul;
+
+    // 4. Make the cluster function instance
+    cout << "beta = " << beta << endl;
+    rcf = new RobertsClusterFunction(0,1,beta);
 }
 
 AtomicLine::
-~AtomicLine() {}
+~AtomicLine()
+{
+    delete rcf;
+}
 
 string
 AtomicLine::
@@ -106,19 +113,22 @@ void
 AtomicLine::
 spectral_distribution( vector<double> &nus )
 {
-    int line_points = int ( ATOMIC_LINE_POINTS );
-    
-    // The number of line points should be odd to capture the apex 
-    if ( line_points % 2 == 0 ) line_points++;
-    
-    double nu_lower = nu_ul - ( gamma_V * double(ATOMIC_LINE_EXTENT) );
-    double nu_upper = nu_ul + ( gamma_V * double(ATOMIC_LINE_EXTENT) );
-    double dnu = ( nu_upper - nu_lower ) / double(line_points-1);
-    
-    for ( int inu = 0; inu < line_points; inu++ ) {
-        nus.push_back( nu_lower + inu * dnu );
+    // One-sided line points and extent
+    int    line_points = npoints;
+    double line_extent = gamma_V * double(nwidths);
+
+    // First the line-peak
+    // NOTE: we sort the list later, so can do this in any order we like
+    nus.push_back( nu_ul );
+
+    // Now the points either side
+    for ( int inu = 1; inu <= line_points; inu++ ) {
+        double t = double(inu) / double(line_points);
+        double delta_nu = line_extent * rcf->eval(t);
+        nus.push_back( nu_ul + delta_nu );
+        nus.push_back( nu_ul - delta_nu );
     }
-    
+
     return;
 }
 
@@ -130,8 +140,8 @@ calculate_spectrum( CoeffSpectra &X )
     int inu_start = 0;
     int inu_end = int ( X.nu.size() );
 #   if LIMITED_ATOMIC_LINE_EXTENT
-    double nu_lower = nu_ul - double(ATOMIC_LINE_EXTENT) * gamma_V;
-    double nu_upper = nu_ul + double(ATOMIC_LINE_EXTENT) * gamma_V;
+    double nu_lower = nu_ul - double(nwidths) * gamma_V;
+    double nu_upper = nu_ul + double(nwidths) * gamma_V;
     inu_start = get_nu_index(X.nu,nu_lower,X.adaptive) + 1;
     inu_end = get_nu_index(X.nu,nu_upper,X.adaptive) + 1;
 #   endif
@@ -142,14 +152,7 @@ calculate_spectrum( CoeffSpectra &X )
     for ( int inu=inu_start; inu<inu_end; inu++ ) {
 	nu = X.nu[inu];
 	delta_nu = fabs( nu - nu_ul );
-	/* The different line options */
-#       if ATOMIC_LINE_TYPE == 0
 	b_nu = get_voigt_point( delta_nu );
-#       elif ATOMIC_LINE_TYPE == 1
-	b_nu = get_lorentz_point( delta_nu );
-#       elif ATOMIC_LINE_TYPE == 2
-	b_nu = get_doppler_point( delta_nu );
-#       endif
 	X.j_nu[inu] += b_nu*j_ul;
 	X.kappa_nu[inu] += b_nu*kappa_lu;
     }

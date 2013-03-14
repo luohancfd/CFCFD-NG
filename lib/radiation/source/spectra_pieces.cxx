@@ -1405,10 +1405,6 @@ int get_nu_index( vector<double> &nu, double nu_star, bool adaptive )
 	double dnu = ( nu.back() - nu.front() ) / double ( nnu - 1 );
 	inu = int ( ( nu_star - nu.front() ) / dnu );
     }
-
-    if ( inu>0 && inu<nnu-1 ) {
-        cout << "adaptive = " << adaptive << ", nu_star = " << nu_star << ", nu[inu-1] = " << nu[inu-1] << ", nu[inu+1] = " << nu[inu+1] << endl;
-    }
     
     return inu;
 }

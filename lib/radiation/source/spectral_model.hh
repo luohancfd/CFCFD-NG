@@ -22,7 +22,7 @@ extern "C" {
 #include "spectra_pieces.hh"
 
 #define ECHO_RAD_INPUT 1
-#define DEBUG_RAD      1
+#define DEBUG_RAD      0
 
 class Radiator;
 

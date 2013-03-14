@@ -18,7 +18,6 @@
 
 #include "../../util/source/useful.h"
 #include "../../util/source/lua_service.hh"
-#include "../../nm/source/fobject.hh"
 #include "../../gas/models/gas_data.hh"
 
 #include "atomic_radiator.hh"
@@ -196,6 +195,11 @@ read_line_data( lua_State * L )
 	input_error(ost);
     }
     
+    // These are adaptive spectral grid parameters
+    int npoints = get_int(L, -1, "n_points");
+    int nwidths = get_int(L, -1, "n_widths");
+    double beta    = get_positive_number(L, -1, "beta");
+
     nlines = get_int(L, -1, "n_lines");
     lines.resize( nlines );
     
@@ -224,7 +228,7 @@ read_line_data( lua_State * L )
 	    input_error( oss );
 	}	    
  	// Create the electronic level
-	lines[iline] = new AtomicLine(line_data, m_w, I);
+	lines[iline] = new AtomicLine(line_data, m_w, I, npoints, nwidths, beta);
 	
 	// Ensure upper and lower state indices are present
 	if ( lines[iline]->ie_l < 0 ) lines[iline]->ie_l = find_grouped_E_level( lines[iline]->E_l );
@@ -384,9 +388,6 @@ void
 AtomicRadiator::
 spectral_distribution( std::vector<double> &nus )
 {
-    // 0. Make an instance of the Roberts cluster function
-    RobertsClusterFunction rcf(0,1,1.01);
-
     // 1. Loop over all atomic lines (work delegated to lines)
     for ( int iline=0; iline<nlines; ++iline ) {
     	lines[iline]->spectral_distribution(nus);

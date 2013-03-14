@@ -13,13 +13,12 @@
 #include <string>
 #include <vector>
 
+#include "../../nm/source/fobject.hh"
+
 #include "spectra_pieces.hh"
 
 #define ATOMIC_VOIGT_PROFILE_METHOD 1      /* [0] Accurate Whiting expression, [1] approx. Whiting expression */
 #define ATOMIC_STARK_WIDTH          0      /* [0] Johnston 2006 curve fit, [1] Cowley 1971, [2] Arnold 1979 */
-#define ATOMIC_LINE_TYPE            0      /* Select Voigt [0], Lorentz [1] or Doppler [2]        */
-#define ATOMIC_LINE_EXTENT       1000      /* One-sided line extent in Voigt half-width units     */
-#define ATOMIC_LINE_POINTS        100      /* Points-per-VHW describing an atomic line            */
 #define LIMITED_ATOMIC_LINE_EXTENT  1      /* Line extents are unlimited [0] or limited [1]       */
 
 // Forward declaration of AtomicElecLev
@@ -31,7 +30,7 @@ public:
     AtomicLine() {};
     
     /// \brief Constructor
-    AtomicLine( std::vector<double> line_data, double m_w, double I );
+    AtomicLine( std::vector<double> line_data, double m_w, double I, int npoints, int nwidths, double beta );
     
     /// \brief Deconstructor
     ~AtomicLine();
@@ -113,6 +112,11 @@ public:
     /* Line intensity (both emission and absorption coefficients). */
     double j_ul;
     double kappa_lu;
+
+    /* Adaptive spectral grid parameters */
+    int npoints;
+    int nwidths;
+    RobertsClusterFunction * rcf;
 };
 
 #endif

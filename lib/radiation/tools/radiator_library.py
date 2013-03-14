@@ -221,11 +221,17 @@ class AtomicLineSet(object):
     def __init__(self):
         self.lines = []
         self.comments = "# Description of the atomic line set"
+        self.npoints = 100
+        self.nwidths = 1000
+        self.beta = 1.01
         
     def get_LUA_string(self, aname):
         ostring  = "%s.line_data = {\n" % ( aname )
         comments = self.comments.replace('#','   --')
         ostring += "%s\n" % ( comments )
+        ostring += tab+"n_points = %d,\n" % ( self.npoints )
+        ostring += tab+"n_widths = %d,\n" % ( self.nwidths )
+        ostring += tab+"beta = %f,\n" % ( self.beta )
         ostring += tab+"n_lines = %d,\n" % ( len(self.lines) )
         ostring += tab+"-- ============================================================================\n"
         ostring += tab+"--    No.         Ei(cm-1)  Ek(cm-1)    gi    gk  Aki(1/s)    ie_i  ie_k  type \n"
