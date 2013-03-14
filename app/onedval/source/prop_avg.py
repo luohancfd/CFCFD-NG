@@ -13,7 +13,7 @@ from math import sqrt
 from libprep3 import Vector3, dot
 from libprep3 import Gas_data, set_massf
 from cfpylib.nm.zero_solvers import secant
-from scipy.optimize import minimize
+from scipy.optimize import minimize, anneal, brute
 
 def area(cells):
     A = 0.0
@@ -128,7 +128,7 @@ def mass_flux_weighted_avg(cells, props, var_map):
     return phis
 
 
-def stream_thrust_avg(cells, props, var_map, species, gmodel):
+def stream_thrust_avg(cells, props, var_map, species, gmodel, method='quick'):
     f_mass = 0.0
     f_mom = Vector3(0.0, 0.0, 0.0)
     f_energy = 0.0
@@ -196,30 +196,31 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel):
         # Total error is the sum
         return fmass_err + fmom_err + fe_err
 
+    flag = 'success'
     # Compute an initial guess based on mass-flux weighted averages
-    mfw_props = mass_flux_weighted_avg(cells, ['rho', 'p', 'T', 'u', 'v', 'w', 'M'], var_map)
-    u = sqrt(mfw_props['u']**2 + mfw_props['v']**2 + mfw_props['w']**2)
-    guess = [mfw_props['rho'], mfw_props['T'], u]
-    result = minimize(f_to_minimize, guess, method='Nelder-Mead')
-    rho, T, u = result.x
-    # Check the results make sense
-    if rho < 0.0 or T < 0.0:
-        result.success = False
-
-    if not result.success:
-        # Try again but use area-weigthed average as starting point
-        aw_props =  area_weighted_avg(cells, ['rho', 'p', 'T', 'u', 'v', 'w', 'M'], var_map)
-        u = sqrt(aw_props['u']**2 + aw_props['v']**2 + aw_props['w']**2)
-        guess = [aw_props['rho'], aw_props['T'], u]
+    if method == 'quick':
+        # Use the Nelder-Mead minimiser with mass-flux-weigthed averages as starting guess
+        mfw_props = mass_flux_weighted_avg(cells, ['rho', 'p', 'T', 'u', 'v', 'w', 'M'], var_map)
+        u = sqrt(mfw_props['u']**2 + mfw_props['v']**2 + mfw_props['w']**2)
+        guess = [mfw_props['rho'], mfw_props['T'], u]
         result = minimize(f_to_minimize, guess, method='Nelder-Mead')
         rho, T, u = result.x
-        if not result.success:
-            print "The minimizer had difficulty finding the best set of one-d values: rho, T, u"
-            print "result [rho, T, u]= ", result.x
+        # Check the results make sense
+        if rho <= 0.0 or T <= 0.0 or result.success != True:
+            print "The quick method of minimisation was not successful."
+            print "Retrying with the brute force method."
+            flag = 'failure'
 
-        if rho < 0.0 or T < 0.0:
-            print "The minimizer claims a successful finish, but the gas state is non-physical."
-            print "result [rho, T, u]= ", result.x
+    if method == 'robust' or flag == 'failure':
+        # Use the brute force optimiser.
+        rho_min = min([c.get(rholabel) for c in cells])
+        rho_max = max([c.get(rholabel) for c in cells])
+        T_min = min([c.get('Temperature [K]') for c in cells])
+        T_max = max([c.get('Temperature [K]') for c in cells])
+        u_min = min([ sqrt(c.get(ulabel)**2 + c.get(vlabel)**2 + c.get(wlabel)**2) for c in cells])
+        u_max = max([ sqrt(c.get(ulabel)**2 + c.get(vlabel)**2 + c.get(wlabel)**2) for c in cells])
+        x0 = brute(f_to_minimize, ((rho_min, rho_max), (T_min, T_max), (u_min, u_max)), Ns=20)
+        rho, T, u = x0
 
     Q.rho = rho; Q.T[0] = T
     gmodel.eval_thermo_state_rhoT(Q)
