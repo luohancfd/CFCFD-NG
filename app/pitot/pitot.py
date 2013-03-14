@@ -135,6 +135,9 @@ available to me as part of cfpylib inside the cfcfd code collection.
     11-Feb-2013: turned off the clean-up lines (that remove temp files) as default and added
         a switch to turn it back on. (it will run faster if the program is not adding and removing these files 
         everytime it runs)
+    12-Mar-2013: re-added CO2 to the code for perfect gas calculations, added Mars
+        and Venus at the same time for various things. had to add extra values to their dictionaries to make it work.
+    14-Mar-2013: fixed a mistake at the end of the code where a total condition was being calculated instead of a pitot one.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -154,7 +157,7 @@ from cfpylib.gasdyn.ideal_gas_flow import p0_p, pitot_p
 
 import cfpylib.gasdyn.ideal_gas as pg
 
-VERSION_STRING = "29-Jan-2013"
+VERSION_STRING = "14-Mar-2013"
 
 DEBUG_PITOT = False
 
@@ -188,6 +191,12 @@ def make_test_gas(gasName, outputUnits='moles'):
     Also has workable gamma's and R's for the test gases at high temperature stored
     in a dictionary of the form {'gam' : gam, 'R' : R}.
     
+    Gases using CO2 (that will not give valid CEA solutions below 800 K) also have
+    a specified gamma and Mmass in their dictionaries (as the third and fourth values)
+    this is so the gases can be used for perfect gas calculations even if they won't solve
+    in CEA at atmospheric pressure. These gas values were taken from Cengel and Boles'
+    Thermodynamics text book.
+    
     I stole this from the make_gas_from_name function in cea2_gas.py and added
     my own gases - Chris James
 
@@ -202,30 +211,33 @@ def make_test_gas(gasName, outputUnits='moles'):
     elif gasName.lower() == 'n2':
         return Gas(reactants={'N2':1.0, 'N':0.0}, onlyList=['N2', 'N'], with_ions=True,
                    outputUnits=outputUnits), {'gam': 1.36,'R':593.56}
-    elif gasName.lower() == 'titan':
+    elif gasName.lower() == 'titan': #composition used by Hadas Porat
         return Gas(reactants={'N2':0.95, 'CH4':0.05}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits), {'gam':1.35,'R':652.03}      
-    elif gasName.lower() == 'mars':
+    elif gasName.lower() == 'mars': #this is the composition used in Troy Eichmann's Mars testing
         return Gas(reactants={'CO2':0.96, 'N2':0.04}, inputUnits='moles', with_ions=True,
-                   outputUnits=outputUnits)    
+                   outputUnits=outputUnits), None, 1.2934, 43.37 #Gas, ideal gas guess, gam, Mmass    
+    elif gasName.lower() == 'venus': #this is what Guerric was after, from the Park and Ahn paper on Heat Transfer for Venus Probes
+        return Gas(reactants={'CO2':0.97, 'N2':0.03}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), None, 1.2923, 43.53 #Gas, ideal gas guess, gam, Mmass  
     elif gasName.lower() == 'co2':
-        return Gas(reactants={'CO2':1.0}, outputUnits=outputUnits)
-    elif gasName.lower() == 'gasgiant_h215ne':
+        return Gas(reactants={'CO2':1.0}, outputUnits=outputUnits), None, 1.289, 44.01 #Gas, ideal gas guess, gam, Mmass
+    elif gasName.lower() == 'gasgiant_h215ne': #composition used in Chris James' equivalent condition tests
         return Gas(reactants={'H2':0.85, 'Ne':0.15}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits),{'gam':1.15,'R':3245.1}
     elif gasName.lower() == 'gasgiant_h240ne':
         return Gas(reactants={'H2':0.6, 'Ne':0.4}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits),{'gam':1.5,'R':1443.2}
-    elif gasName.lower() == 'gasgiant_h285ne':
+    elif gasName.lower() == 'gasgiant_h285ne': #composition used by Charlotte Higgins
         return Gas(reactants={'H2':0.15, 'Ne':0.85}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits),{'gam':1.5,'R':547.8}
-    elif gasName.lower() == 'gasgiant_h215he':
+    elif gasName.lower() == 'gasgiant_h215he': #composition used in Chris James' equivalent condition tests
         return Gas(reactants={'H2':0.85, 'He':0.15}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits), {'gam':1.2,'R':6303.2}
-    elif gasName.lower() == 'gasgiant_h210he':
+    elif gasName.lower() == 'gasgiant_h210he': #composition used in Chris James' undergrad thesis
         return Gas(reactants={'H2':0.9, 'He':0.10}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits), None    
-    elif gasName.lower() == 'gasgiant_h210ne':
+    elif gasName.lower() == 'gasgiant_h210ne': #composition used in Chris James' undergrad thesis
         return Gas(reactants={'H2':0.9, 'Ne':0.10}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits), None                  
     else:
@@ -296,12 +308,13 @@ def main():
                   choices=['air', 'air5species', 'n2', 'titan', 
                            'gasgiant_h215ne', 'gasgiant_h215he',
                            'gasgiant_h240ne','gasgiant_h285ne', 
-                           'gasgiant_h210he', 'gasgiant_h210ne'],
+                           'gasgiant_h210he', 'gasgiant_h210ne', 
+                           'co2', 'mars', 'venus'],
                   help=("name of test gas: "
                         "air; " "air5species; " "n2; " "titan; " "gasgiant_h215ne; "
                         "gasgiant_h215he; " "gasgiant_h240ne; " "gasgiant_h285ne; " 
-                        "gasgiant_h210he; "  "gasgiant_h210ne; " 
-                        "default is air"))
+                        "gasgiant_h210he; "  "gasgiant_h210ne; " "co2; " "mars; " "venus; "
+                        "default is air;" "NOTE: co2, mars and venus test gases only work with pg solver"))
     op.add_option('--Vs1', dest='Vs1', type='float', default=None,
                   help=("first shock speed, in m/s"))
     op.add_option('--Vs2', dest='Vs2', type='float', default=None,
@@ -617,11 +630,17 @@ def main():
         M['sd1']=0.0
 
     #state 1 is shock tube
-    states['s1'], gas_guess = make_test_gas(gasName)
-    if not p1: #set atmospheric state if a pressure was not specified
-        p1 = p0
-    states['s1'].set_pT(p1,T0)
+    if gasName == 'mars' or gasName == 'co2' or gasName == 'venus':
+        states['s1'], gas_guess, test_gas_gam, test_gas_Mmass = make_test_gas(gasName)   
+    else: #need to split this up as the function returns 4 values if CO2 is in the test gas
+          # and trying to set the state of the co2 gas object at room temp will break it
+        states['s1'], gas_guess = make_test_gas(gasName)
+        if not p1: #set atmospheric state if a pressure was not specified
+            p1 = p0
+        states['s1'].set_pT(p1,T0)
     if solver == 'pg': #make perfect gas object if asked to do so, then re-set the gas state
+        if gasName == 'co2' or gasName == 'mars' or gasName == 'venus': #need to force our own gam and Mmass onto the gas object if CO2 is in the gas
+            states['s1'].gam =  test_gas_gam; states['s1'].Mmass =  test_gas_Mmass
         states['s1']=pg.Gas(Mmass=states['s1'].Mmass,
                             gamma=states['s1'].gam, name='s1')
         states['s1'].set_pT(p1,T0)
@@ -1330,7 +1349,7 @@ def main():
         #some other useful calculations at the end
               
         states['test_section_total'] = total_condition(states[test_section_state], V[test_section_state])
-        states['test_section_pitot'] = total_condition(states[test_section_state], V[test_section_state])
+        states['test_section_pitot'] = pitot_condition(states[test_section_state], V[test_section_state])
         
         stagnation_enthalpy = states['test_section_total'].h #J/kg
         if nozzle:        
@@ -1636,13 +1655,13 @@ if __name__ == '__main__':
         print "pitot - Equilibrium expansion tube simulator"
         print "start with --help for help with inputs"
         print "There are a few demos here that you can run to see how the program works:"
-        print "demo-s-eq: demo of Umar's high speed air condition where shock speeds are guessed to find the fill pressure's he used."
-        print "demo-p-eq: equilibrium demo of Umar's high speed air condition where the fill pressure's are specified."
-        print "demo-p-pg: perfect gas demo of Umar's high speed air condition where the fill pressure's are specified."
-        print "hadas85-full-theory-eq: equilibrium fully theoretical demo of Hadas' 8.5km/s titan condition where fill pressure's are specified."
-        print "hadas85-full-theory-pg: perfect gas fully theoretical demo of Hadas' 8.5km/s titan condition where fill pressure's are specified."
-        print "hadas85-experiment-eq: equilibrium run through of Hadas' 8.5km/s titan condition with both fill pressure's and shock speed's from xpt specified."
-        print "hadas85-experiment-pg: perfect gas run through of Hadas' 8.5km/s titan condition with both fill pressure's and shock speed's from xpt specified."
+        print "demo-s-eq: demo of Umar's high speed air condition where shock speeds are guessed to find the fill pressures used."
+        print "demo-p-eq: equilibrium demo of Umar's high speed air condition where the fill pressures are specified."
+        print "demo-p-pg: perfect gas demo of Umar's high speed air condition where the fill pressures are specified."
+        print "hadas85-full-theory-eq: equilibrium fully theoretical demo of Hadas' 8.5km/s titan condition where fill pressures are specified."
+        print "hadas85-full-theory-pg: perfect gas fully theoretical demo of Hadas' 8.5km/s titan condition where fill pressures are specified."
+        print "hadas85-experiment-eq: equilibrium run through of Hadas' 8.5km/s titan condition with both fill pressures and shock speeds from xpt specified."
+        print "hadas85-experiment-pg: perfect gas run through of Hadas' 8.5km/s titan condition with both fill pressures and shock speeds from xpt specified."
         print "chrishe-full-theory-eq: fully theoretical equilibrium demo of one of my He conditions with secondary driver."
         print "chrishe-full-theory-pg: fully theoretical perfect gas demo of one of my He conditions with secondary driver."
         print "dave-scramjet-p: a fully theoretical test of one of David Gildfind's scramjet conditions that iterates through fill pressures."
@@ -1652,7 +1671,7 @@ if __name__ == '__main__':
         demo = raw_input("Type one of the demo commands for a demo run or anything else to quit ")
         
         if demo == 'demo-s-eq':
-            print "This is an equilibrium demo of pitot recreating Umar Sheikh's high speed air condition where shock speeds are guessed to find the fill pressure's he used"
+            print "This is an equilibrium demo of pitot recreating Umar Sheikh's high speed air condition where shock speeds are guessed to find the fill pressures used"
             print "Fill pressure's we are aiming for are p1 = 3000 Pa, p5 = 10 Pa"
             print " "
             sys.argv = ['pitot.py', '--solver','eq','--test','fulltheory-shock', '--Vs1','5645.0',
@@ -1660,13 +1679,13 @@ if __name__ == '__main__':
             main()
             
         elif demo == "demo-p-eq":
-            print "This is equilibrium demo of pitot recreating Umar Sheikh's high speed air condition where fill pressure's are specified."
+            print "This is equilibrium demo of pitot recreating Umar Sheikh's high speed air condition where fill pressures are specified."
             print " "            
             sys.argv = ['pitot.py', '--p1','3000.0','--p5','10.0','--filename',demo]
             main()
             
         elif demo == "demo-p-pg":
-            print "This is perfect gas demo of pitot recreating Umar Sheikh's high speed air condition where fill pressure's are specified."
+            print "This is perfect gas demo of pitot recreating Umar Sheikh's high speed air condition where fill pressures are specified."
             print " "            
             sys.argv = ['pitot.py', '--solver','pg', '--p1','3000.0','--p5','10.0','--filename',demo]
             main()
