@@ -133,11 +133,16 @@ available to me as part of cfpylib inside the cfcfd code collection.
     29-Jan-2013: added non-reflected shock tunnel mode to the code.
     29-Jan-2013: added a 'cea-printout' mode that does some of the default cfcfd condition printouts
     11-Feb-2013: turned off the clean-up lines (that remove temp files) as default and added
-        a switch to turn it back on. (it will run faster if the program is not adding and removing these files 
-        everytime it runs)
+        a switch to turn it back on. (it will run faster if the program is not adding and removing 
+        these files everytime it runs)
     12-Mar-2013: re-added CO2 to the code for perfect gas calculations, added Mars
-        and Venus at the same time for various things. had to add extra values to their dictionaries to make it work.
-    14-Mar-2013: fixed a mistake at the end of the code where a total condition was being calculated instead of a pitot one.
+        and Venus at the same time for various things. had to add extra values to their dictionaries 
+        to make it work.
+    14-Mar-2013: fixed a mistake at the end of the code where a total condition was being calculated 
+        instead of a pitot one.
+    15-Mar-2013: Added new solver condition 'pg'eq' that allows eq calculations to be done for CO2 
+        based test gases that have issues with a fully equilibrium calculation. Also added Michael
+        Scott's original x2 single stage piston as a selectable piston condition.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -157,7 +162,7 @@ from cfpylib.gasdyn.ideal_gas_flow import p0_p, pitot_p
 
 import cfpylib.gasdyn.ideal_gas as pg
 
-VERSION_STRING = "14-Mar-2013"
+VERSION_STRING = "15-Mar-2013"
 
 DEBUG_PITOT = False
 
@@ -270,10 +275,11 @@ def main():
                         "cea-printout = same as printout but does some cfcfd gas object printouts at the end; "
                         "defaults to printout "))
     op.add_option('--solver', dest='solver', default='eq',
-                 choices=['eq','pg'],
+                 choices=['eq','pg','pg-eq'],
                  help=("solver to use; "
                         "eq = equilibrium calculations using CEA code; "
                         "pg = perfect gas solver; "
+                        "pg-eq = a combination of pg and eq solvers, used for CO2 based gases. Sets state1 as a pg, but everything else (including the shock to state 2, are done as eq); "
                         "defaults to eq "))
     op.add_option('--facility', dest='facility', default='x2',
                   choices=['x2','x3'],
@@ -281,6 +287,12 @@ def main():
                         "x2 = the x2 expansion tube; "
                         "x3 = the x3 expansion tube; "
                         "defaults to x2 "))
+    op.add_option('--piston', dest='piston', default='lwp',
+                  choices=['lwp','ostp'],
+                  help=("piston selection (only valid for x2 facility);"
+                        "lwp = lightweight piston. tuned driver condition designed by David Gildfind;"
+                        "ostp = original single stage piston. designed by Michael Scott;"
+                        "defaults to lwp as it is the current x2 driver configuration"))
     op.add_option('--test', dest='test', default='fulltheory-pressure',
                   choices=['fulltheory-shock','fulltheory-pressure','experiment'],
                   help=("type of test to run. "
@@ -314,7 +326,7 @@ def main():
                         "air; " "air5species; " "n2; " "titan; " "gasgiant_h215ne; "
                         "gasgiant_h215he; " "gasgiant_h240ne; " "gasgiant_h285ne; " 
                         "gasgiant_h210he; "  "gasgiant_h210ne; " "co2; " "mars; " "venus; "
-                        "default is air;" "NOTE: co2, mars and venus test gases only work with pg solver"))
+                        "default is air;" "NOTE: co2, mars and venus test gases only work with pg and pg-eq solvers"))
     op.add_option('--Vs1', dest='Vs1', type='float', default=None,
                   help=("first shock speed, in m/s"))
     op.add_option('--Vs2', dest='Vs2', type='float', default=None,
@@ -370,6 +382,7 @@ def main():
     mode = opt.mode
     solver = opt.solver
     facility = opt.facility
+    piston = opt.piston
     test = opt.test
     config = opt.config
     driver_gas = opt.driver_gas
@@ -578,7 +591,34 @@ def main():
     #state 4 is diaphragm burst state (taken to basically be a total condition)
     
     if facility == 'x2':
-        states['s4']=primary_driver_x2[driver_gas][0].clone()
+        if piston == 'lwp':
+            #This is the tuned driver condition designed by David Gildfind in his PhD.
+            states['s4']=primary_driver_x2[driver_gas][0].clone()
+            p4 = 2.79e7; T4 = 2700.0 #Pa, K
+            states['s4'].set_pT(p4,T4)
+            V['s4']=0.0
+            M['s4']=0.0
+        elif piston == 'ostp':
+            #this is the first attempt at designing a single stage piston driver for X2.
+            #Completed by Michael Scott as part of his PhD.
+            states['s4']=primary_driver_x2['He:1.0'][0].clone()
+            p4 = 15.5e6; T4 = 2500.0 #Pa, K
+            states['s4'].set_pT(p4,T4)
+            V['s4']=0.0
+            M['s4']=0.0
+        
+        if solver == 'pg': #make perfect gas object, and then re-set the state
+            states['s4']=pg.Gas(Mmass=states['s4'].Mmass,
+                                        gamma=states['s4'].gam, name='s4')
+            states['s4'].set_pT(p4,T4)
+        
+        if piston == 'lwp':
+            M['s3s']=primary_driver_x2[driver_gas][1]
+        elif piston == 'ostp':
+            M['s3s'] = 1.0
+        
+    elif facility == 'x3':
+        states['s4']=primary_driver_x3[driver_gas][0].clone()
         p4 = 2.79e7; T4 = 2700.0 #Pa, K
         states['s4'].set_pT(p4,T4)
         V['s4']=0.0
@@ -588,15 +628,6 @@ def main():
             states['s4']=pg.Gas(Mmass=states['s4'].Mmass,
                                         gamma=states['s4'].gam, name='s4')
             states['s4'].set_pT(p4,T4)
-    
-        M['s3s']=primary_driver_x2[driver_gas][1]
-        
-    elif facility == 'x3':
-        states['s4']=primary_driver_x3[driver_gas][0].clone()
-        p4 = 2.79e7; T4 = 2700.0 #Pa, K
-        states['s4'].set_pT(p4,T4)
-        V['s4']=0.0
-        M['s4']=0.0
         
         if solver == 'pg': #make perfect gas object if asked to do so, and then re-set the state
             states['s4']=pg.Gas(Mmass=states['s4'].Mmass,
@@ -638,7 +669,9 @@ def main():
         if not p1: #set atmospheric state if a pressure was not specified
             p1 = p0
         states['s1'].set_pT(p1,T0)
-    if solver == 'pg': #make perfect gas object if asked to do so, then re-set the gas state
+    if solver == 'pg' or solver == 'pg-eq': #make perfect gas object if asked to do so, then re-set the gas state
+        if solver == 'pg-eq': #store the eq gas object as we'll want to come back to it later...      
+            states['s1-eq'] = states['s1'].clone()        
         if gasName == 'co2' or gasName == 'mars' or gasName == 'venus': #need to force our own gam and Mmass onto the gas object if CO2 is in the gas
             states['s1'].gam =  test_gas_gam; states['s1'].Mmass =  test_gas_Mmass
         states['s1']=pg.Gas(Mmass=states['s1'].Mmass,
@@ -762,7 +795,8 @@ def main():
                                                expanding_state=states[shock_tube_expansion], 
                                                expansion_start_V=V[shock_tube_expansion], 
                                                 state1=states['s1'],
-                                                state2=states['s2'],Vs1=Vs1):
+                                                state2=states['s2'],Vs1=Vs1,
+                                                solver=solver, test_gas=gasName):
         """Compute the velocity mismatch for a given pressure ratio across the 
         unsteady expansion in the shock tube."""
         
@@ -770,8 +804,22 @@ def main():
         
         state1.set_pT(p1,300.0) #set s1 at set pressure and ambient temp
         
-        (V2, V2g) = normal_shock(state1, Vs1, state2)
-        
+        if solver == 'eq' or solver == 'pg':
+            (V2, V2g) = normal_shock(state1, Vs1, state2)  
+        elif solver == 'pg-eq': #if we're using the perfect gas eq solver, we want to make an eq state1, set it's T and p, clone it to state2_eq and then shock process it through CEA
+            if gasName == 'mars' or gasName == 'co2' or gasName == 'venus':
+                state1_eq, nothing1, nothing2, nothing3 = make_test_gas(test_gas) #make eq state1
+            else: 
+                state1_eq, nothing = make_test_gas(test_gas) #make eq state1
+            state2 = state1_eq.clone() #clone state 1 to a new state2
+            #set state 2 with state 1's properties as we're about to shock it:
+            state2.p = state1.p; state2.T = state1.T
+            state2.shock_process(Vs1) #shock it
+            #now we're going to use continuity to set the gas velocity manually here:
+            V1 = Vs1
+            V2 = V1 * state1.rho / state2.rho
+            V2g = V1 - V2
+               
         #Across the contact surface, p3 == p2
         p3 = state2.p
         
@@ -833,7 +881,8 @@ def main():
     def error_in_velocity_shock_tube_expansion_shock_speed_iterator(Vs1,
                                                 expanding_state=states[shock_tube_expansion], 
                                                 expansion_start_V=V[shock_tube_expansion],                    
-                                                state1=states['s1'], state2=states['s2']):
+                                                state1=states['s1'], state2=states['s2'],
+                                                solver=solver, test_gas=gasName):
         """Compute the velocity mismatch for a given shock speed with the shock tube
         unsteady expansion behind it.
         
@@ -841,8 +890,23 @@ def main():
         
         print "current guess for Vs1 = {0} m/s".format(Vs1)            
         
-        (V2, V2g) = normal_shock(state1, Vs1, state2)
-        
+        if solver == 'eq' or solver == 'pg':
+            (V2, V2g) = normal_shock(state1, Vs1, state2) 
+        elif solver == 'pg-eq': #if we're using the perfect gas eq solver, we want to make an eq state1, set it's T and p, clone it to state2_eq and then shock process it through CEA
+            if gasName == 'mars' or gasName == 'co2' or gasName == 'venus':
+                state1_eq, nothing1, nothing2, nothing3 = make_test_gas(test_gas) #make eq state1
+            else: 
+                state1_eq, nothing = make_test_gas(test_gas) #make eq state1
+            state2 = state1_eq.clone() #clone state 1 to a new state2
+            #set state 2 with state 1's properties as we're about to shock it:
+            state2.p = state1.p; state2.T = state1.T
+            state2.shock_process(Vs1) #shock it
+            #now we're going to use continuity to set the gas velocity manually here:
+            V1 = Vs1
+            V2 = V1 * state1.rho / state2.rho
+            V2g = V1 - V2
+            
+               
         #Across the contact surface, p3 == p2
         p3 = state2.p
         
@@ -916,8 +980,22 @@ def main():
         if PRINT_STATUS: print "From secant solve: Vs1 = {0} m/s".format(Vs1)
         #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
         if PRINT_STATUS: print "Once Vs1 is known, find conditions at state 1 and 2."
-
     (V2, V['s2']) = normal_shock(states['s1'], Vs1, states['s2'])
+    if solver == 'pg-eq': #if we're using the pg-eq solver this is the point where we move from pg to eq gas objects
+        if gasName == 'mars' or gasName == 'co2' or gasName == 'venus':
+            states['s1-eq'], nothing1, nothing2, nothing3 = make_test_gas(gasName) #make eq state1
+        else: 
+            states['s1-eq'], nothing = make_test_gas(gasName) #make eq state1
+        states['s2'] = states['s1-eq'].clone() #get a new state2 ready   
+        #set state 2 with state 1's properties as we're about to shock it:
+        states['s2'].p = states['s1'].p; states['s2'].T = states['s1'].T
+        states['s2'].shock_process(Vs1) #shock it
+        states['s7'] = states['s2'].clone() #need to turn s7 into an eq object too
+        #now we're going to use continuity to set the gas velocity manually here:
+        V1 = Vs1
+        V2 = V1 * states['s1'].rho / states['s2'].rho
+        V['s2'] = V1 - V2
+        
     if shock_switch: #do a shock here if required
         V['s3'] = V['s2']
         #need to back out Vr again here, for now I was lazy and put the function back in:
@@ -1235,6 +1313,8 @@ def main():
             solver_printout = "Solver used is equilibrium."
         elif solver == 'pg':
             solver_printout = "Solver used is perfect gas."
+        elif solver == 'pg-eq':
+            solver_printout = "Solver used is pg-eq (state 1 is set as pg.)"
         print solver_printout
         txt_output.write(solver_printout + '\n')        
             
@@ -1243,7 +1323,7 @@ def main():
         txt_output.write(facility_used + '\n')
         if solver == 'eq':
             test_gas_used = 'Test gas is {0} (gamma = {1}, R = {2}, {3}).'.format(gasName,states['s1'].gam,states['s1'].R,states['s1'].reactants)
-        elif solver == 'pg':
+        elif solver == 'pg' or solver == 'pg-eq':
             test_gas_used = 'Test gas is {0} (gamma = {1}, R = {2}).'.format(gasName,states['s1'].gam,states['s1'].R)
         print test_gas_used
         txt_output.write(test_gas_used + '\n')  
@@ -1467,7 +1547,7 @@ def main():
             
             if solver == 'eq':
                 eq_gas_condition_printer(states['test_section_pitot'], \
-                'Test section state ({0}) total condition:'.format(test_section_state))
+                'Test section state ({0}) pitot condition:'.format(test_section_state))
             elif solver == 'pg':
                 pg_gas_condition_printer(states['test_section_pitot'], \
                 'Test section state ({0}) pitot condition:'.format(test_section_state))
@@ -1515,6 +1595,8 @@ def main():
             csv_solver_printout = "Solver,equilibrium."
         elif solver == 'pg':
             csv_solver_printout = "Solver,perfect gas"
+        elif solver == 'pg-eq':
+            csv_solver_printout = "Solver,pg eq"
         csv_output.write(csv_solver_printout + '\n')     
             
         csv_facility_used = 'Facility,{0}.'.format(facility)        
