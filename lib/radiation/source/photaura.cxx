@@ -402,9 +402,19 @@ void
 Photaura::
 make_spectral_grid(vector<double> &nus)
 {
+    /* Uniformally distributed spectral points with constant frequency spacing */
+    // NOTE: the adaptive grid also includes this uniform 'background' grid
+    double nu = lambda2nu( this->get_lambda_max() );
+    double dnu = ( lambda2nu( this->get_lambda_min() ) - lambda2nu( this->get_lambda_max() ) )
+                / double ( ( this->get_spectral_points() - 1 ) );
+    nus.resize( this->get_spectral_points() );
+    for( int inu=0; inu<this->get_spectral_points(); ++inu ){
+        nus[inu] = nu;
+        nu+=dnu;
+    }
+
     if ( adaptive_spectral_grid ) {
-        /* Obtain an optimised spectral distribution */
-        nus.reserve( this->get_spectral_points() );
+        /* Add an optimised spectral distribution over the uniform grid */
         for( int irad=0; irad<nrad; ++irad ) {
             // Apply minimum concentration limit
             if ( radiators[irad]->sum_level_populations() / RC_Na > MIN_CONC )
@@ -425,17 +435,6 @@ make_spectral_grid(vector<double> &nus)
         cout << "make_spectral_grid()" << endl
              << "after filtering: nus.size() = " << nus.size() << endl;
 #       endif       // DEBUG
-    }
-    else {
-        /* Uniformally distributed spectral points with constant frequency spacing */
-        double nu = lambda2nu( this->get_lambda_max() );
-        double dnu = ( lambda2nu( this->get_lambda_min() ) - lambda2nu( this->get_lambda_max() ) )
-                    / double ( ( this->get_spectral_points() - 1 ) );
-        nus.resize( this->get_spectral_points() );
-        for( int inu=0; inu<this->get_spectral_points(); ++inu ){
-            nus[inu] = nu;
-            nu+=dnu;
-        }
     }
     return;
 }

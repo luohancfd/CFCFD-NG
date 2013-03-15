@@ -61,7 +61,6 @@ AtomicLine( vector<double> line_data, double m_w, double I, int npoints, int nwi
     		( double(g_u) / double(g_l) ) / ( nu_ul * nu_ul ) * A_ul;
 
     // 4. Make the cluster function instance
-    cout << "beta = " << beta << endl;
     rcf = new RobertsClusterFunction(0,1,beta);
 }
 

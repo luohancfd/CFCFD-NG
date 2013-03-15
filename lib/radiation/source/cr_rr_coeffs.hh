@@ -369,7 +369,7 @@ public:
     // KuncSoonElectronImpactIonization( std::string fname, ElecLev * elev, double I );
     
     /// \brief Constructor from data
-    KuncSoonElectronImpactIonization( double A, double xi, double Q, ElecLev * elev, double I );
+    KuncSoonElectronImpactIonization( double A, double chi, double Q, ElecLev * elev, double I );
     
     /// \brief Destructor
     ~KuncSoonElectronImpactIonization() {};
