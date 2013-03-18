@@ -223,12 +223,19 @@ void CoeffSpectra::read_from_file( string fname, int inu_start, int inu_end )
     string line;
     ifstream specfile (fname.c_str());
     if (specfile.is_open()) {
+        int spectral_units = -1;
         getline (specfile,line); // should be the filename
         getline (specfile,line); // should be spectral column descriptor
         if ( line.compare(0,11,"# Column 1:")==0 ) {
-            if ( line.compare(12,14,"Frequency (Hz)")!=0 ) {
-                cout << "CoeffSpectra::read_from_file()" << endl
-                     << "Only frequency units are currently supported" << endl;
+            if ( line.compare(12,14,"Frequency (Hz)")==0 ) {
+                spectral_units = FREQUENCY;
+            }
+            else if ( line.compare(12,15,"Wavelength (nm)")==0 ) {
+                spectral_units = WAVELENGTH;
+            }
+            else {
+                cout << "SpectralFlux::read_from_file()" << endl
+                     << "Only frequency and wavelength units are currently supported" << endl;
                 exit(FAILURE);
             }
         }
@@ -237,10 +244,21 @@ void CoeffSpectra::read_from_file( string fname, int inu_start, int inu_end )
         getline (specfile,line); // should be int emission coefficient column descriptor
         int count = 0;
         while ( specfile.good() ) {
-            double _nu, _j_nu, _kappa_nu, _j_int;
-            specfile >> _nu >> _j_nu >> _j_int >> _kappa_nu;
+            double wav, j_wav, kappa_wav, _j_int;
+            specfile >> wav >> j_wav >> _j_int >> kappa_wav;
             // cout << "nu = " << _nu << ", j_nu = " << _j_nu << ", kappa_nu = " << _kappa_nu << ", j_int = " << _j_int << endl;
             if ( count >= inu_start && ( count <= inu_end || inu_end < 0 ) ) {
+                int _nu = 0.0, _j_nu = 0.0, _kappa_nu = 0.0;
+                if ( spectral_units==FREQUENCY ) {
+                    _nu = wav;
+                    _j_nu = j_wav;
+                    _kappa_nu = kappa_wav;
+                }
+                else if ( spectral_units==WAVELENGTH ) {
+                    _nu = nu2lambda(wav);
+                    _j_nu = j_wav * wav * 1.0e-9 / _nu;
+                    _kappa_nu = kappa_wav;
+                }
                 nu.push_back(_nu);
                 j_nu.push_back(_j_nu);
                 kappa_nu.push_back(_kappa_nu);
@@ -1066,6 +1084,7 @@ SpectralFlux::SpectralFlux( RadiationSpectralModel * rsm )
  : SpectralContainer( rsm )
 {
     q_nu.resize( nu.size(), 0.0 );
+    q_int.resize( nu.size(), 0.0 );
 }
 
 SpectralFlux::SpectralFlux( RadiationSpectralModel * rsm, double T )
@@ -1083,6 +1102,13 @@ SpectralFlux::~SpectralFlux()
     q_nu.resize(0);
 }
 
+void SpectralFlux::clear_data()
+{
+    nu.clear();
+    q_nu.clear();
+    q_int.clear();
+}
+
 double SpectralFlux::write_to_file( string filename, int spectral_units )
 {
     string Y1_label = "Spectral flux, q_lambda (W/m**2-m)";
@@ -1095,6 +1121,178 @@ double SpectralFlux::write_to_file( string filename, int spectral_units )
     string Y1_int_label = "Integrated flux, q (W/m**2)";
     
     return write_data_to_file( filename, spectral_units, q_nu, Y1_label, Y1_int_label );
+}
+
+void SpectralFlux::read_from_file( string fname, int inu_start, int inu_end )
+{
+    // make sure the vectors are clear
+    this->clear_data();
+
+    string line;
+    ifstream specfile (fname.c_str());
+    if (specfile.is_open()) {
+        int spectral_units = -1;
+        getline (specfile,line); // should be the filename
+        getline (specfile,line); // should be spectral column descriptor
+        if ( line.compare(0,11,"# Column 1:")==0 ) {
+            if ( line.compare(12,14,"Frequency (Hz)")==0 ) {
+                spectral_units = FREQUENCY;
+            }
+            else if ( line.compare(12,15,"Wavelength (nm)")==0 ) {
+                spectral_units = WAVELENGTH;
+            }
+            else {
+                cout << "SpectralFlux::read_from_file()" << endl
+                     << "Only frequency and wavelength units are currently supported" << endl;
+                exit(FAILURE);
+            }
+
+        }
+        getline (specfile,line); // should be emission coefficient column descriptor
+        getline (specfile,line); // should be abs coefficient column descriptor
+        getline (specfile,line); // should be int emission coefficient column descriptor
+        int count = 0;
+        while ( specfile.good() ) {
+            double wav, q_wav, _q_int;
+            specfile >> wav >> q_wav >> _q_int;
+            // cout << "nu = " << _nu << ", j_nu = " << _j_nu << ", kappa_nu = " << _kappa_nu << ", j_int = " << _j_int << endl;
+            if ( count >= inu_start && ( count <= inu_end || inu_end < 0 ) ) {
+                double _nu = 0.0, _q_nu = 0.0;
+                if ( spectral_units==FREQUENCY ) {
+                    _nu = wav;
+                    _q_nu = q_wav;
+                }
+                else if ( spectral_units==WAVELENGTH ) {
+                    _nu = nu2lambda(wav);
+                    _q_nu = q_wav * wav * 1.0e-9 / _nu;
+                }
+                nu.push_back(_nu);
+                q_nu.push_back(_q_nu);
+                // not storing q_int, calculating later
+                // q_int.push_back(_q_int);
+            }
+            count++;
+        }
+        specfile.close();
+    }
+    else {
+        cout << "SpectralFlux::read_from_file()" << endl
+             << "Unable to open file with name: " << fname << endl;
+        exit(BAD_INPUT_ERROR);
+    }
+
+    if ( inu_end<0 ) {
+        // remove the last entry which is a double-up
+        nu.erase(nu.end()-1);
+        q_nu.erase(q_nu.end()-1);
+    }
+
+    // Reverse the order
+    reverse(nu.begin(),nu.end());
+    reverse(q_nu.begin(),q_nu.end());
+
+    cout << "Read " << nu.size() << " spectral points from file: " << fname << endl;
+    q_int.resize(nu.size());
+    double q_total = this->integrate_flux_spectra();
+    cout << "Integral is " << q_total << endl;
+}
+
+void SpectralFlux::apply_apparatus_function( ApparatusFunction * A  )
+{
+    // Quick exit if the representative width is too small
+    if ( A->gamma_star < 1.0e-10 ) return;
+
+    // Initialise the Apparatus function
+    A->initialise();
+
+    // A vector to temporarily hold smeared data
+    vector<double> nu_temp;
+    int count = 0;
+    for( size_t inu=0; inu<nu.size(); inu++) {
+        count++;
+        if ( count==A->nu_sample ) {
+            nu_temp.push_back(nu[inu]);
+            count = 0;
+        }
+    }
+    vector<double> q_nu_temp( nu_temp.size() );
+
+    int percentage=0;
+    for( size_t inu=0; inu<nu_temp.size(); inu++) {
+        double nu_val = nu_temp[inu];
+        double lambda_ang = 10.0 * nu2lambda( nu_val );
+        // convert HWHM's to Hz
+        double gamma_star_Hz = A->gamma_star / lambda_ang * nu_val;
+        double nu_lower = nu_val - double(nwidths) * gamma_star_Hz;
+        double nu_upper = nu_val + double(nwidths) * gamma_star_Hz;
+        int jnu_start = get_nu_index(nu,nu_lower,adaptive) + 1;
+        int jnu_end = get_nu_index(nu,nu_upper,adaptive) + 1;
+
+        if((double(inu)/double(nu_temp.size())*100.0+1.0)>double(percentage)) {
+            cout << "Smearing spectrum: | " << percentage << "% |, jnu_start = " << jnu_start << ", jnu_end = " << jnu_end << " \r" << flush;
+            percentage += 10;
+        }
+
+        // Apply convolution integral over this frequency range with trapezoidal method
+        double q_nu_conv = 0.0;
+        double AF_integral = 0.0;
+        for ( int jnu=jnu_start+1; jnu<jnu_end; jnu++ ) {
+            double dnu0 = nu[jnu-1] - nu_val;
+            double dnu1 = nu[jnu] - nu_val;
+            double f_nu0 = A->eval(nu_val, dnu0);
+            double f_nu1 = A->eval(nu_val, dnu1);
+            q_nu_conv += 0.5 * ( q_nu[jnu-1]*f_nu0 + q_nu[jnu]*f_nu1 ) * ( nu[jnu] - nu[jnu-1] );
+            AF_integral += 0.5 * ( f_nu0 + f_nu1 ) * ( nu[jnu] - nu[jnu-1] );
+        }
+
+        // cout << "AF_integral = " << AF_integral << endl;
+
+        // Make sure a zero value is not returned if nwidths is too small
+        if ( jnu_start==(jnu_end-1) ) {
+            cout << "SpectralIntensity::apply_apparatus_function()" << endl
+                 << "WARNING: nwidths is too small!" << endl;
+            q_nu_conv = q_nu[inu];
+        }
+
+        // Save result (and rescale to ensure the integral remains the same)
+        q_nu_temp[inu] = q_nu_conv / AF_integral;
+    }
+
+    cout << endl;
+
+    // Loop again to overwrite old q_nu values in S
+    nu.resize(nu_temp.size());
+    q_nu.resize(nu_temp.size());
+    q_int.resize(nu_temp.size());
+    for( size_t inu=0; inu<nu_temp.size(); inu++) {
+        nu[inu] = nu_temp[inu];
+        q_nu[inu] = q_nu_temp[inu];
+        // recompute cumulative intensity
+        if ( inu==0.0 )
+            q_int[inu] = 0.0;
+        else
+            q_int[inu] = 0.5 * ( q_nu[inu] + q_nu[inu-1] ) * ( nu[inu] - nu[inu-1] );
+    }
+
+    return;
+}
+
+double SpectralFlux::integrate_flux_spectra( double lambda_min, double lambda_max )
+{
+    // 1. Find spectral indice range to integrate over
+    int inu_start = 0;
+    if ( lambda_max > 0.0 ) inu_start = get_nu_index(nu, lambda2nu(lambda_max), adaptive) + 1;
+
+    int inu_end = nu.size() - 1;
+    if ( lambda_min > 0.0 ) inu_end = get_nu_index(nu, lambda2nu(lambda_min), adaptive) + 1;
+
+    double q_total = 0.0;
+    for( int inu=inu_start+1; inu<=inu_end; ++inu ) {
+        q_total += 0.5 * ( q_nu[inu] + q_nu[inu-1] ) * ( nu[inu] - nu[inu-1] );
+        q_int[inu] = q_total;
+    }
+
+    return q_total;
 }
 
 /* ------------ BinnedSpectralFlux class ------------ */

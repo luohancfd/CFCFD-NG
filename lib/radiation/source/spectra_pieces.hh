@@ -232,10 +232,24 @@ public:
     ~SpectralFlux();
     
 public:
+    /// \biref Clear all data
+    void clear_data();
+
     double write_to_file( std::string fname, int spectral_units=WAVELENGTH );
     
+    /// \brief Read SpectralFlux class from file
+    void read_from_file( std::string fname, int inu_start=0, int inu_end=-1 );
+
+    void apply_apparatus_function( ApparatusFunction * A );
+
+    double integrate_flux_spectra( double lambda_min=-1.0, double lambda_max=-1.0 );
+
 public:
+    /* Spectral flux vector */
     std::vector<double> q_nu;
+
+    /* Cumulative flux vector */
+    std::vector<double> q_int;
 };
 
 class BinnedSpectralFlux {
