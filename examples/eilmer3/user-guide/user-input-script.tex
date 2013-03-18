@@ -540,22 +540,29 @@ geometric entities such as paths and points.
 
 \subsection{Geometric elements}
 %
-The most fundamental class of geometric object is the \texttt{Vector}\index{geometric element!Vector} (or
-\texttt{Vector3}\index{geometric element!Vector3} as it is defined in the C++ module \texttt{libgeom2}\index{module!libgeom2}).
-A \texttt{Vector} represents a point in 3D space and has the usual behaviour 
-of a geometric vector (as opposed to the \texttt{vector} collection class in
-C++).
+The most fundamental class of geometric object is 
+the \texttt{Vector}\index{geometric element!Vector}\footnote{
+ The \texttt{Vector} objects are actually \texttt{Vector3}\index{geometric element!Vector3} 
+ objects, as defined in the C++ module \texttt{libgeom2}\index{module!libgeom2}.
+ Your Python input script may use either name.
+}
+which represents a point in 3D space and has the usual behaviour 
+of a geometric vector.
+This is in contrast to the behaviour of the \texttt{vector} collection class in C++ standard library.
 See, for example, the postprocessing program in the \texttt{simple\_ramp}
-simulation (Section\,\ref{simple-ramp-post-files}).
-If you want a point to be rendered with a label, you can define it as a
-\texttt{Node}.
+simulation (Section\,\ref{simple-ramp-post-files}) which uses both \texttt{Vector} objects
+and lists of \texttt{Vector} objects.
+If you want a point to be rendered with a label, you can define it as a \texttt{Node}.
 Examples of use include: $a$ = \texttt{Vector}($x$, $y$, $z$) and
 $b$ = \texttt{Node}($x$, $y$, $z$, \texttt{label='B'}).\index{geometric element!Node}
+When building models of 2D regions, you can omit the z-component value and it will default
+to zero.
 
 \medskip
-It is also possible to 'get' and 'set' values within a geometric element. For example to
-create a node, extract the x value of that node, to change the y value or to use
-the geometry values for a new node could be done as follows.\\
+It is possible to 'get' and 'set' values of attributes within a geometric element. 
+For example, to create a node, extract the x value of that node,
+change the y value, or to use the geometry values for a new node,
+you could use the following commands.\\
 \topbar\\
 \texttt{a = Node(0.5,0.8,label='Node a')}\\
 \texttt{x-value = a.x}\\
@@ -578,7 +585,8 @@ For example, to create a point and its mirror image in the (x,z)-plane, you coul
 The next level of dimensionality is the \texttt{Path} class\index{geometric element!Path}.
 A path object is a parametric curve in space, 
 along which points can be specified via the single parameter $0 \le t < 1$.
-Types of paths that are available include:
+\texttt{Path} is a base class and a number of derived types of paths are available.
+These include:
 \begin{itemize}
 \item \texttt{Line}($a$, $b$): a straight line between points $a$ and $b$.\index{geometric element!Line}
 \item \texttt{Arc}($a$, $b$, $c$): a circular arc from $a$ to $b$ around centre,
@@ -625,7 +633,8 @@ Types of paths that are available include:
   for parameter value $t$.\index{geometric element!PyFunctionPath}
 \end{itemize}
 
-Most \texttt{Path} objects (except \texttt{PyFunctionPath}) support the transformation methods
+Geometric objects can be copied with the \texttt{clone()} method and
+most \texttt{Path} objects (except \texttt{PyFunctionPath}) support the transformation methods
 \texttt{translate(displacement)}, 
 \texttt{reverse()}, 
 \texttt{mirror\_image(point, normal)} and \\
@@ -741,6 +750,7 @@ objects.
 
 %------------------------------------------------------------------
 \subsection{Two-dimensional grids}\index{grid!2D}
+\label{block2d-sec}
 %
 The grid defining the discretized gas domain is block structured. 
 In 2D, each block is a patch bounded by 4 edges (NORTH, EAST, SOUTH and WEST) such that
@@ -829,62 +839,15 @@ the \texttt{e3prep.py} program and these represent\footnote{The
   The order of appearance of boundaries in the list is NORTH, EAST, SOUTH and WEST.
   Note that a full list of 4 items is required.
   If you don't want to specify one (or more) of the items in the list, specify \texttt{None} as that item.
-\item \texttt{bc\_list} is an optional list of BoundaryCondition objects.\footnote{Note that, 
-  when creating these objects in the Python input script, the Python language requires the parentheses
-  even for the cases where no arguments, such as \texttt{Twall}, are required. }
-  Available boundary conditions are:\index{boundary conditions!list of available}
-  \begin{itemize}\index{boundary conditions}
-    \item \texttt{AdjacentBC()}\index{boundary conditions!AdjacentBC} for cases where one block interfaces with another.
-    \item \texttt{SupInBC(inflow\_condition, label='')}\index{boundary conditions!SupInBC} where we want to specify the inflow condition
-      that gets copies into the ghost cells each time step.
-      The optional \texttt{label} has an empty default value but may be used to group boundary surfaces symbolically
-      in the postprocessing stage.
-      Paul Petrie-Repar has made use of these labels in his \texttt{CGNS} postprocessing program.
-    \item \texttt{ExtrapolateOutBC(x\_order=0, sponge\_flag=0, label='')}\index{boundary conditions!ExtrapolateOutBC} where we want a (mostly supersonic) outflow
-      condition.
-      Flow data is effectively copied (\texttt{x\_order=0}) or linearly-extrapolated (\texttt{x\_order=1})
-      from just inside the boundary to the ghost cells just outside the boundary, every time step.
-      In subsonic flow, this can lead to unphysical bahaviour.
-    \item \texttt{SlipWallBC(label='')}\index{boundary conditions!SlipWallBC} where we want a solid wall with no viscous effects.
-      This is the default boundary condition where no other condition is specified.
-    \item \texttt{AdiabaticBC(label='')}\index{boundary conditions!AdiabaticBC} where we want viscous effects to impose no-slip at the wall
-      but where there is no heat transfer.
-    \item \texttt{FixedTBC(Twall, label='')}\index{boundary conditions!FixedTBC} where we want viscous effects to impose a no-slip velocity 
-      condition and a fixed wall temperature.
-    \item \texttt{SubsonicInBC(stagnation\_condition, label='')}\index{boundary conditions!SubsonicInBC} where the flow is assumed subsonic and
-      we specify the stagnation pressure and temperature, but take the velocity from just inside
-      the boundary.
-    \item \texttt{TransientUniBC(filename, label='')}\index{boundary conditions!TransientUniBC} where we want to specify the time-history of
-      the inflow condition.
-    \item \texttt{StaticProfileBC(filename, label='')}\index{boundary conditions!StaticProfileBC} where we want to apply a steady-state inflow
-       which may vary in space.
-    \item \texttt{FixedPOutBC(Pout, x\_order=0, label='')}\index{boundary conditions!FixedPOutBC} 
-      is like \texttt{ExtrapolateOutBC()} but with a specified back pressure.
-      This can be analogous to a vacuum pump that removes gas at the boundary to maintain
-      a fixed pressure in the ghost cells.
-    \item \texttt{UserDefinedBC(filename, is\_wall=0, use\_udf\_flux=0, label='')}\index{boundary conditions!UserDefinedBC}: 
-       allows the user to define the ghost-cell flow properties and/or interface fluxes at run time.
-       This is done via a set of functions defined by the user, and written in the Lua
-       programming language.
-       These functions are provided in the file given by \texttt{filename}.
-       The flag \texttt{is\_wall} indicates whether the boundary is to be considered
-       a wall for the application of turbulence-model fudges and the like (default 0).
-       The flag \texttt{use\_udf\_flux} indicates whether the user is supplying
-       the fluxes at the boundary interfaces (default 0).  
-       If not, the internal flux calculator is used together with the supplied ghost-cell data.
-       This boundary condition is the Jack of all trades and master of none.
-       It can be used to emulate any of the other boundary conditions and then build
-       variations, however, it is going to cost quite a lot in computational time.
-       See Appendix\,\ref{udf-sec} for the details of setting up this boundary condition.
-    \item \texttt{AdjacentPlusUDFBC(other\_block, other\_face, orientation, filename, \\is\_wall=0, use\_udf\_flux=0, label='')}\index{boundary conditions!AdjacentPlusUDFBC}: 
-       is a combination of the \texttt{AdjacentBC} and \texttt{UserDefinedBC}.
-       At each time step, the flow data is first exchanged, as per the usual
-       \texttt{AdjacentBC}.  Then the user-defined functions are applied.
-       This is one way of getting fancy boundary conditions, such as slowly-opening diaphragms,
-       into the simulation.
-  \end{itemize}
-  These boundary conditions may also be set, one at a time, as described in the 
-  Section\,\ref{setting-boundary-conditions-sec}.
+\item \texttt{bc\_list} is an optional list of BoundaryCondition objects,
+  as described in Section\,\ref{boundary-conditions-sec}.
+  You may omit this list completely, or pass \texttt{None} as any of the items.
+  Omitted boundary conditions default to a solid, slip-wall condition.
+  These boundary conditions may also be set at a later point in your input script,
+  one at a time, either by assigning to individual elements of the the block's \texttt{cf\_list}
+  attribute or via the \texttt{set\_BC()} method call described in 
+  the Section\,\ref{setting-individual-boundary-conditions-sec}.
+  Sometimes, this turns out to be handy.
 \item \texttt{fill\_condition} is the \texttt{FlowCondition} object with which to
   define the initial flow state within the volume.
   See Section\,\ref{thermo-flow-sec} for defining a suitable flow condition.
@@ -979,7 +942,7 @@ These are used to implement slowly-opening diaphragms and the like.
 
 \subsection{Putting a 2D description together}
 %
-As a motivational example, for MECH4480 students of CFD in particular,
+As a motivational example, especially for MECH4480 students of CFD,
 consider the construction of a grid around a bottle of \textit{James Boag's Premium}.
 Figure\,\ref{the-clustered-bottle-svg-fig} shows the final block arrangement with 
 the bottle lying on its side.
@@ -1005,7 +968,7 @@ and define just the 4 nodes E,F,K and L that mark the corners of our
 region of interest (Figure\,\ref{the-minimal-grid-fig}).
 These are created as \texttt{Nodes} with labels so that they show up in
 the generated SVG plot.
-The simplest way to define the region is to make a patch with 4 sides
+The simplest way to define the region is to make a patch with the four sides
 specified as staight-line paths.
 The \texttt{Block2D} is initialized with this patch, the number of cells
 in each direction and the initial gas state within the region.
@@ -1031,7 +994,7 @@ in each direction and the initial gas state within the region.
 When making a flow domain that is reasonably complicated, it's probably best
 to make a collection of blocks where each block is roughly a quadrilateral,
 but with the bounding paths fitted to the curves of the object to be modelled.
-Figure~\ref{the-plain-bottle-fig} shows the resulting grid from dividing up 
+Figure~\ref{the-plain-bottle-fig} shows the resulting grid, after dividing 
 the full gas-flow region into 6 blocks.
 
 \noindent
@@ -1048,19 +1011,17 @@ the full gas-flow region into 6 blocks.
 \end{figure}
 
 \medskip
-Each of the blocks is generated independently og the others.
-It is the user's responsibility to ensure that the common defining edges are 
+Each of the blocks is generated independently of the others.
+It is your responsibility to ensure that the common defining edges are 
 consistent and that the cell-discretization along each of these edges 
 is consistent with the corresponding discretization of any adjacent edge 
 of another block.
-
-\medskip
 The first constraint is easy to meet by defining each edge once only and
 reusing that path in the definition of different blocks.
 Sometimes, the orientation of a pair of blocks and 
 the particular directions of the paths within each block means that 
 one defining edge needs to be in the opposite sense tothe original.
-In this case the \texttt{clone} and \texttt{reverse} methods may be useful.
+In this case the \texttt{clone()} and \texttt{reverse()} methods may be useful.
 The script actually uses the equivalent \texttt{copy(direction=-1)} method call.
 
 \subsubsection*{Improving the grid with clustering}
@@ -1082,6 +1043,16 @@ This will require the use of matching clustering functions on these edges.
 \lstinputlisting[language={}]{../2D/beer-bottle/the_clustered_bottle.py}
 \bottombar
 
+\medskip
+Further improvement of the grid can be made by introducing a layer of blocks around
+the bottle surface, so that the cells near the surface can be made always nearly
+orthigonal and much more finely clustered toward the surface.
+The extra blocks add to the complexity of the input script but provide some decoupling 
+with respect to cell number along block edges and allow the fine clustering of cells
+toward the bottle surface without greatly increasing 
+the cell refinement in other parts of the gas-flow region.
+Such a grid would be suited to simulations of viscous flows.
+
 \begin{figure}[htbp]
 \begin{center}
 \includegraphics[width=\textwidth]{../2D/beer-bottle/the_clustered_bottle.png}
@@ -1093,6 +1064,7 @@ This will require the use of matching clustering functions on these edges.
 
 %------------------------------------------------------------------
 \subsection{Three-dimensional grids}\index{grid!3D}
+\label{block3d-sec}
 %
 In 3D, life is just that bit more complicated with
 each block defined by 6 surfaces (NORTH, EAST, SOUTH, WEST, TOP and BOTTOM) 
@@ -1210,7 +1182,10 @@ the \texttt{e3prep.py} program and these represent\footnote{Again, the
 \end{table}
 \item \texttt{bc\_list} is an optional list of BoundaryCondition objects for the 
   six bounding surfaces (\texttt{NORTH, EAST, SOUTH, WEST, TOP, BOTTOM}).
-  Available boundary conditions are the same as for Block2D objects
+  Available boundary conditions are the same as for Block2D objects and is given
+  in Section\,\ref{boundary-conditions-sec}.
+  Again, omitted conditions or those specified as \texttt{None} default to
+  solid, no-slip walls.
 \item \texttt{fill\_condition} is the \texttt{FlowCondition} object with which to
   define the initial flow state within the volume.
   See Section\,\ref{thermo-flow-sec} for defining a suitable flow condition.
@@ -1323,8 +1298,70 @@ Then, the boundaries that you want to connect have corners and faces that really
 
 %-------------------------------------------------------------------
 \bigskip
-\section{Setting conditions for individual boundaries}
-\label{setting-boundary-conditions-sec}\index{boundary conditions!setting individually}
+\section{Specifying flow conditions at block boundaries}
+\label{boundary-conditions-sec}\index{boundary conditions}
+%
+Back in Sections\,\ref{block2d-sec} and \ref{block3d-sec}, 
+the boundary conditions were permitted to be specified as a list of 
+\texttt{BoundaryCondition} objects passed to the constructor of \texttt{Block2D} 
+or \texttt{Block3D} objects, respectively.
+Available boundary condition classes include:\index{boundary conditions!list of available}
+  \begin{itemize}\index{boundary conditions}
+    \item \texttt{AdjacentBC()}\index{boundary conditions!AdjacentBC} for cases where one block interfaces with another.
+    \item \texttt{SupInBC(inflow\_condition, label='')}\index{boundary conditions!SupInBC} where we want to specify the inflow condition
+      that gets copies into the ghost cells each time step.
+      The optional \texttt{label} has an empty default value but may be used to group boundary surfaces symbolically
+      in the postprocessing stage.
+      Paul Petrie-Repar has made use of these labels in his \texttt{CGNS} postprocessing program.
+    \item \texttt{ExtrapolateOutBC(x\_order=0, sponge\_flag=0, label='')}\index{boundary conditions!ExtrapolateOutBC} where we want a (mostly supersonic) outflow
+      condition.
+      Flow data is effectively copied (\texttt{x\_order=0}) or linearly-extrapolated (\texttt{x\_order=1})
+      from just inside the boundary to the ghost cells just outside the boundary, every time step.
+      In subsonic flow, this can lead to unphysical bahaviour.
+    \item \texttt{SlipWallBC(label='')}\index{boundary conditions!SlipWallBC} where we want a solid wall with no viscous effects.
+      This is the default boundary condition where no other condition is specified.
+    \item \texttt{AdiabaticBC(label='')}\index{boundary conditions!AdiabaticBC} where we want viscous effects to impose no-slip at the wall
+      but where there is no heat transfer.
+    \item \texttt{FixedTBC(Twall, label='')}\index{boundary conditions!FixedTBC} where we want viscous effects to impose a no-slip velocity 
+      condition and a fixed wall temperature.
+    \item \texttt{SubsonicInBC(stagnation\_condition, label='')}\index{boundary conditions!SubsonicInBC} where the flow is assumed subsonic and
+      we specify the stagnation pressure and temperature, but take the velocity from just inside
+      the boundary.
+    \item \texttt{TransientUniBC(filename, label='')}\index{boundary conditions!TransientUniBC} where we want to specify the time-history of
+      the inflow condition.
+    \item \texttt{StaticProfileBC(filename, label='')}\index{boundary conditions!StaticProfileBC} where we want to apply a steady-state inflow
+       which may vary in space.
+    \item \texttt{FixedPOutBC(Pout, x\_order=0, label='')}\index{boundary conditions!FixedPOutBC} 
+      is like \texttt{ExtrapolateOutBC()} but with a specified back pressure.
+      This can be analogous to a vacuum pump that removes gas at the boundary to maintain
+      a fixed pressure in the ghost cells.
+    \item \texttt{UserDefinedBC(filename, is\_wall=0, use\_udf\_flux=0, label='')}\index{boundary conditions!UserDefinedBC}: 
+       allows the user to define the ghost-cell flow properties and/or interface fluxes at run time.
+       This is done via a set of functions defined by the user, and written in the Lua
+       programming language.
+       These functions are provided in the file given by \texttt{filename}.
+       The flag \texttt{is\_wall} indicates whether the boundary is to be considered
+       a wall for the application of turbulence-model fudges and the like (default 0).
+       The flag \texttt{use\_udf\_flux} indicates whether the user is supplying
+       the fluxes at the boundary interfaces (default 0).  
+       If not, the internal flux calculator is used together with the supplied ghost-cell data.
+       This boundary condition is the Jack of all trades and master of none.
+       It can be used to emulate any of the other boundary conditions and then build
+       variations, however, it is going to cost quite a lot in computational time.
+       See Appendix\,\ref{udf-sec} for the details of setting up this boundary condition.
+    \item \texttt{AdjacentPlusUDFBC(other\_block, other\_face, orientation, filename, \\is\_wall=0, use\_udf\_flux=0, label='')}\index{boundary conditions!AdjacentPlusUDFBC}: 
+       is a combination of the \texttt{AdjacentBC} and \texttt{UserDefinedBC}.
+       At each time step, the flow data is first exchanged, as per the usual
+       \texttt{AdjacentBC}.  Then the user-defined functions are applied.
+       This is one way of getting fancy boundary conditions, such as slowly-opening diaphragms,
+       into the simulation.
+  \end{itemize}
+Note that, 
+when creating these objects in the Python input script, the Python language requires the parentheses
+even for the cases where no arguments, such as \texttt{Twall}, are required.
+  
+\subsection{Setting conditions for individual boundaries}
+\label{setting-individual-boundary-conditions-sec}\index{boundary conditions!setting individually}
 %
 If you have not already set all appropriate boundary conditions through the \texttt{bc\_list}
 argument of the block constructor, you may apply boundary conditions to specific faces 
