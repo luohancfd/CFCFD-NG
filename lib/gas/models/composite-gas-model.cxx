@@ -210,9 +210,6 @@ s_eval_thermo_state_rhoe(Gas_data &Q)
     if ( Q.rho <= 0.0 )
 	return FAILURE;
 
-    if ( Q.e[0] <= 0.0 )
-	return FAILURE;
-
     // 1. Evalaute temperatures from energies
     if ( TBM_->eval_temperature(Q, EOS_) != SUCCESS )
 	return FAILURE;
