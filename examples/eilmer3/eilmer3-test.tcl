@@ -27,6 +27,7 @@ for {set i 0} {$i < $argc} {incr i} {
     }
 }
 set test_scripts [list "2D/cone20-simple/cone20.test"]
+lappend test_scripts "2D/sod/N2-O2/sod.test"
 lappend test_scripts "2D/mms_euler/mms_euler.test"
 lappend test_scripts "2D/mms/mms.test"
 lappend test_scripts "2D/shock-fitting-sphere/shock-fitting.test"

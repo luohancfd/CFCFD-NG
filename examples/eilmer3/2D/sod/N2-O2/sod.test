@@ -1,0 +1,187 @@
+# sod.test
+# Functional test for the little Sod shock tube examples.
+#
+# This exercises the "ideal gas" and "thermally perfect gas" models.
+#
+# PJ, 19-March-2013
+# Note that later tests below depend on earlier ones,
+# just as we shouldn't do.  Maybe we'll fix this some day.
+
+package require tcltest 2.0
+namespace import ::tcltest::*
+configure -verbose {start body error}
+
+test run-preprocessor-ideal {Run the preprocessing stage.} -body {
+    exec e3prep.py --job=sod > LOGFILE_PREP
+} -result {} -returnCodes {0}
+
+test run-simulation-ideal {Run the shared-memory simulation code.} -body {
+    exec e3shared.exe --job=sod --run > LOGFILE_MAIN
+} -result {} -returnCodes {0}
+
+test number-of-steps-ideal {The main simulation takes a certain number of steps.} -body {
+    set fp [open LOGFILE_MAIN r]
+    set contents [read $fp]
+    close $fp
+    set final_steps 0
+    foreach line [split $contents "\n"] {
+	if {[string first "Total number of steps" $line] >= 0} {
+	    set final_steps [lindex [split $line] 5]
+	}
+    }
+    set final_steps
+} -result {116}
+
+test flow-properties-ideal {The expanded driver gas and compressed driven gas.} -body {
+    set shock_speed 0
+    set edg_u_g 0
+    set edg_p 0
+    set edg_e 0
+    set edg_T 0
+    set sdg_u_g 0
+    set sdg_p 0
+    set sdg_e 0
+    set sdg_T 0
+    if { [catch {exec /usr/bin/env python estimate_flow_properties.py} results] } {
+        puts "specialized postprocessing command failed"
+        puts $results
+    } else {
+	foreach line [split $results "\n"] {
+	    if {[string first "speed=" $line] >= 0} {
+		set shock_speed [lindex [split [string trim $line]] 6]
+	    }
+	    if {[string first "edg u_g=" $line] >= 0} {
+		set edg_u_g [lindex [split [string trim $line]] 2]
+	    }
+	    if {[string first "edg p=" $line] >= 0} {
+		set edg_p [lindex [split [string trim $line]] 2]
+	    }
+	    if {[string first "edg e=" $line] >= 0} {
+		set edg_e [lindex [split [string trim $line]] 2]
+	    }
+	    if {[string first "edg T=" $line] >= 0} {
+		set edg_T [lindex [split [string trim $line]] 2]
+	    }
+	    if {[string first "sdg u_g=" $line] >= 0} {
+		set sdg_u_g [lindex [split [string trim $line]] 2]
+	    }
+	    if {[string first "sdg p=" $line] >= 0} {
+		set sdg_p [lindex [split [string trim $line]] 2]
+	    }
+	    if {[string first "sdg e=" $line] >= 0} {
+		set sdg_e [lindex [split [string trim $line]] 2]
+	    }
+	    if {[string first "sdg T=" $line] >= 0} {
+		set sdg_T [lindex [split [string trim $line]] 2]
+	    }
+	}
+    }
+    # Check the shock wave speed and 
+    # the average flow properties within the expanded driver gas slug 
+    # and the shock-compressed driven gas slug.
+    # Reference values come from the "ideal gas" model run.
+    list [expr abs($shock_speed - 559.2) < 0.5] \
+	[expr abs($edg_u_g - 294.1) < 0.5] \
+	[expr abs($edg_p - 30309.) < 50.0] \
+	[expr abs($edg_T - 247.5) < 0.5] \
+	[expr abs($edg_e - 178559.) < 500.0] \
+	[expr abs($sdg_u_g - 293.7) < 0.5] \
+	[expr abs($sdg_p - 30257.) < 50.0] \
+	[expr abs($sdg_T - 398.1) < 0.5] \
+	[expr abs($sdg_e - 287207.) < 500.0]
+} -result {1 1 1 1 1 1 1 1 1}
+
+test run-preprocessor-thermally-perfect {Run the preprocessing stage.} -body {
+    exec cp sod.py sod-ideal.py
+    set fp [open sod.py r]; set old_contents [read $fp]; close $fp
+    regsub {'ideal gas'} $old_contents {'thermally perfect gas'} new_contents
+    set fp [open sod.py w]; puts $fp $new_contents; close $fp
+    exec e3prep.py --job=sod > LOGFILE_PREP
+} -result {} -returnCodes {0}
+
+test run-simulation-thermally-perfect {Run the shared-memory simulation code.} -body {
+    exec e3shared.exe --job=sod --run > LOGFILE_MAIN
+} -result {} -returnCodes {0}
+
+test number-of-steps-thermally-perfect {The main simulation takes a certain number of steps.} -body {
+    set fp [open LOGFILE_MAIN r]
+    set contents [read $fp]
+    close $fp
+    set final_steps 0
+    foreach line [split $contents "\n"] {
+	if {[string first "Total number of steps" $line] >= 0} {
+	    set final_steps [lindex [split $line] 5]
+	}
+    }
+    set final_steps
+} -result {116}
+
+test flow-properties-thermally-perfect {The expanded driver gas and compressed driven gas.} -body {
+    set shock_speed 0
+    set edg_u_g 0
+    set edg_p 0
+    set edg_e 0
+    set edg_T 0
+    set sdg_u_g 0
+    set sdg_p 0
+    set sdg_e 0
+    set sdg_T 0
+    if { [catch {exec /usr/bin/env python estimate_flow_properties.py} results] } {
+        puts "specialized postprocessing command failed"
+        puts $results
+    } else {
+	foreach line [split $results "\n"] {
+	    if {[string first "speed=" $line] >= 0} {
+		set shock_speed [lindex [split [string trim $line]] 6]
+	    }
+	    if {[string first "edg u_g=" $line] >= 0} {
+		set edg_u_g [lindex [split [string trim $line]] 2]
+	    }
+	    if {[string first "edg p=" $line] >= 0} {
+		set edg_p [lindex [split [string trim $line]] 2]
+	    }
+	    if {[string first "edg e=" $line] >= 0} {
+		set edg_e [lindex [split [string trim $line]] 2]
+	    }
+	    if {[string first "edg T=" $line] >= 0} {
+		set edg_T [lindex [split [string trim $line]] 2]
+	    }
+	    if {[string first "sdg u_g=" $line] >= 0} {
+		set sdg_u_g [lindex [split [string trim $line]] 2]
+	    }
+	    if {[string first "sdg p=" $line] >= 0} {
+		set sdg_p [lindex [split [string trim $line]] 2]
+	    }
+	    if {[string first "sdg e=" $line] >= 0} {
+		set sdg_e [lindex [split [string trim $line]] 2]
+	    }
+	    if {[string first "sdg T=" $line] >= 0} {
+		set sdg_T [lindex [split [string trim $line]] 2]
+	    }
+	}
+    }
+    # Check the shock wave speed and 
+    # the average flow properties within the expanded driver gas slug 
+    # and the shock-compressed driven gas slug.
+    # Reference values come from the "thermally perfect gas" model run.
+    # Note the negative values for the expected internal energies.
+    list [expr abs($shock_speed - 559.4) < 0.5] \
+	[expr abs($edg_u_g - 294.4) < 0.5] \
+	[expr abs($edg_p - 30311.) < 50.0] \
+	[expr abs($edg_T - 247.7) < 0.5] \
+	[expr abs($edg_e - -122508.) < 500.0] \
+	[expr abs($sdg_u_g - 293.9) < 0.5] \
+	[expr abs($sdg_p - 30258.) < 50.0] \
+	[expr abs($sdg_T - 397.4) < 0.5] \
+	[expr abs($sdg_e - -13848.) < 500.0]
+} -result {1 1 1 1 1 1 1 1 1}
+
+test reset-ideal-gas-script {Run the post-postprocessing stage :)} -body {
+    # This gets the input script back to it's original content
+    # so that the tests may be run again immediately,
+    # just in case someone tries to do that.
+    exec cp sod.py sod-thermally-perfect.py
+    exec cp sod-ideal.py sod.py
+} -result {} -returnCodes {0}
+
+cleanupTests
