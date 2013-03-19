@@ -1,0 +1,17 @@
+set term postscript eps enhanced "Times" 20
+set title "Relaxation of dissociating oxygen behind a shock"
+set output 'O2-relax.eps'
+set xlabel "distance, cm"
+set ylabel "tempeature, K"
+set xrange [0:0.7]
+set yrange [0:25000]
+T = 249.0
+plot 'example.data' u ($1*100):2 t 'present work' w l ls 1, \
+     'example.data' u ($1*100):3 notitle w l ls 1, \
+     'thivet_etal_fig10_T.endata' u 1:2 t 'Thivet et al. (1991)' w l ls 2, \
+     'thivet_etal_fig10_T_O2.endata' notitle w l ls 2
+
+set output 'mole-profile.eps'
+set yrange [0:1]
+plot 'example.data' u ($1*100):7 t 'O_2' w l ls 2, \
+     'example.data' u ($1*100):8 t 'O' w l ls 3

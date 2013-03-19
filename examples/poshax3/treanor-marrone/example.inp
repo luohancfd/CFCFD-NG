@@ -1,0 +1,18 @@
+[controls]
+dx = 1.0e-5
+final_x = 0.7
+plot_dx = 1.0e-4
+output_file = example.data
+species_output = molef
+
+[models]
+gas_model_file = O2-O.lua
+reaction_file = O2-dissociation.lua
+energy_exchange_file = O2-exchange.lua
+
+[initial-conditions]
+p_inf = 22.595
+T_inf = 249.0 249.0
+u_inf = 7.0e3
+massf_inf = 1.0, 0.0
+
