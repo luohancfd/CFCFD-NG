@@ -131,7 +131,8 @@ ifeq ($(findstring Darwin, $(SYSTEM)), Darwin)
 endif
 	- cp $(TOOLS)/radiator_library.py $(TOOLS)/parade_radiator_library.py \
 		$(TOOLS)/radmodel.py $(TOOLS)/EQ_spectra.py $(TOOLS)/extract_NIST_data.py \
-		$(TOOLS)/radGUI.py $(INSTALL_DIR)
+		$(TOOLS)/radGUI.py $(TOOLS)/NIST_ASD_interpreter.py \
+		$(TOOLS)/Griem_interpreter.py $(INSTALL_DIR) 
 ifeq ($(WITH_SPRADIAN), 1)
 	- rsync -va $(SPRADIAN_SRC)/*.dat $(INSTALL_DIR)
 endif
