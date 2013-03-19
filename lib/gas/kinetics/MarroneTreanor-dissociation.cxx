@@ -89,14 +89,17 @@ s_eval(const Gas_data &Q)
     double Z = 1.0;
     for ( size_t i=0; i<vib_modes_.size(); ++i ) {
     	Z *= vib_modes_[i]->eval_Q_from_T(T) * vib_modes_[i]->eval_Q_from_T(gamma) / 
-    		vib_modes_[i]->eval_Q_from_T(Tv) / vib_modes_[i]->eval_Q_from_T(U_);
+    		vib_modes_[i]->eval_Q_from_T(Tv) / vib_modes_[i]->eval_Q_from_T(-U_);
     }
     
     // 2. Evaluate GA coefficient
     Generalised_Arrhenius::eval_from_T(T);
-    
+
+    //    cout << "k= " << k_ << endl;
+    //    cout << "Z= " << Z << endl;
     // 3. Augment k with NEQ factor
     k_ *= Z;
+    //    cout << "k= " << k_ << endl;
     
     return SUCCESS;
 }

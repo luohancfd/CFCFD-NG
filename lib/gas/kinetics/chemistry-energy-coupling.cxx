@@ -82,7 +82,8 @@ update_energy( Gas_data &Q, valarray<double> &delta_c, vector<double> &c_new )
     double delta_e = 0.0;
     if ( N_new > 0.0 ) delta_e = delta_E/N_new;
     
-    Q.e[imode_] += Q.massf[isp_] * delta_e / m_;			// convert J/particle -> J/kg-mix
+    //Q.e[imode_] += Q.massf[isp_] * delta_e / m_;			// convert J/particle -> J/kg-mix
+    Q.e[imode_] += delta_e / m_;
     
     return SUCCESS;
 }

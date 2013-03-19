@@ -113,6 +113,7 @@ specific_relaxation_time(Gas_data &Q, vector<double> &molef)
     // Set the 'bath' pressure as that of the 'q' colliders
     // and compute in atm for use in Millikan-White expression
     p_bath = molef[iq_]*Q.p/PC_P_atm;
+    //p_bath = Q.p/PC_P_atm;
     tau = (A_/p_bath) * exp((B_/pow(T, 1.0/3.0)) + C_);
     return tau;
 }
@@ -139,7 +140,7 @@ specific_relaxation_time(Gas_data &Q, vector<double> &molef)
     // Set the 'bath' pressure as that of the 'q' colliders
     // and compute in atm for use in Millikan-White expression
     p_bath = molef[iq_]*Q.p/PC_P_atm;
-    tau = (1.0/p_bath) * pow(T, 2.0/3.0) * exp((B_/pow(T, 1.0/3.0)) + C_);
+    tau = (1.0/p_bath) * pow(T, 2.0/3.0) * exp((B_/pow(T, 1.0/3.0)) - C_);
     return tau;
 }
 
