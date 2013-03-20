@@ -29,7 +29,6 @@ const int VISCOUS_TIME_LIMIT_MODEL = 0; // (0) original Swanson model, (1) Ramsh
 
 /*----------------------------------------------------------------*/
 
-static string noname = "none";
 static string face_name[] = { "north", "east", "south", "west", "top", "bottom" };
 
 /// \brief Translates a face name to a numeric index.
@@ -44,48 +43,44 @@ int get_face_index(const string name)
     if ( name_copy == face_name[WEST] ) return WEST;
     if ( name_copy == face_name[TOP] ) return TOP;
     if ( name_copy == face_name[BOTTOM] ) return BOTTOM;
-    return -1; // not a valid face index
+    return -1; // "not a valid face" index
 }
 
 /// \brief Translates an index to a face name.
 std::string get_face_name(int index)
 {
-    if ( index >= 0 && index <= 5 )
-	return face_name[index];
-    else
-	return noname;
+    return ( index >= 0 && index <= 5 ) ? face_name[index] : "none";
 }
 
 //---------------------------------------------------------------------------
 
 FlowState::FlowState(Gas_model *gm)
     : gas(new Gas_data(gm)),
-    vel(0.0,0.0,0.0), shock_vel(0.0,0.0,0.0), B(0.0,0.0,0.0),
-    S(0), tke(0.0), omega(0.0), mu_t(0.0), k_t(0.0), 
-    G(get_velocity_buckets(),0.0), H(get_velocity_buckets(),0.0)
+      vel(0.0,0.0,0.0), B(0.0,0.0,0.0), S(0),
+      tke(0.0), omega(0.0), mu_t(0.0), k_t(0.0), 
+      G(get_velocity_buckets(),0.0), H(get_velocity_buckets(),0.0)
 {}
 
 FlowState::FlowState()
     : gas(new Gas_data(get_gas_model_ptr())),
-    vel(0.0,0.0,0.0), shock_vel(0.0,0.0,0.0), B(0.0,0.0,0.0),
-    S(0), tke(0.0), omega(0.0), mu_t(0.0), k_t(0.0), 
-    G(get_velocity_buckets(),0.0), H(get_velocity_buckets(),0.0)
+      vel(0.0,0.0,0.0), B(0.0,0.0,0.0), S(0), 
+      tke(0.0), omega(0.0), mu_t(0.0), k_t(0.0), 
+      G(get_velocity_buckets(),0.0), H(get_velocity_buckets(),0.0)
 {}
 
 FlowState::FlowState(const FlowState &fs)
     : gas(new Gas_data(*(fs.gas))),
-    vel(fs.vel), shock_vel(fs.shock_vel), B(fs.B),
-    S(fs.S), tke(fs.tke), omega(fs.omega), mu_t(fs.mu_t), k_t(fs.k_t), 
-    G(fs.G), H(fs.H)
+      vel(fs.vel), B(fs.B), S(fs.S), 
+      tke(fs.tke), omega(fs.omega), mu_t(fs.mu_t), k_t(fs.k_t), 
+      G(fs.G), H(fs.H)
 {}
 
 FlowState & FlowState::operator=(const FlowState &fs)
 {
     if ( this != &fs ) { // Avoid aliasing
 	gas = new Gas_data(*(fs.gas));
-        vel = fs.vel; shock_vel = fs.shock_vel; B = fs.B;
-	S = fs.S; tke = fs.tke; omega=fs.omega;
-	mu_t = fs.mu_t; k_t = fs.k_t;
+        vel = fs.vel; B = fs.B; S = fs.S; 
+	tke = fs.tke; omega=fs.omega; mu_t = fs.mu_t; k_t = fs.k_t;
 	G = fs.G; H = fs.H;
     }
     return *this;

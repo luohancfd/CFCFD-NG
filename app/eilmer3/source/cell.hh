@@ -74,7 +74,6 @@ class FlowState {
 public:
     Gas_data *gas;       ///< \brief gas thermo state
     Vector3 vel;         ///< \brief velocity vector, m/s
-    Vector3 shock_vel;   ///< \brief shock velocity vector, m/s
     Vector3 B;           ///< \brief magnetic field, Tesla 
     int S;               ///< \brief flag to indicate shock-point
     double tke;          ///< \brief turbulence kinetic energy per unit mass

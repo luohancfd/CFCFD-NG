@@ -39,6 +39,7 @@
 %}
 
 %rename(cflowcondition_print) operator<<( std::ostream &os, const CFlowCondition &cfc );
+%ignore CFlowCondition::operator=;
 %include "c-flow-condition.hh"
 %extend CFlowCondition {
     char *__str__() {
