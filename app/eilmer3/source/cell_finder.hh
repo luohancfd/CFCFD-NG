@@ -13,54 +13,54 @@
 
 class CellFinder {
 public:
-    CellFinder( int nvertices );
+    CellFinder( size_t nvertices );
     
     virtual ~CellFinder();
     
 public:
-    virtual int find_cell( const Vector3 &p, int &ib, int &ic, int &jc, int &kc ) = 0;
+    virtual int find_cell( const Vector3 &p, size_t &ib, size_t &ic, size_t &jc, size_t &kc ) = 0;
     
-    virtual void test_cell( const FV_Cell * cell, const Vector3 &p, int *dc ) = 0;
+    virtual void test_cell( const FV_Cell * cell, const Vector3 &p, size_t *dc ) = 0;
     
 protected:
-    int nvertices_;
+    size_t nvertices_;
 };
 
 
 class CellFinder2D : public CellFinder {
 public:
-    CellFinder2D( int nvertices = 4 );
+    CellFinder2D( size_t nvertices = 4 );
     
     ~CellFinder2D();
 
 public:
-    int find_cell( const Vector3 &p, int &ib, int &ic, int &jc, int &kc );
+    int find_cell( const Vector3 &p, size_t &ib, size_t &ic, size_t &jc, size_t &kc );
     
-    void test_cell( const FV_Cell * cell, const Vector3 &p, int *dc );
+    void test_cell( const FV_Cell * cell, const Vector3 &p, size_t *dc );
     
 private:
     // NOTE: we have a vectors here to allow for multiple threads
     std::vector< std::vector<Vector3> > rp_;
     std::vector< std::vector<Vector3> > a_;
-    std::vector< int* > dc_;
+    std::vector< size_t* > dc_;
 };
 
 class CellFinder3D : public CellFinder {
 public:
-    CellFinder3D( int nvertices = 8 );
+    CellFinder3D( size_t nvertices = 8 );
     
     ~CellFinder3D();
 
 public:
-    int find_cell( const Vector3 &p, int &ib, int &ic, int &jc, int &kc );
+    int find_cell( const Vector3 &p, size_t &ib, size_t &ic, size_t &jc, size_t &kc );
     
-    void test_cell( const FV_Cell * cell, const Vector3 &p, int *dc );
+    void test_cell( const FV_Cell * cell, const Vector3 &p, size_t *dc );
     
 private:
     // NOTE: we have a vectors here to allow for multiple threads
     std::vector< std::vector<Vector3> > vp_;
     std::vector< std::vector<double> > a_;
-    std::vector< int* > dc_;
+    std::vector< size_t* > dc_;
 };
 
 #endif

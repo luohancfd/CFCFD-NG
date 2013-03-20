@@ -38,9 +38,9 @@
  * from the cell-centre data and then the fluxes across the
  * interfaces are calculated.
  */
-int Block::inviscid_flux(int dimensions)
+int Block::inviscid_flux(size_t dimensions)
 {
-    int i, j, k;
+    size_t i, j, k;
     FV_Cell *cL1, *cL0, *cR0, *cR1, *cR2;
     FV_Interface *IFace;
     Gas_model *gmodel = get_gas_model_ptr();

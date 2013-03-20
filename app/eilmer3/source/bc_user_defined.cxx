@@ -79,7 +79,7 @@ UserDefinedBC::~UserDefinedBC()
 
 int UserDefinedBC::apply_inviscid( double t )
 {
-    int i, j, k;
+    size_t i, j, k;
     FV_Cell *cell, *dest_cell;
     FV_Interface *IFace;
     Block & bd = *bdp;
@@ -213,7 +213,7 @@ int UserDefinedBC::apply_inviscid( double t )
 
 int UserDefinedBC::apply_viscous( double t )
 {
-    int i, j, k;
+    size_t i, j, k;
     FV_Cell *cell;
     FV_Interface *IFace;
     Block & bd = *bdp;
@@ -340,7 +340,7 @@ int UserDefinedBC::start_interpreter()
     return SUCCESS;
 } // end start_interpreter()
 
-int UserDefinedBC::eval_flux_udf( double t, int i, int j, int k, FV_Interface *IFace )
+int UserDefinedBC::eval_flux_udf( double t, size_t i, size_t j, size_t k, FV_Interface *IFace )
 {
     // Call the user-defined function which returns a table 
     // of fluxes of conserved quantities.
@@ -376,7 +376,7 @@ int UserDefinedBC::eval_flux_udf( double t, int i, int j, int k, FV_Interface *I
     // Assume that there is a single table at the TOS
     // cout << "Table of fluxes of mass fractions" << endl;
     lua_getfield(L, -1, "species"); // put mass-fraction table at TOS 
-    for ( int isp = 0; isp < nsp; ++isp ) {
+    for ( size_t isp = 0; isp < nsp; ++isp ) {
 	lua_pushinteger(L, isp);
 	lua_gettable(L, -2);
 	F.massf[isp] = lua_tonumber(L, -1);
@@ -384,7 +384,7 @@ int UserDefinedBC::eval_flux_udf( double t, int i, int j, int k, FV_Interface *I
     }
     lua_pop(L, 1); // remove F_species table from top-of-stack
     lua_getfield(L, -1, "renergies"); // put individual-energies table at TOS 
-    for ( int imode = 0; imode < nmodes; ++imode ) {
+    for ( size_t imode = 0; imode < nmodes; ++imode ) {
 	lua_pushinteger(L, imode);
 	lua_gettable(L, -2);
 	F.energies[imode] = lua_tonumber(L, -1);
@@ -404,7 +404,7 @@ int UserDefinedBC::eval_flux_udf( double t, int i, int j, int k, FV_Interface *I
     return SUCCESS;
 } // end eval_flux_udf()
 
-int UserDefinedBC::eval_inviscid_udf( double t, int i, int j, int k, 
+int UserDefinedBC::eval_inviscid_udf( double t, size_t i, size_t j, size_t k, 
 				      FV_Interface *IFace )
 {
     // Call the user-defined function which returns two tables 
@@ -475,7 +475,7 @@ CFlowCondition * UserDefinedBC::unpack_flow_table( void )
     std::vector<double> T;
     // cout << "Table of individual-energy-mode temperatures" << endl;
     lua_getfield(L, -1, "T"); 
-    for ( int imode = 0; imode < nmodes; ++imode ) {
+    for ( size_t imode = 0; imode < nmodes; ++imode ) {
 	lua_pushinteger(L, imode);
 	lua_gettable(L, -2);
 	T.push_back( lua_tonumber(L, -1) );
@@ -485,7 +485,7 @@ CFlowCondition * UserDefinedBC::unpack_flow_table( void )
     // cout << "Table of mass fractions" << endl;
     std::vector<double> massf;
     lua_getfield(L, -1, "massf"); // put mass-fraction table at TOS 
-    for ( int isp = 0; isp < nsp; ++isp ) {
+    for ( size_t isp = 0; isp < nsp; ++isp ) {
 	lua_pushinteger(L, isp);
 	lua_gettable(L, -2);
 	massf.push_back( lua_tonumber(L, -1) );
@@ -510,7 +510,7 @@ CFlowCondition * UserDefinedBC::unpack_flow_table( void )
     return cfc;
 } // end unpack_flow_table()
 
-int UserDefinedBC::eval_viscous_udf( double t, int i, int j, int k, 
+int UserDefinedBC::eval_viscous_udf( double t, size_t i, size_t j, size_t k, 
 				     FV_Interface *IFace,
 				     const FV_Cell *cell )
 {
@@ -552,7 +552,7 @@ int UserDefinedBC::eval_viscous_udf( double t, int i, int j, int k,
 	// Assume that there is a single table at the TOS
 	// cout << "Table of mass fractions" << endl;
 	lua_getfield(L, -1, "massf"); // put mass-fraction table at TOS 
-	for ( int isp = 0; isp < nsp; ++isp ) {
+	for ( size_t isp = 0; isp < nsp; ++isp ) {
 	    lua_pushinteger(L, isp);
 	    lua_gettable(L, -2);
 	    fs.gas->massf[isp] = lua_tonumber(L, -1);
@@ -561,7 +561,7 @@ int UserDefinedBC::eval_viscous_udf( double t, int i, int j, int k,
 	lua_pop(L, 1); // remove mf table from top-of-stack
 	// cout << "Now get T, v, u, w, tke, omega" << endl;
 	lua_getfield(L, -1, "T"); // put temperature table at TOS
-	for ( int imode = 0; imode < nmodes; ++imode ) {
+	for ( size_t imode = 0; imode < nmodes; ++imode ) {
 	    lua_pushinteger(L, imode);
 	    lua_gettable(L, -2);
 	    fs.gas->T[imode] = lua_tonumber(L, -1);

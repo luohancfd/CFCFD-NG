@@ -36,7 +36,7 @@ fstcBC::fstcBC( Block *bdp, int which_boundary, const std::string filename )
     double T;
     //std::vector<double> fstcT;
     FILE *fp;
-    int ncell, nread;
+    size_t ncell, nread;
 
     fp = fopen(filename.c_str(), "r");
     if (fp == NULL) {
@@ -51,7 +51,7 @@ fstcBC::fstcBC( Block *bdp, int which_boundary, const std::string filename )
 	exit(FILE_ERROR);
     }
 
-    nread = sscanf(line, "%d", &ncell_for_profile);
+    nread = sscanf(line, "%u", &ncell_for_profile);
     if ( nread != 1 ) {
         cerr << "fstcBC() constructor:"
 	     << "Could not read ncell_for_profile from line:" << endl
@@ -74,7 +74,7 @@ fstcBC::fstcBC( Block *bdp, int which_boundary, const std::string filename )
     }
 
     /* For each line in the file, store the temperature data. */
-    for ( int ii = 0; ii < ncell_for_profile; ++ii ) {
+    for ( size_t ii = 0; ii < ncell_for_profile; ++ii ) {
 	if ( fgets(line, sizeof(line), fp) == NULL ) {
 	    cerr << "fstcBC(): failure of fgets()" << endl;
 	    cerr << "Quitting program." << endl;
@@ -115,11 +115,11 @@ fstcBC::~fstcBC() {}
 
 int fstcBC::apply_viscous( double t )
 {
-    int i, j, k;
+    size_t i, j, k;
     FV_Cell *cell;
     FV_Interface *IFace;
     Block & bd = *bdp;
-    int nmodes = get_gas_model_ptr()->get_number_of_modes();
+    size_t nmodes = get_gas_model_ptr()->get_number_of_modes();
 
     switch ( which_boundary ) {
     case NORTH:
@@ -131,7 +131,7 @@ int fstcBC::apply_viscous( double t )
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( int imode=0; imode < nmodes; ++imode ) {
+		for ( size_t imode=0; imode < nmodes; ++imode ) {
             fs.gas->T[imode] = fstc_TProfile[i-bd.imin];
 		}
 		fs.tke = 0.0;
@@ -151,7 +151,7 @@ int fstcBC::apply_viscous( double t )
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( int imode=0; imode < nmodes; ++imode ) {
+		for ( size_t imode=0; imode < nmodes; ++imode ) {
             fs.gas->T[imode] = fstc_TProfile[j-bd.jmin];
 		}
 		fs.tke = 0.0;
@@ -171,7 +171,7 @@ int fstcBC::apply_viscous( double t )
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( int imode=0; imode < nmodes; ++imode ) {
+		for ( size_t imode=0; imode < nmodes; ++imode ) {
             fs.gas->T[imode] = fstc_TProfile[i-bd.imin];
 		}
 		fs.tke = 0.0;
@@ -191,7 +191,7 @@ int fstcBC::apply_viscous( double t )
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( int imode=0; imode < nmodes; ++imode ) {
+		for ( size_t imode=0; imode < nmodes; ++imode ) {
             fs.gas->T[imode] = fstc_TProfile[j-bd.jmin];
 		}
 		fs.tke = 0.0;
@@ -211,7 +211,7 @@ int fstcBC::apply_viscous( double t )
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( int imode=0; imode < nmodes; ++imode ) {
+		for ( size_t imode=0; imode < nmodes; ++imode ) {
             fs.gas->T[imode] = fstc_TProfile[j-bd.jmin];
 		}
 		fs.tke = 0.0;
@@ -231,7 +231,7 @@ int fstcBC::apply_viscous( double t )
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( int imode=0; imode < nmodes; ++imode ) {
+		for ( size_t imode=0; imode < nmodes; ++imode ) {
             fs.gas->T[imode] = fstc_TProfile[j-bd.jmin];
 		}
 		fs.tke = 0.0;

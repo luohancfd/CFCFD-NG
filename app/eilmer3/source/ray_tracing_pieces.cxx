@@ -128,7 +128,7 @@ void RayTracingCell::recompute_spectra( RadiationSpectralModel * rsm )
     return;
 }
 
-void RayTracingCell::set_CFD_cell_indices( int ii, int jj, int kk )
+void RayTracingCell::set_CFD_cell_indices( size_t ii, size_t jj, size_t kk )
 {
     ii_ = ii;
     jj_ = jj;
@@ -137,7 +137,7 @@ void RayTracingCell::set_CFD_cell_indices( int ii, int jj, int kk )
     return;
 }
 
-void RayTracingCell::get_CFD_cell_indices( int &ii, int &jj, int &kk )
+void RayTracingCell::get_CFD_cell_indices( size_t &ii, size_t &jj, size_t &kk )
 {
     ii = ii_;
     jj = jj_;
@@ -178,14 +178,14 @@ void RayTracingCell::write_rays_to_file( string filename )
     return;
 }
 
-DiscreteTransferCell::DiscreteTransferCell( Gas_data * Q, double * Q_rE_rad, Vector3 origin, double vol, int nrays, int ndim, bool planar )
+DiscreteTransferCell::DiscreteTransferCell( Gas_data * Q, double * Q_rE_rad, Vector3 origin, double vol, size_t nrays, size_t ndim, bool planar )
 : RayTracingCell( Q, Q_rE_rad, origin, vol )
 {
     if ( nrays > 0 ) {
 	if ( planar == true ) {
 	    // uniform planar ray distribution
 	    double alpha = 0.0, theta = 0.0, phi = 0.0, domega = 0.0;
-	    for ( int iray=0; iray<nrays; ++iray ) {
+	    for ( size_t iray=0; iray<nrays; ++iray ) {
 		alpha = 2.0 * M_PI * iray / nrays;
 		if ( alpha>=0.0 && alpha<M_PI/2.0 ) {
 		    theta = 0.0; phi = alpha;
@@ -203,7 +203,7 @@ DiscreteTransferCell::DiscreteTransferCell( Gas_data * Q, double * Q_rE_rad, Vec
 	    double inc = M_PI * ( 3.0 - sqrt(5.0) );
 	    double off = 2.0 / double(nrays);
 	    double phi, theta = 0.0;
-	    for ( int iray=0; iray<nrays; ++iray ) {
+	    for ( size_t iray=0; iray<nrays; ++iray ) {
 		double y = double(iray)*off - 1.0 + ( off/2.0 );
 		double r = sqrt( 1.0 - y*y );
 		phi = double(iray)*inc;
@@ -212,7 +212,7 @@ DiscreteTransferCell::DiscreteTransferCell( Gas_data * Q, double * Q_rE_rad, Vec
 	    
 	    // Extract angles in our coordinate system
 	    double domega = 4.0 * M_PI / double ( nrays );
-	    for ( int iray=0; iray<nrays; ++iray ) {
+	    for ( size_t iray=0; iray<nrays; ++iray ) {
 		double x=pts[iray].x, y=pts[iray].y, z=pts[iray].z;
 		double L = vabs( pts[iray] );
 		phi = asin( y / L );
@@ -305,7 +305,7 @@ void RayTracingInterface::recompute_spectra( RadiationSpectralModel * rsm )
     return;
 }
 
-void RayTracingInterface::set_CFD_cell_indices( int ii, int jj, int kk )
+void RayTracingInterface::set_CFD_cell_indices( size_t ii, size_t jj, size_t kk )
 {
     ii_ = ii;
     jj_ = jj;
@@ -314,7 +314,7 @@ void RayTracingInterface::set_CFD_cell_indices( int ii, int jj, int kk )
     return;
 }
 
-void RayTracingInterface::get_CFD_cell_indices( int &ii, int &jj, int &kk )
+void RayTracingInterface::get_CFD_cell_indices( size_t &ii, size_t &jj, size_t &kk )
 {
     ii = ii_;
     jj = jj_;
@@ -347,14 +347,14 @@ void RayTracingInterface::write_rays_to_file( string filename )
     return;
 }
 
-DiscreteTransferInterface::DiscreteTransferInterface( Gas_data * Q, Vector3 origin, double area, double length, int nrays, int ndim, bool planar )
+DiscreteTransferInterface::DiscreteTransferInterface( Gas_data * Q, Vector3 origin, double area, double length, size_t nrays, size_t ndim, bool planar )
 : RayTracingInterface( Q, origin, area, length )
 {
     if ( nrays > 0 ) {
 	if ( planar == true ) {
 	    // uniform planar ray distribution
 	    double alpha = 0.0, theta = 0.0, phi = 0.0, domega = 0.0;
-	    for ( int iray=0; iray<nrays; ++iray ) {
+	    for ( size_t iray=0; iray<nrays; ++iray ) {
 		alpha = 2.0 * M_PI * iray / nrays;
 		if ( alpha>=0.0 && alpha<M_PI/2.0 ) {
 		    theta = 0.0; phi = alpha;
@@ -372,7 +372,7 @@ DiscreteTransferInterface::DiscreteTransferInterface( Gas_data * Q, Vector3 orig
 	    double inc = M_PI * ( 3.0 - sqrt(5.0) );
 	    double off = 2.0 / double(nrays);
 	    double phi, theta = 0.0;
-	    for ( int iray=0; iray<nrays; ++iray ) {
+	    for ( size_t iray=0; iray<nrays; ++iray ) {
 		double y = double(iray)*off - 1.0 + ( off/2.0 );
 		double r = sqrt( 1.0 - y*y );
 		phi = double(iray)*inc;
@@ -381,7 +381,7 @@ DiscreteTransferInterface::DiscreteTransferInterface( Gas_data * Q, Vector3 orig
 	    
 	    // Extract angles in our coordinate system
 	    double domega = 4.0 * M_PI / double ( nrays );
-	    for ( int iray=0; iray<nrays; ++iray ) {
+	    for ( size_t iray=0; iray<nrays; ++iray ) {
 		double x=pts[iray].x, y=pts[iray].y, z=pts[iray].z;
 		double L = vabs( pts[iray] );
 		phi = asin( y / L );

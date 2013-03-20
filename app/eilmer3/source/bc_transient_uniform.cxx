@@ -88,7 +88,7 @@ TransientUniformBC::TransientUniformBC( Block *bdp, int which_boundary,
         if ( nsp == 1 ) {
             massf_line[0] = 1.0;
         } else {
-	    for ( int isp = 0; isp < nsp; ++isp ) {
+	    for ( size_t isp = 0; isp < nsp; ++isp ) {
 		strcpy( token, strtok(NULL, " \t") );
 		massf_line[isp] = atof(token);
 	    }
@@ -96,7 +96,7 @@ TransientUniformBC::TransientUniformBC( Block *bdp, int which_boundary,
 	massfa.push_back(massf_line);
 #       if ECHO_ALL
 	printf( "            " );
-	for ( int isp = 0; isp < nsp; ++isp ) {
+	for ( size_t isp = 0; isp < nsp; ++isp ) {
             printf( "massf[%d]=%e, ", isp, massfa[nsample-1][isp] );
 	}
         printf( "\n" ); fflush(stdout);
@@ -147,7 +147,7 @@ TransientUniformBC::~TransientUniformBC()
 
 int TransientUniformBC::apply_inviscid( double t )
 {
-    int ii;
+    size_t ii;
     double p, u, v, w, mu_t, k_t, tke, omega;
     std::vector<double> T;
     std::vector<double> mf;
@@ -158,8 +158,8 @@ int TransientUniformBC::apply_inviscid( double t )
     if ( t <= tta[0] || t >= tta[nsample - 1] ) {
         if ( t <= tta[0] ) ii = 0; else ii = nsample - 1;
         p = pa[ii];
-        for ( int isp = 0; isp < nsp; ++isp ) mf.push_back(massfa[ii][isp]);
-        for ( int imode = 0; imode < nmodes; ++imode ) T.push_back(Ta[ii]);
+        for ( size_t isp = 0; isp < nsp; ++isp ) mf.push_back(massfa[ii][isp]);
+        for ( size_t imode = 0; imode < nmodes; ++imode ) T.push_back(Ta[ii]);
         u = ua[ii];
         v = va[ii];
         w = wa[ii];
@@ -175,10 +175,10 @@ int TransientUniformBC::apply_inviscid( double t )
         if ( alpha > 1.0 ) alpha = 1.0;
         if ( alpha < 0.0 ) alpha = 0.0;
         p = (1.0 - alpha) * pa[ii-1] + alpha * pa[ii];
-        for ( int isp = 0; isp < nsp; ++isp ) {
+        for ( size_t isp = 0; isp < nsp; ++isp ) {
             mf.push_back( (1.0 - alpha) * massfa[ii-1][isp] + alpha * massfa[ii][isp] );
         }
-        for ( int imode = 0; imode < nmodes; ++imode ) {
+        for ( size_t imode = 0; imode < nmodes; ++imode ) {
             T.push_back( (1.0 - alpha) * Ta[ii-1] + alpha * Ta[ii] );
         }
         u = (1.0 - alpha) * ua[ii-1] + alpha * ua[ii];
@@ -196,7 +196,7 @@ int TransientUniformBC::apply_inviscid( double t )
     T.clear();
     // Now, fill in the ghost cells, assuming that the flow is
     // essentially like SupersonicIn.
-    int i, j, k;
+    size_t i, j, k;
     FV_Cell *dest_cell;
 
     switch ( which_boundary ) {

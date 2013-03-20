@@ -5,6 +5,8 @@
 // History:
 //   26-May-2010
 //   Initial coding
+//   20-Mar-2013
+//   tostring functions added by PJ because he can't wait for C++11
 //
 
 #include <sstream>
@@ -43,4 +45,25 @@ double str2dbl(const string &s)
     if (!(i >> x))
 	throw runtime_error("str2dbl(\"" + s + "\")");
     return x;
+}
+
+std::string tostring(int i)
+{
+    std::ostringstream ost;
+    ost << i;
+    return ost.str();
+}
+
+std::string tostring(size_t i)
+{
+    std::ostringstream ost;
+    ost << i;
+    return ost.str();
+}
+
+std::string tostring(double v)
+{
+    std::ostringstream ost;
+    ost << v;
+    return ost.str();
 }

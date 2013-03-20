@@ -14,7 +14,7 @@
 
 /* Direct-copy exchange functions */
 
-int copy_boundary_data_3D( int jb, int type_of_copy );
+int copy_boundary_data_3D( size_t jb, int type_of_copy );
 
 int copy_into_east_boundary_3D(Block *bp, Block *bp_src, int type_of_copy);
 int copy_into_west_boundary_3D(Block *bp, Block *bp_src, int type_of_copy);

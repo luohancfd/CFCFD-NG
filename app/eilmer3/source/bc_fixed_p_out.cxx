@@ -47,7 +47,7 @@ int FixedPOutBC::apply_inviscid( double t )
     // and then impose a specified pressure.
     //
     // We assume that this boundary is an outflow boundary.
-    int i, j, k;
+    size_t i, j, k;
     FV_Cell *src_cell, *dest_cell;
     Gas_model *gmodel = get_gas_model_ptr();
     Block & bd = *bdp;

@@ -16,5 +16,8 @@
 int tokenize(const std::string &line, std::vector<std::string> &tokens);
 int str2int(const std::string &s);
 double str2dbl(const std::string &s);
+std::string tostring(int i);
+std::string tostring(size_t i);
+std::string tostring(double v);
 
 #endif

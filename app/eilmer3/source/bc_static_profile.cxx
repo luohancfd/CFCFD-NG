@@ -26,7 +26,7 @@
 //------------------------------------------------------------------------
 
 StaticProfileBC::StaticProfileBC( Block *bdp, int which_boundary,
-				  const std::string filename, int n_profile )
+				  const std::string filename, size_t n_profile )
     : BoundaryCondition(bdp, which_boundary, STATIC_PROF, "StaticProfileBC",
 			0, false, false, -1, -1, 0),
       filename(filename), n_profile(n_profile)
@@ -55,8 +55,8 @@ StaticProfileBC::StaticProfileBC( Block *bdp, int which_boundary,
     int S;
     double Q_rad_org, f_rad_org, Q_rE_rad, tke, omega, dt_chem, dt_therm;
     std::vector<double> massf, e, T;
-    int ncell, ncell_for_profile;
-    int ncell_read_from_file = 0;
+    size_t ncell, ncell_for_profile;
+    size_t ncell_read_from_file = 0;
     FILE *fp;
     global_data *G = get_global_data_ptr();
     //---------------------------------------------------------------------------
@@ -117,7 +117,7 @@ StaticProfileBC::StaticProfileBC( Block *bdp, int which_boundary,
 	    strcpy( token, strtok(NULL, " ") ); massf[0] = 1.0;
 	    // ignore the mass-fraction value in the file.
         } else {
-	    for ( int isp = 0; isp < nsp; ++isp ) {
+	    for ( size_t isp = 0; isp < nsp; ++isp ) {
 		strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &(massf[isp]));
 	    }
         }
@@ -126,7 +126,7 @@ StaticProfileBC::StaticProfileBC( Block *bdp, int which_boundary,
 	} else {
 	    dt_chem = -1.0;
 	}
-	for ( int imode = 0; imode < nmodes; ++imode ) {
+	for ( size_t imode = 0; imode < nmodes; ++imode ) {
 	    strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &(e[imode]));
 	    strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &(T[imode]));
 	}
@@ -220,7 +220,7 @@ StaticProfileBC::~StaticProfileBC()
 
 int StaticProfileBC::apply_inviscid( double t )
 {
-    int i, ifirst, ilast, j, jfirst, jlast, ncell_for_profile;
+    size_t i, ifirst, ilast, j, jfirst, jlast, ncell_for_profile;
     FV_Cell *dest_cell;
     CFlowCondition *gsp;
     Block & bd = *bdp;

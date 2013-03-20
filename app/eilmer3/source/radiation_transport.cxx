@@ -47,11 +47,11 @@ RadiationTransportModel::~RadiationTransportModel()
     	delete rsm_[ithread];
 }
 
-int RadiationTransportModel::set_radiation_spectral_model( string file_name, int nthreads )
+int RadiationTransportModel::set_radiation_spectral_model( string file_name, size_t nthreads )
 {
     // Create one spectral model per thread
     int flag = SUCCESS;
-    for ( int ithread=0; ithread<nthreads; ++ithread ) {
+    for ( size_t ithread=0; ithread<nthreads; ++ithread ) {
     	rsm_.push_back( create_radiation_spectral_model( file_name ) );
     	if ( rsm_.back()==0 ) flag = FAILURE;
     }
@@ -137,13 +137,13 @@ void OpticallyThin::compute_Q_rad_for_block( Block * A )
     int ithread = omp_get_thread_num();
     
 #   if VERBOSE_RADIATION_TRANSPORT
-    int total_cells = A->nnk * A->nnj * A->nni;
-    int count = 0;
+    size_t total_cells = A->nnk * A->nnj * A->nni;
+    size_t count = 0;
 #   endif
 
-    for ( int k = A->kmin; k <= A->kmax; ++k ) {
-	for ( int i = A->imin; i <= A->imax; ++i ) {
-	    for ( int j = A->jmin; j <= A->jmax; ++j ) {
+    for ( size_t k = A->kmin; k <= A->kmax; ++k ) {
+	for ( size_t i = A->imin; i <= A->imax; ++i ) {
+	    for ( size_t j = A->jmin; j <= A->jmax; ++j ) {
 #		if VERBOSE_RADIATION_TRANSPORT
 		if ( A->id==0 ) {
 		    cout << "Computing spectra for cell: " << count << " of: " << total_cells << " in block: " << A->id << endl;
@@ -194,7 +194,7 @@ void TangentSlab::compute_Q_rad_for_flowfield()
     Block * bdp;
     global_data &G = *get_global_data_ptr();  // set up a reference
     
-    int jb;
+    size_t jb;
 #   ifdef _OPENMP
 #   pragma omp barrier
 #   pragma omp parallel for private(jb) schedule(runtime)
@@ -217,12 +217,12 @@ void TangentSlab::compute_Q_rad_for_block( Block * A )
     Vector3 * coords_im1;
     Vector3 * coords_i;
     double s = 0.0;
-    int index;
+    size_t index;
     
     // Perform TS calc for lines of cells in i space
     // NOTE: assuming left to right flow
-    for ( int k = A->kmin; k <= A->kmax; ++k ) {
-    	for ( int j = A->jmin; j <= A->jmax; ++j ) {
+    for ( size_t k = A->kmin; k <= A->kmax; ++k ) {
+    	for ( size_t j = A->jmin; j <= A->jmax; ++j ) {
 #           if VERBOSE_RADIATION_TRANSPORT
     	    cout << "performing TS calc for j = " << j << endl;
 #           endif
@@ -231,7 +231,7 @@ void TangentSlab::compute_Q_rad_for_block( Block * A )
     	    // west IFace of first cell is s=0.0
     	    coords_im1 = &(A->get_cell(A->imin,j,k)->iface[WEST]->pos);
     	    TS.T_i_ = A->get_cell(A->imin,j,k)->iface[WEST]->fs->gas->T[0];
-    	    for ( int i = A->imin; i <= A->imax; ++i ) {
+    	    for ( size_t i = A->imin; i <= A->imax; ++i ) {
     	    	cellp = A->get_cell(i,j,k);
     	    	coords_i = &(cellp->pos);
     	    	s += vabs( *coords_i - *coords_im1 );
@@ -330,16 +330,16 @@ DiscreteTransfer::initialise()
     // NOTE: not doing in parallel as this should be very quick
     cells_.resize( G.nblock );
     interfaces_.resize( G.nblock );
-    int nthreads = omp_get_max_threads();
-    for ( int jb = 0; jb < (int)G.my_blocks.size(); ++jb ) {
+    size_t nthreads = omp_get_max_threads();
+    for ( size_t jb = 0; jb < (int)G.my_blocks.size(); ++jb ) {
 	Block * bdp = G.my_blocks[jb];
 #       if VERBOSE_RADIATION_TRANSPORT
     	cout << "Thread " << omp_get_thread_num() << ": Initialising cells in block: " << jb << endl;
 #       endif
 	// if ( bdp->active != 1 ) continue;
-	for ( int k = bdp->kmin; k <= bdp->kmax; ++k ) {
-	    for ( int j = bdp->jmin; j <= bdp->jmax; ++j ) {
-	    	for ( int i = bdp->imin; i <= bdp->imax; ++i ) {
+	for ( size_t k = bdp->kmin; k <= bdp->kmax; ++k ) {
+	    for ( size_t j = bdp->jmin; j <= bdp->jmax; ++j ) {
+	    	for ( size_t i = bdp->imin; i <= bdp->imax; ++i ) {
 	    	    FV_Cell * cell = bdp->get_cell(i,j,k);
 	    	    cells_[jb].push_back( new DiscreteTransferCell( cell->fs->gas, &(cell->Q_rE_rad), cell->pos, cell->volume ) );
 	    	    cells_[jb].back()->set_CFD_cell_indices( i, j, k );
@@ -398,14 +398,14 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
     if ( G.dimensions == 2 && !get_axisymmetric_flag() ) planar_flag = true;
     
     // 0. Loop over spectral blocks (CHECKME)
-    for ( int isb=0; isb<rsm_[0]->get_spectral_blocks(); ++isb ) {
-	for ( int irsm=0; irsm<(int)rsm_.size(); ++irsm ) {
+    for ( size_t isb=0; isb<(size_t)rsm_[0]->get_spectral_blocks(); ++isb ) {
+	for ( size_t irsm=0; irsm<(int)rsm_.size(); ++irsm ) {
 	    rsm_[irsm]->reset_spectral_params( isb );
 	}
     
 	// 1. Set all source terms to zero and store all spectra
-	for ( int ib=0; ib<(int)cells_.size(); ++ib ) {
-	    int ic;
+	for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
+	    size_t ic;
 #	    ifdef _OPENMP
 #	    pragma omp parallel for private(ic) schedule(runtime)
 #	    endif
@@ -420,7 +420,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 		cells_[ib][ic]->recompute_spectra( rsm_[omp_get_thread_num()] );
 		cout << " - j_total = " << cells_[ib][ic]->X_->integrate_emission_spectra() << endl;
 	    }
-	    int iface;
+	    size_t iface;
 #	    ifdef _OPENMP
 #	    pragma omp barrier
 #	    pragma omp parallel for private(iface) schedule(runtime)
@@ -437,7 +437,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 	// NOTE: easiest to not do this in parallel
 	double cell_E_rad_total_max = 0.0;
 	double interface_E_rad_total_max = 0.0;
-	for ( int ib=0; ib<(int)cells_.size(); ++ib ) {
+	for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
 	    for ( size_t ic=0; ic<cells_[ib].size(); ++ic ) {
 	    	RayTracingCell * cell = cells_[ib][ic];
 		if ( clustering_==CLUSTERING_BY_VOLUME )
@@ -463,15 +463,15 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 	else if ( binning_==OPACITY_BINNING ) {
 	    // We need to solve for the spatially independent mean opacity/absorption (see Eq 2.2 of Wray, Ripoll and Prabhu)
 	    vector<double> kappa_mean(rsm_[0]->get_spectral_points());
-	    int inu;
+	    size_t inu;
 #	    ifdef _OPENMP
 #   	    pragma omp barrier
 #	    pragma omp parallel for private(inu) schedule(runtime)
 #	    endif
-	    for ( inu=0; inu < rsm_[omp_get_thread_num()]->get_spectral_points(); inu++ ) {
+	    for ( inu=0; inu < (size_t)rsm_[omp_get_thread_num()]->get_spectral_points(); inu++ ) {
 		double j_nu_dV = 0.0, S_nu_dV = 0.0;
-		for ( int ib=0; ib<(int)cells_.size(); ++ib ) {
-		    for ( int ic=0; ic<(int)cells_[ib].size(); ++ic ) {
+		for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
+		    for ( size_t ic=0; ic<(int)cells_[ib].size(); ++ic ) {
 			RayTracingCell * cell = cells_[ib][ic];
 			double dj_nu_dV = cell->X_->j_nu[inu] * cell->vol_;
 			j_nu_dV += dj_nu_dV;
@@ -487,8 +487,8 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 
 	// 4. Create binned spectra
 	if ( binning_ ) {
-	    for ( int ib=0; ib<(int)cells_.size(); ++ib ) {
-		int ic;
+	    for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
+		size_t ic;
 #	        ifdef _OPENMP
 #	        pragma omp parallel for private(ic) schedule(runtime)
 #  	        endif
@@ -499,7 +499,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 		    cout << " - j_total from spectra = " << cell->X_->integrate_emission_spectra() << endl;
 		    cout << " - j_total from binning = " << cell->Y_->sum_emission() << endl;
 		}
-		int iface;
+		size_t iface;
 #	        ifdef _OPENMP
 #	        pragma omp barrier
 #	        pragma omp parallel for private(iface) schedule(runtime)
@@ -515,11 +515,11 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 	}
 
 	// 3. create rays
-	for ( int ib=0; ib<(int)cells_.size(); ++ib ) {
-	    int ii, jj, kk;
+	for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
+	    size_t ii, jj, kk;
 	    for ( size_t ic=0; ic<cells_[ib].size(); ++ic ) {
 		RayTracingCell * cell = cells_[ib][ic];
-		int nrays = nrays_;
+		size_t nrays = nrays_;
 		if ( clustering_ ) {
 		    nrays = int( double(nrays_) * cell->E_rad_ / cell_E_rad_total_max );
 		}
@@ -530,7 +530,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 #               endif
 		cell->get_CFD_cell_indices( ii, jj, kk );
 		// Cycle over all rays
-		int ir;
+		size_t ir;
 #   	        ifdef _OPENMP
 #               pragma omp parallel for private(ir) schedule(runtime)
 #               endif
@@ -542,7 +542,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 	    }
 	    for ( size_t iface=0; iface<interfaces_[ib].size(); ++iface ) {
 		RayTracingInterface * interface = interfaces_[ib][iface];
-	        int nrays = nrays_;
+	        size_t nrays = nrays_;
 	        if ( clustering_ ) {
 		    nrays = int( double(nrays_) * interface->E_rad_ / interface_E_rad_total_max );
 	        }
@@ -553,7 +553,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 #               endif
 		interface->get_CFD_cell_indices( ii, jj, kk );
 		// Cycle over all rays
-		int ir;
+		size_t ir;
 #   	        ifdef _OPENMP
 #               pragma omp parallel for private(ir) schedule(runtime)
 #               endif
@@ -570,13 +570,13 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 	// write a random cells rays to file 
 	srand((unsigned)time(0));
 	ib = rand()%int(cells_.size());
-	int ic = rand()%int(cells_[ib].size());
+	size_t ic = rand()%int(cells_[ib].size());
 	cout << "writing rays to file from block: " << ib << ", cell: " << ic << endl;
 	cells_[ib][ic]->write_rays_to_file("random_cell_rays.txt");
 #       endif
 	
 	// 4. perform transport of radiative energy throughout the grid
-	for ( int ib=0; ib<(int)cells_.size(); ++ib ) {
+	for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
 #	    if VERBOSE_RADIATION_TRANSPORT
 	    cout << "Thread " << omp_get_thread_num() << ": Integrating along rays for block: " << ib << endl;
 #           endif
@@ -585,7 +585,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 	    	cout << "Thread " << omp_get_thread_num() << ": Integrating along rays for cell: " << ic << " in block: " << ib << endl;
 #               endif
 		RayTracingCell * cell = cells_[ib][ic];
-		int ir;                                              
+		size_t ir;                                              
 #		ifdef _OPENMP
 #   	    	pragma omp barrier
 #		pragma omp parallel for private(ir) schedule(runtime)
@@ -594,7 +594,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 		    RayTracingRay * ray = cell->rays_[ir];
 		    if ( binning_ ) {
 			// perform radiation transport with the binned spectra
-			for ( int iB=0; iB<N_bins_; ++iB ) {
+			for ( size_t iB=0; iB<N_bins_; ++iB ) {
 			    // calculate frequency interval for this frequency point
 			    // NOTE: we are taking care here to remain consistent with a trapezoidal discretisation of the spectra
 			    //       where the trapezoid heights are taken as the average of the two bounding points
@@ -619,8 +619,8 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 			}
 		    }
 		    else {
-			int nnu = rsm_[omp_get_thread_num()]->get_spectral_points();
-			for ( int inu=0; inu<nnu; ++inu ) {
+			size_t nnu = rsm_[omp_get_thread_num()]->get_spectral_points();
+			for ( size_t inu=0; inu<nnu; ++inu ) {
 			    // calculate frequency interval for this frequency point
 			    // NOTE: we are taking care here to remain consistent with a trapezoidal discretisation of the spectra
 			    //       where the trapezoid heights are taken as the average of the two bounding points
@@ -655,7 +655,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 	    	cout << "Thread " << omp_get_thread_num() << ": Integrating along rays for interface: " << iface << " in block: " << ib << endl;
 #               endif
 		RayTracingInterface * interface = interfaces_[ib][iface];
-		int ir;
+		size_t ir;
 #		ifdef _OPENMP
 #   	    	pragma omp barrier
 #		pragma omp parallel for private(ir) schedule(runtime)
@@ -663,7 +663,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 		for ( ir=0; ir<(int)interface->rays_.size(); ++ir ) {
 		    RayTracingRay * ray = interface->rays_[ir];
 		    if ( binning_ ) {
-			for ( int iB=0; iB<N_bins_; ++iB ) {
+			for ( size_t iB=0; iB<N_bins_; ++iB ) {
 			    // calculate energy of this photon packet
 			    double E = interface->U_->I_bin[iB] * interface->area_ * ray->domega_;
 			    if ( E < E_min_ ) continue;
@@ -685,8 +685,8 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 			}
 		    }
 		    else {
-			int nnu = rsm_[omp_get_thread_num()]->get_spectral_points();
-			for ( int inu=0; inu<nnu; ++inu ) {
+			size_t nnu = rsm_[omp_get_thread_num()]->get_spectral_points();
+			for ( size_t inu=0; inu<nnu; ++inu ) {
 			    // calculate frequency interval for this frequency point
 			    // NOTE: we are taking care here to remain consistent with a trapezoidal discretisation of the spectra
 			    //       where the trapezoid heights are taken as the average of the two bounding points
@@ -722,8 +722,8 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
     
     
     // 5. Sum Q_rE_rad_temp values and set Q_rE_rad in CFD cells
-    for ( int ib=0; ib<(int)cells_.size(); ++ib ) {
-    	int ic;
+    for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
+    	size_t ic;
 #   	ifdef _OPENMP
 #   	pragma omp barrier
 #   	pragma omp parallel for private(ic) schedule(runtime)
@@ -739,7 +739,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
     
     // 6. dump all exiting energy onto appropriate wall elements
     // NOTE: cannot do this with multiple threads due to possible race condition
-    for ( int ib=0; ib<(int)cells_.size(); ++ib ) {
+    for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
     	for ( size_t ic=0; ic<cells_[ib].size(); ++ic ) {
     	    for ( size_t iray=0; iray<cells_[ib][ic]->rays_.size(); ++iray ) {
     	    	RayTracingRay * ray = cells_[ib][ic]->rays_[iray];
@@ -748,7 +748,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
     	}
     }
     
-    for ( int ib=0; ib<(int)interfaces_.size(); ++ib ) {
+    for ( size_t ib=0; ib<(int)interfaces_.size(); ++ib ) {
     	for ( size_t iface=0; iface<interfaces_[ib].size(); ++iface ) {
     	    for ( size_t iray=0; iray<interfaces_[ib][iface]->rays_.size(); ++iray ) {
     	    	RayTracingRay * ray = interfaces_[ib][iface]->rays_[iray];
@@ -764,7 +764,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 }
 
 
-void DiscreteTransfer::initialise_rays_for_cell( RayTracingCell * cell, int nrays, int ndim, bool planar )
+void DiscreteTransfer::initialise_rays_for_cell( RayTracingCell * cell, size_t nrays, size_t ndim, bool planar )
 {
     // clear any existing rays
     cell->rays_.resize(0);
@@ -772,7 +772,7 @@ void DiscreteTransfer::initialise_rays_for_cell( RayTracingCell * cell, int nray
     if ( planar == true ) {
 	// uniform planar ray distribution
 	double alpha = 0.0, theta = 0.0, phi = 0.0, domega = 0.0;
-	for ( int iray=0; iray<nrays; ++iray ) {
+	for ( size_t iray=0; iray<nrays; ++iray ) {
 	    alpha = 2.0 * M_PI * iray / nrays;
 	    if ( alpha>=0.0 && alpha<M_PI/2.0 ) {
 		theta = 0.0; phi = alpha;
@@ -790,7 +790,7 @@ void DiscreteTransfer::initialise_rays_for_cell( RayTracingCell * cell, int nray
 	double inc = M_PI * ( 3.0 - sqrt(5.0) );
 	double off = 2.0 / double(nrays);
 	double phi, theta = 0.0;
-	for ( int iray=0; iray<nrays; ++iray ) {
+	for ( size_t iray=0; iray<nrays; ++iray ) {
 	    double y = double(iray)*off - 1.0 + ( off/2.0 );
 	    double r = sqrt( 1.0 - y*y );
 	    phi = double(iray)*inc;
@@ -799,7 +799,7 @@ void DiscreteTransfer::initialise_rays_for_cell( RayTracingCell * cell, int nray
 	
 	// Extract angles in our coordinate system
 	double domega = 4.0 * M_PI / double ( nrays );
-	for ( int iray=0; iray<nrays; ++iray ) {
+	for ( size_t iray=0; iray<nrays; ++iray ) {
 	    double x=pts[iray].x, y=pts[iray].y, z=pts[iray].z;
 	    double L = vabs( pts[iray] );
 	    phi = asin( y / L );
@@ -826,7 +826,7 @@ void DiscreteTransfer::initialise_rays_for_cell( RayTracingCell * cell, int nray
     return;
 }
 
-void DiscreteTransfer::initialise_rays_for_interface( RayTracingInterface * interface, int nrays, int ndim, bool planar )
+void DiscreteTransfer::initialise_rays_for_interface( RayTracingInterface * interface, size_t nrays, size_t ndim, bool planar )
 {
     // clear any existing rays
     interface->rays_.resize(0);
@@ -834,7 +834,7 @@ void DiscreteTransfer::initialise_rays_for_interface( RayTracingInterface * inte
     if ( planar == true ) {
 	// uniform planar ray distribution
 	double alpha = 0.0, theta = 0.0, phi = 0.0, domega = 0.0;
-	for ( int iray=0; iray<nrays; ++iray ) {
+	for ( size_t iray=0; iray<nrays; ++iray ) {
 	    alpha = 2.0 * M_PI * iray / nrays;
 	    if ( alpha>=0.0 && alpha<M_PI/2.0 ) {
 		theta = 0.0; phi = alpha;
@@ -852,7 +852,7 @@ void DiscreteTransfer::initialise_rays_for_interface( RayTracingInterface * inte
 	double inc = M_PI * ( 3.0 - sqrt(5.0) );
 	double off = 2.0 / double(nrays);
 	double phi, theta = 0.0;
-	for ( int iray=0; iray<nrays; ++iray ) {
+	for ( size_t iray=0; iray<nrays; ++iray ) {
 	    double y = double(iray)*off - 1.0 + ( off/2.0 );
 	    double r = sqrt( 1.0 - y*y );
 	    phi = double(iray)*inc;
@@ -861,7 +861,7 @@ void DiscreteTransfer::initialise_rays_for_interface( RayTracingInterface * inte
 	
 	// Extract angles in our coordinate system
 	double domega = 4.0 * M_PI / double ( nrays );
-	for ( int iray=0; iray<nrays; ++iray ) {
+	for ( size_t iray=0; iray<nrays; ++iray ) {
 	    double x=pts[iray].x, y=pts[iray].y, z=pts[iray].z;
 	    double L = vabs( pts[iray] );
 	    phi = asin( y / L );
@@ -888,7 +888,7 @@ void DiscreteTransfer::initialise_rays_for_interface( RayTracingInterface * inte
     return;
 }
 
-int DiscreteTransfer::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, int kc )
+int DiscreteTransfer::trace_ray( RayTracingRay * ray, size_t ib, size_t ic, size_t jc, size_t kc )
 {
     Block * A = get_block_data_ptr( ib );
     FV_Cell * cell = A->get_cell(ic,jc,kc);		// start at origin cell
@@ -923,7 +923,7 @@ int DiscreteTransfer::trace_ray( RayTracingRay * ray, int ib, int ic, int jc, in
     }
     else {
     	// set q_rad pointer and exit area
-    	int index = A->bcp[ ray->status_ ]->get_heat_flux_index( ic, jc, kc );
+    	size_t index = A->bcp[ ray->status_ ]->get_heat_flux_index( ic, jc, kc );
     	ray->q_rad_ = &(A->bcp[ ray->status_ ]->q_rad[ index ]);
     	ray->exit_area_ = cell->iface[ ray->status_ ]->area;
     }
@@ -997,7 +997,7 @@ MonteCarlo::initialise()
 {
     // initialise geometry data
     global_data &G = *get_global_data_ptr();
-    int nfaces = 0;
+    size_t nfaces = 0;
     if ( G.dimensions == 2 ) {
     	cf_ = new CellFinder2D();	// use default nvertices
     	nfaces = 4;
@@ -1015,16 +1015,16 @@ MonteCarlo::initialise()
     // NOTE: not doing in parallel as this should be very quick
     cells_.resize( G.nblock );
     interfaces_.resize( G.nblock );
-    int nthreads = omp_get_max_threads();
-    for ( int jb = 0; jb < (int) G.my_blocks.size(); ++jb ) {
+    size_t nthreads = omp_get_max_threads();
+    for ( size_t jb = 0; jb < (int) G.my_blocks.size(); ++jb ) {
 	Block * bdp = G.my_blocks[jb];
 #       if VERBOSE_RADIATION_TRANSPORT
     	cout << "Thread " << omp_get_thread_num() << ": Initialising cells in block: " << jb << endl;
 #       endif
 	// if ( bdp->active != 1 ) continue;
-	for ( int k = bdp->kmin; k <= bdp->kmax; ++k ) {
-	    for ( int j = bdp->jmin; j <= bdp->jmax; ++j ) {
-	    	for ( int i = bdp->imin; i <= bdp->imax; ++i ) {
+	for ( size_t k = bdp->kmin; k <= bdp->kmax; ++k ) {
+	    for ( size_t j = bdp->jmin; j <= bdp->jmax; ++j ) {
+	    	for ( size_t i = bdp->imin; i <= bdp->imax; ++i ) {
 	    	    FV_Cell * cell = bdp->get_cell(i,j,k);
 	    	    cells_[jb].push_back( new MonteCarloCell( cell->fs->gas, &(cell->Q_rE_rad), cell->pos, cell->volume, cell->area ) );
 	    	    cells_[jb].back()->set_CFD_cell_indices( i, j, k );
@@ -1035,7 +1035,7 @@ MonteCarlo::initialise()
 	    	    	interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[SOUTH]->fs->gas, cell->iface[SOUTH]->pos, cell->iface[SOUTH]->area, cell->iface[SOUTH]->length ) );
 	    	    	interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
 	    	    	interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
-	    	    	int hf_index_ =  bdp->bcp[SOUTH]->get_heat_flux_index( i, j, k );
+	    	    	size_t hf_index_ =  bdp->bcp[SOUTH]->get_heat_flux_index( i, j, k );
 	    	    	interfaces_[jb].back()->q_rad_ = &(bdp->bcp[SOUTH]->q_rad[hf_index_]);
 	    	    	cells_[jb].back()->interfaces_[SOUTH] = interfaces_[jb].back();
 	    	    }
@@ -1043,7 +1043,7 @@ MonteCarlo::initialise()
 	    	    	interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[NORTH]->fs->gas, cell->iface[NORTH]->pos, cell->iface[NORTH]->area, cell->iface[NORTH]->length ) );
 	    	    	interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
 	    	    	interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
-	    	    	int hf_index_ =  bdp->bcp[NORTH]->get_heat_flux_index( i, j, k );
+	    	    	size_t hf_index_ =  bdp->bcp[NORTH]->get_heat_flux_index( i, j, k );
 	    	    	interfaces_[jb].back()->q_rad_ = &(bdp->bcp[NORTH]->q_rad[hf_index_]);
 	    	    	cells_[jb].back()->interfaces_[NORTH] = interfaces_[jb].back();
 	    	    }
@@ -1051,7 +1051,7 @@ MonteCarlo::initialise()
 	    	    	interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[WEST]->fs->gas, cell->iface[WEST]->pos, cell->iface[WEST]->area, cell->iface[WEST]->length ) );
 	    	    	interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
 	    	    	interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
-	    	    	int hf_index_ =  bdp->bcp[WEST]->get_heat_flux_index( i, j, k );
+	    	    	size_t hf_index_ =  bdp->bcp[WEST]->get_heat_flux_index( i, j, k );
 	    	    	interfaces_[jb].back()->q_rad_ = &(bdp->bcp[WEST]->q_rad[hf_index_]);
 	    	    	cells_[jb].back()->interfaces_[WEST] = interfaces_[jb].back();
 	    	    }
@@ -1059,7 +1059,7 @@ MonteCarlo::initialise()
 	    	    	interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[EAST]->fs->gas, cell->iface[EAST]->pos, cell->iface[EAST]->area, cell->iface[EAST]->length) );
 	    	    	interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
 	    	    	interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
-	    	    	int hf_index_ =  bdp->bcp[EAST]->get_heat_flux_index( i, j, k );
+	    	    	size_t hf_index_ =  bdp->bcp[EAST]->get_heat_flux_index( i, j, k );
 	    	    	interfaces_[jb].back()->q_rad_ = &(bdp->bcp[EAST]->q_rad[hf_index_]);
 	    	    	cells_[jb].back()->interfaces_[EAST] = interfaces_[jb].back();
 	    	    }
@@ -1068,7 +1068,7 @@ MonteCarlo::initialise()
 	    	    	    interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[BOTTOM]->fs->gas, cell->iface[BOTTOM]->pos, cell->iface[BOTTOM]->area, cell->iface[BOTTOM]->length ) );
 	    	    	    interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
 	    	    	    interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
-	    	    	    int hf_index_ =  bdp->bcp[BOTTOM]->get_heat_flux_index( i, j, k );
+	    	    	    size_t hf_index_ =  bdp->bcp[BOTTOM]->get_heat_flux_index( i, j, k );
 	    	    	    interfaces_[jb].back()->q_rad_ = &(bdp->bcp[BOTTOM]->q_rad[hf_index_]);
 	    	    	    cells_[jb].back()->interfaces_[BOTTOM] = interfaces_[jb].back();
 	    	    	}
@@ -1076,7 +1076,7 @@ MonteCarlo::initialise()
 	    	    	    interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[TOP]->fs->gas, cell->iface[TOP]->pos, cell->iface[TOP]->area, cell->iface[TOP]->length ) );
 	    	    	    interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
 	    	    	    interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
-	    	    	    int hf_index_ =  bdp->bcp[TOP]->get_heat_flux_index( i, j, k );
+	    	    	    size_t hf_index_ =  bdp->bcp[TOP]->get_heat_flux_index( i, j, k );
 	    	    	    interfaces_[jb].back()->q_rad_ = &(bdp->bcp[TOP]->q_rad[hf_index_]);
 	    	    	    cells_[jb].back()->interfaces_[TOP] = interfaces_[jb].back();
 	    	    	}
@@ -1102,14 +1102,14 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
     if ( G.dimensions == 2 && !get_axisymmetric_flag() ) planar_flag = true;
     
     // 0. Loop over spectral blocks (CHECKME)
-    for ( int isb=0; isb<rsm_[0]->get_spectral_blocks(); ++isb ) {
-	for ( int irsm=0; irsm<(int)rsm_.size(); ++irsm ) {
+    for ( size_t isb=0; isb<(size_t)rsm_[0]->get_spectral_blocks(); ++isb ) {
+	for ( size_t irsm=0; irsm<(int)rsm_.size(); ++irsm ) {
 	    rsm_[irsm]->reset_spectral_params( isb );
 	}
 
 	// 1. Set all source terms to zero, store all spectra
-	for ( int ib=0; ib<(int)cells_.size(); ++ib ) {
-	    int ic;
+	for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
+	    size_t ic;
 #	    ifdef _OPENMP
 #	    pragma omp parallel for private(ic) schedule(runtime)
 #	    endif
@@ -1127,7 +1127,7 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 		else
 		    cout << " - j_total = " << cell->X_->integrate_emission_spectra() << endl;
 	    }
-	    int iface;
+	    size_t iface;
 #	    ifdef _OPENMP
 #	    pragma omp parallel for private(iface) schedule(runtime)
 #	    endif
@@ -1146,7 +1146,7 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 	// NOTE: easiest to not do this in parallel
 	double cell_E_rad_total_max = 0.0;
 	double interface_E_rad_total_max = 0.0;
-	for ( int ib=0; ib<(int)cells_.size(); ++ib ) {
+	for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
 	    for ( size_t ic=0; ic<cells_[ib].size(); ++ic ) {
 	    	RayTracingCell * cell = cells_[ib][ic];
 		if ( clustering_==CLUSTERING_BY_VOLUME )
@@ -1166,22 +1166,22 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 	}
 	
 	// 3. create ray one-by-one and transport radiation along it
-	for ( int ib=0; ib<(int)cells_.size(); ++ib ) {
-	    int ii, jj, kk;
+	for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
+	    size_t ii, jj, kk;
 	    for ( size_t ic=0; ic<cells_[ib].size(); ++ic ) {
 #           	if VERBOSE_RADIATION_TRANSPORT
     	    	cout << "Thread " << omp_get_thread_num() << ": Tracing rays for cell: " << ic << " in block: " << ib;
 #           	endif
 		RayTracingCell * cell = cells_[ib][ic];
 		cell->get_CFD_cell_indices( ii, jj, kk );
-		int nrays = nrays_;
+		size_t nrays = nrays_;
 		if ( clustering_ ) {
 		    nrays = int( double(nrays_) * cell->E_rad_ / cell_E_rad_total_max );
 		}
 		if ( nrays==0 ) nrays = 1;
 		cout << " - nrays: " << nrays << endl;
 		// Cycle over all rays
-		int iray;
+		size_t iray;
 #   	   	ifdef _OPENMP
 #          	pragma omp parallel for private(iray) schedule(runtime)
 #          	endif
@@ -1206,7 +1206,7 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 #           	endif
 	    	RayTracingInterface * interface = interfaces_[ib][iface];
 	    	interface->get_CFD_cell_indices( ii, jj, kk );
-	        int nrays = nrays_;
+	        size_t nrays = nrays_;
 	        if ( clustering_ ) {
 		    nrays = int( double(nrays_) * interface->E_rad_ / interface_E_rad_total_max );
 
@@ -1214,7 +1214,7 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 		if ( nrays<=0 ) nrays = 1;
 		cout << " - nrays: " << nrays << endl;
 		// Cycle over all rays
-		int iray;
+		size_t iray;
 #   	   	ifdef _OPENMP
 #          	pragma omp parallel for private(iray) schedule(runtime)
 #          	endif
@@ -1234,8 +1234,8 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
     }
 	
     // 5. Sum Q_rE_rad_temp values and set Q_rE_rad in CFD cells
-    for ( int ib=0; ib<(int)cells_.size(); ++ib ) {
-    	int ic;
+    for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
+    	size_t ic;
 #   	ifdef _OPENMP
 #   	pragma omp barrier
 #   	pragma omp parallel for private(ic) schedule(runtime)
@@ -1250,8 +1250,8 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
     }
     
     // 6. Sum q_rad_temp values and set q_rad in CFD interfaces
-    for ( int ib=0; ib<(int)cells_.size(); ++ib ) {
-    	int iface;
+    for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
+    	size_t iface;
 #   	ifdef _OPENMP
 #   	pragma omp barrier
 #   	pragma omp parallel for private(iface) schedule(runtime)
@@ -1271,7 +1271,7 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
     return;
 }
 
-RayTracingRay * MonteCarlo::create_new_ray_for_cell( RayTracingCell * cell, int nrays, int ndim, bool planar )
+RayTracingRay * MonteCarlo::create_new_ray_for_cell( RayTracingCell * cell, size_t nrays, size_t ndim, bool planar )
 {
     // Initialise uniformly random rays
     double domega = 4.0 * M_PI / double( nrays );
@@ -1296,7 +1296,7 @@ RayTracingRay * MonteCarlo::create_new_ray_for_cell( RayTracingCell * cell, int 
     return ray;
 }
 
-RayTracingRay * MonteCarlo::create_new_ray_for_interface( RayTracingInterface * interface, int nrays, int ndim, bool planar )
+RayTracingRay * MonteCarlo::create_new_ray_for_interface( RayTracingInterface * interface, size_t nrays, size_t ndim, bool planar )
 {
     // Initialise uniformly random rays
     double domega = 4.0 * M_PI / double( nrays );
@@ -1322,7 +1322,7 @@ RayTracingRay * MonteCarlo::create_new_ray_for_interface( RayTracingInterface * 
 }
 
 
-int MonteCarlo::trace_ray_standard( RayTracingRay * ray, int ib, int ic, int jc, int kc, double nu, double E )
+int MonteCarlo::trace_ray_standard( RayTracingRay * ray, size_t ib, size_t ic, size_t jc, size_t kc, double nu, double E )
 {
     // 1. Initialise pointers
     Block * A = get_block_data_ptr( ib );
@@ -1334,7 +1334,7 @@ int MonteCarlo::trace_ray_standard( RayTracingRay * ray, int ib, int ic, int jc,
     
     RayTracingCell * RTcell = 0;
     
-    int count = 0;
+    size_t count = 0;
 
     // limiting optical thickness
     double tau_lim = 1.0 / exp( rg_->Random() );
@@ -1375,7 +1375,7 @@ int MonteCarlo::trace_ray_standard( RayTracingRay * ray, int ib, int ic, int jc,
     }
     else if ( count>0 && A->bcp[ray->status_]->is_wall_flag ) {
     	// dump energy onto interface (only if more than one point and this is a wall)
-    	// int index = A->bcp[ ray->status_ ]->get_heat_flux_index( ic, jc, kc );
+    	// size_t index = A->bcp[ ray->status_ ]->get_heat_flux_index( ic, jc, kc );
 	// FIXME: need a way of finding the nearest interface to an exited photons
 	//        location when the photon exits on a corner
     	RayTracingInterface * RTinterface =  RTcell->interfaces_[ray->status_];
@@ -1403,7 +1403,7 @@ int MonteCarlo::trace_ray_standard( RayTracingRay * ray, int ib, int ic, int jc,
     return SUCCESS;
 }
 
-int MonteCarlo::trace_ray_partitioned_energy( RayTracingRay * ray, int ib, int ic, int jc, int kc, double nu, double E )
+int MonteCarlo::trace_ray_partitioned_energy( RayTracingRay * ray, size_t ib, size_t ic, size_t jc, size_t kc, double nu, double E )
 {
     // 1. Initialise pointers
     Block * A = get_block_data_ptr( ib );
@@ -1415,7 +1415,7 @@ int MonteCarlo::trace_ray_partitioned_energy( RayTracingRay * ray, int ib, int i
 
     RayTracingCell * RTcell = 0;
 
-    int count = 0;
+    size_t count = 0;
 
     // step along the ray, dumping energy as we go
     while ( ( ray->status_ = cf_->find_cell( p, ib, ic, jc, kc ) ) == INSIDE_GRID ) {
@@ -1447,7 +1447,7 @@ int MonteCarlo::trace_ray_partitioned_energy( RayTracingRay * ray, int ib, int i
     }
     else if ( count>0 && A->bcp[ray->status_]->is_wall_flag ) {
         // dump energy onto interface (only if more than one point and this is a wall)
-        // int index = A->bcp[ ray->status_ ]->get_heat_flux_index( ic, jc, kc );
+        // size_t index = A->bcp[ ray->status_ ]->get_heat_flux_index( ic, jc, kc );
 	// FIXME: need a way of finding the nearest interface to an exited photons
 	//        location when the photon exits on a corner
         RayTracingInterface * RTinterface =  RTcell->interfaces_[ray->status_];

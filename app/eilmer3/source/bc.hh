@@ -58,8 +58,8 @@ inline int reflect_normal_magnetic_field(FV_Cell *cell, FV_Interface *IFace)
 // The trade-off is that we have to have boundary selection within 
 // the new functions.
 
-int apply_inviscid_bc( Block &bd, double t, int dimensions );
-int apply_viscous_bc( Block &bd, double t, int dimensions );
+int apply_inviscid_bc( Block &bd, double t, size_t dimensions );
+int apply_viscous_bc( Block &bd, double t, size_t dimensions );
 
 class CatalyticWallBC; // forward declaration needed below
 
@@ -81,7 +81,7 @@ public:
     std::vector<double> q_cond;		// 1D vectors representing heat flux fields
     std::vector<double> q_diff;		// at surfaces (which are 2D for 3D grids)
     std::vector<double> q_rad;
-    int imin, imax, jmin, jmax, kmin, kmax;	// boundary cell indice limits
+    size_t imin, imax, jmin, jmax, kmin, kmax;	// boundary cell indice limits
     CatalyticWallBC * cw;
 
 public:
@@ -106,21 +106,21 @@ public:
     // a true value indicates that we want the UDF flux 
     // instead of the internally calculated flux
     void print_info( std::string lead_in );
-    int write_vertex_velocities( std::string filename, double sim_time, int dimensions );
+    int write_vertex_velocities( std::string filename, double sim_time, size_t dimensions );
     // Heat-flux functions
     int compute_surface_heat_flux( void );
     int compute_cell_interface_surface_heat_flux( FV_Interface * IFace, 
     						  FV_Cell * cell_one, 
-    						  int index );
+    						  size_t index );
     int write_surface_heat_flux( std::string filename, double sim_time );
     int write_fstc_heat_flux( string filename, double sim_time );
-    double read_surface_heat_flux( std::string filename, int dimensions, int zip_files=1 );
-    int get_heat_flux_index( int i, int j, int k )
+    double read_surface_heat_flux( std::string filename, size_t dimensions, int zip_files=1 );
+    int get_heat_flux_index( size_t i, size_t j, size_t k )
     { return (jmax-jmin+1)*(imax-imin+1)*(k-kmin) + (imax-imin+1)*(j-jmin) + (i-imin); }
 };
 
 BoundaryCondition *create_BC( Block *bdp, int which_boundary, int type_of_BC,
-			      int inflow_condition_id, std::string filename, int n_profile,
+			      int inflow_condition_id, std::string filename, size_t n_profile,
 			      double Twall, double Pout, int x_order, int is_wall, int use_udf_flux,
 			      int other_block, int other_face, int neighbour_orientation,
 			      int sponge_flag, int xforce_flag,

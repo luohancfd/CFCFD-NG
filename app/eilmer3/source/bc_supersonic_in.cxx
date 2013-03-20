@@ -45,7 +45,7 @@ SupersonicInBC::~SupersonicInBC() {}
 int SupersonicInBC::apply_inviscid( double t )
 {
     // Set up ghost cells with inflow state. 
-    int i, j, k;
+    size_t i, j, k;
     FV_Cell *dest_cell;
     FV_Interface *dest_face;
     global_data &gd = *get_global_data_ptr();

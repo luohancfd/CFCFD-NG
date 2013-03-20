@@ -24,10 +24,10 @@ using namespace std;
 int luafn_sample_flow(lua_State *L)
 {
     // Get arguments from stack.
-    int jb = lua_tointeger(L, 1);
-    int i = lua_tointeger(L, 2);
-    int j = lua_tointeger(L, 3);
-    int k = lua_tointeger(L, 4);
+    size_t jb = (size_t)lua_tointeger(L, 1);
+    size_t i = (size_t)lua_tointeger(L, 2);
+    size_t j = (size_t)lua_tointeger(L, 3);
+    size_t k = (size_t)lua_tointeger(L, 4);
 
     Gas_model *gmodel = get_gas_model_ptr();
     Block *bdp= get_block_data_ptr(jb);
@@ -53,8 +53,8 @@ int luafn_sample_flow(lua_State *L)
     lua_pushnumber(L, fs.omega); lua_setfield(L, -2, "omega");
     lua_pushnumber(L, fs.S); lua_setfield(L, -2, "S");
     lua_newtable(L); // A table for the individual temperatures
-    int nmodes = gmodel->get_number_of_modes();
-    for ( int imode = 0; imode < nmodes; ++imode ) {
+    size_t nmodes = gmodel->get_number_of_modes();
+    for ( size_t imode = 0; imode < nmodes; ++imode ) {
 	lua_pushinteger(L, imode);
 	lua_pushnumber(L, fs.gas->T[imode]);
 	lua_settable(L, -3);
@@ -62,8 +62,8 @@ int luafn_sample_flow(lua_State *L)
     // At this point, the table of temperatures should be TOS.
     lua_setfield(L, -2, "T");
     lua_newtable(L); // Another table for the mass fractions
-    int nsp = gmodel->get_number_of_species();
-    for ( int isp = 0; isp < nsp; ++isp ) {
+    size_t nsp = gmodel->get_number_of_species();
+    for ( size_t isp = 0; isp < nsp; ++isp ) {
 	lua_pushinteger(L, isp);
 	lua_pushnumber(L, fs.gas->massf[isp]);
 	lua_settable(L, -3);
@@ -87,18 +87,18 @@ int luafn_locate_cell(lua_State *L)
     if ( gdp->dimensions == 3 ) {
 	z = lua_tonumber(L, 3);
     }
-    int jb, i, j, k, found_cell;
-    found_cell = locate_cell(x, y, z, &jb, &i, &j, &k);
+    size_t jb, i, j, k;
+    int found_cell = locate_cell(x, y, z, &jb, &i, &j, &k);
     if ( !found_cell ) {
 	found_cell = find_nearest_cell(x, y, z, &jb, &i, &j, &k);
 	if ( !found_cell ) {
 	    printf("luafn_locate_cell(): no cells near pos=(%g,%g,%g)", x, y, z);
 	}
     }
-    lua_pushinteger(L, jb);
-    lua_pushinteger(L, i);
-    lua_pushinteger(L, j);
-    lua_pushinteger(L, k);
+    lua_pushinteger(L, (int)jb);
+    lua_pushinteger(L, (int)i);
+    lua_pushinteger(L, (int)j);
+    lua_pushinteger(L, (int)k);
     lua_pushinteger(L, found_cell);
     return 5; // We leave jb, i, j, k and found_cell on the stack.
 }

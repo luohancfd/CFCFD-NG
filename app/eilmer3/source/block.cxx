@@ -111,7 +111,7 @@ Block::~Block()
 
 /// \brief Allocate memory for the internal arrays of the block.
 /// Returns 0 if successful, 1 otherwise.
-int Block::array_alloc(int dimensions)
+int Block::array_alloc(size_t dimensions)
 {
     if ( get_verbose_flag() ) cout << "array_alloc(): Begin for block " <<  id << endl;
     // Check for obvious errors.
@@ -151,7 +151,7 @@ int Block::array_alloc(int dimensions)
 } // end of array_alloc()
 
 
-int Block::array_cleanup(int dimensions)
+int Block::array_cleanup(size_t dimensions)
 {
     if ( get_verbose_flag() || id == 0 ) {
 	cout << "array_cleanup(): Begin for block " <<  id << endl;
@@ -186,9 +186,9 @@ int Block::apply(FV_Cell_MemberFunction_void f, string failure_message_header)
 {
     int result_flag;
     FV_Cell *cellp;
-    for ( int k = kmin; k <= kmax; ++k ) {
-        for ( int j = jmin; j <= jmax; ++j ) {
-	    for ( int i = imin; i <= imax; ++i ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+        for ( size_t j = jmin; j <= jmax; ++j ) {
+	    for ( size_t i = imin; i <= imax; ++i ) {
 		cellp = get_cell(i,j,k);
 		#if PRNT_DBG_CELL
 		if ( id == DBG_BLK) {
@@ -227,9 +227,9 @@ int Block::apply(FV_Cell_MemberFunction_double f, double param1, string failure_
 {
     int result_flag;
     FV_Cell *cellp;
-    for ( int k = kmin; k <= kmax; ++k ) {
-        for ( int j = jmin; j <= jmax; ++j ) {
-	    for ( int i = imin; i <= imax; ++i ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+        for ( size_t j = jmin; j <= jmax; ++j ) {
+	    for ( size_t i = imin; i <= imax; ++i ) {
 		cellp = get_cell(i,j,k);
 		#if PRNT_DBG_CELL
 		if ( id == DBG_BLK) {
@@ -269,9 +269,9 @@ int Block::apply(FV_Cell_MemberFunction_double_double f, double param1, double p
 {
     int result_flag;
     FV_Cell *cellp;
-    for ( int k = kmin; k <= kmax; ++k ) {
-        for ( int j = jmin; j <= jmax; ++j ) {
-	    for ( int i = imin; i <= imax; ++i ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+        for ( size_t j = jmin; j <= jmax; ++j ) {
+	    for ( size_t i = imin; i <= imax; ++i ) {
 		cellp = get_cell(i,j,k);
 		#if PRNT_DBG_CELL
 		if ( id == DBG_BLK) {
@@ -311,9 +311,9 @@ int Block::apply(FV_Cell_MemberFunction_int_double f, int param1, double param2,
 {
     int result_flag;
     FV_Cell *cellp;
-    for ( int k = kmin; k <= kmax; ++k ) {
-        for ( int j = jmin; j <= jmax; ++j ) {
-	    for ( int i = imin; i <= imax; ++i ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+        for ( size_t j = jmin; j <= jmax; ++j ) {
+	    for ( size_t i = imin; i <= imax; ++i ) {
 		cellp = get_cell(i,j,k);
 		#if PRNT_DBG_CELL
 		if ( id == DBG_BLK) {
@@ -352,9 +352,9 @@ int Block::apply(FV_Cell_MemberFunction_int f, int param1, string failure_messag
 {
     int result_flag;
     FV_Cell *cellp;
-    for ( int k = kmin; k <= kmax; ++k ) {
-        for ( int j = jmin; j <= jmax; ++j ) {
-	    for ( int i = imin; i <= imax; ++i ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+        for ( size_t j = jmin; j <= jmax; ++j ) {
+	    for ( size_t i = imin; i <= imax; ++i ) {
 		cellp = get_cell(i,j,k);
 		#if PRNT_DBG_CELL
 		if ( id == DBG_BLK) {
@@ -393,9 +393,9 @@ int Block::apply(FV_Cell_MemberFunction_int_int f, int param1, int param2, strin
 {
     int result_flag;
     FV_Cell *cellp;
-    for ( int k = kmin; k <= kmax; ++k ) {
-        for ( int j = jmin; j <= jmax; ++j ) {
-	    for ( int i = imin; i <= imax; ++i ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+        for ( size_t j = jmin; j <= jmax; ++j ) {
+	    for ( size_t i = imin; i <= imax; ++i ) {
 		cellp = get_cell(i,j,k);
 		#if PRNT_DBG_CELL
 		if ( id == DBG_BLK) {
@@ -435,9 +435,9 @@ int Block::apply(int (*f)(FV_Cell *cellp),
 {
     int result_flag;
     FV_Cell *cellp;
-    for ( int k = kmin; k <= kmax; ++k ) {
-        for ( int j = jmin; j <= jmax; ++j ) {
-	    for ( int i = imin; i <= imax; ++i ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+        for ( size_t j = jmin; j <= jmax; ++j ) {
+	    for ( size_t i = imin; i <= imax; ++i ) {
 		cellp = get_cell(i,j,k);
 		#if PRNT_DBG_CELL
 		if ( id == DBG_BLK) {
@@ -477,9 +477,9 @@ int Block::apply(int (*f)(FV_Cell *cellp, double param1),
 {
     int result_flag;
     FV_Cell *cellp;
-    for ( int k = kmin; k <= kmax; ++k ) {
-        for ( int j = jmin; j <= jmax; ++j ) {
-	    for ( int i = imin; i <= imax; ++i ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+        for ( size_t j = jmin; j <= jmax; ++j ) {
+	    for ( size_t i = imin; i <= imax; ++i ) {
 		cellp = get_cell(i,j,k);
 		#if PRNT_DBG_CELL
 		if ( id == DBG_BLK) {
@@ -519,9 +519,9 @@ int Block::apply(int (*f)(FV_Cell *cellp, int param1),
 {
     int result_flag;
     FV_Cell *cellp;
-    for ( int k = kmin; k <= kmax; ++k ) {
-        for ( int j = jmin; j <= jmax; ++j ) {
-	    for ( int i = imin; i <= imax; ++i ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+        for ( size_t j = jmin; j <= jmax; ++j ) {
+	    for ( size_t i = imin; i <= imax; ++i ) {
 		cellp = get_cell(i,j,k);
 		#if PRNT_DBG_CELL
 		if ( id == DBG_BLK) {
@@ -561,9 +561,9 @@ int Block::apply(int (*f)(FV_Cell *cellp, int param1, int param2),
 {
     int result_flag;
     FV_Cell *cellp;
-    for ( int k = kmin; k <= kmax; ++k ) {
-        for ( int j = jmin; j <= jmax; ++j ) {
-	    for ( int i = imin; i <= imax; ++i ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+        for ( size_t j = jmin; j <= jmax; ++j ) {
+	    for ( size_t i = imin; i <= imax; ++i ) {
 		cellp = get_cell(i,j,k);
 		#if PRNT_DBG_CELL
 		if ( id == DBG_BLK) {
@@ -603,9 +603,9 @@ int Block::apply(int (*f)(FV_Cell *cellp, int param1, double param2),
 {
     int result_flag;
     FV_Cell *cellp;
-    for ( int k = kmin; k <= kmax; ++k ) {
-        for ( int j = jmin; j <= jmax; ++j ) {
-	    for ( int i = imin; i <= imax; ++i ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+        for ( size_t j = jmin; j <= jmax; ++j ) {
+	    for ( size_t i = imin; i <= imax; ++i ) {
 		cellp = get_cell(i,j,k);
 		#if PRNT_DBG_CELL
 		if ( id == DBG_BLK) {
@@ -640,10 +640,10 @@ int Block::apply(int (*f)(FV_Cell *cellp, int param1, double param2),
 } // end of apply(f, p1, p2)
 
 
-int Block::bind_interfaces_to_cells( int dimensions )
+int Block::bind_interfaces_to_cells( size_t dimensions )
 {
     FV_Cell *cellp;
-    int kstart, kend;
+    size_t kstart, kend;
 
     if ( dimensions == 3 ) {
 	kstart = kmin-1;
@@ -652,9 +652,9 @@ int Block::bind_interfaces_to_cells( int dimensions )
 	kstart = 0;
 	kend = 0;
     }
-    for ( int k = kstart; k <= kend; ++k ) {
-	for ( int j = jmin-1; j <= jmax+1; ++j ) {
-	    for ( int i = imin-1; i <= imax+1; ++i ) {
+    for ( size_t k = kstart; k <= kend; ++k ) {
+	for ( size_t j = jmin-1; j <= jmax+1; ++j ) {
+	    for ( size_t i = imin-1; i <= imax+1; ++i ) {
 		cellp = get_cell(i,j,k);
 		cellp->iface[NORTH] = get_ifj(i,j+1,k);
 		cellp->iface[EAST] = get_ifi(i+1,j,k);
@@ -694,12 +694,12 @@ int Block::set_base_qdot( global_data &gd )
     FV_Cell *cellp;
 
     total_qdot_for_block = 0.0;
-    for ( int k = kmin; k <= kmax; ++k ) {
-	for ( int i = imin; i <= imax; ++i ) {
-	    for ( int j = jmin; j <= jmax; ++j ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+	for ( size_t i = imin; i <= imax; ++i ) {
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
 		cellp = get_cell(i,j,k);
 		cellp->base_qdot = 0.0;
-		for ( int indx = 0; indx < gd.n_heat_zone; ++indx ) {
+		for ( size_t indx = 0; indx < gd.n_heat_zone; ++indx ) {
 		    hzp = &(gd.heat_zone[indx]);
 		    if ( cellp->pos.x >= hzp->x0 && cellp->pos.x <= hzp->x1 &&
 			 cellp->pos.y >= hzp->y0 && cellp->pos.y <= hzp->y1 &&
@@ -723,19 +723,19 @@ int Block::set_base_qdot( global_data &gd )
 /// \brief Set the reactions-allowed flag for cells in this block.
 int Block::identify_reaction_zones( global_data &gd )
 {
-    int total_cells_in_reaction_zones = 0;
-    int total_cells = 0;
+    size_t total_cells_in_reaction_zones = 0;
+    size_t total_cells = 0;
     CReactionZone *rzp;
     FV_Cell *cellp;
 
-    for ( int k = kmin; k <= kmax; ++k ) {
-	for ( int i = imin; i <= imax; ++i ) {
-	    for ( int j = jmin; j <= jmax; ++j ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+	for ( size_t i = imin; i <= imax; ++i ) {
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
 		cellp = get_cell(i,j,k);
 		if ( gd.n_reaction_zone > 0 ) {
 		    // User-specified reaction zones; mask off reacting/nonreacting zones.
 		    cellp->fr_reactions_allowed = 0;
-		    for ( int indx = 0; indx < gd.n_reaction_zone; ++indx ) {
+		    for ( size_t indx = 0; indx < gd.n_reaction_zone; ++indx ) {
 			rzp = &(gd.reaction_zone[indx]);
 			if ( cellp->pos.x >= rzp->x0 && cellp->pos.x <= rzp->x1 &&
 			     cellp->pos.y >= rzp->y0 && cellp->pos.y <= rzp->y1 &&
@@ -769,18 +769,18 @@ int Block::identify_reaction_zones( global_data &gd )
 /// \brief Set the in-turbulent-zone flag for cells in this block.
 int Block::identify_turbulent_zones( global_data &gd )
 {
-    int total_cells_in_turbulent_zones = 0;
-    int total_cells = 0;
+    size_t total_cells_in_turbulent_zones = 0;
+    size_t total_cells = 0;
     CTurbulentZone *tzp;
     FV_Cell *cellp;
     
-    for ( int k = kmin; k <= kmax; ++k ) {
-	for ( int i = imin; i <= imax; ++i ) {
-	    for ( int j = jmin; j <= jmax; ++j ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+	for ( size_t i = imin; i <= imax; ++i ) {
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
 		cellp = get_cell(i,j,k);
 		if ( gd.n_turbulent_zone > 0 ) {
 		    cellp->in_turbulent_zone = 0;
-		    for ( int indx = 0; indx < gd.n_turbulent_zone; ++indx ) {
+		    for ( size_t indx = 0; indx < gd.n_turbulent_zone; ++indx ) {
 			tzp = &(gd.turbulent_zone[indx]);
 			if ( cellp->pos.x >= tzp->x0 && cellp->pos.x <= tzp->x1 &&
 			     cellp->pos.y >= tzp->y0 && cellp->pos.y <= tzp->y1 &&
@@ -810,30 +810,30 @@ int Block::identify_turbulent_zones( global_data &gd )
 } // end identify_turbulent_zones()
 
 
-int Block::clear_fluxes_of_conserved_quantities( int dimensions )
+int Block::clear_fluxes_of_conserved_quantities( size_t dimensions )
 {
     FV_Interface *IFace;
 
-    for ( int k = kmin; k <= kmax; ++k ) {
-	for (int j = jmin; j <= jmax; ++j) {
-	    for (int i = imin; i <= imax+1; ++i) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+	for (size_t j = jmin; j <= jmax; ++j) {
+	    for (size_t i = imin; i <= imax+1; ++i) {
 		IFace = get_ifi(i,j,k);
 		IFace->F->clear_values();
 	    } // for i
 	} // for j
     } // for k
-    for ( int k = kmin; k <= kmax; ++k ) {
-	for (int j = jmin; j <= jmax+1; ++j) {
-	    for (int i = imin; i <= imax; ++i) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+	for (size_t j = jmin; j <= jmax+1; ++j) {
+	    for (size_t i = imin; i <= imax; ++i) {
 		IFace = get_ifj(i,j,k);
 		IFace->F->clear_values();
 	    } // for i
 	} // for j
     } // for k
     if ( dimensions == 3 ) {
-	for ( int k = kmin; k <= kmax+1; ++k ) {
-	    for (int j = jmin; j <= jmax; ++j) {
-		for (int i = imin; i <= imax; ++i) {
+	for ( size_t k = kmin; k <= kmax+1; ++k ) {
+	    for (size_t j = jmin; j <= jmax; ++j) {
+		for (size_t i = imin; i <= imax; ++i) {
 		    IFace = get_ifk(i,j,k);
 		    IFace->F->clear_values();
 		} // for i
@@ -843,17 +843,17 @@ int Block::clear_fluxes_of_conserved_quantities( int dimensions )
     return SUCCESS;
 }
 
-int Block::propagate_data_west_to_east( int dimensions )
+int Block::propagate_data_west_to_east( size_t dimensions )
 // Propagate data from the west ghost cell, right across the block.
 // This is a useful starting state for the block-sequenced calculation
 // where the final flow is expected to be steady-state.
 {
     FV_Cell *src, *dest;
     Gas_model *gm = get_gas_model_ptr();
-    for ( int k = kmin; k <= kmax; ++k ) {
-	for ( int j = jmin; j <= jmax; ++j) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+	for ( size_t j = jmin; j <= jmax; ++j) {
 	    src = get_cell(imin-1,j);
-	    for ( int i = imin; i <= imax; ++i ) {
+	    for ( size_t i = imin; i <= imax; ++i ) {
 		dest = get_cell(i,j,k);
 		dest->copy_values_from(*src, COPY_FLOW_STATE);
 		Gas_data *gas = dest->fs->gas;
@@ -870,10 +870,10 @@ int Block::propagate_data_west_to_east( int dimensions )
     return SUCCESS;
 } // end propagate_data_west_to_east()
 
-int Block::compute_initial_primary_cell_geometric_data( int dimensions )
+int Block::compute_initial_primary_cell_geometric_data( size_t dimensions )
 // Compute cell and interface geometric properties.
 {
-    int i, j, k;
+    size_t i, j, k;
     FV_Cell *cell, *cell_1, *cell_2, *ghost_cell;
     Vector3 dummy;
     FV_Interface *iface;
@@ -1087,10 +1087,10 @@ int Block::compute_initial_primary_cell_geometric_data( int dimensions )
 } // end compute_initial_primary_cell_geometric_data()
 
 
-int Block::compute_primary_cell_geometric_data( int dimensions, int time_level )
+int Block::compute_primary_cell_geometric_data( size_t dimensions, size_t time_level )
 // Compute cell and interface geometric properties.
 {
-    int i, j, k;
+    size_t i, j, k;
     FV_Cell *cell, *cell_1, *cell_2, *ghost_cell;
     Vector3 dummy;
     FV_Interface *iface;
@@ -1303,9 +1303,9 @@ int Block::compute_primary_cell_geometric_data( int dimensions, int time_level )
     return SUCCESS;
 } // end compute_primary_cell_geometric_data()
 
-int Block::compute_distance_to_nearest_wall_for_all_cells( int dimensions )
+int Block::compute_distance_to_nearest_wall_for_all_cells( size_t dimensions )
 {
-    int i, j, k;
+    size_t i, j, k;
     FV_Cell *cell, *cell_at_wall[6];
     double dx, dy, dz, dist[6], half_width[6];
     FV_Interface *face_at_wall;
@@ -1401,7 +1401,7 @@ int Block::compute_distance_to_nearest_wall_for_all_cells( int dimensions )
 		// on the boundary of the block.
 		cell->distance_to_nearest_wall = dist[0];
 		cell->half_cell_width_at_wall = half_width[0];
-		for ( int iface = 1; iface < 6; ++iface ) {
+		for ( size_t iface = 1; iface < 6; ++iface ) {
 		    if ( cell_at_wall[iface] != NULL &&
 			 dist[iface] > cell->distance_to_nearest_wall ) {
 			cell->distance_to_nearest_wall = dist[iface];
@@ -1411,7 +1411,7 @@ int Block::compute_distance_to_nearest_wall_for_all_cells( int dimensions )
 		}
 		
 		// Step 3: find the closest real wall.
-		for ( int iface = 0; iface < 6; ++iface ) {
+		for ( size_t iface = 0; iface < 6; ++iface ) {
 		    if ( dimensions == 2 && iface >= 4 ) break; // Top,Bottom are 4,5
 		    if ( bcp[iface]->is_wall() && 
 			 bcp[iface]->type_code != SLIP_WALL &&
@@ -1429,7 +1429,7 @@ int Block::compute_distance_to_nearest_wall_for_all_cells( int dimensions )
     return SUCCESS;
 } // end compute_distance_to_nearest_wall_for_all_cells()
 
-int Block::compute_secondary_cell_geometric_data( int dimensions )
+int Block::compute_secondary_cell_geometric_data( size_t dimensions )
 // Compute secondary-cell and interface geometric properties.
 // Will be used for computing gradients for viscous terms.
 //
@@ -1438,7 +1438,7 @@ int Block::compute_secondary_cell_geometric_data( int dimensions )
 //        been filled in with useful geometric information.
 //        We should make use of this information.
 {
-    int i, j, k;
+    size_t i, j, k;
     Vector3 dummy;
     double iLen, jLen, kLen;
     FV_Vertex *vertex;
@@ -1862,7 +1862,7 @@ int Block::calc_initial_volumes_2D( void )
 ///
 /// Determine minimum length and aspect ratio, also.
 {
-    int i, j;
+    size_t i, j;
     double xA, yA, xB, yB, xC, yC, xD, yD;
     double xN, yN, xS, yS, xE, yE, xW, yW;
     double vol, max_vol, min_vol, xyarea;
@@ -2028,7 +2028,7 @@ int Block::calc_initial_volumes_2D( void )
     return SUCCESS;
 } // end calc_initial_volumes_2D()
 
-int Block::calc_volumes_2D( int time_level )
+int Block::calc_volumes_2D( size_t time_level )
 /// \brief Compute the PRIMARY cell volumes, areas, and centers 
 ///        from the vertex positions.
 ///
@@ -2037,7 +2037,7 @@ int Block::calc_volumes_2D( int time_level )
 ///
 /// Determine minimum length and aspect ratio, also.
 {
-    int i, j;
+    size_t i, j;
     double xA, yA, xB, yB, xC, yC, xD, yD;
     double xN, yN, xS, yS, xE, yE, xW, yW;
     double vol, max_vol, min_vol, xyarea;
@@ -2221,7 +2221,7 @@ int Block::calc_volumes_2D( int time_level )
 ///
 int Block::secondary_areas_2D( void )
 {
-    int i, j;
+    size_t i, j;
     double xA, yA, xB, yB, xC, yC, xD, yD;
     double xyarea, max_area, min_area;
 
@@ -2380,7 +2380,7 @@ int Block::secondary_areas_2D( void )
 int Block::calc_initial_faces_2D( void )
 {
     FV_Interface *IFace;
-    int i, j;
+    size_t i, j;
     double xA, xB, yA, yB, xC, yC;
     double LAB, LBC;
 
@@ -2457,10 +2457,10 @@ int Block::calc_initial_faces_2D( void )
 
 /// \brief Compute the interface lengths and direction cosines for interfaces.
 ///
-int Block::calc_faces_2D( int time_level )
+int Block::calc_faces_2D( size_t time_level )
 {
     FV_Interface *IFace;
-    int i, j;
+    size_t i, j;
     double xA, xB, yA, yB, xC, yC;
     double LAB, LBC;
 
@@ -2543,7 +2543,7 @@ int Block::calc_initial_ghost_cell_geom_2D( void )
 /// from interior cells to estimate the position
 /// and volume of the ghost cells.
 {
-    int i, j;
+    size_t i, j;
     FV_Cell *cell_1, *cell_2, *ghost_cell;
     // East boundary
     i = imax;
@@ -2604,7 +2604,7 @@ int Block::calc_initial_ghost_cell_geom_2D( void )
     return SUCCESS;
 }
 
-int Block::calc_ghost_cell_geom_2D( int time_level )
+int Block::calc_ghost_cell_geom_2D( size_t time_level )
 /// \brief Compute the ghost cell positions and volumes.
 ///
 /// 'Compute' is a bit too strong to describe what we do here.
@@ -2612,7 +2612,7 @@ int Block::calc_ghost_cell_geom_2D( int time_level )
 /// from interior cells to estimate the position
 /// and volume of the ghost cells.
 {
-    int i, j;
+    size_t i, j;
     FV_Cell *cell_1, *cell_2, *ghost_cell;
     // East boundary
     i = imax;
@@ -2676,9 +2676,9 @@ int Block::calc_ghost_cell_geom_2D( int time_level )
 /// \brief Perform Euler step using calculated vertex
 /// velocity and set the vertex position for time-level 1.
 ///
-int Block::predict_vertex_positions( int dimensions, double dt )
+int Block::predict_vertex_positions( size_t dimensions, double dt )
 {
-    int i, j, k, krangemax;
+    size_t i, j, k, krangemax;
     double gamma_1;
     FV_Vertex *vtx;
     if (get_Torder_flag() == 3) {
@@ -2707,12 +2707,12 @@ int Block::predict_vertex_positions( int dimensions, double dt )
 /// \brief Perform corrector step using re-calculated vertex
 /// velocity and set the vertex position for time-level 2.
 ///
-int Block::correct_vertex_positions( int dimensions, double dt )
+int Block::correct_vertex_positions( size_t dimensions, double dt )
 {
-    int i, j, k, krangemax;
+    size_t i, j, k, krangemax;
     FV_Vertex *vtx;
     double th, th_inv;
-    int tl_old;
+    size_t tl_old;
     if (get_Torder_flag() == 3) {
 	/* 3rd order Runge-Kutta */
 	th = 5.0 / 12.0;
@@ -2744,9 +2744,9 @@ int Block::correct_vertex_positions( int dimensions, double dt )
 /// \brief Perform corrector step using re-calculated vertex
 /// velocity and set the vertex position for time-level 2.
 ///
-int Block::rk3_vertex_positions( int dimensions, double dt )
+int Block::rk3_vertex_positions( size_t dimensions, double dt )
 {
-    int i, j, k, krangemax;
+    size_t i, j, k, krangemax;
     FV_Vertex *vtx;
     double gamma_3 = 3.0 / 4.0;
     double psi_2 = -5.0 / 12.0;
@@ -2772,7 +2772,7 @@ int Block::rk3_vertex_positions( int dimensions, double dt )
 /// See Ian Johnston's thesis for an explanation.
 ///
 int Block::calc_boundary_vertex_velocity(FV_Interface &IFace1, FV_Interface &IFace2,     
-                                         FV_Vertex &vtx, Vector3 trv, int time_level )
+                                         FV_Vertex &vtx, Vector3 trv, size_t time_level )
 {   
     double w1, w2;
     Vector3 ws1, ws2, vp;
@@ -2792,7 +2792,7 @@ int Block::calc_boundary_vertex_velocity(FV_Interface &IFace1, FV_Interface &IFa
 /// 
 int Block::calc_boundary_vertex_velocity(FV_Interface &IFace1, FV_Interface &IFace2,     
                                          FV_Interface &IFace3, FV_Interface &IFace4,
-                                         FV_Vertex &vtx, Vector3 trv, int time_level)
+                                         FV_Vertex &vtx, Vector3 trv, size_t time_level)
 {   
     double w1, w2, w3, w4;
     Vector3 ws1, ws2, ws3, ws4, vp;
@@ -2827,7 +2827,7 @@ int Block::velocity_weighting_factor(FV_Interface &IFace, Vector3 vp, double &w,
     return SUCCESS;
 }
 
-int Block::set_geometry_velocities(int dimensions, int time_level)
+int Block::set_geometry_velocities(size_t dimensions, size_t time_level)
 {
     if ( dimensions == 2 ) { 
 	set_vertex_velocities2D(time_level);
@@ -2844,11 +2844,11 @@ int Block::set_geometry_velocities(int dimensions, int time_level)
 ///  Based on Ian Johnston's thesis, see for explanation.
 ///  Assumes inflow at west boundary and wall at east boundary.
 ///
-int Block::set_vertex_velocities2D( int time_level )
+int Block::set_vertex_velocities2D( size_t time_level )
 {
     // Only works with one block in the i-direction. Supports multiple blocks
     // in the j-direction.
-    int i, j, k;
+    size_t i, j, k;
     FV_Interface *IFaceU, *IFaceD;
     FV_Vertex *svtx, *wvtx, *vtx;
     Vector3 trv;
@@ -2906,11 +2906,11 @@ int Block::set_vertex_velocities2D( int time_level )
 ///  Based on Ian Johnston's thesis, see for explanation.
 ///  Assumes inflow at west boundary and wall at east boundary.
 ///
-int Block::set_vertex_velocities3D( int time_level )
+int Block::set_vertex_velocities3D( size_t time_level )
 {
     // Only works with one block in the i-direction. Supports multiple blocks
     // in the j-direction.
-    int i, j, k;
+    size_t i, j, k;
     FV_Interface *IFace1, *IFace2, *IFace3, *IFace4;
     FV_Vertex *svtx, *wvtx, *vtx;
     Vector3 trv;
@@ -2973,11 +2973,11 @@ int Block::set_vertex_velocities3D( int time_level )
 
 /// \brief Function used to test GCL adherence.
 ///
-int Block::set_gcl_test_vertex_velocities2D( int time_level )
+int Block::set_gcl_test_vertex_velocities2D( size_t time_level )
 {
     // Only works with one block in the i-direction. Supports multiple blocks
     // in the j-direction.
-    int i, j, k;
+    size_t i, j, k;
     FV_Vertex *vtx;
     k = kmin;
     // Set boundary vertex velocities.
@@ -2993,11 +2993,11 @@ int Block::set_gcl_test_vertex_velocities2D( int time_level )
 
 /// \brief Function used to test GCL adherence. 
 ///
-int Block::set_gcl_test_vertex_velocities3D( int time_level )
+int Block::set_gcl_test_vertex_velocities3D( size_t time_level )
 {
     // Only works with one block in the i-direction. Supports multiple blocks
     // in the j-direction.
-    int i, j, k;
+    size_t i, j, k;
     FV_Vertex *vtx;
     // Set boundary vertex velocities.
     // Ghost cell geometry will be invalid, but NaNs will be caught by the weighting function.
@@ -3017,11 +3017,11 @@ int Block::set_gcl_test_vertex_velocities3D( int time_level )
 ///  Based on Ian Johnston's thesis, see for explanation.
 ///  Assumes inflow at west boundary and wall at east boundary.
 ///
-int Block::set_gcl_test_random_vertex_velocities2D( int time_level )
+int Block::set_gcl_test_random_vertex_velocities2D( size_t time_level )
 {
     // Only works with one block in the i-direction. Supports multiple blocks
     // in the j-direction.
-    int i, j, k;
+    size_t i, j, k;
     FV_Vertex *vtx;
     FV_Cell *cell;
     k = kmin;
@@ -3044,7 +3044,7 @@ int Block::set_gcl_test_random_vertex_velocities2D( int time_level )
 }
 
 
-int Block::set_gcl_interface_properties(int dimensions, int time_level, double dt)
+int Block::set_gcl_interface_properties(size_t dimensions, size_t time_level, double dt)
 {
     if ( dimensions == 2 ) { 
 	set_gcl_interface_properties2D(time_level, dt);
@@ -3057,14 +3057,14 @@ int Block::set_gcl_interface_properties(int dimensions, int time_level, double d
 
 /// \brief Set interface velocities and area to average value over timestep for GCL adherence. 
 ///
-int Block::set_gcl_interface_properties2D( int time_level, double dt )
+int Block::set_gcl_interface_properties2D( size_t time_level, double dt )
 {
-    int i, j, k;
+    size_t i, j, k;
     FV_Vertex *vtx1, *vtx2;
     FV_Interface *IFace;
     Vector3 vpm1, vpm2;
     double xA, xB, yA, yB;
-    int tl_old = 0;
+    size_t tl_old = 0;
     if ( get_Torder_flag() == 3 ) {
 	if ( time_level == 1 ) tl_old = 1;
 	else if ( time_level == 2 ) tl_old = 2;
@@ -3120,13 +3120,13 @@ int Block::set_gcl_interface_properties2D( int time_level, double dt )
 
 /// \brief Set interface velocities and area to average value over timestep for GCL adherence. 
 ///
-int Block::set_gcl_interface_properties3D( int time_level, double dt )
+int Block::set_gcl_interface_properties3D( size_t time_level, double dt )
 {
-    int i, j, k;
+    size_t i, j, k;
     FV_Vertex *vtx1, *vtx2, *vtx3, *vtx4;
     FV_Interface *IFace;
     Vector3 vpm1, vpm2, vpm3, vpm4, p1, p2, p3, p4;
-    int tl_old = 0;
+    size_t tl_old = 0;
     if ( get_Torder_flag() == 3 ) {
 	if ( time_level == 1 ) tl_old = 1;
 	else if ( time_level == 2 ) tl_old = 2;
@@ -3215,9 +3215,9 @@ int Block::set_gcl_interface_properties3D( int time_level, double dt )
 
 /// \brief Set interface velocities as average of adjacent vertex velocities. 
 ///
-int Block::set_interface_velocities2D( int time_level )
+int Block::set_interface_velocities2D( size_t time_level )
 {
-    int i, j, k;
+    size_t i, j, k;
     FV_Vertex *vtx1, *vtx2;
     FV_Interface *IFace;
     k = kmin;
@@ -3242,9 +3242,9 @@ int Block::set_interface_velocities2D( int time_level )
 
 /// \brief Set interface velocities as average of adjacent vertex velocities. 
 ///
-int Block::set_interface_velocities3D( int time_level )
+int Block::set_interface_velocities3D( size_t time_level )
 {
-    int i, j, k;
+    size_t i, j, k;
     FV_Vertex *vtx1, *vtx2, *vtx3, *vtx4;
     FV_Interface *IFace;
     
@@ -3290,7 +3290,7 @@ int Block::set_interface_velocities3D( int time_level )
     return SUCCESS;
 }
 
-// int Block::diffuse_vertex_velocities(double mu, int npass, int dimensions, int time_level)
+// int Block::diffuse_vertex_velocities(double mu, size_t npass, size_t dimensions, size_t time_level)
 // /// \brief Filter the cell-centred primary variables.
 // ///
 // /// This filtering is done on a block-by-block basis.
@@ -3300,7 +3300,7 @@ int Block::set_interface_velocities3D( int time_level )
 // //
 // {
 //     FV_Vertex *vtx, *vtxN, *vtxS;
-//     int i,j;
+//     size_t i,j;
 //     Vector3 diffuse[nnj+5];
 //     i = imin;
 //     if ( bcp[SOUTH]->type_code != ADJACENT ) { // If not adjacent to another block on south side.
@@ -3329,7 +3329,7 @@ int Block::set_interface_velocities3D( int time_level )
 //     return SUCCESS;
 // } // end of diffuse_vertex_velocities()
 
-// int Block::anti_diffuse_vertex_velocities(double mu, int npass, int dimensions, int time_level)
+// int Block::anti_diffuse_vertex_velocities(double mu, size_t npass, size_t dimensions, size_t time_level)
 // /// \brief Filter the cell-centred primary variables.
 // ///
 // /// This filtering is done on a block-by-block basis.
@@ -3339,7 +3339,7 @@ int Block::set_interface_velocities3D( int time_level )
 // //
 // {
 //     FV_Vertex *vtx, *vtxN, *vtxS;
-//     int i, j;
+//     size_t i, j;
 //     Vector3 m2, m1, p1, p2;
 //     Vector3 vel;
 //     Vector3 adflux[nnj+5];
@@ -3412,11 +3412,11 @@ int Block::compute_boundary_flux(FV_Interface *IFaceL, FV_Interface *IFaceR, dou
  * the cell interfaces.  
  * (Area is area per unit radian for axisymmetric calculations.)
  */
-void Block::compute_x_forces( char *text_string, int ibndy, int dimensions )
+void Block::compute_x_forces( char *text_string, int ibndy, size_t dimensions )
 {
     double fx_p, fx_v, x1, y1, cosX, cosY, area;
     double xc, yc, d, vt, mu;
-    int i, j, ivisc;
+    size_t i, j, ivisc;
     FV_Cell *cell;
     FV_Interface *IFace;
     
@@ -3522,7 +3522,7 @@ void Block::compute_x_forces( char *text_string, int ibndy, int dimensions )
 
 /// \brief Assemble the x-force numbers for each block into a single
 ///        (string) report and send it to the logfile. 
-int Block::print_forces( FILE *fp, double t, int dimensions )
+int Block::print_forces( FILE *fp, double t, size_t dimensions )
 {
     char msg_text[512], small_text[132];
 
@@ -3559,7 +3559,7 @@ int Block::print_forces( FILE *fp, double t, int dimensions )
 } // end print_forces()
 
 
-int Block::read_grid(std::string filename, int dimensions, int zip_file)
+int Block::read_grid(std::string filename, size_t dimensions, int zip_file)
 /// \brief Read the grid from a disc file as a set of cell vertices.
 /// \returns 0 if successful but 1 if it hits the end of the grid file prematurely.
 {
@@ -3567,8 +3567,8 @@ int Block::read_grid(std::string filename, int dimensions, int zip_file)
     char line[NCHAR];
     char *gets_result;
     FV_Vertex *vp;
-    int i, j, k;
-    int retries = 10;
+    size_t i, j, k;
+    size_t retries = 10;
     FILE *fp = NULL;
     gzFile zfp = NULL;
     if (id == 0) printf("read_grid(): Start block %d.\n", id);
@@ -3600,11 +3600,11 @@ int Block::read_grid(std::string filename, int dimensions, int zip_file)
 	printf("read_grid(): Empty grid file, block %d.\n", id);
 	return BAD_INPUT_ERROR;
     }
-    sscanf(line, "%d %d %d", &i, &j, &k);
+    sscanf(line, "%u %u %u", &i, &j, &k);
     if (dimensions == 3) {
 	if ( i != nni+1 || j != nnj+1 || k != nnk+1 ) {
-	    printf("read_grid(): Mismatch in cell numbers, block %d\n", id);
-	    printf("    i=%d nni+1=%d j=%d nnj+1=%d k=%d nnk+1=%d\n", 
+	    printf("read_grid(): Mismatch in cell numbers, block %u\n", id);
+	    printf("    i=%u nni+1=%u j=%u nnj+1=%u k=%u nnk+1=%u\n", 
 		   i, nni+1, j, nnj+1, k, nnk+1);
 	    return BAD_INPUT_ERROR;
 	}
@@ -3628,8 +3628,8 @@ int Block::read_grid(std::string filename, int dimensions, int zip_file)
     } else {
 	// 2-dimensional case.
 	if ( i != nni+1 || j != nnj+1 || k != 1 ) {
-	    printf( "read_grid(): Mismatch in cell numbers, block %d\n", id );
-	    printf( "    i=%d nni+1=%d j=%d nnj+1=%d k=%d nnk=%d\n", 
+	    printf( "read_grid(): Mismatch in cell numbers, block %u\n", id );
+	    printf( "    i=%u nni+1=%u j=%u nnj+1=%u k=%u nnk=%u\n", 
 		    i, nni+1, j, nnj+1, k, nnk);
 	    return BAD_INPUT_ERROR;
 	}
@@ -3664,13 +3664,13 @@ int Block::read_grid(std::string filename, int dimensions, int zip_file)
 ///        cell centers) from a disk file.
 /// Returns a status flag.
 int Block::read_solution(std::string filename, double *sim_time,
-			 int dimensions, int zip_file)
+			 size_t dimensions, int zip_file)
 {
 #   define NCHAR 4000
     char line[NCHAR];
     char *gets_result;
-    int i, j, k;
-    int retries = 10;
+    size_t i, j, k;
+    size_t retries = 10;
     FILE *fp = NULL;
     gzFile zfp = NULL;
     if (id == 0) printf("read_solution(): Start block %d.\n", id); 
@@ -3725,7 +3725,7 @@ int Block::read_solution(std::string filename, double *sim_time,
 	printf("read_solution(): Empty flow field file while looking for numbers of cells.\n");
 	return BAD_INPUT_ERROR;
     }
-    sscanf(line, "%d %d %d", &i, &j, &k);
+    sscanf(line, "%u %u %u", &i, &j, &k);
     if ( i != nni || j != nnj || k != ((dimensions == 3) ? nnk : 1) ) {
 	printf("read_solution(): block %d, mismatch in cell numbers\n", id);
 	printf("    This misalignment could be caused by a having a different number\n");
@@ -3759,7 +3759,7 @@ int Block::read_solution(std::string filename, double *sim_time,
 } // end of Block::read_solution()
 
 
-int Block::write_solution( std::string filename, double sim_time, int dimensions, int zip_file )
+int Block::write_solution( std::string filename, double sim_time, size_t dimensions, int zip_file )
 /// \brief Write the flow solution (i.e. the primary variables at the
 ///        cell centers) for a single block.
 ///
@@ -3791,9 +3791,9 @@ int Block::write_solution( std::string filename, double sim_time, int dimensions
 	fprintf(fp, "%s\n", variable_list_for_cell().c_str());
 	fprintf(fp, "%d %d %d\n", nni, nnj, nnk);
     }
-    for ( int k = kmin; k <= kmax; ++k ) {
-	for ( int j = jmin; j <= jmax; ++j ) {
-	    for ( int i = imin; i <= imax; ++i ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+	for ( size_t j = jmin; j <= jmax; ++j ) {
+	    for ( size_t i = imin; i <= imax; ++i ) {
 		str = get_cell(i,j,k)->write_values_to_string();
 		if (zip_file) {
 		    gzputs(zfp, str.c_str()); gzputc(zfp, '\n');
@@ -3811,7 +3811,7 @@ int Block::write_solution( std::string filename, double sim_time, int dimensions
     return SUCCESS;
 } // end of Block::write_solution()
 
-int Block::write_block( std::string filename, double sim_time, int dimensions, int zip_file )
+int Block::write_block( std::string filename, double sim_time, size_t dimensions, int zip_file )
 /// \brief Write the flow solution (i.e. the primary variables at the
 ///        cell centers) for a single block.
 ///
@@ -3821,7 +3821,7 @@ int Block::write_block( std::string filename, double sim_time, int dimensions, i
     FILE *fp;
     gzFile zfp;
     string str;
-    int krangemax;
+    size_t krangemax;
     if (id == 0) {
 	printf("write_block(): At t = %e, start block = %d.\n", sim_time, id);
     }
@@ -3845,9 +3845,9 @@ int Block::write_block( std::string filename, double sim_time, int dimensions, i
     }
     if ( dimensions == 2 ) krangemax = kmax;
     else krangemax = kmax+1;
-    for ( int k = kmin; k <= krangemax; ++k ) {
-	for ( int j = jmin; j <= jmax+1; ++j ) {
-	    for ( int i = imin; i <= imax+1; ++i ) {
+    for ( size_t k = kmin; k <= krangemax; ++k ) {
+	for ( size_t j = jmin; j <= jmax+1; ++j ) {
+	    for ( size_t i = imin; i <= imax+1; ++i ) {
 		vtx = get_vtx(i,j,k);
 		if (zip_file) {
 		    gzprintf(zfp, "%20.12e %20.12e %20.12e\n", vtx->pos.x, vtx->pos.y, vtx->pos.z);
@@ -3868,13 +3868,13 @@ int Block::write_block( std::string filename, double sim_time, int dimensions, i
 /// \brief Read the BGK discrete velocity distribution values
 /// Returns a status flag.
 int Block::read_BGK(std::string filename, double *sim_time,
-		    int dimensions, int zip_file)
+		    size_t dimensions, int zip_file)
 {
 #   define NCHAR 4000
     char line[NCHAR];
     char *gets_result;
-    int i, j, k;
-    int retries = 10;
+    size_t i, j, k;
+    size_t retries = 10;
     FILE *fp = NULL;
     gzFile zfp = NULL;
     if (id == 0) printf("read_BGK(): Start block %d.\n", id); 
@@ -3926,7 +3926,7 @@ int Block::read_BGK(std::string filename, double *sim_time,
 	printf("read_BGK(): Empty flow field file while looking for numbers of cells.\n");
 	return BAD_INPUT_ERROR;
     }
-    sscanf(line, "%d %d %d", &i, &j, &k);
+    sscanf(line, "%u %u %u", &i, &j, &k);
     if ( i != nni || j != nnj || k != ((dimensions == 3) ? nnk : 1) ) {
 	printf("read_BGK(): block %d, mismatch in cell numbers\n", id);
 	printf("    This misalignment could be caused by a having a different number\n");
@@ -3964,9 +3964,9 @@ int Block::read_BGK(std::string filename, double *sim_time,
 // conditions in the cell.
 int Block::initialise_BGK_equilibrium( void )
 {
-    for (int k = kmin; k <= kmax; ++k ) {
-	for (int j = jmin; j <= jmax; ++j ) {
-	    for (int i = imin; i <= imax; ++i ) {
+    for (size_t k = kmin; k <= kmax; ++k ) {
+	for (size_t j = jmin; j <= jmax; ++j ) {
+	    for (size_t i = imin; i <= imax; ++i ) {
 		get_cell(i,j,k)->fs->BGK_equilibrium();
 	    }
 	}
@@ -3977,7 +3977,7 @@ int Block::initialise_BGK_equilibrium( void )
 /// \brief Write the BGK discrete velocity distribution values for a single block
 ///
 /// This is "almost-Tecplot" POINT format.
-int Block::write_BGK( std::string filename, double sim_time, int dimensions, int zip_file )
+int Block::write_BGK( std::string filename, double sim_time, size_t dimensions, int zip_file )
 {
     FILE *fp;
     gzFile zfp;
@@ -3994,7 +3994,7 @@ int Block::write_BGK( std::string filename, double sim_time, int dimensions, int
 	}
 	gzprintf(zfp, "%20.12e\n", sim_time);
 	gzprintf(zfp,"\"pos.x\" \"pos.y\" \"pos.z\" \"volume\"");
-	for (int ii = 0; ii < get_velocity_buckets(); ++ii) {
+	for (size_t ii = 0; ii < get_velocity_buckets(); ++ii) {
 	    gzprintf(zfp," \"G[%d]\" \"H[%d]\"",ii,ii);
 	}
 	gzprintf(zfp, "\n%d %d %d\n", nni, nnj, nnk);
@@ -4007,14 +4007,14 @@ int Block::write_BGK( std::string filename, double sim_time, int dimensions, int
 	fprintf(fp, "%20.12e\n", sim_time);
 	fprintf(fp,"\"pos.x\" \"pos.y\" \"pos.z\" \"volume\"");
 	
-	for (int ii = 0; ii < get_velocity_buckets(); ++ii) {
+	for (size_t ii = 0; ii < get_velocity_buckets(); ++ii) {
 	    fprintf(fp," \"G[%d]\" \"H[%d]\"",ii,ii);
 	}
 	fprintf(fp, "\n%d %d %d\n", nni, nnj, nnk);
     }
-    for ( int k = kmin; k <= kmax; ++k ) {
-	for ( int j = jmin; j <= jmax; ++j ) {
-	    for ( int i = imin; i <= imax; ++i ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+	for ( size_t j = jmin; j <= jmax; ++j ) {
+	    for ( size_t i = imin; i <= imax; ++i ) {
 		str = get_cell(i,j,k)->write_BGK_to_string();
 		if (zip_file) {
 		    gzputs(zfp, str.c_str()); gzputc(zfp, '\n');
@@ -4041,7 +4041,7 @@ int Block::write_history( std::string filename, double sim_time, int write_heade
 /// Note that, after writing the header, the file is opened in append mode 
 /// so that the data may accumulate.
 {
-    int i, j, k;
+    size_t i, j, k;
     FILE *fp;
     string str;
     if ( write_header ) {
@@ -4056,7 +4056,7 @@ int Block::write_history( std::string filename, double sim_time, int write_heade
 	    cerr << "write_history(): Could not open " << filename << "; BAILING OUT" << endl;
 	    exit( FILE_ERROR );
 	}
-	for ( int ih = 0; ih < hncell; ++ih ) {
+	for ( size_t ih = 0; ih < hncell; ++ih ) {
 	    i = hicell[ih] + imin;
 	    j = hjcell[ih] + jmin;
 	    k = hkcell[ih] + kmin;
@@ -4071,7 +4071,7 @@ int Block::write_history( std::string filename, double sim_time, int write_heade
 } // end of Block::write_history()
 
 
-int Block::count_invalid_cells( int dimensions )
+int Block::count_invalid_cells( size_t dimensions )
 /// \brief Returns the number of cells that contain invalid data.
 ///
 /// This data can be identified by the density of internal energy 
@@ -4081,15 +4081,15 @@ int Block::count_invalid_cells( int dimensions )
 // it should not be invoked (ever) if the code is working well!
 {
     FV_Cell *cell;
-    int  number_of_invalid_cells;
+    size_t  number_of_invalid_cells;
     Gas_model *gmodel = get_gas_model_ptr();
     FV_Cell dummy_cell(gmodel);
     
     number_of_invalid_cells = 0;
 
-    for ( int k = kmin; k <= kmax; ++k ) {
-	for ( int i = imin; i <= imax; ++i ) {
-	    for ( int j = jmin; j <= jmax; ++j ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+	for ( size_t i = imin; i <= imax; ++i ) {
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
 		cell = get_cell(i,j,k);
 		if ( cell->check_flow_data() != 1 ) {
 		    ++number_of_invalid_cells;
@@ -4098,45 +4098,42 @@ int Block::count_invalid_cells( int dimensions )
 			       id, i, j, k);
 			cell->print();
 		    }
-		    
-#                   if ADJUST_INVALID_CELL_DATA == 1
-		    // We shall set the cell data to something that
-		    // is valid (and self consistent).
-		    FV_Cell *other_cell;
-#                   if PREFER_COPY_FROM_LEFT == 1
-		    if ( get_bad_cell_complain_flag() ) {
-			printf( "Adjusting cell data by copying data from left.\n" );
-		    }
-		    other_cell = get_cell(i-1,j,k);
-		    cell->copy_values_from(other_cell, COPY_FLOW_STATE);
-#                   else
-		    if ( get_bad_cell_complain_flag() ) {
-			printf( "Adjusting cell data to a local average.\n" );
-		    }
-		    // Presently, only searches around in the i,j plane
-		    std::vector<FV_Cell *> neighbours;
-		    other_cell = get_cell(i-1,j,k);
-		    if ( other_cell->check_flow_data() ) neighbours.push_back(other_cell);
-		    other_cell = get_cell(i+1,j,k);
-		    if ( other_cell->check_flow_data() ) neighbours.push_back(other_cell);
-		    other_cell = get_cell(i,j-1,k);
-		    if ( other_cell->check_flow_data() ) neighbours.push_back(other_cell);
-		    other_cell = get_cell(i,j+1,k);
-		    if ( other_cell->check_flow_data() ) neighbours.push_back(other_cell);
-		    if ( neighbours.size() == 0 ) {
-			printf( "It seems that there were no valid neighbours, I give up.\n" );
-			exit( BAD_CELLS_ERROR );
-		    }
-		    cell->replace_flow_data_with_average(neighbours);
-#                   endif
-		    cell->encode_conserved(omegaz);
-		    cell->decode_conserved(omegaz);
-		    if ( get_bad_cell_complain_flag() ) {
-			printf("after flow-data replacement: block_id = %d, cell[%d,%d,%d]\n", 
-			       id, i, j, k);
-			cell->print();
-		    }
-#                   endif
+		    if ( adjust_invalid_cell_data ) {
+			// We shall set the cell data to something that
+			// is valid (and self consistent).
+			FV_Cell *other_cell;
+			std::vector<FV_Cell *> neighbours;
+			if (prefer_copy_from_left ) {
+			    if ( get_bad_cell_complain_flag() ) {
+				printf( "Adjusting cell data by copying data from left.\n" );
+			    }
+			    // Presently, only searches around in the i,j plane
+			    other_cell = get_cell(i-1,j,k);
+			    if ( other_cell->check_flow_data() ) neighbours.push_back(other_cell);
+			} else {
+			    if ( get_bad_cell_complain_flag() ) {
+				printf( "Adjusting cell data to a local average.\n" );
+			    }
+			    other_cell = get_cell(i+1,j,k);
+			    if ( other_cell->check_flow_data() ) neighbours.push_back(other_cell);
+			    other_cell = get_cell(i,j-1,k);
+			    if ( other_cell->check_flow_data() ) neighbours.push_back(other_cell);
+			    other_cell = get_cell(i,j+1,k);
+			    if ( other_cell->check_flow_data() ) neighbours.push_back(other_cell);
+			    if ( neighbours.size() == 0 ) {
+				printf( "It seems that there were no valid neighbours, I give up.\n" );
+				exit( BAD_CELLS_ERROR );
+			    }
+			    cell->replace_flow_data_with_average(neighbours);
+			}
+			cell->encode_conserved(omegaz);
+			cell->decode_conserved(omegaz);
+			if ( get_bad_cell_complain_flag() ) {
+			    printf("after flow-data replacement: block_id = %d, cell[%d,%d,%d]\n", 
+				   id, i, j, k);
+			    cell->print();
+			}
+		    } // end adjust_invalid_cell_data 
 		} // end of if invalid data...
 	    } // j loop
 	} // i loop
@@ -4145,7 +4142,7 @@ int Block::count_invalid_cells( int dimensions )
 } // end of count_invalid_cells()
 
 
-int Block::init_residuals( int dimensions )
+int Block::init_residuals( size_t dimensions )
 /// \brief Initialization of data for later computing residuals.
 {
     FV_Cell *cellp;
@@ -4153,9 +4150,9 @@ int Block::init_residuals( int dimensions )
     mass_residual_loc = Vector3(0.0, 0.0, 0.0);
     energy_residual = 0.0;
     energy_residual_loc = Vector3(0.0, 0.0, 0.0);
-    for ( int k = kmin; k <= kmax; ++k ) {
-	for ( int j = jmin; j <= jmax; ++j ) {
-	    for (int  i = imin; i <= imax; ++i ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+	for ( size_t j = jmin; j <= jmax; ++j ) {
+	    for (size_t  i = imin; i <= imax; ++i ) {
 		cellp = get_cell(i,j,k);
 		cellp->rho_at_start_of_step = cellp->fs->gas->rho;
 		cellp->rE_at_start_of_step = cellp->U->total_energy;
@@ -4166,7 +4163,7 @@ int Block::init_residuals( int dimensions )
 } // end of check_residual()
 
 
-int Block::compute_residuals( int dimensions )
+int Block::compute_residuals( size_t dimensions )
 /// \brief Compute the residuals using previously stored data.
 ///
 /// The largest residual of density for all cells was the traditional way
@@ -4184,9 +4181,9 @@ int Block::compute_residuals( int dimensions )
     mass_residual_loc = Vector3(0.0, 0.0, 0.0);
     energy_residual = 0.0;
     energy_residual_loc = Vector3(0.0, 0.0, 0.0);
-    for ( int k = kmin; k <= kmax; ++k ) {
-	for ( int j = jmin; j <= jmax; ++j ) {
-	    for (int  i = imin; i <= imax; ++i ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+	for ( size_t j = jmin; j <= jmax; ++j ) {
+	    for (size_t  i = imin; i <= imax; ++i ) {
 		cellp = get_cell(i,j,k);
 		// printf ( "blk[%d] cell(%d,%d,%d) rho %g rho_old %g\n",
 		// 	 id, i, j, k, cellp->gas->U.rho, cellp->U_old->rho );
@@ -4213,7 +4210,7 @@ int Block::compute_residuals( int dimensions )
 } // end of compute_residuals()
 
 
-int Block::determine_time_step_size( double cfl_target, int dimensions )
+int Block::determine_time_step_size( double cfl_target, size_t dimensions )
 /// \brief Compute the local time step limit for all cells in the block.
 ///
 /// The overall time step is limited by the worst-case cell.
@@ -4242,9 +4239,9 @@ int Block::determine_time_step_size( double cfl_target, int dimensions )
     }
 
     first = true;
-    for ( int k = kmin; k <= kmax; ++k ) {
-	for ( int i = imin; i <= imax; ++i ) {
-	    for ( int j = jmin; j <= jmax; ++j ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+	for ( size_t i = imin; i <= imax; ++i ) {
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
 		signal = get_cell(i,j,k)->signal_frequency(dimensions);
 		cfl_local = gdp->dt_global * signal; // Current (Local) CFL number
 		dt_local = cfl_target / signal; // Recommend a time step size.
@@ -4278,7 +4275,7 @@ int Block::determine_time_step_size( double cfl_target, int dimensions )
 } // end of determine_time_step_size()
 
 
-int Block::detect_shock_points( int dimensions )
+int Block::detect_shock_points( size_t dimensions )
 /// \brief Detects shocks by looking for compression between adjacent cells.
 ///
 /// The velocity component normal to the cell interfaces
@@ -4297,9 +4294,9 @@ int Block::detect_shock_points( int dimensions )
 
     // First, work across North interfaces and
     // locate shocks using the (local) normal velocity.
-    for ( int k = kmin; k <= kmax; ++k ) {
-	for ( int i = imin; i <= imax; ++i ) {
-	    for ( int j = jmin-1; j <= jmax; ++j ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+	for ( size_t i = imin; i <= imax; ++i ) {
+	    for ( size_t j = jmin-1; j <= jmax; ++j ) {
 		cL = get_cell(i,j,k);
 		cR = get_cell(i,j+1,k);
 		IFace = cL->iface[NORTH];
@@ -4318,9 +4315,9 @@ int Block::detect_shock_points( int dimensions )
     
     // Second, work across East interfaces and
     // locate shocks using the (local) normal velocity.
-    for ( int k = kmin; k <= kmax; ++k ) {
-	for ( int i = imin-1; i <= imax; ++i ) {
-	    for ( int j = jmin; j <= jmax; ++j ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+	for ( size_t i = imin-1; i <= imax; ++i ) {
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
 		cL = get_cell(i,j,k);
 		cR = get_cell(i+1,j,k);
 		IFace = cL->iface[EAST];
@@ -4339,9 +4336,9 @@ int Block::detect_shock_points( int dimensions )
     
     if ( dimensions == 3 ) {
 	// Third, work across Top interfaces.
-	for ( int i = imin; i <= imax; ++i ) {
-	    for ( int j = jmin; j <= jmax; ++j ) {
-		for ( int k = kmin-1; k <= kmax; ++k ) {
+	for ( size_t i = imin; i <= imax; ++i ) {
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
+		for ( size_t k = kmin-1; k <= kmax; ++k ) {
 		    cL = get_cell(i,j,k);
 		    cR = get_cell(i,j,k+1);
 		    IFace = cL->iface[TOP];
@@ -4361,9 +4358,9 @@ int Block::detect_shock_points( int dimensions )
     
     // Finally, mark cells as shock points if any of their
     // interfaces are shock points.
-    for ( int k = kmin; k <= kmax; ++k ) {
-	for ( int i = imin; i <= imax; ++i ) {
-	    for ( int j = jmin; j <= jmax; ++j ) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+	for ( size_t i = imin; i <= imax; ++i ) {
+	    for ( size_t j = jmin; j <= jmax; ++j ) {
 		cell = get_cell(i,j,k);
 		cell->fs->S = cell->iface[EAST]->fs->S || cell->iface[WEST]->fs->S ||
 		    cell->iface[NORTH]->fs->S || cell->iface[SOUTH]->fs->S ||
@@ -4471,7 +4468,7 @@ double Block::calc_anti_diffusive_flux(double m2, double m1, double p1, double p
     return S * max(0.0, min(mu * fabs(del), delmin));
 }
 
-int Block::apply_spatial_filter_diffusion(double mu, int npass, int dimensions)
+int Block::apply_spatial_filter_diffusion(double mu, size_t npass, size_t dimensions)
 /// \brief Filter the cell-centred primary variables.
 ///
 /// This filtering is done on a block-by-block basis.
@@ -4482,10 +4479,10 @@ int Block::apply_spatial_filter_diffusion(double mu, int npass, int dimensions)
 // To do: We should fix for 3D or remove. I think that there are no cases that need it. 
 {
     FV_Cell *cell, *cN, *cE, *cS, *cW;
-    int isp;
-    int i, j;
+    size_t isp;
+    size_t i, j;
     Gas_model *gm = get_gas_model_ptr();
-    int nsp = gm->get_number_of_species();
+    size_t nsp = gm->get_number_of_species();
     vector<vector<double> > diffuse;
     diffuse.resize(nni+4);
     for (size_t i = 0; i < diffuse.size(); ++i ) {
@@ -4522,7 +4519,7 @@ int Block::apply_spatial_filter_diffusion(double mu, int npass, int dimensions)
     return SUCCESS;
 } // end of apply_spatial_filter_diffusion()
 
-int Block::apply_spatial_filter_anti_diffusion(double mu, int npass, int dimensions)
+int Block::apply_spatial_filter_anti_diffusion(double mu, size_t npass, size_t dimensions)
 /// \brief Filter the cell-centred primary variables.
 ///
 /// This filtering is done on a block-by-block basis.
@@ -4534,10 +4531,10 @@ int Block::apply_spatial_filter_anti_diffusion(double mu, int npass, int dimensi
 {
     FV_Cell *cell;
     double m2, m1, p1, p2;
-    int isp;
-    int i, j;
+    size_t isp;
+    size_t i, j;
     Gas_model *gm = get_gas_model_ptr();
-    int nsp = gm->get_number_of_species();
+    size_t nsp = gm->get_number_of_species();
     vector<vector<double> > iadflux;
     vector<vector<double> > jadflux;
     iadflux.resize(nni+5);
@@ -4573,7 +4570,7 @@ int Block::apply_spatial_filter_anti_diffusion(double mu, int npass, int dimensi
 //-----------------------------------------------------------------------------
 
 int find_nearest_cell( double x, double y, double z, 
-		       int *jb_near, int *i_near, int *j_near, int *k_near )
+		       size_t *jb_near, size_t *i_near, size_t *j_near, size_t *k_near )
 /// \brief Given an (x,y,z) position, locate the nearest cell centre.  
 ///
 /// @param x, y, z : coordinates of the desired point
@@ -4582,7 +4579,7 @@ int find_nearest_cell( double x, double y, double z,
 {
     global_data *gd = get_global_data_ptr();
     Block *bdp;
-    int ig, jg, kg, jbg;
+    size_t ig, jg, kg, jbg;
     double dx, dy, dz, nearest, distance;
 
     jbg = 0;
@@ -4593,11 +4590,11 @@ int find_nearest_cell( double x, double y, double z,
     dz = z - bdp->get_cell(ig,jg,kg)->pos.z;
     nearest = sqrt(dx*dx + dy*dy + dz*dz);
 
-    for ( int jb = 0; jb < gd->nblock; jb++ ) {
+    for ( size_t jb = 0; jb < gd->nblock; jb++ ) {
 	bdp = get_block_data_ptr(jb);
-	for ( int k = bdp->kmin; k <= bdp->kmax; ++k ) {
-	    for ( int i = bdp->imin; i <= bdp->imax; ++i ) {
-		for ( int j = bdp->jmin; j <= bdp->jmax; ++j ) {
+	for ( size_t k = bdp->kmin; k <= bdp->kmax; ++k ) {
+	    for ( size_t i = bdp->imin; i <= bdp->imax; ++i ) {
+		for ( size_t j = bdp->jmin; j <= bdp->jmax; ++j ) {
 		    dx = x - bdp->get_cell(i,j,k)->pos.x;
 		    dy = y - bdp->get_cell(i,j,k)->pos.y;
 		    dz = z - bdp->get_cell(i,j,k)->pos.z;
@@ -4627,10 +4624,10 @@ int find_nearest_cell( double x, double y, double z,
 // To shorten the search, starting_block is the first block searched
 // when requested locate_cell() is requested to locate the cell
 // containing a specified point.
-int starting_block = 0;
+size_t starting_block = 0;
 
 int locate_cell(double x, double y, double z,
-	        int *jb_found, int *i_found, int *j_found, int *k_found)
+	        size_t *jb_found, size_t *i_found, size_t *j_found, size_t *k_found)
 // Returns 1 if a cell containing the sample point (x,y,z) is found, else 0.
 // The indices of the containing cell are recorded, if found.
 //
@@ -4639,7 +4636,7 @@ int locate_cell(double x, double y, double z,
     global_data *gd = get_global_data_ptr();
     Block *bdp;
     Vector3 p;
-    int i, j, k, jb;
+    size_t i, j, k, jb;
     
     p.x = x; p.y = y; p.z = z;
     *i_found = 0; *j_found = 0; *k_found = 0; *jb_found = 0;

@@ -10,7 +10,7 @@ private:
     std::vector<double> tkea, omegaa;
     std::vector<std::vector<double> > massfa;
     Gas_model *gmodel;
-    int nsample, nsp, nmodes;
+    size_t nsample, nsp, nmodes;
 public:
     TransientUniformBC( Block *bdp, int which_boundary, 
 			std::string filename="transient_uniform.dat" );

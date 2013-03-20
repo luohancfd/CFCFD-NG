@@ -212,7 +212,7 @@ int PistonFace:: locate_shadow_indices(global_data &G, Block *(bd[]))
 {
     if (DB0) cout << "entering locate_shadow_indices()" << endl;
 
-    int i_near, b_index;
+    size_t i_near, b_index;
     double x_inside, x_outside;
     double covered_cell_width, allowable_cell_width;
 
@@ -340,7 +340,7 @@ int PistonFace::allocate_memory()
 {
 
     if (DB0) cout << "entering allocate_memory()" << endl;
-    int i, j, k, indx;
+    size_t i, j, k, indx;
     Gas_model *gm = get_gas_model_ptr();
    
     if (DB2) cout << "allocating vertices" << endl;
@@ -403,7 +403,7 @@ to the appropriate structs stored in the PistonFace. This should be
 done once after memory allocation for each component PistonFace.
 **/
     if (DB0) cout << "entering bind_interfaces_to_flex_cells()" << endl;
-    int i, j, indx;
+    size_t i, j, indx;
 
     FV_Cell *fcp;
     for (i = 0; i < nni_; ++i) {
@@ -443,7 +443,7 @@ done once after memory allocation for each component PistonFace.
 int PistonFace:: update_west_flex_cell_after_motion()
 {
     if (DB0) cout << "entering update_west_flex_cell_after_motion()" << endl;
-    int j;
+    size_t j;
     for (j = jmin_; j <= jmax_+1; ++j) {
 	vtx_[j*nvi_+1]->pos.x = vtx_C_.x;
     }
@@ -458,7 +458,7 @@ int PistonFace:: update_west_flex_cell_after_motion()
 int PistonFace:: update_east_flex_cell_after_motion()
 {
     if (DB0) cout << "entering update_east_flex_cell_after_motion()" << endl;
-    int j;
+    size_t j;
     for (j = jmin_; j <= jmax_+1; ++j) {
 	vtx_[j*nvi_+0]->pos.x = vtx_C_.x;
     }
@@ -472,7 +472,7 @@ int PistonFace:: update_east_flex_cell_after_motion()
 
 int PistonFace:: update_flex_cell_states(double dt)
 {
-    int j;
+    size_t j;
     for (j = jmin_; j <= jmax_; ++j) {
         update_extensive_gas_time_derivatives_from_fluxes(flex_cells_[j], 0);
     }
@@ -490,7 +490,7 @@ int PistonFace:: update_flex_cell_states(double dt)
 
 int PistonFace:: compute_forces(vector<double> bore_resistance_f, vector<double> bore_resistance_x)
 {
-    int j;
+    size_t j;
     double local_f;
     FV_Cell *cp;
 
@@ -502,11 +502,11 @@ int PistonFace:: compute_forces(vector<double> bore_resistance_f, vector<double>
 
     if (DB4) {
 	cout << "x = (";
-	for (int i=0; i<(int)bore_resistance_x.size(); ++i) {
+	for (size_t i=0; i<(int)bore_resistance_x.size(); ++i) {
 	    cout << bore_resistance_x[i] << ", ";
 	}
 	cout << ") f = (";
-	for (int i=0; i<(int)bore_resistance_f.size(); ++i) {
+	for (size_t i=0; i<(int)bore_resistance_f.size(); ++i) {
 	    cout << bore_resistance_f[i] << ", ";
 	}
 	cout << ")" << endl;
@@ -539,7 +539,7 @@ int PistonFace:: copy_geometry_data_to_flex_cells(Block *(bd[]))
 /** \brief 
 **/    
     if (DB0) cout << "entering copy_geometry_data_to_flex_cells()" << endl;
-    int j, indx;
+    size_t j, indx;
     FV_Cell *fcp;
 
     for (j = jmin_; j <= jmax_; ++j) {
@@ -588,7 +588,7 @@ int PistonFace:: copy_geometry_data_to_flex_cells(Block *(bd[]))
 int PistonFace:: copy_flow_data_to_flex_cells(Block *(bd[]))
 {
     if (DB0) cout << "entering copy_flow_data_to_flex_cells()" << endl;
-    int j;
+    size_t j;
     double uf;
     double vol_o, vol_i, total_vol;
 
@@ -625,7 +625,7 @@ int PistonFace:: copy_flow_data_to_flex_cells(Block *(bd[]))
 int PistonFace:: copy_flow_data_to_interfaces(Block *(bd[]))
 {
     if (DB0) cout << "entering copy_flow_data_to_interfaces()" << endl;
-    int j, indx;
+    size_t j, indx;
     FV_Interface* bif;
 
     // for WEST_FACE ifi
@@ -671,7 +671,7 @@ int PistonFace:: copy_flow_data_to_interfaces(Block *(bd[]))
 int PistonFace:: copy_flow_data_to_grid(Block *(bd[])) 
 {
     if (DB0) cout << "entering copy_flow_data_to_grid()" << endl;
-    int j;
+    size_t j;
     FV_Cell *cp;
 
     for (j = jmin_; j <= jmax_; ++j) {
@@ -696,11 +696,11 @@ int PistonFace:: shadow_cells(Block *(bd[]))
 
     double uf = 0.0;
     
-    for (int j = jmin_; j <= jmax_; ++j) {
+    for (size_t j = jmin_; j <= jmax_; ++j) {
 	bd[bo_]->get_cell(io_,j)->status = SHADOWED_CELL;
 	bd[bi_]->get_cell(ii_,j)->status = SHADOWED_CELL;
 	if( covers_two_cells_ ) {
-	    int i = ii_;
+	    size_t i = ii_;
 	    if (DB5) cout << "cell ii_ is partially covered." << endl;
 	    if( type_ == WEST_FACE ) {
 		uf = (vtx_C_.x - bd[bi_]->get_vtx(i,j)->pos.x) / bd[bi_]->get_cell(ii_,j)->iLength;
@@ -716,7 +716,7 @@ int PistonFace:: shadow_cells(Block *(bd[]))
 	    bd[bi_]->get_cell(ii_,j)->uf = uf;
 	}
 	else {
-	    int i = io_;
+	    size_t i = io_;
 	    if (DB5) cout << "cell io_ is partially covered." << endl;
 	    if( type_ == WEST_FACE ) {
 		uf = fabs(vtx_C_.x - bd[bo_]->get_vtx(i,j)->pos.x)/bd[bo_]->get_cell(ii_,j)->iLength;
@@ -746,7 +746,7 @@ vector. These are dirichlet boundary conditions for a moving wall.
     FV_Interface *ifp;
 
     if (type_ == WEST_FACE) {
-	for (int j = jmin_; j <= jmax_; ++j) {
+	for (size_t j = jmin_; j <= jmax_; ++j) {
 	    ifp = flex_cells_[j]->iface[EAST];
 	    // This is the flux vector for a moving wall boundary condition
 	    ifp->F->mass = 0.0;
@@ -755,7 +755,7 @@ vector. These are dirichlet boundary conditions for a moving wall.
 	}
     }
     else {
-	for (int j = jmin_; j <= jmax_; ++j) {
+	for (size_t j = jmin_; j <= jmax_; ++j) {
 	    ifp = flex_cells_[j]->iface[WEST];
 	    // This is the flux vector for a moving wall boundary condition
 	    ifp->F->mass = 0.0;
@@ -920,7 +920,7 @@ int Piston::write_state(FILE *fp, double t)
 {
     double w_avg_pg = 0.0;
     double e_avg_pg = 0.0;
-    for( int i = 0; i < ncf_; ++i ) {
+    for( size_t i = 0; i < ncf_; ++i ) {
 	w_avg_pg += wPistonFace[i]->get_dFg();
 	e_avg_pg += ePistonFace[i]->get_dFg();
     }
@@ -936,13 +936,13 @@ int Piston::read_state(FILE *fp)
 /// \brief Attempt to read piston state information from fp
     char line[132];
     double t, x, u, acc, wpg, epg;
-    int temporary_id, nread;
+    size_t temporary_id, nread;
     if ( fgets( line, 131, fp ) == NULL ) {
 	cerr << "Piston::read_state(): failure of fgets()" << endl;
 	cerr << "Quitting program." << endl;
 	exit(FILE_ERROR);
     }
-    nread = sscanf(line, "%d %lf %lf %lf %lf %lf %lf", &temporary_id, &t, &x, &u, &acc, &wpg, &epg);
+    nread = sscanf(line, "%u %lf %lf %lf %lf %lf %lf", &temporary_id, &t, &x, &u, &acc, &wpg, &epg);
     if (nread != 4) {
 	cout << "Piston::read_state(): id=" << id_ 
 	     << " failed to read all values." << endl;
@@ -974,7 +974,7 @@ int Piston::restore_state()
 // ----------------------------------------------------------------------------
 // member functions
 
-int Piston::set_values(int id,
+int Piston::set_values(size_t id,
 		       double D,
 		       double L,
 		       double m,
@@ -1039,8 +1039,8 @@ int Piston::initialise_from_config_file(global_data &G,
 					string section)
 {
     cout << "Entering piston initialise from config...\n";
-    int id;
-    if( ! cfg.parse_int(section, "id", id, 0) ) {
+    size_t id;
+    if( ! cfg.parse_uint(section, "id", id, 0) ) {
 	cout << "Error reading id in section: " << section << endl
 	     << "of input file: " << cfg.file_name << endl
 	     << "Bailing out!\n";
@@ -1223,12 +1223,14 @@ int Piston::initialise_from_config_file(global_data &G,
 int Piston::initialise_piston_faces(global_data &G, Block *(bd[]))
 {
     if (DB0) cout << "entering initialise_piston_faces()" << endl;
-    int jb;
+    size_t jb;
 
     Vector3 vtxL, vtxR;
     
     if (locate_west_block_index(jb, vtx_[0], G, bd) != SUCCESS) return FAILURE ;
 
+#if 0
+    // FIX-ME
     for (; jb != -1; jb = bd[jb]->bcp[NORTH]->neighbour_block) {
 	vtxL = Vector3(vtx_[0].x, bd[jb]->get_vtx(bd[jb]->imin,bd[jb]->jmin)->pos.y, 0.0);
 	vtxR = Vector3(vtx_[0].x, bd[jb]->get_vtx(bd[jb]->imin,bd[jb]->jmax+1)->pos.y, 0.0);
@@ -1243,6 +1245,8 @@ int Piston::initialise_piston_faces(global_data &G, Block *(bd[]))
 	wPistonFace.back()->set_indices_for_flex_cells(*bd[jb]);
 	wPistonFace.back()->allocate_memory();
     }
+#endif
+
     // Piston vertices must lie within block
     if (vtx_[3].y > vtxR.y) {
 	cout << "Error in initialise_piston_faces()\n";
@@ -1254,6 +1258,8 @@ int Piston::initialise_piston_faces(global_data &G, Block *(bd[]))
     
     if (locate_east_block_index(jb, vtx_[1], G, bd) != SUCCESS) return FAILURE ;
 
+#if 0
+    // FIX-ME
     for (; jb != -1; jb = bd[jb]->bcp[NORTH]->neighbour_block) {
 	vtxL = Vector3(vtx_[1].x, bd[jb]->get_vtx(bd[jb]->imax+1,bd[jb]->jmax+1)->pos.y, 0.0);
 	vtxR = Vector3(vtx_[1].x, bd[jb]->get_vtx(bd[jb]->imax+1,bd[jb]->jmin)->pos.y, 0.0);
@@ -1268,6 +1274,7 @@ int Piston::initialise_piston_faces(global_data &G, Block *(bd[]))
 	ePistonFace.back()->set_indices_for_flex_cells(*bd[jb]);
 	ePistonFace.back()->allocate_memory();
     }
+#endif
 
     // Piston vertices must lie within block
     if (vtx_[2].y > vtxL.y) {
@@ -1331,16 +1338,16 @@ int Piston::print_flex_cell_flow_states()
 {
     FV_Cell *cp;
     cout << "WEST PistonFace" << endl;
-    for (int jp = 0; jp < ncf_; ++jp) {
-	for (int j = wPistonFace[jp]->get_jmin(); j <= wPistonFace[jp]->get_jmax(); ++j) {
+    for (size_t jp = 0; jp < ncf_; ++jp) {
+	for (size_t j = wPistonFace[jp]->get_jmin(); j <= wPistonFace[jp]->get_jmax(); ++j) {
 	    cout << "index-j = " << j << endl;
 	    cp = wPistonFace[jp]->get_flex_cell(j);
 	    print_flow_state(cp);
 	}
     }
     cout << "EAST PistonFace" << endl;
-    for (int jp = 0; jp < ncf_; ++jp) {
-	for (int j = ePistonFace[jp]->get_jmin(); j <= ePistonFace[jp]->get_jmax(); ++j) {
+    for (size_t jp = 0; jp < ncf_; ++jp) {
+	for (size_t j = ePistonFace[jp]->get_jmin(); j <= ePistonFace[jp]->get_jmax(); ++j) {
 	    cout << "index-j = " << j << endl;
 	    cp = ePistonFace[jp]->get_flex_cell(j);
 	    print_flow_state(cp);
@@ -1363,7 +1370,7 @@ Attempt the piston dynamics subproblem
 **/
     if (DB0) cout << "entering update_piston_state()" << endl;
 
-    int jp;
+    size_t jp;
     double dF, dR, m_eff;
     
     for (jp = 0; jp < ncf_; ++jp) {
@@ -1505,7 +1512,7 @@ Attempt the piston dynamics subproblem
     // ------------------------------------------------------------------------
 
     if (DB1) {
-	int jmin = wPistonFace[0]->get_jmin();
+	size_t jmin = wPistonFace[0]->get_jmin();
 	FV_Cell *cell = wPistonFace[0]->get_flex_cell(jmin);
 	cout << "dt, xpos, WESTx, EASTx, iLength, area, volume = " 
 	     << dt << ", "
@@ -1521,20 +1528,20 @@ Attempt the piston dynamics subproblem
     return SUCCESS;
 }
 
-static const int MIN_CELLS = 1;
+static const size_t MIN_CELLS = 1;
 
 int Piston::configure_cells(global_data &G, Block *(bd[])) 
 {
     if (DB0) cout << "entering configure_cells()" << endl;
 
-    int jp;
-    int nicells = 0;
+    size_t jp;
+    size_t nicells = 0;
 
     // north-south boundary conditions - to be implemented
 
 //     // 0. Loop over all blocks re-setting the index range on
 //     //    piston interface boundary conditions
-//     for( int jb = 0; jb < int(bd.size()); ++jb ) {
+//     for( size_t jb = 0; jb < int(bd.size()); ++jb ) {
 // 	if( bd[jb].get_south_bc_type() == "piston_interface" ) {
 // 	    // By setting the x-range in reverse, the normal exchange boundary
 // 	    // condition will be used.
@@ -1561,11 +1568,11 @@ int Piston::configure_cells(global_data &G, Block *(bd[]))
 
 // 	    if( jp == ncf_ - 1) {
 // 		// When working on the north most interface.
-// 		int btop = bmin_[jp];
+// 		size_t btop = bmin_[jp];
 // 		// If there is a block above, then we
 // 		// need to play with its boundary condition.
 // 		if( G.con_matrix[btop,NORTH].index != -1 ) {
-// 		    int bnorth = G.con_matrix[btop,NORTH].index;
+// 		    size_t bnorth = G.con_matrix[btop,NORTH].index;
 // 		    // Assume the south of the adjoining block 
 // 		    // connects to the north when using a Piston.
 // 		    // Otherwise, the cases get too complex to handle.
@@ -1608,11 +1615,11 @@ int Piston::configure_cells(global_data &G, Block *(bd[]))
 // 	    if( jp == ncf_ - 1) {
 // 		// When working on the north most interface.
 // 		// First consider left block.
-// 		int btop = bmin_[jp];
+// 		size_t btop = bmin_[jp];
 // 		// If there is a block above, then we
 // 		// need to play with its boundary condition.
 // 		if( G.con_matrix[btop,NORTH].index != -1 ) {
-// 		    int bnorth = G.con_matrix[btop,NORTH].index;
+// 		    size_t bnorth = G.con_matrix[btop,NORTH].index;
 // 		    // Assume the south of the adjoining block 
 // 		    // connects to the north when using a Piston.
 // 		    // Otherwise, the cases get too complex to handle.
@@ -1638,7 +1645,7 @@ int Piston::configure_cells(global_data &G, Block *(bd[]))
 // 		// If there is a block above, then we
 // 		// need to play with its boundary condition.
 // 		if( G.con_matrix[btop,NORTH].index != -1 ) {
-// 		    int bnorth = G.con_matrix[btop,NORTH].index;
+// 		    size_t bnorth = G.con_matrix[btop,NORTH].index;
 // 		    // Assume the south of the adjoining block 
 // 		    // connects to the north when using a Piston.
 // 		    // Otherwise, the cases get too complex to handle.
@@ -1723,20 +1730,20 @@ int Piston::configure_cells(global_data &G, Block *(bd[]))
 
 int Piston::deactivate_cells(Block *(bd[])) 
 {
-    for (int jp = 0; jp < ncf_; ++jp) {
+    for (size_t jp = 0; jp < ncf_; ++jp) {
 	if (bmin_[jp] == bmax_[jp]) {
-	    for (int j = wPistonFace[jp]->get_jmin(); j <= wPistonFace[jp]->get_jmax(); ++j) {
-		for (int i = imin_; i <= imax_; ++i) {
+	    for (size_t j = wPistonFace[jp]->get_jmin(); j <= wPistonFace[jp]->get_jmax(); ++j) {
+		for (size_t i = imin_; i <= imax_; ++i) {
 		    bd[bmin_[jp]]->get_cell(i,j)->status = MASKED_CELL;
 		}
 	    }
 	}
 	else {
-	    for (int j = wPistonFace[jp]->get_jmin(); j <= wPistonFace[jp]->get_jmax(); ++j) {
-		for (int i = imin_; i <= bd[bmin_[jp]]->imax; ++i) {
+	    for (size_t j = wPistonFace[jp]->get_jmin(); j <= wPistonFace[jp]->get_jmax(); ++j) {
+		for (size_t i = imin_; i <= bd[bmin_[jp]]->imax; ++i) {
 		    bd[bmin_[jp]]->get_cell(i,j)->status = MASKED_CELL;
 		}
-		for (int i = bd[bmax_[jp]]->imin; i <= imax_; ++i) {
+		for (size_t i = bd[bmax_[jp]]->imin; i <= imax_; ++i) {
 		    bd[bmax_[jp]]->get_cell(i,j)->status = MASKED_CELL;
 		}
 	    }
@@ -1749,12 +1756,12 @@ int Piston::deactivate_cells(Block *(bd[]))
 int Piston::update_flex_cell_states(double dt)
 {
     if (DB0) cout << "entering update_flex_cell_states()" << endl;
-    for (int jp = 0; jp < ncf_; ++jp) {
+    for (size_t jp = 0; jp < ncf_; ++jp) {
 	wPistonFace[jp]->apply_boundary_condition();
  	ePistonFace[jp]->apply_boundary_condition();
     }
 
-    for (int jp = 0; jp < ncf_; ++jp) {
+    for (size_t jp = 0; jp < ncf_; ++jp) {
 	wPistonFace[jp]->update_flex_cell_states(dt);
 	ePistonFace[jp]->update_flex_cell_states(dt);
     }
@@ -1765,7 +1772,7 @@ int Piston::update_flex_cell_states(double dt)
 
 int Piston::update_piston_geometry_based_on_vertices() 
 {
-    for (int jp = 0; jp < ncf_; ++jp) {
+    for (size_t jp = 0; jp < ncf_; ++jp) {
 	wPistonFace[jp]->move_face(vtx_[0]);
 	ePistonFace[jp]->move_face(vtx_[1]);
     }
@@ -1785,7 +1792,7 @@ int Piston::update_piston_geometry_based_on_position()
     vtx_[2].x = x_right;
     vtx_[3].x = x_left;
 
-    for (int jp = 0; jp < ncf_; ++jp) {
+    for (size_t jp = 0; jp < ncf_; ++jp) {
 	wPistonFace[jp]->move_face(vtx_[0]);
 	ePistonFace[jp]->move_face(vtx_[1]);
     }
@@ -1801,7 +1808,7 @@ interfaces.
 
 **/
     if (DB0) cout << "entering copy_data_to_piston()" << endl;
-    for (int jp = 0; jp < ncf_; ++jp) {
+    for (size_t jp = 0; jp < ncf_; ++jp) {
 	wPistonFace[jp]->copy_geometry_data_to_flex_cells(bd);
 	ePistonFace[jp]->copy_geometry_data_to_flex_cells(bd);
 
@@ -1821,25 +1828,25 @@ int Piston::copy_flow_data_to_grid(Block *(bd[]))
     if (DB0) cout << "entering copy_flow_data_to_grid()" << endl;
     FV_Cell *cp;
 
-    for (int jp = 0; jp < ncf_; ++jp) {
+    for (size_t jp = 0; jp < ncf_; ++jp) {
 	if (bmin_[jp] == bmax_[jp]) {
-	    for (int j = wPistonFace[jp]->get_jmin(); j <= wPistonFace[jp]->get_jmax(); ++j) {
+	    for (size_t j = wPistonFace[jp]->get_jmin(); j <= wPistonFace[jp]->get_jmax(); ++j) {
 		cp = wPistonFace[jp]->get_flex_cell(j);
-		for (int i = imin_; i <= imax_; ++i) {
+		for (size_t i = imin_; i <= imax_; ++i) {
 		    bd[bmin_[jp]]->get_cell(i,j)->copy_values_from(*cp, COPY_FLOW_STATE);
 		    update_gas_conserved(bd[bmin_[jp]]->get_cell(i,j));
 		}
 	    }
 	}
 	else {
-	    for (int j = wPistonFace[jp]->get_jmin(); j <= wPistonFace[jp]->get_jmax(); ++j) {
+	    for (size_t j = wPistonFace[jp]->get_jmin(); j <= wPistonFace[jp]->get_jmax(); ++j) {
 		cp = wPistonFace[jp]->get_flex_cell(j);
-		for (int i = imin_; i <= bd[bmin_[jp]]->imax; ++i) {
+		for (size_t i = imin_; i <= bd[bmin_[jp]]->imax; ++i) {
 		    bd[bmin_[jp]]->get_cell(i,j)->copy_values_from(*cp, COPY_FLOW_STATE);
 		    update_gas_conserved(bd[bmin_[jp]]->get_cell(i,j));
 		}
 		cp = ePistonFace[jp]->get_flex_cell(j);
-		for (int i = bd[bmax_[jp]]->imin; i <= imax_; ++i) {
+		for (size_t i = bd[bmax_[jp]]->imin; i <= imax_; ++i) {
 		    bd[bmax_[jp]]->get_cell(i,j)->copy_values_from(*cp, COPY_FLOW_STATE);
 		    update_gas_conserved(bd[bmax_[jp]]->get_cell(i,j));
 		}
@@ -1848,7 +1855,7 @@ int Piston::copy_flow_data_to_grid(Block *(bd[]))
     }
     
     // copy shadow cell data to grid
-    for (int jp = 0; jp < ncf_; ++jp) {
+    for (size_t jp = 0; jp < ncf_; ++jp) {
 	wPistonFace[jp]->copy_flow_data_to_grid(bd);
 	ePistonFace[jp]->copy_flow_data_to_grid(bd);
     }
@@ -1860,7 +1867,7 @@ int Piston::copy_flow_data_to_grid(Block *(bd[]))
 
 double Piston::compute_signal_frequency()
 {
-    int jmin = wPistonFace[0]->get_jmin();
+    size_t jmin = wPistonFace[0]->get_jmin();
 
     // Check all signals and find largest.
     double u_mag, a, L; 
@@ -1916,7 +1923,7 @@ int print_all_cells_status(global_data &G, Block *(bd[]))
     return SUCCESS;
 }
 
-int locate_west_block_index(int &b_index, Vector3 &pos, global_data &G, Block *(bd[]))
+int locate_west_block_index(size_t &b_index, Vector3 &pos, global_data &G, Block *(bd[]))
 {
     // Handles the output of locate_block_index 
     // with knowledge of face type
@@ -1924,7 +1931,9 @@ int locate_west_block_index(int &b_index, Vector3 &pos, global_data &G, Block *(
     //     Case A: corrected point lies within domain
     //     Case B: point lies outside domain
 
-    int j, status, next_block;
+    size_t j;
+    int next_block;
+    int status;
     
     status = locate_block_index(b_index, pos, bd, G.nblock);
     if (status == END_OF_BLOCK) {
@@ -1940,7 +1949,7 @@ int locate_west_block_index(int &b_index, Vector3 &pos, global_data &G, Block *(
 	next_block = bd[b_index]->bcp[WEST]->neighbour_block;
 // 	cout << "West block index = " << next_block << endl;
 	if (next_block == -1) status = FAILURE;
-	else b_index = next_block;
+	else b_index = (size_t)next_block;
     }
     
     if (status == FAILURE) {
@@ -1955,7 +1964,7 @@ int locate_west_block_index(int &b_index, Vector3 &pos, global_data &G, Block *(
     return SUCCESS;
 }
 
-int locate_east_block_index(int &b_index, Vector3 &pos, global_data &G, Block *(bd[]))
+int locate_east_block_index(size_t &b_index, Vector3 &pos, global_data &G, Block *(bd[]))
 {
     // Handles the output of locate_block_index 
     // with knowledge of face type
@@ -1963,7 +1972,9 @@ int locate_east_block_index(int &b_index, Vector3 &pos, global_data &G, Block *(
     //     Case A: corrected point lies within domain
     //     Case B: point lies outside domain
 
-    int j, status, next_block;
+    size_t j;
+    int next_block;
+    int status;
     
     status = locate_block_index(b_index, pos, bd, G.nblock);
     if (status == END_OF_BLOCK) {
@@ -1979,7 +1990,7 @@ int locate_east_block_index(int &b_index, Vector3 &pos, global_data &G, Block *(
 	next_block = bd[b_index]->bcp[EAST]->neighbour_block;
 // 	cout << "East block index = " << next_block << endl;
 	if (next_block == -1) status = FAILURE;
-	else b_index = next_block;
+	else b_index = (size_t)next_block;
     }
     
     if (status == FAILURE) {
@@ -1994,7 +2005,7 @@ int locate_east_block_index(int &b_index, Vector3 &pos, global_data &G, Block *(
     return SUCCESS;
 }
 
-int locate_block_index(int &b_near, Vector3 &pos, Block *(bd[]), int nblock)
+int locate_block_index(size_t &b_near, Vector3 &pos, Block *(bd[]), size_t nblock)
 {
     // Searches for pos with respect to domain boundaries.
     // Returns one of three cases:
@@ -2003,8 +2014,9 @@ int locate_block_index(int &b_near, Vector3 &pos, Block *(bd[]), int nblock)
     //     Case C: point lies outside domain boundary
 
     if (DB0) cout << "entering locate_block_index()" << endl;
-    int j;
-    b_near = -1;
+#if 0
+    size_t j;
+    b_near = -1;  // unfound...
 
     // Case A: Point lies between domain boundaries
     for (j = 0; j < nblock; ++j) {
@@ -2051,6 +2063,9 @@ int locate_block_index(int &b_near, Vector3 &pos, Block *(bd[]), int nblock)
 	if (DB0) cout << "leaving locate_block_index()" << endl;
 	return SUCCESS;
     }
+#else
+    return SUCCESS;
+#endif
 }
 
 static const double FLOP_TOL = 1.0e-12; // for testing floating-point equality
@@ -2063,12 +2078,12 @@ static const double FLOP_TOL = 1.0e-12; // for testing floating-point equality
 ///
 /// \author Brendan T. O'Flaherty
 ///
-int linear_search_from_west(int &ival, double xval, Block &bd)
+int linear_search_from_west(size_t &ival, double xval, Block &bd)
 {
     // Searches a list of grid interface locations
     // Returns the first interface location AFTER xval
 
-    int i, j;
+    size_t i, j;
     double x_test;
     ival = bd.imax+1;
 
@@ -2084,12 +2099,12 @@ int linear_search_from_west(int &ival, double xval, Block &bd)
     return SUCCESS;
 }
 
-int linear_search_from_east(int &ival, double xval, Block &bd)
+int linear_search_from_east(size_t &ival, double xval, Block &bd)
 {
     // Searches a list of grid interface locations
     // Returns the first interface location AFTER xval
 
-    int i, j;
+    size_t i, j;
     double x_test;
     ival = bd.imin;
 
@@ -2379,8 +2394,8 @@ int update_gas_extensive_conserved(FV_Cell *cell, double volume)
 
     if (DB0) cout << "entering update_gas_extensive_conserved()" << endl;
 
-    int nsp = get_gas_model_ptr()->get_number_of_species();
-    int nmodes = get_gas_model_ptr()->get_number_of_modes();
+    size_t nsp = get_gas_model_ptr()->get_number_of_species();
+    size_t nmodes = get_gas_model_ptr()->get_number_of_modes();
 
     // ASSERT(volume > 0.0);
     update_gas_conserved(cell);
@@ -2388,10 +2403,10 @@ int update_gas_extensive_conserved(FV_Cell *cell, double volume)
     cell->U->mass *= volume;  
     cell->U->momentum *= volume;
     cell->U->total_energy *= volume;
-    for ( int isp = 0; isp < nsp; ++isp) {
+    for ( size_t isp = 0; isp < nsp; ++isp) {
 	cell->U->massf[isp] *= volume;             // mass of species
     }
-    for ( int imode = 0; imode < nmodes; ++imode) {
+    for ( size_t imode = 0; imode < nmodes; ++imode) {
 	cell->U->energies[imode] *= volume;         // independent energy  
     }
     if (DB0) cout << "leaving update_gas_extensive_conserved()" << endl;
@@ -2410,16 +2425,16 @@ int update_gas_primaries_from_extensive(FV_Cell *cell, double volume)
     if (DB0) cout << "entering update_gas_primaries_from_extensive()" << endl;
     
     // ASSERT(volume > 0.0);
-    int nsp = get_gas_model_ptr()->get_number_of_species();
-    int nmodes = get_gas_model_ptr()->get_number_of_modes();
+    size_t nsp = get_gas_model_ptr()->get_number_of_species();
+    size_t nmodes = get_gas_model_ptr()->get_number_of_modes();
     
     cell->U->mass /= volume;  
     cell->U->momentum /= volume;
     cell->U->total_energy /= volume;
-    for ( int isp = 0; isp < nsp; ++isp ) {
+    for ( size_t isp = 0; isp < nsp; ++isp ) {
 	cell->U->massf[isp] /= volume;             // mass of species
     }
-    for ( int imode = 0; imode < nmodes; ++imode ) {
+    for ( size_t imode = 0; imode < nmodes; ++imode ) {
 	cell->U->energies[imode] /= volume;         // independent energies  
     }
     update_gas_primaries(cell);
@@ -2435,10 +2450,10 @@ int update_gas_primaries_from_extensive(FV_Cell *cell, double volume)
     cell->U->mass *= volume; 
     cell->U->momentum *= volume;
     cell->U->total_energy *= volume;
-    for ( int isp = 0; isp < nsp; ++isp ) {
+    for ( size_t isp = 0; isp < nsp; ++isp ) {
 	cell->U->massf[isp] *= volume;             // mass of species
     }
-    for ( int imode = 0; imode < nmodes; ++imode ) {
+    for ( size_t imode = 0; imode < nmodes; ++imode ) {
 	cell->U->energies[imode] *= volume;         // independent energies  
     }
     if (DB0) cout << "leaving update_gas_primaries_from_extensive()" << endl;
@@ -2452,12 +2467,12 @@ int update_gas_primaries(FV_Cell *cell)
     return SUCCESS;
 }
 
-int update_extensive_gas_time_derivatives_from_fluxes(FV_Cell *cell, int time_level)
+int update_extensive_gas_time_derivatives_from_fluxes(FV_Cell *cell, size_t time_level)
 {
     FV_Interface *IFn, *IFs, *IFe, *IFw;
     double integral;
 
-    int nsp = get_gas_model_ptr()->get_number_of_species();
+    size_t nsp = get_gas_model_ptr()->get_number_of_species();
 
     IFn = cell->iface[NORTH];
     IFe = cell->iface[EAST];
@@ -2501,7 +2516,7 @@ int update_extensive_gas_time_derivatives_from_fluxes(FV_Cell *cell, int time_le
 
     // Time-derivative for individual species.
     // Units of DfDt are 1/sec.
-    for ( int isp = 0; isp < nsp; ++isp ) {
+    for ( size_t isp = 0; isp < nsp; ++isp ) {
 	integral =
 	    - IFe->F->massf[isp] * IFe->area
 	    - IFn->F->massf[isp] * IFn->area
@@ -2515,17 +2530,17 @@ int update_extensive_gas_time_derivatives_from_fluxes(FV_Cell *cell, int time_le
 
 int update_gas_conserved_from_time_derivatives(FV_Cell *cell, double dt)
 {
-    int nsp = get_gas_model_ptr()->get_number_of_species();
-    int nmodes = get_gas_model_ptr()->get_number_of_modes();
+    size_t nsp = get_gas_model_ptr()->get_number_of_species();
+    size_t nmodes = get_gas_model_ptr()->get_number_of_modes();
     cell->U->mass = cell->U_old->mass + dt * cell->dUdt[0]->mass;
     cell->U->momentum.x = cell->U_old->momentum.x + dt * cell->dUdt[0]->momentum.x;
     cell->U->momentum.y = cell->U_old->momentum.y + dt * cell->dUdt[0]->momentum.y;
     cell->U->momentum.z = cell->U_old->momentum.z + dt * cell->dUdt[0]->momentum.z;
     cell->U->total_energy = cell->U_old->total_energy + dt * cell->dUdt[0]->total_energy;
-    for ( int isp = 0; isp < nsp; ++isp ) {
+    for ( size_t isp = 0; isp < nsp; ++isp ) {
 	cell->U->massf[isp] = cell->U_old->massf[isp] + dt * cell->dUdt[0]->massf[isp];
     }
-    for ( int imode = 0; imode < nmodes; ++imode ) {
+    for ( size_t imode = 0; imode < nmodes; ++imode ) {
 	cell->U->energies[imode] = cell->U_old->energies[imode] + dt * cell->dUdt[0]->energies[imode];
     }
     return SUCCESS;
@@ -2536,17 +2551,17 @@ int average_two_flow_states(FV_Cell *dst,
 			    FV_Cell *src1, double vol1)
 { 
     double total_vol = vol0 + vol1;
-    int nsp = get_gas_model_ptr()->get_number_of_species();
-    int nmodes = get_gas_model_ptr()->get_number_of_modes();
+    size_t nsp = get_gas_model_ptr()->get_number_of_species();
+    size_t nmodes = get_gas_model_ptr()->get_number_of_modes();
     dst->U->mass = (src0->U->mass*vol0 + src1->U->mass*vol1)/total_vol;
     dst->U->momentum.x = (src0->U->momentum.x*vol0 + src1->U->momentum.x*vol1)/total_vol;
     dst->U->momentum.y = (src0->U->momentum.y*vol0 + src1->U->momentum.y*vol1)/total_vol;
     dst->U->momentum.z = (src0->U->momentum.z*vol0 + src1->U->momentum.z*vol1)/total_vol;
     dst->U->total_energy = (src0->U->total_energy*vol0 + src1->U->total_energy*vol1)/total_vol;
-    for ( int isp = 0; isp < nsp; ++isp ) {
+    for ( size_t isp = 0; isp < nsp; ++isp ) {
 	dst->U->massf[isp] = (src0->U->massf[isp]*vol0 + src1->U->massf[isp]*vol1)/total_vol;
     }
-    for ( int imode = 0; imode < nmodes; ++imode ) {
+    for ( size_t imode = 0; imode < nmodes; ++imode ) {
 	dst->U->energies[imode] = (src0->U->energies[imode]*vol0 + src1->U->energies[imode]*vol1)/total_vol;
     }
     dst->decode_conserved();

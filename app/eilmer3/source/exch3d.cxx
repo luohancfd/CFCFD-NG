@@ -22,7 +22,7 @@
 /** \brief Coordinates the filling of ghost-cell data from ADJACENT blocks
  *         in a serial calculation where all blocks are in the one data space.
  */
-int copy_boundary_data_3D( int jb, int type_of_copy )
+int copy_boundary_data_3D( size_t jb, int type_of_copy )
 {
     Block *bdp = get_block_data_ptr(jb);
     int other_block;
@@ -60,7 +60,7 @@ int copy_boundary_data_3D( int jb, int type_of_copy )
  */
 int copy_into_east_boundary_3D(Block *bp, Block *bp_src, int type_of_copy)
 {
-    int i_dest, i_src, j_dest, j_src, k_dest, k_src, j, k;
+    size_t i_dest, i_src, j_dest, j_src, k_dest, k_src, j, k;
     FV_Cell *src, *dest;
     int neighbour_faceId, orientation;
 
@@ -275,7 +275,7 @@ int copy_into_east_boundary_3D(Block *bp, Block *bp_src, int type_of_copy)
  */
 int copy_into_west_boundary_3D(Block *bp, Block *bp_src, int type_of_copy)
 {
-    int i_dest, i_src, j_dest, j_src, k_dest, k_src, j, k;
+    size_t i_dest, i_src, j_dest, j_src, k_dest, k_src, j, k;
     FV_Cell *src, *dest;
     int neighbour_faceId, orientation;
 
@@ -490,7 +490,7 @@ int copy_into_west_boundary_3D(Block *bp, Block *bp_src, int type_of_copy)
  */
 int copy_into_north_boundary_3D(Block *bp, Block *bp_src, int type_of_copy)
 {
-    int i_dest, i_src, j_dest, j_src, k_dest, k_src, i, k;
+    size_t i_dest, i_src, j_dest, j_src, k_dest, k_src, i, k;
     FV_Cell *src, *dest;
     int neighbour_faceId, orientation;
 
@@ -705,7 +705,7 @@ int copy_into_north_boundary_3D(Block *bp, Block *bp_src, int type_of_copy)
  */
 int copy_into_south_boundary_3D(Block *bp, Block *bp_src, int type_of_copy)
 {
-    int i_dest, i_src, j_dest, j_src, k_dest, k_src, i, k;
+    size_t i_dest, i_src, j_dest, j_src, k_dest, k_src, i, k;
     FV_Cell *src, *dest;
     int neighbour_faceId, orientation;
 
@@ -920,7 +920,7 @@ int copy_into_south_boundary_3D(Block *bp, Block *bp_src, int type_of_copy)
  */
 int copy_into_top_boundary_3D(Block *bp, Block *bp_src, int type_of_copy)
 {
-    int i_dest, i_src, j_dest, j_src, k_dest, k_src, i, j;
+    size_t i_dest, i_src, j_dest, j_src, k_dest, k_src, i, j;
     FV_Cell *src, *dest;
     int neighbour_faceId, orientation;
 
@@ -1135,7 +1135,7 @@ int copy_into_top_boundary_3D(Block *bp, Block *bp_src, int type_of_copy)
  */
 int copy_into_bottom_boundary_3D(Block *bp, Block *bp_src, int type_of_copy)
 {
-    int i_dest, i_src, j_dest, j_src, k_dest, k_src, i, j;
+    size_t i_dest, i_src, j_dest, j_src, k_dest, k_src, i, j;
     FV_Cell *src, *dest;
     int neighbour_faceId, orientation;
 
@@ -1364,9 +1364,9 @@ int copy_into_bottom_boundary_3D(Block *bp, Block *bp_src, int type_of_copy)
  */
 int copy_into_send_buffer_3D(Block *bp, int bndry, int type_of_copy, double *send_buffer)
 {
-    int i, j, k, i_src, j_src, k_src;
-    int ib; /* position of cell in linear buffer. */
-    int nv; /* number of double values transferred per cell */
+    size_t i, j, k, i_src, j_src, k_src;
+    size_t ib; /* position of cell in linear buffer. */
+    size_t nv; /* number of double values transferred per cell */
     FV_Cell *cell;
     double *bufp;
 
@@ -1544,10 +1544,10 @@ int copy_from_receive_buffer_3D(Block *bp, int bndry, int type_of_copy, double *
 int copy_from_receive_buffer_to_north(Block *bp, int type_of_copy, double *receive_buffer)
 {
     int bndry, neighbour_faceId, orientation;
-    int i, k, i_dest, j_dest, k_dest;
-    int i_src, j_src, k_src, nni_src, nnj_src, nnk_src;
-    int ib; /* position of cell in linear buffer. */
-    int nv; /* number of double values transferred per cell */
+    size_t i, k, i_dest, j_dest, k_dest;
+    size_t i_src, j_src, k_src, nni_src, nnj_src, nnk_src;
+    size_t ib; /* position of cell in linear buffer. */
+    size_t nv; /* number of double values transferred per cell */
     FV_Cell *cell;
     double *bufp;
 
@@ -1810,10 +1810,10 @@ int copy_from_receive_buffer_to_north(Block *bp, int type_of_copy, double *recei
 int copy_from_receive_buffer_to_south(Block *bp, int type_of_copy, double *receive_buffer)
 {
     int bndry, neighbour_faceId, orientation;
-    int i, k, i_dest, j_dest, k_dest;
-    int i_src, j_src, k_src, nni_src, nnj_src, nnk_src;
-    int ib; /* position of cell in linear buffer. */
-    int nv; /* number of double values transferred per cell */
+    size_t i, k, i_dest, j_dest, k_dest;
+    size_t i_src, j_src, k_src, nni_src, nnj_src, nnk_src;
+    size_t ib; /* position of cell in linear buffer. */
+    size_t nv; /* number of double values transferred per cell */
     FV_Cell *cell;
     double *bufp;
 
@@ -2077,10 +2077,10 @@ int copy_from_receive_buffer_to_south(Block *bp, int type_of_copy, double *recei
 int copy_from_receive_buffer_to_east(Block *bp, int type_of_copy, double *receive_buffer)
 {
     int bndry, neighbour_faceId, orientation;
-    int j, k, i_dest, j_dest, k_dest;
-    int i_src, j_src, k_src, nni_src, nnj_src, nnk_src;
-    int ib; /* position of cell in linear buffer. */
-    int nv; /* number of double values transferred per cell */
+    size_t j, k, i_dest, j_dest, k_dest;
+    size_t i_src, j_src, k_src, nni_src, nnj_src, nnk_src;
+    size_t ib; /* position of cell in linear buffer. */
+    size_t nv; /* number of double values transferred per cell */
     FV_Cell *cell;
     double *bufp;
 
@@ -2343,10 +2343,10 @@ int copy_from_receive_buffer_to_east(Block *bp, int type_of_copy, double *receiv
 int copy_from_receive_buffer_to_west(Block *bp, int type_of_copy, double *receive_buffer)
 {
     int bndry, neighbour_faceId, orientation;
-    int j, k, i_dest, j_dest, k_dest;
-    int i_src, j_src, k_src, nni_src, nnj_src, nnk_src;
-    int ib; /* position of cell in linear buffer. */
-    int nv; /* number of double values transferred per cell */
+    size_t j, k, i_dest, j_dest, k_dest;
+    size_t i_src, j_src, k_src, nni_src, nnj_src, nnk_src;
+    size_t ib; /* position of cell in linear buffer. */
+    size_t nv; /* number of double values transferred per cell */
     FV_Cell *cell;
     double *bufp;
 
@@ -2609,10 +2609,10 @@ int copy_from_receive_buffer_to_west(Block *bp, int type_of_copy, double *receiv
 int copy_from_receive_buffer_to_top(Block *bp, int type_of_copy, double *receive_buffer)
 {
     int bndry, neighbour_faceId, orientation;
-    int i, j, i_dest, j_dest, k_dest;
-    int i_src, j_src, k_src, nni_src, nnj_src, nnk_src;
-    int ib; /* position of cell in linear buffer. */
-    int nv; /* number of double values transferred per cell */
+    size_t i, j, i_dest, j_dest, k_dest;
+    size_t i_src, j_src, k_src, nni_src, nnj_src, nnk_src;
+    size_t ib; /* position of cell in linear buffer. */
+    size_t nv; /* number of double values transferred per cell */
     FV_Cell *cell;
     double *bufp;
 
@@ -2875,10 +2875,10 @@ int copy_from_receive_buffer_to_top(Block *bp, int type_of_copy, double *receive
 int copy_from_receive_buffer_to_bottom(Block *bp, int type_of_copy, double *receive_buffer)
 {
     int bndry, neighbour_faceId, orientation;
-    int i, j, i_dest, j_dest, k_dest;
-    int i_src, j_src, k_src, nni_src, nnj_src, nnk_src;
-    int ib; /* position of cell in linear buffer. */
-    int nv; /* number of double values transferred per cell */
+    size_t i, j, i_dest, j_dest, k_dest;
+    size_t i_src, j_src, k_src, nni_src, nnj_src, nnk_src;
+    size_t ib; /* position of cell in linear buffer. */
+    size_t nv; /* number of double values transferred per cell */
     FV_Cell *cell;
     double *bufp;
 

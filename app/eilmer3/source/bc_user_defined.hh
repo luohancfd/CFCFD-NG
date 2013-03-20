@@ -15,7 +15,7 @@ private:
     CFlowCondition *fdata1;
     CFlowCondition *fdata2;
     Gas_model *gmodel;
-    int nsp, nmodes;
+    size_t nsp, nmodes;
     lua_State *L;
 public:
     UserDefinedBC( Block *bdp, int which_boundary, 
@@ -29,10 +29,10 @@ public:
     virtual int apply_viscous( double t ); // sets wall T to user-defined value
 private:
     int start_interpreter();
-    int eval_flux_udf( double t, int i, int j, int k, FV_Interface *IFace );
-    int eval_inviscid_udf( double t, int i, int j, int k, FV_Interface *IFace );
+    int eval_flux_udf( double t, size_t i, size_t j, size_t k, FV_Interface *IFace );
+    int eval_inviscid_udf( double t, size_t i, size_t j, size_t k, FV_Interface *IFace );
     CFlowCondition *unpack_flow_table( void );
-    int eval_viscous_udf( double t, int i, int j, int k, FV_Interface *IFace, const FV_Cell *cell );
+    int eval_viscous_udf( double t, size_t i, size_t j, size_t k, FV_Interface *IFace, const FV_Cell *cell );
     void handle_lua_error(lua_State *L, const char *fmt, ...);
 };
 

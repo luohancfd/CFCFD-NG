@@ -44,10 +44,10 @@ FixedTBC::~FixedTBC() {}
 
 int FixedTBC::apply_viscous( double t )
 {
-    int i, j, k;
+    size_t i, j, k;
     FV_Cell *cell;
     FV_Interface *IFace;
-    int nmodes = get_gas_model_ptr()->get_number_of_modes();
+    size_t nmodes = get_gas_model_ptr()->get_number_of_modes();
     Block & bd = *bdp;
 
     switch ( which_boundary ) {
@@ -60,7 +60,7 @@ int FixedTBC::apply_viscous( double t )
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( int imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
+		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[NORTH]->wc_bc != NON_CATALYTIC) {
@@ -78,7 +78,7 @@ int FixedTBC::apply_viscous( double t )
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( int imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
+		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[EAST]->wc_bc != NON_CATALYTIC) {
@@ -96,7 +96,7 @@ int FixedTBC::apply_viscous( double t )
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( int imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
+		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[SOUTH]->wc_bc != NON_CATALYTIC) {
@@ -114,7 +114,7 @@ int FixedTBC::apply_viscous( double t )
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( int imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
+		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[WEST]->wc_bc != NON_CATALYTIC) {
@@ -132,7 +132,7 @@ int FixedTBC::apply_viscous( double t )
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( int imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
+		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[TOP]->wc_bc != NON_CATALYTIC) {
@@ -150,7 +150,7 @@ int FixedTBC::apply_viscous( double t )
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( int imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
+		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[BOTTOM]->wc_bc != NON_CATALYTIC) {

@@ -116,9 +116,9 @@ public:
 public:    
     void recompute_spectra( RadiationSpectralModel * rsm );
     
-    void set_CFD_cell_indices( int ii, int jj, int kk );
+    void set_CFD_cell_indices( size_t ii, size_t jj, size_t kk );
     
-    void get_CFD_cell_indices( int &ii, int &jj, int &kk );
+    void get_CFD_cell_indices( size_t &ii, size_t &jj, size_t &kk );
     
     std::string str();
     
@@ -126,7 +126,7 @@ public:
     
 public:
     /* CFD cell indices */
-    int ii_, jj_, kk_;
+    size_t ii_, jj_, kk_;
 
     /* Pointers to CFD cell gas-data and radiative source term */
     Gas_data * Q_;
@@ -162,7 +162,7 @@ public:
 
 class DiscreteTransferCell : public RayTracingCell {
 public:
-    DiscreteTransferCell( Gas_data * Q, double * Q_rE_rad, Vector3 origin, double vol, int nrays=0, int ndim=0, bool planar=false );
+    DiscreteTransferCell( Gas_data * Q, double * Q_rE_rad, Vector3 origin, double vol, size_t nrays=0, size_t ndim=0, bool planar=false );
     
     virtual ~DiscreteTransferCell();
 };
@@ -183,15 +183,15 @@ public:
 public:    
     virtual void recompute_spectra( RadiationSpectralModel * rsm );
     
-    void set_CFD_cell_indices( int ii, int jj, int kk );
+    void set_CFD_cell_indices( size_t ii, size_t jj, size_t kk );
     
-    void get_CFD_cell_indices( int &ii, int &jj, int &kk );
+    void get_CFD_cell_indices( size_t &ii, size_t &jj, size_t &kk );
     
     void write_rays_to_file( std::string filename );
     
 public:
     /* Adjacent CFD interface indices */
-    int ii_, jj_, kk_;
+    size_t ii_, jj_, kk_;
     
     /* Pointers to CFD interface gas-data and radiative flux term */
     Gas_data * Q_;
@@ -224,7 +224,7 @@ public:
 
 class DiscreteTransferInterface : public RayTracingInterface {
 public:
-    DiscreteTransferInterface( Gas_data * Q, Vector3 origin, double area, double length, int nrays=0, int ndim=0, bool planar=false );
+    DiscreteTransferInterface( Gas_data * Q, Vector3 origin, double area, double length, size_t nrays=0, size_t ndim=0, bool planar=false );
     
     virtual ~DiscreteTransferInterface();
 };

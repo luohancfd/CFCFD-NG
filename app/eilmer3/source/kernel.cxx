@@ -123,7 +123,7 @@ void eilmer_finalize( void )
 {
     // Clean up the objects created earlier.
     // This will satisfy valgrind, hopefully.
-    for ( int ig = 0; ig < gd.n_gas_state; ++ig ) {
+    for ( size_t ig = 0; ig < gd.n_gas_state; ++ig ) {
 	delete gd.gas_state[ig];
     }
     gd.bd.clear();
@@ -322,7 +322,7 @@ int mhd_flag = 0;
 int BGK_flag = 0;
 
 /// \brief The number of velocity buckets for the rarefied gas solver
-int velocity_buckets = 0;
+size_t velocity_buckets = 0;
 std::vector<Vector3> vcoords; // velocity coordinates for rarefied flow
 std::vector<double> vweights; // weight for each velocity coordinate
 
@@ -1036,18 +1036,18 @@ int get_BGK_flag(void)
     return BGK_flag;
 }
 
-int set_velocity_buckets(int i)
+size_t set_velocity_buckets(size_t i)
 {
     velocity_buckets = i;
 
     vcoords.resize(i);
     vweights.resize(i);
 
-    if ( get_verbose_flag() ) printf("set velocity_buckets=%d\n", velocity_buckets);
+    if ( get_verbose_flag() ) printf("set velocity_buckets=%u\n", velocity_buckets);
     return velocity_buckets;
 }
 
-int get_velocity_buckets( void )
+size_t get_velocity_buckets( void )
 {
     return velocity_buckets;
 }

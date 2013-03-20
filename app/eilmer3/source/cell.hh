@@ -17,7 +17,6 @@
 #include "../../../lib/gas/models/gas-model.hh"
 #include "../../../lib/nm/source/no_fuss_linear_algebra.hh"
 #include "c-flow-condition.hh"
-// #include "flux_calc.hh"
 
 /*--------------------------------------------------------------*/
 

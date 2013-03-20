@@ -107,7 +107,7 @@ int viscous_flux_2D( Block *A )
     FV_Vertex *vtx1, *vtx2;
     FV_Interface *IFace;
     double nx, ny;
-    int i, j, nsp, ntm;
+    size_t i, j, nsp, ntm;
     double dudx, dudy, dvdx, dvdy;
     double mu_lam; // molecular-scale transport properties
     double lmbda; // second-coefficient of viscosity
@@ -169,7 +169,7 @@ int viscous_flux_2D( Block *A )
             dudy = select_derivative( vtx1->dudy, vtx2->dudy, vtdp );
             dvdx = select_derivative( vtx1->dvdx, vtx2->dvdx, vtdp );
             dvdy = select_derivative( vtx1->dvdy, vtx2->dvdy, vtdp );
-            for ( int itm=0; itm<ntm; ++itm ) {
+            for ( size_t itm=0; itm<ntm; ++itm ) {
                 dTdx[itm] = select_derivative( vtx1->dTdx[itm], vtx2->dTdx[itm], vtdp );
                 dTdy[itm] = select_derivative( vtx1->dTdy[itm], vtx2->dTdy[itm], vtdp );
                 k_eff[itm] = viscous_factor * fs.gas->k[itm];
@@ -182,7 +182,7 @@ int viscous_flux_2D( Block *A )
             mu_eff = mu_lam + mu_t;
             lmbda = -2.0/3.0 * mu_eff;
             if ( get_diffusion_flag() == 1 ) {
-                for ( int isp = 0; isp < nsp; ++isp ) {
+                for ( size_t isp = 0; isp < nsp; ++isp ) {
                     dfdx[isp] = select_derivative( vtx1->dfdx[isp], vtx2->dfdx[isp], vtdp );
                     dfdy[isp] = select_derivative( vtx1->dfdy[isp], vtx2->dfdy[isp], vtdp );
                 }
@@ -197,7 +197,7 @@ int viscous_flux_2D( Block *A )
 					   dfdx, dfdy, dfdz,
 					   jx, jy, jz);
 		// NOTE: now applying viscous_factor to diffusive fluxes
-		for ( int isp = 0; isp < nsp; ++isp ) {
+		for ( size_t isp = 0; isp < nsp; ++isp ) {
 		    jx[isp] *= viscous_factor;
 		    jy[isp] *= viscous_factor;
 		    jz[isp] *= viscous_factor;
@@ -227,7 +227,7 @@ int viscous_flux_2D( Block *A )
 	    // NOTE: q[0] is total energy flux
 	    qx[0] = k_eff[0] * dTdx[0];
 	    qy[0] = k_eff[0] * dTdy[0];
-	    for ( int itm=1; itm<ntm; ++itm ) {
+	    for ( size_t itm=1; itm<ntm; ++itm ) {
 		qx[itm] = k_eff[itm] * dTdx[itm];
 		qy[itm] = k_eff[itm] * dTdy[itm];
 		qx[0] += qx[itm];
@@ -235,11 +235,11 @@ int viscous_flux_2D( Block *A )
 	    }
 	    
 	    if ( get_diffusion_flag() == 1 ) {
-		for ( int isp = 0; isp < nsp; ++isp ) {
+		for ( size_t isp = 0; isp < nsp; ++isp ) {
 		    double h = gmodel->enthalpy(*(fs.gas), isp);
 		    qx[0] -= jx[isp] * h;
 		    qy[0] -= jy[isp] * h;
-		    for ( int itm=1; itm<ntm; ++itm ) {
+		    for ( size_t itm=1; itm<ntm; ++itm ) {
 			double hmode = gmodel->modal_enthalpy(*(fs.gas), isp, itm);
 			qx[itm] -= jx[isp] * hmode;
 			qy[itm] -= jy[isp] * hmode;
@@ -289,12 +289,12 @@ int viscous_flux_2D( Block *A )
 	    }
             // Species mass flux
 	    if( get_diffusion_flag() == 1 ) {
-		for( int isp = 0; isp < nsp; ++isp ) {
+		for( size_t isp = 0; isp < nsp; ++isp ) {
 		    F.massf[isp] += jx[isp] * nx + jy[isp] * ny;
 		}
 	    }
 	    // Modal energy flux (skipping first mode as this is handled by total energy)
-	    for ( int itm=1; itm<ntm; ++itm ) {
+	    for ( size_t itm=1; itm<ntm; ++itm ) {
 	    	F.energies[itm] -= qx[itm] * nx + qy[itm] * ny;
 	    }
         } // j loop
@@ -326,7 +326,7 @@ int viscous_flux_2D( Block *A )
             dudy = select_derivative( vtx1->dudy, vtx2->dudy, vtdp );
             dvdx = select_derivative( vtx1->dvdx, vtx2->dvdx, vtdp );
             dvdy = select_derivative( vtx1->dvdy, vtx2->dvdy, vtdp );
-            for ( int itm=0; itm<ntm; ++itm ) {
+            for ( size_t itm=0; itm<ntm; ++itm ) {
                 dTdx[itm] = select_derivative( vtx1->dTdx[itm], vtx2->dTdx[itm], vtdp );
                 dTdy[itm] = select_derivative( vtx1->dTdy[itm], vtx2->dTdy[itm], vtdp );
                 k_eff[itm] = viscous_factor * fs.gas->k[itm];
@@ -339,7 +339,7 @@ int viscous_flux_2D( Block *A )
 	    mu_eff = mu_lam + mu_t;
 	    lmbda = -2.0/3.0 * mu_eff;
             if ( get_diffusion_flag() == 1 ) {
-                for ( int isp = 0; isp < nsp; ++isp ) {
+                for ( size_t isp = 0; isp < nsp; ++isp ) {
                     dfdx[isp] = select_derivative( vtx1->dfdx[isp], vtx2->dfdx[isp], vtdp );
                     dfdy[isp] = select_derivative( vtx1->dfdy[isp], vtx2->dfdy[isp], vtdp );
                 }
@@ -354,7 +354,7 @@ int viscous_flux_2D( Block *A )
 					   dfdx, dfdy, dfdz,
 					   jx, jy, jz);
 		// NOTE: now applying viscous_factor to diffusive fluxes
-		for( int isp = 0; isp < nsp; ++isp ) {
+		for( size_t isp = 0; isp < nsp; ++isp ) {
 		    jx[isp] *= viscous_factor;
 		    jy[isp] *= viscous_factor;
 		    jz[isp] *= viscous_factor;
@@ -384,7 +384,7 @@ int viscous_flux_2D( Block *A )
 	    // NOTE: q[0] is total energy flux
 	    qx[0] = k_eff[0] * dTdx[0];
 	    qy[0] = k_eff[0] * dTdy[0];
-	    for ( int itm=1; itm<ntm; ++itm ) {
+	    for ( size_t itm=1; itm<ntm; ++itm ) {
 		qx[itm] = k_eff[itm] * dTdx[itm];
 		qy[itm] = k_eff[itm] * dTdy[itm];
 		qx[0] += qx[itm];
@@ -392,11 +392,11 @@ int viscous_flux_2D( Block *A )
 	    }
 	    
 	    if( get_diffusion_flag() == 1 ) {
-		for( int isp = 0; isp < nsp; ++isp ) {
+		for( size_t isp = 0; isp < nsp; ++isp ) {
 		    double h = gmodel->enthalpy(*(fs.gas), isp);
 		    qx[0] -= jx[isp] * h;
 		    qy[0] -= jy[isp] * h;
-		    for ( int itm=1; itm<ntm; ++itm ) {
+		    for ( size_t itm=1; itm<ntm; ++itm ) {
 			double hmode = gmodel->modal_enthalpy(*(fs.gas), isp, itm);
 			qx[itm] -= jx[isp] * hmode;
 			qy[itm] -= jy[isp] * hmode;
@@ -446,12 +446,12 @@ int viscous_flux_2D( Block *A )
 	    }
 	    // Species mass flux
 	    if( get_diffusion_flag() == 1 ) {
-		for( int isp = 0; isp < nsp; ++isp ) {
+		for( size_t isp = 0; isp < nsp; ++isp ) {
 		    F.massf[isp] += jx[isp] * nx + jy[isp] * ny;
 		}
 	    }
 	    // Modal energy flux (skipping first mode as this is handled by total energy)
-	    for ( int itm=1; itm<ntm; ++itm ) {
+	    for ( size_t itm=1; itm<ntm; ++itm ) {
 	    	F.energies[itm] -= qx[itm] * nx + qy[itm] * ny;
 	    }
         } // j loop
@@ -476,7 +476,7 @@ int viscous_flux_2D( Block *A )
             A->get_vtx(i,j)->dvdy = -0.5 * area_inv * \
 		((vB + vA) * (xB - xA) + (vC + vB) * (xC - xB) + \
 		 (vD + vC) * (xD - xC) + (vA + vD) * (xA - xD)); \
-	    for ( int itm=0; itm<ntm; ++itm ) { \
+	    for ( size_t itm=0; itm<ntm; ++itm ) { \
 	        A->get_vtx(i,j)->dTdx[itm] = 0.5 * area_inv * \
 		    ((TB[itm] + TA[itm]) * (yB - yA) + (TC[itm] + TB[itm]) * (yC - yB) + \
 		     (TD[itm] + TC[itm]) * (yD - yC) + (TA[itm] + TD[itm]) * (yA - yD)); \
@@ -485,7 +485,7 @@ int viscous_flux_2D( Block *A )
 		     (TD[itm] + TC[itm]) * (xD - xC) + (TA[itm] + TD[itm]) * (xA - xD)); \
             } \
             if( get_diffusion_flag() == 1) { \
-                for( int isp = 0; isp < nsp; ++isp ) { \
+                for( size_t isp = 0; isp < nsp; ++isp ) { \
                     A->get_vtx(i,j)->dfdx[isp] = 0.5 * area_inv * \
 		        ((fB[isp] + fA[isp]) * (yB - yA) + (fC[isp] + fB[isp]) * (yC - yB) + \
 		        (fD[isp] + fC[isp]) * (yD - yC) + (fA[isp] + fD[isp]) * (yA - yD)); \
@@ -522,7 +522,7 @@ int viscous_flux_2D( Block *A )
             A->get_vtx(i,j)->dsigma_cdy = -0.5 * area_inv * \
 		((sigma_cB + sigma_cA) * (xB - xA) + (sigma_cC + sigma_cB) * (xC - xB) + \
 		 (sigma_cD + sigma_cC) * (xD - xC) + (sigma_cA + sigma_cD) * (xA - xD)); \
-           for( int isp = 0; isp < nsp; ++isp ) { \
+           for( size_t isp = 0; isp < nsp; ++isp ) { \
                     A->get_vtx(i,j)->dcdx[isp] = 0.5 * area_inv * \
 		        ((cB[isp] + cA[isp]) * (yB - yA) + (cC[isp] + cB[isp]) * (yC - yB) + \
 		        (cD[isp] + cC[isp]) * (yD - yC) + (cA[isp] + cD[isp]) * (yA - yD)); \
@@ -540,7 +540,7 @@ int viscous_flux_2D( Block *A )
 ///
 int viscous_derivatives_2D( Block *A )
 {
-    int i, j;
+    size_t i, j;
     double xA, yA, xB, yB, xC, yC, xD, yD;
     double uA, uB, uC, uD;
     double vA, vB, vC, vD;
@@ -548,7 +548,7 @@ int viscous_derivatives_2D( Block *A )
     double omegaA, omegaB, omegaC, omegaD;
     double area_inv;
     
-    int nsp = get_gas_model_ptr()->get_number_of_species();
+    size_t nsp = get_gas_model_ptr()->get_number_of_species();
     if( fA.size() == 0 ) {
 	fA.resize(nsp); 
 	fB.resize(nsp);
@@ -556,7 +556,7 @@ int viscous_derivatives_2D( Block *A )
 	fD.resize(nsp);
     }
     
-    int ntm = get_gas_model_ptr()->get_number_of_modes();
+    size_t ntm = get_gas_model_ptr()->get_number_of_modes();
     if ( TA.size() == 0 ) {
     	TA.resize(ntm);
     	TB.resize(ntm);
@@ -589,7 +589,7 @@ int viscous_derivatives_2D( Block *A )
             vC = A->get_cell(i-1,j)->fs->vel.y;
             vD = A->get_cell(i-1,j-1)->fs->vel.y;
 	    //
-	    for ( int itm=0; itm<ntm; ++itm ) {
+	    for ( size_t itm=0; itm<ntm; ++itm ) {
 		TA[itm] = A->get_cell(i,j-1)->fs->gas->T[itm];
 		TB[itm] = A->get_cell(i,j)->fs->gas->T[itm];
 		TC[itm] = A->get_cell(i-1,j)->fs->gas->T[itm];
@@ -597,7 +597,7 @@ int viscous_derivatives_2D( Block *A )
             }
 	    //
 	    if( get_diffusion_flag() == 1 ) {
-		for( int isp = 0; isp < nsp; ++isp ) {
+		for( size_t isp = 0; isp < nsp; ++isp ) {
 		    fA[isp] = A->get_cell(i,j-1)->fs->gas->massf[isp];
 		    fB[isp] = A->get_cell(i,j)->fs->gas->massf[isp];
 		    fC[isp] = A->get_cell(i-1,j)->fs->gas->massf[isp];
@@ -636,7 +636,7 @@ int viscous_derivatives_2D( Block *A )
 ///
 int viscous_derivatives_edges( Block *A )
 {
-    int i, j;
+    size_t i, j;
     double xA, yA, xB, yB, xC, yC, xD, yD;
     double uA, uB, uC, uD;
     double vA, vB, vC, vD;
@@ -644,7 +644,7 @@ int viscous_derivatives_edges( Block *A )
     double omegaA, omegaB, omegaC, omegaD;
     double area_inv;
 
-    int nsp = get_gas_model_ptr()->get_number_of_species();
+    size_t nsp = get_gas_model_ptr()->get_number_of_species();
     if( fA.size() == 0 ) {
 	fA.resize(nsp); 
 	fB.resize(nsp);
@@ -652,7 +652,7 @@ int viscous_derivatives_edges( Block *A )
 	fD.resize(nsp);
     }
     
-    int ntm = get_gas_model_ptr()->get_number_of_modes();
+    size_t ntm = get_gas_model_ptr()->get_number_of_modes();
     if ( TA.size() == 0 ) {
     	TA.resize(ntm);
     	TB.resize(ntm);
@@ -685,7 +685,7 @@ int viscous_derivatives_edges( Block *A )
         vC = A->get_cell(i-1,j)->fs->vel.y;
         vD = A->get_cell(i-1,j-1)->fs->vel.y;
 	//
-	for ( int itm=0; itm<ntm; ++itm ) {
+	for ( size_t itm=0; itm<ntm; ++itm ) {
 	    TA[itm] = A->get_ifi(i,j-1)->fs->gas->T[itm];
 	    TB[itm] = A->get_ifi(i,j)->fs->gas->T[itm];
 	    TC[itm] = A->get_cell(i-1,j)->fs->gas->T[itm];
@@ -693,7 +693,7 @@ int viscous_derivatives_edges( Block *A )
 	}
 	//
 	if( get_diffusion_flag() == 1) {
-	    for( int isp = 0; isp < nsp; ++isp ) {
+	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		fA[isp] = A->get_ifi(i,j-1)->fs->gas->massf[isp];
 		fB[isp] = A->get_ifi(i,j)->fs->gas->massf[isp];
 		fC[isp] = A->get_cell(i-1,j)->fs->gas->massf[isp];
@@ -741,7 +741,7 @@ int viscous_derivatives_edges( Block *A )
 	vC = A->get_ifi(i,j)->fs->vel.y;
 	vD = A->get_ifi(i,j-1)->fs->vel.y;
 	//
-	for ( int itm=0; itm<ntm; ++itm ) {
+	for ( size_t itm=0; itm<ntm; ++itm ) {
 	    TA[itm] = A->get_cell(i,j-1)->fs->gas->T[itm];
 	    TB[itm] = A->get_cell(i,j)->fs->gas->T[itm];
 	    TC[itm] = A->get_ifi(i,j)->fs->gas->T[itm];
@@ -749,7 +749,7 @@ int viscous_derivatives_edges( Block *A )
 	}
         //
 	if( get_diffusion_flag() == 1) {
-	    for( int isp = 0; isp < nsp; ++isp ) {
+	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		fA[isp] = A->get_cell(i,j-1)->fs->gas->massf[isp];
 		fB[isp] = A->get_cell(i,j)->fs->gas->massf[isp];
 		fC[isp] = A->get_ifi(i,j)->fs->gas->massf[isp];
@@ -798,7 +798,7 @@ int viscous_derivatives_edges( Block *A )
 	vC = A->get_ifj(i-1,j)->fs->vel.y;
         vD = A->get_cell(i-1,j-1)->fs->vel.y;
 	//
-	for ( int itm=0; itm<ntm; ++itm ) {
+	for ( size_t itm=0; itm<ntm; ++itm ) {
 	    TA[itm] = A->get_cell(i,j-1)->fs->gas->T[itm];
 	    TB[itm] = A->get_ifj(i,j)->fs->gas->T[itm];
 	    TC[itm] = A->get_ifj(i-1,j)->fs->gas->T[itm];
@@ -806,7 +806,7 @@ int viscous_derivatives_edges( Block *A )
 	}
 	//
 	if( get_diffusion_flag() == 1) {
-	    for( int isp = 0; isp < nsp; ++isp ) {
+	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		fA[isp] = A->get_cell(i,j-1)->fs->gas->massf[isp];
 		fB[isp] = A->get_ifj(i,j)->fs->gas->massf[isp];
 		fC[isp] = A->get_ifj(i-1,j)->fs->gas->massf[isp];
@@ -854,7 +854,7 @@ int viscous_derivatives_edges( Block *A )
         vC = A->get_cell(i-1,j)->fs->vel.y;
 	vD = A->get_ifj(i-1,j)->fs->vel.y;
 	//
-	for ( int itm=0; itm<ntm; ++itm ) {
+	for ( size_t itm=0; itm<ntm; ++itm ) {
 	    TA[itm] = A->get_ifj(i,j)->fs->gas->T[itm];
 	    TB[itm] = A->get_cell(i,j)->fs->gas->T[itm];
 	    TC[itm] = A->get_cell(i-1,j)->fs->gas->T[itm];
@@ -862,7 +862,7 @@ int viscous_derivatives_edges( Block *A )
 	}
 	//
 	if( get_diffusion_flag() == 1) { 
-	    for( int isp = 0; isp < nsp; ++isp ) {
+	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		fA[isp] = A->get_ifj(i,j)->fs->gas->massf[isp];
 		fB[isp] = A->get_cell(i,j)->fs->gas->massf[isp];
 		fC[isp] = A->get_cell(i-1,j)->fs->gas->massf[isp];
@@ -894,13 +894,13 @@ int viscous_derivatives_edges( Block *A )
 ///
 int viscous_derivatives_corners( Block *bdp )
 {
-    int i, j;
+    size_t i, j;
     FV_Vertex *vtx;
     FV_Interface *a, *b;
     FV_Cell *c;
     double fa, xa, ya, fb, xb, yb, fc, xc, yc, denom;
-    int nsp = get_gas_model_ptr()->get_number_of_species();
-    int ntm = get_gas_model_ptr()->get_number_of_modes();
+    size_t nsp = get_gas_model_ptr()->get_number_of_species();
+    size_t ntm = get_gas_model_ptr()->get_number_of_modes();
     // North-East corner
     i = bdp->imax;
     j = bdp->jmax;
@@ -918,7 +918,7 @@ int viscous_derivatives_corners( Block *bdp )
     fa = a->fs->vel.y; fb = b->fs->vel.y; fc = c->fs->vel.y;
     vtx->dvdx = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
     vtx->dvdy = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
-    for ( int itm=0; itm<ntm; ++itm ) {
+    for ( size_t itm=0; itm<ntm; ++itm ) {
     	 fa = a->fs->gas->T[itm]; fb = b->fs->gas->T[itm]; fc = c->fs->gas->T[itm];
     	 vtx->dTdx[itm] = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
     	 vtx->dTdy[itm] = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
@@ -929,7 +929,7 @@ int viscous_derivatives_corners( Block *bdp )
     fa = a->fs->omega; fb = b->fs->omega; fc = c->fs->omega;
     vtx->domegadx = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
     vtx->domegady = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
-    for( int isp = 0; isp < nsp; ++isp ) {
+    for( size_t isp = 0; isp < nsp; ++isp ) {
 	fa = a->fs->gas->massf[isp]; fb = b->fs->gas->massf[isp]; fc = c->fs->gas->massf[isp];
 	vtx->dfdx[isp] = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
 	vtx->dfdy[isp] = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
@@ -951,7 +951,7 @@ int viscous_derivatives_corners( Block *bdp )
     fa = a->fs->vel.y; fb = b->fs->vel.y; fc = c->fs->vel.y;
     vtx->dvdx = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
     vtx->dvdy = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
-    for ( int itm=0; itm<ntm; ++itm ) {
+    for ( size_t itm=0; itm<ntm; ++itm ) {
     	fa = a->fs->gas->T[itm]; fb = b->fs->gas->T[itm]; fc = c->fs->gas->T[itm];
     	vtx->dTdx[itm] = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
     	vtx->dTdy[itm] = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
@@ -962,7 +962,7 @@ int viscous_derivatives_corners( Block *bdp )
     fa = a->fs->omega; fb = b->fs->omega; fc = c->fs->omega;
     vtx->domegadx = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
     vtx->domegady = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
-    for( int isp = 0; isp < nsp; ++isp ) {
+    for( size_t isp = 0; isp < nsp; ++isp ) {
 	fa = a->fs->gas->massf[isp]; fb = b->fs->gas->massf[isp]; fc = c->fs->gas->massf[isp];
 	vtx->dfdx[isp] = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
 	vtx->dfdy[isp] = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
@@ -984,7 +984,7 @@ int viscous_derivatives_corners( Block *bdp )
     fa = a->fs->vel.y; fb = b->fs->vel.y; fc = c->fs->vel.y;
     vtx->dvdx = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
     vtx->dvdy = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
-    for ( int itm=0; itm<ntm; ++itm ) {
+    for ( size_t itm=0; itm<ntm; ++itm ) {
     	fa = a->fs->gas->T[itm]; fb = b->fs->gas->T[itm]; fc = c->fs->gas->T[itm];
     	vtx->dTdx[itm] = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
     	vtx->dTdy[itm] = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
@@ -995,7 +995,7 @@ int viscous_derivatives_corners( Block *bdp )
     fa = a->fs->omega; fb = b->fs->omega; fc = c->fs->omega;
     vtx->domegadx = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
     vtx->domegady = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
-    for( int isp = 0; isp < nsp; ++isp ) {
+    for( size_t isp = 0; isp < nsp; ++isp ) {
 	fa = a->fs->gas->massf[isp]; fb = b->fs->gas->massf[isp]; fc = c->fs->gas->massf[isp];
 	vtx->dfdx[isp] = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
 	vtx->dfdy[isp] = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
@@ -1017,7 +1017,7 @@ int viscous_derivatives_corners( Block *bdp )
     fa = a->fs->vel.y; fb = b->fs->vel.y; fc = c->fs->vel.y;
     vtx->dvdx = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
     vtx->dvdy = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
-    for ( int itm=0; itm<ntm; ++itm ) {
+    for ( size_t itm=0; itm<ntm; ++itm ) {
     	fa = a->fs->gas->T[itm]; fb = b->fs->gas->T[itm]; fc = c->fs->gas->T[itm];
     	vtx->dTdx[itm] = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
     	vtx->dTdy[itm] = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
@@ -1028,7 +1028,7 @@ int viscous_derivatives_corners( Block *bdp )
     fa = a->fs->omega; fb = b->fs->omega; fc = c->fs->omega;
     vtx->domegadx = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
     vtx->domegady = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
-    for( int isp = 0; isp < nsp; ++isp ) {
+    for( size_t isp = 0; isp < nsp; ++isp ) {
 	fa = a->fs->gas->massf[isp]; fb = b->fs->gas->massf[isp]; fc = c->fs->gas->massf[isp];
 	vtx->dfdx[isp] = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
 	vtx->dfdy[isp] = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;

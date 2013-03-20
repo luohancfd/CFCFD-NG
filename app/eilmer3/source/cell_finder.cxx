@@ -22,16 +22,16 @@
 
 using namespace std;
 
-CellFinder::CellFinder( int nvertices )
+CellFinder::CellFinder( size_t nvertices )
 : nvertices_( nvertices ) {}
 
 CellFinder::~CellFinder() {}
 
-CellFinder2D::CellFinder2D( int nvertices )
+CellFinder2D::CellFinder2D( size_t nvertices )
 : CellFinder( nvertices )
 {
     // initialise rp_, a_ and dc_ arrays for each thread
-    int nthreads = omp_get_max_threads();
+    size_t nthreads = omp_get_max_threads();
 
     // cout << "CellFinder2D::CellFinder2D()" << endl
     //      << "nthreads = " << nthreads << endl;
@@ -40,10 +40,10 @@ CellFinder2D::CellFinder2D( int nvertices )
     a_.resize( nthreads );
     dc_.resize( nthreads );
     
-    for ( int ithread=0; ithread < nthreads; ++ithread ) {
+    for ( size_t ithread=0; ithread < nthreads; ++ithread ) {
     	rp_[ithread].resize( nvertices_ );
     	a_[ithread].resize( nvertices_ );
-    	dc_[ithread] = new int[2];
+    	dc_[ithread] = new size_t[2];
     }
 }
 
@@ -55,13 +55,13 @@ CellFinder2D::~CellFinder2D()
 
 int
 CellFinder2D::
-find_cell( const Vector3 &p, int &ib, int &ic, int &jc, int &kc )
+find_cell( const Vector3 &p, size_t &ib, size_t &ic, size_t &jc, size_t &kc )
 {
     // &p -> address of spatial point we are looking for
-    // ib -> block indice
+    // ib -> block index
     // ic, jc, kc -> cell indices
     
-    int ithread = omp_get_thread_num();
+    size_t ithread = omp_get_thread_num();
     
     // Get pointers to the block and cell
     Block * A = get_block_data_ptr(ib);
@@ -72,7 +72,7 @@ find_cell( const Vector3 &p, int &ib, int &ic, int &jc, int &kc )
     
     // Search for the containing cell starting with the given guess
     dc_[ithread][0] = 1; dc_[ithread][1] = 1;
-    int count = 0;
+    size_t count = 0;
     int status = INSIDE_GRID; 
     while ( abs(dc_[ithread][0]) + abs(dc_[ithread][1]) != 0 ) {
     	// cout << "ib = " << ib << ", ic = " << ic << ", jc = " << jc << ", A->imax = " << A->imax << ", A->imin = " << A->imin << ", A->jmax = " << A->jmax << ", A->jmin = " << A->jmin << endl;
@@ -245,19 +245,19 @@ find_cell( const Vector3 &p, int &ib, int &ic, int &jc, int &kc )
 
 void
 CellFinder2D::
-test_cell( const FV_Cell * cell, const Vector3 &p, int *dc )
+test_cell( const FV_Cell * cell, const Vector3 &p, size_t *dc )
 {
     // NOTE: this function should be applicable to both tri and quad 2D cells
     
-    int ithread = omp_get_thread_num();
+    size_t ithread = omp_get_thread_num();
     
     // define the r vectors
-    for ( int iv=0; iv<nvertices_; ++iv )
+    for ( size_t iv=0; iv<nvertices_; ++iv )
 	rp_[ithread][iv] = cell->vtx[iv]->pos - p;
     
     // calculate the cross products
-    int iv_p1;
-    for ( int iv=0; iv<nvertices_; iv++ ) {
+    size_t iv_p1;
+    for ( size_t iv=0; iv<nvertices_; iv++ ) {
 	iv_p1 = iv+1;
 	if ( iv_p1 == nvertices_ ) iv_p1 = 0;
 	a_[ithread][iv] = cross(rp_[ithread][iv], cell->vtx[iv_p1]->pos - cell->vtx[iv]->pos );
@@ -281,11 +281,11 @@ test_cell( const FV_Cell * cell, const Vector3 &p, int *dc )
     return;
 }
 
-CellFinder3D::CellFinder3D( int nvertices )
+CellFinder3D::CellFinder3D( size_t nvertices )
 : CellFinder( nvertices )
 {
     // initialise vp_, a_ and dc_ arrays for each thread
-    int nthreads = omp_get_max_threads();
+    size_t nthreads = omp_get_max_threads();
 
     cout << "CellFinder3D::CellFinder3D()" << endl
          << "nthreads = " << nthreads << endl;
@@ -294,7 +294,7 @@ CellFinder3D::CellFinder3D( int nvertices )
     a_.resize( nthreads );
     dc_.resize( nthreads );
     
-    for ( int ithread=0; ithread<nthreads; ++ithread ) {
+    for ( size_t ithread=0; ithread<nthreads; ++ithread ) {
 	vp_[ithread].resize( 3 );	// need vectors to 3 points to test a plane
 	if ( nvertices==8 ) {
 	    // hexahedron
@@ -308,7 +308,7 @@ CellFinder3D::CellFinder3D( int nvertices )
 	    exit( BAD_INPUT_ERROR );
 	}
 	
-	dc_[ithread] = new int[3];	// cell stepping has 3 degrees of freedom
+	dc_[ithread] = new size_t[3];	// cell stepping has 3 degrees of freedom
     }
 }
 
@@ -320,7 +320,7 @@ CellFinder3D::~CellFinder3D()
 
 int
 CellFinder3D::
-find_cell( const Vector3 &p, int &ib, int &ic, int &jc, int &kc )
+find_cell( const Vector3 &p, size_t &ib, size_t &ic, size_t &jc, size_t &kc )
 {
     // &p -> address of spatial point we are looking for
     // ib -> block indice
@@ -328,7 +328,7 @@ find_cell( const Vector3 &p, int &ib, int &ic, int &jc, int &kc )
     
     // NOTE: assuming single block for the moment
     
-    int ithread = omp_get_thread_num();
+    size_t ithread = omp_get_thread_num();
     
     // Get pointers to the block and cell
     Block * A = get_block_data_ptr(ib);
@@ -339,7 +339,7 @@ find_cell( const Vector3 &p, int &ib, int &ic, int &jc, int &kc )
     
     // Search for the containing cell starting with the given guess
     dc_[ithread][0] = 1; dc_[ithread][1] = 1; dc_[ithread][2] = 1;
-    int count = 0;
+    size_t count = 0;
     int status = INSIDE_GRID;    
     while ( abs(dc_[ithread][0]) + abs(dc_[ithread][1]) + abs(dc_[ithread][2]) != 0 ) {
 	// Check that predicted cell is inside the block domain
@@ -626,7 +626,7 @@ find_cell( const Vector3 &p, int &ib, int &ic, int &jc, int &kc )
     return status;
 }
 
-static int hex_vertex_indices[6][3] = { { 2, 6, 7 },
+static size_t hex_vertex_indices[6][3] = { { 2, 6, 7 },
 					{ 5, 6, 2 },
 					{ 0, 4, 5 },
 					{ 0, 3, 7 },
@@ -635,11 +635,11 @@ static int hex_vertex_indices[6][3] = { { 2, 6, 7 },
 
 void
 CellFinder3D::
-test_cell( const FV_Cell * cell, const Vector3 &p, int *dc )
+test_cell( const FV_Cell * cell, const Vector3 &p, size_t *dc )
 {
     // NOTE: this function should be applicable to all polyhedral cells
     
-    int ithread = omp_get_thread_num();
+    size_t ithread = omp_get_thread_num();
     
     // calculate 'a' for all faces
     for ( size_t iface=0; iface<a_[ithread].size(); ++iface ) {

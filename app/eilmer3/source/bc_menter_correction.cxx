@@ -35,9 +35,9 @@ double ideal_omega(FV_Cell *cell)
 
 int apply_menter_boundary_correction(Block &bd)
 {
-    int i, j, k;
-    int layer_depth;
-    int nominal_layer_depth=6; // Nominal number of cells over which we 
+    size_t i, j, k;
+    size_t layer_depth;
+    size_t nominal_layer_depth=6; // Nominal number of cells over which we 
                                // will correct the omega value.
     FV_Cell *cell;
     FV_Interface *IFace;
@@ -53,7 +53,7 @@ int apply_menter_boundary_correction(Block &bd)
         layer_depth = min(bd.nnj/2, nominal_layer_depth);
 	for ( i = bd.imin; i <= bd.imax; ++i ) {
             for ( k = bd.kmin; k <= bd.kmax; ++k ) {
-		for ( int indx = 0; indx < layer_depth; ++indx ) {
+		for ( size_t indx = 0; indx < layer_depth; ++indx ) {
 		    j =  bd.jmax - indx;
 		    cell = bd.get_cell(i,j,k);
 		    if ( cell->in_turbulent_zone == 0 ) continue;
@@ -71,7 +71,7 @@ int apply_menter_boundary_correction(Block &bd)
         layer_depth = min(bd.nnj/2, nominal_layer_depth);
 	for ( i = bd.imin; i <= bd.imax; ++i ) {
             for ( k = bd.kmin; k <= bd.kmax; ++k ) {
-		for ( int indx = 0; indx < layer_depth; ++indx ) {
+		for ( size_t indx = 0; indx < layer_depth; ++indx ) {
 		    j = bd.jmin + indx;
 		    cell = bd.get_cell(i,j,k);
 		    if ( cell->in_turbulent_zone == 0 ) continue;
@@ -89,7 +89,7 @@ int apply_menter_boundary_correction(Block &bd)
         layer_depth = min(bd.nni/2, nominal_layer_depth);
 	for ( j = bd.jmin; j <= bd.jmax; ++j ) {
             for ( k = bd.kmin; k <= bd.kmax; ++k ) {
-		for ( int indx = 0; indx < layer_depth; ++indx ) {
+		for ( size_t indx = 0; indx < layer_depth; ++indx ) {
 		    i = bd.imax - indx;
 		    cell = bd.get_cell(i,j,k);
 		    if ( cell->in_turbulent_zone == 0 ) continue;
@@ -107,7 +107,7 @@ int apply_menter_boundary_correction(Block &bd)
         layer_depth = min(bd.nni/2, nominal_layer_depth);
 	for (j = bd.jmin; j <= bd.jmax; ++j) {
             for ( k = bd.kmin; k <= bd.kmax; ++k ) {
-		for ( int indx = 0; indx < layer_depth; ++indx ) {
+		for ( size_t indx = 0; indx < layer_depth; ++indx ) {
 		    i = bd.imin + indx;
 		    cell = bd.get_cell(i,j,k);
 		    if ( cell->in_turbulent_zone == 0 ) continue;
@@ -126,7 +126,7 @@ int apply_menter_boundary_correction(Block &bd)
         layer_depth = min(bd.nnk/2, nominal_layer_depth);
 	    for ( i = bd.imin; i <= bd.imax; ++i ) {
 		for ( j = bd.jmin; j <= bd.jmax; ++j ) {
-		    for ( int indx = 0; indx < layer_depth; ++indx ) {
+		    for ( size_t indx = 0; indx < layer_depth; ++indx ) {
 			k = bd.kmax - indx;
 			cell = bd.get_cell(i,j,k);
 			if ( cell->in_turbulent_zone == 0 ) continue;
@@ -144,7 +144,7 @@ int apply_menter_boundary_correction(Block &bd)
         layer_depth = min(bd.nnk/2, nominal_layer_depth);
 	    for ( i = bd.imin; i <= bd.imax; ++i ) {
 		for ( j = bd.jmin; j <= bd.jmax; ++j ) {
-		    for ( int indx = 0; indx < layer_depth; ++indx ) {
+		    for ( size_t indx = 0; indx < layer_depth; ++indx ) {
 			k = bd.kmin + indx;
 			cell = bd.get_cell(i,j,k);
 			if ( cell->in_turbulent_zone == 0 ) continue;
@@ -274,9 +274,9 @@ int apply_wilson_omega_correction(Block &bd)
     ///
     /// Wilson Chan, January 2011
 
-    int i, j, k;
-    int layer_depth;
-    int nominal_layer_depth=10; // Nominal number of cells over which we 
+    size_t i, j, k;
+    size_t layer_depth;
+    size_t nominal_layer_depth=10; // Nominal number of cells over which we 
                                 // will correct the omega value.
     double omegaAvg, rhoAvg;
     FV_Cell *cell, *cN, *cE, *cS, *cW, *cNE, *cSE, *cSW, *cNW;
@@ -287,7 +287,7 @@ int apply_wilson_omega_correction(Block &bd)
         // Use the smaller value of either the number of cells in 
         // the j-direction or the specified nominal_layer_depth. 
         layer_depth = min(bd.nnj, nominal_layer_depth);
-        for ( int indx = 0; indx < layer_depth; ++indx ) {
+        for ( size_t indx = 0; indx < layer_depth; ++indx ) {
             j =  bd.jmax - indx;
             // Am too lazy to think of corner and edge cases, so
             // we will just average over the internal cells first
@@ -328,7 +328,7 @@ int apply_wilson_omega_correction(Block &bd)
         // Use the smaller value of either the number of cells in 
         // the j-direction or the specified nominal_layer_depth. 
         layer_depth = min(bd.nnj, nominal_layer_depth);
-        for ( int indx = 0; indx < layer_depth; ++indx ) {
+        for ( size_t indx = 0; indx < layer_depth; ++indx ) {
             j = bd.jmin + indx;
             // Am too lazy to think of corner and edge cases, so
             // we will just average over the internal cells first
@@ -376,7 +376,7 @@ int apply_wilson_omega_correction(Block &bd)
         // Use the smaller value of the number of cells in 
         // the i-direction or the specified nominal_layer_depth. 
         layer_depth = min(bd.nni, nominal_layer_depth);
-        for ( int indx = 0; indx < layer_depth; ++indx ) {
+        for ( size_t indx = 0; indx < layer_depth; ++indx ) {
             i = bd.imax - indx;
             // Am too lazy to think of corner and edge cases, so
             // we will just average over the internal cells first
@@ -419,7 +419,7 @@ int apply_wilson_omega_correction(Block &bd)
         layer_depth = min(bd.nni, nominal_layer_depth);
 	for (j = bd.jmin; j <= bd.jmax; ++j) {
             for ( k = bd.kmin; k <= bd.kmax; ++k ) {
-		for ( int indx = 0; indx < layer_depth; ++indx ) {
+		for ( size_t indx = 0; indx < layer_depth; ++indx ) {
 		    i = bd.imin + indx;
 		    cell = bd.get_cell(i,j,k);
 		    if ( cell->in_turbulent_zone == 0 ) continue;
@@ -436,7 +436,7 @@ int apply_wilson_omega_correction(Block &bd)
         // Use the smaller value of either the number of cells in 
         // the k-direction or the specified nominal_layer_depth. 
         layer_depth = min(bd.nnk, nominal_layer_depth);
-        for ( int indx = 0; indx < layer_depth; ++indx ) {
+        for ( size_t indx = 0; indx < layer_depth; ++indx ) {
             k = bd.kmax - indx;
             // Am too lazy to think of corner and edge cases, so
             // we will just average over the internal cells first
@@ -479,7 +479,7 @@ int apply_wilson_omega_correction(Block &bd)
         layer_depth = min(bd.nnk, nominal_layer_depth);
 	    for ( i = bd.imin; i <= bd.imax; ++i ) {
 		for ( j = bd.jmin; j <= bd.jmax; ++j ) {
-		    for ( int indx = 0; indx < layer_depth; ++indx ) {
+		    for ( size_t indx = 0; indx < layer_depth; ++indx ) {
 			k = bd.kmin + indx;
 			cell = bd.get_cell(i,j,k);
 			if ( cell->in_turbulent_zone == 0 ) continue;

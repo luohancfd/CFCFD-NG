@@ -89,10 +89,10 @@ SurfaceEnergyBalanceBC::~SurfaceEnergyBalanceBC()
 
 int SurfaceEnergyBalanceBC::apply_viscous( double t )
 {
-    int i, j, k;
+    size_t i, j, k;
     FV_Cell *cell;
     FV_Interface *IFace;
-    int index;
+    size_t index;
     Block & bd = *bdp;
 
     switch ( which_boundary ) {
@@ -262,9 +262,9 @@ int SurfaceEnergyBalanceBC::apply_viscous( double t )
 
 int
 SurfaceEnergyBalanceBC::
-solve_for_wall_temperature( FV_Interface * IFace, FV_Cell * cell_one, int index )
+solve_for_wall_temperature( FV_Interface * IFace, FV_Cell * cell_one, size_t index )
 {
-    int iteration;
+    size_t iteration;
     double q_total, q_total_prev = 0.0;
     double Twall = IFace->fs->gas->T[0];
     double Twall_prev = IFace->fs->gas->T[0];

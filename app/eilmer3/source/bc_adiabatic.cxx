@@ -50,7 +50,7 @@ int AdiabaticBC::apply_viscous( double t )
 // We assume that the y2 in eqn 7.16 is the same as
 // the height of our finite-volume cell.
 {
-    int i, j, k;
+    size_t i, j, k;
     FV_Cell *cell;
     FV_Interface *IFace;
     Block & bd = *bdp;

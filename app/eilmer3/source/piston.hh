@@ -60,16 +60,16 @@ public:
     // ------------------------------------------------------------------------
     // service functions
 
-    int get_io() { return io_; }
-    int get_bo() { return bo_; }
-    int get_ii() { return ii_; }
-    int get_bi() { return bi_; }
+    size_t get_io() { return io_; }
+    size_t get_bo() { return bo_; }
+    size_t get_ii() { return ii_; }
+    size_t get_bi() { return bi_; }
 
-    int get_jmin() { return jmin_; }
-    int get_jmax() { return jmax_; }
+    size_t get_jmin() { return jmin_; }
+    size_t get_jmax() { return jmax_; }
 
-    void set_jmin(int jmin) { jmin_ = jmin; }
-    void set_jmax(int jmax) { jmax_ = jmax; }
+    void set_jmin(size_t jmin) { jmin_ = jmin; }
+    void set_jmax(size_t jmax) { jmax_ = jmax; }
 
     Vector3* get_pos() { return &vtx_C_; }
     void set_pos(Vector3 pos) { vtx_C_ = pos; }
@@ -85,28 +85,28 @@ public:
     { return covers_two_cells_; }
 
     /// \brief Return a pointer to the jth flex cell
-    FV_Cell* get_flex_cell(int j)
+    FV_Cell* get_flex_cell(size_t j)
     { 
 	// ASSERT(j < nni_*njcells_);
 	return flex_cells_[j]; 
     }
     
     /// \brief Return a pointer to the ifi interface at location (i, j).
-    FV_Interface* get_ifi(int i, int j)
+    FV_Interface* get_ifi(size_t i, size_t j)
     { 
 	// ASSERT((j*nii_+i) < (nvi_*nvj_));
 	return ifi_[j*nii_+i]; 
     }
 
     /// \brief Return a pointer to the ifj interface at location (j).
-    FV_Interface* get_ifj(int j)
+    FV_Interface* get_ifj(size_t j)
     { 
 	// ASSERT(j < (nii_*nij_));
 	return ifj_[j]; 
     }
 
     /// \brief Return a pointer to the vertex at location (i, j).
-    FV_Vertex* get_vertex(int i, int j)
+    FV_Vertex* get_vertex(size_t i, size_t j)
     { 
 	// ASSERT((j*nvi_+i) < (nii_*nij_));
 	return vtx_[j*nvi_+i];
@@ -144,25 +144,25 @@ public:
 
 private:
 
-    int id_;   ///< \brief Id for pistonface.
+    size_t id_;   ///< \brief Id for pistonface.
 
-    int io_;   ///< \brief index for "outer" shadow cell
-    int bo_;   ///< \brief block index in which io_ is located
-    int ii_;   ///< \brief index for "inner" shadow cell
-    int bi_;   ///< \brief block index in which ii_ is located
+    size_t io_;   ///< \brief index for "outer" shadow cell
+    size_t bo_;   ///< \brief block index in which io_ is located
+    size_t ii_;   ///< \brief index for "inner" shadow cell
+    size_t bi_;   ///< \brief block index in which ii_ is located
 
     bool covers_two_cells_; ///< \brief flag indicating if flex_cell covers two cells
 
-    int jmin_; ///< \brief minimum j index of flex_cells
-    int jmax_; ///< \brief maximum j index of flex_cells
+    size_t jmin_; ///< \brief minimum j index of flex_cells
+    size_t jmax_; ///< \brief maximum j index of flex_cells
 
-    int nni_; 
-    int nnj_;
-    int nvi_;
-    int nvj_;
-    int nii_;
-    int nij_;
-    int njcells_;
+    size_t nni_; 
+    size_t nnj_;
+    size_t nvi_;
+    size_t nvj_;
+    size_t nii_;
+    size_t nij_;
+    size_t njcells_;
     
     double dFg_;          ///< \brief gas component force
     double dR_;
@@ -204,7 +204,7 @@ public:
     // ------------------------------------------------------------------------
     // service functions
 
-    int get_id() { return id_; }
+    size_t get_id() { return id_; }
     std::string string_repr();
     std::string vtk_string();
     int write_state(FILE *fp, double t);
@@ -234,7 +234,7 @@ public:
     // ------------------------------------------------------------------------
     // member functions
 
-    int set_values(int id,
+    int set_values(size_t id,
 		   double D,
 		   double L,
 		   double m,
@@ -274,28 +274,28 @@ public:
     /// \brief Return the signal frequency (related to the CFL check).
     double compute_signal_frequency();
 
-    int get_wio()
+    size_t get_wio()
     { return wPistonFace[0]->get_io(); }
 
-    int get_wbo()
+    size_t get_wbo()
     { return wPistonFace[0]->get_bo(); }
 
-    int get_wii()
+    size_t get_wii()
     { return wPistonFace[0]->get_io(); }
 
-    int get_wbi()
+    size_t get_wbi()
     { return wPistonFace[0]->get_bo(); }
 
-    int get_eio()
+    size_t get_eio()
     { return ePistonFace[0]->get_ii(); }
 
-    int get_ebo()
+    size_t get_ebo()
     { return ePistonFace[0]->get_bi(); }
 
-    int get_eii()
+    size_t get_eii()
     { return ePistonFace[0]->get_ii(); }
 
-    int get_ebi()
+    size_t get_ebi()
     { return ePistonFace[0]->get_bi(); }
 
     /// \brief Return a boolean about whether or not a piston is active
@@ -307,10 +307,10 @@ public:
     { return (status_ == P_INACTIVE); }
 
 private:
-    int id_;        // piston id
-    int ncf_;       // number of component faces per face
-    int imin_;
-    int imax_;
+    size_t id_;        // piston id
+    size_t ncf_;       // number of component faces per face
+    size_t imin_;
+    size_t imax_;
 
     PistonStatus status_; 
     double vanish_at_x_;
@@ -350,13 +350,13 @@ private:
 //
 int activate_cells(global_data &G, Block *(bd[]));
 int print_cell_status(global_data &G, Block *(bd[]));
-int locate_west_block_index(int &b_index, Vector3 &pos, global_data &G, Block *(bd[]));
-int locate_east_block_index(int &b_index, Vector3 &pos, global_data &G, Block *(bd[]));
-int locate_block_index(int &b_near, Vector3 &pos, Block *(bd[]), int nblock);
+int locate_west_block_index(size_t &b_index, Vector3 &pos, global_data &G, Block *(bd[]));
+int locate_east_block_index(size_t &b_index, Vector3 &pos, global_data &G, Block *(bd[]));
+int locate_block_index(size_t &b_near, Vector3 &pos, Block *(bd[]), size_t nblock);
 
 ///\brief returns index of "nearest" interface
-int linear_search_from_west(int &ival, double xval, Block &bd);
-int linear_search_from_east(int &ival, double xval, Block &bd);
+int linear_search_from_west(size_t &ival, double xval, Block &bd);
+int linear_search_from_east(size_t &ival, double xval, Block &bd);
 
 ///\brief returns the linear interpolation of xval in y
 int linear_eval(double xval, double &yval, vector<double> &x, vector<double> &y);
@@ -376,7 +376,7 @@ int update_gas_conserved(FV_Cell *cell);
 int update_gas_extensive_conserved(FV_Cell *cell, double volume);
 int update_gas_primaries(FV_Cell *cell);
 int update_gas_primaries_from_extensive(FV_Cell *cell, double volume);
-int update_extensive_gas_time_derivatives_from_fluxes(FV_Cell *cell, int time_level);
+int update_extensive_gas_time_derivatives_from_fluxes(FV_Cell *cell, size_t time_level);
 int update_gas_conserved_from_time_derivatives(FV_Cell *cell, double dt);
 int average_two_flow_states(FV_Cell *dst,
 			    FV_Cell *src0, double vol0,

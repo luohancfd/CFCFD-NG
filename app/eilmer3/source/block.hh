@@ -1,18 +1,20 @@
-/** \file block.hh
- * \ingroup eilmer3
- * \brief Header file for the block data structure within Elmer3.
- * 
- * \author PJ
- * \version 05-Aug-04 extracted from mb_cns.h
- * \version 02-Mar-08 Elmer3 port
- */
-
+/// \file block.hh
+/// \ingroup eilmer3
+/// \brief Header file for the block data structure within Elmer3.
+///
+/// \author PJ
+/// \version 05-Aug-04 extracted from mb_cns.h
+///\version 02-Mar-08 Elmer3 port
 
 #ifndef BLOCK_HH
 #define BLOCK_HH
 
 #include <string>
+#include <sstream>
+#include <vector>
+#include <stdexcept>
 #include "../../../lib/util/source/useful.h"
+#include "../../../lib/util/source/string_util.hh"
 #include "../../../lib/gas/models/gas_data.hh"
 #include "../../../lib/gas/models/gas-model.hh"
 #include "c-flow-condition.hh"
@@ -36,22 +38,22 @@ typedef int (FV_Cell::*FV_Cell_MemberFunction_int_int)(int,int);
 /// \brief Number of ghost cells surrounding the active cells.
 ///
 /// This sets the size of the ghost-cell buffer around a block.
-const int NGHOST = 2;
+const size_t NGHOST = 2;
 
 /// \brief Parameters for cell checking...
 ///
 /// When decoding the array of conserved quantities, 
 /// the temperature or the density may try to go negative.  
-/// If it does and ADJUST_INVALID_CELL_DATA == 1, the cell data
+/// If it does and adjust_invalid_cell_data == true, the cell data
 /// is adjusted to make it reasonable.
-/// If PREFER_COPY_FROM_LEFT == 1 when adjusting data,
+/// If prefer_copy_from_left == true when adjusting data,
 /// the new values are obtained from the cell to the left, else
 /// the values are obtained by averaging the properties in nearby cells.
 /// These parameters affect the behaviour of function count_invalid_cells().
-const int ADJUST_INVALID_CELL_DATA = 1;
-const int PREFER_COPY_FROM_LEFT = 0;
+const bool adjust_invalid_cell_data = true;
+const bool prefer_copy_from_left = false;
 
-const int CHECK_ARRAY_BOUNDS = 1;
+const bool check_array_bounds = true;
 
 /*----------------------------------------------------------------*/
 
@@ -62,7 +64,7 @@ const int CHECK_ARRAY_BOUNDS = 1;
  */
 class Block {
 public:
-    int id; // block identifier: assumed to be the same as the block number.
+    size_t id; // block identifier: assumed to be the same as the block number.
     int active; // =1: active block; =0: inactive block
 
     double omegaz; // Angular velocity (in rad/s) of the rotating frame.
@@ -74,24 +76,24 @@ public:
     double mass_residual, energy_residual; // monitor these for steady state
     Vector3 mass_residual_loc, energy_residual_loc; // locations of worst case
 
-    int hncell;                 // number of sample cells
-    std::vector<int> hicell, hjcell, hkcell; // location of sample cells
+    size_t hncell;              // number of sample cells
+    std::vector<size_t> hicell, hjcell, hkcell; // location of sample cells
 
     // Total number of cells in each direction for this block.
     // these will be used in the array allocation routines.
-    int nidim, njdim, nkdim;
+    size_t nidim, njdim, nkdim;
 
     // Number of active cells in the i,j index-directions
-    int nni, nnj, nnk;
+    size_t nni, nnj, nnk;
 
     // These index limits are set to allow convenient access 
     // to the arrays without having to worry how many buffer 
     // cells are present.
     // imin <= i <= imax,  jmin <= j <= jmax
     // Typically imin = jmin = 2.
-    int imin, imax;
-    int jmin, jmax;
-    int kmin, kmax;
+    size_t imin, imax;
+    size_t jmin, jmax;
+    size_t kmin, kmax;
 
     // Flag to indicate if the Baldwin-Lomax turbulence model 
     // is active for the current block. 1==active; 0==inactive;
@@ -127,111 +129,71 @@ public:
     ~Block();
     Block & operator=(const Block &b);
 
-    int array_alloc(int dimensions);
-    int array_cleanup(int dimensions);
+    int array_alloc(size_t dimensions);
+    int array_cleanup(size_t dimensions);
 
-    FV_Cell *get_cell(int i, int j, int k=0) 
+    FV_Cell *get_cell(size_t i, size_t j, size_t k=0) 
     {
-#       if CHECK_ARRAY_BOUNDS == 1
-	if ( (k < 0) || (k >= nkdim) || 
-	     (j < 0) || (j >= njdim) || 
-	     (i < 0) || (i >= nidim) ) {
-		 printf("Block::get_cell: index out of bounds: i=%d, j=%d, k=%d\n", i, j, k);
-	         printf("                 nidim=%d, njdim=%d, nkdim=%d\n", nidim, njdim, nkdim);
-		 exit( INDEX_OUT_OF_RANGE );
+	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
+	    throw std::runtime_error("Block::get_cell: index out of bounds: i="+
+				     tostring(i)+" j="+tostring(j)+" k="+tostring(k));
 	}
-#       endif 
 	return ctr_[k*(njdim*nidim)+j*nidim+i]; 
     }
     FV_Interface *get_ifi(int i, int j, int k=0)
     {
-#       if CHECK_ARRAY_BOUNDS == 1
-	if ( (k < 0) || (k >= nkdim) || 
-	     (j < 0) || (j >= njdim) || 
-	     (i < 0) || (i >= nidim) ) {
-		 printf("Block::get_ifi: index out of bounds: i=%d, j=%d, k=%d\n", i, j, k);
-	         printf("                nidim=%d, njdim=%d, nkdim=%d\n", nidim, njdim, nkdim);
-		 exit( INDEX_OUT_OF_RANGE );
+	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
+	    throw std::runtime_error("Block::get_ifi: index out of bounds: i="+
+				     tostring(i)+" j="+tostring(j)+" k="+tostring(k));
 	}
-#       endif 
 	return ifi_[k*(njdim*nidim)+j*nidim+i]; 
     }
     FV_Interface *get_ifj(int i, int j, int k=0)
     {
-#       if CHECK_ARRAY_BOUNDS == 1
-	if ( (k < 0) || (k >= nkdim) || 
-	     (j < 0) || (j >= njdim) || 
-	     (i < 0) || (i >= nidim) ) {
-		 printf("Block::get_ifj: index out of bounds: i=%d, j=%d, k=%d\n", i, j, k);
-	         printf("                nidim=%d, njdim=%d, nkdim=%d\n", nidim, njdim, nkdim);
-		 exit( INDEX_OUT_OF_RANGE );
+	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
+	    throw std::runtime_error("Block::get_ifj: index out of bounds: i="+
+				     tostring(i)+" j="+tostring(j)+" k="+tostring(k));
 	}
-#       endif 
 	return ifj_[k*(njdim*nidim)+j*nidim+i]; 
     }
     FV_Interface *get_ifk(int i, int j, int k=0)
     {
-#       if CHECK_ARRAY_BOUNDS == 1
-	if ( (k < 0) || (k >= nkdim) || 
-	     (j < 0) || (j >= njdim) || 
-	     (i < 0) || (i >= nidim) ) {
-		 printf("Block::get_ifk: index out of bounds: i=%d, j=%d, k=%d\n", i, j, k);
-	         printf("                nidim=%d, njdim=%d, nkdim=%d\n", nidim, njdim, nkdim);
-		 exit( INDEX_OUT_OF_RANGE );
+	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
+	    throw std::runtime_error("Block::get_ifk: index out of bounds: i="+
+				     tostring(i)+" j="+tostring(j)+" k="+tostring(k));
 	}
-#       endif 
 	return ifk_[k*(njdim*nidim)+j*nidim+i]; 
     }
     FV_Vertex *get_vtx(int i, int j, int k=0)
     {
-#       if CHECK_ARRAY_BOUNDS == 1
-	if ( (k < 0) || (k >= nkdim) || 
-	     (j < 0) || (j >= njdim) || 
-	     (i < 0) || (i >= nidim) ) {
-		 printf("Block::get_vtx: index out of bounds: i=%d, j=%d, k=%d\n", i, j, k);
-	         printf("                nidim=%d, njdim=%d, nkdim=%d\n", nidim, njdim, nkdim);
-		 exit( INDEX_OUT_OF_RANGE );
+	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
+	    throw std::runtime_error("Block::get_vtx: index out of bounds: i="+
+				     tostring(i)+" j="+tostring(j)+" k="+tostring(k));
 	}
-#       endif 
 	return vtx_[k*(njdim*nidim)+j*nidim+i]; 
     }
     FV_Interface *get_sifi(int i, int j, int k=0)
     {
-#       if CHECK_ARRAY_BOUNDS == 1
-	if ( (k < 0) || (k >= nkdim) || 
-	     (j < 0) || (j >= njdim) || 
-	     (i < 0) || (i >= nidim) ) {
-		 printf("Block::get_sifi: index out of bounds: i=%d, j=%d, k=%d\n", i, j, k);
-	         printf("                nidim=%d, njdim=%d, nkdim=%d\n", nidim, njdim, nkdim);
-		 exit( INDEX_OUT_OF_RANGE );
+	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
+	    throw std::runtime_error("Block::get_sifi: index out of bounds: i="+
+				     tostring(i)+" j="+tostring(j)+" k="+tostring(k));
 	}
-#       endif 
 	return sifi_[k*(njdim*nidim)+j*nidim+i]; 
     }
     FV_Interface *get_sifj(int i, int j, int k=0)
     {
-#       if CHECK_ARRAY_BOUNDS == 1
-	if ( (k < 0) || (k >= nkdim) || 
-	     (j < 0) || (j >= njdim) || 
-	     (i < 0) || (i >= nidim) ) {
-		 printf("Block::get_sifj: index out of bounds: i=%d, j=%d, k=%d\n", i, j, k);
-	         printf("                nidim=%d, njdim=%d, nkdim=%d\n", nidim, njdim, nkdim);
-		 exit( INDEX_OUT_OF_RANGE );
+	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
+	    throw std::runtime_error("Block::get_sifj: index out of bounds: i="+
+				     tostring(i)+" j="+tostring(j)+" k="+tostring(k));
 	}
-#       endif 
 	return sifj_[k*(njdim*nidim)+j*nidim+i]; 
     }
     FV_Interface *get_sifk(int i, int j, int k=0)
     {
-#       if CHECK_ARRAY_BOUNDS == 1
-	if ( (k < 0) || (k >= nkdim) || 
-	     (j < 0) || (j >= njdim) || 
-	     (i < 0) || (i >= nidim) ) {
-		 printf("Block::get_sifk: index out of bounds: i=%d, j=%d, k=%d\n", i, j, k);
-	         printf("                nidim=%d, njdim=%d, nkdim=%d\n", nidim, njdim, nkdim);
-		 exit( INDEX_OUT_OF_RANGE );
+	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
+	    throw std::runtime_error("Block::get_sifk: index out of bounds: i="+
+				     tostring(i)+" j="+tostring(j)+" k="+tostring(k));
 	}
-#       endif 
 	return sifk_[k*(njdim*nidim)+j*nidim+i]; 
     }
 
@@ -255,85 +217,85 @@ public:
     int apply(int (*f)(FV_Cell *cellp, int param1, double param2), 
 	      int param1, double param2, string failure_message_header);
 
-    int bind_interfaces_to_cells( int dimensions );
+    int bind_interfaces_to_cells( size_t dimensions );
     int set_base_qdot( global_data &gdp ); 
     int identify_reaction_zones( global_data &gdp );
     int identify_turbulent_zones( global_data &gdp );
-    int clear_fluxes_of_conserved_quantities( int dimensions );
-    int propagate_data_west_to_east( int dimensions );
+    int clear_fluxes_of_conserved_quantities( size_t dimensions );
+    int propagate_data_west_to_east( size_t dimensions );
 
-    int compute_initial_primary_cell_geometric_data( int dimensions );
-    int compute_primary_cell_geometric_data( int dimensions, int time_level );
-    int compute_distance_to_nearest_wall_for_all_cells( int dimensions );
-    int compute_secondary_cell_geometric_data( int dimensions );
+    int compute_initial_primary_cell_geometric_data( size_t dimensions );
+    int compute_primary_cell_geometric_data( size_t dimensions, size_t time_level );
+    int compute_distance_to_nearest_wall_for_all_cells( size_t dimensions );
+    int compute_secondary_cell_geometric_data( size_t dimensions );
     int calc_initial_volumes_2D( void );
-    int calc_volumes_2D( int time_level );
+    int calc_volumes_2D( size_t time_level );
     int secondary_areas_2D( void );
     int calc_initial_faces_2D( void );
-    int calc_faces_2D( int time_level );
+    int calc_faces_2D( size_t time_level );
     int calc_initial_ghost_cell_geom_2D( void );
-    int calc_ghost_cell_geom_2D( int time_level );
-    int predict_vertex_positions( int dimensions, double dt );
-    int correct_vertex_positions( int dimensions, double dt );
-    int rk3_vertex_positions( int dimensions, double dt );
-    int set_geometry_velocities( int dimensions, int time_level );
-    int set_vertex_velocities2D( int time_level );
-    int set_gcl_test_vertex_velocities2D( int time_level );
-    int set_gcl_test_vertex_velocities3D( int time_level );
-    int set_gcl_test_random_vertex_velocities2D( int time_level );
-    int set_gcl_interface_properties( int dimensions, int time_level, double dt );
-    int set_gcl_interface_properties2D( int time_level, double dt );
-    int set_gcl_interface_properties3D( int time_level, double dt );
-    int set_interface_velocities2D( int time_level );
-    int set_vertex_velocities3D( int time_level );
-    int set_interface_velocities3D( int time_level );
+    int calc_ghost_cell_geom_2D( size_t time_level );
+    int predict_vertex_positions( size_t dimensions, double dt );
+    int correct_vertex_positions( size_t dimensions, double dt );
+    int rk3_vertex_positions( size_t dimensions, double dt );
+    int set_geometry_velocities( size_t dimensions, size_t time_level );
+    int set_vertex_velocities2D( size_t time_level );
+    int set_gcl_test_vertex_velocities2D( size_t time_level );
+    int set_gcl_test_vertex_velocities3D( size_t time_level );
+    int set_gcl_test_random_vertex_velocities2D( size_t time_level );
+    int set_gcl_interface_properties( size_t dimensions, size_t time_level, double dt );
+    int set_gcl_interface_properties2D( size_t time_level, double dt );
+    int set_gcl_interface_properties3D( size_t time_level, double dt );
+    int set_interface_velocities2D( size_t time_level );
+    int set_vertex_velocities3D( size_t time_level );
+    int set_interface_velocities3D( size_t time_level );
     int calc_boundary_vertex_velocity(FV_Interface &IFace1, FV_Interface &IFace2,     
-				      FV_Vertex &vtx, Vector3 trv, int time_level);
+				      FV_Vertex &vtx, Vector3 trv, size_t time_level);
     int calc_boundary_vertex_velocity(FV_Interface &IFace1, FV_Interface &IFace2,     
 				      FV_Interface &IFace3, FV_Interface &IFace4,
-				      FV_Vertex &vtx, Vector3 trv, int time_level);
+				      FV_Vertex &vtx, Vector3 trv, size_t time_level);
     int velocity_weighting_factor(FV_Interface &IFace, Vector3 vp, double &w, Vector3 &ws);
-    int diffuse_vertex_velocities(double mu, int npass, int dimensions, int time_level);
-    int anti_diffuse_vertex_velocities(double mu, int npass, int dimensions, int time_level);
+    int diffuse_vertex_velocities(double mu, int npass, size_t dimensions, size_t time_level);
+    int anti_diffuse_vertex_velocities(double mu, int npass, size_t dimensions, size_t time_level);
     int compute_boundary_flux(FV_Interface *IFaceL, FV_Interface *IFaceR, double omegaz);
     
-    void compute_x_forces( char *text_string, int ibndy, int dimensions );
-    int print_forces( FILE *fp, double t, int dimensions );
+    void compute_x_forces( char *text_string, int ibndy, size_t dimensions );
+    int print_forces( FILE *fp, double t, size_t dimensions );
 
-    int read_grid(std::string filename, int dimensions, int zip_file=1);
+    int read_grid(std::string filename, size_t dimensions, int zip_file=1);
     int read_solution(std::string filename, double *sim_time, 
-		      int dimensions, int zip_file=1);
+		      size_t dimensions, int zip_file=1);
     int write_solution(std::string filename, double sim_time, 
-		       int dimensions, int zip_file=1 );
+		       size_t dimensions, int zip_file=1 );
     int write_block(std::string filename, double sim_time, 
-		       int dimensions, int zip_file=1 );
+		       size_t dimensions, int zip_file=1 );
     int read_BGK(std::string filename, double *sim_time, 
-		      int dimensions, int zip_file=1);
+		      size_t dimensions, int zip_file=1);
     int initialise_BGK_equilibrium( void );
     int write_BGK(std::string filename, double sim_time, 
-		       int dimensions, int zip_file=1 );
+		       size_t dimensions, int zip_file=1 );
     int write_history( std::string filename, double sim_time, int write_header=0 );
 
-    int count_invalid_cells( int dimensions );
-    int init_residuals( int dimensions );
-    int compute_residuals( int dimensions );
+    int count_invalid_cells( size_t dimensions );
+    int init_residuals( size_t dimensions );
+    int compute_residuals( size_t dimensions );
 
-    int determine_time_step_size( double cfl_target, int dimensions );
-    int detect_shock_points( int dimensions );
-    int apply_spatial_filter_diffusion( double alpha, int npass, int dimensions );
-    int apply_spatial_filter_anti_diffusion( double alpha, int npass, int dimensions );
+    int determine_time_step_size( double cfl_target, size_t dimensions );
+    int detect_shock_points( size_t dimensions );
+    int apply_spatial_filter_diffusion( double alpha, size_t npass, size_t dimensions );
+    int apply_spatial_filter_anti_diffusion( double alpha, size_t npass, size_t dimensions );
     double calc_anti_diffusive_flux(double m2, double m1, double p1, double p2, double mu);
 
     // The implementation for the following function is in invs.cxx
-    int inviscid_flux( int dimensions );
+    int inviscid_flux( size_t dimensions );
    
     
 };  /* end of the (single-)block data structure definition */
 
 int find_nearest_cell( double x, double y, double z, 
-		       int *jb_near, int *i_near, int *j_near, int *k_near );
+		       size_t *jb_near, size_t *i_near, size_t *j_near, size_t *k_near );
 int locate_cell(double x, double y, double z,
-		int *jb_found, int *i_found, int *j_found, int *k_found);
+		size_t *jb_found, size_t *i_found, size_t *j_found, size_t *k_found);
 
 
 /** Indexing of the data in 2D.

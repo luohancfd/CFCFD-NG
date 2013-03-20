@@ -9,12 +9,12 @@ private:
     std::vector<double> mdot;
     std::string filename;
     std::vector<double> TProfile;
-    int ncell_for_profile;
+    size_t ncell_for_profile;
     double mdot_total;
     Gas_model *gmodel;
     Gas_data *Q;
-    int u0_index;
-    int max_iterations;
+    size_t u0_index;
+    size_t max_iterations;
     double tol;
     std::vector<double> cell_massf;
     double cell_rho;
@@ -43,5 +43,5 @@ private:
 public:
     int f( const std::valarray<double> &y, std::valarray<double> &G );
     int Jac( const std::valarray<double> &y, Valmatrix &dGdy );
-    double eval_du0_drho0i( int isp );
+    double eval_du0_drho0i( size_t isp );
 };

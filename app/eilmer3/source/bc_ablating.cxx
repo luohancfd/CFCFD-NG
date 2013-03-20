@@ -38,7 +38,7 @@ AblatingBC::AblatingBC( Block *bdp, int which_boundary, double Twall,
     char line[512], token[512];
     double T;
     FILE *fp;
-    int ncell, nread;
+    size_t ncell, nread;
     bool with_input_T_file = 1;
 
     // Get number of cells for this boundary
@@ -63,7 +63,7 @@ AblatingBC::AblatingBC( Block *bdp, int which_boundary, double Twall,
 	    exit(FILE_ERROR);
         }
 
-        nread = sscanf(line, "%d", &ncell_for_profile);
+        nread = sscanf(line, "%u", &ncell_for_profile);
         if ( nread != 1 ) {
             cerr << "AblatingBC() constructor:"
 	        << "Could not read ncell_for_profile from line:" << endl
@@ -82,7 +82,7 @@ AblatingBC::AblatingBC( Block *bdp, int which_boundary, double Twall,
     }
 
     /* For each line in the file, store the temperature data. */
-    for ( int ii = 0; ii < ncell; ++ii ) {
+    for ( size_t ii = 0; ii < ncell; ++ii ) {
         if ( with_input_T_file == 1 ) {
 	        if ( fgets(line, sizeof(line), fp) == NULL ) {
 	            cerr << "AblatingBC(): failure of fgets()" << endl;
@@ -100,7 +100,7 @@ AblatingBC::AblatingBC( Block *bdp, int which_boundary, double Twall,
     
     // 0. Get gas-model pointer
     gmodel = get_gas_model_ptr();
-    int nsp = gmodel->get_number_of_species();
+    size_t nsp = gmodel->get_number_of_species();
     // 1. Calculate the total mass flux from the given species-specific components
     mdot_total = 0.0;
     
@@ -164,7 +164,7 @@ AblatingBC & AblatingBC::operator=(const AblatingBC &bc)
 	mdot_total = bc.mdot_total;
 	// 0. Get gas-model pointer
 	gmodel = bc.gmodel;
-	int nsp = gmodel->get_number_of_species();
+	size_t nsp = gmodel->get_number_of_species();
 	// 1. Calculate the total mass flux from the given species-specific components
 	// -> copied explicitly above
 	// 2. Initialise the local gas-data structure (used for EOS calls)
@@ -190,7 +190,7 @@ int AblatingBC::apply_inviscid( double t )
 {
     // Calculate the ghost cell flow-states from the given wall temperature
     // and species-specific mass flux.
-    int i, j, k;
+    size_t i, j, k;
     FV_Cell *src_cell, *dest_cell;
     FV_Interface *IFace;
     Block & bd = *bdp;
@@ -308,10 +308,10 @@ int AblatingBC::apply_inviscid( double t )
 
 int AblatingBC::apply_viscous( double t )
 {
-    int i, j, k;
+    size_t i, j, k;
     FV_Cell *cell;
     FV_Interface *IFace;
-    int nmodes = gmodel->get_number_of_modes();
+    size_t nmodes = gmodel->get_number_of_modes();
     Block & bd = *bdp;
 
     switch ( which_boundary ) {
@@ -324,7 +324,7 @@ int AblatingBC::apply_viscous( double t )
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( int imode=0; imode < nmodes; ++imode ) { 
+		for ( size_t imode=0; imode < nmodes; ++imode ) { 
 		    fs.gas->T[imode] = TProfile[i-bd.imin];
 	    }
 		fs.tke = 0.0;
@@ -344,7 +344,7 @@ int AblatingBC::apply_viscous( double t )
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( int imode=0; imode < nmodes; ++imode ) {
+		for ( size_t imode=0; imode < nmodes; ++imode ) {
 		    fs.gas->T[imode] = TProfile[j-bd.jmin];
 		}
 		fs.tke = 0.0;
@@ -364,7 +364,7 @@ int AblatingBC::apply_viscous( double t )
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( int imode=0; imode < nmodes; ++imode ) {
+		for ( size_t imode=0; imode < nmodes; ++imode ) {
 		    fs.gas->T[imode] = TProfile[i-bd.imin];
 	    }
 		fs.tke = 0.0;
@@ -384,7 +384,7 @@ int AblatingBC::apply_viscous( double t )
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( int imode=0; imode < nmodes; ++imode ) {
+		for ( size_t imode=0; imode < nmodes; ++imode ) {
 		    fs.gas->T[imode] = TProfile[j-bd.jmin];
 	    }
 		fs.tke = 0.0;
@@ -404,7 +404,7 @@ int AblatingBC::apply_viscous( double t )
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( int imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
+		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[TOP]->wc_bc != NON_CATALYTIC) {
@@ -422,7 +422,7 @@ int AblatingBC::apply_viscous( double t )
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		for ( int imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
+		for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[BOTTOM]->wc_bc != NON_CATALYTIC) {
@@ -475,7 +475,7 @@ calculate_ghost_cell_flow_state( FV_Cell *cell1, FV_Interface *wall, FV_Cell *ce
     // y_guess
     if ( cell0->fs->gas->rho > 0.0 ) {
     	// just use the current ghost cell state as the guess
-    	int iy;
+    	size_t iy;
     	// species mass densities
     	for ( iy=0; iy<(int)Q->massf.size(); ++iy )
     	    y_guess[iy] = cell0->fs->gas->massf[iy] * cell0->fs->gas->rho;
@@ -493,7 +493,7 @@ calculate_ghost_cell_flow_state( FV_Cell *cell1, FV_Interface *wall, FV_Cell *ce
     	double R = gmodel->R(*Q);
     	double T = Q->T[0];
     	double R_new, rho_0, u_0;
-    	for ( int i=0; i<10; ++i ) {
+    	for ( size_t i=0; i<10; ++i ) {
             //previous
             //rho_0 = GHOST_DENSITY_QUADRATIC_SOLUTION;
             rho_0 = fabs(mdot_total)/cell_rho;
@@ -529,7 +529,7 @@ calculate_ghost_cell_flow_state( FV_Cell *cell1, FV_Interface *wall, FV_Cell *ce
             u_0 = ( 2.0 * mdot_total - cell_mass_flux ) / rho_0;
             // cout << "rho_0 = " << rho_0 << ", u_0 = " << u_0 << endl;
 	}
-    	int iy;
+    	size_t iy;
     	// species mass densities
     	for ( iy=0; iy<(int)Q->massf.size(); ++iy )
     	    y_guess[iy] = Q->massf[iy] * rho_0;
@@ -605,7 +605,7 @@ calculate_ghost_cell_flow_state( FV_Cell *cell1, FV_Interface *wall, FV_Cell *ce
     return SUCCESS;
 }
 
-const int WITH_TOTAL_MASS_CONSERVATION = 1;
+const size_t WITH_TOTAL_MASS_CONSERVATION = 1;
 const int NORMALISE_G = 1;
 
 int AblatingBC::f( const valarray<double> &y, valarray<double> &G )
@@ -627,7 +627,7 @@ int AblatingBC::f( const valarray<double> &y, valarray<double> &G )
     double momentum_flux_norm = 1.0;
 #   endif
     
-    int iG;
+    size_t iG;
     
 #   if WITH_TOTAL_MASS_CONSERVATION
     // 1a. species mass conservation
@@ -684,11 +684,11 @@ int AblatingBC::Jac( const valarray<double> &y, Valmatrix &Gdy )
     double momentum_flux_norm = 1.0;
 #   endif
 
-    int iG;
+    size_t iG;
 
 #if WITH_TOTAL_MASS_CONSERVATION
     // 1a. species mass conservation derivaties
-    for ( iG=0; iG<(int)cell_massf.size()-1; ++iG ) {
+    for ( iG=0; iG<cell_massf.size()-1; ++iG ) {
     	//  a. wrt species mass densities (off-diagonals are zero)
     	Gdy.set(iG,iG,0.5*u0/mass_flux_norm*f_jac);
     	//  b. wrt velocity
@@ -696,7 +696,7 @@ int AblatingBC::Jac( const valarray<double> &y, Valmatrix &Gdy )
     }
     
     // 1a. total mass conservation derivaties
-    for ( int jsp=0; jsp<(int)cell_massf.size(); ++jsp ) {
+    for ( size_t jsp=0; jsp<cell_massf.size(); ++jsp ) {
     	//  a. wrt species mass densities (off-diagonals are zero)
     	Gdy.set(iG,jsp,0.5*u0/mass_flux_norm*f_jac);
     }
@@ -705,7 +705,7 @@ int AblatingBC::Jac( const valarray<double> &y, Valmatrix &Gdy )
     ++iG;
 #else
     // 1. species mass conservation derivaties
-    for ( iG=0; iG<(int)cell_massf.size(); ++iG ) {
+    for ( iG=0; iG<cell_massf.size(); ++iG ) {
     	//  a. wrt species mass densities (off-diagonals are zero)
     	Gdy.set(iG,iG,0.5*u0/mass_flux_norm*f_jac);
     	//  b. wrt velocity

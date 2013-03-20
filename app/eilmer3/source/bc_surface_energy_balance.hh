@@ -14,12 +14,12 @@ public:
 private:
     int solve_for_wall_temperature( FV_Interface * IFace,
     				    FV_Cell * cell_one,
-    				    int index );
+    				    size_t index );
     void update_interface_properties( FV_Interface * IFace );
 private:
     Gas_data *Q;
     double epsilon;
     double tol;
-    int max_iterations;
+    size_t max_iterations;
     double f_relax;
 };

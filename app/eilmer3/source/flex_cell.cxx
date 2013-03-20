@@ -304,7 +304,7 @@ int add_shadowed_cell_and_flex_cell_data(FV_Cell* src, flex_cell_center* dest)
     return SUCCESS;
 }
 
-int time_derivatives_for_flex_cell(flex_cell_center *fc, int time_level, int dimensions) 
+int time_derivatives_for_flex_cell(flex_cell_center *fc, int time_level, size_t dimensions) 
 {
 #if 0
     if (dimensions != 2) {
@@ -365,7 +365,7 @@ vector. These are dirichlet boundary conditions for a moving wall.
     return SUCCESS;
 }
 
-double signal_frequency_for_flex_cell(flex_cell_center *fc, int dimensions)
+double signal_frequency_for_flex_cell(flex_cell_center *fc, size_t dimensions)
 {
 #if 0
     if (dimensions != 2) {

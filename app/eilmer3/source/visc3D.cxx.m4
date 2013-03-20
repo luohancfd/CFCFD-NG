@@ -76,7 +76,7 @@ int viscous_flux_3D(Block *A)
     FV_Vertex *Vtx1, *Vtx2, *Vtx3, *Vtx4;
     FV_Interface *IFace;
     double nx, ny, nz;
-    int i, j, k;
+    size_t i, j, k;
     double dudx, dudy, dudz;
     double dvdx, dvdy, dvdz;
     double dwdx, dwdy, dwdz;
@@ -93,7 +93,7 @@ int viscous_flux_3D(Block *A)
     double viscous_factor = get_viscous_factor();
     Gas_model *gmodel = get_gas_model_ptr();
 
-    int nsp = gmodel->get_number_of_species();
+    size_t nsp = gmodel->get_number_of_species();
     if( dfdx.size() == 0 ) {
 	dfdx.resize(nsp); 
 	dfdy.resize(nsp);
@@ -103,7 +103,7 @@ int viscous_flux_3D(Block *A)
 	jz.resize(nsp);
     }
     
-    int ntm = gmodel->get_number_of_modes();
+    size_t ntm = gmodel->get_number_of_modes();
     if( dTdx.size() == 0 ) {
 	dTdx.resize(ntm);
 	dTdy.resize(ntm);
@@ -160,14 +160,14 @@ int viscous_flux_3D(Block *A)
 		               if ( vt2dp >= 0.0 ) { $1[$2] = Vtx2->$1[$2]; } else { $1[$2] = Vtx3->$1[$2]; }
                            }')dnl
 		    for_each_scalar_derivative(`select_upwind_scalar_value')
-		    for ( int itm=0; itm<ntm; ++itm ) {
+		    for ( size_t itm=0; itm<ntm; ++itm ) {
                         select_upwind_array_element(dTdx,itm)
                         select_upwind_array_element(dTdy,itm)
                         select_upwind_array_element(dTdz,itm)
                     }
 	            if( get_diffusion_flag() == 1 ) {
                         // Needed for diffusion model, below.
-		        for( int isp = 0; isp < nsp; ++isp ) {
+		        for( size_t isp = 0; isp < nsp; ++isp ) {
                             select_upwind_array_element(dfdx,isp)
                             select_upwind_array_element(dfdy,isp)
                             select_upwind_array_element(dfdz,isp)
@@ -180,14 +180,14 @@ int viscous_flux_3D(Block *A)
 		    define(`average_array_element_over_face', 
                            `$1[$2] = 0.25*(Vtx1->$1[$2]+Vtx2->$1[$2]+Vtx3->$1[$2]+Vtx4->$1[$2]);')dnl
 		    for_each_scalar_derivative(`average_scalar_over_face')
-		    for ( int itm=0; itm<ntm; ++itm ) {
+		    for ( size_t itm=0; itm<ntm; ++itm ) {
                         average_array_element_over_face(dTdx,itm)
                         average_array_element_over_face(dTdy,itm)
                         average_array_element_over_face(dTdz,itm)
                     }
 	            if( get_diffusion_flag() == 1 ) {
                         // Needed for diffusion model, below.
-		        for( int isp = 0; isp < nsp; ++isp ) {
+		        for( size_t isp = 0; isp < nsp; ++isp ) {
                             average_array_element_over_face(dfdx,isp)
                             average_array_element_over_face(dfdy,isp)
                             average_array_element_over_face(dfdz,isp)
@@ -195,7 +195,7 @@ int viscous_flux_3D(Block *A)
                     }
                 }		    
                 k_eff[0] = viscous_factor * (fs.gas->k[0] + fs.k_t);
-		for ( int itm=1; itm<ntm; ++itm ) {
+		for ( size_t itm=1; itm<ntm; ++itm ) {
 		    k_eff[itm] = viscous_factor * fs.gas->k[itm];
                 }
 		mu_eff =  viscous_factor * (fs.gas->mu + fs.mu_t);
@@ -212,7 +212,7 @@ int viscous_flux_3D(Block *A)
 					       dfdx, dfdy, dfdz,
 					       jx, jy, jz);
 		    // NOTE: now applying viscous_factor to diffusive fluxes
-		    for( int isp = 0; isp < nsp; ++isp ) {
+		    for( size_t isp = 0; isp < nsp; ++isp ) {
 		        jx[isp] *= viscous_factor;
 		        jy[isp] *= viscous_factor;
 		        jz[isp] *= viscous_factor;
@@ -230,7 +230,7 @@ int viscous_flux_3D(Block *A)
 	        qx[0] = k_eff[0] * dTdx[0];
 	        qy[0] = k_eff[0] * dTdy[0];
 	        qz[0] = k_eff[0] * dTdz[0];
-	        for ( int itm=1; itm<ntm; ++itm ) {
+	        for ( size_t itm=1; itm<ntm; ++itm ) {
 		    qx[itm] = k_eff[itm] * dTdx[itm];
 		    qy[itm] = k_eff[itm] * dTdy[itm];
 		    qz[itm] = k_eff[itm] * dTdz[itm];
@@ -239,12 +239,12 @@ int viscous_flux_3D(Block *A)
 		    qz[0] += qz[itm];
 	        }
 	        if( get_diffusion_flag() == 1 ) {
-		    for( int isp = 0; isp < nsp; ++isp ) {
+		    for( size_t isp = 0; isp < nsp; ++isp ) {
 		    	double h = gmodel->enthalpy(*(fs.gas), isp);
 		        qx[0] -= jx[isp] * h;
 		        qy[0] -= jy[isp] * h;
 		        qz[0] -= jz[isp] * h;
-		        for ( int itm=1; itm<ntm; ++itm ) {
+		        for ( size_t itm=1; itm<ntm; ++itm ) {
                             double hmode = gmodel->modal_enthalpy(*(fs.gas), isp, itm);
 			    qx[itm] -= jx[isp] * hmode;
 			    qy[itm] -= jy[isp] * hmode;
@@ -297,12 +297,12 @@ int viscous_flux_3D(Block *A)
 	        }
                 // Species mass flux
 	        if( get_diffusion_flag() == 1 ) {
-	  	    for( int isp = 0; isp < nsp; ++isp ) {
+	  	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		        F.massf[isp] += jx[isp]*nx + jy[isp]*ny + jz[isp]*nz;
 		    }
 	        }
 	        // Modal energy flux (skipping first mode as this is handled by total energy)
-	        for ( int itm=1; itm<ntm; ++itm ) {
+	        for ( size_t itm=1; itm<ntm; ++itm ) {
 	    	    F.energies[itm] -= qx[itm]*nx + qy[itm]*ny + qz[itm]*nz;
 	        }
 	    } // k loop
@@ -341,14 +341,14 @@ int viscous_flux_3D(Block *A)
 		        vt2dp = dot(fs.vel,IFace->t2);
 	            }
 		    for_each_scalar_derivative(`select_upwind_scalar_value')
-		    for ( int itm=0; itm<ntm; ++itm ) {
+		    for ( size_t itm=0; itm<ntm; ++itm ) {
                         select_upwind_array_element(dTdx,itm)
                         select_upwind_array_element(dTdy,itm)
                         select_upwind_array_element(dTdz,itm)
                     }
 	            if( get_diffusion_flag() == 1 ) {
                         // Needed for diffusion model, below.
-		        for( int isp = 0; isp < nsp; ++isp ) {
+		        for( size_t isp = 0; isp < nsp; ++isp ) {
                             select_upwind_array_element(dfdx,isp)
                             select_upwind_array_element(dfdy,isp)
                             select_upwind_array_element(dfdz,isp)
@@ -357,14 +357,14 @@ int viscous_flux_3D(Block *A)
                 } else {
                     // Symmetric average.
  		    for_each_scalar_derivative(`average_scalar_over_face')
-		    for ( int itm=0; itm<ntm; ++itm ) {
+		    for ( size_t itm=0; itm<ntm; ++itm ) {
                         average_array_element_over_face(dTdx,itm)
                         average_array_element_over_face(dTdy,itm)
                         average_array_element_over_face(dTdz,itm)
                     }
  	            if( get_diffusion_flag() == 1 ) {
                         // derivatives needed for diffusion model, below
-		        for( int isp = 0; isp < nsp; ++isp ) {
+		        for( size_t isp = 0; isp < nsp; ++isp ) {
                             average_array_element_over_face(dfdx,isp)
                             average_array_element_over_face(dfdy,isp)
                             average_array_element_over_face(dfdz,isp)
@@ -372,7 +372,7 @@ int viscous_flux_3D(Block *A)
                     }
                 }
                 k_eff[0] = viscous_factor * (fs.gas->k[0] + fs.k_t);
-		for ( int itm=1; itm<ntm; ++itm ) {
+		for ( size_t itm=1; itm<ntm; ++itm ) {
 		    k_eff[itm] = viscous_factor * fs.gas->k[itm];
                 }
 		mu_eff =  viscous_factor * (fs.gas->mu + fs.mu_t);
@@ -389,7 +389,7 @@ int viscous_flux_3D(Block *A)
 					       dfdx, dfdy, dfdz,
 					       jx, jy, jz);
 		    // NOTE: now applying viscous_factor to diffusive fluxes
-		    for( int isp = 0; isp < nsp; ++isp ) {
+		    for( size_t isp = 0; isp < nsp; ++isp ) {
 		        jx[isp] *= viscous_factor;
 		        jy[isp] *= viscous_factor;
 		        jz[isp] *= viscous_factor;
@@ -407,7 +407,7 @@ int viscous_flux_3D(Block *A)
 	        qx[0] = k_eff[0] * dTdx[0];
 	        qy[0] = k_eff[0] * dTdy[0];
 	        qz[0] = k_eff[0] * dTdz[0];
-	        for ( int itm=1; itm<ntm; ++itm ) {
+	        for ( size_t itm=1; itm<ntm; ++itm ) {
 		    qx[itm] = k_eff[itm] * dTdx[itm];
 		    qy[itm] = k_eff[itm] * dTdy[itm];
 		    qz[itm] = k_eff[itm] * dTdz[itm];
@@ -416,12 +416,12 @@ int viscous_flux_3D(Block *A)
 		    qz[0] += qz[itm];
 	        }
 	        if( get_diffusion_flag() == 1 ) {
-		    for( int isp = 0; isp < nsp; ++isp ) {
+		    for( size_t isp = 0; isp < nsp; ++isp ) {
 		    	double h = gmodel->enthalpy(*(fs.gas), isp);
 		        qx[0] -= jx[isp] * h;
 		        qy[0] -= jy[isp] * h;
 		        qz[0] -= jz[isp] * h;
-		        for ( int itm=1; itm<ntm; ++itm ) {
+		        for ( size_t itm=1; itm<ntm; ++itm ) {
 			    double hmode = gmodel->modal_enthalpy(*(fs.gas), isp, itm);
 			    qx[itm] -= jx[isp] * hmode;
 			    qy[itm] -= jy[isp] * hmode;
@@ -474,12 +474,12 @@ int viscous_flux_3D(Block *A)
 	        }
                 // Species mass flux
 	        if( get_diffusion_flag() == 1 ) {
-	  	    for( int isp = 0; isp < nsp; ++isp ) {
+	  	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		        F.massf[isp] += jx[isp]*nx + jy[isp]*ny + jz[isp]*nz;
 		    }
 	        }
 	        // Modal energy flux (skipping first mode as this is handled by total energy)
-	        for ( int itm=1; itm<ntm; ++itm ) {
+	        for ( size_t itm=1; itm<ntm; ++itm ) {
 	    	    F.energies[itm] -= qx[itm]*nx + qy[itm]*ny + qz[itm]*nz;
 	        }
 	    } // k loop
@@ -518,14 +518,14 @@ int viscous_flux_3D(Block *A)
 		        vt2dp = dot(fs.vel,IFace->t2);
 	            }
 		    for_each_scalar_derivative(`select_upwind_scalar_value')
-		    for ( int itm=0; itm<ntm; ++itm ) {
+		    for ( size_t itm=0; itm<ntm; ++itm ) {
                         select_upwind_array_element(dTdx,itm)
                         select_upwind_array_element(dTdy,itm)
                         select_upwind_array_element(dTdz,itm)
                     }
 	            if( get_diffusion_flag() == 1 ) {
                         // Needed for diffusion model, below.
-		        for( int isp = 0; isp < nsp; ++isp ) {
+		        for( size_t isp = 0; isp < nsp; ++isp ) {
                             select_upwind_array_element(dfdx,isp)
                             select_upwind_array_element(dfdy,isp)
                             select_upwind_array_element(dfdz,isp)
@@ -534,14 +534,14 @@ int viscous_flux_3D(Block *A)
                 } else {
                     // Symmetric average.
 		    for_each_scalar_derivative(`average_scalar_over_face')
-		    for ( int itm=0; itm<ntm; ++itm ) {
+		    for ( size_t itm=0; itm<ntm; ++itm ) {
                         average_array_element_over_face(dTdx,itm)
                         average_array_element_over_face(dTdy,itm)
                         average_array_element_over_face(dTdz,itm)
                     }
  	            if( get_diffusion_flag() == 1 ) {
                         // derivatives needed for diffusion model, below
-		        for( int isp = 0; isp < nsp; ++isp ) {
+		        for( size_t isp = 0; isp < nsp; ++isp ) {
                             average_array_element_over_face(dfdx,isp)
                             average_array_element_over_face(dfdy,isp)
                             average_array_element_over_face(dfdz,isp)
@@ -549,7 +549,7 @@ int viscous_flux_3D(Block *A)
                     }
                 }
                 k_eff[0] = viscous_factor * (fs.gas->k[0] + fs.k_t);
-		for ( int itm=1; itm<ntm; ++itm ) {
+		for ( size_t itm=1; itm<ntm; ++itm ) {
 		    k_eff[itm] = viscous_factor * fs.gas->k[itm];
                 }
 		mu_eff =  viscous_factor * (fs.gas->mu + fs.mu_t);
@@ -566,7 +566,7 @@ int viscous_flux_3D(Block *A)
 					       dfdx, dfdy, dfdz,
 					       jx, jy, jz);
 		    // NOTE: now applying viscous_factor to diffusive fluxes
-		    for( int isp = 0; isp < nsp; ++isp ) {
+		    for( size_t isp = 0; isp < nsp; ++isp ) {
 		        jx[isp] *= viscous_factor;
 		        jy[isp] *= viscous_factor;
 		        jz[isp] *= viscous_factor;
@@ -584,7 +584,7 @@ int viscous_flux_3D(Block *A)
 	        qx[0] = k_eff[0] * dTdx[0];
 	        qy[0] = k_eff[0] * dTdy[0];
 	        qz[0] = k_eff[0] * dTdz[0];
-	        for ( int itm=1; itm<ntm; ++itm ) {
+	        for ( size_t itm=1; itm<ntm; ++itm ) {
 		    qx[itm] = k_eff[itm] * dTdx[itm];
 		    qy[itm] = k_eff[itm] * dTdy[itm];
 		    qz[itm] = k_eff[itm] * dTdz[itm];
@@ -593,12 +593,12 @@ int viscous_flux_3D(Block *A)
 		    qz[0] += qz[itm];
 	        }
 	        if( get_diffusion_flag() == 1 ) {
-		    for( int isp = 0; isp < nsp; ++isp ) {
+		    for( size_t isp = 0; isp < nsp; ++isp ) {
 		    	double h = gmodel->enthalpy(*(fs.gas), isp);
 		        qx[0] -= jx[isp] * h;
 		        qy[0] -= jy[isp] * h;
 		        qz[0] -= jz[isp] * h;
-		        for ( int itm=1; itm<ntm; ++itm ) {
+		        for ( size_t itm=1; itm<ntm; ++itm ) {
                             double hmode = gmodel->modal_enthalpy(*(fs.gas), isp, itm);
 			    qx[itm] -= jx[isp] * hmode;
 			    qy[itm] -= jy[isp] * hmode;
@@ -651,12 +651,12 @@ int viscous_flux_3D(Block *A)
 	        }
                 // Species mass flux
 	        if( get_diffusion_flag() == 1 ) {
-	  	    for( int isp = 0; isp < nsp; ++isp ) {
+	  	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		        F.massf[isp] += jx[isp]*nx + jy[isp]*ny + jz[isp]*nz;
 		    }
 	        }
 	        // Modal energy flux (skipping first mode as this is handled by total energy)
-	        for ( int itm=1; itm<ntm; ++itm ) {
+	        for ( size_t itm=1; itm<ntm; ++itm ) {
 	    	    F.energies[itm] -= qx[itm]*nx + qy[itm]*ny + qz[itm]*nz;
 	        }
 	    } // k loop
@@ -677,7 +677,7 @@ int viscous_flux_3D(Block *A)
  */
 int viscous_derivatives_3D(Block *A)
 {
-    int i, j, k;
+    size_t i, j, k;
     double q_e, q_w, q_n, q_s, q_top, q_bottom;
     double vol_inv;
     FV_Vertex *sec_ctr;
@@ -688,8 +688,8 @@ int viscous_derivatives_3D(Block *A)
     FV_Interface *north, *east, *south, *west, *bottom, *top;
 
     Gas_model *gmodel = get_gas_model_ptr();
-    int nsp = gmodel->get_number_of_species();
-    int ntm = gmodel->get_number_of_modes();
+    size_t nsp = gmodel->get_number_of_species();
+    size_t ntm = gmodel->get_number_of_modes();
 
     // First, do all of the internal secondary cells.
     // i.e. Those not on a boundary.
@@ -746,10 +746,10 @@ int viscous_derivatives_3D(Block *A)
 		       sec_ctr->d$3dy[$4] = div_integral_expr(y);
 		       sec_ctr->d$3dz[$4] = div_integral_expr(z);')
 	        // Apply the divergence theorem to the primary temperature derivatives only.
-                for ( int itm=0; itm<ntm; ++itm ) {
+                for ( size_t itm=0; itm<ntm; ++itm ) {
 		    div_theorem_core_array_element(gas->T,gas->T,T,itm)
                 }
-  	        for( int isp = 0; isp < nsp; ++isp ) {
+  	        for( size_t isp = 0; isp < nsp; ++isp ) {
 		    div_theorem_core_array_element(gas->massf,gas->massf,f,isp)
                 }
 	    } // k loop
@@ -798,10 +798,10 @@ int viscous_derivatives_3D(Block *A)
 	           sec_ctr->d$3dx[$4] = div_integral_expr(x);
 	           sec_ctr->d$3dy[$4] = div_integral_expr(y);
 	           sec_ctr->d$3dz[$4] = div_integral_expr(z);')
-            for ( int itm=0; itm<ntm; ++itm ) {
+            for ( size_t itm=0; itm<ntm; ++itm ) {
                 div_theorem_east_array_element(gas->T,gas->T,T,itm)
             }
-  	    for( int isp = 0; isp < nsp; ++isp ) {
+  	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		div_theorem_east_array_element(gas->massf,gas->massf,f,isp)
             }
 	} // k loop
@@ -847,10 +847,10 @@ int viscous_derivatives_3D(Block *A)
 	           sec_ctr->d$3dx[$4] = div_integral_expr(x);
 	           sec_ctr->d$3dy[$4] = div_integral_expr(y);
 	           sec_ctr->d$3dz[$4] = div_integral_expr(z);')
-            for ( int itm=0; itm<ntm; ++itm ) {
+            for ( size_t itm=0; itm<ntm; ++itm ) {
 	        div_theorem_west_array_element(gas->T,gas->T,T,itm)
             }
-  	    for( int isp = 0; isp < nsp; ++isp ) {
+  	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		div_theorem_west_array_element(gas->massf,gas->massf,f,isp)
             }
 	} // k loop
@@ -897,10 +897,10 @@ int viscous_derivatives_3D(Block *A)
 	           sec_ctr->d$3dx[$4] = div_integral_expr(x);
 	           sec_ctr->d$3dy[$4] = div_integral_expr(y);
 	           sec_ctr->d$3dz[$4] = div_integral_expr(z);')
-            for ( int itm=0; itm<ntm; ++itm ) {
+            for ( size_t itm=0; itm<ntm; ++itm ) {
 	        div_theorem_north_array_element(gas->T,gas->T,T,itm)
             }
-  	    for( int isp = 0; isp < nsp; ++isp ) {
+  	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		div_theorem_north_array_element(gas->massf,gas->massf,f,isp)
             }
         } // k loop
@@ -947,10 +947,10 @@ int viscous_derivatives_3D(Block *A)
 	           sec_ctr->d$3dx[$4] = div_integral_expr(x);
 	           sec_ctr->d$3dy[$4] = div_integral_expr(y);
 	           sec_ctr->d$3dz[$4] = div_integral_expr(z);')
-            for ( int itm=0; itm<ntm; ++itm ) {
+            for ( size_t itm=0; itm<ntm; ++itm ) {
 	        div_theorem_south_array_element(gas->T,gas->T,T,itm)
             }
-  	    for( int isp = 0; isp < nsp; ++isp ) {
+  	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		div_theorem_south_array_element(gas->massf,gas->massf,f,isp)
             }
 	} // k loop
@@ -997,10 +997,10 @@ int viscous_derivatives_3D(Block *A)
 	           sec_ctr->d$3dx[$4] = div_integral_expr(x);
 	           sec_ctr->d$3dy[$4] = div_integral_expr(y);
 	           sec_ctr->d$3dz[$4] = div_integral_expr(z);')
-            for ( int itm=0; itm<ntm; ++itm ) {
+            for ( size_t itm=0; itm<ntm; ++itm ) {
 	        div_theorem_top_array_element(gas->T,gas->T,T,itm)
             }
-  	    for( int isp = 0; isp < nsp; ++isp ) {
+  	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		div_theorem_top_array_element(gas->massf,gas->massf,f,isp)
             }
         } // j loop
@@ -1047,10 +1047,10 @@ int viscous_derivatives_3D(Block *A)
 	           sec_ctr->d$3dx[$4] = div_integral_expr(x);
 	           sec_ctr->d$3dy[$4] = div_integral_expr(y);
 	           sec_ctr->d$3dz[$4] = div_integral_expr(z);')
-            for ( int itm=0; itm<ntm; ++itm ) {
+            for ( size_t itm=0; itm<ntm; ++itm ) {
 	        div_theorem_bottom_array_element(gas->T,gas->T,T,itm)
             }
-  	    for( int isp = 0; isp < nsp; ++isp ) {
+  	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		div_theorem_bottom_array_element(gas->massf,gas->massf,f,isp)
             }
  	} // j loop
@@ -1071,7 +1071,7 @@ int viscous_derivatives_3D(Block *A)
  */
 int viscous_derivatives_corners_3D(Block *bdp)
 {
-    int i, j, k;
+    size_t i, j, k;
     FV_Vertex *vtx;
     FV_Interface *a, *b, *d;
     FV_Cell *c;
@@ -1079,8 +1079,8 @@ int viscous_derivatives_corners_3D(Block *bdp)
     double fa, fb, fc, fd, denom;
 
     Gas_model *gmodel = get_gas_model_ptr();
-    int nsp = gmodel->get_number_of_species();
-    int ntm = gmodel->get_number_of_modes();
+    size_t nsp = gmodel->get_number_of_species();
+    size_t ntm = gmodel->get_number_of_modes();
 
     // South-West-Bottom corner [0]
     i = bdp->imin; j = bdp->jmin; k = bdp->kmin;
@@ -1121,10 +1121,10 @@ int viscous_derivatives_corners_3D(Block *bdp)
            vtx->d$3dx[$4] = numerator_x / denom;
            vtx->d$3dy[$4] = numerator_y / denom;
            vtx->d$3dz[$4] = numerator_z / denom;')dnl
-    for ( int itm=0; itm<ntm; ++itm ) {
+    for ( size_t itm=0; itm<ntm; ++itm ) {
         corner_derivatives_array_element(gas->T,gas->T,T,itm)
     }
-    for( int isp = 0; isp < nsp; ++isp ) {
+    for( size_t isp = 0; isp < nsp; ++isp ) {
         corner_derivatives_array_element(gas->massf,gas->massf,f,isp)
     }
 
@@ -1137,10 +1137,10 @@ int viscous_derivatives_corners_3D(Block *bdp)
     d = bdp->get_ifk(i,j,k);
     denominator_for_corners
     for_each_scalar_element(`corner_derivatives_scalar_element')
-    for ( int itm=0; itm<ntm; ++itm ) {
+    for ( size_t itm=0; itm<ntm; ++itm ) {
         corner_derivatives_array_element(gas->T,gas->T,T,itm)
     }
-    for( int isp = 0; isp < nsp; ++isp ) {
+    for( size_t isp = 0; isp < nsp; ++isp ) {
         corner_derivatives_array_element(gas->massf,gas->massf,f,isp)
     }
 
@@ -1153,10 +1153,10 @@ int viscous_derivatives_corners_3D(Block *bdp)
     d = bdp->get_ifk(i,j,k);
     denominator_for_corners
     for_each_scalar_element(`corner_derivatives_scalar_element')
-    for ( int itm=0; itm<ntm; ++itm ) {
+    for ( size_t itm=0; itm<ntm; ++itm ) {
         corner_derivatives_array_element(gas->T,gas->T,T,itm)
     }
-    for( int isp = 0; isp < nsp; ++isp ) {
+    for( size_t isp = 0; isp < nsp; ++isp ) {
         corner_derivatives_array_element(gas->massf,gas->massf,f,isp)
     }
 
@@ -1169,10 +1169,10 @@ int viscous_derivatives_corners_3D(Block *bdp)
     d = bdp->get_ifk(i,j,k);
     denominator_for_corners
     for_each_scalar_element(`corner_derivatives_scalar_element')
-    for ( int itm=0; itm<ntm; ++itm ) {
+    for ( size_t itm=0; itm<ntm; ++itm ) {
         corner_derivatives_array_element(gas->T,gas->T,T,itm)
     }
-    for( int isp = 0; isp < nsp; ++isp ) {
+    for( size_t isp = 0; isp < nsp; ++isp ) {
         corner_derivatives_array_element(gas->massf,gas->massf,f,isp)
     }
 
@@ -1185,10 +1185,10 @@ int viscous_derivatives_corners_3D(Block *bdp)
     d = bdp->get_ifk(i,j,k+1);
     denominator_for_corners
     for_each_scalar_element(`corner_derivatives_scalar_element')
-    for ( int itm=0; itm<ntm; ++itm ) {
+    for ( size_t itm=0; itm<ntm; ++itm ) {
         corner_derivatives_array_element(gas->T,gas->T,T,itm)
     }
-    for( int isp = 0; isp < nsp; ++isp ) {
+    for( size_t isp = 0; isp < nsp; ++isp ) {
         corner_derivatives_array_element(gas->massf,gas->massf,f,isp)
     }
 
@@ -1201,10 +1201,10 @@ int viscous_derivatives_corners_3D(Block *bdp)
     d = bdp->get_ifk(i,j,k+1);
     denominator_for_corners
     for_each_scalar_element(`corner_derivatives_scalar_element')
-    for ( int itm=0; itm<ntm; ++itm ) {
+    for ( size_t itm=0; itm<ntm; ++itm ) {
         corner_derivatives_array_element(gas->T,gas->T,T,itm)
     }
-    for( int isp = 0; isp < nsp; ++isp ) {
+    for( size_t isp = 0; isp < nsp; ++isp ) {
         corner_derivatives_array_element(gas->massf,gas->massf,f,isp)
     }
 
@@ -1217,10 +1217,10 @@ int viscous_derivatives_corners_3D(Block *bdp)
     d = bdp->get_ifk(i,j,k+1);
     denominator_for_corners
     for_each_scalar_element(`corner_derivatives_scalar_element')
-    for ( int itm=0; itm<ntm; ++itm ) {
+    for ( size_t itm=0; itm<ntm; ++itm ) {
         corner_derivatives_array_element(gas->T,gas->T,T,itm)
     }
-    for( int isp = 0; isp < nsp; ++isp ) {
+    for( size_t isp = 0; isp < nsp; ++isp ) {
         corner_derivatives_array_element(gas->massf,gas->massf,f,isp)
     }
 
@@ -1233,10 +1233,10 @@ int viscous_derivatives_corners_3D(Block *bdp)
     d = bdp->get_ifk(i,j,k+1);
     denominator_for_corners
     for_each_scalar_element(`corner_derivatives_scalar_element')
-    for ( int itm=0; itm<ntm; ++itm ) {
+    for ( size_t itm=0; itm<ntm; ++itm ) {
         corner_derivatives_array_element(gas->T,gas->T,T,itm)
     }
-    for( int isp = 0; isp < nsp; ++isp ) {
+    for( size_t isp = 0; isp < nsp; ++isp ) {
         corner_derivatives_array_element(gas->massf,gas->massf,f,isp)
     }
 
@@ -1250,7 +1250,7 @@ int viscous_derivatives_corners_3D(Block *bdp)
  */
 int viscous_derivatives_edge_3D(Block *bdp)
 {
-    int i, j, k, imin, jmin, kmin, imax, jmax, kmax;
+    size_t i, j, k, imin, jmin, kmin, imax, jmax, kmax;
     FV_Vertex *vtx;
     FV_Cell *ca, *cb;
     FV_Interface *fa, *fb, *fc, *fd;
@@ -1263,8 +1263,8 @@ int viscous_derivatives_edge_3D(Block *bdp)
     double S1, Sx, Sy, Sz, Sxx, Syx, Syy, Szx, Szy, Szz, Sf, Sfx, Sfy, Sfz;
 
     Gas_model *gmodel = get_gas_model_ptr();
-    int nsp = gmodel->get_number_of_species();
-    int ntm = gmodel->get_number_of_modes();
+    size_t nsp = gmodel->get_number_of_species();
+    size_t ntm = gmodel->get_number_of_modes();
 
     Valmatrix A1( 4, 4);
     valarray<double> B1(4);
@@ -1342,10 +1342,10 @@ int viscous_derivatives_edge_3D(Block *bdp)
                 assemble_least_squares_rhs
                 solve_lsq_array_element($1,$2,$3,$4)')dnl
         for_each_scalar_element(`assemble_least_squares_rhs_and_solve_scalar_element')
-        for ( int itm=0; itm<ntm; ++itm ) {
+        for ( size_t itm=0; itm<ntm; ++itm ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->T,gas->T,T,itm)
         }
-        for( int isp = 0; isp < nsp; ++isp ) {
+        for( size_t isp = 0; isp < nsp; ++isp ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->massf,gas->massf,f,isp)
         }
     }
@@ -1362,10 +1362,10 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fd = bdp->get_ifk(i,j,k);
         assemble_least_squares_matrix
         for_each_scalar_element(`assemble_least_squares_rhs_and_solve_scalar_element')
-        for ( int itm=0; itm<ntm; ++itm ) {
+        for ( size_t itm=0; itm<ntm; ++itm ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->T,gas->T,T,itm)
         }
-        for( int isp = 0; isp < nsp; ++isp ) {
+        for( size_t isp = 0; isp < nsp; ++isp ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->massf,gas->massf,f,isp)
         }
     }
@@ -1382,10 +1382,10 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fd = bdp->get_ifk(i,j,k);
         assemble_least_squares_matrix
         for_each_scalar_element(`assemble_least_squares_rhs_and_solve_scalar_element')
-        for ( int itm=0; itm<ntm; ++itm ) {
+        for ( size_t itm=0; itm<ntm; ++itm ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->T,gas->T,T,itm)
         }
-        for( int isp = 0; isp < nsp; ++isp ) {
+        for( size_t isp = 0; isp < nsp; ++isp ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->massf,gas->massf,f,isp)
         }
     }
@@ -1402,10 +1402,10 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fd = bdp->get_ifk(i,j,k);
         assemble_least_squares_matrix
         for_each_scalar_element(`assemble_least_squares_rhs_and_solve_scalar_element')
-        for ( int itm=0; itm<ntm; ++itm ) {
+        for ( size_t itm=0; itm<ntm; ++itm ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->T,gas->T,T,itm)
         }
-        for( int isp = 0; isp < nsp; ++isp ) {
+        for( size_t isp = 0; isp < nsp; ++isp ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->massf,gas->massf,f,isp)
         }
     }
@@ -1422,10 +1422,10 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fd = bdp->get_ifk(i,j,k+1);
         assemble_least_squares_matrix
         for_each_scalar_element(`assemble_least_squares_rhs_and_solve_scalar_element')
-        for ( int itm=0; itm<ntm; ++itm ) {
+        for ( size_t itm=0; itm<ntm; ++itm ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->T,gas->T,T,itm)
         }
-        for( int isp = 0; isp < nsp; ++isp ) {
+        for( size_t isp = 0; isp < nsp; ++isp ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->massf,gas->massf,f,isp)
         }
     }
@@ -1442,10 +1442,10 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fd = bdp->get_ifk(i,j,k+1);
         assemble_least_squares_matrix
         for_each_scalar_element(`assemble_least_squares_rhs_and_solve_scalar_element')
-        for ( int itm=0; itm<ntm; ++itm ) {
+        for ( size_t itm=0; itm<ntm; ++itm ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->T,gas->T,T,itm)
         }
-        for( int isp = 0; isp < nsp; ++isp ) {
+        for( size_t isp = 0; isp < nsp; ++isp ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->massf,gas->massf,f,isp)
         }
     }
@@ -1462,10 +1462,10 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fd = bdp->get_ifk(i,j,k+1);
         assemble_least_squares_matrix
         for_each_scalar_element(`assemble_least_squares_rhs_and_solve_scalar_element')
-        for ( int itm=0; itm<ntm; ++itm ) {
+        for ( size_t itm=0; itm<ntm; ++itm ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->T,gas->T,T,itm)
         }
-        for( int isp = 0; isp < nsp; ++isp ) {
+        for( size_t isp = 0; isp < nsp; ++isp ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->massf,gas->massf,f,isp)
         }
     }
@@ -1482,10 +1482,10 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fd = bdp->get_ifk(i,j,k+1);
         assemble_least_squares_matrix
         for_each_scalar_element(`assemble_least_squares_rhs_and_solve_scalar_element')
-        for ( int itm=0; itm<ntm; ++itm ) {
+        for ( size_t itm=0; itm<ntm; ++itm ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->T,gas->T,T,itm)
         }
-        for( int isp = 0; isp < nsp; ++isp ) {
+        for( size_t isp = 0; isp < nsp; ++isp ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->massf,gas->massf,f,isp)
         }
     }
@@ -1502,10 +1502,10 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fd = bdp->get_ifj(i,j,k);
         assemble_least_squares_matrix
         for_each_scalar_element(`assemble_least_squares_rhs_and_solve_scalar_element')
-        for ( int itm=0; itm<ntm; ++itm ) {
+        for ( size_t itm=0; itm<ntm; ++itm ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->T,gas->T,T,itm)
         }
-        for( int isp = 0; isp < nsp; ++isp ) {
+        for( size_t isp = 0; isp < nsp; ++isp ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->massf,gas->massf,f,isp)
         }
     }
@@ -1522,10 +1522,10 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fd = bdp->get_ifj(i,j,k);
         assemble_least_squares_matrix
         for_each_scalar_element(`assemble_least_squares_rhs_and_solve_scalar_element')
-        for ( int itm=0; itm<ntm; ++itm ) {
+        for ( size_t itm=0; itm<ntm; ++itm ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->T,gas->T,T,itm)
         }
-        for( int isp = 0; isp < nsp; ++isp ) {
+        for( size_t isp = 0; isp < nsp; ++isp ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->massf,gas->massf,f,isp)
         }
     }
@@ -1542,10 +1542,10 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fd = bdp->get_ifj(i,j+1,k);
         assemble_least_squares_matrix
         for_each_scalar_element(`assemble_least_squares_rhs_and_solve_scalar_element')
-        for ( int itm=0; itm<ntm; ++itm ) {
+        for ( size_t itm=0; itm<ntm; ++itm ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->T,gas->T,T,itm)
         }
-        for( int isp = 0; isp < nsp; ++isp ) {
+        for( size_t isp = 0; isp < nsp; ++isp ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->massf,gas->massf,f,isp)
         }
     }
@@ -1562,10 +1562,10 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fd = bdp->get_ifj(i,j+1,k);
         assemble_least_squares_matrix
         for_each_scalar_element(`assemble_least_squares_rhs_and_solve_scalar_element')
-        for ( int itm=0; itm<ntm; ++itm ) {
+        for ( size_t itm=0; itm<ntm; ++itm ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->T,gas->T,T,itm)
         }
-        for( int isp = 0; isp < nsp; ++isp ) {
+        for( size_t isp = 0; isp < nsp; ++isp ) {
             assemble_least_squares_rhs_and_solve_array_element(gas->massf,gas->massf,f,isp)
         }
     }

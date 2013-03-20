@@ -74,9 +74,9 @@ extern "C" {
 //
 int history_just_written, output_just_written, av_output_just_written;
 int program_return_flag = 0;
-int output_counter = 0; // counts the number of flow-solutions written
+size_t output_counter = 0; // counts the number of flow-solutions written
 int zip_files = 1; // flag to indicate if flow and grid files are to be gzipped
-int master;
+bool master;
 int max_wall_clock = 0;
 time_t start, now; // wall-clock timer
 
@@ -98,7 +98,7 @@ int main(int argc, char **argv)
 {
     global_data &G = *get_global_data_ptr();
     int do_run_simulation = 0;
-    int start_tindx = 0;
+    size_t start_tindx = 0;
     int run_status = SUCCESS;
     char c, job_name[132], text_buf[132];
     char log_file_name[132], mpimap_file_name[132];
@@ -171,7 +171,7 @@ int main(int argc, char **argv)
     fflush(stdout);
     MPI_Barrier(MPI_COMM_WORLD); // just to reduce the jumble in stdout
 #   elif E3RAD
-    master = 1;
+    master = true;
     sprintf(log_file_name, "e3rad.log");
     printf("e3rad: C++ version for radiation transport calculations.\n");
     printf(\
@@ -183,7 +183,7 @@ WARNING: This executable only computes the radiative source\n\
     printf("OpenMP version using %d thread(s).\n", omp_get_max_threads());
 #   endif
 #   else
-    master = 1;
+    master = true;
     sprintf(log_file_name, "e3shared.log");
     printf("e3main: C++,shared-memory version.\n");
 #   ifdef _OPENMP
@@ -222,7 +222,7 @@ WARNING: This executable only computes the radiative source\n\
 	    zip_files = 0;
 	    break;
 	case 't':
-	    start_tindx = atoi(poptGetOptArg(optCon));
+	    start_tindx = (size_t)atoi(poptGetOptArg(optCon));
 	    break;
 	case 'n':
 	    set_bad_cell_complain_flag(0);
@@ -261,7 +261,7 @@ WARNING: This executable only computes the radiative source\n\
     fflush(stdout);
     MPI_Barrier(MPI_COMM_WORLD); // just to reduce the jumble in stdout
 #   endif
-    if ( SUCCESS != read_control_parameters(G.base_file_name+".control", master, 1) ) goto Quit;
+    if ( SUCCESS != read_control_parameters(G.base_file_name+".control", master, true) ) goto Quit;
     // At this point, we know the number of blocks in the calculation.
     // Depending on whether we are running all blocks in the one process
     // or we are running a subset of blocks in this process, talking to
@@ -360,7 +360,7 @@ void do_system_cmd( string commandstring )
 } // end do_system_cmd()
 
 
-int prepare_to_integrate( int start_tindx )
+int prepare_to_integrate(size_t start_tindx)
 {
     global_data &G = *get_global_data_ptr();  // set up a reference
     Block *bdp;
@@ -377,7 +377,7 @@ int prepare_to_integrate( int start_tindx )
 	    return FILE_ERROR;
 	}
 	double temporary_time;
-	for ( int jp = 0; jp < G.npiston; ++jp ) {
+	for ( size_t jp = 0; jp < G.npiston; ++jp ) {
 	    temporary_time = G.pistons[jp]->read_state( fp );
 	    cout << "temporary_time=" << temporary_time 
 		 << " Brendan, FIX-ME please. What are we doing with the piston code?" << endl;
@@ -576,12 +576,12 @@ int prepare_to_integrate( int start_tindx )
 
 //------------------------------------------------------------------------
 
-int call_udf( double t, int step, std::string udf_fn_name )
+int call_udf(double t, size_t step, std::string udf_fn_name)
 {
     lua_getglobal(L, udf_fn_name.c_str());  // function to be called
     lua_newtable(L); // creates a table that is now at the TOS
     lua_pushnumber(L, t); lua_setfield(L, -2, "t");
-    lua_pushinteger(L, step); lua_setfield(L, -2, "step");
+    lua_pushinteger(L, (int)step); lua_setfield(L, -2, "step");
     int number_args = 1; // table of {t, step}
     int number_results = 0; // no results returned on the stack.
     if ( lua_pcall(L, number_args, number_results, 0) != 0 ) {
@@ -757,7 +757,7 @@ int integrate_blocks_in_sequence( void )
     integrate_in_time( time_slice );
 
     // The rest of the blocks.
-    for ( int jb = 2; jb < (G.nblock); ++jb ) {
+    for ( size_t jb = 2; jb < (G.nblock); ++jb ) {
 	// jb-2, jb-1, jb
 	// jb-2 is the block to be deactivated, jb-1 has been iterated and now
 	// becomes the left most block and jb is the new block to be iterated
@@ -794,7 +794,7 @@ int integrate_blocks_in_sequence( void )
 	integrate_in_time( jb*time_slice );
     }
     // Before leaving, we want all blocks active for output.
-    for ( int jb = 0; jb < G.nblock; ++jb ) {
+    for ( size_t jb = 0; jb < G.nblock; ++jb ) {
 	G.bd[jb].active = 1;
     }
     return status_flag;
@@ -893,7 +893,7 @@ int integrate_in_time( double target_time )
     while ( !finished_time_stepping ) {
 	if ( (G.step/G.control_count)*G.control_count == G.step ) {
 	    // Reparse the time-step control parameters as frequently as specified.
-	    read_control_parameters(G.base_file_name+".control", master, 0);
+	    read_control_parameters(G.base_file_name+".control", master, false);
 	}
 	// One of the control parameters is G.max_time, so we need to
 	// make sure that the stopping_time is updated accordingly.
@@ -1240,7 +1240,7 @@ int integrate_in_time( double target_time )
                 if ( bdp->active != 1 ) continue;
                 fprintf(G.logfile, " dt[%d]=%e", bdp->id, dt_record[jb] );
             }
-	    for ( int jp = 0; jp < G.npiston; ++jp ) {
+	    for ( size_t jp = 0; jp < G.npiston; ++jp ) {
 		fprintf(G.logfile, "%s\n", G.pistons[jp]->string_repr().c_str() );
 	    }
 	    if ( active_blocks == 1 ) {
@@ -1329,7 +1329,7 @@ int integrate_in_time( double target_time )
                 bdp->write_history( filename, G.sim_time );
 		bdp->print_forces( G.logfile, G.sim_time, G.dimensions );
 	    }
-	    for ( int jp = 0; jp < G.npiston; ++jp ) {
+	    for ( size_t jp = 0; jp < G.npiston; ++jp ) {
 		filename = G.base_file_name;
 		filename += ".piston";
 #               if 0
@@ -1404,7 +1404,7 @@ int integrate_in_time( double target_time )
 
 	// 6. Spatial filter may be applied occasionally.
 	if ( get_filter_flag() && G.sim_time > G.filter_next_time ) {
-	    int ipass;
+	    size_t ipass;
 	    for ( ipass = 0; ipass < G.filter_npass; ++ipass ) {
 #               ifdef _MPI
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -1599,7 +1599,7 @@ int finalize_simulation( void )
 	    filename = "hist/"+G.base_file_name+".hist"+jbstring;
             bdp->write_history( filename, G.sim_time );
 	}
-	for ( int jp = 0; jp < G.npiston; ++jp ) {
+	for ( size_t jp = 0; jp < G.npiston; ++jp ) {
 #           if 0
 	    G.pistons[jp]->write_state( piston_out_file, G.sim_time );
 #           else
@@ -1856,7 +1856,7 @@ int gasdynamic_inviscid_increment( void )
 	//     set everything back to the initial state and
 	//     reduce the time step for the next attempt
 	most_bad_cells = do_bad_cell_count();
-	if ( ADJUST_INVALID_CELL_DATA == 0 && most_bad_cells > 0 ) {
+	if ( adjust_invalid_cell_data == 0 && most_bad_cells > 0 ) {
 	    step_failed = 1;
 	}
 #       ifdef _MPI
@@ -1936,7 +1936,7 @@ int do_bad_cell_count( void )
 {
     global_data &G = *get_global_data_ptr();  // set up a reference
     Block *bdp;
-    int bad_cell_count, most_bad_cells;
+    size_t bad_cell_count, most_bad_cells;
 
     most_bad_cells = 0;
     for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
@@ -1946,8 +1946,8 @@ int do_bad_cell_count( void )
 	    most_bad_cells = bad_cell_count;
 	} 
 	if ( bad_cell_count > G.max_invalid_cells ) {
-	    printf( "   Too many bad cells (i.e. %d > %d) in block[%d].\n", 
-		    bad_cell_count, G.max_invalid_cells, (int)jb );
+	    printf( "   Too many bad cells (i.e. %u > %u) in block[%u].\n", 
+		    bad_cell_count, G.max_invalid_cells, jb );
 	}
     } // end for jb loop
 #   ifdef _MPI
@@ -1985,9 +1985,9 @@ int check_radiation_scaling( void )
     for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
     	block_f_max = 0.0;
-	for ( int k = bdp->kmin; k <= bdp->kmax; ++k ) {
-	    for ( int j = bdp->jmin; j <= bdp->jmax; ++j ) {
-		for ( int i = bdp->imin; i <= bdp->imax; ++i ) {
+	for ( size_t k = bdp->kmin; k <= bdp->kmax; ++k ) {
+	    for ( size_t j = bdp->jmin; j <= bdp->jmax; ++j ) {
+		for ( size_t i = bdp->imin; i <= bdp->imax; ++i ) {
 		    cellp = bdp->get_cell(i,j,k);
 		    f_max = cellp->rad_scaling_ratio();
 		    if ( f_max > block_f_max) block_f_max = f_max;

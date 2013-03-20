@@ -47,7 +47,7 @@ SubsonicInBC::~SubsonicInBC() {}
 int SubsonicInBC::apply_inviscid( double t )
 {
     Block & bd = *bdp;
-    int i, j, k;
+    size_t i, j, k;
     FV_Cell *src_cell, *dest_cell;
     double u, v, w, velocity;
     global_data &gd = *get_global_data_ptr();
@@ -183,13 +183,13 @@ int SubsonicInBC::subsonic_inflow_properties(const CFlowCondition *stagnation,
 					     double inflow_velocity)
 {
     Gas_model *gmodel = get_gas_model_ptr();
-    int nsp = gmodel->get_number_of_species();
+    size_t nsp = gmodel->get_number_of_species();
     int status_flag;
     //
     // Carry over some of the properties without further calculation.
     inflow_state->tke = stagnation->tke;
     inflow_state->omega = stagnation->omega;
-    for ( int isp = 0; isp < nsp; ++isp ) {
+    for ( size_t isp = 0; isp < nsp; ++isp ) {
 	inflow_state->gas->massf[isp] = stagnation->gas->massf[isp];
     }
     //
@@ -230,8 +230,8 @@ int SubsonicInBC::subsonic_inflow_properties(const CFlowCondition *stagnation,
 	double e = e_0;
 	double H = e + p/rho + kinetic_energy;
 	double delta = -0.005; // relative increment in density, small.
-	int count = 0;
-	int count_limit = 500;
+	size_t count = 0;
+	size_t count_limit = 500;
 	// If the density has to drop too far, we probably have 
 	// a supersonic inflow condition and shouldn't be using this one.
 	// TODO: revisit this stepping and follow up with an interpolation

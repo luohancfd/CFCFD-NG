@@ -53,14 +53,14 @@ struct CTurbulentZone {
 /** \brief Global data structure for control of the overall time-stepping. */
 struct global_data
 {
-    int dimensions;         // 2 or 3 dimensions
+    size_t dimensions;      // 2 or 3 dimensions
     FILE *logfile;          // log file handle
     FILE *timestampfile;
     FILE *fstctimesfile;
     std::string base_file_name;
     std::string title;
-    int nblock;             // number of blocks in overall simulation
-    int npiston;            // number of pistons
+    size_t nblock;             // number of blocks in overall simulation
+    size_t npiston;            // number of pistons
     std::vector<Piston *> pistons;
 
     // Aug-2012 rework of the block-handling code for MPI.
@@ -69,16 +69,16 @@ struct global_data
     std::vector<Block> bd;  // The array of vectors of blocks, holding arrays of cells.
     std::vector<Block *> my_blocks; // Collection that we can iterate over.
     
-    int mpi_parallel;       // ==1 if we are using MPI parallel
+    bool mpi_parallel;      // ==1 if we are using MPI parallel
     int num_mpi_proc;       // count of MPI tasks participating in the simulation
     int my_mpi_rank;        // identification for MPI process
     std::vector<int> mpi_rank_for_block; // process in which each block resides
 
-    int step;               /* global iteration count     */
-    int max_step;           /* global iteration limit     */
+    size_t step;            /* global iteration count     */
+    size_t max_step;        /* global iteration limit     */
     int halt_now;           /* flag for premature halt    */
-    int print_count; // Number of steps between writing status message to console.
-    int control_count; // Number of steps between rereading .control file.
+    size_t print_count; // Number of steps between writing status message to console.
+    size_t control_count; // Number of steps between rereading .control file.
 
     double sim_time;        /* present simulation time    */
     double max_time;        /* final solution time, s     */
@@ -88,7 +88,7 @@ struct global_data
     double CFL;             /* target CFL (worst case)    */
     bool fixed_time_step;   /* flag for fixed time-stepping */
     bool sequence_blocks;   // if true, iterate blocks sequentially (like space-marching)
-    int max_invalid_cells;  // the maximum number of bad cells (per block) 
+    size_t max_invalid_cells;  // the maximum number of bad cells (per block) 
                             // which will be tolerated without too much complaint.
     double dt_reduction_factor; 
     /*
@@ -115,7 +115,7 @@ struct global_data
     double dt_fstc;         /* interval for writing next f-s exchange data*/
 
     double cfl_target;      /* target CFL (worst case)    */
-    int cfl_count;          /* check CFL occasionally     */
+    size_t cfl_count;          /* check CFL occasionally     */
     double cfl_min;         /* current CFL minimum        */
     double cfl_max;         /* current CFL maximum        */
     double cfl_tiny;        /* smallest cfl so far        */
@@ -126,7 +126,7 @@ struct global_data
     Vector3 energy_residual_loc, mass_residual_loc; /* location of largest value */
 
     std::vector<CFlowCondition*> gas_state; /* gas,flow properties */
-    int n_gas_state;
+    size_t n_gas_state;
 
     // Filter application parameters.
     int    filter_flag;
@@ -135,10 +135,10 @@ struct global_data
     double filter_dt;
     double filter_next_time;
     double filter_mu;
-    int    filter_npass;
+    size_t filter_npass;
 
     // variables for Andrew's time averaging routine.
-    int nav;
+    size_t nav;
     double tav_0, tav_f, dtav;
     double tav;
     int do_tavg;
@@ -158,16 +158,16 @@ struct global_data
     double diaphragm_rupture_time, diaphragm_rupture_diameter;
     int diaphragm_block, drummond_progressive;
 
-    int n_heat_zone;
+    size_t n_heat_zone;
     double heat_time_start;
     double heat_time_stop;
     std::vector<struct CHeatZone> heat_zone;
 
-    int n_reaction_zone;
+    size_t n_reaction_zone;
     double reaction_time_start;
     std::vector<struct CReactionZone> reaction_zone;
 
-    int n_turbulent_zone;
+    size_t n_turbulent_zone;
     std::vector<struct CTurbulentZone> turbulent_zone;
 
     std::string udf_file; // This file will contain user-defined procedures.
@@ -264,8 +264,8 @@ int set_mhd_flag(int imf);
 int get_mhd_flag(void);
 int set_BGK_flag(int i);
 int get_BGK_flag( void );
-int set_velocity_buckets(int i);
-int get_velocity_buckets( void );
+size_t set_velocity_buckets(size_t i);
+size_t get_velocity_buckets( void );
 Vector3 get_vcoord(int i);
 std::vector<Vector3> *get_vcoords_ptr(void);
 double get_vweight(int i);

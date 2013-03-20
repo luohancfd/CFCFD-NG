@@ -234,7 +234,7 @@ int FlowState::BGK_equilibrium(void)
     double Cp = gmodel->Cp(*gas, status);
     double Pr = gmodel->Prandtl(gas->mu, Cp, gas->k[0]);
 
-    for (int iq = 0; iq < get_velocity_buckets(); ++iq) {
+    for (size_t iq = 0; iq < get_velocity_buckets(); ++iq) {
 	uvw = get_vcoord(iq);	
 	gh = Shakhov(gas->rho, vel.x, vel.y, gas->T[0], 0.0, 0.0, R, Pr, uvw.x, uvw.y);
 	G[iq] = gh.x;
@@ -996,7 +996,7 @@ int FV_Cell::scan_BGK_from_string(char *bufptr)
     
     
     // values of G and H are interleaved
-    for (int iGH = 0; iGH < get_velocity_buckets(); ++iGH) {
+    for (size_t iGH = 0; iGH < get_velocity_buckets(); ++iGH) {
 	fs->G[iGH] = atof(strtok( NULL, " " ));
 	fs->H[iGH] = atof(strtok( NULL, " " ));
     }
@@ -1014,7 +1014,7 @@ std::string FV_Cell::write_BGK_to_string() const
     ost << pos.x << " " << pos.y << " " << pos.z << " " << volume;
     // BGK discrete samples of velocity distribution function
     // interleave G and H
-    for ( int iGH = 0; iGH < get_velocity_buckets(); ++iGH ) {
+    for ( size_t iGH = 0; iGH < get_velocity_buckets(); ++iGH ) {
 	ost << " " << fs->G[iGH];
 	ost << " " << fs->H[iGH];
     }

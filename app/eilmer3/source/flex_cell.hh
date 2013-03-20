@@ -68,7 +68,7 @@ int calculate_flex_cell_volume(flex_cell_center* fcell);
 
 int calculate_flex_cell_length(flex_cell_center* fcell); 
 
-int time_derivatives_for_flex_cell(flex_cell_center *fcell, int time_level, int dimensions=2); 
+int time_derivatives_for_flex_cell(flex_cell_center *fcell, int time_level, size_t dimensions=2); 
 
 int calculate_wall_flux(flex_cell_center *fcell, double u); 
 
@@ -78,7 +78,7 @@ int inviscid_source_vector_for_flex_cell(flex_cell_center *fcell);
 
 int update_flex_cell_geometry_based_on_vertex_movement(flex_cell_center *src);
 
-double signal_frequency_for_flex_cell(flex_cell_center *fcell, int dimensions=2);
+double signal_frequency_for_flex_cell(flex_cell_center *fcell, size_t dimensions=2);
 
 int print_data_for_flex_cell(flex_cell_center *fcell); 
 

@@ -18,6 +18,7 @@
 #include <sstream>
 #include <vector>
 #include "../../../lib/util/source/useful.h"
+#include "../../../lib/util/source/string_util.hh"
 #include "../../../lib/util/source/config_parser.hh"
 #include "../../../lib/gas/models/gas_data.hh"
 #include "../../../lib/gas/models/gas-model.hh"
@@ -31,13 +32,6 @@
 
 using namespace std;
 
-std::string tostring(int i)
-{
-    ostringstream ost;
-    ost << i;
-    return ost.str();
-}
-
 /*-----------------------------------------------------------------*/
 
 /// \brief Read simulation config parameters from the INI file.
@@ -48,10 +42,10 @@ std::string tostring(int i)
 /// \param filename : name of the INI parameter file
 /// \param master: flag to indicate that this process is master
 ///
-int read_config_parameters(const string filename, int master)
+int read_config_parameters(const string filename, bool master)
 {
     global_data &G = *get_global_data_ptr();
-    int jb;
+    size_t jb;
 
     // Default values for some configuration variables.
     G.dimensions = 2;
@@ -129,8 +123,8 @@ int read_config_parameters(const string filename, int master)
     double d_value;
 
     dict.parse_string("global_data", "title", G.title, "unknown");
-    dict.parse_int("global_data", "dimensions", G.dimensions, 2);
-    dict.parse_int("global_data", "control_count", G.control_count, 10);
+    dict.parse_uint("global_data", "dimensions", G.dimensions, 2);
+    dict.parse_uint("global_data", "control_count", G.control_count, 10);
     if ( get_verbose_flag() ) {
 	cout << "title = " << G.title << endl;
 	cout << "dimensions = " << G.dimensions << endl;
@@ -184,22 +178,22 @@ int read_config_parameters(const string filename, int master)
 	    std::vector<Vector3> *vct = get_vcoords_ptr();
 	    std::vector<double> tmp;
 	    dict.parse_vector_of_doubles("global_data", "vcoords_x", tmp, tmp);
-	    for (int tid = 0; tid < get_velocity_buckets(); ++tid) {
+	    for (size_t tid = 0; tid < get_velocity_buckets(); ++tid) {
 		(*vct)[tid].x = tmp[tid];
 	    }
 	    tmp.resize(0);
 	    dict.parse_vector_of_doubles("global_data", "vcoords_y", tmp, tmp);
-	    for (int tid = 0; tid < get_velocity_buckets(); ++tid) {
+	    for (size_t tid = 0; tid < get_velocity_buckets(); ++tid) {
 		(*vct)[tid].y = tmp[tid];
 	    }
 	    tmp.resize(0);
 	    dict.parse_vector_of_doubles("global_data", "vcoords_z", tmp, tmp);
-	    for (int tid = 0; tid < get_velocity_buckets(); ++tid) {
+	    for (size_t tid = 0; tid < get_velocity_buckets(); ++tid) {
 		(*vct)[tid].z = tmp[tid];
 	    }
 	    std::vector<double> *vwt = get_vweights_ptr();
 	    dict.parse_vector_of_doubles("global_data", "vweights", tmp, tmp);
-	    for (int tid = 0; tid < get_velocity_buckets(); ++tid) {
+	    for (size_t tid = 0; tid < get_velocity_buckets(); ++tid) {
 		(*vwt)[tid] = tmp[tid];
 	    }
 	}
@@ -303,7 +297,7 @@ int read_config_parameters(const string filename, int master)
     }
 
 
-    dict.parse_int("global_data", "max_invalid_cells", G.max_invalid_cells, 10);
+    dict.parse_uint("global_data", "max_invalid_cells", G.max_invalid_cells, 10);
     dict.parse_int("global_data", "flux_calc", i_value, 0);
     set_flux_calculator( i_value );
     dict.parse_double("global_data", "compression_tolerance", d_value, -0.30);
@@ -336,7 +330,7 @@ int read_config_parameters(const string filename, int master)
     //set_filter_dt(d_value);
     dict.parse_double("global_data", "filter_mu", G.filter_mu, 0.0);
     //set_filter_mu(d_value);
-    dict.parse_int("global_data", "filter_npass", G.filter_npass, 0);
+    dict.parse_uint("global_data", "filter_npass", G.filter_npass, 0);
 
     dict.parse_int("global_data", "sequence_blocks", i_value, 0);
     G.sequence_blocks = (i_value == 1);
@@ -345,11 +339,11 @@ int read_config_parameters(const string filename, int master)
     }
 
     // Read a number of gas-states.
-    dict.parse_int("global_data", "nflow", G.n_gas_state, 0);
+    dict.parse_uint("global_data", "nflow", G.n_gas_state, 0);
     if ( get_verbose_flag() ) {
 	cout << "nflow = " << G.n_gas_state << endl;
     }
-    for ( int ig = 0; ig < G.n_gas_state; ++ig ) {
+    for ( size_t ig = 0; ig < G.n_gas_state; ++ig ) {
 	G.gas_state.push_back(read_flow_condition_from_ini_dict(dict, ig, master));
 	if ( get_verbose_flag() ) {
 	    cout << "flow condition[" << ig << "]: " << *(G.gas_state[ig]) << endl;
@@ -357,9 +351,9 @@ int read_config_parameters(const string filename, int master)
     }
 
     // Read the parameters for a number of blocks.
-    dict.parse_int("global_data", "nblock", G.nblock, 0);
+    dict.parse_uint("global_data", "nblock", G.nblock, 0);
     if ( get_verbose_flag() ) {
-	printf( "nblock = %d\n", G.nblock);
+	printf( "nblock = %u\n", G.nblock);
     }
     // We keep a record of all of the configuration data for all blocks
     // but, eventually, we may allocate the flow-field data for only a 
@@ -368,7 +362,7 @@ int read_config_parameters(const string filename, int master)
 
     // Number of pistons
     // FIX-ME code needs to be reworked...
-    dict.parse_int("global_data", "npiston", G.npiston, 0);
+    dict.parse_uint("global_data", "npiston", G.npiston, 0);
 #   ifdef _MPI
     if ( G.npiston > 0 ) {
 	G.npiston = 0;
@@ -377,9 +371,9 @@ int read_config_parameters(const string filename, int master)
 #   endif
     G.pistons.resize(G.npiston);
     if ( get_verbose_flag() ) {
-	printf( "npiston = %d\n", G.npiston);
+	printf( "npiston = %u\n", G.npiston);
     }
-    for ( int jp = 0; jp < G.npiston; ++jp ) {
+    for ( size_t jp = 0; jp < G.npiston; ++jp ) {
 	string piston_label;
 	bool piston_cvf, piston_pvf;
 	double piston_D, piston_L, piston_m, piston_x0, piston_v0, piston_f;
@@ -430,19 +424,19 @@ int read_config_parameters(const string filename, int master)
 	}
     }
 
-    dict.parse_int("global_data", "nheatzone", G.n_heat_zone, 0);
+    dict.parse_uint("global_data", "nheatzone", G.n_heat_zone, 0);
     dict.parse_double("global_data", "heat_time_start", G.heat_time_start, 0.0);
     dict.parse_double("global_data", "heat_time_stop", G.heat_time_stop, 0.0);
     dict.parse_double("global_data", "heat_factor_increment", d_value, 0.01);
     set_heat_factor_increment( d_value );
     if ( get_verbose_flag() ) {
-	printf("nheatzone = %d\n", G.n_heat_zone);
+	printf("nheatzone = %u\n", G.n_heat_zone);
 	printf("heat_time_start = %e\n", G.heat_time_start);
 	printf("heat_time_stop = %e\n", G.heat_time_stop);
 	printf("heat_factor_increment = %e\n", get_heat_factor_increment() );
     }
     G.heat_zone.resize(G.n_heat_zone);
-    for ( int indx = 0; indx < G.n_heat_zone; ++indx ) {
+    for ( size_t indx = 0; indx < G.n_heat_zone; ++indx ) {
 	struct CHeatZone* hzp = &(G.heat_zone[indx]);
 	string section = "heat_zone/" + tostring(indx);
 	dict.parse_double(section, "qdot", hzp->qdot, 0.0);
@@ -459,12 +453,12 @@ int read_config_parameters(const string filename, int master)
 	}
     }
 
-    dict.parse_int("global_data", "nreactionzone", G.n_reaction_zone, 0);
+    dict.parse_uint("global_data", "nreactionzone", G.n_reaction_zone, 0);
     if ( get_verbose_flag() ) {
-	printf("nreactionzone = %d\n", G.n_reaction_zone);
+	printf("nreactionzone = %u\n", G.n_reaction_zone);
     }
     G.reaction_zone.resize(G.n_reaction_zone);
-    for ( int indx = 0; indx < G.n_reaction_zone; ++indx ) {
+    for ( size_t indx = 0; indx < G.n_reaction_zone; ++indx ) {
 	struct CReactionZone* rzp = &(G.reaction_zone[indx]);
 	string section = "reaction_zone/" + tostring(indx);
 	dict.parse_double(section, "x0", rzp->x0, 0.0);
@@ -480,12 +474,12 @@ int read_config_parameters(const string filename, int master)
 	}
     }
 
-    dict.parse_int("global_data", "nturbulencezone", G.n_turbulent_zone, 0);
+    dict.parse_uint("global_data", "nturbulencezone", G.n_turbulent_zone, 0);
     if ( get_verbose_flag() ) {
 	printf("nturbulencezone = %d\n", G.n_turbulent_zone);
     }
     G.turbulent_zone.resize(G.n_turbulent_zone);
-    for ( int indx = 0; indx < G.n_turbulent_zone; ++indx ) {
+    for ( size_t indx = 0; indx < G.n_turbulent_zone; ++indx ) {
 	struct CTurbulentZone* tzp = &(G.turbulent_zone[indx]);
 	string section = "turbulence_zone/" + tostring(indx);
 	dict.parse_double(section, "x0", tzp->x0, 0.0);
@@ -511,7 +505,7 @@ int read_config_parameters(const string filename, int master)
 } // end read_config_parameters()
 
 
-int read_control_parameters( const string filename, int master, int first_time )
+int read_control_parameters( const string filename, bool master, bool first_time )
 {
     int i_value;
     global_data &G = *get_global_data_ptr();
@@ -529,14 +523,14 @@ int read_control_parameters( const string filename, int master, int first_time )
     dict.parse_double("control_data", "cfl", G.cfl_target, 0.5);
     dict.parse_int("control_data", "stringent_cfl", i_value, 0);
     set_stringent_cfl_flag( i_value );
-    dict.parse_int("control_data", "print_count", G.print_count, 20);
-    dict.parse_int("control_data", "cfl_count", G.cfl_count, 10);
+    dict.parse_uint("control_data", "print_count", G.print_count, 20);
+    dict.parse_uint("control_data", "cfl_count", G.cfl_count, 10);
     dict.parse_double("control_data", "dt_shock", G.dt_shock, 1.0e-3);
     dict.parse_double("control_data", "dt_plot", G.dt_plot, 1.0e-3);
     dict.parse_double("control_data", "dt_history", G.dt_his, 1.0e-3);
     dict.parse_double("control_data", "dt_fstc", G.dt_fstc, 1.0e-3);
     dict.parse_double("control_data", "max_time", G.max_time, 1.0e-3);
-    dict.parse_int("control_data", "max_step", G.max_step, 10);
+    dict.parse_uint("control_data", "max_step", G.max_step, 10);
     dict.parse_int("control_data", "halt_now", G.halt_now, 0);
     dict.parse_int("control_data", "implicit_flag", i_value, 0);
     set_implicit_flag( i_value );
@@ -591,7 +585,7 @@ int read_control_parameters( const string filename, int master, int first_time )
 /// \param filename : name of the INI file containing the mapping
 /// \param master: flag to indicate that this process is master
 ///
-int assign_blocks_to_mpi_rank(const string filename, int master)
+int assign_blocks_to_mpi_rank(const string filename, bool master)
 {
     global_data &G = *get_global_data_ptr();
     if ( get_verbose_flag() && master ) printf("Assign blocks to processes:\n");
@@ -604,27 +598,27 @@ int assign_blocks_to_mpi_rank(const string filename, int master)
 	    G.mpi_rank_for_block.resize(G.nblock);
 	    // The mapping comes from the previously-generated INI file.
 	    ConfigParser dict = ConfigParser(filename);
-	    int nrank = 0;
-	    int nblock;
-	    int nblock_total = 0;
+	    size_t nrank = 0;
+	    size_t nblock;
+	    size_t nblock_total = 0;
 	    std::vector<int> block_ids, dummy_block_ids;
-	    dict.parse_int("global", "nrank", nrank, 0);
-	    if ( G.num_mpi_proc != nrank ) {
+	    dict.parse_uint("global", "nrank", nrank, 0);
+	    if ( G.num_mpi_proc != (int)nrank ) {
 		if ( master ) {
 		    printf("    Error in specifying mpirun -np\n");
 		    printf("    It needs to match number of nrank; present values are:\n");
-		    printf("    num_mpi_proc= %d nrank= %d\n", G.num_mpi_proc, nrank);
+		    printf("    num_mpi_proc= %d nrank= %u\n", G.num_mpi_proc, nrank);
 		}
 		return FAILURE;
 	    }
-	    for ( int rank=0; rank < nrank; ++rank ) {
+	    for ( size_t rank=0; rank < nrank; ++rank ) {
 		string section = "rank/" + tostring(rank);
-		dict.parse_int(section, "nblock", nblock, 0);
+		dict.parse_uint(section, "nblock", nblock, 0);
 		block_ids.resize(0);
 		dummy_block_ids.resize(nblock);
-		for ( int i = 0; i < nblock; ++i ) dummy_block_ids[i] = -1;
+		for ( size_t i = 0; i < nblock; ++i ) dummy_block_ids[i] = -1;
 		dict.parse_vector_of_ints(section, "blocks", block_ids, dummy_block_ids);
-		if ( nblock != (int)block_ids.size() ) {
+		if ( nblock != block_ids.size() ) {
 		    if ( master ) {
 			printf("    Did not pick up correct number of block_ids:\n");
 			printf("        rank=%d, nblock=%d, block_ids.size()=%d\n",
@@ -632,14 +626,14 @@ int assign_blocks_to_mpi_rank(const string filename, int master)
 		    }
 		    return FAILURE;
 		}
-		for ( int i = 0; i < nblock; ++i ) {
+		for ( size_t i = 0; i < nblock; ++i ) {
 		    int this_block_id = block_ids[i];
 		    if ( this_block_id < 0 ) {
 			if ( master ) printf("    Error, invalid block id: %d\n", this_block_id);
 			return FAILURE;
 		    }
-		    if ( G.my_mpi_rank == rank ) G.my_blocks.push_back(&(G.bd[this_block_id]));
-		    G.mpi_rank_for_block[this_block_id] = rank;
+		    if ( G.my_mpi_rank == (int)rank ) G.my_blocks.push_back(&(G.bd[this_block_id]));
+		    G.mpi_rank_for_block[this_block_id] = (int)rank;
 		    nblock_total += 1;
 		} // end for i
 	    } // end for rank
@@ -662,7 +656,7 @@ int assign_blocks_to_mpi_rank(const string filename, int master)
 		printf("    MPI parallel, No MPI map file specified.\n");
 		printf("    Identify each block with the corresponding MPI rank.\n");
 	    }
-	    if ( G.num_mpi_proc != G.nblock ) {
+	    if ( G.num_mpi_proc != (int)G.nblock ) {
 		if ( master ) {
 		    printf("    Error in specifying mpirun -np\n");
 		    printf("    It needs to match number of blocks; present values are:\n");
@@ -671,7 +665,7 @@ int assign_blocks_to_mpi_rank(const string filename, int master)
 		return FAILURE;
 	    }
 	    G.my_blocks.push_back(&(G.bd[G.my_mpi_rank]));
-	    for ( int jb=0; jb < G.nblock; ++jb ) {
+	    for ( size_t jb=0; jb < G.nblock; ++jb ) {
 		G.mpi_rank_for_block.push_back(jb);
 	    }
 	}
@@ -679,7 +673,7 @@ int assign_blocks_to_mpi_rank(const string filename, int master)
 	if ( get_verbose_flag() ) {
 	    printf("    Since we are not doing MPI, all blocks in same process.\n");
 	}
-	for ( int jb=0; jb < G.nblock; ++jb ) {
+	for ( size_t jb=0; jb < G.nblock; ++jb ) {
 	    G.my_blocks.push_back(&(G.bd[jb]));
 	    G.mpi_rank_for_block.push_back(G.my_mpi_rank);
 	} 
@@ -690,7 +684,7 @@ int assign_blocks_to_mpi_rank(const string filename, int master)
 
 /** \brief Use config_parser functions to read the flow condition data. 
  */
-CFlowCondition *read_flow_condition_from_ini_dict(ConfigParser &dict, int indx, int master)
+CFlowCondition *read_flow_condition_from_ini_dict(ConfigParser &dict, size_t indx, bool master)
 {
     double p, u, v, w, Bx, By, Bz, mu_t, k_t, tke, omega, sigma_T, sigma_c;
     string value_string, flow_label;
@@ -713,13 +707,13 @@ CFlowCondition *read_flow_condition_from_ini_dict(ConfigParser &dict, int indx, 
     dict.parse_double(section, "omega", omega, 1.0);
     dict.parse_double(section, "sigma_T", sigma_T, 0.0);
     dict.parse_double(section, "sigma_c", sigma_c, 1.0);
-    int nsp = gmodel->get_number_of_species();
+    size_t nsp = gmodel->get_number_of_species();
     vnf.resize(nsp);
-    for ( int isp = 0; isp < nsp; ++isp ) vnf[isp] = 0.0;
+    for ( size_t isp = 0; isp < nsp; ++isp ) vnf[isp] = 0.0;
     dict.parse_vector_of_doubles(section, "massf", massf, vnf);
-    int nmodes = gmodel->get_number_of_modes();
+    size_t nmodes = gmodel->get_number_of_modes();
     vnf.resize(nmodes);
-    for ( int imode = 0; imode < nmodes; ++imode ) vnf[imode] = 300.0; 
+    for ( size_t imode = 0; imode < nmodes; ++imode ) vnf[imode] = 300.0; 
     dict.parse_vector_of_doubles(section, "T", T, vnf);
     int S = 0;  // shock indicator
     cfcp = new CFlowCondition( gmodel, p, u, v, w, T, massf, flow_label, 
@@ -753,12 +747,13 @@ CFlowCondition *read_flow_condition_from_ini_dict(ConfigParser &dict, int indx, 
  * \version 20-Aug-2006 : Read in wall catalytic b.c.
  * \version 08-Sep-2006 : absorbed impose_global_parameters()
  */
-int set_block_parameters(int id, ConfigParser &dict, int master)
+int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 {
     global_data &G = *get_global_data_ptr();
     Block &bd = *get_block_data_ptr(id);
     int indx, iface, other_block, other_face, neighbour_orientation;
-    int wc_bc, x_order, sponge_flag, xforce_flag, n_profile;
+    int wc_bc, x_order, sponge_flag, xforce_flag;
+    size_t n_profile;
     string value_string, block_label, filename, wcbc_fname;
     int inflow_condition_id, bc_type_code, is_wall, use_udf_flux, assume_ideal;
     double Twall, Pout, epsilon;
@@ -785,8 +780,8 @@ int set_block_parameters(int id, ConfigParser &dict, int master)
     }
 
     // Number of active cells in block.
-    dict.parse_int(section, "nni", bd.nni, 2);
-    dict.parse_int(section, "nnj", bd.nnj, 2);
+    dict.parse_uint(section, "nni", bd.nni, 2);
+    dict.parse_uint(section, "nnj", bd.nnj, 2);
     // Allow for ghost cells
     bd.nidim = bd.nni + 2 * NGHOST;
     bd.njdim = bd.nnj + 2 * NGHOST;
@@ -798,7 +793,7 @@ int set_block_parameters(int id, ConfigParser &dict, int master)
     bd.jmin = NGHOST;
     bd.jmax = bd.jmin + bd.nnj - 1;
     if ( G.dimensions == 3 ) {
-	dict.parse_int(section, "nnk", bd.nnk, 2);
+	dict.parse_uint(section, "nnk", bd.nnk, 2);
 	bd.nkdim = bd.nnk + 2 * NGHOST;
 	bd.kmin = NGHOST;
 	bd.kmax = bd.kmin + bd.nnk - 1;
@@ -810,8 +805,8 @@ int set_block_parameters(int id, ConfigParser &dict, int master)
 	bd.kmax = 0;
     }
     if ( get_verbose_flag() ) {
-	printf( "    nni = %d, nnj = %d, nnk = %d\n", bd.nni, bd.nnj, bd.nnk );
-	printf( "    nidim = %d, njdim = %d, nkdim = %d\n", bd.nidim, bd.njdim, bd.nkdim );
+	printf( "    nni = %u, nnj = %u, nnk = %u\n", bd.nni, bd.nnj, bd.nnk );
+	printf( "    nidim = %u, njdim = %u, nkdim = %u\n", bd.nidim, bd.njdim, bd.nkdim );
     }
 
     // Rotating frame of reference.
@@ -823,7 +818,7 @@ int set_block_parameters(int id, ConfigParser &dict, int master)
 	dict.parse_int(section, "bc", bc_type_code, SLIP_WALL);
 	dict.parse_int(section, "inflow_condition", inflow_condition_id, 0);
 	dict.parse_string(section, "filename", filename, "");
-	dict.parse_int(section, "n_profile", n_profile, 1);
+	dict.parse_uint(section, "n_profile", n_profile, 1);
 	dict.parse_int(section, "x_order", x_order, 0);
 	dict.parse_int(section, "sponge_flag", sponge_flag, 0);
 	dict.parse_int(section, "xforce_flag", xforce_flag, 0);
@@ -869,26 +864,26 @@ int set_block_parameters(int id, ConfigParser &dict, int master)
 
     // History Cells.
     section = "block/" + tostring(indx);
-    dict.parse_int(section, "nhcell", bd.hncell, 0);
-    for ( int ih = 0; ih < bd.hncell; ++ih ) {
+    dict.parse_uint(section, "nhcell", bd.hncell, 0);
+    for ( size_t ih = 0; ih < bd.hncell; ++ih ) {
 	section = "block/" + tostring(indx);
 	string key = "history-cell-" + tostring(ih);
 	dict.parse_string(section, key, value_string, "0 0 0");
 	if ( G.dimensions == 3 ) {
-	    int hicell, hjcell, hkcell;
-	    sscanf( value_string.c_str(), "%d %d %d", &hicell, &hjcell, &hkcell );
+	    size_t hicell, hjcell, hkcell;
+	    sscanf( value_string.c_str(), "%u %u %u", &hicell, &hjcell, &hkcell );
 	    bd.hicell.push_back(hicell);
 	    bd.hjcell.push_back(hjcell);
 	    bd.hkcell.push_back(hkcell);
 	} else {
-	    int hicell, hjcell;
-	    sscanf( value_string.c_str(), "%d %d", &hicell, &hjcell );
+	    size_t hicell, hjcell;
+	    sscanf( value_string.c_str(), "%u %u", &hicell, &hjcell );
 	    bd.hicell.push_back(hicell);
 	    bd.hjcell.push_back(hjcell);
 	    bd.hkcell.push_back(0);
 	}
 	if ( get_verbose_flag() ) {
-	    printf( "    History cell[%d] located at indices [%d][%d][%d]\n",
+	    printf( "    History cell[%u] located at indices [%u][%u][%u]\n",
 		    ih, bd.hicell[ih], bd.hjcell[ih], bd.hkcell[ih] );
 	}
     }

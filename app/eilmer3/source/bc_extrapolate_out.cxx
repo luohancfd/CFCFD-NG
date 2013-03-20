@@ -41,12 +41,12 @@ int ExtrapolateOutBC::apply_inviscid( double t )
     // Fill ghost cells with data from just inside the boundary
     // using zero-order extrapolation (i.e. just copy the data).
     // We assume that this boundary is an outflow boundary.
-    int i, j, k;
+    size_t i, j, k;
     FV_Cell *src_cell, *dest_cell;
     FV_Cell *cell_1, *cell_2;
     Gas_model *gmodel = get_gas_model_ptr();
-    int nsp = gmodel->get_number_of_species();
-    int nmodes = gmodel->get_number_of_modes();
+    size_t nsp = gmodel->get_number_of_species();
+    size_t nmodes = gmodel->get_number_of_modes();
     Block & bd = *bdp;
 
     switch ( which_boundary ) {
@@ -68,11 +68,11 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    // Extrapolate on primitive variables
 		    // 1. First exterior point
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
-		    for ( int imode = 0; imode < nmodes; ++imode ) {
+		    for ( size_t imode = 0; imode < nmodes; ++imode ) {
 			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2->fs->gas->e[imode];
 		    }
 		    if ( nsp > 1 ) {
-			for ( int isp = 0; isp < nsp; ++isp ) {
+			for ( size_t isp = 0; isp < nsp; ++isp ) {
 			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2->fs->gas->massf[isp];
 			}
 			scale_mass_fractions(dest_cell->fs->gas->massf);
@@ -93,11 +93,11 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    cell_1 = dest_cell;
 		    dest_cell = bd.get_cell(i,j+2,k);
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
-		    for ( int imode = 0; imode < nmodes; ++imode ) {
+		    for ( size_t imode = 0; imode < nmodes; ++imode ) {
 			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2->fs->gas->e[imode];
 		    }
 		    if ( nsp > 1 ) {
-			for ( int isp = 0; isp < nsp; ++isp ) {
+			for ( size_t isp = 0; isp < nsp; ++isp ) {
 			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2->fs->gas->massf[isp];
 			}
 			scale_mass_fractions(dest_cell->fs->gas->massf);
@@ -141,11 +141,11 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    // Extrapolate on primitive variables
 		    // 1. First exterior point
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
-		    for ( int imode = 0; imode < nmodes; ++imode ) {
+		    for ( size_t imode = 0; imode < nmodes; ++imode ) {
 			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2->fs->gas->e[imode];
 		    }
 		    if ( nsp > 1 ) {
-			for ( int isp = 0; isp < nsp; ++isp ) {
+			for ( size_t isp = 0; isp < nsp; ++isp ) {
 			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2->fs->gas->massf[isp];
 			}
 			scale_mass_fractions(dest_cell->fs->gas->massf);
@@ -166,11 +166,11 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    cell_1 = dest_cell;
 		    dest_cell = bd.get_cell(i+2,j,k);
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
-		    for ( int imode = 0; imode < nmodes; ++imode ) {
+		    for ( size_t imode = 0; imode < nmodes; ++imode ) {
 			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2->fs->gas->e[imode];
 		    }
 		    if ( nsp > 1 ) {
-			for ( int isp = 0; isp < nsp; ++isp ) {
+			for ( size_t isp = 0; isp < nsp; ++isp ) {
 			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2->fs->gas->massf[isp];
 			}
 			scale_mass_fractions(dest_cell->fs->gas->massf);
@@ -213,11 +213,11 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    // Extrapolate on primitive variables
 		    // 1. First exterior point
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
-		    for ( int imode = 0; imode < nmodes; ++imode ) {
+		    for ( size_t imode = 0; imode < nmodes; ++imode ) {
 			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2->fs->gas->e[imode];
 		    }
 		    if ( nsp > 1 ) {
-			for ( int isp = 0; isp < nsp; ++isp ) {
+			for ( size_t isp = 0; isp < nsp; ++isp ) {
 			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2->fs->gas->massf[isp];
 			}
 			scale_mass_fractions(dest_cell->fs->gas->massf);
@@ -238,11 +238,11 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    cell_1 = dest_cell;
 		    dest_cell = bd.get_cell(i,j-2,k);
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
-		    for ( int imode = 0; imode < nmodes; ++imode ) {
+		    for ( size_t imode = 0; imode < nmodes; ++imode ) {
 			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2->fs->gas->e[imode];
 		    }
 		    if ( nsp > 1 ) {
-			for ( int isp = 0; isp < nsp; ++isp ) {
+			for ( size_t isp = 0; isp < nsp; ++isp ) {
 			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2->fs->gas->massf[isp];
 			}
 			scale_mass_fractions(dest_cell->fs->gas->massf);
@@ -285,11 +285,11 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    // Extrapolate on primitive variables
 		    // 1. First exterior point
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
-		    for ( int imode = 0; imode < nmodes; ++imode ) {
+		    for ( size_t imode = 0; imode < nmodes; ++imode ) {
 			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2->fs->gas->e[imode];
 		    }
 		    if ( nsp > 1 ) {
-			for ( int isp = 0; isp < nsp; ++isp ) {
+			for ( size_t isp = 0; isp < nsp; ++isp ) {
 			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2->fs->gas->massf[isp];
 			}
 			scale_mass_fractions(dest_cell->fs->gas->massf);
@@ -310,11 +310,11 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    cell_1 = dest_cell;
 		    dest_cell = bd.get_cell(i-2,j,k);
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
-		    for ( int imode = 0; imode < nmodes; ++imode ) {
+		    for ( size_t imode = 0; imode < nmodes; ++imode ) {
 			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2->fs->gas->e[imode];
 		    }
 		    if ( nsp > 1 ) {
-			for ( int isp = 0; isp < nsp; ++isp ) {
+			for ( size_t isp = 0; isp < nsp; ++isp ) {
 			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2->fs->gas->massf[isp];
 			}
 			scale_mass_fractions(dest_cell->fs->gas->massf);
@@ -358,11 +358,11 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    // Extrapolate on primitive variables
 		    // 1. First exterior point
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
-		    for ( int imode = 0; imode < nmodes; ++imode ) {
+		    for ( size_t imode = 0; imode < nmodes; ++imode ) {
 			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2->fs->gas->e[imode];
 		    }
 		    if ( nsp > 1 ) {
-			for ( int isp = 0; isp < nsp; ++isp ) {
+			for ( size_t isp = 0; isp < nsp; ++isp ) {
 			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2->fs->gas->massf[isp];
 			}
 			scale_mass_fractions(dest_cell->fs->gas->massf);
@@ -383,11 +383,11 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    cell_1 = dest_cell;
 		    dest_cell = bd.get_cell(i,j,k+2);
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
-		    for ( int imode = 0; imode < nmodes; ++imode ) {
+		    for ( size_t imode = 0; imode < nmodes; ++imode ) {
 			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2->fs->gas->e[imode];
 		    }
 		    if ( nsp > 1 ) {
-			for ( int isp = 0; isp < nsp; ++isp ) {
+			for ( size_t isp = 0; isp < nsp; ++isp ) {
 			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2->fs->gas->massf[isp];
 			}
 			scale_mass_fractions(dest_cell->fs->gas->massf);
@@ -431,11 +431,11 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    // Extrapolate on primitive variables
 		    // 1. First exterior point
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
-		    for ( int imode = 0; imode < nmodes; ++imode ) {
+		    for ( size_t imode = 0; imode < nmodes; ++imode ) {
 			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2->fs->gas->e[imode];
 		    }
 		    if ( nsp > 1 ) {
-			for ( int isp = 0; isp < nsp; ++isp ) {
+			for ( size_t isp = 0; isp < nsp; ++isp ) {
 			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2->fs->gas->massf[isp];
 			}
 			scale_mass_fractions(dest_cell->fs->gas->massf);
@@ -456,11 +456,11 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    cell_1 = dest_cell;
 		    dest_cell = bd.get_cell(i,j,k-2);
 		    dest_cell->fs->gas->rho = 2.0*cell_1->fs->gas->rho - cell_2->fs->gas->rho;
-		    for ( int imode = 0; imode < nmodes; ++imode ) {
+		    for ( size_t imode = 0; imode < nmodes; ++imode ) {
 			dest_cell->fs->gas->e[imode] = 2.0*cell_1->fs->gas->e[imode] - cell_2->fs->gas->e[imode];
 		    }
 		    if ( nsp > 1 ) {
-			for ( int isp = 0; isp < nsp; ++isp ) {
+			for ( size_t isp = 0; isp < nsp; ++isp ) {
 			    dest_cell->fs->gas->massf[isp] = 2.0*cell_1->fs->gas->massf[isp] - cell_2->fs->gas->massf[isp];
 			}
 			scale_mass_fractions(dest_cell->fs->gas->massf);

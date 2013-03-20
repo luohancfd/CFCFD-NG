@@ -65,7 +65,7 @@ const int VERBOSE_BCS = 0; // Set to 1 to print mem usage, writing of data etc
 /// \brief Set up ghost-cell values for the inviscid flux calculations.
 ///
 /// This is a coordinating function for use in the main time-stepping loop.
-int apply_inviscid_bc( Block &bd, double t, int dimensions )
+int apply_inviscid_bc( Block &bd, double t, size_t dimensions )
 {
     bd.bcp[NORTH]->apply_inviscid(t);
     bd.bcp[EAST]->apply_inviscid(t);
@@ -78,7 +78,7 @@ int apply_inviscid_bc( Block &bd, double t, int dimensions )
     return SUCCESS;
 }
 
-int apply_viscous_bc( Block &bd, double t, int dimensions )
+int apply_viscous_bc( Block &bd, double t, size_t dimensions )
 {
     bd.bcp[NORTH]->apply_viscous(t);
     bd.bcp[EAST]->apply_viscous(t);
@@ -109,7 +109,7 @@ BoundaryCondition( Block *bdp, int which_boundary, int type_code,
 {
     Block & bd = *bdp;
     // 1. Determine size heat flux vectors
-    int dim = 1;
+    size_t dim = 1;
     switch ( which_boundary ) {
     case NORTH:
 	// j = constant at jmax
@@ -187,7 +187,7 @@ BoundaryCondition( Block *bdp, int which_boundary, int type_code,
     cw = 0;
     
 #   if VERBOSE_BCS
-    int total_bytes = 3 * dim * sizeof(double);
+    size_t total_bytes = 3 * dim * sizeof(double);
     
     cout << "Block " << bd.id << ", boundary " << which_boundary
 	 << ": Have allocated " << total_bytes << " bytes of memory." << endl;
@@ -280,7 +280,7 @@ int BoundaryCondition::apply_inviscid( double t )
     // The default inviscid boundary condition is to reflect
     // the normal component of the velocity at the ghost-cell
     // centres -- slip-wall. 
-    int i, j, k;
+    size_t i, j, k;
     FV_Cell *src_cell, *dest_cell;
     FV_Interface *IFace;
     Block & bd = *bdp;
@@ -458,8 +458,8 @@ int BoundaryCondition::compute_surface_heat_flux( void )
     FV_Interface * IFace;
     FV_Cell * cell_one;
     Vector3 cc, ic, i0c;
-    int i, j, k;
-    int index;
+    size_t i, j, k;
+    size_t index;
     Block & bd = *bdp;
     
     // 1. Check if this BC represents a wall
@@ -490,15 +490,15 @@ int BoundaryCondition::compute_surface_heat_flux( void )
 
 int BoundaryCondition::
 compute_cell_interface_surface_heat_flux(FV_Interface * IFace, 
-					 FV_Cell * cell_one, int index) 
+					 FV_Cell * cell_one, size_t index) 
 /// \brief Calculate the heat flux values for a single cell interface
 {
     Vector3 cc, ic, i0c;
     double d1;
-    int iT, isp;
+    size_t iT, isp;
     Gas_model * gm = get_gas_model_ptr();
-    int nTs = gm->get_number_of_modes();
-    int nsp = gm->get_number_of_species();
+    size_t nTs = gm->get_number_of_modes();
+    size_t nsp = gm->get_number_of_species();
     double dTds;
     vector<double> dfds(nsp), dfd0(nsp), dfd00(nsp), js(nsp), j0(nsp), j00(nsp);
     double viscous_factor = get_viscous_factor();
@@ -552,8 +552,8 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
 {
     FV_Cell * cell;
     FV_Interface * IFace;
-    int i, j, k;
-    int index;
+    size_t i, j, k;
+    size_t index;
     double Re_wall;
     Block & bd = *bdp;
     
@@ -622,8 +622,8 @@ int BoundaryCondition::write_fstc_heat_flux( string filename, double sim_time )
 {
     FV_Cell * cell;
     FV_Interface * IFace;
-    int i, j, k;
-    int index;
+    size_t i, j, k;
+    size_t index;
     Block & bd = *bdp;
 
     FILE *fp;
@@ -682,15 +682,15 @@ int BoundaryCondition::write_fstc_heat_flux( string filename, double sim_time )
 } // end of BoundaryCondition::write_fstc_heat_flux()
 
 double BoundaryCondition::
-read_surface_heat_flux( string filename, int dimensions, int zip_files )
+read_surface_heat_flux( string filename, size_t dimensions, int zip_files )
 {
 #   define NCHAR 4000
     char line[NCHAR];
     FILE *fp;
     gzFile zfp;
     char *gets_result;
-    int i, j, k;
-    int index;
+    size_t i, j, k;
+    size_t index;
     double sim_time;
 
     if ( get_verbose_flag() && which_boundary == 0 ) 
@@ -742,7 +742,7 @@ read_surface_heat_flux( string filename, int dimensions, int zip_files )
 	printf("read_surface_heat_flux(): Empty flow field file while looking for surface data dimensions.\n");
 	exit(BAD_INPUT_ERROR);
     }
-    sscanf(line, "%d %d %d", &i, &j, &k);
+    sscanf(line, "%u %u %u", &i, &j, &k);
     if ( i==0 && j==0 && k==0 ) return 0.0;
     if ( i != (imax-imin+1) || j != (jmax-jmin+1) || k != ((dimensions == 3) ? (kmax-kmin+1) : 1) ) {
 	printf("read_surface_heat_flux(): surface %d, mismatch in surface data dimensions\n", which_boundary);
@@ -779,9 +779,9 @@ read_surface_heat_flux( string filename, int dimensions, int zip_files )
 #   undef NCHAR
 }
 
-int BoundaryCondition::write_vertex_velocities( std::string filename, double sim_time, int dimensions )
+int BoundaryCondition::write_vertex_velocities( std::string filename, double sim_time, size_t dimensions )
 {
-    int i, j, k, irangemax, jrangemax, krangemax;
+    size_t i, j, k, irangemax, jrangemax, krangemax;
     FV_Vertex *vtx;
     Block & bd = *bdp;
     
@@ -847,7 +847,7 @@ int BoundaryCondition::write_vertex_velocities( std::string filename, double sim
 //------------------------------------------------------------------------
 
 BoundaryCondition *create_BC( Block *bdp, int which_boundary, int type_of_BC, 
-			      int inflow_condition_id, std::string filename, int n_profile,
+			      int inflow_condition_id, std::string filename, size_t n_profile,
 			      double Twall, double Pout, int x_order, int is_wall, int use_udf_flux,
 			      int other_block, int other_face, int neighbour_orientation,
 			      int sponge_flag, int xforce_flag, 
@@ -976,19 +976,19 @@ int check_connectivity()
     global_data &G = *get_global_data_ptr();
     Block *bdp;
     Block *other_bdp;
-    int jb, face, other_block, other_face;
-    int nnA, nnB;
+    int face, other_block, other_face;
+    size_t nnA, nnB;
     int fail = 0;
 
     // Check both forward and reverse connections.
-    for ( jb = 0; jb < G.nblock; ++jb ) {
+    for ( size_t jb = 0; jb < G.nblock; ++jb ) {
 	bdp = get_block_data_ptr(jb);
 	for ( face = NORTH; face <= ((G.dimensions == 2) ? WEST : BOTTOM); ++face ) {
 	    other_block = bdp->bcp[face]->neighbour_block;
 	    other_face = bdp->bcp[face]->neighbour_face;
 	    if ( other_block >= 0 ) {
 		other_bdp = get_block_data_ptr(other_block);
-		if ( other_bdp->bcp[other_face]->neighbour_block != jb ||
+		if ( other_bdp->bcp[other_face]->neighbour_block != (int)jb ||
 		     other_bdp->bcp[other_face]->neighbour_face != face ) {
 		    cerr << "blocks " << jb << " and " << other_block 
 			 << " incorrectly connected" << endl;
@@ -1007,7 +1007,7 @@ int check_connectivity()
 
     if ( G.dimensions == 2 ) {
 	// Check numbers of cells along connected boundaries.
-	for ( jb = 0; jb < G.nblock; ++jb ) {
+	for ( size_t jb = 0; jb < G.nblock; ++jb ) {
 	    bdp = get_block_data_ptr(jb);
 	    for ( face = NORTH; face <= WEST; ++face ) {
 		other_block = bdp->bcp[face]->neighbour_block;
@@ -1058,9 +1058,9 @@ scan_string_for_surface_heat_flux( double &q_cond, double &q_diff, double &q_rad
     char *cptr = strchr(bufptr, '\n');
     if ( cptr != NULL ) cptr = '\0'; 
     // Now, we should have a string with only numbers separated by spaces.
-    int i = atoi(strtok( bufptr, " " )); // tokenize on space characters
-    int j = atoi(strtok( NULL, " " )); 
-    int k = atoi(strtok( NULL, " " )); 
+    size_t i = atoi(strtok( bufptr, " " )); // tokenize on space characters
+    size_t j = atoi(strtok( NULL, " " )); 
+    size_t k = atoi(strtok( NULL, " " )); 
     double x = atof(strtok( NULL, " " )); 
     double y = atof(strtok( NULL, " " )); 
     double z = atof(strtok( NULL, " " ));

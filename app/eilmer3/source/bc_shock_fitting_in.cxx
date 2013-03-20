@@ -51,7 +51,7 @@ apply_inviscid( double t )
 // Copies from FlowCondition to ghost cells.
 {
     // Set up ghost cells with inflow state. 
-    int i, j, k;
+    size_t i, j, k;
     FV_Cell *cL1, *cL0, *cR0, *cR1, *cR2;
     FV_Interface *IFaceL, *IFaceR;
     global_data &gd = *get_global_data_ptr();
@@ -101,7 +101,7 @@ apply_inviscid( double t )
 int ShockFittingInBC::apply_viscous( double t )
 // Copies interior-cell flow-properties to interface.
 {
-    int i, j, k;
+    size_t i, j, k;
     FV_Cell *cell;
     FV_Interface *IFace;
     Block & bd = *bdp;

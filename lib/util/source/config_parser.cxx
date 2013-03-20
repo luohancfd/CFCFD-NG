@@ -217,6 +217,19 @@ parse_vector_of_strings( const string section, const string key,
     return true;
 }
 
+bool ConfigParser::parse_uint( const string section, const string key,
+			       unsigned int &val, const unsigned int notfound )
+{
+    if( ! has_section_and_key(section, key) ) {
+	val = notfound;
+	return true;
+    }
+    
+    istringstream ss( config_map[section][key][0] );
+    
+    return ( ss >> val ? true : false );
+
+}
 
 bool ConfigParser::parse_int( const string section, const string key,
 			      int &val, const int notfound )
