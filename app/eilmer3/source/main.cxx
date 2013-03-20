@@ -1659,12 +1659,6 @@ int gasdynamic_inviscid_increment( void )
 	++attempt_number;
 	step_failed = 0;
 
-#       if 0
-	printf("PJ_DEBUG--------Corner-cell-before-tstep-----\n");
-	bdp = G.my_blocks[11];
-	bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax)->print();
-	printf("PJ_DEBUG-------------------------------------\n");
-#       endif
 	//  Predictor Stage for gas-dynamics
 #       ifdef _MPI
 	mpi_exchange_boundary_data(COPY_FLOW_STATE);
@@ -1694,37 +1688,6 @@ int gasdynamic_inviscid_increment( void )
 	// Note that Q_rad is not re-evaluated for corrector step.
 	if ( get_radiation_flag() )
 	    perform_radiation_transport();
-
-#       if 0
-	// The troublesome cell in Rolf's duct6 grid.
-	printf("PJ_DEBUG--------Corner-cell-before-predictor-inviscid-update-----\n");
-	bdp = G.my_blocks[11];
-	bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax)->print();
-	for ( int iv=0; iv < 8; ++iv ) {
-	    Vector3 *pos = &(bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax)->vtx[iv]->pos);
-	    printf("vtx %d x=%e y=%e z=%e\n", iv, pos->x, pos->y, pos->z);
-	}
-	printf("Ghost cell below WEST boundary\n");
-	bdp->get_cell(bdp->imin-1,bdp->jmax,bdp->kmax)->print();
-	printf("Ghost cell past TOP boundary\n");
-	bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax+1)->print();
-	printf("Ghost cell past NORTH boundary\n");
-	bdp->get_cell(bdp->imin,bdp->jmax+1,bdp->kmax)->print();
-	printf("Cell one less along WEST boundary\n");
-	bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax-1)->print();
-	printf("PJ_DEBUG-------------------------------------\n");
-#       endif
-#       if 0
-	// The troublesome cell in Rowan's duct-3D grid.
-	printf("PJ_DEBUG--------Corner-cell-before-predictor-inviscid-update-----\n");
-	bdp = G.my_blocks[8];
-	bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax)->print();
-	for ( int iv=0; iv < 8; ++iv ) {
-	    Vector3 *pos = &(bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax)->vtx[iv]->pos);
-	    printf("vtx %d x=%e y=%e z=%e\n", iv, pos->x, pos->y, pos->z);
-	}
-	printf("PJ_DEBUG-------------------------------------\n");
-#       endif
 
 	/// Time levels:
 	/// 0: Start of predictor step
@@ -1763,7 +1726,8 @@ int gasdynamic_inviscid_increment( void )
 	    bdp->apply( &FV_Cell::time_derivatives, 0, G.dimensions, "time-derivatives-level-0" );
 	    bdp->apply( &FV_Cell::predictor_update, G.dt_global, "predictor-step" );
 	    bdp->apply( &FV_Cell::decode_conserved, 0, bdp->omegaz, "decode-conserved" );
-	    if ( get_shock_fitting_flag() ) bdp->apply( &FV_Cell::get_current_time_level_geometry, 1, "get_current_time_level_geometry-1");
+	    if ( get_shock_fitting_flag() ) bdp->apply( &FV_Cell::get_current_time_level_geometry, 1, 
+							"get_current_time_level_geometry-1");
 	    if ( get_Torder_flag() == 3 ) bdp->apply( &FV_Cell::record_conserved, "record_conserved" );
 #           define WILSON_OMEGA_FILTER 0
 #           if WILSON_OMEGA_FILTER == 1
@@ -1771,45 +1735,6 @@ int gasdynamic_inviscid_increment( void )
 #           endif
 
 	} // end of for jb...
-
-#       if 0
-	// The troublesome cell in Rolf's duct6 grid.
-	printf("PJ_DEBUG--------Corner-cell-after-predictor-inviscid-update-----\n");
-	bdp = G.my_blocks[11];
-	bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax)->print();
-	for ( int fid=NORTH; fid <= BOTTOM; fid++ ) {
-	    cout << "*** Face " << get_face_name(fid) << "****" << endl;
-	    bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax)->iface[fid]->print(1);
-	}
-	printf("**** end faces ****\n");
-	printf("Cell one less along WEST boundary\n");
-	bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax-1)->print();
-	for ( int fid=NORTH; fid <= BOTTOM; fid++ ) {
-	    cout << "*** Face " << get_face_name(fid) << "****" << endl;
-	    bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax-1)->iface[fid]->print(1);
-	}
-	printf("**** end faces ****\n");
-	printf("PJ_DEBUG-------------------------------------\n");
-#       endif
-#       if 0
-	// Corresponding cell (that is well behaved) in Rowan's duct-3D grid.
-	printf("PJ_DEBUG--------Corner-cell-after-predictor-inviscid-update-----\n");
-	bdp = G.my_blocks[8];
-	bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax)->print();
-	for ( int fid=NORTH; fid <= BOTTOM; fid++ ) {
-	    cout << "*** Face " << get_face_name(fid) << "****" << endl;
-	    bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax)->iface[fid]->print(1);
-	}
-	printf("**** end faces ****\n");
-	printf("Cell one less along NORTH boundary\n");
-	bdp->get_cell(bdp->imin+1,bdp->jmax,bdp->kmax)->print();
-	for ( int fid=NORTH; fid <= BOTTOM; fid++ ) {
-	    cout << "*** Face " << get_face_name(fid) << "****" << endl;
-	    bdp->get_cell(bdp->imin+1,bdp->jmax,bdp->kmax)->iface[fid]->print(1);
-	}
-	printf("**** end faces ****\n");
-	printf("PJ_DEBUG-------------------------------------\n");
-#       endif
 
 	// Corrector Stage
 	if ( get_Torder_flag() >= 2 ) {
@@ -1860,7 +1785,8 @@ int gasdynamic_inviscid_increment( void )
 		bdp->apply( &FV_Cell::time_derivatives, 1, G.dimensions, "time_derivatives-level-1" );
 		bdp->apply( &FV_Cell::corrector_update, G.dt_global, "corrector-step" );
 		bdp->apply( &FV_Cell::decode_conserved, 1, bdp->omegaz, "decode-conserved" );
-		 if ( get_shock_fitting_flag() ) bdp->apply( &FV_Cell::get_current_time_level_geometry, 2, "get_current_time_level_geometry-2");
+		 if ( get_shock_fitting_flag() ) bdp->apply( &FV_Cell::get_current_time_level_geometry, 2,
+							     "get_current_time_level_geometry-2");
 		if ( get_Torder_flag() == 3 ) bdp->apply( &FV_Cell::record_conserved, "record_conserved" );
 #               if WILSON_OMEGA_FILTER == 1
 		if ( get_k_omega_flag() ) apply_wilson_omega_correction( *bdp );
@@ -1917,21 +1843,14 @@ int gasdynamic_inviscid_increment( void )
 		bdp->apply( &FV_Cell::time_derivatives, 2, G.dimensions, "time_derivatives-level-2" );
 		bdp->apply( &FV_Cell::rk3_update, G.dt_global, "rk3-step" );
 		bdp->apply( &FV_Cell::decode_conserved, 2, bdp->omegaz, "decode-conserved" );
-		if ( get_shock_fitting_flag() ) bdp->apply( &FV_Cell::get_current_time_level_geometry, 3, "get_current_time_level_geometry-3");
+		if ( get_shock_fitting_flag() ) bdp->apply( &FV_Cell::get_current_time_level_geometry, 3, 
+							    "get_current_time_level_geometry-3");
 #               if WILSON_OMEGA_FILTER == 1
 		if ( get_k_omega_flag() ) apply_wilson_omega_correction( *bdp );
 #               endif
 	    } // end for jb loop
 	} // end if (RK3 stage)
-		
-#       if 0
-	// Rolf's troublesome cell
-	printf("PJ_DEBUG--------Corner-cell-after-corrector-inviscid-update-----\n");
-	bdp = G.my_blocks[11];
-	bdp->get_cell(bdp->imin,bdp->jmax,bdp->kmax)->print();
-	printf("PJ_DEBUG-------------------------------------\n");
-#       endif
-    
+   
 	// 2d. Check the record of bad cells and if any cells are bad, 
 	//     fail this attempt at taking a step,
 	//     set everything back to the initial state and
@@ -1995,175 +1914,6 @@ int gasdynamic_viscous_increment( void )
 	} else {
 	    viscous_derivatives_3D( bdp );
 	}
-#       define DEBUG_KOMEGA_FLAG 0
-#       if DEBUG_KOMEGA_FLAG == 1
-        printf("Revised debug mode .... W.C. and P.J.  12-Feb-2009\n");
-        if ( jb == 0 ) {
-            double dudx, dudy, dudz, dvdx, dvdy, dvdz, dwdx, dwdy, dwdz;
-            double dtkedx, dtkedy, dtkedz;
-            double domegadx, domegady, domegadz;
-            int i = 10;
-            int j = 5;
-            int k;
-            FILE * debug_file;
-            // for 3D couette debug exercise,
-	    // k == 2 is right on the bottom boundary
-	    // k == 11 is on top boundary
-            if ( G.dimensions == 2 ) k = 0; else k = 11;
-            //
-            FV_Cell *cell = bdp->get_cell(i,j,k);
-            bdp = get_block_data_ptr(jb);
-            //
-            if ( G.dimensions == 2 ) {
-                dudx = 0.25 * (cell->vtx[0]->dudx + cell->vtx[1]->dudx +
-                               cell->vtx[2]->dudx + cell->vtx[3]->dudx);
-                dudy = 0.25 * (cell->vtx[0]->dudy + cell->vtx[1]->dudy +
-                               cell->vtx[2]->dudy + cell->vtx[3]->dudy);
-                dudz = 0.25 * (cell->vtx[0]->dudz + cell->vtx[1]->dudz +
-                               cell->vtx[2]->dudz + cell->vtx[3]->dudz);
-                dvdx = 0.25 * (cell->vtx[0]->dvdx + cell->vtx[1]->dvdx +
-                               cell->vtx[2]->dvdx + cell->vtx[3]->dvdx);
-                dvdy = 0.25 * (cell->vtx[0]->dvdy + cell->vtx[1]->dvdy +
-                               cell->vtx[2]->dvdy + cell->vtx[3]->dvdy);
-                dvdz = 0.25 * (cell->vtx[0]->dvdz + cell->vtx[1]->dvdz +
-                               cell->vtx[2]->dvdz + cell->vtx[3]->dvdz);
-                dwdx = 0.25 * (cell->vtx[0]->dwdx + cell->vtx[1]->dwdx +
-                               cell->vtx[2]->dwdx + cell->vtx[3]->dwdx);
-                dwdy = 0.25 * (cell->vtx[0]->dwdy + cell->vtx[1]->dwdy +
-                               cell->vtx[2]->dwdy + cell->vtx[3]->dwdy);
-                dwdz = 0.25 * (cell->vtx[0]->dwdz + cell->vtx[1]->dwdz +
-                               cell->vtx[2]->dwdz + cell->vtx[3]->dwdz);
-                dtkedx = 0.25 * (cell->vtx[0]->dtkedx + cell->vtx[1]->dtkedx +
-                                 cell->vtx[2]->dtkedx + cell->vtx[3]->dtkedx);
-                dtkedy = 0.25 * (cell->vtx[0]->dtkedy + cell->vtx[1]->dtkedy +
-                                 cell->vtx[2]->dtkedy + cell->vtx[3]->dtkedy);
-                dtkedz = 0.25 * (cell->vtx[0]->dtkedz + cell->vtx[1]->dtkedz +
-                                 cell->vtx[2]->dtkedz + cell->vtx[3]->dtkedz);
-                domegadx = 0.25 * (cell->vtx[0]->domegadx + cell->vtx[1]->domegadx +
-                                   cell->vtx[2]->domegadx + cell->vtx[3]->domegadx);
-                domegady = 0.25 * (cell->vtx[0]->domegady + cell->vtx[1]->domegady +
-                                   cell->vtx[2]->domegady + cell->vtx[3]->domegady);
-                domegadz = 0.25 * (cell->vtx[0]->domegadz + cell->vtx[1]->domegadz +
-                                   cell->vtx[2]->domegadz + cell->vtx[3]->domegadz);
-            } else {
-                dudx = 0.125 * (cell->vtx[0]->dudx + cell->vtx[1]->dudx +
-                                cell->vtx[2]->dudx + cell->vtx[3]->dudx +
-                                cell->vtx[4]->dudx + cell->vtx[5]->dudx +
-                                cell->vtx[6]->dudx + cell->vtx[7]->dudx);
-                dudy = 0.125 * (cell->vtx[0]->dudy + cell->vtx[1]->dudy +
-                                cell->vtx[2]->dudy + cell->vtx[3]->dudy +
-                                cell->vtx[4]->dudy + cell->vtx[5]->dudy +
-                                cell->vtx[6]->dudy + cell->vtx[7]->dudy);
-                dudz = 0.125 * (cell->vtx[0]->dudz + cell->vtx[1]->dudz +
-                                cell->vtx[2]->dudz + cell->vtx[3]->dudz +
-                                cell->vtx[4]->dudz + cell->vtx[5]->dudz +
-                                cell->vtx[6]->dudz + cell->vtx[7]->dudz);
-                dvdx = 0.125 * (cell->vtx[0]->dvdx + cell->vtx[1]->dvdx +
-                                cell->vtx[2]->dvdx + cell->vtx[3]->dvdx +
-                                cell->vtx[4]->dvdx + cell->vtx[5]->dvdx +
-                                cell->vtx[6]->dvdx + cell->vtx[7]->dvdx);
-                dvdy = 0.125 * (cell->vtx[0]->dvdy + cell->vtx[1]->dvdy +
-                                cell->vtx[2]->dvdy + cell->vtx[3]->dvdy +
-                                cell->vtx[4]->dvdy + cell->vtx[5]->dvdy +
-                                cell->vtx[6]->dvdy + cell->vtx[7]->dvdy);
-                dvdz = 0.125 * (cell->vtx[0]->dvdz + cell->vtx[1]->dvdz + 
-                                cell->vtx[2]->dvdz + cell->vtx[3]->dvdz +
-                                cell->vtx[4]->dvdz + cell->vtx[5]->dvdz +
-                                cell->vtx[6]->dvdz + cell->vtx[7]->dvdz);
-                dwdx = 0.125 * (cell->vtx[0]->dwdx + cell->vtx[1]->dwdx +
-                                cell->vtx[2]->dwdx + cell->vtx[3]->dwdx +
-                                cell->vtx[4]->dwdx + cell->vtx[5]->dwdx +
-                                cell->vtx[6]->dwdx + cell->vtx[7]->dwdx);
-                dwdy = 0.125 * (cell->vtx[0]->dwdy + cell->vtx[1]->dwdy +
-                                cell->vtx[2]->dwdy + cell->vtx[3]->dwdy +
-                                cell->vtx[4]->dwdy + cell->vtx[5]->dwdy +
-                                cell->vtx[6]->dwdy + cell->vtx[7]->dwdy);
-                dwdz = 0.125 * (cell->vtx[0]->dwdz + cell->vtx[1]->dwdz +
-                                cell->vtx[2]->dwdz + cell->vtx[3]->dwdz +
-                                cell->vtx[4]->dwdz + cell->vtx[5]->dwdz +
-                                cell->vtx[6]->dwdz + cell->vtx[7]->dwdz);
-                dtkedx = 0.125 * (cell->vtx[0]->dtkedx + cell->vtx[1]->dtkedx +
-                                  cell->vtx[2]->dtkedx + cell->vtx[3]->dtkedx +
-                                  cell->vtx[4]->dtkedx + cell->vtx[5]->dtkedx +
-                                  cell->vtx[6]->dtkedx + cell->vtx[7]->dtkedx);
-                dtkedy = 0.125 * (cell->vtx[0]->dtkedy + cell->vtx[1]->dtkedy +
-                                  cell->vtx[2]->dtkedy + cell->vtx[3]->dtkedy +
-                                  cell->vtx[4]->dtkedy + cell->vtx[5]->dtkedy +
-                                  cell->vtx[6]->dtkedy + cell->vtx[7]->dtkedy);
-                dtkedz = 0.125 * (cell->vtx[0]->dtkedz + cell->vtx[1]->dtkedz +
-                                  cell->vtx[2]->dtkedz + cell->vtx[3]->dtkedz +
-                                  cell->vtx[4]->dtkedz + cell->vtx[5]->dtkedz +
-                                  cell->vtx[6]->dtkedz + cell->vtx[7]->dtkedz);
-                domegadx = 0.125 * (cell->vtx[0]->domegadx + cell->vtx[1]->domegadx +
-                                    cell->vtx[2]->domegadx + cell->vtx[3]->domegadx +
-                                    cell->vtx[4]->domegadx + cell->vtx[5]->domegadx +
-                                    cell->vtx[6]->domegadx + cell->vtx[7]->domegadx);
-                domegady = 0.125 * (cell->vtx[0]->domegady + cell->vtx[1]->domegady +
-                                    cell->vtx[2]->domegady + cell->vtx[3]->domegady +
-                                    cell->vtx[4]->domegady + cell->vtx[5]->domegady +
-                                    cell->vtx[6]->domegady + cell->vtx[7]->domegady);
-                domegadz = 0.125 * (cell->vtx[0]->domegadz + cell->vtx[1]->domegadz +
-                                    cell->vtx[2]->domegadz + cell->vtx[3]->domegadz +
-                                    cell->vtx[4]->domegadz + cell->vtx[5]->domegadz +
-                                    cell->vtx[6]->domegadz + cell->vtx[7]->domegadz);
-            }    
-            // bdp->get_cell(i,j,k)
-            // Open debug.dat for writing data
-            debug_file = fopen("debug.dat","a");
-            if ( G.step == 0 ) {
-                fprintf( debug_file, "t = %12.5e\n\n", G.sim_time);
-		fprintf( debug_file, "i=%d, j=%d, k=%d\n", i, j, k);
-                fprintf( debug_file, "pos.x    : %12.5e\n", cell->pos.x );
-                fprintf( debug_file, "pos.y    : %12.5e\n", cell->pos.y );
-                fprintf( debug_file, "pos.z    : %12.5e\n\n", cell->pos.z );
-                fprintf( debug_file, "dudx     : %12.5e\n", dudx );
-                fprintf( debug_file, "dudy     : %12.5e\n", dudy );
-                fprintf( debug_file, "dudz     : %12.5e\n\n", dudz );
-                fprintf( debug_file, "dvdx     : %12.5e\n", dvdx );
-                fprintf( debug_file, "dvdy     : %12.5e\n", dvdy );
-                fprintf( debug_file, "dvdz     : %12.5e\n\n", dvdz );
-                fprintf( debug_file, "dwdx     : %12.5e\n", dwdx );
-                fprintf( debug_file, "dwdy     : %12.5e\n", dwdy );
-                fprintf( debug_file, "dwdz     : %12.5e\n\n", dwdz );
-                fprintf( debug_file, "dtkedx   : %12.5e\n", dtkedx );
-                fprintf( debug_file, "dtkedy   : %12.5e\n", dtkedy );
-                fprintf( debug_file, "dtkedz   : %12.5e\n\n", dtkedz );
-                fprintf( debug_file, "domegadx : %12.5e\n", domegadx );
-                fprintf( debug_file, "domegady : %12.5e\n", domegady );
-                fprintf( debug_file, "domegadz : %12.5e\n\n", domegadz );
-		for ( int ii=0; ii<8; ++ii ) {
-		    FV_Vertex* vtx = cell->vtx[ii];
-		    fprintf( debug_file, "vtx[%d].pos.x   : %12.5e   pos.y   : %12.5e   pos.z   : %12.5e   area: %12.5e  volume: %12.5e\n", 
-			     ii, vtx->pos.x, vtx->pos.y, vtx->pos.z, vtx->area, vtx->volume);
-		    fprintf( debug_file, "vtx[%d].dudx    : %12.5e   dudy    : %12.5e   dudz    : %12.5e\n", 
-			     ii, vtx->dudx, vtx->dudy, vtx->dudz);
-		    fprintf( debug_file, "vtx[%d].dvdx    : %12.5e   dvdy    : %12.5e   dvdz    : %12.5e\n", 
-			     ii, vtx->dvdx, vtx->dvdy, vtx->dvdz);
-		    fprintf( debug_file, "vtx[%d].dwdx    : %12.5e   dwdy    : %12.5e   dwdz    : %12.5e\n", 
-			     ii, vtx->dwdx, vtx->dwdy, vtx->dwdz);
-		    fprintf( debug_file, "vtx[%d].dtkedx  : %12.5e   dtkedy  : %12.5e   dtkedz  : %12.5e\n", 
-			     ii, vtx->dtkedx, vtx->dtkedy, vtx->dtkedz);
-		    fprintf( debug_file, "vtx[%d].domegadx: %12.5e   domegady: %12.5e   domegadz: %12.5e\n\n", 
-			     ii, vtx->domegadx, vtx->domegady, vtx->domegadz);
-		}
-		fprintf( debug_file, "--------------------------------\n");
-		FV_Interface *iface = bdp->get_sifi(i,j,k);
-		fprintf( debug_file, "sifi.pos=(%g,%g,%g) area=%g n=(%g,%g,%g)\n", 
-			 iface->pos.x, iface->pos.y, iface->pos.z,
-			 iface->area, iface->n.x, iface->n.y, iface->n.z);
-		iface = bdp->get_sifj(i,j,k);
-		fprintf( debug_file, "sifj.pos=(%g,%g,%g) area=%g n=(%g,%g,%g)\n", 
-			 iface->pos.x, iface->pos.y, iface->pos.z,
-			 iface->area, iface->n.x, iface->n.y, iface->n.z);
-		iface = bdp->get_sifk(i,j,k);
-		fprintf( debug_file, "sifk.pos=(%g,%g,%g) area=%g n=(%g,%g,%g)\n", 
-			 iface->pos.x, iface->pos.y, iface->pos.z,
-			 iface->area, iface->n.x, iface->n.y, iface->n.z);
-		fprintf( debug_file, "--------------------------------\n");
-            }
-            fclose( debug_file );
-        }
-#       endif
 	estimate_turbulence_viscosity( &G, bdp );
 	if ( G.dimensions == 2 ) {
 	    viscous_flux_2D( bdp );
