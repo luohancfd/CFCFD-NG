@@ -84,7 +84,7 @@ CH.Z = {
    reference = 'NA'
 }
 CH.electronic_levels = {
-   n_levels = 6,
+   n_levels = 5,
    ref = 'NIST Chemistry WebBook: http://webbook.nist.gov/chemistry/',
    -- ===========================================================================================================================================================
    --   n       Te         re       g   dzero      we         wexe      weye        weze        be        alphae      de          betae       spn-orb     l   s  
