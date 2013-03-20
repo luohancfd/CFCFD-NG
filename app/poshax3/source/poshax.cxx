@@ -271,8 +271,8 @@ int main(int argc, char *argv[])
     }
     
     vector<double> massf_inf;
-    if ( !cfg.parse_vector_of_doubles("initial-conditions", "massf_inf", massf_inf, vdnf)
-    	  || ( massf_inf.size() > (size_t) 0 && massf_inf.size() != (size_t) gmodel->get_number_of_species() )  ) {
+    if ( !cfg.parse_vector_of_doubles("initial-conditions", "massf_inf", massf_inf, vdnf) ||
+	 ( massf_inf.size() > 0 && massf_inf.size() != (size_t) gmodel->get_number_of_species() ) ) {
     	cout << "Error reading massf_inf in [initial-conditions] section of " 
     	     << input << endl;
     	cout << "Bailing out!\n";
@@ -280,8 +280,8 @@ int main(int argc, char *argv[])
     }
     
     vector<double> molef_inf;
-    if ( !cfg.parse_vector_of_doubles("initial-conditions", "molef_inf", molef_inf, vdnf)
-            || ( molef_inf.size() > (size_t) 0 && molef_inf.size() != (size_t) gmodel->get_number_of_species() )  ) {
+    if ( !cfg.parse_vector_of_doubles("initial-conditions", "molef_inf", molef_inf, vdnf) ||
+	 ( molef_inf.size() > 0 && molef_inf.size() != (size_t) gmodel->get_number_of_species() ) ) {
     	cout << "Error reading molef_inf in [initial-conditions] section of "
     	     << input << endl;
     	cout << "Bailing out!\n";
@@ -309,9 +309,10 @@ int main(int argc, char *argv[])
 
     vector<double> T_inf;
     if ( !cfg.parse_vector_of_doubles("initial-conditions", "T_inf", T_inf, vdnf)
-    	|| T_inf.size()==0 ) {
+	 || T_inf.size() != (size_t) gmodel->get_number_of_modes() ) {
     	cout << "Error reading T_inf in [initial-conditions] section of " 
     	     << input << endl;
+	cout << "Incorrect number of entries for number of thermal modes in gas model.\n";
     	cout << "Bailing out!\n";
     	exit(BAD_INPUT_ERROR);
     }
