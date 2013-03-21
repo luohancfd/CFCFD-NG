@@ -890,16 +890,12 @@ void DiscreteTransfer::initialise_rays_for_interface( RayTracingInterface * inte
 
 int DiscreteTransfer::trace_ray( RayTracingRay * ray, size_t ib, size_t ic, size_t jc, size_t kc )
 {
-    cout << "DiscreteTransfer::trace_ray( ib = " << ib << ", ic = " << ic << ", jc = " << jc << ", kc = " << kc << endl;
-
     Block * A = get_block_data_ptr( ib );
     FV_Cell * cell = A->get_cell(ic,jc,kc);		// start at origin cell
     
     double L = 0.5 * dl_lmin_ratio_ * cell->L_min;	// small initial step length
     Vector3 p = ray->get_point_on_line( L );
     
-    cout << "A. L = " << L << endl;
-
     RayTracingCell * RTcell;
     
     // step along the ray, creating the points as we go
@@ -913,19 +909,11 @@ int DiscreteTransfer::trace_ray( RayTracingRay * ray, size_t ib, size_t ic, size
 	// calculate next position on ray
 	L += dl_lmin_ratio_ * cell->L_min;
 	p = ray->get_point_on_line( L );
-	cout << "B. L = " << L << endl;
     }
 
     // Make sure block and cell pointers are up to date
     A = get_block_data_ptr( ib );
     cell = A->get_cell(ic,jc,kc);
-    
-    cout << "C. ib = " << ib << ", ic = " << ic << ", jc = " << jc << ", kc = " << kc << endl;
-    cout << "A->imin = " << A->imin << ", A->imax = " << A->imax << endl;
-    cout << "A->jmin = " << A->jmin << ", A->jmax = " << A->jmax << endl;
-    cout << "A->kmin = " << A->kmin << ", A->kmax = " << A->kmax << endl;
-
-    cout << "ray->status_ = " << ray->status_ << endl;
 
     if ( ray->status_ == ERROR ) {
     	cout << "DiscreteTransfer::trace_ray()" << endl

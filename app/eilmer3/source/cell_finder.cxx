@@ -228,9 +228,7 @@ find_cell( const Vector3 &p, size_t &ib, size_t &ic, size_t &jc, size_t &kc )
 
 	// Otherwise test the predicted cell
 	test_cell( cell, p, dc_[ithread] );
-	// cout << "before dc application: ic = " << ic << ", jc = " << jc << endl;
 	ic += dc_[ithread][0]; jc += dc_[ithread][1];
-	// cout << "after dc application: ic = " << ic << ", jc = " << jc << endl;
 
 	// increment search counter
 	++count;
@@ -277,9 +275,7 @@ test_cell( const FV_Cell * cell, const Vector3 &p, int *dc )
     
     if ( a_[ithread][1].z < 0.0 && a_[ithread][3].z > 0.0 ) dc[0] = 1;
     else if ( a_[ithread][1].z > 0.0 && a_[ithread][3].z < 0.0 ) dc[0] = -1;
-    
-    // cout << "dc[0] = " << dc[0] << ", dc[1] = " << dc[1] << endl;
-    
+
     return;
 }
 
