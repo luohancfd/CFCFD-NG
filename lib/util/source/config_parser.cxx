@@ -217,8 +217,8 @@ parse_vector_of_strings( const string section, const string key,
     return true;
 }
 
-bool ConfigParser::parse_uint( const string section, const string key,
-			       unsigned int &val, const unsigned int notfound )
+bool ConfigParser::parse_size_t( const string section, const string key,
+				 size_t &val, const size_t notfound )
 {
     if( ! has_section_and_key(section, key) ) {
 	val = notfound;

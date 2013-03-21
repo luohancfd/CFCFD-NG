@@ -38,8 +38,8 @@ public:
     bool parse_vector_of_strings( const string section, const string key,
 				  vector<string> &val, const vector<string> notfound );
 
-    bool parse_uint( const string section, const string key,
-		     unsigned int &val, const unsigned int notfound );
+    bool parse_size_t( const string section, const string key,
+		       size_t &val, const size_t notfound );
 
     bool parse_int( const string section, const string key,
 		    int &val, const int notfound );

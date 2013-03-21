@@ -1040,7 +1040,7 @@ int Piston::initialise_from_config_file(global_data &G,
 {
     cout << "Entering piston initialise from config...\n";
     size_t id;
-    if( ! cfg.parse_uint(section, "id", id, 0) ) {
+    if( ! cfg.parse_size_t(section, "id", id, 0) ) {
 	cout << "Error reading id in section: " << section << endl
 	     << "of input file: " << cfg.file_name << endl
 	     << "Bailing out!\n";
