@@ -1946,7 +1946,7 @@ int do_bad_cell_count( void )
 	    most_bad_cells = bad_cell_count;
 	} 
 	if ( bad_cell_count > G.max_invalid_cells ) {
-	    printf( "   Too many bad cells (i.e. %u > %u) in block[%u].\n", 
+	    printf( "   Too many bad cells (i.e. %zu > %zu) in block[%zu].\n", 
 		    bad_cell_count, G.max_invalid_cells, jb );
 	}
     } // end for jb loop

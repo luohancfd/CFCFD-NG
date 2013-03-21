@@ -51,7 +51,7 @@ fstcBC::fstcBC( Block *bdp, int which_boundary, const std::string filename )
 	exit(FILE_ERROR);
     }
 
-    nread = sscanf(line, "%u", &ncell_for_profile);
+    nread = sscanf(line, "%zu", &ncell_for_profile);
     if ( nread != 1 ) {
         cerr << "fstcBC() constructor:"
 	     << "Could not read ncell_for_profile from line:" << endl

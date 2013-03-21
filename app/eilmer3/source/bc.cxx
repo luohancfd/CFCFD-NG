@@ -742,7 +742,7 @@ read_surface_heat_flux( string filename, size_t dimensions, int zip_files )
 	printf("read_surface_heat_flux(): Empty flow field file while looking for surface data dimensions.\n");
 	exit(BAD_INPUT_ERROR);
     }
-    sscanf(line, "%u %u %u", &i, &j, &k);
+    sscanf(line, "%zu %zu %zu", &i, &j, &k);
     if ( i==0 && j==0 && k==0 ) return 0.0;
     if ( i != (imax-imin+1) || j != (jmax-jmin+1) || k != ((dimensions == 3) ? (kmax-kmin+1) : 1) ) {
 	printf("read_surface_heat_flux(): surface %d, mismatch in surface data dimensions\n", which_boundary);

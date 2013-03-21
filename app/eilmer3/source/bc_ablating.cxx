@@ -63,7 +63,7 @@ AblatingBC::AblatingBC( Block *bdp, int which_boundary, double Twall,
 	    exit(FILE_ERROR);
         }
 
-        nread = sscanf(line, "%u", &ncell_for_profile);
+        nread = sscanf(line, "%zu", &ncell_for_profile);
         if ( nread != 1 ) {
             cerr << "AblatingBC() constructor:"
 	        << "Could not read ncell_for_profile from line:" << endl

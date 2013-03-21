@@ -3600,11 +3600,11 @@ int Block::read_grid(std::string filename, size_t dimensions, int zip_file)
 	printf("read_grid(): Empty grid file, block %d.\n", id);
 	return BAD_INPUT_ERROR;
     }
-    sscanf(line, "%u %u %u", &i, &j, &k);
+    sscanf(line, "%zu %zu %zu", &i, &j, &k);
     if (dimensions == 3) {
 	if ( i != nni+1 || j != nnj+1 || k != nnk+1 ) {
-	    printf("read_grid(): Mismatch in cell numbers, block %u\n", id);
-	    printf("    i=%u nni+1=%u j=%u nnj+1=%u k=%u nnk+1=%u\n", 
+	    printf("read_grid(): Mismatch in cell numbers, block %zu\n", id);
+	    printf("    i=%zu nni+1=%zu j=%zu nnj+1=%zu k=%zu nnk+1=%zu\n", 
 		   i, nni+1, j, nnj+1, k, nnk+1);
 	    return BAD_INPUT_ERROR;
 	}
@@ -3628,9 +3628,15 @@ int Block::read_grid(std::string filename, size_t dimensions, int zip_file)
     } else {
 	// 2-dimensional case.
 	if ( i != nni+1 || j != nnj+1 || k != 1 ) {
-	    printf( "read_grid(): Mismatch in cell numbers, block %u\n", id );
-	    printf( "    i=%u nni+1=%u j=%u nnj+1=%u k=%u nnk=%u\n", 
+	    printf( "read_grid(): Mismatch in cell numbers, block %zu\n", id );
+	    printf( "    i=%zu nni+1=%zu j=%zu nnj+1=%zu k=%zu nnk=%zu\n", 
 		    i, nni+1, j, nnj+1, k, nnk);
+	    cout << "   more debug:" << endl;
+	    cout << "   i= " << i << " nni+1= " << (nni+1) << " (i != nni+1)= " << (i != nni+1) << endl;
+	    cout << "   j= " << j << " nnj+1= " << (nnj+1) << " (j != nnj+1)= " << (j != nnj+1) << endl;
+	    cout << "   k= " << k << " nnk=" << (nnk) << " (k != 1)= " << (k != 1) << endl;
+	    cout << "   ( i != nni+1 || j != nnj+1 || k != 1 )= " << ( i != nni+1 || j != nnj+1 || k != 1 ) << endl;
+	    cout << "   WTF!" << endl;
 	    return BAD_INPUT_ERROR;
 	}
 	for ( j = jmin; j <= jmax+1; ++j ) {
@@ -3725,7 +3731,7 @@ int Block::read_solution(std::string filename, double *sim_time,
 	printf("read_solution(): Empty flow field file while looking for numbers of cells.\n");
 	return BAD_INPUT_ERROR;
     }
-    sscanf(line, "%u %u %u", &i, &j, &k);
+    sscanf(line, "%zu %zu %zu", &i, &j, &k);
     if ( i != nni || j != nnj || k != ((dimensions == 3) ? nnk : 1) ) {
 	printf("read_solution(): block %d, mismatch in cell numbers\n", id);
 	printf("    This misalignment could be caused by a having a different number\n");
@@ -3926,7 +3932,7 @@ int Block::read_BGK(std::string filename, double *sim_time,
 	printf("read_BGK(): Empty flow field file while looking for numbers of cells.\n");
 	return BAD_INPUT_ERROR;
     }
-    sscanf(line, "%u %u %u", &i, &j, &k);
+    sscanf(line, "%zu %zu %zu", &i, &j, &k);
     if ( i != nni || j != nnj || k != ((dimensions == 3) ? nnk : 1) ) {
 	printf("read_BGK(): block %d, mismatch in cell numbers\n", id);
 	printf("    This misalignment could be caused by a having a different number\n");

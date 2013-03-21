@@ -942,7 +942,7 @@ int Piston::read_state(FILE *fp)
 	cerr << "Quitting program." << endl;
 	exit(FILE_ERROR);
     }
-    nread = sscanf(line, "%u %lf %lf %lf %lf %lf %lf", &temporary_id, &t, &x, &u, &acc, &wpg, &epg);
+    nread = sscanf(line, "%zu %lf %lf %lf %lf %lf %lf", &temporary_id, &t, &x, &u, &acc, &wpg, &epg);
     if (nread != 4) {
 	cout << "Piston::read_state(): id=" << id_ 
 	     << " failed to read all values." << endl;

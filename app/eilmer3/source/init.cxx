@@ -353,7 +353,7 @@ int read_config_parameters(const string filename, bool master)
     // Read the parameters for a number of blocks.
     dict.parse_size_t("global_data", "nblock", G.nblock, 0);
     if ( get_verbose_flag() ) {
-	printf( "nblock = %u\n", G.nblock);
+	printf( "nblock = %zu\n", G.nblock);
     }
     // We keep a record of all of the configuration data for all blocks
     // but, eventually, we may allocate the flow-field data for only a 
@@ -371,7 +371,7 @@ int read_config_parameters(const string filename, bool master)
 #   endif
     G.pistons.resize(G.npiston);
     if ( get_verbose_flag() ) {
-	printf( "npiston = %u\n", G.npiston);
+	printf( "npiston = %zu\n", G.npiston);
     }
     for ( size_t jp = 0; jp < G.npiston; ++jp ) {
 	string piston_label;
@@ -430,7 +430,7 @@ int read_config_parameters(const string filename, bool master)
     dict.parse_double("global_data", "heat_factor_increment", d_value, 0.01);
     set_heat_factor_increment( d_value );
     if ( get_verbose_flag() ) {
-	printf("nheatzone = %u\n", G.n_heat_zone);
+	printf("nheatzone = %zu\n", G.n_heat_zone);
 	printf("heat_time_start = %e\n", G.heat_time_start);
 	printf("heat_time_stop = %e\n", G.heat_time_stop);
 	printf("heat_factor_increment = %e\n", get_heat_factor_increment() );
@@ -455,7 +455,7 @@ int read_config_parameters(const string filename, bool master)
 
     dict.parse_size_t("global_data", "nreactionzone", G.n_reaction_zone, 0);
     if ( get_verbose_flag() ) {
-	printf("nreactionzone = %u\n", G.n_reaction_zone);
+	printf("nreactionzone = %zu\n", G.n_reaction_zone);
     }
     G.reaction_zone.resize(G.n_reaction_zone);
     for ( size_t indx = 0; indx < G.n_reaction_zone; ++indx ) {
@@ -607,7 +607,7 @@ int assign_blocks_to_mpi_rank(const string filename, bool master)
 		if ( master ) {
 		    printf("    Error in specifying mpirun -np\n");
 		    printf("    It needs to match number of nrank; present values are:\n");
-		    printf("    num_mpi_proc= %d nrank= %u\n", G.num_mpi_proc, nrank);
+		    printf("    num_mpi_proc= %d nrank= %zu\n", G.num_mpi_proc, nrank);
 		}
 		return FAILURE;
 	    }
@@ -805,8 +805,8 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 	bd.kmax = 0;
     }
     if ( get_verbose_flag() ) {
-	printf( "    nni = %u, nnj = %u, nnk = %u\n", bd.nni, bd.nnj, bd.nnk );
-	printf( "    nidim = %u, njdim = %u, nkdim = %u\n", bd.nidim, bd.njdim, bd.nkdim );
+	printf( "    nni = %zu, nnj = %zu, nnk = %zu\n", bd.nni, bd.nnj, bd.nnk );
+	printf( "    nidim = %zu, njdim = %zu, nkdim = %zu\n", bd.nidim, bd.njdim, bd.nkdim );
     }
 
     // Rotating frame of reference.
@@ -871,19 +871,19 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 	dict.parse_string(section, key, value_string, "0 0 0");
 	if ( G.dimensions == 3 ) {
 	    size_t hicell, hjcell, hkcell;
-	    sscanf( value_string.c_str(), "%u %u %u", &hicell, &hjcell, &hkcell );
+	    sscanf( value_string.c_str(), "%zu %zu %zu", &hicell, &hjcell, &hkcell );
 	    bd.hicell.push_back(hicell);
 	    bd.hjcell.push_back(hjcell);
 	    bd.hkcell.push_back(hkcell);
 	} else {
 	    size_t hicell, hjcell;
-	    sscanf( value_string.c_str(), "%u %u", &hicell, &hjcell );
+	    sscanf( value_string.c_str(), "%zu %zu", &hicell, &hjcell );
 	    bd.hicell.push_back(hicell);
 	    bd.hjcell.push_back(hjcell);
 	    bd.hkcell.push_back(0);
 	}
 	if ( get_verbose_flag() ) {
-	    printf( "    History cell[%u] located at indices [%u][%u][%u]\n",
+	    printf( "    History cell[%zu] located at indices [%zu][%zu][%zu]\n",
 		    ih, bd.hicell[ih], bd.hjcell[ih], bd.hkcell[ih] );
 	}
     }
