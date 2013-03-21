@@ -140,7 +140,7 @@ public:
 	}
 	return ctr_[k*(njdim*nidim)+j*nidim+i]; 
     }
-    FV_Interface *get_ifi(int i, int j, int k=0)
+    FV_Interface *get_ifi(size_t i, size_t j, size_t k=0)
     {
 	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
 	    throw std::runtime_error("Block::get_ifi: index out of bounds: i="+
@@ -148,7 +148,7 @@ public:
 	}
 	return ifi_[k*(njdim*nidim)+j*nidim+i]; 
     }
-    FV_Interface *get_ifj(int i, int j, int k=0)
+    FV_Interface *get_ifj(size_t i, size_t j, size_t k=0)
     {
 	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
 	    throw std::runtime_error("Block::get_ifj: index out of bounds: i="+
@@ -156,7 +156,7 @@ public:
 	}
 	return ifj_[k*(njdim*nidim)+j*nidim+i]; 
     }
-    FV_Interface *get_ifk(int i, int j, int k=0)
+    FV_Interface *get_ifk(size_t i, size_t j, size_t k=0)
     {
 	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
 	    throw std::runtime_error("Block::get_ifk: index out of bounds: i="+
@@ -164,7 +164,7 @@ public:
 	}
 	return ifk_[k*(njdim*nidim)+j*nidim+i]; 
     }
-    FV_Vertex *get_vtx(int i, int j, int k=0)
+    FV_Vertex *get_vtx(size_t i, size_t j, size_t k=0)
     {
 	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
 	    throw std::runtime_error("Block::get_vtx: index out of bounds: i="+
@@ -172,7 +172,7 @@ public:
 	}
 	return vtx_[k*(njdim*nidim)+j*nidim+i]; 
     }
-    FV_Interface *get_sifi(int i, int j, int k=0)
+    FV_Interface *get_sifi(size_t i, size_t j, size_t k=0)
     {
 	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
 	    throw std::runtime_error("Block::get_sifi: index out of bounds: i="+
@@ -180,7 +180,7 @@ public:
 	}
 	return sifi_[k*(njdim*nidim)+j*nidim+i]; 
     }
-    FV_Interface *get_sifj(int i, int j, int k=0)
+    FV_Interface *get_sifj(size_t i, size_t j, size_t k=0)
     {
 	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
 	    throw std::runtime_error("Block::get_sifj: index out of bounds: i="+
@@ -188,7 +188,7 @@ public:
 	}
 	return sifj_[k*(njdim*nidim)+j*nidim+i]; 
     }
-    FV_Interface *get_sifk(int i, int j, int k=0)
+    FV_Interface *get_sifk(size_t i, size_t j, size_t k=0)
     {
 	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
 	    throw std::runtime_error("Block::get_sifk: index out of bounds: i="+
