@@ -20,7 +20,7 @@ public:
 public:
     virtual int find_cell( const Vector3 &p, size_t &ib, size_t &ic, size_t &jc, size_t &kc ) = 0;
     
-    virtual void test_cell( const FV_Cell * cell, const Vector3 &p, size_t *dc ) = 0;
+    virtual void test_cell( const FV_Cell * cell, const Vector3 &p, int *dc ) = 0;
     
 protected:
     size_t nvertices_;
@@ -36,13 +36,13 @@ public:
 public:
     int find_cell( const Vector3 &p, size_t &ib, size_t &ic, size_t &jc, size_t &kc );
     
-    void test_cell( const FV_Cell * cell, const Vector3 &p, size_t *dc );
+    void test_cell( const FV_Cell * cell, const Vector3 &p, int *dc );
     
 private:
     // NOTE: we have a vectors here to allow for multiple threads
     std::vector< std::vector<Vector3> > rp_;
     std::vector< std::vector<Vector3> > a_;
-    std::vector< size_t* > dc_;
+    std::vector< int* > dc_;
 };
 
 class CellFinder3D : public CellFinder {
@@ -54,13 +54,13 @@ public:
 public:
     int find_cell( const Vector3 &p, size_t &ib, size_t &ic, size_t &jc, size_t &kc );
     
-    void test_cell( const FV_Cell * cell, const Vector3 &p, size_t *dc );
+    void test_cell( const FV_Cell * cell, const Vector3 &p, int *dc );
     
 private:
     // NOTE: we have a vectors here to allow for multiple threads
     std::vector< std::vector<Vector3> > vp_;
     std::vector< std::vector<double> > a_;
-    std::vector< size_t* > dc_;
+    std::vector< int* > dc_;
 };
 
 #endif

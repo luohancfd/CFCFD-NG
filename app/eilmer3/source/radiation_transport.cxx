@@ -116,12 +116,12 @@ void OpticallyThin::compute_Q_rad_for_flowfield()
     Block * bdp;
     global_data &G = *get_global_data_ptr();  // set up a reference
 
-    int jb;
+    size_t jb;
 #   ifdef _OPENMP
 #   pragma omp barrier
 #   pragma omp parallel for private(jb) schedule(runtime)
 #   endif
-    for ( jb = 0; jb < (int) G.my_blocks.size(); ++jb ) {
+    for ( jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
 	if ( bdp->active != 1 ) continue;
 	this->compute_Q_rad_for_block(bdp);
@@ -199,7 +199,7 @@ void TangentSlab::compute_Q_rad_for_flowfield()
 #   pragma omp barrier
 #   pragma omp parallel for private(jb) schedule(runtime)
 #   endif
-    for ( jb = 0; jb < (int) G.my_blocks.size(); ++jb ) {
+    for ( jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
 	if ( bdp->active != 1 ) continue;
 	this->compute_Q_rad_for_block(bdp);
@@ -331,7 +331,7 @@ DiscreteTransfer::initialise()
     cells_.resize( G.nblock );
     interfaces_.resize( G.nblock );
     size_t nthreads = omp_get_max_threads();
-    for ( size_t jb = 0; jb < (int)G.my_blocks.size(); ++jb ) {
+    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	Block * bdp = G.my_blocks[jb];
 #       if VERBOSE_RADIATION_TRANSPORT
     	cout << "Thread " << omp_get_thread_num() << ": Initialising cells in block: " << jb << endl;
@@ -399,17 +399,17 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
     
     // 0. Loop over spectral blocks (CHECKME)
     for ( size_t isb=0; isb<(size_t)rsm_[0]->get_spectral_blocks(); ++isb ) {
-	for ( size_t irsm=0; irsm<(int)rsm_.size(); ++irsm ) {
+	for ( size_t irsm=0; irsm<rsm_.size(); ++irsm ) {
 	    rsm_[irsm]->reset_spectral_params( isb );
 	}
     
 	// 1. Set all source terms to zero and store all spectra
-	for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
+	for ( size_t ib=0; ib<cells_.size(); ++ib ) {
 	    size_t ic;
 #	    ifdef _OPENMP
 #	    pragma omp parallel for private(ic) schedule(runtime)
 #	    endif
-	    for ( ic=0; ic<(int)cells_[ib].size(); ++ic ) {
+	    for ( ic=0; ic<cells_[ib].size(); ++ic ) {
 	    	RayTracingCell * cell = cells_[ib][ic];
 		*(cell->Q_rE_rad_) = 0.0;
 		// Also make sure thread vector is zero
@@ -425,7 +425,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 #	    pragma omp barrier
 #	    pragma omp parallel for private(iface) schedule(runtime)
 #	    endif
-	    for ( iface=0; iface<(int)interfaces_[ib].size(); ++iface ) {
+	    for ( iface=0; iface<interfaces_[ib].size(); ++iface ) {
 	    	RayTracingInterface * interface = interfaces_[ib][iface];
 		cout << "Thread " << omp_get_thread_num() << ": Recomputing spectra for interface: " << iface << " in block: " << ib;
 		interface->recompute_spectra( rsm_[omp_get_thread_num()] );
@@ -437,7 +437,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 	// NOTE: easiest to not do this in parallel
 	double cell_E_rad_total_max = 0.0;
 	double interface_E_rad_total_max = 0.0;
-	for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
+	for ( size_t ib=0; ib<cells_.size(); ++ib ) {
 	    for ( size_t ic=0; ic<cells_[ib].size(); ++ic ) {
 	    	RayTracingCell * cell = cells_[ib][ic];
 		if ( clustering_==CLUSTERING_BY_VOLUME )
@@ -470,8 +470,8 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 #	    endif
 	    for ( inu=0; inu < (size_t)rsm_[omp_get_thread_num()]->get_spectral_points(); inu++ ) {
 		double j_nu_dV = 0.0, S_nu_dV = 0.0;
-		for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
-		    for ( size_t ic=0; ic<(int)cells_[ib].size(); ++ic ) {
+		for ( size_t ib=0; ib<cells_.size(); ++ib ) {
+		    for ( size_t ic=0; ic<cells_[ib].size(); ++ic ) {
 			RayTracingCell * cell = cells_[ib][ic];
 			double dj_nu_dV = cell->X_->j_nu[inu] * cell->vol_;
 			j_nu_dV += dj_nu_dV;
@@ -487,12 +487,12 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 
 	// 4. Create binned spectra
 	if ( binning_ ) {
-	    for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
+	    for ( size_t ib=0; ib<cells_.size(); ++ib ) {
 		size_t ic;
 #	        ifdef _OPENMP
 #	        pragma omp parallel for private(ic) schedule(runtime)
 #  	        endif
-		for ( ic=0; ic<(int)cells_[ib].size(); ++ic ) {
+		for ( ic=0; ic<cells_[ib].size(); ++ic ) {
 		    RayTracingCell * cell = cells_[ib][ic];
 		    cout << "Thread " << omp_get_thread_num() << ": Creating binned spectra for cell: " << ic << " in block: " << ib;
 		    cell->Y_ = new BinnedCoeffSpectra( cell->X_, B_ );
@@ -504,7 +504,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 #	        pragma omp barrier
 #	        pragma omp parallel for private(iface) schedule(runtime)
 #	        endif
-		for ( iface=0; iface<(int)interfaces_[ib].size(); ++iface ) {
+		for ( iface=0; iface<interfaces_[ib].size(); ++iface ) {
 		    RayTracingInterface * interface = interfaces_[ib][iface];
 		    cout << "Thread " << omp_get_thread_num() << ": Creating binned spectra for interface: " << iface << " in block: " << ib;
 		    interface->U_ = new BinnedSpectralIntensity( interface->S_, B_ );
@@ -515,7 +515,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 	}
 
 	// 3. create rays
-	for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
+	for ( size_t ib=0; ib<cells_.size(); ++ib ) {
 	    size_t ii, jj, kk;
 	    for ( size_t ic=0; ic<cells_[ib].size(); ++ic ) {
 		RayTracingCell * cell = cells_[ib][ic];
@@ -534,7 +534,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 #   	        ifdef _OPENMP
 #               pragma omp parallel for private(ir) schedule(runtime)
 #               endif
-		for ( ir=0; ir<(int)cell->rays_.size(); ++ir ) {
+		for ( ir=0; ir<cell->rays_.size(); ++ir ) {
 		    RayTracingRay * ray = cell->rays_[ir];
 		    // use ii and jj as initial cell guess
 		    this->trace_ray( ray, ib, ii, jj, kk );
@@ -557,7 +557,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 #   	        ifdef _OPENMP
 #               pragma omp parallel for private(ir) schedule(runtime)
 #               endif
-		for ( ir=0; ir<(int)interface->rays_.size(); ++ir ) {
+		for ( ir=0; ir<interface->rays_.size(); ++ir ) {
 		    RayTracingRay * ray = interface->rays_[ir];
 		    // use ii and jj as initial cell guess
 		    this->trace_ray( ray, ib, ii, jj, kk );
@@ -576,7 +576,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 #       endif
 	
 	// 4. perform transport of radiative energy throughout the grid
-	for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
+	for ( size_t ib=0; ib<cells_.size(); ++ib ) {
 #	    if VERBOSE_RADIATION_TRANSPORT
 	    cout << "Thread " << omp_get_thread_num() << ": Integrating along rays for block: " << ib << endl;
 #           endif
@@ -590,7 +590,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 #   	    	pragma omp barrier
 #		pragma omp parallel for private(ir) schedule(runtime)
 #		endif
-		for ( ir=0; ir<(int)cell->rays_.size(); ++ir ) {
+		for ( ir=0; ir<cell->rays_.size(); ++ir ) {
 		    RayTracingRay * ray = cell->rays_[ir];
 		    if ( binning_ ) {
 			// perform radiation transport with the binned spectra
@@ -660,7 +660,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 #   	    	pragma omp barrier
 #		pragma omp parallel for private(ir) schedule(runtime)
 #		endif
-		for ( ir=0; ir<(int)interface->rays_.size(); ++ir ) {
+		for ( ir=0; ir<interface->rays_.size(); ++ir ) {
 		    RayTracingRay * ray = interface->rays_[ir];
 		    if ( binning_ ) {
 			for ( size_t iB=0; iB<N_bins_; ++iB ) {
@@ -722,13 +722,13 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
     
     
     // 5. Sum Q_rE_rad_temp values and set Q_rE_rad in CFD cells
-    for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
+    for ( size_t ib=0; ib<cells_.size(); ++ib ) {
     	size_t ic;
 #   	ifdef _OPENMP
 #   	pragma omp barrier
 #   	pragma omp parallel for private(ic) schedule(runtime)
 #  	endif
-    	for ( ic=0; ic<(int)cells_[ib].size(); ++ic ) {
+    	for ( ic=0; ic<cells_[ib].size(); ++ic ) {
     	    RayTracingCell * cell = cells_[ib][ic];
     	    for ( size_t iQ=0; iQ<cell->Q_rE_rad_temp_.size(); ++iQ ) {
     	    	*(cell->Q_rE_rad_) += cell->Q_rE_rad_temp_[iQ];
@@ -739,7 +739,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
     
     // 6. dump all exiting energy onto appropriate wall elements
     // NOTE: cannot do this with multiple threads due to possible race condition
-    for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
+    for ( size_t ib=0; ib<cells_.size(); ++ib ) {
     	for ( size_t ic=0; ic<cells_[ib].size(); ++ic ) {
     	    for ( size_t iray=0; iray<cells_[ib][ic]->rays_.size(); ++iray ) {
     	    	RayTracingRay * ray = cells_[ib][ic]->rays_[iray];
@@ -748,7 +748,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
     	}
     }
     
-    for ( size_t ib=0; ib<(int)interfaces_.size(); ++ib ) {
+    for ( size_t ib=0; ib<interfaces_.size(); ++ib ) {
     	for ( size_t iface=0; iface<interfaces_[ib].size(); ++iface ) {
     	    for ( size_t iray=0; iray<interfaces_[ib][iface]->rays_.size(); ++iray ) {
     	    	RayTracingRay * ray = interfaces_[ib][iface]->rays_[iray];
@@ -890,12 +890,16 @@ void DiscreteTransfer::initialise_rays_for_interface( RayTracingInterface * inte
 
 int DiscreteTransfer::trace_ray( RayTracingRay * ray, size_t ib, size_t ic, size_t jc, size_t kc )
 {
+    cout << "DiscreteTransfer::trace_ray( ib = " << ib << ", ic = " << ic << ", jc = " << jc << ", kc = " << kc << endl;
+
     Block * A = get_block_data_ptr( ib );
     FV_Cell * cell = A->get_cell(ic,jc,kc);		// start at origin cell
     
     double L = 0.5 * dl_lmin_ratio_ * cell->L_min;	// small initial step length
     Vector3 p = ray->get_point_on_line( L );
     
+    cout << "A. L = " << L << endl;
+
     RayTracingCell * RTcell;
     
     // step along the ray, creating the points as we go
@@ -909,12 +913,20 @@ int DiscreteTransfer::trace_ray( RayTracingRay * ray, size_t ib, size_t ic, size
 	// calculate next position on ray
 	L += dl_lmin_ratio_ * cell->L_min;
 	p = ray->get_point_on_line( L );
+	cout << "B. L = " << L << endl;
     }
 
     // Make sure block and cell pointers are up to date
     A = get_block_data_ptr( ib );
     cell = A->get_cell(ic,jc,kc);
     
+    cout << "C. ib = " << ib << ", ic = " << ic << ", jc = " << jc << ", kc = " << kc << endl;
+    cout << "A->imin = " << A->imin << ", A->imax = " << A->imax << endl;
+    cout << "A->jmin = " << A->jmin << ", A->jmax = " << A->jmax << endl;
+    cout << "A->kmin = " << A->kmin << ", A->kmax = " << A->kmax << endl;
+
+    cout << "ray->status_ = " << ray->status_ << endl;
+
     if ( ray->status_ == ERROR ) {
     	cout << "DiscreteTransfer::trace_ray()" << endl
     	     << "CellFinder failed at location: " << p.str() << endl
@@ -1016,7 +1028,7 @@ MonteCarlo::initialise()
     cells_.resize( G.nblock );
     interfaces_.resize( G.nblock );
     size_t nthreads = omp_get_max_threads();
-    for ( size_t jb = 0; jb < (int) G.my_blocks.size(); ++jb ) {
+    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	Block * bdp = G.my_blocks[jb];
 #       if VERBOSE_RADIATION_TRANSPORT
     	cout << "Thread " << omp_get_thread_num() << ": Initialising cells in block: " << jb << endl;
@@ -1103,17 +1115,17 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
     
     // 0. Loop over spectral blocks (CHECKME)
     for ( size_t isb=0; isb<(size_t)rsm_[0]->get_spectral_blocks(); ++isb ) {
-	for ( size_t irsm=0; irsm<(int)rsm_.size(); ++irsm ) {
+	for ( size_t irsm=0; irsm<rsm_.size(); ++irsm ) {
 	    rsm_[irsm]->reset_spectral_params( isb );
 	}
 
 	// 1. Set all source terms to zero, store all spectra
-	for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
+	for ( size_t ib=0; ib<cells_.size(); ++ib ) {
 	    size_t ic;
 #	    ifdef _OPENMP
 #	    pragma omp parallel for private(ic) schedule(runtime)
 #	    endif
-	    for ( ic=0; ic<(int)cells_[ib].size(); ++ic ) {
+	    for ( ic=0; ic<cells_[ib].size(); ++ic ) {
 	    	RayTracingCell * cell = cells_[ib][ic];
 		*(cell->Q_rE_rad_) = 0.0;
 		// Also make sure thread vector is zero
@@ -1131,7 +1143,7 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 #	    ifdef _OPENMP
 #	    pragma omp parallel for private(iface) schedule(runtime)
 #	    endif
-	    for ( iface=0; iface<(int)interfaces_[ib].size(); ++iface ) {
+	    for ( iface=0; iface<interfaces_[ib].size(); ++iface ) {
 	    	RayTracingInterface * interface = interfaces_[ib][iface];
 		cout << "Thread " << omp_get_thread_num() << ": Recomputing spectra for interface: " << iface << " in block: " << ib;
 		interface->recompute_spectra( rsm_[omp_get_thread_num()] );
@@ -1146,7 +1158,7 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 	// NOTE: easiest to not do this in parallel
 	double cell_E_rad_total_max = 0.0;
 	double interface_E_rad_total_max = 0.0;
-	for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
+	for ( size_t ib=0; ib<cells_.size(); ++ib ) {
 	    for ( size_t ic=0; ic<cells_[ib].size(); ++ic ) {
 	    	RayTracingCell * cell = cells_[ib][ic];
 		if ( clustering_==CLUSTERING_BY_VOLUME )
@@ -1166,7 +1178,7 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 	}
 	
 	// 3. create ray one-by-one and transport radiation along it
-	for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
+	for ( size_t ib=0; ib<cells_.size(); ++ib ) {
 	    size_t ii, jj, kk;
 	    for ( size_t ic=0; ic<cells_[ib].size(); ++ic ) {
 #           	if VERBOSE_RADIATION_TRANSPORT
@@ -1234,13 +1246,13 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
     }
 	
     // 5. Sum Q_rE_rad_temp values and set Q_rE_rad in CFD cells
-    for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
+    for ( size_t ib=0; ib<cells_.size(); ++ib ) {
     	size_t ic;
 #   	ifdef _OPENMP
 #   	pragma omp barrier
 #   	pragma omp parallel for private(ic) schedule(runtime)
 #  	endif
-    	for ( ic=0; ic<(int)cells_[ib].size(); ++ic ) {
+    	for ( ic=0; ic<cells_[ib].size(); ++ic ) {
     	    RayTracingCell * cell = cells_[ib][ic];
     	    for ( size_t iQ=0; iQ<cell->Q_rE_rad_temp_.size(); ++iQ ) {
     	    	*(cell->Q_rE_rad_) += cell->Q_rE_rad_temp_[iQ];
@@ -1250,13 +1262,13 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
     }
     
     // 6. Sum q_rad_temp values and set q_rad in CFD interfaces
-    for ( size_t ib=0; ib<(int)cells_.size(); ++ib ) {
+    for ( size_t ib=0; ib<cells_.size(); ++ib ) {
     	size_t iface;
 #   	ifdef _OPENMP
 #   	pragma omp barrier
 #   	pragma omp parallel for private(iface) schedule(runtime)
 #  	endif
-    	for ( iface=0; iface<(int)interfaces_[ib].size(); ++iface ) {
+    	for ( iface=0; iface<interfaces_[ib].size(); ++iface ) {
     	    RayTracingInterface * interface = interfaces_[ib][iface];
     	    for ( size_t iq=0; iq<interface->q_rad_temp_.size(); ++iq ) {
     	    	*(interface->q_rad_) += interface->q_rad_temp_[iq];

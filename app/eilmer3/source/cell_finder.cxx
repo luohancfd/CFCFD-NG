@@ -43,7 +43,7 @@ CellFinder2D::CellFinder2D( size_t nvertices )
     for ( size_t ithread=0; ithread < nthreads; ++ithread ) {
     	rp_[ithread].resize( nvertices_ );
     	a_[ithread].resize( nvertices_ );
-    	dc_[ithread] = new size_t[2];
+    	dc_[ithread] = new int[2];
     }
 }
 
@@ -212,14 +212,14 @@ find_cell( const Vector3 &p, size_t &ib, size_t &ic, size_t &jc, size_t &kc )
 	}
 	// else -> do nothing, retain INSIDE_GRID status
 	
+        if ( ic < A->imin || ic > A->imax || jc < A->jmin || jc > A->jmax ) {
+            cout << "ib = " << ib << ", ic = " << ic << ", jc = " << jc << ", A->imax = " << A->imax << ", A->imin = " << A->imin << ", A->jmax = " << A->jmax << ", A->jmin = " << A->jmin << endl;
+            cout << "dc[0] = " << dc_[ithread][0] << ", dc[1] = " << dc_[ithread][1] << endl;
+             exit( FAILURE );
+        }
+
 	A = get_block_data_ptr( ib );
 	cell = A->get_cell( ic, jc, kc );
-	
-	// if ( ic < A->imin || ic > A->imax || jc < A->jmin || jc > A->jmax ) {
-	//     cout << "ib = " << ib << ", ic = " << ic << ", jc = " << jc << ", A->imax = " << A->imax << ", A->imin = " << A->imin << ", A->jmax = " << A->jmax << ", A->jmin = " << A->jmin << endl;
-	//     cout << "dc[0] = " << dc_[ithread][0] << ", dc[1] = " << dc_[ithread][1] << endl;
-	//     exit( FAILURE );
-	// }
 	
 	// break if we are no longer inside the grid
 	if ( status != INSIDE_GRID ) {
@@ -228,7 +228,9 @@ find_cell( const Vector3 &p, size_t &ib, size_t &ic, size_t &jc, size_t &kc )
 
 	// Otherwise test the predicted cell
 	test_cell( cell, p, dc_[ithread] );
+	cout << "before dc application: ic = " << ic << ", jc = " << jc << endl;
 	ic += dc_[ithread][0]; jc += dc_[ithread][1];
+	cout << "after dc application: ic = " << ic << ", jc = " << jc << endl;
 
 	// increment search counter
 	++count;
@@ -245,7 +247,7 @@ find_cell( const Vector3 &p, size_t &ib, size_t &ic, size_t &jc, size_t &kc )
 
 void
 CellFinder2D::
-test_cell( const FV_Cell * cell, const Vector3 &p, size_t *dc )
+test_cell( const FV_Cell * cell, const Vector3 &p, int *dc )
 {
     // NOTE: this function should be applicable to both tri and quad 2D cells
     
@@ -276,7 +278,7 @@ test_cell( const FV_Cell * cell, const Vector3 &p, size_t *dc )
     if ( a_[ithread][1].z < 0.0 && a_[ithread][3].z > 0.0 ) dc[0] = 1;
     else if ( a_[ithread][1].z > 0.0 && a_[ithread][3].z < 0.0 ) dc[0] = -1;
     
-    // cout << "dc[0] = " << dc[0] << ", dc[1] = " << dc[1] << endl;
+    cout << "dc[0] = " << dc[0] << ", dc[1] = " << dc[1] << endl;
     
     return;
 }
@@ -308,7 +310,7 @@ CellFinder3D::CellFinder3D( size_t nvertices )
 	    exit( BAD_INPUT_ERROR );
 	}
 	
-	dc_[ithread] = new size_t[3];	// cell stepping has 3 degrees of freedom
+	dc_[ithread] = new int[3];	// cell stepping has 3 degrees of freedom
     }
 }
 
@@ -635,7 +637,7 @@ static size_t hex_vertex_indices[6][3] = { { 2, 6, 7 },
 
 void
 CellFinder3D::
-test_cell( const FV_Cell * cell, const Vector3 &p, size_t *dc )
+test_cell( const FV_Cell * cell, const Vector3 &p, int *dc )
 {
     // NOTE: this function should be applicable to all polyhedral cells
     
