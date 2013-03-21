@@ -74,7 +74,7 @@ find_cell( const Vector3 &p, size_t &ib, size_t &ic, size_t &jc, size_t &kc )
     dc_[ithread][0] = 1; dc_[ithread][1] = 1;
     size_t count = 0;
     int status = INSIDE_GRID; 
-    while ( abs(dc_[ithread][0]) + abs(dc_[ithread][1]) != 0 ) {
+    while ( (dc_[ithread][0] + dc_[ithread][1]) != 0 ) {
     	// cout << "ib = " << ib << ", ic = " << ic << ", jc = " << jc << ", A->imax = " << A->imax << ", A->imin = " << A->imin << ", A->jmax = " << A->jmax << ", A->jmin = " << A->jmin << endl;
 	// Check that predicted cell is inside the block domain
 	// FIXME: Is this (if's and else's) approach the most efficient?
@@ -341,7 +341,7 @@ find_cell( const Vector3 &p, size_t &ib, size_t &ic, size_t &jc, size_t &kc )
     dc_[ithread][0] = 1; dc_[ithread][1] = 1; dc_[ithread][2] = 1;
     size_t count = 0;
     int status = INSIDE_GRID;    
-    while ( abs(dc_[ithread][0]) + abs(dc_[ithread][1]) + abs(dc_[ithread][2]) != 0 ) {
+    while ( (dc_[ithread][0] + dc_[ithread][1] + dc_[ithread][2]) != 0 ) {
 	// Check that predicted cell is inside the block domain
 	if ( ic < A->imin ) {
 	    // cout << "Outside the block: West" << endl;
