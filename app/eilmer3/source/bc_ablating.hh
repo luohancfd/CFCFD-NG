@@ -9,7 +9,7 @@ private:
     std::vector<double> mdot;
     std::string filename;
     std::vector<double> TProfile;
-    size_t ncell_for_profile;
+    unsigned int ncell_for_profile;
     double mdot_total;
     Gas_model *gmodel;
     Gas_data *Q;

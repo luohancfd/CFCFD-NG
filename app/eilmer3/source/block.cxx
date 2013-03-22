@@ -212,7 +212,8 @@ int Block::apply(FV_Cell_MemberFunction_void f, string failure_message_header)
 		#endif
 		if ( result_flag != 0 ) {
 		    cout << failure_message_header << endl;
-		    printf("Block %d: cell[%d][%d][%d] \n", id, i, j, k);
+		    printf("Block %d: cell[%d][%d][%d] \n", static_cast<int>(id), 
+			   static_cast<int>(i), static_cast<int>(j), static_cast<int>(k));
 		    cellp->print();
 		    exit( BAD_CELLS_ERROR );
 		}
@@ -253,7 +254,8 @@ int Block::apply(FV_Cell_MemberFunction_double f, double param1, string failure_
 		#endif
 		if ( result_flag != 0 ) {
 		    cout << failure_message_header << endl;
-		    printf("Block %d: cell[%d][%d][%d] \n", id, i, j, k);
+		    printf("Block %d: cell[%d][%d][%d] \n", static_cast<int>(id),
+			   static_cast<int>(i), static_cast<int>(j), static_cast<int>(k));
 		    cellp->print();
 		    exit( BAD_CELLS_ERROR );
 		}
@@ -295,7 +297,8 @@ int Block::apply(FV_Cell_MemberFunction_double_double f, double param1, double p
 		#endif
 		if ( result_flag != 0 ) {
 		    cout << failure_message_header << endl;
-		    printf("Block %d: cell[%d][%d][%d] \n", id, i, j, k);
+		    printf("Block %d: cell[%d][%d][%d] \n", static_cast<int>(id),
+			   static_cast<int>(i), static_cast<int>(j), static_cast<int>(k));
 		    cellp->print();
 		    exit( BAD_CELLS_ERROR );
 		}
@@ -337,7 +340,8 @@ int Block::apply(FV_Cell_MemberFunction_int_double f, int param1, double param2,
 		#endif
 		if ( result_flag != 0 ) {
 		    cout << failure_message_header << endl;
-		    printf("Block %d: cell[%d][%d][%d] \n", id, i, j, k);
+		    printf("Block %d: cell[%d][%d][%d] \n", static_cast<int>(id),
+			   static_cast<int>(i), static_cast<int>(j), static_cast<int>(k));
 		    cellp->print();
 		    exit( BAD_CELLS_ERROR );
 		}
@@ -378,7 +382,8 @@ int Block::apply(FV_Cell_MemberFunction_int f, int param1, string failure_messag
 		#endif
 		if ( result_flag != 0 ) {
 		    cout << failure_message_header << endl;
-		    printf("Block %d: cell[%d][%d][%d] \n", id, i, j, k);
+		    printf("Block %d: cell[%d][%d][%d] \n", static_cast<int>(id),
+			   static_cast<int>(i), static_cast<int>(j), static_cast<int>(k));
 		    cellp->print();
 		    exit( BAD_CELLS_ERROR );
 		}
@@ -419,7 +424,8 @@ int Block::apply(FV_Cell_MemberFunction_int_int f, int param1, int param2, strin
 		#endif
 		if ( result_flag != 0 ) {
 		    cout << failure_message_header << endl;
-		    printf("Block %d: cell[%d][%d][%d] \n", id, i, j, k);
+		    printf("Block %d: cell[%d][%d][%d] \n", static_cast<int>(id),
+			   static_cast<int>(i), static_cast<int>(j), static_cast<int>(k));
 		    cellp->print();
 		    exit( BAD_CELLS_ERROR );
 		}
@@ -461,7 +467,8 @@ int Block::apply(int (*f)(FV_Cell *cellp),
 		#endif
 		if ( result_flag != 0 ) {
 		    cout << failure_message_header << endl;
-		    printf("Block %d: cell[%d][%d][%d] \n", id, i, j, k);
+		    printf("Block %d: cell[%d][%d][%d] \n", static_cast<int>(id),
+			   static_cast<int>(i), static_cast<int>(j), static_cast<int>(k));
 		    cellp->print();
 		    exit( BAD_CELLS_ERROR );
 		}
@@ -503,7 +510,8 @@ int Block::apply(int (*f)(FV_Cell *cellp, double param1),
 		#endif
 		if ( result_flag != 0 ) {
 		    cout << failure_message_header << endl;
-		    printf("Block %d: cell[%d][%d][%d] \n", id, i, j, k);
+		    printf("Block %d: cell[%d][%d][%d] \n", static_cast<int>(id),
+			   static_cast<int>(i), static_cast<int>(j), static_cast<int>(k));
 		    cellp->print();
 		    exit( BAD_CELLS_ERROR );
 		}
@@ -545,7 +553,8 @@ int Block::apply(int (*f)(FV_Cell *cellp, int param1),
 		#endif
 		if ( result_flag != 0 ) {
 		    cout << failure_message_header << endl;
-		    printf("Block %d: cell[%d][%d][%d] \n", id, i, j, k);
+		    printf("Block %d: cell[%d][%d][%d] \n", static_cast<int>(id),
+			   static_cast<int>(i), static_cast<int>(j), static_cast<int>(k));
 		    cellp->print();
 		    exit( BAD_CELLS_ERROR );
 		}
@@ -587,7 +596,8 @@ int Block::apply(int (*f)(FV_Cell *cellp, int param1, int param2),
 		#endif
 		if ( result_flag != 0 ) {
 		    cout << failure_message_header << endl;
-		    printf("Block %d: cell[%d][%d][%d] \n", id, i, j, k);
+		    printf("Block %d: cell[%d][%d][%d] \n", static_cast<int>(id),
+			   static_cast<int>(i), static_cast<int>(j), static_cast<int>(k));
 		    cellp->print();
 		    exit( BAD_CELLS_ERROR );
 		}
@@ -629,7 +639,8 @@ int Block::apply(int (*f)(FV_Cell *cellp, int param1, double param2),
 		#endif
 		if ( result_flag != 0 ) {
 		    cout << failure_message_header << endl;
-		    printf("Block %d: cell[%d][%d][%d] \n", id, i, j, k);
+		    printf("Block %d: cell[%d][%d][%d] \n", static_cast<int>(id),
+			   static_cast<int>(i), static_cast<int>(j), static_cast<int>(k));
 		    cellp->print();
 		    exit( BAD_CELLS_ERROR );
 		}
@@ -860,7 +871,8 @@ int Block::propagate_data_west_to_east( size_t dimensions )
 		if ( gm->eval_thermo_state_pT(*gas) != SUCCESS ||
 		     gm->eval_transport_coefficients(*gas) != SUCCESS ) {
 		    printf( "propagate_data_west_to_east(): Duff call to thermo model.\n" );
-		    printf( "   i=%d, j=%d, k=%d\n", i, j, k );
+		    printf( "   i=%d, j=%d, k=%d\n", static_cast<int>(i),
+			    static_cast<int>(j), static_cast<int>(k) );
 		    gas->print_values();
 		    exit(DUFF_EOS_ERROR);  /* Might as well quit early. */
 		}
@@ -1917,7 +1929,8 @@ int Block::calc_initial_volumes_2D( void )
                 vol = xyarea;
             }
             if (vol < 0.0) {
-                printf("Negative cell volume: vol[%d][%d] = %e\n", i, j, vol);
+                printf("Negative cell volume: vol[%d][%d] = %e\n", 
+		       static_cast<int>(i), static_cast<int>(j), vol);
                 return 1;
             }
             if (vol > max_vol) max_vol = vol;
@@ -2092,7 +2105,8 @@ int Block::calc_volumes_2D( size_t time_level )
                 vol = xyarea;
             }
             if (vol < 0.0) {
-                printf("Negative cell volume: vol[%d][%d] = %e\n", i, j, vol);
+                printf("Negative cell volume: vol[%d][%d] = %e\n", 
+		       static_cast<int>(i), static_cast<int>(j), vol);
                 return 1;
             }
             if (vol > max_vol) max_vol = vol;
@@ -2246,7 +2260,8 @@ int Block::secondary_areas_2D( void )
                             (xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
             if (xyarea < 0.0) {
                 printf("Negative secondary-cell area: Block %d, vtx[%d,%d] = %e\n", 
-		       id, i, j, xyarea);
+		       static_cast<int>(id), static_cast<int>(i), static_cast<int>(j),
+		       xyarea);
                 return BAD_CELLS_ERROR;
             }
             if (xyarea > max_area) max_area = xyarea;
@@ -2273,7 +2288,8 @@ int Block::secondary_areas_2D( void )
                         (xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
         if (xyarea < 0.0) {
             printf("Negative secondary-cell area: Block %d, vtx[%d,%d] = %e\n", 
-		   id, i, j, xyarea);
+		   static_cast<int>(id), static_cast<int>(i), static_cast<int>(j),
+		   xyarea);
             return BAD_CELLS_ERROR;
         }
         if (xyarea > max_area) max_area = xyarea;
@@ -2301,7 +2317,8 @@ int Block::secondary_areas_2D( void )
                         (xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
         if (xyarea < 0.0) {
 	    printf("Negative secondary-cell area: Block %d, vtx[%d,%d] = %e\n", 
-		   id, i, j, xyarea);
+		   static_cast<int>(id), static_cast<int>(i), static_cast<int>(j),
+		   xyarea);
             return BAD_CELLS_ERROR;
         }
         if (xyarea > max_area) max_area = xyarea;
@@ -2330,7 +2347,8 @@ int Block::secondary_areas_2D( void )
                         (xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
         if (xyarea < 0.0) {
             printf("Negative secondary-cell area: Block %d, vtx[%d,%d] = %e\n", 
-		   id, i, j, xyarea);
+		   static_cast<int>(id), static_cast<int>(i), static_cast<int>(j),
+		   xyarea);
             return BAD_CELLS_ERROR;
         }
         if (xyarea > max_area) max_area = xyarea;
@@ -2358,7 +2376,8 @@ int Block::secondary_areas_2D( void )
                         (xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
         if (xyarea < 0.0) {
             printf("Negative secondary-cell area: Block %d, vtx[%d,%d] = %e\n", 
-		   id, i, j, xyarea);
+		   static_cast<int>(id), static_cast<int>(i), static_cast<int>(j),
+		   xyarea);
             return BAD_CELLS_ERROR;
         }
         if (xyarea > max_area) max_area = xyarea;
@@ -2395,7 +2414,8 @@ int Block::calc_initial_faces_2D( void )
 	    yB = get_vtx(i,j+1)->pos.y;
             LAB = sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA));
             if (LAB < 1.0e-9) {
-                printf("Zero length ifi[%d,%d]: %e\n", i, j, LAB);
+                printf("Zero length ifi[%d,%d]: %e\n",
+		       static_cast<int>(i), static_cast<int>(j), LAB);
             }
             // Direction cosines for the unit normal.
             IFace->n.x = (yB - yA) / LAB;
@@ -2430,7 +2450,8 @@ int Block::calc_initial_faces_2D( void )
             yC = get_vtx(i,j)->pos.y;
             LBC = sqrt((xC - xB) * (xC - xB) + (yC - yB) * (yC - yB));
             if (LBC < 1.0e-9) {
-                printf("Zero length ifj[%d,%d]: %e\n", i, j, LBC);
+                printf("Zero length ifj[%d,%d]: %e\n", 
+		       static_cast<int>(i), static_cast<int>(j), LBC);
             }
             // Direction cosines for the unit normal.
             IFace->n.x = (yC - yB) / LBC;
@@ -2475,7 +2496,8 @@ int Block::calc_faces_2D( size_t time_level )
 	    yB = get_vtx(i,j+1)->position[time_level].y;
             LAB = sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA));
             if (LAB < 1.0e-9) {
-                printf("Zero length ifi[%d,%d]: %e\n", i, j, LAB);
+                printf("Zero length ifi[%d,%d]: %e\n",
+		       static_cast<int>(i), static_cast<int>(j), LAB);
             }
             // Direction cosines for the unit normal.
             IFace->n.x = (yB - yA) / LAB;
@@ -2510,7 +2532,8 @@ int Block::calc_faces_2D( size_t time_level )
             yC = get_vtx(i,j)->position[time_level].y;
             LBC = sqrt((xC - xB) * (xC - xB) + (yC - yB) * (yC - yB));
             if (LBC < 1.0e-9) {
-                printf("Zero length ifj[%d,%d]: %e\n", i, j, LBC);
+                printf("Zero length ifj[%d,%d]: %e\n",
+		       static_cast<int>(i), static_cast<int>(j), LBC);
             }
             // Direction cosines for the unit normal.
             IFace->n.x = (yC - yB) / LBC;
@@ -3032,8 +3055,8 @@ int Block::set_gcl_test_random_vertex_velocities2D( size_t time_level )
 	for (i = imin+1; i <= imax; ++i) {
 	    vtx = get_vtx(i,j,k);
 	    cell = get_cell(i,j,k);
-	    vtx->velocity[time_level].x = (double)(rand() % (int)( cell->fs->gas->a / 50.0 ));
-	    vtx->velocity[time_level].y = (double)(rand() % (int)( cell->fs->gas->a / 50.0 ));
+	    vtx->velocity[time_level].x = static_cast<double>(rand() % static_cast<int>(cell->fs->gas->a / 50.0));
+	    vtx->velocity[time_level].y = static_cast<double>(rand() % static_cast<int>(cell->fs->gas->a / 50.0));
 	    vtx->velocity[time_level].z = 0.0;
 	    cout << vtx->velocity[time_level] << endl;
 	    cout << vabs(vtx->velocity[time_level]) << endl;
@@ -3527,28 +3550,32 @@ int Block::print_forces( FILE *fp, double t, size_t dimensions )
     char msg_text[512], small_text[132];
 
     if ( bcp[NORTH]->xforce_flag == 1 ) {
-	sprintf( small_text, "XFORCE: TIME %e BLOCK %d BNDY %d ", t, id, NORTH );
+	sprintf( small_text, "XFORCE: TIME %e BLOCK %d BNDY %d ",
+		 t, static_cast<int>(id), NORTH );
 	strcpy( msg_text, small_text );
 	this->compute_x_forces( small_text, NORTH, dimensions );
 	strcat( msg_text, small_text );
 	fprintf( fp, "%s\n",  msg_text );
     }
     if ( bcp[EAST]->xforce_flag == 1 ) {
-	sprintf( small_text, "XFORCE: TIME %e BLOCK %d BNDY %d ", t, id, EAST );
+	sprintf( small_text, "XFORCE: TIME %e BLOCK %d BNDY %d ",
+		 t, static_cast<int>(id), EAST );
 	strcpy( msg_text, small_text );
 	this->compute_x_forces( small_text, EAST, dimensions );
 	strcat( msg_text, small_text );
 	fprintf( fp, "%s\n",  msg_text );
     }
     if ( bcp[SOUTH]->xforce_flag == 1 ) {
-	sprintf( small_text, "XFORCE: TIME %e BLOCK %d BNDY %d ", t, id, SOUTH );
+	sprintf( small_text, "XFORCE: TIME %e BLOCK %d BNDY %d ",
+		 t, static_cast<int>(id), SOUTH );
 	strcpy( msg_text, small_text );
 	this->compute_x_forces( small_text, SOUTH, dimensions );
 	strcat( msg_text, small_text );
 	fprintf( fp, "%s\n",  msg_text );
     }
     if ( bcp[WEST]->xforce_flag == 1 ) {
-	sprintf( small_text, "XFORCE: TIME %e BLOCK %d BNDY %d ", t, id, WEST );
+	sprintf( small_text, "XFORCE: TIME %e BLOCK %d BNDY %d ",
+		 t, static_cast<int>(id), WEST );
 	strcpy( msg_text, small_text );
 	this->compute_x_forces( small_text, WEST, dimensions );
 	strcat( msg_text, small_text );
@@ -3567,11 +3594,11 @@ int Block::read_grid(std::string filename, size_t dimensions, int zip_file)
     char line[NCHAR];
     char *gets_result;
     FV_Vertex *vp;
-    size_t i, j, k;
+    unsigned int i, j, k;
     size_t retries = 10;
     FILE *fp = NULL;
     gzFile zfp = NULL;
-    if (id == 0) printf("read_grid(): Start block %d.\n", id);
+    if (id == 0) printf("read_grid(): Start block %d.\n", static_cast<int>(id));
     retries = 10;
     if (zip_file) filename += ".gz";
     while (retries > 0 && zfp == NULL && fp == NULL) {
@@ -3597,15 +3624,19 @@ int Block::read_grid(std::string filename, size_t dimensions, int zip_file)
 	gets_result = fgets(line, NCHAR, fp);
     }
     if (gets_result == NULL) {
-	printf("read_grid(): Empty grid file, block %d.\n", id);
+	printf("read_grid(): Empty grid file, block %d.\n", static_cast<int>(id));
 	return BAD_INPUT_ERROR;
     }
-    sscanf(line, "%zu %zu %zu", &i, &j, &k);
+    
+    sscanf(line, "%u %u %u", &i, &j, &k);
     if (dimensions == 3) {
 	if ( i != nni+1 || j != nnj+1 || k != nnk+1 ) {
-	    printf("read_grid(): Mismatch in cell numbers, block %zu\n", id);
-	    printf("    i=%zu nni+1=%zu j=%zu nnj+1=%zu k=%zu nnk+1=%zu\n", 
-		   i, nni+1, j, nnj+1, k, nnk+1);
+	    printf("read_grid(): Mismatch in cell numbers, block %d\n",
+		   static_cast<int>(id));
+	    printf("    i=%u nni+1=%u j=%u nnj+1=%u k=%u nnk+1=%u\n", 
+		   i, static_cast<unsigned int>(nni+1),
+		   j, static_cast<unsigned int>(nnj+1),
+		   k, static_cast<unsigned int>(nnk+1));
 	    return BAD_INPUT_ERROR;
 	}
 	for ( k = kmin; k <= kmax+1; ++k ) {
@@ -3617,7 +3648,8 @@ int Block::read_grid(std::string filename, size_t dimensions, int zip_file)
 			gets_result = fgets(line, NCHAR, fp);
 		    }
 		    if (gets_result == NULL) {
-			printf("read_grid(): Premature end of file, block %d, vertex[%d,%d,%d]\n", id, i, j, k);
+			printf("read_grid(): Premature end of file, block %d, vertex[%u,%u,%u]\n",
+			       static_cast<int>(id), i, j, k);
 			return BAD_INPUT_ERROR;
 		    }
 		    vp = get_vtx(i,j,k);
@@ -3628,9 +3660,12 @@ int Block::read_grid(std::string filename, size_t dimensions, int zip_file)
     } else {
 	// 2-dimensional case.
 	if ( i != nni+1 || j != nnj+1 || k != 1 ) {
-	    printf( "read_grid(): Mismatch in cell numbers, block %zu\n", id );
-	    printf( "    i=%zu nni+1=%zu j=%zu nnj+1=%zu k=%zu nnk=%zu\n", 
-		    i, nni+1, j, nnj+1, k, nnk);
+	    printf( "read_grid(): Mismatch in cell numbers, block %d\n",
+		    static_cast<int>(id) );
+	    printf( "    i=%u nni+1=%u j=%u nnj+1=%u k=%u nnk=%u\n", 
+		    i, static_cast<unsigned int>(nni+1),
+		    j, static_cast<unsigned int>(nnj+1),
+		    k, static_cast<unsigned int>(nnk));
 	    cout << "   more debug:" << endl;
 	    cout << "   i= " << i << " nni+1= " << (nni+1) << " (i != nni+1)= " << (i != nni+1) << endl;
 	    cout << "   j= " << j << " nnj+1= " << (nnj+1) << " (j != nnj+1)= " << (j != nnj+1) << endl;
@@ -3647,7 +3682,8 @@ int Block::read_grid(std::string filename, size_t dimensions, int zip_file)
 		    gets_result = fgets(line, NCHAR, fp);
 		}
 		if (gets_result == NULL) {
-		    printf("read_grid(): Premature end of file, block %d, vertex[%d,%d]\n", id, i, j);
+		    printf("read_grid(): Premature end of file, block %d, vertex[%d,%d]\n",
+			   static_cast<int>(id), static_cast<int>(i), static_cast<int>(j));
 		    return BAD_INPUT_ERROR;
 		}
 		vp = get_vtx(i,j);
@@ -3675,11 +3711,11 @@ int Block::read_solution(std::string filename, double *sim_time,
 #   define NCHAR 4000
     char line[NCHAR];
     char *gets_result;
-    size_t i, j, k;
+    unsigned int i, j, k;
     size_t retries = 10;
     FILE *fp = NULL;
     gzFile zfp = NULL;
-    if (id == 0) printf("read_solution(): Start block %d.\n", id); 
+    if (id == 0) printf("read_solution(): Start block %d.\n", static_cast<int>(id)); 
     if (zip_file) filename += ".gz";
     while (retries > 0 && zfp == NULL && fp == NULL) {
 	if (zip_file) {
@@ -3731,9 +3767,9 @@ int Block::read_solution(std::string filename, double *sim_time,
 	printf("read_solution(): Empty flow field file while looking for numbers of cells.\n");
 	return BAD_INPUT_ERROR;
     }
-    sscanf(line, "%zu %zu %zu", &i, &j, &k);
+    sscanf(line, "%u %u %u", &i, &j, &k);
     if ( i != nni || j != nnj || k != ((dimensions == 3) ? nnk : 1) ) {
-	printf("read_solution(): block %d, mismatch in cell numbers\n", id);
+	printf("read_solution(): block %d, mismatch in cell numbers\n", static_cast<int>(id));
 	printf("    This misalignment could be caused by a having a different number\n");
 	printf("    of fields for each cell's entry.\n");
 	return BAD_INPUT_ERROR;
@@ -3775,7 +3811,8 @@ int Block::write_solution( std::string filename, double sim_time, size_t dimensi
     gzFile zfp;
     string str;
     if (id == 0) {
-	printf("write_solution(): At t = %e, start block = %d.\n", sim_time, id);
+	printf("write_solution(): At t = %e, start block = %d.\n",
+	       sim_time, static_cast<int>(id));
     }
     if (zip_file) {
 	fp = NULL;
@@ -3786,7 +3823,8 @@ int Block::write_solution( std::string filename, double sim_time, size_t dimensi
 	}
 	gzprintf(zfp, "%20.12e\n", sim_time);
 	gzprintf(zfp, "%s\n", variable_list_for_cell().c_str());
-	gzprintf(zfp, "%d %d %d\n", nni, nnj, nnk);
+	gzprintf(zfp, "%d %d %d\n", static_cast<int>(nni), static_cast<int>(nnj),
+		 static_cast<int>(nnk));
     } else {
 	zfp = NULL;
 	if ((fp = fopen(filename.c_str(), "w")) == NULL) {
@@ -3795,7 +3833,8 @@ int Block::write_solution( std::string filename, double sim_time, size_t dimensi
 	}
 	fprintf(fp, "%20.12e\n", sim_time);
 	fprintf(fp, "%s\n", variable_list_for_cell().c_str());
-	fprintf(fp, "%d %d %d\n", nni, nnj, nnk);
+	fprintf(fp, "%d %d %d\n", static_cast<int>(nni), static_cast<int>(nnj),
+		static_cast<int>(nnk));
     }
     for ( size_t k = kmin; k <= kmax; ++k ) {
 	for ( size_t j = jmin; j <= jmax; ++j ) {
@@ -3818,8 +3857,7 @@ int Block::write_solution( std::string filename, double sim_time, size_t dimensi
 } // end of Block::write_solution()
 
 int Block::write_block( std::string filename, double sim_time, size_t dimensions, int zip_file )
-/// \brief Write the flow solution (i.e. the primary variables at the
-///        cell centers) for a single block.
+/// \brief Write the grid for a single block.
 ///
 /// This is "almost-Tecplot" POINT format.
 {
@@ -3829,7 +3867,8 @@ int Block::write_block( std::string filename, double sim_time, size_t dimensions
     string str;
     size_t krangemax;
     if (id == 0) {
-	printf("write_block(): At t = %e, start block = %d.\n", sim_time, id);
+	printf("write_block(): At t = %e, start block = %d.\n",
+	       sim_time, static_cast<int>(id));
     }
     if (zip_file) {
 	fp = NULL;
@@ -3838,16 +3877,26 @@ int Block::write_block( std::string filename, double sim_time, size_t dimensions
 	    cerr << "write_block(): Could not open " << filename << "; BAILING OUT" << endl;
 	    exit( FILE_ERROR );
 	}
-	if ( dimensions == 2 ) gzprintf(zfp, "%d %d %d  # ni nj nk\n", nni+1, nnj+1, nnk);
-	else gzprintf(zfp, "%d %d %d  # ni nj nk\n", nni+1, nnj+1, nnk+1);
+	if ( dimensions == 2 ) {
+	    gzprintf(zfp, "%d %d %d  # ni nj nk\n", static_cast<int>(nni+1), 
+		     static_cast<int>(nnj+1), static_cast<int>(nnk));
+	} else {
+	    gzprintf(zfp, "%d %d %d  # ni nj nk\n", static_cast<int>(nni+1),
+		     static_cast<int>(nnj+1), static_cast<int>(nnk+1));
+	}
     } else {
 	zfp = NULL;
 	if ((fp = fopen(filename.c_str(), "w")) == NULL) {
 	    cerr << "write_block(): Could not open " << filename << "; BAILING OUT" << endl;
 	    exit( FILE_ERROR );
 	}
-	if ( dimensions == 2 ) fprintf(fp, "%d %d %d  # ni nj nk\n", nni+1, nnj+1, nnk);
-	else fprintf(fp, "%d %d %d  # ni nj nk\n", nni+1, nnj+1, nnk+1);
+	if ( dimensions == 2 ) {
+	    fprintf(fp, "%d %d %d  # ni nj nk\n", static_cast<int>(nni+1), 
+		    static_cast<int>(nnj+1), static_cast<int>(nnk));
+	} else {
+	    fprintf(fp, "%d %d %d  # ni nj nk\n", static_cast<int>(nni+1),
+		    static_cast<int>(nnj+1), static_cast<int>(nnk+1));
+	}
     }
     if ( dimensions == 2 ) krangemax = kmax;
     else krangemax = kmax+1;
@@ -3879,11 +3928,11 @@ int Block::read_BGK(std::string filename, double *sim_time,
 #   define NCHAR 4000
     char line[NCHAR];
     char *gets_result;
-    size_t i, j, k;
+    unsigned int i, j, k;
     size_t retries = 10;
     FILE *fp = NULL;
     gzFile zfp = NULL;
-    if (id == 0) printf("read_BGK(): Start block %d.\n", id); 
+    if (id == 0) printf("read_BGK(): Start block %d.\n", static_cast<int>(id)); 
     if (zip_file) filename += ".gz";
     while (retries > 0 && zfp == NULL && fp == NULL) {
 	if (zip_file) {
@@ -3932,9 +3981,9 @@ int Block::read_BGK(std::string filename, double *sim_time,
 	printf("read_BGK(): Empty flow field file while looking for numbers of cells.\n");
 	return BAD_INPUT_ERROR;
     }
-    sscanf(line, "%zu %zu %zu", &i, &j, &k);
+    sscanf(line, "%u %u %u", &i, &j, &k);
     if ( i != nni || j != nnj || k != ((dimensions == 3) ? nnk : 1) ) {
-	printf("read_BGK(): block %d, mismatch in cell numbers\n", id);
+	printf("read_BGK(): block %d, mismatch in cell numbers\n", static_cast<int>(id));
 	printf("    This misalignment could be caused by a having a different number\n");
 	printf("    of fields for each cell's entry.\n");
 	return BAD_INPUT_ERROR;
@@ -3989,7 +4038,7 @@ int Block::write_BGK( std::string filename, double sim_time, size_t dimensions, 
     gzFile zfp;
     string str;
     if (id == 0) {
-	printf("write_BGK(): At t = %e, start block = %d.\n", sim_time, id);
+	printf("write_BGK(): At t = %e, start block = %d.\n", sim_time, static_cast<int>(id));
     }
     if (zip_file) {
 	fp = NULL;
@@ -4001,9 +4050,9 @@ int Block::write_BGK( std::string filename, double sim_time, size_t dimensions, 
 	gzprintf(zfp, "%20.12e\n", sim_time);
 	gzprintf(zfp,"\"pos.x\" \"pos.y\" \"pos.z\" \"volume\"");
 	for (size_t ii = 0; ii < get_velocity_buckets(); ++ii) {
-	    gzprintf(zfp," \"G[%d]\" \"H[%d]\"",ii,ii);
+	    gzprintf(zfp," \"G[%d]\" \"H[%d]\"", static_cast<int>(ii), static_cast<int>(ii));
 	}
-	gzprintf(zfp, "\n%d %d %d\n", nni, nnj, nnk);
+	gzprintf(zfp, "\n%d %d %d\n", static_cast<int>(nni), static_cast<int>(nnj), static_cast<int>(nnk));
     } else {
 	zfp = NULL;
 	if ((fp = fopen(filename.c_str(), "w")) == NULL) {
@@ -4014,9 +4063,9 @@ int Block::write_BGK( std::string filename, double sim_time, size_t dimensions, 
 	fprintf(fp,"\"pos.x\" \"pos.y\" \"pos.z\" \"volume\"");
 	
 	for (size_t ii = 0; ii < get_velocity_buckets(); ++ii) {
-	    fprintf(fp," \"G[%d]\" \"H[%d]\"",ii,ii);
+	    fprintf(fp," \"G[%d]\" \"H[%d]\"", static_cast<int>(ii), static_cast<int>(ii));
 	}
-	fprintf(fp, "\n%d %d %d\n", nni, nnj, nnk);
+	fprintf(fp, "\n%d %d %d\n", static_cast<int>(nni), static_cast<int>(nnj), static_cast<int>(nnk));
     }
     for ( size_t k = kmin; k <= kmax; ++k ) {
 	for ( size_t j = jmin; j <= jmax; ++j ) {
@@ -4066,7 +4115,8 @@ int Block::write_history( std::string filename, double sim_time, int write_heade
 	    i = hicell[ih] + imin;
 	    j = hjcell[ih] + jmin;
 	    k = hkcell[ih] + kmin;
-	    fprintf( fp, "%e %d %d %d ", sim_time, hicell[ih], hjcell[ih], hkcell[ih]);
+	    fprintf( fp, "%e %d %d %d ", sim_time, static_cast<int>(hicell[ih]),
+		     static_cast<int>(hjcell[ih]), static_cast<int>(hkcell[ih]));
 	    str = get_cell(i,j,k)->write_values_to_string();
 	    fputs( str.c_str(), fp );
 	    fputc( '\n', fp );
@@ -4101,7 +4151,8 @@ int Block::count_invalid_cells( size_t dimensions )
 		    ++number_of_invalid_cells;
 		    if ( get_bad_cell_complain_flag() ) {
 			printf("count_invalid_cells: block_id = %d, cell[%d,%d,%d]\n", 
-			       id, i, j, k);
+			       static_cast<int>(id), static_cast<int>(i), 
+			       static_cast<int>(j), static_cast<int>(k));
 			cell->print();
 		    }
 		    if ( adjust_invalid_cell_data ) {
@@ -4136,7 +4187,8 @@ int Block::count_invalid_cells( size_t dimensions )
 			cell->decode_conserved(omegaz);
 			if ( get_bad_cell_complain_flag() ) {
 			    printf("after flow-data replacement: block_id = %d, cell[%d,%d,%d]\n", 
-				   id, i, j, k);
+				   static_cast<int>(id), static_cast<int>(i),
+				   static_cast<int>(j), static_cast<int>(k));
 			    cell->print();
 			}
 		    } // end adjust_invalid_cell_data 
@@ -4268,7 +4320,7 @@ int Block::determine_time_step_size( double cfl_target, size_t dimensions )
 	return SUCCESS;
     } else {
 	printf( "determine_time_step_size(): bad CFL number was encountered\n" );
-	printf( "    cfl_max = %e for Block %d\n", cfl_max, id );
+	printf( "    cfl_max = %e for Block %d\n", cfl_max, static_cast<int>(id) );
 	printf( "    If this cfl_max value is not much larger than 1.0,\n" );
 	printf( "    your simulation could probably be restarted successfully\n" );
 	printf( "    with some minor tweaking." );

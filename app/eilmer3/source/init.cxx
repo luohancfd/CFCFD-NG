@@ -353,7 +353,7 @@ int read_config_parameters(const string filename, bool master)
     // Read the parameters for a number of blocks.
     dict.parse_size_t("global_data", "nblock", G.nblock, 0);
     if ( get_verbose_flag() ) {
-	printf( "nblock = %zu\n", G.nblock);
+	printf( "nblock = %d\n", static_cast<int>(G.nblock));
     }
     // We keep a record of all of the configuration data for all blocks
     // but, eventually, we may allocate the flow-field data for only a 
@@ -371,7 +371,7 @@ int read_config_parameters(const string filename, bool master)
 #   endif
     G.pistons.resize(G.npiston);
     if ( get_verbose_flag() ) {
-	printf( "npiston = %zu\n", G.npiston);
+	printf( "npiston = %d\n", static_cast<int>(G.npiston));
     }
     for ( size_t jp = 0; jp < G.npiston; ++jp ) {
 	string piston_label;
@@ -430,7 +430,7 @@ int read_config_parameters(const string filename, bool master)
     dict.parse_double("global_data", "heat_factor_increment", d_value, 0.01);
     set_heat_factor_increment( d_value );
     if ( get_verbose_flag() ) {
-	printf("nheatzone = %zu\n", G.n_heat_zone);
+	printf("nheatzone = %d\n", static_cast<int>(G.n_heat_zone));
 	printf("heat_time_start = %e\n", G.heat_time_start);
 	printf("heat_time_stop = %e\n", G.heat_time_stop);
 	printf("heat_factor_increment = %e\n", get_heat_factor_increment() );
@@ -455,7 +455,7 @@ int read_config_parameters(const string filename, bool master)
 
     dict.parse_size_t("global_data", "nreactionzone", G.n_reaction_zone, 0);
     if ( get_verbose_flag() ) {
-	printf("nreactionzone = %zu\n", G.n_reaction_zone);
+	printf("nreactionzone = %d\n", static_cast<int>(G.n_reaction_zone));
     }
     G.reaction_zone.resize(G.n_reaction_zone);
     for ( size_t indx = 0; indx < G.n_reaction_zone; ++indx ) {
@@ -476,7 +476,7 @@ int read_config_parameters(const string filename, bool master)
 
     dict.parse_size_t("global_data", "nturbulencezone", G.n_turbulent_zone, 0);
     if ( get_verbose_flag() ) {
-	printf("nturbulencezone = %d\n", G.n_turbulent_zone);
+	printf("nturbulencezone = %d\n", static_cast<int>(G.n_turbulent_zone));
     }
     G.turbulent_zone.resize(G.n_turbulent_zone);
     for ( size_t indx = 0; indx < G.n_turbulent_zone; ++indx ) {
@@ -607,7 +607,8 @@ int assign_blocks_to_mpi_rank(const string filename, bool master)
 		if ( master ) {
 		    printf("    Error in specifying mpirun -np\n");
 		    printf("    It needs to match number of nrank; present values are:\n");
-		    printf("    num_mpi_proc= %d nrank= %zu\n", G.num_mpi_proc, nrank);
+		    printf("    num_mpi_proc= %d nrank= %d\n", G.num_mpi_proc,
+			   static_cast<int>(nrank));
 		}
 		return FAILURE;
 	    }
@@ -622,7 +623,8 @@ int assign_blocks_to_mpi_rank(const string filename, bool master)
 		    if ( master ) {
 			printf("    Did not pick up correct number of block_ids:\n");
 			printf("        rank=%d, nblock=%d, block_ids.size()=%d\n",
-			       rank, nblock,(int) block_ids.size());
+			       static_cast<int>(rank), static_cast<int>(nblock),
+			       static_cast<int>(block_ids.size()));
 		    }
 		    return FAILURE;
 		}
@@ -632,22 +634,23 @@ int assign_blocks_to_mpi_rank(const string filename, bool master)
 			if ( master ) printf("    Error, invalid block id: %d\n", this_block_id);
 			return FAILURE;
 		    }
-		    if ( G.my_mpi_rank == (int)rank ) G.my_blocks.push_back(&(G.bd[this_block_id]));
-		    G.mpi_rank_for_block[this_block_id] = (int)rank;
+		    if ( G.my_mpi_rank == static_cast<int>(rank) )
+			G.my_blocks.push_back(&(G.bd[this_block_id]));
+		    G.mpi_rank_for_block[this_block_id] = static_cast<int>(rank);
 		    nblock_total += 1;
 		} // end for i
 	    } // end for rank
 	    if ( get_verbose_flag() ) {
-		printf("    my_rank=%d, block_ids=", G.my_mpi_rank);
+		printf("    my_rank=%d, block_ids=", static_cast<int>(G.my_mpi_rank));
 		for ( size_t i=0; i < G.my_blocks.size(); ++i ) {
-		    printf(" %d", G.my_blocks[i]->id);
+		    printf(" %d", static_cast<int>(G.my_blocks[i]->id));
 		}
 		printf("\n");
 	    }
 	    if ( master ) {
 		if ( nblock_total != G.nblock ) {
 		    printf("    Error, total number of blocks incorrect: total=%d G.nblock=%d\n",
-			   nblock_total, G.nblock);
+			   static_cast<int>(nblock_total), static_cast<int>(G.nblock));
 		    return FAILURE;
 		}
 	    }
@@ -660,7 +663,8 @@ int assign_blocks_to_mpi_rank(const string filename, bool master)
 		if ( master ) {
 		    printf("    Error in specifying mpirun -np\n");
 		    printf("    It needs to match number of blocks; present values are:\n");
-		    printf("    num_mpi_proc= %d nblock= %d\n", G.num_mpi_proc, G.nblock);
+		    printf("    num_mpi_proc= %d nblock= %d\n", 
+			   static_cast<int>(G.num_mpi_proc), static_cast<int>(G.nblock));
 		}
 		return FAILURE;
 	    }
@@ -805,8 +809,12 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 	bd.kmax = 0;
     }
     if ( get_verbose_flag() ) {
-	printf( "    nni = %zu, nnj = %zu, nnk = %zu\n", bd.nni, bd.nnj, bd.nnk );
-	printf( "    nidim = %zu, njdim = %zu, nkdim = %zu\n", bd.nidim, bd.njdim, bd.nkdim );
+	printf( "    nni = %d, nnj = %d, nnk = %d\n", 
+		static_cast<int>(bd.nni), static_cast<int>(bd.nnj),
+		static_cast<int>(bd.nnk) );
+	printf( "    nidim = %d, njdim = %d, nkdim = %d\n",
+		static_cast<int>(bd.nidim), static_cast<int>(bd.njdim),
+		static_cast<int>(bd.nkdim) );
     }
 
     // Rotating frame of reference.
@@ -870,21 +878,22 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 	string key = "history-cell-" + tostring(ih);
 	dict.parse_string(section, key, value_string, "0 0 0");
 	if ( G.dimensions == 3 ) {
-	    size_t hicell, hjcell, hkcell;
-	    sscanf( value_string.c_str(), "%zu %zu %zu", &hicell, &hjcell, &hkcell );
+	    unsigned int hicell, hjcell, hkcell;
+	    sscanf( value_string.c_str(), "%u %u %u", &hicell, &hjcell, &hkcell );
 	    bd.hicell.push_back(hicell);
 	    bd.hjcell.push_back(hjcell);
 	    bd.hkcell.push_back(hkcell);
 	} else {
-	    size_t hicell, hjcell;
-	    sscanf( value_string.c_str(), "%zu %zu", &hicell, &hjcell );
+	    unsigned int hicell, hjcell;
+	    sscanf( value_string.c_str(), "%u %u", &hicell, &hjcell );
 	    bd.hicell.push_back(hicell);
 	    bd.hjcell.push_back(hjcell);
 	    bd.hkcell.push_back(0);
 	}
 	if ( get_verbose_flag() ) {
-	    printf( "    History cell[%zu] located at indices [%zu][%zu][%zu]\n",
-		    ih, bd.hicell[ih], bd.hjcell[ih], bd.hkcell[ih] );
+	    printf( "    History cell[%d] located at indices [%d][%d][%d]\n",
+		    static_cast<int>(ih), static_cast<int>(bd.hicell[ih]),
+		    static_cast<int>(bd.hjcell[ih]), static_cast<int>(bd.hkcell[ih]) );
 	}
     }
 

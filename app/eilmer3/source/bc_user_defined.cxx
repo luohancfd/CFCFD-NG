@@ -587,7 +587,7 @@ void UserDefinedBC::handle_lua_error(lua_State *L, const char *fmt, ...)
     va_list argp;
     va_start(argp, fmt);
     fprintf(stderr, "Error in UserDefinedBC or AdjacentPlusUDFBC: block %d, face %d\n",
-	    bdp->id, which_boundary);
+	    static_cast<int>(bdp->id), which_boundary);
     vfprintf(stderr, fmt, argp);
     fprintf(stderr, "\n");
     va_end(argp);

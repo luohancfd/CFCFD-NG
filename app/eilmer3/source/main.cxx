@@ -222,7 +222,7 @@ WARNING: This executable only computes the radiative source\n\
 	    zip_files = 0;
 	    break;
 	case 't':
-	    start_tindx = (size_t)atoi(poptGetOptArg(optCon));
+	    start_tindx = static_cast<size_t>(atoi(poptGetOptArg(optCon)));
 	    break;
 	case 'n':
 	    set_bad_cell_complain_flag(0);
@@ -406,12 +406,12 @@ int prepare_to_integrate(size_t start_tindx)
     fflush(stdout);
     MPI_Barrier(MPI_COMM_WORLD); // just to reduce the jumble in stdout
 #   endif
-    sprintf( tindxcstr, "t%04d", start_tindx);
+    sprintf( tindxcstr, "t%04d", static_cast<int>(start_tindx));
     tindxstring = tindxcstr;
     for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
         if ( get_verbose_flag() ) printf( "----------------------------------\n" );
-	sprintf( jbcstr, ".b%04d", bdp->id );
+	sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) );
 	jbstring = jbcstr;
 	// Read grid from the specified tindx files.
 	if ( get_moving_grid_flag() ) {
@@ -454,7 +454,7 @@ int prepare_to_integrate(size_t start_tindx)
     for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
         if ( get_verbose_flag() ) printf( "----------------------------------\n" );
-	sprintf( jbcstr, ".b%04d", bdp->id );
+	sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) );
 	jbstring = jbcstr;
 	filename = "hist/" + G.base_file_name + ".hist"+jbstring;
 	if ( access(filename.c_str(), F_OK) != 0 ) {
@@ -581,7 +581,7 @@ int call_udf(double t, size_t step, std::string udf_fn_name)
     lua_getglobal(L, udf_fn_name.c_str());  // function to be called
     lua_newtable(L); // creates a table that is now at the TOS
     lua_pushnumber(L, t); lua_setfield(L, -2, "t");
-    lua_pushinteger(L, (int)step); lua_setfield(L, -2, "step");
+    lua_pushinteger(L, static_cast<int>(step)); lua_setfield(L, -2, "step");
     int number_args = 1; // table of {t, step}
     int number_results = 0; // no results returned on the stack.
     if ( lua_pcall(L, number_args, number_results, 0) != 0 ) {
@@ -915,7 +915,7 @@ int integrate_in_time( double target_time )
         }
 #       endif
         if ( active_blocks == 0 ) {
-            printf( "There are no active blocks at step %d\n", G.step );
+	  printf( "There are no active blocks at step %d\n", static_cast<int>(G.step) );
 	    status_flag = FAILURE;
             break;
         }
@@ -1226,19 +1226,19 @@ int integrate_in_time( double target_time )
             // Print the current time-stepping status.
             now = time(NULL);
             printf("Step=%7d t=%10.3e dt=%10.3e %s\n",
-		   G.step, G.sim_time, G.dt_global,
+		   static_cast<int>(G.step), G.sim_time, G.dt_global,
 		   time_to_go(start, now, G.step, G.max_step, G.dt_global, G.sim_time, G.max_time) );
             fprintf(G.logfile, "Step=%7d t=%10.3e dt=%10.3e %s\n",
-		   G.step, G.sim_time, G.dt_global,
-		   time_to_go(start, now, G.step, G.max_step, G.dt_global, G.sim_time, G.max_time) );
+		    static_cast<int>(G.step), G.sim_time, G.dt_global,
+		    time_to_go(start, now, G.step, G.max_step, G.dt_global, G.sim_time, G.max_time) );
             fprintf(G.logfile, "CFL_min = %e, CFL_max = %e, dt_allow = %e\n",
-		   G.cfl_min, G.cfl_max, G.dt_allow );
+		    G.cfl_min, G.cfl_max, G.dt_allow );
             fprintf(G.logfile, "Smallest CFL_max so far = %e at t = %e\n",
-		   G.cfl_tiny, G.time_tiny );
+		    G.cfl_tiny, G.time_tiny );
 	    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
                 if ( bdp->active != 1 ) continue;
-                fprintf(G.logfile, " dt[%d]=%e", bdp->id, dt_record[jb] );
+                fprintf(G.logfile, " dt[%d]=%e", static_cast<int>(bdp->id), dt_record[jb] );
             }
 	    for ( size_t jp = 0; jp < G.npiston; ++jp ) {
 		fprintf(G.logfile, "%s\n", G.pistons[jp]->string_repr().c_str() );
@@ -1256,15 +1256,17 @@ int integrate_in_time( double target_time )
         if ( (G.sim_time >= G.t_plot) && !output_just_written ) {
 	    ++output_counter;
 	    if ( master ) {
-		fprintf( G.timestampfile, "%04d %e %e\n", output_counter, G.sim_time, G.dt_global );
+	        fprintf( G.timestampfile, "%04d %e %e\n", static_cast<int>(output_counter),
+			 G.sim_time, G.dt_global );
 		fflush( G.timestampfile );
 	    }
-	    sprintf( tindxcstr, "t%04d", output_counter ); tindxstring = tindxcstr;
+	    sprintf( tindxcstr, "t%04d", static_cast<int>(output_counter) ); // C string
+	    tindxstring = tindxcstr; // C++ string
 	    foldername = "flow/"+tindxstring;
 	    ensure_directory_is_present(foldername); // includes Barrier
 	    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
-		sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr; 
+		sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) ); jbstring = jbcstr; 
 		filename = foldername+"/"+ G.base_file_name+".flow"+jbstring+"."+tindxstring;
 		bdp->write_solution(filename, G.sim_time, G.dimensions, zip_files);
 	    }
@@ -1273,7 +1275,7 @@ int integrate_in_time( double target_time )
 	        ensure_directory_is_present(foldername); // includes Barrier
 	        for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		    bdp = G.my_blocks[jb];
-		        sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr; 
+		    sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) ); jbstring = jbcstr; 
 		        filename = foldername+"/"+ G.base_file_name+".grid"+jbstring+"."+tindxstring;
 		        bdp->write_block(filename, G.sim_time, G.dimensions, zip_files);
 	        }
@@ -1284,7 +1286,7 @@ int integrate_in_time( double target_time )
 		    // Loop over blocks
 		    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 			bdp = G.my_blocks[jb];
-			sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr;
+			sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) ); jbstring = jbcstr;
 			final_s = ((G.dimensions == 3)? BOTTOM : WEST);
 			// Loop over boundaries/surfaces
 			for ( js = NORTH; js <= final_s; ++js ) {
@@ -1304,7 +1306,7 @@ int integrate_in_time( double target_time )
 		// Loop over blocks
 		for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		    bdp = G.my_blocks[jb];
-		    sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr;
+		    sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) ); jbstring = jbcstr;
 		    final_s = ((G.dimensions == 3)? BOTTOM : WEST);
 		    // Loop over boundaries/surfaces
 		    for ( js = NORTH; js <= final_s; ++js ) {
@@ -1324,7 +1326,7 @@ int integrate_in_time( double target_time )
         if ( (G.sim_time >= G.t_his) && !history_just_written ) {
 	    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
-		sprintf(jbcstr, ".b%04d", bdp->id); jbstring = jbcstr;
+		sprintf(jbcstr, ".b%04d", static_cast<int>(bdp->id)); jbstring = jbcstr;
 		filename = "hist/"+G.base_file_name+".hist"+jbstring;
                 bdp->write_history( filename, G.sim_time );
 		bdp->print_forces( G.logfile, G.sim_time, G.dimensions );
@@ -1373,10 +1375,10 @@ int integrate_in_time( double target_time )
                 if ( bdp->active == 1 ) {
 		    bdp->compute_residuals( G.dimensions );
 		    fprintf( G.logfile, "RESIDUAL mass block %d max: %e at (%g,%g,%g)\n",
-			     bdp->id, bdp->mass_residual, bdp->mass_residual_loc.x,
+			     static_cast<int>(bdp->id), bdp->mass_residual, bdp->mass_residual_loc.x,
 			     bdp->mass_residual_loc.y, bdp->mass_residual_loc.z );
 		    fprintf( G.logfile, "RESIDUAL energy block %d max: %e at (%g,%g,%g)\n",
-			     bdp->id, bdp->energy_residual, bdp->energy_residual_loc.x,
+			     static_cast<int>(bdp->id), bdp->energy_residual, bdp->energy_residual_loc.x,
 			     bdp->energy_residual_loc.y, bdp->energy_residual_loc.z );
 		}
             }
@@ -1396,9 +1398,9 @@ int integrate_in_time( double target_time )
 	    MPI_Allreduce(MPI_IN_PLACE, &(G.energy_residual), 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 #           endif
             fprintf( G.logfile, "RESIDUAL mass global max: %e step %d time %g\n",
-		     G.mass_residual, G.step, G.sim_time );
+		     G.mass_residual, static_cast<int>(G.step), G.sim_time );
             fprintf( G.logfile, "RESIDUAL energy global max: %e step %d time %g\n",
-		     G.energy_residual, G.step, G.sim_time );
+		     G.energy_residual, static_cast<int>(G.step), G.sim_time );
 	    fflush( G.logfile );
         }
 
@@ -1490,7 +1492,7 @@ int integrate_in_time( double target_time )
             if ( master ) printf( "Integration stopped: Halt set in control file.\n" );
         }
 	now = time(NULL);
-	if ( max_wall_clock > 0 && ( (int)(now - start) > max_wall_clock ) ) {
+	if ( max_wall_clock > 0 && ( static_cast<int>(now - start) > max_wall_clock ) ) {
             finished_time_stepping = 1;
             if ( master ) printf( "Integration stopped: reached maximum wall-clock time.\n" );
 	}
@@ -1526,14 +1528,15 @@ int finalize_simulation( void )
     // as part of the main time-stepping loop.
     output_counter = 9999;
     if ( master ) {
-	fprintf( G.timestampfile, "%04d %e %e\n", output_counter, G.sim_time, G.dt_global );
+	fprintf( G.timestampfile, "%04d %e %e\n", 
+		 static_cast<int>(output_counter), G.sim_time, G.dt_global );
 	fflush( G.timestampfile );
     }
     foldername = "flow/t9999";
     ensure_directory_is_present(foldername); // includes Barrier
     for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
-	sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr;
+	sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) ); jbstring = jbcstr;
 	filename = foldername+"/"+G.base_file_name+".flow"+jbstring+".t9999";
 	bdp->write_solution(filename, G.sim_time, G.dimensions, zip_files);
 	if (get_BGK_flag() > 0) {
@@ -1546,7 +1549,7 @@ int finalize_simulation( void )
         ensure_directory_is_present(foldername); // includes Barrier
         for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
-	    sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr; 
+	    sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) ); jbstring = jbcstr; 
 	    filename = foldername+"/"+G.base_file_name+".grid"+jbstring+".t9999";
 	    bdp->write_block(filename, G.sim_time, G.dimensions, zip_files);
         }
@@ -1557,7 +1560,7 @@ int finalize_simulation( void )
 	    // Loop over blocks
 	    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
-		sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr;
+		sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) ); jbstring = jbcstr;
 		final_s = ((G.dimensions == 3)? BOTTOM : WEST);
 		// Loop over boundaries/surfaces
 		for ( js = NORTH; js <= final_s; ++js ) {
@@ -1577,7 +1580,7 @@ int finalize_simulation( void )
 	// Loop over blocks
 	for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
-	    sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr;
+	    sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) ); jbstring = jbcstr;
 	    final_s = ((G.dimensions == 3)? BOTTOM : WEST);
 	    // Loop over boundaries/surfaces
 	    for ( js = NORTH; js <= final_s; ++js ) {
@@ -1595,7 +1598,7 @@ int finalize_simulation( void )
     if ( !history_just_written ) {
 	for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
-	    sprintf( jbcstr, ".b%04d", bdp->id ); jbstring = jbcstr;
+	    sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) ); jbstring = jbcstr;
 	    filename = "hist/"+G.base_file_name+".hist"+jbstring;
             bdp->write_history( filename, G.sim_time );
 	}
@@ -1609,7 +1612,7 @@ int finalize_simulation( void )
 	}
         history_just_written = 1;
     }
-    if ( master ) printf( "\nTotal number of steps = %d\n", G.step );
+    if ( master ) printf( "\nTotal number of steps = %d\n", static_cast<int>(G.step) );
 
     filename = G.base_file_name; filename += ".finish";
     if ( master ) {
@@ -1946,8 +1949,10 @@ int do_bad_cell_count( void )
 	    most_bad_cells = bad_cell_count;
 	} 
 	if ( bad_cell_count > G.max_invalid_cells ) {
-	    printf( "   Too many bad cells (i.e. %zu > %zu) in block[%zu].\n", 
-		    bad_cell_count, G.max_invalid_cells, jb );
+	    printf( "   Too many bad cells (i.e. %d > %d) in block[%d].\n", 
+		    static_cast<int>(bad_cell_count), 
+		    static_cast<int>(G.max_invalid_cells), 
+		    static_cast<int>(jb) );
 	}
     } // end for jb loop
 #   ifdef _MPI
@@ -1968,7 +1973,7 @@ int write_finishing_data( global_data *G, std::string filename )
     fprintf(fp, "[simulation_end]\n");
     fprintf(fp, "final_time = %.12e \n", G->sim_time);
     fprintf(fp, "dt = %.12e \n", G->dt_allow);
-    fprintf(fp, "no_steps = %d\n", G->step);
+    fprintf(fp, "no_steps = %d\n", static_cast<int>(G->step));
     fclose( fp );
     return SUCCESS;
 

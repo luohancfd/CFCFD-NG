@@ -1043,7 +1043,8 @@ size_t set_velocity_buckets(size_t i)
     vcoords.resize(i);
     vweights.resize(i);
 
-    if ( get_verbose_flag() ) printf("set velocity_buckets=%zu\n", velocity_buckets);
+    if ( get_verbose_flag() )
+	printf("set velocity_buckets=%d\n", static_cast<int>(velocity_buckets));
     return velocity_buckets;
 }
 

@@ -63,7 +63,7 @@ AblatingBC::AblatingBC( Block *bdp, int which_boundary, double Twall,
 	    exit(FILE_ERROR);
         }
 
-        nread = sscanf(line, "%zu", &ncell_for_profile);
+        nread = sscanf(line, "%u", &ncell_for_profile);
         if ( nread != 1 ) {
             cerr << "AblatingBC() constructor:"
 	        << "Could not read ncell_for_profile from line:" << endl
@@ -477,7 +477,7 @@ calculate_ghost_cell_flow_state( FV_Cell *cell1, FV_Interface *wall, FV_Cell *ce
     	// just use the current ghost cell state as the guess
     	size_t iy;
     	// species mass densities
-    	for ( iy=0; iy<(int)Q->massf.size(); ++iy )
+    	for ( iy=0; iy<Q->massf.size(); ++iy )
     	    y_guess[iy] = cell0->fs->gas->massf[iy] * cell0->fs->gas->rho;
     	// normal velocity 
     	cell0->fs->vel.transform_to_local(wall->n, wall->t1, wall->t2);
@@ -531,7 +531,7 @@ calculate_ghost_cell_flow_state( FV_Cell *cell1, FV_Interface *wall, FV_Cell *ce
 	}
     	size_t iy;
     	// species mass densities
-    	for ( iy=0; iy<(int)Q->massf.size(); ++iy )
+    	for ( iy=0; iy<Q->massf.size(); ++iy )
     	    y_guess[iy] = Q->massf[iy] * rho_0;
     	// normal velocity 
     	y_guess[iy] = u_0;
@@ -644,7 +644,7 @@ int AblatingBC::f( const valarray<double> &y, valarray<double> &G )
     ++iG;
 #   else
     // 1. species mass conservation
-    for ( iG=0; iG<(int)cell_massf.size(); ++iG ) {
+    for ( iG=0; iG<cell_massf.size(); ++iG ) {
     	G[iG] = 0.5 * ( cell_mass_flux * cell_massf[iG] + y[iG] * u0 ) - mdot[iG];
     	// Normalize
     	G[iG] /= mass_flux_norm;

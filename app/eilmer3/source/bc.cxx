@@ -579,7 +579,8 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
     // 1. Check if this BC represents a wall
     if ( is_wall_flag ) {
 	// 2. Write dimensions of surface data to file
-	fprintf(fp, "%d %d %d\n", (imax-imin+1), (jmax-jmin+1), (kmax-kmin+1));
+	fprintf(fp, "%d %d %d\n", static_cast<int>(imax-imin+1), 
+		static_cast<int>(jmax-jmin+1), static_cast<int>(kmax-kmin+1));
 	// 3. Loop over all interfaces
 	// NOTE - assuming viscous BC's have been applied, as Twall is taken 
 	//        to be equal to IFace->T[0]
@@ -594,7 +595,8 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
 		    cell->fs->vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
 		    Re_wall = cell->calculate_wall_Reynolds_number(which_boundary);
 		    // 5. Write heat-flux data for interface to file
-		    fprintf(fp, "%d %d %d ", i, j, k);
+		    fprintf(fp, "%d %d %d ", static_cast<int>(i),
+			    static_cast<int>(j), static_cast<int>(k));
 		    fprintf(fp, "%20.12e %20.12e %20.12e ", 
 			    IFace->pos.x, IFace->pos.y, IFace->pos.z);
 		    fprintf(fp, "%20.12e %20.12e %20.12e ", 
@@ -648,7 +650,8 @@ int BoundaryCondition::write_fstc_heat_flux( string filename, double sim_time )
     // 1. Check if this BC represents a wall
     if ( is_wall_flag ) {
 	// 2. Write dimensions of surface data to file
-	fprintf(fp, "%d %d %d\n", (imax-imin+1), (jmax-jmin+1), (kmax-kmin+1));
+	fprintf(fp, "%d %d %d\n", static_cast<int>(imax-imin+1),
+		static_cast<int>(jmax-jmin+1), static_cast<int>(kmax-kmin+1));
 	// 3. Loop over all interfaces
 	// NOTE - assuming viscous BC's have been applied, as Twall is taken
 	//        to be equal to IFace->T[0]
@@ -661,7 +664,8 @@ int BoundaryCondition::write_fstc_heat_flux( string filename, double sim_time )
 		    cell = bd.get_cell(i,j,k);
 		    IFace = cell->iface[which_boundary];
 		    // 5. Write heat-flux data for interface to file
-		    fprintf(fp, "%d %d %d ", i, j, k);
+		    fprintf(fp, "%d %d %d ", static_cast<int>(i),
+			    static_cast<int>(j), static_cast<int>(k));
 		    fprintf(fp, "%12.4e %12.4e %12.4e ",
 			    IFace->pos.x, IFace->pos.y, IFace->pos.z);
 		    fprintf(fp, "%12.4e %12.4e %12.4e ",
@@ -689,7 +693,7 @@ read_surface_heat_flux( string filename, size_t dimensions, int zip_files )
     FILE *fp;
     gzFile zfp;
     char *gets_result;
-    size_t i, j, k;
+    unsigned int i, j, k;
     size_t index;
     double sim_time;
 
@@ -742,7 +746,7 @@ read_surface_heat_flux( string filename, size_t dimensions, int zip_files )
 	printf("read_surface_heat_flux(): Empty flow field file while looking for surface data dimensions.\n");
 	exit(BAD_INPUT_ERROR);
     }
-    sscanf(line, "%zu %zu %zu", &i, &j, &k);
+    sscanf(line, "%u %u %u", &i, &j, &k);
     if ( i==0 && j==0 && k==0 ) return 0.0;
     if ( i != (imax-imin+1) || j != (jmax-jmin+1) || k != ((dimensions == 3) ? (kmax-kmin+1) : 1) ) {
 	printf("read_surface_heat_flux(): surface %d, mismatch in surface data dimensions\n", which_boundary);
@@ -805,17 +809,20 @@ int BoundaryCondition::write_vertex_velocities( std::string filename, double sim
     
     // 2. Write dimensions of surface data to file
     if ( ( which_boundary == NORTH ) || ( which_boundary == SOUTH ) ) {
-	fprintf(fp, "%d %d %d\n", (imax+1-imin+1), (jmax-jmin+1), (kmax-kmin+1));
+	fprintf(fp, "%d %d %d\n", static_cast<int>(imax+1-imin+1), 
+		static_cast<int>(jmax-jmin+1), static_cast<int>(kmax-kmin+1));
 	irangemax = imax+1;
 	jrangemax = jmax;
 	krangemax = kmax+1;
     } else if ( ( which_boundary == EAST ) || ( which_boundary == WEST ) ) {
-	fprintf(fp, "%d %d %d\n", (imax-imin+1), (jmax+1-jmin+1), (kmax-kmin+1));
+	fprintf(fp, "%d %d %d\n", static_cast<int>(imax-imin+1),
+		static_cast<int>(jmax+1-jmin+1), static_cast<int>(kmax-kmin+1));
 	irangemax = imax;
 	jrangemax = jmax+1;
 	krangemax = kmax+1;
     } else if ( ( which_boundary == TOP ) || ( which_boundary == BOTTOM ) ) {
-	fprintf(fp, "%d %d %d\n", (imax-imin+1), (jmax-jmin+1), (kmax+1-kmin+1));
+	fprintf(fp, "%d %d %d\n", static_cast<int>(imax-imin+1), 
+		static_cast<int>(jmax-jmin+1), static_cast<int>(kmax+1-kmin+1));
 	irangemax = imax+1;
 	jrangemax = jmax+1;
 	krangemax = kmax;
@@ -832,7 +839,8 @@ int BoundaryCondition::write_vertex_velocities( std::string filename, double sim
 	for ( j = jmin; j <= jrangemax; ++j ) {
 	    for ( i = imin; i <= irangemax; ++i ) {
 		vtx = bd.get_vtx(i,j,k);
-		fprintf(fp, "%d %d %d ", i, j, k);
+		fprintf(fp, "%d %d %d ", static_cast<int>(i),
+			static_cast<int>(j), static_cast<int>(k));
 		fprintf(fp, "%20.12e %20.12e %20.12e ", 
 			vtx->pos.x, vtx->pos.y, vtx->pos.z);
 		fprintf(fp, "%20.12e %20.12e %20.12e \n", 

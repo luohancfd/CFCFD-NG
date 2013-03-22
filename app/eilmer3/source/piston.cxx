@@ -502,11 +502,11 @@ int PistonFace:: compute_forces(vector<double> bore_resistance_f, vector<double>
 
     if (DB4) {
 	cout << "x = (";
-	for (size_t i=0; i<(int)bore_resistance_x.size(); ++i) {
+	for (size_t i=0; i<bore_resistance_x.size(); ++i) {
 	    cout << bore_resistance_x[i] << ", ";
 	}
 	cout << ") f = (";
-	for (size_t i=0; i<(int)bore_resistance_f.size(); ++i) {
+	for (size_t i=0; i<bore_resistance_f.size(); ++i) {
 	    cout << bore_resistance_f[i] << ", ";
 	}
 	cout << ")" << endl;
@@ -927,7 +927,7 @@ int Piston::write_state(FILE *fp, double t)
     w_avg_pg /= area_;
     e_avg_pg /= area_;
     fprintf(fp, "%d %20.12e %20.12e %20.12e %20.12e %20.12e %20.12e\n", 
-	    id_, t, pos_.x, vel_.x, acc_, w_avg_pg, e_avg_pg );
+	    static_cast<int>(id_), t, pos_.x, vel_.x, acc_, w_avg_pg, e_avg_pg );
     return SUCCESS;
 }
 
@@ -936,13 +936,13 @@ int Piston::read_state(FILE *fp)
 /// \brief Attempt to read piston state information from fp
     char line[132];
     double t, x, u, acc, wpg, epg;
-    size_t temporary_id, nread;
+    unsigned int temporary_id, nread;
     if ( fgets( line, 131, fp ) == NULL ) {
 	cerr << "Piston::read_state(): failure of fgets()" << endl;
 	cerr << "Quitting program." << endl;
 	exit(FILE_ERROR);
     }
-    nread = sscanf(line, "%zu %lf %lf %lf %lf %lf %lf", &temporary_id, &t, &x, &u, &acc, &wpg, &epg);
+    nread = sscanf(line, "%u %lf %lf %lf %lf %lf %lf", &temporary_id, &t, &x, &u, &acc, &wpg, &epg);
     if (nread != 4) {
 	cout << "Piston::read_state(): id=" << id_ 
 	     << " failed to read all values." << endl;
