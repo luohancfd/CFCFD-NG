@@ -161,29 +161,6 @@ public:
     FV_Interface *get_sifj(size_t i, size_t j, size_t k=0) { return sifj_[to_global_index(i,j,k)]; }
     FV_Interface *get_sifk(size_t i, size_t j, size_t k=0) { return sifk_[to_global_index(i,j,k)]; }
 
-#if 0
-    // To be replaced with range for statements.
-    int apply(FV_Cell_MemberFunction_void f, string failure_message_header);
-    int apply(FV_Cell_MemberFunction_double f, double param1, string failure_message_header);
-    int apply(FV_Cell_MemberFunction_double_double f, double param1, double param2, 
-	      string failure_message_header);
-    int apply(FV_Cell_MemberFunction_int_double f, int param1, double param2, 
-	      string failure_message_header);
-    int apply(FV_Cell_MemberFunction_int f, int param1, string failure_message_header);
-    int apply(FV_Cell_MemberFunction_int_int f, int param1, int param2, string failure_message_header);
-
-    int apply(int (*f)(FV_Cell *cellp), 
-	      string failure_message_header);
-    int apply(int (*f)(FV_Cell *cellp, double param1), 
-	      double param1, string failure_message_header);
-    int apply(int (*f)(FV_Cell *cellp, int param1), 
-	      int param1, string failure_message_header);
-    int apply(int (*f)(FV_Cell *cellp, int param1, int param2), 
-	      int param1, int param2, string failure_message_header);
-    int apply(int (*f)(FV_Cell *cellp, int param1, double param2), 
-	      int param1, double param2, string failure_message_header);
-#endif
-
     int bind_interfaces_to_cells( size_t dimensions );
     int set_base_qdot( global_data &gdp ); 
     int identify_reaction_zones( global_data &gdp );
