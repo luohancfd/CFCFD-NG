@@ -631,7 +631,7 @@ int AblatingBC::f( const valarray<double> &y, valarray<double> &G )
     
 #   if WITH_TOTAL_MASS_CONSERVATION
     // 1a. species mass conservation
-    for ( iG=0; iG<(int)cell_massf.size()-1; ++iG ) {
+    for ( iG=0; iG<cell_massf.size()-1; ++iG ) {
     	G[iG] = 0.5 * ( cell_mass_flux * cell_massf[iG] + y[iG] * u0 ) - mdot[iG];
     	// Normalize
     	G[iG] /= mass_flux_norm;

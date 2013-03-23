@@ -113,9 +113,9 @@ RadiationTransportModel *get_radiation_transport_model_ptr()
     return rtm;
 }
 
-Block * get_block_data_ptr(int i) {
+Block * get_block_data_ptr(size_t i) {
     if ( i < 0 ) return NULL;
-    if ( i >= (int)gd.bd.size() ) return NULL;
+    if ( i >= gd.bd.size() ) return NULL;
     return &(gd.bd[i]);
 }
 

@@ -1949,7 +1949,7 @@ int locate_west_block_index(size_t &b_index, Vector3 &pos, global_data &G, Block
 	next_block = bd[b_index]->bcp[WEST]->neighbour_block;
 // 	cout << "West block index = " << next_block << endl;
 	if (next_block == -1) status = FAILURE;
-	else b_index = (size_t)next_block;
+	else b_index = static_cast<size_t>(next_block);
     }
     
     if (status == FAILURE) {
@@ -1990,7 +1990,7 @@ int locate_east_block_index(size_t &b_index, Vector3 &pos, global_data &G, Block
 	next_block = bd[b_index]->bcp[EAST]->neighbour_block;
 // 	cout << "East block index = " << next_block << endl;
 	if (next_block == -1) status = FAILURE;
-	else b_index = (size_t)next_block;
+	else b_index = static_cast<size_t>(next_block);
     }
     
     if (status == FAILURE) {
@@ -2142,7 +2142,7 @@ int linear_eval(double xval, double &yval, vector<double> &x, vector<double> &y)
     // Search for appropriate index (lower-bound)
     i0 = 0;
 
-    for ( ; i0 < (int)x.size(); ++i0) {
+    for ( ; i0 < static_cast<int>(x.size()); ++i0) {
 	if ( x[i0] >= xval ) {
 	    i0--;
 	    break;

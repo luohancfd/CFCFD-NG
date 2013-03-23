@@ -603,7 +603,7 @@ int assign_blocks_to_mpi_rank(const string filename, bool master)
 	    size_t nblock_total = 0;
 	    std::vector<int> block_ids, dummy_block_ids;
 	    dict.parse_size_t("global", "nrank", nrank, 0);
-	    if ( G.num_mpi_proc != (int)nrank ) {
+	    if ( G.num_mpi_proc != static_cast<int>(nrank) ) {
 		if ( master ) {
 		    printf("    Error in specifying mpirun -np\n");
 		    printf("    It needs to match number of nrank; present values are:\n");
@@ -659,7 +659,7 @@ int assign_blocks_to_mpi_rank(const string filename, bool master)
 		printf("    MPI parallel, No MPI map file specified.\n");
 		printf("    Identify each block with the corresponding MPI rank.\n");
 	    }
-	    if ( G.num_mpi_proc != (int)G.nblock ) {
+	    if ( G.num_mpi_proc != static_cast<int>(G.nblock) ) {
 		if ( master ) {
 		    printf("    Error in specifying mpirun -np\n");
 		    printf("    It needs to match number of blocks; present values are:\n");

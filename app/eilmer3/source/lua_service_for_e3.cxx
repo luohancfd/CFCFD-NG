@@ -24,10 +24,10 @@ using namespace std;
 int luafn_sample_flow(lua_State *L)
 {
     // Get arguments from stack.
-    size_t jb = (size_t)lua_tointeger(L, 1);
-    size_t i = (size_t)lua_tointeger(L, 2);
-    size_t j = (size_t)lua_tointeger(L, 3);
-    size_t k = (size_t)lua_tointeger(L, 4);
+    size_t jb = static_cast<size_t>(lua_tointeger(L, 1));
+    size_t i = static_cast<size_t>(lua_tointeger(L, 2));
+    size_t j = static_cast<size_t>(lua_tointeger(L, 3));
+    size_t k = static_cast<size_t>(lua_tointeger(L, 4));
 
     Gas_model *gmodel = get_gas_model_ptr();
     Block *bdp= get_block_data_ptr(jb);
@@ -41,7 +41,7 @@ int luafn_sample_flow(lua_State *L)
     lua_pushnumber(L, cell->pos.z); lua_setfield(L, -2, "z");
     lua_pushnumber(L, cell->volume); lua_setfield(L, -2, "vol");
     lua_pushnumber(L, fs.gas->p); lua_setfield(L, -2, "p");
-    lua_pushnumber(L, fs.gas->T[0]); lua_setfield(L, -2, "T_wall");
+    // lua_pushnumber(L, fs.gas->T[0]); lua_setfield(L, -2, "T_wall"); // FIX-ME: check not needed.
     lua_pushnumber(L, fs.gas->rho); lua_setfield(L, -2, "rho"); 
     lua_pushnumber(L, fs.vel.x); lua_setfield(L, -2, "u"); 
     lua_pushnumber(L, fs.vel.y); lua_setfield(L, -2, "v");
@@ -51,11 +51,11 @@ int luafn_sample_flow(lua_State *L)
     lua_pushnumber(L, fs.k_t); lua_setfield(L, -2, "k_t");
     lua_pushnumber(L, fs.tke); lua_setfield(L, -2, "tke");
     lua_pushnumber(L, fs.omega); lua_setfield(L, -2, "omega");
-    lua_pushnumber(L, fs.S); lua_setfield(L, -2, "S");
+    lua_pushinteger(L, fs.S); lua_setfield(L, -2, "S");
     lua_newtable(L); // A table for the individual temperatures
     size_t nmodes = gmodel->get_number_of_modes();
     for ( size_t imode = 0; imode < nmodes; ++imode ) {
-	lua_pushinteger(L, imode);
+	lua_pushinteger(L, static_cast<int>(imode));
 	lua_pushnumber(L, fs.gas->T[imode]);
 	lua_settable(L, -3);
     }
@@ -64,7 +64,7 @@ int luafn_sample_flow(lua_State *L)
     lua_newtable(L); // Another table for the mass fractions
     size_t nsp = gmodel->get_number_of_species();
     for ( size_t isp = 0; isp < nsp; ++isp ) {
-	lua_pushinteger(L, isp);
+	lua_pushinteger(L, static_cast<int>(isp));
 	lua_pushnumber(L, fs.gas->massf[isp]);
 	lua_settable(L, -3);
     }
@@ -95,10 +95,10 @@ int luafn_locate_cell(lua_State *L)
 	    printf("luafn_locate_cell(): no cells near pos=(%g,%g,%g)", x, y, z);
 	}
     }
-    lua_pushinteger(L, (int)jb);
-    lua_pushinteger(L, (int)i);
-    lua_pushinteger(L, (int)j);
-    lua_pushinteger(L, (int)k);
+    lua_pushinteger(L, static_cast<int>(jb));
+    lua_pushinteger(L, static_cast<int>(i));
+    lua_pushinteger(L, static_cast<int>(j));
+    lua_pushinteger(L, static_cast<int>(k));
     lua_pushinteger(L, found_cell);
     return 5; // We leave jb, i, j, k and found_cell on the stack.
 }

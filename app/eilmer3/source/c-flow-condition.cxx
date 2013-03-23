@@ -32,19 +32,19 @@ CFlowCondition::CFlowCondition( Gas_model *gmodel,
       tke(tke), omega(omega), mu_t(mu_t), k_t(k_t), S(S)
 {
     gas->p = p;
-    int nmodes = gmodel->get_number_of_modes();
-    if ( nmodes != (int)T.size() ) {
+    size_t nmodes = gmodel->get_number_of_modes();
+    if ( nmodes != T.size() ) {
 	cerr << "CFlowCondition(): nmodes=" << nmodes 
 	     << ", size of T=" << T.size() << endl;
     }
     gas->T = T;
-    int nsp = gmodel->get_number_of_species();
-    if ( nsp != (int)massf.size() ) {
+    size_t nsp = gmodel->get_number_of_species();
+    if ( nsp != massf.size() ) {
 	cerr << "CFlowCondition(): nsp=" << nsp 
 	     << ", size of massf=" << massf.size() << endl;
     }
     double sum_massf = 0.0;
-    for ( int isp = 0; isp < nsp; ++isp ) sum_massf += massf[isp];
+    for ( size_t isp = 0; isp < nsp; ++isp ) sum_massf += massf[isp];
     if ( fabs(sum_massf - 1.0) > 1.0e-5 ) {
 	cerr << "CFlowCondition() warning: mass fractions sum to " 
 	     << sum_massf << endl;

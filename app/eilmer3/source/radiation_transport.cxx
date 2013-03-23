@@ -92,7 +92,7 @@ OpticallyThin::OpticallyThin( lua_State *L )
 : RadiationTransportModel(L)
 {
     // Why aren't we using get_int()? Booleans makes the input file more neat
-    spectrally_resolved_ = (int) get_boolean(L,-1,"spectrally_resolved");
+    spectrally_resolved_ = static_cast<int>(get_boolean(L,-1,"spectrally_resolved"));
 }
 
 OpticallyThin::~OpticallyThin() {}
@@ -398,7 +398,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
     if ( G.dimensions == 2 && !get_axisymmetric_flag() ) planar_flag = true;
     
     // 0. Loop over spectral blocks (CHECKME)
-    for ( size_t isb=0; isb<(size_t)rsm_[0]->get_spectral_blocks(); ++isb ) {
+    for ( size_t isb=0; isb < static_cast<size_t>(rsm_[0]->get_spectral_blocks()); ++isb ) {
 	for ( size_t irsm=0; irsm<rsm_.size(); ++irsm ) {
 	    rsm_[irsm]->reset_spectral_params( isb );
 	}
@@ -468,7 +468,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 #   	    pragma omp barrier
 #	    pragma omp parallel for private(inu) schedule(runtime)
 #	    endif
-	    for ( inu=0; inu < (size_t)rsm_[omp_get_thread_num()]->get_spectral_points(); inu++ ) {
+	    for ( inu=0; inu < static_cast<size_t>(rsm_[omp_get_thread_num()]->get_spectral_points()); inu++ ) {
 		double j_nu_dV = 0.0, S_nu_dV = 0.0;
 		for ( size_t ib=0; ib<cells_.size(); ++ib ) {
 		    for ( size_t ic=0; ic<cells_[ib].size(); ++ic ) {
@@ -1102,7 +1102,7 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
     if ( G.dimensions == 2 && !get_axisymmetric_flag() ) planar_flag = true;
     
     // 0. Loop over spectral blocks (CHECKME)
-    for ( size_t isb=0; isb<(size_t)rsm_[0]->get_spectral_blocks(); ++isb ) {
+    for ( size_t isb=0; isb < static_cast<size_t>(rsm_[0]->get_spectral_blocks()); ++isb ) {
 	for ( size_t irsm=0; irsm<rsm_.size(); ++irsm ) {
 	    rsm_[irsm]->reset_spectral_params( isb );
 	}

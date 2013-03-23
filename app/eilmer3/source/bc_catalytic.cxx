@@ -27,8 +27,8 @@ SuperCatalyticWallBC::SuperCatalyticWallBC( vector<double> massf_wall )
 : CatalyticWallBC( SUPER_CATALYTIC ), massf_wall( massf_wall )
 {
     Gas_model * gm = get_gas_model_ptr();
-    int nsp = gm->get_number_of_species();
-    if ( (int) massf_wall.size() != nsp ) {
+    size_t nsp = gm->get_number_of_species();
+    if ( massf_wall.size() != nsp ) {
     	ostringstream oss;
     	oss << "SuperCatalyticWallBC::SuperCatalyticWallBC()" << endl
     	    << "The given vector of mass-fractions is not the correct length." << endl;
@@ -61,7 +61,7 @@ EquilibriumCatalyticWallBC::EquilibriumCatalyticWallBC( string fname )
     size_t n_entries;
     
     Gas_model * gm = get_gas_model_ptr();
-    int nsp = gm->get_number_of_species();
+    size_t nsp = gm->get_number_of_species();
 
     ifstream infile( fname.c_str() );
 
@@ -101,7 +101,7 @@ EquilibriumCatalyticWallBC::EquilibriumCatalyticWallBC( string fname )
 	ss.str(line);
 	while( ss >> buffer )
 	    tokens.push_back( buffer );
-	if( (int) tokens.size() != nsp ) {
+	if( tokens.size() != nsp ) {
 	    cerr << "EquilibriumCatalyticWallBC::EquilibriumCatalyticWallBC()\n"
     	         << "There was a problem reading entry " << i << " in file:\n"
 		 << fname << endl
@@ -109,7 +109,7 @@ EquilibriumCatalyticWallBC::EquilibriumCatalyticWallBC( string fname )
 	    exit(BAD_INPUT_ERROR);
 	}
 	fC[i].resize(nsp);
-	for( int isp = 0; isp < nsp; ++isp ) {
+	for( size_t isp = 0; isp < nsp; ++isp ) {
 	    ss.str(tokens[isp]);
 	    ss >> fC[i][isp];
 	}
@@ -134,7 +134,7 @@ apply( Gas_data &Q, vector<double> &massf )
     size_t ip;
 
     logp = log10( Q.p );
-    ip = (int) ((logp - lpmin) / dlp );
+    ip = static_cast<int>((logp - lpmin) / dlp);
     
     /*
      * Ensure that index is in bounds of array.

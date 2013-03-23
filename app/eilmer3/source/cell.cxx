@@ -102,7 +102,7 @@ int FlowState::print() const
     if ( get_velocity_buckets() > 0) {
 	printf("Velocity Distribution Partial Densities:\n");
 	for ( size_t ipd = 0; ipd < G.size(); ++ipd ) {
-	    printf("i=%d: G=%e, H=%e\n",(int) ipd, G[ipd], H[ipd]);
+	    printf("i=%d: G=%e, H=%e\n", static_cast<int>(ipd), G[ipd], H[ipd]);
 	}
     }
     printf("tke= %e, omega=%e\n", tke, omega);
@@ -180,7 +180,7 @@ double * FlowState::copy_values_to_buffer(double *buf) const
 	*buf++ = B.y;
 	*buf++ = B.z;
     }
-    *buf++ = (double) S;
+    *buf++ = static_cast<double>(S);
     *buf++ = tke;
     *buf++ = omega;
     *buf++ = mu_t;
@@ -206,7 +206,7 @@ double * FlowState::copy_values_from_buffer(double *buf)
 	B.y = *buf++;
 	B.z = *buf++;
     }
-    S = (int)(*buf++);
+    S = static_cast<int>(*buf++);
     tke = *buf++;
     omega = *buf++;
     mu_t = *buf++;
@@ -767,7 +767,7 @@ double * FV_Cell::copy_values_to_buffer(double *buf, int type_of_copy) const
     if (type_of_copy == COPY_ALL_CELL_DATA ||
 	type_of_copy == COPY_FLOW_STATE) {
         buf = fs->copy_values_to_buffer(buf);
-	*buf++ = (double)status;
+	*buf++ = static_cast<double>(status);
 	*buf++ = Q_rE_rad;
     }
     if (type_of_copy == COPY_ALL_CELL_DATA ||
@@ -797,7 +797,7 @@ double * FV_Cell::copy_values_from_buffer(double *buf, int type_of_copy)
     if (type_of_copy == COPY_ALL_CELL_DATA ||
 	type_of_copy == COPY_FLOW_STATE) {
 	buf = fs->copy_values_from_buffer(buf);
-	status = (int)(*buf++);
+	status = static_cast<int>(*buf++);
 	Q_rE_rad = *buf++;
     }
     if (type_of_copy == COPY_ALL_CELL_DATA ||
@@ -810,6 +810,7 @@ double * FV_Cell::copy_values_from_buffer(double *buf, int type_of_copy)
 	    if ( iface[j] == 0 ) { // When copying from ghost cell which may
 		continue;          // not have initialised interfaces, or when 2D.
 	    }
+	    // FIX-ME -- I'm not happy with conditional copies here -- PJ 23-Mar-2013.
 	    buf = iface[j]->fs->copy_values_from_buffer(buf);
 	    iface[j]->pos.x = *buf++; iface[j]->pos.y = *buf++; iface[j]->pos.z = *buf++;
 	    iface[j]->vel.x = *buf++; iface[j]->vel.y = *buf++; iface[j]->vel.z = *buf++;
@@ -862,20 +863,21 @@ int FV_Cell::replace_flow_data_with_average(std::vector<FV_Cell *> src)
 	    Q_rE_rad += src[ii]->Q_rE_rad;
 	}   /* end for */
 	/* Effectively divides the result by ncell to get the average. */
-	fs->gas->accumulate_values_from(*(fs->gas), (1.0-ncell)/((double)ncell) );
-	fs->vel.x /= ((double)ncell);
-	fs->vel.y /= ((double)ncell);
-	fs->vel.z /= ((double)ncell);
+	double dncell = static_cast<double>(ncell);
+	fs->gas->accumulate_values_from(*(fs->gas), (1.0-ncell)/dncell );
+	fs->vel.x /= dncell;
+	fs->vel.y /= dncell;
+	fs->vel.z /= dncell;
 	if ( get_mhd_flag() == 1 ) {
-	    fs->B.x /= ((double)ncell);
-	    fs->B.y /= ((double)ncell);
-	    fs->B.z /= ((double)ncell);
+	    fs->B.x /= dncell;
+	    fs->B.y /= dncell;
+	    fs->B.z /= dncell;
 	}
-	fs->mu_t /= ((double)ncell);
-	fs->k_t /= ((double)ncell);
-	fs->tke /= ((double)ncell);
-	fs->omega /= ((double)ncell);
-	Q_rE_rad /= ((double)ncell);
+	fs->mu_t /= dncell;
+	fs->k_t /= dncell;
+	fs->tke /= dncell;
+	fs->omega /= dncell;
+	Q_rE_rad /= dncell;
     }
     // The following calls are expensive but getting to this point should be very rare.
     // If it is common, we have debugging to do...

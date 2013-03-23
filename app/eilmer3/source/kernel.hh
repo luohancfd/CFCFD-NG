@@ -188,7 +188,7 @@ int set_thermo_interpolator(std::string name);
 Thermo_interpolator *get_thermo_interpolator_ptr();
 int set_radiation_transport_model(std::string file_name);
 RadiationTransportModel *get_radiation_transport_model_ptr();
-Block * get_block_data_ptr(int i);
+Block * get_block_data_ptr(size_t i);
 void eilmer_finalize( void );
 int set_verbose_flag( int i );
 int get_verbose_flag( void );

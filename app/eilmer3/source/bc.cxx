@@ -996,7 +996,7 @@ int check_connectivity()
 	    other_face = bdp->bcp[face]->neighbour_face;
 	    if ( other_block >= 0 ) {
 		other_bdp = get_block_data_ptr(other_block);
-		if ( other_bdp->bcp[other_face]->neighbour_block != (int)jb ||
+		if ( other_bdp->bcp[other_face]->neighbour_block != static_cast<int>(jb) ||
 		     other_bdp->bcp[other_face]->neighbour_face != face ) {
 		    cerr << "blocks " << jb << " and " << other_block 
 			 << " incorrectly connected" << endl;
