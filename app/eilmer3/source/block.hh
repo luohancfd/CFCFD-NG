@@ -95,6 +95,8 @@ public:
     size_t jmin, jmax;
     size_t kmin, kmax;
 
+    std::vector<FV_Cell *> active_cells; // to be used in range for statements.
+
     // Flag to indicate if the Baldwin-Lomax turbulence model 
     // is active for the current block. 1==active; 0==inactive;
     int baldwin_lomax_iturb;
@@ -132,70 +134,32 @@ public:
     int array_alloc(size_t dimensions);
     int array_cleanup(size_t dimensions);
 
-    FV_Cell *get_cell(size_t i, size_t j, size_t k=0) 
-    {
+    size_t to_global_index(size_t i, size_t j, size_t k) {
 	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
-	    throw std::runtime_error("Block::get_cell: index out of bounds: i="+
-				     tostring(i)+" j="+tostring(j)+" k="+tostring(k));
+	    throw std::runtime_error("Block::to_global_index: index out of bounds for block "+
+				     tostring(id)+":"+
+				     " i="+ tostring(i)+" j="+tostring(j)+" k="+tostring(k)+
+				     " nni="+ tostring(i)+" nnj="+tostring(nnj)+" nnk="+tostring(nnk));
 	}
-	return ctr_[k*(njdim*nidim)+j*nidim+i]; 
+	return k*(njdim*nidim) + j*nidim + i; 
     }
-    FV_Interface *get_ifi(size_t i, size_t j, size_t k=0)
+    std::vector<size_t> to_ijk_indices(size_t cellid)
     {
-	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
-	    throw std::runtime_error("Block::get_ifi: index out of bounds: i="+
-				     tostring(i)+" j="+tostring(j)+" k="+tostring(k));
-	}
-	return ifi_[k*(njdim*nidim)+j*nidim+i]; 
+	size_t k = cellid / (njdim*nidim);
+	size_t j = (cellid - k*(njdim*nidim)) / nidim;
+	size_t i = cellid - k*(njdim*nidim) - j*nidim;
+	std::vector<size_t> ijk;
+	ijk.push_back(i); ijk.push_back(j), ijk.push_back(k);
+	return ijk;
     }
-    FV_Interface *get_ifj(size_t i, size_t j, size_t k=0)
-    {
-	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
-	    throw std::runtime_error("Block::get_ifj: index out of bounds: i="+
-				     tostring(i)+" j="+tostring(j)+" k="+tostring(k));
-	}
-	return ifj_[k*(njdim*nidim)+j*nidim+i]; 
-    }
-    FV_Interface *get_ifk(size_t i, size_t j, size_t k=0)
-    {
-	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
-	    throw std::runtime_error("Block::get_ifk: index out of bounds: i="+
-				     tostring(i)+" j="+tostring(j)+" k="+tostring(k));
-	}
-	return ifk_[k*(njdim*nidim)+j*nidim+i]; 
-    }
-    FV_Vertex *get_vtx(size_t i, size_t j, size_t k=0)
-    {
-	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
-	    throw std::runtime_error("Block::get_vtx: index out of bounds: i="+
-				     tostring(i)+" j="+tostring(j)+" k="+tostring(k));
-	}
-	return vtx_[k*(njdim*nidim)+j*nidim+i]; 
-    }
-    FV_Interface *get_sifi(size_t i, size_t j, size_t k=0)
-    {
-	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
-	    throw std::runtime_error("Block::get_sifi: index out of bounds: i="+
-				     tostring(i)+" j="+tostring(j)+" k="+tostring(k));
-	}
-	return sifi_[k*(njdim*nidim)+j*nidim+i]; 
-    }
-    FV_Interface *get_sifj(size_t i, size_t j, size_t k=0)
-    {
-	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
-	    throw std::runtime_error("Block::get_sifj: index out of bounds: i="+
-				     tostring(i)+" j="+tostring(j)+" k="+tostring(k));
-	}
-	return sifj_[k*(njdim*nidim)+j*nidim+i]; 
-    }
-    FV_Interface *get_sifk(size_t i, size_t j, size_t k=0)
-    {
-	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
-	    throw std::runtime_error("Block::get_sifk: index out of bounds: i="+
-				     tostring(i)+" j="+tostring(j)+" k="+tostring(k));
-	}
-	return sifk_[k*(njdim*nidim)+j*nidim+i]; 
-    }
+    FV_Cell *get_cell(size_t i, size_t j, size_t k=0) { return ctr_[to_global_index(i,j,k)]; }
+    FV_Interface *get_ifi(size_t i, size_t j, size_t k=0) { return ifi_[to_global_index(i,j,k)]; }
+    FV_Interface *get_ifj(size_t i, size_t j, size_t k=0) { return ifj_[to_global_index(i,j,k)]; }
+    FV_Interface *get_ifk(size_t i, size_t j, size_t k=0) { return ifk_[to_global_index(i,j,k)]; }
+    FV_Vertex *get_vtx(size_t i, size_t j, size_t k=0) { return vtx_[to_global_index(i,j,k)]; }
+    FV_Interface *get_sifi(size_t i, size_t j, size_t k=0) { return sifi_[to_global_index(i,j,k)]; }
+    FV_Interface *get_sifj(size_t i, size_t j, size_t k=0) { return sifj_[to_global_index(i,j,k)]; }
+    FV_Interface *get_sifk(size_t i, size_t j, size_t k=0) { return sifk_[to_global_index(i,j,k)]; }
 
     int apply(FV_Cell_MemberFunction_void f, string failure_message_header);
     int apply(FV_Cell_MemberFunction_double f, double param1, string failure_message_header);
