@@ -127,7 +127,7 @@ public:
 /// \brief Inviscid and viscous fluxes are transported (between cells) across cell interfaces.
 class FV_Interface {
 public:
-    int    id;
+    size_t id;  // allows us to work out where, in the block, the interface is
     int status; // state of the interface with respect to pistons
     // Geometry
     Vector3 pos;       ///< \brief position of the (approx) midpoint
@@ -163,7 +163,7 @@ public:
 /// \brief Cell vertex holds data for the calculation of gradients for the viscous terms.
 class FV_Vertex {
 public:
-    int    id;
+    size_t id;  // allows us to work out where, in the block, the vertex is
     // Geometry
     Vector3 pos;                    ///< \brief x,y,z-Coordinates, m
     std::vector<Vector3> position;  ///< \brief x,y,z-Coordinates for different integration time levels, m
@@ -192,7 +192,7 @@ public:
 /// \brief Cell-averaged data forms the core of the flow field data.
 class FV_Cell {
 public:
-    int id;  ///> \brief may be used as a global identity in VTK files
+    size_t id;  ///> \brief allows us to work out where, in the block, the cell is
     int status; ///> \brief state of the cell with respect to pistons
     int fr_reactions_allowed; ///> \brief ==1, will call chemical_increment (also thermal_increment)
     double dt_chem; ///> \brief acceptable time step for finite-rate chemistry

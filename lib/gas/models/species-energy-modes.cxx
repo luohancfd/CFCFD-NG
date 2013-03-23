@@ -239,7 +239,7 @@ eval_total_internal_energy( double T_el, double T_vib, double T_rot  )
                 double Q_rot = double(2*iJ+1) * exp( - E_rot / PC_k_SI / T_rot );
                 double E_rot_dash = E_el + E_vib + E_rot;
                 double Q_rot_dash = Q_el*Q_vib*Q_rot;
-    	    	if ( isnan(Q_rot_dash) || isinf( Q_rot_dash ) ) continue;
+    	    	if ( std::isnan(Q_rot_dash) || std::isinf( Q_rot_dash ) ) continue;
                 E_weighted += E_rot_dash * Q_rot_dash;
                 Q_total += Q_rot_dash;
             }
@@ -270,7 +270,7 @@ s_eval_energy_from_Ts( double T_el, double T_vib, double T_rot  )
             for ( int iJ=0; iJ<elev->J_max[iV]; ++iJ ){
                 double E_rot = elev->eval_E_rot(iV,iJ) - E_rot_0;
                 double Q_rot = double(2*iJ+1) * exp( - E_rot / PC_k_SI / T_rot );
-       	    	if ( isnan(Q_rot) || isinf( Q_rot ) ) continue;
+       	    	if ( std::isnan(Q_rot) || std::isinf( Q_rot ) ) continue;
                 Q_rot_sum += Q_rot;
             }
             Q_vib_sum += Q_vib*Q_rot_sum;
@@ -600,7 +600,7 @@ eval_total_internal_energy( double T_el, double T_vib, double T_rot  )
                 double Q_rot = double(2*iJ+1) * exp( - E_rot / PC_k_SI / T_rot );
                 double E_rot_dash = E_el + E_vib + E_rot;
                 double Q_rot_dash = Q_el*Q_vib*Q_rot;
-    	    	if ( isnan(Q_rot_dash) || isinf( Q_rot_dash ) ) continue;
+    	    	if ( std::isnan(Q_rot_dash) || std::isinf( Q_rot_dash ) ) continue;
                 E_weighted += E_rot_dash * Q_rot_dash;
                 Q_total += Q_rot_dash;
             }
@@ -631,7 +631,7 @@ s_eval_energy_from_Ts( double T_el, double T_vib, double T_rot  )
             for ( int iJ=0; iJ<elev->J_max[iV]; ++iJ ){
                 double E_rot = elev->eval_E_rot(iV,iJ) - E_rot_0;
                 double Q_rot = double(2*iJ+1) * exp( - E_rot / PC_k_SI / T_rot );
-       	    	if ( isnan(Q_rot) || isinf( Q_rot ) ) continue;
+       	    	if ( std::isnan(Q_rot) || std::isinf( Q_rot ) ) continue;
                 Q_rot_sum += Q_rot;
                 E_weighted += E_rot * Q_el * Q_vib * Q_rot;
             }
@@ -801,13 +801,11 @@ s_eval_energy_from_T( double T  )
 {
     // Ref: Gollan, R.G. PhD Thesis June 2008
     double exp_theta_D_T = exp( theta_D_ / T );
-    if ( isnan(exp_theta_D_T) ) {
+    if ( std::isnan(exp_theta_D_T) ) {
     	// use harmonic oscillator solution
     	return R_ * ( theta_ / ( exp( theta_ / T ) - 1.0 ) );
     }
-    else {
-    	return R_ * ( theta_ / ( exp( theta_ / T ) - 1.0 ) - theta_D_ / ( exp_theta_D_T - 1.0 ) );
-    }
+    return R_ * ( theta_ / ( exp( theta_ / T ) - 1.0 ) - theta_D_ / ( exp_theta_D_T - 1.0 ) );
 }
 
 double
@@ -838,7 +836,7 @@ s_eval_Cv_from_T( double T  )
     double tmpD = tmpB * tmpB * exp_tmpB /  ( (exp_tmpB - 1.0) * (exp_tmpB - 1.0) );
     
     // if tmpD is nan then it is converging to zero
-    if ( isnan(tmpD) ) tmpD = 0.0;
+    if ( std::isnan(tmpD) ) tmpD = 0.0;
     
     return R_ * ( tmpC - tmpD );
 }
@@ -903,7 +901,7 @@ eval_total_internal_energy( double T_el, double T_vib, double T_rot  )
                 double Q_rot = double(2*iJ+1) * exp( - E_rot / PC_k_SI / T_rot );
                 double E_rot_dash = E_el + E_vib + E_rot;
                 double Q_rot_dash = Q_el*Q_vib*Q_rot;
-    	    	if ( isnan(Q_rot_dash) || isinf( Q_rot_dash ) ) continue;
+    	    	if ( std::isnan(Q_rot_dash) || std::isinf( Q_rot_dash ) ) continue;
                 E_weighted += E_rot_dash * Q_rot_dash;
                 Q_total += Q_rot_dash;
             }
@@ -934,7 +932,7 @@ s_eval_energy_from_Ts( double T_el, double T_vib, double T_rot  )
             for ( int iJ=0; iJ<elev->J_max[iV]; ++iJ ){
                 double E_rot = elev->eval_E_rot(iV,iJ) - E_rot_0;
                 double Q_rot = double(2*iJ+1) * exp( - E_rot / PC_k_SI / T_rot );
-       	    	if ( isnan(Q_rot) || isinf( Q_rot ) ) continue;
+       	    	if ( std::isnan(Q_rot) || std::isinf( Q_rot ) ) continue;
                 Q_rot_sum += Q_rot;
             }
             Q_vib_sum += Q_vib*Q_rot_sum;
@@ -1096,7 +1094,7 @@ s_eval_energy_from_T( double T  )
     	    	double E_rot = elevs_[ilev]->eval_E_rot(iV,iJ) - E_rot_0;
     	    	double E_rot_dash = E_el + E_vib + E_rot;
     	    	double Q_rot_dash = elevs_[ilev]->g * double(2*iJ+1) * exp( - E_rot_dash / PC_k_SI / T );
-    	    	if ( isnan(Q_rot_dash) || isinf( Q_rot_dash ) ) continue;
+    	    	if ( std::isnan(Q_rot_dash) || std::isinf( Q_rot_dash ) ) continue;
     	    	E_weighted += E_rot_dash * Q_rot_dash;
     	    	Q_total += Q_rot_dash;
     	    }
@@ -1123,7 +1121,7 @@ s_eval_entropy_from_T( double T  )
     	    	double E_rot = elevs_[ilev]->eval_E_rot(iV,iJ) - E_rot_0;
     	    	double E_rot_dash = E_el + E_vib + E_rot;
     	    	double Q_rot_dash = elevs_[ilev]->g * double(2*iJ+1) * exp( - E_rot_dash / PC_k_SI / T );
-    	    	if ( isnan(Q_rot_dash) || isinf( Q_rot_dash ) ) continue;
+    	    	if ( std::isnan(Q_rot_dash) || std::isinf( Q_rot_dash ) ) continue;
     	    	E_weighted += E_rot_dash * Q_rot_dash;
     	    	Q_total += Q_rot_dash;
     	    }
@@ -1152,7 +1150,7 @@ s_eval_Cv_from_T( double T  )
     	    	double E_rot_dash = E_el + E_vib + E_rot;
     	    	double g = elevs_[ilev]->g * double(2*iJ+1);
     	    	double Q_rot_dash = g * exp( - E_rot_dash / PC_k_SI / T );
-    	    	if ( isnan(Q_rot_dash) || isinf( Q_rot_dash ) ) continue;
+    	    	if ( std::isnan(Q_rot_dash) || std::isinf( Q_rot_dash ) ) continue;
     	    	u += E_rot_dash * Q_rot_dash;
     	    	u_dash += E_rot_dash / PC_k_SI / T / T * E_rot_dash * Q_rot_dash;
     	    	v += Q_rot_dash;
@@ -1179,7 +1177,7 @@ s_eval_Q_from_T( double T, double A )
 		double E_rot = elevs_[ilev]->eval_E_rot(iV,iJ) - E_rot_0;
 		double E_rot_dash = E_el + E_vib + E_rot;
 		double Q_rot_dash = elevs_[ilev]->g * double(2*iJ+1) * exp( - E_rot_dash / PC_k_SI / T );
-		if ( isnan(Q_rot_dash) || isinf( Q_rot_dash ) ) continue;
+		if ( std::isnan(Q_rot_dash) || std::isinf( Q_rot_dash ) ) continue;
 		Q_total += Q_rot_dash;
 	    }
 	}

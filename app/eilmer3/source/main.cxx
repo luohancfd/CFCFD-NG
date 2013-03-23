@@ -496,12 +496,12 @@ int prepare_to_integrate(size_t start_tindx)
 	bdp->set_base_qdot( G );  // this need be done only once per block
 	bdp->identify_reaction_zones( G );
 	bdp->identify_turbulent_zones( G );
-	bdp->apply( &FV_Cell::init_time_level_geometry, "init_time_level_geometry");
-	bdp->apply( &FV_Cell::encode_conserved, bdp->omegaz, "encode_conserved" );
+	for ( FV_Cell *cp: bdp->active_cells ) cp->init_time_level_geometry();
+	for ( FV_Cell *cp: bdp->active_cells ) cp->encode_conserved(bdp->omegaz);
 	// Even though the following call appears redundant at this point,
 	// fills in some gas properties such as Prandtl number that is
 	// needed for both the cfd_check and the BLomax turbulence model.
-	bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode_conserved" );
+	for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(bdp->omegaz);
     }
     // Exchange boundary cell geometry information so that we can
     // next calculate secondary-cell geometries.
@@ -732,11 +732,11 @@ int integrate_blocks_in_sequence( void )
     // Apply the assumed SupINBC to the west face and propogate across the block
     bdp->bcp[WEST]->apply_inviscid(0.0);
     bdp->propagate_data_west_to_east( G.dimensions );
-    bdp->apply( &FV_Cell::encode_conserved, bdp->omegaz, "encode_conserved" );
+    for ( FV_Cell *cp: bdp->active_cells ) cp->encode_conserved(bdp->omegaz);
     // Even though the following call appears redundant at this point,
     // fills in some gas properties such as Prandtl number that is
     // needed for both the cfd_check and the BLomax turbulence model.
-    bdp->apply( &FV_Cell::decode_conserved, 0, bdp->omegaz, "decode_conserved" );
+    for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(0, bdp->omegaz);
 
     // Now set up block 1
     bdp = &(G.bd[1]);
@@ -748,8 +748,8 @@ int integrate_blocks_in_sequence( void )
     // Read in data from block 0 and propogate across the block
     exchange_shared_boundary_data( 1, COPY_FLOW_STATE);
     bdp->propagate_data_west_to_east( G.dimensions );
-    bdp->apply( &FV_Cell::encode_conserved, bdp->omegaz, "encode_conserved" );
-    bdp->apply( &FV_Cell::decode_conserved, 0, bdp->omegaz, "decode_conserved" );
+    for ( FV_Cell *cp: bdp->active_cells ) cp->encode_conserved(bdp->omegaz);
+    for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(0, bdp->omegaz);
 
     // Integrate just the first two blocks in time, hopefully to steady state.
     G.bd[0].active = 1;
@@ -785,8 +785,8 @@ int integrate_blocks_in_sequence( void )
 	// and propagate it across the current block.
 	exchange_shared_boundary_data( jb, COPY_FLOW_STATE );
 	bdp->propagate_data_west_to_east( G.dimensions );
-	bdp->apply( &FV_Cell::encode_conserved, bdp->omegaz, "encode_conserved" );
-	bdp->apply( &FV_Cell::decode_conserved, 0, bdp->omegaz, "decode_conserved" );
+	for ( FV_Cell *cp: bdp->active_cells ) cp->encode_conserved(bdp->omegaz);
+	for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(0, bdp->omegaz);
 	// Integrate just the two currently active blocks in time,
 	// hopefully to steady state.
 	G.bd[jb-1].active = 1;
@@ -1151,8 +1151,7 @@ int integrate_in_time( double target_time )
 		    bdp->compute_initial_primary_cell_geometric_data(G.dimensions);
 		    bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions);
 		    bdp->compute_secondary_cell_geometric_data(G.dimensions);
-		    bdp->apply( &FV_Cell::init_time_level_geometry, "init_time_level_geometry");
-		    
+		    for ( FV_Cell *cp: bdp->active_cells ) cp->init_time_level_geometry();	    
 		    G.t_shock += G.dt_shock;
 		}
 	    }
@@ -1187,7 +1186,7 @@ int integrate_in_time( double target_time )
 		for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		    bdp = G.my_blocks[jb];
 		    if ( bdp->active != 1 ) continue;
-		    bdp->apply( &FV_Cell::update_k_omega_properties, G.dt_global, "k_omega_increment" );
+		    for ( FV_Cell *cp: bdp->active_cells ) cp->update_k_omega_properties(G.dt_global);
 		}
 	    }
 #           endif
@@ -1200,7 +1199,7 @@ int integrate_in_time( double target_time )
 	    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
-		bdp->apply( &FV_Cell::chemical_increment, G.dt_global, "chemical_increment" );
+		for ( FV_Cell *cp: bdp->active_cells ) cp->chemical_increment(G.dt_global);
 	    }
 	}
 
@@ -1211,7 +1210,7 @@ int integrate_in_time( double target_time )
 	    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
-		bdp->apply( &FV_Cell::thermal_increment, G.dt_global, "thermal_increment" );
+		for ( FV_Cell *cp: bdp->active_cells ) cp->thermal_increment(G.dt_global);
 	    }
 	}
 
@@ -1422,7 +1421,7 @@ int integrate_in_time( double target_time )
 		    bdp = G.my_blocks[jb];
 		    if ( bdp->active != 1 ) continue;
 		    bdp->apply_spatial_filter_diffusion( G.filter_mu, G.filter_npass, G.dimensions );
-		    bdp->apply( &FV_Cell::encode_conserved, bdp->omegaz, "encode_conserved" );
+		    for ( FV_Cell *cp: bdp->active_cells ) cp->encode_conserved(bdp->omegaz);
 		}
 		for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		    bdp = G.my_blocks[jb];
@@ -1446,7 +1445,7 @@ int integrate_in_time( double target_time )
 		    bdp = G.my_blocks[jb];
 		    if ( bdp->active != 1 ) continue;
 		    bdp->apply_spatial_filter_anti_diffusion( G.filter_mu, G.filter_npass, G.dimensions );
-		    bdp->apply( &FV_Cell::encode_conserved, bdp->omegaz, "encode_conserved" );
+		    for ( FV_Cell *cp: bdp->active_cells ) cp->encode_conserved(bdp->omegaz);
 		}
 		for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		    bdp = G.my_blocks[jb];
@@ -1650,7 +1649,7 @@ int gasdynamic_inviscid_increment( void )
     for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
         if ( bdp->active != 1 ) continue;
-	bdp->apply( &FV_Cell::record_conserved, "record_conserved" );
+	for ( FV_Cell *cp: bdp->active_cells ) cp->record_conserved();
     }
 
     attempt_number = 0;
@@ -1722,16 +1721,19 @@ int gasdynamic_inviscid_increment( void )
 	    bdp = G.my_blocks[jb];
 	    if ( bdp->active != 1 ) continue;
 	    bdp->inviscid_flux( G.dimensions );
-	    bdp->apply( &FV_Cell::inviscid_source_vector, 0, bdp->omegaz, "inviscid-source-vector-level-0" );
+	    for ( FV_Cell *cp: bdp->active_cells ) cp->inviscid_source_vector(0, bdp->omegaz);
 	    if ( G.udf_source_vector_flag == 1 ) {
-		bdp->apply( udf_source_vector_for_cell, 0, G.sim_time, "udf-source-vector" );
+		for ( FV_Cell *cp: bdp->active_cells ) udf_source_vector_for_cell(cp, 0, G.sim_time);
 	    }
-	    bdp->apply( &FV_Cell::time_derivatives, 0, G.dimensions, "time-derivatives-level-0" );
-	    bdp->apply( &FV_Cell::predictor_update, G.dt_global, "predictor-step" );
-	    bdp->apply( &FV_Cell::decode_conserved, 0, bdp->omegaz, "decode-conserved" );
-	    if ( get_shock_fitting_flag() ) bdp->apply( &FV_Cell::get_current_time_level_geometry, 1, 
-							"get_current_time_level_geometry-1");
-	    if ( get_Torder_flag() == 3 ) bdp->apply( &FV_Cell::record_conserved, "record_conserved" );
+	    for ( FV_Cell *cp: bdp->active_cells ) cp->time_derivatives(0, G.dimensions);
+	    for ( FV_Cell *cp: bdp->active_cells ) cp->predictor_update(G.dt_global);
+	    for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(0, bdp->omegaz);
+	    if ( get_shock_fitting_flag() ) {
+		for ( FV_Cell *cp: bdp->active_cells ) cp->get_current_time_level_geometry(1);
+	    }
+	    if ( get_Torder_flag() == 3 ) {
+		for ( FV_Cell *cp: bdp->active_cells ) cp->record_conserved();
+	    }
 #           define WILSON_OMEGA_FILTER 0
 #           if WILSON_OMEGA_FILTER == 1
             if ( get_k_omega_flag() ) apply_wilson_omega_correction( *bdp );
@@ -1781,16 +1783,19 @@ int gasdynamic_inviscid_increment( void )
 		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
 		bdp->inviscid_flux( G.dimensions );
-		bdp->apply( &FV_Cell::inviscid_source_vector, 1, bdp->omegaz, "inviscid-source-vector-level-1" );
+		for ( FV_Cell *cp: bdp->active_cells ) cp->inviscid_source_vector(1, bdp->omegaz);
 		if ( G.udf_source_vector_flag == 1 ) {
-		    bdp->apply( udf_source_vector_for_cell, 1, G.sim_time, "udf-source-vector" );
+		    for ( FV_Cell *cp: bdp->active_cells ) udf_source_vector_for_cell(cp, 1, G.sim_time);
 		}
-		bdp->apply( &FV_Cell::time_derivatives, 1, G.dimensions, "time_derivatives-level-1" );
-		bdp->apply( &FV_Cell::corrector_update, G.dt_global, "corrector-step" );
-		bdp->apply( &FV_Cell::decode_conserved, 1, bdp->omegaz, "decode-conserved" );
-		 if ( get_shock_fitting_flag() ) bdp->apply( &FV_Cell::get_current_time_level_geometry, 2,
-							     "get_current_time_level_geometry-2");
-		if ( get_Torder_flag() == 3 ) bdp->apply( &FV_Cell::record_conserved, "record_conserved" );
+		for ( FV_Cell *cp: bdp->active_cells ) cp->time_derivatives(1, G.dimensions);
+		for ( FV_Cell *cp: bdp->active_cells ) cp->corrector_update(G.dt_global);
+		for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(1, bdp->omegaz);
+		if ( get_shock_fitting_flag() ) {
+		    for ( FV_Cell *cp: bdp->active_cells ) cp->get_current_time_level_geometry(2);
+		}
+		if ( get_Torder_flag() == 3 ) { 
+		    for ( FV_Cell *cp: bdp->active_cells ) cp->record_conserved();
+		}
 #               if WILSON_OMEGA_FILTER == 1
 		if ( get_k_omega_flag() ) apply_wilson_omega_correction( *bdp );
 #               endif
@@ -1839,15 +1844,16 @@ int gasdynamic_inviscid_increment( void )
 		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
 		bdp->inviscid_flux( G.dimensions );
-		bdp->apply( &FV_Cell::inviscid_source_vector, 2, bdp->omegaz, "inviscid-source-vector-level-2" );
+		for ( FV_Cell *cp: bdp->active_cells ) cp->inviscid_source_vector(2, bdp->omegaz);
 		if ( G.udf_source_vector_flag == 1 ) {
-		    bdp->apply( udf_source_vector_for_cell, 2, G.sim_time, "udf-source-vector" );
+		    for ( FV_Cell *cp: bdp->active_cells ) udf_source_vector_for_cell(cp, 2, G.sim_time);
 		}
-		bdp->apply( &FV_Cell::time_derivatives, 2, G.dimensions, "time_derivatives-level-2" );
-		bdp->apply( &FV_Cell::rk3_update, G.dt_global, "rk3-step" );
-		bdp->apply( &FV_Cell::decode_conserved, 2, bdp->omegaz, "decode-conserved" );
-		if ( get_shock_fitting_flag() ) bdp->apply( &FV_Cell::get_current_time_level_geometry, 3, 
-							    "get_current_time_level_geometry-3");
+		for ( FV_Cell *cp: bdp->active_cells ) cp->time_derivatives(2, G.dimensions);
+		for ( FV_Cell *cp: bdp->active_cells ) cp->rk3_update(G.dt_global);
+		for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(2, bdp->omegaz);
+		if ( get_shock_fitting_flag() ) {
+		    for ( FV_Cell *cp: bdp->active_cells ) cp->get_current_time_level_geometry(3);
+		}
 #               if WILSON_OMEGA_FILTER == 1
 		if ( get_k_omega_flag() ) apply_wilson_omega_correction( *bdp );
 #               endif
@@ -1871,8 +1877,8 @@ int gasdynamic_inviscid_increment( void )
 	    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
-		bdp->apply( &FV_Cell::restore_conserved, "restore_conserved" );
-		bdp->apply( &FV_Cell::decode_conserved, 0, bdp->omegaz, "decode_conserved" );
+		for ( FV_Cell *cp: bdp->active_cells ) cp->restore_conserved();
+		for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(0, bdp->omegaz);
 #               if WILSON_OMEGA_FILTER == 1
                 if ( get_k_omega_flag() ) apply_wilson_omega_correction( *bdp );
 #               endif
@@ -1895,12 +1901,7 @@ int gasdynamic_viscous_increment( void )
     for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
         if ( bdp->active != 1 ) continue;
-	bdp->apply( &FV_Cell::record_conserved, "record-conserved" );
-	// cout << "After record_conserved in viscous_increment. jb=" << jb << endl;
-	// cout << "mu_t=" << bdp->get_ifi(bdp->imin,bdp->jmin)->mu_t << endl;
-	// cout << "k_t=" << bdp->get_ifi(bdp->imin,bdp->jmin)->k_t << endl;
-	// print_data_for_cell( bdp->get_cell(bdp->imin,bdp->jmin), 1 );
-	// print_data_for_interface( bdp->get_ifi(bdp->imin,bdp->jmin), 1 );
+	for ( FV_Cell *cp: bdp->active_cells ) cp->record_conserved();
     }
     for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
@@ -1923,10 +1924,10 @@ int gasdynamic_viscous_increment( void )
 	} else {
 	    viscous_flux_3D( bdp );
 	}
-	bdp->apply( &FV_Cell::viscous_source_vector, "viscous-source-vector" );
-	bdp->apply( &FV_Cell::time_derivatives, 0, G.dimensions, "time-derivatives-level-0,viscous" );
-	bdp->apply( &FV_Cell::predictor_update, G.dt_global, "predictor-step,viscous" );
-	bdp->apply( &FV_Cell::decode_conserved, 0, bdp->omegaz, "decode-conserved,viscous" );
+	for ( FV_Cell *cp: bdp->active_cells ) cp->viscous_source_vector();
+	for ( FV_Cell *cp: bdp->active_cells ) cp->time_derivatives(0, G.dimensions);
+	for ( FV_Cell *cp: bdp->active_cells ) cp->predictor_update(G.dt_global);
+	for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(0, bdp->omegaz);
 #       if WILSON_OMEGA_FILTER == 1
         if ( get_k_omega_flag() ) apply_wilson_omega_correction( *bdp );
 #       endif
@@ -2054,7 +2055,7 @@ void perform_radiation_transport()
 	for ( jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
 	    if ( bdp->active != 1 ) continue;
-	    bdp->apply( &FV_Cell::rescale_Q_rE_rad, "rescale-Q_rE_rad" );
+	    for ( FV_Cell *cp: bdp->active_cells ) cp->rescale_Q_rE_rad();
 	}
     }
     else {
@@ -2068,7 +2069,7 @@ void perform_radiation_transport()
 	for ( jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
 	    if ( bdp->active != 1 ) continue;
-	    bdp->apply( &FV_Cell::store_rad_scaling_params, "store-rad-scaling-params" );
+	    for ( FV_Cell *cp: bdp->active_cells ) cp->store_rad_scaling_params();
 	}
     }
 

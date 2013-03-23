@@ -63,7 +63,8 @@ FreeFreeHydrogenic::calculate_spectrum( Gas_data &Q, CoeffSpectra &X, double n_e
 	double j_ff_nu = j_ff_tmpA * j_ff_tmpB * exp ( - RC_h_SI * nu / (RC_k_SI * T) ) * 1.0e-1;     // erg / cm**-3 - Hz -> J / m**-3 - Hz
 	double kappa_ff_nu = kappa_ff_tmpA * kappa_ff_tmpB / ( nu * nu * nu ) * 1.0e2;		  	// 1 / cm -> 1 / m
 
-	if ( !isnan(j_ff_nu) && !isinf(j_ff_nu) && !isnan(kappa_ff_nu) && !isinf(kappa_ff_nu) ) {
+	if ( !std::isnan(j_ff_nu) && !std::isinf(j_ff_nu) && 
+	     !std::isnan(kappa_ff_nu) && !std::isinf(kappa_ff_nu) ) {
 	    X.j_nu[inu] += j_ff_nu;
 	    X.kappa_nu[inu] += kappa_ff_nu;
 	}

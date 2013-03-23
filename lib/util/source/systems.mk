@@ -116,18 +116,18 @@ ifeq ($(TARGET), for_gnu)
     # Unix/Linux is default
     CFLAG   := -c $(OPT) -fPIC -W -Wall -pedantic -finline-limit=2400 $(MARCH_FLAG)
     LFLAG   := $(OPT) -fPIC -finline-limit=2400 $(MARCH_FLAG)
-    CXXFLAG := -c $(OPT) -fPIC -Wall -pedantic $(MARCH_FLAG)
+    CXXFLAG := -c $(OPT) -std=c++0x -fPIC -Wall -pedantic $(MARCH_FLAG)
     ifeq ($(findstring MINGW32, $(SYSTEM)), MINGW32)
         # MINGW32 environment on MS-Windows
         CFLAG   := -c $(OPT) -W -Wall -pedantic $(MARCH_FLAG)
         LFLAG   := $(OPT) -Wl,-stack=0x8000000 $(MARCH_FLAG)
-        CXXFLAG := -c $(OPT) -Wall -pedantic $(MARCH_FLAG)
+        CXXFLAG := -c $(OPT) -std=c++0x -Wall -pedantic $(MARCH_FLAG)
     endif
     ifeq ($(findstring CYGWIN, $(SYSTEM)), CYGWIN)
         # CYGWIN environment on MS-Windows
         CFLAG   := -c $(OPT) -W -Wall -pedantic $(MARCH_FLAG)
         LFLAG   := $(OPT) -Wl,-stack=0x8000000 $(MARCH_FLAG)
-        CXXFLAG := -c $(OPT) -Wall -pedantic $(MARCH_FLAG)
+        CXXFLAG := -c $(OPT) -std=c++0x -Wall -pedantic $(MARCH_FLAG)
     endif
     LLIB := -lm
     ifeq ($(WITH_SPRADIAN), 1)
@@ -150,18 +150,18 @@ ifeq ($(TARGET), for_gnu_gcc4)
     # Unix/Linux is default
     CFLAG   := -c $(OPT) -fPIC -W -Wall -pedantic -finline-limit=2400 $(MARCH_FLAG)
     LFLAG   := $(OPT) -fPIC -finline-limit=2400 $(MARCH_FLAG)
-    CXXFLAG := -c $(OPT) -fPIC -Wall -pedantic $(MARCH_FLAG)
+    CXXFLAG := -c $(OPT) -std=c++0x -fPIC -Wall -pedantic $(MARCH_FLAG)
     ifeq ($(findstring MINGW32, $(SYSTEM)), MINGW32)
         # MINGW32 environment on MS-Windows
         CFLAG   := -c $(OPT) -W -Wall -pedantic $(MARCH_FLAG)
         LFLAG   := $(OPT) -Wl,-stack=0x8000000 $(MARCH_FLAG)
-        CXXFLAG := -c $(OPT) -Wall -pedantic $(MARCH_FLAG)
+        CXXFLAG := -c $(OPT) -std=c++0x -Wall -pedantic $(MARCH_FLAG)
     endif
     ifeq ($(findstring CYGWIN, $(SYSTEM)), CYGWIN)
         # CYGWIN environment on MS-Windows
         CFLAG   := -c $(OPT) -W -Wall -pedantic $(MARCH_FLAG)
         LFLAG   := $(OPT) -Wl,-stack=0x8000000 $(MARCH_FLAG)
-        CXXFLAG := -c $(OPT) -Wall -pedantic $(MARCH_FLAG)
+        CXXFLAG := -c $(OPT) -std=c++0x -Wall -pedantic $(MARCH_FLAG)
     endif
     LLIB := -lm
 endif
@@ -175,18 +175,18 @@ ifeq ($(TARGET), for_gnu_debug)
     # Unix/Linux is default
     CFLAG   := -c -fPIC -W -Wall -pedantic -ggdb $(MARCH_FLAG)
     LFLAG   := -fPIC -pedantic -ggdb $(MARCH_FLAG)
-    CXXFLAG := -c -fPIC -Wall -pedantic -ggdb $(MARCH_FLAG)
+    CXXFLAG := -c -fPIC -std=c++0x -Wall -pedantic -ggdb $(MARCH_FLAG)
     ifeq ($(findstring CYGWIN, $(SYSTEM)), CYGWIN)
         # CYGWIN environment on MS-Windows
         CFLAG   := -c -W -Wall -pedantic -g $(MARCH_FLAG)
         LFLAG   := -g -Wl,stack=0x8000000 $(MARCH_FLAG)
-        CXXFLAG := -c -Wall -pedantic -g $(MARCH_FLAG)
+        CXXFLAG := -c -std=c++0x -Wall -pedantic -g $(MARCH_FLAG)
     endif
     ifeq ($(findstring MINGW32, $(SYSTEM)), MINGW32)
         # MINGW32 environment on MS-Windows
         CFLAG   := -c -W -Wall -pedantic -g $(MARCH_FLAG)
         LFLAG   := -g -Wl,stack=0x8000000 $(MARCH_FLAG)
-        CXXFLAG := -c -Wall -pedantic -g $(MARCH_FLAG)
+        CXXFLAG := -c -std=c++0x -Wall -pedantic -g $(MARCH_FLAG)
     endif
     CFLAG   += -ftrapping-math -fsignaling-nans -DDEBUG
     CXXFLAG += -ftrapping-math -fsignaling-nans -DDEBUG
@@ -204,18 +204,18 @@ ifeq ($(TARGET), for_gprof)
     # Unix/Linux is default
     CFLAG   := -c $(OPT) -fPIC -W -Wall -pedantic -finline-limit=2400 -pg $(MARCH_FLAG)
     LFLAG   := $(OPT) -fPIC -finline-limit=2400 -pg $(MARCH_FLAG)
-    CXXFLAG := -c $(OPT) -fPIC -Wall -pedantic -pg $(MARCH_FLAG)
+    CXXFLAG := -c $(OPT) -std=c++0x -fPIC -Wall -pedantic -pg $(MARCH_FLAG)
     ifeq ($(findstring MINGW32, $(SYSTEM)), MINGW32)
         # MINGW32 environment on MS-Windows
         CFLAG   := -c $(OPT) -W -Wall -pedantic -pg $(MARCH_FLAG)
         LFLAG   := $(OPT) -Wl,-stack=0x8000000 -pg $(MARCH_FLAG)
-        CXXFLAG := -c $(OPT) -Wall -pedantic -pg $(MARCH_FLAG)
+        CXXFLAG := -c $(OPT) -std=c++0x -Wall -pedantic -pg $(MARCH_FLAG)
     endif
     ifeq ($(findstring CYGWIN, $(SYSTEM)), CYGWIN)
         # CYGWIN environment on MS-Windows
         CFLAG   := -c $(OPT) -W -Wall -pedantic -pg $(MARCH_FLAG)
         LFLAG   := $(OPT) -Wl,-stack=0x8000000 -pg $(MARCH_FLAG)
-        CXXFLAG := -c $(OPT) -Wall -pedantic -pg $(MARCH_FLAG)
+        CXXFLAG := -c $(OPT) -std=c++0x -Wall -pedantic -pg $(MARCH_FLAG)
     endif
     LLIB    := -lm 
 endif
@@ -228,7 +228,7 @@ ifeq ($(TARGET), for_gnu_opteron)
     CXXLINK := g++
     CFLAG   := -c $(OPT) -fPIC -W -Wall -pedantic -mtune=opteron -finline-limit=2400 
     LFLAG   := $(OPT) -fPIC -finline-limit=2400 
-    CXXFLAG := -c $(OPT) -fPIC -Wall -mtune=opteron -pedantic 
+    CXXFLAG := -c $(OPT) -std=c++0x -fPIC -Wall -mtune=opteron -pedantic 
     LLIB    := -lm
 endif
 
@@ -241,7 +241,7 @@ ifeq ($(TARGET), for_macports_gnu)
     CXX     := g++
     CXXLINK := g++
     CFLAG   := -c $(OPT) -fPIC 
-    CXXFLAG := -c $(OPT) -fPIC 
+    CXXFLAG := -c $(OPT) -std=c++0x -fPIC 
     LFLAG   :=  $(OPT) -fPIC -lstdc++
     LLIB    := -lm -lstdc++
 endif
@@ -255,7 +255,7 @@ ifeq ($(TARGET), for_gnu_openmp)
     # Unix/Linux
     CFLAG   := -c $(OPT) -fPIC -W -Wall -pedantic -mtune=opteron -finline-limit=2400 $(MARCH_FLAG)
     LFLAG   := $(OPT) -fPIC -finline-limit=2400 $(MARCH_FLAG)
-    CXXFLAG := -c $(OPT) -fPIC -Wall -mtune=opteron -pedantic $(MARCH_FLAG)
+    CXXFLAG := -c $(OPT) -std=c++0x -fPIC -Wall -mtune=opteron -pedantic $(MARCH_FLAG)
     LLIB    := -lm
     PCA     := -fopenmp
 endif
@@ -440,7 +440,7 @@ ifeq ($(TARGET), for_lam)
     CXX     := mpiCC
     CXXLINK := mpiCC
     CFLAG   := -c $(OPT) 
-    CXXFLAG := -c $(OPT) 
+    CXXFLAG := -c $(OPT) -std=c++0x  
     LFLAG   :=  $(OPT) -fPIC 
     LLIB    := -lm
     LMPI    := -lmpi
@@ -455,7 +455,7 @@ ifeq ($(TARGET), for_lam_debug)
     CXX     := mpiCC
     CXXLINK := mpiCC
     CFLAG   := -c -g
-    CXXFLAG := -c -g
+    CXXFLAG := -c -g -std=c++0x 
     LFLAG   :=  -fPIC -g
     LLIB    := -lm
     LMPI    := -lmpi
@@ -468,7 +468,7 @@ ifeq ($(TARGET), for_openmpi)
     CXX     := mpiCC
     CXXLINK := mpiCC
     CFLAG   := -c $(OPT) -fPIC 
-    CXXFLAG := -c $(OPT) -fPIC 
+    CXXFLAG := -c $(OPT) -std=c++0x -fPIC 
     LFLAG   :=  $(OPT) -fPIC 
     LLIB    := -lm
 endif
@@ -480,7 +480,7 @@ ifeq ($(TARGET), for_openmpi_debug)
     CXX     := mpiCC
     CXXLINK := mpiCC
     CFLAG   := -c $(OPT) -fPIC -g
-    CXXFLAG := -c $(OPT) -fPIC -g
+    CXXFLAG := -c $(OPT) -std=c++0x -fPIC -g
     LFLAG   :=  $(OPT) -fPIC -g
     LLIB    := -lm
 endif
@@ -496,7 +496,7 @@ ifeq ($(TARGET), for_macports_openmpi)
     CXX     := mpiCC
     CXXLINK := mpiCC
     CFLAG   := -c $(OPT) -fPIC 
-    CXXFLAG := -c $(OPT) -fPIC 
+    CXXFLAG := -c $(OPT) -std=c++0x -fPIC 
     LFLAG   :=  $(OPT) -fPIC -lstdc++
     LLIB    := -lm -lstdc++ -lmpi_cxx
 endif
@@ -509,7 +509,7 @@ ifeq ($(TARGET), for_mac_openmpi)
     CXX     := mpic++
     CXXLINK := mpic++
     CFLAG   := -c $(OPT) -fPIC 
-    CXXFLAG := -c $(OPT) -fPIC 
+    CXXFLAG := -c $(OPT) -std=c++0x -fPIC 
     LFLAG   :=  $(OPT) -fPIC 
     LLIB    := -lm
 endif
@@ -523,7 +523,7 @@ ifeq ($(TARGET), for_mpich)
     CXX     := mpiCC
     CXXLINK := mpiCC
     CFLAG   := -c $(OPT) 
-    CXXFLAG := -c $(OPT) 
+    CXXFLAG := -c $(OPT) -std=c++0x 
     LFLAG   :=  $(OPT) -fPIC 
     LLIB    := -lm
     LMPI    := -lmpi

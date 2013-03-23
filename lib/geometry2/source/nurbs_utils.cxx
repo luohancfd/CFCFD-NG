@@ -623,7 +623,7 @@ int make_one_arc(const Vector3 &P0, const Vector3 &T0, const Vector3 &P2, const 
 	double numer = (1.0 - u)*(1.0 - u)*dot(P-P0, P1-P) + u*u*dot(P-P2, P1-P);
 	double denom = 2.0*u*(1.0 - u)*dot(P1-P, P1-P);
 	w1 = numer/denom;
-	if ( isnan(w1) || isinf(w1) ) {
+	if ( std::isnan(w1) || std::isinf(w1) ) {
 	    return FAILURE;
 	}
     }

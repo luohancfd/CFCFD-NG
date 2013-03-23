@@ -143,11 +143,11 @@ public:
 	}
 	return k*(njdim*nidim) + j*nidim + i; 
     }
-    std::vector<size_t> to_ijk_indices(size_t cellid)
+    std::vector<size_t> to_ijk_indices(size_t gid)
     {
-	size_t k = cellid / (njdim*nidim);
-	size_t j = (cellid - k*(njdim*nidim)) / nidim;
-	size_t i = cellid - k*(njdim*nidim) - j*nidim;
+	size_t k = gid / (njdim*nidim);
+	size_t j = (gid - k*(njdim*nidim)) / nidim;
+	size_t i = gid - k*(njdim*nidim) - j*nidim;
 	std::vector<size_t> ijk;
 	ijk.push_back(i); ijk.push_back(j), ijk.push_back(k);
 	return ijk;
@@ -161,6 +161,8 @@ public:
     FV_Interface *get_sifj(size_t i, size_t j, size_t k=0) { return sifj_[to_global_index(i,j,k)]; }
     FV_Interface *get_sifk(size_t i, size_t j, size_t k=0) { return sifk_[to_global_index(i,j,k)]; }
 
+#if 0
+    // To be replaced with range for statements.
     int apply(FV_Cell_MemberFunction_void f, string failure_message_header);
     int apply(FV_Cell_MemberFunction_double f, double param1, string failure_message_header);
     int apply(FV_Cell_MemberFunction_double_double f, double param1, double param2, 
@@ -180,6 +182,7 @@ public:
 	      int param1, int param2, string failure_message_header);
     int apply(int (*f)(FV_Cell *cellp, int param1, double param2), 
 	      int param1, double param2, string failure_message_header);
+#endif
 
     int bind_interfaces_to_cells( size_t dimensions );
     int set_base_qdot( global_data &gdp ); 

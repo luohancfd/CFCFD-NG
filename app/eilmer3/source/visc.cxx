@@ -56,24 +56,21 @@ static std::vector<double> fA, fB, fC, fD;
 int estimate_turbulence_viscosity( global_data *gdp, Block *bdp )
 {
     if ( get_turbulence_flag() == 0 ) {
-	bdp->apply( &FV_Cell::turbulence_viscosity_zero, "turbulence_viscosity_zero" );
+	for ( FV_Cell *cp: bdp->active_cells ) cp->turbulence_viscosity_zero();
 	return SUCCESS;
     }
 
     if ( get_k_omega_flag() == 1 ) {
-	bdp->apply( &FV_Cell::turbulence_viscosity_k_omega, "turbulence_viscosity_k_omega" );
+	for ( FV_Cell *cp: bdp->active_cells ) cp->turbulence_viscosity_k_omega();
     } else if ( get_baldwin_lomax_flag() == 1 ) {
 	baldwin_lomax_turbulence_model( *gdp, *bdp );
     } else {
 	cout << "Turbulence model requested but not available." << endl;
 	exit( NOT_IMPLEMENTED_ERROR );
     }
-    bdp->apply( &FV_Cell::turbulence_viscosity_factor, gdp->transient_mu_t_factor, 
-		"turbulence_viscosity_factor" );
-    bdp->apply( &FV_Cell::turbulence_viscosity_limit, gdp->max_mu_t_factor, 
-		"turbulence_viscosity_limit" );
-    bdp->apply( &FV_Cell::turbulence_viscosity_zero_if_not_in_zone,
-		"turbulence_viscosity_zero_if_not_in_zone" );
+    for ( FV_Cell *cp: bdp->active_cells ) cp->turbulence_viscosity_factor(gdp->transient_mu_t_factor);
+    for ( FV_Cell *cp: bdp->active_cells ) cp->turbulence_viscosity_limit(gdp->max_mu_t_factor);
+    for ( FV_Cell *cp: bdp->active_cells ) cp->turbulence_viscosity_zero_if_not_in_zone();
     return SUCCESS;
 }
 

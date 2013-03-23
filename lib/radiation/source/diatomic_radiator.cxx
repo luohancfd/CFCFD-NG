@@ -104,7 +104,7 @@ test_V_max()
     // 2. Check QvQr behaviour at low temperature
     double E_v = calculate_E_vib(V_max);
     double QvQr_test = calculate_Q_rot(200.0, V_max) * exp( - E_v / ( RC_k_SI * 200.0 ) );
-    if ( isinf( QvQr_test ) ) {
+    if ( std::isinf( QvQr_test ) ) {
     	cout << "DiatomicElecLev::test_V_max()" << endl
     	     << "V_max = " << V_max << " leads to infinite QvQr term at low temperatures" << endl;
     	return true;

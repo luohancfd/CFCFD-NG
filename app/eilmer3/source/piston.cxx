@@ -1904,7 +1904,7 @@ int activate_cells(global_data &G, Block *(bd[]))
 {
     string failure_message("error in activate_cells()");
     for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-	G.my_blocks[jb]->apply(set_cell_status, NORMAL_CELL, failure_message); 
+	for ( FV_Cell *cp: G.my_blocks[jb]->active_cells ) set_cell_status(cp, NORMAL_CELL);
     }
     return SUCCESS;
 }
@@ -1918,7 +1918,7 @@ int print_cell_status( FV_Cell *c )
 int print_all_cells_status(global_data &G, Block *(bd[]))
 {
     for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-	G.my_blocks[jb]->apply(print_cell_status, "print cell status");
+	for ( FV_Cell *cp: G.my_blocks[jb]->active_cells ) print_cell_status(cp);
     }
     return SUCCESS;
 }

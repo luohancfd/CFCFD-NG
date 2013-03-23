@@ -42,7 +42,7 @@ int gasdynamic_point_implicit_inviscid_increment(void)
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
         if ( bdp->active != 1 ) continue;
-	bdp->apply( &FV_Cell::record_conserved, "record_conserved" );
+	for ( FV_Cell *cp: bdp->active_cells ) cp->record_conserved();
     }
 
     attempt_number = 0;
@@ -96,7 +96,7 @@ int gasdynamic_point_implicit_inviscid_increment(void)
 		for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		    bdp = G.my_blocks[jb];
 		    if ( bdp->active != 1 ) continue;
-		    bdp->apply( &FV_Cell::store_rad_scaling_params, "store-rad-scaling-params" );
+		    for ( FV_Cell *cp: bdp->active_cells ) cp->store_rad_scaling_params();
 		}
 	    }
 	    else {
@@ -107,7 +107,7 @@ int gasdynamic_point_implicit_inviscid_increment(void)
 		for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		    bdp = G.my_blocks[jb];
 		    if ( bdp->active != 1 ) continue;
-		    bdp->apply( &FV_Cell::rescale_Q_rE_rad, "rescale-Q_rE_rad" );
+		    for ( FV_Cell *cp: bdp->active_cells ) cp->rescale_Q_rE_rad();
 		}
 	    }
 	}
@@ -116,12 +116,12 @@ int gasdynamic_point_implicit_inviscid_increment(void)
 	    bdp = G.my_blocks[jb];
 	    if ( bdp->active != 1 ) continue;
 	    bdp->inviscid_flux( G.dimensions );
-	    bdp->apply( &FV_Cell::inviscid_source_vector, bdp->omegaz, "inviscid-source-vector" );
+	    for ( FV_Cell *cp: bdp->active_cells ) cp->inviscid_source_vector(bdp->omegaz);
 	    if ( G.udf_source_vector_flag == 1 ) {
-		bdp->apply( udf_source_vector_for_cell, G.dt_global, "udf-source-vector" );
+		for ( FV_Cell *cp: bdp->active_cells ) cp->udf_source_vector_for_cell(G.dt_global);
 	    }
-	    bdp->apply( inviscid_point_implicit_update_for_cell, "point-implicit,inviscid" );
-	    bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode-conserved" );
+	    for ( FV_Cell *cp: bdp->active_cells ) cp->inviscid_point_implicit_update_for_cell();
+	    for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(bdp->omegaz);
 	} // end of for jb...
 
 	// 2d. Check the record of bad cells and if any cells are bad, 
@@ -137,8 +137,8 @@ int gasdynamic_point_implicit_inviscid_increment(void)
 	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
-		bdp->apply( &FV_Cell::restore_conserved, "restore_conserved" );
-		bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode_conserved" );
+		for ( FV_Cell *cp: bdp->active_cells ) cp->restore_conserved();
+		for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(bdp->omegaz);
 	    }
 	}
 
@@ -393,12 +393,7 @@ int gasdynamic_point_implicit_viscous_increment(void)
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
 	if ( bdp->active != 1 ) continue;
-	bdp->apply( &FV_Cell::record_conserved, "record-conserved" );
-	// cout << "After record_conserved in viscous_increment. jb=" << jb << endl;
-	// cout << "mu_t=" << bdp->get_ifi(bdp->imin,bdp->jmin)->mu_t << endl;
-	// cout << "k_t=" << bdp->get_ifi(bdp->imin,bdp->jmin)->k_t << endl;
-	// print_data_for_cell( bdp->get_cell(bdp->imin,bdp->jmin), 1 );
-	// print_data_for_interface( bdp->get_ifi(bdp->imin,bdp->jmin), 1 );
+	for ( FV_Cell *cp: bdp->active_cells ) cp->record_conserved();
     }
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
@@ -417,9 +412,9 @@ int gasdynamic_point_implicit_viscous_increment(void)
 	} else {
 	    viscous_flux_3D( bdp );
 	}
-	bdp->apply( &FV_Cell::viscous_source_vector, "viscous-source-vector" );
-	bdp->apply( point_implicit_update_for_cell, "point-implicit,viscous" );
-	bdp->apply( &FV_Cell::decode_conserved, bdp->omegaz, "decode-conserved,viscous" );
+	for ( FV_Cell *cp: bdp->active_cells ) cp->viscous_source_vector();
+	for ( FV_Cell *cp: bdp->active_cells ) point_implicit_update_for_cell(cp);
+	for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(bdp->omegaz);
     } // end of for jb...
     cout << "=== Fin gasdynamic_point_implicit_viscous_increment ===" << endl;
 #endif

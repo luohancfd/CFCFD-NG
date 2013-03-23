@@ -66,6 +66,7 @@ Block::Block(const Block &b)
       imin(b.imin), imax(b.imax),
       jmin(b.jmin), jmax(b.jmax),
       kmin(b.kmin), kmax(b.kmax),
+      active_cells(b.active_cells),
       baldwin_lomax_iturb(b.baldwin_lomax_iturb),
       bcp(b.bcp),
       ctr_(b.ctr_),
@@ -91,6 +92,7 @@ Block & Block::operator=(const Block &b)
 	imin = b.imin; imax = b.imax;
 	jmin = b.jmin; jmax = b.jmax;
 	kmin = b.kmin; kmax = b.kmax;
+	active_cells = b.active_cells;
 	baldwin_lomax_iturb = b.baldwin_lomax_iturb;
 	bcp = b.bcp;
 	ctr_ = b.ctr_;
@@ -133,16 +135,33 @@ int Block::array_alloc(size_t dimensions)
     sifj_.resize(ntot);
     if ( dimensions == 3 ) sifk_.resize(ntot);
     // Now, create the actual objects.
-    for (size_t ijk = 0; ijk < ntot; ++ijk) {
-        ctr_[ijk] = new FV_Cell(gm);
-        ifi_[ijk] = new FV_Interface(gm);
-        ifj_[ijk] = new FV_Interface(gm);
-        if ( dimensions == 3 ) ifk_[ijk] = new FV_Interface(gm);
-        vtx_[ijk] = new FV_Vertex(gm);
-        sifi_[ijk] = new FV_Interface(gm);
-        sifj_[ijk] = new FV_Interface(gm);
-        if ( dimensions == 3 ) sifk_[ijk] = new FV_Interface(gm);
-    } // ijk loop
+    for (size_t gid = 0; gid < ntot; ++gid) {
+        ctr_[gid] = new FV_Cell(gm);
+	ctr_[gid]->id = gid;
+	std::vector<size_t> ijk = to_ijk_indices(gid);
+	size_t i = ijk[0]; size_t j = ijk[1]; size_t k = ijk[2];
+	if ( i >= imin && i <= imax && j >= jmin && j <= jmax && k >= kmin && k <= kmax ) {
+	    active_cells.push_back(ctr_[gid]);
+	}
+        ifi_[gid] = new FV_Interface(gm);
+	ifi_[gid]->id = gid;
+        ifj_[gid] = new FV_Interface(gm);
+	ifj_[gid]->id = gid;
+        if ( dimensions == 3 ) {
+	    ifk_[gid] = new FV_Interface(gm);
+	    ifk_[gid]->id = gid;
+	}
+        vtx_[gid] = new FV_Vertex(gm);
+	vtx_[gid]->id = gid;
+        sifi_[gid] = new FV_Interface(gm);
+	sifi_[gid]->id = gid;
+        sifj_[gid] = new FV_Interface(gm);
+	sifj_[gid]->id = gid;
+        if ( dimensions == 3 ) {
+	    sifk_[gid] = new FV_Interface(gm);
+	    sifk_[gid]->id = gid;
+	}
+    } // gid loop
 
     if ( get_verbose_flag() || id == 0 ) {
 	cout << "Block " << id << ": finished creating " << ntot << " cells." << endl;
@@ -158,16 +177,16 @@ int Block::array_cleanup(size_t dimensions)
     }
     // Need to clean up allocated memory.
     size_t ntot = nidim * njdim * nkdim;
-    for (size_t ijk = 0; ijk < ntot; ++ijk) {
-	delete ctr_[ijk];
-	delete ifi_[ijk];
-	delete ifj_[ijk];
-	if ( dimensions == 3 ) delete ifk_[ijk];
-	delete vtx_[ijk];
-	delete sifi_[ijk];
-	delete sifj_[ijk];
-	if ( dimensions == 3 ) delete sifk_[ijk];
-    } // ijk loop
+    for (size_t gid = 0; gid < ntot; ++gid) {
+	delete ctr_[gid];
+	delete ifi_[gid];
+	delete ifj_[gid];
+	if ( dimensions == 3 ) delete ifk_[gid];
+	delete vtx_[gid];
+	delete sifi_[gid];
+	delete sifj_[gid];
+	if ( dimensions == 3 ) delete sifk_[gid];
+    } // gid loop
     ctr_.clear(); 
     ifi_.clear();
     ifj_.clear();
@@ -176,10 +195,13 @@ int Block::array_cleanup(size_t dimensions)
     sifi_.clear();
     sifj_.clear();
     sifk_.clear();
+    active_cells.clear();
     return SUCCESS;
 } // end of array_cleanup()
 
 //-----------------------------------------------------------------------------
+#if 0
+// To be replaced with range for statements.
 
 /// \brief Apply the function (one extra double parameter) to all cells.
 int Block::apply(FV_Cell_MemberFunction_void f, string failure_message_header)
@@ -649,7 +671,7 @@ int Block::apply(int (*f)(FV_Cell *cellp, int param1, double param2),
     }
     return SUCCESS;
 } // end of apply(f, p1, p2)
-
+#endif
 
 int Block::bind_interfaces_to_cells( size_t dimensions )
 {
