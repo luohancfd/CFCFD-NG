@@ -227,28 +227,18 @@ int Block::bind_interfaces_to_cells( size_t dimensions )
 int Block::set_base_qdot( global_data &gd )
 {
     double total_qdot_for_block = 0.0;
-    CHeatZone *hzp;
-    FV_Cell *cellp;
-
     total_qdot_for_block = 0.0;
-    for ( size_t k = kmin; k <= kmax; ++k ) {
-	for ( size_t i = imin; i <= imax; ++i ) {
-	    for ( size_t j = jmin; j <= jmax; ++j ) {
-		cellp = get_cell(i,j,k);
-		cellp->base_qdot = 0.0;
-		for ( size_t indx = 0; indx < gd.n_heat_zone; ++indx ) {
-		    hzp = &(gd.heat_zone[indx]);
-		    if ( cellp->pos.x >= hzp->x0 && cellp->pos.x <= hzp->x1 &&
-			 cellp->pos.y >= hzp->y0 && cellp->pos.y <= hzp->y1 &&
-			 (gd.dimensions == 2 || 
-			  (cellp->pos.z >= hzp->z0 && cellp->pos.z <= hzp->z1)) ) {
-			cellp->base_qdot += hzp->qdot;
-		    }
-		} // for indx
-		total_qdot_for_block += cellp->base_qdot * cellp->volume;
-	    } // for j
-	} // for i
-    } // for k
+    for ( FV_Cell *cellp: active_cells ) {
+	cellp->base_qdot = 0.0;
+	for ( CHeatZone &hz : gd.heat_zone ) {
+	    if ( cellp->pos.x >= hz.x0 && cellp->pos.x <= hz.x1 &&
+		 cellp->pos.y >= hz.y0 && cellp->pos.y <= hz.y1 &&
+		 (gd.dimensions == 2 || (cellp->pos.z >= hz.z0 && cellp->pos.z <= hz.z1)) ) {
+		cellp->base_qdot += hz.qdot;
+	    }
+	} // for hz
+	total_qdot_for_block += cellp->base_qdot * cellp->volume;
+    } // for cellp
     if ( total_qdot_for_block > 1.0e-10 ) {
 	cout << "set_base_qdot(): block " << id
 	     << " base_qdot= " << total_qdot_for_block << " Watts" << endl;
@@ -262,34 +252,24 @@ int Block::identify_reaction_zones( global_data &gd )
 {
     size_t total_cells_in_reaction_zones = 0;
     size_t total_cells = 0;
-    CReactionZone *rzp;
-    FV_Cell *cellp;
-
-    for ( size_t k = kmin; k <= kmax; ++k ) {
-	for ( size_t i = imin; i <= imax; ++i ) {
-	    for ( size_t j = jmin; j <= jmax; ++j ) {
-		cellp = get_cell(i,j,k);
-		if ( gd.n_reaction_zone > 0 ) {
-		    // User-specified reaction zones; mask off reacting/nonreacting zones.
-		    cellp->fr_reactions_allowed = 0;
-		    for ( size_t indx = 0; indx < gd.n_reaction_zone; ++indx ) {
-			rzp = &(gd.reaction_zone[indx]);
-			if ( cellp->pos.x >= rzp->x0 && cellp->pos.x <= rzp->x1 &&
-			     cellp->pos.y >= rzp->y0 && cellp->pos.y <= rzp->y1 &&
-			     (gd.dimensions == 2 || 
-			      (cellp->pos.z >= rzp->z0 && cellp->pos.z <= rzp->z1)) ) {
-			    cellp->fr_reactions_allowed = 1;
-			}
-		    } // end for( indx
-		} else {
-		    // No user-specified zones; always allow reactions.
+    for ( FV_Cell *cellp: active_cells ) {
+	if ( gd.n_reaction_zone > 0 ) {
+	    // User-specified reaction zones; mask off reacting/nonreacting zones.
+	    cellp->fr_reactions_allowed = 0;
+	    for ( CReactionZone &rz : gd.reaction_zone ) {
+		if ( cellp->pos.x >= rz.x0 && cellp->pos.x <= rz.x1 &&
+		     cellp->pos.y >= rz.y0 && cellp->pos.y <= rz.y1 &&
+		     (gd.dimensions == 2 || (cellp->pos.z >= rz.z0 && cellp->pos.z <= rz.z1)) ) {
 		    cellp->fr_reactions_allowed = 1;
 		}
-		total_cells_in_reaction_zones += cellp->fr_reactions_allowed;
-		total_cells += 1;
-	    } // for j
-	} // for i
-    } // for k
+	    } // end for( &rz
+	} else {
+	    // No user-specified zones; always allow reactions.
+	    cellp->fr_reactions_allowed = 1;
+	}
+	total_cells_in_reaction_zones += cellp->fr_reactions_allowed;
+	total_cells += 1;
+    } // for cellp
     if ( get_reacting_flag() ) {
 	cout << "identify_reaction_zones(): block " << id
 	     << " cells inside zones = " << total_cells_in_reaction_zones 
@@ -308,32 +288,22 @@ int Block::identify_turbulent_zones( global_data &gd )
 {
     size_t total_cells_in_turbulent_zones = 0;
     size_t total_cells = 0;
-    CTurbulentZone *tzp;
-    FV_Cell *cellp;
-    
-    for ( size_t k = kmin; k <= kmax; ++k ) {
-	for ( size_t i = imin; i <= imax; ++i ) {
-	    for ( size_t j = jmin; j <= jmax; ++j ) {
-		cellp = get_cell(i,j,k);
-		if ( gd.n_turbulent_zone > 0 ) {
-		    cellp->in_turbulent_zone = 0;
-		    for ( size_t indx = 0; indx < gd.n_turbulent_zone; ++indx ) {
-			tzp = &(gd.turbulent_zone[indx]);
-			if ( cellp->pos.x >= tzp->x0 && cellp->pos.x <= tzp->x1 &&
-			     cellp->pos.y >= tzp->y0 && cellp->pos.y <= tzp->y1 &&
-			     (gd.dimensions == 2 || 
-			      (cellp->pos.z >= tzp->z0 && cellp->pos.z <= tzp->z1)) ) {
-			    cellp->in_turbulent_zone = 1;
-			}
-		    } // for indx
-		} else {
+    for ( FV_Cell *cellp: active_cells ) {
+	if ( gd.n_turbulent_zone > 0 ) {
+	    cellp->in_turbulent_zone = 0;
+	    for ( CTurbulentZone &tz : gd.turbulent_zone ) {
+		if ( cellp->pos.x >= tz.x0 && cellp->pos.x <= tz.x1 &&
+		     cellp->pos.y >= tz.y0 && cellp->pos.y <= tz.y1 &&
+		     (gd.dimensions == 2 || (cellp->pos.z >= tz.z0 && cellp->pos.z <= tz.z1)) ) {
 		    cellp->in_turbulent_zone = 1;
 		}
-		total_cells_in_turbulent_zones += cellp->in_turbulent_zone;
-		total_cells += 1;
-	    } // for j
-	} // for i
-    } // for k
+	    } // for tz
+	} else {
+	    cellp->in_turbulent_zone = 1;
+	}
+	total_cells_in_turbulent_zones += cellp->in_turbulent_zone;
+	total_cells += 1;
+    } // for cellp
     if ( get_turbulence_flag() ) {
 	cout << "identify_turbulent_zones(): block " << id
 	     << " cells inside zones = " << total_cells_in_turbulent_zones 
@@ -409,164 +379,6 @@ int Block::propagate_data_west_to_east( size_t dimensions )
 } // end propagate_data_west_to_east()
 
 
-/** \brief Computes the (pressure and shear) forces applied by the gas 
- *         to the bounding surface.
- *
- * We make use of geometric quantities stored at 
- * the cell interfaces.  
- * (Area is area per unit radian for axisymmetric calculations.)
- */
-void Block::compute_x_forces( char *text_string, int ibndy, size_t dimensions )
-{
-    double fx_p, fx_v, x1, y1, cosX, cosY, area;
-    double xc, yc, d, vt, mu;
-    size_t i, j, ivisc;
-    FV_Cell *cell;
-    FV_Interface *IFace;
-    
-    if ( dimensions == 3 ) {
-	printf( "X-Force calculations not implemented for 3D geometries, yet." );
-	exit( NOT_IMPLEMENTED_ERROR );
-    }
-
-    fx_p = 0.0;
-    fx_v = 0.0;
-    ivisc = get_viscous_flag();
-
-    if ( ibndy == NORTH ) {
-	j = jmax;
-	for ( i = imin; i <= imax; ++i ) {
-	    cell = get_cell(i,j);
-	    IFace = cell->iface[NORTH];
-	    cosX = IFace->n.x;
-	    cosY = IFace->n.y;
-	    area = IFace->area;
-	    mu   = IFace->fs->gas->mu;
-	    fx_p += cell->fs->gas->p * area * cosX;
-	    if ( ivisc ) {
-		/* pieces needed to reconstruct the local velocity gradient */
-		x1 = cell->vtx[0]->pos.x; y1 = cell->vtx[0]->pos.y;
-		xc = cell->pos.x;   yc = cell->pos.y;
-		d = -(xc - x1) * cosX + -(yc - y1) * cosY;
-		vt = cell->fs->vel.x * cosY - cell->fs->vel.y * cosX;
-		/* x-component of the shear force, assuming no-slip wall */
-		fx_v += mu * vt / d * area * cosY;
-	    }
-	}
-    } else if ( ibndy == SOUTH ) {
-	j = jmin;
-	for ( i = imin; i <= imax; ++i ) {
-	    cell = get_cell(i,j);
-	    IFace = cell->iface[SOUTH];
-	    cosX = IFace->n.x;
-	    cosY = IFace->n.y;
-	    area = IFace->area;
-	    mu   = IFace->fs->gas->mu;
-	    fx_p -= cell->fs->gas->p * area * cosX;
-	    if ( ivisc ) {
-		/* pieces needed to reconstruct the local velocity gradient */
-		x1 = cell->vtx[0]->pos.x; y1 = cell->vtx[0]->pos.y;
-		xc = cell->pos.x;   yc = cell->pos.y;
-		d = (xc - x1) * cosX + (yc - y1) * cosY;
-		vt = cell->fs->vel.x * cosY - cell->fs->vel.y * cosX;
-		/* x-component of the shear force, assuming no-slip wall */
-		fx_v += mu * vt / d * area * cosY;
-	    }
-	}
-    } else if ( ibndy == EAST ) {
-	i = imax;
-	for ( j = jmin; j <= jmax; ++j ) {
-	    cell = get_cell(i,j);
-	    IFace = cell->iface[EAST];
-	    cosX = IFace->n.x;
-	    cosY = IFace->n.y;
-	    area = IFace->area;
-	    mu   = IFace->fs->gas->mu;
-	    fx_p += cell->fs->gas->p * area * cosX;
-	    if ( ivisc ) {
-		/* pieces needed to reconstruct the local velocity gradient */
-		x1 = cell->vtx[1]->pos.x; y1 = cell->vtx[1]->pos.y;
-		xc = cell->pos.x;   yc = cell->pos.y;
-		d = -(xc - x1) * cosX + -(yc - y1) * cosY;
-		vt = -(cell->fs->vel.x) * cosY + cell->fs->vel.y * cosX;
-		/* x-component of the shear force, assuming no-slip wall */
-		fx_v -= mu * vt / d * area * cosY;
-	    }
-	}
-    } else if ( ibndy == WEST ) {
-	i = imin;
-	for ( j = jmin; j <= jmax; ++j ) {
-	    cell = get_cell(i,j);
-	    IFace = cell->iface[WEST];
-	    cosX = IFace->n.x;
-	    cosY = IFace->n.y;
-	    area = IFace->area;
-	    mu   = IFace->fs->gas->mu;
-	    fx_p -= cell->fs->gas->p * area * cosX;
-	    if ( ivisc ) {
-		/* pieces needed to reconstruct the local velocity gradient */
-		x1 = cell->vtx[0]->pos.x; y1 = cell->vtx[0]->pos.y;
-		xc = get_cell(i,j)->pos.x;  yc = get_cell(i,j)->pos.y;
-		d = (xc - x1) * cosX + (yc - y1) * cosY;
-		vt = -(cell->fs->vel.x) * cosY + cell->fs->vel.y * cosX;
-		/* x-component of the shear force, assuming no-slip wall */
-		fx_v -= mu * vt / d * area * cosY;
-	    }
-	}
-    }   /* end if: boundary selection */
-
-    if ( get_axisymmetric_flag() == 1 ) {
-	fx_p *= (2.0 * 3.1415927);
-	fx_v *= (2.0 * 3.1415927);
-    }
-
-    sprintf( text_string, "FX_P %e FX_V %e ", fx_p, fx_v );
-} // end compute_x_forces()
-
-
-/// \brief Assemble the x-force numbers for each block into a single
-///        (string) report and send it to the logfile. 
-int Block::print_forces( FILE *fp, double t, size_t dimensions )
-{
-    char msg_text[512], small_text[132];
-
-    if ( bcp[NORTH]->xforce_flag == 1 ) {
-	sprintf( small_text, "XFORCE: TIME %e BLOCK %d BNDY %d ",
-		 t, static_cast<int>(id), NORTH );
-	strcpy( msg_text, small_text );
-	this->compute_x_forces( small_text, NORTH, dimensions );
-	strcat( msg_text, small_text );
-	fprintf( fp, "%s\n",  msg_text );
-    }
-    if ( bcp[EAST]->xforce_flag == 1 ) {
-	sprintf( small_text, "XFORCE: TIME %e BLOCK %d BNDY %d ",
-		 t, static_cast<int>(id), EAST );
-	strcpy( msg_text, small_text );
-	this->compute_x_forces( small_text, EAST, dimensions );
-	strcat( msg_text, small_text );
-	fprintf( fp, "%s\n",  msg_text );
-    }
-    if ( bcp[SOUTH]->xforce_flag == 1 ) {
-	sprintf( small_text, "XFORCE: TIME %e BLOCK %d BNDY %d ",
-		 t, static_cast<int>(id), SOUTH );
-	strcpy( msg_text, small_text );
-	this->compute_x_forces( small_text, SOUTH, dimensions );
-	strcat( msg_text, small_text );
-	fprintf( fp, "%s\n",  msg_text );
-    }
-    if ( bcp[WEST]->xforce_flag == 1 ) {
-	sprintf( small_text, "XFORCE: TIME %e BLOCK %d BNDY %d ",
-		 t, static_cast<int>(id), WEST );
-	strcpy( msg_text, small_text );
-	this->compute_x_forces( small_text, WEST, dimensions );
-	strcat( msg_text, small_text );
-	fprintf( fp, "%s\n",  msg_text );
-    }
-
-    return SUCCESS;
-} // end print_forces()
-
-
 int Block::count_invalid_cells( size_t dimensions )
 /// \brief Returns the number of cells that contain invalid data.
 ///
@@ -576,66 +388,57 @@ int Block::count_invalid_cells( size_t dimensions )
 // To do: We should probably make this function more 3D friendly, however,
 // it should not be invoked (ever) if the code is working well!
 {
-    FV_Cell *cell;
-    size_t  number_of_invalid_cells;
-    Gas_model *gmodel = get_gas_model_ptr();
-    FV_Cell dummy_cell(gmodel);
-    
-    number_of_invalid_cells = 0;
-
-    for ( size_t k = kmin; k <= kmax; ++k ) {
-	for ( size_t i = imin; i <= imax; ++i ) {
-	    for ( size_t j = jmin; j <= jmax; ++j ) {
-		cell = get_cell(i,j,k);
-		if ( cell->check_flow_data() != 1 ) {
-		    ++number_of_invalid_cells;
+    size_t number_of_invalid_cells = 0;
+    for ( FV_Cell *cellp: active_cells ) {
+	if ( cellp->check_flow_data() != 1 ) {
+	    ++number_of_invalid_cells;
+	    std::vector<size_t> ijk = to_ijk_indices(cellp->id);
+	    size_t i = ijk[0]; size_t j = ijk[1]; size_t k = ijk[2];
+	    if ( get_bad_cell_complain_flag() ) {
+		printf("count_invalid_cells: block_id = %d, cell[%d,%d,%d]\n", 
+		       static_cast<int>(id), static_cast<int>(i), 
+		       static_cast<int>(j), static_cast<int>(k));
+		cellp->print();
+	    }
+	    if ( adjust_invalid_cell_data ) {
+		// We shall set the cell data to something that
+		// is valid (and self consistent).
+		FV_Cell *other_cellp;
+		std::vector<FV_Cell *> neighbours;
+		if (prefer_copy_from_left ) {
 		    if ( get_bad_cell_complain_flag() ) {
-			printf("count_invalid_cells: block_id = %d, cell[%d,%d,%d]\n", 
-			       static_cast<int>(id), static_cast<int>(i), 
-			       static_cast<int>(j), static_cast<int>(k));
-			cell->print();
+			printf( "Adjusting cell data by copying data from left.\n" );
 		    }
-		    if ( adjust_invalid_cell_data ) {
-			// We shall set the cell data to something that
-			// is valid (and self consistent).
-			FV_Cell *other_cell;
-			std::vector<FV_Cell *> neighbours;
-			if (prefer_copy_from_left ) {
-			    if ( get_bad_cell_complain_flag() ) {
-				printf( "Adjusting cell data by copying data from left.\n" );
-			    }
-			    // Presently, only searches around in the i,j plane
-			    other_cell = get_cell(i-1,j,k);
-			    if ( other_cell->check_flow_data() ) neighbours.push_back(other_cell);
-			} else {
-			    if ( get_bad_cell_complain_flag() ) {
-				printf( "Adjusting cell data to a local average.\n" );
-			    }
-			    other_cell = get_cell(i+1,j,k);
-			    if ( other_cell->check_flow_data() ) neighbours.push_back(other_cell);
-			    other_cell = get_cell(i,j-1,k);
-			    if ( other_cell->check_flow_data() ) neighbours.push_back(other_cell);
-			    other_cell = get_cell(i,j+1,k);
-			    if ( other_cell->check_flow_data() ) neighbours.push_back(other_cell);
-			    if ( neighbours.size() == 0 ) {
-				printf( "It seems that there were no valid neighbours, I give up.\n" );
-				exit( BAD_CELLS_ERROR );
-			    }
-			    cell->replace_flow_data_with_average(neighbours);
-			}
-			cell->encode_conserved(omegaz);
-			cell->decode_conserved(omegaz);
-			if ( get_bad_cell_complain_flag() ) {
-			    printf("after flow-data replacement: block_id = %d, cell[%d,%d,%d]\n", 
-				   static_cast<int>(id), static_cast<int>(i),
-				   static_cast<int>(j), static_cast<int>(k));
-			    cell->print();
-			}
-		    } // end adjust_invalid_cell_data 
-		} // end of if invalid data...
-	    } // j loop
-	} // i loop
-    } // k loop
+		    // Presently, only searches around in the i,j plane
+		    other_cellp = get_cell(i-1,j,k);
+		    if ( other_cellp->check_flow_data() ) neighbours.push_back(other_cellp);
+		} else {
+		    if ( get_bad_cell_complain_flag() ) {
+			printf( "Adjusting cell data to a local average.\n" );
+		    }
+		    other_cellp = get_cell(i+1,j,k);
+		    if ( other_cellp->check_flow_data() ) neighbours.push_back(other_cellp);
+		    other_cellp = get_cell(i,j-1,k);
+		    if ( other_cellp->check_flow_data() ) neighbours.push_back(other_cellp);
+		    other_cellp = get_cell(i,j+1,k);
+		    if ( other_cellp->check_flow_data() ) neighbours.push_back(other_cellp);
+		    if ( neighbours.size() == 0 ) {
+			printf( "It seems that there were no valid neighbours, I give up.\n" );
+			exit( BAD_CELLS_ERROR );
+		    }
+		    cellp->replace_flow_data_with_average(neighbours);
+		}
+		cellp->encode_conserved(omegaz);
+		cellp->decode_conserved(omegaz);
+		if ( get_bad_cell_complain_flag() ) {
+		    printf("after flow-data replacement: block_id = %d, cell[%d,%d,%d]\n", 
+			   static_cast<int>(id), static_cast<int>(i),
+			   static_cast<int>(j), static_cast<int>(k));
+		    cellp->print();
+		}
+	    } // end adjust_invalid_cell_data 
+	} // end of if invalid data...
+    } // for cellp
     return number_of_invalid_cells;
 } // end of count_invalid_cells()
 
@@ -643,20 +446,14 @@ int Block::count_invalid_cells( size_t dimensions )
 int Block::init_residuals( size_t dimensions )
 /// \brief Initialization of data for later computing residuals.
 {
-    FV_Cell *cellp;
     mass_residual = 0.0;
     mass_residual_loc = Vector3(0.0, 0.0, 0.0);
     energy_residual = 0.0;
     energy_residual_loc = Vector3(0.0, 0.0, 0.0);
-    for ( size_t k = kmin; k <= kmax; ++k ) {
-	for ( size_t j = jmin; j <= jmax; ++j ) {
-	    for (size_t  i = imin; i <= imax; ++i ) {
-		cellp = get_cell(i,j,k);
-		cellp->rho_at_start_of_step = cellp->fs->gas->rho;
-		cellp->rE_at_start_of_step = cellp->U->total_energy;
-	    } // for i
-	} // for j
-    } // for k
+    for ( FV_Cell *cellp: active_cells ) {
+	cellp->rho_at_start_of_step = cellp->fs->gas->rho;
+	cellp->rE_at_start_of_step = cellp->U->total_energy;
+    }
     return SUCCESS;
 } // end of check_residual()
 
@@ -673,13 +470,12 @@ int Block::compute_residuals( size_t dimensions )
 /// for both mass and (total) energy for all cells, the record the largest
 /// with their location. 
 {
-    double local_residual;
     mass_residual = 0.0;
     mass_residual_loc = Vector3(0.0, 0.0, 0.0);
     energy_residual = 0.0;
     energy_residual_loc = Vector3(0.0, 0.0, 0.0);
     for ( FV_Cell *cellp: active_cells ) {
-	local_residual = ( cellp->fs->gas->rho - cellp->rho_at_start_of_step ) / cellp->fs->gas->rho;
+	double local_residual = ( cellp->fs->gas->rho - cellp->rho_at_start_of_step ) / cellp->fs->gas->rho;
 	local_residual = FABS(local_residual);
 	if ( local_residual > mass_residual ) {
 	    mass_residual = local_residual;
@@ -767,7 +563,7 @@ int Block::detect_shock_points( size_t dimensions )
 /// The velocity component normal to the cell interfaces
 /// is used as the indicating variable.
 {
-    FV_Cell *cL, *cR, *cell;
+    FV_Cell *cL, *cR;
     FV_Interface *IFace;
     double uL, uR, aL, aR, a_min;
 
@@ -847,10 +643,10 @@ int Block::detect_shock_points( size_t dimensions )
     for ( size_t k = kmin; k <= kmax; ++k ) {
 	for ( size_t i = imin; i <= imax; ++i ) {
 	    for ( size_t j = jmin; j <= jmax; ++j ) {
-		cell = get_cell(i,j,k);
-		cell->fs->S = cell->iface[EAST]->fs->S || cell->iface[WEST]->fs->S ||
-		    cell->iface[NORTH]->fs->S || cell->iface[SOUTH]->fs->S ||
-		    ( dimensions == 3 && (cell->iface[BOTTOM]->fs->S || cell->iface[TOP]->fs->S) );
+		FV_Cell *cellp = get_cell(i,j,k);
+		cellp->fs->S = cellp->iface[EAST]->fs->S || cellp->iface[WEST]->fs->S ||
+		    cellp->iface[NORTH]->fs->S || cellp->iface[SOUTH]->fs->S ||
+		    ( dimensions == 3 && (cellp->iface[BOTTOM]->fs->S || cellp->iface[TOP]->fs->S) );
 	    } // j loop
 	} // i loop
     } // for k

@@ -24,17 +24,6 @@
 class BoundaryCondition; // We need this forward declaration below.
 struct global_data; // ...and this
 
-// These definitions to simplify the definition of the apply functions,
-// a little further below.
-// As per the notes on http://www.parashift.com/c++-faq-lite/
-typedef int (FV_Cell::*FV_Cell_MemberFunction_void)(void);
-typedef int (FV_Cell::*FV_Cell_MemberFunction_double)(double);
-typedef int (FV_Cell::*FV_Cell_MemberFunction_double_double)(double,double);
-typedef int (FV_Cell::*FV_Cell_MemberFunction_int_double)(int,double);
-typedef int (FV_Cell::*FV_Cell_MemberFunction_int)(int);
-typedef int (FV_Cell::*FV_Cell_MemberFunction_int_int)(int,int);
-#define CALL_MEMBER_FN(object,ptrToMember) ((object).*(ptrToMember))
-
 /// \brief Number of ghost cells surrounding the active cells.
 ///
 /// This sets the size of the ghost-cell buffer around a block.
@@ -131,9 +120,6 @@ public:
     ~Block();
     Block & operator=(const Block &b);
 
-    int array_alloc(size_t dimensions);
-    int array_cleanup(size_t dimensions);
-
     size_t to_global_index(size_t i, size_t j, size_t k) {
 	if ( check_array_bounds && (k >= nkdim || j >= njdim || i >= nidim) ) {
 	    throw std::runtime_error("Block::to_global_index: index out of bounds for block "+
@@ -161,6 +147,9 @@ public:
     FV_Interface *get_sifj(size_t i, size_t j, size_t k=0) { return sifj_[to_global_index(i,j,k)]; }
     FV_Interface *get_sifk(size_t i, size_t j, size_t k=0) { return sifk_[to_global_index(i,j,k)]; }
 
+    // in block.cxx
+    int array_alloc(size_t dimensions);
+    int array_cleanup(size_t dimensions);
     int bind_interfaces_to_cells( size_t dimensions );
     int set_base_qdot( global_data &gdp ); 
     int identify_reaction_zones( global_data &gdp );
@@ -168,6 +157,7 @@ public:
     int clear_fluxes_of_conserved_quantities( size_t dimensions );
     int propagate_data_west_to_east( size_t dimensions );
 
+    // in block_geometry.cxx
     int compute_initial_primary_cell_geometric_data( size_t dimensions );
     int compute_primary_cell_geometric_data( size_t dimensions, size_t time_level );
     int compute_distance_to_nearest_wall_for_all_cells( size_t dimensions );
@@ -179,6 +169,13 @@ public:
     int calc_faces_2D( size_t time_level );
     int calc_initial_ghost_cell_geom_2D( void );
     int calc_ghost_cell_geom_2D( size_t time_level );
+    int count_invalid_cells( size_t dimensions );
+    int init_residuals( size_t dimensions );
+    int compute_residuals( size_t dimensions );
+    int determine_time_step_size( double cfl_target, size_t dimensions );
+    int detect_shock_points( size_t dimensions );
+ 
+    // in block_moving_grid.cxx
     int predict_vertex_positions( size_t dimensions, double dt );
     int correct_vertex_positions( size_t dimensions, double dt );
     int rk3_vertex_positions( size_t dimensions, double dt );
@@ -203,39 +200,34 @@ public:
     int anti_diffuse_vertex_velocities(double mu, int npass, size_t dimensions, size_t time_level);
     int compute_boundary_flux(FV_Interface *IFaceL, FV_Interface *IFaceR, double omegaz);
     
+    // in block_io.cxx
+    int read_grid(std::string filename, size_t dimensions, int zip_file=1);
+    int write_grid(std::string filename, double sim_time, size_t dimensions, int zip_file=1 );
+    int read_solution(std::string filename, double *sim_time, size_t dimensions, int zip_file=1);
+    int write_solution(std::string filename, double sim_time, size_t dimensions, int zip_file=1 );
+    int write_history( std::string filename, double sim_time, int write_header=0 );
     void compute_x_forces( char *text_string, int ibndy, size_t dimensions );
     int print_forces( FILE *fp, double t, size_t dimensions );
 
-    int read_grid(std::string filename, size_t dimensions, int zip_file=1);
-    int read_solution(std::string filename, double *sim_time, 
-		      size_t dimensions, int zip_file=1);
-    int write_solution(std::string filename, double sim_time, 
-		       size_t dimensions, int zip_file=1 );
-    int write_block(std::string filename, double sim_time, 
-		       size_t dimensions, int zip_file=1 );
+    // in block_bgk.cxx
     int read_BGK(std::string filename, double *sim_time, 
 		      size_t dimensions, int zip_file=1);
     int initialise_BGK_equilibrium( void );
     int write_BGK(std::string filename, double sim_time, 
 		       size_t dimensions, int zip_file=1 );
-    int write_history( std::string filename, double sim_time, int write_header=0 );
 
-    int count_invalid_cells( size_t dimensions );
-    int init_residuals( size_t dimensions );
-    int compute_residuals( size_t dimensions );
-
-    int determine_time_step_size( double cfl_target, size_t dimensions );
-    int detect_shock_points( size_t dimensions );
+    // in block_filter.cxx
     int apply_spatial_filter_diffusion( double alpha, size_t npass, size_t dimensions );
     int apply_spatial_filter_anti_diffusion( double alpha, size_t npass, size_t dimensions );
     double calc_anti_diffusive_flux(double m2, double m1, double p1, double p2, double mu);
 
-    // The implementation for the following function is in invs.cxx
+    // in invs.cxx
     int inviscid_flux( size_t dimensions );
    
     
 };  /* end of the (single-)block data structure definition */
 
+// The following functions are also found in block.cxx.
 int find_nearest_cell( double x, double y, double z, 
 		       size_t *jb_near, size_t *i_near, size_t *j_near, size_t *k_near );
 int locate_cell(double x, double y, double z,
