@@ -674,7 +674,6 @@ int Block::compute_residuals( size_t dimensions )
 /// with their location. 
 {
     double local_residual;
-    FV_Cell *cellp;
     mass_residual = 0.0;
     mass_residual_loc = Vector3(0.0, 0.0, 0.0);
     energy_residual = 0.0;
