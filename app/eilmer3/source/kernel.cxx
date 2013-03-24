@@ -803,6 +803,11 @@ int get_k_omega_flag(void)
     return k_omega;
 }
 
+bool get_wilson_omega_filter_flag(void)
+{
+    return false;
+}
+
 int set_baldwin_lomax_flag(int ibl)
 {
     baldwin_lomax = ibl;

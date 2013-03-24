@@ -240,6 +240,7 @@ int set_turbulence_flag(int i);
 int get_turbulence_flag(void);
 int set_k_omega_flag(int ikw);
 int get_k_omega_flag(void);
+bool get_wilson_omega_filter_flag(void);
 int set_baldwin_lomax_flag(int ibl);
 int get_baldwin_lomax_flag(void);
 double set_turbulence_prandtl_number(double Pr);

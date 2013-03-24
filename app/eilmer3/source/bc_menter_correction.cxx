@@ -244,8 +244,6 @@ int apply_menter_boundary_correction(Block &bd)
     return SUCCESS;
 } // end of apply_menter_boundary_correction()
 
-# define WILSON_OMEGA_FILTER 0
-# if WILSON_OMEGA_FILTER == 1
 int apply_wilson_omega_correction(Block &bd)
 {
     // bc_wilson_omega_correction.cxx
@@ -494,4 +492,3 @@ int apply_wilson_omega_correction(Block &bd)
 
     return SUCCESS;
 } // end of apply_wilson_omega_correction()
-# endif

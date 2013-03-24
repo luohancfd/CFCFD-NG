@@ -1544,10 +1544,9 @@ int gasdynamic_inviscid_increment( void )
 		if ( get_shock_fitting_flag() ) cp->get_current_time_level_geometry(1);
 		if ( get_Torder_flag() == 3 ) cp->record_conserved();
 	    } // for *cp
-#           define WILSON_OMEGA_FILTER 0
-#           if WILSON_OMEGA_FILTER == 1
-            if ( get_k_omega_flag() ) apply_wilson_omega_correction( *bdp );
-#           endif
+	    if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
+		apply_wilson_omega_correction( *bdp );
+	    }
 	} // end of for jb...
 
 	// Corrector Stage
@@ -1601,9 +1600,9 @@ int gasdynamic_inviscid_increment( void )
 		    if ( get_shock_fitting_flag() ) cp->get_current_time_level_geometry(2);
 		    if ( get_Torder_flag() == 3 ) cp->record_conserved();
 		} // for *cp
-#               if WILSON_OMEGA_FILTER == 1
-		if ( get_k_omega_flag() ) apply_wilson_omega_correction( *bdp );
-#               endif
+		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
+		    apply_wilson_omega_correction( *bdp );
+		}
 	    } // end for jb loop
 	} // end if (corrector stage)
 
@@ -1657,9 +1656,9 @@ int gasdynamic_inviscid_increment( void )
 		    cp->decode_conserved(2, bdp->omegaz);
 		    if ( get_shock_fitting_flag() ) cp->get_current_time_level_geometry(3);
 		} // for *cp
-#               if WILSON_OMEGA_FILTER == 1
-		if ( get_k_omega_flag() ) apply_wilson_omega_correction( *bdp );
-#               endif
+		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
+		    apply_wilson_omega_correction( *bdp );
+		}
 	    } // end for jb loop
 	} // end if (RK3 stage)
    
@@ -1684,9 +1683,9 @@ int gasdynamic_inviscid_increment( void )
 		    cp->restore_conserved();
 		    cp->decode_conserved(0, bdp->omegaz);
 		}
-#               if WILSON_OMEGA_FILTER == 1
-                if ( get_k_omega_flag() ) apply_wilson_omega_correction( *bdp );
-#               endif
+		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
+		    apply_wilson_omega_correction( *bdp );
+		}
 	    }
 	}
 
@@ -1705,10 +1704,9 @@ int gasdynamic_viscous_increment( void )
 	bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
 	apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
 	if ( get_k_omega_flag() ) apply_menter_boundary_correction(*bdp);
-#       define WILSON_OMEGA_FILTER 0
-#       if WILSON_OMEGA_FILTER == 1
-        if ( get_k_omega_flag() ) apply_wilson_omega_correction(*bdp);
-#       endif
+	if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
+	    apply_wilson_omega_correction(*bdp);
+	}
 	if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp); else viscous_derivatives_3D(bdp); 
 	estimate_turbulence_viscosity(&G, bdp);
 	if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
@@ -1718,9 +1716,9 @@ int gasdynamic_viscous_increment( void )
 	    cp->predictor_update(G.dt_global);
 	    cp->decode_conserved(0, bdp->omegaz);
 	} // end for *cp
-#       if WILSON_OMEGA_FILTER == 1
-        if ( get_k_omega_flag() ) apply_wilson_omega_correction(*bdp);
-#       endif
+	if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
+            apply_wilson_omega_correction(*bdp);
+	}
     } // end for *bdp...
     return SUCCESS;
 } // int gasdynamic_viscous_increment()
