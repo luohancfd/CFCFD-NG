@@ -330,9 +330,9 @@ ifeq ($(TARGET), for_intel)
     LINK    := icc
     CXX     := icpc
     CXXLINK := icpc
-    CFLAG   := -c -wd161 -fPIC -xhost -ipo
+    CFLAG   := -c -wd161 -fPIC -xhost -ipo -std=c++11
     CXXFLAG := $(CFLAG)
-    LFLAG   := -Wl, -fPIC -ipo
+    LFLAG   := -Wl, -fPIC -ipo -std=c++11
     LLIB    := -lm
     AR      := xiar
 endif
@@ -371,9 +371,9 @@ ifeq ($(TARGET), for_intel_mpi)
     LINK    := mpiicc
     CXX     := mpiicpc
     CXXLINK := mpiicpc
-    CFLAG   := -c -wd161 -fPIC -xhost -ipo
+    CFLAG   := -c -wd161 -fPIC -xhost -ipo -std=c++11
     CXXFLAG := $(CFLAG)
-    LFLAG   := -Wl, -fPIC -ipo
+    LFLAG   := -Wl, -fPIC -ipo -std=c++11
     LLIB    := -lm
     LMPI    := -lmpi
     AR      := xiar
@@ -386,9 +386,9 @@ ifeq ($(TARGET), for_intel_mpi_profile)
     LINK    := mpiicc
     CXX     := mpiicpc
     CXXLINK := mpiicpc
-    CFLAG   := -c -wd161 -fPIC -ipo -opt-report -opt-report-phase=ipo -p
+    CFLAG   := -c -wd161 -fPIC -ipo -opt-report -opt-report-phase=ipo -p -std=c++11
     CXXFLAG := $(CFLAG)
-    LFLAG   := -Wl, -fPIC -ipo -opt-report -opt-report-phase=ipo -p
+    LFLAG   := -Wl, -fPIC -ipo -opt-report -opt-report-phase=ipo -p -std=c++11
     LLIB    := -lm
     LMPI    := -lmpi
     AR      := xiar
@@ -404,9 +404,9 @@ ifeq ($(TARGET), for_intel_mpi_trace)
     LINK    := mpiicc
     CXX     := mpiicpc
     CXXLINK := mpiicpc
-    CFLAG   := -c -wd161 -fPIC -ipo -trace
+    CFLAG   := -c -wd161 -fPIC -ipo -trace -std=c++11
     CXXFLAG := $(CFLAG)
-    LFLAG   := -Wl, -fPIC -ipo -trace
+    LFLAG   := -Wl, -fPIC -ipo -trace -std=c++11
     LLIB    := -lm -lVT
     LMPI    := -lmpi
     AR      := xiar
@@ -418,9 +418,9 @@ ifeq ($(TARGET), for_intel_openmp)
     LINK    := icc
     CXX     := icpc
     CXXLINK := icpc
-    CFLAG   := -c -wd161 -fPIC -xhost -ipo
+    CFLAG   := -c -wd161 -fPIC -xhost -ipo -std=c++11
     CXXFLAG := $(CFLAG)
-    LFLAG   := -Wl, -fPIC -ipo
+    LFLAG   := -Wl, -fPIC -ipo -std=c++11
     LLIB    := -lm
     AR      := xiar
     PCA     := -openmp
