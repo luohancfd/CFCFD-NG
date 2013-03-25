@@ -140,7 +140,7 @@ E3_OBJECTS_2 := kernel.o \
 	bc_menter_correction.o \
 	bc_fstc.o \
 	init.o \
-	invs.o \
+	block_invs.o \
 	visc.o \
 	visc3D.o \
 	baldwin_lomax.o \
@@ -155,6 +155,7 @@ E3_OBJECTS_2 := kernel.o \
 	flux_calc.o \
 	ausm.o \
 	cell.o \
+	one_d_interp.o \
 	flex_cell.o \
 	time_to_go.o \
 	c-flow-condition.o \
@@ -518,7 +519,7 @@ bc_extrapolate_out.o : $(SRC)/bc_extrapolate_out.cxx $(SRC)/block.hh $(SRC)/kern
 	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_extrapolate_out.cxx -o bc_extrapolate_out.o
 
 bc_shock_fitting_in.o : $(SRC)/bc_shock_fitting_in.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(LIBLUA) \
-    $(NM_SRC)/zero_finders.hh $(SRC)/bc.hh
+    $(NM_SRC)/zero_finders.hh $(SRC)/bc.hh $(SRC)/one_d_interp.hh
 	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_shock_fitting_in.cxx -o bc_shock_fitting_in.o
 
 bc_slip_wall.o : $(SRC)/bc_slip_wall.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
@@ -594,8 +595,8 @@ block_bgk.o : $(SRC)/block_bgk.cxx $(SRC)/cell.hh $(SRC)/block.hh $(SRC)/kernel.
 kernel.o : $(SRC)/kernel.cxx $(SRC)/cell.hh $(SRC)/kernel.hh $(SRC)/block.hh $(LIBLUA)
 	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/kernel.cxx -o kernel.o
 
-invs.o : $(SRC)/invs.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/invs.cxx -o invs.o
+block_invs.o : $(SRC)/block_invs.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
+	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/block_invs.cxx -o block_invs.o
 
 visc.o : $(SRC)/visc.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(SRC)/bc_defs.hh \
 		$(SRC)/diffusion.hh $(LIBLUA)
@@ -643,9 +644,12 @@ flux_calc.o : $(SRC)/flux_calc.cxx $(SRC)/flux_calc.hh
 ausm.o : $(SRC)/ausm.cxx $(SRC)/flux_calc.hh
 	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/ausm.cxx -o ausm.o
 
-cell.o : $(SRC)/cell.cxx $(SRC)/flux_calc.hh $(SRC)/cell.hh $(SRC)/kernel.hh \
-		$(SRC)/one_d_interp_scalar.hh
+cell.o : $(SRC)/cell.cxx $(SRC)/flux_calc.hh $(SRC)/cell.hh $(SRC)/kernel.hh
 	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/cell.cxx -o cell.o
+
+one_d_interp.o : $(SRC)/one_d_interp.cxx $(SRC)/cell.hh $(SRC)/one_d_interp.hh $(SRC)/kernel.hh \
+		$(SRC)/one_d_interp_scalar.hh
+	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/one_d_interp.cxx -o one_d_interp.o
 
 flex_cell.o: $(SRC)/flex_cell.cxx $(SRC)/flex_cell.hh
 	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/flex_cell.cxx -o flex_cell.o

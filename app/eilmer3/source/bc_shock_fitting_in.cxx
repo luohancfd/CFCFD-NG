@@ -10,6 +10,7 @@
 #include "bc_shock_fitting_in.hh"
 #include "kernel.hh"
 #include "one_d_interp_scalar.hh"
+#include "one_d_interp.hh"
 
 //------------------------------------------------------------------------
 

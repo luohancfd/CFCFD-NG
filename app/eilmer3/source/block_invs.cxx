@@ -1,4 +1,4 @@
-/** \file cns_invs.cxx
+/** \file block_invs.cxx
  * \ingroup eilmer3
  * \brief Inviscid Flux functions
  *
@@ -27,6 +27,7 @@
 #include "block.hh"
 #include "kernel.hh"
 #include "bc.hh"
+#include "one_d_interp.hh"
 
 /*-----------------------------------------------------------------*/
 

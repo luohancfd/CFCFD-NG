@@ -1452,58 +1452,44 @@ int finalize_simulation( void )
 
 int gasdynamic_inviscid_increment( void )
 {
-    global_data &G = *get_global_data_ptr();  // set up a reference
-    Block *bdp;
-    int most_bad_cells;
-    int attempt_number, step_failed;
+    global_data &G = *get_global_data_ptr();
+    int step_failed;
 
     // Record the current values of the conserved variables
     // in preparation for applying the predictor and corrector
     // stages of the time step.
-    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-	bdp = G.my_blocks[jb];
+    for ( Block *bdp : G.my_blocks ) {
         if ( bdp->active != 1 ) continue;
 	for ( FV_Cell *cp: bdp->active_cells ) cp->record_conserved();
     }
 
-    attempt_number = 0;
+    int attempt_number = 0;
     do {
+	//  Preparation for the predictor-stage of inviscid gas-dynamic flow update.
+	++attempt_number;
+	step_failed = 0;
 #       ifdef _MPI
         // Before we try to exchange data, everyone's data should be up-to-date.
 	MPI_Barrier( MPI_COMM_WORLD );
-#       endif
-	++attempt_number;
-	step_failed = 0;
-
-	//  Predictor Stage for gas-dynamics
-#       ifdef _MPI
 	mpi_exchange_boundary_data(COPY_FLOW_STATE);
 #       else
-	for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-	    bdp = G.my_blocks[jb];
-	    if ( bdp->active != 1 ) continue;
-	    exchange_shared_boundary_data( jb, COPY_FLOW_STATE );
+	for ( Block *bdp : G.my_blocks ) {
+	    if ( bdp->active ) exchange_shared_boundary_data( bdp->id, COPY_FLOW_STATE );
 	}
 #       endif
-	for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-	    bdp = G.my_blocks[jb];
-	    if ( bdp->active != 1 ) continue;
-	    //cout << "Block: " << jb << endl;
-	    apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
+	for ( Block *bdp : G.my_blocks ) {
+	    if ( bdp->active ) apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
 	}
-	
 	if ( get_flux_calculator() == FLUX_ADAPTIVE ) {
-	    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-		bdp = G.my_blocks[jb];
-		if ( bdp->active != 1 ) continue;
-		bdp->detect_shock_points( G.dimensions );
+	    // We've put this detector step here because it needs the ghost-cell data
+	    // to be current, as it should be just after a call to apply_inviscid_bc().
+	    for ( Block *bdp : G.my_blocks ) {
+		if ( bdp->active ) bdp->detect_shock_points( G.dimensions );
 	    }
 	}
-	
 	// Non-local radiation transport needs to be performed a-priori for parallelization.
 	// Note that Q_rad is not re-evaluated for corrector step.
-	if ( get_radiation_flag() )
-	    perform_radiation_transport();
+	if ( get_radiation_flag() ) perform_radiation_transport();
 
 	/// Time levels:
 	/// 0: Start of predictor step
@@ -1515,15 +1501,12 @@ int gasdynamic_inviscid_increment( void )
 	    MPI_Barrier( MPI_COMM_WORLD );
 	    mpi_exchange_boundary_data(COPY_INTERFACE_DATA);
 #           else
-	    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-	        bdp = G.my_blocks[jb];
-	        if ( bdp->active != 1 ) continue;
-	        exchange_shared_boundary_data( jb, COPY_INTERFACE_DATA );
+	    for ( Block *bdp : G.my_blocks ) {
+	        if ( bdp->active ) exchange_shared_boundary_data( bdp->id, COPY_INTERFACE_DATA );
 	    }
 #           endif
 	    if ( G.sim_time >= G.t_shock ) {
-		for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-		    bdp = G.my_blocks[jb];
+		for ( Block *bdp : G.my_blocks ) {
 		    bdp->set_geometry_velocities(G.dimensions, 0);
 		    bdp->predict_vertex_positions(G.dimensions, G.dt_global);
 		    bdp->compute_primary_cell_geometric_data(G.dimensions, 1); // for start of next time level.
@@ -1531,8 +1514,9 @@ int gasdynamic_inviscid_increment( void )
 		}
 	    }
 	} // end if shock_fitting_flag
-	for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-	    bdp = G.my_blocks[jb];
+
+	// Predictor-stage of inviscid gas-dynamic update.
+	for ( Block *bdp : G.my_blocks ) {
 	    if ( bdp->active != 1 ) continue;
 	    bdp->inviscid_flux( G.dimensions );
 	    for ( FV_Cell *cp: bdp->active_cells ) {
@@ -1543,43 +1527,36 @@ int gasdynamic_inviscid_increment( void )
 		cp->decode_conserved(0, bdp->omegaz);
 		if ( get_shock_fitting_flag() ) cp->get_current_time_level_geometry(1);
 		if ( get_Torder_flag() == 3 ) cp->record_conserved();
-	    } // for *cp
+	    } // end for *cp
 	    if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
 		apply_wilson_omega_correction( *bdp );
 	    }
 	} // end of for jb...
 
-	// Corrector Stage
+	// Preparation for corrector stage of gas-dynamic update.
 	if ( get_Torder_flag() >= 2 ) {
 #           ifdef _MPI
 	    MPI_Barrier( MPI_COMM_WORLD );
 	    mpi_exchange_boundary_data(COPY_FLOW_STATE);
 #           else
-	    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-		bdp = G.my_blocks[jb];
-		if ( bdp->active != 1 ) continue;
-		exchange_shared_boundary_data( jb, COPY_FLOW_STATE );
+	    for ( Block *bdp : G.my_blocks ) {
+		if ( bdp->active ) exchange_shared_boundary_data( bdp->id, COPY_FLOW_STATE );
 	    }
 #           endif
-	    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-		bdp = G.my_blocks[jb];
-		if ( bdp->active != 1 ) continue;
-		apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
+	    for ( Block *bdp : G.my_blocks ) {
+		if ( bdp->active ) apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
 	    }
 		
 	    if ( get_shock_fitting_flag() == 1 ) {
-#           ifdef _MPI
+#               ifdef _MPI
 		mpi_exchange_boundary_data(COPY_INTERFACE_DATA);
-#           else
-		for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-		    bdp = G.my_blocks[jb];
-		    if ( bdp->active != 1 ) continue;
-		    exchange_shared_boundary_data( jb, COPY_INTERFACE_DATA );
+#               else
+		for ( Block *bdp : G.my_blocks ) {
+		    if ( bdp->active ) exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA);
 		}
-#           endif
+#               endif
 		if ( G.sim_time >= G.t_shock ) {
-		    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-			bdp = G.my_blocks[jb];
+		    for ( Block *bdp : G.my_blocks ) {
 			bdp->set_geometry_velocities(G.dimensions, 1);
 			bdp->correct_vertex_positions(G.dimensions, G.dt_global);
 			bdp->compute_primary_cell_geometric_data(G.dimensions, 2); // for start of next time level.
@@ -1587,8 +1564,9 @@ int gasdynamic_inviscid_increment( void )
 		    }
 		}
 	    } // end if shock_fitting_flag
-	    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-		bdp = G.my_blocks[jb];
+
+	    // Corrector stage of inviscid gas-dynamic update.
+	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active != 1 ) continue;
 		bdp->inviscid_flux( G.dimensions );
 		for ( FV_Cell *cp: bdp->active_cells ) {
@@ -1599,7 +1577,7 @@ int gasdynamic_inviscid_increment( void )
 		    cp->decode_conserved(1, bdp->omegaz);
 		    if ( get_shock_fitting_flag() ) cp->get_current_time_level_geometry(2);
 		    if ( get_Torder_flag() == 3 ) cp->record_conserved();
-		} // for *cp
+		} // end for *cp
 		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
 		    apply_wilson_omega_correction( *bdp );
 		}
@@ -1612,31 +1590,24 @@ int gasdynamic_inviscid_increment( void )
 	    MPI_Barrier( MPI_COMM_WORLD );
 	    mpi_exchange_boundary_data(COPY_FLOW_STATE);
 #           else
-	    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-		bdp = G.my_blocks[jb];
-		if ( bdp->active != 1 ) continue;
-		exchange_shared_boundary_data( jb, COPY_FLOW_STATE );
+	    for ( Block *bdp : G.my_blocks ) {
+		if ( bdp->active ) exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE);
 	    }
 #           endif
-	    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-		bdp = G.my_blocks[jb];
-		if ( bdp->active != 1 ) continue;
-		apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
+	    for ( Block *bdp : G.my_blocks ) {
+		if ( bdp->active ) apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
 	    }
 		
 	    if ( get_shock_fitting_flag() == 1 ) {
-#           ifdef _MPI
+#               ifdef _MPI
 		mpi_exchange_boundary_data(COPY_INTERFACE_DATA);
-#           else
-		for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-		    bdp = G.my_blocks[jb];
-		    if ( bdp->active != 1 ) continue;
-		    exchange_shared_boundary_data( jb, COPY_INTERFACE_DATA );
+#               else
+		for ( Block *bdp : G.my_blocks ) {
+		    if ( bdp->active ) exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA);
 		}
-#           endif
+#               endif
 		if ( G.sim_time >= G.t_shock ) {
-		    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-			bdp = G.my_blocks[jb];
+		    for ( Block *bdp : G.my_blocks ) {
 			bdp->set_geometry_velocities(G.dimensions, 2);
 			bdp->rk3_vertex_positions(G.dimensions, G.dt_global);
 			bdp->compute_primary_cell_geometric_data(G.dimensions, 3); // for start of next time level.
@@ -1644,8 +1615,7 @@ int gasdynamic_inviscid_increment( void )
 		    }
 		}
 	    } // end if shock_fitting_flag
-	    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-		bdp = G.my_blocks[jb];
+	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active != 1 ) continue;
 		bdp->inviscid_flux( G.dimensions );
 		for ( FV_Cell *cp: bdp->active_cells ) {
@@ -1659,14 +1629,14 @@ int gasdynamic_inviscid_increment( void )
 		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
 		    apply_wilson_omega_correction( *bdp );
 		}
-	    } // end for jb loop
+	    } // end for *bdp
 	} // end if (RK3 stage)
    
 	// 2d. Check the record of bad cells and if any cells are bad, 
 	//     fail this attempt at taking a step,
 	//     set everything back to the initial state and
 	//     reduce the time step for the next attempt
-	most_bad_cells = do_bad_cell_count();
+	int most_bad_cells = do_bad_cell_count();
 	if ( adjust_invalid_cell_data == 0 && most_bad_cells > 0 ) {
 	    step_failed = 1;
 	}
@@ -1676,8 +1646,7 @@ int gasdynamic_inviscid_increment( void )
 	if ( step_failed ) {
 	    G.dt_global = G.dt_reduction_factor * G.dt_global;
 	    printf("Attempt %d failed: reducing dt to %e.\n", attempt_number, G.dt_global);
-	    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-		bdp = G.my_blocks[jb];
+	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active != 1 ) continue;
 		for ( FV_Cell *cp: bdp->active_cells ) {
 		    cp->restore_conserved();
@@ -1686,8 +1655,8 @@ int gasdynamic_inviscid_increment( void )
 		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
 		    apply_wilson_omega_correction( *bdp );
 		}
-	    }
-	}
+	    } // end for *bdp
+	} // end if step_failed
 
     } while (attempt_number < 3 && step_failed == 1);
 
@@ -1727,10 +1696,11 @@ int gasdynamic_viscous_increment( void )
 int do_bad_cell_count( void )
 {
     global_data &G = *get_global_data_ptr();  // set up a reference
-    size_t most_bad_cells = 0;
+    int most_bad_cells = 0;
     for ( Block *bdp : G.my_blocks ) {
 	size_t bad_cell_count = bdp->count_invalid_cells( G.dimensions );
-	if ( bad_cell_count > most_bad_cells ) most_bad_cells = bad_cell_count; 
+	if ( static_cast<int>(bad_cell_count) > most_bad_cells ) 
+	    most_bad_cells = static_cast<int>(bad_cell_count); 
 	if ( bad_cell_count > G.max_invalid_cells ) {
 	    printf( "   Too many bad cells (i.e. %d > %d) in block[%d].\n", 
 		    static_cast<int>(bad_cell_count), 
