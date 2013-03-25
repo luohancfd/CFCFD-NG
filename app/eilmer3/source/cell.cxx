@@ -1192,7 +1192,7 @@ int FV_Cell::decode_conserved(double omegaz)
     return SUCCESS;
 } // end of decode_conserved()
 
-int FV_Cell::decode_conserved( int time_level, double omegaz)
+int FV_Cell::decode_conserved(int time_level, double omegaz)
 {
     Gas_model *gmodel = get_gas_model_ptr();
     double ke, dinv, rE, me;

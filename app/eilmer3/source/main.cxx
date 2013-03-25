@@ -1017,7 +1017,10 @@ int integrate_in_time( double target_time )
 	int break_loop2 = 0;
 	if ( get_implicit_flag() == 0 ) {
 	    // explicit update of inviscid terms
-	    break_loop2 = gasdynamic_inviscid_increment();
+	    if ( get_moving_grid_flag() ) 
+		break_loop2 = gasdynamic_inviscid_increment_with_fixed_grid();
+	    else
+		break_loop2 = gasdynamic_inviscid_increment_with_moving_grid();
 	} else if ( get_implicit_flag() == 1 ) {
 	    // point implicit update of inviscid terms
 	    break_loop2 = gasdynamic_point_implicit_inviscid_increment();
@@ -1450,10 +1453,170 @@ int finalize_simulation( void )
 
 //------------------------------------------------------------------------
 
-int gasdynamic_inviscid_increment( void )
+int gasdynamic_inviscid_increment_with_fixed_grid( void )
 {
     global_data &G = *get_global_data_ptr();
     int step_failed;
+    // Time levels:
+    // 0: Start of predictor step
+    // 1: End of predictor step/start of corrector step
+    // 2: End of corrector step
+    // 2: End of RK3 step                                  // FIX-ME Andrew, is this correct?
+
+    // Record the current values of the conserved variables
+    // in preparation for applying the predictor and corrector
+    // stages of the time step.
+    for ( Block *bdp : G.my_blocks ) {
+        if ( bdp->active != 1 ) continue;
+	for ( FV_Cell *cp: bdp->active_cells ) cp->record_conserved();
+    }
+
+    int attempt_number = 0;
+    do {
+	//  Preparation for the predictor-stage of inviscid gas-dynamic flow update.
+	++attempt_number;
+	step_failed = 0;
+#       ifdef _MPI
+        // Before we try to exchange data, everyone's data should be up-to-date.
+	MPI_Barrier( MPI_COMM_WORLD );
+	mpi_exchange_boundary_data(COPY_FLOW_STATE);
+#       else
+	for ( Block *bdp : G.my_blocks ) {
+	    if ( bdp->active ) exchange_shared_boundary_data( bdp->id, COPY_FLOW_STATE );
+	}
+#       endif
+	for ( Block *bdp : G.my_blocks ) {
+	    if ( bdp->active ) apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
+	}
+	if ( get_flux_calculator() == FLUX_ADAPTIVE ) {
+	    // We've put this detector step here because it needs the ghost-cell data
+	    // to be current, as it should be just after a call to apply_inviscid_bc().
+	    for ( Block *bdp : G.my_blocks ) {
+		if ( bdp->active ) bdp->detect_shock_points( G.dimensions );
+	    }
+	}
+	// Non-local radiation transport needs to be performed a-priori for parallelization.
+	// Note that Q_rad is not re-evaluated for corrector step.
+	if ( get_radiation_flag() ) perform_radiation_transport();
+
+	// Predictor-stage of inviscid gas-dynamic update.
+	for ( Block *bdp : G.my_blocks ) {
+	    if ( bdp->active != 1 ) continue;
+	    bdp->inviscid_flux( G.dimensions );
+	    for ( FV_Cell *cp: bdp->active_cells ) {
+		cp->inviscid_source_vector(0, bdp->omegaz);
+		if ( G.udf_source_vector_flag == 1 )
+		    udf_source_vector_for_cell(cp, 0, G.sim_time);
+		cp->time_derivatives(0, G.dimensions);
+		cp->predictor_update(G.dt_global);
+		cp->decode_conserved(0, bdp->omegaz);
+		if ( get_Torder_flag() == 3 ) cp->record_conserved();
+	    } // end for *cp
+	    if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
+		apply_wilson_omega_correction( *bdp );
+	    }
+	} // end of for jb...
+
+	if ( get_Torder_flag() >= 2 ) {
+	    // Preparation for corrector stage of gas-dynamic update.
+#           ifdef _MPI
+	    MPI_Barrier( MPI_COMM_WORLD );
+	    mpi_exchange_boundary_data(COPY_FLOW_STATE);
+#           else
+	    for ( Block *bdp : G.my_blocks ) {
+		if ( bdp->active )
+		    exchange_shared_boundary_data( bdp->id, COPY_FLOW_STATE );
+	    }
+#           endif
+	    // Corrector stage of inviscid gas-dynamic update.
+	    for ( Block *bdp : G.my_blocks ) {
+		if ( bdp->active != 1 ) continue;
+		apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
+		bdp->inviscid_flux( G.dimensions );
+		for ( FV_Cell *cp: bdp->active_cells ) {
+		    cp->inviscid_source_vector(1, bdp->omegaz);
+		    if ( G.udf_source_vector_flag == 1 )
+			udf_source_vector_for_cell(cp, 1, G.sim_time);
+		    cp->time_derivatives(1, G.dimensions);
+		    cp->corrector_update(G.dt_global);
+		    cp->decode_conserved(1, bdp->omegaz);
+		    if ( get_Torder_flag() == 3 ) cp->record_conserved();
+		} // end for *cp
+		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
+		    apply_wilson_omega_correction( *bdp );
+		}
+	    } // end for jb loop
+	} // end if (corrector stage)
+
+	// RK3 Stage
+	if ( get_Torder_flag() == 3 ) {
+#           ifdef _MPI
+	    MPI_Barrier( MPI_COMM_WORLD );
+	    mpi_exchange_boundary_data(COPY_FLOW_STATE);
+#           else
+	    for ( Block *bdp : G.my_blocks ) {
+		if ( bdp->active )
+		    exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE);
+	    }
+#           endif
+	    for ( Block *bdp : G.my_blocks ) {
+		if ( bdp->active != 1 ) continue;
+		apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
+		bdp->inviscid_flux( G.dimensions );
+		for ( FV_Cell *cp: bdp->active_cells ) {
+		    cp->inviscid_source_vector(2, bdp->omegaz);
+		    if ( G.udf_source_vector_flag == 1 )
+			udf_source_vector_for_cell(cp, 2, G.sim_time);
+		    cp->time_derivatives(2, G.dimensions);
+		    cp->rk3_update(G.dt_global);
+		    cp->decode_conserved(2, bdp->omegaz);
+		} // for *cp
+		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
+		    apply_wilson_omega_correction( *bdp );
+		}
+	    } // end for *bdp
+	} // end if (RK3 stage)
+   
+	// 2d. Check the record of bad cells and if any cells are bad, 
+	//     fail this attempt at taking a step,
+	//     set everything back to the initial state and
+	//     reduce the time step for the next attempt
+	int most_bad_cells = do_bad_cell_count();
+	if ( adjust_invalid_cell_data == 0 && most_bad_cells > 0 ) {
+	    step_failed = 1;
+	}
+#       ifdef _MPI
+	MPI_Allreduce(MPI_IN_PLACE, &(step_failed), 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+#       endif
+	if ( step_failed ) {
+	    G.dt_global = G.dt_reduction_factor * G.dt_global;
+	    printf("Attempt %d failed: reducing dt to %e.\n", attempt_number, G.dt_global);
+	    for ( Block *bdp : G.my_blocks ) {
+		if ( bdp->active != 1 ) continue;
+		for ( FV_Cell *cp: bdp->active_cells ) {
+		    cp->restore_conserved();
+		    cp->decode_conserved(0, bdp->omegaz);
+		}
+		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
+		    apply_wilson_omega_correction( *bdp );
+		}
+	    } // end for *bdp
+	} // end if step_failed
+
+    } while (attempt_number < 3 && step_failed == 1);
+
+    return step_failed;
+} // end gasdynamic_inviscid_increment_with_fixed_grid()
+
+
+int gasdynamic_inviscid_increment_with_moving_grid( void )
+{
+    global_data &G = *get_global_data_ptr();
+    int step_failed;
+
+    // FIX-ME -- this is a work/refactoring in progress... PJ
+    // 25-Mar-2103 except for superficial changes, it is the same as 
+    // Andrew's implementation.
 
     // Record the current values of the conserved variables
     // in preparation for applying the predictor and corrector
@@ -1661,7 +1824,7 @@ int gasdynamic_inviscid_increment( void )
     } while (attempt_number < 3 && step_failed == 1);
 
     return step_failed;
-} // end gasdynamic_inviscid_increment()
+} // end gasdynamic_inviscid_increment_with_moving_grid()
 
 
 int gasdynamic_viscous_increment( void )
