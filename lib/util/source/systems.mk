@@ -98,11 +98,11 @@ ifeq ($(TARGET), for_clang)
     COMPILE := clang 
     LINK    := clang
     CXX     := clang
-    CXXLINK := clang
+    CXXLINK := clang 
     # Unix/Linux is default
     CFLAG   := -c $(OPT)
     LFLAG   := $(OPT)
-    CXXFLAG := -c $(OPT)
+    CXXFLAG := -c $(OPT) -std=c++11
     LLIB := -lstdc++ -lm
 endif
 
