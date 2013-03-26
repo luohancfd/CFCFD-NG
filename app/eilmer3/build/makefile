@@ -578,23 +578,23 @@ bc_user_defined.o : $(SRC)/bc_user_defined.cxx $(SRC)/block.hh $(SRC)/kernel.hh 
 bc_menter_correction.o : $(SRC)/bc_menter_correction.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_menter_correction.cxx -o bc_menter_correction.o
 
-block.o : $(SRC)/block.cxx $(SRC)/cell.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
+block.o : $(SRC)/block.cxx $(SRC)/cell.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) $(LIBZLIB)
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) -I$(ZLIB) $(SRC)/block.cxx -o block.o
 
 block_filter.o : $(SRC)/block_filter.cxx $(SRC)/cell.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/block_filter.cxx -o block_filter.o
 
-block_io.o : $(SRC)/block_io.cxx $(SRC)/cell.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
-	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/block_io.cxx -o block_io.o
+block_io.o : $(SRC)/block_io.cxx $(SRC)/cell.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) $(LIBZLIB)
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) -I$(ZLIB) $(SRC)/block_io.cxx -o block_io.o
 
 block_geometry.o : $(SRC)/block_geometry.cxx $(SRC)/cell.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/block_geometry.cxx -o block_geometry.o
 
-block_moving_grid.o : $(SRC)/block_moving_grid.cxx $(SRC)/cell.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
-	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/block_moving_grid.cxx -o block_moving_grid.o
+block_moving_grid.o : $(SRC)/block_moving_grid.cxx $(SRC)/cell.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) $(LIBZLIB)
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) -I$(ZLIB) $(SRC)/block_moving_grid.cxx -o block_moving_grid.o
 
-block_bgk.o : $(SRC)/block_bgk.cxx $(SRC)/cell.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
-	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/block_bgk.cxx -o block_bgk.o
+block_bgk.o : $(SRC)/block_bgk.cxx $(SRC)/cell.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) $(LIBZLIB)
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) -I$(ZLIB) $(SRC)/block_bgk.cxx -o block_bgk.o
 
 kernel.o : $(SRC)/kernel.cxx $(SRC)/cell.hh $(SRC)/kernel.hh $(SRC)/block.hh $(LIBLUA)
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/kernel.cxx -o kernel.o
