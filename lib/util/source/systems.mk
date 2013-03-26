@@ -8,7 +8,6 @@ SYSTEM := $(shell uname -s)
 ARCH   := $(shell uname -m)
 
 
-
 ifeq ($(findstring MINGW32, $(SYSTEM)), MINGW32)
     # MINGW32 environment on MS-Windows
     TCL_DIR := /c/Tcl
@@ -68,6 +67,7 @@ endif
 #----------------------------------------------------------------------
 
 TARGET ?= for_gnu
+GNU_SUFFIX ?= 
 
 LMPI :=
 PCA  :=
@@ -139,6 +139,41 @@ ifeq ($(TARGET), for_gnu)
         FLINK := -lgfortran
     endif
 endif
+
+ifeq ($(TARGET), for_gnu_local)
+    # UNIX/Linux workstation with the default GNU C compiler
+    # Don't specify the processor architecture.
+    COMPILE := gcc-$(GNU_SUFFIX)
+    LINK    := gcc-$(GNU_SUFFIX)
+    CXXCOMPILE := g++-$(GNU_SUFFIX)
+    CXXLINK := g++-$(GNU_SUFFIX)
+    # Unix/Linux is default
+    CFLAG   := -c $(OPT) -fPIC -W -Wall -pedantic -finline-limit=2400 $(MARCH_FLAG)
+    LFLAG   := $(OPT) -fPIC -finline-limit=2400 $(MARCH_FLAG)
+    CXXFLAG := -c $(OPT) -std=c++0x -fPIC -Wall -pedantic $(MARCH_FLAG)
+    ifeq ($(findstring MINGW32, $(SYSTEM)), MINGW32)
+        # MINGW32 environment on MS-Windows
+        CFLAG   := -c $(OPT) -W -Wall -pedantic $(MARCH_FLAG)
+        LFLAG   := $(OPT) -Wl,-stack=0x8000000 $(MARCH_FLAG)
+        CXXFLAG := -c $(OPT) -std=c++0x -Wall -pedantic $(MARCH_FLAG)
+    endif
+    ifeq ($(findstring CYGWIN, $(SYSTEM)), CYGWIN)
+        # CYGWIN environment on MS-Windows
+        CFLAG   := -c $(OPT) -W -Wall -pedantic $(MARCH_FLAG)
+        LFLAG   := $(OPT) -Wl,-stack=0x8000000 $(MARCH_FLAG)
+        CXXFLAG := -c $(OPT) -std=c++0x -Wall -pedantic $(MARCH_FLAG)
+    endif
+    LLIB := -lm
+    ifeq ($(WITH_SPRADIAN), 1)
+        # Define the Fortran 90 compiler.
+        F90 := gfortran-$(GNU_SUFFIX)
+        # Compile without vector optimization for now.
+        F90FLAG := -m64 -c -O0 -fPIC
+        F90LFLAG := -m64 -lstdc++ -gnofor_main
+        FLINK := -lgfortran
+    endif
+endif
+
 
 ifeq ($(TARGET), for_gnu_gcc4)
     # UNIX/Linux workstation with the GNU C compiler version 4.x
