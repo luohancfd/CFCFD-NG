@@ -97,7 +97,7 @@ ifeq ($(TARGET), for_clang)
     # UNIX/Linux workstation with the Clang C, C++ compiler
     COMPILE := clang 
     LINK    := clang
-    CXX     := clang
+    CXXCOMPILE := clang
     CXXLINK := clang 
     # Unix/Linux is default
     CFLAG   := -c $(OPT)
@@ -111,7 +111,7 @@ ifeq ($(TARGET), for_gnu)
     # Don't specify the processor architecture.
     COMPILE := gcc 
     LINK    := gcc
-    CXX     := g++
+    CXXCOMPILE := g++
     CXXLINK := g++
     # Unix/Linux is default
     CFLAG   := -c $(OPT) -fPIC -W -Wall -pedantic -finline-limit=2400 $(MARCH_FLAG)
@@ -145,7 +145,7 @@ ifeq ($(TARGET), for_gnu_gcc4)
     # Don't specify the processor architecture.
     COMPILE := gcc-4 
     LINK    := gcc-4
-    CXX     := g++-4
+    CXXCOMPILE := g++-4
     CXXLINK := g++-4
     # Unix/Linux is default
     CFLAG   := -c $(OPT) -fPIC -W -Wall -pedantic -finline-limit=2400 $(MARCH_FLAG)
@@ -170,7 +170,7 @@ ifeq ($(TARGET), for_gnu_debug)
     # UNIX/Linux workstation with the GNU C compiler and debug+profiling
     COMPILE := gcc 
     LINK    := gcc
-    CXX     := g++
+    CXXCOMPILE := g++
     CXXLINK := g++
     # Unix/Linux is default
     CFLAG   := -c -fPIC -W -Wall -pedantic -ggdb $(MARCH_FLAG)
@@ -199,7 +199,7 @@ ifeq ($(TARGET), for_gprof)
     # UNIX/Linux/Cygwin workstation with the GNU C compiler and with profiling.
     COMPILE := gcc 
     LINK    := gcc
-    CXX     := g++
+    CXXCOMPILE := g++
     CXXLINK := g++
     # Unix/Linux is default
     CFLAG   := -c $(OPT) -fPIC -W -Wall -pedantic -finline-limit=2400 -pg $(MARCH_FLAG)
@@ -224,7 +224,7 @@ ifeq ($(TARGET), for_gnu_opteron)
     # Linux Opteron server using GNU compiler
     COMPILE := gcc
     LINK    := gcc
-    CXX     := g++
+    CXXCOMPILE := g++
     CXXLINK := g++
     CFLAG   := -c $(OPT) -fPIC -W -Wall -pedantic -mtune=opteron -finline-limit=2400 
     LFLAG   := $(OPT) -fPIC -finline-limit=2400 
@@ -238,7 +238,7 @@ ifeq ($(TARGET), for_macports_gnu)
     # Note that this works on LinuxMint13 as well as the default for_gnu.
     COMPILE := gcc
     LINK    := gcc
-    CXX     := g++
+    CXXCOMPILE := g++
     CXXLINK := g++
     CFLAG   := -c $(OPT) -fPIC 
     CXXFLAG := -c $(OPT) -std=c++0x -fPIC 
@@ -250,7 +250,7 @@ ifeq ($(TARGET), for_gnu_openmp)
     # Linux Opteron server using GNU compiler
     COMPILE := gcc
     LINK    := gcc
-    CXX     := g++
+    CXXCOMPILE := g++
     CXXLINK := g++
     # Unix/Linux
     CFLAG   := -c $(OPT) -fPIC -W -Wall -pedantic -mtune=opteron -finline-limit=2400 $(MARCH_FLAG)
@@ -268,7 +268,7 @@ ifeq ($(TARGET), for_pgi)
     # UNIX/Linux workstation with the Portland-Group C compiler
     COMPILE := pgcc 
     LINK    := pgcc
-    CXX     := pgCC
+    CXXCOMPILE := pgCC
     CXXLINK := pgCC
     # Unix/Linux
     CFLAG   := -c -fast -fPIC 
@@ -282,7 +282,7 @@ ifeq ($(TARGET), for_pgi_debug)
     # UNIX/Linux workstation with the Portland-Group C compiler
     COMPILE := pgcc
     LINK    := pgcc
-    CXX     := pgCC
+    CXXCOMPILE := pgCC
     CXXLINK := pgCC
     # Unix/Linux
     CFLAG   := -c -g -p -fPIC 
@@ -296,7 +296,7 @@ ifeq ($(TARGET), for_pgi_opteron)
     # UNIX/Linux workstation with the Portland-Group C compiler
     COMPILE := pgcc 
     LINK    := pgcc
-    CXX     := pgCC
+    CXXCOMPILE := pgCC
     CXXLINK := pgCC
     # Unix/Linux
     CFLAG   := -c -fast -fPIC -tp amd64 
@@ -310,7 +310,7 @@ ifeq ($(TARGET), for_pgi_opteron_O2)
     # UNIX/Linux workstation with the Portland-Group C compiler
     COMPILE := pgcc 
     LINK    := pgcc
-    CXX     := pgCC
+    CXXCOMPILE := pgCC
     CXXLINK := pgCC
     # Unix/Linux
     CFLAG   := -c -O2 -fPIC -tp amd64 
@@ -328,7 +328,7 @@ ifeq ($(TARGET), for_intel)
     # Intel Compiler 11.0 
     COMPILE := icc
     LINK    := icc
-    CXX     := icpc
+    CXXCOMPILE := icpc
     CXXLINK := icpc
     CFLAG   := -c -wd161 -fPIC -xhost -ipo -std=c++11
     CXXFLAG := $(CFLAG)
@@ -341,7 +341,7 @@ ifeq ($(TARGET), for_intel_xeon)
     # Intel Compiler 9.0 
     COMPILE := icc
     LINK    := icc
-    CXX     := icpc
+    CXXCOMPILE := icpc
     CXXLINK := icpc
     CFLAG   := -c -wd161 -fPIC -mtune=pentium4 
     CXXFLAG := $(CFLAG)
@@ -354,7 +354,7 @@ ifeq ($(TARGET), for_intel_itanium_2)
     # Intel compiler on APAC with linking to mpi library
     COMPILE := icc
     LINK    := icc
-    CXX     := icpc
+    CXXCOMPILE := icpc
     CXXLINK := icpc
     CFLAG   := -c -wd161 -mcpu=itanium2 -O3
     CXXFLAG := $(CFLAG)
@@ -369,7 +369,7 @@ ifeq ($(TARGET), for_intel_mpi)
     # PJ, 08-Sep-2010 (at SGI course on Intel X86_64 Application Development).  
     COMPILE := mpiicc
     LINK    := mpiicc
-    CXX     := mpiicpc
+    CXXCOMPILE := mpiicpc
     CXXLINK := mpiicpc
     CFLAG   := -c -wd161 -fPIC -xhost -ipo -std=c++11
     CXXFLAG := $(CFLAG)
@@ -384,7 +384,7 @@ ifeq ($(TARGET), for_intel_mpi_profile)
     # PJ, 08-Sep-2010 (at SGI course on Intel X86_64 Application Development).  
     COMPILE := mpiicc
     LINK    := mpiicc
-    CXX     := mpiicpc
+    CXXCOMPILE := mpiicpc
     CXXLINK := mpiicpc
     CFLAG   := -c -wd161 -fPIC -ipo -opt-report -opt-report-phase=ipo -p -std=c++11
     CXXFLAG := $(CFLAG)
@@ -402,7 +402,7 @@ ifeq ($(TARGET), for_intel_mpi_trace)
     # PJ, 10-Sep-2010 (at SGI course on Intel X86_64 Application Development).  
     COMPILE := mpiicc
     LINK    := mpiicc
-    CXX     := mpiicpc
+    CXXCOMPILE := mpiicpc
     CXXLINK := mpiicpc
     CFLAG   := -c -wd161 -fPIC -ipo -trace -std=c++11
     CXXFLAG := $(CFLAG)
@@ -416,7 +416,7 @@ ifeq ($(TARGET), for_intel_openmp)
     # Intel Compiler 11.0 
     COMPILE := icc
     LINK    := icc
-    CXX     := icpc
+    CXXCOMPILE := icpc
     CXXLINK := icpc
     CFLAG   := -c -wd161 -fPIC -xhost -ipo -std=c++11
     CXXFLAG := $(CFLAG)
@@ -437,7 +437,7 @@ ifeq ($(TARGET), for_lam)
     # will allow setting of options specific to each compiler.
     COMPILE := mpicc
     LINK    := mpicc
-    CXX     := mpiCC
+    CXXCOMPILE := mpiCC
     CXXLINK := mpiCC
     CFLAG   := -c $(OPT) 
     CXXFLAG := -c $(OPT) -std=c++0x  
@@ -452,7 +452,7 @@ ifeq ($(TARGET), for_lam_debug)
     # will allow setting of options specific to each compiler.
     COMPILE := mpicc
     LINK    := mpicc
-    CXX     := mpiCC
+    CXXCOMPILE := mpiCC
     CXXLINK := mpiCC
     CFLAG   := -c -g
     CXXFLAG := -c -g -std=c++0x 
@@ -465,7 +465,7 @@ ifeq ($(TARGET), for_openmpi)
     # OpenMPI on Linux.
     COMPILE := mpicc
     LINK    := mpicc
-    CXX     := mpiCC
+    CXXCOMPILE := mpiCC
     CXXLINK := mpiCC
     CFLAG   := -c $(OPT) -fPIC 
     CXXFLAG := -c $(OPT) -std=c++0x -fPIC 
@@ -477,7 +477,7 @@ ifeq ($(TARGET), for_openmpi_debug)
     # OpenMPI on Linux.
     COMPILE := mpicc
     LINK    := mpicc
-    CXX     := mpiCC
+    CXXCOMPILE := mpiCC
     CXXLINK := mpiCC
     CFLAG   := -c $(OPT) -fPIC -g
     CXXFLAG := -c $(OPT) -std=c++0x -fPIC -g
@@ -493,7 +493,7 @@ ifeq ($(TARGET), for_macports_openmpi)
     #          at least within the xcode unix-like environment that Ingo uses.
     COMPILE := mpicc
     LINK    := mpicc
-    CXX     := mpiCC
+    CXXCOMPILE := mpiCC
     CXXLINK := mpiCC
     CFLAG   := -c $(OPT) -fPIC 
     CXXFLAG := -c $(OPT) -std=c++0x -fPIC 
@@ -506,7 +506,7 @@ ifeq ($(TARGET), for_mac_openmpi)
     # HFS+ is not case-sensitive, so need to use mpic++ instead of mpiCC.
     COMPILE := mpicc
     LINK    := mpicc
-    CXX     := mpic++
+    CXXCOMPILE := mpic++
     CXXLINK := mpic++
     CFLAG   := -c $(OPT) -fPIC 
     CXXFLAG := -c $(OPT) -std=c++0x -fPIC 
@@ -520,13 +520,25 @@ ifeq ($(TARGET), for_mpich)
     # will allow setting of options specific to each compiler.
     COMPILE := mpicc
     LINK    := mpicc
-    CXX     := mpiCC
+    CXXCOMPILE := mpiCC
     CXXLINK := mpiCC
     CFLAG   := -c $(OPT) 
     CXXFLAG := -c $(OPT) -std=c++0x 
     LFLAG   :=  $(OPT) -fPIC 
     LLIB    := -lm
     LMPI    := -lmpi
+endif
+
+ifeq ($(TARGET), for_clang_openmpi)
+    # OpenMPI with the clang compiler.
+    COMPILE := mpicc
+    LINK    := mpicc
+    CXXCOMPILE := mpiCC
+    CXXLINK := mpiCC
+    CFLAG   := -c $(OPT) -fPIC 
+    CXXFLAG := -c $(OPT) -std=c++11
+    LFLAG   :=  $(OPT) -fPIC 
+    LLIB    := -lstdc++ -lm
 endif
 
 

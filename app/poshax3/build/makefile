@@ -40,7 +40,7 @@ PSR_OBJECTS := conservation_systems.o \
 	flow_state.o \
 	post_shock_flow.o \
 	poshax_radiation_transport.o
-	
+
 PYTHON_SCRIPTS := p3post.py
 
 PSR_EXECUTABLE := poshax3.x
@@ -83,10 +83,10 @@ $(LIBRAD) :
 
 $(LIBINIPARSER):
 	cd $(UTIL)/iniparser; make
-	
+
 $(LIBGEOM) :
 	cd $(GEOM)/build; make TARGET=$(TARGET) OPT=$(OPT) libgeom2.a
-	
+
 # Assume linux
 PLAT := linux
 ifeq ($(findstring Darwin, $(SYSTEM)), Darwin)
@@ -99,7 +99,7 @@ endif
 ifeq ($(findstring MINGW32, $(SYSTEM)), MINGW32)
     PLAT := cygwin
 endif
-	
+
 $(LIBLUA):
 	cd $(LUA); make $(PLAT) local
 
@@ -114,7 +114,7 @@ $(LIBPSR) : $(PSR_OBJECTS)
 	- rm $(LIBPSR)
 	$(AR) rv $(LIBPSR) $(PSR_OBJECTS)
 	- ranlib $(LIBPSR)
-	
+
 #----------- Python libraries ------------
 
 p3post.py : $(SRC)/p3post.py
@@ -129,20 +129,20 @@ poshax3.x : poshax.o $(LIBPSR) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) \
 
 #----------- objects ---------
 poshax.o : $(SRC)/poshax.cxx $(LUA_INCLUDE_DIR)
-	$(CXX) $(CXXFLAG) $(SRC)/poshax.cxx -I$(LUA_INCLUDE_DIR)
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/poshax.cxx -I$(LUA_INCLUDE_DIR)
 
 conservation_systems.o : $(SRC)/conservation_systems.cxx \
                          $(SRC)/conservation_systems.hh $(LUA_INCLUDE_DIR)
-	$(CXX) $(CXXFLAG) $(SRC)/conservation_systems.cxx -I$(LUA_INCLUDE_DIR)
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/conservation_systems.cxx -I$(LUA_INCLUDE_DIR)
 
 flow_state.o : $(SRC)/flow_state.cxx $(SRC)/flow_state.hh $(LUA_INCLUDE_DIR)
-	$(CXX) $(CXXFLAG) $(SRC)/flow_state.cxx -I$(LUA_INCLUDE_DIR)
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/flow_state.cxx -I$(LUA_INCLUDE_DIR)
 
 post_shock_flow.o : $(SRC)/post_shock_flow.cxx $(SRC)/post_shock_flow.hh \
                     $(LUA_INCLUDE_DIR)
-	$(CXX) $(CXXFLAG) $(SRC)/post_shock_flow.cxx -I$(LUA_INCLUDE_DIR)
-	
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/post_shock_flow.cxx -I$(LUA_INCLUDE_DIR)
+
 poshax_radiation_transport.o : $(SRC)/poshax_radiation_transport.cxx \
 		$(SRC)/poshax_radiation_transport.hh $(LUA_INCLUDE_DIR)
-	$(CXX) $(CXXFLAG) $(SRC)/poshax_radiation_transport.cxx -I$(LUA_INCLUDE_DIR)
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/poshax_radiation_transport.cxx -I$(LUA_INCLUDE_DIR)
 

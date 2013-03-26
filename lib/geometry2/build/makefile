@@ -263,131 +263,131 @@ else
     endif
 endif
 libgeom2_wrap.o : $(SRC)/libgeom2_wrap.cxx
-	$(CXX) $(CXXFLAG3) -I$(PYTHON_INCLUDE_DIR) \
+	$(CXXCOMPILE) $(CXXFLAG3) -I$(PYTHON_INCLUDE_DIR) \
 		$(SRC)/libgeom2_wrap.cxx
 
 #-----------------------------------------------------------------
 
 geom.o : $(SRC)/geom.cxx $(SRC)/geom.hh
-	$(CXX) $(CXXFLAG) $(SRC)/geom.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/geom.cxx
 
 geom_test.o : $(SRC)/geom_test.cxx $(SRC)/geom.hh
-	$(CXX) $(CXXFLAG) $(SRC)/geom_test.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/geom_test.cxx
 
 test_create_cubic.o : $(SRC)/test_create_cubic.cxx $(SRC)/gpath_utils.hh $(SRC)/geom.hh
-	$(CXX) $(CXXFLAG) $(SRC)/test_create_cubic.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/test_create_cubic.cxx
 
 golden_section_search.o : $(NM_SRC)/golden_section_search.cxx $(NM_SRC)/golden_section_search.hh
-	$(CXX) $(CXXFLAG) $(NM_SRC)/golden_section_search.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(NM_SRC)/golden_section_search.cxx
 
 gpath_test.o : $(SRC)/gpath_test.cxx $(SRC)/gpath.hh $(SRC)/geom.hh
-	$(CXX) $(CXXFLAG) $(SRC)/gpath_test.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/gpath_test.cxx
 
 gpath.o : $(SRC)/gpath.cxx $(SRC)/gpath.hh $(SRC)/geom.hh $(NM_SRC)/secant.hh \
 		$(NM_SRC)/fobject.hh
-	$(CXX) $(CXXFLAG) $(SRC)/gpath.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/gpath.cxx
 
 pypath.o : $(SRC)/pypath.cxx $(SRC)/pypath.hh \
 		$(SRC)/geom.hh $(SRC)/gpath.hh $(NM_SRC)/secant.hh
 ifeq ($(TARGET), for_pgi)
-	$(CXX) $(CXXFLAG) -I$(PYTHON_INCLUDE_DIR) $(SRC)/pypath.cxx
+	$(CXXCOMPILE) $(CXXFLAG) -I$(PYTHON_INCLUDE_DIR) $(SRC)/pypath.cxx
 else
-	$(CXX) $(CXXFLAG) -Wno-long-long -I$(PYTHON_INCLUDE_DIR) $(SRC)/pypath.cxx
+	$(CXXCOMPILE) $(CXXFLAG) -Wno-long-long -I$(PYTHON_INCLUDE_DIR) $(SRC)/pypath.cxx
 endif
 
 
 gpath_utils.o : $(SRC)/gpath_utils.cxx $(SRC)/gpath_utils.hh $(SRC)/gpath.hh $(SRC)/geom.hh \
 		$(NM_SRC)/no_fuss_linear_algebra.hh
-	$(CXX) $(CXXFLAG) $(SRC)/gpath_utils.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/gpath_utils.cxx
 
 no_fuss_linear_algebra.o : $(NM_SRC)/no_fuss_linear_algebra.cxx $(NM_SRC)/no_fuss_linear_algebra.hh
-	$(CXX) $(CXXFLAG) $(NM_SRC)/no_fuss_linear_algebra.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(NM_SRC)/no_fuss_linear_algebra.cxx
 
 nurbs.o : $(SRC)/nurbs.cxx $(SRC)/nurbs.hh
-	$(CXX) $(CXXFLAG) $(SRC)/nurbs.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/nurbs.cxx
 
 nurbs_utils.o : $(SRC)/nurbs_utils.cxx $(SRC)/nurbs_utils.hh $(SRC)/gpath.hh $(SRC)/geom.hh \
 		$(SRC)/nurbs.hh
-	$(CXX) $(CXXFLAG) $(SRC)/nurbs_utils.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/nurbs_utils.cxx
 
 secant_test.o : $(NM_SRC)/secant_test.cxx $(NM_SRC)/secant.hh
-	$(CXX) $(CXXFLAG) $(NM_SRC)/secant_test.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(NM_SRC)/secant_test.cxx
 
 secant.o : $(NM_SRC)/secant.cxx $(NM_SRC)/secant.hh
-	$(CXX) $(CXXFLAG) $(NM_SRC)/secant.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(NM_SRC)/secant.cxx
 
 nelmin.o : $(NM_SRC)/nelmin.cxx $(NM_SRC)/nelmin.hh $(NM_SRC)/fobject.hh
-	$(CXX) $(CXXFLAG) $(NM_SRC)/nelmin.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(NM_SRC)/nelmin.cxx
 
 surface_test.o : $(SRC)/surface_test.cxx $(SRC)/surface.hh \
 		$(SRC)/geom.hh $(SRC)/gpath.hh
-	$(CXX) $(CXXFLAG) $(SRC)/surface_test.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/surface_test.cxx
 
 triangle_patch_test.o : $(SRC)/triangle_patch_test.cxx $(SRC)/surface.hh \
 		$(SRC)/geom.hh $(SRC)/gpath.hh
-	$(CXX) $(CXXFLAG) $(SRC)/triangle_patch_test.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/triangle_patch_test.cxx
 
 revolved_surface_test.o : $(SRC)/revolved_surface_test.cxx $(SRC)/surface.hh \
 		$(SRC)/geom.hh $(SRC)/gpath.hh
-	$(CXX) $(CXXFLAG) $(SRC)/revolved_surface_test.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/revolved_surface_test.cxx
 
 surface.o : $(SRC)/surface.cxx $(SRC)/surface.hh $(SRC)/geom.hh \
 		$(SRC)/gpath.hh $(NM_SRC)/secant.hh
-	$(CXX) $(CXXFLAG) $(SRC)/surface.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/surface.cxx
 
 pysurface.o : $(SRC)/pysurface.cxx $(SRC)/pysurface.hh $(SRC)/surface.hh \
 		$(SRC)/geom.hh $(SRC)/gpath.hh $(NM_SRC)/secant.hh
 ifeq ($(TARGET), for_pgi)
-	$(CXX) $(CXXFLAG) -I$(PYTHON_INCLUDE_DIR) $(SRC)/pysurface.cxx
+	$(CXXCOMPILE) $(CXXFLAG) -I$(PYTHON_INCLUDE_DIR) $(SRC)/pysurface.cxx
 else
-	$(CXX) $(CXXFLAG) -Wno-long-long -I$(PYTHON_INCLUDE_DIR) $(SRC)/pysurface.cxx
+	$(CXXCOMPILE) $(CXXFLAG) -Wno-long-long -I$(PYTHON_INCLUDE_DIR) $(SRC)/pysurface.cxx
 endif
 fobject.o : $(NM_SRC)/fobject.cxx $(NM_SRC)/fobject.hh
-	$(CXX) $(CXXFLAG) $(NM_SRC)/fobject.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(NM_SRC)/fobject.cxx
 
 fobject_test.o : $(NM_SRC)/fobject_test.cxx $(NM_SRC)/fobject.hh
-	$(CXX) $(CXXFLAG) $(NM_SRC)/fobject_test.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(NM_SRC)/fobject_test.cxx
 
 volume.o : $(SRC)/volume.cxx $(SRC)/volume.hh $(SRC)/surface.hh $(SRC)/geom.hh \
 		$(SRC)/gpath.hh $(NM_SRC)/secant.hh
-	$(CXX) $(CXXFLAG) $(SRC)/volume.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/volume.cxx
 
 pyvolume.o : $(SRC)/pyvolume.cxx $(SRC)/pyvolume.hh $(SRC)/volume.hh $(SRC)/surface.hh \
 		$(SRC)/geom.hh $(SRC)/gpath.hh $(NM_SRC)/secant.hh
 ifeq ($(TARGET), for_pgi)
-	$(CXX) $(CXXFLAG) -I$(PYTHON_INCLUDE_DIR) $(SRC)/pyvolume.cxx
+	$(CXXCOMPILE) $(CXXFLAG) -I$(PYTHON_INCLUDE_DIR) $(SRC)/pyvolume.cxx
 else
-	$(CXX) $(CXXFLAG) -Wno-long-long -I$(PYTHON_INCLUDE_DIR) $(SRC)/pyvolume.cxx
+	$(CXXCOMPILE) $(CXXFLAG) -Wno-long-long -I$(PYTHON_INCLUDE_DIR) $(SRC)/pyvolume.cxx
 endif
 
 best_fit_spline.o : $(SRC)/best_fit_spline.cxx $(SRC)/best_fit_spline.hh $(SRC)/gpath.hh \
 		$(NM_SRC)/fobject.hh $(NM_SRC)/nelmin.hh
-	$(CXX) $(CXXFLAG) $(SRC)/best_fit_spline.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/best_fit_spline.cxx
 
 fit_spline.o : $(SRC)/fit_spline.cxx
-	$(CXX) $(CXXFLAG) $(SRC)/fit_spline.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/fit_spline.cxx
 
 l_geom.o : $(SRC)/l_geom.cxx $(SRC)/l_gpath.hh $(SRC)/geom.hh $(LIBLUA)
-	$(CXX) $(CXXFLAG) $(SRC)/l_geom.cxx -I$(LUA_INCLUDE_DIR)
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/l_geom.cxx -I$(LUA_INCLUDE_DIR)
 
 l_gpath.o : $(SRC)/l_gpath.cxx $(SRC)/l_gpath.hh $(SRC)/gpath.hh $(SRC)/geom.hh $(SRC)/l_geom.hh $(LIBLUA)
-	$(CXX) $(CXXFLAG) $(SRC)/l_gpath.cxx -I$(LUA_INCLUDE_DIR)
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/l_gpath.cxx -I$(LUA_INCLUDE_DIR)
 
 l_gpath_utils.o : $(SRC)/l_gpath_utils.cxx $(SRC)/l_gpath_utils.hh $(SRC)/gpath_utils.hh \
 	$(SRC)/gpath.hh $(SRC)/geom.hh $(SRC)/l_geom.hh $(LIBLUA)
-	$(CXX) $(CXXFLAG) $(SRC)/l_gpath_utils.cxx -I$(LUA_INCLUDE_DIR)
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/l_gpath_utils.cxx -I$(LUA_INCLUDE_DIR)
 
 l_nurbs_utils.o : $(SRC)/l_nurbs_utils.cxx $(SRC)/l_nurbs_utils.hh $(SRC)/l_gpath_utils.hh $(SRC)/gpath_utils.hh \
 	$(SRC)/gpath.hh $(SRC)/geom.hh $(SRC)/l_geom.hh $(UTIL_SRC)/lunar.hh $(LUA_INCLUDE_DIR)
-	$(CXX) $(CXXFLAG) $(SRC)/l_nurbs_utils.cxx -I$(LUA_INCLUDE_DIR)
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/l_nurbs_utils.cxx -I$(LUA_INCLUDE_DIR)
 
 l_surface.o : $(SRC)/l_surface.cxx $(SRC)/l_surface.hh $(SRC)/surface.cxx $(SRC)/surface.hh \
 	$(LUA_INCLUDE_DIR)
-	$(CXX) $(CXXFLAG) $(SRC)/l_surface.cxx -I$(LUA_INCLUDE_DIR)
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/l_surface.cxx -I$(LUA_INCLUDE_DIR)
 
 zero_system.o : $(NM_SRC)/zero_system.cxx $(NM_SRC)/zero_system.hh $(NM_SRC)/no_fuss_linear_algebra.hh
-	$(CXX) $(CXXFLAG) $(ARRAY_SIZES) $(NM_SRC)/zero_system.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(ARRAY_SIZES) $(NM_SRC)/zero_system.cxx
 
 zero_finders.o : $(NM_SRC)/zero_finders.cxx $(NM_SRC)/zero_finders.hh \
 		$(NM_SRC)/zero_system.hh $(NM_SRC)/no_fuss_linear_algebra.hh
-	$(CXX) $(CXXFLAG) $(ARRAY_SIZES) $(NM_SRC)/zero_finders.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(ARRAY_SIZES) $(NM_SRC)/zero_finders.cxx

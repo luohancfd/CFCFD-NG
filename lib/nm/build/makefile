@@ -119,7 +119,7 @@ else
     endif
 endif
 libnm_wrap.o : $(SRC)/libnm_wrap.cxx
-	$(CXX) $(CXXFLAG3) -I$(PYTHON_INCLUDE_DIR) \
+	$(CXXCOMPILE) $(CXXFLAG3) -I$(PYTHON_INCLUDE_DIR) \
 		$(SRC)/libnm_wrap.cxx
 
 # Dynamic link library for MINGW32 environment on MS-Windows
@@ -166,71 +166,71 @@ Richardson_extrapolation_test.x : $(SRC)/Richardson_extrapolation_test.cxx \
 
 #-------- objects for testing executables ---------
 nelmin_test.o : $(SRC)/nelmin_test.cxx $(SRC)/nelmin.hh $(SRC)/fobject.hh
-	$(CXX) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/nelmin_test.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/nelmin_test.cxx
 
 fobject_test.o : $(SRC)/fobject_test.cxx $(SRC)/fobject.hh
-	$(CXX) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/fobject_test.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/fobject_test.cxx
 
 ode_test.o : $(SRC)/ode_test.cxx $(SRC)/ode_solver.hh $(SRC)/ode_system.hh
-	$(CXX) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/ode_test.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/ode_test.cxx
 
 no_fuss_test.o : $(SRC)/no_fuss_test.cxx $(SRC)/no_fuss_linear_algebra.hh 
-	$(CXX) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/no_fuss_test.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/no_fuss_test.cxx
 
 lu_decomp_test.o : $(SRC)/lu_decomp_test.cxx $(SRC)/lu_decomp.cxx $(SRC)/lu_decomp.hh \
 	$(SRC)/no_fuss_linear_algebra.hh
-	$(CXX) $(CXXFLAG) $(SRC)/lu_decomp_test.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/lu_decomp_test.cxx
 
 zero_finders_test.o : $(SRC)/zero_finders_test.cxx $(SRC)/zero_system.hh $(SRC)/zero_finders.hh
-	$(CXX) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/zero_finders_test.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/zero_finders_test.cxx
 
 
 
 #-------- objects compilation -----------
 nelmin.o : $(SRC)/nelmin.cxx $(SRC)/nelmin.hh $(SRC)/fobject.hh
-	$(CXX) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/nelmin.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/nelmin.cxx
 
 fobject.o : $(SRC)/fobject.cxx $(SRC)/fobject.hh
-	$(CXX) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/fobject.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/fobject.cxx
 
 curve_fit.o : $(SRC)/curve_fit.cxx $(SRC)/curve_fit.hh
-	$(CXX) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/curve_fit.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/curve_fit.cxx
 
 segmented_curve_fit.o : $(SRC)/segmented_curve_fit.cxx $(SRC)/segmented_curve_fit.hh
-	$(CXX) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/segmented_curve_fit.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/segmented_curve_fit.cxx
 
 ode_system.o : $(SRC)/ode_system.cxx $(SRC)/ode_system.hh
-	$(CXX) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/ode_system.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/ode_system.cxx
 
 ode_step.o : $(SRC)/ode_step.cxx $(SRC)/ode_step.hh $(SRC)/ode_system.hh
-	$(CXX) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/ode_step.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/ode_step.cxx
 
 ode_solver.o : $(SRC)/ode_solver.cxx $(SRC)/ode_solver.hh $(SRC)/ode_system.hh \
 		$(SRC)/ode_step.hh
-	$(CXX) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/ode_solver.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/ode_solver.cxx
 
 no_fuss_linear_algebra.o : $(SRC)/no_fuss_linear_algebra.cxx $(SRC)/no_fuss_linear_algebra.hh
-	$(CXX) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/no_fuss_linear_algebra.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/no_fuss_linear_algebra.cxx
 
 zero_finders.o : $(SRC)/zero_finders.cxx $(SRC)/zero_finders.hh \
 		$(SRC)/zero_system.hh $(SRC)/no_fuss_linear_algebra.hh
-	$(CXX) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/zero_finders.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/zero_finders.cxx
 
 zero_system.o : $(SRC)/zero_system.cxx $(SRC)/zero_system.hh $(SRC)/no_fuss_linear_algebra.hh
-	$(CXX) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/zero_system.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(ARRAY_SIZES) $(SRC)/zero_system.cxx
 
 Richardson_extrapolation.o : $(SRC)/Richardson_extrapolation.cxx $(SRC)/Richardson_extrapolation.hh \
 	$(SRC)/functor.hh
-	$(CXX) $(CXXFLAG) $(SRC)/Richardson_extrapolation.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/Richardson_extrapolation.cxx
 
 exponential_integrals.o : $(SRC)/exponential_integrals.cxx $(SRC)/exponential_integrals.hh
-	$(CXX) $(CXXFLAG) $(SRC)/exponential_integrals.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/exponential_integrals.cxx
 
 quadrature.o : $(SRC)/quadrature.cxx $(SRC)/quadrature.hh
-	$(CXX) $(CXXFLAG) $(SRC)/quadrature.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/quadrature.cxx
 
 linear_interpolation.o : $(SRC)/linear_interpolation.cxx $(SRC)/linear_interpolation.hh
-	$(CXX) $(CXXFLAG) $(SRC)/linear_interpolation.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/linear_interpolation.cxx
 
 lu_decomp.o : $(SRC)/lu_decomp.cxx $(SRC)/lu_decomp.hh $(SRC)/no_fuss_linear_algebra.hh
-	$(CXX) $(CXXFLAG) $(SRC)/lu_decomp.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/lu_decomp.cxx

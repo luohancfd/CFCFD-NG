@@ -43,8 +43,8 @@ dbc_assert_test.x :
 #--------------- Object files -------------------------------
 
 config_parser.o : $(SRC)/config_parser.cxx $(SRC)/config_parser.hh
-	$(CXX) $(CXXFLAG) $(SRC)/config_parser.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/config_parser.cxx
 
 
 config_parser_test.o : $(SRC)/config_parser_test.cxx $(SRC)/config_parser.hh
-	$(CXX) $(CXXFLAG) $(SRC)/config_parser_test.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/config_parser_test.cxx

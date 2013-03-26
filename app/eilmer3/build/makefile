@@ -30,6 +30,10 @@ ifeq ($(TARGET), for_openmpi)
     WITH_MPI := 1
 endif
 
+ifeq ($(TARGET), for_clang_openmpi)
+    WITH_MPI := 1
+endif
+
 ifeq ($(TARGET), for_intel_mpi)
     WITH_MPI := 1
 endif
@@ -396,7 +400,7 @@ else
     endif
 endif
 libprep3_wrap.o : $(SRC)/libprep3_wrap.cxx
-	$(CXX) $(CXXFLAG3) -I$(PYTHON_INCLUDE_DIR) -I$(LUA_INCLUDE_DIR) \
+	$(CXXCOMPILE) $(CXXFLAG3) -I$(PYTHON_INCLUDE_DIR) -I$(LUA_INCLUDE_DIR) \
 		-I$(GAS)/models -I$(GAS)/kinetics -I$(GEOM2_SRC) \
 		$(SRC)/libprep3_wrap.cxx -I$(RAD_SRC)
 
@@ -469,142 +473,142 @@ time_to_go.o : $(UTIL_SRC)/time_to_go.c $(UTIL_SRC)/time_to_go.h
 
 e3shared.o : $(SRC)/main.cxx $(SRC)/main.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh \
 		$(SRC)/init.hh $(SRC)/exch2d.hh $(SRC)/visc.hh $(SRC)/piston.hh $(LIBLUA)
-	$(CXX) $(PCA) $(CXXFLAG) -DSHARED -I/sw/include -I/opt/local/include -I$(LUA_INCLUDE_DIR) \
+	$(CXXCOMPILE) $(PCA) $(CXXFLAG) -DSHARED -I/sw/include -I/opt/local/include -I$(LUA_INCLUDE_DIR) \
 		$(SRC)/main.cxx -o e3shared.o
 
 e3mpi.o : $(SRC)/main.cxx $(SRC)/main.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh \
 		$(SRC)/init.hh $(SRC)/exch2d.hh $(SRC)/exch_mpi.hh \
 		$(SRC)/visc.hh $(SRC)/piston.hh $(LIBLUA)
-	$(CXX) $(PCA) $(CXXFLAG) $(CFLAG_MPI) -D_MPI -I/sw/include -I/opt/local/include -I$(LUA_INCLUDE_DIR) \
+	$(CXXCOMPILE) $(PCA) $(CXXFLAG) $(CFLAG_MPI) -D_MPI -I/sw/include -I/opt/local/include -I$(LUA_INCLUDE_DIR) \
 		$(SRC)/main.cxx -o e3mpi.o
 
 e3rad.o : $(SRC)/main.cxx $(SRC)/main.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh \
 		$(SRC)/init.hh $(SRC)/exch2d.hh $(SRC)/visc.hh $(SRC)/piston.hh \
 		$(SRC)/radiation_transport.hh $(LIBLUA)
-	$(CXX) $(PCA) $(CXXFLAG) -DSHARED -DE3RAD -I/sw/include -I/opt/local/include -I$(LUA_INCLUDE_DIR) \
+	$(CXXCOMPILE) $(PCA) $(CXXFLAG) -DSHARED -DE3RAD -I/sw/include -I/opt/local/include -I$(LUA_INCLUDE_DIR) \
 		$(SRC)/main.cxx -o e3rad.o
 
 exch2d.o : $(SRC)/exch2d.cxx $(SRC)/exch3d.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/exch2d.cxx -o exch2d.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/exch2d.cxx -o exch2d.o
 
 exch3d.o : $(SRC)/exch3d.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/exch3d.cxx -o exch3d.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/exch3d.cxx -o exch3d.o
 
 exch_mpi.o : $(SRC)/exch_mpi.cxx $(SRC)/exch_mpi.hh $(SRC)/block.hh \
 		$(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(CFLAG_MPI) -D_MPI $(SRC)/exch_mpi.cxx -o exch_mpi.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(CFLAG_MPI) -D_MPI $(SRC)/exch_mpi.cxx -o exch_mpi.o
 
 init.o : $(SRC)/init.cxx $(SRC)/init.hh $(SRC)/kernel.hh $(SRC)/block.hh \
 		$(SRC)/bc.hh $(SRC)/bc_defs.hh $(SRC)/diffusion.hh $(SRC)/visc.hh $(LIBLUA)
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/init.cxx -o init.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/init.cxx -o init.o
 
 bc.o : $(SRC)/bc.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) -I$(ZLIB) $(SRC)/bc.cxx -o bc.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) -I$(ZLIB) $(SRC)/bc.cxx -o bc.o
 
 bc_catalytic.o : $(SRC)/bc_catalytic.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_catalytic.cxx -o bc_catalytic.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_catalytic.cxx -o bc_catalytic.o
 
 bc_adjacent.o : $(SRC)/bc_adjacent.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_adjacent.cxx -o bc_adjacent.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_adjacent.cxx -o bc_adjacent.o
 
 bc_supersonic_in.o : $(SRC)/bc_supersonic_in.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh $(SRC)/bc.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_supersonic_in.cxx -o bc_supersonic_in.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_supersonic_in.cxx -o bc_supersonic_in.o
 
 bc_extrapolate_out.o : $(SRC)/bc_extrapolate_out.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh $(SRC)/bc.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_extrapolate_out.cxx -o bc_extrapolate_out.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_extrapolate_out.cxx -o bc_extrapolate_out.o
 
 bc_shock_fitting_in.o : $(SRC)/bc_shock_fitting_in.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh $(SRC)/bc.hh $(SRC)/one_d_interp.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_shock_fitting_in.cxx -o bc_shock_fitting_in.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_shock_fitting_in.cxx -o bc_shock_fitting_in.o
 
 bc_slip_wall.o : $(SRC)/bc_slip_wall.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_slip_wall.cxx -o bc_slip_wall.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_slip_wall.cxx -o bc_slip_wall.o
 
 bc_adiabatic.o : $(SRC)/bc_adiabatic.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_adiabatic.cxx -o bc_adiabatic.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_adiabatic.cxx -o bc_adiabatic.o
 
 bc_fixed_t.o : $(SRC)/bc_fixed_t.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_fixed_t.cxx -o bc_fixed_t.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_fixed_t.cxx -o bc_fixed_t.o
 
 bc_fstc.o : $(SRC)/bc_fstc.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_fstc.cxx -o bc_fstc.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_fstc.cxx -o bc_fstc.o
 
 bc_sliding_t.o : $(SRC)/bc_sliding_t.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_sliding_t.cxx -o bc_sliding_t.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_sliding_t.cxx -o bc_sliding_t.o
 
 bc_subsonic_in.o : $(SRC)/bc_subsonic_in.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_subsonic_in.cxx -o bc_subsonic_in.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_subsonic_in.cxx -o bc_subsonic_in.o
 
 bc_transient_uniform.o : $(SRC)/bc_transient_uniform.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_transient_uniform.cxx -o bc_transient_uniform.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_transient_uniform.cxx -o bc_transient_uniform.o
 
 bc_static_profile.o : $(SRC)/bc_static_profile.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_static_profile.cxx -o bc_static_profile.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_static_profile.cxx -o bc_static_profile.o
 
 bc_fixed_p_out.o : $(SRC)/bc_fixed_p_out.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_fixed_p_out.cxx -o bc_fixed_p_out.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_fixed_p_out.cxx -o bc_fixed_p_out.o
 
 bc_ablating.o : $(SRC)/bc_ablating.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_ablating.cxx -o bc_ablating.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_ablating.cxx -o bc_ablating.o
 
 bc_surface_energy_balance.o : $(SRC)/bc_surface_energy_balance.cxx $(SRC)/block.hh \
     $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) $(NM_SRC)/zero_finders.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_surface_energy_balance.cxx \
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_surface_energy_balance.cxx \
 	    -o bc_surface_energy_balance.o
 
 bc_user_defined.o : $(SRC)/bc_user_defined.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_user_defined.cxx -o bc_user_defined.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_user_defined.cxx -o bc_user_defined.o
 
 bc_menter_correction.o : $(SRC)/bc_menter_correction.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_menter_correction.cxx -o bc_menter_correction.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_menter_correction.cxx -o bc_menter_correction.o
 
 block.o : $(SRC)/block.cxx $(SRC)/cell.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) -I$(ZLIB) $(SRC)/block.cxx -o block.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) -I$(ZLIB) $(SRC)/block.cxx -o block.o
 
 block_filter.o : $(SRC)/block_filter.cxx $(SRC)/cell.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/block_filter.cxx -o block_filter.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/block_filter.cxx -o block_filter.o
 
 block_io.o : $(SRC)/block_io.cxx $(SRC)/cell.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/block_io.cxx -o block_io.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/block_io.cxx -o block_io.o
 
 block_geometry.o : $(SRC)/block_geometry.cxx $(SRC)/cell.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/block_geometry.cxx -o block_geometry.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/block_geometry.cxx -o block_geometry.o
 
 block_moving_grid.o : $(SRC)/block_moving_grid.cxx $(SRC)/cell.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/block_moving_grid.cxx -o block_moving_grid.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/block_moving_grid.cxx -o block_moving_grid.o
 
 block_bgk.o : $(SRC)/block_bgk.cxx $(SRC)/cell.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/block_bgk.cxx -o block_bgk.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/block_bgk.cxx -o block_bgk.o
 
 kernel.o : $(SRC)/kernel.cxx $(SRC)/cell.hh $(SRC)/kernel.hh $(SRC)/block.hh $(LIBLUA)
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/kernel.cxx -o kernel.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/kernel.cxx -o kernel.o
 
 block_invs.o : $(SRC)/block_invs.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/block_invs.cxx -o block_invs.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/block_invs.cxx -o block_invs.o
 
 visc.o : $(SRC)/visc.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(SRC)/bc_defs.hh \
 		$(SRC)/diffusion.hh $(LIBLUA)
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/visc.cxx -o visc.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/visc.cxx -o visc.o
 
 visc3D.o : $(SRC)/visc3D.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(SRC)/bc_defs.hh \
 		$(SRC)/diffusion.hh $(LIBLUA)
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/visc3D.cxx -o visc3D.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/visc3D.cxx -o visc3D.o
 
 $(SRC)/visc3D.cxx : $(SRC)/visc3D.cxx.m4
 	m4 $(SRC)/visc3D.cxx.m4 > $(SRC)/visc3D.cxx
@@ -612,99 +616,99 @@ $(SRC)/visc3D.cxx : $(SRC)/visc3D.cxx.m4
 baldwin_lomax.o : $(SRC)/baldwin_lomax.cxx $(SRC)/block.hh $(SRC)/kernel.hh \
 		$(SRC)/bc.hh $(SRC)/bc_defs.hh \
 		$(SRC)/diffusion.hh $(LIBLUA)
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/baldwin_lomax.cxx -o baldwin_lomax.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/baldwin_lomax.cxx -o baldwin_lomax.o
 
 diffusion.o : $(SRC)/diffusion.cxx $(SRC)/diffusion.hh $(LIBLUA)
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/diffusion.cxx -o diffusion.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/diffusion.cxx -o diffusion.o
 
 piston.o : $(SRC)/piston.cxx $(SRC)/piston.hh $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/piston.cxx -o piston.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/piston.cxx -o piston.o
 
 rivp.o : $(SRC)/rivp.cxx $(SRC)/flux_calc.hh $(NM_SRC)/qd_power.h
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/rivp.cxx -o rivp.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/rivp.cxx -o rivp.o
 
 efm.o : $(SRC)/efm.cxx $(SRC)/flux_calc.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/efm.cxx -o efm.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/efm.cxx -o efm.o
 
 ausmdv.o : $(SRC)/ausmdv.cxx $(SRC)/flux_calc.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/ausmdv.cxx -o ausmdv.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/ausmdv.cxx -o ausmdv.o
 
 adaptive_flux.o : $(SRC)/adaptive_flux.cxx $(SRC)/flux_calc.hh $(SRC)/kernel.hh $(SRC)/cell.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/adaptive_flux.cxx -o adaptive_flux.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/adaptive_flux.cxx -o adaptive_flux.o
 
 ausm_plus_up.o : $(SRC)/ausm_plus_up.cxx $(SRC)/flux_calc.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/ausm_plus_up.cxx -o ausm_plus_up.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/ausm_plus_up.cxx -o ausm_plus_up.o
 
 hlle.o : $(SRC)/hlle.cxx $(SRC)/flux_calc.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/hlle.cxx -o hlle.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/hlle.cxx -o hlle.o
 
 flux_calc.o : $(SRC)/flux_calc.cxx $(SRC)/flux_calc.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/flux_calc.cxx -o flux_calc.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/flux_calc.cxx -o flux_calc.o
 
 ausm.o : $(SRC)/ausm.cxx $(SRC)/flux_calc.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/ausm.cxx -o ausm.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/ausm.cxx -o ausm.o
 
 cell.o : $(SRC)/cell.cxx $(SRC)/flux_calc.hh $(SRC)/cell.hh $(SRC)/kernel.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/cell.cxx -o cell.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/cell.cxx -o cell.o
 
 one_d_interp.o : $(SRC)/one_d_interp.cxx $(SRC)/cell.hh $(SRC)/one_d_interp.hh $(SRC)/kernel.hh \
 		$(SRC)/one_d_interp_scalar.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/one_d_interp.cxx -o one_d_interp.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/one_d_interp.cxx -o one_d_interp.o
 
 flex_cell.o: $(SRC)/flex_cell.cxx $(SRC)/flex_cell.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/flex_cell.cxx -o flex_cell.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/flex_cell.cxx -o flex_cell.o
 
 c-flow-condition.o : $(SRC)/c-flow-condition.cxx $(SRC)/c-flow-condition.hh $(GAS)/models/gas_data.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/c-flow-condition.cxx
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/c-flow-condition.cxx
 
 lua_service.o : $(UTIL_SRC)/lua_service.hh $(UTIL_SRC)/lua_service.cxx
-	$(CXX) $(CXXFLAG) $(UTIL_SRC)/lua_service.cxx -I$(LUA_INCLUDE_DIR) -I$(ZLIB)
+	$(CXXCOMPILE) $(CXXFLAG) $(UTIL_SRC)/lua_service.cxx -I$(LUA_INCLUDE_DIR) -I$(ZLIB)
 
 lua_service_for_e3.o : $(SRC)/lua_service_for_e3.cxx $(SRC)/lua_service_for_e3.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/lua_service_for_e3.cxx
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/lua_service_for_e3.cxx
 
 dbc_assert.o : $(UTIL_SRC)/dbc_assert.cxx $(UTIL_SRC)/dbc_assert.hh
-	$(CXX) $(CXXFLAG) $(UTIL_SRC)/dbc_assert.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(UTIL_SRC)/dbc_assert.cxx
 
 thermo-interpolator.o : $(SRC)/thermo-interpolator.hh $(SRC)/thermo-interpolator.cxx \
 		$(SRC)/one_d_interp_scalar.hh
-	$(CXX) $(CXXFLAG) $(SRC)/thermo-interpolator.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/thermo-interpolator.cxx
 
 rhoe-interpolator.o : $(SRC)/rhoe-interpolator.hh $(SRC)/rhoe-interpolator.cxx \
 		$(SRC)/one_d_interp_scalar.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/rhoe-interpolator.cxx
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/rhoe-interpolator.cxx
 
 rhop-interpolator.o : $(SRC)/rhop-interpolator.hh $(SRC)/rhop-interpolator.cxx \
 		$(SRC)/one_d_interp_scalar.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/rhop-interpolator.cxx
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/rhop-interpolator.cxx
 
 rhoT-interpolator.o : $(SRC)/rhoT-interpolator.hh $(SRC)/rhoT-interpolator.cxx \
 		$(SRC)/one_d_interp_scalar.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/rhoT-interpolator.cxx
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/rhoT-interpolator.cxx
 
 pT-interpolator.o : $(SRC)/pT-interpolator.hh $(SRC)/pT-interpolator.cxx \
 		$(SRC)/one_d_interp_scalar.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/pT-interpolator.cxx
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/pT-interpolator.cxx
 
 radiation_transport.o : $(SRC)/radiation_transport.hh $(SRC)/radiation_transport.cxx \
 		$(LUA_INCLUDE_DIR)
-	$(CXX) $(PCA) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/radiation_transport.cxx \
+	$(CXXCOMPILE) $(PCA) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/radiation_transport.cxx \
 		-I$(LUA_INCLUDE_DIR)
 
 implicit.o : $(SRC)/implicit.cxx $(SRC)/implicit.hh $(LIBLUA)
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/implicit.cxx -o implicit.o
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/implicit.cxx -o implicit.o
 
 cell_finder.o : $(SRC)/cell_finder.cxx $(SRC)/cell_finder.hh
-	$(CXX) $(PCA) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/cell_finder.cxx -o cell_finder.o
+	$(CXXCOMPILE) $(PCA) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/cell_finder.cxx -o cell_finder.o
 
 mersenne.o : $(UTIL_SRC)/mersenne.cpp $(UTIL_SRC)/randomc.h
-	$(CXX) $(CXXFLAG) $(UTIL_SRC)/mersenne.cpp
+	$(CXXCOMPILE) $(CXXFLAG) $(UTIL_SRC)/mersenne.cpp
 
 ray_tracing_pieces.o : $(SRC)/ray_tracing_pieces.cxx $(SRC)/ray_tracing_pieces.hh 
-	$(CXX) $(CXXFLAG) $(SRC)/ray_tracing_pieces.cxx -I$(LUA_INCLUDE_DIR)
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/ray_tracing_pieces.cxx -I$(LUA_INCLUDE_DIR)
 
 bgk.o : $(SRC)/bgk.cxx $(SRC)/bgk.hh
-	$(CXX) $(CXXFLAG) $(SRC)/bgk.cxx -o bgk.o
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/bgk.cxx -o bgk.o
 
 #
 #---------------------------- end of makefile -----------------------------

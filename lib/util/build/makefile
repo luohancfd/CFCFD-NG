@@ -38,13 +38,13 @@ endif
 #----------------------------------------------------
 
 config_parser.o : $(SRC)/config_parser.cxx $(SRC)/config_parser.hh
-	$(CXX) $(CXXFLAG) $(SRC)/config_parser.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/config_parser.cxx
 
 string_util.o : $(SRC)/string_util.cxx $(SRC)/string_util.hh
-	$(CXX) $(CXXFLAG) $(SRC)/string_util.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/string_util.cxx
 
 dbc_assert.o : $(SRC)/dbc_assert.cxx $(SRC)/dbc_assert.hh
-	$(CXX) $(CXXFLAG) $(SRC)/dbc_assert.cxx
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/dbc_assert.cxx
 
 
 

@@ -84,7 +84,7 @@ RAD_OBJECTS := spectral_model.o \
 	parade_radiator.o \
 	mersenne.o \
 	line_shapes.o
-	
+
 ifeq ($(WITH_SPRADIAN), 1)
     RAD_OBJECTS += spradian.o spradian_radiator.o radipac6.o
 endif
@@ -155,19 +155,19 @@ else
 	@echo "http://www.grc.nasa.gov/WWW/CEAWeb/"
 	@echo "--------------------------------------------------------------------"
 endif
-	
+
 test: install
 	cd ../test; make test WITH_SPRADIAN=$(WITH_SPRADIAN) WITH_PARADE=$(WITH_PARADE) 
-	
+
 clean :
 	- rm *.o *.py $(LIBRAD) $(LOADABLE_MODULE) *.x *.a *.mod $(TEST_EXE) $(EXE) _librad.*
 	- rm $(SRC)/radpy.py $(SRC)/radpy_wrap.cxx
 	- cd $(GAS)/build; make clean
-	
+
 clean_local :
 	- rm *.o *.py $(LIBRAD) $(LOADABLE_MODULE) *.x *.a *.mod $(TEST_EXE)
 	- rm $(SRC)/radpy.py $(SRC)/radpy_wrap.cxx
-	
+
 clean_swig :
 	- rm radpy.py $(LOADABLE_MODULE) radpy_wrap.o
 	- rm $(SRC)/radpy.py $(SRC)/radpy_wrap.cxx
@@ -175,7 +175,7 @@ clean_swig :
 #----------- External libraries
 $(LIBGAS) :
 	cd $(GAS)/build; make TARGET=$(TARGET) OPT=$(OPT) libgas.a
-	
+
 $(GASPY) :
 	cd $(GAS)/build; make TARGET=$(TARGET) OPT=$(OPT) install
 
@@ -184,10 +184,10 @@ $(LIBNM) :
 
 $(LIBUTIL) :
 	cd $(UTIL)/build; make TARGET=$(TARGET) OPT=$(OPT) libutil.a
-	
+
 $(LIBGEOM) :
 	cd $(GEOM)/build; make TARGET=$(TARGET) OPT=$(OPT) libgeom2.a
-	
+
 # Assume linux
 PLAT := linux
 ifeq ($(findstring Darwin, $(SYSTEM)), Darwin)
@@ -219,7 +219,7 @@ _radpy.dylib : radpy_wrap.o $(LIBRAD) $(LIBNM) $(LIBZLIB) $(LIBGEOM)
 	$(CXXLINK) $(LDFLAG) $(FLINK) $(OMPFLAG) -o _radpy.dylib radpy_wrap.o \
 		$(LIBRAD) $(LIBNM) $(LIBLUA) $(LIBZLIB) $(LIBGEOM) \
 		-framework Python -bundle -bundle_loader $(PYTHON_BIN_DIR)/python 
-		 
+
 # ----------  Loadable library for Python under MS-Windows --------
 _radpy.dll : radpy_wrap.o $(LIBRAD) $(LIBNM) $(LIBPYTHON) $(LIBZLIB) $(LIBGEOM)
 	$(CXXLINK) $(LDFLAG) $(FLINK) $(OMPFLAG) -shared -o _radpy.dll radpy_wrap.o \
@@ -249,112 +249,112 @@ endif
 # -----------  Swig wrapper -----------
 
 radpy_wrap.o : $(SRC)/radpy_wrap.cxx $(LIBLUA)
-	$(CXX) $(CXXFLAG3) $(SRC)/radpy_wrap.cxx \
+	$(CXXCOMPILE) $(CXXFLAG3) $(SRC)/radpy_wrap.cxx \
 	-I$(PYTHON_INCLUDE_DIR) -I$(LUA_INCLUDE_DIR)
 
 # -----------  Object files -----------
 
 spectral_model.o : $(SRC)/spectral_model.cxx $(SRC)/spectral_model.hh \
 		$(GAS)/models/gas_data.hh $(LUA_INCLUDE_DIR)
-	$(CXX) $(CXXFLAG) -DWITH_SPRADIAN=$(WITH_SPRADIAN) $(SRC)/spectral_model.cxx \
+	$(CXXCOMPILE) $(CXXFLAG) -DWITH_SPRADIAN=$(WITH_SPRADIAN) $(SRC)/spectral_model.cxx \
 		-I$(LUA_INCLUDE_DIR)
 
 equilibrium_air.o : $(SRC)/equilibrium_air.cxx $(SRC)/equilibrium_air.hh \
 		$(SRC)/spectral_model.hh $(SRC)/radiation_constants.hh $(GAS)/models/gas_data.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/equilibrium_air.cxx
-	
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/equilibrium_air.cxx
+
 lua_service.o : $(UTIL_SRC)/lua_service.hh $(UTIL_SRC)/lua_service.cxx $(LUA_INCLUDE_DIR)
-	$(CXX) $(CXXFLAG) $(UTIL_SRC)/lua_service.cxx -I$(LUA_INCLUDE_DIR) -I$(ZLIB)
-	
+	$(CXXCOMPILE) $(CXXFLAG) $(UTIL_SRC)/lua_service.cxx -I$(LUA_INCLUDE_DIR) -I$(ZLIB)
+
 photaura.o : $(SRC)/photaura.cxx $(SRC)/photaura.hh \
 		$(SRC)/photaura.hh $(SRC)/radiation_constants.hh \
 		$(SRC)/spectral_model.hh $(GAS)/models/gas_data.hh
-	$(CXX) $(CXXFLAG) $(SRC)/photaura.cxx -I$(LUA_INCLUDE_DIR)
-	
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/photaura.cxx -I$(LUA_INCLUDE_DIR)
+
 radiator.o : $(SRC)/radiator.cxx $(SRC)/radiator.hh $(SRC)/photoionisation.hh
-	$(CXX) $(CXXFLAG) $(SRC)/radiator.cxx -I$(LUA_INCLUDE_DIR)
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/radiator.cxx -I$(LUA_INCLUDE_DIR)
 
 atomic_radiator.o : $(SRC)/atomic_radiator.cxx $(SRC)/atomic_radiator.hh \
 		$(SRC)/radiator.hh $(SRC)/spectral_model.hh
-	$(CXX) $(CXXFLAG) $(SRC)/atomic_radiator.cxx -I$(LUA_INCLUDE_DIR)
-	
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/atomic_radiator.cxx -I$(LUA_INCLUDE_DIR)
+
 atomic_line.o : $(SRC)/atomic_line.cxx $(SRC)/atomic_line.hh
-	$(CXX) $(CXXFLAG) $(SRC)/atomic_line.cxx -I$(LUA_INCLUDE_DIR)
-	
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/atomic_line.cxx -I$(LUA_INCLUDE_DIR)
+
 diatomic_radiator.o : $(SRC)/diatomic_radiator.cxx $(SRC)/diatomic_radiator.hh \
 		$(SRC)/radiator.hh $(SRC)/spectral_model.hh
-	$(CXX) $(CXXFLAG) $(SRC)/diatomic_radiator.cxx -I$(LUA_INCLUDE_DIR)
-	
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/diatomic_radiator.cxx -I$(LUA_INCLUDE_DIR)
+
 diatomic_system.o : $(SRC)/diatomic_system.cxx $(SRC)/diatomic_system.hh \
 		$(SRC)/diatomic_radiator.hh
-	$(CXX) $(CXXFLAG) $(SRC)/diatomic_system.cxx -I$(LUA_INCLUDE_DIR)
-	
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/diatomic_system.cxx -I$(LUA_INCLUDE_DIR)
+
 diatomic_band.o : $(SRC)/diatomic_band.cxx $(SRC)/diatomic_band.hh
-	$(CXX) $(CXXFLAG) $(SRC)/diatomic_band.cxx -I$(LUA_INCLUDE_DIR)
-	
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/diatomic_band.cxx -I$(LUA_INCLUDE_DIR)
+
 polyatomic_radiator.o : $(SRC)/polyatomic_radiator.cxx $(SRC)/polyatomic_radiator.hh \
 		$(SRC)/radiator.hh $(SRC)/spectral_model.hh
-	$(CXX) $(CXXFLAG) $(SRC)/polyatomic_radiator.cxx -I$(LUA_INCLUDE_DIR)
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/polyatomic_radiator.cxx -I$(LUA_INCLUDE_DIR)
 
 electron_radiator.o : $(SRC)/electron_radiator.cxx $(SRC)/electron_radiator.hh \
 		$(SRC)/radiator.hh
-	$(CXX) $(CXXFLAG) $(SRC)/electron_radiator.cxx -I$(LUA_INCLUDE_DIR)
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/electron_radiator.cxx -I$(LUA_INCLUDE_DIR)
 
 planck_radiator.o : $(SRC)/planck_radiator.cxx $(SRC)/planck_radiator.hh \
 		$(SRC)/radiator.hh
-	$(CXX) $(CXXFLAG) $(SRC)/planck_radiator.cxx -I$(LUA_INCLUDE_DIR)
-	
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/planck_radiator.cxx -I$(LUA_INCLUDE_DIR)
+
 spectra_pieces.o : $(SRC)/spectra_pieces.cxx $(SRC)/spectra_pieces.hh 
-	$(CXX) $(CXXFLAG) $(SRC)/spectra_pieces.cxx  -I$(LUA_INCLUDE_DIR)
-	
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/spectra_pieces.cxx  -I$(LUA_INCLUDE_DIR)
+
 LOS_pieces.o : $(SRC)/LOS_pieces.cxx $(SRC)/LOS_pieces.hh 
-	$(CXX) $(CXXFLAG) $(SRC)/LOS_pieces.cxx  -I$(LUA_INCLUDE_DIR)
-	
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/LOS_pieces.cxx  -I$(LUA_INCLUDE_DIR)
+
 photoionisation.o : $(SRC)/photoionisation.cxx $(SRC)/photoionisation.hh
-	$(CXX) $(CXXFLAG) $(SRC)/photoionisation.cxx -I$(LUA_INCLUDE_DIR)
-	
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/photoionisation.cxx -I$(LUA_INCLUDE_DIR)
+
 cr_reactions.o : $(SRC)/cr_reactions.cxx $(SRC)/cr_reactions.hh $(SRC)/cr_rr_coeffs.hh
-	$(CXX) $(CXXFLAG) $(SRC)/cr_reactions.cxx -I$(LUA_INCLUDE_DIR)
-	
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/cr_reactions.cxx -I$(LUA_INCLUDE_DIR)
+
 cr_rr_coeffs.o : $(SRC)/cr_rr_coeffs.cxx $(SRC)/cr_rr_coeffs.hh
-	$(CXX) $(CXXFLAG) $(SRC)/cr_rr_coeffs.cxx -I$(LUA_INCLUDE_DIR)
-	
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/cr_rr_coeffs.cxx -I$(LUA_INCLUDE_DIR)
+
 parade.o : $(SRC)/parade.cxx $(SRC)/parade.hh \
 		$(SRC)/spectral_model.hh $(SRC)/radiation_constants.hh $(SRC)/parade_radiator.hh \
 		$(GAS)/models/gas_data.hh
-	$(CXX) $(CXXFLAG) $(OMPFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/parade.cxx
-	
+	$(CXXCOMPILE) $(CXXFLAG) $(OMPFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/parade.cxx
+
 parade_radiator.o : $(SRC)/parade_radiator.cxx $(SRC)/parade_radiator.hh
-	$(CXX) $(CXXFLAG) $(SRC)/parade_radiator.cxx -I$(LUA_INCLUDE_DIR)
-	
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/parade_radiator.cxx -I$(LUA_INCLUDE_DIR)
+
 spradian.o : $(SRC)/spradian.cxx $(SRC)/spradian.hh \
 		$(SRC)/spectral_model.hh $(SRC)/radiation_constants.hh $(SRC)/spradian_radiator.hh \
 		$(GAS)/models/gas_data.hh
-	$(CXX) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/spradian.cxx
-	
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/spradian.cxx
+
 spradian_radiator.o : $(SRC)/spradian_radiator.cxx $(SRC)/spradian_radiator.hh
-	$(CXX) $(CXXFLAG) $(SRC)/spradian_radiator.cxx -I$(LUA_INCLUDE_DIR)
-	
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/spradian_radiator.cxx -I$(LUA_INCLUDE_DIR)
+
 radipac6.o : $(SPRADIAN_SRC)/radipac6.f90
 	$(F90) $(F90FLAG) $(SPRADIAN_SRC)/radipac6.f90
 
 mersenne.o : $(UTIL_SRC)/mersenne.cpp $(UTIL_SRC)/randomc.h
-	$(CXX) $(CXXFLAG) $(UTIL_SRC)/mersenne.cpp
-	
+	$(CXXCOMPILE) $(CXXFLAG) $(UTIL_SRC)/mersenne.cpp
+
 line_shapes.o : $(SRC)/line_shapes.cxx $(SRC)/line_shapes.hh 
-	$(CXX) $(CXXFLAG) $(SRC)/line_shapes.cxx  -I$(LUA_INCLUDE_DIR)
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/line_shapes.cxx  -I$(LUA_INCLUDE_DIR)
 
 # ------------ Test executables ------------
 
 cea2 : $(CEA2)/cea2.f
 	gfortran -std=legacy -o cea2 $(CEA2)/cea2.f
-	
+
 # ------------ Executables -----------------
-	
+
 run_spradian.x : run_spradian.o $(LIBRAD) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LIBGEOM)
 	$(CXXLINK) $(LFLAG) $(FLINK) -o run_spradian.x run_spradian.o \
 		$(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LUALINK) $(LIBGEOM) 
-	
+
 run_spradian.o : $(SRC)/run_spradian.cxx 
-	$(CXX) $(CXXFLAG) $(SRC)/run_spradian.cxx -I$(LUA_INCLUDE_DIR)
-	
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/run_spradian.cxx -I$(LUA_INCLUDE_DIR)
+
