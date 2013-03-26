@@ -11,7 +11,7 @@
 # Version: 08-May-2012 - Initial completed and working code
 #          04-Feb-2013 - Added --RSAfile and --add-extra-variables
 #                        options. 
-# 
+#          05-Feb-2013 - Added Root-Sum-Square to summary file 
 VERSION_STRING = "04-Feb-2013"
 
 import shlex, subprocess, string

@@ -6,7 +6,7 @@
 # cone static pressure thereby allowing direct 
 # comparison to experimental survey data.
 #
-# It assumes and IDEAL GAS
+# It assumes an IDEAL GAS
 # 
 # Luke Doherty
 # School of Mechanical and Mining Engineering

@@ -289,7 +289,7 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
     gdata.T[0] = data['T[0]'][0]
     gmodel.eval_thermo_state_rhoT(gdata)
     vx = massFlux/(gdata.rho*Area)
-    # print "Before optimizer, vx=", vx, "p=", gdata.p, "T=", gdata.T[0], "rho=", gdata.rho
+    #print "Before optimizer, vx=", vx, "p=", gdata.p, "T=", gdata.T[0], "rho=", gdata.rho
     #
     def error_estimate(params, 
                        gasData=gdata, gasModel=gmodel,
@@ -321,15 +321,15 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
                                                      [gdata.rho, gdata.T[0], vx],
                                                      [0.01, 10.0, 10.0])
     rho, T, vx = flow_params
-    # print "fx=", fx
-    # print "convergence-flag=", conv_flag
-    # print "number-of-fn-evaluations=", nfe
-    # print "number-of-restarts=", nres
+    #print "fx=", fx
+    #print "convergence-flag=", conv_flag
+    #print "number-of-fn-evaluations=", nfe
+    #print "number-of-restarts=", nres
     gdata.T[0] = T
     gdata.rho = rho
     gmodel.eval_thermo_state_rhoT(gdata)
     p = gdata.p
-    # print "After optimizer, vx=", vx, "p=", p, "T=", T, "rho=", rho
+    #print "After optimizer, vx=", vx, "p=", p, "T=", T, "rho=", rho
     g = gmodel.gamma(gdata)
     R = gmodel.R(gdata)
     M = vx/gdata.a
