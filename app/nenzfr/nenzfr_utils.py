@@ -90,13 +90,15 @@ def read_case_summary(FileToRead=None):
     fp.close()
     return perturbedVariables, DictOfCases
 
-def read_nenzfr_outfile(FileToRead):
+def read_nenzfr_outfile(FileToRead,inclStats=0):
     """
     Reads the nenzfr out-file containing the statistics of the
     exit flow properties.
 
     :FileToRead: the name of the file to be read. Default should be
                  something like "nozzle-exit.stats"
+    :inclStats: specify whether the min, max, and standard deviation
+                should also be returned
     :returns: a list of all the exit flow property names  and a
               dictionary of the mean-values.
     """
@@ -117,7 +119,13 @@ def read_nenzfr_outfile(FileToRead):
         values = [k for k in data if k!=""]
         variable = values[0]
         exitProperty.append(variable)
-        exitDataDict[variable] = float(values[1])
+        if inclStats == 0: # Return just the mean value (default)
+            exitDataDict[variable] = float(values[1])
+        elif inclStats == 1: # Return a dictionary of all values
+            exitDataDict[variable] = {'mean':float(values[1]),
+                                      'min':float(values[2]),
+                                      'max':float(values[3]),
+                                      'std':float(values[4])}
     fp.close()
     return exitDataDict, exitProperty
 
