@@ -1,21 +1,44 @@
 #!/usr/bin/env python
 # nenzfr_GCI.py
 #
-# This script calculates the Grid Convergence Index (GCI)
-# for each nozzle exit flow property. The calculation 
-# method follows that of:
+# This script calculates the Grid Convergence Index/Error (GCI)
+# for each nozzle exit flow property. Two calculation methods 
+# are currently implemented:
+#  (1) Linear fit - fit a straight line and extrapolate to
+#      zero cell size to get the "true" value.
+#  (2) Reference Solution - consider the solution on the 
+#      finest grid as the "truth"
 #
+# I initially tried to implement the convergence index method
+# developed by Roache however I found that nenzfr exhibits
+# oscillatory convergences for many of the freestream properties
+# (at least for the Mach 10 nozzle). Hence the above methods 
+# were used instead. My current hypothesis is that the oscillatory
+# convergence is related to the wall y+ not being less then 1
+# for the entire nozzle.
+#
+# See the following for more:
+#  - Oberkampf, W.L. and Roy, C.J. (2010)
+#    Verification and Validation in Scientific Computing
+#    Cambridge University Press
+#    New York
+#    Chapter 8
+#  - Editorial Policy of the Journal of Fluids Engineering
 #
 #
 # Luke Doherty
 # School of Mechanical and Mining Engineering
 # The University of Queensland
 
-VERSION_STRING = "23-March-2013"
+VERSION_STRING = "26-March-2013"
 
 import string
 import sys, os, gzip, glob, copy
 import optparse
+
+import matplotlib as mpl
+mpl.use('PDF')
+from matplotlib import pyplot as plt
 
 from nenzfr_utils import read_nenzfr_outfile, run_command
 from nenzfr_stats import get_slice_data
@@ -24,7 +47,6 @@ from e3_flow import StructuredGridFlow
 
 import numpy as np
 import math
-#from matplotlib import pyplot as plt
 
 from scipy.optimize import curve_fit
 from scipy.stats import linregress
@@ -35,6 +57,9 @@ sys.path.append(E3BIN)
 #---------------------------------------------------------------------
 def calculate_representative_cell_size(dataFolder):
     """
+    Calculate the average cell size by loading in the flow solution,
+    and summing up the volume/area of each cell. This method is not
+    very efficient (computationally).
     """
     fileList = glob.glob(dataFolder+"/flow/t9999/*.gz")
     GridFlowData = []
@@ -131,6 +156,9 @@ def func_increasing(x, a, b, c):
     return a - b*np.exp(c*x)
 
 def func(x, a, b):
+    """
+    Linear equation
+    """
     #return a - b*np.exp(c*x)
     #return a + b*np.power(x,c)
     return a + b*x
@@ -139,7 +167,7 @@ def func(x, a, b):
 def main():
     """
     Examine the command-line options, load the necessary data and then calculate 
-    the Grid Convergence Index for each nozzle exit flow property.
+    the Grid Convergence Error for each nozzle exit flow property.
     """
     op = optparse.OptionParser(version=VERSION_STRING)
     
@@ -171,7 +199,11 @@ def main():
                   "Choices are (1) 'linear-fit' : fit a straight line and extrapolate "
                   "cell size = zero, or (2) 'ref-solution' : consider the solution on "
                   "the finest grid as the 'truth'. [default: %default]" ))
-    
+
+    op.add_option('--generate-plots', dest='generatePlots', action='store_true',
+                  default=False, help=("generate plots showing the convergence trends "
+                  "for each freestream property [default: %default]"))
+
     opt, args = op.parse_args() 
 
     # Read the case list file
@@ -300,6 +332,11 @@ def main():
         elif opt.method in ['roacheGCI']:
             print "Calculation method roacheGCI has not yet been implemented"
             continue
+            # Below are my intial attempts at implementing Roache's GCI
+            # method. Perhaps when I have time I'll revisit this and 
+            # complete the implementation with necessary checks...
+            #
+            #
             ## Check that the grids follow the recommendation
             #assert h3/h1 > 1.3
             #print "h1=",h1
@@ -347,7 +384,7 @@ def main():
     print "Writing data files..."
     if opt.method in ['linear-fit']:
         # For the linear fit method we write a file containing
-        # all the regression results
+        # the regression results
         fp = open('linear-fit-regression-params.dat','w')
         fp.write('# property:        slope:    intercept:   r_value:    p_value:      std_err\n')
         for exitVar in exitProperty[case_list[0]]:
@@ -378,91 +415,125 @@ def main():
                 fp.write('{0:>9.4f}\n'.format(grid_errors[exitVar][case]))
     fp.close()
     
-     
-    jnk
+    # If desired we set about generating plots. Ideally we would use 
+    # matplotlib however I couldn't get it to print figures directly
+    # to pdf on mango. So I decided to use gnuplot. Some more notes 
+    # are given below. 
+    if opt.generatePlots is True:
+        # Create a directory in which to save the figures
+        if not os.path.exists("./figs/"):
+            print "Creating figure directory..."
+            run_command('mkdir figs')
+        
+        print "Creating plots (via gnuplot)..." 
+        # Data file for use with gnuplot
+        fp1 = open('data.dat','w')
+        for case in case_list:
+            fp1.write('{0:s}\t'.format(case))
+            fp1.write('{0:g}\t'.format(cellsize[case]))
+            for exitVar in exitProperty[case_list[0]]:
+                fp1.write('{0:g}\t'.format(FlowData[case][exitVar]))
+            fp1.write('\n')
+        fp1.close()
+        # Linear-fit data file for use with gnuplot
+        if opt.method in ['linear-fit',]:
+            fp2 = open('fitted.dat','w')
+            #print cellsize.values()
+            #print np.max(cellsize.values())
+            xFit = np.linspace(0,np.max(cellsize.values())*1.1,200)
+            for k in range(len(xFit)):
+                fp2.write('{0:g}\t'.format(xFit[k]))
+                for exitVar in exitProperty[case_list[0]]:
+                     yFit = linear_fit_params[exitVar]['intercept'] +\
+                            linear_fit_params[exitVar]['slope']*xFit[k]
+                     fp2.write('{0:g}\t'.format(yFit))
+                fp2.write('\n')
+            fp2.close()
+        # gnuplot script
+        fp2 = open('gnuplot_script.txt','w')
+        column = 0
+        for exitVar in exitProperty[case_list[0]]:
+            column += 1
+            fp2.write('# {0:s}\n'.format(exitVar))
+            fp2.write('reset\n')
+            fp2.write('set terminal postscript enhanced color eps font ')
+            fp2.write('"Palatino,20" size 7.7cm,7.8cm\n')
+            if exitVar in ['p/q',]:
+                fp2.write('set output "./figs/{0:s}.eps"\n'.format('p-on-q'))
+            else:
+                fp2.write('set output "./figs/{0:s}.eps"\n'.format(exitVar))
+            fp2.write('set bmargin at screen 0.1474\n')
+            fp2.write('set tmargin at screen 0.85\n')
+            fp2.write('set lmargin at screen 0.235\n')
+            fp2.write('set rmargin at screen 0.96\n')
+            fp2.write('set xlabel "Cell size, 10^{-4} m"\n')
+            #fp2.write('set ylabel "{0:s}"\n'.format(exitVar))
+            fp2.write('set format y "%g"\n')
+            if exitVar in ['total_h','Re_u',]:
+                fp2.write('set title "{0:s}, 10^6"\n'.format(exitVar))
+            else:
+                fp2.write('set title "{0:s}"\n'.format(exitVar))
+            fp2.write('#set key tmargin left Left reverse samplen 2 font ",18" maxrows 2 width 5\n')
+            if exitVar in ['total_h','Re_u']:
+                fp2.write('plot "data.dat" using ($2*10000):(${0:d}/1e6) '.format(column+2))
+                fp2.write('notitle with points pt 7 lc 1 ps 1.5,\\\n')
+                fp2.write('     "fitted.dat" using ($1*10000):(${0:d}/1e6) '.format(column+1))
+                fp2.write('notitle with lines lt 1 lw 1.5\n')
+            else:
+                fp2.write('plot "data.dat" using ($2*10000):{0:d} '.format(column+2))
+                fp2.write('notitle with points pt 7 lc 1 ps 1.5,\\\n')
+                fp2.write('     "fitted.dat" using ($1*10000):{0:d} '.format(column+1))
+                fp2.write('notitle with lines lt 1 lw 1.5\n')
+            fp2.write('\n')
+        fp2.close()
 
+        run_command('gnuplot < gnuplot_script.txt')
+
+        # I couldn't get the following to work on mango. There are
+        # issues with the version of matplotlib and other missing
+        # programs (dvipng ??) and I don't have the time nor
+        # patience to sort it out.
+        # 
+        ## Some setup. Alter as desired to suit your needs
+        #params = {'text.usetex': True,
+        #          'font.family': 'serif',
+        #          'font.serif': 'Palatino',
+        #          'axes.labelsize': 10,
+        #          'text.fontsize': 9,
+        #          'legend.fontsize': 9,
+        #          'xtick.labelsize': 10,
+        #          'ytick.labelsize': 10,
+        #          'figure.figsize': [3,3],
+        #          'figure.dpi': 300,
+        #          'lines.linewidth': 2} 
+        #plt.rcParams.update(params)
+        # 
+        ## Loop over each freestream property
+        #for exitVar in ['p',]: #exitProperty[case_list[0]]:
+        #    print "Creating figure for:",exitVar
+        #    # Assemble data to be plotted
+        #    y = np.array([])
+        #    x = np.array([])
+        #    for case in case_list:
+        #        y = np.append(y, FlowData[case][exitVar])
+        #        x = np.append(x, cellsize[case])
+        #    
+        #    if opt.method in ['linear-fit',]:
+        #        xFit = np.linspace(0,np.max(x)*1.1,250)
+        #        yFit = linear_fit_params[exitVar]['intercept'] +\
+        #               linear_fit_params[exitVar]['slope']*xFit
+        #    
+        #    # Create plot
+        #    plt.figure(1)
+        #    plt.clf()
+        #    plt.plot(x*10000,y,'.b',xFit*10000,yFit,'-r')
+        #    plt.ylabel(exitVar)
+        #    plt.xlabel('Cell size, 10^{-4} m')
+        #    figName = "./figs/"+exitVar+".pdf"
+        #    plt.tight_layout()
+        #    plt.savefig(figName)
     
 
-    x = np.array([1./300.,1./200.,1./100.,1./100,1./80.])
-    
-    xFit = np.linspace(0,np.max(x),1000)
-    #for exitVar in exitProperty[case_list[0]]:
-    exitVar = 'p'
-    # Assemble "y" vectors
-    y = np.array([])
-    for case in case_list:
-        y = np.append(y, FlowData[case][exitVar])
-    print
-    print x
-    print
-    print x/x[0]
-    print
-    print y
-    
-    # Calculate an initial guess for the equation coefficients
-    ##a = y[0]/2
-    #b = 1.0 #-( 0.5*(x[-1]+x[0])/(x[-1]-x[0])*y[0] - x[0]/(x[-1]-x[0])*y[-1] )
-    #c = (y[-1] - y[0])/(x[0] - x[-1])
-    #a = y[-1] + 1 + c*x[-1]
-    ##b = 1.0
-    ##c = (y[0] - y[-1])/(x[0] - x[-1])
-    ##a = y[0] - 1 - c*x[0]
-    
-    #print "a=",a," b=",b," c=",c
-    
-    #yTestDec = func_decreasing(xFit,a,b,c)
-    #yTestInc = func_increasing(xFit,a,b,c)
-    #yTest = func(xFit,a,5*b,c/10.)
-    
-    #plt.plot(x,y,'.b',xFit,yTest,'-r') #yTestDec,'-r',xFit,yTestInc,'-k')
-    ##plt.xscale('log')
-    ##plt.yscale('log')
-    #plt.ylim(600,700)
-    #plt.show()
-    
-    #jnk
-    
-    #if y[0] > y[-1]:
-    #    # Infer that the data is approaching the asymptote
-    #    # from above.
-    #    print "Decreasing function fitted for ",exitVar
-    #    try: 
-    #        popt, pcov = curve_fit(func_decreasing, x, y, p0=[y[-1],1.,5000.])
-    #
-    #        yFit = func_decreasing(xFit, popt[0], popt[1], popt[2])
-    #    except RuntimeError:
-    #        print "Error - curve_fit failed for ",exitVar
-    #else:
-    #    # Infer that the data is approaching the asymptote
-    #    # from below.
-    #    print "Increasing function fitted for ",exitVar
-    #    #try:
-    #    #    popt, pcov = curve_fit(func, x, y, p0=[a,5.*b,c/10.])
-    #    #    yFit = func(xFit, popt[0], popt[1], popt[2])
-    #    #    #popt, pcov = curve_fit(func_increasing, x, y, p0=None)
-    #    # 
-    #    #    #yFit = func_decreasing(xFit, popt[0], popt[1], popt[2])
-    #    #except RuntimeError:
-    #    #    print "Error - curve_fit failed for ",exitVar
-    popt, pcov, infodict, errmsg, ier = \
-          curve_fit(func, x, y, p0=[y[0],1.0], maxfev=5000, full_output=1)
-    yFit = func(xFit, popt[0], popt[1])
-    
-    #print "a_opt=",popt[0]," b_opt=",popt[1]," c_opt=",popt[2]
-    #print "a_var=",pcov[0]," b_var=",pcov[1]," c_var=",pcov[2]
-    print "opt=",popt
-    print "cov=",pcov
-    print exitVar,"_true estimate=",func(0,popt[0],popt[1])
-    print infodict
-    
-    plt.plot(x,y,'.b',xFit,yFit,'-r')
-    plt.ylim(600,700)
-    #plt.xscale('log')
-    #plt.yscale('log')
-    plt.show() 
-    
-    
-    
     
     return 0
     

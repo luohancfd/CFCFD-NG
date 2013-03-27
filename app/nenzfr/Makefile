@@ -11,7 +11,7 @@ TARGET := for_gnu
 OPT := -O2
 PROGRAMS := estcj.py nenzfr.py nenzfr_utils.py nenzfr_stats.py nenzfr_parallel.py \
 	nenzfr_compute_viscous_data.py nenzfr_quasi_transient.py nenzfr_sensitivity.py \
-	nenzfr_perturbed.py nenzfr_RSA.py
+	nenzfr_perturbed.py nenzfr_RSA.py nenzfr_GCI.py
 
 install : $(INSTALL_DIR) $(PROGRAMS)
 	@echo Copying executable files to $(INSTALL_DIR)

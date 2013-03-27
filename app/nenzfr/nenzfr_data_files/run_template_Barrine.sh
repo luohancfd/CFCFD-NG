@@ -10,7 +10,7 @@
 # 16-04-2012
 
 module load intel-mpi
-module load intel-cc-11
+module load intel-cc-13
 module load python
 echo "Where are my nodes?"
 echo $PBS_NODEFILE
@@ -24,9 +24,9 @@ $HOME/e3bin/nenzfr.py --gas=$gasName --T1=$T1 --p1=$p1 --Vs=$Vs --pe=$pe --chem=
 
 echo "End Shared job."
 date
-# As we leave the job, make sure that we leave no processes behind.
-# (The following incantation is from Gerald Hartig.)
-for i in $(cat $PBS_NODEFILE | grep -v 'hostname' | sort -u); do
-    ssh $i pkill -u 'whoami'
-done
-killall -u 'whoami' e3mpi.exe
+## As we leave the job, make sure that we leave no processes behind.
+## (The following incantation is from Gerald Hartig.)
+#for i in $(cat $PBS_NODEFILE | grep -v 'hostname' | sort -u); do
+#    ssh $i pkill -u 'whoami'
+#done
+#killall -u 'whoami' e3mpi.exe
