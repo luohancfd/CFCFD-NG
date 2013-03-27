@@ -398,8 +398,9 @@ def main():
     
     # Summary of the errors
     fp = open("grid-convergence-errors-"+opt.method+".dat",'w')
+    fp.write('# percentage errors relative to the "true-value"\n')
     fp.write('# safety-factor: {0:1.5f}\n'.format(opt.safetyFactor))
-    fp.write('#: property: "true-value": ')
+    fp.write('# property: "true-value": ')
     for case in case_list:
         if case not in [case_list[-1],]:
             fp.write('{0:s}: '.format(case))
@@ -410,9 +411,9 @@ def main():
         fp.write('{0:>12g}  '.format(true_value[exitVar]))
         for case in case_list:
             if case not in [case_list[-1],]:
-                fp.write('{0:>9.4f}  '.format(grid_errors[exitVar][case]))
+                fp.write('{0:>10.4f}  '.format(grid_errors[exitVar][case]))
             else:
-                fp.write('{0:>9.4f}\n'.format(grid_errors[exitVar][case]))
+                fp.write('{0:>10.4f}\n'.format(grid_errors[exitVar][case]))
     fp.close()
     
     # If desired we set about generating plots. Ideally we would use 
