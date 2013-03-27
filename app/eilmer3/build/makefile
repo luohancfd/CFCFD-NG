@@ -17,15 +17,6 @@ MEMORY_SIZE ?= large
 WITH_IMPLICIT ?= 0
 INSTALL_DIR ?= $(HOME)/e3bin
 
-WITH_MPI ?= 0
-ifeq ($(TARGET), for_lam)
-    WITH_MPI := 1
-endif
-
-ifeq ($(TARGET), for_lam_debug)
-    WITH_MPI := 1
-endif
-
 ifeq ($(TARGET), for_openmpi)
     WITH_MPI := 1
 endif
@@ -208,6 +199,11 @@ PY_FILES += $(LOADABLE_MODULE)
 #------------------------------------------------------------
 
 build_new : $(E3_EXE_FILES) $(PY_FILES) 
+	@echo "Built with C and C++ compilers "
+	- $(COMPILE) --version
+	- $(CXXCOMPILE) --version
+	- @echo "CFLAG= $(CFLAG)"
+	- @echo "CXXFLAG= $(CXXFLAG)"
 	@echo "--------------------------------"
 	@echo "Eilmer3 should be now up-to-date"
 	@echo "--------------------------------"

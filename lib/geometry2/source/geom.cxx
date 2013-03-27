@@ -457,7 +457,7 @@ int hexahedron_properties( const Vector3 &p0, const Vector3 &p1,
     // This version subdivides the solid into simpler parts and accumulates 
     // the properties for this parts.
     double v1, v2;
-    struct Vector3 c1, c2;
+    Vector3 c1, c2;
     wedge_properties( p0, p1, p2, p4, p5, p6, c1, v1 );
     wedge_properties( p0, p2, p3, p4, p6, p7, c2, v2 );
     volume = v1 + v2;
@@ -632,12 +632,12 @@ int hex_cell_properties(const Vector3 &p0, const Vector3 &p1,
     // something better than splitting our cell into six tetrahedra.
     centroid = 0.125 * (p0+p1+p2+p3+p4+p5+p6+p7);
     // Mid-points of faces.
-    struct Vector3 pmN = 0.25*(p3+p2+p6+p7);
-    struct Vector3 pmE = 0.25*(p1+p2+p6+p5);
-    struct Vector3 pmS = 0.25*(p0+p1+p5+p4);
-    struct Vector3 pmW = 0.25*(p0+p3+p7+p4);
-    struct Vector3 pmT = 0.25*(p4+p5+p6+p7);
-    struct Vector3 pmB = 0.25*(p0+p1+p2+p3);
+    Vector3 pmN = 0.25*(p3+p2+p6+p7);
+    Vector3 pmE = 0.25*(p1+p2+p6+p5);
+    Vector3 pmS = 0.25*(p0+p1+p5+p4);
+    Vector3 pmW = 0.25*(p0+p3+p7+p4);
+    Vector3 pmT = 0.25*(p4+p5+p6+p7);
+    Vector3 pmB = 0.25*(p0+p1+p2+p3);
     // Lengths between mid-points of faces.
     // Note that we are assuming that the hexahedron is not very skewed
     // when we later use these values as the widths of the hex cell.

@@ -66,7 +66,7 @@ int allocate_send_and_receive_buffers(void)
 
     if ( get_verbose_flag() ) printf("Begin allocate_send_and_receive_buffers()");
     int nv = number_of_values_in_cell_copy(COPY_ALL_CELL_DATA);
-    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
 	for ( int face = 0; face < 6; ++face ) {
 	    int ne = number_of_double_values(face, bdp->nni, bdp->nnj, bdp->nnk, nv);
@@ -95,11 +95,8 @@ int allocate_send_and_receive_buffers(void)
 int delete_send_and_receive_buffers(void) 
 {
     global_data &G = *get_global_data_ptr();
-    Block *bdp;
-
     if ( get_verbose_flag() ) printf("Begin delete_send_and_receive_buffers()");
-    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
-	bdp = G.my_blocks[jb];
+    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	for ( int face = 0; face < 6; ++face ) {
 	    free(send_buffer[jb*6+face]);
 	    send_buffer[jb*6+face] = 0;
@@ -140,7 +137,7 @@ int mpi_exchange_boundary_data(int type_of_copy)
     }
 
     // Post non-blocking receives.
-    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
 	for ( int face = 0; face < nfaces; ++face ) {
 	    if ( bdp->bcp[face]->type_code == ADJACENT ||
@@ -161,7 +158,7 @@ int mpi_exchange_boundary_data(int type_of_copy)
     } // end for jb...
 
     // Blocking sends (to corresponding receives on other processes).
-    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
 	for ( int face = 0; face < nfaces; ++face ) {
 	    if ( bdp->bcp[face]->type_code == ADJACENT ||
@@ -188,7 +185,7 @@ int mpi_exchange_boundary_data(int type_of_copy)
 
     // Wait for receives to complete.
     // Once they complete, copy the data back into the ghost cells.
-    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
 	for ( int face = 0; face < nfaces; ++face ) {
 	    if ( bdp->bcp[face]->type_code == ADJACENT ||

@@ -90,7 +90,7 @@ AR := ar
 #
 
 ifneq ($(MARCH),)
-	MARCH_FLAG := -march=$(MARCH)
+MARCH_FLAG := -march=$(MARCH)
 endif
 
 ifeq ($(TARGET), for_clang)
@@ -107,15 +107,14 @@ ifeq ($(TARGET), for_clang)
 endif
 
 ifeq ($(TARGET), for_gnu)
-    # UNIX/Linux workstation with the default GNU C compiler
-    # Don't specify the processor architecture.
-    COMPILE := gcc 
-    LINK    := gcc
-    CXXCOMPILE := g++
-    CXXLINK := g++
+    # UNIX/Linux workstation with the GNU C compiler
+    COMPILE := gcc$(GNU_SUFFIX)
+    LINK    := gcc$(GNU_SUFFIX)
+    CXXCOMPILE := g++$(GNU_SUFFIX)
+    CXXLINK := g++$(GNU_SUFFIX)
     # Unix/Linux is default
-    CFLAG   := -c $(OPT) -fPIC -W -Wall -pedantic -finline-limit=2400 $(MARCH_FLAG)
-    LFLAG   := $(OPT) -fPIC -finline-limit=2400 $(MARCH_FLAG)
+    CFLAG   := -c $(OPT) -fPIC -W -Wall -pedantic $(MARCH_FLAG)
+    LFLAG   := $(OPT) -fPIC $(MARCH_FLAG)
     CXXFLAG := -c $(OPT) -std=c++0x -fPIC -Wall -pedantic $(MARCH_FLAG)
     ifeq ($(findstring MINGW32, $(SYSTEM)), MINGW32)
         # MINGW32 environment on MS-Windows
@@ -132,73 +131,12 @@ ifeq ($(TARGET), for_gnu)
     LLIB := -lm
     ifeq ($(WITH_SPRADIAN), 1)
         # Define the Fortran 90 compiler.
-        F90 := gfortran
+        F90 := gfortran$(GNU_SUFFIX)
         # Compile without vector optimization for now.
         F90FLAG := -m64 -c -O0 -fPIC
         F90LFLAG := -m64 -lstdc++ -gnofor_main
         FLINK := -lgfortran
     endif
-endif
-
-ifeq ($(TARGET), for_gnu_local)
-    # UNIX/Linux workstation with the default GNU C compiler
-    # Don't specify the processor architecture.
-    COMPILE := gcc-$(GNU_SUFFIX)
-    LINK    := gcc-$(GNU_SUFFIX)
-    CXXCOMPILE := g++-$(GNU_SUFFIX)
-    CXXLINK := g++-$(GNU_SUFFIX)
-    # Unix/Linux is default
-    CFLAG   := -c $(OPT) -fPIC -W -Wall -pedantic -finline-limit=2400 $(MARCH_FLAG)
-    LFLAG   := $(OPT) -fPIC -finline-limit=2400 $(MARCH_FLAG)
-    CXXFLAG := -c $(OPT) -std=c++0x -fPIC -Wall -pedantic $(MARCH_FLAG)
-    ifeq ($(findstring MINGW32, $(SYSTEM)), MINGW32)
-        # MINGW32 environment on MS-Windows
-        CFLAG   := -c $(OPT) -W -Wall -pedantic $(MARCH_FLAG)
-        LFLAG   := $(OPT) -Wl,-stack=0x8000000 $(MARCH_FLAG)
-        CXXFLAG := -c $(OPT) -std=c++0x -Wall -pedantic $(MARCH_FLAG)
-    endif
-    ifeq ($(findstring CYGWIN, $(SYSTEM)), CYGWIN)
-        # CYGWIN environment on MS-Windows
-        CFLAG   := -c $(OPT) -W -Wall -pedantic $(MARCH_FLAG)
-        LFLAG   := $(OPT) -Wl,-stack=0x8000000 $(MARCH_FLAG)
-        CXXFLAG := -c $(OPT) -std=c++0x -Wall -pedantic $(MARCH_FLAG)
-    endif
-    LLIB := -lm
-    ifeq ($(WITH_SPRADIAN), 1)
-        # Define the Fortran 90 compiler.
-        F90 := gfortran-$(GNU_SUFFIX)
-        # Compile without vector optimization for now.
-        F90FLAG := -m64 -c -O0 -fPIC
-        F90LFLAG := -m64 -lstdc++ -gnofor_main
-        FLINK := -lgfortran
-    endif
-endif
-
-
-ifeq ($(TARGET), for_gnu_gcc4)
-    # UNIX/Linux workstation with the GNU C compiler version 4.x
-    # Don't specify the processor architecture.
-    COMPILE := gcc-4 
-    LINK    := gcc-4
-    CXXCOMPILE := g++-4
-    CXXLINK := g++-4
-    # Unix/Linux is default
-    CFLAG   := -c $(OPT) -fPIC -W -Wall -pedantic -finline-limit=2400 $(MARCH_FLAG)
-    LFLAG   := $(OPT) -fPIC -finline-limit=2400 $(MARCH_FLAG)
-    CXXFLAG := -c $(OPT) -std=c++0x -fPIC -Wall -pedantic $(MARCH_FLAG)
-    ifeq ($(findstring MINGW32, $(SYSTEM)), MINGW32)
-        # MINGW32 environment on MS-Windows
-        CFLAG   := -c $(OPT) -W -Wall -pedantic $(MARCH_FLAG)
-        LFLAG   := $(OPT) -Wl,-stack=0x8000000 $(MARCH_FLAG)
-        CXXFLAG := -c $(OPT) -std=c++0x -Wall -pedantic $(MARCH_FLAG)
-    endif
-    ifeq ($(findstring CYGWIN, $(SYSTEM)), CYGWIN)
-        # CYGWIN environment on MS-Windows
-        CFLAG   := -c $(OPT) -W -Wall -pedantic $(MARCH_FLAG)
-        LFLAG   := $(OPT) -Wl,-stack=0x8000000 $(MARCH_FLAG)
-        CXXFLAG := -c $(OPT) -std=c++0x -Wall -pedantic $(MARCH_FLAG)
-    endif
-    LLIB := -lm
 endif
 
 ifeq ($(TARGET), for_gnu_debug)
@@ -465,45 +403,14 @@ endif
 #    MPI wrappers
 # -------------------------------------
 
-ifeq ($(TARGET), for_lam)
-    # LAM on Linux. 
-    # This was the usual target for the MPI code, until mid-2007.
-    # Setting the Lam compiler-specific environment variables
-    # will allow setting of options specific to each compiler.
-    COMPILE := mpicc
-    LINK    := mpicc
-    CXXCOMPILE := mpiCC
-    CXXLINK := mpiCC
-    CFLAG   := -c $(OPT) 
-    CXXFLAG := -c $(OPT) -std=c++0x  
-    LFLAG   :=  $(OPT) -fPIC 
-    LLIB    := -lm
-    LMPI    := -lmpi
-endif
-
-ifeq ($(TARGET), for_lam_debug)
-    # LAM on Linux with debug on.
-    # Setting the Lam compiler-specific environment variables
-    # will allow setting of options specific to each compiler.
-    COMPILE := mpicc
-    LINK    := mpicc
-    CXXCOMPILE := mpiCC
-    CXXLINK := mpiCC
-    CFLAG   := -c -g
-    CXXFLAG := -c -g -std=c++0x 
-    LFLAG   :=  -fPIC -g
-    LLIB    := -lm
-    LMPI    := -lmpi
-endif
-
 ifeq ($(TARGET), for_openmpi)
     # OpenMPI on Linux.
     COMPILE := mpicc
     LINK    := mpicc
     CXXCOMPILE := mpiCC
     CXXLINK := mpiCC
-    CFLAG   := -c $(OPT) -fPIC 
-    CXXFLAG := -c $(OPT) -std=c++0x -fPIC 
+    CFLAG   := -c $(OPT) -fPIC -Wall -pedantic 
+    CXXFLAG := -c $(OPT) -std=c++0x -fPIC -Wall -pedantic 
     LFLAG   :=  $(OPT) -fPIC 
     LLIB    := -lm
 endif
@@ -514,9 +421,9 @@ ifeq ($(TARGET), for_openmpi_debug)
     LINK    := mpicc
     CXXCOMPILE := mpiCC
     CXXLINK := mpiCC
-    CFLAG   := -c $(OPT) -fPIC -g
-    CXXFLAG := -c $(OPT) -std=c++0x -fPIC -g
-    LFLAG   :=  $(OPT) -fPIC -g
+    CFLAG   := -c $(OPT) -fPIC -ggdb -Wall -pedantic 
+    CXXFLAG := -c $(OPT) -std=c++0x -fPIC -ggdb -Wall -pedantic 
+    LFLAG   :=  $(OPT) -fPIC -ggdb
     LLIB    := -lm
 endif
 
@@ -543,8 +450,8 @@ ifeq ($(TARGET), for_mac_openmpi)
     LINK    := mpicc
     CXXCOMPILE := mpic++
     CXXLINK := mpic++
-    CFLAG   := -c $(OPT) -fPIC 
-    CXXFLAG := -c $(OPT) -std=c++0x -fPIC 
+    CFLAG   := -c $(OPT) -fPIC -Wall -pedantic 
+    CXXFLAG := -c $(OPT) -std=c++0x -fPIC -Wall -pedantic 
     LFLAG   :=  $(OPT) -fPIC 
     LLIB    := -lm
 endif
@@ -562,18 +469,6 @@ ifeq ($(TARGET), for_mpich)
     LFLAG   :=  $(OPT) -fPIC 
     LLIB    := -lm
     LMPI    := -lmpi
-endif
-
-ifeq ($(TARGET), for_clang_openmpi)
-    # OpenMPI with the clang compiler.
-    COMPILE := mpicc
-    LINK    := mpicc
-    CXXCOMPILE := mpiCC
-    CXXLINK := mpiCC
-    CFLAG   := -c $(OPT) -fPIC 
-    CXXFLAG := -c $(OPT) -std=c++11
-    LFLAG   :=  $(OPT) -fPIC 
-    LLIB    := -lstdc++ -lm
 endif
 
 

@@ -47,10 +47,14 @@
 %}
 
 %ignore Valmatrix::operator=;
+%ignore str;
+%ignore set;
 %include "no_fuss_linear_algebra.hh"
+%ignore eval;
 %include "zero_system.hh"
 %include "zero_finders.hh"
 %include "zero_system.hh"
+%ignore str;
 %include "ode_solver.hh"
 %include "exponential_integrals.hh"
 %include "linear_interpolation.hh"

@@ -25,7 +25,7 @@
 
 /*------------------------------------------------------------------*/
 
-int exchange_shared_boundary_data( int jb, int type_of_copy )
+int exchange_shared_boundary_data(int jb, int type_of_copy)
 {
     global_data *G = get_global_data_ptr();
     if ( G->dimensions == 2 ) {
@@ -50,7 +50,7 @@ int exchange_shared_boundary_data( int jb, int type_of_copy )
  * \param diaphragm_rupture_diameter :
  *
  */
-int copy_boundary_data_2D( int jb, int type_of_copy )
+int copy_boundary_data_2D(int jb, int type_of_copy)
 {
     global_data *G = get_global_data_ptr();
     Block *bdp = get_block_data_ptr(jb);
@@ -891,7 +891,7 @@ int copy_into_send_buffer_2D( Block *bd, int bndry, int type_of_copy, double *se
  *
  * See workbook page 33, 18-Jun-02 for details of order.
  */
-int copy_from_receive_buffer_2D( Block *bd, int bndry, int type_of_copy, double *receive_buffer )
+int copy_from_receive_buffer_2D(Block *bd, int bndry, int type_of_copy, double *receive_buffer)
 {
     int i, j, ib, ii, nx, ny, nv;
     FV_Cell *cell;
