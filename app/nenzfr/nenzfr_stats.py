@@ -291,6 +291,7 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
     vx = massFlux/(gdata.rho*Area)
     #print "Before optimizer, vx=", vx, "p=", gdata.p, "T=", gdata.T[0], "rho=", gdata.rho
     #
+    #print "fm=",massFlux,"fp=",momentumFluxScalar,"fe=",energyFlux
     def error_estimate(params, 
                        gasData=gdata, gasModel=gmodel,
                        fm=massFlux, fp=momentumFluxScalar, fe=energyFlux,
@@ -306,7 +307,7 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
         p = gasData.p
         h = gasModel.mixture_enthalpy(gasData) #...1D static enthalpy
         M = vx/gasData.a
-        # Realtive errors in each conserved quantity.
+        # Relative errors in each conserved quantity.
         # The "+1.0" items are to avoid (unlikely) problems with zero values
         # for the given quantities.
         fm_err = abs(fm - rho*vx*Area)/(abs(fm)+1.0)
@@ -319,12 +320,14 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
     print "Optimize estimate of 1D flow properties"
     flow_params, fx, conv_flag, nfe, nres = minimize(error_estimate, 
                                                      [gdata.rho, gdata.T[0], vx],
-                                                     [0.01, 10.0, 10.0])
+                                                     [0.01, 10.0, 10.0], maxfe=1000)
     rho, T, vx = flow_params
     #print "fx=", fx
     #print "convergence-flag=", conv_flag
     #print "number-of-fn-evaluations=", nfe
     #print "number-of-restarts=", nres
+    if conv_flag != 1:
+        print "WARNING! Optimizer did not converge properly."
     gdata.T[0] = T
     gdata.rho = rho
     gmodel.eval_thermo_state_rhoT(gdata)
@@ -386,6 +389,8 @@ def print_stats_CMME(sliceFileName,jobName,coreRfraction,gmodelFile):
     # calculate the statistics and write a summary.
     #
     fout = open(jobName+'-exit.stats','w')
+    if conv_flag != 1:
+        fout.write('WARNING! Optimizer did not converge properly\n')
     fout.write('CoreRadiusFraction: %10.6f\n' % coreRfraction)
     fout.write('%15s  %12s   %10s  %10s %10s\n' % \
                    ("variable","mean-value","minus","plus","std-dev"))
