@@ -979,7 +979,7 @@ int viscous_flux_3D(Block *A)
  * The secondary cells are centred on the vertices of the primary cells
  * and have primary cell centres as their corners.
  */
-int viscous_derivatives_3D(Block *A)
+int viscous_derivatives_3D(Block *A, size_t time_level)
 {
     size_t i, j, k;
     double q_e, q_w, q_n, q_s, q_top, q_bottom;
@@ -1028,15 +1028,15 @@ int viscous_derivatives_3D(Block *A)
 		       q_top = 0.25 * (cA->fs->vel.x + cB->fs->vel.x + cE->fs->vel.x + cF->fs->vel.x);
 		       q_bottom = 0.25 * (cD->fs->vel.x + cC->fs->vel.x + cG->fs->vel.x + cH->fs->vel.x);
 		       // Apply the divergence theorem.
-		       sec_ctr->dudx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-		       sec_ctr->dudy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-		       sec_ctr->dudz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+		       sec_ctr->dudx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+		       sec_ctr->dudy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+		       sec_ctr->dudz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 		       q_e = 0.25 * (cB->fs->vel.y + cC->fs->vel.y + cF->fs->vel.y + cG->fs->vel.y);
 		       q_w = 0.25 * (cA->fs->vel.y + cD->fs->vel.y + cH->fs->vel.y + cE->fs->vel.y);
@@ -1045,15 +1045,15 @@ int viscous_derivatives_3D(Block *A)
 		       q_top = 0.25 * (cA->fs->vel.y + cB->fs->vel.y + cE->fs->vel.y + cF->fs->vel.y);
 		       q_bottom = 0.25 * (cD->fs->vel.y + cC->fs->vel.y + cG->fs->vel.y + cH->fs->vel.y);
 		       // Apply the divergence theorem.
-		       sec_ctr->dvdx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-		       sec_ctr->dvdy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-		       sec_ctr->dvdz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+		       sec_ctr->dvdx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+		       sec_ctr->dvdy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+		       sec_ctr->dvdz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 		       q_e = 0.25 * (cB->fs->vel.z + cC->fs->vel.z + cF->fs->vel.z + cG->fs->vel.z);
 		       q_w = 0.25 * (cA->fs->vel.z + cD->fs->vel.z + cH->fs->vel.z + cE->fs->vel.z);
@@ -1062,15 +1062,15 @@ int viscous_derivatives_3D(Block *A)
 		       q_top = 0.25 * (cA->fs->vel.z + cB->fs->vel.z + cE->fs->vel.z + cF->fs->vel.z);
 		       q_bottom = 0.25 * (cD->fs->vel.z + cC->fs->vel.z + cG->fs->vel.z + cH->fs->vel.z);
 		       // Apply the divergence theorem.
-		       sec_ctr->dwdx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-		       sec_ctr->dwdy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-		       sec_ctr->dwdz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+		       sec_ctr->dwdx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+		       sec_ctr->dwdy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+		       sec_ctr->dwdz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 		       q_e = 0.25 * (cB->fs->tke + cC->fs->tke + cF->fs->tke + cG->fs->tke);
 		       q_w = 0.25 * (cA->fs->tke + cD->fs->tke + cH->fs->tke + cE->fs->tke);
@@ -1079,15 +1079,15 @@ int viscous_derivatives_3D(Block *A)
 		       q_top = 0.25 * (cA->fs->tke + cB->fs->tke + cE->fs->tke + cF->fs->tke);
 		       q_bottom = 0.25 * (cD->fs->tke + cC->fs->tke + cG->fs->tke + cH->fs->tke);
 		       // Apply the divergence theorem.
-		       sec_ctr->dtkedx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-		       sec_ctr->dtkedy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-		       sec_ctr->dtkedz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+		       sec_ctr->dtkedx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+		       sec_ctr->dtkedy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+		       sec_ctr->dtkedz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 		       q_e = 0.25 * (cB->fs->omega + cC->fs->omega + cF->fs->omega + cG->fs->omega);
 		       q_w = 0.25 * (cA->fs->omega + cD->fs->omega + cH->fs->omega + cE->fs->omega);
@@ -1096,15 +1096,15 @@ int viscous_derivatives_3D(Block *A)
 		       q_top = 0.25 * (cA->fs->omega + cB->fs->omega + cE->fs->omega + cF->fs->omega);
 		       q_bottom = 0.25 * (cD->fs->omega + cC->fs->omega + cG->fs->omega + cH->fs->omega);
 		       // Apply the divergence theorem.
-		       sec_ctr->domegadx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-		       sec_ctr->domegady = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-		       sec_ctr->domegadz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+		       sec_ctr->domegadx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+		       sec_ctr->domegady = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+		       sec_ctr->domegadz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 
 		
 	        // Apply the divergence theorem to the primary temperature derivatives only.
@@ -1117,15 +1117,15 @@ int viscous_derivatives_3D(Block *A)
 		       q_top = 0.25 * (cA->fs->gas->T[itm] + cB->fs->gas->T[itm] + cE->fs->gas->T[itm] + cF->fs->gas->T[itm]);
 		       q_bottom = 0.25 * (cD->fs->gas->T[itm] + cC->fs->gas->T[itm] + cG->fs->gas->T[itm] + cH->fs->gas->T[itm]);
 		       // Apply the divergence theorem.
-		       sec_ctr->dTdx[itm] = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-		       sec_ctr->dTdy[itm] = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-		       sec_ctr->dTdz[itm] = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+		       sec_ctr->dTdx[itm] = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+		       sec_ctr->dTdy[itm] = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+		       sec_ctr->dTdz[itm] = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
                 }
   	        for( size_t isp = 0; isp < nsp; ++isp ) {
 		    // Average property value on each face.
@@ -1136,15 +1136,15 @@ int viscous_derivatives_3D(Block *A)
 		       q_top = 0.25 * (cA->fs->gas->massf[isp] + cB->fs->gas->massf[isp] + cE->fs->gas->massf[isp] + cF->fs->gas->massf[isp]);
 		       q_bottom = 0.25 * (cD->fs->gas->massf[isp] + cC->fs->gas->massf[isp] + cG->fs->gas->massf[isp] + cH->fs->gas->massf[isp]);
 		       // Apply the divergence theorem.
-		       sec_ctr->dfdx[isp] = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-		       sec_ctr->dfdy[isp] = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-		       sec_ctr->dfdz[isp] = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+		       sec_ctr->dfdx[isp] = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+		       sec_ctr->dfdy[isp] = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+		       sec_ctr->dfdz[isp] = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
                 }
 	    } // k loop
         } // j loop
@@ -1182,15 +1182,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (cA->fs->vel.x + fB->fs->vel.x + cE->fs->vel.x + fF->fs->vel.x);
 	           q_bottom = 0.25 * (cD->fs->vel.x + fC->fs->vel.x + fG->fs->vel.x + cH->fs->vel.x);
 	           // Apply the divergence theorem.
-	           sec_ctr->dudx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dudy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dudz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dudx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dudy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dudz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (fB->fs->vel.y + fC->fs->vel.y + fF->fs->vel.y + fG->fs->vel.y);
 	           q_w = 0.25 * (cA->fs->vel.y + cD->fs->vel.y + cH->fs->vel.y + cE->fs->vel.y);
@@ -1199,15 +1199,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (cA->fs->vel.y + fB->fs->vel.y + cE->fs->vel.y + fF->fs->vel.y);
 	           q_bottom = 0.25 * (cD->fs->vel.y + fC->fs->vel.y + fG->fs->vel.y + cH->fs->vel.y);
 	           // Apply the divergence theorem.
-	           sec_ctr->dvdx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dvdy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dvdz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dvdx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dvdy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dvdz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (fB->fs->vel.z + fC->fs->vel.z + fF->fs->vel.z + fG->fs->vel.z);
 	           q_w = 0.25 * (cA->fs->vel.z + cD->fs->vel.z + cH->fs->vel.z + cE->fs->vel.z);
@@ -1216,15 +1216,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (cA->fs->vel.z + fB->fs->vel.z + cE->fs->vel.z + fF->fs->vel.z);
 	           q_bottom = 0.25 * (cD->fs->vel.z + fC->fs->vel.z + fG->fs->vel.z + cH->fs->vel.z);
 	           // Apply the divergence theorem.
-	           sec_ctr->dwdx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dwdy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dwdz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dwdx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dwdy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dwdz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (fB->fs->tke + fC->fs->tke + fF->fs->tke + fG->fs->tke);
 	           q_w = 0.25 * (cA->fs->tke + cD->fs->tke + cH->fs->tke + cE->fs->tke);
@@ -1233,15 +1233,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (cA->fs->tke + fB->fs->tke + cE->fs->tke + fF->fs->tke);
 	           q_bottom = 0.25 * (cD->fs->tke + fC->fs->tke + fG->fs->tke + cH->fs->tke);
 	           // Apply the divergence theorem.
-	           sec_ctr->dtkedx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dtkedy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dtkedz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dtkedx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dtkedy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dtkedz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (fB->fs->omega + fC->fs->omega + fF->fs->omega + fG->fs->omega);
 	           q_w = 0.25 * (cA->fs->omega + cD->fs->omega + cH->fs->omega + cE->fs->omega);
@@ -1250,15 +1250,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (cA->fs->omega + fB->fs->omega + cE->fs->omega + fF->fs->omega);
 	           q_bottom = 0.25 * (cD->fs->omega + fC->fs->omega + fG->fs->omega + cH->fs->omega);
 	           // Apply the divergence theorem.
-	           sec_ctr->domegadx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->domegady = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->domegadz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->domegadx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->domegady = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->domegadz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 
 	    
             for ( size_t itm=0; itm<ntm; ++itm ) {
@@ -1270,15 +1270,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (cA->fs->gas->T[itm] + fB->fs->gas->T[itm] + cE->fs->gas->T[itm] + fF->fs->gas->T[itm]);
 	           q_bottom = 0.25 * (cD->fs->gas->T[itm] + fC->fs->gas->T[itm] + fG->fs->gas->T[itm] + cH->fs->gas->T[itm]);
 	           // Apply the divergence theorem.
-	           sec_ctr->dTdx[itm] = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dTdy[itm] = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dTdz[itm] = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dTdx[itm] = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dTdy[itm] = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dTdz[itm] = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
             }
   	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		// Average property value on each face.
@@ -1289,15 +1289,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (cA->fs->gas->massf[isp] + fB->fs->gas->massf[isp] + cE->fs->gas->massf[isp] + fF->fs->gas->massf[isp]);
 	           q_bottom = 0.25 * (cD->fs->gas->massf[isp] + fC->fs->gas->massf[isp] + fG->fs->gas->massf[isp] + cH->fs->gas->massf[isp]);
 	           // Apply the divergence theorem.
-	           sec_ctr->dfdx[isp] = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dfdy[isp] = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dfdz[isp] = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dfdx[isp] = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dfdy[isp] = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dfdz[isp] = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
             }
 	} // k loop
     } // j loop
@@ -1333,15 +1333,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (fA->fs->vel.x + cB->fs->vel.x + fE->fs->vel.x + cF->fs->vel.x);
 	           q_bottom = 0.25 * (fD->fs->vel.x + cC->fs->vel.x + cG->fs->vel.x + fH->fs->vel.x);
 	           // Apply the divergence theorem.
-	           sec_ctr->dudx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dudy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dudz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dudx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dudy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dudz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (cB->fs->vel.y + cC->fs->vel.y + cF->fs->vel.y + cG->fs->vel.y);
 	           q_w = 0.25 * (fA->fs->vel.y + fD->fs->vel.y + fH->fs->vel.y + fE->fs->vel.y);
@@ -1350,15 +1350,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (fA->fs->vel.y + cB->fs->vel.y + fE->fs->vel.y + cF->fs->vel.y);
 	           q_bottom = 0.25 * (fD->fs->vel.y + cC->fs->vel.y + cG->fs->vel.y + fH->fs->vel.y);
 	           // Apply the divergence theorem.
-	           sec_ctr->dvdx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dvdy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dvdz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dvdx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dvdy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dvdz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (cB->fs->vel.z + cC->fs->vel.z + cF->fs->vel.z + cG->fs->vel.z);
 	           q_w = 0.25 * (fA->fs->vel.z + fD->fs->vel.z + fH->fs->vel.z + fE->fs->vel.z);
@@ -1367,15 +1367,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (fA->fs->vel.z + cB->fs->vel.z + fE->fs->vel.z + cF->fs->vel.z);
 	           q_bottom = 0.25 * (fD->fs->vel.z + cC->fs->vel.z + cG->fs->vel.z + fH->fs->vel.z);
 	           // Apply the divergence theorem.
-	           sec_ctr->dwdx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dwdy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dwdz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dwdx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dwdy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dwdz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (cB->fs->tke + cC->fs->tke + cF->fs->tke + cG->fs->tke);
 	           q_w = 0.25 * (fA->fs->tke + fD->fs->tke + fH->fs->tke + fE->fs->tke);
@@ -1384,15 +1384,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (fA->fs->tke + cB->fs->tke + fE->fs->tke + cF->fs->tke);
 	           q_bottom = 0.25 * (fD->fs->tke + cC->fs->tke + cG->fs->tke + fH->fs->tke);
 	           // Apply the divergence theorem.
-	           sec_ctr->dtkedx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dtkedy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dtkedz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dtkedx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dtkedy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dtkedz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (cB->fs->omega + cC->fs->omega + cF->fs->omega + cG->fs->omega);
 	           q_w = 0.25 * (fA->fs->omega + fD->fs->omega + fH->fs->omega + fE->fs->omega);
@@ -1401,15 +1401,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (fA->fs->omega + cB->fs->omega + fE->fs->omega + cF->fs->omega);
 	           q_bottom = 0.25 * (fD->fs->omega + cC->fs->omega + cG->fs->omega + fH->fs->omega);
 	           // Apply the divergence theorem.
-	           sec_ctr->domegadx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->domegady = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->domegadz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->domegadx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->domegady = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->domegadz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 
 	    
             for ( size_t itm=0; itm<ntm; ++itm ) {
@@ -1421,15 +1421,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (fA->fs->gas->T[itm] + cB->fs->gas->T[itm] + fE->fs->gas->T[itm] + cF->fs->gas->T[itm]);
 	           q_bottom = 0.25 * (fD->fs->gas->T[itm] + cC->fs->gas->T[itm] + cG->fs->gas->T[itm] + fH->fs->gas->T[itm]);
 	           // Apply the divergence theorem.
-	           sec_ctr->dTdx[itm] = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dTdy[itm] = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dTdz[itm] = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dTdx[itm] = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dTdy[itm] = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dTdz[itm] = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
             }
   	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		// Average property value on each face.
@@ -1440,15 +1440,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (fA->fs->gas->massf[isp] + cB->fs->gas->massf[isp] + fE->fs->gas->massf[isp] + cF->fs->gas->massf[isp]);
 	           q_bottom = 0.25 * (fD->fs->gas->massf[isp] + cC->fs->gas->massf[isp] + cG->fs->gas->massf[isp] + fH->fs->gas->massf[isp]);
 	           // Apply the divergence theorem.
-	           sec_ctr->dfdx[isp] = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dfdy[isp] = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dfdz[isp] = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dfdx[isp] = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dfdy[isp] = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dfdz[isp] = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
             }
 	} // k loop
     } // j loop
@@ -1484,15 +1484,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (cA->fs->vel.x + cB->fs->vel.x + fE->fs->vel.x + fF->fs->vel.x);
 	           q_bottom = 0.25 * (cD->fs->vel.x + cC->fs->vel.x + fG->fs->vel.x + fH->fs->vel.x);
 	           // Apply the divergence theorem.
-	           sec_ctr->dudx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dudy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dudz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dudx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dudy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dudz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (cB->fs->vel.y + cC->fs->vel.y + fF->fs->vel.y + fG->fs->vel.y);
 	           q_w = 0.25 * (cA->fs->vel.y + cD->fs->vel.y + fH->fs->vel.y + fE->fs->vel.y);
@@ -1501,15 +1501,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (cA->fs->vel.y + cB->fs->vel.y + fE->fs->vel.y + fF->fs->vel.y);
 	           q_bottom = 0.25 * (cD->fs->vel.y + cC->fs->vel.y + fG->fs->vel.y + fH->fs->vel.y);
 	           // Apply the divergence theorem.
-	           sec_ctr->dvdx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dvdy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dvdz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dvdx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dvdy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dvdz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (cB->fs->vel.z + cC->fs->vel.z + fF->fs->vel.z + fG->fs->vel.z);
 	           q_w = 0.25 * (cA->fs->vel.z + cD->fs->vel.z + fH->fs->vel.z + fE->fs->vel.z);
@@ -1518,15 +1518,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (cA->fs->vel.z + cB->fs->vel.z + fE->fs->vel.z + fF->fs->vel.z);
 	           q_bottom = 0.25 * (cD->fs->vel.z + cC->fs->vel.z + fG->fs->vel.z + fH->fs->vel.z);
 	           // Apply the divergence theorem.
-	           sec_ctr->dwdx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dwdy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dwdz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dwdx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dwdy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dwdz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (cB->fs->tke + cC->fs->tke + fF->fs->tke + fG->fs->tke);
 	           q_w = 0.25 * (cA->fs->tke + cD->fs->tke + fH->fs->tke + fE->fs->tke);
@@ -1535,15 +1535,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (cA->fs->tke + cB->fs->tke + fE->fs->tke + fF->fs->tke);
 	           q_bottom = 0.25 * (cD->fs->tke + cC->fs->tke + fG->fs->tke + fH->fs->tke);
 	           // Apply the divergence theorem.
-	           sec_ctr->dtkedx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dtkedy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dtkedz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dtkedx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dtkedy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dtkedz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (cB->fs->omega + cC->fs->omega + fF->fs->omega + fG->fs->omega);
 	           q_w = 0.25 * (cA->fs->omega + cD->fs->omega + fH->fs->omega + fE->fs->omega);
@@ -1552,15 +1552,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (cA->fs->omega + cB->fs->omega + fE->fs->omega + fF->fs->omega);
 	           q_bottom = 0.25 * (cD->fs->omega + cC->fs->omega + fG->fs->omega + fH->fs->omega);
 	           // Apply the divergence theorem.
-	           sec_ctr->domegadx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->domegady = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->domegadz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->domegadx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->domegady = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->domegadz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 
 	    
             for ( size_t itm=0; itm<ntm; ++itm ) {
@@ -1572,15 +1572,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (cA->fs->gas->T[itm] + cB->fs->gas->T[itm] + fE->fs->gas->T[itm] + fF->fs->gas->T[itm]);
 	           q_bottom = 0.25 * (cD->fs->gas->T[itm] + cC->fs->gas->T[itm] + fG->fs->gas->T[itm] + fH->fs->gas->T[itm]);
 	           // Apply the divergence theorem.
-	           sec_ctr->dTdx[itm] = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dTdy[itm] = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dTdz[itm] = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dTdx[itm] = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dTdy[itm] = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dTdz[itm] = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
             }
   	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		// Average property value on each face.
@@ -1591,15 +1591,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (cA->fs->gas->massf[isp] + cB->fs->gas->massf[isp] + fE->fs->gas->massf[isp] + fF->fs->gas->massf[isp]);
 	           q_bottom = 0.25 * (cD->fs->gas->massf[isp] + cC->fs->gas->massf[isp] + fG->fs->gas->massf[isp] + fH->fs->gas->massf[isp]);
 	           // Apply the divergence theorem.
-	           sec_ctr->dfdx[isp] = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dfdy[isp] = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dfdz[isp] = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dfdx[isp] = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dfdy[isp] = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dfdz[isp] = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
             }
         } // k loop
     } // i loop
@@ -1635,15 +1635,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (fA->fs->vel.x + fB->fs->vel.x + cE->fs->vel.x + cF->fs->vel.x);
 	           q_bottom = 0.25 * (fD->fs->vel.x + fC->fs->vel.x + cG->fs->vel.x + cH->fs->vel.x);
 	           // Apply the divergence theorem.
-	           sec_ctr->dudx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dudy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dudz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dudx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dudy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dudz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (fB->fs->vel.y + fC->fs->vel.y + cF->fs->vel.y + cG->fs->vel.y);
 	           q_w = 0.25 * (fA->fs->vel.y + fD->fs->vel.y + cH->fs->vel.y + cE->fs->vel.y);
@@ -1652,15 +1652,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (fA->fs->vel.y + fB->fs->vel.y + cE->fs->vel.y + cF->fs->vel.y);
 	           q_bottom = 0.25 * (fD->fs->vel.y + fC->fs->vel.y + cG->fs->vel.y + cH->fs->vel.y);
 	           // Apply the divergence theorem.
-	           sec_ctr->dvdx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dvdy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dvdz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dvdx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dvdy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dvdz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (fB->fs->vel.z + fC->fs->vel.z + cF->fs->vel.z + cG->fs->vel.z);
 	           q_w = 0.25 * (fA->fs->vel.z + fD->fs->vel.z + cH->fs->vel.z + cE->fs->vel.z);
@@ -1669,15 +1669,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (fA->fs->vel.z + fB->fs->vel.z + cE->fs->vel.z + cF->fs->vel.z);
 	           q_bottom = 0.25 * (fD->fs->vel.z + fC->fs->vel.z + cG->fs->vel.z + cH->fs->vel.z);
 	           // Apply the divergence theorem.
-	           sec_ctr->dwdx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dwdy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dwdz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dwdx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dwdy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dwdz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (fB->fs->tke + fC->fs->tke + cF->fs->tke + cG->fs->tke);
 	           q_w = 0.25 * (fA->fs->tke + fD->fs->tke + cH->fs->tke + cE->fs->tke);
@@ -1686,15 +1686,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (fA->fs->tke + fB->fs->tke + cE->fs->tke + cF->fs->tke);
 	           q_bottom = 0.25 * (fD->fs->tke + fC->fs->tke + cG->fs->tke + cH->fs->tke);
 	           // Apply the divergence theorem.
-	           sec_ctr->dtkedx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dtkedy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dtkedz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dtkedx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dtkedy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dtkedz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (fB->fs->omega + fC->fs->omega + cF->fs->omega + cG->fs->omega);
 	           q_w = 0.25 * (fA->fs->omega + fD->fs->omega + cH->fs->omega + cE->fs->omega);
@@ -1703,15 +1703,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (fA->fs->omega + fB->fs->omega + cE->fs->omega + cF->fs->omega);
 	           q_bottom = 0.25 * (fD->fs->omega + fC->fs->omega + cG->fs->omega + cH->fs->omega);
 	           // Apply the divergence theorem.
-	           sec_ctr->domegadx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->domegady = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->domegadz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->domegadx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->domegady = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->domegadz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 
 	    
             for ( size_t itm=0; itm<ntm; ++itm ) {
@@ -1723,15 +1723,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (fA->fs->gas->T[itm] + fB->fs->gas->T[itm] + cE->fs->gas->T[itm] + cF->fs->gas->T[itm]);
 	           q_bottom = 0.25 * (fD->fs->gas->T[itm] + fC->fs->gas->T[itm] + cG->fs->gas->T[itm] + cH->fs->gas->T[itm]);
 	           // Apply the divergence theorem.
-	           sec_ctr->dTdx[itm] = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dTdy[itm] = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dTdz[itm] = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dTdx[itm] = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dTdy[itm] = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dTdz[itm] = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
             }
   	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		// Average property value on each face.
@@ -1742,15 +1742,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (fA->fs->gas->massf[isp] + fB->fs->gas->massf[isp] + cE->fs->gas->massf[isp] + cF->fs->gas->massf[isp]);
 	           q_bottom = 0.25 * (fD->fs->gas->massf[isp] + fC->fs->gas->massf[isp] + cG->fs->gas->massf[isp] + cH->fs->gas->massf[isp]);
 	           // Apply the divergence theorem.
-	           sec_ctr->dfdx[isp] = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dfdy[isp] = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dfdz[isp] = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dfdx[isp] = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dfdy[isp] = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dfdz[isp] = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
             }
 	} // k loop
     } // i loop
@@ -1786,15 +1786,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (fA->fs->vel.x + fB->fs->vel.x + fE->fs->vel.x + fF->fs->vel.x);
 	           q_bottom = 0.25 * (cD->fs->vel.x + cC->fs->vel.x + cG->fs->vel.x + cH->fs->vel.x);
 	           // Apply the divergence theorem.
-	           sec_ctr->dudx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dudy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dudz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dudx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dudy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dudz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (fB->fs->vel.y + cC->fs->vel.y + fF->fs->vel.y + cG->fs->vel.y);
 	           q_w = 0.25 * (fA->fs->vel.y + cD->fs->vel.y + cH->fs->vel.y + fE->fs->vel.y);
@@ -1803,15 +1803,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (fA->fs->vel.y + fB->fs->vel.y + fE->fs->vel.y + fF->fs->vel.y);
 	           q_bottom = 0.25 * (cD->fs->vel.y + cC->fs->vel.y + cG->fs->vel.y + cH->fs->vel.y);
 	           // Apply the divergence theorem.
-	           sec_ctr->dvdx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dvdy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dvdz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dvdx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dvdy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dvdz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (fB->fs->vel.z + cC->fs->vel.z + fF->fs->vel.z + cG->fs->vel.z);
 	           q_w = 0.25 * (fA->fs->vel.z + cD->fs->vel.z + cH->fs->vel.z + fE->fs->vel.z);
@@ -1820,15 +1820,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (fA->fs->vel.z + fB->fs->vel.z + fE->fs->vel.z + fF->fs->vel.z);
 	           q_bottom = 0.25 * (cD->fs->vel.z + cC->fs->vel.z + cG->fs->vel.z + cH->fs->vel.z);
 	           // Apply the divergence theorem.
-	           sec_ctr->dwdx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dwdy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dwdz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dwdx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dwdy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dwdz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (fB->fs->tke + cC->fs->tke + fF->fs->tke + cG->fs->tke);
 	           q_w = 0.25 * (fA->fs->tke + cD->fs->tke + cH->fs->tke + fE->fs->tke);
@@ -1837,15 +1837,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (fA->fs->tke + fB->fs->tke + fE->fs->tke + fF->fs->tke);
 	           q_bottom = 0.25 * (cD->fs->tke + cC->fs->tke + cG->fs->tke + cH->fs->tke);
 	           // Apply the divergence theorem.
-	           sec_ctr->dtkedx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dtkedy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dtkedz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dtkedx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dtkedy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dtkedz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (fB->fs->omega + cC->fs->omega + fF->fs->omega + cG->fs->omega);
 	           q_w = 0.25 * (fA->fs->omega + cD->fs->omega + cH->fs->omega + fE->fs->omega);
@@ -1854,15 +1854,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (fA->fs->omega + fB->fs->omega + fE->fs->omega + fF->fs->omega);
 	           q_bottom = 0.25 * (cD->fs->omega + cC->fs->omega + cG->fs->omega + cH->fs->omega);
 	           // Apply the divergence theorem.
-	           sec_ctr->domegadx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->domegady = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->domegadz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->domegadx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->domegady = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->domegadz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 
 	    
             for ( size_t itm=0; itm<ntm; ++itm ) {
@@ -1874,15 +1874,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (fA->fs->gas->T[itm] + fB->fs->gas->T[itm] + fE->fs->gas->T[itm] + fF->fs->gas->T[itm]);
 	           q_bottom = 0.25 * (cD->fs->gas->T[itm] + cC->fs->gas->T[itm] + cG->fs->gas->T[itm] + cH->fs->gas->T[itm]);
 	           // Apply the divergence theorem.
-	           sec_ctr->dTdx[itm] = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dTdy[itm] = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dTdz[itm] = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dTdx[itm] = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dTdy[itm] = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dTdz[itm] = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
             }
   	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		// Average property value on each face.
@@ -1893,15 +1893,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (fA->fs->gas->massf[isp] + fB->fs->gas->massf[isp] + fE->fs->gas->massf[isp] + fF->fs->gas->massf[isp]);
 	           q_bottom = 0.25 * (cD->fs->gas->massf[isp] + cC->fs->gas->massf[isp] + cG->fs->gas->massf[isp] + cH->fs->gas->massf[isp]);
 	           // Apply the divergence theorem.
-	           sec_ctr->dfdx[isp] = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dfdy[isp] = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dfdz[isp] = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dfdx[isp] = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dfdy[isp] = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dfdz[isp] = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
             }
         } // j loop
     } // i loop
@@ -1937,15 +1937,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (cA->fs->vel.x + cB->fs->vel.x + cE->fs->vel.x + cF->fs->vel.x);
 	           q_bottom = 0.25 * (fD->fs->vel.x + fC->fs->vel.x + fG->fs->vel.x + fH->fs->vel.x);
 	           // Apply the divergence theorem.
-	           sec_ctr->dudx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dudy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dudz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dudx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dudy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dudz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (cB->fs->vel.y + fC->fs->vel.y + cF->fs->vel.y + fG->fs->vel.y);
 	           q_w = 0.25 * (cA->fs->vel.y + fD->fs->vel.y + fH->fs->vel.y + cE->fs->vel.y);
@@ -1954,15 +1954,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (cA->fs->vel.y + cB->fs->vel.y + cE->fs->vel.y + cF->fs->vel.y);
 	           q_bottom = 0.25 * (fD->fs->vel.y + fC->fs->vel.y + fG->fs->vel.y + fH->fs->vel.y);
 	           // Apply the divergence theorem.
-	           sec_ctr->dvdx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dvdy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dvdz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dvdx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dvdy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dvdz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (cB->fs->vel.z + fC->fs->vel.z + cF->fs->vel.z + fG->fs->vel.z);
 	           q_w = 0.25 * (cA->fs->vel.z + fD->fs->vel.z + fH->fs->vel.z + cE->fs->vel.z);
@@ -1971,15 +1971,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (cA->fs->vel.z + cB->fs->vel.z + cE->fs->vel.z + cF->fs->vel.z);
 	           q_bottom = 0.25 * (fD->fs->vel.z + fC->fs->vel.z + fG->fs->vel.z + fH->fs->vel.z);
 	           // Apply the divergence theorem.
-	           sec_ctr->dwdx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dwdy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dwdz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dwdx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dwdy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dwdz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (cB->fs->tke + fC->fs->tke + cF->fs->tke + fG->fs->tke);
 	           q_w = 0.25 * (cA->fs->tke + fD->fs->tke + fH->fs->tke + cE->fs->tke);
@@ -1988,15 +1988,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (cA->fs->tke + cB->fs->tke + cE->fs->tke + cF->fs->tke);
 	           q_bottom = 0.25 * (fD->fs->tke + fC->fs->tke + fG->fs->tke + fH->fs->tke);
 	           // Apply the divergence theorem.
-	           sec_ctr->dtkedx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dtkedy = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dtkedz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dtkedx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dtkedy = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dtkedz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 	// Average property value on each face.
 	           q_e = 0.25 * (cB->fs->omega + fC->fs->omega + cF->fs->omega + fG->fs->omega);
 	           q_w = 0.25 * (cA->fs->omega + fD->fs->omega + fH->fs->omega + cE->fs->omega);
@@ -2005,15 +2005,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (cA->fs->omega + cB->fs->omega + cE->fs->omega + cF->fs->omega);
 	           q_bottom = 0.25 * (fD->fs->omega + fC->fs->omega + fG->fs->omega + fH->fs->omega);
 	           // Apply the divergence theorem.
-	           sec_ctr->domegadx = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->domegady = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->domegadz = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->domegadx = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->domegady = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->domegadz = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
 
 	    
             for ( size_t itm=0; itm<ntm; ++itm ) {
@@ -2025,15 +2025,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (cA->fs->gas->T[itm] + cB->fs->gas->T[itm] + cE->fs->gas->T[itm] + cF->fs->gas->T[itm]);
 	           q_bottom = 0.25 * (fD->fs->gas->T[itm] + fC->fs->gas->T[itm] + fG->fs->gas->T[itm] + fH->fs->gas->T[itm]);
 	           // Apply the divergence theorem.
-	           sec_ctr->dTdx[itm] = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dTdy[itm] = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dTdz[itm] = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dTdx[itm] = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dTdy[itm] = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dTdz[itm] = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
             }
   	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		// Average property value on each face.
@@ -2044,15 +2044,15 @@ int viscous_derivatives_3D(Block *A)
 	           q_top = 0.25 * (cA->fs->gas->massf[isp] + cB->fs->gas->massf[isp] + cE->fs->gas->massf[isp] + cF->fs->gas->massf[isp]);
 	           q_bottom = 0.25 * (fD->fs->gas->massf[isp] + fC->fs->gas->massf[isp] + fG->fs->gas->massf[isp] + fH->fs->gas->massf[isp]);
 	           // Apply the divergence theorem.
-	           sec_ctr->dfdx[isp] = vol_inv * (q_e*east->area*east->n.x - q_w*west->area*west->n.x +
-		        q_n*north->area*north->n.x - q_s*south->area*south->n.x +
-		        q_top*top->area*top->n.x - q_bottom*bottom->area*bottom->n.x);
-	           sec_ctr->dfdy[isp] = vol_inv * (q_e*east->area*east->n.y - q_w*west->area*west->n.y +
-		        q_n*north->area*north->n.y - q_s*south->area*south->n.y +
-		        q_top*top->area*top->n.y - q_bottom*bottom->area*bottom->n.y);
-	           sec_ctr->dfdz[isp] = vol_inv * (q_e*east->area*east->n.z - q_w*west->area*west->n.z +
-		        q_n*north->area*north->n.z - q_s*south->area*south->n.z +
-		        q_top*top->area*top->n.z - q_bottom*bottom->area*bottom->n.z);
+	           sec_ctr->dfdx[isp] = vol_inv * (q_e*east->area[time_level]*east->n.x - q_w*west->area[time_level]*west->n.x +
+		        q_n*north->area[time_level]*north->n.x - q_s*south->area[time_level]*south->n.x +
+		        q_top*top->area[time_level]*top->n.x - q_bottom*bottom->area[time_level]*bottom->n.x);
+	           sec_ctr->dfdy[isp] = vol_inv * (q_e*east->area[time_level]*east->n.y - q_w*west->area[time_level]*west->n.y +
+		        q_n*north->area[time_level]*north->n.y - q_s*south->area[time_level]*south->n.y +
+		        q_top*top->area[time_level]*top->n.y - q_bottom*bottom->area[time_level]*bottom->n.y);
+	           sec_ctr->dfdz[isp] = vol_inv * (q_e*east->area[time_level]*east->n.z - q_w*west->area[time_level]*west->n.z +
+		        q_n*north->area[time_level]*north->n.z - q_s*south->area[time_level]*south->n.z +
+		        q_top*top->area[time_level]*top->n.z - q_bottom*bottom->area[time_level]*bottom->n.z);
             }
  	} // j loop
     } // i loop
@@ -2060,8 +2060,8 @@ int viscous_derivatives_3D(Block *A)
     /*
      * ...and process the edge and corner values separately.
      */
-    viscous_derivatives_edge_3D(A);
-    viscous_derivatives_corners_3D(A);
+    viscous_derivatives_edge_3D(A, time_level);
+    viscous_derivatives_corners_3D(A, time_level);
     return SUCCESS;
 } // end viscous_derivatives_3D()
 
@@ -2070,7 +2070,7 @@ int viscous_derivatives_3D(Block *A)
  *
  * Fit a linear function to the nearest data points as per notebook Jan-2009.
  */
-int viscous_derivatives_corners_3D(Block *bdp)
+int viscous_derivatives_corners_3D(Block *bdp, size_t time_level)
 {
     size_t i, j, k;
     FV_Vertex *vtx;
@@ -2090,10 +2090,11 @@ int viscous_derivatives_corners_3D(Block *bdp)
     a = bdp->get_ifi(i,j,k);
     b = bdp->get_ifj(i,j,k);
     d = bdp->get_ifk(i,j,k);
+    // FIX-ME possible bug fix 2013-03-28: yd was getting its value from c.
         xa = a->pos.x; ya = a->pos.y; za = a->pos.z;
             xb = b->pos.x; yb = b->pos.y; zb = b->pos.z;
-            xc = c->pos.x; yc = c->pos.y; zc = c->pos.z;
-            xd = d->pos.x; yd = c->pos.y; zd = d->pos.z;
+            xc = c->pos[time_level].x; yc = c->pos[time_level].y; zc = c->pos[time_level].z;
+            xd = d->pos.x; yd = d->pos.y; zd = d->pos.z;
             denom = xa*(yb*(zd-zc)-yc*zd+yd*zc+(yc-yd)*zb)+xb*(yc*zd-yd*zc)
                 +ya*(xc*zd+xb*(zc-zd)-xd*zc+(xd-xc)*zb)+yb*(xd*zc-xc*zd)
                 +(xc*yd-xd*yc)*zb+(xb*(yd-yc)-xc*yd+xd*yc+(xc-xd)*yb)*za;
@@ -2182,8 +2183,8 @@ int viscous_derivatives_corners_3D(Block *bdp)
     d = bdp->get_ifk(i,j,k);
     xa = a->pos.x; ya = a->pos.y; za = a->pos.z;
             xb = b->pos.x; yb = b->pos.y; zb = b->pos.z;
-            xc = c->pos.x; yc = c->pos.y; zc = c->pos.z;
-            xd = d->pos.x; yd = c->pos.y; zd = d->pos.z;
+            xc = c->pos[time_level].x; yc = c->pos[time_level].y; zc = c->pos[time_level].z;
+            xd = d->pos.x; yd = d->pos.y; zd = d->pos.z;
             denom = xa*(yb*(zd-zc)-yc*zd+yd*zc+(yc-yd)*zb)+xb*(yc*zd-yd*zc)
                 +ya*(xc*zd+xb*(zc-zd)-xd*zc+(xd-xc)*zb)+yb*(xd*zc-xc*zd)
                 +(xc*yd-xd*yc)*zb+(xb*(yd-yc)-xc*yd+xd*yc+(xc-xd)*yb)*za;
@@ -2272,8 +2273,8 @@ int viscous_derivatives_corners_3D(Block *bdp)
     d = bdp->get_ifk(i,j,k);
     xa = a->pos.x; ya = a->pos.y; za = a->pos.z;
             xb = b->pos.x; yb = b->pos.y; zb = b->pos.z;
-            xc = c->pos.x; yc = c->pos.y; zc = c->pos.z;
-            xd = d->pos.x; yd = c->pos.y; zd = d->pos.z;
+            xc = c->pos[time_level].x; yc = c->pos[time_level].y; zc = c->pos[time_level].z;
+            xd = d->pos.x; yd = d->pos.y; zd = d->pos.z;
             denom = xa*(yb*(zd-zc)-yc*zd+yd*zc+(yc-yd)*zb)+xb*(yc*zd-yd*zc)
                 +ya*(xc*zd+xb*(zc-zd)-xd*zc+(xd-xc)*zb)+yb*(xd*zc-xc*zd)
                 +(xc*yd-xd*yc)*zb+(xb*(yd-yc)-xc*yd+xd*yc+(xc-xd)*yb)*za;
@@ -2362,8 +2363,8 @@ int viscous_derivatives_corners_3D(Block *bdp)
     d = bdp->get_ifk(i,j,k);
     xa = a->pos.x; ya = a->pos.y; za = a->pos.z;
             xb = b->pos.x; yb = b->pos.y; zb = b->pos.z;
-            xc = c->pos.x; yc = c->pos.y; zc = c->pos.z;
-            xd = d->pos.x; yd = c->pos.y; zd = d->pos.z;
+            xc = c->pos[time_level].x; yc = c->pos[time_level].y; zc = c->pos[time_level].z;
+            xd = d->pos.x; yd = d->pos.y; zd = d->pos.z;
             denom = xa*(yb*(zd-zc)-yc*zd+yd*zc+(yc-yd)*zb)+xb*(yc*zd-yd*zc)
                 +ya*(xc*zd+xb*(zc-zd)-xd*zc+(xd-xc)*zb)+yb*(xd*zc-xc*zd)
                 +(xc*yd-xd*yc)*zb+(xb*(yd-yc)-xc*yd+xd*yc+(xc-xd)*yb)*za;
@@ -2452,8 +2453,8 @@ int viscous_derivatives_corners_3D(Block *bdp)
     d = bdp->get_ifk(i,j,k+1);
     xa = a->pos.x; ya = a->pos.y; za = a->pos.z;
             xb = b->pos.x; yb = b->pos.y; zb = b->pos.z;
-            xc = c->pos.x; yc = c->pos.y; zc = c->pos.z;
-            xd = d->pos.x; yd = c->pos.y; zd = d->pos.z;
+            xc = c->pos[time_level].x; yc = c->pos[time_level].y; zc = c->pos[time_level].z;
+            xd = d->pos.x; yd = d->pos.y; zd = d->pos.z;
             denom = xa*(yb*(zd-zc)-yc*zd+yd*zc+(yc-yd)*zb)+xb*(yc*zd-yd*zc)
                 +ya*(xc*zd+xb*(zc-zd)-xd*zc+(xd-xc)*zb)+yb*(xd*zc-xc*zd)
                 +(xc*yd-xd*yc)*zb+(xb*(yd-yc)-xc*yd+xd*yc+(xc-xd)*yb)*za;
@@ -2542,8 +2543,8 @@ int viscous_derivatives_corners_3D(Block *bdp)
     d = bdp->get_ifk(i,j,k+1);
     xa = a->pos.x; ya = a->pos.y; za = a->pos.z;
             xb = b->pos.x; yb = b->pos.y; zb = b->pos.z;
-            xc = c->pos.x; yc = c->pos.y; zc = c->pos.z;
-            xd = d->pos.x; yd = c->pos.y; zd = d->pos.z;
+            xc = c->pos[time_level].x; yc = c->pos[time_level].y; zc = c->pos[time_level].z;
+            xd = d->pos.x; yd = d->pos.y; zd = d->pos.z;
             denom = xa*(yb*(zd-zc)-yc*zd+yd*zc+(yc-yd)*zb)+xb*(yc*zd-yd*zc)
                 +ya*(xc*zd+xb*(zc-zd)-xd*zc+(xd-xc)*zb)+yb*(xd*zc-xc*zd)
                 +(xc*yd-xd*yc)*zb+(xb*(yd-yc)-xc*yd+xd*yc+(xc-xd)*yb)*za;
@@ -2632,8 +2633,8 @@ int viscous_derivatives_corners_3D(Block *bdp)
     d = bdp->get_ifk(i,j,k+1);
     xa = a->pos.x; ya = a->pos.y; za = a->pos.z;
             xb = b->pos.x; yb = b->pos.y; zb = b->pos.z;
-            xc = c->pos.x; yc = c->pos.y; zc = c->pos.z;
-            xd = d->pos.x; yd = c->pos.y; zd = d->pos.z;
+            xc = c->pos[time_level].x; yc = c->pos[time_level].y; zc = c->pos[time_level].z;
+            xd = d->pos.x; yd = d->pos.y; zd = d->pos.z;
             denom = xa*(yb*(zd-zc)-yc*zd+yd*zc+(yc-yd)*zb)+xb*(yc*zd-yd*zc)
                 +ya*(xc*zd+xb*(zc-zd)-xd*zc+(xd-xc)*zb)+yb*(xd*zc-xc*zd)
                 +(xc*yd-xd*yc)*zb+(xb*(yd-yc)-xc*yd+xd*yc+(xc-xd)*yb)*za;
@@ -2722,8 +2723,8 @@ int viscous_derivatives_corners_3D(Block *bdp)
     d = bdp->get_ifk(i,j,k+1);
     xa = a->pos.x; ya = a->pos.y; za = a->pos.z;
             xb = b->pos.x; yb = b->pos.y; zb = b->pos.z;
-            xc = c->pos.x; yc = c->pos.y; zc = c->pos.z;
-            xd = d->pos.x; yd = c->pos.y; zd = d->pos.z;
+            xc = c->pos[time_level].x; yc = c->pos[time_level].y; zc = c->pos[time_level].z;
+            xd = d->pos.x; yd = d->pos.y; zd = d->pos.z;
             denom = xa*(yb*(zd-zc)-yc*zd+yd*zc+(yc-yd)*zb)+xb*(yc*zd-yd*zc)
                 +ya*(xc*zd+xb*(zc-zd)-xd*zc+(xd-xc)*zb)+yb*(xd*zc-xc*zd)
                 +(xc*yd-xd*yc)*zb+(xb*(yd-yc)-xc*yd+xd*yc+(xc-xd)*yb)*za;
@@ -2811,7 +2812,7 @@ int viscous_derivatives_corners_3D(Block *bdp)
  *
  * See workbook pages dated 07-Jan-2010.
  */
-int viscous_derivatives_edge_3D(Block *bdp)
+int viscous_derivatives_edge_3D(Block *bdp, size_t time_level)
 {
     size_t i, j, k, imin, jmin, kmin, imax, jmax, kmax;
     FV_Vertex *vtx;
@@ -2847,8 +2848,8 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fb = bdp->get_ifk(i-1,j,k);
         fc = bdp->get_ifj(i,j,k);
         fd = bdp->get_ifk(i,j,k);
-	        ca_x = ca->pos.x; ca_y = ca->pos.y; ca_z = ca->pos.z;
-                cb_x = cb->pos.x; cb_y = cb->pos.y; cb_z = cb->pos.z;
+	        ca_x = ca->pos[time_level].x; ca_y = ca->pos[time_level].y; ca_z = ca->pos[time_level].z;
+                cb_x = cb->pos[time_level].x; cb_y = cb->pos[time_level].y; cb_z = cb->pos[time_level].z;
                 fa_x = fa->pos.x; fa_y = fa->pos.y; fa_z = fa->pos.z;
                 fb_x = fb->pos.x; fb_y = fb->pos.y; fb_z = fb->pos.z;
                 fc_x = fc->pos.x; fc_y = fc->pos.y; fc_z = fc->pos.z;
@@ -2985,8 +2986,8 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fb = bdp->get_ifk(i-1,j,k);
         fc = bdp->get_ifj(i,j+1,k);
         fd = bdp->get_ifk(i,j,k);
-        ca_x = ca->pos.x; ca_y = ca->pos.y; ca_z = ca->pos.z;
-                cb_x = cb->pos.x; cb_y = cb->pos.y; cb_z = cb->pos.z;
+        ca_x = ca->pos[time_level].x; ca_y = ca->pos[time_level].y; ca_z = ca->pos[time_level].z;
+                cb_x = cb->pos[time_level].x; cb_y = cb->pos[time_level].y; cb_z = cb->pos[time_level].z;
                 fa_x = fa->pos.x; fa_y = fa->pos.y; fa_z = fa->pos.z;
                 fb_x = fb->pos.x; fb_y = fb->pos.y; fb_z = fb->pos.z;
                 fc_x = fc->pos.x; fc_y = fc->pos.y; fc_z = fc->pos.z;
@@ -3123,8 +3124,8 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fb = bdp->get_ifk(i,j-1,k);
         fc = bdp->get_ifi(i,j,k);
         fd = bdp->get_ifk(i,j,k);
-        ca_x = ca->pos.x; ca_y = ca->pos.y; ca_z = ca->pos.z;
-                cb_x = cb->pos.x; cb_y = cb->pos.y; cb_z = cb->pos.z;
+        ca_x = ca->pos[time_level].x; ca_y = ca->pos[time_level].y; ca_z = ca->pos[time_level].z;
+                cb_x = cb->pos[time_level].x; cb_y = cb->pos[time_level].y; cb_z = cb->pos[time_level].z;
                 fa_x = fa->pos.x; fa_y = fa->pos.y; fa_z = fa->pos.z;
                 fb_x = fb->pos.x; fb_y = fb->pos.y; fb_z = fb->pos.z;
                 fc_x = fc->pos.x; fc_y = fc->pos.y; fc_z = fc->pos.z;
@@ -3261,8 +3262,8 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fb = bdp->get_ifk(i,j-1,k);
         fc = bdp->get_ifi(i+1,j,k);
         fd = bdp->get_ifk(i,j,k);
-        ca_x = ca->pos.x; ca_y = ca->pos.y; ca_z = ca->pos.z;
-                cb_x = cb->pos.x; cb_y = cb->pos.y; cb_z = cb->pos.z;
+        ca_x = ca->pos[time_level].x; ca_y = ca->pos[time_level].y; ca_z = ca->pos[time_level].z;
+                cb_x = cb->pos[time_level].x; cb_y = cb->pos[time_level].y; cb_z = cb->pos[time_level].z;
                 fa_x = fa->pos.x; fa_y = fa->pos.y; fa_z = fa->pos.z;
                 fb_x = fb->pos.x; fb_y = fb->pos.y; fb_z = fb->pos.z;
                 fc_x = fc->pos.x; fc_y = fc->pos.y; fc_z = fc->pos.z;
@@ -3399,8 +3400,8 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fb = bdp->get_ifk(i-1,j,k+1);
         fc = bdp->get_ifj(i,j,k);
         fd = bdp->get_ifk(i,j,k+1);
-        ca_x = ca->pos.x; ca_y = ca->pos.y; ca_z = ca->pos.z;
-                cb_x = cb->pos.x; cb_y = cb->pos.y; cb_z = cb->pos.z;
+        ca_x = ca->pos[time_level].x; ca_y = ca->pos[time_level].y; ca_z = ca->pos[time_level].z;
+                cb_x = cb->pos[time_level].x; cb_y = cb->pos[time_level].y; cb_z = cb->pos[time_level].z;
                 fa_x = fa->pos.x; fa_y = fa->pos.y; fa_z = fa->pos.z;
                 fb_x = fb->pos.x; fb_y = fb->pos.y; fb_z = fb->pos.z;
                 fc_x = fc->pos.x; fc_y = fc->pos.y; fc_z = fc->pos.z;
@@ -3537,8 +3538,8 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fb = bdp->get_ifk(i-1,j,k+1);
         fc = bdp->get_ifj(i,j+1,k);
         fd = bdp->get_ifk(i,j,k+1);
-        ca_x = ca->pos.x; ca_y = ca->pos.y; ca_z = ca->pos.z;
-                cb_x = cb->pos.x; cb_y = cb->pos.y; cb_z = cb->pos.z;
+        ca_x = ca->pos[time_level].x; ca_y = ca->pos[time_level].y; ca_z = ca->pos[time_level].z;
+                cb_x = cb->pos[time_level].x; cb_y = cb->pos[time_level].y; cb_z = cb->pos[time_level].z;
                 fa_x = fa->pos.x; fa_y = fa->pos.y; fa_z = fa->pos.z;
                 fb_x = fb->pos.x; fb_y = fb->pos.y; fb_z = fb->pos.z;
                 fc_x = fc->pos.x; fc_y = fc->pos.y; fc_z = fc->pos.z;
@@ -3675,8 +3676,8 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fb = bdp->get_ifk(i,j-1,k+1);
         fc = bdp->get_ifi(i,j,k);
         fd = bdp->get_ifk(i,j,k+1);
-        ca_x = ca->pos.x; ca_y = ca->pos.y; ca_z = ca->pos.z;
-                cb_x = cb->pos.x; cb_y = cb->pos.y; cb_z = cb->pos.z;
+        ca_x = ca->pos[time_level].x; ca_y = ca->pos[time_level].y; ca_z = ca->pos[time_level].z;
+                cb_x = cb->pos[time_level].x; cb_y = cb->pos[time_level].y; cb_z = cb->pos[time_level].z;
                 fa_x = fa->pos.x; fa_y = fa->pos.y; fa_z = fa->pos.z;
                 fb_x = fb->pos.x; fb_y = fb->pos.y; fb_z = fb->pos.z;
                 fc_x = fc->pos.x; fc_y = fc->pos.y; fc_z = fc->pos.z;
@@ -3813,8 +3814,8 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fb = bdp->get_ifk(i,j-1,k+1);
         fc = bdp->get_ifi(i+1,j,k);
         fd = bdp->get_ifk(i,j,k+1);
-        ca_x = ca->pos.x; ca_y = ca->pos.y; ca_z = ca->pos.z;
-                cb_x = cb->pos.x; cb_y = cb->pos.y; cb_z = cb->pos.z;
+        ca_x = ca->pos[time_level].x; ca_y = ca->pos[time_level].y; ca_z = ca->pos[time_level].z;
+                cb_x = cb->pos[time_level].x; cb_y = cb->pos[time_level].y; cb_z = cb->pos[time_level].z;
                 fa_x = fa->pos.x; fa_y = fa->pos.y; fa_z = fa->pos.z;
                 fb_x = fb->pos.x; fb_y = fb->pos.y; fb_z = fb->pos.z;
                 fc_x = fc->pos.x; fc_y = fc->pos.y; fc_z = fc->pos.z;
@@ -3951,8 +3952,8 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fb = bdp->get_ifj(i,j,k-1);
         fc = bdp->get_ifi(i,j,k);
         fd = bdp->get_ifj(i,j,k);
-        ca_x = ca->pos.x; ca_y = ca->pos.y; ca_z = ca->pos.z;
-                cb_x = cb->pos.x; cb_y = cb->pos.y; cb_z = cb->pos.z;
+        ca_x = ca->pos[time_level].x; ca_y = ca->pos[time_level].y; ca_z = ca->pos[time_level].z;
+                cb_x = cb->pos[time_level].x; cb_y = cb->pos[time_level].y; cb_z = cb->pos[time_level].z;
                 fa_x = fa->pos.x; fa_y = fa->pos.y; fa_z = fa->pos.z;
                 fb_x = fb->pos.x; fb_y = fb->pos.y; fb_z = fb->pos.z;
                 fc_x = fc->pos.x; fc_y = fc->pos.y; fc_z = fc->pos.z;
@@ -4089,8 +4090,8 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fb = bdp->get_ifj(i,j,k-1);
         fc = bdp->get_ifi(i+1,j,k);
         fd = bdp->get_ifj(i,j,k);
-        ca_x = ca->pos.x; ca_y = ca->pos.y; ca_z = ca->pos.z;
-                cb_x = cb->pos.x; cb_y = cb->pos.y; cb_z = cb->pos.z;
+        ca_x = ca->pos[time_level].x; ca_y = ca->pos[time_level].y; ca_z = ca->pos[time_level].z;
+                cb_x = cb->pos[time_level].x; cb_y = cb->pos[time_level].y; cb_z = cb->pos[time_level].z;
                 fa_x = fa->pos.x; fa_y = fa->pos.y; fa_z = fa->pos.z;
                 fb_x = fb->pos.x; fb_y = fb->pos.y; fb_z = fb->pos.z;
                 fc_x = fc->pos.x; fc_y = fc->pos.y; fc_z = fc->pos.z;
@@ -4227,8 +4228,8 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fb = bdp->get_ifj(i,j+1,k-1);
         fc = bdp->get_ifi(i+1,j,k);
         fd = bdp->get_ifj(i,j+1,k);
-        ca_x = ca->pos.x; ca_y = ca->pos.y; ca_z = ca->pos.z;
-                cb_x = cb->pos.x; cb_y = cb->pos.y; cb_z = cb->pos.z;
+        ca_x = ca->pos[time_level].x; ca_y = ca->pos[time_level].y; ca_z = ca->pos[time_level].z;
+                cb_x = cb->pos[time_level].x; cb_y = cb->pos[time_level].y; cb_z = cb->pos[time_level].z;
                 fa_x = fa->pos.x; fa_y = fa->pos.y; fa_z = fa->pos.z;
                 fb_x = fb->pos.x; fb_y = fb->pos.y; fb_z = fb->pos.z;
                 fc_x = fc->pos.x; fc_y = fc->pos.y; fc_z = fc->pos.z;
@@ -4365,8 +4366,8 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fb = bdp->get_ifj(i,j+1,k-1);
         fc = bdp->get_ifi(i,j,k);
         fd = bdp->get_ifj(i,j+1,k);
-        ca_x = ca->pos.x; ca_y = ca->pos.y; ca_z = ca->pos.z;
-                cb_x = cb->pos.x; cb_y = cb->pos.y; cb_z = cb->pos.z;
+        ca_x = ca->pos[time_level].x; ca_y = ca->pos[time_level].y; ca_z = ca->pos[time_level].z;
+                cb_x = cb->pos[time_level].x; cb_y = cb->pos[time_level].y; cb_z = cb->pos[time_level].z;
                 fa_x = fa->pos.x; fa_y = fa->pos.y; fa_z = fa->pos.z;
                 fb_x = fb->pos.x; fb_y = fb->pos.y; fb_z = fb->pos.z;
                 fc_x = fc->pos.x; fc_y = fc->pos.y; fc_z = fc->pos.z;

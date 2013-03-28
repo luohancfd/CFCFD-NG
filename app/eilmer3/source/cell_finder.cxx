@@ -253,14 +253,14 @@ test_cell( const FV_Cell * cell, const Vector3 &p, int *dc )
     
     // define the r vectors
     for ( size_t iv=0; iv<nvertices_; ++iv )
-	rp_[ithread][iv] = cell->vtx[iv]->pos - p;
+	rp_[ithread][iv] = cell->vtx[iv]->pos[0] - p;
     
     // calculate the cross products
     size_t iv_p1;
     for ( size_t iv=0; iv<nvertices_; iv++ ) {
 	iv_p1 = iv+1;
 	if ( iv_p1 == nvertices_ ) iv_p1 = 0;
-	a_[ithread][iv] = cross(rp_[ithread][iv], cell->vtx[iv_p1]->pos - cell->vtx[iv]->pos );
+	a_[ithread][iv] = cross(rp_[ithread][iv], cell->vtx[iv_p1]->pos[0] - cell->vtx[iv]->pos[0] );
     }
     
     // if all cross product 'z' components are positive, then point is inside cell
@@ -643,7 +643,7 @@ test_cell( const FV_Cell * cell, const Vector3 &p, int *dc )
     for ( size_t iface=0; iface<a_[ithread].size(); ++iface ) {
     	for ( size_t ivtx=0; ivtx<vp_[ithread].size(); ++ ivtx ) {
     	    // get ordered (clockwise) vertex indices from hex_vertex_indices
-    	    vp_[ithread][ivtx] = cell->vtx[ hex_vertex_indices[iface][ivtx] ]->pos - p;
+    	    vp_[ithread][ivtx] = cell->vtx[ hex_vertex_indices[iface][ivtx] ]->pos[0] - p;
     	}
     	a_[ithread][iface] = dot( vp_[ithread][0], cross( vp_[ithread][1], vp_[ithread][2] ) );
     }

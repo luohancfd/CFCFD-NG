@@ -204,12 +204,12 @@ int AblatingBC::apply_inviscid( double t )
 		IFace = src_cell->iface[NORTH];
 		// ghost cell 1
 		dest_cell = bd.get_cell(i,j+1,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		calculate_ghost_cell_flow_state( src_cell, IFace, dest_cell );
 		// ghost cell 2 (copy of 1)
 		src_cell = bd.get_cell(i,j+1,k);
 		dest_cell = bd.get_cell(i,j+2,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 	    } // end i loop
 	} // for k
 	break;
@@ -221,12 +221,12 @@ int AblatingBC::apply_inviscid( double t )
 		IFace = src_cell->iface[EAST];
 		// ghost cell 1
 		dest_cell = bd.get_cell(i+1,j,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		calculate_ghost_cell_flow_state( src_cell, IFace, dest_cell );
 		// ghost cell 2 (copy of 1)
 		src_cell = bd.get_cell(i+1,j,k);
 		dest_cell = bd.get_cell(i+2,j,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 	    } // end j loop
 	} // for k
 	break;
@@ -238,12 +238,12 @@ int AblatingBC::apply_inviscid( double t )
 		IFace = src_cell->iface[SOUTH];
 		// ghost cell 1
 		dest_cell = bd.get_cell(i,j-1,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		calculate_ghost_cell_flow_state( src_cell, IFace, dest_cell );
 		// ghost cell 2 (copy of 1)
 		src_cell = bd.get_cell(i,j-1,k);
 		dest_cell = bd.get_cell(i,j-1,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 	    } // end i loop
 	} // for k
 	break;
@@ -255,12 +255,12 @@ int AblatingBC::apply_inviscid( double t )
 		IFace = src_cell->iface[WEST];
 		// ghost cell 1
 		dest_cell = bd.get_cell(i-1,j,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		calculate_ghost_cell_flow_state( src_cell, IFace, dest_cell );
 		// ghost cell 2 (copy of 1)
 		src_cell = bd.get_cell(i-1,j,k);
 		dest_cell = bd.get_cell(i-2,j,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 	    } // end j loop
 	} // for k
  	break;
@@ -272,12 +272,12 @@ int AblatingBC::apply_inviscid( double t )
 		IFace = src_cell->iface[WEST];
 		// ghost cell 1
 		dest_cell = bd.get_cell(i,j,k+1);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		calculate_ghost_cell_flow_state( src_cell, IFace, dest_cell );
 		// ghost cell 2 (copy of 1)
 		src_cell = bd.get_cell(i,j,k+1);
 		dest_cell = bd.get_cell(i,j,k+2);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 	    } // end j loop
 	} // for i
 	break;
@@ -289,12 +289,12 @@ int AblatingBC::apply_inviscid( double t )
 		IFace = src_cell->iface[WEST];
 		// ghost cell 1
 		dest_cell = bd.get_cell(i,j,k-1);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		calculate_ghost_cell_flow_state( src_cell, IFace, dest_cell );
 		// ghost cell 2 (copy of 1)
 		src_cell = bd.get_cell(i,j,k-1);
 		dest_cell = bd.get_cell(i,j,k-2);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 	    } // end j loop
 	} // for i
  	break;
@@ -513,7 +513,7 @@ calculate_ghost_cell_flow_state( FV_Cell *cell1, FV_Interface *wall, FV_Cell *ce
         if ( rho_0 < 0.0 ) {
             cout << "rho in ghost cell is negative!" << endl
             << "cell position: " << endl
-            << "(" <<  cell0->pos.x << "," << cell0->pos.y << "," <<  cell0->pos.z << ")" << endl
+            << "(" <<  cell0->pos[0].x << "," << cell0->pos[0].y << "," <<  cell0->pos[0].z << ")" << endl
 	     << "Bailing out!" << endl;
 	    exit( FAILURE );
 

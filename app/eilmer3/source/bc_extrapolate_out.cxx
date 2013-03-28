@@ -116,9 +116,9 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    // Zero-order extrapolation
 		    src_cell = bd.get_cell(i,j,k);
 		    dest_cell = bd.get_cell(i,j+1,k);
-		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		    dest_cell = bd.get_cell(i,j+2,k);
-		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		} 
 	    } // end i loop
 	} // for k
@@ -188,9 +188,9 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		else {
 		    src_cell = bd.get_cell(i,j,k);
 		    dest_cell = bd.get_cell(i+1,j,k);
-		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		    dest_cell = bd.get_cell(i+2,j,k);
-		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		}
 	    } // end j loop
 	} // for k
@@ -260,9 +260,9 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		else {
 		    src_cell = bd.get_cell(i,j,k);
 		    dest_cell = bd.get_cell(i,j-1,k);
-		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		    dest_cell = bd.get_cell(i,j-2,k);
-		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		}
 	    } // end i loop
 	} // for k
@@ -333,9 +333,9 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    // Zero-order extrapolation
 		    src_cell = bd.get_cell(i,j,k);
 		    dest_cell = bd.get_cell(i-1,j,k);
-		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		    dest_cell = bd.get_cell(i-2,j,k);
-		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		}
 	    } // end j loop
 	} // for k
@@ -406,9 +406,9 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		    // Zero-order extrapolation
 		    src_cell = bd.get_cell(i,j,k);
 		    dest_cell = bd.get_cell(i,j,k+1);
-		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		    dest_cell = bd.get_cell(i,j,k+2);
-		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		}
 	    } // end j loop
 	} // for i
@@ -478,9 +478,9 @@ int ExtrapolateOutBC::apply_inviscid( double t )
 		else {
 		    src_cell = bd.get_cell(i,j,k);
 		    dest_cell = bd.get_cell(i,j,k-1);
-		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		    dest_cell = bd.get_cell(i,j,k-2);
-		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		    dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		}
 	    } // end j loop
 	} // for i

@@ -59,11 +59,11 @@ int FixedPOutBC::apply_inviscid( double t )
 	    for (i = bd.imin; i <= bd.imax; ++i) {
 		src_cell = bd.get_cell(i,j,k);
 		dest_cell = bd.get_cell(i,j+1,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
 		dest_cell = bd.get_cell(i,j+2,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
 	    } // end i loop
@@ -75,11 +75,11 @@ int FixedPOutBC::apply_inviscid( double t )
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
 		dest_cell = bd.get_cell(i+1,j,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
 		dest_cell = bd.get_cell(i+2,j,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
 	    } // end j loop
@@ -91,11 +91,11 @@ int FixedPOutBC::apply_inviscid( double t )
 	    for (i = bd.imin; i <= bd.imax; ++i) {
 		src_cell = bd.get_cell(i,j,k);
 		dest_cell = bd.get_cell(i,j-1,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
 		dest_cell = bd.get_cell(i,j-2,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
 	    } // end i loop
@@ -107,11 +107,11 @@ int FixedPOutBC::apply_inviscid( double t )
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
 		dest_cell = bd.get_cell(i-1,j,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
 		dest_cell = bd.get_cell(i-2,j,k);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
 	    } // end j loop
@@ -123,11 +123,11 @@ int FixedPOutBC::apply_inviscid( double t )
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
 		dest_cell = bd.get_cell(i,j,k+1);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
 		dest_cell = bd.get_cell(i,j,k+2);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
 	    } // end j loop
@@ -139,11 +139,11 @@ int FixedPOutBC::apply_inviscid( double t )
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
 		dest_cell = bd.get_cell(i,j,k-1);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
 		dest_cell = bd.get_cell(i,j,k-2);
-		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE);
+		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		dest_cell->fs->gas->p = Pout;
 		gmodel->eval_thermo_state_pT(*(dest_cell->fs->gas));  // make density consistent
 	    } // end j loop

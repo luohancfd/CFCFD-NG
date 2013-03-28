@@ -96,7 +96,7 @@ const double k_inner = 0.4;
 /// We apply the model one i-station at a time.
 /// \endverbatim
 ///
-int baldwin_lomax_turbulence_model(global_data& gdata, Block& blk)
+int baldwin_lomax_turbulence_model(global_data& gdata, Block& blk, size_t time_level)
 {
     int i, j, j_limit, jwall;
     int ifirst, ilast, jfirst, jlast;
@@ -178,8 +178,8 @@ int baldwin_lomax_turbulence_model(global_data& gdata, Block& blk)
 	    // |      |
 	    // 0------1
 	    cell = blk.get_cell(i,jwall);
-            y_wall = 0.5 * (cell->vtx[3]->pos.y + cell->vtx[2]->pos.y);
-            x_wall = 0.5 * (cell->vtx[3]->pos.x + cell->vtx[2]->pos.x);
+            y_wall = 0.5 * (cell->vtx[3]->pos[time_level].y + cell->vtx[2]->pos[time_level].y);
+            x_wall = 0.5 * (cell->vtx[3]->pos[time_level].x + cell->vtx[2]->pos[time_level].x);
             for ( j = jwall; j >= jlast; --j ) {
 	        cell = blk.get_cell(i,j);
                 temporary = 0.25*(cell->vtx[0]->dudy + cell->vtx[1]->dudy + 
@@ -187,8 +187,8 @@ int baldwin_lomax_turbulence_model(global_data& gdata, Block& blk)
 		    - 0.25*(cell->vtx[0]->dvdx + cell->vtx[1]->dvdx + 
 			    cell->vtx[2]->dvdx + cell->vtx[3]->dvdx);
                 vort[j] = FABS(temporary);
-                dy = y_wall - cell->pos.y;
-                dx = x_wall - cell->pos.x;
+                dy = y_wall - cell->pos[time_level].y;
+                dx = x_wall - cell->pos[time_level].x;
                 eta[j] = sqrt(dx * dx + dy * dy);
             }    
 
@@ -374,8 +374,8 @@ int baldwin_lomax_turbulence_model(global_data& gdata, Block& blk)
 	    // |      |
 	    // 0------1
 	    cell = blk.get_cell(i,jwall);
-            y_wall = 0.5 * (cell->vtx[0]->pos.y + cell->vtx[1]->pos.y);
-            x_wall = 0.5 * (cell->vtx[0]->pos.x + cell->vtx[1]->pos.x);
+            y_wall = 0.5 * (cell->vtx[0]->pos[time_level].y + cell->vtx[1]->pos[time_level].y);
+            x_wall = 0.5 * (cell->vtx[0]->pos[time_level].x + cell->vtx[1]->pos[time_level].x);
             for ( j = jwall; j <= jlast; ++j ) {
 	        cell = blk.get_cell(i,j);
                 temporary = 0.25*(cell->vtx[0]->dudy + cell->vtx[1]->dudy + 
@@ -383,8 +383,8 @@ int baldwin_lomax_turbulence_model(global_data& gdata, Block& blk)
 		    - 0.25*(cell->vtx[0]->dvdx + cell->vtx[1]->dvdx + 
 		  	    cell->vtx[2]->dvdx + cell->vtx[3]->dvdx);
                 vort[j] = FABS(temporary);
-                dy = cell->pos.y - y_wall;
-                dx = cell->pos.x - x_wall;
+                dy = cell->pos[time_level].y - y_wall;
+                dx = cell->pos[time_level].x - x_wall;
                 eta[j] = sqrt(dx * dx + dy * dy);
             }
 

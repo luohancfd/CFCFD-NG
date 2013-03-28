@@ -362,7 +362,7 @@ int ConservedQuantities::clear_values()
 
 FV_Interface::FV_Interface(Gas_model *gm)
     : id(0), status(0), pos(0.0,0.0,0.0), vel(0.0,0.0,0.0),
-      Ybar(0.0), length(0.0), area(0.0), ar(N_LEVEL, 0.0),
+      Ybar(0.0), length(0.0), area(N_LEVEL, 0.0),
       n(0.0,0.0,0.0), t1(0.0,0.0,0.0), t2(0.0,0.0,0.0),
       fs(new FlowState(gm)), F(new ConservedQuantities(gm))
 {
@@ -375,7 +375,7 @@ FV_Interface::FV_Interface(Gas_model *gm)
 
 FV_Interface::FV_Interface()
     : id(0), status(0), pos(0.0,0.0,0.0), vel(0.0,0.0,0.0),
-      Ybar(0.0), length(0.0), area(0.0), ar(N_LEVEL, 0.0),
+      Ybar(0.0), length(0.0), area(N_LEVEL, 0.0),
       n(0.0,0.0,0.0), t1(0.0,0.0,0.0), t2(0.0,0.0,0.0),
       fs(new FlowState(get_gas_model_ptr())),
       F(new ConservedQuantities(get_gas_model_ptr()))
@@ -384,7 +384,7 @@ FV_Interface::FV_Interface()
 FV_Interface::FV_Interface(const FV_Interface &iface)
     : id(iface.id), status(iface.status), pos(iface.pos), vel(iface.vel),
       Ybar(iface.Ybar), length(iface.length), area(iface.area), 
-      ar(iface.ar), n(iface.n), t1(iface.t1), t2(iface.t2),
+      n(iface.n), t1(iface.t1), t2(iface.t2),
       fs(new FlowState(*iface.fs)), F(new ConservedQuantities(*iface.F))
 {}
 
@@ -394,7 +394,7 @@ FV_Interface & FV_Interface::operator=(const FV_Interface &iface)
 	id = iface.id; status = iface.status;
 	pos = iface.pos; vel = iface.vel;
 	Ybar = iface.Ybar; length = iface.length; area = iface.area;
-	ar = iface.ar; n = iface.n; t1 = iface.t1; t2 = iface.t2;
+	n = iface.n; t1 = iface.t1; t2 = iface.t2;
 	fs = new FlowState(*iface.fs);
 	F = new ConservedQuantities(*iface.F);
     }
@@ -412,7 +412,7 @@ int FV_Interface::print(int to_stdout) const
     printf( "----------- Begin data for interface -----------\n");
     // printf( "id = %i\n", iface->id);
     printf("x=%e, y=%e, z=%e\n", pos.x, pos.y, pos.z);
-    printf("area=%e, Ybar=%e, length=%e\n", area, Ybar, length);
+    printf("area[0]=%e, Ybar=%e, length=%e\n", area[0], Ybar, length);  // FIX-ME moving grid
     printf("n.x=%e, n.y=%e, n.z=%e\n", n.x, n.y, n.z);
     printf("t1.x=%e, t1.y=%e, t1.z=%e\n", t1.x, t1.y, t1.z);
     printf("t2.x=%e, t2.y=%e, t2.z=%e\n", t2.x, t2.y, t2.z);
@@ -439,7 +439,7 @@ int FV_Interface::copy_values_from(const FV_Interface &src, int type_of_copy)
 	n.x = src.n.x; n.y = src.n.y; n.z = src.n.z;
 	t1.x = src.t1.x; t1.y = src.t1.y; t1.z = src.t1.z;
 	t2.x = src.t2.x; t2.y = src.t2.y; t2.z = src.t2.z;
-	Ybar = src.Ybar; length = src.length; area = src.area;
+	Ybar = src.Ybar; length = src.length; area[0] = src.area[0];  // FIX-ME moving grid
     }
     return SUCCESS;
 }
@@ -447,8 +447,8 @@ int FV_Interface::copy_values_from(const FV_Interface &src, int type_of_copy)
 //----------------------------------------------------------------------------
 
 FV_Vertex::FV_Vertex(Gas_model *gm)
-    : id(0), pos(0.0,0.0,0.0), position(N_LEVEL,Vector3(0.0,0.0,0.0)),
-      vel(0.0,0.0,0.0), velocity(N_LEVEL,Vector3(0.0,0.0,0.0)),
+    : id(0), pos(N_LEVEL,Vector3(0.0,0.0,0.0)),
+      vel(N_LEVEL,Vector3(0.0,0.0,0.0)),
       area(0.0), volume(0.0),
       dudx(0.0), dudy(0.0), dudz(0.0),
       dvdx(0.0), dvdy(0.0), dvdz(0.0),
@@ -464,8 +464,8 @@ FV_Vertex::FV_Vertex(Gas_model *gm)
 {}
 
 FV_Vertex::FV_Vertex()
-    : id(0), pos(0.0,0.0,0.0), position(N_LEVEL,Vector3(0.0,0.0,0.0)),
-      vel(0.0,0.0,0.0), velocity(N_LEVEL,Vector3(0.0,0.0,0.0)),
+    : id(0), pos(N_LEVEL,Vector3(0.0,0.0,0.0)),
+      vel(N_LEVEL,Vector3(0.0,0.0,0.0)),
       area(0.0), volume(0.0),
       dudx(0.0), dudy(0.0), dudz(0.0),
       dvdx(0.0), dvdy(0.0), dvdz(0.0),
@@ -481,8 +481,7 @@ FV_Vertex::FV_Vertex()
 {}
 
 FV_Vertex::FV_Vertex(const FV_Vertex &vtx)
-    : id(vtx.id), pos(vtx.pos), position(vtx.position),
-      vel(vtx.vel), velocity(vtx.velocity),
+    : id(vtx.id), pos(vtx.pos), vel(vtx.vel),
       area(vtx.area), volume(vtx.volume),
       dudx(vtx.dudx), dudy(vtx.dudy), dudz(vtx.dudz),
       dvdx(vtx.dvdx), dvdy(vtx.dvdy), dvdz(vtx.dvdz),
@@ -521,8 +520,8 @@ int FV_Vertex::copy_values_from(const FV_Vertex &src)
 FV_Cell::FV_Cell(Gas_model *gm)
     : id(0), status(NORMAL_CELL), fr_reactions_allowed(0),
       dt_chem(0.0), dt_therm(0.0), in_turbulent_zone(0),
-      base_qdot(0.0), pos(0.0,0.0,0.0), position(N_LEVEL,Vector3(0.0,0.0,0.0)),
-      volume(0.0), vol(N_LEVEL,0.0), area(0.0), ar(N_LEVEL,0.0), uf(0.0),
+      base_qdot(0.0), pos(N_LEVEL,Vector3(0.0,0.0,0.0)),
+      volume(N_LEVEL,0.0), area(N_LEVEL,0.0), uf(0.0),
       iLength(0.0), jLength(0.0), kLength(0.0), L_min(0.0),
       distance_to_nearest_wall(0.0), half_cell_width_at_wall(0.0),
       cell_at_nearest_wall(NULL), iface(N_INTERFACE,NULL), vtx(N_VERTEX,NULL),
@@ -546,8 +545,8 @@ FV_Cell::FV_Cell(Gas_model *gm)
 FV_Cell::FV_Cell()
     : id(0), status(NORMAL_CELL), fr_reactions_allowed(0),
       dt_chem(0.0), dt_therm(0.0), in_turbulent_zone(0),
-      base_qdot(0.0), pos(0.0,0.0,0.0), position(N_LEVEL,Vector3(0.0,0.0,0.0)),
-      volume(0.0), vol(N_LEVEL,0.0), area(0.0), ar(N_LEVEL,0.0), uf(0.0),
+      base_qdot(0.0), pos(N_LEVEL,Vector3(0.0,0.0,0.0)),
+      volume(N_LEVEL,0.0), area(N_LEVEL,0.0), uf(0.0),
       iLength(0.0), jLength(0.0), kLength(0.0), L_min(0.0),
       distance_to_nearest_wall(0.0), half_cell_width_at_wall(0.0),
       cell_at_nearest_wall(NULL), iface(N_INTERFACE,NULL), vtx(N_VERTEX,NULL),
@@ -569,8 +568,8 @@ FV_Cell::FV_Cell(const FV_Cell &cell)
       fr_reactions_allowed(cell.fr_reactions_allowed),
       dt_chem(cell.dt_chem), dt_therm(cell.dt_therm),
       in_turbulent_zone(cell.in_turbulent_zone),
-      base_qdot(cell.base_qdot), pos(cell.pos), position(cell.position),
-      volume(cell.volume), vol(cell.vol), area(cell.area), ar(cell.ar), uf(cell.uf),
+      base_qdot(cell.base_qdot), pos(cell.pos),
+      volume(cell.volume), area(cell.area), uf(cell.uf),
       iLength(cell.iLength), jLength(cell.jLength), kLength(cell.kLength),
       L_min(cell.L_min),
       distance_to_nearest_wall(cell.distance_to_nearest_wall),
@@ -600,9 +599,8 @@ FV_Cell & FV_Cell::operator=(const FV_Cell &cell)
 	dt_chem = cell.dt_chem; dt_therm = cell.dt_therm;
 	in_turbulent_zone = cell.in_turbulent_zone;
 	base_qdot = cell.base_qdot;
-	pos = cell.pos; position = cell.position;
-	volume = cell.volume; vol = cell.vol;
-	area = cell.area; ar = cell.ar; uf = cell.uf;
+	pos = cell.pos; volume = cell.volume;
+	area = cell.area; uf = cell.uf;
 	iLength = cell.iLength; jLength = cell.jLength;
 	kLength = cell.kLength; L_min = cell.L_min;
 	distance_to_nearest_wall = cell.distance_to_nearest_wall;
@@ -646,7 +644,7 @@ int FV_Cell::print() const
     int nsp = gmodel->get_number_of_species();
     int nmodes = gmodel->get_number_of_modes();
     printf("nsp=%d, nmodes=%d\n", nsp, nmodes);
-    printf("x=%e, y=%e, z=%e, base_qdot=%e\n", pos.x, pos.y, pos.z, base_qdot);
+    printf("x=%e, y=%e, z=%e, base_qdot=%e\n", pos[0].x, pos[0].y, pos[0].z, base_qdot); // FIX-ME moving grid
     fs->print();
     if ( get_radiation_flag() == 1 ) {
 	printf("radiation source Q_rE_rad=%e\n", Q_rE_rad);
@@ -658,16 +656,16 @@ int FV_Cell::print() const
     return SUCCESS;
 }
 
-int FV_Cell::point_is_inside(Vector3 &p, int dimensions) const
+int FV_Cell::point_is_inside(Vector3 &p, int dimensions, size_t time_level) const
 /// \brief Returns 1 if the point p is inside or on the cell surface.
 {
     if ( dimensions == 2 ) {
 	// In 2 dimensions,
 	// we split the x,y-plane into half-planes and check which side p is on.
-	double xA = vtx[1]->pos.x; double yA = vtx[1]->pos.y;
-	double xB = vtx[1]->pos.x; double yB = vtx[2]->pos.y;
-	double xC = vtx[3]->pos.x; double yC = vtx[3]->pos.y;
-	double xD = vtx[0]->pos.x; double yD = vtx[0]->pos.y;
+	double xA = vtx[1]->pos[time_level].x; double yA = vtx[1]->pos[time_level].y;
+	double xB = vtx[1]->pos[time_level].x; double yB = vtx[2]->pos[time_level].y;
+	double xC = vtx[3]->pos[time_level].x; double yC = vtx[3]->pos[time_level].y;
+	double xD = vtx[0]->pos[time_level].x; double yD = vtx[0]->pos[time_level].y;
 	// Now, check to see if the specified point is on the
 	// left of (or on) each bloundary line AB, BC, CD and DA.
 	if ((p.x - xB) * (yA - yB) >= (p.y - yB) * (xA - xB) &&
@@ -689,23 +687,23 @@ int FV_Cell::point_is_inside(Vector3 &p, int dimensions) const
 	// without further testing.
 
 	// North
-	if ( tetrahedron_volume(vtx[2]->pos, vtx[3]->pos, vtx[7]->pos, p) > 0.0 ) return 0;
-	if ( tetrahedron_volume(vtx[7]->pos, vtx[6]->pos, vtx[2]->pos, p) > 0.0 ) return 0;
+	if ( tetrahedron_volume(vtx[2]->pos[time_level], vtx[3]->pos[time_level], vtx[7]->pos[time_level], p) > 0.0 ) return 0;
+	if ( tetrahedron_volume(vtx[7]->pos[time_level], vtx[6]->pos[time_level], vtx[2]->pos[time_level], p) > 0.0 ) return 0;
 	// East
-	if ( tetrahedron_volume(vtx[1]->pos, vtx[2]->pos, vtx[6]->pos, p) > 0.0 ) return 0;
-	if ( tetrahedron_volume(vtx[6]->pos, vtx[5]->pos, vtx[1]->pos, p) > 0.0 ) return 0;
+	if ( tetrahedron_volume(vtx[1]->pos[time_level], vtx[2]->pos[time_level], vtx[6]->pos[time_level], p) > 0.0 ) return 0;
+	if ( tetrahedron_volume(vtx[6]->pos[time_level], vtx[5]->pos[time_level], vtx[1]->pos[time_level], p) > 0.0 ) return 0;
 	// South
-	if ( tetrahedron_volume(vtx[0]->pos, vtx[1]->pos, vtx[5]->pos, p) > 0.0 ) return 0;
-	if ( tetrahedron_volume(vtx[5]->pos, vtx[4]->pos, vtx[0]->pos, p) > 0.0 ) return 0;
+	if ( tetrahedron_volume(vtx[0]->pos[time_level], vtx[1]->pos[time_level], vtx[5]->pos[time_level], p) > 0.0 ) return 0;
+	if ( tetrahedron_volume(vtx[5]->pos[time_level], vtx[4]->pos[time_level], vtx[0]->pos[time_level], p) > 0.0 ) return 0;
 	// West
-	if ( tetrahedron_volume(vtx[3]->pos, vtx[0]->pos, vtx[4]->pos, p) > 0.0 ) return 0;
-	if ( tetrahedron_volume(vtx[4]->pos, vtx[7]->pos, vtx[3]->pos, p) > 0.0 ) return 0;
+	if ( tetrahedron_volume(vtx[3]->pos[time_level], vtx[0]->pos[time_level], vtx[4]->pos[time_level], p) > 0.0 ) return 0;
+	if ( tetrahedron_volume(vtx[4]->pos[time_level], vtx[7]->pos[time_level], vtx[3]->pos[time_level], p) > 0.0 ) return 0;
 	// Bottom
-	if ( tetrahedron_volume(vtx[1]->pos, vtx[0]->pos, vtx[3]->pos, p) > 0.0 ) return 0;
-	if ( tetrahedron_volume(vtx[3]->pos, vtx[2]->pos, vtx[1]->pos, p) > 0.0 ) return 0;
+	if ( tetrahedron_volume(vtx[1]->pos[time_level], vtx[0]->pos[time_level], vtx[3]->pos[time_level], p) > 0.0 ) return 0;
+	if ( tetrahedron_volume(vtx[3]->pos[time_level], vtx[2]->pos[time_level], vtx[1]->pos[time_level], p) > 0.0 ) return 0;
 	// Top
-	if ( tetrahedron_volume(vtx[4]->pos, vtx[5]->pos, vtx[6]->pos, p) > 0.0 ) return 0;
-	if ( tetrahedron_volume(vtx[6]->pos, vtx[7]->pos, vtx[4]->pos, p) > 0.0 ) return 0;
+	if ( tetrahedron_volume(vtx[4]->pos[time_level], vtx[5]->pos[time_level], vtx[6]->pos[time_level], p) > 0.0 ) return 0;
+	if ( tetrahedron_volume(vtx[6]->pos[time_level], vtx[7]->pos[time_level], vtx[4]->pos[time_level], p) > 0.0 ) return 0;
 	// If we arrive here, we haven't determined that the point is outside...
 	return 1;
     } // end dimensions != 2
@@ -731,7 +729,7 @@ int FV_Cell::copy_values_from(const CFlowCondition &src)
 ///
 /// \param src: pointer to the source cell structure
 ///\param type_of_copy indicates whether we copy the cell geometry along with the FlowState data
-int FV_Cell::copy_values_from(const FV_Cell &src, int type_of_copy)
+int FV_Cell::copy_values_from(const FV_Cell &src, int type_of_copy, size_t time_level)
 {
     if ( type_of_copy == COPY_ALL_CELL_DATA ||
 	 type_of_copy == COPY_FLOW_STATE ) {
@@ -742,7 +740,9 @@ int FV_Cell::copy_values_from(const FV_Cell &src, int type_of_copy)
     if ( type_of_copy == COPY_ALL_CELL_DATA ||
 	 type_of_copy == COPY_CELL_LENGTHS ) {
        	iLength = src.iLength; jLength = src.jLength; kLength = src.kLength;
-	pos.x = src.pos.x; pos.y = src.pos.y; pos.z = src.pos.z;
+	pos[0].x = src.pos[time_level].x;
+	pos[0].y = src.pos[time_level].y;
+	pos[0].z = src.pos[time_level].z;
     }
     if (type_of_copy == COPY_INTERFACE_DATA) {
 	for ( size_t j = 0; j < N_INTERFACE; ++j ) {
@@ -762,7 +762,7 @@ int FV_Cell::copy_values_from(const FV_Cell &src, int type_of_copy)
 ///
 /// \param buf : pointer to the current element somewhere in buffer
 /// \returns a pointer to the next available location in the data buffer.
-double * FV_Cell::copy_values_to_buffer(double *buf, int type_of_copy) const
+double * FV_Cell::copy_values_to_buffer(double *buf, int type_of_copy, size_t time_level) const
 {
     if (type_of_copy == COPY_ALL_CELL_DATA ||
 	type_of_copy == COPY_FLOW_STATE) {
@@ -773,7 +773,7 @@ double * FV_Cell::copy_values_to_buffer(double *buf, int type_of_copy) const
     if (type_of_copy == COPY_ALL_CELL_DATA ||
         type_of_copy == COPY_CELL_LENGTHS) {
         *buf++ = iLength; *buf++ = jLength; *buf++ = kLength;
-        *buf++ = pos.x; *buf++ = pos.y; *buf++ = pos.z;
+        *buf++ = pos[time_level].x; *buf++ = pos[time_level].y; *buf++ = pos[time_level].z;
     }
     if (type_of_copy == COPY_INTERFACE_DATA) {
 	for ( size_t j = 0; j < N_INTERFACE; ++j ) {
@@ -792,7 +792,7 @@ double * FV_Cell::copy_values_to_buffer(double *buf, int type_of_copy) const
 /// \brief Copy the data from a linear data buffer into the cell.
 /// \param buf : pointer to the current element somewhere in buffer
 /// \returns a pointer to the next available location in the data buffer.
-double * FV_Cell::copy_values_from_buffer(double *buf, int type_of_copy)
+double * FV_Cell::copy_values_from_buffer(double *buf, int type_of_copy, size_t time_level)
 {
     if (type_of_copy == COPY_ALL_CELL_DATA ||
 	type_of_copy == COPY_FLOW_STATE) {
@@ -803,7 +803,7 @@ double * FV_Cell::copy_values_from_buffer(double *buf, int type_of_copy)
     if (type_of_copy == COPY_ALL_CELL_DATA ||
         type_of_copy == COPY_CELL_LENGTHS) {
         iLength = *buf++; jLength = *buf++; kLength = *buf++;
-        pos.x = *buf++; pos.y = *buf++; pos.z = *buf++;
+        pos[time_level].x = *buf++; pos[time_level].y = *buf++; pos[time_level].z = *buf++;
     }
     if (type_of_copy == COPY_INTERFACE_DATA) {
 	for ( size_t j = 0; j < N_INTERFACE; ++j ) {
@@ -899,10 +899,10 @@ int FV_Cell::scan_values_from_string(char *bufptr)
     char *cptr = strchr(bufptr, '\n');
     if ( cptr != NULL ) cptr = '\0';
     // Now, we should have a string with only numbers separated by spaces.
-    pos.x = atof(strtok( bufptr, " " )); // tokenize on space characters
-    pos.y = atof(strtok( NULL, " " ));
-    pos.z = atof(strtok( NULL, " " ));
-    volume = atof(strtok( NULL, " " ));
+    pos[0].x = atof(strtok( bufptr, " " )); // tokenize on space characters // FIX-ME for moving grid
+    pos[0].y = atof(strtok( NULL, " " ));
+    pos[0].z = atof(strtok( NULL, " " ));
+    volume[0] = atof(strtok( NULL, " " ));
     fs->gas->rho = atof(strtok( NULL, " " ));
     fs->vel.x = atof(strtok( NULL, " " ));
     fs->vel.y = atof(strtok( NULL, " " ));
@@ -951,8 +951,8 @@ std::string FV_Cell::write_values_to_string() const
     ostringstream ost;
     ost.setf(ios_base::scientific);
     ost.precision(12);
-    ost << pos.x << " " << pos.y << " " << pos.z
-	<< " " << volume << " " <<  fs->gas->rho
+    ost << pos[0].x << " " << pos[0].y << " " << pos[0].z // FIX-ME for moving grid
+	<< " " << volume[0] << " " <<  fs->gas->rho
 	<< " " << fs->vel.x << " " << fs->vel.y << " " << fs->vel.z;
     if ( get_mhd_flag() == 1 ) {
 	ost << " " << fs->B.x << " " << fs->B.y << " " << fs->B.z;
@@ -991,10 +991,10 @@ int FV_Cell::scan_BGK_from_string(char *bufptr)
     // Now, we should have a string with only numbers separated by spaces.
     // include the position data, duplicate of "flow", as insurance against 
     // finding this file in isolation
-    pos.x = atof(strtok( bufptr, " " )); // tokenize on space characters
-    pos.y = atof(strtok( NULL, " " ));
-    pos.z = atof(strtok( NULL, " " ));
-    volume = atof(strtok( NULL, " " ));
+    pos[0].x = atof(strtok( bufptr, " " )); // tokenize on space characters // FIX-ME for moving grid
+    pos[0].y = atof(strtok( NULL, " " ));
+    pos[0].z = atof(strtok( NULL, " " ));
+    volume[0] = atof(strtok( NULL, " " ));
     
     
     // values of G and H are interleaved
@@ -1013,7 +1013,7 @@ std::string FV_Cell::write_BGK_to_string() const
     ostringstream ost;
     ost.setf(ios_base::scientific);
     ost.precision(12);
-    ost << pos.x << " " << pos.y << " " << pos.z << " " << volume;
+    ost << pos[0].x << " " << pos[0].y << " " << pos[0].z << " " << volume[0]; // FIX-ME for moving grid
     // BGK discrete samples of velocity distribution function
     // interleave G and H
     for ( size_t iGH = 0; iGH < get_velocity_buckets(); ++iGH ) {
@@ -1061,7 +1061,7 @@ int FV_Cell::restore_conserved(void)
 }
 
 
-int FV_Cell::encode_conserved(double omegaz)
+int FV_Cell::encode_conserved(double omegaz, size_t time_level)
 {
     U->mass = fs->gas->rho;
     // X-, Y- and Z-momentum per unit volume.
@@ -1107,8 +1107,8 @@ int FV_Cell::encode_conserved(double omegaz)
 	// about rotating frames and we don't want to mess their
 	// energy calculations around.
 	double rho = fs->gas->rho;
-	double x = pos.x;
-	double y = pos.y;
+	double x = pos[time_level].x;
+	double y = pos[time_level].y;
 	double rsq = x*x + y*y;
 	// The conserved quantity is rothalpy. I = E - (u**2)/2
 	// where rotating frame velocity  u = omegaz * r.
@@ -1118,7 +1118,7 @@ int FV_Cell::encode_conserved(double omegaz)
 } // end of encode_conserved()
 
 
-int FV_Cell::decode_conserved(double omegaz)
+int FV_Cell::decode_conserved(double omegaz, size_t time_level)
 {
     Gas_model *gmodel = get_gas_model_ptr();
     double ke, dinv, rE, me;
@@ -1129,7 +1129,7 @@ int FV_Cell::decode_conserved(double omegaz)
     // This is limited to nonnegative and finite values.
     if ( get_bad_cell_complain_flag() && (rho <= 0.0) ) {
 	printf("FV_Cell::decode_conserved(): Density is below minimum rho=%e\n", rho);
-	printf("x=%g, y=%g, z=%g\n", pos.x, pos.y, pos.z);
+	printf("x=%g, y=%g, z=%g\n", pos[time_level].x, pos[time_level].y, pos[time_level].z);
 	fs->gas->print_values();
     }
     dinv = 1.0 / rho;
@@ -1137,8 +1137,8 @@ int FV_Cell::decode_conserved(double omegaz)
 	// Rotating frame.
 	// The conserved quantity is rothalpy so we need to convert
 	// back to enthalpy to do the rest of the decode.
-	double x = pos.x;
-	double y = pos.y;
+	double x = pos[time_level].x;
+	double y = pos[time_level].y;
 	double rsq = x*x + y*y;
 	rE = U->total_energy + rho * 0.5 * omegaz * omegaz * rsq;
     } else {
@@ -1189,80 +1189,6 @@ int FV_Cell::decode_conserved(double omegaz)
     if ( get_viscous_flag() ) gmodel->eval_transport_coefficients(*(fs->gas));
     if ( get_diffusion_flag() ) gmodel->eval_diffusion_coefficients(*(fs->gas));
 
-    return SUCCESS;
-} // end of decode_conserved()
-
-int FV_Cell::decode_conserved(int time_level, double omegaz)
-{
-    Gas_model *gmodel = get_gas_model_ptr();
-    double ke, dinv, rE, me;
-    
-    // Mass / unit volume = Density
-    double rho = U->mass;
-    fs->gas->rho = rho;
-    // This is limited to nonnegative and finite values.
-    if ( get_bad_cell_complain_flag() && (rho <= 0.0) ) {
-	printf("FV_Cell::decode_conserved(): Density is below minimum rho=%e\n", rho);
-	printf("x=%g, y=%g, z=%g\n", pos.x, pos.y, pos.z);
-	fs->gas->print_values();
-    }
-    dinv = 1.0 / rho;
-    if ( omegaz != 0.0 ) {
-	// Rotating frame.
-	// The conserved quantity is rothalpy so we need to convert
-	// back to enthalpy to do the rest of the decode.
-	double x = position[time_level].x;
-	double y = position[time_level].y;
-	double rsq = x*x + y*y;
-	rE = U->total_energy + rho * 0.5 * omegaz * omegaz * rsq;
-    } else {
-	// Non-rotating frame.
-	rE = U->total_energy;
-    }
-    // Velocities from momenta.
-    fs->vel.x = U->momentum.x * dinv;
-    fs->vel.y = U->momentum.y * dinv;
-    fs->vel.z = U->momentum.z * dinv;
-    // Magnetic field
-    fs->B.x = U->B.x;
-    fs->B.y = U->B.y;
-    fs->B.z = U->B.z;
-    // Specific internal energy from total energy per unit volume.
-    ke = 0.5 * (fs->vel.x * fs->vel.x + fs->vel.y * fs->vel.y + fs->vel.z * fs->vel.z);
-    if (get_mhd_flag() == 1) {
-        me = 0.5*(fs->B.x*fs->B.x + fs->B.y*fs->B.y + fs->B.z*fs->B.z);
-    } else {
-        me = 0.0;
-    }
-    if ( get_k_omega_flag() ) {
-        fs->tke = U->tke * dinv;
-        fs->omega = U->omega * dinv;
-        fs->gas->e[0] = (rE - U->tke - me) * dinv - ke;
-    } else {
-        fs->tke = 0.0;
-        fs->omega = 1.0;
-        fs->gas->e[0] = (rE - me) * dinv - ke;
-    }
-    size_t nsp = U->massf.size();
-    for ( size_t isp = 0; isp < nsp; ++isp ) {
-	fs->gas->massf[isp] = U->massf[isp] * dinv;
-    }
-    if ( nsp > 1 ) scale_mass_fractions( fs->gas->massf );
-
-    // NOTE: - gas->e[0] is the total internal energy (sum of all modes)
-    //         and has already been calculated above
-    //       - renergies[0] is being calculated but never used.
-    //         We've decided to leave it that way.
-    double e0_save = fs->gas->e[0];
-    gmodel->decode_conserved_energy(*(fs->gas), U->energies);
-    fs->gas->e[0] = e0_save;
-    // Fill out the other variables; P, T, a and
-    // check the species mass fractions.
-    // Update the viscous transport coefficients.
-    gmodel->eval_thermo_state_rhoe(*(fs->gas));
-    if ( get_viscous_flag() ) gmodel->eval_transport_coefficients(*(fs->gas));
-    if ( get_diffusion_flag() ) gmodel->eval_diffusion_coefficients(*(fs->gas));
-    
     return SUCCESS;
 } // end of decode_conserved()
 
@@ -1298,55 +1224,19 @@ int FV_Cell::check_flow_data(void)
 	data_valid = 0;
     }
     if ( !data_valid && print_message ) {
-	cout << "cell pos=(" << pos.x << "," << pos.y << "," << pos.z << ")" << endl;
+	cout << "cell pos=(" << pos[0].x << "," << pos[0].y << "," << pos[0].z << ")" << endl;
 	fs->print();
 	cout << "----------------------------------------------------------" << endl;
     }
     return data_valid;
 } // end of check_flow_data()
 
-int FV_Cell::init_time_level_geometry( void )
-// Initialize or reinitialize the time-level values 
-// with the recently calculated cell geometry data.
-{
-    for ( size_t j = 0; j < N_LEVEL; ++j ) {
-	ar[j] = area;
-	vol[j] = volume;
-	position[j] = pos;
-	// 2D will have a few NULL pointers compared with 3D.
-	for ( size_t i = 0; i < N_INTERFACE; ++i ) {
-	    if ( iface[i] != NULL ) iface[i]->ar[j] = iface[i]->area;
-	}
-	for ( size_t i = 0; i < N_VERTEX; ++i ) {
-	    if ( vtx[i] != NULL ) vtx[i]->position[j] = vtx[i]->pos;
-	}
-    }
-    return SUCCESS;
-}
-
-/// \brief Set the cell geometry to the values calculated at the specified time level.
-///
-int FV_Cell::get_current_time_level_geometry( int time_level )
-{
-    area = ar[time_level];
-    volume = vol[time_level];
-    pos = position[time_level];
-    // 2D will have a few NULL pointers compared with 3D.
-    for ( size_t i = 0; i < N_INTERFACE; ++i ) {
-	if ( iface[i] != NULL ) iface[i]->area = iface[i]->ar[time_level];
-    }
-    for ( size_t i = 0; i < N_VERTEX; ++i ) {
-	if ( vtx[i] != NULL ) vtx[i]->pos = vtx[i]->position[time_level];
-    }
-    return SUCCESS;
-}
-
 /// \brief Compute the time derivatives for the conserved quantities.
 ///
 /// These are the spatial (RHS) terms in the semi-discrete governing equations.
 /// \param time_level : specifies where the computed derivatives are to be stored.
 /// \param dimensions : number of space dimensions: 2 for mbcns, 3 for eilmer
-int FV_Cell::time_derivatives( int time_level, int dimensions )
+int FV_Cell::time_derivatives(int time_level, int dimensions)
 {
     Gas_model *gmodel = get_gas_model_ptr();
     size_t nsp = gmodel->get_number_of_species();
@@ -1358,7 +1248,7 @@ int FV_Cell::time_derivatives( int time_level, int dimensions )
     FV_Interface *IFt = iface[TOP];
     FV_Interface *IFb = iface[BOTTOM];
     // Cell volume (inverted).
-    double vol_inv = 1.0 / vol[time_level];
+    double vol_inv = 1.0 / volume[time_level];
     double integral;
 
     if (status == MASKED_CELL || status == SHADOWED_CELL) {
@@ -1371,33 +1261,33 @@ int FV_Cell::time_derivatives( int time_level, int dimensions )
     // such that the unit normals for the east, north and top faces
     // are outward and the unit normals for the south, west and
     // bottom faces are inward.
-    integral = -IFe->F->mass * IFe->ar[time_level] - IFn->F->mass * IFn->ar[time_level]
-	+ IFw->F->mass * IFw->ar[time_level] + IFs->F->mass * IFs->ar[time_level];
+    integral = -IFe->F->mass * IFe->area[time_level] - IFn->F->mass * IFn->area[time_level]
+	+ IFw->F->mass * IFw->area[time_level] + IFs->F->mass * IFs->area[time_level];
     if ( dimensions == 3 )
-	integral += IFb->F->mass * IFb->ar[time_level] - IFt->F->mass * IFt->ar[time_level];
+	integral += IFb->F->mass * IFb->area[time_level] - IFt->F->mass * IFt->area[time_level];
     dUdt[time_level]->mass = vol_inv * integral + Q->mass;
 
     // Time-derivative for X-Momentum/unit volume.
-    integral = -IFe->F->momentum.x * IFe->ar[time_level] - IFn->F->momentum.x * IFn->ar[time_level]
-	+ IFw->F->momentum.x * IFw->ar[time_level] + IFs->F->momentum.x * IFs->ar[time_level];
+    integral = -IFe->F->momentum.x * IFe->area[time_level] - IFn->F->momentum.x * IFn->area[time_level]
+	+ IFw->F->momentum.x * IFw->area[time_level] + IFs->F->momentum.x * IFs->area[time_level];
     if ( dimensions == 3 )
-	integral += IFb->F->momentum.x * IFb->ar[time_level] - IFt->F->momentum.x * IFt->ar[time_level];
+	integral += IFb->F->momentum.x * IFb->area[time_level] - IFt->F->momentum.x * IFt->area[time_level];
     dUdt[time_level]->momentum.x = vol_inv * integral + Q->momentum.x;
     // Time-derivative for Y-Momentum/unit volume.
-    integral = -IFe->F->momentum.y * IFe->ar[time_level] - IFn->F->momentum.y * IFn->ar[time_level]
-	+ IFw->F->momentum.y * IFw->ar[time_level] + IFs->F->momentum.y * IFs->ar[time_level];
+    integral = -IFe->F->momentum.y * IFe->area[time_level] - IFn->F->momentum.y * IFn->area[time_level]
+	+ IFw->F->momentum.y * IFw->area[time_level] + IFs->F->momentum.y * IFs->area[time_level];
     if ( dimensions == 3 )
-	integral += IFb->F->momentum.y * IFb->ar[time_level] - IFt->F->momentum.y * IFt->ar[time_level];
+	integral += IFb->F->momentum.y * IFb->area[time_level] - IFt->F->momentum.y * IFt->area[time_level];
     dUdt[time_level]->momentum.y = vol_inv * integral + Q->momentum.y;
     
     // we require the z-momentum for MHD even in 2D
     if ((dimensions == 3) || (get_mhd_flag() == 1)) {
 	// Time-derivative for Z-Momentum/unit volume.
-	integral = -IFe->F->momentum.z * IFe->ar[time_level] - IFn->F->momentum.z * IFn->ar[time_level]
-	    + IFw->F->momentum.z * IFw->ar[time_level] + IFs->F->momentum.z * IFs->ar[time_level];
+	integral = -IFe->F->momentum.z * IFe->area[time_level] - IFn->F->momentum.z * IFn->area[time_level]
+	    + IFw->F->momentum.z * IFw->area[time_level] + IFs->F->momentum.z * IFs->area[time_level];
     }
     if ( dimensions == 3) {
-	integral += IFb->F->momentum.z * IFb->ar[time_level] - IFt->F->momentum.z * IFt->ar[time_level];
+	integral += IFb->F->momentum.z * IFb->area[time_level] - IFt->F->momentum.z * IFt->area[time_level];
     }
     if ((dimensions == 3) || (get_mhd_flag() == 1)) {
 	dUdt[time_level]->momentum.z = vol_inv * integral + Q->momentum.z;
@@ -1407,22 +1297,22 @@ int FV_Cell::time_derivatives( int time_level, int dimensions )
     
     if (get_mhd_flag() == 1) {
 	// Time-derivative for X-Magnetic Field/unit volume.
-	integral = -IFe->F->B.x * IFe->ar[time_level] - IFn->F->B.x * IFn->ar[time_level]
-	    + IFw->F->B.x * IFw->ar[time_level] + IFs->F->B.x * IFs->ar[time_level];
+	integral = -IFe->F->B.x * IFe->area[time_level] - IFn->F->B.x * IFn->area[time_level]
+	    + IFw->F->B.x * IFw->area[time_level] + IFs->F->B.x * IFs->area[time_level];
 	if ( dimensions == 3 )
-	    integral += IFb->F->B.x * IFb->ar[time_level] - IFt->F->B.x * IFt->ar[time_level];
+	    integral += IFb->F->B.x * IFb->area[time_level] - IFt->F->B.x * IFt->area[time_level];
 	dUdt[time_level]->B.x = vol_inv * integral + Q->B.x;
 	// Time-derivative for Y-Magnetic Field/unit volume.
-	integral = -IFe->F->B.y * IFe->ar[time_level] - IFn->F->B.y * IFn->ar[time_level]
-	    + IFw->F->B.y * IFw->ar[time_level] + IFs->F->B.y * IFs->ar[time_level];
+	integral = -IFe->F->B.y * IFe->area[time_level] - IFn->F->B.y * IFn->area[time_level]
+	    + IFw->F->B.y * IFw->area[time_level] + IFs->F->B.y * IFs->area[time_level];
 	if ( dimensions == 3 )
-	    integral += IFb->F->B.y * IFb->ar[time_level] - IFt->F->B.y * IFt->ar[time_level];
+	    integral += IFb->F->B.y * IFb->area[time_level] - IFt->F->B.y * IFt->area[time_level];
 	dUdt[time_level]->B.y = vol_inv * integral + Q->B.y;
 	// Time-derivative for Z-Magnetic Field/unit volume.
-	integral = -IFe->F->B.z * IFe->ar[time_level] - IFn->F->B.z * IFn->ar[time_level]
-	    + IFw->F->B.z * IFw->ar[time_level] + IFs->F->B.z * IFs->ar[time_level];
+	integral = -IFe->F->B.z * IFe->area[time_level] - IFn->F->B.z * IFn->area[time_level]
+	    + IFw->F->B.z * IFw->area[time_level] + IFs->F->B.z * IFs->area[time_level];
 	if ( dimensions == 3 ) {
-	    integral += IFb->F->B.z * IFb->ar[time_level] - IFt->F->B.z * IFt->ar[time_level];
+	    integral += IFb->F->B.z * IFb->area[time_level] - IFt->F->B.z * IFt->area[time_level];
 	}
 	dUdt[time_level]->B.z = vol_inv * integral + Q->B.z;
     }
@@ -1433,23 +1323,23 @@ int FV_Cell::time_derivatives( int time_level, int dimensions )
     }
 
     // Time-derivative for Total Energy/unit volume.
-    integral = -IFe->F->total_energy * IFe->ar[time_level] - IFn->F->total_energy * IFn->ar[time_level]
-	+ IFw->F->total_energy * IFw->ar[time_level] + IFs->F->total_energy * IFs->ar[time_level];
+    integral = -IFe->F->total_energy * IFe->area[time_level] - IFn->F->total_energy * IFn->area[time_level]
+	+ IFw->F->total_energy * IFw->area[time_level] + IFs->F->total_energy * IFs->area[time_level];
     if ( dimensions == 3 )
-	integral += IFb->F->total_energy * IFb->ar[time_level] - IFt->F->total_energy * IFt->ar[time_level];
+	integral += IFb->F->total_energy * IFb->area[time_level] - IFt->F->total_energy * IFt->area[time_level];
     dUdt[time_level]->total_energy = vol_inv * integral + Q->total_energy;
     
     if ( get_k_omega_flag() ) {
-	integral = -IFe->F->tke * IFe->ar[time_level] - IFn->F->tke * IFn->ar[time_level]
-	    + IFw->F->tke * IFw->ar[time_level] + IFs->F->tke * IFs->ar[time_level];
+	integral = -IFe->F->tke * IFe->area[time_level] - IFn->F->tke * IFn->area[time_level]
+	    + IFw->F->tke * IFw->area[time_level] + IFs->F->tke * IFs->area[time_level];
 	if ( dimensions == 3 )
-	    integral += IFb->F->tke * IFb->ar[time_level] - IFt->F->tke * IFt->ar[time_level];
+	    integral += IFb->F->tke * IFb->area[time_level] - IFt->F->tke * IFt->area[time_level];
 	dUdt[time_level]->tke = vol_inv * integral + Q->tke;
 	
-	integral = -IFe->F->omega * IFe->ar[time_level] - IFn->F->omega * IFn->ar[time_level]
-	    + IFw->F->omega * IFw->ar[time_level] + IFs->F->omega * IFs->ar[time_level];
+	integral = -IFe->F->omega * IFe->area[time_level] - IFn->F->omega * IFn->area[time_level]
+	    + IFw->F->omega * IFw->area[time_level] + IFs->F->omega * IFs->area[time_level];
 	if ( dimensions == 3 )
-	    integral += IFb->F->omega * IFb->ar[time_level] - IFt->F->omega * IFt->ar[time_level];
+	    integral += IFb->F->omega * IFb->area[time_level] - IFt->F->omega * IFt->area[time_level];
 	dUdt[time_level]->omega = vol_inv * integral + Q->omega;
     } else {
 	dUdt[time_level]->tke = 0.0;
@@ -1462,24 +1352,24 @@ int FV_Cell::time_derivatives( int time_level, int dimensions )
     // Units of DmassfDt are 1/sec.
     for ( size_t isp = 0; isp < nsp; ++isp ) {
 	integral =
-	    -IFe->F->massf[isp] * IFe->ar[time_level]
-	    - IFn->F->massf[isp] * IFn->ar[time_level]
-	    + IFw->F->massf[isp] * IFw->ar[time_level]
-	    + IFs->F->massf[isp] * IFs->ar[time_level];
+	    -IFe->F->massf[isp] * IFe->area[time_level]
+	    - IFn->F->massf[isp] * IFn->area[time_level]
+	    + IFw->F->massf[isp] * IFw->area[time_level]
+	    + IFs->F->massf[isp] * IFs->area[time_level];
 	if ( dimensions == 3 )
-	    integral += IFb->F->massf[isp] * IFb->ar[time_level] - IFt->F->massf[isp] * IFt->ar[time_level];
+	    integral += IFb->F->massf[isp] * IFb->area[time_level] - IFt->F->massf[isp] * IFt->area[time_level];
 	dUdt[time_level]->massf[isp] = vol_inv * integral + Q->massf[isp];
     }
     // Individual energies.
     // NOTE: energies[0] is never used so skipping (DFP 10/12/09)
     for ( size_t imode = 1; imode < nmodes; ++imode ) {
 	integral =
-	    -IFe->F->energies[imode] * IFe->ar[time_level]
-	    - IFn->F->energies[imode] * IFn->ar[time_level]
-	    + IFw->F->energies[imode] * IFw->ar[time_level]
-	    + IFs->F->energies[imode] * IFs->ar[time_level];
+	    -IFe->F->energies[imode] * IFe->area[time_level]
+	    - IFn->F->energies[imode] * IFn->area[time_level]
+	    + IFw->F->energies[imode] * IFw->area[time_level]
+	    + IFs->F->energies[imode] * IFs->area[time_level];
 	if ( dimensions == 3 )
-	    integral += IFb->F->energies[imode] * IFb->ar[time_level] - IFt->F->energies[imode] * IFt->ar[time_level];
+	    integral += IFb->F->energies[imode] * IFb->area[time_level] - IFt->F->energies[imode] * IFt->area[time_level];
 	dUdt[time_level]->energies[imode] = vol_inv * integral + Q->energies[imode];
     }
     return SUCCESS;
@@ -1501,7 +1391,7 @@ int FV_Cell::predictor_update(double dt)
 	gamma_1 = 1.0;
     }
     if ( get_shock_fitting_flag() == 1 ) {
-        vr = vol[0]/vol[1];
+        vr = volume[0]/volume[1];
     }
     U->mass = vr * (U_old->mass + dt * gamma_1 * dUdt0.mass);
     U->momentum.x = vr * (U_old->momentum.x + dt * gamma_1 * dUdt0.momentum.x);
@@ -1575,13 +1465,13 @@ int FV_Cell::corrector_update(double dt)
     }
     if ( get_shock_fitting_flag() == 1 ) {
 	if (get_Torder_flag() == 3) {
-	    v_old = vol[1];
+	    v_old = volume[1];
 	} else {
-	    v_old = vol[0];
+	    v_old = volume[0];
 	}
-	vol_inv = 1.0/vol[2];
-	th_inv *= vol[0];
-	th *= vol[1];
+	vol_inv = 1.0/volume[2];
+	th_inv *= volume[0];
+	th *= volume[1];
     }
 
     
@@ -1635,9 +1525,9 @@ int FV_Cell::rk3_update(double dt)
     double v1 = 1.0;
     double v2 = 1.0;
     if ( get_shock_fitting_flag() == 1 ) {
- 	v1 = vol[1];
-	v2 = vol[2];
-        vol_inv = 1.0/vol[3];
+ 	v1 = volume[1];
+	v2 = volume[2];
+        vol_inv = 1.0/volume[3];
 	psi_2 *= v1;
 	gamma_3 *= v2;
     }
@@ -1977,7 +1867,7 @@ int FV_Cell::turbulence_viscosity_k_omega(void)
         dvdy = 0.25 * (vtx[0]->dvdy + vtx[1]->dvdy + vtx[2]->dvdy + vtx[3]->dvdy);
         if ( get_axisymmetric_flag() == 1 ) {
             // 2D axisymmetric
-            double v_over_y = fs->vel.y / pos.y;
+            double v_over_y = fs->vel.y / pos[0].y;
             S_bar_squared = dudx*dudx + dvdy*dvdy + v_over_y*v_over_y
 		- 1.0/3.0 * (dudx + dvdy + v_over_y)
 		* (dudx + dvdy + v_over_y)
@@ -2214,7 +2104,7 @@ int FV_Cell::k_omega_time_derivatives(double *Q_rtke, double *Q_romega, double t
         domegady = 0.25 * (vtx[0]->domegady + vtx[1]->domegady + vtx[2]->domegady + vtx[3]->domegady);
         if ( get_axisymmetric_flag() == 1 ) {
             // 2D axisymmetric
-            double v_over_y = fs->vel.y / pos.y;
+            double v_over_y = fs->vel.y / pos[0].y;
             // JP.Nap correction from 03-May-2007 (-v_over_y in parentheses)
             // P_K -= 0.6667 * mu_t * v_over_y * (dudx+dvdy-v_over_y);
             // Wilson Chan correction to JP Nap's version (13 Dec 2008)
@@ -2325,8 +2215,8 @@ int FV_Cell::inviscid_source_vector(int time_level, double omegaz)
     if ( omegaz != 0.0 ) {
 	// Rotating frame.
 	double rho = fs->gas->rho;
-	double x = position[time_level].x;
-	double y = position[time_level].y;
+	double x = pos[time_level].x;
+	double y = pos[time_level].y;
         double wx = fs->vel.x;
 	double wy = fs->vel.y;
 	// Coriolis and centrifugal forces contribute to momenta.
@@ -2338,7 +2228,7 @@ int FV_Cell::inviscid_source_vector(int time_level, double omegaz)
     if ( get_axisymmetric_flag() == 1 ) {
 	// For axisymmetric flow:
 	// pressure contribution from the Front and Back (radial) interfaces.
-	Q->momentum.y += fs->gas->p * ar[time_level] / vol[time_level];
+	Q->momentum.y += fs->gas->p * area[time_level] / volume[time_level];
     }
     // Species production (other than chemistry).
     // For the chemistry, see chemical_increment().
@@ -2374,7 +2264,7 @@ int FV_Cell::viscous_source_vector(void)
 
     viscous_factor = get_viscous_factor();
     if ( get_axisymmetric_flag() == 1 ) {
-	v_over_y = fs->vel.y / pos.y;
+	v_over_y = fs->vel.y / pos[0].y;
     } else {
 	v_over_y = 0.0;
     }
@@ -2417,7 +2307,7 @@ int FV_Cell::viscous_source_vector(void)
 	// Note that these quantities are approximated at the
 	// mid-point of the cell face and so should never be
 	// singular -- at least I hope that this is so.
-	Q->momentum.y -= tau_00 * area/ volume;
+	Q->momentum.y -= tau_00 * area[0] / volume[0];
     }
     return SUCCESS;
 } // end viscous_source_vector()

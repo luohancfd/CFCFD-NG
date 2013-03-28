@@ -224,20 +224,20 @@ int Block::bind_interfaces_to_cells( size_t dimensions )
 
 
 /// \brief Set the base heat source values for this block.
-int Block::set_base_qdot( global_data &gd )
+int Block::set_base_qdot(global_data &gd, size_t time_level)
 {
     double total_qdot_for_block = 0.0;
     total_qdot_for_block = 0.0;
     for ( FV_Cell *cellp: active_cells ) {
 	cellp->base_qdot = 0.0;
 	for ( CHeatZone &hz : gd.heat_zone ) {
-	    if ( cellp->pos.x >= hz.x0 && cellp->pos.x <= hz.x1 &&
-		 cellp->pos.y >= hz.y0 && cellp->pos.y <= hz.y1 &&
-		 (gd.dimensions == 2 || (cellp->pos.z >= hz.z0 && cellp->pos.z <= hz.z1)) ) {
+	    if ( cellp->pos[time_level].x >= hz.x0 && cellp->pos[time_level].x <= hz.x1 &&
+		 cellp->pos[time_level].y >= hz.y0 && cellp->pos[time_level].y <= hz.y1 &&
+		 (gd.dimensions == 2 || (cellp->pos[time_level].z >= hz.z0 && cellp->pos[time_level].z <= hz.z1)) ) {
 		cellp->base_qdot += hz.qdot;
 	    }
 	} // for hz
-	total_qdot_for_block += cellp->base_qdot * cellp->volume;
+	total_qdot_for_block += cellp->base_qdot * cellp->volume[time_level];
     } // for cellp
     if ( total_qdot_for_block > 1.0e-10 ) {
 	cout << "set_base_qdot(): block " << id
@@ -248,7 +248,7 @@ int Block::set_base_qdot( global_data &gd )
 
 
 /// \brief Set the reactions-allowed flag for cells in this block.
-int Block::identify_reaction_zones( global_data &gd )
+int Block::identify_reaction_zones(global_data &gd, size_t time_level)
 {
     size_t total_cells_in_reaction_zones = 0;
     size_t total_cells = 0;
@@ -257,9 +257,10 @@ int Block::identify_reaction_zones( global_data &gd )
 	    // User-specified reaction zones; mask off reacting/nonreacting zones.
 	    cellp->fr_reactions_allowed = 0;
 	    for ( CReactionZone &rz : gd.reaction_zone ) {
-		if ( cellp->pos.x >= rz.x0 && cellp->pos.x <= rz.x1 &&
-		     cellp->pos.y >= rz.y0 && cellp->pos.y <= rz.y1 &&
-		     (gd.dimensions == 2 || (cellp->pos.z >= rz.z0 && cellp->pos.z <= rz.z1)) ) {
+		if ( cellp->pos[time_level].x >= rz.x0 && cellp->pos[time_level].x <= rz.x1 &&
+		     cellp->pos[time_level].y >= rz.y0 && cellp->pos[time_level].y <= rz.y1 &&
+		     (gd.dimensions == 2 || 
+		      (cellp->pos[time_level].z >= rz.z0 && cellp->pos[time_level].z <= rz.z1)) ) {
 		    cellp->fr_reactions_allowed = 1;
 		}
 	    } // end for( &rz
@@ -284,7 +285,7 @@ int Block::identify_reaction_zones( global_data &gd )
 
 
 /// \brief Set the in-turbulent-zone flag for cells in this block.
-int Block::identify_turbulent_zones( global_data &gd )
+int Block::identify_turbulent_zones(global_data &gd, size_t time_level)
 {
     size_t total_cells_in_turbulent_zones = 0;
     size_t total_cells = 0;
@@ -292,9 +293,10 @@ int Block::identify_turbulent_zones( global_data &gd )
 	if ( gd.n_turbulent_zone > 0 ) {
 	    cellp->in_turbulent_zone = 0;
 	    for ( CTurbulentZone &tz : gd.turbulent_zone ) {
-		if ( cellp->pos.x >= tz.x0 && cellp->pos.x <= tz.x1 &&
-		     cellp->pos.y >= tz.y0 && cellp->pos.y <= tz.y1 &&
-		     (gd.dimensions == 2 || (cellp->pos.z >= tz.z0 && cellp->pos.z <= tz.z1)) ) {
+		if ( cellp->pos[time_level].x >= tz.x0 && cellp->pos[time_level].x <= tz.x1 &&
+		     cellp->pos[time_level].y >= tz.y0 && cellp->pos[time_level].y <= tz.y1 &&
+		     (gd.dimensions == 2 || 
+		      (cellp->pos[time_level].z >= tz.z0 && cellp->pos[time_level].z <= tz.z1)) ) {
 		    cellp->in_turbulent_zone = 1;
 		}
 	    } // for tz
@@ -317,7 +319,7 @@ int Block::identify_turbulent_zones( global_data &gd )
 } // end identify_turbulent_zones()
 
 
-int Block::clear_fluxes_of_conserved_quantities( size_t dimensions )
+int Block::clear_fluxes_of_conserved_quantities(size_t dimensions)
 {
     FV_Interface *IFace;
 
@@ -350,7 +352,7 @@ int Block::clear_fluxes_of_conserved_quantities( size_t dimensions )
     return SUCCESS;
 }
 
-int Block::propagate_data_west_to_east( size_t dimensions )
+int Block::propagate_data_west_to_east(size_t dimensions)
 // Propagate data from the west ghost cell, right across the block.
 // This is a useful starting state for the block-sequenced calculation
 // where the final flow is expected to be steady-state.
@@ -362,7 +364,7 @@ int Block::propagate_data_west_to_east( size_t dimensions )
 	    src = get_cell(imin-1,j);
 	    for ( size_t i = imin; i <= imax; ++i ) {
 		dest = get_cell(i,j,k);
-		dest->copy_values_from(*src, COPY_FLOW_STATE);
+		dest->copy_values_from(*src, COPY_FLOW_STATE, 0);
 		Gas_data *gas = dest->fs->gas;
 		if ( gm->eval_thermo_state_pT(*gas) != SUCCESS ||
 		     gm->eval_transport_coefficients(*gas) != SUCCESS ) {
@@ -379,7 +381,7 @@ int Block::propagate_data_west_to_east( size_t dimensions )
 } // end propagate_data_west_to_east()
 
 
-int Block::count_invalid_cells( size_t dimensions )
+int Block::count_invalid_cells(size_t dimensions, size_t time_level)
 /// \brief Returns the number of cells that contain invalid data.
 ///
 /// This data can be identified by the density of internal energy 
@@ -428,8 +430,8 @@ int Block::count_invalid_cells( size_t dimensions )
 		    }
 		    cellp->replace_flow_data_with_average(neighbours);
 		}
-		cellp->encode_conserved(omegaz);
-		cellp->decode_conserved(omegaz);
+		cellp->encode_conserved(omegaz, time_level);
+		cellp->decode_conserved(omegaz, time_level);
 		if ( get_bad_cell_complain_flag() ) {
 		    printf("after flow-data replacement: block_id = %d, cell[%d,%d,%d]\n", 
 			   static_cast<int>(id), static_cast<int>(i),
@@ -443,7 +445,7 @@ int Block::count_invalid_cells( size_t dimensions )
 } // end of count_invalid_cells()
 
 
-int Block::init_residuals( size_t dimensions )
+int Block::init_residuals(size_t dimensions)
 /// \brief Initialization of data for later computing residuals.
 {
     mass_residual = 0.0;
@@ -458,7 +460,7 @@ int Block::init_residuals( size_t dimensions )
 } // end of check_residual()
 
 
-int Block::compute_residuals( size_t dimensions )
+int Block::compute_residuals(size_t dimensions, size_t time_level)
 /// \brief Compute the residuals using previously stored data.
 ///
 /// The largest residual of density for all cells was the traditional way
@@ -479,24 +481,24 @@ int Block::compute_residuals( size_t dimensions )
 	local_residual = FABS(local_residual);
 	if ( local_residual > mass_residual ) {
 	    mass_residual = local_residual;
-	    mass_residual_loc.x = cellp->pos.x;
-	    mass_residual_loc.y = cellp->pos.y;
-	    mass_residual_loc.z = cellp->pos.z;
+	    mass_residual_loc.x = cellp->pos[time_level].x;
+	    mass_residual_loc.y = cellp->pos[time_level].y;
+	    mass_residual_loc.z = cellp->pos[time_level].z;
 	}
 	local_residual = ( cellp->U->total_energy - cellp->rE_at_start_of_step ) / cellp->U->total_energy;
 	local_residual = FABS(local_residual);
 	if ( local_residual > energy_residual ) {
 	    energy_residual = local_residual;
-	    energy_residual_loc.x = cellp->pos.x;
-	    energy_residual_loc.y = cellp->pos.y;
-	    energy_residual_loc.z = cellp->pos.z;
+	    energy_residual_loc.x = cellp->pos[time_level].x;
+	    energy_residual_loc.y = cellp->pos[time_level].y;
+	    energy_residual_loc.z = cellp->pos[time_level].z;
 	}
     } // for cellp
     return SUCCESS;
 } // end of compute_residuals()
 
 
-int Block::determine_time_step_size( double cfl_target, size_t dimensions )
+int Block::determine_time_step_size(double cfl_target, size_t dimensions)
 /// \brief Compute the local time step limit for all cells in the block.
 ///
 /// The overall time step is limited by the worst-case cell.
@@ -557,7 +559,7 @@ int Block::determine_time_step_size( double cfl_target, size_t dimensions )
 } // end of determine_time_step_size()
 
 
-int Block::detect_shock_points( size_t dimensions )
+int Block::detect_shock_points(size_t dimensions)
 /// \brief Detects shocks by looking for compression between adjacent cells.
 ///
 /// The velocity component normal to the cell interfaces
@@ -656,9 +658,10 @@ int Block::detect_shock_points( size_t dimensions )
 
 //-----------------------------------------------------------------------------
 
-int find_nearest_cell( double x, double y, double z, 
-		       size_t *jb_near,
-		       size_t *i_near, size_t *j_near, size_t *k_near )
+int find_nearest_cell(double x, double y, double z, 
+		      size_t *jb_near,
+		      size_t *i_near, size_t *j_near, size_t *k_near,
+		      size_t time_level)
 /// \brief Given an (x,y,z) position, locate the nearest cell centre.  
 ///
 /// @param x, y, z : coordinates of the desired point
@@ -674,13 +677,13 @@ int find_nearest_cell( double x, double y, double z,
     bdp = get_block_data_ptr(jbg);
     ig = bdp->imin; jg = bdp->jmin; kg = bdp->kmin;
     FV_Cell *mycp = bdp->get_cell(ig,jg,kg);
-    dx = x - mycp->pos.x; dy = y - mycp->pos.y; dz = z - mycp->pos.z;
+    dx = x - mycp->pos[time_level].x; dy = y - mycp->pos[time_level].y; dz = z - mycp->pos[time_level].z;
     nearest = sqrt(dx*dx + dy*dy + dz*dz);
 
     for ( size_t jb = 0; jb < gd->nblock; jb++ ) {
 	bdp = get_block_data_ptr(jb);
 	for ( FV_Cell *cp: bdp->active_cells ) {
-	    dx = x - cp->pos.x; dy = y - cp->pos.y; dz = z - cp->pos.z;
+	    dx = x - cp->pos[time_level].x; dy = y - cp->pos[time_level].y; dz = z - cp->pos[time_level].z;
 	    distance = sqrt(dx*dx + dy*dy + dz*dz);
 	    if (distance < nearest) {
 		std::vector<size_t> ijk = bdp->to_ijk_indices(cp->id);
@@ -712,7 +715,8 @@ int find_nearest_cell( double x, double y, double z,
 size_t starting_block = 0;
 
 int locate_cell(double x, double y, double z,
-	        size_t *jb_found, size_t *i_found, size_t *j_found, size_t *k_found)
+	        size_t *jb_found, size_t *i_found, size_t *j_found, size_t *k_found,
+		size_t time_level)
 // Returns 1 if a cell containing the sample point (x,y,z) is found, else 0.
 // The indices of the containing cell are recorded, if found.
 //
@@ -726,7 +730,7 @@ int locate_cell(double x, double y, double z,
     for ( size_t jb = starting_block; jb < gd->nblock; jb++ ) {
 	bdp = get_block_data_ptr(jb);
 	for ( FV_Cell *cp: bdp->active_cells ) {
-	    if ( cp->point_is_inside(p, gd->dimensions) ) {
+	    if ( cp->point_is_inside(p, gd->dimensions, time_level) ) {
 		std::vector<size_t> ijk = bdp->to_ijk_indices(cp->id);
 		*i_found = ijk[0]; *j_found = ijk[1]; *k_found = ijk[2]; 
 		*jb_found = jb;
@@ -739,7 +743,7 @@ int locate_cell(double x, double y, double z,
     for ( size_t jb = 0; jb < starting_block; jb++ ) {
 	bdp = get_block_data_ptr(jb);
 	for ( FV_Cell *cp: bdp->active_cells ) {
-	    if ( cp->point_is_inside(p, gd->dimensions) ) {
+	    if ( cp->point_is_inside(p, gd->dimensions, time_level) ) {
 		std::vector<size_t> ijk = bdp->to_ijk_indices(cp->id);
 		*i_found = ijk[0]; *j_found = ijk[1]; *k_found = ijk[2]; 
 		*jb_found = jb;

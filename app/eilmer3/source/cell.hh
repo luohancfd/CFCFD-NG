@@ -69,7 +69,7 @@ std::string  get_face_name(int face_index);
 class FlowState {
 public:
     Gas_data *gas;       ///< \brief gas thermo state
-    Vector3 vel;         ///< \brief velocity vector, m/s
+    Vector3 vel;         ///< \brief gas velocity vector, m/s
     Vector3 B;           ///< \brief magnetic field, Tesla 
     int S;               ///< \brief flag to indicate shock-point
     double tke;          ///< \brief turbulence kinetic energy per unit mass
@@ -128,13 +128,11 @@ public:
     int status; // state of the interface with respect to pistons
     // Geometry
     Vector3 pos;       ///< \brief position of the (approx) midpoint
-    Vector3 vel;       ///< \brief velocity, m/s
+    Vector3 vel;       ///< \brief gas velocity, m/s
     double Ybar;       ///< \brief Y-coordinate of the mid-point
     double length;     ///< \brief Interface length in the x,y-plane
-    double area;       ///<        Area m**2 in 2D geometries
+    std::vector<double> area; ///< \brief  Area m**2 for each time_level.
                        ///< \brief Area per radian in axisymmetric geometry
-    std::vector<double> ar; ///< \brief Area m**2 in 2D geometries
-                            ///  for each integration time level.
     Vector3 n;         ///< \brief Direction cosines for unit normal
     Vector3 t1;        ///< \brief tangent vector 1 (aka p)
     Vector3 t2;        ///< \brief tangent vector 2 (aka q)
@@ -162,12 +160,10 @@ class FV_Vertex {
 public:
     size_t id;  // allows us to work out where, in the block, the vertex is
     // Geometry
-    Vector3 pos;                    ///< \brief x,y,z-Coordinates, m
-    std::vector<Vector3> position;  ///< \brief x,y,z-Coordinates for different integration time levels, m
-    Vector3 vel;                    ///< \brief velocity, m/s
-    std::vector<Vector3> velocity;  ///< \brief velocity for different integration time levels, m/s
-    double area;                    ///< \brief x,y-plane area of secondary cells
-    double volume;                  ///< \brief volume of 3D secondary cells
+    std::vector<Vector3> pos;       ///< \brief x,y,z-Coordinates for time-levels, m
+    std::vector<Vector3> vel;       ///< \brief velocity for time-levels, m/s
+    double area;                    ///< \brief x,y-plane area of secondary cells (for spatial derivatives)
+    double volume;                  ///< \brief volume of 3D secondary cells (for spatial derivatives)
     // Derivatives of primary-cell variables.
     double dudx, dudy, dudz;        ///< \brief velocity derivatives
     double dvdx, dvdy, dvdz;        ///< \brief velocity derivatives
@@ -197,12 +193,9 @@ public:
     int in_turbulent_zone; ///> \brief ==1, we will keep the turbulence viscosity
     double base_qdot; ///> \brief base-level of heat addition to cell, W/m**3
     // Geometry
-    Vector3 pos; ///> \brief Centre x,y,z-coordinates, m
-    std::vector<Vector3> position; ///> \brief Centre x,y,z-coordinates for different integration time levels
-    double volume; ///> \brief Cell volume (per unit depth or radian in 2D), m**3
-    std::vector<double> vol; ///> \brief cell volume for different integration levels
-    double area; ///> \brief (x,y)-plane area, m**2
-    std::vector<double> ar; ///> \brief (x,y)-plane area for different integration time levels, m**2
+    std::vector<Vector3> pos; ///> \brief Centre x,y,z-coordinates for time-levels, m,m,m
+    std::vector<double> volume; ///> \brief Cell volume for time-levels (per unit depth or radian in 2D), m**3
+    std::vector<double> area; ///> \brief (x,y)-plane area for time-levels, m**2
     double uf; ///> \brief uncovered fraction */
     double iLength; ///> \brief length in the i-index direction
     double jLength; ///> \brief length in the j-index direction
@@ -236,11 +229,11 @@ public:
     FV_Cell & operator=(const FV_Cell &cell);
     ~FV_Cell();
     int print() const;
-    int point_is_inside(Vector3 &p, int dimensions) const;
+    int point_is_inside(Vector3 &p, int dimensions, size_t time_level) const;
     int copy_values_from(const CFlowCondition &src);
-    int copy_values_from(const FV_Cell &src, int type_of_copy);
-    double * copy_values_to_buffer(double *buf, int type_of_copy) const;
-    double * copy_values_from_buffer(double *buf, int type_of_copy);
+    int copy_values_from(const FV_Cell &src, int type_of_copy, size_t time_level);
+    double * copy_values_to_buffer(double *buf, int type_of_copy, size_t time_level) const;
+    double * copy_values_from_buffer(double *buf, int type_of_copy, size_t time_level);
     int replace_flow_data_with_average(std::vector<FV_Cell *> src);
     int scan_values_from_string(char *bufptr);
     std::string write_values_to_string() const;
@@ -251,12 +244,10 @@ public:
     int set_fr_reactions_allowed(int flag);
     int record_conserved(void);
     int restore_conserved(void);
-    int encode_conserved(double omegaz=0.0);
-    int decode_conserved(double omegaz=0.0);
-    int decode_conserved(int time_level, double omegaz=0.0);
+    int encode_conserved(double omegaz, size_t time_level);
+    int decode_conserved(double omegaz, size_t time_level);
     int check_flow_data(void);
-    int init_time_level_geometry( void );
-    int get_current_time_level_geometry( int time_level );
+    // int copy_level_to_level(size_t from_level, size_t to_level); // FIX-ME moving grid
     int time_derivatives(int time_level, int dimensions);
     int predictor_update(double dt);
     int corrector_update(double dt);

@@ -233,7 +233,7 @@ void TangentSlab::compute_Q_rad_for_block( Block * A )
     	    TS.T_i_ = A->get_cell(A->imin,j,k)->iface[WEST]->fs->gas->T[0];
     	    for ( size_t i = A->imin; i <= A->imax; ++i ) {
     	    	cellp = A->get_cell(i,j,k);
-    	    	coords_i = &(cellp->pos);
+    	    	coords_i = &(cellp->pos[0]);
     	    	s += vabs( *coords_i - *coords_im1 );
     	    	TS.set_rad_point( i - A->imin, cellp->fs->gas, &(cellp->Q_rE_rad), s, cellp->iLength );
     	    	coords_im1 = coords_i;
@@ -341,38 +341,38 @@ DiscreteTransfer::initialise()
 	    for ( size_t j = bdp->jmin; j <= bdp->jmax; ++j ) {
 	    	for ( size_t i = bdp->imin; i <= bdp->imax; ++i ) {
 	    	    FV_Cell * cell = bdp->get_cell(i,j,k);
-	    	    cells_[jb].push_back( new DiscreteTransferCell( cell->fs->gas, &(cell->Q_rE_rad), cell->pos, cell->volume ) );
+	    	    cells_[jb].push_back( new DiscreteTransferCell( cell->fs->gas, &(cell->Q_rE_rad), cell->pos[0], cell->volume[0] ) );
 	    	    cells_[jb].back()->set_CFD_cell_indices( i, j, k );
 	    	    cells_[jb].back()->Q_rE_rad_temp_.resize( nthreads );
 	    	    // test for and create wall interfaces
 	    	    if ( j==bdp->jmin && bdp->bcp[SOUTH]->is_wall_flag ) {
-	    	    	interfaces_[jb].push_back( new DiscreteTransferInterface( cell->iface[SOUTH]->fs->gas, cell->iface[SOUTH]->pos, cell->iface[SOUTH]->area, cell->iface[SOUTH]->length ) );
+	    	    	interfaces_[jb].push_back( new DiscreteTransferInterface( cell->iface[SOUTH]->fs->gas, cell->iface[SOUTH]->pos, cell->iface[SOUTH]->area[0], cell->iface[SOUTH]->length ) );
 	    	    	interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
 	    	    	interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    }
 	    	    else if ( j==bdp->jmax && bdp->bcp[NORTH]->is_wall_flag ) {
-	    	    	interfaces_[jb].push_back( new DiscreteTransferInterface( cell->iface[NORTH]->fs->gas, cell->iface[NORTH]->pos, cell->iface[NORTH]->area, cell->iface[NORTH]->length ) );
+	    	    	interfaces_[jb].push_back( new DiscreteTransferInterface( cell->iface[NORTH]->fs->gas, cell->iface[NORTH]->pos, cell->iface[NORTH]->area[0], cell->iface[NORTH]->length ) );
 	    	    	interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
 	    	    	interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    }
 	    	    if ( i==bdp->imin && bdp->bcp[WEST]->is_wall_flag ) {
-	    	    	interfaces_[jb].push_back( new DiscreteTransferInterface( cell->iface[WEST]->fs->gas, cell->iface[WEST]->pos, cell->iface[WEST]->area, cell->iface[WEST]->length ) );
+	    	    	interfaces_[jb].push_back( new DiscreteTransferInterface( cell->iface[WEST]->fs->gas, cell->iface[WEST]->pos, cell->iface[WEST]->area[0], cell->iface[WEST]->length ) );
 	    	    	interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
 	    	    	interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    }
 	    	    else if ( i==bdp->imax && bdp->bcp[EAST]->is_wall_flag ) {
-	    	    	interfaces_[jb].push_back( new DiscreteTransferInterface( cell->iface[EAST]->fs->gas, cell->iface[EAST]->pos, cell->iface[EAST]->area, cell->iface[EAST]->length ) );
+	    	    	interfaces_[jb].push_back( new DiscreteTransferInterface( cell->iface[EAST]->fs->gas, cell->iface[EAST]->pos, cell->iface[EAST]->area[0], cell->iface[EAST]->length ) );
 	    	    	interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
 	    	    	interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    }
 	    	    if ( G.dimensions == 3 ) {
 	    	    	if ( k==bdp->kmin && bdp->bcp[BOTTOM]->is_wall_flag ) {
-	    	    	    interfaces_[jb].push_back( new DiscreteTransferInterface( cell->iface[BOTTOM]->fs->gas, cell->iface[BOTTOM]->pos, cell->iface[BOTTOM]->area, cell->iface[BOTTOM]->length ) );
+	    	    	    interfaces_[jb].push_back( new DiscreteTransferInterface( cell->iface[BOTTOM]->fs->gas, cell->iface[BOTTOM]->pos, cell->iface[BOTTOM]->area[0], cell->iface[BOTTOM]->length ) );
 	    	    	    interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
 	    	    	    interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    	}
 	    	    	else if ( k==bdp->kmax && bdp->bcp[TOP]->is_wall_flag ) {
-	    	    	    interfaces_[jb].push_back( new DiscreteTransferInterface( cell->iface[TOP]->fs->gas, cell->iface[TOP]->pos, cell->iface[TOP]->area, cell->iface[TOP]->length ) );
+	    	    	    interfaces_[jb].push_back( new DiscreteTransferInterface( cell->iface[TOP]->fs->gas, cell->iface[TOP]->pos, cell->iface[TOP]->area[0], cell->iface[TOP]->length ) );
 	    	    	    interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
 	    	    	    interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    	}
@@ -905,7 +905,7 @@ int DiscreteTransfer::trace_ray( RayTracingRay * ray, size_t ib, size_t ic, size
     	cell = A->get_cell(ic,jc,kc);
     	// create the RayTracingPoint
     	RTcell = cells_[ib][get_cell_index(A,ic,jc,kc)];
-    	ray->points_.push_back( new RayTracingPoint( cell->fs->gas, &(cell->Q_rE_rad), L, cell->volume, RTcell->X_, RTcell->Y_, &(RTcell->Q_rE_rad_temp_) ) );
+    	ray->points_.push_back( new RayTracingPoint( cell->fs->gas, &(cell->Q_rE_rad), L, cell->volume[0], RTcell->X_, RTcell->Y_, &(RTcell->Q_rE_rad_temp_) ) );
 	// calculate next position on ray
 	L += dl_lmin_ratio_ * cell->L_min;
 	p = ray->get_point_on_line( L );
@@ -925,7 +925,7 @@ int DiscreteTransfer::trace_ray( RayTracingRay * ray, size_t ib, size_t ic, size
     	// set q_rad pointer and exit area
     	size_t index = A->bcp[ ray->status_ ]->get_heat_flux_index( ic, jc, kc );
     	ray->q_rad_ = &(A->bcp[ ray->status_ ]->q_rad[ index ]);
-    	ray->exit_area_ = cell->iface[ ray->status_ ]->area;
+    	ray->exit_area_ = cell->iface[ ray->status_ ]->area[0];
     }
     
     return SUCCESS;
@@ -1026,13 +1026,13 @@ MonteCarlo::initialise()
 	    for ( size_t j = bdp->jmin; j <= bdp->jmax; ++j ) {
 	    	for ( size_t i = bdp->imin; i <= bdp->imax; ++i ) {
 	    	    FV_Cell * cell = bdp->get_cell(i,j,k);
-	    	    cells_[jb].push_back( new MonteCarloCell( cell->fs->gas, &(cell->Q_rE_rad), cell->pos, cell->volume, cell->area ) );
+	    	    cells_[jb].push_back( new MonteCarloCell( cell->fs->gas, &(cell->Q_rE_rad), cell->pos[0], cell->volume[0], cell->area[0] ) );
 	    	    cells_[jb].back()->set_CFD_cell_indices( i, j, k );
 	    	    cells_[jb].back()->Q_rE_rad_temp_.resize( nthreads );
 	    	    cells_[jb].back()->interfaces_.resize( nfaces );
 	    	    // test for and create wall interfaces
 	    	    if ( j==bdp->jmin && bdp->bcp[SOUTH]->is_wall_flag ) {
-	    	    	interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[SOUTH]->fs->gas, cell->iface[SOUTH]->pos, cell->iface[SOUTH]->area, cell->iface[SOUTH]->length ) );
+	    	    	interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[SOUTH]->fs->gas, cell->iface[SOUTH]->pos, cell->iface[SOUTH]->area[0], cell->iface[SOUTH]->length ) );
 	    	    	interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
 	    	    	interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    	size_t hf_index_ =  bdp->bcp[SOUTH]->get_heat_flux_index( i, j, k );
@@ -1040,7 +1040,7 @@ MonteCarlo::initialise()
 	    	    	cells_[jb].back()->interfaces_[SOUTH] = interfaces_[jb].back();
 	    	    }
 	    	    else if ( j==bdp->jmax && bdp->bcp[NORTH]->is_wall_flag ) {
-	    	    	interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[NORTH]->fs->gas, cell->iface[NORTH]->pos, cell->iface[NORTH]->area, cell->iface[NORTH]->length ) );
+	    	    	interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[NORTH]->fs->gas, cell->iface[NORTH]->pos, cell->iface[NORTH]->area[0], cell->iface[NORTH]->length ) );
 	    	    	interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
 	    	    	interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    	size_t hf_index_ =  bdp->bcp[NORTH]->get_heat_flux_index( i, j, k );
@@ -1048,7 +1048,7 @@ MonteCarlo::initialise()
 	    	    	cells_[jb].back()->interfaces_[NORTH] = interfaces_[jb].back();
 	    	    }
 	    	    if ( i==bdp->imin && bdp->bcp[WEST]->is_wall_flag ) {
-	    	    	interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[WEST]->fs->gas, cell->iface[WEST]->pos, cell->iface[WEST]->area, cell->iface[WEST]->length ) );
+	    	    	interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[WEST]->fs->gas, cell->iface[WEST]->pos, cell->iface[WEST]->area[0], cell->iface[WEST]->length ) );
 	    	    	interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
 	    	    	interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    	size_t hf_index_ =  bdp->bcp[WEST]->get_heat_flux_index( i, j, k );
@@ -1056,7 +1056,7 @@ MonteCarlo::initialise()
 	    	    	cells_[jb].back()->interfaces_[WEST] = interfaces_[jb].back();
 	    	    }
 	    	    else if ( i==bdp->imax && bdp->bcp[EAST]->is_wall_flag ) {
-	    	    	interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[EAST]->fs->gas, cell->iface[EAST]->pos, cell->iface[EAST]->area, cell->iface[EAST]->length) );
+	    	    	interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[EAST]->fs->gas, cell->iface[EAST]->pos, cell->iface[EAST]->area[0], cell->iface[EAST]->length) );
 	    	    	interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
 	    	    	interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    	size_t hf_index_ =  bdp->bcp[EAST]->get_heat_flux_index( i, j, k );
@@ -1065,7 +1065,7 @@ MonteCarlo::initialise()
 	    	    }
 	    	    if ( G.dimensions == 3 ) {
 	    	    	if ( k==bdp->kmin && bdp->bcp[BOTTOM]->is_wall_flag ) {
-	    	    	    interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[BOTTOM]->fs->gas, cell->iface[BOTTOM]->pos, cell->iface[BOTTOM]->area, cell->iface[BOTTOM]->length ) );
+	    	    	    interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[BOTTOM]->fs->gas, cell->iface[BOTTOM]->pos, cell->iface[BOTTOM]->area[0], cell->iface[BOTTOM]->length ) );
 	    	    	    interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
 	    	    	    interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    	    size_t hf_index_ =  bdp->bcp[BOTTOM]->get_heat_flux_index( i, j, k );
@@ -1073,7 +1073,7 @@ MonteCarlo::initialise()
 	    	    	    cells_[jb].back()->interfaces_[BOTTOM] = interfaces_[jb].back();
 	    	    	}
 	    	    	else if ( k==bdp->kmax && bdp->bcp[TOP]->is_wall_flag ) {
-	    	    	    interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[TOP]->fs->gas, cell->iface[TOP]->pos, cell->iface[TOP]->area, cell->iface[TOP]->length ) );
+	    	    	    interfaces_[jb].push_back( new MonteCarloInterface( cell->iface[TOP]->fs->gas, cell->iface[TOP]->pos, cell->iface[TOP]->area[0], cell->iface[TOP]->length ) );
 	    	    	    interfaces_[jb].back()->set_CFD_cell_indices( i, j, k );
 	    	    	    interfaces_[jb].back()->q_rad_temp_.resize( nthreads );
 	    	    	    size_t hf_index_ =  bdp->bcp[TOP]->get_heat_flux_index( i, j, k );

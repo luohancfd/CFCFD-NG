@@ -36,10 +36,10 @@ int luafn_sample_flow(lua_State *L)
 
     // Return the interesting data in a table with named fields.
     lua_newtable(L); // creates a table that is now at the TOS
-    lua_pushnumber(L, cell->pos.x); lua_setfield(L, -2, "x");
-    lua_pushnumber(L, cell->pos.y); lua_setfield(L, -2, "y");
-    lua_pushnumber(L, cell->pos.z); lua_setfield(L, -2, "z");
-    lua_pushnumber(L, cell->volume); lua_setfield(L, -2, "vol");
+    lua_pushnumber(L, cell->pos[0].x); lua_setfield(L, -2, "x");
+    lua_pushnumber(L, cell->pos[0].y); lua_setfield(L, -2, "y");
+    lua_pushnumber(L, cell->pos[0].z); lua_setfield(L, -2, "z");
+    lua_pushnumber(L, cell->volume[0]); lua_setfield(L, -2, "vol");
     lua_pushnumber(L, fs.gas->p); lua_setfield(L, -2, "p");
     // lua_pushnumber(L, fs.gas->T[0]); lua_setfield(L, -2, "T_wall"); // FIX-ME: check not needed.
     lua_pushnumber(L, fs.gas->rho); lua_setfield(L, -2, "rho"); 
@@ -88,9 +88,9 @@ int luafn_locate_cell(lua_State *L)
 	z = lua_tonumber(L, 3);
     }
     size_t jb, i, j, k;
-    int found_cell = locate_cell(x, y, z, &jb, &i, &j, &k);
+    int found_cell = locate_cell(x, y, z, &jb, &i, &j, &k, 0);
     if ( !found_cell ) {
-	found_cell = find_nearest_cell(x, y, z, &jb, &i, &j, &k);
+	found_cell = find_nearest_cell(x, y, z, &jb, &i, &j, &k, 0);
 	if ( !found_cell ) {
 	    printf("luafn_locate_cell(): no cells near pos=(%g,%g,%g)", x, y, z);
 	}

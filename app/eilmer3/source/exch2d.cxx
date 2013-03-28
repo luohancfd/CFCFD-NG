@@ -25,13 +25,13 @@
 
 /*------------------------------------------------------------------*/
 
-int exchange_shared_boundary_data(int jb, int type_of_copy)
+int exchange_shared_boundary_data(int jb, int type_of_copy, size_t time_level)
 {
     global_data *G = get_global_data_ptr();
     if ( G->dimensions == 2 ) {
-	copy_boundary_data_2D( jb, type_of_copy );
+	copy_boundary_data_2D(jb, type_of_copy, time_level);
     } else {
-	copy_boundary_data_3D( jb, type_of_copy );
+	copy_boundary_data_3D(jb, type_of_copy, time_level);
     }
     return SUCCESS;
 } // end copy_bc_data()
@@ -50,7 +50,7 @@ int exchange_shared_boundary_data(int jb, int type_of_copy)
  * \param diaphragm_rupture_diameter :
  *
  */
-int copy_boundary_data_2D(int jb, int type_of_copy)
+int copy_boundary_data_2D(int jb, int type_of_copy, size_t time_level)
 {
     global_data *G = get_global_data_ptr();
     Block *bdp = get_block_data_ptr(jb);
@@ -60,7 +60,7 @@ int copy_boundary_data_2D(int jb, int type_of_copy)
     other_bdp = get_block_data_ptr(other_block);
     if (other_block >= 0) {
         other_bndry = bdp->bcp[NORTH]->neighbour_face;
-        copy_to_north_boundary_2D(bdp, other_bdp, other_bndry, type_of_copy);   
+        copy_to_north_boundary_2D(bdp, other_bdp, other_bndry, type_of_copy, time_level);   
     }
     /* note: the variable "diaphragm_block" defaults to -1 and so will never refer
      *       to an actual block, unless the case id for a diaphragm rupture simulation
@@ -77,9 +77,10 @@ int copy_boundary_data_2D(int jb, int type_of_copy)
         if (jb == G->diaphragm_block) {
             copy_to_east_boundary_diaphragm_2D(bdp, other_bdp, other_bndry, 
 					       type_of_copy, G->diaphragm_rupture_time, 
-					       G->diaphragm_rupture_diameter, G->sim_time);
+					       G->diaphragm_rupture_diameter, G->sim_time,
+					       time_level);
         } else {
-            copy_to_east_boundary_2D(bdp, other_bdp, other_bndry, type_of_copy);
+            copy_to_east_boundary_2D(bdp, other_bdp, other_bndry, type_of_copy, time_level);
         }
     }
 
@@ -87,7 +88,7 @@ int copy_boundary_data_2D(int jb, int type_of_copy)
     other_bdp = get_block_data_ptr(other_block);
     if (other_block >= 0) {
         other_bndry = bdp->bcp[SOUTH]->neighbour_face;
-        copy_to_south_boundary_2D(bdp, other_bdp, other_bndry, type_of_copy);
+        copy_to_south_boundary_2D(bdp, other_bdp, other_bndry, type_of_copy, time_level);
     }
 
     /* if you are the block at the downstream side of the diaphragm
@@ -100,13 +101,14 @@ int copy_boundary_data_2D(int jb, int type_of_copy)
         if (other_block == G->diaphragm_block) {
             copy_to_west_boundary_diaphragm_2D(bdp, other_bdp, other_bndry,
 					       type_of_copy, G->diaphragm_rupture_time,
-					       G->diaphragm_rupture_diameter, G->sim_time);
+					       G->diaphragm_rupture_diameter, G->sim_time,
+					       time_level);
         } else {
-            copy_to_west_boundary_2D(bdp, other_bdp, other_bndry, type_of_copy);
+            copy_to_west_boundary_2D(bdp, other_bdp, other_bndry, type_of_copy, time_level);
         }
     }
 
-    return 0;
+    return SUCCESS;
 }   /* end copy_bc_data_2D() */
         
 
@@ -115,7 +117,7 @@ int copy_boundary_data_2D(int jb, int type_of_copy)
 double calculate_diaphragm_radius( double sim_time,
 				   double diaphragm_rupture_time,
 				   double diaphragm_rupture_diameter,
-				   double minimum_radius )
+				   double minimum_radius)
 {
     double diaphragm_time_fraction, diaphragm_area, diaphragm_radius;
 
@@ -170,7 +172,7 @@ int copy_to_east_boundary_diaphragm_2D(Block *A,
 				       int type_of_copy,
 				       double diaphragm_rupture_time,
 				       double diaphragm_rupture_diameter,
-				       double sim_time)
+				       double sim_time, size_t time_level)
 {
     int i_A, j_A, i_B, j_B;
     int jfirst, jlast;
@@ -183,9 +185,9 @@ int copy_to_east_boundary_diaphragm_2D(Block *A,
          * block B to the EAST boundary ghost cells of block A.
          */
 	diaphragm_radius = 
-	    calculate_diaphragm_radius( sim_time, diaphragm_rupture_time,
-					diaphragm_rupture_diameter,
-					B->get_ifj(B->imin,B->jmin)->Ybar );
+	    calculate_diaphragm_radius(sim_time, diaphragm_rupture_time,
+				       diaphragm_rupture_diameter,
+				       B->get_ifj(B->imin,B->jmin)->Ybar);
 
         i_A = A->imax + 1;
         i_B = B->imin;
@@ -204,11 +206,11 @@ int copy_to_east_boundary_diaphragm_2D(Block *A,
 		/* Fill the first line of ghost cells. */
 		dest = A->get_cell(i_A,j_A);
 		src = B->get_cell(i_B,j_B);
-		dest->copy_values_from(*src, type_of_copy);
+		dest->copy_values_from(*src, type_of_copy, time_level);
 		/* Fill the second line of ghost cells. */
 		dest = A->get_cell(i_A+1,j_A);
 		src = B->get_cell(i_B+1,j_B);
-		dest->copy_values_from(*src, type_of_copy);
+		dest->copy_values_from(*src, type_of_copy, time_level);
 	    } else {
 		/*
 		 * This cell y index has diaphragm material next to it.
@@ -217,11 +219,11 @@ int copy_to_east_boundary_diaphragm_2D(Block *A,
 		/* Fill the first line of ghost cells. */
 		dest = A->get_cell(i_A,j_A);
 		src = A->get_cell(A->imax,j_A);
-		dest->copy_values_from(*src, type_of_copy);
+		dest->copy_values_from(*src, type_of_copy, time_level);
 		/* Fill the second line of ghost cells. */
 		dest = A->get_cell(i_A+1,j_A);
 		src = A->get_cell(A->imax-1,j_A);
-		dest->copy_values_from(*src, type_of_copy);
+		dest->copy_values_from(*src, type_of_copy, time_level);
 	    }   /* end if */
         }   /* end for */
 
@@ -230,7 +232,7 @@ int copy_to_east_boundary_diaphragm_2D(Block *A,
         exit(VALUE_ERROR);
     }   /* end if */
 
-    return 0;
+    return SUCCESS;
 }   /* end copy_to_east_boundary_diaphragm() */
 
 
@@ -247,7 +249,7 @@ int copy_to_west_boundary_diaphragm_2D(Block *A,
 				       int type_of_copy,
 				       double diaphragm_rupture_time,
 				       double diaphragm_rupture_diameter,
-				       double sim_time)
+				       double sim_time, size_t time_level)
 {
     int i_A, j_A, i_B, j_B;
     int jfirst, jlast;
@@ -260,9 +262,9 @@ int copy_to_west_boundary_diaphragm_2D(Block *A,
          * block B to the WEST boundary ghost cells of block A.
          */
 	diaphragm_radius = 
-	    calculate_diaphragm_radius( sim_time, diaphragm_rupture_time,
-					diaphragm_rupture_diameter,
-					A->get_ifj(A->imin,A->jmin)->Ybar );
+	    calculate_diaphragm_radius(sim_time, diaphragm_rupture_time,
+				       diaphragm_rupture_diameter,
+				       A->get_ifj(A->imin,A->jmin)->Ybar);
 
         i_A = A->imin - 1;
         i_B = B->imax;
@@ -281,11 +283,11 @@ int copy_to_west_boundary_diaphragm_2D(Block *A,
 		/* Fill the first line of ghost cells. */
 		dest = A->get_cell(i_A,j_A);
 		src = B->get_cell(i_B,j_B);
-		dest->copy_values_from(*src, type_of_copy);
+		dest->copy_values_from(*src, type_of_copy, time_level);
 		/* Fill the second line of ghost cells. */
 		dest = A->get_cell(i_A-1,j_A);
 		src = B->get_cell(i_B-1,j_B);
-		dest->copy_values_from(*src, type_of_copy);
+		dest->copy_values_from(*src, type_of_copy, time_level);
 	    } else {
 		/* 
 		 * This cell y index has diaphragm material next to it and so it gets
@@ -294,11 +296,11 @@ int copy_to_west_boundary_diaphragm_2D(Block *A,
 		/* Fill the first line of ghost cells. */
 		dest = A->get_cell(i_A,j_A);
 		src = A->get_cell(A->imin,j_A);
-		dest->copy_values_from(*src, type_of_copy);
+		dest->copy_values_from(*src, type_of_copy, time_level);
 		/* Fill the second line of ghost cells. */
 		dest = A->get_cell(i_A-1,j_A);
 		src = A->get_cell(A->imin+1,j_A);
-		dest->copy_values_from(*src, type_of_copy);
+		dest->copy_values_from(*src, type_of_copy, time_level);
 	    }   /* end if */
         }   /* end for */
 
@@ -307,7 +309,7 @@ int copy_to_west_boundary_diaphragm_2D(Block *A,
         exit(VALUE_ERROR);
     }   /* end if */
 
-    return 0;
+    return SUCCESS;
 }   /* end copy_to_west_boundary_diaphragm() */
 
 
@@ -319,8 +321,8 @@ int copy_to_west_boundary_diaphragm_2D(Block *A,
  *  \param B_bndry  : value specifying the source block boundary
  *
  */
-int copy_to_north_boundary_2D(Block *A, Block *B,
-			      int B_bndry, int type_of_copy)
+int copy_to_north_boundary_2D(Block *A, Block *B, int B_bndry,
+			      int type_of_copy, size_t time_level)
 {
     int i_A, j_A, i_B, j_B;
     int ifirst, ilast;
@@ -341,12 +343,12 @@ int copy_to_north_boundary_2D(Block *A, Block *B,
             /* Fill the first line of ghost cells. */
             dest = A->get_cell(i_A,j_A);
             src = B->get_cell(i_B,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
 
             /* Fill the second line of ghost cells. */
             dest = A->get_cell(i_A,j_A+1);
             src = B->get_cell(i_B,j_B+1);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
         }   /* end for */
 
     } else if (B_bndry == EAST) {
@@ -365,12 +367,12 @@ int copy_to_north_boundary_2D(Block *A, Block *B,
             /* Fill the first line of ghost cells. */
             dest = A->get_cell(i_A,j_A);
             src = B->get_cell(i_B,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
 
             /* Fill the second line of ghost cells. */
             dest = A->get_cell(i_A,j_A+1);
             src = B->get_cell(i_B-1,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
         }   /* end for */
 
     } else if (B_bndry == NORTH) {
@@ -389,12 +391,12 @@ int copy_to_north_boundary_2D(Block *A, Block *B,
             /* Fill the first line of ghost cells. */
             dest = A->get_cell(i_A,j_A);
             src = B->get_cell(i_B,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
 
             /* Fill the second line of ghost cells. */
             dest = A->get_cell(i_A,j_A+1);
             src = B->get_cell(i_B,j_B-1);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
         }   /* end for */
 
     } else if (B_bndry == WEST) {
@@ -413,12 +415,12 @@ int copy_to_north_boundary_2D(Block *A, Block *B,
             /* Fill the first line of ghost cells. */
             dest = A->get_cell(i_A,j_A);
             src = B->get_cell(i_B,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
 
             /* Fill the second line of ghost cells. */
             dest = A->get_cell(i_A,j_A+1);
             src = B->get_cell(i_B+1,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
         }   /* end for */
 
     } else {
@@ -426,7 +428,7 @@ int copy_to_north_boundary_2D(Block *A, Block *B,
         exit(VALUE_ERROR);
     }   /* end if */
 
-    return 0;
+    return SUCCESS;
 }   /* end copy_to_north_boundary_2D() */
 
 
@@ -437,8 +439,8 @@ int copy_to_north_boundary_2D(Block *A, Block *B,
  *  \param  B       : pointer to the source block
  *  \param B_bndry  : value specifying the source block boundary
  */
-int copy_to_east_boundary_2D(Block *A, Block *B, 
-			     int B_bndry, int type_of_copy)
+int copy_to_east_boundary_2D(Block *A, Block *B, int B_bndry,
+			     int type_of_copy, size_t time_level)
 {
     int i_A, j_A, i_B, j_B;
     int jfirst, jlast;
@@ -460,12 +462,12 @@ int copy_to_east_boundary_2D(Block *A, Block *B,
             /* Fill the first line of ghost cells. */
             dest = A->get_cell(i_A,j_A);
             src = B->get_cell(i_B,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
 
             /* Fill the second line of ghost cells. */
             dest = A->get_cell(i_A+1,j_A);
             src = B->get_cell(i_B,j_B+1);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
         }   /* end for */
 
     } else if (B_bndry == EAST) {
@@ -484,12 +486,12 @@ int copy_to_east_boundary_2D(Block *A, Block *B,
             /* Fill the first line of ghost cells. */
             dest = A->get_cell(i_A,j_A);
             src = B->get_cell(i_B,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
 
             /* Fill the second line of ghost cells. */
             dest = A->get_cell(i_A+1,j_A);
             src = B->get_cell(i_B-1,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
         }   /* end for */
 
     } else if (B_bndry == NORTH) {
@@ -508,12 +510,12 @@ int copy_to_east_boundary_2D(Block *A, Block *B,
             /* Fill the first line of ghost cells. */
             dest = A->get_cell(i_A,j_A);
             src = B->get_cell(i_B,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
 
             /* Fill the second line of ghost cells. */
             dest = A->get_cell(i_A+1,j_A);
             src = B->get_cell(i_B,j_B-1);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
         }   /* end for */
 
     } else if (B_bndry == WEST) {
@@ -532,12 +534,12 @@ int copy_to_east_boundary_2D(Block *A, Block *B,
             /* Fill the first line of ghost cells. */
             dest = A->get_cell(i_A,j_A);
             src = B->get_cell(i_B,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
 
             /* Fill the second line of ghost cells. */
             dest = A->get_cell(i_A+1,j_A);
             src = B->get_cell(i_B+1,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
         }   /* end for */
 
     } else {
@@ -545,7 +547,7 @@ int copy_to_east_boundary_2D(Block *A, Block *B,
         exit(VALUE_ERROR);
     }   /* end if */
 
-    return 0;
+    return SUCCESS;
 }   /* end copy_to_east_boundary_2D() */
 
 
@@ -556,8 +558,8 @@ int copy_to_east_boundary_2D(Block *A, Block *B,
  *  \param  B       : pointer to the source block
  *  \param B_bndry  : value specifying the source block boundary
  */
-int copy_to_south_boundary_2D(Block *A, Block *B,
-			      int B_bndry, int type_of_copy)
+int copy_to_south_boundary_2D(Block *A, Block *B, int B_bndry,
+			      int type_of_copy, size_t time_level)
 {
     int i_A, j_A, i_B, j_B;
     int ifirst, ilast;
@@ -579,12 +581,12 @@ int copy_to_south_boundary_2D(Block *A, Block *B,
             /* Fill the first line of ghost cells. */
             dest = A->get_cell(i_A,j_A);
             src = B->get_cell(i_B,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
 
             /* Fill the second line of ghost cells. */
             dest = A->get_cell(i_A,j_A-1);
             src = B->get_cell(i_B,j_B+1);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
         }   /* end for */
 
     } else if (B_bndry == EAST) {
@@ -603,12 +605,12 @@ int copy_to_south_boundary_2D(Block *A, Block *B,
             /* Fill the first line of ghost cells. */
             dest = A->get_cell(i_A,j_A);
             src = B->get_cell(i_B,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
 
             /* Fill the second line of ghost cells. */
             dest = A->get_cell(i_A,j_A-1);
             src = B->get_cell(i_B-1,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
         }   /* end for */
 
     } else if (B_bndry == NORTH) {
@@ -627,12 +629,12 @@ int copy_to_south_boundary_2D(Block *A, Block *B,
             /* Fill the first line of ghost cells. */
             dest = A->get_cell(i_A,j_A);
             src = B->get_cell(i_B,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
 
             /* Fill the second line of ghost cells. */
             dest = A->get_cell(i_A,j_A-1);
             src = B->get_cell(i_B,j_B-1);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
         }   /* end for */
 
     } else if (B_bndry == WEST) {
@@ -651,12 +653,12 @@ int copy_to_south_boundary_2D(Block *A, Block *B,
             /* Fill the first line of ghost cells. */
             dest = A->get_cell(i_A,j_A);
             src = B->get_cell(i_B,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
 
             /* Fill the second line of ghost cells. */
             dest = A->get_cell(i_A,j_A - 1);
             src = B->get_cell(i_B+1,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
         }   /* end for */
 
     } else {
@@ -664,7 +666,7 @@ int copy_to_south_boundary_2D(Block *A, Block *B,
         exit(VALUE_ERROR);
     }   /* end if */
 
-    return 0;
+    return SUCCESS;
 }   /* end copy_to_south_boundary_2D() */
 
 
@@ -675,8 +677,8 @@ int copy_to_south_boundary_2D(Block *A, Block *B,
  *  \param  B       : pointer to the source block
  *  \param B_bndry  : value specifying the source block boundary
  */
-int copy_to_west_boundary_2D(Block *A, Block *B, 
-			     int B_bndry, int type_of_copy)
+int copy_to_west_boundary_2D(Block *A, Block *B, int B_bndry,
+			     int type_of_copy, size_t time_level)
 {
     int i_A, j_A, i_B, j_B;
     int jfirst, jlast;
@@ -698,12 +700,12 @@ int copy_to_west_boundary_2D(Block *A, Block *B,
             /* Fill the first line of ghost cells. */
             dest = A->get_cell(i_A,j_A);
             src = B->get_cell(i_B,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
 
             /* Fill the second line of ghost cells. */
             dest = A->get_cell(i_A-1,j_A);
             src = B->get_cell(i_B,j_B+1);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
         }   /* end for */
 
     } else if (B_bndry == EAST) {
@@ -722,12 +724,12 @@ int copy_to_west_boundary_2D(Block *A, Block *B,
             /* Fill the first line of ghost cells. */
             dest = A->get_cell(i_A,j_A);
             src = B->get_cell(i_B,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
 
             /* Fill the second line of ghost cells. */
             dest = A->get_cell(i_A-1,j_A);
             src = B->get_cell(i_B-1,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
         }   /* end for */
 
     } else if (B_bndry == NORTH) {
@@ -746,12 +748,12 @@ int copy_to_west_boundary_2D(Block *A, Block *B,
             /* Fill the first line of ghost cells. */
             dest = A->get_cell(i_A,j_A);
             src = B->get_cell(i_B,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
 
             /* Fill the second line of ghost cells. */
             dest = A->get_cell(i_A-1,j_A);
             src = B->get_cell(i_B,j_B-1);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
         }   /* end for */
 
     } else if (B_bndry == WEST) {
@@ -770,12 +772,12 @@ int copy_to_west_boundary_2D(Block *A, Block *B,
             /* Fill the first line of ghost cells. */
             dest = A->get_cell(i_A,j_A);
             src = B->get_cell(i_B,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
 
             /* Fill the second line of ghost cells. */
             dest = A->get_cell(i_A-1,j_A);
             src = B->get_cell(i_B+1,j_B);
-            dest->copy_values_from(*src, type_of_copy);
+            dest->copy_values_from(*src, type_of_copy, time_level);
         }   /* end for */
 
     } else {
@@ -783,7 +785,7 @@ int copy_to_west_boundary_2D(Block *A, Block *B,
         exit(VALUE_ERROR);
     }   /* end if */
 
-    return 0;
+    return SUCCESS;
 }   /* end copy_to_west_boundary_2D() */
 
 
@@ -801,7 +803,8 @@ int copy_to_west_boundary_2D(Block *A, Block *B,
  * \param type_of_copy : sometimes we want to copy cell geometry,
  *                       other times the flow data
  */
-int copy_into_send_buffer_2D( Block *bd, int bndry, int type_of_copy, double *send_buffer )
+int copy_into_send_buffer_2D(Block *bd, int bndry, int type_of_copy,
+			     double *send_buffer, size_t time_level)
 {
     int i, j, ib, ii, nx, ny, nv;
     FV_Cell *cell;
@@ -818,12 +821,12 @@ int copy_into_send_buffer_2D( Block *bd, int bndry, int type_of_copy, double *se
             ib = ii;
             cell = bd->get_cell(i,j);
             bufp = &(send_buffer[ib * nv]);
-            cell->copy_values_to_buffer(bufp, type_of_copy);
+            cell->copy_values_to_buffer(bufp, type_of_copy, time_level);
             /* copy the second line of active cells. */
             ib = ii + nx;
             cell = bd->get_cell(i,j-1);
             bufp = &(send_buffer[ib * nv]);
-            cell->copy_values_to_buffer(bufp, type_of_copy);
+            cell->copy_values_to_buffer(bufp, type_of_copy, time_level);
         }
     } else if (bndry == EAST) {
         i = bd->imax;
@@ -835,12 +838,12 @@ int copy_into_send_buffer_2D( Block *bd, int bndry, int type_of_copy, double *se
             ib = ii;
             cell = bd->get_cell(i,j);
             bufp = &(send_buffer[ib * nv]);
-            cell->copy_values_to_buffer(bufp, type_of_copy);
+            cell->copy_values_to_buffer(bufp, type_of_copy, time_level);
             /* copy the second line of active cells. */
             ib = ii + ny;
             cell = bd->get_cell(i-1,j);
             bufp = &(send_buffer[ib * nv]);
-            cell->copy_values_to_buffer(bufp, type_of_copy);
+            cell->copy_values_to_buffer(bufp, type_of_copy, time_level);
 	}
     } else if (bndry == SOUTH) {
         j = bd->jmin;
@@ -852,13 +855,13 @@ int copy_into_send_buffer_2D( Block *bd, int bndry, int type_of_copy, double *se
             ib = ii;
             cell = bd->get_cell(i,j);
             bufp = &(send_buffer[ib * nv]);
-            cell->copy_values_to_buffer(bufp, type_of_copy);
+            cell->copy_values_to_buffer(bufp, type_of_copy, time_level);
             /* copy the second line of active cells. */
             i = bd->imin + ii;
             ib = ii + nx;
             cell = bd->get_cell(i,j+1);
             bufp = &(send_buffer[ib * nv]);
-            cell->copy_values_to_buffer(bufp, type_of_copy);
+            cell->copy_values_to_buffer(bufp, type_of_copy, time_level);
         }
     } else if (bndry == WEST) {
         i = bd->imin;
@@ -870,12 +873,12 @@ int copy_into_send_buffer_2D( Block *bd, int bndry, int type_of_copy, double *se
             ib = ii;
             cell = bd->get_cell(i,j);
             bufp = &(send_buffer[ib * nv]);
-            cell->copy_values_to_buffer(bufp, type_of_copy);
+            cell->copy_values_to_buffer(bufp, type_of_copy, time_level);
             /* copy the second line of active cells. */
             ib = ii + ny;
             cell = bd->get_cell(i+1,j);
             bufp = &(send_buffer[ib * nv]);
-            cell->copy_values_to_buffer(bufp, type_of_copy);
+            cell->copy_values_to_buffer(bufp, type_of_copy, time_level);
 	}
     } else {
         printf("\ncopy_into_send_buffer_2D(): invalid boundary\n");
@@ -891,7 +894,8 @@ int copy_into_send_buffer_2D( Block *bd, int bndry, int type_of_copy, double *se
  *
  * See workbook page 33, 18-Jun-02 for details of order.
  */
-int copy_from_receive_buffer_2D(Block *bd, int bndry, int type_of_copy, double *receive_buffer)
+int copy_from_receive_buffer_2D(Block *bd, int bndry, int type_of_copy,
+				double *receive_buffer, size_t time_level)
 {
     int i, j, ib, ii, nx, ny, nv;
     FV_Cell *cell;
@@ -907,12 +911,12 @@ int copy_from_receive_buffer_2D(Block *bd, int bndry, int type_of_copy, double *
             ib = ii;
             cell = bd->get_cell(i,j+1);
             bufp = &(receive_buffer[ib * nv]);
-            cell->copy_values_from_buffer(bufp, type_of_copy);
+            cell->copy_values_from_buffer(bufp, type_of_copy, time_level);
             /* Fill the second line of ghost cells. */
             ib = ii + nx;
             cell = bd->get_cell(i,j+2);
             bufp = &(receive_buffer[ib * nv]);
-            cell->copy_values_from_buffer(bufp, type_of_copy);
+            cell->copy_values_from_buffer(bufp, type_of_copy, time_level);
         }
     } else if (bndry == EAST) {
         i = bd->imax;
@@ -924,12 +928,12 @@ int copy_from_receive_buffer_2D(Block *bd, int bndry, int type_of_copy, double *
             ib = ii;
             cell = bd->get_cell(i+1,j);
             bufp = &(receive_buffer[ib * nv]);
-            cell->copy_values_from_buffer(bufp, type_of_copy);
+            cell->copy_values_from_buffer(bufp, type_of_copy, time_level);
             /* Fill the second line of ghost cells. */
             ib = ii + ny;
             cell = bd->get_cell(i+2,j);
             bufp = &(receive_buffer[ib * nv]);
-            cell->copy_values_from_buffer(bufp, type_of_copy);
+            cell->copy_values_from_buffer(bufp, type_of_copy, time_level);
 	}
     } else if (bndry == SOUTH) {
         j = bd->jmin;
@@ -941,12 +945,12 @@ int copy_from_receive_buffer_2D(Block *bd, int bndry, int type_of_copy, double *
             ib = ii;
             cell = bd->get_cell(i,j-1);
             bufp = &(receive_buffer[ib * nv]);
-            cell->copy_values_from_buffer(bufp, type_of_copy);
+            cell->copy_values_from_buffer(bufp, type_of_copy, time_level);
             /* Fill the second line of ghost cells. */
             ib = ii + nx;
             cell = bd->get_cell(i,j-2);
             bufp = &(receive_buffer[ib * nv]);
-            cell->copy_values_from_buffer(bufp, type_of_copy);
+            cell->copy_values_from_buffer(bufp, type_of_copy, time_level);
         }
     } else if (bndry == WEST) {
         i = bd->imin;
@@ -958,12 +962,12 @@ int copy_from_receive_buffer_2D(Block *bd, int bndry, int type_of_copy, double *
             ib = ii;
             cell = bd->get_cell(i-1,j);
             bufp = &(receive_buffer[ib * nv]);
-            cell->copy_values_from_buffer(bufp, type_of_copy);
+            cell->copy_values_from_buffer(bufp, type_of_copy, time_level);
             /* Fill the second line of ghost cells. */
             ib = ii + ny;
             cell = bd->get_cell(i-2,j);
             bufp = &(receive_buffer[ib * nv]);
-            cell->copy_values_from_buffer(bufp, type_of_copy);
+            cell->copy_values_from_buffer(bufp, type_of_copy, time_level);
 	}
     } else {
         printf("\ncopy_from_receive_buffer: invalid boundary\n");

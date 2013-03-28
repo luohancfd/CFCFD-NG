@@ -155,8 +155,8 @@ int mach_weighted_one_d_interp(const FV_Cell &cL1, const FV_Cell &cL0,
 
     // If flow is supersonic in the direction of the interface don't use any
     // downstream information. Else, linearly velocity weight the upstream information.
-    double ML = dot(cL0.fs->vel, unit(cR0.pos - cL0.pos)) / cL0.fs->gas->a;
-    double MR = dot(cR0.fs->vel, unit(cL0.pos - cR0.pos)) / cR0.fs->gas->a;
+    double ML = dot(cL0.fs->vel, unit(cR0.pos[0] - cL0.pos[0])) / cL0.fs->gas->a;
+    double MR = dot(cR0.fs->vel, unit(cL0.pos[0] - cR0.pos[0])) / cR0.fs->gas->a;
     double kL = min(1.0, max(0.0, ML));
     double kR = min(1.0, max(0.0, MR));
 

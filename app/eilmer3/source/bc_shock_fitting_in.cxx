@@ -85,8 +85,8 @@ apply_inviscid( double t )
 				      cL0->iLength, cR0->iLength, cR1->iLength, cR2->iLength, 
 				      *IFaceL, *IFaceR);
 		// Necessary to stop edge effects when appying the spatial filter.
-		cL1->copy_values_from(*cR1, COPY_FLOW_STATE);
-		cL0->copy_values_from(*cR0, COPY_FLOW_STATE);
+		cL1->copy_values_from(*cR1, COPY_FLOW_STATE, 0);
+		cL0->copy_values_from(*cR0, COPY_FLOW_STATE, 0);
 	    } // end j loop
 	} // for k
  	break;

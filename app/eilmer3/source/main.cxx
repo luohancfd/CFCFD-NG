@@ -466,19 +466,18 @@ int prepare_to_integrate(size_t start_tindx)
     // Prepare data within the primary finite-volume cells.
     // This includes both geometric data and flow state data.
     for ( Block *bdp : G.my_blocks ) {
-	bdp->compute_initial_primary_cell_geometric_data(G.dimensions);
-	bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions);
-	bdp->compute_secondary_cell_geometric_data(G.dimensions);
-	bdp->set_base_qdot( G );  // this need be done only once per block
-	bdp->identify_reaction_zones( G );
-	bdp->identify_turbulent_zones( G );
+	bdp->compute_primary_cell_geometric_data(G.dimensions, 0);
+	bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions, 0);
+	bdp->compute_secondary_cell_geometric_data(G.dimensions, 0);
+	bdp->set_base_qdot(G, 0);  // this need be done only once per block
+	bdp->identify_reaction_zones(G, 0);
+	bdp->identify_turbulent_zones(G, 0);
 	for ( FV_Cell *cp: bdp->active_cells ) {
-	    cp->init_time_level_geometry();
-	    cp->encode_conserved(bdp->omegaz);
+	    cp->encode_conserved(bdp->omegaz, 0);
 	    // Even though the following call appears redundant at this point,
 	    // fills in some gas properties such as Prandtl number that is
 	    // needed for both the cfd_check and the BLomax turbulence model.
-	    cp->decode_conserved(bdp->omegaz);
+	    cp->decode_conserved(bdp->omegaz, 0);
 	}
     } // end for *bdp
     // Exchange boundary cell geometry information so that we can
@@ -486,10 +485,10 @@ int prepare_to_integrate(size_t start_tindx)
     // FIX-ME generalize for handling several blocks per MPI process
     // FIX-ME Be careful that we don't break the usage for integrate_blocks_in_sequence
 #   ifdef _MPI
-    mpi_exchange_boundary_data(COPY_CELL_LENGTHS);
+    mpi_exchange_boundary_data(COPY_CELL_LENGTHS, 0);
 #   else
     for ( Block *bdp : G.my_blocks ) {
-        exchange_shared_boundary_data(bdp->id, COPY_CELL_LENGTHS);
+        exchange_shared_boundary_data(bdp->id, COPY_CELL_LENGTHS, 0);
     }
 #   endif
 
@@ -549,15 +548,15 @@ int call_udf(double t, size_t step, std::string udf_fn_name)
 
 /// \brief Add to the components of the source vector, Q, via a Lua udf.
 /// This is done (occasionally) just after the for inviscid source vector calculation.
-int udf_source_vector_for_cell( FV_Cell *cell, int time_level, double t )
+int udf_source_vector_for_cell( FV_Cell *cell, size_t time_level, double t )
 {
     // Call the user-defined function which returns a table
     // of source term values.
     // These are added to the inviscid source terms 
     // that were computed earlier in the time step.
 
-    int nsp = get_gas_model_ptr()->get_number_of_species();
-    int nmodes = get_gas_model_ptr()->get_number_of_modes();
+    size_t nsp = get_gas_model_ptr()->get_number_of_species();
+    size_t nmodes = get_gas_model_ptr()->get_number_of_modes();
 
     lua_getglobal(L, "source_vector");  // Lua function to be called
     lua_newtable(L); // creates a table that is now at the TOS
@@ -565,10 +564,10 @@ int udf_source_vector_for_cell( FV_Cell *cell, int time_level, double t )
 
     // Pack the interesting cell data in a table with named fields.
     lua_newtable(L); // creates a table that is now at the TOS
-    lua_pushnumber(L, cell->position[time_level].x); lua_setfield(L, -2, "x");
-    lua_pushnumber(L, cell->position[time_level].y); lua_setfield(L, -2, "y");
-    lua_pushnumber(L, cell->position[time_level].z); lua_setfield(L, -2, "z");
-    lua_pushnumber(L, cell->vol[time_level]); lua_setfield(L, -2, "vol");
+    lua_pushnumber(L, cell->pos[time_level].x); lua_setfield(L, -2, "x");
+    lua_pushnumber(L, cell->pos[time_level].y); lua_setfield(L, -2, "y");
+    lua_pushnumber(L, cell->pos[time_level].z); lua_setfield(L, -2, "z");
+    lua_pushnumber(L, cell->volume[time_level]); lua_setfield(L, -2, "vol");
     lua_pushnumber(L, cell->fs->gas->p); lua_setfield(L, -2, "p");
     lua_pushnumber(L, cell->fs->gas->rho); lua_setfield(L, -2, "rho"); 
     lua_pushnumber(L, cell->fs->vel.x); lua_setfield(L, -2, "u"); 
@@ -576,7 +575,7 @@ int udf_source_vector_for_cell( FV_Cell *cell, int time_level, double t )
     lua_pushnumber(L, cell->fs->vel.z); lua_setfield(L, -2, "w");
     lua_pushnumber(L, cell->fs->gas->a); lua_setfield(L, -2, "a");
     lua_newtable(L); // A table for the temperatures
-    for ( int i = 0; i < nmodes; ++i ) {
+    for ( size_t i = 0; i < nmodes; ++i ) {
 	lua_pushinteger(L, i);
 	lua_pushnumber(L, cell->fs->gas->T[i]);
 	lua_settable(L, -3);
@@ -584,7 +583,7 @@ int udf_source_vector_for_cell( FV_Cell *cell, int time_level, double t )
     // At this point, the table of temperatures should be TOS.
     lua_setfield(L, -2, "T");
     lua_newtable(L); // Another table for the mass fractions
-    for ( int isp = 0; isp < nsp; ++isp ) {
+    for ( size_t isp = 0; isp < nsp; ++isp ) {
 	lua_pushinteger(L, isp);
 	lua_pushnumber(L, cell->fs->gas->massf[isp]);
 	lua_settable(L, -3);
@@ -616,7 +615,7 @@ int udf_source_vector_for_cell( FV_Cell *cell, int time_level, double t )
 
     // cout << "Table of sources for mass fractions" << endl;
     lua_getfield(L, -1, "species"); // put mass-fraction table at TOS 
-    for ( int isp = 0; isp < nsp; ++isp ) {
+    for ( size_t isp = 0; isp < nsp; ++isp ) {
 	lua_pushinteger(L, isp);
 	lua_gettable(L, -2);
 	cell->Q->massf[isp] += lua_tonumber(L, -1);
@@ -626,7 +625,7 @@ int udf_source_vector_for_cell( FV_Cell *cell, int time_level, double t )
 
     // cout << "Table of sources for individual energies" << endl;
     lua_getfield(L, -1, "energies"); // put energy table at TOS 
-    for ( int i = 1; i < nmodes; ++i ) {
+    for ( size_t i = 1; i < nmodes; ++i ) {
 	lua_pushinteger(L, i);
 	lua_gettable(L, -2);
 	cell->Q->energies[i] += lua_tonumber(L, -1);
@@ -642,7 +641,7 @@ int udf_source_vector_for_cell( FV_Cell *cell, int time_level, double t )
 
 //---------------------------------------------------------------------------
 
-int integrate_blocks_in_sequence( void )
+int integrate_blocks_in_sequence(void)
 // This procedure integrates the blocks two-at-a-time in sequence.
 //
 // The idea is to approximate the space-marching approach of sm_3d
@@ -687,11 +686,11 @@ int integrate_blocks_in_sequence( void )
     bdp->bcp[WEST]->apply_inviscid(0.0);
     bdp->propagate_data_west_to_east( G.dimensions );
     for ( FV_Cell *cp: bdp->active_cells ) {
-	cp->encode_conserved(bdp->omegaz);
+	cp->encode_conserved(bdp->omegaz, 0);
 	// Even though the following call appears redundant at this point,
 	// fills in some gas properties such as Prandtl number that is
 	// needed for both the cfd_check and the BLomax turbulence model.
-	cp->decode_conserved(0, bdp->omegaz);
+	cp->decode_conserved(bdp->omegaz, 0);
     }
 
     // Now set up block 1
@@ -702,17 +701,17 @@ int integrate_blocks_in_sequence( void )
     bcp_save = bdp->bcp[EAST];
     bdp->bcp[EAST] = new ExtrapolateOutBC(bdp, EAST, 0);
     // Read in data from block 0 and propogate across the block
-    exchange_shared_boundary_data( 1, COPY_FLOW_STATE);
+    exchange_shared_boundary_data(1, COPY_FLOW_STATE, 0);
     bdp->propagate_data_west_to_east( G.dimensions );
     for ( FV_Cell *cp: bdp->active_cells ) {
-	cp->encode_conserved(bdp->omegaz);
-	cp->decode_conserved(0, bdp->omegaz);
+	cp->encode_conserved(bdp->omegaz, 0);
+	cp->decode_conserved(bdp->omegaz, 0);
     }
 
     // Integrate just the first two blocks in time, hopefully to steady state.
     G.bd[0].active = 1;
     G.bd[1].active = 1;
-    integrate_in_time( time_slice );
+    integrate_in_time(time_slice);
 
     // The rest of the blocks.
     for ( size_t jb = 2; jb < (G.nblock); ++jb ) {
@@ -741,17 +740,17 @@ int integrate_blocks_in_sequence( void )
 	}
 	// Now copy the starting data into the WEST ghost cells
 	// and propagate it across the current block.
-	exchange_shared_boundary_data( jb, COPY_FLOW_STATE );
+	exchange_shared_boundary_data(jb, COPY_FLOW_STATE, 0);
 	bdp->propagate_data_west_to_east( G.dimensions );
 	for ( FV_Cell *cp: bdp->active_cells ) {
-	    cp->encode_conserved(bdp->omegaz);
-	    cp->decode_conserved(0, bdp->omegaz);
+	    cp->encode_conserved(bdp->omegaz, 0);
+	    cp->decode_conserved(bdp->omegaz, 0);
 	}
 	// Integrate just the two currently active blocks in time,
 	// hopefully to steady state.
 	G.bd[jb-1].active = 1;
 	G.bd[jb].active = 1;
-	integrate_in_time( jb*time_slice );
+	integrate_in_time(jb*time_slice);
     }
     // Before leaving, we want all blocks active for output.
     for ( size_t jb = 0; jb < G.nblock; ++jb ) {
@@ -762,7 +761,7 @@ int integrate_blocks_in_sequence( void )
 
 //---------------------------------------------------------------------------
 
-int integrate_in_time( double target_time )
+int integrate_in_time(double target_time)
 {
     global_data &G = *get_global_data_ptr();
     size_t n_active_blocks;
@@ -1042,10 +1041,9 @@ int integrate_in_time( double target_time )
 	if ( get_moving_grid_flag() == 1 ) {
 	    if ( G.sim_time >= G.t_shock ) {
 		for ( Block *bdp : G.my_blocks ) {
-		    bdp->compute_initial_primary_cell_geometric_data(G.dimensions);
-		    bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions);
-		    bdp->compute_secondary_cell_geometric_data(G.dimensions);
-		    for ( FV_Cell *cp: bdp->active_cells ) cp->init_time_level_geometry();	    
+		    bdp->compute_primary_cell_geometric_data(G.dimensions, 0);
+		    bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions, 0);
+		    bdp->compute_secondary_cell_geometric_data(G.dimensions, 0);
 		    G.t_shock += G.dt_shock;
 		}
 	    }
@@ -1208,8 +1206,8 @@ int integrate_in_time( double target_time )
 	    for ( Block *bdp : G.my_blocks ) {
 		sprintf(jbcstr, ".b%04d", static_cast<int>(bdp->id)); jbstring = jbcstr;
 		filename = "hist/"+G.base_file_name+".hist"+jbstring;
-                bdp->write_history( filename, G.sim_time );
-		bdp->print_forces( G.logfile, G.sim_time, G.dimensions );
+                bdp->write_history(filename, G.sim_time);
+		bdp->print_forces(G.logfile, G.sim_time, G.dimensions);
 	    }
             history_just_written = 1;
             G.t_his += G.dt_his;
@@ -1224,7 +1222,7 @@ int integrate_in_time( double target_time )
             G.energy_residual = 0.0;
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active != 1 ) continue;
-		bdp->compute_residuals( G.dimensions );
+		bdp->compute_residuals(G.dimensions, 0);
 		fprintf( G.logfile, "RESIDUAL mass block %d max: %e at (%g,%g,%g)\n",
 			 static_cast<int>(bdp->id), bdp->mass_residual, bdp->mass_residual_loc.x,
 			 bdp->mass_residual_loc.y, bdp->mass_residual_loc.z );
@@ -1254,41 +1252,41 @@ int integrate_in_time( double target_time )
 	    for ( ipass = 0; ipass < G.filter_npass; ++ipass ) {
 #               ifdef _MPI
 		MPI_Barrier(MPI_COMM_WORLD);
-		mpi_exchange_boundary_data(COPY_FLOW_STATE);
+		mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
 #               else
 		for ( Block *bdp : G.my_blocks ) {
 		    if ( bdp->active != 1 ) continue;
-		    exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE);
+		    exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0);
 		}
 #               endif
 		for ( Block *bdp : G.my_blocks ) {
 		    if ( bdp->active != 1 ) continue;
 		    bdp->apply_spatial_filter_diffusion( G.filter_mu, G.filter_npass, G.dimensions );
-		    for ( FV_Cell *cp: bdp->active_cells ) cp->encode_conserved(bdp->omegaz);
+		    for ( FV_Cell *cp: bdp->active_cells ) cp->encode_conserved(bdp->omegaz, 0);
 		}
 		for ( Block *bdp : G.my_blocks ) {
 		    if ( bdp->active != 1 ) continue;
-		    apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
-		    if ( get_viscous_flag() ) apply_viscous_bc( *bdp, G.sim_time, G.dimensions ); 
+		    apply_inviscid_bc(*bdp, G.sim_time, G.dimensions);
+		    if ( get_viscous_flag() ) apply_viscous_bc(*bdp, G.sim_time, G.dimensions); 
 		}
 #               ifdef _MPI
 		MPI_Barrier(MPI_COMM_WORLD);
-		mpi_exchange_boundary_data(COPY_FLOW_STATE);
+		mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
 #               else
 		for ( Block *bdp : G.my_blocks ) {
 		    if ( bdp->active != 1 ) continue;
-		    exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE);
+		    exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0);
 		}
 #               endif
 		for ( Block *bdp : G.my_blocks ) {
 		    if ( bdp->active != 1 ) continue;
-		    bdp->apply_spatial_filter_anti_diffusion( G.filter_mu, G.filter_npass, G.dimensions );
-		    for ( FV_Cell *cp: bdp->active_cells ) cp->encode_conserved(bdp->omegaz);
+		    bdp->apply_spatial_filter_anti_diffusion(G.filter_mu, G.filter_npass, G.dimensions);
+		    for ( FV_Cell *cp: bdp->active_cells ) cp->encode_conserved(bdp->omegaz, 0);
 		}
 		for ( Block *bdp : G.my_blocks ) {
 		    if ( bdp->active != 1 ) continue;
 		    apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
-		    if ( get_viscous_flag() ) apply_viscous_bc( *bdp, G.sim_time, G.dimensions ); 
+		    if ( get_viscous_flag() ) apply_viscous_bc(*bdp, G.sim_time, G.dimensions); 
 		}
 	    }
 	    G.filter_next_time = G.sim_time + G.filter_dt;
@@ -1479,10 +1477,10 @@ int gasdynamic_inviscid_increment_with_fixed_grid( void )
 #       ifdef _MPI
         // Before we try to exchange data, everyone's data should be up-to-date.
 	MPI_Barrier( MPI_COMM_WORLD );
-	mpi_exchange_boundary_data(COPY_FLOW_STATE);
+	mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
 #       else
 	for ( Block *bdp : G.my_blocks ) {
-	    if ( bdp->active ) exchange_shared_boundary_data( bdp->id, COPY_FLOW_STATE );
+	    if ( bdp->active ) exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0);
 	}
 #       endif
 	for ( Block *bdp : G.my_blocks ) {
@@ -1492,7 +1490,7 @@ int gasdynamic_inviscid_increment_with_fixed_grid( void )
 	    // We've put this detector step here because it needs the ghost-cell data
 	    // to be current, as it should be just after a call to apply_inviscid_bc().
 	    for ( Block *bdp : G.my_blocks ) {
-		if ( bdp->active ) bdp->detect_shock_points( G.dimensions );
+		if ( bdp->active ) bdp->detect_shock_points(G.dimensions);
 	    }
 	}
 	// Non-local radiation transport needs to be performed a-priori for parallelization.
@@ -1521,18 +1519,18 @@ int gasdynamic_inviscid_increment_with_fixed_grid( void )
 	    // Preparation for corrector stage of gas-dynamic update.
 #           ifdef _MPI
 	    MPI_Barrier( MPI_COMM_WORLD );
-	    mpi_exchange_boundary_data(COPY_FLOW_STATE);
+	    mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
 #           else
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active )
-		    exchange_shared_boundary_data( bdp->id, COPY_FLOW_STATE );
+		    exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0);
 	    }
 #           endif
 	    // Corrector stage of inviscid gas-dynamic update.
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active != 1 ) continue;
-		apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
-		bdp->inviscid_flux( G.dimensions );
+		apply_inviscid_bc(*bdp, G.sim_time, G.dimensions);
+		bdp->inviscid_flux(G.dimensions);
 		for ( FV_Cell *cp: bdp->active_cells ) {
 		    cp->inviscid_source_vector(1, bdp->omegaz);
 		    if ( G.udf_source_vector_flag == 1 )
@@ -1552,11 +1550,11 @@ int gasdynamic_inviscid_increment_with_fixed_grid( void )
 	if ( get_Torder_flag() == 3 ) {
 #           ifdef _MPI
 	    MPI_Barrier( MPI_COMM_WORLD );
-	    mpi_exchange_boundary_data(COPY_FLOW_STATE);
+	    mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
 #           else
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active )
-		    exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE);
+		    exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0);
 	    }
 #           endif
 	    for ( Block *bdp : G.my_blocks ) {
@@ -1581,7 +1579,7 @@ int gasdynamic_inviscid_increment_with_fixed_grid( void )
 	//     fail this attempt at taking a step,
 	//     set everything back to the initial state and
 	//     reduce the time step for the next attempt
-	int most_bad_cells = do_bad_cell_count();
+	int most_bad_cells = do_bad_cell_count(0); // FIX-ME may want to generalize time-level
 	if ( adjust_invalid_cell_data == 0 && most_bad_cells > 0 ) {
 	    step_failed = 1;
 	}
@@ -1634,10 +1632,10 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 #       ifdef _MPI
         // Before we try to exchange data, everyone's data should be up-to-date.
 	MPI_Barrier( MPI_COMM_WORLD );
-	mpi_exchange_boundary_data(COPY_FLOW_STATE);
+	mpi_exchange_boundary_data(COPY_FLOW_STATE, 0); // FIX-ME moving grid
 #       else
 	for ( Block *bdp : G.my_blocks ) {
-	    if ( bdp->active ) exchange_shared_boundary_data( bdp->id, COPY_FLOW_STATE );
+	    if ( bdp->active ) exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0);  // FIX-ME moving grid
 	}
 #       endif
 	for ( Block *bdp : G.my_blocks ) {
@@ -1658,26 +1656,22 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 	/// 0: Start of predictor step
 	/// 1: End of predictor step/start of corrector step
 	/// 2: End of corrector step
-	/// 2: End of RK3 step
-	if ( get_shock_fitting_flag() == 1 ) {
-#           ifdef _MPI
-	    MPI_Barrier( MPI_COMM_WORLD );
-	    mpi_exchange_boundary_data(COPY_INTERFACE_DATA);
-#           else
+#       ifdef _MPI
+	MPI_Barrier( MPI_COMM_WORLD );
+	mpi_exchange_boundary_data(COPY_INTERFACE_DATA, 0); // FIX-ME moving grid
+#       else
+	for ( Block *bdp : G.my_blocks ) {
+	    if ( bdp->active ) exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA, 0); // FIX-ME moving grid
+	}
+#       endif
+	if ( G.sim_time >= G.t_shock ) {
 	    for ( Block *bdp : G.my_blocks ) {
-	        if ( bdp->active ) exchange_shared_boundary_data( bdp->id, COPY_INTERFACE_DATA );
+		bdp->set_geometry_velocities(G.dimensions, 0);
+		bdp->predict_vertex_positions(G.dimensions, G.dt_global);
+		bdp->compute_primary_cell_geometric_data(G.dimensions, 1); // for start of next time level.
+		bdp->set_gcl_interface_properties(G.dimensions, 0, G.dt_global);
 	    }
-#           endif
-	    if ( G.sim_time >= G.t_shock ) {
-		for ( Block *bdp : G.my_blocks ) {
-		    bdp->set_geometry_velocities(G.dimensions, 0);
-		    bdp->predict_vertex_positions(G.dimensions, G.dt_global);
-		    bdp->compute_primary_cell_geometric_data(G.dimensions, 1); // for start of next time level.
-		    bdp->set_gcl_interface_properties(G.dimensions, 0, G.dt_global);
-		}
-	    }
-	} // end if shock_fitting_flag
-
+	}
 	// Predictor-stage of inviscid gas-dynamic update.
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( bdp->active != 1 ) continue;
@@ -1687,9 +1681,8 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 		if ( G.udf_source_vector_flag == 1 ) udf_source_vector_for_cell(cp, 0, G.sim_time);
 		cp->time_derivatives(0, G.dimensions);
 		cp->predictor_update(G.dt_global);
-		cp->decode_conserved(0, bdp->omegaz);
-		if ( get_shock_fitting_flag() ) cp->get_current_time_level_geometry(1);
-		if ( get_Torder_flag() == 3 ) cp->record_conserved();
+		cp->decode_conserved(bdp->omegaz, 0);
+		// cp->get_current_time_level_geometry(1); copy_from_level_to_level() FIX-ME moving grid
 	    } // end for *cp
 	    if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
 		apply_wilson_omega_correction( *bdp );
@@ -1700,34 +1693,27 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 	if ( get_Torder_flag() >= 2 ) {
 #           ifdef _MPI
 	    MPI_Barrier( MPI_COMM_WORLD );
-	    mpi_exchange_boundary_data(COPY_FLOW_STATE);
+	    mpi_exchange_boundary_data(COPY_FLOW_STATE, 0); // FIX-ME moving grid
+	    mpi_exchange_boundary_data(COPY_INTERFACE_DATA, 0); // FIX-ME moving grid
 #           else
 	    for ( Block *bdp : G.my_blocks ) {
-		if ( bdp->active ) exchange_shared_boundary_data( bdp->id, COPY_FLOW_STATE );
+		if ( bdp->active ) {
+		    exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0); // FIX-ME moving grid
+		    exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA, 0);
+		}
 	    }
 #           endif
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active ) apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
 	    }
-		
-	    if ( get_shock_fitting_flag() == 1 ) {
-#               ifdef _MPI
-		mpi_exchange_boundary_data(COPY_INTERFACE_DATA);
-#               else
+	    if ( G.sim_time >= G.t_shock ) {
 		for ( Block *bdp : G.my_blocks ) {
-		    if ( bdp->active ) exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA);
+		    bdp->set_geometry_velocities(G.dimensions, 1);
+		    bdp->correct_vertex_positions(G.dimensions, G.dt_global);
+		    bdp->compute_primary_cell_geometric_data(G.dimensions, 2); // for start of next time level.
+		    bdp->set_gcl_interface_properties(G.dimensions, 1, G.dt_global);
 		}
-#               endif
-		if ( G.sim_time >= G.t_shock ) {
-		    for ( Block *bdp : G.my_blocks ) {
-			bdp->set_geometry_velocities(G.dimensions, 1);
-			bdp->correct_vertex_positions(G.dimensions, G.dt_global);
-			bdp->compute_primary_cell_geometric_data(G.dimensions, 2); // for start of next time level.
-			bdp->set_gcl_interface_properties(G.dimensions, 1, G.dt_global);
-		    }
-		}
-	    } // end if shock_fitting_flag
-
+	    }
 	    // Corrector stage of inviscid gas-dynamic update.
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active != 1 ) continue;
@@ -1738,68 +1724,19 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 		    cp->time_derivatives(1, G.dimensions);
 		    cp->corrector_update(G.dt_global);
 		    cp->decode_conserved(1, bdp->omegaz);
-		    if ( get_shock_fitting_flag() ) cp->get_current_time_level_geometry(2);
-		    if ( get_Torder_flag() == 3 ) cp->record_conserved();
+		    // cp->get_current_time_level_geometry(2); copy_level_to_level() FIX-ME moving grid
 		} // end for *cp
 		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
 		    apply_wilson_omega_correction( *bdp );
 		}
 	    } // end for jb loop
 	} // end if (corrector stage)
-
-	// RK3 Stage
-	if ( get_Torder_flag() == 3 ) {
-#           ifdef _MPI
-	    MPI_Barrier( MPI_COMM_WORLD );
-	    mpi_exchange_boundary_data(COPY_FLOW_STATE);
-#           else
-	    for ( Block *bdp : G.my_blocks ) {
-		if ( bdp->active ) exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE);
-	    }
-#           endif
-	    for ( Block *bdp : G.my_blocks ) {
-		if ( bdp->active ) apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
-	    }
-		
-	    if ( get_shock_fitting_flag() == 1 ) {
-#               ifdef _MPI
-		mpi_exchange_boundary_data(COPY_INTERFACE_DATA);
-#               else
-		for ( Block *bdp : G.my_blocks ) {
-		    if ( bdp->active ) exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA);
-		}
-#               endif
-		if ( G.sim_time >= G.t_shock ) {
-		    for ( Block *bdp : G.my_blocks ) {
-			bdp->set_geometry_velocities(G.dimensions, 2);
-			bdp->rk3_vertex_positions(G.dimensions, G.dt_global);
-			bdp->compute_primary_cell_geometric_data(G.dimensions, 3); // for start of next time level.
-			bdp->set_gcl_interface_properties(G.dimensions, 2, G.dt_global);
-		    }
-		}
-	    } // end if shock_fitting_flag
-	    for ( Block *bdp : G.my_blocks ) {
-		if ( bdp->active != 1 ) continue;
-		bdp->inviscid_flux( G.dimensions );
-		for ( FV_Cell *cp: bdp->active_cells ) {
-		    cp->inviscid_source_vector(2, bdp->omegaz);
-		    if ( G.udf_source_vector_flag == 1 ) udf_source_vector_for_cell(cp, 2, G.sim_time);
-		    cp->time_derivatives(2, G.dimensions);
-		    cp->rk3_update(G.dt_global);
-		    cp->decode_conserved(2, bdp->omegaz);
-		    if ( get_shock_fitting_flag() ) cp->get_current_time_level_geometry(3);
-		} // for *cp
-		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
-		    apply_wilson_omega_correction( *bdp );
-		}
-	    } // end for *bdp
-	} // end if (RK3 stage)
    
 	// 2d. Check the record of bad cells and if any cells are bad, 
 	//     fail this attempt at taking a step,
 	//     set everything back to the initial state and
 	//     reduce the time step for the next attempt
-	int most_bad_cells = do_bad_cell_count();
+	int most_bad_cells = do_bad_cell_count(0);  // FIX-ME for moving grid
 	if ( adjust_invalid_cell_data == 0 && most_bad_cells > 0 ) {
 	    step_failed = 1;
 	}
@@ -1839,7 +1776,10 @@ int gasdynamic_viscous_increment( void )
 	if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
 	    apply_wilson_omega_correction(*bdp);
 	}
-	if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp); else viscous_derivatives_3D(bdp); 
+	if ( G.dimensions == 2 )
+	    viscous_derivatives_2D(bdp, 0);
+	else
+	    viscous_derivatives_3D(bdp, 0); 
 	estimate_turbulence_viscosity(&G, bdp);
 	if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
 	for ( FV_Cell *cp: bdp->active_cells ) {
@@ -1856,12 +1796,12 @@ int gasdynamic_viscous_increment( void )
 } // int gasdynamic_viscous_increment()
 
 
-int do_bad_cell_count( void )
+int do_bad_cell_count(size_t time_level)
 {
     global_data &G = *get_global_data_ptr();  // set up a reference
     int most_bad_cells = 0;
     for ( Block *bdp : G.my_blocks ) {
-	size_t bad_cell_count = bdp->count_invalid_cells( G.dimensions );
+	size_t bad_cell_count = bdp->count_invalid_cells(G.dimensions, time_level);
 	if ( static_cast<int>(bad_cell_count) > most_bad_cells ) 
 	    most_bad_cells = static_cast<int>(bad_cell_count); 
 	if ( bad_cell_count > G.max_invalid_cells ) {

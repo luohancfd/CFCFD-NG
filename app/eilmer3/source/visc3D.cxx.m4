@@ -675,7 +675,7 @@ int viscous_flux_3D(Block *A)
  * The secondary cells are centred on the vertices of the primary cells
  * and have primary cell centres as their corners.
  */
-int viscous_derivatives_3D(Block *A)
+int viscous_derivatives_3D(Block *A, size_t time_level)
 {
     size_t i, j, k;
     double q_e, q_w, q_n, q_s, q_top, q_bottom;
@@ -717,9 +717,9 @@ int viscous_derivatives_3D(Block *A)
 		       top = A->get_sifk(i,j,k+1);')
 		get_secondary_cell_interfaces
                 define(`div_integral_expr',
-                       `vol_inv * (q_e*east->area*east->n.$1 - q_w*west->area*west->n.$1 +
-		        q_n*north->area*north->n.$1 - q_s*south->area*south->n.$1 +
-		        q_top*top->area*top->n.$1 - q_bottom*bottom->area*bottom->n.$1)')dnl
+                       `vol_inv * (q_e*east->area[time_level]*east->n.$1 - q_w*west->area[time_level]*west->n.$1 +
+		        q_n*north->area[time_level]*north->n.$1 - q_s*south->area[time_level]*south->n.$1 +
+		        q_top*top->area[time_level]*top->n.$1 - q_bottom*bottom->area[time_level]*bottom->n.$1)')dnl
 		define(`div_theorem_core_scalar_element', 
                        `// Average property value on each face.
 		       q_e = 0.25 * (cB->fs->$1 + cC->fs->$1 + cF->fs->$1 + cG->fs->$1);
@@ -1059,8 +1059,8 @@ int viscous_derivatives_3D(Block *A)
     /*
      * ...and process the edge and corner values separately.
      */
-    viscous_derivatives_edge_3D(A);
-    viscous_derivatives_corners_3D(A);
+    viscous_derivatives_edge_3D(A, time_level);
+    viscous_derivatives_corners_3D(A, time_level);
     return SUCCESS;
 } // end viscous_derivatives_3D()
 
@@ -1069,7 +1069,7 @@ int viscous_derivatives_3D(Block *A)
  *
  * Fit a linear function to the nearest data points as per notebook Jan-2009.
  */
-int viscous_derivatives_corners_3D(Block *bdp)
+int viscous_derivatives_corners_3D(Block *bdp, size_t time_level)
 {
     size_t i, j, k;
     FV_Vertex *vtx;
@@ -1089,11 +1089,12 @@ int viscous_derivatives_corners_3D(Block *bdp)
     a = bdp->get_ifi(i,j,k);
     b = bdp->get_ifj(i,j,k);
     d = bdp->get_ifk(i,j,k);
+    // FIX-ME possible bug fix 2013-03-28: yd was getting its value from c.
     define(`denominator_for_corners', 
            `xa = a->pos.x; ya = a->pos.y; za = a->pos.z;
             xb = b->pos.x; yb = b->pos.y; zb = b->pos.z;
-            xc = c->pos.x; yc = c->pos.y; zc = c->pos.z;
-            xd = d->pos.x; yd = c->pos.y; zd = d->pos.z;
+            xc = c->pos[time_level].x; yc = c->pos[time_level].y; zc = c->pos[time_level].z;
+            xd = d->pos.x; yd = d->pos.y; zd = d->pos.z;
             denom = xa*(yb*(zd-zc)-yc*zd+yd*zc+(yc-yd)*zb)+xb*(yc*zd-yd*zc)
                 +ya*(xc*zd+xb*(zc-zd)-xd*zc+(xd-xc)*zb)+yb*(xd*zc-xc*zd)
                 +(xc*yd-xd*yc)*zb+(xb*(yd-yc)-xc*yd+xd*yc+(xc-xd)*yb)*za;')dnl
@@ -1248,7 +1249,7 @@ int viscous_derivatives_corners_3D(Block *bdp)
  *
  * See workbook pages dated 07-Jan-2010.
  */
-int viscous_derivatives_edge_3D(Block *bdp)
+int viscous_derivatives_edge_3D(Block *bdp, size_t time_level)
 {
     size_t i, j, k, imin, jmin, kmin, imax, jmax, kmax;
     FV_Vertex *vtx;
@@ -1285,8 +1286,8 @@ int viscous_derivatives_edge_3D(Block *bdp)
         fc = bdp->get_ifj(i,j,k);
         fd = bdp->get_ifk(i,j,k);
 	define(`assemble_least_squares_matrix', 
-               `ca_x = ca->pos.x; ca_y = ca->pos.y; ca_z = ca->pos.z;
-                cb_x = cb->pos.x; cb_y = cb->pos.y; cb_z = cb->pos.z;
+               `ca_x = ca->pos[time_level].x; ca_y = ca->pos[time_level].y; ca_z = ca->pos[time_level].z;
+                cb_x = cb->pos[time_level].x; cb_y = cb->pos[time_level].y; cb_z = cb->pos[time_level].z;
                 fa_x = fa->pos.x; fa_y = fa->pos.y; fa_z = fa->pos.z;
                 fb_x = fb->pos.x; fb_y = fb->pos.y; fb_z = fb->pos.z;
                 fc_x = fc->pos.x; fc_y = fc->pos.y; fc_z = fc->pos.z;

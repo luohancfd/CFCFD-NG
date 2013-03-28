@@ -12,21 +12,21 @@ extern "C" {
 
 const int CHECK_RADIATION_SCALING = 0;
 
-void ensure_directory_is_present( string pathname );
-void do_system_cmd( string commandstring );
+void ensure_directory_is_present(string pathname);
+void do_system_cmd(string commandstring);
 int prepare_to_integrate(size_t start_tindx);
-int call_udf( double t, size_t step, std::string udf_fn_name );
-int udf_source_vector_for_cell( FV_Cell *cell, size_t time_level, double t );
-int integrate_blocks_in_sequence( void );
-int integrate_in_time( double target_time );
-int finalize_simulation( void );
-int gasdynamic_inviscid_increment_with_fixed_grid( void );
-int gasdynamic_inviscid_increment_with_moving_grid( void );
-int gasdynamic_viscous_increment( void );
-int do_bad_cell_count( void );
-int write_finishing_data( global_data *G, std::string filename );
-int check_radiation_scaling( void );
-int radiation_calculation( void );
-void perform_radiation_transport( void );
+int call_udf(double t, size_t step, std::string udf_fn_name);
+int udf_source_vector_for_cell(FV_Cell *cell, size_t time_level, double t);
+int integrate_blocks_in_sequence(void);
+int integrate_in_time(double target_time);
+int finalize_simulation(void);
+int gasdynamic_inviscid_increment_with_fixed_grid(void);
+int gasdynamic_inviscid_increment_with_moving_grid(void);
+int gasdynamic_viscous_increment(void);
+int do_bad_cell_count(size_t time_level);
+int write_finishing_data(global_data *G, std::string filename);
+int check_radiation_scaling(void);
+int radiation_calculation(void);
+void perform_radiation_transport(void);
 
 #endif

@@ -106,31 +106,31 @@ public:
     // a true value indicates that we want the UDF flux 
     // instead of the internally calculated flux
     void print_info( std::string lead_in );
-    int write_vertex_velocities( std::string filename, double sim_time, size_t dimensions );
+    int write_vertex_velocities(std::string filename, double sim_time,
+				size_t dimensions, size_t time_level=0);
     // Heat-flux functions
-    int compute_surface_heat_flux( void );
-    int compute_cell_interface_surface_heat_flux( FV_Interface * IFace, 
-    						  FV_Cell * cell_one, 
-    						  size_t index );
-    int write_surface_heat_flux( std::string filename, double sim_time );
-    int write_fstc_heat_flux( string filename, double sim_time );
-    double read_surface_heat_flux( std::string filename, size_t dimensions, int zip_files=1 );
+    int compute_surface_heat_flux(void);
+    int compute_cell_interface_surface_heat_flux(FV_Interface * IFace, FV_Cell * cell_one, 
+    						 size_t index, size_t time_level=0);
+    int write_surface_heat_flux(std::string filename, double sim_time);
+    int write_fstc_heat_flux(string filename, double sim_time);
+    double read_surface_heat_flux(std::string filename, size_t dimensions, int zip_files=1);
     int get_heat_flux_index( size_t i, size_t j, size_t k )
     { return (jmax-jmin+1)*(imax-imin+1)*(k-kmin) + (imax-imin+1)*(j-jmin) + (i-imin); }
 };
 
-BoundaryCondition *create_BC( Block *bdp, int which_boundary, int type_of_BC,
-			      int inflow_condition_id, std::string filename, size_t n_profile,
-			      double Twall, double Pout, int x_order, int is_wall, int use_udf_flux,
-			      int other_block, int other_face, int neighbour_orientation,
-			      int sponge_flag, int xforce_flag,
-			      std::vector<double> &mdot, double epsilon,
-			      int wc_bc, std::string wcbc_fname, std::vector<double> f_wall,
-			      double Twall_i, double Twall_f, double t_i, double t_f,
-			      int assume_ideal);
+BoundaryCondition *create_BC(Block *bdp, int which_boundary, int type_of_BC,
+			     int inflow_condition_id, std::string filename, size_t n_profile,
+			     double Twall, double Pout, int x_order, int is_wall, int use_udf_flux,
+			     int other_block, int other_face, int neighbour_orientation,
+			     int sponge_flag, int xforce_flag,
+			     std::vector<double> &mdot, double epsilon,
+			     int wc_bc, std::string wcbc_fname, std::vector<double> f_wall,
+			     double Twall_i, double Twall_f, double t_i, double t_f,
+			     int assume_ideal);
 
-int check_connectivity( void );
+int check_connectivity(void);
 
-int scan_string_for_surface_heat_flux( double &q_cond, double &q_diff, double &q_rad, char *bufptr );
+int scan_string_for_surface_heat_flux(double &q_cond, double &q_diff, double &q_rad, char *bufptr);
 
 #endif
