@@ -47,14 +47,11 @@ const int SHADOWED_CELL = 2;
 const int NORMAL_IFACE = 0;
 const int MASKED_IFACE = 1;
 
-/** \brief Number of levels in the time-stepping procedure.
- *
- * Used below to dimension some time-derivative arrays.
- */
-const size_t NL = 4; // Number of levels for derivative calcs and ODE updates.
+/// N_LEVEL is used to size the time-derivative vectors.
+const size_t N_LEVEL = 4; // Number of levels for derivative calcs and ODE updates.
 
-const size_t NI = 6; // Number of interfaces per cell
-const size_t NV = 8; // Number of vertices per cell
+const size_t N_INTERFACE = 6; // Number of interfaces per cell
+const size_t N_VERTEX = 8; // Number of vertices per cell
 
 /// We might update the k-omega properties in with the main predictor-corrector
 /// time-stepping function or we might choose to update it separately, 

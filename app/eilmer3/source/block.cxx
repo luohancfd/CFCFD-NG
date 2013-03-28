@@ -24,7 +24,7 @@ extern "C" {
 //-----------------------------------------------------------------------------
 
 Block::Block()
-    : bcp(NI,NULL) // Let everything else default initialize.
+    : bcp(N_INTERFACE,NULL) // Let everything else default initialize.
 {}
 
 Block::Block(const Block &b)

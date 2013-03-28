@@ -47,14 +47,14 @@ int set_array_sizes_for_flex_cell(flex_cell_center &fc, size_t nsp, size_t nvib)
 
     nb += 3 * nsp * sizeof(double);
 
-    for ( size_t i = 0; i < NL; ++i ) {
+    for ( size_t i = 0; i < N_LEVEL; ++i ) {
 	fc.DmfDt[i].resize(nsp);
 	nb += nsp * sizeof(double);
     }
     fc.menergies.resize(nvib);
     fc.menergies_old.resize(nvib);
     nb += 3 * nvib * sizeof(double);
-    for ( size_t i = 0; i < NL; ++i ) {
+    for ( size_t i = 0; i < N_LEVEL; ++i ) {
 	fc.DmenergiesDt[i].resize(nvib);
 	nb += nvib * sizeof(double);
     }

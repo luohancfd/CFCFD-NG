@@ -38,11 +38,11 @@ struct flex_cell_center : FV_Cell
     std::vector<double> menergies_old;  // species energies
 
     // Derivatives of extensive conserved variables
-    double DmDt[NL];  // mass       
-    Vector3 DmvDt[NL];  // momentum                       
-    double DmEDt[NL];  // total energy                   
-    std::vector<double> DmfDt[NL];  // species mass             
-    std::vector<double> DmenergiesDt[NL];  // species energies             
+    double DmDt[N_LEVEL];  // mass       
+    Vector3 DmvDt[N_LEVEL];  // momentum                       
+    double DmEDt[N_LEVEL];  // total energy                   
+    std::vector<double> DmfDt[N_LEVEL];  // species mass             
+    std::vector<double> DmenergiesDt[N_LEVEL];  // species energies             
 };
 
 // --------------------------------------------------------------

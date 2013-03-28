@@ -362,7 +362,7 @@ int ConservedQuantities::clear_values()
 
 FV_Interface::FV_Interface(Gas_model *gm)
     : id(0), status(0), pos(0.0,0.0,0.0), vel(0.0,0.0,0.0),
-      Ybar(0.0), length(0.0), area(0.0), ar(NL, 0.0),
+      Ybar(0.0), length(0.0), area(0.0), ar(N_LEVEL, 0.0),
       n(0.0,0.0,0.0), t1(0.0,0.0,0.0), t2(0.0,0.0,0.0),
       fs(new FlowState(gm)), F(new ConservedQuantities(gm))
 {
@@ -375,7 +375,7 @@ FV_Interface::FV_Interface(Gas_model *gm)
 
 FV_Interface::FV_Interface()
     : id(0), status(0), pos(0.0,0.0,0.0), vel(0.0,0.0,0.0),
-      Ybar(0.0), length(0.0), area(0.0), ar(NL, 0.0),
+      Ybar(0.0), length(0.0), area(0.0), ar(N_LEVEL, 0.0),
       n(0.0,0.0,0.0), t1(0.0,0.0,0.0), t2(0.0,0.0,0.0),
       fs(new FlowState(get_gas_model_ptr())),
       F(new ConservedQuantities(get_gas_model_ptr()))
@@ -447,8 +447,8 @@ int FV_Interface::copy_values_from(const FV_Interface &src, int type_of_copy)
 //----------------------------------------------------------------------------
 
 FV_Vertex::FV_Vertex(Gas_model *gm)
-    : id(0), pos(0.0,0.0,0.0), position(NL,Vector3(0.0,0.0,0.0)),
-      vel(0.0,0.0,0.0), velocity(NL,Vector3(0.0,0.0,0.0)),
+    : id(0), pos(0.0,0.0,0.0), position(N_LEVEL,Vector3(0.0,0.0,0.0)),
+      vel(0.0,0.0,0.0), velocity(N_LEVEL,Vector3(0.0,0.0,0.0)),
       area(0.0), volume(0.0),
       dudx(0.0), dudy(0.0), dudz(0.0),
       dvdx(0.0), dvdy(0.0), dvdz(0.0),
@@ -464,8 +464,8 @@ FV_Vertex::FV_Vertex(Gas_model *gm)
 {}
 
 FV_Vertex::FV_Vertex()
-    : id(0), pos(0.0,0.0,0.0), position(NL,Vector3(0.0,0.0,0.0)),
-      vel(0.0,0.0,0.0), velocity(NL,Vector3(0.0,0.0,0.0)),
+    : id(0), pos(0.0,0.0,0.0), position(N_LEVEL,Vector3(0.0,0.0,0.0)),
+      vel(0.0,0.0,0.0), velocity(N_LEVEL,Vector3(0.0,0.0,0.0)),
       area(0.0), volume(0.0),
       dudx(0.0), dudy(0.0), dudz(0.0),
       dvdx(0.0), dvdy(0.0), dvdz(0.0),
@@ -521,11 +521,11 @@ int FV_Vertex::copy_values_from(const FV_Vertex &src)
 FV_Cell::FV_Cell(Gas_model *gm)
     : id(0), status(NORMAL_CELL), fr_reactions_allowed(0),
       dt_chem(0.0), dt_therm(0.0), in_turbulent_zone(0),
-      base_qdot(0.0), pos(0.0,0.0,0.0), position(NL,Vector3(0.0,0.0,0.0)),
-      volume(0.0), vol(NL,0.0), area(0.0), ar(NL,0.0), uf(0.0),
+      base_qdot(0.0), pos(0.0,0.0,0.0), position(N_LEVEL,Vector3(0.0,0.0,0.0)),
+      volume(0.0), vol(N_LEVEL,0.0), area(0.0), ar(N_LEVEL,0.0), uf(0.0),
       iLength(0.0), jLength(0.0), kLength(0.0), L_min(0.0),
       distance_to_nearest_wall(0.0), half_cell_width_at_wall(0.0),
-      cell_at_nearest_wall(NULL), iface(NI,NULL), vtx(NV,NULL),
+      cell_at_nearest_wall(NULL), iface(N_INTERFACE,NULL), vtx(N_VERTEX,NULL),
       fs(new FlowState(gm)), U(new ConservedQuantities(gm)),
       U_old(new ConservedQuantities(gm)),
       Q(new ConservedQuantities(gm)),
@@ -533,8 +533,8 @@ FV_Cell::FV_Cell(Gas_model *gm)
       rho_at_start_of_step(0.0), rE_at_start_of_step(0.0)
 {
     // Maybe we could put the following into the init section as
-    // dUdt(NL,new ConservedQuantities(gm))
-    for ( size_t i = 0; i < NL; ++i ) {
+    // dUdt(N_LEVEL,new ConservedQuantities(gm))
+    for ( size_t i = 0; i < N_LEVEL; ++i ) {
 	dUdt.push_back(new ConservedQuantities(gm));
     }
 #   if WITH_IMPLICIT == 1
@@ -546,11 +546,11 @@ FV_Cell::FV_Cell(Gas_model *gm)
 FV_Cell::FV_Cell()
     : id(0), status(NORMAL_CELL), fr_reactions_allowed(0),
       dt_chem(0.0), dt_therm(0.0), in_turbulent_zone(0),
-      base_qdot(0.0), pos(0.0,0.0,0.0), position(NL,Vector3(0.0,0.0,0.0)),
-      volume(0.0), vol(NL,0.0), area(0.0), ar(NL,0.0), uf(0.0),
+      base_qdot(0.0), pos(0.0,0.0,0.0), position(N_LEVEL,Vector3(0.0,0.0,0.0)),
+      volume(0.0), vol(N_LEVEL,0.0), area(0.0), ar(N_LEVEL,0.0), uf(0.0),
       iLength(0.0), jLength(0.0), kLength(0.0), L_min(0.0),
       distance_to_nearest_wall(0.0), half_cell_width_at_wall(0.0),
-      cell_at_nearest_wall(NULL), iface(NI,NULL), vtx(NV,NULL),
+      cell_at_nearest_wall(NULL), iface(N_INTERFACE,NULL), vtx(N_VERTEX,NULL),
       fs(new FlowState(get_gas_model_ptr())),
       U(new ConservedQuantities(get_gas_model_ptr())),
       U_old(new ConservedQuantities(get_gas_model_ptr())),
@@ -559,7 +559,7 @@ FV_Cell::FV_Cell()
       rho_at_start_of_step(0.0), rE_at_start_of_step(0.0)
 {
     Gas_model *gm = get_gas_model_ptr();
-    for ( size_t i = 0; i < NL; ++i ) {
+    for ( size_t i = 0; i < N_LEVEL; ++i ) {
 	dUdt.push_back(new ConservedQuantities(gm));
     }
 }
@@ -583,7 +583,7 @@ FV_Cell::FV_Cell(const FV_Cell &cell)
       rho_at_start_of_step(cell.rho_at_start_of_step),
       rE_at_start_of_step(cell.rE_at_start_of_step)
 {
-    for ( size_t i = 0; i < NL; ++i ) {
+    for ( size_t i = 0; i < N_LEVEL; ++i ) {
 	dUdt.push_back(new ConservedQuantities(*cell.dUdt[i]));
     }
 #   if WITH_IMPLICIT == 1
@@ -615,7 +615,7 @@ FV_Cell & FV_Cell::operator=(const FV_Cell &cell)
 	for ( size_t i = 0; i < dUdt.size(); ++i ) {
 	    delete dUdt[i];
 	}
-	for ( size_t i = 0; i < NL; ++i ) {
+	for ( size_t i = 0; i < N_LEVEL; ++i ) {
 	    dUdt.push_back(new ConservedQuantities(*cell.dUdt[i]));
 	}
 	Q = cell.Q;
@@ -633,7 +633,7 @@ FV_Cell::~FV_Cell()
     delete fs;
     delete U;
     delete U_old;
-    for ( size_t i = 0; i < NL; ++i ) {
+    for ( size_t i = 0; i < N_LEVEL; ++i ) {
 	delete dUdt[i];
     }
     delete Q;
@@ -745,7 +745,7 @@ int FV_Cell::copy_values_from(const FV_Cell &src, int type_of_copy)
 	pos.x = src.pos.x; pos.y = src.pos.y; pos.z = src.pos.z;
     }
     if (type_of_copy == COPY_INTERFACE_DATA) {
-	for ( size_t j = 0; j < NI; ++j ) {
+	for ( size_t j = 0; j < N_INTERFACE; ++j ) {
 	    if ( src.iface[j] == 0 || iface[j] == 0 ) {
 		// When copying from ghost cell which may
 		// not have initialised interfaces, or when 2D.
@@ -776,7 +776,7 @@ double * FV_Cell::copy_values_to_buffer(double *buf, int type_of_copy) const
         *buf++ = pos.x; *buf++ = pos.y; *buf++ = pos.z;
     }
     if (type_of_copy == COPY_INTERFACE_DATA) {
-	for ( size_t j = 0; j < NI; ++j ) {
+	for ( size_t j = 0; j < N_INTERFACE; ++j ) {
 	    if ( iface[j] == 0 ) { // When copying from ghost cell which may
 		continue;          // not have initialised interfaces, or when 2D.
 	    }
@@ -806,7 +806,7 @@ double * FV_Cell::copy_values_from_buffer(double *buf, int type_of_copy)
         pos.x = *buf++; pos.y = *buf++; pos.z = *buf++;
     }
     if (type_of_copy == COPY_INTERFACE_DATA) {
-	for ( size_t j = 0; j < NI; ++j ) {
+	for ( size_t j = 0; j < N_INTERFACE; ++j ) {
 	    if ( iface[j] == 0 ) { // When copying from ghost cell which may
 		continue;          // not have initialised interfaces, or when 2D.
 	    }
@@ -1309,15 +1309,15 @@ int FV_Cell::init_time_level_geometry( void )
 // Initialize or reinitialize the time-level values 
 // with the recently calculated cell geometry data.
 {
-    for ( size_t j = 0; j < NL; ++j ) {
+    for ( size_t j = 0; j < N_LEVEL; ++j ) {
 	ar[j] = area;
 	vol[j] = volume;
 	position[j] = pos;
 	// 2D will have a few NULL pointers compared with 3D.
-	for ( size_t i = 0; i < NI; ++i ) {
+	for ( size_t i = 0; i < N_INTERFACE; ++i ) {
 	    if ( iface[i] != NULL ) iface[i]->ar[j] = iface[i]->area;
 	}
-	for ( size_t i = 0; i < NV; ++i ) {
+	for ( size_t i = 0; i < N_VERTEX; ++i ) {
 	    if ( vtx[i] != NULL ) vtx[i]->position[j] = vtx[i]->pos;
 	}
     }
@@ -1332,10 +1332,10 @@ int FV_Cell::get_current_time_level_geometry( int time_level )
     volume = vol[time_level];
     pos = position[time_level];
     // 2D will have a few NULL pointers compared with 3D.
-    for ( size_t i = 0; i < NI; ++i ) {
+    for ( size_t i = 0; i < N_INTERFACE; ++i ) {
 	if ( iface[i] != NULL ) iface[i]->area = iface[i]->ar[time_level];
     }
-    for ( size_t i = 0; i < NV; ++i ) {
+    for ( size_t i = 0; i < N_VERTEX; ++i ) {
 	if ( vtx[i] != NULL ) vtx[i]->pos = vtx[i]->position[time_level];
     }
     return SUCCESS;
@@ -2529,10 +2529,10 @@ int number_of_values_in_cell_copy(int type_of_copy)
     }
     if (type_of_copy == COPY_ALL_CELL_DATA ||
 	type_of_copy == COPY_INTERFACE_DATA) {
-	number += NI * gmodel->number_of_values_in_gas_data_copy();
-	number += NI * 8; // FlowState data for each interface
-	if ( get_mhd_flag() == 1 ) number += NI * 3;
-	number += NI * 7; // Velocity, position and length for each interface
+	number += N_INTERFACE * gmodel->number_of_values_in_gas_data_copy();
+	number += N_INTERFACE * 8; // FlowState data for each interface
+	if ( get_mhd_flag() == 1 ) number += N_INTERFACE * 3;
+	number += N_INTERFACE * 7; // Velocity, position and length for each interface
     }
     return number;
 }
