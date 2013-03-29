@@ -407,12 +407,15 @@ FV_Interface::~FV_Interface()
     delete F;
 }
 
-int FV_Interface::print(int to_stdout) const
+int FV_Interface::print() const
 {
     printf( "----------- Begin data for interface -----------\n");
     // printf( "id = %i\n", iface->id);
     printf("x=%e, y=%e, z=%e\n", pos.x, pos.y, pos.z);
-    printf("area[0]=%e, Ybar=%e, length=%e\n", area[0], Ybar, length);  // FIX-ME moving grid
+    for ( size_t i = 0; i < area.size(); ++i ) {
+	printf("area[%d]=%e, ", i, area[i]);
+    }
+    printf("\nYbar=%e, length=%e\n", Ybar, length);
     printf("n.x=%e, n.y=%e, n.z=%e\n", n.x, n.y, n.z);
     printf("t1.x=%e, t1.y=%e, t1.z=%e\n", t1.x, t1.y, t1.z);
     printf("t2.x=%e, t2.y=%e, t2.z=%e\n", t2.x, t2.y, t2.z);
@@ -439,8 +442,15 @@ int FV_Interface::copy_values_from(const FV_Interface &src, int type_of_copy)
 	n.x = src.n.x; n.y = src.n.y; n.z = src.n.z;
 	t1.x = src.t1.x; t1.y = src.t1.y; t1.z = src.t1.z;
 	t2.x = src.t2.x; t2.y = src.t2.y; t2.z = src.t2.z;
-	Ybar = src.Ybar; length = src.length; area[0] = src.area[0];  // FIX-ME moving grid
+	Ybar = src.Ybar; length = src.length; 
+	for ( size_t i = 0; i < area.size(); ++i ) area[i] = src.area[i];
     }
+    return SUCCESS;
+}
+
+int FV_Interface::copy_grid_level_to_level(size_t from_level, size_t to_level)
+{
+    area[to_level] = area[from_level];
     return SUCCESS;
 }
 
@@ -514,6 +524,18 @@ int FV_Vertex::copy_values_from(const FV_Vertex &src)
     }
     return SUCCESS;
 }
+
+int FV_Vertex::copy_grid_level_to_level(size_t from_level, size_t to_level)
+{
+    pos[to_level].x = pos[from_level].x;
+    pos[to_level].y = pos[from_level].y;
+    pos[to_level].z = pos[from_level].z;
+    vel[to_level].x = vel[from_level].x;
+    vel[to_level].y = vel[from_level].y;
+    vel[to_level].z = vel[from_level].z;
+    return SUCCESS;
+}
+
 
 //----------------------------------------------------------------------------
 
@@ -644,7 +666,8 @@ int FV_Cell::print() const
     int nsp = gmodel->get_number_of_species();
     int nmodes = gmodel->get_number_of_modes();
     printf("nsp=%d, nmodes=%d\n", nsp, nmodes);
-    printf("x=%e, y=%e, z=%e, base_qdot=%e\n", pos[0].x, pos[0].y, pos[0].z, base_qdot); // FIX-ME moving grid
+    // We'll just report grid-level 0 position.
+    printf("x=%e, y=%e, z=%e, base_qdot=%e\n", pos[0].x, pos[0].y, pos[0].z, base_qdot);
     fs->print();
     if ( get_radiation_flag() == 1 ) {
 	printf("radiation source Q_rE_rad=%e\n", Q_rE_rad);
@@ -821,6 +844,23 @@ double * FV_Cell::copy_values_from_buffer(double *buf, int type_of_copy, size_t 
 }
 
 
+int FV_Cell::copy_grid_level_to_level(size_t from_level, size_t to_level)
+{
+    pos[to_level].x = pos[from_level].x;
+    pos[to_level].y = pos[from_level].y;
+    pos[to_level].z = pos[from_level].z;
+    // When working over all cells in a block, the following copies
+    // will no doubt do some doubled-up work, but it should be benign.
+    for ( FV_Interface *face : iface ) {
+	if ( face ) face->copy_grid_level_to_level(from_level, to_level);
+    }
+    for ( FV_Vertex *v : vtx ) {
+	if ( v ) v->copy_grid_level_to_level(from_level, to_level);
+    }
+    return SUCCESS;
+}
+
+
 /// \brief Replace the flow data in a cell with the average from neighbour cells.
 int FV_Cell::replace_flow_data_with_average(std::vector<FV_Cell *> src)
 {
@@ -899,7 +939,7 @@ int FV_Cell::scan_values_from_string(char *bufptr)
     char *cptr = strchr(bufptr, '\n');
     if ( cptr != NULL ) cptr = '\0';
     // Now, we should have a string with only numbers separated by spaces.
-    pos[0].x = atof(strtok( bufptr, " " )); // tokenize on space characters // FIX-ME for moving grid
+    pos[0].x = atof(strtok( bufptr, " " )); // Note grid-level 0.
     pos[0].y = atof(strtok( NULL, " " ));
     pos[0].z = atof(strtok( NULL, " " ));
     volume[0] = atof(strtok( NULL, " " ));
@@ -951,7 +991,7 @@ std::string FV_Cell::write_values_to_string() const
     ostringstream ost;
     ost.setf(ios_base::scientific);
     ost.precision(12);
-    ost << pos[0].x << " " << pos[0].y << " " << pos[0].z // FIX-ME for moving grid
+    ost << pos[0].x << " " << pos[0].y << " " << pos[0].z // Note grid-level 0.
 	<< " " << volume[0] << " " <<  fs->gas->rho
 	<< " " << fs->vel.x << " " << fs->vel.y << " " << fs->vel.z;
     if ( get_mhd_flag() == 1 ) {
@@ -991,18 +1031,16 @@ int FV_Cell::scan_BGK_from_string(char *bufptr)
     // Now, we should have a string with only numbers separated by spaces.
     // include the position data, duplicate of "flow", as insurance against 
     // finding this file in isolation
-    pos[0].x = atof(strtok( bufptr, " " )); // tokenize on space characters // FIX-ME for moving grid
+    // Note that grid-level zero is the destination of the data.
+    pos[0].x = atof(strtok( bufptr, " " ));
     pos[0].y = atof(strtok( NULL, " " ));
     pos[0].z = atof(strtok( NULL, " " ));
     volume[0] = atof(strtok( NULL, " " ));
-    
-    
     // values of G and H are interleaved
     for (size_t iGH = 0; iGH < get_velocity_buckets(); ++iGH) {
 	fs->G[iGH] = atof(strtok( NULL, " " ));
 	fs->H[iGH] = atof(strtok( NULL, " " ));
     }
-
     return SUCCESS;
 } // end scan_BGK_from_string()
 
@@ -1013,7 +1051,8 @@ std::string FV_Cell::write_BGK_to_string() const
     ostringstream ost;
     ost.setf(ios_base::scientific);
     ost.precision(12);
-    ost << pos[0].x << " " << pos[0].y << " " << pos[0].z << " " << volume[0]; // FIX-ME for moving grid
+    // Note that grid-level is zero.
+    ost << pos[0].x << " " << pos[0].y << " " << pos[0].z << " " << volume[0];
     // BGK discrete samples of velocity distribution function
     // interleave G and H
     for ( size_t iGH = 0; iGH < get_velocity_buckets(); ++iGH ) {
@@ -1230,6 +1269,7 @@ int FV_Cell::check_flow_data(void)
     }
     return data_valid;
 } // end of check_flow_data()
+
 
 /// \brief Compute the time derivatives for the conserved quantities.
 ///

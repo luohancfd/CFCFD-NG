@@ -1579,7 +1579,7 @@ int gasdynamic_inviscid_increment_with_fixed_grid( void )
 	//     fail this attempt at taking a step,
 	//     set everything back to the initial state and
 	//     reduce the time step for the next attempt
-	int most_bad_cells = do_bad_cell_count(0); // FIX-ME may want to generalize time-level
+	int most_bad_cells = do_bad_cell_count(0);
 	if ( adjust_invalid_cell_data == 0 && most_bad_cells > 0 ) {
 	    step_failed = 1;
 	}
@@ -1632,10 +1632,10 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 #       ifdef _MPI
         // Before we try to exchange data, everyone's data should be up-to-date.
 	MPI_Barrier( MPI_COMM_WORLD );
-	mpi_exchange_boundary_data(COPY_FLOW_STATE, 0); // FIX-ME moving grid
+	mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
 #       else
 	for ( Block *bdp : G.my_blocks ) {
-	    if ( bdp->active ) exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0);  // FIX-ME moving grid
+	    if ( bdp->active ) exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0);
 	}
 #       endif
 	for ( Block *bdp : G.my_blocks ) {
@@ -1658,10 +1658,10 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 	/// 2: End of corrector step
 #       ifdef _MPI
 	MPI_Barrier( MPI_COMM_WORLD );
-	mpi_exchange_boundary_data(COPY_INTERFACE_DATA, 0); // FIX-ME moving grid
+	mpi_exchange_boundary_data(COPY_INTERFACE_DATA, 0);
 #       else
 	for ( Block *bdp : G.my_blocks ) {
-	    if ( bdp->active ) exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA, 0); // FIX-ME moving grid
+	    if ( bdp->active ) exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA, 0);
 	}
 #       endif
 	if ( G.sim_time >= G.t_shock ) {
@@ -1693,12 +1693,12 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 	if ( get_Torder_flag() >= 2 ) {
 #           ifdef _MPI
 	    MPI_Barrier( MPI_COMM_WORLD );
-	    mpi_exchange_boundary_data(COPY_FLOW_STATE, 0); // FIX-ME moving grid
-	    mpi_exchange_boundary_data(COPY_INTERFACE_DATA, 0); // FIX-ME moving grid
+	    mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
+	    mpi_exchange_boundary_data(COPY_INTERFACE_DATA, 0);
 #           else
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active ) {
-		    exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0); // FIX-ME moving grid
+		    exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0);
 		    exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA, 0);
 		}
 	    }
@@ -1710,7 +1710,7 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 		for ( Block *bdp : G.my_blocks ) {
 		    bdp->set_geometry_velocities(G.dimensions, 1);
 		    bdp->correct_vertex_positions(G.dimensions, G.dt_global);
-		    bdp->compute_primary_cell_geometric_data(G.dimensions, 2); // for start of next time level.
+		    bdp->compute_primary_cell_geometric_data(G.dimensions, 2);
 		    bdp->set_gcl_interface_properties(G.dimensions, 1, G.dt_global);
 		}
 	    }
@@ -1724,7 +1724,6 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 		    cp->time_derivatives(1, 1, G.dimensions);
 		    cp->corrector_update_for_flow_on_moving_grid(G.dt_global);
 		    cp->decode_conserved(1, bdp->omegaz);
-		    // cp->get_current_time_level_geometry(2); copy_level_to_level() FIX-ME moving grid
 		} // end for *cp
 		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
 		    apply_wilson_omega_correction( *bdp );
@@ -1736,7 +1735,7 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 	//     fail this attempt at taking a step,
 	//     set everything back to the initial state and
 	//     reduce the time step for the next attempt
-	int most_bad_cells = do_bad_cell_count(0);  // FIX-ME for moving grid
+	int most_bad_cells = do_bad_cell_count(2);
 	if ( adjust_invalid_cell_data == 0 && most_bad_cells > 0 ) {
 	    step_failed = 1;
 	}
@@ -1759,6 +1758,11 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 	} // end if step_failed
 
     } while (attempt_number < 3 && step_failed == 1);
+
+    for ( Block *bdp : G.my_blocks ) {
+	if ( bdp->active != 1 ) continue;
+	for ( FV_Cell *cp: bdp->active_cells ) cp->copy_grid_level_to_level(1, 0);
+    }
 
     return step_failed;
 } // end gasdynamic_inviscid_increment_with_moving_grid()

@@ -150,8 +150,9 @@ public:
     FV_Interface(const FV_Interface &iface);
     FV_Interface & operator=(const FV_Interface &iface);
     ~FV_Interface();
-    int print(int to_stdout) const;
+    int print() const;
     int copy_values_from(const FV_Interface &src, int type_of_copy);
+    int copy_grid_level_to_level(size_t from_level, size_t to_level);
 }; // end of class FV_Interface
 
 
@@ -179,6 +180,7 @@ public:
     FV_Vertex & operator=(const FV_Vertex &vtx);
     ~FV_Vertex();
     int copy_values_from(const FV_Vertex &src);
+    int copy_grid_level_to_level(size_t from_level, size_t to_level);
 };
 
 
@@ -234,6 +236,7 @@ public:
     int copy_values_from(const FV_Cell &src, int type_of_copy, size_t gtl);
     double * copy_values_to_buffer(double *buf, int type_of_copy, size_t gtl) const;
     double * copy_values_from_buffer(double *buf, int type_of_copy, size_t gtl);
+    int copy_grid_level_to_level(size_t from_level, size_t to_level);
     int replace_flow_data_with_average(std::vector<FV_Cell *> src);
     int scan_values_from_string(char *bufptr);
     std::string write_values_to_string() const;
@@ -247,7 +250,6 @@ public:
     int encode_conserved(size_t gtl, double omegaz);
     int decode_conserved(size_t gtl, double omegaz);
     int check_flow_data(void);
-    // int copy_level_to_level(size_t from_level, size_t to_level); // FIX-ME moving grid
     int time_derivatives(size_t gtl, size_t ftl, size_t dimensions);
     int predictor_update_for_flow_on_fixed_grid(double dt, int force_euler=0);
     int corrector_update_for_flow_on_fixed_grid(double dt);

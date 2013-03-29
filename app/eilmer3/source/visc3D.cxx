@@ -2090,7 +2090,7 @@ int viscous_derivatives_corners_3D(Block *bdp, size_t gtl)
     a = bdp->get_ifi(i,j,k);
     b = bdp->get_ifj(i,j,k);
     d = bdp->get_ifk(i,j,k);
-    // FIX-ME possible bug fix 2013-03-28: yd was getting its value from c.
+    // possible bug fix 2013-03-28: below, yd was getting its value from c.
         xa = a->pos.x; ya = a->pos.y; za = a->pos.z;
             xb = b->pos.x; yb = b->pos.y; zb = b->pos.z;
             xc = c->pos[gtl].x; yc = c->pos[gtl].y; zc = c->pos[gtl].z;
