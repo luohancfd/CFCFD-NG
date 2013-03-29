@@ -131,7 +131,7 @@ public:
     Vector3 vel;       ///< \brief gas velocity, m/s
     double Ybar;       ///< \brief Y-coordinate of the mid-point
     double length;     ///< \brief Interface length in the x,y-plane
-    std::vector<double> area; ///< \brief  Area m**2 for each time_level.
+    std::vector<double> area; ///< \brief  Area m**2 for each time-level.
                        ///< \brief Area per radian in axisymmetric geometry
     Vector3 n;         ///< \brief Direction cosines for unit normal
     Vector3 t1;        ///< \brief tangent vector 1 (aka p)
@@ -229,11 +229,11 @@ public:
     FV_Cell & operator=(const FV_Cell &cell);
     ~FV_Cell();
     int print() const;
-    int point_is_inside(Vector3 &p, int dimensions, size_t time_level) const;
+    int point_is_inside(Vector3 &p, int dimensions, size_t gtl) const;
     int copy_values_from(const CFlowCondition &src);
-    int copy_values_from(const FV_Cell &src, int type_of_copy, size_t time_level);
-    double * copy_values_to_buffer(double *buf, int type_of_copy, size_t time_level) const;
-    double * copy_values_from_buffer(double *buf, int type_of_copy, size_t time_level);
+    int copy_values_from(const FV_Cell &src, int type_of_copy, size_t gtl);
+    double * copy_values_to_buffer(double *buf, int type_of_copy, size_t gtl) const;
+    double * copy_values_from_buffer(double *buf, int type_of_copy, size_t gtl);
     int replace_flow_data_with_average(std::vector<FV_Cell *> src);
     int scan_values_from_string(char *bufptr);
     std::string write_values_to_string() const;
@@ -244,17 +244,17 @@ public:
     int set_fr_reactions_allowed(int flag);
     int record_conserved(void);
     int restore_conserved(void);
-    int encode_conserved(double omegaz, size_t time_level);
-    int decode_conserved(double omegaz, size_t time_level);
+    int encode_conserved(size_t gtl, double omegaz);
+    int decode_conserved(size_t gtl, double omegaz);
     int check_flow_data(void);
     // int copy_level_to_level(size_t from_level, size_t to_level); // FIX-ME moving grid
-    int time_derivatives(int time_level, int dimensions);
+    int time_derivatives(size_t gtl, size_t ftl, size_t dimensions);
     int predictor_update(double dt);
     int corrector_update(double dt);
     int rk3_update(double dt);
     int chemical_increment(double dt);
     int thermal_increment(double dt);
-    double signal_frequency(int dimensions);
+    double signal_frequency(size_t dimensions);
     int turbulence_viscosity_zero(void);
     int turbulence_viscosity_zero_if_not_in_zone(void);
     int turbulence_viscosity_limit(double factor);
@@ -262,7 +262,7 @@ public:
     int turbulence_viscosity_k_omega(void);
     int update_k_omega_properties(double dt);
     int k_omega_time_derivatives(double *Q_rtke, double *Q_romega, double tke, double omega);
-    int inviscid_source_vector(int time_level, double omegaz=0.0);
+    int inviscid_source_vector(int gtl, double omegaz=0.0);
     int viscous_source_vector(void);
     double calculate_wall_Reynolds_number(int which_boundary);
     int store_rad_scaling_params(void);

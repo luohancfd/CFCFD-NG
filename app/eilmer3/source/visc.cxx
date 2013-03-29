@@ -534,7 +534,7 @@ int viscous_flux_2D(Block *A)
 /// of SECONDARY cells.  The secondary cells are centred on the vertices 
 /// of the primary cells and have primary cell centres as their corners.
 ///
-int viscous_derivatives_2D(Block *A, size_t time_level)
+int viscous_derivatives_2D(Block *A, size_t gtl)
 {
     double xA, yA, xB, yB, xC, yC, xD, yD;
     double uA, uB, uC, uD;
@@ -565,14 +565,14 @@ int viscous_derivatives_2D(Block *A, size_t time_level)
         for ( size_t j = A->jmin+1; j <= A->jmax; ++j ) {
             area_inv = 1.0 / A->get_vtx(i,j)->area;
 	    // These are the corners of the secondary cell.
-            xA = A->get_cell(i,j-1)->pos[time_level].x;
-            yA = A->get_cell(i,j-1)->pos[time_level].y;
-            xB = A->get_cell(i,j)->pos[time_level].x;
-            yB = A->get_cell(i,j)->pos[time_level].y;
-            xC = A->get_cell(i-1,j)->pos[time_level].x;
-            yC = A->get_cell(i-1,j)->pos[time_level].y;
-            xD = A->get_cell(i-1,j-1)->pos[time_level].x;
-            yD = A->get_cell(i-1,j-1)->pos[time_level].y;
+            xA = A->get_cell(i,j-1)->pos[gtl].x;
+            yA = A->get_cell(i,j-1)->pos[gtl].y;
+            xB = A->get_cell(i,j)->pos[gtl].x;
+            yB = A->get_cell(i,j)->pos[gtl].y;
+            xC = A->get_cell(i-1,j)->pos[gtl].x;
+            yC = A->get_cell(i-1,j)->pos[gtl].y;
+            xD = A->get_cell(i-1,j-1)->pos[gtl].x;
+            yD = A->get_cell(i-1,j-1)->pos[gtl].y;
 	    // These are the flow properties at the corners.
             uA = A->get_cell(i,j-1)->fs->vel.x;
             uB = A->get_cell(i,j)->fs->vel.x;
@@ -617,9 +617,9 @@ int viscous_derivatives_2D(Block *A, size_t time_level)
     } // i loop
 
     // Now, do the boundaries as half cells.
-    viscous_derivatives_edges(A, time_level);
+    viscous_derivatives_edges(A, gtl);
     // ...and pick up (fudge) the corner values.
-    viscous_derivatives_corners(A, time_level);
+    viscous_derivatives_corners(A, gtl);
     return SUCCESS;
 } // end viscous_derivatives()
 
@@ -629,7 +629,7 @@ int viscous_derivatives_2D(Block *A, size_t time_level)
 ///
 /// NOTE that the secondary cells along boundaries are HALF cells.
 ///
-int viscous_derivatives_edges(Block *A, size_t time_level)
+int viscous_derivatives_edges(Block *A, size_t gtl)
 {
     size_t i, j;
     double xA, yA, xB, yB, xC, yC, xD, yD;
@@ -664,10 +664,10 @@ int viscous_derivatives_edges(Block *A, size_t time_level)
 	yA = A->get_ifi(i,j-1)->pos.y;
 	xB = A->get_ifi(i,j)->pos.x;
 	yB = A->get_ifi(i,j)->pos.y;
-        xC = A->get_cell(i-1,j)->pos[time_level].x;
-        yC = A->get_cell(i-1,j)->pos[time_level].y;
-        xD = A->get_cell(i-1,j-1)->pos[time_level].x;
-        yD = A->get_cell(i-1,j-1)->pos[time_level].y;
+        xC = A->get_cell(i-1,j)->pos[gtl].x;
+        yC = A->get_cell(i-1,j)->pos[gtl].y;
+        xD = A->get_cell(i-1,j-1)->pos[gtl].x;
+        yD = A->get_cell(i-1,j-1)->pos[gtl].y;
 	//
 	// These are the flow properties at the corners of the secondary cell.
 	uA = A->get_ifi(i,j-1)->fs->vel.x;
@@ -717,10 +717,10 @@ int viscous_derivatives_edges(Block *A, size_t time_level)
     for (j = A->jmin+1; j <= A->jmax; ++j) {
         area_inv = 1.0 / A->get_vtx(i,j)->area;
 	// These are the corners of the secondary cell.
-        xA = A->get_cell(i,j-1)->pos[time_level].x;
-        yA = A->get_cell(i,j-1)->pos[time_level].y;
-        xB = A->get_cell(i,j)->pos[time_level].x;
-        yB = A->get_cell(i,j)->pos[time_level].y;
+        xA = A->get_cell(i,j-1)->pos[gtl].x;
+        yA = A->get_cell(i,j-1)->pos[gtl].y;
+        xB = A->get_cell(i,j)->pos[gtl].x;
+        yB = A->get_cell(i,j)->pos[gtl].y;
 	xC = A->get_ifi(i,j)->pos.x;
 	yC = A->get_ifi(i,j)->pos.y;
 	xD = A->get_ifi(i,j-1)->pos.x;
@@ -773,14 +773,14 @@ int viscous_derivatives_edges(Block *A, size_t time_level)
     for (i = A->imin+1; i <= A->imax; ++i) {
         area_inv = 1.0 / A->get_vtx(i,j)->area;
 	// These are the corners of the secondary cell.
-        xA = A->get_cell(i,j-1)->pos[time_level].x;
-        yA = A->get_cell(i,j-1)->pos[time_level].y;
+        xA = A->get_cell(i,j-1)->pos[gtl].x;
+        yA = A->get_cell(i,j-1)->pos[gtl].y;
 	xB = A->get_ifj(i,j)->pos.x;
 	yB = A->get_ifj(i,j)->pos.y;
 	xC = A->get_ifj(i-1,j)->pos.x;
 	yC = A->get_ifj(i-1,j)->pos.y;
-        xD = A->get_cell(i-1,j-1)->pos[time_level].x;
-        yD = A->get_cell(i-1,j-1)->pos[time_level].y;
+        xD = A->get_cell(i-1,j-1)->pos[gtl].x;
+        yD = A->get_cell(i-1,j-1)->pos[gtl].y;
 	// These are the flow properties at the corners of
 	// the secondary cell.
         uA = A->get_cell(i,j-1)->fs->vel.x;
@@ -832,10 +832,10 @@ int viscous_derivatives_edges(Block *A, size_t time_level)
 	// These are the corners of the secondary cell.
 	xA = A->get_ifj(i,j)->pos.x;
 	yA = A->get_ifj(i,j)->pos.y;
-        xB = A->get_cell(i,j)->pos[time_level].x;
-        yB = A->get_cell(i,j)->pos[time_level].y;
-        xC = A->get_cell(i-1,j)->pos[time_level].x;
-        yC = A->get_cell(i-1,j)->pos[time_level].y;
+        xB = A->get_cell(i,j)->pos[gtl].x;
+        yB = A->get_cell(i,j)->pos[gtl].y;
+        xC = A->get_cell(i-1,j)->pos[gtl].x;
+        yC = A->get_cell(i-1,j)->pos[gtl].y;
 	xD = A->get_ifj(i-1,j)->pos.x;
 	yD = A->get_ifj(i-1,j)->pos.y;
 	// These are the flow properties at the corners of the secondary cell.
@@ -887,7 +887,7 @@ int viscous_derivatives_edges(Block *A, size_t time_level)
 /// \brief Compute the derivatives of velocity, temperature and mass fractions at
 ///        primary cell vertices at the corners of the block.
 ///
-int viscous_derivatives_corners(Block *bdp, size_t time_level)
+int viscous_derivatives_corners(Block *bdp, size_t gtl)
 {
     size_t i, j;
     FV_Vertex *vtx;
@@ -905,7 +905,7 @@ int viscous_derivatives_corners(Block *bdp, size_t time_level)
     b = bdp->get_ifi(i+1,j);
     xa = a->pos.x; ya = a->pos.y;
     xb = b->pos.x; yb = b->pos.y;
-    xc = c->pos[time_level].x; yc = c->pos[time_level].y;
+    xc = c->pos[gtl].x; yc = c->pos[gtl].y;
     denom = (xc-xa)*(yb-ya) - (xb-xa)*(yc-ya);
     fa = a->fs->vel.x; fb = b->fs->vel.x; fc = c->fs->vel.x;
     vtx->dudx = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
@@ -938,7 +938,7 @@ int viscous_derivatives_corners(Block *bdp, size_t time_level)
     b = bdp->get_ifi(i+1,j);
     xa = a->pos.x; ya = a->pos.y;
     xb = b->pos.x; yb = b->pos.y;
-    xc = c->pos[time_level].x; yc = c->pos[time_level].y;
+    xc = c->pos[gtl].x; yc = c->pos[gtl].y;
     denom = (xc-xa)*(yb-ya) - (xb-xa)*(yc-ya);
     fa = a->fs->vel.x; fb = b->fs->vel.x; fc = c->fs->vel.x;
     vtx->dudx = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
@@ -971,7 +971,7 @@ int viscous_derivatives_corners(Block *bdp, size_t time_level)
     b = bdp->get_ifi(i,j);
     xa = a->pos.x; ya = a->pos.y;
     xb = b->pos.x; yb = b->pos.y;
-    xc = c->pos[time_level].x; yc = c->pos[time_level].y;
+    xc = c->pos[gtl].x; yc = c->pos[gtl].y;
     denom = (xc-xa)*(yb-ya) - (xb-xa)*(yc-ya);
     fa = a->fs->vel.x; fb = b->fs->vel.x; fc = c->fs->vel.x;
     vtx->dudx = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
@@ -1004,7 +1004,7 @@ int viscous_derivatives_corners(Block *bdp, size_t time_level)
     b = bdp->get_ifi(i,j);
     xa = a->pos.x; ya = a->pos.y;
     xb = b->pos.x; yb = b->pos.y;
-    xc = c->pos[time_level].x; yc = c->pos[time_level].y;
+    xc = c->pos[gtl].x; yc = c->pos[gtl].y;
     denom = (xc-xa)*(yb-ya) - (xb-xa)*(yc-ya);
     fa = a->fs->vel.x; fb = b->fs->vel.x; fc = c->fs->vel.x;
     vtx->dudx = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;

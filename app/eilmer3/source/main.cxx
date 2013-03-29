@@ -473,11 +473,11 @@ int prepare_to_integrate(size_t start_tindx)
 	bdp->identify_reaction_zones(G, 0);
 	bdp->identify_turbulent_zones(G, 0);
 	for ( FV_Cell *cp: bdp->active_cells ) {
-	    cp->encode_conserved(bdp->omegaz, 0);
+	    cp->encode_conserved(0, bdp->omegaz);
 	    // Even though the following call appears redundant at this point,
 	    // fills in some gas properties such as Prandtl number that is
 	    // needed for both the cfd_check and the BLomax turbulence model.
-	    cp->decode_conserved(bdp->omegaz, 0);
+	    cp->decode_conserved(0, bdp->omegaz);
 	}
     } // end for *bdp
     // Exchange boundary cell geometry information so that we can
@@ -548,7 +548,7 @@ int call_udf(double t, size_t step, std::string udf_fn_name)
 
 /// \brief Add to the components of the source vector, Q, via a Lua udf.
 /// This is done (occasionally) just after the for inviscid source vector calculation.
-int udf_source_vector_for_cell( FV_Cell *cell, size_t time_level, double t )
+int udf_source_vector_for_cell( FV_Cell *cell, size_t gtl, double t )
 {
     // Call the user-defined function which returns a table
     // of source term values.
@@ -564,10 +564,10 @@ int udf_source_vector_for_cell( FV_Cell *cell, size_t time_level, double t )
 
     // Pack the interesting cell data in a table with named fields.
     lua_newtable(L); // creates a table that is now at the TOS
-    lua_pushnumber(L, cell->pos[time_level].x); lua_setfield(L, -2, "x");
-    lua_pushnumber(L, cell->pos[time_level].y); lua_setfield(L, -2, "y");
-    lua_pushnumber(L, cell->pos[time_level].z); lua_setfield(L, -2, "z");
-    lua_pushnumber(L, cell->volume[time_level]); lua_setfield(L, -2, "vol");
+    lua_pushnumber(L, cell->pos[gtl].x); lua_setfield(L, -2, "x");
+    lua_pushnumber(L, cell->pos[gtl].y); lua_setfield(L, -2, "y");
+    lua_pushnumber(L, cell->pos[gtl].z); lua_setfield(L, -2, "z");
+    lua_pushnumber(L, cell->volume[gtl]); lua_setfield(L, -2, "vol");
     lua_pushnumber(L, cell->fs->gas->p); lua_setfield(L, -2, "p");
     lua_pushnumber(L, cell->fs->gas->rho); lua_setfield(L, -2, "rho"); 
     lua_pushnumber(L, cell->fs->vel.x); lua_setfield(L, -2, "u"); 
@@ -686,11 +686,11 @@ int integrate_blocks_in_sequence(void)
     bdp->bcp[WEST]->apply_inviscid(0.0);
     bdp->propagate_data_west_to_east( G.dimensions );
     for ( FV_Cell *cp: bdp->active_cells ) {
-	cp->encode_conserved(bdp->omegaz, 0);
+	cp->encode_conserved(0, bdp->omegaz);
 	// Even though the following call appears redundant at this point,
 	// fills in some gas properties such as Prandtl number that is
 	// needed for both the cfd_check and the BLomax turbulence model.
-	cp->decode_conserved(bdp->omegaz, 0);
+	cp->decode_conserved(0, bdp->omegaz);
     }
 
     // Now set up block 1
@@ -704,8 +704,8 @@ int integrate_blocks_in_sequence(void)
     exchange_shared_boundary_data(1, COPY_FLOW_STATE, 0);
     bdp->propagate_data_west_to_east( G.dimensions );
     for ( FV_Cell *cp: bdp->active_cells ) {
-	cp->encode_conserved(bdp->omegaz, 0);
-	cp->decode_conserved(bdp->omegaz, 0);
+	cp->encode_conserved(0, bdp->omegaz);
+	cp->decode_conserved(0, bdp->omegaz);
     }
 
     // Integrate just the first two blocks in time, hopefully to steady state.
@@ -743,8 +743,8 @@ int integrate_blocks_in_sequence(void)
 	exchange_shared_boundary_data(jb, COPY_FLOW_STATE, 0);
 	bdp->propagate_data_west_to_east( G.dimensions );
 	for ( FV_Cell *cp: bdp->active_cells ) {
-	    cp->encode_conserved(bdp->omegaz, 0);
-	    cp->decode_conserved(bdp->omegaz, 0);
+	    cp->encode_conserved(0, bdp->omegaz);
+	    cp->decode_conserved(0, bdp->omegaz);
 	}
 	// Integrate just the two currently active blocks in time,
 	// hopefully to steady state.
@@ -1262,7 +1262,7 @@ int integrate_in_time(double target_time)
 		for ( Block *bdp : G.my_blocks ) {
 		    if ( bdp->active != 1 ) continue;
 		    bdp->apply_spatial_filter_diffusion( G.filter_mu, G.filter_npass, G.dimensions );
-		    for ( FV_Cell *cp: bdp->active_cells ) cp->encode_conserved(bdp->omegaz, 0);
+		    for ( FV_Cell *cp: bdp->active_cells ) cp->encode_conserved(0, bdp->omegaz);
 		}
 		for ( Block *bdp : G.my_blocks ) {
 		    if ( bdp->active != 1 ) continue;
@@ -1281,7 +1281,7 @@ int integrate_in_time(double target_time)
 		for ( Block *bdp : G.my_blocks ) {
 		    if ( bdp->active != 1 ) continue;
 		    bdp->apply_spatial_filter_anti_diffusion(G.filter_mu, G.filter_npass, G.dimensions);
-		    for ( FV_Cell *cp: bdp->active_cells ) cp->encode_conserved(bdp->omegaz, 0);
+		    for ( FV_Cell *cp: bdp->active_cells ) cp->encode_conserved(0, bdp->omegaz);
 		}
 		for ( Block *bdp : G.my_blocks ) {
 		    if ( bdp->active != 1 ) continue;
@@ -1455,11 +1455,11 @@ int gasdynamic_inviscid_increment_with_fixed_grid( void )
 {
     global_data &G = *get_global_data_ptr();
     int step_failed;
-    // Time levels:
+    // Time levels for flow derivatives:
     // 0: Start of predictor step
-    // 1: End of predictor step/start of corrector step
-    // 2: End of corrector step
-    // 2: End of RK3 step                                  // FIX-ME Andrew, is this correct?
+    // 1: End of predictor step; used for corrector step
+    // 2: End of corrector step; used for RK3 step
+    // Time level of grid stays at 0.
 
     // Record the current values of the conserved variables
     // in preparation for applying the predictor and corrector
@@ -1505,7 +1505,7 @@ int gasdynamic_inviscid_increment_with_fixed_grid( void )
 		cp->inviscid_source_vector(0, bdp->omegaz);
 		if ( G.udf_source_vector_flag == 1 )
 		    udf_source_vector_for_cell(cp, 0, G.sim_time);
-		cp->time_derivatives(0, G.dimensions);
+		cp->time_derivatives(0, 0, G.dimensions);
 		cp->predictor_update(G.dt_global);
 		cp->decode_conserved(0, bdp->omegaz);
 		if ( get_Torder_flag() == 3 ) cp->record_conserved();
@@ -1535,9 +1535,9 @@ int gasdynamic_inviscid_increment_with_fixed_grid( void )
 		    cp->inviscid_source_vector(1, bdp->omegaz);
 		    if ( G.udf_source_vector_flag == 1 )
 			udf_source_vector_for_cell(cp, 1, G.sim_time);
-		    cp->time_derivatives(1, G.dimensions);
+		    cp->time_derivatives(0, 1, G.dimensions);
 		    cp->corrector_update(G.dt_global);
-		    cp->decode_conserved(1, bdp->omegaz);
+		    cp->decode_conserved(0, bdp->omegaz);
 		    if ( get_Torder_flag() == 3 ) cp->record_conserved();
 		} // end for *cp
 		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
@@ -1565,9 +1565,9 @@ int gasdynamic_inviscid_increment_with_fixed_grid( void )
 		    cp->inviscid_source_vector(2, bdp->omegaz);
 		    if ( G.udf_source_vector_flag == 1 )
 			udf_source_vector_for_cell(cp, 2, G.sim_time);
-		    cp->time_derivatives(2, G.dimensions);
+		    cp->time_derivatives(0, 2, G.dimensions);
 		    cp->rk3_update(G.dt_global);
-		    cp->decode_conserved(2, bdp->omegaz);
+		    cp->decode_conserved(0, bdp->omegaz);
 		} // for *cp
 		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
 		    apply_wilson_omega_correction( *bdp );
@@ -1679,9 +1679,9 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 	    for ( FV_Cell *cp: bdp->active_cells ) {
 		cp->inviscid_source_vector(0, bdp->omegaz);
 		if ( G.udf_source_vector_flag == 1 ) udf_source_vector_for_cell(cp, 0, G.sim_time);
-		cp->time_derivatives(0, G.dimensions);
+		cp->time_derivatives(0, 0, G.dimensions);
 		cp->predictor_update(G.dt_global);
-		cp->decode_conserved(bdp->omegaz, 0);
+		cp->decode_conserved(0, bdp->omegaz);
 		// cp->get_current_time_level_geometry(1); copy_from_level_to_level() FIX-ME moving grid
 	    } // end for *cp
 	    if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
@@ -1721,7 +1721,7 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 		for ( FV_Cell *cp: bdp->active_cells ) {
 		    cp->inviscid_source_vector(1, bdp->omegaz);
 		    if ( G.udf_source_vector_flag == 1 ) udf_source_vector_for_cell(cp, 1, G.sim_time);
-		    cp->time_derivatives(1, G.dimensions);
+		    cp->time_derivatives(1, 1, G.dimensions);
 		    cp->corrector_update(G.dt_global);
 		    cp->decode_conserved(1, bdp->omegaz);
 		    // cp->get_current_time_level_geometry(2); copy_level_to_level() FIX-ME moving grid
@@ -1765,6 +1765,8 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 
 
 int gasdynamic_viscous_increment( void )
+// A simple first-order Euler step, of just the viscous-terms contribution.
+// Note that it starts from scratch, following the inviscid update.
 {
     global_data &G = *get_global_data_ptr();
     for ( Block *bdp : G.my_blocks ) {
@@ -1784,7 +1786,7 @@ int gasdynamic_viscous_increment( void )
 	if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
 	for ( FV_Cell *cp: bdp->active_cells ) {
 	    cp->viscous_source_vector();
-	    cp->time_derivatives(0, G.dimensions);
+	    cp->time_derivatives(0, 0, G.dimensions);
 	    cp->predictor_update(G.dt_global);
 	    cp->decode_conserved(0, bdp->omegaz);
 	} // end for *cp
@@ -1796,12 +1798,12 @@ int gasdynamic_viscous_increment( void )
 } // int gasdynamic_viscous_increment()
 
 
-int do_bad_cell_count(size_t time_level)
+int do_bad_cell_count(size_t gtl)
 {
     global_data &G = *get_global_data_ptr();  // set up a reference
     int most_bad_cells = 0;
     for ( Block *bdp : G.my_blocks ) {
-	size_t bad_cell_count = bdp->count_invalid_cells(G.dimensions, time_level);
+	size_t bad_cell_count = bdp->count_invalid_cells(G.dimensions, gtl);
 	if ( static_cast<int>(bad_cell_count) > most_bad_cells ) 
 	    most_bad_cells = static_cast<int>(bad_cell_count); 
 	if ( bad_cell_count > G.max_invalid_cells ) {

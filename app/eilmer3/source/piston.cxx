@@ -474,7 +474,7 @@ int PistonFace:: update_flex_cell_states(double dt)
 {
     size_t j;
     for (j = jmin_; j <= jmax_; ++j) {
-        update_extensive_gas_time_derivatives_from_fluxes(flex_cells_[j], 0);
+        update_extensive_gas_time_derivatives_from_fluxes(flex_cells_[j]);
     }
     if (DB3) {    
 	for (j = jmin_; j <= jmax_; ++j) {
@@ -2416,7 +2416,7 @@ int update_gas_extensive_conserved(FV_Cell *cell, double volume)
 
 int update_gas_conserved(FV_Cell *cell) 
 {
-    cell->encode_conserved(0.0, 0);
+    cell->encode_conserved(0, 0.0);
     return SUCCESS;
 }
 
@@ -2463,11 +2463,11 @@ int update_gas_primaries_from_extensive(FV_Cell *cell, double volume)
 
 int update_gas_primaries(FV_Cell *cell)
 {
-    cell->decode_conserved(0.0, 0);
+    cell->decode_conserved(0, 0.0);
     return SUCCESS;
 }
 
-int update_extensive_gas_time_derivatives_from_fluxes(FV_Cell *cell, size_t time_level)
+int update_extensive_gas_time_derivatives_from_fluxes(FV_Cell *cell)
 {
     FV_Interface *IFn, *IFs, *IFe, *IFw;
     double integral;
@@ -2564,7 +2564,7 @@ int average_two_flow_states(FV_Cell *dst,
     for ( size_t imode = 0; imode < nmodes; ++imode ) {
 	dst->U->energies[imode] = (src0->U->energies[imode]*vol0 + src1->U->energies[imode]*vol1)/total_vol;
     }
-    dst->decode_conserved(0.0, 0);
+    dst->decode_conserved(0, 0.0);
     return SUCCESS;
 }
 

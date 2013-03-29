@@ -490,7 +490,7 @@ int BoundaryCondition::compute_surface_heat_flux( void )
 
 int BoundaryCondition::
 compute_cell_interface_surface_heat_flux(FV_Interface * IFace, FV_Cell * cell_one,
-					 size_t index, size_t time_level) 
+					 size_t index, size_t gtl) 
 /// \brief Calculate the heat flux values for a single cell interface
 {
     Vector3 cc, ic, i0c;
@@ -503,7 +503,7 @@ compute_cell_interface_surface_heat_flux(FV_Interface * IFace, FV_Cell * cell_on
     vector<double> dfds(nsp), dfd0(nsp), dfd00(nsp), js(nsp), j0(nsp), j00(nsp);
     double viscous_factor = get_viscous_factor();
     
-    cc = cell_one->pos[time_level];
+    cc = cell_one->pos[gtl];
     ic = IFace->pos;
     i0c = cc - ic;
     d1 = - dot(i0c,IFace->n);
@@ -784,7 +784,7 @@ read_surface_heat_flux( string filename, size_t dimensions, int zip_files )
 }
 
 int BoundaryCondition::write_vertex_velocities(std::string filename, double sim_time,
-					       size_t dimensions, size_t time_level)
+					       size_t dimensions, size_t gtl)
 {
     size_t i, j, k, irangemax, jrangemax, krangemax;
     FV_Vertex *vtx;
@@ -842,10 +842,10 @@ int BoundaryCondition::write_vertex_velocities(std::string filename, double sim_
 		vtx = bd.get_vtx(i,j,k);
 		fprintf(fp, "%d %d %d ", static_cast<int>(i),
 			static_cast<int>(j), static_cast<int>(k));
-		fprintf(fp, "%20.12e %20.12e %20.12e ", vtx->pos[time_level].x,
-			vtx->pos[time_level].y, vtx->pos[time_level].z);
-		fprintf(fp, "%20.12e %20.12e %20.12e \n", vtx->vel[time_level].x,
-			vtx->vel[time_level].y, vtx->vel[time_level].z);
+		fprintf(fp, "%20.12e %20.12e %20.12e ", vtx->pos[gtl].x,
+			vtx->pos[gtl].y, vtx->pos[gtl].z);
+		fprintf(fp, "%20.12e %20.12e %20.12e \n", vtx->vel[gtl].x,
+			vtx->vel[gtl].y, vtx->vel[gtl].z);
 	    } // end i loop
 	} // end j loop
     } // end k loop

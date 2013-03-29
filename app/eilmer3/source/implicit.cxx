@@ -121,7 +121,7 @@ int gasdynamic_point_implicit_inviscid_increment(void)
 		for ( FV_Cell *cp: bdp->active_cells ) cp->udf_source_vector_for_cell(G.dt_global);
 	    }
 	    for ( FV_Cell *cp: bdp->active_cells ) cp->inviscid_point_implicit_update_for_cell();
-	    for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(bdp->omegaz);
+	    for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(0, bdp->omegaz);
 	} // end of for jb...
 
 	// 2d. Check the record of bad cells and if any cells are bad, 
@@ -138,7 +138,7 @@ int gasdynamic_point_implicit_inviscid_increment(void)
 		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
 		for ( FV_Cell *cp: bdp->active_cells ) cp->restore_conserved();
-		for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(bdp->omegaz);
+		for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(0, bdp->omegaz);
 	    }
 	}
 
@@ -414,7 +414,7 @@ int gasdynamic_point_implicit_viscous_increment(void)
 	}
 	for ( FV_Cell *cp: bdp->active_cells ) cp->viscous_source_vector();
 	for ( FV_Cell *cp: bdp->active_cells ) point_implicit_update_for_cell(cp);
-	for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(bdp->omegaz);
+	for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(0, bdp->omegaz);
     } // end of for jb...
     cout << "=== Fin gasdynamic_point_implicit_viscous_increment ===" << endl;
 #endif

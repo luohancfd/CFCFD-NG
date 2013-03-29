@@ -376,7 +376,7 @@ int update_gas_conserved(FV_Cell *cell);
 int update_gas_extensive_conserved(FV_Cell *cell, double volume);
 int update_gas_primaries(FV_Cell *cell);
 int update_gas_primaries_from_extensive(FV_Cell *cell, double volume);
-int update_extensive_gas_time_derivatives_from_fluxes(FV_Cell *cell, size_t time_level);
+int update_extensive_gas_time_derivatives_from_fluxes(FV_Cell *cell);
 int update_gas_conserved_from_time_derivatives(FV_Cell *cell, double dt);
 int average_two_flow_states(FV_Cell *dst,
 			    FV_Cell *src0, double vol0,

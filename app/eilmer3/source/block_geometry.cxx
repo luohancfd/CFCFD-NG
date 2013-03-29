@@ -19,7 +19,7 @@
 
 //-----------------------------------------------------------------------------
 
-int Block::compute_primary_cell_geometric_data(size_t dimensions, size_t time_level)
+int Block::compute_primary_cell_geometric_data(size_t dimensions, size_t gtl)
 // Compute cell and interface geometric properties.
 {
     size_t i, j, k;
@@ -30,9 +30,9 @@ int Block::compute_primary_cell_geometric_data(size_t dimensions, size_t time_le
     Vector3 ds;
 
     if ( dimensions == 2 ) {
-	calc_volumes_2D(time_level);
-	calc_faces_2D(time_level);
-	calc_ghost_cell_geom_2D(time_level);
+	calc_volumes_2D(gtl);
+	calc_faces_2D(gtl);
+	calc_ghost_cell_geom_2D(gtl);
 	return SUCCESS;
     }
 
@@ -42,16 +42,16 @@ int Block::compute_primary_cell_geometric_data(size_t dimensions, size_t time_le
 	for ( j = jmin; j <= jmax; ++j ) {
 	    for ( k = kmin; k <= kmax; ++k ) {
 		cell = get_cell(i,j,k);
-		p0 = &(get_vtx(i,j,k)->pos[time_level]);
-		p1 = &(get_vtx(i+1,j,k)->pos[time_level]);
-		p2 = &(get_vtx(i+1,j+1,k)->pos[time_level]);
-		p3 = &(get_vtx(i,j+1,k)->pos[time_level]);
-		p4 = &(get_vtx(i,j,k+1)->pos[time_level]);
-		p5 = &(get_vtx(i+1,j,k+1)->pos[time_level]);
-		p6 = &(get_vtx(i+1,j+1,k+1)->pos[time_level]);
-		p7 = &(get_vtx(i,j+1,k+1)->pos[time_level]);
+		p0 = &(get_vtx(i,j,k)->pos[gtl]);
+		p1 = &(get_vtx(i+1,j,k)->pos[gtl]);
+		p2 = &(get_vtx(i+1,j+1,k)->pos[gtl]);
+		p3 = &(get_vtx(i,j+1,k)->pos[gtl]);
+		p4 = &(get_vtx(i,j,k+1)->pos[gtl]);
+		p5 = &(get_vtx(i+1,j,k+1)->pos[gtl]);
+		p6 = &(get_vtx(i+1,j+1,k+1)->pos[gtl]);
+		p7 = &(get_vtx(i,j+1,k+1)->pos[gtl]);
 		hex_cell_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
-				     cell->pos[time_level], cell->volume[time_level], cell->iLength,
+				     cell->pos[gtl], cell->volume[gtl], cell->iLength,
 				     cell->jLength, cell->kLength);
 		cell->L_min = cell->iLength;
 		if ( cell->jLength < cell->L_min ) cell->L_min = cell->jLength;
@@ -67,13 +67,13 @@ int Block::compute_primary_cell_geometric_data(size_t dimensions, size_t time_le
 	for ( j = jmin; j <= jmax; ++j ) {
 	    for ( k = kmin; k <= kmax; ++k ) {
 		iface = get_ifi(i,j,k);
-		p0 = &(get_vtx(i,j,k)->pos[time_level]);
-		p3 = &(get_vtx(i,j+1,k)->pos[time_level]);
-		p7 = &(get_vtx(i,j+1,k+1)->pos[time_level]);
-		p4 = &(get_vtx(i,j,k+1)->pos[time_level]);
+		p0 = &(get_vtx(i,j,k)->pos[gtl]);
+		p3 = &(get_vtx(i,j+1,k)->pos[gtl]);
+		p7 = &(get_vtx(i,j+1,k+1)->pos[gtl]);
+		p4 = &(get_vtx(i,j,k+1)->pos[gtl]);
 		quad_properties( *p0, *p3, *p7, *p4,
 				 iface->pos, iface->n, iface->t1, iface->t2,
-				 iface->area[time_level] );
+				 iface->area[gtl] );
 	    }
 	}
     }
@@ -85,13 +85,13 @@ int Block::compute_primary_cell_geometric_data(size_t dimensions, size_t time_le
 	for ( j = jmin; j <= jmax + 1; ++j ) {
 	    for ( k = kmin; k <= kmax; ++k ) {
 		iface = get_ifj(i,j,k);
-		p0 = &(get_vtx(i,j,k)->pos[time_level]);
-		p4 = &(get_vtx(i,j,k+1)->pos[time_level]);
-		p5 = &(get_vtx(i+1,j,k+1)->pos[time_level]);
-		p1 = &(get_vtx(i+1,j,k)->pos[time_level]);
+		p0 = &(get_vtx(i,j,k)->pos[gtl]);
+		p4 = &(get_vtx(i,j,k+1)->pos[gtl]);
+		p5 = &(get_vtx(i+1,j,k+1)->pos[gtl]);
+		p1 = &(get_vtx(i+1,j,k)->pos[gtl]);
 		quad_properties( *p0, *p4, *p5, *p1,
 				 iface->pos, iface->n, iface->t1, iface->t2,
-				 iface->area[time_level] );
+				 iface->area[gtl] );
 	    }
 	}
     }
@@ -103,13 +103,13 @@ int Block::compute_primary_cell_geometric_data(size_t dimensions, size_t time_le
 	for ( j = jmin; j <= jmax; ++j ) {
 	    for ( k = kmin; k <= kmax + 1; ++k ) {
 		iface = get_ifk(i,j,k);
-		p0 = &(get_vtx(i,j,k)->pos[time_level]);
-		p1 = &(get_vtx(i+1,j,k)->pos[time_level]);
-		p2 = &(get_vtx(i+1,j+1,k)->pos[time_level]);
-		p3 = &(get_vtx(i,j+1,k)->pos[time_level]);
+		p0 = &(get_vtx(i,j,k)->pos[gtl]);
+		p1 = &(get_vtx(i+1,j,k)->pos[gtl]);
+		p2 = &(get_vtx(i+1,j+1,k)->pos[gtl]);
+		p3 = &(get_vtx(i,j+1,k)->pos[gtl]);
 		quad_properties( *p0, *p1, *p2, *p3,
 				 iface->pos, iface->n, iface->t1, iface->t2,
-				 iface->area[time_level] );
+				 iface->area[gtl] );
 	    }
 	}
     }
@@ -119,36 +119,36 @@ int Block::compute_primary_cell_geometric_data(size_t dimensions, size_t time_le
 	for ( k = kmin; k <= kmax; ++k ) {
 	    i = imin;
 	    cell = get_cell(i,j,k);
-	    get_cell(i-1,j,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, time_level);
-	    get_cell(i-2,j,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, time_level);
+	    get_cell(i-1,j,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
+	    get_cell(i-2,j,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
 	    i = imax;
 	    cell = get_cell(i,j,k);
-	    get_cell(i+1,j,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, time_level);
-	    get_cell(i+2,j,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, time_level);
+	    get_cell(i+1,j,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
+	    get_cell(i+2,j,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
 	}
     }
     for ( i = imin; i <= imax; ++i ) {
 	for ( k = kmin; k <= kmax; ++k ) {
 	    j = jmin;
 	    cell = get_cell(i,j,k);
-	    get_cell(i,j-1,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, time_level);
-	    get_cell(i,j-2,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, time_level);
+	    get_cell(i,j-1,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
+	    get_cell(i,j-2,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
 	    j = jmax;
 	    cell = get_cell(i,j,k);
-	    get_cell(i,j+1,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, time_level);
-	    get_cell(i,j+2,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, time_level);
+	    get_cell(i,j+1,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
+	    get_cell(i,j+2,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
 	}
     }
     for ( i = imin; i <= imax; ++i ) {
 	for ( j = jmin; j <= jmax; ++j ) {
 	    k = kmin;
 	    cell = get_cell(i,j,k);
-	    get_cell(i,j,k-1)->copy_values_from(*cell, COPY_CELL_LENGTHS, time_level);
-	    get_cell(i,j,k-2)->copy_values_from(*cell, COPY_CELL_LENGTHS, time_level);
+	    get_cell(i,j,k-1)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
+	    get_cell(i,j,k-2)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
 	    k = kmax;
 	    cell = get_cell(i,j,k);
-	    get_cell(i,j,k+1)->copy_values_from(*cell, COPY_CELL_LENGTHS, time_level);
-	    get_cell(i,j,k+2)->copy_values_from(*cell, COPY_CELL_LENGTHS, time_level);
+	    get_cell(i,j,k+1)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
+	    get_cell(i,j,k+2)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
 	}
     }
 
@@ -159,24 +159,24 @@ int Block::compute_primary_cell_geometric_data(size_t dimensions, size_t time_le
 	    cell_1 = get_cell(i,j,k);
 	    cell_2 = get_cell(i+1,j,k);
 	    ghost_cell = get_cell(i-1,j,k);
-	    ghost_cell->pos[time_level] = 2.0*cell_1->pos[time_level] - cell_2->pos[time_level];
-	    ghost_cell->volume[time_level] = 2.0*cell_1->volume[time_level] - cell_2->volume[time_level];
+	    ghost_cell->pos[gtl] = 2.0*cell_1->pos[gtl] - cell_2->pos[gtl];
+	    ghost_cell->volume[gtl] = 2.0*cell_1->volume[gtl] - cell_2->volume[gtl];
 	    cell_2 = cell_1;
 	    cell_1 = ghost_cell;
 	    ghost_cell = get_cell(i-2,j,k);
-	    ghost_cell->pos[time_level] = 2.0*cell_1->pos[time_level] - cell_2->pos[time_level];
-	    ghost_cell->volume[time_level] = 2.0*cell_2->volume[time_level] - cell_2->volume[time_level];
+	    ghost_cell->pos[gtl] = 2.0*cell_1->pos[gtl] - cell_2->pos[gtl];
+	    ghost_cell->volume[gtl] = 2.0*cell_2->volume[gtl] - cell_2->volume[gtl];
 	    i = imax;
 	    cell_1 = get_cell(i,j,k);
 	    cell_2 = get_cell(i-1,j,k);
 	    ghost_cell = get_cell(i+1,j,k);
-	    ghost_cell->pos[time_level] = 2.0*cell_1->pos[time_level] - cell_2->pos[time_level];
-	    ghost_cell->volume[time_level] = 2.0*cell_1->volume[time_level] - cell_2->volume[time_level];
+	    ghost_cell->pos[gtl] = 2.0*cell_1->pos[gtl] - cell_2->pos[gtl];
+	    ghost_cell->volume[gtl] = 2.0*cell_1->volume[gtl] - cell_2->volume[gtl];
 	    cell_2 = cell_1;
 	    cell_1 = ghost_cell;
 	    ghost_cell = get_cell(i+2,j,k);
-	    ghost_cell->pos[time_level] = 2.0*cell_1->pos[time_level] - cell_2->pos[time_level];
-	    ghost_cell->volume[time_level] = 2.0*cell_1->volume[time_level] - cell_2->volume[time_level];
+	    ghost_cell->pos[gtl] = 2.0*cell_1->pos[gtl] - cell_2->pos[gtl];
+	    ghost_cell->volume[gtl] = 2.0*cell_1->volume[gtl] - cell_2->volume[gtl];
 	}
     }
     for ( i = imin; i <= imax; ++i ) {
@@ -185,24 +185,24 @@ int Block::compute_primary_cell_geometric_data(size_t dimensions, size_t time_le
 	    cell_1 = get_cell(i,j,k);
 	    cell_2 = get_cell(i,j+1,k);
 	    ghost_cell = get_cell(i,j-1,k);
-	    ghost_cell->pos[time_level] = 2.0*cell_1->pos[time_level] - cell_2->pos[time_level];
-	    ghost_cell->volume[time_level] = 2.0*cell_1->volume[time_level] - cell_2->volume[time_level];
+	    ghost_cell->pos[gtl] = 2.0*cell_1->pos[gtl] - cell_2->pos[gtl];
+	    ghost_cell->volume[gtl] = 2.0*cell_1->volume[gtl] - cell_2->volume[gtl];
 	    cell_2 = cell_1;
 	    cell_1 = ghost_cell;
 	    ghost_cell = get_cell(i,j-2,k);
-	    ghost_cell->pos[time_level] = 2.0*cell_1->pos[time_level] - cell_2->pos[time_level];
-	    ghost_cell->volume[time_level] = 2.0*cell_1->volume[time_level] - cell_2->volume[time_level];
+	    ghost_cell->pos[gtl] = 2.0*cell_1->pos[gtl] - cell_2->pos[gtl];
+	    ghost_cell->volume[gtl] = 2.0*cell_1->volume[gtl] - cell_2->volume[gtl];
 	    j = jmax;
 	    cell_1 = get_cell(i,j,k);
 	    cell_2 = get_cell(i,j-1,k);
 	    ghost_cell = get_cell(i,j+1,k);
-	    ghost_cell->pos[time_level] = 2.0*cell_1->pos[time_level] - cell_2->pos[time_level];
-	    ghost_cell->volume[time_level] = 2.0*cell_1->volume[time_level] - cell_2->volume[time_level];
+	    ghost_cell->pos[gtl] = 2.0*cell_1->pos[gtl] - cell_2->pos[gtl];
+	    ghost_cell->volume[gtl] = 2.0*cell_1->volume[gtl] - cell_2->volume[gtl];
 	    cell_2 = cell_1;
 	    cell_1 = ghost_cell;
 	    ghost_cell = get_cell(i,j+2,k);
-	    ghost_cell->pos[time_level] = 2.0*cell_1->pos[time_level] - cell_2->pos[time_level];
-	    ghost_cell->volume[time_level] = 2.0*cell_1->volume[time_level] - cell_2->volume[time_level];
+	    ghost_cell->pos[gtl] = 2.0*cell_1->pos[gtl] - cell_2->pos[gtl];
+	    ghost_cell->volume[gtl] = 2.0*cell_1->volume[gtl] - cell_2->volume[gtl];
 	}
     }
     for ( i = imin; i <= imax; ++i ) {
@@ -211,31 +211,31 @@ int Block::compute_primary_cell_geometric_data(size_t dimensions, size_t time_le
 	    cell_1 = get_cell(i,j,k);
 	    cell_2 = get_cell(i,j,k+1);
 	    ghost_cell = get_cell(i,j,k-1);
-	    ghost_cell->pos[time_level] = 2.0*cell_1->pos[time_level] - cell_2->pos[time_level];
-	    ghost_cell->volume[time_level] = 2.0*cell_1->volume[time_level] - cell_2->volume[time_level];
+	    ghost_cell->pos[gtl] = 2.0*cell_1->pos[gtl] - cell_2->pos[gtl];
+	    ghost_cell->volume[gtl] = 2.0*cell_1->volume[gtl] - cell_2->volume[gtl];
 	    cell_2 = cell_1;
 	    cell_1 = ghost_cell;
 	    ghost_cell = get_cell(i,j,k-2);
-	    ghost_cell->pos[time_level] = 2.0*cell_1->pos[time_level] - cell_2->pos[time_level];
-	    ghost_cell->volume[time_level] = 2.0*cell_1->volume[time_level] - cell_2->volume[time_level];
+	    ghost_cell->pos[gtl] = 2.0*cell_1->pos[gtl] - cell_2->pos[gtl];
+	    ghost_cell->volume[gtl] = 2.0*cell_1->volume[gtl] - cell_2->volume[gtl];
 	    k = kmax;
 	    cell_1 = get_cell(i,j,k);
 	    cell_2 = get_cell(i,j,k-1);
 	    ghost_cell = get_cell(i,j,k+1);
-	    ghost_cell->pos[time_level] = 2.0*cell_1->pos[time_level] - cell_2->pos[time_level];
-	    ghost_cell->volume[time_level] = 2.0*cell_1->volume[time_level] - cell_2->volume[time_level];
+	    ghost_cell->pos[gtl] = 2.0*cell_1->pos[gtl] - cell_2->pos[gtl];
+	    ghost_cell->volume[gtl] = 2.0*cell_1->volume[gtl] - cell_2->volume[gtl];
 	    cell_2 = cell_1;
 	    cell_1 = ghost_cell;
 	    ghost_cell = get_cell(i,j,k+2);
-	    ghost_cell->pos[time_level] = 2.0*cell_1->pos[time_level] - cell_2->pos[time_level];
-	    ghost_cell->volume[time_level] = 2.0*cell_1->volume[time_level] - cell_2->volume[time_level];
+	    ghost_cell->pos[gtl] = 2.0*cell_1->pos[gtl] - cell_2->pos[gtl];
+	    ghost_cell->volume[gtl] = 2.0*cell_1->volume[gtl] - cell_2->volume[gtl];
 	}
     }
     
     return SUCCESS;
 } // end compute_primary_cell_geometric_data()
 
-int Block::compute_distance_to_nearest_wall_for_all_cells(size_t dimensions, size_t time_level)
+int Block::compute_distance_to_nearest_wall_for_all_cells(size_t dimensions, size_t gtl)
 {
     FV_Cell *cell_at_wall[6];
     double dist[6], half_width[6];
@@ -249,35 +249,35 @@ int Block::compute_distance_to_nearest_wall_for_all_cells(size_t dimensions, siz
 	// straight to the bounding walls.
 	// North
 	face_at_wall = get_ifj(i,jmax+1,k);
-	dist[NORTH] = vabs(cellp->pos[time_level] - face_at_wall->pos);
+	dist[NORTH] = vabs(cellp->pos[gtl] - face_at_wall->pos);
 	cell_at_wall[NORTH] = get_cell(i,jmax,k);
-	half_width[NORTH] = vabs(cell_at_wall[NORTH]->pos[time_level] - face_at_wall->pos);
+	half_width[NORTH] = vabs(cell_at_wall[NORTH]->pos[gtl] - face_at_wall->pos);
 	// East
 	face_at_wall = get_ifi(imax+1,j,k);
-	dist[EAST] = vabs(cellp->pos[time_level] - face_at_wall->pos);
+	dist[EAST] = vabs(cellp->pos[gtl] - face_at_wall->pos);
 	cell_at_wall[EAST] = get_cell(imax,j,k);
-	half_width[EAST] = vabs(cell_at_wall[EAST]->pos[time_level] - face_at_wall->pos);
+	half_width[EAST] = vabs(cell_at_wall[EAST]->pos[gtl] - face_at_wall->pos);
 	// South
 	face_at_wall = get_ifj(i,jmin,k);
-	dist[SOUTH] = vabs(cellp->pos[time_level] - face_at_wall->pos);
+	dist[SOUTH] = vabs(cellp->pos[gtl] - face_at_wall->pos);
 	cell_at_wall[SOUTH] = get_cell(i,jmin,k);
-	half_width[SOUTH] = vabs(cell_at_wall[SOUTH]->pos[time_level] - face_at_wall->pos);
+	half_width[SOUTH] = vabs(cell_at_wall[SOUTH]->pos[gtl] - face_at_wall->pos);
 	// West
 	face_at_wall = get_ifi(imin,j,k);
-	dist[WEST] = vabs(cellp->pos[time_level] - face_at_wall->pos);
+	dist[WEST] = vabs(cellp->pos[gtl] - face_at_wall->pos);
 	cell_at_wall[WEST] = get_cell(imin,j,k);
-	half_width[WEST] = vabs(cell_at_wall[WEST]->pos[time_level] - face_at_wall->pos);
+	half_width[WEST] = vabs(cell_at_wall[WEST]->pos[gtl] - face_at_wall->pos);
 	if ( dimensions == 3 ) {
 	    // Top
 	    face_at_wall = get_ifk(i,j,kmax+1);
-	    dist[TOP] = vabs(cellp->pos[time_level] - face_at_wall->pos);
+	    dist[TOP] = vabs(cellp->pos[gtl] - face_at_wall->pos);
 	    cell_at_wall[TOP] = get_cell(i,j,kmax);
-	    half_width[TOP] = vabs(cell_at_wall[TOP]->pos[time_level] - face_at_wall->pos);
+	    half_width[TOP] = vabs(cell_at_wall[TOP]->pos[gtl] - face_at_wall->pos);
 	    // Bottom
 	    face_at_wall = get_ifk(i,j,kmin);
-	    dist[BOTTOM] = vabs(cellp->pos[time_level] - face_at_wall->pos);
+	    dist[BOTTOM] = vabs(cellp->pos[gtl] - face_at_wall->pos);
 	    cell_at_wall[BOTTOM] = get_cell(i,j,kmin);
-	    half_width[BOTTOM] = vabs(cell_at_wall[BOTTOM]->pos[time_level] - face_at_wall->pos);
+	    half_width[BOTTOM] = vabs(cell_at_wall[BOTTOM]->pos[gtl] - face_at_wall->pos);
 	} else {
 	    cell_at_wall[TOP] = NULL;
 	    dist[TOP] = 0.0;
@@ -321,7 +321,7 @@ int Block::compute_distance_to_nearest_wall_for_all_cells(size_t dimensions, siz
     return SUCCESS;
 } // end compute_distance_to_nearest_wall_for_all_cells()
 
-int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_level)
+int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t gtl)
 // Compute secondary-cell and interface geometric properties.
 // Will be used for computing gradients for viscous terms.
 //
@@ -339,7 +339,7 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
     Vector3 ds;
 
     if ( dimensions == 2 ) {
-	secondary_areas_2D(time_level);
+	secondary_areas_2D(gtl);
 	return SUCCESS;
     }
 
@@ -350,14 +350,14 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
 	for ( j = jmin; j <= jmax-1; ++j ) {
 	    for ( k = kmin; k <= kmax-1; ++k ) {
 		vertex = get_vtx(i+1,j+1,k+1);
-		p0 = &(get_cell(i,j,k)->pos[time_level]);
-		p1 = &(get_cell(i+1,j,k)->pos[time_level]);
-		p2 = &(get_cell(i+1,j+1,k)->pos[time_level]);
-		p3 = &(get_cell(i,j+1,k)->pos[time_level]);
-		p4 = &(get_cell(i,j,k+1)->pos[time_level]);
-		p5 = &(get_cell(i+1,j,k+1)->pos[time_level]);
-		p6 = &(get_cell(i+1,j+1,k+1)->pos[time_level]);
-		p7 = &(get_cell(i,j+1,k+1)->pos[time_level]);
+		p0 = &(get_cell(i,j,k)->pos[gtl]);
+		p1 = &(get_cell(i+1,j,k)->pos[gtl]);
+		p2 = &(get_cell(i+1,j+1,k)->pos[gtl]);
+		p3 = &(get_cell(i,j+1,k)->pos[gtl]);
+		p4 = &(get_cell(i,j,k+1)->pos[gtl]);
+		p5 = &(get_cell(i+1,j,k+1)->pos[gtl]);
+		p6 = &(get_cell(i+1,j+1,k+1)->pos[gtl]);
+		p7 = &(get_cell(i,j+1,k+1)->pos[gtl]);
 		hex_cell_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
 				     dummy, vertex->volume, iLen, jLen, kLen );
 	    }
@@ -367,13 +367,13 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
 	for ( j = jmin; j <= jmax-1; ++j ) {
 	    for ( k = kmin; k <= kmax-1; ++k ) {
 		iface = get_sifi(i,j,k);
-		p0 = &(get_cell(i,j,k)->pos[time_level]);
-		p3 = &(get_cell(i,j+1,k)->pos[time_level]);
-		p7 = &(get_cell(i,j+1,k+1)->pos[time_level]);
-		p4 = &(get_cell(i,j,k+1)->pos[time_level]);
+		p0 = &(get_cell(i,j,k)->pos[gtl]);
+		p3 = &(get_cell(i,j+1,k)->pos[gtl]);
+		p7 = &(get_cell(i,j+1,k+1)->pos[gtl]);
+		p4 = &(get_cell(i,j,k+1)->pos[gtl]);
 		quad_properties( *p0, *p3, *p7, *p4,
 				 iface->pos, iface->n, iface->t1, iface->t2,
-				 iface->area[time_level] );
+				 iface->area[gtl] );
 	    }
 	}
     }
@@ -381,13 +381,13 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
 	for ( j = jmin; j <= jmax; ++j ) {
 	    for ( k = kmin; k <= kmax-1; ++k ) {
 		iface = get_sifj(i,j,k);
-		p0 = &(get_cell(i,j,k)->pos[time_level]);
-		p4 = &(get_cell(i,j,k+1)->pos[time_level]);
-		p5 = &(get_cell(i+1,j,k+1)->pos[time_level]);
-		p1 = &(get_cell(i+1,j,k)->pos[time_level]);
+		p0 = &(get_cell(i,j,k)->pos[gtl]);
+		p4 = &(get_cell(i,j,k+1)->pos[gtl]);
+		p5 = &(get_cell(i+1,j,k+1)->pos[gtl]);
+		p1 = &(get_cell(i+1,j,k)->pos[gtl]);
 		quad_properties( *p0, *p4, *p5, *p1,
 				 iface->pos, iface->n, iface->t1, iface->t2,
-				 iface->area[time_level] );
+				 iface->area[gtl] );
 	    }
 	}
     }
@@ -395,13 +395,13 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
 	for ( j = jmin; j <= jmax-1; ++j ) {
 	    for ( k = kmin; k <= kmax; ++k ) {
 		iface = get_sifk(i,j,k);
-		p0 = &(get_cell(i,j,k)->pos[time_level]);
-		p1 = &(get_cell(i+1,j,k)->pos[time_level]);
-		p2 = &(get_cell(i+1,j+1,k)->pos[time_level]);
-		p3 = &(get_cell(i,j+1,k)->pos[time_level]);
+		p0 = &(get_cell(i,j,k)->pos[gtl]);
+		p1 = &(get_cell(i+1,j,k)->pos[gtl]);
+		p2 = &(get_cell(i+1,j+1,k)->pos[gtl]);
+		p3 = &(get_cell(i,j+1,k)->pos[gtl]);
 		quad_properties( *p0, *p1, *p2, *p3,
 				 iface->pos, iface->n, iface->t1, iface->t2,
-				 iface->area[time_level] );
+				 iface->area[gtl] );
 	    }
 	}
     }
@@ -413,14 +413,14 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
     for ( j = jmin; j <= jmax-1; ++j ) {
 	for ( k = kmin; k <= kmax-1; ++k ) {
 	    vertex = get_vtx(i+1,j+1,k+1);
-	    p0 = &(get_cell(i,j,k)->pos[time_level]);
+	    p0 = &(get_cell(i,j,k)->pos[gtl]);
 	    p1 = &(get_ifi(i+1,j,k)->pos);
 	    p2 = &(get_ifi(i+1,j+1,k)->pos);
-	    p3 = &(get_cell(i,j+1,k)->pos[time_level]);
-	    p4 = &(get_cell(i,j,k+1)->pos[time_level]);
+	    p3 = &(get_cell(i,j+1,k)->pos[gtl]);
+	    p4 = &(get_cell(i,j,k+1)->pos[gtl]);
 	    p5 = &(get_ifi(i+1,j,k+1)->pos);
 	    p6 = &(get_ifi(i+1,j+1,k+1)->pos);
-	    p7 = &(get_cell(i,j+1,k+1)->pos[time_level]);
+	    p7 = &(get_cell(i,j+1,k+1)->pos[gtl]);
 	    hex_cell_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
 				 dummy, vertex->volume, iLen, jLen, kLen );
 	}
@@ -434,31 +434,31 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
 	    p5 = &(get_ifi(i+1,j,k+1)->pos);
 	    quad_properties( *p1, *p2, *p6, *p5,
 			     iface->pos, iface->n, iface->t1, iface->t2,
-			     iface->area[time_level] );
+			     iface->area[gtl] );
 	}
     }
     for ( j = jmin; j <= jmax; ++j ) {
 	for ( k = kmin; k <= kmax-1; ++k ) {
 	    iface = get_sifj(i,j,k);
-	    p0 = &(get_cell(i,j,k)->pos[time_level]);
-	    p4 = &(get_cell(i,j,k+1)->pos[time_level]);
+	    p0 = &(get_cell(i,j,k)->pos[gtl]);
+	    p4 = &(get_cell(i,j,k+1)->pos[gtl]);
 	    p5 = &(get_ifi(i+1,j,k+1)->pos);
 	    p1 = &(get_ifi(i+1,j,k)->pos);
 	    quad_properties( *p0, *p4, *p5, *p1,
 			     iface->pos, iface->n, iface->t1, iface->t2,
-			     iface->area[time_level] );
+			     iface->area[gtl] );
 	}
     }
     for ( j = jmin; j <= jmax-1; ++j ) {
 	for ( k = kmin; k <= kmax; ++k ) {
 	    iface = get_sifk(i,j,k);
-	    p0 = &(get_cell(i,j,k)->pos[time_level]);
+	    p0 = &(get_cell(i,j,k)->pos[gtl]);
 	    p1 = &(get_ifi(i+1,j,k)->pos);
 	    p2 = &(get_ifi(i+1,j+1,k)->pos);
-	    p3 = &(get_cell(i,j+1,k)->pos[time_level]);
+	    p3 = &(get_cell(i,j+1,k)->pos[gtl]);
 	    quad_properties( *p0, *p1, *p2, *p3,
 			     iface->pos, iface->n, iface->t1, iface->t2,
-			     iface->area[time_level] );
+			     iface->area[gtl] );
 	}
     }
 
@@ -470,12 +470,12 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
 	for ( k = kmin; k <= kmax-1; ++k ) {
 	    vertex = get_vtx(i+1,j+1,k+1);
 	    p0 = &(get_ifi(i+1,j,k)->pos);
-	    p1 = &(get_cell(i+1,j,k)->pos[time_level]);
-	    p2 = &(get_cell(i+1,j+1,k)->pos[time_level]);
+	    p1 = &(get_cell(i+1,j,k)->pos[gtl]);
+	    p2 = &(get_cell(i+1,j+1,k)->pos[gtl]);
 	    p3 = &(get_ifi(i+1,j+1,k)->pos);
 	    p4 = &(get_ifi(i+1,j,k+1)->pos);
-	    p5 = &(get_cell(i+1,j,k+1)->pos[time_level]);
-	    p6 = &(get_cell(i+1,j+1,k+1)->pos[time_level]);
+	    p5 = &(get_cell(i+1,j,k+1)->pos[gtl]);
+	    p6 = &(get_cell(i+1,j+1,k+1)->pos[gtl]);
 	    p7 = &(get_ifi(i+1,j+1,k+1)->pos);
 	    hex_cell_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
 				 dummy, vertex->volume, iLen, jLen, kLen );
@@ -490,7 +490,7 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
 	    p4 = &(get_ifi(i+1,j,k+1)->pos);
 	    quad_properties( *p0, *p3, *p7, *p4,
 			     iface->pos, iface->n, iface->t1, iface->t2,
-			     iface->area[time_level] );
+			     iface->area[gtl] );
 	}
     }
     for ( j = jmin; j <= jmax; ++j ) {
@@ -498,23 +498,23 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
 	    iface = get_sifj(i,j,k);
 	    p0 = &(get_ifi(i+1,j,k)->pos);
 	    p4 = &(get_ifi(i+1,j,k+1)->pos);
-	    p5 = &(get_cell(i+1,j,k+1)->pos[time_level]);
-	    p1 = &(get_cell(i+1,j,k)->pos[time_level]);
+	    p5 = &(get_cell(i+1,j,k+1)->pos[gtl]);
+	    p1 = &(get_cell(i+1,j,k)->pos[gtl]);
 	    quad_properties( *p0, *p4, *p5, *p1,
 			     iface->pos, iface->n, iface->t1, iface->t2,
-			     iface->area[time_level] );
+			     iface->area[gtl] );
 	}
     }
     for ( j = jmin; j <= jmax-1; ++j ) {
 	for ( k = kmin; k <= kmax; ++k ) {
 	    iface = get_sifk(i,j,k);
 	    p0 = &(get_ifi(i+1,j,k)->pos);
-	    p1 = &(get_cell(i+1,j,k)->pos[time_level]);
-	    p2 = &(get_cell(i+1,j+1,k)->pos[time_level]);
+	    p1 = &(get_cell(i+1,j,k)->pos[gtl]);
+	    p2 = &(get_cell(i+1,j+1,k)->pos[gtl]);
 	    p3 = &(get_ifi(i+1,j+1,k)->pos);
 	    quad_properties( *p0, *p1, *p2, *p3,
 			     iface->pos, iface->n, iface->t1, iface->t2,
-			     iface->area[time_level] );
+			     iface->area[gtl] );
 	}
     }
 
@@ -525,12 +525,12 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
     for ( i = imin; i <= imax-1; ++i ) {
 	for ( k = kmin; k <= kmax-1; ++k ) {
 	    vertex = get_vtx(i+1,j+1,k+1);
-	    p0 = &(get_cell(i,j,k)->pos[time_level]);
-	    p1 = &(get_cell(i+1,j,k)->pos[time_level]);
+	    p0 = &(get_cell(i,j,k)->pos[gtl]);
+	    p1 = &(get_cell(i+1,j,k)->pos[gtl]);
 	    p2 = &(get_ifj(i+1,j+1,k)->pos);
 	    p3 = &(get_ifj(i,j+1,k)->pos);
-	    p4 = &(get_cell(i,j,k+1)->pos[time_level]);
-	    p5 = &(get_cell(i+1,j,k+1)->pos[time_level]);
+	    p4 = &(get_cell(i,j,k+1)->pos[gtl]);
+	    p5 = &(get_cell(i+1,j,k+1)->pos[gtl]);
 	    p6 = &(get_ifj(i+1,j+1,k+1)->pos);
 	    p7 = &(get_ifj(i,j+1,k+1)->pos);
 	    hex_cell_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
@@ -540,13 +540,13 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
     for ( i = imin; i <= imax; ++i ) {
 	for (k = kmin; k <= kmax-1; ++k) {
 	    iface = get_sifi(i,j,k);
-	    p0 = &(get_cell(i,j,k)->pos[time_level]);
+	    p0 = &(get_cell(i,j,k)->pos[gtl]);
 	    p3 = &(get_ifj(i,j+1,k)->pos);
 	    p7 = &(get_ifj(i,j+1,k+1)->pos);
-	    p4 = &(get_cell(i,j,k+1)->pos[time_level]);
+	    p4 = &(get_cell(i,j,k+1)->pos[gtl]);
 	    quad_properties( *p0, *p3, *p7, *p4,
 			     iface->pos, iface->n, iface->t1, iface->t2,
-			     iface->area[time_level] );
+			     iface->area[gtl] );
 	}
     }
     for ( i = imin; i <= imax-1; ++i ) {
@@ -558,19 +558,19 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
 	    p2 = &(get_ifj(i+1,j+1,k)->pos);
 	    quad_properties( *p3, *p7, *p6, *p2,
 			     iface->pos, iface->n, iface->t1, iface->t2,
-			     iface->area[time_level] );
+			     iface->area[gtl] );
 	}
     }
     for ( i = imin; i <= imax-1; ++i ) {
 	for ( k = kmin; k <= kmax; ++k ) {
 	    iface = get_sifk(i,j,k);
-	    p0 = &(get_cell(i,j,k)->pos[time_level]);
-	    p1 = &(get_cell(i+1,j,k)->pos[time_level]);
+	    p0 = &(get_cell(i,j,k)->pos[gtl]);
+	    p1 = &(get_cell(i+1,j,k)->pos[gtl]);
 	    p2 = &(get_ifj(i+1,j+1,k)->pos);
 	    p3 = &(get_ifj(i,j+1,k)->pos);
 	    quad_properties( *p0, *p1, *p2, *p3,
 			     iface->pos, iface->n, iface->t1, iface->t2,
-			     iface->area[time_level] );
+			     iface->area[gtl] );
 	}
     }
 
@@ -583,12 +583,12 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
 	    vertex = get_vtx(i+1,j+1,k+1);
 	    p0 = &(get_ifj(i,j+1,k)->pos);
 	    p1 = &(get_ifj(i+1,j+1,k)->pos);
-	    p2 = &(get_cell(i+1,j+1,k)->pos[time_level]);
-	    p3 = &(get_cell(i,j+1,k)->pos[time_level]);
+	    p2 = &(get_cell(i+1,j+1,k)->pos[gtl]);
+	    p3 = &(get_cell(i,j+1,k)->pos[gtl]);
 	    p4 = &(get_ifj(i,j+1,k+1)->pos);
 	    p5 = &(get_ifj(i+1,j+1,k+1)->pos);
-	    p6 = &(get_cell(i+1,j+1,k+1)->pos[time_level]);
-	    p7 = &(get_cell(i,j+1,k+1)->pos[time_level]);
+	    p6 = &(get_cell(i+1,j+1,k+1)->pos[gtl]);
+	    p7 = &(get_cell(i,j+1,k+1)->pos[gtl]);
 	    hex_cell_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
 				 dummy, vertex->volume, iLen, jLen, kLen );
 	}
@@ -597,12 +597,12 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
 	for ( k = kmin; k <= kmax-1; ++k ) {
 	    iface = get_sifi(i,j,k);
 	    p0 = &(get_ifj(i,j+1,k)->pos);
-	    p3 = &(get_cell(i,j+1,k)->pos[time_level]);
-	    p7 = &(get_cell(i,j+1,k+1)->pos[time_level]);
+	    p3 = &(get_cell(i,j+1,k)->pos[gtl]);
+	    p7 = &(get_cell(i,j+1,k+1)->pos[gtl]);
 	    p4 = &(get_ifj(i,j+1,k+1)->pos);
 	    quad_properties( *p0, *p3, *p7, *p4,
 			     iface->pos, iface->n, iface->t1, iface->t2,
-			     iface->area[time_level] );
+			     iface->area[gtl] );
 	}
     }
     for ( i = imin; i <= imax-1; ++i ) {
@@ -614,7 +614,7 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
 	    p1 = &(get_ifj(i+1,j+1,k)->pos);
 	    quad_properties( *p0, *p4, *p5, *p1,
 			     iface->pos, iface->n, iface->t1, iface->t2,
-			     iface->area[time_level] );
+			     iface->area[gtl] );
 	}
     }
     for ( i = imin; i <= imax-1; ++i ) {
@@ -622,11 +622,11 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
 	    iface = get_sifk(i,j,k);
 	    p0 = &(get_ifj(i,j+1,k)->pos);
 	    p1 = &(get_ifj(i+1,j+1,k)->pos);
-	    p2 = &(get_cell(i+1,j+1,k)->pos[time_level]);
-	    p3 = &(get_cell(i,j+1,k)->pos[time_level]);
+	    p2 = &(get_cell(i+1,j+1,k)->pos[gtl]);
+	    p3 = &(get_cell(i,j+1,k)->pos[gtl]);
 	    quad_properties( *p0, *p1, *p2, *p3,
 			     iface->pos, iface->n, iface->t1, iface->t2,
-			     iface->area[time_level] );
+			     iface->area[gtl] );
 	}
     }
 
@@ -637,10 +637,10 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
     for ( i = imin; i <= imax-1; ++i ) {
 	for ( j = jmin; j <= jmax-1; ++j ) {
 	    vertex = get_vtx(i+1,j+1,k+1);
-	    p0 = &(get_cell(i,j,k)->pos[time_level]);
-	    p1 = &(get_cell(i+1,j,k)->pos[time_level]);
-	    p2 = &(get_cell(i+1,j+1,k)->pos[time_level]);
-	    p3 = &(get_cell(i,j+1,k)->pos[time_level]);
+	    p0 = &(get_cell(i,j,k)->pos[gtl]);
+	    p1 = &(get_cell(i+1,j,k)->pos[gtl]);
+	    p2 = &(get_cell(i+1,j+1,k)->pos[gtl]);
+	    p3 = &(get_cell(i,j+1,k)->pos[gtl]);
 	    p4 = &(get_ifk(i,j,k+1)->pos);
 	    p5 = &(get_ifk(i+1,j,k+1)->pos);
 	    p6 = &(get_ifk(i+1,j+1,k+1)->pos);
@@ -652,25 +652,25 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
     for ( i = imin; i <= imax; ++i ) {
 	for ( j = jmin; j <= jmax-1; ++j ) {
 	    iface = get_sifi(i,j,k);
-	    p0 = &(get_cell(i,j,k)->pos[time_level]);
-	    p3 = &(get_cell(i,j+1,k)->pos[time_level]);
+	    p0 = &(get_cell(i,j,k)->pos[gtl]);
+	    p3 = &(get_cell(i,j+1,k)->pos[gtl]);
 	    p7 = &(get_ifk(i,j+1,k+1)->pos);
 	    p4 = &(get_ifk(i,j,k+1)->pos);
 	    quad_properties( *p0, *p3, *p7, *p4,
 			     iface->pos, iface->n, iface->t1, iface->t2,
-			     iface->area[time_level] );
+			     iface->area[gtl] );
 	}
     }
     for ( i = imin; i <= imax-1; ++i ) {
 	for ( j = jmin; j <= jmax; ++j ) {
 	    iface = get_sifj(i,j,k);
-	    p0 = &(get_cell(i,j,k)->pos[time_level]);
+	    p0 = &(get_cell(i,j,k)->pos[gtl]);
 	    p4 = &(get_ifk(i,j,k+1)->pos);
 	    p5 = &(get_ifk(i+1,j,k+1)->pos);
-	    p1 = &(get_cell(i+1,j,k)->pos[time_level]);
+	    p1 = &(get_cell(i+1,j,k)->pos[gtl]);
 	    quad_properties( *p0, *p4, *p5, *p1,
 			     iface->pos, iface->n, iface->t1, iface->t2,
-			     iface->area[time_level] );
+			     iface->area[gtl] );
 	}
     }
     for ( i = imin; i <= imax-1; ++i ) {
@@ -682,7 +682,7 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
 	    p7 = &(get_ifk(i,j+1,k+1)->pos);
 	    quad_properties( *p4, *p5, *p6, *p7,
 			     iface->pos, iface->n, iface->t1, iface->t2,
-			     iface->area[time_level] );
+			     iface->area[gtl] );
 	}
     }
 
@@ -697,10 +697,10 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
 	    p1 = &(get_ifk(i+1,j,k+1)->pos);
 	    p2 = &(get_ifk(i+1,j+1,k+1)->pos);
 	    p3 = &(get_ifk(i,j+1,k+1)->pos);
-	    p4 = &(get_cell(i,j,k+1)->pos[time_level]);
-	    p5 = &(get_cell(i+1,j,k+1)->pos[time_level]);
-	    p6 = &(get_cell(i+1,j+1,k+1)->pos[time_level]);
-	    p7 = &(get_cell(i,j+1,k+1)->pos[time_level]);
+	    p4 = &(get_cell(i,j,k+1)->pos[gtl]);
+	    p5 = &(get_cell(i+1,j,k+1)->pos[gtl]);
+	    p6 = &(get_cell(i+1,j+1,k+1)->pos[gtl]);
+	    p7 = &(get_cell(i,j+1,k+1)->pos[gtl]);
 	    hex_cell_properties( *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7, 
 				 dummy, vertex->volume, iLen, jLen, kLen );
 	}
@@ -710,23 +710,23 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
 	    iface = get_sifi(i,j,k);
 	    p0 = &(get_ifk(i,j,k+1)->pos);
 	    p3 = &(get_ifk(i,j+1,k+1)->pos);
-	    p7 = &(get_cell(i,j+1,k+1)->pos[time_level]);
-	    p4 = &(get_cell(i,j,k+1)->pos[time_level]);
+	    p7 = &(get_cell(i,j+1,k+1)->pos[gtl]);
+	    p4 = &(get_cell(i,j,k+1)->pos[gtl]);
 	    quad_properties( *p0, *p3, *p7, *p4,
 			     iface->pos, iface->n, iface->t1, iface->t2,
-			     iface->area[time_level] );
+			     iface->area[gtl] );
 	}
     }
     for ( i = imin; i <= imax-1; ++i ) {
 	for ( j = jmin; j <= jmax; ++j ) {
 	    iface = get_sifj(i,j,k);
 	    p0 = &(get_ifk(i,j,k+1)->pos);
-	    p4 = &(get_cell(i,j,k+1)->pos[time_level]);
-	    p5 = &(get_cell(i+1,j,k+1)->pos[time_level]);
+	    p4 = &(get_cell(i,j,k+1)->pos[gtl]);
+	    p5 = &(get_cell(i+1,j,k+1)->pos[gtl]);
 	    p1 = &(get_ifk(i+1,j,k+1)->pos);
 	    quad_properties( *p0, *p4, *p5, *p1,
 			     iface->pos, iface->n, iface->t1, iface->t2,
-			     iface->area[time_level] );
+			     iface->area[gtl] );
 	}
     }
     for ( i = imin; i <= imax-1; ++i ) {
@@ -738,14 +738,14 @@ int Block::compute_secondary_cell_geometric_data(size_t dimensions, size_t time_
 	    p3 = &(get_ifk(i,j+1,k+1)->pos);
 	    quad_properties( *p0, *p1, *p2, *p3,
 			     iface->pos, iface->n, iface->t1, iface->t2,
-			     iface->area[time_level] );
+			     iface->area[gtl] );
 	}
     }
 
     return SUCCESS;
 } // end compute_secondary_cell_geometric_data_3D()
 
-int Block::calc_volumes_2D(size_t time_level)
+int Block::calc_volumes_2D(size_t gtl)
 /// \brief Compute the PRIMARY cell volumes, areas, and centers 
 ///        from the vertex positions.
 ///
@@ -777,33 +777,33 @@ int Block::calc_volumes_2D(size_t time_level)
         for ( j = jmin; j <= jmax; ++j ) {
             cell = get_cell(i,j);
 	    // These are the corners.
-	    xA = cell->vtx[1]->pos[time_level].x;
-	    yA = cell->vtx[1]->pos[time_level].y;
-	    xB = cell->vtx[2]->pos[time_level].x;
-	    yB = cell->vtx[2]->pos[time_level].y;
-	    xC = cell->vtx[3]->pos[time_level].x;
-	    yC = cell->vtx[3]->pos[time_level].y;
-	    xD = cell->vtx[0]->pos[time_level].x;
-	    yD = cell->vtx[0]->pos[time_level].y;
+	    xA = cell->vtx[1]->pos[gtl].x;
+	    yA = cell->vtx[1]->pos[gtl].y;
+	    xB = cell->vtx[2]->pos[gtl].x;
+	    yB = cell->vtx[2]->pos[gtl].y;
+	    xC = cell->vtx[3]->pos[gtl].x;
+	    yC = cell->vtx[3]->pos[gtl].y;
+	    xD = cell->vtx[0]->pos[gtl].x;
+	    yD = cell->vtx[0]->pos[gtl].y;
 	    // Cell area in the (x,y)-plane.
             xyarea = 0.5 * ((xB + xA) * (yB - yA) + (xC + xB) * (yC - yB) +
                             (xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
 	    // Cell Centroid.
-            cell->pos[time_level].x = 1.0 / (xyarea * 6.0) * 
+            cell->pos[gtl].x = 1.0 / (xyarea * 6.0) * 
                       ((yB - yA) * (xA * xA + xA * xB + xB * xB) + 
                        (yC - yB) * (xB * xB + xB * xC + xC * xC) +
                        (yD - yC) * (xC * xC + xC * xD + xD * xD) + 
                        (yA - yD) * (xD * xD + xD * xA + xA * xA));
-            cell->pos[time_level].y = -1.0 / (xyarea * 6.0) * 
+            cell->pos[gtl].y = -1.0 / (xyarea * 6.0) * 
                      ((xB - xA) * (yA * yA + yA * yB + yB * yB) + 
                       (xC - xB) * (yB * yB + yB * yC + yC * yC) +
                       (xD - xC) * (yC * yC + yC * yD + yD * yD) + 
                       (xA - xD) * (yD * yD + yD * yA + yA * yA));
-	    cell->pos[time_level].z = 0.0;
+	    cell->pos[gtl].z = 0.0;
 	    // Cell Volume.
             if (get_axisymmetric_flag() == 1) {
                 // Volume per radian = centroid y-ordinate * cell area
-                vol = xyarea * cell->pos[time_level].y;
+                vol = xyarea * cell->pos[gtl].y;
             } else {
                 // Assume unit depth in the z-direction.
                 vol = xyarea;
@@ -815,8 +815,8 @@ int Block::calc_volumes_2D(size_t time_level)
             }
             if (vol > max_vol) max_vol = vol;
             if (vol < min_vol) min_vol = vol;
-            cell->volume[time_level] = vol;
-            cell->area[time_level] = xyarea;
+            cell->volume[gtl] = vol;
+            cell->area[gtl] = xyarea;
 	    // Check cell length scale using North and East boundaries.
 	    // Also, save the minimum length for later use in the CFL
 	    // checking routine.  Record max aspect ratio over all cells.
@@ -937,7 +937,7 @@ int Block::calc_volumes_2D(size_t time_level)
 ///       |     |
 ///       D'----A'
 ///
-int Block::secondary_areas_2D(size_t time_level)
+int Block::secondary_areas_2D(size_t gtl)
 {
     size_t i, j;
     double xA, yA, xB, yB, xC, yC, xD, yD;
@@ -951,14 +951,14 @@ int Block::secondary_areas_2D(size_t time_level)
     for (i = imin+1; i <= imax; ++i) {
         for (j = jmin+1; j <= jmax; ++j) {
 	    // These are the corners.
-            xA = get_cell(i,j-1)->pos[time_level].x;
-            yA = get_cell(i,j-1)->pos[time_level].y;
-            xB = get_cell(i,j)->pos[time_level].x;
-            yB = get_cell(i,j)->pos[time_level].y;
-            xC = get_cell(i-1,j)->pos[time_level].x;
-            yC = get_cell(i-1,j)->pos[time_level].y;
-            xD = get_cell(i-1,j-1)->pos[time_level].x;
-            yD = get_cell(i-1,j-1)->pos[time_level].y;
+            xA = get_cell(i,j-1)->pos[gtl].x;
+            yA = get_cell(i,j-1)->pos[gtl].y;
+            xB = get_cell(i,j)->pos[gtl].x;
+            yB = get_cell(i,j)->pos[gtl].y;
+            xC = get_cell(i-1,j)->pos[gtl].x;
+            yC = get_cell(i-1,j)->pos[gtl].y;
+            xD = get_cell(i-1,j-1)->pos[gtl].x;
+            yD = get_cell(i-1,j-1)->pos[gtl].y;
 	    // Cell area in the (x,y)-plane.
             xyarea = 0.5 * ((xB + xA) * (yB - yA) + (xC + xB) * (yC - yB) +
                             (xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
@@ -983,10 +983,10 @@ int Block::secondary_areas_2D(size_t time_level)
 	yA = get_ifi(i,j-1)->pos.y;
 	xB = get_ifi(i,j)->pos.x;
 	yB = get_ifi(i,j)->pos.y;
-        xC = get_cell(i-1,j)->pos[time_level].x;
-        yC = get_cell(i-1,j)->pos[time_level].y;
-        xD = get_cell(i-1,j-1)->pos[time_level].x;
-        yD = get_cell(i-1,j-1)->pos[time_level].y;
+        xC = get_cell(i-1,j)->pos[gtl].x;
+        yC = get_cell(i-1,j)->pos[gtl].y;
+        xD = get_cell(i-1,j-1)->pos[gtl].x;
+        yD = get_cell(i-1,j-1)->pos[gtl].y;
 	// Cell area in the (x,y)-plane.
         xyarea = 0.5 * ((xB + xA) * (yB - yA) + (xC + xB) * (yC - yB) +
                         (xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
@@ -1008,10 +1008,10 @@ int Block::secondary_areas_2D(size_t time_level)
     // West boundary.
     i = imin;
     for (j = jmin+1; j <= jmax; ++j) {
-        xA = get_cell(i,j-1)->pos[time_level].x;
-        yA = get_cell(i,j-1)->pos[time_level].y;
-        xB = get_cell(i,j)->pos[time_level].x;
-        yB = get_cell(i,j)->pos[time_level].y;
+        xA = get_cell(i,j-1)->pos[gtl].x;
+        yA = get_cell(i,j-1)->pos[gtl].y;
+        xB = get_cell(i,j)->pos[gtl].x;
+        yB = get_cell(i,j)->pos[gtl].y;
 	xC = get_ifi(i,j)->pos.x;
 	yC = get_ifi(i,j)->pos.y;
 	xD = get_ifi(i,j-1)->pos.x;
@@ -1038,14 +1038,14 @@ int Block::secondary_areas_2D(size_t time_level)
     j = jmax+1;
     for (i = imin+1; i <= imax; ++i) {
 	// These are the corners.
-        xA = get_cell(i,j-1)->pos[time_level].x;
-        yA = get_cell(i,j-1)->pos[time_level].y;
+        xA = get_cell(i,j-1)->pos[gtl].x;
+        yA = get_cell(i,j-1)->pos[gtl].y;
 	xB = get_ifj(i,j)->pos.x;
 	yB = get_ifj(i,j)->pos.y;
 	xC = get_ifj(i-1,j)->pos.x;
 	yC = get_ifj(i-1,j)->pos.y;
-        xD = get_cell(i-1,j-1)->pos[time_level].x;
-        yD = get_cell(i-1,j-1)->pos[time_level].y;
+        xD = get_cell(i-1,j-1)->pos[gtl].x;
+        yD = get_cell(i-1,j-1)->pos[gtl].y;
 	// Cell area in the (x,y)-plane.
         xyarea = 0.5 * ((xB + xA) * (yB - yA) + (xC + xB) * (yC - yB) +
                         (xD + xC) * (yD - yC) + (xA + xD) * (yA - yD));
@@ -1069,10 +1069,10 @@ int Block::secondary_areas_2D(size_t time_level)
     for (i = imin+1; i <= imax; ++i) {
 	xA = get_ifj(i,j)->pos.x;
 	yA = get_ifj(i,j)->pos.y;
-        xB = get_cell(i,j)->pos[time_level].x;
-        yB = get_cell(i,j)->pos[time_level].y;
-        xC = get_cell(i-1,j)->pos[time_level].x;
-        yC = get_cell(i-1,j)->pos[time_level].y;
+        xB = get_cell(i,j)->pos[gtl].x;
+        yB = get_cell(i,j)->pos[gtl].y;
+        xC = get_cell(i-1,j)->pos[gtl].x;
+        yC = get_cell(i-1,j)->pos[gtl].y;
 	xD = get_ifj(i-1,j)->pos.x;
 	yD = get_ifj(i-1,j)->pos.y;
 	// Cell area in the (x,y)-plane.
@@ -1100,7 +1100,7 @@ int Block::secondary_areas_2D(size_t time_level)
 
 /// \brief Compute the interface lengths and direction cosines for interfaces.
 ///
-int Block::calc_faces_2D(size_t time_level)
+int Block::calc_faces_2D(size_t gtl)
 {
     FV_Interface *iface;
     size_t i, j;
@@ -1112,10 +1112,10 @@ int Block::calc_faces_2D(size_t time_level)
         for (j = jmin; j <= jmax; ++j) {
             iface = get_ifi(i,j);
 	    // These are the corners.
-            xA = get_vtx(i,j)->pos[time_level].x; 
-	    yA = get_vtx(i,j)->pos[time_level].y;
-            xB = get_vtx(i,j+1)->pos[time_level].x; 
-	    yB = get_vtx(i,j+1)->pos[time_level].y;
+            xA = get_vtx(i,j)->pos[gtl].x; 
+	    yA = get_vtx(i,j)->pos[gtl].y;
+            xB = get_vtx(i,j+1)->pos[gtl].x; 
+	    yB = get_vtx(i,j+1)->pos[gtl].y;
             LAB = sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA));
             if (LAB < 1.0e-9) {
                 printf("Zero length ifi[%d,%d]: %e\n",
@@ -1133,12 +1133,12 @@ int Block::calc_faces_2D(size_t time_level)
             iface->Ybar = 0.5 * (yA + yB);
             if (get_axisymmetric_flag() == 1) {
                 // Interface area per radian.
-                iface->area[time_level] = LAB * iface->Ybar;
+                iface->area[gtl] = LAB * iface->Ybar;
             } else {
                 // Assume unit depth in the Z-direction.
-                iface->area[time_level] = LAB;
+                iface->area[gtl] = LAB;
             }
-	    iface->pos = (get_vtx(i,j)->pos[time_level] + get_vtx(i,j+1)->pos[time_level])/2.0;
+	    iface->pos = (get_vtx(i,j)->pos[gtl] + get_vtx(i,j+1)->pos[gtl])/2.0;
 	    
         } // j loop
     } // i loop
@@ -1148,10 +1148,10 @@ int Block::calc_faces_2D(size_t time_level)
         for (j = jmin; j <= jmax+1; ++j) {
             iface = get_ifj(i,j);
 	    // These are the corners.
-            xB = get_vtx(i+1,j)->pos[time_level].x;
-            yB = get_vtx(i+1,j)->pos[time_level].y;
-            xC = get_vtx(i,j)->pos[time_level].x;
-            yC = get_vtx(i,j)->pos[time_level].y;
+            xB = get_vtx(i+1,j)->pos[gtl].x;
+            yB = get_vtx(i+1,j)->pos[gtl].y;
+            xC = get_vtx(i,j)->pos[gtl].x;
+            yC = get_vtx(i,j)->pos[gtl].y;
             LBC = sqrt((xC - xB) * (xC - xB) + (yC - yB) * (yC - yB));
             if (LBC < 1.0e-9) {
                 printf("Zero length ifj[%d,%d]: %e\n",
@@ -1169,18 +1169,18 @@ int Block::calc_faces_2D(size_t time_level)
             iface->Ybar = 0.5 * (yC + yB);
             if (get_axisymmetric_flag() == 1) {
                 // Interface area per radian.
-                iface->area[time_level] = LBC * iface->Ybar;
+                iface->area[gtl] = LBC * iface->Ybar;
             } else {
                 // Assume unit depth in the Z-direction.
-                iface->area[time_level] = LBC;
+                iface->area[gtl] = LBC;
             }
-	    iface->pos = (get_vtx(i+1,j)->pos[time_level] + get_vtx(i,j)->pos[time_level])/2.0;
+	    iface->pos = (get_vtx(i+1,j)->pos[gtl] + get_vtx(i,j)->pos[gtl])/2.0;
         } // j loop
     } // i loop
     return SUCCESS;
 } // end calc_faces_2D()
 
-int Block::calc_ghost_cell_geom_2D(size_t time_level)
+int Block::calc_ghost_cell_geom_2D(size_t gtl)
 /// \brief Compute the ghost cell positions and volumes.
 ///
 /// 'Compute' is a bit too strong to describe what we do here.
@@ -1196,13 +1196,13 @@ int Block::calc_ghost_cell_geom_2D(size_t time_level)
 	cell_1 = get_cell(i,j);
 	cell_2 = get_cell(i-1,j);
 	ghost_cell = get_cell(i+1,j);
-	ghost_cell->pos[time_level] = 2.0*cell_1->pos[time_level] - cell_2->pos[time_level];
-	ghost_cell->volume[time_level] = 2.0*cell_1->volume[time_level] - cell_2->volume[time_level];
+	ghost_cell->pos[gtl] = 2.0*cell_1->pos[gtl] - cell_2->pos[gtl];
+	ghost_cell->volume[gtl] = 2.0*cell_1->volume[gtl] - cell_2->volume[gtl];
 	cell_2 = cell_1;
 	cell_1 = ghost_cell;
 	ghost_cell = get_cell(i+2,j);
-	ghost_cell->pos[time_level] = 2.0*cell_1->pos[time_level] - cell_2->pos[time_level];
-	ghost_cell->volume[time_level] = 2.0*cell_1->volume[time_level] - cell_2->volume[time_level];
+	ghost_cell->pos[gtl] = 2.0*cell_1->pos[gtl] - cell_2->pos[gtl];
+	ghost_cell->volume[gtl] = 2.0*cell_1->volume[gtl] - cell_2->volume[gtl];
     }
     // West boundary
     i = imin;
@@ -1210,13 +1210,13 @@ int Block::calc_ghost_cell_geom_2D(size_t time_level)
 	cell_1 = get_cell(i,j);
 	cell_2 = get_cell(i+1,j);
 	ghost_cell = get_cell(i-1,j);
-	ghost_cell->pos[time_level] = 2.0*cell_1->pos[time_level] - cell_2->pos[time_level];
-	ghost_cell->volume[time_level] = 2.0*cell_1->volume[time_level] - cell_2->volume[time_level];
+	ghost_cell->pos[gtl] = 2.0*cell_1->pos[gtl] - cell_2->pos[gtl];
+	ghost_cell->volume[gtl] = 2.0*cell_1->volume[gtl] - cell_2->volume[gtl];
 	cell_2 = cell_1;
 	cell_1 = ghost_cell;
 	ghost_cell = get_cell(i-2,j);
-	ghost_cell->pos[time_level] = 2.0*cell_1->pos[time_level] - cell_2->pos[time_level];
-	ghost_cell->volume[time_level] = 2.0*cell_1->volume[time_level] - cell_2->volume[time_level];
+	ghost_cell->pos[gtl] = 2.0*cell_1->pos[gtl] - cell_2->pos[gtl];
+	ghost_cell->volume[gtl] = 2.0*cell_1->volume[gtl] - cell_2->volume[gtl];
     }
     // North boundary
     j = jmax;
@@ -1224,13 +1224,13 @@ int Block::calc_ghost_cell_geom_2D(size_t time_level)
 	cell_1 = get_cell(i,j);
 	cell_2 = get_cell(i,j-1);
 	ghost_cell = get_cell(i,j+1);
-	ghost_cell->pos[time_level] = 2.0*cell_1->pos[time_level] - cell_2->pos[time_level];
-	ghost_cell->volume[time_level] = 2.0*cell_1->volume[time_level] - cell_2->volume[time_level];
+	ghost_cell->pos[gtl] = 2.0*cell_1->pos[gtl] - cell_2->pos[gtl];
+	ghost_cell->volume[gtl] = 2.0*cell_1->volume[gtl] - cell_2->volume[gtl];
 	cell_2 = cell_1;
 	cell_1 = ghost_cell;
 	ghost_cell = get_cell(i,j+2);
-	ghost_cell->pos[time_level] = 2.0*cell_1->pos[time_level] - cell_2->pos[time_level];
-	ghost_cell->volume[time_level] = 2.0*cell_1->volume[time_level] - cell_2->volume[time_level];
+	ghost_cell->pos[gtl] = 2.0*cell_1->pos[gtl] - cell_2->pos[gtl];
+	ghost_cell->volume[gtl] = 2.0*cell_1->volume[gtl] - cell_2->volume[gtl];
     }
     // South boundary
     j = jmin;
@@ -1238,13 +1238,13 @@ int Block::calc_ghost_cell_geom_2D(size_t time_level)
 	cell_1 = get_cell(i,j);
 	cell_2 = get_cell(i,j+1);
 	ghost_cell = get_cell(i,j-1);
-	ghost_cell->pos[time_level] = 2.0*cell_1->pos[time_level] - cell_2->pos[time_level];
-	ghost_cell->volume[time_level] = 2.0*cell_1->volume[time_level] - cell_2->volume[time_level];
+	ghost_cell->pos[gtl] = 2.0*cell_1->pos[gtl] - cell_2->pos[gtl];
+	ghost_cell->volume[gtl] = 2.0*cell_1->volume[gtl] - cell_2->volume[gtl];
 	cell_2 = cell_1;
 	cell_1 = ghost_cell;
 	ghost_cell = get_cell(i,j-2);
-	ghost_cell->pos[time_level] = 2.0*cell_1->pos[time_level] - cell_2->pos[time_level];
-	ghost_cell->volume[time_level] = 2.0*cell_1->volume[time_level] - cell_2->volume[time_level];
+	ghost_cell->pos[gtl] = 2.0*cell_1->pos[gtl] - cell_2->pos[gtl];
+	ghost_cell->volume[gtl] = 2.0*cell_1->volume[gtl] - cell_2->volume[gtl];
     }
     return SUCCESS;
 } // end Block::calc_ghost_cell_geom_2D()

@@ -68,7 +68,7 @@ int calculate_flex_cell_volume(flex_cell_center* fcell);
 
 int calculate_flex_cell_length(flex_cell_center* fcell); 
 
-int time_derivatives_for_flex_cell(flex_cell_center *fcell, int time_level, size_t dimensions=2); 
+int time_derivatives_for_flex_cell(flex_cell_center *fcell, int ftl, size_t dimensions=2); 
 
 int calculate_wall_flux(flex_cell_center *fcell, double u); 
 

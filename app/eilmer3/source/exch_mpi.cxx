@@ -122,7 +122,7 @@ int make_tag(int block_id, int face)
 
 /// \brief Ensure that all boundary data is exchanged between
 ///        connected boundaries on adjacent blocks.
-int mpi_exchange_boundary_data(int type_of_copy, size_t time_level)
+int mpi_exchange_boundary_data(int type_of_copy, size_t gtl)
 {
     global_data &G = *get_global_data_ptr();
     Block *bdp;
@@ -168,11 +168,9 @@ int mpi_exchange_boundary_data(int type_of_copy, size_t time_level)
 		ne = number_of_double_values(face, bdp->nni, bdp->nnj, bdp->nnk, nv);
 		tag = make_tag(bdp->id, face);
 		if ( G.dimensions == 2 ) {
-		    copy_into_send_buffer_2D(bdp, face, type_of_copy, send_buffer[jb*6+face],
-					     time_level);
+		    copy_into_send_buffer_2D(bdp, face, type_of_copy, send_buffer[jb*6+face], gtl);
 		} else {
-		    copy_into_send_buffer_3D(bdp, face, type_of_copy, send_buffer[jb*6+face],
-					     time_level);
+		    copy_into_send_buffer_3D(bdp, face, type_of_copy, send_buffer[jb*6+face], gtl);
 		}
 #               if 0
 		printf("Send: block[%d] face[%d] to block[%d] face[%d]\n",
@@ -196,11 +194,9 @@ int mpi_exchange_boundary_data(int type_of_copy, size_t time_level)
 		other_face = bdp->bcp[face]->neighbour_face;
 		MPI_Wait(&(request[jb*6+face]), &(status[jb*6+face]));
 		if ( G.dimensions == 2 ) {
-		    copy_from_receive_buffer_2D(bdp, face, type_of_copy, receive_buffer[jb*6+face],
-						time_level);
+		    copy_from_receive_buffer_2D(bdp, face, type_of_copy, receive_buffer[jb*6+face], gtl);
 		} else {
-		    copy_from_receive_buffer_3D(bdp, face, type_of_copy, receive_buffer[jb*6+face],
-						time_level);
+		    copy_from_receive_buffer_3D(bdp, face, type_of_copy, receive_buffer[jb*6+face], gtl);
 		}
 #               if 0
 		printf("Received OK: block[%d] face[%d] from block[%d] face[%d]\n",

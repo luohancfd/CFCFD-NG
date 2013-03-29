@@ -107,11 +107,11 @@ public:
     // instead of the internally calculated flux
     void print_info( std::string lead_in );
     int write_vertex_velocities(std::string filename, double sim_time,
-				size_t dimensions, size_t time_level=0);
+				size_t dimensions, size_t gtl=0);
     // Heat-flux functions
     int compute_surface_heat_flux(void);
     int compute_cell_interface_surface_heat_flux(FV_Interface * IFace, FV_Cell * cell_one, 
-    						 size_t index, size_t time_level=0);
+    						 size_t index, size_t gtl=0);
     int write_surface_heat_flux(std::string filename, double sim_time);
     int write_fstc_heat_flux(string filename, double sim_time);
     double read_surface_heat_flux(std::string filename, size_t dimensions, int zip_files=1);

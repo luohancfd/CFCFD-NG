@@ -13,9 +13,9 @@
 #include "block.hh"
 
 int viscous_flux_3D(Block *A);
-int viscous_derivatives_3D(Block *A, size_t time_level);
-int viscous_derivatives_edge_3D(Block *A, size_t time_level);
-int viscous_derivatives_corners_3D(Block *A, size_t time_level);
+int viscous_derivatives_3D(Block *A, size_t gtl);
+int viscous_derivatives_edge_3D(Block *A, size_t gtl);
+int viscous_derivatives_corners_3D(Block *A, size_t gtl);
 int copy_derivatives( struct cell_vertex *a, struct cell_vertex *b );
 int copy_2_derivatives( struct cell_vertex *a, struct cell_vertex *b, 
 			struct cell_vertex *c );

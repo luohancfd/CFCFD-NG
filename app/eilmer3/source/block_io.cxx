@@ -23,7 +23,7 @@ extern "C" {
 //-----------------------------------------------------------------------------
 
 int Block::read_grid(std::string filename, size_t dimensions,
-		     int zip_file, size_t time_level)
+		     int zip_file, size_t gtl)
 /// \brief Read the grid from a disc file as a set of cell vertices.
 /// \returns 0 if successful but 1 if it hits the end of the grid file prematurely.
 {
@@ -90,8 +90,8 @@ int Block::read_grid(std::string filename, size_t dimensions,
 			return BAD_INPUT_ERROR;
 		    }
 		    vp = get_vtx(i,j,k);
-		    sscanf(line, "%lf %lf %lf", &(vp->pos[time_level].x),
-			   &(vp->pos[time_level].y), &(vp->pos[time_level].z));
+		    sscanf(line, "%lf %lf %lf", &(vp->pos[gtl].x),
+			   &(vp->pos[gtl].y), &(vp->pos[gtl].z));
 		} // for i
 	    } // for j
 	} // for k
@@ -125,8 +125,8 @@ int Block::read_grid(std::string filename, size_t dimensions,
 		    return BAD_INPUT_ERROR;
 		}
 		vp = get_vtx(i,j);
-		sscanf(line, "%lf %lf", &(vp->pos[time_level].x), &(vp->pos[time_level].y));
-		vp->pos[time_level].z = 0.0;
+		sscanf(line, "%lf %lf", &(vp->pos[gtl].x), &(vp->pos[gtl].y));
+		vp->pos[gtl].z = 0.0;
 	    } // for i
 	} // for j
     }
@@ -141,7 +141,7 @@ int Block::read_grid(std::string filename, size_t dimensions,
 
 
 int Block::write_grid(std::string filename, double sim_time, size_t dimensions,
-		      int zip_file, size_t time_level)
+		      int zip_file, size_t gtl)
 /// \brief Write the grid for a single block.
 ///
 /// This is "almost-Tecplot" POINT format.
@@ -190,11 +190,11 @@ int Block::write_grid(std::string filename, double sim_time, size_t dimensions,
 	    for ( size_t i = imin; i <= imax+1; ++i ) {
 		vtx = get_vtx(i,j,k);
 		if (zip_file) {
-		    gzprintf(zfp, "%20.12e %20.12e %20.12e\n", vtx->pos[time_level].x,
-			     vtx->pos[time_level].y, vtx->pos[time_level].z);
+		    gzprintf(zfp, "%20.12e %20.12e %20.12e\n", vtx->pos[gtl].x,
+			     vtx->pos[gtl].y, vtx->pos[gtl].z);
 		} else {
-		    fprintf(fp, "%20.12e %20.12e %20.12e\n", vtx->pos[time_level].x,
-			    vtx->pos[time_level].y, vtx->pos[time_level].z);
+		    fprintf(fp, "%20.12e %20.12e %20.12e\n", vtx->pos[gtl].x,
+			    vtx->pos[gtl].y, vtx->pos[gtl].z);
 		}
 	    } // i-loop
 	} // j-loop
@@ -211,7 +211,7 @@ int Block::write_grid(std::string filename, double sim_time, size_t dimensions,
 /// \brief Read the flow solution (i.e. the flow data at cell centers) from a file.
 /// Returns a status flag.
 int Block::read_solution(std::string filename, double *sim_time, size_t dimensions,
-			 int zip_file, size_t time_level)
+			 int zip_file, size_t gtl)
 {
 #   define NCHAR 4000
     char line[NCHAR];
@@ -307,7 +307,7 @@ int Block::read_solution(std::string filename, double *sim_time, size_t dimensio
 
 
 int Block::write_solution(std::string filename, double sim_time, size_t dimensions,
-			  int zip_file, size_t time_level)
+			  int zip_file, size_t gtl)
 /// \brief Write the flow solution (i.e. the primary variables at the
 ///        cell centers) for a single block.
 ///
@@ -363,7 +363,7 @@ int Block::write_solution(std::string filename, double sim_time, size_t dimensio
 } // end of Block::write_solution()
 
 
-int Block::write_history(std::string filename, double sim_time, int write_header, size_t time_level)
+int Block::write_history(std::string filename, double sim_time, int write_header, size_t gtl)
 /// \brief Write out the flow solution in a (small) subset of cells.
 ///
 /// This us usually done at a different (often smaller) time interval 
@@ -409,7 +409,7 @@ int Block::write_history(std::string filename, double sim_time, int write_header
  * the cell interfaces.  
  * (Area is area per unit radian for axisymmetric calculations.)
  */
-void Block::compute_x_forces(char *text_string, int ibndy, size_t dimensions, size_t time_level)
+void Block::compute_x_forces(char *text_string, int ibndy, size_t dimensions, size_t gtl)
 {
     double fx_p, fx_v, x1, y1, cosX, cosY, area;
     double xc, yc, d, vt, mu;
@@ -433,13 +433,13 @@ void Block::compute_x_forces(char *text_string, int ibndy, size_t dimensions, si
 	    IFace = cell->iface[NORTH];
 	    cosX = IFace->n.x;
 	    cosY = IFace->n.y;
-	    area = IFace->area[time_level];
+	    area = IFace->area[gtl];
 	    mu   = IFace->fs->gas->mu;
 	    fx_p += cell->fs->gas->p * area * cosX;
 	    if ( ivisc ) {
 		/* pieces needed to reconstruct the local velocity gradient */
-		x1 = cell->vtx[0]->pos[time_level].x; y1 = cell->vtx[0]->pos[time_level].y;
-		xc = cell->pos[time_level].x;   yc = cell->pos[time_level].y;
+		x1 = cell->vtx[0]->pos[gtl].x; y1 = cell->vtx[0]->pos[gtl].y;
+		xc = cell->pos[gtl].x;   yc = cell->pos[gtl].y;
 		d = -(xc - x1) * cosX + -(yc - y1) * cosY;
 		vt = cell->fs->vel.x * cosY - cell->fs->vel.y * cosX;
 		/* x-component of the shear force, assuming no-slip wall */
@@ -453,13 +453,13 @@ void Block::compute_x_forces(char *text_string, int ibndy, size_t dimensions, si
 	    IFace = cell->iface[SOUTH];
 	    cosX = IFace->n.x;
 	    cosY = IFace->n.y;
-	    area = IFace->area[time_level];
+	    area = IFace->area[gtl];
 	    mu   = IFace->fs->gas->mu;
 	    fx_p -= cell->fs->gas->p * area * cosX;
 	    if ( ivisc ) {
 		/* pieces needed to reconstruct the local velocity gradient */
-		x1 = cell->vtx[0]->pos[time_level].x; y1 = cell->vtx[0]->pos[time_level].y;
-		xc = cell->pos[time_level].x;   yc = cell->pos[time_level].y;
+		x1 = cell->vtx[0]->pos[gtl].x; y1 = cell->vtx[0]->pos[gtl].y;
+		xc = cell->pos[gtl].x;   yc = cell->pos[gtl].y;
 		d = (xc - x1) * cosX + (yc - y1) * cosY;
 		vt = cell->fs->vel.x * cosY - cell->fs->vel.y * cosX;
 		/* x-component of the shear force, assuming no-slip wall */
@@ -473,13 +473,13 @@ void Block::compute_x_forces(char *text_string, int ibndy, size_t dimensions, si
 	    IFace = cell->iface[EAST];
 	    cosX = IFace->n.x;
 	    cosY = IFace->n.y;
-	    area = IFace->area[time_level];
+	    area = IFace->area[gtl];
 	    mu   = IFace->fs->gas->mu;
 	    fx_p += cell->fs->gas->p * area * cosX;
 	    if ( ivisc ) {
 		/* pieces needed to reconstruct the local velocity gradient */
-		x1 = cell->vtx[1]->pos[time_level].x; y1 = cell->vtx[1]->pos[time_level].y;
-		xc = cell->pos[time_level].x;   yc = cell->pos[time_level].y;
+		x1 = cell->vtx[1]->pos[gtl].x; y1 = cell->vtx[1]->pos[gtl].y;
+		xc = cell->pos[gtl].x;   yc = cell->pos[gtl].y;
 		d = -(xc - x1) * cosX + -(yc - y1) * cosY;
 		vt = -(cell->fs->vel.x) * cosY + cell->fs->vel.y * cosX;
 		/* x-component of the shear force, assuming no-slip wall */
@@ -493,13 +493,13 @@ void Block::compute_x_forces(char *text_string, int ibndy, size_t dimensions, si
 	    IFace = cell->iface[WEST];
 	    cosX = IFace->n.x;
 	    cosY = IFace->n.y;
-	    area = IFace->area[time_level];
+	    area = IFace->area[gtl];
 	    mu   = IFace->fs->gas->mu;
 	    fx_p -= cell->fs->gas->p * area * cosX;
 	    if ( ivisc ) {
 		/* pieces needed to reconstruct the local velocity gradient */
-		x1 = cell->vtx[0]->pos[time_level].x; y1 = cell->vtx[0]->pos[time_level].y;
-		xc = get_cell(i,j)->pos[time_level].x;  yc = get_cell(i,j)->pos[time_level].y;
+		x1 = cell->vtx[0]->pos[gtl].x; y1 = cell->vtx[0]->pos[gtl].y;
+		xc = get_cell(i,j)->pos[gtl].x;  yc = get_cell(i,j)->pos[gtl].y;
 		d = (xc - x1) * cosX + (yc - y1) * cosY;
 		vt = -(cell->fs->vel.x) * cosY + cell->fs->vel.y * cosX;
 		/* x-component of the shear force, assuming no-slip wall */
@@ -519,34 +519,34 @@ void Block::compute_x_forces(char *text_string, int ibndy, size_t dimensions, si
 
 /// \brief Assemble the x-force numbers for each block into a single
 ///        (string) report and send it to the logfile. 
-int Block::print_forces(FILE *fp, double t, size_t dimensions, size_t time_level)
+int Block::print_forces(FILE *fp, double t, size_t dimensions, size_t gtl)
 {
     char msg_text[512], small_text[132];
     if ( bcp[NORTH]->xforce_flag == 1 ) {
 	sprintf(small_text, "XFORCE: TIME %e BLOCK %d BNDY %d ", t, static_cast<int>(id), NORTH);
 	strcpy(msg_text, small_text);
-	this->compute_x_forces(small_text, NORTH, dimensions, time_level);
+	this->compute_x_forces(small_text, NORTH, dimensions, gtl);
 	strcat(msg_text, small_text);
 	fprintf(fp, "%s\n",  msg_text);
     }
     if ( bcp[EAST]->xforce_flag == 1 ) {
 	sprintf(small_text, "XFORCE: TIME %e BLOCK %d BNDY %d ", t, static_cast<int>(id), EAST);
 	strcpy(msg_text, small_text);
-	this->compute_x_forces(small_text, EAST, dimensions, time_level);
+	this->compute_x_forces(small_text, EAST, dimensions, gtl);
 	strcat(msg_text, small_text);
 	fprintf(fp, "%s\n",  msg_text);
     }
     if ( bcp[SOUTH]->xforce_flag == 1 ) {
 	sprintf(small_text, "XFORCE: TIME %e BLOCK %d BNDY %d ", t, static_cast<int>(id), SOUTH);
 	strcpy(msg_text, small_text);
-	this->compute_x_forces( small_text, SOUTH, dimensions, time_level);
+	this->compute_x_forces( small_text, SOUTH, dimensions, gtl);
 	strcat(msg_text, small_text);
 	fprintf(fp, "%s\n",  msg_text);
     }
     if ( bcp[WEST]->xforce_flag == 1 ) {
 	sprintf(small_text, "XFORCE: TIME %e BLOCK %d BNDY %d ", t, static_cast<int>(id), WEST);
 	strcpy(msg_text, small_text);
-	this->compute_x_forces(small_text, WEST, dimensions, time_level);
+	this->compute_x_forces(small_text, WEST, dimensions, gtl);
 	strcat(msg_text, small_text);
 	fprintf(fp, "%s\n",  msg_text);
     }

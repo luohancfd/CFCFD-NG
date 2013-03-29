@@ -304,7 +304,7 @@ int add_shadowed_cell_and_flex_cell_data(FV_Cell* src, flex_cell_center* dest)
     return SUCCESS;
 }
 
-int time_derivatives_for_flex_cell(flex_cell_center *fc, int time_level, size_t dimensions) 
+int time_derivatives_for_flex_cell(flex_cell_center *fc, int ftl, size_t dimensions) 
 {
 #if 0
     if (dimensions != 2) {
@@ -319,23 +319,23 @@ int time_derivatives_for_flex_cell(flex_cell_center *fc, int time_level, size_t 
 
     // masquerade as a normal cell
     fc->status = NORMAL_CELL;
-    fc->time_derivatives(time_level, dimensions);
+    fc->time_derivatives(ftl, dimensions);
     fc->status = MASKED_CELL;
     
     // calculate extensive time derivatives
-    fc->DmDt[time_level] = vol * fc->dUdt[time_level].mass;
+    fc->DmDt[ftl] = vol * fc->dUdt[ftl].mass;
     
-    fc->DmvDt[time_level].x = vol * fc->dUdt[time_level].momentum.x;
-    fc->DmvDt[time_level].y = vol * fc->dUdt[time_level].momentum.y;
-    fc->DmvDt[time_level].z = 0.0;
+    fc->DmvDt[ftl].x = vol * fc->dUdt[ftl].momentum.x;
+    fc->DmvDt[ftl].y = vol * fc->dUdt[ftl].momentum.y;
+    fc->DmvDt[ftl].z = 0.0;
     
-    fc->DmEDt[time_level] = vol * fc->dUdt[time_level].total_energy;
+    fc->DmEDt[ftl] = vol * fc->dUdt[ftl].total_energy;
 
-    for ( size_t isp = 0; isp < fc->DmfDt[time_level].size(); ++isp ) {
-	fc->DmfDt[time_level][isp] = vol * fc->dUdt[time_level].massf[isp];
+    for ( size_t isp = 0; isp < fc->DmfDt[ftl].size(); ++isp ) {
+	fc->DmfDt[ftl][isp] = vol * fc->dUdt[ftl].massf[isp];
     }
-    for ( size_t imode = 0; imode < fc->DmenergiesDt[time_level].size(); ++imode ) {
-	fc->DmenergiesDt[time_level][imode] = vol * fc->dUdt[time_level].energies[imode];
+    for ( size_t imode = 0; imode < fc->DmenergiesDt[ftl].size(); ++imode ) {
+	fc->DmenergiesDt[ftl][imode] = vol * fc->dUdt[ftl].energies[imode];
     }
 #endif
     return SUCCESS;

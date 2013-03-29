@@ -151,63 +151,63 @@ public:
     int array_alloc(size_t dimensions);
     int array_cleanup(size_t dimensions);
     int bind_interfaces_to_cells(size_t dimensions);
-    int set_base_qdot(global_data &gdp, size_t time_level); 
-    int identify_reaction_zones(global_data &gdp, size_t time_level);
-    int identify_turbulent_zones(global_data &gdp, size_t time_level);
+    int set_base_qdot(global_data &gdp, size_t gtl); 
+    int identify_reaction_zones(global_data &gdp, size_t gtl);
+    int identify_turbulent_zones(global_data &gdp, size_t gtl);
     int clear_fluxes_of_conserved_quantities(size_t dimensions);
     int propagate_data_west_to_east(size_t dimensions);
-    int count_invalid_cells(size_t dimensions, size_t time_level);
+    int count_invalid_cells(size_t dimensions, size_t gtl);
     int init_residuals(size_t dimensions);
-    int compute_residuals(size_t dimensions, size_t time_level);
+    int compute_residuals(size_t dimensions, size_t gtl);
     int determine_time_step_size(double cfl_target, size_t dimensions);
     int detect_shock_points(size_t dimensions);
 
     // in block_geometry.cxx
-    int compute_primary_cell_geometric_data(size_t dimensions, size_t time_level);
-    int compute_distance_to_nearest_wall_for_all_cells(size_t dimensions, size_t time_level);
-    int compute_secondary_cell_geometric_data(size_t dimensions, size_t time_level);
-    int calc_volumes_2D(size_t time_level);
-    int secondary_areas_2D(size_t time_level);
-    int calc_faces_2D(size_t time_level);
-    int calc_ghost_cell_geom_2D(size_t time_level);
+    int compute_primary_cell_geometric_data(size_t dimensions, size_t gtl);
+    int compute_distance_to_nearest_wall_for_all_cells(size_t dimensions, size_t gtl);
+    int compute_secondary_cell_geometric_data(size_t dimensions, size_t gtl);
+    int calc_volumes_2D(size_t gtl);
+    int secondary_areas_2D(size_t gtl);
+    int calc_faces_2D(size_t gtl);
+    int calc_ghost_cell_geom_2D(size_t gtl);
  
     // in block_moving_grid.cxx
-    int predict_vertex_positions( size_t dimensions, double dt );
-    int correct_vertex_positions( size_t dimensions, double dt );
-    int set_geometry_velocities( size_t dimensions, size_t time_level );
-    int set_vertex_velocities2D( size_t time_level );
-    int set_gcl_test_vertex_velocities2D( size_t time_level );
-    int set_gcl_test_vertex_velocities3D( size_t time_level );
-    int set_gcl_test_random_vertex_velocities2D( size_t time_level );
-    int set_gcl_interface_properties( size_t dimensions, size_t time_level, double dt );
-    int set_gcl_interface_properties2D( size_t time_level, double dt );
-    int set_gcl_interface_properties3D( size_t time_level, double dt );
-    int set_interface_velocities2D( size_t time_level );
-    int set_vertex_velocities3D( size_t time_level );
-    int set_interface_velocities3D( size_t time_level );
+    int predict_vertex_positions(size_t dimensions, double dt);
+    int correct_vertex_positions(size_t dimensions, double dt);
+    int set_geometry_velocities(size_t dimensions, size_t gtl);
+    int set_vertex_velocities2D(size_t gtl);
+    int set_gcl_test_vertex_velocities2D(size_t gtl);
+    int set_gcl_test_vertex_velocities3D(size_t gtl);
+    int set_gcl_test_random_vertex_velocities2D(size_t gtl);
+    int set_gcl_interface_properties(size_t dimensions, size_t gtl, double dt);
+    int set_gcl_interface_properties2D(size_t gtl, double dt);
+    int set_gcl_interface_properties3D(size_t gtl, double dt);
+    int set_interface_velocities2D(size_t gtl);
+    int set_vertex_velocities3D(size_t gtl);
+    int set_interface_velocities3D(size_t gtl);
     int calc_boundary_vertex_velocity(FV_Interface &IFace1, FV_Interface &IFace2,     
-				      FV_Vertex &vtx, Vector3 trv, size_t time_level);
+				      FV_Vertex &vtx, Vector3 trv, size_t gtl);
     int calc_boundary_vertex_velocity(FV_Interface &IFace1, FV_Interface &IFace2,     
 				      FV_Interface &IFace3, FV_Interface &IFace4,
-				      FV_Vertex &vtx, Vector3 trv, size_t time_level);
+				      FV_Vertex &vtx, Vector3 trv, size_t gtl);
     int velocity_weighting_factor(FV_Interface &IFace, Vector3 vp, double &w, Vector3 &ws);
-    int diffuse_vertex_velocities(double mu, int npass, size_t dimensions, size_t time_level);
-    int anti_diffuse_vertex_velocities(double mu, int npass, size_t dimensions, size_t time_level);
+    int diffuse_vertex_velocities(double mu, int npass, size_t dimensions, size_t gtl);
+    int anti_diffuse_vertex_velocities(double mu, int npass, size_t dimensions, size_t gtl);
     int compute_boundary_flux(FV_Interface *IFaceL, FV_Interface *IFaceR, double omegaz);
     
     // in block_io.cxx
     int read_grid(std::string filename, size_t dimensions,
-		  int zip_file=1, size_t time_level=0);
+		  int zip_file=1, size_t gtl=0);
     int write_grid(std::string filename, double sim_time, size_t dimensions,
-		   int zip_file=1, size_t time_level=0);
+		   int zip_file=1, size_t gtl=0);
     int read_solution(std::string filename, double *sim_time, size_t dimensions,
-		      int zip_file=1, size_t time_level=0);
+		      int zip_file=1, size_t gtl=0);
     int write_solution(std::string filename, double sim_time, size_t dimensions,
-		       int zip_file=1, size_t time_level=0);
+		       int zip_file=1, size_t gtl=0);
     int write_history(std::string filename, double sim_time,
-		      int write_header=0, size_t time_level=0);
-    void compute_x_forces(char *text_string, int ibndy, size_t dimensions, size_t time_level=0);
-    int print_forces( FILE *fp, double t, size_t dimensions, size_t time_level=0);
+		      int write_header=0, size_t gtl=0);
+    void compute_x_forces(char *text_string, int ibndy, size_t dimensions, size_t gtl=0);
+    int print_forces( FILE *fp, double t, size_t dimensions, size_t gtl=0);
 
     // in block_bgk.cxx
     int read_BGK(std::string filename, double *sim_time, 
@@ -230,10 +230,10 @@ public:
 // The following functions are also found in block.cxx.
 int find_nearest_cell(double x, double y, double z, 
 		      size_t *jb_near, size_t *i_near, size_t *j_near, size_t *k_near,
-		      size_t time_level);
+		      size_t gtl);
 int locate_cell(double x, double y, double z,
 		size_t *jb_found, size_t *i_found, size_t *j_found, size_t *k_found,
-		size_t time_level);
+		size_t gtl);
 
 
 /** Indexing of the data in 2D.
