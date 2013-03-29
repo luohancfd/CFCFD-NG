@@ -1234,8 +1234,11 @@ int FV_Cell::check_flow_data(void)
 /// \brief Compute the time derivatives for the conserved quantities.
 ///
 /// These are the spatial (RHS) terms in the semi-discrete governing equations.
-/// \param gtl : grid-time-level evaluating at this grid
-/// \param ftl : flow-time-level specifies where computed derivatives are to be stored.
+/// \param gtl : (grid-time-level) flow derivatives are evaluated at this grid level
+/// \param ftl : (flow-time-level) specifies where computed derivatives are to be stored.
+///              0: Start of predictor step.
+///              1: End of predictor step; used for corrector step.
+///              2: End of corrector step; used for RK3 step.
 /// \param dimensions : number of space dimensions: 2 for mbcns, 3 for eilmer
 int FV_Cell::time_derivatives(size_t gtl, size_t ftl, size_t dimensions)
 {
@@ -1379,38 +1382,32 @@ int FV_Cell::time_derivatives(size_t gtl, size_t ftl, size_t dimensions)
 
 /// \brief Apply the predictor-stage of the update for a specified cell.
 /// \param dt   : size of the time-step
-int FV_Cell::predictor_update(double dt)
+int FV_Cell::predictor_update_for_flow_on_fixed_grid(double dt, int force_euler)
 {
     ConservedQuantities &dUdt0 = *(dUdt[0]);
-    double gamma_1;
-    double vr = 1.0;
-    if (get_Torder_flag() == 3) {
-	/* 3rd order Runge-Kutta */
-	gamma_1 = 8.0 / 15.0;
-    } else {
-	/* Normal Predictor-Corrector or Euler */
-	gamma_1 = 1.0;
-    }
-    if ( get_shock_fitting_flag() == 1 ) {
-        vr = volume[0]/volume[1];
-    }
-    U->mass = vr * (U_old->mass + dt * gamma_1 * dUdt0.mass);
-    U->momentum.x = vr * (U_old->momentum.x + dt * gamma_1 * dUdt0.momentum.x);
-    U->momentum.y = vr * (U_old->momentum.y + dt * gamma_1 * dUdt0.momentum.y);
-    U->momentum.z = vr * (U_old->momentum.z + dt * gamma_1 * dUdt0.momentum.z);
+    double gamma_1 = 1.0; // for normal Predictor-Corrector or Euler update.
+    if ( get_Torder_flag() == 3 && !force_euler )
+	gamma_1 = 8.0 / 15.0; // for first stage of 3rd-order Runge-Kutta.
 
-    // Magnetic field
-    if (get_mhd_flag() == 1) {
-	U->B.x = vr * (U_old->B.x + dt * gamma_1 * dUdt0.B.x);
-	U->B.y = vr * (U_old->B.y + dt * gamma_1 * dUdt0.B.y);
-	U->B.z = vr * (U_old->B.z + dt * gamma_1 * dUdt0.B.z);
+    U->mass = U_old->mass + dt * gamma_1 * dUdt0.mass;
+    // Side note: 
+    // It would be convenient (codewise) for the updates of these Vector3 quantities to
+    // be done with the Vector3 arithmetic operators but I suspect that the implementation
+    // of those oerators is such that a whole lot of Vector3 temporaries would be created.
+    U->momentum.x = U_old->momentum.x + dt * gamma_1 * dUdt0.momentum.x;
+    U->momentum.y = U_old->momentum.y + dt * gamma_1 * dUdt0.momentum.y;
+    U->momentum.z = U_old->momentum.z + dt * gamma_1 * dUdt0.momentum.z;
+    if ( get_mhd_flag() == 1 ) {
+	// Magnetic field
+	U->B.x = U_old->B.x + dt * gamma_1 * dUdt0.B.x;
+	U->B.y = U_old->B.y + dt * gamma_1 * dUdt0.B.y;
+	U->B.z = U_old->B.z + dt * gamma_1 * dUdt0.B.z;
     }
-    
-    U->total_energy = vr * (U_old->total_energy + dt * gamma_1 * dUdt0.total_energy);
+    U->total_energy = U_old->total_energy + dt * gamma_1 * dUdt0.total_energy;
     if ( get_k_omega_flag() ) {
-	U->tke = vr * (U_old->tke + dt * gamma_1 * dUdt0.tke);
+	U->tke = U_old->tke + dt * gamma_1 * dUdt0.tke;
 	U->tke = MAXIMUM(U->tke, 0.0);
-	U->omega = vr * (U_old->omega + dt * gamma_1 * dUdt0.omega);
+	U->omega = U_old->omega + dt * gamma_1 * dUdt0.omega;
 	U->omega = MAXIMUM(U->omega, U_old->mass);
 	// ...assuming a minimum value of 1.0 for omega
 	// It may occur (near steps in the wall) that a large flux of romega
@@ -1426,6 +1423,133 @@ int FV_Cell::predictor_update(double dt)
 	U->omega = U_old->omega;
     }
     for ( size_t isp = 0; isp < U->massf.size(); ++isp ) {
+	U->massf[isp] = U_old->massf[isp] + dt * gamma_1 * dUdt0.massf[isp];
+    }
+    // NOTE: energies[0] is never used so skipping (DFP 10/12/09)
+    for ( size_t imode = 1; imode < U->energies.size(); ++imode ) {
+	U->energies[imode] = U_old->energies[imode] + dt * gamma_1 * dUdt0.energies[imode];
+    }
+    return SUCCESS;
+} // end of predictor_update_for_flow_on_fixed_grid()
+
+
+/// \brief Apply the corrector-stage of the update for a specified cell.
+/// \param dt   : size of the time-step
+int FV_Cell::corrector_update_for_flow_on_fixed_grid(double dt)
+{
+    ConservedQuantities &dUdt0 = *(dUdt[0]);
+    ConservedQuantities &dUdt1 = *(dUdt[1]);
+    double th1 = 0.5; // for standard predictor-corrector update.
+    double th0 = 1.0 - th1;
+    if ( get_Torder_flag() == 3 ) {
+	// for second stage of 3rd-order Runge-Kutta update.
+	th1 = 5.0 / 12.0;
+	th0 = -17.0 / 60.0;
+    }
+
+    U->mass = U_old->mass + dt * (th0 * dUdt0.mass + th1 * dUdt1.mass);
+    U->momentum.x = U_old->momentum.x + dt * (th0 * dUdt0.momentum.x + th1 * dUdt1.momentum.x);
+    U->momentum.y = U_old->momentum.y + dt * (th0 * dUdt0.momentum.y + th1 * dUdt1.momentum.y);
+    U->momentum.z = U_old->momentum.z + dt * (th0 * dUdt0.momentum.z + th1 * dUdt1.momentum.z);
+    if ( get_mhd_flag() == 1 ) {
+	// Magnetic field
+	U->B.x = U_old->B.x + dt * (th0 * dUdt0.B.x + th1 * dUdt1.B.x);
+	U->B.y = U_old->B.y + dt * (th0 * dUdt0.B.y + th1 * dUdt1.B.y);
+	U->B.z = U_old->B.z + dt * (th0 * dUdt0.B.z + th1 * dUdt1.B.z);
+    }
+    U->total_energy = U_old->total_energy + 
+	dt * (th0 * dUdt0.total_energy + th1 * dUdt1.total_energy);
+    if ( get_k_omega_flag() ) {
+	U->tke = U_old->tke + dt * (th0 * dUdt0.tke + th1 * dUdt1.tke);
+	U->tke = MAXIMUM(U->tke, 0.0);
+	U->omega = U_old->omega + dt * (th0 * dUdt0.omega + th1 * dUdt1.omega);
+	U->omega = MAXIMUM(U->omega, U_old->mass);
+    } else {
+	U->tke = U_old->tke;
+	U->omega = U_old->omega;
+    }
+    for ( size_t isp = 0; isp < U->massf.size(); ++isp ) {
+	U->massf[isp] = U_old->massf[isp] + dt * (th0 * dUdt0.massf[isp] + th1 * dUdt1.massf[isp]);
+    }
+    for ( size_t imode = 0; imode < U->energies.size(); ++imode ) {
+	U->energies[imode] = U_old->energies[imode] + 
+	    dt * (th0 * dUdt0.energies[imode] + th1 * dUdt1.energies[imode]);
+    }
+    return SUCCESS;
+} // end of corrector_update_for_flow_on_fixed_grid()
+
+
+/// \brief Apply the final Runge-Kutta (3rd order) stage of the update for a specified cell.
+/// \param dt : size of the time-step
+int FV_Cell::rk3_update_for_flow_on_fixed_grid(double dt)
+{
+    ConservedQuantities &dUdt1 = *(dUdt[1]);
+    ConservedQuantities &dUdt2 = *(dUdt[2]);
+    double gamma_3 = 3.0 / 4.0;
+    double psi_2 = -5.0 / 12.0;
+
+    U->mass = U_old->mass + dt * (psi_2 * dUdt1.mass + gamma_3 * dUdt2.mass);
+    U->momentum.x = U_old->momentum.x + dt * (psi_2 * dUdt1.momentum.x + gamma_3 * dUdt2.momentum.x);
+    U->momentum.y = U_old->momentum.y + dt * (psi_2 * dUdt1.momentum.y + gamma_3 * dUdt2.momentum.y);
+    U->momentum.z = U_old->momentum.z + dt * (psi_2 * dUdt1.momentum.z + gamma_3 * dUdt2.momentum.z);
+    if ( get_mhd_flag() == 1 ) {
+	// Magnetic field
+	U->B.x = U_old->B.x + dt * (psi_2 * dUdt1.B.x + gamma_3 * dUdt2.B.x);
+	U->B.y = U_old->B.y + dt * (psi_2 * dUdt1.B.y + gamma_3 * dUdt2.B.y);
+	U->B.z = U_old->B.z + dt * (psi_2 * dUdt1.B.z + gamma_3 * dUdt2.B.z);
+    }
+    U->total_energy = U_old->total_energy + 
+	dt * (psi_2 * dUdt1.total_energy + gamma_3 * dUdt2.total_energy);
+    if ( get_k_omega_flag() ) {
+	U->tke = U_old->tke + dt * (psi_2 * dUdt1.tke + gamma_3 * dUdt2.tke);
+	U->tke = MAXIMUM(U->tke, 0.0);
+	U->omega = U_old->omega + dt * (psi_2 * dUdt1.omega + gamma_3 * dUdt2.omega);
+	U->omega = MAXIMUM(U->omega, U_old->mass);
+    } else {
+	U->tke = U_old->tke;
+	U->omega = U_old->omega;
+    }
+    for ( size_t isp = 0; isp < U->massf.size(); ++isp ) {
+	U->massf[isp] = U_old->massf[isp] +
+	    dt * (psi_2 * dUdt1.massf[isp] + gamma_3 * dUdt2.massf[isp]);
+    }
+    for ( size_t imode = 0; imode < U->energies.size(); ++imode ) {
+	U->energies[imode] = U_old->energies[imode] +
+	    dt * (psi_2 * dUdt1.energies[imode] + gamma_3 * dUdt2.energies[imode]);
+    }
+    return SUCCESS;
+} // end of rk3_update_for_flow_on_fixed_grid()
+
+
+/// \brief Apply the predictor-stage of the update for a specified cell.
+/// \param dt   : size of the time-step
+int FV_Cell::predictor_update_for_flow_on_moving_grid(double dt)
+{
+    ConservedQuantities &dUdt0 = *(dUdt[0]);
+    double gamma_1 = 1.0;
+    double vr = volume[0] / volume[1];
+
+    U->mass = vr * (U_old->mass + dt * gamma_1 * dUdt0.mass);
+    U->momentum.x = vr * (U_old->momentum.x + dt * gamma_1 * dUdt0.momentum.x);
+    U->momentum.y = vr * (U_old->momentum.y + dt * gamma_1 * dUdt0.momentum.y);
+    U->momentum.z = vr * (U_old->momentum.z + dt * gamma_1 * dUdt0.momentum.z);
+    if ( get_mhd_flag() == 1 ) {
+	// Magnetic field
+	U->B.x = vr * (U_old->B.x + dt * gamma_1 * dUdt0.B.x);
+	U->B.y = vr * (U_old->B.y + dt * gamma_1 * dUdt0.B.y);
+	U->B.z = vr * (U_old->B.z + dt * gamma_1 * dUdt0.B.z);
+    }
+    U->total_energy = vr * (U_old->total_energy + dt * gamma_1 * dUdt0.total_energy);
+    if ( get_k_omega_flag() ) {
+	U->tke = vr * (U_old->tke + dt * gamma_1 * dUdt0.tke);
+	U->tke = MAXIMUM(U->tke, 0.0);
+	U->omega = vr * (U_old->omega + dt * gamma_1 * dUdt0.omega);
+	U->omega = MAXIMUM(U->omega, U_old->mass);
+    } else {
+	U->tke = U_old->tke;
+	U->omega = U_old->omega;
+    }
+    for ( size_t isp = 0; isp < U->massf.size(); ++isp ) {
 	U->massf[isp] = vr * (U_old->massf[isp] + dt * gamma_1 * dUdt0.massf[isp]);
     }
     // NOTE: energies[0] is never used so skipping (DFP 10/12/09)
@@ -1433,70 +1557,40 @@ int FV_Cell::predictor_update(double dt)
 	U->energies[imode] = vr * (U_old->energies[imode] + dt * gamma_1 * dUdt0.energies[imode]);
     }
     return SUCCESS;
-} // end of predictor_update()
+} // end of predictor_update_for_flow_on_moving_grid()
 
 
 /// \brief Apply the corrector-stage of the update for a specified cell.
 /// \param dt   : size of the time-step
-///
-///
-int FV_Cell::corrector_update(double dt)
+int FV_Cell::corrector_update_for_flow_on_moving_grid(double dt)
 {
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &dUdt1 = *(dUdt[1]);
-    double th, th_inv;
-    double v_old = 1.0;
-    double vol_inv = 1.0;
-    /*
-     * Set the type of time-stepping
-     * th = 0.0 : Euler
-     * th = 0.5 : 2nd order
-     * th = 1.0 : sort-of-implicit?
-     */
-    // The volumes are incorporated into the RK coefficients only for
-    // convenience.
-    if (get_Torder_flag() == 3) {
-	/* 3rd order Runge-Kutta */
-	th = 5.0 / 12.0;
-	th_inv = -17.0 / 60.0;
-    } else {
-	/* Normal Predictor-Corrector or Euler */
-	th = 0.5;
-	th_inv = 0.5;
-    }
-    if ( get_shock_fitting_flag() == 1 ) {
-	if (get_Torder_flag() == 3) {
-	    v_old = volume[1];
-	} else {
-	    v_old = volume[0];
-	}
-	vol_inv = 1.0/volume[2];
-	th_inv *= volume[0];
-	th *= volume[1];
-    }
-
+    double th1 = 0.5;
+    double th0 = 0.5;
+    double v_old = volume[0];
+    double vol_inv = 1.0 / volume[2];
+    th0 *= volume[0]; th1 *= volume[1]; // Roll-in the volumes for convenience below. 
     
-    U->mass = vol_inv * (v_old * U_old->mass + dt * (th_inv * dUdt0.mass + th * dUdt1.mass));
+    U->mass = vol_inv * (v_old * U_old->mass + dt * (th0 * dUdt0.mass + th1 * dUdt1.mass));
     U->momentum.x = vol_inv * (v_old * U_old->momentum.x + 
-			       dt * (th_inv * dUdt0.momentum.x + th * dUdt1.momentum.x));
+			       dt * (th0 * dUdt0.momentum.x + th1 * dUdt1.momentum.x));
     U->momentum.y = vol_inv * (v_old * U_old->momentum.y + 
-			       dt * (th_inv * dUdt0.momentum.y + th * dUdt1.momentum.y));
+			       dt * (th0 * dUdt0.momentum.y + th1 * dUdt1.momentum.y));
     U->momentum.z = vol_inv * (v_old * U_old->momentum.z + 
-			       dt * (th_inv * dUdt0.momentum.z + th * dUdt1.momentum.z));
-
-    // Magnetic field
+			       dt * (th0 * dUdt0.momentum.z + th1 * dUdt1.momentum.z));
     if (get_mhd_flag() == 1) {
-	U->B.x = vol_inv * (v_old * U_old->B.x + dt * (th_inv * dUdt0.B.x + th * dUdt1.B.x));
-	U->B.y = vol_inv * (v_old * U_old->B.y + dt * (th_inv * dUdt0.B.y + th * dUdt1.B.y));
-	U->B.z = vol_inv * (v_old * U_old->B.z + dt * (th_inv * dUdt0.B.z + th * dUdt1.B.z));
+	// Magnetic field
+	U->B.x = vol_inv * (v_old * U_old->B.x + dt * (th0 * dUdt0.B.x + th1 * dUdt1.B.x));
+	U->B.y = vol_inv * (v_old * U_old->B.y + dt * (th0 * dUdt0.B.y + th1 * dUdt1.B.y));
+	U->B.z = vol_inv * (v_old * U_old->B.z + dt * (th0 * dUdt0.B.z + th1 * dUdt1.B.z));
     }
-    
     U->total_energy = vol_inv * (v_old * U_old->total_energy + 
-				 dt * (th_inv * dUdt0.total_energy + th * dUdt1.total_energy));
+				 dt * (th0 * dUdt0.total_energy + th1 * dUdt1.total_energy));
     if ( get_k_omega_flag() ) {
-	U->tke = vol_inv * (v_old * U_old->tke + dt * (th_inv * dUdt0.tke + th * dUdt1.tke));
+	U->tke = vol_inv * (v_old * U_old->tke + dt * (th0 * dUdt0.tke + th1 * dUdt1.tke));
 	U->tke = MAXIMUM(U->tke, 0.0);
-	U->omega = vol_inv * (v_old * U_old->omega + dt * (th_inv * dUdt0.omega + th * dUdt1.omega));
+	U->omega = vol_inv * (v_old * U_old->omega + dt * (th0 * dUdt0.omega + th1 * dUdt1.omega));
 	U->omega = MAXIMUM(U->omega, U_old->mass);
     } else {
 	U->tke = vol_inv * (v_old * U_old->tke);
@@ -1504,67 +1598,14 @@ int FV_Cell::corrector_update(double dt)
     }
     for ( size_t isp = 0; isp < U->massf.size(); ++isp ) {
 	U->massf[isp] = vol_inv * (v_old * U_old->massf[isp] +
-				   dt * (th_inv * dUdt0.massf[isp] + th * dUdt1.massf[isp]));
+				   dt * (th0 * dUdt0.massf[isp] + th1 * dUdt1.massf[isp]));
     }
     for ( size_t imode = 0; imode < U->energies.size(); ++imode ) {
 	U->energies[imode] = vol_inv * (v_old * U_old->energies[imode] +
-					dt * (th_inv * dUdt0.energies[imode] + th * dUdt1.energies[imode]));
+					dt * (th0 * dUdt0.energies[imode] + th1 * dUdt1.energies[imode]));
     }
     return SUCCESS;
-} // end of corrector_update()
-
-
-/// \brief Apply the final Runge-Kutta (3rd order) stage of the update for a specified cell.
-/// \param dt : size of the time-step
-int FV_Cell::rk3_update(double dt)
-{
-    ConservedQuantities &dUdt1 = *(dUdt[1]);
-    ConservedQuantities &dUdt2 = *(dUdt[2]);
-    double gamma_3 = 3.0 / 4.0;
-    double psi_2 = -5.0 / 12.0;
-    double vol_inv = 1.0;
-    double v1 = 1.0;
-    double v2 = 1.0;
-    if ( get_shock_fitting_flag() == 1 ) {
- 	v1 = volume[1];
-	v2 = volume[2];
-        vol_inv = 1.0/volume[3];
-	psi_2 *= v1;
-	gamma_3 *= v2;
-    }
-    U->mass = vol_inv * (v1 * U_old->mass + dt * (psi_2 * dUdt1.mass + gamma_3 * dUdt2.mass));
-    U->momentum.x = vol_inv * (v1 * U_old->momentum.x + dt * (psi_2 * dUdt1.momentum.x + gamma_3 * dUdt2.momentum.x));
-    U->momentum.y = vol_inv * (v1 * U_old->momentum.y + dt * (psi_2 * dUdt1.momentum.y + gamma_3 * dUdt2.momentum.y));
-    U->momentum.z = vol_inv * (v1 * U_old->momentum.z + dt * (psi_2 * dUdt1.momentum.z + gamma_3 * dUdt2.momentum.z));
-    
-    // Magnetic field
-    if (get_mhd_flag() == 1) {
-	U->B.x = vol_inv * (v1 * U_old->B.x + dt * (psi_2 * dUdt1.B.x + gamma_3 * dUdt2.B.x));
-	U->B.y = vol_inv * (v1 * U_old->B.y + dt * (psi_2 * dUdt1.B.y + gamma_3 * dUdt2.B.y));
-	U->B.z = vol_inv * (v1 * U_old->B.z + dt * (psi_2 * dUdt1.B.z + gamma_3 * dUdt2.B.z));
-    }
-
-    U->total_energy = vol_inv * (v1 * U_old->total_energy + 
-			    dt * (psi_2 * dUdt1.total_energy + gamma_3 * dUdt2.total_energy));
-    if ( get_k_omega_flag() ) {
-	U->tke = vol_inv * (v1 * U_old->tke + dt * (psi_2 * dUdt1.tke + gamma_3 * dUdt2.tke));
-	U->tke = MAXIMUM(U->tke, 0.0);
-	U->omega = vol_inv * (v1 * U_old->omega + dt * (psi_2 * dUdt1.omega + gamma_3 * dUdt2.omega));
-	U->omega = MAXIMUM(U->omega, U_old->mass);
-    } else {
-	U->tke = vol_inv * (v1 * U_old->tke);
-	U->omega = vol_inv * (v1 * U_old->omega);
-    }
-    for ( size_t isp = 0; isp < U->massf.size(); ++isp ) {
-	U->massf[isp] = vol_inv * (v1 * U_old->massf[isp] +
-	    dt * (psi_2 * dUdt1.massf[isp] + gamma_3 * dUdt2.massf[isp]));
-    }
-    for ( size_t imode = 0; imode < U->energies.size(); ++imode ) {
-	U->energies[imode] = vol_inv * (v1 * U_old->energies[imode] +
-	    dt * (psi_2 * dUdt1.energies[imode] + gamma_3 * dUdt2.energies[imode]));
-    }
-    return SUCCESS;
-} // end of rk3_update()
+} // end of corrector_update_for_flow_on_moving_grid()
 
 
 /// \brief Apply the chemistry update for a specified cell.

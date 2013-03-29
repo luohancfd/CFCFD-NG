@@ -249,9 +249,11 @@ public:
     int check_flow_data(void);
     // int copy_level_to_level(size_t from_level, size_t to_level); // FIX-ME moving grid
     int time_derivatives(size_t gtl, size_t ftl, size_t dimensions);
-    int predictor_update(double dt);
-    int corrector_update(double dt);
-    int rk3_update(double dt);
+    int predictor_update_for_flow_on_fixed_grid(double dt, int force_euler=0);
+    int corrector_update_for_flow_on_fixed_grid(double dt);
+    int rk3_update_for_flow_on_fixed_grid(double dt);
+    int predictor_update_for_flow_on_moving_grid(double dt);
+    int corrector_update_for_flow_on_moving_grid(double dt);
     int chemical_increment(double dt);
     int thermal_increment(double dt);
     double signal_frequency(size_t dimensions);

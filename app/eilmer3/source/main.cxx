@@ -1506,7 +1506,7 @@ int gasdynamic_inviscid_increment_with_fixed_grid( void )
 		if ( G.udf_source_vector_flag == 1 )
 		    udf_source_vector_for_cell(cp, 0, G.sim_time);
 		cp->time_derivatives(0, 0, G.dimensions);
-		cp->predictor_update(G.dt_global);
+		cp->predictor_update_for_flow_on_fixed_grid(G.dt_global);
 		cp->decode_conserved(0, bdp->omegaz);
 		if ( get_Torder_flag() == 3 ) cp->record_conserved();
 	    } // end for *cp
@@ -1536,7 +1536,7 @@ int gasdynamic_inviscid_increment_with_fixed_grid( void )
 		    if ( G.udf_source_vector_flag == 1 )
 			udf_source_vector_for_cell(cp, 1, G.sim_time);
 		    cp->time_derivatives(0, 1, G.dimensions);
-		    cp->corrector_update(G.dt_global);
+		    cp->corrector_update_for_flow_on_fixed_grid(G.dt_global);
 		    cp->decode_conserved(0, bdp->omegaz);
 		    if ( get_Torder_flag() == 3 ) cp->record_conserved();
 		} // end for *cp
@@ -1566,7 +1566,7 @@ int gasdynamic_inviscid_increment_with_fixed_grid( void )
 		    if ( G.udf_source_vector_flag == 1 )
 			udf_source_vector_for_cell(cp, 2, G.sim_time);
 		    cp->time_derivatives(0, 2, G.dimensions);
-		    cp->rk3_update(G.dt_global);
+		    cp->rk3_update_for_flow_on_fixed_grid(G.dt_global);
 		    cp->decode_conserved(0, bdp->omegaz);
 		} // for *cp
 		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
@@ -1680,7 +1680,7 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 		cp->inviscid_source_vector(0, bdp->omegaz);
 		if ( G.udf_source_vector_flag == 1 ) udf_source_vector_for_cell(cp, 0, G.sim_time);
 		cp->time_derivatives(0, 0, G.dimensions);
-		cp->predictor_update(G.dt_global);
+		cp->predictor_update_for_flow_on_moving_grid(G.dt_global);
 		cp->decode_conserved(0, bdp->omegaz);
 		// cp->get_current_time_level_geometry(1); copy_from_level_to_level() FIX-ME moving grid
 	    } // end for *cp
@@ -1722,7 +1722,7 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 		    cp->inviscid_source_vector(1, bdp->omegaz);
 		    if ( G.udf_source_vector_flag == 1 ) udf_source_vector_for_cell(cp, 1, G.sim_time);
 		    cp->time_derivatives(1, 1, G.dimensions);
-		    cp->corrector_update(G.dt_global);
+		    cp->corrector_update_for_flow_on_moving_grid(G.dt_global);
 		    cp->decode_conserved(1, bdp->omegaz);
 		    // cp->get_current_time_level_geometry(2); copy_level_to_level() FIX-ME moving grid
 		} // end for *cp
@@ -1787,7 +1787,7 @@ int gasdynamic_viscous_increment( void )
 	for ( FV_Cell *cp: bdp->active_cells ) {
 	    cp->viscous_source_vector();
 	    cp->time_derivatives(0, 0, G.dimensions);
-	    cp->predictor_update(G.dt_global);
+	    cp->predictor_update_for_flow_on_fixed_grid(G.dt_global, 1);
 	    cp->decode_conserved(0, bdp->omegaz);
 	} // end for *cp
 	if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
