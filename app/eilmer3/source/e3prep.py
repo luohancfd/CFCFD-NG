@@ -514,9 +514,9 @@ class GlobalData(object):
         """
         if self.shock_fitting_flag: self.moving_grid_flag = 1
         if self.t_order != None:
-            if t_order == 1:
+            if self.t_order == 1:
                 self.gasdynamic_update_scheme = 'euler'
-            elif t_order == 3:
+            elif self.t_order == 3:
                 self.gasdynamic_update_scheme = 'rk3'
             else:
                 self.gasdynamic_update_scheme = 'predictor-corrector'
