@@ -520,7 +520,7 @@ int Block::determine_time_step_size(double cfl_target, size_t dimensions)
     global_data *gdp = get_global_data_ptr();
     bool first;
     double dt_local, cfl_local, signal, cfl_allow;
-    if ( get_Torder_flag() < 3 ) {
+    if ( number_of_stages_for_update_scheme() < 3 ) {
 	cfl_allow = 0.9;
     } else {
 	cfl_allow = 1.1;

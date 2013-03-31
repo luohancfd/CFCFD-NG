@@ -208,11 +208,6 @@ int filter = 0;
 /// out-of-plane cell interfaces.
 int axisymm = 0;
 
-/// \brief Order of time-stepping: =1 for Euler, =2 for predictor-corrector. 
-///
-/// Euler time-stepping just uses the predictor stage of the time-step functions.
-int Torder = 2;
-
 /// \brief Order of reconstruction: =1 for low-order, =2 for high-order. 
 ///
 /// Low order reconstruction uses just the cell-centre data as left- and right-
@@ -613,24 +608,6 @@ int set_Xorder_flag(int ix)
 int get_Xorder_flag(void)
 {
     return Xorder;
-}
-
-/*------------------------------------------------------------------*/
-
-int set_Torder_flag(int it)
-{
-    Torder = it;
-    // if ( get_verbose_flag() ) printf("Torder=%d\n", Torder);
-    if ( Torder != 1 && Torder != 2 && Torder != 3 ) {
-        printf("set_Torder_flag(): Invalid Torder flag value: %d\n", Torder);
-        exit(VALUE_ERROR);
-    }
-    return SUCCESS;
-}
-
-int get_Torder_flag(void)
-{
-    return Torder;
 }
 
 /*------------------------------------------------------------------*/

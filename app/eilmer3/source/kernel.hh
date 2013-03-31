@@ -219,8 +219,6 @@ int set_diffusion_flag(int id);
 int get_diffusion_flag(void);
 int set_Xorder_flag(int ix);
 int get_Xorder_flag(void);
-int set_Torder_flag(int it);
-int get_Torder_flag(void);
 double set_heat_factor( double value );
 double get_heat_factor( void );
 double incr_heat_factor( double value );

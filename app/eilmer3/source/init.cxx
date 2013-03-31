@@ -24,6 +24,7 @@
 #include "../../../lib/gas/models/gas-model.hh"
 #include "block.hh"
 #include "kernel.hh"
+#include "cell.hh"
 #include "bc_defs.hh"
 #include "bc.hh"
 #include "init.hh"
@@ -506,20 +507,36 @@ int read_config_parameters(const string filename, bool master)
 
 
 int read_control_parameters( const string filename, bool master, bool first_time )
+// These are read at the start of every time-step and may be used 
+// to alter the simulation behaviour during a run.
 {
     int i_value;
+    std::string s_value;
     global_data &G = *get_global_data_ptr();
     // Parse the previously-generated INI file.
     ConfigParser dict = ConfigParser(filename);
 
-    dict.parse_int("control_data", "x_order", i_value, 0);
+    dict.parse_int("control_data", "x_order", i_value, 2); // default high-order
     set_Xorder_flag( i_value );
+    // 2013-03-31 chenge to use an explicitly-named update scheme.
+    dict.parse_string("control_data", "gasdynamic_update_scheme", s_value,
+		      "predictor_corrector");
+    set_gasdynamic_update_scheme(s_value);
+    // To keep backward compatibility with old simulation files,
+    // read Torder if it exists and set the equivalent update scheme.
     dict.parse_int("control_data", "t_order", i_value, 0);
-    set_Torder_flag( i_value );
+    if ( i_value == 1 )
+	set_gasdynamic_update_scheme("euler");
+    else if ( i_value == 2 )
+	set_gasdynamic_update_scheme("predictor_corrector");
+    else if ( i_value == 3 )
+	set_gasdynamic_update_scheme("rk3");
+    //
     dict.parse_double("control_data", "dt", G.dt_init, 1.0e-6);
     if ( first_time ) G.dt_global = G.dt_init;
     dict.parse_boolean("control_data", "fixed_time_step", G.fixed_time_step, 0);
-    dict.parse_double("control_data", "dt_reduction_factor", G.dt_reduction_factor, 0.2);
+    dict.parse_double("control_data", "dt_reduction_factor",
+		      G.dt_reduction_factor, 0.2);
     dict.parse_double("control_data", "cfl", G.cfl_target, 0.5);
     dict.parse_int("control_data", "stringent_cfl", i_value, 0);
     set_stringent_cfl_flag( i_value );
@@ -539,10 +556,12 @@ int read_control_parameters( const string filename, bool master, bool first_time
     if ( first_time && get_verbose_flag() ) {
 	cout << "Time-step control parameters:" << endl;
 	cout << "    x_order = " << get_Xorder_flag() << endl;
-	cout << "    t_order = " << get_Torder_flag() << endl;
+	cout << "    gasdynamic_update_scheme = " 
+	     << get_name_of_gasdynamic_update_scheme() << endl;
 	cout << "    dt = " << G.dt_init << endl;
 	cout << "    fixed_time_step = " << G.fixed_time_step << endl;
-	cout << "    dt_reduction_factor = " << G.dt_reduction_factor << endl;
+	cout << "    dt_reduction_factor = " 
+	     << G.dt_reduction_factor << endl;
 	cout << "    cfl = " << G.cfl_target << endl;
 	cout << "    stringent_cfl = " << get_stringent_cfl_flag() << endl;
 	cout << "    print_count = " << G.print_count << endl;
@@ -555,7 +574,8 @@ int read_control_parameters( const string filename, bool master, bool first_time
 	cout << "    max_step = " << G.max_step << endl;
 	cout << "    halt_now = " << G.halt_now << endl;
 	cout << "    halt_now = " << G.halt_now << endl;
-	cout << "    radiation_update_frequency = " << get_radiation_update_frequency();
+	cout << "    radiation_update_frequency = " 
+	     << get_radiation_update_frequency();
 	if (get_implicit_flag() == 0) {
 	    cout << " (Explicit viscous advancements)" << endl;
 	}
@@ -566,7 +586,8 @@ int read_control_parameters( const string filename, bool master, bool first_time
 	    cout << " (Fully implicit viscous advancements)" << endl;
 	}
 	else {
-	    cout << "\nInvalid implicit flag value: " << get_implicit_flag() << endl;
+	    cout << "\nInvalid implicit flag value: " 
+		 << get_implicit_flag() << endl;
 	    exit( BAD_INPUT_ERROR );
 	}
     }

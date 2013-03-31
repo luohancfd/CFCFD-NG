@@ -309,7 +309,9 @@ class GlobalData(object):
       data to cell interface data.
       Select 1 for low-order (i.e. no) reconstruction.
       Select 2 for a higer-order (limited quadratic) reconstruction.
-    * t_order: (int 1 or 2) Specifies the form of time stepping scheme.
+    * gasdynamic_update_scheme: (string) one of "euler", "pc", "predictor-corrector",
+      "midpoint", "rk3"
+    * t_order: (int 1 or 2) Specifies the form of time stepping scheme [deprecated].
       Select 1 for Euler stepping.
       Select 2 for predictor-corrector stepping.
     * stringent_cfl: (0/1) Set to 1 to get a very strict CFL check.
@@ -397,7 +399,8 @@ class GlobalData(object):
                 'turbulence_prandtl_number', 'turbulence_schmidt_number', \
                 'scalar_pdf_flag', 'reacting_flag', 'reaction_time_start', \
                 'x_order', 'flux_calc', 'compression_tolerance', 'shear_tolerance', \
-                't_order', 'stringent_cfl', 'shock_fitting_flag', 'dt_shock', \
+                't_order', 'gasdynamic_update_scheme', \
+                'stringent_cfl', 'shock_fitting_flag', 'dt_shock', \
                 'shock_fitting_decay_flag', 'shock_fitting_speed_factor', \
                 'moving_grid_flag', 'write_vertex_velocities_flag', 'adaptive_reconstruction_flag', \
                 'filter_flag', 'filter_tstart', 'filter_tend', \
@@ -464,7 +467,8 @@ class GlobalData(object):
         self.flux_calc = ADAPTIVE
         self.compression_tolerance = -0.30
         self.shear_tolerance = 0.20
-        self.t_order = 2
+        self.t_order = None  # now deprecated
+        self.gasdynamic_update_scheme = 'predictor-corrector'
         self.cfl = 0.5
         self.stringent_cfl = 0
         self.fixed_time_step = False
@@ -509,6 +513,13 @@ class GlobalData(object):
         to be adjusted before writing the control and config files.
         """
         if self.shock_fitting_flag: self.moving_grid_flag = 1
+        if self.t_order != None:
+            if t_order == 1:
+                self.gasdynamic_update_scheme = 'euler'
+            elif t_order == 3:
+                self.gasdynamic_update_scheme = 'rk3'
+            else:
+                self.gasdynamic_update_scheme = 'predictor-corrector'
         return
 
     def write_to_control_file(self, fp):
@@ -522,7 +533,8 @@ class GlobalData(object):
         """
         fp.write("[control_data]\n")
         fp.write("x_order = %d\n" % self.x_order)
-        fp.write("t_order = %d\n" % self.t_order)
+        # fp.write("t_order = %d\n" % self.t_order) # deprecated 2013-03-31
+        fp.write("gasdynamic_update_scheme = %s\n" % self.gasdynamic_update_scheme)
         fp.write("dt = %e\n" % self.dt)
         fp.write("fixed_time_step = %s\n" % self.fixed_time_step)
         fp.write("dt_reduction_factor = %e\n" % self.dt_reduction_factor)

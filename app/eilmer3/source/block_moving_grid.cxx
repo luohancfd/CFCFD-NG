@@ -31,13 +31,8 @@ int Block::predict_vertex_positions(size_t dimensions, double dt)
     size_t i, j, k, krangemax;
     double gamma_1;
     FV_Vertex *vtx;
-    if (get_Torder_flag() == 3) {
-	/* 3rd order Runge-Kutta */
-	gamma_1 = 8.0 / 15.0;
-    } else {
-	/* Normal Predictor-Corrector or Euler */
-	gamma_1 = 1.0;
-    }
+    /* First of two stages. */
+    gamma_1 = 1.0;
     if ( dimensions == 2 ) {
 	krangemax = kmax;
     } else {
@@ -63,17 +58,10 @@ int Block::correct_vertex_positions(size_t dimensions, double dt)
     FV_Vertex *vtx;
     double th, th_inv;
     size_t tl_old;
-    if (get_Torder_flag() == 3) {
-	/* 3rd order Runge-Kutta */
-	th = 5.0 / 12.0;
-	th_inv = -17.0 / 60.0;
-	tl_old = 1;
-    } else {
-	/* Normal Predictor-Corrector or Euler */
-	th = 0.5;
-	th_inv = 0.5;
-	tl_old = 0;
-    }
+    /* Stage 2 of 2 */
+    th = 0.5;
+    th_inv = 0.5;
+    tl_old = 0;
     if ( dimensions == 2 ) {
 	krangemax = kmax;
     } else {
@@ -383,11 +371,6 @@ int Block::set_gcl_interface_properties2D( size_t gtl, double dt )
     Vector3 vpm1, vpm2;
     double xA, xB, yA, yB;
     size_t tl_old = 0;
-    if ( get_Torder_flag() == 3 ) {
-	if ( gtl == 1 ) tl_old = 1;
-	else if ( gtl == 2 ) tl_old = 2;
-	dt /= 3.0;
-    }
     k = kmin;
     for (j = jmin; j <= jmax; ++j) {
 	for (i = imin; i <= imax+1; ++i) {
@@ -445,11 +428,6 @@ int Block::set_gcl_interface_properties3D(size_t gtl, double dt)
     FV_Interface *IFace;
     Vector3 vpm1, vpm2, vpm3, vpm4, p1, p2, p3, p4;
     size_t tl_old = 0;
-    if ( get_Torder_flag() == 3 ) {
-	if ( gtl == 1 ) tl_old = 1;
-	else if ( gtl == 2 ) tl_old = 2;
-	dt /= 3.0;
-    }
     for (k = kmin; k <= kmax; ++k) {
 	for (j = jmin; j <= jmax; ++j) {
 	    for (i = imin; i <= imax+1; ++i) {

@@ -47,8 +47,14 @@ const int SHADOWED_CELL = 2;
 const int NORMAL_IFACE = 0;
 const int MASKED_IFACE = 1;
 
+// Update scheme
+enum update_scheme_t { EULER_UPDATE, PC_UPDATE, MIDPOINT_UPDATE, RK3_UPDATE };
+update_scheme_t set_gasdynamic_update_scheme(std::string name);
+update_scheme_t get_gasdynamic_update_scheme();
+std::string get_name_of_gasdynamic_update_scheme();
+size_t number_of_stages_for_update_scheme();
 /// N_LEVEL is used to size the time-derivative vectors.
-const size_t N_LEVEL = 4; // Number of levels for derivative calcs and ODE updates.
+const size_t N_LEVEL = 4;
 
 const size_t N_INTERFACE = 6; // Number of interfaces per cell
 const size_t N_VERTEX = 8; // Number of vertices per cell
@@ -251,11 +257,11 @@ public:
     int decode_conserved(size_t gtl, double omegaz);
     int check_flow_data(void);
     int time_derivatives(size_t gtl, size_t ftl, size_t dimensions);
-    int predictor_update_for_flow_on_fixed_grid(double dt, int force_euler=0);
-    int corrector_update_for_flow_on_fixed_grid(double dt);
-    int rk3_update_for_flow_on_fixed_grid(double dt);
-    int predictor_update_for_flow_on_moving_grid(double dt);
-    int corrector_update_for_flow_on_moving_grid(double dt);
+    int stage_1_update_for_flow_on_fixed_grid(double dt, int force_euler=0);
+    int stage_2_update_for_flow_on_fixed_grid(double dt);
+    int stage_3_update_for_flow_on_fixed_grid(double dt);
+    int stage_1_update_for_flow_on_moving_grid(double dt);
+    int stage_2_update_for_flow_on_moving_grid(double dt);
     int chemical_increment(double dt);
     int thermal_increment(double dt);
     double signal_frequency(size_t dimensions);

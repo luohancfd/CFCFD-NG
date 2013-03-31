@@ -1512,8 +1512,9 @@ are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config 
 \item \texttt{dt\_chem}: suggested time-step for finite-rate chemistry update;
   default value of -1.0 indicates that we want the code to work it out.
 \item \texttt{dt\_therm}: default value -1.0.
-\item \texttt{t\_order}\ddag: 1=Euler time stepping, 2=predictor-corrector
-  time-stepping, default value 1.
+\item \texttt{gasdynamic\_update\_scheme}\ddag: one of: ``euler'', ``pc'', ``predictor-corrector'',
+  ``midpoint'', ``rk3''.  Default value is ``predictor-corrector''.
+  Note that ``pc'' is equivalent.
   If you want time-accurate solutions, use predictor-corrector stepping,
   otherwise, Euler stepping is half the computational expense 
   (but you may get less accuracy and the code will not be as robust).

@@ -27,6 +27,51 @@
 
 const int VISCOUS_TIME_LIMIT_MODEL = 0; // (0) original Swanson model, (1) Ramshaw model
 
+std::map<std::string,update_scheme_t> available_schemes = {
+    {"euler",EULER_UPDATE}, {"Euler",EULER_UPDATE},
+    {"pc",PC_UPDATE}, {"PC",PC_UPDATE}, {"predictor_corrector",PC_UPDATE},
+    {"Predictor_corrector",PC_UPDATE},
+    {"midpoint",MIDPOINT_UPDATE}, {"Midpoint",MIDPOINT_UPDATE},
+    {"rk3",RK3_UPDATE}, {"RK3",RK3_UPDATE}
+};
+
+std::map<update_scheme_t,std::string> scheme_names = {
+    {EULER_UPDATE,"euler"},
+    {PC_UPDATE,"predictor-corrector"},
+    {MIDPOINT_UPDATE,"midpoint"},
+    {RK3_UPDATE,"rk3"}
+};
+
+enum update_scheme_t gasdynamic_update_scheme = PC_UPDATE;
+
+update_scheme_t set_gasdynamic_update_scheme(std::string name)
+{
+    gasdynamic_update_scheme = available_schemes[name];
+    return gasdynamic_update_scheme;
+}
+
+update_scheme_t get_gasdynamic_update_scheme()
+{
+    return gasdynamic_update_scheme;
+}
+
+std::string get_name_of_gasdynamic_update_scheme()
+{
+    return scheme_names[gasdynamic_update_scheme];
+}
+
+std::map<update_scheme_t,size_t> number_of_stages = {
+    {EULER_UPDATE,1},
+    {PC_UPDATE,2},
+    {MIDPOINT_UPDATE,2},
+    {RK3_UPDATE,3}
+};
+
+size_t number_of_stages_for_update_scheme()
+{
+    return number_of_stages[gasdynamic_update_scheme];
+}
+
 /*----------------------------------------------------------------*/
 
 static string face_name[] = { "north", "east", "south", "west", "top", "bottom" };
@@ -1420,13 +1465,11 @@ int FV_Cell::time_derivatives(size_t gtl, size_t ftl, size_t dimensions)
 } // end of time_derivatives()
 
 
-/// \brief Apply the predictor-stage of the update for a specified cell.
-/// \param dt   : size of the time-step
-int FV_Cell::predictor_update_for_flow_on_fixed_grid(double dt, int force_euler)
+int FV_Cell::stage_1_update_for_flow_on_fixed_grid(double dt, int force_euler)
 {
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     double gamma_1 = 1.0; // for normal Predictor-Corrector or Euler update.
-    if ( get_Torder_flag() == 3 && !force_euler )
+    if ( get_gasdynamic_update_scheme() == RK3_UPDATE )
 	gamma_1 = 8.0 / 15.0; // for first stage of 3rd-order Runge-Kutta.
 
     U->mass = U_old->mass + dt * gamma_1 * dUdt0.mass;
@@ -1470,18 +1513,16 @@ int FV_Cell::predictor_update_for_flow_on_fixed_grid(double dt, int force_euler)
 	U->energies[imode] = U_old->energies[imode] + dt * gamma_1 * dUdt0.energies[imode];
     }
     return SUCCESS;
-} // end of predictor_update_for_flow_on_fixed_grid()
+} // end of stage_1_update_for_flow_on_fixed_grid()
 
 
-/// \brief Apply the corrector-stage of the update for a specified cell.
-/// \param dt   : size of the time-step
-int FV_Cell::corrector_update_for_flow_on_fixed_grid(double dt)
+int FV_Cell::stage_2_update_for_flow_on_fixed_grid(double dt)
 {
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &dUdt1 = *(dUdt[1]);
     double th1 = 0.5; // for standard predictor-corrector update.
     double th0 = 1.0 - th1;
-    if ( get_Torder_flag() == 3 ) {
+    if ( get_gasdynamic_update_scheme() == RK3_UPDATE ) {
 	// for second stage of 3rd-order Runge-Kutta update.
 	th1 = 5.0 / 12.0;
 	th0 = -17.0 / 60.0;
@@ -1516,12 +1557,11 @@ int FV_Cell::corrector_update_for_flow_on_fixed_grid(double dt)
 	    dt * (th0 * dUdt0.energies[imode] + th1 * dUdt1.energies[imode]);
     }
     return SUCCESS;
-} // end of corrector_update_for_flow_on_fixed_grid()
+} // end of stage_2_update_for_flow_on_fixed_grid()
 
 
-/// \brief Apply the final Runge-Kutta (3rd order) stage of the update for a specified cell.
-/// \param dt : size of the time-step
-int FV_Cell::rk3_update_for_flow_on_fixed_grid(double dt)
+int FV_Cell::stage_3_update_for_flow_on_fixed_grid(double dt)
+// Only used for RK3_UPDATE scheme.
 {
     ConservedQuantities &dUdt1 = *(dUdt[1]);
     ConservedQuantities &dUdt2 = *(dUdt[2]);
@@ -1558,12 +1598,10 @@ int FV_Cell::rk3_update_for_flow_on_fixed_grid(double dt)
 	    dt * (psi_2 * dUdt1.energies[imode] + gamma_3 * dUdt2.energies[imode]);
     }
     return SUCCESS;
-} // end of rk3_update_for_flow_on_fixed_grid()
+} // end of stage_3_update_for_flow_on_fixed_grid()
 
 
-/// \brief Apply the predictor-stage of the update for a specified cell.
-/// \param dt   : size of the time-step
-int FV_Cell::predictor_update_for_flow_on_moving_grid(double dt)
+int FV_Cell::stage_1_update_for_flow_on_moving_grid(double dt)
 {
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     double gamma_1 = 1.0;
@@ -1597,12 +1635,10 @@ int FV_Cell::predictor_update_for_flow_on_moving_grid(double dt)
 	U->energies[imode] = vr * (U_old->energies[imode] + dt * gamma_1 * dUdt0.energies[imode]);
     }
     return SUCCESS;
-} // end of predictor_update_for_flow_on_moving_grid()
+} // end of stage_1_update_for_flow_on_moving_grid()
 
 
-/// \brief Apply the corrector-stage of the update for a specified cell.
-/// \param dt   : size of the time-step
-int FV_Cell::corrector_update_for_flow_on_moving_grid(double dt)
+int FV_Cell::stage_2_update_for_flow_on_moving_grid(double dt)
 {
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &dUdt1 = *(dUdt[1]);
@@ -1645,7 +1681,7 @@ int FV_Cell::corrector_update_for_flow_on_moving_grid(double dt)
 					dt * (th0 * dUdt0.energies[imode] + th1 * dUdt1.energies[imode]));
     }
     return SUCCESS;
-} // end of corrector_update_for_flow_on_moving_grid()
+} // end of stage_2_update_for_flow_on_moving_grid()
 
 
 /// \brief Apply the chemistry update for a specified cell.
