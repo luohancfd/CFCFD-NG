@@ -26,22 +26,15 @@ extern "C" {
 /// \brief Perform Euler step using calculated vertex
 /// velocity and set the vertex position for time-level 1.
 ///
+/// First of two stages.
 int Block::predict_vertex_positions(size_t dimensions, double dt)
 {
-    size_t i, j, k, krangemax;
-    double gamma_1;
-    FV_Vertex *vtx;
-    /* First of two stages. */
-    gamma_1 = 1.0;
-    if ( dimensions == 2 ) {
-	krangemax = kmax;
-    } else {
-	krangemax = kmax+1;
-    }
-    for (k = kmin; k <= krangemax; ++k) {
-	for (j = jmin; j <= jmax+1; ++j) {
-	    for (i = imin; i <= imax+1; ++i) {
-		vtx = get_vtx(i,j,k);
+    size_t krangemax = ( dimensions == 2 ) ? kmax : kmax+1;
+    const double gamma_1 = 1.0;
+    for ( size_t k = kmin; k <= krangemax; ++k ) {
+	for ( size_t j = jmin; j <= jmax+1; ++j ) {
+	    for ( size_t i = imin; i <= imax+1; ++i ) {
+		FV_Vertex *vtx = get_vtx(i,j,k);
 		vtx->pos[1] = vtx->pos[0] + dt * gamma_1 * vtx->vel[0];
 	    }
 	}
@@ -52,25 +45,17 @@ int Block::predict_vertex_positions(size_t dimensions, double dt)
 /// \brief Perform corrector step using re-calculated vertex
 /// velocity and set the vertex position for time-level 2.
 ///
+/// Stage 2 of 2.
 int Block::correct_vertex_positions(size_t dimensions, double dt)
 {
-    size_t i, j, k, krangemax;
-    FV_Vertex *vtx;
-    double th, th_inv;
-    size_t tl_old;
-    /* Stage 2 of 2 */
-    th = 0.5;
-    th_inv = 0.5;
-    tl_old = 0;
-    if ( dimensions == 2 ) {
-	krangemax = kmax;
-    } else {
-	krangemax = kmax+1;
-    }
-    for (k = kmin; k <= krangemax; ++k) {
-	for (j = jmin; j <= jmax+1; ++j) {
-	    for (i = imin; i <= imax+1; ++i) {
-		vtx = get_vtx(i,j,k);
+    const double th = 0.5;
+    const double th_inv = 0.5;
+    size_t tl_old = 0;
+    size_t krangemax = ( dimensions == 2 ) ? kmax : kmax+1;
+    for ( size_t k = kmin; k <= krangemax; ++k ) {
+	for ( size_t j = jmin; j <= jmax+1; ++j ) {
+	    for ( size_t i = imin; i <= imax+1; ++i ) {
+		FV_Vertex *vtx = get_vtx(i,j,k);
 		vtx->pos[2] = vtx->pos[tl_old] + dt * (th_inv * vtx->vel[0] + th * vtx->vel[1]);
 	    }
 	}
@@ -89,11 +74,12 @@ int Block::calc_boundary_vertex_velocity(FV_Interface &IFace1, FV_Interface &IFa
     vp = vtx.pos[gtl];
     velocity_weighting_factor(IFace1, vp, w1, ws1);
     velocity_weighting_factor(IFace2, vp, w2, ws2);
-    if ( (w1 + w2) < 1e-3 ) {
+    if ( (w1 + w2) < 1.0e-3 ) {
 	w1 = w2 = 1.0;
     }
     Vector3 wv = (w1*ws1 + w2*ws2) / (w1 + w2);
-    vtx.vel[gtl] = dot(wv, trv) * trv; // Constrain vertex velocity to body radial direction.
+    // Finally, constrain vertex velocity to body radial direction.
+    vtx.vel[gtl] = dot(wv, trv) * trv; 
     return SUCCESS;				       			           
 }
 
@@ -111,11 +97,12 @@ int Block::calc_boundary_vertex_velocity(FV_Interface &IFace1, FV_Interface &IFa
     velocity_weighting_factor(IFace2, vp, w2, ws2);
     velocity_weighting_factor(IFace3, vp, w3, ws3);
     velocity_weighting_factor(IFace4, vp, w4, ws4);
-    if ( (w1 + w2 + w3 + w4) < 1e-3 ) {
+    if ( (w1 + w2 + w3 + w4) < 1.0e-3 ) {
 	w1 = w2 = w3 = w4 = 1.0;
     }
     Vector3 wv = (w1*ws1 + w2*ws2 + w3*ws3 + w4*ws4) / (w1 + w2 + w3 + w4);
-    vtx.vel[gtl] = dot(wv, trv) * trv; // Constrain vertex velocity to body radial direction.
+    // Finally, constrain vertex velocity to body radial direction.
+    vtx.vel[gtl] = dot(wv, trv) * trv; 
     return SUCCESS;					       			           
 }
 
@@ -583,117 +570,74 @@ int Block::set_interface_velocities3D(size_t gtl)
     return SUCCESS;
 }
 
-// int Block::diffuse_vertex_velocities(double mu, size_t npass, size_t dimensions, size_t gtl)
-// /// \brief Filter the cell-centred primary variables.
-// ///
-// /// This filtering is done on a block-by-block basis.
-// /// Valid flow data are needed in the ghost cells at the edges.
-// /// \param alpha : filter coefficient (closer to 1.0, more fudging)
-// /// \param npass : this many passes of the simple averager
-// //
-// {
-//     FV_Vertex *vtx, *vtxN, *vtxS;
-//     size_t i,j;
-//     Vector3 diffuse[nnj+5];
-//     i = imin;
-//     if ( bcp[SOUTH]->type_code != ADJACENT ) { // If not adjacent to another block on south side.
-// 	// First
-// 	get_vtx(i,jmin-1)->vel[gtl] = get_vtx(i,jmin)->vel[gtl];
-// 	// Second
-// 	get_vtx(i,jmin-2)->vel[gtl] = get_vtx(i,jmin+1)->vel[gtl];
-//     }
-//     if ( bcp[NORTH]->type_code != ADJACENT ) { // If not adjacent to another block on south side.
-// 	// Last
-// 	get_vtx(i,jmax+2)->vel[gtl] = get_vtx(i,jmax+1)->vel[gtl];
-// 	// Second last
-// 	get_vtx(i,jmax+3)->vel[gtl] = get_vtx(i,jmax)->vel[gtl];
-//     }
-//     for (j = jmin; j <= jmax+1; ++j) {
-// 	vtx = get_vtx(i,j);
-// 	vtxN = get_vtx(i,j+1);
-// 	vtxS = get_vtx(i,j-1);
-// 	diffuse[j] = ( 1 - 4 * mu ) * (vtx)->vel[gtl] +
-// 	    mu * ( (vtxN)->vel[gtl] + (vtxS)->vel[gtl]);
-//     }
-//      for (j = jmin; j <= jmax+1; ++j) {
-// 	vtx = get_vtx(i,j);
-// 	vtx->vel[gtl] = diffuse[j];
-//     }
-//     return SUCCESS;
-// } // end of diffuse_vertex_velocities()
+// FIX-ME moving grid : Andrew, if the following functions really are not wanted, can we delete them?
 
-// int Block::anti_diffuse_vertex_velocities(double mu, size_t npass, size_t dimensions, size_t gtl)
-// /// \brief Filter the cell-centred primary variables.
-// ///
-// /// This filtering is done on a block-by-block basis.
-// /// Valid flow data are needed in the ghost cells at the edges.
-// /// \param alpha : filter coefficient
-// /// \param npass : this many passes
-// //
-// {
-//     FV_Vertex *vtx, *vtxN, *vtxS;
-//     size_t i, j;
-//     Vector3 m2, m1, p1, p2;
-//     Vector3 vel;
-//     Vector3 adflux[nnj+5];
-//     // Apply the anti-diffusion.
-//     i = imin;
-//     for (j = jmin; j <= jmax+2; ++j) {
-// 	p2 = get_vtx(i,j+1)->vel[gtl];
-// 	p1 = get_vtx(i,j)->vel[gtl];
-// 	m1 = get_vtx(i,j-1)->vel[gtl];
-// 	m2 = get_vtx(i,j-2)->vel[gtl];
-// 	vel.x = calc_anti_diffusive_flux(m2.x, m1.x, p1.x, p2.x, mu);
-// 	vel.y = calc_anti_diffusive_flux(m2.y, m1.y, p1.y, p2.y, mu);
-// 	vel.z = calc_anti_diffusive_flux(m2.z, m1.z, p1.z, p2.z, mu);
-// 	adflux[j] = vel;
-//     }
-//     for (j = jmin; j <= jmax+1; ++j) {
-// 	vtx = get_vtx(i,j);
-// 	vtx->vel[gtl] += adflux[j] - adflux[j+1];
-//     }
-//     return SUCCESS;
-// } // end of anti_diffuse_vertex_velocities()
-
-int Block::compute_boundary_flux(FV_Interface *IFaceL, FV_Interface *IFaceR, double omegaz)
+int Block::diffuse_vertex_velocities(double mu, size_t npass, size_t dimensions, size_t gtl)
+/// \brief Filter the cell-centred primary variables.
+///
+/// This filtering is done on a block-by-block basis.
+/// Valid flow data are needed in the ghost cells at the edges.
+/// \param alpha : filter coefficient (closer to 1.0, more fudging)
+/// \param npass : this many passes of the simple averager
+//
 {
-    ConservedQuantities &F = *(IFaceR->F);
-    FlowState *IFace_flow_state = IFaceL->fs;
-
-    // Transform to interface frame of reference.
-    IFace_flow_state->vel -= IFaceR->vel;
-    IFaceR->vel.transform_to_local(IFaceR->n, IFaceR->t1, IFaceR->t2);
-    IFace_flow_state->vel.transform_to_local(IFaceR->n, IFaceR->t1, IFaceR->t2);
-    // also transform the magnetic field
-    if (get_mhd_flag() == 1) {
-	IFace_flow_state->B.transform_to_local(IFaceR->n, IFaceR->t1, IFaceR->t2);
+    FV_Vertex *vtx, *vtxN, *vtxS;
+    size_t i,j;
+    std::vector<Vector3> diffuse(nnj+5);
+    i = imin;
+    if ( bcp[SOUTH]->type_code != ADJACENT ) { // If not adjacent to another block on south side.
+	// First
+	get_vtx(i,jmin-1)->vel[gtl] = get_vtx(i,jmin)->vel[gtl];
+	// Second
+	get_vtx(i,jmin-2)->vel[gtl] = get_vtx(i,jmin+1)->vel[gtl];
     }
-    set_interface_flux(*IFaceR, IFace_flow_state);
-    if ( omegaz != 0.0 ) {
-	// Rotating frame.
-	double x = IFaceR->pos.x;
-	double y = IFaceR->pos.y;
-	double rsq = x*x + y*y;
-	// The conserved quantity is rothalpy,
-	// so we need to take -(u**2)/2 off the total energy Shock.
-	// Note that rotating frame velocity u = omegaz * r.
-	F.total_energy -= F.mass * 0.5*omegaz*omegaz*rsq;
+    if ( bcp[NORTH]->type_code != ADJACENT ) { // If not adjacent to another block on south side.
+	// Last
+	get_vtx(i,jmax+2)->vel[gtl] = get_vtx(i,jmax+1)->vel[gtl];
+	// Second last
+	get_vtx(i,jmax+3)->vel[gtl] = get_vtx(i,jmax)->vel[gtl];
     }
-
-    // Transform fluxes back from interface frame of reference to local frame of reference.
-    /* Flux of Total Energy */
-    F.total_energy += 0.5 * F.mass * pow(vabs(IFaceR->vel),2) + dot(F.momentum, IFaceR->vel);
-    /* Flux of momentum */
-    F.momentum += F.mass * IFaceR->vel;
-
-    // Rotate momentum fluxes back to the global frame of reference.
-    F.momentum.transform_to_global(IFaceR->n, IFaceR->t1, IFaceR->t2);
-    // also transform the interface velocities
-    IFaceR->vel.transform_to_global(IFaceR->n, IFaceR->t1, IFaceR->t2);	  
-    // also transform the magnetic field
-    if (get_mhd_flag() == 1) {
-	F.B.transform_to_global(IFaceR->n, IFaceR->t1, IFaceR->t2);
+    for (j = jmin; j <= jmax+1; ++j) {
+	vtx = get_vtx(i,j);
+	vtxN = get_vtx(i,j+1);
+	vtxS = get_vtx(i,j-1);
+	diffuse[j] = ( 1 - 4 * mu ) * (vtx)->vel[gtl] +
+	    mu * ( (vtxN)->vel[gtl] + (vtxS)->vel[gtl]);
     }
-    
+     for (j = jmin; j <= jmax+1; ++j) {
+	vtx = get_vtx(i,j);
+	vtx->vel[gtl] = diffuse[j];
+    }
     return SUCCESS;
-} // end Block::compute_boundary_flux()
+} // end of diffuse_vertex_velocities()
+
+int Block::anti_diffuse_vertex_velocities(double mu, size_t npass, size_t dimensions, size_t gtl)
+/// \brief Filter the cell-centred primary variables.
+///
+/// This filtering is done on a block-by-block basis.
+/// Valid flow data are needed in the ghost cells at the edges.
+/// \param alpha : filter coefficient
+/// \param npass : this many passes
+//
+{
+    Vector3 m2, m1, p1, p2;
+    Vector3 vel;
+    std::vector<Vector3> adflux(nnj+5);
+    // Apply the anti-diffusion.
+    size_t i = imin;
+    for ( size_t j = jmin; j <= jmax+2; ++j ) {
+	p2 = get_vtx(i,j+1)->vel[gtl];
+	p1 = get_vtx(i,j)->vel[gtl];
+	m1 = get_vtx(i,j-1)->vel[gtl];
+	m2 = get_vtx(i,j-2)->vel[gtl];
+	vel.x = calc_anti_diffusive_flux(m2.x, m1.x, p1.x, p2.x, mu);
+	vel.y = calc_anti_diffusive_flux(m2.y, m1.y, p1.y, p2.y, mu);
+	vel.z = calc_anti_diffusive_flux(m2.z, m1.z, p1.z, p2.z, mu);
+	adflux[j] = vel;
+    }
+    for ( size_t j = jmin; j <= jmax+1; ++j ) {
+	FV_Vertex *vtx = get_vtx(i,j);
+	vtx->vel[gtl] += adflux[j] - adflux[j+1];
+    }
+    return SUCCESS;
+} // end of anti_diffuse_vertex_velocities()

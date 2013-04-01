@@ -59,15 +59,15 @@ int Block::inviscid_flux(size_t dimensions)
 		cL0 = get_cell(i-1,j,k);
 		cR0 = get_cell(i,j,k);
 		cR1 = get_cell(i+1,j,k);
-		// Interpolate LEFT and RIGHT interface states from the cell-center properties.
 		if ( ( i == imin ) && ( bcp[WEST]->type_code == SHOCK_FITTING_IN ) ) {
 		    FV_Interface *IFaceL = get_ifi(i-1,j,k);
 		    FV_Interface *IFaceR = get_ifi(i,j,k);
-		    compute_boundary_flux(IFaceL, IFaceR, omegaz);
+		    set_flux_vector_in_global_frame(*IFaceR, *(IFaceL->fs), this->omegaz);
                     // We're shock-fitting and we're on the shock boundary.
 		    // Retain the inflow defined flux at the boundary by doing nothing here.
 		} else {
 		    // Either we're not shock fitting or we're not on the shock boundary.
+		    // Interpolate LEFT and RIGHT interface states from the cell-center properties.
 		    if ( get_adaptive_reconstruction_flag() == 1 ) {
 			mach_weighted_one_d_interp(*cL1, *cL0, *cR0, *cR1,
 				      cL1->iLength, cL0->iLength, cR0->iLength, cR1->iLength, Lft, Rght);

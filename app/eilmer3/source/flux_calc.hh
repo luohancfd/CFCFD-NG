@@ -32,21 +32,16 @@ const int DEBUG_FLUX = 0;
  * FLUX_HLLE     : MHD HLLE approximate Riemann solver
  * \endverbatim
  */
-const int FLUX_RIEMANN = 0;
-const int FLUX_AUSM = 1;
-const int FLUX_EFM = 2;
-const int FLUX_AUSMDV = 3;
-const int FLUX_ADAPTIVE = 4;
-const int FLUX_AUSM_PLUS_UP = 5;
-const int FLUX_HLLE = 6;
+enum flux_calc_t {FLUX_RIEMANN, FLUX_AUSM, FLUX_EFM, FLUX_AUSMDV,
+		  FLUX_ADAPTIVE, FLUX_AUSM_PLUS_UP, FLUX_HLLE};
+flux_calc_t set_flux_calculator(std::string name);
+flux_calc_t get_flux_calculator();
+std::string get_flux_calculator_name(flux_calc_t calc); 
 
-/*
- * Function prototypes...
- */
-int set_flux_calculator(int iflux);
-int get_flux_calculator(void);
 int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace, double omegaz=0.0);
-int set_interface_flux(FV_Interface &IFace, FlowState *IFace_flow_state);
+int set_flux_vector_in_local_frame(ConservedQuantities &F, const FlowState &fs);
+int set_flux_vector_in_global_frame(FV_Interface &IFace, FlowState &fs, double omegaz);
+
 /* rivp.c */
 int rivp(FlowState &QL, FlowState &QR, FlowState &QIF, double &WSL, double &WSR);
 int rivp_stage_3(FlowState &QL, FlowState &QR, FlowState &QLstar, FlowState &QRstar,

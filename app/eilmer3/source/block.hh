@@ -191,9 +191,8 @@ public:
 				      FV_Interface &IFace3, FV_Interface &IFace4,
 				      FV_Vertex &vtx, Vector3 trv, size_t gtl);
     int velocity_weighting_factor(FV_Interface &IFace, Vector3 vp, double &w, Vector3 &ws);
-    int diffuse_vertex_velocities(double mu, int npass, size_t dimensions, size_t gtl);
-    int anti_diffuse_vertex_velocities(double mu, int npass, size_t dimensions, size_t gtl);
-    int compute_boundary_flux(FV_Interface *IFaceL, FV_Interface *IFaceR, double omegaz);
+    int diffuse_vertex_velocities(double mu, size_t npass, size_t dimensions, size_t gtl);
+    int anti_diffuse_vertex_velocities(double mu, size_t npass, size_t dimensions, size_t gtl);
     
     // in block_io.cxx
     int read_grid(std::string filename, size_t dimensions,

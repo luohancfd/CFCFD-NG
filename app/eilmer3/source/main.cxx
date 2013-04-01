@@ -1622,8 +1622,9 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
     // in preparation for applying the predictor and corrector
     // stages of the time step.
     for ( Block *bdp : G.my_blocks ) {
-        if ( bdp->active != 1 ) continue;
-	for ( FV_Cell *cp: bdp->active_cells ) cp->record_conserved();
+        if ( bdp->active ) {
+	    for ( FV_Cell *cp: bdp->active_cells ) cp->record_conserved();
+	}
     }
 
     int attempt_number = 0;
@@ -1635,9 +1636,14 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
         // Before we try to exchange data, everyone's data should be up-to-date.
 	MPI_Barrier( MPI_COMM_WORLD );
 	mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
+	MPI_Barrier( MPI_COMM_WORLD ); // to avoid message collisions
+	mpi_exchange_boundary_data(COPY_INTERFACE_DATA, 0);
 #       else
 	for ( Block *bdp : G.my_blocks ) {
-	    if ( bdp->active ) exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0);
+	    if ( bdp->active ) {
+		exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0);
+		exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA, 0);
+	    }
 	}
 #       endif
 	for ( Block *bdp : G.my_blocks ) {
@@ -1653,24 +1659,16 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 	// Non-local radiation transport needs to be performed a-priori for parallelization.
 	// Note that Q_rad is not re-evaluated for corrector step.
 	if ( get_radiation_flag() ) perform_radiation_transport();
-
-#       ifdef _MPI
-	MPI_Barrier( MPI_COMM_WORLD );
-	mpi_exchange_boundary_data(COPY_INTERFACE_DATA, 0);
-#       else
-	for ( Block *bdp : G.my_blocks ) {
-	    if ( bdp->active ) exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA, 0);
-	}
-#       endif
+	// Grid-movement is done after a specified point in time.
 	if ( G.sim_time >= G.t_shock ) {
 	    for ( Block *bdp : G.my_blocks ) {
 		bdp->set_geometry_velocities(G.dimensions, 0);
 		bdp->predict_vertex_positions(G.dimensions, G.dt_global);
-		bdp->compute_primary_cell_geometric_data(G.dimensions, 1); // for start of next time level.
+		bdp->compute_primary_cell_geometric_data(G.dimensions, 1); // for start of next stage
 		bdp->set_gcl_interface_properties(G.dimensions, 0, G.dt_global);
 	    }
 	}
-	// Second-stage of inviscid gas-dynamic update.
+	// First-stage of inviscid gas-dynamic update.
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( bdp->active != 1 ) continue;
 	    bdp->inviscid_flux( G.dimensions );
@@ -1680,17 +1678,17 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 		cp->time_derivatives(0, 0, G.dimensions);
 		cp->stage_1_update_for_flow_on_moving_grid(G.dt_global);
 		cp->decode_conserved(0, bdp->omegaz);
-		// cp->get_current_time_level_geometry(1); copy_from_level_to_level() FIX-ME moving grid
 	    } // end for *cp
 	    if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
 		apply_wilson_omega_correction( *bdp );
 	    }
-	} // end of for jb...
+	} // end of for *bdp...
 
 	// Preparation for second-stage of gas-dynamic update.
 #       ifdef _MPI
 	MPI_Barrier( MPI_COMM_WORLD );
 	mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
+	MPI_Barrier( MPI_COMM_WORLD ); // to avoid message collisions
 	mpi_exchange_boundary_data(COPY_INTERFACE_DATA, 0);
 #       else
 	for ( Block *bdp : G.my_blocks ) {

@@ -27,13 +27,13 @@ They include:
 	for MHD flows.
 """
 
-RIEMANN  = 0
-AUSM     = 1
-EFM      = 2
-AUSMDV   = 3
-ADAPTIVE = 4
-AUSM_PLUS_UP = 5
-HLLE = 6
+RIEMANN = "riemann"
+AUSM = "ausm"
+EFM = "efm"
+AUSMDV = "ausmdv"
+ADAPTIVE = "adaptive"
+AUSM_PLUS_UP = "ausm_plus_up"
+HLLE = "hlle"
 
 fluxcalcIndexFromName = {
     0: RIEMANN, "0": RIEMANN, "riemann": RIEMANN, "RIEMANN": RIEMANN, "Riemann": RIEMANN,

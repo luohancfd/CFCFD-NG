@@ -464,7 +464,7 @@ class GlobalData(object):
         self.interpolation_type = "rhoe"
         self.apply_limiter_flag = 1
         self.extrema_clipping_flag = 1
-        self.flux_calc = ADAPTIVE
+        self.flux_calc = "adaptive"
         self.compression_tolerance = -0.30
         self.shear_tolerance = 0.20
         self.t_order = None  # now deprecated
@@ -601,7 +601,7 @@ class GlobalData(object):
         fp.write("heat_time_start = %e\n"% self.heat_time_start)
         fp.write("heat_time_stop = %e\n"% self.heat_time_stop)
         fp.write("heat_factor_increment = %e\n"% self.heat_factor_increment)
-        fp.write("flux_calc = %d\n" % self.flux_calc)
+        fp.write("flux_calc = %s\n" % self.flux_calc) # changed to string 2013-04-01
         fp.write("compression_tolerance = %e\n"% self.compression_tolerance)
         fp.write("shear_tolerance = %e\n"% self.shear_tolerance)
         fp.write("interpolation_type = %s\n" % self.interpolation_type)

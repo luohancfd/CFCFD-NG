@@ -299,8 +299,8 @@ int read_config_parameters(const string filename, bool master)
 
 
     dict.parse_size_t("global_data", "max_invalid_cells", G.max_invalid_cells, 10);
-    dict.parse_int("global_data", "flux_calc", i_value, 0);
-    set_flux_calculator( i_value );
+    dict.parse_string("global_data", "flux_calc", s_value, "riemann");
+    set_flux_calculator(s_value);
     dict.parse_double("global_data", "compression_tolerance", d_value, -0.30);
     set_compression_tolerance(d_value);
     dict.parse_double("global_data", "shear_tolerance", d_value, 0.20);
@@ -313,7 +313,7 @@ int read_config_parameters(const string filename, bool master)
     set_extrema_clipping_flag(i_value);
     if ( get_verbose_flag() ) {
 	cout << "max_invalid_cells = " << G.max_invalid_cells << endl;
-	cout << "flux_calc = " << get_flux_calculator() << endl;
+	cout << "flux_calc = " << get_flux_calculator_name(get_flux_calculator()) << endl;
 	cout << "compression_tolerance = " << get_compression_tolerance() << endl;
 	cout << "shear_tolerance = " << get_shear_tolerance() << endl;
 	cout << "interpolation_type = " << s_value << endl;
@@ -518,7 +518,7 @@ int read_control_parameters( const string filename, bool master, bool first_time
 
     dict.parse_int("control_data", "x_order", i_value, 2); // default high-order
     set_Xorder_flag( i_value );
-    // 2013-03-31 chenge to use an explicitly-named update scheme.
+    // 2013-03-31 change to use an explicitly-named update scheme.
     dict.parse_string("control_data", "gasdynamic_update_scheme", s_value,
 		      "predictor_corrector");
     set_gasdynamic_update_scheme(s_value);
