@@ -185,12 +185,6 @@ public:
     int set_interface_velocities2D(size_t gtl);
     int set_vertex_velocities3D(size_t gtl);
     int set_interface_velocities3D(size_t gtl);
-    int calc_boundary_vertex_velocity(FV_Interface &IFace1, FV_Interface &IFace2,     
-				      FV_Vertex &vtx, Vector3 trv, size_t gtl);
-    int calc_boundary_vertex_velocity(FV_Interface &IFace1, FV_Interface &IFace2,     
-				      FV_Interface &IFace3, FV_Interface &IFace4,
-				      FV_Vertex &vtx, Vector3 trv, size_t gtl);
-    int velocity_weighting_factor(FV_Interface &IFace, Vector3 vp, double &w, Vector3 &ws);
     int diffuse_vertex_velocities(double mu, size_t npass, size_t dimensions, size_t gtl);
     int anti_diffuse_vertex_velocities(double mu, size_t npass, size_t dimensions, size_t gtl);
     
@@ -233,6 +227,11 @@ int find_nearest_cell(double x, double y, double z,
 int locate_cell(double x, double y, double z,
 		size_t *jb_found, size_t *i_found, size_t *j_found, size_t *k_found,
 		size_t gtl);
+
+// The following functions are in block_moving_grid.cxx
+double velocity_weighting_factor(FV_Interface &IFace, Vector3 &vp);
+int calc_boundary_vertex_velocity(std::vector<FV_Interface *> &IFaceList,
+				  FV_Vertex &vtx, Vector3 trv, size_t gtl);
 
 
 /** Indexing of the data in 2D.

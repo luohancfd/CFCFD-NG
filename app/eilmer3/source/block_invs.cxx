@@ -41,7 +41,6 @@
  */
 int Block::inviscid_flux(size_t dimensions)
 {
-    size_t i, j, k;
     FV_Cell *cL1, *cL0, *cR0, *cR1, *cR2;
     FV_Interface *IFace;
     Gas_model *gmodel = get_gas_model_ptr();
@@ -51,49 +50,53 @@ int Block::inviscid_flux(size_t dimensions)
     FlowState Rght(gmodel);
     
     // ifi interfaces are East-facing interfaces.
-    for (k = kmin; k <= kmax; ++k) {
-	for (j = jmin; j <= jmax; ++j) {
-	    for (i = imin; i <= imax+1; ++i) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+	for ( size_t j = jmin; j <= jmax; ++j ) {
+	    for ( size_t i = imin; i <= imax+1; ++i ) {
 		IFace = get_ifi(i,j,k);
 		cL1 = get_cell(i-2,j,k);
 		cL0 = get_cell(i-1,j,k);
 		cR0 = get_cell(i,j,k);
 		cR1 = get_cell(i+1,j,k);
-		if ( ( i == imin ) && ( bcp[WEST]->type_code == SHOCK_FITTING_IN ) ) {
-		    FV_Interface *IFaceL = get_ifi(i-1,j,k);
-		    FV_Interface *IFaceR = get_ifi(i,j,k);
-		    set_flux_vector_in_global_frame(*IFaceR, *(IFaceL->fs), this->omegaz);
-                    // We're shock-fitting and we're on the shock boundary.
-		    // Retain the inflow defined flux at the boundary by doing nothing here.
+		if ( (bcp[WEST]->type_code == SHOCK_FITTING_IN) && (i == imin) ) {
+		    // We're shock-fitting and we're on the shock boundary.
+		    // Compute the flux at the boundary directly from the free-stream flow.
+		    set_flux_vector_in_global_frame(*IFace, *(cL0->fs), this->omegaz);
+		    // Second, save u, v, w, T for the viscous flux calculation.
+		    IFace->fs->average_values_from(*(cL0->fs), *(cL0->fs), get_diffusion_flag()==1);
 		} else {
-		    // Either we're not shock fitting or we're not on the shock boundary.
-		    // Interpolate LEFT and RIGHT interface states from the cell-center properties.
-		    if ( get_adaptive_reconstruction_flag() == 1 ) {
-			mach_weighted_one_d_interp(*cL1, *cL0, *cR0, *cR1,
-				      cL1->iLength, cL0->iLength, cR0->iLength, cR1->iLength, Lft, Rght);
-		    } else {
-			one_d_interp(*cL1, *cL0, *cR0, *cR1,
-				     cL1->iLength, cL0->iLength, cR0->iLength, cR1->iLength, Lft, Rght);
-		    }
-		    // Use special interpolation scheme for first interface after shock.
-		    if ( ( i == imin+1 ) && ( bcp[WEST]->type_code == SHOCK_FITTING_IN ) ) {
+		    // Compute the flux from data on either-side of the interface.
+		    // First, interpolate...
+		    if ( (bcp[WEST]->type_code == SHOCK_FITTING_IN) && (i == imin+1) ) {
+			// Use special interpolation scheme for first interface after shock.
 			cR2 = get_cell(i+2,j,k);
         		one_d_interior_interp(*cL0, *cR0, *cR1, *cR2, 
 					      cL0->iLength, cR0->iLength, cR1->iLength, cR2->iLength,
 					      Lft, Rght);
+		    } else {
+			// General situation.
+			// Interpolate LEFT and RIGHT interface states from cell-center properties.
+			if ( get_adaptive_reconstruction_flag() == 1 ) {
+			    mach_weighted_one_d_interp(*cL1, *cL0, *cR0, *cR1,
+						       cL1->iLength, cL0->iLength, cR0->iLength, cR1->iLength,
+						       Lft, Rght);
+			} else {
+			    one_d_interp(*cL1, *cL0, *cR0, *cR1,
+					 cL1->iLength, cL0->iLength, cR0->iLength, cR1->iLength,
+					 Lft, Rght);
+			}
 		    }
-		    // Save u, v, w, T for the viscous flux calculation by making a local average.
+		    // Second, save u, v, w, T for the viscous flux calculation by making a local average.
 		    // The values for u, v and T may be updated subsequently by the interface-flux function.
 		    IFace->fs->average_values_from(Lft, Rght, get_diffusion_flag()==1);
-		    // Finally, the flux calculation.
+		    // Finally, the flux calculation itself.
 		    if ( (i == imin && bcp[WEST]->use_udf_flux()) ||
 			 (i == imax+1 && bcp[EAST]->use_udf_flux()) ) {
-			// Retain the user-defined flux at the boundary
-			// by doing nothing here.
+			// Retain the user-defined flux at the boundary by doing nothing here.
 		    } else {
 			compute_interface_flux(Lft, Rght, *IFace, omegaz);
-		    } // end if
-		} // end if
+		    }
+		} // end else Compute the flux from data on either-side of the interface.
 		// DEBUGGING for ablating BC
 #               if 0
 		if ( i == imax+1 ) {
@@ -112,9 +115,9 @@ int Block::inviscid_flux(size_t dimensions)
     } // for k
 
     // ifj interfaces are North-facing interfaces.
-    for (k = kmin; k <= kmax; ++k) {
-	for (i = imin; i <= imax; ++i) {
-	    for (j = jmin; j <= jmax+1; ++j) {
+    for ( size_t k = kmin; k <= kmax; ++k ) {
+	for ( size_t i = imin; i <= imax; ++i ) {
+	    for ( size_t j = jmin; j <= jmax+1; ++j ) {
 		IFace = get_ifj(i,j,k);
 		cL1 = get_cell(i,j-2,k);
 		cL0 = get_cell(i,j-1,k);
@@ -149,9 +152,9 @@ int Block::inviscid_flux(size_t dimensions)
     if ( dimensions == 2 ) return SUCCESS;
     
     // ifk interfaces are TOP-facing interfaces.
-    for (i = imin; i <= imax; ++i) {
-	for (j = jmin; j <= jmax; ++j) {
-	    for (k = kmin; k <= kmax+1; ++k) {
+    for ( size_t i = imin; i <= imax; ++i ) {
+	for ( size_t j = jmin; j <= jmax; ++j ) {
+	    for ( size_t k = kmin; k <= kmax+1; ++k ) {
 		IFace = get_ifk(i,j,k);
 		cL1 = get_cell(i,j,k-2);
 		cL0 = get_cell(i,j,k-1);

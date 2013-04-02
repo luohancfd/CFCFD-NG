@@ -63,65 +63,43 @@ int Block::correct_vertex_positions(size_t dimensions, double dt)
     return SUCCESS;
 }
 
-/// \brief Calculate shock speed at interface for 2D. 
-/// See Ian Johnston's thesis for an explanation.
-///
-int Block::calc_boundary_vertex_velocity(FV_Interface &IFace1, FV_Interface &IFace2,     
-                                         FV_Vertex &vtx, Vector3 trv, size_t gtl )
-{   
-    double w1, w2;
-    Vector3 ws1, ws2, vp;
-    vp = vtx.pos[gtl];
-    velocity_weighting_factor(IFace1, vp, w1, ws1);
-    velocity_weighting_factor(IFace2, vp, w2, ws2);
-    if ( (w1 + w2) < 1.0e-3 ) {
-	w1 = w2 = 1.0;
+double velocity_weighting_factor(FV_Interface &IFace, Vector3 &vp)
+// Smooth, upwind-biased weighting function.
+// Equation 4.20 in Ian Johnston's thesis.
+{
+    double M = dot(IFace.fs->vel, unit(vp - IFace.pos)) / IFace.fs->gas->a;
+    double w = 0.0;
+    if ( M > 1.0 ) {
+        w = M;
+    } else if ( M > 0.0 ) {
+	double Mp1 = M + 1.0;
+        w = 0.125*(Mp1*Mp1 + (Mp1)*fabs(Mp1));
     }
-    Vector3 wv = (w1*ws1 + w2*ws2) / (w1 + w2);
-    // Finally, constrain vertex velocity to body radial direction.
-    vtx.vel[gtl] = dot(wv, trv) * trv; 
-    return SUCCESS;				       			           
+    return w;
 }
 
 /// \brief Calculate shock speed at interface for 3D. 
 /// See Ian Johnston's thesis for an explanation.
-/// 
-int Block::calc_boundary_vertex_velocity(FV_Interface &IFace1, FV_Interface &IFace2,     
-                                         FV_Interface &IFace3, FV_Interface &IFace4,
-                                         FV_Vertex &vtx, Vector3 trv, size_t gtl)
+int calc_boundary_vertex_velocity(std::vector<FV_Interface *> &IFaceList,
+				  FV_Vertex &vtx, Vector3 trv, size_t gtl)
 {   
-    double w1, w2, w3, w4;
-    Vector3 ws1, ws2, ws3, ws4, vp;
-    vp = vtx.pos[gtl];
-    velocity_weighting_factor(IFace1, vp, w1, ws1);
-    velocity_weighting_factor(IFace2, vp, w2, ws2);
-    velocity_weighting_factor(IFace3, vp, w3, ws3);
-    velocity_weighting_factor(IFace4, vp, w4, ws4);
-    if ( (w1 + w2 + w3 + w4) < 1.0e-3 ) {
-	w1 = w2 = w3 = w4 = 1.0;
+    std::vector<double> w;
+    Vector3 wv(0.0,0.0,0.0);
+    Vector3 vp = vtx.pos[gtl];
+    for ( FV_Interface *facep : IFaceList ) {
+	w.push_back(velocity_weighting_factor(*facep, vp));
     }
-    Vector3 wv = (w1*ws1 + w2*ws2 + w3*ws3 + w4*ws4) / (w1 + w2 + w3 + w4);
+    double sum_w = 0.0; for ( double wi : w ) sum_w += wi;
+    if ( sum_w >= 1.0e-3 ) {
+	for ( size_t i =0; i < w.size(); ++i ) wv += w[i] * IFaceList[i]->vel;
+	wv /= sum_w;
+    } else {
+	for ( size_t i =0; i < w.size(); ++i ) wv += IFaceList[i]->vel;
+	wv /= 4.0;
+    }
     // Finally, constrain vertex velocity to body radial direction.
     vtx.vel[gtl] = dot(wv, trv) * trv; 
     return SUCCESS;					       			           
-}
-
-int Block::velocity_weighting_factor(FV_Interface &IFace, Vector3 vp, double &w, Vector3 &ws)
-{
-    double M = dot(IFace.fs->vel, unit(vp - IFace.pos)) / IFace.fs->gas->a;
-    if ( vabs(IFace.vel) == vabs(IFace.vel) ) // If not NaN.
-	ws = IFace.vel;
-    else {
-	ws = 0.0;
-    }
-    if ( M > 1 ) {
-        w = M;
-    } else if ( M != M ) { // Check for NaN.
-	w = 0.0;
-    } else {
-        w = 0.125*( pow(M+1, 2) + (M+1)*fabs(M+1) );
-    }
-    return SUCCESS;
 }
 
 int Block::set_geometry_velocities(size_t dimensions, size_t gtl)
@@ -143,114 +121,77 @@ int Block::set_geometry_velocities(size_t dimensions, size_t gtl)
 ///
 int Block::set_vertex_velocities2D(size_t gtl)
 {
-    // Only works with one block in the i-direction. Supports multiple blocks
-    // in the j-direction.
-    size_t i, j, k;
-    FV_Interface *IFaceU, *IFaceD;
+    // Only works with one block in the i-direction.
+    // Supports multiple blocks in the j-direction.
+    std::vector<FV_Interface *> IFaceList;
     FV_Vertex *svtx, *wvtx, *vtx;
     Vector3 trv;
     double length;
 
-    i = imin;
-    k = kmin;
+    size_t i = imin;
+    size_t k = kmin;
     // Set boundary vertex velocities.
     // Ghost cell geometry will be invalid, but NaNs will be caught by the weighting function.
-    for (j = jmin; j <= jmax+1; ++j) {
-	IFaceD = get_ifi(i,j-1,k);
-	IFaceU = get_ifi(i,j,k);
+    for ( size_t j = jmin; j <= jmax+1; ++j ) {
+	IFaceList.clear();
+	if ( j > jmin ) IFaceList.push_back(get_ifi(i,j-1,k));
+	if ( j < jmax+1 ) IFaceList.push_back(get_ifi(i,j,k));
 	vtx = get_vtx(i,j,k);
 	wvtx = get_vtx(imax,j,k);
 	// Direction vector from vertex to body.
 	trv = unit(wvtx->pos[gtl] - vtx->pos[gtl]); 
-	calc_boundary_vertex_velocity(*IFaceD, *IFaceU, *vtx, trv, gtl);
+	calc_boundary_vertex_velocity(IFaceList, *vtx, trv, gtl);
     } // for j
-    // // Set first and last two boundary vertex velocities
-    // if ( bcp[SOUTH]->type_code != ADJACENT ) { // If not adjacent to another block on south side.
-    // 	// First
-    // 	vtx = get_vtx(imin,jmin,k);
-    // 	wvtx = get_vtx(imax,jmin,k);
-    // 	IFaceU = get_ifi(imin,jmin,k);
-    // 	trv = unit(wvtx->pos[gtl] - vtx->pos[gtl]); 	    
-    // 	vtx->vel[gtl] = dot(IFaceU->vel, trv) * trv; // Constrain vertex velocity to body radial direction.
-    // }
-    // if ( bcp[NORTH]->type_code != ADJACENT ) { // If not adjacent to another block on north side.
-    // 	// Last
-    // 	vtx = get_vtx(imin,jmax+1,k);
-    // 	wvtx = get_vtx(imax,jmax+1,k);
-    // 	IFaceD = get_ifi(imin,jmax,k);
-    // 	trv = unit(wvtx->pos[gtl] - vtx->pos[gtl]);
-    // 	vtx->vel[gtl] = dot(IFaceD->vel, trv) * trv; // Constrain vertex velocity to body radial direction.
-    // }
     // Set interior vertex velocities.
     // Velocities are set as linear functions of position between
     // the shock boundary and the wall.
-    for (j = jmin; j <= jmax+1; ++j) {
+    for ( size_t j = jmin; j <= jmax+1; ++j ) {
 	svtx = get_vtx(imin,j,k); // Shock boundary vertex.
 	wvtx = get_vtx(imax+1,j,k); // Wall vertex.
 	length = vabs(svtx->pos[gtl] - wvtx->pos[gtl]);
-	for (i = imin; i <= imax; ++i) {
+	for ( size_t i = imin; i <= imax; ++i ) {
 	    vtx = get_vtx(i,j,k);
 	    vtx->vel[gtl] = (vabs(vtx->pos[gtl] - wvtx->pos[gtl])/length) * svtx->vel[gtl];
 	}
     }
     return SUCCESS;
-}
+} // end Block::set_vertex_velocities2D()
 
 /// \brief Set vertex velocities based on previously calculated boundary interface velocities in 3D.
 ///
 ///  Based on Ian Johnston's thesis, see for explanation.
 ///  Assumes inflow at west boundary and wall at east boundary.
-///
 int Block::set_vertex_velocities3D(size_t gtl)
 {
     // Only works with one block in the i-direction. Supports multiple blocks
     // in the j-direction.
-    size_t i, j, k;
-    FV_Interface *IFace1, *IFace2, *IFace3, *IFace4;
+    std::vector<FV_Interface *> IFaceList;
     FV_Vertex *svtx, *wvtx, *vtx;
     Vector3 trv;
     double length;
-    i = imin;
+    size_t i = imin;
     // Set boundary vertex velocities.
     // Ghost cell geometry will be invalid, but NaNs will be caught by the weighting function.
-    for (k = kmin; k <= kmax+1; ++k) {
-	for (j = jmin; j <= jmax+1; ++j) {
-	    IFace1 = get_ifi(i,j,k);
-	    IFace2 = get_ifi(i,j-1,k);
-	    IFace3 = get_ifi(i,j,k-1);
-	    IFace4 = get_ifi(i,j-1,k-1);
+    for ( size_t k = kmin; k <= kmax+1; ++k ) {
+	for ( size_t j = jmin; j <= jmax+1; ++j ) {
+	    IFaceList.clear();
+	    IFaceList.push_back(get_ifi(i,j,k));
+	    if ( j > jmin && k < kmax+1 ) IFaceList.push_back(get_ifi(i,j-1,k));
+	    if ( j < jmax+1 && k < kmax+1 ) IFaceList.push_back(get_ifi(i,j,k));
+	    if ( j < jmax+1 && k > kmin ) IFaceList.push_back(get_ifi(i,j,k-1));
+	    if ( j > jmin && k > kmin ) IFaceList.push_back(get_ifi(i,j-1,k-1));
 	    vtx = get_vtx(i,j,k);
 	    wvtx = get_vtx(imax,j,k);
 	    // Direction vector from vertex to body.
 	    trv = unit(wvtx->pos[gtl] - vtx->pos[gtl]); 
-	    calc_boundary_vertex_velocity(*IFace1, *IFace2, *IFace3, *IFace4, *vtx, trv, gtl);
+	    calc_boundary_vertex_velocity(IFaceList, *vtx, trv, gtl);
 	} // for j
     } // for k
-   // // Set vertex velocities on edges of domain as ghost cell will not have valid data.
-   //  if ( bcp[SOUTH]->type_code != ADJACENT ) { // If not adjacent to another block on south side.
-   // 	for (k = kmin; k <= kmax+1; ++k) {
-   // 	    vtx = get_vtx(imin,jmin,kmin);
-   // 	    wvtx = get_vtx(imax,jmin,kmin);
-   // 	    IFace1 = get_ifi(imin,jmin,kmin);
-   // 	    IFace1 = get_ifi(imin,jmin,kmin);
-   // 	    trv = unit(wvtx->pos[gtl] - vtx->pos[gtl]); 	    
-   // 	    calc_boundary_vertex_velocity(*IFace1, *IFace2, *vtx, trv, gtl);
-   // 	}
-   //  }
-   //  if ( bcp[NORTH]->type_code != ADJACENT ) { // If not adjacent to another block on north side.
-   // 	for (k = kmin; k <= kmax+1; ++k) {
-   // 	    vtx = get_vtx(imin,jmax+1,kmin);
-   // 	    wvtx = get_vtx(imax,jmax+1,kmin);
-   // 	    IFace1 = get_ifi(imin,jmax,kmin);
-   // 	    trv = unit(wvtx->pos[gtl] - vtx->pos[gtl]);
-   // 	    calc_boundary_vertex_velocity(*IFace1, *IFace2, *vtx, trv, gtl);
-   // 	}
-   //  }
     // Set interior vertex velocities.
     // Velocities are set as linear functions of position between
     // the shock boundary and the wall.
-    for (k = kmin; k <= kmax+1; ++k) {
-	for (j = jmin; j <= jmax+1; ++j) {
+    for ( size_t k = kmin; k <= kmax+1; ++k ) {
+	for ( size_t j = jmin; j <= jmax+1; ++j ) {
 	    svtx = get_vtx(imin,j,k); // Shock boundary vertex.
 	    wvtx = get_vtx(imax+1,j,k); // Wall vertex.
 	    length = vabs(svtx->pos[gtl] - wvtx->pos[gtl]);
@@ -261,8 +202,7 @@ int Block::set_vertex_velocities3D(size_t gtl)
 	}
     }
     return SUCCESS;
-}
-
+} // end Block::set_vertex_velocities3D()
 
 /// \brief Function used to test GCL adherence.
 ///

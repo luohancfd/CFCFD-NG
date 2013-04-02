@@ -1,5 +1,6 @@
 // bc_shock_fitting_in.cxx
 
+#include <stdexcept>
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/gas/models/gas_data.hh"
 #include "../../../lib/gas/models/gas-model.hh"
@@ -47,8 +48,7 @@ ShockFittingInBC::operator=(const ShockFittingInBC &bc)
 
 ShockFittingInBC::~ShockFittingInBC() {}
 
-int ShockFittingInBC::
-apply_inviscid( double t )
+int ShockFittingInBC::apply_inviscid( double t )
 // Copies from FlowCondition to ghost cells.
 {
     // Set up ghost cells with inflow state. 
@@ -60,12 +60,6 @@ apply_inviscid( double t )
     Block & bd = *bdp;
 
     switch ( which_boundary ) {
-    case NORTH: case EAST: case SOUTH: case TOP: case BOTTOM:
-	cout << "ShockFittingInBC not implemented for " 
-	     << get_face_name(which_boundary) << " boundary." << endl;
-        cout << "    Please use West boundary." << endl;
-	exit(NOT_IMPLEMENTED_ERROR);
-	break;
     case WEST:
 	i = bd.imin;
         for (k = bd.kmin; k <= bd.kmax; ++k) {
@@ -85,15 +79,17 @@ apply_inviscid( double t )
 				      cL0->iLength, cR0->iLength, cR1->iLength, cR2->iLength, 
 				      *IFaceL, *IFaceR);
 		// Necessary to stop edge effects when appying the spatial filter.
+		// FIX-ME moving-grid: Andrew, I don't understand why the following is necessary.
 		cL1->copy_values_from(*cR1, COPY_FLOW_STATE, 0);
 		cL0->copy_values_from(*cR0, COPY_FLOW_STATE, 0);
 	    } // end j loop
 	} // for k
  	break;
     default:
-	printf( "Error: apply_inviscid not implemented for boundary %d\n", 
-		which_boundary );
-	exit(NOT_IMPLEMENTED_ERROR);
+	cout << "ShockFittingInBC not implemented for " 
+	     << get_face_name(which_boundary) << " boundary." << endl;
+        cout << "    Please use West boundary." << endl;
+	throw runtime_error("ShockFittingInBC not implemented for this boundary.");
     } // end switch
 
     return SUCCESS;
@@ -119,6 +115,11 @@ int ShockFittingInBC::apply_viscous( double t )
 
 
 /// \brief Calculate shock speed at interface. 
+// FIX-ME moving-grid: Andrew, the function name seems misleading to me.
+// It's really calculating the desired grid velocity, (which should 
+// normally be the shock speed) and that will eventually be zero, yes?
+// Finally, should it retain the tangential velocity components at the interface?
+// My guess is no.
 ///
 int ShockFittingInBC::calculate_shock_speed(const FV_Cell &cL0, const FV_Cell &cR0,
 					    const FV_Cell &cR1, const FV_Cell &cR2, 
@@ -138,11 +139,10 @@ int ShockFittingInBC::calculate_shock_speed(const FV_Cell &cL0, const FV_Cell &c
     
     if ( gd.sim_time >= gd.t_shock ) {
 	// Detect shock from density jump.
-        if ( fabs(cR0.fs->gas->rho - cL0.fs->gas->rho) / 
-             max(cL0.fs->gas->rho, cR0.fs->gas->rho) > 0.2 ) {
-	    onesided_interp(cR0, cR1, cR2,
-	    		    lenR0, lenR1, lenR2,
-	    		    *(IFaceR.fs));
+	double rel_density_jump = fabs(cR0.fs->gas->rho - cL0.fs->gas->rho) / 
+	    max(cL0.fs->gas->rho, cR0.fs->gas->rho);
+        if ( rel_density_jump > 0.2 ) {
+	    onesided_interp(cR0, cR1, cR2, lenR0, lenR1, lenR2, *(IFaceR.fs));
             double ws1 = (gL.rho * dot(IFaceL.fs->vel, IFaceR.n) - 
                           gR.rho * dot(IFaceR.fs->vel, IFaceR.n)) / (gL.rho - gR.rho);
             double ws2 = dot(IFaceL.fs->vel, IFaceR.n) - copysign(1.0, gR.p - gL.p) / gL.rho *

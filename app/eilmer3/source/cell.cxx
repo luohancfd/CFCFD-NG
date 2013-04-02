@@ -895,7 +895,7 @@ int FV_Cell::copy_grid_level_to_level(size_t from_level, size_t to_level)
     pos[to_level].y = pos[from_level].y;
     pos[to_level].z = pos[from_level].z;
     // When working over all cells in a block, the following copies
-    // will no doubt do some doubled-up work, but it should be benign.
+    // will no doubt do some doubled-up work, but it should be otherwise benign.
     for ( FV_Interface *face : iface ) {
 	if ( face ) face->copy_grid_level_to_level(from_level, to_level);
     }
@@ -1321,10 +1321,10 @@ int FV_Cell::check_flow_data(void)
 /// These are the spatial (RHS) terms in the semi-discrete governing equations.
 /// \param gtl : (grid-time-level) flow derivatives are evaluated at this grid level
 /// \param ftl : (flow-time-level) specifies where computed derivatives are to be stored.
-///              0: Start of predictor step.
-///              1: End of predictor step; used for corrector step.
-///              2: End of corrector step; used for RK3 step.
-/// \param dimensions : number of space dimensions: 2 for mbcns, 3 for eilmer
+///              0: Start of stage-1 update.
+///              1: End of stage-1.
+///              2: End of stage-2.
+/// \param dimensions : number of space dimensions (2 or 3)
 int FV_Cell::time_derivatives(size_t gtl, size_t ftl, size_t dimensions)
 {
     Gas_model *gmodel = get_gas_model_ptr();
