@@ -1016,7 +1016,7 @@ int integrate_in_time(double target_time)
 	int break_loop2 = 0;
 	if ( get_implicit_flag() == 0 ) {
 	    // explicit update of inviscid terms
-	    if ( get_moving_grid_flag() ) 
+	    if ( get_moving_grid_flag() == 0 ) 
 		break_loop2 = gasdynamic_inviscid_increment_with_fixed_grid();
 	    else
 		break_loop2 = gasdynamic_inviscid_increment_with_moving_grid();
@@ -1668,7 +1668,7 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 		bdp->set_geometry_velocities(G.dimensions, 0);
 		bdp->predict_vertex_positions(G.dimensions, G.dt_global);
 		bdp->compute_primary_cell_geometric_data(G.dimensions, 1); // for start of next stage
-		bdp->set_gcl_interface_properties(G.dimensions, 0, G.dt_global);
+		bdp->set_gcl_interface_properties(G.dimensions, 1, G.dt_global);
 	    }
 	}
 	// First-stage of inviscid gas-dynamic update.
@@ -1676,9 +1676,9 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 	    if ( bdp->active != 1 ) continue;
 	    bdp->inviscid_flux( G.dimensions );
 	    for ( FV_Cell *cp: bdp->active_cells ) {
-		cp->inviscid_source_vector(0, bdp->omegaz);
-		if ( G.udf_source_vector_flag == 1 ) udf_source_vector_for_cell(cp, 0, G.sim_time);
-		cp->time_derivatives(0, 0, G.dimensions);
+		cp->inviscid_source_vector(1, bdp->omegaz);
+		if ( G.udf_source_vector_flag == 1 ) udf_source_vector_for_cell(cp, 1, G.sim_time);
+		cp->time_derivatives(1, 0, G.dimensions);
 		cp->stage_1_update_for_flow_on_moving_grid(G.dt_global);
 		cp->decode_conserved(1, bdp->omegaz);
 	    } // end for *cp
@@ -1697,8 +1697,8 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 #       else
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( bdp->active ) {
-		exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0);
-		exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA, 0);
+		exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 1);
+		exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA, 1);
 	    }
 	}
 #       endif
@@ -1710,7 +1710,7 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 		bdp->set_geometry_velocities(G.dimensions, 1);
 		bdp->correct_vertex_positions(G.dimensions, G.dt_global);
 		bdp->compute_primary_cell_geometric_data(G.dimensions, 2);
-		bdp->set_gcl_interface_properties(G.dimensions, 1, G.dt_global);
+		bdp->set_gcl_interface_properties(G.dimensions, 2, G.dt_global);
 	    }
 	}
 	// Second-stage of inviscid gas-dynamic update.
@@ -1719,8 +1719,8 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 	    bdp->inviscid_flux( G.dimensions );
 	    for ( FV_Cell *cp: bdp->active_cells ) {
 		cp->inviscid_source_vector(1, bdp->omegaz);
-		if ( G.udf_source_vector_flag == 1 ) udf_source_vector_for_cell(cp, 1, G.sim_time);
-		cp->time_derivatives(1, 1, G.dimensions);
+		if ( G.udf_source_vector_flag == 1 ) udf_source_vector_for_cell(cp, 2, G.sim_time);
+		cp->time_derivatives(2, 1, G.dimensions);
 		cp->stage_2_update_for_flow_on_moving_grid(G.dt_global);
 		cp->decode_conserved(2, bdp->omegaz);
 	    } // end for *cp

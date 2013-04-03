@@ -106,10 +106,12 @@ int Block::set_geometry_velocities(size_t dimensions, size_t gtl)
 {
     if ( dimensions == 2 ) { 
 	set_vertex_velocities2D(gtl);
-	set_interface_velocities2D(gtl);
+	// Probably doesn't need to be here if using GCL
+	//set_interface_velocities2D(gtl);
     } else {
 	set_vertex_velocities3D(gtl);
-	set_interface_velocities3D(gtl);
+	// Probably doesn't need to be here if using GCL
+	//set_interface_velocities3D(gtl);
     }
     return SUCCESS;
 }
@@ -297,17 +299,17 @@ int Block::set_gcl_interface_properties2D( size_t gtl, double dt )
     FV_Interface *IFace;
     Vector3 vpm1, vpm2;
     double xA, xB, yA, yB;
-    size_t tl_old = 0;
+    size_t tl_old = gtl - 1;
     k = kmin;
     for (j = jmin; j <= jmax; ++j) {
 	for (i = imin; i <= imax+1; ++i) {
 	    vtx1 = get_vtx(i,j,k);
 	    vtx2 = get_vtx(i,j+1,k);
 	    IFace = get_ifi(i,j,k);   
-	    vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl+1] );
-	    vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl+1] );
+	    vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl] );
+	    vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
 	    IFace->pos = 0.5 * (vpm1 + vpm2);
-	    IFace->vel = 0.5 * (vtx1->pos[gtl+1] + vtx2->pos[gtl+1] - 
+	    IFace->vel = 0.5 * (vtx1->pos[gtl] + vtx2->pos[gtl] - 
 	    			vtx1->pos[tl_old] - vtx2->pos[tl_old]) / dt;
             xA = vpm1.x;
 	    yA = vpm1.y;
@@ -326,10 +328,10 @@ int Block::set_gcl_interface_properties2D( size_t gtl, double dt )
 	    vtx1 = get_vtx(i,j,k);
 	    vtx2 = get_vtx(i+1,j,k);
 	    IFace = get_ifj(i,j,k);
-	    vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl+1] );
-	    vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl+1] );
+	    vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl] );
+	    vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
 	    IFace->pos = 0.5 * (vpm1 + vpm2);
-	    IFace->vel = 0.5 * (vtx1->pos[gtl+1] + vtx2->pos[gtl+1] - 
+	    IFace->vel = 0.5 * (vtx1->pos[gtl] + vtx2->pos[gtl] - 
 	    			vtx1->pos[tl_old] - vtx2->pos[tl_old]) / dt;
             xA = vpm2.x;
 	    yA = vpm2.y;
@@ -354,7 +356,7 @@ int Block::set_gcl_interface_properties3D(size_t gtl, double dt)
     FV_Vertex *vtx1, *vtx2, *vtx3, *vtx4;
     FV_Interface *IFace;
     Vector3 vpm1, vpm2, vpm3, vpm4, p1, p2, p3, p4;
-    size_t tl_old = 0;
+    size_t tl_old = gtl - 1;
     for (k = kmin; k <= kmax; ++k) {
 	for (j = jmin; j <= jmax; ++j) {
 	    for (i = imin; i <= imax+1; ++i) {
@@ -363,13 +365,13 @@ int Block::set_gcl_interface_properties3D(size_t gtl, double dt)
 		vtx3 = get_vtx(i,j,k+1);
 		vtx4 = get_vtx(i,j+1,k+1);
 		IFace = get_ifi(i,j,k);   
-		vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl+1] );
-		vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl+1] );
-		vpm3 = 0.5 * ( vtx3->pos[tl_old] + vtx3->pos[gtl+1] );
-		vpm4 = 0.5 * ( vtx4->pos[tl_old] + vtx4->pos[gtl+1] );
+		vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl] );
+		vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
+		vpm3 = 0.5 * ( vtx3->pos[tl_old] + vtx3->pos[gtl] );
+		vpm4 = 0.5 * ( vtx4->pos[tl_old] + vtx4->pos[gtl] );
 		IFace->pos = 0.25 * (vpm1 + vpm2 + vpm3 + vpm4);
-		IFace->vel = 0.25 * (vtx1->pos[gtl+1] + vtx2->pos[gtl+1] +
-				     vtx3->pos[gtl+1] + vtx4->pos[gtl+1] - 
+		IFace->vel = 0.25 * (vtx1->pos[gtl] + vtx2->pos[gtl] +
+				     vtx3->pos[gtl] + vtx4->pos[gtl] - 
 				     vtx1->pos[tl_old] - vtx2->pos[tl_old] - 
 				     vtx3->pos[tl_old] - vtx4->pos[tl_old]) / dt;
 		p1 = vpm1;
@@ -389,13 +391,13 @@ int Block::set_gcl_interface_properties3D(size_t gtl, double dt)
 		vtx3 = get_vtx(i,j,k+1);
 		vtx4 = get_vtx(i+1,j,k+1);
 		IFace = get_ifj(i,j,k);
-		vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl+1] );
-		vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl+1] );
-		vpm3 = 0.5 * ( vtx3->pos[tl_old] + vtx3->pos[gtl+1] );
-		vpm4 = 0.5 * ( vtx4->pos[tl_old] + vtx4->pos[gtl+1] );
+		vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl] );
+		vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
+		vpm3 = 0.5 * ( vtx3->pos[tl_old] + vtx3->pos[gtl] );
+		vpm4 = 0.5 * ( vtx4->pos[tl_old] + vtx4->pos[gtl] );
 		IFace->pos = 0.25 * (vpm1 + vpm2 + vpm3 + vpm4);
-		IFace->vel = 0.25 * (vtx1->pos[gtl+1] + vtx2->pos[gtl+1] +
-				     vtx3->pos[gtl+1] + vtx4->pos[gtl+1] - 
+		IFace->vel = 0.25 * (vtx1->pos[gtl] + vtx2->pos[gtl] +
+				     vtx3->pos[gtl] + vtx4->pos[gtl] - 
 				     vtx1->pos[tl_old] - vtx2->pos[tl_old] - 
 				     vtx3->pos[tl_old] - vtx4->pos[tl_old]) / dt;
 		p1 = vpm1;
@@ -415,13 +417,13 @@ int Block::set_gcl_interface_properties3D(size_t gtl, double dt)
 		vtx3 = get_vtx(i,j+1,k);
 		vtx4 = get_vtx(i+1,j+1,k);
 		IFace = get_ifk(i,j,k);
-		vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl+1] );
-		vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl+1] );
-		vpm3 = 0.5 * ( vtx3->pos[tl_old] + vtx3->pos[gtl+1] );
-		vpm4 = 0.5 * ( vtx4->pos[tl_old] + vtx4->pos[gtl+1] );
+		vpm1 = 0.5 * ( vtx1->pos[tl_old] + vtx1->pos[gtl] );
+		vpm2 = 0.5 * ( vtx2->pos[tl_old] + vtx2->pos[gtl] );
+		vpm3 = 0.5 * ( vtx3->pos[tl_old] + vtx3->pos[gtl] );
+		vpm4 = 0.5 * ( vtx4->pos[tl_old] + vtx4->pos[gtl] );
 		IFace->pos = 0.25 * (vpm1 + vpm2 + vpm3 + vpm4);
-		IFace->vel = 0.25 * (vtx1->pos[gtl+1] + vtx2->pos[gtl+1] +
-				     vtx3->pos[gtl+1] + vtx4->pos[gtl+1] - 
+		IFace->vel = 0.25 * (vtx1->pos[gtl] + vtx2->pos[gtl] +
+				     vtx3->pos[gtl] + vtx4->pos[gtl] - 
 				     vtx1->pos[tl_old] - vtx2->pos[tl_old] - 
 				     vtx3->pos[tl_old] - vtx4->pos[tl_old]) / dt;
 		p1 = vpm1;
