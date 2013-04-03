@@ -176,17 +176,12 @@ public:
     int correct_vertex_positions(size_t dimensions, double dt);
     int set_geometry_velocities(size_t dimensions, size_t gtl);
     int set_vertex_velocities2D(size_t gtl);
-    int set_gcl_test_vertex_velocities2D(size_t gtl);
-    int set_gcl_test_vertex_velocities3D(size_t gtl);
-    int set_gcl_test_random_vertex_velocities2D(size_t gtl);
     int set_gcl_interface_properties(size_t dimensions, size_t gtl, double dt);
     int set_gcl_interface_properties2D(size_t gtl, double dt);
     int set_gcl_interface_properties3D(size_t gtl, double dt);
     int set_interface_velocities2D(size_t gtl);
     int set_vertex_velocities3D(size_t gtl);
     int set_interface_velocities3D(size_t gtl);
-    int diffuse_vertex_velocities(double mu, size_t npass, size_t dimensions, size_t gtl);
-    int anti_diffuse_vertex_velocities(double mu, size_t npass, size_t dimensions, size_t gtl);
     
     // in block_io.cxx
     int read_grid(std::string filename, size_t dimensions,
