@@ -9,6 +9,7 @@
 #include <valarray>
 
 #include "conservation_systems.hh"
+#include "../../../lib/util/source/useful.h"
 
 using namespace std;
 
@@ -79,6 +80,8 @@ int FrozenConservationSystem::Jac( const valarray<double> &y, Valmatrix &dGdy )
     dGdy.set(0,0,u);           dGdy.set(0,1,0.0);    dGdy.set(0,2,rho);
     dGdy.set(1,0,dpdrho);      dGdy.set(1,1,dpdT);   dGdy.set(1,2,A_);
     dGdy.set(2,0,u*dpdrho);    dGdy.set(2,1,A_*Cv);   dGdy.set(2,2,A_*u+Q_->p);
+
+    UNUSED_VARIABLE(T);
 
     return 0;
 }
