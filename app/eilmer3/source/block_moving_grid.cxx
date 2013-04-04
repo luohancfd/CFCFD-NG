@@ -133,7 +133,6 @@ int Block::set_vertex_velocities2D(size_t gtl)
     size_t i = imin;
     size_t k = kmin;
     // Set boundary vertex velocities.
-    // Ghost cell geometry will be invalid, but NaNs will be caught by the weighting function.
     for ( size_t j = jmin; j <= jmax+1; ++j ) {
 	IFaceList.clear();
 	if ( j > jmin ) IFaceList.push_back(get_ifi(i,j-1,k));

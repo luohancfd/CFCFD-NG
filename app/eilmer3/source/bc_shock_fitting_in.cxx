@@ -71,6 +71,7 @@ int ShockFittingInBC::apply_inviscid( double t )
 		cR0 = bd.get_cell(i,j,k);
 		cR1 = bd.get_cell(i+1,j,k);
 		cR2 = bd.get_cell(i+2,j,k);
+		// FIX-ME moving-grid: Andrew why do you need two i-interfaces?
 		IFaceL = bd.get_ifi(i-1,j,k);
 		IFaceL->fs->copy_values_from(*gsp);
 		IFaceR = bd.get_ifi(i,j,k);
