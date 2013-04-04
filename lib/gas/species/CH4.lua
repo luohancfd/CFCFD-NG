@@ -98,12 +98,28 @@ CH4.Z = {
    description = 'Charge number',
    reference = 'NA'
 }
+CH4.theta_v = {
+   value = 1879.0,
+   units = 'K',
+   description = 'Characteristic vibrational temperature',
+   reference = 'Conversion from NIST WebBook'
+}
 CH4.electronic_levels = {
    n_levels = 1,
-   ref = 'dummy electronic levels',
-   -- ==============================================================================================================================================
-   --   n       Te         re       g       dzero      A0        B0          C0       sigma   sigma_rot   we[0]      we[1]      we[2]      we[3]
-   -- ==============================================================================================================================================
-   ilev_0  = {      0.00,  0.0,     0,      0.0,       0.0,      0.0,        0.000,   1,      0,          0.0,       0.0,       0.0,       0.0 },
-   -- ==============================================================================================================================================
+   ref = 'various',
+   -- NOTES ON VALUES:
+   -- All values from NIST CCCBDB unless otherwise stated.
+   -- re is the average of the bond lengths: H-C.
+   -- g from Ochkin (2009), "Appendix A: Statistical Weights and Statistical Sums".
+   -- dzero from NIST CCCBDB, converted to kJ/kg.
+   -- Sigma from Ochkin (2009),"Appendix A: Statistical Weights and Statistical Sums", point group from NIST CCCBDB
+   -- A0, C0 and sigma_rot have been set to zero because at present, they are not required for any calculations
+   -- (cf. Capitelli, 2005).
+   --
+   -- ====================================================================================================================================
+   --   n          Te         re      g       dzero        A0      B0      C0   sigma  sigma_rot  we[0]     we[1]     we[2]      we[2] 
+   --                               (p_i)    (E_diss)                                              
+   -- ====================================================================================================================================
+   ilev_0  = {     0.00,    1.087,    1,    103697.0,     0.0,   5.24,   0.000,   12,      0,    2917.0,    1534.0,   3019.0,    1306.0 },
+   -- ====================================================================================================================================
 }
