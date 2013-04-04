@@ -68,7 +68,7 @@ Chemical_kinetic_MC_system(lua_State *L, Gas_model &g, int nreac, double error_t
     	    Chemical_species * X = get_library_species_pointer(isp);
     	    for ( int itm=0; itm<X->get_n_modes(); ++itm ) {
     	    	string mode = X->get_mode_pointer(itm)->get_type();
-    	    	create_Chemistry_energy_coupling_for_species_mode(isp,mode,ccs,cecs_);
+    	    	create_Chemistry_energy_coupling_for_species_mode(isp,mode,ccs,cecs_,g);
     	    }
     	}
     }
@@ -178,7 +178,7 @@ Chemical_kinetic_MC_system(string cfile, Gas_model &g, int nreac, double error_t
     	    Chemical_species * X = get_library_species_pointer(isp);
     	    for ( int itm=0; itm<X->get_n_modes(); ++itm ) {
     	    	string mode = X->get_mode_pointer(itm)->get_type();
-    	    	create_Chemistry_energy_coupling_for_species_mode(isp,mode,ccs,cecs_);
+    	    	create_Chemistry_energy_coupling_for_species_mode(isp,mode,ccs,cecs_,g);
     	    }
     	}
     }

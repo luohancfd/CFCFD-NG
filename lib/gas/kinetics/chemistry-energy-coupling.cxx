@@ -15,8 +15,8 @@ using namespace std;
 /************************* Chemistry_energy_coupling *************************/
 
 Chemistry_energy_coupling::
-Chemistry_energy_coupling( int isp, string mode, vector<Coupling_component*> &ccs )
-: isp_( isp ), mode_( mode )
+Chemistry_energy_coupling( int isp, string mode, vector<Coupling_component*> &ccs, Gas_model &g )
+: isp_( isp ), mode_( mode ), g_( &g )
 {
     Chemical_species * X = get_library_species_pointer( isp_ );
     bool found = false;
@@ -74,16 +74,11 @@ update_energy( Gas_data &Q, valarray<double> &delta_c, vector<double> &c_new )
     }
     
     double N_new = c_new[isp_]*PC_Avogadro;
-    // double e_new = 0.0;
-    // if ( N_new>0.0 ) e_new = e_old_ + delta_E/N_new;
-    
-    // Q.e[imode_] += Q.massf[isp_]  * e_new / m_;			// convert J/particle -> J/kg-mix
-    
     double delta_e = 0.0;
     if ( N_new > 0.0 ) delta_e = delta_E/N_new;
     
-    //Q.e[imode_] += Q.massf[isp_] * delta_e / m_;			// convert J/particle -> J/kg-mix
-    Q.e[imode_] += delta_e / m_;
+    // convert J/particle -> J/modal-kg
+    Q.e[imode_] += Q.massf[isp_] / g_->modal_massf(Q,imode_) * delta_e / m_;
     
     return SUCCESS;
 }
@@ -108,7 +103,8 @@ eval_source_term( Gas_data &Q, valarray<double> &dcdt )
 /************************** creation function *****************************/
 
 void create_Chemistry_energy_coupling_for_species_mode( int isp, string mode, 
-    vector<Coupling_component*> &ccs, vector<Chemistry_energy_coupling*> &cecs )
+    vector<Coupling_component*> &ccs, vector<Chemistry_energy_coupling*> &cecs,
+    Gas_model &g)
 {
     vector<Coupling_component*> components;
     
@@ -121,7 +117,7 @@ void create_Chemistry_energy_coupling_for_species_mode( int isp, string mode,
     	cout << "- creating " << components.size() 
     	     << " chemistry-energy coupling components for mode: " << mode 
     	     << " of species: " << get_library_species_name(isp) << endl;
-    	cecs.push_back( new Chemistry_energy_coupling( isp, mode, components ) );
+    	cecs.push_back( new Chemistry_energy_coupling( isp, mode, components, g ) );
     }
     
     return;

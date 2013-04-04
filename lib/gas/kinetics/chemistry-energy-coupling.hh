@@ -16,7 +16,7 @@
 class Chemistry_energy_coupling {
 public:
     /// \brief Normal constructor
-    Chemistry_energy_coupling( int isp, std::string mode, std::vector<Coupling_component*> &ccs );
+    Chemistry_energy_coupling( int isp, std::string mode, std::vector<Coupling_component*> &ccs, Gas_model &g );
     
     /// \brief Default destructor
     ~Chemistry_energy_coupling();
@@ -37,6 +37,7 @@ public:
 private:
     int isp_;
     std::string mode_;
+    Gas_model * g_;
     // NOTE: a vector of modes is required to allow for polyatomic vibrational modes
     std::vector<Species_energy_mode*> sems_;
     int imode_;
@@ -47,6 +48,7 @@ private:
 };
 
 void create_Chemistry_energy_coupling_for_species_mode( int isp, std::string mode, 
-    std::vector<Coupling_component*> &ccs, std::vector<Chemistry_energy_coupling*> &cecs );
+    std::vector<Coupling_component*> &ccs, std::vector<Chemistry_energy_coupling*> &cecs,
+    Gas_model &g);
 
 #endif
