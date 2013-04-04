@@ -29,8 +29,11 @@ const int VISCOUS_TIME_LIMIT_MODEL = 0; // (0) original Swanson model, (1) Ramsh
 
 std::map<std::string,update_scheme_t> available_schemes = {
     {"euler",EULER_UPDATE}, {"Euler",EULER_UPDATE},
-    {"pc",PC_UPDATE}, {"PC",PC_UPDATE}, {"predictor_corrector",PC_UPDATE},
+    {"pc",PC_UPDATE}, {"PC",PC_UPDATE},
+    {"predictor_corrector",PC_UPDATE},
+    {"predictor-corrector",PC_UPDATE},
     {"Predictor_corrector",PC_UPDATE},
+    {"Predictor-corrector",PC_UPDATE},
     {"midpoint",MIDPOINT_UPDATE}, {"Midpoint",MIDPOINT_UPDATE},
     {"rk3",RK3_UPDATE}, {"RK3",RK3_UPDATE}
 };
