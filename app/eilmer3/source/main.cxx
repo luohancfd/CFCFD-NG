@@ -1021,10 +1021,8 @@ int integrate_in_time(double target_time)
 	    else
 		break_loop2 = gasdynamic_inviscid_increment_with_moving_grid();
 	} else if ( get_implicit_flag() == 1 ) {
-	    // point implicit update of inviscid terms
 	    break_loop2 = gasdynamic_point_implicit_inviscid_increment();
 	} else if ( get_implicit_flag() == 2 ) {
-	    // fully implicit update of inviscid terms
 	    break_loop2 = gasdynamic_fully_implicit_inviscid_increment();
 	}
 	if ( break_loop2 ) {
@@ -1052,18 +1050,13 @@ int integrate_in_time(double target_time)
 	// 2c.
 	if ( get_viscous_flag() == 1 ) {
 	    // We now have the option of explicit or point implicit update
-	    // of the viscous terms, thanks to Ojas.
+	    // of the viscous terms, thanks to Ojas??.
 	    int break_loop = 0;
 	    if ( get_implicit_flag() == 0 ) {
-	    	// explicit update of viscous terms
-		break_loop = gasdynamic_viscous_increment();
-	    }
-	    else if ( get_implicit_flag() == 1 ) {
-	    	// point implicit update of viscous terms
+		break_loop = gasdynamic_explicit_viscous_increment();
+	    } else if ( get_implicit_flag() == 1 ) {
 		break_loop = gasdynamic_point_implicit_viscous_increment();
-	    }
-	    else if ( get_implicit_flag() == 2 ) {
-	    	// fully implicit update of viscous terms
+	    } else if ( get_implicit_flag() == 2 ) {
 	    	break_loop = gasdynamic_fully_implicit_viscous_increment();
 	    }
 	    if ( break_loop ) {
@@ -1080,7 +1073,7 @@ int integrate_in_time(double target_time)
 		}
 	    }
 #           endif
-	}
+	} // end if ( get_viscous_flag() == 1
 
         // 2d. Chemistry step. 
 	//     Allow finite-rate evolution of species due
@@ -1451,7 +1444,7 @@ int finalize_simulation( void )
 
 //------------------------------------------------------------------------
 
-int gasdynamic_inviscid_increment_with_fixed_grid( void )
+int gasdynamic_inviscid_increment_with_fixed_grid()
 {
     global_data &G = *get_global_data_ptr();
     int step_failed;
@@ -1525,28 +1518,30 @@ int gasdynamic_inviscid_increment_with_fixed_grid( void )
 		    exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0);
 	    }
 #           endif
-	    // Corrector stage of inviscid gas-dynamic update.
+	    // Second stage of inviscid gas-dynamic update.
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active != 1 ) continue;
 		apply_inviscid_bc(*bdp, G.sim_time, G.dimensions);
 		bdp->inviscid_flux(G.dimensions);
 		for ( FV_Cell *cp: bdp->active_cells ) {
-		    cp->inviscid_source_vector(1, bdp->omegaz);
+		    cp->inviscid_source_vector(0, bdp->omegaz);
 		    if ( G.udf_source_vector_flag == 1 )
-			udf_source_vector_for_cell(cp, 1, G.sim_time);
+			udf_source_vector_for_cell(cp, 0, G.sim_time);
 		    cp->time_derivatives(0, 1, G.dimensions);
 		    cp->stage_2_update_for_flow_on_fixed_grid(G.dt_global);
 		    cp->decode_conserved(0, bdp->omegaz);
 		    if ( number_of_stages_for_update_scheme() >= 3 ) cp->record_conserved();
-		} // end for *cp
+		    // FIX-ME not really keen on this sleight-of-hand with storage
+		    // of the conserved quantities for the third-order scheme.
+		} // end for ( *cp
 		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
 		    apply_wilson_omega_correction( *bdp );
 		}
 	    } // end for jb loop
-	} // end if (corrector stage)
+	} // end if ( number_of_stages_for_update_scheme() >= 2 
 
-	// Third-Stage
 	if ( number_of_stages_for_update_scheme() >= 3 ) {
+	    // Preparation for third stage of update.
 #           ifdef _MPI
 	    MPI_Barrier( MPI_COMM_WORLD );
 	    mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
@@ -1561,9 +1556,9 @@ int gasdynamic_inviscid_increment_with_fixed_grid( void )
 		apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
 		bdp->inviscid_flux( G.dimensions );
 		for ( FV_Cell *cp: bdp->active_cells ) {
-		    cp->inviscid_source_vector(2, bdp->omegaz);
+		    cp->inviscid_source_vector(0, bdp->omegaz);
 		    if ( G.udf_source_vector_flag == 1 )
-			udf_source_vector_for_cell(cp, 2, G.sim_time);
+			udf_source_vector_for_cell(cp, 0, G.sim_time);
 		    cp->time_derivatives(0, 2, G.dimensions);
 		    cp->stage_3_update_for_flow_on_fixed_grid(G.dt_global);
 		    cp->decode_conserved(0, bdp->omegaz);
@@ -1572,7 +1567,7 @@ int gasdynamic_inviscid_increment_with_fixed_grid( void )
 		    apply_wilson_omega_correction( *bdp );
 		}
 	    } // end for *bdp
-	} // end if ( number_of_stages )
+	} // end if ( number_of_stages_for_update_scheme() >= 3
    
 	// 2d. Check the record of bad cells and if any cells are bad, 
 	//     fail this attempt at taking a step,
@@ -1606,7 +1601,7 @@ int gasdynamic_inviscid_increment_with_fixed_grid( void )
 } // end gasdynamic_inviscid_increment_with_fixed_grid()
 
 
-int gasdynamic_inviscid_increment_with_moving_grid( void )
+int gasdynamic_inviscid_increment_with_moving_grid()
 // We have implemented only the simplest consistent two-stage update scheme. 
 {
     global_data &G = *get_global_data_ptr();
@@ -1766,7 +1761,7 @@ int gasdynamic_inviscid_increment_with_moving_grid( void )
 } // end gasdynamic_inviscid_increment_with_moving_grid()
 
 
-int gasdynamic_viscous_increment( void )
+int gasdynamic_explicit_viscous_increment()
 // A simple first-order Euler step, of just the viscous-terms contribution.
 // Note that it starts from scratch, following the inviscid update.
 {
