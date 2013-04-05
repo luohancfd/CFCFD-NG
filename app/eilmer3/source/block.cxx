@@ -430,8 +430,8 @@ int Block::count_invalid_cells(size_t dimensions, size_t gtl)
 		    }
 		    cellp->replace_flow_data_with_average(neighbours);
 		}
-		cellp->encode_conserved(gtl, omegaz);
-		cellp->decode_conserved(gtl, omegaz);
+		cellp->encode_conserved(gtl, 0, omegaz);
+		cellp->decode_conserved(gtl, 0, omegaz);
 		if ( get_bad_cell_complain_flag() ) {
 		    printf("after flow-data replacement: block_id = %d, cell[%d,%d,%d]\n", 
 			   static_cast<int>(id), static_cast<int>(i),
@@ -454,7 +454,7 @@ int Block::init_residuals(size_t dimensions)
     energy_residual_loc = Vector3(0.0, 0.0, 0.0);
     for ( FV_Cell *cellp: active_cells ) {
 	cellp->rho_at_start_of_step = cellp->fs->gas->rho;
-	cellp->rE_at_start_of_step = cellp->U->total_energy;
+	cellp->rE_at_start_of_step = cellp->U[1]->total_energy;
     }
     return SUCCESS;
 } // end of check_residual()
@@ -485,7 +485,7 @@ int Block::compute_residuals(size_t dimensions, size_t gtl)
 	    mass_residual_loc.y = cellp->pos[gtl].y;
 	    mass_residual_loc.z = cellp->pos[gtl].z;
 	}
-	local_residual = ( cellp->U->total_energy - cellp->rE_at_start_of_step ) / cellp->U->total_energy;
+	local_residual = ( cellp->U[1]->total_energy - cellp->rE_at_start_of_step ) / cellp->U[1]->total_energy;
 	local_residual = FABS(local_residual);
 	if ( local_residual > energy_residual ) {
 	    energy_residual = local_residual;

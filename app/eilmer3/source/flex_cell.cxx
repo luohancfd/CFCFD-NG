@@ -90,8 +90,6 @@ int record_conserved_for_flex_cell(flex_cell_center* fc)
 int restore_conserved_for_flex_cell(flex_cell_center* fc) 
 {
 #if 0
-    fc->restore_conserved();
-
     fc->mass = fc->mass_old;
     fc->mv.x = fc->mv_old.x;
     fc->mv.y = fc->mv_old.y;

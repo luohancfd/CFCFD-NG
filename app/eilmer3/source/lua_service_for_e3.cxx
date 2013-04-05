@@ -71,9 +71,9 @@ int luafn_sample_flow(lua_State *L)
     // At this point, the table of mass fractions should be TOS.
     lua_setfield(L, -2, "massf");
     // Parameters for computing density and energy residuals
-    lua_pushnumber(L, cell->U_old->mass); lua_setfield(L, -2, "rho_old");
-    lua_pushnumber(L, cell->U->total_energy); lua_setfield(L, -2, "rE");
-    lua_pushnumber(L, cell->U_old->total_energy); lua_setfield(L, -2, "rE_old");
+    lua_pushnumber(L, cell->U[0]->mass); lua_setfield(L, -2, "rho_old");
+    lua_pushnumber(L, cell->U[1]->total_energy); lua_setfield(L, -2, "rE");
+    lua_pushnumber(L, cell->U[0]->total_energy); lua_setfield(L, -2, "rE_old");
     
     return 1; // Just the one table is left on Lua stack
 }

@@ -58,7 +58,7 @@ int apply_menter_boundary_correction(Block &bd)
 		    cell = bd.get_cell(i,j,k);
 		    if ( cell->in_turbulent_zone == 0 ) continue;
 		    cell->fs->omega = MINIMUM(ideal_omega(cell), cell->fs->omega);
-		    cell->U->omega = cell->fs->gas->rho * cell->fs->omega;
+		    cell->U[1]->omega = cell->fs->gas->rho * cell->fs->omega;
 	        } // j-loop
             } // k-loop
 	} // i-loop
@@ -76,7 +76,7 @@ int apply_menter_boundary_correction(Block &bd)
 		    cell = bd.get_cell(i,j,k);
 		    if ( cell->in_turbulent_zone == 0 ) continue;
 		    cell->fs->omega = MINIMUM(ideal_omega(cell), cell->fs->omega);
-		    cell->U->omega = cell->fs->gas->rho * cell->fs->omega;
+		    cell->U[1]->omega = cell->fs->gas->rho * cell->fs->omega;
 		}  // j-loop
 	    } // k-loop
 	} // i-loop
@@ -94,7 +94,7 @@ int apply_menter_boundary_correction(Block &bd)
 		    cell = bd.get_cell(i,j,k);
 		    if ( cell->in_turbulent_zone == 0 ) continue;
 		    cell->fs->omega = MINIMUM(ideal_omega(cell), cell->fs->omega);
-		    cell->U->omega = cell->fs->gas->rho * cell->fs->omega;
+		    cell->U[1]->omega = cell->fs->gas->rho * cell->fs->omega;
 	        } // i-loop
             } // k-loop
 	} // j-loop
@@ -112,7 +112,7 @@ int apply_menter_boundary_correction(Block &bd)
 		    cell = bd.get_cell(i,j,k);
 		    if ( cell->in_turbulent_zone == 0 ) continue;
 		    cell->fs->omega = MINIMUM(ideal_omega(cell), cell->fs->omega);
-		    cell->U->omega = cell->fs->gas->rho * cell->fs->omega;
+		    cell->U[1]->omega = cell->fs->gas->rho * cell->fs->omega;
 	        } // i-loop
             } // k-loop
 	} // j-loop
@@ -131,7 +131,7 @@ int apply_menter_boundary_correction(Block &bd)
 			cell = bd.get_cell(i,j,k);
 			if ( cell->in_turbulent_zone == 0 ) continue;
 			cell->fs->omega = MINIMUM(ideal_omega(cell), cell->fs->omega);
-			cell->U->omega = cell->fs->gas->rho * cell->fs->omega;
+			cell->U[1]->omega = cell->fs->gas->rho * cell->fs->omega;
 		    } // k-loop
 		} // j-loop
 	    } // i-loop
@@ -149,7 +149,7 @@ int apply_menter_boundary_correction(Block &bd)
 			cell = bd.get_cell(i,j,k);
 			if ( cell->in_turbulent_zone == 0 ) continue;
 			cell->fs->omega = MINIMUM(ideal_omega(cell), cell->fs->omega);
-			cell->U->omega = cell->fs->gas->rho * cell->fs->omega;
+			cell->U[1]->omega = cell->fs->gas->rho * cell->fs->omega;
 		    }  // k-loop
 		} // j-loop
 	    } // i-loop
@@ -315,7 +315,7 @@ int apply_wilson_omega_correction(Block &bd)
                     // Step 2 : Replace cell and conserved quantity values with
                     //          averaged (smoothed) values of omega.
                     cell->fs->omega = omegaAvg;
-                    cell->U->omega = rhoAvg * omegaAvg;
+                    cell->U[1]->omega = rhoAvg * omegaAvg;
                 }  // j-loop
             } // i-loop
         } // k-loop
@@ -356,7 +356,7 @@ int apply_wilson_omega_correction(Block &bd)
                     // Step 2 : Replace cell and conserved quantity values with
                     //          averaged (smoothed) values of omega.
                     cell->fs->omega = omegaAvg;
-                    cell->U->omega = rhoAvg * omegaAvg;
+                    cell->U[1]->omega = rhoAvg * omegaAvg;
 		}  // j-loop
 	    } // i-loop
 	} // k-loop
@@ -370,7 +370,7 @@ int apply_wilson_omega_correction(Block &bd)
         // FIX-ME - HOW DO WE COPY ALL OMEGA AND RHO VALUES IN THE J-K PLANE??
         //   OBVIOUSLY IF WE DON'T COPY THEN WE WILL BE APPLYING A SMEARING FILTER!!!
         //tempCell->fs->copy_values_from(*(cell->fs)); 
-        //tempCell->U->copy_values_from(*(cell->U));
+        //tempCell->U[1]->copy_values_from(*(cell->U));
         // Use the smaller value of the number of cells in 
         // the i-direction or the specified nominal_layer_depth. 
         layer_depth = min(bd.nni, nominal_layer_depth);
@@ -404,7 +404,7 @@ int apply_wilson_omega_correction(Block &bd)
                     // Step 2 : Replace cell and conserved quantity values with
                     //          averaged (smoothed) values of omega.
                     cell->fs->omega = omegaAvg;
-                    cell->U->omega = rhoAvg * omegaAvg;
+                    cell->U[1]->omega = rhoAvg * omegaAvg;
                 } // j-loop
             } // k-loop
 	} // i-loop
@@ -422,7 +422,7 @@ int apply_wilson_omega_correction(Block &bd)
 		    cell = bd.get_cell(i,j,k);
 		    if ( cell->in_turbulent_zone == 0 ) continue;
 		    cell->fs->omega = MINIMUM(ideal_omega(cell), cell->fs->omega);
-		    cell->U->omega = cell->fs->gas->rho * cell->fs->omega;
+		    cell->U[1]->omega = cell->fs->gas->rho * cell->fs->omega;
 	        } // i-loop
             } // k-loop
 	} // j-loop
@@ -464,7 +464,7 @@ int apply_wilson_omega_correction(Block &bd)
                     // Step 2 : Replace cell and conserved quantity values with
                     //          averaged (smoothed) values of omega.
                     cell->fs->omega = omegaAvg;
-                    cell->U->omega = rhoAvg * omegaAvg;
+                    cell->U[1]->omega = rhoAvg * omegaAvg;
                 } // i-loop
             } // j-loop
         } // k-loop
@@ -482,7 +482,7 @@ int apply_wilson_omega_correction(Block &bd)
 			cell = bd.get_cell(i,j,k);
 			if ( cell->in_turbulent_zone == 0 ) continue;
 			cell->fs->omega = MINIMUM(ideal_omega(cell), cell->fs->omega);
-			cell->U->omega = cell->fs->gas->rho * cell->fs->omega;
+			cell->U[1]->omega = cell->fs->gas->rho * cell->fs->omega;
 		    }  // k-loop
 		} // j-loop
 	    } // i-loop

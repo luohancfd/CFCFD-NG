@@ -599,7 +599,6 @@ int PistonFace:: copy_flow_data_to_flex_cells(Block *(bd[]))
 	    uf = bd[bo_]->get_cell(io_,j)->uf;
 	    vol_o = bd[bo_]->get_cell(io_,j)->volume[0];
 	    update_gas_extensive_conserved(flex_cells_[j], uf*vol_o);
-	    flex_cells_[j]->record_conserved();
 	}
     }
     else {
@@ -613,7 +612,6 @@ int PistonFace:: copy_flow_data_to_flex_cells(Block *(bd[]))
 				    bd[bo_]->get_cell(io_,j), vol_o,
 				    bd[bi_]->get_cell(ii_,j), uf*vol_i);
 	    update_gas_extensive_conserved(flex_cells_[j], total_vol);
-	    flex_cells_[j]->record_conserved();
 	}
     }
     
@@ -2235,11 +2233,11 @@ int print_flow_state(FV_Cell *cell)
     cout << endl;
 
     cout << "Conserved quantities:\n"
-	 << "rho  = " << cell->U->mass << "\n"
-	 << "rv.x = " << cell->U->momentum.x << "\n"
-	 << "rv.y = " << cell->U->momentum.y << "\n"
-	 << "rv.z = " << cell->U->momentum.z << "\n"
-	 << "rE   = " << cell->U->total_energy << endl;
+	 << "rho  = " << cell->U[1]->mass << "\n"
+	 << "rv.x = " << cell->U[1]->momentum.x << "\n"
+	 << "rv.y = " << cell->U[1]->momentum.y << "\n"
+	 << "rv.z = " << cell->U[1]->momentum.z << "\n"
+	 << "rE   = " << cell->U[1]->total_energy << endl;
     cout << endl;
 
     f_sum = 0.0;
@@ -2400,14 +2398,14 @@ int update_gas_extensive_conserved(FV_Cell *cell, double volume)
     // ASSERT(volume > 0.0);
     update_gas_conserved(cell);
 
-    cell->U->mass *= volume;  
-    cell->U->momentum *= volume;
-    cell->U->total_energy *= volume;
+    cell->U[1]->mass *= volume;  
+    cell->U[1]->momentum *= volume;
+    cell->U[1]->total_energy *= volume;
     for ( size_t isp = 0; isp < nsp; ++isp) {
-	cell->U->massf[isp] *= volume;             // mass of species
+	cell->U[1]->massf[isp] *= volume;             // mass of species
     }
     for ( size_t imode = 0; imode < nmodes; ++imode) {
-	cell->U->energies[imode] *= volume;         // independent energy  
+	cell->U[1]->energies[imode] *= volume;         // independent energy  
     }
     if (DB0) cout << "leaving update_gas_extensive_conserved()" << endl;
 
@@ -2416,7 +2414,7 @@ int update_gas_extensive_conserved(FV_Cell *cell, double volume)
 
 int update_gas_conserved(FV_Cell *cell) 
 {
-    cell->encode_conserved(0, 0.0);
+    cell->encode_conserved(0, 0, 0.0);
     return SUCCESS;
 }
 
@@ -2428,14 +2426,14 @@ int update_gas_primaries_from_extensive(FV_Cell *cell, double volume)
     size_t nsp = get_gas_model_ptr()->get_number_of_species();
     size_t nmodes = get_gas_model_ptr()->get_number_of_modes();
     
-    cell->U->mass /= volume;  
-    cell->U->momentum /= volume;
-    cell->U->total_energy /= volume;
+    cell->U[1]->mass /= volume;  
+    cell->U[1]->momentum /= volume;
+    cell->U[1]->total_energy /= volume;
     for ( size_t isp = 0; isp < nsp; ++isp ) {
-	cell->U->massf[isp] /= volume;             // mass of species
+	cell->U[1]->massf[isp] /= volume;             // mass of species
     }
     for ( size_t imode = 0; imode < nmodes; ++imode ) {
-	cell->U->energies[imode] /= volume;         // independent energies  
+	cell->U[1]->energies[imode] /= volume;         // independent energies  
     }
     update_gas_primaries(cell);
 
@@ -2447,14 +2445,14 @@ int update_gas_primaries_from_extensive(FV_Cell *cell, double volume)
     // conserved quantities in a separate vector.
     // remember to convert to density before copying back to the grid.
 
-    cell->U->mass *= volume; 
-    cell->U->momentum *= volume;
-    cell->U->total_energy *= volume;
+    cell->U[1]->mass *= volume; 
+    cell->U[1]->momentum *= volume;
+    cell->U[1]->total_energy *= volume;
     for ( size_t isp = 0; isp < nsp; ++isp ) {
-	cell->U->massf[isp] *= volume;             // mass of species
+	cell->U[1]->massf[isp] *= volume;             // mass of species
     }
     for ( size_t imode = 0; imode < nmodes; ++imode ) {
-	cell->U->energies[imode] *= volume;         // independent energies  
+	cell->U[1]->energies[imode] *= volume;         // independent energies  
     }
     if (DB0) cout << "leaving update_gas_primaries_from_extensive()" << endl;
 
@@ -2463,7 +2461,7 @@ int update_gas_primaries_from_extensive(FV_Cell *cell, double volume)
 
 int update_gas_primaries(FV_Cell *cell)
 {
-    cell->decode_conserved(0, 0.0);
+    cell->decode_conserved(0, 0, 0.0);
     return SUCCESS;
 }
 
@@ -2532,16 +2530,16 @@ int update_gas_conserved_from_time_derivatives(FV_Cell *cell, double dt)
 {
     size_t nsp = get_gas_model_ptr()->get_number_of_species();
     size_t nmodes = get_gas_model_ptr()->get_number_of_modes();
-    cell->U->mass = cell->U_old->mass + dt * cell->dUdt[0]->mass;
-    cell->U->momentum.x = cell->U_old->momentum.x + dt * cell->dUdt[0]->momentum.x;
-    cell->U->momentum.y = cell->U_old->momentum.y + dt * cell->dUdt[0]->momentum.y;
-    cell->U->momentum.z = cell->U_old->momentum.z + dt * cell->dUdt[0]->momentum.z;
-    cell->U->total_energy = cell->U_old->total_energy + dt * cell->dUdt[0]->total_energy;
+    cell->U[1]->mass = cell->U[0]->mass + dt * cell->dUdt[0]->mass;
+    cell->U[1]->momentum.x = cell->U[0]->momentum.x + dt * cell->dUdt[0]->momentum.x;
+    cell->U[1]->momentum.y = cell->U[0]->momentum.y + dt * cell->dUdt[0]->momentum.y;
+    cell->U[1]->momentum.z = cell->U[0]->momentum.z + dt * cell->dUdt[0]->momentum.z;
+    cell->U[1]->total_energy = cell->U[0]->total_energy + dt * cell->dUdt[0]->total_energy;
     for ( size_t isp = 0; isp < nsp; ++isp ) {
-	cell->U->massf[isp] = cell->U_old->massf[isp] + dt * cell->dUdt[0]->massf[isp];
+	cell->U[1]->massf[isp] = cell->U[0]->massf[isp] + dt * cell->dUdt[0]->massf[isp];
     }
     for ( size_t imode = 0; imode < nmodes; ++imode ) {
-	cell->U->energies[imode] = cell->U_old->energies[imode] + dt * cell->dUdt[0]->energies[imode];
+	cell->U[1]->energies[imode] = cell->U[0]->energies[imode] + dt * cell->dUdt[0]->energies[imode];
     }
     return SUCCESS;
 }
@@ -2553,18 +2551,18 @@ int average_two_flow_states(FV_Cell *dst,
     double total_vol = vol0 + vol1;
     size_t nsp = get_gas_model_ptr()->get_number_of_species();
     size_t nmodes = get_gas_model_ptr()->get_number_of_modes();
-    dst->U->mass = (src0->U->mass*vol0 + src1->U->mass*vol1)/total_vol;
-    dst->U->momentum.x = (src0->U->momentum.x*vol0 + src1->U->momentum.x*vol1)/total_vol;
-    dst->U->momentum.y = (src0->U->momentum.y*vol0 + src1->U->momentum.y*vol1)/total_vol;
-    dst->U->momentum.z = (src0->U->momentum.z*vol0 + src1->U->momentum.z*vol1)/total_vol;
-    dst->U->total_energy = (src0->U->total_energy*vol0 + src1->U->total_energy*vol1)/total_vol;
+    dst->U[1]->mass = (src0->U[1]->mass*vol0 + src1->U[1]->mass*vol1)/total_vol;
+    dst->U[1]->momentum.x = (src0->U[1]->momentum.x*vol0 + src1->U[1]->momentum.x*vol1)/total_vol;
+    dst->U[1]->momentum.y = (src0->U[1]->momentum.y*vol0 + src1->U[1]->momentum.y*vol1)/total_vol;
+    dst->U[1]->momentum.z = (src0->U[1]->momentum.z*vol0 + src1->U[1]->momentum.z*vol1)/total_vol;
+    dst->U[1]->total_energy = (src0->U[1]->total_energy*vol0 + src1->U[1]->total_energy*vol1)/total_vol;
     for ( size_t isp = 0; isp < nsp; ++isp ) {
-	dst->U->massf[isp] = (src0->U->massf[isp]*vol0 + src1->U->massf[isp]*vol1)/total_vol;
+	dst->U[1]->massf[isp] = (src0->U[1]->massf[isp]*vol0 + src1->U[1]->massf[isp]*vol1)/total_vol;
     }
     for ( size_t imode = 0; imode < nmodes; ++imode ) {
-	dst->U->energies[imode] = (src0->U->energies[imode]*vol0 + src1->U->energies[imode]*vol1)/total_vol;
+	dst->U[1]->energies[imode] = (src0->U[1]->energies[imode]*vol0 + src1->U[1]->energies[imode]*vol1)/total_vol;
     }
-    dst->decode_conserved(0, 0.0);
+    dst->decode_conserved(0, 0, 0.0);
     return SUCCESS;
 }
 

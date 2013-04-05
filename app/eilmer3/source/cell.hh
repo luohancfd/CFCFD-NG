@@ -95,9 +95,6 @@ public:
     int copy_values_from(const CFlowCondition &src);
     int average_values_from(const FlowState &src0, const FlowState &src1,
 			    bool with_diff_coeff);
-    // int average_values_from(const FlowState &src0, double alpha0, 
-    // 			    const FlowState &src1, double alpha1,
-    // 			    bool with_diff_coeff);
     double * copy_values_to_buffer(double *buf) const;
     double * copy_values_from_buffer(double *buf);
     int BGK_equilibrium(void);
@@ -167,14 +164,14 @@ class FV_Vertex {
 public:
     size_t id;  // allows us to work out where, in the block, the vertex is
     // Geometry
-    std::vector<Vector3> pos;       ///< \brief x,y,z-Coordinates for time-levels, m
-    std::vector<Vector3> vel;       ///< \brief velocity for time-levels, m/s
-    double area;                    ///< \brief x,y-plane area of secondary cells (for spatial derivatives)
-    double volume;                  ///< \brief volume of 3D secondary cells (for spatial derivatives)
+    std::vector<Vector3> pos;  ///< \brief x,y,z-Coordinates for time-levels, m
+    std::vector<Vector3> vel;  ///< \brief velocity for time-levels, m/s
+    double area;               ///< \brief x,y-plane area of secondary cells (for spatial derivatives)
+    double volume;             ///< \brief volume of 3D secondary cells (for spatial derivatives)
     // Derivatives of primary-cell variables.
-    double dudx, dudy, dudz;        ///< \brief velocity derivatives
-    double dvdx, dvdy, dvdz;        ///< \brief velocity derivatives
-    double dwdx, dwdy, dwdz;        ///< \brief velocity derivatives
+    double dudx, dudy, dudz;   ///< \brief velocity derivatives
+    double dvdx, dvdy, dvdz;   ///< \brief velocity derivatives
+    double dwdx, dwdy, dwdz;   ///< \brief velocity derivatives
     std::vector<double> dTdx, dTdy, dTdz; ///< \brief Temperature derivatives
     double dtkedx, dtkedy, dtkedz;        ///< \brief turbulence kinetic energy
     double domegadx, domegady, domegadz;  ///< \brief pseudo vorticity for k-omega turbulence
@@ -217,8 +214,8 @@ public:
     std::vector<FV_Vertex *> vtx;  ///> \brief pointers to vertices for quad (2D) and hexahedral (3D) cells
     // Flow
     FlowState *fs; ///> \brief Flow properties
-    ConservedQuantities *U, *U_old; ///> \brief current conserved quantities, and at time-step start
-    std::vector<ConservedQuantities *> dUdt;  ///> \brief time derivatives
+    std::vector<ConservedQuantities *> U;    ///> \brief Conserved flow quantities for the update stages.
+    std::vector<ConservedQuantities *> dUdt; ///> \brief Time derivatives for the update stages.
     ConservedQuantities *Q; ///> \brief source (or production) terms
     // Terms for loose-coupling of radiation.
     double Q_rad_org;
@@ -251,10 +248,8 @@ public:
     int impose_chemistry_timestep(double dt);
     int impose_thermal_timestep(double dt);
     int set_fr_reactions_allowed(int flag);
-    int record_conserved(void);
-    int restore_conserved(void);
-    int encode_conserved(size_t gtl, double omegaz);
-    int decode_conserved(size_t gtl, double omegaz);
+    int encode_conserved(size_t gtl, size_t ftl, double omegaz);
+    int decode_conserved(size_t gtl, size_t ftl, double omegaz);
     int check_flow_data(void);
     int time_derivatives(size_t gtl, size_t ftl, size_t dimensions);
     int stage_1_update_for_flow_on_fixed_grid(double dt, int force_euler=0);

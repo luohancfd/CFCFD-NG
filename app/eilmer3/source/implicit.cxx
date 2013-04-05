@@ -116,12 +116,14 @@ int gasdynamic_point_implicit_inviscid_increment(void)
 	    bdp = G.my_blocks[jb];
 	    if ( bdp->active != 1 ) continue;
 	    bdp->inviscid_flux( G.dimensions );
-	    for ( FV_Cell *cp: bdp->active_cells ) cp->inviscid_source_vector(bdp->omegaz);
-	    if ( G.udf_source_vector_flag == 1 ) {
-		for ( FV_Cell *cp: bdp->active_cells ) cp->udf_source_vector_for_cell(G.dt_global);
+	    for ( FV_Cell *cp: bdp->active_cells ) {
+		cp->inviscid_source_vector(bdp->omegaz);
+		if ( G.udf_source_vector_flag == 1 ) 
+		    cp->udf_source_vector_for_cell(G.dt_global);
+		cp->inviscid_point_implicit_update_for_cell();
+		*(cp->U[0]) = *(cp->U[1]); 
+		cp->decode_conserved(0, 1, bdp->omegaz);
 	    }
-	    for ( FV_Cell *cp: bdp->active_cells ) cp->inviscid_point_implicit_update_for_cell();
-	    for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(0, bdp->omegaz);
 	} // end of for jb...
 
 	// 2d. Check the record of bad cells and if any cells are bad, 
@@ -137,13 +139,19 @@ int gasdynamic_point_implicit_inviscid_increment(void)
 	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
 		if ( bdp->active != 1 ) continue;
-		for ( FV_Cell *cp: bdp->active_cells ) cp->restore_conserved();
-		for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(0, bdp->omegaz);
+		for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(0, 0, bdp->omegaz);
 	    }
 	}
 
     } while (attempt_number < 3 && step_failed == 1);
 	
+    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	bdp = G.my_blocks[jb];
+	if ( bdp->active != 1 ) continue;
+	for ( FV_Cell *cp: bdp->active_cells ) {
+	    *(cp->U[0]) = *(cp->U[1]); 
+	}
+    }
     cout << "=== Fin gasdynamic_point_implicit_inviscid_increment ===" << endl;
     return step_failed;
 #else
@@ -193,15 +201,15 @@ int inviscid_point_implicit_update_for_cell(FV_Cell *cell)
     gaussj(cell, 5, 5);
 	
     /* 3. Update cell centre convserved variables for next iteration */
-    cell->U->mass = cell->U_old->mass + cell->pir[1][1];
-    cell->U->momentum.x = cell->U_old->momentum.x + cell->pir[2][1];
-    cell->U->momentum.y = cell->U_old->momentum.y + cell->pir[3][1];
-    cell->U->momentum.z = cell->U_old->momentum.z + cell->pir[4][1];
-    cell->U->total_energy = cell->U_old->total_energy + cell->pir[5][1];
+    cell->U[1]->mass = cell->U[0]->mass + cell->pir[1][1];
+    cell->U[1]->momentum.x = cell->U[0]->momentum.x + cell->pir[2][1];
+    cell->U[1]->momentum.y = cell->U[0]->momentum.y + cell->pir[3][1];
+    cell->U[1]->momentum.z = cell->U[0]->momentum.z + cell->pir[4][1];
+    cell->U[1]->total_energy = cell->U[0]->total_energy + cell->pir[5][1];
 	
     // Species densities: mass of species isp per unit volume.
-    for ( size_t isp = 0; isp < cell->U->massf.size(); ++isp ) {
-	cell->U->massf[isp] = cell->U->mass * cell->fs->gas->massf[isp];
+    for ( size_t isp = 0; isp < cell->U[1]->massf.size(); ++isp ) {
+	cell->U[1]->massf[isp] = cell->U[1]->mass * cell->fs->gas->massf[isp];
     }
 #endif		
     return SUCCESS;
@@ -412,9 +420,11 @@ int gasdynamic_point_implicit_viscous_increment(void)
 	} else {
 	    viscous_flux_3D( bdp );
 	}
-	for ( FV_Cell *cp: bdp->active_cells ) cp->viscous_source_vector();
-	for ( FV_Cell *cp: bdp->active_cells ) point_implicit_update_for_cell(cp);
-	for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(0, bdp->omegaz);
+	for ( FV_Cell *cp: bdp->active_cells ) {
+	    cp->viscous_source_vector();
+	    point_implicit_update_for_cell(cp);
+	    cp->decode_conserved(0, 1, bdp->omegaz);
+	}
     } // end of for jb...
     cout << "=== Fin gasdynamic_point_implicit_viscous_increment ===" << endl;
 #endif
@@ -463,14 +473,14 @@ int point_implicit_update_for_cell(FV_Cell *cell)
     gaussj(cell, 5, 5);
 	
     /* 3. Update cell centre convserved variables for next iteration */
-    cell->U->mass = cell->U_old->mass + cell->pir[1][1];
-    cell->U->momentum.x = cell->U_old->momentum.x + cell->pir[2][1];
-    cell->U->momentum.y = cell->U_old->momentum.y + cell->pir[3][1];
-    cell->U->momentum.z = cell->U_old->momentum.z + cell->pir[4][1];
-    cell->U->total_energy = cell->U_old->total_energy + cell->pir[5][1];
+    cell->U[1]->mass = cell->U[0]->mass + cell->pir[1][1];
+    cell->U[1]->momentum.x = cell->U[0]->momentum.x + cell->pir[2][1];
+    cell->U[1]->momentum.y = cell->U[0]->momentum.y + cell->pir[3][1];
+    cell->U[1]->momentum.z = cell->U[0]->momentum.z + cell->pir[4][1];
+    cell->U[1]->total_energy = cell->U[0]->total_energy + cell->pir[5][1];
 	
     /* Update single species mass fraction */
-    cell->U->massf[0] = cell->U_old->massf[0] + cell->pir[1][1];
+    cell->U[1]->massf[0] = cell->U[0]->massf[0] + cell->pir[1][1];
 #endif
     return SUCCESS;
 } //int point_implicit_update_for_cell
@@ -545,7 +555,7 @@ int calculate_viscous_jacobian(FV_Cell *cell, FV_Interface *iface)
     mu_lam = viscous_factor * iface->fs->gas->mu;
     mu_t = viscous_factor * iface->fs->mu_t;
     mu_eff = mu_lam + mu_t;
-    e_int = cell->U->total_energy - dot(cell->fs->vel, cell->fs->vel);
+    e_int = cell->U[1]->total_energy - dot(cell->fs->vel, cell->fs->vel);
     	
     /* 	Initalise jacobian matrix J */
     

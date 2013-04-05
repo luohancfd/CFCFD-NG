@@ -595,15 +595,14 @@ FV_Cell::FV_Cell(Gas_model *gm)
       iLength(0.0), jLength(0.0), kLength(0.0), L_min(0.0),
       distance_to_nearest_wall(0.0), half_cell_width_at_wall(0.0),
       cell_at_nearest_wall(NULL), iface(N_INTERFACE,NULL), vtx(N_VERTEX,NULL),
-      fs(new FlowState(gm)), U(new ConservedQuantities(gm)),
-      U_old(new ConservedQuantities(gm)),
-      Q(new ConservedQuantities(gm)),
+      fs(new FlowState(gm)), Q(new ConservedQuantities(gm)),
       Q_rad_org(0.0), f_rad_org(0.0), Q_rE_rad(0.0),
       rho_at_start_of_step(0.0), rE_at_start_of_step(0.0)
 {
     // Maybe we could put the following into the init section as
     // dUdt(N_LEVEL,new ConservedQuantities(gm))
     for ( size_t i = 0; i < N_LEVEL; ++i ) {
+	U.push_back(new ConservedQuantities(gm));
 	dUdt.push_back(new ConservedQuantities(gm));
     }
 #   if WITH_IMPLICIT == 1
@@ -621,14 +620,13 @@ FV_Cell::FV_Cell()
       distance_to_nearest_wall(0.0), half_cell_width_at_wall(0.0),
       cell_at_nearest_wall(NULL), iface(N_INTERFACE,NULL), vtx(N_VERTEX,NULL),
       fs(new FlowState(get_gas_model_ptr())),
-      U(new ConservedQuantities(get_gas_model_ptr())),
-      U_old(new ConservedQuantities(get_gas_model_ptr())),
       Q(new ConservedQuantities(get_gas_model_ptr())),
       Q_rad_org(0.0), f_rad_org(0.0), Q_rE_rad(0.0),
       rho_at_start_of_step(0.0), rE_at_start_of_step(0.0)
 {
     Gas_model *gm = get_gas_model_ptr();
     for ( size_t i = 0; i < N_LEVEL; ++i ) {
+	U.push_back(new ConservedQuantities(gm));
 	dUdt.push_back(new ConservedQuantities(gm));
     }
 }
@@ -646,13 +644,13 @@ FV_Cell::FV_Cell(const FV_Cell &cell)
       half_cell_width_at_wall(cell.half_cell_width_at_wall),
       cell_at_nearest_wall(cell.cell_at_nearest_wall),
       iface(cell.iface), vtx(cell.vtx),
-      fs(new FlowState(*cell.fs)), U(new ConservedQuantities(*cell.U)),
-      U_old(new ConservedQuantities(*cell.U_old)), Q(cell.Q),
+      fs(new FlowState(*cell.fs)), Q(cell.Q),
       Q_rad_org(cell.Q_rad_org), f_rad_org(cell.f_rad_org), Q_rE_rad(cell.Q_rE_rad),
       rho_at_start_of_step(cell.rho_at_start_of_step),
       rE_at_start_of_step(cell.rE_at_start_of_step)
 {
     for ( size_t i = 0; i < N_LEVEL; ++i ) {
+	U.push_back(new ConservedQuantities(*cell.U[i]));
 	dUdt.push_back(new ConservedQuantities(*cell.dUdt[i]));
     }
 #   if WITH_IMPLICIT == 1
@@ -678,12 +676,12 @@ FV_Cell & FV_Cell::operator=(const FV_Cell &cell)
 	cell_at_nearest_wall = cell.cell_at_nearest_wall;
 	iface =cell.iface; vtx = cell.vtx;
 	delete fs; fs = new FlowState(*cell.fs);
-	delete U; U = new ConservedQuantities(*cell.U);
-	delete U_old; U_old = new ConservedQuantities(*cell.U_old);
 	for ( size_t i = 0; i < dUdt.size(); ++i ) {
+	    delete U[i];
 	    delete dUdt[i];
 	}
 	for ( size_t i = 0; i < N_LEVEL; ++i ) {
+	    U.push_back(new ConservedQuantities(*cell.U[i]));
 	    dUdt.push_back(new ConservedQuantities(*cell.dUdt[i]));
 	}
 	Q = cell.Q;
@@ -699,9 +697,8 @@ FV_Cell & FV_Cell::operator=(const FV_Cell &cell)
 FV_Cell::~FV_Cell()
 {
     delete fs;
-    delete U;
-    delete U_old;
     for ( size_t i = 0; i < N_LEVEL; ++i ) {
+	delete U[i];
 	delete dUdt[i];
     }
     delete Q;
@@ -721,7 +718,10 @@ int FV_Cell::print() const
 	printf("radiation source Q_rE_rad=%e\n", Q_rE_rad);
     }
     printf("Conserved quantities: \n");
-    U->print();
+    for ( size_t i = 0; i < U.size(); ++i ) {
+	printf("stage %d:\n", static_cast<int>(i));
+	U[i]->print();
+    }
     printf("status= %d \n", status);
     printf( "----------- End data for cell -----------\n");
     return SUCCESS;
@@ -1111,81 +1111,47 @@ std::string FV_Cell::write_BGK_to_string() const
     return ost.str();
 } // end of write_BGK_to_string()
 
-int FV_Cell::impose_chemistry_timestep(double dt)
+
+int FV_Cell::encode_conserved(size_t gtl, size_t ftl, double omegaz)
 {
-    dt_chem = dt;
-    return SUCCESS;
-}
+    ConservedQuantities &myU = *(U[ftl]);
 
-
-int FV_Cell::impose_thermal_timestep(double dt)
-{
-    dt_therm = dt;
-    return SUCCESS;
-}
-
-
-int FV_Cell::set_fr_reactions_allowed(int flag)
-{
-    fr_reactions_allowed = flag;
-    return SUCCESS;
-}
-
-
-int FV_Cell::record_conserved(void)
-// Just in case they need to be reinstated later in the time step.
-{
-    U_old->copy_values_from(*U);
-    return SUCCESS;
-}
-
-
-int FV_Cell::restore_conserved(void)
-{
-    U->copy_values_from(*U_old);
-    fs->gas->rho = U->mass; // restore this copy of density also
-    return SUCCESS;
-}
-
-
-int FV_Cell::encode_conserved(size_t gtl, double omegaz)
-{
-    U->mass = fs->gas->rho;
+    myU.mass = fs->gas->rho;
     // X-, Y- and Z-momentum per unit volume.
-    U->momentum.x = fs->gas->rho * fs->vel.x;
-    U->momentum.y = fs->gas->rho * fs->vel.y;
-    U->momentum.z = fs->gas->rho * fs->vel.z;
+    myU.momentum.x = fs->gas->rho * fs->vel.x;
+    myU.momentum.y = fs->gas->rho * fs->vel.y;
+    myU.momentum.z = fs->gas->rho * fs->vel.z;
     // Magnetic field
-    U->B.x = fs->B.x;
-    U->B.y = fs->B.y;
-    U->B.z = fs->B.z;
+    myU.B.x = fs->B.x;
+    myU.B.y = fs->B.y;
+    myU.B.z = fs->B.z;
     // Total Energy / unit volume = density
     // (specific internal energy + kinetic energy/unit mass).
     double ke = 0.5 * (fs->vel.x * fs->vel.x
 		       + fs->vel.y * fs->vel.y
 		       + fs->vel.z * fs->vel.z);
     if ( get_k_omega_flag() ) {
-	U->tke = fs->gas->rho * fs->tke;
-	U->omega = fs->gas->rho * fs->omega;
-	U->total_energy = fs->gas->rho * (fs->gas->e[0] + ke + fs->tke);
+	myU.tke = fs->gas->rho * fs->tke;
+	myU.omega = fs->gas->rho * fs->omega;
+	myU.total_energy = fs->gas->rho * (fs->gas->e[0] + ke + fs->tke);
     } else {
-	U->tke = 0.0;
-	U->omega = fs->gas->rho * 1.0;
-	U->total_energy = fs->gas->rho * (fs->gas->e[0] + ke);
+	myU.tke = 0.0;
+	myU.omega = fs->gas->rho * 1.0;
+	myU.total_energy = fs->gas->rho * (fs->gas->e[0] + ke);
     }
     if ( get_mhd_flag() == 1) {
 	double me = 0.5 * (fs->B.x * fs->B.x
 			   + fs->B.y * fs->B.y
 			   + fs->B.z * fs->B.z);
-	U->total_energy += me;
+	myU.total_energy += me;
     }
     // Species densities: mass of species is per unit volume.
-    for ( size_t isp = 0; isp < U->massf.size(); ++isp ) {
-	U->massf[isp] = fs->gas->rho * fs->gas->massf[isp];
+    for ( size_t isp = 0; isp < myU.massf.size(); ++isp ) {
+	myU.massf[isp] = fs->gas->rho * fs->gas->massf[isp];
     }
     // Individual energies
     Gas_model *gmodel = get_gas_model_ptr();
-    gmodel->encode_conserved_energy(*(fs->gas), U->energies);
+    gmodel->encode_conserved_energy(*(fs->gas), myU.energies);
     
     if ( omegaz != 0.0 ) {
 	// Rotating frame.
@@ -1199,19 +1165,20 @@ int FV_Cell::encode_conserved(size_t gtl, double omegaz)
 	double rsq = x*x + y*y;
 	// The conserved quantity is rothalpy. I = E - (u**2)/2
 	// where rotating frame velocity  u = omegaz * r.
-	U->total_energy -= rho * 0.5 * omegaz * omegaz * rsq;
+	myU.total_energy -= rho * 0.5 * omegaz * omegaz * rsq;
     }
     return SUCCESS;
 } // end of encode_conserved()
 
 
-int FV_Cell::decode_conserved(size_t gtl, double omegaz)
+int FV_Cell::decode_conserved(size_t gtl, size_t ftl, double omegaz)
 {
+    ConservedQuantities &myU = *(U[ftl]);
     Gas_model *gmodel = get_gas_model_ptr();
     double ke, dinv, rE, me;
 
     // Mass / unit volume = Density
-    double rho = U->mass;
+    double rho = myU.mass;
     fs->gas->rho = rho;
     // This is limited to nonnegative and finite values.
     if ( get_bad_cell_complain_flag() && (rho <= 0.0) ) {
@@ -1227,19 +1194,19 @@ int FV_Cell::decode_conserved(size_t gtl, double omegaz)
 	double x = pos[gtl].x;
 	double y = pos[gtl].y;
 	double rsq = x*x + y*y;
-	rE = U->total_energy + rho * 0.5 * omegaz * omegaz * rsq;
+	rE = myU.total_energy + rho * 0.5 * omegaz * omegaz * rsq;
     } else {
 	// Non-rotating frame.
-	rE = U->total_energy;
+	rE = myU.total_energy;
     }
     // Velocities from momenta.
-    fs->vel.x = U->momentum.x * dinv;
-    fs->vel.y = U->momentum.y * dinv;
-    fs->vel.z = U->momentum.z * dinv;
+    fs->vel.x = myU.momentum.x * dinv;
+    fs->vel.y = myU.momentum.y * dinv;
+    fs->vel.z = myU.momentum.z * dinv;
     // Magnetic field
-    fs->B.x = U->B.x;
-    fs->B.y = U->B.y;
-    fs->B.z = U->B.z;
+    fs->B.x = myU.B.x;
+    fs->B.y = myU.B.y;
+    fs->B.z = myU.B.z;
     // Specific internal energy from total energy per unit volume.
     ke = 0.5 * (fs->vel.x * fs->vel.x + fs->vel.y * fs->vel.y + fs->vel.z * fs->vel.z);
     if (get_mhd_flag() == 1) {
@@ -1248,17 +1215,17 @@ int FV_Cell::decode_conserved(size_t gtl, double omegaz)
         me = 0.0;
     }
     if ( get_k_omega_flag() ) {
-        fs->tke = U->tke * dinv;
-        fs->omega = U->omega * dinv;
-        fs->gas->e[0] = (rE - U->tke - me) * dinv - ke;
+        fs->tke = myU.tke * dinv;
+        fs->omega = myU.omega * dinv;
+        fs->gas->e[0] = (rE - myU.tke - me) * dinv - ke;
     } else {
         fs->tke = 0.0;
         fs->omega = 1.0;
         fs->gas->e[0] = (rE - me) * dinv - ke;
     }
-    size_t nsp = U->massf.size();
+    size_t nsp = myU.massf.size();
     for ( size_t isp = 0; isp < nsp; ++isp ) {
-	fs->gas->massf[isp] = U->massf[isp] * dinv;
+	fs->gas->massf[isp] = myU.massf[isp] * dinv;
     }
     if ( nsp > 1 ) scale_mass_fractions( fs->gas->massf );
     
@@ -1267,7 +1234,7 @@ int FV_Cell::decode_conserved(size_t gtl, double omegaz)
     //       - renergies[0] is being calculated but never used.
     //         We've decided to leave it that way.
     double e0_save = fs->gas->e[0];
-    gmodel->decode_conserved_energy(*(fs->gas), U->energies);
+    gmodel->decode_conserved_energy(*(fs->gas), myU.energies);
     fs->gas->e[0] = e0_save;
     // Fill out the other variables; P, T, a and
     // check the species mass fractions.
@@ -1471,30 +1438,33 @@ int FV_Cell::time_derivatives(size_t gtl, size_t ftl, size_t dimensions)
 int FV_Cell::stage_1_update_for_flow_on_fixed_grid(double dt, int force_euler)
 {
     ConservedQuantities &dUdt0 = *(dUdt[0]);
+    ConservedQuantities &U0 = *(U[0]);
+    ConservedQuantities &U1 = *(U[1]);
+
     double gamma_1 = 1.0; // for normal Predictor-Corrector or Euler update.
     if ( get_gasdynamic_update_scheme() == RK3_UPDATE )
 	gamma_1 = 8.0 / 15.0; // for first stage of 3rd-order Runge-Kutta.
 
-    U->mass = U_old->mass + dt * gamma_1 * dUdt0.mass;
+    U1.mass = U0.mass + dt * gamma_1 * dUdt0.mass;
     // Side note: 
     // It would be convenient (codewise) for the updates of these Vector3 quantities to
     // be done with the Vector3 arithmetic operators but I suspect that the implementation
     // of those oerators is such that a whole lot of Vector3 temporaries would be created.
-    U->momentum.x = U_old->momentum.x + dt * gamma_1 * dUdt0.momentum.x;
-    U->momentum.y = U_old->momentum.y + dt * gamma_1 * dUdt0.momentum.y;
-    U->momentum.z = U_old->momentum.z + dt * gamma_1 * dUdt0.momentum.z;
+    U1.momentum.x = U0.momentum.x + dt * gamma_1 * dUdt0.momentum.x;
+    U1.momentum.y = U0.momentum.y + dt * gamma_1 * dUdt0.momentum.y;
+    U1.momentum.z = U0.momentum.z + dt * gamma_1 * dUdt0.momentum.z;
     if ( get_mhd_flag() == 1 ) {
 	// Magnetic field
-	U->B.x = U_old->B.x + dt * gamma_1 * dUdt0.B.x;
-	U->B.y = U_old->B.y + dt * gamma_1 * dUdt0.B.y;
-	U->B.z = U_old->B.z + dt * gamma_1 * dUdt0.B.z;
+	U1.B.x = U0.B.x + dt * gamma_1 * dUdt0.B.x;
+	U1.B.y = U0.B.y + dt * gamma_1 * dUdt0.B.y;
+	U1.B.z = U0.B.z + dt * gamma_1 * dUdt0.B.z;
     }
-    U->total_energy = U_old->total_energy + dt * gamma_1 * dUdt0.total_energy;
+    U1.total_energy = U0.total_energy + dt * gamma_1 * dUdt0.total_energy;
     if ( get_k_omega_flag() ) {
-	U->tke = U_old->tke + dt * gamma_1 * dUdt0.tke;
-	U->tke = MAXIMUM(U->tke, 0.0);
-	U->omega = U_old->omega + dt * gamma_1 * dUdt0.omega;
-	U->omega = MAXIMUM(U->omega, U_old->mass);
+	U1.tke = U0.tke + dt * gamma_1 * dUdt0.tke;
+	U1.tke = MAXIMUM(U1.tke, 0.0);
+	U1.omega = U0.omega + dt * gamma_1 * dUdt0.omega;
+	U1.omega = MAXIMUM(U1.omega, U0.mass);
 	// ...assuming a minimum value of 1.0 for omega
 	// It may occur (near steps in the wall) that a large flux of romega
 	// through one of the cell interfaces causes romega within the cell
@@ -1505,15 +1475,15 @@ int FV_Cell::stage_1_update_for_flow_on_fixed_grid(double dt, int force_euler)
 	// if they are convected past a corner with a strong expansion,
 	// there will be an unreasonably-large flux out of the cell.
     } else {
-	U->tke = U_old->tke;
-	U->omega = U_old->omega;
+	U1.tke = U0.tke;
+	U1.omega = U0.omega;
     }
-    for ( size_t isp = 0; isp < U->massf.size(); ++isp ) {
-	U->massf[isp] = U_old->massf[isp] + dt * gamma_1 * dUdt0.massf[isp];
+    for ( size_t isp = 0; isp < U1.massf.size(); ++isp ) {
+	U1.massf[isp] = U0.massf[isp] + dt * gamma_1 * dUdt0.massf[isp];
     }
     // NOTE: energies[0] is never used so skipping (DFP 10/12/09)
-    for ( size_t imode = 1; imode < U->energies.size(); ++imode ) {
-	U->energies[imode] = U_old->energies[imode] + dt * gamma_1 * dUdt0.energies[imode];
+    for ( size_t imode = 1; imode < U1.energies.size(); ++imode ) {
+	U1.energies[imode] = U0.energies[imode] + dt * gamma_1 * dUdt0.energies[imode];
     }
     return SUCCESS;
 } // end of stage_1_update_for_flow_on_fixed_grid()
@@ -1523,6 +1493,9 @@ int FV_Cell::stage_2_update_for_flow_on_fixed_grid(double dt)
 {
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &dUdt1 = *(dUdt[1]);
+    ConservedQuantities &U0 = *(U[0]);
+    ConservedQuantities &U1 = *(U[1]);
+    ConservedQuantities &U2 = *(U[2]);
     double th1 = 0.5; // for standard predictor-corrector update.
     double th0 = 1.0 - th1;
     if ( get_gasdynamic_update_scheme() == RK3_UPDATE ) {
@@ -1531,32 +1504,32 @@ int FV_Cell::stage_2_update_for_flow_on_fixed_grid(double dt)
 	th0 = -17.0 / 60.0;
     }
 
-    U->mass = U_old->mass + dt * (th0 * dUdt0.mass + th1 * dUdt1.mass);
-    U->momentum.x = U_old->momentum.x + dt * (th0 * dUdt0.momentum.x + th1 * dUdt1.momentum.x);
-    U->momentum.y = U_old->momentum.y + dt * (th0 * dUdt0.momentum.y + th1 * dUdt1.momentum.y);
-    U->momentum.z = U_old->momentum.z + dt * (th0 * dUdt0.momentum.z + th1 * dUdt1.momentum.z);
+    U2.mass = U0.mass + dt * (th0 * dUdt0.mass + th1 * dUdt1.mass);
+    U2.momentum.x = U0.momentum.x + dt * (th0 * dUdt0.momentum.x + th1 * dUdt1.momentum.x);
+    U2.momentum.y = U0.momentum.y + dt * (th0 * dUdt0.momentum.y + th1 * dUdt1.momentum.y);
+    U2.momentum.z = U0.momentum.z + dt * (th0 * dUdt0.momentum.z + th1 * dUdt1.momentum.z);
     if ( get_mhd_flag() == 1 ) {
 	// Magnetic field
-	U->B.x = U_old->B.x + dt * (th0 * dUdt0.B.x + th1 * dUdt1.B.x);
-	U->B.y = U_old->B.y + dt * (th0 * dUdt0.B.y + th1 * dUdt1.B.y);
-	U->B.z = U_old->B.z + dt * (th0 * dUdt0.B.z + th1 * dUdt1.B.z);
+	U2.B.x = U0.B.x + dt * (th0 * dUdt0.B.x + th1 * dUdt1.B.x);
+	U2.B.y = U0.B.y + dt * (th0 * dUdt0.B.y + th1 * dUdt1.B.y);
+	U2.B.z = U0.B.z + dt * (th0 * dUdt0.B.z + th1 * dUdt1.B.z);
     }
-    U->total_energy = U_old->total_energy + 
+    U2.total_energy = U0.total_energy + 
 	dt * (th0 * dUdt0.total_energy + th1 * dUdt1.total_energy);
     if ( get_k_omega_flag() ) {
-	U->tke = U_old->tke + dt * (th0 * dUdt0.tke + th1 * dUdt1.tke);
-	U->tke = MAXIMUM(U->tke, 0.0);
-	U->omega = U_old->omega + dt * (th0 * dUdt0.omega + th1 * dUdt1.omega);
-	U->omega = MAXIMUM(U->omega, U_old->mass);
+	U2.tke = U0.tke + dt * (th0 * dUdt0.tke + th1 * dUdt1.tke);
+	U2.tke = MAXIMUM(U2.tke, 0.0);
+	U2.omega = U0.omega + dt * (th0 * dUdt0.omega + th1 * dUdt1.omega);
+	U2.omega = MAXIMUM(U2.omega, U0.mass);
     } else {
-	U->tke = U_old->tke;
-	U->omega = U_old->omega;
+	U2.tke = U0.tke;
+	U2.omega = U0.omega;
     }
-    for ( size_t isp = 0; isp < U->massf.size(); ++isp ) {
-	U->massf[isp] = U_old->massf[isp] + dt * (th0 * dUdt0.massf[isp] + th1 * dUdt1.massf[isp]);
+    for ( size_t isp = 0; isp < U2.massf.size(); ++isp ) {
+	U2.massf[isp] = U0.massf[isp] + dt * (th0 * dUdt0.massf[isp] + th1 * dUdt1.massf[isp]);
     }
-    for ( size_t imode = 0; imode < U->energies.size(); ++imode ) {
-	U->energies[imode] = U_old->energies[imode] + 
+    for ( size_t imode = 0; imode < U2.energies.size(); ++imode ) {
+	U2.energies[imode] = U0.energies[imode] + 
 	    dt * (th0 * dUdt0.energies[imode] + th1 * dUdt1.energies[imode]);
     }
     return SUCCESS;
@@ -1568,36 +1541,39 @@ int FV_Cell::stage_3_update_for_flow_on_fixed_grid(double dt)
 {
     ConservedQuantities &dUdt1 = *(dUdt[1]);
     ConservedQuantities &dUdt2 = *(dUdt[2]);
+    ConservedQuantities &U0 = *(U[0]);
+    ConservedQuantities &U1 = *(U[1]);
+    ConservedQuantities &U2 = *(U[2]);
     double gamma_3 = 3.0 / 4.0;
     double psi_2 = -5.0 / 12.0;
 
-    U->mass = U_old->mass + dt * (psi_2 * dUdt1.mass + gamma_3 * dUdt2.mass);
-    U->momentum.x = U_old->momentum.x + dt * (psi_2 * dUdt1.momentum.x + gamma_3 * dUdt2.momentum.x);
-    U->momentum.y = U_old->momentum.y + dt * (psi_2 * dUdt1.momentum.y + gamma_3 * dUdt2.momentum.y);
-    U->momentum.z = U_old->momentum.z + dt * (psi_2 * dUdt1.momentum.z + gamma_3 * dUdt2.momentum.z);
+    U2.mass = U0.mass + dt * (psi_2 * dUdt1.mass + gamma_3 * dUdt2.mass);
+    U2.momentum.x = U0.momentum.x + dt * (psi_2 * dUdt1.momentum.x + gamma_3 * dUdt2.momentum.x);
+    U2.momentum.y = U0.momentum.y + dt * (psi_2 * dUdt1.momentum.y + gamma_3 * dUdt2.momentum.y);
+    U2.momentum.z = U0.momentum.z + dt * (psi_2 * dUdt1.momentum.z + gamma_3 * dUdt2.momentum.z);
     if ( get_mhd_flag() == 1 ) {
 	// Magnetic field
-	U->B.x = U_old->B.x + dt * (psi_2 * dUdt1.B.x + gamma_3 * dUdt2.B.x);
-	U->B.y = U_old->B.y + dt * (psi_2 * dUdt1.B.y + gamma_3 * dUdt2.B.y);
-	U->B.z = U_old->B.z + dt * (psi_2 * dUdt1.B.z + gamma_3 * dUdt2.B.z);
+	U2.B.x = U0.B.x + dt * (psi_2 * dUdt1.B.x + gamma_3 * dUdt2.B.x);
+	U2.B.y = U0.B.y + dt * (psi_2 * dUdt1.B.y + gamma_3 * dUdt2.B.y);
+	U2.B.z = U0.B.z + dt * (psi_2 * dUdt1.B.z + gamma_3 * dUdt2.B.z);
     }
-    U->total_energy = U_old->total_energy + 
+    U2.total_energy = U0.total_energy + 
 	dt * (psi_2 * dUdt1.total_energy + gamma_3 * dUdt2.total_energy);
     if ( get_k_omega_flag() ) {
-	U->tke = U_old->tke + dt * (psi_2 * dUdt1.tke + gamma_3 * dUdt2.tke);
-	U->tke = MAXIMUM(U->tke, 0.0);
-	U->omega = U_old->omega + dt * (psi_2 * dUdt1.omega + gamma_3 * dUdt2.omega);
-	U->omega = MAXIMUM(U->omega, U_old->mass);
+	U2.tke = U0.tke + dt * (psi_2 * dUdt1.tke + gamma_3 * dUdt2.tke);
+	U2.tke = MAXIMUM(U2.tke, 0.0);
+	U2.omega = U0.omega + dt * (psi_2 * dUdt1.omega + gamma_3 * dUdt2.omega);
+	U2.omega = MAXIMUM(U2.omega, U0.mass);
     } else {
-	U->tke = U_old->tke;
-	U->omega = U_old->omega;
+	U2.tke = U0.tke;
+	U2.omega = U0.omega;
     }
-    for ( size_t isp = 0; isp < U->massf.size(); ++isp ) {
-	U->massf[isp] = U_old->massf[isp] +
+    for ( size_t isp = 0; isp < U2.massf.size(); ++isp ) {
+	U2.massf[isp] = U0.massf[isp] +
 	    dt * (psi_2 * dUdt1.massf[isp] + gamma_3 * dUdt2.massf[isp]);
     }
-    for ( size_t imode = 0; imode < U->energies.size(); ++imode ) {
-	U->energies[imode] = U_old->energies[imode] +
+    for ( size_t imode = 0; imode < U2.energies.size(); ++imode ) {
+	U2.energies[imode] = U0.energies[imode] +
 	    dt * (psi_2 * dUdt1.energies[imode] + gamma_3 * dUdt2.energies[imode]);
     }
     return SUCCESS;
@@ -1607,35 +1583,37 @@ int FV_Cell::stage_3_update_for_flow_on_fixed_grid(double dt)
 int FV_Cell::stage_1_update_for_flow_on_moving_grid(double dt)
 {
     ConservedQuantities &dUdt0 = *(dUdt[0]);
+    ConservedQuantities &U0 = *(U[0]);
+    ConservedQuantities &U1 = *(U[1]);
     double gamma_1 = 1.0;
     double vr = volume[0] / volume[1];
 
-    U->mass = vr * (U_old->mass + dt * gamma_1 * dUdt0.mass);
-    U->momentum.x = vr * (U_old->momentum.x + dt * gamma_1 * dUdt0.momentum.x);
-    U->momentum.y = vr * (U_old->momentum.y + dt * gamma_1 * dUdt0.momentum.y);
-    U->momentum.z = vr * (U_old->momentum.z + dt * gamma_1 * dUdt0.momentum.z);
+    U1.mass = vr * (U0.mass + dt * gamma_1 * dUdt0.mass);
+    U1.momentum.x = vr * (U0.momentum.x + dt * gamma_1 * dUdt0.momentum.x);
+    U1.momentum.y = vr * (U0.momentum.y + dt * gamma_1 * dUdt0.momentum.y);
+    U1.momentum.z = vr * (U0.momentum.z + dt * gamma_1 * dUdt0.momentum.z);
     if ( get_mhd_flag() == 1 ) {
 	// Magnetic field
-	U->B.x = vr * (U_old->B.x + dt * gamma_1 * dUdt0.B.x);
-	U->B.y = vr * (U_old->B.y + dt * gamma_1 * dUdt0.B.y);
-	U->B.z = vr * (U_old->B.z + dt * gamma_1 * dUdt0.B.z);
+	U1.B.x = vr * (U0.B.x + dt * gamma_1 * dUdt0.B.x);
+	U1.B.y = vr * (U0.B.y + dt * gamma_1 * dUdt0.B.y);
+	U1.B.z = vr * (U0.B.z + dt * gamma_1 * dUdt0.B.z);
     }
-    U->total_energy = vr * (U_old->total_energy + dt * gamma_1 * dUdt0.total_energy);
+    U1.total_energy = vr * (U0.total_energy + dt * gamma_1 * dUdt0.total_energy);
     if ( get_k_omega_flag() ) {
-	U->tke = vr * (U_old->tke + dt * gamma_1 * dUdt0.tke);
-	U->tke = MAXIMUM(U->tke, 0.0);
-	U->omega = vr * (U_old->omega + dt * gamma_1 * dUdt0.omega);
-	U->omega = MAXIMUM(U->omega, U_old->mass);
+	U1.tke = vr * (U0.tke + dt * gamma_1 * dUdt0.tke);
+	U1.tke = MAXIMUM(U1.tke, 0.0);
+	U1.omega = vr * (U0.omega + dt * gamma_1 * dUdt0.omega);
+	U1.omega = MAXIMUM(U1.omega, U0.mass);
     } else {
-	U->tke = U_old->tke;
-	U->omega = U_old->omega;
+	U1.tke = U0.tke;
+	U1.omega = U0.omega;
     }
-    for ( size_t isp = 0; isp < U->massf.size(); ++isp ) {
-	U->massf[isp] = vr * (U_old->massf[isp] + dt * gamma_1 * dUdt0.massf[isp]);
+    for ( size_t isp = 0; isp < U1.massf.size(); ++isp ) {
+	U1.massf[isp] = vr * (U0.massf[isp] + dt * gamma_1 * dUdt0.massf[isp]);
     }
     // NOTE: energies[0] is never used so skipping (DFP 10/12/09)
-    for ( size_t imode = 1; imode < U->energies.size(); ++imode ) {
-	U->energies[imode] = vr * (U_old->energies[imode] + dt * gamma_1 * dUdt0.energies[imode]);
+    for ( size_t imode = 1; imode < U1.energies.size(); ++imode ) {
+	U1.energies[imode] = vr * (U0.energies[imode] + dt * gamma_1 * dUdt0.energies[imode]);
     }
     return SUCCESS;
 } // end of stage_1_update_for_flow_on_moving_grid()
@@ -1645,42 +1623,45 @@ int FV_Cell::stage_2_update_for_flow_on_moving_grid(double dt)
 {
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &dUdt1 = *(dUdt[1]);
+    ConservedQuantities &U0 = *(U[0]);
+    ConservedQuantities &U1 = *(U[1]);
+    ConservedQuantities &U2 = *(U[2]);
     double th1 = 0.5;
     double th0 = 0.5;
     double v_old = volume[0];
     double vol_inv = 1.0 / volume[2];
     th0 *= volume[0]; th1 *= volume[1]; // Roll-in the volumes for convenience below. 
     
-    U->mass = vol_inv * (v_old * U_old->mass + dt * (th0 * dUdt0.mass + th1 * dUdt1.mass));
-    U->momentum.x = vol_inv * (v_old * U_old->momentum.x + 
+    U2.mass = vol_inv * (v_old * U0.mass + dt * (th0 * dUdt0.mass + th1 * dUdt1.mass));
+    U2.momentum.x = vol_inv * (v_old * U0.momentum.x + 
 			       dt * (th0 * dUdt0.momentum.x + th1 * dUdt1.momentum.x));
-    U->momentum.y = vol_inv * (v_old * U_old->momentum.y + 
+    U2.momentum.y = vol_inv * (v_old * U0.momentum.y + 
 			       dt * (th0 * dUdt0.momentum.y + th1 * dUdt1.momentum.y));
-    U->momentum.z = vol_inv * (v_old * U_old->momentum.z + 
+    U2.momentum.z = vol_inv * (v_old * U0.momentum.z + 
 			       dt * (th0 * dUdt0.momentum.z + th1 * dUdt1.momentum.z));
     if (get_mhd_flag() == 1) {
 	// Magnetic field
-	U->B.x = vol_inv * (v_old * U_old->B.x + dt * (th0 * dUdt0.B.x + th1 * dUdt1.B.x));
-	U->B.y = vol_inv * (v_old * U_old->B.y + dt * (th0 * dUdt0.B.y + th1 * dUdt1.B.y));
-	U->B.z = vol_inv * (v_old * U_old->B.z + dt * (th0 * dUdt0.B.z + th1 * dUdt1.B.z));
+	U2.B.x = vol_inv * (v_old * U0.B.x + dt * (th0 * dUdt0.B.x + th1 * dUdt1.B.x));
+	U2.B.y = vol_inv * (v_old * U0.B.y + dt * (th0 * dUdt0.B.y + th1 * dUdt1.B.y));
+	U2.B.z = vol_inv * (v_old * U0.B.z + dt * (th0 * dUdt0.B.z + th1 * dUdt1.B.z));
     }
-    U->total_energy = vol_inv * (v_old * U_old->total_energy + 
+    U2.total_energy = vol_inv * (v_old * U0.total_energy + 
 				 dt * (th0 * dUdt0.total_energy + th1 * dUdt1.total_energy));
     if ( get_k_omega_flag() ) {
-	U->tke = vol_inv * (v_old * U_old->tke + dt * (th0 * dUdt0.tke + th1 * dUdt1.tke));
-	U->tke = MAXIMUM(U->tke, 0.0);
-	U->omega = vol_inv * (v_old * U_old->omega + dt * (th0 * dUdt0.omega + th1 * dUdt1.omega));
-	U->omega = MAXIMUM(U->omega, U_old->mass);
+	U2.tke = vol_inv * (v_old * U0.tke + dt * (th0 * dUdt0.tke + th1 * dUdt1.tke));
+	U2.tke = MAXIMUM(U2.tke, 0.0);
+	U2.omega = vol_inv * (v_old * U0.omega + dt * (th0 * dUdt0.omega + th1 * dUdt1.omega));
+	U2.omega = MAXIMUM(U2.omega, U0.mass);
     } else {
-	U->tke = vol_inv * (v_old * U_old->tke);
-	U->omega = vol_inv * (v_old * U_old->omega);
+	U2.tke = vol_inv * (v_old * U0.tke);
+	U2.omega = vol_inv * (v_old * U0.omega);
     }
-    for ( size_t isp = 0; isp < U->massf.size(); ++isp ) {
-	U->massf[isp] = vol_inv * (v_old * U_old->massf[isp] +
+    for ( size_t isp = 0; isp < U2.massf.size(); ++isp ) {
+	U2.massf[isp] = vol_inv * (v_old * U0.massf[isp] +
 				   dt * (th0 * dUdt0.massf[isp] + th1 * dUdt1.massf[isp]));
     }
-    for ( size_t imode = 0; imode < U->energies.size(); ++imode ) {
-	U->energies[imode] = vol_inv * (v_old * U_old->energies[imode] +
+    for ( size_t imode = 0; imode < U2.energies.size(); ++imode ) {
+	U2.energies[imode] = vol_inv * (v_old * U0.energies[imode] +
 					dt * (th0 * dUdt0.energies[imode] + th1 * dUdt1.energies[imode]));
     }
     return SUCCESS;
@@ -1713,7 +1694,7 @@ int FV_Cell::chemical_increment(double dt)
     // for the gas-dynamics time integration.
     // Species densities: mass of species isp per unit volume.
     for ( size_t isp = 0; isp < fs->gas->massf.size(); ++isp )
-	U->massf[isp] = fs->gas->rho * fs->gas->massf[isp];
+	U[0]->massf[isp] = fs->gas->rho * fs->gas->massf[isp];
     return flag;
 } // end of chemical_increment()
 
@@ -1743,7 +1724,7 @@ int FV_Cell::thermal_increment(double dt)
     // ...but we have to manually update the conservation quantities
     // for the gas-dynamics time integration.
     // Independent energies energy: Joules per unit volume.
-    gmodel->encode_conserved_energy(*(fs->gas), U->energies);
+    gmodel->encode_conserved_energy(*(fs->gas), U[1]->energies); // FIX-ME check this index 2013-04-05
     return flag;
 } // end of thermal_increment()
 
@@ -2077,8 +2058,8 @@ int FV_Cell::update_k_omega_properties(double dt)
     double tol = 1.0e-6;          // Tolerance for the Newton-solve loop
 
     // Encode conserved quantities for cell.
-    U->tke = fs->gas->rho * fs->tke;
-    U->omega = fs->gas->rho * fs->omega;
+    U[0]->tke = fs->gas->rho * fs->tke;
+    U[0]->omega = fs->gas->rho * fs->omega;
 
     // Start of implicit updating scheme.
     tke_current = fs->tke; omega_current = fs->omega;  // Current values of tke and omega
@@ -2133,21 +2114,21 @@ int FV_Cell::update_k_omega_properties(double dt)
             // delta_rtke and delta_romega.
             if (delta_rtke + fs->gas->rho * tke_updated < 0.0) {
                 // Don't let rtke go negative.
-                U->tke = fs->gas->rho * tke_updated;
+                U[0]->tke = fs->gas->rho * tke_updated;
             } else {
                 // Next estimate for rtke.
-                U->tke = delta_rtke + fs->gas->rho * tke_updated;
+                U[0]->tke = delta_rtke + fs->gas->rho * tke_updated;
             }
             if (delta_romega + fs->gas->rho * omega_updated < 0.0) {
                 // Don't let romega go negative.
-                U->omega = fs->gas->rho * omega_updated;
+                U[0]->omega = fs->gas->rho * omega_updated;
             } else {
                 // Next estimate for romega.
-                U->omega = delta_romega + fs->gas->rho * omega_updated;
+                U[0]->omega = delta_romega + fs->gas->rho * omega_updated;
             }
             // Decode for the next step of the Newton-solve loop
-            tke_updated = U->tke / fs->gas->rho;
-            omega_updated = U->omega / fs->gas->rho;
+            tke_updated = U[0]->tke / fs->gas->rho;
+            omega_updated = U[0]->omega / fs->gas->rho;
         }
     }  // End of Newton-solve loop for implicit update scheme
 
@@ -2158,26 +2139,26 @@ int FV_Cell::update_k_omega_properties(double dt)
     double dt_little = dt / n_little_steps;
     
     // Encode conserved quantities for cell.
-    U->tke = fs->gas->rho * fs->tke;
-    U->omega = fs->gas->rho * fs->omega;
+    U[0]->tke = fs->gas->rho * fs->tke;
+    U[0]->omega = fs->gas->rho * fs->omega;
     for ( int i = 1; i <= n_little_steps; ++i ) {
         this->k_omega_time_derivatives(&DrtkeDt, &DromegaDt, fs->tke, fs->omega);
         rtke_increment = dt_little * DrtkeDt;
         romega_increment = dt_little * DromegaDt;
-        if ( U->tke + rtke_increment < 0.0 ||
-             (rtke_increment > 0.0 && U->tke + rtke_increment > 0.5 * U->total_energy) ) {
+        if ( U[0]->tke + rtke_increment < 0.0 ||
+             (rtke_increment > 0.0 && U[0]->tke + rtke_increment > 0.5 * U[0]->total_energy) ) {
             // Don't let rtke go negative and don't let it grow too large.
             rtke_increment = 0.0;
 	}
-	if ( U->omega + romega_increment < 0.0 ) {
+	if ( U[0]->omega + romega_increment < 0.0 ) {
 	    // Don't let romega go negative.
             romega_increment = 0.0;
             }
-	U->tke += rtke_increment;
-	U->omega += romega_increment;
+	U[0]->tke += rtke_increment;
+	U[0]->omega += romega_increment;
 	// Decode conserved quantities.
-	fs->tke = U->tke / fs->gas->rho;
-	fs->omega = U->omega / fs->gas->rho;
+	fs->tke = U[0]->tke / fs->gas->rho;
+	fs->omega = U[0]->omega / fs->gas->rho;
     }  // End of for-loop for explicit update scheme
 #   endif
 
