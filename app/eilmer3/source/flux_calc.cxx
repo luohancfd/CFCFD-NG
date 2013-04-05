@@ -225,7 +225,7 @@ int set_flux_vector_in_global_frame(FV_Interface &IFace, FlowState &fs, double o
 	double y = IFace.pos.y;
 	double rsq = x*x + y*y;
 	// The conserved quantity is rothalpy,
-	// so we need to take -(u**2)/2 off the total energy Shock.
+	// so we need to take -(u**2)/2 off the total energy flux.
 	// Note that rotating frame velocity u = omegaz * r.
 	F.total_energy -= F.mass * 0.5*omegaz*omegaz*rsq;
     }

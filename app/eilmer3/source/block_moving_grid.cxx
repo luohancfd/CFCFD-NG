@@ -145,7 +145,7 @@ int Block::set_vertex_velocities2D(size_t gtl)
 	vtx = get_vtx(i,j,k);
 	wvtx = get_vtx(imax,j,k);
 	// Direction vector from vertex to body.
-	trv = unit(wvtx->pos[gtl] - vtx->pos[gtl]); 
+	trv = unit(wvtx->pos[gtl] - vtx->pos[gtl]);
 	calc_boundary_vertex_velocity(IFaceList, *vtx, trv, gtl);
     } // for j
     // Set interior vertex velocities.
