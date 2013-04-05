@@ -12,6 +12,7 @@
 #include <sstream>
 #include <stdio.h>
 #include <unistd.h>
+#include <stdexcept>
 extern "C" {
 #include <zlib.h>
 }
@@ -86,6 +87,9 @@ int calc_boundary_vertex_velocity(std::vector<FV_Interface *> &IFaceList,
     std::vector<double> w;
     Vector3 wv(0.0,0.0,0.0);
     Vector3 vp = vtx.pos[gtl];
+    if ( IFaceList.size() == 0 ) {
+	throw std::runtime_error("In calc_boundary_vertex_velocity, No interfaces in list");
+    }
     for ( FV_Interface *facep : IFaceList ) {
 	w.push_back(velocity_weighting_factor(*facep, vp));
     }
@@ -95,9 +99,10 @@ int calc_boundary_vertex_velocity(std::vector<FV_Interface *> &IFaceList,
 	wv /= sum_w;
     } else {
 	for ( size_t i =0; i < w.size(); ++i ) wv += IFaceList[i]->vel;
-	wv /= 4.0;
+	wv /= w.size();
     }
-    // Finally, constrain vertex velocity to body radial direction.
+    // Finally, constrain vertex velocity to be directed along 
+    // the grid-line, toward the body.
     vtx.vel[gtl] = dot(wv, trv) * trv; 
     return SUCCESS;					       			           
 }
