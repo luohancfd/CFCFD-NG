@@ -256,12 +256,8 @@ s_eval_temperature(Gas_data &Q)
     	T_im1 = T_given;
     }
     else {
-    	// make a guess at Tv assuming 100% Harmonic N2 with no electronic contribution
-    	T_im1 = 3393.45 / log( 296.0 * 3393.45 / e_given + 1.0);
-    	if ( !check_T_range( T_im1 ) ) {
-    	    // give up - just set the mid-ranged value
-    	    T_im1 = 0.5 * ( T_min_ + T_max_ );
-    	}
+    	// make a crude guess using the bisection method
+        T_im1 = s_eval_temperature_bisection(Q,1.0);
     }
 
     // 2. Set e_im1_
@@ -270,50 +266,37 @@ s_eval_temperature(Gas_data &Q)
 
     // 3. Perform iterations
     double T_i = T_given, e_i;
-    double f_relax = 1.0;
     for ( int i=0; i<max_iterations_; ++i ) {
     	// 3.a New T guess
-    	T_i = T_im1 - f_zero( e_im1, e_given ) / dfdT( Q ) * f_relax;
+    	T_i = T_im1 - f_zero( e_im1, e_given ) / dfdT( Q );
     	if ( T_i < T_min_ ) {
     	    T_i = T_min_;
     	    if ( T_im1 == T_max_ ) {
-    	    	cout << "Variable_Cv_energy_mode::s_eval_temperature()" << endl
-    	    	     << "Temperature is oscillating between T_min: " << T_min_ 
-    	    	     << " and T_max: " << T_max_ << endl;
-    	    	Q.print_values(false);
-    	    	Q.T[iT_] = T_min_;
-    	    	double e_min = s_eval_energy( Q );
-                Q.T[iT_] = T_max_;
-                double e_max = s_eval_energy( Q );
-                cout << "e_given = " << e_given << ", e(T_min) = " << e_min << ", e(T_max) = " << e_max << endl;
-                // Set T_i to an intermediate value and drop f_relax by an order-of-magnitude
-    	    	T_i = 0.5 * ( T_min_ + T_max_ );
-                f_relax *= 0.1;
-    	    	if ( f_relax < 1.0e-10 ) {
-    	    	   cout << "f_relax is getting too small, exiting program." << endl;
-    	    	   exit( FAILURE );
-    	    	}
+//    	    	cout << "Variable_Cv_energy_mode::s_eval_temperature()" << endl
+//    	    	     << "Temperature is oscillating between T_min: " << T_min_
+//    	    	     << " and T_max: " << T_max_ << endl;
+//                Q.print_values(false);
+//                Q.T[iT_] = T_min_;
+//                double e_min = s_eval_energy( Q );
+//                Q.T[iT_] = T_max_;
+//                double e_max = s_eval_energy( Q );
+//                cout << "e_given = " << e_given << ", e(T_min) = " << e_min << ", e(T_max) = " << e_max << endl;
+                break;
     	    }
     	}
     	else if ( T_i > T_max_ ) {
     	    T_i = T_max_;
     	    if ( T_im1 == T_min_ ) {
-    	    	cout << "Variable_Cv_energy_mode::s_eval_temperature()" << endl
-    	    	     << "Temperature is oscillating between T_min: " << T_min_ 
-    	    	     << " and T_max: " << T_max_ << endl;
-    	        Q.print_values(false);
-                Q.T[iT_] = T_min_;
-                double e_min = s_eval_energy( Q );
-                Q.T[iT_] = T_max_;
-                double e_max = s_eval_energy( Q );
-                cout << "e_given = " << e_given << ", e(T_min) = " << e_min << ", e(T_max) = " << e_max << endl;
-                // Set T_i to an intermediate value and drop f_relax by an order-of-magnitude
-                T_i = 0.5 * ( T_min_ + T_max_ );
-                f_relax *= 0.1;
-                if ( f_relax < 1.0e-10 ) {
-                   cout << "f_relax is getting too small, exiting program." << endl;
-                   exit( FAILURE );
-                }
+//    	    	cout << "Variable_Cv_energy_mode::s_eval_temperature()" << endl
+//    	    	     << "Temperature is oscillating between T_min: " << T_min_
+//    	    	     << " and T_max: " << T_max_ << endl;
+//    	        Q.print_values(false);
+//                Q.T[iT_] = T_min_;
+//                double e_min = s_eval_energy( Q );
+//                Q.T[iT_] = T_max_;
+//                double e_max = s_eval_energy( Q );
+//                cout << "e_given = " << e_given << ", e(T_min) = " << e_min << ", e(T_max) = " << e_max << endl;
+                break;
     	    }
     	}
     	Q.T[iT_] = T_i;
@@ -326,21 +309,57 @@ s_eval_temperature(Gas_data &Q)
     	T_im1 = T_i; e_im1 = e_i;
     }
     
-#   if 0
-    // 4. Check result
     if ( !check_T_range( T_i ) ) {
-    	cout << "Thermal_energy_mode::s_eval_temperature()" << endl
-    	     << "T = " << T_i << " is outside prescribed temperature limits" << endl
-    	     << "for thermal energy mode: " << name_ << endl;
-    	exit( FAILURE );
+        // A symmetric oscillation was probably encountered
+        T_i = s_eval_temperature_bisection(Q,1.0e-6);
     }
-#   else
-    // 4. Impose temperature limits
-    impose_T_limits( T_i );
-#   endif
 
     return T_i;
 }
+
+double
+Variable_Cv_energy_mode::
+s_eval_temperature_bisection(Gas_data &Q, double tol)
+{
+    // Bisection method to solve for Q.T[iT_]
+    double e_given = Q.e[iT_];
+    Q.T[iT_] = T_min_;
+    double e_min = s_eval_energy( Q );
+    Q.T[iT_] = T_max_;
+    double e_max = s_eval_energy( Q );
+
+    if ( e_given >= e_max ) {
+        cout << "Variable_Cv_energy_mode::s_eval_temperature_bisection()" << endl
+             << "Maximum temperature limit exceeded!" << endl;
+        return T_max_;
+    }
+    else if ( e_given <= e_min ) {
+        cout << "Variable_Cv_energy_mode::s_eval_temperature_bisection()" << endl
+             << "Minimum temperature limit exceeded!" << endl;
+        return T_min_;
+    }
+
+    double T_left = T_min_;
+    double T_right = T_max_;
+
+    double T_mid=(T_left+T_right)/2.0;
+
+    for(T_mid=(T_left+T_right)/2.0; fabs(T_left-T_mid) > tol; T_mid=(T_left+T_right)/2.0) {
+        // cout << "T_left = " << T_left << ", T_right = " << T_right << endl;
+        Q.T[iT_] = T_left;
+        double f_left = s_eval_energy( Q ) - e_given;
+        Q.T[iT_] = T_right;
+        double f_right = s_eval_energy( Q ) - e_given;
+        if (f_left*f_right <= 0.0) {
+            T_right = T_mid; // use left interval
+        } else {
+            T_left = T_mid; // use right interval
+        }
+    }
+
+    return T_mid;
+}
+
 
 void
 Variable_Cv_energy_mode::

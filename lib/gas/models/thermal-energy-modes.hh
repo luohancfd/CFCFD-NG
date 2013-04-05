@@ -104,6 +104,7 @@ private:
     double dfdT( Gas_data &Q ) { return s_eval_dedT( Q ); }
     
     double s_eval_temperature(Gas_data &Q);
+    double s_eval_temperature_bisection(Gas_data &Q, double toll);
     void s_test_derivatives(Gas_data &Q);
 };
 
