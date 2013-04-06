@@ -914,7 +914,10 @@ int FV_Cell::replace_flow_data_with_average(std::vector<FV_Cell *> src)
 {
     size_t ncell = src.size(); 
     size_t ii = 0;
-    if ( ncell < 1 ) return 0;  /* nothing to work with. */
+    if ( ncell < 1 ) {
+	throw runtime_error("FV_Cell::replace_flow_data_with_average(): "
+			    "The list of cells was empty.");
+    }
 
     /* First, replace the crappy data with that from the first cell. */
     ii = 0;
@@ -1182,8 +1185,10 @@ int FV_Cell::decode_conserved(size_t gtl, size_t ftl, double omegaz)
     fs->gas->rho = rho;
     // This is limited to nonnegative and finite values.
     if ( get_bad_cell_complain_flag() && (rho <= 0.0) ) {
-	printf("FV_Cell::decode_conserved(): Density is below minimum rho=%e\n", rho);
-	printf("x=%g, y=%g, z=%g\n", pos[gtl].x, pos[gtl].y, pos[gtl].z);
+	cout << "FV_Cell::decode_conserved(): Density is below minimum rho= " 
+	     << rho << endl;
+	cout << "id= " << id << " x= " << pos[gtl].x << " y= " << pos[gtl].y 
+	     << " z= " << pos[gtl].z << endl;
 	fs->gas->print_values();
     }
     dinv = 1.0 / rho;
@@ -1494,7 +1499,7 @@ int FV_Cell::stage_2_update_for_flow_on_fixed_grid(double dt)
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &dUdt1 = *(dUdt[1]);
     ConservedQuantities &U0 = *(U[0]);
-    ConservedQuantities &U1 = *(U[1]);
+    // ConservedQuantities &U1 = *(U[1]);
     ConservedQuantities &U2 = *(U[2]);
     double th1 = 0.5; // for standard predictor-corrector update.
     double th0 = 1.0 - th1;
@@ -1542,7 +1547,7 @@ int FV_Cell::stage_3_update_for_flow_on_fixed_grid(double dt)
     ConservedQuantities &dUdt1 = *(dUdt[1]);
     ConservedQuantities &dUdt2 = *(dUdt[2]);
     ConservedQuantities &U0 = *(U[0]);
-    ConservedQuantities &U1 = *(U[1]);
+    // ConservedQuantities &U1 = *(U[1]);
     ConservedQuantities &U2 = *(U[2]);
     double gamma_3 = 3.0 / 4.0;
     double psi_2 = -5.0 / 12.0;
@@ -1624,7 +1629,7 @@ int FV_Cell::stage_2_update_for_flow_on_moving_grid(double dt)
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &dUdt1 = *(dUdt[1]);
     ConservedQuantities &U0 = *(U[0]);
-    ConservedQuantities &U1 = *(U[1]);
+    // ConservedQuantities &U1 = *(U[1]);
     ConservedQuantities &U2 = *(U[2]);
     double th1 = 0.5;
     double th0 = 0.5;

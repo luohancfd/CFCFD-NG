@@ -13,6 +13,7 @@
 #include <sstream>
 #include <stdio.h>
 #include <unistd.h>
+#include <stdexcept>
 extern "C" {
 #include <zlib.h>
 }
@@ -372,7 +373,8 @@ int Block::propagate_data_west_to_east(size_t dimensions)
 		    printf( "   i=%d, j=%d, k=%d\n", static_cast<int>(i),
 			    static_cast<int>(j), static_cast<int>(k) );
 		    gas->print_values();
-		    exit(DUFF_EOS_ERROR);  /* Might as well quit early. */
+		    throw runtime_error("Block::propagate_data_west_to_east(): "
+					"Duff call to thermo model.");
 		}
 	    } // for i
 	} // for j
@@ -424,12 +426,12 @@ int Block::count_invalid_cells(size_t dimensions, size_t gtl)
 		    if ( other_cellp->check_flow_data() ) neighbours.push_back(other_cellp);
 		    other_cellp = get_cell(i,j+1,k);
 		    if ( other_cellp->check_flow_data() ) neighbours.push_back(other_cellp);
-		    if ( neighbours.size() == 0 ) {
-			printf( "It seems that there were no valid neighbours, I give up.\n" );
-			exit( BAD_CELLS_ERROR );
-		    }
-		    cellp->replace_flow_data_with_average(neighbours);
 		}
+		if ( neighbours.size() == 0 ) {
+		    throw runtime_error("Block::count_invalid_cells(): "
+					"There were no valid neighbours to replace cell data.\n");
+		}
+		cellp->replace_flow_data_with_average(neighbours);
 		cellp->encode_conserved(gtl, 0, omegaz);
 		cellp->decode_conserved(gtl, 0, omegaz);
 		if ( get_bad_cell_complain_flag() ) {

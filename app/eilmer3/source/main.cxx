@@ -7,7 +7,7 @@
  *         Various postgrad students and post docs for the interesting bits.
  *         Andrew McGhee and Richard Goozee -- MPI parallel computing.
  *         Chris Craddock and Ian Johnston -- first crack at thermochemistry, 3D
- *         Paul Petrie and Ian Johnston -- flux calculators, grid management
+ *         Paul Petrie, Ian Johnston and Andrew Pastrello -- flux calculators, grid management
  *         Rowan Gollan  -- thermochemistry, radiation
  *         Andrew Denman -- 3D viscous effects and LES turbulence
  *         Joseph Tang -- hierarchical grids
@@ -281,22 +281,28 @@ WARNING: This executable only computes the radiative source\n\
 #   endif
     if ( do_run_simulation == 1 ) {
 	if ( master ) printf("Run simulation...\n");
-	/* The simulation proper. */
-	run_status = prepare_to_integrate(start_tindx);
-	if (run_status != SUCCESS) goto Quit;
-#       ifndef E3RAD
-	if ( G.sequence_blocks ) {
-	    run_status = integrate_blocks_in_sequence();
+	try {
+	    // The simulation proper.
+	    run_status = prepare_to_integrate(start_tindx);
 	    if (run_status != SUCCESS) goto Quit;
-	} else {
-	    run_status = integrate_in_time(-1.0);
+#           ifndef E3RAD
+	    if ( G.sequence_blocks ) {
+		run_status = integrate_blocks_in_sequence();
+		if (run_status != SUCCESS) goto Quit;
+	    } else {
+		run_status = integrate_in_time(-1.0);
+		if (run_status != SUCCESS) goto Quit;
+	    }
+#           else
+	    run_status = radiation_calculation();
 	    if (run_status != SUCCESS) goto Quit;
+#           endif
+	    finalize_simulation();
+	} catch (std::runtime_error &e) {
+	    cout << "Well, this *is* embarrassing! The calculation failed." << endl;
+	    cout << e.what() << endl;
+	    run_status = FAILURE;
 	}
-#       else
-	run_status = radiation_calculation();
-	if (run_status != SUCCESS) goto Quit;
-#       endif
-	finalize_simulation();
     } else {
 	printf( "NOTHING DONE -- because you didn't ask...\n" );
     }
@@ -1445,14 +1451,10 @@ int finalize_simulation( void )
 //------------------------------------------------------------------------
 
 int gasdynamic_inviscid_increment_with_fixed_grid()
+// Time level of grid stays at 0.
 {
     global_data &G = *get_global_data_ptr();
     int step_failed;
-    // Time levels for flow derivatives:
-    // 0: Start of predictor step
-    // 1: End of predictor step; used for corrector step
-    // 2: End of corrector step; used for RK3 step
-    // Time level of grid stays at 0.
 
     int attempt_number = 0;
     do {
@@ -1584,10 +1586,18 @@ int gasdynamic_inviscid_increment_with_fixed_grid()
 
     } while (attempt_number < 3 && step_failed == 1);
 
+    size_t end_indx = 2;
+    switch (  get_gasdynamic_update_scheme() ) {
+    case EULER_UPDATE: end_indx = 1; break;
+    case PC_UPDATE: end_indx = 2; break;
+    case RK3_UPDATE: end_indx = 3; break;
+    default: end_indx = 2;
+    }
     for ( Block *bdp : G.my_blocks ) {
 	if ( bdp->active != 1 ) continue;
 	for ( FV_Cell *cp: bdp->active_cells ) {
-	    *(cp->U[0]) = *(cp->U[2]);
+	    // FIX-ME should also use std::swap for the pointers, if available.
+	    *(cp->U[0]) = *(cp->U[end_indx]);
 	    cp->decode_conserved(0, 0, bdp->omegaz);
 	}
     } // end for *bdp
