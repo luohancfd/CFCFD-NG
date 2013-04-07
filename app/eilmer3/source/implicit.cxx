@@ -2,7 +2,7 @@
  * \ingroup eilmer3
  * \brief Functions to compute point-implicit viscous/inviscid updates for Eilmer3.
  *
- * \author OJ / ESIL 
+ * \author Ojas Joshi / ESIL 
  * \version October 2009 - May 2010
  * \version June 2010 updated by PJ to use the new data structures.
  */
@@ -12,6 +12,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <vector>
+#include <stdexcept>
 #include "block.hh"
 #include "implicit.hh"
 #include "kernel.hh"
@@ -27,16 +28,17 @@
 const double VERY_SMALL = 1.0e-10;
 
 
-int gasdynamic_point_implicit_inviscid_increment(void)
+int gasdynamic_point_implicit_inviscid_increment(double dt)
 {
+    global_data &G = *get_global_data_ptr();
+    double t0 = G.sim_time;
 #if WITH_IMPLICIT == 1
-    global_data &G = *get_global_data_ptr();  // set up a reference
     Block *bdp;
     int most_bad_cells;
     int attempt_number, step_failed;
     using std::swap;
 	
-    cout << "=== Debut gasdynamic_point_implicit_inviscid_increment ===" << endl;
+    cout << "=== Begin gasdynamic_point_implicit_inviscid_increment ===" << endl;
     // Record the current values of the conserved variables
     // in preparation for applying the predictor and corrector
     // stages of the time step.
@@ -154,17 +156,23 @@ int gasdynamic_point_implicit_inviscid_increment(void)
 	}
     }
     cout << "=== Fin gasdynamic_point_implicit_inviscid_increment ===" << endl;
+    G.sim_time = t0 + dt;
     return step_failed;
 #else
+    throw runtime_error("gasdynamic_point_implicit_inviscid_increment(): "
+			"Not compiled into executable code!");
+    G.sim_time = t0 + dt;
     return 0;
 #endif
 } //int gasdynamic_point_implicit_inviscid_increment
 
-int gasdynamic_fully_implicit_inviscid_increment(void)
+int gasdynamic_fully_implicit_inviscid_increment(double dt)
 {
-    cout << "gasdynamic_fully_implicit_inviscid_increment()" << endl
-	 << "Not implemented yet!" << endl;
-	
+    global_data &G = *get_global_data_ptr();
+    double t0 = G.sim_time;
+    throw runtime_error("gasdynamic_fully_implicit_inviscid_increment(): "
+			"Not implemented!");
+    G.sim_time = t0 + dt;
     return FAILURE;
 } //int gasdynamic_fully_implicit_inviscid_increment
 

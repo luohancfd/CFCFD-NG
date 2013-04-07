@@ -9,8 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 /*---------------------------------------------------------------------*/
-int gasdynamic_point_implicit_inviscid_increment(void);
-int gasdynamic_fully_implicit_inviscid_increment(void);
+int gasdynamic_point_implicit_inviscid_increment(double dt);
+int gasdynamic_fully_implicit_inviscid_increment(double dt);
 int inviscid_point_implicit_update_for_cell(FV_Cell *cell);
 int calculate_M_inviscid(FV_Cell *cell, int dimensions);
 int calculate_inviscid_jacobian(FV_Cell *cell, FV_Interface *iface);

@@ -40,6 +40,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdexcept>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -1023,13 +1024,13 @@ int integrate_in_time(double target_time)
 	if ( get_implicit_flag() == 0 ) {
 	    // explicit update of inviscid terms
 	    if ( get_moving_grid_flag() == 0 ) 
-		break_loop2 = gasdynamic_inviscid_increment_with_fixed_grid();
+		break_loop2 = gasdynamic_inviscid_increment_with_fixed_grid(G.dt_global);
 	    else
-		break_loop2 = gasdynamic_inviscid_increment_with_moving_grid();
+		break_loop2 = gasdynamic_inviscid_increment_with_moving_grid(G.dt_global);
 	} else if ( get_implicit_flag() == 1 ) {
-	    break_loop2 = gasdynamic_point_implicit_inviscid_increment();
+	    break_loop2 = gasdynamic_point_implicit_inviscid_increment(G.dt_global);
 	} else if ( get_implicit_flag() == 2 ) {
-	    break_loop2 = gasdynamic_fully_implicit_inviscid_increment();
+	    break_loop2 = gasdynamic_fully_implicit_inviscid_increment(G.dt_global);
 	}
 	if ( break_loop2 ) {
 	    printf("Breaking main loop:\n");
@@ -1105,8 +1106,9 @@ int integrate_in_time(double target_time)
         ++G.step;
         output_just_written = 0;
         history_just_written = 0;
-	    av_output_just_written = 0;
-        G.sim_time += G.dt_global;
+	av_output_just_written = 0;
+	// G.sim_time += G.dt_global; 2013-04-07 have moved increment of sim_time
+	// into the inviscid gasdynamic update
 
         if ( ((G.step / G.print_count) * G.print_count == G.step) && master ) {
             // Print the current time-stepping status.
@@ -1450,13 +1452,29 @@ int finalize_simulation( void )
 
 //------------------------------------------------------------------------
 
-int gasdynamic_inviscid_increment_with_fixed_grid()
+int gasdynamic_inviscid_increment_with_fixed_grid(double dt)
 // Time level of grid stays at 0.
+// 2013-04-07 also updated G.sim_time
 {
     global_data &G = *get_global_data_ptr();
     int step_failed;
     using std::swap;
-
+    double t0 = G.sim_time;
+    // Set the time-step coefficients for the stages of the update scheme.
+    double c2 = 1.0; // default for PC_UPDATE
+    double c3 = 1.0; // default for PC_UPDATE
+    switch ( get_gasdynamic_update_scheme() ) {
+    case EULER_UPDATE:
+    case PC_UPDATE: c2 = 1.0; c3 = 1.0; break;
+    case MIDPOINT_UPDATE: c2 = 0.5; c3 = 1.0; break;
+    case CLASSIC_RK3_UPDATE: c2 = 0.5; c3 = 1.0; break;
+    case TVD_RK3_UPDATE: c2 = 1.0; c3 = 0.5; break;
+    case DENMAN_RK3_UPDATE: c2 = 1.0; c3 = 0.5; break; 
+    // FIX-ME: Check Andrew Denman's coefficients.
+    default: 
+	throw runtime_error("gasdynamic_inviscid_increment_with_fixed_grid(): "
+			    "unknown update scheme.");
+    }
     int attempt_number = 0;
     do {
 	//  Preparation for the predictor-stage of inviscid gas-dynamic flow update.
@@ -1503,6 +1521,7 @@ int gasdynamic_inviscid_increment_with_fixed_grid()
 
 	if ( number_of_stages_for_update_scheme() >= 2 ) {
 	    // Preparation for second-stage of gas-dynamic update.
+	    G.sim_time = t0 + c2*dt;
 #           ifdef _MPI
 	    MPI_Barrier( MPI_COMM_WORLD );
 	    mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
@@ -1533,6 +1552,7 @@ int gasdynamic_inviscid_increment_with_fixed_grid()
 
 	if ( number_of_stages_for_update_scheme() >= 3 ) {
 	    // Preparation for third stage of update.
+	    G.sim_time = t0 + c3*dt;
 #           ifdef _MPI
 	    MPI_Barrier( MPI_COMM_WORLD );
 	    mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
@@ -1591,9 +1611,14 @@ int gasdynamic_inviscid_increment_with_fixed_grid()
     size_t end_indx = 2;
     switch (  get_gasdynamic_update_scheme() ) {
     case EULER_UPDATE: end_indx = 1; break;
-    case PC_UPDATE: end_indx = 2; break;
-    case RK3_UPDATE: end_indx = 3; break;
-    default: end_indx = 2;
+    case PC_UPDATE: 
+    case MIDPOINT_UPDATE: end_indx = 2; break;
+    case TVD_RK3_UPDATE:
+    case CLASSIC_RK3_UPDATE:
+    case DENMAN_RK3_UPDATE: end_indx = 3; break;
+    default:
+	throw runtime_error("gasdynamic_inviscid_increment_with_fixed_grid(): "
+			    "unknown update scheme.");
     }
     for ( Block *bdp : G.my_blocks ) {
 	if ( bdp->active != 1 ) continue;
@@ -1601,11 +1626,12 @@ int gasdynamic_inviscid_increment_with_fixed_grid()
 	    swap(cp->U[0], cp->U[end_indx]);
 	}
     } // end for *bdp
+    G.sim_time = t0 + dt;
     return step_failed;
 } // end gasdynamic_inviscid_increment_with_fixed_grid()
 
 
-int gasdynamic_inviscid_increment_with_moving_grid()
+int gasdynamic_inviscid_increment_with_moving_grid(double dt)
 // We have implemented only the simplest consistent two-stage update scheme. 
 {
     global_data &G = *get_global_data_ptr();
@@ -1620,6 +1646,7 @@ int gasdynamic_inviscid_increment_with_moving_grid()
     // but would like Andrew to check and fix my indexing of the
     // grid and flow time-levels in the following code.
 
+    double t0 = G.sim_time;
     int attempt_number = 0;
     do {
 	//  Preparation for the first-stage of inviscid gas-dynamic flow update.
@@ -1773,6 +1800,7 @@ int gasdynamic_inviscid_increment_with_moving_grid()
 	}
     }
 
+    G.sim_time = t0 + dt;
     return step_failed;
 } // end gasdynamic_inviscid_increment_with_moving_grid()
 

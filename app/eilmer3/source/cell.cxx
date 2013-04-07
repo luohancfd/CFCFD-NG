@@ -25,8 +25,12 @@
 #include "diffusion.hh"
 #include "bgk.hh"
 
-const int VISCOUS_TIME_LIMIT_MODEL = 0; // (0) original Swanson model, (1) Ramshaw model
+const int VISCOUS_TIME_LIMIT_MODEL = 0; // ==0 original Swanson model,
+                                        // ==1 Ramshaw model
 
+// Yes, this has quite a few entries and they're here because
+// I've already made a couple of errors in the input scripts.
+// Maybe this dictionary should sit in with init.cxx; it relevant only there.
 std::map<std::string,update_scheme_t> available_schemes = {
     {"euler",EULER_UPDATE}, {"Euler",EULER_UPDATE},
     {"pc",PC_UPDATE}, {"PC",PC_UPDATE},
@@ -34,15 +38,42 @@ std::map<std::string,update_scheme_t> available_schemes = {
     {"predictor-corrector",PC_UPDATE},
     {"Predictor_corrector",PC_UPDATE},
     {"Predictor-corrector",PC_UPDATE},
-    {"midpoint",MIDPOINT_UPDATE}, {"Midpoint",MIDPOINT_UPDATE},
-    {"rk3",RK3_UPDATE}, {"RK3",RK3_UPDATE}
+    {"midpoint",MIDPOINT_UPDATE}, 
+    {"mid-point",MIDPOINT_UPDATE}, 
+    {"mid_point",MIDPOINT_UPDATE}, 
+    {"Midpoint",MIDPOINT_UPDATE},
+    {"Mid-point",MIDPOINT_UPDATE},
+    {"Mid_point",MIDPOINT_UPDATE},
+    {"classic-rk3",CLASSIC_RK3_UPDATE},
+    {"classic_rk3",CLASSIC_RK3_UPDATE},
+    {"Classic-RK3",CLASSIC_RK3_UPDATE},
+    {"Classic_RK3",CLASSIC_RK3_UPDATE},
+    {"tvd-rk3",TVD_RK3_UPDATE},
+    {"tvd_rk3",TVD_RK3_UPDATE},
+    {"TVD-RK3",TVD_RK3_UPDATE},
+    {"TVD_RK3",TVD_RK3_UPDATE},
+    {"denman-rk3",DENMAN_RK3_UPDATE},
+    {"denman_rk3",DENMAN_RK3_UPDATE},
+    {"Denman-RK3",DENMAN_RK3_UPDATE},
+    {"Denman_RK3",DENMAN_RK3_UPDATE}
 };
 
 std::map<update_scheme_t,std::string> scheme_names = {
     {EULER_UPDATE,"euler"},
     {PC_UPDATE,"predictor-corrector"},
     {MIDPOINT_UPDATE,"midpoint"},
-    {RK3_UPDATE,"rk3"}
+    {CLASSIC_RK3_UPDATE,"classic-rk3"},
+    {TVD_RK3_UPDATE,"tvd-rk3"},
+    {DENMAN_RK3_UPDATE,"denman-rk3"}
+};
+
+std::map<update_scheme_t,size_t> number_of_stages = {
+    {EULER_UPDATE,1},
+    {PC_UPDATE,2},
+    {MIDPOINT_UPDATE,2},
+    {CLASSIC_RK3_UPDATE,3},
+    {TVD_RK3_UPDATE, 3},
+    {DENMAN_RK3_UPDATE, 3}
 };
 
 enum update_scheme_t gasdynamic_update_scheme = PC_UPDATE;
@@ -62,13 +93,6 @@ std::string get_name_of_gasdynamic_update_scheme()
 {
     return scheme_names[gasdynamic_update_scheme];
 }
-
-std::map<update_scheme_t,size_t> number_of_stages = {
-    {EULER_UPDATE,1},
-    {PC_UPDATE,2},
-    {MIDPOINT_UPDATE,2},
-    {RK3_UPDATE,3}
-};
 
 size_t number_of_stages_for_update_scheme()
 {
@@ -1445,11 +1469,23 @@ int FV_Cell::stage_1_update_for_flow_on_fixed_grid(double dt, int force_euler)
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &U0 = *(U[0]);
     ConservedQuantities &U1 = *(U[1]);
-
     double gamma_1 = 1.0; // for normal Predictor-Corrector or Euler update.
-    if ( get_gasdynamic_update_scheme() == RK3_UPDATE )
-	gamma_1 = 8.0 / 15.0; // for first stage of 3rd-order Runge-Kutta.
-
+    // In some parts of the code (viscous updates, k-omega updates)
+    // we use this function as an Euler update even when the main
+    // gasdynamic_update_scheme is of higher order.
+    if ( !force_euler ) {
+	switch ( get_gasdynamic_update_scheme() ) {
+	case EULER_UPDATE:
+	case PC_UPDATE: gamma_1 = 1.0; break;
+	case MIDPOINT_UPDATE: gamma_1 = 0.5; break;
+	case CLASSIC_RK3_UPDATE: gamma_1 = 0.5; break;
+	case TVD_RK3_UPDATE: gamma_1 = 1.0; break;
+	case DENMAN_RK3_UPDATE: gamma_1 = 8.0/15.0; break;
+	default:
+	    throw runtime_error("FV_Cell::stage_1_update_for_flow_on_fixed_grid(): "
+				"should not be here!");
+	}
+    }
     U1.mass = U0.mass + dt * gamma_1 * dUdt0.mass;
     // Side note: 
     // It would be convenient (codewise) for the updates of these Vector3 quantities to
@@ -1499,87 +1535,102 @@ int FV_Cell::stage_2_update_for_flow_on_fixed_grid(double dt)
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &dUdt1 = *(dUdt[1]);
     ConservedQuantities &U0 = *(U[0]);
-    // ConservedQuantities &U1 = *(U[1]);
     ConservedQuantities &U2 = *(U[2]);
-    double th1 = 0.5; // for standard predictor-corrector update.
-    double th0 = 1.0 - th1;
-    if ( get_gasdynamic_update_scheme() == RK3_UPDATE ) {
-	// for second stage of 3rd-order Runge-Kutta update.
-	th1 = 5.0 / 12.0;
-	th0 = -17.0 / 60.0;
+    double gamma_1 = 0.5; // Presume predictor-corrector.
+    double gamma_2 = 0.5;
+    switch ( get_gasdynamic_update_scheme() ) {
+    case PC_UPDATE: gamma_1 = 0.5, gamma_2 = 0.5; break;
+    case MIDPOINT_UPDATE: gamma_1 = 0.0; gamma_2 = 1.0; break;
+    case CLASSIC_RK3_UPDATE: gamma_1 = -1.0; gamma_2 = 2.0; break;
+    case TVD_RK3_UPDATE: gamma_1 = 0.25; gamma_2 = 0.25; break;
+    case DENMAN_RK3_UPDATE: gamma_1 = -17.0/60.0; gamma_2 = 5.0/12.0; break;
+    default:
+	throw runtime_error("FV_Cell::stage_2_update_for_flow_on_fixed_grid(): "
+			    "should not be here!");
     }
-
-    U2.mass = U0.mass + dt * (th0 * dUdt0.mass + th1 * dUdt1.mass);
-    U2.momentum.x = U0.momentum.x + dt * (th0 * dUdt0.momentum.x + th1 * dUdt1.momentum.x);
-    U2.momentum.y = U0.momentum.y + dt * (th0 * dUdt0.momentum.y + th1 * dUdt1.momentum.y);
-    U2.momentum.z = U0.momentum.z + dt * (th0 * dUdt0.momentum.z + th1 * dUdt1.momentum.z);
+    U2.mass = U0.mass + dt * (gamma_1 * dUdt0.mass + gamma_2 * dUdt1.mass);
+    U2.momentum.x = U0.momentum.x + dt * (gamma_1 * dUdt0.momentum.x + gamma_2 * dUdt1.momentum.x);
+    U2.momentum.y = U0.momentum.y + dt * (gamma_1 * dUdt0.momentum.y + gamma_2 * dUdt1.momentum.y);
+    U2.momentum.z = U0.momentum.z + dt * (gamma_1 * dUdt0.momentum.z + gamma_2 * dUdt1.momentum.z);
     if ( get_mhd_flag() == 1 ) {
 	// Magnetic field
-	U2.B.x = U0.B.x + dt * (th0 * dUdt0.B.x + th1 * dUdt1.B.x);
-	U2.B.y = U0.B.y + dt * (th0 * dUdt0.B.y + th1 * dUdt1.B.y);
-	U2.B.z = U0.B.z + dt * (th0 * dUdt0.B.z + th1 * dUdt1.B.z);
+	U2.B.x = U0.B.x + dt * (gamma_1 * dUdt0.B.x + gamma_2 * dUdt1.B.x);
+	U2.B.y = U0.B.y + dt * (gamma_1 * dUdt0.B.y + gamma_2 * dUdt1.B.y);
+	U2.B.z = U0.B.z + dt * (gamma_1 * dUdt0.B.z + gamma_2 * dUdt1.B.z);
     }
     U2.total_energy = U0.total_energy + 
-	dt * (th0 * dUdt0.total_energy + th1 * dUdt1.total_energy);
+	dt * (gamma_1 * dUdt0.total_energy + gamma_2 * dUdt1.total_energy);
     if ( get_k_omega_flag() ) {
-	U2.tke = U0.tke + dt * (th0 * dUdt0.tke + th1 * dUdt1.tke);
+	U2.tke = U0.tke + dt * (gamma_1 * dUdt0.tke + gamma_2 * dUdt1.tke);
 	U2.tke = MAXIMUM(U2.tke, 0.0);
-	U2.omega = U0.omega + dt * (th0 * dUdt0.omega + th1 * dUdt1.omega);
+	U2.omega = U0.omega + dt * (gamma_1 * dUdt0.omega + gamma_2 * dUdt1.omega);
 	U2.omega = MAXIMUM(U2.omega, U0.mass);
     } else {
 	U2.tke = U0.tke;
 	U2.omega = U0.omega;
     }
     for ( size_t isp = 0; isp < U2.massf.size(); ++isp ) {
-	U2.massf[isp] = U0.massf[isp] + dt * (th0 * dUdt0.massf[isp] + th1 * dUdt1.massf[isp]);
+	U2.massf[isp] = U0.massf[isp] + dt * (gamma_1 * dUdt0.massf[isp] + gamma_2 * dUdt1.massf[isp]);
     }
     for ( size_t imode = 0; imode < U2.energies.size(); ++imode ) {
 	U2.energies[imode] = U0.energies[imode] + 
-	    dt * (th0 * dUdt0.energies[imode] + th1 * dUdt1.energies[imode]);
+	    dt * (gamma_1 * dUdt0.energies[imode] + gamma_2 * dUdt1.energies[imode]);
     }
     return SUCCESS;
 } // end of stage_2_update_for_flow_on_fixed_grid()
 
 
 int FV_Cell::stage_3_update_for_flow_on_fixed_grid(double dt)
-// Only used for RK3_UPDATE scheme.
 {
+    ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &dUdt1 = *(dUdt[1]);
     ConservedQuantities &dUdt2 = *(dUdt[2]);
     ConservedQuantities &U0 = *(U[0]);
-    // ConservedQuantities &U1 = *(U[1]);
-    ConservedQuantities &U2 = *(U[2]);
-    double gamma_3 = 3.0 / 4.0;
-    double psi_2 = -5.0 / 12.0;
-
-    U2.mass = U0.mass + dt * (psi_2 * dUdt1.mass + gamma_3 * dUdt2.mass);
-    U2.momentum.x = U0.momentum.x + dt * (psi_2 * dUdt1.momentum.x + gamma_3 * dUdt2.momentum.x);
-    U2.momentum.y = U0.momentum.y + dt * (psi_2 * dUdt1.momentum.y + gamma_3 * dUdt2.momentum.y);
-    U2.momentum.z = U0.momentum.z + dt * (psi_2 * dUdt1.momentum.z + gamma_3 * dUdt2.momentum.z);
+    ConservedQuantities &U3 = *(U[3]);
+    double gamma_1 = 0.0; // presume Andrew Denman's RK3 scheme.
+    double gamma_2 = -5.0/12.0;
+    double gamma_3 = 3.0/4.0;
+    switch ( get_gasdynamic_update_scheme() ) {
+    case CLASSIC_RK3_UPDATE: gamma_1 = 1.0/6.0; gamma_2 = 4.0/6.0; gamma_3 = 1.0/6.0; break;
+    case TVD_RK3_UPDATE: gamma_1 = 1.0/6.0; gamma_2 = 1.0/6.0; gamma_3 = 4.0/6.0; break;
+    // FIX-ME: Really don't think that we have Andrew Denman's scheme ported correctly.
+    case DENMAN_RK3_UPDATE: gamma_1 = 0.0; gamma_2 = -5.0/12.0; gamma_3 = 3.0/4.0; break;
+    default:
+	throw runtime_error("FV_Cell::stage_3_update_for_flow_on_fixed_grid(): "
+			    "should not be here!");
+    }
+    U3.mass = U0.mass + dt * (gamma_2 * dUdt1.mass + gamma_3 * dUdt2.mass);
+    U3.momentum.x = U0.momentum.x +
+	dt * (gamma_1*dUdt0.momentum.x + gamma_2*dUdt1.momentum.x + gamma_3*dUdt2.momentum.x);
+    U3.momentum.y = U0.momentum.y +
+	dt * (gamma_1*dUdt0.momentum.y + gamma_2*dUdt1.momentum.y + gamma_3*dUdt2.momentum.y);
+    U3.momentum.z = U0.momentum.z + 
+	dt * (gamma_1*dUdt0.momentum.z + gamma_2*dUdt1.momentum.z + gamma_3*dUdt2.momentum.z);
     if ( get_mhd_flag() == 1 ) {
 	// Magnetic field
-	U2.B.x = U0.B.x + dt * (psi_2 * dUdt1.B.x + gamma_3 * dUdt2.B.x);
-	U2.B.y = U0.B.y + dt * (psi_2 * dUdt1.B.y + gamma_3 * dUdt2.B.y);
-	U2.B.z = U0.B.z + dt * (psi_2 * dUdt1.B.z + gamma_3 * dUdt2.B.z);
+	U3.B.x = U0.B.x + dt * (gamma_1*dUdt0.B.x + gamma_2*dUdt1.B.x + gamma_3*dUdt2.B.x);
+	U3.B.y = U0.B.y + dt * (gamma_1*dUdt0.B.y + gamma_2*dUdt1.B.y + gamma_3*dUdt2.B.y);
+	U3.B.z = U0.B.z + dt * (gamma_1*dUdt0.B.z + gamma_2*dUdt1.B.z + gamma_3*dUdt2.B.z);
     }
-    U2.total_energy = U0.total_energy + 
-	dt * (psi_2 * dUdt1.total_energy + gamma_3 * dUdt2.total_energy);
+    U3.total_energy = U0.total_energy + 
+	dt * (gamma_1*dUdt0.total_energy + gamma_2*dUdt1.total_energy + gamma_3*dUdt2.total_energy);
     if ( get_k_omega_flag() ) {
-	U2.tke = U0.tke + dt * (psi_2 * dUdt1.tke + gamma_3 * dUdt2.tke);
-	U2.tke = MAXIMUM(U2.tke, 0.0);
-	U2.omega = U0.omega + dt * (psi_2 * dUdt1.omega + gamma_3 * dUdt2.omega);
-	U2.omega = MAXIMUM(U2.omega, U0.mass);
+	U3.tke = U0.tke + dt * (gamma_1*dUdt0.tke + gamma_2*dUdt1.tke + gamma_3*dUdt2.tke);
+	U3.tke = MAXIMUM(U3.tke, 0.0);
+	U3.omega = U0.omega + dt * (gamma_1*dUdt0.omega + gamma_2*dUdt1.omega + gamma_3*dUdt2.omega);
+	U3.omega = MAXIMUM(U3.omega, U0.mass);
     } else {
-	U2.tke = U0.tke;
-	U2.omega = U0.omega;
+	U3.tke = U0.tke;
+	U3.omega = U0.omega;
     }
-    for ( size_t isp = 0; isp < U2.massf.size(); ++isp ) {
-	U2.massf[isp] = U0.massf[isp] +
-	    dt * (psi_2 * dUdt1.massf[isp] + gamma_3 * dUdt2.massf[isp]);
+    for ( size_t isp = 0; isp < U3.massf.size(); ++isp ) {
+	U3.massf[isp] = U0.massf[isp] +
+	    dt * (gamma_1*dUdt0.massf[isp] + gamma_2*dUdt1.massf[isp] + gamma_3*dUdt2.massf[isp]);
     }
-    for ( size_t imode = 0; imode < U2.energies.size(); ++imode ) {
-	U2.energies[imode] = U0.energies[imode] +
-	    dt * (psi_2 * dUdt1.energies[imode] + gamma_3 * dUdt2.energies[imode]);
+    for ( size_t imode = 0; imode < U3.energies.size(); ++imode ) {
+	U3.energies[imode] = U0.energies[imode] +
+	    dt * (gamma_1*dUdt0.energies[imode] + gamma_2*dUdt1.energies[imode] +
+		  gamma_3*dUdt2.energies[imode]);
     }
     return SUCCESS;
 } // end of stage_3_update_for_flow_on_fixed_grid()
@@ -1631,31 +1682,31 @@ int FV_Cell::stage_2_update_for_flow_on_moving_grid(double dt)
     ConservedQuantities &U0 = *(U[0]);
     // ConservedQuantities &U1 = *(U[1]);
     ConservedQuantities &U2 = *(U[2]);
-    double th1 = 0.5;
-    double th0 = 0.5;
+    double gamma_2 = 0.5;
+    double gamma_1 = 0.5;
     double v_old = volume[0];
     double vol_inv = 1.0 / volume[2];
-    th0 *= volume[0]; th1 *= volume[1]; // Roll-in the volumes for convenience below. 
+    gamma_1 *= volume[0]; gamma_2 *= volume[1]; // Roll-in the volumes for convenience below. 
     
-    U2.mass = vol_inv * (v_old * U0.mass + dt * (th0 * dUdt0.mass + th1 * dUdt1.mass));
+    U2.mass = vol_inv * (v_old * U0.mass + dt * (gamma_1 * dUdt0.mass + gamma_2 * dUdt1.mass));
     U2.momentum.x = vol_inv * (v_old * U0.momentum.x + 
-			       dt * (th0 * dUdt0.momentum.x + th1 * dUdt1.momentum.x));
+			       dt * (gamma_1 * dUdt0.momentum.x + gamma_2 * dUdt1.momentum.x));
     U2.momentum.y = vol_inv * (v_old * U0.momentum.y + 
-			       dt * (th0 * dUdt0.momentum.y + th1 * dUdt1.momentum.y));
+			       dt * (gamma_1 * dUdt0.momentum.y + gamma_2 * dUdt1.momentum.y));
     U2.momentum.z = vol_inv * (v_old * U0.momentum.z + 
-			       dt * (th0 * dUdt0.momentum.z + th1 * dUdt1.momentum.z));
+			       dt * (gamma_1 * dUdt0.momentum.z + gamma_2 * dUdt1.momentum.z));
     if (get_mhd_flag() == 1) {
 	// Magnetic field
-	U2.B.x = vol_inv * (v_old * U0.B.x + dt * (th0 * dUdt0.B.x + th1 * dUdt1.B.x));
-	U2.B.y = vol_inv * (v_old * U0.B.y + dt * (th0 * dUdt0.B.y + th1 * dUdt1.B.y));
-	U2.B.z = vol_inv * (v_old * U0.B.z + dt * (th0 * dUdt0.B.z + th1 * dUdt1.B.z));
+	U2.B.x = vol_inv * (v_old * U0.B.x + dt * (gamma_1 * dUdt0.B.x + gamma_2 * dUdt1.B.x));
+	U2.B.y = vol_inv * (v_old * U0.B.y + dt * (gamma_1 * dUdt0.B.y + gamma_2 * dUdt1.B.y));
+	U2.B.z = vol_inv * (v_old * U0.B.z + dt * (gamma_1 * dUdt0.B.z + gamma_2 * dUdt1.B.z));
     }
     U2.total_energy = vol_inv * (v_old * U0.total_energy + 
-				 dt * (th0 * dUdt0.total_energy + th1 * dUdt1.total_energy));
+				 dt * (gamma_1 * dUdt0.total_energy + gamma_2 * dUdt1.total_energy));
     if ( get_k_omega_flag() ) {
-	U2.tke = vol_inv * (v_old * U0.tke + dt * (th0 * dUdt0.tke + th1 * dUdt1.tke));
+	U2.tke = vol_inv * (v_old * U0.tke + dt * (gamma_1 * dUdt0.tke + gamma_2 * dUdt1.tke));
 	U2.tke = MAXIMUM(U2.tke, 0.0);
-	U2.omega = vol_inv * (v_old * U0.omega + dt * (th0 * dUdt0.omega + th1 * dUdt1.omega));
+	U2.omega = vol_inv * (v_old * U0.omega + dt * (gamma_1 * dUdt0.omega + gamma_2 * dUdt1.omega));
 	U2.omega = MAXIMUM(U2.omega, U0.mass);
     } else {
 	U2.tke = vol_inv * (v_old * U0.tke);
@@ -1663,11 +1714,11 @@ int FV_Cell::stage_2_update_for_flow_on_moving_grid(double dt)
     }
     for ( size_t isp = 0; isp < U2.massf.size(); ++isp ) {
 	U2.massf[isp] = vol_inv * (v_old * U0.massf[isp] +
-				   dt * (th0 * dUdt0.massf[isp] + th1 * dUdt1.massf[isp]));
+				   dt * (gamma_1 * dUdt0.massf[isp] + gamma_2 * dUdt1.massf[isp]));
     }
     for ( size_t imode = 0; imode < U2.energies.size(); ++imode ) {
 	U2.energies[imode] = vol_inv * (v_old * U0.energies[imode] +
-					dt * (th0 * dUdt0.energies[imode] + th1 * dUdt1.energies[imode]));
+					dt * (gamma_1 * dUdt0.energies[imode] + gamma_2 * dUdt1.energies[imode]));
     }
     return SUCCESS;
 } // end of stage_2_update_for_flow_on_moving_grid()

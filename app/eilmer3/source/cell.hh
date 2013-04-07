@@ -48,7 +48,8 @@ const int NORMAL_IFACE = 0;
 const int MASKED_IFACE = 1;
 
 // Update scheme
-enum update_scheme_t { EULER_UPDATE, PC_UPDATE, MIDPOINT_UPDATE, RK3_UPDATE };
+enum update_scheme_t { EULER_UPDATE, PC_UPDATE, MIDPOINT_UPDATE,
+		       CLASSIC_RK3_UPDATE, TVD_RK3_UPDATE, DENMAN_RK3_UPDATE };
 update_scheme_t set_gasdynamic_update_scheme(std::string name);
 update_scheme_t get_gasdynamic_update_scheme();
 std::string get_name_of_gasdynamic_update_scheme();
