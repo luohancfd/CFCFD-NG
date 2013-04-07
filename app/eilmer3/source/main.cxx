@@ -1616,7 +1616,7 @@ int gasdynamic_inviscid_increment_with_moving_grid()
     // Andrew's implementation.
     // 31-Mar-2013 let's get serious about refactoring.
     // 02-Apr-2013 have finally arrived at working on this section
-    // bbut would like Andrew to check and fix my indexing of the
+    // but would like Andrew to check and fix my indexing of the
     // grid and flow time-levels in the following code.
 
     int attempt_number = 0;
@@ -1629,13 +1629,10 @@ int gasdynamic_inviscid_increment_with_moving_grid()
 	MPI_Barrier( MPI_COMM_WORLD );
 	mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
 	// Separate exchange of interface data to avoid message collisions.
-	MPI_Barrier( MPI_COMM_WORLD );
-	mpi_exchange_boundary_data(COPY_INTERFACE_DATA, 0);
 #       else
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( bdp->active ) {
 		exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0);
-		exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA, 0);
 	    }
 	}
 #       endif
@@ -1648,6 +1645,18 @@ int gasdynamic_inviscid_increment_with_moving_grid()
 		    bdp->detect_shock_points( G.dimensions );
 	    }
 	}
+#       ifdef _MPI
+        // Before we try to exchange data, everyone's data should be up-to-date.
+	// Separate exchange of interface data to avoid message collisions.
+	MPI_Barrier( MPI_COMM_WORLD );
+	mpi_exchange_boundary_data(COPY_INTERFACE_DATA, 0);
+#       else
+	for ( Block *bdp : G.my_blocks ) {
+	    if ( bdp->active ) {
+		exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA, 0);
+	    }
+	}
+#       endif
 	// Non-local radiation transport needs to be performed a-priori for parallelization.
 	// Note that Q_rad is not re-evaluated for subsequent stages of the update.
 	if ( get_radiation_flag() ) perform_radiation_transport();
@@ -1682,19 +1691,28 @@ int gasdynamic_inviscid_increment_with_moving_grid()
 	MPI_Barrier( MPI_COMM_WORLD );
 	mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
 	// Separate exchange of interface data to avoid message collisions.
-	MPI_Barrier( MPI_COMM_WORLD );
-	mpi_exchange_boundary_data(COPY_INTERFACE_DATA, 0);
 #       else
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( bdp->active ) {
 		exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 1);
-		exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA, 1);
 	    }
 	}
 #       endif
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( bdp->active ) apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
 	}
+#       ifdef _MPI
+        // Before we try to exchange data, everyone's data should be up-to-date.
+	// Separate exchange of interface data to avoid message collisions.
+	MPI_Barrier( MPI_COMM_WORLD );
+	mpi_exchange_boundary_data(COPY_INTERFACE_DATA, 0);
+#       else
+	for ( Block *bdp : G.my_blocks ) {
+	    if ( bdp->active ) {
+		exchange_shared_boundary_data(bdp->id, COPY_INTERFACE_DATA, 0);
+	    }
+	}
+#       endif
 	if ( G.sim_time >= G.t_shock ) {
 	    for ( Block *bdp : G.my_blocks ) {
 		bdp->set_geometry_velocities(G.dimensions, 1);
