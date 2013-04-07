@@ -1455,6 +1455,7 @@ int gasdynamic_inviscid_increment_with_fixed_grid()
 {
     global_data &G = *get_global_data_ptr();
     int step_failed;
+    using std::swap;
 
     int attempt_number = 0;
     do {
@@ -1586,6 +1587,7 @@ int gasdynamic_inviscid_increment_with_fixed_grid()
 
     } while (attempt_number < 3 && step_failed == 1);
 
+    // Get the end conserved data into U[0] for next step.
     size_t end_indx = 2;
     switch (  get_gasdynamic_update_scheme() ) {
     case EULER_UPDATE: end_indx = 1; break;
@@ -1596,9 +1598,7 @@ int gasdynamic_inviscid_increment_with_fixed_grid()
     for ( Block *bdp : G.my_blocks ) {
 	if ( bdp->active != 1 ) continue;
 	for ( FV_Cell *cp: bdp->active_cells ) {
-	    // FIX-ME should also use std::swap for the pointers, if available.
-	    *(cp->U[0]) = *(cp->U[end_indx]);
-	    cp->decode_conserved(0, 0, bdp->omegaz);
+	    swap(cp->U[0], cp->U[end_indx]);
 	}
     } // end for *bdp
     return step_failed;
@@ -1610,6 +1610,7 @@ int gasdynamic_inviscid_increment_with_moving_grid()
 {
     global_data &G = *get_global_data_ptr();
     int step_failed;
+    using std::swap;
 
     // FIX-ME moving grid: this is a work/refactoring in progress... PJ
     // 25-Mar-2103 except for superficial changes, it is the same as 
@@ -1767,7 +1768,7 @@ int gasdynamic_inviscid_increment_with_moving_grid()
     for ( Block *bdp : G.my_blocks ) {
 	if ( bdp->active != 1 ) continue;
 	for ( FV_Cell *cp: bdp->active_cells ) {
-	    *(cp->U[0]) = *(cp->U[2]);
+	    swap(cp->U[0], cp->U[2]);
 	    cp->copy_grid_level_to_level(2, 0);
 	}
     }
@@ -1781,6 +1782,7 @@ int gasdynamic_explicit_viscous_increment()
 // Note that it starts from scratch, following the inviscid update.
 {
     global_data &G = *get_global_data_ptr();
+    using std::swap;
     for ( Block *bdp : G.my_blocks ) {
         if ( bdp->active != 1 ) continue;
 	bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
@@ -1799,7 +1801,7 @@ int gasdynamic_explicit_viscous_increment()
 	    cp->viscous_source_vector();
 	    cp->time_derivatives(0, 0, G.dimensions);
 	    cp->stage_1_update_for_flow_on_fixed_grid(G.dt_global, 1);
-	    *(cp->U[0]) = *(cp->U[1]);
+	    swap(cp->U[0], cp->U[1]);
 	    cp->decode_conserved(0, 0, bdp->omegaz);
 	} // end for *cp
 	if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {

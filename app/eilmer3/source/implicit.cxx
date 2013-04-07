@@ -34,6 +34,7 @@ int gasdynamic_point_implicit_inviscid_increment(void)
     Block *bdp;
     int most_bad_cells;
     int attempt_number, step_failed;
+    using std::swap;
 	
     cout << "=== Debut gasdynamic_point_implicit_inviscid_increment ===" << endl;
     // Record the current values of the conserved variables
@@ -121,7 +122,7 @@ int gasdynamic_point_implicit_inviscid_increment(void)
 		if ( G.udf_source_vector_flag == 1 ) 
 		    cp->udf_source_vector_for_cell(G.dt_global);
 		cp->inviscid_point_implicit_update_for_cell();
-		*(cp->U[0]) = *(cp->U[1]); 
+		swap(cp->U[0], cp->U[1]); 
 		cp->decode_conserved(0, 1, bdp->omegaz);
 	    }
 	} // end of for jb...
@@ -149,7 +150,7 @@ int gasdynamic_point_implicit_inviscid_increment(void)
 	bdp = G.my_blocks[jb];
 	if ( bdp->active != 1 ) continue;
 	for ( FV_Cell *cp: bdp->active_cells ) {
-	    *(cp->U[0]) = *(cp->U[1]); 
+	    swap(cp->U[0], cp->U[1]); 
 	}
     }
     cout << "=== Fin gasdynamic_point_implicit_inviscid_increment ===" << endl;
