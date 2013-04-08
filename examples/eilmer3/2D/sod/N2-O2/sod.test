@@ -2,6 +2,7 @@
 # Functional test for the little Sod shock tube examples.
 #
 # This exercises the "ideal gas" and "thermally perfect gas" models.
+# 2013-04-08 also exercised the 3-stage gasdynamic update.
 #
 # PJ, 19-March-2013
 # Note that later tests below depend on earlier ones,
@@ -30,7 +31,7 @@ test number-of-steps-ideal {The main simulation takes a certain number of steps.
 	}
     }
     set final_steps
-} -result {116}
+} -result {88}
 
 test flow-properties-ideal {The expanded driver gas and compressed driven gas.} -body {
     set shock_speed 0
@@ -80,15 +81,15 @@ test flow-properties-ideal {The expanded driver gas and compressed driven gas.} 
     # the average flow properties within the expanded driver gas slug 
     # and the shock-compressed driven gas slug.
     # Reference values come from the "ideal gas" model run.
-    list [expr abs($shock_speed - 559.2) < 0.5] \
+    list [expr abs($shock_speed - 558.2) < 0.5] \
 	[expr abs($edg_u_g - 294.1) < 0.5] \
-	[expr abs($edg_p - 30309.) < 50.0] \
+	[expr abs($edg_p - 30307.) < 50.0] \
 	[expr abs($edg_T - 247.5) < 0.5] \
-	[expr abs($edg_e - 178559.) < 500.0] \
-	[expr abs($sdg_u_g - 293.7) < 0.5] \
-	[expr abs($sdg_p - 30257.) < 50.0] \
-	[expr abs($sdg_T - 398.1) < 0.5] \
-	[expr abs($sdg_e - 287207.) < 500.0]
+	[expr abs($edg_e - 178535.) < 500.0] \
+	[expr abs($sdg_u_g - 294.0) < 0.5] \
+	[expr abs($sdg_p - 30286.) < 50.0] \
+	[expr abs($sdg_T - 398.3) < 0.5] \
+	[expr abs($sdg_e - 287368.) < 500.0]
 } -result {1 1 1 1 1 1 1 1 1}
 
 test run-preprocessor-thermally-perfect {Run the preprocessing stage.} -body {
@@ -114,7 +115,7 @@ test number-of-steps-thermally-perfect {The main simulation takes a certain numb
 	}
     }
     set final_steps
-} -result {116}
+} -result {88}
 
 test flow-properties-thermally-perfect {The expanded driver gas and compressed driven gas.} -body {
     set shock_speed 0
@@ -165,15 +166,15 @@ test flow-properties-thermally-perfect {The expanded driver gas and compressed d
     # and the shock-compressed driven gas slug.
     # Reference values come from the "thermally perfect gas" model run.
     # Note the negative values for the expected internal energies.
-    list [expr abs($shock_speed - 559.4) < 0.5] \
+    list [expr abs($shock_speed - 558.2) < 0.5] \
 	[expr abs($edg_u_g - 294.4) < 0.5] \
-	[expr abs($edg_p - 30311.) < 50.0] \
+	[expr abs($edg_p - 30309.) < 50.0] \
 	[expr abs($edg_T - 247.7) < 0.5] \
-	[expr abs($edg_e - -122508.) < 500.0] \
-	[expr abs($sdg_u_g - 293.9) < 0.5] \
-	[expr abs($sdg_p - 30258.) < 50.0] \
-	[expr abs($sdg_T - 397.4) < 0.5] \
-	[expr abs($sdg_e - -13848.) < 500.0]
+	[expr abs($edg_e - -122532.) < 500.0] \
+	[expr abs($sdg_u_g - 294.3) < 0.5] \
+	[expr abs($sdg_p - 30288.) < 50.0] \
+	[expr abs($sdg_T - 397.6) < 0.5] \
+	[expr abs($sdg_e - -13864.) < 500.0]
 } -result {1 1 1 1 1 1 1 1 1}
 
 test reset-ideal-gas-script {Run the post-postprocessing stage :)} -body {

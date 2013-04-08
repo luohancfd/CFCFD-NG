@@ -15,6 +15,8 @@
 gdata.title = "One-dimensional shock tube with (fake) air driving (fake) air."
 gdata.dimensions = 2
 gdata.stringent_cfl = 1
+gdata.gasdynamic_update_scheme = "classic-rk3"
+gdata.cfl = 1.10
 
 select_gas_model(model='ideal gas',
                  species=['N2', 'O2'])

@@ -1043,18 +1043,16 @@ int integrate_in_time(double target_time)
 	// Code removed 24-Mar-2013.
 
 	// 2b. Recalculate all geometry if moving grid.
-	if ( get_moving_grid_flag() == 1 ) {
-	    if ( G.sim_time >= G.t_shock ) {
-		for ( Block *bdp : G.my_blocks ) {
-		    bdp->compute_primary_cell_geometric_data(G.dimensions, 0);
-		    bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions, 0);
-		    bdp->compute_secondary_cell_geometric_data(G.dimensions, 0);
-		    G.t_shock += G.dt_shock;
-		}
+	if ( get_moving_grid_flag() == 1 && G.sim_time >= G.t_shock ) {
+	    for ( Block *bdp : G.my_blocks ) {
+		bdp->compute_primary_cell_geometric_data(G.dimensions, 0);
+		bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions, 0);
+		bdp->compute_secondary_cell_geometric_data(G.dimensions, 0);
+		G.t_shock += G.dt_shock;
 	    }
 	}
 	
-	// 2c.
+	// 2c. Increment because of viscous effects.
 	if ( get_viscous_flag() == 1 ) {
 	    // We now have the option of explicit or point implicit update
 	    // of the viscous terms, thanks to Ojas??.
@@ -1457,7 +1455,7 @@ int gasdynamic_inviscid_increment_with_fixed_grid(double dt)
 // 2013-04-07 also updated G.sim_time
 {
     global_data &G = *get_global_data_ptr();
-    int step_failed;
+    int step_status_flag;
     using std::swap;
     double t0 = G.sim_time;
     // Set the time-step coefficients for the stages of the update scheme.
@@ -1479,7 +1477,7 @@ int gasdynamic_inviscid_increment_with_fixed_grid(double dt)
     do {
 	//  Preparation for the predictor-stage of inviscid gas-dynamic flow update.
 	++attempt_number;
-	step_failed = 0;
+	step_status_flag = 0;
 #       ifdef _MPI
         // Before we try to exchange data, everyone's data should be up-to-date.
 	MPI_Barrier( MPI_COMM_WORLD );
@@ -1572,7 +1570,7 @@ int gasdynamic_inviscid_increment_with_fixed_grid(double dt)
 			udf_source_vector_for_cell(cp, 0, G.sim_time);
 		    cp->time_derivatives(0, 2, G.dimensions);
 		    cp->stage_3_update_for_flow_on_fixed_grid(G.dt_global);
-		    cp->decode_conserved(0, 2, bdp->omegaz);
+		    cp->decode_conserved(0, 3, bdp->omegaz);
 		} // for *cp
 		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
 		    apply_wilson_omega_correction( *bdp );
@@ -1586,12 +1584,12 @@ int gasdynamic_inviscid_increment_with_fixed_grid(double dt)
 	//     reduce the time step for the next attempt
 	int most_bad_cells = do_bad_cell_count(0);
 	if ( adjust_invalid_cell_data == 0 && most_bad_cells > 0 ) {
-	    step_failed = 1;
+	    step_status_flag = 1;
 	}
 #       ifdef _MPI
-	MPI_Allreduce(MPI_IN_PLACE, &(step_failed), 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+	MPI_Allreduce(MPI_IN_PLACE, &(step_status_flag), 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
 #       endif
-	if ( step_failed ) {
+	if ( step_status_flag != 0 ) {
 	    G.dt_global = G.dt_reduction_factor * G.dt_global;
 	    printf("Attempt %d failed: reducing dt to %e.\n", attempt_number, G.dt_global);
 	    for ( Block *bdp : G.my_blocks ) {
@@ -1603,9 +1601,9 @@ int gasdynamic_inviscid_increment_with_fixed_grid(double dt)
 		    apply_wilson_omega_correction( *bdp );
 		}
 	    } // end for *bdp
-	} // end if step_failed
+	} // end if step_status_flag
 
-    } while (attempt_number < 3 && step_failed == 1);
+    } while (attempt_number < 3 && step_status_flag == 1);
 
     // Get the end conserved data into U[0] for next step.
     size_t end_indx = 2;
@@ -1627,7 +1625,7 @@ int gasdynamic_inviscid_increment_with_fixed_grid(double dt)
 	}
     } // end for *bdp
     G.sim_time = t0 + dt;
-    return step_failed;
+    return step_status_flag;
 } // end gasdynamic_inviscid_increment_with_fixed_grid()
 
 
@@ -1635,7 +1633,7 @@ int gasdynamic_inviscid_increment_with_moving_grid(double dt)
 // We have implemented only the simplest consistent two-stage update scheme. 
 {
     global_data &G = *get_global_data_ptr();
-    int step_failed;
+    int step_status_flag;
     using std::swap;
 
     // FIX-ME moving grid: this is a work/refactoring in progress... PJ
@@ -1651,7 +1649,7 @@ int gasdynamic_inviscid_increment_with_moving_grid(double dt)
     do {
 	//  Preparation for the first-stage of inviscid gas-dynamic flow update.
 	++attempt_number;
-	step_failed = 0;
+	step_status_flag = 0;
 #       ifdef _MPI
         // Before we try to exchange data, everyone's data should be up-to-date.
 	MPI_Barrier( MPI_COMM_WORLD );
@@ -1771,12 +1769,12 @@ int gasdynamic_inviscid_increment_with_moving_grid(double dt)
 	//     reduce the time step for the next attempt
 	int most_bad_cells = do_bad_cell_count(2);
 	if ( adjust_invalid_cell_data == 0 && most_bad_cells > 0 ) {
-	    step_failed = 1;
+	    step_status_flag = 1;
 	}
 #       ifdef _MPI
-	MPI_Allreduce(MPI_IN_PLACE, &(step_failed), 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+	MPI_Allreduce(MPI_IN_PLACE, &(step_status_flag), 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
 #       endif
-	if ( step_failed ) {
+	if ( step_status_flag != 0 ) {
 	    G.dt_global = G.dt_reduction_factor * G.dt_global;
 	    printf("Attempt %d failed: reducing dt to %e.\n", attempt_number, G.dt_global);
 	    for ( Block *bdp : G.my_blocks ) {
@@ -1788,9 +1786,9 @@ int gasdynamic_inviscid_increment_with_moving_grid(double dt)
 		    apply_wilson_omega_correction( *bdp );
 		}
 	    } // end for *bdp
-	} // end if step_failed
+	} // end if step_status_flag
 
-    } while (attempt_number < 3 && step_failed == 1);
+    } while (attempt_number < 3 && step_status_flag == 1);
 
     for ( Block *bdp : G.my_blocks ) {
 	if ( bdp->active != 1 ) continue;
@@ -1801,7 +1799,7 @@ int gasdynamic_inviscid_increment_with_moving_grid(double dt)
     }
 
     G.sim_time = t0 + dt;
-    return step_failed;
+    return step_status_flag;
 } // end gasdynamic_inviscid_increment_with_moving_grid()
 
 

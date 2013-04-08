@@ -1534,7 +1534,8 @@ int FV_Cell::stage_2_update_for_flow_on_fixed_grid(double dt)
 {
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &dUdt1 = *(dUdt[1]);
-    ConservedQuantities &U0 = *(U[0]);
+    ConservedQuantities *U_old = U[0];
+    if ( get_gasdynamic_update_scheme() == DENMAN_RK3_UPDATE ) U_old = U[1];
     ConservedQuantities &U2 = *(U[2]);
     double gamma_1 = 0.5; // Presume predictor-corrector.
     double gamma_2 = 0.5;
@@ -1548,32 +1549,32 @@ int FV_Cell::stage_2_update_for_flow_on_fixed_grid(double dt)
 	throw runtime_error("FV_Cell::stage_2_update_for_flow_on_fixed_grid(): "
 			    "should not be here!");
     }
-    U2.mass = U0.mass + dt * (gamma_1 * dUdt0.mass + gamma_2 * dUdt1.mass);
-    U2.momentum.x = U0.momentum.x + dt * (gamma_1 * dUdt0.momentum.x + gamma_2 * dUdt1.momentum.x);
-    U2.momentum.y = U0.momentum.y + dt * (gamma_1 * dUdt0.momentum.y + gamma_2 * dUdt1.momentum.y);
-    U2.momentum.z = U0.momentum.z + dt * (gamma_1 * dUdt0.momentum.z + gamma_2 * dUdt1.momentum.z);
+    U2.mass = U_old->mass + dt * (gamma_1 * dUdt0.mass + gamma_2 * dUdt1.mass);
+    U2.momentum.x = U_old->momentum.x + dt * (gamma_1 * dUdt0.momentum.x + gamma_2 * dUdt1.momentum.x);
+    U2.momentum.y = U_old->momentum.y + dt * (gamma_1 * dUdt0.momentum.y + gamma_2 * dUdt1.momentum.y);
+    U2.momentum.z = U_old->momentum.z + dt * (gamma_1 * dUdt0.momentum.z + gamma_2 * dUdt1.momentum.z);
     if ( get_mhd_flag() == 1 ) {
 	// Magnetic field
-	U2.B.x = U0.B.x + dt * (gamma_1 * dUdt0.B.x + gamma_2 * dUdt1.B.x);
-	U2.B.y = U0.B.y + dt * (gamma_1 * dUdt0.B.y + gamma_2 * dUdt1.B.y);
-	U2.B.z = U0.B.z + dt * (gamma_1 * dUdt0.B.z + gamma_2 * dUdt1.B.z);
+	U2.B.x = U_old->B.x + dt * (gamma_1 * dUdt0.B.x + gamma_2 * dUdt1.B.x);
+	U2.B.y = U_old->B.y + dt * (gamma_1 * dUdt0.B.y + gamma_2 * dUdt1.B.y);
+	U2.B.z = U_old->B.z + dt * (gamma_1 * dUdt0.B.z + gamma_2 * dUdt1.B.z);
     }
-    U2.total_energy = U0.total_energy + 
+    U2.total_energy = U_old->total_energy + 
 	dt * (gamma_1 * dUdt0.total_energy + gamma_2 * dUdt1.total_energy);
     if ( get_k_omega_flag() ) {
-	U2.tke = U0.tke + dt * (gamma_1 * dUdt0.tke + gamma_2 * dUdt1.tke);
+	U2.tke = U_old->tke + dt * (gamma_1 * dUdt0.tke + gamma_2 * dUdt1.tke);
 	U2.tke = MAXIMUM(U2.tke, 0.0);
-	U2.omega = U0.omega + dt * (gamma_1 * dUdt0.omega + gamma_2 * dUdt1.omega);
-	U2.omega = MAXIMUM(U2.omega, U0.mass);
+	U2.omega = U_old->omega + dt * (gamma_1 * dUdt0.omega + gamma_2 * dUdt1.omega);
+	U2.omega = MAXIMUM(U2.omega, U_old->mass);
     } else {
-	U2.tke = U0.tke;
-	U2.omega = U0.omega;
+	U2.tke = U_old->tke;
+	U2.omega = U_old->omega;
     }
     for ( size_t isp = 0; isp < U2.massf.size(); ++isp ) {
-	U2.massf[isp] = U0.massf[isp] + dt * (gamma_1 * dUdt0.massf[isp] + gamma_2 * dUdt1.massf[isp]);
+	U2.massf[isp] = U_old->massf[isp] + dt * (gamma_1 * dUdt0.massf[isp] + gamma_2 * dUdt1.massf[isp]);
     }
     for ( size_t imode = 0; imode < U2.energies.size(); ++imode ) {
-	U2.energies[imode] = U0.energies[imode] + 
+	U2.energies[imode] = U_old->energies[imode] + 
 	    dt * (gamma_1 * dUdt0.energies[imode] + gamma_2 * dUdt1.energies[imode]);
     }
     return SUCCESS;
@@ -1585,11 +1586,12 @@ int FV_Cell::stage_3_update_for_flow_on_fixed_grid(double dt)
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &dUdt1 = *(dUdt[1]);
     ConservedQuantities &dUdt2 = *(dUdt[2]);
-    ConservedQuantities &U0 = *(U[0]);
+    ConservedQuantities *U_old = U[0];
+    if ( get_gasdynamic_update_scheme() == DENMAN_RK3_UPDATE ) U_old = U[2];
     ConservedQuantities &U3 = *(U[3]);
-    double gamma_1 = 0.0; // presume Andrew Denman's RK3 scheme.
-    double gamma_2 = -5.0/12.0;
-    double gamma_3 = 3.0/4.0;
+    double gamma_1 = 1.0/6.0; // presume TVD_RK3 scheme.
+    double gamma_2 = 1.0/6.0;
+    double gamma_3 = 4.0/6.0;
     switch ( get_gasdynamic_update_scheme() ) {
     case CLASSIC_RK3_UPDATE: gamma_1 = 1.0/6.0; gamma_2 = 4.0/6.0; gamma_3 = 1.0/6.0; break;
     case TVD_RK3_UPDATE: gamma_1 = 1.0/6.0; gamma_2 = 1.0/6.0; gamma_3 = 4.0/6.0; break;
@@ -1599,36 +1601,36 @@ int FV_Cell::stage_3_update_for_flow_on_fixed_grid(double dt)
 	throw runtime_error("FV_Cell::stage_3_update_for_flow_on_fixed_grid(): "
 			    "should not be here!");
     }
-    U3.mass = U0.mass + dt * (gamma_2 * dUdt1.mass + gamma_3 * dUdt2.mass);
-    U3.momentum.x = U0.momentum.x +
+    U3.mass = U_old->mass + dt * (gamma_1*dUdt0.mass + gamma_2*dUdt1.mass + gamma_3*dUdt2.mass);
+    U3.momentum.x = U_old->momentum.x +
 	dt * (gamma_1*dUdt0.momentum.x + gamma_2*dUdt1.momentum.x + gamma_3*dUdt2.momentum.x);
-    U3.momentum.y = U0.momentum.y +
+    U3.momentum.y = U_old->momentum.y +
 	dt * (gamma_1*dUdt0.momentum.y + gamma_2*dUdt1.momentum.y + gamma_3*dUdt2.momentum.y);
-    U3.momentum.z = U0.momentum.z + 
+    U3.momentum.z = U_old->momentum.z + 
 	dt * (gamma_1*dUdt0.momentum.z + gamma_2*dUdt1.momentum.z + gamma_3*dUdt2.momentum.z);
     if ( get_mhd_flag() == 1 ) {
 	// Magnetic field
-	U3.B.x = U0.B.x + dt * (gamma_1*dUdt0.B.x + gamma_2*dUdt1.B.x + gamma_3*dUdt2.B.x);
-	U3.B.y = U0.B.y + dt * (gamma_1*dUdt0.B.y + gamma_2*dUdt1.B.y + gamma_3*dUdt2.B.y);
-	U3.B.z = U0.B.z + dt * (gamma_1*dUdt0.B.z + gamma_2*dUdt1.B.z + gamma_3*dUdt2.B.z);
+	U3.B.x = U_old->B.x + dt * (gamma_1*dUdt0.B.x + gamma_2*dUdt1.B.x + gamma_3*dUdt2.B.x);
+	U3.B.y = U_old->B.y + dt * (gamma_1*dUdt0.B.y + gamma_2*dUdt1.B.y + gamma_3*dUdt2.B.y);
+	U3.B.z = U_old->B.z + dt * (gamma_1*dUdt0.B.z + gamma_2*dUdt1.B.z + gamma_3*dUdt2.B.z);
     }
-    U3.total_energy = U0.total_energy + 
+    U3.total_energy = U_old->total_energy + 
 	dt * (gamma_1*dUdt0.total_energy + gamma_2*dUdt1.total_energy + gamma_3*dUdt2.total_energy);
     if ( get_k_omega_flag() ) {
-	U3.tke = U0.tke + dt * (gamma_1*dUdt0.tke + gamma_2*dUdt1.tke + gamma_3*dUdt2.tke);
+	U3.tke = U_old->tke + dt * (gamma_1*dUdt0.tke + gamma_2*dUdt1.tke + gamma_3*dUdt2.tke);
 	U3.tke = MAXIMUM(U3.tke, 0.0);
-	U3.omega = U0.omega + dt * (gamma_1*dUdt0.omega + gamma_2*dUdt1.omega + gamma_3*dUdt2.omega);
-	U3.omega = MAXIMUM(U3.omega, U0.mass);
+	U3.omega = U_old->omega + dt * (gamma_1*dUdt0.omega + gamma_2*dUdt1.omega + gamma_3*dUdt2.omega);
+	U3.omega = MAXIMUM(U3.omega, U_old->mass);
     } else {
-	U3.tke = U0.tke;
-	U3.omega = U0.omega;
+	U3.tke = U_old->tke;
+	U3.omega = U_old->omega;
     }
     for ( size_t isp = 0; isp < U3.massf.size(); ++isp ) {
-	U3.massf[isp] = U0.massf[isp] +
+	U3.massf[isp] = U_old->massf[isp] +
 	    dt * (gamma_1*dUdt0.massf[isp] + gamma_2*dUdt1.massf[isp] + gamma_3*dUdt2.massf[isp]);
     }
     for ( size_t imode = 0; imode < U3.energies.size(); ++imode ) {
-	U3.energies[imode] = U0.energies[imode] +
+	U3.energies[imode] = U_old->energies[imode] +
 	    dt * (gamma_1*dUdt0.energies[imode] + gamma_2*dUdt1.energies[imode] +
 		  gamma_3*dUdt2.energies[imode]);
     }
