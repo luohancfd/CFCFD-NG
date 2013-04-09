@@ -2353,25 +2353,39 @@ int FV_Cell::k_omega_time_derivatives(double *Q_rtke, double *Q_romega, double t
 } // end k_omega_time_derivatives()
 
 
-/// \brief Compute the components of the source vector, Q, for inviscid flow.
-///
-/// Currently, the axisymmetric equations include the
-/// pressure contribution to the y-momentum equation
-/// here rather than in the boundary fluxes.
-int FV_Cell::inviscid_source_vector(int gtl, double omegaz)
+int FV_Cell::clear_source_vector()
+// When doing the gasdynamic update stages, the source vector values
+// are accumulated for the inviscid and then viscous terms, so we 
+// have to start with a clean slate, so to speak.
 {
-    // By default, assume 2D-planar, or 3D-Cartesian flow.
     Q->mass = 0.0;
     Q->momentum.x = 0.0;
     Q->momentum.y = 0.0;
     Q->momentum.z = 0.0;
-    // Magnetic field -- FIX-ME -- Daryl
     Q->B.x = 0.0;
     Q->B.y = 0.0;
     Q->B.z = 0.0;
-    Q->total_energy = get_heat_factor() * base_qdot;
+    Q->total_energy = 0.0;
     Q->tke = 0.0;
     Q->omega = 0.0;
+    for ( size_t isp = 0; isp < Q->massf.size(); ++isp )
+	Q->massf[isp] = 0.0;
+    for ( size_t imode = 0; imode < Q->energies.size(); ++imode )
+	Q->energies[imode] = 0.0;
+    Q_rE_rad = 0.0;
+    return SUCCESS;
+} // end FV_Cell::clear_source_vector()
+
+
+/// \brief Add the components of the source vector, Q, for inviscid flow.
+///
+/// Currently, the axisymmetric equations include the
+/// pressure contribution to the y-momentum equation
+/// here rather than in the boundary fluxes.
+/// By default, assume 2D-planar, or 3D-Cartesian flow.
+int FV_Cell::add_inviscid_source_vector(int gtl, double omegaz)
+{
+    Q->total_energy += get_heat_factor() * base_qdot;
     if ( omegaz != 0.0 ) {
 	// Rotating frame.
 	double rho = fs->gas->rho;
@@ -2392,11 +2406,8 @@ int FV_Cell::inviscid_source_vector(int gtl, double omegaz)
     }
     // Species production (other than chemistry).
     // For the chemistry, see chemical_increment().
-    for ( size_t isp = 0; isp < Q->massf.size(); ++isp ) Q->massf[isp] = 0.0;
     // Individual energies (other than energy exchange)
     // For the energy exchange, see thermal_increment()
-    for ( size_t imode = 0; imode < Q->energies.size(); ++imode )
-	Q->energies[imode] = 0.0;
     // Radiation can potentially be removed from both the electronic and
     // total energy source terms.
     if ( get_radiation_flag() == 1 ) {
@@ -2406,71 +2417,41 @@ int FV_Cell::inviscid_source_vector(int gtl, double omegaz)
 	//         - what about Q_renergies[0]?
 	Q->total_energy += Q_rE_rad;
 	Q->energies.back() += Q_rE_rad;
-    } else {
-	// No radiation is being considered.
-	Q_rE_rad = 0.0;
     }
     return SUCCESS;
-} // end inviscid_source_vector()
+} // end FV_Cell::add_inviscid_source_vector()
 
 
-/// \brief Compute the components of the source vector, Q, for viscous flow.
-int FV_Cell::viscous_source_vector(void)
+/// \brief Add the components of the source vector, Q, for viscous flow.
+int FV_Cell::add_viscous_source_vector(void)
 {
-    double dudx, dvdy;
-    double viscous_factor;
-    double mu, lmbda, tau_00;
-    double v_over_y;
-
-    viscous_factor = get_viscous_factor();
-    if ( get_axisymmetric_flag() == 1 ) {
-	v_over_y = fs->vel.y / pos[0].y;
-    } else {
-	v_over_y = 0.0;
-    }
-
-    // By default, assume 2D-planar, or 3D-Cartesian flow.
-    Q->mass = 0.0;
-    Q->momentum.x = 0.0;
-    Q->momentum.y = 0.0;
-    Q->momentum.z = 0.0;
-    // Magnetic field -- FIX-ME -- Daryl
-    Q->B.x = 0.0;
-    Q->B.y = 0.0;
-    Q->B.z = 0.0;
-    Q->total_energy = 0.0;
-
-    for ( size_t isp = 0; isp < Q->massf.size(); ++isp ) Q->massf[isp] = 0.0;
-    for ( size_t imode = 0; imode < Q->energies.size(); ++imode )
-	Q->energies[imode] = 0.0;
-
-    dudx = 0.25 * (vtx[0]->dudx + vtx[1]->dudx + vtx[2]->dudx + vtx[3]->dudx);
-    dvdy = 0.25 * (vtx[0]->dvdy + vtx[1]->dvdy + vtx[2]->dvdy + vtx[3]->dvdy);
-
-    if ( get_k_omega_flag() == 1 && !SEPARATE_UPDATE_FOR_K_OMEGA_SOURCE ) {
-	this->k_omega_time_derivatives(&(Q->tke), &(Q->omega), fs->tke, fs->omega);
-    } else {
-	Q->tke = 0.0;
-	Q->omega = 0.0;
-    }
-
     if ( get_axisymmetric_flag() == 1 ) {
 	// For viscous, axisymmetric flow:
-	mu = 0.25 * (iface[EAST]->fs->gas->mu + iface[WEST]->fs->gas->mu +
-		     iface[NORTH]->fs->gas->mu + iface[SOUTH]->fs->gas->mu) +
-	    0.25 * (iface[EAST]->fs->mu_t + iface[WEST]->fs->mu_t +
-		    iface[NORTH]->fs->mu_t + iface[SOUTH]->fs->mu_t);
+	double viscous_factor = get_viscous_factor();
+	double v_over_y = fs->vel.y / pos[0].y;
+	double dudx = 0.25 * (vtx[0]->dudx + vtx[1]->dudx + vtx[2]->dudx + vtx[3]->dudx);
+	double dvdy = 0.25 * (vtx[0]->dvdy + vtx[1]->dvdy + vtx[2]->dvdy + vtx[3]->dvdy);
+	double mu = 0.25 * (iface[EAST]->fs->gas->mu + iface[WEST]->fs->gas->mu +
+			    iface[NORTH]->fs->gas->mu + iface[SOUTH]->fs->gas->mu) +
+	            0.25 * (iface[EAST]->fs->mu_t + iface[WEST]->fs->mu_t +
+			    iface[NORTH]->fs->mu_t + iface[SOUTH]->fs->mu_t);
 	mu *= viscous_factor;
-	lmbda = -2.0/3.0 * mu;
-	tau_00 = 2.0 * mu * v_over_y + lmbda * (dudx + dvdy + v_over_y);
+	double lmbda = -2.0/3.0 * mu;
+	double tau_00 = 2.0 * mu * v_over_y + lmbda * (dudx + dvdy + v_over_y);
 	// Y-Momentum; viscous stress contribution from the front and Back interfaces.
 	// Note that these quantities are approximated at the
 	// mid-point of the cell face and so should never be
 	// singular -- at least I hope that this is so.
 	Q->momentum.y -= tau_00 * area[0] / volume[0];
+    } // end if ( get_axisymmetric_flag() == 1
+
+    if ( get_k_omega_flag() == 1 && !SEPARATE_UPDATE_FOR_K_OMEGA_SOURCE ) {
+	double Q_tke = 0.0; double Q_omega = 0.0;
+	this->k_omega_time_derivatives(&Q_tke, &Q_omega, fs->tke, fs->omega);
+	Q->tke += Q_tke; Q->omega += Q_omega;
     }
     return SUCCESS;
-} // end viscous_source_vector()
+} // end FV_Cell::add_viscous_source_vector()
 
 
 /// \brief Calculate the Reynolds number at a wall interface
@@ -2490,7 +2471,7 @@ double FV_Cell::calculate_wall_Reynolds_number(int which_boundary)
     Re_wall = IFace->fs->gas->rho * a_wall * cell_width / IFace->fs->gas->mu;
 
     return Re_wall;
-}
+} // end FV_Cell::calculate_wall_Reynolds_number()
 
 
 /// \brief Store parameters for (re-)scaling of radiative source term

@@ -555,7 +555,7 @@ int call_udf(double t, size_t step, std::string udf_fn_name)
 
 /// \brief Add to the components of the source vector, Q, via a Lua udf.
 /// This is done (occasionally) just after the for inviscid source vector calculation.
-int udf_source_vector_for_cell( FV_Cell *cell, size_t gtl, double t )
+int add_udf_source_vector_for_cell( FV_Cell *cell, size_t gtl, double t )
 {
     // Call the user-defined function which returns a table
     // of source term values.
@@ -1022,11 +1022,11 @@ int integrate_in_time(double target_time)
 	// explicit or implicit update of the inviscid terms.
 	int break_loop2 = 0;
 	if ( get_implicit_flag() == 0 ) {
-	    // explicit update of inviscid terms
+	    // explicit update of convective terms
 	    if ( get_moving_grid_flag() == 0 ) 
-		break_loop2 = gasdynamic_inviscid_increment_with_fixed_grid(G.dt_global);
+		break_loop2 = gasdynamic_explicit_increment_with_fixed_grid(G.dt_global);
 	    else
-		break_loop2 = gasdynamic_inviscid_increment_with_moving_grid(G.dt_global);
+		break_loop2 = gasdynamic_increment_with_moving_grid(G.dt_global);
 	} else if ( get_implicit_flag() == 1 ) {
 	    break_loop2 = gasdynamic_point_implicit_inviscid_increment(G.dt_global);
 	} else if ( get_implicit_flag() == 2 ) {
@@ -1052,13 +1052,14 @@ int integrate_in_time(double target_time)
 	    }
 	}
 	
-	// 2c. Increment because of viscous effects.
-	if ( get_viscous_flag() == 1 ) {
+	// 2c. Increment because of viscous effects may be done
+	//     separately to the convective terms.
+	if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 1 ) {
 	    // We now have the option of explicit or point implicit update
-	    // of the viscous terms, thanks to Ojas??.
+	    // of the viscous terms, thanks to Ojas Joshi, EPFL.
 	    int break_loop = 0;
 	    if ( get_implicit_flag() == 0 ) {
-		break_loop = gasdynamic_explicit_viscous_increment();
+		break_loop = gasdynamic_separate_explicit_viscous_increment();
 	    } else if ( get_implicit_flag() == 1 ) {
 		break_loop = gasdynamic_point_implicit_viscous_increment();
 	    } else if ( get_implicit_flag() == 2 ) {
@@ -1450,7 +1451,7 @@ int finalize_simulation( void )
 
 //------------------------------------------------------------------------
 
-int gasdynamic_inviscid_increment_with_fixed_grid(double dt)
+int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 // Time level of grid stays at 0.
 // 2013-04-07 also updated G.sim_time
 {
@@ -1478,6 +1479,11 @@ int gasdynamic_inviscid_increment_with_fixed_grid(double dt)
 	//  Preparation for the predictor-stage of inviscid gas-dynamic flow update.
 	++attempt_number;
 	step_status_flag = 0;
+	for ( Block *bdp : G.my_blocks ) {
+	    if ( bdp->active != 1 ) continue;
+	    bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
+	    for ( FV_Cell *cp: bdp->active_cells ) cp->clear_source_vector();
+	}
 #       ifdef _MPI
         // Before we try to exchange data, everyone's data should be up-to-date.
 	MPI_Barrier( MPI_COMM_WORLD );
@@ -1500,19 +1506,33 @@ int gasdynamic_inviscid_increment_with_fixed_grid(double dt)
 	// Note that Q_rad is not re-evaluated for subsequent stages of the update.
 	if ( get_radiation_flag() ) perform_radiation_transport();
 
-	// First-stage of inviscid gas-dynamic update.
+	// First-stage of gas-dynamic update.
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( bdp->active != 1 ) continue;
-	    bdp->inviscid_flux( G.dimensions );
+	    bdp->inviscid_flux(G.dimensions);
+	    if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
+		apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
+		if ( get_k_omega_flag() ) {
+		    apply_menter_boundary_correction(*bdp);
+		    if ( get_wilson_omega_filter_flag() ) apply_wilson_omega_correction(*bdp);
+		}
+		if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
+		estimate_turbulence_viscosity(&G, bdp);
+		if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
+	    } // end if ( get_viscous_flag()
 	    for ( FV_Cell *cp: bdp->active_cells ) {
-		cp->inviscid_source_vector(0, bdp->omegaz);
+		cp->add_inviscid_source_vector(0, bdp->omegaz);
 		if ( G.udf_source_vector_flag == 1 )
-		    udf_source_vector_for_cell(cp, 0, G.sim_time);
+		    add_udf_source_vector_for_cell(cp, 0, G.sim_time);
+		if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
+		    cp->add_viscous_source_vector();
+		}
 		cp->time_derivatives(0, 0, G.dimensions);
 		cp->stage_1_update_for_flow_on_fixed_grid(G.dt_global);
 		cp->decode_conserved(0, 1, bdp->omegaz);
 	    } // end for *cp
 	    if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
+		// FIX-ME Wilson, does this need to be here?
 		apply_wilson_omega_correction( *bdp );
 	    }
 	} // end of for jb...
@@ -1520,6 +1540,11 @@ int gasdynamic_inviscid_increment_with_fixed_grid(double dt)
 	if ( number_of_stages_for_update_scheme() >= 2 ) {
 	    // Preparation for second-stage of gas-dynamic update.
 	    G.sim_time = t0 + c2*dt;
+	    for ( Block *bdp : G.my_blocks ) {
+		if ( bdp->active != 1 ) continue;
+		bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
+		for ( FV_Cell *cp: bdp->active_cells ) cp->clear_source_vector();
+	    }
 #           ifdef _MPI
 	    MPI_Barrier( MPI_COMM_WORLD );
 	    mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
@@ -1529,28 +1554,47 @@ int gasdynamic_inviscid_increment_with_fixed_grid(double dt)
 		    exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0);
 	    }
 #           endif
-	    // Second stage of inviscid gas-dynamic update.
+	    // Second stage of gas-dynamic update.
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active != 1 ) continue;
 		apply_inviscid_bc(*bdp, G.sim_time, G.dimensions);
 		bdp->inviscid_flux(G.dimensions);
+		if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
+		    apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
+		    if ( get_k_omega_flag() ) {
+			apply_menter_boundary_correction(*bdp);
+			if ( get_wilson_omega_filter_flag() ) apply_wilson_omega_correction(*bdp);
+		    }
+		    if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
+		    estimate_turbulence_viscosity(&G, bdp);
+		    if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
+		} // end if ( get_viscous_flag()
 		for ( FV_Cell *cp: bdp->active_cells ) {
-		    cp->inviscid_source_vector(0, bdp->omegaz);
+		    cp->add_inviscid_source_vector(0, bdp->omegaz);
 		    if ( G.udf_source_vector_flag == 1 )
-			udf_source_vector_for_cell(cp, 0, G.sim_time);
+			add_udf_source_vector_for_cell(cp, 0, G.sim_time);
+		    if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
+			cp->add_viscous_source_vector();
+		    }
 		    cp->time_derivatives(0, 1, G.dimensions);
 		    cp->stage_2_update_for_flow_on_fixed_grid(G.dt_global);
 		    cp->decode_conserved(0, 2, bdp->omegaz);
 		} // end for ( *cp
 		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
+		    // FIX-ME Wilson, does this need to be here?
 		    apply_wilson_omega_correction( *bdp );
 		}
 	    } // end for jb loop
 	} // end if ( number_of_stages_for_update_scheme() >= 2 
 
 	if ( number_of_stages_for_update_scheme() >= 3 ) {
-	    // Preparation for third stage of update.
+	    // Preparation for third stage of gasdynamic update.
 	    G.sim_time = t0 + c3*dt;
+	    for ( Block *bdp : G.my_blocks ) {
+		if ( bdp->active != 1 ) continue;
+		bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
+		for ( FV_Cell *cp: bdp->active_cells ) cp->clear_source_vector();
+	    }
 #           ifdef _MPI
 	    MPI_Barrier( MPI_COMM_WORLD );
 	    mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
@@ -1562,17 +1606,31 @@ int gasdynamic_inviscid_increment_with_fixed_grid(double dt)
 #           endif
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active != 1 ) continue;
-		apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
+		apply_inviscid_bc(*bdp, G.sim_time, G.dimensions);
 		bdp->inviscid_flux( G.dimensions );
+		if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
+		    apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
+		    if ( get_k_omega_flag() ) {
+			apply_menter_boundary_correction(*bdp);
+			if ( get_wilson_omega_filter_flag() ) apply_wilson_omega_correction(*bdp);
+		    }
+		    if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
+		    estimate_turbulence_viscosity(&G, bdp);
+		    if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
+		} // end if ( get_viscous_flag()
 		for ( FV_Cell *cp: bdp->active_cells ) {
-		    cp->inviscid_source_vector(0, bdp->omegaz);
+		    cp->add_inviscid_source_vector(0, bdp->omegaz);
 		    if ( G.udf_source_vector_flag == 1 )
-			udf_source_vector_for_cell(cp, 0, G.sim_time);
+			add_udf_source_vector_for_cell(cp, 0, G.sim_time);
+		    if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
+			cp->add_viscous_source_vector();
+		    }
 		    cp->time_derivatives(0, 2, G.dimensions);
 		    cp->stage_3_update_for_flow_on_fixed_grid(G.dt_global);
 		    cp->decode_conserved(0, 3, bdp->omegaz);
 		} // for *cp
 		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
+		    // FIX-ME Wilson, does this need to be here?
 		    apply_wilson_omega_correction( *bdp );
 		}
 	    } // end for *bdp
@@ -1629,7 +1687,7 @@ int gasdynamic_inviscid_increment_with_fixed_grid(double dt)
 } // end gasdynamic_inviscid_increment_with_fixed_grid()
 
 
-int gasdynamic_inviscid_increment_with_moving_grid(double dt)
+int gasdynamic_increment_with_moving_grid(double dt)
 // We have implemented only the simplest consistent two-stage update scheme. 
 {
     global_data &G = *get_global_data_ptr();
@@ -1650,6 +1708,11 @@ int gasdynamic_inviscid_increment_with_moving_grid(double dt)
 	//  Preparation for the first-stage of inviscid gas-dynamic flow update.
 	++attempt_number;
 	step_status_flag = 0;
+	for ( Block *bdp : G.my_blocks ) {
+	    if ( bdp->active != 1 ) continue;
+	    bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
+	    for ( FV_Cell *cp: bdp->active_cells ) cp->clear_source_vector();
+	}
 #       ifdef _MPI
         // Before we try to exchange data, everyone's data should be up-to-date.
 	MPI_Barrier( MPI_COMM_WORLD );
@@ -1701,8 +1764,8 @@ int gasdynamic_inviscid_increment_with_moving_grid(double dt)
 	    if ( bdp->active != 1 ) continue;
 	    bdp->inviscid_flux( G.dimensions );
 	    for ( FV_Cell *cp: bdp->active_cells ) {
-		cp->inviscid_source_vector(1, bdp->omegaz);
-		if ( G.udf_source_vector_flag == 1 ) udf_source_vector_for_cell(cp, 1, G.sim_time);
+		cp->add_inviscid_source_vector(1, bdp->omegaz);
+		if ( G.udf_source_vector_flag == 1 ) add_udf_source_vector_for_cell(cp, 1, G.sim_time);
 		cp->time_derivatives(1, 0, G.dimensions);
 		cp->stage_1_update_for_flow_on_moving_grid(G.dt_global);
 		cp->decode_conserved(1, 1, bdp->omegaz);
@@ -1713,6 +1776,11 @@ int gasdynamic_inviscid_increment_with_moving_grid(double dt)
 	} // end of for *bdp...
 
 	// Preparation for second-stage of gas-dynamic update.
+	for ( Block *bdp : G.my_blocks ) {
+	    if ( bdp->active != 1 ) continue;
+	    bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
+	    for ( FV_Cell *cp: bdp->active_cells ) cp->clear_source_vector();
+	}
 #       ifdef _MPI
 	MPI_Barrier( MPI_COMM_WORLD );
 	mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
@@ -1752,8 +1820,8 @@ int gasdynamic_inviscid_increment_with_moving_grid(double dt)
 	    if ( bdp->active != 1 ) continue;
 	    bdp->inviscid_flux( G.dimensions );
 	    for ( FV_Cell *cp: bdp->active_cells ) {
-		cp->inviscid_source_vector(1, bdp->omegaz);
-		if ( G.udf_source_vector_flag == 1 ) udf_source_vector_for_cell(cp, 2, G.sim_time);
+		cp->add_inviscid_source_vector(1, bdp->omegaz);
+		if ( G.udf_source_vector_flag == 1 ) add_udf_source_vector_for_cell(cp, 2, G.sim_time);
 		cp->time_derivatives(2, 1, G.dimensions);
 		cp->stage_2_update_for_flow_on_moving_grid(G.dt_global);
 		cp->decode_conserved(2, 2, bdp->omegaz);
@@ -1803,7 +1871,7 @@ int gasdynamic_inviscid_increment_with_moving_grid(double dt)
 } // end gasdynamic_inviscid_increment_with_moving_grid()
 
 
-int gasdynamic_explicit_viscous_increment()
+int gasdynamic_separate_explicit_viscous_increment()
 // A simple first-order Euler step, of just the viscous-terms contribution.
 // Note that it starts from scratch, following the inviscid update.
 {
@@ -1812,6 +1880,7 @@ int gasdynamic_explicit_viscous_increment()
     for ( Block *bdp : G.my_blocks ) {
         if ( bdp->active != 1 ) continue;
 	bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
+	for ( FV_Cell *cp: bdp->active_cells ) cp->clear_source_vector();
 	apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
 	if ( get_k_omega_flag() ) apply_menter_boundary_correction(*bdp);
 	if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
@@ -1824,7 +1893,7 @@ int gasdynamic_explicit_viscous_increment()
 	estimate_turbulence_viscosity(&G, bdp);
 	if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
 	for ( FV_Cell *cp: bdp->active_cells ) {
-	    cp->viscous_source_vector();
+	    cp->add_viscous_source_vector();
 	    cp->time_derivatives(0, 0, G.dimensions);
 	    cp->stage_1_update_for_flow_on_fixed_grid(G.dt_global, 1);
 	    swap(cp->U[0], cp->U[1]);

@@ -163,8 +163,12 @@ int get_verbose_flag( void ) { return verbose; }
 
 /// \brief Viscous flag =0 for inviscid equations, =1 for viscous terms added.
 ///
-/// Viscous effects are included in the predictor-corrector gas-dynamic update.
+/// Viscous effects are included in the gas-dynamic update.
 int viscous = 0;
+
+/// \brief =0 to get viscous terms in with convective update stages
+///        =1 to get viscous terms incremented separately to convective increment
+int separate_update_for_viscous = 0;
 
 /// \brief A factor to scale the viscosity in order to achieve a soft start.
 /// 
@@ -505,7 +509,18 @@ int get_viscous_flag(void)
     return viscous;
 }
 
-/*------------------------------------------------------------------*/
+int set_separate_update_for_viscous_flag(int iv)
+{
+    separate_update_for_viscous = iv;
+    if ( get_verbose_flag() ) printf("separate_update_for_viscous_flag=%d\n",
+				     separate_update_for_viscous);
+    return SUCCESS;
+}
+
+int get_separate_update_for_viscous_flag(void)
+{
+    return separate_update_for_viscous;
+}
 
 int set_viscous_upwinding_flag(int iw)
 {
@@ -527,8 +542,6 @@ int get_viscous_upwinding_flag(void)
 {
     return viscous_upwinding;
 }
-
-/*------------------------------------------------------------------*/
 
 /// \brief Set the viscous_factor to a specified value.
 double set_viscous_factor( double value )

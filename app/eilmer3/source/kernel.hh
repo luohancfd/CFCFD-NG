@@ -208,6 +208,8 @@ int set_filter_flag(int iw);
 int get_filter_flag(void);
 int set_viscous_flag(int iv);
 int get_viscous_flag(void);
+int set_separate_update_for_viscous_flag(int iv);
+int get_separate_update_for_viscous_flag(void);
 int set_viscous_upwinding_flag(int iw);
 int get_viscous_upwinding_flag(void);
 double set_viscous_factor( double value );

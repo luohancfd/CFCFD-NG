@@ -40,8 +40,8 @@ test number-of-steps {The main simulation takes a certain number of steps.} -bod
 	    set final_steps [lindex [split $line] 5]
 	}
     }
-    set final_steps
-} -result {12777}
+    expr abs($final_steps - 12782) < 10
+} -result {1}
 
 test check-density {The density difference with respect to the analytic solution.} -body {
     set L2_density_error 0

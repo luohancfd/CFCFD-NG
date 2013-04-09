@@ -273,6 +273,10 @@ class GlobalData(object):
       A value of 1 sets axisymmetric flow with the x-axis being the axis of symmetry.
     * viscous_flag: (0/1) Set to 1 to activate viscous transport terms.
       Set to 0 (the default) for inviscid flow simulation.
+    * separate_update_for_viscous_flag: (0/1) Set to 1 to have the update 
+      for the viscous transport terms done separately to the convective terms.
+      Set to 0 (default) to have the viscous-term updates in the same
+      explicit update stages as the convective terms.
     * viscous_delay: (float) Sometimes, the viscous terms make it difficult to
       start a calculation without encountering numerical instability.
       Set this parameter to the delay (in seconds) from simulation start
@@ -392,7 +396,8 @@ class GlobalData(object):
                 'implicit_flag', 'control_count', \
                 'radiation_update_frequency', 'mhd_flag',\
                 'BGK_flag', 'velocity_buckets', 'vcoords', 'vweights',\
-                'viscous_flag', 'viscous_delay', 'viscous_factor_increment', 'viscous_upwinding_flag',\
+                'viscous_flag', 'viscous_delay', 'viscous_factor_increment',\
+                'separate_update_for_viscous_flag', 'viscous_upwinding_flag',\
                 'max_mu_t_factor', 'transient_mu_t_factor', \
                 'diffusion_flag', 'diffusion_model', \
                 'turbulence_flag', 'turbulence_model', \
@@ -446,6 +451,7 @@ class GlobalData(object):
         self.vcoords = []
         self.vweights = []
         self.viscous_flag = 0
+        self.separate_update_for_viscous_flag = 0
         self.viscous_delay = 0.0
         self.viscous_factor_increment = 0.01
         self.viscous_upwinding_flag = 0
@@ -512,14 +518,19 @@ class GlobalData(object):
         Some combinations of parameters are not compatible and need
         to be adjusted before writing the control and config files.
         """
-        if self.shock_fitting_flag: self.moving_grid_flag = 1
+        if self.shock_fitting_flag:
+            self.moving_grid_flag = 1
         if self.t_order != None:
             if self.t_order == 1:
                 self.gasdynamic_update_scheme = 'euler'
             elif self.t_order == 3:
-                self.gasdynamic_update_scheme = 'rk3'
+                self.gasdynamic_update_scheme = 'denman-rk3'
             else:
                 self.gasdynamic_update_scheme = 'predictor-corrector'
+        if self.implicit_flag and self.viscous_flag:
+            self.separate_update_for_viscous_flag = 1
+        if self.moving_grid_flag:
+            self.separate_update_for_viscous_flag = 1
         return
 
     def write_to_control_file(self, fp):
@@ -535,6 +546,9 @@ class GlobalData(object):
         fp.write("x_order = %d\n" % self.x_order)
         # fp.write("t_order = %d\n" % self.t_order) # deprecated 2013-03-31
         fp.write("gasdynamic_update_scheme = %s\n" % self.gasdynamic_update_scheme)
+        fp.write("implicit_flag = %d\n" % self.implicit_flag)
+        fp.write("separate_update_for_viscous_flag = %d\n" %
+                 self.separate_update_for_viscous_flag)
         fp.write("dt = %e\n" % self.dt)
         fp.write("fixed_time_step = %s\n" % self.fixed_time_step)
         fp.write("dt_reduction_factor = %e\n" % self.dt_reduction_factor)
@@ -547,7 +561,6 @@ class GlobalData(object):
         fp.write("dt_history = %e\n" % self.dt_history)
         fp.write("max_time = %e\n" % self.max_time)
         fp.write("max_step = %d\n" % self.max_step)
-        fp.write("implicit_flag = %d\n" % self.implicit_flag)
         fp.write("radiation_update_frequency = %d\n" % self.radiation_update_frequency)
         fp.write("halt_now = 0\n"); # presumably, we want the simulation to proceed
         return

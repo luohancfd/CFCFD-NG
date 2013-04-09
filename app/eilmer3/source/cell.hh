@@ -268,8 +268,9 @@ public:
     int turbulence_viscosity_k_omega(void);
     int update_k_omega_properties(double dt);
     int k_omega_time_derivatives(double *Q_rtke, double *Q_romega, double tke, double omega);
-    int inviscid_source_vector(int gtl, double omegaz=0.0);
-    int viscous_source_vector(void);
+    int clear_source_vector();
+    int add_inviscid_source_vector(int gtl, double omegaz=0.0);
+    int add_viscous_source_vector(void);
     double calculate_wall_Reynolds_number(int which_boundary);
     int store_rad_scaling_params(void);
     int rescale_Q_rE_rad(void);

@@ -520,18 +520,19 @@ int read_control_parameters( const string filename, bool master, bool first_time
     set_Xorder_flag( i_value );
     // 2013-03-31 change to use an explicitly-named update scheme.
     dict.parse_string("control_data", "gasdynamic_update_scheme", s_value,
-		      "predictor_corrector");
+		      "predictor-corrector");
     set_gasdynamic_update_scheme(s_value);
     // To keep backward compatibility with old simulation files,
     // read Torder if it exists and set the equivalent update scheme.
     dict.parse_int("control_data", "t_order", i_value, 0);
-    if ( i_value == 1 )
-	set_gasdynamic_update_scheme("euler");
-    else if ( i_value == 2 )
-	set_gasdynamic_update_scheme("predictor_corrector");
-    else if ( i_value == 3 )
-	set_gasdynamic_update_scheme("rk3");
-    //
+    switch ( i_value ) {
+    case 1: set_gasdynamic_update_scheme("euler"); break;
+    case 2: set_gasdynamic_update_scheme("predictor-corrector"); break;
+    case 3: set_gasdynamic_update_scheme("denman-rk3"); break;
+    default: /* do nothing */;
+    }
+    dict.parse_int("control_data", "separate_update_for_viscous_flag", i_value, 0);
+    set_separate_update_for_viscous_flag( i_value );
     dict.parse_double("control_data", "dt", G.dt_init, 1.0e-6);
     if ( first_time ) G.dt_global = G.dt_init;
     dict.parse_boolean("control_data", "fixed_time_step", G.fixed_time_step, 0);
@@ -558,6 +559,8 @@ int read_control_parameters( const string filename, bool master, bool first_time
 	cout << "    x_order = " << get_Xorder_flag() << endl;
 	cout << "    gasdynamic_update_scheme = " 
 	     << get_name_of_gasdynamic_update_scheme() << endl;
+	cout << "separate_update_for_viscous_flag = " 
+	     << get_separate_update_for_viscous_flag() << endl;
 	cout << "    dt = " << G.dt_init << endl;
 	cout << "    fixed_time_step = " << G.fixed_time_step << endl;
 	cout << "    dt_reduction_factor = " 
