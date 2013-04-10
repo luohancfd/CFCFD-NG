@@ -10,10 +10,13 @@
 import sys
 
 from math import sqrt
-from libprep3 import Vector3, dot
+from libprep3 import Vector3, dot, vabs
 from libprep3 import Gas_data, set_massf
 from cfpylib.nm.zero_solvers import secant
-from scipy.optimize import minimize, anneal, brute
+from scipy.optimize import minimize
+from numpy import median
+
+DEBUG = False
 
 def area(cells):
     A = 0.0
@@ -62,7 +65,8 @@ def compute_fluxes(cells, var_map, species, gmodel):
     ulabel = var_map['u']
     vlabel = var_map['v']
     wlabel = var_map['w']
-    h0label = var_map['h0']
+    Tlabel = var_map['T']
+    Q = Gas_data(gmodel)
     for c in cells:
         dA = c.area()
         n = oriented_normal(c.normal())
@@ -71,16 +75,28 @@ def compute_fluxes(cells, var_map, species, gmodel):
         vel = Vector3(c.get(ulabel),
                       c.get(vlabel),
                       c.get(wlabel))
-        h0 = c.get(h0label)
+        T = c.get(Tlabel)
         # Add increments
         u_n = dot(vel, n)
         f_mass = f_mass + rho*u_n*dA
         f_mom = f_mom + (rho*u_n*vel + p*n)*dA
-        f_energy = f_energy + (rho*u_n*h0)*dA
-        for isp, sp in enumerate(species):
-            # Try to grab mass fraction or set to 1.0 if not found
-            massf = c.get(sp, 1.0)
-            f_sp[isp] = f_sp[isp] + rho*massf*u_n*dA
+        if gmodel.get_number_of_species() > 1:
+            massfs = {}
+            for isp, sp in enumerate(species):
+                massf = c.get(sp)
+                f_sp[isp] = f_sp[isp] + rho*massf*u_n*dA
+                massfs[sp] = massf
+            set_massf(Q, gmodel, massfs)
+        else:
+            Q.massf[0] = 1.0
+            f_sp[0] = f_sp[0] + rho*u_n*dA
+        Q.rho = c.get(rholabel)
+        Q.T[0] = c.get(Tlabel)
+        gmodel.eval_thermo_state_rhoT(Q)
+        h = gmodel.mixture_enthalpy(Q)
+        h0 = h + 0.5*vabs(vel)*vabs(vel)
+        f_energy = f_energy + rho*u_n*h0*dA
+
     return {'mass': f_mass, 'mom': f_mom, 'energy': f_energy, 'species':f_sp}
 
 def area_weighted_avg(cells, props, var_map):
@@ -107,6 +123,7 @@ def mass_flux_weighted_avg(cells, props, var_map):
     ulabel = var_map['u']
     vlabel = var_map['v']
     wlabel = var_map['w']
+    Tlabel = var_map['T']
     for c in cells:
         dA = c.area()
         rho = c.get(rholabel)
@@ -128,7 +145,7 @@ def mass_flux_weighted_avg(cells, props, var_map):
     return phis
 
 
-def stream_thrust_avg(cells, props, var_map, species, gmodel, method='quick'):
+def stream_thrust_avg(cells, props, var_map, species, gmodel):
     f_mass = 0.0
     f_mom = Vector3(0.0, 0.0, 0.0)
     f_energy = 0.0
@@ -141,7 +158,8 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel, method='quick'):
     ulabel = var_map['u']
     vlabel = var_map['v']
     wlabel = var_map['w']
-    h0label = var_map['h0']
+    Tlabel = var_map['T']
+    Q = Gas_data(gmodel)
     for c in cells:
         dA = c.area() 
         n = oriented_normal(c.normal())
@@ -150,16 +168,27 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel, method='quick'):
         vel = Vector3(c.get(ulabel),
                       c.get(vlabel),
                       c.get(wlabel))
-        h0 = c.get(h0label)
+        T = c.get(Tlabel)
         # Add increments
         u_n = dot(vel, n)
         f_mass = f_mass + rho*u_n*dA
         f_mom = f_mom + (rho*u_n*vel + p*n)*dA
-        f_energy = f_energy + (rho*u_n*h0)*dA
-        if nsp > 1:
+        if gmodel.get_number_of_species() > 1:
+            massfs = {}
             for isp, sp in enumerate(species):
                 massf = c.get(sp)
                 f_sp[isp] = f_sp[isp] + rho*massf*u_n*dA
+                massfs[sp] = massf
+            set_massf(Q, gmodel, massfs)
+        else:
+            Q.massf[0] = 1.0
+            f_sp[0] = f_sp[0] + rho*u_n*dA
+        Q.rho = c.get(rholabel)
+        Q.T[0] = c.get(Tlabel)
+        gmodel.eval_thermo_state_rhoT(Q)
+        h = gmodel.mixture_enthalpy(Q)
+        h0 = h + 0.5*vabs(vel)*vabs(vel)
+        f_energy = f_energy + rho*u_n*h0*dA
         A = A + dA
         N = N + n*dA
 
@@ -190,43 +219,74 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel, method='quick'):
         h = gmodel.mixture_enthalpy(Q)
         p = Q.p
         # Compute errors
-        fmass_err = abs(f_mass - rho*u*A)/(abs(f_mass) + 1.0)
-        fmom_err = abs(f_mom_s - (rho*u*u + p)*A)/(abs(f_mom_s) + 1.0)
-        fe_err = abs(f_energy - (rho*u*A*(h + 0.5*u*u)))/(abs(f_energy) + 1.0)
+        fmass_err = abs(f_mass - rho*u*A)/(abs(f_mass))
+        fmom_err = abs(f_mom_s - (rho*u*u + p)*A)/(abs(f_mom_s))
+        fe_err = abs(f_energy - (rho*u*A*(h + 0.5*u*u)))/(abs(f_energy))
         # Total error is the sum
+        if DEBUG:
+            print "DEBUG: fmass_err= ", fmass_err
+            print "DEBUG: fmom_err= ", fmom_err
+            print "DEBUG: fe_err= ", fe_err
+            print "DEBUG: total error= ", fmass_err + fmom_err + fe_err
         return fmass_err + fmom_err + fe_err
 
-    flag = 'success'
-    # Compute an initial guess based on mass-flux weighted averages
-    if method == 'quick':
-        # Use the Nelder-Mead minimiser with mass-flux-weigthed averages as starting guess
-        mfw_props = mass_flux_weighted_avg(cells, ['rho', 'p', 'T', 'u', 'v', 'w', 'M'], var_map)
-        u = sqrt(mfw_props['u']**2 + mfw_props['v']**2 + mfw_props['w']**2)
-        guess = [mfw_props['rho'], mfw_props['T'], u]
-        result = minimize(f_to_minimize, guess, method='Nelder-Mead')
-        rho, T, u = result.x
-        # Check the results make sense
-        if rho <= 0.0 or T <= 0.0 or result.success != True:
-            print "The quick method of minimisation was not successful."
-            print "Retrying with the brute force method."
-            flag = 'failure'
+    # Find bounds for answer.
+    rhos = [c.get(rholabel) for c in cells]
+    rho_min = min(rhos)
+    rho_max = max(rhos)
+    rho_mid = median(rhos)
+    Ts = [c.get(Tlabel) for c in cells]
+    T_min = min(Ts)
+    T_max = max(Ts)
+    T_mid = median(Ts)
+    us = [sqrt(c.get(ulabel)**2 + c.get(vlabel)**2 + c.get(wlabel)**2) for c in cells]
+    u_min = min(us)
+    u_max = max(us)
+    u_mid = median(us)
+    # ------------ This is a complicated way to get an initial guess ----------- #
+#    aw_props = area_weighted_avg(cells, ['rho', 'p', 'T', 'u', 'v', 'w', 'M'], var_map)
+    # Use the Nelder-Mead minimiser with area-weighted averages as starting guess
+#    u = sqrt(aw_props['u']**2 + aw_props['v']**2 + aw_props['w']**2)
+#    rho = aw_props['rho']
+#    f_mass_guess = rho*u*A
+    # Scale guesses for rho and u such that f_mass is correct initially
+#    rho = rho*sqrt(f_mass/f_mass_guess)
+#    u = u*sqrt(f_mass/f_mass_guess)
+#    p = f_mom_s/A - rho*u*u
+#    Q.rho = rho
+#    Q.p = p
+#    gmodel.eval_thermo_state_rhop(Q)
+#    T = Q.T[0]
+    # ------------- Just use median values for initial guess -------------- #
+    guess = [rho_mid, T_mid, u_mid]
+    result = minimize(f_to_minimize, guess, method='Nelder-Mead', options={'ftol':1.0e-6})
+    rho, T, u = result.x
+    if DEBUG:
+        print "DEBUG: First pass of optimiser... result= ", result.success
+        print "DEBUG: rho= ", rho, " T= ", T, " u= ", u
+        print "DEBUG: f_mass= ", f_mass
+        print "DEBUG: computed from props= ", rho*u*A
+        print "DEBUG: f_mom_s= ", f_mom_s
+        print "DEBUG: computed from props= ", A*(rho*u*u + p)
+        
+    if rho < rho_min or rho > rho_max or T < T_min or T > T_max or u < u_min or u > u_max:
+        print "Something went seriously wrong with the optimiser because at least one"
+        print "of the returned values is outside the range of data."
+        print "rho_min= ", rho_min, " rho_max= ", rho_max, " computed rho= ", rho
+        print "T_min= ", T_min, " T_max= ", T_max, " computed T= ", T
+        print "u_min= ", u_min, " u_max= ", u_max, " computed u= ", u
+        print "Bailing out!"
+        sys.exit(1)
 
-    if method == 'robust' or flag == 'failure':
-        # Use the brute force optimiser.
-        rho_min = min([c.get(rholabel) for c in cells])
-        rho_max = max([c.get(rholabel) for c in cells])
-        T_min = min([c.get('Temperature [K]') for c in cells])
-        T_max = max([c.get('Temperature [K]') for c in cells])
-        u_min = min([ sqrt(c.get(ulabel)**2 + c.get(vlabel)**2 + c.get(wlabel)**2) for c in cells])
-        u_max = max([ sqrt(c.get(ulabel)**2 + c.get(vlabel)**2 + c.get(wlabel)**2) for c in cells])
-        x0 = brute(f_to_minimize, ((rho_min, rho_max), (T_min, T_max), (u_min, u_max)), Ns=20)
-        rho, T, u = x0
-
+    if not result.success:
+        print "The optimiser did not converge."
+        print "Just using the best guess at the end of iterations."
+        print "rho= ", rho, " T= ", T, " u= ", u
+       
     Q.rho = rho; Q.T[0] = T
     gmodel.eval_thermo_state_rhoT(Q)
 
     phis = dict.fromkeys(props, 0.0)
-
     for k in phis:
         if k == 'rho':
             phis[k] = rho

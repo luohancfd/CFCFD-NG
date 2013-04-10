@@ -153,27 +153,21 @@ def main():
         print "The default method of 'flux-conserved' will be used."
         cfg['one_d_averages'] = ['flux-conserved']
 
-    # 1d. Look for optimisation method
-    if not 'optimisation_method' in cfg:
-        print "No 'optimisation_method' was set."
-        print "The default method of 'quick' will be used."
-        cfg['optimisation_method'] = 'quick'
-    
-    # 1e. Look for grid_scale
+    # 1d. Look for grid_scale
     if not 'grid_scale' in cfg:
         print "No 'grid_scale' was set."
         print "The default value of 1.0 will be used."
         cfg['grid_scale'] = 1.0
 
-    # 1f. Look for one_d_outpus
+    # 1e. Look for one_d_outpus
     if not 'one_d_outputs' in cfg:
         cfg['one_d_outputs'] = []
 
-    # 1g. Look for integrated_outputs
+    # 1f. Look for integrated_outputs
     if not 'integrated_outputs' in cfg:
         cfg['integrated_outputs'] = []
 
-    # 1h. Looking for output options
+    # 1g. Looking for output options
     if not 'output_file' in cfg:
         print "No 'output_file' was set."
         print "An output file name must be set by the user."
@@ -299,7 +293,7 @@ def main():
                     pretty_print_props(f, phis, cfg['species'], cfg['one_d_outputs'])
                     f.write("\n")
             elif avg == 'flux-conserved':
-                phis = stream_thrust_avg(cells, cfg['one_d_outputs'], cfg['variable_map'], cfg['species'], gmodel, cfg['optimisation_method'])
+                phis = stream_thrust_avg(cells, cfg['one_d_outputs'], cfg['variable_map'], cfg['species'], gmodel)
                 phis_all[avg] = copy(phis)
                 if cfg['output_format'] == 'verbose':
                     f.write("-- flux-conserved average --\n\n")
