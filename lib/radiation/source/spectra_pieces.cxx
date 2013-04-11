@@ -239,6 +239,11 @@ void CoeffSpectra::read_from_file( string fname, int inu_start, int inu_end )
                 exit(FAILURE);
             }
         }
+        else {
+            cout << "Expected the string 'Column 1' in this line:" << endl
+                 << line << endl;
+            exit(FAILURE);
+        }
         getline (specfile,line); // should be emission coefficient column descriptor
         getline (specfile,line); // should be abs coefficient column descriptor
         getline (specfile,line); // should be int emission coefficient column descriptor
@@ -246,9 +251,8 @@ void CoeffSpectra::read_from_file( string fname, int inu_start, int inu_end )
         while ( specfile.good() ) {
             double wav, j_wav, kappa_wav, _j_int;
             specfile >> wav >> j_wav >> _j_int >> kappa_wav;
-            // cout << "nu = " << _nu << ", j_nu = " << _j_nu << ", kappa_nu = " << _kappa_nu << ", j_int = " << _j_int << endl;
             if ( count >= inu_start && ( count <= inu_end || inu_end < 0 ) ) {
-                int _nu = 0.0, _j_nu = 0.0, _kappa_nu = 0.0;
+                double _nu = 0.0, _j_nu = 0.0, _kappa_nu = 0.0;
                 if ( spectral_units==FREQUENCY ) {
                     _nu = wav;
                     _j_nu = j_wav;
