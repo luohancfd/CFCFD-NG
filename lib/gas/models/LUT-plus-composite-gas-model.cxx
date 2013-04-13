@@ -276,7 +276,7 @@ s_eval_thermo_state_rhoe(Gas_data &Q)
     }
     count = 0;
     const int max_secant_iterations = 15;
-    const int T_diff_tol = 0.01; // degrees K
+    const double T_diff_tol = 0.01; // degrees K
     while ( fabs(y2) > T_diff_tol && count < max_secant_iterations ) {
 	// Improve the estimate of the energy fraction.
 	++count;

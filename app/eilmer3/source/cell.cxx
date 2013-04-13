@@ -1012,7 +1012,7 @@ int FV_Cell::scan_values_from_string(char *bufptr)
 {
     // Look for a new-line character and truncate the string there.
     char *cptr = strchr(bufptr, '\n');
-    if ( cptr != NULL ) cptr = '\0';
+    if ( cptr != NULL ) *cptr = '\0';
     // Now, we should have a string with only numbers separated by spaces.
     pos[0].x = atof(strtok( bufptr, " " )); // Note grid-level 0.
     pos[0].y = atof(strtok( NULL, " " ));
@@ -1102,7 +1102,7 @@ int FV_Cell::scan_BGK_from_string(char *bufptr)
 {
     // Look for a new-line character and truncate the string there.
     char *cptr = strchr(bufptr, '\n');
-    if ( cptr != NULL ) cptr = '\0';
+    if ( cptr != NULL ) *cptr = '\0';
     // Now, we should have a string with only numbers separated by spaces.
     // include the position data, duplicate of "flow", as insurance against 
     // finding this file in isolation

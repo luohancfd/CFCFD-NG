@@ -87,7 +87,7 @@ private:
     double x[ncmax],xliq[ncmax],xvap[ncmax];
     char hfld[stringlength*ncmax],hrf[reflength],
          herr[stringlength],hfmix[stringlength],
-         hfiles[stringlength*ncmax],setpath[stringlength];
+         hfiles[stringlength*ncmax];
     double wm,d,e,t,p,dl,dv,q,h,s,cv,cp,w,eta,tcx,dpdrho;
     double liq_SS, vap_SS;
     long phase_flag;

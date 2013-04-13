@@ -82,7 +82,7 @@ int l_quad_curve_approx(lua_State *L)
     int narg = lua_gettop(L);
     vector<Vector3> Q;
     luaVector3* P;
-    double E;
+    double E = 0.0;
     int Kmax = -1;
     bool pc = false;
 

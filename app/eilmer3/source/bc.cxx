@@ -1065,7 +1065,7 @@ scan_string_for_surface_heat_flux( double &q_cond, double &q_diff, double &q_rad
 {
     // Look for a new-line character and truncate the string there.
     char *cptr = strchr(bufptr, '\n');
-    if ( cptr != NULL ) cptr = '\0'; 
+    if ( cptr != NULL ) *cptr = '\0'; 
     // Now, we should have a string with only numbers separated by spaces.
     size_t i = atoi(strtok( bufptr, " " )); // tokenize on space characters
     size_t j = atoi(strtok( NULL, " " )); 

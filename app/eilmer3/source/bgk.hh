@@ -12,7 +12,7 @@
 
 #include "../../../lib/geometry2/source/geom.hh"
 
-const int PI = 3.141592653589793;
+const double PI = 3.141592653589793;
 
 Vector3 Shakhov(double rho, double U, double V, double T, 
 		double qx, double q, double R, double Pr,

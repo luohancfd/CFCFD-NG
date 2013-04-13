@@ -236,7 +236,7 @@ operator()(double x_left,
     // however it uses a polynomial curve fit to find a better approximation of the root
     // and so converges faster (for a well behaved curve).
     
-    double q,A,B,C,den,x_new1,x_new2,x_mid_;
+    double q,A,B,C,den,x_new1,x_new2;
     double x_root = (x_left+x_right)/2.0; // initial guess
     double y_root = 1; // ensure at least one evaluation
     

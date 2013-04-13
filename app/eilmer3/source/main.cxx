@@ -1128,9 +1128,11 @@ int integrate_in_time(double target_time)
                 fprintf(G.logfile, " dt[%d]=%e", static_cast<int>(bdp->id), dt_record[jb] );
             }
 	    if ( n_active_blocks == 1 ) {
-		fprintf(G.logfile, "\nThere is %d active block.\n", n_active_blocks );
+		fprintf(G.logfile, "\nThere is %d active block.\n",
+			static_cast<int>(n_active_blocks) );
 	    } else {
-		fprintf(G.logfile, "\nThere are %d active blocks.\n", n_active_blocks );
+		fprintf(G.logfile, "\nThere are %d active blocks.\n",
+			static_cast<int>(n_active_blocks) );
 	    }
 	    fflush( stdout );
         } // end if
