@@ -1513,11 +1513,17 @@ are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config 
   default value of -1.0 indicates that we want the code to work it out.
 \item \texttt{dt\_therm}: default value -1.0.
 \item \texttt{gasdynamic\_update\_scheme}\ddag: one of: ``euler'', ``pc'', ``predictor-corrector'',
-  ``midpoint'', ``rk3''.  Default value is ``predictor-corrector''.
-  Note that ``pc'' is equivalent.
-  If you want time-accurate solutions, use predictor-corrector stepping,
-  otherwise, Euler stepping is half the computational expense 
-  (but you may get less accuracy and the code will not be as robust).
+  ``midpoint'', ``classic-rk3'', ``tvd-rk3'', ``denman-rk3''.
+  Default value is ``predictor-corrector''.
+  Note that ``pc'' is equivalent to ``predictor-corrector''.
+  If you want time-accurate solutions, use a two- or three-stage stepping scheme,
+  otherwise, Euler stepping has less computational expense 
+  but you may get less accuracy and the code will not be as robust for the same CFL value.
+  For example the shock front in the Sod shock tube example is quite noisy for Euler
+  stepping at CFL=0.85 but is quite neat with any of the two- or three-stage stepping schemes
+  at the same value of CFL.  
+  The midpoint and predictor-corrector schemes produce a tidy shock up to CFL = 1.0
+  and the rk3 schemes still look tidy up to CFL = 1.2.
 \item \texttt{fixed\_time\_step}\ddag: 1=do not change time step from that specified, 
   0=allow time step size to be determined from cell conditions and cfl number, default value 0.
 \item \texttt{cfl}\ddag: ratio of the smallest signal time to the actual time step,
@@ -1581,6 +1587,10 @@ are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config 
 \begin{itemize}
 \item \texttt{viscous\_flag}: 1=viscous terms are active, 0=inviscid
   simulation, default value 0.
+\item \texttt{separate\_update\_for\_viscous\_flag}\ddag: 1=the update 
+  for the viscous transport terms are done separately to the convective terms,
+  0=the viscous-term updates are initegrated with the explicit update of the convective terms,
+  default value 0.
 \item \texttt{viscous\_delay}: the time (in seconds) to wait before applying
   the viscous terms.
   This might come in handy when trying to start blunt-body simulations.

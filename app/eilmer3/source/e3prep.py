@@ -314,8 +314,9 @@ class GlobalData(object):
       Select 1 for low-order (i.e. no) reconstruction.
       Select 2 for a higer-order (limited quadratic) reconstruction.
     * gasdynamic_update_scheme: (string) one of "euler", "pc", "predictor-corrector",
-      "midpoint", "rk3"
-    * t_order: (int 1 or 2) Specifies the form of time stepping scheme [deprecated].
+      "midpoint", "classic-rk3", "tvd-rk3", "denman-rk3"
+    * t_order: [deprecated, use gasdynamic_update_scheme instead]
+      (int 1 or 2) Specifies the form of time stepping scheme.
       Select 1 for Euler stepping.
       Select 2 for predictor-corrector stepping.
     * stringent_cfl: (0/1) Set to 1 to get a very strict CFL check.

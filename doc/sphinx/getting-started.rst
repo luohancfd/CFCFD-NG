@@ -118,6 +118,14 @@ you should add the following packages and their dependencies:
 #. tcl-dev (if you want to build IMOC)
 #. maxima (to run the Method-of-Manufactured-Solutions test case for Eilmer3)
 
+Compiler versions
+-----------------
+Since March 2013, we have started using some of the C++11 features 
+such as range-based for loops and initializer expressions.
+Because of this you will need a suitable C++ compiler.
+For the GNU compiler collection, versions 4.6.3 and 4.8.0 are suitable.
+Clang/LLVM versions 3.2 and later are also good.
+
 Using the codes on MS-Windows
 -----------------------------
 The codes assemble most conveniently on a Linux/Unix-like environment.
