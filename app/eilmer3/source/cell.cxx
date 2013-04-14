@@ -485,7 +485,7 @@ int FV_Interface::print() const
     // printf( "id = %i\n", iface->id);
     printf("x=%e, y=%e, z=%e\n", pos.x, pos.y, pos.z);
     for ( size_t i = 0; i < area.size(); ++i ) {
-	printf("area[%d]=%e, ", i, area[i]);
+	printf("area[%d]=%e, ", static_cast<int>(i), area[i]);
     }
     printf("\nYbar=%e, length=%e\n", Ybar, length);
     printf("n.x=%e, n.y=%e, n.z=%e\n", n.x, n.y, n.z);

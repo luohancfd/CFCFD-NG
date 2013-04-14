@@ -641,9 +641,9 @@ int add_udf_source_vector_for_cell( FV_Cell *cell, size_t gtl, double t )
     lua_pop(L, 1); // remove energies table from top-of-stack
 
     lua_settop(L, 0); // clear the stack
-    // cout << "End of udf_source_vector_for_cell()" << endl;
+    // cout << "End of add_udf_source_vector_for_cell()" << endl;
     return SUCCESS;
-} // end udf_source_vector_for_cell()
+} // end add_udf_source_vector_for_cell()
 
 
 //---------------------------------------------------------------------------

@@ -122,7 +122,7 @@ int gasdynamic_point_implicit_inviscid_increment(double dt)
 	    for ( FV_Cell *cp: bdp->active_cells ) {
 		cp->inviscid_source_vector(bdp->omegaz);
 		if ( G.udf_source_vector_flag == 1 ) 
-		    cp->udf_source_vector_for_cell(G.dt_global);
+		    cp->add_udf_source_vector_for_cell(G.dt_global);
 		cp->inviscid_point_implicit_update_for_cell();
 		swap(cp->U[0], cp->U[1]); 
 		cp->decode_conserved(0, 1, bdp->omegaz);

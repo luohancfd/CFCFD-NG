@@ -80,7 +80,7 @@ ifeq ($(REFPROP_EXISTS), true)
 else
   REFPROP_MSG := "The REFPROP look-up-table and gas model will NOT be functional\n\
   because the REFPROP program has not been found in $(REFPROP)\n\
-  Contact the QGECE to request access to the software."
+  Contact NIST to request the software. http://www.nist.gov/"
 endif
 
 LUA_MODULES := 	refprop.lua \
