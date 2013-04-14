@@ -1,12 +1,8 @@
 #! /bin/sh
 # cyl50_run.sh
 e3prep.py --job=cyl50 --do-svg
-time e3shared.exe --job=cyl50 --run
-e3post.py --job=cyl50 --tindx=2 --vtk-xml
-
-# Extract the profile near the downstream end of the cylinder.
-e3post.py --job=cyl50 --tindx=2 --slice-list="0,47,:,0"
+time mpirun -np 4 e3mpi.exe --job=cyl50 --run
 
 echo "At this point, we should have a new solution"
-echo "Run cyl50_plot.sh next"
+echo "Run cyl50_post.sh next"
 

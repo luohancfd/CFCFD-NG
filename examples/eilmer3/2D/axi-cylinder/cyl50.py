@@ -2,6 +2,7 @@
 ## \author PJ
 ## \version 14-Aug-2006 updated from Tcl script
 ## \version 18-Jan-2010 updated for Eilmer3
+## \version 14-Apr-2013 use MPI with 4 procs to speed things up.
 
 gdata.title = "Mach 2 flow along the axis of a 5mm cylinder."
 print gdata.title
@@ -24,18 +25,20 @@ south = Line(a,b); north = Line(d,c); west = Line(a,d); east = Line(b,c)
 
 # The following lists are in order [N, E, S, W]
 bndry_list = [SupInBC(inflow), ExtrapolateOutBC(), FixedTBC(222.0), SupInBC(inflow)]
-cluster_list = [RobertsClusterFunction(1,0,1.1), RobertsClusterFunction(1,0,1.01),
-                RobertsClusterFunction(1,0,1.1), RobertsClusterFunction(1,0,1.01)]
+rcfns = RobertsClusterFunction(1,0,1.1)
+rcfew = RobertsClusterFunction(1,0,1.01)
 
 # Assemble the block from the geometry, discretization and boundary data.
-blk = Block2D(psurf=make_patch(north, east, south, west, grid_type="AO"),
-              nni=50, nnj=50,
-              bc_list=bndry_list, cf_list=cluster_list,
-              fill_condition=inflow)
+blk = SuperBlock2D(psurf=make_patch(north, east, south, west, grid_type="AO"),
+                   nni=50, nnj=50, nbi=2, nbj=2,
+                   bc_list=bndry_list, cf_list=[rcfns, rcfew, rcfns, rcfew],
+                   fill_condition=inflow)
 
 # Do a little more setting of global data.
 gdata.viscous_flag = 1
 gdata.flux_calc = ADAPTIVE
+gdata.gasdynamic_update_scheme = "classic-rk3"
+gdata.cfl = 1.2
 gdata.max_time = 8.0e-3  # seconds
 gdata.max_step = 230000
 gdata.dt = 3.0e-8
