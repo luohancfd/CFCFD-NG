@@ -84,7 +84,7 @@ int allocate_send_and_receive_buffers(void)
     } // end for jb...
     if ( get_verbose_flag() ) printf("    allocated %d bytes for data buffers.", total_bytes);
     if ( flag > 0 ) {
-        printf("Block %d: buffer allocation failed.\n", bdp->id);
+        printf("Block %d: buffer allocation failed.\n", static_cast<int>(bdp->id));
 	return MEMORY_ERROR;
     }
     return SUCCESS;
