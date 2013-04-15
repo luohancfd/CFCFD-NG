@@ -525,7 +525,7 @@ int Block::determine_time_step_size(double cfl_target, size_t dimensions)
     // These limits allow the simulation of the sod shock tube
     // to get just a little wobbly around the shock.
     // Lower values of cfl should be used for a smooth solution.
-    switch ( number_of_stages_for_update_scheme() ) {
+    switch ( number_of_stages_for_update_scheme(get_gasdynamic_update_scheme()) ) {
     case 1: cfl_allow = 0.9; break;
     case 2: cfl_allow = 1.2; break;
     case 3: cfl_allow = 1.6; break;

@@ -28,59 +28,11 @@
 const int VISCOUS_TIME_LIMIT_MODEL = 0; // ==0 original Swanson model,
                                         // ==1 Ramshaw model
 
-// Yes, this has quite a few entries and they're here because
-// I've already made a couple of errors in the input scripts.
-// Maybe this dictionary should sit in with init.cxx; it relevant only there.
-std::map<std::string,update_scheme_t> available_schemes = {
-    {"euler",EULER_UPDATE}, {"Euler",EULER_UPDATE},
-    {"pc",PC_UPDATE}, {"PC",PC_UPDATE},
-    {"predictor_corrector",PC_UPDATE},
-    {"predictor-corrector",PC_UPDATE},
-    {"Predictor_corrector",PC_UPDATE},
-    {"Predictor-corrector",PC_UPDATE},
-    {"midpoint",MIDPOINT_UPDATE}, 
-    {"mid-point",MIDPOINT_UPDATE}, 
-    {"mid_point",MIDPOINT_UPDATE}, 
-    {"Midpoint",MIDPOINT_UPDATE},
-    {"Mid-point",MIDPOINT_UPDATE},
-    {"Mid_point",MIDPOINT_UPDATE},
-    {"classic-rk3",CLASSIC_RK3_UPDATE},
-    {"classic_rk3",CLASSIC_RK3_UPDATE},
-    {"Classic-RK3",CLASSIC_RK3_UPDATE},
-    {"Classic_RK3",CLASSIC_RK3_UPDATE},
-    {"tvd-rk3",TVD_RK3_UPDATE},
-    {"tvd_rk3",TVD_RK3_UPDATE},
-    {"TVD-RK3",TVD_RK3_UPDATE},
-    {"TVD_RK3",TVD_RK3_UPDATE},
-    {"denman-rk3",DENMAN_RK3_UPDATE},
-    {"denman_rk3",DENMAN_RK3_UPDATE},
-    {"Denman-RK3",DENMAN_RK3_UPDATE},
-    {"Denman_RK3",DENMAN_RK3_UPDATE}
-};
-
-std::map<update_scheme_t,std::string> scheme_names = {
-    {EULER_UPDATE,"euler"},
-    {PC_UPDATE,"predictor-corrector"},
-    {MIDPOINT_UPDATE,"midpoint"},
-    {CLASSIC_RK3_UPDATE,"classic-rk3"},
-    {TVD_RK3_UPDATE,"tvd-rk3"},
-    {DENMAN_RK3_UPDATE,"denman-rk3"}
-};
-
-std::map<update_scheme_t,size_t> number_of_stages = {
-    {EULER_UPDATE,1},
-    {PC_UPDATE,2},
-    {MIDPOINT_UPDATE,2},
-    {CLASSIC_RK3_UPDATE,3},
-    {TVD_RK3_UPDATE, 3},
-    {DENMAN_RK3_UPDATE, 3}
-};
-
 enum update_scheme_t gasdynamic_update_scheme = PC_UPDATE;
 
-update_scheme_t set_gasdynamic_update_scheme(std::string name)
+update_scheme_t set_gasdynamic_update_scheme(update_scheme_t my_scheme)
 {
-    gasdynamic_update_scheme = available_schemes[name];
+    gasdynamic_update_scheme = my_scheme;
     return gasdynamic_update_scheme;
 }
 
@@ -89,15 +41,31 @@ update_scheme_t get_gasdynamic_update_scheme()
     return gasdynamic_update_scheme;
 }
 
-std::string get_name_of_gasdynamic_update_scheme()
+std::string get_name_of_gasdynamic_update_scheme(update_scheme_t my_scheme)
 {
-    return scheme_names[gasdynamic_update_scheme];
-}
+    switch ( my_scheme ) {
+    case EULER_UPDATE: return "euler";
+    case PC_UPDATE: return "predictor-corrector";
+    case MIDPOINT_UPDATE: return "midpoint";
+    case CLASSIC_RK3_UPDATE: return "classic-rk3";
+    case TVD_RK3_UPDATE: return "tvd-rk3";
+    case DENMAN_RK3_UPDATE: return "denman-rk3";
+    default: return "unknown";
+    }
+} // end get_name_of_gasdynamic_update_scheme()
 
-size_t number_of_stages_for_update_scheme()
+size_t number_of_stages_for_update_scheme(update_scheme_t my_scheme)
 {
-    return number_of_stages[gasdynamic_update_scheme];
-}
+    switch ( my_scheme ) {
+    case EULER_UPDATE: return 1;
+    case PC_UPDATE: return 2;
+    case MIDPOINT_UPDATE: return 2;
+    case CLASSIC_RK3_UPDATE: return 3;
+    case TVD_RK3_UPDATE: return 3;
+    case DENMAN_RK3_UPDATE: return 3;
+    default: return 0;
+    }
+} // end number_of_stages_for_update_scheme()
 
 /*----------------------------------------------------------------*/
 

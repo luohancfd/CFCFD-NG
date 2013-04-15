@@ -50,10 +50,10 @@ const int MASKED_IFACE = 1;
 // Update scheme
 enum update_scheme_t { EULER_UPDATE, PC_UPDATE, MIDPOINT_UPDATE,
 		       CLASSIC_RK3_UPDATE, TVD_RK3_UPDATE, DENMAN_RK3_UPDATE };
-update_scheme_t set_gasdynamic_update_scheme(std::string name);
+update_scheme_t set_gasdynamic_update_scheme(update_scheme_t my_scheme);
 update_scheme_t get_gasdynamic_update_scheme();
-std::string get_name_of_gasdynamic_update_scheme();
-size_t number_of_stages_for_update_scheme();
+std::string get_name_of_gasdynamic_update_scheme(update_scheme_t my_scheme);
+size_t number_of_stages_for_update_scheme(update_scheme_t my_scheme);
 /// N_LEVEL is used to size the time-derivative vectors.
 const size_t N_LEVEL = 4;
 

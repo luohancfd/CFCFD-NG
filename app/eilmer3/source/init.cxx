@@ -33,6 +33,71 @@
 
 using namespace std;
 
+std::map<std::string,update_scheme_t> available_schemes;
+int init_available_schemes_map()
+{
+    // Yes, this has quite a few entries and they're here because
+    // I've already made a couple of errors in the input scripts.
+    // And, yes, it would be tidier with an initialization list
+    // but the Intel C++ compiler doesn't implement such a nicety.
+    typedef std::pair<std::string,update_scheme_t> name_scheme_t;
+    available_schemes.insert(name_scheme_t("euler",EULER_UPDATE));
+    available_schemes.insert(name_scheme_t("Euler",EULER_UPDATE));
+    available_schemes.insert(name_scheme_t("pc",PC_UPDATE)); 
+    available_schemes.insert(name_scheme_t("PC",PC_UPDATE));
+    available_schemes.insert(name_scheme_t("predictor_corrector",PC_UPDATE));
+    available_schemes.insert(name_scheme_t("predictor-corrector",PC_UPDATE));
+    available_schemes.insert(name_scheme_t("Predictor_corrector",PC_UPDATE));
+    available_schemes.insert(name_scheme_t("Predictor-corrector",PC_UPDATE));
+    available_schemes.insert(name_scheme_t("midpoint",MIDPOINT_UPDATE)); 
+    available_schemes.insert(name_scheme_t("mid-point",MIDPOINT_UPDATE));
+    available_schemes.insert(name_scheme_t("mid_point",MIDPOINT_UPDATE)); 
+    available_schemes.insert(name_scheme_t("Midpoint",MIDPOINT_UPDATE));
+    available_schemes.insert(name_scheme_t("Mid-point",MIDPOINT_UPDATE));
+    available_schemes.insert(name_scheme_t("Mid_point",MIDPOINT_UPDATE));
+    available_schemes.insert(name_scheme_t("classic-rk3",CLASSIC_RK3_UPDATE));
+    available_schemes.insert(name_scheme_t("classic_rk3",CLASSIC_RK3_UPDATE));
+    available_schemes.insert(name_scheme_t("Classic-RK3",CLASSIC_RK3_UPDATE));
+    available_schemes.insert(name_scheme_t("Classic_RK3",CLASSIC_RK3_UPDATE));
+    available_schemes.insert(name_scheme_t("tvd-rk3",TVD_RK3_UPDATE));
+    available_schemes.insert(name_scheme_t("tvd_rk3",TVD_RK3_UPDATE));
+    available_schemes.insert(name_scheme_t("TVD-RK3",TVD_RK3_UPDATE));
+    available_schemes.insert(name_scheme_t("TVD_RK3",TVD_RK3_UPDATE));
+    available_schemes.insert(name_scheme_t("denman-rk3",DENMAN_RK3_UPDATE));
+    available_schemes.insert(name_scheme_t("denman_rk3",DENMAN_RK3_UPDATE));
+    available_schemes.insert(name_scheme_t("Denman-RK3",DENMAN_RK3_UPDATE));
+    available_schemes.insert(name_scheme_t("Denman_RK3",DENMAN_RK3_UPDATE));
+    return SUCCESS;
+}
+
+std::map<std::string,flux_calc_t> available_calculators;
+int init_available_calculators_map()
+{
+    typedef std::pair<std::string,flux_calc_t> name_flux_t;
+    available_calculators.insert(name_flux_t("0",FLUX_RIEMANN));
+    available_calculators.insert(name_flux_t("riemann",FLUX_RIEMANN));
+    available_calculators.insert(name_flux_t("Riemann",FLUX_RIEMANN));
+    available_calculators.insert(name_flux_t("1",FLUX_AUSM));
+    available_calculators.insert(name_flux_t("ausm",FLUX_AUSM));
+    available_calculators.insert(name_flux_t("AUSM",FLUX_AUSM));
+    available_calculators.insert(name_flux_t("2",FLUX_EFM));
+    available_calculators.insert(name_flux_t("efm",FLUX_EFM));
+    available_calculators.insert(name_flux_t("EFM",FLUX_EFM));
+    available_calculators.insert(name_flux_t("3",FLUX_AUSMDV));
+    available_calculators.insert(name_flux_t("ausmdv",FLUX_AUSMDV));
+    available_calculators.insert(name_flux_t("AUSMDV",FLUX_AUSMDV));
+    available_calculators.insert(name_flux_t("4",FLUX_ADAPTIVE));
+    available_calculators.insert(name_flux_t("adaptive",FLUX_ADAPTIVE));
+    available_calculators.insert(name_flux_t("Adaptive",FLUX_ADAPTIVE));
+    available_calculators.insert(name_flux_t("5",FLUX_AUSM_PLUS_UP));
+    available_calculators.insert(name_flux_t("ausm_plus_up",FLUX_AUSM_PLUS_UP));
+    available_calculators.insert(name_flux_t("AUSM_plus_up",FLUX_AUSM_PLUS_UP));
+    available_calculators.insert(name_flux_t("6",FLUX_HLLE));
+    available_calculators.insert(name_flux_t("hlle",FLUX_HLLE));
+    available_calculators.insert(name_flux_t("HLLE",FLUX_HLLE));
+    return SUCCESS;
+}
+
 /*-----------------------------------------------------------------*/
 
 /// \brief Read simulation config parameters from the INI file.
@@ -47,6 +112,8 @@ int read_config_parameters(const string filename, bool master)
 {
     global_data &G = *get_global_data_ptr();
     size_t jb;
+    init_available_schemes_map();
+    init_available_calculators_map();
 
     // Default values for some configuration variables.
     G.dimensions = 2;
@@ -300,7 +367,7 @@ int read_config_parameters(const string filename, bool master)
 
     dict.parse_size_t("global_data", "max_invalid_cells", G.max_invalid_cells, 10);
     dict.parse_string("global_data", "flux_calc", s_value, "riemann");
-    set_flux_calculator(s_value);
+    set_flux_calculator(available_calculators[s_value]);
     dict.parse_double("global_data", "compression_tolerance", d_value, -0.30);
     set_compression_tolerance(d_value);
     dict.parse_double("global_data", "shear_tolerance", d_value, 0.20);
@@ -521,14 +588,14 @@ int read_control_parameters( const string filename, bool master, bool first_time
     // 2013-03-31 change to use an explicitly-named update scheme.
     dict.parse_string("control_data", "gasdynamic_update_scheme", s_value,
 		      "predictor-corrector");
-    set_gasdynamic_update_scheme(s_value);
+    set_gasdynamic_update_scheme(available_schemes[s_value]);
     // To keep backward compatibility with old simulation files,
     // read Torder if it exists and set the equivalent update scheme.
     dict.parse_int("control_data", "t_order", i_value, 0);
     switch ( i_value ) {
-    case 1: set_gasdynamic_update_scheme("euler"); break;
-    case 2: set_gasdynamic_update_scheme("predictor-corrector"); break;
-    case 3: set_gasdynamic_update_scheme("denman-rk3"); break;
+    case 1: set_gasdynamic_update_scheme(available_schemes["euler"]); break;
+    case 2: set_gasdynamic_update_scheme(available_schemes["predictor-corrector"]); break;
+    case 3: set_gasdynamic_update_scheme(available_schemes["denman-rk3"]); break;
     default: /* do nothing */;
     }
     dict.parse_int("control_data", "separate_update_for_viscous_flag", i_value, 0);
@@ -558,7 +625,8 @@ int read_control_parameters( const string filename, bool master, bool first_time
 	cout << "Time-step control parameters:" << endl;
 	cout << "    x_order = " << get_Xorder_flag() << endl;
 	cout << "    gasdynamic_update_scheme = " 
-	     << get_name_of_gasdynamic_update_scheme() << endl;
+	     << get_name_of_gasdynamic_update_scheme(get_gasdynamic_update_scheme())
+	     << endl;
 	cout << "separate_update_for_viscous_flag = " 
 	     << get_separate_update_for_viscous_flag() << endl;
 	cout << "    dt = " << G.dt_init << endl;

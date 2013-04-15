@@ -24,32 +24,11 @@
 // while computing flux at each interface.
 FlowState *IFace_flow_state = NULL;
 
-
-std::map<std::string,flux_calc_t> available_calculators = {
-    {"0",FLUX_RIEMANN}, {"riemann",FLUX_RIEMANN}, {"Riemann",FLUX_RIEMANN},
-    {"1",FLUX_AUSM}, {"ausm",FLUX_AUSM}, {"AUSM",FLUX_AUSM},
-    {"2",FLUX_EFM}, {"efm",FLUX_EFM}, {"EFM",FLUX_EFM},
-    {"3",FLUX_AUSMDV}, {"ausmdv",FLUX_AUSMDV}, {"AUSMDV",FLUX_AUSMDV},
-    {"4",FLUX_ADAPTIVE}, {"adaptive",FLUX_ADAPTIVE}, {"Adaptive",FLUX_ADAPTIVE},
-    {"5",FLUX_AUSM_PLUS_UP}, {"ausm_plus_up",FLUX_AUSM_PLUS_UP}, {"AUSM_plus_up",FLUX_AUSM_PLUS_UP},
-    {"6",FLUX_HLLE}, {"hlle",FLUX_HLLE}, {"HLLE",FLUX_HLLE},
-};
-
-std::map<flux_calc_t,std::string> calculator_names = {
-    {FLUX_RIEMANN,"riemann"},
-    {FLUX_AUSM,"ausm"},
-    {FLUX_EFM,"efm"},
-    {FLUX_AUSMDV,"ausmdv"},
-    {FLUX_ADAPTIVE,"adaptive"},
-    {FLUX_AUSM_PLUS_UP,"ausm_plus_up"},
-    {FLUX_HLLE,"hlle"}
-};
-
 flux_calc_t flux_calculator = FLUX_RIEMANN;
 
-flux_calc_t set_flux_calculator(std::string name)
+flux_calc_t set_flux_calculator(flux_calc_t my_flux_calculator)
 {
-    flux_calculator = available_calculators[name];
+    flux_calculator = my_flux_calculator;
     return flux_calculator;
 }
 
@@ -60,8 +39,17 @@ flux_calc_t get_flux_calculator()
 
 std::string get_flux_calculator_name(flux_calc_t calc)
 {
-    return calculator_names[calc];
-}
+    switch ( calc ) {
+    case FLUX_RIEMANN: return "riemann";
+    case FLUX_AUSM: return "ausm";
+    case FLUX_EFM: return "efm";
+    case FLUX_AUSMDV: return "ausmdv";
+    case FLUX_ADAPTIVE: return "adaptive";
+    case FLUX_AUSM_PLUS_UP: return "ausm_plus_up";
+    case FLUX_HLLE: return "hlle";
+    default: return "none";
+    }
+} // end get_flux_calculator_name()
 
 /*----------------------------------------------------------------------------*/
 

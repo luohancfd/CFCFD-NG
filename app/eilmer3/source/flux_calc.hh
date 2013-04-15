@@ -34,7 +34,7 @@ const int DEBUG_FLUX = 0;
  */
 enum flux_calc_t {FLUX_RIEMANN, FLUX_AUSM, FLUX_EFM, FLUX_AUSMDV,
 		  FLUX_ADAPTIVE, FLUX_AUSM_PLUS_UP, FLUX_HLLE};
-flux_calc_t set_flux_calculator(std::string name);
+flux_calc_t set_flux_calculator(flux_calc_t my_flux_calculator);
 flux_calc_t get_flux_calculator();
 std::string get_flux_calculator_name(flux_calc_t calc); 
 

@@ -1539,7 +1539,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 	    }
 	} // end of for jb...
 
-	if ( number_of_stages_for_update_scheme() >= 2 ) {
+	if ( number_of_stages_for_update_scheme(get_gasdynamic_update_scheme()) >= 2 ) {
 	    // Preparation for second-stage of gas-dynamic update.
 	    G.sim_time = t0 + c2*dt;
 	    for ( Block *bdp : G.my_blocks ) {
@@ -1589,7 +1589,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 	    } // end for jb loop
 	} // end if ( number_of_stages_for_update_scheme() >= 2 
 
-	if ( number_of_stages_for_update_scheme() >= 3 ) {
+	if ( number_of_stages_for_update_scheme(get_gasdynamic_update_scheme()) >= 3 ) {
 	    // Preparation for third stage of gasdynamic update.
 	    G.sim_time = t0 + c3*dt;
 	    for ( Block *bdp : G.my_blocks ) {
