@@ -106,6 +106,7 @@ struct global_data
     double shock_fitting_speed_factor;
 
     double t_plot;          /* time to write next soln    */
+    size_t write_at_step;   /* update step at which to write a solution, 0=don't do it */
     double t_his;           /* time to write next sample  */
     double t_fstc;          /* time to write next fluid-structure exchange data*/
     double t_shock;         /* time to next adapt grid to shock    */

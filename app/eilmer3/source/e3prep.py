@@ -379,12 +379,16 @@ class GlobalData(object):
       1.0 replaces the cell information with the average of the adjacent cells.
     * filter_npass: (int) Number of passes of the filter to apply at each interval.
     * dt_shock: (float) Period (in seconds) between running the shock adaptation algorithm.
-    * dt_plot: (float) Period between writing all of the flow field data to the
-      solution file.
-      Multiple instances can be written to the one file but be careful not to
-      write too many and fill up your disk.
+    * dt_plot: (float) Period (in seconds) between writing all of the flow field data to the
+      solution files.  Multiple instances, each with a specific time stamp/index, can be written 
+      for one simulation so be careful not to write too many and fill up your disk.
+      The .times files records the instances written so you can look up the content of that file
+      to see the map between time index and actual simulation time.
     * dt_history: (float) Period (in seconds) between writing the data for the
-      selected cells to the history file.
+      selected cells to the history files.
+    * write_at_step: (int) Update step at which flow field data will be written.
+      To distinguish this data set from the regularly written with dt_plot, the index tag
+      for this solution is "xxxx".  Leave as the default value 0 to not write such a solution. 
     """
     count = 0
 
@@ -414,7 +418,7 @@ class GlobalData(object):
                 't0', 'dt', 'cfl', 'dt_chem', 'dt_therm', \
                 'interpolation_type', 'sequence_blocks', \
                 'print_count', 'cfl_count', 'max_invalid_cells', 'dt_reduction_factor', \
-                'max_time', 'max_step', 'dt_plot', 'dt_history', \
+                'max_time', 'max_step', 'dt_plot', 'dt_history', "write_at_step", \
                 'displacement_thickness', 'time_average_flag', 'perturb_flag', \
                 'perturb_frac', 'tav_0', 'tav_f', 'dt_av', \
                 'fixed_time_step', 'apply_limiter_flag', 'extrema_clipping_flag', \
@@ -509,6 +513,7 @@ class GlobalData(object):
         self.dt_shock = 0.0
         self.dt_plot = 1.0e-3
         self.dt_history = 1.0e-3
+        self.write_at_step = 0
         GlobalData.count += 1
         return
 
@@ -559,6 +564,7 @@ class GlobalData(object):
         fp.write("cfl_count = %d\n" % self.cfl_count)
         fp.write("dt_shock = %e\n" % self.dt_shock)
         fp.write("dt_plot = %e\n" % self.dt_plot)
+        fp.write("write_at_step = %d\n" % self.write_at_step)
         fp.write("dt_history = %e\n" % self.dt_history)
         fp.write("max_time = %e\n" % self.max_time)
         fp.write("max_step = %d\n" % self.max_step)

@@ -612,6 +612,7 @@ int read_control_parameters( const string filename, bool master, bool first_time
     dict.parse_size_t("control_data", "cfl_count", G.cfl_count, 10);
     dict.parse_double("control_data", "dt_shock", G.dt_shock, 1.0e-3);
     dict.parse_double("control_data", "dt_plot", G.dt_plot, 1.0e-3);
+    dict.parse_size_t("control_data", "write_at_step", G.write_at_step, 0);
     dict.parse_double("control_data", "dt_history", G.dt_his, 1.0e-3);
     dict.parse_double("control_data", "dt_fstc", G.dt_fstc, 1.0e-3);
     dict.parse_double("control_data", "max_time", G.max_time, 1.0e-3);
@@ -638,6 +639,7 @@ int read_control_parameters( const string filename, bool master, bool first_time
 	cout << "    print_count = " << G.print_count << endl;
 	cout << "    cfl_count = " << G.cfl_count << endl;
 	cout << "    dt_plot = " << G.dt_plot << endl;
+	cout << "    write_at_step = " << G.write_at_step << endl;
 	cout << "    dt_shock = " << G.dt_shock << endl;
 	cout << "    dt_history = " << G.dt_his << endl;
 	cout << "    dt_fstc = " << G.dt_fstc << endl;
