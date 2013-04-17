@@ -88,7 +88,7 @@ def main():
     # If no value for nblock is given, we infer the number of blocks from the number of 
     # solution files found in the './flow' directory.
     if opt.nblock is None:
-        flowdirectory = os.getcwd() + "/flow/t" + str(opt.tindx) + "/"
+        flowdirectory = os.getcwd() + ("/flow/t%04d" % opt.tindx) + "/"
         opt.nblock = len( os.listdir(flowdirectory) )
 
     # Check that a jobName has been given.
