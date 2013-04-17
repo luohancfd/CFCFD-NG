@@ -1,0 +1,53 @@
+# FireII.test
+# Fire II t=1634s stagnation line problem
+#
+# This test case exercises the poshax3.x executable to compute the 
+# post-shock relaxation profile for 11 species and 2 temperature air
+#
+# DFP, 17-Apr-2013 
+
+package require tcltest 2.0
+namespace import ::tcltest::*
+configure -verbose {start body error}
+
+test run-preprocessor {Run the preprocessing stage.} -body {
+    # 1. Prepare gas file
+    exec gasfile air-11sp-2T.inp air-11sp-2T.lua >> LOGFILE_PREP
+    # We want harmonic oscillators instead of truncated harmonic
+    # oscillators for this literature comparison.
+    exec sed -ie "s/truncated harmonic/harmonic/g" air-11sp-2T.lua >> LOGFILE_PREP
+    exec mv air-11sp-2T.lua air-11sp-2T-HO.lua >> LOGFILE_PREP
+} -result {} -returnCodes {0}
+
+test run-simulation {Run the poshax3 code.} -body {
+    # 2. Run simulation
+    exec poshax3.x FireII.cfg >> LOGFILE_RUN
+} -result {} -returnCodes {0}
+
+test run-postprocessor {Run the postprocessing stage.} -body {
+    # 3. Plot results
+    exec gnuplot profiles.gplot >> LOGFILE_POST
+
+    # 4. Convert to png files
+    exec convert -density 600x600 -quality 90 number_density_profiles.eps number_density_profiles.png >> LOGFILE_POST
+    exec convert -density 600x600 -quality 90 temperature_profiles.eps temperature_profiles.png >> LOGFILE_POST
+
+    # 5. Compute average errors with Panesi solution
+    exec python compute_errors.py >> LOGFILE_POST
+} -result {} -returnCodes {0}
+
+test check-Tve-error {The divergence RMS error with respect to the analytic solution.} -body {
+    set Tve_RMS_error 0
+    # Looking for a line starting with 'RMS of the T_ve error'
+    set fp [open LOGFILE_POST r]
+    set results [read $fp]
+    close $fp
+    foreach line [split $results "\n"] {
+        if {[string first "RMS of the T_ve error" $line] == 0} {
+	        set Tve_RMS_error [lindex [split $line] 6]
+	    }
+    }
+    expr abs($Tve_RMS_error) < 10.0
+} -result {1}
+
+cleanupTests
