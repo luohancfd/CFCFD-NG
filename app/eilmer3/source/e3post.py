@@ -146,7 +146,7 @@ longOptions = ["help", "job=", "zip-files", "no-zip-files", "vtk-xml", "tecplot"
 def printUsage():
     print ""
     print "Usage:"
-    print "e3post.py [--help] [--job=<jobFileName>] [--tindx=<index|all>]"
+    print "e3post.py [--help] [--job=<jobFileName>] [--tindx=<index|9999|last|all|xxxx>]"
     print "          [--zip-files|--no-zip-files]"
     print "          [--moving-grid]"
     print "          [--omegaz=\"[omegaz0,omegaz1,...]\"]"
@@ -183,41 +183,48 @@ def printUsage():
 #----------------------------------------------------------------------
 
 def read_time_indices():
+    """
+    The job.times should contain the map from solution index to simulation time.
+
+    The file format is one entry per line, possibly with comment lines 
+    starting with the # character.
+
+    Returns the final tindx and a dictionary of (tindx,t)-pairs
+    """
     fileName = rootName + ".times"
     try:
         fp = open(fileName, "r")
-        buf = fp.readline()
-        buf = buf.strip()
-        indices = []; times = []; times_dict = {}
+        # For unkown reason, sometimes a line has several
+        # leading null-characters. So remove them to avoid
+        # an error while reading the file. (Stefan Hess)
+        buf = fp.readline().strip().strip("\0")
+        times_dict = {}
         while len(buf) > 0:
             if buf[0] == '#': 
-                buf = fp.readline()
-                buf = buf.strip()
+                buf = fp.readline().strip().strip("\0")
                 continue
             tokens = buf.split()
-            tindx = int(tokens[0])
-            t = float(tokens[1])
-            indices.append(tindx)
-            times.append(t)
+            tindx = int(tokens[0]); t = float(tokens[1])
             times_dict[tindx] = t
-            buf = fp.readline()
-            buf = buf.strip()
-            # For unkown reason sometimes a line has several
-            # leading null-characters. So remove them to avoid
-            # an error while reading the file. (Stefan Hess)
-            buf = buf.strip("\0")
+            buf = fp.readline().strip().strip("\0")
+        fp.close()
     except Exception, e:
-        # For some reason, we could not read the .times file
+        # For some reason, we could not read the job.times file
         # so let's assume that there should be a t=0 data set.
         # This will allow us to handle cases where we have run
         # the preparation program but not the main simulation.
         print "Problem reading .times file:", e
-        tindx = 0
-        times_dict = { 0:0.0 }
+        tindx = 0; times_dict = { 0:0.0 }
     return tindx, times_dict
 
 
 def read_block_labels():
+    """
+    The block_labels file contains the (string) names of each of the blocks,
+    one per line.
+
+    Comment lines start with a # character.
+    """
     fileName = "block_labels.list"
     fp = open(fileName, "r")
     buf = fp.readline()
@@ -919,9 +926,10 @@ if __name__ == '__main__':
     #
     jobName = uoDict.get("--job", "test")
     rootName, ext = os.path.splitext(jobName)
-    zipFiles = 1  # Default: use zip file format for grid and flow data files.
-    if uoDict.has_key("--zip-files"): zipFiles = 1
-    if uoDict.has_key("--no-zip-files"): zipFiles = 0
+    zipFiles = True  # Default: use zip file format for grid and flow data files.
+    if uoDict.has_key("--no-zip-files"): zipFiles = False
+    if uoDict.has_key("--zip-files"): zipFiles = True
+    movingGrid = uoDict.has_key("--moving-grid")
     if uoDict.has_key("--omegaz"):
         mystr = uoDict.get("--omegaz", None)
         print "mystr=", mystr
@@ -941,6 +949,8 @@ if __name__ == '__main__':
         put_into_folders(rootName, times_dict)
         sys.exit(0)
     #
+    # Restarts have to have a particular tindx integer value 
+    # from which to start the continuing simulation.
     if uoDict.has_key("--prepare-restart"):
         tindx = int(tindx_str)
         prepare_for_restart(rootName, tindx)
@@ -955,36 +965,59 @@ if __name__ == '__main__':
     # so it may make sense to be dealing with multiple values for tindx.
     if tindx_str == "all":
         tindx_list = times_dict.keys()
+        tindx_list.sort()
+    elif tindx_str in ["last", "9999"]:
+        tindx_list = times_dict.keys()
+        tindx_list.sort()
+        tindx_list = [tindx_list[-1],]
+    elif tindx_str in ["xxxx", "XXXX"]:
+        tindx_list = ["xxxx",]
+        # Now, we need to dip into the txxxx solution file,
+        # extract the simulation time value from the first line and
+        # add it to times_dict.
+        times_dict["xxxx"] = read_time_from_flow_file(rootName, "xxxx", zipFiles)
     else:
-        tindx_list = [int(tindx_str,10),]
+        try:
+            tindx_list = [int(tindx_str,10),]
+        except:
+            raise ValueError("Do not know what to do with option tindx= %s" % tindx_str)
     #
     if uoDict.has_key("--vtk-xml") or uoDict.has_key("--ref-function") or \
             uoDict.has_key("--compare-job"): 
+        # At this point, the tindx_list may have several entries and 
+        # the Visit and PVD files accumulate information about each entry.
+        # This allows the construction of animations built from multiple
+        # solution frames.
         begin_Visit_file(rootName, nblock)
         begin_PVD_file(rootName)
     #
     # For the times that have been specified, do something...
+    print "About to process the following solutions:", tindx_list
     for tindx in tindx_list:
         if uoDict.has_key("--vtk-xml"):
             print "Assemble VTK-XML files for t=", times_dict[tindx]
-            if uoDict.has_key("--moving-grid"):
-                grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles, movingGrid=1)
-            else:
-                grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
+            grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles, movingGrid)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz)
             write_VTK_XML_files(rootName, tindx, nblock, grid, flow, times_dict[tindx])
         #
         if uoDict.has_key("--tecplot"):
             print "Assemble Tecplot file for t=", times_dict[tindx]
-            grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
+            grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles, movingGrid)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz)
             write_Tecplot_file(rootName, tindx, nblock, grid, flow, times_dict[tindx])
         #
         if uoDict.has_key("--plot3d"):
             print "Write out Plot3d grid for t=", times_dict[tindx]
-            grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
+            grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles, movingGrid)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz)
-            fname = rootName+(".t%04d" % tindx)+".grd"
+            # tindx may be an integer, or already a string such as "xxxx"
+            if type(tindx) is int:
+                tindx_str = "%04d" % tindx
+            elif type(tindx) is string:
+                tindx_str = tindx
+            else:
+                raise RuntimeException("WTF: tindx is neither an int nor string.")
+            fname = rootName+(".t%04s" % tindx_str)+".grd"
             plotPath = "plot"
             if not os.access(plotPath, os.F_OK):
                 os.makedirs(plotPath)
@@ -1046,7 +1079,11 @@ if __name__ == '__main__':
             print "Compare with reference solution for t=", times_dict[tindx]
             compareJobName = uoDict.get("--compare-job", jobName)
             compareRootName, compareExt = os.path.splitext(compareJobName)
-            compareTindx = int(uoDict.get("--compare-tindx", "9999"))
+            compareTindx = uoDict.get("--compare-tindx", "9999")
+            if compareTindx in ["last", "9999"]:
+                compareTindx = tindx_list[-1]
+            else:
+                compareTindx = int(compareTindx)
             print "   Comparison solution:", compareRootName, " compareTindx=", compareTindx
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz)

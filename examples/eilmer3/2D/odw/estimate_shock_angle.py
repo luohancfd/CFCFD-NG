@@ -36,7 +36,7 @@ def locate_shock_along_strip(x, y, p):
     y_loc = y_old * (1.0 - frac) + y_new * frac
     return x_loc, y_loc
 
-def locate_shock_front(jobName, nbi, nbj):
+def locate_shock_front(jobName, tindx, nbi, nbj):
     """
     Reads flow blocks and returns the coordinates of the shock front.
 
@@ -56,7 +56,8 @@ def locate_shock_front(jobName, nbi, nbj):
         blockData.append([])
         for jb in range(nbj):
             blkindx = ib*nbj + jb
-            fileName = 'flow/t9999/%s.flow.b%04d.t9999.gz' % (jobName, blkindx)
+            fileName = 'flow/t%04d/%s.flow.b%04d.t%04d.gz' % \
+                (tindx, jobName, blkindx, tindx)
             fp = gzip.open(fileName, "r")
             blockData[ib].append(StructuredGridFlow())
             blockData[ib][-1].read(fp)
@@ -81,7 +82,7 @@ def locate_shock_front(jobName, nbi, nbj):
 #----------------------------------------------------------------
 print "Begin estimate_shock_angle.py"
 
-xs_all, ys_all = locate_shock_front("odw", nbi=8, nbj=8)
+xs_all, ys_all = locate_shock_front("odw", 40, nbi=8, nbj=8)
 # print "xs_all=", xs_all, "ys=", ys_all
 # Trim shock points t avoid outflow boundary.
 xs = [x for x in xs_all if x < 1.70]

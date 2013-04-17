@@ -61,7 +61,7 @@ def calculate_representative_cell_size(dataFolder):
     and summing up the volume/area of each cell. This method is not
     very efficient (computationally).
     """
-    fileList = glob.glob(dataFolder+"/flow/t9999/*.gz")
+    fileList = glob.glob(dataFolder+"/flow/t0001/*.gz")
     GridFlowData = []
     blk_volume = []
     blk_cells = []
@@ -103,7 +103,7 @@ def calculate_representative_cell_size_v2(dataFolder, jobName):
             gmodelFile = 'gas-model.lua'
         else:
             gmodelFile = glob.glob("cea-lut-*.lua.gz")[0]
-        run_command(E3BIN+('/e3post.py --job=%s --tindx=9999 --gmodel-file=%s ' %
+        run_command(E3BIN+('/e3post.py --job=%s --tindx=0001 --gmodel-file=%s ' %
                           (jobName, gmodelFile))
                     +('--output-file=%s ' % (jobName+".data"))
                     +'--slice-list=":,:,:,0" ')

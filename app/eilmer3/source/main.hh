@@ -18,6 +18,7 @@ int prepare_to_integrate(size_t start_tindx);
 int call_udf(double t, size_t step, std::string udf_fn_name);
 int add_udf_source_vector_for_cell(FV_Cell *cell, size_t gtl, double t);
 int integrate_blocks_in_sequence(void);
+int write_solution_data(std::string tindxstring);
 int integrate_in_time(double target_time);
 int finalize_simulation(void);
 int gasdynamic_explicit_increment_with_fixed_grid(double dt);

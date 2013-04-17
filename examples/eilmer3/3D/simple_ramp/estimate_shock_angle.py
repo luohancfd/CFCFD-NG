@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # estimate_shock_angle.py
 # PJ, 11-Jan-2011
+#     17-Apr-2013 adapt to not having a 9999 solution.
 
 import sys, os, gzip
 sys.path.append(os.path.expandvars("$HOME/e3bin"))
@@ -36,12 +37,13 @@ def locate_shock_along_strip(x, y, p):
     y_loc = y_old * (1.0 - frac) + y_new * frac
     return x_loc, y_loc
 
-def locate_shock_front(jobName, nbi, nbj):
+def locate_shock_front(jobName, tindx, nbi, nbj):
     """
     Reads flow blocks and returns the coordinates of the shock front.
 
     Input:
     jobName: string name used to construct file names
+    tindx: specify the particular solution frame
     nbi: number of blocks in the i-index direction
     nbj: number of blocks in the j-index direction
 
@@ -57,7 +59,8 @@ def locate_shock_front(jobName, nbi, nbj):
         blockData.append([])
         for jb in range(nbj):
             blkindx = ib*nbj + jb
-            fileName = 'flow/t9999/%s.flow.b%04d.t9999.gz' % (jobName, blkindx)
+            fileName = 'flow/t%04d/%s.flow.b%04d.t%04d.gz' % \
+                (tindx, jobName, blkindx, tindx)
             fp = gzip.open(fileName, "r")
             blockData[ib].append(StructuredGridFlow())
             blockData[ib][-1].read(fp)
@@ -83,7 +86,7 @@ def locate_shock_front(jobName, nbi, nbj):
 #----------------------------------------------------------------
 print "Begin estimate_shock_angle.py"
 
-xs_all, ys_all = locate_shock_front("simple_ramp", nbi=2, nbj=1)
+xs_all, ys_all = locate_shock_front("simple_ramp", 5, nbi=2, nbj=1)
 # print "xs_all=", xs_all, "ys=", ys_all
 # The shock interacts with the NORTH boundary and 
 # the sumulation hasn't reached steady state, so truncate the data.

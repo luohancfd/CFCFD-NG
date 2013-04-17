@@ -1218,7 +1218,7 @@ int integrate_in_time(double target_time)
 	if ( (G.write_at_step > 0) && (G.step == G.write_at_step) && 
 	     write_at_step_has_been_done == 0 ) {
 	    // Write the solution once-off, most likely for debug.
-	    write_solution_data("xxxx");
+	    write_solution_data("txxxx");
 	    write_at_step_has_been_done = 1;
 	}
         if ( (G.sim_time >= G.t_his) && !history_just_written ) {
@@ -1371,74 +1371,22 @@ int finalize_simulation( void )
 {
     global_data &G = *get_global_data_ptr();
     string filename, commandstring, foldername, jbstring, jsstring;
-    char jbcstr[10],jscstr[10];
-    int js, final_s;
+    char tindxcstr[10], jbcstr[10];
 
-    // Write out the final solution even if it has just been written
+    // Write out the final solution only if it has NOT just been written
     // as part of the main time-stepping loop.
-    output_counter = 9999;
-    if ( master ) {
-	fprintf( G.timestampfile, "%04d %e %e\n", 
-		 static_cast<int>(output_counter), G.sim_time, G.dt_global );
-	fflush( G.timestampfile );
-    }
-    foldername = "flow/t9999";
-    ensure_directory_is_present(foldername); // includes Barrier
-    for ( Block *bdp : G.my_blocks ) {
-	sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) ); jbstring = jbcstr;
-	filename = foldername+"/"+G.base_file_name+".flow"+jbstring+".t9999";
-	bdp->write_solution(filename, G.sim_time, G.dimensions, zip_files);
-	if (get_BGK_flag() > 0) {
-	    filename = foldername+"/"+G.base_file_name+".BGK"+jbstring+".t9999";
-	    bdp->write_BGK(filename, G.sim_time, G.dimensions, zip_files);
+    if ( !output_just_written ) {
+	++output_counter;
+	if ( master ) {
+	    fprintf( G.timestampfile, "%04d %e %e\n", static_cast<int>(output_counter),
+		     G.sim_time, G.dt_global );
+	    fflush( G.timestampfile );
 	}
+	sprintf( tindxcstr, "t%04d", static_cast<int>(output_counter) ); // C string
+	write_solution_data(tindxcstr);
+	output_just_written = 1;
+	G.t_plot += G.dt_plot;
     }
-    if ( get_moving_grid_flag() ) {
-        foldername = "grid/t9999";
-        ensure_directory_is_present(foldername); // includes Barrier
-        for ( Block *bdp : G.my_blocks ) {
-	    sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) ); jbstring = jbcstr; 
-	    filename = foldername+"/"+G.base_file_name+".grid"+jbstring+".t9999";
-	    bdp->write_grid(filename, G.sim_time, G.dimensions, zip_files);
-        } // end for *bdp
-	if ( get_write_vertex_velocities_flag() ) {
-	    ensure_directory_is_present("vel");
-	    foldername = "vel/t9999";
-	    ensure_directory_is_present(foldername); // includes Barrier
-	    // Loop over blocks
-	    for ( Block *bdp : G.my_blocks ) {
-		sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) ); jbstring = jbcstr;
-		final_s = ((G.dimensions == 3)? BOTTOM : WEST);
-		// Loop over boundaries/surfaces
-		for ( js = NORTH; js <= final_s; ++js ) {
-		    sprintf( jscstr, ".s%04d", js ); jsstring = jscstr;
-		    filename = foldername+"/"+ G.base_file_name+".vel"	\
-			+jbstring+jsstring+"."+"t9999";
-		    bdp->bcp[js]->write_vertex_velocities(filename, G.sim_time, G.dimensions);
-		    if ( zip_files == 1 ) do_system_cmd("gzip -f "+filename);
-		}
-	    } // end for *bdp
-	}
-    }
-    // Compute, store and write heat-flux data, if viscous simulation
-    if ( get_viscous_flag() ) {
-	foldername = "heat/t9999";
-	ensure_directory_is_present(foldername); // includes Barrier
-	for ( Block *bdp : G.my_blocks ) {
-	    sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) ); jbstring = jbcstr;
-	    final_s = ((G.dimensions == 3)? BOTTOM : WEST);
-	    // Loop over boundaries/surfaces
-	    for ( js = NORTH; js <= final_s; ++js ) {
-		sprintf( jscstr, ".s%04d", js ); jsstring = jscstr;
-		filename = foldername+"/"+ G.base_file_name+".heat" \
-				+jbstring+jsstring+".t9999";
-		bdp->bcp[js]->compute_surface_heat_flux();
-		bdp->bcp[js]->write_surface_heat_flux(filename,G.sim_time);
-		if ( zip_files == 1 ) do_system_cmd("gzip -f "+filename);
-	    }
-	} // end for *bdp
-    }
-    output_just_written = 1;
     // For the history files, we don't want to double-up on solution data.
     if ( !history_just_written ) {
 	for ( Block *bdp : G.my_blocks ) {

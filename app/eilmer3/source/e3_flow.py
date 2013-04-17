@@ -615,18 +615,49 @@ class StructuredGridFlow(object):
 
 # end of class StructuredGridFlow
 
-def read_all_blocks(rootName, nblock, tindx, zipFiles=0, movingGrid=0):
+def read_time_from_flow_file(rootName, tindx, zipFiles=False):
+    """
+    We'll find the simulation time on the first lins of the flow file.
+    """
+    # tindx may be an integer, or already a string such as "xxxx"
+    if type(tindx) is int:
+        tindx_str = "%04d" % tindx
+    elif type(tindx) is str:
+        tindx_str = tindx
+    else:
+        raise RuntimeException("WTF: tindx is neither an int nor string.")
+    fileName = rootName+".flow"+(".b0000.t%04s" % tindx_str)
+    fileName = os.path.join("flow", "t%04s" % tindx_str, fileName)
+    print "Read simulation time from", fileName
+    if zipFiles: 
+        fp = GzipFile(fileName+".gz", "rb")
+    else:
+        fp = open(fileName, "r")
+    line = fp.readline().strip().strip("\0")
+    t = float(line)
+    fp.close()
+    return t
+
+def read_all_blocks(rootName, nblock, tindx, zipFiles=False, movingGrid=False):
     """
     Returns all grids and flow blocks for a single flow solution.
+
     """
+    # tindx may be an integer, or already a string such as "xxxx"
+    if type(tindx) is int:
+        tindx_str = "%04d" % tindx
+    elif type(tindx) is str:
+        tindx_str = tindx
+    else:
+        raise RuntimeException("WTF: tindx is neither an int nor string.")
     grid = []; flow = []
     for jb in range(nblock):
-        if movingGrid == 0:
-            fileName = rootName+".grid"+(".b%04d.t%04d" % (jb, 0))
+        if not movingGrid:
+            fileName = rootName+".grid"+(".b%04d.t%04s" % (jb, "0000"))
             fileName = os.path.join("grid", "t0000", fileName)
         else:
-            fileName = rootName+".grid"+(".b%04d.t%04d" % (jb, tindx))
-            fileName = os.path.join("grid", "t%04d" % tindx, fileName)
+            fileName = rootName+".grid"+(".b%04d.t%04s" % (jb, tindx_str))
+            fileName = os.path.join("grid", "t%04s" % tindx_str, fileName)
         print "Read cell-vertex data from", fileName
         grid.append(StructuredGrid())
         if zipFiles: 
@@ -636,8 +667,8 @@ def read_all_blocks(rootName, nblock, tindx, zipFiles=0, movingGrid=0):
         grid[-1].read(fp)
         fp.close()
         #
-        fileName = rootName+".flow"+(".b%04d.t%04d" % (jb, tindx))
-        fileName = os.path.join("flow", "t%04d" % tindx, fileName)
+        fileName = rootName+".flow"+(".b%04d.t%04s" % (jb, tindx_str))
+        fileName = os.path.join("flow", "t%04s" % tindx_str, fileName)
         print "Read cell-centre flow data from", fileName
         if zipFiles: 
             fp = GzipFile(fileName+".gz", "rb")
@@ -647,8 +678,8 @@ def read_all_blocks(rootName, nblock, tindx, zipFiles=0, movingGrid=0):
         flow[-1].read(fp)
         fp.close()
         #
-        fileName = rootName+".BGK"+(".b%04d.t%04d" % (jb, tindx))
-        fileName = os.path.join("flow", "t%04d" % tindx, fileName)
+        fileName = rootName+".BGK"+(".b%04d.t%04s" % (jb, tindx_str))
+        fileName = os.path.join("flow", "t%04s" % tindx_str, fileName)
         # only open a BGK file if one is there
         if os.path.exists(fileName) | os.path.exists(fileName+".gz"):
             print "Read velocity distribution data from", fileName
@@ -1006,7 +1037,7 @@ def write_VTK_XML_files(rootName, tindx, nblock, grid, flow, t):
     Writes the top-level (coordinating) parallel/partitioned-VTK file.
 
     :param rootName: specific file names are built by adding bits to this name
-    :param tindx: integer
+    :param tindx: integer or string such as "xxxx"
     :param nblock: integer
     :param grid: list of StructuredGrid objects
     :param flow: list of StructuredGridFlow objects
@@ -1015,7 +1046,14 @@ def write_VTK_XML_files(rootName, tindx, nblock, grid, flow, t):
     plotPath = "plot"
     if not os.access(plotPath, os.F_OK):
         os.makedirs(plotPath)
-    fileName = rootName+(".t%04d" % tindx)+".pvtu"
+    # tindx may be an integer, or already a string such as "xxxx"
+    if type(tindx) is int:
+        tindx_str = "%04d" % tindx
+    elif type(tindx) is str:
+        tindx_str = tindx
+    else:
+        raise RuntimeException("WTF: tindx is neither an int nor string.")
+    fileName = rootName+(".t%04s" % tindx_str)+".pvtu"
     fileName = os.path.join(plotPath, fileName)
     pvtuFile = open(fileName, "w")
     pvtuFile.write("<VTKFile type=\"PUnstructuredGrid\">\n")
@@ -1033,7 +1071,7 @@ def write_VTK_XML_files(rootName, tindx, nblock, grid, flow, t):
         pvtuFile.write(" <PDataArray Name=\"B.vector\" type=\"Float32\" NumberOfComponents=\"3\"/>\n")
     pvtuFile.write("</PCellData>\n")
     for jb in range(nblock):
-        fileName = rootName+(".b%04d.t%04d" % (jb, tindx))+".vtu"
+        fileName = rootName+(".b%04d.t%04s" % (jb, tindx_str))+".vtu"
         # We write the short version of the fileName into the pvtu file.
         pvtuFile.write("<Piece Source=\"%s\"/>\n" % fileName)
         # but use the long version to actually open it.
@@ -1051,7 +1089,7 @@ def write_VTK_XML_files(rootName, tindx, nblock, grid, flow, t):
     # Note that we append to the visit file for each tindx.
     visitFile = open(fileName, "a")
     for jb in range(nblock):
-        fileName = rootName+(".b%04d.t%04d" % (jb, tindx))+".vtu"
+        fileName = rootName+(".b%04d.t%04s" % (jb, tindx_str))+".vtu"
         visitFile.write("%s\n" % fileName)
     visitFile.close()
     # Will be handy to have a Paraview PVD file, also.
@@ -1060,7 +1098,7 @@ def write_VTK_XML_files(rootName, tindx, nblock, grid, flow, t):
     fileName = os.path.join(plotPath, fileName)
     # Note that we append to the .pvd file for each tindx.
     pvdFile = open(fileName, "a")
-    fileName = rootName+(".t%04d" % (tindx,))+".pvtu"
+    fileName = rootName+(".t%04s" % (tindx_str,))+".pvtu"
     pvdFile.write("<DataSet timestep=\"%e\" group=\"\" part=\"0\" file=\"%s\"/>\n" % (t, fileName))
     pvdFile.close()
     return
@@ -1086,7 +1124,14 @@ def write_Tecplot_file(rootName, tindx, nblock, grid, flow, t):
     plotPath = "plot"
     if not os.access(plotPath, os.F_OK):
         os.makedirs(plotPath)
-    fileName = rootName+(".t%04d" % tindx)+".tec"
+    # tindx may be an integer, or already a string such as "xxxx"
+    if type(tindx) is int:
+        tindx_str = "%04d" % tindx
+    elif type(tindx) is str:
+        tindx_str = tindx
+    else:
+        raise RuntimeException("WTF: tindx is neither an int nor string.")
+    fileName = rootName+(".t%04s" % tindx_str)+".tec"
     fileName = os.path.join(plotPath, fileName)
     fp = open(fileName, "w")
     fp.write("TITLE=\"Job=%s time=%e\"\n" % (rootName, t))
@@ -1149,10 +1194,17 @@ def write_plot3d_files(rootName, tindx, nblock, grid, flow, t):
     plotPath = "plot"
     if not os.access(plotPath, os.F_OK):
         os.makedirs(plotPath)
+    # tindx may be an integer, or already a string such as "xxxx"
+    if type(tindx) is int:
+        tindx_str = "%04d" % tindx
+    elif type(tindx) is str:
+        tindx_str = tindx
+    else:
+        raise RuntimeException("WTF: tindx is neither an int nor string.")
     #
     # 1. write the 'grid' file.
     #    This is just cell-centre locations
-    gfileName = rootName+(".t%04d" % tindx)+".g"
+    gfileName = rootName+(".t%04s" % tindx_str)+".g"
     gfileName = os.path.join(plotPath, gfileName)
     fp = open(gfileName, 'w')
     fp.write("%d\n" % len(flow))
@@ -1173,7 +1225,7 @@ def write_plot3d_files(rootName, tindx, nblock, grid, flow, t):
     #
     # 2. Write the .nam file
     #    We remove pos.x, pos.y, pos.z from the list of variables
-    nfileName = rootName+(".t%04d" % tindx)+".nam"
+    nfileName = rootName+(".t%04s" % tindx_str)+".nam"
     nfileName = os.path.join(plotPath, nfileName)
     fp = open(nfileName, 'w')
     for f in flow:
@@ -1184,7 +1236,7 @@ def write_plot3d_files(rootName, tindx, nblock, grid, flow, t):
     fp.close()
     #
     # 3. Write .f file (function values)
-    ffileName = rootName+(".t%04d" % tindx)+".f"
+    ffileName = rootName+(".t%04s" % tindx_str)+".f"
     ffileName = os.path.join(plotPath, ffileName)
     fp = open(ffileName, 'w')
     fp.write("%d\n" % len(flow))

@@ -14,7 +14,7 @@ sys.path.append(os.path.expandvars("$HOME/e3bin"))
 from e3_flow import StructuredGridFlow
 
 # Block 1 contains the shock and the fully-expanded driver gas.
-fileName = 'flow/t9999/sod.flow.b0001.t9999.gz'
+fileName = 'flow/t0001/sod.flow.b0001.t0001.gz'
 fp = gzip.open(fileName, "r")
 blockData = StructuredGridFlow()
 blockData.read(fp)

@@ -64,7 +64,7 @@ def run_in_block_marching_mode(opt, gmodelFile):
         run_command('mv flow master/')
         run_command('mv grid master/')
         # We will accumulate the converged solution blocks in the master area.
-        run_command('mkdir master/flow/t9999')
+        run_command('mkdir master/flow/t0001')
         #
         print "Set up current-run config files in the usual places for Eilmer3."
         run_command('mkdir flow grid')
@@ -102,7 +102,7 @@ def run_in_block_marching_mode(opt, gmodelFile):
                 if run != restartFromRun:
                     # On subsequent runs, the flow data comes from the downstream column
                     # that has most recently been iterated.
-                    src = 'flow/t9999/'+jobName+'.flow.b'+str(localBlkId+blksPerColumn).zfill(4)+'.t9999.gz'
+                    src = 'flow/t0001/'+jobName+'.flow.b'+str(localBlkId+blksPerColumn).zfill(4)+'.t0001.gz'
                     dest = 'flow/t0000/'+jobName+'.flow.b'+str(localBlkId).zfill(4)+'.t0000.gz'
                     run_command(['cp', src, dest])
                     # We also need to change the time in the header line back to 0.0 seconds in
@@ -150,7 +150,7 @@ def run_in_block_marching_mode(opt, gmodelFile):
         print "Post-process to get profiles for the inflow for the next run."
         # Extract the last 2 slices for each block in the upstream column.
         for blk in range(0, blksPerColumn):
-            run_command(E3BIN+('/e3post.py --job=%s --tindx=9999 ' % (jobName,))
+            run_command(E3BIN+('/e3post.py --job=%s --tindx=0001 ' % (jobName,))
                         +('--output-file=blk-%d-slices-1-and-2.dat ' % blk)
                         +('--slice-list="%d,-1,:,0;%d,-2,:,0" ' % (blk, blk))
                         +('--gmodel-file=%s' % gmodelFile))
@@ -158,15 +158,15 @@ def run_in_block_marching_mode(opt, gmodelFile):
         # Save the (presumed) converged blocks in the upstream column back to the master area.
         for blk in range(firstBlk, firstBlk+blksPerColumn):
             localBlkId = blk - run*blksPerColumn
-            src = 'flow/t9999/'+jobName+'.flow.b'+str(localBlkId).zfill(4)+'.t9999.gz'
-            dest = 'master/flow/t9999/'+jobName+'.flow.b'+str(blk).zfill(4)+'.t9999.gz'
+            src = 'flow/t0001/'+jobName+'.flow.b'+str(localBlkId).zfill(4)+'.t0001.gz'
+            dest = 'master/flow/t0001/'+jobName+'.flow.b'+str(blk).zfill(4)+'.t0001.gz'
             run_command(['cp', src, dest])
         if run == noOfEilmer3Runs-1:
             # On the last run, also save the final column.
             for blk in range(firstBlk+blksPerColumn, lastBlk):
                 localBlkId = blk - run*blksPerColumn
-                src = 'flow/t9999/'+jobName+'.flow.b'+str(localBlkId).zfill(4)+'.t9999.gz'
-                dest = 'master/flow/t9999/'+jobName+'.flow.b'+str(blk).zfill(4)+'.t9999.gz'
+                src = 'flow/t0001/'+jobName+'.flow.b'+str(localBlkId).zfill(4)+'.t0001.gz'
+                dest = 'master/flow/t0001/'+jobName+'.flow.b'+str(blk).zfill(4)+'.t0001.gz'
                 run_command(['cp', src, dest])
         # Throw away the local grid files.
         run_command(['rm'] + glob('grid/t0000/*'))

@@ -512,9 +512,7 @@ int get_viscous_flag(void)
 int set_separate_update_for_viscous_flag(int iv)
 {
     separate_update_for_viscous = iv;
-    if ( get_verbose_flag() ) printf("separate_update_for_viscous_flag=%d\n",
-				     separate_update_for_viscous);
-    return SUCCESS;
+    return separate_update_for_viscous;
 }
 
 int get_separate_update_for_viscous_flag(void)

@@ -212,19 +212,19 @@ def main():
         centrelineSlice = ':,:,1,0'
     #
     # Exit plane slice
-    run_command(E3BIN+('/e3post.py --job=%s --tindx=9999 --gmodel-file=%s ' % 
+    run_command(E3BIN+('/e3post.py --job=%s --tindx=0001 --gmodel-file=%s ' % 
                        (opt.jobName, gmodelFile))
                 +('--output-file=%s ' % (opt.exitSliceFileName,))
                 +('--slice-list="%s" ' % exitPlaneSlice)
                 +'--add-mach --add-pitot --add-total-enthalpy --add-total-p')
     # Centerline slice
-    run_command(E3BIN+('/e3post.py --job=%s --tindx=9999 --gmodel-file=%s ' % 
+    run_command(E3BIN+('/e3post.py --job=%s --tindx=0001 --gmodel-file=%s ' % 
                        (opt.jobName, gmodelFile))
                 +('--output-file=%s-centreline.data ' % (opt.jobName,))
                 +('--slice-list="%s" ' % centrelineSlice)
                 +'--add-mach --add-pitot --add-total-enthalpy --add-total-p')
     # Prep files for plotting with Paraview            
-    run_command(E3BIN+('/e3post.py --job=%s --vtk-xml --tindx=9999 --gmodel-file=%s ' % 
+    run_command(E3BIN+('/e3post.py --job=%s --vtk-xml --tindx=0001 --gmodel-file=%s ' % 
                        (opt.jobName, gmodelFile))
                 +'--add-mach --add-pitot --add-total-enthalpy --add-total-p')
     # Generate averaged exit flow properties
@@ -237,7 +237,7 @@ def main():
         #
         # Extract a slice from the last block along jk index directions at the i-index that
         # is closest to the point x=1.642, y=0.0, z=0.0
-        run_command(E3BIN+('/e3post.py --job=%s --tindx=9999 --gmodel-file=%s ' % 
+        run_command(E3BIN+('/e3post.py --job=%s --tindx=0001 --gmodel-file=%s ' % 
                            (opt.jobName, gmodelFile))
                    +('--output-file=%s2 --slice-at-point="-1,jk,1.642,0,0" ' % 
                      (opt.exitSliceFileName,))

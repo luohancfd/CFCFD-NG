@@ -76,7 +76,7 @@ def main():
     op = optparse.OptionParser(version=VERSION_STRING)
     op.add_option('--job', dest='jobName', default=None,
                   help="base name for Eilmer3 files [default: %default]")
-    op.add_option('--tindx', dest='tindx', type='int', default=9999, 
+    op.add_option('--tindx', dest='tindx', type='int', default=0001, 
                   help="time index for solution data to be processed [default: %default]")
     op.add_option('--nblock', dest='nblock', type='int', default=None,
                   help="total number of blocks to consider")

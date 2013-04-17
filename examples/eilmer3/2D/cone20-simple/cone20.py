@@ -57,6 +57,7 @@ gdata.flux_calc = ADAPTIVE
 gdata.compression_tolerance = -0.05 # the old default value
 gdata.max_time = 5.0e-3  # seconds
 gdata.max_step = 3000
+gdata.write_at_step = 25
 gdata.dt = 1.0e-6
 gdata.dt_plot = 1.5e-3
 gdata.dt_history = 10.0e-5
