@@ -73,7 +73,7 @@ specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, vector<double
     //    cout << "e_vib= " << e_vib << endl;
     //    cout << "massf= " << Q.massf[ip_] << endl;
     //    cout << "rate= " << rate << endl;
-    //cout << "Vt-rate= " << rate << endl;
+    //    cout << "Vt-rate= " << rate << endl;
     return rate;
 }
 

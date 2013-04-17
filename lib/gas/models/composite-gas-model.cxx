@@ -190,20 +190,6 @@ Composite_gas_model::
 
 int
 Composite_gas_model::
-s_decode_conserved_energy(Gas_data &Q, const vector<double> &rhoe)
-{
-    return TBM_->decode_conserved_energy(Q, rhoe);
-}
-
-int
-Composite_gas_model::
-s_encode_conserved_energy(const Gas_data &Q, vector<double> &rhoe)
-{
-    return TBM_->encode_conserved_energy(Q, rhoe);
-}
-
-int
-Composite_gas_model::
 s_eval_thermo_state_rhoe(Gas_data &Q)
 {
     // 0. Check we have useful inputs
@@ -411,13 +397,6 @@ Composite_gas_model::
 s_modal_Cv(Gas_data &Q, int itm)
 {
     return TBM_->eval_modal_Cv(Q, EOS_, itm);
-}
-
-double
-Composite_gas_model::
-s_modal_massf(const Gas_data &Q, int itm)
-{
-    return TBM_->eval_modal_massf(Q, itm);
 }
 
 void

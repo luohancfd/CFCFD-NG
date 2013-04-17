@@ -1,12 +1,11 @@
 // Author: Rowan J. Gollan
 // Date: 12-Sep-2008
 // Place: NIA, Hampton, Virginia, USA
-// History:
-//   23-Mar-2009  Revised to accommodate new direct-from-Lua input.
-//   07-Apr-2010  Slightly modified to create this 'mass-conserved' version
+
 
 #include <iostream>
 #include <sstream>
+#include <numeric>
 
 extern "C" {
 #include <lua.h>
@@ -101,6 +100,10 @@ s_update_state(Gas_data &Q, double t_interval, double &dt_suggest, Gas_model *gm
     int flag = SUCCESS;
 #   endif
 
+    // Set pointer to gas model for use by perform_increment.
+    gm_ = gm;
+    double e_total = accumulate(Q.e.begin(), Q.e.end(), 0.0);
+
     if ( Q.T[0] <= T_lower_limit_  || Q.T[0] >= T_upper_limit_ ) {
 	dt_suggest = -1.0;
 	return SUCCESS;
@@ -131,7 +134,10 @@ s_update_state(Gas_data &Q, double t_interval, double &dt_suggest, Gas_model *gm
 	for( int i = 0; i < no_substeps; ++i ) {
 	    // Update the gas-state assuming constant density and energy
 	    if ( i > 0 && gm!=0 ) {
-	    	gm->eval_thermo_state_rhoe( Q );
+	    	gm->eval_thermo_state_rhoT(Q);
+		double e_other = accumulate(Q.e.begin()+1, Q.e.end(), 0.0);
+		Q.e[0] = e_total - e_other;
+	    	gm->eval_thermo_state_rhoe(Q);
 	    }
 	    if ( perform_increment(Q, dt_sub, dt_suggest) != SUCCESS ) {
 		flag = FAILURE;
@@ -219,7 +225,8 @@ perform_increment(Gas_data &Q, double t_interval, double &dt_suggest )
     cks_->set_gas_data_ptr_and_initial_concs(Q, c_);
     cks_->initialise_chemistry_energy_coupling(Q, c_);
     cks_->called_at_least_once = false;
-    
+    Q_save_->copy_values_from(Q);
+    double e_total = accumulate(Q.e.begin(), Q.e.end(), 0.0);
     double h = dt_suggest;
     bool flag = false;
 
@@ -227,10 +234,8 @@ perform_increment(Gas_data &Q, double t_interval, double &dt_suggest )
 	flag = ode_solver_->solve_over_interval(*cks_, 0.0, t_interval, &h,
 						yin_, yout_);
 	if ( ! flag ) {
-	    //printf("step failed! retrying...");
 	    // then we retry with the timestep selected by our function
 	    h = cks_->stepsize_select(yin_);
-	    //printf("subsequent step h=%6.5e\n", h);
 	    if ( h > (0.5 * dt_suggest) ) {
 		// If we're going to reduce the timestep, it's probably
 		// best to do so drastically.  Anything less than half
@@ -247,15 +252,8 @@ perform_increment(Gas_data &Q, double t_interval, double &dt_suggest )
     }
     else { // it's probably our first step (or after T_trigger invocation)	
 	h = cks_->stepsize_select(yin_);
-	//printf("first step h=%6.5e\n", h);
 	flag = ode_solver_->solve_over_interval(*cks_, 0.0, t_interval, &h,
 						yin_, yout_);
-
-	//printf("yout_ delta_moles = [");
-	//for (size_t ir = 0; ir < yout_.size(); ++ir) {
-	//    printf("%4.3e, ", yout_[ir]);
-	//}
-	//printf("]\n");
 
 	if ( ! flag ) {
 	    return NUMERICAL_ERROR;
@@ -265,9 +263,14 @@ perform_increment(Gas_data &Q, double t_interval, double &dt_suggest )
     //    Let's assemble the solution, update the gas state and leave.
     
     cks_->eval_new_concentrations( yout_, c_ );
-    
     convert_conc2massf(Q.rho, c_, M_, Q.massf);
     
+    // 3. Get energy vector in order before applying
+    //    any chemistry coupling
+    gm_->eval_thermo_state_rhoT(Q);
+    double e_other = accumulate(Q.e.begin()+1, Q.e.end(), 0.0);
+    Q.e[0] = e_total - e_other;
+
     // 4. Apply chemistry-energy coupling model(s)
     if ( cks_->apply_chemistry_energy_coupling( Q, yout_, c_ ) ) {
     	cout << "Chemical_kinetic_ODE_MC_update::perform_increment()" << endl

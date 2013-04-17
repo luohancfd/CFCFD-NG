@@ -50,6 +50,7 @@ private:
     std::vector<double> c_;
     std::vector<double> M_;
     Gas_data *Q_save_;
+    Gas_model *gm_;
 };
 
 Reaction_update* create_Chemical_kinetic_ODE_MC_update(lua_State *L, Gas_model &g);

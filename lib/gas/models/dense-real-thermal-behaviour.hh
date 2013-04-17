@@ -43,8 +43,6 @@ private:
     std::vector<double> M_;
 
     int check_temperature_valid(const double &T);
-    int s_decode_conserved_energy(Gas_data &Q, const std::vector<double> &rhoe);
-    int s_encode_conserved_energy(const Gas_data &Q, std::vector<double> &rhoe);
     double s_dhdT_const_p(const Gas_data &Q, Equation_of_state *EOS_, int &status);
     double s_dedT_const_v(const Gas_data &Q, Equation_of_state *EOS_, int &status);
     int s_eval_energy(Gas_data &Q, Equation_of_state *EOS_);

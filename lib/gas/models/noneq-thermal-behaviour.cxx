@@ -152,32 +152,6 @@ Noneq_thermal_behaviour::
     if ( ces_ ) delete ces_;
 }
 
-int
-Noneq_thermal_behaviour::
-s_decode_conserved_energy(Gas_data &Q, const vector<double> &rhoe)
-{
-    // NOTE: decoding all modes here for simplicity
-    for ( size_t itm=0; itm<modes_.size(); ++itm ) {
-    	// Q.e[itm] = modes_[itm]->decode_conserved_energy(Q,rhoe[itm]);
-    	Q.e[itm] = rhoe[itm]/Q.rho;
-    }
-    
-    return SUCCESS;
-}
-
-int
-Noneq_thermal_behaviour::
-s_encode_conserved_energy(const Gas_data &Q, vector<double> &rhoe)
-{
-    // NOTE: encoding all modes here for simplicity
-    for ( size_t itm=0; itm<modes_.size(); ++itm ) {
-    	// rhoe[itm] = modes_[itm]->encode_conserved_energy(Q);
-    	rhoe[itm] = Q.rho*Q.e[itm];
-    }
-
-    return SUCCESS;
-}
-
 double
 Noneq_thermal_behaviour::
 s_dhdT_const_p(const Gas_data &Q, Equation_of_state *EOS_, int &status)
@@ -212,23 +186,13 @@ int
 Noneq_thermal_behaviour::
 s_eval_energy(Gas_data &Q, Equation_of_state *EOS_)
 {
-    // NOTE: - assuming thermal modes will not need the EOS to do their work
-    //       - e[0] is always total energy, so add all modal contributions
-    for ( size_t itm=0; itm<modes_.size(); ++itm ) {
+    for ( size_t itm = 0; itm < modes_.size(); ++itm ) {
     	Q.e[itm] = modes_[itm]->eval_energy(Q);
     }
-    // but e[0] always contains total energy, so rework value in e[0].
-    Q.e[0] *= modes_[0]->mode_massf(Q);
-    for ( size_t itm = 1; itm < modes_.size(); ++itm ) {
-    	Q.e[0] += modes_[itm]->mode_massf(Q)*Q.e[itm];
+    // And the contribution of chemical energy (due to enthalpy of formation)
+    for ( size_t isp = 0; isp < species_.size(); ++isp ) {
+    	Q.e[0] += Q.massf[isp]*species_[isp]->get_h_f();
     }
-    
-    // Add heat of formation energy to total (Q.e[0])
-    for ( size_t isp=0; isp<species_.size(); ++isp ) {
-    	if ( Q.massf[isp]>min_massf_ ) 
-    	    Q.e[0] += Q.massf[isp]*species_[isp]->get_h_f();
-    }
-    
     return SUCCESS;
 }
 
@@ -236,25 +200,16 @@ int
 Noneq_thermal_behaviour::
 s_eval_temperature(Gas_data &Q, Equation_of_state *EOS_)
 {
-    // 0. Convert e_total to e[0] by subtracting out higher modes and formation energy
-    double e_total = Q.e[0];
-    for ( size_t itm=1; itm<modes_.size(); ++itm )
-    	Q.e[0] -= modes_[itm]->mode_massf(Q)*Q.e[itm];
-    for ( size_t isp=0; isp<species_.size(); ++isp )
+    // Subtract chemical energy from mode 0
+    double e_save = Q.e[0];
+    for ( size_t isp = 0; isp < species_.size(); ++isp ) {
     	Q.e[0] -= Q.massf[isp]*species_[isp]->get_h_f();
-    // and convert J/kg of that component
-    double modef0 = modes_[0]->mode_massf(Q);
-    if ( modef0 > DEFAULT_MIN_MASS_FRACTION ) {
-	Q.e[0] /= modef0;
     }
-    
-    // 1. Calculate modal temperatures
-    for ( size_t itm=0; itm<modes_.size(); ++itm )
+    for ( size_t itm = 0; itm < modes_.size(); ++itm ) {
     	Q.T[itm] = modes_[itm]->eval_temperature(Q);
-    
-    // 2. Re-instate e_total
-    Q.e[0] = e_total;
-    
+    }
+    // Re-instate e[0]
+    Q.e[0] = e_save;
     return SUCCESS;
 }
 
@@ -293,10 +248,5 @@ s_eval_modal_Cv(Gas_data &Q, Equation_of_state *EOS_, int itm )
     return modes_[itm]->eval_Cv(Q);
 }
 
-double
-Noneq_thermal_behaviour::
-s_eval_modal_massf(const Gas_data &Q, int itm)
-{
-    return modes_[itm]->mode_massf(Q);
-}
+
 

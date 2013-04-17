@@ -65,26 +65,6 @@ Constant_specific_heats(lua_State *L)
 Constant_specific_heats::
 ~Constant_specific_heats() {}
 
-int
-Constant_specific_heats::
-s_decode_conserved_energy(Gas_data &Q, const vector<double> &rhoe)
-{
-    // The assumption is that use of this model
-    // implies only one thermal mode.
-    Q.e[0] = rhoe[0]/Q.rho;
-    return SUCCESS;
-}
-
-int
-Constant_specific_heats::
-s_encode_conserved_energy(const Gas_data &Q, vector<double> &rhoe)
-{
-    // The assumption is that use of this model
-    // implies only one thermal mode.
-    rhoe[0] = Q.rho*Q.e[0];
-    return SUCCESS;
-}
-
 double
 Constant_specific_heats::
 s_dhdT_const_p(const Gas_data &Q, Equation_of_state *EOS_, int &status)

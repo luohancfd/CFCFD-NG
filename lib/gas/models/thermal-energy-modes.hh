@@ -20,7 +20,7 @@ extern "C" {
 
 class Thermal_energy_mode {
 public:
-    Thermal_energy_mode( std::string name, std::vector<Chemical_species*> &species, lua_State *L );
+    Thermal_energy_mode(std::string name, std::vector<Chemical_species*> &species, lua_State *L);
     virtual ~Thermal_energy_mode();
 
     int no_components()
@@ -29,18 +29,6 @@ public:
     std::string component_name(int ic)
     { return component_names_[ic]; }
     
-    double decode_conserved_energy(Gas_data &Q, double rhoe)
-    { return s_decode_conserved_energy(Q,rhoe); }
-    
-    double encode_conserved_energy(const Gas_data &Q)
-    { return s_encode_conserved_energy(Q); }
-    
-    // NOTE: following functions give values per kg of this mode, i.e.
-    //       NOT yet weighted by how much fraction this mode occupies
-    //       of total
-    //       08-Jan-2012 : Change by R. Gollan
-    //                     Earlier implementation gave J/kg-mixture
-    //                     (so the value was already weighted)
     double eval_energy(const Gas_data &Q)
     { return s_eval_energy(Q); }
     
@@ -53,8 +41,6 @@ public:
     void test_derivatives( Gas_data &Q )
     { return s_test_derivatives(Q); }
 
-    double mode_massf(const Gas_data &Q);
-    
     std::string get_name()
     { return s_get_name(); }
 
@@ -69,8 +55,6 @@ protected:
     std::string s_get_name()
     { return name_; }
 
-    virtual double s_decode_conserved_energy(Gas_data &Q, double rhoe);
-    virtual double s_encode_conserved_energy(const Gas_data &Q);
     virtual double s_eval_dedT(Gas_data &Q);
     virtual double s_eval_energy( const Gas_data &Q);
     virtual double s_eval_temperature(Gas_data &Q) = 0;

@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <numeric>
 
 #include "../../util/source/lua_service.hh"
 #include "../../util/source/useful.h"
@@ -25,9 +26,9 @@ Energy_exchange_system(lua_State *L, Gas_model &g, double error_tol)
 	input_error(ost);
     }
     int nrates = lua_objlen(L, -1);
-    for ( size_t i = 1; i <= (size_t)nrates; ++i ) {
+    for ( size_t i = 1; i <= (size_t) nrates; ++i ) {
 	lua_rawgeti(L, -1, i);
-	ee_rate_.push_back( create_energy_exchange_rate(L) );
+	ee_rate_.push_back(create_energy_exchange_rate(L));
 	lua_pop(L, 1);
     }
     lua_pop(L, 1);
@@ -50,26 +51,27 @@ eval(const valarray<double> &y, valarray<double> &ydot)
 {
     // NOTE: updating the gas-data structure here as many mechanisms
     //       use temperature to evaluate the rate of energy exchange
-    
+
+    double e_total = accumulate(Q_->e.begin(), Q_->e.end(), 0.0);
+    double e_other = 0.0;
     // 1. Update the gas-data structure based on the given y array
-    // NOTE: scaling by 1/modal_massf to convert J/total-kg to J/modal-kg
-    for ( size_t itm=1; itm<Q_->e.size(); ++itm ) {
-        Q_->e[itm] = y[itm-1] / g_->modal_massf(*Q_, itm);
+    for ( size_t itm = 1; itm < Q_->e.size(); ++itm ) {
+        Q_->e[itm] = y[itm-1];
+	e_other += Q_->e[itm];
     }
+    Q_->e[0] = e_total - e_other;
     g_->eval_thermo_state_rhoe(*Q_); 
     
     if( ! called_at_least_once ) {
 	for( size_t i = 0; i < ee_rate_.size(); ++i ) {
-	    // cout << "\nFor irate = " << i << endl;
-	    // cout << "Computing all relaxation times...\n";
 	    ee_rate_[i]->compute_all_relaxation_times(*Q_,*molef_);
+	    
 	}
 	called_at_least_once = true;
     }
 
     for( size_t i = 0; i < ee_rate_.size(); ++i ) {
 	ydot[i] = ee_rate_[i]->compute_rate(y, *Q_, *molef_);
-	// cout << "ydot[" << i << "] = " << ydot[i] << endl;
     }
     
     return SUCCESS;

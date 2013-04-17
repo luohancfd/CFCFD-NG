@@ -123,10 +123,8 @@ increment_in_space(double x, double delta_x)
 {
     // 1. Integrate the ODE system in space
     double new_x = ode_solve(x, delta_x);
-    
     // 2. Solve for the flow state
     zero_solve();
-    
     return new_x;
 }
 
@@ -140,8 +138,8 @@ ode_solve(double x, double delta_x)
     
     // Apply reaction update if it is present
     if ( rupdate_ ) {
-    	rupdate_->update_state( *psflow.Q, dt, dt_suggest, gmodel_ );
-    	gmodel_->eval_thermo_state_rhoe( *psflow.Q );
+    	rupdate_->update_state(*psflow.Q, dt, dt_suggest, gmodel_);
+	gmodel_->eval_thermo_state_rhoe(*psflow.Q);
     	// dt_new = dt_suggest;
     }
     
@@ -160,10 +158,13 @@ ode_solve(double x, double delta_x)
     if ( rtmodel_ ) {
     	psflow.Q_rad = rtmodel_->eval_Q_rad( *psflow.Q );
     	double delta_Q_rad_kg = ( psflow.Q_rad / psflow.Q->rho ) * dt;
-    	psflow.Q->e[0] += delta_Q_rad_kg;
-    	if ( gmodel_->get_number_of_modes()>1 ) 
+	if ( gmodel_->get_number_of_modes() == 1 ) {
+	    psflow.Q->e[0] += delta_Q_rad_kg;
+	}
+	else {
     	    psflow.Q->e.back() += delta_Q_rad_kg * rtmodel_->get_electronic_mode_factor();
-    	gmodel_->eval_thermo_state_rhoe( *psflow.Q );
+	}
+    	gmodel_->eval_thermo_state_rhoe(*psflow.Q);
     }
     
     return dt_suggest*psflow.u;
@@ -173,6 +174,8 @@ void
 Loosely_coupled_post_shock_flow::
 zero_solve()
 {
+    //    cout << "ENTERING ZERO_SOLVE:\n";
+    //    psflow.Q->print_values();
     // 1. Create a guess
     yguess_[0] = psflow.Q->rho;
     yguess_[1] = psflow.Q->T[0];

@@ -31,8 +31,6 @@ private:
     std::vector<Segmented_functor *> h_;
     std::vector<Segmented_functor *> s_;
 
-    int s_decode_conserved_energy(Gas_data &Q, const std::vector<double> &rhoe);
-    int s_encode_conserved_energy(const Gas_data &Q, std::vector<double> &rhoe);
     int s_eval_energy(Gas_data &Q, Equation_of_state *EOS_);
     int s_eval_temperature(Gas_data &Q, Equation_of_state *EOS_);
     double s_dhdT_const_p(const Gas_data &Q, Equation_of_state *EOS_, int &status);

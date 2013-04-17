@@ -38,13 +38,13 @@ public:
     { return modes_[imode]->component_name(ic); }
 
     int eval_equilibrium_composition( double T, double rho, std::vector<double> &massf )
-    { return ces_->solve_system(T,rho,massf); }
+    { return ces_->solve_system(T, rho, massf); }
     
     int test_chemical_equilibrium_system( double T, double p, std::vector<double> &molef )
-    { return ces_->test_system(T,p,molef); }
+    { return ces_->test_system(T, p, molef); }
     
     Partial_equilibrium_reaction * get_partial_equilibrium_reaction_pointer( size_t index )
-    { return ces_->get_partial_equilibrium_reaction_pointer( index ); }
+    { return ces_->get_partial_equilibrium_reaction_pointer(index); }
     
     void test_derivatives_for_mode( int itm, Gas_data &Q )
     { return modes_[itm]->test_derivatives(Q); }
@@ -56,8 +56,6 @@ private:
     // For equilibrium composition determination
     Chemical_equilibrium_system * ces_;
 
-    int s_decode_conserved_energy(Gas_data &Q, const std::vector<double> &rhoe);
-    int s_encode_conserved_energy(const Gas_data &Q, std::vector<double> &rhoe);
     double s_dhdT_const_p(const Gas_data &Q, Equation_of_state *EOS_, int &status);
     double s_dedT_const_v(const Gas_data &Q, Equation_of_state *EOS_, int &status);
     int s_eval_energy(Gas_data &Q, Equation_of_state *EOS_);
@@ -67,7 +65,6 @@ private:
     double s_eval_entropy_isp(const Gas_data &Q, Equation_of_state *EOS_, int isp);
     double s_eval_modal_enthalpy_isp( const Gas_data &Q, Equation_of_state *EOS_, int isp, int itm );
     double s_eval_modal_Cv(Gas_data &Q, Equation_of_state *EOS_, int itm );
-    double s_eval_modal_massf(const Gas_data &Q, int itm);
 };
 
 Noneq_thermal_behaviour * new_ntb_from_file( std::string inFile );

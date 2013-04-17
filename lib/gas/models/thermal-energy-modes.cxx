@@ -62,32 +62,37 @@ Thermal_energy_mode( string name, vector<Chemical_species*> &species, lua_State 
 	    input_error(ost);
 	}
 	// else -> use modes types to test for inclusion as components
-	for ( size_t isp=0; isp<species.size(); ++isp ) {
-	    Chemical_species * X = species[isp];
+	for ( size_t isp = 0; isp < species.size(); ++isp ) {
+	    Chemical_species *X = species[isp];
 	    // determine if this species is a heavy particle or not
 	    string hp = "XX";
-	    if ( X->get_name()!="e_minus" ) hp = "hp";
-	    for ( int iem=0; iem<X->get_n_modes(); ++iem ) {
-		Species_energy_mode * M = X->get_mode_pointer(iem);
+	    if ( X->get_name() != "e_minus" )
+		hp = "hp";
+	    for ( int iem = 0; iem < X->get_n_modes(); ++iem ) {
+		Species_energy_mode *M = X->get_mode_pointer(iem);
 		// Test for: (1) generic types eg "all-vibration" or "hp-translation"
 		//           (2) specifically this species plus type eg "N2-vibration"
-		if ( name.find( "all-"+M->get_type() )!=string::npos || 
-		     name.find( hp + "-" + M->get_type() )!=string::npos ||
-		     name.find( X->get_name() + "-" + M->get_type() )!=string::npos ) {
-		    M->set_iT( iT_ );
-		    components_.push_back( M );
+		if ( name.find("all-"+M->get_type()) != string::npos || 
+		     name.find(hp + "-" + M->get_type()) != string::npos ||
+		     name.find(X->get_name() + "-" + M->get_type()) != string::npos ) {
+		    M->set_iT(iT_);
+		    components_.push_back(M);
 		    // FIXME: Remove after testing
 		    cout << X->get_name() << "-" << M->get_type() << ", ";
-		    sp_idx_.push_back(M->get_isp());
 		}
 	    }
 	}
 	cout << " } " << endl;
     }
-    // Convert sp_idx vector to a set to remove duplicate entries
-    set<int> sp_idx2(sp_idx_.begin(), sp_idx_.end());
-    // Assign set back to vector
-    sp_idx_.assign(sp_idx2.begin(), sp_idx2.end());
+    
+    // Add enthalpies of formation to translation mode
+    //    if ( iT_ == 0 ) {
+    //	for ( size_t isp = 0; isp < species.size(); ++isp ) {
+    //	    Chemical_species *X = species[isp];
+    //	    components_.push_back(new Energy_of_formation(isp, X->get_R(), DEFAULT_MIN_MASS_FRACTION, X->get_h_f()));
+    //	}
+    //    }
+
 }
 
 Thermal_energy_mode::~Thermal_energy_mode()
@@ -97,48 +102,12 @@ Thermal_energy_mode::~Thermal_energy_mode()
 
 double
 Thermal_energy_mode::
-mode_massf(const Gas_data &Q)
-{
-    double sum = 0.0;
-    for ( size_t i = 0; i < sp_idx_.size(); ++i ) {
-	int isp = sp_idx_[i];
-	sum += Q.massf[isp];
-    }
-    return sum;
-}
-
-double
-Thermal_energy_mode::
-s_decode_conserved_energy(Gas_data &Q, double rhoe)
-{
-    double modef = mode_massf(Q);
-    if ( modef > DEFAULT_MIN_MASS_FRACTION ) {
-	return rhoe/(Q.rho*modef);
-    }
-    else {
-	return rhoe/Q.rho;
-    }
-}
-
-double
-Thermal_energy_mode::
-s_encode_conserved_energy(const Gas_data &Q)
-{
-    return Q.rho*mode_massf(Q)*Q.e[iT_];
-}
-
-double
-Thermal_energy_mode::
 s_eval_dedT(Gas_data &Q)
 {
     double dedT = 0.0;
-    double modef = mode_massf(Q);
-    for ( size_t ic=0; ic<components_.size(); ++ic ) {
-	double Cv_i = components_[ic]->eval_Cv(Q);
-	int isp = components_[ic]->get_isp();
-	dedT += ( modef > DEFAULT_MIN_MASS_FRACTION ) ? (Q.massf[isp]/modef)*Cv_i : Cv_i;
+    for ( size_t ic = 0; ic < components_.size(); ++ic ) {
+	dedT += components_[ic]->eval_weighted_Cv(Q);
     }
-    
     return dedT;
 }
 
@@ -147,25 +116,21 @@ Thermal_energy_mode::
 s_eval_energy(const Gas_data &Q)
 {
     double e = 0.0;
-    double modef = mode_massf(Q);
-    for ( size_t ic=0; ic<components_.size(); ++ic ) {
-	double e_c = components_[ic]->eval_energy(Q);
-	int isp = components_[ic]->get_isp();
-	e += ( modef > DEFAULT_MIN_MASS_FRACTION ) ? (Q.massf[isp]/modef)*e_c : e_c; 
+    for ( size_t ic = 0; ic < components_.size(); ++ic ) {
+	e += components_[ic]->eval_weighted_energy(Q);
     }
     return e;
 }
 
 Constant_Cv_energy_mode::
 Constant_Cv_energy_mode( string name, vector<Chemical_species*> &species, lua_State *L  )
- : Thermal_energy_mode( name, species, L ) {}
+ : Thermal_energy_mode(name, species, L) {}
  
 double
 Constant_Cv_energy_mode::
 s_eval_temperature(Gas_data &Q)
 {
     // Direct solve for T as e = Cv.T
-    
     return Q.e[iT_]/s_eval_dedT(Q);
 }
 
@@ -262,7 +227,7 @@ s_eval_temperature(Gas_data &Q)
 
     // 2. Set e_im1_
     Q.T[iT_] = T_im1;
-    double e_im1 = s_eval_energy( Q );
+    double e_im1 = s_eval_energy(Q);
 
     // 3. Perform iterations
     double T_i = T_given, e_i;
@@ -272,37 +237,18 @@ s_eval_temperature(Gas_data &Q)
     	if ( T_i < T_min_ ) {
     	    T_i = T_min_;
     	    if ( T_im1 == T_max_ ) {
-//    	    	cout << "Variable_Cv_energy_mode::s_eval_temperature()" << endl
-//    	    	     << "Temperature is oscillating between T_min: " << T_min_
-//    	    	     << " and T_max: " << T_max_ << endl;
-//                Q.print_values(false);
-//                Q.T[iT_] = T_min_;
-//                double e_min = s_eval_energy( Q );
-//                Q.T[iT_] = T_max_;
-//                double e_max = s_eval_energy( Q );
-//                cout << "e_given = " << e_given << ", e(T_min) = " << e_min << ", e(T_max) = " << e_max << endl;
                 break;
     	    }
     	}
     	else if ( T_i > T_max_ ) {
     	    T_i = T_max_;
     	    if ( T_im1 == T_min_ ) {
-//    	    	cout << "Variable_Cv_energy_mode::s_eval_temperature()" << endl
-//    	    	     << "Temperature is oscillating between T_min: " << T_min_
-//    	    	     << " and T_max: " << T_max_ << endl;
-//    	        Q.print_values(false);
-//                Q.T[iT_] = T_min_;
-//                double e_min = s_eval_energy( Q );
-//                Q.T[iT_] = T_max_;
-//                double e_max = s_eval_energy( Q );
-//                cout << "e_given = " << e_given << ", e(T_min) = " << e_min << ", e(T_max) = " << e_max << endl;
                 break;
     	    }
     	}
     	Q.T[iT_] = T_i;
     	// 3.b New e level
     	e_i = s_eval_energy( Q );
-        //cout << "i = " << i << ", T_im1 = " << T_im1 << ", T_i = " << T_i << ", e_i = " << e_i << ", e_given = " << e_given << endl;
     	// 3.c Test for convergence
     	if ( check_convergence( e_i, e_given ) ) break;
     	// else -> prepare for next iteration
@@ -315,6 +261,50 @@ s_eval_temperature(Gas_data &Q)
     }
 
     return T_i;
+}
+
+
+double
+Variable_Cv_energy_mode::
+s_eval_temperature_bisection(Gas_data &Q, double tol)
+{
+    // Bisection method to solve for Q.T[iT_]
+    double e_given = Q.e[iT_];
+    Q.T[iT_] = T_min_;
+    double e_min = s_eval_energy( Q );
+    Q.T[iT_] = T_max_;
+    double e_max = s_eval_energy( Q );
+
+    if ( e_given >= e_max ) {
+        cout << "Variable_Cv_energy_mode::s_eval_temperature_bisection()" << endl
+             << "Maximum temperature limit exceeded!" << endl;
+        return T_max_;
+    }
+    else if ( e_given <= e_min ) {
+        cout << "Variable_Cv_energy_mode::s_eval_temperature_bisection()" << endl
+             << "Minimum temperature limit exceeded!" << endl;
+        return T_min_;
+    }
+
+    double T_left = T_min_;
+    double T_right = T_max_;
+
+    double T_mid=(T_left+T_right)/2.0;
+
+    for(T_mid=(T_left+T_right)/2.0; fabs(T_left-T_mid) > tol; T_mid=(T_left+T_right)/2.0) {
+        // cout << "T_left = " << T_left << ", T_right = " << T_right << endl;
+        Q.T[iT_] = T_left;
+        double f_left = s_eval_energy( Q ) - e_given;
+        Q.T[iT_] = T_right;
+        double f_right = s_eval_energy( Q ) - e_given;
+        if (f_left*f_right <= 0.0) {
+            T_right = T_mid; // use left interval
+        } else {
+            T_left = T_mid; // use right interval
+        }
+    }
+
+    return T_mid;
 }
 
 double

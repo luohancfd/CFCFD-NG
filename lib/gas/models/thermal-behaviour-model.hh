@@ -20,12 +20,6 @@ public:
     virtual int get_number_of_modes()
     { return 1; }
 
-    int decode_conserved_energy(Gas_data &Q, const std::vector<double> &rhoe)
-    { return s_decode_conserved_energy(Q, rhoe); }
-
-    int encode_conserved_energy(const Gas_data &Q, std::vector<double> &rhoe)
-    { return s_encode_conserved_energy(Q, rhoe); }
-
     double dhdT_const_p(const Gas_data &Q, Equation_of_state *EOS_, int &status)
     { return s_dhdT_const_p(Q, EOS_, status); }
 
@@ -53,12 +47,7 @@ public:
     double eval_modal_Cv(Gas_data &Q, Equation_of_state *EOS_, int itm)
     { return s_eval_modal_Cv(Q, EOS_, itm); }
 
-    double eval_modal_massf(const Gas_data &Q, int itm)
-    {return s_eval_modal_massf(Q, itm); }
-
 private:
-    virtual int s_decode_conserved_energy(Gas_data &Q, const std::vector<double> &rhoe) = 0;
-    virtual int s_encode_conserved_energy(const Gas_data &Q, std::vector<double> &rhoe) = 0;
     virtual double s_dhdT_const_p(const Gas_data &Q, Equation_of_state *EOS_, int &status) = 0;
     virtual double s_dedT_const_v(const Gas_data &Q, Equation_of_state *EOS_, int &status) = 0;
     virtual int s_eval_energy(Gas_data &Q, Equation_of_state *EOS_) = 0;
@@ -68,15 +57,8 @@ private:
     virtual double s_eval_entropy_isp(const Gas_data &Q, Equation_of_state *, int isp) = 0;
     virtual double s_eval_modal_enthalpy_isp(const Gas_data &Q, Equation_of_state *EOS_, int isp, int itm );
     virtual double s_eval_modal_Cv(Gas_data &Q, Equation_of_state *EOS_, int itm);
-    virtual double s_eval_modal_massf(const Gas_data &Q, int itm);
 };
 
-int tbm_decode_conserved_energy(std::vector<double> &e, 
-				const std::vector<double> &rhoe, 
-				const double &rho);
-int tbm_encode_conserved_energy(std::vector<double> &rhoe, 
-				const std::vector<double> &e, 
-				const double &rho);
 double tbm_dhdT_const_p(const std::vector<Segmented_functor *> &Cp_, 
 			const std::vector<double> &massf, 
 			const std::vector<double> &T);

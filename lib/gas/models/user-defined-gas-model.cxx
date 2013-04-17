@@ -156,45 +156,6 @@ UD_gas_model::
 
 int
 UD_gas_model::
-s_decode_conserved_energy(Gas_data &Q, const vector<double> &rhoe)
-{
-    if ( !check_for_function(L_, "decode_conserved_energy") )
-	return Gas_model::s_decode_conserved_energy(Q, rhoe);
-    // else go on with calling user's function...
-    lua_getglobal(L_, "decode_conserved_energy");
-    push_gas_data_as_table(L_, Q);
-    push_vector_as_table(L_, rhoe);
-    // 2 args, 1 return value: gas data as table
-    int number_args = 2;
-    int number_results = 1;
-    lua_pcall(L_, number_args, number_results, 0);
-    // Return a table of gas_data...
-    lua_getfield(L_, -1, "e");
-    get_table_as_vector(L_, Q.e);
-    return SUCCESS;
-}
-
-
-int
-UD_gas_model::
-s_encode_conserved_energy(const Gas_data &Q, vector<double> &rhoe)
-{
-    if ( !check_for_function(L_, "encode_conserved_energy") )
-	return Gas_model::s_encode_conserved_energy(Q, rhoe);
-    // else go on with calling user's function...
-    lua_getglobal(L_, "encode_conserved_energy");
-    push_gas_data_as_table(L_, Q);
-    // 2 args, 1 return value: rhoe as array
-    int number_args = 1;
-    int number_results = 1;
-    lua_pcall(L_, number_args, number_results, 0);
-    // Return an array of rhoe values
-    get_table_as_vector(L_, rhoe);
-    return SUCCESS;
-}
-
-int
-UD_gas_model::
 s_eval_thermo_state_rhoe(Gas_data &Q)
 {
     return call_user_function(L_, "eval_thermo_state_rhoe", Q);

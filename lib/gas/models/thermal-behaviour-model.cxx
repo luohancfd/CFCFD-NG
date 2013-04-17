@@ -8,28 +8,6 @@
 
 using namespace std;
 
-int
-tbm_decode_conserved_energy(vector<double> &e, 
-			    const vector<double> &rhoe, 
-			    const double &rho)
-{    
-    // The assumption is that use of this model
-    // implies only one thermal mode.
-    e[0] = rhoe[0]/rho;
-    return SUCCESS;
-}
-
-int
-tbm_encode_conserved_energy(vector<double> &rhoe, 
-			    const vector<double> &e, 
-			    const double &rho)
-{
-    // The assumption is that use of this model
-    // implies only one thermal mode.
-    rhoe[0] = rho*e[0];
-    return SUCCESS;
-}
-
 double
 tbm_dhdT_const_p(const vector<Segmented_functor *> &Cp_, 
 		 const vector<double> &massf,
@@ -74,13 +52,3 @@ s_eval_modal_Cv(Gas_data &Q, Equation_of_state *EOS_, int itm)
     return s_dedT_const_v(Q,EOS_,status);
 }
 
-double
-Thermal_behaviour_model::
-s_eval_modal_massf(const Gas_data &Q, int itm)
-{
-    // NOTE: all thermal behaviour models default to this.
-    // Any Noneq_thermal_behaviour derived classes should implement this function
-
-    // For all single-temperature gases...
-    return 1.0;
-}

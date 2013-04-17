@@ -6,7 +6,9 @@
  *
  **/
 
+#include <iomanip>
 #include <valarray>
+#include <numeric>
 
 #include "conservation_systems.hh"
 #include "../../../lib/util/source/useful.h"
@@ -23,7 +25,8 @@ FrozenConservationSystem::FrozenConservationSystem( Gas_model * gm, Gas_data * Q
 {
     A_ = Q->rho*u;
     B_ = Q->rho*u*u + Q->p;
-    C_ = Q->rho*u*( Q->e[0] + 0.5*u*u  ) + Q->p*u;
+    double e = accumulate(Q->e.begin(), Q->e.end(), 0.0);
+    C_ = Q->rho*u*(e + 0.5*u*u) + Q->p*u;
    
 }
 
@@ -42,7 +45,8 @@ initialise(Gas_model * gm, Gas_data * Q, double u )
     
     A_ = Q->rho*u;
     B_ = Q->rho*u*u + Q->p;
-    C_ = Q->rho*u*( Q->e[0] + 0.5*u*u ) + Q->p*u;
+    double e = accumulate(Q->e.begin(), Q->e.end(), 0.0);
+    C_ = Q->rho*u*(e + 0.5*u*u) + Q->p*u;
 }
 
 int FrozenConservationSystem::f( const valarray<double> &y, valarray<double> &G )
@@ -55,11 +59,12 @@ int FrozenConservationSystem::f( const valarray<double> &y, valarray<double> &G 
     
     Q_->T[0] = T;
     Q_->rho = rho;
-    gmodel_->eval_thermo_state_rhoT( *Q_ );
+    gmodel_->eval_thermo_state_rhoT(*Q_);
     
     G[0] = rho*u - A_;
     G[1] = A_*u + Q_->p - B_;
-    G[2] = A_*( Q_->e[0] + 0.5*u*u ) + u*Q_->p - C_;
+    double e = accumulate(Q_->e.begin(), Q_->e.end(), 0.0);
+    G[2] = A_*(e + 0.5*u*u) + u*Q_->p - C_;
     
     return 0;
 }
@@ -136,7 +141,7 @@ initialise(Gas_model * gm, Gas_data * Q, double u)
 int NoneqConservationSystem::f( const valarray<double> &y, valarray<double> &G )
 {
     // 1. Map y vector (solution guess) onto the gas-data structure
-    // 1a. Total dendisty and species mass-fractions
+    // 1a. Total density and species mass-fractions
     Q_->rho = 0.0;
     for ( int isp=0; isp<nsp_; ++isp )
     	Q_->rho += y[isp];
@@ -159,22 +164,21 @@ int NoneqConservationSystem::f( const valarray<double> &y, valarray<double> &G )
     	++iG;
     }
     // 3b. Total momentum flux
-    G[iG] = Q_->rho * u * u + Q_->p - A_[iG];
+    G[iG] = Q_->rho*u*u + Q_->p - A_[iG];
     ++iG;
     // 3c. Total energy flux
-    double E = Q_->e[0] + 0.5 * u * u;
+    double e = accumulate(Q_->e.begin(), Q_->e.end(), 0.0);
+    double E = e + 0.5*u*u;
     G[iG] = u * ( Q_->rho * E + Q_->p ) - A_[iG];
     ++iG;
     if ( ntm_ > 1 ) {
 	// 3d. Modal energy flux (but not first or last mode)
 	for ( int itm=1; itm<(ntm_-1); ++itm ) {
-	    double mode_massf = gmodel_->modal_massf(*Q_, itm);
-	    G[iG] = u * ( Q_->rho * mode_massf * Q_->e[itm] ) - A_[iG];
+	    G[iG] = u * ( Q_->rho * Q_->e[itm] ) - A_[iG];
 	    ++iG;
 	}
-	double mode_massf = gmodel_->modal_massf(*Q_, ntm_-1);
 	// 3e. Modal energy flux for last mode (which is assumed to govern electrons)
-	G[iG] = u * ( Q_->rho * mode_massf * Q_->e[ntm_-1] + Q_->p_e ) - A_[iG];
+	G[iG] = u * ( Q_->rho * Q_->e[ntm_-1] + Q_->p_e ) - A_[iG];
     }
     
     // print_valarray(G);
@@ -217,7 +221,8 @@ int NoneqConservationSystem::Jac( const valarray<double> &y, Valmatrix &dGdy )
     ++iG;
     
     // 3. Total energy flux row
-    double E = Q_->e[0] + 0.5 * u * u;
+    double e = accumulate(Q_->e.begin(), Q_->e.end(), 0.0);
+    double E = e + 0.5*u*u;
     // 3a. deriv. wrt rho_i
     for ( int isp=0; isp<nsp_; ++isp )
     	dGdy.set(iG,isp,u*E+u*gmodel_->dpdrho_i_const_T( *Q_, isp, status ));
@@ -232,10 +237,9 @@ int NoneqConservationSystem::Jac( const valarray<double> &y, Valmatrix &dGdy )
     if ( ntm_ > 1 ) {
 	// 4. Modal energy flux rows (but not first or last)
 	for ( int itm=1; itm<(ntm_-1); ++itm ) {
-	    double mode_massf = gmodel_->modal_massf(*Q_, itm);
 	    // 4a. deriv. wrt rho_i
 	    for ( int isp=0; isp<nsp_; ++isp ) {
-		dGdy.set(iG,isp,u*mode_massf*Q_->e[itm]);
+		dGdy.set(iG,isp,u*Q_->e[itm]);
 	    }
 	    // 4b. deriv. wrt T_j
 	    for ( int jtm=0; jtm<ntm_; ++jtm ) {
@@ -244,19 +248,18 @@ int NoneqConservationSystem::Jac( const valarray<double> &y, Valmatrix &dGdy )
 		else dGdy.set(iG,nsp_+jtm,0.0);
 	    }
 	    // 4c. deriv wrt u
-	    dGdy.set(iG,nsp_+ntm_,Q_->rho*mode_massf*Q_->e[itm]);
+	    dGdy.set(iG,nsp_+ntm_,Q_->rho*Q_->e[itm]);
 	    ++iG;
 	}
 	
 	// 5. Last modal energy flux row (assumed to be govern electrons)
 	int itm = ntm_ - 1;
 	// 5a. deriv. wrt rho_i
-	double mode_massf = gmodel_->modal_massf(*Q_, itm);
 	for ( int isp=0; isp<nsp_; ++isp ) {
 	    if ( isp==e_index_ )
-	    	dGdy.set(iG,isp,u*mode_massf*Q_->e[itm]+
+	    	dGdy.set(iG,isp,u*Q_->e[itm]+
 	    	    u*gmodel_->dpdrho_i_const_T( *Q_, isp, status ));
-	    else dGdy.set(iG,isp,u*mode_massf*Q_->e[itm]);
+	    else dGdy.set(iG,isp,u*Q_->e[itm]);
 	}
 	// 5b. deriv. wrt T_j
 	for ( int jtm=0; jtm<ntm_; ++jtm ) {
@@ -266,11 +269,9 @@ int NoneqConservationSystem::Jac( const valarray<double> &y, Valmatrix &dGdy )
 	    else dGdy.set(iG,nsp_+jtm,0.0);
 	}
 	// 5c. deriv wrt u
-	dGdy.set(iG,nsp_+ntm_,Q_->rho*mode_massf*Q_->e[itm]+Q_->p_e);
+	dGdy.set(iG,nsp_+ntm_,Q_->rho*Q_->e[itm]+Q_->p_e);
     }
     
-    // cout << "dGdy = " << dGdy.str() << endl;
-
     return 0;
 }
 
@@ -288,19 +289,18 @@ int NoneqConservationSystem::encode_conserved( valarray<double> &y,
     y[iy] = Q.rho * u * u + Q.p;
     ++iy;
     // 1c. Total energy flux
-    double E = Q.e[0] + 0.5 * u * u;
+    double e = accumulate(Q_->e.begin(), Q_->e.end(), 0.0);
+    double E = e + 0.5*u*u;
     y[iy] = u * ( Q.rho * E + Q.p );
     ++iy;
     if ( ntm_ > 1 ) {
 	// 1d. Modal energy flux (but not first or last mode)
 	for ( int itm=1; itm<(ntm_-1); ++itm ) {
-	    double mode_massf = gmodel_->modal_massf(*Q_, itm);
-	    y[iy] = u * ( Q.rho * mode_massf * Q.e[itm] );
+	    y[iy] = u * ( Q.rho * Q.e[itm] );
 	    ++iy;
 	}
 	// 1e. Modal energy flux for last mode (which is assumed to govern electrons)
-	double mode_massf = gmodel_->modal_massf(*Q_, ntm_-1);
-	y[iy] = u * ( Q.rho * mode_massf * Q.e[ntm_-1] + Q.p_e );
+	y[iy] = u * ( Q.rho * Q.e[ntm_-1] + Q.p_e );
     }
     
     return 0;

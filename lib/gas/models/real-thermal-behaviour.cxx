@@ -103,20 +103,6 @@ Real_thermal_behaviour::
     }
 }
 
-int
-Real_thermal_behaviour::
-s_decode_conserved_energy(Gas_data &Q, const vector<double> &rhoe)
-{
-    return tbm_decode_conserved_energy(Q.e, rhoe, Q.rho);
-}
-
-int
-Real_thermal_behaviour::
-s_encode_conserved_energy(const Gas_data &Q, vector<double> &rhoe)
-{
-    return tbm_encode_conserved_energy(rhoe, Q.e, Q.rho);
-}
-
 double
 Real_thermal_behaviour::
 s_dhdT_const_p(const Gas_data &Q, Equation_of_state *EOS_, int &status)

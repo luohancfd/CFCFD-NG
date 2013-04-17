@@ -34,8 +34,6 @@ public:
 private:
     lua_State *L_;
     
-    int s_decode_conserved_energy(Gas_data &Q, const std::vector<double> &rhoe);
-    int s_encode_conserved_energy(const Gas_data &Q, std::vector<double> &rhoe);
     int s_eval_thermo_state_rhoe(Gas_data &Q);
     int s_eval_thermo_state_pT(Gas_data &Q);
     int s_eval_thermo_state_rhoT(Gas_data &Q);

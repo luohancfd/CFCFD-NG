@@ -145,24 +145,6 @@ atomic_constituents(int isp, map<string, int> &m)
     m = atomic_constituents_[isp];
 }
 
-int
-Gas_model::
-s_decode_conserved_energy(Gas_data &Q, const vector<double> &rhoe)
-{
-    // If we use this default, assume only one mode
-    Q.e[0] = rhoe[0]/Q.rho;
-    return SUCCESS;
-}
-
-int
-Gas_model::
-s_encode_conserved_energy(const Gas_data &Q, vector<double> &rhoe)
-{
-    // If we use this default, assume only one mode
-    rhoe[0] = Q.rho*Q.e[0];
-    return SUCCESS;
-}
-
 #define MAX_STEPS 30
 #define MAX_RELATIVE_STEP 0.1
 
@@ -748,14 +730,6 @@ s_modal_Cv(Gas_data &Q, int itm )
     
     int status;
     return s_dedT_const_v(Q,status);
-}
-
-double
-Gas_model::
-s_modal_massf(const Gas_data &Q, int itm)
-{
-    // For all single-temperature gases...
-    return 1.0;
 }
 
 double

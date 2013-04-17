@@ -37,8 +37,6 @@ private:
     Diffusion_coefficients_model *DCM_;
     Sound_speed_model *SSM_;
 
-    int s_decode_conserved_energy(Gas_data &Q, const std::vector<double> &rhoe);
-    int s_encode_conserved_energy(const Gas_data &Q, std::vector<double> &rhoe);
     int s_eval_thermo_state_rhoe(Gas_data &Q);
     int s_eval_thermo_state_pT(Gas_data &Q);
     int s_eval_thermo_state_rhoT(Gas_data &Q);
@@ -58,7 +56,6 @@ private:
     double s_entropy(const Gas_data &Q, int isp);
     double s_modal_enthalpy(const Gas_data &Q, int isp, int itm);
     double s_modal_Cv(Gas_data &Q, int itm);
-    double s_modal_massf(const Gas_data &Q, int itm);
 
     void initialise_ideal_gas(lua_State *L);
 };

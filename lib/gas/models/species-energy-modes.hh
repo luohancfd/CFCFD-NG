@@ -616,4 +616,37 @@ private:
     double s_eval_Q_from_T( double T, double A );
 };
 
+class Energy_of_formation : public Species_energy_mode {
+public:
+    Energy_of_formation(int isp, double R, double min_massf, double h_f)
+	: Species_energy_mode(isp, R, min_massf, "enthalpy-of-formation", 0), h_f_(h_f) {}
+    ~Energy_of_formation() {}
+
+private:
+    double h_f_;
+    double s_eval_energy(const Gas_data &Q)
+    { return h_f_; }
+    double s_eval_energy_from_T(double T)
+    { return h_f_; }
+    double s_eval_enthalpy(const Gas_data &Q)
+    { return 0.0; }
+    double s_eval_enthalpy_from_T(double T)
+    { return 0.0; }
+    double s_eval_entropy(const Gas_data &Q)
+    { return 0.0; }
+    double s_eval_entropy_from_T(double T)
+    { return 0.0; }
+    double s_eval_Cv(const Gas_data &Q)
+    { return 0.0; }
+    double s_eval_Cv_from_T(double T)
+    { return 0.0; }
+    double s_eval_Cp(const Gas_data &Q)
+    { return 0.0; }
+    double s_eval_Cp_from_T(double T)
+    { return 0.0; }
+    double s_eval_Q_from_T(double T, double A)
+    { return 0.0; }
+
+};
+
 #endif

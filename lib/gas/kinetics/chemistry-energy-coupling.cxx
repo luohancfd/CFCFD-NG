@@ -76,9 +76,8 @@ update_energy( Gas_data &Q, valarray<double> &delta_c, vector<double> &c_new )
     double N_new = c_new[isp_]*PC_Avogadro;
     double delta_e = 0.0;
     if ( N_new > 0.0 ) delta_e = delta_E/N_new;
-    
     // convert J/particle -> J/modal-kg
-    Q.e[imode_] += Q.massf[isp_] / g_->modal_massf(Q,imode_) * delta_e / m_;
+    Q.e[imode_] += Q.massf[isp_] * delta_e / m_;
     
     return SUCCESS;
 }

@@ -72,7 +72,7 @@ private:
     std::vector<Species_energy_mode*> p_vib_;	// pointer to species p vibrational energy mode
     Relaxation_time * tau_VT_;
     double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
-    { return tau_VT_->compute_relaxation_time(Q,molef); }
+    { return tau_VT_->compute_relaxation_time(Q, molef); }
 
     double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
 };

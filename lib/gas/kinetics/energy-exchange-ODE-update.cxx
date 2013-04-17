@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <numeric>
 
 #include "../../util/source/lua_service.hh"
 #include "../../util/source/useful.h"
@@ -176,18 +177,17 @@ s_rate_of_change(Gas_data &Q, vector<double> &dedt)
     convert_massf2molef( Q.massf, g_->M(), molef_ );
     ees_->set_gas_data_ptr(Q);
     ees_->set_molef_ptr(molef_);
-    // NOTES: - starting at itm=1 to skip total energy
+    // NOTES: - starting at itm=1 to skip translational energy
     //        - scaling by modal_massf to convert J/modal-kg to J/total-kg
-    for ( size_t itm=1; itm<Q.e.size(); ++itm )
-        yin_[itm-1] = Q.e[itm]*g_->modal_massf(Q,itm);
+    for ( size_t itm = 1; itm < Q.e.size(); ++itm )
+        yin_[itm-1] = Q.e[itm];
     ees_->called_at_least_once = false;
     ees_->eval(yin_, ydot_);
 
-    // Total energy doesn't change
-    dedt[0] = 0.0;
-    // NOTE: - scaling by 1/modal_massf to convert W/total-kg to W/modal-kg
+    // We don't set dedt[0] -- we fill this in from changes in other modes
+    dedt[0] = 0.0;    
     for ( size_t itm = 1; itm < dedt.size(); ++itm ) {
-	dedt[itm] = ydot_[itm-1]/g_->modal_massf(Q,itm);
+	dedt[itm] = ydot_[itm-1];
     }
 
     return SUCCESS;
@@ -200,10 +200,12 @@ perform_increment(Gas_data &Q, double t_interval, double &dt_suggest)
     // SETUP
     ees_->set_gas_data_ptr(Q);
     ees_->set_molef_ptr(molef_);
-    // NOTES: - starting at itm=1 to skip total energy
-    //        - scaling by modal_massf to convert J/modal-kg to J/total-kg
-    for ( size_t itm=1; itm<Q.e.size(); ++itm )
-        yin_[itm-1] = Q.e[itm]*g_->modal_massf(Q,itm);
+    // Store e_total so we now how much so put in translational energy later.
+    double e_total = accumulate(Q.e.begin(), Q.e.end(), 0.0);
+    // NOTES: - starting at itm=1 to skip translational energy
+    for ( size_t itm = 1; itm < Q.e.size(); ++itm ) {
+        yin_[itm-1] = Q.e[itm];
+    }
     ees_->called_at_least_once = false;
     
     double h = dt_suggest;
@@ -240,10 +242,13 @@ perform_increment(Gas_data &Q, double t_interval, double &dt_suggest)
 
     // 2. If we've made it this far than we're doing well.
     //    Let's update the gas state and leave.
-    // NOTE: - scaling by 1/modal_massf to convert W/total-kg to W/modal-kg
-    for ( size_t itm=1; itm<Q.e.size(); ++itm )
-    	Q.e[itm] = yout_[itm-1]/g_->modal_massf(Q,itm);
-    
+    double e_other = 0.0; // all other energy components except e[0]
+    for ( size_t itm = 1; itm < Q.e.size(); ++itm ) {
+    	Q.e[itm] = yout_[itm-1];
+	e_other += Q.e[itm];
+    }
+    Q.e[0] = e_total - e_other;
+
     // 3. But first apply equilibriation mechanisms
     for ( size_t ieq=0; ieq<eq_mechs_.size(); ++ieq ) {
     	eq_mechs_[ieq]->apply( Q );

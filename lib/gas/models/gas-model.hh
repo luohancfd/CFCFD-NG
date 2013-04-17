@@ -79,12 +79,6 @@ public:
     double gas_amin()
     { return a_min; }
 
-    int decode_conserved_energy(Gas_data &Q, const std::vector<double> &rhoe)
-    { return s_decode_conserved_energy(Q, rhoe); }
-
-    int encode_conserved_energy(const Gas_data &Q, std::vector<double> &rhoe)
-    { return s_encode_conserved_energy(Q, rhoe); }
-
     int eval_thermo_state_pT(Gas_data &Q)
     { return s_eval_thermo_state_pT(Q); }
 
@@ -175,10 +169,6 @@ public:
     double modal_Cv( Gas_data &Q, int itm )
     { return s_modal_Cv(Q,itm); }
 
-    double modal_massf(const Gas_data &Q, int itm)
-    { return s_modal_massf(Q, itm); }
-
-    
     double entropy(const Gas_data &Q, int isp)
     { return s_entropy(Q, isp); }
 
@@ -249,8 +239,6 @@ protected:
     { nmodes_ = nmodes; }
 
     // Derived classes need to implement their own versions of the following...
-    virtual int s_decode_conserved_energy(Gas_data &Q, const std::vector<double> &rhoe);
-    virtual int s_encode_conserved_energy(const Gas_data &Q, std::vector<double> &rhoe);
     virtual int s_eval_thermo_state_rhoe(Gas_data &Q) = 0;
     virtual int s_eval_thermo_state_pT(Gas_data &Q);
     virtual int s_eval_thermo_state_rhoT(Gas_data &Q);
@@ -274,7 +262,6 @@ protected:
     virtual double s_entropy(const Gas_data &Q, int isp) = 0;
     virtual double s_modal_enthalpy(const Gas_data &Q, int isp, int itm);
     virtual double s_modal_Cv(Gas_data &Q, int itm);
-    virtual double s_modal_massf(const Gas_data &Q, int itm);
 
 private:
     // Local classes.

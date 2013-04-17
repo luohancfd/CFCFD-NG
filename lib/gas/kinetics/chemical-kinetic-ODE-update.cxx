@@ -1,11 +1,10 @@
 // Author: Rowan J. Gollan
 // Date: 12-Sep-2008
 // Place: NIA, Hampton, Virginia, USA
-// History:
-//   23-Mar-2009  Revised to accommodate new direct-from-Lua input.
 
 #include <iostream>
 #include <sstream>
+#include <numeric>
 
 extern "C" {
 #include <lua.h>
@@ -91,10 +90,18 @@ s_update_state(Gas_data &Q, double t_interval, double &dt_suggest, Gas_model *gm
     // Keep a copy in case something goes wrong
     // and we need to retry
     Q_save_->copy_values_from(Q);
+    double e_total = accumulate(Q.e.begin(), Q.e.end(), 0.0);
     double dt_suggest_save = dt_suggest;
 
     // 1. Attempt to solve normally.
     if ( perform_increment(Q, t_interval, dt_suggest) == SUCCESS ) {
+	// Changing mass fractions does not change internal energies
+	// but the amount in kg/mixture has changed, so update e[] values
+	if ( gm->eval_thermo_state_rhoT(Q) != SUCCESS ) {
+	    return FAILURE;
+	}
+	double e_other = accumulate(Q.e.begin()+1, Q.e.end(), 0.0);
+	Q.e[0] = e_total - e_other;
 	// all is well
 	return SUCCESS;
     }
@@ -111,15 +118,26 @@ s_update_state(Gas_data &Q, double t_interval, double &dt_suggest, Gas_model *gm
 	for( int i = 0; i < no_substeps; ++i ) {
 	    // Update the gas-state assuming constant density and energy
 	    if ( i > 0 && gm!=0 ) {
-	    	gm->eval_thermo_state_rhoe( Q );
+		gm->eval_thermo_state_rhoT(Q);
+		double e_other = accumulate(Q.e.begin()+1, Q.e.end(), 0.0);
+		Q.e[0] = e_total - e_other;
+	    	gm->eval_thermo_state_rhoe(Q);
 	    }
 	    if ( perform_increment(Q, dt_sub, dt_suggest) != SUCCESS ) {
 		flag = FAILURE;
 		break;
 	    }
 	}
-	if ( flag == SUCCESS )
+	if ( flag == SUCCESS ) {
+	    // Changing mass fractions does not change internal energies
+	    // but the amount in kg/mixture has changed, so update e[] values
+	    if ( gm->eval_thermo_state_rhoT(Q) != SUCCESS ) {
+		return FAILURE;
+	    }
+	    double e_other = accumulate(Q.e.begin()+1, Q.e.end(), 0.0);
+	    Q.e[0] = e_total - e_other;
 	    return SUCCESS;
+	}
 	else {
 	    cout << "Failed to successfully update gas state due to chemistry.\n";
 	    cout << "The initial condition was: \n";
@@ -170,10 +188,8 @@ perform_increment(Gas_data &Q, double t_interval, double &dt_suggest)
 	flag = ode_solver_->solve_over_interval(*cks_, 0.0, t_interval, &h,
 						yin_, yout_);
 	if ( ! flag ) {
-	    //printf("step failed! retrying...");
 	    // then we retry with the timestep selected by our function
 	    h = cks_->stepsize_select(yin_);
-	    //printf("subsequent step h=%6.5e\n", h);
 	    if ( h > (0.5 * dt_suggest) ) {
 		// If we're going to reduce the timestep, it's probably
 		// best to do so drastically.  Anything less than half
@@ -190,16 +206,8 @@ perform_increment(Gas_data &Q, double t_interval, double &dt_suggest)
     }
     else { // it's probably our first step (or after T_trigger invocation)	
 	h = cks_->stepsize_select(yin_);
-	//printf("first step h=%6.5e\n", h);
 	flag = ode_solver_->solve_over_interval(*cks_, 0.0, t_interval, &h,
 						yin_, yout_);
-
-	//printf("yout_ conc = [");
-	//for (size_t sp = 0; sp < yout_.size(); ++sp) {
-	//    printf("%4.3e, ", yout_[sp]);
-	//}
-	//printf("]\n");
-
 	if ( ! flag ) {
 	    return NUMERICAL_ERROR;
 	}
