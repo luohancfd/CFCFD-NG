@@ -77,7 +77,8 @@ int history_just_written, output_just_written, av_output_just_written;
 int write_at_step_has_been_done = 0;
 int program_return_flag = 0;
 size_t output_counter = 0; // counts the number of flow-solutions written
-int zip_files = 1; // flag to indicate if flow and grid files are to be gzipped
+bool zip_files = true; // flag to indicate if flow and grid files are to be gzipped
+bool with_heat_flux_files = false; // flag to indicate that we want heat-flux files
 bool master;
 int max_wall_clock = 0;
 time_t start, now; // wall-clock timer
@@ -127,6 +128,9 @@ int main(int argc, char **argv)
 	  NULL },
 	{ "no-zip-files", 'a', POPT_ARG_NONE, NULL, 'a',
 	  "use ASCII (not gzipped) flow and grid files", 
+	  NULL },
+	{ "heat-flux-files", 'q', POPT_ARG_NONE, NULL, 'q',
+	  "write heat-flux files", 
 	  NULL },
 	{ "no-complain", 'n', POPT_ARG_NONE, NULL, 'n',
 	  "suppress complaints about bad data in cells", 
@@ -218,10 +222,13 @@ WARNING: This executable only computes the radiative source\n\
 	    do_run_simulation = 1;
 	    break;
 	case 'z':
-	    zip_files = 1;
+	    zip_files = true;
 	    break;
 	case 'a':
-	    zip_files = 0;
+	    zip_files = false;
+	    break;
+	case 'q':
+	    with_heat_flux_files = true;
 	    break;
 	case 't':
 	    start_tindx = static_cast<size_t>(atoi(poptGetOptArg(optCon)));
@@ -444,14 +451,14 @@ int prepare_to_integrate(size_t start_tindx)
 	filename = "hist/" + G.base_file_name + ".hist"+jbstring;
 	if ( access(filename.c_str(), F_OK) != 0 ) {
 	    // History file does not yet exist; write header.
-	    bdp->write_history( filename, G.sim_time, 1 );
+	    bdp->write_history(filename, G.sim_time, true);
 	}
 	// Read in heat-flux vectors if present
 	for ( int iface = NORTH; iface <= ((G.dimensions == 3)? BOTTOM : WEST); ++iface ) {
 	    sprintf( ifcstr, ".s%04d", iface );
 	    ifstring = ifcstr;
 	    filename = "heat/"+tindxstring+"/"+G.base_file_name+".heat"+jbstring+ifstring+"."+tindxstring;
-	    bdp->bcp[iface]->read_surface_heat_flux( filename, G.dimensions, zip_files );
+	    bdp->bcp[iface]->read_surface_heat_flux(filename, G.dimensions, zip_files);
 	}
     } // end for *bdp
     output_counter = start_tindx;
@@ -806,14 +813,14 @@ int write_solution_data(std::string tindxstring)
 		    filename = foldername+"/"+ G.base_file_name+".vel" \
 			+jbstring+jsstring+"."+tindxstring;
 		    bdp->bcp[js]->write_vertex_velocities(filename, G.sim_time, G.dimensions);
-		    if ( zip_files == 1 ) do_system_cmd("gzip -f "+filename);
+		    if ( zip_files ) do_system_cmd("gzip -f "+filename);
 		}
 	    } // end for ( Block *bdp
 	} // end if ( get_write_vertex_velocities_flag()
     } // end if ( get moving_grid_flag()
 
     // Compute, store and write heat-flux data, if viscous simulation
-    if ( get_viscous_flag() ) {
+    if ( with_heat_flux_files && get_viscous_flag() ) {
 	foldername = "heat/"+tindxstring;
 	ensure_directory_is_present(foldername); // includes Barrier
 	for ( Block *bdp : G.my_blocks ) {
@@ -826,7 +833,7 @@ int write_solution_data(std::string tindxstring)
 		    +jbstring+jsstring+"."+tindxstring;
 		bdp->bcp[js]->compute_surface_heat_flux();
 		bdp->bcp[js]->write_surface_heat_flux(filename,G.sim_time);
-		if ( zip_files == 1 ) do_system_cmd("gzip -f "+filename);
+		if ( zip_files ) do_system_cmd("gzip -f "+filename);
 	    }
 	} // for *bdp
     }

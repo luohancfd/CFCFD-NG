@@ -185,24 +185,24 @@ public:
     
     // in block_io.cxx
     int read_grid(std::string filename, size_t dimensions,
-		  int zip_file=1, size_t gtl=0);
+		  bool zip_file=true, size_t gtl=0);
     int write_grid(std::string filename, double sim_time, size_t dimensions,
-		   int zip_file=1, size_t gtl=0);
+		   bool zip_file=true, size_t gtl=0);
     int read_solution(std::string filename, double *sim_time, size_t dimensions,
-		      int zip_file=1, size_t gtl=0);
+		      bool zip_file=true, size_t gtl=0);
     int write_solution(std::string filename, double sim_time, size_t dimensions,
-		       int zip_file=1, size_t gtl=0);
+		       bool zip_file=true, size_t gtl=0);
     int write_history(std::string filename, double sim_time,
-		      int write_header=0, size_t gtl=0);
+		      bool write_header=false, size_t gtl=0);
     void compute_x_forces(char *text_string, int ibndy, size_t dimensions, size_t gtl=0);
     int print_forces( FILE *fp, double t, size_t dimensions, size_t gtl=0);
 
     // in block_bgk.cxx
     int read_BGK(std::string filename, double *sim_time, 
-		      size_t dimensions, int zip_file=1);
+		 size_t dimensions, bool zip_file=true);
     int initialise_BGK_equilibrium( void );
     int write_BGK(std::string filename, double sim_time, 
-		       size_t dimensions, int zip_file=1 );
+		  size_t dimensions, bool zip_file=true);
 
     // in block_filter.cxx
     int apply_spatial_filter_diffusion( double alpha, size_t npass, size_t dimensions );

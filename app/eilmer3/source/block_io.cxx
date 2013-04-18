@@ -23,7 +23,7 @@ extern "C" {
 //-----------------------------------------------------------------------------
 
 int Block::read_grid(std::string filename, size_t dimensions,
-		     int zip_file, size_t gtl)
+		     bool zip_file, size_t gtl)
 /// \brief Read the grid from a disc file as a set of cell vertices.
 /// \returns 0 if successful but 1 if it hits the end of the grid file prematurely.
 {
@@ -141,7 +141,7 @@ int Block::read_grid(std::string filename, size_t dimensions,
 
 
 int Block::write_grid(std::string filename, double sim_time, size_t dimensions,
-		      int zip_file, size_t gtl)
+		      bool zip_file, size_t gtl)
 /// \brief Write the grid for a single block.
 ///
 /// This is "almost-Tecplot" POINT format.
@@ -211,7 +211,7 @@ int Block::write_grid(std::string filename, double sim_time, size_t dimensions,
 /// \brief Read the flow solution (i.e. the flow data at cell centers) from a file.
 /// Returns a status flag.
 int Block::read_solution(std::string filename, double *sim_time, size_t dimensions,
-			 int zip_file, size_t gtl)
+			 bool zip_file, size_t gtl)
 {
 #   define NCHAR 4000
     char line[NCHAR];
@@ -307,7 +307,7 @@ int Block::read_solution(std::string filename, double *sim_time, size_t dimensio
 
 
 int Block::write_solution(std::string filename, double sim_time, size_t dimensions,
-			  int zip_file, size_t gtl)
+			  bool zip_file, size_t gtl)
 /// \brief Write the flow solution (i.e. the primary variables at the
 ///        cell centers) for a single block.
 ///
@@ -363,7 +363,7 @@ int Block::write_solution(std::string filename, double sim_time, size_t dimensio
 } // end of Block::write_solution()
 
 
-int Block::write_history(std::string filename, double sim_time, int write_header, size_t gtl)
+int Block::write_history(std::string filename, double sim_time, bool write_header, size_t gtl)
 /// \brief Write out the flow solution in a (small) subset of cells.
 ///
 /// This us usually done at a different (often smaller) time interval 

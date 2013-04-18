@@ -25,7 +25,7 @@ extern "C" {
 /// \brief Read the BGK discrete velocity distribution values
 /// Returns a status flag.
 int Block::read_BGK(std::string filename, double *sim_time,
-		    size_t dimensions, int zip_file)
+		    size_t dimensions, bool zip_file)
 {
 #   define NCHAR 4000
     char line[NCHAR];
@@ -136,7 +136,7 @@ int Block::initialise_BGK_equilibrium( void )
 /// \brief Write the BGK discrete velocity distribution values for a single block
 ///
 /// This is "almost-Tecplot" POINT format.
-int Block::write_BGK( std::string filename, double sim_time, size_t dimensions, int zip_file )
+int Block::write_BGK( std::string filename, double sim_time, size_t dimensions, bool zip_file )
 {
     FILE *fp;
     gzFile zfp;
