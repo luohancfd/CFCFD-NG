@@ -456,10 +456,10 @@ int Block::init_residuals(size_t dimensions)
     energy_residual_loc = Vector3(0.0, 0.0, 0.0);
     for ( FV_Cell *cellp: active_cells ) {
 	cellp->rho_at_start_of_step = cellp->fs->gas->rho;
-	cellp->rE_at_start_of_step = cellp->U[1]->total_energy;
+	cellp->rE_at_start_of_step = cellp->U[0]->total_energy;
     }
     return SUCCESS;
-} // end of check_residual()
+} // end of init_residuals()
 
 
 int Block::compute_residuals(size_t dimensions, size_t gtl)
@@ -479,7 +479,8 @@ int Block::compute_residuals(size_t dimensions, size_t gtl)
     energy_residual = 0.0;
     energy_residual_loc = Vector3(0.0, 0.0, 0.0);
     for ( FV_Cell *cellp: active_cells ) {
-	double local_residual = ( cellp->fs->gas->rho - cellp->rho_at_start_of_step ) / cellp->fs->gas->rho;
+	double local_residual = (cellp->fs->gas->rho - cellp->rho_at_start_of_step) 
+	    / cellp->fs->gas->rho;
 	local_residual = FABS(local_residual);
 	if ( local_residual > mass_residual ) {
 	    mass_residual = local_residual;
@@ -487,7 +488,11 @@ int Block::compute_residuals(size_t dimensions, size_t gtl)
 	    mass_residual_loc.y = cellp->pos[gtl].y;
 	    mass_residual_loc.z = cellp->pos[gtl].z;
 	}
-	local_residual = ( cellp->U[1]->total_energy - cellp->rE_at_start_of_step ) / cellp->U[1]->total_energy;
+	// In the following line, the zero index is used because,
+	// at the end of the gas-dynamic update, that index holds
+	// the updated data.
+	local_residual = (cellp->U[0]->total_energy - cellp->rE_at_start_of_step) 
+	    / cellp->U[0]->total_energy;
 	local_residual = FABS(local_residual);
 	if ( local_residual > energy_residual ) {
 	    energy_residual = local_residual;

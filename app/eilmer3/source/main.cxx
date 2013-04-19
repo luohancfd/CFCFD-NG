@@ -1487,8 +1487,8 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 	    if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
 		apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
 		if ( get_k_omega_flag() ) {
-		    apply_menter_boundary_correction(*bdp);
-		    if ( get_wilson_omega_filter_flag() ) apply_wilson_omega_correction(*bdp);
+		    apply_menter_boundary_correction(*bdp, 0);
+		    if ( get_wilson_omega_filter_flag() ) apply_wilson_omega_correction(*bdp, 0);
 		}
 		if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
 		estimate_turbulence_viscosity(&G, bdp);
@@ -1507,7 +1507,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 	    } // end for *cp
 	    if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
 		// FIX-ME Wilson, does this need to be here?
-		apply_wilson_omega_correction( *bdp );
+		apply_wilson_omega_correction(*bdp, 1);
 	    }
 	} // end of for jb...
 
@@ -1536,8 +1536,8 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
 		    apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
 		    if ( get_k_omega_flag() ) {
-			apply_menter_boundary_correction(*bdp);
-			if ( get_wilson_omega_filter_flag() ) apply_wilson_omega_correction(*bdp);
+			apply_menter_boundary_correction(*bdp, 1);
+			if ( get_wilson_omega_filter_flag() ) apply_wilson_omega_correction(*bdp, 1);
 		    }
 		    if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
 		    estimate_turbulence_viscosity(&G, bdp);
@@ -1556,7 +1556,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		} // end for ( *cp
 		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
 		    // FIX-ME Wilson, does this need to be here?
-		    apply_wilson_omega_correction( *bdp );
+		    apply_wilson_omega_correction(*bdp, 2);
 		}
 	    } // end for jb loop
 	} // end if ( number_of_stages_for_update_scheme() >= 2 
@@ -1585,8 +1585,8 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
 		    apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
 		    if ( get_k_omega_flag() ) {
-			apply_menter_boundary_correction(*bdp);
-			if ( get_wilson_omega_filter_flag() ) apply_wilson_omega_correction(*bdp);
+			apply_menter_boundary_correction(*bdp, 2);
+			if ( get_wilson_omega_filter_flag() ) apply_wilson_omega_correction(*bdp, 2);
 		    }
 		    if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
 		    estimate_turbulence_viscosity(&G, bdp);
@@ -1605,7 +1605,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		} // for *cp
 		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
 		    // FIX-ME Wilson, does this need to be here?
-		    apply_wilson_omega_correction( *bdp );
+		    apply_wilson_omega_correction(*bdp, 3);
 		}
 	    } // end for *bdp
 	} // end if ( number_of_stages_for_update_scheme() >= 3
@@ -1630,7 +1630,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		    cp->decode_conserved(0, 0, bdp->omegaz);
 		}
 		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
-		    apply_wilson_omega_correction( *bdp );
+		    apply_wilson_omega_correction(*bdp, 0);
 		}
 	    } // end for *bdp
 	} // end if step_status_flag
@@ -1745,7 +1745,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
 		cp->decode_conserved(1, 1, bdp->omegaz);
 	    } // end for *cp
 	    if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
-		apply_wilson_omega_correction( *bdp );
+		apply_wilson_omega_correction(*bdp, 1);
 	    }
 	} // end of for *bdp...
 
@@ -1801,7 +1801,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
 		cp->decode_conserved(2, 2, bdp->omegaz);
 	    } // end for *cp
 	    if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
-		apply_wilson_omega_correction( *bdp );
+		apply_wilson_omega_correction(*bdp, 2);
 	    }
 	} // end for jb loop
    
@@ -1825,7 +1825,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
 		    cp->decode_conserved(0, 0, bdp->omegaz);
 		}
 		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
-		    apply_wilson_omega_correction( *bdp );
+		    apply_wilson_omega_correction(*bdp, 0);
 		}
 	    } // end for *bdp
 	} // end if step_status_flag
@@ -1856,9 +1856,9 @@ int gasdynamic_separate_explicit_viscous_increment()
 	bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
 	for ( FV_Cell *cp: bdp->active_cells ) cp->clear_source_vector();
 	apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
-	if ( get_k_omega_flag() ) apply_menter_boundary_correction(*bdp);
+	if ( get_k_omega_flag() ) apply_menter_boundary_correction(*bdp, 0);
 	if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
-	    apply_wilson_omega_correction(*bdp);
+	    apply_wilson_omega_correction(*bdp, 0);
 	}
 	if ( G.dimensions == 2 )
 	    viscous_derivatives_2D(bdp, 0);
@@ -1874,7 +1874,7 @@ int gasdynamic_separate_explicit_viscous_increment()
 	    cp->decode_conserved(0, 0, bdp->omegaz);
 	} // end for *cp
 	if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
-            apply_wilson_omega_correction(*bdp);
+            apply_wilson_omega_correction(*bdp, 0);
 	}
     } // end for *bdp...
     return SUCCESS;

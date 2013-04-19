@@ -72,7 +72,9 @@ int luafn_sample_flow(lua_State *L)
     lua_setfield(L, -2, "massf");
     // Parameters for computing density and energy residuals
     lua_pushnumber(L, cell->U[0]->mass); lua_setfield(L, -2, "rho_old");
-    lua_pushnumber(L, cell->U[1]->total_energy); lua_setfield(L, -2, "rE");
+    // Have commented out the following line because I can't guarantee
+    // which time-level, ftl, is appropriate for this particular call. 
+    // lua_pushnumber(L, cell->U[ftl]->total_energy); lua_setfield(L, -2, "rE");
     lua_pushnumber(L, cell->U[0]->total_energy); lua_setfield(L, -2, "rE_old");
     
     return 1; // Just the one table is left on Lua stack
