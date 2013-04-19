@@ -63,7 +63,7 @@ def main():
                          '--add-mach':1,'--add-total-p':1,'--add-total-enthalpy':1})
         f1.close()
     variable_list = GridFlowData[0].vars
-    variable_list.append('log10-p')
+    variable_list.append('log10-p') # We calculate this later
     
     #variable_list = ['pos.x','pos.y','M_local']
     # Write out the header line
@@ -85,7 +85,11 @@ def main():
         nb = int(len(fileList))
         r = range(nbj)
     elif test_section_data is True:
-        nb = 68 # For test-section simulation
+        # For the test-section simulation, modify as required. 
+        # This number should be the total number of blocks in the
+        # INNER portion of the test section. The OUTER portion is
+        # treated separately later
+        nb = 68
         r = range(nbj,nbj+nbj)
     
     #print GridFlowData[0].ni
