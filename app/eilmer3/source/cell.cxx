@@ -1728,7 +1728,10 @@ int FV_Cell::chemical_increment(double dt)
 /// \brief Apply the thermal update for a specified cell.
 ///
 /// Use the nonequilibrium multi-Temperature module to update the
-/// energy values  and the other thermochemical properties.
+/// energy values and the other thermochemical properties.
+/// We are assuming that this is done after a successful gas-dynamic update
+/// and that the current conserved quantities are held in U[0].
+///
 /// \param dt   : size of the time-step
 int FV_Cell::thermal_increment(double dt)
 {
@@ -1750,7 +1753,7 @@ int FV_Cell::thermal_increment(double dt)
     // ...but we have to manually update the conservation quantities
     // for the gas-dynamics time integration.
     // Independent energies energy: Joules per unit volume.
-    gmodel->encode_conserved_energy(*(fs->gas), U[1]->energies); // FIX-ME check this index 2013-04-05
+    gmodel->encode_conserved_energy(*(fs->gas), U[0]->energies);
     return flag;
 } // end of thermal_increment()
 
