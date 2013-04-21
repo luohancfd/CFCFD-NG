@@ -85,7 +85,8 @@ gdata.dt_plot =  1.0e-3
 gdata.dt_history = 1.0e-5
 gdata.max_step = 3000000 
 
-gdata.cfl = 0.4	
+gdata.gasdynamic_update_scheme = "classic-rk3"
+gdata.cfl = 1.0	
 gdata.cfl_count = 3
 gdata.stringent_cfl = 0 # 1 is more robust
 gdata.dt = 1.0e-9	# only an initial guess, the simulation will take this over
