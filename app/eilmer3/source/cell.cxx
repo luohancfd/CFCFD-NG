@@ -13,6 +13,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <numeric>
 
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/gas/models/gas_data.hh"
@@ -1122,17 +1123,18 @@ int FV_Cell::encode_conserved(size_t gtl, size_t ftl, double omegaz)
     myU.B.z = fs->B.z;
     // Total Energy / unit volume = density
     // (specific internal energy + kinetic energy/unit mass).
+    double e = accumulate(fs->gas->e.begin(), fs->gas->e.end(), 0.0);
     double ke = 0.5 * (fs->vel.x * fs->vel.x
 		       + fs->vel.y * fs->vel.y
 		       + fs->vel.z * fs->vel.z);
     if ( get_k_omega_flag() ) {
 	myU.tke = fs->gas->rho * fs->tke;
 	myU.omega = fs->gas->rho * fs->omega;
-	myU.total_energy = fs->gas->rho * (fs->gas->e[0] + ke + fs->tke);
+	myU.total_energy = fs->gas->rho * (e + ke + fs->tke);
     } else {
 	myU.tke = 0.0;
 	myU.omega = fs->gas->rho * 1.0;
-	myU.total_energy = fs->gas->rho * (fs->gas->e[0] + ke);
+	myU.total_energy = fs->gas->rho * (e + ke);
     }
     if ( get_mhd_flag() == 1) {
 	double me = 0.5 * (fs->B.x * fs->B.x
@@ -1144,9 +1146,10 @@ int FV_Cell::encode_conserved(size_t gtl, size_t ftl, double omegaz)
     for ( size_t isp = 0; isp < myU.massf.size(); ++isp ) {
 	myU.massf[isp] = fs->gas->rho * fs->gas->massf[isp];
     }
-    // Individual energies
-    Gas_model *gmodel = get_gas_model_ptr();
-    gmodel->encode_conserved_energy(*(fs->gas), myU.energies);
+    // Individual energies: energy in mode per unit volume
+    for ( size_t imode = 0; imode < myU.energies.size(); ++imode ) {
+	myU.energies[imode] = fs->gas->rho * fs->gas->e[imode];
+    }
     
     if ( omegaz != 0.0 ) {
 	// Rotating frame.
@@ -1170,7 +1173,7 @@ int FV_Cell::decode_conserved(size_t gtl, size_t ftl, double omegaz)
 {
     ConservedQuantities &myU = *(U[ftl]);
     Gas_model *gmodel = get_gas_model_ptr();
-    double ke, dinv, rE, me;
+    double e, ke, dinv, rE, me;
 
     // Mass / unit volume = Density
     double rho = myU.mass;
@@ -1214,25 +1217,25 @@ int FV_Cell::decode_conserved(size_t gtl, size_t ftl, double omegaz)
     if ( get_k_omega_flag() ) {
         fs->tke = myU.tke * dinv;
         fs->omega = myU.omega * dinv;
-        fs->gas->e[0] = (rE - myU.tke - me) * dinv - ke;
+	e = (rE - myU.tke - me) * dinv - ke;
     } else {
         fs->tke = 0.0;
         fs->omega = 1.0;
-        fs->gas->e[0] = (rE - me) * dinv - ke;
+	e = (rE - me) * dinv - ke;
     }
     size_t nsp = myU.massf.size();
     for ( size_t isp = 0; isp < nsp; ++isp ) {
 	fs->gas->massf[isp] = myU.massf[isp] * dinv;
     }
     if ( nsp > 1 ) scale_mass_fractions( fs->gas->massf );
-    
-    // NOTE: - gas->e[0] is the total internal energy (sum of all modes)
-    //         and has already been calculated above
-    //       - renergies[0] is being calculated but never used.
-    //         We've decided to leave it that way.
-    double e0_save = fs->gas->e[0];
-    gmodel->decode_conserved_energy(*(fs->gas), myU.energies);
-    fs->gas->e[0] = e0_save;
+    size_t nmodes = myU.energies.size();
+    for ( size_t imode = 1; imode < nmodes; ++imode ) {
+	fs->gas->e[imode] = myU.energies[imode] * dinv;
+    }
+    // We can recompute e[0] from total energy and component
+    // modes NOT in translation.
+    double e_tmp = accumulate(fs->gas->e.begin()+1, fs->gas->e.end(), 0.0);
+    fs->gas->e[0] = e - e_tmp;
     // Fill out the other variables; P, T, a and
     // check the species mass fractions.
     // Update the viscous transport coefficients.
@@ -1753,7 +1756,9 @@ int FV_Cell::thermal_increment(double dt)
     // ...but we have to manually update the conservation quantities
     // for the gas-dynamics time integration.
     // Independent energies energy: Joules per unit volume.
-    gmodel->encode_conserved_energy(*(fs->gas), U[0]->energies);
+    for ( size_t imode = 0; imode < U[0]->energies.size(); ++imode ) {
+	U[0]->energies[imode] = fs->gas->rho * fs->gas->e[imode];
+    }
     return flag;
 } // end of thermal_increment()
 

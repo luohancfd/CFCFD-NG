@@ -307,50 +307,6 @@ s_eval_temperature_bisection(Gas_data &Q, double tol)
     return T_mid;
 }
 
-double
-Variable_Cv_energy_mode::
-s_eval_temperature_bisection(Gas_data &Q, double tol)
-{
-    // Bisection method to solve for Q.T[iT_]
-    double e_given = Q.e[iT_];
-    Q.T[iT_] = T_min_;
-    double e_min = s_eval_energy( Q );
-    Q.T[iT_] = T_max_;
-    double e_max = s_eval_energy( Q );
-
-    if ( e_given >= e_max ) {
-        cout << "Variable_Cv_energy_mode::s_eval_temperature_bisection()" << endl
-             << "Maximum temperature limit exceeded!" << endl;
-        return T_max_;
-    }
-    else if ( e_given <= e_min ) {
-        cout << "Variable_Cv_energy_mode::s_eval_temperature_bisection()" << endl
-             << "Minimum temperature limit exceeded!" << endl;
-        return T_min_;
-    }
-
-    double T_left = T_min_;
-    double T_right = T_max_;
-
-    double T_mid=(T_left+T_right)/2.0;
-
-    for(T_mid=(T_left+T_right)/2.0; fabs(T_left-T_mid) > tol; T_mid=(T_left+T_right)/2.0) {
-        // cout << "T_left = " << T_left << ", T_right = " << T_right << endl;
-        Q.T[iT_] = T_left;
-        double f_left = s_eval_energy( Q ) - e_given;
-        Q.T[iT_] = T_right;
-        double f_right = s_eval_energy( Q ) - e_given;
-        if (f_left*f_right <= 0.0) {
-            T_right = T_mid; // use left interval
-        } else {
-            T_left = T_mid; // use right interval
-        }
-    }
-
-    return T_mid;
-}
-
-
 void
 Variable_Cv_energy_mode::
 s_test_derivatives( Gas_data &Q )
