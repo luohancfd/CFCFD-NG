@@ -5,16 +5,17 @@
 
 TARGET ?= for_gnu
 OPT ?= -O2
-include ../../../lib/util/source/systems.mk
 
 INSTALL_DIR ?= $(HOME)/e3bin
+GAS     := ../../lib/gas
 
 install : $(INSTALL_DIR) pitot.py
 	@echo Copying cfpylib files to $(INSTALL_DIR)
 	cd $(GAS)/build; make TARGET=$(TARGET) OPT=$(OPT) INSTALL_DIR=$(INSTALL_DIR) install
 	cd ../../lib/; rsync -av --exclude=".svn" --exclude="*~" cfpylib $(INSTALL_DIR)
 	@echo Copying pitot to $(INSTALL_DIR)
-	- cp -f pitot.py $(INSTALL_DIR)/pitot
+	mkdir $(INSTALL_DIR)/pitot
+	- cp -f pitot.py $(INSTALL_DIR)/pitot/pitot.py
 	- chmod +x $(INSTALL_DIR)/pitot/pitot.py
 	@echo -----------------------------------------
 	@echo pitot should be now installed.
