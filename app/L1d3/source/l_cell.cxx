@@ -7,6 +7,7 @@
 #include <string.h>
 #include <iostream>
 #include <sstream>
+#include <numeric>
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/gas/models/gas-model.hh"
 #include "../../../lib/gas/kinetics/reaction-update.hh"
@@ -27,7 +28,7 @@ LFlowState::LFlowState(const LFlowState& fs)
 {
     gas = new Gas_data(*(fs.gas));
     u = fs.u;
- }
+}
 
 
 LFlowState::~LFlowState()
@@ -134,7 +135,8 @@ int LCell::encode_conserved()
     // X-momentum.
     moment = mass * u;
     // Total Energy = mass * (specific internal energy + kinetic energy/unit mass).
-    Energy = mass * (gas->e[0] + 0.5*u*u);
+    double e = accumulate(gas->e.begin(), gas->e.end(), 0.0);
+    Energy = mass * (e + 0.5*u*u);
     return SUCCESS;
 } // end encode_conserved()
 
@@ -146,7 +148,9 @@ int LCell::decode_conserved()
     gas->rho = mass / volume;
     u = moment / mass;
     double ke = 0.5*u*u;
-    gas->e[0] = Energy/mass - ke;
+    double e_non_translation = accumulate(gas->e.begin()+1, gas->e.end(), 0.0);
+    // Translational energy is them just what remains after we remove the others.
+    gas->e[0] = Energy/mass - ke - e_non_translation;
     if ( gas->rho <= 0.0 || mass <= 0.0 || fabs(u) > 1.0e5 ) {
 	printf("LCell_decode_conserved: Bad value for density, mass or velocity\n");
 	printf("    rho=%g, mass=%g, u=%g in cell\n", gas->rho, mass, u);
@@ -300,13 +304,14 @@ int LCell::scan_cell_values_from_string(char *bufptr)
 int L_blend_cells(LCell& cA, LCell& cB, LCell& c, double alpha, int blend_type)
 {
     Gas_model *gmodel = get_gas_model_ptr();
-    int nsp = gmodel->get_number_of_species();
+    size_t nsp = gmodel->get_number_of_species();
+    size_t nmodes = gmodel->get_number_of_modes();
 
     if ( blend_type == BLEND_PUT ) {
 	c.u     = (1.0 - alpha) * cA.u     + alpha * cB.u;
 	c.gas->p = (1.0 - alpha) * cA.gas->p + alpha * cB.gas->p;
 	c.gas->T[0] = (1.0 - alpha) * cA.gas->T[0] + alpha * cB.gas->T[0];
-	for ( int isp = 0; isp <= nsp; ++isp ) {
+	for ( size_t isp = 0; isp <= nsp; ++isp ) {
 	    c.gas->massf[isp] = (1.0 - alpha) * cA.gas->massf[isp] + 
 		            alpha * cB.gas->massf[isp];
 	}
@@ -315,14 +320,15 @@ int L_blend_cells(LCell& cA, LCell& cB, LCell& c, double alpha, int blend_type)
     } else {
 	c.u       = (1.0 - alpha) * cA.u       + alpha * cB.u;
 	c.gas->rho = (1.0 - alpha) * cA.gas->rho + alpha * cB.gas->rho;
-	c.gas->e[0]= (1.0 - alpha) * cA.gas->e[0]+ alpha * cB.gas->e[0];
-	c.gas->T[0]= (1.0 - alpha) * cA.gas->T[0]+ alpha * cB.gas->T[0];
-	for ( int isp = 0; isp <= nsp; ++isp ) {
-	    c.gas->massf[isp] = (1.0 - alpha) * cA.gas->massf[isp] + 
-		            alpha * cB.gas->massf[isp];
+	for ( size_t isp = 0; isp <= nsp; ++isp ) {
+	    c.gas->massf[isp] = (1.0 - alpha) * cA.gas->massf[isp] + alpha * cB.gas->massf[isp];
+	}
+	for ( size_t imode = 0; imode < nmodes; ++imode ) {
+	    c.gas->e[imode]= (1.0 - alpha) * cA.gas->e[imode]+ alpha * cB.gas->e[imode];
+	    c.gas->T[imode]= (1.0 - alpha) * cA.gas->T[imode]+ alpha * cB.gas->T[imode];
 	}
 	gmodel->eval_thermo_state_rhoe(*(c.gas));
 	gmodel->eval_transport_coefficients(*(c.gas));
     }
-    return 0;
+    return SUCCESS;
 } // end L_blend_cells()

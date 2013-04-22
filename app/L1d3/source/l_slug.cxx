@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <numeric>
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/util/source/config_parser.hh"
 #include "l1d.hh"
@@ -260,9 +261,11 @@ GasSlug::GasSlug(int indx, SimulationData& SD,
     // molecular transport coefficients. 
     gmodel->eval_thermo_state_pT(*(initial_flow_state->gas));
     gmodel->eval_transport_coefficients(*(initial_flow_state->gas));
+    double e = accumulate(initial_flow_state->gas->e.begin(),
+			  initial_flow_state->gas->e.end(), 0.0);
     if (echo_input == 1) {
 	cout << "    rho = " << initial_flow_state->gas->rho
-	     << " e = " << initial_flow_state->gas->e[0]
+	     << " e = " << e
 	     << " a = " << initial_flow_state->gas->a << endl;
 	cout << "    R = " << gmodel->R(*(initial_flow_state->gas))
 	     << " Cv = " << gmodel->Cv(*(initial_flow_state->gas)) << endl;
@@ -499,7 +502,8 @@ double GasSlug::total_energy()
 {
     double te = 0.0;
     for ( int ix = ixmin; ix <= ixmax; ++ix ) {
-        te += Cell[ix].mass * (Cell[ix].gas->e[0] + 0.5*Cell[ix].u*Cell[ix].u);
+	double e = accumulate(Cell[ix].gas->e.begin(), Cell[ix].gas->e.end(), 0.0);
+        te += Cell[ix].mass * (e + 0.5*Cell[ix].u*Cell[ix].u);
     }
     return te;
 } // end total_energy()
@@ -839,7 +843,9 @@ int GasSlug::source_vector()
 		    m_loss = 0.333 * mypi * D * length * cell->ref->rho * 
 			abs_u * kl / sqrt(Re_L);
 		    mom_loss = m_loss * cell->u;
-		    E_loss = m_loss * (cell->gas->e[0] + abs_u * abs_u * 0.5);
+		    double e = accumulate(cell->gas->e.begin(),
+					  cell->gas->e.end(), 0.0);
+		    E_loss = m_loss * (e + abs_u * abs_u * 0.5);
 		}
 		if (m_loss < MINIMUM_MASS) { // Can't remember why.
 		    E_loss   = 0.0;
@@ -1007,6 +1013,8 @@ int GasSlug::apply_rivp()
     static double pstar[NDIM], ustar[NDIM];
     static double onedx[NDIM];
     Gas_model *gmodel = get_gas_model_ptr();
+    size_t nsp = gmodel->get_number_of_species();
+    size_t nmodes = gmodel->get_number_of_modes();
 
     // On first encounter, the gas components inside the QL, QR
     // flow state structures will need to be created.
@@ -1044,6 +1052,22 @@ int GasSlug::apply_rivp()
             QL[ix].gas->rho = limit_to_within(rhoL, Cell[ix].gas->rho, Cell[ix+1].gas->rho);
             QR[ix].gas->rho = limit_to_within(rhoR, Cell[ix].gas->rho, Cell[ix+1].gas->rho);
         }
+	// Individual species mass-fractions.
+	for ( size_t isp = 0; isp < nsp; ++isp ) {
+	    for ( ix = ixmin - 1; ix <= ixmax + 1; ++ix ) {
+		dminus[ix] = (Cell[ix].gas->massf[isp] - Cell[ix-1].gas->massf[isp]) * onedx[ix];
+		dplus[ix] = (Cell[ix+1].gas->massf[isp] - Cell[ix].gas->massf[isp]) * onedx[ix + 1];
+		del[ix] = MIN_MOD_LIMIT(dminus[ix], dplus[ix]);
+	    }
+	    for ( ix = ixmin - 1; ix <= ixmax; ++ix ) {
+		eL = Cell[ix].gas->massf[isp] + del[ix] * (Cell[ix].x - Cell[ix].xmid);
+		eR = Cell[ix+1].gas->massf[isp] - del[ix+1] * (Cell[ix+1].xmid - Cell[ix].x);
+		QL[ix].gas->massf[isp] = limit_to_within(eL, Cell[ix].gas->massf[isp],
+						       Cell[ix+1].gas->massf[isp]);
+		QR[ix].gas->massf[isp] = limit_to_within(eR, Cell[ix].gas->massf[isp],
+						       Cell[ix+1].gas->massf[isp]);
+	    }
+	} // end for isp
         // Axial Velocity
         for ( ix = ixmin-1; ix <= ixmax+1; ++ix ) {
             dminus[ix] = (Cell[ix].u - Cell[ix-1].u) * onedx[ix];
@@ -1054,19 +1078,22 @@ int GasSlug::apply_rivp()
             QL[ix].u = Cell[ix].u + del[ix] * (Cell[ix].x - Cell[ix].xmid);
             QR[ix].u = Cell[ix+1].u - del[ix+1] * (Cell[ix+1].xmid - Cell[ix].x);
         }
-        // Specific Internal Energy.
-	// FIX-ME -- do we need to deal with the other energy modes?
-        for ( ix = ixmin - 1; ix <= ixmax + 1; ++ix ) {
-            dminus[ix] = (Cell[ix].gas->e[0] - Cell[ix-1].gas->e[0]) * onedx[ix];
-            dplus[ix] = (Cell[ix+1].gas->e[0] - Cell[ix].gas->e[0]) * onedx[ix + 1];
-            del[ix] = MIN_MOD_LIMIT(dminus[ix], dplus[ix]);
-        }
-        for ( ix = ixmin - 1; ix <= ixmax; ++ix ) {
-            eL = Cell[ix].gas->e[0] + del[ix] * (Cell[ix].x - Cell[ix].xmid);
-            eR = Cell[ix+1].gas->e[0] - del[ix+1] * (Cell[ix+1].xmid - Cell[ix].x);
-	    QL[ix].gas->e[0] = limit_to_within(eL, Cell[ix].gas->e[0], Cell[ix+1].gas->e[0]);
-	    QR[ix].gas->e[0] = limit_to_within(eR, Cell[ix].gas->e[0], Cell[ix+1].gas->e[0]);
-        }
+        // Internal Energy modes.
+	for ( size_t imode = 0; imode < nmodes; ++imode ) {
+	    for ( ix = ixmin - 1; ix <= ixmax + 1; ++ix ) {
+		dminus[ix] = (Cell[ix].gas->e[imode] - Cell[ix-1].gas->e[imode]) * onedx[ix];
+		dplus[ix] = (Cell[ix+1].gas->e[imode] - Cell[ix].gas->e[imode]) * onedx[ix + 1];
+		del[ix] = MIN_MOD_LIMIT(dminus[ix], dplus[ix]);
+	    }
+	    for ( ix = ixmin - 1; ix <= ixmax; ++ix ) {
+		eL = Cell[ix].gas->e[imode] + del[ix] * (Cell[ix].x - Cell[ix].xmid);
+		eR = Cell[ix+1].gas->e[imode] - del[ix+1] * (Cell[ix+1].xmid - Cell[ix].x);
+		QL[ix].gas->e[imode] = limit_to_within(eL, Cell[ix].gas->e[imode],
+						       Cell[ix+1].gas->e[imode]);
+		QR[ix].gas->e[imode] = limit_to_within(eR, Cell[ix].gas->e[imode],
+						       Cell[ix+1].gas->e[imode]);
+	    }
+	} // end for imode
         // Pressure, Local Speed of Sound and Temperature.
         for ( ix = ixmin-1; ix <= ixmax; ++ix ) {
 	    gmodel->eval_thermo_state_rhoe(*(QL[ix].gas));

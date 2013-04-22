@@ -361,10 +361,10 @@ int main(int argc, char **argv)
 	    xx[j] = icell->xmid;
 	    rhox[j] = icell->gas->rho;
 	    ux[j] = icell->u;
-	    ex[j] = icell->gas->e[0];
+	    ex[j] = icell->gas->e[0]; // FIX-ME -- should also process other modes
 	    px[j] = icell->gas->p;
 	    ax[j] = icell->gas->a;
-	    Tx[j] = icell->gas->T[0];
+	    Tx[j] = icell->gas->T[0]; // FIX-ME -- should also process other modes
 	    tau0x[j] = icell->shear_stress;
 	    qx[j] = icell->heat_flux;
 	    entropyx[j] = icell->entropy;

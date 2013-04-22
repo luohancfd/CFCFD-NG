@@ -339,8 +339,8 @@ int L_write_GENERIC(std::vector<GasSlug>& A, int nslug, FILE *outfile, int nsp )
                     0.5 * (A[js].Cell[ix].x + A[js].Cell[ix - 1].x),
                     0.5 * (A[js].Cell[ix].area + A[js].Cell[ix - 1].area),
                     A[js].Cell[ix].gas->rho, A[js].Cell[ix].u,
-                    A[js].Cell[ix].gas->e[0], A[js].Cell[ix].gas->p,
-                    A[js].Cell[ix].gas->a, A[js].Cell[ix].gas->T[0],
+                    A[js].Cell[ix].gas->e[0], A[js].Cell[ix].gas->p, // FIX-ME -- should also process other modes
+                    A[js].Cell[ix].gas->a, A[js].Cell[ix].gas->T[0], // FIX-ME -- should also process other modes
                     A[js].Cell[ix].shear_stress,
                     A[js].Cell[ix].heat_flux, A[js].Cell[ix].entropy);
 	    for ( int isp = 0; isp < nsp; ++isp ) {

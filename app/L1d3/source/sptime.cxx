@@ -340,13 +340,13 @@ int main(int argc, char **argv)
                     } else if (option == SELECT_U) {
                         varray[js][nt_write][nx] = A[js].Cell[ix].u;
                     } else if (option == SELECT_E) {
-                        varray[js][nt_write][nx] = A[js].Cell[ix].gas->e[0];
+                        varray[js][nt_write][nx] = A[js].Cell[ix].gas->e[0]; // FIX-ME -- should also process other modes
                     } else if (option == SELECT_P) {
                         varray[js][nt_write][nx] = A[js].Cell[ix].gas->p;
                     } else if (option == SELECT_A) {
                         varray[js][nt_write][nx] = A[js].Cell[ix].gas->a;
                     } else if (option == SELECT_T) {
-                        varray[js][nt_write][nx] = A[js].Cell[ix].gas->T[0];
+                        varray[js][nt_write][nx] = A[js].Cell[ix].gas->T[0]; // FIX-ME -- should also process other modes
                     } else if (option == SELECT_TAU) {
                         varray[js][nt_write][nx] = A[js].Cell[ix].shear_stress;
                     } else if (option == SELECT_Q) {
@@ -386,13 +386,13 @@ int main(int argc, char **argv)
                     } else if (option == SELECT_U) {
                         varray[js][nt_write][nx] = icell->u;
                     } else if (option == SELECT_E) {
-                        varray[js][nt_write][nx] = icell->gas->e[0];
+                        varray[js][nt_write][nx] = icell->gas->e[0]; // FIX-ME -- should also process other modes
                     } else if (option == SELECT_P) {
                         varray[js][nt_write][nx] = icell->gas->p;
                     } else if (option == SELECT_A) {
                         varray[js][nt_write][nx] = icell->gas->a;
                     } else if (option == SELECT_T) {
-                        varray[js][nt_write][nx] = icell->gas->T[0];
+                        varray[js][nt_write][nx] = icell->gas->T[0]; // FIX-ME -- should also process other modes
                     } else if (option == SELECT_TAU) {
                         varray[js][nt_write][nx] = icell->shear_stress;
                     } else if (option == SELECT_Q) {

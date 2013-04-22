@@ -350,6 +350,9 @@ int L_fuse_cell_data(LCell *source1, LCell *source2, LCell *destination)
      * It is assumed that source1 is to the left of and
      * adjacent to source2.
      */
+    Gas_model *gmodel = get_gas_model_ptr();
+    size_t nsp = gmodel->get_number_of_species();
+    size_t nmodes = gmodel->get_number_of_modes();
 
     destination->xmid = 0.5 * (source1->xmid + source2->xmid);
     destination->L_bar = 0.5 * (source1->L_bar + source2->L_bar);
@@ -361,11 +364,16 @@ int L_fuse_cell_data(LCell *source1, LCell *source2, LCell *destination)
      */
     destination->gas->copy_values_from(*(source2->gas));
     destination->gas->rho = 0.5 * (source1->gas->rho + source2->gas->rho);
+    for ( size_t isp = 0; isp < nsp; ++isp ) {
+	destination->gas->massf[isp]= 0.5 * (source1->gas->massf[isp] + source2->gas->massf[isp]);
+    }
     destination->u       = 0.5 * (source1->u + source2->u);
-    destination->gas->e[0]= 0.5 * (source1->gas->e[0] + source2->gas->e[0]);
+    for ( size_t imode = 0; imode < nmodes; ++imode ) {
+	destination->gas->e[imode]= 0.5 * (source1->gas->e[imode] + source2->gas->e[imode]);
+	destination->gas->T[imode]= 0.5 * (source1->gas->T[imode] + source2->gas->T[imode]);
+    }
     destination->gas->p   = 0.5 * (source1->gas->p + source2->gas->p);
     destination->gas->a   = 0.5 * (source1->gas->a + source2->gas->a);
-    destination->gas->T[0]= 0.5 * (source1->gas->T[0] + source2->gas->T[0]);
 
     /*
      * The unified cell is bounded on the right by source2's 
@@ -505,7 +513,8 @@ int L_split_cell_data_smoothly(LCell *ci,   /* the cell to be split */
 
     /*
      * Copy the same gas properties into both cells.
-     * This will make sure that we have the mass fractions copied.
+     * This will make sure that we have the mass fractions and 
+     * modal energies copied.
      */
     ca->gas->copy_values_from(*(ci->gas));
     cb->gas->copy_values_from(*(ci->gas));
@@ -548,11 +557,8 @@ int L_split_cell_data_smoothly(LCell *ci,   /* the cell to be split */
     cb->moment = cb->mass * cb->u;
 
     /*
-     * For the moment, have equal internal energy.  --- FIX ME ---
      * Total energy is then just split as for mass.
      */
-    ca->gas->e[0] = ci->gas->e[0];
-    cb->gas->e[0] = ci->gas->e[0];
     esplit = msplit;
     ca->Energy = (1.0 - esplit) * ci->Energy;
     cb->Energy = esplit * ci->Energy;
