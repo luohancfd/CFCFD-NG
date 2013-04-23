@@ -1599,10 +1599,8 @@ are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config 
 \item \texttt{viscous\_upwinding\_flag}: 1=spatial derivatives are taken from upwind direction, 0=spatial derivatives are averaged over both directions, default value 0.
 \item \texttt{diffusion\_flag}: 1=compute multicomponent diffusion of species, default value 0.
 \item \texttt{diffusion\_model}: string, default value "None".
-\item \texttt{turbulence\_flag}: 1=activate turbulence model, 0=laminar viscosity only,
-  default value 0.
-\item \texttt{turbulence\_model}: string specifying which model to use, "k\_omega", "baldwin\_lomax",
-  default "k\_omega".
+\item \texttt{turbulence\_model}: string specifying which model to use, "none", "k\_omega", "baldwin\_lomax",
+  default "none".
 \item \texttt{turbulence\_prandtl\_number}: default value 0.89
 \item \texttt{turbulence\_schmidt\_number}: default value 0.75
 \item \texttt{max\_mu\_t\_factor}: turbulent viscosity is limited to laminar viscosity multiplied

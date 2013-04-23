@@ -480,6 +480,7 @@ int prepare_to_integrate(size_t start_tindx)
 
     // Prepare data within the primary finite-volume cells.
     // This includes both geometric data and flow state data.
+    bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     for ( Block *bdp : G.my_blocks ) {
 	bdp->compute_primary_cell_geometric_data(G.dimensions, 0);
 	bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions, 0);
@@ -488,11 +489,11 @@ int prepare_to_integrate(size_t start_tindx)
 	bdp->identify_reaction_zones(G, 0);
 	bdp->identify_turbulent_zones(G, 0);
 	for ( FV_Cell *cp: bdp->active_cells ) {
-	    cp->encode_conserved(0, 0, bdp->omegaz);
+	    cp->encode_conserved(0, 0, bdp->omegaz, with_k_omega);
 	    // Even though the following call appears redundant at this point,
 	    // fills in some gas properties such as Prandtl number that is
 	    // needed for both the cfd_check and the BLomax turbulence model.
-	    cp->decode_conserved(0, 0, bdp->omegaz);
+	    cp->decode_conserved(0, 0, bdp->omegaz, with_k_omega);
 	}
     } // end for *bdp
     // Exchange boundary cell geometry information so that we can
@@ -676,6 +677,7 @@ int integrate_blocks_in_sequence(void)
 
 {
     global_data &G = *get_global_data_ptr();
+    bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     Block *bdp;
     double time_slice = G.max_time / (G.nblock - 1);
     BoundaryCondition *bcp_save;
@@ -701,11 +703,11 @@ int integrate_blocks_in_sequence(void)
     bdp->bcp[WEST]->apply_inviscid(0.0);
     bdp->propagate_data_west_to_east( G.dimensions );
     for ( FV_Cell *cp: bdp->active_cells ) {
-	cp->encode_conserved(0, 0, bdp->omegaz);
+	cp->encode_conserved(0, 0, bdp->omegaz, with_k_omega);
 	// Even though the following call appears redundant at this point,
 	// fills in some gas properties such as Prandtl number that is
 	// needed for both the cfd_check and the BLomax turbulence model.
-	cp->decode_conserved(0, 0, bdp->omegaz);
+	cp->decode_conserved(0, 0, bdp->omegaz, with_k_omega);
     }
 
     // Now set up block 1
@@ -719,8 +721,8 @@ int integrate_blocks_in_sequence(void)
     exchange_shared_boundary_data(1, COPY_FLOW_STATE, 0);
     bdp->propagate_data_west_to_east( G.dimensions );
     for ( FV_Cell *cp: bdp->active_cells ) {
-	cp->encode_conserved(0, 0, bdp->omegaz);
-	cp->decode_conserved(0, 0, bdp->omegaz);
+	cp->encode_conserved(0, 0, bdp->omegaz, with_k_omega);
+	cp->decode_conserved(0, 0, bdp->omegaz, with_k_omega);
     }
 
     // Integrate just the first two blocks in time, hopefully to steady state.
@@ -756,10 +758,10 @@ int integrate_blocks_in_sequence(void)
 	// Now copy the starting data into the WEST ghost cells
 	// and propagate it across the current block.
 	exchange_shared_boundary_data(jb, COPY_FLOW_STATE, 0);
-	bdp->propagate_data_west_to_east( G.dimensions );
+	bdp->propagate_data_west_to_east(G.dimensions);
 	for ( FV_Cell *cp: bdp->active_cells ) {
-	    cp->encode_conserved(0, 0, bdp->omegaz);
-	    cp->decode_conserved(0, 0, bdp->omegaz);
+	    cp->encode_conserved(0, 0, bdp->omegaz, with_k_omega);
+	    cp->decode_conserved(0, 0, bdp->omegaz, with_k_omega);
 	}
 	// Integrate just the two currently active blocks in time,
 	// hopefully to steady state.
@@ -843,6 +845,7 @@ int write_solution_data(std::string tindxstring)
 int integrate_in_time(double target_time)
 {
     global_data &G = *get_global_data_ptr();
+    bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     size_t n_active_blocks;
     string jbstring, jsstring, tindxstring;
     char jbcstr[10], tindxcstr[10];
@@ -1027,7 +1030,7 @@ int integrate_in_time(double target_time)
 	    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		Block *bdp = G.my_blocks[jb];
 		if ( bdp->active == 1 ) {
-		    cfl_result = bdp->determine_time_step_size( G.cfl_target, G.dimensions );
+		    cfl_result = bdp->determine_time_step_size();
 		    if ( cfl_result != 0 ) {
 			program_return_flag = DT_SEARCH_FAILED;
 			status_flag = FAILURE;
@@ -1143,7 +1146,7 @@ int integrate_in_time(double target_time)
 		break;
 	    }
 #           if SEPARATE_UPDATE_FOR_K_OMEGA_SOURCE == 1
-	    if ( get_k_omega_flag() == 1 ) {
+	    if ( G.turbulence_model == TM_K_OMEGA ) {
 		for ( Block *bdp : G.my_blocks ) {
 		    if ( bdp->active != 1 ) continue;
 		    for ( FV_Cell *cp: bdp->active_cells ) cp->update_k_omega_properties(G.dt_global);
@@ -1288,7 +1291,8 @@ int integrate_in_time(double target_time)
 		for ( Block *bdp : G.my_blocks ) {
 		    if ( bdp->active != 1 ) continue;
 		    bdp->apply_spatial_filter_diffusion( G.filter_mu, G.filter_npass, G.dimensions );
-		    for ( FV_Cell *cp: bdp->active_cells ) cp->encode_conserved(0, 0, bdp->omegaz);
+		    for ( FV_Cell *cp: bdp->active_cells )
+			cp->encode_conserved(0, 0, bdp->omegaz, with_k_omega);
 		}
 		for ( Block *bdp : G.my_blocks ) {
 		    if ( bdp->active != 1 ) continue;
@@ -1307,7 +1311,8 @@ int integrate_in_time(double target_time)
 		for ( Block *bdp : G.my_blocks ) {
 		    if ( bdp->active != 1 ) continue;
 		    bdp->apply_spatial_filter_anti_diffusion(G.filter_mu, G.filter_npass, G.dimensions);
-		    for ( FV_Cell *cp: bdp->active_cells ) cp->encode_conserved(0, 0, bdp->omegaz);
+		    for ( FV_Cell *cp: bdp->active_cells )
+			cp->encode_conserved(0, 0, bdp->omegaz, with_k_omega);
 		}
 		for ( Block *bdp : G.my_blocks ) {
 		    if ( bdp->active != 1 ) continue;
@@ -1430,6 +1435,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 // 2013-04-07 also updated G.sim_time
 {
     global_data &G = *get_global_data_ptr();
+    bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     int step_status_flag;
     using std::swap;
     double t0 = G.sim_time;
@@ -1486,10 +1492,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 	    bdp->inviscid_flux(G.dimensions);
 	    if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
 		apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
-		if ( get_k_omega_flag() ) {
-		    apply_menter_boundary_correction(*bdp, 0);
-		    if ( get_wilson_omega_filter_flag() ) apply_wilson_omega_correction(*bdp, 0);
-		}
+		if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 0);
 		if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
 		estimate_turbulence_viscosity(&G, bdp);
 		if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
@@ -1499,16 +1502,13 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		if ( G.udf_source_vector_flag == 1 )
 		    add_udf_source_vector_for_cell(cp, 0, G.sim_time);
 		if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
-		    cp->add_viscous_source_vector();
+		    cp->add_viscous_source_vector(with_k_omega);
 		}
-		cp->time_derivatives(0, 0, G.dimensions);
-		cp->stage_1_update_for_flow_on_fixed_grid(G.dt_global);
-		cp->decode_conserved(0, 1, bdp->omegaz);
+		cp->time_derivatives(0, 0, G.dimensions, with_k_omega);
+		bool force_euler = false;
+		cp->stage_1_update_for_flow_on_fixed_grid(G.dt_global, force_euler, with_k_omega);
+		cp->decode_conserved(0, 1, bdp->omegaz, with_k_omega);
 	    } // end for *cp
-	    if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
-		// FIX-ME Wilson, does this need to be here?
-		apply_wilson_omega_correction(*bdp, 1);
-	    }
 	} // end of for jb...
 
 	if ( number_of_stages_for_update_scheme(get_gasdynamic_update_scheme()) >= 2 ) {
@@ -1535,10 +1535,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		bdp->inviscid_flux(G.dimensions);
 		if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
 		    apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
-		    if ( get_k_omega_flag() ) {
-			apply_menter_boundary_correction(*bdp, 1);
-			if ( get_wilson_omega_filter_flag() ) apply_wilson_omega_correction(*bdp, 1);
-		    }
+		    if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 1);
 		    if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
 		    estimate_turbulence_viscosity(&G, bdp);
 		    if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
@@ -1548,16 +1545,12 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		    if ( G.udf_source_vector_flag == 1 )
 			add_udf_source_vector_for_cell(cp, 0, G.sim_time);
 		    if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
-			cp->add_viscous_source_vector();
+			cp->add_viscous_source_vector(with_k_omega);
 		    }
-		    cp->time_derivatives(0, 1, G.dimensions);
-		    cp->stage_2_update_for_flow_on_fixed_grid(G.dt_global);
-		    cp->decode_conserved(0, 2, bdp->omegaz);
+		    cp->time_derivatives(0, 1, G.dimensions, with_k_omega);
+		    cp->stage_2_update_for_flow_on_fixed_grid(G.dt_global, with_k_omega);
+		    cp->decode_conserved(0, 2, bdp->omegaz, with_k_omega);
 		} // end for ( *cp
-		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
-		    // FIX-ME Wilson, does this need to be here?
-		    apply_wilson_omega_correction(*bdp, 2);
-		}
 	    } // end for jb loop
 	} // end if ( number_of_stages_for_update_scheme() >= 2 
 
@@ -1584,10 +1577,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		bdp->inviscid_flux( G.dimensions );
 		if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
 		    apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
-		    if ( get_k_omega_flag() ) {
-			apply_menter_boundary_correction(*bdp, 2);
-			if ( get_wilson_omega_filter_flag() ) apply_wilson_omega_correction(*bdp, 2);
-		    }
+		    if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 2);
 		    if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
 		    estimate_turbulence_viscosity(&G, bdp);
 		    if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
@@ -1597,16 +1587,12 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		    if ( G.udf_source_vector_flag == 1 )
 			add_udf_source_vector_for_cell(cp, 0, G.sim_time);
 		    if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
-			cp->add_viscous_source_vector();
+			cp->add_viscous_source_vector(with_k_omega);
 		    }
-		    cp->time_derivatives(0, 2, G.dimensions);
-		    cp->stage_3_update_for_flow_on_fixed_grid(G.dt_global);
-		    cp->decode_conserved(0, 3, bdp->omegaz);
+		    cp->time_derivatives(0, 2, G.dimensions, with_k_omega);
+		    cp->stage_3_update_for_flow_on_fixed_grid(G.dt_global, with_k_omega);
+		    cp->decode_conserved(0, 3, bdp->omegaz, with_k_omega);
 		} // for *cp
-		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
-		    // FIX-ME Wilson, does this need to be here?
-		    apply_wilson_omega_correction(*bdp, 3);
-		}
 	    } // end for *bdp
 	} // end if ( number_of_stages_for_update_scheme() >= 3
    
@@ -1627,10 +1613,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active != 1 ) continue;
 		for ( FV_Cell *cp: bdp->active_cells ) {
-		    cp->decode_conserved(0, 0, bdp->omegaz);
-		}
-		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
-		    apply_wilson_omega_correction(*bdp, 0);
+		    cp->decode_conserved(0, 0, bdp->omegaz, with_k_omega);
 		}
 	    } // end for *bdp
 	} // end if step_status_flag
@@ -1665,6 +1648,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
 // We have implemented only the simplest consistent two-stage update scheme. 
 {
     global_data &G = *get_global_data_ptr();
+    bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     int step_status_flag;
     using std::swap;
 
@@ -1740,13 +1724,10 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	    for ( FV_Cell *cp: bdp->active_cells ) {
 		cp->add_inviscid_source_vector(1, bdp->omegaz);
 		if ( G.udf_source_vector_flag == 1 ) add_udf_source_vector_for_cell(cp, 1, G.sim_time);
-		cp->time_derivatives(1, 0, G.dimensions);
-		cp->stage_1_update_for_flow_on_moving_grid(G.dt_global);
-		cp->decode_conserved(1, 1, bdp->omegaz);
+		cp->time_derivatives(1, 0, G.dimensions, with_k_omega);
+		cp->stage_1_update_for_flow_on_moving_grid(G.dt_global, with_k_omega);
+		cp->decode_conserved(1, 1, bdp->omegaz, with_k_omega);
 	    } // end for *cp
-	    if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
-		apply_wilson_omega_correction(*bdp, 1);
-	    }
 	} // end of for *bdp...
 
 	// Preparation for second-stage of gas-dynamic update.
@@ -1796,13 +1777,10 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	    for ( FV_Cell *cp: bdp->active_cells ) {
 		cp->add_inviscid_source_vector(1, bdp->omegaz);
 		if ( G.udf_source_vector_flag == 1 ) add_udf_source_vector_for_cell(cp, 2, G.sim_time);
-		cp->time_derivatives(2, 1, G.dimensions);
-		cp->stage_2_update_for_flow_on_moving_grid(G.dt_global);
-		cp->decode_conserved(2, 2, bdp->omegaz);
+		cp->time_derivatives(2, 1, G.dimensions, with_k_omega);
+		cp->stage_2_update_for_flow_on_moving_grid(G.dt_global, with_k_omega);
+		cp->decode_conserved(2, 2, bdp->omegaz, with_k_omega);
 	    } // end for *cp
-	    if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
-		apply_wilson_omega_correction(*bdp, 2);
-	    }
 	} // end for jb loop
    
 	// 2d. Check the record of bad cells and if any cells are bad, 
@@ -1822,10 +1800,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active != 1 ) continue;
 		for ( FV_Cell *cp: bdp->active_cells ) {
-		    cp->decode_conserved(0, 0, bdp->omegaz);
-		}
-		if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
-		    apply_wilson_omega_correction(*bdp, 0);
+		    cp->decode_conserved(0, 0, bdp->omegaz, with_k_omega);
 		}
 	    } // end for *bdp
 	} // end if step_status_flag
@@ -1850,32 +1825,25 @@ int gasdynamic_separate_explicit_viscous_increment()
 // Note that it starts from scratch, following the inviscid update.
 {
     global_data &G = *get_global_data_ptr();
+    bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
+    bool force_euler = true;
     using std::swap;
     for ( Block *bdp : G.my_blocks ) {
         if ( bdp->active != 1 ) continue;
 	bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
 	for ( FV_Cell *cp: bdp->active_cells ) cp->clear_source_vector();
 	apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
-	if ( get_k_omega_flag() ) apply_menter_boundary_correction(*bdp, 0);
-	if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
-	    apply_wilson_omega_correction(*bdp, 0);
-	}
-	if ( G.dimensions == 2 )
-	    viscous_derivatives_2D(bdp, 0);
-	else
-	    viscous_derivatives_3D(bdp, 0); 
+	if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 0);
+	if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
 	estimate_turbulence_viscosity(&G, bdp);
 	if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
 	for ( FV_Cell *cp: bdp->active_cells ) {
-	    cp->add_viscous_source_vector();
-	    cp->time_derivatives(0, 0, G.dimensions);
-	    cp->stage_1_update_for_flow_on_fixed_grid(G.dt_global, 1);
+	    cp->add_viscous_source_vector(with_k_omega);
+	    cp->time_derivatives(0, 0, G.dimensions, with_k_omega);
+	    cp->stage_1_update_for_flow_on_fixed_grid(G.dt_global, force_euler, with_k_omega);
 	    swap(cp->U[0], cp->U[1]);
-	    cp->decode_conserved(0, 0, bdp->omegaz);
+	    cp->decode_conserved(0, 0, bdp->omegaz, with_k_omega);
 	} // end for *cp
-	if ( get_wilson_omega_filter_flag() && get_k_omega_flag() ) {
-            apply_wilson_omega_correction(*bdp, 0);
-	}
     } // end for *bdp...
     return SUCCESS;
 } // int gasdynamic_viscous_increment()

@@ -402,7 +402,7 @@ int calculate_h_inviscid(FV_Cell *cell, int dimensions)
 int gasdynamic_point_implicit_viscous_increment(void)
 {
 #if WITH_IMPLICIT == 1
-    global_data &G = *get_global_data_ptr();  // set up a reference
+    global_data &G = *get_global_data_ptr();
     Block *bdp;
     // Record the current values of the conserved variables
     // in preparation for applying the predictor and corrector
@@ -417,7 +417,7 @@ int gasdynamic_point_implicit_viscous_increment(void)
 	if ( bdp->active != 1 ) continue;
 	bdp->clear_fluxes_of_conserved_quantities( G.dimensions );
 	apply_viscous_bc( *bdp, G.sim_time, G.dimensions );
-	if ( get_k_omega_flag() ) apply_menter_boundary_correction(*bdp, 0);
+	if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 0);
 	if ( G.dimensions == 2 ) {
 	    viscous_derivatives_2D( bdp );
 	} else {

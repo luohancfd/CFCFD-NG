@@ -251,21 +251,6 @@ int radiation_update_frequency = 1;
 ///         =2 fully implicit viscous treatment enabled.
 int implicit = 0;
 
-/// \brief any turbulence model active
-int turbulence_flag = 0;
-
-/// \brief k-omega turbulence model
-int k_omega = 0;
-
-/// \brief Baldwin-Lomax turbulence model
-int baldwin_lomax = 0;
-
-/// \brief Turbulent Prandtl number
-double Pr_t = 0.89;
-
-/// \brief Turbulent Schmidt number
-double Sc_t = 0.75;
-
 /// \brief  apply limiter Flag: =0 no limiting, =1 reconstruction limiter enabled.
 int apply_limiter = 1; /* default for users */
 
@@ -767,73 +752,6 @@ int get_implicit_flag(void)
 
 /*------------------------------------------------------------------*/
 
-int set_turbulence_flag(int i)
-{
-    turbulence_flag = i;
-    if ( get_verbose_flag() ) printf("set turbulence_flag=%d\n", turbulence_flag);
-    return SUCCESS;
-}
-
-int get_turbulence_flag(void)
-{
-    return turbulence_flag;
-}
-
-int set_k_omega_flag(int ikw)
-{
-    k_omega = ikw;
-    if ( get_verbose_flag() ) printf("set k_omega_flag=%d\n", k_omega);
-    return SUCCESS;
-}
-
-int get_k_omega_flag(void)
-{
-    return k_omega;
-}
-
-bool get_wilson_omega_filter_flag(void)
-{
-    return false;
-}
-
-int set_baldwin_lomax_flag(int ibl)
-{
-    baldwin_lomax = ibl;
-    if ( get_verbose_flag() ) printf("set baldwin_lomax_flag=%d\n", baldwin_lomax);
-    return SUCCESS;
-}
-
-int get_baldwin_lomax_flag(void)
-{
-    return baldwin_lomax;
-}
-
-double set_turbulence_prandtl_number(double Pr)
-{
-    Pr_t = Pr;
-    if ( get_verbose_flag() ) printf("set turbulence_prandtl_number=%g\n", Pr_t);
-    return Pr_t;
-}
-
-double get_turbulence_prandtl_number(void)
-{
-    return Pr_t;
-}
-
-double set_turbulence_schmidt_number(double Sc)
-{
-    Sc_t = Sc;
-    if ( get_verbose_flag() ) printf("set turbulence_schmidt_number=%g\n", Pr_t);
-    return Sc_t;
-}
-
-double get_turbulence_schmidt_number(void)
-{
-    return Sc_t;
-}
-
-/*------------------------------------------------------------------*/
-
 int set_extrema_clipping_flag(int ip)
 {
     extrema_clipping_flag = ip;
@@ -1065,3 +983,16 @@ std::vector<double> *get_vweights_ptr(void)
 {
     return &vweights;
 }
+
+//---------------------------------------------------------------------
+
+std::string get_name_of_turbulence_model(turbulence_model_t my_model)
+{
+    switch ( my_model ) {
+    case TM_NONE: return "none";
+    case TM_BALDWIN_LOMAX: return "baldwin-lomax";
+    case TM_K_OMEGA: return "k-omega";
+    case TM_SPALART_ALLMARAS: return "spalart-allmaras";
+    default: return "unknown";
+    }
+} // end get_name_of_turbulence_model()

@@ -98,6 +98,24 @@ int init_available_calculators_map()
     return SUCCESS;
 }
 
+std::map<std::string,turbulence_model_t> available_turbulence_models;
+int init_available_turbulence_models_map()
+{
+    typedef std::pair<std::string,turbulence_model_t> name_turb_model_t;
+    available_turbulence_models.insert(name_turb_model_t("none",TM_NONE));
+    available_turbulence_models.insert(name_turb_model_t("None",TM_NONE));
+    available_turbulence_models.insert(name_turb_model_t("baldwin_lomax",TM_BALDWIN_LOMAX));
+    available_turbulence_models.insert(name_turb_model_t("baldwin-lomax",TM_BALDWIN_LOMAX));
+    available_turbulence_models.insert(name_turb_model_t("Baldwin_Lomax",TM_BALDWIN_LOMAX));
+    available_turbulence_models.insert(name_turb_model_t("Baldwin-Lomax",TM_BALDWIN_LOMAX));
+    available_turbulence_models.insert(name_turb_model_t("k_omega",TM_K_OMEGA));
+    available_turbulence_models.insert(name_turb_model_t("k-omega",TM_K_OMEGA));
+    available_turbulence_models.insert(name_turb_model_t("K_Omega",TM_K_OMEGA));
+    available_turbulence_models.insert(name_turb_model_t("K-Omega",TM_K_OMEGA));
+    available_turbulence_models.insert(name_turb_model_t("spalart_allmaras",TM_SPALART_ALLMARAS));
+    return SUCCESS;
+}
+ 
 /*-----------------------------------------------------------------*/
 
 /// \brief Read simulation config parameters from the INI file.
@@ -114,6 +132,7 @@ int read_config_parameters(const string filename, bool master)
     size_t jb;
     init_available_schemes_map();
     init_available_calculators_map();
+    init_available_turbulence_models_map();
 
     // Default values for some configuration variables.
     G.dimensions = 2;
@@ -183,6 +202,10 @@ int read_config_parameters(const string filename, bool master)
     G.cfl_min = 1.0;    // Dummy value
     G.cfl_tiny = 1.0;   // Smallest CFL so far, dummy value
     G.time_tiny = 1.0e6;
+
+    G.turbulence_model = TM_NONE;
+    G.turbulence_prandtl = 0.89;
+    G.turbulence_schmidt = 0.75;
 
     // Most configuration comes from the previously-generated INI file.
     ConfigParser dict = ConfigParser(filename);
@@ -272,7 +295,6 @@ int read_config_parameters(const string filename, bool master)
 	    
     }
 
-
     dict.parse_int("global_data", "radiation_flag", i_value, 0);
     set_radiation_flag( i_value );
     dict.parse_string("global_data", "radiation_input_file", s_value, "no_file");
@@ -287,6 +309,12 @@ int read_config_parameters(const string filename, bool master)
 	cout << "radiation_update_frequency = " << i_value << endl;
     }
 
+    dict.parse_int("global_data", "axisymmetric_flag", i_value, 0);
+    set_axisymmetric_flag( i_value );
+    if ( get_verbose_flag() ) {
+	cout << "axisymmetric_flag = " << get_axisymmetric_flag() << endl;
+    }
+
     dict.parse_int("global_data", "viscous_flag", i_value, 0);
     set_viscous_flag( i_value );
     dict.parse_double("global_data", "viscous_delay", G.viscous_time_delay, 0.0);
@@ -294,10 +322,25 @@ int read_config_parameters(const string filename, bool master)
     set_viscous_factor_increment( d_value );
     dict.parse_int("global_data", "viscous_upwinding_flag", i_value, 0);
     set_viscous_upwinding_flag( i_value );
-    dict.parse_double("global_data", "max_mu_t_factor", G.max_mu_t_factor, 300.0);
-    dict.parse_double("global_data", "transient_mu_t_factor", G.transient_mu_t_factor, 1.0);
-    dict.parse_int("global_data", "axisymmetric_flag", i_value, 0);
-    set_axisymmetric_flag( i_value );
+    // FIX-ME 2013-04-23 should probably merge diffusion_model and diffusion_flag
+    // as we have done for turbulence_model, below.
+    dict.parse_int("global_data", "diffusion_flag", i_value, 0);
+    set_diffusion_flag( i_value );
+    if ( get_verbose_flag() ) {
+	cout << "viscous_flag = " << get_viscous_flag() << endl;
+	cout << "viscous_delay = " << G.viscous_time_delay << endl;
+	cout << "viscous_factor_increment = " << get_viscous_factor_increment() << endl;
+	cout << "viscous_upwinding_flag = " << get_viscous_upwinding_flag() << endl;
+	cout << "diffusion_flag = " << get_diffusion_flag() << endl;
+    }
+    if( get_diffusion_flag() && ( gmodel->get_number_of_species() > 1 ) ) { 
+ 	dict.parse_string("global_data", "diffusion_model", s_value, "Stefan-Maxwell");
+	set_diffusion_model(s_value);
+	if( get_verbose_flag() ) {
+	    cout << "diffusion_model = " << s_value << endl;
+	}
+    }
+
     dict.parse_int("global_data", "shock_fitting_flag", i_value, 0);
     set_shock_fitting_flag( i_value );
     dict.parse_int("global_data", "shock_fitting_decay_flag", i_value, 0);
@@ -309,61 +352,33 @@ int read_config_parameters(const string filename, bool master)
     set_write_vertex_velocities_flag( i_value );
     dict.parse_int("global_data", "adaptive_reconstruction_flag", i_value, 0);
     set_adaptive_reconstruction_flag( i_value );
-    dict.parse_int("global_data", "turbulence_flag", i_value, 0);
-    set_turbulence_flag( i_value );
-    // By default, turn off all turbulence models.
-    set_k_omega_flag(0);
-    set_baldwin_lomax_flag(0);
-    dict.parse_double("global_data", "turbulence_prandtl_number", d_value, 0.89);
-    set_turbulence_prandtl_number(d_value);
-    dict.parse_double("global_data", "turbulence_schmidt_number", d_value, 0.75);
-    set_turbulence_schmidt_number(d_value);
-    if ( get_turbulence_flag() ) {
-	// decide which model
-	dict.parse_string("global_data", "turbulence_model", s_value, "none");
-	if ( s_value == "baldwin_lomax" ) {
-	    set_baldwin_lomax_flag(1);
-	} else if ( s_value == "k_omega" ) {
-	    set_k_omega_flag(1);
-	} else if ( s_value == "spalart_allmaras" ) {
-	    cout << "Spalart-Allmaras turbulence model not available." << endl;
-	    exit( NOT_IMPLEMENTED_ERROR );
-	} else {
-	    // assume no turbulence model
-	}
-    }
-    dict.parse_int("global_data", "diffusion_flag", i_value, 0);
-    set_diffusion_flag( i_value );
     if ( get_verbose_flag() ) {
-	cout << "viscous_flag = " << get_viscous_flag() << endl;
-	cout << "viscous_delay = " << G.viscous_time_delay << endl;
-	cout << "viscous_factor_increment = " << get_viscous_factor_increment() << endl;
-	cout << "viscous_upwinding_flag = " << get_viscous_upwinding_flag() << endl;
-	cout << "max_mu_t_factor = " << G.max_mu_t_factor << endl;
-	cout << "transient_mu_t_factor = " << G.transient_mu_t_factor << endl;
 	cout << "shock_fitting_flag = " << get_shock_fitting_flag() << endl;
 	cout << "shock_fitting_decay_flag = " << get_shock_fitting_decay_flag() << endl;
 	cout << "shock_fitting_speed_factor = " << G.shock_fitting_speed_factor << endl;
 	cout << "moving_grid_flag = " << get_moving_grid_flag() << endl;
 	cout << "write_vertex_velocities_flag = " << get_write_vertex_velocities_flag() << endl;
 	cout << "adaptive_reconstruction_flag = " << get_adaptive_reconstruction_flag() << endl;
-	cout << "axisymmetric_flag = " << get_axisymmetric_flag() << endl;
-	cout << "turbulence_flag = " << get_turbulence_flag() << endl;
-	cout << "k_omega_flag = " << get_k_omega_flag() << endl;
-	cout << "baldwin_lomax_flag = " << get_baldwin_lomax_flag() << endl;
-	cout << "turbulence_prandtl_number = " << get_turbulence_prandtl_number() << endl;
-	cout << "turbulence_schmidt_number = " << get_turbulence_schmidt_number() << endl;
-	cout << "diffusion_flag = " << get_diffusion_flag() << endl;
     }
 
-    if( get_diffusion_flag() && ( gmodel->get_number_of_species() > 1 ) ) { 
- 	dict.parse_string("global_data", "diffusion_model", s_value, "Stefan-Maxwell");
-	set_diffusion_model(s_value);
-	if( get_verbose_flag() ) {
-	    cout << "diffusion_model = " << s_value << endl;
-	}
+    // 2013-apr-23 New specification scheme for turbulence models.
+    dict.parse_string("global_data", "turbulence_model", s_value, "none");
+    G.turbulence_model = available_turbulence_models[s_value];
+    dict.parse_double("global_data", "turbulence_prandtl_number", d_value, 0.89);
+    G.turbulence_prandtl = d_value;
+    dict.parse_double("global_data", "turbulence_schmidt_number", d_value, 0.75);
+    G.turbulence_schmidt = d_value;
+    dict.parse_double("global_data", "max_mu_t_factor", G.max_mu_t_factor, 300.0);
+    dict.parse_double("global_data", "transient_mu_t_factor", G.transient_mu_t_factor, 1.0);
+    if ( G.turbulence_model == TM_SPALART_ALLMARAS )
+	throw runtime_error("Spalart-Allmaras turbulence model not available.");
+    if ( get_verbose_flag() ) {
+	cout << "turbulence_model = " << get_name_of_turbulence_model(G.turbulence_model) << endl;
+	cout << "turbulence_prandtl_number = " << G.turbulence_prandtl << endl;
+	cout << "turbulence_schmidt_number = " << G.turbulence_schmidt << endl;
+	cout << "max_mu_t_factor = " << G.max_mu_t_factor << endl;
+	cout << "transient_mu_t_factor = " << G.transient_mu_t_factor << endl;
     }
-
 
     dict.parse_size_t("global_data", "max_invalid_cells", G.max_invalid_cells, 10);
     dict.parse_string("global_data", "flux_calc", s_value, "riemann");

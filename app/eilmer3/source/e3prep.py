@@ -286,6 +286,11 @@ class GlobalData(object):
       after viscous_delay has passed.
     * viscous_upwinding_flag: (0/1) Set to 1 to calculate viscous flux from
       upwind direction only. Set to 0 (the default) to use average of both directions.
+    * diffusion_flag: (0/1) Set to 1 to compute multi-component diffusion of species
+    * diffusion_model: (string) set the type (by name) of multi-component diffusion model
+    * turbulence_model: (string) "none" (default), "baldwin-lomax", "k-omega", "spalart-allmaras"
+    * turbulence_prandtl_number: (float) default 0.89
+    * turbulence_schmidt_number: (float) default 0.75
     * max_mu_t_factor: (float) Limiting factor for the turbulence viscosity
       relative to the laminar viscosity.
     * transient_mu_t_factor: (float) A value of 1.0 indicates a fully-developed
@@ -293,11 +298,6 @@ class GlobalData(object):
       where the turbulence is not fully developed.  This may be good for
       Matt McGilvray's scramjet experiments in the expansion tube which have
       very short flow durations.
-    * diffusion_flag: (0/1) Set to 1 to compute multi-component diffusion of species
-    * diffusion_model: (string) set the type (by name) of multi-component diffusion model
-    * k_omega_flag: (0/1) Allow the k-omega turbulence model to be active.
-    * turbulence_prandtl_number: (float) default 0.89
-    * turbulence_schmidt_number: (float) default 0.75
     * heat_time_start: (float) start time for heating zones to be adding energy
     * heat_time_stop: (float) final time for heating zones to be adding heat
     * heat_factor_increment: (float) the fraction of full heat load that will be
@@ -403,9 +403,8 @@ class GlobalData(object):
                 'BGK_flag', 'velocity_buckets', 'vcoords', 'vweights',\
                 'viscous_flag', 'viscous_delay', 'viscous_factor_increment',\
                 'separate_update_for_viscous_flag', 'viscous_upwinding_flag',\
-                'max_mu_t_factor', 'transient_mu_t_factor', \
                 'diffusion_flag', 'diffusion_model', \
-                'turbulence_flag', 'turbulence_model', \
+                'turbulence_model', 'max_mu_t_factor', 'transient_mu_t_factor', \
                 'turbulence_prandtl_number', 'turbulence_schmidt_number', \
                 'scalar_pdf_flag', 'reacting_flag', 'reaction_time_start', \
                 'x_order', 'flux_calc', 'compression_tolerance', 'shear_tolerance', \
@@ -460,14 +459,13 @@ class GlobalData(object):
         self.viscous_delay = 0.0
         self.viscous_factor_increment = 0.01
         self.viscous_upwinding_flag = 0
-        self.max_mu_t_factor = 300.0
-        self.transient_mu_t_factor = 1.0
         self.diffusion_flag = 0
         self.diffusion_model = "None"
-        self.turbulence_flag = 0
-        self.turbulence_model = turbulence_model_list[0]
+        self.turbulence_model = "none"
         self.turbulence_prandtl_number = 0.89
         self.turbulence_schmidt_number = 0.75
+        self.max_mu_t_factor = 300.0
+        self.transient_mu_t_factor = 1.0
         self.heat_time_start = 0.0
         self.heat_time_stop = 0.0 # nonzero indicates that we want heating some time
         self.heat_factor_increment = 0.01
@@ -591,12 +589,15 @@ class GlobalData(object):
         fp.write("radiation_input_file = %s\n" % self.radiation_input_file)
         fp.write("radiation_update_frequency = %s\n" % self.radiation_update_frequency)
         fp.write("radiation_flag = %d\n" % self.radiation_flag)
+        fp.write("axisymmetric_flag = %d\n" % self.axisymmetric_flag)
         fp.write("mhd_flag = %d\n" % self.mhd_flag)
         fp.write("BGK_flag = %d\n" % self.BGK_flag)
         fp.write("viscous_flag = %d\n" % self.viscous_flag)
         fp.write("viscous_delay = %e\n" % self.viscous_delay)
         fp.write("viscous_factor_increment = %e\n" % self.viscous_factor_increment)
         fp.write("viscous_upwinding_flag = %d\n" % self.viscous_upwinding_flag)
+        fp.write("diffusion_flag = %d\n" % self.diffusion_flag)
+        fp.write("diffusion_model = %s\n" % self.diffusion_model)
         fp.write("shock_fitting_flag = %d\n"% self.shock_fitting_flag)
         fp.write("shock_fitting_decay_flag = %d\n" % self.shock_fitting_decay_flag)
         fp.write("shock_fitting_speed_factor = %e\n" % self.shock_fitting_speed_factor)
@@ -609,15 +610,11 @@ class GlobalData(object):
         fp.write("filter_dt = %e\n" % self.filter_dt)
         fp.write("filter_mu = %e\n" % self.filter_mu)
         fp.write("filter_npass = %d\n" % self.filter_npass)
-        fp.write("max_mu_t_factor = %e\n" % self.max_mu_t_factor)
-        fp.write("transient_mu_t_factor = %e\n" % self.transient_mu_t_factor)
-        fp.write("diffusion_flag = %d\n" % self.diffusion_flag)
-        fp.write("diffusion_model = %s\n" % self.diffusion_model)
-        fp.write("axisymmetric_flag = %d\n" % self.axisymmetric_flag)
-        fp.write("turbulence_flag = %d\n" % self.turbulence_flag)
         fp.write("turbulence_model = %s\n" % self.turbulence_model.lower())
         fp.write("turbulence_prandtl_number = %g\n" % self.turbulence_prandtl_number)
         fp.write("turbulence_schmidt_number = %g\n" % self.turbulence_schmidt_number)
+        fp.write("max_mu_t_factor = %e\n" % self.max_mu_t_factor)
+        fp.write("transient_mu_t_factor = %e\n" % self.transient_mu_t_factor)
         fp.write("heat_time_start = %e\n"% self.heat_time_start)
         fp.write("heat_time_stop = %e\n"% self.heat_time_stop)
         fp.write("heat_factor_increment = %e\n"% self.heat_factor_increment)
@@ -631,7 +628,7 @@ class GlobalData(object):
         fp.write("max_invalid_cells = %d\n" % self.max_invalid_cells)
         fp.write("control_count = %d\n" % self.control_count)
         fp.write("velocity_buckets = %d\n" % self.velocity_buckets)
-        
+        #
         if self.velocity_buckets > 0:
             tstr_x = "vcoords_x ="
             tstr_y = "vcoords_y ="
@@ -646,7 +643,7 @@ class GlobalData(object):
             fp.write(tstr_y + "\n")
             fp.write(tstr_z + "\n")
             fp.write(tstr_w + "\n")
-            
+        #    
         return
 
 # We will create just one GlobalData object that the user can alter.

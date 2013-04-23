@@ -51,6 +51,7 @@ static std::vector<double> dTdx, dTdy, dTdz, qx, qy, qz, k_eff;
 
 int viscous_flux_3D(Block *A)
 {
+    global_data &G = *get_global_data_ptr();
     FV_Vertex *Vtx1, *Vtx2, *Vtx3, *Vtx4;
     FV_Interface *IFace;
     double nx, ny, nz;
@@ -279,8 +280,8 @@ int viscous_flux_3D(Block *A)
 	        if( get_diffusion_flag() == 1 ) {
 		    // Apply a diffusion model
 		    double D_t = 0.0;
-		    if ( get_k_omega_flag() == 1 ) {
-                        double Sc_t = get_turbulence_schmidt_number();
+		    if ( G.turbulence_model != TM_NONE ) {
+                        double Sc_t = G.turbulence_schmidt;
                         D_t = fs.mu_t / (fs.gas->rho * Sc_t);
 		    }
 		    calculate_diffusion_fluxes(*(fs.gas),
@@ -328,7 +329,7 @@ int viscous_flux_3D(Block *A)
 		        }
 		    }
 	        }	    
-	        if ( get_k_omega_flag() == 1 ) {
+	        if ( G.turbulence_model == TM_K_OMEGA ) {
 		    // Turbulence contribution to the shear stresses.
 		    tau_xx -= 0.66667 * fs.gas->rho * fs.tke;
 		    tau_yy -= 0.66667 * fs.gas->rho * fs.tke;
@@ -367,7 +368,7 @@ int viscous_flux_3D(Block *A)
 		    (tau_xx*fs.vel.x + tau_xy*fs.vel.y + tau_xz*fs.vel.z + qx[0])*nx +
 		    (tau_xy*fs.vel.x + tau_yy*fs.vel.y + tau_yz*fs.vel.z + qy[0])*ny +
 		    (tau_xz*fs.vel.x + tau_yz*fs.vel.y + tau_zz*fs.vel.z + qz[0])*nz;
-	        if ( get_k_omega_flag() == 1 ) {
+	        if ( G.turbulence_model == TM_K_OMEGA ) {
 		    F.tke -= tau_kx * nx + tau_ky * ny + tau_kz * nz;
 		    F.omega -= tau_wx * nx + tau_wy * ny + tau_wz * nz;
 	        }
@@ -570,8 +571,8 @@ int viscous_flux_3D(Block *A)
 	        if( get_diffusion_flag() == 1 ) {
 		    // Apply a diffusion model
 		    double D_t = 0.0;
-		    if ( get_k_omega_flag() == 1 ) {
-                        double Sc_t = get_turbulence_schmidt_number();
+		    if ( G.turbulence_model != TM_NONE ) {
+                        double Sc_t = G.turbulence_schmidt;
                         D_t = fs.mu_t / (fs.gas->rho * Sc_t);
 		    }
 		    calculate_diffusion_fluxes(*(fs.gas),
@@ -619,7 +620,7 @@ int viscous_flux_3D(Block *A)
 		        }
 		    }
 	        }	    
-	        if ( get_k_omega_flag() == 1 ) {
+	        if ( G.turbulence_model == TM_K_OMEGA ) {
 		    // Turbulence contribution to the shear stresses.
 		    tau_xx -= 0.66667 * fs.gas->rho * fs.tke;
 		    tau_yy -= 0.66667 * fs.gas->rho * fs.tke;
@@ -658,7 +659,7 @@ int viscous_flux_3D(Block *A)
 		    (tau_xx*fs.vel.x + tau_xy*fs.vel.y + tau_xz*fs.vel.z + qx[0])*nx +
 		    (tau_xy*fs.vel.x + tau_yy*fs.vel.y + tau_yz*fs.vel.z + qy[0])*ny +
 		    (tau_xz*fs.vel.x + tau_yz*fs.vel.y + tau_zz*fs.vel.z + qz[0])*nz;
-	        if ( get_k_omega_flag() == 1 ) {
+	        if ( G.turbulence_model == TM_K_OMEGA ) {
 		    F.tke -= tau_kx * nx + tau_ky * ny + tau_kz * nz;
 		    F.omega -= tau_wx * nx + tau_wy * ny + tau_wz * nz;
 	        }
@@ -861,8 +862,8 @@ int viscous_flux_3D(Block *A)
  	        if( get_diffusion_flag() == 1 ) {
 		    // Apply a diffusion model
 		    double D_t = 0.0;
-		    if ( get_k_omega_flag() == 1 ) {
-                        double Sc_t = get_turbulence_schmidt_number();
+		    if ( G.turbulence_model != TM_NONE ) {
+                        double Sc_t = G.turbulence_schmidt;
                         D_t = fs.mu_t / (fs.gas->rho * Sc_t);
 		    }
 		    calculate_diffusion_fluxes(*(fs.gas),
@@ -910,7 +911,7 @@ int viscous_flux_3D(Block *A)
 		        }
 		    }
 	        }	    
-	        if ( get_k_omega_flag() == 1 ) {
+	        if ( G.turbulence_model == TM_K_OMEGA ) {
 		    // Turbulence contribution to the shear stresses.
 		    tau_xx -= 0.66667 * fs.gas->rho * fs.tke;
 		    tau_yy -= 0.66667 * fs.gas->rho * fs.tke;
@@ -949,7 +950,7 @@ int viscous_flux_3D(Block *A)
 		    (tau_xx*fs.vel.x + tau_xy*fs.vel.y + tau_xz*fs.vel.z + qx[0])*nx +
 		    (tau_xy*fs.vel.x + tau_yy*fs.vel.y + tau_yz*fs.vel.z + qy[0])*ny +
 		    (tau_xz*fs.vel.x + tau_yz*fs.vel.y + tau_zz*fs.vel.z + qz[0])*nz;
-	        if ( get_k_omega_flag() == 1 ) {
+	        if ( G.turbulence_model == TM_K_OMEGA ) {
 		    F.tke -= tau_kx * nx + tau_ky * ny + tau_kz * nz;
 		    F.omega -= tau_wx * nx + tau_wy * ny + tau_wz * nz;
 	        }

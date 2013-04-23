@@ -109,7 +109,7 @@ int baldwin_lomax_turbulence_model(global_data& gdata, Block& blk, size_t gtl)
     double tau_max, mu_wall, rho_wall, y_wall, x_wall, dx, dy;
     double factor, temporary;
     double F_MAX, eta_MAX, U_MAX, U_MIN, U_DIFF, F_A, F_B, F_WAKE;
-    double Pr_t = get_turbulence_prandtl_number();
+    double Pr_t = gdata.turbulence_prandtl;
 
     // Dimension of the work arrays, allowing for ghost cells.
     int ndim = blk.nnj + 4;

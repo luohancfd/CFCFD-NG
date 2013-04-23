@@ -102,15 +102,19 @@ public:
     int BGK_equilibrium(void);
 };
 
-/// \brief Conserved quantities, per unit volume, are stored for each cell.
+/// \brief Conserved quantities "vector"
+///
+/// In a cell, the conserved quantities are per unit volume.
+/// It is also used as the class for the flux-vector and the time-derivatives
+/// of the conserved quantities.
 class ConservedQuantities {
 public:
     double mass;                  ///< \brief density, kg/m**3
     Vector3 momentum;             ///< \brief momentum/unit volume
     Vector3 B;                    ///< \brief magnetic field, Tesla
-    double total_energy;          ///< \brief total energy/unit volume
-    std::vector<double> massf;    ///< \brief mass of species/unit volume
-    std::vector<double> energies; ///< \brief vib. energy / unit-volume
+    double total_energy;          ///< \brief total energy
+    std::vector<double> massf;    ///< \brief mass fractions of species
+    std::vector<double> energies; ///< \brief modal energies (mode 0 is usually transrotational)
     double tke;                   ///< \brief turbulent kinetic energy
     double omega;                 ///< \brief omega from k-omega turbulence model
     std::vector<double> G; ///< \brief velocity dist. partial densities, kg/m**3
@@ -194,10 +198,10 @@ class FV_Cell {
 public:
     size_t id;  ///> \brief allows us to work out where, in the block, the cell is
     int status; ///> \brief state of the cell with respect to pistons
-    int fr_reactions_allowed; ///> \brief ==1, will call chemical_increment (also thermal_increment)
+    bool fr_reactions_allowed; ///> \brief if true, will call chemical_increment (also thermal_increment)
     double dt_chem; ///> \brief acceptable time step for finite-rate chemistry
     double dt_therm; ///> \brief acceptable time step for thermal relaxation
-    int in_turbulent_zone; ///> \brief ==1, we will keep the turbulence viscosity
+    bool in_turbulent_zone; ///> \brief if true, we will keep the turbulence viscosity
     double base_qdot; ///> \brief base-level of heat addition to cell, W/m**3
     // Geometry
     std::vector<Vector3> pos; ///> \brief Centre x,y,z-coordinates for time-levels, m,m,m
@@ -250,28 +254,28 @@ public:
     int impose_chemistry_timestep(double dt);
     int impose_thermal_timestep(double dt);
     int set_fr_reactions_allowed(int flag);
-    int encode_conserved(size_t gtl, size_t ftl, double omegaz);
-    int decode_conserved(size_t gtl, size_t ftl, double omegaz);
+    int encode_conserved(size_t gtl, size_t ftl, double omegaz, bool with_k_omega);
+    int decode_conserved(size_t gtl, size_t ftl, double omegaz, bool with_k_omega);
     int check_flow_data(void);
-    int time_derivatives(size_t gtl, size_t ftl, size_t dimensions);
-    int stage_1_update_for_flow_on_fixed_grid(double dt, int force_euler=0);
-    int stage_2_update_for_flow_on_fixed_grid(double dt);
-    int stage_3_update_for_flow_on_fixed_grid(double dt);
-    int stage_1_update_for_flow_on_moving_grid(double dt);
-    int stage_2_update_for_flow_on_moving_grid(double dt);
+    int time_derivatives(size_t gtl, size_t ftl, size_t dimensions, bool with_k_omega);
+    int stage_1_update_for_flow_on_fixed_grid(double dt, bool force_euler, bool with_k_omega);
+    int stage_2_update_for_flow_on_fixed_grid(double dt, bool with_k_omega);
+    int stage_3_update_for_flow_on_fixed_grid(double dt, bool with_k_omega);
+    int stage_1_update_for_flow_on_moving_grid(double dt, bool with_k_omega);
+    int stage_2_update_for_flow_on_moving_grid(double dt, bool with_k_omega);
     int chemical_increment(double dt);
     int thermal_increment(double dt);
-    double signal_frequency(size_t dimensions);
-    int turbulence_viscosity_zero(void);
-    int turbulence_viscosity_zero_if_not_in_zone(void);
+    double signal_frequency(size_t dimensions, bool with_k_omega);
+    int turbulence_viscosity_zero();
+    int turbulence_viscosity_zero_if_not_in_zone();
     int turbulence_viscosity_limit(double factor);
     int turbulence_viscosity_factor(double factor);
-    int turbulence_viscosity_k_omega(void);
+    int turbulence_viscosity_k_omega();
     int update_k_omega_properties(double dt);
     int k_omega_time_derivatives(double *Q_rtke, double *Q_romega, double tke, double omega);
     int clear_source_vector();
     int add_inviscid_source_vector(int gtl, double omegaz=0.0);
-    int add_viscous_source_vector(void);
+    int add_viscous_source_vector(bool with_k_omega);
     double calculate_wall_Reynolds_number(int which_boundary);
     int store_rad_scaling_params(void);
     int rescale_Q_rE_rad(void);

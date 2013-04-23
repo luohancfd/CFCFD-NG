@@ -55,22 +55,24 @@ static std::vector<double> fA, fB, fC, fD;
 /// primarily through the diffusive terms.
 int estimate_turbulence_viscosity(global_data *gdp, Block *bdp)
 {
-    if ( get_turbulence_flag() == 0 ) {
+    switch ( gdp->turbulence_model ) {
+    case TM_NONE:
 	for ( FV_Cell *cp: bdp->active_cells ) cp->turbulence_viscosity_zero();
 	return SUCCESS;
-    }
-
-    if ( get_k_omega_flag() == 1 ) {
-	for ( FV_Cell *cp: bdp->active_cells ) cp->turbulence_viscosity_k_omega();
-    } else if ( get_baldwin_lomax_flag() == 1 ) {
+    case TM_BALDWIN_LOMAX:
 	baldwin_lomax_turbulence_model(*gdp, *bdp, 0);
-    } else {
-	cout << "Turbulence model requested but not available." << endl;
-	exit( NOT_IMPLEMENTED_ERROR );
+	break;
+    case TM_K_OMEGA:
+	for ( FV_Cell *cp: bdp->active_cells ) cp->turbulence_viscosity_k_omega();
+	break;
+    default:
+	throw runtime_error("Turbulence model requested but not available.");
     }
-    for ( FV_Cell *cp: bdp->active_cells ) cp->turbulence_viscosity_factor(gdp->transient_mu_t_factor);
-    for ( FV_Cell *cp: bdp->active_cells ) cp->turbulence_viscosity_limit(gdp->max_mu_t_factor);
-    for ( FV_Cell *cp: bdp->active_cells ) cp->turbulence_viscosity_zero_if_not_in_zone();
+    for ( FV_Cell *cp: bdp->active_cells ) {
+	cp->turbulence_viscosity_factor(gdp->transient_mu_t_factor);
+	cp->turbulence_viscosity_limit(gdp->max_mu_t_factor);
+	cp->turbulence_viscosity_zero_if_not_in_zone();
+    }
     return SUCCESS;
 }
 
@@ -100,6 +102,7 @@ double select_derivative(double v_left, double v_right, double vtdp) {
 ///
 int viscous_flux_2D(Block *A)
 {
+    global_data &G = *get_global_data_ptr();
     Gas_model *gmodel = get_gas_model_ptr();
     FV_Vertex *vtx1, *vtx2;
     FV_Interface *IFace;
@@ -184,8 +187,8 @@ int viscous_flux_2D(Block *A)
                 }
 	        // Apply a diffusion model
 	        double D_t = 0.0;
-	        if ( get_k_omega_flag() == 1 ) {
-                    double Sc_t = get_turbulence_schmidt_number();
+	        if ( G.turbulence_model != TM_NONE ) {
+                    double Sc_t = G.turbulence_schmidt;
                     D_t = mu_t / (fs.gas->rho * Sc_t);
 	        }
 	        calculate_diffusion_fluxes(*(fs.gas),
@@ -243,7 +246,7 @@ int viscous_flux_2D(Block *A)
 		}
 	    }	    
 	    
-	    if ( get_k_omega_flag() == 1 ) {
+	    if ( G.turbulence_model == TM_K_OMEGA ) {
 		// Turbulence contribution to the shear stresses.
 		tau_xx -= 0.66667 * fs.gas->rho * fs.tke;
 		tau_yy -= 0.66667 * fs.gas->rho * fs.tke;
@@ -279,7 +282,7 @@ int viscous_flux_2D(Block *A)
                 + (tau_xy * fs.vel.x + tau_yy * fs.vel.y + qy[0]) * ny;
 	    // Viscous transport of k-omega turbulence quantities.
 	    // Only built for 2D planar geometry at the moment.
-	    if ( get_k_omega_flag() == 1 ) {
+	    if ( G.turbulence_model == TM_K_OMEGA ) {
 		F.tke -= tau_kx * nx + tau_ky * ny;
 		F.omega -= tau_wx * nx + tau_wy * ny;
 	    }
@@ -341,8 +344,8 @@ int viscous_flux_2D(Block *A)
                 }
 		// Apply a diffusion model
 		double D_t = 0.0;
-		if ( get_k_omega_flag() == 1 ) {
-                    double Sc_t = get_turbulence_schmidt_number();
+		if ( G.turbulence_model != TM_NONE ) {
+                    double Sc_t = G.turbulence_schmidt;
                     D_t = mu_t / (fs.gas->rho * Sc_t);
 		}
 		calculate_diffusion_fluxes(*(fs.gas),
@@ -400,7 +403,7 @@ int viscous_flux_2D(Block *A)
 		}
 	    }
 	    
-	    if ( get_k_omega_flag() == 1 ) {
+	    if ( G.turbulence_model == TM_K_OMEGA ) {
 		// Turbulence contribution to the shear stresses.
 		tau_xx -= 0.66667 * fs.gas->rho * fs.tke;
 		tau_yy -= 0.66667 * fs.gas->rho * fs.tke;
@@ -436,7 +439,7 @@ int viscous_flux_2D(Block *A)
                 + (tau_xy * fs.vel.x + tau_yy * fs.vel.y + qy[0]) * ny;
 	    // Viscous transport of k-omega turbulence quantities.
 	    // Only built for 2D planar geometry at the moment.
-	    if ( get_k_omega_flag() == 1 ) {
+	    if ( G.turbulence_model == TM_K_OMEGA ) {
 		F.tke -= tau_kx * nx + tau_ky * ny;
 		F.omega -= tau_wx * nx + tau_wy * ny;
 	    }

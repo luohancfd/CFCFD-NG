@@ -256,20 +256,20 @@ int Block::identify_reaction_zones(global_data &gd, size_t gtl)
     for ( FV_Cell *cellp: active_cells ) {
 	if ( gd.n_reaction_zone > 0 ) {
 	    // User-specified reaction zones; mask off reacting/nonreacting zones.
-	    cellp->fr_reactions_allowed = 0;
+	    cellp->fr_reactions_allowed = false;
 	    for ( CReactionZone &rz : gd.reaction_zone ) {
 		if ( cellp->pos[gtl].x >= rz.x0 && cellp->pos[gtl].x <= rz.x1 &&
 		     cellp->pos[gtl].y >= rz.y0 && cellp->pos[gtl].y <= rz.y1 &&
 		     (gd.dimensions == 2 || 
 		      (cellp->pos[gtl].z >= rz.z0 && cellp->pos[gtl].z <= rz.z1)) ) {
-		    cellp->fr_reactions_allowed = 1;
+		    cellp->fr_reactions_allowed = true;
 		}
 	    } // end for( &rz
 	} else {
 	    // No user-specified zones; always allow reactions.
-	    cellp->fr_reactions_allowed = 1;
+	    cellp->fr_reactions_allowed = true;
 	}
-	total_cells_in_reaction_zones += cellp->fr_reactions_allowed;
+	total_cells_in_reaction_zones += (cellp->fr_reactions_allowed ? 1: 0);
 	total_cells += 1;
     } // for cellp
     if ( get_reacting_flag() ) {
@@ -292,22 +292,22 @@ int Block::identify_turbulent_zones(global_data &gd, size_t gtl)
     size_t total_cells = 0;
     for ( FV_Cell *cellp: active_cells ) {
 	if ( gd.n_turbulent_zone > 0 ) {
-	    cellp->in_turbulent_zone = 0;
+	    cellp->in_turbulent_zone = false;
 	    for ( CTurbulentZone &tz : gd.turbulent_zone ) {
 		if ( cellp->pos[gtl].x >= tz.x0 && cellp->pos[gtl].x <= tz.x1 &&
 		     cellp->pos[gtl].y >= tz.y0 && cellp->pos[gtl].y <= tz.y1 &&
 		     (gd.dimensions == 2 || 
 		      (cellp->pos[gtl].z >= tz.z0 && cellp->pos[gtl].z <= tz.z1)) ) {
-		    cellp->in_turbulent_zone = 1;
+		    cellp->in_turbulent_zone = true;
 		}
 	    } // for tz
 	} else {
-	    cellp->in_turbulent_zone = 1;
+	    cellp->in_turbulent_zone = true;
 	}
-	total_cells_in_turbulent_zones += cellp->in_turbulent_zone;
+	total_cells_in_turbulent_zones += (cellp->in_turbulent_zone ? 1: 0);
 	total_cells += 1;
     } // for cellp
-    if ( get_turbulence_flag() ) {
+    if ( gd.turbulence_model != TM_NONE ) {
 	cout << "identify_turbulent_zones(): block " << id
 	     << " cells inside zones = " << total_cells_in_turbulent_zones 
 	     << " out of " << total_cells << endl;
@@ -392,6 +392,8 @@ int Block::count_invalid_cells(size_t dimensions, size_t gtl)
 // To do: We should probably make this function more 3D friendly, however,
 // it should not be invoked (ever) if the code is working well!
 {
+    global_data &G = *get_global_data_ptr();
+    bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     size_t number_of_invalid_cells = 0;
     for ( FV_Cell *cellp: active_cells ) {
 	if ( cellp->check_flow_data() != 1 ) {
@@ -409,7 +411,7 @@ int Block::count_invalid_cells(size_t dimensions, size_t gtl)
 		// is valid (and self consistent).
 		FV_Cell *other_cellp;
 		std::vector<FV_Cell *> neighbours;
-		if (prefer_copy_from_left ) {
+		if ( prefer_copy_from_left ) {
 		    if ( get_bad_cell_complain_flag() ) {
 			printf( "Adjusting cell data by copying data from left.\n" );
 		    }
@@ -432,8 +434,8 @@ int Block::count_invalid_cells(size_t dimensions, size_t gtl)
 					"There were no valid neighbours to replace cell data.\n");
 		}
 		cellp->replace_flow_data_with_average(neighbours);
-		cellp->encode_conserved(gtl, 0, omegaz);
-		cellp->decode_conserved(gtl, 0, omegaz);
+		cellp->encode_conserved(gtl, 0, omegaz, with_k_omega);
+		cellp->decode_conserved(gtl, 0, omegaz, with_k_omega);
 		if ( get_bad_cell_complain_flag() ) {
 		    printf("after flow-data replacement: block_id = %d, cell[%d,%d,%d]\n", 
 			   static_cast<int>(id), static_cast<int>(i),
@@ -505,7 +507,7 @@ int Block::compute_residuals(size_t dimensions, size_t gtl)
 } // end of compute_residuals()
 
 
-int Block::determine_time_step_size(double cfl_target, size_t dimensions)
+int Block::determine_time_step_size()
 /// \brief Compute the local time step limit for all cells in the block.
 ///
 /// The overall time step is limited by the worst-case cell.
@@ -515,7 +517,7 @@ int Block::determine_time_step_size(double cfl_target, size_t dimensions)
 /// Some Definitions...
 /// ----------------
 /// dt_global  : global time step for the block
-/// cfl_target : desired CFL number
+/// G.cfl_target : desired CFL number
 /// cfl_min  : approximate minimum CFL number in the block
 /// cfl_max  : approximate maximum CFL number in the block
 /// dt_allow : allowable time step (i.e. the maximum dt that
@@ -525,6 +527,7 @@ int Block::determine_time_step_size(double cfl_target, size_t dimensions)
 /// \endverbatim
 {
     global_data *gdp = get_global_data_ptr();
+    bool with_k_omega = (gdp->turbulence_model == TM_K_OMEGA);
     bool first;
     double dt_local, cfl_local, signal, cfl_allow;
     // These limits allow the simulation of the sod shock tube
@@ -539,9 +542,9 @@ int Block::determine_time_step_size(double cfl_target, size_t dimensions)
 
     first = true;
     for ( FV_Cell *cp: active_cells ) {
-	signal = cp->signal_frequency(dimensions);
+	signal = cp->signal_frequency(gdp->dimensions, with_k_omega);
 	cfl_local = gdp->dt_global * signal; // Current (Local) CFL number
-	dt_local = cfl_target / signal; // Recommend a time step size.
+	dt_local = gdp->cfl_target / signal; // Recommend a time step size.
 	if ( first ) {
 	    cfl_min = cfl_local;
 	    cfl_max = cfl_local;

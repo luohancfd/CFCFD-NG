@@ -30,6 +30,7 @@ int one_d_interp(const FV_Cell &cL1, const FV_Cell &cL0,
 		 double cR0Length, double cR1Length,
 		 FlowState &Lft, FlowState &Rght )
 {
+    global_data &G = *get_global_data_ptr();
     Gas_model *gmodel = get_gas_model_ptr();
     Thermo_interpolator* ti = get_thermo_interpolator_ptr();
     int nsp = gmodel->get_number_of_species();
@@ -61,7 +62,7 @@ int one_d_interp(const FV_Cell &cL1, const FV_Cell &cL0,
 				cL1Length, cL0Length, cR0Length, cR1Length,
 				Lft.B.z, Rght.B.z, apply_limiter_flag, extrema_clipping_flag);
 	}
-	if ( get_k_omega_flag() == 1 ) {
+	if ( G.turbulence_model == TM_K_OMEGA ) {
 	    one_d_interp_scalar(cL1.fs->tke, cL0.fs->tke, cR0.fs->tke, cR1.fs->tke,
 				cL1Length, cL0Length, cR0Length, cR1Length,
 				Lft.tke, Rght.tke, apply_limiter_flag, extrema_clipping_flag);
@@ -144,6 +145,7 @@ int mach_weighted_one_d_interp(const FV_Cell &cL1, const FV_Cell &cL0,
 			       double cR0Length, double cR1Length,
 			       FlowState &Lft, FlowState &Rght )
 {
+    global_data &G = *get_global_data_ptr();
     Gas_model *gmodel = get_gas_model_ptr();
     Gas_data &gL1 = *(cL1.fs->gas);
     Gas_data &gL0 = *(cL0.fs->gas);
@@ -191,7 +193,7 @@ int mach_weighted_one_d_interp(const FV_Cell &cL1, const FV_Cell &cL0,
 					      Lft.B.z, Rght.B.z, kL, kR, apply_limiter_flag,
 					      extrema_clipping_flag);
 	}
-	if ( get_k_omega_flag() == 1 ) {
+	if ( G.turbulence_model == TM_K_OMEGA ) {
 	    mach_weighted_one_d_interp_scalar(cL1.fs->tke, cL0.fs->tke, cR0.fs->tke, cR1.fs->tke,
 					      cL1Length, cL0Length, cR0Length, cR1Length,
 					      Lft.tke, Rght.tke, kL, kR, apply_limiter_flag,
@@ -286,6 +288,7 @@ int onesided_interp(const FV_Cell &cL0, const FV_Cell &cR0, const FV_Cell &cR1,
 		    double cL0Length, double cR0Length, double cR1Length,
 		    FlowState &Rght )
 {
+    global_data &G = *get_global_data_ptr();
     Gas_model *gmodel = get_gas_model_ptr();
     Gas_data &gL0 = *(cL0.fs->gas);
     Gas_data &gR0 = *(cR0.fs->gas);
@@ -318,7 +321,7 @@ int onesided_interp(const FV_Cell &cL0, const FV_Cell &cR0, const FV_Cell &cR1,
 				   cL0Length, cR0Length, cR1Length,
 				   Rght.B.z, apply_limiter_flag, extrema_clipping_flag);
 	}
-	if ( get_k_omega_flag() == 1 ) {
+	if ( G.turbulence_model == TM_K_OMEGA ) {
 	    onesided_interp_scalar(cL0.fs->tke, cR0.fs->tke, cR1.fs->tke,
 				   cL0Length, cR0Length, cR1Length,
 				   Rght.tke, apply_limiter_flag, extrema_clipping_flag);
@@ -387,6 +390,7 @@ int one_d_interior_interp(const FV_Cell &cL0, const FV_Cell &cR0,
 			  double cR1Length, double cR2Length,
 			  FlowState &Lft, FlowState &Rght )
 {
+    global_data &G = *get_global_data_ptr();
     Gas_model *gmodel = get_gas_model_ptr();
     Gas_data &gL0 = *(cL0.fs->gas);
     Gas_data &gR0 = *(cR0.fs->gas);
@@ -421,7 +425,7 @@ int one_d_interior_interp(const FV_Cell &cL0, const FV_Cell &cR0,
 					 cL0Length, cR0Length, cR1Length, cR2Length,
 					 Lft.B.z, Rght.B.z, apply_limiter_flag, extrema_clipping_flag);
 	}
-	if ( get_k_omega_flag() == 1 ) {
+	if ( G.turbulence_model == TM_K_OMEGA ) {
 	    one_d_interior_interp_scalar(cL0.fs->tke, cR0.fs->tke, cR1.fs->tke, cR2.fs->tke,
 					 cL0Length, cR0Length, cR1Length, cR2Length,
 					 Lft.tke, Rght.tke, apply_limiter_flag, extrema_clipping_flag);

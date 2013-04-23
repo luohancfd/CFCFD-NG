@@ -2414,7 +2414,7 @@ int update_gas_extensive_conserved(FV_Cell *cell, double volume)
 
 int update_gas_conserved(FV_Cell *cell) 
 {
-    cell->encode_conserved(0, 0, 0.0);
+    cell->encode_conserved(0, 0, 0.0, false);
     return SUCCESS;
 }
 
@@ -2461,7 +2461,7 @@ int update_gas_primaries_from_extensive(FV_Cell *cell, double volume)
 
 int update_gas_primaries(FV_Cell *cell)
 {
-    cell->decode_conserved(0, 0, 0.0);
+    cell->decode_conserved(0, 0, 0.0, false);
     return SUCCESS;
 }
 
@@ -2562,7 +2562,7 @@ int average_two_flow_states(FV_Cell *dst,
     for ( size_t imode = 0; imode < nmodes; ++imode ) {
 	dst->U[1]->energies[imode] = (src0->U[1]->energies[imode]*vol0 + src1->U[1]->energies[imode]*vol1)/total_vol;
     }
-    dst->decode_conserved(0, 0, 0.0);
+    dst->decode_conserved(0, 0, 0.0, false);
     return SUCCESS;
 }
 

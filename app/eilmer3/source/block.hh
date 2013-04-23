@@ -159,7 +159,7 @@ public:
     int count_invalid_cells(size_t dimensions, size_t gtl);
     int init_residuals(size_t dimensions);
     int compute_residuals(size_t dimensions, size_t gtl);
-    int determine_time_step_size(double cfl_target, size_t dimensions);
+    int determine_time_step_size();
     int detect_shock_points(size_t dimensions);
 
     // in block_geometry.cxx

@@ -493,6 +493,7 @@ compute_cell_interface_surface_heat_flux(FV_Interface * IFace, FV_Cell * cell_on
 					 size_t index, size_t gtl) 
 /// \brief Calculate the heat flux values for a single cell interface
 {
+    global_data &G = *get_global_data_ptr();
     Vector3 cc, ic, i0c;
     double d1;
     size_t iT, isp;
@@ -521,8 +522,8 @@ compute_cell_interface_surface_heat_flux(FV_Interface * IFace, FV_Cell * cell_on
 	}
 	// Apply a diffusion model
 	double D_t = 0.0;
-	if ( get_k_omega_flag() == 1 ) {
-	    double Sc_t = get_turbulence_schmidt_number();
+	if ( G.turbulence_model != TM_NONE ) {
+	    double Sc_t = G.turbulence_schmidt;
 	    D_t = IFace->fs->mu_t / (IFace->fs->gas->rho * Sc_t);
 	}
 	calculate_diffusion_fluxes(*(IFace->fs->gas), D_t, dfds, dfd0, dfd00, js, j0, j00 );

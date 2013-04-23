@@ -24,15 +24,11 @@
 
 //-------------------------------------------------------------------
 
-/** Macro definition to be used in signalling level of verbosity.
- *
- * 1 == Echo all file names and input parameters during initialization.
- *
- * 0 == don't be so verbose
- */
+// 1 == Echo all file names and input parameters during initialization.
+// 0 == don't be so verbose
 const int ECHO_ALL = 1;
 
-//-------------------------------------------------------------------
+enum turbulence_model_t {TM_NONE, TM_BALDWIN_LOMAX, TM_K_OMEGA, TM_SPALART_ALLMARAS};
 
 struct CHeatZone {
     double qdot;  // rate of heat addition in W/m**3
@@ -101,6 +97,9 @@ struct global_data
      */
 
     double viscous_time_delay;
+    turbulence_model_t turbulence_model;
+    double turbulence_prandtl;
+    double turbulence_schmidt;
     double max_mu_t_factor;
     double transient_mu_t_factor;
     double shock_fitting_speed_factor;
@@ -237,17 +236,6 @@ int set_radiation_update_frequency(int ruf);
 int get_radiation_update_frequency(void);
 int set_implicit_flag(int imf);
 int get_implicit_flag(void);
-int set_turbulence_flag(int i);
-int get_turbulence_flag(void);
-int set_k_omega_flag(int ikw);
-int get_k_omega_flag(void);
-bool get_wilson_omega_filter_flag(void);
-int set_baldwin_lomax_flag(int ibl);
-int get_baldwin_lomax_flag(void);
-double set_turbulence_prandtl_number(double Pr);
-double get_turbulence_prandtl_number(void);
-double set_turbulence_schmidt_number(double Sc);
-double get_turbulence_schmidt_number(void);
 int set_apply_limiter_flag(int ip);
 int get_apply_limiter_flag(void);
 int set_extrema_clipping_flag(int ip);
@@ -272,4 +260,5 @@ Vector3 get_vcoord(int i);
 std::vector<Vector3> *get_vcoords_ptr(void);
 double get_vweight(int i);
 std::vector<double> *get_vweights_ptr(void);
+std::string get_name_of_turbulence_model(turbulence_model_t my_model);
 #endif

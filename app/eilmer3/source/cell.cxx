@@ -581,8 +581,8 @@ int FV_Vertex::copy_grid_level_to_level(size_t from_level, size_t to_level)
 //----------------------------------------------------------------------------
 
 FV_Cell::FV_Cell(Gas_model *gm)
-    : id(0), status(NORMAL_CELL), fr_reactions_allowed(0),
-      dt_chem(0.0), dt_therm(0.0), in_turbulent_zone(0),
+    : id(0), status(NORMAL_CELL), fr_reactions_allowed(false),
+      dt_chem(0.0), dt_therm(0.0), in_turbulent_zone(false),
       base_qdot(0.0), pos(N_LEVEL,Vector3(0.0,0.0,0.0)),
       volume(N_LEVEL,0.0), area(N_LEVEL,0.0), uf(0.0),
       iLength(0.0), jLength(0.0), kLength(0.0), L_min(0.0),
@@ -605,8 +605,8 @@ FV_Cell::FV_Cell(Gas_model *gm)
 }
 
 FV_Cell::FV_Cell()
-    : id(0), status(NORMAL_CELL), fr_reactions_allowed(0),
-      dt_chem(0.0), dt_therm(0.0), in_turbulent_zone(0),
+    : id(0), status(NORMAL_CELL), fr_reactions_allowed(false),
+      dt_chem(0.0), dt_therm(0.0), in_turbulent_zone(false),
       base_qdot(0.0), pos(N_LEVEL,Vector3(0.0,0.0,0.0)),
       volume(N_LEVEL,0.0), area(N_LEVEL,0.0), uf(0.0),
       iLength(0.0), jLength(0.0), kLength(0.0), L_min(0.0),
@@ -1108,7 +1108,7 @@ std::string FV_Cell::write_BGK_to_string() const
 } // end of write_BGK_to_string()
 
 
-int FV_Cell::encode_conserved(size_t gtl, size_t ftl, double omegaz)
+int FV_Cell::encode_conserved(size_t gtl, size_t ftl, double omegaz, bool with_k_omega)
 {
     ConservedQuantities &myU = *(U[ftl]);
 
@@ -1127,7 +1127,7 @@ int FV_Cell::encode_conserved(size_t gtl, size_t ftl, double omegaz)
     double ke = 0.5 * (fs->vel.x * fs->vel.x
 		       + fs->vel.y * fs->vel.y
 		       + fs->vel.z * fs->vel.z);
-    if ( get_k_omega_flag() ) {
+    if ( with_k_omega ) {
 	myU.tke = fs->gas->rho * fs->tke;
 	myU.omega = fs->gas->rho * fs->omega;
 	myU.total_energy = fs->gas->rho * (e + ke + fs->tke);
@@ -1169,7 +1169,7 @@ int FV_Cell::encode_conserved(size_t gtl, size_t ftl, double omegaz)
 } // end of encode_conserved()
 
 
-int FV_Cell::decode_conserved(size_t gtl, size_t ftl, double omegaz)
+int FV_Cell::decode_conserved(size_t gtl, size_t ftl, double omegaz, bool with_k_omega)
 {
     ConservedQuantities &myU = *(U[ftl]);
     Gas_model *gmodel = get_gas_model_ptr();
@@ -1214,7 +1214,7 @@ int FV_Cell::decode_conserved(size_t gtl, size_t ftl, double omegaz)
     } else {
         me = 0.0;
     }
-    if ( get_k_omega_flag() ) {
+    if ( with_k_omega ) {
         fs->tke = myU.tke * dinv;
         fs->omega = myU.omega * dinv;
 	e = (rE - myU.tke - me) * dinv - ke;
@@ -1295,7 +1295,7 @@ int FV_Cell::check_flow_data(void)
 ///              1: End of stage-1.
 ///              2: End of stage-2.
 /// \param dimensions : number of space dimensions (2 or 3)
-int FV_Cell::time_derivatives(size_t gtl, size_t ftl, size_t dimensions)
+int FV_Cell::time_derivatives(size_t gtl, size_t ftl, size_t dimensions, bool with_k_omega)
 {
     Gas_model *gmodel = get_gas_model_ptr();
     size_t nsp = gmodel->get_number_of_species();
@@ -1388,7 +1388,7 @@ int FV_Cell::time_derivatives(size_t gtl, size_t ftl, size_t dimensions)
 	integral += IFb->F->total_energy * IFb->area[gtl] - IFt->F->total_energy * IFt->area[gtl];
     dUdt[ftl]->total_energy = vol_inv * integral + Q->total_energy;
     
-    if ( get_k_omega_flag() ) {
+    if ( with_k_omega ) {
 	integral = -IFe->F->tke * IFe->area[gtl] - IFn->F->tke * IFn->area[gtl]
 	    + IFw->F->tke * IFw->area[gtl] + IFs->F->tke * IFs->area[gtl];
 	if ( dimensions == 3 )
@@ -1435,7 +1435,7 @@ int FV_Cell::time_derivatives(size_t gtl, size_t ftl, size_t dimensions)
 } // end of time_derivatives()
 
 
-int FV_Cell::stage_1_update_for_flow_on_fixed_grid(double dt, int force_euler)
+int FV_Cell::stage_1_update_for_flow_on_fixed_grid(double dt, bool force_euler, bool with_k_omega)
 {
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &U0 = *(U[0]);
@@ -1472,7 +1472,7 @@ int FV_Cell::stage_1_update_for_flow_on_fixed_grid(double dt, int force_euler)
 	U1.B.z = U0.B.z + dt * gamma_1 * dUdt0.B.z;
     }
     U1.total_energy = U0.total_energy + dt * gamma_1 * dUdt0.total_energy;
-    if ( get_k_omega_flag() ) {
+    if ( with_k_omega ) {
 	U1.tke = U0.tke + dt * gamma_1 * dUdt0.tke;
 	U1.tke = MAXIMUM(U1.tke, 0.0);
 	U1.omega = U0.omega + dt * gamma_1 * dUdt0.omega;
@@ -1501,7 +1501,7 @@ int FV_Cell::stage_1_update_for_flow_on_fixed_grid(double dt, int force_euler)
 } // end of stage_1_update_for_flow_on_fixed_grid()
 
 
-int FV_Cell::stage_2_update_for_flow_on_fixed_grid(double dt)
+int FV_Cell::stage_2_update_for_flow_on_fixed_grid(double dt, bool with_k_omega)
 {
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &dUdt1 = *(dUdt[1]);
@@ -1532,7 +1532,7 @@ int FV_Cell::stage_2_update_for_flow_on_fixed_grid(double dt)
     }
     U2.total_energy = U_old->total_energy + 
 	dt * (gamma_1 * dUdt0.total_energy + gamma_2 * dUdt1.total_energy);
-    if ( get_k_omega_flag() ) {
+    if ( with_k_omega ) {
 	U2.tke = U_old->tke + dt * (gamma_1 * dUdt0.tke + gamma_2 * dUdt1.tke);
 	U2.tke = MAXIMUM(U2.tke, 0.0);
 	U2.omega = U_old->omega + dt * (gamma_1 * dUdt0.omega + gamma_2 * dUdt1.omega);
@@ -1552,7 +1552,7 @@ int FV_Cell::stage_2_update_for_flow_on_fixed_grid(double dt)
 } // end of stage_2_update_for_flow_on_fixed_grid()
 
 
-int FV_Cell::stage_3_update_for_flow_on_fixed_grid(double dt)
+int FV_Cell::stage_3_update_for_flow_on_fixed_grid(double dt, bool with_k_omega)
 {
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &dUdt1 = *(dUdt[1]);
@@ -1587,7 +1587,7 @@ int FV_Cell::stage_3_update_for_flow_on_fixed_grid(double dt)
     }
     U3.total_energy = U_old->total_energy + 
 	dt * (gamma_1*dUdt0.total_energy + gamma_2*dUdt1.total_energy + gamma_3*dUdt2.total_energy);
-    if ( get_k_omega_flag() ) {
+    if ( with_k_omega ) {
 	U3.tke = U_old->tke + dt * (gamma_1*dUdt0.tke + gamma_2*dUdt1.tke + gamma_3*dUdt2.tke);
 	U3.tke = MAXIMUM(U3.tke, 0.0);
 	U3.omega = U_old->omega + dt * (gamma_1*dUdt0.omega + gamma_2*dUdt1.omega + gamma_3*dUdt2.omega);
@@ -1609,7 +1609,7 @@ int FV_Cell::stage_3_update_for_flow_on_fixed_grid(double dt)
 } // end of stage_3_update_for_flow_on_fixed_grid()
 
 
-int FV_Cell::stage_1_update_for_flow_on_moving_grid(double dt)
+int FV_Cell::stage_1_update_for_flow_on_moving_grid(double dt, bool with_k_omega)
 {
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &U0 = *(U[0]);
@@ -1628,7 +1628,7 @@ int FV_Cell::stage_1_update_for_flow_on_moving_grid(double dt)
 	U1.B.z = vr * (U0.B.z + dt * gamma_1 * dUdt0.B.z);
     }
     U1.total_energy = vr * (U0.total_energy + dt * gamma_1 * dUdt0.total_energy);
-    if ( get_k_omega_flag() ) {
+    if ( with_k_omega ) {
 	U1.tke = vr * (U0.tke + dt * gamma_1 * dUdt0.tke);
 	U1.tke = MAXIMUM(U1.tke, 0.0);
 	U1.omega = vr * (U0.omega + dt * gamma_1 * dUdt0.omega);
@@ -1648,7 +1648,7 @@ int FV_Cell::stage_1_update_for_flow_on_moving_grid(double dt)
 } // end of stage_1_update_for_flow_on_moving_grid()
 
 
-int FV_Cell::stage_2_update_for_flow_on_moving_grid(double dt)
+int FV_Cell::stage_2_update_for_flow_on_moving_grid(double dt, bool with_k_omega)
 {
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &dUdt1 = *(dUdt[1]);
@@ -1676,7 +1676,7 @@ int FV_Cell::stage_2_update_for_flow_on_moving_grid(double dt)
     }
     U2.total_energy = vol_inv * (v_old * U0.total_energy + 
 				 dt * (gamma_1 * dUdt0.total_energy + gamma_2 * dUdt1.total_energy));
-    if ( get_k_omega_flag() ) {
+    if ( with_k_omega ) {
 	U2.tke = vol_inv * (v_old * U0.tke + dt * (gamma_1 * dUdt0.tke + gamma_2 * dUdt1.tke));
 	U2.tke = MAXIMUM(U2.tke, 0.0);
 	U2.omega = vol_inv * (v_old * U0.omega + dt * (gamma_1 * dUdt0.omega + gamma_2 * dUdt1.omega));
@@ -1767,7 +1767,7 @@ int FV_Cell::thermal_increment(double dt)
 ///
 /// \param dimensions: number of spatial dimensions: 2 for mbcns2, 3 for eilmer
 /// The North and East faces are taken as the representative lengths the cells.
-double FV_Cell::signal_frequency(size_t dimensions)
+double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
 {
     double signal;
     double un_N, un_E, un_T, u_mag;
@@ -1927,14 +1927,14 @@ double FV_Cell::signal_frequency(size_t dimensions)
 	}
 #       endif
     }
-    if ( get_k_omega_flag() == 1 && !SEPARATE_UPDATE_FOR_K_OMEGA_SOURCE ) {
+    if ( with_k_omega == 1 && !SEPARATE_UPDATE_FOR_K_OMEGA_SOURCE ) {
 	if ( fs->omega > signal ) signal = fs->omega;
     }
     return signal;
 } // end of signal_frequency()
 
 
-int FV_Cell::turbulence_viscosity_zero(void)
+int FV_Cell::turbulence_viscosity_zero()
 {
     fs->mu_t = 0.0;
     fs->k_t = 0.0;
@@ -1942,7 +1942,7 @@ int FV_Cell::turbulence_viscosity_zero(void)
 }
 
 
-int FV_Cell::turbulence_viscosity_zero_if_not_in_zone(void)
+int FV_Cell::turbulence_viscosity_zero_if_not_in_zone()
 {
     if ( in_turbulent_zone ) {
 	/* Do nothing, leaving the turbulence quantities as set. */ ;
@@ -1983,14 +1983,15 @@ int FV_Cell::turbulence_viscosity_factor(double factor)
 ///
 /// Implementation of the 3D terms
 /// Wilson Chan, December 2008
-int FV_Cell::turbulence_viscosity_k_omega(void)
+int FV_Cell::turbulence_viscosity_k_omega()
 {
-    if ( get_k_omega_flag() == 0 ) {
+    global_data &G = *get_global_data_ptr();
+    if ( G.turbulence_model != TM_K_OMEGA ) {
+	// FIX-ME may have to do something better if another turbulence model is active.
 	fs->mu_t = 0.0;
 	fs->k_t = 0.0;
 	return SUCCESS;
     }
-    global_data &G = *get_global_data_ptr();
     double dudx, dudy, dvdx, dvdy;
     double S_bar_squared;
     double C_lim = 0.875;
@@ -2045,7 +2046,7 @@ int FV_Cell::turbulence_viscosity_k_omega(void)
     S_bar_squared = MAXIMUM(0.0, S_bar_squared);
     double omega_t = MAXIMUM(fs->omega, C_lim*sqrt(2.0*S_bar_squared/beta_star));
     fs->mu_t = fs->gas->rho * fs->tke / omega_t;
-    double Pr_t = get_turbulence_prandtl_number();
+    double Pr_t = G.turbulence_prandtl;
     Gas_model *gmodel = get_gas_model_ptr();
     int status_flag;
     fs->k_t = gmodel->Cp(*(fs->gas), status_flag) * fs->mu_t / Pr_t;
@@ -2072,7 +2073,7 @@ int FV_Cell::turbulence_viscosity_k_omega(void)
 int FV_Cell::update_k_omega_properties(double dt)
 {
     // Do not update k_omega properties if we are in laminar block
-    if ( in_turbulent_zone == 0 ) return SUCCESS;
+    if ( !in_turbulent_zone ) return SUCCESS;
 
 #   define KOMEGA_IMPLICIT_UPDATE_FLAG 1
 #   if KOMEGA_IMPLICIT_UPDATE_FLAG == 1
@@ -2212,12 +2213,13 @@ int FV_Cell::update_k_omega_properties(double dt)
 ///
 int FV_Cell::k_omega_time_derivatives(double *Q_rtke, double *Q_romega, double tke, double omega)
 {
-    if ( get_k_omega_flag() == 0 ) {
+    global_data &G = *get_global_data_ptr();
+    if ( G.turbulence_model != TM_K_OMEGA ) {
+	// FIX-ME may need to do something better is another turbulence model is active.
 	*Q_rtke = 0.0;
 	*Q_romega = 0.0;
 	return SUCCESS;
     }
-    global_data &G = *get_global_data_ptr();
     double dudx, dudy, dvdx, dvdy;
     double dtkedx, dtkedy, domegadx, domegady;
     double alpha = 0.52;
@@ -2399,7 +2401,7 @@ int FV_Cell::add_inviscid_source_vector(int gtl, double omegaz)
 
 
 /// \brief Add the components of the source vector, Q, for viscous flow.
-int FV_Cell::add_viscous_source_vector(void)
+int FV_Cell::add_viscous_source_vector(bool with_k_omega)
 {
     if ( get_axisymmetric_flag() == 1 ) {
 	// For viscous, axisymmetric flow:
@@ -2421,7 +2423,7 @@ int FV_Cell::add_viscous_source_vector(void)
 	Q->momentum.y -= tau_00 * area[0] / volume[0];
     } // end if ( get_axisymmetric_flag() == 1
 
-    if ( get_k_omega_flag() == 1 && !SEPARATE_UPDATE_FOR_K_OMEGA_SOURCE ) {
+    if ( with_k_omega ) {
 	double Q_tke = 0.0; double Q_omega = 0.0;
 	this->k_omega_time_derivatives(&Q_tke, &Q_omega, fs->tke, fs->omega);
 	Q->tke += Q_tke; Q->omega += Q_omega;

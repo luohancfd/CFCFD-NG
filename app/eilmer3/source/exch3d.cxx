@@ -60,6 +60,8 @@ int copy_boundary_data_3D(size_t jb, int type_of_copy, size_t gtl)
  */
 int copy_into_east_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_t gtl)
 {
+    global_data &G = *get_global_data_ptr();
+    bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     size_t i_dest, i_src, j_dest, j_src, k_dest, k_src, j, k;
     FV_Cell *src, *dest;
     int neighbour_faceId, orientation;
@@ -93,11 +95,11 @@ int copy_into_east_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest+1,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src+1,j_src,k_src);
 		dest = bp->get_cell(i_dest+2,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* j loop */
     } else if ( neighbour_faceId == EAST ) {
@@ -125,11 +127,11 @@ int copy_into_east_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest+1,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src-1,j_src,k_src);
 		dest = bp->get_cell(i_dest+2,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* j loop */
     } else if ( neighbour_faceId == NORTH ) {
@@ -157,11 +159,11 @@ int copy_into_east_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest+1,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src-1,k_src);
 		dest = bp->get_cell(i_dest+2,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* j loop */
     } else if ( neighbour_faceId == SOUTH ) {
@@ -189,11 +191,11 @@ int copy_into_east_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest+1,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src+1,k_src);
 		dest = bp->get_cell(i_dest+2,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* j loop */
     } else if ( neighbour_faceId == TOP ) {
@@ -221,11 +223,11 @@ int copy_into_east_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest+1,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src+1,k_src-1);
 		dest = bp->get_cell(i_dest+2,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* j loop */
     } else if ( neighbour_faceId == BOTTOM ) {
@@ -253,11 +255,11 @@ int copy_into_east_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest+1,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src+1,k_src+1);
 		dest = bp->get_cell(i_dest+2,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* j loop */
     } else {
@@ -275,6 +277,8 @@ int copy_into_east_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_
  */
 int copy_into_west_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_t gtl)
 {
+    global_data &G = *get_global_data_ptr();
+    bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     size_t i_dest, i_src, j_dest, j_src, k_dest, k_src, j, k;
     FV_Cell *src, *dest;
     int neighbour_faceId, orientation;
@@ -308,11 +312,11 @@ int copy_into_west_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest-1,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src-1,j_src,k_src);
 		dest = bp->get_cell(i_dest-2,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* j loop */
     } else if ( neighbour_faceId == WEST ) {
@@ -340,11 +344,11 @@ int copy_into_west_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest-1,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src+1,j_src,k_src);
 		dest = bp->get_cell(i_dest-2,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* j loop */
     } else if ( neighbour_faceId == NORTH ) {
@@ -372,11 +376,11 @@ int copy_into_west_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest-1,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src-1,k_src);
 		dest = bp->get_cell(i_dest-2,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* j loop */
     } else if ( neighbour_faceId == SOUTH ) {
@@ -404,11 +408,11 @@ int copy_into_west_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest-1,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src+1,k_src);
 		dest = bp->get_cell(i_dest-2,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* j loop */
     } else if ( neighbour_faceId == TOP ) {
@@ -436,11 +440,11 @@ int copy_into_west_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest-1,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src,k_src-1);
 		dest = bp->get_cell(i_dest-2,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* j loop */
     } else if ( neighbour_faceId == BOTTOM ) {
@@ -468,11 +472,11 @@ int copy_into_west_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest-1,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src,k_src+1);
 		dest = bp->get_cell(i_dest-2,j_dest,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* j loop */
     } else {
@@ -490,6 +494,8 @@ int copy_into_west_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_
  */
 int copy_into_north_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_t gtl)
 {
+    global_data &G = *get_global_data_ptr();
+    bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     size_t i_dest, i_src, j_dest, j_src, k_dest, k_src, i, k;
     FV_Cell *src, *dest;
     int neighbour_faceId, orientation;
@@ -523,11 +529,11 @@ int copy_into_north_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest+1,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src+1,k_src);
 		dest = bp->get_cell(i_dest,j_dest+2,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* i loop */
     } else if ( neighbour_faceId == NORTH ) {
@@ -555,11 +561,11 @@ int copy_into_north_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest+1,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src-1,k_src);
 		dest = bp->get_cell(i_dest,j_dest+2,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* i loop */
     } else if ( neighbour_faceId == EAST ) {
@@ -587,11 +593,11 @@ int copy_into_north_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest+1,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src-1,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest+2,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* i loop */
     } else if ( neighbour_faceId == WEST ) {
@@ -619,11 +625,11 @@ int copy_into_north_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest+1,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src+1,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest+2,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* i loop */
     } else if ( neighbour_faceId == TOP ) {
@@ -651,11 +657,11 @@ int copy_into_north_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest+1,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src,k_src-1);
 		dest = bp->get_cell(i_dest,j_dest+2,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* i loop */
     } else if ( neighbour_faceId == BOTTOM ) {
@@ -683,11 +689,11 @@ int copy_into_north_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest+1,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src,k_src+1);
 		dest = bp->get_cell(i_dest,j_dest+2,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* i loop */
     } else {
@@ -705,6 +711,8 @@ int copy_into_north_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size
  */
 int copy_into_south_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_t gtl)
 {
+    global_data &G = *get_global_data_ptr();
+    bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     size_t i_dest, i_src, j_dest, j_src, k_dest, k_src, i, k;
     FV_Cell *src, *dest;
     int neighbour_faceId, orientation;
@@ -738,11 +746,11 @@ int copy_into_south_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest-1,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src-1,k_src);
 		dest = bp->get_cell(i_dest,j_dest-2,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* i loop */
     } else if ( neighbour_faceId == SOUTH ) {
@@ -770,11 +778,11 @@ int copy_into_south_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest-1,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src+1,k_src);
 		dest = bp->get_cell(i_dest,j_dest-2,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* i loop */
     } else if ( neighbour_faceId == EAST ) {
@@ -802,11 +810,11 @@ int copy_into_south_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest-1,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src-1,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest-2,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* i loop */
     } else if ( neighbour_faceId == WEST ) {
@@ -834,11 +842,11 @@ int copy_into_south_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest-1,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src+1,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest-2,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* i loop */
     } else if ( neighbour_faceId == TOP ) {
@@ -866,11 +874,11 @@ int copy_into_south_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest-1,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src,k_src-1);
 		dest = bp->get_cell(i_dest,j_dest-2,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* i loop */
     } else if ( neighbour_faceId == BOTTOM ) {
@@ -898,11 +906,11 @@ int copy_into_south_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest-1,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src,k_src+1);
 		dest = bp->get_cell(i_dest,j_dest-2,k_dest);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* k loop */
 	}   /* i loop */
     } else {
@@ -920,6 +928,8 @@ int copy_into_south_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size
  */
 int copy_into_top_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_t gtl)
 {
+    global_data &G = *get_global_data_ptr();
+    bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     size_t i_dest, i_src, j_dest, j_src, k_dest, k_src, i, j;
     FV_Cell *src, *dest;
     int neighbour_faceId, orientation;
@@ -953,11 +963,11 @@ int copy_into_top_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_t
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest,k_dest+1);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src,k_src+1);
 		dest = bp->get_cell(i_dest,j_dest,k_dest+2);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* i loop */
 	}   /* j loop */
     } else if ( neighbour_faceId == TOP ) {
@@ -985,11 +995,11 @@ int copy_into_top_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_t
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest,k_dest+1);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src,k_src-1);
 		dest = bp->get_cell(i_dest,j_dest,k_dest+2);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* i loop */
 	}   /* j loop */
     } else if ( neighbour_faceId == NORTH ) {
@@ -1017,11 +1027,11 @@ int copy_into_top_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_t
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest,k_dest+1);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src-1,k_src);
 		dest = bp->get_cell(i_dest,j_dest,k_dest+2);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* i loop */
 	}   /* j loop */
     } else if ( neighbour_faceId == SOUTH ) {
@@ -1049,11 +1059,11 @@ int copy_into_top_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_t
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest,k_dest+1);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src+1,k_src);
 		dest = bp->get_cell(i_dest,j_dest,k_dest+2);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* i loop */
 	}   /* j loop */
     } else if ( neighbour_faceId == EAST ) {
@@ -1081,11 +1091,11 @@ int copy_into_top_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_t
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest,k_dest+1);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src-1,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest,k_dest+2);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* i loop */
 	}   /* j loop */
     } else if ( neighbour_faceId == WEST ) {
@@ -1113,11 +1123,11 @@ int copy_into_top_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_t
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest,k_dest+1);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src+1,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest,k_dest+2);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* i loop */
 	}   /* j loop */
     } else {
@@ -1135,6 +1145,8 @@ int copy_into_top_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_t
  */
 int copy_into_bottom_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, size_t gtl)
 {
+    global_data &G = *get_global_data_ptr();
+    bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     size_t i_dest, i_src, j_dest, j_src, k_dest, k_src, i, j;
     FV_Cell *src, *dest;
     int neighbour_faceId, orientation;
@@ -1168,11 +1180,11 @@ int copy_into_bottom_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, siz
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest,k_dest-1);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src,k_src-1);
 		dest = bp->get_cell(i_dest,j_dest,k_dest-2);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* i loop */
 	}   /* j loop */
     } else if ( neighbour_faceId == BOTTOM ) {
@@ -1200,11 +1212,11 @@ int copy_into_bottom_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, siz
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest,k_dest-1);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src,k_src+1);
 		dest = bp->get_cell(i_dest,j_dest,k_dest-2);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* i loop */
 	}   /* j loop */
     } else if ( neighbour_faceId == NORTH ) {
@@ -1232,11 +1244,11 @@ int copy_into_bottom_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, siz
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest,k_dest-1);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src-1,k_src);
 		dest = bp->get_cell(i_dest,j_dest,k_dest-2);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* i loop */
 	}   /* j loop */
     } else if ( neighbour_faceId == SOUTH ) {
@@ -1264,11 +1276,11 @@ int copy_into_bottom_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, siz
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest,k_dest-1);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src,j_src+1,k_src);
 		dest = bp->get_cell(i_dest,j_dest,k_dest-2);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* i loop */
 	}   /* j loop */
     } else if ( neighbour_faceId == EAST ) {
@@ -1296,11 +1308,11 @@ int copy_into_bottom_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, siz
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest,k_dest-1);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src-1,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest,k_dest-2);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* i loop */
 	}   /* j loop */
     } else if ( neighbour_faceId == WEST ) {
@@ -1328,11 +1340,11 @@ int copy_into_bottom_boundary_3D(Block *bp, Block *bp_src, int type_of_copy, siz
 		src = bp_src->get_cell(i_src,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest,k_dest-1);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		src = bp_src->get_cell(i_src+1,j_src,k_src);
 		dest = bp->get_cell(i_dest,j_dest,k_dest-2);
 		dest->copy_values_from(*src, type_of_copy, gtl);
-		dest->encode_conserved(gtl, 0, bp->omegaz);
+		dest->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    }   /* i loop */
 	}   /* j loop */
     } else {
@@ -1546,6 +1558,8 @@ int copy_from_receive_buffer_3D(Block *bp, int bndry, int type_of_copy,
 int copy_from_receive_buffer_to_north(Block *bp, int type_of_copy,
 				      double *receive_buffer, size_t gtl)
 {
+    global_data &G = *get_global_data_ptr();
+    bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     int bndry, neighbour_faceId, orientation;
     size_t i, k, i_dest, j_dest, k_dest;
     size_t i_src, j_src, k_src, nni_src, nnj_src, nnk_src;
@@ -1590,13 +1604,13 @@ int copy_from_receive_buffer_to_north(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest+1,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest+2,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* i loop */
     } else if ( neighbour_faceId == NORTH ) {
@@ -1629,13 +1643,13 @@ int copy_from_receive_buffer_to_north(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest+1,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest+2,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* i loop */
     } else if ( neighbour_faceId == EAST ) {
@@ -1668,13 +1682,13 @@ int copy_from_receive_buffer_to_north(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest+1,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nnj_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest+2,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* i loop */
     } else if ( neighbour_faceId == WEST ) {
@@ -1707,13 +1721,13 @@ int copy_from_receive_buffer_to_north(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest+1,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nnj_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest+2,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* i loop */
     } else if ( neighbour_faceId == TOP ) {
@@ -1746,13 +1760,13 @@ int copy_from_receive_buffer_to_north(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest+1,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnj_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest+2,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* i loop */
     } else if ( neighbour_faceId == BOTTOM ) {
@@ -1785,13 +1799,13 @@ int copy_from_receive_buffer_to_north(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest+1,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnj_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest+2,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* i loop */
     } else {
@@ -1813,6 +1827,8 @@ int copy_from_receive_buffer_to_north(Block *bp, int type_of_copy,
 int copy_from_receive_buffer_to_south(Block *bp, int type_of_copy,
 				      double *receive_buffer, size_t gtl)
 {
+    global_data &G = *get_global_data_ptr();
+    bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     int bndry, neighbour_faceId, orientation;
     size_t i, k, i_dest, j_dest, k_dest;
     size_t i_src, j_src, k_src, nni_src, nnj_src, nnk_src;
@@ -1857,13 +1873,13 @@ int copy_from_receive_buffer_to_south(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest-1,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest-2,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* i loop */
     } else if ( neighbour_faceId == SOUTH ) {
@@ -1896,13 +1912,13 @@ int copy_from_receive_buffer_to_south(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest-1,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest-2,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* i loop */
     } else if ( neighbour_faceId == EAST ) {
@@ -1935,13 +1951,13 @@ int copy_from_receive_buffer_to_south(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest-1,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nnj_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest-2,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* i loop */
     } else if ( neighbour_faceId == WEST ) {
@@ -1974,13 +1990,13 @@ int copy_from_receive_buffer_to_south(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest-1,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nnj_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest-2,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* i loop */
     } else if ( neighbour_faceId == TOP ) {
@@ -2013,13 +2029,13 @@ int copy_from_receive_buffer_to_south(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest-1,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnj_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest-2,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* i loop */
     } else if ( neighbour_faceId == BOTTOM ) {
@@ -2052,13 +2068,13 @@ int copy_from_receive_buffer_to_south(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest-1,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnj_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest-2,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* i loop */
     } else {
@@ -2081,6 +2097,8 @@ int copy_from_receive_buffer_to_south(Block *bp, int type_of_copy,
 int copy_from_receive_buffer_to_east(Block *bp, int type_of_copy,
 				     double *receive_buffer, size_t gtl)
 {
+    global_data &G = *get_global_data_ptr();
+    bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     int bndry, neighbour_faceId, orientation;
     size_t j, k, i_dest, j_dest, k_dest;
     size_t i_src, j_src, k_src, nni_src, nnj_src, nnk_src;
@@ -2125,13 +2143,13 @@ int copy_from_receive_buffer_to_east(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest+1,j_dest,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nnj_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest+2,j_dest,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* j loop */
     } else if ( neighbour_faceId == EAST ) {
@@ -2164,13 +2182,13 @@ int copy_from_receive_buffer_to_east(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest+1,j_dest,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nnj_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest+2,j_dest,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* j loop */
     } else if ( neighbour_faceId == NORTH ) {
@@ -2203,13 +2221,13 @@ int copy_from_receive_buffer_to_east(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest+1,j_dest,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest+2,j_dest,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* j loop */
     } else if ( neighbour_faceId == SOUTH ) {
@@ -2242,13 +2260,13 @@ int copy_from_receive_buffer_to_east(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest+1,j_dest,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest+2,j_dest,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* j loop */
     } else if ( neighbour_faceId == TOP ) {
@@ -2281,13 +2299,13 @@ int copy_from_receive_buffer_to_east(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest+1,j_dest,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnj_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest+2,j_dest,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* j loop */
     } else if ( neighbour_faceId == BOTTOM ) {
@@ -2320,13 +2338,13 @@ int copy_from_receive_buffer_to_east(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest+1,j_dest,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnj_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest+2,j_dest,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* j loop */
     } else {
@@ -2348,6 +2366,8 @@ int copy_from_receive_buffer_to_east(Block *bp, int type_of_copy,
 int copy_from_receive_buffer_to_west(Block *bp, int type_of_copy,
 				     double *receive_buffer, size_t gtl)
 {
+    global_data &G = *get_global_data_ptr();
+    bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     int bndry, neighbour_faceId, orientation;
     size_t j, k, i_dest, j_dest, k_dest;
     size_t i_src, j_src, k_src, nni_src, nnj_src, nnk_src;
@@ -2392,13 +2412,13 @@ int copy_from_receive_buffer_to_west(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest-1,j_dest,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nnj_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest-2,j_dest,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* j loop */
     } else if ( neighbour_faceId == WEST ) {
@@ -2431,13 +2451,13 @@ int copy_from_receive_buffer_to_west(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest-1,j_dest,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nnj_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest-2,j_dest,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* j loop */
     } else if ( neighbour_faceId == NORTH ) {
@@ -2470,13 +2490,13 @@ int copy_from_receive_buffer_to_west(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest-1,j_dest,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest-2,j_dest,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* j loop */
     } else if ( neighbour_faceId == SOUTH ) {
@@ -2509,13 +2529,13 @@ int copy_from_receive_buffer_to_west(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest-1,j_dest,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest-2,j_dest,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* j loop */
     } else if ( neighbour_faceId == TOP ) {
@@ -2548,13 +2568,13 @@ int copy_from_receive_buffer_to_west(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest-1,j_dest,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnj_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest-2,j_dest,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* j loop */
     } else if ( neighbour_faceId == BOTTOM ) {
@@ -2587,13 +2607,13 @@ int copy_from_receive_buffer_to_west(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest-1,j_dest,k_dest);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnj_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest-2,j_dest,k_dest);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* k loop */
 	} /* j loop */
     } else {
@@ -2615,6 +2635,8 @@ int copy_from_receive_buffer_to_west(Block *bp, int type_of_copy,
 int copy_from_receive_buffer_to_top(Block *bp, int type_of_copy,
 				    double *receive_buffer, size_t gtl)
 {
+    global_data &G = *get_global_data_ptr();
+    bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     int bndry, neighbour_faceId, orientation;
     size_t i, j, i_dest, j_dest, k_dest;
     size_t i_src, j_src, k_src, nni_src, nnj_src, nnk_src;
@@ -2659,13 +2681,13 @@ int copy_from_receive_buffer_to_top(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest,k_dest+1);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnj_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest,k_dest+2);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* j loop */
 	} /* i loop */
     } else if ( neighbour_faceId == TOP ) {
@@ -2698,13 +2720,13 @@ int copy_from_receive_buffer_to_top(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest,k_dest+1);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnj_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest,k_dest+2);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* j loop */
 	} /* i loop */
     } else if ( neighbour_faceId == NORTH ) {
@@ -2737,13 +2759,13 @@ int copy_from_receive_buffer_to_top(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest,k_dest+1);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest,k_dest+2);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* j loop */
 	} /* i loop */
     } else if ( neighbour_faceId == SOUTH ) {
@@ -2776,13 +2798,13 @@ int copy_from_receive_buffer_to_top(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest,k_dest+1);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest,k_dest+2);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* j loop */
 	} /* i loop */
     } else if ( neighbour_faceId == EAST ) {
@@ -2815,13 +2837,13 @@ int copy_from_receive_buffer_to_top(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest,k_dest+1);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nnj_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest,k_dest+2);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* j loop */
 	} /* i loop */
     } else if ( neighbour_faceId == WEST ) {
@@ -2854,13 +2876,13 @@ int copy_from_receive_buffer_to_top(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest,k_dest+1);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nnj_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest,k_dest+2);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* j loop */
 	} /* i loop */
     } else {
@@ -2882,6 +2904,8 @@ int copy_from_receive_buffer_to_top(Block *bp, int type_of_copy,
 int copy_from_receive_buffer_to_bottom(Block *bp, int type_of_copy,
 				       double *receive_buffer, size_t gtl)
 {
+    global_data &G = *get_global_data_ptr();
+    bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     int bndry, neighbour_faceId, orientation;
     size_t i, j, i_dest, j_dest, k_dest;
     size_t i_src, j_src, k_src, nni_src, nnj_src, nnk_src;
@@ -2926,13 +2950,13 @@ int copy_from_receive_buffer_to_bottom(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest,k_dest-1);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnj_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest,k_dest-2);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* j loop */
 	} /* i loop */
     } else if ( neighbour_faceId == BOTTOM ) {
@@ -2965,13 +2989,13 @@ int copy_from_receive_buffer_to_bottom(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest,k_dest-1);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnj_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest,k_dest-2);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* j loop */
 	} /* i loop */
     } else if ( neighbour_faceId == NORTH ) {
@@ -3004,13 +3028,13 @@ int copy_from_receive_buffer_to_bottom(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest,k_dest-1);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest,k_dest-2);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* j loop */
 	} /* i loop */
     } else if ( neighbour_faceId == SOUTH ) {
@@ -3043,13 +3067,13 @@ int copy_from_receive_buffer_to_bottom(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest,k_dest-1);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nni_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest,k_dest-2);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* j loop */
 	} /* i loop */
     } else if ( neighbour_faceId == EAST ) {
@@ -3082,13 +3106,13 @@ int copy_from_receive_buffer_to_bottom(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest,k_dest-1);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nnj_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest,k_dest-2);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* j loop */
 	} /* i loop */
     } else if ( neighbour_faceId == WEST ) {
@@ -3121,13 +3145,13 @@ int copy_from_receive_buffer_to_bottom(Block *bp, int type_of_copy,
 		cell = bp->get_cell(i_dest,j_dest,k_dest-1);
 		bufp = &(receive_buffer[ib * nv]);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 		/* Fill the second line of ghost cells. */
 		ib += (nnk_src * nnj_src);
 		bufp = &(receive_buffer[ib * nv]);
 		cell = bp->get_cell(i_dest,j_dest,k_dest-2);
 		cell->copy_values_from_buffer(bufp, type_of_copy, gtl);
-		cell->encode_conserved(gtl, 0, bp->omegaz);
+		cell->encode_conserved(gtl, 0, bp->omegaz, with_k_omega);
 	    } /* j loop */
 	} /* i loop */
     } else {
