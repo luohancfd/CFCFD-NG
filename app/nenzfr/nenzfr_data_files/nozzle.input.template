@@ -610,7 +610,7 @@ gdata.cfl = 0.4
 gdata.cfl_count = 5
 gdata.dt_plot = 1.0e-3 #0.04e-3
 gdata.dt_history = 10.0e-6
-gdata.turbulence_flag = 1
+# gdata.turbulence_flag = 1 # No longer used, from 2013-04-23
 gdata.turbulence_model = 'k_omega'
 
 sketch.xaxis(0.0, 1.2, 0.1, 0.)

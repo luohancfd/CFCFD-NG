@@ -56,8 +56,7 @@ blk = SuperBlock2D(make_patch(north, east, south, west),
 
 
 # Do a little more setting of global data.
-gdata.turbulence_flag = 1 # to activate our turbulence model
-gdata.turbulence_model = "baldwin_lomax" # not the default k_omega
+gdata.turbulence_model = "baldwin_lomax"
 gdata.title = job_title
 gdata.viscous_flag = 1
 gdata.flux_calc = ADAPTIVE

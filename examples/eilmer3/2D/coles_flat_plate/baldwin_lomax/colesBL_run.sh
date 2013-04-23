@@ -1,3 +1,6 @@
 # colesBL_run.sh
-e3prep.py --job=colesBL --do-svg
-e3shared.exe --job=colesBL --run
+date
+e3prep.py --job=colesBL --do-svg > LOGFILE.prep
+date
+mpirun -np 4 e3mpi.exe --job=colesBL --run > LOGFILE.run
+date
