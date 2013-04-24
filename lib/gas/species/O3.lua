@@ -8,6 +8,8 @@ O3.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermo.inp'
 }
+O3.atomic_constituents = {O=3}
+O3.charge = 0
 O3.gamma = {
    value = 1.267,
    units = 'non-dimensional',

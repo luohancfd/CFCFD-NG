@@ -8,6 +8,8 @@ C2H6.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
+C2H6.atomic_constituents = {C=2,H=6}
+C2H6.charge = 0
 C2H6.gamma = {
    value = 1.1872e+00,
    units = 'non-dimensional',

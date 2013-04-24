@@ -8,6 +8,8 @@ NNH.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
+NNH.atomic_constituents = {N=2,H=1}
+NNH.charge = 0
 NNH.gamma = {
    value = 1.3152e00,
    units = 'non-dimensional',

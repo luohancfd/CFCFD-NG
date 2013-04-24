@@ -8,6 +8,8 @@ HCCOH.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
+HCCOH.atomic_constituents = {C=2,H=2,O=1}
+HCCOH.charge = 0
 HCCOH.gamma = {
    value = 1.1656e00,
    units = 'non-dimensional',

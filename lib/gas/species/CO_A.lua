@@ -10,6 +10,8 @@ CO_A.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
+CO_A.atomic_constituents = {C=1,O=1}
+CO_A.charge = 0
 CO_A.CEA_coeffs = {
    { T_low  = 200.0,
      T_high = 1000.0,

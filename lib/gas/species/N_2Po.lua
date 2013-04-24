@@ -10,6 +10,8 @@ N_2Po.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermo.inp'
 }
+N_2Po.atomic_constituents = {N=1}
+N_2Po.charge = 0
 N_2Po.CEA_coeffs = {
    { T_low  = 200.0,
      T_high = 1000.0,

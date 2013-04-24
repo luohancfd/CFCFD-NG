@@ -10,6 +10,8 @@ HCN.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermo.inp'
 }
+HCN.atomic_constituents = {C=1,H=1,N=1}
+HCN.charge = 0
 HCN.gamma = {
    value = 1.301,
    units = 'non-dimensional',

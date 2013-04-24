@@ -8,6 +8,8 @@ NH.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermo.inp'
 }
+NH.atomic_constituents = {N=1,H=1}
+NH.charge = 0
 NH.gamma = {
    value = 1.398,
    units = 'non-dimensional',

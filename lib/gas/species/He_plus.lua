@@ -8,6 +8,8 @@ He_plus.M = {
    description = 'molecular mass',
    reference = 'cea2::thermo.inp'
 }
+He_plus.atomic_constituents = {He=1}
+He_plus.charge = 1
 He_plus.gamma = {
    value = 5/3,
    units = 'non-dimensional',

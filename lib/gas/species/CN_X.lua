@@ -10,6 +10,8 @@ CN_X.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermo.inp'
 }
+CN_X.atomic_constituents = {C=1,N=1}
+CN_X.charge = 0
 CN_X.CEA_coeffs = {
    { T_low  = 200.0,
      T_high = 1000.0,

@@ -10,6 +10,8 @@ O_1S.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermO_1S.inp'
 }
+O_1S.atomic_constituents = {O=1}
+O_1S.charge = 0
 O_1S.CEA_coeffs = {
    { T_low  = 200.0,
      T_high = 1000.0,

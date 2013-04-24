@@ -8,6 +8,8 @@ NCO.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
+NCO.atomic_constituents = {C=1,N=1,O=1}
+NCO.charge = 0
 NCO.gamma = {
    value = 1.2609e00,
    units = 'non-dimensional',

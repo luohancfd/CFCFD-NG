@@ -10,6 +10,8 @@ O_3P.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermO_3P.inp'
 }
+O_3P.atomic_constituents = {O=1}
+O_3P.charge = 0
 O_3P.CEA_coeffs = {
    { T_low  = 200.0,
      T_high = 1000.0,

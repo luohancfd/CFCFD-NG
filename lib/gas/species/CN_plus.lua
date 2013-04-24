@@ -8,6 +8,8 @@ CN_plus.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermo.inp'
 }
+CN_plus.atomic_constituents = {C=1,N=1}
+CN_plus.charge = 1
 CN_plus.gamma = {
    value = 1.399,
    units = 'non-dimensional',

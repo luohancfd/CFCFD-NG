@@ -8,6 +8,8 @@ CH3O.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
+CH3O.atomic_constituents = {C=1,H=3,O=1}
+CH3O.charge = 0
 CH3O.gamma = {
    value = 1.2802e+00,
    units = 'non-dimensional',

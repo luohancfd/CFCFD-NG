@@ -9,6 +9,8 @@ Ne.M = {
    description = 'molecular mass',
    reference = 'cea2::thermo.inp'
 }
+Ne.atomic_constituents = {Ne=1}
+Ne.charge = 0
 Ne.gamma = {
    value = 5/3,
    units = 'non-dimensional',

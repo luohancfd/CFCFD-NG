@@ -8,6 +8,8 @@ C3H7.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
+C3H7.atomic_constituents = {C=3,H=7}
+C3H7.charge = 0
 C3H7.gamma = {
    value = 1.1314e00,
    units = 'non-dimensional',

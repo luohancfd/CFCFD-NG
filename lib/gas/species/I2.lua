@@ -10,15 +10,14 @@ I2.M = {
    description = 'molecular mass',
    reference = 'molecular weight from CEA2'
 }
+I2.atomic_constituents = {I=2}
+I2.charge = 0
 I2.gamma = { 
    value = 1.4,
    units = 'non-dimensional',
    description = '(ideal) ratio of specific heats at room temperature',
    reference = 'diatomic molecule at low temperatures, gamma = 7/5'
 }
-
-I2.atomic_constituents = {I=2}
-I2.charge = 0
 
 I2.e_zero = {
    value = 245933.0, 

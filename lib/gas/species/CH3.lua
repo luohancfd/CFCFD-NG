@@ -8,6 +8,8 @@ CH3.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermo.inp'
 }
+CH3.atomic_constituents = {C=1,H=3}
+CH3.charge = 0
 CH3.gamma = {
    value = 1.276,
    units = 'non-dimensional',

@@ -8,7 +8,7 @@ C2H4.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
-C2H4.atomic_constituents = {C=2, H=4}
+C2H4.atomic_constituents = {C=2,H=4}
 C2H4.charge = 0
 C2H4.gamma = {
    value = 1.2393e+00,

@@ -8,6 +8,8 @@ CH2OH.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
+CH2OH.atomic_constituents = {C=1,H=3,O=1}
+CH2OH.charge = 0
 CH2OH.gamma = {
    value = 1.2070e+00,
    units = 'non-dimensional',

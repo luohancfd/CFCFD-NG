@@ -8,6 +8,8 @@ C3.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
+C3.atomic_constituents = {C=3}
+C3.charge = 0
 C3.gamma = { 
    value = 1.2469,
    units = 'non-dimensional',

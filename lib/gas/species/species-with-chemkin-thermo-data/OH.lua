@@ -8,6 +8,8 @@ OH.M = {
    description = 'molecular mass',
    reference = 'molecular weight from CEA2'
 }
+OH.atomic_constituents = {O=1,H=1}
+OH.charge = 0
 OH.gamma = {
    value = 1.3856e+00,
    units = 'non-dimensional',

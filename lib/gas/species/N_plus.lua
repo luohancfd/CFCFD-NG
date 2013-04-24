@@ -11,6 +11,7 @@ N_plus.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermo.inp'
 }
+N_plus.atomic_constituents = {N=1}
 N_plus.charge = 1
 N_plus.gamma = {
    value = 1.641, 

@@ -8,6 +8,8 @@ NH3.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
+NH3.atomic_constituents = {N=1,H=3}
+NH3.charge = 0
 NH3.gamma = {
    value = 1.3036e00,
    units = 'non-dimensional',

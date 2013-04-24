@@ -10,6 +10,8 @@ N_4So.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermo.inp'
 }
+N_4So.atomic_constituents = {N=1}
+N_4So.charge = 0
 N_4So.CEA_coeffs = {
    { T_low  = 200.0,
      T_high = 1000.0,

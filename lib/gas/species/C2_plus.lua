@@ -8,6 +8,8 @@ C2_plus.M = {
    description = 'molecular mass',
    reference = 'molecular weight from CEA2'
 }
+C2_plus.atomic_constituents = {C=2}
+C2_plus.charge = 1
 C2_plus.CEA_coeffs = {
   { T_low  = 200.0,
     T_high = 1000.0,

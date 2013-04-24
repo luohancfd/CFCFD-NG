@@ -1,5 +1,6 @@
 -- Author: Peter Blyton
 -- Date: 18-Apr-2012
+-- also known as 1,1,1,2-Tetrafluoroethane CH2FCF3
 
 R134a = {}
 R134a.M = {
@@ -8,6 +9,8 @@ R134a.M = {
    description = 'molecular mass',
    reference = 'McLinden, MO et al (1989). Measurement and Formulation of the Thermodynamic Properties of Refrigerants 134a and 123',
 }
+R134a.atomic_constituents = {C=2,H=2,F=4}
+R134a.charge = 0
 R134a.T_c = {
    value = 374.179,
    units = 'K',

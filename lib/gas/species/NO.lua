@@ -8,7 +8,7 @@ NO.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermo.inp'
 }
-NO.atomic_constituents = {N=1, O=1}
+NO.atomic_constituents = {N=1,O=1}
 NO.charge = 0
 NO.gamma = {
    value = 1.386,

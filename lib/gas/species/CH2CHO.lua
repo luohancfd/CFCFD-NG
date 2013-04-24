@@ -8,6 +8,8 @@ CH2CHO.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
+CH2CHO.atomic_constituents = {C=2,H=3,O=1}
+CH2CHO.charge = 0
 CH2CHO.gamma = {
    value = 1.1776e00,
    units = 'non-dimensional',

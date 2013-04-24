@@ -8,6 +8,8 @@ NH2.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
+NH2.atomic_constituents = {N=1,H=2}
+NH2.charge = 0
 NH2.gamma = {
    value = 1.3254e00,
    units = 'non-dimensional',

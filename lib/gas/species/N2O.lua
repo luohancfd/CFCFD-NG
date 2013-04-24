@@ -8,6 +8,8 @@ N2O.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
+N2O.atomic_constituents = {N=2,O=1}
+N2O.charge = 0
 N2O.gamma = {
    value = 1.2735e00,
    units = 'non-dimensional',

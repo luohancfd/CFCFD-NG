@@ -8,6 +8,8 @@ CO_plus.M = {
    description = 'molecular mass',
    reference = 'cea2::thermo.inp'
 }
+CO_plus.atomic_constituents = {C=1,O=1}
+CO_plus.charge = 1
 CO_plus.gamma = {
    value = 1.4,
    units = 'non-dimensional',

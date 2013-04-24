@@ -8,6 +8,8 @@ HCO.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermo.inp',
 }
+HCO.atomic_constituents = {C=1,H=1,O=1}
+HCO.charge = 0
 HCO.gamma = {
    value = 1.316,
    units = 'non-dimensional',

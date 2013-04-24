@@ -8,6 +8,8 @@ H2O.M = {
    description = 'molecular mass',
    reference = 'molecular weight from CEA2'
 }
+H2O.atomic_constituents = {H=2,O=1}
+H2O.charge = 0
 H2O.gamma = {
    value = 1.3289e+00,
    units = 'non-dimensional',

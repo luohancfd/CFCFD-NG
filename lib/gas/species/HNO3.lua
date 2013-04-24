@@ -8,6 +8,8 @@ HNO3.M = {
    description = 'molecular mass',
    reference = 'CEA2::thermo.inp'
 }
+HNO3.atomic_constituents = {H=1,N=1,O=3}
+HNO3.charge = 0
 HNO3.gamma = {
    value = 1.181,
    units = 'non-dimensional',

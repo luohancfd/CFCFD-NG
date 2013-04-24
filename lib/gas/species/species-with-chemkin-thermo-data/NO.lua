@@ -8,6 +8,8 @@ NO.M = {
    description = 'molecular mass',
    reference = 'molecular weight from CEA2'
 }
+NO.atomic_constituents = {N=1,O=1}
+NO.charge = 0
 NO.gamma = {
    value = 1.3859e+00,
    units = 'non-dimensional',

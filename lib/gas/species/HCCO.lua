@@ -8,6 +8,8 @@ HCCO.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
+HCCO.atomic_constituents = {C=2,H=1,O=1}
+HCCO.charge = 0
 HCCO.gamma = {
    value = 1.2067e00,
    units = 'non-dimensional',

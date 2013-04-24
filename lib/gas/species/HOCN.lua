@@ -8,6 +8,8 @@ HOCN.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
+HOCN.atomic_constituents = {C=1,H=1,N=1,O=1}
+HOCN.charge = 0
 HOCN.gamma = {
    value = 1.2185e00,
    units = 'non-dimensional',

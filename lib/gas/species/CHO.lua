@@ -8,6 +8,8 @@ CHO.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
+CHO.atomic_constituents = {C=1,H=1,O=1}
+CHO.charge = 0
 CHO.gamma = {
    value = 1.3161e+00,
    units = 'non-dimensional',

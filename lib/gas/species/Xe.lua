@@ -8,6 +8,8 @@ Xe.M = {
    description = 'molecular mass',
    reference = 'molecular weight from CEA2::thermo.inp'
 }
+Xe.atomic_constituents = {Xe=1}
+Xe.charge = 0
 Xe.gamma = {
    value = 5/3,
    units = 'non-dimensional',

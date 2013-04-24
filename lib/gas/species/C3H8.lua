@@ -8,6 +8,8 @@ C3H8.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
+C3H8.atomic_constituents = {C=3,H=8}
+C3H8.charge = 0
 C3H8.gamma = {
    value = 1.1267e00,
    units = 'non-dimensional',

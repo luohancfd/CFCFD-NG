@@ -8,6 +8,8 @@ H2CN.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
+H2CN.atomic_constituents = {C=1,H=2,N=1}
+H2CN.charge = 0
 H2CN.gamma = {
    value = 1.2769e00,
    units = 'non-dimensional',

@@ -10,6 +10,8 @@ C_3P.M = {
    description = 'molecular mass',
    reference = 'molecular weight from CEA2'
 }
+C_3P.atomic_constituents = {C=1}
+C_3P.charge = 0
 C_3P.CEA_coeffs = {
    { T_low  = 200.0,
      T_high = 1000.0,

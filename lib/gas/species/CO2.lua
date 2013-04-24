@@ -8,6 +8,8 @@ CO2.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
+CO2.atomic_constituents = {C=1,O=2}
+CO2.charge = 0
 CO2.gamma = {
    value = 1.2877e+00,
    units = 'non-dimensional',

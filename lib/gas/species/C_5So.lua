@@ -10,6 +10,8 @@ C_5So.M = {
    description = 'molecular mass',
    reference = 'molecular weight from CEA2'
 }
+C_5So.atomic_constituents = {C=1}
+C_5So.charge = 0
 C_5So.CEA_coeffs = {
    { T_low  = 200.0,
      T_high = 1000.0,

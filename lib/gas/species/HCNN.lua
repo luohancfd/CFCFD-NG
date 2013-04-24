@@ -8,6 +8,8 @@ HCNN.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
+HCNN.atomic_constituents = {C=1,H=1,N=2}
+HCNN.charge = 0
 HCNN.gamma = {
    value = 1.2032e00,
    units = 'non-dimensional',

@@ -8,6 +8,8 @@ HO2.M = {
    description = 'molecular mass',
    reference = 'molecular weight from CEA2'
 }
+HO2.atomic_constituents = {H=1,O=2}
+HO2.charge = 0
 HO2.gamma = {
    value = 1.3124e+00,
    units = 'non-dimensional',

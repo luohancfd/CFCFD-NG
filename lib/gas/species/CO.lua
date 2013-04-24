@@ -8,6 +8,8 @@ CO.M = {
    description = 'molecular mass',
    reference = 'Periodic table'
 }
+CO.atomic_constituents = {C=1,O=1}
+CO.charge = 0
 CO.gamma = {
    value = 1.3992e+00,
    units = 'non-dimensional',
