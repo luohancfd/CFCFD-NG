@@ -30,6 +30,7 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <numeric>
 #include "../../../lib/util/source/useful.h"
 #include "cell.hh"
 #include "flux_calc.hh"
@@ -81,7 +82,7 @@ int ausmdv(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
     uL = Lft.vel.x;
     vL = Lft.vel.y;
     wL = Lft.vel.z;
-    eL = Lft.gas->e[0];
+    eL = accumulate(Lft.gas->e.begin(), Lft.gas->e.end(), 0.0);
     aL = Lft.gas->a;
     keL = 0.5 * (uL * uL + vL * vL + wL * wL);
     HL = eL + pLrL + keL;
@@ -92,7 +93,7 @@ int ausmdv(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
     uR = Rght.vel.x;
     vR = Rght.vel.y;
     wR = Rght.vel.z;
-    eR = Rght.gas->e[0];
+    eR = accumulate(Rght.gas->e.begin(), Rght.gas->e.end(), 0.0);
     aR = Rght.gas->a;
     keR = 0.5 * (uR * uR + vR * vR + wR * wR);
     HR = eR + pRrR + keR;

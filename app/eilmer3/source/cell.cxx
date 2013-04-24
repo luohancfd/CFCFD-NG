@@ -1234,8 +1234,13 @@ int FV_Cell::decode_conserved(size_t gtl, size_t ftl, double omegaz, bool with_k
     }
     // We can recompute e[0] from total energy and component
     // modes NOT in translation.
-    double e_tmp = accumulate(fs->gas->e.begin()+1, fs->gas->e.end(), 0.0);
-    fs->gas->e[0] = e - e_tmp;
+    if ( nmodes > 1 ) {
+	double e_tmp = accumulate(fs->gas->e.begin()+1, fs->gas->e.end(), 0.0);
+	fs->gas->e[0] = e - e_tmp;
+    }
+    else {
+	fs->gas->e[0] = e;
+    }
     // Fill out the other variables; P, T, a and
     // check the species mass fractions.
     // Update the viscous transport coefficients.
@@ -1420,7 +1425,8 @@ int FV_Cell::time_derivatives(size_t gtl, size_t ftl, size_t dimensions, bool wi
 	dUdt[ftl]->massf[isp] = vol_inv * integral + Q->massf[isp];
     }
     // Individual energies.
-    // NOTE: energies[0] is never used so skipping (DFP 10/12/09)
+    // We will not put anything meaningful in imode = 0 (RJG & DFP : 22-Apr-2013)
+    // Instead we get this from the conservation of total energy
     for ( size_t imode = 1; imode < nmodes; ++imode ) {
 	integral =
 	    -IFe->F->energies[imode] * IFe->area[gtl]
@@ -1493,7 +1499,8 @@ int FV_Cell::stage_1_update_for_flow_on_fixed_grid(double dt, bool force_euler, 
     for ( size_t isp = 0; isp < U1.massf.size(); ++isp ) {
 	U1.massf[isp] = U0.massf[isp] + dt * gamma_1 * dUdt0.massf[isp];
     }
-    // NOTE: energies[0] is never used so skipping (DFP 10/12/09)
+    // We will not put anything meaningful in imode = 0 (RJG & DFP : 22-Apr-2013)
+    // Instead we get this from the conservation of total energy
     for ( size_t imode = 1; imode < U1.energies.size(); ++imode ) {
 	U1.energies[imode] = U0.energies[imode] + dt * gamma_1 * dUdt0.energies[imode];
     }
@@ -1544,7 +1551,9 @@ int FV_Cell::stage_2_update_for_flow_on_fixed_grid(double dt, bool with_k_omega)
     for ( size_t isp = 0; isp < U2.massf.size(); ++isp ) {
 	U2.massf[isp] = U_old->massf[isp] + dt * (gamma_1 * dUdt0.massf[isp] + gamma_2 * dUdt1.massf[isp]);
     }
-    for ( size_t imode = 0; imode < U2.energies.size(); ++imode ) {
+    // We will not put anything meaningful in imode = 0 (RJG & DFP : 22-Apr-2013)
+    // Instead we get this from the conservation of total energy
+    for ( size_t imode = 1; imode < U2.energies.size(); ++imode ) {
 	U2.energies[imode] = U_old->energies[imode] + 
 	    dt * (gamma_1 * dUdt0.energies[imode] + gamma_2 * dUdt1.energies[imode]);
     }
@@ -1600,7 +1609,9 @@ int FV_Cell::stage_3_update_for_flow_on_fixed_grid(double dt, bool with_k_omega)
 	U3.massf[isp] = U_old->massf[isp] +
 	    dt * (gamma_1*dUdt0.massf[isp] + gamma_2*dUdt1.massf[isp] + gamma_3*dUdt2.massf[isp]);
     }
-    for ( size_t imode = 0; imode < U3.energies.size(); ++imode ) {
+    // We will not put anything meaningful in imode = 0 (RJG & DFP : 22-Apr-2013)
+    // Instead we get this from the conservation of total energy
+    for ( size_t imode = 1; imode < U3.energies.size(); ++imode ) {
 	U3.energies[imode] = U_old->energies[imode] +
 	    dt * (gamma_1*dUdt0.energies[imode] + gamma_2*dUdt1.energies[imode] +
 		  gamma_3*dUdt2.energies[imode]);
@@ -1640,7 +1651,8 @@ int FV_Cell::stage_1_update_for_flow_on_moving_grid(double dt, bool with_k_omega
     for ( size_t isp = 0; isp < U1.massf.size(); ++isp ) {
 	U1.massf[isp] = vr * (U0.massf[isp] + dt * gamma_1 * dUdt0.massf[isp]);
     }
-    // NOTE: energies[0] is never used so skipping (DFP 10/12/09)
+    // We will not put anything meaningful in imode = 0 (RJG & DFP : 22-Apr-2013)
+    // Instead we get this from the conservation of total energy
     for ( size_t imode = 1; imode < U1.energies.size(); ++imode ) {
 	U1.energies[imode] = vr * (U0.energies[imode] + dt * gamma_1 * dUdt0.energies[imode]);
     }
@@ -1689,7 +1701,9 @@ int FV_Cell::stage_2_update_for_flow_on_moving_grid(double dt, bool with_k_omega
 	U2.massf[isp] = vol_inv * (v_old * U0.massf[isp] +
 				   dt * (gamma_1 * dUdt0.massf[isp] + gamma_2 * dUdt1.massf[isp]));
     }
-    for ( size_t imode = 0; imode < U2.energies.size(); ++imode ) {
+    // We will not put anything meaningful in imode = 0 (RJG & DFP : 22-Apr-2013)
+    // Instead we get this from the conservation of total energy
+    for ( size_t imode = 1; imode < U2.energies.size(); ++imode ) {
 	U2.energies[imode] = vol_inv * (v_old * U0.energies[imode] +
 					dt * (gamma_1 * dUdt0.energies[imode] + gamma_2 * dUdt1.energies[imode]));
     }

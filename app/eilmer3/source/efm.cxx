@@ -17,6 +17,7 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <numeric>
 #include "../../../lib/util/source/useful.h"
 #include "cell.hh"
 #include "flux_calc.hh"
@@ -64,7 +65,7 @@ int efmflx(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
     double hvsqL, hvsqR;
     double wL, wR, dL, dR;
     double rhoL, rhoR, presL, presR, tR, tL;
-    double hL, hR;
+    double eL, eR, hL, hR;
     double snL, snR, exL, exR, efL, efR;
     double fmsL, fmsR;
     double cv, cp, con, gam, Rgas;
@@ -88,7 +89,8 @@ int efmflx(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
      */
     rhoL = Lft.gas->rho;
     presL = Lft.gas->p;
-    hL = Lft.gas->e[0] + presL/rhoL;
+    eL = accumulate(Lft.gas->e.begin(), Lft.gas->e.end(), 0.0);
+    hL = eL + presL/rhoL;
     tL = Lft.gas->T[0];
     vnL = Lft.vel.x;
     vpL = Lft.vel.y;
@@ -99,7 +101,8 @@ int efmflx(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
      */
     rhoR = Rght.gas->rho;
     presR = Rght.gas->p;
-    hR = Rght.gas->e[0] + presR/rhoR;
+    eR = accumulate(Rght.gas->e.begin(), Rght.gas->e.end(), 0.0);
+    hR = eR + presR/rhoR;
     tR = Rght.gas->T[0];
     vnR = Rght.vel.x;
     vpR = Rght.vel.y;

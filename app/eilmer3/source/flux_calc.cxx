@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <numeric>
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/geometry2/source/geom.hh"
 #include "../../../lib/gas/models/gas_data.hh"
@@ -168,7 +169,7 @@ int set_flux_vector_in_local_frame(ConservedQuantities &F, const FlowState &fs)
     double vt1 = fs.vel.y;
     double vt2 = fs.vel.z;
     double p = fs.gas->p;
-    double e = fs.gas->e[0];
+    double e = accumulate(fs.gas->e.begin(), fs.gas->e.end(), 0.0);
     double ke = 0.5 * (un*un + vt1*vt1 + vt2*vt2); // Kinetic energy per unit volume.
     
     // Mass flux (mass / unit time / unit area)
