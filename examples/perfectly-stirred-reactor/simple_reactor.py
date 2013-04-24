@@ -52,7 +52,7 @@ def const_pT(dt, args):
     Q, g, r, dt_chem, ignFlag, p_args = args
     
     #perform chemical substeps
-    dt_chem = r.update_state_py(Q, dt, dt_chem)
+    dt_chem = r.update_state_py(Q, dt, dt_chem, g)
 
     # update state
     g.eval_thermo_state_pT(Q)
@@ -65,7 +65,7 @@ def const_v_fixed_mass(dt, args):
     Q, g, r, dt_chem, ignFlag, p_args = args
     
     # update assuming const volume
-    dt_chem = r.update_state_py(Q, dt, dt_chem)
+    dt_chem = r.update_state_py(Q, dt, dt_chem, g)
     
     # update state
     g.eval_thermo_state_rhoe(Q)
@@ -111,7 +111,7 @@ def const_p_fixed_mass(dt, args):
     gamma = g.gamma(Q)
     
     # update assuming const volume
-    dt_chem = r.update_state_py(Q, dt, dt_chem)
+    dt_chem = r.update_state_py(Q, dt, dt_chem, g)
     g.eval_thermo_state_rhoe(Q)
 
     # expand isentropically
