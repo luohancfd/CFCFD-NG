@@ -86,7 +86,7 @@ int ShockFittingInBC::apply_inviscid( double t )
 	cout << "ShockFittingInBC not implemented for " 
 	     << get_face_name(which_boundary) << " boundary." << endl;
         cout << "    Please use West boundary." << endl;
-	throw runtime_error("ShockFittingInBC not implemented for this boundary.");
+	throw std::runtime_error("ShockFittingInBC not implemented for this boundary.");
     } // end switch
 
     return SUCCESS;

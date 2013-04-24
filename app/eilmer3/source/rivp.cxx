@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <stdexcept>
 #include "../../../lib/util/source/useful.h"
 #include "flux_calc.hh"
 #include "kernel.hh"
@@ -147,10 +148,13 @@
  */
 int rivp(FlowState &QL, FlowState &QR, FlowState &QIF, double &WSL, double &WSR)
 {
+    // FIX-ME  Andrew, why is the following commented out?  Is it not true?
     // if ( get_shock_fitting_flag() ) {
     // 	cerr << "Error, we have not implemented RIVP with shock fitting. Please use AUSMDV." << endl;
     // 	exit(NOT_IMPLEMENTED_ERROR);
     // }
+    throw std::runtime_error("rivp flux calculator needs maintenance!"); // 2013-04-24
+
     Gas_model *gmodel = get_gas_model_ptr();
     int statusf;
     FlowState QLstar(gmodel);

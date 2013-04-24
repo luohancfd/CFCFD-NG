@@ -27,6 +27,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <vector>
+#include <stdexcept>
 #include "block.hh"
 #include "kernel.hh"
 #include "bc_defs.hh"
@@ -66,7 +67,7 @@ int estimate_turbulence_viscosity(global_data *gdp, Block *bdp)
 	for ( FV_Cell *cp: bdp->active_cells ) cp->turbulence_viscosity_k_omega();
 	break;
     default:
-	throw runtime_error("Turbulence model requested but not available.");
+	throw std::runtime_error("Turbulence model requested but not available.");
     }
     for ( FV_Cell *cp: bdp->active_cells ) {
 	cp->turbulence_viscosity_factor(gdp->transient_mu_t_factor);

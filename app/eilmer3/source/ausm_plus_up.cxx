@@ -43,6 +43,7 @@ const double SIGMA = 1.0;
 /** \brief Compute the fluxes across an interface. */
 int ausm_plus_up(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
 {
+    // FIX-ME  Andrew, why is the following commented out?  Is it not true?
     // if ( get_shock_fitting_flag() ) {
     // 	cerr << "Error, we have not implemented AUSM_PLUS_UP with shock fitting. Please use AUSMDV." << endl;
     // 	exit(NOT_IMPLEMENTED_ERROR);
@@ -84,7 +85,7 @@ int ausm_plus_up(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
     vL = Lft.vel.y;
     wL = Lft.vel.z;
     aL = Lft.gas->a;
-    eL = eL = accumulate(Lft.gas->e.begin(), Lft.gas->e.end(), 0.0);
+    eL = accumulate(Lft.gas->e.begin(), Lft.gas->e.end(), 0.0);
     keL = 0.5 * (uL * uL + vL * vL + wL * wL);
     HL = eL + pL/rL + keL;
 

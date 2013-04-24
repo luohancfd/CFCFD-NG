@@ -14,12 +14,11 @@
 #include <string>
 #include <sstream>
 #include <numeric>
-
+#include <stdexcept>
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/gas/models/gas_data.hh"
 #include "../../../lib/gas/models/gas-model.hh"
 #include "../../../lib/geometry2/source/geom.hh"
-// #include "one_d_interp_scalar.hh"
 #include "cell.hh"
 #include "kernel.hh"
 #include "flux_calc.hh"
@@ -908,8 +907,8 @@ int FV_Cell::replace_flow_data_with_average(std::vector<FV_Cell *> src)
     size_t ncell = src.size(); 
     size_t ii = 0;
     if ( ncell < 1 ) {
-	throw runtime_error("FV_Cell::replace_flow_data_with_average(): "
-			    "The list of cells was empty.");
+	throw std::runtime_error("FV_Cell::replace_flow_data_with_average(): "
+				 "The list of cells was empty.");
     }
 
     /* First, replace the crappy data with that from the first cell. */
@@ -1459,8 +1458,8 @@ int FV_Cell::stage_1_update_for_flow_on_fixed_grid(double dt, bool force_euler, 
 	case TVD_RK3_UPDATE: gamma_1 = 1.0; break;
 	case DENMAN_RK3_UPDATE: gamma_1 = 8.0/15.0; break;
 	default:
-	    throw runtime_error("FV_Cell::stage_1_update_for_flow_on_fixed_grid(): "
-				"should not be here!");
+	    throw std::runtime_error("FV_Cell::stage_1_update_for_flow_on_fixed_grid(): "
+				     "should not be here!");
 	}
     }
     U1.mass = U0.mass + dt * gamma_1 * dUdt0.mass;
@@ -1524,8 +1523,8 @@ int FV_Cell::stage_2_update_for_flow_on_fixed_grid(double dt, bool with_k_omega)
     case TVD_RK3_UPDATE: gamma_1 = 0.25; gamma_2 = 0.25; break;
     case DENMAN_RK3_UPDATE: gamma_1 = -17.0/60.0; gamma_2 = 5.0/12.0; break;
     default:
-	throw runtime_error("FV_Cell::stage_2_update_for_flow_on_fixed_grid(): "
-			    "should not be here!");
+	throw std::runtime_error("FV_Cell::stage_2_update_for_flow_on_fixed_grid(): "
+				 "should not be here!");
     }
     U2.mass = U_old->mass + dt * (gamma_1 * dUdt0.mass + gamma_2 * dUdt1.mass);
     U2.momentum.x = U_old->momentum.x + dt * (gamma_1 * dUdt0.momentum.x + gamma_2 * dUdt1.momentum.x);
@@ -1578,8 +1577,8 @@ int FV_Cell::stage_3_update_for_flow_on_fixed_grid(double dt, bool with_k_omega)
     // FIX-ME: Really don't think that we have Andrew Denman's scheme ported correctly.
     case DENMAN_RK3_UPDATE: gamma_1 = 0.0; gamma_2 = -5.0/12.0; gamma_3 = 3.0/4.0; break;
     default:
-	throw runtime_error("FV_Cell::stage_3_update_for_flow_on_fixed_grid(): "
-			    "should not be here!");
+	throw std::runtime_error("FV_Cell::stage_3_update_for_flow_on_fixed_grid(): "
+				 "should not be here!");
     }
     U3.mass = U_old->mass + dt * (gamma_1*dUdt0.mass + gamma_2*dUdt1.mass + gamma_3*dUdt2.mass);
     U3.momentum.x = U_old->momentum.x +

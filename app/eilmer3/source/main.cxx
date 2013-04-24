@@ -1451,8 +1451,8 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
     case DENMAN_RK3_UPDATE: c2 = 1.0; c3 = 0.5; break; 
     // FIX-ME: Check Andrew Denman's coefficients.
     default: 
-	throw runtime_error("gasdynamic_inviscid_increment_with_fixed_grid(): "
-			    "unknown update scheme.");
+	throw std::runtime_error("gasdynamic_inviscid_increment_with_fixed_grid(): "
+				 "unknown update scheme.");
     }
     int attempt_number = 0;
     do {
@@ -1630,8 +1630,8 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
     case CLASSIC_RK3_UPDATE:
     case DENMAN_RK3_UPDATE: end_indx = 3; break;
     default:
-	throw runtime_error("gasdynamic_inviscid_increment_with_fixed_grid(): "
-			    "unknown update scheme.");
+	throw std::runtime_error("gasdynamic_inviscid_increment_with_fixed_grid(): "
+				 "unknown update scheme.");
     }
     for ( Block *bdp : G.my_blocks ) {
 	if ( bdp->active != 1 ) continue;

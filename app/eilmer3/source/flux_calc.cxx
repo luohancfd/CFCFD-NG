@@ -117,7 +117,7 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
         hlle(Lft, Rght, IFace);
 	break;
     default:
-        throw runtime_error("Invalid flux calculator.");
+        throw std::runtime_error("Invalid flux calculator.");
     } // end switch
 
     if ( omegaz != 0.0 ) {

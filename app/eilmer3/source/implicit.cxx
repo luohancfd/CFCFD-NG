@@ -159,8 +159,8 @@ int gasdynamic_point_implicit_inviscid_increment(double dt)
     G.sim_time = t0 + dt;
     return step_failed;
 #else
-    throw runtime_error("gasdynamic_point_implicit_inviscid_increment(): "
-			"Not compiled into executable code!");
+    throw std::runtime_error("gasdynamic_point_implicit_inviscid_increment(): "
+			     "Not compiled into executable code!");
     G.sim_time = t0 + dt;
     return 0;
 #endif
@@ -170,8 +170,8 @@ int gasdynamic_fully_implicit_inviscid_increment(double dt)
 {
     global_data &G = *get_global_data_ptr();
     double t0 = G.sim_time;
-    throw runtime_error("gasdynamic_fully_implicit_inviscid_increment(): "
-			"Not implemented!");
+    throw std::runtime_error("gasdynamic_fully_implicit_inviscid_increment(): "
+			     "Not implemented!");
     G.sim_time = t0 + dt;
     return FAILURE;
 } //int gasdynamic_fully_implicit_inviscid_increment
@@ -180,13 +180,11 @@ int inviscid_point_implicit_update_for_cell(FV_Cell *cell)
 {
 #if WITH_IMPLICIT == 1
     int aa, bb;
-    global_data &G = *get_global_data_ptr();  // set up a reference
+    global_data &G = *get_global_data_ptr();
     double dt_global;
     int dimensions;
     dimensions = G.dimensions;
     dt_global = G.dt_global;
-    //cell->encode_conserved();
-    //cell->decode_conserved();
     calculate_M_inviscid(cell, dimensions);	    
 			
     calculate_h_inviscid(cell, dimensions); 

@@ -17,6 +17,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <stdexcept>
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/util/source/string_util.hh"
 #include "../../../lib/util/source/config_parser.hh"
@@ -371,7 +372,7 @@ int read_config_parameters(const string filename, bool master)
     dict.parse_double("global_data", "max_mu_t_factor", G.max_mu_t_factor, 300.0);
     dict.parse_double("global_data", "transient_mu_t_factor", G.transient_mu_t_factor, 1.0);
     if ( G.turbulence_model == TM_SPALART_ALLMARAS )
-	throw runtime_error("Spalart-Allmaras turbulence model not available.");
+	throw std::runtime_error("Spalart-Allmaras turbulence model not available.");
     if ( get_verbose_flag() ) {
 	cout << "turbulence_model = " << get_name_of_turbulence_model(G.turbulence_model) << endl;
 	cout << "turbulence_prandtl_number = " << G.turbulence_prandtl << endl;
