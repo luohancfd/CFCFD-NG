@@ -108,7 +108,7 @@ N2.mu_B = {
   units = "Debye",
 }
 N2.electronic_levels = {
-  n_levels = 5,
+  n_levels = 1,
   ref = "Spradian07::diatom.dat",
   ilev_0 = {
     0,

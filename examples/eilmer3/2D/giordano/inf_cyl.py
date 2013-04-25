@@ -18,11 +18,23 @@
 #
 # Updated: 17-Feb-2012
 # This update brings the script up-to-date for use with eilmer3
+#
+# Updated: 25-Apr-2013
+# Changed the grid dimensions and flux calculator selection to
+# match what I used in my thesis. Also added dependence on
+# a file "case.txt" which sets the pressure (high or low) and
+# the model for vibrational relaxation times. (RJG)
 
 Rc = 1.0 # cylinder radius
 
 from math import sqrt
 from cfpylib.gasdyn.billig import x_from_y
+
+# Read in case data.
+fp = open('case.txt', 'r')
+p_label = fp.readline().strip()
+vib_label = fp.readline().strip()
+fp.close()
 
 # Setup simulation
 gdata.title = "Inifinite cylinder in N2 flow (M=6.5)"
@@ -30,7 +42,18 @@ gdata.title = "Inifinite cylinder in N2 flow (M=6.5)"
 # Inflow conditions
 M_inf = 6.5
 T_inf = 300.0
-p_inf = 50.0
+if p_label == 'low':
+    p_inf = 50.0
+elif p_label == 'high':
+    p_inf = 500.0
+else:
+    print "Unknown pressure selection: ", p_label
+    print "The first line of case.txt which selects the pressure case"
+    print "should be one of:"
+    print "  low"
+    print "  high"
+    print "Bailing out!"
+    sys.exit(1)
 
 # Set the gas model and
 # use this to compute some other flow properties
@@ -48,7 +71,20 @@ gmodel.eval_thermo_state_pT(gd)
 u_inf = M_inf * gd.a
 
 # Thermal energy exchange model
-set_energy_exchange_update("N2-TV.lua")
+vib_models = ['B', 'MW', 'SSH']
+if vib_label in vib_models:
+    vib_file = "N2-TV-%s.lua" % vib_label
+else:
+    print "Unknown vibrational relaxation time model: ", vib_label
+    print "The second line of case.txt which selects the"
+    print "vibrational relaxation time model should be one of:"
+    print "  B"
+    print "  MW"
+    print "  SSH"
+    print "Bailing out!"
+    sys.exit(1)
+
+set_energy_exchange_update(vib_file)
 
 inflow = FlowCondition(p=p_inf, u=u_inf, v=0.0, T=[T_inf, T_inf], massf=[1.0,])
 initial = FlowCondition(p=p_inf/3.0, u=0.0, v=0.0, T=[T_inf, T_inf], massf=[1.0,])
@@ -80,21 +116,23 @@ shock = Spline(d)
 top = Line(d[-1], b)  # top-point of shock to top of cylinder
 
 # Specify the boundary discretization and conditions...
-nnx = 30
-nny = 3 * nnx
+nnx = 40
+nny = 120
 
 # ...and finally, assemble the block from its boundary faces.
-block_0 = Block2D(make_patch(top, cylinder, axis, shock),
-                  nni=nnx, nnj=nny,
-                  bc_list=[ExtrapolateOutBC(), SlipWallBC(), SlipWallBC(), SupInBC(inflow)],
-                  fill_condition=initial,
-                  hcell_list=[(nnx, 1)])
+block_0 = SuperBlock2D(make_patch(top, cylinder, axis, shock),
+                       nni=nnx, nnj=nny,
+                       nbi=2, nbj=2,
+                       bc_list=[ExtrapolateOutBC(), SlipWallBC(), SlipWallBC(), SupInBC(inflow)],
+                       fill_condition=initial,
+                       hcell_list=[(nnx, 1)])
 
 # simulation control
-gdata.flux_calc = AUSMDV
-gdata.max_time = 10.0e-3 # should be large enough to allow steady flow
+gdata.flux_calc = ADAPTIVE
+gdata.gasdynamic_update_scheme = 'classic-rk3'
+gdata.max_time = 15.0e-3 # should be large enough to allow steady flow
 gdata.max_step = 30000
-gdata.cfl = 0.25
+gdata.cfl = 0.8
 gdata.stringent_cfl = 1
 gdata.dt = 1.0e-8
 gdata.dt_history = 1.0e-5

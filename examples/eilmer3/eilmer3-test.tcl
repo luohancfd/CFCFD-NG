@@ -38,6 +38,7 @@ lappend test_scripts "2D/methane-reactor/psr.test"
 lappend test_scripts "2D/estcj/estcj-pitot.test"
 lappend test_scripts "2D/nenzfr-Mach4-nozzle-eq/nozzle-eq.test"
 lappend test_scripts "2D/radiating-cylinder/gray-gas/MC/cyl.test"
+lappend test_scripts "2D/giordano/inf_cyl.test"
 lappend test_scripts "3D/simple_ramp/simple_ramp.test"
 if {$long_tests} {
     puts "Do long tests as well as short tests..."
