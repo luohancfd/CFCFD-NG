@@ -1,0 +1,57 @@
+# odw.test
+# Functional test for reacting, 2D, inviscid flow.
+#
+# This exercises quite a few of the basic functions of the 2D code
+# plus the finite-rate chemistry module.
+#
+# PJ, 13-Jan-2011
+#     18-Jul-2012 update to run with 64 tasks and a longer time
+
+package require tcltest 2.0
+namespace import ::tcltest::*
+configure -verbose {start body error}
+
+test run-preprocessor {Run the preprocessing stage.} -body {
+    exec echo -e "low\nB" > case.txt
+    exec e3prep.py --job=inf_cyl > LOGFILE_PREP
+} -result {} -returnCodes {0}
+
+test run-simulation {Run the mpi simulation code.} -body {
+    exec mpirun -np 4 e3mpi.exe --job=inf_cyl --run > LOGFILE_MAIN
+} -result {} -returnCodes {0}
+
+test number-of-steps {The main simulation takes a certain number of steps.} -body {
+    set fp [open LOGFILE_MAIN r]
+    set contents [read $fp]
+    close $fp
+    set final_steps 0
+    foreach line [split $contents "\n"] {
+	if {[string first "Total number of steps" $line] >= 0} {
+	    set final_steps [lindex [split $line] 5]
+	}
+    }
+    set final_steps
+} -result {3630}
+
+test run-postprocessor {Run the postprocessing stage.} -body {
+    if { [catch {exec e3post.py --job=inf_cyl {--slice-list=0,:,0,:;2,:,0,:} \
+		     --output=stag-prof.data > LOGFILE_POST} results] } {
+        puts "e3post postprocessing command failed"
+        puts $results
+    }
+    
+    exec tail -1 stag-prof.data > values.txt
+    set fp [open values.txt r]
+    set contents [read $fp]
+    close $fp
+    set T_tr 0.0
+    set T_v 0.0
+    set T_tr [lindex [split $contents] 20]
+    set T_v [lindex [split $contents] 22]
+
+    list [expr abs($T_tr - 2531.05) < 0.1] \
+         [expr abs($T_v - 2365.06) < 0.1]
+
+} -result {1 1}
+
+cleanupTests
