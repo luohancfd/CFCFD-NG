@@ -62,6 +62,13 @@ short_one_d_av_names = {'area-weighted':'a-w',
 units = {'rho':'kg/m^3',
          'p':'Pa',
          'T':'K',
+         'a':'m/s',
+         'R':'J/(kg.K)',
+         'Cp':'J/(kg.K)',
+         'Cv':'J/(kg.K)',
+         'gamma':'-',
+         'h':'J/kg',
+         'h0':'J/kg',
          'M':'-',
          'u':'m/s',
          'v':'m/s',
@@ -82,7 +89,9 @@ def data_file_header(f, one_d_av, one_d_out, int_out, species):
             f.write("%s[%s]:%s    " % (o, units[o], short_one_d_av_names[av]))
     
     for i_out in int_out:
-        if i_out == 'species mass flux':
+        if isinstance(i_out, tuple):
+            f.write("%s    " % i_out[0])
+        elif i_out == 'species mass flux':
             for sp in species:
                 f.write("%s-flux[kg/s]    " % sp)
         else:
@@ -97,7 +106,9 @@ def data_file_row(f, pos, area, phis, int_quants, one_d_av, one_d_out, int_out, 
             f.write("%20.12e " % (phis[av][o]))
     
     for i_out in int_out:
-        if i_out == 'species mass flux':
+        if isinstance(i_out, tuple):
+            f.write("%20.12e " % int_quants[i_out[0]])
+        elif i_out == 'species mass flux':
             for sp in species:
                 f.write("%20.12e " % int_quants['species mass flux'][sp])
         else:
@@ -218,7 +229,12 @@ def main():
             f.write("area = %.6e\n" % area(cells))
 
         # 3a. Compute requested integrated quantities (if required)
-        fluxes = compute_fluxes(cells, cfg['variable_map'], cfg['species'], gmodel)
+        # Grab any special fluxes.
+        special_fns = {}
+        for i in cfg['integrated_outputs']:
+            if isinstance(i, tuple):
+                special_fns[i[0]] = i[1]
+        fluxes = compute_fluxes(cells, cfg['variable_map'], cfg['species'], gmodel, special_fns)
             
         if cfg['output_format'] == 'verbose':
             if len(cfg['integrated_outputs']) > 0:
@@ -229,44 +245,51 @@ def main():
                 f.write("\n")
 
                 for flux in cfg['integrated_outputs']:
+                    if isinstance(flux, str):
+                        if flux == 'mass flux':
+                            f.write("mass flux (kg/s)\n")
+                            f.write("m_dot = %.6e\n\n" % fluxes['mass'])
+                        elif flux == 'momentum flux':
+                            f.write("momentum flux (kg.m/s^2)\n")
+                            f.write("mom_dot = %s\n\n" % fluxes['mom'])
+                        elif flux == 'energy flux':
+                            f.write("energy flux (W)\n")
+                            f.write("e_dot = %.6e\n\n" % fluxes['energy'])
+                        elif flux == 'species mass flux':
+                            for sp in cfg['species']:
+                                isp = gmodel.get_isp_from_species_name(sp)
+                                f.write("mass flux of %s (kg/s)\n" % sp)
+                                f.write("m%s_dot = %.6e\n\n" % (sp, fluxes['species'][isp]))
+                        else:
+                            print "Requested integrated quantity: ", flux
+                            print "is not part of the list of available integrated quantities."
+                            print "Bailing out!"
+                            sys.exit(1)
+                    else:
+                        f.write("flux of %s\n")
+                        f.write("flux = %.6e\n\n" % fluxes[flux[0]])
+
+        if cfg['output_format'] == 'as_data_file':
+            for flux in cfg['integrated_outputs']:
+                if isinstance(flux, str):
                     if flux == 'mass flux':
-                        f.write("mass flux (kg/s)\n")
-                        f.write("m_dot = %.6e\n\n" % fluxes['mass'])
+                        int_quants['mass flux'] = fluxes['mass']
                     elif flux == 'momentum flux':
-                        f.write("momentum flux (kg.m/s^2)\n")
-                        f.write("mom_dot = %s\n\n" % fluxes['mom'])
+                        int_quants['momentum flux'] = vabs(fluxes['mom'])
                     elif flux == 'energy flux':
-                        f.write("energy flux (W)\n")
-                        f.write("e_dot = %.6e\n\n" % fluxes['energy'])
+                        int_quants['energy flux'] = fluxes['energy']
                     elif flux == 'species mass flux':
+                        int_quants['species mass flux'] = {}
                         for sp in cfg['species']:
                             isp = gmodel.get_isp_from_species_name(sp)
-                            f.write("mass flux of %s (kg/s)\n" % sp)
-                            f.write("m%s_dot = %.6e\n\n" % (sp, fluxes['species'][isp]))
+                            int_quants['species mass flux'][sp] = fluxes['species'][isp]
                     else:
                         print "Requested integrated quantity: ", flux
                         print "is not part of the list of available integrated quantities."
                         print "Bailing out!"
                         sys.exit(1)
-
-        if cfg['output_format'] == 'as_data_file':
-            for flux in cfg['integrated_outputs']:
-                if flux == 'mass flux':
-                    int_quants['mass flux'] = fluxes['mass']
-                elif flux == 'momentum flux':
-                    int_quants['momentum flux'] = vabs(fluxes['mom'])
-                elif flux == 'energy flux':
-                    int_quants['energy flux'] = fluxes['energy']
-                elif flux == 'species mass flux':
-                    int_quants['species mass flux'] = {}
-                    for sp in cfg['species']:
-                        isp = gmodel.get_isp_from_species_name(sp)
-                        int_quants['species mass flux'][sp] = fluxes['species'][isp]
                 else:
-                    print "Requested integrated quantity: ", flux
-                    print "is not part of the list of available integrated quantities."
-                    print "Bailing out!"
-                    sys.exit(1)
+                    int_quants[flux[0]] = fluxes[flux[0]]
         
         # 3b. Compute requested one_d_properties
         if cfg['output_format'] == 'verbose':

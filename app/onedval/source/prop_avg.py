@@ -15,8 +15,10 @@ from libprep3 import Gas_data, set_massf
 from cfpylib.nm.zero_solvers import secant
 from scipy.optimize import minimize
 from numpy import median
+from copy import copy
 
 DEBUG = False
+N_RETRIES = 3
 
 def area(cells):
     A = 0.0
@@ -52,7 +54,7 @@ def oriented_normal(n):
     return Vector3(abs(n.x), n.y, n.z)
     
 
-def compute_fluxes(cells, var_map, species, gmodel):
+def compute_fluxes(cells, var_map, species, gmodel, special_fns):
     f_mass = 0.0
     f_mom = Vector3(0.0, 0.0, 0.0)
     f_energy = 0.0
@@ -67,6 +69,9 @@ def compute_fluxes(cells, var_map, species, gmodel):
     wlabel = var_map['w']
     Tlabel = var_map['T']
     Q = Gas_data(gmodel)
+    special_fluxes = copy(special_fns)
+    for k in special_fluxes:
+        special_fluxes[k] = 0.0
     for c in cells:
         dA = c.area()
         n = oriented_normal(c.normal())
@@ -83,7 +88,8 @@ def compute_fluxes(cells, var_map, species, gmodel):
         if gmodel.get_number_of_species() > 1:
             massfs = {}
             for isp, sp in enumerate(species):
-                massf = c.get(sp)
+                splabel = var_map.get(sp, sp)
+                massf = c.get(splabel)
                 f_sp[isp] = f_sp[isp] + rho*massf*u_n*dA
                 massfs[sp] = massf
             set_massf(Q, gmodel, massfs)
@@ -96,8 +102,13 @@ def compute_fluxes(cells, var_map, species, gmodel):
         h = gmodel.mixture_enthalpy(Q)
         h0 = h + 0.5*vabs(vel)*vabs(vel)
         f_energy = f_energy + rho*u_n*h0*dA
-
-    return {'mass': f_mass, 'mom': f_mom, 'energy': f_energy, 'species':f_sp}
+        # Process any special fns.
+        for l,f in special_fns.iteritems():
+            special_fluxes[l] += f(c, rho, u_n, dA)
+    output = {'mass': f_mass, 'mom': f_mom, 'energy': f_energy, 'species':f_sp}
+    for l,f in special_fluxes.iteritems():
+        output[l] = special_fluxes[l]
+    return output
 
 def area_weighted_avg(cells, props, var_map):
     phis = dict.fromkeys(props, 0.0)
@@ -176,7 +187,8 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel):
         if gmodel.get_number_of_species() > 1:
             massfs = {}
             for isp, sp in enumerate(species):
-                massf = c.get(sp)
+                splabel = var_map.get(sp, sp)
+                massf = c.get(splabel)
                 f_sp[isp] = f_sp[isp] + rho*massf*u_n*dA
                 massfs[sp] = massf
             set_massf(Q, gmodel, massfs)
@@ -279,30 +291,56 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel):
         sys.exit(1)
 
     if not result.success:
-        print "The optimiser did not converge."
+        for i in range(N_RETRIES):
+            print "The optimiser did not converge. Attempting another go."
+            print "Retry attempt: %d/%d" % (i+1, N_RETRIES)
+            print "Retrying with the last (unconverged) values as the initial guess."
+            guess = [rho, T, u]
+            print "rho= ", rho, " T= ", T, " u= ", u
+            result = minimize(f_to_minimize, guess, method='Nelder-Mead', options={'ftol':1.0e-6})
+            rho, T, u = result.x
+            if rho < rho_min or rho > rho_max or T < T_min or T > T_max or u < u_min or u > u_max:
+                print "Something went seriously wrong with the optimiser because at least one"
+                print "of the returned values is outside the range of data."
+                print "rho_min= ", rho_min, " rho_max= ", rho_max, " computed rho= ", rho
+                print "T_min= ", T_min, " T_max= ", T_max, " computed T= ", T
+                print "u_min= ", u_min, " u_max= ", u_max, " computed u= ", u
+                print "Bailing out!"
+                sys.exit(1)
+            if result.success:
+                break
+    
+    if not result.success:
+        print "After %d retries, the optimiser did not converge." % N_RETRIES
         print "Just using the best guess at the end of iterations."
         print "rho= ", rho, " T= ", T, " u= ", u
        
     Q.rho = rho; Q.T[0] = T
     gmodel.eval_thermo_state_rhoT(Q)
+    h = gmodel.mixture_enthalpy(Q)
+    # Create a dictionary of all possible requests
+    vals = {'rho':rho,
+            'p': Q.p,
+            'T': T,
+            'a': Q.a,
+            'h': h,
+            'h0': h + 0.5*u*u,
+            'R': gmodel.R(Q),
+            'Cp': gmodel.Cp(Q),
+            'Cv': gmodel.Cv(Q),
+            'gamma': gmodel.gamma(Q),
+            'u': u,
+            'M': u/Q.a }
+
 
     phis = dict.fromkeys(props, 0.0)
+    
     for k in phis:
-        if k == 'rho':
-            phis[k] = rho
-        elif k == 'p':
-            phis[k] = Q.p
-        elif k == 'T':
-            phis[k] = T
-        elif k == 'M':
-            phis[k] = u/Q.a
-        elif k == 'u':
-            phis[k] = u
-        elif k in species:
-            isp = gmodel.get_isp_from_species_name(k)
-            phis[k] = massf[isp]
-        else:
+        if not k in vals:
             print "Do not know what to do for flux-conserved average of:", k
+            print "Skipping this request."
+            continue
+        phis[k] = vals[k]
     
     return phis
     
