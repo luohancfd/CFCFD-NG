@@ -27,6 +27,8 @@ V_N2.max_iterations = 100
 species = {'N2', }
 
 N2 = {}
+N2.atomic_constituents = {N=2}
+N2.charge = 0
 N2.species_type = "nonpolar diatomic"
 N2.oscillator_type = "truncated harmonic"
 N2.M = {
