@@ -367,12 +367,12 @@ def Polyline2( *args ):
     #     print item, "start", item.eval(0.0), "end", item.eval(1.0)
     return Polyline(segment_list)
 
-def Spline2( fname ):
+def Spline2(fname):
     """
     Contructs a spline from a file containing x(,y(,z)) coordinates.
 
     This function takes a filename and processes it assuming that each
-    line contatins (x,y,z) triples (space-delimited).  If any values are
+    line contains (x,y,z) triples (space-delimited).  If any values are
     missing on a given line, they are assumed to be 0.0.  The x,y,z-triples
     are gathered and used to create a Spline. This Spline is returned
     to the caller.
@@ -385,13 +385,12 @@ def Spline2( fname ):
     --------
     Spline object
     """
-
     fp = open(fname, "r")
     points = []
     for line in fp.readlines():
         tks = line.split()
-        if len(tks) == 0:
-            continue
+        if len(tks) == 0: continue # skip blank lines
+        if tks[0] == '#': continue  # skip comment lines
         x = float(tks[0])
         try:
             y = float(tks[1])
@@ -402,7 +401,35 @@ def Spline2( fname ):
         except:
             z = 0.0
         points.append(Vector3(x, y, z))
+    return Spline(points)
 
+def Spline3(p_list):
+    """
+    Contructs a spline from a list containing x(,y(,z)) coordinates.
+
+    This function takes a list of tuples and processes it assuming that each
+    tuple contains (x,y) or (x,y,z) coordinates.  If any z values are missing, 
+    they are assumed to be 0.0.
+    The x,y,z-triples are gathered and used to create a Spline which is 
+    returned to the caller.
+
+    Inputs:
+    -------
+    list with (x,y,z) triples
+
+    Returns:
+    --------
+    Spline object
+    """
+    points = []
+    for p in p_list:
+        x = float(p[0])
+        y = float(p[1])
+        if len(p) == 3:
+            z = float(p[3])
+	else:
+            z = 0.0
+        points.append(Vector3(x, y, z))
     return Spline(points)
 %}
 
