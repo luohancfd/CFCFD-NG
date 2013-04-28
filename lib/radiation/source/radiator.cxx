@@ -168,7 +168,7 @@ Radiator::read_photoionization_data( lua_State * L )
     for ( int ilev=0; ilev<nlevs; ++ ilev ) {
     	// hydrogenic effective principal quantum number
     	double n_eff = sqrt( RC_H_ionise_J / ( I - get_elev_pointer(ilev)->E ) );
-    	if ( !finite(n_eff) ) {
+    	if ( !isfinite(n_eff) ) {
     	    get_elev_pointer(ilev)->PICS_model = new NoPICSModel();
     	    continue;
     	}

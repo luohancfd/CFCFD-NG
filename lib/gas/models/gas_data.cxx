@@ -316,39 +316,39 @@ int Gas_data::check_values(bool print_message) const
     double TMIN = 1.0;
     int data_valid = 1;
 
-    if ( !(finite(rho)) || rho < 1.01 * RHOMIN ) {
+    if ( !(isfinite(rho)) || rho < 1.01 * RHOMIN ) {
 	if (print_message) cout << "Density invalid: " << rho << endl;
 	data_valid = 0;
     }
     size_t nmodes = e.size();
     for ( size_t imode=0; imode<nmodes; ++imode ) {
-    	if ( !(finite(T[imode])) || T[imode] < 1.01 * TMIN ) {
+    	if ( !isfinite(T[imode]) || T[imode] < 1.01 * TMIN ) {
     	    if ( print_message ) 
 		cout << "Temperature[" << imode << "] invalid: " << T[imode] << endl;
     	    data_valid = 0;
     	}
-    	if ( !(finite(e[imode])) ) {
+    	if ( !isfinite(e[imode]) ) {
     	    if ( print_message ) 
 		cout << "Energy[" << imode << "] invalid: " << e[imode] << endl;
     	    data_valid = 0;
     	}
     }
-    if ( !(finite(p)) ) {
+    if ( !isfinite(p) ) {
 	if ( print_message ) cout << "Total pressure invalid: " << p << endl;
 	data_valid = 0;
     }
-    if ( !(finite(p_e)) ) {
+    if ( !isfinite(p_e) ) {
 	if ( print_message ) cout << "Electron pressure invalid: " << p_e << endl;
 	data_valid = 0;
     }
-    if ( !(finite(a)) ) {
+    if ( !isfinite(a) ) {
 	if ( print_message ) cout << "Sound speed invalid: " << a << endl;
 	data_valid = 0;
     }
     size_t nsp = massf.size();
     double f_sum = 0.0;
     for ( size_t isp = 0; isp < nsp; ++isp ) f_sum += massf[isp];
-    if ( f_sum < 0.99 || f_sum > 1.01 || !finite(f_sum) ) {
+    if ( f_sum < 0.99 || f_sum > 1.01 || !isfinite(f_sum) ) {
 	if ( print_message ) cout << "Mass fraction sum bad: " << f_sum << endl;
 	data_valid = 0;
     }

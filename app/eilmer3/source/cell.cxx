@@ -1265,7 +1265,7 @@ int FV_Cell::check_flow_data(void)
 	    cout << "Velocity bad " << fs->vel.x << " " << fs->vel.y << " " << fs->vel.z << endl;
 	data_valid = 0;
     }
-    if ( !(finite(fs->tke)) ) {
+    if ( !isfinite(fs->tke) ) {
 	if ( print_message ) cout << "Turbulence KE invalid number " << fs->tke << endl;
 	data_valid = 0;
     }
@@ -1273,7 +1273,7 @@ int FV_Cell::check_flow_data(void)
 	if ( print_message ) cout << "Turbulence KE negative " << fs->tke << endl;
 	data_valid = 0;
     }
-    if ( !(finite(fs->omega)) ) {
+    if ( !isfinite(fs->omega) ) {
 	if ( print_message ) cout << "Turbulence frequency invalid number " << fs->omega << endl;
 	data_valid = 0;
     }

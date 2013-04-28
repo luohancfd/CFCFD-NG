@@ -81,7 +81,7 @@ s_eval_Delta_1( Gas_data &Q )
 {
     // NOTE: all parameters now in SI units
     double Pi_Omega_11 = CI_model_->eval_Pi_Omega_11( Q );
-    // if ( !finite(Pi_Omega_11) ) {
+    // if ( !isfinite(Pi_Omega_11) ) {
     	// cout << "type = " << CI_model_->get_type() << endl;
     // }
     return (8.0/3.0)*(pow((2.0*m_i_*m_j_)/(M_PI*PC_k_SI*Q.T[iT_]*(m_i_+m_j_)),0.5))*Pi_Omega_11;
@@ -93,7 +93,7 @@ s_eval_Delta_2( Gas_data &Q )
 {
     // NOTE: all parameters now in SI units
     double Pi_Omega_22 = CI_model_->eval_Pi_Omega_22( Q );
-    // if ( !finite(Pi_Omega_22) ) {
+    // if ( !isfinite(Pi_Omega_22) ) {
     	// cout << "type = " << CI_model_->get_type() << endl;
     // }
     return (16.0/5.0)*(pow((2.0*m_i_*m_j_)/(M_PI*PC_k_SI*Q.T[iT_]*(m_i_+m_j_)),0.5))*Pi_Omega_22;

@@ -102,7 +102,7 @@ fill_in_DAV_im(const matrix &D_AB)
     	    }
     	}
     	DAV_im_[e_index_] = M_[e_index_] * Dax_ion_sum / Mx_ion_sum;
-    	if ( !finite( DAV_im_[e_index_] ) ) {
+    	if ( !isfinite( DAV_im_[e_index_] ) ) {
     	    // Dax_ion_sum and Mx_ion_sum were probably zero
     	    DAV_im_[e_index_] = 0.0;
     	}
@@ -589,7 +589,7 @@ calculate_diffusion_fluxes(const Gas_data &Q,
     	    }
     	}
     	DAV_im_[e_index_] = M_[e_index_] * Dax_ion_sum / Mx_ion_sum;
-    	if ( !finite( DAV_im_[e_index_] ) ) {
+    	if ( !isfinite( DAV_im_[e_index_] ) ) {
     	    // Dax_ion_sum and Mx_ion_sum were probably zero
     	    DAV_im_[e_index_] = 0.0;
     	}
@@ -663,7 +663,7 @@ calculate_diffusion_fluxes(const Gas_data &Q,
             }
         }
         DAV_im_[e_index_] = M_[e_index_] * Dax_ion_sum / Mx_ion_sum;
-        if ( !finite( DAV_im_[e_index_] ) ) {
+        if ( !isfinite( DAV_im_[e_index_] ) ) {
             // Dax_ion_sum and Mx_ion_sum were probably zero
             DAV_im_[e_index_] = 0.0;
         }

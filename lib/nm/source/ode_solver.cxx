@@ -290,7 +290,7 @@ bool OdeSolver::solve_over_interval( OdeSystem &ode, double x0, double xf, doubl
 		    // The reduced step is going to be too small.
 		    *h = h_last * max_decrease_factor_;
 		}
-		else if ( !finite(*h) ) {
+		else if ( !isfinite(*h) ) {
 		    // The time-step is not sensible
 		    *h = h_last * max_decrease_factor_;
 		}

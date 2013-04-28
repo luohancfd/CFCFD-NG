@@ -343,7 +343,7 @@ Chemical_kinetic_MC_system::
 passes_system_test(valarray<double> &y)
 {
     for ( size_t iy=0; iy<y.size(); ++iy ) {
-    	if ( !finite( y[iy] ) ) return false;
+    	if ( !isfinite( y[iy] ) ) return false;
     }
     return true;
 }

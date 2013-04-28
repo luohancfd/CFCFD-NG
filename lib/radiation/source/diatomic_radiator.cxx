@@ -1581,10 +1581,10 @@ calculate_n_e( Gas_data &Q )
     for ( int ilev=0; ilev<nlevs; ++ilev ) {
     	double N_boltz = eval_Boltzmann_population_for_level(Q,ilev);
     	// Boltzmann as the upper limit
-    	if (  !finite(elevs[ilev]->get_N()) || elevs[ilev]->get_N() > N_boltz ) elevs[ilev]->set_N(N_boltz);
+    	if (  !isfinite(elevs[ilev]->get_N()) || elevs[ilev]->get_N() > N_boltz ) elevs[ilev]->set_N(N_boltz);
     	// Check for finiteness
     	/*
-    	if ( !finite( elevs[ilev]->get_N() ) ) {
+    	if ( !isfinite( elevs[ilev]->get_N() ) ) {
     	    cout << "QSSDiatomicRadiator::calculate_n_e()" << endl
     	         << "Radiator: " << name << " QSS calculation failed." << endl;
     	    cout << "Source vector: \n"; print_valarray(C);
