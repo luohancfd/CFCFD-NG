@@ -7,6 +7,13 @@
  * Ironically, this flux calculator causes simulations
  * initialised with 0.0 m/s velocities to crash.
  *
+ * RJG -- 26-Apr-2013
+ * Added a (+ EPSILON) to help with any divide by zero problems.
+ * That being said, I'm not sure this helps with the 
+ * crashes at zero velocity because it would seem that the flow
+ * of control would pass through a different branch for these
+ * cases.
+ *
  * \verbatim
  * M. -S. Liou (2006)
  * A sequel to AUSM, Part II: AUSM+-up for all speeds
@@ -37,8 +44,81 @@
 const double KP = 0.25;
 const double KU = 0.75;
 const double SIGMA = 1.0;
+// Choose a value for M_INF that is good for low Mach numbers.
+// To be strictly correct, we should set this at run time
+// if an M_INF value is easily defined.
+const double M_INF = 0.01;
 
 /*------------------------------------------------------------*/
+
+// Some helper functions
+double M1plus(double M)
+{
+    return 0.5*(M + FABS(M));
+}
+
+double M1minus(double M)
+{
+    return 0.5*(M - FABS(M));
+}
+
+double M2plus(double M)
+{
+    return 0.25*(M + 1.0)*(M + 1.0);
+}
+
+double M2minus(double M)
+{
+    return -0.25*(M - 1.0)*(M - 1.0);
+}
+
+double M4plus(double M, double beta)
+{
+    if ( FABS(M) >= 1.0 ) {
+	return M1plus(M);
+    }
+    else {
+	double M2p = M2plus(M);
+	double M2m = M2minus(M);
+	return M2p*(1.0 - 16.0*beta*M2m);
+    }
+}
+
+double M4minus(double M, double beta)
+{
+    if ( FABS(M) >= 1.0 ) {
+	return M1minus(M);
+    }
+    else {
+	double M2p = M2plus(M);
+	double M2m = M2minus(M);
+	return M2m*(1.0 + 16.0*beta*M2p);
+    }
+}
+
+double P5plus(double M, double alpha)
+{
+    if ( FABS(M) >= 1.0 ) {
+	return (1.0/M)*M1plus(M);
+    }
+    else {
+	double M2p = M2plus(M);
+	double M2m = M2minus(M);
+	return M2p*((2.0 - M) - 16.0*alpha*M*M2m);
+    }
+}
+
+double P5minus(double M, double alpha)
+{
+    if ( FABS(M) >= 1.0 ) {
+	return (1.0/M)*M1minus(M);
+    }
+    else {
+	double M2p = M2plus(M);
+	double M2m = M2minus(M);
+	return M2m*((-2.0 - M) + 16.0*alpha*M*M2p);
+    }
+}
 
 /** \brief Compute the fluxes across an interface. */
 int ausm_plus_up(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
@@ -59,17 +139,13 @@ int ausm_plus_up(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
     double keL, keR;
     double a_half;
     double ML, MR;
-    double MbarSq; 
-    double MinfL, MinfR;
-    double MoSq, MinfSq;
+    double MbarSq, M0Sq; 
     double fa, alpha, beta;
-    double M1plus, M1minus;  
-    double M2plus, M2minus;
-    double M4plus, M4minus;  
-    double P5plus, P5minus;
+    double M4plus_ML, M4minus_MR;  
+    double P5plus_ML, P5minus_MR;
     double Mp, Pu;
 
-    double m_half, p_half, ru_half, ru2_half;
+    double M_half, p_half, ru_half, ru2_half;
 
     Gas_model *gmodel = get_gas_model_ptr();
     int nsp = gmodel->get_number_of_species();
@@ -120,80 +196,59 @@ int ausm_plus_up(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
     /*
      * Reference Mach number (eqn 71).
      */
-    /* Left and right state freestream Mach number */
-    MinfL = sqrt(uL*uL + vL*vL + wL*wL) / aL;
-    MinfR = sqrt(uR*uR + vR*vR + wR*wR) / aR;
-    /* Mean of square of freestream Mach number */
-    MinfSq = 0.5 * (MinfL*MinfL + MinfR*MinfR);
-    /* Reference Mach number */
-    MoSq = MINIMUM(1.0, MAXIMUM(MbarSq, MinfSq));
+    M0Sq = MINIMUM(1.0, MAXIMUM(MbarSq, M_INF));
     /*
      * Some additional parameters.
      */
-    fa = sqrt(MoSq) * (2.0 - sqrt(MoSq));   // eqn 72
+    fa = sqrt(M0Sq) * (2.0 - sqrt(M0Sq));   // eqn 72
     alpha = 0.1875 * (-4.0 + 5 * fa * fa);  // eqn 76
     beta = 0.125;                           // eqn 76
-    /*
-     * Left and right Mach number splitting (eqns 18 & 19).
-     * Preliminary calculation of 1st and 2nd degree
-     * polynomial functions.
-     */    
-    M1plus = 0.5 * (ML + FABS(ML)); 
-    M1minus = 0.5 * (MR - FABS(MR));
-    M2plus = 0.25 * (ML + 1.0) * (ML + 1.0);
-    M2minus = -0.25 * (MR - 1.0) * (MR - 1.0);
+
     /*
      * Left state: 
-     * Mach number splitting (eqn 20).
-     * and pressure splitting (eqn 24). 
+     * M4plus(ML)
+     * P5plus(ML)
      */
-    if (FABS(ML) < 1.0) {
-        M4plus = M2plus * (1.0 - 16.0 * beta * M2minus);
-	P5plus = M2plus * ((2.0 - ML) - 16.0 * alpha * ML * M2minus);
-    } else {
-        M4plus = M1plus;
-	P5plus = M1plus / ML;
-    }
+    M4plus_ML = M4plus(ML, beta);
+    P5plus_ML = P5plus(ML, alpha);
+    
     /*
      * Right state: 
-     * Mach number splitting (eqn 20).
-     * and pressure splitting (eqn 24).
+     * M4minus(MR)
+     * P5minus(MR)
      */
-    if (FABS(MR) < 1.0) {
-        M4minus = M2minus * (1.0 + 16.0 * beta * M2plus);
-	P5minus = M2minus * ((-2.0 - MR) + 16.0 * alpha * MR * M2plus);
-    } else {
-        M4minus = M1minus;
-	P5minus = M1minus / MR;
-    }
+    M4minus_MR = M4minus(MR, beta);
+    P5minus_MR = P5minus(MR, alpha);
+
     /*
      * Pressure diffusion modification for 
      * mass flux (eqn 73) and pressure flux (eqn 75).
      */
-    Mp = -KP / fa * MAXIMUM((1.0 - SIGMA * MbarSq), 0.0) * 
-         2.0 * (pR - pL) / (rL + rR) / (a_half * a_half);
-    Pu = -KU * P5plus * P5minus * (rL + rR) * fa * a_half * (uR - uL);
+    double r_half = 0.5*(rL + rR);
+    Mp = -KP / fa * MAXIMUM((1.0 - SIGMA * MbarSq), 0.0) * (pR - pL) / (r_half*a_half*a_half);
+    Pu = -KU * P5plus_ML * P5minus_MR * (rL + rR) * fa * a_half * (uR - uL);
     /*
      * Mass Flux (eqns 73 & 74).
      */
-    m_half = M4plus + M4minus + Mp;
-    ru_half = a_half * m_half;
-    if (m_half > 0) {
-       ru_half = ru_half * rL;
+    M_half = M4plus_ML + M4minus_MR + Mp;
+    ru_half = a_half * M_half;
+    if ( M_half > 0.0 ) {
+       ru_half *= rL;
     } else {
-       ru_half = ru_half * rR;
+       ru_half *= rR;
     }
     /*
      * Pressure flux (eqn 75).
      */
-    p_half = P5plus * pL + P5minus * pR + Pu;
+    p_half = P5plus_ML*pL + P5minus_MR*pR + Pu;
+
     /*
      * Momentum flux: normal direction
      */
-    if (ru_half > 0) {
-       ru2_half = ru_half * uL;
+    if ( ru_half >= 0.0 ) {
+	ru2_half = ru_half * uL;
     } else {
-       ru2_half = ru_half * uR;
+	ru2_half = ru_half * uR;
     }
     /*
      * Assemble components of the flux vector.
@@ -216,6 +271,7 @@ int ausm_plus_up(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
 	F.tke = ru_half * Rght.tke;
 	F.omega = ru_half * Rght.omega;
     }
+    
     /* 
      * Species mass fluxes 
      */
