@@ -199,6 +199,15 @@ def main():
         print "Bailing out!"
         sys.exit(1)
         
+    # 1h. Look for what to do with "bad" slices
+    if not 'skip_bad_slices' in cfg:
+        print "No 'skip_bad_slices' was set."
+        print "The default value of True will be used."
+        print "If bad data slices are encountered, the user"
+        print "will be warned but the program will continue"
+        print "on to the next slice and ignore the 'bad' slice."
+        cfg['skip_bad_slices'] = True
+
     
     # 2. Read data from slices and process
     print "onedval: Reading in data from slice(s)"
@@ -210,6 +219,7 @@ def main():
 
     
     for slice_file in sys.argv[2:]:
+        result = 'success'
         print "onedval: Creating cells from slice: ", slice_file
         cells = create_cells_from_slice(slice_file, cfg['variable_map'], cfg['grid_scale'])
         print "Total number of cells created from slice: ", len(cells)
@@ -316,9 +326,17 @@ def main():
                     pretty_print_props(f, phis, cfg['species'], cfg['one_d_outputs'])
                     f.write("\n")
             elif avg == 'flux-conserved':
-                phis = stream_thrust_avg(cells, cfg['one_d_outputs'], cfg['variable_map'], cfg['species'], gmodel)
+                phis, result = stream_thrust_avg(cells, cfg['one_d_outputs'], cfg['variable_map'], cfg['species'], gmodel)
+                if result != 'success':
+                    print "WARNING: Something went wrong trying to compute flux-conserved averages for slice: ", slice_file
+                    if cfg['skip_bad_cells']:
+                        print "Skipping this slice and continuing."
+                    else:
+                        print "Bailing out at this point because 'skip_bad_cells' is set to false."
+                        sys.exit(1)
+
                 phis_all[avg] = copy(phis)
-                if cfg['output_format'] == 'verbose':
+                if cfg['output_format'] == 'verbose' and result == 'success':
                     f.write("-- flux-conserved average --\n\n")
                     pretty_print_props(f, phis, cfg['species'], cfg['one_d_outputs'])
                     f.write("\n")
@@ -328,11 +346,11 @@ def main():
                 print "Bailing out!"
                 sys.exit(1)
 
-        if cfg['output_format'] == 'as_data_file':
+        if cfg['output_format'] == 'as_data_file' and result == 'success':
             A = area(cells)
             pos = avg_pos(cells, cfg['variable_map'])
             data_file_row(f, pos, A, phis_all, int_quants, cfg['one_d_averages'], cfg['one_d_outputs'],
-                          cfg['integrated_outputs'], cfg['species'])
+                              cfg['integrated_outputs'], cfg['species'])
 
     f.close()
     print "onedval: Done."

@@ -157,6 +157,7 @@ def mass_flux_weighted_avg(cells, props, var_map):
 
 
 def stream_thrust_avg(cells, props, var_map, species, gmodel):
+    flag = 'success'
     f_mass = 0.0
     f_mom = Vector3(0.0, 0.0, 0.0)
     f_energy = 0.0
@@ -304,9 +305,7 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel):
                 print "of the returned values is outside the range of data."
                 print "rho_min= ", rho_min, " rho_max= ", rho_max, " computed rho= ", rho
                 print "T_min= ", T_min, " T_max= ", T_max, " computed T= ", T
-                print "u_min= ", u_min, " u_max= ", u_max, " computed u= ", u
-                print "Bailing out!"
-                sys.exit(1)
+                flag = 'failed'
             if result.success:
                 break
     
@@ -342,7 +341,7 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel):
             continue
         phis[k] = vals[k]
     
-    return phis
+    return phis, flag
     
     
     
