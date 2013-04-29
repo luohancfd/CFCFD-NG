@@ -1,0 +1,24 @@
+# Bezier-control-pts-x2-m10.data
+# Control points for a Bezier curve that defines the x2 Mach 10 nozzle contour.
+# This is the standard x2 nozzle that every x2 experimenter will be familar with.
+#
+# This file has been built from the bezier points from Table 5.4 "Bezier points 
+for the final design" on page 148 of Michael Scott's PhD thesis:
+#	Scott, Michael Paul (2007). 
+#	Development and Modelling of Expansion Tubes PhD Thesis, 
+#	School of Engineering , University of Queensland
+# 
+# Chris James, Han Wei, 29 April 2013	
+#
+#   x, m    y, m
+0.000000   0.042500
+0.034483   0.043906
+0.085036   0.046412
+0.158080   0.047054
+0.261443   0.060095
+0.403471   0.059879
+0.590938   0.080346
+0.825679   0.094781
+1.100956   0.100840
+1.400000   0.100840
+
