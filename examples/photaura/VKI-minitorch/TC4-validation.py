@@ -1,11 +1,10 @@
 #! /usr/bin/python
 
-import sys, os, math
-sys.path.append(os.path.expandvars("$HOME/e3bin")) # installation directory
 from gaspy import *
 from radpy import *
 from cfpylib.gasdyn.cea2_gas import *
 from numpy import *
+import sys
    
 def main():
     print "--------------------------------------------------------------------------"
