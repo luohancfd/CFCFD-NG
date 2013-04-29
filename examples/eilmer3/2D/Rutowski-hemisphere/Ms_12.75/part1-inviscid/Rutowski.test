@@ -12,17 +12,17 @@ configure -verbose {start body error}
 
 test run-preprocessor {Run the preprocessing stage.} -body {
     # 1. Run e3prep
-    exec e3prep.py --job=hemisphere >> LOGFILE_PREP
+    #exec e3prep.py --job=hemisphere >> LOGFILE_PREP
 } -result {} -returnCodes {0}
 
 test run-simulation {Run the poshax3 code.} -body {
     # 2. Run simulation
-    exec e3shared.exe -f hemisphere -r >> LOGFILE_RUN
+    #exec e3shared.exe -f hemisphere -r >> LOGFILE_RUN
 } -result {} -returnCodes {0}
 
 test run-postprocessor {Run the postprocessing stage.} -body {
     # 3. Run e3post
-    exec e3post.py --job=hemisphere --tindx=10 --slice-list='0,:,0,0' >> LOGFILE_POST
+    exec e3post.py --job=hemisphere --tindx=10 --slice-list=0,:,0,0 >> LOGFILE_POST
 
     # 5. Compute average errors with Panesi solution
     exec python compute_errors.py >> LOGFILE_POST
