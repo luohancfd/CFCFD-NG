@@ -7,7 +7,10 @@
 #
 # Presently, we work through the specified directories and explicitly invoke 
 # test scripts.  Of course, there must be a better way to do this using the 
-# tcltest module...
+# tcltest module.
+# Short tests are those which may take up to 20 minutes on my workstation.
+# I don't want to wait more than an hour, or so, for the set of short tests
+# to run.
 #
 # Usage:
 # 1. ./eilmer3-text.tcl
@@ -29,17 +32,18 @@ for {set i 0} {$i < $argc} {incr i} {
 set test_scripts [list "2D/cone20-simple/cone20.test"]
 lappend test_scripts "2D/sod/N2-O2/sod.test"
 lappend test_scripts "2D/mms_euler/mms_euler.test"
-lappend test_scripts "2D/mms/mms.test"
-lappend test_scripts "2D/shock-fitting-sphere/shock-fitting.test"
 lappend test_scripts "2D/odw/odw.test"
 lappend test_scripts "2D/sawada_sphere/ss3.test"
 lappend test_scripts "2D/bittker-hydrogen-combustion/hydrogen.test"
 lappend test_scripts "2D/methane-reactor/psr.test"
 lappend test_scripts "2D/estcj/estcj-pitot.test"
-lappend test_scripts "2D/nenzfr-Mach4-nozzle-eq/nozzle-eq.test"
 lappend test_scripts "2D/radiating-cylinder/gray-gas/MC/cyl.test"
 lappend test_scripts "2D/giordano/inf_cyl.test"
 lappend test_scripts "3D/simple_ramp/simple_ramp.test"
+lappend test_scripts "2D/Rutowski-hemisphere/Ms_12.75/part1-inviscid/Rutowski.test"
+lappend test_scripts "2D/mms/mms.test"
+lappend test_scripts "2D/nenzfr-Mach4-nozzle-eq/nozzle-eq.test"
+# lappend test_scripts "2D/shock-fitting-sphere/shock-fitting.test"
 if {$long_tests} {
     puts "Do long tests as well as short tests..."
     lappend test_scripts "2D/turb-flat-plate/turb_flat_plate.test"
