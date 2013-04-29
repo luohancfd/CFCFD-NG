@@ -1,0 +1,45 @@
+# Rutowski.test
+# Rutowski hemisphere ionizing argon simulation
+#
+# This test case exercises the eilmer3 executable to compute the 
+# flowfield over a 12.7mm radius hemishere for 3 species Argon
+#
+# DFP, 29-Apr-2013 
+
+package require tcltest 2.0
+namespace import ::tcltest::*
+configure -verbose {start body error}
+
+test run-preprocessor {Run the preprocessing stage.} -body {
+    # 1. Run e3prep
+    #exec e3prep.py --job=hemisphere >> LOGFILE_PREP
+} -result {} -returnCodes {0}
+
+test run-simulation {Run the poshax3 code.} -body {
+    # 2. Run simulation
+    #exec e3shared.exe -f hemisphere -r >> LOGFILE_RUN
+} -result {} -returnCodes {0}
+
+test run-postprocessor {Run the postprocessing stage.} -body {
+    # 3. Run e3post
+    exec e3post.py --job=hemisphere --tindx=10 --slice-list=0,:,0,0 >> LOGFILE_POST
+
+    # 5. Compute average errors with Panesi solution
+    exec python compute_errors.py >> LOGFILE_POST
+} -result {} -returnCodes {0}
+
+test check-Te-error {The divergence RMS error with respect to the analytic solution.} -body {
+    set Te_RMS_error 0
+    # Looking for a line starting with 'RMS of the T_ve error'
+    set fp [open LOGFILE_POST r]
+    set results [read $fp]
+    close $fp
+    foreach line [split $results "\n"] {
+        if {[string first "RMS of the T_e error" $line] == 0} {
+	        set Tve_RMS_error [lindex [split $line] 6]
+	    }
+    }
+    expr abs($Te_RMS_error) < 10.0
+} -result {1}
+
+cleanupTests
