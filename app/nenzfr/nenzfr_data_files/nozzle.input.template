@@ -112,7 +112,10 @@ if DEBUG_flag:
 
 
 # Define the temperature and pressure of the intial gas sitting 
-# in the nozzle/dump tank
+# in the nozzle/dump tank. The values used here don't actually
+# matter as Wilson's block-marching methodology (re)initializes 
+# each set of blocks using the inflow-slice data. 
+# See "nenzfr_parallel.py".
 initial = {};
 initial['p'] = 106.4;
 initial['T'] = 300.0;
@@ -608,7 +611,12 @@ gdata.max_step = $max_step
 gdata.dt = 1.0e-11
 gdata.cfl = 0.4
 gdata.cfl_count = 5
-gdata.dt_plot = 1.0e-3 #0.04e-3
+# Due to the block-marching and block-sequencing methods
+# used by nenzfr, we must ensure that we NEVER write out
+# an intermediate solution for a column of blocks. To
+# ensure that this doesn't happen we set dt_plot to a 
+# very large number.
+gdata.dt_plot = 1.0e6 #0.04e-3
 gdata.dt_history = 10.0e-6
 # gdata.turbulence_flag = 1 # No longer used, from 2013-04-23
 gdata.turbulence_model = 'k_omega'

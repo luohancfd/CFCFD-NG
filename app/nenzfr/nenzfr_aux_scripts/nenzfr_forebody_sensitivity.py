@@ -545,7 +545,7 @@ def main():
                   help="file that holds the estcj result and is to be read in "
                        "for each perturbation case. [default: %default]")
      
-    op.add_option('--levels', dest='levels', default=3,choices=[3,5],
+    op.add_option('--levels', dest='levels', default=3,choices=['3','5'],
                   help=("specify how many points are to be used in the "
                         "calculation of the gradient. Includes the nominal.  "
                         "Options: 3, 5 [default: %default]"))

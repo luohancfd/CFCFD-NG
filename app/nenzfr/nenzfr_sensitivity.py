@@ -19,7 +19,8 @@ VERSION_STRING = "24-May-2012"
 import shlex, string
 import sys, os
 import optparse
-from numpy import array
+import numpy as np #import array
+np.seterr(divide='ignore',invalid='ignore')
 from nenzfr_utils import run_command, quote, read_case_summary, \
      read_nenzfr_outfile, read_estcj_outfile
 E3BIN = os.path.expandvars("$HOME/e3bin")
@@ -225,7 +226,7 @@ def main():
                   help="file that holds the estcj result and is to be read in "
                        "for each perturbation case. [default: %default]")
      
-    op.add_option('--levels', dest='levels', default=3,choices=[3,5],
+    op.add_option('--levels', dest='levels', default=3,choices=['3','5'],
                   help=("specify how many points are to be used in the "
                         "calculation of the gradient. Includes the nominal.  "
                         "Options: 3, 5 [default: %default]"))
@@ -296,7 +297,8 @@ def main():
     nominalData, exitVar = add_extra_variables(nominalData, exitVar)
      
     nominalValues = get_values(nominalData, exitVar)
-    
+    #print nominalValues
+     
     # Loop through each of the perturbed variables
     sensitivity = {}
     sensitivity_abs = {}
@@ -346,20 +348,21 @@ def main():
             highWeighting = (nominalX - lowX)/(highX - lowX)
             lowWeighting = (highX - nominalX)/(highX - lowX)
             
-            #sensitivity[var] = ( highWeighting*(array(highValues)-\
-            #                                    array(nominalValues))/\
+            #sensitivity[var] = ( highWeighting*(np.array(highValues)-\
+            #                                    np.array(nominalValues))/\
             #                                   (highX - nominalX) + \
-            #                     lowWeighting*(array(nominalValues)-\
-            #                                   array(lowValues))/\
+            #                     lowWeighting*(np.array(nominalValues)-\
+            #                                   np.array(lowValues))/\
             #                                  (nominalX - lowX)     )*\
-            #                    nominalX/array(nominalValues)
-            sensitivity_abs[var] = ( highWeighting*(array(highValues)-\
-                                                array(nominalValues))/\
+            #                    nominalX/np.array(nominalValues)
+            sensitivity_abs[var] = ( highWeighting*(np.array(highValues)-\
+                                                np.array(nominalValues))/\
                                                (highX - nominalX) + \
-                                 lowWeighting*(array(nominalValues)-\
-                                               array(lowValues))/\
+                                 lowWeighting*(np.array(nominalValues)-\
+                                               np.array(lowValues))/\
                                               (nominalX - lowX)     )
-            sensitivity[var] = sensitivity_abs[var]*nominalX/array(nominalValues)
+            
+            sensitivity[var] = sensitivity_abs[var]*nominalX/np.array(nominalValues)
             #print sensitivity[var]
         else:
             # For 5 levels per variable we have additional cases 
@@ -400,15 +403,17 @@ def main():
             
             denom = 1/tooHighDeltaX - 1/tooLowDeltaX -\
                    (1/highDeltaX - 1/lowDeltaX)*weighting
-            numer =  array(tooHighValues)/tooHighDeltaX**2 -\
-                     array(tooLowValues)/tooLowDeltaX**2 -\
-                    ( array(highValues)/highDeltaX**2 -\
-                      array(lowValues)/lowDeltaX**2 )*weighting -\
-                     array(nominalValues)*\
+            numer =  np.array(tooHighValues)/tooHighDeltaX**2 -\
+                     np.array(tooLowValues)/tooLowDeltaX**2 -\
+                    ( np.array(highValues)/highDeltaX**2 -\
+                      np.array(lowValues)/lowDeltaX**2 )*weighting -\
+                     np.array(nominalValues)*\
                        ( 1/tooHighDeltaX**2 - 1/tooLowDeltaX**2 - \
                          ( 1/highDeltaX**2 - 1/lowDeltaX**2 )*weighting )
-            sensitivity[var] = numer/denom*nominalX/array(nominalValues) 
+            
             sensitivity_abs[var] = numer/denom
+            sensitivity[var] = sensitivity_abs[var]*nominalX/np.array(nominalValues)
+
         # Now calculate the uncertainty in each exit flow variable
         # due to the uncertainty in the current (perturbed)
         # input variable
