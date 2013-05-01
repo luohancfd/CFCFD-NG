@@ -74,7 +74,7 @@ Thermal_energy_mode( string name, vector<Chemical_species*> &species, lua_State 
 		//           (2) specifically this species plus type eg "N2-vibration"
 		if ( name.find("all-"+M->get_type()) != string::npos || 
 		     name.find(hp + "-" + M->get_type()) != string::npos ||
-		     name.find(X->get_name() + "-" + M->get_type()) != string::npos ) {
+		     name.compare(X->get_name() + "-" + M->get_type()) == 0 ) {
 		    M->set_iT(iT_);
 		    components_.push_back(M);
 		    // FIXME: Remove after testing
@@ -208,6 +208,26 @@ double
 Variable_Cv_energy_mode::
 s_eval_temperature(Gas_data &Q)
 {
+    // First check if there is any energy in mode
+    // by checking species in mode because if there
+    // isn't we'll just return the translational temperature.
+    // Temperature value for a species doesn't mean much
+    // if that species doesn't exist.
+    double f_sum = 0.0;
+    for ( size_t i = 0; i < sp_idx_.size(); ++i ) {
+	int isp = sp_idx_[i];
+	if ( Q.massf[isp] < DEFAULT_MIN_MASS_FRACTION )
+	    continue;
+	f_sum += Q.massf[isp];
+    }
+    
+    if ( f_sum <= DEFAULT_MIN_MASS_FRACTION ) {
+	// There is practically no mass of this species,
+	// so there is no energy in this species.
+	// Temperature just set to translational.
+	return Q.T[0];
+    }
+
     // Newton-Raphson iterations to solve for Q.T[iT_]
     
     // 0. Save initial params
