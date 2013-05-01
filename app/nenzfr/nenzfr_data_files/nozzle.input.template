@@ -36,6 +36,10 @@
 #   are orthogonal to the nozzle wall and axis in the nozzle expansion
 #   region.
 #
+# Chris James, May-2013
+# - nozzle input template adapted to include an expansion tube mode as very
+#   as the original reflected shock tunnel mode.
+#
 #---------------------------------------------------------------------
 import string, fileinput
 from estcj import reflected_shock_tube_calculation as rstc
@@ -84,14 +88,23 @@ gdata.title = "Flow through a shock tunnel nozzle."
 
 DEBUG_flag = 0
 
-# Shock tube conditions define flow condition at the nozzle throat.
-# This throat condition is used as the input to the simulation of
-# the nozzle expansion.
-estc_result = rstc($gasName, $p1, $T1, $Vs, $pe, None, area_ratio=$areaRatio, task='stn')
-throat = estc_result['state6']
-throat_V = estc_result['V6']
-print "Flow condition at nozzle throat:"
-throat.write_state(sys.stdout)
+if $facility == 'reflected-shock-tunnel':
+    # Shock tube conditions define flow condition at the nozzle throat.
+    # This throat condition is used as the input to the simulation of
+    # the nozzle expansion.
+    estc_result = rstc($gasName, $p1, $T1, $Vs, $pe, None, area_ratio=$areaRatio, task='stn')
+    throat = estc_result['state6']
+    throat_V = estc_result['V6']
+    print "Flow velocity at nozzle throat = {0} m/s.".format(throat_V)
+    print "Flow condition at nozzle throat:"
+    throat.write_state(sys.stdout)
+elif $facility == 'expansion-tube':
+    throat = make_gas_from_name($gasName)
+    throat.set_pT($p7,$T7)
+    throat_V = $V7
+    print "Flow velocity at nozzle throat = {0} m/s.".format(throat_V)
+    print "Flow condition at nozzle throat:"
+    throat.write_state(sys.stdout)  
 
 # Estimate turbulence quantities for free stream by specifying 
 # the intensity as 0.05 and estimating the turbulence viscosity 

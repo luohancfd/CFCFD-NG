@@ -12,7 +12,8 @@ to compute the expanding flow in the divergent part of the nozzle.
 Finally, a profile is examined at the downstream-end of the nozzle
 to extract nominal flow condition data.
 
-.. Authors: Peter Jacobs, Luke Doherty, Wilson Chan and Rainer Kirchhartz
+.. Authors: Peter Jacobs, Luke Doherty, Wilson Chan, Rainer Kirchhartz,
+   and Chris James.
    School of Mechanical and Mining Engineering
    The University of Queensland
 
@@ -21,7 +22,7 @@ to extract nominal flow condition data.
    Maybe a dictionary of customised parameters for each case. Wilson.
 """
 
-VERSION_STRING = "08-May-2012"
+VERSION_STRING = "01-May-2013"
 
 from string import upper
 import sys, os
@@ -45,19 +46,38 @@ def main():
     and then coordinate the calculations done by estcj and Eilmer3.
     """
     op = optparse.OptionParser(version=VERSION_STRING)
+    op.add_option('--facility', dest='facility', default='reflected-shock-tunnel',
+                  choices=['reflected-shock-tunnel','expansion-tube'],
+                  help=("type of facility: "
+                        "reflected-shock-tyunnel ; " 
+                        "expansion-tube ; "
+                        " [default: %default]"))   
     op.add_option('--gas', dest='gasName', default='air',
                   choices=['air', 'air5species', 'n2', 'co2', 'h2ne'],
                   help=("name of gas model: "
                         "air; " "air5species; " "n2; " "co2; " "h2ne"
                         " [default: %default]"))
     op.add_option('--p1', dest='p1', type='float', default=None,
-                  help=("shock tube fill pressure or static pressure, in Pa"))
+                  help=("shock tube fill pressure or static pressure, in Pa;"
+                        "used for reflected shock tunnel facilities"))
     op.add_option('--T1', dest='T1', type='float', default=None,
-                  help=("shock tube fill temperature, in degrees K"))
+                  help=("shock tube fill temperature, in degrees K;"
+                        "used for reflected shock tunnel facilities"))
     op.add_option('--Vs', dest='Vs', type='float', default=None,
-                  help=("incident shock speed, in m/s"))
+                  help=("incident shock speed, in m/s;"
+                        "used for reflected shock tunnel facilities"))
     op.add_option('--pe', dest='pe', type='float', default=None,
-                  help=("equilibrium pressure (after shock reflection), in Pa"))
+                  help=("equilibrium pressure (after shock reflection), in Pa;"
+                        "used for reflected shock tunnel facilities"))
+    op.add_option('--p7', dest='p7', type='float', default=None,
+                  help=("unsteadily expanded test gas pressure, in Pa;"
+                        "used for expansion tube facilities"))
+    op.add_option('--T7', dest='T7', type='float', default=None,
+                  help=("unsteadility expanded test gas temperature, in degrees K;"
+                        "used for expansion tube facilities"))
+    op.add_option('--V7', dest='V7', type='float', default=None,
+                  help=("unsteadily expanded test gas velocity, in m/s;"
+                        "used for expansion tube facilities"))    
     op.add_option('--chem', dest='chemModel', default='eq',
                   choices=['eq', 'neq', 'frz', 'frz2'], 
                   help=("chemistry model: " "eq=equilibrium; " 
@@ -151,25 +171,39 @@ def main():
     # Go ahead with a new calculation.
     # First, make sure that we have the needed parameters.
     bad_input = False
-    if opt.p1 is None:
-        print "Need to supply a float value for p1."
-        bad_input = True
-    if opt.T1 is None:
-        print "Need to supply a float value for T1."
-        bad_input = True
-    if opt.Vs is None:
-        print "Need to supply a float value for Vs."
-        bad_input = True
-    if opt.pe is None:
-        print "Need to supply a float value for pe."
-        bad_input = True
+    if opt.facility == 'reflected-shock-tunnel':
+        if opt.p1 is None:
+            print "Need to supply a float value for p1."
+            bad_input = True
+        if opt.T1 is None:
+            print "Need to supply a float value for T1."
+            bad_input = True
+        if opt.Vs is None:
+            print "Need to supply a float value for Vs."
+            bad_input = True
+        if opt.pe is None:
+            print "Need to supply a float value for pe."
+            bad_input = True
+    elif opt.facility == 'expansion-tube':
+        if opt.p7 is None:
+            print "Need to supply a float value for p7."
+            bad_input = True
+        if opt.T7 is None:
+            print "Need to supply a float value for T7."
+            bad_input = True
+        if opt.V7 is None:
+            print "Need to supply a float value for V7."
+            bad_input = True   
     if bad_input:
         return -2
     #
-    # Runs estcj to get the equilibrium shock-tube conditions up to the nozzle-supply region.
-    command_text = E3BIN+('/estcj.py --gas=%s --T1=%g --p1=%g --Vs=%g --pe=%g --task=st --ofn=%s' % 
-                          (opt.gasName, opt.T1, opt.p1, opt.Vs, opt.pe, opt.jobName))
-    run_command(command_text)
+    # Here each facility type will be doing different things (no estcj for expansion tube)
+    if opt.facility == 'reflected-shock-tunnel':
+        #
+        # Runs estcj to get the equilibrium shock-tube conditions up to the nozzle-supply region.
+        command_text = E3BIN+('/estcj.py --gas=%s --T1=%g --p1=%g --Vs=%g --pe=%g --task=st --ofn=%s' % 
+                              (opt.gasName, opt.T1, opt.p1, opt.Vs, opt.pe, opt.jobName))
+        run_command(command_text)
     # Switch off block-sequencing flag if we have selected to run in MPI block-marching mode.
     if opt.blockMarching: 
         sequenceBlocksFlag = 0
@@ -177,8 +211,10 @@ def main():
         sequenceBlocksFlag = 1
         opt.nbj = 1
     # Set up the input script for Eilmer3.
+    # first we build the main parameters, then we add the stuff that is different
+    # for expansion tube / reflected shock tunnel.
     paramDict = {'jobName':quote(opt.jobName), 'gasName':quote(opt.gasName),
-                 'T1':opt.T1, 'p1':opt.p1, 'Vs':opt.Vs, 'pe':opt.pe,
+                 'facility':quote(opt.facility),
                  'contourFileName':quote(opt.contourFileName),
                  'gridFileName':quote(opt.gridFileName), 
                  'chemModel':quote(opt.chemModel),
@@ -188,6 +224,16 @@ def main():
                  'max_time':opt.max_time, 'max_step':opt.max_step, 
                  'HOME':'$HOME', 'Tw':opt.Tw, 'TurbVisRatio':opt.TurbVisRatio,
                  'TurbInten':opt.TurbInten, 'BLTrans':opt.BLTrans}
+    if opt.facility == 'reflected-shock-tunnel':
+        paramDict['T1'] = opt.T1; paramDict['p1'] = opt.p1; paramDict['Vs'] = opt.Vs 
+        paramDict['pe'] = opt.pe
+        # need to set the expansion tube parameters to nothing for the substitution
+        paramDict['T7'] = None; paramDict['p7'] = None; paramDict['V7'] = None 
+    elif opt.facility == 'expansion-tube':
+        paramDict['T7'] = opt.T7; paramDict['p7'] = opt.p7; paramDict['V7'] = opt.V7
+        # need to set the reflected shock tunnel parameters to nothing for the substitution
+        paramDict['T1'] = None; paramDict['p1'] = None; paramDict['Vs'] = None 
+        paramDict['pe'] = None
     prepare_input_script(paramDict, opt.jobName)
     # Run the simulation code.
     if opt.blockMarching:
