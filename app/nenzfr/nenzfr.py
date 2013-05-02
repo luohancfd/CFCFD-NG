@@ -47,9 +47,10 @@ def main():
     """
     op = optparse.OptionParser(version=VERSION_STRING)
     op.add_option('--facility', dest='facility', default='reflected-shock-tunnel',
-                  choices=['reflected-shock-tunnel','expansion-tube'],
+                  choices=['reflected-shock-tunnel','expansion-tube','gun-tunnel'],
                   help=("type of facility: "
-                        "reflected-shock-tyunnel ; " 
+                        "reflected-shock-tunnel ; " 
+                        "gun-tunnel ;"
                         "expansion-tube ; "
                         " [default: %default]"))   
     op.add_option('--gas', dest='gasName', default='air',
@@ -77,7 +78,13 @@ def main():
                         "used for expansion tube facilities"))
     op.add_option('--V7', dest='V7', type='float', default=None,
                   help=("unsteadily expanded test gas velocity, in m/s;"
-                        "used for expansion tube facilities"))    
+                        "used for expansion tube facilities"))
+    op.add_option('--p0', dest='p0', type='float', default=None,
+                  help=("stagnation pressure, in Pa"
+                        "used for gun tunnel facilities"))
+    op.add_option('--T0', dest='T0', type='float', default=None,
+                  help=("stagnation temperature, in degrees K"
+                        "used for gun tunnel facilities"))                        
     op.add_option('--chem', dest='chemModel', default='eq',
                   choices=['eq', 'neq', 'frz', 'frz2'], 
                   help=("chemistry model: " "eq=equilibrium; " 
@@ -193,7 +200,14 @@ def main():
             bad_input = True
         if opt.V7 is None:
             print "Need to supply a float value for V7."
-            bad_input = True   
+            bad_input = True
+    elif opt.facility == 'gun-tunnel':
+        if opt.p0 is None:
+           print "Need to supply a float value for p0."
+           bad_input = True
+        if opt.T0 is None:
+           print "Need to supply a float value for T0."
+           bad_input = True    
     if bad_input:
         return -2
     #
@@ -227,13 +241,21 @@ def main():
     if opt.facility == 'reflected-shock-tunnel':
         paramDict['T1'] = opt.T1; paramDict['p1'] = opt.p1; paramDict['Vs'] = opt.Vs 
         paramDict['pe'] = opt.pe
-        # need to set the expansion tube parameters to nothing for the substitution
-        paramDict['T7'] = None; paramDict['p7'] = None; paramDict['V7'] = None 
+        # need to set the expansion tube and gun tunnel parameters to nothing for the substitution
+        paramDict['T7'] = None; paramDict['p7'] = None; paramDict['V7'] = None
+        paramDict['T0'] = None; paramDict['p0'] = None
     elif opt.facility == 'expansion-tube':
         paramDict['T7'] = opt.T7; paramDict['p7'] = opt.p7; paramDict['V7'] = opt.V7
-        # need to set the reflected shock tunnel parameters to nothing for the substitution
+        # need to set the reflected shock tunnel and gun tunnel parameters to nothing for the substitution
+        paramDict['T1'] = None; paramDict['p1'] = None; paramDict['Vs'] = None 
+        paramDict['pe'] = None; paramDict['T0'] = None; paramDict['p0'] = None
+    elif opt.facility == 'gun-tunnel':
+        paramDict['T0'] = opt.T0; paramDict['p0'] = opt.p0
+        # need to set the reflected shock tunnel and expansion tube parameters to nothing for the substition
         paramDict['T1'] = None; paramDict['p1'] = None; paramDict['Vs'] = None 
         paramDict['pe'] = None
+        paramDict['T7'] = None; paramDict['p7'] = None; paramDict['V7'] = None
+        
     prepare_input_script(paramDict, opt.jobName)
     # Run the simulation code.
     if opt.blockMarching:

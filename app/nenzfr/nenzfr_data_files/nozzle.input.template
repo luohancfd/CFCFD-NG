@@ -39,10 +39,12 @@
 # Chris James, May-2013
 # - nozzle input template adapted to include an expansion tube mode as very
 #   as the original reflected shock tunnel mode.
+# - also modified to accomodate the oxford gun tunnel used by Matt McGilvray
 #
 #---------------------------------------------------------------------
 import string, fileinput
 from estcj import reflected_shock_tube_calculation as rstc
+from cfpylib.gasdyn.gas_flow import expansion_to_throat_calculation as ettc
 from cfpylib.gasdyn.cea2_gas import Gas, make_gas_from_name
 from operator import indexOf
 from cfpylib.nm.zero_solvers import secant
@@ -95,16 +97,19 @@ if $facility == 'reflected-shock-tunnel':
     estc_result = rstc($gasName, $p1, $T1, $Vs, $pe, None, area_ratio=$areaRatio, task='stn')
     throat = estc_result['state6']
     throat_V = estc_result['V6']
-    print "Flow velocity at nozzle throat = {0} m/s.".format(throat_V)
-    print "Flow condition at nozzle throat:"
-    throat.write_state(sys.stdout)
 elif $facility == 'expansion-tube':
     throat = make_gas_from_name($gasName)
     throat.set_pT($p7,$T7)
     throat_V = $V7
-    print "Flow velocity at nozzle throat = {0} m/s.".format(throat_V)
-    print "Flow condition at nozzle throat:"
-    throat.write_state(sys.stdout)  
+elif $facility == 'gun-tunnel':
+    stagnated_state = make_gas_from_name($gasName)
+    estc_result = ettc(stagnated_state, $p0, $T0)
+    throat = estc_result['state6']
+    throat_V = estc_result['V6']
+
+print "Flow velocity at nozzle throat = {0} m/s.".format(throat_V)
+print "Flow condition at nozzle throat:"
+throat.write_state(sys.stdout)  
 
 # Estimate turbulence quantities for free stream by specifying 
 # the intensity as 0.05 and estimating the turbulence viscosity 
