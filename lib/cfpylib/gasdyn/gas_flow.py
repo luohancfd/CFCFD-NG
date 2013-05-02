@@ -6,6 +6,8 @@ gas_flow.py -- Gas flow calculations using CEA2 or ideal Gas objects.
 
 .. Version:
    26-Feb-2012 : functions moved out of estcj.py to this module.
+   02-May-2013" added more expansion_to_throat_calculation function from
+       Matt McGilvray's gun tunnel version of nenzfr. -Chris James
 """
 
 import sys, math, numpy
@@ -276,6 +278,46 @@ def expand_from_stagnation(p_over_p0, state0):
     H = state0.e + state0.p/state0.rho  # stagnation enthalpy
     V = math.sqrt(2.0*(H-h))
     return new_state, V
+    
+def expansion_to_throat_calculation(state1, p0, T0, PRINT_STATUS = 1):
+    """
+    Given a starting state and stagnation pressure and temperature (p0 and T0)
+    find the throat conditions.
+    
+    A more generalised version of a function written by Matt McGilvray for his
+    gun tunnel version of nenzfr.
+    
+    :param state1: starting gas object
+    :param p0: stagnation pressure (in Pa)
+    :param T0: stagnation temperature (in K)
+    :param PRINT_STATUS: tells the program to print or not, turned on by default
+    :returns: a dictionary including state start, enthalpy, throat state,
+        throat velocity, and throat mass flux.
+    
+    """
+    if PRINT_STATUS: print 'Write stagnation conditions.'
+    state1.set_pT(p0, T0)
+    H1 = state1.u + state1.p/state1.rho
+    result = {'state1':state1, 'H1':H1}
+    if PRINT_STATUS: print 'print state1.s =', state1.s
+    #
+    if PRINT_STATUS: print 'Start isentropic relaxation to throat (Mach 1)'
+    def error_at_throat(x, s1s=state1):
+        "Returns Mach number error as pressure is changed."
+        state, V = expand_from_stagnation(x, s1s)
+        return (V/state.a) - 1.0
+    x6 = secant(error_at_throat, 0.95, 0.90, tol=1.0e-4)
+    if x6 == 'FAIL':
+        print "Failed to find throat conditions iteratively."
+        x6 = 1.0
+    state6, V6 = expand_from_stagnation(x6, state1)
+    mflux6 = state6.rho * V6  # mass flux per unit area, at throat
+    result['state6'] = state6
+    result['V6'] = V6
+    result['mflux6'] = mflux6
+    print 'M6 =', V6/state6.a, ', V6 =', V6, 'm/s and a6 =', state6.a, 'm/s'
+    #
+    return result
 
 
 def total_condition(state1, V1):
