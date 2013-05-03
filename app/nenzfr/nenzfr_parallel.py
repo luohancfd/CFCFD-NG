@@ -18,7 +18,7 @@ if restart not in ["yes"]:
 
 #---------------------------------------------------------------
 
-def run_in_block_marching_mode(opt, gmodelFile):
+def run_in_block_marching_mode(cfg, gmodelFile):
     """
     Run nenzfr in multi-block space-marching mode.
     """
@@ -27,9 +27,9 @@ def run_in_block_marching_mode(opt, gmodelFile):
     print "-------------------------------------------"
     #
     print "Set a few overall parameters"
-    jobName = opt.jobName
+    jobName = cfg['jobName']
     # Assume that the number of blocks per set is the number of radial blocks.
-    blksPerColumn = opt.nbj
+    blksPerColumn = cfg['nbj']
     # Set up mpirun parameters.
     MPI_PARAMS = "mpirun -np " + str(2 * blksPerColumn) + " "
     # For the multi-block space-marching mode, we initialise the starting
@@ -53,7 +53,7 @@ def run_in_block_marching_mode(opt, gmodelFile):
     else:
         raise RuntimeError("Mismatch in total number of blocks and number of blocks per column.")
     # Compute the maximum run time for each Eilmer3 run.
-    maxRunTime = opt.max_time / noOfEilmer3Runs
+    maxRunTime = cfg['max_time'] / noOfEilmer3Runs
     #
     if restart not in ["yes"]:
         print "Set up the master copy of the blocks and files."

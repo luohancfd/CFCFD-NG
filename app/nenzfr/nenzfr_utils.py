@@ -29,6 +29,10 @@ def run_command(cmdText):
     """
     Run the command as a subprocess.
     """
+    
+    # Flush before using subprocess to ensure output is in the right order.
+    sys.stdout.flush()    
+    
     if (type(cmdText) is list):
         args = cmdText
     else:
@@ -38,7 +42,7 @@ def run_command(cmdText):
     # wait until the subprocess is finished
     # stdoutData, stderrData = p.communicate()
     return subprocess.check_call(args)
-
+    
 def quote(str):
     """
     Put quotes around a string.
