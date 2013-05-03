@@ -788,16 +788,18 @@ This is done once per time step, before evaluating the fluxes.:
 * SUPER_CATALYTIC: The wall causes the gas to rcombine to freestream values.
 """
 
-wc_bcNames = ['non-catalytic', 'equil-catalytic', 'super-catalytic' ]
+wc_bcNames = ['non-catalytic', 'equil-catalytic', 'super-catalytic', 'partially-catalytic' ]
 
-NON_CATALYTIC        = 21
-EQUIL_CATALYTIC      = 22
-SUPER_CATALYTIC      = 23
+NON_CATALYTIC        = 22
+EQUIL_CATALYTIC      = 23
+SUPER_CATALYTIC      = 24
+PARTIALLY_CATALYTIC  = 25
 
 wc_bcIndexFromName = {
-    21: NON_CATALYTIC, "21": NON_CATALYTIC, "NON_CATALYTIC": NON_CATALYTIC,
-    22: EQUIL_CATALYTIC, "22": EQUIL_CATALYTIC, "EQUIL_CATALYTIC": EQUIL_CATALYTIC,
-    23: SUPER_CATALYTIC, "23": SUPER_CATALYTIC, "SUPER_CATALYTIC": SUPER_CATALYTIC
+    22: NON_CATALYTIC, "22": NON_CATALYTIC, "NON_CATALYTIC": NON_CATALYTIC,
+    23: EQUIL_CATALYTIC, "23": EQUIL_CATALYTIC, "EQUIL_CATALYTIC": EQUIL_CATALYTIC,
+    24: SUPER_CATALYTIC, "24": SUPER_CATALYTIC, "SUPER_CATALYTIC": SUPER_CATALYTIC,
+    25: PARTIALLY_CATALYTIC, "25": PARTIALLY_CATALYTIC, "PARTIALLY_CATALYTIC": PARTIALLY_CATALYTIC
     }
 
 import copy
@@ -852,9 +854,26 @@ class NonCatalyticWBC(WallCatalycityBoundaryCondition):
     def __copy__(self):
         return NonCatalyticWBC(label=self.label)
 
-#
-# PartiallyCatalyticWBC() --- NOT IMPLEMENTED
-#
+
+class PartiallyCatalyticWBC(WallCatalycityBoundaryCondition):
+    """
+    A partially catalytic wall boundary condition sets the chemical composition
+    at the wall corresponding to a finite rate recombination coefficient, and a
+    set of finite-rate reactions. The local temperature is fixed at the wall
+    temperature and this should be used to evaluate the rate constant for the
+    specified set of chemical reactions at the wall. These reactions can be set
+    in a lua file, similar to setting the reactions for the overall flowfield.
+    """
+    def __init__(self, input_file, label=""):
+        WallCatalycityBoundaryCondition.__init__(self, type_of_WCBC=PARTIALLY_CATALYTIC,
+                                                 input_file=input_file, label=label)
+        return
+    def __str__(self):
+        return "PartiallyCatalyticWBC(input_file=\"%s\", label=\"%s\")" % \
+            (self.input_file, self.label)
+    def __copy__(self):
+        return PartiallyCatalyticWBC(self.input_file,self.label)
+
 
 class EquilCatalyticWBC(WallCatalycityBoundaryCondition):
     """

@@ -957,6 +957,9 @@ BoundaryCondition *create_BC( Block *bdp, int which_boundary, int type_of_BC,
     else if ( wc_bc == SUPER_CATALYTIC ) {
     	newBC->cw = new SuperCatalyticWallBC( f_wall );
     }
+    else if (wc_bc == PARTIALLY_CATALYTIC ) {
+        	newBC->cw = new PartiallyCatalyticWallBC( wcbc_fname );
+        }
     else {
     	cerr << "create_BC() error: wc_bc " << wc_bc << " not available." << endl
     	     << "Bailing out!" << endl;

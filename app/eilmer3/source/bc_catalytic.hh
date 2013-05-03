@@ -1,6 +1,8 @@
 // bc_catalytic.hh
 // FIX-ME Haven't put in default-constructors and copy-assignment operators. PJ 10-Mar-2013
 
+#include "../../../lib/gas/kinetics/reaction-update.hh"
+
 const size_t MAX_EQ_WC_TABLE_ENTRIES = 100;
 
 //-----------------------------------------------------------------
@@ -27,6 +29,22 @@ public:
     
 private:
     std::vector<double> massf_wall;
+};
+
+class PartiallyCatalyticWallBC : public CatalyticWallBC {
+
+public:
+    PartiallyCatalyticWallBC( std::string input_file );
+    PartiallyCatalyticWallBC( PartiallyCatalyticWallBC &cw );
+    ~PartiallyCatalyticWallBC();
+
+    int apply( Gas_data &Q, std::vector<double> &massf );
+
+public:
+    Gas_model * gmodel;
+    Reaction_update * rupdate_wc;
+    double dt;
+
 };
 
 class EquilibriumCatalyticWallBC : public CatalyticWallBC {

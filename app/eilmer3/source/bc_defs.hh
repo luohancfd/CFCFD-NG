@@ -73,9 +73,10 @@ const int SPECIAL = -1;
  * \endverbatim
  **/
 
-const int NON_CATALYTIC = 21;
-const int EQUIL_CATALYTIC = 22;
-const int SUPER_CATALYTIC = 23;
+const int NON_CATALYTIC = 22;
+const int EQUIL_CATALYTIC = 23;
+const int SUPER_CATALYTIC = 24;
+const int PARTIALLY_CATALYTIC = 25;
 
 /* Before leaving, leave a mark... */
 #define BC_DEFS_HH

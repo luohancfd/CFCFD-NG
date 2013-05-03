@@ -14,6 +14,7 @@
 
 #include "bc.hh"
 #include "bc_catalytic.hh"
+#include "../../../lib/gas/kinetics/reaction-update.hh"
 
 CatalyticWallBC::CatalyticWallBC( int type_code )
 : type_code( type_code ) {}
@@ -50,6 +51,40 @@ apply( Gas_data &Q, vector<double> &massf )
     }
     
     return SUCCESS;
+}
+
+PartiallyCatalyticWallBC::PartiallyCatalyticWallBC( string input_file )
+: CatalyticWallBC( PARTIALLY_CATALYTIC )
+{
+	    gmodel = get_gas_model_ptr();
+	    rupdate_wc = create_Reaction_update(input_file, *gmodel);
+}
+
+PartiallyCatalyticWallBC::PartiallyCatalyticWallBC( PartiallyCatalyticWallBC &cw )
+: CatalyticWallBC( PARTIALLY_CATALYTIC ) {}
+
+PartiallyCatalyticWallBC::~PartiallyCatalyticWallBC()
+{
+    delete rupdate_wc;
+}
+
+int
+PartiallyCatalyticWallBC::
+apply( Gas_data &Q, vector<double> &massf )
+{
+       Gas_data Q_copy(Q);
+       global_data &G = *get_global_data_ptr();
+       double dt = G.dt_global;
+
+       double dt_suggest;
+
+        int flag = rupdate_wc->update_state(Q_copy, dt, dt_suggest, gmodel);
+        gmodel->eval_thermo_state_rhoe(Q_copy);
+
+        // Species densities: mass of species isp per unit volume.
+        for ( size_t isp = 0; isp < Q_copy.massf.size(); ++isp )
+            massf[isp] = Q_copy.massf[isp];
+        return flag;
 }
 
 EquilibriumCatalyticWallBC::EquilibriumCatalyticWallBC( string fname )
