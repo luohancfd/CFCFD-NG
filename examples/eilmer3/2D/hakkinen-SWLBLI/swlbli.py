@@ -20,12 +20,14 @@ alpha = 3.09*math.pi/180.0 # angle of inviscid shock generator
 tan_alpha = math.tan(alpha)
 a0 = Vector(-L1, 0.0); a1 = a0+Vector(0.0,H1) # leading edge of shock generator
 b0 = Vector(0.0, 0.0); b1 = b0+Vector(0.0,H1-L1*tan_alpha) # start plate
-c0 = Vector(L3, 0.0); c1 = c0+Vector(0.0,H1-(L1+L2)*tan_alpha) # end shock generator
+c0 = Vector(L3, 0.0); c1 = c0+Vector(0.0,H1-(L1+L3)*tan_alpha) # end shock generator
 d0 = Vector(L2, 0.0); d1 = d0+Vector(0.0,H1) # end plate
 
 # The following lists are in order [N, E, S, W]
 rcf = RobertsClusterFunction(1,1,1.1)
 ni0 = 20; nj0 = 80 # We'll scale discretization off these values
+factor = 4
+ni0 *= factor; nj0 *= factor
 
 inlet = SuperBlock2D(CoonsPatch(a0,b0,b1,a1),
                      nni=ni0, nnj=nj0, nbi=1, nbj=2,

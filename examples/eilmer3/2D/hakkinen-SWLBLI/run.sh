@@ -1,6 +1,9 @@
 #! /bin/bash
 # run.sh
-time mpirun -np 4 e3mpi.exe --job=swlbli --mpimap=swlbli.mpimap --run > run.transcript
+module load openmpi-x86_64
+date
+mpirun -np 4 e3mpi.exe --job=swlbli --mpimap=swlbli.mpimap --run > run.transcript
+date
 
 echo "At this point, we should have a flow solution"
 echo "Use post.sh next"
