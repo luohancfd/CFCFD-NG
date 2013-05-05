@@ -79,19 +79,16 @@ Thermal_energy_mode( string name, vector<Chemical_species*> &species, lua_State 
 		    components_.push_back(M);
 		    // FIXME: Remove after testing
 		    cout << X->get_name() << "-" << M->get_type() << ", ";
+		    sp_idx_.push_back(M->get_isp());
 		}
 	    }
 	}
 	cout << " } " << endl;
     }
-    
-    // Add enthalpies of formation to translation mode
-    //    if ( iT_ == 0 ) {
-    //	for ( size_t isp = 0; isp < species.size(); ++isp ) {
-    //	    Chemical_species *X = species[isp];
-    //	    components_.push_back(new Energy_of_formation(isp, X->get_R(), DEFAULT_MIN_MASS_FRACTION, X->get_h_f()));
-    //	}
-    //    }
+    // Convert sp_idx vector to a set to remove duplicate entries
+    set<int> sp_idx2(sp_idx_.begin(), sp_idx_.end());
+    // Assign set back to vector
+    sp_idx_.assign(sp_idx2.begin(), sp_idx2.end());
 
 }
 
