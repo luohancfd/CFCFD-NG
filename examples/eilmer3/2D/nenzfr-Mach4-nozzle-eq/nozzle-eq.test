@@ -10,8 +10,7 @@ namespace import ::tcltest::*
 configure -verbose {start body error}
 
 test nenzfr {Prepare and run nenzfr.} -body {
-    exec nenzfr.py --gas=air --T1=300 --p1=125.0e3 --Vs=2414 --pe=34.376e6 --area=27.0 --cfile=contour-t4-m4.data \
-                   --nni=600 --nnj=40 --by=1.02 --nbi=60 --max-time=1.0e-3  > LOGFILE_MAIN
+    exec nenzfr.py --config_file=nenzfr-Mach4-nozzle-eq.cfg  > LOGFILE_MAIN
 } -result {} -returnCodes {0}
 
 proc is_within_tolerance {v v_ref tol} {
