@@ -36,7 +36,7 @@ sys.path.append(E3BIN)
 from nenzfr_utils import prepare_input_script, run_command, quote, \
                          read_gmodelFile_from_config
 from nenzfr_stats import *
-from nenzfr_parallel_with_cfg import run_in_block_marching_mode, read_block_dims
+from nenzfr_parallel import run_in_block_marching_mode, read_block_dims
 from nenzfr_input_utils import input_checker
 
 #---------------------------------------------------------------
