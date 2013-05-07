@@ -9,6 +9,14 @@ Chris James (c.james4@uq.edu.au) - 07/05/13
 
 """
 
+from cfpylib.gasdyn.cea2_gas import Gas, make_gas_from_name
+from cfpylib.gasdyn.gas_flow import *
+from cfpylib.gasdyn.ideal_gas_flow import p0_p, pitot_p
+
+import cfpylib.gasdyn.ideal_gas as pg
+
+PRINT_STATUS = 1 #if print status is 1, some basic printouts are done
+
 def is_valid(command,valid_commands):
     """Prompts the user for a valid command, and only returns a valid command.
 
@@ -161,14 +169,14 @@ def input_checker(cfg):
         print "shock_over_model switch not set, so we'll leave it turned off."
         cfg['shock_over_model'] = False
         
-    if cfg['secondary'] and 'shock_tube_expansion_steps' not in cfg:
+    if cfg['secondary'] and 'secondary_driver_expansion_steps' not in cfg:
         #if they don't specify amount of steps for the unsteady expansion, give them one
-        cfg['secondary_driver_expansion_steps'] = 200
+        cfg['secondary_driver_expansion_steps'] = 300
         print "Number of steps for secondary unsteady expansion not selected. {0} steps chosen.".format(cfg['secondary_driver_expansion_steps'])       
     
     if 'shock_tube_expansion_steps' not in cfg:
         #if they don't specify amount of steps for the unsteady expansion, give them one
-        cfg['shock_tube_expansion_steps'] = 200
+        cfg['shock_tube_expansion_steps'] = 300
         print "Number of steps for shock tube unsteady expansion not selected. {0} steps chosen.".format(cfg['shock_tube_expansion_steps'])
 
     

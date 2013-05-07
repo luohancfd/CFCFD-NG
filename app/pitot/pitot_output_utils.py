@@ -8,6 +8,18 @@ display and print its output.
 Chris James (c.james4@uq.edu.au) - 07/05/13 
 
 """
+
+from cfpylib.nm.zero_solvers import secant
+# We base our calculation of gas properties upon calls to the NASA Glenn CEA code.
+from cfpylib.gasdyn.cea2_gas import Gas, make_gas_from_name
+from cfpylib.gasdyn.gas_flow import *
+from cfpylib.gasdyn.ideal_gas_flow import p0_p, pitot_p
+
+#to do some perfect gas stuff
+
+import cfpylib.gasdyn.ideal_gas as pg
+
+PRINT_STATUS = 1 #if print status is 1, some basic printouts are done
         
 def txt_file_output(cfg, states, V, M):
     """Function that prints the txt output to screen and to a txt file.
@@ -18,9 +30,9 @@ def txt_file_output(cfg, states, V, M):
                 
     print " "
     if cfg['tunnel_mode'] == 'expansion-tube':
-        version_printout = "Pitot Version: {0} doing an expansion tube calculation".format(VERSION_STRING)
+        version_printout = "Pitot Version: {0} doing an expansion tube calculation".format(cfg['VERSION_STRING'])
     elif cfg['tunnel_mode'] == 'nr-shock-tunnel':
-        version_printout = "Pitot Version: {0} doing a non-reflected shock tunnel calculation".format(VERSION_STRING)
+        version_printout = "Pitot Version: {0} doing a non-reflected shock tunnel calculation".format(cfg['VERSION_STRING'])
     print version_printout
     txt_output.write(version_printout + '\n')
     
@@ -74,7 +86,7 @@ def txt_file_output(cfg, states, V, M):
     txt_output.write(facility_used + '\n')
     if cfg['solver'] == 'eq':
         test_gas_used = 'Test gas is {0} (gamma = {1}, R = {2}, {3}).'.format(cfg['test_gas'],states['s1'].gam,states['s1'].R,states['s1'].reactants)
-    elif cfg['solver'] == 'pg' or solver == 'pg-eq':
+    elif cfg['solver'] == 'pg' or cfg['solver'] == 'pg-eq':
         test_gas_used = 'Test gas is {0} (gamma = {1}, R = {2}).'.format(cfg['test_gas'],states['s1'].gam,states['s1'].R)
     print test_gas_used
     txt_output.write(test_gas_used + '\n')  
@@ -304,9 +316,9 @@ def csv_file_output(cfg, states, V, M):
     csv_output = open(cfg['filename']+'.csv',"w")  #csv_output file creation
     
     if cfg['tunnel_mode'] == 'expansion-tube':
-        csv_version_printout = "Pitot Version,{0},expansion-tube mode".format(VERSION_STRING)
+        csv_version_printout = "Pitot Version,{0},expansion-tube mode".format(cfg['VERSION_STRING'])
     elif cfg['tunnel_mode'] == 'nr-shock-tunnel':
-        csv_version_printout = "Pitot Version,{0},nr-shock-tunnel mode".format(VERSION_STRING) 
+        csv_version_printout = "Pitot Version,{0},nr-shock-tunnel mode".format(cfg['VERSION_STRING']) 
     csv_output.write(csv_version_printout + '\n')
     
     if cfg['solver'] == 'eq':
