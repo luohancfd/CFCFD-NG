@@ -172,19 +172,35 @@ def input_checker(cfg):
     if cfg['secondary'] and 'secondary_driver_expansion_steps' not in cfg:
         #if they don't specify amount of steps for the unsteady expansion, give them one
         cfg['secondary_driver_expansion_steps'] = 300
-        print "Number of steps for secondary unsteady expansion not selected. {0} steps chosen.".format(cfg['secondary_driver_expansion_steps'])       
+        print "Number of steps for secondary driver unsteady expansion not selected. {0} steps chosen.".format(cfg['secondary_driver_expansion_steps'])       
+    elif cfg['secondary'] and 'secondary_driver_expansion_steps' in cfg: 
+        # check that the chosen value is an integer and fix it if not
+        if not isinstance(cfg['secondary_driver_expansion_steps'], int):
+            cfg['secondary_driver_expansion_steps'] = int(cfg['secondary_driver_expansion_steps'])
+            print "Number of steps for secondary driver unsteady expansion not an integer."
+            print "Making it one. New value is {0}".format(cfg['secondary_driver_expansion_steps'])
     
     if 'shock_tube_expansion_steps' not in cfg:
         #if they don't specify amount of steps for the unsteady expansion, give them one
         cfg['shock_tube_expansion_steps'] = 300
         print "Number of steps for shock tube unsteady expansion not selected. {0} steps chosen.".format(cfg['shock_tube_expansion_steps'])
-
+    else: # check that the chosen value is an integer and fix it if not
+        if not isinstance(cfg['shock_tube_expansion_steps'], int):
+            cfg['shock_tube_expansion_steps'] = int(cfg['shock_tube_expansion_steps'])
+            print "Number of steps for shock tube unsteady expansion not an integer."
+            print "Making it one. New value is {0}".format(cfg['shock_tube_expansion_steps'])
     
     if cfg['tunnel_mode'] == 'expansion-tube' and 'acc_tube_expansion_steps' not in cfg:
         #if they don't specify amount of steps for the unsteady expansion, give them one
         cfg['acc_tube_expansion_steps'] = 1000
         print "Number of steps for acceleration tube unsteady expansion not selected. {0} steps chosen.".format(cfg['acc_tube_expansion_steps'])
-    
+    elif cfg['tunnel_mode'] == 'expansion-tube' and 'acc_tube_expansion_steps' in cfg:
+        # check that the chosen value is an integer and fix it if not
+        if not isinstance(cfg['acc_tube_expansion_steps'], int):
+            cfg['acc_tube_expansion_steps'] = int(cfg['acc_tube_expansion_steps'])  
+            print "Number of steps for acceleration unsteady expansion not an integer."
+            print "Making it one. New value is {0}".format(cfg['acc_tube_expansion_steps'])
+            
     if cfg['test'] == 'fulltheory-shock' and 'p1' in cfg: #if they specify both pressures and shock speeds, bail out
         print "You need to choose only shock speeds to solve this test case. Bailing out here."
         cfg['bad_input'] = True
