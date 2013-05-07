@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-
 """
 pitot.py: Equilibrium expansion tube simulator
 
