@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
+
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
@@ -12,13 +13,13 @@
    height="1052.3622047"
    id="svg2"
    sodipodi:version="0.32"
-   inkscape:version="0.46"
-   sodipodi:docbase="/home/peterj/cfcfd2/examples/elmer2/user-guide/figs"
+   inkscape:version="0.48.3.1 r9886"
    sodipodi:docname="running-sim.svg"
    inkscape:export-filename="/home/peterj/cfcfd2/examples/eilmer3/user-guide/figs/running-sim.png"
    inkscape:export-xdpi="300"
    inkscape:export-ydpi="300"
-   inkscape:output_extension="org.inkscape.output.svg.inkscape">
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   version="1.1">
   <defs
      id="defs4">
     <inkscape:perspective
@@ -84,12 +85,13 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      inkscape:window-width="1018"
-     inkscape:window-height="722"
-     inkscape:window-x="417"
-     inkscape:window-y="148"
+     inkscape:window-height="716"
+     inkscape:window-x="342"
+     inkscape:window-y="0"
      showgrid="true"
      showguides="true"
-     inkscape:guide-bbox="true" />
+     inkscape:guide-bbox="true"
+     inkscape:window-maximized="0" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -308,7 +310,7 @@
          y="575.49451">job.flow.b0001.t0002</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:112.99999952%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Lucida Sans"
+       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:112.99999952%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Lucida Sans"
        x="547.22229"
        y="655.71735"
        id="text3062"
@@ -316,10 +318,10 @@
          sodipodi:role="line"
          id="tspan3096"
          x="547.22229"
-         y="655.71735">job.flow.b0000.t9999</tspan></text>
+         y="655.71735">job.flow.b0000.t0003</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:112.99999952%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Lucida Sans"
+       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:112.99999952%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Lucida Sans"
        x="547.22229"
        y="676.73651"
        id="text3066"
@@ -327,7 +329,7 @@
          sodipodi:role="line"
          id="tspan4912"
          x="547.22229"
-         y="676.73651">job.flow.b0001.t9999</tspan></text>
+         y="676.73651">job.flow.b0001.t0003</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:112.99999952%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Courier"
@@ -624,14 +626,16 @@
          id="tspan2528">./flow/t0002/</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:104%;writing-mode:lr;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans;-inkscape-font-specification:Sans"
+       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:103.99999619%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
        x="541.64734"
        y="630.67004"
        id="text2506"
        sodipodi:linespacing="104%"
        inkscape:transform-center-x="4.3330545"><tspan
          sodipodi:role="line"
-         id="tspan2530">./flow/t9999/</tspan></text>
+         id="tspan2530"
+         x="541.64734"
+         y="630.67004">./flow/t0003/</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:104%;writing-mode:lr;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans;-inkscape-font-specification:Sans"

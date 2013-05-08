@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
+
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
@@ -12,13 +13,13 @@
    height="1052.3622047"
    id="svg2"
    sodipodi:version="0.32"
-   inkscape:version="0.46"
-   sodipodi:docbase="/home/peterj/cfcfd2/examples/elmer2/user-guide/figs"
+   inkscape:version="0.48.3.1 r9886"
    sodipodi:docname="post-process.svg"
    inkscape:export-filename="/home/peterj/cfcfd2/examples/eilmer3/user-guide/figs/post-process.png"
    inkscape:export-xdpi="300"
    inkscape:export-ydpi="300"
-   inkscape:output_extension="org.inkscape.output.svg.inkscape">
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   version="1.1">
   <defs
      id="defs4">
     <inkscape:perspective
@@ -84,10 +85,11 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      inkscape:window-width="1018"
-     inkscape:window-height="726"
+     inkscape:window-height="716"
      inkscape:window-x="19"
-     inkscape:window-y="77"
-     showgrid="false">
+     inkscape:window-y="0"
+     showgrid="false"
+     inkscape:window-maximized="0">
     <inkscape:grid
        type="xygrid"
        id="grid2483" />
@@ -356,7 +358,7 @@
          y="606.24884">job.flow.b0001.t0002</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:112.99999952%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Lucida Sans"
+       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:112.99999952%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Lucida Sans"
        x="27.591824"
        y="681.33795"
        id="text3062"
@@ -364,10 +366,10 @@
          sodipodi:role="line"
          id="tspan3096"
          x="27.591824"
-         y="681.33795">job.flow.b0000.t9999</tspan></text>
+         y="681.33795">job.flow.b0000.t0003</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:112.99999952%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Lucida Sans"
+       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:112.99999952%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Lucida Sans"
        x="27.59182"
        y="702.07593"
        id="text3066"
@@ -375,7 +377,7 @@
          sodipodi:role="line"
          id="tspan4912"
          x="27.59182"
-         y="702.07593">job.flow.b0001.t9999</tspan></text>
+         y="702.07593">job.flow.b0001.t0003</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:112.99999952%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Courier"
@@ -435,7 +437,7 @@
          y="510.70587">job.t0001.pvtu</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:112.99999952%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Lucida Sans"
+       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:112.99999952%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Lucida Sans"
        x="518.25433"
        y="554.02307"
        id="text2924"
@@ -443,10 +445,10 @@
          sodipodi:role="line"
          id="tspan2926"
          x="518.25433"
-         y="554.02307">job.b0000.t9999.vtu</tspan></text>
+         y="554.02307">job.b0000.t0002.vtu</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:112.99999952%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Lucida Sans"
+       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:112.99999952%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Lucida Sans"
        x="518.25433"
        y="574.02307"
        id="text2928"
@@ -454,10 +456,10 @@
          sodipodi:role="line"
          id="tspan2930"
          x="518.25433"
-         y="574.02307">job.b0001.t9999.vtu</tspan></text>
+         y="574.02307">job.b0001.t0002.vtu</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:112.99999952%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Lucida Sans"
+       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:112.99999952%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Lucida Sans"
        x="517.38641"
        y="595.00623"
        id="text2932"
@@ -465,7 +467,7 @@
          sodipodi:role="line"
          id="tspan2934"
          x="517.38641"
-         y="595.00623">job.t9999.pvtu</tspan></text>
+         y="595.00623">job.t0002.pvtu</tspan></text>
     <path
        style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#000000;stroke-width:0.90351391;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 21.127271,564.98915 L 204.68299,564.98915 L 204.68299,642.39771 C 204.68299,642.39771 148.26854,642.39771 132.36652,642.39771 C 112.76424,642.39771 112.34649,633.48102 94.840417,633.48102 C 76.453722,633.48102 21.727255,633.21672 21.727255,633.21672 L 21.127271,564.98915 z"
@@ -505,13 +507,15 @@
          id="tspan2473">./flow/t0002/</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:113%;writing-mode:lr;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Lucida Sans"
+       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:112.99999952%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Lucida Sans"
        x="19.41309"
        y="656.81171"
        id="text2467"
        sodipodi:linespacing="113%"><tspan
          sodipodi:role="line"
-         id="tspan2471">./flow/t9999/</tspan></text>
+         id="tspan2471"
+         x="19.41309"
+         y="656.81171">./flow/t0003/</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:113%;writing-mode:lr;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
