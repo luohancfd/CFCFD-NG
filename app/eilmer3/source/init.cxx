@@ -31,6 +31,7 @@
 #include "init.hh"
 #include "diffusion.hh"
 #include "visc.hh"
+#include "flux_calc.hh"
 
 using namespace std;
 
@@ -382,12 +383,14 @@ int read_config_parameters(const string filename, bool master)
     }
 
     dict.parse_size_t("global_data", "max_invalid_cells", G.max_invalid_cells, 10);
-    dict.parse_string("global_data", "flux_calc", s_value, "riemann");
+    dict.parse_string("global_data", "flux_calc", s_value, "adaptive");
     set_flux_calculator(available_calculators[s_value]);
     dict.parse_double("global_data", "compression_tolerance", d_value, -0.30);
     set_compression_tolerance(d_value);
     dict.parse_double("global_data", "shear_tolerance", d_value, 0.20);
     set_shear_tolerance(d_value);
+    dict.parse_double("global_data", "M_inf", d_value, 0.01);
+    set_M_inf(d_value);
     dict.parse_string("global_data", "interpolation_type", s_value, "rhoe");
     set_thermo_interpolator( s_value );
     dict.parse_int("global_data", "apply_limiter_flag", i_value, 1);
@@ -399,6 +402,7 @@ int read_config_parameters(const string filename, bool master)
 	cout << "flux_calc = " << get_flux_calculator_name(get_flux_calculator()) << endl;
 	cout << "compression_tolerance = " << get_compression_tolerance() << endl;
 	cout << "shear_tolerance = " << get_shear_tolerance() << endl;
+	cout << "M_inf = " << get_M_inf() << endl;
 	cout << "interpolation_type = " << s_value << endl;
 	cout << "apply_limiter_flag = " << get_apply_limiter_flag() << endl;
 	cout << "extrema_clipping_flag = " << get_extrema_clipping_flag() << endl;

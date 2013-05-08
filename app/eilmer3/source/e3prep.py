@@ -321,15 +321,18 @@ class GlobalData(object):
       Select 2 for predictor-corrector stepping.
     * stringent_cfl: (0/1) Set to 1 to get a very strict CFL check.
     * flux_calc: (int or string) Specifies the form of flux calculation at cell interfaces.
-      See module flux_dict.py for options.
-    * interpolation_type: (string) Choose the set of thermo variables to use in interpolation.
-      options: "rhoe", "rhop", "rhoT", "pT", default "rhoe"
+      Options are "riemann", "ausm", "efm", "ausmdv", "adaptive", "ausm_plus_up" and "hlle".
+      default "adaptive"
     * compression_tolerance: (float) relative velocity change for the shock detector.
       This value is expected to be a negative number (for compression)
       and not too large in magnitude. default -0.30
     * shear_tolerance: (float) normalised tangential velocity change beyond which we
       we suppress the application of EFM in the ADAPTIVE flux calculator.
       default 0.20
+    * M_inf: characteristic free-stream Mach number for the ausm_plus_up flux
+      calculator.  default 0.01
+    * interpolation_type: (string) Choose the set of thermo variables to use in interpolation.
+      options: "rhoe", "rhop", "rhoT", "pT", default "rhoe"
     * apply_limiter_flag : (0/1) Set to 1 to have reconstruction limiter enabled (default)
        Set to 0 for no limiting
     * extrema_clipping_flag : (0/1) Set to 1 to allow clipping of extreme values in the 1D
@@ -407,7 +410,7 @@ class GlobalData(object):
                 'turbulence_model', 'max_mu_t_factor', 'transient_mu_t_factor', \
                 'turbulence_prandtl_number', 'turbulence_schmidt_number', \
                 'scalar_pdf_flag', 'reacting_flag', 'reaction_time_start', \
-                'x_order', 'flux_calc', 'compression_tolerance', 'shear_tolerance', \
+                'x_order', 'flux_calc', 'compression_tolerance', 'shear_tolerance', 'M_inf', \
                 't_order', 'gasdynamic_update_scheme', \
                 'stringent_cfl', 'shock_fitting_flag', 'dt_shock', \
                 'shock_fitting_decay_flag', 'shock_fitting_speed_factor', \
@@ -476,6 +479,7 @@ class GlobalData(object):
         self.flux_calc = "adaptive"
         self.compression_tolerance = -0.30
         self.shear_tolerance = 0.20
+        self.M_inf = 0.01
         self.t_order = None  # now deprecated
         self.gasdynamic_update_scheme = 'predictor-corrector'
         self.cfl = 0.5
@@ -621,6 +625,7 @@ class GlobalData(object):
         fp.write("flux_calc = %s\n" % self.flux_calc) # changed to string 2013-04-01
         fp.write("compression_tolerance = %e\n"% self.compression_tolerance)
         fp.write("shear_tolerance = %e\n"% self.shear_tolerance)
+        fp.write("M_inf = %e\n" % self.M_inf)
         fp.write("interpolation_type = %s\n" % self.interpolation_type)
         fp.write("apply_limiter_flag = %d\n" % self.apply_limiter_flag )
         fp.write("extrema_clipping_flag = %d\n" % self.extrema_clipping_flag )

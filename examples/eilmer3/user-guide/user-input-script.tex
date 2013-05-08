@@ -1563,7 +1563,31 @@ are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config 
 \paragraph{Flux calculator}
 \begin{itemize}
 \item \texttt{flux\_calc}: selects the flavour of the flux calculator, 
-  default value \texttt{ADAPTIVE}.
+  default value \verb!"adaptive"!. 
+  Options are:
+  \begin{itemize}
+   \item \verb!"riemann"!: An \textit{exact} flux calculator that iteratively solves the Riemann subproblem
+    and then constructs the fluxes from the hypothetical interface state.  It's expensive and doesn't behave
+    any better than the much cheaper AUSMDV scheme but it does have very little diffusion.  
+    The lack of diffusion can cause problems\,\cite{quirk_94a} and it is not recommended for use.
+   \item \verb!"ausm"!: A cheap, effective, but sometimes noisy scheme from Ref.\,\cite{liou_steffen_91b}.
+   \item \verb!"efm"!: A cheap and very diffusive scheme by Pullin and Macrossan\,\cite{pullin_80,macrossan_89}.
+    For most hypersonic flows, it is too diffusive to be used for the whole flow field 
+    but it does work very nicely in conjunction with AUSMDV, 
+    especially for example, in the shock layer of a blunt-body flow.
+   \item \verb!"ausmdv"! A good all-round scheme low-diffusion for supersonic flows.\cite{wada_liou_94a}.
+   \item \verb!"adaptive"! A blend\,\cite{quirk_94a} of the low-dissipation AUSMDV scheme 
+     for the regions away from shocks
+     with the much more diffusive EFM used for cell interfaces near shocks.  
+     It seems to work quite reliably for hypersonic flows that are a mix of very strong shocks with
+     mixed regions of subsomic and supersonic flow.
+     The blend is controlled by the parameters \verb!compression_tolerance! and \verb!shear_tolerance!
+     that are described below.
+   \item \verb!"ausm_plus_up"!: Implemented from Ref.\,\cite{liou_2006a}.
+     It should be accurate and robust for all speed regimes.  
+     It is the flux calculator of choice for very low Mach number flows.
+   \item \verb!"hlle"! The MHD version of the HLLE scheme.
+  \end{itemize}  
   The ADAPTIVE scheme is a good all-round scheme that uses AUSMDV away from
   shocks and EFM near shocks.
 \item \texttt{compression\_tolerance}: value of relative velocity change (normalised by local sound-speed)
@@ -1581,6 +1605,8 @@ are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config 
    in the stagnation region of bluff bodies.
    A smaller value (say, 0.05) may be needed to get strongly expanding flows to behave 
    when regions of shear are also present.
+\item \verb!M_inf!: representative Mach number for the free stream.
+   Used by the \verb!AUSM_FLUX_UP! flux calculator. The default value is 0.01.
 \end{itemize}
 
 \paragraph{Viscous effects}

@@ -47,7 +47,16 @@ const double SIGMA = 1.0;
 // Choose a value for M_INF that is good for low Mach numbers.
 // To be strictly correct, we should set this at run time
 // if an M_INF value is easily defined.
-const double M_INF = 0.01;
+double M_INF = 0.01;
+double set_M_inf(double M)
+{
+    M_INF = M;
+    return M_INF;
+}
+double get_M_inf()
+{
+    return M_INF;
+}
 
 /*------------------------------------------------------------*/
 

@@ -56,6 +56,8 @@ int ausmdv(FlowState &Lft, FlowState &Rght, FV_Interface &IFace);
 /* adaptive_flux.c */
 int adaptive_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace);
 /* ausm_plus_up.c */
+double set_M_inf(double M);
+double get_M_inf();
 int ausm_plus_up(FlowState &Lft, FlowState &Rght, FV_Interface &IFace);
 /* hlle.cxx */
 int hlle(FlowState &Lft, FlowState &Rght, FV_Interface &IFace);
