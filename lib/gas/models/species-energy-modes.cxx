@@ -42,7 +42,7 @@ One_level_electronic( int isp, double R, double min_massf, int g, double theta )
  
 double
 One_level_electronic::
-s_eval_energy_from_T( double T )
+s_eval_energy_from_T( double T, double A )
 {
     // Ref: Bottin, B. "Aerothermodynamic model of an Inductively-Coupled Plasma
     //                  Wind Tunnel" VKI PhD Thesis 1999, Eq. A.31
@@ -84,7 +84,7 @@ Two_level_electronic( int isp, double R, double min_massf, int g0,
  
 double
 Two_level_electronic::
-s_eval_energy_from_T( double T )
+s_eval_energy_from_T( double T, double A )
 {
     // Ref: Vincenti and Kruger (1975) Eq. 11.3 p 131
     double tmp = double(g1_)/double(g0_) * exp( - delta_theta_ / T );
@@ -132,7 +132,7 @@ Multi_level_electronic( int isp, double R, double min_massf,
  
 double
 Multi_level_electronic::
-s_eval_energy_from_T( double T )
+s_eval_energy_from_T( double T, double A )
 {
     // Ref: Bottin, B. "Aerothermodynamic model of an Inductively-Coupled Plasma
     //                  Wind Tunnel" VKI PhD Thesis 1999, Eq. A.31
@@ -398,14 +398,14 @@ Fully_excited_translation( int isp, double R, double min_massf )
 
 double
 Fully_excited_translation::
-s_eval_energy_from_T( double T )
+s_eval_energy_from_T( double T, double A )
 {
     return Cv_*T;
 }
 
 double
 Fully_excited_translation::
-s_eval_enthalpy_from_T( double T )
+s_eval_enthalpy_from_T( double T, double A )
 {
     return Cp_*T;
 }
@@ -488,7 +488,7 @@ Fully_excited_rotation( int isp, double R, double min_massf, double theta, int s
 
 double
 Fully_excited_rotation::
-s_eval_energy_from_T( double T  )
+s_eval_energy_from_T( double T, double A  )
 {
     return Cv_*T;
 }
@@ -529,7 +529,7 @@ Fully_excited_nonlinear_rotation( int isp, double R, double min_massf,
 
 double
 Fully_excited_nonlinear_rotation::
-s_eval_energy_from_T( double T  )
+s_eval_energy_from_T( double T, double A  )
 {
     return Cv_*T;
 }
@@ -758,7 +758,7 @@ Harmonic_vibration(  int isp, double R, double min_massf, double theta )
 
 double
 Harmonic_vibration::
-s_eval_energy_from_T( double T  )
+s_eval_energy_from_T( double T, double A  )
 {
     // Ref: Vincenti and Kruger (1975) Eq. 12.12 p 135
     return R_ * theta_ / ( exp( theta_ / T ) - 1.0 );
@@ -797,15 +797,18 @@ Truncated_harmonic_vibration(  int isp, double R, double min_massf, double theta
 
 double
 Truncated_harmonic_vibration::
-s_eval_energy_from_T( double T  )
+s_eval_energy_from_T( double T, double A  )
 {
     // Ref: Gollan, R.G. PhD Thesis June 2008
-    double exp_theta_D_T = exp( theta_D_ / T );
+    // NOTE: 'A', if positive, is the truncation temperature
+    double theta_lim = A;
+    if ( theta_lim < 0.0 ) theta_lim = theta_D_;
+    double exp_theta_D_T = exp( - theta_lim / T );
     if ( std::isnan(exp_theta_D_T) ) {
     	// use harmonic oscillator solution
     	return R_ * ( theta_ / ( exp( theta_ / T ) - 1.0 ) );
     }
-    return R_ * ( theta_ / ( exp( theta_ / T ) - 1.0 ) - theta_D_ / ( exp_theta_D_T - 1.0 ) );
+    return R_ * ( theta_ / ( exp( theta_ / T ) - 1.0 ) - theta_lim / ( exp_theta_D_T - 1.0 ) );
 }
 
 double
@@ -845,6 +848,7 @@ double
 Truncated_harmonic_vibration::
 s_eval_Q_from_T( double T, double A )
 {
+    // NOTE: 'A', if positive, is the truncation temperature
     double theta_lim = A;
     if ( theta_lim < 0.0 ) theta_lim = theta_D_;
     // Ref: DFP thesis
@@ -1080,7 +1084,7 @@ Diatom_electronic_level * Fully_coupled_diatom_internal::get_elev_pointer( int i
 
 double
 Fully_coupled_diatom_internal::
-s_eval_energy_from_T( double T  )
+s_eval_energy_from_T( double T, double A  )
 {
     // Loop over all rovibronic levels, sum up contributions from definition
     double E_weighted = 0.0;
@@ -1208,7 +1212,7 @@ Fully_coupled_diatom_internal::
 
 double
 Fully_coupled_diatom_internal::
-s_eval_energy_from_T( double T  )
+s_eval_energy_from_T( double T, double A  )
 {
     return e_LUT_->eval(T);
 }
@@ -1262,7 +1266,7 @@ Polyatom_electronic_level * Fully_coupled_polyatom_internal::get_elev_pointer( i
 
 double
 Fully_coupled_polyatom_internal::
-s_eval_energy_from_T( double T  )
+s_eval_energy_from_T( double T, double A  )
 {
     return 0.0;
 }

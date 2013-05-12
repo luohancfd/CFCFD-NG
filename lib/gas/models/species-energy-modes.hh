@@ -38,8 +38,8 @@ public:
     double eval_energy( const Gas_data &Q )
     { return s_eval_energy( Q ); }
     
-    double eval_energy_from_T( double T )
-    { return s_eval_energy_from_T( T ); }
+    double eval_energy_from_T( double T, double A=-1.0 )
+    { return s_eval_energy_from_T( T, A ); }
 
     double eval_weighted_enthalpy( const Gas_data &Q )
     { return Q.massf[isp_]*s_eval_enthalpy( Q ); }
@@ -47,8 +47,8 @@ public:
     double eval_enthalpy( const Gas_data &Q )
     { return s_eval_enthalpy( Q ); }
     
-    double eval_enthalpy_from_T( double T )
-    { return s_eval_enthalpy_from_T( T ); }
+    double eval_enthalpy_from_T( double T, double A=-1.0 )
+    { return s_eval_enthalpy_from_T( T, A ); }
 
     double eval_weighted_entropy( const Gas_data &Q )
     { return Q.massf[isp_]*s_eval_entropy(Q); }
@@ -91,9 +91,9 @@ protected:
     int iT_;
     
     virtual double s_eval_energy( const Gas_data &Q  ) = 0;
-    virtual double s_eval_energy_from_T( double T ) = 0;
+    virtual double s_eval_energy_from_T( double T, double A ) = 0;
     virtual double s_eval_enthalpy( const Gas_data &Q  ) = 0;
-    virtual double s_eval_enthalpy_from_T( double T ) = 0;
+    virtual double s_eval_enthalpy_from_T( double T, double A ) = 0;
     virtual double s_eval_entropy( const Gas_data &Q ) = 0;
     virtual double s_eval_entropy_from_T( double T ) = 0;
     virtual double s_eval_Cv( const Gas_data &Q  ) = 0;
@@ -117,7 +117,7 @@ protected:
     double theta_;
     
     double s_eval_enthalpy( const Gas_data &Q ) { return s_eval_energy(Q); }
-    double s_eval_enthalpy_from_T( double T ) { return s_eval_energy_from_T(T); }
+    double s_eval_enthalpy_from_T( double T, double A ) { return s_eval_energy_from_T(T,A); }
     double s_eval_Cp( const Gas_data &Q  ) { return s_eval_Cv(Q); }
     double s_eval_Cp_from_T( double T  ) { return s_eval_Cv_from_T(T); }
 };
@@ -130,8 +130,8 @@ public:
 private:
     int g_;
     
-    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_]); }
-    double s_eval_energy_from_T( double T );
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_],-1.0); }
+    double s_eval_energy_from_T( double T, double A );
     double s_eval_entropy( const Gas_data &Q  ) { return s_eval_entropy_from_T(Q.T[iT_]); }
     double s_eval_entropy_from_T( double T );
     double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
@@ -150,8 +150,8 @@ private:
     int g1_;
     double delta_theta_;
     
-    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_]); }
-    double s_eval_energy_from_T( double T );
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_],-1.0); }
+    double s_eval_energy_from_T( double T, double A );
     double s_eval_entropy( const Gas_data &Q  ) { return s_eval_entropy_from_T(Q.T[iT_]); }
     double s_eval_entropy_from_T( double T );
     double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
@@ -178,8 +178,8 @@ private:
     std::vector<int> g_vec_;
     std::vector<double> theta_vec_;
     
-    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_]); }
-    double s_eval_energy_from_T( double T );
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_],-1.0); }
+    double s_eval_energy_from_T( double T, double A );
     double s_eval_entropy( const Gas_data &Q ) { return s_eval_entropy_from_T(Q.T[iT_]); }
     double s_eval_entropy_from_T( double T );
     double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
@@ -212,7 +212,7 @@ private:
 
     double eval_total_internal_energy( double T_el, double T_vib, double T_rot );
     double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
-    double s_eval_energy_from_T( double T ) { return s_eval_energy_from_Ts(T,T,T); }
+    double s_eval_energy_from_T( double T, double A ) { return s_eval_energy_from_Ts(T,T,T); }
     double s_eval_energy_from_Ts( double T_el, double T_vib, double T_rot );
     double s_eval_entropy( const Gas_data &Q ) { return s_eval_entropy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
     double s_eval_entropy_from_T( double T ) { return s_eval_entropy_from_Ts(T,T,T); }
@@ -241,7 +241,7 @@ private:
     NoneqCoupledDiatomicLUT * Cv_LUT_;
 
     double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
-    double s_eval_energy_from_T( double T ) { return s_eval_energy_from_Ts(T,T,T); }
+    double s_eval_energy_from_T( double T, double A ) { return s_eval_energy_from_Ts(T,T,T); }
     double s_eval_energy_from_Ts( double T_el, double T_vib, double T_rot );
     double s_eval_entropy( const Gas_data &Q ) { return s_eval_entropy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
     double s_eval_entropy_from_T( double T ) { return s_eval_entropy_from_Ts(T,T,T); }
@@ -263,10 +263,10 @@ private:
     double Cp_;
     double entropy_constant_;
     
-    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_]); }
-    double s_eval_energy_from_T( double T );
-    double s_eval_enthalpy( const Gas_data &Q ) { return s_eval_enthalpy_from_T(Q.T[iT_]); }
-    double s_eval_enthalpy_from_T( double T );
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_],-1.0); }
+    double s_eval_energy_from_T( double T, double A );
+    double s_eval_enthalpy( const Gas_data &Q ) { return s_eval_enthalpy_from_T(Q.T[iT_],-1.0); }
+    double s_eval_enthalpy_from_T( double T, double A );
     double s_eval_entropy( const Gas_data &Q );
     double s_eval_entropy_from_T( double T );
     double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
@@ -288,7 +288,7 @@ protected:
     double theta_;
     
     double s_eval_enthalpy( const Gas_data &Q ) { return s_eval_energy(Q); }
-    double s_eval_enthalpy_from_T( double T ) { return s_eval_energy_from_T(T); }
+    double s_eval_enthalpy_from_T( double T, double A ) { return s_eval_energy_from_T(T,A); }
     double s_eval_Cp( const Gas_data &Q  ) { return s_eval_Cv(Q); }
     double s_eval_Cp_from_T( double T  ) { return s_eval_Cv_from_T(T); }
 };
@@ -303,8 +303,8 @@ private:
     double Cv_;
     int sigma_;
     
-    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_]); }
-    double s_eval_energy_from_T( double T );
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_],-1.0); }
+    double s_eval_energy_from_T( double T, double A );
     double s_eval_entropy( const Gas_data &Q  ) { return s_eval_entropy_from_T(Q.T[iT_]); }
     double s_eval_entropy_from_T( double T );
     double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
@@ -326,8 +326,8 @@ private:
     double theta_C0_;
     int sigma_;
     
-    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_]); }
-    double s_eval_energy_from_T( double T );
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_],-1.0); }
+    double s_eval_energy_from_T( double T, double A );
     double s_eval_entropy( const Gas_data &Q  ) { return s_eval_entropy_from_T(Q.T[iT_]); }
     double s_eval_entropy_from_T( double T );
     double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
@@ -357,7 +357,7 @@ private:
 
     double eval_total_internal_energy( double T_el, double T_vib, double T_rot );
     double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
-    double s_eval_energy_from_T( double T ) { return s_eval_energy_from_Ts(T,T,T); }
+    double s_eval_energy_from_T( double T, double A ) { return s_eval_energy_from_Ts(T,T,T); }
     double s_eval_energy_from_Ts( double T_el, double T_vib, double T_rot );
     double s_eval_entropy( const Gas_data &Q ) { return s_eval_entropy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
     double s_eval_entropy_from_T( double T ) { return s_eval_entropy_from_Ts(T,T,T); }
@@ -386,10 +386,10 @@ private:
     NoneqCoupledDiatomicLUT * Cv_LUT_;
     
     double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
-    double s_eval_energy_from_T( double T ) { return s_eval_energy_from_Ts(T,T,T); }
+    double s_eval_energy_from_T( double T, double A ) { return s_eval_energy_from_Ts(T,T,T); }
     double s_eval_energy_from_Ts( double T_el, double T_vib, double T_rot );
     double s_eval_enthalpy( const Gas_data &Q ) { return s_eval_energy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
-    double s_eval_enthalpy_from_T( double T ) { return s_eval_energy_from_Ts(T,T,T); }
+    double s_eval_enthalpy_from_T( double T, double A ) { return s_eval_energy_from_Ts(T,T,T); }
     double s_eval_enthalpy_from_Ts( double T_el, double T_vib, double T_rot ) { return s_eval_energy_from_Ts(T_el,T_vib,T_rot); }
     double s_eval_entropy( const Gas_data &Q ) { return s_eval_entropy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
     double s_eval_entropy_from_T( double T ) { return s_eval_entropy_from_Ts(T,T,T); }
@@ -416,7 +416,7 @@ protected:
     double theta_;
     
     double s_eval_enthalpy( const Gas_data &Q  ) { return s_eval_energy(Q); }
-    double s_eval_enthalpy_from_T( double T  ) { return s_eval_energy_from_T(T); }
+    double s_eval_enthalpy_from_T( double T, double A  ) { return s_eval_energy_from_T(T,A); }
     double s_eval_Cp( const Gas_data &Q  ) { return s_eval_Cv(Q); }
     double s_eval_Cp_from_T( double T  ) { return s_eval_Cv_from_T(T); }
 };
@@ -427,8 +427,8 @@ public:
     ~Harmonic_vibration() {}
     
 private:
-    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_]); }
-    double s_eval_energy_from_T( double T );
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_],-1.0); }
+    double s_eval_energy_from_T( double T, double A );
     double s_eval_entropy( const Gas_data &Q ) { return s_eval_entropy_from_T(Q.T[iT_]); }
     double s_eval_entropy_from_T( double T );
     double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
@@ -448,8 +448,8 @@ private:
     double theta_D_;
     
 private:
-    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_]); }
-    double s_eval_energy_from_T( double T );
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_],-1.0); }
+    double s_eval_energy_from_T( double T, double A );
     double s_eval_entropy( const Gas_data &Q ) { return s_eval_entropy_from_T(Q.T[iT_]); }
     double s_eval_entropy_from_T( double T );
     double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
@@ -480,10 +480,10 @@ private:
     
     double eval_total_internal_energy( double T_el, double T_vib, double T_rot );
     double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
-    double s_eval_energy_from_T( double T ) { return s_eval_energy_from_Ts(T,T,T); }
+    double s_eval_energy_from_T( double T, double A ) { return s_eval_energy_from_Ts(T,T,T); }
     double s_eval_energy_from_Ts( double T_el, double T_vib, double T_rot );
     double s_eval_enthalpy( const Gas_data &Q ) { return s_eval_energy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
-    double s_eval_enthalpy_from_T( double T ) { return s_eval_energy_from_Ts(T,T,T); }
+    double s_eval_enthalpy_from_T( double T, double A ) { return s_eval_energy_from_Ts(T,T,T); }
     double s_eval_enthalpy_from_Ts( double T_el, double T_vib, double T_rot ) { return s_eval_energy_from_Ts(T_el,T_vib,T_rot); }
     double s_eval_entropy( const Gas_data &Q ) { return s_eval_entropy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
     double s_eval_entropy_from_T( double T ) { return s_eval_entropy_from_Ts(T,T,T); }
@@ -515,10 +515,10 @@ private:
     NoneqCoupledDiatomicLUT * Cv_LUT_;
     
     double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
-    double s_eval_energy_from_T( double T ) { return s_eval_energy_from_Ts(T,T,T); }
+    double s_eval_energy_from_T( double T, double A ) { return s_eval_energy_from_Ts(T,T,T); }
     double s_eval_energy_from_Ts( double T_el, double T_vib, double T_rot );
     double s_eval_enthalpy( const Gas_data &Q ) { return s_eval_energy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
-    double s_eval_enthalpy_from_T( double T ) { return s_eval_energy_from_Ts(T,T,T); }
+    double s_eval_enthalpy_from_T( double T, double A ) { return s_eval_energy_from_Ts(T,T,T); }
     double s_eval_enthalpy_from_Ts( double T_el, double T_vib, double T_rot ) { return s_eval_energy_from_Ts(T_el,T_vib,T_rot); }
     double s_eval_entropy( const Gas_data &Q ) { return s_eval_entropy_from_Ts(Q.T[iTe_],Q.T[iTv_],Q.T[iTr_]); }
     double s_eval_entropy_from_T( double T ) { return s_eval_entropy_from_Ts(T,T,T); }
@@ -550,10 +550,10 @@ private:
     double fT_;
     std::vector<Diatom_electronic_level*> elevs_;
     
-    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_]); }
-    double s_eval_energy_from_T( double T );
-    double s_eval_enthalpy( const Gas_data &Q  ) { return s_eval_energy_from_T(Q.T[iT_]); }
-    double s_eval_enthalpy_from_T( double T  ) { return s_eval_energy_from_T(T); }
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_],-1.0); }
+    double s_eval_energy_from_T( double T, double A );
+    double s_eval_enthalpy( const Gas_data &Q  ) { return s_eval_energy_from_T(Q.T[iT_],-1.0); }
+    double s_eval_enthalpy_from_T( double T, double A ) { return s_eval_energy_from_T(T,A); }
     double s_eval_entropy( const Gas_data &Q  ) { return s_eval_entropy_from_T(Q.T[iT_]); }
     double s_eval_entropy_from_T( double T );
     double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
@@ -574,10 +574,10 @@ private:
     EqCoupledDiatomicLUT * Cv_LUT_;
     EqCoupledDiatomicLUT * s_LUT_;
     
-    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_]); }
-    double s_eval_energy_from_T( double T );
-    double s_eval_enthalpy( const Gas_data &Q  ) { return s_eval_energy_from_T(Q.T[iT_]); }
-    double s_eval_enthalpy_from_T( double T  ) { return s_eval_energy_from_T(T); }
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_],-1.0); }
+    double s_eval_energy_from_T( double T, double A );
+    double s_eval_enthalpy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_],-1.0); }
+    double s_eval_enthalpy_from_T( double T, double A ) { return s_eval_energy_from_T(T,A); }
     double s_eval_entropy( const Gas_data &Q  ) { return s_eval_entropy_from_T(Q.T[iT_]); }
     double s_eval_entropy_from_T( double T );
     double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
@@ -603,10 +603,10 @@ private:
     double fT_;
     std::vector<Polyatom_electronic_level*> elevs_;
 
-    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_]); }
-    double s_eval_energy_from_T( double T );
-    double s_eval_enthalpy( const Gas_data &Q  ) { return s_eval_energy_from_T(Q.T[iT_]); }
-    double s_eval_enthalpy_from_T( double T  ) { return s_eval_energy_from_T(T); }
+    double s_eval_energy( const Gas_data &Q ) { return s_eval_energy_from_T(Q.T[iT_],-1.0); }
+    double s_eval_energy_from_T( double T, double A );
+    double s_eval_enthalpy( const Gas_data &Q  ) { return s_eval_energy_from_T(Q.T[iT_],-1.0); }
+    double s_eval_enthalpy_from_T( double T, double A ) { return s_eval_energy_from_T(T,A); }
     double s_eval_entropy( const Gas_data &Q  ) { return s_eval_entropy_from_T(Q.T[iT_]); }
     double s_eval_entropy_from_T( double T );
     double s_eval_Cv( const Gas_data &Q ) { return s_eval_Cv_from_T(Q.T[iT_]); }
@@ -626,11 +626,11 @@ private:
     double h_f_;
     double s_eval_energy(const Gas_data &Q)
     { return h_f_; }
-    double s_eval_energy_from_T(double T)
+    double s_eval_energy_from_T(double T,double A)
     { return h_f_; }
     double s_eval_enthalpy(const Gas_data &Q)
     { return 0.0; }
-    double s_eval_enthalpy_from_T(double T)
+    double s_eval_enthalpy_from_T(double T,double A)
     { return 0.0; }
     double s_eval_entropy(const Gas_data &Q)
     { return 0.0; }
