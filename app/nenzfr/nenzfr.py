@@ -22,7 +22,7 @@ to extract nominal flow condition data.
    Maybe a dictionary of customised parameters for each case. Wilson.
 """
 
-VERSION_STRING = "01-May-2013"
+VERSION_STRING = "13-May-2013"
 
 from string import upper
 import sys, os
@@ -173,10 +173,10 @@ def main(cfg={}):
     run_command(E3BIN+('/e3post.py --job=%s --vtk-xml --tindx=0001 --gmodel-file=%s ' % 
                        (cfg['jobName'], gmodelFile))
                 +'--add-mach --add-pitot --add-total-enthalpy --add-total-p')
-    # Generate averaged exit flow properties
-    print_stats(cfg['exitSliceFileName'],cfg['jobName'],cfg['coreRfraction'],gmodelFile)                
     # Compute viscous data at the nozzle wall
     run_command(E3BIN+'/nenzfr_compute_viscous_data.py --job=%s --nbj=%s' % (cfg['jobName'], cfg['nbj']))
+    # Generate averaged exit flow properties
+    print_stats(cfg['exitSliceFileName'],cfg['jobName'],cfg['coreRfraction'],gmodelFile)                
     #
     #
     return 0
