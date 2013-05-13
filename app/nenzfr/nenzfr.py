@@ -117,14 +117,20 @@ def main(cfg={}):
         # need to set the expansion tube and gun tunnel parameters to nothing for the substitution
         cfg['T7'] = None; cfg['p7'] = None; cfg['V7'] = None
         cfg['T0'] = None; cfg['p0'] = None
+        cfg['pitot_input_file'] = None
     elif cfg['facility'] == 'expansion-tube':
         # need to set the reflected shock tunnel and gun tunnel parameters to nothing for the substitution
         cfg['T1'] = None; cfg['p1'] = None; cfg['Vs'] = None 
         cfg['pe'] = None; cfg['T0'] = None; cfg['p0'] = None
+        if 'pitot_input_file' not in cfg:
+             cfg['pitot_input_file'] = None
+        if 'pitot_input_file' in cfg:
+            cfg['T7'] = None; cfg['p7'] = None; cfg['V7'] = None            
     elif cfg['facility'] == 'gun-tunnel':
         # need to set the reflected shock tunnel and expansion tube parameters to nothing for the substition
         cfg['T1'] = None; cfg['p1'] = None; cfg['Vs'] = None; cfg['pe'] = None
         cfg['T7'] = None; cfg['p7'] = None; cfg['V7'] = None
+        cfg['pitot_input_file'] = None
         
     # need to put an extra set of quotes around some of the strings for when
     # they are put into the eilmer 3 template
@@ -133,6 +139,8 @@ def main(cfg={}):
     cfg['gridFileName'] = quote(cfg['gridFileName'])
     cfg['chemModel'] = quote(cfg['chemModel'])  
     cfg['gasName'] = quote(cfg['gasName'])
+    if cfg['pitot_input_file']:
+        cfg['pitot_input_file'] = quote(cfg['pitot_input_file'])
           
     prepare_input_script(cfg, cfg['jobName'])
     # Run the simulation code.

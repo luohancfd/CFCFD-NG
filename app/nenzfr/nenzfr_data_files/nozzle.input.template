@@ -99,8 +99,14 @@ if $facility == 'reflected-shock-tunnel':
     throat_V = estc_result['V6']
 elif $facility == 'expansion-tube':
     throat = make_gas_from_name($gasName)
-    throat.set_pT($p7,$T7)
-    throat_V = $V7
+    if $pitot_input_file:
+        from pitot import run_pitot
+        cfg, states, V, M = run_pitot(cfg = {}, config_file = $pitot_input_file)
+        throat.set_pT(states['s7'].p, states['s7'].T) 
+        throat_V = V['s7']    
+    elif not $pitot_input_file:
+        throat.set_pT($p7,$T7)
+        throat_V = $V7
 elif $facility == 'gun-tunnel':
     stagnated_state = make_gas_from_name($gasName)
     estc_result = ettc(stagnated_state, $p0, $T0)

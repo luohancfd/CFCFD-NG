@@ -50,7 +50,7 @@ def input_checker(cfg):
             print "Need to supply a float value for pe."
             cfg['bad_input'] = True
             
-    elif cfg['facility'] == 'expansion-tube':
+    elif cfg['facility'] == 'expansion-tube' and 'pitot_input_file' not in cfg:
         if 'p7' not in cfg:
             print "Need to supply a float value for p7."
             cfg['bad_input'] = True
@@ -70,7 +70,7 @@ def input_checker(cfg):
         if not isinstance(cfg['V7'], (int, float)):
             print "Need to supply a float value for V7."
             cfg['bad_input'] = True
-            
+                  
     elif cfg['facility'] == 'gun-tunnel':
         if 'p0' not in cfg:
             print "Need to supply a float value for p0."
@@ -106,10 +106,10 @@ def input_checker(cfg):
         print "No job name set. Setting default job name of '{0}'."\
         .format(cfg['jobName'])
         
-    if 'contourFilename' not in cfg:
-        cfg['contourFilename'] = 'Bezier-control-pts-t4-m10.data'
+    if 'contourFileName' not in cfg:
+        cfg['contourFileName'] = 'Bezier-control-pts-t4-m10.data'
         print "No nozzle contour file selected. Choosing '{0}'."\
-        .format(cfg['contourFilename'])
+        .format(cfg['contourFileName'])
         
     if 'exitSliceFileName' not in cfg:
         cfg['exitSliceFileName'] = 'nozzle-exit.data'

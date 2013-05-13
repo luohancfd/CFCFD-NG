@@ -29,7 +29,7 @@ def run_command(cmdText):
     """
     Run the command as a subprocess.
     """
-    
+       
     # Flush before using subprocess to ensure output is in the right order.
     sys.stdout.flush()    
     
@@ -169,7 +169,7 @@ def read_estcj_outfile(FileToRead):
 #    nenzfr_perturbed.py
 #    nenzfr_quasi_transient.py
 
-def prepare_run_script(substituteDict, jobName, Cluster):
+def prepare_run_script_old(substituteDict, jobName, Cluster):
     """
     Prepare the actual run file for Nenzfr from a template.
     """
@@ -190,5 +190,184 @@ def prepare_run_script(substituteDict, jobName, Cluster):
     fp.write(text)
     fp.close()
     return scriptFileName
+    
+def prepare_run_script(configDict, jobName, Cluster):
+    """
+    Prepare the actual run file for Nenzfr from a template.
+    
+    Also builds you a cool config file to go with it.
+    """
+
+    templateFileName = "run_template_"+Cluster +".sh"
+    # Check that the templateFileName is in the current directory,
+    # if it isn't copy it from "E3BIN/nenzfr_data_files/"
+    if not os.path.exists(templateFileName):
+        command_text = 'cp '+E3BIN+'/nenzfr_data_files/'+templateFileName+' ./'
+        #print command_text
+        run_command('cp '+E3BIN+'/nenzfr_data_files/'+templateFileName+' ./')
+    scriptFileName = "run_" + jobName + ".sh"
+    cfgFileName = jobName + ".cfg"
+    substituteDict = {'config_filename': cfgFileName}
+    
+    #fill up the shell script
+    fp = open(templateFileName, 'r')
+    text = fp.read()
+    fp.close()
+    template = string.Template(text)
+    text = template.safe_substitute(substituteDict)
+    fp = open(scriptFileName, 'w')
+    fp.write(text)
+    fp.close()
+    
+    #now fill up the cfg file
+    
+    build_cfg_file(configDict, cfgFileName)
+    
+    return scriptFileName, cfgFileName
+
+def build_cfg_file(cfg, filename):
+    """
+    Takes a nenzfr config dictionary and uses it to build a nenzfr config file.close
+
+    Based on a program I built for Luke to convert old nenzfr optparse inputs
+    to the new cfg file style.
+    
+    Chris James (09/05/13)
+    
+    """
+    
+    config_file = open(filename,"w")  #txt_output file creation
+    print "Opening file '{0}'.".format(filename)
+    
+    print "Starting the process of adding inputs to the config file."
+
+    facility_string = "facility = '{0}'".format(cfg['facility'])
+    config_file.write(facility_string+'\n')
+    
+    empty_line_string = " \n"
+    
+    config_file.write(empty_line_string)
+    
+    gasName_string = "gasName = '{0}'".format(cfg['gasName'])
+    config_file.write(gasName_string+'\n')
+    
+    config_file.write(empty_line_string)
+
+    chemModel_string = "chemModel = '{0}'".format(cfg['chemModel'])
+    config_file.write(chemModel_string+'\n')
+    
+    config_file.write(empty_line_string)    
+
+    p1_string = "p1 = {0}".format(cfg['p1'])
+    config_file.write(p1_string+'\n')    
+
+    T1_string = "T1 = {0}".format(cfg['T1'])
+    config_file.write(T1_string+'\n')     
+
+    Vs_string = "Vs = {0}".format(cfg['Vs'])
+    config_file.write(Vs_string+'\n')
+
+    pe_string = "pe = {0}".format(cfg['pe'])
+    config_file.write(pe_string+'\n')
+    
+    config_file.write(empty_line_string)   
+
+    areaRatio_string = "areaRatio = {0}".format(cfg['areaRatio'])
+    config_file.write(areaRatio_string+'\n')
+
+    config_file.write(empty_line_string)
+    
+    jobName_string = "jobName = '{0}'".format(cfg['jobName'])
+    config_file.write(jobName_string+'\n')
+
+    config_file.write(empty_line_string)
+    
+    contourFileName_string = "contourFileName = '{0}'".format(cfg['contourFileName'])
+    config_file.write(contourFileName_string+'\n')
+    
+    config_file.write(empty_line_string)
+
+    gridFileName_string = "gridFileName = '{0}'".format(cfg['gridFileName'])
+    config_file.write(gridFileName_string+'\n')      
+
+    config_file.write(empty_line_string)
+
+    exitSliceFileName_string = "exitSliceFileName = '{0}'".format(cfg['exitSliceFileName'])
+    config_file.write(exitSliceFileName_string+'\n') 
+
+    config_file.write(empty_line_string)
+
+    justStats_string = "justStats = {0}".format(cfg['justStats'])
+    config_file.write(justStats_string+'\n')
+    
+    config_file.write(empty_line_string)
+
+    blockMarching_string = "blockMarching = {0}".format(cfg['blockMarching'])
+    config_file.write(blockMarching_string+'\n')
+    
+    config_file.write(empty_line_string)
+
+    nni_string = "nni = {0}".format(cfg['nni'])
+    config_file.write(nni_string+'\n')
+    
+    nnj_string = "nnj = {0}".format(cfg['nnj'])
+    config_file.write(nnj_string+'\n')
+
+    config_file.write(empty_line_string)    
+
+    nbi_string = "nbi = {0}".format(cfg['nbi'])
+    config_file.write(nbi_string+'\n')
+    
+    nbj_string = "nbj = {0}".format(cfg['nbj'])
+    config_file.write(nbj_string+'\n')
+    
+    config_file.write(empty_line_string)
+    
+    bx_string = "bx = {0}".format(cfg['bx'])
+    config_file.write(bx_string+'\n')
+    
+    by_string = "by = {0}".format(cfg['by'])
+    config_file.write(by_string+'\n')
+
+    config_file.write(empty_line_string)
+    
+    max_time_string = "max_time = {0}".format(cfg['max_time'])
+    config_file.write(max_time_string+'\n')  
+    
+    config_file.write(empty_line_string)
+    
+    max_step_string = "max_step = {0}".format(cfg['max_step'])
+    config_file.write(max_step_string+'\n')
+    
+    config_file.write(empty_line_string)
+    
+    Tw_string = "Tw = {0}".format(cfg['Tw'])
+    config_file.write(Tw_string+'\n')
+
+    config_file.write(empty_line_string)
+    
+    BLTrans_string = "BLTrans = '{0}'".format(cfg['BLTrans'])
+    config_file.write(BLTrans_string+'\n')   
+    
+    config_file.write(empty_line_string)
+    
+    TurbVisRatio_string = "TurbVisRatio = {0}".format(cfg['TurbVisRatio'])
+    config_file.write(TurbVisRatio_string+'\n')  
+    
+    config_file.write(empty_line_string)
+    
+    TurbInten_string = "TurbInten = {0}".format(cfg['TurbInten'])
+    config_file.write(TurbInten_string+'\n')  
+    
+    config_file.write(empty_line_string)
+    
+    coreRfraction_string = "coreRfraction = {0}".format(cfg['coreRfraction'])
+    config_file.write(coreRfraction_string+'\n')  
+
+    config_file.close()
+
+    return                         
+
+    
 
 
