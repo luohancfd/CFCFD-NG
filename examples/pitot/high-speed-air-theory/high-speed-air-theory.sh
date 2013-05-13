@@ -4,7 +4,7 @@
 # air example for pitot.
 #Chris James (c.james4@uq.edu.au) - 07/05/13
 
-python pitot.py --config_file=high-speed-air-theory.cfg
+pitot.py --config_file=high-speed-air-theory.cfg
 
 echo "Done"
 
