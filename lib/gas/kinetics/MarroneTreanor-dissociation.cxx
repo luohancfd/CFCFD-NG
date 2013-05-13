@@ -39,6 +39,9 @@ MarroneTreanor_dissociation(lua_State *L, Gas_model &g)
     }
 
     iTv_ = vib_modes_[0]->get_iT();
+
+    // 3. Set the reaction rate coefficient type
+    type_ = "dissociation";
 }
 
 MarroneTreanor_dissociation::
@@ -66,6 +69,9 @@ MarroneTreanor_dissociation(double A, double n, double E_a, double U, string v_n
     }
     
     iTv_ = vib_modes_[0]->get_iT();
+
+    // 3. Set the reaction rate coefficient type
+    type_ = "dissociation";
 }
 
 MarroneTreanor_dissociation::

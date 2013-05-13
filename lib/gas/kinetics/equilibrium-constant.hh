@@ -29,6 +29,9 @@ public:
     int get_iT()
     { return iT_; }
 
+    double get_rate_controlling_temperature(const Gas_data &Q)
+    { return Q.T[iT_]; }
+
 protected:
     int iT_;
     

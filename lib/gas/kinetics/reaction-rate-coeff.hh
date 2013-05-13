@@ -16,7 +16,7 @@ extern "C" {
 
 class Reaction_rate_coefficient {
 public:
-    Reaction_rate_coefficient() {};
+    Reaction_rate_coefficient() { type_=""; };
     virtual ~Reaction_rate_coefficient() {};
     
     double k()
@@ -28,8 +28,12 @@ public:
     int eval_from_T(const double T)
     { return s_eval_from_T(T); }
 
+    std::string get_type()
+    { return type_; }
+
 protected:
     double k_;
+    std::string type_;
     virtual int s_eval(const Gas_data &Q) = 0;
     virtual int s_eval_from_T(const double T);
 };

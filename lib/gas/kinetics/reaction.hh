@@ -53,9 +53,7 @@ public:
     { return compute_kf_first_; }
 
     int get_nu(int isp);
-    
-    void get_rate_controlling_temperatures( const Gas_data &Q, double &T_f, double &T_b );
-    
+
 protected:
     virtual double s_compute_k_f(const Gas_data &Q);
     virtual double s_compute_k_b(const Gas_data &Q);
@@ -69,9 +67,11 @@ private:
     double k_b_;
     std::map<int, int> nu_;
     bool compute_kf_first_;
+    bool different_rcts_;
     Reaction_rate_coefficient *frc_;
     Reaction_rate_coefficient *brc_;
     Equilibrium_constant *ec_;
+    Gas_data *Q_;
 };
 
 Reaction* create_Reaction(lua_State *L, Gas_model &g);

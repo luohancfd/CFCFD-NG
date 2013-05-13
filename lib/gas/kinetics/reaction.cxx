@@ -79,6 +79,20 @@ Reaction(lua_State *L, Gas_model &g)
     else {
 	compute_kf_first_ = false;
     }
+
+    // This flag indicates if the forward and backward rate controlling temperatures
+    // are different (true) or the same (false)
+    different_rcts_=false;
+    if ( frc_ != 0 )
+        if ( frc_->get_type().find("dissociation")!=string::npos)
+            different_rcts_=true;
+    if ( brc_ != 0 )
+        if ( brc_->get_type().find("dissociation")!=string::npos)
+            different_rcts_=true;
+
+    // If different we will need a gas data instance to recompute the other rate
+    if ( different_rcts_ )
+        Q_ = new Gas_data(g.get_number_of_species(),g.get_number_of_modes());
 }
 
 Reaction::
@@ -87,6 +101,8 @@ Reaction::
     delete frc_;
     delete brc_;
     delete ec_;
+    if ( different_rcts_ )
+        delete Q_;
 }
 
 double
@@ -123,36 +139,6 @@ get_nu(int isp)
 	return nu_[isp];
 }
 
-void
-Reaction::
-get_rate_controlling_temperatures( const Gas_data &Q, double &T_f, double &T_b )
-{
-    if ( frc_ ) {
-    	T_f = -1.0;
-    	if ( ec_ ) {
-    	    T_b = Q.T[ec_->get_iT()];
-    	}
-    	else {
-    	    T_b = -1.0;
-    	}
-    }
-    else if ( brc_ ) {
-    	T_b = -1.0;
-    	if ( ec_ ) {
-    	    T_f = Q.T[ec_->get_iT()];
-    	}
-    	else {
-    	   T_f = -1.0;
-    	}
-    }
-    else {
-    	T_b = -1.0;
-    	T_f = -1.0;
-    }
-    
-    return;
-}
-
 double
 Reaction::
 s_compute_k_f(const Gas_data &Q)
@@ -165,7 +151,19 @@ s_compute_k_f(const Gas_data &Q)
     else {
 	if ( ec_ != 0 ) {
 	    double K_eq = ec_->eval(Q);
-	    return k_b_ * K_eq;
+	    if (different_rcts_)
+	    {
+		// The reaction rate coefficient models that have different
+		// rate controlling temperatures should be functions only of
+		// temperatures. Here all temperatures are set to the rate
+		// controlling temperature.
+		double T = ec_->get_rate_controlling_temperature(Q);
+		for (size_t itm=0; itm<Q_->T.size(); itm++)
+		    Q_->T[itm] = T;
+		if ( brc_->eval(*Q_) == SUCCESS )
+		    return brc_->k() * K_eq;
+	    }
+	    else return k_b_ * K_eq;
 	}
 	else {
 	    return 0.0;
@@ -192,8 +190,20 @@ s_compute_k_b(const Gas_data &Q)
     else {
 	if ( ec_ != 0 ) {
 	    double K_eq = ec_->eval(Q);
-	    double k_b = K_eq < K_SMALL ? 0.0 : k_f_ / K_eq;
-	    return k_b;
+	    if (K_eq < K_SMALL) return 0.0;
+	    if (different_rcts_)
+	    {
+		// The reaction rate coefficient models that have different
+		// rate controlling temperatures should be functions only of
+		// temperatures. Here all temperatures are set to the rate
+		// controlling temperature.
+		double T = ec_->get_rate_controlling_temperature(Q);
+		for (size_t itm=0; itm<Q_->T.size(); itm++)
+		    Q_->T[itm] = T;
+		if ( frc_->eval(*Q_) == SUCCESS )
+		    return frc_->k() / K_eq;
+	    }
+	    else return k_f_ / K_eq;
 	}
 	else {
 	    return 0.0;

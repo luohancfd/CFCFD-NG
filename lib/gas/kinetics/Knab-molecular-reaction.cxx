@@ -46,6 +46,9 @@ Knab_molecular_reaction(double A, double n, double E_a, double U, double alpha, 
     }
     
     iTv_ = vib_modes_[0]->get_iT();
+
+    // 3. Set the reaction rate coefficient type
+    type_ = "dissociation";
 }
 
 Knab_molecular_reaction::
@@ -75,7 +78,7 @@ s_eval(const Gas_data &Q)
     	Q_d_Tv *= vib_modes_[i]->eval_Q_from_T(Tv);
     	Q_d_T0 *= vib_modes_[i]->eval_Q_from_T(T0);
     	Q_d_T_ast *= vib_modes_[i]->eval_Q_from_T(T_ast);
-    	Q_a_gamma *= vib_modes_[i]->eval_Q_from_T(gamma);
+    	Q_a_gamma *= vib_modes_[i]->eval_Q_from_T(gamma,alpha_*A_var_);
     	Q_a_U *= vib_modes_[i]->eval_Q_from_T(-U_,alpha_*A_var_);
     	Q_a_T0 *= vib_modes_[i]->eval_Q_from_T(T0,alpha_*A_var_);
     	Q_a_T_ast *= vib_modes_[i]->eval_Q_from_T(T_ast,alpha_*A_var_);

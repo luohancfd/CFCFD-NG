@@ -40,6 +40,9 @@ Macheret_dissociation(lua_State *L, Gas_model &g)
 
     // 3. Pre-calculate alpha
     alpha_ = pow( ( M_v / ( M_v + M_c ) ), 2.0 );
+
+    // 3. Set the reaction rate coefficient type
+    type_ = "dissociation";
 }
 
 Macheret_dissociation::
@@ -67,6 +70,9 @@ Macheret_dissociation(double A, double n, double E_a, string v_name, string c_na
 
     // 3. Pre-calculate alpha
     alpha_ = pow( ( M_v * 0.5 / ( M_v * 0.5 + M_c ) ), 2.0 );
+
+    // 3. Set the reaction rate coefficient type
+    type_ = "dissociation";
 }
 
 Macheret_dissociation::
