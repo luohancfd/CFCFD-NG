@@ -394,4 +394,62 @@ private:
     double specific_compute_source_term( Gas_data &Q, std::valarray<double> &dcdt );
 };
 
+/****************** Knab vanishing component ********************/
+
+class Knab_vanishing_component : public Coupling_component {
+public:
+    /// \brief Lua file constructor
+    Knab_vanishing_component( lua_State * L, Reaction * r, int idc );
+
+    /// \brief Clone constructor
+    Knab_vanishing_component( const Knab_vanishing_component &c );
+
+     /// \brief Default destructor
+    ~Knab_vanishing_component();
+
+    /// \brief Clone function
+    Knab_vanishing_component * clone() const;
+
+private:
+    double U_;
+    double alpha_;
+    double A_var_;
+
+private:
+    /// \brief Compute the change in total average energy ( e_star - e_old ) * ( N_new - N_old )
+    double specific_compute_contribution( Gas_data &Q, std::valarray<double> &delta_c );
+
+    /// \brief Compute the the source term from this component in J
+    double specific_compute_source_term( Gas_data &Q, std::valarray<double> &dcdt );
+};
+
+/****************** Knab appearing component ********************/
+
+class Knab_appearing_component : public Coupling_component {
+public:
+    /// \brief Lua file constructor
+    Knab_appearing_component( lua_State * L, Reaction * r, int idc );
+
+    /// \brief Clone constructor
+    Knab_appearing_component( const Knab_appearing_component &c );
+
+     /// \brief Default destructor
+    ~Knab_appearing_component();
+
+    /// \brief Clone function
+    Knab_appearing_component * clone() const;
+
+private:
+    double U_;
+    double alpha_;
+    double A_var_;
+
+private:
+    /// \brief Compute the change in total average energy ( e_star - e_old ) * ( N_new - N_old )
+    double specific_compute_contribution( Gas_data &Q, std::valarray<double> &delta_c );
+
+    /// \brief Compute the the source term from this component in J
+    double specific_compute_source_term( Gas_data &Q, std::valarray<double> &dcdt );
+};
+
 #endif

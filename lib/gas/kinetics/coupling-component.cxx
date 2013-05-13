@@ -1050,3 +1050,200 @@ specific_compute_source_term( Gas_data &Q, valarray<double> &dcdt )
     return 0.0;
 }
 
+/****************** Knab components ********************/
+
+double calculate_Knab_energy( std::vector<Species_energy_mode*> &sems,
+		double U, double alpha, double A_var, double T, double Tv)
+{
+   // 1. Calculate pseudo-temperatures
+    double gamma = 1.0 / ( 1.0/Tv - 1.0/T - 1.0/U );
+    double T0 = 1.0 / ( 1.0/Tv - 1.0/U );
+    double T_ast = 1.0 / ( 1.0/T - 1.0/U );
+
+    // 2. Calculate energies and partition functions
+    double L_d_T0 = 0.0;
+    double L_a_gamma = 0.0, L_a_T0 = 0.0;
+    double Q_d_T = 1.0, Q_d_Tv = 1.0, Q_d_T0 = 1.0, Q_d_T_ast = 1.0;
+    double Q_a_gamma = 1.0, Q_a_U = 1.0, Q_a_T0 = 1.0, Q_a_T_ast = 1.0;
+
+    for ( size_t i=0; i<sems.size(); ++i ) {
+	L_d_T0 += sems[i]->eval_energy_from_T(T0);
+	L_a_gamma += sems[i]->eval_energy_from_T(gamma,alpha*A_var);
+	L_a_T0 += sems[i]->eval_energy_from_T(T0,alpha*A_var);
+	Q_d_T *= sems[i]->eval_Q_from_T(T);
+	Q_d_Tv *= sems[i]->eval_Q_from_T(Tv);
+	Q_d_T0 *= sems[i]->eval_Q_from_T(T0);
+	Q_d_T_ast *= sems[i]->eval_Q_from_T(T_ast);
+	Q_a_gamma *= sems[i]->eval_Q_from_T(gamma,alpha*A_var);
+	Q_a_U *= sems[i]->eval_Q_from_T(-U,alpha*A_var);
+	Q_a_T0 *= sems[i]->eval_Q_from_T(T0,alpha*A_var);
+	Q_a_T_ast *= sems[i]->eval_Q_from_T(T_ast,alpha*A_var);
+    }
+
+    // 3. Calculate the energy of the vanishing or appearing molecules
+    double tmpA = exp( - alpha * A_var / T );
+    double tmpB = tmpA * Q_a_gamma * L_a_gamma + Q_d_T0 * L_d_T0 - Q_a_T0 * L_a_T0;
+    double tmpC = tmpA * Q_a_gamma + Q_d_T0 - Q_a_T0;
+
+    return tmpB / tmpC;	// energy in J/kg
+}
+
+/****************** Knab vanishing component ********************/
+
+Knab_vanishing_component::
+Knab_vanishing_component(lua_State *L, Reaction *r, int idc )
+: Coupling_component(L,r,"Knab_vanishing_component","vibration",idc)
+{
+    U_ = get_positive_number(L,-1,"U");
+    alpha_ = get_positive_number(L,-1,"alpha");
+    A_var_ = get_positive_number(L,-1,"A");
+}
+
+Knab_vanishing_component::
+Knab_vanishing_component( const Knab_vanishing_component &c )
+: Coupling_component( c ), U_( c.U_ ), alpha_( c.alpha_), A_var_( c.A_var_ ) {}
+
+Knab_vanishing_component::
+~Knab_vanishing_component()
+{}
+
+Knab_vanishing_component*
+Knab_vanishing_component::clone() const
+{
+    return new Knab_vanishing_component(*this);
+}
+
+double
+Knab_vanishing_component::
+specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
+{
+    if( Q.massf[isp_] < min_mass_frac ) return 0.0;
+
+    // 0. Pull out translational and vibrational temperatures
+    //    NOTE: assuming mode '0' is translation, as it always should be
+    double T = Q.T[0];
+    double Tv = Q.T[imode_];
+
+    // 1. Calculate energy of vanishing molecules
+    double e_va = calculate_Knab_energy( sems_, U_, alpha_, A_var_, T, Tv );
+    // Convert to J/particle
+    e_va *= m_;
+
+    // 2. Calculate delta_E
+    double delta_N = nu_ * delta_c[idc_] * PC_Avogadro;
+    double delta_E = ( e_va - e_old_ ) * delta_N;
+
+    // cout << "Knab_vanishing_component::compute_contribution()" << endl
+    //      << "gamma = " << gamma << ", Tv = " << Tv << ", T = " << T << endl
+    //      << "delta_c[idc_] = " << delta_c[idc_] << ", delta_N = " << delta_N << endl
+    //      << "delta_E = " << delta_E << endl;
+
+    return delta_E;
+}
+
+double
+Knab_vanishing_component::
+specific_compute_source_term( Gas_data &Q, valarray<double> &dcdt )
+{
+    if( Q.massf[isp_] < min_mass_frac ) return 0.0;
+
+    // 0. Pull out translational and vibrational temperatures
+    //    NOTE: assuming mode '0' is translation, as it always should be
+    double T = Q.T[0];
+    double Tv = Q.T[imode_];
+
+    // 1. Calculate energy of vanishing molecules
+    double e_va = calculate_Knab_energy( sems_, U_, alpha_, A_var_, T, Tv );
+    // Convert to J/particle
+    e_va *= m_;
+
+    // 2. Calculate dEdt
+    // NOTE: minus e_old_ is required as average energy flux due to reactions is taken into account separately
+    double dEdt = ( e_va - e_old_ ) * nu_ * dcdt[idc_] * PC_Avogadro;
+
+    // cout << "Knab_vanishing_component::specific_compute_source_term()" << endl
+    //      << "dEdt = " << dEdt << ", nu_ = " << nu_ << ", dcdt = " << dcdt[idc_] << endl;
+
+    return dEdt;
+}
+
+/****************** Knab appearing component ********************/
+
+Knab_appearing_component::
+Knab_appearing_component(lua_State *L, Reaction *r, int idc )
+: Coupling_component(L,r,"Knab_appearing_component","vibration",idc)
+{
+    U_ = get_positive_number(L,-1,"U");
+    alpha_ = get_positive_number(L,-1,"alpha");
+    A_var_ = get_positive_number(L,-1,"A");
+}
+
+Knab_appearing_component::
+Knab_appearing_component( const Knab_appearing_component &c )
+: Coupling_component( c ), U_( c.U_ ), alpha_( c.alpha_), A_var_( c.A_var_ ) {}
+
+Knab_appearing_component::
+~Knab_appearing_component()
+{}
+
+Knab_appearing_component*
+Knab_appearing_component::clone() const
+{
+    return new Knab_appearing_component(*this);
+}
+
+double
+Knab_appearing_component::
+specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
+{
+    if( Q.massf[isp_] < min_mass_frac ) return 0.0;
+
+    // 0. Pull out translational and vibrational temperatures
+    //    NOTE: - assuming mode '0' is translation, as it always should be
+    //          - assuming Tv=T for recombination processes
+    double T = Q.T[0];
+    double Tv = T;
+
+    // 1. Calculate energy of appearing molecules
+    double e_app = calculate_Knab_energy( sems_, U_, alpha_, A_var_, T, Tv );
+    // Convert to J/particle
+    e_app *= m_;
+
+    // 3. Calculate delta_E
+    double delta_N = - nu_ * delta_c[idc_] * PC_Avogadro;
+    double delta_E = ( e_app - e_old_ ) * delta_N;
+    
+    // cout << "Knab_appearing_component::compute_contribution()" << endl
+    //      << "gamma = " << gamma << ", Tv = " << Q.T[imode_] << ", T = " << Q.T[0] << endl
+    //      << "delta_c[idc_] = " << delta_c[idc_] << ", delta_N = " << delta_N << endl
+    //      << "delta_E = " << delta_E << endl;
+    
+    return delta_E;
+}
+
+double
+Knab_appearing_component::
+specific_compute_source_term( Gas_data &Q, valarray<double> &dcdt )
+{
+    if( Q.massf[isp_] < min_mass_frac ) return 0.0;
+
+    // 0. Pull out translational and vibrational temperatures
+    //    NOTE: - assuming mode '0' is translation, as it always should be
+    //          - assuming Tv=T for recombination processes
+    double T = Q.T[0];
+    double Tv = T;
+
+    // 1. Calculate energy of appearing molecules
+    double e_app = calculate_Knab_energy( sems_, U_, alpha_, A_var_, T, Tv );
+    // Convert to J/particle
+    e_app *= m_;
+    
+    // 3. Calculate dEdt
+    // NOTE: minus e_old_ is required as average energy flux due to reactions is taken into account separately
+    double dEdt = - ( e_app - e_old_ ) * nu_ * dcdt[idc_] * PC_Avogadro;
+    
+    // cout << "Knab_appearing_component::specific_compute_source_term()" << endl
+    //      << "dEdt = " << dEdt << ", nu_ = " << nu_ << ", dcdt = " << dcdt[idc_] << endl;
+    
+    return dEdt;
+}
