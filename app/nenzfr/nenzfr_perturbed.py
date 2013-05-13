@@ -18,6 +18,7 @@ import sys, os, gzip
 import optparse
 from numpy import array, mean, logical_and, zeros
 from nenzfr_utils import run_command, quote, prepare_run_script
+from nenzfr_input_utils import input_checker, nenzfr_perturbed_input_checker
 import copy
 E3BIN = os.path.expandvars("$HOME/e3bin")
 sys.path.append(E3BIN)
@@ -63,19 +64,19 @@ def set_perturbed_values(var, temp, defaultPerturbations, perturb, levels):
         elif len(temp) == 2:
             # have either [value, delta]         or
             #             [value, percent_delta]
-            if perturb == "rel":
+            if perturb == "relative":
                 temp = [temp[0], temp[0]*(1.0+temp[1]/100.0),\
                                  temp[0]*(1.0-temp[1]/100.0)]
-            else:
+            elif perturb == 'absolute':
                 temp = [temp[0], temp[0]+temp[1],\
                                  temp[0]-temp[1]]
         elif len(temp) == 3:
             # have either [value, +delta, -delta]                  or 
             #             [value, +percent_delta, -percent_delta]
-            if perturb == "rel":
+            if perturb == "relative":
                 temp = [temp[0], temp[0]*(1.0+temp[1]/100.0),\
                                  temp[0]*(1.0+temp[2]/100.0)]
-            else:
+            elif perturb == 'absolute':
                 temp = [temp[0], temp[0]+temp[1],\
                                  temp[0]+temp[2]]
         else:
@@ -93,12 +94,12 @@ def set_perturbed_values(var, temp, defaultPerturbations, perturb, levels):
             # have either [value, delta]            or
             #              [value, +percent_delta]
             # we assume that "2"*delta == 2*delta
-            if perturb == "rel":
+            if perturb == "relative":
                 temp = [temp[0], temp[0]*(1.0+temp[1]/100.0),\
                                  temp[0]*(1.0-temp[1]/100.0),\
                                  temp[0]*(1.0+temp[1]/100.0*2.0),\
                                  temp[0]*(1.0-temp[1]/100.0*2.0)]
-            else:
+            elif perturb == 'absolute':
                 temp = [temp[0], temp[0]+temp[1],\
                                  temp[0]-temp[1],\
                                  temp[0]+2.0*temp[1],\
@@ -106,12 +107,12 @@ def set_perturbed_values(var, temp, defaultPerturbations, perturb, levels):
         elif len(temp) == 3:
             # have either [value, delta, "2"*delta]                  or
             #             [value, percent_delta, "2"*percent_delta]
-            if perturb == "rel":
+            if perturb == "relative":
                 temp = [temp[0], temp[0]*(1.0+temp[1]/100.0),\
                                  temp[0]*(1.0-temp[1]/100.0),\
                                  temp[0]*(1.0+temp[2]/100.0),\
                                  temp[0]*(1.0-temp[2]/100.0)]
-            else:
+            elif perturb == 'absolute':
                 temp = [temp[0], temp[0]+temp[1],\
                                  temp[0]-temp[1],\
                                  temp[0]+temp[2],\
@@ -119,12 +120,12 @@ def set_perturbed_values(var, temp, defaultPerturbations, perturb, levels):
         elif len(temp) == 4:
             # have either [value, +delta, -delta, "2"*delta]                          or
             #             [value, +percent_delta, -percent_delta, "2"*percent_delta]
-            if perturb == "rel":
+            if perturb == "relative":
                 temp = [temp[0], temp[0]*(1.0+temp[1]/100.0),\
                                  temp[0]*(1.0-temp[2]/100.0),\
                                  temp[0]*(1.0+temp[3]/100.0),\
                                  temp[0]*(1.0-temp[3]/100.0)]
-            else:
+            elif perturb == 'absolute':
                 temp = [temp[0], temp[0]+temp[1],\
                                  temp[0]-temp[2],\
                                  temp[0]+temp[3],\
@@ -132,12 +133,12 @@ def set_perturbed_values(var, temp, defaultPerturbations, perturb, levels):
         elif len(temp) == 5:
             # have either [value, +delta, -delta, +"2"*delta, -"2"*delta] or
             #             [value +percent_delta, -percent_delta, +"2"*percent_delta, -"2"*percent_delta]
-            if perturb == "rel":
+            if perturb == "relative":
                 temp = [temp[0], temp[0]*(1.0+temp[1]/100.0),\
                                  temp[0]*(1.0-temp[2]/100.0),\
                                  temp[0]*(1.0+temp[3]/100.0),\
                                  temp[0]*(1.0-temp[4]/100.0)]
-            else:
+            elif perturb == 'absolute':
                 temp = [temp[0], temp[0]+temp[1],\
                                  temp[0]-temp[2],\
                                  temp[0]+temp[3],\
@@ -158,17 +159,21 @@ def set_case_running(caseString, caseDict, textString):
     
     # Create sub-directory for the current case
     run_command('mkdir ./'+caseString)
-     
+        
     # Set up the run script for Nenzfr
-    scriptFileName = prepare_run_script(caseDict, \
+    scriptFileName, cfgFileName = prepare_run_script(caseDict, \
         caseDict['jobName'].strip('"')+'_'+caseString, caseDict['Cluster'])
     
     # Move the run script to its sub-directory
     command_text = 'mv '+scriptFileName+' ./'+caseString+'/'+scriptFileName
     run_command(command_text)
     
+    # Move the cfg file to its sub-directory too
+    command_text = 'mv '+cfgFileName+' ./'+caseString+'/'+cfgFileName
+    run_command(command_text)
+    
     # If require, copy the equilibrium gas LUT to the sub-directory
-    if caseDict['chemModel'] in ['"eq"',]:
+    if caseDict['chemModel'] == 'eq':
         command_text = 'cp ./'+caseDict['gmodelFile']+' ./'+caseString+'/'
         run_command(command_text)
     
@@ -233,248 +238,79 @@ def write_case_config(caseDict):
         fout.write('\n')
     fout.close()    
 
-def main():
+def main(cfg={}):
     """
     Examine the command-line options to decide the what to do
     and then coordinate a series of Nenzfr calculations with 
     various inputs perturbed around the input nominal condition.
     """
     op = optparse.OptionParser(version=VERSION_STRING)
-
-    op.add_option('--runCMD', dest='runCMD', default='./',
-                  help=("command used to execute the run-script file "
-                        "[default: %default]"))
-    op.add_option('--cluster', dest='Cluster', default='Mango',
-                  choices =['Mango', 'Barrine'],
-                  help=("specify on which cluster the computations are to be ran. "
-                        "This is used to define which run template script will "
-                        "be used. Options: "
-                        "Mango; Barrine [default: %default]"))
-    op.add_option('--perturb', dest='perturb', default='rel', choices=['rel','abs'],
-                  help=("specify whether the given perturbations are absolute "
-                        "or relative values. Options: rel, abs [default: %default]"))
-    op.add_option('--levels', dest='levels', default=3,choices=['3','3-reduced','5'],
-                  help=("specify how many values are to be used for each variable, "
-                        "including the nominal. Options: 3, 3-reduced, 5 "
-                        "[default: %default]"))
-    op.add_option('--job', dest='jobName', default='nozzle',
-                  help="base name for Eilmer3 files [default: %default]")
-
-    # Multitude of options required by nenzfr.
-    op.add_option('--gas', dest='gasName', default='air',
-                  choices=['air', 'air5species', 'n2', 'co2', 'h2ne'],
-                  help=("name of gas model: "
-                        "air; " "air5species; " "n2; " "co2; " "h2ne"))
-
-    group = optparse.OptionGroup(op, "Inputs that may be perturbed:", 
-                  "The following inputs my be perturbed by providing a list in one of "
-                  "the following forms: "
-                  " (1)  [nominal, +delta];"
-                  " (2)  [nominal, +delta_1, -delta_2];"
-                  " (3)  [nominal, +delta_1, -delta_2, +delta_3];"
-                  " (4)  [nominal, +delta_1, -delta_2, +delta_3, -delta_4]. "
-                  "Note that the deltas may be given as absolute values or "
-                  "as relative values in the form of percentages.")
-    group.add_option('--p1', dest='p1', default=None, 
-                  help=("shock tube fill pressure (in Pa) and its perturbation/s "
-                        "as a list. [default delta: 2.5%]" ))
-    group.add_option('--T1', dest='T1', default=None,
-                  help=("shock tube fill temperature, in degrees K and its perturbation/s "
-                        "as a list. [default delta: 2.5%]"))
-    group.add_option('--Vs', dest='Vs', default=None,
-                  help=("incident shock speed, in m/s and its perturbation/s as a list. "
-                        "[default delta: 2.5%]"))
-    group.add_option('--pe', dest='pe', default=None,
-                  help=("equilibrium pressure (after shock reflection), in Pa and its "
-                        "perturbation/s as a list. [default delta: 2.5%]"))
-
-    group.add_option('--Twall', dest='Tw', default='300.0',
-                  help=("Nozzle wall temperature, in K and its perturbation/s as a list. "
-                        "[default: %default, delta: 2.5%]"))
-    group.add_option('--BLTrans', dest='BLTrans', default="x_c[-1]*1.1",
-                  help=("Transition location for the Boundary layer and its perturbation/s "
-                        "as a list. Used to define the turbulent portion of the nozzle. "
-                        "[default: >nozzle length i.e. laminar nozzle, delta: 2.5%]"))
-    group.add_option('--TurbVisRatio', dest='TurbVisRatio', default='100.0',
-                  help=("Turbulent to Laminar Viscosity Ratio and its perturbation/s "
-                        "as a list. [default: %default, delta: 2.5%]"))
-    group.add_option('--TurbIntensity', dest='TurbInten', default='0.05',
-                  help=("Turbulence intensity at the throat and its perturbation/s "
-                  "[default: %default, delta: 2.5%]"))
-    group.add_option('--CoreRadiusFraction', dest="coreRfraction", default='0.6666666667',
-                  help=("Radius of core flow as a fraction of "
-                  "the nozzle exit radius and its perturbation/s "
-                  "[default: %default, delta: 2.5%]"))
-    op.add_option_group(group)
-    
-    op.add_option('--chem', dest='chemModel', default='eq',
-                  choices=['eq', 'neq', 'frz', 'frz2'],
-                  help=("chemistry model: " "eq=equilibrium; "
-                        "neq=non-equilibrium; " "frz=frozen "
-                        "[default: %default]"))
-    op.add_option('--area', dest='areaRatio', default=1581.165,
-                  help=("nozzle area ratio. only used for estcj calc. "
-                        "use when --cfile(--gfile) are "
-                        "specified. [default: %default]"))
-    op.add_option('--cfile', dest='contourFileName',
-                  default='Bezier-control-pts-t4-m10.data',
-                  help="file containing Bezier control points for "
-                       "nozzle contour [default: %default]")
-    op.add_option('--gfile', dest='gridFileName', default='None',
-                  help="file containing nozzle grid. "
-                  "overrides --cfile if both are given "
-                  "[default: %default]")
-    op.add_option('--exitfile', dest='exitSliceFileName',
-                  default='nozzle-exit.data',
-                  help="file for holding the nozzle-exit data [default: %default]")
-    op.add_option('--block-marching', dest='blockMarching', action='store_true',
-                  default=False, help="run nenzfr in block-marching mode")    
-    op.add_option('--create-RSA', dest='createRSA', action='store_true',
-                  default=False, 
-                  help="perturb only Vs and pe in preparation for calculating "
-                       "a Response Surface Approximation")
-
-    # The following defaults suit a Mach 10 Nozzle calculation.
-    op.add_option('--nni', dest='nni', type='int', default=1800,
-                  help=("number of axial cells [default: %default]"))
-    op.add_option('--nnj', dest='nnj', type='int', default=100,
-                  help=("number of radial cells [default: %default]"))
-    op.add_option('--nbi', dest='nbi', type='int', default=180,
-                  help=("number of axial blocks for the divergence section (nozzle_blk) "
-                        "[default: %default]"))
-    op.add_option('--nbj', dest='nbj', type='int', default=1,
-                  help=("number of radial blocks [default: %default]"))
-    op.add_option('--bx', dest='bx', type='float', default=1.05,
-                  help=("clustering in the axial direction [default: %default]"))
-    op.add_option('--by', dest='by', type='float', default=1.002,
-                  help=("clustering in the radial direction [default: %default]"))
-    op.add_option('--max-time', dest='max_time', type='float', default=6.0e-3,
-                  help=("overall simulation time for nozzle flow [default: %default]"))
-    op.add_option('--max-step', dest='max_step', type='int', default=80000,
-                  help=("maximum simulation steps allowed [default: %default]"))
-
+    op.add_option('-c', '--config_file', dest='config_file',
+                  help=("filename for the config file"))
     opt, args = op.parse_args()
-        
+    config_file = opt.config_file
+       
+    if not cfg: #if the configuration dictionary has not been filled up already, load it from a file
+        try: #from Rowan's onedval program
+            execfile(config_file, globals(), cfg)
+        except IOError:
+            print "There was a problem reading the config file: '{0}'".format(config_file)
+            print "Check that it conforms to Python syntax."
+            print "Bailing out!"
+            sys.exit(1)
+            
+    #check inputs using original nenzfr input checker first
+ 
+    cfg['bad_input'] = False
+   
+    cfg = input_checker(cfg)
+    
+    # add default pertubations and check new nenzfr perturbed inputs
+    
     # Set the default relative perturbation values (as percentages)
-    defaultPerturbations = {'p1':2.5, 'T1':2.5, 'Vs':2.5, 'pe':2.5, 
+    cfg['defaultPerturbations'] = {'p1':2.5, 'T1':2.5, 'Vs':2.5, 'pe':2.5, 
                            'Tw':2.5, 'BLTrans':2.5, 'TurbVisRatio':2.5,
                            'TurbInten':2.5, 'CoreRadiusFraction':2.5}
-
-    # Go ahead with a new calculation.
-    # First, make sure that we have the needed parameters.
-    bad_input = False
-    if opt.p1 is None:
-        print "Need to supply a value for p1."
-        bad_input = True
-    if opt.T1 is None:
-        print "Need to supply a value for T1."
-        bad_input = True
-    if opt.Vs is None:
-        print "Need to supply a value for Vs."
-        bad_input = True    
-    if opt.pe is None:
-        print "Need to supply a value for pe."
-        bad_input = True
-    if opt.blockMarching is True:
-        opt.blockMarching = "--block-marching"
-    else:
-        opt.blockMarching = ""
-    if bad_input:
-        return -2
-    # Convert to integer. NB. I don't specify the type as int in the option
-    # as this negates the ability to have choices.
-    if opt.levels in ['3-reduced']:
-        if opt.createRSA is True:
-            opt.levels = 2.5
-        else:
-            print "the --levels=3-reduced is only valid when creating a response surface."+\
-                  " changing to levels=3" 
-            opt.levels = 3
-    else:
-       opt.levels = int(opt.levels)
     
-    # Set up a list of the perturbed variables.
-    if opt.createRSA:
-        print "Create Response Surface (RS) option selected. Perturbing only Vs and pe"
-        perturbedVariables = ['Vs','pe']
-    else:
-        perturbedVariables = ['p1','T1','Vs','pe','Tw','BLTrans','TurbVisRatio',
-                              'TurbInten','CoreRadiusFraction',]
-        if opt.BLTrans == "x_c[-1]*1.1": # Laminar nozzle. Don't perturb BLTrans
-            # For fully laminar nozzles the inflow turbulent parameters are forced
-            # to zero so we shouldn't perturb them.
-            print "Nozzle is assumed laminar (based on input BLTrans), therefore\n"+\
-                  "BLTrans, TurbVisRatio and TurbInten are not perturbed"
-            del perturbedVariables[perturbedVariables.index('BLTrans')]
-            del perturbedVariables[perturbedVariables.index('TurbVisRatio')]
-            del perturbedVariables[perturbedVariables.index('TurbInten')]
-        else:
-            BLTransValues = opt.BLTrans.strip(']').strip('[').split(',')
-            if float(BLTransValues[0]) == 0.0: # Full turbulent nozzle. Don't perturb BLTrans
-                print "Nozzle is assumed fully turbulent, therefore BLTrans\n"+\
-                      "will not be perturbed"
-                del perturbedVariables[perturbedVariables.index('BLTrans')]
-            
-    # Now set up a dictionary of all variables that could possibly be perturbed. 
-    # Then configure this dictionary. For each dictionary key, if the key is not
-    # in the perturbedVariables list, its value is a list with a single float 
-    # element, otherwise it is a list of floats corresponding to the 
-    # perturbed values.
-    perturbedDict =  {'p1':opt.p1, 'T1':opt.T1, 'Vs':opt.Vs, 'pe':opt.pe,
-                      'Tw':opt.Tw, 'BLTrans':opt.BLTrans,
-                      'TurbVisRatio':opt.TurbVisRatio,
-                      'TurbInten':opt.TurbInten,
-                      'CoreRadiusFraction':opt.coreRfraction}
-    perturbedDict = configure_input_dictionary(perturbedVariables, perturbedDict,\
-                             defaultPerturbations, opt.levels, opt.perturb)
-     
-    # Set up a parameter dictionary 
-    # (with all variables at their nominal value)
-    paramDict = {'jobName':quote(opt.jobName), 'gasName':quote(opt.gasName),
-                 'T1':opt.T1, 'p1':opt.p1, 'Vs':opt.Vs, 'pe':opt.pe,
-                 'chemModel':quote(opt.chemModel),
-                 'contourFileName':quote(opt.contourFileName),
-                 'gridFileName':quote(opt.gridFileName),
-                 'exitSliceFileName':quote(opt.exitSliceFileName),
-                 'areaRatio':opt.areaRatio, 'blockMarching':opt.blockMarching,
-                 'nni':opt.nni, 'nnj':opt.nnj, 'nbi':opt.nbi, 'nbj':opt.nbj,
-                 'bx':opt.bx, 'by':opt.by,
-                 'max_time':opt.max_time, 'max_step':opt.max_step,
-                 'Tw':opt.Tw, 'TurbVisRatio':opt.TurbVisRatio,
-                 'TurbInten':opt.TurbInten, 'BLTrans':opt.BLTrans,
-                 'CoreRadiusFraction':opt.coreRfraction,
-                 'Cluster':opt.Cluster,'runCMD':opt.runCMD}
+    cfg = nenzfr_perturbed_input_checker(cfg)
+    
+    #bail out here if there is an issue
+    if cfg['bad_input']:
+        return -2
+        
+    perturbedDict = cfg['perturbedDict']
+        
     for var in perturbedDict.keys():
-        paramDict[var] = perturbedDict[var][0]
+        cfg[var] = perturbedDict[var][0]
         
     # As building an equilibrium gas LUT is so time consuming, we do it here
     # and then copy the resulting LUT into each case sub-directory. The following
     # lines are copied almost verbatim from "nenzfr.py"
-    if opt.chemModel in ['eq']:
-        if opt.gasName in ['n2']:
-            eqGasModelFile = 'cea-lut-'+upper(opt.gasName)+'.lua.gz'
+    if cfg['chemModel'] in ['eq']:
+        if cfg['gasName'] in ['n2']:
+            eqGasModelFile = 'cea-lut-'+upper(cfg['gasName'])+'.lua.gz'
         else:
-            eqGasModelFile = 'cea-lut-'+opt.gasName+'.lua.gz'
+            eqGasModelFile = 'cea-lut-'+cfg['gasName']+'.lua.gz'
         if not os.path.exists(eqGasModelFile):
-            run_command('build-cea-lut.py --gas='+opt.gasName)
-        paramDict['gmodelFile'] = eqGasModelFile
+            run_command('build-cea-lut.py --gas='+cfg['gasName'])
+        cfg['gmodelFile'] = eqGasModelFile
 
-    if opt.createRSA is not True: # Perturbing for a sensitivity calculation
+    if not cfg['createRSA']: # Perturbing for a sensitivity calculation
         # Calculate Nominal condition
         caseString = 'case'+"{0:02}".format(0)+"{0:01}".format(0)
         textString = "Nominal Condition"
-        caseDict = copy.copy(paramDict)
+        caseDict = copy.copy(cfg)
         caseDict['caseName'] = caseString
         write_case_config(caseDict)
         # Run the nominal case and write the values of the perturbed variables
         # to a summary file
         set_case_running(caseString, caseDict, textString)
-        write_case_summary(perturbedVariables,caseDict,caseString,1)
+        write_case_summary(cfg['perturbedVariables'],caseDict,caseString,1)
 
         # Now run all the perturbed conditions
-        for k in range(len(perturbedVariables)):
-            var = perturbedVariables[k]
-            perturbCount = opt.levels
+        for k in range(len(cfg['perturbedVariables'])):
+            var = cfg['perturbedVariables'][k]
+            perturbCount = cfg['levels']
 
             for kk in range(perturbCount):
                 if kk != 0:
@@ -485,29 +321,29 @@ def main():
                     # --just-stats option in nenzfr. We therefore don't need to
                     # run any separate cases for this variable. The perturbation
                     # is handled by "nenzfr_sensitivity.py".
-                    caseDict = copy.copy(paramDict)
+                    caseDict = copy.copy(cfg)
                     caseDict[var] = perturbedDict[var][kk]
                     caseDict['caseName'] = caseString
                     if var != 'CoreRadiusFraction':
                         # Run the current case
                         set_case_running(caseString, caseDict, textString)
                     # Write current case to the summary file
-                    write_case_summary(perturbedVariables,caseDict,\
+                    write_case_summary(cfg['perturbedVariables'],caseDict,\
                                        caseString,0)
 
     else: # Perturbing to create a LUT
-        var1 = perturbedVariables[0] # 'Vs'
-        var2 = perturbedVariables[1] # 'pe'
+        var1 = cfg['perturbedVariables'][0] # 'Vs'
+        var2 = cfg['perturbedVariables'][1] # 'pe'
         
-        if opt.levels == 2.5:
+        if cfg['levels'] == 2.5:
             casesToRun = [(2,1),      (1,1),
                                 (0,0),
                           (2,2),      (1,2)]
-        elif opt.levels == 3:
+        elif cfg['levels'] == 3:
             casesToRun = [(2,1),(0,1),(1,1),
                           (2,0),(0,0),(1,0),
                           (2,2),(0,2),(1,2)]
-        elif opt.levels == 5:
+        elif cfg['levels'] == 5:
             casesToRun = [(4,3),      (0,3),      (3,3),
                                 (2,1),      (1,1),      
                           (4,0),      (0,0),      (3,0),
@@ -527,7 +363,7 @@ def main():
                                  "; "+var2+"="+str(perturbedDict[var2][0])
         write_case_config(caseDict)
         set_case_running(caseString, caseDict, textString)
-        write_case_summary(perturbedVariables, caseDict, caseString, 1)
+        write_case_summary(cfg['perturbedVariables'], caseDict, caseString, 1)
          
         # Now run all other cases
         for case in casesToRun:
@@ -541,7 +377,7 @@ def main():
                 caseDict[var2] = perturbedDict[var2][case[1]]
 
                 set_case_running(caseString, caseDict, textString)
-                write_case_summary(perturbedVariables, caseDict, caseString, 0)
+                write_case_summary(cfg['perturbedVariables'], caseDict, caseString, 0)
 
     
     return 0

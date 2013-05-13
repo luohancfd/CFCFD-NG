@@ -23,6 +23,7 @@ import numpy as np #import array
 np.seterr(divide='ignore',invalid='ignore')
 from nenzfr_utils import run_command, quote, read_case_summary, \
      read_nenzfr_outfile, read_estcj_outfile
+from nenzfr_input_utils import input_checker, nenzfr_perturbed_input_checker, nenzfr_sensitivity_input_checker
 E3BIN = os.path.expandvars("$HOME/e3bin")
 sys.path.append(E3BIN)
 
@@ -213,80 +214,68 @@ def main():
     """
     op = optparse.OptionParser(version=VERSION_STRING)
 
-    op.add_option('--run-defaults', dest='runDefaults', action='store_true',
-                  default=True, help="calculate sensitivities and "
-                  "uncertainties using all the default values.")
-    
-    op.add_option('--exitStatsFile', dest='exitStatsFileName',
-                  default='nozzle-exit.stats',
-                  help="file that holds the averaged nozzle-exit "
-                       "data and is to be read in for each perturbation "
-                       "case [default: %default]")
-    op.add_option('--estcjFile', dest='estcjFile', default='nozzle-estcj.dat',
-                  help="file that holds the estcj result and is to be read in "
-                       "for each perturbation case. [default: %default]")
-     
-    op.add_option('--levels', dest='levels', default=3,choices=['3','5'],
-                  help=("specify how many points are to be used in the "
-                        "calculation of the gradient. Includes the nominal.  "
-                        "Options: 3, 5 [default: %default]"))
-    
-    # The default values for the following inputs are based on those given in 
-    # Rainer Kirchhartz' PhD Thesis (Appendix B)
-    op.add_option('--Xp1', dest='p1', default=0.0325, type='float',
-                  help=("relative uncertainty in shock tube fill pressure. "
-                        "[default: %default]" ))
-    op.add_option('--XT1', dest='T1', default=0.02, type='float',
-                  help=("relative uncertainty in shock tube fill temperature. "
-                        "[default: %default]"))
-    op.add_option('--XVs', dest='Vs', default=0.05, type='float',
-                  help=("relative uncertainty in the incident shock speed. "
-                        "[default: %default]"))
-    op.add_option('--Xpe', dest='pe', default=0.025, type='float',
-                  help=("relative uncertainty in the equilibrium pressure "
-                        "(after shock reflection). [default: %default]"))
-    # The default values for the following inputs are guestimates :)
-    op.add_option('--XTwall', dest='Tw', default=0.04, type='float',
-                  help=("relative uncertainty in nozzle wall temperature. "
-                        "[default: %default]"))
-    op.add_option('--XBLTrans', dest='BLTrans', default=1.00, type='float',
-                  help=("relative uncertainty in the boundary layer "
-                        "transition location. [default: %default]"))
-    op.add_option('--XTurbVisRatio', dest='TurbVisRatio', default=1.00,
-                  type='float',
-                  help=("relative uncertainty in turbulent-to-laminar "
-                        "viscosity ratio at the throat. "
-                        "[default: %default]"))
-    op.add_option('--XTurbIntensity', dest='TurbInten', default=0.8,
-                  type='float',
-                  help=("relative uncertainty in turbulence intensity "
-                        "at the throat. [default: %default]"))
-    op.add_option('--XCoreRadiusFraction', dest="coreRfraction", default=0.05,
-                  type='float',
-                  help=("relative uncertainty in the core flow radius "
-                        "fraction. [default: %default]")) 
+def main(cfg={}):
+    """
+    Examine the command-line options to decide the what to do
+    and then coordinate a series of Nenzfr calculations with 
+    various inputs perturbed around the input nominal condition.
+    """
+    op = optparse.OptionParser(version=VERSION_STRING)
+    op.add_option('-c', '--config_file', dest='config_file',
+                  help=("filename for the config file"))
     opt, args = op.parse_args()
+    config_file = opt.config_file
+       
+    if not cfg: #if the configuration dictionary has not been filled up already, load it from a file
+        try: #from Rowan's onedval program
+            execfile(config_file, globals(), cfg)
+        except IOError:
+            print "There was a problem reading the config file: '{0}'".format(config_file)
+            print "Check that it conforms to Python syntax."
+            print "Bailing out!"
+            sys.exit(1)
+            
+    #check inputs using original nenzfr input checker first
  
-    # Convert to integer
-    opt.levels = int(opt.levels)
-
+    cfg['bad_input'] = False
+   
+    cfg = input_checker(cfg)
+    
+    # add default pertubations and check new nenzfr perturbed inputs
+    
+    # Set the default relative perturbation values (as percentages)
+    cfg['defaultPerturbations'] = {'p1':2.5, 'T1':2.5, 'Vs':2.5, 'pe':2.5, 
+                           'Tw':2.5, 'BLTrans':2.5, 'TurbVisRatio':2.5,
+                           'TurbInten':2.5, 'CoreRadiusFraction':2.5}
+    
+    cfg = nenzfr_perturbed_input_checker(cfg)
+    
+    #Relative uncertainties below based on uncertainties in Rainer's thesis.
+    
+    cfg['default_rel_uncertainties'] = {'p1':0.0325, 'T1':0.02, 'Vs':0.05, 'pe':0.025, 
+                           'Tw':0.04, 'BLTrans':1.00, 'TurbVisRatio':1.00,
+                           'TurbInten':0.8, 'CoreRadiusFraction':0.05}    
+    
+    cfg = nenzfr_sensitivity_input_checker(cfg)
+   
+    #bail out here if there is an issue
+    if cfg['bad_input']:
+        return -2
+ 
     # Read the sensitivity_case_summary file to get the perturbed
     # variables and their various values
     perturbedVariables, DictOfCases = read_case_summary()
     
-    # Create a dictionary of the relative uncertainties of each 
-    # variable that may have been perturbed
-    inputUncertainties = {'p1':opt.p1, 'T1':opt.T1, 'Vs':opt.Vs, 'pe':opt.pe,
-                          'Tw':opt.Tw, 'TurbVisRatio':opt.TurbVisRatio,
-                          'TurbInten':opt.TurbInten, 'BLTrans':opt.BLTrans,
-                          'CoreRadiusFraction':opt.coreRfraction}
+    # Pull the variable of the uncertainties for each perturbed variable from
+    # the config dictionary.
+    inputUncertainties = cfg['inputUncertainties']
     
     # Define the name of the nominal case and load the exit plane data
     nominal = 'case000'
     nominalData, exitVar = read_nenzfr_outfile('./'+nominal+'/'+\
-                                               opt.exitStatsFileName)
+                                               cfg['jobName']+'-exit.stats')
     # Load the nozzle supply data
-    nominalSupply = read_estcj_outfile('./'+nominal+'/'+opt.estcjFile)
+    nominalSupply = read_estcj_outfile('./'+nominal+'/'+cfg['jobName']+'-estcj.dat')
     # Now add the relevant supply data (T, h) to the nominalData dictionary
     nominalData['supply_T'] = nominalSupply['T']
     nominalData['supply_h'] = nominalSupply['h']
@@ -308,21 +297,21 @@ def main():
         
         if var == 'CoreRadiusFraction':
             perturb_CoreRadiusFraction(var, perturbedVariables,\
-                                       DictOfCases, opt.levels)
+                                       DictOfCases, cfg['levels'])
         # Define the name of the relevant perturbed cases and load the 
         # associated data
         high = 'case'+"{0:02}".format(k)+'1'
         highData, dontNeed  = read_nenzfr_outfile('./'+high+'/'+\
-                                                  opt.exitStatsFileName)
-        highSupply = read_estcj_outfile('./'+high+'/'+opt.estcjFile)
+                                                  cfg['jobName']+'-exit.stats')
+        highSupply = read_estcj_outfile('./'+high+'/'+cfg['jobName']+'-estcj.dat')
         highData['supply_T'] = highSupply['T']
         highData['supply_h'] = highSupply['h']
         highData, dontNeed = add_extra_variables(highData, [])
         
         low = 'case'+"{0:02}".format(k)+'2'
         lowData, dontNeed = read_nenzfr_outfile('./'+low+'/'+\
-                                                opt.exitStatsFileName)
-        lowSupply = read_estcj_outfile('./'+low+'/'+opt.estcjFile)
+                                                cfg['jobName']+'-exit.stats')
+        lowSupply = read_estcj_outfile('./'+low+'/'+cfg['jobName']+'-estcj.dat')
         lowData['supply_T'] = lowSupply['T']
         lowData['supply_h'] = lowSupply['h']
         lowData, dontNeed = add_extra_variables(lowData, [])
@@ -337,7 +326,7 @@ def main():
         lowX = DictOfCases[low][perturbedVariables.index(var)]
         nominalX = DictOfCases[nominal][perturbedVariables.index(var)]
    
-        if opt.levels == 3: 
+        if cfg['levels'] == 3: 
             # As the perturbations may not be centered on the nominal
             # condition we caculate the gradient by taking a weighted
             # average of the forward and backward derivatives. The 
@@ -364,7 +353,7 @@ def main():
             
             sensitivity[var] = sensitivity_abs[var]*nominalX/np.array(nominalValues)
             #print sensitivity[var]
-        else:
+        elif cfg['levels'] == 5:
             # For 5 levels per variable we have additional cases 
             # that need to be loaded. Again we do not assume that
             # the levels are equally spaced around the nominal. 
@@ -372,16 +361,16 @@ def main():
             # associated with this estimate is O(4) or higher.
             tooHigh = 'case'+"{0:02}".format(k)+'3'
             tooHighData,dontNeed = \
-                  read_nenzfr_outfile('./'+tooHigh+'/'+opt.exitStatsFileName)
-            tooHighSupply = read_estcj_outfile('./'+tooHigh+'/'+opt.estcjFile)
+                  read_nenzfr_outfile('./'+tooHigh+'/'+cfg['jobName']+'-exit.stats')
+            tooHighSupply = read_estcj_outfile('./'+tooHigh+'/'+cfg['jobName']+'-estcj.dat')
             tooHighData['supply_T'] = tooHighSupply['T']
             tooHighData['supply_h'] = tooHighSupply['h']
             tooHighData, dontNeed = add_extra_variables(tooHighData, [])
             
             tooLow = 'case'+"{0:02}".format(k)+'4'
             tooLowData,dontNeed = \
-                  read_nenzfr_outfile('./'+tooLow+'/'+opt.exitStatsFileName)
-            tooLowSupply = read_estcj_outfile('./'+tooLow+'/'+opt.estcjFile)
+                  read_nenzfr_outfile('./'+tooLow+'/'+cfg['jobName']+'-exit.stats')
+            tooLowSupply = read_estcj_outfile('./'+tooLow+'/'+cfg['jobName']+'-estcj.dat')
             tooLowData['supply_T'] = tooLowSupply['T']
             tooLowData['supply_h'] = tooLowSupply['h']
             tooLowData, dontNeed = add_extra_variables(tooLowData, [])
