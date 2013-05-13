@@ -10,7 +10,7 @@ Chris James - 22-Apr-2013
 import sys, os
 sys.path.append(os.path.expandvars("$HOME/e3bin"))
 import unittest
-import pitot
+from pitot import run_pitot
 
 
 class TestPitot(unittest.TestCase):
@@ -20,7 +20,7 @@ class TestPitot(unittest.TestCase):
                'facility':'x2', 'nozzle':True, 'secondary': False,
                'driver_gas':'He:1.0', 'test_gas':'air',
                'Vs1':5645.0,'Vs2':11600.0, 'mode':'return'}
-        cfg, states, V, M = pitot.main(cfg=cfg)
+        cfg, states, V, M = run_pitot(cfg=cfg)
         #check fill pressures
         self.assertAlmostEqual(states['s1'].p, 3002.78, delta=1.0)
         self.assertAlmostEqual(states['s5'].p, 10.75, delta=1.0)
@@ -43,7 +43,7 @@ class TestPitot(unittest.TestCase):
                'facility':'x2', 'nozzle':True, 'secondary': False,
                'driver_gas':'He:1.0', 'test_gas':'air',
                'Vs1':6120.0,'Vs2':13500.0, 'mode':'return'}
-        cfg, states, V, M = pitot.main(cfg=cfg)
+        cfg, states, V, M = run_pitot(cfg=cfg)
         #check fill pressures
         self.assertAlmostEqual(states['s1'].p, 3003.6, delta=1.0)
         self.assertAlmostEqual(states['s5'].p, 9.05, delta=1.0)
@@ -66,7 +66,7 @@ class TestPitot(unittest.TestCase):
                'facility':'x2', 'nozzle':True, 'secondary': False,
                'driver_gas':'He:1.0', 'test_gas':'air',
                'p1':3000.0,'p5':10.0, 'mode':'return'}
-        cfg, states, V, M = pitot.main(cfg=cfg)
+        cfg, states, V, M = run_pitot(cfg=cfg)
         #check fill pressures
         self.assertAlmostEqual(states['s1'].p, 3000.0, delta=1.0)
         self.assertAlmostEqual(states['s5'].p, 10.0, delta=1.0)
@@ -89,7 +89,7 @@ class TestPitot(unittest.TestCase):
                'facility':'x2', 'nozzle':True, 'secondary': False,
                'driver_gas':'He:1.0', 'test_gas':'air',
                'p1':3000.0,'p5':10.0, 'mode':'return'}
-        cfg, states, V, M = pitot.main(cfg=cfg)
+        cfg, states, V, M = run_pitot(cfg=cfg)
         #check fill pressures
         self.assertAlmostEqual(states['s1'].p, 3000.0, delta=1.0)
         self.assertAlmostEqual(states['s5'].p, 10.0, delta=1.0)
@@ -113,7 +113,7 @@ class TestPitot(unittest.TestCase):
                'facility':'x2', 'nozzle':True, 'secondary': False,
                'driver_gas':'He:0.80,Ar:0.20', 'test_gas':'titan',
                'p1':3200.0,'p5':10.0}
-        cfg, states, V, M = pitot.main(cfg=cfg)
+        cfg, states, V, M = run_pitot(cfg=cfg)
         #check fill pressures
         self.assertAlmostEqual(states['s1'].p, 3200.0, delta=1.0)
         self.assertAlmostEqual(states['s5'].p, 10.0, delta=1.0)
@@ -141,7 +141,7 @@ class TestPitot(unittest.TestCase):
                'facility':'x2', 'nozzle':True, 'secondary': False,
                'driver_gas':'He:0.80,Ar:0.20', 'test_gas':'titan',
                'p1':3200.0,'p5':10.0}
-        cfg, states, V, M = pitot.main(cfg=cfg)
+        cfg, states, V, M = run_pitot(cfg=cfg)
         #check fill pressures
         self.assertAlmostEqual(states['s1'].p, 3200.0, delta=1.0)
         self.assertAlmostEqual(states['s5'].p, 10.0, delta=1.0)
@@ -169,7 +169,7 @@ class TestPitot(unittest.TestCase):
                'facility':'x2', 'nozzle':True, 'secondary': False,
                'driver_gas':'He:0.80,Ar:0.20', 'test_gas':'titan',
                'p1':3200.0,'p5':10.0, 'Vs1': 4100.0, 'Vs2': 8620.0}
-        cfg, states, V, M = pitot.main(cfg=cfg)
+        cfg, states, V, M = run_pitot(cfg=cfg)
         #check fill pressures
         self.assertAlmostEqual(states['s1'].p, 3200.0, delta=1.0)
         self.assertAlmostEqual(states['s5'].p, 10.0, delta=1.0)
@@ -193,7 +193,7 @@ class TestPitot(unittest.TestCase):
                'facility':'x2', 'nozzle':True, 'secondary': False,
                'driver_gas':'He:0.80,Ar:0.20', 'test_gas':'titan',
                'p1':3200.0,'p5':10.0, 'Vs1': 4100.0, 'Vs2': 8620.0}
-        cfg, states, V, M = pitot.main(cfg=cfg)
+        cfg, states, V, M = run_pitot(cfg=cfg)
         #check fill pressures
         self.assertAlmostEqual(states['s1'].p, 3200.0, delta=1.0)
         self.assertAlmostEqual(states['s5'].p, 10.0, delta=1.0)
@@ -218,7 +218,7 @@ class TestPitot(unittest.TestCase):
                'driver_gas':'He:1.0', 'test_gas':'gasgiant_h215he',
                'psd1':17500.0, 'p1':4700.0, 'p5':6.37, 
                'shock_over_model':True}
-        cfg, states, V, M = pitot.main(cfg=cfg)
+        cfg, states, V, M = run_pitot(cfg=cfg)
         #check fill pressures
         self.assertAlmostEqual(states['sd1'].p, 17500, delta=1.0)
         self.assertAlmostEqual(states['s1'].p, 4700.0, delta=1.0)
@@ -252,7 +252,7 @@ class TestPitot(unittest.TestCase):
                'driver_gas':'He:1.0', 'test_gas':'gasgiant_h215he',
                'psd1':17500.0, 'p1':4700.0, 'p5':6.37, 
                'shock_over_model':True}
-        cfg, states, V, M = pitot.main(cfg=cfg)
+        cfg, states, V, M = run_pitot(cfg=cfg)
         #check fill pressures
         self.assertAlmostEqual(states['sd1'].p, 17500, delta=1.0)
         self.assertAlmostEqual(states['s1'].p, 4700.0, delta=1.0)
@@ -286,7 +286,7 @@ class TestPitot(unittest.TestCase):
                'driver_gas':'He:1.0', 'test_gas':'gasgiant_h285ne',
                'psd1':30000.0, 'p1':2400.0, 'p5':2.5, 
                'shock_over_model':True}
-        cfg, states, V, M = pitot.main(cfg=cfg)
+        cfg, states, V, M = run_pitot(cfg=cfg)
         #check fill pressures
         self.assertAlmostEqual(states['sd1'].p, 30000, delta=1.0)
         self.assertAlmostEqual(states['s1'].p, 2400.0, delta=1.0)
@@ -320,7 +320,7 @@ class TestPitot(unittest.TestCase):
                'driver_gas':'He:1.0', 'test_gas':'gasgiant_h285ne',
                'psd1':30000.0, 'p1':2400.0, 'p5':2.5, 
                'shock_over_model':True}
-        cfg, states, V, M = pitot.main(cfg=cfg)
+        cfg, states, V, M = run_pitot(cfg=cfg)
         #check fill pressures
         self.assertAlmostEqual(states['sd1'].p, 30000.0, delta=1.0)
         self.assertAlmostEqual(states['s1'].p, 2400.0, delta=1.0)
@@ -353,7 +353,7 @@ class TestPitot(unittest.TestCase):
                'facility':'x2', 'nozzle':True, 'secondary': True,
                'driver_gas':'He:0.80,Ar:0.20', 'test_gas':'air',
                'psd1':100000.0, 'p1':486000.0, 'p5':1500, 'shock_switch':True}                 
-        cfg, states, V, M = pitot.main(cfg=cfg)
+        cfg, states, V, M = run_pitot(cfg=cfg)
         #check fill pressures
         self.assertAlmostEqual(states['sd1'].p, 100000.0, delta=1.0)
         self.assertAlmostEqual(states['s1'].p, 486000.0, delta=1.0)
@@ -379,7 +379,7 @@ class TestPitot(unittest.TestCase):
                'facility':'x2', 'nozzle':True, 'secondary': True,
                'driver_gas':'He:0.80,Ar:0.20', 'test_gas':'air',
                'Vsd':4290.0, 'Vs1':1588.0, 'Vs2':3424.0}                    
-        cfg, states, V, M = pitot.main(cfg=cfg)
+        cfg, states, V, M = run_pitot(cfg=cfg)
         #check fill pressures
         self.assertAlmostEqual(states['sd1'].p, 100020.0, delta=1.0)
         self.assertAlmostEqual(states['s1'].p, 486080.0, delta=1.0)

@@ -175,7 +175,7 @@ from pitot_flow_functions import *
 from pitot_output_utils import *
 
 
-VERSION_STRING = "07-May-2013"
+VERSION_STRING = "13-May-2013"
 
 DEBUG_PITOT = False
 
@@ -184,23 +184,23 @@ PRINT_STATUS = 1 #if print status is 1, some basic printouts are done
    
 #----------------------------------------------------------------------------
     
-
+def run_pitot(cfg = {}, config_file = None):
+    """
     
-#----------------------------------------------------------------------------
-     
-def main(cfg={}):
+    I pulled the guts of pitot out of the main() and into this run_pitot
+    function so that pitot can more easily be modulated. A user can feed
+    a cfg dictionary into the run_pitot function and run pitot without needing
+    a cfg file at all.
     
-#---------------------- getting the inputs set up --------------------------
-
-    import optparse  
-    op = optparse.OptionParser(version=VERSION_STRING)   
-    op.add_option('-c', '--config_file', dest='config_file',
-                  help=("filename where the configuration file is located"))    
-
-    opt, args = op.parse_args()
-    config_file = opt.config_file
+    Chris James (c.james4@uq.edu.au) 13/05/13
     
-    if not cfg: #if the configuration dictionary has not been filled up already, load it from a file
+    run_pitot(dict) - > depends
+    
+    """
+    
+    #---------------------- getting the inputs set up --------------------------
+    
+    if config_file:
         try: #from Rowan's onedval program
             execfile(config_file, globals(), cfg)
         except IOError:
@@ -208,7 +208,7 @@ def main(cfg={}):
             print "Check that it conforms to Python syntax."
             print "Bailing out!"
             sys.exit(1)
-            
+        
     #----------------- check inputs ----------------------------------------
     
     cfg = input_checker(cfg)
@@ -296,8 +296,21 @@ def main(cfg={}):
     or cfg['cleanup'] and cfg['solver'] == 'pg-eq':
         cleanup_function()     
         
-    if cfg['mode'] == 'return': #return values and then exit if we were asked to
-        return cfg, states, V, M                       
+    return cfg, states, V, M               
+    
+#----------------------------------------------------------------------------
+     
+def main():
+    
+    import optparse  
+    op = optparse.OptionParser(version=VERSION_STRING)   
+    op.add_option('-c', '--config_file', dest='config_file',
+                  help=("filename where the configuration file is located"))    
+
+    opt, args = op.parse_args()
+    config_file = opt.config_file
+           
+    run_pitot(cfg = {}, config_file = config_file)
 
 #------------------------ running stuff----------------------------------------
                            
@@ -373,11 +386,11 @@ if __name__ == '__main__':
             print "This is the equilibrium demo of pitot recreating Hadas' 8.5 km/s titan condition with experimental shock speeds specified."
             print " "
             cfg = {'solver':'eq', 'test':'experiment',
-                   'mode':'printout','conehead':True, 'area_ratio':3.0,
+                   'mode':'printout','conehead':False, 'area_ratio':3.0,
                    'facility':'x2', 'nozzle':True, 'secondary': False,
                    'driver_gas':'He:0.80,Ar:0.20', 'test_gas':'titan',
                    'p1':3200.0,'p5':10.0, 'Vs1': 4100.0, 'Vs2': 8620.0,
-                   'filename':demo}
+                   'filename':demo, 'expand_to':'shock-speed', 'expansion_factor':0.95}
             main(cfg=cfg) 
             
         elif demo == 'hadas85-experiment-pg':
