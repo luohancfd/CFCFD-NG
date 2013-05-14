@@ -34,7 +34,8 @@ test number-of-steps {The main simulation takes a certain number of steps.} -bod
     }
     # We'll tolerate a small change in the number of steps,
     # in case the look-up table gets changed.
-    expr abs($final_steps - 4450) < 10
+    # 2013-05-14: bumped tolerance from 10 to 50
+    expr abs($final_steps - 4450) < 50
 } -result {1}
 
 test stand-off {The shock stand-off distance compared with experiment.} -body {

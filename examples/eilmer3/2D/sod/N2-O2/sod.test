@@ -81,7 +81,7 @@ test flow-properties-ideal {The expanded driver gas and compressed driven gas.} 
     # the average flow properties within the expanded driver gas slug 
     # and the shock-compressed driven gas slug.
     # Reference values come from the "ideal gas" model run.
-    list [expr abs($shock_speed - 558.2) < 0.5] \
+    list [expr abs($shock_speed - 558.2) < 1.0] \
 	[expr abs($edg_u_g - 294.1) < 0.5] \
 	[expr abs($edg_p - 30307.) < 50.0] \
 	[expr abs($edg_T - 247.5) < 0.5] \
@@ -166,7 +166,7 @@ test flow-properties-thermally-perfect {The expanded driver gas and compressed d
     # and the shock-compressed driven gas slug.
     # Reference values come from the "thermally perfect gas" model run.
     # Note the negative values for the expected internal energies.
-    list [expr abs($shock_speed - 558.2) < 0.5] \
+    list [expr abs($shock_speed - 558.2) < 1.0] \
 	[expr abs($edg_u_g - 294.4) < 0.5] \
 	[expr abs($edg_p - 30309.) < 50.0] \
 	[expr abs($edg_T - 247.7) < 0.5] \
