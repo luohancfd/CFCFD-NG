@@ -893,7 +893,7 @@ build-cea-lut.py : $(TOOLS)/build-cea-lut.py
 	cp $(TOOLS)/build-cea-lut.py .
 
 cea2 :
-	gfortran -m32 -std=legacy -o cea2 $(CEA2)/cea2.f
+	gfortran -std=legacy -o cea2 $(CEA2)/cea2.f
 	cp $(CEA2)/thermo.inp .
 	cp $(CEA2)/trans.inp .
 
