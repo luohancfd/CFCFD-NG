@@ -227,7 +227,6 @@ int mach_weighted_one_d_interp(const FV_Cell &cL1, const FV_Cell &cL0,
 		    cR0.fs->gas->massf[isp] = Rght.gas->massf[isp];
 	    }
 	}
-	
 	// Interpolate on two of the thermodynamic quantities, and fill
 	// in the rest based on an EOS call.
 	
@@ -243,28 +242,14 @@ int mach_weighted_one_d_interp(const FV_Cell &cL1, const FV_Cell &cL0,
 					      kL, kR,
 					      apply_limiter_flag, extrema_clipping_flag);
 	}
-	int status = gmodel->eval_thermo_state_rhoe(*(Lft.gas));
-	status = gmodel->eval_thermo_state_rhoe(*(Rght.gas));
-	if ( status != SUCCESS ) {
-	    if ( status == 1 ) {
-		// Lft state failed.
-		Lft.copy_values_from(*(cL0.fs));
-	    }
-	    else if ( status == 2 ) {
-		// Rght state failed.
-		Rght.copy_values_from(*(cR0.fs));
-	    }
-	    else if ( status == 3 ) {
-		// Both failed.
-		Lft.copy_values_from(*(cL0.fs));
-		Rght.copy_values_from(*(cR0.fs));
-	    }
-	    else {
-		printf("one_d_interp(): Problem in flow state reconstruction.");
-		printf("Failure status: %d is unknown.\n", status);
-		printf("Bailing out!\n");
-		exit(RECONSTRUCTION_ERROR);
-	    }
+
+	if ( gmodel->eval_thermo_state_rhoe(*(Lft.gas)) != SUCCESS ) {
+	    // Lft state failed, just copy values from adjacent cell
+	    Lft.copy_values_from(*(cL0.fs));
+	}
+	if ( gmodel->eval_thermo_state_rhoe(*(Rght.gas)) != SUCCESS ) {
+	    // Rght state failed, just copy values from adjacent cell
+	    Rght.copy_values_from(*(cR0.fs));
 	}
 	
 	if ( get_viscous_flag() ) {
