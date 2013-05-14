@@ -81,6 +81,7 @@ s_update_state(Gas_data &Q, double t_interval, double &dt_suggest, Gas_model *gm
     const double DT_SUB_FRAC = 0.1; // fraction of subinterval to use
                                     // as first dt_suggest
     int flag = SUCCESS;
+    int nmodes = gm->get_number_of_modes();
 
     if ( Q.T[0] <= T_lower_limit_  || Q.T[0] >= T_upper_limit_ ) {
 	dt_suggest = -1.0;
@@ -95,13 +96,15 @@ s_update_state(Gas_data &Q, double t_interval, double &dt_suggest, Gas_model *gm
 
     // 1. Attempt to solve normally.
     if ( perform_increment(Q, t_interval, dt_suggest) == SUCCESS ) {
-	// Changing mass fractions does not change internal energies
-	// but the amount in kg/mixture has changed, so update e[] values
-	if ( gm->eval_thermo_state_rhoT(Q) != SUCCESS ) {
-	    return FAILURE;
+	if ( nmodes > 1 ) {
+	    // Changing mass fractions does not change internal energies
+	    // but the amount in kg/mixture has changed, so update e[] values
+	    if ( gm->eval_thermo_state_rhoT(Q) != SUCCESS ) {
+		return FAILURE;
+	    }
+	    double e_other = accumulate(Q.e.begin()+1, Q.e.end(), 0.0);
+	    Q.e[0] = e_total - e_other;
 	}
-	double e_other = accumulate(Q.e.begin()+1, Q.e.end(), 0.0);
-	Q.e[0] = e_total - e_other;
 	// all is well
 	return SUCCESS;
     }
@@ -118,9 +121,11 @@ s_update_state(Gas_data &Q, double t_interval, double &dt_suggest, Gas_model *gm
 	for( int i = 0; i < no_substeps; ++i ) {
 	    // Update the gas-state assuming constant density and energy
 	    if ( i > 0 && gm!=0 ) {
-		gm->eval_thermo_state_rhoT(Q);
-		double e_other = accumulate(Q.e.begin()+1, Q.e.end(), 0.0);
-		Q.e[0] = e_total - e_other;
+		if ( nmodes > 1 ) {
+		    gm->eval_thermo_state_rhoT(Q);
+		    double e_other = accumulate(Q.e.begin()+1, Q.e.end(), 0.0);
+		    Q.e[0] = e_total - e_other;
+		}
 	    	gm->eval_thermo_state_rhoe(Q);
 	    }
 	    if ( perform_increment(Q, dt_sub, dt_suggest) != SUCCESS ) {
