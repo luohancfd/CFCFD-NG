@@ -19,7 +19,6 @@
 #include "block.hh"
 #include "bc_defs.hh"
 #include "piston.hh"
-#include "thermo-interpolator.hh"
 #include "radiation_transport.hh"
 
 //-------------------------------------------------------------------
@@ -184,8 +183,6 @@ int set_reaction_update(std::string file_name);
 Reaction_update *get_reaction_update_ptr();
 int set_energy_exchange_update( std::string file_name );
 Energy_exchange_update *get_energy_exchange_update_ptr();
-int set_thermo_interpolator(std::string name);
-Thermo_interpolator *get_thermo_interpolator_ptr();
 int set_radiation_transport_model(std::string file_name);
 RadiationTransportModel *get_radiation_transport_model_ptr();
 Block * get_block_data_ptr(size_t i);

@@ -71,22 +71,6 @@ Energy_exchange_update *get_energy_exchange_update_ptr()
     return eeupdate;
 }
 
-// The managed interpolation object lives here.
-Thermo_interpolator *tinterp;
-int set_thermo_interpolator(std::string name)
-{
-    tinterp = create_Thermo_interpolator(name);
-    if ( tinterp == 0 )
-	return FAILURE;
-    else
-	return SUCCESS;
-}
-
-Thermo_interpolator *get_thermo_interpolator_ptr()
-{
-    return tinterp;
-}
-
 // The managed radiation transport model lives here.
 RadiationTransportModel *rtm;
 
@@ -134,7 +118,6 @@ void eilmer_finalize( void )
     gd.my_blocks.clear();
     gd.mpi_rank_for_block.clear();
     delete gmodel;
-    delete tinterp;
     if ( get_radiation_flag() )	delete rtm;
     return;
 }

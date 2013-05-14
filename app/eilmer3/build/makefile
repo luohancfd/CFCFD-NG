@@ -157,11 +157,6 @@ E3_OBJECTS_2 := kernel.o \
 	lua_service.o \
 	lua_service_for_e3.o \
 	dbc_assert.o \
-	thermo-interpolator.o \
-	rhoe-interpolator.o \
-	rhop-interpolator.o \
-	rhoT-interpolator.o \
-	pT-interpolator.o \
 	radiation_transport.o \
 	implicit.o \
 	cell_finder.o \
@@ -647,8 +642,7 @@ ausm.o : $(SRC)/ausm.cxx $(SRC)/flux_calc.hh
 cell.o : $(SRC)/cell.cxx $(SRC)/flux_calc.hh $(SRC)/cell.hh $(SRC)/kernel.hh
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/cell.cxx -o cell.o
 
-one_d_interp.o : $(SRC)/one_d_interp.cxx $(SRC)/cell.hh $(SRC)/one_d_interp.hh $(SRC)/kernel.hh \
-		$(SRC)/one_d_interp_scalar.hh
+one_d_interp.o : $(SRC)/one_d_interp.cxx $(SRC)/cell.hh $(SRC)/one_d_interp.hh $(SRC)/kernel.hh
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/one_d_interp.cxx -o one_d_interp.o
 
 flex_cell.o: $(SRC)/flex_cell.cxx $(SRC)/flex_cell.hh
@@ -665,26 +659,6 @@ lua_service_for_e3.o : $(SRC)/lua_service_for_e3.cxx $(SRC)/lua_service_for_e3.h
 
 dbc_assert.o : $(UTIL_SRC)/dbc_assert.cxx $(UTIL_SRC)/dbc_assert.hh
 	$(CXXCOMPILE) $(CXXFLAG) $(UTIL_SRC)/dbc_assert.cxx
-
-thermo-interpolator.o : $(SRC)/thermo-interpolator.hh $(SRC)/thermo-interpolator.cxx \
-		$(SRC)/one_d_interp_scalar.hh
-	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/thermo-interpolator.cxx
-
-rhoe-interpolator.o : $(SRC)/rhoe-interpolator.hh $(SRC)/rhoe-interpolator.cxx \
-		$(SRC)/one_d_interp_scalar.hh
-	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/rhoe-interpolator.cxx
-
-rhop-interpolator.o : $(SRC)/rhop-interpolator.hh $(SRC)/rhop-interpolator.cxx \
-		$(SRC)/one_d_interp_scalar.hh
-	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/rhop-interpolator.cxx
-
-rhoT-interpolator.o : $(SRC)/rhoT-interpolator.hh $(SRC)/rhoT-interpolator.cxx \
-		$(SRC)/one_d_interp_scalar.hh
-	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/rhoT-interpolator.cxx
-
-pT-interpolator.o : $(SRC)/pT-interpolator.hh $(SRC)/pT-interpolator.cxx \
-		$(SRC)/one_d_interp_scalar.hh
-	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/pT-interpolator.cxx
 
 radiation_transport.o : $(SRC)/radiation_transport.hh $(SRC)/radiation_transport.cxx \
 		$(LUA_INCLUDE_DIR)

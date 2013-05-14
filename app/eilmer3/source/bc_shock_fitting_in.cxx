@@ -10,7 +10,6 @@
 #include "bc.hh"
 #include "bc_shock_fitting_in.hh"
 #include "kernel.hh"
-#include "one_d_interp_scalar.hh"
 #include "one_d_interp.hh"
 
 //------------------------------------------------------------------------
@@ -123,8 +122,7 @@ int ShockFittingInBC::calculate_shock_speed(const FV_Cell &cL0, const FV_Cell &c
 					    double lenL0, double lenR0, double lenR1, double lenR2, 
 					    FV_Interface &IFaceR)
 {
-#   define EPSILON 1.0e-12
-#   define ALPHA 0.5
+    const double ALPHA = 0.5;
     global_data &gd = *get_global_data_ptr();
     CFlowCondition *gsp = gd.gas_state[inflow_condition_id];
     Gas_model *gmodel = get_gas_model_ptr();

@@ -32,6 +32,7 @@
 #include "diffusion.hh"
 #include "visc.hh"
 #include "flux_calc.hh"
+#include "one_d_interp.hh"
 
 using namespace std;
 
@@ -97,6 +98,25 @@ int init_available_calculators_map()
     available_calculators.insert(name_flux_t("6",FLUX_HLLE));
     available_calculators.insert(name_flux_t("hlle",FLUX_HLLE));
     available_calculators.insert(name_flux_t("HLLE",FLUX_HLLE));
+    return SUCCESS;
+}
+
+std::map<std::string,thermo_interp_t> available_interpolators;
+int init_available_interpolators_map()
+{
+    typedef std::pair<std::string,thermo_interp_t> name_interp_t;
+    available_interpolators.insert(name_interp_t("pt",INTERP_PT));
+    available_interpolators.insert(name_interp_t("pT",INTERP_PT));
+    available_interpolators.insert(name_interp_t("PT",INTERP_PT));
+    available_interpolators.insert(name_interp_t("rhoe",INTERP_RHOE));
+    available_interpolators.insert(name_interp_t("rhoE",INTERP_RHOE));
+    available_interpolators.insert(name_interp_t("RHOE",INTERP_RHOE));
+    available_interpolators.insert(name_interp_t("rhop",INTERP_RHOP));
+    available_interpolators.insert(name_interp_t("rhoP",INTERP_RHOP));
+    available_interpolators.insert(name_interp_t("RHOP",INTERP_RHOP));
+    available_interpolators.insert(name_interp_t("rhot",INTERP_RHOT));
+    available_interpolators.insert(name_interp_t("rhoT",INTERP_RHOT));
+    available_interpolators.insert(name_interp_t("RHOT",INTERP_RHOT));
     return SUCCESS;
 }
 
@@ -392,7 +412,7 @@ int read_config_parameters(const string filename, bool master)
     dict.parse_double("global_data", "M_inf", d_value, 0.01);
     set_M_inf(d_value);
     dict.parse_string("global_data", "interpolation_type", s_value, "rhoe");
-    set_thermo_interpolator( s_value );
+    set_thermo_interpolator(available_interpolators[s_value]);
     dict.parse_int("global_data", "apply_limiter_flag", i_value, 1);
     set_apply_limiter_flag(i_value);
     dict.parse_int("global_data", "extrema_clipping_flag", i_value, 1);
@@ -403,7 +423,7 @@ int read_config_parameters(const string filename, bool master)
 	cout << "compression_tolerance = " << get_compression_tolerance() << endl;
 	cout << "shear_tolerance = " << get_shear_tolerance() << endl;
 	cout << "M_inf = " << get_M_inf() << endl;
-	cout << "interpolation_type = " << s_value << endl;
+	cout << "interpolation_type = " << get_thermo_interpolator_name(get_thermo_interpolator()) << endl;
 	cout << "apply_limiter_flag = " << get_apply_limiter_flag() << endl;
 	cout << "extrema_clipping_flag = " << get_extrema_clipping_flag() << endl;
     }
