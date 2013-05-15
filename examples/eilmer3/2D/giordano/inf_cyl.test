@@ -39,18 +39,14 @@ test run-postprocessor {Run the postprocessing stage.} -body {
         puts "e3post postprocessing command failed"
         puts $results
     }
-    
     exec tail -1 stag-prof.data > values.txt
     set fp [open values.txt r]
     set contents [read $fp]
     close $fp
-    set T_tr 0.0
-    set T_v 0.0
-    set T_tr [lindex [split $contents] 20]
-    set T_v [lindex [split $contents] 22]
-
-    list [expr abs($T_tr - 2531.05) < 0.1] \
-         [expr abs($T_v - 2365.06) < 0.1]
+    set T_tr [lindex [split [string trim $contents]] 19]
+    set T_v [lindex [split [string trim $contents]] 21]
+    list [expr abs($T_tr - 2532.9) < 2.0] \
+         [expr abs($T_v - 2360.6) < 2.0]
 
 } -result {1 1}
 
