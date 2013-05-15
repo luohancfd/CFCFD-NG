@@ -98,9 +98,9 @@ inline int one_d_interp_prepare(double lenL1, double lenL0, double lenR0, double
     lenR0_ = lenR0;
     aL0 = 0.5 * lenL0 / (lenL1 + 2.0*lenL0 + lenR0);
     aR0 = 0.5 * lenR0 / (lenL0 + 2.0*lenR0 + lenR1);
-    two_over_lenL0_plus_lenL1 = (lenL0 + lenL1);
-    two_over_lenR0_plus_lenL0 = (lenR0 + lenL0);
-    two_over_lenR1_plus_lenR0 = (lenR1 + lenR0);
+    two_over_lenL0_plus_lenL1 = 2.0 / (lenL0 + lenL1);
+    two_over_lenR0_plus_lenL0 = 2.0 / (lenR0 + lenL0);
+    two_over_lenR1_plus_lenR0 = 2.0 / (lenR1 + lenR0);
     two_lenL0_plus_lenL1 = (2.0*lenL0 + lenL1);
     two_lenR0_plus_lenR1 = (2.0*lenR0 + lenR1);
     return SUCCESS;
