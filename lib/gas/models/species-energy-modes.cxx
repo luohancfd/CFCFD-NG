@@ -803,7 +803,7 @@ s_eval_energy_from_T( double T, double A  )
     // NOTE: 'A', if positive, is the truncation temperature
     double theta_lim = A;
     if ( theta_lim < 0.0 ) theta_lim = theta_D_;
-    double exp_theta_D_T = exp( - theta_lim / T );
+    double exp_theta_D_T = exp( theta_lim / T );
     if ( std::isnan(exp_theta_D_T) ) {
     	// use harmonic oscillator solution
     	return R_ * ( theta_ / ( exp( theta_ / T ) - 1.0 ) );
