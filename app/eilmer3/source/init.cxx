@@ -158,6 +158,7 @@ int read_config_parameters(const string filename, bool master)
 
     // Default values for some configuration variables.
     G.dimensions = 2;
+    G.Xorder = 2;
     set_radiation_flag(0);
 
     // variables for Andrew's time averaging routine.
@@ -414,9 +415,9 @@ int read_config_parameters(const string filename, bool master)
     dict.parse_string("global_data", "interpolation_type", s_value, "rhoe");
     set_thermo_interpolator(available_interpolators[s_value]);
     dict.parse_int("global_data", "apply_limiter_flag", i_value, 1);
-    set_apply_limiter_flag(i_value);
+    set_apply_limiter_flag(i_value == 1);
     dict.parse_int("global_data", "extrema_clipping_flag", i_value, 1);
-    set_extrema_clipping_flag(i_value);
+    set_extrema_clipping_flag(i_value == 1);
     if ( get_verbose_flag() ) {
 	cout << "max_invalid_cells = " << G.max_invalid_cells << endl;
 	cout << "flux_calc = " << get_flux_calculator_name(get_flux_calculator()) << endl;
@@ -623,8 +624,7 @@ int read_control_parameters( const string filename, bool master, bool first_time
     // Parse the previously-generated INI file.
     ConfigParser dict = ConfigParser(filename);
 
-    dict.parse_int("control_data", "x_order", i_value, 2); // default high-order
-    set_Xorder_flag( i_value );
+    dict.parse_int("control_data", "x_order", G.Xorder, 2); // default high-order
     // 2013-03-31 change to use an explicitly-named update scheme.
     dict.parse_string("control_data", "gasdynamic_update_scheme", s_value,
 		      "predictor-corrector");
@@ -664,7 +664,7 @@ int read_control_parameters( const string filename, bool master, bool first_time
     set_radiation_update_frequency(i_value);
     if ( first_time && get_verbose_flag() ) {
 	cout << "Time-step control parameters:" << endl;
-	cout << "    x_order = " << get_Xorder_flag() << endl;
+	cout << "    x_order = " << G.Xorder << endl;
 	cout << "    gasdynamic_update_scheme = " 
 	     << get_name_of_gasdynamic_update_scheme(get_gasdynamic_update_scheme())
 	     << endl;

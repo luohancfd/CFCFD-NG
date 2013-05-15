@@ -82,6 +82,12 @@ struct global_data
     double dt_allow;        /* allowable global time step */
     double CFL;             /* target CFL (worst case)    */
     bool fixed_time_step;   /* flag for fixed time-stepping */
+    int Xorder; // Low order reconstruction (1) uses just the cell-centre data as left- and right-
+                // flow properties in the flux calculation.
+                // High-order reconstruction (2) adds a correction term to the cell-centre values
+                // to approach something like a piecewise-quadratic interpolation between the
+                // cell centres.
+
     bool sequence_blocks;   // if true, iterate blocks sequentially (like space-marching)
     size_t max_invalid_cells;  // the maximum number of bad cells (per block) 
                             // which will be tolerated without too much complaint.
@@ -187,6 +193,7 @@ int set_radiation_transport_model(std::string file_name);
 RadiationTransportModel *get_radiation_transport_model_ptr();
 Block * get_block_data_ptr(size_t i);
 void eilmer_finalize( void );
+
 int set_verbose_flag( int i );
 int get_verbose_flag( void );
 int set_axisymmetric_flag(int ia);
@@ -216,8 +223,6 @@ double set_viscous_factor_increment( double value );
 double get_viscous_factor_increment( void );
 int set_diffusion_flag(int id);
 int get_diffusion_flag(void);
-int set_Xorder_flag(int ix);
-int get_Xorder_flag(void);
 double set_heat_factor( double value );
 double get_heat_factor( void );
 double incr_heat_factor( double value );
@@ -233,12 +238,6 @@ int set_radiation_update_frequency(int ruf);
 int get_radiation_update_frequency(void);
 int set_implicit_flag(int imf);
 int get_implicit_flag(void);
-int set_apply_limiter_flag(int ip);
-int get_apply_limiter_flag(void);
-int set_extrema_clipping_flag(int ip);
-int get_extrema_clipping_flag(void);
-int set_suppress_reconstruction_for_species_flag(int ip);
-int get_suppress_reconstruction_for_species_flag(void);
 int set_bad_cell_complain_flag(int ip);
 int get_bad_cell_complain_flag(void);
 int set_stringent_cfl_flag( int i );
@@ -247,6 +246,7 @@ double set_compression_tolerance( double value );
 double get_compression_tolerance( void );
 double set_shear_tolerance( double value );
 double get_shear_tolerance( void );
+
 int set_mhd_flag(int imf);
 int get_mhd_flag(void);
 int set_BGK_flag(int i);

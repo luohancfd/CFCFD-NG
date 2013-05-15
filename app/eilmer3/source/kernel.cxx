@@ -195,15 +195,6 @@ int filter = 0;
 /// out-of-plane cell interfaces.
 int axisymm = 0;
 
-/// \brief Order of reconstruction: =1 for low-order, =2 for high-order. 
-///
-/// Low order reconstruction uses just the cell-centre data as left- and right-
-/// flow properties in the flux calculation.
-/// High-order reconstruction adds a correction term to the cell-centre values
-/// to approach something like a piecewise-quadratic interpolation between the
-/// cell centres.
-int Xorder = 2;
-
 /// \brief A factor to scale the heat-addition in order to achieve a soft start.
 double heat_factor = 1.0;
 
@@ -234,16 +225,6 @@ int radiation_update_frequency = 1;
 ///         =2 fully implicit viscous treatment enabled.
 int implicit = 0;
 
-/// \brief  apply limiter Flag: =0 no limiting, =1 reconstruction limiter enabled.
-int apply_limiter = 1; /* default for users */
-
-/// \brief extrema_clipping_flag: =0 suppress clipping, =1 allow extream clipping
-int extrema_clipping_flag = 1; /* default is to clip */
-
-/// \brief suppress_reconstruction_for_species: =0 use x_order reconstruction,
-///                                             =1 always use cell average values directly
-int suppress_reconstruction_for_species = 0; /* default is to allow reconstruction */
-
 /// \brief A value of 1 will allow the program to complain about bad cells
 ///        by printing warning messages and cell data.
 ///        A value of zero suppresses the complaints.
@@ -253,13 +234,6 @@ int bad_cell_complain_flag = 1; /* by default, we want to hear about bad cells. 
 ///
 /// Maybe useful to set this for viscous calculations with large aspect-ratio cells.
 int stringent_cfl = 0; // default to direction-by-direction check
-
-
-/// \brief Flag to indicate that temperature instead of energy is an interpolant
-///
-/// By default, use internal energy.
-bool interpolate_on_temperature_flag = false;
-
 
 /// \brief Change in normalised velocity to indicate a shock.
 ///
@@ -573,24 +547,6 @@ int get_diffusion_flag(void)
 
 /*------------------------------------------------------------------*/
 
-int set_Xorder_flag(int ix)
-{
-    Xorder = ix;
-    // if ( get_verbose_flag() ) printf("Xorder=%d\n", Xorder);
-    if ( Xorder != 1 && Xorder != 2 ) {
-	printf("set_Xorder_flag(): Invalid Xorder flag value: %d\n", Xorder);
-        exit(VALUE_ERROR);
-    }
-    return SUCCESS;
-}
-
-int get_Xorder_flag(void)
-{
-    return Xorder;
-}
-
-/*------------------------------------------------------------------*/
-
 /// \brief Set the heat_factor to a specified value.
 double set_heat_factor( double value )
 {
@@ -735,76 +691,6 @@ int get_implicit_flag(void)
 
 /*------------------------------------------------------------------*/
 
-int set_extrema_clipping_flag(int ip)
-{
-    extrema_clipping_flag = ip;
-    if (extrema_clipping_flag == 0) {
-        if ( get_verbose_flag() ) printf("Extrema-clipping disabled\n");
-    }    
-    else if (extrema_clipping_flag == 1) {
-        if ( get_verbose_flag() ) printf("Extrema-clipping enabled (default)\n");
-    }    
-    else {
-        printf("Invalid extrema clipping flag value: %d\n", extrema_clipping_flag);
-        exit( VALUE_ERROR );
-    }
-    return SUCCESS;
-}
-
-int get_extrema_clipping_flag(void)
-{
-    return extrema_clipping_flag;
-}
-
-/*------------------------------------------------------------------*/
-
-int set_apply_limiter_flag(int ip)
-{
-    apply_limiter = ip;
-    if (apply_limiter == 0) {
-        if ( get_verbose_flag() ) printf("Reconstruction limiter disabled\n");
-    }    
-    else if (apply_limiter == 1) {
-        if ( get_verbose_flag() ) printf("Reconstruction limiter applied (default)\n");
-    }    
-    else {
-        printf("Invalid apply_limiter flag value: %d\n", apply_limiter);
-        exit( VALUE_ERROR );
-    }
-    return SUCCESS;
-}
-
-int get_apply_limiter_flag(void)
-{
-    return apply_limiter;
-}
-
-/*------------------------------------------------------------------*/
-
-int set_suppress_reconstruction_for_species_flag(int ip)
-{
-    suppress_reconstruction_for_species = ip;
-    if (suppress_reconstruction_for_species == 1) {
-        if ( get_verbose_flag() ) printf("High-order reconstruction for species suppressed\n");
-    }
-    else if (suppress_reconstruction_for_species == 0) {
-        if ( get_verbose_flag() ) printf("High-order reconstruction for species allowed (default)\n");
-    }
-    else {
-        printf("Invalid suppress_reconstruction_for_species flag value: %d\n", 
-	       suppress_reconstruction_for_species);
-        exit( VALUE_ERROR );
-    }
-    return SUCCESS;
-}
-
-int get_suppress_reconstruction_for_species_flag(void)
-{
-    return suppress_reconstruction_for_species;
-}
-
-/*------------------------------------------------------------------*/
-
 int set_bad_cell_complain_flag(int ip)
 {
     bad_cell_complain_flag = ip;
@@ -842,25 +728,6 @@ int set_stringent_cfl_flag( int i )
 int get_stringent_cfl_flag( void )
 {
     return stringent_cfl;
-}
-
-/*------------------------------------------------------------------*/
-
-int set_interpolate_on_temperature_flag( bool flag )
-{
-    if ( flag == false ) {
-	if ( get_verbose_flag() ) printf( "Interpolation uses gas internal energy.\n" );
-	interpolate_on_temperature_flag = false;
-    } else {
-	if ( get_verbose_flag() ) printf( "Interpolation uses gas temperature.\n" );
-	interpolate_on_temperature_flag = true;
-    }
-    return SUCCESS;
-}
-
-bool interpolate_on_temperature( void )
-{
-    return interpolate_on_temperature_flag;
 }
 
 //--------------------------------------------------------------------
