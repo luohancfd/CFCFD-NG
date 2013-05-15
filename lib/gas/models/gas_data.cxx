@@ -345,9 +345,9 @@ int Gas_data::check_values(bool print_message) const
 	if ( print_message ) cout << "Sound speed invalid: " << a << endl;
 	data_valid = 0;
     }
-    size_t nsp = massf.size();
+    size_t my_nsp = massf.size();
     double f_sum = 0.0;
-    for ( size_t isp = 0; isp < nsp; ++isp ) f_sum += massf[isp];
+    for ( size_t isp = 0; isp < my_nsp; ++isp ) f_sum += massf[isp];
     if ( f_sum < 0.99 || f_sum > 1.01 || !isfinite(f_sum) ) {
 	if ( print_message ) cout << "Mass fraction sum bad: " << f_sum << endl;
 	data_valid = 0;
@@ -361,27 +361,45 @@ int Gas_data::check_values(bool print_message) const
 
 double mass_average(const vector<double> &massf, const vector<double> &vec)
 {
+    size_t my_nsp = massf.size();
     double val = 0.0;
-    for( size_t isp = 0; isp < massf.size(); ++isp ) {
-	val += massf[isp]*vec[isp];
+    if ( my_nsp == 1 ) {
+	// For a single species, we know massf[0]==1.0, so take a short-cut.
+	val = vec[0];
+    } else {
+	for( size_t isp = 0; isp < my_nsp; ++isp ) {
+	    val += massf[isp]*vec[isp];
+	}
     }
     return val;
 }
 
 double mass_average_inverse(const vector<double> &massf, const vector<double> &vec)
 {
+    size_t my_nsp = massf.size();
     double val = 0.0;
-    for( size_t isp = 0; isp < massf.size(); ++isp ) {
-        val += massf[isp]/vec[isp];
+    if ( my_nsp == 1 ) {
+	// For a single species, we know massf[0]==1.0, so take a short-cut.
+	val = 1.0/vec[0];
+    } else {
+	for( size_t isp = 0; isp < my_nsp; ++isp ) {
+	    val += massf[isp]/vec[isp];
+	}
     }
     return val;
 }
 
 double mole_average(const vector<double> &molef, const vector<double> &vec)
 {
+    size_t my_nsp = molef.size();
     double val = 0.0;
-    for( size_t isp = 0; isp < molef.size(); ++isp ) {
-	val += molef[isp]*vec[isp];
+    if ( my_nsp == 1 ) {
+	// For a single species, we know molef[0]==1.0, so take a short-cut.
+	val = vec[0];
+    } else {
+	for( size_t isp = 0; isp < my_nsp; ++isp ) {
+	    val += molef[isp]*vec[isp];
+	}
     }
     return val;
 }
@@ -389,18 +407,26 @@ double mole_average(const vector<double> &molef, const vector<double> &vec)
 int scale_mass_fractions(vector<double> &massf, double tolerance)
 {
     size_t isp;
+    size_t my_nsp = massf.size();
     int status_flag = SUCCESS;
-    double massf_sum = 0.0;
-    for ( isp = 0; isp < massf.size(); ++isp ) {
-	massf[isp] = massf[isp] >= 0.0 ? massf[isp] : 0.0;
-	massf_sum += massf[isp];
-    }
-    if ( fabs(massf_sum - 1.0) > 0.1 ) {
-	/* Something disasterous must have happened to miss by this much. */
-	status_flag = FAILURE;
-    }
-    if ( fabs(massf_sum - 1.0) > tolerance ) {
-	for ( isp = 0; isp < massf.size(); ++isp ) massf[isp] /= massf_sum;
+    if ( my_nsp == 1 ) {
+	// Single species, always expect massf[0]==1.0, so we can take a short-cut.
+	if ( fabs(massf[0] - 1.0) > 0.1 ) status_flag = FAILURE;
+	massf[0] = 1.0;
+    } else {
+	// Multiple species, do the full job.
+	double massf_sum = 0.0;
+	for ( isp = 0; isp < my_nsp; ++isp ) {
+	    massf[isp] = massf[isp] >= 0.0 ? massf[isp] : 0.0;
+	    massf_sum += massf[isp];
+	}
+	if ( fabs(massf_sum - 1.0) > 0.1 ) {
+	    /* Something disasterous must have happened to miss by this much. */
+	    status_flag = FAILURE;
+	}
+	if ( fabs(massf_sum - 1.0) > tolerance ) {
+	    for ( isp = 0; isp < my_nsp; ++isp ) massf[isp] /= massf_sum;
+	}
     }
     return status_flag;
 } // end scale_mass_fractions()
