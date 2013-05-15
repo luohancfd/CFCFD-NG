@@ -177,9 +177,12 @@ def txt_file_output(cfg, states, V, M):
         it_string = 's{0}'.format(i)
         condition_printer(it_string)
     if cfg['tunnel_mode'] == 'expansion-tube':    
-        for i in range(5,9): #acc tube and nozzle if it's there
+        for i in range(5,8): #acc tube extra states
             it_string = 's{0}'.format(i)
             condition_printer(it_string)
+            
+    if cfg['nozzle']: #do nozzle calculations if asked to
+        condition_printer('s8')
         
     #do the conditions over the model if asked
     if cfg['shock_over_model']:
@@ -345,7 +348,7 @@ def csv_file_output(cfg, states, V, M):
         csv_shockspeeds = "Vs1,{0:.2f} m/s,Ms1,{1:.2f},Vs2,{2:.2f} m/s,Ms2,{3:.2f}"\
         .format(cfg['Vs1'],cfg['Ms1'],cfg['Vs2'],cfg['Ms2']) 
     elif cfg['tunnel_mode'] == 'nr-shock-tunnel':
-        csv_shockspeeds = "Vs1,{0:.2f} m/s,Ms1,{1:.2f}".format(Vs1,cfg['Ms1']) 
+        csv_shockspeeds = "Vs1,{0:.2f} m/s,Ms1,{1:.2f}".format(cfg['Vs1'],cfg['Ms1']) 
     csv_output.write(csv_shockspeeds + '\n')
             
     csv_key = "{0:6},{1:11},{2:9},{3:6},{4:9},{5:6},{6:9},{7:8},{8:9}".format("state","P","T","a","V","M","rho","pitot","stgn")
