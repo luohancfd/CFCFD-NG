@@ -892,8 +892,11 @@ gasfile : $(TOOLS)/gasfile.lua
 build-cea-lut.py : $(TOOLS)/build-cea-lut.py
 	cp $(TOOLS)/build-cea-lut.py .
 
+# If the following command is attempted and fails,
+# try going to the cea2 source area and manually compile.
+# The -m32 option sometimes gives grief. 
 cea2 :
-	gfortran -std=legacy -o cea2 $(CEA2)/cea2.f
+	- gfortran -m32 -std=legacy -o cea2 $(CEA2)/cea2.f
 	cp $(CEA2)/thermo.inp .
 	cp $(CEA2)/trans.inp .
 
