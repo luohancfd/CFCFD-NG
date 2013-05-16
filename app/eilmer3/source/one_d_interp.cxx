@@ -161,6 +161,8 @@ int one_d_interp(const FV_Cell &cL1, const FV_Cell &cL0,
     size_t nmodes = gmodel->get_number_of_modes();
 
     // Low-order reconstruction just copies data from adjacent FV_Cell.
+    // Even for high-order reconstruction, we depend upon this copy for
+    // the viscous-transport and diffusion coefficients.
     Lft.copy_values_from(*(cL0.fs));
     Rght.copy_values_from(*(cR0.fs));
     if ( G.Xorder > 1 ) {
@@ -199,7 +201,6 @@ int one_d_interp(const FV_Cell &cL1, const FV_Cell &cL0,
 	    Lft.gas->massf[0] = 1.0;
 	    Rght.gas->massf[0] = 1.0;
 	}
-
 	// Interpolate on two of the thermodynamic quantities, 
 	// and fill in the rest based on an EOS call. 
 	// If an EOS call fails, fall back to just copying cell-centre data.
@@ -253,17 +254,6 @@ int one_d_interp(const FV_Cell &cL1, const FV_Cell &cL0,
 	    break;
 	default: 
 	    throw std::runtime_error("Invalid thermo interpolator.");
-	}
-
-	if ( get_viscous_flag() ) {
-	    // FIX-ME -- for speed, just copy the cell data.
-	    gmodel->eval_transport_coefficients(*(Lft.gas));
-	    gmodel->eval_transport_coefficients(*(Rght.gas));
-	}
-	if ( get_diffusion_flag() ) {
-	    // FIX-ME -- for speed, just copy the cell data.
-	    gmodel->eval_diffusion_coefficients(*(Lft.gas));
-	    gmodel->eval_diffusion_coefficients(*(Rght.gas));
 	}
     } // end of high-order reconstruction
     return SUCCESS;
@@ -414,15 +404,6 @@ int mach_weighted_one_d_interp(const FV_Cell &cL1, const FV_Cell &cL0,
 	    // Rght state failed, just copy values from adjacent cell
 	    Rght.copy_values_from(*(cR0.fs));
 	}
-	
-	if ( get_viscous_flag() ) {
-	    gmodel->eval_transport_coefficients(*(Lft.gas));
-	    gmodel->eval_transport_coefficients(*(Rght.gas));
-	}
-	if ( get_diffusion_flag() ) {
-	    gmodel->eval_diffusion_coefficients(*(Lft.gas));
-	    gmodel->eval_diffusion_coefficients(*(Rght.gas));
-	}
     } // end of high-order reconstruction
     return SUCCESS;
 } // end of mach_weighted_one_d_interp()
@@ -534,13 +515,6 @@ int onesided_interp(const FV_Cell &cL0, const FV_Cell &cR0, const FV_Cell &cR1,
 	    // Rght state failed.
 	    Rght.copy_values_from(*(cL0.fs));
 	}			      
-	
-	if ( get_viscous_flag() ) {
-	    gmodel->eval_transport_coefficients(*(Rght.gas));
-	}
-	if ( get_diffusion_flag() ) {
-	    gmodel->eval_diffusion_coefficients(*(Rght.gas));
-	}
     } // end of high-order reconstruction
     return SUCCESS;
 } // end of onesided_interp()
@@ -677,15 +651,6 @@ int one_d_interior_interp(const FV_Cell &cL0, const FV_Cell &cR0,
 	    one_d_interior_interp_scalar(gL0.e[i], gR0.e[i], gR1.e[i], gR2.e[i],
 					 cL0Length, cR0Length, cR1Length, cR2Length,
 					 Lft.gas->e[i], Rght.gas->e[i]);
-	}
-
-	if ( get_viscous_flag() ) {
-	    gmodel->eval_transport_coefficients(*(Lft.gas));
-	    gmodel->eval_transport_coefficients(*(Rght.gas));
-	}
-	if ( get_diffusion_flag() ) {
-	    gmodel->eval_diffusion_coefficients(*(Lft.gas));
-	    gmodel->eval_diffusion_coefficients(*(Rght.gas));
 	}
     } // end of high-order reconstruction
     return SUCCESS;
