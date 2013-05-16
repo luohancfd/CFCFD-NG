@@ -894,7 +894,9 @@ build-cea-lut.py : $(TOOLS)/build-cea-lut.py
 
 # If the following command is attempted and fails,
 # try going to the cea2 source area and manually compile.
-# The -m32 option sometimes gives grief. 
+# The -m32 option sometimes gives grief 
+# (on 64-bit linux systems with dodgy compatability libraries) 
+# but it seems to be needed to make a well behaved executable. 
 cea2 :
 	- gfortran -m32 -std=legacy -o cea2 $(CEA2)/cea2.f
 	cp $(CEA2)/thermo.inp .
