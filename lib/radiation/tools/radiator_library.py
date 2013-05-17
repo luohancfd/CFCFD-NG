@@ -2798,6 +2798,7 @@ C2_Swan_Spradian_bands.bands[9]  = '0.00e-9 0.00e-9 0.00e-9 1.07e-2 6.54e-3 1.47
 C2_Swan_Spradian_bands.bands[10] = '0.00e-9 0.00e-9 0.00e-9 0.00e-9 1.64e-2 2.03e-2 1.49e-1 4.88e-1 3.18e-1 2.14e-1'
 #-------------------------------------------------------------------------------------------------------------------
 C2_Swan.available_band_sets["Spradian_bands"] = C2_Swan_Spradian_bands
+#
 C2_Swan_EM2C_bands = DiatomicBandSet()
 C2_Swan_EM2C_bands.format = 'Einstein coefficient'
 C2_Swan_EM2C_bands.lRe_dim = 34
@@ -2829,6 +2830,29 @@ C2_Swan_EM2C_bands.bands[17] = '1.98335e-02 1.53567e-01 5.39436e-01 6.97385e-03 
 C2_Swan_EM2C_bands.bands[18] = '1.46774e-02 8.59945e-03 6.30242e-01 1.04620e-01 2.45480e-03 5.37233e-01 3.37667e+01 1.41054e+01 1.94566e+02 2.16813e+02 3.98184e+03 2.16654e+04 4.50378e+04 1.66100e+05 2.50735e+05 1.02680e+05 7.80854e+05 3.34463e+05 4.69266e+03 2.39568e+04 8.47010e+04 6.52402e+04 7.74474e+04 5.21192e+04 3.34878e+04 1.66082e+04 8.62127e+03 4.40610e+03 2.20865e+03 1.00601e+03 4.03134e+02 1.43507e+02 4.46965e+01 1.04023e+01'
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 C2_Swan.available_band_sets["EM2C_bands"] = C2_Swan_EM2C_bands
+#
+C2_Swan_Brooke_bands = DiatomicBandSet()
+C2_Swan_Brooke_bands.format = 'Einstein coefficient'
+C2_Swan_Brooke_bands.lRe_dim = 11
+C2_Swan_Brooke_bands.uRe_dim = 10
+C2_Swan_Brooke_bands.bands = [ '' ] * C2_Swan_Brooke_bands.uRe_dim
+C2_Swan_Brooke_bands.comments  = "# Vibrational Einstein coefficients (A_vib) for the C2_Swan system\n"
+C2_Swan_Brooke_bands.comments += "# Source: Brooke et al (2013) JQRST vol. 124 pp 11-20"
+# -----------------------------------------------------------------------------------------------------------------------------------
+#                          Vl  =    0         1         2       3        4         5       6        7        8         9       10
+# -----------------------------------------------------------------------------------------------------------------------------------
+C2_Swan_Brooke_bands.bands[0]  = '7.626e+6 2.814e+6 2.809e+5 4.333e+3 2.033e+2 3.642e+1 2.470e-2 2.140e-1 9.989e-4 3.827e-3 3.140e-9'
+C2_Swan_Brooke_bands.bands[1]  = '2.135e+6 3.427e+6 4.072e+6 6.429e+5 8.720e+3 1.608e+3 1.591e+2 4.744e+0 1.822e+0 4.947e-2 3.540e-2'
+C2_Swan_Brooke_bands.bands[2]  = '3.832e+5 2.746e+6 1.270e+6 4.422e+6 9.615e+5 7.432e+3 6.154e+3 3.223e+2 6.379e+1 4.108e+0 1.567e+0'
+C2_Swan_Brooke_bands.bands[3]  = '5.590e+4 8.273e+5 2.568e+6 3.236e+5 4.301e+6 1.168e+6 1.085e+3 1.805e+4 1.707e+2 3.472e+2 1.346e-2'
+C2_Swan_Brooke_bands.bands[4]  = '7.224e+3 1.710e+5 1.169e+6 2.066e+6 2.505e+4 4.005e+6 1.149e+6 4.993e+3 3.581e+4 1.535e+2 9.452e+2'
+C2_Swan_Brooke_bands.bands[5]  = '8.592e+2 2.886e+4 3.215e+5 1.352e+6 1.510e+6 1.513e+4 3.459e+6 1.120e+6 5.272e+4 4.975e+4 4.445e+3'
+C2_Swan_Brooke_bands.bands[6]  = '9.574e+1 4.280e+3 6.793e+4 4.745e+5 1.381e+6 1.038e+6 8.028e+4 3.438e+6 8.558e+5 1.863e+5 4.075e+4'
+C2_Swan_Brooke_bands.bands[7]  = '1.006e+1 5.775e+2 1.218e+4 1.218e+5 6.009e+5 1.302e+6 6.443e+5 1.343e+5 3.253e+6 4.834e+5 4.111e+5'
+C2_Swan_Brooke_bands.bands[8]  = '9.931e-1 7.206e+1 1.945e+3 2.582e+4 1.830e+5 6.840e+5 1.087e+6 4.546e+5 1.285e+5 3.081e+6 1.342e+5'
+C2_Swan_Brooke_bands.bands[9]  = '9.005e-2 8.335e+0 2.828e+2 4.785e+3 4.495e+4 2.421e+5 6.721e+5 9.993e+5 3.120e+5 8.080e+4 2.824e+6'
+# -----------------------------------------------------------------------------------------------------------------------------------
+C2_Swan.available_band_sets["Brooke_bands"] = C2_Swan_Brooke_bands
 #
 C2_Phillips = DiatomicSystem()
 C2_Phillips.name = "Phillips"
