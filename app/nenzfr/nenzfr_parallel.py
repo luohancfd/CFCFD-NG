@@ -183,6 +183,11 @@ def run_in_block_marching_mode(cfg, gmodelFile):
     run_command('rm -rf master')
     return
 
+def run_in_block_marching_mode2(jobName, nbj, max_time, gmodelFile):
+    cfg = {'jobName':jobName, 'nbj':nbj, 'max_time':max_time}
+    run_in_block_marching_mode(cfg, gmodelFile)
+    return
+
 def mod_cfg_file(blksPerColumn, inputFileName, outputFileName):
     """
     Modify config file to allow nenzfr to run in block-marching mode.
