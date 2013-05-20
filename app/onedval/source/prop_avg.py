@@ -9,7 +9,7 @@
 
 import sys
 
-from math import sqrt
+from math import sqrt, pow
 from libprep3 import Vector3, dot, vabs
 from libprep3 import Gas_data, set_massf
 from cfpylib.nm.zero_solvers import secant
@@ -317,19 +317,27 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel):
     Q.rho = rho; Q.T[0] = T
     gmodel.eval_thermo_state_rhoT(Q)
     h = gmodel.mixture_enthalpy(Q)
+    M = u/Q.a
+    p = Q.p
+    gamma = gmodel.gamma(Q)
+    T0 = T*(1.0 + (gamma - 1.0) * 0.5 * M**2)
+    p0 = p * pow(T0/T, gamma/(gamma - 1.0))
+
     # Create a dictionary of all possible requests
     vals = {'rho':rho,
-            'p': Q.p,
+            'p': p,
+            'p0': p0,
             'T': T,
+            'T0': T0,
             'a': Q.a,
             'h': h,
             'h0': h + 0.5*u*u,
             'R': gmodel.R(Q),
             'Cp': gmodel.Cp(Q),
             'Cv': gmodel.Cv(Q),
-            'gamma': gmodel.gamma(Q),
+            'gamma': gamma,
             'u': u,
-            'M': u/Q.a }
+            'M': M }
 
 
     phis = dict.fromkeys(props, 0.0)
