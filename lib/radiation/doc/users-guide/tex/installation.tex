@@ -34,6 +34,10 @@ atom.dat     diatom.dat   radipac6.f90 triatom.dat
 
 If the Parade code is availale to the user, no additional compilation arguments are need 
 to use it as the spectral model.
+The \texttt{parade} binary, however, needs to be in the system path and the Parade template file needs to include the location of the Parade data files (the Parade template file can be automatically generated from the python input script - see \texttt{lib/radiation/test/parade-air-EQ-radiators.py} for an example).
+
+\par
+
 To test all the spectral models the following make command can be run:
 
 \begin{lstlisting}[basicstyle=\ttfamily\small]
