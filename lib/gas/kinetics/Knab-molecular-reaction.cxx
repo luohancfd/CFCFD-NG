@@ -15,18 +15,41 @@ using namespace std;
 
 Knab_molecular_reaction::
 Knab_molecular_reaction(lua_State *L, Gas_model &g)
-    : Generalised_Arrhenius(L,g)
+    : Generalised_Arrhenius(L, g)
 {
+    U_ = get_number(L, -1, "U");
+    alpha_ = get_number(L, -1, "alpha");
+    A_var_ = Generalised_Arrhenius::get_E_a();
+
+    string v_name = get_string(L,-1,"v_name");
+    Chemical_species * X = get_library_species_pointer_from_name( v_name );
+    // Search for the corresponding energy modes
+    bool found = false;
+    for ( int itm=0; itm<X->get_n_modes(); ++itm ) {
+    	Species_energy_mode * sem = X->get_mode_pointer(itm);
+    	if ( sem->get_type()=="vibration" ) {
+    	    found = true;
+    	    vib_modes_.push_back( sem );
+    	}
+    }
+    if ( !found ) {
+    	cout << "Knab_molecular_reaction::Knab_molecular_reaction()" << endl
+    	     << "mode: vibration not found for species: "
+    	     << X->get_name() << endl
+    	     << "Exiting." << endl;
+    	exit( BAD_INPUT_ERROR );
+    }
+    
+    iTv_ = vib_modes_[0]->get_iT();
+
+    // 3. Set the reaction rate coefficient type
+    type_ = "dissociation";
 }
 
 Knab_molecular_reaction::
-Knab_molecular_reaction(double A, double n, double E_a, double U, double alpha, double A_var, string v_name)
-    : Generalised_Arrhenius(A,n,E_a)
+Knab_molecular_reaction(double A, double n, double E_a, double U, double alpha, string v_name)
+    : Generalised_Arrhenius(A, n, E_a), U_(U), alpha_(alpha), A_var_(E_a)
 {
-    U_ = U;
-    alpha_ = alpha;
-    A_var_ = A_var;
-    
     Chemical_species * X = get_library_species_pointer_from_name( v_name );
     // Search for the corresponding energy modes
     bool found = false;

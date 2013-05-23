@@ -15,7 +15,7 @@ using namespace std;
 
 MarroneTreanor_dissociation::
 MarroneTreanor_dissociation(lua_State *L, Gas_model &g)
-    : Generalised_Arrhenius(L,g)
+    : Generalised_Arrhenius(L, g)
 {
     U_ = get_number(L,-1,"U");
 
@@ -46,9 +46,8 @@ MarroneTreanor_dissociation(lua_State *L, Gas_model &g)
 
 MarroneTreanor_dissociation::
 MarroneTreanor_dissociation(double A, double n, double E_a, double U, string v_name)
-    : Generalised_Arrhenius(A,n,E_a)
+    : Generalised_Arrhenius(A, n, E_a), U_(U)
 {
-    U_ = U;
     
     Chemical_species * X = get_library_species_pointer_from_name( v_name );
     // Search for the corresponding energy modes

@@ -85,6 +85,10 @@ void create_Coupling_components_for_reaction( lua_State * L, Reaction * r, int i
     	    	    ccs.push_back( new Macheret_dissociation_component( L, r, 2*ir ) );
     	    	    ccs.push_back( new Macheret_recombination_component( L, r, 2*ir+1 ) );
     	    	}
+		else if ( model=="Knab_et_al" ) {
+		    ccs.push_back( new Knab_vanishing_component( L, r, 2*ir ) );
+		    ccs.push_back( new Knab_appearing_component( L, r, 2*ir+1 ) );
+		}
     	    	else {
 		    ostringstream oss;
 		    oss << "create_Coupling_components_for_reaction()" << endl
@@ -227,10 +231,10 @@ specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
     double delta_N = nu_ * delta_c[idc_] * PC_Avogadro;
     double delta_E = ( e_va - e_old_ ) * delta_N;
     
-    // cout << "TreanorMarrone_dissociation_component::compute_contribution()" << endl
-    //      << "gamma = " << gamma << ", Tv = " << Tv << ", T = " << T << endl
-    //      << "delta_c[idc_] = " << delta_c[idc_] << ", delta_N = " << delta_N << endl
-    //      << "delta_E = " << delta_E << endl;
+    //    cout << "TreanorMarrone_dissociation_component::compute_contribution()" << endl
+    //	 << "gamma = " << gamma << ", Tv = " << Tv << ", T = " << T << endl
+    //	 << "delta_c[idc_] = " << delta_c[idc_] << ", delta_N = " << delta_N << endl
+    //	 << "delta_E = " << delta_E << endl;
     
     return delta_E;
 }

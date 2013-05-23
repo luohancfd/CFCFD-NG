@@ -23,12 +23,7 @@ Generalised_Arrhenius(lua_State *L, Gas_model &g)
 
 Generalised_Arrhenius::
 Generalised_Arrhenius( double A, double n, double E_a )
-    : Reaction_rate_coefficient()
-{
-    A_ = A;
-    n_ = n;
-    E_a_ = E_a;
-}
+    : Reaction_rate_coefficient(), A_(A), n_(n), E_a_(E_a) {}
 
 Generalised_Arrhenius::
 ~Generalised_Arrhenius() {}

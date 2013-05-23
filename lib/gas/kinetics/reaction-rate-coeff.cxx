@@ -38,7 +38,7 @@ Reaction_rate_coefficient* create_Reaction_rate_coefficient(lua_State *L, Gas_mo
 												  create_Macheret_dissociation_coefficient));
     rr_coeff_models.insert(pair<string, Reaction_rate_coefficient* (*)(lua_State *, Gas_model &)>("MarroneTreanor",
 												  create_MarroneTreanor_dissociation_coefficient));
-    rr_coeff_models.insert(pair<string, Reaction_rate_coefficient* (*)(lua_State *, Gas_model &)>("Knab",
+    rr_coeff_models.insert(pair<string, Reaction_rate_coefficient* (*)(lua_State *, Gas_model &)>("Knab_et_al",
 												  create_Knab_molecular_reaction_coefficient));
     string rmodel = get_string(L, -1, "model");
     

@@ -58,6 +58,13 @@ function transform_rate_model(t, participants, third_body)
       m.E_a = t.T_a * k_Boltz
       m.v_name = t.v_name
       m.U = t.U
+   elseif m.model == "Knab_et_al" then
+      m.A = t.A * conv_factor
+      m.n = t.n
+      m.E_a = t.T_a * k_Boltz
+      m.v_name = t.v_name
+      m.U = t.U
+      m.alpha = t.alpha
    else
       print("Reaction rate coefficient model: ", t[1])
       print("is unknown.")
