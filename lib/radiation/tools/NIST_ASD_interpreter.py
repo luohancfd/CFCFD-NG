@@ -7,6 +7,47 @@ def remove_spaces( tk ):
 
 def remove_braces( tk ):
     return tk.replace("(","").replace(")","").replace("[","").replace("]","")
+    
+def get_quantum_numbers( conf, term ):
+    # l should be the last letter (s,p,d or f) in the string
+    for c in conf:
+        if   c=="s": l = 0
+        elif c=="p": l = 1
+        elif c=="d": l = 2
+        elif c=="f": l = 3
+        else: l = -1
+        
+    # n should be last number in the string after a dot
+    ns = []
+    for i in range(50):
+        ns.append(str(i))
+    for i in range(len(conf)-1):
+        if conf[i]=="." and conf[i+1] in ns: dot_index = i
+        else: dot_index = -1
+        
+    for i in range(dot_index+2,len(conf)):
+        n_maybe = conf[dot_index+1:i]
+        if n_maybe in ns: n = int(n_maybe)
+    
+    # parity is odd (1) if last char in term is '*', otherwise even (2)
+    if term[-1]=="*": parity =  1
+    else            : parity =  2
+    
+    # S and L should be first and second characters in term
+    # NOTE: actual formula according to LAUX is 2S+1
+    if term=="*":
+        S = -1
+        L = -1
+    else: 
+        S = (int(term[0]))/2
+        L_str = term[1]
+        if   L_str=="S": L = 0
+        elif L_str=="P": L = 1
+        elif L_str=="D": L = 2
+        elif L_str=="F": L = 3
+        else: L = -1
+    
+    return n,l,L,S,parity
 
 # level classes
 
@@ -25,8 +66,9 @@ class GroupedLevel:
         self.g_list = []
         self.E_list = []
         for tks in level_tks:
-            self.g_list.append( int(remove_spaces(tks[2]))*2+1 )
-            self.E_list.append( float(remove_braces(remove_spaces(tks[3]))) )
+            if remove_spaces(tks[3])!="":
+                self.g_list.append( int(remove_spaces(tks[2]))*2+1 )
+                self.E_list.append( float(remove_braces(remove_spaces(tks[3]))) )
         self.nlevels = len(self.g_list)
         # create multiplet level data
         self.g = sum( self.g_list )
@@ -34,6 +76,10 @@ class GroupedLevel:
         for i in range(self.nlevels):
             tmp += self.g_list[i] * self.E_list[i]
         self.E = tmp / self.g
+        
+    def get_radiation_library_string( self ):
+        n,l,L,S,parity = get_quantum_numbers( self.config, self.term )
+        return "%2d  %9.2f  %3d  %2d  %2d  %2d  %2d" % ( n, self.E, self.g, l, L, S, parity )
 
 class LevelData:
     def __init__(self):
@@ -46,6 +92,22 @@ class LevelData:
             self.levels.append( GroupedLevel( level_tks ) )
             count += self.levels[-1].nlevels
         print "created %d multiplet levels, totally %d individual levels" % ( len(self.levels), count )
+        
+    def make_radiation_library_table( self, ofile_name, species, label ):
+        full_label = species + "_" + label
+        ofile = open( ofile_name, "w" )
+        ofile.write( "%s = AtomicLevelSet()\n" % full_label )
+        ofile.write( "%s.levels = [ '' ] * %d\n" % ( full_label, len(self.levels) ) )
+        ofile.write( "%s.comments = '# grouped levels from NIST ASD'\n" % full_label )
+        ofile.write( "# ----------------------------------------------------------------------\n" )
+        ofile.write( "#              No.                 n    E(cm-1)    g   l   L   S  parity\n" )
+        ofile.write( "# ----------------------------------------------------------------------\n" )
+        for ilev,level in enumerate(self.levels):
+            spaces = " "*(4-len(str(ilev)))
+            ofile.write( "%s.levels[%d]%s=  '%s'\n" % ( full_label, ilev, spaces, level.get_radiation_library_string() ) )
+        ofile.write( "#-----------------------------------------------------------------------\n" )
+        ofile.write( "%s.available_level_sets[%s] = %s\n" % ( species, label, full_label ) )
+        ofile.close()        
 
 # line classes
 
@@ -175,9 +237,8 @@ def read_level_file( filename ):
             print "Encountered %s ionization limit at %f" % ( tks[0], E_limit )
             level_data.ionization_limits.append( IonizationLimit( tks[0], E_limit ) )
             continue
-        if remove_spaces(tks[3])=="" or tks[0]=="-----------------------":
+        if ( remove_spaces(tks[0])=="" and remove_spaces(tks[3])=="" ) or tks[0]=="-----------------------":
             if len(level_tks)>0:
-                # print "level_data = ", level_data
                 raw_level_data.append( level_tks )
             level_tks = []
             continue
