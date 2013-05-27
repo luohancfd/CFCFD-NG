@@ -277,11 +277,13 @@ def main(cfg={}):
     # Load the nozzle supply data
     nominalSupply = read_estcj_outfile('./'+nominal+'/'+cfg['jobName']+'-estcj.dat')
     # Now add the relevant supply data (T, h) to the nominalData dictionary
+    nominalData['supply_rho'] = nominalSupply['rho']
     nominalData['supply_T'] = nominalSupply['T']
     nominalData['supply_h'] = nominalSupply['h']
     # Add the supply variables to the exitVar list
-    exitVar.insert(0,'supply_T')
-    exitVar.insert(1,'supply_h')
+    exitVar.insert(0,'supply_rho')
+    exitVar.insert(1,'supply_T')
+    exitVar.insert(2,'supply_h')
     # Add extra variables of interest (q, Re_u, m_dot)
     nominalData, exitVar = add_extra_variables(nominalData, exitVar)
      
@@ -304,6 +306,7 @@ def main(cfg={}):
         highData, dontNeed  = read_nenzfr_outfile('./'+high+'/'+\
                                                   cfg['jobName']+'-exit.stats')
         highSupply = read_estcj_outfile('./'+high+'/'+cfg['jobName']+'-estcj.dat')
+        highData['supply_rho'] = highSupply['rho']
         highData['supply_T'] = highSupply['T']
         highData['supply_h'] = highSupply['h']
         highData, dontNeed = add_extra_variables(highData, [])
@@ -312,6 +315,7 @@ def main(cfg={}):
         lowData, dontNeed = read_nenzfr_outfile('./'+low+'/'+\
                                                 cfg['jobName']+'-exit.stats')
         lowSupply = read_estcj_outfile('./'+low+'/'+cfg['jobName']+'-estcj.dat')
+        lowData['supply_rho'] = lowSupply['rho']
         lowData['supply_T'] = lowSupply['T']
         lowData['supply_h'] = lowSupply['h']
         lowData, dontNeed = add_extra_variables(lowData, [])
@@ -363,6 +367,7 @@ def main(cfg={}):
             tooHighData,dontNeed = \
                   read_nenzfr_outfile('./'+tooHigh+'/'+cfg['jobName']+'-exit.stats')
             tooHighSupply = read_estcj_outfile('./'+tooHigh+'/'+cfg['jobName']+'-estcj.dat')
+            tooHighData['supply_rho'] = tooHighSupply['rho']
             tooHighData['supply_T'] = tooHighSupply['T']
             tooHighData['supply_h'] = tooHighSupply['h']
             tooHighData, dontNeed = add_extra_variables(tooHighData, [])
@@ -371,6 +376,7 @@ def main(cfg={}):
             tooLowData,dontNeed = \
                   read_nenzfr_outfile('./'+tooLow+'/'+cfg['jobName']+'-exit.stats')
             tooLowSupply = read_estcj_outfile('./'+tooLow+'/'+cfg['jobName']+'-estcj.dat')
+            tooLowData['supply_rho'] = tooLowSupply['rho']
             tooLowData['supply_T'] = tooLowSupply['T']
             tooLowData['supply_h'] = tooLowSupply['h']
             tooLowData, dontNeed = add_extra_variables(tooLowData, [])
