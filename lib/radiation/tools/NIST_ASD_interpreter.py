@@ -77,9 +77,13 @@ class GroupedLevel:
             tmp += self.g_list[i] * self.E_list[i]
         self.E = tmp / self.g
         
-    def get_radiation_library_string( self ):
+    def get_python_string( self ):
         n,l,L,S,parity = get_quantum_numbers( self.config, self.term )
         return "%2d  %9.2f  %3d  %2d  %2d  %2d  %2d" % ( n, self.E, self.g, l, L, S, parity )
+
+    def get_lua_string(self ):
+        n,l,L,S,parity = get_quantum_numbers( self.config, self.term )
+        return "%2d,  %9.2f,  %3d,  %2d,  %2d,  %2d,  %2d" % ( n, self.E, self.g, l, L, S, parity ) 
 
 class LevelData:
     def __init__(self):
@@ -93,7 +97,7 @@ class LevelData:
             count += self.levels[-1].nlevels
         print "created %d multiplet levels, totally %d individual levels" % ( len(self.levels), count )
         
-    def make_radiation_library_table( self, ofile_name, species, label ):
+    def make_python_table( self, ofile_name, species, label ):
         full_label = species + "_" + label
         ofile = open( ofile_name, "w" )
         ofile.write( "%s = AtomicLevelSet()\n" % full_label )
@@ -104,10 +108,25 @@ class LevelData:
         ofile.write( "# ----------------------------------------------------------------------\n" )
         for ilev,level in enumerate(self.levels):
             spaces = " "*(4-len(str(ilev)))
-            ofile.write( "%s.levels[%d]%s=  '%s'\n" % ( full_label, ilev, spaces, level.get_radiation_library_string() ) )
+            ofile.write( "%s.levels[%d]%s=  '%s'\n" % ( full_label, ilev, spaces, level.get_python_string() ) )
         ofile.write( "#-----------------------------------------------------------------------\n" )
         ofile.write( "%s.available_level_sets[%s] = %s\n" % ( species, label, full_label ) )
-        ofile.close()        
+        ofile.close()       
+        
+    def make_lua_table( self, ofile_name, species ):
+        ofile = open( ofile_name, "w" )
+        ofile.write( "%s.electronic_levels = {\n" % species )
+        ofile.write( "   n_levels =  %d,\n" % ( len(self.levels) ) )
+        ofile.write( "   ref = 'Grouped levels from NIST ASD'\n")
+        ofile.write( "   -- ===========================================================\n" )
+        ofile.write( "   --  No.       n      E(cm-1)    g    l    L    S    parity\n")
+        ofile.write( "   -- ===========================================================\n" )
+        for ilev,level in enumerate(self.levels):
+            spaces = " "*(4-len(str(ilev)))
+            ofile.write( "   ilev_%d%s= { %s },\n" % ( ilev, spaces, level.get_lua_string() ) )
+        ofile.write( "   -- ===========================================================\n" )
+        ofile.write( "}\n" )
+        ofile.close() 
 
 # line classes
 
