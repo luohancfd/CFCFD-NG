@@ -860,7 +860,6 @@ CN.h_f = 16861160.3
 CN.Z = 0
 CN.eta_I = 113704.4
 CN.eta_D = 61631.00
-CN.I_spin = 0.5
 # ----- Electronic levels ------
 CN.default_level_set = "Spradian_levels"
 CN_Spradian_levels = DiatomicLevelSet()
@@ -1540,7 +1539,6 @@ CO.h_f = -3946262.098
 CO.Z = 0
 CO.eta_I = 113032.0
 CO.eta_D = 89490.00
-CO.I_spin = 0.5
 CO.default_level_set = "Spradian_levels"
 CO_Spradian_levels = DiatomicLevelSet()
 CO_Spradian_levels.f_Vmax_Ediss = 0.75
@@ -5200,7 +5198,6 @@ NO.h_f = 3.041758509e+6
 NO.Z = 0
 NO.eta_I = 74722.4
 NO.eta_D = 52335.00
-NO.I_spin = 0.5
 # ----- Electronic Levels -----
 NO.default_level_set = "Spradian_levels"
 NO_Spradian_levels = DiatomicLevelSet()
