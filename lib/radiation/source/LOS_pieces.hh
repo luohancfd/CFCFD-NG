@@ -114,6 +114,8 @@ public:
 
     double exact_solve_for_divq();
     
+    double exact_solve_for_divq_with_binning(  int binning_type, int N_bins );
+
     double quick_solve_for_planck_divq( double kappa_nu );
 
 public:

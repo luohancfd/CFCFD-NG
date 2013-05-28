@@ -150,6 +150,9 @@ public:
     /// \brief Determine a random bin for this spectra via the Monte Carlo method
     int random_bin( double R );
 
+    /// \brief Write CoeffSpectra class data to file in format for TRT_tools interface
+    void write_TRT_tools_file( std::string fname );
+
 public:
     std::vector<double> kappa_bin;
     std::vector<double> j_bin;

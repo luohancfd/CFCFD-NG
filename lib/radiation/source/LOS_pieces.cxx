@@ -113,7 +113,7 @@ int LOS_data::create_spectral_bins( int binning_type, int N_bins, vector<Spectra
 	// We need to solve for the spatially independent mean opacity/absorption (see Eq 2.2 of Wray, Ripoll and Prabhu)
 	// NOTE: We are assuming planar geometry (ie that the cells have the same width in the z direction)
 	//       For axi geometries, this is only accurate along stagnation streamlines
-	vector<double> kappa_mean;
+        CoeffSpectra X(rsm_);
 	for ( int inu=0; inu < nnus_; inu++ ) {
 	    double j_nu_dV = 0.0, S_nu_dV = 0.0;
 	    for ( int irp=0; irp<nrps_; irp++ ) {
@@ -124,11 +124,12 @@ int LOS_data::create_spectral_bins( int binning_type, int N_bins, vector<Spectra
 	    }
 	    // If the source function is zero then kappa should also be zero
 	    if ( S_nu_dV==0.0 )
-		kappa_mean.push_back( 0.0 );
+		X.kappa_nu[inu] = 0.0;
 	    else
-		kappa_mean.push_back( j_nu_dV / S_nu_dV );
+	        X.kappa_nu[inu] = j_nu_dV / S_nu_dV;
 	}
-	N_bins_star = create_spectral_bin_vector( kappa_mean, binning_type, N_bins, B );
+	X.write_to_file("mean_opacity_spectra.txt");
+	N_bins_star = create_spectral_bin_vector( X.kappa_nu, binning_type, N_bins, B );
     }
 
     return N_bins_star;
@@ -394,7 +395,7 @@ double TS_data::solve_for_divq_OT()
     // get optically thin emission for the slabs
     for ( int irp=0; irp < nrps_; irp++ ) {
         q_int = 2.0 * M_PI * rpoints_[irp]->ds_ * rpoints_[irp]->X_->integrate_emission_spectra();
-        *(rpoints_[irp]->Q_rE_rad_) = 4.0 * M_PI * rpoints_[irp]->X_->integrate_emission_spectra();
+        *(rpoints_[irp]->Q_rE_rad_) = - 4.0 * M_PI * rpoints_[irp]->X_->integrate_emission_spectra();
         // Add integrated flux
         q_plus += q_int;
         // Add contribution to the flux spectra
@@ -880,6 +881,142 @@ double TS_data::exact_solve_for_divq()
     // NOTE: omitting wall emission - which is correct
     double q_wall = q_plus.back();
     
+    return q_wall;
+}
+
+double TS_data::exact_solve_for_divq_with_binning( int binning_type, int N_bins )
+{
+    /* Exact tangent-slab equations as presented by Modest and Feldick et al */
+    // ...with spectral binning
+
+    // Make a vector to store integrated fluxes
+    vector<double> q_plus, q_minus;
+
+    // 0. Create the spectral bins
+    vector<SpectralBin*> B;
+    int N_bins_star = this->create_spectral_bins( binning_type, N_bins, B);
+
+    // 1. Create set of Binned coefficient spectra
+    for ( int irp=0; irp<nrps_; irp++ ) {
+        rpoints_[irp]->Y_ = new BinnedCoeffSpectra( rpoints_[irp]->X_, B );
+    }
+
+    /* ------- Wall-to-shock (minus) direction ------- */
+    BinnedSpectralFlux F_minus( N_bins_star );
+
+    // Outer-boundary blackbody intensity (note optical thickness = 0)
+    BinnedSpectralFlux F_f( rsm_, T_f_, B );
+    double q_int = 0.0;
+    for ( int iB=0; iB < N_bins_star; iB++ ) {
+        q_int += F_f.q_bin[iB];
+    }
+
+    // save flux at wall from wall
+    q_minus.push_back( q_int );
+
+    for ( int krp=(nrps_-1); krp >= 0; --krp ) {
+        q_int = 0.0;
+        for ( int iB=0; iB < N_bins_star; iB++ ) {
+            double ds_i = rpoints_[nrps_-1]->ds_;
+            // Firstly do contribution from wall
+            double dtau_k = 0.0;
+            double ds_j = ds_i;
+            for ( int jrp=krp; jrp >= 0; --jrp ) {
+                dtau_k += fabs(ds_j) * rpoints_[jrp]->Y_->kappa_bin[iB];
+                // update ds_j
+                ds_j = rpoints_[jrp]->ds_;
+            }
+            F_minus.q_bin[iB] = F_f.q_bin[iB] * E_3( dtau_k );
+            // now contributions from cells, starting from closest
+            for ( int irp=(nrps_-1); irp >= krp; --irp ) {
+                // source function for original cell
+                double S = 0.0;
+                if ( rpoints_[irp]->Y_->j_bin[iB] != 0.0 )
+                    S = rpoints_[irp]->Y_->j_bin[iB] / rpoints_[irp]->Y_->kappa_bin[iB];
+                double dtau_jm1 = 0.0;
+                ds_j = ds_i;
+                for ( int jrp=irp; jrp >= krp; --jrp ) {
+                    dtau_jm1 += fabs(ds_j) * rpoints_[jrp]->Y_->kappa_bin[iB];
+                    // update ds_j
+                    ds_j = rpoints_[jrp]->ds_;
+                }
+                double dtau_j = dtau_jm1 - rpoints_[irp]->Y_->kappa_bin[iB] * fabs(ds_i);
+                // add contribution from this cell
+                F_minus.q_bin[iB] += 2.0 * M_PI * S * ( E_3( dtau_j ) -  E_3( dtau_jm1 ) );
+                // update ds_i
+                ds_i = rpoints_[irp]->ds_;
+                // if ( irp != 0 )
+                //    ds_i = 2.0 * ( rpoints_[irp-1]->s_ - rpoints_[irp]->s_ - 0.5 * ds_i );
+            }
+            q_int += F_minus.q_bin[iB];
+        }
+        q_minus.push_back( q_int );
+    }
+
+    /* ------- Shock-to-wall (plus) direction ------- */
+    BinnedSpectralFlux F_plus( N_bins_star );
+
+    // Outer-boundary blackbody intensity (note optical thickness = 0)
+    BinnedSpectralFlux F_i( rsm_, T_i_, B );
+    q_int = 0.0;
+    for ( int iB=0; iB < N_bins_star; iB++ ) {
+        q_int += F_i.q_bin[iB];
+    }
+
+    // Save integrated flux
+    q_plus.push_back( q_int );
+
+    for ( int krp=0; krp < nrps_; ++krp ) {
+        q_int = 0.0;
+        for ( int iB=0; iB < N_bins_star; iB++ ) {
+            double ds_i = rpoints_[0]->ds_;
+            // Firstly do contribution from wall
+            double dtau_k = 0.0;
+            double ds_j = ds_i;
+            for ( int jrp=0; jrp <= krp; ++jrp ) {
+                dtau_k += fabs(ds_j) * rpoints_[jrp]->Y_->kappa_bin[iB];
+                // update ds_j
+                ds_j = 2.0 * rpoints_[jrp]->ds_;
+            }
+            F_plus.q_bin[iB] = F_i.q_bin[iB] * E_3( dtau_k );
+            // now contributions from cells, starting from closest
+            for ( int irp=0; irp <= krp; ++irp ) {
+                // source function for original cell
+                double S = 0.0;
+                if ( rpoints_[irp]->Y_->j_bin[iB] != 0.0 )
+                    S = rpoints_[irp]->Y_->j_bin[iB] / rpoints_[irp]->Y_->kappa_bin[iB];
+                double dtau_jm1 = 0.0;
+                double ds_j = ds_i;
+                for ( int jrp=irp; jrp <= krp; jrp++ ) {
+                    dtau_jm1 += ds_j * rpoints_[jrp]->Y_->kappa_bin[iB];
+                    // update ds_j
+                    ds_j = rpoints_[jrp]->ds_;
+                }
+                double dtau_j = dtau_jm1 - rpoints_[irp]->Y_->kappa_bin[iB] * ds_i;
+                // add contribution from this cell
+                F_plus.q_bin[iB] += 2.0 * M_PI * S * ( E_3( dtau_j ) -  E_3( dtau_jm1 ) );
+                // update ds_i
+                ds_i = rpoints_[irp]->ds_;
+            }
+            q_int += F_plus.q_bin[iB];
+        }
+        q_plus.push_back( q_int );
+    }
+
+    // calculate radiative divergence
+    for ( int irp=0; irp<nrps_; ++irp ) {
+        double ds = rpoints_[irp]->ds_;
+        // use forward differencing to evaluate divergence
+        double q_net_i = q_plus[irp] - q_minus[nrps_-irp];
+        double q_net_ip1 = q_plus[irp+1] - q_minus[nrps_-irp-1];
+        *(rpoints_[irp]->Q_rE_rad_) = ( q_net_i - q_net_ip1 ) / ds;
+        // cout << "q_plus = " << q_plus[irp] << ", q_minus = " << q_minus[irp] << endl;
+    }
+
+    // return wall directed flux
+    // NOTE: omitting wall emission - which is correct
+    double q_wall = q_plus.back();
+
     return q_wall;
 }
 

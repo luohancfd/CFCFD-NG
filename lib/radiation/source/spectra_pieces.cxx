@@ -692,6 +692,33 @@ int BinnedCoeffSpectra::random_bin( double R )
     exit( FAILURE );
 }
 
+void BinnedCoeffSpectra::write_TRT_tools_file( string fname )
+{
+    ofstream specfile;
+    specfile.open(fname.c_str());
+    if( specfile.fail() ) {
+        cout << "Error opening file: " << fname << endl;
+        cout << "Bailing Out!\n";
+        exit(FILE_ERROR);
+    }
+
+    specfile << setprecision(12) << scientific << showpoint;
+
+    // Column 1: Binned emission coefficient, j_bin (W/m3-sr)
+    // Column 2: Binned absorption coefficient, kappa_bin (1/m)
+    for ( size_t ib=0; ib<j_bin.size(); ++ib ) {
+        // Write to file
+        specfile << setw(20) << j_bin[ib]
+                 << setw(20) << kappa_bin[ib]
+                 << endl;
+        // move on to next bin
+    }
+
+    specfile.close();
+
+    return;
+}
+
 ApparatusFunction::ApparatusFunction( string name, double nu_sample )
  : name( name ), nu_sample( nu_sample ), f_scale( 1.0 ) {}
 
