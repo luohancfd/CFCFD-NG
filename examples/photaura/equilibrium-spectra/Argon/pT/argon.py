@@ -1,10 +1,9 @@
 input_data.rad_model_file   = "rad-model.lua"
-input_data.gas_model_file   = "gas-model.lua"
 input_data.species_list     = [ 'Ar', 'Ar_plus', 'e_minus' ]
 input_data.mole_fractions   = [ 1.0, 0.0, 0.0 ]    
 input_data.gas_pressure     = 10000. # Pa
 input_data.gas_temperature  = 10000 # K
-input_data.tube_width       = 0.1 # cm
+input_data.tube_width       = 0.1 # m
 input_data.apparatus_fn     = "Voigt"
 input_data.Gaussian_HWHM    = 4 # Ang
 input_data.Lorentzian_HWHM  = 0 # Ang

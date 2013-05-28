@@ -30,7 +30,7 @@ class EqSpectraInputData(object):
     """
     __slots__ = ['rad_model_file', 'gas_model_file', 'species_list', 'mole_fractions', 
                  'mass_fractions', 'shock_speed', 'gas_pressure', 'gas_temperature', 
-                 'tube_width', 'apparatus_fn', 'Gaussian_HWHM', 'Lorentzian_HWHM', 
+                 'path_length', 'apparatus_fn', 'Gaussian_HWHM', 'Lorentzian_HWHM', 
                  'sampling_rate', 'problem', 'planck_spectrum', 'show_plots' ]
     def __init__(self):
         self.rad_model_file = "rad-model.lua"
@@ -41,7 +41,7 @@ class EqSpectraInputData(object):
         self.shock_speed = 0
         self.gas_pressure = 0
         self.gas_temperature = 0
-        self.tube_width = 0
+        self.path_length = 0
         self.apparatus_fn = None
         self.Gaussian_HWHM = 0
         self.Lorentzian_HWHM = 0
@@ -81,7 +81,7 @@ def parseInputData(input_data):
     T_inf = input_data.gas_temperature
     
     # tube width
-    tube_D = input_data.tube_width
+    tube_D = input_data.path_length
 
     # name of the desired apparatus function model
     apparatus_fn = input_data.apparatus_fn
