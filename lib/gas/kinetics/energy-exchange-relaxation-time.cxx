@@ -1310,355 +1310,90 @@ specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
 //     return tau;
 // }
 
-// VE_Lee::
-// VE_Lee( lua_State * L )
-//     : Relaxation_time()
-// {
-//     // 1. Free electron and vibrational species index (and iTe)
-//     Chemical_species * E = get_library_species_pointer_from_name( "e_minus" );
-//     ie_ = E->get_isp();
-//     iTe_ = E->get_mode_pointer_from_type("translation")->get_iT();
-//     string v_name = get_string(L,-1,"v_name");
-//     iv_ = get_library_species_pointer_from_name( v_name )->get_isp();
-    
-//     // 2. Temperature switches
-//     lua_getfield(L, -1, "T_switches" );
-//     if ( !lua_istable(L, -1) ) {
-// 	ostringstream ost;
-// 	ost << "VE_Lee::VE_Lee():\n";
-// 	ost << "Error in the declaration of T switches: a table is expected.\n";
-// 	input_error(ost);
-//     }
-//     for ( size_t i=0; i<lua_objlen(L, -1); ++i ) {
-//     	lua_rawgeti(L, -1, i+1); // A Lua list is offset one from the C++ vector index
-//     	T_switches_.push_back( luaL_checknumber(L,-1) );
-//     	lua_pop(L,1);
-//     }
-//     lua_pop(L,1);	// pop 'T_switches'  
-    
-//     // 3. p.tau coefficients
-//     ptau_coeffs_.resize( T_switches_.size() + 1 );
-//     for ( size_t ic=0; ic<T_switches_.size()+1; ++ic ) {
-//     	ostringstream ptau_label;
-//     	ptau_label << "ptau_coefficients_" << ic;
-// 	lua_getfield(L, -1, ptau_label.str().c_str() );
-// 	if ( !lua_istable(L, -1) ) {
-// 	    ostringstream ost;
-// 	    ost << "VE_Lee::VE_Lee():\n";
-// 	    ost << "Error in the declaration of " << ptau_label.str() << ": a table is expected.\n";
-// 	    input_error(ost);
-// 	}
-// 	int nCs = lua_objlen(L, -1);
-// 	if ( nCs!=3 ) {
-// 	    ostringstream ost;
-// 	    ost << "VE_Lee::VE_Lee():\n";
-// 	    ost << "Error in the declaration of p.tau coefficients: 3 coefficients are expected.\n";
-// 	    input_error(ost);
-// 	}
-// 	for ( int i=0; i<nCs; ++i ) {
-// 	    lua_rawgeti(L, -1, i+1); // A Lua list is offset one from the C++ vector index
-// 	    ptau_coeffs_[ic].push_back( luaL_checknumber(L,-1) );
-// 	    lua_pop(L,1);
-// 	}
-// 	lua_pop(L,1);	// pop 'ptau_coefficients'
-//     }
-// }
+VE_Lee::
+VE_Lee( lua_State * L, int ie, int iv )
+    : Relaxation_time(), ie_( ie ), iv_( iv )
+{
+    // 1. Free electron and vibrational species index (and iTe)
+    Chemical_species * E = get_library_species_pointer( ie );
+    // Check that it is an electron
+    if ( E->get_type().find("electron")==string::npos ) {
+        ostringstream ost;
+        ost << "VE_Lee::VE_Lee():\n";
+        ost << "Error in the declaration of colliding species: " << E->get_name() << " is not an electron.\n";
+        input_error(ost);
+    }
+    iTe_ = E->get_mode_pointer_from_type("translation")->get_iT();
 
-// VE_Lee::
-// ~VE_Lee()
-// {
-//     T_switches_.resize(0);
-//     ptau_coeffs_.resize(0);
-// }
+    // 2. Temperature switches
+    lua_getfield(L, -1, "T_switches" );
+    if ( !lua_istable(L, -1) ) {
+	ostringstream ost;
+	ost << "VE_Lee::VE_Lee():\n";
+        ost << "Error in the declaration of T switches: a table is expected.\n";
+ 	input_error(ost);
+     }
+     for ( size_t i=0; i<lua_objlen(L, -1); ++i ) {
+     	lua_rawgeti(L, -1, i+1); // A Lua list is offset one from the C++ vector index
+     	T_switches_.push_back( luaL_checknumber(L,-1) );
+     	lua_pop(L,1);
+     }
+     lua_pop(L,1);	// pop 'T_switches'
+    
+     // 3. p.tau coefficients
+     ptau_coeffs_.resize( T_switches_.size() + 1 );
+     for ( size_t ic=0; ic<T_switches_.size()+1; ++ic ) {
+     	ostringstream ptau_label;
+     	ptau_label << "ptau_coefficients_" << ic;
+ 	lua_getfield(L, -1, ptau_label.str().c_str() );
+ 	if ( !lua_istable(L, -1) ) {
+ 	    ostringstream ost;
+ 	    ost << "VE_Lee::VE_Lee():\n";
+ 	    ost << "Error in the declaration of " << ptau_label.str() << ": a table is expected.\n";
+ 	    input_error(ost);
+ 	}
+ 	int nCs = lua_objlen(L, -1);
+ 	if ( nCs!=3 ) {
+ 	    ostringstream ost;
+ 	    ost << "VE_Lee::VE_Lee():\n";
+ 	    ost << "Error in the declaration of p.tau coefficients: 3 coefficients are expected.\n";
+ 	    input_error(ost);
+ 	}
+ 	for ( int i=0; i<nCs; ++i ) {
+ 	    lua_rawgeti(L, -1, i+1); // A Lua list is offset one from the C++ vector index
+ 	    ptau_coeffs_[ic].push_back( luaL_checknumber(L,-1) );
+ 	    lua_pop(L,1);
+ 	}
+ 	lua_pop(L,1);	// pop 'ptau_coefficients'
+    }
+}
 
-// double
-// VE_Lee::
-// specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
-// {
-//     // If either collider has zero concentration
-//     // then a relaxation time has no meaning
-//     if( molef[ie_] <= 0.0 || molef[iv_] <= 0.0 ) {
-// 	return -1.0;
-//     }
-    
-//     // Select the ptau coefficients to use from Te
-//     double Te = Q.T[iTe_];
-//     size_t iptc;
-//     for ( iptc=0; iptc<T_switches_.size(); ++iptc ) {
-//     	if ( Te < T_switches_[iptc] ) break;
-//     }
-    
-//     // Calculate tau
-//     // NOTE: pe_atm should be > 0 as molef[ie_] > 0
-//     double pe_atm = Q.p_e / PC_P_atm;
-//     double log_ptau = ptau_coeffs_[iptc][0] * log10(Te) * log10(Te) + ptau_coeffs_[iptc][1] * log10(Te) + ptau_coeffs_[iptc][2];
-//     double tau = pow( 10.0, log_ptau ) / pe_atm;
-    
-//     return tau;
-// }
+VE_Lee::
+~VE_Lee()
+{
+    T_switches_.resize(0);
+    ptau_coeffs_.resize(0);
+}
 
-// RT_Parker::
-// RT_Parker( lua_State * L )
-//     : Relaxation_time()
-// {
-//     // 1. Rotating species data
-//     string p_name = get_string(L, -1, "p_name");
-//     Chemical_species * p = get_library_species_pointer_from_name( p_name );
-//     double M_p = p->get_M();
-//     ip_ = p->get_isp();
-//     iT_ = p->get_iT_trans();
+double
+VE_Lee::
+specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
+{
+    // Select the ptau coefficients to use from Te
+    double Te = Q.T[iTe_];
+    size_t iptc;
+    for ( iptc=0; iptc<T_switches_.size(); ++iptc ) {
+     	if ( Te < T_switches_[iptc] ) break;
+    }
     
-//     // 2. Colliding species data
-//     lua_getfield(L, -1, "q_names" );
-//     if ( !lua_istable(L, -1) ) {
-// 	ostringstream ost;
-// 	ost << "RT_Parker::RT_Parker():\n";
-// 	ost << "Error in the declaration of colliding species : a table 'q_names' is expected.\n";
-// 	input_error(ost);
-//     }
-//     int nqs = lua_objlen(L, -1);
-//     for ( int i=0; i<nqs; ++i ) {
-//     	lua_rawgeti(L, -1, i+1); // A Lua list is offset one from the C++ vector index
-//     	const char* q_name = luaL_checkstring(L, -1);
-//     	lua_pop(L, 1);
-//     	Chemical_species * X = get_library_species_pointer_from_name( q_name );
-//     	M_qs_.push_back( X->get_M() );
-//     	iqs_.push_back( X->get_isp() );
-//     	// CHECKME: SI units?
-//     	mus_.push_back( ((M_p * M_qs_.back()) / (M_p + M_qs_.back())) );
-//     	// NOTE: using constant value from Abe et al (2002) for collision cross-section
-//     	sigmas_.push_back( 1.0e-19 );
-//     }
+    // Calculate tau
+    // NOTE: pe_atm should be > 0 as molef[ie_] > 0
+    double pe_atm = Q.p_e / PC_P_atm;
+    double log_ptau = ptau_coeffs_[iptc][0] * log10(Te) * log10(Te) + ptau_coeffs_[iptc][1] * log10(Te) + ptau_coeffs_[iptc][2];
+    double tau = pow( 10.0, log_ptau ) / pe_atm;
     
-//     lua_pop(L,1);	// pop q_names
-// }
-
-// RT_Parker::
-// ~RT_Parker() {}
-
-// double
-// RT_Parker::
-// specific_relaxation_time(Gas_data &Q, vector<double> &molef)
-// {
-//     double n_q;		// colliding species number density
-//     double tau_q_inv;
-//     double tau_inv = 0.0;
-    
-//     // NOTE: assuming thermally perfect gases
-//     for ( size_t i=0; i<iqs_.size(); ++i ) {
-// 	n_q = Q.rho * Q.massf[iqs_[i]] / M_qs_[i] * PC_Avogadro;
-// 	tau_q_inv = sigmas_[i] * n_q * sqrt( 8.0 * PC_k_SI * Q.T[iT_] / ( M_PI * mus_[i] ) );
-// 	tau_inv += tau_q_inv;
-// 	// cout << "n_q = " << n_q << ", tau_q_inv = " << tau_q_inv << endl;
-//     }
-
-//     return 1.0/tau_inv;
-// }
-
-// RE_Abe::
-// RE_Abe( lua_State * L )
-//     : Relaxation_time()
-// {
-//     // Initialise ions
-//     lua_getfield(L,-1,"ions");
-//     if ( !lua_istable(L, -1) ) {
-// 	ostringstream ost;
-// 	ost << "RE_Abe::RE_Abe():\n";
-// 	ost << "Error in declaration of ions: a table is expected.\n";
-// 	input_error(ost);
-//     }
-//     int n_ions = lua_objlen(L, -1);
-//     for ( int i=0; i<n_ions; ++i ) {
-//     	lua_rawgeti(L, -1, i+1); // A Lua list is offset one from the C++ vector index
-//     	tau_REs_.push_back( new RE_Ion(L) );
-//     	lua_pop(L, 1);
-//     }
-//     lua_pop(L, 1);	// pop ions
-    
-//     // Initialise neutrals
-//     lua_getfield(L,-1,"neutrals");
-//     if ( !lua_istable(L, -1) ) {
-// 	ostringstream ost;
-// 	ost << "RE_Abe::RE_Abe():\n";
-// 	ost << "Error in declaration of neutrals: a table is expected.\n";
-// 	input_error(ost);
-//     }
-//     int n_neutrals = lua_objlen(L, -1);
-//     for ( int i=0; i<n_neutrals; ++i ) {
-//     	lua_rawgeti(L, -1, i+1); // A Lua list is offset one from the C++ vector index
-//     	tau_REs_.push_back( new RE_Neutral(L) );
-//     	lua_pop(L, 1);
-//     }
-//     lua_pop(L, 1);	// pop neutrals
-// }
-
-// RE_Abe::
-// ~RE_Abe()
-// {
-//     for ( size_t i=0; i<tau_REs_.size(); ++i )
-//     	delete tau_REs_[i];
-// }
-
-// double
-// RE_Abe::
-// specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
-// {
-//     double tau_inv = 0.0;
-//     for ( size_t i=0; i<tau_REs_.size(); ++i ) {
-//     	double tau = tau_REs_[i]->compute_relaxation_time(Q,molef);
-//     	if ( tau < 0.0 ) continue;
-//     	tau_inv += 1.0/tau;
-//     }
-    
-//     return 1.0/tau_inv;
-// }
-
-// RE_Ion::
-// RE_Ion( lua_State * L )
-//     : Relaxation_time()
-// {
-//     // 1. Colliding species data
-//     string c_name = get_string(L, -1, "c_name");
-//     Chemical_species * X = get_library_species_pointer_from_name( c_name );
-//     if ( X->get_Z()<1 ) {
-// 	ostringstream ost;
-// 	ost << "RE_Ion::RE_Ion():\n";
-// 	ost << "Error in the declaration of colliding species: " << c_name << " is not an ion.\n";
-// 	input_error(ost);
-//     }    
-//     ic_ = X->get_isp();
-//     M_c_ = X->get_M();
-//     // Initialise g_rot factor (see Abe et al 2002 paper)
-//     if ( c_name=="N2_plus" )
-//     	g_rot_ = 10.0;
-//     else if ( c_name=="O2_plus" )
-//     	g_rot_ = 10.0;
-//     else if ( c_name=="NO_plus" )
-//     	g_rot_ = 100.0;
-//     else {
-// 	ostringstream ost;
-// 	ost << "RE_Ion::RE_Ion():\n";
-// 	ost << "Species: " << c_name << " does not have a known g_rot value.\n";
-// 	ost << "Setting g_rot to 10 (N2_plus value)\n";
-// 	// input_error(ost);
-// 	cout << ost.str();
-// 	g_rot_ = 10.0;
-//     }
-    
-//     // 2. Electron data
-//     X = get_library_species_pointer_from_name( "e_minus" );
-//     ie_ = X->get_isp();
-//     iTe_ = X->get_iT_trans();
-//     M_e_ = X->get_M();
-// }
-
-// RE_Ion::
-// ~RE_Ion() {}
-
-// double
-// RE_Ion::
-// specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
-// {
-//     double n_c = Q.massf[ic_] * Q.rho / M_c_ * PC_Avogadro * 1.0e-6;	// Number density of colliders (in cm**-3)
-//     double n_e = Q.massf[ie_] * Q.rho / M_e_ * PC_Avogadro * 1.0e-6;	// Number density of electrons (in cm**-3)
-    
-//     // If there are no participating species set a negative relaxation time
-//     if ( n_e==0.0 || n_c==0.0 ) return -1.0;
-
-//     double tmpA = 8.0 / 3.0 * sqrt( M_PI / PC_m_CGS );
-//     double tmpB = n_c * pow ( PC_e_CGS, 4.0 ) / pow ( 2.0 * PC_k_CGS * Q.T[iTe_], 1.5 );
-//     double tmpC = log( pow( PC_k_CGS * Q.T[iTe_], 3.0 ) / ( M_PI * n_e * pow ( PC_e_CGS, 6.0 ) ) );
-//     double nu_ec = tmpA * tmpB * tmpC;
-    
-//     // NOTE: applying g_rot factor to denominator
-//     double tau_ec = M_c_ / nu_ec / g_rot_;
-    
-//     return tau_ec;
-    
-// }
-
-// RE_Neutral::
-// RE_Neutral( lua_State * L )
-//     : Relaxation_time()
-// {
-//     // 1. Colliding species data
-//     string c_name = get_string(L, -1, "c_name");
-//     Chemical_species * X = get_library_species_pointer_from_name( c_name );
-//     if ( X->get_Z()!=0 ) {
-// 	ostringstream ost;
-// 	ost << "ET_Neutral::ET_Neutral():\n";
-// 	ost << "Error in the declaration of colliding species: " << c_name << " is not a neutral.\n";
-// 	input_error(ost);
-//     }    
-//     ic_ = X->get_isp();
-//     M_c_ = X->get_M();
-//     // Initialise g_rot factor (see Abe et al 2002 paper)
-//     if ( c_name=="N2" )
-//     	g_rot_ = 10.0;
-//     else if ( c_name=="O2" )
-//     	g_rot_ = 10.0;
-//     else if ( c_name=="NO" )
-//     	g_rot_ = 100.0;
-//     else {
-// 	ostringstream ost;
-// 	ost << "RE_Ion::RE_Ion():\n";
-// 	ost << "Species: " << c_name << " does not have a known g_rot value.\n";
-// 	ost << "Setting g_rot to 10 (N2 value)\n";
-// 	// input_error(ost);
-// 	cout << ost.str();
-// 	g_rot_ = 10.0;
-//     }
-    
-//     // 2. Electron data
-//     X = get_library_species_pointer_from_name( "e_minus" );
-//     iTe_ = X->get_iT_trans();
-    
-//     // 3. Sigma quadratic curve fit coefficients
-//     lua_getfield(L, -1, "sigma_coefficients" );
-//     if ( !lua_istable(L, -1) ) {
-// 	ostringstream ost;
-// 	ost << "RE_Neutral::RE_Neutral():\n";
-// 	ost << "Error in the declaration of sigma coefficients: a table is expected.\n";
-// 	input_error(ost);
-//     }
-//     int nCs = lua_objlen(L, -1);
-//     if ( nCs!=3 ) {
-// 	ostringstream ost;
-// 	ost << "RE_Neutral::RE_Neutral():\n";
-// 	ost << "Error in the declaration of sigma coefficients: 3 coefficients are expected.\n";
-// 	input_error(ost);
-//     }
-//     for ( int i=0; i<nCs; ++i ) {
-//     	lua_rawgeti(L, -1, i+1); // A Lua list is offset one from the C++ vector index
-//     	C_.push_back( luaL_checknumber(L,-1) );
-//     	lua_pop(L,1);
-//     }
-//     lua_pop(L,1);	// pop 'sigma_coefficients'    	
-// }
-
-// RE_Neutral::
-// ~RE_Neutral()
-// {
-//     C_.resize(0);
-// }
-
-// double
-// RE_Neutral::
-// specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
-// {
-//     double n_c = Q.massf[ic_] * Q.rho / M_c_ * PC_Avogadro * 1.0e-6;	// Number density of colliders (in cm**-3)
-    
-//     // If there are no colliding species set a very large relaxation time
-//     if ( n_c==0.0 ) return 1.0e99;
-
-//     double T = Q.T[iTe_];
-//     double simga_ec = C_[0] + C_[1] * T + C_[2] * T * T;
-//     double nu_ec = n_c * simga_ec * sqrt( 8.0 * PC_k_CGS * T / ( M_PI * PC_m_CGS ) );
-//     // NOTE: applying g_rot factor to denominator
-//     double tau_ec = M_c_ / nu_ec / g_rot_;
-    
-//     return tau_ec;
-// }
+    return tau;
+}
 
 Relaxation_time* create_new_relaxation_time(lua_State *L, int ip, int iq, int itrans)
 {
@@ -1700,11 +1435,11 @@ Relaxation_time* create_new_relaxation_time(lua_State *L, int ip, int iq, int it
     else if( relaxation_time == "Abe-ER:Neutral" ) {
         return new ER_Abe_Neutral(L, ip, iq);
     }
+    else if( relaxation_time == "Lee-VE" ) {
+        return new VE_Lee(L, ip, iq);
+    }
     // else if( relaxation_time == "VV_Candler" ) {
     // 	return new VV_Candler(L);
-    // }
-    // else if( relaxation_time == "VE_Lee" ) {
-    // 	return new VE_Lee(L);
     // }
     // else if( relaxation_time == "RT_Parker" ) {
     // 	return new RT_Parker(L);

@@ -286,26 +286,26 @@ private:
 //     { return 0.0; }
 // };
 
-// class VE_Lee : public Relaxation_time {
-// public:
-//     VE_Lee(lua_State *L);
+class VE_Lee : public Relaxation_time {
+public:
+    VE_Lee(lua_State *L, int ie, int iv);
     
-//     ~VE_Lee();
-// private:
-//     // Electron data
-//     int ie_;
-//     int iTe_;
+    ~VE_Lee();
+private:
+    // Electron data
+    int ie_;
+    int iTe_;
     
-//     // Vibrational species data
-//     int iv_;
+    // Vibrational species data
+    int iv_;
     
-//     std::vector<double> T_switches_;
-//     std::vector< std::vector<double> > ptau_coeffs_;
+    std::vector<double> T_switches_;
+    std::vector< std::vector<double> > ptau_coeffs_;
     
-//     double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
-//     double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
-//     { return 0.0; }
-// };
+    double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
+    double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
+    { return 0.0; }
+};
 
 // class RT_Parker : public Relaxation_time {
 // public:
@@ -325,52 +325,6 @@ private:
 //     std::vector<int> iqs_;			// species indices
 //     std::vector<double> M_qs_;			// molecular weights
 
-//     double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
-//     double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
-//     { return 0.0; }
-// };
-
-// class RE_Abe : public Relaxation_time {
-// public:
-//     RE_Abe(lua_State *L);
-    
-//     ~RE_Abe();
-// private:
-//     std::vector<Relaxation_time*> tau_REs_;
-    
-//     double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
-//     double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
-//     { return 0.0; }
-// };
-
-// class RE_Ion : public Relaxation_time {
-// public:
-//     RE_Ion(lua_State *L);
-    
-//     ~RE_Ion();
-// private:
-//     int ic_;
-//     int ie_;
-//     int iTe_;
-//     double M_c_;
-//     double M_e_;
-//     double g_rot_;
-//     double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
-//     double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
-//     { return 0.0; }
-// };
-
-// class RE_Neutral : public Relaxation_time {
-// public:
-//     RE_Neutral(lua_State *L);
-    
-//     ~RE_Neutral();
-// private:
-//     int ic_;
-//     double M_c_;
-//     int iTe_;
-//     std::vector<double> C_;
-//     double g_rot_;
 //     double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
 //     double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
 //     { return 0.0; }

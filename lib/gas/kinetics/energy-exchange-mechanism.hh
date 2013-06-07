@@ -151,51 +151,41 @@ private:
 //     double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
 // };
 
-// class VE_exchange : public Energy_exchange_mechanism {
-// public:
-//     VE_exchange( lua_State *L );
-    
-//     ~VE_exchange();
-// private:
-//     // Electron data
-//     int iTe_;
-//     int ie_;
-    
-//     // Vibrator data
-//     int iTv_;
-//     int iv_;
-//     Species_energy_mode * v_vib_;
-    
-//     Relaxation_time * tau_VE_;
-    
-//     double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
-//     { return tau_VE_->compute_relaxation_time(Q,molef); }
-    
-//     double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
-// };
+class VE_exchange : public Energy_exchange_mechanism {
+public:
+    VE_exchange(lua_State *L, int ip, int imode);
 
-// class EV_exchange : public Energy_exchange_mechanism {
-// public:
-//     EV_exchange( lua_State *L );
-    
-//     ~EV_exchange();
-// private:
-//     // Electron data
-//     int iTe_;
-//     int ie_;
-    
-//     // Vibrator data
-//     int iTv_;
-//     int iv_;
-//     Species_energy_mode * v_vib_;
-    
-//     Relaxation_time * tau_EV_;
-    
-//     double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
-//     { return tau_EV_->compute_relaxation_time(Q,molef); }
-    
-//     double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
-// };
+    ~VE_exchange();
+private:
+    int ie_;    // electron species index
+    int ip_;    // vibrating species index
+    int iTe_;   // electron energy mode index
+    int iTv_;   // vibrational energy mode index
+    Species_energy_mode *p_vib_;        // pointer to species p vibrational energy mode
+    Relaxation_time *tau_VE_;
+    double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
+    { return tau_VE_->compute_relaxation_time(Q, molef); }
+
+    double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
+};
+
+class EV_exchange : public Energy_exchange_mechanism {
+public:
+    EV_exchange(lua_State *L, int ip, int imode);
+
+    ~EV_exchange();
+private:
+    int ie_;    // electron species index
+    int iq_;    // vibrating species index
+    int iTe_;   // electron energy mode index
+    int iTv_;   // vibrational energy mode index
+    Species_energy_mode *q_vib_;        // pointer to species p vibrational energy mode
+    Relaxation_time *tau_EV_;
+    double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
+    { return tau_EV_->compute_relaxation_time(Q, molef); }
+
+    double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
+};
 
 Energy_exchange_mechanism* create_energy_exhange_mechanism(lua_State *L, int imode);
 

@@ -199,6 +199,12 @@ function transform_mechanism(m, species, thermal_modes)
       elseif m_type == "ER" then
 	 mechs[#mechs].itrans = ITRANS
 	 mechs[#mechs].imode = imode
+      elseif m_type == 'VE' then
+	 mechs[#mechs].itrans = ITRANS
+	 mechs[#mechs].imode = imode
+      elseif m_type == 'EV' then
+	 mechs[#mechs].itrans = ITRANS
+	 mechs[#mechs].imode = imode
       else
 	 print("Mode type: ", m_type, " is not known.")
 	 print("This occurred when trying to build energy exchange mechanism:")

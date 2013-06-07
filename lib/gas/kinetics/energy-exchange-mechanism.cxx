@@ -327,103 +327,96 @@ specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &mo
 //     return rate;
 // }
 
-// VE_exchange::
-// VE_exchange( lua_State *L )
-//     : Energy_exchange_mechanism()
-// {
-//     // 1. Free electron
-//     Chemical_species * E = get_library_species_pointer_from_name( "e_minus" );
-//     ie_ = E->get_isp();
-//     iTe_ = E->get_mode_pointer_from_type("translation")->get_iT();
-    
-//     // 2. Vibrating species
-//     string v_name = get_string(L, -1, "v_name");
-//     Chemical_species * V = get_library_species_pointer_from_name( v_name );
-//     iv_ = V->get_isp();
-//     iTv_ = V->get_mode_pointer_from_type("vibration")->get_iT();
-//     v_vib_ = V->get_mode_pointer_from_type("vibration");
+EV_exchange::
+EV_exchange( lua_State *L, int ie, int iTe )
+    : Energy_exchange_mechanism(), ie_(ie), iTe_(iTe)
+{
+    // 1. Colliding molecular species
+    int iq = get_int(L, -1, "iq");
+    Chemical_species * Q = get_library_species_pointer( iq );
+    int iT = Q->get_mode_pointer_from_type("translation")->get_iT();
+    iTv_ = Q->get_mode_pointer_from_type("vibration")->get_iT();
+    q_vib_ = Q->get_mode_pointer_from_type("vibration");
 
-//     // 3. Initialise relaxation time
-//     lua_getfield(L,-1,"relaxation_time");
-//     tau_VE_ = create_new_relaxation_time( L );
-//     lua_pop(L, 1 );
-// }
+    // 2. Initialise relaxation time
+    lua_getfield(L,-1,"relaxation_time");
+    tau_EV_ = create_new_relaxation_time( L, ie, iq_ , iT );
+    lua_pop(L, 1 );
+}
 
-// VE_exchange::
-// ~VE_exchange()
-// {
-//     delete tau_VE_;
-// }
+EV_exchange::
+~EV_exchange()
+{
+    delete tau_EV_;
+}
 
-// double
-// VE_exchange::
-// specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &molef)
-// {
-//     // Refs: Gnoffo (1989)
-//     //       Lee (?)
+double
+EV_exchange::
+specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &molef)
+{
+    // Refs: Gnoffo (1989)
+    //       Lee (1985)
     
-//     // 1. Calculate vibrational energies
-//     double e_vib = v_vib_->eval_energy_from_T( Q.T[iTv_] );
-//     double e_vib_bar = v_vib_->eval_energy_from_T( Q.T[iTe_] );
+     // 1. Calculate vibrational energies
+     double e_vib = q_vib_->eval_energy_from_T( Q.T[iTv_] );
+     double e_vib_bar = q_vib_->eval_energy_from_T( Q.T[iTe_] );
     
-//     // 2. Compute the rate
-//     double rate = Q.massf[iv_] * ( e_vib_bar - e_vib ) / tau_;
+     // 2. Compute the rate (note e_vib - e_vib_bar )
+     double rate = Q.massf[iq_] * ( e_vib - e_vib_bar ) / tau_;
     
-//     // cout << "VE_exchange::specific_compute_rate()" << endl
-//     //      << "rate = " << rate << endl;
-//     // Q.print(false);
+     // cout << "EV_exchange::specific_compute_rate()" << endl
+     //      << "rate = " << rate << endl;
+     // Q.print(false);
     
-//     return rate;
-// }
+     return rate;
+}
 
-// EV_exchange::
-// EV_exchange( lua_State *L )
-//     : Energy_exchange_mechanism()
-// {
-//     // 1. Free electron
-//     Chemical_species * E = get_library_species_pointer_from_name( "e_minus" );
-//     ie_ = E->get_isp();
-//     iTe_ = E->get_mode_pointer_from_type("translation")->get_iT();
-    
-//     // 2. Vibrating species
-//     string v_name = get_string(L, -1, "v_name");
-//     Chemical_species * V = get_library_species_pointer_from_name( v_name );
-//     iv_ = V->get_isp();
-//     iTv_ = V->get_mode_pointer_from_type("vibration")->get_iT();
-//     v_vib_ = V->get_mode_pointer_from_type("vibration");
+VE_exchange::
+VE_exchange( lua_State *L, int ip, int iTv )
+    : Energy_exchange_mechanism(), ip_(ip), iTv_(iTv)
+{
+     // 1. Vibrating molecular species
+     Chemical_species * P = get_library_species_pointer( ip_ );
+     int iT = P->get_mode_pointer_from_type("translation")->get_iT();
+     p_vib_ = P->get_mode_pointer_from_type("vibration");
 
-//     // 3. Initialise relaxation time
-//     lua_getfield(L,-1,"relaxation_time");
-//     tau_EV_ = create_new_relaxation_time( L );
-//     lua_pop(L, 1 );
-// }
+     // 2. Free electron
+     Chemical_species * E = get_library_species_pointer_from_name( "e_minus" );
+     ie_ = E->get_isp();
+     iTe_ = E->get_mode_pointer_from_type("translation")->get_iT();
 
-// EV_exchange::
-// ~EV_exchange()
-// {
-//     delete tau_EV_;
-// }
+     // 3. Initialise relaxation time
+     lua_getfield(L,-1,"relaxation_time");
+     tau_VE_ = create_new_relaxation_time( L, ie_, ip_ , iT );
+     lua_pop(L, 1 );
+}
 
-// double
-// EV_exchange::
-// specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &molef)
-// {
-//     // Refs: Gnoffo (1989)
-//     //       Lee (?)
-    
-//     // 1. Calculate vibrational energies
-//     double e_vib = v_vib_->eval_energy_from_T( Q.T[iTv_] );
-//     double e_vib_bar = v_vib_->eval_energy_from_T( Q.T[iTe_] );
-    
-//     // 2. Compute the rate (note e_vib - e_vib_bar )
-//     double rate = Q.massf[iv_] * ( e_vib - e_vib_bar ) / tau_;
-    
-//     // cout << "EV_exchange::specific_compute_rate()" << endl
-//     //      << "rate = " << rate << endl;
-//     // Q.print(false);
-    
-//     return rate;
-// }
+VE_exchange::
+~VE_exchange()
+{
+    delete tau_VE_;
+}
+
+double
+VE_exchange::
+specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &molef)
+{
+    // Refs: Gnoffo (1989)
+    //       Lee (1985)
+
+     // 1. Calculate vibrational energies
+     double e_vib = p_vib_->eval_energy_from_T( Q.T[iTv_] );
+     double e_vib_bar = p_vib_->eval_energy_from_T( Q.T[iTe_] );
+
+     // 2. Compute the rate (note e_vib - e_vib_bar )
+     double rate = Q.massf[ip_] * ( e_vib_bar - e_vib ) / tau_;
+
+     // cout << "EV_exchange::specific_compute_rate()" << endl
+     //      << "rate = " << rate << endl;
+     // Q.print(false);
+
+     return rate;
+}
 
 // RT_exchange::
 // RT_exchange( lua_State *L )
@@ -533,15 +526,16 @@ Energy_exchange_mechanism* create_energy_exhange_mechanism(lua_State *L, int imo
     else if( type == "ER" ) {
         return new ER_exchange(L, ip, imode);
     }
+    else if( type == "VE" ) {
+        return new VE_exchange(L, ip, imode);
+    }
+    else if( type == "EV" ) {
+        return new EV_exchange(L, ip, imode);
+    }
 //     // else if( type == "VV_HO_exchange" ) {
 //     // 	return new VV_HO_exchange(L);
 //     // }
-//     // else if( type == "VE_exchange" ) {
-//     // 	return new VE_exchange(L);
-//     // }
-//     // else if( type == "EV_exchange" ) {
-//     // 	return new EV_exchange(L);
-//     // }
+
 //     // else if( type == "RT_exchange" ) {
 //     // 	return new RT_exchange(L);
 //     // }

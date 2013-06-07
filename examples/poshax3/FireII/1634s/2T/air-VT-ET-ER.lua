@@ -73,3 +73,13 @@ mechanism{
    rt={'Abe-ER:Neutral', sigma_coefficients = { 7.5e-20, 5.5e-24, -1.0e-28 }, g_rot=10.0 }
 }
 
+mechanism{
+   'e- ~~ NO : E-T',
+   rt={'Abe-ER:Neutral', sigma_coefficients = { 1.0e-19, 0.0,      0.0 }, g_rot=100.0 }
+}
+
+mechanism{
+   'e- ~~ O2 : E-T',
+   rt={'Abe-ER:Neutral', sigma_coefficients = { 2.0e-20, 6.0e-24,  0.0 }, g_rot=10.0 }
+}
+
