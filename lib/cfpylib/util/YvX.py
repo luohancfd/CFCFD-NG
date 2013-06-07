@@ -161,7 +161,8 @@ class YvX:
             x_spline.append( self.x_array[0] + ix*dx )
             y_spline.append( self.y_from_x( self.x_array[0] + ix*dx ) )
         pylab.plot( x_spline, y_spline, rep )
-        labels = [ label ]
+        global labels
+        labels.append( label )
         if include_integral:
             pylab.subplot(212)
             if xrange: pylab.xlim(xrange[0],xrange[1])
