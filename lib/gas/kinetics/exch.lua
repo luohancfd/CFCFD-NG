@@ -21,7 +21,7 @@ end
 -- List some specific elements for this module
 local ListKw = lpeg.C(lpeg.P("*list")) * Space
 local AllKw = lpeg.C(lpeg.P("*all")) * Space
-local ExchType = lpeg.C(lpeg.S("VTE")) * Space -- letters designating exchange types
+local ExchType = lpeg.C(lpeg.S("VTER")) * Space -- letters designating exchange types
 local ExchDesc = lpeg.C(lpeg.R("AZ")^1)
 
 -- grammar
@@ -68,6 +68,8 @@ local function find_mode_index(modes, mode_idx, e_str, s_str)
       cname1 = s_str.."-vibration"
    elseif e_str == "E" then
       cname1 = "e_minus-translation"
+   elseif e_str == "R" then
+      cname1 = "-rotation"
    else
       print(string.format("Mode string %s" % e_str))
       print("is not known in energy exchange file.")
@@ -192,6 +194,9 @@ function transform_mechanism(m, species, thermal_modes)
 	 local qmode = "V_"..species[q]
 	 mechs[#mechs].iTvq = thermal_modes[qmode]
       elseif m_type == "ET" then
+	 mechs[#mechs].itrans = ITRANS
+	 mechs[#mechs].imode = imode
+      elseif m_type == "ER" then
 	 mechs[#mechs].itrans = ITRANS
 	 mechs[#mechs].imode = imode
       else

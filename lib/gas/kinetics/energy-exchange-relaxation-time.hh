@@ -177,6 +177,39 @@ private:
     { return 0.0; }
 };
 
+class ER_Abe_Ion : public Relaxation_time {
+public:
+    ER_Abe_Ion(lua_State *L, int ie, int ic);
+
+    ~ER_Abe_Ion();
+private:
+    int ie_;
+    int ic_;
+    int iTe_;
+    double M_c_;
+    double M_e_;
+    double g_rot_;
+    double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
+    double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
+    { return 0.0; }
+};
+
+class ER_Abe_Neutral : public Relaxation_time {
+public:
+    ER_Abe_Neutral(lua_State *L, int ie, int ic);
+
+    ~ER_Abe_Neutral();
+private:
+    int ic_;
+    double M_c_;
+    double g_rot_;
+    int iTe_;
+    std::vector<double> C_;
+    double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
+    double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
+    { return 0.0; }
+};
+
 
 // Helper functions for SSH calculations
 double collider_distance_A(Diatomic_species &p, Diatomic_species &q);

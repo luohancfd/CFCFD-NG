@@ -460,6 +460,154 @@ specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
 
     return tau_ec;
 }
+
+ER_Abe_Ion::
+ER_Abe_Ion( lua_State * L, int ie, int ic )
+    : Relaxation_time(), ie_ ( ie ), ic_ ( ic )
+{
+    // 1. Colliding species data
+    Chemical_species * X = get_library_species_pointer( ic );
+    if ( X->get_Z()<1 ) {
+        ostringstream ost;
+        ost << "ER_Abe_Ion::ER_Abe_Ion():\n";
+        ost << "Error in the declaration of colliding species: " << X->get_name() << " is not an ion.\n";
+        input_error(ost);
+    }
+    // Check that it is a diatomic molecule
+    if ( X->get_type().find("diatomic")==string::npos ) {
+        ostringstream ost;
+        ost << "ER_Abe_Ion::ER_Abe_Ion():\n";
+        ost << "Error in the declaration of colliding species: " << X->get_name() << " is not a diatomic molecule.\n";
+        input_error(ost);
+    }
+
+    M_c_ = X->get_M();
+
+    // 2. Electron data
+    X = get_library_species_pointer( ie );
+    if ( X->get_Z()!=-1 ) {
+        ostringstream ost;
+        ost << "ER_Abe_Ion::ER_Abe_Ion():\n";
+        ost << "Error in the declaration of colliding species: " << X->get_name() << " is not an electron.\n";
+        input_error(ost);
+    }
+    iTe_ = X->get_iT_trans();
+    M_e_ = X->get_M();
+
+    // 3. Rotational scaling factor ( from Abe et al 2002: sigma_ER = sigma_ET * g_rot )
+    g_rot_ = get_positive_number( L, -1, "g_rot" );
+}
+
+ER_Abe_Ion::
+~ER_Abe_Ion() {}
+
+double
+ER_Abe_Ion::
+specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
+{
+    double n_c = Q.massf[ic_] * Q.rho / M_c_ * PC_Avogadro * 1.0e-6;    // Number density of colliders (in cm**-3)
+    double n_e = Q.massf[ie_] * Q.rho / M_e_ * PC_Avogadro * 1.0e-6;    // Number density of electrons (in cm**-3)
+
+    // If there are no participating species set a negative relaxation time
+    if ( n_e==0.0 || n_c==0.0 ) return -1.0;
+
+    double tmpA = 8.0 / 3.0 * sqrt( M_PI / PC_m_CGS );
+    double tmpB = n_c * pow ( PC_e_CGS, 4.0 ) / pow ( 2.0 * PC_k_CGS * Q.T[iTe_], 1.5 );
+    double tmpC = log( pow( PC_k_CGS * Q.T[iTe_], 3.0 ) / ( M_PI * n_e * pow ( PC_e_CGS, 6.0 ) ) );
+    double nu_ec = tmpA * tmpB * tmpC;
+
+    double tau_ec = M_c_ / nu_ec / g_rot_;
+
+    return tau_ec;
+
+}
+
+ER_Abe_Neutral::
+ER_Abe_Neutral( lua_State * L, int ie, int ic )
+    : Relaxation_time(), ic_( ic )
+{
+    int nCs;
+
+    // 1. Colliding species data
+    Chemical_species * X = get_library_species_pointer( ic );
+    if ( X->get_Z()!=0 ) {
+        ostringstream ost;
+        ost << "ER_Abe_Neutral::ER_Abe_Neutral():\n";
+        ost << "Error in the declaration of colliding species: " << X->get_name() << " is not a neutral.\n";
+        input_error(ost);
+    }
+    // Check that it is a diatomic molecule
+    if ( X->get_type().find("diatomic")==string::npos ) {
+        ostringstream ost;
+        ost << "ER_Abe_Neutral::ER_Abe_Neutral():\n";
+        ost << "Error in the declaration of colliding species: " << X->get_name() << " is not a diatomic molecule.\n";
+        input_error(ost);
+    }
+    M_c_ = X->get_M();
+
+    // 2. Electron data
+    X = get_library_species_pointer( ie );
+    if ( X->get_Z()!=-1 ) {
+        ostringstream ost;
+        ost << "ER_Abe_Neutral::ER_Abe_Neutral():\n";
+        ost << "Error in the declaration of colliding species: " << X->get_name() << " is not an electron.\n";
+        input_error(ost);
+    }
+    iTe_ = X->get_iT_trans();
+
+    // 3.  Sigma quadratic curve fit coefficients
+    lua_getfield(L, -1, "sigma_coefficients" );
+    if ( !lua_istable(L, -1) ) {
+        ostringstream ost;
+        ost << "ER_Abe_Neutral::ER_Abe_Neutral():\n";
+        ost << "Error in the declaration of sigma coefficients: a table is expected.\n";
+        input_error(ost);
+    }
+    nCs = lua_objlen(L, -1);
+    if ( nCs!=3 ) {
+        ostringstream ost;
+        ost << "ER_Abe_Neutral::ER_Abe_Neutral():\n";
+        ost << "Error in the declaration of sigma coefficients: 3 coefficients are expected.\n";
+        input_error(ost);
+    }
+    for ( int i=0; i<nCs; ++i ) {
+        lua_rawgeti(L, -1, i+1); // A Lua list is offset one from the C++ vector index
+        C_.push_back( luaL_checknumber(L,-1) );
+        lua_pop(L,1);
+    }
+    lua_pop(L,1);       // pop 'sigma_coefficients'
+
+    // 3. Rotational scaling factor ( from Abe et al 2002: sigma_ER = sigma_ET * g_rot )
+    g_rot_ = get_positive_number( L, -1, "g_rot" );
+}
+
+ER_Abe_Neutral::
+~ER_Abe_Neutral()
+{
+    C_.resize(0);
+}
+
+double
+ER_Abe_Neutral::
+specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
+{
+    double n_c = Q.massf[ic_] * Q.rho / M_c_ * PC_Avogadro * 1.0e-6;    // Number density of colliders (in cm**-3)
+
+    // If there are no colliding species set a negative relaxation time
+    if ( n_c==0.0 ) return -1.0;
+
+    // calculate sigma using the appropriate curve fit for the electron temperature
+    double T = Q.T[iTe_];
+    double sigma_ec = 0.0;
+    sigma_ec = C_[0] + C_[1] * T + C_[2] * T * T;
+    /* Convert sigma_ec from m**2 -> cm**2 */
+    sigma_ec *= 1.0e4;
+    double nu_ec = n_c * sigma_ec * sqrt( 8.0 * PC_k_CGS * T / ( M_PI * PC_m_CGS ) );
+    double tau_ec = M_c_ / nu_ec / g_rot_;
+
+    return tau_ec;
+}
+
 /**
  * \brief Calculate the collider distance for like colliders.
  *
@@ -1546,6 +1694,12 @@ Relaxation_time* create_new_relaxation_time(lua_State *L, int ip, int iq, int it
     else if( relaxation_time == "Appleton-Bray:TwoRangeNeutral" ) {
 	return new ET_AppletonBray_TwoRangeNeutral(L, ip, iq);
     }
+    else if( relaxation_time == "Abe-ER:Ion" ) {
+        return new ER_Abe_Ion(L, ip, iq);
+    }
+    else if( relaxation_time == "Abe-ER:Neutral" ) {
+        return new ER_Abe_Neutral(L, ip, iq);
+    }
     // else if( relaxation_time == "VV_Candler" ) {
     // 	return new VV_Candler(L);
     // }
@@ -1554,15 +1708,6 @@ Relaxation_time* create_new_relaxation_time(lua_State *L, int ip, int iq, int it
     // }
     // else if( relaxation_time == "RT_Parker" ) {
     // 	return new RT_Parker(L);
-    // }
-    // else if( relaxation_time == "RE_Abe" ) {
-    // 	return new RE_Abe(L);
-    // }
-    // else if( relaxation_time == "RE_Ion" ) {
-    // 	return new RE_Ion(L);
-    // }
-    // else if( relaxation_time == "RE_Neutral" ) {
-    // 	return new RE_Neutral(L);
     // }
     else {
     	cout << "create_new_relaxation_time()\n";

@@ -93,6 +93,22 @@ private:
     double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
 };
 
+class ER_exchange : public Energy_exchange_mechanism {
+public:
+    ER_exchange( lua_State *L, int ie, int iTe );
+
+    ~ER_exchange();
+private:
+    int ie_;    // electron index
+    int iTe_;   // electronic temperature index
+    int iTr_;   // rotational temperature index
+    Relaxation_time * tau_ER_;
+    double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
+    { return tau_ER_->compute_relaxation_time(Q,molef); }
+
+    double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
+};
+
 class VV_THO_exchange : public Energy_exchange_mechanism {
 public:
     VV_THO_exchange(lua_State *L, int ip, int imode);
@@ -178,61 +194,6 @@ private:
 //     double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
 //     { return tau_EV_->compute_relaxation_time(Q,molef); }
     
-//     double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
-// };
-
-// class RT_exchange : public Energy_exchange_mechanism {
-// public:
-//     RT_exchange( lua_State *L );
-
-//     ~RT_exchange();
-// private:
-//     int ip_; 		// rotating species index
-//     int iT_;		// translational energy mode index
-//     int iTr_;		// rotational energy mode index
-//     double Z_R_inf_;	// reference collision number
-//     double theta_r_;	// characteristic temperature for rotation
-    
-//     Species_energy_mode * p_rot_;	// pointer to species p rotational energy mode
-//     Relaxation_time * tau_RT_;
-    
-//     double calculate_collision_number( double T );
-    
-//     double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
-//     { return tau_RT_->compute_relaxation_time(Q,molef); }
-
-//     double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
-// };
-
-// class RE_exchange : public Energy_exchange_mechanism {
-// public:
-//     RE_exchange( lua_State *L );
-
-//     ~RE_exchange();
-// private:
-//     int iTr_;	// rotational temperature index
-//     int iTe_;	// electronic temperature index
-//     int ie_;	// electron index
-//     Relaxation_time * tau_RE_;
-//     double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
-//     { return tau_RE_->compute_relaxation_time(Q,molef); }
-
-//     double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
-// };
-
-// class ER_exchange : public Energy_exchange_mechanism {
-// public:
-//     ER_exchange( lua_State *L );
-
-//     ~ER_exchange();
-// private:
-//     int iTr_;	// rotational temperature index
-//     int iTe_;	// electronic temperature index
-//     int ie_;	// electron index
-//     Relaxation_time * tau_RE_;
-//     double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
-//     { return tau_RE_->compute_relaxation_time(Q,molef); }
-
 //     double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
 // };
 

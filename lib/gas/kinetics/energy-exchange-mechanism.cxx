@@ -155,6 +155,40 @@ specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &mo
     return rate;
 }
 
+ER_exchange::
+ER_exchange(lua_State *L, int ie, int iTe)
+    : Energy_exchange_mechanism(), ie_(ie), iTe_(iTe)
+{
+    // Assume rotational-translational equilibrium
+    iTr_ = get_int(L, -1, "itrans");
+    int ic = get_int(L, -1, "iq");
+
+    lua_getfield(L,-1,"relaxation_time");
+    tau_ER_ = create_new_relaxation_time(L, ie, ic, iTr_);
+    lua_pop(L, 1 );
+}
+
+ER_exchange::
+~ER_exchange()
+{
+    delete tau_ER_;
+}
+
+double
+ER_exchange::
+specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &molef)
+{
+    // tau_ER_ will be present and correct before beginning this
+    // functionm ie. a call to compute_tau is expected earlier.
+    // NOTE: - massf[ie_] scaling is to convert J/s/kg-of-electrons to J/s/kg-of-mixture
+    double rate = Q.massf[ie_] * 3.0 * PC_R_u * ( Q.T[iTr_] - Q.T[iTe_] ) / tau_;
+
+    // cout << "ER_exchange::specific_compute_rate()" << endl
+    //      << "rate = " << rate << endl;
+
+    return rate;
+}
+
 VV_THO_exchange::
 VV_THO_exchange(lua_State *L, int ip, int imode)
     : Energy_exchange_mechanism(), ip_(ip), iTvp_(imode)
@@ -478,86 +512,6 @@ specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &mo
 //     return rate;
 // }
 
-// RE_exchange::
-// RE_exchange( lua_State *L )
-//     : Energy_exchange_mechanism()
-// {
-//     // 1. Initialise rotational species data
-//     string q_name = get_string(L, -1, "q_name");
-//     Chemical_species * X = get_library_species_pointer_from_name( q_name );
-//     iTr_ = X->get_mode_pointer_from_type("rotation")->get_iT();;
-    
-//     // 2. Initialise electron species data
-//     Chemical_species * e = get_library_species_pointer_from_name( "e_minus" );
-//     ie_ = e->get_isp();
-//     iTe_ = e->get_mode_pointer_from_type("translation")->get_iT();;
-
-//     // 3. Initialise relaxation time
-//     lua_getfield(L,-1,"relaxation_time");
-//     tau_RE_ = create_new_relaxation_time( L );
-//     lua_pop(L, 1 );
-// }
-
-// RE_exchange::
-// ~RE_exchange()
-// {
-//     delete tau_RE_;
-// }
-
-// double
-// RE_exchange::
-// specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &molef)
-// {
-//     // tau_ should be present and correct before beginning this
-//     // function ie. a call to compute_tau is expected earlier.
-//     // CHECKME: - using Gnoffo (1989) ET expression as Abe et al (2002) expression looks wrong
-//     //          - from Abe and Panesi, maybe we should be scaling by molef[ie_]
-//     //            and NOT massf[ie_]?
-//     double rate = Q.massf[ie_] * 3.0 * PC_R_u * ( Q.T[iTe_] - Q.T[iTr_] ) / tau_;
-    
-//     return rate;
-// }
-
-// ER_exchange::
-// ER_exchange( lua_State *L )
-//     : Energy_exchange_mechanism()
-// {
-//     // 1. Initialise rotational species data
-//     string q_name = get_string(L, -1, "q_name");
-//     Chemical_species * X = get_library_species_pointer_from_name( q_name );
-//     iTr_ = X->get_mode_pointer_from_type("rotation")->get_iT();;
-    
-//     // 2. Initialise electron species data
-//     Chemical_species * e = get_library_species_pointer_from_name( "e_minus" );
-//     ie_ = e->get_isp();
-//     iTe_ = e->get_mode_pointer_from_type("translation")->get_iT();;
-
-//     // 3. Initialise relaxation time
-//     lua_getfield(L,-1,"relaxation_time");
-//     tau_RE_ = create_new_relaxation_time( L );
-//     lua_pop(L, 1 );
-// }
-
-// ER_exchange::
-// ~ER_exchange()
-// {
-//     delete tau_RE_;
-// }
-
-// double
-// ER_exchange::
-// specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &molef)
-// {
-//     // tau_ will be present and correct before beginning this
-//     // functionm ie. a call to compute_tau is expected earlier.
-//     // CHECKME: - using Gnoffo (1989) ET expression as Abe et al (2002) expression looks wrong
-//     //          - from Abe and Panesi, maybe we should be scaling by molef[ie_]
-//     //            and NOT massf[ie_]?
-//     double rate = Q.massf[ie_] * 3.0 * PC_R_u * ( Q.T[iTr_] - Q.T[iTe_] ) / tau_;
-    
-//     return rate;
-// }
-
 Energy_exchange_mechanism* create_energy_exhange_mechanism(lua_State *L, int imode)
 {
     string type = get_string(L, -1, "type");
@@ -576,6 +530,9 @@ Energy_exchange_mechanism* create_energy_exhange_mechanism(lua_State *L, int imo
     else if( type == "ET" ) {
  	return new ET_exchange(L, ip, imode);
     }
+    else if( type == "ER" ) {
+        return new ER_exchange(L, ip, imode);
+    }
 //     // else if( type == "VV_HO_exchange" ) {
 //     // 	return new VV_HO_exchange(L);
 //     // }
@@ -587,12 +544,6 @@ Energy_exchange_mechanism* create_energy_exhange_mechanism(lua_State *L, int imo
 //     // }
 //     // else if( type == "RT_exchange" ) {
 //     // 	return new RT_exchange(L);
-//     // }
-//     // else if( type == "RE_exchange" ) {
-//     // 	return new RE_exchange(L);
-//     // }
-//     // else if( type == "ER_exchange" ) {
-//     // 	return new ER_exchange(L);
 //     // }
      else {
      	cout << "create_energy_exhange_mechanism()" << endl
