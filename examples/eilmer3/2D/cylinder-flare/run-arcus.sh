@@ -8,7 +8,9 @@
 #PBS -V
 cd $PBS_O_WORKDIR
 date
-mpirun -np 12 -machinefile $PBS_NODEFILE $DATA/e3bin/e3mpi.exe --job=cyl-flare --mpimap=cyl-flare.mpimap --run --max-wall-clock=180000 > run-arcus.transcript
+mpirun -np 12 -machinefile $PBS_NODEFILE $DATA/e3bin/e3mpi.exe \
+    --job=cyl-flare --mpimap=cyl-flare.mpimap --run \
+    --max-wall-clock=180000 > run-arcus.transcript
 date
 
 echo "At this point, we should have a flow solution"
