@@ -7,6 +7,35 @@ is likely to become dated with code changes,
 so it is best to refer to the actual source code to see what is expected.
 Look in \texttt{bc\_user\_defined.cxx} for the boundary condition functions and \texttt{main.cxx} for the 
 functions related to source terms.}
+When using the user-defined boundary conditions you need to instruct the code about 
+what to do for the convective (inviscid) update and then, separately, for the viscous effects. 
+The inviscid interaction at the boundary may be handled in two ways:
+\begin{enumerate}
+ \item Defining a \verb!ghost_cell()! function.\\
+  In this case, you populate the properties of two ghost cells such that 
+  they give the desired inviscid effect at the wall. 
+  The ghost cells are abstract in that they do not exist in the simulated flow domain
+  but do exist in the code data for each block boundary. 
+  They are used in the interpolation phase of the convective update,
+  for cell faces that lie along the boundary.
+  For the case of a solid wall, you use the \verb!ghost_cell()! function 
+  and reflect the normal velocity.
+  Examples of this are in the test cases.
+ \item Defining a \verb!flux()! function. \\
+  This is an alternative to the \verb!ghost_cell()! function and
+  allows you to directly specify the convective flux. 
+  This function is only used if the \verb!use_udf_flag! is set in the boundary condition. 
+  If it is set, the \verb!flux! function will override anything in the \verb!ghost_cell()! function
+  Thus causing the \verb!ghost_cell()! function to have no effect. 
+\end{enumerate}
+The way viscous effects work in the code is that you set the properties at the interface directly
+and, as part of the viscous update, the main code computes spatial derivatives from these specified
+flow properties. 
+For example, you could set a temperature at the interface and zero velocity for a no-slip wall
+with the function called \verb!interface()!. 
+Normally you do not directly control the viscous heat flux into the flow directly, 
+however, control it indirectly by setting the temperature.
+
 
 \subsection{Boundary conditions}
 \index{boundary conditions!user defined}
@@ -203,3 +232,24 @@ On return, the table of source terms should contain:\\
  \texttt{species} & table of \texttt{nsp} values\\
  \texttt{energies} & table of \texttt{nmodes} values\\
 \end{tabular}\\
+
+\subsection{Notes on global variables and Lua interpreters}
+%
+For each boundary condition that uses a \verb!USER-DEFINED! boundary condition, 
+an independent Lua interpreter is started. 
+The global state in each of these interpreters (read boundary conditions) 
+is kept between timesteps (\textit{i.e.} the interpreter is reentrant). 
+However, there is no way to communicate information internally from one Lua interpreter to another. 
+There is a subtlety here. 
+You could actually write just one Lua file as the boundary condition but set it on multiple boundaries 
+however, you would need to make it smart enough to use the Eilmer-provided information to work out 
+which boundary it was and then act accordingly. 
+Remember that, although you might use the one file, 
+it is running as an independent process for each boundary. 
+Those independent processes will not share global state and cannot communicate.
+
+\medskip
+An independent Lua interpreter is also started when using the global \verb!udf_file! 
+to supply \verb!at_timestep_start()! and \verb!at_timestep_end()! functions. 
+A single interpreter is started to house both those functions and 
+the global state in that interpreter is also reentrant. 
