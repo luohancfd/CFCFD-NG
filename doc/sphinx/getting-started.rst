@@ -24,6 +24,12 @@ Notes
 #. You will need a password for any access.  Please ask.
 #. You can read but not write with the "cfcfdlocal" username.
 #. Some usernames (by negotiation) may push changesets back to the repository.
+#. Some gas models depend on the NASA CEA code or the NIST REFPROP library.
+   If you want to use these models (and there is no look-up-table equivalent
+   already available) you will need to obtain these codes and place them 
+   into the extern/ directory.  
+   They are not included as part of our cfcfd3 repository but the cfcfd3 makefiles
+   will be aware of them if they are sitting in the extern/ directory.
 
 
 Licence

@@ -56,14 +56,20 @@ Current group members
 ---------------------
 Daryl Bond;
 Wilson Chan;
-Jason Czapla;
+Zac Denman;
+Elise Fahy;
 David Gildfind;
 Rowan J. Gollan;
 Peter A. Jacobs;
+Ingo Jahn;
+Chris James;
+Matthew McGilvray, University of Oxford;
+Andrew Pastrello;
 Paul J. Petrie-Repar, RPM-Turbo, Brisbane;
 Daniel Potter, DLR, Goettingen;
-Emilie Sauret;
+Anand Veeraragavan;
 Carlos de Miranda Ventura;
+Han Wei;
 Vincent Wheatley;
 Fabian Zander.
 
@@ -72,9 +78,9 @@ Past members and associates
 Joanna M. Austin, University of Illinois, Urbana;
 Kevin J. Austin, UQ, Brisbane;
 Peter Blyton, Brisbane;
-Russell Boyce, UQ, Brisbane;
 Chris S. Craddock, BMT, UK;
 Brian Cook;
+Jason Czapla;
 Andrew Denman;
 Michael Elford;
 James M. Faddy;
@@ -89,6 +95,7 @@ Michael N. Macrossan;
 Andrew M. McGhee, Brisbane;
 Brendan O'Flaherty, WBM Pty Ltd, Brisbane;
 Leon Prucha;
+Emilie Sauret;
 Michael Scott; 
 Todd Silvester; 
 Ben Stewart;

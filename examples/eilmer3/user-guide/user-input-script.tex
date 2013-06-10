@@ -668,9 +668,23 @@ Examples are:
   The WEST and EAST boundaries progress SOUTH to NORTH.
   If the \texttt{e3prep.py} program complains that the corners of your patch are ``open'',
   that may be a symptom of having one, or more, of your bounding paths having incorrect orientation.
-\item \texttt{AOPatch}($p_S, p_N, p_W, p_E$): an interpolated surface \index{geometric element!AOPatch}
+\item \texttt{CoonsPatch}($p00, p10, p11, p01$): a quadrilateral surface defined by it corners.
+  Straight line segments (implicitly) join the corners.
+  This is convenient for building simple regions that can be tiled with straight edged patches,
+  since you don't need to explicitly generate Lines to form the edges of each patch.
+  Note that the order for specifying the corners is counter-clockwise,
+  starting with the South-West corner.
+\item \texttt{AOPatch}($p_S, p_N, p_W, p_E$): an interpolated surface, \index{geometric element!AOPatch}
+  bounded by four paths,
   that tries to keep the grid orthogonal near the edges and 
   also tries to keep equal areas across the surface.
+\item \texttt{AOPatch}($p00, p10, p11, p01$): a quadrilateral surface defined by it corners.
+  Straight line segments (implicitly) join the corners.
+  Note that the order for specifying the corners is counter-clockwise,
+  starting with the South-West corner.
+  The difference with the corresponding CoonsPatch is that the internal grid, here,
+  tries to be orthogonal to the edges and maintain
+  equal cell areas across the surface.
 \item \texttt{MeshPatch}: a surface defined over a structured mesh of
   quadrilateral facets.\index{geometric element!MeshPatch}
   This might be useful for generating new grids from files imported from
@@ -968,7 +982,7 @@ and define just the 4 nodes E,F,K and L that mark the corners of our
 region of interest (Figure\,\ref{the-minimal-grid-fig}).
 These are created as \texttt{Nodes} with labels so that they show up in
 the generated SVG plot.
-The simplest way to define the region is to make a patch with the four sides
+A simple way to define the region is to make a patch with the four sides
 specified as staight-line paths.
 The \texttt{Block2D} is initialized with this patch, the number of cells
 in each direction and the initial gas state within the region.
@@ -1509,6 +1523,10 @@ are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config 
   Since the time stepping is synchronous across all parts of the flow domain,
   this time step size should be smaller than half of the smallest time for a signal
   (pressure wave) to cross any cell in the flow domain. 
+  If you are sure that your geometric and boundary descriptions but your simulation
+  fails for no clear reason, try setting the initial time step to a very small value.
+  For some simulations of viscous hypersonic flow on fine grids, 
+  it is not unusual to require time steps to be as small as a nanosecond.
 \item \texttt{dt\_chem}: suggested time-step for finite-rate chemistry update;
   default value of -1.0 indicates that we want the code to work it out.
 \item \texttt{dt\_therm}: default value -1.0.
@@ -1585,7 +1603,9 @@ are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config 
      that are described below.
    \item \verb!"ausm_plus_up"!: Implemented from Ref.\,\cite{liou_2006a}.
      It should be accurate and robust for all speed regimes.  
-     It is the flux calculator of choice for very low Mach number flows.
+     It is the flux calculator of choice for very low Mach number flows,
+     where the fluid behaviour approaches the incompressible limit.
+     For best results, you should set the value of \verb!M_inf!.
    \item \verb!"hlle"! The MHD version of the HLLE scheme.
   \end{itemize}  
   The ADAPTIVE scheme is a good all-round scheme that uses AUSMDV away from

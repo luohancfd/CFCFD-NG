@@ -131,6 +131,18 @@ subsection~\ref{hakkinen-sh-files}.
 Figure\,\ref{fig:hakkinen-field-data} shows some of the flow field data at $t$=1.75\,ms after flow start.
 The magnitude of the gradients of density (Fig.\,\ref{fig:hakkinen-gradient}) are also shown 
 as an approximation to the schlieren image of Figure\,\ref{fig:hakkinen-fig6b-schlieren}.
+The image of the pressure clearly shows the waves propagating from the leading-edge viscous interaction
+and their reflection from the shock generator.
+As expected, the boundary layer is not directly evident in the pressure field but shows up
+clearly in the temperature field.
+The more gradual compression, as the boundary layer approaches the incident shock, is evident
+as a much as a much broader band in the pressure field.
+This is followed by an expansion and then a recompression.
+All of these waves are most clearly shown in the gradient of density field.
+The shock, expansion and recomression shock from the leading-edge viscous interaction 
+are displayed more distinctly and the convergence of the gradual compressions becomes clear.
+The structure of expansion fans also appears more clearly in this gradient field
+than in the pressure or temperature fields.
 
 \begin{figure}[htbp]
  \centering
@@ -150,10 +162,12 @@ Figure\,\ref{fig:hakkinen-plate-data-compare} shows the pressure and shear-stres
 The simulation has done a reasonable job of estimating the pressure distribution right 
 through the separation zone.
 Features that look a little wrong include the viscous interaction region at $x$=0,
-which is a bit extended because of lack of resolution at the start of the boundary layer.
+which is a bit extended because of lack of resolution at the start of the boundary layer,
+however, doubling the grid resolution (factor=8) tightens up solution in this region.
 Also, there is an artificial drop in pressure at the right end of the simulation domain
 where the boundary layer exits the flow domain but this is of no concern because  
 the flat plate used in the experiment was more than twice the length of this simulated version.
+This behaviour is grid independent.
 
 \medskip
 The simulation has done a reasonable job on the shear stress,
@@ -164,13 +178,19 @@ After the interaction region, the computed values recover to the Blasius level
 just before rising toward the end of the flow domain.
 This is, again, the interaction with the outflow boundary condition and would be removed from view
 if the full length of the plate was simulated.
+The only discernible difference with increasing grid resolution (from factor=4 to factor=8) is that
+the early development of the boundary layer moves a little closer to the Blasius behaviour.
 
 \begin{figure}[htbp]
  \centering
- \subfloat[Pressure.]{\includegraphics[width=0.5\textwidth]
+ \subfloat[Pressure (factor=4).]{\includegraphics[width=0.5\textwidth]
     {../2D/hakkinen-SWLBLI/pressure.pdf}\label{fig:hakkinen-pressure-on-plate}}
- \subfloat[Shear stress.]{\includegraphics[width=0.5\textwidth]
-    {../2D/hakkinen-SWLBLI/shear.pdf}\label{fig:hakkinen-shear-stress-on-plate}}
+ \subfloat[Shear stress (factor=4).]{\includegraphics[width=0.5\textwidth]
+    {../2D/hakkinen-SWLBLI/shear.pdf}\label{fig:hakkinen-shear-stress-on-plate}}\\
+ \subfloat[Pressure (factor=8).]{\includegraphics[width=0.5\textwidth]
+    {../2D/hakkinen-SWLBLI/pressure-factor-8.pdf}\label{fig:hakkinen-pressure-on-plate-factor-8}}
+ \subfloat[Shear stress (factor=8).]{\includegraphics[width=0.5\textwidth]
+    {../2D/hakkinen-SWLBLI/shear-factor-8.pdf}\label{fig:hakkinen-shear-stress-on-plate-factor-8}}
  \caption{Distribution of pressure and shear along the plate at $t$=1.75\,ms.}
  \label{fig:hakkinen-plate-data-compare}
 \end{figure}

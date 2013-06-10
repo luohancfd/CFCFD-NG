@@ -279,7 +279,7 @@ Then as per above the sequence of steps is (assuming your are in your working di
 
 \subsubsection{Building your own look-up table}
 Of course, you might have a gas mixture you wish to simulate that is not listed in Table~\ref{tab:lut}.
-The tool \texttt{build-cea-lut} is provided as part of the code collection to aid in building a 
+The tool \texttt{build-cea-lut.py} is provided as part of the code collection to aid in building a 
 look-up table of the appropriate format.
 You will need access to the \texttt{cea2} program~\cite{gordon_mcbride_1994, mcbride_gordon_1996}, and have that setup in your working area
 \footnote{By setup, I mean
@@ -287,65 +287,79 @@ that the \texttt{thermo.inp} and \texttt{trans.inp} files have been processed an
 are available in the working directory.
 Also, the program \texttt{cea2} needs to be available as an executable in your \texttt{\$PATH}.}.
 
-The first step is to build a ``template'' file.
-This file specifies the composition of the gas model and some other options appropriate to the modelling.
-Here is an example template file to build a look-up table for a Mars-like atmosphere with no ionisation but
-includes trace species. 
+\medskip
+The \texttt{build-cea-lut.py} program has a lot of options.
+If you invoke it with out any options at all, you get the following text:
+{\footnotesize
+\begin{verbatim}
+Begin build-cea-lut.py...
+Usage: build-cea-lut.py [options]
 
-\noindent
-\topbar
-\lstinputlisting[language={}]{../../../lib/gas/cea-cases/Mars-trace.lua}
-\bottombar
+Options:
+  -h, --help            show this help message and exit
+  -g GASNAME, --gas=GASNAME
+                        name of built-in gas mixture
+  -l, --list-gases      list available gas names and exit
+  -c, --custom          build a custom gas model from reactants
+  -b BOUNDS, --bounds=BOUNDS
+                        bounds of the table in form
+                        "T_min,T_max,log_rho_min,log_rho_max"
+  -T T_FOR_OFFSET, --T-for-offset=T_FOR_OFFSET
+                        Temperature (degree K) at which to evaluate the
+                        internal energy offset.
 
-\noindent
-The list of expected parameters are given in Table~\ref{tab:lut-template}
-\begin{table}[ht]
-\begin{center}
-\caption{Description of parameters required to build a template file for \texttt{build-cea-lut}}
-\label{tab:lut-template}
-\begin{tabular}{llp{8cm}}
-\hline \hline
-Parameter & Type & Description \\ \hline
-\texttt{fname} & \textit{string} & A name for the look-up table.  Usually just specifed as
-                                   \texttt{some\_name.lua}.  The program will add a trailing
-                                   \texttt{.gz} when it zips up the look-up table. \\
-\texttt{units} & \textit{string} & This denotes the units for specifying the relative amount of reactants.
-                                   The choices are:
-                                   \begin{itemize}
-                                      \item \texttt{'moles'} \textit{(default if not specified)} to specify by molar composition
-                                      \item \texttt{'massf'} to specify by mass (weight) composition 
-                                   \end{itemize} \\
-\texttt{reactants} & \textit{table} & This table lists the reactants in the mixture.  The keys are the species names as
-                                      recognised by CEA and the values are the composition. \\
-\texttt{with\_ions} & \textit{boolean} & If true, allow ionisation (by specifying \texttt{'ions'} in the CEA input files.
-                                         If false, ionisation is not allowed \textit{(default)}. \\
-\texttt{only\_list} & \textit{string} & This string restricts the allowable species in gas mixture computation.  The format for
-                                        the string is a space separated list of species.  This item is optional: if omitted, 
-                                        the CEA program is free to choose which species are considered according to its
-                                        own internal algorithm. \\
-\hline
-\end{tabular}
-\end{center}
-\end{table}
+  Custom gas options:
+    -r REACTANTS, --reactants=REACTANTS
+                        reactant fractions in dictionary form
+    -o ONLYLIST, --only-list=ONLYLIST
+                        limit species to this list
+    -m, --moles         reactant fractions as mole fractions [default]
+    -f, --massf         reactant fractions as mass fractions
+    -n, --no-ions       excluding ions [default]
+    -i, --with-ions     including ions
 
-For more examples, the template files for all of the pre-built tables listed in Table~\ref{tab:lut} are available in
-\texttt{\$HOME/e3bin/cea-cases/}.
+Example 1: build-cea-lut.py --gas=air5species
+Example 2: build-cea-lut.py --custom --reactants="N2:0.79,O2:0.21" --only-list="N2,O2,NO,O,N"
+Example 3: build-cea-lut.py --gas=air-ions --bounds="500,20000,-6.0,2.0"
+Example 4: build-cea-lut.py --gas=co2 --T-for-offset=650.0 --bounds="1000.0,20000,-6.0,2.0"
+Example 5: build-cea-lut.py --gas=co2-ions --T-for-offset=1000.0 --bounds="1000.0,20000,-6.0,2.0"
 
-Once you have created a template file, the \texttt{build-cea-lut} tool can be called.
-Supposing your template file is called \texttt{Venus-atmosphere.lua}, then issue
-the following command in your working directory:\\
-\topbar\\
-\texttt{> build-cea-lut --user-defined=Venus-atmosphere.lua} \\
-\bottombar\\
-You may use the \texttt{--extrapolate} flag to fill in the edges
-of the look-up table by linear interpolation where no data is available, however, this option
-is not presently recommended.
-If this flag is omitted, a smaller table is built that does not extrapolate at the edges.
-Note that this flag only controls extrapolation during the \textit{construction} of the table; in 
-the actual use of the table during \textit{simulation}, the values are always extrapolated
-if they exceed the limits of the table.
-Upon successful execution of the \texttt{build-cea-lut}, you will have a compressed (gzipped)
-file in your working directory.
-This file (not the template file) can be used to select an equilibrium gas in the
+Sometimes CEA2 has problems and the table will fail to build.
+The best approach to fixing the problem seems to be to raise
+the lower temperatures, as shown in examples 3, 4 and 5 (above).
+\end{verbatim}
+} % end of \footnotesize
+
+\medskip
+These options allow you to set bounds on the range of the table,
+select a gas model from a small library of prespecified gases or
+to make your own \textit{custom} mixture.
+The available gases (as at mid June 2013) are:
+   ``air'',
+   ``air-ions'',
+   ``air5species'',
+   ``air7species'',
+   ``air11species'',
+   ``air13species'',
+   ``n2'',
+   ``n2-ions'',
+   ``co2'',
+   ``co2-ions'',
+   ``mars-basic'',
+   ``h2ne'',
+   ``h2ne-ions'', and
+   ``ar''.
+If you make a custom mixture, you specify the reactants as a dictionary where the keys are
+species names, as recognised by the \verb!CEA2! program.
+The \verb!only_list! option can be used to restrict the allowable species in the gas mixture.
+If it is not specified, \verb!CEA2! is free to choose which species are considered according to its
+own internal algorithm.
+To make equilibrium gas models that are consistent with a corresponding finite-rate kinetics model,
+it would probably be best to supply a value for the \verb!only_list! option.
+
+\medskip
+Upon successful execution of the \texttt{build-cea-lut.py}, you will have a compressed (gzipped)
+Lua file in your working directory.
+This file can be used to select an equilibrium gas in the
 same manner as using a pre-built table, as was discussed in the preceding section. 
 

@@ -1,1 +1,1 @@
-../../../examples/poshax3/FireII/1634s/README.txt
+../../../examples/poshax3/FireII/1634s/2T/README.txt

@@ -6,7 +6,9 @@
 The Compressible-Flow CFD Project
 =================================
 
-Since the 1980s, we have been building compressible flow simulation codes. 
+Since the 1980s, we have been building compressible flow simulation codes.
+Our goal is to make these codes into reliable simulation tools 
+for high-temperature gasdynamic flows. 
 
 .. figure:: _static/slot-injection-by-vince.jpeg
    :align: center
