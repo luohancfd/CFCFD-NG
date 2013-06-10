@@ -13,6 +13,22 @@ flows where the bounding geometry is not too complex.
    Simulation by Peter Blyton, 2011.
    Visualization with Paraview.
 
+Documententation (PDF)
+----------------------
+ 
+The full Eilmer3 User Guide and Example Book: pdf-user-guide_
+
+.. _pdf-user-guide: ./pdf/eilmer3-user-guide.pdf
+
+The Theory Book: pdf-theory-book_
+
+.. _pdf-theory-book: ./pdf/eilmer3-theory-book.pdf
+
+Slides from Fabian Zander's lecture introducing Eilmer3 to
+MECH4480 students: zander-lecture-slides_
+
+.. _zander-lecture-slides: ./pdf/mech4480_lecture.pdf
+
 Typical build and run procedure
 -------------------------------
 The new 2D/3D code Eilmer3 is built from source into an installation directory ``$HOME/e3bin/``.
@@ -248,17 +264,6 @@ to minimize the duration and pain of debugging:
 #. Be prepared to dig into the code and identify the problem yourself.
    We appreciate all of the help that we can get.
 
-
-Detailed Documents (PDF)
-------------------------
-
-The full Eilmer3 User Guide and Example Book: pdf-user-guide_
-
-.. _pdf-user-guide: ./pdf/eilmer3-user-guide.pdf
-
-The Theory Book: pdf-theory-book_
-
-.. _pdf-theory-book: ./pdf/eilmer3-theory-book.pdf
 
 Source Code Docs
 ----------------
