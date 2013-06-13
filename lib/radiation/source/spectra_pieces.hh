@@ -136,6 +136,8 @@ public:
 
 int create_spectral_bin_vector( std::vector<double> & pvec, int binning_type, int N_bins, std::vector<SpectralBin*> & B );
 
+std::vector<SpectralBin*> create_spectral_bin_vector_py( std::vector<double> & pvec, int binning_type, int N_bins );
+
 class BinnedCoeffSpectra {
 public:
     /// \brief A constructor

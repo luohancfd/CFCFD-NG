@@ -144,6 +144,29 @@ string Parade::str() const
     return "Parade";
 }
 
+ParadeRadiator *
+Parade::
+get_radiator_pointer_from_name( string name )
+{
+    ParadeRadiator * R = 0;
+
+    for ( int irad=0; irad<nrad; ++irad ) {
+        if ( radiators[irad]->name == name ) {
+            R = radiators[irad];
+            break;
+        }
+    }
+
+    if ( !R ) {
+        cout << "Parade::get_radiator_pointer_from_name()" << endl
+             << "Radiator with name: " << name << " not found." << endl
+             << "Exiting program." << endl;
+        exit( BAD_INPUT_ERROR );
+    }
+
+    return R;
+}
+
 double
 Parade::
 integrated_emission_for_gas_state( Gas_data &Q, bool spectrally_resolved )
@@ -189,7 +212,7 @@ spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
     create_parade_control_files( Q );
     
     // 2. Run the parade executable
-    srv = system("parade > parade.out");
+    srv = system("parade > parade.out 2>&1");
 
     // 3. Pick up the solution and insert it into CoeffSpectra
     ifstream specfile( "par_res.txt" );
@@ -222,7 +245,9 @@ spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
     }
 
     // print the size of the spectral vectors
+#   if DEBUG_RAD > 0
     cout << "X.nu.size() = " << X.nu.size() << endl;
+#   endif
 
     // Move out of the working directory
     srv = chdir("..");

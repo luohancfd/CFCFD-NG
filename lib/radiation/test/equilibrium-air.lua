@@ -3,4 +3,5 @@
 
 spectral_data = {
    spectral_model = 'equilibrium air',
+   adaptive_spectral_grid = false
 }

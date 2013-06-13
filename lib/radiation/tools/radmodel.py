@@ -146,7 +146,7 @@ class GlobalRadData(object):
         print "Available radiators are: ", available_radiators.keys()
         sys.exit()
 
-    def create_parade_template_files( self, data_path ):
+    def create_parade_template_files( self, data_path, path="." ):
         ffrad = False; fbrad = False; alrad = False; mbrad = False; snb = False
         for rad in self.radiators:
             if rad.type=="electron_radiator":
@@ -157,7 +157,7 @@ class GlobalRadData(object):
                 mbrad = True
             if rad.type=="triatomic_radiator" and rad.band_model=="SNB":
                 snb = True
-            ofile = open("control.template","w")
+            ofile = open(path+"/control.template","w")
             ofile.write("c       This PARADE 3.1 control template file was automatically created\n")
             ofile.write("c       by TRT_tools.py at %s\n" % datetime.now() )    
             ofile.write("c       1. Spectrum control data:\n")
@@ -214,7 +214,7 @@ class GlobalRadData(object):
             
         # may also need an SNBOPT template file
         if snb:
-            ofile = open("SNBOPT.template","w")
+            ofile = open(path+"/SNBOPT.template","w")
             ofile.write("4\n")
             ofile.write("9       17      29      70\n")
             ofile.write("x       i\n")

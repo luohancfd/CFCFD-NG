@@ -55,6 +55,10 @@ class ParadeRadiator:
 	    string += "%s.iTv = %d\n" % ( self.name, self.iTv )
 	    string += "%s.iTr = %d\n" % ( self.name, self.iTr )
 	return string
+        
+    def default_data( self ):
+        # nothing to do for the moment
+        return
 
 available_radiators = { "Ar"       :    ParadeRadiator( "Ar" , 1, 39.948   ,    "NIST/arinist.dat" ),
                         "Ar_plus"  :    ParadeRadiator( "Ar+", 1, 39.948   ,   "NIST/ariinist.dat" ),

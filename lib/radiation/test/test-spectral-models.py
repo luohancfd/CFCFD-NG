@@ -74,7 +74,7 @@ for model in models.keys():
     input_data.shock_speed = 10000.0 # m/s
     input_data.gas_pressure = 0.1*133.33 # Pa
     input_data.gas_temperature = 296 # K
-    input_data.tube_width = 10.0e-2 # m
+    input_data.path_length = 10.0e-2 # m
     input_data.apparatus_fn = "none"
     input_data.planck_spectrum = False
     input_data.show_plots = False

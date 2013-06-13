@@ -35,6 +35,17 @@ public:
     std::string get_rad_name( int irad )
     { return rad_names[irad]; }
 
+    ParadeRadiator * get_radiator_pointer_from_name( std::string name );
+
+    int get_iTe()
+    { return iTe; }
+
+    int get_iT()
+    { return iT; }
+
+    int get_e_index()
+    { return e_index; }
+
 private:
     double integrated_emission_for_gas_state( Gas_data &Q, bool spectrally_resolved );
     

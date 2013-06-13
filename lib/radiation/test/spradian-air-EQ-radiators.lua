@@ -11,6 +11,7 @@ spectral_data = {
    lambda_max = 1000.000000,
    spectral_points = 99500,
    spectral_blocks = 1,
+   adaptive_spectral_grid = false
 }
 
 N2 = {}
