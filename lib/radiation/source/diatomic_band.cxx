@@ -1134,13 +1134,13 @@ double
 HundABDoubletLBLDiatomicBand::
 get_HLF( int tJu, int tJl, int tSig_u, int tSig_l)
 {
+    double S = 0.0;
 #   if HUND_AB_DOUBLET_HLF_METHOD==0
     // Calculate Honl-London factor for this transition
     // See JQRST v9 pp 775-798 Arnold et al 1969 for HLF expressions used here
     // NOTE: these expression are for 2Sigma - 2Pi transitions only
     
     int delta_J = (tJl - tJu)/2;
-    double S = 0.0;
     double Ju = double(tJu)/2.0;
     
     double sign = 1.0;
@@ -1250,12 +1250,11 @@ get_HLF( int tJu, int tJl, int tSig_u, int tSig_l)
     // Normalise by 2S+1 (always 2) here so it doesn't have to be done in the A_ul calculation
     S /= 2.0;
     
-#   else
+#   elif HUND_AB_DOUBLET_HLF_METHOD==1
 
     // Kovacs (1969)
     int delta_L = lambda_l - lambda_u;
     int delta_J = (tJl - tJu)/2;
-    double S = 0.0;
     double J_u = double(tJu)/2.0;
     double J_l = double(tJl)/2.0;
     double L_l = double(lambda_l);
@@ -1564,6 +1563,12 @@ get_HLF( int tJu, int tJl, int tSig_u, int tSig_l)
     	}
     }
     S /= 2.0;
+#   else
+    cout << "HundABDoubletLBLDiatomicBand::get_HLF()" << endl
+         << "Something is wrong, this function should only be called if" << endl
+         << "HUND_AB_DOUBLET_HLF_METHOD is 0 or 1." << endl
+         << "Bailing out!" << endl;
+    exit( FAILURE );
 #   endif
     
     return S;

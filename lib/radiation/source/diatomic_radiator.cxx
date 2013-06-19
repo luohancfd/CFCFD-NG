@@ -1720,11 +1720,17 @@ int get_diatomic_transition_type( DiatomicElecLev * elev_u, DiatomicElecLev * el
     	// 2Sigma <-> 2Pi transition
     	transition_type = HUND_AB_DOUBLET;
     }
-#   else
+#   elif HUND_AB_DOUBLET_HLF_METHOD==1
     else if ( ( elev_u->get_spin()==2 && elev_l->get_spin()==2 ) &&
               ( elev_u->get_lambda()!=0 || elev_l->get_lambda()!=0 ) ) {
     	// Doublet intermediate (a)-(b) case
     	transition_type = HUND_AB_DOUBLET;
+    }
+#   elif HUND_AB_DOUBLET_HLF_METHOD==2
+    else if ( ( elev_u->get_spin()==2 && elev_l->get_spin()==2 ) &&
+              ( elev_u->get_lambda()!=0 || elev_l->get_lambda()!=0 ) ) {
+    	// Revert to Hund's case (a)
+    	transition_type = HUND_A;
     }
 #   endif
 #   if MODEL_HUND_AB_TRIPLETS

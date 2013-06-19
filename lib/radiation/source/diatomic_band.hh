@@ -28,7 +28,7 @@ extern "C" {
 #define DIATOMIC_LINE_POINTS            4      /* Points-per-VHW describing an atomic line                           */
 #define DIATOMIC_LIMITED_LINE_EXTENT    1      /* Line extents are unlimited [0] or limited [1]                      */
 #define BAND_AVERAGE_FREQUENCY_METHOD   2      /* [0] Exact averaging, [1] Hartung's approximate expression, [2] 0-0 */
-#define HUND_AB_DOUBLET_HLF_METHOD      0      /* [0] Whiting's expressions for 2Sigma - 2Pi or [1] Kovacs generic   */
+#define HUND_AB_DOUBLET_HLF_METHOD      2      /* [0] Whiting's expressions for 2Sigma - 2Pi, [1] Kovacs generic or [2] Hund's case (a) */
 
 #define F_ROT_LINE_LIMIT 1.0e-3
 
