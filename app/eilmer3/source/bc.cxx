@@ -924,7 +924,7 @@ BoundaryCondition *create_BC( Block *bdp, int which_boundary, int type_of_BC,
     	newBC = new SurfaceEnergyBalanceBC( bdp, which_boundary, epsilon );
     	break;
     case ABLATING:
-    	newBC = new AblatingBC( bdp, which_boundary, Twall, mdot, filename );
+    	newBC = new AblatingBC( bdp, which_boundary, Twall, mdot);
     	break;
     case FSTC:
 	newBC = new fstcBC( bdp, which_boundary, filename );

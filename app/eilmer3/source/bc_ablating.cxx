@@ -93,8 +93,7 @@ AblatingBC::AblatingBC( const AblatingBC &bc )
 			bc.x_order, bc.is_wall_flag, bc.use_udf_flux_flag,
 			bc.neighbour_block, bc.neighbour_face,
 			bc.neighbour_orientation),
-      Twall(bc.Twall), mdot(bc.mdot),
-      filename(bc.filename), mdot_total(bc.mdot_total),
+      Twall(bc.Twall), mdot(bc.mdot), mdot_total(bc.mdot_total),
       gmodel(bc.gmodel), u0_index(bc.u0_index), 
       max_iterations(bc.max_iterations), tol(bc.tol), f_jac(bc.f_jac)
 {
@@ -123,7 +122,6 @@ AblatingBC & AblatingBC::operator=(const AblatingBC &bc)
     if ( this != &bc ) {
 	Twall = bc.Twall;
 	mdot = bc.mdot;
-	filename = bc.filename;
 	TProfile = bc.TProfile;
 	ncell_for_profile = bc.ncell_for_profile;
 	mdot_total = bc.mdot_total;
@@ -584,11 +582,11 @@ const int NORMALISE_G = 1;
 int AblatingBC::compute_source_terms( vector<double> &massf )
 {
     // Initialise N vector with zeros
-    for ( size_t isp=0; isp<nsp_; ++isp ) {
+    for ( size_t isp=0; isp<nsp; ++isp ) {
 	 N[isp] = 0.0;
     }
 
-    int iQ=0;	// current element index for the Q valarray
+    //int iQ=0;	// current element index for the Q valarray
 
 
     return SUCCESS;
@@ -604,12 +602,12 @@ int AblatingBC::f( const valarray<double> &y, valarray<double> &G )
     /* Create the equation system for the ZeroSystem for a given y vector */
 
     // 0.  Apply source terms (as negatives as we are creating a zero system)
-    for ( size_t isp=0; isp<nsp_; ++isp ) {
+    for ( size_t isp=0; isp<nsp; ++isp ) {
     }
 
     // 0. unpack the y valarray
     double u0 = y[u0_index];
-    double rho_wall = y[rho_index];
+    //double rho_wall = y[rho_index];
     Q->rho = 0.0;
     for ( size_t isp=0; isp<Q->massf.size(); ++isp )
     	Q->rho += y[isp];
@@ -617,6 +615,7 @@ int AblatingBC::f( const valarray<double> &y, valarray<double> &G )
     	Q->massf[isp] = y[isp] / Q->rho;
     gmodel->eval_thermo_state_rhoT(*Q); 
     
+    size_t iG=0;
     
     // 1. species mass conservation
     for ( iG=0; iG<cell_massf.size(); ++iG ) {
@@ -665,42 +664,11 @@ int AblatingBC::Jac( const valarray<double> &y, Valmatrix &dGdy )
     gmodel->eval_thermo_state_rhoT(*Q);
 
 
-#if WITH_TOTAL_MASS_CONSERVATION
-    // 1a. species mass conservation derivaties
-    for ( iG=0; iG<cell_massf.size()-1; ++iG ) {
-    	//  a. wrt species mass densities (off-diagonals are zero)
-    	Gdy.set(iG,iG,0.5*u0/mass_flux_norm*f_jac);
-    	//  b. wrt velocity
-    	Gdy.set(iG,u0_index,0.5*y[iG]/mass_flux_norm*f_jac);
-    }
-    
-    // 1a. total mass conservation derivaties
-    for ( size_t jsp=0; jsp<cell_massf.size(); ++jsp ) {
-    	//  a. wrt species mass densities (off-diagonals are zero)
-    	Gdy.set(iG,jsp,0.5*u0/mass_flux_norm*f_jac);
-    }
-    //  b. wrt velocity
-    Gdy.set(iG,u0_index,0.5*Q->rho/mass_flux_norm*f_jac);
-    ++iG;
-#else
     // 1. species mass conservation derivaties
-    for ( iG=0; iG<cell_massf.size(); ++iG ) {
-    	//  a. wrt species mass densities (off-diagonals are zero)
-    	dGdy.set(iG,iG,0.5*u0/mass_flux_norm*f_jac);
-    	//  b. wrt velocity
-    	dGdy.set(iG,u0_index,0.5*y[iG]/mass_flux_norm*f_jac);
-    }
-#endif
+
     
     // 2. total momentum conservation derivatives
-    //  a. wrt species mass densities
-    int status;
-    for ( size_t jsp=0; jsp<cell_massf.size(); ++jsp ) {
-    	Gdy.set(iG,jsp,(-gmodel->dpdrho_i_const_T(*Q,jsp,status)-u0*u0)/momentum_flux_norm*f_jac);
-    }
-    //  b. wrt velocity
-    Gdy.set(iG,u0_index,-2.0*Q->rho*u0/momentum_flux_norm*f_jac);
-    
+
 // cout << Gdy.str() << endl;
 // cout << "Gdy.det() = " << eval_matrix_determinant(Gdy) << endl;
     
