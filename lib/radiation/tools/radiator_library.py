@@ -6587,31 +6587,31 @@ O2.available_QSS_models["Park"] = DiatomicQSSModel(name="Park",noneq_elevs=O2_no
 
 #  ==== OH ==========================
 OH = DiatomicRadiator()
-OH.comments = "# Source: Spradian07 diatom.dat --- CHANGE SOURCE"
+OH.comments = "# Source: NIST,Huber&Herzberg(1979),Luque&Crosley(1998),Ruscic et al. (2002)"
 OH.name = "OH"
-OH.mol_weight = 17.0073e-3         #-- kg/mol
-OH.h_f = 2.2925e+6                 #-- J/kg  
-OH.Z = 0                        #-- charge number
-OH.eta_I = 104989.14                #-- ionization energy (cm-1)
-OH.eta_D = 38450                #-- dissociation energy (cm-1) -- corrresponding to 460 kJ/mol
+OH.mol_weight = 17.0073e-3 	#-- kg/mol
+OH.h_f = 2.2925e+6 		#-- J/kg  
+OH.Z = 0			#-- charge number
+OH.eta_I = 104989.14		#-- ionization energy (cm-1)
+OH.eta_D = 38450		#-- dissociation energy (cm-1) -- corrresponding to 460 kJ/mol
 # ----- Electronic Levels -----
-OH.default_level_set = "Spradian_levels"
-OH_Spradian_levels = DiatomicLevelSet()
-OH_Spradian_levels.f_Vmax_Ediss = 1.0        #-- just set this to 1.0
-OH_Spradian_levels.levels = [ '' ] * 2
-# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-#                        n        Te         re       g  dzero     we          wexe       weye           weze           be        alphae       de         betae       spn-orb    l  s  Pgm Pgu
-# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-OH_Spradian_levels.levels[0]  =  '     0.00  0.96966  1  37275    3737.7941    84.91456   0.558406E+00  -2.59739E-02   18.89638   0.7242E+00  19.38E-04 4.320E-05  -139.21E+00  1  2  0  0'
-OH_Spradian_levels.levels[1]  =  ' 32683.97  1.0121   1  20406.2  3178.3554    92.68141  -1.77305E+00    3.07923E-01   17.38922   0.7868E+00  20.39E-04 0.000E-00    0.000E+00  0  2  0  0'
-# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-OH.available_level_sets["Spradian_levels"] = OH_Spradian_levels
+OH.default_level_set = "HH_and_Luque_levels"
+OH_HH_and_Luque_levels = DiatomicLevelSet()
+OH_HH_and_Luque_levels.f_Vmax_Ediss = 1.0	#-- just set this to 1.0
+OH_HH_and_Luque_levels.levels = [ '' ] * 2
+# ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+#                        n                Te      re      g  dzero     we          wexe       weye         weze          be       alphae       de         betae        spn-orb     l  s  Pgm Pgu
+# ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+OH_HH_and_Luque_levels.levels[0]  =  '     0.00  0.96966  1  37275    3737.7941    84.91456   0.558406E+00  -2.59739E-02   18.89638   0.7242E+00  19.38E-04 4.320E-05  -139.21E+00  1  2  0  0'
+OH_HH_and_Luque_levels.levels[1]  =  ' 32683.97  1.0121   1  20406.2  3178.3554    92.68141  -1.77305E+00    3.07923E-01   17.38922   0.7868E+00  20.39E-04 0.000E-00    0.000E+00  0  2  0  0'
+# ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+OH.available_level_sets["HH_and_Luque_levels"] = OH_HH_and_Luque_levels
 # ----- Radiative systems -----
 OH_AX = DiatomicSystem()
 OH_AX.name = "AX"
 OH_AX.ie_l = 0
 OH_AX.ie_u = 1
-OH_AX.sigma_nm = 0.5                #-- just set this to 0.5
+OH_AX.sigma_nm = 0.5		#-- just set this to 0.5
 OH_AX.band_method = "linebyline"
 #OH_AX.available_band_sets["Huber_bands"] = OH_AX_LIFBASE_bands
 OH_AX.default_band_set = "LIFBASE_bands"
@@ -6621,7 +6621,7 @@ OH_AX_LIFBASE_bands.lRe_dim = 11
 OH_AX_LIFBASE_bands.uRe_dim = 9 
 OH_AX_LIFBASE_bands.bands = [ '' ] * OH_AX_LIFBASE_bands.uRe_dim
 OH_AX_LIFBASE_bands.comments  = "# Einstein coefficients (A_v'v'') for the OH AX system\n"
-OH_AX_LIFBASE_bands.comments += "# Source: Spradian07 diatom.dat --- CHANGE SOURCE"
+OH_AX_LIFBASE_bands.comments += "# Source: LIFBASE"
 #--------------------------------------------------------------------------------------------------------------------------------------
 #                          Vl  =    0         1        2        3        4        5        6        7        8        9        10         
 #--------------------------------------------------------------------------------------------------------------------------------------
@@ -6646,6 +6646,7 @@ OH.available_photoionXsection_models["none"] = OH_pIx
 # ----- QSS models -----
 OH.default_QSS_model = "None"
 OH.available_QSS_models["None"] =  DiatomicQSSModel()
+
 # ====================================================
 
 #  ==== Ar ===========================
