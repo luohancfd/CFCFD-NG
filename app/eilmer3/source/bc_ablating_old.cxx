@@ -1,16 +1,4 @@
-/** bc_ablating.cxx
- *
- * Created by Daniel Potter
- * Edited by Elise Fahy, beginning June 2013.
- * objective: species injection from the wall, by calculating
- * mass flow rates of species participating in surface reactions.
- *
- * For a flowfield with nsp species, there will be nsp+2 unknowns
- * to solve for: nsp species mass fractions, and density and
- * velocity at the wall. Hence, nsp+2 equations are required.
- *
- * For more details, see Park's 2001 paper.
- */
+// bc_ablating.cxx
 
 #include <fstream>
 #include <sstream>
@@ -39,28 +27,76 @@
 
 //------------------------------------------------------------------------
 
-// default constructor
-
-AblatingBC::AblatingBC()
-    : BoundaryCondition(0, 0, ABLATING, "AblatingBC",
-			0, false, false, -1, -1, 0)
-      // Default-initialise everything else since we really can't use
-      // this default-initialised BC.
-{}
-
-// normal constructor
-
 AblatingBC::AblatingBC( Block *bdp, int which_boundary, double Twall, 
-			vector<double> &mdot)
+			vector<double> &mdot, const std::string filename )
     : BoundaryCondition(bdp, which_boundary, ABLATING, "AblatingBC",
 			0, true, false, -1, -1, 0),
-      Twall(Twall), mdot(mdot), max_iterations(1000000), tol(1.0e-6)
+      Twall(Twall), mdot(mdot), filename(filename), max_iterations(1000000), tol(1.0e-6)
 {
+    // Reads the temperature profile from the solid solver output.
 
+    char line[512], token[512];
     double T;
+    FILE *fp;
+    size_t ncell, nread;
+    bool with_input_T_file = 1;
 
-    T = Twall;
-    TProfile.push_back(T);
+    // Get number of cells for this boundary
+    if ( which_boundary == NORTH || which_boundary == SOUTH ) {
+	ncell = bdp->nni;
+    } else {
+	ncell = bdp->nnj;
+    }
+    // Use fixed boundary temperature if there is no input file
+    fp = fopen(filename.c_str(), "r");
+    if (fp == NULL) {
+        cerr << "AblatingBC() constructor:"
+	    << " cannot open file " << filename << endl;
+        cerr << " Using fixed wall temperature = " << Twall << endl; 
+        with_input_T_file = 0;        
+    }
+
+    if ( with_input_T_file == 1 ) {
+        if ( fgets(line, sizeof(line), fp) == NULL ) {
+	    cerr << "AblatingBC(): failure of fgets()" << endl;
+	    cerr << "Quitting program." << endl;
+	    exit(FILE_ERROR);
+        }
+
+        nread = sscanf(line, "%u", &ncell_for_profile);
+        if ( nread != 1 ) {
+            cerr << "AblatingBC() constructor:"
+	        << "Could not read ncell_for_profile from line:" << endl
+	        << line;
+            exit(BAD_INPUT_ERROR);
+        }
+    
+        // Check for that the number of cells is appropriate for this boundary
+    
+        if ( ncell != ncell_for_profile ) {
+            cerr << "AblatingBC() constructor:" << endl
+	        << "    Inconsistent numbers of cells: ncell=" << ncell
+	        << ", ncell_for_profile=" << ncell_for_profile << endl;
+            exit(BAD_INPUT_ERROR);
+        }
+    }
+
+    /* For each line in the file, store the temperature data. */
+    for ( size_t ii = 0; ii < ncell; ++ii ) {
+        if ( with_input_T_file == 1 ) {
+	        if ( fgets(line, sizeof(line), fp) == NULL ) {
+	            cerr << "AblatingBC(): failure of fgets()" << endl;
+	            cerr << "Quitting program." << endl;
+	            exit(FILE_ERROR);
+	        }
+            /* Pull the line apart with the string tokenizer. */
+            strcpy( token, strtok(line, " ") );
+            sscanf( token, "%lf", &T );
+        } else {
+            T = Twall;
+        }
+        TProfile.push_back(T);
+    } // end for
     
     // 0. Get gas-model pointer
     gmodel = get_gas_model_ptr();
@@ -73,12 +109,9 @@ AblatingBC::AblatingBC( Block *bdp, int which_boundary, double Twall,
     // 2. Initialise the local gas-data structure (used for EOS calls)
     Q = new Gas_data(gmodel);
     // 3. Size the CFD cell mass-fraction vector
-    cell_massf.resize(nsp);		// not sure if this is the right size...
+    cell_massf.resize(nsp);
     // 4. initialise the zero system components
-    // total length of y-vectors = (nsp+1) because:
-    // species from index 0 to (nsp-1), u_wall at index nsp, rho_wall at index (nsp+1)
     u0_index = nsp;
-    rho_index = (nsp+1);
     y_guess.resize(nsp+1);
     y_out.resize(nsp+1);
     zero_solver = new NewtonRaphsonZF(nsp+1, tol, max_iterations, true);
@@ -86,14 +119,13 @@ AblatingBC::AblatingBC( Block *bdp, int which_boundary, double Twall,
     f_jac = 1.0;
 }
 
-//copy constructor for AblatingBC class
-
 AblatingBC::AblatingBC( const AblatingBC &bc )
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
 			bc.x_order, bc.is_wall_flag, bc.use_udf_flux_flag,
 			bc.neighbour_block, bc.neighbour_face,
 			bc.neighbour_orientation),
-      Twall(bc.Twall), mdot(bc.mdot), mdot_total(bc.mdot_total),
+      Twall(bc.Twall), mdot(bc.mdot),
+      filename(bc.filename), mdot_total(bc.mdot_total),
       gmodel(bc.gmodel), u0_index(bc.u0_index), 
       max_iterations(bc.max_iterations), tol(bc.tol), f_jac(bc.f_jac)
 {
@@ -113,8 +145,12 @@ AblatingBC::AblatingBC( const AblatingBC &bc )
     zero_solver = new NewtonRaphsonZF(nsp+1, tol, max_iterations, true);
 }
 
-
-// Assignment operator
+AblatingBC::AblatingBC()
+    : BoundaryCondition(0, 0, ABLATING, "AblatingBC",
+			0, false, false, -1, -1, 0)
+      // Default-initialize everything else since we really can't use 
+      // this default-initialized BC.
+{}
 
 AblatingBC & AblatingBC::operator=(const AblatingBC &bc)
 {
@@ -122,6 +158,7 @@ AblatingBC & AblatingBC::operator=(const AblatingBC &bc)
     if ( this != &bc ) {
 	Twall = bc.Twall;
 	mdot = bc.mdot;
+	filename = bc.filename;
 	TProfile = bc.TProfile;
 	ncell_for_profile = bc.ncell_for_profile;
 	mdot_total = bc.mdot_total;
@@ -143,15 +180,11 @@ AblatingBC & AblatingBC::operator=(const AblatingBC &bc)
     return *this;
 }
 
-// Default destructor
-
 AblatingBC::~AblatingBC()
 {
     delete zero_solver;
     delete Q;
 }
-
-// apply_inviscid function definition
 
 int AblatingBC::apply_inviscid( double t )
 {
@@ -272,8 +305,6 @@ int AblatingBC::apply_inviscid( double t )
     }
     return SUCCESS;
 }
-
-// apply_viscous function definition
 
 int AblatingBC::apply_viscous( double t )
 {
@@ -408,14 +439,11 @@ int AblatingBC::apply_viscous( double t )
     return SUCCESS;
 } // end AblatingBC::apply_viscous()
 
-// perfect gas equation for calculating the wall (ghost cell) density
-
 #define GHOST_DENSITY_QUADRATIC_SOLUTION \
  ( cell_momentum_flux + sqrt( cell_momentum_flux*cell_momentum_flux - \
      4.0 * R * T * pow( 2.0 * mdot_total - cell_mass_flux, 2 ) ) ) / ( 2.0 * R * T )
 
 
-// calculate_ghost_cell_flow_state function definition
 
 int AblatingBC::
 calculate_ghost_cell_flow_state( FV_Cell *cell1, FV_Interface *wall, FV_Cell *cell0 )
@@ -470,7 +498,7 @@ calculate_ghost_cell_flow_state( FV_Cell *cell1, FV_Interface *wall, FV_Cell *ce
             //rho_0 = GHOST_DENSITY_QUADRATIC_SOLUTION;
             rho_0 = fabs(mdot_total)/cell_rho;
 
-           // from eq. 17, solved for v0 - not sure about this...
+           // from eq. 17, solved for v0
             u_0 = ( 2.0 * mdot_total - cell_mass_flux ) / rho_0;
            // cout << "rho_0 = " << rho_0 << ", u_0 = " << u_0 << endl;
 
@@ -538,6 +566,14 @@ calculate_ghost_cell_flow_state( FV_Cell *cell1, FV_Interface *wall, FV_Cell *ce
     cell0->fs->vel = cell_local_vel; // FIX-ME, maybe copy components
     cell0->fs->vel.x = y_out[u0_index];
     
+    // double ghost_cell_momentum_flux = cell0->fs->gas->p + cell0->fs->gas->rho * cell0->fs->vel.x * cell0->fs->vel.x;
+    // cout << "cell_momentum_flux = " << cell_momentum_flux << ", ghost_cell_momentum_flux = " << ghost_cell_momentum_flux << endl;
+    // double ghost_cell_mass_flux = cell0->fs->gas->rho * cell0->fs->vel.x;
+    //just output for checking
+    //cout << "massf[0]: 05*(ghost_cell_mass_flux + cell_mass_flux) = " << 0.5*(cell0->fs->gas->massf[0]*ghost_cell_mass_flux + cell1->fs->gas->massf[0]*cell_mass_flux) << ", mdot = " << mdot[0] << endl;
+    //cout << "massf[1]: 05*(ghost_cell_mass_flux + cell_mass_flux) = " << 0.5*(cell0->fs->gas->massf[1]*ghost_cell_mass_flux + cell1->fs->gas->massf[1]*cell_mass_flux) << ", mdot = " << mdot[1] << endl;
+    //cout << "massf[2]: 05*(ghost_cell_mass_flux + cell_mass_flux) = " << 0.5*(cell0->fs->gas->massf[2]*ghost_cell_mass_flux + cell1->fs->gas->massf[2]*cell_mass_flux) << ", mdot = " << mdot[2] << endl;
+    
     valarray<double> G; G.resize( y_out.size() );
     f(y_out,G);
     //just output for checking
@@ -569,45 +605,13 @@ calculate_ghost_cell_flow_state( FV_Cell *cell1, FV_Interface *wall, FV_Cell *ce
     return SUCCESS;
 }
 
-// some constant definitions
-
 const size_t WITH_TOTAL_MASS_CONSERVATION = 1;
 const int NORMALISE_G = 1;
 
-
-// creation of source terms N, following the formulation in Beerman et al
-// and Chen & Milos.
-// Structure of Jacobian based on that in chemical-equilibrium-system.cxx.
-
-int AblatingBC::compute_source_terms( vector<double> &massf )
-{
-    // Initialise N vector with zeros
-    for ( size_t isp=0; isp<nsp; ++isp ) {
-	 N[isp] = 0.0;
-    }
-
-    //int iQ=0;	// current element index for the Q valarray
-
-
-    return SUCCESS;
-}
-
-// 'f' function definition - creating the non-linear system
-// of equations to be solved using the Newton-Raphson method.
-// Structure of f based on that in chemical-equilibrium-system.cxx.
-
 int AblatingBC::f( const valarray<double> &y, valarray<double> &G )
 {
-
-    /* Create the equation system for the ZeroSystem for a given y vector */
-
-    // 0.  Apply source terms (as negatives as we are creating a zero system)
-    for ( size_t isp=0; isp<nsp; ++isp ) {
-    }
-
     // 0. unpack the y valarray
     double u0 = y[u0_index];
-    //double rho_wall = y[rho_index];
     Q->rho = 0.0;
     for ( size_t isp=0; isp<Q->massf.size(); ++isp )
     	Q->rho += y[isp];
@@ -615,16 +619,42 @@ int AblatingBC::f( const valarray<double> &y, valarray<double> &G )
     	Q->massf[isp] = y[isp] / Q->rho;
     gmodel->eval_thermo_state_rhoT(*Q); 
     
-    size_t iG=0;
+#   if NORMALISE_G
+    double mass_flux_norm = fabs(mdot_total) + fabs(cell_mass_flux) + fabs(u0*Q->rho);
+    double momentum_flux_norm = cell_momentum_flux + Q->p + Q->rho*u0*u0;
+#   else
+    double mass_flux_norm = 1.0;
+    double momentum_flux_norm = 1.0;
+#   endif
     
+    size_t iG;
+    
+#   if WITH_TOTAL_MASS_CONSERVATION
+    // 1a. species mass conservation
+    for ( iG=0; iG<cell_massf.size()-1; ++iG ) {
+    	G[iG] = 0.5 * ( cell_mass_flux * cell_massf[iG] + y[iG] * u0 ) - mdot[iG];
+    	// Normalize
+    	G[iG] /= mass_flux_norm;
+    }
+    // 1b. Total mass conservation
+    G[iG] = 0.5 * ( cell_mass_flux + Q->rho * u0 ) - mdot_total;
+    // Normalize
+    G[iG] /= mass_flux_norm;
+    
+    ++iG;
+#   else
     // 1. species mass conservation
     for ( iG=0; iG<cell_massf.size(); ++iG ) {
     	G[iG] = 0.5 * ( cell_mass_flux * cell_massf[iG] + y[iG] * u0 ) - mdot[iG];
+    	// Normalize
+    	G[iG] /= mass_flux_norm;
     }
+#   endif
     
     // 2. total momentum conservation
     G[iG] = cell_momentum_flux - Q->p - Q->rho * u0 * u0;
-
+    // Normalize
+    G[iG] /= momentum_flux_norm;
 
 // TESTING ONLY
 // for ( size_t iG=0; iG<G.size(); ++iG )
@@ -635,25 +665,8 @@ int AblatingBC::f( const valarray<double> &y, valarray<double> &G )
     return SUCCESS;
 }
 
-
-// 'Jac' function definition - create the Jacobian for use in
-// N-R iterations. Manual definition required as specified by
-// zero_finders files.
-// Structure of Jacobian based on that in chemical-equilibrium-system.cxx.
-
-int AblatingBC::Jac( const valarray<double> &y, Valmatrix &dGdy )
+int AblatingBC::Jac( const valarray<double> &y, Valmatrix &Gdy )
 {
-	/* Create the Jacobian matrix for the ZeroSystem for a given y vector */
-
-	// 0.  Clear the jacobian matrix
-	for ( size_t i=0; i<nsp; ++i ) {
-		for ( size_t j=0; j<nsp; ++j ) {
-		    dGdy.set(i,j,0.0);
-	}
-	}
-
-	int iG = 0;		// current matrix line
-
     // 0. unpack the y valarray
     double u0 = y[u0_index];
     Q->rho = 0.0;
@@ -662,13 +675,53 @@ int AblatingBC::Jac( const valarray<double> &y, Valmatrix &dGdy )
     for ( size_t isp=0; isp<Q->massf.size(); ++isp )
     	Q->massf[isp] = y[isp] / Q->rho;
     gmodel->eval_thermo_state_rhoT(*Q);
+    
+#   if NORMALISE_G
+    double mass_flux_norm = fabs(mdot_total) + fabs(cell_mass_flux) + fabs(u0*Q->rho);
+    double momentum_flux_norm = cell_momentum_flux + Q->p + Q->rho*u0*u0;
+#   else
+    double mass_flux_norm = 1.0;
+    double momentum_flux_norm = 1.0;
+#   endif
 
+    size_t iG;
 
+#if WITH_TOTAL_MASS_CONSERVATION
+    // 1a. species mass conservation derivaties
+    for ( iG=0; iG<cell_massf.size()-1; ++iG ) {
+    	//  a. wrt species mass densities (off-diagonals are zero)
+    	Gdy.set(iG,iG,0.5*u0/mass_flux_norm*f_jac);
+    	//  b. wrt velocity
+    	Gdy.set(iG,u0_index,0.5*y[iG]/mass_flux_norm*f_jac);
+    }
+    
+    // 1a. total mass conservation derivaties
+    for ( size_t jsp=0; jsp<cell_massf.size(); ++jsp ) {
+    	//  a. wrt species mass densities (off-diagonals are zero)
+    	Gdy.set(iG,jsp,0.5*u0/mass_flux_norm*f_jac);
+    }
+    //  b. wrt velocity
+    Gdy.set(iG,u0_index,0.5*Q->rho/mass_flux_norm*f_jac);
+    ++iG;
+#else
     // 1. species mass conservation derivaties
-
+    for ( iG=0; iG<cell_massf.size(); ++iG ) {
+    	//  a. wrt species mass densities (off-diagonals are zero)
+    	Gdy.set(iG,iG,0.5*u0/mass_flux_norm*f_jac);
+    	//  b. wrt velocity
+    	Gdy.set(iG,u0_index,0.5*y[iG]/mass_flux_norm*f_jac);
+    }
+#endif
     
     // 2. total momentum conservation derivatives
-
+    //  a. wrt species mass densities
+    int status;
+    for ( size_t jsp=0; jsp<cell_massf.size(); ++jsp ) {
+    	Gdy.set(iG,jsp,(-gmodel->dpdrho_i_const_T(*Q,jsp,status)-u0*u0)/momentum_flux_norm*f_jac);
+    }
+    //  b. wrt velocity
+    Gdy.set(iG,u0_index,-2.0*Q->rho*u0/momentum_flux_norm*f_jac);
+    
 // cout << Gdy.str() << endl;
 // cout << "Gdy.det() = " << eval_matrix_determinant(Gdy) << endl;
     

@@ -6585,6 +6585,69 @@ O2_reactions.append(reac)
 O2.available_QSS_models["Park"] = DiatomicQSSModel(name="Park",noneq_elevs=O2_noneq_elevs,noneq_elev_labels=O2_noneq_elev_labels,reactions=O2_reactions)
 # ====================================================
 
+#  ==== OH ==========================
+OH = DiatomicRadiator()
+OH.comments = "# Source: Spradian07 diatom.dat --- CHANGE SOURCE"
+OH.name = "OH"
+OH.mol_weight = 17.0073e-3         #-- kg/mol
+OH.h_f = 2.2925e+6                 #-- J/kg  
+OH.Z = 0                        #-- charge number
+OH.eta_I = 104989.14                #-- ionization energy (cm-1)
+OH.eta_D = 38450                #-- dissociation energy (cm-1) -- corrresponding to 460 kJ/mol
+# ----- Electronic Levels -----
+OH.default_level_set = "Spradian_levels"
+OH_Spradian_levels = DiatomicLevelSet()
+OH_Spradian_levels.f_Vmax_Ediss = 1.0        #-- just set this to 1.0
+OH_Spradian_levels.levels = [ '' ] * 2
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+#                        n        Te         re       g  dzero     we          wexe       weye           weze           be        alphae       de         betae       spn-orb    l  s  Pgm Pgu
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+OH_Spradian_levels.levels[0]  =  '     0.00  0.96966  1  37275    3737.7941    84.91456   0.558406E+00  -2.59739E-02   18.89638   0.7242E+00  19.38E-04 4.320E-05  -139.21E+00  1  2  0  0'
+OH_Spradian_levels.levels[1]  =  ' 32683.97  1.0121   1  20406.2  3178.3554    92.68141  -1.77305E+00    3.07923E-01   17.38922   0.7868E+00  20.39E-04 0.000E-00    0.000E+00  0  2  0  0'
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+OH.available_level_sets["Spradian_levels"] = OH_Spradian_levels
+# ----- Radiative systems -----
+OH_AX = DiatomicSystem()
+OH_AX.name = "AX"
+OH_AX.ie_l = 0
+OH_AX.ie_u = 1
+OH_AX.sigma_nm = 0.5                #-- just set this to 0.5
+OH_AX.band_method = "linebyline"
+#OH_AX.available_band_sets["Huber_bands"] = OH_AX_LIFBASE_bands
+OH_AX.default_band_set = "LIFBASE_bands"
+OH_AX_LIFBASE_bands = DiatomicBandSet()
+OH_AX_LIFBASE_bands.format = 'Einstein coefficient'
+OH_AX_LIFBASE_bands.lRe_dim = 11
+OH_AX_LIFBASE_bands.uRe_dim = 9 
+OH_AX_LIFBASE_bands.bands = [ '' ] * OH_AX_LIFBASE_bands.uRe_dim
+OH_AX_LIFBASE_bands.comments  = "# Einstein coefficients (A_v'v'') for the OH AX system\n"
+OH_AX_LIFBASE_bands.comments += "# Source: Spradian07 diatom.dat --- CHANGE SOURCE"
+#--------------------------------------------------------------------------------------------------------------------------------------
+#                          Vl  =    0         1        2        3        4        5        6        7        8        9        10         
+#--------------------------------------------------------------------------------------------------------------------------------------
+OH_AX_LIFBASE_bands.bands[0]  =  '1.451e+6 6.387e+3 1.924e+2 1.079e+1 3.753e-2 1.348e-2 5.215e-3 7.096e-4 1.080e-5 8.897e-6 7.228e-6'
+OH_AX_LIFBASE_bands.bands[1]  =  '4.606e+5 8.678e+5 7.421e+3 8.181e+2 6.877e+1 7.883e-2 2.363e-2 7.798e-3 1.843e-3 3.998e-5 1.640e-4'
+OH_AX_LIFBASE_bands.bands[2]  =  '8.983e+4 6.838e+5 4.568e+5 4.789e+3 2.305e+3 2.450e+2 9.735e-1 5.610e-2 1.606e-3 1.546e-3 1.621e-3'
+OH_AX_LIFBASE_bands.bands[3]  =  '1.542e+4 2.331e+5 6.931e+5 1.980e+5 1.604e+3 5.056e+3 7.039e+2 8.248e+0 1.204e-2 2.693e-3 1.521e-2' 
+OH_AX_LIFBASE_bands.bands[4]  =  '2.679e+3 6.157e+4 3.797e+5 5.592e+5 6.650e+4 4.731e+1 9.766e+3 1.677e+3 3.098e+1 1.489e-1 4.358e-2'
+OH_AX_LIFBASE_bands.bands[5]  =  '4.656e+2 1.452e+4 1.402e+5 4.484e+5 3.476e+5 1.385e+4 6.016e+2 1.638e+4 3.631e+3 1.202e+2 3.758e-1'
+OH_AX_LIFBASE_bands.bands[6]  =  '8.489e+1 3.470e+3 4.517e+4 2.252e+5 3.948e+5 1.400e+5 1.071e+3 1.246e+3 2.191e+4 7.370e+3 4.321e+2'
+OH_AX_LIFBASE_bands.bands[7]  =  '1.688e+1 9.147e+2 1.462e+4 9.574e+4 2.589e+5 2.169e+5 2.349e+4 2.345e+2 1.995e-2 1.620e+4 1.001e+4'
+OH_AX_LIFBASE_bands.bands[8]  =  '4.091e+0 3.028e+2 5.615e+3 4.385e+4 1.528e+5 2.002e+5 5.948e+4 8.404e+4 8.713e+2 5.486e+3 1.272e+3'
+#--------------------------------------------------------------------------------------------------------------------------------------
+OH_AX.available_band_sets["LIFBASE_bands"] = OH_AX_LIFBASE_bands
+#
+OH.available_systems["AX"] = OH_AX
+# ----- Photoionization cross-section models -----
+OH.default_photoionXsection_model = "none"
+#
+OH_pIx = PhotoIonXSectionModel(elevel_set="NA",model="none")
+OH.available_photoionXsection_models["none"] = OH_pIx
+# ----- QSS models -----
+OH.default_QSS_model = "None"
+OH.available_QSS_models["None"] =  DiatomicQSSModel()
+# ====================================================
+
 #  ==== Ar ===========================
 Ar = AtomicRadiator()
 Ar.name = "Ar"
@@ -18898,6 +18961,7 @@ available_radiators = {'CO2' : CO2,
                    'N2_plus' : N2_plus,
                         'NO' : NO,
                         'O2' : O2,
+                        'OH' : OH,
                         'Ar' : Ar,
                   'Ar_plus'  : Ar_plus,
                        'Ar+' : Ar_plus, 
