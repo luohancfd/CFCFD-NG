@@ -1,6 +1,6 @@
 # dbl-cone.py
 # PJ, 12-June-2013
-# Model of the CUBRC double-cone woth sharp nose. 
+# Model of the CUBRC double-cone with sharp nose. 
 
 gdata.title = "Double-cone, sharp nose."
 print gdata.title

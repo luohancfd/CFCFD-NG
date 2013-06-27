@@ -1,5 +1,5 @@
 #! /bin/bash
-# run-arcus.sh
+# run-arcus-2.sh
 #PBS -l select=1:mpiprocs=14
 #PBS -l walltime=51:00:00
 #PBS -N dbl-cone
