@@ -126,15 +126,11 @@ Set up your environment by adding the following lines to your ``.bashrc`` file::
 
     module purge
     module load mercurial
-    module load intel-cc-11/11.1.072
-    module load intel-mpi/3.2.2.006
+    module load intel-cc-13
+    module load intel-mpi
     export PATH=${PATH}:${HOME}/e3bin
     export LUA_PATH=${HOME}/e3bin/?.lua
     export LUA_CPATH=${HOME}/e3bin/?.so
-
-Note that we load a specific version of the MPI module.
-This was originally done (in mid-2011) to avoid some suspected problems with version 4
-of the library and may no longer be the recommended thing to do on Barrine.
 
 Get yourself an interactive shell on a compute node so that you don't hammer the login node
 while compiling.  
