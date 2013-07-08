@@ -55,6 +55,37 @@ using namespace std;
 
 const int VERBOSE_BCS = 0; // Set to 1 to print mem usage, writing of data etc
 
+std::string get_bc_name(bc_t bc)
+{
+    switch ( bc ) {
+    case ADJACENT: return "adjacent";
+    case SUP_IN: return "sup_in";
+    case EXTRAPOLATE_OUT: return "extrapolate_out";
+    case SLIP_WALL: return "slip_wall";
+    case ADIABATIC: return "adiabatic";
+    case FIXED_T: return "fixed_T";
+    case SUBSONIC_IN: return "subsonic_in";
+    case SUBSONIC_OUT: return "subsonic_out";
+    case TRANSIENT_UNI: return "transient_uni";
+    case TRANSIENT_PROF: return "transient_prof";
+    case STATIC_PROF: return "static_prof";
+    case FIXED_P_OUT: return "fixed_p_out";
+    case TRANSIENT_T_WALL: return "transient_T_wall";
+    case SEB: return "surface_energy_balance";
+    case USER_DEFINED: return "user_defined";
+    case ADJACENT_PLUS_UDF: return "adjacent_plus_udf";
+    case ABLATING: return "ablating";
+    case SLIDING_T: return "sliding_T";
+    case FSTC: return "fstc";
+    case SHOCK_FITTING_IN: return "shock_fitting_in";
+    case NON_CATALYTIC: return "non_catalytic";
+    case EQUIL_CATALYTIC: return "equil_catalytic";
+    case SUPER_CATALYTIC: return "super_catalytic";
+    case PARTIALLY_CATALYTIC: return "partially_catalytic";
+    default: return "none";
+    }
+} // end get_bc_name()
+
 //-----------------------------------------------------------------
 // Class-based boundary conditions in which all information about 
 // each boundary condition is contained within a single class 
@@ -94,12 +125,12 @@ int apply_viscous_bc( Block &bd, double t, size_t dimensions )
 //-----------------------------------------------------------------------
 
 BoundaryCondition::
-BoundaryCondition( Block *bdp, int which_boundary, int type_code,
+BoundaryCondition( Block *bdp, int which_boundary, bc_t type_code,
 		   std::string name_of_BC, int x_order,
 		   bool is_wall, bool use_udf_flux,
 		   int neighbour_block, int neighbour_face,
 		   int neighbour_orientation,
-		   int wc_bc, int sponge_flag, int xforce_flag )
+		   bc_t wc_bc, int sponge_flag, int xforce_flag )
     : bdp(bdp), which_boundary(which_boundary), type_code(type_code),
       name_of_BC(name_of_BC), x_order(x_order),
       is_wall_flag(is_wall), use_udf_flux_flag(use_udf_flux),
@@ -198,7 +229,7 @@ BoundaryCondition( Block *bdp, int which_boundary, int type_code,
 // reference to a particular block but, just in case the compiler wants it...
 BoundaryCondition::
 BoundaryCondition()
-    : bdp(0), which_boundary(0), type_code(0),
+    : bdp(0), which_boundary(0), type_code(SLIP_WALL),
       name_of_BC("Unspecified"), x_order(0),
       is_wall_flag(false), use_udf_flux_flag(false),
       neighbour_block(-1), neighbour_face(-1),
@@ -260,7 +291,7 @@ void BoundaryCondition::print_info( std::string lead_in )
     cout << lead_in << "block_id" << bdp->id << endl;
     cout << lead_in << "which_boundary=" << which_boundary 
 	 << "(" << get_face_name(which_boundary) << ")" << endl;
-    cout << lead_in << "type_code=" << type_code 
+    cout << lead_in << "type=" << get_bc_name(type_code) 
 	 << "(" << name_of_BC << ")" << endl;
     cout << lead_in << "x_order=" << x_order << endl;
     cout << lead_in << "is_wall_flag=" << is_wall_flag << endl;
@@ -269,7 +300,7 @@ void BoundaryCondition::print_info( std::string lead_in )
     cout << lead_in << "neighbour_face=" << neighbour_face 
 	 << "(" << get_face_name(neighbour_face) << ")" << endl;
     cout << lead_in << "neighbour_orientation=" << neighbour_orientation << endl;
-    cout << lead_in << "wc_bc=" << wc_bc << endl;
+    cout << lead_in << "wc_bc=" << get_bc_name(wc_bc) << endl;
     cout << lead_in << "sponge_flag=" << sponge_flag << endl;
     cout << lead_in << "xforce_flag=" << xforce_flag << endl;
     return;
@@ -856,13 +887,13 @@ int BoundaryCondition::write_vertex_velocities(std::string filename, double sim_
 
 //------------------------------------------------------------------------
 
-BoundaryCondition *create_BC( Block *bdp, int which_boundary, int type_of_BC, 
+BoundaryCondition *create_BC( Block *bdp, int which_boundary, bc_t type_of_BC, 
 			      int inflow_condition_id, std::string filename, size_t n_profile,
 			      double Twall, double Pout, int x_order, int is_wall, int use_udf_flux,
 			      int other_block, int other_face, int neighbour_orientation,
 			      int sponge_flag, int xforce_flag, 
 			      vector<double> &mdot, double epsilon,
-			      int wc_bc, string wcbc_fname, vector<double> f_wall,
+			      bc_t wc_bc, string wcbc_fname, vector<double> f_wall,
 			      double Twall_i, double Twall_f, double t_i, double t_f,
 			      int assume_ideal)
 // Return the appropriate BoundaryCondition object based on the

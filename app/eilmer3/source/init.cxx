@@ -26,7 +26,6 @@
 #include "block.hh"
 #include "kernel.hh"
 #include "cell.hh"
-#include "bc_defs.hh"
 #include "bc.hh"
 #include "init.hh"
 #include "diffusion.hh"
@@ -135,6 +134,62 @@ int init_available_turbulence_models_map()
     available_turbulence_models.insert(name_turb_model_t("K_Omega",TM_K_OMEGA));
     available_turbulence_models.insert(name_turb_model_t("K-Omega",TM_K_OMEGA));
     available_turbulence_models.insert(name_turb_model_t("spalart_allmaras",TM_SPALART_ALLMARAS));
+    return SUCCESS;
+}
+
+std::map<std::string,bc_t> available_bcs;
+int init_available_bcs_map()
+{
+    typedef std::pair<std::string,bc_t> name_bc_t;
+    // We keep the integer values for backward compatibility.
+    available_bcs.insert(name_bc_t("adjacent",ADJACENT));
+    available_bcs.insert(name_bc_t("0",ADJACENT));
+    available_bcs.insert(name_bc_t("sup_in",SUP_IN));
+    available_bcs.insert(name_bc_t("1",SUP_IN));
+    available_bcs.insert(name_bc_t("extrapolate_out",EXTRAPOLATE_OUT));
+    available_bcs.insert(name_bc_t("2",EXTRAPOLATE_OUT));
+    available_bcs.insert(name_bc_t("slip_wall",SLIP_WALL));
+    available_bcs.insert(name_bc_t("3",SLIP_WALL));
+    available_bcs.insert(name_bc_t("adiabatic",ADIABATIC));
+    available_bcs.insert(name_bc_t("4",ADIABATIC));
+    available_bcs.insert(name_bc_t("fixed_T",FIXED_T));
+    available_bcs.insert(name_bc_t("5",FIXED_T));
+    available_bcs.insert(name_bc_t("subsonic_in",SUBSONIC_IN));
+    available_bcs.insert(name_bc_t("6",SUBSONIC_IN));
+    available_bcs.insert(name_bc_t("subsonic_out",SUBSONIC_OUT));
+    available_bcs.insert(name_bc_t("7",SUBSONIC_OUT));
+    available_bcs.insert(name_bc_t("transient_uni",TRANSIENT_UNI));
+    available_bcs.insert(name_bc_t("8",TRANSIENT_UNI));
+    available_bcs.insert(name_bc_t("transient_prof",TRANSIENT_PROF));
+    available_bcs.insert(name_bc_t("9",TRANSIENT_PROF));
+    available_bcs.insert(name_bc_t("static_prof",STATIC_PROF));
+    available_bcs.insert(name_bc_t("10",STATIC_PROF));
+    available_bcs.insert(name_bc_t("fixed_p_out",FIXED_P_OUT));
+    available_bcs.insert(name_bc_t("11",FIXED_P_OUT));
+    available_bcs.insert(name_bc_t("transent_T_wall",TRANSIENT_T_WALL));
+    available_bcs.insert(name_bc_t("13",TRANSIENT_T_WALL));
+    available_bcs.insert(name_bc_t("surface_energy_balance",SEB));
+    available_bcs.insert(name_bc_t("15",SEB));
+    available_bcs.insert(name_bc_t("user_defined",USER_DEFINED));
+    available_bcs.insert(name_bc_t("16",USER_DEFINED));
+    available_bcs.insert(name_bc_t("adjacent_plus_udf",ADJACENT_PLUS_UDF));
+    available_bcs.insert(name_bc_t("17",ADJACENT_PLUS_UDF));
+    available_bcs.insert(name_bc_t("ablating",ABLATING));
+    available_bcs.insert(name_bc_t("18",ABLATING));
+    available_bcs.insert(name_bc_t("sliding_T",SLIDING_T));
+    available_bcs.insert(name_bc_t("19",SLIDING_T));
+    available_bcs.insert(name_bc_t("fstc",FSTC));
+    available_bcs.insert(name_bc_t("20",FSTC));
+    available_bcs.insert(name_bc_t("shock_fitting_in",SHOCK_FITTING_IN));
+    available_bcs.insert(name_bc_t("21",SHOCK_FITTING_IN));
+    available_bcs.insert(name_bc_t("non_catalytic",NON_CATALYTIC));
+    available_bcs.insert(name_bc_t("22",NON_CATALYTIC));
+    available_bcs.insert(name_bc_t("equil_catalytic",EQUIL_CATALYTIC));
+    available_bcs.insert(name_bc_t("23",EQUIL_CATALYTIC));
+    available_bcs.insert(name_bc_t("super_catalytic",SUPER_CATALYTIC));
+    available_bcs.insert(name_bc_t("24",SUPER_CATALYTIC));
+    available_bcs.insert(name_bc_t("partially_catalytic",PARTIALLY_CATALYTIC));
+    available_bcs.insert(name_bc_t("25",PARTIALLY_CATALYTIC));
     return SUCCESS;
 }
  
@@ -890,10 +945,11 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
     global_data &G = *get_global_data_ptr();
     Block &bd = *get_block_data_ptr(id);
     int indx, iface, other_block, other_face, neighbour_orientation;
-    int wc_bc, x_order, sponge_flag, xforce_flag;
+    bc_t wc_bc, bc_type_code;
+    int x_order, sponge_flag, xforce_flag;
     size_t n_profile;
     string value_string, block_label, filename, wcbc_fname;
-    int inflow_condition_id, bc_type_code, is_wall, use_udf_flux, assume_ideal;
+    int inflow_condition_id, is_wall, use_udf_flux, assume_ideal;
     double Twall, Pout, epsilon;
     std::vector<double> f_wall_va;
     std::vector<double> f_wall, vnf;
@@ -957,7 +1013,8 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
     // Boundary condition flags, 
     for ( iface = NORTH; iface <= ((G.dimensions == 3)? BOTTOM : WEST); ++iface ) {
 	section = "block/" + tostring(indx) + "/face/" + get_face_name(iface);
-	dict.parse_int(section, "bc", bc_type_code, SLIP_WALL);
+	dict.parse_string(section, "bc", value_string, "slip_wall");
+	bc_type_code = available_bcs[value_string];
 	dict.parse_int(section, "inflow_condition", inflow_condition_id, 0);
 	dict.parse_string(section, "filename", filename, "");
 	dict.parse_size_t(section, "n_profile", n_profile, 1);
@@ -985,7 +1042,8 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 	// wcbc_input_file for CATALYTIC and PARTIALLY_CATALYTIC
 	//
 	// Rowan or Dan **** FIX-ME *****
-	dict.parse_int(section, "wcbc", wc_bc, NON_CATALYTIC);
+	dict.parse_string(section, "wcbc", value_string, "non_catalytic");
+	wc_bc = available_bcs[value_string];
 	dict.parse_string(section, "wcbc_input_file", wcbc_fname, "");
 	dict.parse_vector_of_doubles(section, "f_wall", f_wall, vnf);
 

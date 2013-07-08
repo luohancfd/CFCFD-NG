@@ -17,7 +17,6 @@
 #include "cell_finder.hh"
 #include "ray_tracing_pieces.hh"
 #include "bc.hh"
-#include "bc_defs.hh"
 #include "kernel.hh"
 
 using namespace std;

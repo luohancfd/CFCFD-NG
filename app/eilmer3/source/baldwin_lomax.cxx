@@ -32,7 +32,6 @@
 #include <vector>
 #include "block.hh"
 #include "kernel.hh"
-#include "bc_defs.hh"
 #include "bc.hh"
 #include "visc.hh"
 #include "diffusion.hh"

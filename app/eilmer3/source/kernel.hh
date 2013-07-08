@@ -17,7 +17,6 @@
 #include "flux_calc.hh"
 #include "cell.hh"
 #include "block.hh"
-#include "bc_defs.hh"
 #include "piston.hh"
 #include "radiation_transport.hh"
 

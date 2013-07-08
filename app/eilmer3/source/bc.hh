@@ -20,7 +20,36 @@
 #include "cell.hh"
 #include "flux_calc.hh"
 #include "block.hh"
-#include "bc_defs.hh"
+
+//-----------------------------------------------------------------
+
+enum bc_t {
+    ADJACENT, 
+    SUP_IN, 
+    EXTRAPOLATE_OUT, 
+    SLIP_WALL, 
+    ADIABATIC, 
+    FIXED_T,
+    SUBSONIC_IN, 
+    SUBSONIC_OUT, 
+    TRANSIENT_UNI, 
+    TRANSIENT_PROF, 
+    STATIC_PROF,
+    FIXED_P_OUT,
+    TRANSIENT_T_WALL,
+    SEB,
+    USER_DEFINED,
+    ADJACENT_PLUS_UDF,
+    ABLATING,
+    SLIDING_T,
+    FSTC,
+    SHOCK_FITTING_IN,
+    NON_CATALYTIC,
+    EQUIL_CATALYTIC,
+    SUPER_CATALYTIC,
+    PARTIALLY_CATALYTIC
+};
+std::string get_bc_name(bc_t bc);
 
 //-----------------------------------------------------------------
 
@@ -67,7 +96,7 @@ class BoundaryCondition {
 public:
     Block *bdp; // reference to the relevant block
     int which_boundary; // identity of the relevant boundary
-    int type_code; // value matches one of the integer type codes in bc_defs.hh
+    bc_t type_code;
     string name_of_BC;
     int x_order;
     bool is_wall_flag;
@@ -75,7 +104,7 @@ public:
     int neighbour_block;
     int neighbour_face;
     int neighbour_orientation;
-    int wc_bc;
+    bc_t wc_bc;
     int sponge_flag;
     int xforce_flag;
     std::vector<double> q_cond;		// 1D vectors representing heat flux fields
@@ -85,13 +114,13 @@ public:
     CatalyticWallBC * cw;
 
 public:
-    BoundaryCondition( Block *bdp, int which_boundary, int type_code,
+    BoundaryCondition( Block *bdp, int which_boundary, bc_t type_code,
 		       std::string name_of_BC="Unspecified", 
 		       int x_order=0,
 		       bool is_wall=false, bool use_udf_flux=false,
 		       int neighbour_block=-1, int neighbour_face=-1,
 		       int neighbour_orientation=0,
-		       int wc_bc=NON_CATALYTIC, int sponge_flag=0, 
+		       bc_t wc_bc=NON_CATALYTIC, int sponge_flag=0, 
 		       int xforce_flag=0 );
     BoundaryCondition(); // Shouldn't have one without referring to a Block.
     BoundaryCondition( const BoundaryCondition &bc );
@@ -119,13 +148,13 @@ public:
     { return (jmax-jmin+1)*(imax-imin+1)*(k-kmin) + (imax-imin+1)*(j-jmin) + (i-imin); }
 };
 
-BoundaryCondition *create_BC(Block *bdp, int which_boundary, int type_of_BC,
+BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 			     int inflow_condition_id, std::string filename, size_t n_profile,
 			     double Twall, double Pout, int x_order, int is_wall, int use_udf_flux,
 			     int other_block, int other_face, int neighbour_orientation,
 			     int sponge_flag, int xforce_flag,
 			     std::vector<double> &mdot, double epsilon,
-			     int wc_bc, std::string wcbc_fname, std::vector<double> f_wall,
+			     bc_t wc_bc, std::string wcbc_fname, std::vector<double> f_wall,
 			     double Twall_i, double Twall_f, double t_i, double t_f,
 			     int assume_ideal);
 
