@@ -210,6 +210,7 @@ int read_config_parameters(const string filename, bool master)
     init_available_schemes_map();
     init_available_calculators_map();
     init_available_turbulence_models_map();
+    init_available_bcs_map();
 
     // Default values for some configuration variables.
     G.dimensions = 2;
@@ -1014,6 +1015,7 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
     for ( iface = NORTH; iface <= ((G.dimensions == 3)? BOTTOM : WEST); ++iface ) {
 	section = "block/" + tostring(indx) + "/face/" + get_face_name(iface);
 	dict.parse_string(section, "bc", value_string, "slip_wall");
+	// cout << "setting bc_type value_string=" << value_string << endl;
 	bc_type_code = available_bcs[value_string];
 	dict.parse_int(section, "inflow_condition", inflow_condition_id, 0);
 	dict.parse_string(section, "filename", filename, "");
@@ -1036,6 +1038,7 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 	dict.parse_string(section, "other_face", value_string, "");
 	other_face = get_face_index(value_string);
 	dict.parse_int(section, "neighbour_orientation", neighbour_orientation, 0);
+	// cout << "face= " << get_face_name(iface) << " bc=" << get_bc_name(bc_type_code) << endl;
 
 	// Wall catalytic boundary condition flags, 
 	// f_wall for SUPER_CATALYTIC 
@@ -1044,8 +1047,10 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 	// Rowan or Dan **** FIX-ME *****
 	dict.parse_string(section, "wcbc", value_string, "non_catalytic");
 	wc_bc = available_bcs[value_string];
+	// cout << "setting wc_bc, value_string=" << value_string << endl;
 	dict.parse_string(section, "wcbc_input_file", wcbc_fname, "");
 	dict.parse_vector_of_doubles(section, "f_wall", f_wall, vnf);
+	// cout << "wc_bc= " << get_bc_name(wc_bc) << endl;
 
 	bd.bcp[iface] = create_BC( &bd, iface, bc_type_code, inflow_condition_id, 
 				    filename, n_profile, Twall, Pout,

@@ -290,15 +290,15 @@ void BoundaryCondition::print_info( std::string lead_in )
 {
     cout << lead_in << "block_id" << bdp->id << endl;
     cout << lead_in << "which_boundary=" << which_boundary 
-	 << "(" << get_face_name(which_boundary) << ")" << endl;
+	 << " (" << get_face_name(which_boundary) << ")" << endl;
     cout << lead_in << "type=" << get_bc_name(type_code) 
-	 << "(" << name_of_BC << ")" << endl;
+	 << " (" << name_of_BC << ")" << endl;
     cout << lead_in << "x_order=" << x_order << endl;
     cout << lead_in << "is_wall_flag=" << is_wall_flag << endl;
     cout << lead_in << "use_udf_flux=" << use_udf_flux_flag << endl;
     cout << lead_in << "neighbour_block=" << neighbour_block << endl;
     cout << lead_in << "neighbour_face=" << neighbour_face 
-	 << "(" << get_face_name(neighbour_face) << ")" << endl;
+	 << " (" << get_face_name(neighbour_face) << ")" << endl;
     cout << lead_in << "neighbour_orientation=" << neighbour_orientation << endl;
     cout << lead_in << "wc_bc=" << get_bc_name(wc_bc) << endl;
     cout << lead_in << "sponge_flag=" << sponge_flag << endl;
@@ -974,25 +974,21 @@ BoundaryCondition *create_BC( Block *bdp, int which_boundary, bc_t type_of_BC,
     	                        && type_of_BC != ABLATING
     	                        && type_of_BC != SLIDING_T
                                 && type_of_BC != FSTC) {
-        cerr << "create_BC() error: cannot use wc_bc " << wc_bc 
-             << " with type_of_BC " << type_of_BC << endl
+        cerr << "create_BC() error: cannot use wc_bc " << get_bc_name(wc_bc) 
+             << " with type_of_BC " << get_bc_name(type_of_BC) << endl
     	     << "Bailing out!" << endl;
         exit( FAILURE );
-    }
-    else if ( wc_bc == NON_CATALYTIC ) {
+    } else if ( wc_bc == NON_CATALYTIC ) {
     	// do nothing (newBC->cw should already be a null pointer)
-    }
-    else if ( wc_bc == EQUIL_CATALYTIC ) {
+    } else if ( wc_bc == EQUIL_CATALYTIC ) {
     	newBC->cw = new EquilibriumCatalyticWallBC( wcbc_fname );
-    }
-    else if ( wc_bc == SUPER_CATALYTIC ) {
+    } else if ( wc_bc == SUPER_CATALYTIC ) {
     	newBC->cw = new SuperCatalyticWallBC( f_wall );
-    }
-    else if (wc_bc == PARTIALLY_CATALYTIC ) {
+    } else if (wc_bc == PARTIALLY_CATALYTIC ) {
         	newBC->cw = new PartiallyCatalyticWallBC( wcbc_fname );
-        }
-    else {
-    	cerr << "create_BC() error: wc_bc " << wc_bc << " not available." << endl
+    } else {
+    	cerr << "create_BC() error: wc_bc " << get_bc_name(wc_bc)
+	     << " not available." << endl
     	     << "Bailing out!" << endl;
     	exit( FAILURE );
     }
