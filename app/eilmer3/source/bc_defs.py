@@ -8,7 +8,7 @@
 Historically, within the C/C++ simulation code, 
 the boundary conditions were identified by integer constants
 for which macro names were defined.
-The same names are available for use in your Python input scripts.:
+These definitions are now gone and symbols are used instead:
 
 * ADJACENT: This boundary joins that of another block.
     Normally, this boundary condition would be set implicitly
@@ -50,39 +50,38 @@ The same names are available for use in your Python input scripts.:
 * RRM: Andrew Denman's recycled and renormalised boundary
     condition.
 * SEB: Surface energy balance.
-* SPECIAL
-
 """
-ADJACENT        = 0
-COMMON          = 0
-SUP_IN          = 1
-SUP_OUT         = 2
-EXTRAPOLATE_OUT = 2
-SLIP            = 3
-SLIP_WALL       = 3
-ADIABATIC       = 4
-FIXED_T         = 5
-SUBSONIC_IN     = 6
-SUBSONIC_OUT    = 7
-SUB_OUT         = 7
-TRANSIENT_UNI   = 8
-TRANSIENT_PROF  = 9
-STATIC_PROF     = 10
-FIXED_P_OUT     = 11
-RRM             = 12
-TRANSIENT_T_WALL = 13
-# EULER_MANUFACTURED was 14
-# now deprecated: user-defined B.C
-# is used instead.
-SEB             = 15
-USER_DEFINED    = 16
-ADJACENT_PLUS_UDF = 17
-ABLATING        = 18
-SLIDING_T       = 19
-FSTC            = 20
-SHOCK_FITTING_IN    = 21
-SPECIAL         = -1
-bcIndexFromName = {
+#
+# The following symbol definitions are for use in the user's
+# input script if they wish to refer to BC types.
+#
+ADJACENT = object()
+SUP_IN = object()
+SUP_OUT = object()
+EXTRAPOLATE_OUT = object()
+SLIP_WALL = object()
+ADIABATIC = object()
+FIXED_T = object()
+SUBSONIC_IN = object()
+SUBSONIC_OUT = object()
+TRANSIENT_UNI = object()
+TRANSIENT_PROF = object()
+STATIC_PROF = object()
+FIXED_P_OUT = object()
+RRM = object()
+TRANSIENT_T_WALL = object()
+SEB = object()
+USER_DEFINED = object()
+ADJACENT_PLUS_UDF = object()
+ABLATING = object()
+SLIDING_T = object()
+FSTC = object()
+SHOCK_FITTING_IN = object()
+#
+# The integer values in the following dictionary are a reminder of the old
+# macro definitions in the C code.  They are retained here for fererence.
+#
+bcSymbolFromName = {
      0: ADJACENT, "0": ADJACENT, "ADJACENT": ADJACENT, "COMMON": ADJACENT,
      1: SUP_IN, "1": SUP_IN, "SUP_IN": SUP_IN,
      2: EXTRAPOLATE_OUT, "2":  EXTRAPOLATE_OUT, "SUP_OUT": EXTRAPOLATE_OUT,
@@ -96,17 +95,16 @@ bcIndexFromName = {
      8: TRANSIENT_UNI, "8": TRANSIENT_UNI, "TRANSIENT_UNI": TRANSIENT_UNI,
      9: TRANSIENT_PROF, "9":  TRANSIENT_PROF,  "TRANSIENT_PROF": TRANSIENT_PROF,
     10: STATIC_PROF, "10": STATIC_PROF,  "STATIC_PROF": STATIC_PROF,
-    11: FIXED_P_OUT, "11": FIXED_P_OUT, "FIXED_P_OUT": FIXED_P_OUT,     
-    12: RRM, "12": RRM,  "RRM": RRM,
+    11: FIXED_P_OUT, "11": FIXED_P_OUT, "FIXED_P_OUT": FIXED_P_OUT, 
+    12: RRM, "12": RRM, "RRM": RRM,    
     13: TRANSIENT_T_WALL, "13" : TRANSIENT_T_WALL, "TRANSIENT_T_WALL": TRANSIENT_T_WALL,
-    15: SEB, "15" : SEB, "SEB" : SEB,
+    15: SEB, "15" : SEB, "SEB" : SEB, "SURFACE_ENERGY_BALANCE" : SEB,
     16: USER_DEFINED, "16": USER_DEFINED, "USER_DEFINED": USER_DEFINED,
     17: ADJACENT_PLUS_UDF, "17": ADJACENT_PLUS_UDF, "ADJACENT_PLUS_UDF": ADJACENT_PLUS_UDF,
     18: ABLATING, "18" : ABLATING, "ABLATING": ABLATING,
     19: SLIDING_T, "19" : SLIDING_T, "SLIDING_T": SLIDING_T,
     20: FSTC, "20" : FSTC, "FSTC": FSTC,
     21: SHOCK_FITTING_IN, "21" : SHOCK_FITTING_IN, "SHOCK_FITTING_IN": SHOCK_FITTING_IN,
-    -1: SPECIAL, "-1": SPECIAL,  "SPECIAL": SPECIAL,
 }
 bcName = {
     ADJACENT: "ADJACENT",
@@ -122,12 +120,12 @@ bcName = {
     STATIC_PROF: "STATIC_PROF",
     FIXED_P_OUT: "FIXED_P_OUT",
     RRM: "RRM",
+    TRANSIENT_T_WALL: "TRANSIENT_T_WALL",
     SEB: "SEB",
     USER_DEFINED: "USER_DEFINED",
     ADJACENT_PLUS_UDF: "ADJACENT_PLUS_UDF",
     ABLATING: "ABLATING",
     SLIDING_T: "SLIDING_T",
-    SPECIAL: "SPECIAL",
     FSTC: "FSTC",
     SHOCK_FITTING_IN: "SHOCK_FITTING_IN"
     }
@@ -170,7 +168,7 @@ class BoundaryCondition(object):
         It is a catch-all for the bits of data that might be required by
         any particular boundary condition.
 
-        :param type_of_BC: specifies the boundary condition (integer value)
+        :param type_of_BC: specifies the boundary condition (symbol value)
         :param Twall: fixed wall temperature (in degrees K) that will be used if
             the boundary conditions needs such a value.
         :param Pout: fixed outside pressure (in Pascals) that will be used if
@@ -233,7 +231,7 @@ class BoundaryCondition(object):
         return
     def __str__(self):
         str_rep = "BoundaryCondition("
-        str_rep += "type_of_BC=%d" % self.type_of_BC
+        str_rep += "type_of_BC=%s" % bcName[self.type_of_BC]
         str_rep += ", Twall=%g" % self.Twall
         str_rep += ", Pout=%g" % self.Pout
         str_rep += ", inflow_condition=%d" % self.inflow_condition
@@ -770,6 +768,10 @@ class AblatingBC(BoundaryCondition):
         return "AblatingBC(Twall=%g, mdot=%s, label=\"%s\")" % (self.Twall, mdot_str, self.label)
     def __copy__(self):
         return AblatingBC(Twall=self.Twall, mdot=self.mdot, filename=self.filename, label=self.label)
+
+#####################################################################################
+# FIX-ME -- should we merge the catalycity bcs with the main boundary-condition list?
+#####################################################################################
 
 """
 Dictionary to look up wall catalycity boundary-condition index from name or number.

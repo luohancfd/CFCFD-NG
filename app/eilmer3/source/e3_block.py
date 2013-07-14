@@ -537,7 +537,18 @@ class Block(object):
         block creation; this function provides that capability.
         """
         iface = faceDict[face_name]
-        type_of_BC = bcIndexFromName[str(type_of_BC).upper()]
+        if type(type_of_BC) == type(object()) and type_of_BC in bcName.keys():
+            pass # We already have a valid symbol.
+        elif type(type_of_BC) == type(1):
+            type_of_BC = bcSymbolFromName[type_of_BC]
+        elif type(type_of_BC) == type('string'):
+            type_of_BC = bcSymbolFromName[str(type_of_BC).upper()]
+        else:
+            print "Error in setting BC:"
+            print "    We've got a type_of_BC value that we don't know."
+            print "    type()=", type(type_of_BC)
+            print "    value=", str(type_of_BC)
+            return
         print "Set block:", self.blkId, "face:", faceName[iface], \
               "BC:", bcName[type_of_BC]
         if inflow_condition != None and not isinstance(inflow_condition, FlowCondition):
@@ -612,15 +623,11 @@ class Block(object):
             newbc = fstcBC(filename, label=label)
         if type_of_BC == SLIDING_T:
             newbc = SlidingTBC(Twall_i, Twall_f, t_i, t_f, label=label)
-        if type_of_BC == SPECIAL:
-            print "Error in setting BC:"
-            print "    Don't know what to do with a SPECIAL BC."
-            return
         #
         try:
             self.bc_list[iface] = newbc
         except:
-            print "Boundary condition not set correctly, type_of_BC=", type_of_BC
+            print "Boundary condition not set correctly, type_of_BC=", bcName[type_of_BC]
             sys.exit()
         return
 
@@ -682,7 +689,7 @@ class Block(object):
             fp.write("[block/%d/face/%s]\n" % (self.blkId, faceName[iface]))
             bc = self.bc_list[iface]
             fp.write("label = %s\n" % bc.label)
-            fp.write("bc = %d\n" % bc.type_of_BC)
+            fp.write("bc = %s\n" % bcName[bc.type_of_BC])
             if bc.inflow_condition == None:
                 inflow_indx = 0
             else:
