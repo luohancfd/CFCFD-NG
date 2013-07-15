@@ -217,6 +217,8 @@ int main(int argc, char *argv[])
     bool write_rad_emissions;
     cfg.parse_boolean("radiation", "write_rad_emissions", 
     	               write_rad_emissions, false );
+    bool write_spectra;
+    cfg.parse_boolean("radiation", "write_spectra", write_spectra, false );
     vector<double> vdnf;
     vector<double> lambda_min;
     cfg.parse_vector_of_doubles("radiation", "lambda_min", lambda_min, vdnf);
@@ -531,6 +533,14 @@ int main(int argc, char *argv[])
 	    	rsm->write_QSS_population_analysis_files( *psr->psflow.Q, 
 	    	                                           rad_count );
 	    }
+	    if ( write_spectra ) {
+	        ostringstream oss;
+	        oss << "coeff-spectra-" << int(x*1.0e3) << "mm.txt";
+	        LOS.get_rpoint_pointer(0)->X_->write_to_file(oss.str());
+	        oss.str("");
+                oss << "intensity-spectra-" << int(x*1.0e3) << "mm.txt";
+                S.write_to_file(oss.str());
+	    }
 	    ++rad_count;
 	    next_spectra_x += rad_dx;
 	}
@@ -576,8 +586,10 @@ int main(int argc, char *argv[])
     	    	    << int(lambda_max[i-1]) << "nm.txt";
     	    	smear_dx = dx_smear[i-1];
     	    }
-    	    I_vec[i].spatially_smear( smear_dx );
-    	    I_vec[i].write_to_file( oss.str() );
+    	    if ( smear_dx > 0.0 ) {
+    	        I_vec[i].spatially_smear( smear_dx );
+    	        I_vec[i].write_to_file( oss.str() );
+    	    }
     	}
 
     }
@@ -601,6 +613,7 @@ int main(int argc, char *argv[])
 	}
 	TS_outfile.close();
     }
+
     outfile.close();
     delete gmodel;
     if ( rupdate ) delete rupdate;

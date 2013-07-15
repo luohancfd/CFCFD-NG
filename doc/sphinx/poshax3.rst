@@ -64,9 +64,9 @@ A brief description of each is given here.
   TS_dx                : Slab width for tangent-slab analysis
   tube_width           : Width of gas to integrate over when computing intensities
   fwhm_Ang             : Full-width half-maximum of the apparatus function in Angstroms 
-  x_EQ_spectra         : Location to calculate spectral coefficients and write to file
   write_rad_level_pops : Flag to request writing of radiator electronic level populations to file
   write_rad_emissions  : Flag to request writing of individual radiator total emission levels to file 
+  write_spectra        : Flag to requesting writing of radiation spectra to file
   lambda_min           : Lower bound for spectral integration (can be a list)
   lambda_max           : Upper bound for spectral integration (can be a list)
   dx_smear             : Spatial smearing distance (i.e. shock speed x spectrometer exposure time)
