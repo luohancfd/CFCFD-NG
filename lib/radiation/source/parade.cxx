@@ -214,11 +214,17 @@ spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
     // 2. Run the parade executable
     srv = system("parade > parade.out 2>&1");
 
+    if ( srv!=0 ) {
+        cout << "Parade::spectra_for_gas_state()" << endl
+             << "Something went wrong with the system call." << endl;
+        exit( FAILURE );
+    }
+
     // 3. Pick up the solution and insert it into CoeffSpectra
     ifstream specfile( "par_res.txt" );
     if ( !specfile.is_open() ) {
 	cout << "Parade::spectra_for_gas_state()" << endl
-             << "Could not open parade spectra file 'par_res.dat'." << endl
+             << "Could not open parade spectra file 'par_res.txt'." << endl
              << "Exiting program." << endl;
 	exit( FAILURE );
     }
