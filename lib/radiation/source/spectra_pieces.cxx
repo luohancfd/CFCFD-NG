@@ -632,87 +632,42 @@ int create_spectral_bin_vector( std::vector<double> & pvec, int binning_type, in
 	}
 	// cout << nnu_inc << " spectral points have been included from a total of " << nps << endl;
     }
+    else if ( binning_type==BAND_BINNING ) {
+        double prev = 0.0;
+        double tol = 1.0e-30;   // tolerance for comparing two absorption coefficients
+        double plim = 1.1e-20;  // this will omit 1.0e-20 zero values from parade
+        vector<int> inus;
+        for ( size_t inu=0; inu<pvec.size(); ++inu) {
+            if ( pvec[inu] < plim ) continue;
+            if ( fabs( pvec[inu] - prev ) < tol  ) inus.push_back( inu );
+            else if ( inus.size() > 0 ) {
+                B.push_back( new SpectralBin( inus ) );
+                inus.resize(0);
+            }
+            prev = pvec[inu];
+        }
+
+        if ( (int) B.size() > N_bins ) {
+            cout << "create_spectral_bin_vector()" << endl
+                 << "WARNING: B.size() = " << B.size() << " > N_bins = " << N_bins << endl;
+        }
+    }
+
+    if ( B.size()==0 ) {
+        cout << "create_spectral_bin_vector()" << endl
+             << "No bins resulted from the binning process." << endl
+             << "Check the input parameters and try again." << endl;
+        exit( FAILURE );
+    }
 
     return (int) B.size();
 }
 
 std::vector<SpectralBin*> create_spectral_bin_vector_py( std::vector<double> & pvec, int binning_type, int N_bins )
 {
-    if ( N_bins<1 ) {
-        cout << "create_spectral_bin_vector()" << endl
-             << "N_bins must be greater than or equal to 1" << endl;
-        exit( BAD_INPUT_ERROR );
-    }
-
     vector<SpectralBin*> B;
 
-    if ( binning_type==FREQUENCY_BINNING ) {
-        // Simply subdivide spectral range into N_bins of equal size
-        int nnus = (int) pvec.size();
-        int bin_size = nnus / N_bins;
-        int first_bin_size = nnus - ( N_bins - 1 ) * bin_size;
-        int inu_start = 0, inu_end = first_bin_size;
-        for ( int iB=0; iB<N_bins; ++iB ) {
-            vector<int> inus;
-            for ( int inu=inu_start; inu<inu_end; ++inu )
-                inus.push_back( inu );
-            inu_start = inu_end;
-            inu_end += bin_size;
-            B.push_back( new SpectralBin( inus ) );
-        }
-        // cout << "inu_end = " << inu_end << ", bin_size = " << bin_size << ", first_bin_size = " << first_bin_size << endl;
-        // cout << "nnus = " << nnus << ", N_bins = " << N_bins << endl;
-    }
-    else if ( binning_type==OPACITY_BINNING ) {
-        // divide the opacity range into equal segment in log space
-        int nps = (int) pvec.size();
-        double p_min = 1.0e99, p_max = 0.0;
-        for ( int ip=0; ip<nps; ++ip ) {
-            if ( pvec[ip] < p_min && pvec[ip]>0.0 ) p_min = pvec[ip];
-            if ( pvec[ip] > p_max ) p_max = pvec[ip];
-        }
-        if ( p_min > p_max ) {
-            cout << "create_spectral_bin_vector()" << endl
-                 << "p_min and p_max search failed." << endl
-                 << "Exiting program." << endl;
-            exit( FAILURE );
-        }
-        else if ( p_min == p_max && N_bins != 1 ) {
-            cout << "create_spectral_bin_vector()" << endl
-                 << "It appears this is a gray gas as the opacity is constant." << endl
-                 << "For this type of radiation, spectral binning will only work with a single bin." << endl
-                 << "Currently N_bins = " << N_bins << "." << endl
-                 << "Exiting program." << endl;
-            exit( BAD_INPUT_ERROR );
-        }
-        else if ( p_min == p_max && N_bins == 1 ) {
-            // We need to artificially increase p_max so that all spectral points are included in the bin
-            // Any increase is sufficient as all opacities are equal
-            p_max += 1.0;
-        }
-        vector<double> p_limits;
-        double delta_log_p = log(p_max / p_min ) / ( N_bins );
-        for ( int iB=0; iB<N_bins+1; ++iB ) {
-           double log_p = log(p_min) + iB*delta_log_p;
-           p_limits.push_back(exp(log_p));
-           // cout << "p_limits = " << p_limits.back() << endl;
-        }
-        // decrease the first limit, and increase the last limit to ensure all points will be included
-        p_limits.front() *= 0.99;
-        p_limits.back() *= 1.01;
-        int nnu_inc = 0.0;
-        for ( int iB=1; iB<N_bins+1; ++iB ) {
-            SpectralBin * SB = new SpectralBin( pvec, p_limits[iB-1], p_limits[iB] );
-            nnu_inc +=  SB->inu.size();
-            if ( SB->inu.size()==0 ) {
-                delete SB;      // is this necessary?
-                continue;
-            }
-            B.push_back( SB );
-            // cout << "Created a new spectral bin with " << B.back()->inu.size() << " entries" << endl;
-        }
-        // cout << nnu_inc << " spectral points have been included from a total of " << nps << endl;
-    }
+    create_spectral_bin_vector(pvec, binning_type, N_bins, B);
 
     return B;
 }

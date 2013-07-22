@@ -124,6 +124,7 @@ public:
 #define NO_BINNING        0
 #define FREQUENCY_BINNING 1
 #define OPACITY_BINNING   2
+#define BAND_BINNING      3
 
 class SpectralBin {
 public:
