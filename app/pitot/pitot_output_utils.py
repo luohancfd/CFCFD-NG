@@ -91,7 +91,7 @@ def txt_file_output(cfg, states, V, M):
     print test_gas_used
     txt_output.write(test_gas_used + '\n')  
     
-    driver_gas_used = 'Driver gas is {0}.'.format(cfg['driver_gas'])       
+    driver_gas_used = 'Driver gas is {0}.'.format(states['s4'].reactants)       
     print driver_gas_used
     txt_output.write(driver_gas_used + '\n') 
             
@@ -338,7 +338,7 @@ def csv_file_output(cfg, states, V, M):
     csv_test_gas_used = 'Test gas,{0},gamma,{1},R,{2}'.format(cfg['test_gas'],states['s1'].gam,states['s1'].R)
     csv_output.write(csv_test_gas_used + '\n')  
     
-    csv_driver_gas_used = 'Driver gas,{0}.'.format(cfg['driver_gas'])       
+    csv_driver_gas_used = 'Driver gas,{0}.'.format(states['s4'].reactants)       
     csv_output.write(csv_driver_gas_used + '\n') 
             
     if cfg['secondary']:
