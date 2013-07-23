@@ -105,6 +105,58 @@ def input_checker(cfg):
     
     cfg['bad_input'] = False
     
+    if 'solver' not in cfg:
+        print "No 'solver' specified. You need to specify a solver. Bailing out."
+        print "Available solvers are 'eq','pg', and 'pg-eq'."
+        cfg['bad_input'] = True
+    if cfg['solver'] not in ['eq','pg','pg-eq']:
+        print "'solver' is not a valid solver. You need to specify a solver. Bailing out."
+        print "Valid solvers are 'eq','pg', and 'pg-eq'."
+        cfg['bad_input'] = True
+        
+    if 'facility' not in cfg:
+        print "No 'facility' specified. You need to specify a facility. Bailing out."
+        print "Available facilities are 'x2','x3', and 'custom'."
+        cfg['bad_input'] = True
+    if cfg['facility'] not in ['x2','x3','custom']:
+        print "'facility' is not a valid facility. You need to specify a facility. Bailing out."
+        print "Valid facilities are 'x2','x3', and 'custom'."
+        cfg['bad_input'] = True
+        
+    # add some more checks here for the custom facility mode
+    # custom facility must have initial driver state specified, driver composition,
+    # driver burst state (either from compression ratio or burst pressure),
+    # and Mach number terminating steady expansion
+    
+    if cfg['facility'] == 'custom':
+        if 'driver_p' not in cfg:
+            print "You have specified a custom facility but not set the 'driver_p' variable."
+            print "Bailing out."
+            cfg['bad_input'] = True
+        if 'driver_T' not in cfg:
+            print "You have specified a custom facility but not set the 'driver_T' variable."
+            print "Bailing out."
+            cfg['bad_input'] = True
+        if 'driver_composition' not in cfg:
+            print "You have specified a custom facility but there is no 'driver_composition' variable."
+            print "Bailing out."
+            cfg['bad_input'] = True
+        if not isinstance(cfg['driver_composition'], dict):
+            print "'driver_composition' variable is not a valid Python dictionary."
+            print "Bailing out."
+            cfg['bad_input'] = True
+        if 'driver_inputUnits' not in cfg:
+            print "'driver_inputUnits' not set. Setting it to 'moles'."
+            cfg['driver_inputUnits'] = 'moles'
+        if 'p4' not in cfg and 'compression_ratio' not in cfg:
+            print "Both 'compression_ratio' and 'p4' variables not set."
+            print "Not enough information to make the custom driver work."
+            print "Bailing out."
+        if 'M_throat' not in cfg:
+            print "Throat Mach number that terminates unsteady expansion is not set."
+            print "Variable is 'M_throat'."
+            print "Cannot finish problem without this. Bailing out."
+    
     if 'mode' not in cfg:
         print "Program mode not specified. Will use default printout mode"
         cfg['mode'] = 'printout'
@@ -243,7 +295,10 @@ def input_checker(cfg):
         sys.exit(1) 
    
     if PRINT_STATUS: print "Let's get started, shall we:"
-    if PRINT_STATUS: print "Facility is {0}. Driver gas is {1}.".format(cfg['facility'], cfg['driver_gas'])
+    if PRINT_STATUS and not cfg['facility'] == 'custom': 
+        print "Facility is {0}. Driver gas is {1}.".format(cfg['facility'], cfg['driver_gas'])
+    if PRINT_STATUS and cfg['facility'] == 'custom': 
+        print "Facility is {0}. Driver gas is {1}.".format(cfg['facility'], cfg['driver_composition'])    
     if PRINT_STATUS: 
         if 'Vsd' in cfg:
             print 'Selected Vsd = {0} m/s'.format(cfg['Vsd'])
@@ -309,7 +364,27 @@ def state_builder(cfg):
         V['s4']=0.0
         M['s4']=0.0
         M['s3s']=primary_driver_x3[cfg['driver_gas']][1]
-    
+        
+    elif cfg['facility'] == 'custom':
+        # set driver fill condition
+        states['primary_driver_fill']=Gas(cfg['driver_composition'],inputUnits=cfg['driver_inputUnits'])
+        states['primary_driver_fill'].set_pT(cfg['driver_p'],cfg['driver_T'])
+        # now do the compression to state 4
+        # If both p4 and compression ratio are set, code will use p4
+        if 'p4' in cfg:
+            p4 = cfg['p4'] #Pa
+            T4 = states['primary_driver_fill'].T*\
+            (cfg['p4']/states['primary_driver_fill'].p)**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
+        else:
+            p4 = states['primary_driver_fill'].p*cfg['compression_ratio'] #Pa
+            T4 = states['primary_driver_fill'].T*\
+            (cfg['compression_ratio'])**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
+        states['s4'] =  states['primary_driver_fill'].clone()
+        states['s4'].set_pT(p4,T4)
+        V['s4']=0.0
+        M['s4']=0.0
+        M['s3s'] = cfg['M_throat']    
+            
     if cfg['solver'] == 'pg': #make perfect gas object, and then re-set the state
         states['s4']=pg.Gas(Mmass=states['s4'].Mmass,
                                     gamma=states['s4'].gam, name='s4')
