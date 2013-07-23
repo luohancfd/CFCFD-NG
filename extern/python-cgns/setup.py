@@ -29,7 +29,7 @@
 from distutils.core import setup, Extension
 import distutils.sysconfig
 
-Version = '2011.02.09'
+Version = '0.3'
 
 setup(
 	name='CGNS',
@@ -46,7 +46,8 @@ setup(
 	package_dir={'CGNS':'src'},
 	package_data={'CGNS':['src/__init__.py']},
 	ext_modules =	[ Extension("_CGNS", ["src/cgnslib.i"], libraries=["cgns"],swig_opts=["-I/usr/include"])],
-	data_files = 	[('share/doc/pythoncgns-'+Version+'/examples', ['tutorial/boite_CGNSADF.pgeo',
+	data_files = 	[('share/doc/python-cgns-'+Version+'/', ['LICENSE']),
+			 ('share/doc/python-cgns-'+Version+'/examples', ['tutorial/boite_CGNSADF.pgeo',
 	 			 		'tutorial/boite_CGNSHDF5.pgeo',
 	 			 		'tutorial/Test_read_grid_structured.py',
 	 			 		'tutorial/Test_write_grid_results_structured.py']),
