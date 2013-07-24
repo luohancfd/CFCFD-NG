@@ -647,7 +647,7 @@ int create_spectral_bin_vector( std::vector<double> & pvec, int binning_type, in
             prev = pvec[inu];
         }
 
-        if ( (int) B.size() > N_bins ) {
+        if ( (int) B.size() != N_bins ) {
             cout << "create_spectral_bin_vector()" << endl
                  << "WARNING: B.size() = " << B.size() << " > N_bins = " << N_bins << endl;
         }

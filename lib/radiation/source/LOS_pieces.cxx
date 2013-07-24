@@ -131,6 +131,9 @@ int LOS_data::create_spectral_bins( int binning_type, int N_bins, vector<Spectra
 	X.write_to_file("mean_opacity_spectra.txt");
 	N_bins_star = create_spectral_bin_vector( X.kappa_nu, binning_type, N_bins, B );
     }
+    else if ( binning_type==BAND_BINNING ) {
+        N_bins_star = create_spectral_bin_vector( rpoints_[nrps_/2]->X_->kappa_nu, binning_type, N_bins, B );
+    }
 
     return N_bins_star;
 }
