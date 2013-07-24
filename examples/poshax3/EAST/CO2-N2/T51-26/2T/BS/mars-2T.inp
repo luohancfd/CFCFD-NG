@@ -1,0 +1,2 @@
+model = "two temperature gas"
+species = { 'CO2', 'CO', 'CO_plus', 'O2', 'O2_plus', 'N2', 'NO', 'NO_plus', 'CN', 'C2', 'C', 'C_plus', 'N', 'N_plus', 'O', 'O_plus', 'e_minus'  }

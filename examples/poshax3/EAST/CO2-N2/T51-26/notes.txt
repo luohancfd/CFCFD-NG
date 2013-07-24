@@ -1,0 +1,14 @@
+In this folder there are a number of modelling approaches to the EAST
+shock tube with CO2-N2 test gas.  In 'TPG', the gas is treated as a 
+mixture of thermally perfect gases.  In '2T', the gas is modelled with
+one temperature for translation and rotation, and another for vibration
+and electrons (both bound and free).
+
+There are two difference types of 2T models implemented:
+
+ELS: Electronic level species
+BS: Bulk species
+
+The ELS model treats some electronic states as separate species (eg CO(X), CO(A)).
+The BS model treats species in the usual fashion where electronic states are assumed
+to be in Boltzmann distributions.
