@@ -127,13 +127,15 @@ int apply_viscous_bc( Block &bd, double t, size_t dimensions )
 BoundaryCondition::
 BoundaryCondition( Block *bdp, int which_boundary, bc_t type_code,
 		   std::string name_of_BC, int x_order,
-		   bool is_wall, bool use_udf_flux,
+		   bool is_wall,
+		   bool sets_conv_flux, bool sets_visc_flux,
 		   int neighbour_block, int neighbour_face,
 		   int neighbour_orientation,
 		   bc_t wc_bc, int sponge_flag, int xforce_flag )
     : bdp(bdp), which_boundary(which_boundary), type_code(type_code),
       name_of_BC(name_of_BC), x_order(x_order),
-      is_wall_flag(is_wall), use_udf_flux_flag(use_udf_flux),
+      is_wall_flag(is_wall),
+      sets_conv_flux_flag(sets_conv_flux), sets_visc_flux_flag(sets_visc_flux),
       neighbour_block(neighbour_block), neighbour_face(neighbour_face),
       neighbour_orientation(neighbour_orientation),
       wc_bc(wc_bc), sponge_flag(sponge_flag), xforce_flag(xforce_flag)
@@ -231,7 +233,8 @@ BoundaryCondition::
 BoundaryCondition()
     : bdp(0), which_boundary(0), type_code(SLIP_WALL),
       name_of_BC("Unspecified"), x_order(0),
-      is_wall_flag(false), use_udf_flux_flag(false),
+      is_wall_flag(false),
+      sets_conv_flux_flag(false), sets_visc_flux_flag(false),
       neighbour_block(-1), neighbour_face(-1),
       neighbour_orientation(0),
       wc_bc(NON_CATALYTIC), sponge_flag(0), xforce_flag(0),
@@ -243,7 +246,9 @@ BoundaryCondition( const BoundaryCondition &bc )
     : bdp(bc.bdp), // Still bound to the original block.
       which_boundary(bc.which_boundary), type_code(bc.type_code),
       name_of_BC(bc.name_of_BC), x_order(bc.x_order),
-      is_wall_flag(bc.is_wall_flag), use_udf_flux_flag(bc.use_udf_flux_flag),
+      is_wall_flag(bc.is_wall_flag),
+      sets_conv_flux_flag(bc.sets_conv_flux_flag),
+      sets_visc_flux_flag(bc.sets_visc_flux_flag),
       neighbour_block(bc.neighbour_block), neighbour_face(bc.neighbour_face),
       neighbour_orientation(bc.neighbour_orientation),
       wc_bc(bc.wc_bc), sponge_flag(bc.sponge_flag), xforce_flag(bc.xforce_flag),
@@ -263,7 +268,8 @@ BoundaryCondition & BoundaryCondition::operator=( const BoundaryCondition &bc )
 	name_of_BC = bc.name_of_BC;
 	x_order = bc.x_order;
 	is_wall_flag = bc.is_wall_flag;
-	use_udf_flux_flag = bc.use_udf_flux_flag;
+	sets_conv_flux_flag = bc.sets_conv_flux_flag;
+	sets_visc_flux_flag = bc.sets_visc_flux_flag;
 	neighbour_block = bc.neighbour_block;
 	neighbour_face = bc.neighbour_face;
 	neighbour_orientation = bc.neighbour_orientation;
@@ -295,7 +301,8 @@ void BoundaryCondition::print_info( std::string lead_in )
 	 << " (" << name_of_BC << ")" << endl;
     cout << lead_in << "x_order=" << x_order << endl;
     cout << lead_in << "is_wall_flag=" << is_wall_flag << endl;
-    cout << lead_in << "use_udf_flux=" << use_udf_flux_flag << endl;
+    cout << lead_in << "sets_conv_flux_flag=" << sets_conv_flux_flag << endl;
+    cout << lead_in << "sets_visc_flux_flag=" << sets_visc_flux_flag << endl;
     cout << lead_in << "neighbour_block=" << neighbour_block << endl;
     cout << lead_in << "neighbour_face=" << neighbour_face 
 	 << " (" << get_face_name(neighbour_face) << ")" << endl;
@@ -471,16 +478,6 @@ int BoundaryCondition::apply_viscous( double t )
     // The default behaviour for viscous terms
     // is to do nothing at the boundary.
     return SUCCESS;
-}
-
-bool BoundaryCondition::is_wall()
-{
-    return is_wall_flag;
-}
-
-bool BoundaryCondition::use_udf_flux()
-{
-    return use_udf_flux_flag;
 }
 
 int BoundaryCondition::compute_surface_heat_flux( void ) 
@@ -889,7 +886,8 @@ int BoundaryCondition::write_vertex_velocities(std::string filename, double sim_
 
 BoundaryCondition *create_BC( Block *bdp, int which_boundary, bc_t type_of_BC, 
 			      int inflow_condition_id, std::string filename, size_t n_profile,
-			      double Twall, double Pout, int x_order, int is_wall, int use_udf_flux,
+			      double Twall, double Pout, int x_order, int is_wall,
+			      int sets_conv_flux_flag, int sets_visc_flux_flag, 
 			      int other_block, int other_face, int neighbour_orientation,
 			      int sponge_flag, int xforce_flag, 
 			      vector<double> &mdot, double epsilon,
@@ -944,12 +942,12 @@ BoundaryCondition *create_BC( Block *bdp, int which_boundary, bc_t type_of_BC,
 	break;
     case USER_DEFINED:
 	newBC = new UserDefinedBC( bdp, which_boundary, filename, 
-				   is_wall==1, use_udf_flux==1 );
+				   is_wall==1 );
 	break;
     case ADJACENT_PLUS_UDF:
 	newBC = new AdjacentPlusUDFBC( bdp, which_boundary, other_block, 
 				       other_face, neighbour_orientation,
-				       filename, is_wall==1, use_udf_flux==1);
+				       filename, is_wall==1 );
 	break;
     case SEB:
     	newBC = new SurfaceEnergyBalanceBC( bdp, which_boundary, epsilon );
@@ -995,6 +993,10 @@ BoundaryCondition *create_BC( Block *bdp, int which_boundary, bc_t type_of_BC,
     
     newBC->wc_bc = wc_bc;
     newBC->xforce_flag = xforce_flag;
+    if ( newBC == 0 ) {
+	cout << "Problem creating b.c.\n";
+	cout << "bdp= " << bdp << endl;
+    }
     return newBC;
 }
 

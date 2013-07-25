@@ -20,7 +20,7 @@ private:
 public:
     UserDefinedBC( Block *bdp, int which_boundary, 
 		   const std::string filename="udf.lua",
-		   bool is_wall=false, bool use_udf_flux=false );
+		   bool is_wall=false );
     UserDefinedBC( const UserDefinedBC &bc );
     UserDefinedBC();
     UserDefinedBC & operator=(const UserDefinedBC &bc);
@@ -43,7 +43,7 @@ public:
     AdjacentPlusUDFBC( Block *bdp, int which_boundary, int other_block, 
 		       int other_face, int neighbour_orientation=0,
 		       const std::string filename="udf.lua",
-		       bool is_wall=false, bool use_udf_flux=false );
+		       bool is_wall=false );
     AdjacentPlusUDFBC( const AdjacentPlusUDFBC &bc );
     virtual ~AdjacentPlusUDFBC();
 };

@@ -136,7 +136,7 @@ class BoundaryCondition(object):
     """
     __slots__ = 'type_of_BC', 'Twall', 'Pout', 'inflow_condition', \
                 'x_order', 'sponge_flag', 'other_block', 'other_face', 'orientation', \
-                'filename', 'n_profile', 'is_wall', 'use_udf_flux', 'assume_ideal', \
+                'filename', 'n_profile', 'is_wall', 'sets_conv_flux', 'sets_visc_flux', 'assume_ideal', \
                 'mdot', 'epsilon', 'Twall_i', 'Twall_f', 't_i', 't_f', 'label'
     def __init__(self,
                  type_of_BC=SLIP_WALL,
@@ -151,7 +151,8 @@ class BoundaryCondition(object):
                  filename="",
                  n_profile=1,
                  is_wall=0,
-                 use_udf_flux=0,
+                 sets_conv_flux=0,
+                 sets_visc_flux=0,
                  assume_ideal=0,
                  mdot = [],
                  epsilon=0.9,
@@ -192,10 +193,13 @@ class BoundaryCondition(object):
             for the StaticProfileBC.
         :param is_wall: Flag to indicate that various parts of the simulation code 
             should treat this boundary as a solid wall.
-        :param use_udf_flux: For this boundary, use the fluxes as computed directly
-            by the user-supplied Lua script.  This pretty much ignores the ghost-cell
+        :param sets_conv_flux: For this boundary, the fluxes are computed directly.
+            Typically, this relates to using a user-supplied Lus script which
+            provides a convective_flux() function. This pretty much ignores the ghost-cell
             data, however, it does not relieve the user of supplying a suitable 
             function for setting that data.
+        :param sets_visc_flux: As for sets_conv_flux except that this relates to
+            setting the viscous component of flux due to the effect of the boundary.
         :param assume_ideal:
         :param mdot:
         :param epsilon:
@@ -218,7 +222,8 @@ class BoundaryCondition(object):
         self.filename = filename
         self.n_profile = n_profile
         self.is_wall = is_wall
-        self.use_udf_flux = use_udf_flux
+        self.sets_conv_flux = sets_conv_flux
+        self.sets_visc_flux = sets_visc_flux
         self.assume_ideal = assume_ideal
         self.mdot = mdot
         self.epsilon = epsilon
@@ -243,7 +248,8 @@ class BoundaryCondition(object):
         str_rep += ", filename=\"%s\"" % self.filename
         str_rep += ", n_profile=%d" % self.n_profile
         str_rep += ", is_wall=%d" % self.is_wall
-        str_rep += ", use_udf_flux=%d" % self.use_udf_flux
+        str_rep += ", sets_conv_flux=%d" % self.sets_conv_flux
+        str_rep += ", sets_visc_flux=%d" % self.sets_visc_flux
         str_rep += ", assume_ideal=%d" % self.assume_ideal
         str_rep += ", mdot=["
         for mdi in mdot: str_rep += "%g," % mdi
@@ -263,7 +269,8 @@ class BoundaryCondition(object):
                                  filename=self.filename,
                                  n_profile=self.n_profile,
                                  is_wall=self.is_wall,
-                                 use_udf_flux=self.use_udf_flux,
+                                 sets_conv_flux=self.sets_conv_flux,
+                                 sets_visc_flux=self.sets_visc_flux,
                                  assume_ideal=self.assume_ideal,
                                  mdot=copy.copy(self.mdot),
                                  Twall_i=self.Twall_i,
@@ -667,29 +674,38 @@ class UserDefinedBC(BoundaryCondition):
     The actual flow data is computed (at run time) from the functions defined in that file.
     For details, please see the Appendix in the User Guide and Example Book.
     """
-    def __init__(self, filename="udf.lua", is_wall=0, use_udf_flux=0, label=""):
+    def __init__(self, filename="udf.lua", is_wall=0,
+                 sets_conv_flux=0, sets_visc_flux=0, label=""):
         """
         Construct a user-defined boundary condition.
 
         :param filename: Name of the file containing the Lua functions.
         :param is_wall: Flag to indicate that various parts of the simulation code 
             should treat this boundary as a solid wall.
-        :param use_udf_flux: For this boundary, use the fluxes as computed directly
-            by the user-supplied Lua script.  This pretty much ignores the ghost-cell
+        :param sets_conv_flux: For this boundary, the fluxes are computed directly.
+            Typically, this relates to using a user-supplied Lus script which
+            provides a convective_flux() function. This pretty much ignores the ghost-cell
             data, however, it does not relieve the user of supplying a suitable 
             function for setting that data.
+        :param sets_visc_flux: As for sets_conv_flux except that this relates to
+            setting the viscous component of flux due to the effect of the boundary.
         :param label: A string that may be used to assist in identifying the boundary
             in the post-processing phase of a simulation.
         """
         BoundaryCondition.__init__(self, type_of_BC=USER_DEFINED, filename=filename,
-                                   is_wall=is_wall, use_udf_flux=use_udf_flux, label=label)
+                                   is_wall=is_wall,
+                                   sets_conv_flux=sets_conv_flux, sets_visc_flux=sets_visc_flux,
+                                   label=label)
         return
     def __str__(self):
-        return "UserDefinedBC(filename=\"%s\", is_wall=%d, use_udf_flux=%d, label=\"%s\")" % \
-            (self.filename, self.iswall, self.use_udf_flux, self.label)
+        return ("UserDefinedBC(filename=\"%s\", is_wall=%d, sets_conv_flux=%d,  " +
+                "sets_visc_flux=%d, label=\"%s\")") % \
+            (self.filename, self.iswall, self.sets_conv_flux,
+             self.sets_visc_flux, self.label)
     def __copy__(self):
         return UserDefinedBC(filename=self.filename, is_wall=self.is_wall, 
-                             use_udf_flux=self.use_udf_flux, label=self.label)
+                             sets_conv_flux=self.sets_conv_flux, sets_visc_flux=self.sets_visc_flux,
+                             label=self.label)
     
 class AdjacentPlusUDFBC(BoundaryCondition):
     """
@@ -700,7 +716,8 @@ class AdjacentPlusUDFBC(BoundaryCondition):
     connect_blocks() function.
     """
     def __init__(self, other_block=-1, other_face=-1, orientation=0,
-                 filename="udf.lua", is_wall=0, use_udf_flux=0, label=""):
+                 filename="udf.lua", is_wall=0, sets_conv_flux=0,
+                 sets_visc_flux=0, label=""):
         """
         Construct a connecting boundary condition that also has some user-defined behaviour.
 
@@ -712,27 +729,33 @@ class AdjacentPlusUDFBC(BoundaryCondition):
         :param filename: Name of the file containing the Lua functions.
         :param is_wall: Flag to indicate that various parts of the simulation code 
             should treat this boundary as a solid wall.
-        :param use_udf_flux: For this boundary, use the fluxes as computed directly
-            by the user-supplied Lua script.  This pretty much ignores the ghost-cell
+        :param sets_conv_flux: For this boundary, the fluxes are computed directly.
+            Typically, this relates to using a user-supplied Lus script which
+            provides a convective_flux() function. This pretty much ignores the ghost-cell
             data, however, it does not relieve the user of supplying a suitable 
             function for setting that data.
+        :param sets_visc_flux: As for sets_conv_flux except that this relates to
+            setting the viscous component of flux due to the effect of the boundary.
         :param label: A string that may be used to assist in identifying the boundary
             in the post-processing phase of a simulation.
         """
         BoundaryCondition.__init__(self, type_of_BC=ADJACENT_PLUS_UDF, other_block=other_block,
                                    other_face=other_face, orientation=orientation,
-                                   filename=filename, is_wall=is_wall, use_udf_flux=use_udf_flux,
+                                   filename=filename, is_wall=is_wall,
+                                   sets_conv_flux=sets_conv_flux, sets_visc_flux=sets_visc_flux, 
                                    label=label)
         return
     def __str__(self):
         return ("AdjacentPlusUDFBC(other_block=%d, other_face=%d, orientation=%d, " + 
-                "filename=\"%s\", is_wall=%d, use_udf_flux=%d, label=\"%s\")") % \
+                "filename=\"%s\", is_wall=%d, sets_conv_flux=%d, sets_visc_flux=%d, label=\"%s\")") % \
                (self.other_block, self.other_face, self.orientation, 
-                self.filename, self.is_wall, self.use_udf_flux, self.label)
+                self.filename, self.is_wall, self.sets_conv_flux, self.sets_visc_flux,
+                self.label)
     def __copy__(self):
         return AdjacentPlusUDFBC(other_block=self.other_block, other_face=self.other_face,
                                  orientation=self.orientation, filename=self.filename,
-                                 is_wall=self.is_wall, use_udf_flux=self.use_udf_flux,
+                                 is_wall=self.is_wall,
+                                 sets_conv_flux=self.sets_conv_flux, sets_visc_flux=self.sets_visc_flux,
                                  label=self.label)
      
 class SurfaceEnergyBalanceBC(BoundaryCondition):

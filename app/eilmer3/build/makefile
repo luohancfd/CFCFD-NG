@@ -490,7 +490,7 @@ exch_mpi.o : $(SRC)/exch_mpi.cxx $(SRC)/exch_mpi.hh $(SRC)/block.hh \
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(CFLAG_MPI) -D_MPI $(SRC)/exch_mpi.cxx -o exch_mpi.o
 
 init.o : $(SRC)/init.cxx $(SRC)/init.hh $(SRC)/kernel.hh $(SRC)/block.hh \
-		$(SRC)/bc.hh $(SRC)/bc_defs.hh $(SRC)/diffusion.hh $(SRC)/visc.hh $(LIBLUA)
+		$(SRC)/bc.hh $(SRC)/diffusion.hh $(SRC)/visc.hh $(LIBLUA)
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/init.cxx -o init.o
 
 bc.o : $(SRC)/bc.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
@@ -593,20 +593,17 @@ kernel.o : $(SRC)/kernel.cxx $(SRC)/cell.hh $(SRC)/kernel.hh $(SRC)/block.hh $(L
 block_invs.o : $(SRC)/block_invs.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/block_invs.cxx -o block_invs.o
 
-visc.o : $(SRC)/visc.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(SRC)/bc_defs.hh \
-		$(SRC)/diffusion.hh $(LIBLUA)
+visc.o : $(SRC)/visc.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(SRC)/diffusion.hh $(LIBLUA)
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/visc.cxx -o visc.o
 
-visc3D.o : $(SRC)/visc3D.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(SRC)/bc_defs.hh \
-		$(SRC)/diffusion.hh $(LIBLUA)
+visc3D.o : $(SRC)/visc3D.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(SRC)/diffusion.hh $(LIBLUA)
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/visc3D.cxx -o visc3D.o
 
 $(SRC)/visc3D.cxx : $(SRC)/visc3D.cxx.m4
 	m4 $(SRC)/visc3D.cxx.m4 > $(SRC)/visc3D.cxx
 
 baldwin_lomax.o : $(SRC)/baldwin_lomax.cxx $(SRC)/block.hh $(SRC)/kernel.hh \
-		$(SRC)/bc.hh $(SRC)/bc_defs.hh \
-		$(SRC)/diffusion.hh $(LIBLUA)
+		$(SRC)/bc.hh $(SRC)/diffusion.hh $(LIBLUA)
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/baldwin_lomax.cxx -o baldwin_lomax.o
 
 diffusion.o : $(SRC)/diffusion.cxx $(SRC)/diffusion.hh $(LIBLUA)

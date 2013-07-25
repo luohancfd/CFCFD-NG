@@ -43,7 +43,7 @@
 
 AblatingBC::AblatingBC()
     : BoundaryCondition(0, 0, ABLATING, "AblatingBC",
-			0, false, false, -1, -1, 0)
+			0, false, false, false, -1, -1, 0)
       // Default-initialise everything else since we really can't use
       // this default-initialised BC.
 {}
@@ -53,7 +53,7 @@ AblatingBC::AblatingBC()
 AblatingBC::AblatingBC( Block *bdp, int which_boundary, double Twall, 
 			vector<double> &mdot)
     : BoundaryCondition(bdp, which_boundary, ABLATING, "AblatingBC",
-			0, true, false, -1, -1, 0),
+			0, true, false, false, -1, -1, 0),
       Twall(Twall), mdot(mdot), max_iterations(1000000), tol(1.0e-6)
 {
 
@@ -90,7 +90,8 @@ AblatingBC::AblatingBC( Block *bdp, int which_boundary, double Twall,
 
 AblatingBC::AblatingBC( const AblatingBC &bc )
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.x_order, bc.is_wall_flag, bc.use_udf_flux_flag,
+			bc.x_order, bc.is_wall_flag,
+			bc.sets_conv_flux_flag, bc.sets_visc_flux_flag,
 			bc.neighbour_block, bc.neighbour_face,
 			bc.neighbour_orientation),
       Twall(bc.Twall), mdot(bc.mdot), mdot_total(bc.mdot_total),

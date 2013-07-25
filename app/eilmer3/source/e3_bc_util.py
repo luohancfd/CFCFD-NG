@@ -176,7 +176,8 @@ def apply_gridpro_bcs(fname, blks, bc_map):
                 blk.set_BC(face, 'USER_DEFINED',
                            filename=bc_map['USER_DEFINED']['filename'],
                            is_wall=bc_map['USER_DEFINED'].get('is_wall', 0),
-                           use_udf_flux=bc_map['USER_DEFINED'].get('use_udf_flux', 0))
+                           sets_conv_flux=bc_map['USER_DEFINED'].get('sets_conv_flux', 0),
+                           sets_visc_flux=bc_map['USER_DEFINED'].get('sets_visc_flux', 0))
             elif bc_type == 'INTERBLK':
                 # This should already be set when block connections were
                 # identified.

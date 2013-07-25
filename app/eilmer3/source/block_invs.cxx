@@ -90,9 +90,9 @@ int Block::inviscid_flux(size_t dimensions)
 		    // The values for u, v and T may be updated subsequently by the interface-flux function.
 		    IFace->fs->average_values_from(Lft, Rght, get_diffusion_flag()==1);
 		    // Finally, the flux calculation itself.
-		    if ( (i == imin && bcp[WEST]->use_udf_flux()) ||
-			 (i == imax+1 && bcp[EAST]->use_udf_flux()) ) {
-			// Retain the user-defined flux at the boundary by doing nothing here.
+		    if ( (i == imin && bcp[WEST]->sets_conv_flux()) ||
+			 (i == imax+1 && bcp[EAST]->sets_conv_flux()) ) {
+			// Retain the b.c. set flux at the boundary by doing nothing here.
 		    } else {
 			compute_interface_flux(Lft, Rght, *IFace, omegaz);
 		    }
@@ -138,10 +138,9 @@ int Block::inviscid_flux(size_t dimensions)
 		// The values for u, v and T may be updated subsequently by the interface-flux function.
 	        IFace->fs->average_values_from(Lft, Rght, get_diffusion_flag()==1);
 		// Finally, the flux calculation.
-	        if ( (j == jmin && bcp[SOUTH]->use_udf_flux()) ||
-	             (j == jmax+1 && bcp[NORTH]->use_udf_flux()) ) {
-	            // Retain the user-defined flux at the boundary
-	            // by doing nothing here.
+	        if ( (j == jmin && bcp[SOUTH]->sets_conv_flux()) ||
+	             (j == jmax+1 && bcp[NORTH]->sets_conv_flux()) ) {
+	            // Retain the b.c. flux at the boundary by doing nothing here.
 	        } else {
 	            compute_interface_flux(Lft, Rght, *IFace, omegaz);
 	        } // end if
@@ -174,10 +173,9 @@ int Block::inviscid_flux(size_t dimensions)
 		// The values for u, v and T may be updated subsequently by the interface-flux function.
 		IFace->fs->average_values_from(Lft, Rght, get_diffusion_flag()==1);
 		// Finally, the flux calculation.
-		if ( (k == kmin && bcp[BOTTOM]->use_udf_flux()) ||
-		     (k == kmax+1 && bcp[TOP]->use_udf_flux()) ) {
-		    // Retain the user-defined flux at the boundary
-		    // by doing nothing here.
+		if ( (k == kmin && bcp[BOTTOM]->sets_conv_flux()) ||
+		     (k == kmax+1 && bcp[TOP]->sets_conv_flux()) ) {
+		    // Retain the b.c. set flux at the boundary by doing nothing here.
 		} else {
 		    compute_interface_flux(Lft, Rght, *IFace, omegaz);
 		} // end if

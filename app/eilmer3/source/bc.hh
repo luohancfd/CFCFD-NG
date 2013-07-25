@@ -100,7 +100,8 @@ public:
     string name_of_BC;
     int x_order;
     bool is_wall_flag;
-    bool use_udf_flux_flag;
+    bool sets_conv_flux_flag;
+    bool sets_visc_flux_flag;
     int neighbour_block;
     int neighbour_face;
     int neighbour_orientation;
@@ -117,7 +118,8 @@ public:
     BoundaryCondition( Block *bdp, int which_boundary, bc_t type_code,
 		       std::string name_of_BC="Unspecified", 
 		       int x_order=0,
-		       bool is_wall=false, bool use_udf_flux=false,
+		       bool is_wall=false,
+		       bool sets_conv_flux=false, bool sets_visc_flux=false,
 		       int neighbour_block=-1, int neighbour_face=-1,
 		       int neighbour_orientation=0,
 		       bc_t wc_bc=NON_CATALYTIC, int sponge_flag=0, 
@@ -128,12 +130,21 @@ public:
     virtual ~BoundaryCondition();
     virtual int apply_convective( double t ); // reflect normal velocity
     virtual int apply_viscous( double t );  // does nothing
-    bool is_wall(); 
+    bool is_wall()
+    { return is_wall_flag; }
     // a true value indicates that this boundary is like a (solid) wall
     // some parts of the code (e.g. the turbulence models) need this information
-    bool use_udf_flux(); 
-    // a true value indicates that we want the UDF flux 
-    // instead of the internally calculated flux
+    bool sets_conv_flux()
+    { return sets_conv_flux_flag; } 
+    // a true value indicates that the boundary condition is responsible for
+    // setting the convective flux directly. When this is true, the internally
+    // calculated flux is skipped and the b.c. flux is applied.
+    bool sets_visc_flux()
+    { return sets_visc_flux_flag; }
+    // a true value indicates that the boundary condition is responsible for
+    // setting the viscous flux directly. When this is true, the internally
+    // calculated flux (based on spatial derivatives and interface propertiers)
+    // is written over by the b.c. flux.
     void print_info( std::string lead_in );
     int write_vertex_velocities(std::string filename, double sim_time,
 				size_t dimensions, size_t gtl=0);
@@ -150,8 +161,8 @@ public:
 
 BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 			     int inflow_condition_id, std::string filename, size_t n_profile,
-			     double Twall, double Pout, int x_order, int is_wall, int use_udf_flux,
-			     int other_block, int other_face, int neighbour_orientation,
+			     double Twall, double Pout, int x_order, int is_wall, int sets_conv_flux,
+			     int sets_visc_flux, int other_block, int other_face, int neighbour_orientation,
 			     int sponge_flag, int xforce_flag,
 			     std::vector<double> &mdot, double epsilon,
 			     bc_t wc_bc, std::string wcbc_fname, std::vector<double> f_wall,

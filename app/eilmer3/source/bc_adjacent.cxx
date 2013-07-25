@@ -13,13 +13,14 @@
 AdjacentBC::AdjacentBC( Block *bdp, int which_boundary, 
 			int other_block, int other_face,
 			int neighbour_orientation)
-    : BoundaryCondition(bdp, which_boundary, ADJACENT, "AdjacentBC", 0, false, false, 
+    : BoundaryCondition(bdp, which_boundary, ADJACENT, "AdjacentBC", 0, false, false, false,
 			other_block, other_face, neighbour_orientation) 
 {}
 
 AdjacentBC::AdjacentBC( const AdjacentBC &bc )
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.x_order, bc.is_wall_flag, bc.use_udf_flux_flag,
+			bc.x_order, bc.is_wall_flag,
+			bc.sets_conv_flux_flag, bc.sets_visc_flux_flag, 
 			bc.neighbour_block, bc.neighbour_face,
 			bc.neighbour_orientation) 
 {}

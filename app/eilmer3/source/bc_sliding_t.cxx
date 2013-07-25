@@ -15,13 +15,14 @@
 
 SlidingTBC::SlidingTBC( Block *bdp, int which_boundary, double Twall_i, double Twall_f, double t_i, double t_f )
     : BoundaryCondition(bdp, which_boundary, SLIDING_T, "SlidingTBC",
-			0, true, false, -1, -1, 0),
+			0, true, false, false, -1, -1, 0),
       Twall_i(Twall_i), Twall_f(Twall_f), t_i(t_i), t_f(t_f)
 {}
 
 SlidingTBC::SlidingTBC( const SlidingTBC &bc )
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.x_order, bc.is_wall_flag, bc.use_udf_flux_flag,
+			bc.x_order, bc.is_wall_flag, 
+			bc.sets_conv_flux_flag, bc.sets_visc_flux_flag,
 			bc.neighbour_block, bc.neighbour_face,
 			bc.neighbour_orientation),
       Twall_i(bc.Twall_i), Twall_f(bc.Twall_f), t_i(bc.t_i), t_f(bc.t_f)

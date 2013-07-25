@@ -513,8 +513,8 @@ class Block(object):
     def set_BC(self, face_name, type_of_BC,
                inflow_condition=None, x_order=0, sponge_flag=None,
                Twall=None, Pout=None, filename=None, n_profile=1,
-               is_wall=0, use_udf_flux=0, assume_ideal=0, 
-               mdot=None, epsilon=None,
+               is_wall=0, sets_conv_flux=0, sets_visc_flux=0,
+               assume_ideal=0, mdot=None, epsilon=None,
                Twall_i=None, Twall_f=None, t_i=None, t_f=None,
                label=''):
         """
@@ -608,7 +608,7 @@ class Block(object):
             newbc = RRMBC(sponge_flag, label=label)
         if type_of_BC == USER_DEFINED:
             if not filename: filename = "udf.lua"
-            newbc = UserDefinedBC(filename, is_wall, use_udf_flux, label=label)
+            newbc = UserDefinedBC(filename, is_wall, sets_conv_flux, sets_visc_flux, label=label)
         if type_of_BC == SEB:
             newbc = SurfaceEnergyBalanceBC(epsilon, label=label)
         if type_of_BC == ABLATING:
@@ -703,7 +703,8 @@ class Block(object):
             fp.write("Twall = %e\n" % bc.Twall)
             fp.write("Pout = %e\n" % bc.Pout)
             fp.write("is_wall = %d\n" % bc.is_wall)
-            fp.write("use_udf_flux = %d\n" % bc.use_udf_flux)
+            fp.write("sets_conv_flux = %d\n" % bc.sets_conv_flux)
+            fp.write("sets_visc_flux = %d\n" % bc.sets_visc_flux)
             fp.write("assume_ideal = %d\n" % bc.assume_ideal)
             fp.write("mdot = ")
             for val in bc.mdot:
@@ -989,7 +990,8 @@ class Block2D(Block):
         return (centre_x, centre_y, 0.0, vol)
     
 def connect_blocks_2D(A, faceA, B, faceB, with_udf=0, 
-                      filename=None, is_wall=0, use_udf_flux=0):
+                      filename=None, is_wall=0,
+                      sets_conv_flux=0, sets_visc_flux=0):
     """
     Make the face-to-face connection between neighbouring blocks.
 
@@ -1009,9 +1011,11 @@ def connect_blocks_2D(A, faceA, B, faceB, with_udf=0,
     if with_udf:
         # Exchange connection with user-defined function.
         A.bc_list[faceA] = AdjacentPlusUDFBC(B.blkId, faceB, filename=filename, 
-                                             is_wall=is_wall, use_udf_flux=use_udf_flux)
+                                             is_wall=is_wall,
+                                             sets_conv_flux=sets_conv_flux, sets_visc_flux=sets_visc_flux)
         B.bc_list[faceB] = AdjacentPlusUDFBC(A.blkId, faceA, filename=filename, 
-                                             is_wall=is_wall, use_udf_flux=use_udf_flux)
+                                             is_wall=is_wall,
+                                             sets_conv_flux=sets_conv_flux, sets_visc_flux=sets_visc_flux)
     else:
         # Classic exchange connection.
         A.bc_list[faceA] = AdjacentBC(B.blkId, faceB)
@@ -1897,7 +1901,8 @@ def identify_colocated_vertices(A, B, tolerance):
     return vtxPairList
 
 def connect_blocks_3D(A, B, vtx_pairs, with_udf=0, 
-                      filename=None, is_wall=0, use_udf_flux=0):
+                      filename=None, is_wall=0,
+                      sets_conv_flux=0, sets_visc_flux=0):
     """
     Make the specified vertex-to-vertex connection between neighbouring blocks.
 
@@ -1927,9 +1932,11 @@ def connect_blocks_3D(A, B, vtx_pairs, with_udf=0,
     if with_udf:
         # Exchange connection with user-defined function
         A.bc_list[faceA] = AdjacentPlusUDFBC(B.blkId, faceB, orientation, filename=filename, 
-                                             is_wall=is_wall, use_udf_flux=use_udf_flux)
+                                             is_wall=is_wall,
+                                             sets_conv_flux=sets_conv_flux, sets_visc_flux=sets_visc_flux)
         B.bc_list[faceB] = AdjacentPlusUDFBC(A.blkId, faceA, orientation, filename=filename, 
-                                             is_wall=is_wall, use_udf_flux=use_udf_flux)
+                                             is_wall=is_wall,
+                                             sets_conv_flux=sets_conv_flux, sets_visc_flux=sets_visc_flux)
     else:
         # Classic exchange connection.
         A.bc_list[faceA] = AdjacentBC(B.blkId, faceB, orientation)

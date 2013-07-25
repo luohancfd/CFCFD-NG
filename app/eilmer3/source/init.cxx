@@ -975,7 +975,8 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
     int x_order, sponge_flag, xforce_flag;
     size_t n_profile;
     string value_string, block_label, filename, wcbc_fname;
-    int inflow_condition_id, is_wall, use_udf_flux, assume_ideal;
+    int inflow_condition_id, is_wall, assume_ideal;
+    int sets_conv_flux, sets_visc_flux;
     double Twall, Pout, epsilon;
     std::vector<double> f_wall_va;
     std::vector<double> f_wall, vnf;
@@ -1051,7 +1052,8 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 	dict.parse_double(section, "Twall", Twall, 300.0);
 	dict.parse_double(section, "Pout", Pout, 100.0e3);
 	dict.parse_int(section, "is_wall", is_wall, 0);
-	dict.parse_int(section, "use_udf_flux", use_udf_flux, 0);
+	dict.parse_int(section, "sets_conv_flux", sets_conv_flux, 0);
+	dict.parse_int(section, "sets_visc_flux", sets_visc_flux, 0);
 	dict.parse_int(section, "assume_ideal", assume_ideal, 0);
 	dict.parse_vector_of_doubles(section, "mdot", mdot, vnf);
 	dict.parse_double(section, "epsilon", epsilon, 0.9);
@@ -1079,7 +1081,7 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 
 	bd.bcp[iface] = create_BC( &bd, iface, bc_type_code, inflow_condition_id, 
 				    filename, n_profile, Twall, Pout,
-				    x_order, is_wall, use_udf_flux,
+				    x_order, is_wall, sets_conv_flux, sets_visc_flux,
 				    other_block, other_face, neighbour_orientation,
 				    sponge_flag, xforce_flag, mdot, epsilon,
 				    wc_bc, wcbc_fname, f_wall,

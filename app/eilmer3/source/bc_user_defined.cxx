@@ -35,9 +35,9 @@ extern "C" {
 
 UserDefinedBC::UserDefinedBC( Block *bdp, int which_boundary,
 			      const std::string filename,
-			      bool is_wall, bool use_udf_flux )
+			      bool is_wall )
     : BoundaryCondition(bdp, which_boundary, USER_DEFINED, "UserDefinedBC",
-			0, is_wall, use_udf_flux),
+			0, is_wall),
       filename(filename)
 {
     start_interpreter();
@@ -45,7 +45,8 @@ UserDefinedBC::UserDefinedBC( Block *bdp, int which_boundary,
 
 UserDefinedBC::UserDefinedBC( const UserDefinedBC &bc )
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.x_order, bc.is_wall_flag, bc.use_udf_flux_flag,
+			bc.x_order, bc.is_wall_flag,
+			bc.sets_conv_flux_flag, bc.sets_visc_flux_flag,
 			bc.neighbour_block, bc.neighbour_face,
 			bc.neighbour_orientation),
       filename(bc.filename) 
@@ -93,7 +94,7 @@ int UserDefinedBC::apply_convective( double t )
 		IFace = cell->iface[NORTH];
 		dest_cell = bd.get_cell(i,j+1,k);
 		eval_inviscid_udf( t, i, j, k, IFace );
-		if ( use_udf_flux_flag ) {
+		if ( sets_conv_flux_flag ) {
 		    eval_flux_udf( t, i, j, k, IFace );
 		}
 		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
@@ -115,7 +116,7 @@ int UserDefinedBC::apply_convective( double t )
 		IFace = cell->iface[EAST];
 		dest_cell = bd.get_cell(i+1,j,k);
 		eval_inviscid_udf( t, i, j, k, IFace );
-		if ( use_udf_flux_flag ) {
+		if ( sets_conv_flux_flag ) {
 		    eval_flux_udf( t, i, j, k, IFace );
 		}
 		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
@@ -134,7 +135,7 @@ int UserDefinedBC::apply_convective( double t )
 		IFace = cell->iface[SOUTH];
 		dest_cell = bd.get_cell(i,j-1,k);
 		eval_inviscid_udf( t, i, j, k, IFace );
-		if ( use_udf_flux_flag ) {
+		if ( sets_conv_flux_flag ) {
 		    eval_flux_udf( t, i, j, k, IFace );
 		}
 		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
@@ -153,7 +154,7 @@ int UserDefinedBC::apply_convective( double t )
 		IFace = cell->iface[WEST];
 		dest_cell = bd.get_cell(i-1,j,k);
 		eval_inviscid_udf( t, i, j, k, IFace );
-		if ( use_udf_flux_flag ) {
+		if ( sets_conv_flux_flag ) {
 		    eval_flux_udf( t, i, j, k, IFace );
 		}
 		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
@@ -172,7 +173,7 @@ int UserDefinedBC::apply_convective( double t )
 		IFace = cell->iface[TOP];
 		dest_cell = bd.get_cell(i,j,k+1);
 		eval_inviscid_udf( t, i, j, k, IFace );
-		if ( use_udf_flux_flag ) {
+		if ( sets_conv_flux_flag ) {
 		    eval_flux_udf( t, i, j, k, IFace );
 		}
 		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
@@ -191,7 +192,7 @@ int UserDefinedBC::apply_convective( double t )
 		IFace = cell->iface[BOTTOM];
 		dest_cell = bd.get_cell(i,j,k-1);
 		eval_inviscid_udf( t, i, j, k, IFace );
-		if ( use_udf_flux_flag ) {
+		if ( sets_conv_flux_flag ) {
 		    eval_flux_udf( t, i, j, k, IFace );
 		}
 		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
@@ -601,8 +602,8 @@ AdjacentPlusUDFBC::AdjacentPlusUDFBC( Block *bdp, int which_boundary,
 				      int other_block, int other_face,
 				      int _neighbour_orientation,
 				      const std::string filename,
-				      bool is_wall, bool use_udf_flux)
-    : UserDefinedBC(bdp, which_boundary, filename, is_wall, use_udf_flux)
+				      bool is_wall)
+    : UserDefinedBC(bdp, which_boundary, filename, is_wall)
 {
     type_code = ADJACENT_PLUS_UDF; // Needs to overwrite UserDefinedBC entry.
     neighbour_block = other_block; 
@@ -612,7 +613,7 @@ AdjacentPlusUDFBC::AdjacentPlusUDFBC( Block *bdp, int which_boundary,
 
 AdjacentPlusUDFBC::AdjacentPlusUDFBC( const AdjacentPlusUDFBC &bc )
     : UserDefinedBC(bc.bdp, bc.which_boundary, bc.filename, 
-		    bc.is_wall_flag, bc.use_udf_flux_flag)
+		    bc.is_wall_flag)
 {
     type_code = bc.type_code;
     neighbour_block = bc.neighbour_block; 

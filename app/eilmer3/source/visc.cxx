@@ -146,6 +146,11 @@ int viscous_flux_2D(Block *A)
     // East-facing interfaces.
     for ( size_t i = A->imin; i <= A->imax+1; ++i ) {
         for ( size_t j = A->jmin; j <= A->jmax; ++j ) {
+	    if ( (i == A->imin && A->bcp[WEST]->sets_visc_flux()) ||
+		 (i == A->imax+1 && A->bcp[EAST]->sets_visc_flux()) ) {
+		// Retain the b.c. set flux by doing nothing, just continue
+		continue;
+	    }
             IFace = A->get_ifi(i,j);
 	    FlowState &fs = *(IFace->fs);
 	    // When getting the velocity for upwinding, use the interface value
@@ -303,6 +308,11 @@ int viscous_flux_2D(Block *A)
      */
     for ( size_t i = A->imin; i <= A->imax; ++i ) {
         for ( size_t j = A->jmin; j <= A->jmax+1; ++j ) {
+	    if ( (j == A->jmin && A->bcp[SOUTH]->sets_visc_flux()) ||
+		 (j == A->jmax+1 && A->bcp[NORTH]->sets_visc_flux()) ) {
+		// Retain the b.c. set flux by doing nothing, just continue
+		continue;
+	    }
             IFace = A->get_ifj(i,j);
 	    FlowState &fs = *(IFace->fs);
 	    // When getting the velocity for upwinding, use the interface value
