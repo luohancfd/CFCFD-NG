@@ -60,8 +60,8 @@ blk_1 = Block2D(make_patch(ed, cd, bc, be, "AO"), nni=nx1, nnj=ny,
 # blk_1.set_BC(EAST, EXTRAPOLATE_OUT)   # another way
 # --------------------------------------------------------------
 connect_blocks_2D(blk_0, EAST, blk_1, WEST, with_udf=1, 
-                  filename="diaphragm-test.lua", is_wall=0, use_udf_flux=0)
-blk_0.set_BC(WEST, USER_DEFINED, filename="udf-supersonic-in.lua", use_udf_flux=1)
+                  filename="diaphragm-test.lua", is_wall=0, sets_conv_flux=0)
+blk_0.set_BC(WEST, USER_DEFINED, filename="udf-supersonic-in.lua", sets_conv_flux=1)
 blk_0.set_BC(SOUTH, USER_DEFINED, filename="udf-slip-wall.lua", is_wall=1)
 blk_1.set_BC(EAST, USER_DEFINED, filename="udf-extrapolate-out.lua")
 blk_1.set_BC(SOUTH, USER_DEFINED, filename="udf-slip-wall.lua", is_wall=1)

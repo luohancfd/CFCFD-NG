@@ -45,7 +45,7 @@ blk_1 = Block2D(make_patch(ed, cd, bc, be, "AO"), nni=nx1, nnj=ny,
                 fill_condition=initial, label="BLOCK-1",
                 hcell_list=[(9,0)], xforce_list=[0,0,1,0])
 identify_block_connections()
-blk_0.set_BC(WEST, USER_DEFINED, filename="udf-supersonic-in.lua", use_udf_flux=1)
+blk_0.set_BC(WEST, USER_DEFINED, filename="udf-supersonic-in.lua", sets_conv_flux=1)
 blk_0.set_BC(SOUTH, USER_DEFINED, filename="udf-slip-wall.lua", is_wall=1)
 blk_1.set_BC(EAST, USER_DEFINED, filename="udf-extrapolate-out.lua")
 blk_1.set_BC(SOUTH, USER_DEFINED, filename="udf-slip-wall.lua", is_wall=1)

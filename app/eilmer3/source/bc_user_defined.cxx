@@ -56,7 +56,7 @@ UserDefinedBC::UserDefinedBC( const UserDefinedBC &bc )
 
 UserDefinedBC::UserDefinedBC()
     : BoundaryCondition(0, 0, USER_DEFINED, "UserDefinedBC",
-			0, false, false),
+			0, false, false, false),
       filename("")
 {
     // Cannot do much useful here because we don't have a filename.
@@ -93,9 +93,9 @@ int UserDefinedBC::apply_convective( double t )
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[NORTH];
 		dest_cell = bd.get_cell(i,j+1,k);
-		eval_inviscid_udf( t, i, j, k, IFace );
+		eval_ghost_cell_udf( t, i, j, k, IFace );
 		if ( sets_conv_flux_flag ) {
-		    eval_flux_udf( t, i, j, k, IFace );
+		    eval_conv_flux_udf( t, i, j, k, IFace );
 		}
 		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
 		dest_cell = bd.get_cell(i,j+2,k);
@@ -115,9 +115,9 @@ int UserDefinedBC::apply_convective( double t )
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[EAST];
 		dest_cell = bd.get_cell(i+1,j,k);
-		eval_inviscid_udf( t, i, j, k, IFace );
+		eval_ghost_cell_udf( t, i, j, k, IFace );
 		if ( sets_conv_flux_flag ) {
-		    eval_flux_udf( t, i, j, k, IFace );
+		    eval_conv_flux_udf( t, i, j, k, IFace );
 		}
 		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
 		dest_cell = bd.get_cell(i+2,j,k);
@@ -134,9 +134,9 @@ int UserDefinedBC::apply_convective( double t )
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[SOUTH];
 		dest_cell = bd.get_cell(i,j-1,k);
-		eval_inviscid_udf( t, i, j, k, IFace );
+		eval_ghost_cell_udf( t, i, j, k, IFace );
 		if ( sets_conv_flux_flag ) {
-		    eval_flux_udf( t, i, j, k, IFace );
+		    eval_conv_flux_udf( t, i, j, k, IFace );
 		}
 		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
 		dest_cell = bd.get_cell(i,j-2,k);
@@ -153,9 +153,9 @@ int UserDefinedBC::apply_convective( double t )
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[WEST];
 		dest_cell = bd.get_cell(i-1,j,k);
-		eval_inviscid_udf( t, i, j, k, IFace );
+		eval_ghost_cell_udf( t, i, j, k, IFace );
 		if ( sets_conv_flux_flag ) {
-		    eval_flux_udf( t, i, j, k, IFace );
+		    eval_conv_flux_udf( t, i, j, k, IFace );
 		}
 		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
 		dest_cell = bd.get_cell(i-2,j,k);
@@ -172,9 +172,9 @@ int UserDefinedBC::apply_convective( double t )
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[TOP];
 		dest_cell = bd.get_cell(i,j,k+1);
-		eval_inviscid_udf( t, i, j, k, IFace );
+		eval_ghost_cell_udf( t, i, j, k, IFace );
 		if ( sets_conv_flux_flag ) {
-		    eval_flux_udf( t, i, j, k, IFace );
+		    eval_conv_flux_udf( t, i, j, k, IFace );
 		}
 		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
 		dest_cell = bd.get_cell(i,j,k+2);
@@ -191,9 +191,9 @@ int UserDefinedBC::apply_convective( double t )
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[BOTTOM];
 		dest_cell = bd.get_cell(i,j,k-1);
-		eval_inviscid_udf( t, i, j, k, IFace );
+		eval_ghost_cell_udf( t, i, j, k, IFace );
 		if ( sets_conv_flux_flag ) {
-		    eval_flux_udf( t, i, j, k, IFace );
+		    eval_conv_flux_udf( t, i, j, k, IFace );
 		}
 		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
 		dest_cell = bd.get_cell(i,j,k-2);
@@ -226,7 +226,10 @@ int UserDefinedBC::apply_viscous( double t )
 	    for (i = bd.imin; i <= bd.imax; ++i) {
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[NORTH];
-		eval_viscous_udf( t, i, j, k, IFace, cell );
+		eval_iface_udf( t, i, j, k, IFace, cell );
+		if ( sets_visc_flux_flag ) {
+		    eval_visc_flux_udf( t, i, j, k, IFace );
+		}
 	    } // end i loop
 	} // for k
 	break;
@@ -236,7 +239,10 @@ int UserDefinedBC::apply_viscous( double t )
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[EAST];
-		eval_viscous_udf( t, i, j, k, IFace, cell );
+		eval_iface_udf( t, i, j, k, IFace, cell );
+		if ( sets_visc_flux_flag ) {
+		    eval_visc_flux_udf( t, i, j, k, IFace );
+		}
 	    } // end j loop
 	} // for k
 	break;
@@ -246,7 +252,10 @@ int UserDefinedBC::apply_viscous( double t )
 	    for (i = bd.imin; i <= bd.imax; ++i) {
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[SOUTH];
-		eval_viscous_udf( t, i, j, k, IFace, cell );
+		eval_iface_udf( t, i, j, k, IFace, cell );
+		if ( sets_visc_flux_flag ) {
+		    eval_visc_flux_udf( t, i, j, k, IFace );
+		}
 	    } // end i loop
 	} // for k
 	break;
@@ -256,7 +265,10 @@ int UserDefinedBC::apply_viscous( double t )
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[WEST];
-		eval_viscous_udf( t, i, j, k, IFace, cell );
+		eval_iface_udf( t, i, j, k, IFace, cell );
+		if ( sets_visc_flux_flag ) {
+		    eval_visc_flux_udf( t, i, j, k, IFace );
+		}
 	    } // end j loop
 	} // for k
  	break;
@@ -266,7 +278,10 @@ int UserDefinedBC::apply_viscous( double t )
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[BOTTOM];
-		eval_viscous_udf( t, i, j, k, IFace, cell );
+		eval_iface_udf( t, i, j, k, IFace, cell );
+		if ( sets_visc_flux_flag ) {
+		    eval_visc_flux_udf( t, i, j, k, IFace );
+		}
 	    } // end j loop
 	} // for k
  	break;
@@ -276,7 +291,10 @@ int UserDefinedBC::apply_viscous( double t )
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[TOP];
-		eval_viscous_udf( t, i, j, k, IFace, cell );
+		eval_iface_udf( t, i, j, k, IFace, cell );
+		if ( sets_visc_flux_flag ) {
+		    eval_visc_flux_udf( t, i, j, k, IFace );
+		}
 	    } // end j loop
 	} // for k
  	break;
@@ -341,12 +359,12 @@ int UserDefinedBC::start_interpreter()
     return SUCCESS;
 } // end start_interpreter()
 
-int UserDefinedBC::eval_flux_udf( double t, size_t i, size_t j, size_t k, FV_Interface *IFace )
+int UserDefinedBC::eval_conv_flux_udf( double t, size_t i, size_t j, size_t k, FV_Interface *IFace )
 {
     // Call the user-defined function which returns a table 
     // of fluxes of conserved quantities.
     // This give the user complete control over what happens at the boundary.
-    // cout << "UserDefinedBC::eval_flux_udf() Begin" << endl;
+    // cout << "UserDefinedBC::eval_conv_flux_udf() Begin" << endl;
     double x = IFace->pos.x; 
     double y = IFace->pos.y;
     double z = IFace->pos.z;
@@ -354,7 +372,7 @@ int UserDefinedBC::eval_flux_udf( double t, size_t i, size_t j, size_t k, FV_Int
     double csY = IFace->n.y;
     double csZ = IFace->n.z;
 
-    lua_getglobal(L, "flux");  // function to be called
+    lua_getglobal(L, "convective_flux");  // function to be called
     lua_newtable(L); // creates a table that is now at the TOS
     lua_pushnumber(L, t); lua_setfield(L, -2, "t");
     lua_pushnumber(L, x); lua_setfield(L, -2, "x");
@@ -375,7 +393,6 @@ int UserDefinedBC::eval_flux_udf( double t, size_t i, size_t j, size_t k, FV_Int
     }
     ConservedQuantities &F = *(IFace->F);
     // Assume that there is a single table at the TOS
-    // cout << "Table of fluxes of mass fractions" << endl;
     lua_getfield(L, -1, "species"); // put mass-fraction table at TOS 
     for ( size_t isp = 0; isp < nsp; ++isp ) {
 	lua_pushinteger(L, isp);
@@ -401,11 +418,10 @@ int UserDefinedBC::eval_flux_udf( double t, size_t i, size_t j, size_t k, FV_Int
     lua_getfield(L, -1, "romega"); F.omega = lua_tonumber(L, -1); lua_pop(L, 1);
     lua_getfield(L, -1, "rtke"); F.tke = lua_tonumber(L, -1); lua_pop(L, 1);
     lua_settop(L, 0); // clear the stack
-    //cout << "End of eval_flux_udf()" << endl;
     return SUCCESS;
-} // end eval_flux_udf()
+} // end eval_conv_flux_udf()
 
-int UserDefinedBC::eval_inviscid_udf( double t, size_t i, size_t j, size_t k, 
+int UserDefinedBC::eval_ghost_cell_udf( double t, size_t i, size_t j, size_t k, 
 				      FV_Interface *IFace )
 {
     // Call the user-defined function which returns two tables 
@@ -464,7 +480,7 @@ int UserDefinedBC::eval_inviscid_udf( double t, size_t i, size_t j, size_t k,
     lua_settop(L, 0); // clear the stack
     // cout << "UserDefinedBC::eval_inviscid_udf() End" << endl;
     return SUCCESS;
-} // end eval_inviscid_udf()
+} // end eval_ghost_cell_udf()
 
 CFlowCondition * UserDefinedBC::unpack_flow_table( void )
 {
@@ -483,7 +499,6 @@ CFlowCondition * UserDefinedBC::unpack_flow_table( void )
 	lua_pop(L, 1); // remove the number to leave the table at TOS
     }
     lua_pop(L, 1); // remove T table from top-of-stack
-    // cout << "Table of mass fractions" << endl;
     std::vector<double> massf;
     lua_getfield(L, -1, "massf"); // put mass-fraction table at TOS 
     for ( size_t isp = 0; isp < nsp; ++isp ) {
@@ -493,7 +508,6 @@ CFlowCondition * UserDefinedBC::unpack_flow_table( void )
 	lua_pop(L, 1); // remove the number to leave the table at TOS
     }
     lua_pop(L, 1); // remove mf table from top-of-stack
-    // cout << "Now get p, u, v, tke, etc..." << endl;
     lua_getfield(L, -1, "p"); double p = lua_tonumber(L, -1); lua_pop(L, 1);
     lua_getfield(L, -1, "u"); double u = lua_tonumber(L, -1); lua_pop(L, 1);
     lua_getfield(L, -1, "v"); double v = lua_tonumber(L, -1); lua_pop(L, 1);
@@ -506,12 +520,10 @@ CFlowCondition * UserDefinedBC::unpack_flow_table( void )
     if ( omega == 0.0 ) omega = 1.0;
     CFlowCondition *cfc = new CFlowCondition( gmodel, p, u, v, w, T, massf, "", 
 					      tke, omega, mu_t, k_t, S);
-    // cout << "CFlowCondition= " << *cfc << endl;
-    // cout << "UserDefinedBC::unpack_flow_table() End" << endl;
     return cfc;
 } // end unpack_flow_table()
 
-int UserDefinedBC::eval_viscous_udf( double t, size_t i, size_t j, size_t k, 
+int UserDefinedBC::eval_iface_udf( double t, size_t i, size_t j, size_t k, 
 				     FV_Interface *IFace,
 				     const FV_Cell *cell )
 {
@@ -522,7 +534,6 @@ int UserDefinedBC::eval_viscous_udf( double t, size_t i, size_t j, size_t k,
     double csY = IFace->n.y;
     double csZ = IFace->n.z;
     FlowState &fs = *(IFace->fs);
-    // cout << "UserDefinedBC::eval_viscous_udf() Begin" << endl;
 
     // Call the user-defined function which leaves a table of wall conditions
     // at the top of the stack.
@@ -560,7 +571,6 @@ int UserDefinedBC::eval_viscous_udf( double t, size_t i, size_t j, size_t k,
 	    lua_pop(L, 1); // remove the number to leave the table at TOS
 	}
 	lua_pop(L, 1); // remove mf table from top-of-stack
-	// cout << "Now get T, v, u, w, tke, omega" << endl;
 	lua_getfield(L, -1, "T"); // put temperature table at TOS
 	for ( size_t imode = 0; imode < nmodes; ++imode ) {
 	    lua_pushinteger(L, imode);
@@ -578,9 +588,78 @@ int UserDefinedBC::eval_viscous_udf( double t, size_t i, size_t j, size_t k,
     }
 
     lua_settop(L, 0); // clear the stack
-    // cout << "UserDefinedBC::eval_viscous_udf() End" << endl;
     return SUCCESS;
-} // end eval_viscous_udf()
+} // end eval_iface_udf()
+
+
+int UserDefinedBC::eval_visc_flux_udf( double t, size_t i, size_t j, size_t k, FV_Interface *IFace )
+{
+    // RJG -- 26-Jul-2013
+    // NOTE: The user provides viscous flux values directly BUT these
+    // need to be added internally to the already present convective fluxes.
+    // (If we are doing a separate convective/viscous update, then the
+    // main routine should have set flux values to zero and this implementation
+    // will still be correct.) Hence, the '+=' to add the viscous fluxes.
+
+    // Call the user-defined function which returns a table 
+    // of fluxes of conserved quantities.
+    // This give the user complete control over what happens at the boundary.
+    // cout << "UserDefinedBC::eval_visc_flux_udf() Begin" << endl;
+    double x = IFace->pos.x; 
+    double y = IFace->pos.y;
+    double z = IFace->pos.z;
+    double csX = IFace->n.x; 
+    double csY = IFace->n.y;
+    double csZ = IFace->n.z;
+
+    lua_getglobal(L, "viscous_flux");  // function to be called
+    lua_newtable(L); // creates a table that is now at the TOS
+    lua_pushnumber(L, t); lua_setfield(L, -2, "t");
+    lua_pushnumber(L, x); lua_setfield(L, -2, "x");
+    lua_pushnumber(L, y); lua_setfield(L, -2, "y");
+    lua_pushnumber(L, z); lua_setfield(L, -2, "z");
+    lua_pushnumber(L, csX); lua_setfield(L, -2, "csX");
+    lua_pushnumber(L, csY); lua_setfield(L, -2, "csY");
+    lua_pushnumber(L, csZ); lua_setfield(L, -2, "csZ");
+    lua_pushinteger(L, i); lua_setfield(L, -2, "i");
+    lua_pushinteger(L, j); lua_setfield(L, -2, "j");
+    lua_pushinteger(L, k); lua_setfield(L, -2, "k");
+    lua_pushinteger(L, which_boundary); lua_setfield(L, -2, "which_boundary");
+    int number_args = 1; // table of {t x y z csX csY csZ i j k which_boundary}
+    int number_results = 1; // one table of results returned on the stack.
+    if ( lua_pcall(L, number_args, number_results, 0) != 0 ) {
+	handle_lua_error(L, "error running user flow function: %s\n",
+			 lua_tostring(L, -1));
+    }
+    ConservedQuantities &F = *(IFace->F);
+    // Assume that there is a single table at the TOS
+    // cout << "Table of fluxes of mass fractions" << endl;
+    lua_getfield(L, -1, "species"); // put mass-fraction table at TOS 
+    for ( size_t isp = 0; isp < nsp; ++isp ) {
+	lua_pushinteger(L, isp);
+	lua_gettable(L, -2);
+	F.massf[isp] += lua_tonumber(L, -1);
+	lua_pop(L, 1); // remove the number to leave the table at TOS
+    }
+    lua_pop(L, 1); // remove F_species table from top-of-stack
+    lua_getfield(L, -1, "renergies"); // put individual-energies table at TOS 
+    for ( size_t imode = 0; imode < nmodes; ++imode ) {
+	lua_pushinteger(L, imode);
+	lua_gettable(L, -2);
+	F.energies[imode] += lua_tonumber(L, -1);
+	lua_pop(L, 1); // remove the number to leave the table at TOS
+    }
+    lua_pop(L, 1); // remove F_species table from top-of-stack
+    lua_getfield(L, -1, "mass"); F.mass += lua_tonumber(L, -1); lua_pop(L, 1);
+    lua_getfield(L, -1, "momentum_x"); F.momentum.x += lua_tonumber(L, -1); lua_pop(L, 1);
+    lua_getfield(L, -1, "momentum_y"); F.momentum.y += lua_tonumber(L, -1); lua_pop(L, 1);
+    lua_getfield(L, -1, "momentum_z"); F.momentum.z += lua_tonumber(L, -1); lua_pop(L, 1);
+    lua_getfield(L, -1, "total_energy"); F.total_energy += lua_tonumber(L, -1); lua_pop(L, 1);
+    lua_getfield(L, -1, "romega"); F.omega += lua_tonumber(L, -1); lua_pop(L, 1);
+    lua_getfield(L, -1, "rtke"); F.tke += lua_tonumber(L, -1); lua_pop(L, 1);
+    lua_settop(L, 0); // clear the stack
+    return SUCCESS;
+} // end eval_visc_flux_udf()
 
 
 void UserDefinedBC::handle_lua_error(lua_State *L, const char *fmt, ...)

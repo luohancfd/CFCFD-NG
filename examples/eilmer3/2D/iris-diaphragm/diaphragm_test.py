@@ -131,11 +131,11 @@ accel_tube.bc_list[NORTH] = FixedTBC(T_start)
 
 identify_block_connections()
 connect_blocks_2D(pri_driver, EAST, sec_driver, WEST, with_udf=1, 
-		  filename="diaphragm_1.lua", is_wall=0, use_udf_flux=0)
+		  filename="diaphragm_1.lua", is_wall=0, sets_conv_flux=0)
 connect_blocks_2D(sec_driver, EAST, shock_tube, WEST, with_udf=1,
-		  filename="diaphragm_2.lua", is_wall=0, use_udf_flux=0)
+		  filename="diaphragm_2.lua", is_wall=0, sets_conv_flux=0)
 connect_blocks_2D(shock_tube, EAST, accel_tube, WEST, with_udf=1,
-		  filename="diaphragm_3.lua", is_wall=0, use_udf_flux=0)
+		  filename="diaphragm_3.lua", is_wall=0, sets_conv_flux=0)
 
 # Do a little more setting of global data.
 gdata.viscous_flag = 1

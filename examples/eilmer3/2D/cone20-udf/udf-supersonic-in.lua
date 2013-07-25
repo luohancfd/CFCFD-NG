@@ -45,7 +45,7 @@ function interface(args)
 end
 
 
-function flux(args)
+function convective_flux(args)
    -- Function that returns the fluxes of conserved quantities.
    -- For use in the inviscid flux calculations.
    --
