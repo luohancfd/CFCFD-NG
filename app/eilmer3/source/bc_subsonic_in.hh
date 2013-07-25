@@ -13,7 +13,7 @@ public:
     SubsonicInBC();
     SubsonicInBC & operator=(const SubsonicInBC &bc);
     virtual ~SubsonicInBC();
-    virtual int apply_inviscid( double t );
+    virtual int apply_convective( double t );
     // default apply_viscous() (does nothing)
 private:
     int subsonic_inflow_properties( 

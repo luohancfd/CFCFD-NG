@@ -44,7 +44,7 @@ SubsonicInBC & SubsonicInBC::operator=(const SubsonicInBC &bc)
 
 SubsonicInBC::~SubsonicInBC() {}
 
-int SubsonicInBC::apply_inviscid( double t )
+int SubsonicInBC::apply_convective( double t )
 {
     Block & bd = *bdp;
     size_t i, j, k;

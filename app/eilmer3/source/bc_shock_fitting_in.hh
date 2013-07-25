@@ -11,7 +11,7 @@ public:
     ShockFittingInBC();
     ShockFittingInBC & operator=(const ShockFittingInBC &bc);
     virtual ~ShockFittingInBC();
-    virtual int apply_inviscid( double t );
+    virtual int apply_convective( double t );
     virtual int apply_viscous( double t );
 private:
     int calculate_shock_speed(const FV_Cell &cL0, const FV_Cell &cR0,

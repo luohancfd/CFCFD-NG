@@ -13,6 +13,6 @@ public:
     fstcBC();
     fstcBC & operator=(const fstcBC &bc);
     virtual ~fstcBC();
-    // default apply_inviscid() is just to reflect normal velocity
+    // default apply_convective() is just to reflect normal velocity
     virtual int apply_viscous( double t ); // sets wall temperature
 };

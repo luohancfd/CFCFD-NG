@@ -18,6 +18,6 @@ public:
     TransientUniformBC();
     TransientUniformBC & operator=(const TransientUniformBC &bc);
     virtual ~TransientUniformBC();
-    virtual int apply_inviscid( double t );
+    virtual int apply_convective( double t );
     // default apply_viscous() (does nothing)
 };

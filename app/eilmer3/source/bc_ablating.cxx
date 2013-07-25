@@ -151,9 +151,9 @@ AblatingBC::~AblatingBC()
     delete Q;
 }
 
-// apply_inviscid function definition
+// apply_convective function definition
 
-int AblatingBC::apply_inviscid( double t )
+int AblatingBC::apply_convective( double t )
 {
     // Calculate the ghost cell flow-states from the given wall temperature
     // and species-specific mass flux.

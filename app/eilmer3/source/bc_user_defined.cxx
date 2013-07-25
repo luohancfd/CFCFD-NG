@@ -77,7 +77,7 @@ UserDefinedBC::~UserDefinedBC()
     lua_close(L);
 }
 
-int UserDefinedBC::apply_inviscid( double t )
+int UserDefinedBC::apply_convective( double t )
 {
     size_t i, j, k;
     FV_Cell *cell, *dest_cell;

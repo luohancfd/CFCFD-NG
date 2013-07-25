@@ -40,7 +40,7 @@ FixedPOutBC & FixedPOutBC::operator=(const FixedPOutBC &bc)
 
 FixedPOutBC::~FixedPOutBC() {}
 
-int FixedPOutBC::apply_inviscid( double t )
+int FixedPOutBC::apply_convective( double t )
 {
     // Fill ghost cells with data from just inside the boundary
     // using zero-order extrapolation (i.e. just copy the data)

@@ -16,6 +16,6 @@ public:
     StaticProfileBC();
     StaticProfileBC & operator=(const StaticProfileBC &bc);
     virtual ~StaticProfileBC();
-    virtual int apply_inviscid( double t );
+    virtual int apply_convective( double t );
     // default apply_viscous() (does nothing)
 };

@@ -10,6 +10,6 @@ public:
     AdjacentBC();
     AdjacentBC & operator=(const AdjacentBC &bc);
     virtual ~AdjacentBC();
-    virtual int apply_inviscid( double t ); // does nothing
+    virtual int apply_convective( double t ); // does nothing
     // default apply_viscous() (does nothing)
 };

@@ -218,7 +218,7 @@ StaticProfileBC::~StaticProfileBC()
     flow_profile.clear();
 }
 
-int StaticProfileBC::apply_inviscid( double t )
+int StaticProfileBC::apply_convective( double t )
 {
     size_t i, ifirst, ilast, j, jfirst, jlast, ncell_for_profile;
     FV_Cell *dest_cell;

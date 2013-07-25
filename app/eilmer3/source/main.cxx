@@ -700,7 +700,7 @@ int integrate_blocks_in_sequence(void)
     bdp = &(G.bd[0]);
     bdp->active = 1;
     // Apply the assumed SupINBC to the west face and propogate across the block
-    bdp->bcp[WEST]->apply_inviscid(0.0);
+    bdp->bcp[WEST]->apply_convective(0.0);
     bdp->propagate_data_west_to_east( G.dimensions );
     for ( FV_Cell *cp: bdp->active_cells ) {
 	cp->encode_conserved(0, 0, bdp->omegaz, with_k_omega);
@@ -1296,7 +1296,7 @@ int integrate_in_time(double target_time)
 		}
 		for ( Block *bdp : G.my_blocks ) {
 		    if ( bdp->active != 1 ) continue;
-		    apply_inviscid_bc(*bdp, G.sim_time, G.dimensions);
+		    apply_convective_bc(*bdp, G.sim_time, G.dimensions);
 		    if ( get_viscous_flag() ) apply_viscous_bc(*bdp, G.sim_time, G.dimensions); 
 		}
 #               ifdef _MPI
@@ -1316,7 +1316,7 @@ int integrate_in_time(double target_time)
 		}
 		for ( Block *bdp : G.my_blocks ) {
 		    if ( bdp->active != 1 ) continue;
-		    apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
+		    apply_convective_bc( *bdp, G.sim_time, G.dimensions );
 		    if ( get_viscous_flag() ) apply_viscous_bc(*bdp, G.sim_time, G.dimensions); 
 		}
 	    }
@@ -1475,9 +1475,9 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 #       endif
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( bdp->active ) {
-		apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
+		apply_convective_bc( *bdp, G.sim_time, G.dimensions );
 		// We've put this detector step here because it needs the ghost-cell data
-		// to be current, as it should be just after a call to apply_inviscid_bc().
+		// to be current, as it should be just after a call to apply_convective_bc().
 		if ( get_flux_calculator() == FLUX_ADAPTIVE )
 		    bdp->detect_shock_points(G.dimensions);
 	    }
@@ -1531,7 +1531,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 	    // Second stage of gas-dynamic update.
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active != 1 ) continue;
-		apply_inviscid_bc(*bdp, G.sim_time, G.dimensions);
+		apply_convective_bc(*bdp, G.sim_time, G.dimensions);
 		bdp->inviscid_flux(G.dimensions);
 		if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
 		    apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
@@ -1573,7 +1573,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 #           endif
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active != 1 ) continue;
-		apply_inviscid_bc(*bdp, G.sim_time, G.dimensions);
+		apply_convective_bc(*bdp, G.sim_time, G.dimensions);
 		bdp->inviscid_flux( G.dimensions );
 		if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
 		    apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
@@ -1685,9 +1685,9 @@ int gasdynamic_increment_with_moving_grid(double dt)
 #       endif
 	for ( Block *bdp : G.my_blocks ) {
 	    if ( bdp->active ) {
-		apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
+		apply_convective_bc( *bdp, G.sim_time, G.dimensions );
 		// We've put this detector step here because it needs the ghost-cell data
-		// to be current, as it should be just after a call to apply_inviscid_bc().
+		// to be current, as it should be just after a call to apply_convective_bc().
 		if ( get_flux_calculator() == FLUX_ADAPTIVE )
 		    bdp->detect_shock_points( G.dimensions );
 	    }
@@ -1748,7 +1748,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	}
 #       endif
 	for ( Block *bdp : G.my_blocks ) {
-	    if ( bdp->active ) apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
+	    if ( bdp->active ) apply_convective_bc( *bdp, G.sim_time, G.dimensions );
 	}
 #       ifdef _MPI
         // Before we try to exchange data, everyone's data should be up-to-date.
@@ -1921,7 +1921,7 @@ int radiation_calculation()
     for ( Block *bdp : G.my_blocks ) {
 	if ( bdp->active != 1 ) continue;
 	if ( get_viscous_flag() ) apply_viscous_bc( *bdp, G.sim_time, G.dimensions ); 
-	apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
+	apply_convective_bc( *bdp, G.sim_time, G.dimensions );
     }
     if ( get_radiation_flag() ) perform_radiation_transport();
     return SUCCESS;

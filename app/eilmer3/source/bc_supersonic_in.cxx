@@ -42,7 +42,7 @@ SupersonicInBC::operator=(const SupersonicInBC &bc)
 
 SupersonicInBC::~SupersonicInBC() {}
 
-int SupersonicInBC::apply_inviscid( double t )
+int SupersonicInBC::apply_convective( double t )
 {
     // Set up ghost cells with inflow state. 
     size_t i, j, k;

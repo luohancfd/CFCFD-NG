@@ -145,7 +145,7 @@ TransientUniformBC::operator=(const TransientUniformBC &bc)
 TransientUniformBC::~TransientUniformBC() 
 {}
 
-int TransientUniformBC::apply_inviscid( double t )
+int TransientUniformBC::apply_convective( double t )
 {
     size_t ii;
     double p, u, v, w, mu_t, k_t, tke, omega;

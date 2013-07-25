@@ -36,7 +36,7 @@ ExtrapolateOutBC & ExtrapolateOutBC::operator=(const ExtrapolateOutBC &bc)
 
 ExtrapolateOutBC::~ExtrapolateOutBC() {}
 
-int ExtrapolateOutBC::apply_inviscid( double t )
+int ExtrapolateOutBC::apply_convective( double t )
 {
     // Fill ghost cells with data from just inside the boundary
     // using zero-order extrapolation (i.e. just copy the data).

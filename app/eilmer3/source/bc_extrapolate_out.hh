@@ -9,6 +9,6 @@ public:
     ExtrapolateOutBC();
     ExtrapolateOutBC & operator=(const ExtrapolateOutBC &bc);
     virtual ~ExtrapolateOutBC();
-    virtual int apply_inviscid( double t ); // copies interior flow to ghost cells
+    virtual int apply_convective( double t ); 
     // default apply_viscous() (does nothing)
 };

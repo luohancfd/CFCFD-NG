@@ -47,7 +47,7 @@ ShockFittingInBC::operator=(const ShockFittingInBC &bc)
 
 ShockFittingInBC::~ShockFittingInBC() {}
 
-int ShockFittingInBC::apply_inviscid( double t )
+int ShockFittingInBC::apply_convective( double t )
 // Copies from FlowCondition to ghost cells.
 {
     // Set up ghost cells with inflow state. 

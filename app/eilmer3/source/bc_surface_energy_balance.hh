@@ -9,7 +9,7 @@ public:
     SurfaceEnergyBalanceBC();
     SurfaceEnergyBalanceBC & operator=(const SurfaceEnergyBalanceBC &bc);
     virtual ~SurfaceEnergyBalanceBC();
-    // default apply_inviscid() is just to reflect normal velocity
+    // default apply_convective() is just to reflect normal velocity
     virtual int apply_viscous( double t ); // sets wall temperature
 private:
     int solve_for_wall_temperature( FV_Interface * IFace,

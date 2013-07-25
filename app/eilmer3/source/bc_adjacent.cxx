@@ -36,9 +36,19 @@ AdjacentBC & AdjacentBC::operator=(const AdjacentBC &bc)
 
 AdjacentBC::~AdjacentBC() {}
 
-int AdjacentBC::apply_inviscid( double t )
+int AdjacentBC::apply_convective( double t )
 {
     // Do nothing here; the real work 
     // is delegated to the exchange functions.
+    
+    // RJG note (25-Jul-2013): This method must remain in place
+    // despite the fact that is appears to be "doing nothing".
+    // What it actually does is PREVENT the default application
+    // of a slip wall at the boundary interface.
+    // If this method is removed, the ghost cells
+    // are filled with reflections of the interior cells
+    // and the reconstruction/flux computation gives the effect of a slip wall.
+    // This is because boundary data is exchanged BEFORE the
+    // boundary conditions are applied.
     return SUCCESS;
 }

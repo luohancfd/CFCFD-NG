@@ -87,7 +87,7 @@ inline int reflect_normal_magnetic_field(FV_Cell *cell, FV_Interface *IFace)
 // The trade-off is that we have to have boundary selection within 
 // the new functions.
 
-int apply_inviscid_bc( Block &bd, double t, size_t dimensions );
+int apply_convective_bc( Block &bd, double t, size_t dimensions );
 int apply_viscous_bc( Block &bd, double t, size_t dimensions );
 
 class CatalyticWallBC; // forward declaration needed below
@@ -126,7 +126,7 @@ public:
     BoundaryCondition( const BoundaryCondition &bc );
     BoundaryCondition & operator=( const BoundaryCondition &bc );
     virtual ~BoundaryCondition();
-    virtual int apply_inviscid( double t ); // reflect normal velocity
+    virtual int apply_convective( double t ); // reflect normal velocity
     virtual int apply_viscous( double t );  // does nothing
     bool is_wall(); 
     // a true value indicates that this boundary is like a (solid) wall

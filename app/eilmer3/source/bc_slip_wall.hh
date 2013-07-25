@@ -9,6 +9,6 @@ public:
     SlipWallBC();
     SlipWallBC & operator=(const SlipWallBC &bc);
     virtual ~SlipWallBC();
-    // default apply_inviscid() is just to reflect normal velocity
+    // default apply_convective() is just to reflect normal velocity
     // default apply_viscous() (does nothing)
 };

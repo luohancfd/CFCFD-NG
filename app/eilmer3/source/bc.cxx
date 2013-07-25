@@ -93,18 +93,18 @@ std::string get_bc_name(bc_t bc)
 // The trade-off is that we have to have boundary selection within 
 // the new functions.
 
-/// \brief Set up ghost-cell values for the inviscid flux calculations.
+/// \brief Set up ghost-cell values for the convective flux calculations.
 ///
 /// This is a coordinating function for use in the main time-stepping loop.
-int apply_inviscid_bc( Block &bd, double t, size_t dimensions )
+int apply_convective_bc( Block &bd, double t, size_t dimensions )
 {
-    bd.bcp[NORTH]->apply_inviscid(t);
-    bd.bcp[EAST]->apply_inviscid(t);
-    bd.bcp[SOUTH]->apply_inviscid(t);
-    bd.bcp[WEST]->apply_inviscid(t);
+    bd.bcp[NORTH]->apply_convective(t);
+    bd.bcp[EAST]->apply_convective(t);
+    bd.bcp[SOUTH]->apply_convective(t);
+    bd.bcp[WEST]->apply_convective(t);
     if ( dimensions == 3 ) {
-	bd.bcp[TOP]->apply_inviscid(t);
-	bd.bcp[BOTTOM]->apply_inviscid(t);
+	bd.bcp[TOP]->apply_convective(t);
+	bd.bcp[BOTTOM]->apply_convective(t);
     }
     return SUCCESS;
 }
@@ -306,9 +306,9 @@ void BoundaryCondition::print_info( std::string lead_in )
     return;
 }
 
-int BoundaryCondition::apply_inviscid(double t)
+int BoundaryCondition::apply_convective(double t)
 {
-    // The default inviscid boundary condition is to reflect
+    // The default convective boundary condition is to reflect
     // the normal component of the velocity at the ghost-cell
     // centres -- slip-wall. 
     size_t i, j, k;

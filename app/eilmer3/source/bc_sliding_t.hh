@@ -14,6 +14,6 @@ public:
     SlidingTBC();
     SlidingTBC & operator=(const SlidingTBC &bc);
     virtual ~SlidingTBC();
-    // default apply_inviscid() is just to reflect normal velocity
+    // default apply_convective() is just to reflect normal velocity
     virtual int apply_viscous( double t ); // sets wall temperature
 };

@@ -25,7 +25,7 @@ public:
     UserDefinedBC();
     UserDefinedBC & operator=(const UserDefinedBC &bc);
     virtual ~UserDefinedBC();
-    virtual int apply_inviscid( double t ); // copies flow data to ghost cells
+    virtual int apply_convective( double t ); // copies flow data to ghost cells
     virtual int apply_viscous( double t ); // sets wall T to user-defined value
 private:
     int start_interpreter();

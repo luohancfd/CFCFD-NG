@@ -11,6 +11,6 @@ public:
     SupersonicInBC();
     SupersonicInBC & operator=(const SupersonicInBC &bc);
     virtual ~SupersonicInBC();
-    virtual int apply_inviscid( double t ); // copies from FlowCondition to ghost cells
+    virtual int apply_convective( double t ); // copies from FlowCondition to ghost cells
     // default apply_viscous() (does nothing)
 };
