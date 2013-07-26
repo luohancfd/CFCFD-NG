@@ -209,8 +209,8 @@ int main(int argc, char *argv[])
     cfg.parse_double("radiation", "rad_dx", rad_dx, 0.0);
     double TS_dx;
     cfg.parse_double("radiation", "TS_dx", TS_dx, 0.0);
-    double tube_width;
-    cfg.parse_double("radiation", "tube_width", tube_width, 0.0);
+    double path_length;
+    cfg.parse_double("radiation", "path_length", path_length, 0.0);
     bool write_rad_level_pops;
     cfg.parse_boolean("radiation", "write_rad_level_pops", 
     	               write_rad_level_pops, false );
@@ -236,7 +236,7 @@ int main(int argc, char *argv[])
     	     << "Bailing out!" << endl;
     	exit(BAD_INPUT_ERROR);
     }
-    if ( !rtmodel && ( rad_dx > 0.0 || tube_width > 0.0 || write_rad_level_pops 
+    if ( !rtmodel && ( rad_dx > 0.0 || path_length > 0.0 || write_rad_level_pops 
     	|| write_rad_emissions || lambda_min.size()
     	|| lambda_max.size() || dx_smear.size() ) ) {
     	cout << "Cannot compute radiation without a radiation model!" << endl
@@ -519,8 +519,8 @@ int main(int argc, char *argv[])
 	    LOS_data LOS( rsm, 1, 0.0, 0.0 );
 	    double * div_q = 0;
 	    rad_x.push_back( x );
-	    LOS.set_rad_point( 0, psr->psflow.Q, div_q, tube_width / 2.0, 
-	    	               tube_width );
+	    LOS.set_rad_point( 0, psr->psflow.Q, div_q, path_length / 2.0, 
+	    	               path_length );
 	    SpectralIntensity S(rsm);
 	    I_vec[0].add_new_point( x, LOS.integrate_LOS( S ) );
 	    for ( size_t i=0; i<lambda_min.size(); ++i ){

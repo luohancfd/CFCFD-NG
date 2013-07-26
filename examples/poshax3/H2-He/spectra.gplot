@@ -1,0 +1,25 @@
+set term postscript eps enhanced color "Helvetica,22"
+set grid
+set size 1.25,1.0
+
+set output "equilibrium_intensity_spectra.eps"
+set xlabel "Wavelength, {/Symbol l} (nm)"
+set ylabel "Spectral radiance, I_{/Symbol l} (W/cm^2-sr-{/Symbol m}m)"
+set logscale y
+set y2label "Cumulative radiance, I (W/cm^2-sr)"
+set key top left
+set y2tics
+plot      'intensity-spectra-100mm.txt' u 1:($2*1.0e-10) w l lt -1 lw 1 t 'Spectral radiance', \
+          'intensity-spectra-100mm.txt' u 1:($3*1.0e-4) axes x1y2 w l lt 1 lw 3 t 'Cumulative radiance'
+          
+set autoscale y
+set autoscale y2
+          
+set output "equilibrium_emission_spectra.eps"
+set xlabel "Wavelength, {/Symbol l} (nm)"
+set ylabel "Spectral emission, j_{/Symbol l} (W/cm^3-sr-{/Symbol m}m)"
+set logscale y
+set y2label "Cumulative emission, j / j_{total} (ND)"
+set y2tics
+plot      'coeff-spectra-100mm.txt' u 1:($2*1.0e-12) w l lt -1 lw 1 t 'Spectral emission', \
+          'coeff-spectra-100mm.txt' u 1:($3*1.0e-6) axes x1y2 w l lt 1 lw 3 t 'Cumulative emission'

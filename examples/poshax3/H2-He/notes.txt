@@ -1,0 +1,19 @@
+Here a very basic model for shock heated H2-He mixtures is implemented.
+
+A number of simplifications have been made.
+
+Most significantly, electron impact ionisation is modelled via the reaction
+rate proposed by Park (2001) for H atoms in shock heated air.  This is in
+contrast to the more detailed model implemented by Park (2010) for the
+simulation for EAST shock tube experiments with shock speeds of 30 km/s.
+The current reaction rate model should be okay for shock speeds of about
+10 km/s.
+
+Also, the energy exchange mechanisms have been approximated via the standard
+Millikan-White and Appleton models, in contrast to the more detailed modelling
+applied by Park (2010).
+
+Please contact me (dan.potter84@gmail.com) if you want to proceed with using
+this model for any real application, as the model may need some revision!
+
+See reaction-model.lua for references to the Park papers.
