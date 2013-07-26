@@ -944,14 +944,14 @@ You can use the function
 \texttt{
 \begin{tabbing}
 connect\_blocks\_2D(\= A, faceA, B, faceB, with\_udf=0, filename=None,\\
-                    \> is\_wall=0, use\_udf\_flux=0)
+                    \> is\_wall=0, sets\_conv\_flux=0, sets\_visc\_flux=0)
 \end{tabbing}\index{block!connect\_blocks\_2D}
 }
 \noindent
 where \texttt{A} and \texttt{B} are references to the individual \texttt{Block2D} objects
 and \texttt{faceA} and \texttt{faceB} are their adjoining edges (NORTH, EAST, SOUTH or WEST)
 Most of the time you can just ignore the default arguments associated with user-defined functions
-(\textit{i.e.} \texttt{with\_udf, filename, is\_wall, use\_udf\_flux}).
+(\textit{i.e.} \texttt{with\_udf, filename, is\_wall, sets\_conv\_flux, sets\_visc\_flux}).
 These are used to implement slowly-opening diaphragms and the like. 
 
 \subsection{Putting a 2D description together}
@@ -1226,7 +1226,7 @@ To manually connect particular Block3D objects, you can use the function
 \texttt{
 \begin{tabbing}
 connect\_blocks\_3D(\= A, B, vtx\_pairs, with\_udf=0, filename=None,\\
-                    \> is\_wall=0, use\_udf\_flux=0)
+                    \> is\_wall=0, sets\_conv\_flux=0, sets\_visc\_flux=0)
 \end{tabbing}\index{block!connect\_blocks\_3D}
 }
 \noindent
@@ -1349,21 +1349,26 @@ Available boundary condition classes include:\index{boundary conditions!list of 
       is like \texttt{ExtrapolateOutBC()} but with a specified back pressure.
       This can be analogous to a vacuum pump that removes gas at the boundary to maintain
       a fixed pressure in the ghost cells.
-    \item \texttt{UserDefinedBC(filename, is\_wall=0, use\_udf\_flux=0, label='')}\index{boundary conditions!UserDefinedBC}: 
+    \item \texttt{UserDefinedBC(filename, is\_wall=0, sets\_conv\_flux=0, sets\_visc\_flux=0, label='')}\index{boundary conditions!UserDefinedBC}: 
        allows the user to define the ghost-cell flow properties and/or interface fluxes at run time.
        This is done via a set of functions defined by the user, and written in the Lua
        programming language.
        These functions are provided in the file given by \texttt{filename}.
        The flag \texttt{is\_wall} indicates whether the boundary is to be considered
        a wall for the application of turbulence-model fudges and the like (default 0).
-       The flag \texttt{use\_udf\_flux} indicates whether the user is supplying
-       the fluxes at the boundary interfaces (default 0).  
+       The flag \texttt{sets\_conv\_flux} indicates whether the user is supplying
+       the convective fluxes at the boundary interfaces (default 0), in which case the user-supplied file should
+       contain a valid \texttt{convective\_flux()} function.  
        If not, the internal flux calculator is used together with the supplied ghost-cell data.
        This boundary condition is the Jack of all trades and master of none.
        It can be used to emulate any of the other boundary conditions and then build
        variations, however, it is going to cost quite a lot in computational time.
+       Similar to the setting of convective fluxes, the flag \texttt{sets\_visc\_flux}
+       indicates whether the user is supplying the viscous fluxes at the boundary interfaces (default 0).
+       In this case, the user-supplied file should contain a valid \texttt{viscous\_flux()} function.
+       If not, the internal viscous derivatives are used to compute fluxes based on the supplied interface data.
        See Appendix\,\ref{udf-sec} for the details of setting up this boundary condition.
-    \item \texttt{AdjacentPlusUDFBC(other\_block, other\_face, orientation, filename, \\is\_wall=0, use\_udf\_flux=0, label='')}\index{boundary conditions!AdjacentPlusUDFBC}: 
+    \item \texttt{AdjacentPlusUDFBC(other\_block, other\_face, orientation, filename, \\is\_wall=0, sets\_conv\_flux=0, sets\_visc\_flux=0, label='')}\index{boundary conditions!AdjacentPlusUDFBC}: 
        is a combination of the \texttt{AdjacentBC} and \texttt{UserDefinedBC}.
        At each time step, the flow data is first exchanged, as per the usual
        \texttt{AdjacentBC}.  Then the user-defined functions are applied.
@@ -1384,7 +1389,7 @@ of a \texttt{Block2D} or \texttt{Block3D} object by calling its method
 \begin{tabbing}
 set\_BC(\=face\_name, type\_of\_BC, inflow\_condition=None, x\_order=0,\\
       \>sponge\_flag=None, Twall=None, Pout=None, filename=None,\\
-      \>is\_wall=0, use\_udf\_flux=0, label='')
+      \>is\_wall=0, sets\_conv\_flux=0, sets\_visc\_flux=0, label='')
 \end{tabbing}\index{boundary conditions!set\_BC}
 }
 \noindent
@@ -1427,9 +1432,12 @@ specifying the boundary conditions when the block is created.
         These functions are provided in the file given by \texttt{filename}.
         The flag \texttt{is\_wall} indicates whether the boundary is to be considered
         a wall for the application of turbulence-model fudges and the like (default 0).
-        The flag \texttt{use\_udf\_flux} indicates whether the user is supplying
-        the fluxes at the boundary interfaces (default 0).  
+        The flag \texttt{sets\_conv\_flux} indicates whether the user is supplying
+        the convective fluxes at the boundary interfaces (default 0).  
         If not, the internal flux calculator is used together with the supplied ghost-cell data.
+        The flag \texttt{sets\_visc\_flux} indicates whether the user is supplying
+        the viscous fluxes at the boundary interfaces (default 0).  
+        If not, the internal viscous derivatives are used to compute fluxes based on the supplied interface data.
       \item \texttt{ADJACENT\_PLUS\_UDF}:
     \end{itemize}
   \item \texttt{inflow\_condition}: the flow condition used for

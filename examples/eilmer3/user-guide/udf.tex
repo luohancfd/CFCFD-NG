@@ -21,21 +21,36 @@ The inviscid interaction at the boundary may be handled in two ways:
   For the case of a solid wall, you use the \verb!ghost_cell()! function 
   and reflect the normal velocity.
   Examples of this are in the test cases.
- \item Defining a \verb!flux()! function. \\
+ \item Defining a \verb!convective_flux()! function. \\
   This is an alternative to the \verb!ghost_cell()! function and
   allows you to directly specify the convective flux. 
-  This function is only used if the \verb!use_udf_flag! is set in the boundary condition. 
-  If it is set, the \verb!flux! function will override anything in the \verb!ghost_cell()! function
-  Thus causing the \verb!ghost_cell()! function to have no effect. 
+  This function is only used if the \verb!sets_conv_flux_flag! is set in the boundary condition. 
+  If it is set, the \verb!convective_flux()! function will override anything in the \verb!ghost_cell()! function
+  thus causing the \verb!ghost_cell()! function to have no effect (however, it is still needs to be present due to the
+  way the implementation works).
 \end{enumerate}
-The way viscous effects work in the code is that you set the properties at the interface directly
-and, as part of the viscous update, the main code computes spatial derivatives from these specified
-flow properties. 
-For example, you could set a temperature at the interface and zero velocity for a no-slip wall
-with the function called \verb!interface()!. 
-Normally you do not directly control the viscous heat flux into the flow directly, 
-however, control it indirectly by setting the temperature.
 
+The viscous effects at the boundary are also handled in one of two ways:
+\begin{enumerate}
+ \item Defining an \verb!interface()! function.\\
+  In this case, you set the properties at the interface directly
+  and, as part of the viscous update, the main code computes spatial derivatives from these specified
+  flow properties. 
+  For example, you could set a temperature at the interface and zero velocity for a no-slip wall
+  with the function called \verb!interface()!. 
+  By doing this, you would not directly control the viscous heat flux into the flow directly, 
+  however, control it indirectly by setting the temperature.
+ \item Defining a \verb!viscous_flux()! function. \\
+  The other option is to specify the viscous flux directly at the boundary.
+  The function inputs and outputs are identical to the \verb!convective_flux()! function,
+  except that the values for viscous fluxes of conserved quantities are returned.
+  This option is convenient when something is directly known about the viscous
+  flux effect at the boundary.
+  For example, a heat flux at the boundary may be specified directly using this
+  user-defined function.
+  This function is only used is the \verb!sets_visc_flux_flag! is set in the boundary condition,
+  otherwise the code will just look to apply the \verb!interface()! function.
+\end{enumerate}
 
 \subsection{Boundary conditions}
 \index{boundary conditions!user defined}
@@ -162,8 +177,9 @@ when the boundary condition was instantiated so any data that was stored then is
 available to the functions now, possibly via global variables.
 
 \medskip
-The user may also provide a function \texttt{flux(args)} that returns a table specifying the interface fluxes
-that can be used instead of the internally computed fluxes.
+The user may also provide functions \texttt{convective\_flux(args)} and/or
+\texttt{viscous\_flux(args)} that return a table specifying the interface fluxes,
+convective and viscous respectively, that are used instead of the internally computed fluxes.
 The table of fluxes returned contains the following entries:\\
 \begin{tabular}{ll}
  \texttt{mass} &  mass flux per unit area of the interface \\
@@ -184,7 +200,6 @@ and the input \texttt{args} table contains:\\
  \texttt{i,j,k} &  indices of the cell adjacent to the interface\\
  \texttt{which\_boundary} & index of the boundary (\texttt{NORTH},...) \\
 \end{tabular}
-
 
 \subsection{Source terms}
 \index{source terms!user defined}
