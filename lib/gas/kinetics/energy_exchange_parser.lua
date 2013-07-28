@@ -64,29 +64,38 @@ function main(config_file)
 	 mechs[#mechs+1] = m2
       end
    end
-
-   -- Gather up rates.
-   rates = {}
-   imode_list = {}
-   idx = 1
-   for i,m in ipairs(mechs) do
-      local ir
-      if not imode_list[m.imode] then
-	 imode_list[m.imode] = idx
-	 ir = idx
-	 idx = idx + 1
-      else
-	 ir = imode_list[m.imode]
-      end
-
-      if not rates[ir] then
-	 rates[ir] = {}
-	 rates[ir].imode = m.imode
-	 rates[ir].mechanisms = {m}
-      else
-	 rates[ir].mechanisms[#rates[ir].mechanisms+1] = m
+   
+   -- Find the largest mode index
+   imode_max = 0
+   for _,m in ipairs(mechs) do
+      if m.imode > imode_max then
+         imode_max = m.imode
       end
    end
+   
+   -- Initialise the rates table
+   rates = {}
+   for ir=1, imode_max, 1 do
+       rates[ir] = {}
+       rates[ir].imode = ir
+       rates[ir].mechanisms = {}
+   end
+
+   -- Gather up rates.
+   for i,m in ipairs(mechs) do
+      ir = m.imode
+      rates[ir].mechanisms[#rates[ir].mechanisms+1] = m
+   end
+   
+   --  Set imode and mechanisms for rates without mechanisms
+   for i,r in ipairs(rates) do
+       print(i)
+       if not r then
+          r = {}
+          r.imode = i
+          r.mechanisms = {}
+       end
+    end
 
 end
 
