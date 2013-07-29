@@ -19,7 +19,7 @@ Knab_molecular_reaction(lua_State *L, Gas_model &g)
 {
     U_ = get_number(L, -1, "U");
     alpha_ = get_number(L, -1, "alpha");
-    A_var_ = Generalised_Arrhenius::get_E_a();
+    alpha_A_ = alpha_*Generalised_Arrhenius::get_E_a()/PC_k_SI; // convert to K
 
     string v_name = get_string(L,-1,"v_name");
     Chemical_species * X = get_library_species_pointer_from_name( v_name );
@@ -48,7 +48,7 @@ Knab_molecular_reaction(lua_State *L, Gas_model &g)
 
 Knab_molecular_reaction::
 Knab_molecular_reaction(double A, double n, double E_a, double U, double alpha, string v_name)
-    : Generalised_Arrhenius(A, n, E_a), U_(U), alpha_(alpha), A_var_(E_a)
+    : Generalised_Arrhenius(A, n, E_a), U_(U), alpha_(alpha), alpha_A_(alpha*E_a/PC_k_SI)
 {
     Chemical_species * X = get_library_species_pointer_from_name( v_name );
     // Search for the corresponding energy modes
@@ -101,24 +101,22 @@ s_eval(const Gas_data &Q)
     	Q_d_Tv *= vib_modes_[i]->eval_Q_from_T(Tv);
     	Q_d_T0 *= vib_modes_[i]->eval_Q_from_T(T0);
     	Q_d_T_ast *= vib_modes_[i]->eval_Q_from_T(T_ast);
-    	Q_a_gamma *= vib_modes_[i]->eval_Q_from_T(gamma,alpha_*A_var_);
-    	Q_a_U *= vib_modes_[i]->eval_Q_from_T(-U_,alpha_*A_var_);
-    	Q_a_T0 *= vib_modes_[i]->eval_Q_from_T(T0,alpha_*A_var_);
-    	Q_a_T_ast *= vib_modes_[i]->eval_Q_from_T(T_ast,alpha_*A_var_);
+    	Q_a_gamma *= vib_modes_[i]->eval_Q_from_T(gamma,alpha_A_);
+    	Q_a_U *= vib_modes_[i]->eval_Q_from_T(-U_,alpha_A_);
+    	Q_a_T0 *= vib_modes_[i]->eval_Q_from_T(T0,alpha_A_);
+    	Q_a_T_ast *= vib_modes_[i]->eval_Q_from_T(T_ast,alpha_A_);
     }
     
     // 3. Calculate nonequilibrium factor
     double tmpA = Q_d_T / Q_d_Tv;
-    double tmpB = exp( - alpha_ * A_var_ / T ) * Q_a_gamma + Q_d_T0 - Q_a_T0;
-    double tmpC = exp( - alpha_ * A_var_ / T ) * Q_a_U + Q_d_T_ast - Q_a_T_ast;
+    double tmpB = exp(-alpha_A_/T)*Q_a_gamma + Q_d_T0 - Q_a_T0;
+    double tmpC = exp(-alpha_A_/T)*Q_a_U + Q_d_T_ast - Q_a_T_ast;
     double Z = tmpA * tmpB / tmpC;
-    
     // 4. Evaluate GA coefficient
     Generalised_Arrhenius::eval_from_T(T);
-    
-    // 3. Augment k with NEQ factor
+    // 5. Augment k with NEQ factor
     k_ *= fabs(Z);
-    
+
     return SUCCESS;
 }
 

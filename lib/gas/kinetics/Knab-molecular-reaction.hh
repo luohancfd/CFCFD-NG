@@ -24,7 +24,7 @@ public:
 private:
     double U_;
     double alpha_;
-    double A_var_;
+    double alpha_A_;
     std::vector<Species_energy_mode*> vib_modes_;
     int iTv_;
     
