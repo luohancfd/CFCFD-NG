@@ -93,7 +93,7 @@ def make_test_gas(gasName, outputUnits='moles'):
         return Gas(reactants={'H2':0.9, 'Ne':0.10}, inputUnits='moles', with_ions=True,
                    outputUnits=outputUnits), None                  
     else:
-        raise Exception, 'make_gas_from_name(): unknown gasName: %s' % gasName 
+        raise Exception, 'make_test_gas(): unknown gasName: %s' % gasName 
    
 def input_checker(cfg):
     """Takes the input file and checks it works. Duh.
@@ -138,7 +138,7 @@ def input_checker(cfg):
             print "Bailing out."
             cfg['bad_input'] = True
         if 'driver_composition' not in cfg:
-            print "You have specified a custom facility but there is no 'driver_composition' variable."
+            print "You have specified a custom facility but have not set 'driver_composition' variable."
             print "Bailing out."
             cfg['bad_input'] = True
         if not isinstance(cfg['driver_composition'], dict):
@@ -156,7 +156,20 @@ def input_checker(cfg):
             print "Throat Mach number that terminates unsteady expansion is not set."
             print "Variable is 'M_throat'."
             print "Cannot finish problem without this. Bailing out."
-    
+            
+    if cfg['test_gas'] == 'custom':
+        if 'test_gas_composition' not in cfg:
+            print "You have specified a custom test gas but have not set 'test_gas_composition' variable."
+            print "Bailing out."
+            cfg['bad_input'] = True
+        if not isinstance(cfg['test_gas_composition'], dict):
+            print "'test_gas_composition' variable is not a valid Python dictionary."
+            print "Bailing out."
+            cfg['bad_input'] = True
+        if 'test_gas_inputUnits' not in cfg:
+            print "'test_gas_inputUnits' not set. Setting it to 'moles'."
+            cfg['test_gas_inputUnits'] = 'moles'            
+            
     if 'mode' not in cfg:
         print "Program mode not specified. Will use default printout mode"
         cfg['mode'] = 'printout'
@@ -367,18 +380,23 @@ def state_builder(cfg):
         
     elif cfg['facility'] == 'custom':
         # set driver fill condition
+        print "Custom driver gas is {0}.".format(cfg['driver_composition'])
+        print "Custom driver fill condition is {0} Pa, {1} K.".format(cfg['driver_p'], cfg['driver_T'])
         states['primary_driver_fill']=Gas(cfg['driver_composition'],inputUnits=cfg['driver_inputUnits'])
         states['primary_driver_fill'].set_pT(cfg['driver_p'],cfg['driver_T'])
         # now do the compression to state 4
         # If both p4 and compression ratio are set, code will use p4
         if 'p4' in cfg:
+            print "Performing isentropic compression from driver fill condition to {0} Pa.".format(cfg['p4'])
             p4 = cfg['p4'] #Pa
             T4 = states['primary_driver_fill'].T*\
             (cfg['p4']/states['primary_driver_fill'].p)**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
         else:
-            p4 = states['primary_driver_fill'].p*cfg['compression_ratio'] #Pa
+            print "Performing isentropic compression from driver fill condition over compression ratio of {0}.".format(cfg['compression_ratio'])
+            cfg['pressure_ratio'] = cfg['compression_ratio']**states['primary_driver_fill'].gam #pressure ratio is compression ratio to the power of gamma
+            p4 = states['primary_driver_fill'].p*cfg['pressure_ratio'] #Pa
             T4 = states['primary_driver_fill'].T*\
-            (cfg['compression_ratio'])**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
+            (cfg['pressure_ratio'])**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
         states['s4'] =  states['primary_driver_fill'].clone()
         states['s4'].set_pT(p4,T4)
         V['s4']=0.0
@@ -415,22 +433,27 @@ def state_builder(cfg):
         M['sd1']=0.0
 
     #state 1 is shock tube
-    if cfg['test_gas'] == 'mars' or cfg['test_gas'] == 'co2' or cfg['test_gas'] == 'venus':
-        states['s1'], cfg['gas_guess'], test_gas_gam, test_gas_Mmass = make_test_gas(cfg['test_gas'])   
-    else: #need to split this up as the function returns 4 values if CO2 is in the test gas
-          # and trying to set the state of the co2 gas object at room temp will break it
-        states['s1'], cfg['gas_guess'] = make_test_gas(cfg['test_gas'])
-        if 'p1' not in cfg: #set atmospheric state if a pressure was not specified
-            cfg['p1'] = cfg['p0']
+    if cfg['test_gas'] == 'custom':
+        states['s1'] = Gas(cfg['test_gas_composition'],inputUnits=cfg['test_gas_inputUnits'])
         states['s1'].set_pT(cfg['p1'],cfg['T0'])
-    if cfg['solver'] == 'pg' or cfg['solver'] == 'pg-eq': #make perfect gas object if asked to do so, then re-set the gas state
-        if cfg['solver'] == 'pg-eq': #store the eq gas object as we'll want to come back to it later...      
-            states['s1-eq'] = states['s1'].clone()        
-        if cfg['test_gas'] == 'co2' or cfg['test_gas'] == 'mars' or cfg['test_gas'] == 'venus': #need to force our own gam and Mmass onto the gas object if CO2 is in the gas
-            states['s1'].gam =  test_gas_gam; states['s1'].Mmass =  test_gas_Mmass
-        states['s1']=pg.Gas(Mmass=states['s1'].Mmass,
-                            gamma=states['s1'].gam, name='s1')
-        states['s1'].set_pT(cfg['p1'],cfg['T0'])
+        cfg['gas_guess'] = None
+    else:
+        if cfg['test_gas'] == 'mars' or cfg['test_gas'] == 'co2' or cfg['test_gas'] == 'venus':
+            states['s1'], cfg['gas_guess'], test_gas_gam, test_gas_Mmass = make_test_gas(cfg['test_gas'])   
+        else: #need to split this up as the function returns 4 values if CO2 is in the test gas
+              # and trying to set the state of the co2 gas object at room temp will break it
+            states['s1'], cfg['gas_guess'] = make_test_gas(cfg['test_gas'])
+            if 'p1' not in cfg: #set atmospheric state if a pressure was not specified
+                cfg['p1'] = cfg['p0']
+            states['s1'].set_pT(cfg['p1'],cfg['T0'])
+        if cfg['solver'] == 'pg' or cfg['solver'] == 'pg-eq': #make perfect gas object if asked to do so, then re-set the gas state
+            if cfg['solver'] == 'pg-eq': #store the eq gas object as we'll want to come back to it later...      
+                states['s1-eq'] = states['s1'].clone()        
+            if cfg['test_gas'] == 'co2' or cfg['test_gas'] == 'mars' or cfg['test_gas'] == 'venus': #need to force our own gam and Mmass onto the gas object if CO2 is in the gas
+                states['s1'].gam =  test_gas_gam; states['s1'].Mmass =  test_gas_Mmass
+            states['s1']=pg.Gas(Mmass=states['s1'].Mmass,
+                                gamma=states['s1'].gam, name='s1')
+            states['s1'].set_pT(cfg['p1'],cfg['T0'])
     V['s1']=0.0
     M['s1']=0.0
         
