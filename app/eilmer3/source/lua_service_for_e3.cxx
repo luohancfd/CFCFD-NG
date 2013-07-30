@@ -41,7 +41,6 @@ int luafn_sample_flow(lua_State *L)
     lua_pushnumber(L, cell->pos[0].z); lua_setfield(L, -2, "z");
     lua_pushnumber(L, cell->volume[0]); lua_setfield(L, -2, "vol");
     lua_pushnumber(L, fs.gas->p); lua_setfield(L, -2, "p");
-    // lua_pushnumber(L, fs.gas->T[0]); lua_setfield(L, -2, "T_wall"); // FIX-ME: check not needed.
     lua_pushnumber(L, fs.gas->rho); lua_setfield(L, -2, "rho"); 
     lua_pushnumber(L, fs.vel.x); lua_setfield(L, -2, "u"); 
     lua_pushnumber(L, fs.vel.y); lua_setfield(L, -2, "v");
@@ -79,6 +78,128 @@ int luafn_sample_flow(lua_State *L)
     
     return 1; // Just the one table is left on Lua stack
 }
+
+void create_table_for_fs(lua_State *L, FlowState &fs, Gas_model &gmodel)
+{
+    lua_newtable(L);
+    lua_pushnumber(L, fs.gas->p); lua_setfield(L, -2, "p");
+    lua_pushnumber(L, fs.gas->rho); lua_setfield(L, -2, "rho"); 
+    lua_pushnumber(L, fs.vel.x); lua_setfield(L, -2, "u"); 
+    lua_pushnumber(L, fs.vel.y); lua_setfield(L, -2, "v");
+    lua_pushnumber(L, fs.vel.z); lua_setfield(L, -2, "w");
+    lua_pushnumber(L, fs.gas->a); lua_setfield(L, -2, "a");
+    lua_pushnumber(L, fs.mu_t); lua_setfield(L, -2, "mu_t");
+    lua_pushnumber(L, fs.k_t); lua_setfield(L, -2, "k_t");
+    lua_pushnumber(L, fs.tke); lua_setfield(L, -2, "tke");
+    lua_pushnumber(L, fs.omega); lua_setfield(L, -2, "omega");
+    lua_pushinteger(L, fs.S); lua_setfield(L, -2, "S");
+    lua_newtable(L); // A table for the individual temperatures
+    size_t nmodes = gmodel.get_number_of_modes();
+    for ( size_t imode = 0; imode < nmodes; ++imode ) {
+	lua_pushinteger(L, static_cast<int>(imode));
+	lua_pushnumber(L, fs.gas->T[imode]);
+	lua_settable(L, -3);
+    }
+    // At this point, the table of temperatures should be TOS.
+    lua_setfield(L, -2, "T");
+    lua_newtable(L); // Another table for the mass fractions
+    size_t nsp = gmodel.get_number_of_species();
+    for ( size_t isp = 0; isp < nsp; ++isp ) {
+	lua_pushinteger(L, static_cast<int>(isp));
+	lua_pushnumber(L, fs.gas->massf[isp]);
+	lua_settable(L, -3);
+    }
+    // At this point, the table of mass fractions should be TOS.
+    lua_setfield(L, -2, "massf");
+    return;
+}
+
+void create_table_for_iface(lua_State *L, FV_Interface &iface, Gas_model &gmodel)
+{
+    FlowState &fs = *(iface.fs);
+    lua_newtable(L); // creates a table that is now at the TOS
+    lua_pushnumber(L, iface.pos.x); lua_setfield(L, -2, "x");
+    lua_pushnumber(L, iface.pos.y); lua_setfield(L, -2, "y");
+    lua_pushnumber(L, iface.pos.z); lua_setfield(L, -2, "z");
+    lua_pushnumber(L, iface.length); lua_setfield(L, -2, "length");
+    // Flow state information
+    lua_pushnumber(L, fs.gas->p); lua_setfield(L, -2, "p");
+    lua_pushnumber(L, fs.gas->rho); lua_setfield(L, -2, "rho"); 
+    lua_pushnumber(L, fs.vel.x); lua_setfield(L, -2, "u"); 
+    lua_pushnumber(L, fs.vel.y); lua_setfield(L, -2, "v");
+    lua_pushnumber(L, fs.vel.z); lua_setfield(L, -2, "w");
+    lua_pushnumber(L, fs.gas->a); lua_setfield(L, -2, "a");
+    lua_pushnumber(L, fs.mu_t); lua_setfield(L, -2, "mu_t");
+    lua_pushnumber(L, fs.k_t); lua_setfield(L, -2, "k_t");
+    lua_pushnumber(L, fs.tke); lua_setfield(L, -2, "tke");
+    lua_pushnumber(L, fs.omega); lua_setfield(L, -2, "omega");
+    lua_pushinteger(L, fs.S); lua_setfield(L, -2, "S");
+    lua_newtable(L); // A table for the individual temperatures
+    size_t nmodes = gmodel.get_number_of_modes();
+    for ( size_t imode = 0; imode < nmodes; ++imode ) {
+	lua_pushinteger(L, static_cast<int>(imode));
+	lua_pushnumber(L, fs.gas->T[imode]);
+	lua_settable(L, -3);
+    }
+    // At this point, the table of temperatures should be TOS.
+    lua_setfield(L, -2, "T");
+    lua_newtable(L); // Another table for the mass fractions
+    size_t nsp = gmodel.get_number_of_species();
+    for ( size_t isp = 0; isp < nsp; ++isp ) {
+	lua_pushinteger(L, static_cast<int>(isp));
+	lua_pushnumber(L, fs.gas->massf[isp]);
+	lua_settable(L, -3);
+    }
+    // At this point, the table of mass fractions should be TOS.
+    lua_setfield(L, -2, "massf");
+    return;
+}
+
+int luafn_sample_i_face(lua_State *L)
+{
+    // Get arguments from stack.
+    size_t jb = static_cast<size_t>(lua_tointeger(L, 1));
+    size_t i = static_cast<size_t>(lua_tointeger(L, 2));
+    size_t j = static_cast<size_t>(lua_tointeger(L, 3));
+    size_t k = static_cast<size_t>(lua_tointeger(L, 4));
+
+    Gas_model *gmodel = get_gas_model_ptr();
+    Block *bdp= get_block_data_ptr(jb);
+    FV_Interface *iface = bdp->get_ifi(i,j,k);
+    create_table_for_iface(L, *iface, *gmodel);
+    return 1; // Just the one table is left on Lua stack
+}
+
+int luafn_sample_j_face(lua_State *L)
+{
+    // Get arguments from stack.
+    size_t jb = static_cast<size_t>(lua_tointeger(L, 1));
+    size_t i = static_cast<size_t>(lua_tointeger(L, 2));
+    size_t j = static_cast<size_t>(lua_tointeger(L, 3));
+    size_t k = static_cast<size_t>(lua_tointeger(L, 4));
+
+    Gas_model *gmodel = get_gas_model_ptr();
+    Block *bdp= get_block_data_ptr(jb);
+    FV_Interface *iface = bdp->get_ifj(i,j,k);
+    create_table_for_iface(L, *iface, *gmodel);
+    return 1; // Just the one table is left on Lua stack
+}
+
+int luafn_sample_k_face(lua_State *L)
+{
+    // Get arguments from stack.
+    size_t jb = static_cast<size_t>(lua_tointeger(L, 1));
+    size_t i = static_cast<size_t>(lua_tointeger(L, 2));
+    size_t j = static_cast<size_t>(lua_tointeger(L, 3));
+    size_t k = static_cast<size_t>(lua_tointeger(L, 4));
+
+    Gas_model *gmodel = get_gas_model_ptr();
+    Block *bdp= get_block_data_ptr(jb);
+    FV_Interface *iface = bdp->get_ifk(i,j,k);
+    create_table_for_iface(L, *iface, *gmodel);
+    return 1; // Just the one table is left on Lua stack
+}
+
 
 int luafn_locate_cell(lua_State *L)
 {
@@ -379,6 +500,12 @@ int register_luafns(lua_State *L)
 {
     lua_pushcfunction(L, luafn_sample_flow);
     lua_setglobal(L, "sample_flow");
+    lua_pushcfunction(L, luafn_sample_i_face);
+    lua_setglobal(L, "sample_i_face");
+    lua_pushcfunction(L, luafn_sample_j_face);
+    lua_setglobal(L, "sample_j_face");
+    lua_pushcfunction(L, luafn_sample_k_face);
+    lua_setglobal(L, "sample_k_face");
     lua_pushcfunction(L, luafn_locate_cell);
     lua_setglobal(L, "locate_cell");
     lua_pushcfunction(L, luafn_create_empty_gas_table);

@@ -21,6 +21,11 @@ typedef double (Gas_model::*Gas_model_Method_gas_data_int)(const Gas_data &, int
 #define CALL_MEMBER_FN(object,ptrToMember) ((object).*(ptrToMember))
 
 int luafn_sample_flow(lua_State *L);
+void create_table_for_fs(lua_State *L, FlowState &fs, Gas_model &gmodel);
+void create_table_for_iface(lua_State *L, FV_Interface &iface, Gas_model &gmodel);
+int luafn_sample_i_face(lua_State *L);
+int luafn_sample_j_face(lua_State *L);
+int luafn_sample_k_face(lua_State *L);
 int luafn_locate_cell(lua_State *L);
 int luafn_create_empty_gas_table(lua_State *L);
 int luafn_eval_thermo_state_pT(lua_State *L);

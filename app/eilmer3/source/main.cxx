@@ -1488,6 +1488,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 
 	// First-stage of gas-dynamic update.
 	for ( Block *bdp : G.my_blocks ) {
+	    G.t_level = 0;
 	    if ( bdp->active != 1 ) continue;
 	    bdp->inviscid_flux(G.dimensions);
 	    if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
@@ -1530,6 +1531,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 #           endif
 	    // Second stage of gas-dynamic update.
 	    for ( Block *bdp : G.my_blocks ) {
+		G.t_level = 1;
 		if ( bdp->active != 1 ) continue;
 		apply_convective_bc(*bdp, G.sim_time, G.dimensions);
 		bdp->inviscid_flux(G.dimensions);
@@ -1572,6 +1574,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 	    }
 #           endif
 	    for ( Block *bdp : G.my_blocks ) {
+		G.t_level = 2;
 		if ( bdp->active != 1 ) continue;
 		apply_convective_bc(*bdp, G.sim_time, G.dimensions);
 		bdp->inviscid_flux( G.dimensions );

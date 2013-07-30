@@ -70,6 +70,7 @@ struct global_data
 
     size_t step;            /* global iteration count     */
     size_t max_step;        /* global iteration limit     */
+    size_t t_level;         /* global time level within update */
     int halt_now;           /* flag for premature halt    */
     size_t print_count; // Number of steps between writing status message to console.
     size_t control_count; // Number of steps between rereading .control file.
