@@ -91,6 +91,9 @@ public:
     int eval_thermo_state_rhop(Gas_data &Q)
     { return s_eval_thermo_state_rhop(Q); }
 
+    int eval_thermo_state_hs(Gas_data &Q, double h, double s)
+    { return s_eval_thermo_state_hs(Q, h, s); }
+
     int eval_sound_speed(Gas_data &Q)
     { return s_eval_sound_speed(Q); }
 
@@ -243,6 +246,7 @@ protected:
     virtual int s_eval_thermo_state_pT(Gas_data &Q);
     virtual int s_eval_thermo_state_rhoT(Gas_data &Q);
     virtual int s_eval_thermo_state_rhop(Gas_data &Q);
+    virtual int s_eval_thermo_state_hs(Gas_data &Q, double h, double s);
     virtual int s_eval_sound_speed(Gas_data &Q);
     virtual int s_eval_transport_coefficients(Gas_data &Q) = 0;
     virtual int s_eval_diffusion_coefficients(Gas_data &Q) = 0;

@@ -543,6 +543,133 @@ s_eval_thermo_state_rhop(Gas_data &Q)
 
 int
 Gas_model::
+s_eval_thermo_state_hs(Gas_data &Q, double h, double s)
+{
+    double dp, p_old, p_new, T_old, T_new, dT;
+    double dp_sign, dT_sign;
+    double fh_old, fs_old, fh_new, fs_new;
+    double dfh_dp, dfs_dp, dfh_dT, dfs_dT, det;
+    int converged, count;
+
+    double h_given = h;
+    double s_given = s;
+    // When using single-sided finite-differences on the
+    // curve-fit EOS functions, we really cannot expect 
+    // much more than 0.1% tolerance here.
+    // However, we want a tighter tolerance so that the starting values
+    // don't get shifted noticeably.
+    double fh_tol = 1.0e-6 * h_given;
+    double fs_tol = 1.0e-6 * s_given;
+    double fh_tol_fail = 0.02 * h_given;
+    double fs_tol_fail = 0.02 * s_given;
+
+    // Use current gas state as guess
+    p_old = Q.p;
+    T_old = Q.T[0];
+    double h_new = mixture_enthalpy(Q);
+    double s_new = mixture_entropy(Q);
+    fh_old = h_given - h_new;
+    fs_old = s_given - s_new;
+
+    // Update the guess using Newton iterations
+    // with the partial derivatives being estimated
+    // via finite differences.
+    converged = (fabs(fh_old) < fh_tol) && (fabs(fs_old) < fs_tol);
+    count = 0;
+    while ( !converged && count < MAX_STEPS ) {
+	// Perturb first dimension to get derivatives.
+	p_new = p_old * 1.001;
+	T_new = T_old;
+	Q.p = p_new;
+	Q.T[0] = T_new;
+	if ( eval_thermo_state_pT(Q) != SUCCESS ) {
+	    cout << "eval_thermo_state_hs():\n";
+	    cout << "    Duff call to eval_thermo_state_pT, iteration " << count << ", call A\n";
+	    Q.print_values();
+	    return DUFF_EOS_ERROR;
+	}
+	h_new = mixture_enthalpy(Q);
+	s_new = mixture_entropy(Q);
+	fh_new = h_given - h_new;
+	fs_new = s_given - s_new;
+	dfh_dp = (fh_new - fh_old) / (p_new - p_old);
+	dfs_dp = (fs_new - fs_old) / (p_new - p_old);
+	// Perturb other dimension to get derivatives.
+	p_new = p_old;
+	T_new = T_old * 1.001;
+	Q.p = p_new;
+	Q.T[0] = T_new;
+	if( eval_thermo_state_pT(Q) != SUCCESS ) {
+	    cout << "eval_thermo_state_hs():\n";
+	    cout << "    Duff call to eval_thermo_state_pT, iteration " << count << ", call B\n";
+	    Q.print_values();
+	    return DUFF_EOS_ERROR;
+	}
+	h_new = mixture_enthalpy(Q);
+	s_new = mixture_entropy(Q);
+	fh_new = h_given - h_new;
+	fs_new = s_given - s_new;
+	dfh_dT = (fh_new - fh_old) / (T_new - T_old);
+	dfs_dT = (fs_new - fs_old) / (T_new - T_old);
+
+	det = dfh_dp * dfs_dT - dfs_dp * dfh_dT;
+	if( fabs(det) < 1.0e-12 ) {
+	    cout << "eval_thermo_state_hs():\n";
+	    cout << "    Nearly zero determinant, det = " << det << endl;
+	    return ZERO_DETERMINANT_ERROR;
+	}
+	dp = (-dfs_dT * fh_old + dfh_dT * fs_old) / det;
+	dT = (dfs_dp * fh_old - dfh_dp * fs_old) / det;
+	if( fabs(dp) > MAX_RELATIVE_STEP * p_old ) {
+	    // move a little toward the goal 
+	    dp_sign = (dp > 0.0 ? 1.0 : -1.0);
+	    dp = dp_sign * MAX_RELATIVE_STEP * p_old;
+	} 
+	if( fabs(dT) > MAX_RELATIVE_STEP * T_old ) {
+	    // move a little toward the goal
+	    dT_sign = (dT > 0.0 ? 1.0 : -1.0);
+	    dT = dT_sign * MAX_RELATIVE_STEP * T_old;
+	} 
+	p_old += dp;
+	T_old += dT;
+	// Make sure of consistent thermo state.
+	Q.p = p_old;
+	Q.T[0] = T_old;
+	if( eval_thermo_state_pT(Q) != SUCCESS ) {
+	    cout << "eval_thermo_state_hs():\n";
+	    cout << "    Duff call to eval_thermo_state_pT, iteration " << count << ", call C\n";
+	    Q.print_values();
+	    return DUFF_EOS_ERROR;
+	}
+	h_new = mixture_enthalpy(Q);
+	s_new = mixture_entropy(Q);
+	// Prepare for next iteration.
+	fh_old = h_given - h_new;
+	fs_old = s_given - s_new;
+	converged = (fabs(fh_old) < fh_tol) && (fabs(fs_old) < fs_tol);
+	++count;
+    } // end while 
+    if( count >= MAX_STEPS ) {
+	cout << "eval_thermo_state_hs():\n";
+	cout << "    Warning, iterations did not converge.\n";
+	cout << "    h_given = " << h_given << ", s_given = " << s_given << endl;
+	Q.print_values();
+	return ITERATION_ERROR;
+    }
+    if( (fabs(fh_old) > fh_tol_fail) || (fabs(fs_old) > fs_tol_fail) ) {
+	cout << "eval_thermo_state_hs():\n";
+	cout << "    iterations failed badly.\n";
+	cout << "    h_given = " << h_given << ", s_given = " << s_given << endl;
+	Q.print_values();
+	return ITERATION_ERROR;
+    }
+    // If we get to this point, assume that all is well.
+    return SUCCESS;
+}
+
+
+int
+Gas_model::
 s_eval_sound_speed(Gas_data &Q)
 {
     // Reference:
