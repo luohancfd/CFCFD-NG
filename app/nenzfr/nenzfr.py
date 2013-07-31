@@ -122,10 +122,10 @@ def main(cfg={}):
         # need to set the reflected shock tunnel and gun tunnel parameters to nothing for the substitution
         cfg['T1'] = None; cfg['p1'] = None; cfg['Vs'] = None 
         cfg['pe'] = None; cfg['T0'] = None; cfg['p0'] = None
+        if 'pitot_input_file' in cfg:
+            cfg['T7'] = None; cfg['p7'] = None; cfg['V7'] = None  
         if 'pitot_input_file' not in cfg:
              cfg['pitot_input_file'] = None
-        if 'pitot_input_file' in cfg:
-            cfg['T7'] = None; cfg['p7'] = None; cfg['V7'] = None            
     elif cfg['facility'] == 'gun-tunnel':
         # need to set the reflected shock tunnel and expansion tube parameters to nothing for the substition
         cfg['T1'] = None; cfg['p1'] = None; cfg['Vs'] = None; cfg['pe'] = None
