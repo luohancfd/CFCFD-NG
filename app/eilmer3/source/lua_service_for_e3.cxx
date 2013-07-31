@@ -88,6 +88,7 @@ void create_table_for_fs(lua_State *L, FlowState &fs, Gas_model &gmodel)
     lua_pushnumber(L, fs.vel.y); lua_setfield(L, -2, "v");
     lua_pushnumber(L, fs.vel.z); lua_setfield(L, -2, "w");
     lua_pushnumber(L, fs.gas->a); lua_setfield(L, -2, "a");
+    lua_pushnumber(L, fs.gas->mu); lua_setfield(L, -2, "mu");
     lua_pushnumber(L, fs.mu_t); lua_setfield(L, -2, "mu_t");
     lua_pushnumber(L, fs.k_t); lua_setfield(L, -2, "k_t");
     lua_pushnumber(L, fs.tke); lua_setfield(L, -2, "tke");
@@ -102,6 +103,14 @@ void create_table_for_fs(lua_State *L, FlowState &fs, Gas_model &gmodel)
     }
     // At this point, the table of temperatures should be TOS.
     lua_setfield(L, -2, "T");
+    lua_newtable(L); // A table for the individual conductivities
+    for ( size_t imode = 0; imode < nmodes; ++imode ) {
+	lua_pushinteger(L, static_cast<int>(imode));
+	lua_pushnumber(L, fs.gas->k[imode]);
+	lua_settable(L, -3);
+    }
+    // At this point, the table of conductivities should be TOS.
+    lua_setfield(L, -2, "k");
     lua_newtable(L); // Another table for the mass fractions
     size_t nsp = gmodel.get_number_of_species();
     for ( size_t isp = 0; isp < nsp; ++isp ) {

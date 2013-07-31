@@ -113,6 +113,18 @@ the flow at specific locations:\\
                                                                              
 
 } \\
+ \texttt{sample\_i\_face(jb,i,j,k)} & \parbox{10cm}{a function that returns a table of 
+                                      the flow state for a particular I-interface.  The data is the same as that
+                                      listed for the \texttt{ghost\_cell} tables with the addition of \texttt{length},
+                                      the interface.  This function is not likely to work for a MPI simulation,
+                                      where only one block is visible to the current process.
+} \\
+ \texttt{sample\_j\_face(jb,i,j,k)} & \parbox{10cm}{As for \texttt{sample\_i\_face()} except that the properties
+                                      are returned for a J-interface.
+} \\
+ \texttt{sample\_k\_face(jb,i,j,k)} & \parbox{10cm}{As for \texttt{sample\_i\_face()} except that the properties
+                                      are returned for a K-interface.
+} \\
  \noalign{\smallskip} \hline \noalign{\smallskip}
  \texttt{locate\_cell(x,y,z)} & \parbox{10cm}{a function that will search for the cell nearest 
                                       the specified coordinates and return the cell indices
@@ -168,8 +180,32 @@ These properties are to be returned in a table containing:\\
  \texttt{tke} &  turbulent kinetic energy \\
  \texttt{omega} &  $\omega$ for the $k-\omega$ turbulence model \\
 \end{tabular}\\
-On entry to the function, \texttt{args} contains the same attributes as for the call
-to the \texttt{ghost\_cell} function.
+On entry to the function, \texttt{args} contains all of the same attributes as for the call
+to the \texttt{ghost\_cell} function. Additionally, \texttt{args} contains:\\
+\begin{tabular}{lp{12cm}}
+ \texttt{dt} &  the current global timestep, in seconds \\
+ \texttt{t\_level} & an integer denoting the level within the explicit update\\
+ \texttt{fs} &  a table containing the present flow state data for the interface. Note that typically
+                the user will provide new flow state data at the end of the function.\\
+\end{tabular}\\
+The flow state, \texttt{fs}, is table with the following flow properties:
+\begin{tabular}{lp{12cm}}
+ \texttt{p} &  pressure, Pa \\
+ \texttt{rho} & density, kg/m$^2$ \\
+ \texttt{u,v,w} & velocity components in x,y,z-directions, m/s \\
+ \texttt{a} & sound speed, m/s \\
+ \texttt{mu} & molecular (dynamic) viscosity \\
+ \texttt{k} & a table of \texttt{nmodes} thermal conductivities \\
+ \texttt{mu\_t} &  turbulent viscosity \\
+ \texttt{k\_t} &  turbulent heat conduction coefficient \\
+ \texttt{massf} & table of \texttt{nsp} mass fractions. The zero entry, at least, must be specified. \\
+ \texttt{T} & table of \texttt{nmodes} temperatures. The zero entry, at least, must be specified. \\
+ \texttt{tke} &  turbulent kinetic energy \\
+ \texttt{omega} &  $\omega$ for the $k-\omega$ turbulence model \\
+ \texttt{mu\_t} &  turbulence viscosity \\
+ \texttt{k\_t} &  turbulent heat conduction coefficient \\
+ \texttt{S} & shock-detector value (1 or 0) \\
+\end{tabular}\\
 
 \medskip
 The functions are evaluated in the Lua interpreter environment that was set up
