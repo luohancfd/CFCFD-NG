@@ -5,7 +5,7 @@ print gdata.title
 
 # Accept defaults for air giving R=287.1, gamma=1.4
 select_gas_model(model='ideal gas', species=['air'])
-stagnation_gas = FlowCondition(p=500.0e3, T=300.0)
+stagnation_gas = FlowCondition(p=500.0e3, T=300.0, u=1.0) # u = 1.0 sets flow dirn in positive x
 low_pressure_gas = FlowCondition(p=30.0, T=300.0)
 
 # Define geometry.

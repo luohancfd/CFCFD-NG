@@ -19,5 +19,6 @@ private:
     int subsonic_inflow_properties( 
         const CFlowCondition *stagnation,
 	CFlowCondition *inflow_state,
-	double inflow_velocity );
+	double inflow_pressure );
+    double s0; // stagnation enthalpy
 };
