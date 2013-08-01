@@ -543,6 +543,107 @@ s_eval_thermo_state_rhop(Gas_data &Q)
 
 int
 Gas_model::
+s_eval_thermo_state_ps(Gas_data &Q, double p, double s)
+{
+    double T_old, T_new, dT, tmp, dT_sign;
+    double dfs_dT, fs_old, fs_new;
+    int converged, count;
+
+    double s_given = s;
+    double p_given = p;
+    Q.p = p;
+    // When using single-sided finite-differences on the
+    // curve-fit EOS functions, we really cannot expect 
+    // much more than 0.1% tolerance here.
+    // However, we want a tighter tolerance so that the starting values
+    // don't get shifted noticeably.
+    double fs_tol = 1.0e-6 * s_given;
+    double fs_tol_fail = 0.02 * s_given;
+
+    // Guess the thermo state assuming that T is a good guess.
+    T_old = Q.T[0];
+    if ( eval_thermo_state_pT(Q) != SUCCESS ) {
+	cout << "eval_thermo_state_ps():\n";
+	cout << "    Duff call to eval_thermo_state_pT, starting guess 0.\n";
+	Q.print_values();
+	return DUFF_EOS_ERROR;
+    }
+    double s_old = mixture_entropy(Q);
+    fs_old = s_given - s_old;
+    // Perturb T to get a derivative estimate
+    T_new = T_old * 1.001;
+    Q.T[0] = T_new;
+    if ( eval_thermo_state_pT(Q) != SUCCESS ) {
+	cout << "eval_thermo_state_ps():\n";
+	cout << "    Duff call to eval_thermo_state_pT, starting guess 1.\n";
+	Q.print_values();
+	return DUFF_EOS_ERROR;
+    }
+    double s_new = mixture_entropy(Q);
+    fs_new = s_given - s_new;
+    dfs_dT = (fs_new - fs_old)/(T_new - T_old);
+    // At the start of iteration, we want *_old to be the best guess.
+    if ( fabs(fs_new) < fabs(fs_old) ) {
+	tmp = fs_new; fs_new = fs_old; fs_old = tmp;
+	tmp = s_new; s_new = s_old; s_old = tmp;
+    }
+
+    // Update the guess using Newton iterations
+    // with the partial derivatives being estimated
+    // via finite differences.
+    converged = (fabs(fs_old) < fs_tol);
+    count = 0;
+    while ( !converged && count < MAX_STEPS ) {
+	dT = -fs_old / dfs_dT;
+	if ( fabs(dT) > MAX_RELATIVE_STEP * T_old ) {
+	    // move a little toward the goal
+	    dT_sign = (dT > 0.0 ? 1.0 : -1.0);
+	    dT = dT_sign * MAX_RELATIVE_STEP * fabs(T_old);
+	} 
+	T_new = T_old + dT;
+	Q.T[0] = T_new;
+	if ( eval_thermo_state_pT(Q) != SUCCESS ) {
+	    cout << "eval_thermo_state_ps():\n";
+	    cout << "    Duff call to eval_thermo_state_pT, iteration " << count << endl;
+	    Q.print_values();
+	    return DUFF_EOS_ERROR;
+	}
+	s_new = mixture_enthalpy(Q);
+	fs_new = s_given - s_new;
+	dfs_dT = (fs_new - fs_old) / (T_new - T_old);
+	// Prepare for next iteration.
+	++count;
+	fs_old = fs_new;
+	T_old = T_new;
+	converged = fabs(fs_old) < fs_tol;
+    }   // end while 
+    // Ensure that we have the current data for all EOS variables.
+    Q.T[0] = T_old;
+    if ( eval_thermo_state_pT(Q) != SUCCESS ) {
+	cout << "eval_thermo_state_ps():\n";
+	cout << "    Duff call to eval_thermo_state_pT, after finishing iteration\n";
+	Q.print_values();
+	return DUFF_EOS_ERROR;
+    }
+    if ( count >= MAX_STEPS ) {
+	cout << "eval_thermo_state_ps():\n";
+	cout << "    Warning, iterations did not converge.\n";
+	cout << "    p_given = " << p_given << ", s_given = " << s_given << endl;
+	Q.print_values();
+	return ITERATION_ERROR;
+    }   // end if 
+    if ( fabs(fs_old) > fs_tol_fail ) {
+	cout << "eval_thermo_state_ps():\n";
+	cout << "    iterations failed badly.\n";
+	cout << "    p_given = " << p_given << ", s_given = " << s_given << endl;
+	Q.print_values();
+	return ITERATION_ERROR;
+    }
+    return SUCCESS;
+}
+
+int
+Gas_model::
 s_eval_thermo_state_hs(Gas_data &Q, double h, double s)
 {
     double dp, p_old, p_new, T_old, T_new, dT;
