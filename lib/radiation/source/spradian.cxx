@@ -15,6 +15,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <algorithm>
+#include <unistd.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -758,16 +759,6 @@ spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
     chdir("..");
 
     return;
-}
-
-void
-Spradian::
-spectral_distribution_for_gas_state(Gas_data &Q, vector<double> &nus)
-{
-    cout << "Spradian::spectral_distribution_for_gas_state()" << endl
-         << "This function is not available for the spradian radiation model." << endl
-         << "Exiting program!" << endl;
-    exit( BAD_INPUT_ERROR );
 }
 
 void
