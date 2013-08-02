@@ -36,6 +36,8 @@ RadiationSpectralModel()
     spectral_blocks = 1;
 
     reset_spectral_params(0);
+
+    adaptive_spectral_grid = false;
 }
 
 RadiationSpectralModel::
