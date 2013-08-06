@@ -109,16 +109,17 @@ int LOS_data::create_spectral_bins( int binning_type, int N_bins, vector<Spectra
     if ( binning_type==FREQUENCY_BINNING ) {
 	N_bins_star = create_spectral_bin_vector( rpoints_[0]->X_->nu, binning_type, N_bins, B );
     }
-    else if ( binning_type==OPACITY_BINNING ) {
+    else if ( binning_type==OPACITY_BINNING || binning_type==BAND_BINNING ) {
 	// We need to solve for the spatially independent mean opacity/absorption (see Eq 2.2 of Wray, Ripoll and Prabhu)
 	// NOTE: We are assuming planar geometry (ie that the cells have the same width in the z direction)
 	//       For axi geometries, this is only accurate along stagnation streamlines
         CoeffSpectra X(rsm_);
 	for ( int inu=0; inu < nnus_; inu++ ) {
-	    double j_nu_dV = 0.0, S_nu_dV = 0.0;
+	    double j_nu_dV = 0.0, S_nu_dV = 0.0, V = 0.0;
 	    for ( int irp=0; irp<nrps_; irp++ ) {
 		double dj_nu_dV = rpoints_[irp]->X_->j_nu[inu] * rpoints_[irp]->ds_;
 		j_nu_dV += dj_nu_dV;
+		V += rpoints_[irp]->ds_;
 		if ( rpoints_[irp]->X_->kappa_nu[inu] > 0.0 )
 		    S_nu_dV += dj_nu_dV / rpoints_[irp]->X_->kappa_nu[inu];
 	    }
@@ -127,13 +128,15 @@ int LOS_data::create_spectral_bins( int binning_type, int N_bins, vector<Spectra
 		X.kappa_nu[inu] = 0.0;
 	    else
 	        X.kappa_nu[inu] = j_nu_dV / S_nu_dV;
+	    X.j_nu[inu] = j_nu_dV / V;
 	}
 	X.write_to_file("mean_opacity_spectra.txt");
 	N_bins_star = create_spectral_bin_vector( X.kappa_nu, binning_type, N_bins, B );
     }
-    else if ( binning_type==BAND_BINNING ) {
-        N_bins_star = create_spectral_bin_vector( rpoints_[nrps_/2]->X_->kappa_nu, binning_type, N_bins, B );
-    }
+
+    cout << "LOS_data::create_spectral_bins()" << endl
+         << "Number of bins for discretisation: " << N_bins << endl
+         << "Number of non-zero bins: " << N_bins_star << endl;
 
     return N_bins_star;
 }

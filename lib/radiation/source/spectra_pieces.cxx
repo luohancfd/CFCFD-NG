@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <math.h>
 #include <iomanip>
 #include <algorithm>
@@ -284,6 +285,13 @@ void CoeffSpectra::read_from_file( string fname, int inu_start, int inu_end )
         nu.erase(nu.end()-1);
         j_nu.erase(j_nu.end()-1);
         kappa_nu.erase(kappa_nu.end()-1);
+    }
+
+    // Reverse the order if necessary
+    if ( nu.back() < nu.front() ) {
+        reverse(nu.begin(),nu.end());
+        reverse(j_nu.begin(),j_nu.end());
+        reverse(kappa_nu.begin(),kappa_nu.end());
     }
 
     cout << "Read " << nu.size() << " spectral points from file: " << fname << endl;
@@ -646,11 +654,6 @@ int create_spectral_bin_vector( std::vector<double> & pvec, int binning_type, in
             }
             prev = pvec[inu];
         }
-
-        if ( (int) B.size() != N_bins ) {
-            cout << "create_spectral_bin_vector()" << endl
-                 << "WARNING: B.size() = " << B.size() << " > N_bins = " << N_bins << endl;
-        }
     }
 
     if ( B.size()==0 ) {
@@ -659,6 +662,25 @@ int create_spectral_bin_vector( std::vector<double> & pvec, int binning_type, in
              << "Check the input parameters and try again." << endl;
         exit( FAILURE );
     }
+    else if ( (int) B.size() != N_bins ) {
+        cout << "create_spectral_bin_vector()" << endl
+             << "WARNING: B.size() = " << B.size() << " > N_bins = " << N_bins << endl;
+    }
+
+#   if 0
+    // write to files
+    for ( int iB=0; iB<int(B.size()); ++iB ) {
+        ostringstream fname;
+        fname << "spectral_bin_" << iB;
+        ofstream binfile;
+        binfile.open(fname.str().c_str());
+        binfile << "# Column 1: Spectral index" << endl;
+        binfile << "# Column 2: Binning parameter value" << endl;
+        for ( size_t jnu=0; jnu<B[iB]->inu.size(); jnu++)
+            binfile << setw(10) << B[iB]->inu[jnu] << setw(20) << pvec[B[iB]->inu[jnu]] << endl;
+        binfile.close();
+    }
+#   endif
 
     return (int) B.size();
 }
@@ -1254,10 +1276,11 @@ void SpectralFlux::read_from_file( string fname, int inu_start, int inu_end )
         q_nu.erase(q_nu.end()-1);
     }
 
-    // Reverse the order
-    reverse(nu.begin(),nu.end());
-    reverse(q_nu.begin(),q_nu.end());
-
+    // Reverse the order if necessary
+    if ( nu.back() > nu.front() ) {
+        reverse(nu.begin(),nu.end());
+        reverse(q_nu.begin(),q_nu.end());
+    }
     cout << "Read " << nu.size() << " spectral points from file: " << fname << endl;
     q_int.resize(nu.size());
     double q_total = this->integrate_flux_spectra();
