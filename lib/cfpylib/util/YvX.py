@@ -70,7 +70,7 @@ class YvX:
             self.linear_fit = interpolate.interp1d( self.x_array, self.y_array )
         print "Successfully created a YvX class of size: %d from file: %s\n" % (len(x_list), infile_name)
 
-    def y_from_x(self, x_val, use_spline=True):
+    def y_from_x(self, x_val, use_spline=True, extrapolate_endpoints=True):
         # NOTE: x_val can be an array
         if not with_scipy:
             print "scipy is required for y_from_x to function"
@@ -81,11 +81,23 @@ class YvX:
             else:
                     y_vals = self.linear_fit( x_val )
             for i,x in enumerate(x_val):
-                if self.check_range( x )==False: y_vals[i] = 0.0
+                if extrapolate_endpoints:
+                    if x<self.x_array[0]:
+                        y_vals[i] = self.y_array[0]
+                    elif x_val>self.x_array[-1]:
+                        y_vals[i] = self.y_array[-1]
+                else:
+                    if self.check_range( x )==False: y_vals[i] = 0.0
             return y_vals
         else:
-            if self.check_range( x_val )==False: return 0.0
-            elif use_spline:
+            if extrapolate_endpoints:
+                if x_val<self.x_array[0]:
+                    return self.y_array[0]
+                elif x_val>self.x_array[-1]:
+                    return self.y_array[-1]
+            else:
+                if self.check_range( x_val )==False: return 0.0
+            if use_spline:
                     return interpolate.splev( x_val, self.spline_fit, der=0 )
             else:
                     return self.linear_fit( x_val )
