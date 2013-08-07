@@ -11,22 +11,23 @@
 
 //------------------------------------------------------------------------
 
-SlipWallBC::SlipWallBC( Block *bdp, int which_boundary )
-    : BoundaryCondition(bdp, which_boundary, SLIP_WALL, "SlipWallBC",
-			0, true, false, false, -1, -1) 
-{}
+SlipWallBC::SlipWallBC(Block *bdp, int which_boundary)
+    : BoundaryCondition(bdp, which_boundary, SLIP_WALL) 
+{
+    is_wall_flag = true;
+}
 
-SlipWallBC::SlipWallBC( const SlipWallBC &bc )
-    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.x_order, bc.is_wall_flag, 
-			bc.sets_conv_flux_flag, bc.sets_visc_flux_flag, 
-			bc.neighbour_block, bc.neighbour_face) 
-{}
+SlipWallBC::SlipWallBC(const SlipWallBC &bc)
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code)
+{
+    is_wall_flag = bc.is_wall_flag;
+}
 
 SlipWallBC::SlipWallBC()
-    : BoundaryCondition(0, 0, SLIP_WALL, "SlipWallBC",
-			0, true, false, -1, -1) 
-{}
+    : BoundaryCondition(0, 0, SLIP_WALL)
+{
+    is_wall_flag = true;
+}
 
 SlipWallBC & SlipWallBC::operator=(const SlipWallBC &bc)
 {

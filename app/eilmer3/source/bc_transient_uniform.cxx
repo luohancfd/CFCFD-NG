@@ -25,11 +25,9 @@
 
 //------------------------------------------------------------------------
 
-TransientUniformBC::TransientUniformBC( Block *bdp, int which_boundary,
-					std::string filename )
-    : BoundaryCondition(bdp, which_boundary, TRANSIENT_UNI, "TransientUniformBC",
-			0, false, false, false, -1, -1, 0),
-      filename(filename)
+TransientUniformBC::TransientUniformBC(Block *bdp, int which_boundary, std::string _filename )
+    : BoundaryCondition(bdp, which_boundary, TRANSIENT_UNI),
+      filename(_filename)
 {
     // Reads the time-record flow state data from a previously written file. 
     //
@@ -108,12 +106,8 @@ TransientUniformBC::TransientUniformBC( Block *bdp, int which_boundary,
 #   endif
 } // end TransientUniformBC constructor
 
-TransientUniformBC::TransientUniformBC( const TransientUniformBC &bc )
-    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.x_order, bc.is_wall_flag, 
-			bc.sets_conv_flux_flag, bc.sets_visc_flux_flag, 
-			bc.neighbour_block, bc.neighbour_face,
-			bc.neighbour_orientation), 
+TransientUniformBC::TransientUniformBC(const TransientUniformBC &bc)
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code), 
       filename(bc.filename)
 {
     nsp = bc.nsp;
@@ -123,8 +117,7 @@ TransientUniformBC::TransientUniformBC( const TransientUniformBC &bc )
 }
 
 TransientUniformBC::TransientUniformBC()
-    : BoundaryCondition(0, 0, TRANSIENT_UNI, "TransientUniformBC",
-			0, false, false, -1, -1, 0),
+    : BoundaryCondition(0, 0, TRANSIENT_UNI),
       filename("")
 { /* Cannot do much without more information. */ }
 

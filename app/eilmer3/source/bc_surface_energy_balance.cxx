@@ -27,11 +27,11 @@
 
 //------------------------------------------------------------------------
 
-SurfaceEnergyBalanceBC::SurfaceEnergyBalanceBC( Block *bdp, int which_boundary, double epsilon )
-    : BoundaryCondition(bdp, which_boundary, SEB, "SurfaceEnergyBalanceBC",
-			0, true, false, false, -1, -1, 0),
+SurfaceEnergyBalanceBC::SurfaceEnergyBalanceBC(Block *bdp, int which_boundary, double epsilon)
+    : BoundaryCondition(bdp, which_boundary, SEB),
       epsilon(epsilon), tol(1.0e-4), max_iterations(100), f_relax(0.05)
 {
+    is_wall_flag = true;
     // Ensure that epsilon is between 0 and 1 as required
     if ( epsilon < 0.0 || epsilon > 1.0 ) {
     	cerr << "SurfaceEnergyBalanceBC::SurfaceEnergyBalanceBC()" << endl
@@ -46,15 +46,12 @@ SurfaceEnergyBalanceBC::SurfaceEnergyBalanceBC( Block *bdp, int which_boundary, 
     Q = new Gas_data(gmodel);
 }
 
-SurfaceEnergyBalanceBC::SurfaceEnergyBalanceBC( const SurfaceEnergyBalanceBC &bc )
-    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.x_order, bc.is_wall_flag,
-			bc.sets_conv_flux_flag, bc.sets_visc_flux_flag, 
-			bc.neighbour_block, bc.neighbour_face,
-			bc.neighbour_orientation),
+SurfaceEnergyBalanceBC::SurfaceEnergyBalanceBC(const SurfaceEnergyBalanceBC &bc)
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code),
       epsilon(bc.epsilon), tol(bc.tol), max_iterations(bc.max_iterations),
       f_relax(bc.f_relax)
 {
+    is_wall_flag = bc.is_wall_flag;
     // Initialise the local gas-data structure (used for EOS calls)
     Gas_model * gmodel = get_gas_model_ptr();
     Q = new Gas_data(gmodel);
@@ -64,6 +61,7 @@ SurfaceEnergyBalanceBC &
 SurfaceEnergyBalanceBC::operator=(const SurfaceEnergyBalanceBC &bc)
 {
     if ( this != &bc ) {
+	is_wall_flag = bc.is_wall_flag;
 	epsilon = bc.epsilon;
 	tol = bc.tol;
 	max_iterations = bc.max_iterations;
@@ -74,10 +72,10 @@ SurfaceEnergyBalanceBC::operator=(const SurfaceEnergyBalanceBC &bc)
 }
 
 SurfaceEnergyBalanceBC::SurfaceEnergyBalanceBC()
-    : BoundaryCondition(0, 0, SEB, "SurfaceEnergyBalanceBC",
-			0, true, false, -1, -1, 0),
+    : BoundaryCondition(0, 0, SEB),
       epsilon(0.0), tol(1.0e-4), max_iterations(100), f_relax(0.05)
 {
+    is_wall_flag = true;
     // Initialise the local gas-data structure (used for EOS calls)
     Gas_model * gmodel = get_gas_model_ptr();
     Q = new Gas_data(gmodel);
@@ -88,7 +86,7 @@ SurfaceEnergyBalanceBC::~SurfaceEnergyBalanceBC()
     delete Q;
 }
 
-int SurfaceEnergyBalanceBC::apply_viscous( double t )
+int SurfaceEnergyBalanceBC::apply_viscous(double t)
 {
     size_t i, j, k;
     FV_Cell *cell;
@@ -323,7 +321,7 @@ solve_for_wall_temperature( FV_Interface * IFace, FV_Cell * cell_one, size_t ind
 
 void
 SurfaceEnergyBalanceBC::
-update_interface_properties( FV_Interface * IFace )
+update_interface_properties(FV_Interface * IFace)
 {
     // Just the temperatures and mass-fractions (if catalytic) should have changed
     Gas_model * gm = get_gas_model_ptr();

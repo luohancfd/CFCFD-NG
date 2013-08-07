@@ -10,12 +10,12 @@ private:
     size_t ncell_for_profile;
     std::vector<CFlowCondition*> flow_profile;
 public:
-    StaticProfileBC( Block *bdp, int which_boundary, 
-		     const std::string filename="profile.dat", size_t n_profile=1 );
-    StaticProfileBC( const StaticProfileBC &bc );
+    StaticProfileBC(Block *bdp, int which_boundary, 
+		    const std::string filename="profile.dat", size_t n_profile=1);
+    StaticProfileBC(const StaticProfileBC &bc);
     StaticProfileBC();
     StaticProfileBC & operator=(const StaticProfileBC &bc);
     virtual ~StaticProfileBC();
-    virtual int apply_convective( double t );
+    virtual int apply_convective(double t);
     // default apply_viscous() (does nothing)
 };

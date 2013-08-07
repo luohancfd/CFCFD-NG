@@ -26,6 +26,7 @@ extern "C" {
 }
 
 #include "../../../lib/util/source/useful.h"
+#include "../../../lib/util/source/config_parser.hh"
 #include "../../../lib/gas/models/gas_data.hh"
 #include "../../../lib/gas/models/gas-model.hh"
 #include "../../../lib/gas/models/physical_constants.hh"
@@ -125,20 +126,13 @@ int apply_viscous_bc( Block &bd, double t, size_t dimensions )
 //-----------------------------------------------------------------------
 
 BoundaryCondition::
-BoundaryCondition( Block *bdp, int which_boundary, bc_t type_code,
-		   std::string name_of_BC, int x_order,
-		   bool is_wall,
-		   bool sets_conv_flux, bool sets_visc_flux,
-		   int neighbour_block, int neighbour_face,
-		   int neighbour_orientation,
-		   bc_t wc_bc, int sponge_flag, int xforce_flag )
+BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code)
     : bdp(bdp), which_boundary(which_boundary), type_code(type_code),
-      name_of_BC(name_of_BC), x_order(x_order),
-      is_wall_flag(is_wall),
-      sets_conv_flux_flag(sets_conv_flux), sets_visc_flux_flag(sets_visc_flux),
-      neighbour_block(neighbour_block), neighbour_face(neighbour_face),
-      neighbour_orientation(neighbour_orientation),
-      wc_bc(wc_bc), sponge_flag(sponge_flag), xforce_flag(xforce_flag)
+      x_order(0),
+      is_wall_flag(false), 
+      sets_conv_flux_flag(false), sets_visc_flux_flag(false),
+      neighbour_block(-1), neighbour_face(-1), neighbour_orientation(0),
+      wc_bc(NON_CATALYTIC), sponge_flag(0), xforce_flag(0), cw(0)
 {
     Block & bd = *bdp;
     // 1. Determine size heat flux vectors
@@ -216,12 +210,8 @@ BoundaryCondition( Block *bdp, int which_boundary, bc_t type_code,
 	exit(NOT_IMPLEMENTED_ERROR);
     }
     
-    // 4. Set the catalytic wall BC pointer to null
-    cw = 0;
-    
 #   if VERBOSE_BCS
     size_t total_bytes = 3 * dim * sizeof(double);
-    
     cout << "Block " << bd.id << ", boundary " << which_boundary
 	 << ": Have allocated " << total_bytes << " bytes of memory." << endl;
 #   endif
@@ -229,23 +219,20 @@ BoundaryCondition( Block *bdp, int which_boundary, bc_t type_code,
 
 // Shouldn't really have a boundary condition object created without
 // reference to a particular block but, just in case the compiler wants it...
-BoundaryCondition::
-BoundaryCondition()
+BoundaryCondition::BoundaryCondition()
     : bdp(0), which_boundary(0), type_code(SLIP_WALL),
-      name_of_BC("Unspecified"), x_order(0),
+      x_order(0),
       is_wall_flag(false),
       sets_conv_flux_flag(false), sets_visc_flux_flag(false),
-      neighbour_block(-1), neighbour_face(-1),
-      neighbour_orientation(0),
+      neighbour_block(-1), neighbour_face(-1), neighbour_orientation(0),
       wc_bc(NON_CATALYTIC), sponge_flag(0), xforce_flag(0),
       cw(0)
 {}
 
-BoundaryCondition::
-BoundaryCondition( const BoundaryCondition &bc )
+BoundaryCondition::BoundaryCondition(const BoundaryCondition &bc)
     : bdp(bc.bdp), // Still bound to the original block.
       which_boundary(bc.which_boundary), type_code(bc.type_code),
-      name_of_BC(bc.name_of_BC), x_order(bc.x_order),
+      x_order(bc.x_order),
       is_wall_flag(bc.is_wall_flag),
       sets_conv_flux_flag(bc.sets_conv_flux_flag),
       sets_visc_flux_flag(bc.sets_visc_flux_flag),
@@ -253,19 +240,17 @@ BoundaryCondition( const BoundaryCondition &bc )
       neighbour_orientation(bc.neighbour_orientation),
       wc_bc(bc.wc_bc), sponge_flag(bc.sponge_flag), xforce_flag(bc.xforce_flag),
       q_cond(bc.q_cond), q_diff(bc.q_diff), q_rad(bc.q_rad),
-      imin(bc.imin), imax(bc.imax), jmin(bc.jmin), jmax(bc.jmax)
+      imin(bc.imin), imax(bc.imax), jmin(bc.jmin), jmax(bc.jmax), cw(0)
 {
     // if ( bc.cw ) cw = new CatalyticWallBC(*bc.cw);
-    cw = 0;
 }
 
-BoundaryCondition & BoundaryCondition::operator=( const BoundaryCondition &bc )
+BoundaryCondition & BoundaryCondition::operator=(const BoundaryCondition &bc)
 {
     if ( this != &bc ) {
 	bdp = bc.bdp; // This new BC is still bound to the original block.
 	which_boundary = bc.which_boundary; 
 	type_code = bc.type_code;
-	name_of_BC = bc.name_of_BC;
 	x_order = bc.x_order;
 	is_wall_flag = bc.is_wall_flag;
 	sets_conv_flux_flag = bc.sets_conv_flux_flag;
@@ -292,7 +277,7 @@ BoundaryCondition::~BoundaryCondition()
     if ( cw ) delete cw;
 }
 
-void BoundaryCondition::print_info( std::string lead_in )
+void BoundaryCondition::print_info(std::string lead_in)
 {
     cout << lead_in << "block_id" << bdp->id << endl;
     cout << lead_in << "which_boundary=" << which_boundary 
@@ -310,6 +295,9 @@ void BoundaryCondition::print_info( std::string lead_in )
     cout << lead_in << "wc_bc=" << get_bc_name(wc_bc) << endl;
     cout << lead_in << "sponge_flag=" << sponge_flag << endl;
     cout << lead_in << "xforce_flag=" << xforce_flag << endl;
+    // *** FIX-ME *** should properly delegate data to the specific boundary condition classes
+    // cout << lead_in << "Pout= " << Pout << endl;
+    // cout << lead_in << "Twall= " << Twall << endl;
     return;
 }
 
@@ -884,88 +872,138 @@ int BoundaryCondition::write_vertex_velocities(std::string filename, double sim_
 
 //------------------------------------------------------------------------
 
-BoundaryCondition *create_BC( Block *bdp, int which_boundary, bc_t type_of_BC, 
-			      int inflow_condition_id, std::string filename, size_t n_profile,
-			      double Twall, double Pout, int x_order, int is_wall,
-			      int sets_conv_flux_flag, int sets_visc_flux_flag, 
-			      int other_block, int other_face, int neighbour_orientation,
-			      int sponge_flag, int xforce_flag, 
-			      vector<double> &mdot, double epsilon,
-			      bc_t wc_bc, string wcbc_fname, vector<double> f_wall,
-			      double Twall_i, double Twall_f, double t_i, double t_f,
-			      int assume_ideal)
-// Return the appropriate BoundaryCondition object based on the
-// integer identity of the boundary condition.
-// Eventually, we would like to be able to use more descriptive strings
-// as the identities.
-//
+BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC, 
+			     ConfigParser &dict, std::string section)
 {
     BoundaryCondition *newBC;
+    std::string value_string;
+    int other_block = -1;
+    int other_face = -1;
+    int neighbour_orientation = 0;
+    int inflow_condition_id = 0;
+    int x_order = 0;
+    int sponge_flag = 0;
+    double Twall = 300.0;
+    double Twall_i = 300.0;
+    double Twall_f = 300.0;
+    double t_i = 0.0;
+    double t_f = 0.0;
+    int assume_ideal = 0;
+    std::string filename = "";
+    size_t n_profile = 1;
+    double Pout = 100.0e3;
+    int is_wall = 0;
+    int sets_conv_flux = 0;
+    int sets_visc_flux = 0;
+    double epsilon = 0.9;
+    std::vector<double> mdot;
+    std::vector<double> vnf;
+    vnf.resize(get_gas_model_ptr()->get_number_of_species(), 0.0);
+    int xforce_flag = 0;
 
     switch ( type_of_BC ) {
     case ADJACENT:
-	newBC = new AdjacentBC( bdp, which_boundary, other_block,
-				other_face, neighbour_orientation );
+	dict.parse_int(section, "other_block", other_block, -1);
+	dict.parse_string(section, "other_face", value_string, "");
+	other_face = get_face_index(value_string);
+	dict.parse_int(section, "neighbour_orientation", neighbour_orientation, 0);
+	newBC = new AdjacentBC(bdp, which_boundary, other_block, other_face, neighbour_orientation);
 	break;
     case SUP_IN:
-	newBC = new SupersonicInBC( bdp, which_boundary, inflow_condition_id );
+	dict.parse_int(section, "inflow_condition", inflow_condition_id, 0);
+	newBC = new SupersonicInBC(bdp, which_boundary, inflow_condition_id);
 	break;
     case EXTRAPOLATE_OUT:
-	newBC = new ExtrapolateOutBC( bdp, which_boundary, x_order, sponge_flag );
+	dict.parse_int(section, "x_order", x_order, 0);
+	dict.parse_int(section, "sponge_flag", sponge_flag, 0);
+	newBC = new ExtrapolateOutBC(bdp, which_boundary, x_order, sponge_flag);
 	break;
     case SHOCK_FITTING_IN:
-	newBC = new ShockFittingInBC( bdp, which_boundary, inflow_condition_id );
+	dict.parse_int(section, "inflow_condition", inflow_condition_id, 0);
+	newBC = new ShockFittingInBC(bdp, which_boundary, inflow_condition_id);
 	break;
     case SLIP_WALL:
-	newBC = new SlipWallBC( bdp, which_boundary );
+	newBC = new SlipWallBC(bdp, which_boundary);
 	break;
     case ADIABATIC:
-	newBC = new AdiabaticBC( bdp, which_boundary );
+	newBC = new AdiabaticBC(bdp, which_boundary);
 	break;
     case FIXED_T:
-	newBC = new FixedTBC( bdp, which_boundary, Twall );
+	dict.parse_double(section, "Twall", Twall, 300.0);
+	newBC = new FixedTBC(bdp, which_boundary, Twall);
 	break;
     case SLIDING_T:
-	newBC = new SlidingTBC( bdp, which_boundary, Twall_i, Twall_f, t_i, t_f );
+	dict.parse_double(section, "Twall_i", Twall_i, 300.0);
+	dict.parse_double(section, "Twall_f", Twall_f, 300.0);
+	dict.parse_double(section, "t_i", t_i, 0.0);
+	dict.parse_double(section, "t_f", t_f, 0.0);
+	newBC = new SlidingTBC(bdp, which_boundary, Twall_i, Twall_f, t_i, t_f);
 	break;
     case SUBSONIC_IN:
-	newBC = new SubsonicInBC( bdp, which_boundary, inflow_condition_id, assume_ideal );
+	dict.parse_int(section, "inflow_condition", inflow_condition_id, 0);
+	dict.parse_int(section, "assume_ideal", assume_ideal, 0);
+	newBC = new SubsonicInBC(bdp, which_boundary, inflow_condition_id, assume_ideal);
 	break;
     case TRANSIENT_UNI:
-	newBC = new TransientUniformBC( bdp, which_boundary, filename );
+	dict.parse_string(section, "filename", filename, "");
+	newBC = new TransientUniformBC(bdp, which_boundary, filename);
 	break;
     case STATIC_PROF:
-	newBC = new StaticProfileBC( bdp, which_boundary, filename, n_profile );
+	dict.parse_string(section, "filename", filename, "");
+	dict.parse_size_t(section, "n_profile", n_profile, 1);
+	newBC = new StaticProfileBC(bdp, which_boundary, filename, n_profile);
 	break;
     case FIXED_P_OUT:
-	newBC = new FixedPOutBC( bdp, which_boundary, Pout, x_order );
+	dict.parse_double(section, "Pout", Pout, 100.0e3);
+	dict.parse_int(section, "x_order", x_order, 0);
+	newBC = new FixedPOutBC(bdp, which_boundary, Pout, x_order);
 	break;
     case USER_DEFINED:
-	newBC = new UserDefinedBC( bdp, which_boundary, filename, 
-				   is_wall==1 );
+	dict.parse_string(section, "filename", filename, "");
+	dict.parse_int(section, "is_wall", is_wall, 0);
+	dict.parse_int(section, "sets_conv_flux", sets_conv_flux, 0);
+	dict.parse_int(section, "sets_visc_flux", sets_visc_flux, 0);
+	newBC = new UserDefinedBC(bdp, which_boundary, filename, is_wall==1);
 	break;
     case ADJACENT_PLUS_UDF:
-	newBC = new AdjacentPlusUDFBC( bdp, which_boundary, other_block, 
-				       other_face, neighbour_orientation,
-				       filename, is_wall==1 );
+	dict.parse_int(section, "other_block", other_block, -1);
+	dict.parse_string(section, "other_face", value_string, "");
+	other_face = get_face_index(value_string);
+	dict.parse_int(section, "neighbour_orientation", neighbour_orientation, 0);
+	dict.parse_string(section, "filename", filename, "");
+	dict.parse_int(section, "is_wall", is_wall, 0);
+	dict.parse_int(section, "sets_conv_flux", sets_conv_flux, 0);
+	dict.parse_int(section, "sets_visc_flux", sets_visc_flux, 0);
+	newBC = new AdjacentPlusUDFBC(bdp, which_boundary, other_block, 
+				      other_face, neighbour_orientation,
+				      filename, is_wall==1);
 	break;
     case SEB:
-    	newBC = new SurfaceEnergyBalanceBC( bdp, which_boundary, epsilon );
+	dict.parse_double(section, "epsilon", epsilon, 0.9);
+    	newBC = new SurfaceEnergyBalanceBC(bdp, which_boundary, epsilon);
     	break;
     case ABLATING:
-    	newBC = new AblatingBC( bdp, which_boundary, Twall, mdot);
+	dict.parse_double(section, "Twall", Twall, 300.0);
+	dict.parse_vector_of_doubles(section, "mdot", mdot, vnf);
+    	newBC = new AblatingBC(bdp, which_boundary, Twall, mdot);
     	break;
     case FSTC:
-	newBC = new fstcBC( bdp, which_boundary, filename );
+	dict.parse_string(section, "filename", filename, "");
+	newBC = new fstcBC(bdp, which_boundary, filename);
         break;
     default:
 	cerr << "create_BC() error: boundary condition \"" << type_of_BC 
 	     << "\" is not available." << endl;
+	newBC = 0;
 	exit( FAILURE );
-	newBC = new SlipWallBC( bdp, which_boundary );
 	break;
     } // end switch
-    
+
+    // ***FIX-ME*** Rowan, the catalytic stuff needs to be looked at. PJ 07-Aug-2013   
+    bc_t wc_bc = NON_CATALYTIC;
+    std::string wcbc_fname;
+    std::vector<double> f_wall_va;
+    std::vector<double> f_wall;
     if ( wc_bc != NON_CATALYTIC && type_of_BC != FIXED_T 
     	                        && type_of_BC != ADIABATIC
     	                        && type_of_BC != SEB
@@ -979,11 +1017,11 @@ BoundaryCondition *create_BC( Block *bdp, int which_boundary, bc_t type_of_BC,
     } else if ( wc_bc == NON_CATALYTIC ) {
     	// do nothing (newBC->cw should already be a null pointer)
     } else if ( wc_bc == EQUIL_CATALYTIC ) {
-    	newBC->cw = new EquilibriumCatalyticWallBC( wcbc_fname );
+    	newBC->cw = new EquilibriumCatalyticWallBC(wcbc_fname);
     } else if ( wc_bc == SUPER_CATALYTIC ) {
-    	newBC->cw = new SuperCatalyticWallBC( f_wall );
+    	newBC->cw = new SuperCatalyticWallBC(f_wall);
     } else if (wc_bc == PARTIALLY_CATALYTIC ) {
-        	newBC->cw = new PartiallyCatalyticWallBC( wcbc_fname );
+        	newBC->cw = new PartiallyCatalyticWallBC(wcbc_fname);
     } else {
     	cerr << "create_BC() error: wc_bc " << get_bc_name(wc_bc)
 	     << " not available." << endl

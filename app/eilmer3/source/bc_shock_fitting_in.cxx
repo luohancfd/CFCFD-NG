@@ -15,26 +15,20 @@
 //------------------------------------------------------------------------
 
 ShockFittingInBC::
-ShockFittingInBC( Block *bdp, int which_boundary, int inflow_condition_id )
-    : BoundaryCondition(bdp, which_boundary, SHOCK_FITTING_IN, "ShockFittingIn", 
-			0, false, false, false, -1, -1, 0), 
+ShockFittingInBC(Block *bdp, int which_boundary, int inflow_condition_id)
+    : BoundaryCondition(bdp, which_boundary, SHOCK_FITTING_IN), 
       inflow_condition_id(inflow_condition_id) 
 {}
 
 ShockFittingInBC::
-ShockFittingInBC( const ShockFittingInBC &bc )
-    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.x_order, bc.is_wall_flag,
-			bc.sets_conv_flux_flag, bc.sets_visc_flux_flag, 
-			bc.neighbour_block, bc.neighbour_face,
-			bc.neighbour_orientation),
+ShockFittingInBC(const ShockFittingInBC &bc)
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code),
       inflow_condition_id(bc.inflow_condition_id) 
 {}
 
 ShockFittingInBC::
 ShockFittingInBC()
-    : BoundaryCondition(0, 0, SHOCK_FITTING_IN, "ShockFittingIn", 
-			0, false, false, -1, -1, 0), 
+    : BoundaryCondition(0, 0, SHOCK_FITTING_IN), 
       inflow_condition_id(0) 
 {}
 
@@ -48,7 +42,7 @@ ShockFittingInBC::operator=(const ShockFittingInBC &bc)
 
 ShockFittingInBC::~ShockFittingInBC() {}
 
-int ShockFittingInBC::apply_convective( double t )
+int ShockFittingInBC::apply_convective(double t)
 // Copies from FlowCondition to ghost cells.
 {
     // Set up ghost cells with inflow state. 
@@ -92,7 +86,7 @@ int ShockFittingInBC::apply_convective( double t )
     return SUCCESS;
 }
 
-int ShockFittingInBC::apply_viscous( double t )
+int ShockFittingInBC::apply_viscous(double t)
 // Copies interior-cell flow-properties to interface.
 {
     size_t i, j, k;

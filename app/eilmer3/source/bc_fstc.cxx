@@ -25,12 +25,12 @@
 #include <string.h>
 #include <vector>
 
-fstcBC::fstcBC( Block *bdp, int which_boundary, const std::string filename )
-    : BoundaryCondition(bdp, which_boundary, FSTC, "fstcBC",
-			0, true, false, false, -1, -1, 0),
+fstcBC::fstcBC(Block *bdp, int which_boundary, const std::string filename)
+    : BoundaryCondition(bdp, which_boundary, FSTC),
       filename(filename)
 {
     // Reads the temperature profile from the solid solver output.
+    is_wall_flag = true;
 
     char line[512], token[512];
     double T;
@@ -88,23 +88,24 @@ fstcBC::fstcBC( Block *bdp, int which_boundary, const std::string filename )
 } //end of constructor
 
 fstcBC::fstcBC( const fstcBC &bc )
-    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.x_order, bc.is_wall_flag, 
-			bc.sets_conv_flux_flag, bc.sets_visc_flux_flag,
-			bc.neighbour_block, bc.neighbour_face,
-			bc.neighbour_orientation),
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code),
       filename(bc.filename)
-{}
+{
+    is_wall_flag = bc.is_wall_flag;
+}
 
 fstcBC::fstcBC()
-    : BoundaryCondition(0, 0, FSTC, "fstcBC",
-			0, true, false, -1, -1, 0),
+    : BoundaryCondition(0, 0, FSTC),
       filename("")
-{ /* Cannot do anything useful here. */ }
+{ 
+    /* Cannot do anything useful here. */ 
+    is_wall_flag = true; 
+}
 
 fstcBC & fstcBC::operator=(const fstcBC &bc)
 {
     BoundaryCondition::operator=(bc);
+    is_wall_flag = bc.is_wall_flag;
     filename = bc.filename;
     cerr << "fstcBC() assignment operator with file: " << filename
 	 << "Not implemented. " << endl;
@@ -114,7 +115,7 @@ fstcBC & fstcBC::operator=(const fstcBC &bc)
 
 fstcBC::~fstcBC() {}
 
-int fstcBC::apply_viscous( double t )
+int fstcBC::apply_viscous(double t)
 {
     size_t i, j, k;
     FV_Cell *cell;

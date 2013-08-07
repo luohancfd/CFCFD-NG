@@ -11,37 +11,38 @@
 
 //------------------------------------------------------------------------
 
-FixedPOutBC::FixedPOutBC( Block *bdp, int which_boundary, double Pout, int x_order )
-    : BoundaryCondition(bdp, which_boundary, FIXED_P_OUT, "FixedPOutBC",
-			x_order, false, false, false, -1, -1, 0), 
-      Pout(Pout) 
-{}
+FixedPOutBC::FixedPOutBC(Block *bdp, int which_boundary, double _Pout, int _x_order)
+    : BoundaryCondition(bdp, which_boundary, FIXED_P_OUT) 
+{
+    x_order = _x_order;
+    Pout = _Pout; 
+}
 
-FixedPOutBC::FixedPOutBC( const FixedPOutBC &bc )
-    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.x_order, bc.is_wall_flag, 
-			bc.sets_conv_flux_flag, bc.sets_visc_flux_flag,
-			bc.neighbour_block, bc.neighbour_face,
-			bc.neighbour_orientation), 
-      Pout(bc.Pout) 
-{}
+FixedPOutBC::FixedPOutBC(const FixedPOutBC &bc)
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code) 
+{
+    x_order = bc.x_order;
+    Pout = bc.Pout; 
+}
 
 FixedPOutBC::FixedPOutBC()
-    : BoundaryCondition(0, 0, FIXED_P_OUT, "FixedPOutBC",
-			0, false, false, -1, -1, 0), 
-      Pout(0.0) 
-{}
+    : BoundaryCondition(0, 0, FIXED_P_OUT) 
+{
+    x_order = 0;
+    Pout = 0.0; 
+}
 
 FixedPOutBC & FixedPOutBC::operator=(const FixedPOutBC &bc)
 {
     BoundaryCondition::operator=(bc);
+    x_order = bc.x_order;
     Pout = bc.Pout; // Ok for self-assignment.
     return *this;
 }
 
 FixedPOutBC::~FixedPOutBC() {}
 
-int FixedPOutBC::apply_convective( double t )
+int FixedPOutBC::apply_convective(double t)
 {
     // Fill ghost cells with data from just inside the boundary
     // using zero-order extrapolation (i.e. just copy the data)

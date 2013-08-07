@@ -11,10 +11,9 @@
 
 //------------------------------------------------------------------------
 
-SubsonicInBC::SubsonicInBC( Block *bdp, int which_boundary, 
-			    int inflow_condition_id, int assume_ideal )
-    : BoundaryCondition(bdp, which_boundary, SUBSONIC_IN, "SubsonicInBC",
-			0, false, false, false, -1, -1, 0), 
+SubsonicInBC::SubsonicInBC(Block *bdp, int which_boundary, 
+			   int inflow_condition_id, int assume_ideal)
+    : BoundaryCondition(bdp, which_boundary, SUBSONIC_IN), 
       inflow_condition_id(inflow_condition_id),
       use_ideal_gas_relations(assume_ideal)
 {
@@ -25,18 +24,15 @@ SubsonicInBC::SubsonicInBC( Block *bdp, int which_boundary,
     s0 = gmodel->mixture_enthalpy(*(gstagp->gas));
 }
 
-SubsonicInBC::SubsonicInBC( const SubsonicInBC &bc )
-    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.x_order, bc.is_wall_flag,
-			bc.sets_conv_flux_flag, bc.sets_visc_flux_flag,
-			bc.neighbour_block, bc.neighbour_face,
-			bc.neighbour_orientation), 
-      inflow_condition_id(bc.inflow_condition_id), s0(bc.s0)
+SubsonicInBC::SubsonicInBC(const SubsonicInBC &bc)
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code), 
+      inflow_condition_id(bc.inflow_condition_id),
+      use_ideal_gas_relations(bc.use_ideal_gas_relations),
+      s0(bc.s0)
 {}
 
 SubsonicInBC::SubsonicInBC()
-    : BoundaryCondition(0, 0, SUBSONIC_IN, "SubsonicInBC",
-			0, false, false, -1, -1, 0), 
+    : BoundaryCondition(0, 0, SUBSONIC_IN), 
       inflow_condition_id(0), use_ideal_gas_relations(0), s0(0.0)
 {}
 
@@ -52,7 +48,7 @@ SubsonicInBC & SubsonicInBC::operator=(const SubsonicInBC &bc)
 
 SubsonicInBC::~SubsonicInBC() {}
 
-int SubsonicInBC::apply_convective( double t )
+int SubsonicInBC::apply_convective(double t)
 {
     Block & bd = *bdp;
     size_t i, j, k;

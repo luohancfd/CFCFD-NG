@@ -11,23 +11,26 @@
 
 //------------------------------------------------------------------------
 
-ExtrapolateOutBC::ExtrapolateOutBC( Block *bdp, int which_boundary, int x_order, int _sponge_flag )
-    : BoundaryCondition(bdp, which_boundary, EXTRAPOLATE_OUT, "ExtrapolateOutBC",
-			x_order, false, false, false, -1, -1, 0) 
-{}
+ExtrapolateOutBC::ExtrapolateOutBC(Block *bdp, int which_boundary, int _x_order, int _sponge_flag)
+    : BoundaryCondition(bdp, which_boundary, EXTRAPOLATE_OUT)
+{
+    x_order = _x_order;
+    sponge_flag = _sponge_flag;
+}
 
-ExtrapolateOutBC::ExtrapolateOutBC( const ExtrapolateOutBC &bc )
-    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.x_order, bc.is_wall_flag,
-			bc.sets_conv_flux_flag, bc.sets_visc_flux_flag,
-			bc.neighbour_block, bc.neighbour_face,
-			bc.neighbour_orientation) 
-{}
+ExtrapolateOutBC::ExtrapolateOutBC(const ExtrapolateOutBC &bc)
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code)
+{
+    x_order = bc.x_order;
+    sponge_flag = bc.sponge_flag;
+}
 
 ExtrapolateOutBC::ExtrapolateOutBC()
-    : BoundaryCondition(0, 0, EXTRAPOLATE_OUT, "ExtrapolateOutBC",
-			0, false, false, -1, -1, 0) 
-{}
+    : BoundaryCondition(0, 0, EXTRAPOLATE_OUT)
+{
+    x_order = 0;
+    sponge_flag = 0;
+}
 
 ExtrapolateOutBC & ExtrapolateOutBC::operator=(const ExtrapolateOutBC &bc)
 {
@@ -37,7 +40,7 @@ ExtrapolateOutBC & ExtrapolateOutBC::operator=(const ExtrapolateOutBC &bc)
 
 ExtrapolateOutBC::~ExtrapolateOutBC() {}
 
-int ExtrapolateOutBC::apply_convective( double t )
+int ExtrapolateOutBC::apply_convective(double t)
 {
     // Fill ghost cells with data from just inside the boundary
     // using zero-order extrapolation (i.e. just copy the data).

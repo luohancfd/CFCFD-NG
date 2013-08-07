@@ -25,11 +25,10 @@
 
 //------------------------------------------------------------------------
 
-StaticProfileBC::StaticProfileBC( Block *bdp, int which_boundary,
-				  const std::string filename, size_t n_profile )
-    : BoundaryCondition(bdp, which_boundary, STATIC_PROF, "StaticProfileBC",
-			0, false, false, false, -1, -1, 0),
-      filename(filename), n_profile(n_profile)
+StaticProfileBC::StaticProfileBC(Block *bdp, int which_boundary,
+				 const std::string _filename, size_t _n_profile)
+    : BoundaryCondition(bdp, which_boundary, STATIC_PROF),
+      filename(_filename), n_profile(_n_profile)
 {
     // Reads the flow state data from a previously written profile file.
     //
@@ -178,11 +177,8 @@ StaticProfileBC::StaticProfileBC( Block *bdp, int which_boundary,
 #   endif
 }
 
-StaticProfileBC::StaticProfileBC( const StaticProfileBC &bc )
-    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.x_order, bc.is_wall_flag,
-			bc.sets_conv_flux_flag, bc.sets_visc_flux_flag, 
-			bc.neighbour_block, bc.neighbour_face),
+StaticProfileBC::StaticProfileBC(const StaticProfileBC &bc)
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code),
       filename(bc.filename), n_profile(bc.n_profile)
 {
     cerr << "StaticProfileBC() copy constructor is not implemented." << endl;
@@ -190,8 +186,7 @@ StaticProfileBC::StaticProfileBC( const StaticProfileBC &bc )
 }
 
 StaticProfileBC::StaticProfileBC()
-    : BoundaryCondition(0, 0, STATIC_PROF, "StaticProfileBC",
-			0, false, false, -1, -1, 0),
+    : BoundaryCondition(0, 0, STATIC_PROF),
       filename(""), n_profile(0)
 {}
 

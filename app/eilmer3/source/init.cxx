@@ -970,25 +970,15 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 {
     global_data &G = *get_global_data_ptr();
     Block &bd = *get_block_data_ptr(id);
-    int indx, iface, other_block, other_face, neighbour_orientation;
-    bc_t wc_bc, bc_type_code;
-    int x_order, sponge_flag, xforce_flag;
-    size_t n_profile;
-    string value_string, block_label, filename, wcbc_fname;
-    int inflow_condition_id, is_wall, assume_ideal;
-    int sets_conv_flux, sets_visc_flux;
-    double Twall, Pout, epsilon;
-    std::vector<double> f_wall_va;
-    std::vector<double> f_wall, vnf;
-    std::vector<double> mdot;
-    double Twall_i, Twall_f, t_i, t_f;
-    vnf.resize(get_gas_model_ptr()->get_number_of_species(), 0.0);
+    int indx, iface;
+    bc_t bc_type_code;
+    std::string value_string, block_label;
 
     bd.id = id;
   
     // Read parameters from INI-file dictionary.
     indx = id;
-    string section = "block/" + tostring(indx);
+    std::string section = "block/" + tostring(indx);
 
     dict.parse_string(section, "label", block_label, "");
     // Assume all blocks are active. 
@@ -1043,54 +1033,10 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 	dict.parse_string(section, "bc", value_string, "slip_wall");
 	// cout << "setting bc_type value_string=" << value_string << endl;
 	bc_type_code = available_bcs[value_string];
-	dict.parse_int(section, "inflow_condition", inflow_condition_id, 0);
-	dict.parse_string(section, "filename", filename, "");
-	dict.parse_size_t(section, "n_profile", n_profile, 1);
-	dict.parse_int(section, "x_order", x_order, 0);
-	dict.parse_int(section, "sponge_flag", sponge_flag, 0);
-	dict.parse_int(section, "xforce_flag", xforce_flag, 0);
-	dict.parse_double(section, "Twall", Twall, 300.0);
-	dict.parse_double(section, "Pout", Pout, 100.0e3);
-	dict.parse_int(section, "is_wall", is_wall, 0);
-	dict.parse_int(section, "sets_conv_flux", sets_conv_flux, 0);
-	dict.parse_int(section, "sets_visc_flux", sets_visc_flux, 0);
-	dict.parse_int(section, "assume_ideal", assume_ideal, 0);
-	dict.parse_vector_of_doubles(section, "mdot", mdot, vnf);
-	dict.parse_double(section, "epsilon", epsilon, 0.9);
-	dict.parse_double(section, "Twall_i", Twall_i, 300.0);
-	dict.parse_double(section, "Twall_f", Twall_f, 300.0);
-	dict.parse_double(section, "t_i", t_i, 0.0);
-	dict.parse_double(section, "t_f", t_f, 0.0);
-	dict.parse_int(section, "other_block", other_block, -1);
-	dict.parse_string(section, "other_face", value_string, "");
-	other_face = get_face_index(value_string);
-	dict.parse_int(section, "neighbour_orientation", neighbour_orientation, 0);
-	// cout << "face= " << get_face_name(iface) << " bc=" << get_bc_name(bc_type_code) << endl;
-
-	// Wall catalytic boundary condition flags, 
-	// f_wall for SUPER_CATALYTIC 
-	// wcbc_input_file for CATALYTIC and PARTIALLY_CATALYTIC
-	//
-	// Rowan or Dan **** FIX-ME *****
-	dict.parse_string(section, "wcbc", value_string, "non_catalytic");
-	wc_bc = available_bcs[value_string];
-	// cout << "setting wc_bc, value_string=" << value_string << endl;
-	dict.parse_string(section, "wcbc_input_file", wcbc_fname, "");
-	dict.parse_vector_of_doubles(section, "f_wall", f_wall, vnf);
-	// cout << "wc_bc= " << get_bc_name(wc_bc) << endl;
-
-	bd.bcp[iface] = create_BC( &bd, iface, bc_type_code, inflow_condition_id, 
-				    filename, n_profile, Twall, Pout,
-				    x_order, is_wall, sets_conv_flux, sets_visc_flux,
-				    other_block, other_face, neighbour_orientation,
-				    sponge_flag, xforce_flag, mdot, epsilon,
-				    wc_bc, wcbc_fname, f_wall,
-				    Twall_i, Twall_f, t_i, t_f, assume_ideal);
+	bd.bcp[iface] = create_BC(&bd, iface, bc_type_code, dict, section);
 	if ( get_verbose_flag() ) {
 	    cout << "    " << get_face_name(iface) << " face:" << endl;
 	    bd.bcp[iface]->print_info("        ");
-	    cout << "        Pout= " << Pout << endl;
-	    cout << "        Twall= " << Twall << endl;
 	}
     } // end for iface
 

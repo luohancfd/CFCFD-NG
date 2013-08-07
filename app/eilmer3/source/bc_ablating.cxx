@@ -42,24 +42,21 @@
 // default constructor
 
 AblatingBC::AblatingBC()
-    : BoundaryCondition(0, 0, ABLATING, "AblatingBC",
-			0, false, false, false, -1, -1, 0)
+    : BoundaryCondition(0, 0, ABLATING)
       // Default-initialise everything else since we really can't use
       // this default-initialised BC.
 {}
 
 // normal constructor
 
-AblatingBC::AblatingBC( Block *bdp, int which_boundary, double Twall, 
-			vector<double> &mdot)
-    : BoundaryCondition(bdp, which_boundary, ABLATING, "AblatingBC",
-			0, true, false, false, -1, -1, 0),
+AblatingBC::AblatingBC(Block *bdp, int which_boundary, double Twall, 
+		       vector<double> &mdot)
+    : BoundaryCondition(bdp, which_boundary, ABLATING),
       Twall(Twall), mdot(mdot), max_iterations(1000000), tol(1.0e-6)
 {
+    is_wall_flag = true;
 
-    double T;
-
-    T = Twall;
+    double T = Twall;
     TProfile.push_back(T);
     
     // 0. Get gas-model pointer
@@ -88,16 +85,13 @@ AblatingBC::AblatingBC( Block *bdp, int which_boundary, double Twall,
 
 //copy constructor for AblatingBC class
 
-AblatingBC::AblatingBC( const AblatingBC &bc )
-    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.x_order, bc.is_wall_flag,
-			bc.sets_conv_flux_flag, bc.sets_visc_flux_flag,
-			bc.neighbour_block, bc.neighbour_face,
-			bc.neighbour_orientation),
+AblatingBC::AblatingBC(const AblatingBC &bc)
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code),
       Twall(bc.Twall), mdot(bc.mdot), mdot_total(bc.mdot_total),
       gmodel(bc.gmodel), u0_index(bc.u0_index), 
       max_iterations(bc.max_iterations), tol(bc.tol), f_jac(bc.f_jac)
 {
+    is_wall_flag = bc.is_wall_flag;
     // 0. Get gas-model pointer
     // -> copied explicitly above
     int nsp = gmodel->get_number_of_species();
@@ -154,7 +148,7 @@ AblatingBC::~AblatingBC()
 
 // apply_convective function definition
 
-int AblatingBC::apply_convective( double t )
+int AblatingBC::apply_convective(double t)
 {
     // Calculate the ghost cell flow-states from the given wall temperature
     // and species-specific mass flux.
@@ -276,7 +270,7 @@ int AblatingBC::apply_convective( double t )
 
 // apply_viscous function definition
 
-int AblatingBC::apply_viscous( double t )
+int AblatingBC::apply_viscous(double t)
 {
     size_t i, j, k;
     FV_Cell *cell;
@@ -419,7 +413,7 @@ int AblatingBC::apply_viscous( double t )
 // calculate_ghost_cell_flow_state function definition
 
 int AblatingBC::
-calculate_ghost_cell_flow_state( FV_Cell *cell1, FV_Interface *wall, FV_Cell *cell0 )
+calculate_ghost_cell_flow_state(FV_Cell *cell1, FV_Interface *wall, FV_Cell *cell0)
 {
     // Perform Newton-Raphson iterations to solve for ghost cell flow state
     // based on mass and momentum balance
@@ -580,7 +574,7 @@ const int NORMALISE_G = 1;
 // and Chen & Milos.
 // Structure of Jacobian based on that in chemical-equilibrium-system.cxx.
 
-int AblatingBC::compute_source_terms( vector<double> &massf )
+int AblatingBC::compute_source_terms(vector<double> &massf)
 {
     // Initialise N vector with zeros
     for ( size_t isp=0; isp<nsp; ++isp ) {
@@ -597,7 +591,7 @@ int AblatingBC::compute_source_terms( vector<double> &massf )
 // of equations to be solved using the Newton-Raphson method.
 // Structure of f based on that in chemical-equilibrium-system.cxx.
 
-int AblatingBC::f( const valarray<double> &y, valarray<double> &G )
+int AblatingBC::f(const valarray<double> &y, valarray<double> &G)
 {
 
     /* Create the equation system for the ZeroSystem for a given y vector */
@@ -642,7 +636,7 @@ int AblatingBC::f( const valarray<double> &y, valarray<double> &G )
 // zero_finders files.
 // Structure of Jacobian based on that in chemical-equilibrium-system.cxx.
 
-int AblatingBC::Jac( const valarray<double> &y, Valmatrix &dGdy )
+int AblatingBC::Jac(const valarray<double> &y, Valmatrix &dGdy)
 {
 	/* Create the Jacobian matrix for the ZeroSystem for a given y vector */
 

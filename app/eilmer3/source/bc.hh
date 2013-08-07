@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "../../../lib/util/source/config_parser.hh"
 #include "../../../lib/geometry2/source/geom.hh"
 #include "../../../lib/gas/models/gas_data.hh"
 #include "../../../lib/gas/models/gas-model.hh"
@@ -115,21 +116,13 @@ public:
     CatalyticWallBC * cw;
 
 public:
-    BoundaryCondition( Block *bdp, int which_boundary, bc_t type_code,
-		       std::string name_of_BC="Unspecified", 
-		       int x_order=0,
-		       bool is_wall=false,
-		       bool sets_conv_flux=false, bool sets_visc_flux=false,
-		       int neighbour_block=-1, int neighbour_face=-1,
-		       int neighbour_orientation=0,
-		       bc_t wc_bc=NON_CATALYTIC, int sponge_flag=0, 
-		       int xforce_flag=0 );
+    BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code);
     BoundaryCondition(); // Shouldn't have one without referring to a Block.
-    BoundaryCondition( const BoundaryCondition &bc );
-    BoundaryCondition & operator=( const BoundaryCondition &bc );
+    BoundaryCondition(const BoundaryCondition &bc);
+    BoundaryCondition & operator=(const BoundaryCondition &bc);
     virtual ~BoundaryCondition();
-    virtual int apply_convective( double t ); // reflect normal velocity
-    virtual int apply_viscous( double t );  // does nothing
+    virtual int apply_convective(double t); // reflect normal velocity
+    virtual int apply_viscous(double t);  // does nothing
     bool is_wall()
     { return is_wall_flag; }
     // a true value indicates that this boundary is like a (solid) wall
@@ -160,14 +153,7 @@ public:
 };
 
 BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
-			     int inflow_condition_id, std::string filename, size_t n_profile,
-			     double Twall, double Pout, int x_order, int is_wall, int sets_conv_flux,
-			     int sets_visc_flux, int other_block, int other_face, int neighbour_orientation,
-			     int sponge_flag, int xforce_flag,
-			     std::vector<double> &mdot, double epsilon,
-			     bc_t wc_bc, std::string wcbc_fname, std::vector<double> f_wall,
-			     double Twall_i, double Twall_f, double t_i, double t_f,
-			     int assume_ideal);
+			     ConfigParser &dict, std::string section);
 
 int check_connectivity(void);
 

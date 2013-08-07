@@ -11,25 +11,19 @@
 
 //------------------------------------------------------------------------
 
-SupersonicInBC::SupersonicInBC( Block *bdp, int which_boundary, 
-				int inflow_condition_id )
-    : BoundaryCondition(bdp, which_boundary, SUP_IN, "SupersonicIn", 
-			0, false, false, false, -1, -1, 0), 
+SupersonicInBC::SupersonicInBC(Block *bdp, int which_boundary, 
+			       int inflow_condition_id)
+    : BoundaryCondition(bdp, which_boundary, SUP_IN), 
       inflow_condition_id(inflow_condition_id) 
 {}
 
-SupersonicInBC::SupersonicInBC( const SupersonicInBC &bc )
-    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.x_order, bc.is_wall_flag,
-			bc.sets_conv_flux_flag, bc.sets_visc_flux_flag,
-			bc.neighbour_block, bc.neighbour_face,
-			bc.neighbour_orientation),
+SupersonicInBC::SupersonicInBC(const SupersonicInBC &bc)
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code),
       inflow_condition_id(bc.inflow_condition_id) 
 {}
 
 SupersonicInBC::SupersonicInBC()
-    : BoundaryCondition(0, 0, SUP_IN, "SupersonicIn", 
-			0, false, false, -1, -1, 0), 
+    : BoundaryCondition(0, 0, SUP_IN), 
       inflow_condition_id(0) 
 {}
 
@@ -43,7 +37,7 @@ SupersonicInBC::operator=(const SupersonicInBC &bc)
 
 SupersonicInBC::~SupersonicInBC() {}
 
-int SupersonicInBC::apply_convective( double t )
+int SupersonicInBC::apply_convective(double t)
 {
     // Set up ghost cells with inflow state. 
     size_t i, j, k;

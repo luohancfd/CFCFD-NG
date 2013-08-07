@@ -12,12 +12,12 @@ private:
     Gas_model *gmodel;
     size_t nsample, nsp, nmodes;
 public:
-    TransientUniformBC( Block *bdp, int which_boundary, 
-			std::string filename="transient_uniform.dat" );
-    TransientUniformBC( const TransientUniformBC &bc );
+    TransientUniformBC(Block *bdp, int which_boundary,
+		       std::string filename="transient_uniform.dat");
+    TransientUniformBC(const TransientUniformBC &bc);
     TransientUniformBC();
     TransientUniformBC & operator=(const TransientUniformBC &bc);
     virtual ~TransientUniformBC();
-    virtual int apply_convective( double t );
+    virtual int apply_convective(double t);
     // default apply_viscous() (does nothing)
 };

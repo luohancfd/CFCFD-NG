@@ -10,24 +10,31 @@
 
 //------------------------------------------------------------------------
 
-AdjacentBC::AdjacentBC( Block *bdp, int which_boundary, 
-			int other_block, int other_face,
-			int neighbour_orientation)
-    : BoundaryCondition(bdp, which_boundary, ADJACENT, "AdjacentBC", 0, false, false, false,
-			other_block, other_face, neighbour_orientation) 
-{}
+AdjacentBC::AdjacentBC(Block *bdp, int which_boundary, 
+		       int other_block, int other_face,
+		       int _neighbour_orientation)
+    : BoundaryCondition(bdp, which_boundary, ADJACENT) 
+{
+    neighbour_block = other_block;
+    neighbour_face = other_face;
+    neighbour_orientation = _neighbour_orientation;
+}
 
-AdjacentBC::AdjacentBC( const AdjacentBC &bc )
-    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.x_order, bc.is_wall_flag,
-			bc.sets_conv_flux_flag, bc.sets_visc_flux_flag, 
-			bc.neighbour_block, bc.neighbour_face,
-			bc.neighbour_orientation) 
-{}
+AdjacentBC::AdjacentBC(const AdjacentBC &bc)
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code) 
+{
+    neighbour_block = bc.neighbour_block;
+    neighbour_face = bc.neighbour_face;
+    neighbour_orientation = bc.neighbour_orientation;
+}
 
 AdjacentBC::AdjacentBC()
-    : BoundaryCondition(0, 0, ADJACENT, "AdjacentBC", 0, false, false, -1, -1, 0)
-{}
+    : BoundaryCondition(0, 0, ADJACENT)
+{
+    neighbour_block = -1;
+    neighbour_face = -1;
+    neighbour_orientation = 0;
+}
 
 AdjacentBC & AdjacentBC::operator=(const AdjacentBC &bc)
 {
@@ -37,7 +44,7 @@ AdjacentBC & AdjacentBC::operator=(const AdjacentBC &bc)
 
 AdjacentBC::~AdjacentBC() {}
 
-int AdjacentBC::apply_convective( double t )
+int AdjacentBC::apply_convective(double t)
 {
     // Do nothing here; the real work 
     // is delegated to the exchange functions.

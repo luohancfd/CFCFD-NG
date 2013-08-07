@@ -13,26 +13,36 @@
 
 //------------------------------------------------------------------------
 
-SlidingTBC::SlidingTBC( Block *bdp, int which_boundary, double Twall_i, double Twall_f, double t_i, double t_f )
-    : BoundaryCondition(bdp, which_boundary, SLIDING_T, "SlidingTBC",
-			0, true, false, false, -1, -1, 0),
-      Twall_i(Twall_i), Twall_f(Twall_f), t_i(t_i), t_f(t_f)
-{}
+SlidingTBC::SlidingTBC(Block *bdp, int which_boundary, 
+		       double _Twall_i, double _Twall_f, double _t_i, double _t_f )
+    : BoundaryCondition(bdp, which_boundary, SLIDING_T)
+{
+    is_wall_flag = true;
+    Twall_i = _Twall_i;
+    Twall_f = _Twall_f; 
+    t_i = _t_i;
+    t_f = _t_f;
+}
 
-SlidingTBC::SlidingTBC( const SlidingTBC &bc )
-    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.x_order, bc.is_wall_flag, 
-			bc.sets_conv_flux_flag, bc.sets_visc_flux_flag,
-			bc.neighbour_block, bc.neighbour_face,
-			bc.neighbour_orientation),
-      Twall_i(bc.Twall_i), Twall_f(bc.Twall_f), t_i(bc.t_i), t_f(bc.t_f)
-{}
+SlidingTBC::SlidingTBC(const SlidingTBC &bc)
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code)
+{
+    is_wall_flag = bc.is_wall_flag;
+    Twall_i = bc.Twall_i;
+    Twall_f = bc.Twall_f;
+    t_i = bc.t_i;
+    t_f = bc.t_f;
+}
 
 SlidingTBC::SlidingTBC()
-    : BoundaryCondition(bdp, which_boundary, SLIDING_T, "SlidingTBC",
-			0, true, false, -1, -1, 0),
-      Twall_i(0.0), Twall_f(0.0), t_i(0.0), t_f(0.0)
-{}
+    : BoundaryCondition(bdp, which_boundary, SLIDING_T)
+{
+    is_wall_flag = true;
+    Twall_i = 0.0;
+    Twall_f = 0.0;
+    t_i = 0.0;
+    t_f = 0.0;
+}
 
 SlidingTBC & SlidingTBC::operator=(const SlidingTBC &bc)
 {
@@ -46,7 +56,7 @@ SlidingTBC & SlidingTBC::operator=(const SlidingTBC &bc)
 
 SlidingTBC::~SlidingTBC() {}
 
-int SlidingTBC::apply_viscous( double t )
+int SlidingTBC::apply_viscous(double t)
 {
     size_t i, j, k;
     FV_Cell *cell;

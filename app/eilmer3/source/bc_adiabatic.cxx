@@ -12,23 +12,23 @@
 
 //------------------------------------------------------------------------
 
-AdiabaticBC::AdiabaticBC( Block *bdp, int which_boundary )
-    : BoundaryCondition(bdp, which_boundary, ADIABATIC, "AdiabaticBC",
-			0, true, false, false, -1, -1, 0) 
-{}
+AdiabaticBC::AdiabaticBC(Block *bdp, int which_boundary)
+    : BoundaryCondition(bdp, which_boundary, ADIABATIC)
+{
+    is_wall_flag = true;
+}
 
-AdiabaticBC::AdiabaticBC( const AdiabaticBC &bc )
-    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.x_order, bc.is_wall_flag,
-			bc.sets_conv_flux_flag, bc.sets_visc_flux_flag, 
-			bc.neighbour_block, bc.neighbour_face,
-			bc.neighbour_orientation) 
-{}
+AdiabaticBC::AdiabaticBC(const AdiabaticBC &bc)
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code)
+{
+    is_wall_flag = bc.is_wall_flag;
+}
 
 AdiabaticBC::AdiabaticBC()
-    : BoundaryCondition(0, 0, ADIABATIC, "AdiabaticBC",
-			0, true, false, -1, -1, 0) 
-{}
+    : BoundaryCondition(0, 0, ADIABATIC)
+{
+    is_wall_flag = true;
+}
 
 AdiabaticBC&
 AdiabaticBC::operator=(const AdiabaticBC &bc)
@@ -39,7 +39,7 @@ AdiabaticBC::operator=(const AdiabaticBC &bc)
 
 AdiabaticBC::~AdiabaticBC() {}
 
-int AdiabaticBC::apply_viscous( double t )
+int AdiabaticBC::apply_viscous(double t)
 // Notes:
 // We make the wall non-catalytic to ensure no heat transfer.
 // This is not strictly correct to set the species here,

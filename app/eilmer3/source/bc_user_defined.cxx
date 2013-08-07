@@ -33,32 +33,29 @@ extern "C" {
 
 //----------------------------------------------------------------------------
 
-UserDefinedBC::UserDefinedBC( Block *bdp, int which_boundary,
-			      const std::string filename,
-			      bool is_wall )
-    : BoundaryCondition(bdp, which_boundary, USER_DEFINED, "UserDefinedBC",
-			0, is_wall),
+UserDefinedBC::UserDefinedBC(Block *bdp, int which_boundary,
+			     const std::string _filename,
+			     bool _is_wall)
+    : BoundaryCondition(bdp, which_boundary, USER_DEFINED),
       filename(filename)
 {
+    is_wall_flag = _is_wall;
     start_interpreter();
 } // end constructor
 
-UserDefinedBC::UserDefinedBC( const UserDefinedBC &bc )
-    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.x_order, bc.is_wall_flag,
-			bc.sets_conv_flux_flag, bc.sets_visc_flux_flag,
-			bc.neighbour_block, bc.neighbour_face,
-			bc.neighbour_orientation),
+UserDefinedBC::UserDefinedBC(const UserDefinedBC &bc)
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code),
       filename(bc.filename) 
 {
+    is_wall_flag = bc.is_wall_flag;
     start_interpreter();
 }
 
 UserDefinedBC::UserDefinedBC()
-    : BoundaryCondition(0, 0, USER_DEFINED, "UserDefinedBC",
-			0, false, false, false),
+    : BoundaryCondition(0, 0, USER_DEFINED),
       filename("")
 {
+    is_wall_flag = false;
     // Cannot do much useful here because we don't have a filename.
 }
 
@@ -67,6 +64,7 @@ UserDefinedBC & UserDefinedBC::operator=(const UserDefinedBC &bc)
     // Don't start a new interpreter for assignment to self.
     if ( this != &bc ) {
 	BoundaryCondition::operator=(bc);
+	is_wall_flag = bc.is_wall_flag;
 	filename = bc.filename;
 	start_interpreter();
     }
@@ -78,7 +76,7 @@ UserDefinedBC::~UserDefinedBC()
     lua_close(L);
 }
 
-int UserDefinedBC::apply_convective( double t )
+int UserDefinedBC::apply_convective(double t)
 {
     size_t i, j, k;
     FV_Cell *cell, *dest_cell;
@@ -359,7 +357,7 @@ int UserDefinedBC::start_interpreter()
     return SUCCESS;
 } // end start_interpreter()
 
-int UserDefinedBC::eval_conv_flux_udf( double t, size_t i, size_t j, size_t k, FV_Interface *IFace )
+int UserDefinedBC::eval_conv_flux_udf(double t, size_t i, size_t j, size_t k, FV_Interface *IFace)
 {
     // Call the user-defined function which returns a table 
     // of fluxes of conserved quantities.
@@ -421,8 +419,7 @@ int UserDefinedBC::eval_conv_flux_udf( double t, size_t i, size_t j, size_t k, F
     return SUCCESS;
 } // end eval_conv_flux_udf()
 
-int UserDefinedBC::eval_ghost_cell_udf( double t, size_t i, size_t j, size_t k, 
-				      FV_Interface *IFace )
+int UserDefinedBC::eval_ghost_cell_udf(double t, size_t i, size_t j, size_t k, FV_Interface *IFace)
 {
     // Call the user-defined function which returns two tables 
     // of flow conditions that can be copied into the ghost cells.
@@ -482,7 +479,7 @@ int UserDefinedBC::eval_ghost_cell_udf( double t, size_t i, size_t j, size_t k,
     return SUCCESS;
 } // end eval_ghost_cell_udf()
 
-CFlowCondition * UserDefinedBC::unpack_flow_table( void )
+CFlowCondition * UserDefinedBC::unpack_flow_table(void)
 {
     // Unpack the table at TOS
     // This table (with named fields) represents the flow condition 
@@ -523,9 +520,8 @@ CFlowCondition * UserDefinedBC::unpack_flow_table( void )
     return cfc;
 } // end unpack_flow_table()
 
-int UserDefinedBC::eval_iface_udf( double t, size_t i, size_t j, size_t k, 
-				     FV_Interface *IFace,
-				     const FV_Cell *cell )
+int UserDefinedBC::eval_iface_udf(double t, size_t i, size_t j, size_t k, 
+				  FV_Interface *IFace, const FV_Cell *cell)
 {
     double x = IFace->pos.x; 
     double y = IFace->pos.y;
@@ -604,7 +600,7 @@ int UserDefinedBC::eval_iface_udf( double t, size_t i, size_t j, size_t k,
 } // end eval_iface_udf()
 
 
-int UserDefinedBC::eval_visc_flux_udf( double t, size_t i, size_t j, size_t k, FV_Interface *IFace )
+int UserDefinedBC::eval_visc_flux_udf(double t, size_t i, size_t j, size_t k, FV_Interface *IFace)
 {
     // RJG -- 26-Jul-2013
     // NOTE: The user provides viscous flux values directly BUT these
@@ -689,11 +685,11 @@ void UserDefinedBC::handle_lua_error(lua_State *L, const char *fmt, ...)
 
 //------------------------------------------------------------------------
 
-AdjacentPlusUDFBC::AdjacentPlusUDFBC( Block *bdp, int which_boundary, 
-				      int other_block, int other_face,
-				      int _neighbour_orientation,
-				      const std::string filename,
-				      bool is_wall)
+AdjacentPlusUDFBC::AdjacentPlusUDFBC(Block *bdp, int which_boundary, 
+				     int other_block, int other_face,
+				     int _neighbour_orientation,
+				     const std::string filename,
+				     bool is_wall)
     : UserDefinedBC(bdp, which_boundary, filename, is_wall)
 {
     type_code = ADJACENT_PLUS_UDF; // Needs to overwrite UserDefinedBC entry.
@@ -702,9 +698,8 @@ AdjacentPlusUDFBC::AdjacentPlusUDFBC( Block *bdp, int which_boundary,
     neighbour_orientation = _neighbour_orientation;
 }
 
-AdjacentPlusUDFBC::AdjacentPlusUDFBC( const AdjacentPlusUDFBC &bc )
-    : UserDefinedBC(bc.bdp, bc.which_boundary, bc.filename, 
-		    bc.is_wall_flag)
+AdjacentPlusUDFBC::AdjacentPlusUDFBC(const AdjacentPlusUDFBC &bc)
+    : UserDefinedBC(bc.bdp, bc.which_boundary, bc.filename, bc.is_wall_flag)
 {
     type_code = bc.type_code;
     neighbour_block = bc.neighbour_block; 

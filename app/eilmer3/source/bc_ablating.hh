@@ -32,18 +32,18 @@ private:
     std::valarray<double> N;
 public:
     AblatingBC();
-    AblatingBC( Block *bdp, int which_boundary, double Twall, 
-		std::vector<double> &mdot );
-    AblatingBC( const AblatingBC &bc );
+    AblatingBC(Block *bdp, int which_boundary, double Twall, 
+	       std::vector<double> &mdot );
+    AblatingBC(const AblatingBC &bc);
     AblatingBC & operator=(const AblatingBC &bc);
     virtual ~AblatingBC();
-    virtual int apply_convective( double t );	// sets ghost cell flow conditions
-    virtual int apply_viscous( double t ); 	// sets wall temperature (same as FixedTBC)
+    virtual int apply_convective(double t);	// sets ghost cell flow conditions
+    virtual int apply_viscous(double t); 	// sets wall temperature (same as FixedTBC)
 private:
-    int calculate_ghost_cell_flow_state( FV_Cell *cell1, FV_Interface *wall, FV_Cell *cell0 );
+    int calculate_ghost_cell_flow_state(FV_Cell *cell1, FV_Interface *wall, FV_Cell *cell0);
 // The following are for the zero system
 public:
-    int compute_source_terms( vector<double> &massf );
-    int f( const std::valarray<double> &y, std::valarray<double> &G );
-    int Jac( const std::valarray<double> &y, Valmatrix &dGdy );
+    int compute_source_terms(vector<double> &massf);
+    int f(const std::valarray<double> &y, std::valarray<double> &G);
+    int Jac(const std::valarray<double> &y, Valmatrix &dGdy);
 };

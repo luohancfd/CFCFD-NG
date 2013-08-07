@@ -13,37 +13,38 @@
 
 //------------------------------------------------------------------------
 
-FixedTBC::FixedTBC( Block *bdp, int which_boundary, double Twall )
-    : BoundaryCondition(bdp, which_boundary, FIXED_T, "FixedTBC",
-			0, true, false, false, -1, -1, 0),
-      Twall(Twall) 
-{}
+FixedTBC::FixedTBC(Block *bdp, int which_boundary, double Twall)
+    : BoundaryCondition(bdp, which_boundary, FIXED_T)
+{
+    is_wall_flag = true;
+    Twall = Twall; 
+}
 
-FixedTBC::FixedTBC( const FixedTBC &bc )
-    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.name_of_BC,
-			bc.x_order, bc.is_wall_flag,
-			bc.sets_conv_flux_flag, bc.sets_visc_flux_flag,
-			bc.neighbour_block, bc.neighbour_face,
-			bc.neighbour_orientation),
-      Twall(bc.Twall) 
-{}
+FixedTBC::FixedTBC(const FixedTBC &bc)
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code)
+{
+    is_wall_flag = bc.is_wall_flag;
+    Twall = bc.Twall; 
+}
 
 FixedTBC::FixedTBC()
-    : BoundaryCondition(0, 0, FIXED_T, "FixedTBC",
-			0, true, false, -1, -1, 0),
-      Twall(300.0) 
-{}
+    : BoundaryCondition(0, 0, FIXED_T)
+{
+    is_wall_flag = true;
+    Twall = 300.0; 
+}
 
 FixedTBC & FixedTBC::operator=(const FixedTBC &bc)
 {
     BoundaryCondition::operator=(bc);
+    is_wall_flag = bc.is_wall_flag;
     Twall = bc.Twall; // Ok for self-assignment.
     return *this;
 }
 
 FixedTBC::~FixedTBC() {}
 
-int FixedTBC::apply_viscous( double t )
+int FixedTBC::apply_viscous(double t)
 {
     size_t i, j, k;
     FV_Cell *cell;
