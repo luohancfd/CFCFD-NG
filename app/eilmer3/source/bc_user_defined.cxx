@@ -35,11 +35,14 @@ extern "C" {
 
 UserDefinedBC::UserDefinedBC(Block *bdp, int which_boundary,
 			     const std::string _filename,
-			     bool _is_wall)
+			     bool is_wall, 
+			     bool sets_conv_flux, bool sets_visc_flux)
     : BoundaryCondition(bdp, which_boundary, USER_DEFINED),
       filename(filename)
 {
-    is_wall_flag = _is_wall;
+    is_wall_flag = is_wall;
+    sets_conv_flux_flag = sets_conv_flux;
+    sets_visc_flux_flag = sets_visc_flux;
     start_interpreter();
 } // end constructor
 
@@ -48,6 +51,8 @@ UserDefinedBC::UserDefinedBC(const UserDefinedBC &bc)
       filename(bc.filename) 
 {
     is_wall_flag = bc.is_wall_flag;
+    sets_conv_flux_flag = bc.sets_conv_flux_flag;
+    sets_visc_flux_flag = bc.sets_visc_flux_flag;
     start_interpreter();
 }
 
@@ -56,6 +61,8 @@ UserDefinedBC::UserDefinedBC()
       filename("")
 {
     is_wall_flag = false;
+    sets_conv_flux_flag = false;
+    sets_visc_flux_flag = false;
     // Cannot do much useful here because we don't have a filename.
 }
 
@@ -65,6 +72,8 @@ UserDefinedBC & UserDefinedBC::operator=(const UserDefinedBC &bc)
     if ( this != &bc ) {
 	BoundaryCondition::operator=(bc);
 	is_wall_flag = bc.is_wall_flag;
+	sets_conv_flux_flag = bc.sets_conv_flux_flag;
+	sets_visc_flux_flag = bc.sets_visc_flux_flag;
 	filename = bc.filename;
 	start_interpreter();
     }
@@ -74,6 +83,15 @@ UserDefinedBC & UserDefinedBC::operator=(const UserDefinedBC &bc)
 UserDefinedBC::~UserDefinedBC() 
 {
     lua_close(L);
+}
+
+void UserDefinedBC::print_info(std::string lead_in)
+{
+    BoundaryCondition::print_info(lead_in);
+    cout << lead_in << "filename= " << filename << endl;
+    cout << lead_in << "sets_conv_flux= " << sets_conv_flux_flag << endl;
+    cout << lead_in << "sets_visc_flux= " << sets_visc_flux_flag << endl;
+    return;
 }
 
 int UserDefinedBC::apply_convective(double t)
@@ -689,8 +707,9 @@ AdjacentPlusUDFBC::AdjacentPlusUDFBC(Block *bdp, int which_boundary,
 				     int other_block, int other_face,
 				     int _neighbour_orientation,
 				     const std::string filename,
-				     bool is_wall)
-    : UserDefinedBC(bdp, which_boundary, filename, is_wall)
+				     bool is_wall, 
+				     bool sets_conv_flux, bool sets_visc_flux)
+    : UserDefinedBC(bdp, which_boundary, filename, is_wall, sets_conv_flux, sets_visc_flux)
 {
     type_code = ADJACENT_PLUS_UDF; // Needs to overwrite UserDefinedBC entry.
     neighbour_block = other_block; 
@@ -710,3 +729,13 @@ AdjacentPlusUDFBC::AdjacentPlusUDFBC(const AdjacentPlusUDFBC &bc)
 }
 
 AdjacentPlusUDFBC::~AdjacentPlusUDFBC() {}
+
+void AdjacentPlusUDFBC::print_info(std::string lead_in)
+{
+    UserDefinedBC::print_info(lead_in);
+    cout << lead_in << "neighbour_block= " << neighbour_block << endl;
+    cout << lead_in << "neighbour_face= " << neighbour_face 
+	 << " (" << get_face_name(neighbour_face) << ")" << endl;
+    cout << lead_in << "neighbour_orientation= " << neighbour_orientation << endl;
+    return;
+}

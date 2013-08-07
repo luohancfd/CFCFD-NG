@@ -95,25 +95,32 @@ class CatalyticWallBC; // forward declaration needed below
 
 class BoundaryCondition {
 public:
-    Block *bdp; // reference to the relevant block
+    // Configuration data that are to be supplied for all BCs.
+    Block *bdp;         // reference to the relevant block
     int which_boundary; // identity of the relevant boundary
-    bc_t type_code;
-    string name_of_BC;
-    int x_order;
+    bc_t type_code;     // unique code used in switch statements and maps
+
+    // Configuration data that can usually take default values.
+    // Even if these data are specific to a only a few BCs,
+    // they need to be here so that they are accessible through
+    // pointers to objects of this base-class.
     bool is_wall_flag;
+    int xforce_flag;
     bool sets_conv_flux_flag;
     bool sets_visc_flux_flag;
     int neighbour_block;
     int neighbour_face;
     int neighbour_orientation;
+
+    // *** FIX-ME ** catalytic configuration that needs to be worked on.
     bc_t wc_bc;
-    int sponge_flag;
-    int xforce_flag;
+    CatalyticWallBC * cw;
+
+    // Working space for heat-flux calculations.
     std::vector<double> q_cond;		// 1D vectors representing heat flux fields
     std::vector<double> q_diff;		// at surfaces (which are 2D for 3D grids)
     std::vector<double> q_rad;
     size_t imin, imax, jmin, jmax, kmin, kmax;	// boundary cell indice limits
-    CatalyticWallBC * cw;
 
 public:
     BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code);
@@ -121,8 +128,11 @@ public:
     BoundaryCondition(const BoundaryCondition &bc);
     BoundaryCondition & operator=(const BoundaryCondition &bc);
     virtual ~BoundaryCondition();
+    virtual void print_info(std::string lead_in);
+
     virtual int apply_convective(double t); // reflect normal velocity
     virtual int apply_viscous(double t);  // does nothing
+
     bool is_wall()
     { return is_wall_flag; }
     // a true value indicates that this boundary is like a (solid) wall
@@ -138,7 +148,7 @@ public:
     // setting the viscous flux directly. When this is true, the internally
     // calculated flux (based on spatial derivatives and interface propertiers)
     // is written over by the b.c. flux.
-    void print_info( std::string lead_in );
+
     int write_vertex_velocities(std::string filename, double sim_time,
 				size_t dimensions, size_t gtl=0);
     // Heat-flux functions

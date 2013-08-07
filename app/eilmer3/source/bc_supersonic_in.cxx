@@ -37,6 +37,13 @@ SupersonicInBC::operator=(const SupersonicInBC &bc)
 
 SupersonicInBC::~SupersonicInBC() {}
 
+void SupersonicInBC::print_info(std::string lead_in)
+{
+    BoundaryCondition::print_info(lead_in);
+    cout << lead_in << "inflow_condition_id= " << inflow_condition_id << endl;
+    return;
+}
+
 int SupersonicInBC::apply_convective(double t)
 {
     // Set up ghost cells with inflow state. 

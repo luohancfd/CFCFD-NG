@@ -12,33 +12,38 @@
 //------------------------------------------------------------------------
 
 ExtrapolateOutBC::ExtrapolateOutBC(Block *bdp, int which_boundary, int _x_order, int _sponge_flag)
-    : BoundaryCondition(bdp, which_boundary, EXTRAPOLATE_OUT)
-{
-    x_order = _x_order;
-    sponge_flag = _sponge_flag;
-}
+    : BoundaryCondition(bdp, which_boundary, EXTRAPOLATE_OUT),
+      x_order(_x_order), sponge_flag(_sponge_flag)
+{}
 
 ExtrapolateOutBC::ExtrapolateOutBC(const ExtrapolateOutBC &bc)
-    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code)
-{
-    x_order = bc.x_order;
-    sponge_flag = bc.sponge_flag;
-}
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code),
+      x_order(bc.x_order), sponge_flag(bc.sponge_flag)
+{}
 
 ExtrapolateOutBC::ExtrapolateOutBC()
-    : BoundaryCondition(0, 0, EXTRAPOLATE_OUT)
-{
-    x_order = 0;
-    sponge_flag = 0;
-}
+    : BoundaryCondition(0, 0, EXTRAPOLATE_OUT),
+      x_order(0), sponge_flag(0)
+{}
 
 ExtrapolateOutBC & ExtrapolateOutBC::operator=(const ExtrapolateOutBC &bc)
 {
     BoundaryCondition::operator=(bc);
+    x_order = bc.x_order;
+    sponge_flag = bc.sponge_flag;
     return *this;
 }
 
-ExtrapolateOutBC::~ExtrapolateOutBC() {}
+ExtrapolateOutBC::~ExtrapolateOutBC() 
+{}
+
+void ExtrapolateOutBC::print_info(std::string lead_in)
+{
+    BoundaryCondition::print_info(lead_in);
+    cout << lead_in << "x_order= " << x_order << endl;
+    cout << lead_in << "sponge_flag= " << sponge_flag << endl;
+    return;
+}
 
 int ExtrapolateOutBC::apply_convective(double t)
 {

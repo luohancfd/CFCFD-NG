@@ -214,6 +214,14 @@ StaticProfileBC::~StaticProfileBC()
     flow_profile.clear();
 }
 
+void StaticProfileBC::print_info(std::string lead_in)
+{
+    BoundaryCondition::print_info(lead_in);
+    cout << lead_in << "filename= " << filename << endl;
+    cout << lead_in << "n_profile= " << n_profile << endl;
+    return;
+}
+
 int StaticProfileBC::apply_convective( double t )
 {
     size_t i, ifirst, ilast, j, jfirst, jlast, ncell_for_profile;

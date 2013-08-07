@@ -11,6 +11,7 @@ public:
     ShockFittingInBC();
     ShockFittingInBC & operator=(const ShockFittingInBC &bc);
     virtual ~ShockFittingInBC();
+    virtual void print_info(std::string lead_in);
     virtual int apply_convective(double t);
     virtual int apply_viscous(double t);
 private:

@@ -139,6 +139,13 @@ TransientUniformBC::operator=(const TransientUniformBC &bc)
 TransientUniformBC::~TransientUniformBC() 
 {}
 
+void TransientUniformBC::print_info(std::string lead_in)
+{
+    BoundaryCondition::print_info(lead_in);
+    cout << lead_in << "filename= " << filename << endl;
+    return;
+}
+
 int TransientUniformBC::apply_convective( double t )
 {
     size_t ii;

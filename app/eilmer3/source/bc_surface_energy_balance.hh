@@ -9,6 +9,7 @@ public:
     SurfaceEnergyBalanceBC();
     SurfaceEnergyBalanceBC & operator=(const SurfaceEnergyBalanceBC &bc);
     virtual ~SurfaceEnergyBalanceBC();
+    virtual void print_info(std::string lead_in);
     // default apply_convective() is just to reflect normal velocity
     virtual int apply_viscous(double t); // sets wall temperature
 private:

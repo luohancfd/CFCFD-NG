@@ -128,11 +128,13 @@ int apply_viscous_bc( Block &bd, double t, size_t dimensions )
 BoundaryCondition::
 BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code)
     : bdp(bdp), which_boundary(which_boundary), type_code(type_code),
-      x_order(0),
-      is_wall_flag(false), 
+      // The following common data can usually take these defaults,
+      // however, they may be set to differing values by
+      // the constructors of the derived classes.
+      is_wall_flag(false), xforce_flag(0), 
       sets_conv_flux_flag(false), sets_visc_flux_flag(false),
       neighbour_block(-1), neighbour_face(-1), neighbour_orientation(0),
-      wc_bc(NON_CATALYTIC), sponge_flag(0), xforce_flag(0), cw(0)
+      wc_bc(NON_CATALYTIC), cw(0)
 {
     Block & bd = *bdp;
     // 1. Determine size heat flux vectors
@@ -221,26 +223,25 @@ BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code)
 // reference to a particular block but, just in case the compiler wants it...
 BoundaryCondition::BoundaryCondition()
     : bdp(0), which_boundary(0), type_code(SLIP_WALL),
-      x_order(0),
-      is_wall_flag(false),
+      is_wall_flag(false), xforce_flag(0),
       sets_conv_flux_flag(false), sets_visc_flux_flag(false),
       neighbour_block(-1), neighbour_face(-1), neighbour_orientation(0),
-      wc_bc(NON_CATALYTIC), sponge_flag(0), xforce_flag(0),
-      cw(0)
+      wc_bc(NON_CATALYTIC), cw(0)
 {}
 
 BoundaryCondition::BoundaryCondition(const BoundaryCondition &bc)
     : bdp(bc.bdp), // Still bound to the original block.
       which_boundary(bc.which_boundary), type_code(bc.type_code),
-      x_order(bc.x_order),
       is_wall_flag(bc.is_wall_flag),
+      xforce_flag(bc.xforce_flag),
       sets_conv_flux_flag(bc.sets_conv_flux_flag),
       sets_visc_flux_flag(bc.sets_visc_flux_flag),
-      neighbour_block(bc.neighbour_block), neighbour_face(bc.neighbour_face),
+      neighbour_block(bc.neighbour_block),
+      neighbour_face(bc.neighbour_face),
       neighbour_orientation(bc.neighbour_orientation),
-      wc_bc(bc.wc_bc), sponge_flag(bc.sponge_flag), xforce_flag(bc.xforce_flag),
+      wc_bc(bc.wc_bc), cw(0),
       q_cond(bc.q_cond), q_diff(bc.q_diff), q_rad(bc.q_rad),
-      imin(bc.imin), imax(bc.imax), jmin(bc.jmin), jmax(bc.jmax), cw(0)
+      imin(bc.imin), imax(bc.imax), jmin(bc.jmin), jmax(bc.jmax)
 {
     // if ( bc.cw ) cw = new CatalyticWallBC(*bc.cw);
 }
@@ -251,22 +252,20 @@ BoundaryCondition & BoundaryCondition::operator=(const BoundaryCondition &bc)
 	bdp = bc.bdp; // This new BC is still bound to the original block.
 	which_boundary = bc.which_boundary; 
 	type_code = bc.type_code;
-	x_order = bc.x_order;
 	is_wall_flag = bc.is_wall_flag;
+	xforce_flag = bc.xforce_flag;
 	sets_conv_flux_flag = bc.sets_conv_flux_flag;
 	sets_visc_flux_flag = bc.sets_visc_flux_flag;
 	neighbour_block = bc.neighbour_block;
 	neighbour_face = bc.neighbour_face;
 	neighbour_orientation = bc.neighbour_orientation;
 	wc_bc = bc.wc_bc;
-	sponge_flag = bc.sponge_flag;
-	xforce_flag = bc.xforce_flag;
+	// if ( bc.cw ) cw = new CatalyticWallBC(*bc.cw);
+	cw = 0;
 	q_cond = bc.q_cond;
 	q_diff = bc.q_diff;
 	q_rad = bc.q_rad;
 	imin = bc.imin; imax = bc.imax; jmin = bc.jmin; jmax = bc.jmax;
-	// if ( bc.cw ) cw = new CatalyticWallBC(*bc.cw);
-	cw = 0;
     }
     return *this;
 }
@@ -279,25 +278,15 @@ BoundaryCondition::~BoundaryCondition()
 
 void BoundaryCondition::print_info(std::string lead_in)
 {
-    cout << lead_in << "block_id" << bdp->id << endl;
-    cout << lead_in << "which_boundary=" << which_boundary 
+    cout << lead_in << "block_id= " << bdp->id << endl;
+    cout << lead_in << "which_boundary= " << which_boundary 
 	 << " (" << get_face_name(which_boundary) << ")" << endl;
-    cout << lead_in << "type=" << get_bc_name(type_code) 
-	 << " (" << name_of_BC << ")" << endl;
-    cout << lead_in << "x_order=" << x_order << endl;
-    cout << lead_in << "is_wall_flag=" << is_wall_flag << endl;
-    cout << lead_in << "sets_conv_flux_flag=" << sets_conv_flux_flag << endl;
-    cout << lead_in << "sets_visc_flux_flag=" << sets_visc_flux_flag << endl;
-    cout << lead_in << "neighbour_block=" << neighbour_block << endl;
-    cout << lead_in << "neighbour_face=" << neighbour_face 
-	 << " (" << get_face_name(neighbour_face) << ")" << endl;
-    cout << lead_in << "neighbour_orientation=" << neighbour_orientation << endl;
-    cout << lead_in << "wc_bc=" << get_bc_name(wc_bc) << endl;
-    cout << lead_in << "sponge_flag=" << sponge_flag << endl;
-    cout << lead_in << "xforce_flag=" << xforce_flag << endl;
-    // *** FIX-ME *** should properly delegate data to the specific boundary condition classes
-    // cout << lead_in << "Pout= " << Pout << endl;
-    // cout << lead_in << "Twall= " << Twall << endl;
+    cout << lead_in << "type= " << get_bc_name(type_code) << endl;
+    cout << lead_in << "is_wall_flag= " << is_wall_flag << endl;
+    cout << lead_in << "xforce_flag= " << xforce_flag << endl;
+    cout << lead_in << "sets_conv_flux_flag= " << sets_conv_flux_flag << endl;
+    cout << lead_in << "sets_visc_flux_flag= " << sets_visc_flux_flag << endl;
+    cout << lead_in << "wc_bc= " << get_bc_name(wc_bc) << endl;
     return;
 }
 
@@ -963,7 +952,8 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	dict.parse_int(section, "is_wall", is_wall, 0);
 	dict.parse_int(section, "sets_conv_flux", sets_conv_flux, 0);
 	dict.parse_int(section, "sets_visc_flux", sets_visc_flux, 0);
-	newBC = new UserDefinedBC(bdp, which_boundary, filename, is_wall==1);
+	newBC = new UserDefinedBC(bdp, which_boundary, filename, is_wall==1,
+				  sets_conv_flux==1, sets_visc_flux==1);
 	break;
     case ADJACENT_PLUS_UDF:
 	dict.parse_int(section, "other_block", other_block, -1);
@@ -976,7 +966,8 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	dict.parse_int(section, "sets_visc_flux", sets_visc_flux, 0);
 	newBC = new AdjacentPlusUDFBC(bdp, which_boundary, other_block, 
 				      other_face, neighbour_orientation,
-				      filename, is_wall==1);
+				      filename, is_wall==1,
+				      sets_conv_flux==1, sets_visc_flux==1);
 	break;
     case SEB:
 	dict.parse_double(section, "epsilon", epsilon, 0.9);

@@ -48,6 +48,15 @@ SubsonicInBC & SubsonicInBC::operator=(const SubsonicInBC &bc)
 
 SubsonicInBC::~SubsonicInBC() {}
 
+void SubsonicInBC::print_info(std::string lead_in)
+{
+    BoundaryCondition::print_info(lead_in);
+    cout << lead_in << "inflow_condition_id= " << inflow_condition_id << endl;
+    cout << lead_in << "use_ideal_gas_relations= " << use_ideal_gas_relations << endl;
+    cout << lead_in << "entropy= " << s0 << endl;
+    return;
+}
+
 int SubsonicInBC::apply_convective(double t)
 {
     Block & bd = *bdp;

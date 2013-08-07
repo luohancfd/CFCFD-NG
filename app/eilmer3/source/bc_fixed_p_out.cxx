@@ -12,35 +12,37 @@
 //------------------------------------------------------------------------
 
 FixedPOutBC::FixedPOutBC(Block *bdp, int which_boundary, double _Pout, int _x_order)
-    : BoundaryCondition(bdp, which_boundary, FIXED_P_OUT) 
-{
-    x_order = _x_order;
-    Pout = _Pout; 
-}
+    : BoundaryCondition(bdp, which_boundary, FIXED_P_OUT), 
+      Pout(_Pout), x_order(_x_order) 
+{}
 
 FixedPOutBC::FixedPOutBC(const FixedPOutBC &bc)
-    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code) 
-{
-    x_order = bc.x_order;
-    Pout = bc.Pout; 
-}
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code),
+      Pout(bc.Pout), x_order(bc.x_order) 
+{}
 
 FixedPOutBC::FixedPOutBC()
-    : BoundaryCondition(0, 0, FIXED_P_OUT) 
-{
-    x_order = 0;
-    Pout = 0.0; 
-}
+    : BoundaryCondition(0, 0, FIXED_P_OUT),
+      Pout(0.0), x_order(0) 
+{}
 
 FixedPOutBC & FixedPOutBC::operator=(const FixedPOutBC &bc)
 {
     BoundaryCondition::operator=(bc);
-    x_order = bc.x_order;
     Pout = bc.Pout; // Ok for self-assignment.
+    x_order = bc.x_order;
     return *this;
 }
 
 FixedPOutBC::~FixedPOutBC() {}
+
+void FixedPOutBC::print_info(std::string lead_in)
+{
+    BoundaryCondition::print_info(lead_in);
+    cout << lead_in << "Pout= " << Pout << endl;
+    cout << lead_in << "x_order= " << x_order << endl;
+    return;
+}
 
 int FixedPOutBC::apply_convective(double t)
 {

@@ -86,6 +86,16 @@ SurfaceEnergyBalanceBC::~SurfaceEnergyBalanceBC()
     delete Q;
 }
 
+void SurfaceEnergyBalanceBC::print_info(std::string lead_in)
+{
+    BoundaryCondition::print_info(lead_in);
+    cout << lead_in << "epsilon= " << epsilon << endl;
+    cout << lead_in << "tol= " << tol << endl;
+    cout << lead_in << "max_iterations= " << max_iterations << endl;
+    cout << lead_in << "f_relax= " << f_relax << endl;
+    return;
+}
+
 int SurfaceEnergyBalanceBC::apply_viscous(double t)
 {
     size_t i, j, k;

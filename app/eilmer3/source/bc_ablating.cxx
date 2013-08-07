@@ -146,6 +146,14 @@ AblatingBC::~AblatingBC()
     delete Q;
 }
 
+void AblatingBC::print_info(std::string lead_in)
+{
+    BoundaryCondition::print_info(lead_in);
+    cout << lead_in << "Twall= " << Twall << endl;
+    cout << lead_in << "*** FIX-ME *** Elise. More configuration data should be written." << endl;
+    return;
+}
+
 // apply_convective function definition
 
 int AblatingBC::apply_convective(double t)

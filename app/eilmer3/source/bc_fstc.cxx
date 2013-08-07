@@ -115,6 +115,13 @@ fstcBC & fstcBC::operator=(const fstcBC &bc)
 
 fstcBC::~fstcBC() {}
 
+void fstcBC::print_info(std::string lead_in)
+{
+    BoundaryCondition::print_info(lead_in);
+    cout << lead_in << "filename= " << filename << endl;
+    return;
+}
+
 int fstcBC::apply_viscous(double t)
 {
     size_t i, j, k;

@@ -18,6 +18,7 @@ public:
     TransientUniformBC();
     TransientUniformBC & operator=(const TransientUniformBC &bc);
     virtual ~TransientUniformBC();
+    virtual void print_info(std::string lead_in);
     virtual int apply_convective(double t);
     // default apply_viscous() (does nothing)
 };

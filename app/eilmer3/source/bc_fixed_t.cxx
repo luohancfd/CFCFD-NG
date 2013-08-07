@@ -14,35 +14,41 @@
 //------------------------------------------------------------------------
 
 FixedTBC::FixedTBC(Block *bdp, int which_boundary, double Twall)
-    : BoundaryCondition(bdp, which_boundary, FIXED_T)
+    : BoundaryCondition(bdp, which_boundary, FIXED_T),
+      Twall(Twall) 
 {
     is_wall_flag = true;
-    Twall = Twall; 
 }
 
 FixedTBC::FixedTBC(const FixedTBC &bc)
-    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code)
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code),
+      Twall(bc.Twall) 
 {
     is_wall_flag = bc.is_wall_flag;
-    Twall = bc.Twall; 
 }
 
 FixedTBC::FixedTBC()
-    : BoundaryCondition(0, 0, FIXED_T)
+    : BoundaryCondition(0, 0, FIXED_T),
+      Twall(300.0)
 {
     is_wall_flag = true;
-    Twall = 300.0; 
 }
 
 FixedTBC & FixedTBC::operator=(const FixedTBC &bc)
 {
     BoundaryCondition::operator=(bc);
-    is_wall_flag = bc.is_wall_flag;
     Twall = bc.Twall; // Ok for self-assignment.
     return *this;
 }
 
 FixedTBC::~FixedTBC() {}
+
+void FixedTBC::print_info(std::string lead_in)
+{
+    BoundaryCondition::print_info(lead_in);
+    cout << lead_in << "Twall= " << Twall << endl;
+    return;
+}
 
 int FixedTBC::apply_viscous(double t)
 {

@@ -15,33 +15,24 @@
 
 SlidingTBC::SlidingTBC(Block *bdp, int which_boundary, 
 		       double _Twall_i, double _Twall_f, double _t_i, double _t_f )
-    : BoundaryCondition(bdp, which_boundary, SLIDING_T)
+    : BoundaryCondition(bdp, which_boundary, SLIDING_T),
+      Twall_i(_Twall_i), Twall_f(_Twall_f), t_i(_t_i), t_f(_t_f)
 {
     is_wall_flag = true;
-    Twall_i = _Twall_i;
-    Twall_f = _Twall_f; 
-    t_i = _t_i;
-    t_f = _t_f;
 }
 
 SlidingTBC::SlidingTBC(const SlidingTBC &bc)
-    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code)
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code),
+      Twall_i(bc.Twall_i), Twall_f(bc.Twall_f), t_i(bc.t_i), t_f(bc.t_f)
 {
     is_wall_flag = bc.is_wall_flag;
-    Twall_i = bc.Twall_i;
-    Twall_f = bc.Twall_f;
-    t_i = bc.t_i;
-    t_f = bc.t_f;
 }
 
 SlidingTBC::SlidingTBC()
-    : BoundaryCondition(bdp, which_boundary, SLIDING_T)
+    : BoundaryCondition(bdp, which_boundary, SLIDING_T),
+      Twall_i(0.0), Twall_f(0.0), t_i(0.0), t_f(0.0)
 {
     is_wall_flag = true;
-    Twall_i = 0.0;
-    Twall_f = 0.0;
-    t_i = 0.0;
-    t_f = 0.0;
 }
 
 SlidingTBC & SlidingTBC::operator=(const SlidingTBC &bc)
@@ -55,6 +46,16 @@ SlidingTBC & SlidingTBC::operator=(const SlidingTBC &bc)
 }
 
 SlidingTBC::~SlidingTBC() {}
+
+void SlidingTBC::print_info(std::string lead_in)
+{
+    BoundaryCondition::print_info(lead_in);
+    cout << lead_in << "Twall_i= " << Twall_i << endl;
+    cout << lead_in << "Twall_f= " << Twall_f << endl;
+    cout << lead_in << "t_i= " << t_i << endl;
+    cout << lead_in << "t_f= " << t_f << endl;
+    return;
+}
 
 int SlidingTBC::apply_viscous(double t)
 {

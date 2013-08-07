@@ -20,11 +20,14 @@ private:
 public:
     UserDefinedBC(Block *bdp, int which_boundary, 
 		  const std::string filename="udf.lua",
-		  bool is_wall=false);
+		  bool is_wall=false,
+		  bool sets_conv_flux=false, 
+		  bool sets_visc_flux=false);
     UserDefinedBC(const UserDefinedBC &bc);
     UserDefinedBC();
     UserDefinedBC & operator=(const UserDefinedBC &bc);
     virtual ~UserDefinedBC();
+    virtual void print_info(std::string lead_in);
     virtual int apply_convective(double t); // copies flow data to ghost cells
     virtual int apply_viscous(double t); // sets wall T to user-defined value
 private:
@@ -44,7 +47,10 @@ public:
     AdjacentPlusUDFBC(Block *bdp, int which_boundary, int other_block, 
 		      int other_face, int neighbour_orientation=0,
 		      const std::string filename="udf.lua",
-		      bool is_wall=false);
+		      bool is_wall=false,
+		      bool sets_conv_flux=false, 
+		      bool sets_visc_flux=false);
     AdjacentPlusUDFBC(const AdjacentPlusUDFBC &bc);
     virtual ~AdjacentPlusUDFBC();
+    virtual void print_info(std::string lead_in);
 };

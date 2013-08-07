@@ -37,6 +37,7 @@ public:
     AblatingBC(const AblatingBC &bc);
     AblatingBC & operator=(const AblatingBC &bc);
     virtual ~AblatingBC();
+    virtual void print_info(std::string lead_in);
     virtual int apply_convective(double t);	// sets ghost cell flow conditions
     virtual int apply_viscous(double t); 	// sets wall temperature (same as FixedTBC)
 private:

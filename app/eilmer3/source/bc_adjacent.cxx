@@ -30,11 +30,7 @@ AdjacentBC::AdjacentBC(const AdjacentBC &bc)
 
 AdjacentBC::AdjacentBC()
     : BoundaryCondition(0, 0, ADJACENT)
-{
-    neighbour_block = -1;
-    neighbour_face = -1;
-    neighbour_orientation = 0;
-}
+{}
 
 AdjacentBC & AdjacentBC::operator=(const AdjacentBC &bc)
 {
@@ -43,6 +39,16 @@ AdjacentBC & AdjacentBC::operator=(const AdjacentBC &bc)
 }
 
 AdjacentBC::~AdjacentBC() {}
+
+void AdjacentBC::print_info(std::string lead_in)
+{
+    BoundaryCondition::print_info(lead_in);
+    cout << lead_in << "neighbour_block= " << neighbour_block << endl;
+    cout << lead_in << "neighbour_face= " << neighbour_face 
+	 << " (" << get_face_name(neighbour_face) << ")" << endl;
+    cout << lead_in << "neighbour_orientation= " << neighbour_orientation << endl;
+    return;
+}
 
 int AdjacentBC::apply_convective(double t)
 {
