@@ -642,7 +642,7 @@ int create_spectral_bin_vector( std::vector<double> & pvec, int binning_type, in
     }
     else if ( binning_type==BAND_BINNING ) {
         double prev = 0.0;
-        double tol = 1.0e-30;   // tolerance for comparing two absorption coefficients
+        double tol = 1.0e-10;   // tolerance for comparing two absorption coefficients
         double plim = 1.1e-20;  // this will omit 1.0e-20 zero values from parade
         vector<int> inus;
         for ( size_t inu=0; inu<pvec.size(); ++inu) {
