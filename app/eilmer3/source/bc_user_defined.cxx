@@ -38,7 +38,7 @@ UserDefinedBC::UserDefinedBC(Block *bdp, int which_boundary,
 			     bool is_wall, 
 			     bool sets_conv_flux, bool sets_visc_flux)
     : BoundaryCondition(bdp, which_boundary, USER_DEFINED),
-      filename(filename)
+      filename(_filename)
 {
     is_wall_flag = is_wall;
     sets_conv_flux_flag = sets_conv_flux;
