@@ -1335,9 +1335,13 @@ Available boundary condition classes include:\index{boundary conditions!list of 
     \item \texttt{SlipWallBC(label='')}\index{boundary conditions!SlipWallBC} where we want a solid wall with no viscous effects.
       This is the default boundary condition where no other condition is specified.
     \item \texttt{AdiabaticBC(label='')}\index{boundary conditions!AdiabaticBC} where we want viscous effects to impose no-slip at the wall
-      but where there is no heat transfer.
+      but where there is no heat transfer. 
+      Note that we need to set \verb!gdata.viscous_flag = 1! (see Section~\ref{sec:sim-control-parameters}, Viscous effects) 
+      to make this boundary condition effective.
     \item \texttt{FixedTBC(Twall, label='')}\index{boundary conditions!FixedTBC} where we want viscous effects to impose a no-slip velocity 
       condition and a fixed wall temperature.
+      As for the \texttt{AdiabaticBC}, we need to set \verb!gdata.viscous_flag = 1! (see Section~\ref{sec:sim-control-parameters}, Viscous effects) 
+      to make this boundary condition effective.
     \item \texttt{SubsonicInBC(stagnation\_condition, label='')}\index{boundary conditions!SubsonicInBC} where the flow is assumed subsonic and
       we specify the stagnation pressure and temperature, but take the velocity from just inside
       the boundary.
