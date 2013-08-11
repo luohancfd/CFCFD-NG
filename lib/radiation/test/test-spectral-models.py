@@ -81,7 +81,9 @@ for model in models.keys():
     I_total, delta_t = EQ_spectra.run_calculation(input_data)
     intensity_results[model] = I_total
     time_results[model] = delta_t
-    
+    os.system("mv coefficient_spectra.txt %s-coefficient-spectra.txt" % model.replace(" ","-") )
+    os.system("mv intensity_spectra.txt %s-radiance-spectra.txt" % model.replace(" ","-") )
+
 def percent_diff(x, y):
     return 100.0 * abs(x-y) / max(abs(x),abs(y))
     
@@ -92,7 +94,7 @@ npass = 0
 for model in models.keys():
     ntests += 1
     error = percent_diff(intensity_results[model],expected_intensities[model])
-    if error >= 0.1:
+    if error >= 1.0:
         flag = "FAILED"
         nfail += 1
     else:

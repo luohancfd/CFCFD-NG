@@ -35,11 +35,11 @@ for rad_name in radiators:
     if rad.type=="diatomic_radiator":
         rad.iTv = 0
 
-if "PARADE_HOME" not in os.environ.keys():
-    print "Error: This test requires that the system environment variable 'PARADE_HOME' is set."
+if "PARADEHOME" not in os.environ.keys():
+    print "Error: This test requires that the system environment variable 'PARADEHOME' is set."
     print "       This should be the path to the top level of the parade source code."
     sys.exit()
-parade_data_path = os.environ["PARADE_HOME"] + "/Data"
+parade_data_path = os.environ["PARADEHOME"] + "/Data"
 gdata.create_parade_template_files(parade_data_path)
 
 # thats all we need to do!
