@@ -135,7 +135,7 @@ ode_solve(double x, double delta_x)
     double dx = delta_x;
     double dt = dx/psflow.u;
     double dt_suggest = dt;
-    
+
     // Apply reaction update if it is present
     if ( rupdate_ ) {
     	rupdate_->update_state(*psflow.Q, dt, dt_suggest, gmodel_);
@@ -165,8 +165,11 @@ ode_solve(double x, double delta_x)
     	    psflow.Q->e.back() += delta_Q_rad_kg * rtmodel_->get_electronic_mode_factor();
 	}
     	gmodel_->eval_thermo_state_rhoe(*psflow.Q);
+
+    	// Update total energy in the conservation system
+    	con_sys_.set_C( con_sys_.get_C() + con_sys_.get_A() * delta_Q_rad_kg );
     }
-    
+
     return dt_suggest*psflow.u;
 }
 

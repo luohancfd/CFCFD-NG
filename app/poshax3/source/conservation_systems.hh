@@ -34,6 +34,15 @@ public:
     int f( const std::valarray<double> &y, std::valarray<double> &G );
     int Jac( const std::valarray<double> &y, Valmatrix &dGdy );
 
+    /// \brief Read access to A_, the total mass conserved variable
+    double get_A() { return A_; }
+
+    /// \brief Read access to C_, the total energy conserved variable
+    double get_C() { return C_; }
+
+    /// \brief Write access to C_, the total energy conserved variable
+    void set_C( double C ) { C_ = C; }
+
 private:
     Gas_model * gmodel_;
     Gas_data * Q_;

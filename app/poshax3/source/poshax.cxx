@@ -499,8 +499,14 @@ int main(int argc, char *argv[])
 	    for ( size_t iT=0; iT<T_inf.size(); ++iT )
 	    	cout << "T[" << iT << "] = " << setw(12) << psr->psflow.Q->T[iT] << ' ';
 	    cout << "u = " << setw(12) << psr->psflow.u << ' ';
-	    if ( bool(rtmodel) ) 
+	    if ( bool(rtmodel) ) {
+		double e = accumulate(psr->psflow.Q->e.begin(), psr->psflow.Q->e.end(), 0.0);
+		double u = psr->psflow.u;
+		double rho = psr->psflow.Q->rho;
+		double E_total = rho*u*(e + 0.5*u*u) + u*psr->psflow.Q->p;
+		cout << "E_total = " << setw(12) << E_total << ' ';
 	    	cout << "Q_rad = " << setw(12) << psr->psflow.Q_rad << endl;
+            }
 	    else cout << endl;
 	    if ( write_rad_emissions ) {
 	    	emissions_outfile << setw(20) << x;
