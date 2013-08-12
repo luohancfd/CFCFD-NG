@@ -95,9 +95,9 @@ nbx = 4; nby = 4
 beta0 = 1.1; dx0 = 5.0e-1; dx1 = 2.0e-2 # gamma is previously defined
 beta1 = 1.2
 cf_list = [BHRCF(beta0,dx0,dx1,gamma),
-           RCF(0,1,beta1),
+           RCF(1,0,beta1),
            BHRCF(beta0,dx0,dx1,gamma),
-           RCF(0,1,beta1)]
+           RCF(1,0,beta1)]
 
 # boundary conditions [ outflow, surface, axis, inflow ]
 if fixed_T_wall:
@@ -139,7 +139,7 @@ gdata.dt = 1.0e-10
 gdata.reaction_time_start = 0
 gdata.stringent_cfl = 1
 gdata.dt_plot = Rn * 1 / u_inf    # 5 solutions
-gdata.cfl = 0.05		# reduce for finer resolution
+gdata.cfl = 0.25
 gdata.cfl_count = 1
 gdata.print_count = 1
 
