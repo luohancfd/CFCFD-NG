@@ -20,8 +20,8 @@ mechanism{
    'e- ~~ Ar : E-T',
    rt={'Appleton-Bray:TwoRangeNeutral',
         T_switch=10000.0,
-	sigma_low_T={  3.9e-19, -5.51e-23, 5.95e-27},
-	sigma_high_T={-3.5e-19,  7.75e-23, 0.0}
+	sigma_low_T={  3.9e-21, -5.51e-25, 5.95e-29},
+	sigma_high_T={-3.5e-21,  7.75e-25, 0.0}
    }
 }
 
