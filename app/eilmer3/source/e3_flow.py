@@ -20,7 +20,9 @@ from e3_grid import *
 import math
 import os
 from copy import copy
-
+import struct
+import base64
+import textwrap
 
 #----------------------------------------------------------------------------
 # Utility functions to help set up gas models and flow states in the
@@ -882,7 +884,7 @@ class ExistingSolution(object):
 #---------------------------------------------------------------------------------
 # VTK-related functions
 
-def write_VTK_XML_unstructured_file(fp, grid, flow):
+def write_VTK_XML_unstructured_file(fp, grid, flow, binary_format=False):
     """
     Write the cell-centred flow data from a single block 
     as an unstructured grid of finite-volume cells.
@@ -896,22 +898,35 @@ def write_VTK_XML_unstructured_file(fp, grid, flow):
     two_D = (nkv == 1)
     NumberOfPoints = niv * njv * nkv
     NumberOfCells = nic * njc * nkc
-    fp.write("<VTKFile type=\"UnstructuredGrid\">\n")
+    fp.write("<VTKFile type=\"UnstructuredGrid\" byte_order=\"BigEndian\">\n")
     fp.write("<UnstructuredGrid>")
     fp.write("<Piece NumberOfPoints=\"%d\" NumberOfCells=\"%d\">\n" %
              (NumberOfPoints, NumberOfCells))
     fp.write("<Points>\n")
-    fp.write(" <DataArray type=\"Float32\" NumberOfComponents=\"3\">\n")
+    fp.write(" <DataArray type=\"Float32\" NumberOfComponents=\"3\"")
+    if binary_format:
+        binary_data = struct.pack("> I", 3*niv*njv*nkv) # size of array, in words
+        # fp.write(" format=\"Binary\" encoding=\"raw\">\n_")
+        # fp.write(binary_data)
+        fp.write(" format=\"binary\" encoding=\"base64\">\n_")
+        fp.write(base64.b64encode(binary_data))
+    else:
+        fp.write(" format=\"ascii\">\n")
     vtx_number = 0
     vtx_id = {}
     for k in range(nkv):
         for j in range(njv):
             for i in range(niv):
                 vtx_id[(i,j,k)] = vtx_number
-                fp.write(" %e %e %e\n" % (uflowz(grid.x[i,j,k]), uflowz(grid.y[i,j,k]),
-                                          uflowz(grid.z[i,j,k])))
+                x,y,z = uflowz(grid.x[i,j,k]), uflowz(grid.y[i,j,k]), uflowz(grid.z[i,j,k])
+                if binary_format:
+                    binary_data = struct.pack('> f f f', x, y, z)
+                    fp.write(base64.b64encode(binary_data))
+                    # fp.write(binary_data)
+                else:
+                    fp.write(" %e %e %e\n" % (x,y,z))
                 vtx_number += 1
-    fp.write(" </DataArray>\n")
+    fp.write("</DataArray>\n")
     fp.write("</Points>\n")
     fp.write("<Cells>\n")
     fp.write(" <DataArray type=\"Int32\" Name=\"connectivity\">\n")
