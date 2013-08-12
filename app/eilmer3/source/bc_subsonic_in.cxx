@@ -21,19 +21,20 @@ SubsonicInBC::SubsonicInBC(Block *bdp, int which_boundary,
     global_data &gd = *get_global_data_ptr();
     CFlowCondition *gstagp = gd.gas_state[inflow_condition_id];
     gmodel->eval_thermo_state_pT(*(gstagp->gas));
-    s0 = gmodel->mixture_enthalpy(*(gstagp->gas));
+    s0 = gmodel->mixture_entropy(*(gstagp->gas));
+    h0 = gmodel->mixture_enthalpy(*(gstagp->gas));
 }
 
 SubsonicInBC::SubsonicInBC(const SubsonicInBC &bc)
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code), 
       inflow_condition_id(bc.inflow_condition_id),
       use_ideal_gas_relations(bc.use_ideal_gas_relations),
-      s0(bc.s0)
+      s0(bc.s0), h0(bc.h0)
 {}
 
 SubsonicInBC::SubsonicInBC()
     : BoundaryCondition(0, 0, SUBSONIC_IN), 
-      inflow_condition_id(0), use_ideal_gas_relations(0), s0(0.0)
+      inflow_condition_id(0), use_ideal_gas_relations(0), s0(0.0), h0(0.0)
 {}
 
 SubsonicInBC & SubsonicInBC::operator=(const SubsonicInBC &bc)
@@ -43,6 +44,7 @@ SubsonicInBC & SubsonicInBC::operator=(const SubsonicInBC &bc)
     inflow_condition_id = bc.inflow_condition_id;
     use_ideal_gas_relations = bc.use_ideal_gas_relations;
     s0 = bc.s0;
+    h0 = bc.h0;
     return *this;
 }
 
@@ -193,10 +195,6 @@ int SubsonicInBC::subsonic_inflow_properties(const CFlowCondition *stagnation,
     inflow_state->gas->p  = inflow_pressure;
     gmodel->eval_thermo_state_ps(*(inflow_state->gas), inflow_pressure, s0);
     // Compute gas speed from energy conservation
-    double e0 = stagnation->gas->e[0];
-    double p0 = stagnation->gas->p;
-    double rho0 = stagnation->gas->rho;
-    double h0 = e0 + p0/rho0;
     double e = inflow_state->gas->e[0];
     double p = inflow_state->gas->p;
     double rho = inflow_state->gas->rho;
@@ -205,9 +203,9 @@ int SubsonicInBC::subsonic_inflow_properties(const CFlowCondition *stagnation,
     // our reservior.  We'll stop that by just setting stagnated conditions.
     // then just return stagnated conditions
     if ( e + p/rho >= h0 ) {
-	inflow_state->gas->rho = stagnation->gas->rho;
-	inflow_state->gas->e[0] = stagnation->gas->e[0];
-	gmodel->eval_thermo_state_rhoe(*(inflow_state->gas));
+	inflow_state->gas->p = stagnation->gas->p;
+	inflow_state->gas->T[0] = stagnation->gas->T[0];
+	gmodel->eval_thermo_state_pT(*(inflow_state->gas));
 	inflow_state->u = 0.0;
 	inflow_state->v = 0.0;
 	inflow_state->w = 0.0;

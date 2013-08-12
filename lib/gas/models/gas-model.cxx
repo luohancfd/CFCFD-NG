@@ -608,14 +608,14 @@ s_eval_thermo_state_ps(Gas_data &Q, double p, double s)
 	    Q.print_values();
 	    return DUFF_EOS_ERROR;
 	}
-	s_new = mixture_enthalpy(Q);
+	s_new = mixture_entropy(Q);
 	fs_new = s_given - s_new;
 	dfs_dT = (fs_new - fs_old) / (T_new - T_old);
 	// Prepare for next iteration.
 	++count;
 	fs_old = fs_new;
 	T_old = T_new;
-	converged = fabs(fs_old) < fs_tol;
+	converged = (fabs(fs_old) < fs_tol);
     }   // end while 
     // Ensure that we have the current data for all EOS variables.
     Q.T[0] = T_old;

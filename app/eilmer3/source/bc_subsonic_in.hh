@@ -20,5 +20,6 @@ private:
         const CFlowCondition *stagnation,
 	CFlowCondition *inflow_state,
 	double inflow_pressure );
-    double s0; // stagnation enthalpy
+    double s0; // stagnation entropy
+    double h0; // stagnation enthalpy
 };
