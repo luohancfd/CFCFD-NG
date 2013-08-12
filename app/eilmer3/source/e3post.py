@@ -25,7 +25,7 @@ Summary of options::
 |           [--add-pitot-p] [--add-total-p] [--add-mach] [--add-total-enthalpy]
 |           [--add-molef --gmodel-file="gas-model.lua"]
 | 
-|           [--vtk-xml] [--tecplot] [--plot3d]
+|           [--vtk-xml] [--binary-format] [--tecplot] [--plot3d]
 | 
 |           [--output-file=<profile-data-file>]
 |           [--slice-list="blk-range,i-range,j-range,k-range;..."]
@@ -52,11 +52,11 @@ Examples
 
 * Extract the final solution frame and write VTK files for Paraview::
 
-    e3post.py --job=cone20 --vtk-xml
+    e3post.py --job=cone20 --vtk-xml 
 
 * Extract a particular solution frame::
 
-    e3post.py --job=n90 --tindx=5 --vtk-xml
+    e3post.py --job=n90 --tindx=5 --vtk-xml --binary-format
 
 * Extract a slice of a particular solution frame::
 
@@ -133,7 +133,7 @@ from e3_block import *
 from e3_flow import *
 
 shortOptions = ""
-longOptions = ["help", "job=", "zip-files", "no-zip-files", "vtk-xml", "tecplot", 
+longOptions = ["help", "job=", "zip-files", "no-zip-files", "vtk-xml", "binary-format", "tecplot", 
                "prepare-restart", "put-into-folders", "tindx=", "output-file=", 
                "slice-list=", "slice-at-point=", "slice-along-line=", "surface-list=",
                "ref-function=", "compare-job=", "compare-tindx=",
@@ -154,7 +154,7 @@ def printUsage():
     print "          [--add-pitot-p] [--add-total-p] [--add-mach] [--add-total-enthalpy]"
     print "          [--add-molef --gmodel-file=\"gas-model.lua\"]"
     print ""
-    print "          [--vtk-xml] [--tecplot] [--plot3d]"
+    print "          [--vtk-xml] [--binary-format] [--tecplot] [--plot3d]"
     print ""
     print "          [--output-file=<profile-data-file>]"
     print "          [--slice-list=\"blk-range,i-range,j-range,k-range;...\"]"
@@ -998,7 +998,8 @@ if __name__ == '__main__':
             print "Assemble VTK-XML files for t=", times_dict[tindx]
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles, movingGrid)
             add_auxiliary_variables(nblock, flow, uoDict, omegaz)
-            write_VTK_XML_files(rootName, tindx, nblock, grid, flow, times_dict[tindx])
+            write_VTK_XML_files(rootName, tindx, nblock, grid, flow, times_dict[tindx],
+                                uoDict.has_key("--binary-format"))
         #
         if uoDict.has_key("--tecplot"):
             print "Assemble Tecplot file for t=", times_dict[tindx]
@@ -1069,7 +1070,8 @@ if __name__ == '__main__':
                 add_auxiliary_variables(nblock, flow, uoDict, omegaz)
                 compute_difference_in_flow_data(ref_function, nblock, grid, flow, 
                                                 times_dict[tindx])
-                write_VTK_XML_files(rootName, tindx, nblock, grid, flow, times_dict[tindx])
+                write_VTK_XML_files(rootName, tindx, nblock, grid, flow, times_dict[tindx],
+                                    uoDict.has_key("--binary-format"))
                 norms = compute_volume_weighted_norms(nblock, grid, flow)
                 pretty_print_norms(norms,
                                    uoDict.get("--per-block-norm-list", ""),
@@ -1090,7 +1092,8 @@ if __name__ == '__main__':
             grid2, flow2, dimensions = read_all_blocks(compareRootName, nblock, compareTindx, zipFiles)
             add_auxiliary_variables(nblock, flow2, uoDict, omegaz)
             compute_difference_in_flow_data2(nblock, grid, flow, grid2, flow2, times_dict[tindx])
-            write_VTK_XML_files(rootName, tindx, nblock, grid, flow, times_dict[tindx])
+            write_VTK_XML_files(rootName, tindx, nblock, grid, flow, times_dict[tindx],
+                                uoDict.has_key("--binary-format"))
             norms = compute_volume_weighted_norms(nblock, grid, flow)
             pretty_print_norms(norms,
                                uoDict.get("--per-block-norm-list", ""),
@@ -1125,7 +1128,8 @@ if __name__ == '__main__':
             outputName = uoDict.get("--output-file", rootName)
             write_VTK_XML_files(outputName+".surface", tindx, 
                                 len(surface_grid_list), 
-                                surface_grid_list, surface_flow_list, times_dict[tindx])
+                                surface_grid_list, surface_flow_list, times_dict[tindx],
+                                uoDict.has_key("--binary-format"))
         #
         if uoDict.has_key("--probe"):
             print "Probe data for t=", times_dict[tindx]

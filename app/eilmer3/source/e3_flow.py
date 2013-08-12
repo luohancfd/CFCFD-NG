@@ -884,7 +884,7 @@ class ExistingSolution(object):
 #---------------------------------------------------------------------------------
 # VTK-related functions
 
-def write_VTK_XML_unstructured_file(fp, grid, flow, binary_format=False):
+def write_VTK_XML_unstructured_file(fp, grid, flow, binary_format):
     """
     Write the cell-centred flow data from a single block 
     as an unstructured grid of finite-volume cells.
@@ -892,7 +892,13 @@ def write_VTK_XML_unstructured_file(fp, grid, flow, binary_format=False):
     :param fp  : reference to a file object
     :param grid: single-block grid of vertices
     :param flow: single-block of cell-centre flow data
+    :param binary_format: if True, most of the data will be written as raw binary 
+        (appended) else it will be written as ascii (in place).
+        We have not used base64 encoding; too much pain with Paraview.
     """
+    if binary_format:
+        binary_data_string = ""
+        binary_data_offset = 0
     niv = grid.ni; njv = grid.nj; nkv = grid.nk
     nic = flow.ni; njc = flow.nj; nkc = flow.nk
     two_D = (nkv == 1)
@@ -902,14 +908,12 @@ def write_VTK_XML_unstructured_file(fp, grid, flow, binary_format=False):
     fp.write("<UnstructuredGrid>")
     fp.write("<Piece NumberOfPoints=\"%d\" NumberOfCells=\"%d\">\n" %
              (NumberOfPoints, NumberOfCells))
+    #
     fp.write("<Points>\n")
     fp.write(" <DataArray type=\"Float32\" NumberOfComponents=\"3\"")
     if binary_format:
-        binary_data = struct.pack("> I", 3*niv*njv*nkv) # size of array, in words
-        # fp.write(" format=\"Binary\" encoding=\"raw\">\n_")
-        # fp.write(binary_data)
-        fp.write(" format=\"binary\" encoding=\"base64\">\n_")
-        fp.write(base64.b64encode(binary_data))
+        fp.write(" format=\"appended\" offset=\"%d\">" % binary_data_offset)
+        binary_data = r""
     else:
         fp.write(" format=\"ascii\">\n")
     vtx_number = 0
@@ -920,16 +924,20 @@ def write_VTK_XML_unstructured_file(fp, grid, flow, binary_format=False):
                 vtx_id[(i,j,k)] = vtx_number
                 x,y,z = uflowz(grid.x[i,j,k]), uflowz(grid.y[i,j,k]), uflowz(grid.z[i,j,k])
                 if binary_format:
-                    binary_data = struct.pack('> f f f', x, y, z)
-                    fp.write(base64.b64encode(binary_data))
-                    # fp.write(binary_data)
+                    binary_data += struct.pack('> f f f', x, y, z)
                 else:
                     fp.write(" %e %e %e\n" % (x,y,z))
                 vtx_number += 1
-    fp.write("</DataArray>\n")
+    fp.write(" </DataArray>\n")
+    if binary_format:
+        binary_data_count = struct.pack('> I', len(binary_data)) # 4-byte count of bytes
+        binary_data_string += binary_data_count
+        binary_data_string += binary_data
+        binary_data_offset += len(binary_data_count) + len(binary_data)
     fp.write("</Points>\n")
+    #
     fp.write("<Cells>\n")
-    fp.write(" <DataArray type=\"Int32\" Name=\"connectivity\">\n")
+    fp.write(" <DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">\n")
     for k in range(nkc):
         for j in range(njc):
             for i in range(nic):
@@ -964,46 +972,105 @@ def write_VTK_XML_unstructured_file(fp, grid, flow, binary_format=False):
                     fp.write(" %d\n" % 12) # VTK_HEXAHEDRON
     fp.write(" </DataArray>\n")
     fp.write("</Cells>\n")
+    #
     fp.write("<CellData>\n")
     # Write variables from the dictionary.
     for var in flow.vars:
-        fp.write(" <DataArray Name=\"%s\" type=\"Float32\" NumberOfComponents=\"1\">\n" % (var))
+        fp.write(" <DataArray Name=\"%s\" type=\"Float32\" NumberOfComponents=\"1\"" % (var))
+        if binary_format:
+            fp.write(" format=\"appended\" offset=\"%d\">" % binary_data_offset)
+            binary_data = r""
+        else:
+            fp.write(" format=\"ascii\">\n")
         for k in range(nkc):
             for j in range(njc):
                 for i in range(nic):
-                    fp.write(" %e\n" % uflowz(flow.data[var][i,j,k]))
+                    if binary_format:
+                        binary_data += struct.pack('> f', uflowz(flow.data[var][i,j,k]))
+                    else:
+                        fp.write(" %e\n" % uflowz(flow.data[var][i,j,k]))
         fp.write(" </DataArray>\n")
+        if binary_format:
+            binary_data_count = struct.pack('> I', len(binary_data)) # 4-byte count of bytes
+            binary_data_string += binary_data_count
+            binary_data_string += binary_data
+            binary_data_offset += len(binary_data_count) + len(binary_data)
+    #
     # Write the special variables:
     # i.e. variables constructed from those in the dictionary.
-    fp.write(" <DataArray Name=\"vel.vector\" type=\"Float32\" NumberOfComponents=\"3\">\n")
+    fp.write(" <DataArray Name=\"vel.vector\" type=\"Float32\" NumberOfComponents=\"3\"")
+    if binary_format:
+        fp.write(" format=\"appended\" offset=\"%d\">" % binary_data_offset)
+        binary_data = r""
+    else:
+        fp.write(" format=\"ascii\">\n")
     for k in range(nkc):
         for j in range(njc):
             for i in range(nic):
-                fp.write(" %e %e %e\n" % (uflowz(flow.data['vel.x'][i,j,k]), 
-                                          uflowz(flow.data['vel.y'][i,j,k]), 
-                                          uflowz(flow.data['vel.z'][i,j,k])) )
+                x, y, z = (uflowz(flow.data['vel.x'][i,j,k]),
+                           uflowz(flow.data['vel.y'][i,j,k]),
+                           uflowz(flow.data['vel.z'][i,j,k]))
+                if binary_format:
+                    binary_data += struct.pack('> f f f', x, y, z)
+                else:
+                    fp.write(" %e %e %e\n" % (x,y,z))
     fp.write(" </DataArray>\n")
+    if binary_format:
+        binary_data_count = struct.pack('> I', len(binary_data)) # 4-byte count of bytes
+        binary_data_string += binary_data_count
+        binary_data_string += binary_data
+        binary_data_offset += len(binary_data_count) + len(binary_data)
+    #
     if 'c.x' in flow.vars:
-        fp.write(" <DataArray Name=\"c.vector\" type=\"Float32\" NumberOfComponents=\"3\">\n")
+        fp.write(" <DataArray Name=\"c.vector\" type=\"Float32\" NumberOfComponents=\"3\"")
+        if binary_format:
+            fp.write(" format=\"appended\" offset=\"%d\">" % binary_data_offset)
+            binary_data = r""
+        else:
+            fp.write(" format=\"ascii\">\n")
         for k in range(nkc):
             for j in range(njc):
                 for i in range(nic):
-                    fp.write(" %e %e %e\n" % (uflowz(flow.data['c.x'][i,j,k]), 
-                                              uflowz(flow.data['c.y'][i,j,k]), 
-                                              uflowz(flow.data['c.z'][i,j,k])) )
+                    x, y, z = (uflowz(flow.data['c.x'][i,j,k]), 
+                               uflowz(flow.data['c.y'][i,j,k]), 
+                               uflowz(flow.data['c.z'][i,j,k]))
+                    if binary_format:
+                        binary_data += struct.pack('> f f f', x, y, z)
+                    else:
+                        fp.write(" %e %e %e\n" % (x, y, z) )
         fp.write(" </DataArray>\n")
+        if binary_format:
+            binary_data_count = struct.pack('> I', len(binary_data)) # 4-byte count of bytes
+            binary_data_string += binary_data_count
+            binary_data_string += binary_data
+            binary_data_offset += len(binary_data_count) + len(binary_data)
+    #
     if 'B.x' in flow.vars:
         fp.write(" <DataArray Name=\"B.vector\" type=\"Float32\" NumberOfComponents=\"3\">\n")
         for k in range(nkc):
             for j in range(njc):
                 for i in range(nic):
-                    fp.write(" %e %e %e\n" % (uflowz(flow.data['B.x'][i,j,k]), 
-                                              uflowz(flow.data['B.y'][i,j,k]), 
-                                              uflowz(flow.data['B.z'][i,j,k])) )
+                    x, y, z = (uflowz(flow.data['B.x'][i,j,k]), 
+                               uflowz(flow.data['B.y'][i,j,k]), 
+                               uflowz(flow.data['B.z'][i,j,k]))
+                    if binary_format:
+                        binary_data += struct.pack('> f f f', x, y, z)
+                    else:
+                        fp.write(" %e %e %e\n" % (x, y, z) )
         fp.write(" </DataArray>\n")
+        if binary_format:
+            binary_data_count = struct.pack('> I', len(binary_data)) # 4-byte count of bytes
+            binary_data_string += binary_data_count
+            binary_data_string += binary_data
+            binary_data_offset += len(binary_data_count) + len(binary_data)
+    #
     fp.write("</CellData>\n")
     fp.write("</Piece>\n")
     fp.write("</UnstructuredGrid>\n")
+    if binary_format:
+        fp.write("<AppendedData encoding=\"raw\">\n")
+        fp.write('_'+binary_data_string)
+        fp.write("</AppendedData>\n")
     fp.write("</VTKFile>\n")
     return
 
@@ -1047,7 +1114,7 @@ def finish_PVD_file(rootName):
     pvdFile.close()
     return
 
-def write_VTK_XML_files(rootName, tindx, nblock, grid, flow, t):
+def write_VTK_XML_files(rootName, tindx, nblock, grid, flow, t, binary_format):
     """
     Writes the top-level (coordinating) parallel/partitioned-VTK file.
 
@@ -1057,6 +1124,8 @@ def write_VTK_XML_files(rootName, tindx, nblock, grid, flow, t):
     :param grid: list of StructuredGrid objects
     :param flow: list of StructuredGridFlow objects
     :param t: simulation time corresponding to the flow data at this tindx 
+    :param binary_format: if True, most of the data will be written as raw binary 
+        (appended) else it will be written as ascii (in place).
     """
     plotPath = "plot"
     if not os.access(plotPath, os.F_OK):
@@ -1091,8 +1160,8 @@ def write_VTK_XML_files(rootName, tindx, nblock, grid, flow, t):
         pvtuFile.write("<Piece Source=\"%s\"/>\n" % fileName)
         # but use the long version to actually open it.
         fileName = os.path.join(plotPath, fileName)
-        vtuFile = open(fileName, "w")
-        write_VTK_XML_unstructured_file(vtuFile, grid[jb], flow[jb])
+        vtuFile = open(fileName, "wb") # We may be writing some binary data.
+        write_VTK_XML_unstructured_file(vtuFile, grid[jb], flow[jb], binary_format)
         vtuFile.close()
     pvtuFile.write("</PUnstructuredGrid>\n")
     pvtuFile.write("</VTKFile>\n")
