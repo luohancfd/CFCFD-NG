@@ -266,42 +266,22 @@ spectra_for_gas_state( Gas_data &Q, CoeffSpectra &X )
 void
 Parade::
 write_line_widths( Gas_data &Q )
-{
-    cout << "Parade::write_line_widths()" << endl
-         << "This function is not available for the parade radiation model." << endl
-         << "Exiting program!" << endl;
-    exit( NOT_IMPLEMENTED_ERROR );
-}
+{}
 
 void
 Parade::
 prep_rad_pop_files()
-{
-    cout << "Parade::prep_rad_pop_files()" << endl
-         << "This function is not available for the parade radiation model." << endl
-         << "Exiting program!" << endl;
-    exit( NOT_IMPLEMENTED_ERROR );
-}
+{}
 
 void
 Parade::
 append_current_rad_pops( double x )
-{
-    cout << "Parade::append_current_rad_pops()" << endl
-         << "This function is not available for the parade radiation model." << endl
-         << "Exiting program!" << endl;
-    exit( NOT_IMPLEMENTED_ERROR );
-}
+{}
 
 void
 Parade::
 write_QSS_analysis_files( Gas_data &Q, int index )
-{
-    cout << "Parade::write_QSS_analysis_files()" << endl
-         << "This function is not available for the parade radiation model." << endl
-         << "Exiting program!" << endl;
-    exit( NOT_IMPLEMENTED_ERROR );
-}
+{}
 
 void
 Parade::
