@@ -23,7 +23,8 @@ function list_available_species()
    return species
 end
 
-local CI_folders = { "GuptaYos", "Wright", "Bruno", "Mars", "None", "Park2001" }
+local CI_folders = { "GuptaYos", "Wright", "Bruno", "Mars", "None", "Park2001", "Abe" }
+CI_folders["Abe"] = "abe"
 CI_folders["Park2001"] = "park2001"
 CI_folders["GuptaYos"] = "gupta-yos"
 CI_folders["Wright"] = "wright"

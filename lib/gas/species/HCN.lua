@@ -110,7 +110,7 @@ HCN.Z = {
    description = 'Charge number',
    reference = 'NA'
 }
-HCN.theta_vib = {
+HCN.theta_v = {
    value = 1009.1,
    units = 'K',
    description = 'Characteristic vibrational temperature',
