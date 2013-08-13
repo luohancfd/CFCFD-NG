@@ -363,8 +363,8 @@ class DiatomicSystem:
         
     def get_LUA_string(self,mname):
         ostring  = "   %s = {\n" % ( self.name )
-        comments = self.comments.replace("#",tab+"--")
-        ostring += 2*tab+"%s\n" % comments
+        comments = self.comments.replace("#",2*tab+"--")
+        ostring += "%s\n" % comments
         ostring += 2*tab+"band_method = '%s',\n" % ( self.band_method )
         ostring += 2*tab+"sigma_nm = %f,\n" % ( self.sigma_nm )
         ostring += 2*tab+"ie_l = %d,\n" % ( self.ie_l )
@@ -384,7 +384,7 @@ class DiatomicBandSet:
     def get_LUA_string(self,mname,sname):
         ostring  = tab*2+"band_data = {\n"
         comments = self.comments.replace("#",tab*3+"--")
-        ostring += tab*3 + "%s\n" % comments
+        ostring += "%s\n" % comments
         ostring += tab*3+"format = '%s',\n" % ( self.format )
         ostring += tab*3+"uRe_dim = %d,\n" % ( self.uRe_dim )
         ostring += tab*3+"lRe_dim = %d,\n" % ( self.lRe_dim )
