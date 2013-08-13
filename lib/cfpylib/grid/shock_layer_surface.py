@@ -136,7 +136,7 @@ def make_parametric_surface(bx_scale=1.0, by_scale=1.0, M_inf=1.0, R=1.0, axi=0,
         west_nodes = []
         for node in inflow_nodes:
             if node.y < wp.y: west_nodes.append(node)
-        west_nodes.append( Node( wp ) )
+        west_nodes.append( Node( wp.x, wp.y ) )
 
         # create the inflow spline
         west = Spline(west_nodes)    
