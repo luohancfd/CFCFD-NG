@@ -983,7 +983,7 @@ if __name__ == '__main__':
             raise ValueError("Do not know what to do with option tindx= %s" % tindx_str)
     #
     if uoDict.has_key("--vtk-xml") or uoDict.has_key("--ref-function") or \
-            uoDict.has_key("--compare-job"): 
+            uoDict.has_key("--compare-job") or uoDict.has_key("--surface-list"): 
         # At this point, the tindx_list may have several entries and 
         # the Visit and PVD files accumulate information about each entry.
         # This allows the construction of animations built from multiple
@@ -1186,7 +1186,7 @@ if __name__ == '__main__':
                 print "No tangent-slab calculations performed."
     #
     if uoDict.has_key("--vtk-xml") or uoDict.has_key("--ref-function") or \
-            uoDict.has_key("--compare-job"): 
+            uoDict.has_key("--compare-job") or uoDict.has_key("--surface-list"): 
         finish_PVD_file(rootName)
 
     print "End e3post.py."
