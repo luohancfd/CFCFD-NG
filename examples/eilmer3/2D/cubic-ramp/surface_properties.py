@@ -6,6 +6,7 @@
 # output both shear and pressure along the cubic surface.
 #
 # PJ, 11-Aug-2013
+#     14-Aug-2013 heat transfer normalised as St.sqrt(Re_x)
 
 import sys, os
 job = "cubic-ramp"
@@ -26,6 +27,8 @@ p_inf = 66.43 # Pa
 u_inf =  1589.8 # m/s
 T_inf = 41.92 # K
 T_wall = 296.0 # K
+T_0 = 1300.0 # K
+specific_heat = 1004.5 # J/kg.K
 from cfpylib.gasdyn import sutherland
 mu_inf = sutherland.mu(T_inf, 'Air')
 mm = 0.001  # metres
@@ -33,7 +36,7 @@ mm = 0.001  # metres
 grid, flow, dim = read_all_blocks(job, nb, tindx, zipFiles=True)
 print "Compute shear stress for cell-centres along the surface"
 outfile = open("surface.data", "w")
-outfile.write("# x(m) tau_w(Pa) Cf Cf_blasius y_plus p(Pa) Cp q(W/m**2) Ch\n")
+outfile.write("# x(m) tau_w(Pa) Cf Cf_blasius y_plus p(Pa) Cp q(W/m**2) St.Re^0.5\n")
 for ib in pick_list:
     j = 0 # surface is along the South boundary  
     k = 0 # of a 2D grid
@@ -79,12 +82,12 @@ for ib in pick_list:
         # Heat flux
         dTdy = (T - T_wall) / dy # conductive heat flux at the wall
         q = kgas * dTdy
-        Ch = q / (0.5*rho_inf*u_inf*u_inf*u_inf)
+        St = q / (rho_inf*u_inf*specific_heat*(T_0-T_wall)) # Stanton number
         #
         outfile.write("%f %f %f %f %f %f %f %f %f\n" % 
                       (midpoint.x, tau_w, Cf, Cf_blasius,
-                       y_plus, p, Cp, q, Ch))
+                       y_plus, p, Cp, q, St*sqrt(Rex)))
         print "x=", midpoint.x, "tau_w=", tau_w, "Cf=", Cf, "y_plus=", y_plus, \
-            "p=", p, "Cp=", Cp, "q=", q, "Ch=", Ch
+            "p=", p, "Cp=", Cp, "q=", q, "St.Rex^0.5=", St*sqrt(Rex)
 outfile.close()
 print "Done"
