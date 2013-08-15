@@ -1,0 +1,17 @@
+/* fairing.mac */
+/* reconstruct the coefficients of Mohammadian's fairing */
+/* PJ, 14-Aug-2013 */
+g: a*s^4 + b*s^3;
+dgds: diff(g,s,1);
+d2gds2: diff(g,s,2);
+s_trial: 3.95;
+eq1: ev(dgds=tan(-18*%pi/180),s=s_trial);
+eq2: ev(d2gds2=0,s=s_trial);
+soln: solve([eq1,eq2],[a,b]),numer;
+/* Now that we have values for a and b, go back and 
+ * substitute them into the expressions. */
+my_g: ev(g,soln[1][1],soln[1][2]);
+g_end: ev(my_g,s=s_trial),numer;
+my_dgds: ev(dgds,soln[1][1],soln[1][2]);
+L: quad_qags(sqrt(1+my_dgds^2), s, 0, s_trial), numer;
+
