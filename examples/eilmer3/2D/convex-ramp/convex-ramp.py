@@ -47,7 +47,7 @@ c0 = Vector(10*m_per_inch,b0.y); c1 = Vector(c0.x,b1.y) # end of model
 rcfx = RobertsClusterFunction(1,0,1.2)
 rcfy = RobertsClusterFunction(1,0,1.1)
 ni0 = 200; nj0 = 40 # We'll scale discretization off these values
-factor = 1.0
+factor = 2.0
 ni0 = int(ni0*factor); nj0 = int(nj0*factor)
 
 wedge = SuperBlock2D(make_patch(Line(a1,b1),Line(b0,b1),
