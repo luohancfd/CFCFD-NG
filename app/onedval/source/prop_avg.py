@@ -74,6 +74,7 @@ def compute_fluxes(cells, var_map, species, gmodel, special_fns):
         special_fluxes[k] = 0.0
     for c in cells:
         dA = c.area()
+        A += dA
         n = oriented_normal(c.normal())
         rho = c.get(rholabel)
         p = c.get(plabel)
@@ -102,9 +103,21 @@ def compute_fluxes(cells, var_map, species, gmodel, special_fns):
         h = gmodel.mixture_enthalpy(Q)
         h0 = h + 0.5*vabs(vel)*vabs(vel)
         f_energy = f_energy + rho*u_n*h0*dA
-        # Process any special fns.
+    
+    # Process any special fns.
+    # Special fns may like to know total flux and area
+    fluxes = {'mass':f_mass, 'mom':f_mom, 'energy':f_energy}
+    
+    for c in cells:
+	dA = c.area()
+        n = oriented_normal(c.normal())
+        rho = c.get(rholabel)
+        vel = Vector3(c.get(ulabel),
+                      c.get(vlabel),
+                      c.get(wlabel))
+        u_n = dot(vel, n)
         for l,f in special_fns.iteritems():
-            special_fluxes[l] += f(c, rho, u_n, dA)
+            special_fluxes[l] += f(c, rho, u_n, dA, A, fluxes)
     output = {'mass': f_mass, 'mom': f_mom, 'energy': f_energy, 'species':f_sp}
     for l,f in special_fluxes.iteritems():
         output[l] = special_fluxes[l]

@@ -15,6 +15,7 @@ the 2D surface based on the methods selected by the user.
 """
 
 import sys, gc
+from math import *
 
 from e3prep import select_gas_model
 from libprep3 import get_gas_model_ptr, vabs
