@@ -91,6 +91,7 @@ LUA_MODULES := 	refprop.lua \
 	fully_coupled_one_temperature_gas.lua \
 	fully_coupled_two_temperature_gas.lua \
 	fully_coupled_four_temperature_gas.lua \
+	multi_temperature_gas.lua \
 	reaction_parser.lua \
 	reac.lua \
 	reaction_rate.lua \
@@ -856,6 +857,9 @@ fully_coupled_two_temperature_gas.lua : $(TOOLS)/fully_coupled_two_temperature_g
 
 fully_coupled_four_temperature_gas.lua : $(TOOLS)/fully_coupled_four_temperature_gas.lua
 	cp $(TOOLS)/fully_coupled_four_temperature_gas.lua .
+	
+multi_temperature_gas.lua : $(TOOLS)/multi_temperature_gas.lua
+	cp $(TOOLS)/multi_temperature_gas.lua .
 
 tab_serialise.lua : $(TOOLS)/tab_serialise.lua
 	cp $(TOOLS)/tab_serialise.lua .

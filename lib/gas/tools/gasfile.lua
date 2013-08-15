@@ -20,6 +20,7 @@ require 'one_temperature_gas'
 require 'fully_coupled_one_temperature_gas'
 require 'fully_coupled_two_temperature_gas'
 require 'fully_coupled_four_temperature_gas'
+require 'multi_temperature_gas'
 
 local serialise = tab_serialise.serialise
 
@@ -92,7 +93,7 @@ real_gas_REFPROP = {
 }
 
 four_T_gas = {
-   special_fn = four_temperature_gas.create_three_temperature_gas
+   special_fn = four_temperature_gas.create_four_temperature_gas
 }
 
 three_T_gas = {
@@ -119,6 +120,10 @@ fully_coupled_four_T_gas = {
    special_fn = fully_coupled_four_temperature_gas.create_fully_coupled_four_temperature_gas
 }
 
+multi_T_gas = {
+   special_fn = multi_temperature_gas.create_multi_temperature_gas
+}
+
 gas_models = {}
 gas_models["ideal gas"] = ideal_gas
 gas_models["thermally perfect gas"] = thermally_perfect_gas
@@ -134,6 +139,7 @@ gas_models["one temperature gas"] = one_T_gas
 gas_models["fully coupled one temperature gas"] = fully_coupled_one_T_gas
 gas_models["fully coupled two temperature gas"] = fully_coupled_two_T_gas
 gas_models["fully coupled four temperature gas"] = fully_coupled_four_T_gas
+gas_models["multi temperature gas"] = multi_T_gas
 
 function print_usage()
    print "Usage gasfile:"

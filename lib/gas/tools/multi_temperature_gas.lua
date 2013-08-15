@@ -1,6 +1,6 @@
 -- Author: Daniel F. Potter
--- Date: 26-Apr-2010
--- Place: UQ, St Lucia, QLD
+-- Date: 15-Aug-2013
+-- Place: Göttingen, Germany
 
 module(..., package.seeall)
 
@@ -69,9 +69,13 @@ default.max_iterations = 100
 default.oscillator_type = 'truncated harmonic'
 default.n_levels = 4
 
-function create_four_temperature_gas(species, f)
+function create_multi_temperature_gas(species, f)
    e_flag = false
    for _,sp in ipairs(species) do
+      e3bin = os.getenv("E3BIN") or os.getenv("HOME").."/e3bin"
+      dir = e3bin.."/species/"
+      file = dir..sp..".lua"
+      dofile(file)
        if sp=="e_minus" then
            e_flag = true
        end
@@ -94,32 +98,46 @@ function create_four_temperature_gas(species, f)
    f:write("diffusion_coefficients = 'GuptaYos'\n")
    f:write(string.format("min_massf = %e\n\n", default.min_massf))
    
-   f:write("thermal_modes = { 'translational', 'rotational', 'vibrational', 'electronic' }\n\n")
-   f:write("translational = {}\n")
-   f:write("translational.type = 'constant Cv'\n")
-   f:write("translational.iT = 0\n")
-   if e_flag then
-      f:write("translational.components = { 'hp-translation' }\n\n")
-   else
-      f:write("translational.components = { 'all-translation' }\n\n")
+   f:write("thermal_modes = { 'transrotational'")
+   for _,sp in ipairs(species) do
+      if string.find(_G[sp]["species_type"],"diatomic") or string.find(_G[sp]["species_type"],"polyatomic") then
+         f:write(string.format(", '%s_vibration'",sp))
+      end
    end
-   f:write("rotational = {}\n")
-   f:write("rotational.type = 'constant Cv'\n")
-   f:write("rotational.iT = 1\n")
-   f:write("rotational.components = { 'all-rotation' }\n\n")
+   f:write(", 'electronic' }\n\n")
+
+   iT = 0
+   -- Translation-rotation mode
+   f:write("transrotational = {}\n")
+   f:write("transrotational.type = 'constant Cv'\n")
+   f:write(string.format("transrotational.iT = %s\n",iT))
+   if e_flag then
+      f:write("transrotational.components = { 'hp-translation', 'all-rotation' }\n\n")
+   else
+      f:write("transrotational.components = { 'all-translation', 'all-rotation' }\n\n")
+   end
+   iT = iT + 1
    
-   f:write("vibrational = {}\n")
-   f:write("vibrational.type = 'variable Cv'\n")
-   f:write("vibrational.iT = 2\n")
-   f:write("vibrational.components = { 'all-vibration' }\n")
-   f:write(string.format("vibrational.T_min = %f\n",default.T_min))
-   f:write(string.format("vibrational.T_max = %f\n",default.T_max))
-   f:write(string.format("vibrational.iterative_method = '%s'\n",default.iterative_method))
-   f:write(string.format("vibrational.convergence_tolerance = %e\n",default.convergence_tolerance))
-   f:write(string.format("vibrational.max_iterations = %d\n\n",default.max_iterations))
+   -- Molecular vibration modes
+   for _,sp in ipairs(species) do
+      if string.find(_G[sp]["species_type"],"diatomic") or string.find(_G[sp]["species_type"],"polyatomic") then
+         f:write(string.format("%s_vibration = {}\n",sp))
+         f:write(string.format("%s_vibration.type = 'variable Cv'\n",sp))
+         f:write(string.format("%s_vibration.iT = %d\n",sp,iT))
+         f:write(string.format("%s_vibration.components = { 'all-vibration' }\n",sp))
+         f:write(string.format("%s_vibration.T_min = %f\n",sp,default.T_min))
+         f:write(string.format("%s_vibration.T_max = %f\n",sp,default.T_max))
+         f:write(string.format("%s_vibration.iterative_method = '%s'\n",sp,default.iterative_method))
+         f:write(string.format("%s_vibration.convergence_tolerance = %e\n",sp,default.convergence_tolerance))
+         f:write(string.format("%s_vibration.max_iterations = %d\n\n",sp,default.max_iterations))
+         iT = iT + 1
+      end
+   end
+
+   -- Electron-electronic mode
    f:write("electronic = {}\n")
    f:write("electronic.type = 'variable Cv'\n")
-   f:write("electronic.iT = 3\n")
+   f:write(string.format("electronic.iT = %d\n",iT))
    if e_flag then
       f:write("electronic.components = { 'all-electronic', 'e_minus-translation' }\n")
    else
