@@ -349,7 +349,7 @@ Data slicing and dicing options:
   \item \texttt{--heat-flux-list="blk-range,surf-range,i-range,j-range,k-range;..."}\,\footnote{Dan Potter's heat flux code writes
      the heat fluxes for a collection of surfaces.  This was part of his PhD work.} extracts surface heat flux and cell Reynolds number data.
      The syntax is the same as the \texttt{--slice-list} option except that the second argument is the boundary index 
-     (\texttt{NORTH}, \texttt{SOUTH}, \texttt{WEST}, \texttt{EAST}, \texttt{TOP} or \texttt{BOTTOM}).
+     (\texttt{NORTH}, \texttt{EAST}, \texttt{SOUTH}, \texttt{WEST}, \texttt{TOP} or \texttt{BOTTOM}).
      For 2D simulations, the block and boundary indices are sufficient to define the edge, 
      so you can then leave the \texttt{i-range}, \texttt{j-range} and \texttt{k-range} arguments blank.
      For 3D simulations you would need to specify either \texttt{i}, \texttt{j} or \texttt{k} to get a single line of cells.
