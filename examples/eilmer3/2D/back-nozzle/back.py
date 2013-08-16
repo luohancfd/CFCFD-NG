@@ -5,13 +5,16 @@ print gdata.title
 
 # Accept defaults for air giving R=287.1, gamma=1.4
 select_gas_model(model='ideal gas', species=['air'])
-stagnation_gas = FlowCondition(p=500.0e3, T=300.0, u=1.0) # u = 1.0 sets flow dirn in positive x
+# The stagnation gas represents a reservoir condition
+# We must also nominate a flow direction at the boundary
+# by specifying the components of velocity.
+stagnation_gas = FlowCondition(p=418.7e3, T=300.0, u=1.0, v=0.0)
 low_pressure_gas = FlowCondition(p=30.0, T=300.0)
 
 # Define geometry.
 # The original paper specifies sizes in inches, Eilmer3 works in metres.
 inch = 0.0254 # metres
-L_subsonic = 10.0 * inch
+L_subsonic = 3.0 * inch
 L_nozzle = 3.0 * inch
 R_tube = 1.5955 * inch
 R_throat = 0.775 * inch
@@ -52,7 +55,7 @@ east1 = Line(z5, p5)
 south1 = Line(z3, z5)
 
 # Define the blocks, boundary conditions and set the discretisation.
-nx0 = 180; nx1 = 60; ny = 30
+nx0 = 50; nx1 = 60; ny = 30
 subsonic_region = Block2D(make_patch(north0, east0west1, south0, west0),
                           nni=nx0, nnj=ny,
                           fill_condition=stagnation_gas,
@@ -72,8 +75,8 @@ HistoryLocation(L_nozzle-0.001, 0.002, label="nozzle-exit")
 # Do a little more setting of global data.
 gdata.axisymmetric_flag = 1
 gdata.flux_calc = ADAPTIVE
-gdata.max_time = 1.0e-3  # seconds
-gdata.max_step = 5000
+gdata.max_time = 4.0e-3  # seconds
+gdata.max_step = 50000
 gdata.dt = 1.0e-7
 gdata.dt_plot = 0.2e-3
 gdata.dt_history = 10.0e-6
