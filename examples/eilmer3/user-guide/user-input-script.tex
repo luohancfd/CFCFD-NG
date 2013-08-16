@@ -1343,8 +1343,12 @@ Available boundary condition classes include:\index{boundary conditions!list of 
       As for the \texttt{AdiabaticBC}, we need to set \verb!gdata.viscous_flag = 1! (see Section~\ref{sec:sim-control-parameters}, Viscous effects) 
       to make this boundary condition effective.
     \item \texttt{SubsonicInBC(stagnation\_condition, label='')}\index{boundary conditions!SubsonicInBC} where the flow is assumed subsonic and
-      we specify the stagnation pressure and temperature, but take the velocity from just inside
-      the boundary.
+      we specify the stagnation pressure and temperature and a velocity \emph{direction} at the boundary. The magnitude of the velocity vector has
+      no meaning, only the direction specified by its components is important. Also note, that for multi-temperature simulations, all of the temperatures
+      are set to the 0th entry in the temperature array. This should usually be a reasonable physical approximation because this boundary condition
+      is typically used to simulate inflow from a reservoir, and stagnated flow in a reservoir has ample time to equilibriate at a common temperature.
+      The implementation of this boundary condition may not be time accurate, particularly when large waves cross the boundary. However, it
+      tends to work well in the steady-state limit.
     \item \texttt{TransientUniBC(filename, label='')}\index{boundary conditions!TransientUniBC} where we want to specify the time-history of
       the inflow condition.
     \item \texttt{StaticProfileBC(filename, label='')}\index{boundary conditions!StaticProfileBC} where we want to apply a steady-state inflow
