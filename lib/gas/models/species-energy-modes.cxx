@@ -421,11 +421,7 @@ s_eval_entropy( const Gas_data &Q )
     // double m = PC_R_u/R_/PC_Avogadro;
     // double tmp = pow( 2.0 * M_PI * m * PC_k_SI / PC_h_SI / PC_h_SI, 1.5 ) * PC_k_SI;
     double T = Q.T[iT_];
-#   if EVAL_ENTROPY_AT_1ATM
-    double p = PC_P_atm;
-#   else
     double p = Q.p;
-#   endif
     return Cp_*log(T) - R_*log(p) + entropy_constant_;
 }
 
@@ -439,12 +435,7 @@ s_eval_entropy_from_T( double T )
     //       - constant part of expression has been pre-calculated in constructor
     // double m = PC_R_u/R_/PC_Avogadro;
     // double tmp = pow( 2.0 * M_PI * m * PC_k_SI / PC_h_SI / PC_h_SI, 1.5 ) * PC_k_SI;
-#   if EVAL_ENTROPY_AT_1ATM==0
-    cout << "Fully_excited_translation::s_eval_entropy_from_T()" << endl
-         << "Cannot evaluate entropy from T when EVAL_ENTROPY_AT_1ATM is set to 1" << endl
-         << "Exiting program." << endl;
-    exit ( BAD_INPUT_ERROR );
-#   endif
+
     return Cp_*log(T) - R_*log(PC_P_atm) + entropy_constant_;
 }
 
