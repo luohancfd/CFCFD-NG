@@ -472,7 +472,7 @@ int luafn_eval_R(lua_State *L)
 
 int luafn_eval_gamma(lua_State *L)
 {
-    // Assume gas_data is a top of stack and store this index
+    // Assume gas_data is at top of stack and store this index
     Gas_model *gmodel = get_gas_model_ptr();
     Gas_data Q(gmodel);
     // Expect a gas_data as lua table at top of stack.
@@ -490,6 +490,75 @@ int luafn_eval_gamma(lua_State *L)
     }
     // Put gamma at top of stack
     lua_pushnumber(L, gamma);
+    return 1;
+}
+
+int luafn_molecular_weight(lua_State *L)
+{
+    Gas_model *gmodel = get_gas_model_ptr();
+    // Assume that integer for species is at top of stack
+    int isp = luaL_checkint(L, -1);
+    double mw = gmodel->molecular_weight(isp);
+    // Put mw on top of stack
+    lua_pushnumber(L, mw);
+    return 1;
+}
+
+int luafn_massf2molef(lua_State *L)
+{
+    Gas_model *gmodel = get_gas_model_ptr();
+    int nsp = gmodel->get_number_of_species();
+    // Expect a table with mass fractions at top of stack.
+    vector<double> massf(nsp, 0.0);
+    if ( !lua_istable(L, 1) ) { 
+	ostringstream ost;
+	ost << "Error in call 'massf2molef()'\n";
+	ost << "A table of mass fractions is expected as the first argument.\n";
+	luaL_error(L, ost.str().c_str());
+    }
+    for ( int isp = 0; isp < nsp; ++isp ) {
+	lua_rawgeti(L, 1, isp);
+	massf[isp] = luaL_checknumber(L, -1);
+	lua_pop(L, 1);
+    }
+    vector<double> molef(nsp, 0.0);
+    convert_massf2molef(massf, gmodel->M(), molef);
+    // Push molef into a table.
+    lua_newtable(L);
+    for ( int isp = 0; isp < nsp; ++isp ) {
+	lua_pushinteger(L, isp);
+	lua_pushnumber(L, molef[isp]);
+	lua_settable(L, -3);
+    }
+    return 1;
+}
+
+int luafn_molef2massf(lua_State *L)
+{
+    Gas_model *gmodel = get_gas_model_ptr();
+    int nsp = gmodel->get_number_of_species();
+    // Expect a table with mole fractions at top of stack.
+    vector<double> molef(nsp, 0.0);
+    if ( !lua_istable(L, 1) ) { 
+	ostringstream ost;
+	ost << "Error in call 'molef2massf()'\n";
+	ost << "A table of mole fractions is expected as the first argument.\n";
+	luaL_error(L, ost.str().c_str());
+    }
+    for ( int isp = 0; isp < nsp; ++isp ) {
+	lua_rawgeti(L, 1, isp);
+	molef[isp] = luaL_checknumber(L, -1);
+	lua_pop(L, 1);
+    }
+    vector<double> massf(nsp, 0.0);
+    convert_molef2massf(molef, gmodel->M(), massf);
+    // Push massf into a table.
+    lua_newtable(L);
+    for ( int isp = 0; isp < nsp; ++isp ) {
+	lua_pushinteger(L, isp);
+	lua_pushnumber(L, massf[isp]);
+	lua_settable(L, -3);
+    }
     return 1;
 }
 
@@ -541,6 +610,12 @@ int register_luafns(lua_State *L)
     lua_setglobal(L, "eval_R");
     lua_pushcfunction(L, luafn_eval_gamma);
     lua_setglobal(L, "eval_gamma");
+    lua_pushcfunction(L, luafn_molecular_weight);
+    lua_setglobal(L, "molecular_weight");
+    lua_pushcfunction(L, luafn_massf2molef);
+    lua_setglobal(L, "massf2molef");
+    lua_pushcfunction(L, luafn_molef2massf);
+    lua_setglobal(L, "molef2massf");
     // Set some of the physical constants
     lua_pushnumber(L, PC_R_u);
     lua_setglobal(L, "PC_R_u");
