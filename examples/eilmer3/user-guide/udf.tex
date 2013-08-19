@@ -135,8 +135,10 @@ the flow at specific locations:\\
 \end{tabular}
 
 \noindent
-There is also a function \texttt{compute\_diffusion\_coefficient} which can be called upon
-to get the actual diffusion coefficients at the boundary conditions.
+
+There are some additional convenience functions available to the user to compute or obtain
+values related to the gas model such as thermodynamic properties and transport coefficients.
+These are discussed in detail in Section~\ref{sec:udf-gas-service}.
 
 \medskip
 On being called at run time, the function \texttt{ghost\_cell(args)} returns two Lua tables. 
@@ -284,6 +286,70 @@ On return, the table of source terms should contain:\\
  \texttt{energies} & table of \texttt{nmodes} values\\
 \end{tabular}\\
 
+\subsection{Helper gas model functions}
+\label{sec:udf-gas-service}
+
+There are a large number of functions provided by the gas module to the internal
+(C++) section of the code.
+For consistency with the internal gas model, a selection of the gas module
+functions are made available to the Lua run-time scripts.
+The names of these Lua-exposed functions match the internal C++ names very
+closely (and in fact, identically in most cases).
+The provided gas model functions are:\\
+\begin{tabular}{p{6.2cm}p{10cm}} 
+ \noalign{\smallskip} \hline \noalign{\smallskip}
+ \texttt{create\_empty\_gas\_table()} & Returns an empty \texttt{Gas\_data} table with all entries set to 0.0 and appropriately sized internal arrays. This is useful to populate and pass to other functions which accept a \texttt{Gas\_data} table. \\
+ \texttt{eval\_thermo\_state\_pT(Q)} & A function that computes the thermodynamic state given the pressure and temperatures as set in the \texttt{Gas\_data} table \texttt{Q}. The thermodynamic properties are updated and returned in place in the \texttt{Q} variable, that is, it is modified in place. \\
+ \texttt{eval\_thermo\_state\_rhoe(Q)} & A function that computes the thermodynamic state given density and internal energy. The \texttt{Gas\_data} table \texttt{Q} is modified in place. \\
+ \texttt{eval\_thermo\_state\_rhoT(Q)} & A function that computes the thermodynamic state given density and temperatures. The \texttt{Gas\_data} table \texttt{Q} is modified in place. \\
+\texttt{eval\_thermo\_state\_rhop(Q)} & A function that computes the thermodynamic state given density and pressure. The \texttt{Gas\_data} table \texttt{Q} is modified in place. \\
+\texttt{eval\_sound\_speed(Q)} &  A function that computes the sound speed based on the supplied thermodynamic state in \texttt{Q}. The \texttt{Gas\_data} table \texttt{Q} is modified in place such \texttt{Q.a} contains the computed
+sound speed value. \\
+\texttt{eval\_transport\_coefficients(Q)} & A function that computes the
+transport coefficients, viscosity and thermal conductivities, based on the
+supplied gas state in \texttt{Q}. The \texttt{Gas\_data} table \texttt{Q} is
+modified in place so that \texttt{Q.mu} and \texttt{Q.k[]} are up to date. \\
+\texttt{eval\_diffusion\_coefficients(Q)} & A function that computes the
+diffusion coefficients for interacting species pairs based on the
+thermodynamic state in \texttt{Q}. The values in \texttt{Q.D[][]} are modified
+in place so that they are up to date. \\
+\texttt{eval\_Cv(Q)} & A function that returns (as a double)
+the mixture specific heat at constant volume (in J/(kg.K)) based
+on the supplied thermodynamic state in \texttt{Q}. \\
+\texttt{eval\_Cp(Q)} & A function that returns (as a double)
+the mixture specific heat at constant pressure (in J/(kg.K)) based
+on the supplied thermodynamic state in \texttt{Q}. \\
+\texttt{eval\_R(Q)} & A function that returns (as a double)
+the mixture gas constant (in J/(kg.K)) based
+on the supplied thermodynamic state in \texttt{Q}. \\
+\texttt{eval\_gamma(Q)} & A function that returns (as a double)
+the ratio of specific heats (non-dimensional) based
+on the supplied thermodynamic state in \texttt{Q}. \\
+\noalign{\smallskip} \hline \noalign{\smallskip}
+\end{tabular}
+\\
+\begin{tabular}{p{5cm}p{9cm}} 
+ \noalign{\smallskip} \hline \noalign{\smallskip}
+\texttt{molecular\_weight(isp)} & A function that returns
+the molecular weight of species number \texttt{isp}. The
+units of molecular weight is returned in kg/mol because this
+is consistent with the internal units of the code. Note that
+the units of molecular weight listed on the Periodic Table
+and commonly used in textbook formulas is in g/mol. The returned
+value should be multiplied by 1000.0 to give g/mol. \\
+\texttt{massf2molef(massf)} & A function that returns a table
+of mole fractions based on a supplied table of mass fractions.
+Note the table of supplied mass fractions must be the full size
+of the number of species in the gas model. Similarly, the returned
+mole fractions table has values for all participating species. \\
+\texttt{molef2massf(molef)} & A function that returns a table
+of mass fractions based on a supplied table of mole fractions.
+Note the table of supplied mole fractions must be the full size
+of the number of species in the gas model. Similarly, the returned
+mass fractions table has values for all participating species. \\
+\noalign{\smallskip} \hline \noalign{\smallskip}
+\end{tabular}
+
 \subsection{Notes on global variables and Lua interpreters}
 %
 For each boundary condition that uses a \verb!USER-DEFINED! boundary condition, 
@@ -304,3 +370,5 @@ An independent Lua interpreter is also started when using the global \verb!udf_f
 to supply \verb!at_timestep_start()! and \verb!at_timestep_end()! functions. 
 A single interpreter is started to house both those functions and 
 the global state in that interpreter is also reentrant. 
+
+
