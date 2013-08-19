@@ -90,8 +90,10 @@ def txt_file_output(cfg, states, V, M):
         test_gas_used = 'Test gas is {0} (gamma = {1}, R = {2}).'.format(cfg['test_gas'],states['s1'].gam,states['s1'].R)
     print test_gas_used
     txt_output.write(test_gas_used + '\n')  
-    
-    driver_gas_used = 'Driver gas is {0}.'.format(states['s4'].reactants)       
+    if cfg['solver'] == 'eq':
+        driver_gas_used = 'Driver gas is {0}.'.format(states['s4'].reactants)   
+    else:
+        driver_gas_used = 'Driver gas is {0}.'.format(cfg['driver_gas'])   
     print driver_gas_used
     txt_output.write(driver_gas_used + '\n') 
             
@@ -338,7 +340,10 @@ def csv_file_output(cfg, states, V, M):
     csv_test_gas_used = 'Test gas,{0},gamma,{1},R,{2}'.format(cfg['test_gas'],states['s1'].gam,states['s1'].R)
     csv_output.write(csv_test_gas_used + '\n')  
     
-    csv_driver_gas_used = 'Driver gas,{0}.'.format(states['s4'].reactants)       
+    if cfg['solver'] == 'eq':
+        csv_driver_gas_used = 'Driver gas,{0}.'.format(states['s4'].reactants)
+    else:
+        csv_driver_gas_used = 'Driver gas,{0}.'.format(cfg['driver_gas'])
     csv_output.write(csv_driver_gas_used + '\n') 
             
     if cfg['secondary']:
