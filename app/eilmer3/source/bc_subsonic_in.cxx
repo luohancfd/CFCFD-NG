@@ -1,5 +1,7 @@
 // bc_subsonic_in.cxx
 
+#include <numeric>
+
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/gas/models/gas_data.hh"
 #include "../../../lib/gas/models/gas-model.hh"
@@ -20,6 +22,10 @@ SubsonicInBC::SubsonicInBC(Block *bdp, int which_boundary,
     Gas_model *gmodel = get_gas_model_ptr();
     global_data &gd = *get_global_data_ptr();
     CFlowCondition *gstagp = gd.gas_state[inflow_condition_id];
+    // Set all temperatures at T[0]
+    for ( int imode = 1; imode < gmodel->get_number_of_modes(); ++imode ) {
+	gstagp->gas->T[imode] = gstagp->gas->T[0];
+    }
     gmodel->eval_thermo_state_pT(*(gstagp->gas));
     s0 = gmodel->mixture_entropy(*(gstagp->gas));
     h0 = gmodel->mixture_enthalpy(*(gstagp->gas));
@@ -183,6 +189,7 @@ int SubsonicInBC::subsonic_inflow_properties(const CFlowCondition *stagnation,
 {
     Gas_model *gmodel = get_gas_model_ptr();
     size_t nsp = gmodel->get_number_of_species();
+    size_t nmodes = gmodel->get_number_of_modes();
 
     // Carry over some of the properties without further calculation.
     inflow_state->tke = stagnation->tke;
@@ -195,26 +202,27 @@ int SubsonicInBC::subsonic_inflow_properties(const CFlowCondition *stagnation,
     inflow_state->gas->p  = inflow_pressure;
     gmodel->eval_thermo_state_ps(*(inflow_state->gas), inflow_pressure, s0);
     // Compute gas speed from energy conservation
-    double e = inflow_state->gas->e[0];
-    double p = inflow_state->gas->p;
-    double rho = inflow_state->gas->rho;
+    double h = gmodel->mixture_enthalpy(*(inflow_state->gas));
     // If the internal energy is greater than stagnation conditions,
     // it probably means there is a wave trying to push back into
     // our reservior.  We'll stop that by just setting stagnated conditions.
     // then just return stagnated conditions
-    if ( e + p/rho >= h0 ) {
+    if ( h >= h0 ) {
 	inflow_state->gas->p = stagnation->gas->p;
-	inflow_state->gas->T[0] = stagnation->gas->T[0];
+	for ( size_t imode = 0; imode < nmodes; ++imode ) {
+	    inflow_state->gas->T[imode] = stagnation->gas->T[0];
+	}
 	gmodel->eval_thermo_state_pT(*(inflow_state->gas));
 	inflow_state->u = 0.0;
 	inflow_state->v = 0.0;
 	inflow_state->w = 0.0;
     }
     else {
-	double speed = sqrt(2.0*(h0 - e - p/rho));
-	
+	double speed = sqrt(2.0*(h0 - h));
 	// Set inflow velocity based on direction set by user
 	// for stagnation condition
+	//	cout << "Flow speed= " << speed << endl;
+	//	inflow_state->gas->print_values();
 	Vector3 dirn = unit(Vector3(stagnation->u, stagnation->v, stagnation->w));
 	inflow_state->u = speed * dirn.x;
 	inflow_state->v = speed * dirn.y;
