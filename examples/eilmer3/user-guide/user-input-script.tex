@@ -892,10 +892,11 @@ it may be convenient to define many Block2D objects with one call.
 The first of two constructors for this situation is
 \texttt{
 \begin{tabbing}
+\index{block!SuperBlock2D}
 my\_block\_list = SuperBlock2D(\=psurf=None, nni=2, nnj=2, nbi=1, nbj=1, \\
                                \>cf\_list=[None,]*4, bc\_list=[SlipWallBC(),]*4, \\
                                \>fill\_condition=None, hcell\_list=[], label="sblk")
-\end{tabbing}\index{block!SuperBlock2D}
+\end{tabbing}
 }
 \noindent
 which generates a single grid over \texttt{psurf} and then subdivided that grid
