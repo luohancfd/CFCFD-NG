@@ -149,6 +149,9 @@ available to me as part of cfpylib inside the cfcfd code collection.
         functions so that the main() function is easier to follow.
     07-May-2013: Moved all of the functions out into separate python files that 
         are now imported. This was done to make this main file a lot cleaner.
+    20-Aug-2013: Added new area ratio check mode that will run through various
+        nozzle area ratios and output the changing freestream conditions in
+        a csv file for analysis in a plotting program.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -173,9 +176,10 @@ import cfpylib.gasdyn.ideal_gas as pg
 from pitot_input_utils import *
 from pitot_flow_functions import *
 from pitot_output_utils import *
+from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "13-May-2013"
+VERSION_STRING = "20-Aug-2013"
 
 DEBUG_PITOT = False
 
@@ -289,6 +293,11 @@ def run_pitot(cfg = {}, config_file = None):
         cfg, states, V, M = txt_file_output(cfg, states, V, M)
     elif cfg['mode'] == 'csv-printout': #just do the csv printout
         cfg, states, V, M = csv_file_output(cfg, states, V, M)
+    
+    #-------------------- run the area ratio check if used to --------------
+
+    if cfg['area_ratio_check']:
+        cfg, states, V, M = area_ratio_check(cfg, states, V, M)
     
     #cleanup if we've been asked to
 

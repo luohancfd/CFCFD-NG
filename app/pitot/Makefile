@@ -8,7 +8,7 @@ OPT ?= -O2
 
 INSTALL_DIR ?= $(HOME)/e3bin
 GAS     := ../../lib/gas
-PROGRAMS := pitot.py pitot_input_utils.py pitot_flow_functions.py pitot_output_utils.py
+PROGRAMS := pitot.py pitot_input_utils.py pitot_flow_functions.py pitot_output_utils.py pitot_area_ratio_check.py
 
 install : $(INSTALL_DIR) $(PROGRAMS)
 	@echo Copying cfpylib files to $(INSTALL_DIR)

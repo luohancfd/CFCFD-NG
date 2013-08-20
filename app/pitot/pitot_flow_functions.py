@@ -495,7 +495,22 @@ def test_section_setup(cfg, states, V, M):
 
     return cfg, states, V, M
 
-#----------------------------------------------------------------------------      
+#----------------------------------------------------------------------------
+
+def nozzle_expansion(cfg, states, V, M):
+    """Function that does just the nozzle steady expansion.
+    
+    I built it to be used with the changing area ratio code.
+    
+    """
+
+    if PRINT_STATUS: print "Start steady expansion through the nozzle."
+    (V['s8'], states['s8']) = steady_flow_with_area_change(states['s2'], V['s2'], cfg['area_ratio'])
+    M['s8']= V['s8']/states['s8'].son    
+    
+    return cfg, states, V, M     
+    
+#----------------------------------------------------------------------------
     
 def shock_over_model_calculation(cfg, states, V, M):
     """Function that takes the cfg, states, V and M dictionaries

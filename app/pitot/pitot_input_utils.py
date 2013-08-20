@@ -198,7 +198,17 @@ def input_checker(cfg):
         #assert expansion tube mode if the values are there
         print "tunnel_mode variable not set but your inputs imply non-reflected shock tube mode."
         print "tunnel_mode set to nr-shock-tunnel"
-        cfg['tunnel_mode'] = 'nr-shock-tunnel'    
+        cfg['tunnel_mode'] = 'nr-shock-tunnel'
+        
+    if 'area_ratio_check' not in cfg:
+        #If they haven't told pitot to do the area ratio check, don't do it.
+        print "Area ratio check variable not set. Setting it to false."
+        cfg['area_ratio_check'] = False
+        
+    if cfg['area_ratio_check'] and 'area_ratio_check_list' not in cfg:
+        print "Need to specify an 'area_ratio_check_list' to use area ratio check."
+        print "Bailing out."
+        cfg['bad_input'] = True
             
     if 'cleanup' not in cfg:
         #if they haven't specified whether to cleanup or not, just cleanup
