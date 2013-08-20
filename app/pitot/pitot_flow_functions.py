@@ -436,6 +436,10 @@ def acceleration_tube_calculation(cfg, states, V, M):
         
     elif cfg['test'] == 'fulltheory-pressure': #compute the shock speed for the chosen fill pressure, uses Vs1 as starting guess
         #put two sets of limits here to try and make more stuff work
+        if cfg['state7_no_ions']:
+            # Need to turn ions off for state 2 here if it is required to make 
+            # the unsteady expansion work (as state 2 is expanding into state 7)
+            states['s2'].with_ions = False 
         if cfg['Vs1'] < 2000.0 and 'Vs2_lower' and 'Vs2_upper' not in cfg:
             cfg['Vs2_lower'] = cfg['Vs1'] + 1000.0; cfg['Vs2_upper'] = 25000.0
         elif cfg['Vs1'] >= 2000.0 and 'Vs2_lower' and 'Vs2_upper' not in cfg:
@@ -455,6 +459,11 @@ def acceleration_tube_calculation(cfg, states, V, M):
     elif cfg['expand_to'] == 'shock-speed':
         V['s6'] = cfg['Vs2']*cfg['expansion_factor']
     V['s7'], states['s7'] = finite_wave_dv('cplus', V['s2'], states['s2'], V['s6'], steps=cfg['acc_tube_expansion_steps'])
+    
+    if cfg['state7_no_ions']:
+        # Turn with ions back on so it will be on for other states based on s7
+        # if we turned it off to make the unsteady expansion work
+        states['s7'].with_ions = True 
     
     #get mach numbers for the txt_output
     cfg['Ms2'] = cfg['Vs2']/states['s5'].son
@@ -492,7 +501,9 @@ def shock_over_model_calculation(cfg, states, V, M):
     """Function that takes the cfg, states, V and M dictionaries
     and does the shock over model calculations if the user requests it.
     The changed dictionaries are then returned.
+    
     """
+    
     if PRINT_STATUS: print "Start frozen normal shock calculation over the test model."  
     states['s10f'] = states[cfg['test_section_state']].clone()
     (V10, V['s10f']) = shock_ideal(states[cfg['test_section_state']], V[cfg['test_section_state']], states['s10f'])

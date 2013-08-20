@@ -487,6 +487,20 @@ def state_builder(cfg):
     if cfg['tunnel_mode'] == 'expansion-tube':
         states['s6'] = states['s5'].clone() #s6 is s5 shock heated
         states['s7'] = states['s2'].clone() #7s is s2 after unsteady expansion
+          
+        # This code turns off the ions for state 7 if the user finds out it is 
+        # making the unsteady expansion of the test gas into the acceleration tube fail
+    
+        if 'state7_no_ions' not in cfg:
+            cfg['state7_no_ions'] = False
+
+        if cfg['state7_no_ions']:
+            # rebuild state 7 with no ions if we need
+            #states['s7'] = Gas(reactants=states['s2'].reactants, 
+            #                inputUnits = states['s2'].inputUnits,
+            #               with_ions = False)
+            #states['s7'].set_pT(states['s2'].p, states['s2'].T)
+            states['s7'].with_ions = False
 
     #need this set to something for later in the piece
     if cfg['secondary'] and 'Vsd' not in cfg: cfg['Vsd'] = None
