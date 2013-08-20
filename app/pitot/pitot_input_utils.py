@@ -434,7 +434,11 @@ def state_builder(cfg):
 
     #state 1 is shock tube
     if cfg['test_gas'] == 'custom':
-        states['s1'] = Gas(cfg['test_gas_composition'],inputUnits=cfg['test_gas_inputUnits'])
+        if 'test_gas_with_ions' not in cfg:
+            print "'test_gas_with_ions' variable not set. Setting to boolean True."
+            cfg['test_gas_with_ions'] = True
+        states['s1'] = Gas(cfg['test_gas_composition'],inputUnits=cfg['test_gas_inputUnits'],
+                        with_ions=cfg['test_gas_with_ions'])
         states['s1'].set_pT(cfg['p1'],cfg['T0'])
         cfg['gas_guess'] = None
     else:
