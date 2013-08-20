@@ -167,6 +167,8 @@ def run_calculation(input_data):
     I_total = LOS.integrate_LOS( S ) 
     print "I_total = %0.3e W/m2" % I_total
     # initialise apparatus function
+    if not ( gamma_L + gamma_G ) > 0.0:
+        apparatus_fn = "none"
     if apparatus_fn=="Voigt":
         A = Voigt(gamma_L, gamma_G, nu_sample)
     elif apparatus_fn=="SQRT_Voigt":
