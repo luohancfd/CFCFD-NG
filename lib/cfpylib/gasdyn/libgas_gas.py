@@ -63,9 +63,7 @@ class Gas(object):
         self.gasModel.eval_thermo_state_pT(self.gasData)
         self.rho = self.gasData.rho
         self.a = self.gasData.a
-        self.son = self.a
-        self.u = self.gasData.e[0]
-        self.e = self.u
+        self.e = self.gasData.e[0]
         self.quality = self.gasData.quality
         # Manually call methods to calculate other thermodynamic properties
         self.h = self.gasModel.enthalpy(self.gasData, 0)
@@ -119,7 +117,7 @@ class Gas(object):
         Writes the gas state data to the specified stream.
         """
         strm.write('    p: %g Pa, T: %g K, rho: %g kg/m**3, e: %g J/kg, h: %g J/kg, a: %g m/s\n'
-                   % (self.p, self.T, self.rho, self.u, self.h, self.son) )
+                   % (self.p, self.T, self.rho, self.e, self.h, self.a) )
         strm.write('    R: %g J/(kg.K), gam: %g, Cp: %g J/(kg.K), mu: %g Pa.s, k: %g W/(m.K)\n'
                    % (self.R, self.gam, self.C_p, self.mu, self.k) )
         strm.write('    name: %s\n' % self.name)

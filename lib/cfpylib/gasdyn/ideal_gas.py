@@ -83,9 +83,7 @@ class Gas(object):
         self.T = T
         self.rho = p / (self.R * T)
         self.a = math.sqrt(self.gam * self.R * T)
-        self.son = self.a
-        self.u = self.C_v * T
-        self.e = self.u
+        self.e = self.C_v * T
         self.h = self.C_p * T
         self.s = self.s1 + self.C_p * math.log(T/self.T1) - self.R * math.log(p/self.p1)
         if transProps:
@@ -132,7 +130,7 @@ class Gas(object):
         Writes the gas state data to the specified stream.
         """
         strm.write('    p: %g Pa, T: %g K, rho: %g kg/m**3, e: %g J/kg, h: %g J/kg, a: %g m/s\n'
-                   % (self.p, self.T, self.rho, self.u, self.h, self.son) )
+                   % (self.p, self.T, self.rho, self.e, self.h, self.a) )
         strm.write('    R: %g J/(kg.K), gam: %g, Cp: %g J/(kg.K), mu: %g Pa.s, k: %g W/(m.K)\n'
                    % (self.R, self.gam, self.C_p, self.mu, self.k) )
         strm.write('    name: %s\n' % self.name)

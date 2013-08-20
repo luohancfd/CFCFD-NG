@@ -253,7 +253,7 @@ class Gas(object):
         :param rho: density, kg/m**3
         :param e: internal energy of mixture, J/kg
         """
-        self.rho = rho; self.e = e; self.u = e;
+        self.rho = rho; self.e = e
         return self.EOS(problemType='rhoe', transProps=transProps)
 
     def set_ps(self, p, s, transProps=True):
@@ -281,7 +281,7 @@ class Gas(object):
         Writes the gas state data to the specified stream.
         """
         strm.write('    p: %g Pa, T: %g K, rho: %g kg/m**3, e: %g J/kg, h: %g J/kg, a: %g m/s, s: %g J/(kg.K)\n'
-                   % (self.p, self.T, self.rho, self.u, self.h, self.son, self.s) )
+                   % (self.p, self.T, self.rho, self.e, self.h, self.a, self.s) )
         strm.write('    R: %g J/(kg.K), gam: %g, Cp: %g J/(kg.K), mu: %g Pa.s, k: %g W/(m.K)\n'
                    % (self.R, self.gam, self.cp, self.mu, self.k) )
         strm.write('    species %s: %s\n' % (self.outputUnits, str(self.species)) )
@@ -435,8 +435,7 @@ class Gas(object):
                 if line.find("H, KJ/KG")>=0:
                     self.h = get_cea2_float(tokens[2:]) * 1.0e3
                 elif line.find("U, KJ/KG")>=0:
-                    self.u = get_cea2_float(tokens[2:]) * 1.0e3
-                    self.e = self.u
+                    self.e = get_cea2_float(tokens[2:]) * 1.0e3
                 elif line.find("S, KJ/(KG)(K)")>=0:
                     self.s = get_cea2_float(tokens[2:]) * 1.0e3
                 elif line.find("Cp, KJ/(KG)(K)")>=0:
@@ -447,8 +446,7 @@ class Gas(object):
                 elif line.find("M, (1/n)")>=0:
                     self.Mmass = get_cea2_float(tokens[2:])
                 elif line.find("SON VEL,M/SEC")>=0:
-                    self.son = get_cea2_float(tokens[2:])
-                    self.a = self.son
+                    self.a = get_cea2_float(tokens[2:])
                 elif line.find("P, BAR")>=0:
                     self.p = get_cea2_float(tokens[2:]) * 1.0e5
                     # print "p = ", self.p

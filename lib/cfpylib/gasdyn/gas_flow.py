@@ -297,7 +297,7 @@ def expansion_to_throat_calculation(state1, p0, T0, PRINT_STATUS = 1):
     """
     if PRINT_STATUS: print 'Write stagnation conditions.'
     state1.set_pT(p0, T0)
-    H1 = state1.u + state1.p/state1.rho
+    H1 = state1.e + state1.p/state1.rho
     result = {'state1':state1, 'H1':H1}
     if PRINT_STATUS: print 'print state1.s =', state1.s
     #
