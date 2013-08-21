@@ -91,7 +91,7 @@ int main(int argc, char **argv)
     int newly_adapted;
     double max_piston_V[10];
     int max_piston_V_past[10];
-    char base_file_name[32];
+    char base_file_name[132];
     FILE *infile,                    /* beginning flow state         */
         *outfile,                    /* computed solution            */
         *hisfile1,                   /* single cell history          */
@@ -139,7 +139,7 @@ int main(int argc, char **argv)
                 command_line_error = 1;
                 goto usage;
             }
-            strcpy(base_file_name, argv[i]);
+            strncpy(base_file_name, argv[i], 131);
             i++;
             printf("Setting base_file_name = %s\n", base_file_name);
         } else if (strcmp(argv[i], "-echo") == 0) {
