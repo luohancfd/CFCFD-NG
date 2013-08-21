@@ -89,9 +89,9 @@ def secondary_driver_calculation(cfg, states, V, M):
     V['sd3'], states['sd3'] = finite_wave_dv('cplus', V['s3s'], states['s3s'], V['sd2'], steps=cfg['secondary_driver_expansion_steps'])
 
     #get mach numbers for the txt_output
-    cfg['Msd1'] = cfg['Vsd']/states['sd1'].son
-    M['sd2'] = V['sd2']/states['sd2'].son
-    M['sd3']= V['sd3']/states['sd3'].son
+    cfg['Msd1'] = cfg['Vsd']/states['sd1'].a
+    M['sd2'] = V['sd2']/states['sd2'].a
+    M['sd3']= V['sd3']/states['sd3'].a
     
     return cfg, states, V, M
     
@@ -330,9 +330,9 @@ def shock_tube_calculation(cfg, states, V, M):
         V['s3'], states['s3'] = finite_wave_dv('cplus', V[cfg['shock_tube_expansion']], states[cfg['shock_tube_expansion']], V['s2'],cfg['shock_tube_expansion_steps'])
     
     #get mach numbers for the txt_output
-    cfg['Ms1'] = cfg['Vs1']/states['s1'].son
-    M['s2'] = V['s2']/states['s2'].son
-    M['s3']= V['s3']/states['s3'].son
+    cfg['Ms1'] = cfg['Vs1']/states['s1'].a
+    M['s2'] = V['s2']/states['s2'].a
+    M['s3']= V['s3']/states['s3'].a
     
     #erase the gas guess if we don't think we'll need it in the acc tube
     
@@ -466,9 +466,9 @@ def acceleration_tube_calculation(cfg, states, V, M):
         states['s7'].with_ions = True 
     
     #get mach numbers for the txt_output
-    cfg['Ms2'] = cfg['Vs2']/states['s5'].son
-    M['s6'] = V['s6']/states['s6'].son
-    M['s7']= V['s7']/states['s7'].son
+    cfg['Ms2'] = cfg['Vs2']/states['s5'].a
+    M['s6'] = V['s6']/states['s6'].a
+    M['s7']= V['s7']/states['s7'].a
     
     return cfg, states, V, M
     
@@ -481,14 +481,14 @@ def test_section_setup(cfg, states, V, M):
     if cfg['tunnel_mode'] == 'expansion-tube' and cfg['nozzle']:    
             if PRINT_STATUS: print "Start steady expansion through the nozzle."
             (V['s8'], states['s8']) = steady_flow_with_area_change(states['s7'], V['s7'], cfg['area_ratio'])
-            M['s8']= V['s8']/states['s8'].son
+            M['s8']= V['s8']/states['s8'].a
             cfg['test_section_state'] = 's8'
     elif cfg['tunnel_mode'] == 'expansion-tube' and not cfg['nozzle']:
             cfg['test_section_state'] = 's7' 
     elif cfg['tunnel_mode'] == 'nr-shock-tunnel' and cfg['nozzle']:
             if PRINT_STATUS: print "Start steady expansion through the nozzle."
             (V['s8'], states['s8']) = steady_flow_with_area_change(states['s2'], V['s2'], cfg['area_ratio'])
-            M['s8']= V['s8']/states['s8'].son
+            M['s8']= V['s8']/states['s8'].a
             cfg['test_section_state'] = 's8'
     elif cfg['tunnel_mode'] == 'nr-shock-tunnel' and not cfg['nozzle']:            
             cfg['test_section_state'] = 's2'
@@ -506,7 +506,7 @@ def nozzle_expansion(cfg, states, V, M):
 
     if PRINT_STATUS: print "Start steady expansion through the nozzle."
     (V['s8'], states['s8']) = steady_flow_with_area_change(states['s2'], V['s2'], cfg['area_ratio'])
-    M['s8']= V['s8']/states['s8'].son    
+    M['s8']= V['s8']/states['s8'].a    
     
     return cfg, states, V, M     
     
@@ -522,19 +522,19 @@ def shock_over_model_calculation(cfg, states, V, M):
     if PRINT_STATUS: print "Start frozen normal shock calculation over the test model."  
     states['s10f'] = states[cfg['test_section_state']].clone()
     (V10, V['s10f']) = shock_ideal(states[cfg['test_section_state']], V[cfg['test_section_state']], states['s10f'])
-    M['s10f']= V['s10f']/states['s10f'].son
+    M['s10f']= V['s10f']/states['s10f'].a
 
     if PRINT_STATUS: print "Start equilibrium normal shock calculation over the test model."  
     if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq': 
         states['s10e'] = states[cfg['test_section_state']].clone()
         (V10, V['s10e']) = normal_shock(states[cfg['test_section_state']], V[cfg['test_section_state']], states['s10e'])
-        M['s10e']= V['s10e']/states['s10e'].son
+        M['s10e']= V['s10e']/states['s10e'].a
     elif cfg['solver'] == 'pg': #we need to make a cea2 gas object to do this equilibrium calculaiton if every other gas object is pg
         states[cfg['test_section_state']+'eq'] = make_test_gas(cfg['test_gas'])[0]
         states[cfg['test_section_state']+'eq'].set_pT(states[cfg['test_section_state']].p,states[cfg['test_section_state']].T)
         states['s10e'] = states[cfg['test_section_state']+'eq'].clone()
         (V10, V['s10e']) = normal_shock(states[cfg['test_section_state']+'eq'], V[cfg['test_section_state']], states['s10e'])
-        M['s10e']= V['s10e']/states['s10e'].son
+        M['s10e']= V['s10e']/states['s10e'].a
         
     return cfg, states, V, M
     
@@ -550,7 +550,7 @@ def conehead_calculation(cfg, states, V, M):
     if PRINT_STATUS: print "\nShock angle over cone:", math.degrees(shock_angle)
     # Reverse the process to get the flow state behind the shock and check the surface angle is correct
     delta_s, V['s10c'], states['s10c'] = theta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], shock_angle)
-    M['s10c'] = V['s10c']/states['s10c'].son
+    M['s10c'] = V['s10c']/states['s10c'].a
     if PRINT_STATUS: print "Surface angle should be the same.....: 15deg = ", math.degrees(delta_s), "deg"
     #if PRINT_STATUS: print "\nConehead surface conditions:"
     #if PRINT_STATUS: states['s10c'].write_state(sys.stdout)
@@ -624,7 +624,7 @@ def test_time_calculator(cfg, states, V):
         #now we just need to calculate the time taken for the unsteady 
         #expansion to hit the end of the acc tube
         
-        t_final_usx = t_inc_shock_st + L_acc_tube/(V['s7']-states['s7'].son)
+        t_final_usx = t_inc_shock_st + L_acc_tube/(V['s7']-states['s7'].a)
         
         cfg['t_test_basic'] = t_final_usx - t_cs_at
         
