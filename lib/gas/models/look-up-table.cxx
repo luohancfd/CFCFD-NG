@@ -21,8 +21,7 @@
 
 using namespace std;
 
-Look_up_table::
-Look_up_table(string cfile)
+Look_up_table::Look_up_table(const string cfile)
     : Gas_model()
 {
     set_number_of_species(1);
@@ -33,7 +32,7 @@ Look_up_table(string cfile)
     // Read lua file and populate LUT
     lua_State *L = initialise_lua_State();
     
-    if ( do_gzfile(L, cfile) != 0 ) {
+    if ( do_gzfile(L, cfile.c_str()) != 0 ) {
 	ostringstream ost;
 	ost << "Look_up_table():\n";
 	ost << "    Error in look-up table input file: " << cfile << endl;
@@ -134,10 +133,27 @@ Look_up_table(string cfile)
     lua_pop(L, 1); // pop data off.
 
     lua_close(L);
-}
+} // end of constructor
 
-Look_up_table::
-~Look_up_table() {}
+Look_up_table::~Look_up_table() 
+{
+    s_names_.clear();
+    size_t ne = Cv_hat_[0].size();
+    for ( size_t ie = 0; ie < ne; ++ie ) {
+	Cv_hat_[ie].clear();
+	Cv_[ie].clear();
+	R_hat_[ie].clear();
+	g_hat_[ie].clear();
+	mu_hat_[ie].clear();
+	k_hat_[ie].clear();
+    }
+    Cv_hat_.clear();
+    Cv_.clear();
+    R_hat_.clear();
+    g_hat_.clear();
+    mu_hat_.clear();
+    k_hat_.clear();
+} // end of destructor
 
 int
 Look_up_table::
@@ -399,7 +415,7 @@ s_gas_constant(const Gas_data &Q, int &status)
     return R_eff;
 }
 
-Gas_model* create_look_up_table_gas_model(string cfile)
+Gas_model* create_look_up_table_gas_model(const string cfile)
 {
     return new Look_up_table(cfile);
 }

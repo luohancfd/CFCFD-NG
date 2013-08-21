@@ -19,7 +19,7 @@
 
 class Look_up_table : public Gas_model {
 public:
-    Look_up_table(std::string cfile);
+    Look_up_table(const std::string cfile);
     ~Look_up_table();
 private:
     int determine_interpolants(const Gas_data &Q, int &ir, int &ie,
@@ -47,6 +47,6 @@ private:
     matrix k_hat_;
 };
 
-Gas_model* create_look_up_table_gas_model(std::string cfile);
+Gas_model* create_look_up_table_gas_model(const std::string cfile);
 
 #endif

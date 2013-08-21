@@ -118,6 +118,7 @@ SimulationData::~SimulationData()
     dt_plot.clear();
     dt_his.clear();
     hxloc.clear();
+    delete_gas_model();
 }
 
 
@@ -157,6 +158,14 @@ Gas_model *set_gas_model_ptr(Gas_model *gmptr)
 Gas_model *get_gas_model_ptr()
 {
     return gmodel;
+}
+
+void delete_gas_model()
+{
+    if ( gmodel ) {
+	delete gmodel;
+	gmodel = 0;
+    }
 }
 
 // The managed reaction update model lives here.

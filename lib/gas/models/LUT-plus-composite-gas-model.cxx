@@ -20,15 +20,14 @@ using namespace std;
 
 const double insignificant_massf = 0.0001;
 
-LUT_plus_composite::
-LUT_plus_composite(string cfile)
+LUT_plus_composite::LUT_plus_composite(const string cfile)
     : Gas_model()
 {
     
     // Read lua file and populate LUT
     lua_State *L = initialise_lua_State();
     
-    if ( do_gzfile(L, cfile) != 0 ) {
+    if ( do_gzfile(L, cfile.c_str()) != 0 ) {
 	ostringstream ost;
 	ost << "LUT_plus_composite():\n";
 	ost << "Error in LUT_plus_composite input file: " << cfile << endl;
@@ -87,16 +86,16 @@ LUT_plus_composite(string cfile)
     lua_pop(L, 1);
     lua_close(L);
 
-}
+} // end of constructor
 
-LUT_plus_composite::
-~LUT_plus_composite()
+LUT_plus_composite::~LUT_plus_composite()
 {
-    delete LUT_;
-    delete CGM_;
-    delete Q_LUT_;
-    delete Q_CGM_;
-}
+    delete LUT_; LUT_ = 0;
+    delete CGM_; CGM_ = 0;
+    delete Q_LUT_; Q_LUT_ = 0;
+    delete Q_CGM_; Q_CGM_ = 0;
+    s_names_.clear();
+} // end of destructor
 
 int
 LUT_plus_composite::
@@ -712,7 +711,7 @@ s_gas_constant(const Gas_data &Q, int &status)
     return R;
 }
 
-Gas_model* create_LUT_plus_composite_gas_model(string cfile)
+Gas_model* create_LUT_plus_composite_gas_model(const string cfile)
 {
     return new LUT_plus_composite(cfile);
 }

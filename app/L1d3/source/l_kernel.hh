@@ -48,6 +48,7 @@ public:
 // Managed gas models
 Gas_model *set_gas_model_ptr(Gas_model *gmptr);
 Gas_model *get_gas_model_ptr();
+void delete_gas_model();
 int set_reaction_update(std::string file_name);
 Reaction_update *get_reaction_update_ptr();
 int set_energy_exchange_update( std::string file_name );

@@ -955,6 +955,5 @@ int main(int argc, char **argv)
     Pist.clear();
     Diaph.clear();
     A.clear();
-    delete gmodel;
     return SUCCESS;
 } // end function main()

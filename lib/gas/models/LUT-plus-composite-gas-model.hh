@@ -21,7 +21,7 @@
 
 class LUT_plus_composite : public Gas_model {
 public:
-    LUT_plus_composite(std::string cfile);
+    LUT_plus_composite(const std::string cfile);
     ~LUT_plus_composite();
 private:
     Look_up_table *LUT_;
@@ -41,6 +41,6 @@ private:
     double s_gas_constant(const Gas_data &Q, int &status);
 };
 
-Gas_model* create_LUT_plus_composite_gas_model(std::string cfile);
+Gas_model* create_LUT_plus_composite_gas_model(const std::string cfile);
 
 #endif
