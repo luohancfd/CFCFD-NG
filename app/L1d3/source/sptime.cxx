@@ -379,6 +379,9 @@ int main(int argc, char **argv)
                 for (nx = 0; nx < nnx_initial[js]; ++nx) {
                     xloc = xL + dx * nx;
                     found = A[js].interpolate_cell_data(xloc, *icell);
+		    if ( !found ) {
+			printf("Warning: interpolate_cell_data failed for xloc=%g\n", xloc);
+		    }
                     xarray[js][nt_write][nx] = xloc;
                     tarray[js][nt_write][nx] = A[js].sim_time;
                     if (option == SELECT_RHO) {

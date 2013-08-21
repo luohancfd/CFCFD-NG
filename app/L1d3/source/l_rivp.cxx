@@ -58,7 +58,9 @@ int L_rivp(const std::vector<LFlowState>& QL,
     double g, gL, gR;
     static double sqrL[NDIM], sqrR[NDIM];
     double alpha;
-    double gm1, gp1, z, uLbar, uRbar;
+    double gm1, gp1, z;
+    double uLbar = 0.0; // These are set here because the compiler cannot tell if
+    double uRbar = 0.0; // they are ever set before the print-on-failure section at the end.
     double base, expon, pwr;    /* for qd_power MACRO */
     double temporary;
     double term1, term2, F, dFdpstar;
