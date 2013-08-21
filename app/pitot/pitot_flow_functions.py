@@ -505,8 +505,8 @@ def nozzle_expansion(cfg, states, V, M):
     """
 
     if PRINT_STATUS: print "Start steady expansion through the nozzle."
-    (V['s8'], states['s8']) = steady_flow_with_area_change(states['s2'], V['s2'], cfg['area_ratio'])
-    M['s8']= V['s8']/states['s8'].a    
+    (V['s8'], states['s8']) = steady_flow_with_area_change(states['s7'], V['s7'], cfg['area_ratio'])
+    M['s8']= V['s8']/states['s8'].a 
     
     return cfg, states, V, M     
     
