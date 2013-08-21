@@ -92,6 +92,10 @@ PistonData::PistonData(int indx, double dt_init, std::string config_file_name, i
 	cout << "    x0 = " << x0 << endl;
 	cout << "    v0 = " << V0 << endl;
     }
+    for ( int i=0; i < NL; ++i ) {
+	DxDt[i] = V; // The [0] value is used by write_state() so we set it now.
+	DVDt[i] = 0.0;
+    }
     // Mass decay
     dict.parse_double(section, "f_decay", f_decay, 0.0);
     dict.parse_double(section, "mass_limit", mass_limit, 0.0);
