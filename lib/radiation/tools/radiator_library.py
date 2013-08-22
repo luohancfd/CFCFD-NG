@@ -94,9 +94,9 @@ class PhotoIonXSectionModel(object):
 class JohnstonModel(PhotoIonXSectionModel):
     """Derived class for describing Johnston's photo-ionization cross-section model"""
     def __init__(self, elevel_set=""):
-            PhotoIonXSectionModel.__init__(self, elevel_set=elevel_set, model="JohnstonModel")
-            steps = []
-            thresholds = []
+        PhotoIonXSectionModel.__init__(self, elevel_set=elevel_set, model="JohnstonModel")
+        self.steps = []
+        self.thresholds = []
             
     def get_LUA_string(self, species):
         ostring  = ""
@@ -124,6 +124,20 @@ class JohnstonModel(PhotoIonXSectionModel):
             else: ostring += tab+"threshold_%d  = { %s },\n" % ( ithreshold, add_commas(threshold) )
         ostring += tab+"-- =======================================================================\n"
         ostring += "}\n"
+        return ostring
+
+class TOPBasePICSModel(PhotoIonXSectionModel):
+    """Derived class for describing TOPBase photo-ionization cross-section model"""
+    def __init__(self, E, term, ilevTB, E_Ryd_list=[], sigma_list=[], elevel_set="TOPBase"):
+        PhotoIonXSectionModel.__init__(self, elevel_set=elevel_set, model="TOPBaseModel")
+        self.E = E
+        self.term = term
+        self.ilevTB = ilevTB
+        self.E_Ryd_list = E_Ryd_list
+        self.sigma_list = sigma_list
+        
+    def get_string(self):
+        ostring = "E = %e, term = %s, ilevTB = %d, len(lists) = %d" % ( self.E, self,term, self.ilevTB, len(self.E_Ryd_list) )
         return ostring
         
 class AtomicQSSModel(object):

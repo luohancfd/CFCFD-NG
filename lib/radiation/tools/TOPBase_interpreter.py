@@ -1,6 +1,6 @@
 import sys
 
-from radiator_library import AtomicLevel, AtomicLine
+from radiator_library import AtomicLevel, AtomicLine, TOPBasePICSModel
 from radpy import RC_Ry
 
 def get_SLP( SLP ):
@@ -140,6 +140,38 @@ def make_line_from_TOPBase_string( raw_level_string ):
 
     return AtomicLine(g_u, E_u, g_l, E_l, A_ul, lambda_ul, conf_u, term_u, i_split_u, conf_l, term_l, i_split_l, acc="TB", type="TB", iTB=int(iline)  )
 
+def make_PICS_from_TOPBase_strings( header_line, data_lines ):
+    # first the header line
+    tks = header_line.split()
+    NZ = int(tks[1])
+    NE = int(tks[2])
+    ISLP = tks[3]
+    ILV = int(tks[4])
+    E_RYD = float(tks[5])
+    NP = int(tks[6])
+    
+    # decode some of this stuff
+    S,L,parity = get_SLP( ISLP )
+    term = make_term( S, L, parity )
+    E_cm = E_RYD * RC_Ry * 1.0e-2       # convert Ry -> cm-1
+    ilevTB = ILV 
+    
+    # check the data_lines size is correct
+    if len(data_lines)!=NP:
+        print "len(data_lines) = %d, NP = %d!" % ( len(data_lines), NP )
+        print data_lines
+        sys.exit()
+        
+    # make the list of energies and cross-sections (currently, unsure of units: probably Ry and cm2)
+    E_au_list = []
+    sigma_au_list = []
+    for line in data_lines:
+        tks = line.split()
+        E_au_list.append( float(tks[0]) )
+        sigma_au_list.append( float(tks[1]) )
+        
+    return TOPBasePICSModel( E_cm, term, ilevTB, E_au_list, sigma_au_list )
+
 def read_level_file( filename, echo_result=False ):
     # read in the file
     infile = open(filename, 'r')
@@ -203,6 +235,43 @@ def read_line_file( filename, echo_result=False ):
         if echo_result: print lines[-1].get_string()
         
     return lines
+    
+def read_PICS_file( filename, echo_result=False ):
+    # read in the file
+    infile = open(filename, 'r')
+    lines = infile.readlines()
+    infile.close()
+   
+    # check the header
+    if "===========================" not in lines[0] or \
+    "I  NZ  NE  ISLP  ILV        E(RYD)      NP" not in lines[1] or \
+     "============================" not in lines[2]:
+        print "TOPBase PICS file doesn't have expected format"
+        sys.exit()
+        
+    # read in lines, one line at a time
+    PICSs = []
+    data = []
+    header = ""
+    for line in lines[3:]:
+        tks = line.split()
+        if len(tks)<=1: continue
+        try: I = int(tks[0])
+        except: data.append(line)
+        else:
+            if len(header) > 0:
+                PICSs.append( make_PICS_from_TOPBase_strings( header, data ) )
+                header = ""
+                data = [] 
+            header = line
+
+    print "Found %d TOPBase PICS in file %s" % ( len(PICSs), filename)
+    
+    if echo_result:
+        for PICS in PICSs:
+            print PICS.get_string()
+        
+    return PICSs
     
 def check_line_levels( lines, levels ):
     # find the upper and lower levels of the lines in the list
