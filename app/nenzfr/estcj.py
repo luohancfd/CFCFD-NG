@@ -114,7 +114,7 @@ def reflected_shock_tube_calculation(gasName, p1, T1, Vs, pe, pp_on_pe, area_rat
     if PRINT_STATUS: print 'Write pre-shock condition.'
     state1 = make_gas_from_name(gasName)
     state1.set_pT(p1, T1)
-    H1 = state1.u + state1.p/state1.rho
+    H1 = state1.e + state1.p/state1.rho
     result = {'state1':state1, 'H1':H1}
     #
     if PRINT_STATUS: print 'Start incident-shock calculation.'
