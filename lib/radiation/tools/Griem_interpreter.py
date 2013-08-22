@@ -18,6 +18,7 @@ def residuals ( p,y,x ):
 class Transition:
     def __init__( self, data_block ):
         # element name and wavelength on line 4
+        print data_block
         line = data_block[3]
         tks = line.split()
         self.element = tks[2]
@@ -30,10 +31,12 @@ class Transition:
 
 
         # transition label on line 6
+        print data_block[5]
         line = data_block[5]
-        tks = line.split()
-        conf = tks[2]
-        state = tks[4]
+        tks = line.split("=")
+        tks = tks[1].split(" / ")
+        conf = tks[0]
+        state = tks[1]
         tks = conf.split("-")
         self.lower_conf = tks[0]
         self.upper_conf = tks[1]
@@ -127,8 +130,9 @@ def read_Griem_file( filename ):
 
     return transitions
 
-def test_approx_models( transition, I, E ):
+def test_approx_models( transition, I ):
     print "wavelength = %f ang" % ( transition.lambda_ang )
+    E = 1.0e8 / transition.lambda_ang
     for i,T in enumerate(transition.T_list):
         gamma_j = approx_stark_width(T,1.0e16,I,E,transition.lambda_ang,"johnston")
         gamma_c = approx_stark_width(T,1.0e16,I,E,transition.lambda_ang,"cowley")

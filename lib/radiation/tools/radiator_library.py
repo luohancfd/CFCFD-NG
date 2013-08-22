@@ -10,6 +10,71 @@ def add_commas( string ):
     
 tab = "   "
 
+class AtomicLevel(object):
+    """Class describing an individual or multiplet atomic level"""
+    def __init__(self,n=-1,E=-1,g=-1,l=-1,L=-1,S=-1,parity=-1,conf="",term="",i_split=-1, iTB=-1):
+        self.n = n
+        self.E = E
+        self.g = g
+        self.l = l
+        self.L = L
+        self.S = S
+        self.parity = parity
+        self.conf = conf
+        self.term = term
+        self.i_split = i_split
+        self.iTB = iTB
+        
+    def get_string(self):
+        lev_string = "n = " + str(self.n)
+        lev_string += ", E = " + str(self.E)
+        lev_string += ", g = " + str(self.g)
+        lev_string += ", l = " + str(self.l)
+        lev_string += ", L = " + str(self.L)
+        lev_string += ", S = " + str(self.S)
+        lev_string += ", parity = " + str(self.parity)
+        lev_string += ", conf = " + str(self.conf)
+        lev_string += ", term = " + str(self.term)
+        lev_string += ", i_split = " + str(self.i_split)
+        lev_string += ", iTB = " + str(self.iTB)
+        return lev_string
+
+class AtomicLine:
+    def __init__(self, g_u, E_u, g_l, E_l, A_ul, lambda_ul, conf_u="", term_u="", i_split_u=-1, conf_l="", term_l="", i_split_l=-1, acc="", type="", iTB=-1 ):
+        self.g_u = g_u
+        self.E_u = E_u
+        self.g_l = g_l
+        self.E_l = E_l
+        self.A_ul = A_ul
+        self.lambda_ul = lambda_ul
+        self.conf_u = conf_u
+        self.term_u = term_u
+        self.i_split_u = i_split_u
+        self.conf_l = conf_l
+        self.term_l = term_l
+        self.i_split_l = i_split_l
+        self.acc = acc
+        self.type = type
+        self.iTB = iTB
+        
+    def get_string(self):
+        line_string = "g_u = " + str(self.g_u)
+        line_string += ", E_u = " + str(self.E_u)
+        line_string += ", g_l = " + str(self.g_l)
+        line_string += ", E_l = " + str(self.E_l)
+        line_string += ", A_ul = " + str(self.A_ul)
+        line_string += ", lambda_ul = " + str(self.lambda_ul)
+        line_string += ", conf_u = " + str(self.conf_u)
+        line_string += ", term_u = " + str(self.term_u)
+        line_string += ", i_split_u = " + str(self.i_split_u)
+        line_string += ", conf_l = " + str(self.conf_l)
+        line_string += ", term_l = " + str(self.term_l)
+        line_string += ", i_split_l = " + str(self.i_split_l)
+        line_string += ", acc = " + str(self.acc)
+        line_string += ", type = " + str(self.type)
+        line_string += ", iTB = " + str(self.iTB)
+        return line_string
+
 class PhotoIonXSectionModel(object):
     """Base class for describing a photo-ionization cross-section model"""
     def __init__(self, elevel_set="", model=""):
