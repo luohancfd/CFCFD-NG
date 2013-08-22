@@ -46,17 +46,20 @@ def area_ratio_check(cfg, states, V, M):
         print "V8 = {0} m/s, M8 = {1}.".format(V['s8'], M['s8'])
         print "State 8 (freestream at the nozzle exit):"
         states['s8'].write_state(sys.stdout)
-        if cfg['conehead']:
+        if cfg['conehead'] and cfg['conehead_completed']:
             print "V10c = {0} m/s.".format(V['s10c'])
             print "State 10c (surface of a 15 degree conehead):"
             states['s10c'].write_state(sys.stdout)
+        elif cfg['conehead'] and not cfg['conehead_completed']:
+            print "Conehead calculation failed so result is not being printed."
         
         #now add a new line to the output file
-        if cfg['conehead']:        
+        #only prints the line to the csv if the conehead calc completed
+        if cfg['conehead'] and cfg['conehead_completed']:        
             new_output_line = "{0},{1},{2},{3},{4},{5},{6},{7}"\
             .format(area_ratio, states['s8'].p, states['s8'].T,V['s8'],\
                     M['s8'], states['s10c'].p, states['s10c'].T,V['s10c'])
-        else:
+        elif not cfg['conehead']:
             new_output_line = "{0},{1},{2},{3},{4}"\
             .format(area_ratio, states['s8'].p, states['s8'].T,V['s8'], M['s8'])
         area_ratio_output.write(new_output_line + '\n')

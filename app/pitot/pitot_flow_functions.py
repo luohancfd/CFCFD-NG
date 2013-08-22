@@ -545,11 +545,27 @@ def conehead_calculation(cfg, states, V, M):
     calculation for a conehead in the test section at a specified angle
     and then returns the changes cfg, states, V, M dictionaries."""
     
+    cfg['conehead_completed'] = True #variable we'll set to false if the calculation fails
+    
     if PRINT_STATUS: print 'Doing taylor maccoll conehead calculation on {0} degree conehead.'.format(cfg['conehead_angle'])
-    shock_angle = beta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], math.radians(cfg['conehead_angle']))
+    try:
+        shock_angle = beta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], math.radians(cfg['conehead_angle']))
+    except Exception:
+        print "beta_cone function bailed out while trying to find a shock angle."
+        print "Stopping here. Try another nozzle area ratio."
+        print "Result will not show state 10c."
+        cfg['conehead_completed'] = False
+        return cfg, states, V, M
     if PRINT_STATUS: print "\nShock angle over cone:", math.degrees(shock_angle)
     # Reverse the process to get the flow state behind the shock and check the surface angle is correct
-    delta_s, V['s10c'], states['s10c'] = theta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], shock_angle)
+    try:    
+        delta_s, V['s10c'], states['s10c'] = theta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], shock_angle)
+    except Exception:
+        print "theta_cone bailed out while trying to find cone surface conditions."
+        print "Stopping here. Try another nozzle area ratio."
+        print "Result will not show state 10c."
+        cfg['conehead_completed'] = False
+        return cfg, states, V, M        
     M['s10c'] = V['s10c']/states['s10c'].a
     if PRINT_STATUS: print "Surface angle should be the same.....: 15deg = ", math.degrees(delta_s), "deg"
     #if PRINT_STATUS: print "\nConehead surface conditions:"
