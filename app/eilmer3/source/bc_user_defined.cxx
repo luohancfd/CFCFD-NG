@@ -42,6 +42,7 @@ UserDefinedBC::UserDefinedBC(Block *bdp, int which_boundary,
 {
     is_wall_flag = is_wall;
     sets_conv_flux_flag = sets_conv_flux;
+    if ( sets_conv_flux ) ghost_cell_data_available = false;
     sets_visc_flux_flag = sets_visc_flux;
     start_interpreter();
 } // end constructor
@@ -52,6 +53,7 @@ UserDefinedBC::UserDefinedBC(const UserDefinedBC &bc)
 {
     is_wall_flag = bc.is_wall_flag;
     sets_conv_flux_flag = bc.sets_conv_flux_flag;
+    ghost_cell_data_available = bc.ghost_cell_data_available;
     sets_visc_flux_flag = bc.sets_visc_flux_flag;
     start_interpreter();
 }
@@ -73,6 +75,7 @@ UserDefinedBC & UserDefinedBC::operator=(const UserDefinedBC &bc)
 	BoundaryCondition::operator=(bc);
 	is_wall_flag = bc.is_wall_flag;
 	sets_conv_flux_flag = bc.sets_conv_flux_flag;
+	if ( sets_conv_flux_flag ) ghost_cell_data_available = false;
 	sets_visc_flux_flag = bc.sets_visc_flux_flag;
 	filename = bc.filename;
 	start_interpreter();
@@ -108,19 +111,25 @@ int UserDefinedBC::apply_convective(double t)
 	    for (i = bd.imin; i <= bd.imax; ++i) {
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[NORTH];
-		dest_cell = bd.get_cell(i,j+1,k);
-		eval_ghost_cell_udf( t, i, j, k, IFace );
 		if ( sets_conv_flux_flag ) {
-		    eval_conv_flux_udf( t, i, j, k, IFace );
+		    eval_conv_flux_udf(t, i, j, k, IFace);
+		} else {
+		    // Ghost cells
+		    eval_ghost_cell_udf(t, i, j, k, IFace);
+		    dest_cell = bd.get_cell(i,j+1,k);
+		    if ( fdata1 ) {
+			dest_cell->copy_values_from(*fdata1);
+			// Clean up memory allocated fdata1 and fdata2. 
+			// This allocation was done inside unpack_flow_table()
+			// which was called by eval_flux_udf().
+			delete fdata1; fdata1 = 0;
+		    }
+		    dest_cell = bd.get_cell(i,j+2,k);
+		    if ( fdata2 ) {
+			dest_cell->copy_values_from(*fdata2);
+			delete fdata2; fdata2 = 0;
+		    }
 		}
-		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
-		dest_cell = bd.get_cell(i,j+2,k);
-		if ( fdata2 ) dest_cell->copy_values_from(*fdata2);
-		// Clean up memory allocated fdata1 and fdata2. 
-		// This allocation was done inside unpack_flow_table()
-		// which was called by eval_flux_udf().
-		delete fdata1;
-		delete fdata2;
 	    } // end i loop
 	} // for k
 	break;
@@ -130,16 +139,21 @@ int UserDefinedBC::apply_convective(double t)
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[EAST];
-		dest_cell = bd.get_cell(i+1,j,k);
-		eval_ghost_cell_udf( t, i, j, k, IFace );
 		if ( sets_conv_flux_flag ) {
-		    eval_conv_flux_udf( t, i, j, k, IFace );
+		    eval_conv_flux_udf(t, i, j, k, IFace);
+		} else {
+		    eval_ghost_cell_udf(t, i, j, k, IFace);
+		    dest_cell = bd.get_cell(i+1,j,k);
+		    if ( fdata1 ) {
+			dest_cell->copy_values_from(*fdata1);
+			delete fdata1; fdata1 = 0;
+		    }
+		    dest_cell = bd.get_cell(i+2,j,k);
+		    if ( fdata2 ) {
+			dest_cell->copy_values_from(*fdata2);
+			delete fdata2; fdata2 = 0;
+		    }
 		}
-		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
-		dest_cell = bd.get_cell(i+2,j,k);
-		if ( fdata2 ) dest_cell->copy_values_from(*fdata2);
-		delete fdata1;
-		delete fdata2;
 	    } // end j loop
 	} // for k
 	break;
@@ -149,16 +163,21 @@ int UserDefinedBC::apply_convective(double t)
 	    for (i = bd.imin; i <= bd.imax; ++i) {
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[SOUTH];
-		dest_cell = bd.get_cell(i,j-1,k);
-		eval_ghost_cell_udf( t, i, j, k, IFace );
 		if ( sets_conv_flux_flag ) {
 		    eval_conv_flux_udf( t, i, j, k, IFace );
+		} else {
+		    eval_ghost_cell_udf(t, i, j, k, IFace);
+		    dest_cell = bd.get_cell(i,j-1,k);
+		    if ( fdata1 ) {
+			dest_cell->copy_values_from(*fdata1);
+			delete fdata1; fdata1 = 0;
+		    }
+		    dest_cell = bd.get_cell(i,j-2,k);
+		    if ( fdata2 ) {
+			dest_cell->copy_values_from(*fdata2);
+			delete fdata2; fdata2 = 0;
+		    }
 		}
-		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
-		dest_cell = bd.get_cell(i,j-2,k);
-		if ( fdata2 ) dest_cell->copy_values_from(*fdata2);
-		delete fdata1;
-		delete fdata2;
 	    } // end i loop
 	} // for k
 	break;
@@ -168,16 +187,21 @@ int UserDefinedBC::apply_convective(double t)
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[WEST];
-		dest_cell = bd.get_cell(i-1,j,k);
-		eval_ghost_cell_udf( t, i, j, k, IFace );
 		if ( sets_conv_flux_flag ) {
-		    eval_conv_flux_udf( t, i, j, k, IFace );
+		    eval_conv_flux_udf(t, i, j, k, IFace);
+		} else {
+		    eval_ghost_cell_udf(t, i, j, k, IFace);
+		    dest_cell = bd.get_cell(i-1,j,k);
+		    if ( fdata1 ) {
+			dest_cell->copy_values_from(*fdata1);
+			delete fdata1; fdata1 = 0;
+		    }
+		    dest_cell = bd.get_cell(i-2,j,k);
+		    if ( fdata2 ) {
+			dest_cell->copy_values_from(*fdata2);
+			delete fdata2; fdata2 = 0;
+		    }
 		}
-		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
-		dest_cell = bd.get_cell(i-2,j,k);
-		if ( fdata2 ) dest_cell->copy_values_from(*fdata2);
-		delete fdata1;
-		delete fdata2;
 	    } // end j loop
 	} // for k
  	break;
@@ -187,16 +211,21 @@ int UserDefinedBC::apply_convective(double t)
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[TOP];
-		dest_cell = bd.get_cell(i,j,k+1);
-		eval_ghost_cell_udf( t, i, j, k, IFace );
 		if ( sets_conv_flux_flag ) {
-		    eval_conv_flux_udf( t, i, j, k, IFace );
+		    eval_conv_flux_udf(t, i, j, k, IFace);
+		} else {
+		    eval_ghost_cell_udf(t, i, j, k, IFace);
+		    dest_cell = bd.get_cell(i,j,k+1);
+		    if ( fdata1 ) {
+			dest_cell->copy_values_from(*fdata1);
+			delete fdata1; fdata1 = 0;
+		    }
+		    dest_cell = bd.get_cell(i,j,k+2);
+		    if ( fdata2 ) {
+			dest_cell->copy_values_from(*fdata2);
+			delete fdata2; fdata2 = 0;
+		    }
 		}
-		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
-		dest_cell = bd.get_cell(i,j,k+2);
-		if ( fdata2 ) dest_cell->copy_values_from(*fdata2);
-		delete fdata1;
-		delete fdata2;
 	    } // end j loop
 	} // for i
 	break;
@@ -206,16 +235,21 @@ int UserDefinedBC::apply_convective(double t)
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[BOTTOM];
-		dest_cell = bd.get_cell(i,j,k-1);
-		eval_ghost_cell_udf( t, i, j, k, IFace );
 		if ( sets_conv_flux_flag ) {
-		    eval_conv_flux_udf( t, i, j, k, IFace );
+		    eval_conv_flux_udf(t, i, j, k, IFace);
+		} else {
+		    eval_ghost_cell_udf(t, i, j, k, IFace);
+		    dest_cell = bd.get_cell(i,j,k-1);
+		    if ( fdata1 ) {
+			dest_cell->copy_values_from(*fdata1);
+			delete fdata1; fdata1 = 0;
+		    }
+		    dest_cell = bd.get_cell(i,j,k-2);
+		    if ( fdata2 ) {
+			dest_cell->copy_values_from(*fdata2);
+			delete fdata2; fdata2 = 0;
+		    }
 		}
-		if ( fdata1 ) dest_cell->copy_values_from(*fdata1);
-		dest_cell = bd.get_cell(i,j,k-2);
-		if ( fdata2 ) dest_cell->copy_values_from(*fdata2);
-		delete fdata1;
-		delete fdata2;
 	    } // end j loop
 	} // for i
  	break;
@@ -226,7 +260,7 @@ int UserDefinedBC::apply_convective(double t)
     } // end switch
 
     return SUCCESS;
-} // end apply_inviscid()
+} // end apply_convective()
 
 int UserDefinedBC::apply_viscous( double t )
 {
@@ -242,9 +276,9 @@ int UserDefinedBC::apply_viscous( double t )
 	    for (i = bd.imin; i <= bd.imax; ++i) {
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[NORTH];
-		eval_iface_udf( t, i, j, k, IFace, cell );
+		eval_iface_udf(t, i, j, k, IFace, cell);
 		if ( sets_visc_flux_flag ) {
-		    eval_visc_flux_udf( t, i, j, k, IFace );
+		    eval_visc_flux_udf(t, i, j, k, IFace);
 		}
 	    } // end i loop
 	} // for k
@@ -255,9 +289,9 @@ int UserDefinedBC::apply_viscous( double t )
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[EAST];
-		eval_iface_udf( t, i, j, k, IFace, cell );
+		eval_iface_udf(t, i, j, k, IFace, cell);
 		if ( sets_visc_flux_flag ) {
-		    eval_visc_flux_udf( t, i, j, k, IFace );
+		    eval_visc_flux_udf(t, i, j, k, IFace);
 		}
 	    } // end j loop
 	} // for k
@@ -268,9 +302,9 @@ int UserDefinedBC::apply_viscous( double t )
 	    for (i = bd.imin; i <= bd.imax; ++i) {
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[SOUTH];
-		eval_iface_udf( t, i, j, k, IFace, cell );
+		eval_iface_udf(t, i, j, k, IFace, cell);
 		if ( sets_visc_flux_flag ) {
-		    eval_visc_flux_udf( t, i, j, k, IFace );
+		    eval_visc_flux_udf(t, i, j, k, IFace);
 		}
 	    } // end i loop
 	} // for k
@@ -281,9 +315,9 @@ int UserDefinedBC::apply_viscous( double t )
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[WEST];
-		eval_iface_udf( t, i, j, k, IFace, cell );
+		eval_iface_udf(t, i, j, k, IFace, cell);
 		if ( sets_visc_flux_flag ) {
-		    eval_visc_flux_udf( t, i, j, k, IFace );
+		    eval_visc_flux_udf(t, i, j, k, IFace);
 		}
 	    } // end j loop
 	} // for k
@@ -294,9 +328,9 @@ int UserDefinedBC::apply_viscous( double t )
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[BOTTOM];
-		eval_iface_udf( t, i, j, k, IFace, cell );
+		eval_iface_udf(t, i, j, k, IFace, cell);
 		if ( sets_visc_flux_flag ) {
-		    eval_visc_flux_udf( t, i, j, k, IFace );
+		    eval_visc_flux_udf(t, i, j, k, IFace);
 		}
 	    } // end j loop
 	} // for k
@@ -307,9 +341,9 @@ int UserDefinedBC::apply_viscous( double t )
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		cell = bd.get_cell(i,j,k);
 		IFace = cell->iface[TOP];
-		eval_iface_udf( t, i, j, k, IFace, cell );
+		eval_iface_udf(t, i, j, k, IFace, cell);
 		if ( sets_visc_flux_flag ) {
-		    eval_visc_flux_udf( t, i, j, k, IFace );
+		    eval_visc_flux_udf(t, i, j, k, IFace);
 		}
 	    } // end j loop
 	} // for k

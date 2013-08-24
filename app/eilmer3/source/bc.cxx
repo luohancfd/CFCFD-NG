@@ -131,7 +131,7 @@ BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code)
       // The following common data can usually take these defaults,
       // however, they may be set to differing values by
       // the constructors of the derived classes.
-      is_wall_flag(false), xforce_flag(0), 
+      is_wall_flag(false), ghost_cell_data_available(true), xforce_flag(0), 
       sets_conv_flux_flag(false), sets_visc_flux_flag(false),
       neighbour_block(-1), neighbour_face(-1), neighbour_orientation(0),
       wc_bc(NON_CATALYTIC), cw(0)
@@ -223,7 +223,7 @@ BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code)
 // reference to a particular block but, just in case the compiler wants it...
 BoundaryCondition::BoundaryCondition()
     : bdp(0), which_boundary(0), type_code(SLIP_WALL),
-      is_wall_flag(false), xforce_flag(0),
+      is_wall_flag(false), ghost_cell_data_available(true), xforce_flag(0),
       sets_conv_flux_flag(false), sets_visc_flux_flag(false),
       neighbour_block(-1), neighbour_face(-1), neighbour_orientation(0),
       wc_bc(NON_CATALYTIC), cw(0)
@@ -233,6 +233,7 @@ BoundaryCondition::BoundaryCondition(const BoundaryCondition &bc)
     : bdp(bc.bdp), // Still bound to the original block.
       which_boundary(bc.which_boundary), type_code(bc.type_code),
       is_wall_flag(bc.is_wall_flag),
+      ghost_cell_data_available(bc.ghost_cell_data_available),
       xforce_flag(bc.xforce_flag),
       sets_conv_flux_flag(bc.sets_conv_flux_flag),
       sets_visc_flux_flag(bc.sets_visc_flux_flag),
@@ -253,6 +254,7 @@ BoundaryCondition & BoundaryCondition::operator=(const BoundaryCondition &bc)
 	which_boundary = bc.which_boundary; 
 	type_code = bc.type_code;
 	is_wall_flag = bc.is_wall_flag;
+	ghost_cell_data_available = bc.ghost_cell_data_available;
 	xforce_flag = bc.xforce_flag;
 	sets_conv_flux_flag = bc.sets_conv_flux_flag;
 	sets_visc_flux_flag = bc.sets_visc_flux_flag;
@@ -283,6 +285,7 @@ void BoundaryCondition::print_info(std::string lead_in)
 	 << " (" << get_face_name(which_boundary) << ")" << endl;
     cout << lead_in << "type= " << get_bc_name(type_code) << endl;
     cout << lead_in << "is_wall_flag= " << is_wall_flag << endl;
+    cout << lead_in << "ghost_cell_data_available= " << ghost_cell_data_available << endl;
     cout << lead_in << "xforce_flag= " << xforce_flag << endl;
     cout << lead_in << "sets_conv_flux_flag= " << sets_conv_flux_flag << endl;
     cout << lead_in << "sets_visc_flux_flag= " << sets_visc_flux_flag << endl;
@@ -448,14 +451,14 @@ int BoundaryCondition::apply_convective(double t)
 	return NOT_IMPLEMENTED_ERROR;
     }
     return SUCCESS;
-}
+} // end BoundaryCondition::apply_convective()
 
 int BoundaryCondition::apply_viscous( double t )
 {
     // The default behaviour for viscous terms
     // is to do nothing at the boundary.
     return SUCCESS;
-}
+} // end BoundaryCondition::apply_viscous(
 
 int BoundaryCondition::compute_surface_heat_flux( void ) 
 /// \brief Calculate the heat flux values at all cell interfaces bounding walls

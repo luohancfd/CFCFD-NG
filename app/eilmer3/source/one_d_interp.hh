@@ -14,19 +14,18 @@ bool get_apply_limiter_flag();
 bool set_extrema_clipping_flag(bool bflag);
 bool get_extrema_clipping_flag();
 
-int one_d_interp(const FV_Cell &cL1, const FV_Cell &cL0, 
-		 const FV_Cell &cR0, const FV_Cell &cR1, 
-		 double cL1Length, double cL0Length, 
-		 double cR0Length, double cR1Length, 
-		 FlowState &Lft, FlowState &Rght);
+int one_d_interp_both(const FV_Cell &cL1, const FV_Cell &cL0, 
+		      const FV_Cell &cR0, const FV_Cell &cR1, 
+		      double cL1Length, double cL0Length, 
+		      double cR0Length, double cR1Length, 
+		      FlowState &Lft, FlowState &Rght);
 
-int onesided_interp(const FV_Cell &cL0, const FV_Cell &cR0, const FV_Cell &cR1,
-		    double cL0Length, double cR0Length, double cR1Length,
-		    FlowState &Rght );
+int one_d_interp_left(const FV_Cell &cL1, const FV_Cell &cL0, const FV_Cell &cR0,
+		      double cL1Length, double cL0Length, double cR0Length,
+		      FlowState &Lft, FlowState &Rght);
 
-int one_d_interior_interp(const FV_Cell &cL0, const FV_Cell &cR0,
-			  const FV_Cell &cR1, const FV_Cell &cR2,
-			  double cL0Length, double cR0Length,
-			  double cR1Length, double cR2Length,
-			  FlowState &Lft, FlowState &Rght );
+int one_d_interp_right(const FV_Cell &cL0, const FV_Cell &cR0, const FV_Cell &cR1,
+		       double cL0Length, double cR0Length, double cR1Length,
+		       FlowState &Lft, FlowState &Rght);
+
 #endif

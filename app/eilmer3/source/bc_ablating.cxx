@@ -655,10 +655,11 @@ int AblatingBC::Jac(const valarray<double> &y, Valmatrix &dGdy)
 	}
 	}
 
-	int iG = 0;		// current matrix line
+	// FIX-ME this code looks incomplete
+	// int iG = 0;		// current matrix line
 
     // 0. unpack the y valarray
-    double u0 = y[u0_index];
+    // double u0 = y[u0_index];
     Q->rho = 0.0;
     for ( size_t isp=0; isp<Q->massf.size(); ++isp )
     	Q->rho += y[isp];

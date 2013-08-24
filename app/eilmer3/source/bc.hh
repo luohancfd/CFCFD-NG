@@ -105,6 +105,7 @@ public:
     // they need to be here so that they are accessible through
     // pointers to objects of this base-class.
     bool is_wall_flag;
+    bool ghost_cell_data_available;
     int xforce_flag;
     bool sets_conv_flux_flag;
     bool sets_visc_flux_flag;

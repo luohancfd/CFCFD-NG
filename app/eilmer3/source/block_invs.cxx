@@ -41,7 +41,7 @@
  */
 int Block::inviscid_flux(size_t dimensions)
 {
-    FV_Cell *cL1, *cL0, *cR0, *cR1, *cR2;
+    FV_Cell *cL1, *cL0, *cR0, *cR1;
     FV_Interface *IFace;
     Gas_model *gmodel = get_gas_model_ptr();
     // Maybe these two FlowState objects should be in the Block object
@@ -66,23 +66,29 @@ int Block::inviscid_flux(size_t dimensions)
 		    IFace->fs->average_values_from(*(cL0->fs), *(cL0->fs), get_diffusion_flag()==1);
 		} else {
 		    // Compute the flux from data on either-side of the interface.
-		    // First, interpolate...
-		    if ( (bcp[WEST]->type_code == SHOCK_FITTING_IN) && (i == imin+1) ) {
-			// Use special interpolation scheme for first interface after shock.
-			cR2 = get_cell(i+2,j,k);
-        		one_d_interior_interp(*cL0, *cR0, *cR1, *cR2, 
-					      cL0->iLength, cR0->iLength, cR1->iLength, cR2->iLength,
-					      Lft, Rght);
-		    } else {
-			// General situation.
-			// Interpolate LEFT and RIGHT interface states from cell-center properties.
-			one_d_interp(*cL1, *cL0, *cR0, *cR1,
-				     cL1->iLength, cL0->iLength, cR0->iLength, cR1->iLength,
-				     Lft, Rght);
+		    // First, interpolate LEFT and RIGHT interface states from cell-center properties.
+		    if ( (i == imin+1) && (bcp[WEST]->ghost_cell_data_available == false) ) {
+        		one_d_interp_right(*cL0, *cR0, *cR1, 
+					   cL0->iLength, cR0->iLength, cR1->iLength,
+					   Lft, Rght);
+		    } else if ( (i == imax) && (bcp[EAST]->ghost_cell_data_available == false) ) {
+        		one_d_interp_left(*cL1, *cL0, *cR0, 
+					  cL1->iLength, cL0->iLength, cR0->iLength,
+					  Lft, Rght);
+		    } else { // General symmetric reconstruction.
+			one_d_interp_both(*cL1, *cL0, *cR0, *cR1,
+					  cL1->iLength, cL0->iLength, cR0->iLength, cR1->iLength,
+					  Lft, Rght);
 		    }
 		    // Second, save u, v, w, T for the viscous flux calculation by making a local average.
 		    // The values for u, v and T may be updated subsequently by the interface-flux function.
-		    IFace->fs->average_values_from(Lft, Rght, get_diffusion_flag()==1);
+		    if ( (i == imin) && (bcp[WEST]->ghost_cell_data_available == false) ) {
+			IFace->fs->average_values_from(Rght, Rght, get_diffusion_flag()==1);
+		    } else if ( (i == imax+1) && (bcp[EAST]->ghost_cell_data_available == false) ) {
+			IFace->fs->average_values_from(Lft, Lft, get_diffusion_flag()==1);
+		    } else {
+			IFace->fs->average_values_from(Lft, Rght, get_diffusion_flag()==1);
+		    }
 		    // Finally, the flux calculation itself.
 		    if ( (i == imin && bcp[WEST]->sets_conv_flux()) ||
 			 (i == imax+1 && bcp[EAST]->sets_conv_flux()) ) {
@@ -91,19 +97,6 @@ int Block::inviscid_flux(size_t dimensions)
 			compute_interface_flux(Lft, Rght, *IFace, omegaz);
 		    }
 		} // end else Compute the flux from data on either-side of the interface.
-		// DEBUGGING for ablating BC
-#               if 0
-		if ( i == imax+1 ) {
-		    cout << "i = " << i << endl;
-		    cout << "j = " << j << endl;
-		    cout << "pos = " << IFace->pos.str() << endl;
-		    cout << "total mass flux = " << IFace->F->mass << endl;
-		    for ( size_t isp=0; isp<IFace->F->massf.size(); ++isp ) {
-		    	cout << "species[" << isp << "] mass flux = " 
-			     << IFace->F->mass * IFace->F->massf[isp] << endl;
-		    }
-		}
-#               endif
 	    } // i loop
 	} // j loop
     } // for k
@@ -118,12 +111,28 @@ int Block::inviscid_flux(size_t dimensions)
 		cR0 = get_cell(i,j,k);
 		cR1 = get_cell(i,j+1,k);
 		// Interpolate LEFT and RIGHT interface states from the cell-center properties.
-		one_d_interp(*cL1, *cL0, *cR0, *cR1, 
-			     cL1->jLength, cL0->jLength, cR0->jLength, cR1->jLength, 
-			     Lft, Rght);
-		// Save u, v, w, T for the viscous flux calculation by making a local average.
+		if ( (j == jmin+1) && (bcp[SOUTH]->ghost_cell_data_available == false) ) {
+		    one_d_interp_right(*cL0, *cR0, *cR1, 
+				       cL0->jLength, cR0->jLength, cR1->jLength,
+				       Lft, Rght);
+		} else if ( (j == jmax) && (bcp[NORTH]->ghost_cell_data_available == false) ) {
+		    one_d_interp_left(*cL1, *cL0, *cR0, 
+				      cL1->jLength, cL0->jLength, cR0->jLength,
+				      Lft, Rght);
+		} else { // General symmetric reconstruction.
+		    one_d_interp_both(*cL1, *cL0, *cR0, *cR1,
+				      cL1->jLength, cL0->jLength, cR0->jLength, cR1->jLength,
+				      Lft, Rght);
+		}
+		// Second, save u, v, w, T for the viscous flux calculation by making a local average.
 		// The values for u, v and T may be updated subsequently by the interface-flux function.
-	        IFace->fs->average_values_from(Lft, Rght, get_diffusion_flag()==1);
+		if ( (j == jmin) && (bcp[SOUTH]->ghost_cell_data_available == false) ) {
+		    IFace->fs->average_values_from(Rght, Rght, get_diffusion_flag()==1);
+		} else if ( (j == jmax+1) && (bcp[NORTH]->ghost_cell_data_available == false) ) {
+		    IFace->fs->average_values_from(Lft, Lft, get_diffusion_flag()==1);
+		} else {
+		    IFace->fs->average_values_from(Lft, Rght, get_diffusion_flag()==1);
+		}
 		// Finally, the flux calculation.
 	        if ( (j == jmin && bcp[SOUTH]->sets_conv_flux()) ||
 	             (j == jmax+1 && bcp[NORTH]->sets_conv_flux()) ) {
@@ -147,12 +156,28 @@ int Block::inviscid_flux(size_t dimensions)
 		cR0 = get_cell(i,j,k);
 		cR1 = get_cell(i,j,k+1);
 		// Interpolate LEFT and RIGHT interface states from the cell-center properties.
-		one_d_interp(*cL1, *cL0, *cR0, *cR1, 
-			     cL1->kLength, cL0->kLength, cR0->kLength, cR1->kLength, 
-			     Lft, Rght);
-		// Save u, v, w, T for the viscous flux calculation by making a local average.
+		if ( (k == kmin+1) && (bcp[BOTTOM]->ghost_cell_data_available == false) ) {
+		    one_d_interp_right(*cL0, *cR0, *cR1, 
+				       cL0->kLength, cR0->kLength, cR1->kLength,
+				       Lft, Rght);
+		} else if ( (k == kmax) && (bcp[TOP]->ghost_cell_data_available == false) ) {
+		    one_d_interp_left(*cL1, *cL0, *cR0, 
+				      cL1->kLength, cL0->kLength, cR0->kLength,
+				      Lft, Rght);
+		} else { // General symmetric reconstruction.
+		    one_d_interp_both(*cL1, *cL0, *cR0, *cR1,
+				      cL1->kLength, cL0->kLength, cR0->kLength, cR1->kLength,
+				      Lft, Rght);
+		}
+		// Second, save u, v, w, T for the viscous flux calculation by making a local average.
 		// The values for u, v and T may be updated subsequently by the interface-flux function.
-		IFace->fs->average_values_from(Lft, Rght, get_diffusion_flag()==1);
+		if ( (k == kmin) && (bcp[BOTTOM]->ghost_cell_data_available == false) ) {
+		    IFace->fs->average_values_from(Rght, Rght, get_diffusion_flag()==1);
+		} else if ( (k == kmax+1) && (bcp[TOP]->ghost_cell_data_available == false) ) {
+		    IFace->fs->average_values_from(Lft, Lft, get_diffusion_flag()==1);
+		} else {
+		    IFace->fs->average_values_from(Lft, Rght, get_diffusion_flag()==1);
+		}
 		// Finally, the flux calculation.
 		if ( (k == kmin && bcp[BOTTOM]->sets_conv_flux()) ||
 		     (k == kmax+1 && bcp[TOP]->sets_conv_flux()) ) {
