@@ -384,29 +384,6 @@ int get_write_vertex_velocities_flag(void)
 
 /*------------------------------------------------------------------*/
 
-int set_adaptive_reconstruction_flag(int iw)
-{
-    adaptive_reconstruction = iw;
-    if (adaptive_reconstruction == 0) {
-        if ( get_verbose_flag() ) printf("Turn off adaptive reconstruction.\n");
-    }
-    else if (adaptive_reconstruction == 1) {
-        if ( get_verbose_flag() ) printf("Turn on adaptive reconstruction.\n");
-    }
-    else {
-        printf("Invalid adaptive reconstruction flag value: %d\n", adaptive_reconstruction);
-        exit(VALUE_ERROR);
-    }
-    return SUCCESS;
-}
-
-int get_adaptive_reconstruction_flag(void)
-{
-    return adaptive_reconstruction;
-}
-
-/*------------------------------------------------------------------*/
-
 int set_filter_flag(int iw)
 {
     filter = iw;

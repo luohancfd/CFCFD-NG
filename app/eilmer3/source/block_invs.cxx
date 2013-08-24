@@ -76,15 +76,9 @@ int Block::inviscid_flux(size_t dimensions)
 		    } else {
 			// General situation.
 			// Interpolate LEFT and RIGHT interface states from cell-center properties.
-			if ( get_adaptive_reconstruction_flag() == 1 ) {
-			    mach_weighted_one_d_interp(*cL1, *cL0, *cR0, *cR1,
-						       cL1->iLength, cL0->iLength, cR0->iLength, cR1->iLength,
-						       Lft, Rght);
-			} else {
-			    one_d_interp(*cL1, *cL0, *cR0, *cR1,
-					 cL1->iLength, cL0->iLength, cR0->iLength, cR1->iLength,
-					 Lft, Rght);
-			}
+			one_d_interp(*cL1, *cL0, *cR0, *cR1,
+				     cL1->iLength, cL0->iLength, cR0->iLength, cR1->iLength,
+				     Lft, Rght);
 		    }
 		    // Second, save u, v, w, T for the viscous flux calculation by making a local average.
 		    // The values for u, v and T may be updated subsequently by the interface-flux function.
@@ -124,16 +118,9 @@ int Block::inviscid_flux(size_t dimensions)
 		cR0 = get_cell(i,j,k);
 		cR1 = get_cell(i,j+1,k);
 		// Interpolate LEFT and RIGHT interface states from the cell-center properties.
-		if ( get_adaptive_reconstruction_flag() == 1 ) {
-		    // Use Mach number weighted 
-	            mach_weighted_one_d_interp(*cL1, *cL0, *cR0, *cR1, 
-	                          cL1->jLength, cL0->jLength, cR0->jLength, cR1->jLength, 
-	                          Lft, Rght);
-	        } else {
-	            one_d_interp(*cL1, *cL0, *cR0, *cR1, 
-				 cL1->jLength, cL0->jLength, cR0->jLength, cR1->jLength, 
-				 Lft, Rght);
-	        }
+		one_d_interp(*cL1, *cL0, *cR0, *cR1, 
+			     cL1->jLength, cL0->jLength, cR0->jLength, cR1->jLength, 
+			     Lft, Rght);
 		// Save u, v, w, T for the viscous flux calculation by making a local average.
 		// The values for u, v and T may be updated subsequently by the interface-flux function.
 	        IFace->fs->average_values_from(Lft, Rght, get_diffusion_flag()==1);
@@ -160,15 +147,9 @@ int Block::inviscid_flux(size_t dimensions)
 		cR0 = get_cell(i,j,k);
 		cR1 = get_cell(i,j,k+1);
 		// Interpolate LEFT and RIGHT interface states from the cell-center properties.
-		if ( get_adaptive_reconstruction_flag() == 1 ) {
-		    mach_weighted_one_d_interp(*cL1, *cL0, *cR0, *cR1, 
-				  cL1->kLength, cL0->kLength, cR0->kLength, cR1->kLength, 
-				  Lft, Rght);
-		} else {
-		    one_d_interp(*cL1, *cL0, *cR0, *cR1, 
-				 cL1->kLength, cL0->kLength, cR0->kLength, cR1->kLength, 
-				 Lft, Rght);
-		}
+		one_d_interp(*cL1, *cL0, *cR0, *cR1, 
+			     cL1->kLength, cL0->kLength, cR0->kLength, cR1->kLength, 
+			     Lft, Rght);
 		// Save u, v, w, T for the viscous flux calculation by making a local average.
 		// The values for u, v and T may be updated subsequently by the interface-flux function.
 		IFace->fs->average_values_from(Lft, Rght, get_diffusion_flag()==1);
