@@ -28,19 +28,11 @@ function ghost_cell(args)
    p_inf = 60.0e6 / (1150.0/T_inf)^3.5
    u_nominal = mach_inf * (1.4 * 297 * T_inf)^0.5
 
-   -- Estimate turbulence quantities for free stream by specifying turbulence
-   -- intensity and the ratio of turbulent-to-laminar viscosity
-   --turbulence_intensity = 0.005
-   --turb_lam_viscosity_ratio = 0.5
-   --tke_inf = 1.5 * (turbulence_intensity * u_nominal)^2
-   -- Sutherland's viscosity law for N2
-   -- mu_inf =  mu_ref * (T / T_ref)**1.5 * (T_ref + S)/(T + S)
-   ---mu_inf =  1.663e-5 * (T_inf / 273.0)^1.5 * (273.0 + 107.0)/(T_inf + 107.0)
-   --mu_t_inf = turb_lam_viscosity_ratio * mu_inf
-   --omega_inf = p_inf / (297.0 * T_inf) * tke_inf / mu_t_inf  
+   -- Start the simulations with inflow turbulence parameters typical
+   -- of those in laminar flows. Note that omega_inf is set to 1.0 
+   -- because setting it to 0 will cause the simulation to crash.
    tke_inf = 1.0e-12
    omega_inf = 1.0
-   -- where p_inf/(R*T_inf) = rho_inf (Perfect gas equation)
    
    -- Input inflow conditions for each cell along boundary
    ghost = {}
