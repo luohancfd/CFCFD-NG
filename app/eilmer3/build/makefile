@@ -16,6 +16,7 @@ TARGET ?= for_gnu
 MEMORY_SIZE ?= large
 WITH_IMPLICIT ?= 0
 INSTALL_DIR ?= $(HOME)/e3bin
+REVISION_STRING := $(shell hg identify --id --num --branch --tags)
 
 ifeq ($(TARGET), for_openmpi)
     WITH_MPI := 1
@@ -194,6 +195,7 @@ PY_FILES += $(LOADABLE_MODULE)
 #------------------------------------------------------------
 
 build_new : $(E3_EXE_FILES) $(PY_FILES) 
+	@echo "Source code revision string $(REVISION_STRING)"
 	@echo "Built with C and C++ compilers "
 	- $(COMPILE) --version
 	- $(CXXCOMPILE) --version
@@ -230,6 +232,8 @@ clean :
 	- rm $(E3_OBJECTS_1) $(E3_OBJECTS_2) $(E3_OBJECTS_1_MPI) $(E3_OBJECTS_2_MPI)
 	- rm *.pyc
 	- rm libprep3_wrap.o
+	@echo Deleting generated source files
+	- rm $(SRC)/kernel_with_rev_string.cxx
 	- rm $(SRC)/libprep3.py
 	- rm $(SRC)/libprep3_wrap.cxx
 	@echo Deleting archive/library of object files
@@ -588,7 +592,8 @@ block_bgk.o : $(SRC)/block_bgk.cxx $(SRC)/cell.hh $(SRC)/block.hh $(SRC)/kernel.
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) -I$(ZLIB) $(SRC)/block_bgk.cxx -o block_bgk.o
 
 kernel.o : $(SRC)/kernel.cxx $(SRC)/cell.hh $(SRC)/kernel.hh $(SRC)/block.hh $(LIBLUA)
-	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/kernel.cxx -o kernel.o
+	sed -e 's/PUT_REVISION_STRING_HERE/$(REVISION_STRING)/' $(SRC)/kernel.cxx > $(SRC)/kernel_with_rev_string.cxx
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/kernel_with_rev_string.cxx -o kernel.o
 
 block_invs.o : $(SRC)/block_invs.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA)
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/block_invs.cxx -o block_invs.o

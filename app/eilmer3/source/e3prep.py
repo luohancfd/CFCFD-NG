@@ -1294,6 +1294,7 @@ def pretty_print_names(nameList):
 
 if __name__ == '__main__':
     print "Begin e3prep.py..."
+    print "Source code revision string: ", get_revision_string()
     userOptions = getopt(sys.argv[1:], shortOptions, longOptions)
     uoDict = dict(userOptions[0])
     if len(userOptions[0]) == 0 or uoDict.has_key("--help"):

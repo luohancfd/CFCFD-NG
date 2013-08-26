@@ -182,6 +182,7 @@ struct global_data
 //---------------------------------------------------------------
 // Function declarations.
 
+std::string get_revision_string();
 global_data * get_global_data_ptr(void);
 Gas_model *set_gas_model_ptr(Gas_model *gmptr);
 Gas_model *get_gas_model_ptr();

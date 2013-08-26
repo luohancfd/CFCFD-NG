@@ -1,6 +1,6 @@
 /// \file kernel.cxx
 /// \ingroup eilmer3
-/// \brief Core data structures for the 2D code.
+/// \brief Core data structures for the 2D/3D code.
 ///
 /// \author PJ
 /// \version Jan 2008
@@ -15,6 +15,12 @@
 
 //---------------------------------------------------------------------
 // The core of the data collection...
+
+std::string revision_string = "PUT_REVISION_STRING_HERE";
+std::string get_revision_string() 
+{
+    return revision_string;
+}
 
 // The global control data.
 static global_data gd;

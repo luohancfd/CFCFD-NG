@@ -197,6 +197,10 @@ WARNING: This executable only computes the radiative source\n\
 #   error "OpenMP version not functional..."    
 #   endif
 #   endif
+    //
+    if ( master ) {
+	cout << "Source code revision string: " << get_revision_string() << endl;
+    }
     if ((G.logfile = fopen(log_file_name, "w")) == NULL) {
         printf( "\nCould not open %s; BAILING OUT\n", log_file_name );
         exit(FILE_ERROR);

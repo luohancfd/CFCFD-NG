@@ -911,6 +911,7 @@ def flatten(L):
 
 if __name__ == '__main__':
     print "Begin e3post.py..."
+    print "Source code revision string: ", get_revision_string()
     #
     try:
         userOptions = getopt(sys.argv[1:], shortOptions, longOptions)
