@@ -1,0 +1,14 @@
+/* revised_fairing.mac */
+/* Take Mohammadian's polynomial at face value */
+/* PJ, 26-Aug-2013 */
+a: 0.0026$
+b: 0.0211$
+g: a*s^4 - b*s^3;
+dgds: diff(g,s,1);
+d2gds2: diff(g,s,2);
+soln: solve(d2gds2=0,s),numer;
+end_s: soln[1];
+end_g: ev(g,s=end_s),numer;
+end_dgds: ev(dgds,s=end_s),numer;
+L: quad_qags(sqrt(1+dgds^2), s, 0, 4.0577), numer;
+

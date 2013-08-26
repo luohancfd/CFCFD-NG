@@ -1,6 +1,7 @@
 # convex-ramp.py
 # PJ, 15-Aug-2013
-# Model of Mohammadian's convex-ramp experiment. 
+# Model of Mohammadian's convex-ramp experiment.
+# Revised 26-Aug-2013 to take his polynomial at face value. 
 
 gdata.title = "Mohammadian convex ramp."
 print gdata.title
@@ -20,6 +21,8 @@ mm = 1.0e-3 # metres per mm
 def ramp(t):
     """
     Parametric definition of ramp profile in xy-plane.
+
+    Here, we join the initial straight 18-degree ramp to the polynomial.
     """
     alpha = 18.0*math.pi/180.0 # angle of initial straight section
     sin18 = math.sin(alpha)
@@ -28,21 +31,28 @@ def ramp(t):
     x_join_inch = 3.0
     y_join_inch = x_join_inch * tan18
     L1 = x_join_inch/cos18 # length of initial straight section
-    L2 = 4.026 # length of fairing (computed via maxima)
+    L2 = 4.14677 # length of fairing (computed via maxima)
     t2 = (L1+L2) * t
     if t2 < L1:
         x_inch = t2 * cos18
         y_inch = t2 * sin18
     else:
-        s = t2 - L1
-        g = 0.00263605677 * s**4 - 0.020824848477 * s**3
+        s = (t2 - L1)/L2 * 4.0577 
+        g = 0.0026 * s**4 - 0.0211 * s**3
         x_inch = x_join_inch + s * cos18 - g * sin18
         y_inch = y_join_inch + s * sin18 + g * cos18
     return (x_inch*m_per_inch, y_inch*m_per_inch, 0.0)
 
-x,y,z = ramp(0.0); a0 = Vector(x,y,z); a1 = a0+Vector(0.0,5*mm) # leading edge
-x,y,z = ramp(1.0); b0 = Vector(x,y,z); b1 = b0+Vector(-10.0*mm,40*mm) # downstream end
-c0 = Vector(10*m_per_inch,b0.y); c1 = Vector(c0.x,b1.y) # end of model
+# leading edge of ramp
+x,y,z = ramp(0.0); a0 = Vector(x,y,z); a1 = a0+Vector(0.0,5*mm) 
+# downstream end of transition curve
+x,y,z = ramp(1.0); b0 = Vector(x,y,z); b1 = b0+Vector(-10.0*mm,40*mm)
+# For the final straight section, angle continues at final angle of transition.
+x_length = 10*m_per_inch - b0.x
+beta = -1.90*math.pi/180.0
+# end of model
+c0 = Vector(b0.x+x_length,b0.y+x_length*math.tan(beta))
+c1 = Vector(c0.x,b1.y)
 
 rcfx = RobertsClusterFunction(1,0,1.2)
 rcfy = RobertsClusterFunction(1,0,1.1)
