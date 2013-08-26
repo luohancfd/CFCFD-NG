@@ -937,40 +937,88 @@ def write_VTK_XML_unstructured_file(fp, grid, flow, binary_format):
     fp.write("</Points>\n")
     #
     fp.write("<Cells>\n")
-    fp.write(" <DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">\n")
+    fp.write(" <DataArray type=\"Int32\" Name=\"connectivity\"")
+    if binary_format:
+        fp.write(" format=\"appended\" offset=\"%d\">" % binary_data_offset)
+        binary_data = r""
+    else:
+        fp.write(" format=\"ascii\">\n")
     for k in range(nkc):
         for j in range(njc):
             for i in range(nic):
                 if two_D:
-                    fp.write(" %d %d %d %d\n" % (vtx_id[(i,j,k)], vtx_id[(i+1,j,k)],
-                                                 vtx_id[(i+1,j+1,k)], vtx_id[(i,j+1,k)]))
+                    ids = tuple([vtx_id[(i,j,k)], vtx_id[(i+1,j,k)],
+                                 vtx_id[(i+1,j+1,k)], vtx_id[(i,j+1,k)]])
+                    if binary_format:
+                        binary_data += struct.pack('> i i i i', ids[0], ids[1], ids[2], ids[3])
+                    else:
+                        fp.write(" %d %d %d %d\n" % ids)
                 else:
-                    fp.write(" %d %d %d %d %d %d %d %d\n" % 
-                             (vtx_id[(i,j,k)], vtx_id[(i+1,j,k)], 
-                              vtx_id[(i+1,j+1,k)], vtx_id[(i,j+1,k)],
-                              vtx_id[(i,j,k+1)], vtx_id[(i+1,j,k+1)], 
-                              vtx_id[(i+1,j+1,k+1)], vtx_id[(i,j+1,k+1)]))
+                    ids = tuple([vtx_id[(i,j,k)], vtx_id[(i+1,j,k)], 
+                                 vtx_id[(i+1,j+1,k)], vtx_id[(i,j+1,k)],
+                                 vtx_id[(i,j,k+1)], vtx_id[(i+1,j,k+1)], 
+                                 vtx_id[(i+1,j+1,k+1)], vtx_id[(i,j+1,k+1)]])
+                    if binary_format:
+                        binary_data += struct.pack('> i i i i i i i i', ids[0], ids[1], ids[2],
+                                                   ids[3], ids[4], ids[5], ids[6], ids[7])
+                    else:
+                        fp.write(" %d %d %d %d %d %d %d %d\n" % ids)
     fp.write(" </DataArray>\n")
-    fp.write(" <DataArray type=\"Int32\" Name=\"offsets\">\n")
+    if binary_format:
+        binary_data_count = struct.pack('> I', len(binary_data)) # 4-byte count of bytes
+        binary_data_string += binary_data_count
+        binary_data_string += binary_data
+        binary_data_offset += len(binary_data_count) + len(binary_data)
+    #
+    fp.write(" <DataArray type=\"Int32\" Name=\"offsets\"")
+    if binary_format:
+        fp.write(" format=\"appended\" offset=\"%d\">" % binary_data_offset)
+        binary_data = r""
+    else:
+        fp.write(" format=\"ascii\">\n")
     # Since all of the point-lists are concatenated, these offsets into the connectivity
     # array specify the end of each cell.
     for k in range(nkc):
         for j in range(njc):
             for i in range(nic):
                 if two_D:
-                    fp.write(" %d\n" % (4*(1+i+j*nic)))
+                    conn_offset = 4*(1+i+j*nic)
                 else:
-                    fp.write(" %d\n" % (8*(1+i+j*nic+k*(nic*njc))))
+                    conn_offset = 8*(1+i+j*nic+k*(nic*njc))
+                if binary_format:
+                    binary_data += struct.pack('> i', conn_offset)
+                else:
+                    fp.write(" %d\n" % conn_offset)
     fp.write(" </DataArray>\n")
-    fp.write(" <DataArray type=\"UInt8\" Name=\"types\">\n")
+    if binary_format:
+        binary_data_count = struct.pack('> I', len(binary_data)) # 4-byte count of bytes
+        binary_data_string += binary_data_count
+        binary_data_string += binary_data
+        binary_data_offset += len(binary_data_count) + len(binary_data)
+    #
+    fp.write(" <DataArray type=\"UInt8\" Name=\"types\"")
+    if binary_format:
+        fp.write(" format=\"appended\" offset=\"%d\">" % binary_data_offset)
+        binary_data = r""
+    else:
+        fp.write(" format=\"ascii\">\n")
+    if two_D:
+        type_value = 9 # VTK_QUAD
+    else:
+        type_value = 12 # VTK_HEXAHEDRON
     for k in range(nkc):
         for j in range(njc):
             for i in range(nic):
-                if two_D:
-                    fp.write(" %d\n" % 9) # VTK_QUAD
+                if binary_format:
+                    binary_data += struct.pack('> B', type_value)
                 else:
-                    fp.write(" %d\n" % 12) # VTK_HEXAHEDRON
+                    fp.write(" %d\n" % type_value)
     fp.write(" </DataArray>\n")
+    if binary_format:
+        binary_data_count = struct.pack('> I', len(binary_data)) # 4-byte count of bytes
+        binary_data_string += binary_data_count
+        binary_data_string += binary_data
+        binary_data_offset += len(binary_data_count) + len(binary_data)
     fp.write("</Cells>\n")
     #
     fp.write("<CellData>\n")
