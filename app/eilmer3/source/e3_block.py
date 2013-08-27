@@ -1319,11 +1319,12 @@ class SuperBlock2D(object):
     .. Original implementation by Rowan; refactored (lightly) by PJ Nov-2010.
     """
 
-    __slots__ = 'psurf', 'bc_list', 'nni', 'nnj', 'nbi', 'nbj', 'cf_list',\
+    __slots__ = 'psurf', 'grid', 'bc_list', 'nni', 'nnj', 'nbi', 'nbj', 'cf_list',\
                 'fill_condition', 'label', 'blks', 'wc_bc_list'
     
     def __init__(self,
                  psurf=None,
+                 grid=None,
                  nni=2,
                  nnj=2,
                  nbi=1,
@@ -1344,8 +1345,15 @@ class SuperBlock2D(object):
         """
         self.blks = []
         # 1. Create the large grid for the super-block
-        grid = StructuredGrid((nni+1, nnj+1))
-        grid.make_grid_from_surface(psurf, cf_list)
+        if psurf != None:
+            print "Generate a grid from a user-specified parametric surface."
+            self.grid = StructuredGrid((nni+1, nnj+1))
+            self.grid.make_grid_from_surface(psurf, cf_list)
+        elif grid != None:
+            print "Accept grid as given, but subdivide."
+            self.grid = grid
+            nni = self.grid.ni-1
+            nnj = self.grid.nj-1
         # 2. Create lists of the subgrid indices
         si_list = subdivide_vertex_range(nni, nbi)
         sj_list = subdivide_vertex_range(nnj, nbj)
@@ -1356,7 +1364,7 @@ class SuperBlock2D(object):
                 sublabel = label + "-" + str(i) + "-" + str(j)
                 imin = si_list[i][0]; imax = si_list[i][1]
                 jmin = sj_list[j][0]; jmax = sj_list[j][1]
-                subgrid = grid.create_subgrid(imin, imax, jmin, jmax)
+                subgrid = self.grid.create_subgrid(imin, imax, jmin, jmax)
                 #
                 # Transfer the boundary conditions.
                 bc_newlist=[SlipWallBC(), SlipWallBC(), SlipWallBC(), SlipWallBC()]
