@@ -680,6 +680,9 @@ def write_heat_flux_profile(outputFileName, heat_flux_list_str, tindx, nblock, h
     fp.write("# Column 7: Cell density, rho_cell (kg/m**3)\n")
     fp.write("# Column 8: Cell normal velocity, un_cell (m/s)\n")
     fp.write("# Column 9: Wall Reynolds number, Re_wall (ND)\n")
+    fp.write("# Column 10: pos.x (m)\n")
+    fp.write("# Column 11: pos.y (m)\n")
+    fp.write("# Column 12: pos.z (m)\n")
     heat_flux_lists = heat_flux_list_str.split(';')
     print "heat_flux_lists = ", heat_flux_lists
     first = True
@@ -710,14 +713,12 @@ def write_heat_flux_profile(outputFileName, heat_flux_list_str, tindx, nblock, h
 				first = False
 			    L += vabs(pos-pos_prev)
 			    pos_prev = pos
-			    fp.write("%e %e %e %e %e %e %e %e %e\n" % ( L, iface_data.qc, 
-						iface_data.qd, iface_data.qr,
-						iface_data.Twall,
-						iface_data.Tcell,
-						iface_data.rho_cell,
-						iface_data.un_cell,
-						iface_data.Re_wall ) )
-    
+			    fp.write("%e %e %e %e %e %e %e %e %e %e %e %e\n" % \
+                                         ( L, iface_data.qc, iface_data.qd, iface_data.qr,
+                                           iface_data.Twall, iface_data.Tcell,
+                                           iface_data.rho_cell, iface_data.un_cell, iface_data.Re_wall, 
+                                           iface_data.x, iface_data.y, iface_data.z) )
+    #
     return 0
     
 # --------------------------------------------------------------------
