@@ -16,8 +16,12 @@
 -- Reference:
 --  Evans, J.S. and Shexnayder Jr, C.J. (1980)
 --
+-- Berglund, M., Fedina, E., Fureby, C., and Tegner, J.
+-- ``Finite Rate Chemistry Large-Eddy Simulation of Self-Ignition in a
+-- Supersonic Combustion Ramjet,'' AIAA Journal, Vol. 48, No. 3, March 2010.
+--
 -- Updated: FZ, 18th Oct, St Lucia
--- Arrhenius parameters changed to reflect the correct values in Bergland paper
+-- Arrhenius parameters changed to reflect the correct values in Berglund paper
 --
 -- Species used: H2, O2, OH, H2O
 
@@ -32,4 +36,3 @@ reaction{
    fr={'Arrhenius', A=1.83e18, n=0.0, T_a=11067.0},
    label='r2'
 }
-
