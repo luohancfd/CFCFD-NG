@@ -2,37 +2,47 @@
 -- Date: 07-Oct-2010
 -- Place: Centre for Hypersonics, UQ
 --
--- This file provides one chemical kinetic descriptions
--- of hydrogen combustion.  You can select between the various
--- options below by setting the 'model' variable below to one of
--- the strings listed below.
+-- Updates, tweaks, etc. by Fabian Zander and Rowan Gollan.
 --
--- IN_AIR   : a 4-species, 2-reactions description of hydrogen
---            combustion in air (N2 and O2)
+-- References
+-- ----------
+-- Rogers, R.C. and Chinitz, W. (1983)
+-- Using a Global Hydrpgen-Air Combustion Model in Turbulent
+-- Reacting Flow
+-- AIAA Journal, 21:4, pp. 586--592
 --
--- The numbering of reactions in this file corresponds to
--- Table 2 in Berglund et al (2010).
+-- Berglund, M., Fedina, E., Fureby, C., and Tegner, J. (2010)
+-- Finite Rate Chemistry Large-Eddy Simulation of Self-Ignition in a
+-- Supersonic Combustion Ramjet
+-- AIAA Journal, 48:3, March 2010.
+-- 
+-- Notes
+-- -----
+-- 1. The pre-exponential factor 'A' in the Rogers and Chinitz
+-- rate is dependent on the equivalence ratio. Hence, the
+-- global equivalence ratio should be set when using this model.
 --
--- Reference:
---  Evans, J.S. and Shexnayder Jr, C.J. (1980)
+-- 2. I (Rowan Gollan) don't recommend this scheme. It's troublesome
+-- in a numerical sense. Rogers and Chinitz discuss some of this
+-- in their paper.
 --
--- Berglund, M., Fedina, E., Fureby, C., and Tegner, J.
--- ``Finite Rate Chemistry Large-Eddy Simulation of Self-Ignition in a
--- Supersonic Combustion Ramjet,'' AIAA Journal, Vol. 48, No. 3, March 2010.
---
--- Updated: FZ, 18th Oct, St Lucia
--- Arrhenius parameters changed to reflect the correct values in Berglund paper
---
--- Species used: H2, O2, OH, H2O
+
+phi = 1.0
+A4 = (8.917*phi + 31.433/phi - 28.950)*1e47
+A5 = (2.000 + 1.333/phi - 0.833*phi)*1e64
+
+R_cal = 1.9872041 -- cal/(K.mol)
 
 reaction{
-   'H2 + O2 <=> OH + OH',
-   fr={'Arrhenius', A=2.30e16, n=0.0, T_a=5134.0},
+   'H2 + O2 <=> 2OH',
+   fr={'Arrhenius', A=A4, n=-10, T_a=4865/R_cal},
    label='r1'
 }
 
 reaction{
-   'OH + OH + H2 <=> H2O + H2O',
-   fr={'Arrhenius', A=1.83e18, n=0.0, T_a=11067.0},
+   '2OH + H2 <=> 2H2O',
+   fr={'Arrhenius', A=A5, n=-13, T_a=42500/R_cal},
    label='r2'
 }
+
+
