@@ -347,9 +347,11 @@ def state_builder(cfg):
     #right conditions, and then mach number at the change over from steady to
     #unsteady expansion, this was based on calcs done by RGM
 
-    primary_driver_x2 = dict([('He:1.0', [Gas({'He':1.0},inputUnits='moles'),2.15]),
-                       ('He:0.80,Ar:0.20',[Gas({'He':0.8,'Ar':0.2},inputUnits='moles'),1]),
-                        ('He:0.90,Ar:0.10',[Gas({'He':0.9,'Ar':0.1},inputUnits='moles'),1.59])])
+    primary_driver_x2 = {'He:1.0':[Gas({'He':1.0},inputUnits='moles'),2.15],
+                       'He:0.80,Ar:0.20':[Gas({'He':0.8,'Ar':0.2},inputUnits='moles'),1],
+                        'He:0.90,Ar:0.10':[Gas({'He':0.9,'Ar':0.1},inputUnits='moles'),1.59],
+                        'He:0.85,Ar:0.15':[Gas({'He':0.85,'Ar':0.15},inputUnits='moles'),1.385],
+                        'He:0.825,Ar:0.175':[Gas({'He':0.825,'Ar':0.175},inputUnits='moles'),1.256]                   }
                         
     primary_driver_x3 = dict([('He:0.60,Ar:0.40',[Gas({'He':0.6,'Ar':0.4},inputUnits='moles'),2.23])])
     
