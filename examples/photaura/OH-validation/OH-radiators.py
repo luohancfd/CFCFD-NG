@@ -2,9 +2,9 @@
 
 # first the spectral data
 gdata.spectral_model = "photaura"
-gdata.lambda_min = 300.0
-gdata.lambda_max = 330.0 
-gdata.spectral_points = 50000
+gdata.lambda_min = 305.0
+gdata.lambda_max = 320.0 
+gdata.spectral_points = 5000
 
 # now the radiators
 # dictionary of indices

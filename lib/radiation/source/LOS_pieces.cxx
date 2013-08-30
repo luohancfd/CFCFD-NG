@@ -163,8 +163,8 @@ double LOS_data::integrate_LOS( SpectralIntensity &S )
             // newly radiated intensity
             double tmpA = j_nu / kappa_nu * ( 1.0 - decay_factor );
             if ( isnan(tmpA) ) {
-                // tmpA will go NaN when kappa_nu is zero.  Intensity is zero.
-                tmpA = 0.0;
+                // tmpA will go NaN when kappa_nu is zero.  Gas is optically thin.
+                tmpA = j_nu * ds;
             }
             // incoming intensity
             double tmpB = S.I_nu[inu] * decay_factor;

@@ -12,3 +12,4 @@ input_data.Gaussian_HWHM    = 1.25 # Ang - instrumental broadening:same as in LI
 input_data.Lorentzian_HWHM  = 0 # Ang
 input_data.sampling_rate    = 1
 input_data.problem          = "pT"
+input_data.show_plots       = False

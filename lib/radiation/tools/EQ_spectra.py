@@ -162,7 +162,6 @@ def run_calculation(input_data):
     LOS.set_rad_point(0,Q,Q_rE_rad,tube_D*0.5,tube_D)
     t1 = time()
     print "Wall time = %f seconds" % ( t1-t0 ) 
-    LOS.write_point_to_file(0,"coefficient_spectra.txt")
     S = SpectralIntensity( rsm )
     I_total = LOS.integrate_LOS( S ) 
     print "I_total = %0.3e W/m2" % I_total
@@ -179,17 +178,25 @@ def run_calculation(input_data):
         print "Apparatus function with name: %s not recognised." % apparatus_fn
         sys.exit()
     
-    # apply apparatus function
+    # apply apparatus function and write spectra to files
     if A!=None:
         S.apply_apparatus_function(A)
     S.write_to_file("intensity_spectra.txt" ) 
     
+    LOS.get_rpoint_pointer(0).X_.write_to_file("coefficient_spectra.txt")
+    if A!=None:
+        LOS.get_rpoint_pointer(0).X_.apply_apparatus_function(A)
+    LOS.get_rpoint_pointer(0).X_.write_to_file("coefficient_spectra_with_AF.txt")
+    
     if show_plots:
         JvW = YvX("coefficient_spectra.txt" )
-        JvW.plot_data(xlabel="Wavelength, lambda (nm)", ylabel="Emission coefficient, j_lambda (W/m2-m-sr)", new_plot=True, show_plot=True, include_integral=False, logscale_y=True )
+        JvW.plot_data(title="Emission coefficient spectra without apparatus function",xlabel="Wavelength, lambda (nm)", ylabel="Emission coefficient, j_lambda (W/m2-m-sr)", new_plot=True, show_plot=True, include_integral=False, logscale_y=True )
+        del JvW
+        JvW = YvX("coefficient_spectra_with_AF.txt" )
+        JvW.plot_data(title="Emission coefficient spectra with apparatus function",xlabel="Wavelength, lambda (nm)", ylabel="Emission coefficient, j_lambda (W/m2-m-sr)", new_plot=True, show_plot=True, include_integral=False, logscale_y=True )
         del JvW
         IvW = YvX("intensity_spectra.txt" )
-        IvW.plot_data(xlabel="Wavelength, lambda (nm)", ylabel="Spectral radiance, I_lambda (W/m2-m-sr)", new_plot=True, show_plot=True, include_integral=False, logscale_y=True )
+        IvW.plot_data(title="Intensity spectra with apparatus function",xlabel="Wavelength, lambda (nm)", ylabel="Spectral radiance, I_lambda (W/m2-m-sr)", new_plot=True, show_plot=True, include_integral=False, logscale_y=True )
         del IvW
     
     # check if the planck intensity spectrum has been requested
