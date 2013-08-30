@@ -29,7 +29,7 @@ private:
     std::vector<Binary_interaction*> unique_BIs_;
     std::vector< std::vector<Binary_interaction*> > BI_table_;
 
-    int nsp_, nsp_se_, e_index_;
+    int nsp_, nsp_se_, e_index_, iTe_;
     double ignore_mole_fraction_;
     std::vector<double> m_;
     std::vector<int> Z_;

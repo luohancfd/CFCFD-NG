@@ -35,6 +35,7 @@ public:
     double mu;                 /**< \brief viscosity, Pa.s                 */
     std::vector<double> k;     /**< \brief array of heat flux coefficients, W/(m.K) */
     matrix D_AB;               /**< \brief binary diffusion coefficients.  */
+    double sigma;              /**< \brief electrical conductivity, S/m    */
     // -- composition
     std::vector<double> massf; /**< \brief species mass fractions          */
     double quality;            /**< \brief vapour quality                  */

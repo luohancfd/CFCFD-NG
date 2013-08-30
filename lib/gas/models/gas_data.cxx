@@ -56,6 +56,7 @@ Gas_data::Gas_data(Gas_model *gm)
     p_e = 0.0;
     a = 0.0;
     mu = 0.0;
+    sigma = 0.0;
     quality = 1.0;
     massf.resize(nsp, 0.0);
     T.resize(nmodes, 0.0);
@@ -140,6 +141,7 @@ void Gas_data::print_values(bool print_transport_data) const
 	    }
 	    cout << endl;
 	}
+	cout << "sigma= " << sigma << endl;
     }
     for( size_t isp = 0; isp < massf.size(); ++isp ) {
 	cout << "massf[" << isp << "]= " << massf[isp] << " ";
@@ -181,6 +183,7 @@ void Gas_data::write_values(string fname, bool print_transport_data) const
             }
             gasfile << endl;
         }
+        gasfile << "sigma= " << sigma << endl;
     }
     for( size_t isp = 0; isp < massf.size(); ++isp ) {
         gasfile << "massf[" << isp << "]= " << massf[isp] << " ";
@@ -199,6 +202,7 @@ void Gas_data::copy_values_from(const Gas_data &src)
     a = src.a;
     mu = src.mu;
     quality = src.quality;
+    sigma = src.sigma;
     // 2. vectors
     // 2a. loop over thermal modes
     for ( size_t itm=0; itm<src.e.size(); ++itm ) {
@@ -224,6 +228,7 @@ void Gas_data::average_values_from(const Gas_data &src0, double alpha0,
     p_e = alpha0 * src0.p_e + alpha1 * src1.p_e;
     a = alpha0 * src0.a + alpha1 * src1.a;
     mu = alpha0 * src0.mu + alpha1 * src1.mu;
+    sigma = alpha0 * src0.sigma + alpha1 * src1.sigma;
     // 2. vectors
     // 2a. loop over thermal modes
     for ( size_t itm=0; itm<src0.e.size(); ++itm ) {
@@ -267,6 +272,7 @@ int Gas_data::accumulate_values_from(const Gas_data &src, double alpha)
 		D_AB[i][j] = alpha * D_AB[i][j] + src.D_AB[i][j];
 	    }
 	}
+	sigma = alpha * sigma + src.sigma;
     }
     return SUCCESS;
 } // end Gas_data::accumulate_values_from()
@@ -286,6 +292,7 @@ double* Gas_data::copy_values_to_buffer(double *buf) const
 	    *buf++ = D_AB[i][j];
 	}
     }
+    *buf++ = sigma;
     for ( size_t isp = 0; isp < massf.size(); ++isp ) *buf++ = massf[isp];
     return buf;
 } // end Gas_data::copy_values_to_buffer()
@@ -305,6 +312,7 @@ double* Gas_data::copy_values_from_buffer(double *buf)
 	    D_AB[i][j] = *buf++;
 	}
     }
+    sigma = *buf++;
     for ( size_t isp = 0; isp < massf.size(); ++isp ) massf[isp] = *buf++;
     return buf;
 } // end Gas_data::copy_values_from_buffer()

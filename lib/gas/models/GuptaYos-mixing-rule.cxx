@@ -102,9 +102,11 @@ GuptaYos_mixing_rule( lua_State *L)
     	    ost << "Species 'e_minus' must be the last species in the list!" << endl;
     	    input_error(ost);
     	}
+    	iTe_ = species_[e_index_]->get_iT_trans();
     }
     else {
     	nsp_se_ = nsp_;
+    	iTe_ = -1;
     }
     lua_getglobal(L, "ignore_mole_fraction");
     if ( lua_isnil(L, -1) ) {
@@ -201,6 +203,7 @@ s_eval_transport_coefficients(Gas_data &Q)
     // 0. Set all transport parameters to zero
     Q.mu = 0.0;
     for ( size_t itm=0; itm<Q.k.size(); ++itm )	Q.k[itm] = 0.0;
+    Q.sigma = 0.0;
     
     // 1. Calculate mol-fractions
     convert_massf2molef( Q.massf, m_, x_ );
@@ -309,6 +312,22 @@ s_eval_transport_coefficients(Gas_data &Q)
     	Q.k[XXX->get_iT_rot()] += ( numerator / denominator ) * PC_k_SI;
     }
     
+    if (e_index_ != -1) {
+        // 8. Calculate electrical conductivity
+        // Ref: Equation 7 in NASA TM No. RAD-TM-63-7 by Yos.
+        // Note: This is a first order approximation, and should eventually be
+        //       replaced by a higher order method.
+        if ( x_[e_index_] > ignore_mole_fraction_ ) {
+            numerator = x_[e_index_];
+            denominator = 0.0;
+            for ( int isp=0; isp<nsp_se_; ++isp ) {
+                if ( x_[isp] < ignore_mole_fraction_ ) continue;
+                denominator += x_[isp] * BI_table_[e_index_][isp]->get_Delta_1();
+            }
+            Q.sigma = PC_e_SI * PC_e_SI / PC_k_SI / Q.T[iTe_] * numerator / denominator;
+        }
+    }
+
     return SUCCESS;
 }
 
