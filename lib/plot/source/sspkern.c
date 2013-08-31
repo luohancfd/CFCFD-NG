@@ -177,7 +177,6 @@ char canvas[64];
 
 #define  Lstr  10
 #define  points_per_mm  2.8453
-int      active_ps_path;
 double   psOffsetX, psOffsetY;
 
 /*
@@ -393,7 +392,6 @@ int ssp_BeginPlot( char *canvas_path, char *out_file ) {
             fprintf (plotfile, "PW%f;PT%f;\n", 0.35, 0.35);
 
         } else if (outdevice == PSCRIPT) {
-            active_ps_path = 0;
             if (portrait == 1) {
                 bbx1 = psOffsetX * points_per_mm;
                 bby1 = psOffsetY * points_per_mm;
@@ -549,12 +547,6 @@ if (record_in_file)
 
    else if (outdevice == PSCRIPT)
       {
-      if (active_ps_path == 1)
-         {
-         /* Stroke the active path to finish it. */
-         fprintf (plotfile, "s\n");
-         active_ps_path = 0;
-         }
       fprintf (plotfile, "showpage\n");
       fprintf (plotfile, "%%%%Trailer\n");
       fprintf (plotfile, "restore\n");
@@ -1036,11 +1028,6 @@ int ssp_SetHSBColour (double h, double s, double b) {
        if (outdevice == HPGL) { 
           ;
        } else if (outdevice == PSCRIPT) {
-          if (active_ps_path == 1) {
-             /* Stroke the active path to finish it. */
-             fprintf (plotfile, "s\n");
-             active_ps_path = 0;
-          } /* end if active_ps_path */
           fprintf (plotfile, "%4.2f %4.2f %4.2f sc\n", h, s, b);
        } /* end if outdevice... */
     } /* end if record_in_file */
@@ -1118,11 +1105,6 @@ int ssp_SetNoColour( void ) {
         if (outdevice == HPGL) { 
             ; 
         } else if (outdevice == PSCRIPT) {
-            if (active_ps_path == 1) {
-                /* Stroke the active path to finish it. */
-                fprintf (plotfile, "s\n");
-                active_ps_path = 0;
-            }
             fprintf (plotfile, "0.0 sg\n");
         } else if (outdevice == GIF) {
             gif_colour = gif_black;
@@ -1203,12 +1185,6 @@ if (record_in_file)
       }
    else if (outdevice == PSCRIPT)
       {
-      if (active_ps_path == 1)
-         {
-         /* Stroke the active path to finish it. */
-         fprintf (plotfile, "s\n");
-         active_ps_path = 0;
-         }
       fprintf (plotfile, "%9.2f mm setlinewidth\n", thickness);
       }
    }
@@ -1322,18 +1298,14 @@ int ssp_Plot( double x, double y ) {
             fprintf(plotfile, "PD;PA%d,%d;\n",
 	            (int)(x2 * hp2mm), (int)(y2 * hp2mm) );
         } else if (outdevice == PSCRIPT) {
-            if (active_ps_path == 0) {
-                /* Start a new active path. */
-                active_ps_path = 1;
-                /* First, move to the old point. */
-                ssp_Compact (x1 * points_per_mm, xstr);
-                ssp_Compact (y1 * points_per_mm, ystr);
-                fprintf (plotfile, "n %s %s m ", xstr, ystr);
-            } /* end if active_ps_path */
-            /* Now, line_to the new point. */
+	    /* First, move to the old point. */
+	    ssp_Compact (x1 * points_per_mm, xstr);
+	    ssp_Compact (y1 * points_per_mm, ystr);
+	    fprintf (plotfile, "n %s %s m ", xstr, ystr);
+            /* Now, line_to the new point and stroke path. */
             ssp_Compact (x2 * points_per_mm, xstr);
             ssp_Compact (y2 * points_per_mm, ystr);
-            fprintf (plotfile, "%s %s l\n", xstr, ystr);
+            fprintf (plotfile, "%s %s l s\n", xstr, ystr);
         } else if (outdevice == GIF) {
             xp1 = (int) (x1 / PlotSizeX * PlotPixelsX);
             yp1 = (int) ((1.0 - y1 / PlotSizeY) * PlotPixelsY);
@@ -1397,14 +1369,8 @@ int ssp_Move( double x, double y ) {
             fprintf (plotfile, "PU;PA%d,%d;\n",
 	            (int)(x2 * hp2mm), (int)(y2 * hp2mm) );
         } else if (outdevice == PSCRIPT) {
-            if (active_ps_path == 1) {
-               /* Stroke the active path to finish it. */
-               fprintf (plotfile, "s\n");
-               active_ps_path = 0;
-            }
             /*
-             * Otherwise do nothing as the current pen position is remembered by
-             * the ssp package.
+             * Do nothing; the current pen position is remembered by the ssp package.
              */
         } /* end if outdevice */
     } /* end if record in file */
@@ -1530,12 +1496,6 @@ int ssp_Polygon (int n, double x[], double y[],
 	           (int)(xpage[0] * hp2mm), (int)(ypage[0] * hp2mm) );
 
         } else if (outdevice == PSCRIPT) {
-            if (active_ps_path == 1) {
-                /* Stroke the active path to finish it. */
-                fprintf (plotfile, "s\n");
-                active_ps_path = 0;
-            } /* end if active_ps_path */
-
             /* Set up the path defining the border. */
             ssp_Compact (xpage[0] * points_per_mm, xstr);
             ssp_Compact (ypage[0] * points_per_mm, ystr);
@@ -1651,12 +1611,7 @@ if (record_in_file)
       }
    else if (outdevice == PSCRIPT)
       {
-      if (active_ps_path == 1)
-         {
-         /* Stroke the active path to finish it. */
-         fprintf (plotfile, "s\n");
-         active_ps_path = 0;
-         }
+      /* do nothing */
       }
    }
 
