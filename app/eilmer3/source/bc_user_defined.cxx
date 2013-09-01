@@ -585,6 +585,7 @@ int UserDefinedBC::eval_iface_udf(double t, size_t i, size_t j, size_t k,
     global_data *gdp = get_global_data_ptr();
     double dt_global = gdp->dt_global;
     size_t t_level = gdp->t_level;
+    double area = IFace->area[t_level];
     
     // Call the user-defined function which leaves a table of wall conditions
     // at the top of the stack.
@@ -596,6 +597,7 @@ int UserDefinedBC::eval_iface_udf(double t, size_t i, size_t j, size_t k,
     lua_pushnumber(L, x); lua_setfield(L, -2, "x");
     lua_pushnumber(L, y); lua_setfield(L, -2, "y");
     lua_pushnumber(L, z); lua_setfield(L, -2, "z");
+    lua_pushnumber(L, area); lua_setfield(L, -2, "area");
     lua_pushnumber(L, csX); lua_setfield(L, -2, "csX");
     lua_pushnumber(L, csY); lua_setfield(L, -2, "csY");
     lua_pushnumber(L, csZ); lua_setfield(L, -2, "csZ");

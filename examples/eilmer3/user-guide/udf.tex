@@ -187,6 +187,7 @@ to the \texttt{ghost\_cell} function. Additionally, \texttt{args} contains:\\
 \begin{tabular}{lp{12cm}}
  \texttt{dt} &  the current global timestep, in seconds \\
  \texttt{t\_level} & an integer denoting the level within the explicit update\\
+ \texttt{area} & the interface area (at \texttt{t\_level}, which is important for moving grid simulations)\\
  \texttt{fs} &  a table containing the present flow state data for the interface. Note that typically
                 the user will provide new flow state data at the end of the function.\\
 \end{tabular}\\
