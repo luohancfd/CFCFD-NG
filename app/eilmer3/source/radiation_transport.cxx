@@ -326,6 +326,13 @@ DiscreteTransfer::initialise()
     	cf_ = new CellFinder3D();	// use default nvertices
     }
     
+    // initialise geometry data
+    ndim_ = G.dimensions;
+    if ( G.dimensions == 2 && !get_axisymmetric_flag() )
+        planar_ = true;
+    else
+        planar_ = false;
+
     // initialise cells and interfaces from block data
     // NOTE: not doing in parallel as this should be very quick
     cells_.resize( G.nblock );
@@ -392,11 +399,6 @@ DiscreteTransfer::initialise()
 
 void DiscreteTransfer::compute_Q_rad_for_flowfield()
 {
-    // Initialise geometry data
-    global_data &G = *get_global_data_ptr();
-    bool planar_flag = false;
-    if ( G.dimensions == 2 && !get_axisymmetric_flag() ) planar_flag = true;
-    
     // 0. Loop over spectral blocks (CHECKME)
     for ( size_t isb=0; isb < static_cast<size_t>(rsm_[0]->get_spectral_blocks()); ++isb ) {
 	for ( size_t irsm=0; irsm<rsm_.size(); ++irsm ) {
@@ -524,7 +526,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 		    nrays = int( double(nrays_) * cell->E_rad_ / cell_E_rad_total_max );
 		}
 		if ( nrays==0 ) nrays = 1;
-		this->initialise_rays_for_cell( cell, nrays, G.dimensions, planar_flag );
+		this->initialise_rays_for_cell( cell, nrays );
 #               if VERBOSE_RADIATION_TRANSPORT
 		cout << "Thread " << omp_get_thread_num() << ": Tracing rays for cell: " << ic << " in block: " << ib << endl;
 #               endif
@@ -547,7 +549,7 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 		    nrays = int( double(nrays_) * interface->E_rad_ / interface_E_rad_total_max );
 	        }
 		if ( nrays==0 ) nrays = 1;
-		this->initialise_rays_for_interface( interface, nrays_, G.dimensions, planar_flag );
+		this->initialise_rays_for_interface( interface, nrays_ );
 #               if VERBOSE_RADIATION_TRANSPORT
 		cout << "Thread " << omp_get_thread_num() << ": Tracing rays for interface: " << iface << " in block: " << ib << endl;
 #               endif
@@ -764,12 +766,12 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 }
 
 
-void DiscreteTransfer::initialise_rays_for_cell( RayTracingCell * cell, size_t nrays, size_t ndim, bool planar )
+void DiscreteTransfer::initialise_rays_for_cell( RayTracingCell * cell, size_t nrays )
 {
     // clear any existing rays
     cell->rays_.resize(0);
     
-    if ( planar == true ) {
+    if ( planar_ == true ) {
 	// uniform planar ray distribution
 	double alpha = 0.0, theta = 0.0, phi = 0.0, domega = 0.0;
 	for ( size_t iray=0; iray<nrays; ++iray ) {
@@ -814,10 +816,10 @@ void DiscreteTransfer::initialise_rays_for_cell( RayTracingCell * cell, size_t n
 	    else if ( x >0.0 && z==0.0 ) theta = 0.0;
 	    // else: impossible!
 	    
-	    if ( ndim==2 ) {
+	    if ( ndim_==2 ) {
 		cell->rays_.push_back( new RayTracingRay2D( theta, phi, domega, cell->origin_ ) );
 	    }
-	    else if ( ndim==3 ) {
+	    else if ( ndim_==3 ) {
 		cell->rays_.push_back( new RayTracingRay3D( theta, phi, domega, cell->origin_ ) );
 	    }
 	}
@@ -826,12 +828,12 @@ void DiscreteTransfer::initialise_rays_for_cell( RayTracingCell * cell, size_t n
     return;
 }
 
-void DiscreteTransfer::initialise_rays_for_interface( RayTracingInterface * interface, size_t nrays, size_t ndim, bool planar )
+void DiscreteTransfer::initialise_rays_for_interface( RayTracingInterface * interface, size_t nrays )
 {
     // clear any existing rays
     interface->rays_.resize(0);
     
-    if ( planar == true ) {
+    if ( planar_ == true ) {
 	// uniform planar ray distribution
 	double alpha = 0.0, theta = 0.0, phi = 0.0, domega = 0.0;
 	for ( size_t iray=0; iray<nrays; ++iray ) {
@@ -876,10 +878,10 @@ void DiscreteTransfer::initialise_rays_for_interface( RayTracingInterface * inte
 	    else if ( x >0.0 && z==0.0 ) theta = 0.0;
 	    // else: impossible!
 	    
-	    if ( ndim==2 ) {
+	    if ( ndim_==2 ) {
 		interface->rays_.push_back( new RayTracingRay2D( theta, phi, domega, interface->origin_ ) );
 	    }
-	    else if ( ndim==3 ) {
+	    else if ( ndim_==3 ) {
 		interface->rays_.push_back( new RayTracingRay3D( theta, phi, domega, interface->origin_ ) );
 	    }
 	}
@@ -995,7 +997,7 @@ MonteCarlo::str() const
 int
 MonteCarlo::initialise()
 {
-    // initialise geometry data
+    // initialise the cell finder data
     global_data &G = *get_global_data_ptr();
     size_t nfaces = 0;
     if ( G.dimensions == 2 ) {
@@ -1007,6 +1009,13 @@ MonteCarlo::initialise()
     	nfaces = 6;
     }
     
+    // initialise geometry data
+    ndim_ = G.dimensions;
+    if ( G.dimensions == 2 && !get_axisymmetric_flag() )
+        planar_ = true;
+    else
+        planar_ = false;
+
     // Initialise random number generator
     int32 seed = (int32)time(0);
     rg_ = new CRandomMersenne(seed);
@@ -1096,11 +1105,6 @@ MonteCarlo::initialise()
 
 void MonteCarlo::compute_Q_rad_for_flowfield()
 {
-    // Initialise geometry data
-    global_data &G = *get_global_data_ptr();
-    bool planar_flag = false;
-    if ( G.dimensions == 2 && !get_axisymmetric_flag() ) planar_flag = true;
-    
     // 0. Loop over spectral blocks (CHECKME)
     for ( size_t isb=0; isb < static_cast<size_t>(rsm_[0]->get_spectral_blocks()); ++isb ) {
 	for ( size_t irsm=0; irsm<rsm_.size(); ++irsm ) {
@@ -1186,17 +1190,21 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 #          	pragma omp parallel for private(iray) schedule(runtime)
 #          	endif
 		for ( iray=0; iray<nrays; ++iray ) {
-		    RayTracingRay * ray = this->create_new_ray_for_cell( cell, nrays, G.dimensions, planar_flag );
+		    RayTracingRay * ray = this->create_new_ray_for_cell( cell, nrays );
 		    double nu = cell->X_->random_frequency( rg_->Random() );
 		    // Each photon for a given cell has the same energy (domega is constant)
 		    double E = cell->X_->j_int.back() * cell->vol_ * ray->domega_;
 		    if ( E < E_min_ ) continue;
 		    // subtract emitted energy from origin cell
 		    cell->Q_rE_rad_temp_[omp_get_thread_num()] -= E / cell->vol_;
-		    if ( absorption_ == STANDARD_ABSORPTION )
-		        this->trace_ray_standard( ray, ib, ii, jj, kk, nu, E );
-		    else
-			this->trace_ray_partitioned_energy( ray, ib, ii, jj, kk, nu, E );
+		    for ( int iref=0; iref < MAX_REFLECTIONS; ++iref ) {
+			int status = FAILURE;
+		        if ( absorption_ == STANDARD_ABSORPTION )
+		            status = this->trace_ray_standard( ray, ib, ii, jj, kk, nu, E );
+		        else
+			    status = this->trace_ray_partitioned_energy( ray, ib, ii, jj, kk, nu, E );
+		        if ( status==SUCCESS || E < E_min_ ) break;
+		    }
 		    delete ray;
 		}
 	    }
@@ -1219,14 +1227,18 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 #          	pragma omp parallel for private(iray) schedule(runtime)
 #          	endif
 		for ( iray=0; iray<nrays; ++iray ) {
-		    RayTracingRay * ray = this->create_new_ray_for_interface( interface, nrays, G.dimensions, planar_flag );
+		    RayTracingRay * ray = this->create_new_ray_for_interface( interface, nrays );
                     double nu = interface->S_->random_frequency( rg_->Random() );
 		    double E = interface->S_->I_int.back() * interface->area_ * ray->domega_;
 		    if ( E < E_min_ ) continue;
-		    if ( absorption_ == STANDARD_ABSORPTION )
-		        this->trace_ray_standard( ray, ib, ii, jj, kk, nu, E );
-		    else
-			this->trace_ray_partitioned_energy( ray, ib, ii, jj, kk, nu, E );
+		    for ( int iref=0; iref < MAX_REFLECTIONS; ++iref ) {
+			int status = FAILURE;
+		        if ( absorption_ == STANDARD_ABSORPTION )
+		            status = this->trace_ray_standard( ray, ib, ii, jj, kk, nu, E );
+		        else
+			    status = this->trace_ray_partitioned_energy( ray, ib, ii, jj, kk, nu, E );
+		        if ( status==SUCCESS || E < E_min_ ) break;
+		    }
 		    delete ray;
 		}
 	    }
@@ -1271,14 +1283,14 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
     return;
 }
 
-RayTracingRay * MonteCarlo::create_new_ray_for_cell( RayTracingCell * cell, size_t nrays, size_t ndim, bool planar )
+RayTracingRay * MonteCarlo::create_new_ray_for_cell( RayTracingCell * cell, size_t nrays)
 {
     // Initialise uniformly random rays
     double domega = 4.0 * M_PI / double( nrays );
     double theta = 2.0 * M_PI * rg_->Random();
     double phi = acos( 1.0 - 2.0 * rg_->Random() ) - M_PI / 2.0;
     // theta = 0 or 180 degrees for planar geometry
-    if ( planar ) theta = ( theta < M_PI ) ? 0.0 : M_PI;
+    if ( planar_ ) theta = ( theta < M_PI ) ? 0.0 : M_PI;
     // Randomize origin location (for the moment just use the origin)
 #   if 0
     Vector3 tmp;
@@ -1286,7 +1298,7 @@ RayTracingRay * MonteCarlo::create_new_ray_for_cell( RayTracingCell * cell, size
     Vector3 origin( cell->origin_ );
 #   endif
     RayTracingRay * ray = 0;
-    if ( ndim==2 ) {
+    if ( ndim_==2 ) {
 	ray = new RayTracingRay2D( theta, phi, domega, origin );
     }
     else {
@@ -1296,14 +1308,14 @@ RayTracingRay * MonteCarlo::create_new_ray_for_cell( RayTracingCell * cell, size
     return ray;
 }
 
-RayTracingRay * MonteCarlo::create_new_ray_for_interface( RayTracingInterface * interface, size_t nrays, size_t ndim, bool planar )
+RayTracingRay * MonteCarlo::create_new_ray_for_interface( RayTracingInterface * interface, size_t nrays )
 {
     // Initialise uniformly random rays
     double domega = 4.0 * M_PI / double( nrays );
     double theta = 2.0 * M_PI * rg_->Random();
     double phi = acos( 1.0 - 2.0 * rg_->Random() ) - M_PI / 2.0;
     // theta = 0 or 180 degrees for planar geometry
-    if ( planar ) theta = ( theta < M_PI ) ? 0.0 : M_PI;
+    if ( planar_ ) theta = ( theta < M_PI ) ? 0.0 : M_PI;
     // Randomize origin location (for the moment just use the origin)
 #   if 0
     Vector3 tmp;
@@ -1311,7 +1323,7 @@ RayTracingRay * MonteCarlo::create_new_ray_for_interface( RayTracingInterface * 
     Vector3 origin( interface->origin_ );
 #   endif
     RayTracingRay * ray = 0;
-    if ( ndim==2 ) {
+    if ( ndim_==2 ) {
 	ray = new RayTracingRay2D( theta, phi, domega, origin );
     }
     else {
@@ -1321,8 +1333,22 @@ RayTracingRay * MonteCarlo::create_new_ray_for_interface( RayTracingInterface * 
     return ray;
 }
 
+void MonteCarlo::reflect_ray_diffusively( RayTracingRay * ray, Vector3 new_origin )
+{
+    double theta = 2.0 * M_PI * rg_->Random();
+    double phi = acos( 1.0 - 2.0 * rg_->Random() ) - M_PI / 2.0;
+    // theta = 0 or 180 degrees for planar geometry
+    if ( planar_ ) theta = ( theta < M_PI ) ? 0.0 : M_PI;
 
-int MonteCarlo::trace_ray_standard( RayTracingRay * ray, size_t ib, size_t ic, size_t jc, size_t kc, double nu, double E )
+    ray->L_ = 0.0;
+    ray->phi_ = phi;
+    ray->theta_ = theta;
+    ray->ray_origin_ = new_origin;
+
+    return;
+}
+
+int MonteCarlo::trace_ray_standard( RayTracingRay * ray, size_t ib, size_t ic, size_t jc, size_t kc, double nu, double &E )
 {
     // 1. Initialise pointers
     Block * A = get_block_data_ptr( ib );
@@ -1342,7 +1368,7 @@ int MonteCarlo::trace_ray_standard( RayTracingRay * ray, size_t ib, size_t ic, s
     // accumulative optical thickness
     double tau_acc = 0.0;
 
-    // step along the ray, dumping energy as we go
+    // step along the ray, dumping all energy in a single cell when the limiting optical thickness is exceeded
     while ( ( ray->status_ = cf_->find_cell( p, ib, ic, jc, kc ) ) == INSIDE_GRID ) {
     	// Get pointers to the new block and cell
     	A = get_block_data_ptr( ib );
@@ -1374,36 +1400,47 @@ int MonteCarlo::trace_ray_standard( RayTracingRay * ray, size_t ib, size_t ic, s
     	exit( FAILURE);
     }
     else if ( count>0 && A->bcp[ray->status_]->is_wall_flag ) {
-    	// dump energy onto interface (only if more than one point and this is a wall)
-    	// size_t index = A->bcp[ ray->status_ ]->get_heat_flux_index( ic, jc, kc );
-	// FIXME: need a way of finding the nearest interface to an exited photons
-	//        location when the photon exits on a corner
-    	RayTracingInterface * RTinterface =  RTcell->interfaces_[ray->status_];
-    	bool skip_interface = false;
-    	if ( RTinterface==0 ) {
-    	    cout << "MonteCarlo::trace_ray" << endl
-    	         << "bad RayTracingInterface pointer on RayTracingCell" << endl;
-    	    skip_interface = true;
-#           if EXIT_ON_RT_FAILURE
-    	    cout << "Bailing out!" << endl;
-    	    cout << "ray->status_ = " << ray->status_ << endl;
-    	    cout << "RTcell->interfaces_[NORTH] = " << RTcell->interfaces_[NORTH] << endl;
-    	    cout << "RTcell->interfaces_[SOUTH] = " << RTcell->interfaces_[SOUTH] << endl;
-    	    cout << "RTcell->interfaces_[EAST] = " << RTcell->interfaces_[EAST] << endl;
-    	    cout << "RTcell->interfaces_[WEST] = " << RTcell->interfaces_[WEST] << endl;
-    	    cout << "cell->pos = " << RTcell->origin_.str() << endl;
-    	    cout << "point = " << p.str() << endl;
-    	    exit( BAD_INPUT_ERROR );
-#           endif
-    	}
-    	if ( ! skip_interface )
-    	    RTinterface->q_rad_temp_[omp_get_thread_num()] += E / RTinterface->area_;
+	// use a random number relation to test if the photon is absorbed or diffusively reflected
+	RayTracingInterface * RTinterface =  RTcell->interfaces_[ray->status_];
+	double R = rg_->Random();
+	if ( RTinterface->epsilon_ > R ) {
+	    // the photon needs to be diffusively reflected
+	    // FIXME: set ray properties for reflection here
+	    //        i.e. origin and direction cosines
+	    this->reflect_ray_diffusively( ray, RTinterface->origin_ );
+	    return FAILURE;
+	}
+	else{
+    	    // dump all energy onto interface (only if more than one point and this is a wall)
+    	    // size_t index = A->bcp[ ray->status_ ]->get_heat_flux_index( ic, jc, kc );
+	    // FIXME: need a way of finding the nearest interface to an exited photons
+	    //        location when the photon exits on a corner
+    	    bool skip_interface = false;
+    	    if ( RTinterface==0 ) {
+    	        cout << "MonteCarlo::trace_ray" << endl
+    	             << "bad RayTracingInterface pointer on RayTracingCell" << endl;
+    	        skip_interface = true;
+#               if EXIT_ON_RT_FAILURE
+    	        cout << "Bailing out!" << endl;
+    	        cout << "ray->status_ = " << ray->status_ << endl;
+    	        cout << "RTcell->interfaces_[NORTH] = " << RTcell->interfaces_[NORTH] << endl;
+    	        cout << "RTcell->interfaces_[SOUTH] = " << RTcell->interfaces_[SOUTH] << endl;
+    	        cout << "RTcell->interfaces_[EAST] = " << RTcell->interfaces_[EAST] << endl;
+    	        cout << "RTcell->interfaces_[WEST] = " << RTcell->interfaces_[WEST] << endl;
+    	        cout << "cell->pos = " << RTcell->origin_.str() << endl;
+    	        cout << "point = " << p.str() << endl;
+    	        exit( BAD_INPUT_ERROR );
+#               endif
+    	    }
+    	    if ( ! skip_interface )
+    	        RTinterface->q_rad_temp_[omp_get_thread_num()] += E / RTinterface->area_;
+	}
     }
     
     return SUCCESS;
 }
 
-int MonteCarlo::trace_ray_partitioned_energy( RayTracingRay * ray, size_t ib, size_t ic, size_t jc, size_t kc, double nu, double E )
+int MonteCarlo::trace_ray_partitioned_energy( RayTracingRay * ray, size_t ib, size_t ic, size_t jc, size_t kc, double nu, double &E )
 {
     // 1. Initialise pointers
     Block * A = get_block_data_ptr( ib );
@@ -1468,8 +1505,13 @@ int MonteCarlo::trace_ray_partitioned_energy( RayTracingRay * ray, size_t ib, si
             exit( BAD_INPUT_ERROR );
 #           endif
         }
-        if ( ! skip_interface )
-            RTinterface->q_rad_temp_[omp_get_thread_num()] += E / RTinterface->area_;
+        if ( ! skip_interface ) {
+            RTinterface->q_rad_temp_[omp_get_thread_num()] += RTinterface->epsilon_ * E / RTinterface->area_;
+            E *= ( 1.0 - RTinterface->epsilon_ );
+        }
+        // Diffusively reflect the ray
+        this->reflect_ray_diffusively(ray,RTinterface->origin_);
+        return FAILURE;
     }
 
     return SUCCESS;

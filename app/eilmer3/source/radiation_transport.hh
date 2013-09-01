@@ -18,6 +18,7 @@
 #include "ray_tracing_pieces.hh"
 
 #define EXIT_ON_RT_FAILURE 1
+#define MAX_REFLECTIONS    5
 
 class RadiationTransportModel {
 public:
@@ -101,9 +102,9 @@ public:
     void compute_Q_rad_for_flowfield();
     
 private:
-    void initialise_rays_for_cell( RayTracingCell * cell, size_t nrays, size_t ndim, bool planar );
+    void initialise_rays_for_cell( RayTracingCell * cell, size_t nrays );
     
-    void initialise_rays_for_interface( RayTracingInterface * interface, size_t nrays, size_t ndim, bool planar );
+    void initialise_rays_for_interface( RayTracingInterface * interface, size_t nrays );
     
     int trace_ray( RayTracingRay * ray, size_t ib, size_t ic, size_t jc, size_t kc );
     
@@ -122,6 +123,8 @@ private:
     int binning_;
     size_t N_bins_;
     std::vector<SpectralBin*> B_;
+    bool planar_;
+    int ndim_;
 };
 
 class MonteCarlo : public RadiationTransportModel {
@@ -137,13 +140,15 @@ public:
     void compute_Q_rad_for_flowfield();
     
 private:
-    RayTracingRay * create_new_ray_for_cell( RayTracingCell * cell, size_t nrays, size_t ndim, bool planar );
+    RayTracingRay * create_new_ray_for_cell( RayTracingCell * cell, size_t nrays );
     
-    RayTracingRay * create_new_ray_for_interface( RayTracingInterface * interface, size_t nrays, size_t ndim, bool planar );
+    RayTracingRay * create_new_ray_for_interface( RayTracingInterface * interface, size_t nrays );
     
-    int trace_ray_standard( RayTracingRay * ray, size_t ib, size_t ic, size_t jc, size_t kc, double nu, double E );
+    void reflect_ray_diffusively( RayTracingRay * ray, Vector3 new_origin );
+
+    int trace_ray_standard( RayTracingRay * ray, size_t ib, size_t ic, size_t jc, size_t kc, double nu, double &E );
     
-    int trace_ray_partitioned_energy( RayTracingRay * ray, size_t ib, size_t ic, size_t jc, size_t kc, double nu, double E );
+    int trace_ray_partitioned_energy( RayTracingRay * ray, size_t ib, size_t ic, size_t jc, size_t kc, double nu, double &E );
 
     size_t get_cell_index( Block * A, size_t i, size_t j, size_t k )
     { return (k-A->kmin)*(A->nnj*A->nni)+(j-A->jmin)*A->nni+(i-A->imin); }
@@ -159,6 +164,8 @@ private:
     int clustering_;
     int absorption_;
     CRandomMersenne *rg_;
+    bool planar_;
+    int ndim_;
 };
 
 RadiationTransportModel * create_radiation_transport_model( const std::string file_name );

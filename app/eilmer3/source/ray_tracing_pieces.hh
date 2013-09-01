@@ -81,7 +81,7 @@ public:
     /* displacement from origin */
     double L_;
     
-    /* remaining energy up grid exit */
+    /* remaining energy upon grid exit */
     double E_exit_;
 };
 
@@ -214,12 +214,15 @@ public:
 
     /* Ray-tracing rays */
     std::vector<RayTracingRay*> rays_;
-    
+
     /* Vector of doubles for threads to store (incident) radiative flux contributions */
     std::vector<double> q_rad_temp_;
     
     /* Total amount of emitted radiant energy */
     double E_rad_;
+
+    /* Material emissivity */
+    double epsilon_;
 };
 
 class DiscreteTransferInterface : public RayTracingInterface {

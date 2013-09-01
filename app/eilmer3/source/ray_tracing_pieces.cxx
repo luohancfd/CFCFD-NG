@@ -259,6 +259,9 @@ RayTracingInterface::RayTracingInterface( Gas_data * Q, Vector3 origin, double a
     // 1. Initialise BinnedSpectralIntensity to zero as it may not be used
     U_ = 0;
 
+    // 2. Initialise emissivity to 0 (i.e. all incident photons are absorbed)
+    epsilon_ = 1.0;
+
     // NOTE: - not computing spectra until DiscreteTransfer::compute_Q_rad_for_flowfield()
     //         is called
 }
