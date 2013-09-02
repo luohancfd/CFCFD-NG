@@ -497,7 +497,7 @@ int luafn_molecular_weight(lua_State *L)
 {
     Gas_model *gmodel = get_gas_model_ptr();
     // Assume that integer for species is at top of stack
-    int isp = luaL_checkint(L, -1);
+    int isp = luaL_checkint(L, 1);
     double mw = gmodel->molecular_weight(isp);
     // Put mw on top of stack
     lua_pushnumber(L, mw);
@@ -533,6 +533,37 @@ int luafn_massf2molef(lua_State *L)
     return 1;
 }
 
+int luafn_massf2conc(lua_State *L)
+{
+    Gas_model *gmodel = get_gas_model_ptr();
+    int nsp = gmodel->get_number_of_species();
+    // Expect density first
+    double rho = luaL_checknumber(L, 1);
+    // Now a table of mass fractions
+    vector<double> massf(nsp, 0.0);
+    if ( !lua_istable(L, 2) ) { 
+	ostringstream ost;
+	ost << "Error in call 'massf2conc()'\n";
+	ost << "A table of mass fractions is expected as the second argument.\n";
+	luaL_error(L, ost.str().c_str());
+    }
+    for ( int isp = 0; isp < nsp; ++isp ) {
+	lua_rawgeti(L, 2, isp);
+	massf[isp] = luaL_checknumber(L, -1);
+	lua_pop(L, 1);
+    }
+    vector<double> conc(nsp, 0.0);
+    convert_massf2conc(rho, massf, gmodel->M(), conc);
+    // Push concentrations into a table.
+    lua_newtable(L);
+    for ( int isp = 0; isp < nsp; ++isp ) {
+	lua_pushinteger(L, isp);
+	lua_pushnumber(L, conc[isp]);
+	lua_settable(L, -3);
+    }
+    return 1;
+}
+
 int luafn_molef2massf(lua_State *L)
 {
     Gas_model *gmodel = get_gas_model_ptr();
@@ -553,6 +584,37 @@ int luafn_molef2massf(lua_State *L)
     vector<double> massf(nsp, 0.0);
     convert_molef2massf(molef, gmodel->M(), massf);
     // Push massf into a table.
+    lua_newtable(L);
+    for ( int isp = 0; isp < nsp; ++isp ) {
+	lua_pushinteger(L, isp);
+	lua_pushnumber(L, massf[isp]);
+	lua_settable(L, -3);
+    }
+    return 1;
+}
+
+int luafn_conc2massf(lua_State *L)
+{
+    Gas_model *gmodel = get_gas_model_ptr();
+    int nsp = gmodel->get_number_of_species();
+    // Expect density first
+    double rho = luaL_checknumber(L, 1);
+    // Now a table of concentrations fractions
+    vector<double> conc(nsp, 0.0);
+    if ( !lua_istable(L, 2) ) { 
+	ostringstream ost;
+	ost << "Error in call 'conc2massf()'\n";
+	ost << "A table of concentrations is expected as the second argument.\n";
+	luaL_error(L, ost.str().c_str());
+    }
+    for ( int isp = 0; isp < nsp; ++isp ) {
+	lua_rawgeti(L, 2, isp);
+	conc[isp] = luaL_checknumber(L, -1);
+	lua_pop(L, 1);
+    }
+    vector<double> massf(nsp, 0.0);
+    convert_conc2massf(rho, conc, gmodel->M(), massf);
+    // Push concentrations into a table.
     lua_newtable(L);
     for ( int isp = 0; isp < nsp; ++isp ) {
 	lua_pushinteger(L, isp);
@@ -614,8 +676,12 @@ int register_luafns(lua_State *L)
     lua_setglobal(L, "molecular_weight");
     lua_pushcfunction(L, luafn_massf2molef);
     lua_setglobal(L, "massf2molef");
+    lua_pushcfunction(L, luafn_massf2conc);
+    lua_setglobal(L, "massf2conc");
     lua_pushcfunction(L, luafn_molef2massf);
     lua_setglobal(L, "molef2massf");
+    lua_pushcfunction(L, luafn_conc2massf);
+    lua_setglobal(L, "conc2massf");
     // Set some of the physical constants
     lua_pushnumber(L, PC_R_u);
     lua_setglobal(L, "PC_R_u");
