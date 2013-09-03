@@ -40,11 +40,11 @@ public:
     virtual void print_info(std::string lead_in);
     virtual int apply_convective(double t);	// sets ghost cell flow conditions
     virtual int apply_viscous(double t); 	// sets wall temperature (same as FixedTBC)
-private:
-    int calculate_ghost_cell_flow_state(FV_Cell *cell1, FV_Interface *wall, FV_Cell *cell0);
+    //private:
+    //    int calculate_ghost_cell_flow_state(FV_Cell *cell1, FV_Interface *wall, FV_Cell *cell0);
 // The following are for the zero system
 public:
-    int compute_source_terms(vector<double> &massf);
+//    int compute_source_terms(vector<double> &massf);
     int f(const std::valarray<double> &y, std::valarray<double> &G);
     int Jac(const std::valarray<double> &y, Valmatrix &dGdy);
 };
