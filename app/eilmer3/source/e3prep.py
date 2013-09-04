@@ -102,7 +102,6 @@ Globally-defined objects
 #
 import sys
 import os
-sys.path.append("/sw/lib/python2.3/site-packages/Numeric") # for Tim's MacOSX
 sys.path.append(os.path.expandvars("$HOME/e3bin")) # installation directory
 sys.path.append("") # so that we can find user's scripts in current directory
 from getopt import getopt
