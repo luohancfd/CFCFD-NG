@@ -1,0 +1,18 @@
+To cite the use of Eilmer in publications, please use:
+
+Gollan, R.J. and Jacobs, P.A. (2013)
+About the formulation, verification and validation of
+the hypersonic sonic flow solver Eilmer.
+International Journal for Numerical Methods in Fluids, Vol. 73, pp. 19-57
+
+As a BibTeX entry:
+
+@Article{gollan_jacobs_2013,
+  author = {Gollan, R. J. and Jacobs, P. A.},
+  title = {About the formulation, verification and validation of the hypersonic flow solver Eilmer},
+  journal = {International Journal for Numerical Methods in Fluids},
+  year = {2013},
+  volume = {73},
+  pages = {19--57}
+}
+
