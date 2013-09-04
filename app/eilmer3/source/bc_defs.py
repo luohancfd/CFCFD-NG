@@ -773,24 +773,23 @@ class SurfaceEnergyBalanceBC(BoundaryCondition):
 
 class AblatingBC(BoundaryCondition):
     """
-    A solid boundary with no-slip and user specified wall mass-flux and temperature.
+    A reacting wall boundary where the flowfield interacts with the surface
+    char layer (carbon), and injects mass into the flowfield.
+    
+    At present, the temperature is set by the user (c.f. fixedTBC) and a
+    reaction scheme for the surface reactions ONLY is an input.
 
     Like the AdiabaticBC, this is completey effective only when viscous
     effects are active.  Else, it is just like another solid (slip) wall.
     """
-    def __init__(self, Twall, mdot, filename="T_profile.dat", label=""):
+    def __init__(self, Twall, filename="reaction-scheme.lua", label=""):
         BoundaryCondition.__init__(self, type_of_BC=ABLATING, Twall=Twall, 
                                    filename=filename, is_wall=1, label=label)
-        self.mdot = copy.copy(mdot)
         return
     def __str__(self):
-    	mdot_str = "  [ "
-        for val in self.mdot:
-            mdot_str += "%g, " % val
-        mdot_str += "]"
-        return "AblatingBC(Twall=%g, mdot=%s, label=\"%s\")" % (self.Twall, mdot_str, self.label)
+        return "AblatingBC(Twall=%g, label=\"%s\")" % (self.Twall, self.label)
     def __copy__(self):
-        return AblatingBC(Twall=self.Twall, mdot=self.mdot, filename=self.filename, label=self.label)
+        return AblatingBC(Twall=self.Twall, filename=self.filename, label=self.label)
 
 #####################################################################################
 # FIX-ME -- should we merge the catalycity bcs with the main boundary-condition list?

@@ -49,8 +49,7 @@ AblatingBC::AblatingBC()
 
 // normal constructor
 
-AblatingBC::AblatingBC(Block *bdp, int which_boundary, double Twall, 
-		       vector<double> &mdot)
+AblatingBC::AblatingBC(Block *bdp, int which_boundary, double Twall)
     : BoundaryCondition(bdp, which_boundary, ABLATING),
       Twall(Twall), mdot(mdot), max_iterations(1000000), tol(1.0e-6)
 {
@@ -65,11 +64,6 @@ AblatingBC::AblatingBC(Block *bdp, int which_boundary, double Twall,
     // 0. Get gas-model pointer
     gmodel = get_gas_model_ptr();
     size_t nsp = gmodel->get_number_of_species();
-
-    // 1. Calculate the total mass flux from the given species-specific components
-    mdot_total = 0.0;
-    for ( size_t isp=0; isp<mdot.size(); ++isp )
-    	mdot_total += mdot[isp];
 
     // 2. Initialise the local gas-data structure (used for EOS calls)
     Q = new Gas_data(gmodel);
@@ -92,8 +86,7 @@ AblatingBC::AblatingBC(Block *bdp, int which_boundary, double Twall,
 
 AblatingBC::AblatingBC(const AblatingBC &bc)
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code),
-      Twall(bc.Twall), mdot(bc.mdot), mdot_total(bc.mdot_total),
-      gmodel(bc.gmodel), u0_index(bc.u0_index), 
+      Twall(bc.Twall), gmodel(bc.gmodel), u0_index(bc.u0_index), 
       max_iterations(bc.max_iterations), tol(bc.tol), f_jac(bc.f_jac)
 {
     is_wall_flag = bc.is_wall_flag;
@@ -121,7 +114,6 @@ AblatingBC & AblatingBC::operator=(const AblatingBC &bc)
     BoundaryCondition::operator=(bc);
     if ( this != &bc ) {
 	Twall = bc.Twall;
-	mdot = bc.mdot;
 	TProfile = bc.TProfile;
 	ncell_for_profile = bc.ncell_for_profile;
 	mdot_total = bc.mdot_total;
@@ -449,13 +441,25 @@ int AblatingBC::apply_viscous(double t)
 
 int AblatingBC::f(const valarray<double> &y, valarray<double> &G)
 {
-    /* Create the equation system for the ZeroSystem for a given y vector */
+    /* Create the equation system for the ZeroSystem for a given y vector.
+       - Species mass conservation: unknowns are massfs, rho_w, v_w
+       - Total mass conservation: unknowns are rho_w, v_w
+       - Momentum conservation: unknowns are rho_w, v_w                
+       Need diffusion coefficients and species molar masses. */
     
     size_t iG=0;
  
     for ( iG=0; iG<cell_massf.size(); ++iG ) {
 	G[iG]=0.0;
     }
+
+    // line 1: total mass conservation equation
+    //G[0] = m
+
+    // line 2: total momentum conservation equation
+
+    // line 3 -> (nsp+2): species mass conservation equations
+
     return SUCCESS;
 }
 
@@ -463,16 +467,59 @@ int AblatingBC::Jac(const valarray<double> &y, Valmatrix &dGdy)
 {
     /* Create the Jacobian matrix for the ZeroSystem for a given y vector */
 
-    //  Clear the jacobian matrix
+    //  Clear the Jacobian matrix
     for ( size_t i=0; i<nsp; ++i ) {
 	for ( size_t j=0; j<nsp; ++j ) {
 	    dGdy.set(i,j,0.0);
 	}
     }
     
+    // line 1: total mass conservation equation derivatives
+
+    // line 2: total momentum conservation equation derivatives
+
+    // line 3 -> (nsp+2): species mass conservation equations derivatives
+
     return SUCCESS;
 }
 
 // the other functions needed to solve the system:
 // create y vector for G[y]=0
+
+int AblatingBC::char_mass_flow()
+{
+    /* Calculate the char mass flow rate term for each species.
+       This will require the reaction rates (alpha) - from a
+       reaction file? - and the species mass, from the species
+       files. Then these can feed straight into the species
+       mass conservation equations. */
+
+    return SUCCESS;
+}
+
+int AblatingBC::create_y_guess(FV_Cell *cell1, FV_Interface *wall, FV_Cell *cell)
+{
+    /* line 1: rho_w
+       line 2: v_w
+       lines 3->(nsp+2): massf[isp] */
+
+    return SUCCESS;
+}
+
 // solve the system with a zero-solving method
+int AblatingBC::solve_system(FV_Cell *cell1, FV_Interface *wall, FV_Cell *cell)
+{
+    // how do I pull in the y_guess from the other function?
+
+    // solve system
+    /*   if ( zero_solver->solve( *this, y_guess, y_out ) ) {
+	cout << "AblatingBC::solve_system()" << endl
+	     << "Zero solver has failed, bailing out!" << endl;
+	exit( FAILURE );
+	}*/
+
+    // map results
+    // mass fractions, density, velocity, evaluate new thermo state
+
+    return SUCCESS;
+}

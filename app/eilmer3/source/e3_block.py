@@ -613,11 +613,7 @@ class Block(object):
             newbc = SurfaceEnergyBalanceBC(epsilon, label=label)
         if type_of_BC == ABLATING:
             if not filename: filename = ""
-            if mdot != None:
-            	print "Error in setting BC:"
-            	print "    A mass-flux list (mdot) is required to create an AblatingBC"
-            	return
-            newbc = AblatingBC(Twall, mdot, filename, label=label)
+            newbc = AblatingBC(Twall, filename, label=label)
         if type_of_BC == FSTC:
             if not filename: filename = "fstc_temperatures.dat"
             newbc = fstcBC(filename, label=label)

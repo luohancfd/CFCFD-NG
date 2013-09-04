@@ -978,8 +978,8 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     	break;
     case ABLATING:
 	dict.parse_double(section, "Twall", Twall, 300.0);
-	dict.parse_vector_of_doubles(section, "mdot", mdot, vnf);
-    	newBC = new AblatingBC(bdp, which_boundary, Twall, mdot);
+//	dict.parse_vector_of_doubles(section, vnf);
+    	newBC = new AblatingBC(bdp, which_boundary, Twall);
     	break;
     case FSTC:
 	dict.parse_string(section, "filename", filename, "");
