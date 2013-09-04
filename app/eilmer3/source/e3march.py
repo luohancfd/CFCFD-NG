@@ -73,7 +73,13 @@ def run_command(cmdText):
     else:
         args = shlex.split(cmdText)
     print "About to run cmd:", string.join(args)
-    return subprocess.check_call(args)
+    try:
+        result = subprocess.check_call(args, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError:
+        print "Subprocess command failed."
+        print "    cmd=", args
+        raise RuntimeError("Subprocess command failed.")
+    return result
     
 def quote(str):
     """
@@ -93,7 +99,6 @@ def run_in_block_marching_mode(jobName, nbj, max_time, gmodelFile, restartFromRu
     # Set up mpirun parameters.
     MPI_PARAMS = "mpirun -np " + str(2 * blksPerColumn) + " "
     if restartFromRun == 0:
-        run_command('rm -rf master')
         blockDims, numberOfBlks = read_block_dims(jobName+'.config')
     else:
         blockDims, numberOfBlks = read_block_dims('./master/'+jobName+'.config')
@@ -114,6 +119,11 @@ def run_in_block_marching_mode(jobName, nbj, max_time, gmodelFile, restartFromRu
     #
     if restartFromRun == 0:
         print "Set up the master copy of the blocks and files."
+        try:
+            run_command('rm -r master')
+        except:
+            print "Couldn't remove master directory and it's content."
+            print "Maybe it didn't exist."
         run_command('mkdir master')
         run_command('cp %s.config master/%s.config' % (jobName, jobName,))
         run_command('cp %s.control master/%s.control' % (jobName, jobName,))
@@ -121,6 +131,7 @@ def run_in_block_marching_mode(jobName, nbj, max_time, gmodelFile, restartFromRu
         run_command('mv flow master/')
         run_command('mv grid master/')
         # We will accumulate the converged solution blocks in the master area.
+        # Note that the tindx value will be 1 (not 9999).
         run_command('mkdir master/flow/t0001')
         #
         print "Set up current-run config files in the usual places for Eilmer3."
