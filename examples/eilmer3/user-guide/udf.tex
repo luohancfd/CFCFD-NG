@@ -348,6 +348,18 @@ of mass fractions based on a supplied table of mole fractions.
 Note the table of supplied mole fractions must be the full size
 of the number of species in the gas model. Similarly, the returned
 mass fractions table has values for all participating species. \\
+\texttt{massf2conc(rho, massf)} & A function that returns a table
+of concentrations (mol/m$^3$) based on a supplied density and
+table of mass fractions.
+Note the table of supplied mass fractions must be the full size
+of the number of species in the gas model. Similarly, the returned
+concentrations table has values for all participating species. \\
+\texttt{conc2massf(rho, conc)} & A function that returns a table
+of mass fractions based on a supplied density and table of concentrations
+in mol/m$^3$.
+Note the table of supplied concentrations must be the full size
+of the number of species in the gas model. Similarly, the returned
+mass fraction table has values for all participating species. \\
 \noalign{\smallskip} \hline \noalign{\smallskip}
 \end{tabular}
 

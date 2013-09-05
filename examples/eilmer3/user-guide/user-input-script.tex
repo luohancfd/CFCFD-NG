@@ -1476,8 +1476,8 @@ The corners of each hexahedral zone are given by the \texttt{Vector} values
 \texttt{point0} and \texttt{point1}.
 If the centre of a cell lies within the heat zone, \texttt{qdot} is added to
 the source term in the energy equation every time step during the simulation. When using
-a HeatZone it is necessary to give at least \texttt{heat\_time\_stop} a positive non-zero
-value and \texttt{heat\_time\_start} and \texttt{heat\_factor\_increment} can also be modified
+a HeatZone it is necessary to give at least \texttt{gdata.heat\_time\_stop} a positive non-zero
+value and \texttt{gdata.heat\_time\_start} and \texttt{gdata.heat\_factor\_increment} can also be modified
 as appropriate.
 A HeatZone might be used to model the deposition of energy into a small volume from 
 a high-power laser, for example.
