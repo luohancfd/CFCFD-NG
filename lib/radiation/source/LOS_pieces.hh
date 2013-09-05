@@ -55,7 +55,7 @@ public:
 public:
     virtual void clear();
     
-    void set_rad_point( int irp, Gas_data * Q, double * Q_rE_rad, double s, double ds );
+    double set_rad_point( int irp, Gas_data * Q, double * Q_rE_rad, double s, double ds );
     
     void clone_rad_point( int iprp, int irp, double * Q_rE_rad, double s, double ds );
     

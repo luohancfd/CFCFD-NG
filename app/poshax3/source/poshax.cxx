@@ -479,9 +479,10 @@ int main(int argc, char *argv[])
     outfile << setw(20) << x << psr->psflow.str(bool(rtmodel), species_output_type, gmodel->M()) << endl;
     if ( TS_dx > 0 ) {
 	// tangent slab problem - create first shock point 
-	cout << "creating TS point " << TS_count << " at x = " << 0 << endl;
-	TS->set_rad_point( TS_count, psr->psflow.Q, &(divq_rad[TS_count]), 0.0,
-	                   TS_dx );
+	cout << "creating TS point " << TS_count << " at x = " << 0;
+	double j_total = TS->set_rad_point( TS_count, psr->psflow.Q,
+	                                    &(divq_rad[TS_count]), 0.0, TS_dx );
+	cout << ", j_total = " << j_total << " W/m3-sr" << endl;
 	TS_count += 1;
     }
     while( x < final_x ) {
@@ -552,9 +553,10 @@ int main(int argc, char *argv[])
 	}
 	if ( next_TS_x > 0.0 && x > next_TS_x ) {
 	    // tangent slab problem
-	    cout << "creating TS point " << TS_count << " at x = " << x << endl;
-	    TS->set_rad_point( TS_count, psr->psflow.Q, &(divq_rad[TS_count]), 
-	    	               x, TS_dx );
+	    cout << "creating TS point " << TS_count << " at x = " << x;
+	    double j_total = TS->set_rad_point( TS_count, psr->psflow.Q,
+	                                      &(divq_rad[TS_count]), x, TS_dx );
+	    cout << ", j_total = " << j_total << " W/m3-sr" << endl;
 	    next_TS_x += TS_dx;
 	    TS_count += 1;
 	}

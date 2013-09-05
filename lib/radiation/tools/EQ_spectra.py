@@ -159,12 +159,13 @@ def run_calculation(input_data):
     LOS = LOS_data( rsm, 1 )
     Q_rE_rad = new_doublep()
     t0 = time()
-    LOS.set_rad_point(0,Q,Q_rE_rad,tube_D*0.5,tube_D)
+    j_total = LOS.set_rad_point(0,Q,Q_rE_rad,tube_D*0.5,tube_D)
+    print "j_total = %0.3e W/m3-sr" % j_total
     t1 = time()
     print "Wall time = %f seconds" % ( t1-t0 ) 
     S = SpectralIntensity( rsm )
     I_total = LOS.integrate_LOS( S ) 
-    print "I_total = %0.3e W/m2" % I_total
+    print "I_total = %0.3e W/m2-sr" % I_total
     # initialise apparatus function
     if not ( gamma_L + gamma_G ) > 0.0:
         apparatus_fn = "none"

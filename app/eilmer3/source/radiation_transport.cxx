@@ -218,6 +218,7 @@ void TangentSlab::compute_Q_rad_for_block( Block * A )
     Vector3 * coords_i;
     double s = 0.0;
     size_t index;
+    double j_total;
     
     // Perform TS calc for lines of cells in i space
     // NOTE: assuming left to right flow
@@ -235,7 +236,12 @@ void TangentSlab::compute_Q_rad_for_block( Block * A )
     	    	cellp = A->get_cell(i,j,k);
     	    	coords_i = &(cellp->pos[0]);
     	    	s += vabs( *coords_i - *coords_im1 );
-    	    	TS.set_rad_point( i - A->imin, cellp->fs->gas, &(cellp->Q_rE_rad), s, cellp->iLength );
+    	    	j_total = TS.set_rad_point( i - A->imin, cellp->fs->gas, &(cellp->Q_rE_rad), s, cellp->iLength );
+#               if VERBOSE_RADIATION_TRANSPORT
+                cout << "i = %d, j_total = " << j_total << " W/m3-sr" << endl;
+#               else
+                UNUSED_VARIABLE(j_total);
+#               endif
     	    	coords_im1 = coords_i;
     	    }
     	    // use east IFace of last cell for s_f and T_f

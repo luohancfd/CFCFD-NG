@@ -75,16 +75,19 @@ void LOS_data::clear()
     	delete rpoints_[irp];
 }
 
-void LOS_data::set_rad_point( int irp, Gas_data * Q, double * Q_rE_rad, double s, double ds )
+double LOS_data::set_rad_point( int irp, Gas_data * Q, double * Q_rE_rad, double s, double ds )
 {
     rpoints_[irp]->redefine( Q, Q_rE_rad, s, ds );
     rsm_->radiative_spectra_for_gas_state( *(rpoints_[irp]->Q_), *(rpoints_[irp]->X_) );
+    double j_total = rpoints_[irp]->X_->integrate_emission_spectra();
     if ( store_spectra_on_disk_ ) {
         ostringstream oss;
         oss << "rpoint_" << irp << ".txt";
         rpoints_[irp]->X_->write_to_file(oss.str(),FREQUENCY);
         rpoints_[irp]->X_->clear_data();
     }
+
+    return j_total;
 }
 
 void LOS_data::clone_rad_point( int iprp, int irp, double * Q_rE_rad, double s, double ds )

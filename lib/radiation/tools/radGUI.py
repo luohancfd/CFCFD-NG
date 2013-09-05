@@ -118,8 +118,8 @@ class BarsFrame(wx.Frame):
         
         LOS = LOS_data(self.psm,1,T0,T1)
         divq = new_doublep()
-        LOS.set_rad_point(0,self.Q,divq,s0+0.5*self.slab_width,self.slab_width)
-        print "j_total = %e W/m3-sr" % LOS.get_rpoint_pointer(0).X_.integrate_emission_spectra()
+        j_total = LOS.set_rad_point(0,self.Q,divq,s0+0.5*self.slab_width,self.slab_width)
+        print "j_total = %e W/m3-sr" % j_total
         self.I.compute_spectral_distribution( self.psm )
         self.I.reset_intensity_vectors()
         I_total = LOS.integrate_LOS(self.I)
