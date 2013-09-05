@@ -2,7 +2,7 @@
 # post.sh
 
 JOB=lam_flat_plate
-TINDX=9999
+TINDX=6
 
 # Extracts Paraview or Visit files for flowfield visualisation
 e3post.py --job=$JOB --vtk-xml --tindx=$TINDX

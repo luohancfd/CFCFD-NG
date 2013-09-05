@@ -19,7 +19,7 @@ u_inf = 1390.0     # m/s
 
 print "Pick up data..."
 grid, flow, dimensions = read_all_blocks(rootName="lam_flat_plate_sr", 
-                                         nblock=16, tindx=9999, zipFiles=1)
+                                         nblock=16, tindx=6, zipFiles=1)
 
 print "Compute viscous parameters for cell-centres along plate surface:"
 outfile = open("cf-eilmer3-sr.data", "w")
