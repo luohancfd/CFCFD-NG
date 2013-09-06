@@ -2,9 +2,11 @@
 ## \brief Simulating the JAXA Hayabusa sample return capsule
 ## \author DFP, 30-Oct-2012
 ## 
-## Part1: Inviscid solution on a coarse grid
-##            Condition from Dan's thesis
+## Part1b: Radiation coupled (and inviscid) simulation on a coarse grid 
+##               Condition from Dan's thesis
 
+from cfpylib.gasdyn.billig import x_from_y, y_from_x
+from cfpylib.nm.zero_solvers import bisection
 from math import cos, sin, tan, sqrt, pi
 from cfpylib.grid.shock_layer_surface import *
 
@@ -13,6 +15,11 @@ print job_title
 
 gdata.title = job_title
 gdata.axisymmetric_flag = 1
+
+#
+# 0. Setup the radiation model
+#
+select_radiation_model("rad-model.lua",0)
 
 #
 # 1. Setup the gas model
@@ -46,7 +53,8 @@ M_inf = u_inf / Q.a
 p_inf = Q.p
 print "p_inf = %0.1f, M_inf = %0.1f" % ( p_inf, M_inf )
 inflow  = FlowCondition(p=p_inf, u=u_inf, v=0.0, T=[T_inf]*ntm, massf=massf_inf)
-initial = FlowCondition(p=p_inf/10.0, u=0.0, v=0.0, T=[T_inf]*ntm, massf=massf_inf)
+# initial = ExistingSolution(rootName="hayabusa", solutionWorkDir="../part1-inviscid/", nblock=4, tindx=9999) 
+initial  = FlowCondition(p=p_inf/10, u=u_inf, v=0.0, T=[T_inf]*ntm, massf=massf_inf)
 
 #
 # 3. Define the geometry
@@ -93,14 +101,14 @@ blk_0 = SuperBlock2D(psurf=psurf,
 gdata.viscous_flag = 0
 gdata.flux_calc = ADAPTIVE
 gdata.max_time = Rn * 5 / u_inf    # 5 body lengths
-gdata.max_step = 230000
-gdata.dt = 1.0e-8
-gdata.reaction_time_start = Rn * 0.1 /u_inf
+gdata.max_step = 1000000
+gdata.dt = 1.0e-10
+gdata.reaction_time_start = Rn * 0 /u_inf
 gdata.stringent_cfl = 1
 gdata.dt_plot = Rn * 1 / u_inf    # 5 solutions
-gdata.cfl = 0.5
+gdata.cfl = 0.1
 gdata.cfl_count = 1
-gdata.print_count = 20
+gdata.print_count = 1
 
 #
 # 6. svg sketch parameters

@@ -1,0 +1,49 @@
+c       This PARADE 3.1 control template file was automatically created
+c       by TRT_tools.py at 2013-09-06 13:12:05.378282
+c       1. Spectrum control data:
+c
+ 500		wavlo   [A]
+ 12000		wavhi   [A]
+ 11501		npoints [A]
+c
+c       2. Parameters for adaptive wavelength discretisation (not used):
+  0.0005       minimum distance between adjacent points
+   100.        integration limit for line shape
+  0.001        minimum fraction for use of energy level
+c       3. Switches for radiation mechanisms:
+  9            number of control switches
+  'Y'          free-free radiation (y/n)
+  'Y'          free-bound radiation (y/n)
+  'Y'          atomic line radiation (y/n)
+  'Y'          molecular band radiation (y/n)
+  'N'          read 'parade.rad' if available (y/n)
+  'N'          adaptive wavelength discretisation (y/n)
+  'N'          equal wavelength increments (y/n)
+  'Y'          equal frequency increments (y/n)
+  'N'          Statistical Narrow-Band randiation (y/n)
+c 3(bis). Switches for output options
+  1         iout (row number for main outputs)
+  1        jout (column number for main outputs)
+  3            number of output switches
+  'N'          'par_res.imo' for each cell (y/n)
+  'N'          time integrated emission coefficient until cell number
+  2            debug level (0: minimum output, 2: maximum output)
+  60           max cell number for time integration (shock tube test)
+c
+c       4. rad(y/n) remark  at. spec  tt tr  tv  te    rad.file
+ 'Y',        'N2'           2         1 3   4   2,   '/home/nauka/pott_da/parade31/Data/N2ihl.dat'
+ 'b'    'N21p'       'N'
+ 'b'    'N22p'       'N'
+ 'b'    'N2bh2'       'N'
+ 'b'    'N2bh'       'N'
+ 'b'    'N2cy'       'N'
+ 'b'    'N2wj'       'N'
+ 'b'    'N2w'       'N'
+ 'b'    'N2eX'       'N'
+ 'Y',        'N2+'           2         1 5   6   2,   '/home/nauka/pott_da/parade31/Data/N2iijb.dat'
+ 'b'    'N2p1n'       'N'
+ 'Y',        'N'           1         1 1   2   2,   '/home/nauka/pott_da/parade31/Data/NIST/niNISTmf.dat'
+ 'Y',        'N+'           1         1 1   2   2,   '/home/nauka/pott_da/parade31/Data/NIST/niiNISTmf.dat'
+ 'Y',        'O'           1         1 1   2   2,   '/home/nauka/pott_da/parade31/Data/NIST/oiNISTmf.dat'
+ 'Y',        'O+'           1         1 1   2   2,   '/home/nauka/pott_da/parade31/Data/NIST/oiiNISTmf.dat'
+ 'Y',        'E'           0         1 1   2   2,   '/home/nauka/pott_da/parade31/Data/none'

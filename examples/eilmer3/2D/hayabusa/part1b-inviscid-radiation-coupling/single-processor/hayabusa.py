@@ -53,7 +53,7 @@ M_inf = u_inf / Q.a
 p_inf = Q.p
 print "p_inf = %0.1f, M_inf = %0.1f" % ( p_inf, M_inf )
 inflow  = FlowCondition(p=p_inf, u=u_inf, v=0.0, T=[T_inf]*ntm, massf=massf_inf)
-initial = ExistingSolution(rootName="hayabusa", solutionWorkDir="../part1-inviscid/", nblock=12, tindx=9999) 
+initial = ExistingSolution(rootName="hayabusa", solutionWorkDir="../../part1-inviscid/", nblock=4, tindx=9999) 
 
 #
 # 3. Define the geometry
@@ -84,7 +84,7 @@ psurf = make_parametric_surface(bx_scale, by_scale, M_inf, Rn, gdata.axisymmetri
 # 4. Define the blocks, boundary conditions and set the discretisation
 #
 nnx = 40; nny=30
-nbx = 4; nby = 3
+nbx = 1; nby = 1
 
 blk_0 = SuperBlock2D(psurf=psurf,
 		     fill_condition=initial,
