@@ -1940,15 +1940,26 @@ void perform_radiation_transport()
     global_data &G = *get_global_data_ptr();
     Block * bdp;
 
+#   ifdef E3RAD
+    // Always recompute radiation with e3rad - parallelised via openmp
+    rtm->compute_Q_rad_for_flowfield();
+    // store the radiation scaling parameters for each cell
+    size_t jb;
+#   ifdef _OPENMP
+#   pragma omp parallel for private(jb) schedule(runtime)
+#   endif
+    for ( jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	bdp = G.my_blocks[jb];
+	if ( bdp->active != 1 ) continue;
+	for ( FV_Cell *cp: bdp->active_cells ) cp->store_rad_scaling_params();
+    }
+#   else
+    // e3shared.exe and e3mpi.exe version - currently no parallelisation
     // Determine if a scaled or complete radiation call is required
     int ruf = get_radiation_update_frequency();
     if ( ( ruf == 0 ) || ( ( G.step / ruf ) * ruf != G.step ) ) {
 	// rescale
-        size_t jb;
-#	ifdef _OPENMP
-#	pragma omp parallel for private(jb) schedule(runtime)
-#	endif
-	for ( jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
 	    if ( bdp->active != 1 ) continue;
 	    for ( FV_Cell *cp: bdp->active_cells ) cp->rescale_Q_rE_rad();
@@ -1957,16 +1968,13 @@ void perform_radiation_transport()
 	// recompute
 	rtm->compute_Q_rad_for_flowfield();
 	// store the radiation scaling parameters for each cell
-        size_t jb;
-#	ifdef _OPENMP
-#	pragma omp parallel for private(jb) schedule(runtime)
-#	endif
-	for ( jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
 	    if ( bdp->active != 1 ) continue;
 	    for ( FV_Cell *cp: bdp->active_cells ) cp->store_rad_scaling_params();
 	}
     }
+#   endif
 
     return;
 } // end perform_radiation_transport()
