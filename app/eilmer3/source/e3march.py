@@ -20,7 +20,8 @@ Options::
 | e3march.py [--help] [--job=<jobFileName>]
 |            [--zip-files|--no-zip-files]
 |            [--run] [--restart=<runNumber>]
-|            [--nbj=<numberOfBlksAcrossDomain>]
+|            [--nbj=<nbj>] [--nbk=<nbk>]
+|            [--polish-time=<time,dt>]
 
 .. Authors: Peter Jacobs, Wilson Chan, Luke Doherty, Rainer Kirchhartz,
             Chris James and Rowan Gollan.
@@ -42,6 +43,7 @@ import shlex, subprocess, string
 from getopt import getopt
 from glob import glob
 import traceback
+from ConfigParser import SafeConfigParser
 E3BIN = os.path.expandvars("$HOME/e3bin")
 sys.path.append(E3BIN)
 from libprep3 import *
@@ -50,14 +52,15 @@ shortOptions = ""
 longOptions = ["help", "job=",
                "zip-files", "no-zip-files",
                "run", "restart=",
-               "nbj="]
+               "nbj=", "nbk=", "polish-time="]
 
 def printUsage():
     print ""
     print "Usage: e3march.py [--help] [--job=<jobFileName>]"
     print "       [--zip-files|--no-zip-files]"
     print "       [--run] [--restart=<runNumber>]"
-    print "       [--nbj=<numberOfBlksAcrossDomain>]"
+    print "       [--nbj=<nbj>] [--nbk=<nbk>]"
+    print "       [--polish-time=<time,dt]"
     return
 
 #----------------------------------------------------------------------
@@ -89,15 +92,13 @@ def quote(str):
 
 #---------------------------------------------------------------
 
-def run_in_block_marching_mode(jobName, nbj, max_time, gmodelFile, restartFromRun):
+def run_in_block_marching_mode(jobName, blksPerSlice, max_time, gmodelFile, restartFromRun):
     """
     The core of the multi-block space-marching code.
     """
     print "Set a few overall parameters"
-    # Assume that the number of blocks per set is the number of radial blocks.
-    blksPerColumn = nbj
     # Set up mpirun parameters.
-    MPI_PARAMS = "mpirun -np " + str(2 * blksPerColumn) + " "
+    MPI_PARAMS = "mpirun -np " + str(2 * blksPerSlice) + " "
     if restartFromRun == 0:
         blockDims, numberOfBlks = read_block_dims(jobName+'.config')
     else:
@@ -105,59 +106,63 @@ def run_in_block_marching_mode(jobName, nbj, max_time, gmodelFile, restartFromRu
     # Compute number of e3mpi runs needed.
     # The first e3mpi run starts with two columns and then 
     # every e3mpi run after that moves along by one column.
-    if numberOfBlks % blksPerColumn == 0:
-        numberOfEilmer3Runs = numberOfBlks/blksPerColumn - 1
+    if numberOfBlks % blksPerSlice == 0:
+        numberOfEilmer3Runs = numberOfBlks/blksPerSlice - 1
     else:
-        print "We were just computing the number of Eilmer3 runs needed"
-        print "when we found that there was a mismatch in the total"
-        print "number of blocks and the number of blocks per column."
+        print "Oops, we were just computing the number of Eilmer3 runs needed"
+        print "    when we found that there was a mismatch in the total"
+        print "    number of blocks and the number of blocks per column."
         print "    numberOfBlks=", numberOfBlks
-        print "    blksPerComumn=", blksPerColumn
+        print "    blksPerSlice=", blksPerSlice
         raise RuntimeError("Invalid data.")
     # Compute the maximum run time for each Eilmer3 run.
     maxRunTime = max_time / numberOfEilmer3Runs
     #
     if restartFromRun == 0:
-        print "Set up the master copy of the blocks and files."
-        try:
-            run_command('rm -r master')
-        except:
-            print "Couldn't remove master directory and it's content."
-            print "Maybe it didn't exist."
+        if (os.path.exists(jobName+".config") and os.path.exists(jobName+".control") and
+            os.path.exists("grid/t0000/") and os.path.exists("flow/t0000/")):
+            pass
+        else:
+            raise RuntimeError("Oops, missing files from prep stage.")
+        if os.path.exists("flow/t0001/"):
+            raise RuntimeError("Oops, seem to have flow/t0001/ from a previous calculation.")
+        if os.path.exists("master"):
+            raise RuntimeError("Oops, still have master directory from a previous calculation.")
         run_command('mkdir master')
         run_command('cp %s.config master/%s.config' % (jobName, jobName,))
         run_command('cp %s.control master/%s.control' % (jobName, jobName,))
-        run_command('cp -r block_labels.list master/block_labels.list')
+        run_command('cp block_labels.list master/block_labels.list')
         run_command('mv flow master/')
         run_command('mv grid master/')
         # We will accumulate the converged solution blocks in the master area.
         # Note that the tindx value will be 1 (not 9999).
         run_command('mkdir master/flow/t0001')
         #
-        print "Set up current-run config files in the usual places for Eilmer3."
+        print "Set up local config files in the usual places for Eilmer3."
+        # We are going to assume that the configuration of block subsets
+        # will not change run-to-run for the time-marching code.
         run_command('mkdir flow grid')
         run_command('mkdir flow/t0000 grid/t0000')
-        # Modify .config and block_labels.list files for the run of a subset of blocks.
-        mod_cfg_file(blksPerColumn, "master/"+jobName+".config", jobName+".config")
-        mod_blkLabels_file(blksPerColumn)
+        create_config_file(blksPerSlice, "master/"+jobName+".config", jobName+".config")
+        create_blkLabels_file(blksPerSlice)
         # Update control file to reflect the max_time for each Eilmer3 run.
         update_max_time(maxRunTime, jobName+".control")
-
+    #
     # Start looping for the number of Eilmer3 runs.
     for run in range(restartFromRun,numberOfEilmer3Runs):
         print "-----------------------------------------------"
         print " nenzfr in block-marching mode - Run %d of %d. " % (run, numberOfEilmer3Runs-1)
         # For each run, there are a subset of blocks that are integrated in time.
         # This set of blocks is arranged in two columns A (upstream) and B (downstream).
-        # Within the run, the blocks have to be labelled locally 0..2*blksPerColumn-1.
+        # Within the run, the blocks have to be labelled locally 0..2*blksPerSlice-1.
         # Globally, these same blocks are labelled firstBlk..lastBlk
-        firstBlk = run * blksPerColumn
-        lastBlk = firstBlk + (2 * blksPerColumn)
+        firstBlk = run * blksPerSlice
+        lastBlk = firstBlk + (2 * blksPerSlice)
         #
         # Copy the grid and flow files needed for this run.
         #
-        for blk in range(firstBlk, firstBlk+blksPerColumn):
-            localBlkId = blk - run*blksPerColumn
+        for blk in range(firstBlk, firstBlk+blksPerSlice):
+            localBlkId = blk - run*blksPerSlice
             if run == 0:
                 # Upstream column comes from the master copy on the first run.
                 src = 'master/flow/t0000/'+jobName+'.flow.b'+str(blk).zfill(4)+'.t0000.gz'
@@ -170,7 +175,7 @@ def run_in_block_marching_mode(jobName, nbj, max_time, gmodelFile, restartFromRu
                 if run != restartFromRun:
                     # On subsequent runs, the flow data comes from the downstream column
                     # that has most recently been iterated.
-                    src = 'flow/t0001/'+jobName+'.flow.b'+str(localBlkId+blksPerColumn).zfill(4)+'.t0001.gz'
+                    src = 'flow/t0001/'+jobName+'.flow.b'+str(localBlkId+blksPerSlice).zfill(4)+'.t0001.gz'
                     dest = 'flow/t0000/'+jobName+'.flow.b'+str(localBlkId).zfill(4)+'.t0000.gz'
                     run_command(['cp', src, dest])
                     # We also need to change the time in the header line back to 0.0 seconds in
@@ -184,8 +189,8 @@ def run_in_block_marching_mode(jobName, nbj, max_time, gmodelFile, restartFromRu
             dest = 'grid/t0000/'+jobName+'.grid.b'+str(localBlkId).zfill(4)+'.t0000.gz'
             run_command(['cp', src, dest])
         # Downstream column always comes freshly from the master copy.
-        for blk in range(firstBlk+blksPerColumn, lastBlk):
-            localBlkId = blk - run*blksPerColumn
+        for blk in range(firstBlk+blksPerSlice, lastBlk):
+            localBlkId = blk - run*blksPerSlice
             src = 'master/flow/t0000/'+jobName+'.flow.b'+str(blk).zfill(4)+'.t0000.gz'
             dest = 'flow/t0000/'+jobName+'.flow.b'+str(localBlkId).zfill(4)+'.t0000.gz'
             run_command(['cp', src, dest])
@@ -194,12 +199,12 @@ def run_in_block_marching_mode(jobName, nbj, max_time, gmodelFile, restartFromRu
             run_command(['cp', src, dest])
         # Also update .config file to reflect dimensions of each new block.
         for blk in range(firstBlk, lastBlk):
-            localBlkId = blk - run*blksPerColumn
+            localBlkId = blk - run*blksPerSlice
             update_block_dims(localBlkId, blockDims[blk], jobName+".config")
         if run == 1:
             # Update the inflow boundary conditions if we are in the second run.
             # The inflow condition should not change from this run onwards.
-            update_inflowBC(blksPerColumn, jobName+".config")
+            update_inflowBC(blksPerSlice, jobName+".config")
         if run > 0:
             # Propagate the dt_global from the previous run. This will hopefully help 
             # achieve faster convergence.
@@ -207,9 +212,9 @@ def run_in_block_marching_mode(jobName, nbj, max_time, gmodelFile, restartFromRu
             # Propagate the inflow profile across all blocks to generate a starting solution
             # that will help achieve a faster convergence to the steady-state solution.
             # Propagate only the last profile slice of set A to the blocks in set B.
-            for blk in range(blksPerColumn, 2*blksPerColumn):
+            for blk in range(blksPerSlice, 2*blksPerSlice):
                 flowFileName = 'flow/t0000/'+jobName+'.flow.b'+str(blk).zfill(4)+'.t0000.gz'
-                profileFileName = 'blk-'+str(blk-blksPerColumn)+'-slices-1-and-2.dat'
+                profileFileName = 'blk-'+str(blk-blksPerSlice)+'-slices-1-and-2.dat'
                 propagate_data_west_to_east(flowFileName, profileFileName)
         #
         print "Run Eilmer3."
@@ -217,29 +222,29 @@ def run_in_block_marching_mode(jobName, nbj, max_time, gmodelFile, restartFromRu
         #
         print "Post-process to get profiles for the inflow for the next run."
         # Extract the last 2 slices for each block in the upstream column.
-        for blk in range(0, blksPerColumn):
+        for blk in range(0, blksPerSlice):
             run_command(E3BIN+('/e3post.py --job=%s --tindx=0001 ' % (jobName,))
                         +('--output-file=blk-%d-slices-1-and-2.dat ' % blk)
                         +('--slice-list="%d,-1,:,0;%d,-2,:,0" ' % (blk, blk))
                         +('--gmodel-file=%s' % gmodelFile))
         #
         # Save the (presumed) converged blocks in the upstream column back to the master area.
-        for blk in range(firstBlk, firstBlk+blksPerColumn):
-            localBlkId = blk - run*blksPerColumn
+        for blk in range(firstBlk, firstBlk+blksPerSlice):
+            localBlkId = blk - run*blksPerSlice
             src = 'flow/t0001/'+jobName+'.flow.b'+str(localBlkId).zfill(4)+'.t0001.gz'
             dest = 'master/flow/t0001/'+jobName+'.flow.b'+str(blk).zfill(4)+'.t0001.gz'
             run_command(['cp', src, dest])
         if run == numberOfEilmer3Runs-1:
             # On the last run, also save the final column.
-            for blk in range(firstBlk+blksPerColumn, lastBlk):
-                localBlkId = blk - run*blksPerColumn
+            for blk in range(firstBlk+blksPerSlice, lastBlk):
+                localBlkId = blk - run*blksPerSlice
                 src = 'flow/t0001/'+jobName+'.flow.b'+str(localBlkId).zfill(4)+'.t0001.gz'
                 dest = 'master/flow/t0001/'+jobName+'.flow.b'+str(blk).zfill(4)+'.t0001.gz'
                 run_command(['cp', src, dest])
         # Throw away the local grid files.
         run_command(['rm'] + glob('grid/t0000/*'))
         #------------ end of run loop ----------------------------------
-        
+    #   
     # Clean up the temporary folders and files and bring the master files back to the
     # usual Eilmer3 working area.
     run_command('rm -r flow grid')
@@ -251,112 +256,91 @@ def run_in_block_marching_mode(jobName, nbj, max_time, gmodelFile, restartFromRu
     run_command('rm -rf master')
     return
 
-def mod_cfg_file(blksPerColumn, inputFileName, outputFileName):
+def create_config_file(blksPerSlice, originalConfigFileName, newConfigFileName):
     """
-    Modify config file to allow nenzfr to run in block-marching mode.
+    Create a modified config file to run time-marching simulation on subsets of blocks.
+    We do this once because we are going to assume that every subset of blocks is alike, 
+    with the same block-to-block connections and the same intra-block discretization.
+
+    Updated to use the ConfigParser module, so that it's more robust. PJ, 07-Sep-2013.
     """
-    # Initialise some variables and lists.
-    lineBuffer = []; Line = []; setBLines = []; lineIndex = 0
-    # Read input file
-    f = file(inputFileName)
-    # We always run with 2 sets, so the number of blocks per run
-    # is always twice that of the number of blocks per set.
-    blksPerRun = 2 * blksPerColumn 
-    # Delete the unwanted blocks in the config file and 
-    # find the line numbers for the blocks in Sets A and B.
-    unwantedBlock = '[block/' + str(blksPerRun) + ']'
-    for line in f:
-        # Stop appending once we have hit the unwanted blocks.
-        if unwantedBlock in line: break
-        # Edit to reflect new number of blocks.
-        if 'nblock =' in line:
-            line = "nblock = " + str(blksPerRun) + "\n"
-        # Append line numbers of the target string for Set B. The index for
-        # the blocks in Set B always starts from blksPerColumn to blksPerRun.
-        for blk in range(blksPerColumn, blksPerRun):
-            targetString = '[block/' + str(blk) + '/face/east]'
-            if targetString in line:
-                # Append target line numbers.
-                setBLines.append(lineIndex)
-        # Append lines from the input file to a buffer.
-        lineBuffer.append(line)
-        # Increase line index counter.
-        lineIndex += 1
-    # Append the footer that is found in Eilmer3 config files.
-    lineBuffer.append("# end file")
-    f.close()
-    # Start editing the lines in lineBuffer.
-    # For Set B, we modify the EAST boundary to reflect an ExtrapolateOutBC.
-    for i in range(len(setBLines)):
-        lineBuffer[setBLines[i]+2] = "bc = 2\n"
-        # "Disconnect" edges of the blocks after changing the boundary condition.
-        lineBuffer[setBLines[i]+15] = "other_block = -1\n"
-        lineBuffer[setBLines[i]+16] = "other_face = none\n"
-    # Write the new config file.
-    outfile = file(outputFileName, 'w')
-    outfile.writelines(lineBuffer)
+    # We always run with 2 slices, an upstream slice (A) and a downstream slice (B).
+    blksPerRun = 2 * blksPerSlice 
+    # We will omit the unwanted blocks from the new config file.
+    unwantedBlock = 'block/' + str(blksPerRun)
+    # Section names for the east faces of blocks in the downstream slice.
+    sliceB_section_names = ['block/'+str(blk)+'/face/east' 
+                            for blk in range(blksPerSlice, blksPerRun)]
+    #
+    parser = SafeConfigParser()
+    parser.read(originalConfigFileName)
+    outfile = file(newConfigFileName, 'w')
+    parser.set('global_data', 'nblock', str(blksPerRun))
+    for section_name in parser.sections():
+        # Assume that sections are stored in the same order as they appear
+        # in the original config file.
+        if unwantedBlock in section_name: break
+        # Blocks in east faces of downstream slice are no longer connected. 
+        if section_name in sliceB_section_names:
+            parser.set(section_name, 'bc', 'EXTRAPOLATE_OUT')
+            parser.set(section_name, 'other_block', '-1')
+            parser.set(section_name, 'other_face', 'none')
+        outfile.write('['+section_name+']\n')
+        for name, value in parser.items(section_name):
+            outfile.write('%s = %s\n' % (name, value))
+    outfile.write("# end file\n") # Same footer as in original file.
     outfile.close()
     return
 
-def mod_blkLabels_file(blksPerColumn):
+def create_blkLabels_file(blksPerSlice):
     """
-    Modify block_labels.list file to allow nenzfr to run in block-marching mode.
+    Create block_labels.list file to run time-marching simulation on subsets of blocks.
     """
-    # Generate list of blocks.
-    lineBuffer = []
-    for i in range(2 * blksPerColumn):
-        lineBuffer.append(str(i) + ' temp-' + str(i) + '\n')
-    # Write the new block_labels.list file.
     outfile = file('block_labels.list', 'w')
     outfile.write('# indx label\n')
-    outfile.writelines(lineBuffer)
+    for i in range(2 * blksPerSlice):
+        outfile.write(str(i) + ' temp-' + str(i) + '\n')
     outfile.close()
     return
 
-def read_block_dims(inputFileName):
+def read_block_dims(configFileName):
     """
-    Find the number blocks, and also read the
-    nni, nnj and nnk dimensions for each block.
+    Returns the number blocks, and the dimensions for each block.
     """
-    blockDims = []; blockIndex = 0
-    f = file(inputFileName)
-    for line in f:
-        # Find number of blocks for the full simulation.
-        if 'nblock =' in line:
-            tokens = line.split()
-            numberOfBlks = int(tokens[2])
-        # Find the nni, nnj, nnk for each block.
-        if 'nni =' in line:
-            blockDims.append([])
-            tokens = line.split()
-            blockDims[blockIndex].append(tokens[2])
-        if 'nnj =' in line:
-            tokens = line.split()
-            blockDims[blockIndex].append(tokens[2])
-        if 'nnk =' in line:
-            tokens = line.split()
-            blockDims[blockIndex].append(tokens[2])
-            blockIndex += 1
-    f.close()
-    return blockDims, numberOfBlks
+    parser = SafeConfigParser()
+    parser.read(configFileName)
+    numberOfBlocks = parser.getint('global_data', 'nblock')
+    blockDimsList = [(parser.getint('block/'+str(blk), 'nni'),
+                      parser.getint('block/'+str(blk), 'nnj'),
+                      parser.getint('block/'+str(blk), 'nnk'))
+                     for blk in range(numberOfBlocks)]
+    return blockDimsList, numberOfBlocks
 
-def update_max_time(maxTime, inputFileName):
+def update_block_dims(targetBlock, blockDims, configFileName):
+    """
+    Update the block dimensions in .config file to reflect that of
+    the block that is used in the current Eilmer3 run.
+    """
+    parser = SafeConfigParser()
+    parser.read(configFileName)
+    parser.set('block/'+str(targetBlock), 'nni', str(blockDims[0]))
+    parser.set('block/'+str(targetBlock), 'nnj', str(blockDims[1]))
+    parser.set('block/'+str(targetBlock), 'nnk', str(blockDims[2]))
+    outfile = file(configFileName, 'w')
+    parser.write(outfile)
+    outfile.close()
+    return
+
+def update_max_time(maxTime, controlFileName):
     """
     Update the max_time in the control file to reflect the maximum
     run time for each Eilmer3 run.
     """
-    lineBuffer = []
-    # Read in .control file and update to reflect the new max_time.
-    f = file(inputFileName)
-    for line in f:
-        if 'max_time =' in line:
-            line = "max_time = " + str(maxTime) + "\n"
-        # Append lines from the input file to a buffer.
-        lineBuffer.append(line)
-    f.close()
-    # Write the new .control file.
-    outfile = file(inputFileName, 'w')
-    outfile.writelines(lineBuffer)
+    parser = SafeConfigParser()
+    parser.read(controlFileName)
+    parser.set('control_data', 'max_time', str(maxTime))
+    outfile = file(controlFileName, 'w')
+    parser.write(outfile)
     outfile.close()
     return
 
@@ -370,78 +354,36 @@ def update_dt_global(jobName):
     f1 = open(jobName+'.times','r'); data = f1.readlines(); f1.close()
     final_dt_global = data[-1].split()[-1]
     # Write out a new .control file with the appropriate line updated.
-    f2 = open(jobName+'.control','r'); data2 = f2.readlines(); f2.close()
-    fout = open(jobName+'.control','w')
-    for line in data2:
-        if line.split()[0] == 'dt':
-            linedata = line.split()
-            linedata[-1] = final_dt_global
-            newline = ''.join([' '.join(linedata),'\n'])
-            fout.write(newline)
-        else:
-            fout.write(line)
-    fout.close()
-    return
-
-def update_block_dims(targetBlock, blockDims, inputFileName):
-    """
-    Update the block dimensions in .control file to reflect that of
-    the block that is used in the current Eilmer3 run.
-    """
-    lineBuffer = []; lineIndex = 0
-    targetString = '[block/' + str(targetBlock) + ']'
-    # Read in file
-    f = file(inputFileName)
-    for line in f:
-        # Record line index if target string is matched.
-        if targetString in line:
-            targetLine = lineIndex
-        # Append lines from the input file to a buffer.
-        lineBuffer.append(line)
-        # Increase the line index counter.
-        lineIndex += 1
-    f.close()
-    # Update the nni, nnj and nnk of the target block.
-    lineBuffer[targetLine+3] = "nni = " + blockDims[0] + "\n"
-    lineBuffer[targetLine+4] = "nnj = " + blockDims[1] + "\n"
-    lineBuffer[targetLine+5] = "nnk = " + blockDims[2] + "\n"
-    # Write the new config file.
-    outfile = file(inputFileName, 'w')
-    outfile.writelines(lineBuffer)
+    controlFileName = jobName+'.control'
+    parser = SafeConfigParser()
+    parser.read(controlFileName)
+    parser.set('control_data', 'dt', final_dt_global)
+    outfile = file(controlFileName, 'w')
+    parser.write(outfile)
     outfile.close()
     return
 
-def update_inflowBC(blksPerColumn, inputFileName):
+def update_inflowBC(blksPerSlice, configFileName):
     """
-    Update the inflow boundary condition for set A blocks
-    to reflect a StaticProfBC().
+    Update the inflow boundary condition for upstream-slice (A) blocks
+    to use a StaticProfBC().
+
+    The data for this staticProfile has come from a previous run of
+    the time-stepping code.
     """
-    lineBuffer = []; setALines = []; lineIndex = 0
-    # We always run with 2 sets, so the number of blocks per run
-    # is always twice that of the number of blocks per set.
-    blksPerRun = 2 * blksPerColumn
-    # Read in input file.
-    f = file(inputFileName)
-    for line in f:
-        for blk in range(0, blksPerColumn):
-            targetString = '[block/' + str(blk) + '/face/west]'
-            if targetString in line:
-                # Append target line numbers.
-                setALines.append(lineIndex)
-        # Append lines from the input file to a buffer.
-        lineBuffer.append(line)
-        # Increment line index counter.
-        lineIndex += 1
-    f.close()
-    # For Set A, we modify the WEST boundary to reflect a StaticProfBC.
-    for i in range(len(setALines)):
-        lineBuffer[setALines[i]+2] = "bc = 10\n"
-        lineBuffer[setALines[i]+4] = "filename = blk-" + str(i) + \
-                                     "-slices-1-and-2.dat\n"
-        lineBuffer[setALines[i]+5] = "n_profile = 2\n"
-    # Write the new config file.
-    outfile = file(inputFileName, 'w')
-    outfile.writelines(lineBuffer)
+    parser = SafeConfigParser()
+    parser.read(configFileName)
+    # Section names for the west faces of blocks in the upstream slice.
+    sliceA_section_names = ['block/'+str(blk)+'/face/west' 
+                            for blk in range(0, blksPerSlice)]
+    for section_name in parser.sections():
+        if section_name in sliceA_section_names:
+            i = sliceA_section_names.index(section_name)
+            parser.set(section_name, 'bc', 'STATIC_PROF')
+            parser.set(section_name, 'filename', 'blk-'+str(i)+'-slices-1-and-2.dat')
+            parser.set(section_name, 'n_profile', '2')
+    outfile = file(configFileName, 'w')
+    parser.write(outfile)
     outfile.close()
     return
 
@@ -449,6 +391,8 @@ def propagate_data_west_to_east(flowFileName, profileFileName):
     """
     Extract a profile from a given file and propagate this profile across
     the initial flow solution for the specified block.
+
+    FIX-ME -- needs to work for 3D blocks
     """
     profile = []
     # Read in file that contains profile. Note that the input file contains
@@ -502,10 +446,7 @@ def propagate_data_west_to_east(flowFileName, profileFileName):
 
 def main(uoDict):
     """
-    Top-level function for the e3prep application.
-
-    It may be handy to be able to embed most of the functions in 
-    this file into a custom preprocessing script.
+    Top-level function for the block-marching application.
     """
     jobName = uoDict.get("--job", "test")
     rootName, ext = os.path.splitext(jobName)
@@ -519,6 +460,7 @@ def main(uoDict):
     if uoDict.has_key("--no-zip-files"): zipFiles = 0
     restartFromRun = int(uoDict.get("--restart", "0"))
     nbj = int(uoDict.get("--nbj", "1"))
+    nbk = int(uoDict.get("--nbk", "1"))
     # Get some parameters from the files previously written by e3prep.py
     # It may be better to load these ini files into dictionaries and access 
     # the elements more robustly -- as per discussion with Wilson August 2013.
@@ -534,7 +476,13 @@ def main(uoDict):
             data = line.strip().split()
             max_time = float(data[-1])
             break
-    run_in_block_marching_mode(jobName, nbj, max_time, gmodelFile, restartFromRun)
+    run_in_block_marching_mode(jobName, nbj*nbk, max_time, gmodelFile, restartFromRun)
+    # At this time, the full-domain flow solution should be sitting in ./flow/t0001/
+    if uoDict.has_key("--polish-time"):
+        print "Polish the flow solution by running the whole domain a short time."
+        print "    The final solution should be found into ./flow/t0002/"
+        print "    Need to set max_time, dt."
+        print "    FIX-ME need to finish this code..."
     return
 
 # --------------------------------------------------------------------
@@ -546,7 +494,7 @@ if __name__ == '__main__':
     uoDict = dict(userOptions[0])
     if len(userOptions[0]) == 0 or uoDict.has_key("--help"):
         printUsage()
-        sys.exit(1) # abnormal exit
+        sys.exit(1) # abnormal exit; didn't know what to do
     else:
         try:
             main(uoDict)
