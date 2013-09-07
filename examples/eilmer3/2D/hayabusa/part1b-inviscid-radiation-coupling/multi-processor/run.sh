@@ -11,4 +11,4 @@
 #        2. Make sure e3rad has been compiled for OpenMP
 #           (i.e. make e3rad TARGET=for_gnu_openmp)
 
-python paralle_radiation_coupling.py
+python parallel_radiation_coupling.py

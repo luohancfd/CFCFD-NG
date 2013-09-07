@@ -53,7 +53,7 @@ M_inf = u_inf / Q.a
 p_inf = Q.p
 print "p_inf = %0.1f, M_inf = %0.1f" % ( p_inf, M_inf )
 inflow  = FlowCondition(p=p_inf, u=u_inf, v=0.0, T=[T_inf]*ntm, massf=massf_inf)
-initial = ExistingSolution(rootName="hayabusa", solutionWorkDir="../../part1-inviscid/", nblock=4, tindx=9999) 
+initial = ExistingSolution(rootName="hayabusa", solutionWorkDir="../../part1-inviscid/", nblock=4, tindx=5) 
 
 #
 # 3. Define the geometry
