@@ -187,7 +187,7 @@ def extract_shock_coords( sol ):
     shock_x_coords, shock_y_coords = zip(*sorted(zip(shock_x_coords, shock_y_coords)))
     return shock_x_coords, shock_y_coords
 
-def fit_billig2shock( sol, axi, M_inf, R, body=None ):
+def fit_billig2shock( sol, axi, M_inf, R, body=None, shock_x_coords=None, shock_y_coords=None ):
     # see if the required packages are available
     if not with_numpy or not with_scipy:
         print "Error: numpy and scipy are required for shock fitting"
@@ -198,7 +198,8 @@ def fit_billig2shock( sol, axi, M_inf, R, body=None ):
         a = Vector3(-R, 0.0)
         b = Vector3(0.0, R)
         body = Arc(a, b, o)
-    shock_x_coords, shock_y_coords = extract_shock_coords( sol )
+    if sol!=None:
+        shock_x_coords, shock_y_coords = extract_shock_coords( sol )
     # make a best fit to the shock location point cloud
     def shock_x_from_y( p, y ):
         print p
