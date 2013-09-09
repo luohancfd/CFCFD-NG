@@ -21,6 +21,7 @@ Options::
 |            [--zip-files|--no-zip-files]
 |            [--run] [--restart=<runNumber>]
 |            [--nbj=<nbj>] [--nbk=<nbk>]
+|            [--max-dt=<dt>]
 |            [--polish-time=<time,dt>]
 
 .. Authors: Peter Jacobs, Wilson Chan, Luke Doherty, Rainer Kirchhartz,
@@ -52,7 +53,9 @@ shortOptions = ""
 longOptions = ["help", "job=",
                "zip-files", "no-zip-files",
                "run", "restart=",
-               "nbj=", "nbk=", "polish-time="]
+               "nbj=", "nbk=", 
+               "max-dt=",
+               "polish-time="]
 
 def printUsage():
     print ""
@@ -60,6 +63,7 @@ def printUsage():
     print "       [--zip-files|--no-zip-files]"
     print "       [--run] [--restart=<runNumber>]"
     print "       [--nbj=<nbj>] [--nbk=<nbk>]"
+    print "       [--max-dt=<dt>]"
     print "       [--polish-time=<time,dt]"
     return
 
@@ -107,11 +111,17 @@ def get_value_from_ini_file(fileName, parameterName):
 
 #---------------------------------------------------------------
 
-def run_in_block_marching_mode(jobName, blksPerSlice, max_time, gmodelFile, restartFromRun):
+def run_in_block_marching_mode(cfgDict):
     """
     The core of the multi-block space-marching code.
     """
     print "Set a few overall parameters"
+    jobName = cfgDict['jobName']
+    blksPerSlice = cfgDict['nbj'] * cfgDict['nbk']
+    max_time = cfgDict['max_time']
+    max_dt = cfgDict['max_dt']
+    gmodelFile = cfgDict['gmodelFile']
+    restartFromRun = cfgDict['restartFromRun']
     # Set up mpirun parameters.
     MPI_PARAMS = "mpirun -np " + str(2 * blksPerSlice) + " "
     if restartFromRun == 0:
@@ -222,8 +232,9 @@ def run_in_block_marching_mode(jobName, blksPerSlice, max_time, gmodelFile, rest
             update_inflowBC(blksPerSlice, jobName+".config")
         if run > 0:
             # Propagate the dt_global from the previous run. This will hopefully help 
-            # achieve faster convergence.
-            update_dt_global(jobName)
+            # achieve faster convergence, but we may have to limit it for stability
+            # in case the wall geometry changes suddenly.
+            update_dt_global(jobName, max_dt)
             # Propagate the inflow profile across all blocks to generate a starting solution
             # that will help achieve a faster convergence to the steady-state solution.
             # Propagate only the last profile slice of set A to the blocks in set B.
@@ -359,20 +370,25 @@ def update_max_time(maxTime, controlFileName):
     outfile.close()
     return
 
-def update_dt_global(jobName):
+def update_dt_global(jobName, max_dt):
     """
     Update dt value in the "jobName.control" file
     based on the last value in "jobName.times" file.
+
+    max_dt is either a string (representing the float value) or None
     """
     # Grab the dt_global value from the last line of the .times file.
-    # We leave it as a string for convenience.
     f1 = open(jobName+'.times','r'); data = f1.readlines(); f1.close()
-    final_dt_global = data[-1].split()[-1]
+    final_dt_global = float(data[-1].split()[-1])
+    if max_dt is None:
+        new_dt_global = final_dt_global
+    else:
+        new_dt_global = min(final_dt_global, float(max_dt))
     # Write out a new .control file with the appropriate line updated.
     controlFileName = jobName+'.control'
     parser = SafeConfigParser()
     parser.read(controlFileName)
-    parser.set('control_data', 'dt', final_dt_global)
+    parser.set('control_data', 'dt', str(new_dt_global))
     outfile = file(controlFileName, 'w')
     parser.write(outfile)
     outfile.close()
@@ -473,14 +489,16 @@ def main(uoDict):
     zipFiles = 1  # Default: use zip file format for grid and flow data files.
     if uoDict.has_key("--zip-files"): zipFiles = 1
     if uoDict.has_key("--no-zip-files"): zipFiles = 0
-    restartFromRun = int(uoDict.get("--restart", "0"))
-    nbj = int(uoDict.get("--nbj", "1"))
-    nbk = int(uoDict.get("--nbk", "1"))
+    cfgDict = {'jobName': jobName, 'zipFiles': zipFiles}
+    cfgDict['restartFromRun'] = int(uoDict.get("--restart", "0"))
+    cfgDict['nbj'] = int(uoDict.get("--nbj", "1"))
+    cfgDict['nbk'] = int(uoDict.get("--nbk", "1"))
+    cfgDict['max_dt'] = uoDict.get("--max-dt", None) # either a string or None
     # Get some parameters from the files previously written by e3prep.py
-    gmodelFile = get_value_from_ini_file(jobName+'.config', 'gas_model_file')
-    max_time = float(get_value_from_ini_file(jobName+'.control', 'max_time'))
+    cfgDict['gmodelFile'] = get_value_from_ini_file(jobName+'.config', 'gas_model_file')
+    cfgDict['max_time'] = float(get_value_from_ini_file(jobName+'.control', 'max_time'))
     # Do the real work...
-    run_in_block_marching_mode(jobName, nbj*nbk, max_time, gmodelFile, restartFromRun)
+    run_in_block_marching_mode(cfgDict)
     # At this time, the full-domain flow solution should be sitting in ./flow/t0001/
     if uoDict.has_key("--polish-time"):
         print "Polish the flow solution by running the whole domain a short time."
