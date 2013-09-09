@@ -36,7 +36,6 @@ sys.path.append(E3BIN)
 from nenzfr_utils import prepare_input_script, run_command, quote, \
                          read_gmodelFile_from_config
 from nenzfr_stats import *
-from nenzfr_parallel import run_in_block_marching_mode, read_block_dims
 from nenzfr_input_utils import input_checker
 
 #---------------------------------------------------------------
@@ -143,28 +142,33 @@ def main(cfg={}):
         cfg['pitot_input_file'] = quote(cfg['pitot_input_file'])
           
     prepare_input_script(cfg, cfg['jobName'])
+    run_command(E3BIN+('/e3prep.py --job=%s --do-svg --clean-start' % (cfg['jobName'],)))
     # Run the simulation code.
     if cfg['blockMarching']:
-        # Run Eilmer3 either in the multi-processor block-marching mode
-        # where the sets of blocks are set up by the functions in
-        # nenzfr_parallel.py and a C++ simulation is done for each set.
-        run_in_block_marching_mode(cfg, gmodelFile)
+        # Run Eilmer3 either in the multi-processor block-marching mode.
+        run_command(E3BIN+('/e3march.py --job=%s --run --nbj=%d' % (cfg['jobName'],cfg['nbj'])))
         # Generate slice list for exit plane.
         exitPlaneSlice = '-' + str(cfg['nbj']) + ':-1,-2,:,0'
         # Generate slice list for centreline.
-        blockDims, noOfBlks = read_block_dims(cfg['jobName'] + '.config')
+        noOfBlks = None
+        fp = file(cfg['jobName'] + '.config')
+        for line in fp:
+            if 'nblock =' in line:
+                tokens = line.split()
+                noOfBlks = int(tokens[2])
+        if noOfBlks is None:
+            raise RuntimeError("Didn't manage to find the number of blocks in config file.")
         centrelineSlice = '0,:,1,0'
         for blk in range(cfg['nbj'], noOfBlks, cfg['nbj']):
             centrelineSlice += ';' + str(blk) + ',:,1,0'
     else:
         # Run Eilmer3 either in the single processor mode
         # where the block-sequencing happens in the C++ code.
-        run_command(E3BIN+('/e3prep.py --job=%s --do-svg' % (cfg['jobName'],)))
         run_command(E3BIN+('/e3shared.exe --job=%s --run' % (cfg['jobName'],)))
         # Generate slice list for exit plane and centreline.
         exitPlaneSlice = '-1,-2,:,0'
         centrelineSlice = ':,:,1,0'
-    #print 
+    #
     # Exit plane slice
     run_command(E3BIN+('/e3post.py --job=%s --tindx=0001 --gmodel-file=%s ' % 
                        (cfg['jobName'], gmodelFile))
@@ -177,7 +181,7 @@ def main(cfg={}):
                 +('--output-file=%s-centreline.data ' % (cfg['jobName'],))
                 +('--slice-list="%s" ' % centrelineSlice)
                 +'--add-mach --add-pitot --add-total-enthalpy --add-total-p')
-    # Prep files for plotting with Paraview            
+    # Generate files for plotting with Paraview.          
     run_command(E3BIN+('/e3post.py --job=%s --vtk-xml --tindx=0001 --gmodel-file=%s ' % 
                        (cfg['jobName'], gmodelFile))
                 +'--add-mach --add-pitot --add-total-enthalpy --add-total-p')
@@ -185,7 +189,6 @@ def main(cfg={}):
     run_command(E3BIN+'/nenzfr_compute_viscous_data.py --job=%s --nbj=%s' % (cfg['jobName'], cfg['nbj']))
     # Generate averaged exit flow properties
     print_stats(cfg['exitSliceFileName'],cfg['jobName'],cfg['coreRfraction'],gmodelFile)                
-    #
     #
     return 0
     

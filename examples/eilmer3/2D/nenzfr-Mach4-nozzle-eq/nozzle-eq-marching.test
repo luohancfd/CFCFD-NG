@@ -1,6 +1,6 @@
-# nozzle-eq.test
+# nozzle-eq-marching.test
 # Functional test for axisymmetric T4 Mach 4 nozzle flow,
-# single-threaded (block-sequencing) version.
+# block-marching version.
 # The condition tested is that of Rainer's 5MJ/kg nozzle 
 # survey conducted in 2007 (Shots 9459 - 9462).
 #
@@ -11,7 +11,7 @@ namespace import ::tcltest::*
 configure -verbose {start body error}
 
 test nenzfr {Prepare and run nenzfr.} -body {
-    exec nenzfr.py --config_file=nenzfr-Mach4-nozzle-eq.cfg  > LOGFILE_MAIN
+    exec nenzfr.py --config_file=nenzfr-Mach4-nozzle-eq-block-marching.cfg  > LOGFILE_MAIN_MARCHING
 } -result {} -returnCodes {0}
 
 proc is_within_tolerance {v v_ref tol} {

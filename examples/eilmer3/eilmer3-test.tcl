@@ -42,6 +42,7 @@ lappend test_scripts "2D/giordano/inf_cyl.test"
 lappend test_scripts "3D/simple_ramp/simple_ramp.test"
 lappend test_scripts "2D/Rutowski-hemisphere/Ms_12.75/part1-inviscid/Rutowski.test"
 lappend test_scripts "2D/mms/mms.test"
+lappend test_scripts "2D/nenzfr-Mach4-nozzle-eq/nozzle-eq-marching.test"
 lappend test_scripts "2D/nenzfr-Mach4-nozzle-eq/nozzle-eq.test"
 # lappend test_scripts "2D/shock-fitting-sphere/shock-fitting.test"
 if {$long_tests} {

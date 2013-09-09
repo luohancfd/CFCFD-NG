@@ -90,6 +90,21 @@ def quote(str):
     """
     return '"' + str + '"'
 
+def get_value_from_ini_file(fileName, parameterName):
+    """
+    Rummage through an INI file to get a particular parameter value.
+    """
+    fp = open(fileName,'r'); lines = fp.readlines(); fp.close()
+    stringValue = None
+    for line in lines:
+        if line.startswith(parameterName):
+            data = line.strip().split()
+            stringValue = data[-1]
+            break
+    if stringValue is None: 
+        raise RuntimeError('Parameter %s not found in file %s' % (parameterName, fileName))
+    return stringValue
+
 #---------------------------------------------------------------
 
 def run_in_block_marching_mode(jobName, blksPerSlice, max_time, gmodelFile, restartFromRun):
@@ -462,20 +477,9 @@ def main(uoDict):
     nbj = int(uoDict.get("--nbj", "1"))
     nbk = int(uoDict.get("--nbk", "1"))
     # Get some parameters from the files previously written by e3prep.py
-    # It may be better to load these ini files into dictionaries and access 
-    # the elements more robustly -- as per discussion with Wilson August 2013.
-    fp = open(jobName+'.config','r'); configLines = fp.readlines(); fp.close()
-    for line in configLines:
-        if line.startswith('gas_model_file'):
-            data = line.strip().split()
-            gmodelFile = str(data[-1])
-            break
-    fp = open(jobName+'.control','r'); controlLines = fp.readlines(); fp.close()
-    for line in controlLines:
-        if line.startswith('max_time'):
-            data = line.strip().split()
-            max_time = float(data[-1])
-            break
+    gmodelFile = get_value_from_ini_file(jobName+'.config', 'gas_model_file')
+    max_time = float(get_value_from_ini_file(jobName+'.control', 'max_time'))
+    # Do the real work...
     run_in_block_marching_mode(jobName, nbj*nbk, max_time, gmodelFile, restartFromRun)
     # At this time, the full-domain flow solution should be sitting in ./flow/t0001/
     if uoDict.has_key("--polish-time"):

@@ -43,7 +43,7 @@ Command line::
 
 Options::
 
-| e3prep.py [--help] [--job=<jobFileName>]
+| e3prep.py [--help] [--job=<jobFileName>] [--clean-start]
 |           [--do-svg] [--do-vrml] [--zip-files|--no-zip-files]
 |           [--show-names] [--split-input-file]
 
@@ -109,6 +109,7 @@ from gzip import GzipFile
 import copy
 import math
 import traceback
+import subprocess
 
 from libprep3 import *
 from e3_defs import *
@@ -120,12 +121,12 @@ from e3_render import *
 sketch = SketchEnvironment()
 
 shortOptions = ""
-longOptions = ["help", "job=", "do-svg", "do-vrml", 
+longOptions = ["help", "job=", "clean-start", "do-svg", "do-vrml", 
                "zip-files", "no-zip-files", "show-names"]
 
 def printUsage():
     print ""
-    print "Usage: e3prep.py [--help] [--job=<jobFileName>]"
+    print "Usage: e3prep.py [--help] [--job=<jobFileName>] [--clean-start]"
     print "       [--do-svg] [--do-vrml] [--zip-files|--no-zip-files]"
     print "       [--show-names] [--split-input-file]"
     return
@@ -1223,6 +1224,13 @@ def main(uoDict):
     zipFiles = 1  # Default: use zip file format for grid and flow data files.
     if uoDict.has_key("--zip-files"): zipFiles = 1
     if uoDict.has_key("--no-zip-files"): zipFiles = 0
+    if uoDict.has_key("--clean-start"):
+        # Remove the directories containing grids and flow solutions from old runs.
+        # This is a bit brute-force because it may throw away files from other jobs
+        # that just happen to reside in the same directories.
+        for path in ["flow", "grid", "master"]:
+            if os.path.exists(path) and os.path.isdir(path):
+                subprocess.check_call(['rm', '-r', path], stderr=subprocess.STDOUT)
     #
     # The user-specified input comes in the form of Python code.
     # In a parallel calculation, all processes should see the same setup.

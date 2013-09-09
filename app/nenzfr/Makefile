@@ -7,9 +7,9 @@ include ../../lib/util/source/systems.mk
 INSTALL_DIR ?= $(HOME)/e3bin
 EILMER3 := ../eilmer3
 GAS     := ../../lib/gas
-TARGET := for_gnu
+TARGET := for_openmpi
 OPT := -O2
-PROGRAMS := estcj.py nenzfr.py nenzfr_utils.py nenzfr_stats.py nenzfr_parallel.py \
+PROGRAMS := estcj.py nenzfr.py nenzfr_utils.py nenzfr_stats.py \
 	nenzfr_compute_viscous_data.py nenzfr_quasi_transient.py nenzfr_sensitivity.py \
 	nenzfr_perturbed.py nenzfr_RSA.py nenzfr_GCI.py nenzfr_input_utils.py
 
@@ -25,7 +25,7 @@ install : $(INSTALL_DIR) $(PROGRAMS)
 	@echo -----------------------------------------
 	@echo nenzfr and estcj should be now installed.
 	@echo -----------------------------------------
-	
+
 estcj : $(INSTALL_DIR) estcj.py
 	@echo Building lib/gas and installing to $(INSTALL_DIR)
 	cd $(GAS)/build; make TARGET=$(TARGET) OPT=$(OPT) INSTALL_DIR=$(INSTALL_DIR) install
