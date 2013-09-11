@@ -22,7 +22,7 @@ to extract nominal flow condition data.
    Maybe a dictionary of customised parameters for each case. Wilson.
 """
 
-VERSION_STRING = "13-May-2013"
+VERSION_STRING = "11-Sep-2013"
 
 from string import upper
 import sys, os

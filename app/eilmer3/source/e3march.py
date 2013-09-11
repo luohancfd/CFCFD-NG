@@ -185,7 +185,7 @@ def run_in_block_marching_mode(cfgDict):
         lastBlk = firstBlk + (2 * blksPerSlice)
         #
         # Copy the grid and flow files needed for this run.
-        #
+        # Upstream column (A) 
         for blk in range(firstBlk, firstBlk+blksPerSlice):
             localBlkId = blk - run*blksPerSlice
             if run == 0:
@@ -196,24 +196,26 @@ def run_in_block_marching_mode(cfgDict):
                 src = 'master/grid/t0000/'+jobName+'.grid.b'+str(blk).zfill(4)+'.t0000.gz'
                 dest = 'grid/t0000/'+jobName+'.grid.b'+str(localBlkId).zfill(4)+'.t0000.gz'
                 run_command(['cp', src, dest])
+            elif run != restartFromRun:
+                # On subsequent runs, the flow data comes from the downstream column
+                # that has most recently been iterated.
+                src = 'flow/t0001/'+jobName+'.flow.b'+str(localBlkId+blksPerSlice).zfill(4)+'.t0001.gz'
+                dest = 'flow/t0000/'+jobName+'.flow.b'+str(localBlkId).zfill(4)+'.t0000.gz'
+                run_command(['cp', src, dest])
+                # We also need to change the time in the header line back to 0.0 seconds in
+                # each file. The files need to be unzipped and zipped again for this process.
+                run_command(['gunzip'] + [dest])
+                dest = 'flow/t0000/'+jobName+'.flow.b'+str(localBlkId).zfill(4)+'.t0000'
+                run_command(['sed'] + ['-i'] + ['1s/.*/ 0.000000000000e+00/'] + [dest])
+                run_command(['gzip'] + [dest])
             else:
-                if run != restartFromRun:
-                    # On subsequent runs, the flow data comes from the downstream column
-                    # that has most recently been iterated.
-                    src = 'flow/t0001/'+jobName+'.flow.b'+str(localBlkId+blksPerSlice).zfill(4)+'.t0001.gz'
-                    dest = 'flow/t0000/'+jobName+'.flow.b'+str(localBlkId).zfill(4)+'.t0000.gz'
-                    run_command(['cp', src, dest])
-                    # We also need to change the time in the header line back to 0.0 seconds in
-                    # each file. The files need to be unzipped and zipped again for this process.
-                    run_command(['gunzip'] + [dest])
-                    dest = 'flow/t0000/'+jobName+'.flow.b'+str(localBlkId).zfill(4)+'.t0000'
-                    run_command(['sed'] + ['-i'] + ['1s/.*/ 0.000000000000e+00/'] + [dest])
-                    run_command(['gzip'] + [dest])
+                # We are at the beginning of a restart.
+                pass
             # Grid comes always from the master area.
             src = 'master/grid/t0000/'+jobName+'.grid.b'+str(blk).zfill(4)+'.t0000.gz'
             dest = 'grid/t0000/'+jobName+'.grid.b'+str(localBlkId).zfill(4)+'.t0000.gz'
             run_command(['cp', src, dest])
-        # Downstream column always comes freshly from the master copy.
+        # Downstream column (B) always comes freshly from the master copy.
         for blk in range(firstBlk+blksPerSlice, lastBlk):
             localBlkId = blk - run*blksPerSlice
             src = 'master/flow/t0000/'+jobName+'.flow.b'+str(blk).zfill(4)+'.t0000.gz'
@@ -254,7 +256,7 @@ def run_in_block_marching_mode(cfgDict):
                         +('--slice-list="%d,-1,:,0;%d,-2,:,0" ' % (blk, blk))
                         +('--gmodel-file=%s' % gmodelFile))
         #
-        # Save the (presumed) converged blocks in the upstream column back to the master area.
+        # Save the (presumed) converged blocks (A) in the upstream column back to the master area.
         for blk in range(firstBlk, firstBlk+blksPerSlice):
             localBlkId = blk - run*blksPerSlice
             src = 'flow/t0001/'+jobName+'.flow.b'+str(localBlkId).zfill(4)+'.t0001.gz'
