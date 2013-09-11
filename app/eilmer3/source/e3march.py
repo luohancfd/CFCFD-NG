@@ -301,6 +301,7 @@ def create_config_file(blksPerSlice, originalConfigFileName, newConfigFileName):
                             for blk in range(blksPerSlice, blksPerRun)]
     #
     parser = SafeConfigParser()
+    parser.optionxform = str
     parser.read(originalConfigFileName)
     outfile = file(newConfigFileName, 'w')
     parser.set('global_data', 'nblock', str(blksPerRun))
@@ -336,6 +337,7 @@ def read_block_dims(configFileName):
     Returns the number blocks, and the dimensions for each block.
     """
     parser = SafeConfigParser()
+    parser.optionxform = str
     parser.read(configFileName)
     numberOfBlocks = parser.getint('global_data', 'nblock')
     blockDimsList = [(parser.getint('block/'+str(blk), 'nni'),
@@ -350,6 +352,7 @@ def update_block_dims(targetBlock, blockDims, configFileName):
     the block that is used in the current Eilmer3 run.
     """
     parser = SafeConfigParser()
+    parser.optionxform = str
     parser.read(configFileName)
     parser.set('block/'+str(targetBlock), 'nni', str(blockDims[0]))
     parser.set('block/'+str(targetBlock), 'nnj', str(blockDims[1]))
@@ -365,6 +368,7 @@ def update_max_time(maxTime, controlFileName):
     run time for each Eilmer3 run.
     """
     parser = SafeConfigParser()
+    parser.optionxform = str
     parser.read(controlFileName)
     parser.set('control_data', 'max_time', str(maxTime))
     outfile = file(controlFileName, 'w')
@@ -389,6 +393,7 @@ def update_dt_global(jobName, max_dt):
     # Write out a new .control file with the appropriate line updated.
     controlFileName = jobName+'.control'
     parser = SafeConfigParser()
+    parser.optionxform = str
     parser.read(controlFileName)
     parser.set('control_data', 'dt', str(new_dt_global))
     outfile = file(controlFileName, 'w')
@@ -405,6 +410,7 @@ def update_inflowBC(blksPerSlice, configFileName):
     the time-stepping code.
     """
     parser = SafeConfigParser()
+    parser.optionxform = str
     parser.read(configFileName)
     # Section names for the west faces of blocks in the upstream slice.
     sliceA_section_names = ['block/'+str(blk)+'/face/west' 
