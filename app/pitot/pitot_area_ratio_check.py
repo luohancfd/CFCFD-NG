@@ -11,7 +11,7 @@ Chris James (c.james4@uq.edu.au) - 20/08/13
 
 import sys
 
-from pitot_flow_functions import nozzle_expansion, conehead_calculation
+from pitot_flow_functions import nozzle_expansion, conehead_calculation, shock_over_model_calculation
 
 def area_ratio_check(cfg, states, V, M):
     """Overarching area ratio check function."""
@@ -46,6 +46,8 @@ def area_ratio_check(cfg, states, V, M):
         cfg, states, V, M = nozzle_expansion(cfg, states, V, M)
         if cfg['conehead']: #do the conehead calculation if required
             cfg, states, V, M = conehead_calculation(cfg, states, V, M)
+        if cfg['shock_over_model']: #do the shock over model calc if required
+            cfg, states, V, M = shock_over_model_calculation(cfg, states, V, M)
         # print some stuff to the screen
         print "V8 = {0} m/s, M8 = {1}.".format(V['s8'], M['s8'])
         print "State 8 (freestream at the nozzle exit):"
@@ -97,5 +99,7 @@ def area_ratio_check(cfg, states, V, M):
     cfg, states, V, M = nozzle_expansion(cfg, states, V, M)
     if cfg['conehead']: #do the conehead calculation if required
         cfg, states, V, M = conehead_calculation(cfg, states, V, M)
+    if cfg['shock_over_model']: #do the shock over model calc if required
+        cfg, states, V, M = shock_over_model_calculation(cfg, states, V, M)
        
     return cfg, states, V, M
