@@ -21,10 +21,14 @@ def area_ratio_check(cfg, states, V, M):
     # print a line explaining the results
     intro_line_1 = "# Output of pitot area ratio checking program."
     area_ratio_output.write(intro_line_1 + '\n')
-    if cfg['conehead']:
-        intro_line_2 = "# area ratio, p8, T8, V8, M8, p10c, T10c, V10c"
+    if cfg['conehead'] and not cfg['shock_over_model']:
+        intro_line_2 = "# area ratio,p8,T8,V8,M8,p10c,T10c,V10c"
+    elif cfg['shock_over_model'] and not cfg['conehead']:
+        intro_line_2 = "# area ratio,p8,T8,V8,M8,p10f,T10f,V10f,p10e,T10f,V10f"
+    elif cfg['shock_over_model'] and cfg['conehead']:
+        intro_line_2 = "# area ratio,p8,T8,V8,M8,p10c,T10c,V10c,p10f,T10f,V10f,p10e,T10f,V10f"        
     else:
-        intro_line_2 = "# area ratio, p8, T8, V8, M8"
+        intro_line_2 = "# area ratio,p8,T8,V8,M8"
     area_ratio_output.write(intro_line_2 + '\n')
     
     # start by storing old area ratio so it can be retained later
@@ -52,14 +56,32 @@ def area_ratio_check(cfg, states, V, M):
             states['s10c'].write_state(sys.stdout)
         elif cfg['conehead'] and not cfg['conehead_completed']:
             print "Conehead calculation failed so result is not being printed."
+        if cfg['shock_over_model']:
+            print "V10f = {0} m/s.".format(V['s10f'])
+            print "State 10f (frozen normal shock over the test model):"
+            states['s10f'].write_state(sys.stdout)      
+            print "V10e = {0} m/s.".format(V['s10e'])
+            print "State 10e (equilibrium normal shock over the test model):"
+            states['s10e'].write_state(sys.stdout)  
         
         #now add a new line to the output file
         #only prints the line to the csv if the conehead calc completed
-        if cfg['conehead'] and cfg['conehead_completed']:        
+        if cfg['conehead'] and cfg['conehead_completed'] and not cfg['shock_over_model']:        
             new_output_line = "{0},{1},{2},{3},{4},{5},{6},{7}"\
             .format(area_ratio, states['s8'].p, states['s8'].T,V['s8'],\
                     M['s8'], states['s10c'].p, states['s10c'].T,V['s10c'])
-        elif not cfg['conehead']:
+        elif cfg['shock_over_model'] and not cfg['conehead']:
+            new_output_line = "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}"\
+            .format(area_ratio, states['s8'].p, states['s8'].T,V['s8'],\
+                    M['s8'], states['s10f'].p, states['s10f'].T,V['s10f'],
+                    states['s10e'].p, states['s10e'].T,V['s10e'])
+        elif cfg['shock_over_model'] and cfg['conehead'] and cfg['conehead_completed']:
+            new_output_line = "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13}"\
+            .format(area_ratio, states['s8'].p, states['s8'].T,V['s8'],\
+                    M['s8'], states['s10c'].p, states['s10c'].T,V['s10c'],
+                    states['s10f'].p, states['s10f'].T,V['s10f'],
+                    states['s10e'].p, states['s10e'].T,V['s10e'])            
+        elif not cfg['shock_over_model'] and not cfg['conehead']:
             new_output_line = "{0},{1},{2},{3},{4}"\
             .format(area_ratio, states['s8'].p, states['s8'].T,V['s8'], M['s8'])
         area_ratio_output.write(new_output_line + '\n')
