@@ -24,9 +24,9 @@ def area_ratio_check(cfg, states, V, M):
     if cfg['conehead'] and not cfg['shock_over_model']:
         intro_line_2 = "# area ratio,p8,T8,V8,M8,p10c,T10c,V10c"
     elif cfg['shock_over_model'] and not cfg['conehead']:
-        intro_line_2 = "# area ratio,p8,T8,V8,M8,p10f,T10f,V10f,p10e,T10f,V10f"
+        intro_line_2 = "# area ratio,p8,T8,V8,M8,p10f,T10f,V10f,p10e,T10e,V10e"
     elif cfg['shock_over_model'] and cfg['conehead']:
-        intro_line_2 = "# area ratio,p8,T8,V8,M8,p10c,T10c,V10c,p10f,T10f,V10f,p10e,T10f,V10f"        
+        intro_line_2 = "# area ratio,p8,T8,V8,M8,p10c,T10c,V10c,p10f,T10f,V10f,p10e,T10e,V10e"        
     else:
         intro_line_2 = "# area ratio,p8,T8,V8,M8"
     area_ratio_output.write(intro_line_2 + '\n')
