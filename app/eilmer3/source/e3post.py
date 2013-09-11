@@ -141,7 +141,8 @@ longOptions = ["help", "job=", "zip-files", "no-zip-files", "vtk-xml", "binary-f
                "probe=", "add-pitot-p", "add-total-p",
                "add-molef", "gmodel-file=",
                "add-total-enthalpy", "add-mach", "heat-flux-list=", "vertex-velocity-list=", 
-               "plot3d", "omegaz=", "tangent-slab-list=", "prepare-fstc-restart", "moving-grid"]
+               "plot3d", "omegaz=", "tangent-slab-list=", "prepare-fstc-restart", "moving-grid",
+               "add-noneq-conductivities"]
 
 def printUsage():
     print ""
@@ -153,6 +154,7 @@ def printUsage():
     print ""
     print "          [--add-pitot-p] [--add-total-p] [--add-mach] [--add-total-enthalpy]"
     print "          [--add-molef --gmodel-file=\"gas-model.lua\"]"
+    print "          [--add-noneq-conductivities --gmodel-file=\"gas-model.lua\"]"
     print ""
     print "          [--vtk-xml] [--binary-format] [--tecplot] [--plot3d]"
     print ""
