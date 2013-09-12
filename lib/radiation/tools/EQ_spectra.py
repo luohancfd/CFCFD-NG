@@ -31,7 +31,8 @@ class EqSpectraInputData(object):
     __slots__ = ['rad_model_file', 'gas_model_file', 'species_list', 'mole_fractions', 
                  'mass_fractions', 'shock_speed', 'gas_pressure', 'gas_temperature', 
                  'path_length', 'apparatus_fn', 'Gaussian_HWHM', 'Lorentzian_HWHM', 
-                 'sampling_rate', 'problem', 'planck_spectrum', 'show_plots' ]
+                 'sampling_rate', 'problem', 'planck_spectrum', 'show_plots',
+                 'spectral_units' ]
     def __init__(self):
         self.rad_model_file = "rad-model.lua"
         self.gas_model_file = "gas-model.lua"
@@ -49,6 +50,7 @@ class EqSpectraInputData(object):
         self.problem = "shock"
         self.planck_spectrum = False
         self.show_plots = True
+        self.spectral_units = WAVELENGTH 
     
 def parseInputData(input_data):
     # parse the input data object
@@ -103,10 +105,26 @@ def parseInputData(input_data):
     
     show_plots = input_data.show_plots
     
-    return rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, apparatus_fn, gamma_G, gamma_L, nu_sample, problem, planck_spectrum, show_plots
+    # the spectral units to use for the output
+    if input_data.spectral_units=="wavelength":
+        spectral_units = WAVELENGTH
+    elif input_data.spectral_units=="wavenumber":
+        spectral_units = WAVENUMBER
+    elif input_data.spectral_units=="frequency":
+        spectral_units = FREQUENCY
+    else:
+        print "Requested spectral units not recognised."
+        print "Options are: 'wavelength', 'wavenumber' or 'frequency'"
+        sys.exit()
+    
+    return rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, \
+            apparatus_fn, gamma_G, gamma_L, nu_sample, problem, \
+            planck_spectrum, show_plots, spectral_units
    
 def run_calculation(input_data):
-    rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, apparatus_fn, gamma_G, gamma_L, nu_sample, problem, planck_spectrum, show_plots = parseInputData(input_data)
+    rsm, gm, species, nsp, ntm, massf_inf, Us, p_inf, T_inf, tube_D, \
+    apparatus_fn, gamma_G, gamma_L, nu_sample, problem, planck_spectrum, \
+    show_plots, spectral_units = parseInputData(input_data)
 
     # setup the reactants list
     reactants = make_reactants_dictionary( species )
@@ -182,22 +200,34 @@ def run_calculation(input_data):
     # apply apparatus function and write spectra to files
     if A!=None:
         S.apply_apparatus_function(A)
-    S.write_to_file("intensity_spectra.txt" ) 
+    S.write_to_file("intensity_spectra.txt",spectral_units) 
     
-    LOS.get_rpoint_pointer(0).X_.write_to_file("coefficient_spectra.txt")
+    LOS.get_rpoint_pointer(0).X_.write_to_file("coefficient_spectra.txt",spectral_units)
     if A!=None:
         LOS.get_rpoint_pointer(0).X_.apply_apparatus_function(A)
-    LOS.get_rpoint_pointer(0).X_.write_to_file("coefficient_spectra_with_AF.txt")
+    LOS.get_rpoint_pointer(0).X_.write_to_file("coefficient_spectra_with_AF.txt",spectral_units)
     
     if show_plots:
+        if spectral_units==WAVELENGTH:
+            xlabel = "Wavelength, lambda (nm)"
+            ylabel1 = "Emission coefficient, j_lambda (W/m2-m-sr)"
+            ylabel2 = "Spectral radiance, I_lambda (W/m2-m-sr)"
+        elif spectral_units==WAVENUMBER:
+            xlabel = "Wavenumber, eta (1/cm)" 
+            ylabel1 = "Emission coefficient, j_eta (W/m2-cm-1-sr)"
+            ylabel2 = "Spectral radiance, I_eta (W/m2-cm-1-sr)"
+        elif spectral_units==FREQUENCY:
+            xlabel = "Frequency, nu (Hz)" 
+            ylabel1 = "Emission coefficient, j_nu (W/m2-Hz-sr)"
+            ylabel2 = "Spectral radiance, I_nu (W/m2-Hz-sr)"
         JvW = YvX("coefficient_spectra.txt" )
-        JvW.plot_data(title="Emission coefficient spectra without apparatus function",xlabel="Wavelength, lambda (nm)", ylabel="Emission coefficient, j_lambda (W/m2-m-sr)", new_plot=True, show_plot=True, include_integral=False, logscale_y=True )
+        JvW.plot_data(title="Emission coefficient spectra without apparatus function",xlabel=xlabel, ylabel=ylabel1, new_plot=True, show_plot=True, include_integral=False, logscale_y=True )
         del JvW
         JvW = YvX("coefficient_spectra_with_AF.txt" )
-        JvW.plot_data(title="Emission coefficient spectra with apparatus function",xlabel="Wavelength, lambda (nm)", ylabel="Emission coefficient, j_lambda (W/m2-m-sr)", new_plot=True, show_plot=True, include_integral=False, logscale_y=True )
+        JvW.plot_data(title="Emission coefficient spectra with apparatus function",xlabel=xlabel, ylabel=ylabel1, new_plot=True, show_plot=True, include_integral=False, logscale_y=True )
         del JvW
         IvW = YvX("intensity_spectra.txt" )
-        IvW.plot_data(title="Intensity spectra with apparatus function",xlabel="Wavelength, lambda (nm)", ylabel="Spectral radiance, I_lambda (W/m2-m-sr)", new_plot=True, show_plot=True, include_integral=False, logscale_y=True )
+        IvW.plot_data(title="Intensity spectra with apparatus function",xlabel=xlabel, ylabel=ylabel2, new_plot=True, show_plot=True, include_integral=False, logscale_y=True )
         del IvW
     
     # check if the planck intensity spectrum has been requested
