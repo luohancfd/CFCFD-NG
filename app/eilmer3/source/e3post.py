@@ -24,6 +24,7 @@ Summary of options::
 | 
 |           [--add-pitot-p] [--add-total-p] [--add-mach] [--add-total-enthalpy]
 |           [--add-molef --gmodel-file="gas-model.lua"]
+|           [--add-transport-coeffs --gmodel-file="gas-model.lua"]
 | 
 |           [--vtk-xml] [--binary-format] [--tecplot] [--plot3d]
 | 
@@ -142,7 +143,7 @@ longOptions = ["help", "job=", "zip-files", "no-zip-files", "vtk-xml", "binary-f
                "add-molef", "gmodel-file=",
                "add-total-enthalpy", "add-mach", "heat-flux-list=", "vertex-velocity-list=", 
                "plot3d", "omegaz=", "tangent-slab-list=", "prepare-fstc-restart", "moving-grid",
-               "add-noneq-conductivities"]
+               "add-transport-coeffs"]
 
 def printUsage():
     print ""
@@ -154,7 +155,7 @@ def printUsage():
     print ""
     print "          [--add-pitot-p] [--add-total-p] [--add-mach] [--add-total-enthalpy]"
     print "          [--add-molef --gmodel-file=\"gas-model.lua\"]"
-    print "          [--add-noneq-conductivities --gmodel-file=\"gas-model.lua\"]"
+    print "          [--add-transport-coeffs --gmodel-file=\"gas-model.lua\"]"
     print ""
     print "          [--vtk-xml] [--binary-format] [--tecplot] [--plot3d]"
     print ""

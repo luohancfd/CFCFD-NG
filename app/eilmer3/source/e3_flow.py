@@ -470,7 +470,7 @@ class StructuredGridFlow(object):
         add_total_enthalpy = cmdLineDict.has_key("--add-total-enthalpy")
         add_mach = cmdLineDict.has_key("--add-mach")
         add_molef = cmdLineDict.has_key("--add-molef") and (self.gmodel != None)
-        add_noneq_cond = cmdLineDict.has_key("--add-noneq-conductivities") and (self.gmodel != None)
+        add_trans_coeffs = cmdLineDict.has_key("--add-transport-coeffs") and (self.gmodel != None)
         #
         nic = self.ni; njc = self.nj; nkc = self.nk
         if add_mach:
@@ -511,12 +511,14 @@ class StructuredGridFlow(object):
                 varName = "molef[%d]-%s" % (isp, specname)
                 self.vars.append(varName)
                 self.data[varName] = zeros((nic,njc,nkc),'d')
-        if add_noneq_cond:
-            self.vars.append("sigma")
-            self.data["sigma"] = zeros((nic,njc,nkc),'d')
-            for itm in range(1,self.ntm):
-                self.vars.append("k[%d]"%itm)
-                self.data["k[%d]"%itm] = zeros((nic,njc,nkc),'d')
+        if add_trans_coeffs:
+            new_vars = [ "sigma", "mu" ]
+            for itm in range(self.ntm):
+                new_vars.append( "k[%d]"%itm )
+            for var in new_vars:
+                if var not in self.vars:
+                    self.vars.append( var )
+                    self.data[var] = zeros((nic,njc,nkc),'d')
         #
         # Now, work through all nodes and add new values.
         for k in range(nkc):
@@ -598,9 +600,8 @@ class StructuredGridFlow(object):
                         for isp in range(self.nsp):
                             specname = self.gmodel.species_name(isp).replace(' ', '-')
                             self.data['molef[%d]-%s' % (isp, specname)][i,j,k] = molef[isp]
-                    if add_noneq_cond:
-                        # compute nonequilibrium condutivities via a thermo call
-                        # with transport properties
+                    if add_trans_coeffs:
+                        # recompute transport properties with the provided gas-model file
                         Q = Gas_data(self.gmodel)
                         nsp = self.gmodel.get_number_of_species()
                         nmodes = self.gmodel.get_number_of_modes()
@@ -613,7 +614,8 @@ class StructuredGridFlow(object):
                         self.gmodel.eval_thermo_state_rhoT(Q)
                         self.gmodel.eval_transport_coefficients(Q)
                         self.data['sigma'][i,j,k] = Q.sigma
-                        for imode in range(1,nmodes):
+                        self.data['mu'][i,j,k] = Q.mu
+                        for imode in range(nmodes):
                             self.data['k[%d]'%imode][i,j,k] = Q.k[imode]
                             
         # end of adding new data values for a block
