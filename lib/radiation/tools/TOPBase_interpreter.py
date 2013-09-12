@@ -1,6 +1,6 @@
 import sys
 
-from radiator_library import AtomicLevel, AtomicLine, TOPBasePICSModel
+from radiator_library import AtomicLevel, AtomicLine, TOPBasePICSLevel
 from radpy import RC_Ry
 
 def get_SLP( SLP ):
@@ -170,7 +170,7 @@ def make_PICS_from_TOPBase_strings( header_line, data_lines ):
         E_au_list.append( float(tks[0]) )
         sigma_au_list.append( float(tks[1]) )
         
-    return TOPBasePICSModel( E_cm, term, ilevTB, E_au_list, sigma_au_list )
+    return TOPBasePICSLevel( E_cm, term, ilevTB, E_au_list, sigma_au_list )
 
 def read_level_file( filename, echo_result=False ):
     # read in the file
@@ -266,6 +266,11 @@ def read_PICS_file( filename, echo_result=False ):
             header = line
 
     print "Found %d TOPBase PICS in file %s" % ( len(PICSs), filename)
+
+    # reset the energies to be referenced from 0 at the ground state
+    E0 = PICSs[0].E
+    for PICS in PICSs:
+        PICS.E -= E0
     
     if echo_result:
         for PICS in PICSs:
@@ -302,3 +307,20 @@ def add_level_energies_to_lines( lines, levels ):
     print "Found upper and lower level energies for all lines"
         
     return lines
+
+def add_level_indices_to_PICS( levels, PICSs, tol=1.0e-6 ):
+    new_PICSs = []
+    for PICS in PICSs:
+        found = False
+        for ilev,level in enumerate(levels):
+            if PICS.term == level.term and abs(level.E - PICS.E )<tol:
+                PICS.ilev = ilev
+                new_PICSs.append( PICS )
+                found = True
+                break
+        if not found:
+            print "WARNING: Did not find a level for PICS with E = %e, term = %s" % ( PICS.E, PICS.term )
+
+    print "%d PICS out of %d found" % ( len(new_PICSs), len(PICSs) )
+
+    return new_PICSs

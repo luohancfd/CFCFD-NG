@@ -126,18 +126,46 @@ class JohnstonModel(PhotoIonXSectionModel):
         ostring += "}\n"
         return ostring
 
-class TOPBasePICSModel(PhotoIonXSectionModel):
+class TOPBasePICSLevel(object):
     """Derived class for describing TOPBase photo-ionization cross-section model"""
-    def __init__(self, E, term, ilevTB, E_Ryd_list=[], sigma_list=[], elevel_set="TOPBase"):
-        PhotoIonXSectionModel.__init__(self, elevel_set=elevel_set, model="TOPBaseModel")
+    def __init__(self, E, term, ilevTB, E_Ryd_list=[], sigma_list=[]):
         self.E = E
         self.term = term
         self.ilevTB = ilevTB
         self.E_Ryd_list = E_Ryd_list
         self.sigma_list = sigma_list
+
+    def get_LUA_string(self,ipl):
+        ostring = ""
+        ostring += tab + "PICS_%d = {\n" % ipl
+        ostring += tab + tab + "ilev = %d,\n" % self.ilev
+        ostring += tab + tab + "E = %e,\n" % self.E
+        ostring += tab + tab + "npoints = %d,\n" % len(self.E_Ryd_list)
+        ostring += tab +tab+"-- =======================================================================\n"
+        ostring += tab +tab+"--   No.          E (Ry)     sigma_bf (cm^2)                   \n"
+        ostring += tab +tab+"-- =======================================================================\n"
+        for i in range(len(self.E_Ryd_list)):
+            ostring += tab + tab + "point_%d = { %e, %e },\n" % ( i, self.E_Ryd_list[i], self.sigma_list[i] )
+        ostring += tab + "}\n"
+        return ostring
         
-    def get_string(self):
-        ostring = "E = %e, term = %s, ilevTB = %d, len(lists) = %d" % ( self.E, self,term, self.ilevTB, len(self.E_Ryd_list) )
+class TOPBasePICSModel(PhotoIonXSectionModel):
+    """Derived class for describing TOPBase photo-ionization cross-section model"""
+    def __init__(self, level_data, elevel_set="TOPBase"):
+        PhotoIonXSectionModel.__init__(self, elevel_set=elevel_set, model="TOPBaseModel")
+        self.level_data = level_data
+
+    def get_LUA_string(self, species):
+        ostring  = ""
+        ostring += "%s.photoionXsection_model = {\n" % ( species )
+        comments = self.comments.replace('#','   --')
+        ostring += "%s\n" % ( comments )
+        ostring += tab+"model = '%s',\n" % ( self.model )
+        ostring += tab+"nlevels = %d,\n" % ( len(self.level_data) )
+        for ipl,level in enumerate(self.level_data):
+            ostring += level.get_LUA_string(ipl)
+        ostring += tab+"-- =======================================================================\n"
+        ostring += "}\n"
         return ostring
         
 class AtomicQSSModel(object):
@@ -297,12 +325,12 @@ class AtomicRadiator(Radiator):
         
 class AtomicLineSet(object):
     """Atomic line set class"""
-    def __init__(self):
-        self.lines = []
-        self.comments = "# Description of the atomic line set"
-        self.npoints = 100
-        self.nwidths = 1000
-        self.beta = 1.01
+    def __init__(self,lines=[],comments="# Description of the atomic line set",npoints=100,nwidths=1000,beta=1.01):
+        self.lines = lines
+        self.comments = comments
+        self.npoints = npoints
+        self.nwidths = nwidths
+        self.beta = beta
         
     def get_LUA_string(self, aname):
         ostring  = "%s.line_data = {\n" % ( aname )
@@ -325,10 +353,10 @@ class AtomicLineSet(object):
         
 class AtomicLevelSet(object):
     """Atomic level set class"""
-    def __init__(self):
-        self.levels = []
-        self.isp_list = []
-        self.comments = "# Description of the atomic level set"
+    def __init__(self,levels=[],comments="# Description of the atomic level set",isp_list=[]):
+        self.levels = levels
+        self.comments = comments
+        self.isp_list = isp_list
     def get_LUA_string(self, aname):
         ostring  = "%s.level_data = {\n" % ( aname )
         comments = self.comments.replace('#','   --')
