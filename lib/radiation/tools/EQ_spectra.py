@@ -50,7 +50,7 @@ class EqSpectraInputData(object):
         self.problem = "shock"
         self.planck_spectrum = False
         self.show_plots = True
-        self.spectral_units = WAVELENGTH 
+        self.spectral_units = "wavelength" 
     
 def parseInputData(input_data):
     # parse the input data object

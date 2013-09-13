@@ -70,6 +70,7 @@ double HydrogenicModel::eval( double nu )
     // CHECKME: - are pow() functions inefficient here?
     double sigma_bf = constA * constD / ( ( nu*nu*nu ) * constE ) * G;
     
+#if DEBUG_RAD > 0
     if ( isnan(sigma_bf) || isinf(sigma_bf) ) {
     	cout << "sigma_bf = " << sigma_bf << ", constA = " << constA << ", G = " << G << endl;
     	cout << "pow( RC_h_SI * nu / ( I * Z * Z ), 1.0/3.0) = " << pow( RC_h_SI * nu / ( I * Z * Z ), 1.0/3.0) << endl;
@@ -77,6 +78,7 @@ double HydrogenicModel::eval( double nu )
     	cout << "n_eff = " << n_eff << endl;
     	exit(FAILURE);
     }
+#endif
     
     return sigma_bf;
 }
@@ -203,7 +205,7 @@ TOPBaseModel::TOPBaseModel( lua_State * L, int ilev )
     
     for ( int i=0; i<npoints; ++i ) {
     	ostringstream datapoint_label;
-    	datapoint_label << "datapoint_" << i;
+    	datapoint_label << "point_" << i;
     	lua_getfield(L,-1,datapoint_label.str().c_str());
 	if ( !lua_istable(L, -1) ) {
 	    ostringstream ost;
@@ -220,7 +222,7 @@ TOPBaseModel::TOPBaseModel( lua_State * L, int ilev )
 	lua_pop(L,1);	// pop ithreshold
 	
 	// Check the size of the threshold data vector
-	if ( point_data.size()!=3 ) {
+	if ( point_data.size()!=2 ) {
 	    ostringstream oss;
 	    oss << "TOPBaseModel::TOPBaseModel()" << endl
 	        << "Cross-section data expected to have 2 elements." << endl;
@@ -229,7 +231,7 @@ TOPBaseModel::TOPBaseModel( lua_State * L, int ilev )
 	
  	// Initialise the threshold params if they corresponds to this ilev
  	if ( ilev==int(point_data[0]) ) {
- 	    double nu = point_data[1]*RC_Ry*RC_c_SI;	// convert Ry -> Hz
+ 	    double nu = point_data[1]*RC_Ry_SI*RC_c_SI;	  // convert Ry -> Hz
  	    double sigma_bf = point_data[2] * 1.0e-18;	  // convert cm**2 x 1.0e18 -> cm**2
  	    nu_list.push_back( nu );
  	    sigma_list.push_back( sigma_bf );
@@ -299,8 +301,15 @@ create_new_PICS_model( lua_State * L, int ilev, double n_eff, int Z, double I )
     	    PICS_model = new JohnstonThresholdModel(L, ilev);
     	}
     }
-    else if ( PICS_model_type=="TOPBase" ) {
-    	PICS_model = new TOPBaseModel( L, ilev );
+    else if ( PICS_model_type=="TOPBaseModel" ) {
+        ostringstream level_label;
+        level_label << "ilev_" << ilev;
+        lua_getfield(L,-1,level_label.str().c_str());
+        if ( !lua_istable(L, -1) )
+            PICS_model = new NoPICSModel();
+        else
+            PICS_model = new TOPBaseModel( L, ilev );
+        lua_pop(L,1);
     }
     else {
     	cout << "create_new_PICS_model()" << endl

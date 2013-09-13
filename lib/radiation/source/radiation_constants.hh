@@ -29,7 +29,8 @@ const double RC_H_ionise   = 1.0967877e5;   /* Hydrogen atom ionisation potentia
 const double RC_H_ionise_J = 2.1787113e-18; /* Hydrogen atom ionisation potential (J)    */
 const double RC_R_u        = 8.314472;      /* J/(mol.K)                                 */
 const double RC_E0         = 1.3875117e-11; /* erg, energy potential of first Bohr orbit */
-const double RC_Ry         = 1.0973732e7;   /* Rydberg constant (1/m)                    */
+const double RC_Ry_SI      = 1.0973732e7;   /* Rydberg constant (1/m)                    */
+const double RC_Ry         = 1.0973732e5;   /* Rydberg constant (1/cm)                   */
 
 #endif
 

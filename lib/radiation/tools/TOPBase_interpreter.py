@@ -87,7 +87,7 @@ def make_level_from_TOPBase_string( raw_level_string ):
     RL_NS = tks[5]
         
     # make the easy data
-    E = float(TE_RYD) * RC_Ry * 1.0e-2  # convert Ry -> cm-1
+    E = float(TE_RYD) * RC_Ry  # convert Ry -> cm-1
     g = int(float(gi))
     i_split = int(iLV)-1
     
@@ -153,7 +153,7 @@ def make_PICS_from_TOPBase_strings( header_line, data_lines ):
     # decode some of this stuff
     S,L,parity = get_SLP( ISLP )
     term = make_term( S, L, parity )
-    E_cm = E_RYD * RC_Ry * 1.0e-2       # convert Ry -> cm-1
+    E_cm = E_RYD * RC_Ry       # convert Ry -> cm-1
     ilevTB = ILV 
     
     # check the data_lines size is correct
@@ -201,8 +201,20 @@ def read_level_file( filename, echo_result=False ):
     for raw_level_string in raw_level_data:
         levels.append( make_level_from_TOPBase_string( raw_level_string ) )
         if echo_result: print levels[-1].get_string()
+        
+    # sort the levels by ascending energy
+    sorted_levels = []
+    nlevels = len(levels)
+    while len(sorted_levels)<nlevels:
+        E_min = 1.0e12
+        for ilev,level in enumerate(levels):
+            if level.E < E_min:
+                ilev_min = ilev
+                E_min = level.E
+        sorted_levels.append(levels[ilev_min])
+        levels.pop(ilev_min)
 
-    return levels
+    return sorted_levels
     
 def read_line_file( filename, echo_result=False ):
     # read in the file
@@ -233,6 +245,37 @@ def read_line_file( filename, echo_result=False ):
     for raw_line_string in raw_line_data:
         lines.append( make_line_from_TOPBase_string( raw_line_string ) )
         if echo_result: print lines[-1].get_string()
+        
+    # make all transitions in the positive (absorption) direction
+    for line in lines:
+        if line.A_ul < 0.0:
+            # swap upper and lower level data
+            # degeneracies
+            tmp = line.g_u
+            line.g_u = line.g_l
+            line.g_l = tmp
+            # energies
+            tmp = line.E_u
+            line.E_u = line.E_l
+            line.E_l = tmp
+            # configuration
+            tmp = line.conf_u
+            line.conf_u = line.conf_l
+            line.conf_l = tmp
+            # term
+            tmp = line.term_u
+            line.term_u = line.term_l
+            line.term_l = tmp
+            # split
+            tmp = line.i_split_u
+            line.i_split_u = line.i_split_l
+            line.i_split_l = tmp
+            # lev
+            tmp = line.ilev_u
+            line.ilev_u = line.ilev_l
+            line.ilev_l = tmp
+            # and finally make the transition probability positive
+            line.A_ul *= -1.0
         
     return lines
     
@@ -283,17 +326,19 @@ def check_line_levels( lines, levels ):
     
     return
     
-def add_level_energies_to_lines( lines, levels ):
+def add_level_data_to_lines( lines, levels ):
     # find the upper and lower level energies of the lines in the list
     for line in lines:
         u_found = False
         l_found = False
-        for level in levels:
+        for ilev,level in enumerate(levels):
             if line.conf_u == level.conf and line.term_u == level.term and line.i_split_u == level.i_split:
                 line.E_u = level.E
+                line.ilev_u = ilev
                 u_found = True
             if line.conf_l == level.conf and line.term_l == level.term and line.i_split_l == level.i_split:
                 line.E_l = level.E
+                line.ilev_l = ilev
                 l_found = True
         if not u_found:
             print "The upper state for the line below was not found in the provided list of levels!"
@@ -303,10 +348,14 @@ def add_level_energies_to_lines( lines, levels ):
             print "The lower state for the line below was not found in the provided list of levels!"
             print line.get_string()
             sys.exit()
+        # FIXME: currently setting type (optically allowed/forbidden??) to 0
+        #        eventually use level data to set this correctly
+        line.type = 0
             
     print "Found upper and lower level energies for all lines"
         
-    return lines
+    return lines 
+            
 
 def add_level_indices_to_PICS( levels, PICSs, tol=1.0e-6 ):
     new_PICSs = []

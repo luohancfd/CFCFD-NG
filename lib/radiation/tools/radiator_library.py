@@ -39,8 +39,13 @@ class AtomicLevel(object):
         lev_string += ", iTB = " + str(self.iTB)
         return lev_string
 
+    def get_LUA_string(self):
+        lua_lev_string = "%d, %e, %d, %d, %d, %d, %d" % ( self.n, self.E, \
+                                   self.g, self.l, self.L, self.S, self.parity )
+        return lua_lev_string
+
 class AtomicLine:
-    def __init__(self, g_u, E_u, g_l, E_l, A_ul, lambda_ul, conf_u="", term_u="", i_split_u=-1, conf_l="", term_l="", i_split_l=-1, acc="", type="", iTB=-1 ):
+    def __init__(self, g_u, E_u, g_l, E_l, A_ul, lambda_ul, conf_u="", term_u="", i_split_u=-1, conf_l="", term_l="", i_split_l=-1, acc="", type="", iTB=-1, ilev_u=-1, ilev_l=-1 ):
         self.g_u = g_u
         self.E_u = E_u
         self.g_l = g_l
@@ -56,6 +61,8 @@ class AtomicLine:
         self.acc = acc
         self.type = type
         self.iTB = iTB
+        self.ilev_u = ilev_u
+        self.ilev_l = ilev_l
         
     def get_string(self):
         line_string = "g_u = " + str(self.g_u)
@@ -74,6 +81,16 @@ class AtomicLine:
         line_string += ", type = " + str(self.type)
         line_string += ", iTB = " + str(self.iTB)
         return line_string
+
+#----------------------------------------------------------------------------------
+#                No.        Ei(cm-1)   Ek(cm-1)   gi   gk Aki(1/s)  ie_i ie_k type
+#----------------------------------------------------------------------------------
+
+    def get_LUA_string(self):
+        lua_line_string = "%e, %e, %d, %d, %e, %d, %d, %d" % ( self.E_l, self.E_u, \
+                                   self.g_l, self.g_u, self.A_ul, self.ilev_l, \
+                                   self.ilev_u, self.type )
+        return lua_line_string
 
 class PhotoIonXSectionModel(object):
     """Base class for describing a photo-ionization cross-section model"""
@@ -135,10 +152,9 @@ class TOPBasePICSLevel(object):
         self.E_Ryd_list = E_Ryd_list
         self.sigma_list = sigma_list
 
-    def get_LUA_string(self,ipl):
+    def get_LUA_string(self):
         ostring = ""
-        ostring += tab + "PICS_%d = {\n" % ipl
-        ostring += tab + tab + "ilev = %d,\n" % self.ilev
+        ostring += tab + "ilev_%d = {\n" % self.ilev
         ostring += tab + tab + "E = %e,\n" % self.E
         ostring += tab + tab + "npoints = %d,\n" % len(self.E_Ryd_list)
         ostring += tab +tab+"-- =======================================================================\n"
@@ -146,7 +162,7 @@ class TOPBasePICSLevel(object):
         ostring += tab +tab+"-- =======================================================================\n"
         for i in range(len(self.E_Ryd_list)):
             ostring += tab + tab + "point_%d = { %e, %e },\n" % ( i, self.E_Ryd_list[i], self.sigma_list[i] )
-        ostring += tab + "}\n"
+        ostring += tab + "},\n"
         return ostring
         
 class TOPBasePICSModel(PhotoIonXSectionModel):
@@ -161,9 +177,8 @@ class TOPBasePICSModel(PhotoIonXSectionModel):
         comments = self.comments.replace('#','   --')
         ostring += "%s\n" % ( comments )
         ostring += tab+"model = '%s',\n" % ( self.model )
-        ostring += tab+"nlevels = %d,\n" % ( len(self.level_data) )
         for ipl,level in enumerate(self.level_data):
-            ostring += level.get_LUA_string(ipl)
+            ostring += level.get_LUA_string()
         ostring += tab+"-- =======================================================================\n"
         ostring += "}\n"
         return ostring
@@ -344,9 +359,16 @@ class AtomicLineSet(object):
         ostring += tab+"--    No.         Ei(cm-1)  Ek(cm-1)    gi    gk  Aki(1/s)    ie_i  ie_k  type \n"
         ostring += tab+"-- ============================================================================\n"
         for i,line in enumerate(self.lines):
-            if i<10: ostring += tab+"iline_%d   = { %s },\n" % ( i, add_commas(line) )
-            elif i<100: ostring += tab+"iline_%d  = { %s },\n" % ( i, add_commas(line) )
-            else: ostring += tab+"iline_%d = { %s },\n" % ( i, add_commas(line) )
+            # FIXME: eventually all level data will be AtomicLevel instances and 
+            #        these if and else's should be removed
+            if type(line)==type(""):
+                if i<10: ostring += tab+"iline_%d   = { %s },\n" % ( i, add_commas(line) )
+                elif i<100: ostring += tab+"iline_%d  = { %s },\n" % ( i, add_commas(line) )
+                else: ostring += tab+"iline_%d = { %s },\n" % ( i, add_commas(line) )
+            else:
+                if i<10: ostring += tab+"iline_%d   = { %s },\n" % ( i, line.get_LUA_string() )
+                elif i<100: ostring += tab+"iline_%d  = { %s },\n" % ( i, line.get_LUA_string() )
+                else: ostring += tab+"iline_%d = { %s },\n" % ( i, line.get_LUA_string() )
         ostring += tab+"-- ============================================================================\n"
         ostring += "}\n"
         return ostring
@@ -370,8 +392,14 @@ class AtomicLevelSet(object):
         ostring += tab+"--   No.     n      E(cm-1)      g     l     L     S    parity \n"
         ostring += tab+"-- ===========================================================\n"
         for i,level in enumerate(self.levels):
-            if i<10: ostring += tab+"ilev_%d  = { %s },\n" % ( i, add_commas(level) )
-            else: ostring += tab+"ilev_%d = { %s },\n" % ( i, add_commas(level) )
+            # FIXME: eventually all level data will be AtomicLevel instances and 
+            #        these if and else's should be removed
+            if type(level)==type(""):
+                if i<10: ostring += tab+"ilev_%d  = { %s },\n" % ( i, add_commas(level) )
+                else: ostring += tab+"ilev_%d = { %s },\n" % ( i, add_commas(level) )
+            else:
+                if i<10: ostring += tab+"ilev_%d  = { %s },\n" % ( i, level.get_LUA_string() )
+                else: ostring += tab+"ilev_%d = { %s },\n" % ( i, level.get_LUA_string() )
         ostring += tab+"-- ===========================================================\n"
         ostring += "}\n"
         return ostring
