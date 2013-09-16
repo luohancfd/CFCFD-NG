@@ -355,18 +355,18 @@ flux_dict.py : $(SRC)/flux_dict.py
 
 # Dynamic link library for MINGW32 environment on MS-Windows
 _libprep3.dll : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBPYTHON) $(LIBLUA) $(LIBZLIB)
-	$(CXXLINK) $(LFLAG) -shared -o _libprep3.dll libprep3_wrap.o \
+	$(CXXLINK) $(LFLAG) $(LDFLAG) -shared -o _libprep3.dll libprep3_wrap.o \
 		-L$(PYTHON_DIR)/libs \
 		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBPYTHON) $(LIBLUA) $(LIBZLIB) $(LLIB)
 
 # Shared object for Unix/Linux
 _libprep3.so : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB)
-	$(CXXLINK) $(LFLAG) -shared -o _libprep3.so libprep3_wrap.o \
+	$(CXXLINK) $(LDFLAG) $(LDFLAG) -shared -o _libprep3.so libprep3_wrap.o \
 		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB) $(LLIB)
 
 # Dynamic library for Mac OS X
 _libprep3.dylib : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB)
-	$(CXXLINK) $(LFLAG) -shared -o _libprep3.dylib libprep3_wrap.o \
+	$(CXXLINK) $(LFLAG) $(LDFLAG) -shared -o _libprep3.dylib libprep3_wrap.o \
 		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB) $(LLIB) -framework Python
 
 # The SWIG interface file and corresponding documentation
