@@ -26,7 +26,7 @@ using namespace std;
 /* --------- Model: "PoshaxRadiationTransportModel: ----------- */
 PoshaxRadiationTransportModel::PoshaxRadiationTransportModel( lua_State *L )
 {
-    spectrally_resolved_ = get_int(L,-1,"spectrally_resolved");
+    spectrally_resolved_ = (int) get_boolean(L,-1,"spectrally_resolved");
     electronic_mode_factor_ = get_number(L,-1,"electronic_mode_factor");
 }
 
