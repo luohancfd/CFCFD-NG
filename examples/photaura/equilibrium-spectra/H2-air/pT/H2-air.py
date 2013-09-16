@@ -11,7 +11,7 @@ input_data.mass_fractions[species.index('O2')] = 0.233*(1.0-f_H2)
 # Arbitrary pressure and temperature
 input_data.gas_pressure = 1.0e4
 input_data.gas_temperature = 2.0e3
-input_data.tube_width = 0.1 # m
+input_data.path_length = 0.1 # m
 input_data.apparatus_fn = "Voigt"
 input_data.Gaussian_HWHM = 2 # Ang
 input_data.Lorentzian_HWHM = 0 # Ang
