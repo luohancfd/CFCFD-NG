@@ -202,7 +202,7 @@ TOPBaseModel::TOPBaseModel( lua_State * L, int ilev )
  : PhotoIonisationCrossSectionModel( "TOPBaseModel" )
 {
     int npoints = get_int( L, -1, "npoints" );
-    
+
     for ( int i=0; i<npoints; ++i ) {
     	ostringstream datapoint_label;
     	datapoint_label << "point_" << i;
@@ -229,13 +229,11 @@ TOPBaseModel::TOPBaseModel( lua_State * L, int ilev )
 	    input_error( oss );
 	}
 	
- 	// Initialise the threshold params if they corresponds to this ilev
- 	if ( ilev==int(point_data[0]) ) {
- 	    double nu = point_data[1]*RC_Ry_SI*RC_c_SI;	  // convert Ry -> Hz
- 	    double sigma_bf = point_data[2] * 1.0e-18;	  // convert cm**2 x 1.0e18 -> cm**2
- 	    nu_list.push_back( nu );
- 	    sigma_list.push_back( sigma_bf );
- 	}
+ 	// Initialise the PICS params
+        double nu = point_data[0]*RC_Ry_SI*RC_c_SI;	  // convert Ry -> Hz
+        double sigma_bf = point_data[1] * 1.0e-18;	  // convert cm**2 x 1.0e18 -> cm**2
+        nu_list.push_back( nu );
+        sigma_list.push_back( sigma_bf );
     }
     
     // initialise i_prev to 0
@@ -249,9 +247,12 @@ TOPBaseModel::~TOPBaseModel() {}
 
 double TOPBaseModel::eval( double nu )
 {
+#   if 0
     cout << "TOPBaseModel::eval( " << nu << " ) " << endl;
+    cout << "N_points = " << N_points << endl;
     cout << "nu.front() = " << nu_list.front() << ", nu.back() = " << nu_list.back() << endl;
     cout << "i_prev = " << i_prev << endl;
+#   endif
     
     // need to find bounding data points
     if ( nu < nu_list.front() ) return 0.0;
@@ -259,13 +260,13 @@ double TOPBaseModel::eval( double nu )
     else {
     	// start from i_prev
         for ( int i=i_prev; i<(N_points-1); ++i ) {
-            cout << "i = " << i << endl;
+            // cout << "i = " << i << endl;
     	    if ( nu >= nu_list[i] && nu < nu_list[i+1] )
     	        return 0.5 * ( sigma_list[i] + sigma_list[i+1] );
     	}
 	// start from 0
     	for ( int i=0; i<(i_prev-1); ++i ) {
-    	    cout << "i = " << i << endl;
+    	    // cout << "i = " << i << endl;
     	    if ( nu >= nu_list[i] && nu < nu_list[i] ) {
     	        return 0.5 * ( sigma_list[i] + sigma_list[i+1] );
     	    }
