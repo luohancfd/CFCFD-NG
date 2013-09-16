@@ -83,7 +83,8 @@ RAD_OBJECTS := spectral_model.o \
 	parade.o \
 	parade_radiator.o \
 	mersenne.o \
-	line_shapes.o
+	line_shapes.o \
+	stark_width_models.o
 
 ifeq ($(WITH_SPRADIAN), 1)
     RAD_OBJECTS += spradian.o spradian_radiator.o radipac6.o
@@ -342,7 +343,10 @@ mersenne.o : $(UTIL_SRC)/mersenne.cpp $(UTIL_SRC)/randomc.h
 	$(CXXCOMPILE) $(CXXFLAG) $(UTIL_SRC)/mersenne.cpp
 
 line_shapes.o : $(SRC)/line_shapes.cxx $(SRC)/line_shapes.hh 
-	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/line_shapes.cxx  -I$(LUA_INCLUDE_DIR)
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/line_shapes.cxx  
+	
+stark_width_models.o : $(SRC)/stark_width_models.cxx $(SRC)/stark_width_models.hh 
+	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/stark_width_models.cxx 
 
 # ------------ Test executables ------------
 

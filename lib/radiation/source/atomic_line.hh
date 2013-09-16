@@ -16,10 +16,11 @@
 #include "../../nm/source/fobject.hh"
 
 #include "spectra_pieces.hh"
+#include "stark_width_models.hh"
 
-#define ATOMIC_VOIGT_PROFILE_METHOD 1      /* [0] Accurate Whiting expression, [1] approx. Whiting expression */
-#define ATOMIC_STARK_WIDTH          0      /* [0] Johnston 2006 curve fit, [1] Cowley 1971, [2] Arnold 1979 */
-#define LIMITED_ATOMIC_LINE_EXTENT  1      /* Line extents are unlimited [0] or limited [1]       */
+#define ATOMIC_VOIGT_PROFILE_METHOD       1      /* [0] Accurate Whiting expression, [1] approx. Whiting expression */
+#define ATOMIC_APPROX_STARK_WIDTH_METHOD  0      /* [0] Johnston 2006 curve fit, [1] Cowley 1971, [2] Arnold 1979, [3] Park 1982 */
+#define LIMITED_ATOMIC_LINE_EXTENT        1      /* Line extents are unlimited [0] or limited [1]       */
 
 // Forward declaration of AtomicElecLev
 class AtomicElecLev;
@@ -72,7 +73,8 @@ public:
     double calculate_vanderwaals_width( double T, double p, double mw_av, double N_hvy );
     
     /// \brief Calculate Stark line-width 
-    double calculate_Stark_width( double T_e, double N_e );
+    double calculate_Stark_width( double T_e, double N_e )
+    { return swm->eval( T_e, N_e ); }
     
     /// \brief Calculate natural line-width 
     double calculate_natural_width();
@@ -117,6 +119,9 @@ public:
     int npoints;
     int nwidths;
     RobertsClusterFunction * rcf;
+
+    /* Stark width model */
+    StarkWidthModel * swm;
 };
 
 #endif

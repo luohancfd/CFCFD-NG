@@ -221,10 +221,12 @@ read_line_data( lua_State * L )
 	}
 	lua_pop(L,1);	// pop iline
 	// Check the size of the line data vector
-	if ( line_data.size()!=5 && line_data.size()!=8 ) {
+	// FIXME: this will soon dissapear, all lines should have 11 elements
+	if ( line_data.size()!=5 && line_data.size()!=8 && line_data.size()!=11 ) {
 	    ostringstream oss;
 	    oss << "AtomicRadiator::read_line_data()" << endl
-	        << "Line data expected to have 5 or 8 elements." << endl;
+	        << "line_data.size() = " << line_data.size() << endl
+	        << "Line data expected to have 5, 8 or 11 elements." << endl;
 	    input_error( oss );
 	}	    
  	// Create the electronic level

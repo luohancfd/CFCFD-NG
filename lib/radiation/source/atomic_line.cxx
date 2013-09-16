@@ -38,19 +38,22 @@ AtomicLine( vector<double> line_data, double m_w, double I, int npoints, int nwi
     g_l   = int(line_data[2]);
     g_u   = int(line_data[3]);
     A_ul  = line_data[4];
-    if ( line_data.size()==8 ) {
-	// additional data for CR modelling is provided
-	// NOTE: may be -1 indicating data is NA (see search below)
-	ie_l = int(line_data[5]);
-	ie_u = int(line_data[6]);
-	type = int(line_data[7]);
+    if(line_data.size()>5) {
+        // additional data for CR modelling may be provided
+        // NOTE: may be -1 indicating data is NA (see search below)
+        ie_l = int(line_data[5]);
+        ie_u = int(line_data[6]);
+        type = int(line_data[7]);
     }
-    else {
-	// initialise upper and lower levels and type as -1, 
-	ie_l = -1;
-	ie_u = -1;
-	type = -1;
+    double n = -1.0;
+    double gamma_S0 = -1.0;
+    if(line_data.size()>8) {
+        // Stark broadening and shift parameters
+        n = double(line_data[8]);
+        gamma_S0 = double(line_data[9]) * nu_ul / ( 10.0 * nu2lambda(nu_ul) );       // Ang -> Hz
+        // double delta_lambda = double(line_data[10]);
     }
+
     // 2. search for nearest energy levels for ie_l and ie_u if -1
     // -> now done by AtomicRadiator constructor
     
@@ -62,12 +65,32 @@ AtomicLine( vector<double> line_data, double m_w, double I, int npoints, int nwi
 
     // 4. Make the cluster function instance
     rcf = new RobertsClusterFunction(0,1,beta);
+
+    // 5. Make the StarkWidthModel instance
+    if( gamma_S0 < 0.0 ) {
+        // Use the approximate model as no specific data has been given for this line
+#       if ATOMIC_APPROX_STARK_WIDTH_METHOD==0
+        double constA = 1.69e10; double constB = 2.623;
+#       elif ATOMIC_APPROX_STARK_WIDTH_METHOD==1
+        double constA = 9.27e07; double constB = 2.000;
+#       elif ATOMIC_APPROX_STARK_WIDTH_METHOD==2
+        double constA = 4.20e07; double constB = 2.000;
+#       elif ATOMIC_APPROX_STARK_WIDTH_METHOD==3
+        double constA = 5.00e07; double constB = 2.000;
+#       endif
+        swm = new ApproxStarkWidth( 0.33, constA, constB, I, E_u );
+    }
+    else {
+        // Specific Stark parameters have been given for this line
+        swm = new GriemStarkWidth( n, gamma_S0 );
+    }
 }
 
 AtomicLine::
 ~AtomicLine()
 {
     delete rcf;
+    delete swm;
 }
 
 string
@@ -288,34 +311,6 @@ calculate_vanderwaals_width( double T, double p, double mw_av, double N_hvy )
     double gamma_VW = gamma_VW_ang / lambda_cl * nu_ul;
 
     return gamma_VW;
-}
-
-
-double
-AtomicLine::
-calculate_Stark_width( double T_e, double N_e )
-{
-    /* Implementing the default method from Spradian07:
-       - Use default exponential term n of 0.33
-       - various constC methods:
-          0 : Johnston 2006 curve fit
-          1 : Cowley 1971 
-          2 : Arnold 1979 curve fit developed for Si and C atoms 
-    */
-#   if ATOMIC_STARK_METHOD==0
-    double constA = 1.69e10; double constB = 2.623;
-#   elif ATOMIC_STARK_METHOD==1
-    double constA = 9.27e07; double constB = 2.000;
-#   elif ATOMIC_STARK_METHOD==2
-    double constA = 4.20e07; double constB = 2.000;
-#   endif
-    // NOTE: - converting energies from J -> cm^-1
-    //       - applying fabs() around delta_E as E_u can be > E_ionise
-    double constC =  0.5 * constA / pow( fabs(I - E_u)/(RC_c*RC_h_SI), constB );
-    double gamma_S0 = constC * RC_c;
-    double gamma_S = gamma_S0 * pow( (T_e / 1.0e4), 0.33 ) * ( N_e / 1.0e16 );
-    
-    return gamma_S;
 }
 
 double

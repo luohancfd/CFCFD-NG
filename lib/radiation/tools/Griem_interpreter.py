@@ -66,6 +66,8 @@ class Transition:
         self.gamma_S0 = plsq[0][0]
         self.n = plsq[0][1]
         
+        print "gamma_S0 = %e, n = %e" % ( self.gamma_S0, self.n )
+        
     def get_transition_label(self):
         return "Upper config and state: %s - %s\nLower config and state: %s - %s\n" % ( self.upper_conf, self.upper_state, self.lower_conf, self.lower_state )
 
@@ -85,6 +87,9 @@ def approx_stark_width(Te,Ne,I,E_u,lambda_cl,model="johnston"):
     elif model=="arnold":
         constA = 4.20e07
         constB = 2.000
+    elif model=="park":
+        constA = 5.0e7
+        constB = 2.0
 
     constC =  0.5 * constA / pow( fabs(I - E_u), constB )
     gamma_S0 = constC * RC_c
@@ -92,7 +97,7 @@ def approx_stark_width(Te,Ne,I,E_u,lambda_cl,model="johnston"):
     
     nu_cl = lambda2nu( lambda_cl/10. )
     
-
+    # return the Stark HWHM in units of Ang
     return gamma_S / nu_cl * lambda_cl
 
 
@@ -137,5 +142,6 @@ def test_approx_models( transition, I ):
         gamma_j = approx_stark_width(T,1.0e16,I,E,transition.lambda_ang,"johnston")
         gamma_c = approx_stark_width(T,1.0e16,I,E,transition.lambda_ang,"cowley")
         gamma_a = approx_stark_width(T,1.0e16,I,E,transition.lambda_ang,"arnold")
-        print "gamma_griem = %e, gamma_j = %e, gamma_c = %e, gamma_a = %e" % ( transition.width_list[i], gamma_j, gamma_c, gamma_a )
+        gamma_p = approx_stark_width(T,1.0e16,I,E,transition.lambda_ang,"park")
+        print "gamma_griem = %e, gamma_j = %e, gamma_c = %e, gamma_a = %e, gamma_p = %e" % ( transition.width_list[i], gamma_j, gamma_c, gamma_a, gamma_p )
 
