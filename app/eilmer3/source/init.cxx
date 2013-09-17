@@ -720,6 +720,7 @@ int read_control_parameters( const string filename, bool master, bool first_time
     set_separate_update_for_viscous_flag( i_value );
     dict.parse_double("control_data", "dt", G.dt_init, 1.0e-6);
     if ( first_time ) G.dt_global = G.dt_init;
+    dict.parse_double("control_data", "dt_max", G.dt_max, 1.0e-3);
     dict.parse_boolean("control_data", "fixed_time_step", G.fixed_time_step, 0);
     dict.parse_double("control_data", "dt_reduction_factor",
 		      G.dt_reduction_factor, 0.2);
@@ -749,6 +750,7 @@ int read_control_parameters( const string filename, bool master, bool first_time
 	cout << "separate_update_for_viscous_flag = " 
 	     << get_separate_update_for_viscous_flag() << endl;
 	cout << "    dt = " << G.dt_init << endl;
+	cout << "    dt_max = " << G.dt_max << endl;
 	cout << "    fixed_time_step = " << G.fixed_time_step << endl;
 	cout << "    dt_reduction_factor = " 
 	     << G.dt_reduction_factor << endl;

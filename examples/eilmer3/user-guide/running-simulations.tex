@@ -224,12 +224,13 @@ and reformatted it for plotting, however, it has continued to sprout features an
 complex to describe.
 To see its command-line options, just run it without any options at all.
 It should then print a \textit{usage} message which provides some hints.
-As of early May 2013, this message is:
+As of mid-September 2013, this message is:
 
 \noindent
 {\footnotesize
 \begin{verbatim}
 Begin e3post.py...
+Source code revision string:  e704ffaa4f5b+ 1169+ default tip
 
 Usage:
 e3post.py [--help] [--job=<jobFileName>] [--tindx=<index|9999|last|all|xxxx>]
@@ -239,8 +240,9 @@ e3post.py [--help] [--job=<jobFileName>] [--tindx=<index|9999|last|all|xxxx>]
 
           [--add-pitot-p] [--add-total-p] [--add-mach] [--add-total-enthalpy]
           [--add-molef --gmodel-file="gas-model.lua"]
+          [--add-transport-coeffs --gmodel-file="gas-model.lua"]
 
-          [--vtk-xml] [--tecplot] [--plot3d]
+          [--vtk-xml] [--binary-format] [--tecplot] [--plot3d]
 
           [--output-file=<profile-data-file>]
           [--slice-list="blk-range,i-range,j-range,k-range;..."]
@@ -300,7 +302,10 @@ Data addition options:
 Whole-field output options:
 \begin{itemize}
   \item \texttt{--vtk-xml} The XML format for the Visualization Tool Kit (VTK) is readable by both \texttt{Paraview}
-     and \texttt{Visit}.
+     and \texttt{Visit}.  By default, the XML file will be simple text and probably quite large.
+  \item \texttt{--binary-format} Write most of the data in the VTK file as appended binary records.
+     This makes the files nonconforming XML files but it surely reduces the size of large data files and
+     improves the speed of loading them into Paraview.  For large 3D datasets, this is a good option.
   \item \texttt{--tecplot} This produces an ASCII file that can be read by \texttt{Tecplot}.
   \item \texttt{--plot3d} This is also an ASCII format file that many visualization and flow simulation
      packages read and write.
