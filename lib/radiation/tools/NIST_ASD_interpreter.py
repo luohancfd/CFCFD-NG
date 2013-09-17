@@ -1,5 +1,7 @@
 import sys
 
+from radiator_library import AtomicLevel, AtomicLine
+
 # Some useful functions
 
 def remove_spaces( tk ):
@@ -11,11 +13,13 @@ def remove_braces( tk ):
 def get_quantum_numbers( conf, term ):
     # l should be the last letter (s,p,d or f) in the string
     for c in conf:
-        if   c=="s": l = 0
-        elif c=="p": l = 1
-        elif c=="d": l = 2
-        elif c=="f": l = 3
-        else: l = -1
+        try: int(c)
+        except:
+            if   c=="s": l = 0
+            elif c=="p": l = 1
+            elif c=="d": l = 2
+            elif c=="f": l = 3
+            else: l = -1
         
     # n should be last number in the string after a dot
     ns = []
@@ -39,7 +43,7 @@ def get_quantum_numbers( conf, term ):
         S = -1
         L = -1
     else: 
-        S = (int(term[0]))/2
+        S = (int(term[0])-1)/2
         L_str = term[1]
         if   L_str=="S": L = 0
         elif L_str=="P": L = 1
@@ -84,6 +88,10 @@ class GroupedLevel:
     def get_lua_string(self ):
         n,l,L,S,parity = get_quantum_numbers( self.config, self.term )
         return "%2d,  %9.2f,  %3d,  %2d,  %2d,  %2d,  %2d" % ( n, self.E, self.g, l, L, S, parity ) 
+
+    def convert_grouped_data_to_AtomicLevel(self):
+        n,l,L,S,parity = get_quantum_numbers( self.config, self.term )
+        return AtomicLevel(n=n,E=self.E,g=self.g,l=l,L=L,S=S,parity=parity,conf=self.config,term=self.term)
 
 class LevelData:
     def __init__(self):
@@ -146,6 +154,9 @@ class IndividualLine:
         self.A = float( remove_spaces(line_tks[5]) )
         self.acc = remove_spaces( line_tks[6] )
         self.type = remove_spaces( line_tks[7] )
+
+    def convert_to_AtomicLine( self ):
+        return AtomicLine(g_u=self.gk, E_u=self.Ek, g_l=self.gi, E_l=self.Ei, A_ul=self.A, lambda_ul=-1, conf_u=self.config_k, term_u=self.term_k, conf_l=self.config_i, term_l=self.term_i, acc=self.acc, type=self.type, ilev_u=-1, ilev_l=-1 )
 
 class MultipletLine:
     def __init__(self, prev_line, grouped_line_tks ):
@@ -231,7 +242,7 @@ class LineData:
 
 # read functions
 
-def read_level_file( filename ):
+def read_level_file( filename, echo_result=False ):
     # read in the file
     infile = open(filename, 'r')
     lines = infile.readlines()
@@ -267,7 +278,11 @@ def read_level_file( filename ):
     # convert the tks to data
     level_data.make_levels_from_raw_data( raw_level_data )
 
-    return level_data
+    levels = []
+    for grouped_level in level_data.levels:
+        levels.append( grouped_level.convert_grouped_data_to_AtomicLevel() )
+
+    return levels
 
 def read_line_file( filename ):
     # read in the file
@@ -300,4 +315,34 @@ def read_line_file( filename ):
     line_data = LineData()
     line_data.make_lines_from_raw_data( raw_line_data )
 
-    return line_data
+    lines = []
+    for multiplet_line in line_data.lines:
+        for line in multiplet_line.lines:
+            lines.append( line.convert_to_AtomicLine() )
+
+    return lines
+
+def add_level_data_to_lines( lines, levels ):
+    # find the upper and lower level indices of the lines in the list
+    for line in lines:
+        u_found = False
+        l_found = False
+        for ilev,level in enumerate(levels):
+            if line.conf_u == level.conf and line.term_u == level.term:
+                line.ilev_u = ilev
+                u_found = True
+            if line.conf_l == level.conf and line.term_l == level.term:
+                line.ilev_l = ilev
+                l_found = True
+        if not u_found:
+            print "The upper state for the line below was not found in the provided list of levels!"
+            print line.get_string()
+            sys.exit()
+        if not l_found:
+            print "The lower state for the line below was not found in the provided list of levels!"
+            print line.get_string()
+            sys.exit()
+            
+    print "Found upper and lower level energies for all lines"
+        
+    return lines 

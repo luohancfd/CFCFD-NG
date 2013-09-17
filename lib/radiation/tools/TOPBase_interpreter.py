@@ -4,15 +4,17 @@ from radiator_library import AtomicLevel, AtomicLine, TOPBasePICSLevel
 from radpy import RC_Ry
 
 def get_SLP( SLP ):
-    S = int(SLP[0])
+    S = (int(SLP[0])-1)/2
     L = int(SLP[1])
-    parity = int(SLP[2]) + 1
+    parity = int(SLP[2])
+    # use NIST Parity indices
+    if parity==0: parity=2
     
     return S,L,parity
 
 def make_term( S, L, parity ):
     # make NIST-like term string
-    term = "%d" % (2*S)
+    term = "%d" % (2*S+1)
     if   L==0: term += "S"
     elif L==1: term += "P"
     elif L==2: term += "D"
@@ -89,7 +91,6 @@ def make_level_from_TOPBase_string( raw_level_string ):
     # make the easy data
     E = float(TE_RYD) * RC_Ry  # convert Ry -> cm-1
     g = int(float(gi))
-    i_split = int(iLV)-1
     
     # make the more complicated data
     S,L,parity = get_SLP( iSLP )
@@ -98,7 +99,7 @@ def make_level_from_TOPBase_string( raw_level_string ):
     l = get_l( conf )
     n = get_n( conf )
         
-    return AtomicLevel(n,E,g,l,L,S,parity,conf,term,i_split,int(ilev))
+    return AtomicLevel(n,E,g,l,L,S,parity,conf,term)
     
 def make_line_from_TOPBase_string( raw_level_string ):
     # extract the sub strings
@@ -127,8 +128,6 @@ def make_line_from_TOPBase_string( raw_level_string ):
     E_l = -1
     A_ul = float(gA) / float(g_u)
     lambda_ul = float(WL_A) / 10.0
-    i_split_u = int(iLV) - 1
-    i_split_l = int(jLV) - 1
     
     # make the more complicated data
     S,L,parity = get_SLP( iSLP )
@@ -138,7 +137,7 @@ def make_line_from_TOPBase_string( raw_level_string ):
     term_l = make_term( S, L, parity )
     conf_l = make_conf( jCONF )
 
-    return AtomicLine(g_u, E_u, g_l, E_l, A_ul, lambda_ul, conf_u, term_u, i_split_u, conf_l, term_l, i_split_l, acc="TB", type="TB", iTB=int(iline)  )
+    return AtomicLine(g_u, E_u, g_l, E_l, A_ul, lambda_ul, conf_u, term_u, conf_l, term_l, acc="TB", type="TB"  )
 
 def make_PICS_from_TOPBase_strings( header_line, data_lines ):
     # first the header line
@@ -266,10 +265,6 @@ def read_line_file( filename, echo_result=False ):
             tmp = line.term_u
             line.term_u = line.term_l
             line.term_l = tmp
-            # split
-            tmp = line.i_split_u
-            line.i_split_u = line.i_split_l
-            line.i_split_l = tmp
             # lev
             tmp = line.ilev_u
             line.ilev_u = line.ilev_l
@@ -332,11 +327,11 @@ def add_level_data_to_lines( lines, levels ):
         u_found = False
         l_found = False
         for ilev,level in enumerate(levels):
-            if line.conf_u == level.conf and line.term_u == level.term and line.i_split_u == level.i_split:
+            if line.conf_u == level.conf and line.term_u == level.term:
                 line.E_u = level.E
                 line.ilev_u = ilev
                 u_found = True
-            if line.conf_l == level.conf and line.term_l == level.term and line.i_split_l == level.i_split:
+            if line.conf_l == level.conf and line.term_l == level.term:
                 line.E_l = level.E
                 line.ilev_l = ilev
                 l_found = True
