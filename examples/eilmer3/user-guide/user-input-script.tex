@@ -269,7 +269,7 @@ the only means to configure these models is via the preparation of a Lua-style c
 file by hand.
 After building a file by hand (that is, in a text editor), one would use the \texttt{fname} keyword
 argument in the call to \texttt{select\_gas\_model} to set the gas model.
-The list of gas models which are set by directly creating a configuration file are:
+The list of gas models which are set by directly creating a configuration file includes:
 \begin{itemize}
  \item user-defined gas (by specification of callable Lua functions)\index{gas model!user-defined}
  \item an equilibrium gas, based on a look-up table\index{gas model!look-up table}
@@ -324,6 +324,13 @@ chemical reaction scheme.  This configuration file specifies all of the chemical
 reactions between the various species and is built by hand by the user.\index{chemical reaction}
 By default, the reactions are turned on, however, the user may elect to turn off
 chemical reaction updates by setting \texttt{reacting\_flag=0}.
+
+\medskip
+Generally, you should use the \verb!'thermally perfect gas'! mix for all reacting flow simulations.
+The enthalpies of formation are implicit in the enthalpy evaluation provided by the NASA Glen curves,
+thus providing the proper effect of heat release due to rearrangement of chemical bonds.
+Note that, at low temperatures, the ideal gas behaviour should be recovered so you shouldn't need 
+to resort to using the \verb!'ideal gas'! model.
 
 \medskip
 An example of a reacting flow simulation is given in Section~\ref{sec:n90}.
