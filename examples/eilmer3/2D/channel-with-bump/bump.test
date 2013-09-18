@@ -1,0 +1,58 @@
+# bump.test
+# Functional test for inviscid flow in a channel.
+#
+# This exercises quite a few of the basic functions of the time-marching code.
+#
+# PJ, 17-Sep-2013
+# Note that later tests below depend on earlier ones,
+# just as we shouldn't do.  Should fix this some day.
+
+package require tcltest 2.0
+namespace import ::tcltest::*
+configure -verbose {start body error}
+
+test run-preprocessor {Run the preprocessing stage.} -body {
+    exec e3prep.py --job=bump > LOGFILE_PREP
+} -result {} -returnCodes {0}
+
+test run-prep-load-balance {Run the load-balancing script.} -body {
+    exec e3loadbalance.py --job=bump --number-of-procs=4 > LOGFILE_LOAD_BALANCE
+} -result {} -returnCodes {0}
+
+test run-simulation {Run the parallel simulation code.} -body {
+    exec mpirun -np 4 e3mpi.exe --job=bump --mpimap=bump.mpimap --run > LOGFILE_MAIN
+} -result {} -returnCodes {0}
+
+test exit-flow {The shock-processed flow near the outlet of the duct.} -body {
+    set a 0; set M 0; set p 0; set T 0
+    if { [catch {exec e3post.py --job=bump --tindx=last --add-mach --probe=2.921,0.364,0.0 } results] } {
+        puts "Flow-field-probing command failed"
+        puts $results
+    } else {
+	# puts $results
+	# Skip through the output, looking for the interesting data.
+	# There will be a header line, followed by the actual data values.
+	set found 0
+	foreach line [split $results "\n"] {
+	    if {[string first "# Variables:" $line] >= 0} {
+		set found 1
+		continue; # skip to following line
+	    }
+	    if {$found} {
+		set tokens [split [string trim $line]]
+		# puts "tokens= $tokens"
+		set a [lindex $tokens 9]
+		set M [lindex $tokens 20]
+		set p [lindex $tokens 8]
+		set T [lindex $tokens 19]
+		break; # We have our data so stop looking.
+	    }
+	}
+    }
+    # The shock wave angle should be within 1 degree of expected
+    # and average deviation of points should be less than 2mm. 
+    list [expr abs($a - 349.4) < 1.0] [expr abs($M - 1.524) < 0.1] \
+	[expr abs($p - 121169) < 1000] [expr abs($T - 303.7) < 1.0]
+} -result {1 1 1 1}
+
+cleanupTests

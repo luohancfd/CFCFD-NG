@@ -1,0 +1,54 @@
+# bump-marching.test
+# Functional test for inviscid flow in a channel.
+#
+# This exercises quite a few of the basic functions of the block-marching code.
+#
+# PJ, 17-Sep-2013
+# Note that later tests below depend on earlier ones,
+# just as we shouldn't do.  Should fix this some day.
+
+package require tcltest 2.0
+namespace import ::tcltest::*
+configure -verbose {start body error}
+
+test run-preprocessor-marching {Run the preprocessing stage.} -body {
+    exec e3prep.py --job=bump --clean-start > LOGFILE_PREP_MARCHING
+} -result {} -returnCodes {0}
+
+test run-simulation-marching {Run the block-marching simulation code.} -body {
+    exec e3march.py --job=bump --nbj=2 --max-dt=2.0e-6 --run > LOGFILE_MAIN_MARCHING
+} -result {} -returnCodes {0}
+
+test exit-flow-marching {The shock-processed flow near the outlet of the duct.} -body {
+    set a 0; set M 0; set p 0; set T 0
+    if { [catch {exec e3post.py --job=bump --tindx=last --add-mach --probe=2.921,0.364,0.0 } results] } {
+        puts "Flow-field-probing command failed"
+        puts $results
+    } else {
+	# puts $results
+	# Skip through the output, looking for the interesting data.
+	# There will be a header line, followed by the actual data values.
+	set found 0
+	foreach line [split $results "\n"] {
+	    if {[string first "# Variables:" $line] >= 0} {
+		set found 1
+		continue; # skip to following line
+	    }
+	    if {$found} {
+		set tokens [split [string trim $line]]
+		# puts "tokens= $tokens"
+		set a [lindex $tokens 9]
+		set M [lindex $tokens 20]
+		set p [lindex $tokens 8]
+		set T [lindex $tokens 19]
+		break; # We have our data so stop looking.
+	    }
+	}
+    }
+    # The shock wave angle should be within 1 degree of expected
+    # and average deviation of points should be less than 2mm. 
+    list [expr abs($a - 347.7) < 1.0] [expr abs($M - 1.56) < 0.1] \
+	[expr abs($p - 117218) < 1000] [expr abs($T - 300.9) < 1.0]
+} -result {1 1 1 1}
+
+cleanupTests
