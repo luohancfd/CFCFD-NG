@@ -1,6 +1,6 @@
 import sys
 
-from radiator_library import AtomicLevel, AtomicLine
+from rl_defs import AtomicLevel, AtomicLine
 
 # Some useful functions
 
@@ -71,7 +71,11 @@ class GroupedLevel:
         self.E_list = []
         for tks in level_tks:
             if remove_spaces(tks[3])!="":
-                self.g_list.append( int(remove_spaces(tks[2]))*2+1 )
+                g_tks = tks[2]
+                if "/2" in g_tks:
+                    self.g_list.append( int(remove_spaces(g_tks).split("/")[0])+1 )
+                else:
+                    self.g_list.append( int(remove_spaces(g_tks))*2+1 )
                 self.E_list.append( float(remove_braces(remove_spaces(tks[3]))) )
         self.nlevels = len(self.g_list)
         # create multiplet level data
@@ -151,12 +155,16 @@ class IndividualLine:
         tmp = line_tks[4].split("-")
         self.gi = int( remove_spaces(tmp[0]) )
         self.gk = int( remove_spaces(tmp[1]) )
-        self.A = float( remove_spaces(line_tks[5]) )
+        A_str = remove_spaces(line_tks[5])
+        if A_str=="":
+            self.A = 0.0
+        else:
+            self.A = float( A_str )
         self.acc = remove_spaces( line_tks[6] )
         self.type = remove_spaces( line_tks[7] )
 
     def convert_to_AtomicLine( self ):
-        return AtomicLine(g_u=self.gk, E_u=self.Ek, g_l=self.gi, E_l=self.Ei, A_ul=self.A, lambda_ul=-1, conf_u=self.config_k, term_u=self.term_k, conf_l=self.config_i, term_l=self.term_i, acc=self.acc, type=self.type, ilev_u=-1, ilev_l=-1 )
+        return AtomicLine(g_u=self.gk, E_u=self.Ek, g_l=self.gi, E_l=self.Ei, A_ul=self.A, lambda_ul=-1, conf_u=self.config_k, term_u=self.term_k, conf_l=self.config_i, term_l=self.term_i, acc=self.acc, type_str=self.type, ilev_u=-1, ilev_l=-1 )
 
 class MultipletLine:
     def __init__(self, prev_line, grouped_line_tks ):
@@ -186,7 +194,11 @@ class MultipletLine:
             self.gi = int( remove_spaces( tks[0] ) )
             self.gk = int( remove_spaces( tks[1] ) )
             tk = line_tks[5]
-            self.A = float( remove_spaces( tk ) )
+            A_str = remove_spaces( tk )
+            if A_str=="":
+                self.A = 0.0
+            else:
+                self.A = float( remove_spaces( tk ) )
             tk = line_tks[6]
             self.acc = remove_spaces( tk )
             tk = line_tks[7]
@@ -261,7 +273,7 @@ def read_level_file( filename, echo_result=False ):
     level_tks = [] 
     for line in lines[3:]:
         tks = line.split("|")
-        if len(tks)<=1: continue
+        if len(tks)<=1 or "-----------" in line: continue
         if remove_spaces(tks[1])=="Limit":
             E_limit = float(remove_braces(tks[3]))
             print "Encountered %s ionization limit at %f" % ( tks[0], E_limit )
@@ -318,7 +330,8 @@ def read_line_file( filename ):
     lines = []
     for multiplet_line in line_data.lines:
         for line in multiplet_line.lines:
-            lines.append( line.convert_to_AtomicLine() )
+            if line.A!=0.0:
+                lines.append( line.convert_to_AtomicLine() )
 
     return lines
 
@@ -346,3 +359,5 @@ def add_level_data_to_lines( lines, levels ):
     print "Found upper and lower level energies for all lines"
         
     return lines 
+    
+

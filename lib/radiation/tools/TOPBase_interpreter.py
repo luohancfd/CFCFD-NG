@@ -1,6 +1,6 @@
 import sys
 
-from radiator_library import AtomicLevel, AtomicLine, TOPBasePICSLevel
+from rl_defs import AtomicLevel, AtomicLine, TOPBasePICSLevel
 from radpy import RC_Ry
 
 def get_SLP( SLP ):
@@ -137,7 +137,7 @@ def make_line_from_TOPBase_string( raw_level_string ):
     term_l = make_term( S, L, parity )
     conf_l = make_conf( jCONF )
 
-    return AtomicLine(g_u, E_u, g_l, E_l, A_ul, lambda_ul, conf_u, term_u, conf_l, term_l, acc="TB", type="TB"  )
+    return AtomicLine(g_u, E_u, g_l, E_l, A_ul, lambda_ul, conf_u, term_u, conf_l, term_l, acc="TB", type_str=""  )
 
 def make_PICS_from_TOPBase_strings( header_line, data_lines ):
     # first the header line
@@ -343,28 +343,54 @@ def add_level_data_to_lines( lines, levels ):
             print "The lower state for the line below was not found in the provided list of levels!"
             print line.get_string()
             sys.exit()
-        # FIXME: currently setting type (optically allowed/forbidden??) to 0
+        # FIXME: currently setting type (optically allowed/forbidden??) to empty
         #        eventually use level data to set this correctly
-        line.type = 0
+        line.type_str = ""
             
     print "Found upper and lower level energies for all lines"
         
     return lines 
             
 
-def add_level_indices_to_PICS( levels, PICSs, tol=1.0e-6 ):
+def get_PICS_with_level_indices( levels, PICSs, tol=1.0e-6, require_term_match=True, verbose=False ):
     new_PICSs = []
     for PICS in PICSs:
         found = False
-        for ilev,level in enumerate(levels):
-            if PICS.term == level.term and abs(level.E - PICS.E )<tol:
-                PICS.ilev = ilev
-                new_PICSs.append( PICS )
-                found = True
-                break
-        if not found:
+        # find the levels with matching terms (if required)
+        if not require_term_match:
+            filtered_ilevs = range(len(levels))
+        else:
+            filtered_ilevs = []
+            for ilev,level in enumerate(levels):
+                if PICS.term == level.term:
+                    filtered_ilevs.append( ilev )
+        if verbose: print "found %d levels meeting the term requirement" % len(filtered_ilevs)
+        # find which of these levels meet the energy requirement
+        further_filtered_ilevs = []
+        for ilev in filtered_ilevs:
+            level = levels[ilev]
+            error = abs(level.E - PICS.E)
+            if error < tol: further_filtered_ilevs.append(ilev)
+        if verbose: print "found %d levels meeting the energy requirement" % len(further_filtered_ilevs)
+        # find the level with the closest energy
+        closest_ilev = None
+        smallest_error = 9.9e9
+        for ilev in further_filtered_ilevs:
+            level = levels[ilev]
+            error = abs(level.E - PICS.E)
+            if error < smallest_error:
+                smallest_error = error
+                closest_ilev = ilev
+        if verbose: print "The closest level has an energy %e away" % smallest_error
+        # check that this error is good enough
+        if smallest_error < tol:
+            PICS.ilev = closest_ilev
+            new_PICSs.append( PICS) 
+            found = True
+        
+        if not found and verbose:
             print "WARNING: Did not find a level for PICS with E = %e, term = %s" % ( PICS.E, PICS.term )
 
-    print "%d PICS out of %d found" % ( len(new_PICSs), len(PICSs) )
+    print "Found level indices for %d out of %d PICS" % ( len(new_PICSs), len(PICSs) )
 
     return new_PICSs

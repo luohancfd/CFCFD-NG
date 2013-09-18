@@ -13,6 +13,8 @@ from getopt import getopt
 
 import radiator_library as rl
 import parade_radiator_library as prl
+from rl_defs import *
+from data_aggregator import *
 
 tab = rl.tab
 

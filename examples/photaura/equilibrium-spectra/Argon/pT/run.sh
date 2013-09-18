@@ -1,17 +1,16 @@
 #!/bin/bash
-# This simple test case demonstrates how to use the 
-# EQ_spectra.py program.
-# Here we calculate the post-shock equilibrium 
-# radiation intensity spectrum from 100 to 2000nm
-# for a hypothetical Argon shock tube condition.
-# NOTE: The CEA program and scipy need to be installed
-#       for this example to run.
+# A test case exercising the new input of atomic radiation data from raw NIST,
+# TOPBase and Griem files. 
 
-# 1. Setup the radiation model LUA input file
-radmodel.py -i argon-radiators.py -L rad-model.lua
-
-# 2. Run EQ_spectra.py
+# 1. NIST data using hydrogenic model for photoionization
+radmodel.py -i argon-radiators-NIST.py -L rad-model.lua
 EQ_spectra.py --input-file=argon.py
+mv coefficient_spectra.txt NIST_coefficient_spectra.txt
+mv intensity_spectra.txt NIST_intensity_spectra.txt
 
-# The files coefficient_spectra.txt and intensity_spectra.txt
-# should now be in the working directory.
+# 2. TOPBase data using available tabulated data for photoionization
+radmodel.py -i argon-radiators-TOPBase.py -L rad-model.lua
+EQ_spectra.py --input-file=argon.py
+mv coefficient_spectra.txt TOPBase_coefficient_spectra.txt
+mv intensity_spectra.txt TOPBase_intensity_spectra.txt
+

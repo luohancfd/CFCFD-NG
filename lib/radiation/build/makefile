@@ -133,7 +133,9 @@ endif
 	- cp $(TOOLS)/radiator_library.py $(TOOLS)/parade_radiator_library.py \
 		$(TOOLS)/radmodel.py $(TOOLS)/EQ_spectra.py $(TOOLS)/extract_NIST_data.py \
 		$(TOOLS)/radGUI.py $(TOOLS)/NIST_ASD_interpreter.py \
-		$(TOOLS)/Griem_interpreter.py $(TOOLS)/TOPBase_interpreter.py $(INSTALL_DIR) 
+		$(TOOLS)/Griem_interpreter.py $(TOOLS)/TOPBase_interpreter.py \
+		$(TOOLS)/rl_defs.py $(TOOLS)/data_aggregator.py $(INSTALL_DIR) 
+	- rsync -va ../data/ $(INSTALL_DIR)/radiation_data
 ifeq ($(WITH_SPRADIAN), 1)
 	- rsync -va $(SPRADIAN_SRC)/*.dat $(INSTALL_DIR)
 endif

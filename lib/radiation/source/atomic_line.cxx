@@ -38,20 +38,17 @@ AtomicLine( vector<double> line_data, double m_w, double I, int npoints, int nwi
     g_l   = int(line_data[2]);
     g_u   = int(line_data[3]);
     A_ul  = line_data[4];
-    if(line_data.size()>5) {
-        // additional data for CR modelling may be provided
-        // NOTE: may be -1 indicating data is NA (see search below)
-        ie_l = int(line_data[5]);
-        ie_u = int(line_data[6]);
-        type = int(line_data[7]);
-    }
-    double n = -1.0;
-    double gamma_S0 = -1.0;
-    if(line_data.size()>8) {
-        // Stark broadening and shift parameters
+    // additional data for CR modelling may be provided
+    // NOTE: may be -1 indicating data is NA (see search below)
+    ie_l = int(line_data[5]);
+    ie_u = int(line_data[6]);
+    type = int(line_data[7]);
+    // Stark broadening and shift parameters
+    double n = -1;
+    double gamma_S0 = -1;
+    if ( line_data.size()==10 ) {
         n = double(line_data[8]);
         gamma_S0 = double(line_data[9]) * nu_ul / ( 10.0 * nu2lambda(nu_ul) );       // Ang -> Hz
-        // double delta_lambda = double(line_data[10]);
     }
 
     // 2. search for nearest energy levels for ie_l and ie_u if -1
