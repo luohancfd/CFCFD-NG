@@ -31,12 +31,14 @@ for {set i 0} {$i < $argc} {incr i} {
 }
 set test_scripts [list "2D/cone20-simple/cone20.test"]
 lappend test_scripts "2D/sod/N2-O2/sod.test"
+lappend test_scripts "2D/methane-reactor/psr.test"
+lappend test_scripts "2D/estcj/estcj-pitot.test"
+lappend test_scripts "2D/channel-with-bump/bump.test"
+lappend test_scripts "2D/channel-with-bump/bump-marching.test"
 lappend test_scripts "2D/mms_euler/mms_euler.test"
 lappend test_scripts "2D/odw/odw.test"
 lappend test_scripts "2D/sawada_sphere/ss3.test"
 lappend test_scripts "2D/bittker-hydrogen-combustion/hydrogen.test"
-lappend test_scripts "2D/methane-reactor/psr.test"
-lappend test_scripts "2D/estcj/estcj-pitot.test"
 lappend test_scripts "2D/radiating-cylinder/gray-gas/MC/cyl.test"
 lappend test_scripts "2D/giordano/inf_cyl.test"
 lappend test_scripts "3D/simple_ramp/simple_ramp.test"

@@ -340,6 +340,10 @@ class GlobalData(object):
     * dt: (float) Size of the initial time step.
       After a few steps, the solver will have enough information to select
       a suitable time step, based on the cfl number.
+    * dt_max: (float) Size of the maximum allowable time step.
+      Sometimes, especially when strong source terms are at play, the CFL-based time-step 
+      determination does not suitably limit the size of the allowable time step.
+      This parameter allows the user to limit the maximum time step directly.
     * cfl: (float) The ratio of the actual time step to the allowed time
       step as determined by the flow condition and grid.
       Typically the default value of 0.5 is good but you may want
@@ -414,7 +418,7 @@ class GlobalData(object):
                 'moving_grid_flag', 'write_vertex_velocities_flag', \
                 'filter_flag', 'filter_tstart', 'filter_tend', \
                 'filter_dt', 'filter_mu', 'filter_npass', \
-                't0', 'dt', 'cfl', 'dt_chem', 'dt_therm', \
+                't0', 'dt', 'dt_max', 'cfl', 'dt_chem', 'dt_therm', \
                 'interpolation_type', 'sequence_blocks', \
                 'print_count', 'cfl_count', 'max_invalid_cells', 'dt_reduction_factor', \
                 'max_time', 'max_step', 'dt_plot', 'dt_history', "write_at_step", \
@@ -486,6 +490,7 @@ class GlobalData(object):
         self.t0 = 0.0 
         # may be useful to change t0 if we are restarting from another job
         self.dt = 1.0e-6
+        self.dt_max = 1.0e-3
         self.dt_chem = -1.0
         self.dt_therm = -1.0
         self.sequence_blocks = 0
@@ -554,6 +559,7 @@ class GlobalData(object):
         fp.write("separate_update_for_viscous_flag = %d\n" %
                  self.separate_update_for_viscous_flag)
         fp.write("dt = %e\n" % self.dt)
+        fp.write("dt_max = %e\n" % self.dt_max)
         fp.write("fixed_time_step = %s\n" % self.fixed_time_step)
         fp.write("dt_reduction_factor = %e\n" % self.dt_reduction_factor)
         fp.write("cfl = %e\n" % self.cfl)

@@ -439,7 +439,7 @@ int AblatingBC::apply_viscous(double t)
 
 // the functions required by the ZeroSystem are f and Jac.
 
-int AblatingBC::f(const valarray<double> &y, valarray<double> &G)
+int AblatingBC::f(const valarray<double> &y_guess, valarray<double> &G)
 {
     /* Create the equation system for the ZeroSystem for a given y vector.
        - Species mass conservation: unknowns are massfs, rho_w, v_w
@@ -448,24 +448,30 @@ int AblatingBC::f(const valarray<double> &y, valarray<double> &G)
        Need diffusion coefficients and species molar masses. */
     
     size_t iG=0;
+    double mdot_c = 1.0;
+    double R = gmodel->R(*Q);
  
-    for ( iG=0; iG<cell_massf.size(); ++iG ) {
+    //for ( iG=0; iG<cell_massf.size(); ++iG ) {
+    for ( iG=0; iG<2; ++iG ) {
 	G[iG]=0.0;
     }
 
     // line 1: total mass conservation equation
-    //G[0] = m
+    G[0] = y_guess[0]*y_guess[1] - mdot_c;
 
     // line 2: total momentum conservation equation
+    G[1] = y_guess[0]*R*Twall + y_guess[0]*y_guess[1]*y_guess[1] - cell_momentum_flux;
 
     // line 3 -> (nsp+2): species mass conservation equations
+    G[2] = 2.0*y_guess[0];
 
     return SUCCESS;
 }
 
-int AblatingBC::Jac(const valarray<double> &y, Valmatrix &dGdy)
+int AblatingBC::Jac(const valarray<double> &y_guess, Valmatrix &dGdy)
 {
     /* Create the Jacobian matrix for the ZeroSystem for a given y vector */
+    double R = gmodel->R(*Q);
 
     //  Clear the Jacobian matrix
     for ( size_t i=0; i<nsp; ++i ) {
@@ -475,8 +481,12 @@ int AblatingBC::Jac(const valarray<double> &y, Valmatrix &dGdy)
     }
     
     // line 1: total mass conservation equation derivatives
+    dGdy.set(0,0,y_guess[1]);
+    dGdy.set(0,1,y_guess[0]);
 
     // line 2: total momentum conservation equation derivatives
+    dGdy.set(1,0,(R*Twall + y_guess[1]*y_guess[1]));
+    dGdy.set(1,1,(2*y_guess[0]*y_guess[1]));
 
     // line 3 -> (nsp+2): species mass conservation equations derivatives
 
@@ -497,29 +507,48 @@ int AblatingBC::char_mass_flow()
     return SUCCESS;
 }
 
-int AblatingBC::create_y_guess(FV_Cell *cell1, FV_Interface *wall, FV_Cell *cell)
+int AblatingBC::create_y_guess(FV_Cell *cell1, FV_Interface *wall, FV_Cell *cell0)
 {
     /* line 1: rho_w
        line 2: v_w
        lines 3->(nsp+2): massf[isp] */
 
-    return SUCCESS;
-}
+    size_t iy;
 
-// solve the system with a zero-solving method
-int AblatingBC::solve_system(FV_Cell *cell1, FV_Interface *wall, FV_Cell *cell)
-{
-    // how do I pull in the y_guess from the other function?
+    // normal velocity 
+    for ( iy=0; iy<2; ++iy ){
+	    y_guess[iy] = 0;
+	}
+	      y_guess[0] = Q->rho;
+	  y_guess[1] = cell0->fs->vel.x;
+	  //species mass densities
+	  for ( iy=0; iy<Q->massf.size(); ++iy ){
+	      y_guess[iy+2] = Q->massf[iy];
+	  }
 
-    // solve system
-    /*   if ( zero_solver->solve( *this, y_guess, y_out ) ) {
-	cout << "AblatingBC::solve_system()" << endl
-	     << "Zero solver has failed, bailing out!" << endl;
-	exit( FAILURE );
-	}*/
+	      cell_un = cell1->fs->vel.x;
+	  cell_local_vel = cell1->fs->vel;  // FIX-ME copy components instead ??
+	  cell1->fs->vel.transform_to_global(wall->n, wall->t1, wall->t2);
+	  cell_mass_flux = cell1->fs->gas->rho * cell_un;
+	  cell_momentum_flux = cell1->fs->gas->p + cell1->fs->gas->rho * cell_un * cell_un;
 
-    // map results
-    // mass fractions, density, velocity, evaluate new thermo state
+	  return SUCCESS;
+	  }
 
-    return SUCCESS;
-}
+    // solve the system with a zero-solving method
+    int AblatingBC::solve_system(FV_Cell *cell1, FV_Interface *wall, FV_Cell *cell)
+    {
+	// how do I pull in the y_guess from the other function?
+
+	// solve system
+	if ( zero_solver->solve( *this, y_guess, y_out ) ) {
+	    cout << "AblatingBC::solve_system()" << endl
+		 << "Zero solver has failed, bailing out!" << endl;
+	    exit( FAILURE );
+	}
+
+	// map results
+	// mass fractions, density, velocity, evaluate new thermo state
+
+	return SUCCESS;
+    }

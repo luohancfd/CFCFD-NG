@@ -41,10 +41,10 @@ public:
     virtual int apply_viscous(double t); 	// sets wall temperature (same as FixedTBC)
 private:
     int char_mass_flow();
-    int create_y_guess(FV_Cell *cell1, FV_Interface *wall, FV_Cell *cell);
-    int solve_system(FV_Cell *cell1, FV_Interface *wall, FV_Cell *cell);
+    int create_y_guess(FV_Cell *cell1, FV_Interface *wall, FV_Cell *cell0);
+    int solve_system(FV_Cell *cell1, FV_Interface *wall, FV_Cell *cell0);
 // The following are for the zero system
 public:
-    int f(const std::valarray<double> &y, std::valarray<double> &G);
-    int Jac(const std::valarray<double> &y, Valmatrix &dGdy);
+    int f(const valarray<double> &y_guess, valarray<double> &G);
+    int Jac(const std::valarray<double> &y_guess, Valmatrix &dGdy);
 };

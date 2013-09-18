@@ -1544,6 +1544,11 @@ are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config 
   fails for no clear reason, try setting the initial time step to a very small value.
   For some simulations of viscous hypersonic flow on fine grids, 
   it is not unusual to require time steps to be as small as a nanosecond.
+\item \texttt{dt\_max}\ddag: Maximum allowable time step (in seconds),
+ default value 1.0e-3.
+ Sometimes, especially when strong source terms are at play, the CFL-based time-step 
+ determination does not suitably limit the size of the allowable time step.
+ This parameter allows the user to limit the maximum time step directly.
 \item \texttt{dt\_chem}: suggested time-step for finite-rate chemistry update;
   default value of -1.0 indicates that we want the code to work it out.
 \item \texttt{dt\_therm}: default value -1.0.

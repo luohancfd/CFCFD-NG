@@ -81,6 +81,7 @@ struct global_data
     double dt_global;       /* simulation time step       */
     double dt_allow;        /* allowable global time step */
     double CFL;             /* target CFL (worst case)    */
+    double dt_max;          // Maximum allowable time-step, after all other considerations.
     bool fixed_time_step;   /* flag for fixed time-stepping */
     int Xorder; // Low order reconstruction (1) uses just the cell-centre data as left- and right-
                 // flow properties in the flux calculation.

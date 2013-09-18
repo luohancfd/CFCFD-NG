@@ -35,6 +35,26 @@ def uflowz(q, tiny=1.0e-30):
         return 0.0
 
 #----------------------------------------------------------------------
+# Helper functions for StructuredGrid class
+
+def locate_VTK_header_line(target, f):
+    """
+    Locate the line containing target and return the tokens on that line.
+
+    Legacy-format VTK lines use spaces as delimiters.
+    """
+    found = False; tokens = []
+    while not found:
+        line = f.readline()
+        if len(line) == 0: break # end of file
+        line = line.strip()
+        if target.lower() in line.lower():
+            tokens = line.split()
+            found = True; break
+    if not found: 
+        raise RuntimeError("Did not find %s while reading VTK grid file" % target)
+    return tokens
+
 
 class StructuredGrid(object):
     """
@@ -279,36 +299,30 @@ class StructuredGrid(object):
         are read and then ignored.
         """
         # First line contains a declatation that this is a legacy VTK file.
-        line = f.readline() # expecting "vtk DataFile Version 2.0"
+        locate_VTK_header_line("vtk", f) # expecting "vtk DataFile Version 2.0"
         self.label = f.readline().strip()
         print "label=", self.label
-        line = f.readline() # expect "ASCII"
-        line = f.readline() # skip blank line
-        line = f.readline() # expect "DATASET STRUCTURED_GRID"
-        # The 6th line contains the number of cells in each direction.
-        line = f.readline()
-        tokens = line.split()
+        locate_VTK_header_line("ASCII", f)
+        locate_VTK_header_line("STRUCTURED_GRID", f)
+        tokens = locate_VTK_header_line("DIMENSIONS", f)
         self.ni = int(tokens[1]); self.nj = int(tokens[2]); self.nk = int(tokens[3])
-        # The 7th line is the total number of points expected.
-        line = f.readline()
-        tokens = line.split()
+        tokens = locate_VTK_header_line("POINTS", f)
         total_points = int(tokens[1])
         if total_points != self.ni * self.nj * self.nk:
-            print "Error in VTK STRUCTURED_GRID file: points mismatch."
-            print "    label=", self.label
-            print "    POINTS=", total_points, "; ni=", ni, "nj=", nj, "nk=", nk
-        else:
-            # Proceed with allocating arrays and filling with point data.
-            self.init_arrays()
-            # Coordinates of vertices follow.
-            for k in range(self.nk):
-                for j in range(self.nj):
-                    for i in range(self.ni):
-                        line = f.readline()
-                        tks = line.split()
-                        self.x[i,j,k] = float(tks[0])
-                        self.y[i,j,k] = float(tks[1])
-                        self.z[i,j,k] = float(tks[2])
+            print "label=", self.label
+            print "POINTS=", total_points, "; ni=", ni, "nj=", nj, "nk=", nk
+            raise RuntimeError("In VTK STRUCTURED_GRID file: points mismatch.")
+        # Proceed with allocating arrays and filling with point data.
+        self.init_arrays()
+        # Coordinates of vertices follow.
+        for k in range(self.nk):
+            for j in range(self.nj):
+                for i in range(self.ni):
+                    line = f.readline()
+                    tks = line.split()
+                    self.x[i,j,k] = float(tks[0])
+                    self.y[i,j,k] = float(tks[1])
+                    self.z[i,j,k] = float(tks[2])
         return
 
     def write_block_in_VTK_format(self, f):

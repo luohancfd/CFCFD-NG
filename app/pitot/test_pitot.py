@@ -28,7 +28,7 @@ class TestPitot(unittest.TestCase):
         self.assertAlmostEqual(cfg['Vs1'], 5645.0, delta=1.0)        
         self.assertAlmostEqual(cfg['Vs2'], 11600.0, delta=1.0)
         #check nozzle entry conditions
-        self.assertAlmostEqual(states['s7'].p, 15031.0, delta=1.0)  
+        self.assertAlmostEqual(states['s7'].p, 15029.0, delta=1.0)  
         self.assertAlmostEqual(states['s7'].T, 3866.2, delta=1.0)  
         self.assertAlmostEqual(V['s7'], 10471.7, delta=1.0)
         #check nozzle exit conditions         
@@ -121,7 +121,7 @@ class TestPitot(unittest.TestCase):
         self.assertAlmostEqual(cfg['Vs1'], 4254.32, delta=1.0)        
         self.assertAlmostEqual(cfg['Vs2'],  8564.29 , delta=1.0)
         #check nozzle entry conditions
-        self.assertAlmostEqual(states['s7'].p, 7973.0, delta=1.0)  
+        self.assertAlmostEqual(states['s7'].p, 7974.0, delta=1.0)  
         self.assertAlmostEqual(states['s7'].T, 2638.6, delta=1.0)  
         self.assertAlmostEqual(V['s7'], 8089.9, delta=1.0)
         #check nozzle exit conditions         
@@ -129,7 +129,7 @@ class TestPitot(unittest.TestCase):
         self.assertAlmostEqual(states['s8'].T, 2191.9, delta=1.0)  
         self.assertAlmostEqual(V['s8'], 8215.3, delta=1.0)
         #now use this test to check the conehead stuff
-        self.assertAlmostEqual(states['s10c'].p, 16969.0, delta=1.0)  
+        self.assertAlmostEqual(states['s10c'].p, 16977.0, delta=1.0)  
         self.assertAlmostEqual(states['s10c'].T, 3210.6, delta=1.0)  
         self.assertAlmostEqual(V['s10c'], 7872.9, delta=1.0)
         return
@@ -236,10 +236,10 @@ class TestPitot(unittest.TestCase):
         self.assertAlmostEqual(states['s8'].T, 1144.7, delta=1.0)  
         self.assertAlmostEqual(V['s8'], 15379.0, delta=1.0)
         #should check the shock over model stuff here too
-        self.assertAlmostEqual(states['s10f'].p, 235100.6, delta=1.0)  
+        self.assertAlmostEqual(states['s10f'].p, 235090.7, delta=1.0)  
         self.assertAlmostEqual(states['s10f'].T, 10177.5, delta=1.0)  
         self.assertAlmostEqual(V['s10f'], 12519.6, delta=1.0)
-        self.assertAlmostEqual(states['s10e'].p, 262180.0, delta=1.0)  
+        self.assertAlmostEqual(states['s10e'].p, 262190.0, delta=1.0)  
         self.assertAlmostEqual(states['s10e'].T, 3978.6, delta=1.0)  
         self.assertAlmostEqual(V['s10e'], 13993.7, delta=1.0)
         return  
@@ -296,7 +296,7 @@ class TestPitot(unittest.TestCase):
         self.assertAlmostEqual(cfg['Vs1'], 7432.99, delta=1.0)
         self.assertAlmostEqual(cfg['Vs2'], 15581.87, delta=1.0)
         #check nozzle entry conditions
-        self.assertAlmostEqual(states['s7'].p, 6285.0, delta=1.0)  
+        self.assertAlmostEqual(states['s7'].p, 6287.0, delta=1.0)  
         self.assertAlmostEqual(states['s7'].T, 3225.1, delta=1.0)  
         self.assertAlmostEqual(V['s7'], 14080.3, delta=1.0)
         #check nozzle exit conditions         
@@ -304,10 +304,10 @@ class TestPitot(unittest.TestCase):
         self.assertAlmostEqual(states['s8'].T, 2771.9, delta=1.0)  
         self.assertAlmostEqual(V['s8'], 14202.9, delta=1.0)
         #should check the shock over model stuff here too
-        self.assertAlmostEqual(states['s10f'].p, 268153.0, delta=1.0)  
-        self.assertAlmostEqual(states['s10f'].T, 33370.4, delta=1.0)  
+        self.assertAlmostEqual(states['s10f'].p, 268166.3, delta=1.0)  
+        self.assertAlmostEqual(states['s10f'].T, 33378.03, delta=1.0)  
         self.assertAlmostEqual(V['s10f'], 12889.1, delta=1.0)
-        self.assertAlmostEqual(states['s10e'].p, 269270.0, delta=1.0)  
+        self.assertAlmostEqual(states['s10e'].p, 269250.0, delta=1.0)  
         self.assertAlmostEqual(states['s10e'].T, 19669.0, delta=1.0)  
         self.assertAlmostEqual(V['s10e'], 12942.9, delta=1.0)
         return   
@@ -363,7 +363,7 @@ class TestPitot(unittest.TestCase):
         self.assertAlmostEqual(cfg['Vs1'], 1588.02, delta=1.0)
         self.assertAlmostEqual(cfg['Vs2'], 3427.67, delta=1.0)
         #check nozzle entry conditions
-        self.assertAlmostEqual(states['s7'].p, 91285.0, delta=1.0)  
+        self.assertAlmostEqual(states['s7'].p, 91287.0, delta=1.0)  
         self.assertAlmostEqual(states['s7'].T, 472.3, delta=1.0)  
         self.assertAlmostEqual(V['s7'], 3065.3, delta=1.0)
         #check nozzle exit conditions         
@@ -381,15 +381,15 @@ class TestPitot(unittest.TestCase):
                'Vsd':4290.0, 'Vs1':1588.0, 'Vs2':3424.0}                    
         cfg, states, V, M = run_pitot(cfg=cfg)
         #check fill pressures
-        self.assertAlmostEqual(states['sd1'].p, 100020.0, delta=1.0)
-        self.assertAlmostEqual(states['s1'].p, 486080.0, delta=1.0)
+        self.assertAlmostEqual(states['sd1'].p, 100030.0, delta=1.0)
+        self.assertAlmostEqual(states['s1'].p, 486100.0, delta=1.0)
         self.assertAlmostEqual(states['s5'].p, 1520.993, delta=1.0)
         #check shock speeds      
         self.assertAlmostEqual(cfg['Vsd'], 4290, delta=1.0)        
         self.assertAlmostEqual(cfg['Vs1'], 1588.00, delta=1.0)
         self.assertAlmostEqual(cfg['Vs2'], 3424.00, delta=1.0)
         #check nozzle entry conditions
-        self.assertAlmostEqual(states['s7'].p, 92394.0, delta=1.0)  
+        self.assertAlmostEqual(states['s7'].p, 92397.0, delta=1.0)  
         self.assertAlmostEqual(states['s7'].T, 473.9, delta=1.0)  
         self.assertAlmostEqual(V['s7'], 3061.5, delta=1.0)
         #check nozzle exit conditions         

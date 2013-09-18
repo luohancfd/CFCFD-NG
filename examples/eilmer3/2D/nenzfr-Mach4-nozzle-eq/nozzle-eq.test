@@ -54,11 +54,11 @@ test nozzle-exit-condition {The nozzle exit conditions 1255K, 2962m/s, 0.239kg/m
 	    }
         }
         # The values should be within 5% of those expected.
-        lappend results_list [is_within_tolerance $temperature 1255 0.05] \
+        lappend result_flags [is_within_tolerance $temperature 1255 0.05] \
             [is_within_tolerance $velocity 2962 0.05] \
             [is_within_tolerance $density 0.239 0.05]
     }
-    set results_list
+    set result_flags
 } -result {1 1 1 1 1 1 1 1 1}
 
 
