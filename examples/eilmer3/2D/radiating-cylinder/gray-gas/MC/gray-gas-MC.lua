@@ -6,7 +6,7 @@ spectral_data = {
    radiators = { 'air', },
    lambda_min = 10.000000,
    lambda_max = 3000.000000,
-   spectral_points = 501,
+   spectral_points = 1001,
    spectral_blocks = 1,
    adaptive_spectral_grid = false
 }
@@ -14,7 +14,7 @@ spectral_data = {
 transport_data = {
    transport_model = 'monte carlo',
    spectrally_resolved = 1,
-   nrays = 256,
+   nrays = 2048,
    clustering = "none",
    absorption = "partitioned energy"
 }
