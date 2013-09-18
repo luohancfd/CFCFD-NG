@@ -361,7 +361,7 @@ _libprep3.dll : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM
 
 # Shared object for Unix/Linux
 _libprep3.so : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB)
-	$(CXXLINK) $(LDFLAG) $(LDFLAG) -shared -o _libprep3.so libprep3_wrap.o \
+	$(CXXLINK) $(LFLAG) $(LDFLAG) -shared -o _libprep3.so libprep3_wrap.o \
 		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB) $(LLIB)
 
 # Dynamic library for Mac OS X
