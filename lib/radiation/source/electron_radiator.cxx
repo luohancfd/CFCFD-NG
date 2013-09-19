@@ -36,6 +36,12 @@ FreeFreeHydrogenic::FreeFreeHydrogenic( Radiator * R_ion )
 
 FreeFreeHydrogenic::~FreeFreeHydrogenic() {}
 
+void
+FreeFreeHydrogenic::spectral_distribution( vector<double> &nus )
+{
+    return;
+}
+
 // ff_constA = ( 8.0 / 3.0 ) * sqrt( 2.0 * M_PI / ( 3.0 * RC_m * RC_k ) ) *
 //                pow( RC_e, 6 ) / ( RC_m * pow( RC_c, 3 ) );
 const double ff_constA = 5.4429513110835207e-39;
@@ -90,6 +96,23 @@ BoundFreeHydrogenic::BoundFreeHydrogenic( Radiator * R_ion, Radiator * R_neutral
 
 BoundFreeHydrogenic::~BoundFreeHydrogenic() {}
 
+void
+BoundFreeHydrogenic::initialise_mechanisms( Gas_data &Q )
+{
+    return;
+}
+
+void
+BoundFreeHydrogenic::spectral_distribution( vector<double> &nus )
+{
+    /* 2. Loop over neutral levels */
+    for ( int ilev=0; ilev<Rn->nlevs; ++ilev ) {
+	Rn->get_elev_pointer(ilev)->boundfree_spectral_distribution( nus );
+    }
+
+    return;
+}
+
 // bf_constA = 2.0 * RC_h / pow( RC_c, 2 )
 const double bf_constA = 1.4745007665631073e-47;
 
@@ -131,12 +154,6 @@ BoundFreeHydrogenic::calculate_spectrum( Gas_data &Q, CoeffSpectra &X, double n_
     return;
 }
 
-void
-BoundFreeHydrogenic::initialise_mechanisms( Gas_data &Q )
-{
-    return;
-}
-
 ElectronRadiator::
 ElectronRadiator( lua_State * L, string name )
  : Radiator(L, name)
@@ -147,6 +164,7 @@ ElectronRadiator( lua_State * L, string name )
     // Create elev
     elev = new ElecLev(0,0.0,2);
     elev->PICS_model = new NoPICSModel();
+    nlevs = 1;
     
     // Get the systems list
     lua_getfield(L, -1, "systems_list" );
@@ -259,8 +277,12 @@ calculate_total_equil_partition_function( double T )
 
 void
 ElectronRadiator::
-spectral_distribution( std::vector<double> &nus )
+spectral_distribution( vector<double> &nus )
 {
+    // loop over continuum mechanisms
+    for ( size_t icm=0; icm<continuum_mechanisms.size(); ++icm )
+	continuum_mechanisms[icm]->spectral_distribution(nus);
+
     return;
 }
 

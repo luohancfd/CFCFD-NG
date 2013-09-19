@@ -33,6 +33,11 @@ NoPICSModel::NoPICSModel()
  
 NoPICSModel::~NoPICSModel() {}
 
+void NoPICSModel::spectral_distribution( vector<double> &nus )
+{
+    return;
+}
+
 double NoPICSModel::eval( double nu )
 {
     return 0.0;
@@ -49,6 +54,11 @@ HydrogenicModel::HydrogenicModel( double n_eff, int Z, double I )
 }
 
 HydrogenicModel::~HydrogenicModel() {}
+
+void HydrogenicModel::spectral_distribution( vector<double> &nus )
+{
+    return;
+}
 
 static const double constA = 2.8141909681753553e+29;
 
@@ -137,6 +147,16 @@ JohnstonStepModel::~JohnstonStepModel()
     	delete steps[istep];
 }
 
+void JohnstonStepModel::spectral_distribution( vector<double> &nus )
+{
+    for ( size_t istep=0; istep<steps.size(); ++istep ) {
+        nus.push_back( steps[istep]->nu_a );
+        nus.push_back( steps[istep]->nu_b );
+    }
+
+    return;
+}
+
 double JohnstonStepModel::eval( double nu )
 {
     for ( size_t istep=0; istep<steps.size(); ++istep ) {
@@ -193,6 +213,13 @@ JohnstonThresholdModel::JohnstonThresholdModel( lua_State * L, int ilev )
 
 JohnstonThresholdModel::~JohnstonThresholdModel() {}
 
+void JohnstonThresholdModel::spectral_distribution( vector<double> &nus )
+{
+    nus.push_back( nu_t );
+
+    return;
+}
+
 double JohnstonThresholdModel::eval( double nu )
 {
     return sigma_bf_t * pow( nu_t / nu, theta );
@@ -244,6 +271,14 @@ TOPBaseModel::TOPBaseModel( lua_State * L, int ilev )
 }
 
 TOPBaseModel::~TOPBaseModel() {}
+
+void TOPBaseModel::spectral_distribution( vector<double> &nus )
+{
+    for ( int i=0; i<N_points; ++i)
+        nus.push_back( nu_list[i] );
+
+    return;
+}
 
 double TOPBaseModel::eval( double nu )
 {

@@ -78,6 +78,10 @@ public:
     double calculate_sigma_bf( double nu )
     { return PICS_model->eval( nu ); };
     
+    /// \brief Calculate spectral distribution for photo-ionisation
+    void boundfree_spectral_distribution( std::vector<double> &nus )
+    { return PICS_model->spectral_distribution( nus ); };
+
 public:
     /* Fundamental level data */
     int i;

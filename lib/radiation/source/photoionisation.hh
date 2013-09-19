@@ -29,6 +29,8 @@ public:
     virtual ~PhotoIonisationCrossSectionModel() = 0;
     
 public:
+    virtual void spectral_distribution( std::vector<double> &nus ) = 0;
+
     virtual double eval( double nu ) = 0;
     
 protected:
@@ -44,6 +46,8 @@ public:
     ~NoPICSModel();
     
 public:
+    void spectral_distribution( std::vector<double> &nus );
+
     double eval( double nu );
     
 };
@@ -57,6 +61,8 @@ public:
     ~HydrogenicModel();
     
 public:
+    void spectral_distribution( std::vector<double> &nus );
+
     double eval( double nu );
     
 private:
@@ -89,6 +95,8 @@ public:
     ~JohnstonStepModel();
     
 public:
+    void spectral_distribution( std::vector<double> &nus );
+
     double eval( double nu );
     
 private:
@@ -104,6 +112,8 @@ public:
     ~JohnstonThresholdModel();
     
 public:
+    void spectral_distribution( std::vector<double> &nus );
+
     double eval( double nu );
     
 private:
@@ -121,6 +131,8 @@ public:
     ~TOPBaseModel();
     
 public:
+    void spectral_distribution( std::vector<double> &nus );
+
     double eval( double nu );
     
 private:

@@ -31,9 +31,12 @@ public:
     virtual ~ContinuumMechanism();
     
 public:
-    virtual void calculate_spectrum( Gas_data &Q, CoeffSpectra &X, double n_elecs ) = 0;
-    
     virtual void initialise_mechanisms( Gas_data &Q ) = 0;
+
+    virtual void spectral_distribution( std::vector<double> &nus ) = 0;
+
+    virtual void calculate_spectrum( Gas_data &Q, CoeffSpectra &X, double n_elecs ) = 0;
+
 };
 
 class FreeFreeHydrogenic : public ContinuumMechanism {
@@ -45,9 +48,11 @@ public:
     ~FreeFreeHydrogenic();
     
 public:
-    void calculate_spectrum( Gas_data &Q, CoeffSpectra &X, double n_elecs );
-    
     void initialise_mechanisms( Gas_data &Q );
+
+    void spectral_distribution( std::vector<double> &nus );
+
+    void calculate_spectrum( Gas_data &Q, CoeffSpectra &X, double n_elecs );
     
 private:
     Radiator * Ri;
@@ -62,9 +67,11 @@ public:
     ~BoundFreeHydrogenic();
     
 public:
-    void calculate_spectrum( Gas_data &Q, CoeffSpectra &X, double n_elecs );
-    
     void initialise_mechanisms( Gas_data &Q );
+
+    void spectral_distribution( std::vector<double> &nus );
+
+    void calculate_spectrum( Gas_data &Q, CoeffSpectra &X, double n_elecs );
     
 private:
     Radiator * Ri;
