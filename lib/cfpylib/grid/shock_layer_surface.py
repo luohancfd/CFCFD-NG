@@ -163,7 +163,10 @@ def make_parametric_surface(bx_scale=1.0, by_scale=1.0, M_inf=1.0, R=1.0, axi=0,
             wp = shock.eval(t)
             L = vabs(wp - ep)
             # print "i = %d, L = %e" % (i, L)
-            sp = Vector3(ep.x - L * f_s * cos(gamma), ep.y + L * f_s * sin(gamma)) 
+            sp = Vector3(ep.x - L * f_s * cos(gamma), ep.y + L * f_s * sin(gamma))
+            # apply scale factors
+            sp.x *= bx_scale
+            sp.y *= by_scale 
             inflow_nodes.append(sp)
         # create the inflow spline
         west = Spline(inflow_nodes)
