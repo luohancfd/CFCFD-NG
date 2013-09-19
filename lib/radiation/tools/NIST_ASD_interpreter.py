@@ -254,7 +254,7 @@ class LineData:
 
 # read functions
 
-def read_level_file( filename, echo_result=False ):
+def read_level_file( filename, omit_psuedocontinuum_levels=True, echo_result=False ):
     # read in the file
     infile = open(filename, 'r')
     lines = infile.readlines()
@@ -291,8 +291,18 @@ def read_level_file( filename, echo_result=False ):
     level_data.make_levels_from_raw_data( raw_level_data )
 
     levels = []
+    omission_count = 0
     for grouped_level in level_data.levels:
-        levels.append( grouped_level.convert_grouped_data_to_AtomicLevel() )
+        if omit_psuedocontinuum_levels and grouped_level.E > level_data.ionization_limits[0].E:
+            omission_count += 1
+            continue
+        else:
+            levels.append( grouped_level.convert_grouped_data_to_AtomicLevel() )
+        
+    print "omitted %d grouped levels above the first ionization limit" % omission_count
+    
+    # sort the levels by ascending energy
+    levels.sort(key=lambda x: x.E, reverse=False)
 
     return levels
 
@@ -335,8 +345,9 @@ def read_line_file( filename ):
 
     return lines
 
-def add_level_data_to_lines( lines, levels ):
+def add_level_data_to_lines( lines, levels, exit_when_not_found=False ):
     # find the upper and lower level indices of the lines in the list
+    filtered_lines =[]
     for line in lines:
         u_found = False
         l_found = False
@@ -347,17 +358,19 @@ def add_level_data_to_lines( lines, levels ):
             if line.conf_l == level.conf and line.term_l == level.term:
                 line.ilev_l = ilev
                 l_found = True
-        if not u_found:
+        if not u_found and exit_when_not_found:
             print "The upper state for the line below was not found in the provided list of levels!"
             print line.get_string()
             sys.exit()
-        if not l_found:
+        if not l_found and exit_when_not_found:
             print "The lower state for the line below was not found in the provided list of levels!"
             print line.get_string()
             sys.exit()
+        if u_found and l_found:
+            filtered_lines.append( line )
             
-    print "Found upper and lower level energies for all lines"
+    print "Found upper and lower level energies for %d out of %d lines" % ( len(filtered_lines), len(lines) )
         
-    return lines 
+    return filtered_lines 
     
 

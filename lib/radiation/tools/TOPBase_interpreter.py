@@ -171,7 +171,7 @@ def make_PICS_from_TOPBase_strings( header_line, data_lines ):
         
     return TOPBasePICSLevel( E_cm, term, ilevTB, E_au_list, sigma_au_list )
 
-def read_level_file( filename, echo_result=False ):
+def read_level_file( filename, include_psuedocontinuum_levels, echo_result=False ):
     # read in the file
     infile = open(filename, 'r')
     lines = infile.readlines()
@@ -212,6 +212,8 @@ def read_level_file( filename, echo_result=False ):
                 E_min = level.E
         sorted_levels.append(levels[ilev_min])
         levels.pop(ilev_min)
+        
+    # FIXME: apply psuedocontinuum level filter
 
     return sorted_levels
     
@@ -321,8 +323,9 @@ def check_line_levels( lines, levels ):
     
     return
     
-def add_level_data_to_lines( lines, levels ):
+def add_level_data_to_lines( lines, levels, exit_when_not_found=False ):
     # find the upper and lower level energies of the lines in the list
+    filtered_lines = []
     for line in lines:
         u_found = False
         l_found = False
@@ -335,22 +338,23 @@ def add_level_data_to_lines( lines, levels ):
                 line.E_l = level.E
                 line.ilev_l = ilev
                 l_found = True
-        if not u_found:
+        if not u_found and exit_when_not_found:
             print "The upper state for the line below was not found in the provided list of levels!"
             print line.get_string()
             sys.exit()
-        if not l_found:
+        if not l_found and exit_when_not_found:
             print "The lower state for the line below was not found in the provided list of levels!"
             print line.get_string()
             sys.exit()
+        if u_found and l_found:
+            filtered_lines.append( line )
         # FIXME: currently setting type (optically allowed/forbidden??) to empty
         #        eventually use level data to set this correctly
         line.type_str = ""
             
-    print "Found upper and lower level energies for all lines"
+    print "Found upper and lower level energies for %d out of %d lines" % ( len(filtered_lines), len(lines) )
         
-    return lines 
-            
+    return filtered_lines       
 
 def get_PICS_with_level_indices_and_datapoints( levels, PICSs, tol=1.0e-6, require_term_match=True, verbose=False ):
     new_PICSs = []

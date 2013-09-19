@@ -74,7 +74,10 @@ eval_reaction_rates( double T_f, double T_b, Gas_data &Q, double &k_f, double &k
     
     if ( !isfinite(k_f) || !isfinite(k_b) ) {
     	cout << "CR_Reaction::eval_reaction_rates()" << endl
-    	     << "k_f = " << k_f << ", k_b = " << k_b << ", T[0] = " << Q.T[0] << endl;
+    	     << "k_f = " << k_f << ", k_b = " << k_b << ", T[0] = " << Q.T[0] << endl
+    	     << this->get_type() << endl
+    	     << this->get_equation() << endl
+    	     << this->get_equation() << endl;
     	exit( FAILURE );
     }
     
