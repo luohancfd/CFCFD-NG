@@ -131,6 +131,6 @@ private:
 };
 
 PhotoIonisationCrossSectionModel*
-create_new_PICS_model( lua_State * L, int ilev, double n_eff, int Z, double I );
+create_new_PICS_model( lua_State * L, int ilev, int Z, double I, double E );
 
 #endif

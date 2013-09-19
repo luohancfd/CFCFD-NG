@@ -352,9 +352,11 @@ def add_level_data_to_lines( lines, levels ):
     return lines 
             
 
-def get_PICS_with_level_indices( levels, PICSs, tol=1.0e-6, require_term_match=True, verbose=False ):
+def get_PICS_with_level_indices_and_datapoints( levels, PICSs, tol=1.0e-6, require_term_match=True, verbose=False ):
     new_PICSs = []
     for PICS in PICSs:
+        # check that this PICS has datapoints
+        if len(PICS.sigma_list)==0: continue
         found = False
         # find the levels with matching terms (if required)
         if not require_term_match:

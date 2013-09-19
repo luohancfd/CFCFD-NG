@@ -77,6 +77,6 @@ def get_atomic_species_data( species, level_source, line_source, PICS_source, li
     line_interpreter.add_level_data_to_lines( lines, levels  )
     Griem_interpreter.add_Stark_width_parameters_to_lines( Stark_widths, lines, line_source=line_source, tol=stark_tol, allow_inexact_matches=allow_inexact_Stark_matches )
     if PICSs:
-        PICSs = PICS_interpreter.get_PICS_with_level_indices( levels, PICSs, tol=PICS_tol, require_term_match=require_PICS_term_match, verbose=False )
+        PICSs = PICS_interpreter.get_PICS_with_level_indices_and_datapoints( levels, PICSs, tol=PICS_tol, require_term_match=require_PICS_term_match, verbose=False )
 
     return levels, lines, PICSs

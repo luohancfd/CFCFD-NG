@@ -121,6 +121,7 @@ BoundFreeHydrogenic::calculate_spectrum( Gas_data &Q, CoeffSpectra &X, double n_
             double nu = X.nu[inu];
             double E_min = Rn->I - RC_h_SI * nu;
             double sigma_bf = Rn->get_elev_pointer(ilev)->calculate_sigma_bf( nu );
+            // cout << "ilev = " << ilev << ", inu = " << inu << ", sigma_bf = " << sigma_bf << endl;
             X.j_nu[inu] += bf_constC * pow( nu, 3 ) * Rn->get_elev_pointer(ilev)->g * sigma_bf * \
                         exp( ( E_min - E_i ) / ( RC_k_SI * T ) ) * 1.0e-1;              // convert erg - s / cm**3 - sr -> W / m**3 - sr
             X.kappa_nu[inu] += sigma_bf * N_i * 1.0e2;  // convert 1 / cm -> 1 / m

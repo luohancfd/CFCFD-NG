@@ -166,15 +166,9 @@ Radiator::read_photoionization_data( lua_State * L )
     }
     
     for ( int ilev=0; ilev<nlevs; ++ ilev ) {
-    	// hydrogenic effective principal quantum number
-    	double n_eff = sqrt( RC_H_ionise_J / ( I - get_elev_pointer(ilev)->E ) );
-    	if ( !isfinite(n_eff) ) {
-    	    get_elev_pointer(ilev)->PICS_model = new NoPICSModel();
-    	    continue;
-    	}
-    	// use the create function to work out what model to use
     	// NOTE: using Z+1 to represent ion charge
-    	get_elev_pointer(ilev)->PICS_model = create_new_PICS_model( L, ilev, n_eff, Z+1, I );
+    	get_elev_pointer(ilev)->PICS_model =
+    	    create_new_PICS_model( L, ilev, Z+1, I, get_elev_pointer(ilev)->E );
     }
     
     lua_pop(L,1);	// pop photoionXsection_model

@@ -257,31 +257,43 @@ double TOPBaseModel::eval( double nu )
     // need to find bounding data points
     if ( nu < nu_list.front() ) return 0.0;
     else if ( nu > nu_list.back() ) return 0.0;
-    else {
-    	// start from i_prev
-        for ( int i=i_prev; i<(N_points-1); ++i ) {
-            // cout << "i = " << i << endl;
-    	    if ( nu >= nu_list[i] && nu < nu_list[i+1] )
-    	        return 0.5 * ( sigma_list[i] + sigma_list[i+1] );
-    	}
-	// start from 0
-    	for ( int i=0; i<(i_prev-1); ++i ) {
-    	    // cout << "i = " << i << endl;
-    	    if ( nu >= nu_list[i] && nu < nu_list[i] ) {
-    	        return 0.5 * ( sigma_list[i] + sigma_list[i+1] );
-    	    }
-        }
+    else if ( nu < nu_list[i_prev] || nu > nu_list[i_prev+1] ) {
+        // Use bisection method
+	int i_left = 0;
+	int i_right = N_points-1;
+
+	int i_mid=(i_left+i_right)/2;
+
+	for(i_mid=(i_left+i_right)/2; abs(i_left-i_right) > 1; i_mid=(i_left+i_right)/2) {
+	    double f_mid = nu_list[i_mid] - nu;
+	    if (f_mid <= 0.0) {
+	        i_left = i_mid; // use right interval
+	    } else {
+	        i_right = i_mid; // use left interval
+	    }
+	}
+        i_prev = i_mid;
     }
-    
-    // if we get to here then the search failed
-    cout << "TOPBaseModel::eval()" << endl
-         << "Failed to find cross-section data for nu = " << nu << endl;
-    exit( FAILURE );
+
+    // sanity check
+    if ( nu < nu_list[i_prev] || nu > nu_list[i_prev+1] ) {
+	cout << "nu is out of range " << endl;
+	exit(0);
+    }
+
+    // Linear interpolation between the found points
+    double sigma = ( sigma_list[i_prev+1] - sigma_list[i_prev] ) /
+		           ( nu_list[i_prev+1] - nu_list[i_prev] ) * ( nu - nu_list[i_prev]) +
+		           sigma_list[i_prev];
+
+    // cout << "nu = " << nu << ", nu_list[i_prev] = " << nu_list[i_prev] << ", nu_list[i_prev+1] = " << nu_list[i_prev+1] << ", sigma = " << sigma << endl;
+
+    return sigma;
 }
 
 
 PhotoIonisationCrossSectionModel*
-create_new_PICS_model( lua_State * L, int ilev, double n_eff, int Z, double I )
+create_new_PICS_model( lua_State * L, int ilev, int Z, double I, double E )
 {
     PhotoIonisationCrossSectionModel * PICS_model;
     
@@ -291,7 +303,12 @@ create_new_PICS_model( lua_State * L, int ilev, double n_eff, int Z, double I )
     	PICS_model = new NoPICSModel();
     }
     else if ( PICS_model_type=="hydrogenic" ) {
-    	PICS_model = new HydrogenicModel( n_eff, Z,  I );
+	// hydrogenic effective principal quantum number
+	double n_eff = sqrt( RC_H_ionise_J / ( I - E ) );
+	if ( !isfinite(n_eff) )
+	    PICS_model = new NoPICSModel();
+	else
+    	    PICS_model = new HydrogenicModel( n_eff, Z,  I );
     }
     else if ( PICS_model_type=="JohnstonModel" ) {
     	int nstep_levs = get_int(L,-1,"nstep_levs");
