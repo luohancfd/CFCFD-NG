@@ -734,6 +734,9 @@ create_electron_impact_ionization_reactions( lua_State * L, string model )
     if ( model=="none" ) return n_reactions;
     
     for ( size_t ilev=0; ilev<noneq_elevs.size(); ++ilev ) {
+        // Omit if a psuedocontinuum level
+        if ( noneq_elevs[ilev]->elev->E > this->I ) continue;
+
     	// N and O preference the curve fits of Kunc and Soon
     	if ( model=="KuncSoon and CJDrawin" ) {
     	    if ( ilev<=2 ) _model = "KuncSoon";

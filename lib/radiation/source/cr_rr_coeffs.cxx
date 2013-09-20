@@ -1171,17 +1171,69 @@ double KuncSoonElectronImpactIonization::get_rate( double T, Gas_data &Q )
 
     // 1. Reduced temperature
     double beta = ( I - E_l ) / RC_k_SI / T;
-    
+
     // 2. G parameter
     double G = sqrt( beta / ( beta + 1.0 ) ) * A / ( beta + chi );
-    
+
     // 3. Rate coefficient
     double S = 1.0e-8 * pow( RC_H_ionise_J / ( I - E_l ), 1.5 ) * Q_val / ( 2.0 * l + 1.0 ) * exp( - beta ) * G;
-    
+
     // 4. Convert cm**3 / s -> cm**3 / mole-s
     double K = S * RC_Na;
+
+    return K;
+}
+
+OpticallyVariablePhotoIonization::
+OpticallyVariablePhotoIonization( ElecLev * elev, double I, double lambda )
+: elev( elev ), E_l( elev->get_E() ), I( I ), lambda( lambda )
+{
+    type = "PhotoIonization";
+}
+
+double OpticallyVariablePhotoIonization::get_rate( double T, Gas_data &Q )
+{
+    UNUSED_VARIABLE(Q);
+
+    // 1. Compute the mean thermal velocity
+    double v_bar = sqrt( 8.0 * RC_k_SI * T / M_PI / RC_m_SI );
+
+    // 2. Compute the normalisation term
+    double tmpA = ( RC_k_SI * T ) *  ( RC_k_SI * T );
+
+    // 3. Integrate sigma(E) * E * exp( - E / kT ) dE from eps_0 to infinity
+    double integral = this->eval_integral(T);
+
+    // 4. Assemble the rate
+    double K = v_bar / tmpA * integral;
+
+    // 5. Apply escape factor (CHECKME!)
+    K *= ( 1.0 - lambda);
+
+    // 5. Convert m**3 / s -> cm**3 / mole-s
+    K *= 1.0e6 * RC_Na;
         
     return K;
+}
+
+double OpticallyVariablePhotoIonization::eval_integrand( double T, double eps )
+{
+    // 1. Compute frequency
+    double nu = eps / RC_h_SI;
+
+    // 2. Compute cross-section
+    double sigma = this->elev->eval_PICS(nu);
+
+    // 3. Assemble the integrand
+    return sigma * eps * exp( - eps / RC_k_SI / T );
+}
+
+double OpticallyVariablePhotoIonization::eval_integral( double T )
+{
+    // FIXME: implement a method such as Gaussian 10 point quadrate here
+    UNUSED_VARIABLE(T);
+
+    return 0.0;
 }
 
 CR_ReactionRateCoefficient * 

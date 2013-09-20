@@ -171,7 +171,12 @@ def make_PICS_from_TOPBase_strings( header_line, data_lines ):
         
     return TOPBasePICSLevel( E_cm, term, ilevTB, E_au_list, sigma_au_list )
 
-def read_level_file( filename, include_psuedocontinuum_levels, echo_result=False ):
+def read_level_file( filename, omit_psuedocontinuum_levels=True, use_individual_levels=False, echo_result=False ):
+    # TOPBase only considers grouped levels
+    if use_individual_levels:
+        print "TOPBase only considers grouped levels, turn the use_individual_levels option off!"
+        sys.exit()
+        
     # read in the file
     infile = open(filename, 'r')
     lines = infile.readlines()

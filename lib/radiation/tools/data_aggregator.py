@@ -5,7 +5,7 @@ import NIST_ASD_interpreter
 import TOPBase_interpreter
 import Griem_interpreter
 
-def get_atomic_species_data( species, level_source, line_source, PICS_source, library_location=os.environ["HOME"] + "/e3bin/radiation_data", omit_psuedocontinuum_levels=True, stark_tol=1.0e-2, PICS_tol=1.0e2 ):
+def get_atomic_species_data( species, level_source, line_source, PICS_source, library_location=os.environ["HOME"] + "/e3bin/radiation_data", omit_psuedocontinuum_levels=True, use_individual_levels=False, stark_tol=1.0e-2, PICS_tol=1.0e2 ):
     if level_source=="NIST_ASD" and line_source=="NIST_ASD":
         level_interpreter = NIST_ASD_interpreter
         line_interpreter = NIST_ASD_interpreter
@@ -65,7 +65,7 @@ def get_atomic_species_data( species, level_source, line_source, PICS_source, li
         print "Cannot continue!"
         sys.exit()
     else:
-        levels = level_interpreter.read_level_file( filename, omit_psuedocontinuum_levels )
+        levels = level_interpreter.read_level_file( filename, omit_psuedocontinuum_levels, use_individual_levels )
 
     filename = library_location + "/" + library_species_name + "/" + line_source + "/lines.txt"
     if not os.path.isfile( filename ):

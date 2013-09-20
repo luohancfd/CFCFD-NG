@@ -97,6 +97,10 @@ class GroupedLevel:
         n,l,L,S,parity = get_quantum_numbers( self.config, self.term )
         return AtomicLevel(n=n,E=self.E,g=self.g,l=l,L=L,S=S,parity=parity,conf=self.config,term=self.term)
 
+    def convert_individual_data_to_AtomicLevel(self,i):
+        n,l,L,S,parity = get_quantum_numbers( self.config, self.term )
+        return AtomicLevel(n=n,E=self.E_list[i],g=self.g_list[i],l=l,L=L,S=S,parity=parity,conf=self.config,term=self.term)
+
 class LevelData:
     def __init__(self):
         self.levels = []
@@ -254,7 +258,7 @@ class LineData:
 
 # read functions
 
-def read_level_file( filename, omit_psuedocontinuum_levels=True, echo_result=False ):
+def read_level_file( filename, omit_psuedocontinuum_levels=True, use_individual_levels=False, echo_result=False ):
     # read in the file
     infile = open(filename, 'r')
     lines = infile.readlines()
@@ -296,6 +300,9 @@ def read_level_file( filename, omit_psuedocontinuum_levels=True, echo_result=Fal
         if omit_psuedocontinuum_levels and grouped_level.E > level_data.ionization_limits[0].E:
             omission_count += 1
             continue
+        elif use_individual_levels:
+            for i in range(len(grouped_level.E_list)):
+                levels.append( grouped_level.convert_individual_data_to_AtomicLevel(i) )
         else:
             levels.append( grouped_level.convert_grouped_data_to_AtomicLevel() )
         
@@ -345,17 +352,17 @@ def read_line_file( filename ):
 
     return lines
 
-def add_level_data_to_lines( lines, levels, exit_when_not_found=False ):
+def add_level_data_to_lines( lines, levels, exit_when_not_found=False, tol=1.0e-3 ):
     # find the upper and lower level indices of the lines in the list
     filtered_lines =[]
     for line in lines:
         u_found = False
         l_found = False
         for ilev,level in enumerate(levels):
-            if line.conf_u == level.conf and line.term_u == level.term:
+            if line.conf_u == level.conf and line.term_u == level.term and abs(line.E_u - level.E)<tol:
                 line.ilev_u = ilev
                 u_found = True
-            if line.conf_l == level.conf and line.term_l == level.term:
+            if line.conf_l == level.conf and line.term_l == level.term and abs(line.E_l - level.E)<tol:
                 line.ilev_l = ilev
                 l_found = True
         if not u_found and exit_when_not_found:

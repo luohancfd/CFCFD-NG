@@ -387,6 +387,30 @@ private:
     double l;
 };
 
+class OpticallyVariablePhotoIonization : public CR_ReactionRateCoefficient {
+public:
+    /// \brief Constructor
+    OpticallyVariablePhotoIonization( ElecLev * elev, double I, double lambda );
+
+    /// \brief Destructor
+    ~OpticallyVariablePhotoIonization() {};
+
+public:
+    double get_rate( double T, Gas_data &Q );
+    std::string get_latex_string() { return ""; }
+
+private:
+    double eval_integrand( double T, double eps);
+
+    double eval_integral( double T );
+
+private:
+    ElecLev * elev;
+    double E_l;
+    double I;
+    double lambda;
+};
+
 CR_ReactionRateCoefficient * create_explicit_rate_coeff( lua_State * L, std::string parameter_field );
 
 #endif

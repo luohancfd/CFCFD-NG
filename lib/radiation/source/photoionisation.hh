@@ -29,6 +29,8 @@ public:
     virtual ~PhotoIonisationCrossSectionModel() = 0;
     
 public:
+    std::string get_name() { return name; }
+
     virtual void spectral_distribution( std::vector<double> &nus ) = 0;
 
     virtual double eval( double nu ) = 0;

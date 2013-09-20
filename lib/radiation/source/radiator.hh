@@ -82,6 +82,14 @@ public:
     void boundfree_spectral_distribution( std::vector<double> &nus )
     { return PICS_model->spectral_distribution( nus ); };
 
+    /// \brief evalulate the photoionzation cross-section
+    double eval_PICS( double nu )
+    { return PICS_model->eval( nu ); };
+
+    /// \brief evalulate the photoionzation cross-section
+    std::string get_PICS_name()
+    { return PICS_model->get_name(); };
+
 public:
     /* Fundamental level data */
     int i;

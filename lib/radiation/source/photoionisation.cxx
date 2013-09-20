@@ -291,7 +291,7 @@ double TOPBaseModel::eval( double nu )
     
     // need to find bounding data points
     if ( nu < nu_list.front() ) return 0.0;
-    else if ( nu > nu_list.back() ) return 0.0;
+    else if ( nu > nu_list.back() ) return sigma_list.back();
     else if ( nu < nu_list[i_prev] || nu > nu_list[i_prev+1] ) {
         // Use bisection method
 	int i_left = 0;
