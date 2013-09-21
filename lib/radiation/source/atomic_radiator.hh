@@ -188,6 +188,9 @@ private:
     /// \brief Create the radiative transition reactions
     int create_radiative_transition_reactions( lua_State * L, std::string model );
     
+    /// \brief Create the photorecombination reactions
+    int create_photorecombination_reactions( lua_State * L, std::string model );
+
 private:
     /// \brief Calculate electronic state number densities
     void calculate_n_e( Gas_data &Q );

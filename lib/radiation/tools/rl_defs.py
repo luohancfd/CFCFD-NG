@@ -181,12 +181,13 @@ class TOPBasePICSModel(PhotoIonXSectionModel):
         
 class AtomicQSSModel(object):
     """Class for describing an atomic QSS model"""
-    def __init__(self, name="", noneq_elevs="", eie_model="none", eii_model="none", rt_model="none", special=""):
+    def __init__(self, name="", noneq_elevs="", eie_model="none", eii_model="none", rt_model="none", pr_model="none", special=""):
             self.name = name
             self.noneq_elevs = noneq_elevs
             self.eie_model = eie_model
             self.eii_model = eii_model
             self.rt_model = rt_model
+            self.pr_model = pr_model
             self.special = special
             self.comments = "# Description of the atomic QSS model"
             self.inc_eq_elevs = 1
@@ -203,6 +204,7 @@ class AtomicQSSModel(object):
         ostring += tab+"electron_impact_excitation = '%s',\n" % ( self.eie_model )
         ostring += tab+"electron_impact_ionization = '%s',\n" % ( self.eii_model )
         ostring += tab+"radiative_transitions = '%s',\n" % ( self.rt_model )
+        ostring += tab+"photorecombination = '%s',\n" % ( self.pr_model )
         ostring += "%s" % self.special
         ostring += "}\n"
         return ostring

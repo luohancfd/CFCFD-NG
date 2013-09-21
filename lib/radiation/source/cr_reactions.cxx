@@ -1170,6 +1170,26 @@ int
 RadiativeTransition::
 add_eval_contributions( Gas_data &Q, valarray<double> &G )
 {
+    // 0. Prepare data
+    // 0a. Forward reaction rates using dummy temperatures
+    double T_f = 0.0;
+    double T_b = 0.0;
+    double k_f, k_b;
+    this->eval_reaction_rates( T_f, T_b, Q, k_f, k_b );
+
+    // 0b. moles per cm**3 of upper and lower states
+    double c_u = ne_elev_u->elev->N / 1.0e6 / RC_Na;
+    double c_l = ne_elev_l->elev->N / 1.0e6 / RC_Na;
+
+    // 1. Fill in the G vector
+
+    // 1a. Upper state
+    G[ne_elev_u->ne_ilev] += k_b * c_l - k_f * c_u;
+
+    // 1b. Lower state - if not the ground state
+    if ( ne_elev_l->ne_ilev != 0 )
+	G[ne_elev_l->ne_ilev] += k_f * c_u - k_b * c_l;
+
     return SUCCESS;
 }
 
@@ -1195,6 +1215,153 @@ get_latex_string()
     oss << "\t\t&\t\t" << forward_rate_coeff->get_latex_string() << "\t\\\\" << endl;
     
     return oss.str();
+}
+
+/************************** PhotoRecombination ****************************/
+
+PhotoRecombination::
+PhotoRecombination( lua_State * L, Radiator * rad )
+: CR_Reaction( "PhotoRecombination" ), rad( rad )
+{
+    cout << "PhotoRecombination::PhotoRecombination()" << endl
+	 << "This model is only currently implemented for atomic species" << endl;
+    exit( NOT_IMPLEMENTED_ERROR );
+}
+
+PhotoRecombination::
+PhotoRecombination( std::string model, Radiator * rad, NoneqElecLev * ne_elev )
+: CR_Reaction( "PhotoRecombination" ), rad( rad ), iTe( rad->iTe ), ne_elev( ne_elev )
+{
+    // Create the equation string
+    equation = ne_elev->label + " + hv <=> ion + hv";
+
+    // Forward rate coefficient model
+    if ( model=="OpticallyThin" ) {
+    	// use default parameters for the moments
+    	forward_rate_coeff = new OpticallyThinPhotoRecombination( ne_elev->elev, rad->I );
+    	lambda = 1.0;
+    }
+    else {
+    	ostringstream oss;
+    	oss << "PhotoRecombination::PhotoRecombination()" << endl
+    	    << "Model: " << model << " not recognised." << endl;
+    	input_error( oss );
+    }
+
+    // Dummy backward rate coefficient model
+    backward_rate_coeff = new ZeroRate();
+}
+
+int
+PhotoRecombination::
+eval_reaction_rates( double T_f, double T_b, Gas_data &Q, double &k_f, double &k_b )
+{
+    k_f = forward_rate_coeff->get_rate( T_f, Q );
+    k_b = 0.0;
+
+    return SUCCESS;
+}
+
+double
+PhotoRecombination::
+eval_equilibrium_constant( double T )
+{
+    UNUSED_VARIABLE(T);
+
+    cout << "RadiativeTransition::eval_equilibrium_constant()" << endl
+         << "This function is not meant for use, bailing out!" << endl;
+    exit( FAILURE );
+}
+
+int
+PhotoRecombination::
+add_jacobian_contributions( Gas_data &Q, Valmatrix &dGdy )
+{
+    // 0. Prepare data
+    // 0a. Forward reaction rates using the electronic temperature
+    double T_f = Q.T[iTe];
+    double T_b = Q.T[iTe];
+    double k_f, k_b;
+
+    this->eval_reaction_rates( T_f, T_b, Q, k_f, k_b );
+
+    // 0b. moles per cm**3 of electrons
+    // double c_e = Q.massf[elec->isp] * Q.rho / elec->m_w / 1.0e6;
+
+    // 1. Compute derivates and fill in the Jacobian matrix
+    double domega_dc, tmp;
+
+    // 1a. Lower state row, but not if it is the ground state
+    if ( ne_elev->ne_ilev != 0 ) {
+    	// derivative of omega wrt lower state population
+    	domega_dc = k_b;
+    	tmp = dGdy.get( ne_elev->ne_ilev, ne_elev->ne_ilev );
+    	dGdy.set( ne_elev->ne_ilev, ne_elev->ne_ilev, (tmp+domega_dc) );
+    }
+
+    return SUCCESS;
+}
+
+int
+PhotoRecombination::
+add_eval_contributions( Gas_data &Q, valarray<double> &G )
+{
+    // 0. Prepare data
+    // 0a. Forward reaction rates using the electronic temperature
+    double T_f = Q.T[iTe];
+    double T_b = Q.T[iTe];
+    double k_f, k_b;
+    this->eval_reaction_rates( T_f, T_b, Q, k_f, k_b );
+
+    // 0b. moles per cm**3 of electrons
+    double c_e = Q.massf[elec->isp] * Q.rho / elec->m_w / 1.0e6;
+
+    // 0c. moles per cm**3 of the ion
+    double c_i = Q.massf[ion->isp] * Q.rho / ion->m_w / 1.0e6;
+
+    // 0d. moles per cm**3 of the lower state
+    double c_l = ne_elev->elev->N / RC_Na / 1.0e6;
+
+    // 1. Fill in the G vector
+
+    // 1a. Lower state - if not the ground state
+    if ( ne_elev->ne_ilev != 0 )
+    	G[ne_elev->ne_ilev] += k_b * c_l - k_f * c_i * c_e;
+
+    return SUCCESS;
+}
+
+int
+PhotoRecombination::
+add_source_vector_contributions( Gas_data &Q, valarray<double> &C )
+{
+    // 0. Prepare data
+    // 0a. Forward reverse reaction rates using the electronic temperature
+    double T_f = Q.T[iTe];
+    double T_b = Q.T[iTe];
+    double k_f, k_b;
+    this->eval_reaction_rates( T_f, T_b, Q, k_f, k_b );
+
+    // 0b. moles per cm**3 of electrons
+    double c_e = Q.massf[elec->isp] * Q.rho / elec->m_w / 1.0e6;
+
+    // 0c. moles per cm**3 of the ion
+    double c_i = Q.massf[ion->isp] * Q.rho / ion->m_w / 1.0e6;
+
+    // 1. Fill in the G vector
+
+    // 1a. Lower state - if not the ground state
+    if ( ne_elev->ne_ilev != 0 )
+    	C[ne_elev->ne_ilev] += k_f * c_i * c_e;
+
+    return SUCCESS;
+}
+
+string
+PhotoRecombination::
+get_latex_string()
+{
+    return "";
 }
 
 /************************** Helper functions *****************************/

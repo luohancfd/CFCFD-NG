@@ -43,20 +43,36 @@ double NoPICSModel::eval( double nu )
     return 0.0;
 }
 
-HydrogenicModel::HydrogenicModel( double n_eff, int Z, double I )
+HydrogenicModel::HydrogenicModel( lua_State * L, double n_eff, int Z, double I, double E_min )
  : PhotoIonisationCrossSectionModel( "HydrogenicModel" ), 
-   n_eff( n_eff ), Z( double(Z) ), I( I )
+   n_eff( n_eff ), Z( double(Z) ), I( I ), E_min( E_min )
 {
     constB = I * Z * Z;
     constC = n_eff*n_eff;
     constD = pow( Z, 4 );
     constE = pow( n_eff, 5 );
+
+    // FIXME: put these in the Lua file
+    E_max = RC_k_SI * 1.0e5;
+    nnus = 100;
 }
 
 HydrogenicModel::~HydrogenicModel() {}
 
 void HydrogenicModel::spectral_distribution( vector<double> &nus )
 {
+    // 1. Determine some limits
+    double nu_min = E_min / RC_h_SI;
+    double nu_max = E_max / RC_h_SI;
+    double dnu = ( nu_max - nu_min ) / double(nnus-1);
+
+    // 2. Equidistant points in frequency space
+    double nu = nu_min;
+    while( nu <= nu_max ) {
+        nus.push_back(nu);
+        nu += dnu;
+    }
+
     return;
 }
 
@@ -169,8 +185,8 @@ double JohnstonStepModel::eval( double nu )
     return 0.0;
 }
 
-JohnstonThresholdModel::JohnstonThresholdModel( lua_State * L, int ilev )
- : PhotoIonisationCrossSectionModel( "JohnstonThresholdModel" )
+JohnstonThresholdModel::JohnstonThresholdModel( lua_State * L, int ilev, double E_min )
+ : PhotoIonisationCrossSectionModel( "JohnstonThresholdModel" ), E_min( E_min )
 {
     int nthresholds = get_int( L, -1, "nthresholds" );
     
@@ -209,13 +225,27 @@ JohnstonThresholdModel::JohnstonThresholdModel( lua_State * L, int ilev )
  	    break;
  	}
     }
+
+    // FIXME: put these in the Lua file
+    E_max = RC_k_SI * 1.0e5;
+    nnus = 100;
 }
 
 JohnstonThresholdModel::~JohnstonThresholdModel() {}
 
 void JohnstonThresholdModel::spectral_distribution( vector<double> &nus )
 {
-    nus.push_back( nu_t );
+    // 1. Determine some limits
+    double nu_min = E_min / RC_h_SI;
+    double nu_max = E_max / RC_h_SI;
+    double dnu = ( nu_max - nu_min ) / double(nnus-1);
+
+    // 2. Equidistant points in frequency space
+    double nu = nu_min;
+    while( nu <= nu_max ) {
+	nus.push_back(nu);
+	nu += dnu;
+    }
 
     return;
 }
@@ -339,19 +369,21 @@ create_new_PICS_model( lua_State * L, int ilev, int Z, double I, double E )
     }
     else if ( PICS_model_type=="hydrogenic" ) {
 	// hydrogenic effective principal quantum number
-	double n_eff = sqrt( RC_H_ionise_J / ( I - E ) );
+	double E_min = I - E;
+	double n_eff = sqrt( RC_H_ionise_J / E_min );
 	if ( !isfinite(n_eff) )
 	    PICS_model = new NoPICSModel();
 	else
-    	    PICS_model = new HydrogenicModel( n_eff, Z,  I );
+    	    PICS_model = new HydrogenicModel( L, n_eff, Z,  I, E_min );
     }
     else if ( PICS_model_type=="JohnstonModel" ) {
     	int nstep_levs = get_int(L,-1,"nstep_levs");
     	if ( ilev < nstep_levs ) {
-    	    PICS_model = new JohnstonStepModel(L, ilev);
+    	    PICS_model = new JohnstonStepModel( L, ilev );
     	}
     	else {
-    	    PICS_model = new JohnstonThresholdModel(L, ilev);
+    	    double E_min = I - E;
+    	    PICS_model = new JohnstonThresholdModel(L, ilev, E_min );
     	}
     }
     else if ( PICS_model_type=="TOPBaseModel" ) {

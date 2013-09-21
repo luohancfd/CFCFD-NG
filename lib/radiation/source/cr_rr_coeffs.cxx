@@ -1184,14 +1184,21 @@ double KuncSoonElectronImpactIonization::get_rate( double T, Gas_data &Q )
     return K;
 }
 
-OpticallyVariablePhotoIonization::
-OpticallyVariablePhotoIonization( ElecLev * elev, double I, double lambda )
-: elev( elev ), E_l( elev->get_E() ), I( I ), lambda( lambda )
+OpticallyThinPhotoRecombination::
+OpticallyThinPhotoRecombination( ElecLev * elev, double I )
+: elev( elev ), E_l( elev->get_E() ), I( I )
 {
-    type = "PhotoIonization";
+    type = "PhotoRecombination";
+
+    // Store the frequencies to integrate over
+    this->elev->PICS_model->spectral_distribution(this->nus);
+    nnus = (int) nus.size();
+
+    // FIXME: Store the ion ground state degeneracy (currently set to 6 for Ar+)
+    g_ion = 6;
 }
 
-double OpticallyVariablePhotoIonization::get_rate( double T, Gas_data &Q )
+double OpticallyThinPhotoRecombination::get_rate( double T, Gas_data &Q )
 {
     UNUSED_VARIABLE(Q);
 
@@ -1199,16 +1206,13 @@ double OpticallyVariablePhotoIonization::get_rate( double T, Gas_data &Q )
     double v_bar = sqrt( 8.0 * RC_k_SI * T / M_PI / RC_m_SI );
 
     // 2. Compute the normalisation term
-    double tmpA = ( RC_k_SI * T ) *  ( RC_k_SI * T );
+    double tmpA = ( RC_k_SI * T ) *  ( RC_k_SI * T ) / RC_h_SI;
 
-    // 3. Integrate sigma(E) * E * exp( - E / kT ) dE from eps_0 to infinity
+    // 3. Integrate sigma(nu) * E * exp( - E / kT ) dnu from the threshold to 'infinity'
     double integral = this->eval_integral(T);
 
     // 4. Assemble the rate
     double K = v_bar / tmpA * integral;
-
-    // 5. Apply escape factor (CHECKME!)
-    K *= ( 1.0 - lambda);
 
     // 5. Convert m**3 / s -> cm**3 / mole-s
     K *= 1.0e6 * RC_Na;
@@ -1216,24 +1220,39 @@ double OpticallyVariablePhotoIonization::get_rate( double T, Gas_data &Q )
     return K;
 }
 
-double OpticallyVariablePhotoIonization::eval_integrand( double T, double eps )
+double OpticallyThinPhotoRecombination::eval_integrand( double T, double nu )
 {
-    // 1. Compute frequency
-    double nu = eps / RC_h_SI;
+    // NOTE: This function omits the Planck constant scaling!
+    //       It is expected to be applied outside the loop on the level above.
 
-    // 2. Compute cross-section
-    double sigma = this->elev->eval_PICS(nu);
+    // 1. Compute energy
+    double eps = RC_h_SI * nu;
+
+    // 2. Compute the photoionization cross-section
+    double sigma_pi = this->elev->eval_PICS(nu);
+
+    // 3. Convert to photorecombination cross-section
+    double sigma_pr = sigma_pi * double(elev->g) / double(g_ion) * eps * eps
+		    / ( RC_m_SI * 2.0 * ( eps - elev->E ) * RC_c_SI * RC_c_SI );
 
     // 3. Assemble the integrand
-    return sigma * eps * exp( - eps / RC_k_SI / T );
+    return sigma_pr * eps * exp( - eps / RC_k_SI / T );
 }
 
-double OpticallyVariablePhotoIonization::eval_integral( double T )
+double OpticallyThinPhotoRecombination::eval_integral( double T )
 {
-    // FIXME: implement a method such as Gaussian 10 point quadrate here
-    UNUSED_VARIABLE(T);
+    // 1. Some PICS models will not have a spectral distribution, use zero for the integral
+    if ( nnus<2 ) return 0.0;
 
-    return 0.0;
+    // 2. Trapezoidal integration over the predetermined frequencies
+    double integral = 0.0;
+    for ( int inu=0; inu<nnus-1; ++inu ) {
+	double nu  = ( nus[inu] + nus[inu+1] ) * 0.5;
+	double dnu =  nus[inu+1] - nus[inu+1];
+        integral += this->eval_integrand( T, nu ) * dnu;
+    }
+
+    return integral;
 }
 
 CR_ReactionRateCoefficient * 

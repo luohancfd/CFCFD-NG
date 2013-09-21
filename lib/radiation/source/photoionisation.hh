@@ -57,7 +57,7 @@ public:
 class HydrogenicModel : public PhotoIonisationCrossSectionModel {
 public:
     /// \brief Constructor
-    HydrogenicModel( double n_eff, int Z, double I );
+    HydrogenicModel( lua_State * L, double n_eff, int Z, double I, double E_min );
     
     /// \brief Deconstructor
     ~HydrogenicModel();
@@ -75,6 +75,9 @@ private:
     double constC;
     double constD;
     double constE;
+    double E_min;	// Threshold energy
+    double E_max;	// Maximum energy (used for spectral distribution)
+    int nnus;		// Number of points to use for adaptive distribution
 };
 
 class PICS_step {
@@ -108,7 +111,7 @@ private:
 class JohnstonThresholdModel : public PhotoIonisationCrossSectionModel {
 public:
     /// \brief Constructor
-    JohnstonThresholdModel(  lua_State * L, int ilev );
+    JohnstonThresholdModel( lua_State * L, int ilev, double E_min );
     
     /// \brief Deconstructor
     ~JohnstonThresholdModel();
@@ -122,6 +125,9 @@ private:
     double nu_t;
     double sigma_bf_t;
     double theta;
+    double E_min;	// Threshold energy
+    double E_max;	// Maximum energy (used for spectral distribution)
+    int nnus;	// Number of points to use for adaptive distribution
 };
 
 class TOPBaseModel : public PhotoIonisationCrossSectionModel {

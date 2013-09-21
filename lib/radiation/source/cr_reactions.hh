@@ -239,6 +239,38 @@ private:
     NoneqElecLev * ne_elev_l;
 };
 
+class PhotoRecombination : public CR_Reaction {
+public:
+    /// \Brief Constructor from lua input file (for diatomic species)
+    PhotoRecombination( lua_State * L, Radiator * rad );
+
+    /// \brief Constructor from model type (for atomic species)
+    PhotoRecombination( std::string model, Radiator * rad, NoneqElecLev * ne_elev );
+
+    ~PhotoRecombination() {};
+
+public:
+    void set_ion_pointer( Radiator * ion_pointer )
+    { ion = ion_pointer;  }
+    void set_electron_pointer( Radiator * elec_pointer )
+    { elec = elec_pointer; }
+
+    int eval_reaction_rates( double T_f, double T_b, Gas_data &Q, double &k_f, double &k_b );
+    double eval_equilibrium_constant( double T );
+    int add_jacobian_contributions( Gas_data &Q, Valmatrix &dGdy );
+    int add_eval_contributions( Gas_data &Q, std::valarray<double> &G );
+    int add_source_vector_contributions( Gas_data &Q, std::valarray<double> &C );
+    std::string get_latex_string();
+
+private:
+    Radiator * rad;
+    int iTe;
+    NoneqElecLev * ne_elev;
+    Radiator * ion;
+    Radiator * elec;
+    double lambda;
+};
+
 void tokenize_equation_string( std::string equation, std::vector<std::string> &tks );
 
 void get_latex_species_piecies( std::string name, std::string &lname, std::string &lev_prefix );

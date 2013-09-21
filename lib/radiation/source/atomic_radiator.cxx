@@ -544,6 +544,14 @@ QSSAtomicRadiator( lua_State * L, string name )
     	     << " radiative transition mechanisms for QSSAtomicRadiator: " 
     	     << name << endl;
     }
+    // 2d. Photorecombination
+    string pr_model = get_string(L,-1,"photorecombination");
+    if ( pr_model!="none" ) {
+    	int n_rt = create_photorecombination_reactions( L, pr_model );
+    	cout << " - Created " << n_rt
+    	     << " photorecombination mechanisms for QSSAtomicRadiator: "
+    	     << name << endl;
+    }
     
     lua_pop(L, 1);	// pop QSS_model table
     
@@ -580,6 +588,10 @@ set_radiator_pointers( std::vector<Radiator*> radiators )
     	else if ( reactions[ir]->get_type()=="ElectronImpactIonization" ) {
     	    dynamic_cast<ElectronImpactIonization*>(reactions[ir])->set_ion_pointer( ion );
     	    dynamic_cast<ElectronImpactIonization*>(reactions[ir])->set_electron_pointer( elec );
+    	}
+    	else if ( reactions[ir]->get_type()=="PhotoRecombination" ) {
+    	    dynamic_cast<PhotoRecombination*>(reactions[ir])->set_ion_pointer( ion );
+    	    dynamic_cast<PhotoRecombination*>(reactions[ir])->set_electron_pointer( elec );
     	}
     }
     
@@ -807,6 +819,26 @@ create_radiative_transition_reactions( lua_State * L, string model )
     return n_reactions;
 }
 
+int
+QSSAtomicRadiator::
+create_photorecombination_reactions( lua_State * L, string model )
+{
+    // Loop over all noneq levels below the ionization threshold
+    int n_reactions = 0;
+
+    // Option to ommit this mechanism
+    if ( model=="none" ) return n_reactions;
+
+    for ( size_t ne_ilev=0; ne_ilev<noneq_elevs.size(); ++ne_ilev ) {
+        if ( noneq_elevs[ne_ilev]->elev->E > this->I ) continue;
+        if ( noneq_elevs[ne_ilev]->elev->PICS_model->get_name()=="NoPICSModel" ) continue;
+        reactions.push_back( new PhotoRecombination( model, this, noneq_elevs[ne_ilev] ) );
+	n_reactions++;
+    }
+
+    return n_reactions;
+}
+
 void
 QSSAtomicRadiator::
 calculate_n_e( Gas_data &Q )
@@ -846,7 +878,7 @@ calculate_n_e( Gas_data &Q )
     
     // 3. Construct source vector
     C[0] = Q.massf[isp] * Q.rho / m_w / 1.0e6;		// Convert moles/m**3 to moles/cm**3
-    // NOTE: some reactions such as EII have terms that will not be a function of the unkown
+    // NOTE: some reactions such as EII have terms that will not be a function of the unknown
     //       populations, therefore they need to go in the source vector for this method
     for ( size_t ir=0; ir<reactions.size(); ++ir )
     	reactions[ir]->add_source_vector_contributions( Q, C );

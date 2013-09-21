@@ -387,13 +387,13 @@ private:
     double l;
 };
 
-class OpticallyVariablePhotoIonization : public CR_ReactionRateCoefficient {
+class OpticallyThinPhotoRecombination : public CR_ReactionRateCoefficient {
 public:
     /// \brief Constructor
-    OpticallyVariablePhotoIonization( ElecLev * elev, double I, double lambda );
+    OpticallyThinPhotoRecombination( ElecLev * elev, double I );
 
     /// \brief Destructor
-    ~OpticallyVariablePhotoIonization() {};
+    ~OpticallyThinPhotoRecombination() {};
 
 public:
     double get_rate( double T, Gas_data &Q );
@@ -408,7 +408,9 @@ private:
     ElecLev * elev;
     double E_l;
     double I;
-    double lambda;
+    int g_ion;
+    std::vector<double> nus;
+    int nnus;
 };
 
 CR_ReactionRateCoefficient * create_explicit_rate_coeff( lua_State * L, std::string parameter_field );
