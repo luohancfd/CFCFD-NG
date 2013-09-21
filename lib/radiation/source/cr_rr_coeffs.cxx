@@ -1216,6 +1216,8 @@ double OpticallyThinPhotoRecombination::get_rate( double T, Gas_data &Q )
 
     // 5. Convert m**3 / s -> cm**3 / mole-s
     K *= 1.0e6 * RC_Na;
+
+    // cout << "v_bar = " << v_bar << ", tmpA = " << tmpA << ", integral = " << integral << ", K = " << K << endl;
         
     return K;
 }
@@ -1236,7 +1238,11 @@ double OpticallyThinPhotoRecombination::eval_integrand( double T, double nu )
 		    / ( RC_m_SI * 2.0 * ( eps - elev->E ) * RC_c_SI * RC_c_SI );
 
     // 3. Assemble the integrand
-    return sigma_pr * eps * exp( - eps / RC_k_SI / T );
+    double integrand = sigma_pr * eps * exp( - eps / RC_k_SI / T );
+
+    // cout << "eps = " << eps << ", sigma_pi = " << sigma_pi << ", sigma_pr = " << sigma_pr << ", integrand = " << integrand << endl;
+
+    return integrand;
 }
 
 double OpticallyThinPhotoRecombination::eval_integral( double T )
@@ -1248,7 +1254,7 @@ double OpticallyThinPhotoRecombination::eval_integral( double T )
     double integral = 0.0;
     for ( int inu=0; inu<nnus-1; ++inu ) {
 	double nu  = ( nus[inu] + nus[inu+1] ) * 0.5;
-	double dnu =  nus[inu+1] - nus[inu+1];
+	double dnu =  nus[inu+1] - nus[inu];
         integral += this->eval_integrand( T, nu ) * dnu;
     }
 
