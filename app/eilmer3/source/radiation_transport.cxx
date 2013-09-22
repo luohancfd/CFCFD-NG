@@ -1189,7 +1189,7 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 		    nrays = int( double(nrays_) * cell->E_rad_ / cell_E_rad_total_max );
 		}
 		if ( nrays==0 ) nrays = 1;
-		cout << " - nrays: " << nrays << endl;
+		// cout << " - nrays: " << nrays << endl;
 		// Cycle over all rays
 		size_t iray;
 #   	   	ifdef _OPENMP
@@ -1226,7 +1226,7 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 
 	        }
 		if ( nrays<=0 ) nrays = 1;
-		cout << " - nrays: " << nrays << endl;
+		// cout << " - nrays: " << nrays << endl;
 		// Cycle over all rays
 		size_t iray;
 #   	   	ifdef _OPENMP
