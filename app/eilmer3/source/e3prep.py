@@ -187,12 +187,13 @@ def select_gas_model(model=None, species=None, fname=None):
     nsp = gmodel.get_number_of_species()
     return [ gmodel.species_name(isp) for isp in range(nsp) ]
 
-def set_reaction_scheme(fname, reacting_flag=1):
+def set_reaction_scheme(fname, reacting_flag=1, T_frozen=300.0):
     """
     Sets the reaction update model and specifies a reacting simulation.
 
     :param fname: (string) the name of the input file for the reaction update.
     :param reacting_flag: (int) 1=reacting, 0=nonreacting 
+    :param T_frozen: (float) temperature (in K) below which reactions are frozen
     :returns: None
 
     Note that the user may later reset that flag within the input script,
@@ -200,6 +201,7 @@ def set_reaction_scheme(fname, reacting_flag=1):
     """
     gdata.reacting_flag = reacting_flag
     gdata.reaction_update = fname
+    gdata.T_frozen = T_frozen
     return
 
 # We want to keep the old name, for a while.
@@ -305,6 +307,7 @@ class GlobalData(object):
     * reacting_flag: (0/1) A value of 1 will make Rowan Gollan's finite-rate
       chemistry active if the appropriate gas_name (e.g. 'perf_gas_mix')
       has been specified.
+    * T_frozen: (float) temperature (in K) below which reactions are frozen.
     * reaction_time_start: (float) Time after which reactions are allowed to proceed.
     * reaction_update: (string) A (file) name for the chemical kinetics scheme
     * energy_exchange_flag: (0/1) A flag indicting finite-rate evolution of thermal state
@@ -410,7 +413,7 @@ class GlobalData(object):
                 'diffusion_flag', 'diffusion_model', \
                 'turbulence_model', 'max_mu_t_factor', 'transient_mu_t_factor', \
                 'turbulence_prandtl_number', 'turbulence_schmidt_number', \
-                'scalar_pdf_flag', 'reacting_flag', 'reaction_time_start', \
+                'scalar_pdf_flag', 'reacting_flag', 'T_frozen', 'reaction_time_start', \
                 'x_order', 'flux_calc', 'compression_tolerance', 'shear_tolerance', 'M_inf', \
                 't_order', 'gasdynamic_update_scheme', \
                 'stringent_cfl', 'shock_fitting_flag', 'dt_shock', \
@@ -444,6 +447,7 @@ class GlobalData(object):
         self.gas_model_file = "gas_model.lua"
         self.reaction_update = "dummy_scheme"
         self.reacting_flag = 0
+        self.T_frozen = 300.0
         self.reaction_time_start = 0.0
         self.energy_exchange_flag = 0
         self.energy_exchange_update = "dummy_scheme"
@@ -589,6 +593,7 @@ class GlobalData(object):
         fp.write("gas_model_file = %s\n" % self.gas_model_file)
         fp.write("reaction_update = %s\n" % self.reaction_update)
         fp.write("reacting_flag = %d\n" % self.reacting_flag)
+        fp.write("T_frozen = %g\n" % self.T_frozen)
         fp.write("reaction_time_start = %e\n"% self.reaction_time_start)
         fp.write("energy_exchange_flag = %d\n" % self.energy_exchange_flag)
         fp.write("energy_exchange_update = %s\n" % self.energy_exchange_update)

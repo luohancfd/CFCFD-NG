@@ -1715,9 +1715,9 @@ int FV_Cell::stage_2_update_for_flow_on_moving_grid(double dt, bool with_k_omega
 /// Use the finite-rate chemistry module to update the
 /// species fractions and the other thermochemical properties.
 /// \param dt   : size of the time-step
-int FV_Cell::chemical_increment(double dt)
+int FV_Cell::chemical_increment(double dt, double T_frozen)
 {
-    if ( !fr_reactions_allowed ) return SUCCESS;
+    if ( !fr_reactions_allowed or fs->gas->T[0] <= T_frozen ) return SUCCESS;
     Gas_model *gmodel = get_gas_model_ptr();
     Reaction_update *rupdate = get_reaction_update_ptr();
 

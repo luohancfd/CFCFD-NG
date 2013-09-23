@@ -317,13 +317,17 @@ For chemically reacting flow simulations, the following function call is
 required:\\
 %
 \topbar\\
-\texttt{set\_reaction\_scheme(config\_file, reacting\_flag=1)}\\
+\texttt{set\_reaction\_scheme(config\_file, reacting\_flag=1, T\_frozen=300.0)}\\
 \bottombar\\
 where \texttt{config\_file} is a string naming the configuration file for the
 chemical reaction scheme.  This configuration file specifies all of the chemical
 reactions between the various species and is built by hand by the user.\index{chemical reaction}
 By default, the reactions are turned on, however, the user may elect to turn off
 chemical reaction updates by setting \texttt{reacting\_flag=0}.
+At low temperatures, it is unlikely that the reactions will proceed in any significant way
+so you may set value of temperature, \verb!T_frozen!, below which the reaction updates will
+be skipped.
+This is checked on a cell-by-cell basis.
 
 \medskip
 Generally, you should use the \verb!'thermally perfect gas'! mix for all reacting flow simulations.
@@ -1694,6 +1698,10 @@ are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config 
   (More conveniently set by calling \texttt{set\_reaction\_scheme()}.)
 \item \texttt{reaction\_time\_start}: time after which finite-rate reactions are allowed to start,
   default value 0.0.
+\item \texttt{T\_frozen}: temperature (in degrees K) below which reactions are frozen.
+  The default value is 300.0 since most reaction schemes seem to be valid for temperatures
+  above this, however, you may have good reasons to set it higher or lower.
+  (May also be set in the call to \texttt{set\_reaction\_scheme()}.)
 \end{itemize}
 
 \paragraph{Miscellaneous}

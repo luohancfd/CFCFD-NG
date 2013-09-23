@@ -1167,7 +1167,7 @@ int integrate_in_time(double target_time)
         if ( get_reacting_flag() == 1 && G.sim_time >= G.reaction_time_start ) {
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active != 1 ) continue;
-		for ( FV_Cell *cp: bdp->active_cells ) cp->chemical_increment(G.dt_global);
+		for ( FV_Cell *cp: bdp->active_cells ) cp->chemical_increment(G.dt_global, G.T_frozen);
 	    }
 	}
 
