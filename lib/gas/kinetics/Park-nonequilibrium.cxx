@@ -14,8 +14,8 @@
 using namespace std;
 
 Park_nonequilibrium::
-Park_nonequilibrium(lua_State *L, Gas_model &g)
-    : Generalised_Arrhenius(L,g)
+Park_nonequilibrium(lua_State *L, Gas_model &g, double T_upper, double T_lower)
+    : Generalised_Arrhenius(L, g, T_upper, T_lower)
 {
     // 1. Primary species data
     string p_name = get_string(L,-1,"p_name");
@@ -52,8 +52,8 @@ Park_nonequilibrium(lua_State *L, Gas_model &g)
 }
 
 Park_nonequilibrium::
-Park_nonequilibrium(double A, double n, double E_a, double s_p, int iTp, int iTq)
-    : Generalised_Arrhenius(A,n,E_a)
+Park_nonequilibrium(double A, double n, double E_a, double T_upper, double T_lower, double s_p, int iTp, int iTq)
+    : Generalised_Arrhenius(A, n, E_a, T_upper, T_lower)
 {
     // 1. Primary species data
     s_p_ = s_p;
@@ -81,13 +81,18 @@ Park_nonequilibrium::
 s_eval(const Gas_data &Q)
 {
     double T = pow( Q.T[iTp_], s_p_ ) * pow( Q.T[iTq_], 1.0 - s_p_ );
+    // Check on temperature limits
+    if ( T > T_upper_ )
+	T = T_upper_;
+    if ( T < T_lower_ )
+	T = T_lower_;
     
     Generalised_Arrhenius::eval_from_T(T);
     
     return SUCCESS;
 }
 
-Reaction_rate_coefficient* create_Park_nonequilibrium_coefficient(lua_State *L, Gas_model &g)
+Reaction_rate_coefficient* create_Park_nonequilibrium_coefficient(lua_State *L, Gas_model &g, double T_upper, double T_lower)
 {
-    return new Park_nonequilibrium(L, g);
+    return new Park_nonequilibrium(L, g, T_upper, T_lower);
 }

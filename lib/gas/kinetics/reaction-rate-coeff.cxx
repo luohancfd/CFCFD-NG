@@ -24,21 +24,25 @@ extern "C" {
 
 using namespace std;
 
-Reaction_rate_coefficient* create_Reaction_rate_coefficient(lua_State *L, Gas_model &g)
+Reaction_rate_coefficient::
+Reaction_rate_coefficient(double T_upper, double T_lower)
+    : T_upper_(T_upper), T_lower_(T_lower), type_("") {}
+
+Reaction_rate_coefficient* create_Reaction_rate_coefficient(lua_State *L, Gas_model &g, double T_upper, double T_lower)
 {
     // Later implement as an object factory.
-    map<string, Reaction_rate_coefficient* (*)(lua_State *, Gas_model &)> rr_coeff_models;
-    rr_coeff_models.insert(pair<string, Reaction_rate_coefficient* (*)(lua_State *, Gas_model &)>("Arrhenius",
+    map<string, Reaction_rate_coefficient* (*)(lua_State *, Gas_model &, double, double)> rr_coeff_models;
+    rr_coeff_models.insert(pair<string, Reaction_rate_coefficient* (*)(lua_State *, Gas_model &, double, double)>("Arrhenius",
 												  create_Generalised_Arrhenius_coefficient));
-    rr_coeff_models.insert(pair<string, Reaction_rate_coefficient* (*)(lua_State *, Gas_model &)>("pressure dependent",
+    rr_coeff_models.insert(pair<string, Reaction_rate_coefficient* (*)(lua_State *, Gas_model &, double, double)>("pressure dependent",
 												  create_pressure_dependent_coefficient));
-    rr_coeff_models.insert(pair<string, Reaction_rate_coefficient* (*)(lua_State *, Gas_model &)>("Park",
+    rr_coeff_models.insert(pair<string, Reaction_rate_coefficient* (*)(lua_State *, Gas_model &, double, double)>("Park",
 												  create_Park_nonequilibrium_coefficient));
-    rr_coeff_models.insert(pair<string, Reaction_rate_coefficient* (*)(lua_State *, Gas_model &)>("Macheret",
+    rr_coeff_models.insert(pair<string, Reaction_rate_coefficient* (*)(lua_State *, Gas_model &, double, double)>("Macheret",
 												  create_Macheret_dissociation_coefficient));
-    rr_coeff_models.insert(pair<string, Reaction_rate_coefficient* (*)(lua_State *, Gas_model &)>("MarroneTreanor",
+    rr_coeff_models.insert(pair<string, Reaction_rate_coefficient* (*)(lua_State *, Gas_model &, double, double)>("MarroneTreanor",
 												  create_MarroneTreanor_dissociation_coefficient));
-    rr_coeff_models.insert(pair<string, Reaction_rate_coefficient* (*)(lua_State *, Gas_model &)>("Knab_et_al",
+    rr_coeff_models.insert(pair<string, Reaction_rate_coefficient* (*)(lua_State *, Gas_model &, double, double)>("Knab_et_al",
 												  create_Knab_molecular_reaction_coefficient));
     string rmodel = get_string(L, -1, "model");
     
@@ -48,14 +52,14 @@ Reaction_rate_coefficient* create_Reaction_rate_coefficient(lua_State *L, Gas_mo
 	ost << "Error in specification of reaction rate coefficient.\n";
 	ost << "The selected model: " << rmodel << " is unknown.\n";
 	ost << "The available models are: " << endl;
-	map<string, Reaction_rate_coefficient* (*)(lua_State*, Gas_model &)>::const_iterator it;
+	map<string, Reaction_rate_coefficient* (*)(lua_State*, Gas_model &, double, double)>::const_iterator it;
 	for ( it = rr_coeff_models.begin(); it != rr_coeff_models.end(); ++it ) {
 	    ost << "   " << it->first << endl;
 	}
 	input_error(ost);
     }
     
-    Reaction_rate_coefficient* rrc = rr_coeff_models[rmodel](L, g);
+    Reaction_rate_coefficient* rrc = rr_coeff_models[rmodel](L, g, T_upper, T_lower);
 
     if ( rrc == 0 ) {
 	ostringstream ost;
@@ -67,7 +71,7 @@ Reaction_rate_coefficient* create_Reaction_rate_coefficient(lua_State *L, Gas_mo
     return rrc;
 }
 
-Reaction_rate_coefficient* create_Reaction_rate_coefficient(string cfile, string rate, Gas_model &g)
+Reaction_rate_coefficient* create_Reaction_rate_coefficient(string cfile, string rate, Gas_model &g, double T_upper, double T_lower)
 {
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
@@ -79,9 +83,11 @@ Reaction_rate_coefficient* create_Reaction_rate_coefficient(string cfile, string
 	input_error(ost);
     }
 
+    
+
     lua_getglobal(L, rate.c_str()); // bring table with rate to TOS
 
-    Reaction_rate_coefficient *rrc = create_Reaction_rate_coefficient(L, g);
+    Reaction_rate_coefficient *rrc = create_Reaction_rate_coefficient(L, g, T_upper, T_lower);
 
     lua_close(L);
     return rrc;

@@ -14,8 +14,8 @@
 using namespace std;
 
 Knab_molecular_reaction::
-Knab_molecular_reaction(lua_State *L, Gas_model &g)
-    : Generalised_Arrhenius(L, g)
+Knab_molecular_reaction(lua_State *L, Gas_model &g, double T_upper, double T_lower)
+    : Generalised_Arrhenius(L, g, T_upper, T_lower)
 {
     U_ = get_number(L, -1, "U");
     alpha_ = get_number(L, -1, "alpha");
@@ -47,8 +47,9 @@ Knab_molecular_reaction(lua_State *L, Gas_model &g)
 }
 
 Knab_molecular_reaction::
-Knab_molecular_reaction(double A, double n, double E_a, double U, double alpha, string v_name)
-    : Generalised_Arrhenius(A, n, E_a), U_(U), alpha_(alpha), alpha_A_(alpha*E_a/PC_k_SI)
+Knab_molecular_reaction(double A, double n, double E_a, double T_upper, double T_lower,
+			double U, double alpha, string v_name)
+    : Generalised_Arrhenius(A, n, E_a, T_upper, T_lower), U_(U), alpha_(alpha), alpha_A_(alpha*E_a/PC_k_SI)
 {
     Chemical_species * X = get_library_species_pointer_from_name( v_name );
     // Search for the corresponding energy modes
@@ -113,6 +114,11 @@ s_eval(const Gas_data &Q)
     double tmpC = exp(-alpha_A_/T)*Q_a_U + Q_d_T_ast - Q_a_T_ast;
     double Z = tmpA * tmpB / tmpC;
     // 4. Evaluate GA coefficient
+    // Check on temperature limits
+    if ( T > T_upper_ )
+	T = T_upper_;
+    if ( T < T_lower_ )
+	T = T_lower_;
     Generalised_Arrhenius::eval_from_T(T);
     // 5. Augment k with NEQ factor
     k_ *= fabs(Z);
@@ -120,7 +126,7 @@ s_eval(const Gas_data &Q)
     return SUCCESS;
 }
 
-Reaction_rate_coefficient* create_Knab_molecular_reaction_coefficient(lua_State *L, Gas_model &g)
+Reaction_rate_coefficient* create_Knab_molecular_reaction_coefficient(lua_State *L, Gas_model &g, double T_upper, double T_lower)
 {
-    return new Knab_molecular_reaction(L, g);
+    return new Knab_molecular_reaction(L, g, T_upper, T_lower);
 }

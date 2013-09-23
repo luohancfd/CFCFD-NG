@@ -18,7 +18,7 @@ extern "C" {
 
 class Normal_reaction : public Reaction {
 public:
-    Normal_reaction(lua_State *L, Gas_model &g);
+    Normal_reaction(lua_State *L, Gas_model &g, double T_upper, double T_lower);
     virtual ~Normal_reaction();
 
 protected:
@@ -30,7 +30,7 @@ private:
     std::map<int, int> b_coeffs_;
 };
 
-Reaction* create_Normal_reaction(lua_State *L, Gas_model &g);
+Reaction* create_Normal_reaction(lua_State *L, Gas_model &g, double T_upper, double T_lower);
 
 
 #endif

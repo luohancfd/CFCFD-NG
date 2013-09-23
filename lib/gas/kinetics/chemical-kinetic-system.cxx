@@ -12,7 +12,7 @@
 using namespace std;
 
 Chemical_kinetic_system::
-Chemical_kinetic_system(lua_State *L, Gas_model &g, double error_tol)
+Chemical_kinetic_system(lua_State *L, Gas_model &g, double error_tol, double T_upper, double T_lower)
     : OdeSystem(g.get_number_of_species(), true), err_tol_(error_tol)
 {
     lua_getglobal(L, "reactions");
@@ -25,7 +25,7 @@ Chemical_kinetic_system(lua_State *L, Gas_model &g, double error_tol)
 
     for ( size_t i = 1; i <= lua_objlen(L, -1); ++i ) {
 	lua_rawgeti(L, -1, i);
-	reaction_.push_back(create_Reaction(L, g));
+	reaction_.push_back(create_Reaction(L, g, T_upper, T_lower));
 	lua_pop(L, 1);
     }
     lua_pop(L, 1);
@@ -49,8 +49,8 @@ Chemical_kinetic_system(lua_State *L, Gas_model &g, double error_tol)
 }
 
 Chemical_kinetic_system::
-Chemical_kinetic_system(string cfile, Gas_model &g, double error_tol)
-    : OdeSystem(g.get_number_of_species(), true), err_tol_(error_tol)
+Chemical_kinetic_system(string cfile, Gas_model &g)
+    : OdeSystem(g.get_number_of_species(), true)
 {
     // Do some pre-work on the cfile to massage
     // it into a state to be parsed for the
@@ -103,7 +103,14 @@ Chemical_kinetic_system(string cfile, Gas_model &g, double error_tol)
 	ost << "Lua error message: " << lua_tostring(L, -1) << endl;
 	input_error(ost);
     }
-    
+
+    lua_getglobal(L, "scheme_t");
+    lua_getfield(L, -1, "temperature_limits");
+    double T_lower = get_positive_number(L, -1, "lower");
+    double T_upper = get_positive_number(L, -1, "upper");
+    lua_pop(L, 1);
+    err_tol_ = get_positive_number(L, -1, "error_tolerance");
+    lua_pop(L, 1); // pop scheme_t
 
     lua_getglobal(L, "reactions");
     if ( !lua_istable(L, -1) ) {
@@ -115,7 +122,7 @@ Chemical_kinetic_system(string cfile, Gas_model &g, double error_tol)
 
     for ( size_t i = 1; i <= lua_objlen(L, -1); ++i ) {
 	lua_rawgeti(L, -1, i);
-	reaction_.push_back(create_Reaction(L, g));
+	reaction_.push_back(create_Reaction(L, g, T_upper, T_lower));
 	lua_pop(L, 1);
     }
     lua_pop(L, 1);

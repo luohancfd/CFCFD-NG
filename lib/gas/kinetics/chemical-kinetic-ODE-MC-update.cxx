@@ -32,19 +32,19 @@ Chemical_kinetic_ODE_MC_update(lua_State *L, Gas_model &g)
     lua_getglobal(L, "scheme_t");
 
     lua_getfield(L, -1, "temperature_limits");
-    T_lower_limit_ = get_positive_number(L, -1, "lower");
-    T_upper_limit_ = get_positive_number(L, -1, "upper");
+    double T_lower = get_positive_number(L, -1, "lower");
+    double T_upper = get_positive_number(L, -1, "upper");
     lua_pop(L, 1);
 
     double error_tol = get_positive_number(L, -1, "error_tolerance");
 
     lua_pop(L, 1); // pop scheme_t
   
-    if ( T_upper_limit_ <= T_lower_limit_ ) {
+    if ( T_upper <= T_lower ) {
 	ostringstream ost;
 	ost << "Chemical_kinetic_ODE_MC_update::Chemical_kinetic_ODE_MC_update():\n";
-	ost << "Error in input: T_upper_limit must be greater than T_lower_limit.\n";
-	ost << "T_upper_limit= " << T_upper_limit_ << " T_lower_limit= " << T_lower_limit_ << endl;
+	ost << "Error in input: T_upper must be greater than T_lower.\n";
+	ost << "T_upper= " << T_upper << " T_lower= " << T_lower << endl;
 	input_error(ost);
     }
     
@@ -59,7 +59,7 @@ Chemical_kinetic_ODE_MC_update(lua_State *L, Gas_model &g)
     int nreac = lua_objlen(L, -1);
     lua_pop(L, 1); // pop reactions
     
-    cks_ = new Chemical_kinetic_MC_system(L, g, nreac, error_tol);
+    cks_ = new Chemical_kinetic_MC_system(L, g, nreac, error_tol, T_upper, T_lower);
 
     lua_getglobal(L, "ode_t");
     if ( !lua_istable(L, -1) ) {
@@ -104,11 +104,6 @@ s_update_state(Gas_data &Q, double t_interval, double &dt_suggest, Gas_model *gm
     // Set pointer to gas model for use by perform_increment.
     gm_ = gm;
     double e_total = accumulate(Q.e.begin(), Q.e.end(), 0.0);
-
-    if ( Q.T[0] <= T_lower_limit_  || Q.T[0] >= T_upper_limit_ ) {
-	dt_suggest = -1.0;
-	return SUCCESS;
-    }
 
     // Keep a copy in case something goes wrong
     // and we need to retry

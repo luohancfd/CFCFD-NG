@@ -9,8 +9,8 @@
 using namespace std;
 
 Third_body_reaction::
-Third_body_reaction(lua_State *L, Gas_model &g)
-    : Normal_reaction(L, g), conc_(0.0),
+Third_body_reaction(lua_State *L, Gas_model &g, double T_upper, double T_lower)
+    : Normal_reaction(L, g, T_upper, T_lower), conc_(0.0),
       conc_just_computed_(false)
 {
     read_table_as_map(L, -1, "efficiencies", efficiencies_);
@@ -51,7 +51,7 @@ compute_third_body_concentration(const valarray<double> &y)
     conc_just_computed_ = true;
 }
 
-Reaction* create_Third_body_reaction(lua_State *L, Gas_model &g)
+Reaction* create_Third_body_reaction(lua_State *L, Gas_model &g, double T_upper, double T_lower)
 {
-    return new Third_body_reaction(L, g);
+    return new Third_body_reaction(L, g, T_upper, T_lower);
 }

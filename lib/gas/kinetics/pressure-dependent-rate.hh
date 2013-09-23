@@ -25,7 +25,7 @@ double compute_third_body_value(const Gas_data &Q, std::map<int, double> efficie
 
 class Pressure_dependent : public Reaction_rate_coefficient {
 public:
-    Pressure_dependent(lua_State *L, Gas_model &g);
+    Pressure_dependent(lua_State *L, Gas_model &g, double T_upper, double T_lower);
     ~Pressure_dependent();
     
     double get_third_body_value(const Gas_data &Q) { return compute_third_body_concentration(Q); }
@@ -51,6 +51,7 @@ private:
 
 };
 
-Reaction_rate_coefficient* create_pressure_dependent_coefficient(lua_State *L, Gas_model &g);
+Reaction_rate_coefficient* create_pressure_dependent_coefficient(lua_State *L, Gas_model &g,
+								 double T_upper, double T_lower);
 
 #endif

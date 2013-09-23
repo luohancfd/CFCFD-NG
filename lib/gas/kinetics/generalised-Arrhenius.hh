@@ -15,8 +15,8 @@ extern "C" {
 
 class Generalised_Arrhenius : public Reaction_rate_coefficient {
 public:
-    Generalised_Arrhenius(lua_State *L, Gas_model &g);
-    Generalised_Arrhenius(double A, double n, double E_a);
+    Generalised_Arrhenius(lua_State *L, Gas_model &g, double T_upper, double T_lower);
+    Generalised_Arrhenius(double A, double n, double E_a, double T_upper, double T_lower);
     ~Generalised_Arrhenius();
     
     double get_A() { return A_; }
@@ -31,6 +31,6 @@ private:
     double E_a_;
 };
 
-Reaction_rate_coefficient* create_Generalised_Arrhenius_coefficient(lua_State *L, Gas_model &g);
+Reaction_rate_coefficient* create_Generalised_Arrhenius_coefficient(lua_State *L, Gas_model &g, double T_upper, double T_lower);
 
 #endif

@@ -20,7 +20,7 @@ extern "C" {
 
 class Reaction {
 public:
-    Reaction(lua_State *L, Gas_model &g);
+    Reaction(lua_State *L, Gas_model &g, double T_upper, double T_lower);
     virtual ~Reaction();
     
     void compute_k_f(const Gas_data &Q)
@@ -74,6 +74,6 @@ private:
     Gas_data *Q_;
 };
 
-Reaction* create_Reaction(lua_State *L, Gas_model &g);
+Reaction* create_Reaction(lua_State *L, Gas_model &g, double T_upper, double T_lower);
 Reaction* get_reaction_from_file(int ir, std::string cfile, Gas_model &g);
 #endif

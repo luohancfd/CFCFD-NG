@@ -22,8 +22,9 @@ extern "C" {
 
 class Chemical_kinetic_MC_system : public OdeSystem {
 public:
-    Chemical_kinetic_MC_system(lua_State *L, Gas_model &g, int nreac, double error_tol);
-    Chemical_kinetic_MC_system(std::string cfile, Gas_model &g, int nreac, double error_tol=1.0e-9);
+    Chemical_kinetic_MC_system(lua_State *L, Gas_model &g, int nreac, double error_tol,
+			       double T_upper, double T_lower);
+    Chemical_kinetic_MC_system(std::string cfile, Gas_model &g, int nreac);
 
     ~Chemical_kinetic_MC_system();
     

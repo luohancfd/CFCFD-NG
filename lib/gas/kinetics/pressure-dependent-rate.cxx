@@ -16,17 +16,17 @@
 using namespace std;
 
 Pressure_dependent::
-Pressure_dependent(lua_State *L, Gas_model &g)
-    : Reaction_rate_coefficient()
+Pressure_dependent(lua_State *L, Gas_model &g, double T_upper, double T_lower)
+    : Reaction_rate_coefficient(T_upper, T_lower)
 {
     // Initialise k_inf
     lua_getfield(L, -1, "k_inf");
-    k_inf_ = new Generalised_Arrhenius(L, g);
+    k_inf_ = new Generalised_Arrhenius(L, g, T_upper, T_lower);
     lua_pop(L, 1);
     
     // Initialise k_0
     lua_getfield(L, -1, "k_0");
-    k_0_ = new Generalised_Arrhenius(L, g);
+    k_0_ = new Generalised_Arrhenius(L, g, T_upper, T_lower);
     lua_pop(L, 1);
 
     // Pull out efficiencies
@@ -93,13 +93,20 @@ s_eval(const Gas_data &Q)
     // Lindemann-Hinshelwood model
     double F = 1.0;
 
+    // Check on temperature limits
+    double T = Q.T[0];
+    if ( T > T_upper_ )
+	T = T_upper_;
+    if ( T < T_lower_ )
+	T = T_lower_;
+
     // Troe model
     if ( Troe_model_ ) {
 	
-	double F_cent = (1.0 - a_)*exp(-Q.T[0]/T3_) + a_*exp(-Q.T[0]/T1_);
+	double F_cent = (1.0 - a_)*exp(-T/T3_) + a_*exp(-T/T1_);
 
 	if ( T2_supplied_ ) {
-	    F_cent += exp(-T2_/Q.T[0]);
+	    F_cent += exp(-T2_/T);
 	}
 
 	double log_F_cent = log10(max(F_cent, small));
@@ -149,7 +156,8 @@ compute_third_body_value(const Gas_data &Q, map<int, double> efficiencies, vecto
     return tbv;
 }
 
-Reaction_rate_coefficient* create_pressure_dependent_coefficient(lua_State *L, Gas_model &g)
+Reaction_rate_coefficient* create_pressure_dependent_coefficient(lua_State *L, Gas_model &g,
+								 double T_upper, double T_lower)
 {
-    return new Pressure_dependent(L, g);
+    return new Pressure_dependent(L, g, T_upper, T_lower);
 }

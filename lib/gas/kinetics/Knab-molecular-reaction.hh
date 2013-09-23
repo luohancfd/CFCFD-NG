@@ -17,8 +17,9 @@ extern "C" {
 
 class Knab_molecular_reaction : public Generalised_Arrhenius {
 public:
-    Knab_molecular_reaction(lua_State *L, Gas_model &g);
-    Knab_molecular_reaction(double A, double n, double E_a, double U, double alpha, std::string v_name);
+    Knab_molecular_reaction(lua_State *L, Gas_model &g, double T_upper, double T_lower);
+    Knab_molecular_reaction(double A, double n, double E_a, double T_upper, double T_lower,
+			    double U, double alpha, std::string v_name);
     ~Knab_molecular_reaction();
 
 private:
@@ -32,6 +33,6 @@ private:
     int s_eval(const Gas_data &Q);
 };
 
-Reaction_rate_coefficient* create_Knab_molecular_reaction_coefficient(lua_State *L, Gas_model &g);
+Reaction_rate_coefficient* create_Knab_molecular_reaction_coefficient(lua_State *L, Gas_model &g, double T_upper, double T_lower);
 
 #endif

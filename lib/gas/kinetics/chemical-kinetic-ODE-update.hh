@@ -39,10 +39,6 @@ private:
     int perform_increment(Gas_data &Q, double dt, double &dt_suggest);
     int estimate_appropriate_subcycle(double t_interval, double dt_suggest,
 				      double &dt_sub, int &no_substeps);
-    double T_upper_limit_; // Above this temperature,
-                           // the reactions are NOT computed.
-    double T_lower_limit_; // Below this temperature,
-                           // the reactions are NOT computed.
     OdeSolver *ode_solver_;
     Chemical_kinetic_system *cks_;
     std::valarray<double> yin_, yout_, ydot_;
