@@ -17,8 +17,9 @@
 #include "cell_finder.hh"
 #include "ray_tracing_pieces.hh"
 
-#define EXIT_ON_RT_FAILURE 1
-#define MAX_REFLECTIONS    5
+#define VERBOSE_RADIATION_TRANSPORT 1
+#define EXIT_ON_RT_FAILURE          1
+#define MAX_REFLECTIONS             5
 
 class RadiationTransportModel {
 public:

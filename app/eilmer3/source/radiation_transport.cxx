@@ -28,7 +28,6 @@ extern "C" {
 #include "kernel.hh"
 #include "bc.hh"
 
-const int VERBOSE_RADIATION_TRANSPORT = 1;
 const int NO_CLUSTERING = 0;
 const int CLUSTERING_BY_VOLUME = 1;
 const int CLUSTERING_BY_AREA = 2;
@@ -424,7 +423,9 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 		for ( size_t iQ=0; iQ<cell->Q_rE_rad_temp_.size(); ++ iQ ) {
 		    cell->Q_rE_rad_temp_[iQ] = 0.0;
 		}
-		cout << "Thread " << omp_get_thread_num() << ": Recomputing spectra for cell: " << ic << " in block: " << ib;
+#               if VERBOSE_RADIATION_TRANSPORT
+		cout << "Thread " << omp_get_thread_num() << ": Recomputing spectra for cell: " << ic << " in block: " << ib << endl;
+#               endif
 		cells_[ib][ic]->recompute_spectra( rsm_[omp_get_thread_num()] );
 		cout << " - j_total = " << cells_[ib][ic]->X_->integrate_emission_spectra() << endl;
 	    }
@@ -435,7 +436,9 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 #	    endif
 	    for ( iface=0; iface<interfaces_[ib].size(); ++iface ) {
 	    	RayTracingInterface * interface = interfaces_[ib][iface];
-		cout << "Thread " << omp_get_thread_num() << ": Recomputing spectra for interface: " << iface << " in block: " << ib;
+#               if VERBOSE_RADIATION_TRANSPORT
+		cout << "Thread " << omp_get_thread_num() << ": Recomputing spectra for interface: " << iface << " in block: " << ib << endl;
+#               endif
 		interface->recompute_spectra( rsm_[omp_get_thread_num()] );
 		cout << " - I_total = " << interface->S_->integrate_intensity_spectra() << endl;
 	    }
@@ -502,10 +505,14 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 #  	        endif
 		for ( ic=0; ic<cells_[ib].size(); ++ic ) {
 		    RayTracingCell * cell = cells_[ib][ic];
-		    cout << "Thread " << omp_get_thread_num() << ": Creating binned spectra for cell: " << ic << " in block: " << ib;
+#                   if VERBOSE_RADIATION_TRANSPORT
+		    cout << "Thread " << omp_get_thread_num() << ": Creating binned spectra for cell: " << ic << " in block: " << ib << endl;
+#                   endif
 		    cell->Y_ = new BinnedCoeffSpectra( cell->X_, B_ );
+#                   if VERBOSE_RADIATION_TRANSPORT
 		    cout << " - j_total from spectra = " << cell->X_->integrate_emission_spectra() << endl;
 		    cout << " - j_total from binning = " << cell->Y_->sum_emission() << endl;
+#                   endif
 		}
 		size_t iface;
 #	        ifdef _OPENMP
@@ -514,10 +521,14 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 #	        endif
 		for ( iface=0; iface<interfaces_[ib].size(); ++iface ) {
 		    RayTracingInterface * interface = interfaces_[ib][iface];
-		    cout << "Thread " << omp_get_thread_num() << ": Creating binned spectra for interface: " << iface << " in block: " << ib;
+#                   if VERBOSE_RADIATION_TRANSPORT
+		    cout << "Thread " << omp_get_thread_num() << ": Creating binned spectra for interface: " << iface << " in block: " << ib << endl;
+#                   endif
 		    interface->U_ = new BinnedSpectralIntensity( interface->S_, B_ );
+#                   if VERBOSE_RADIATION_TRANSPORT
 		    cout << " - I_total from spectra = " <<  interface->S_->integrate_intensity_spectra() << endl;
 		    cout << " - I_total from binning = " << interface->U_->sum_intensity() << endl;
+#                   endif
 		}
 	    }
 	}
@@ -1130,7 +1141,9 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 		for ( size_t iQ=0; iQ<cell->Q_rE_rad_temp_.size(); ++ iQ ) {
 		    cell->Q_rE_rad_temp_[iQ] = 0.0;
 		}
+#               if VERBOSE_RADIATION_TRANSPORT
 		cout << "Thread " << omp_get_thread_num() << ": Recomputing spectra for cell: " << ic << " in block: " << ib;
+#               endif
 		cell->recompute_spectra( rsm_[omp_get_thread_num()] );
 		if ( rsm_[omp_get_thread_num()]->get_spectral_points()==1 )
 		    cout << " - j_total = " << cell->X_->j_int[0] << endl;
@@ -1143,7 +1156,9 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 #	    endif
 	    for ( iface=0; iface<interfaces_[ib].size(); ++iface ) {
 	    	RayTracingInterface * interface = interfaces_[ib][iface];
+#               if VERBOSE_RADIATION_TRANSPORT
 		cout << "Thread " << omp_get_thread_num() << ": Recomputing spectra for interface: " << iface << " in block: " << ib;
+#               endif
 		interface->recompute_spectra( rsm_[omp_get_thread_num()] );
 		if ( rsm_[omp_get_thread_num()]->get_spectral_points()==1 )
 		    cout << " - I_total = " << interface->S_->I_int[0] << endl;
@@ -1180,7 +1195,7 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 	    size_t ii, jj, kk;
 	    for ( size_t ic=0; ic<cells_[ib].size(); ++ic ) {
 #           	if VERBOSE_RADIATION_TRANSPORT
-    	    	cout << "Thread " << omp_get_thread_num() << ": Tracing rays for cell: " << ic << " in block: " << ib;
+    	    	cout << "Thread " << omp_get_thread_num() << ": Tracing rays for cell: " << ic << " in block: " << ib << endl;
 #           	endif
 		RayTracingCell * cell = cells_[ib][ic];
 		cell->get_CFD_cell_indices( ii, jj, kk );
@@ -1216,7 +1231,7 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 	    }
 	    for ( size_t iface=0; iface<interfaces_[ib].size(); ++iface ) {
 #           	if VERBOSE_RADIATION_TRANSPORT
-    	    	cout << "Thread " << omp_get_thread_num() << ": Tracing rays for interface: " << iface << " in block: " << ib;
+    	    	cout << "Thread " << omp_get_thread_num() << ": Tracing rays for interface: " << iface << " in block: " << ib << endl;
 #           	endif
 	    	RayTracingInterface * interface = interfaces_[ib][iface];
 	    	interface->get_CFD_cell_indices( ii, jj, kk );
