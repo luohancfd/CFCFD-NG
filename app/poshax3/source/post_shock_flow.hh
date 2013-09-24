@@ -36,7 +36,8 @@ class Post_shock_flow {
 public:
     Post_shock_flow(Flow_state &ic, Gas_model * gm, Reaction_update * ru, 
     		    Energy_exchange_update * eeu,
-    		    PoshaxRadiationTransportModel * rtm);
+    		    PoshaxRadiationTransportModel * rtm,
+    		    bool apply_udpedx);
 
     virtual ~Post_shock_flow();
 
@@ -48,6 +49,8 @@ public:
 public:
     Flow_state psflow;
     Flow_state icflow;
+
+    double dpe_dx;
 
 protected:
     std::string type;
@@ -61,6 +64,8 @@ protected:
     std::valarray<double> yguess_;
 
     NewtonRaphsonZF zero_solver_;
+
+    bool apply_udpedx_;
 };
 
 class Loosely_coupled_post_shock_flow : public Post_shock_flow {
@@ -68,7 +73,8 @@ public:
     Loosely_coupled_post_shock_flow(Flow_state &ic, Gas_model * gm,
     	                            Reaction_update * ru, 
     		                    Energy_exchange_update * eeu,
-    		                    PoshaxRadiationTransportModel * rtm);
+    		                    PoshaxRadiationTransportModel * rtm,
+    		                    bool apply_udpedx);
 
     ~Loosely_coupled_post_shock_flow();
     
@@ -90,7 +96,8 @@ public:
     Fully_coupled_post_shock_flow(Flow_state &ic, Gas_model * gm, 
     	                          Reaction_update * ru, 
     	                          Energy_exchange_update * eeu,
-    		                  PoshaxRadiationTransportModel * rtm);
+    		                  PoshaxRadiationTransportModel * rtm,
+    		                    bool apply_udpedx);
 
     ~Fully_coupled_post_shock_flow();
     
@@ -105,7 +112,7 @@ private:
     
     int nsp_;
     int ntm_;
-    
+
     std::vector<double> dcdt_;
     std::vector<double> dedt_;
     

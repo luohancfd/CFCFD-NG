@@ -204,6 +204,15 @@ int main(int argc, char *argv[])
         exit(BAD_INPUT_ERROR);
     }
 
+    bool apply_udpedx;
+    if ( !cfg.parse_boolean("controls", "apply_udpedx", apply_udpedx,
+                           false) ) {
+        cout << "Error reading apply_udpedx in [controls] section of " << input
+             << endl
+             << "Exiting program!\n";
+        exit(BAD_INPUT_ERROR);
+    }
+
     // Parse the radiation output options
     double rad_dx;
     cfg.parse_double("radiation", "rad_dx", rad_dx, 0.0);
@@ -347,11 +356,11 @@ int main(int argc, char *argv[])
     if ( coupling_str=="loose" )
     	psr = new Loosely_coupled_post_shock_flow( initial_condition, gmodel,
     	   	   	   	   	   	   rupdate, eeupdate, 
-    	   	   	   	   	   	   rtmodel );
+    	   	   	   	   	   	   rtmodel, apply_udpedx );
     else if ( coupling_str=="full" )
     	psr = new Fully_coupled_post_shock_flow( initial_condition, gmodel,
     	   		   	   	   	 rupdate, eeupdate, 
-    	   	   	   	   	   	 rtmodel );
+    	   	   	   	   	   	 rtmodel, apply_udpedx );
     else {
     	cout << "Source term coupling model: " << coupling_str
     	     << " not recognised." << endl
@@ -500,6 +509,7 @@ int main(int argc, char *argv[])
 	    for ( size_t iT=0; iT<T_inf.size(); ++iT )
 	    	cout << "T[" << iT << "] = " << setw(12) << psr->psflow.Q->T[iT] << ' ';
 	    cout << "u = " << setw(12) << psr->psflow.u << ' ';
+	    if ( apply_udpedx ) cout << "udpe_dx = " << setw(12) << psr->psflow.u*psr->dpe_dx << ' ';
 	    if ( bool(rtmodel) ) {
 		double e = accumulate(psr->psflow.Q->e.begin(), psr->psflow.Q->e.end(), 0.0);
 		double u = psr->psflow.u;

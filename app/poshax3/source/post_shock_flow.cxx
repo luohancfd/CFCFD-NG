@@ -47,8 +47,10 @@ double u2_u1(double M1, double g)
 Post_shock_flow::
 Post_shock_flow( Flow_state &ic, Gas_model * gm, Reaction_update * ru, 
     		 Energy_exchange_update * eeu,
-    		 PoshaxRadiationTransportModel * rtm )
-: gmodel_( gm ), rupdate_( ru ), eeupdate_( eeu ), rtmodel_( rtm )
+    		 PoshaxRadiationTransportModel * rtm,
+    		 bool apply_udpedx )
+: gmodel_( gm ), rupdate_( ru ), eeupdate_( eeu ), rtmodel_( rtm ),
+  apply_udpedx_( apply_udpedx )
 {
     // Set icflow
     icflow.set_flow_state(*ic.Q,ic.u);
@@ -82,6 +84,9 @@ Post_shock_flow( Flow_state &ic, Gas_model * gm, Reaction_update * ru,
     double u_s = yout[2];
 
     psflow.set_flow_state(Q,u_s);
+
+    // Initialise the electron pressure gradient
+    dpe_dx = 0.0;
 }
 
 Post_shock_flow::
@@ -105,8 +110,9 @@ write_reaction_rates_to_file( double x, ofstream &ofile )
 Loosely_coupled_post_shock_flow::
 Loosely_coupled_post_shock_flow( Flow_state &ic, Gas_model * gm, Reaction_update * ru, 
     		                 Energy_exchange_update * eeu,
-    		                 PoshaxRadiationTransportModel * rtm )
-: Post_shock_flow( ic, gm, ru, eeu, rtm )
+    		                 PoshaxRadiationTransportModel * rtm,
+    		                 bool apply_udpedx )
+: Post_shock_flow( ic, gm, ru, eeu, rtm, apply_udpedx )
 {
     yout_.resize( 3 );
     yguess_.resize( 3 );    
@@ -121,10 +127,18 @@ double
 Loosely_coupled_post_shock_flow::
 increment_in_space(double x, double delta_x)
 {
+    // 0. Save the initial electron pressure
+    double p_e0 = psflow.Q->p_e;
+
     // 1. Integrate the ODE system in space
     double new_x = ode_solve(x, delta_x);
+
     // 2. Solve for the flow state
     zero_solve();
+
+    // 3. Store the electron pressure gradient
+    dpe_dx = ( psflow.Q->p_e - p_e0 ) / delta_x;
+
     return new_x;
 }
 
@@ -170,6 +184,12 @@ ode_solve(double x, double delta_x)
     	con_sys_.set_C( con_sys_.get_C() + con_sys_.get_A() * delta_Q_rad_kg );
     }
 
+    // Apply work on electrons due to presence of electric field ( u dpe/dx )
+    if ( apply_udpedx_ ) {
+        psflow.Q->e.back() += ( psflow.u * dpe_dx / psflow.Q->rho ) * dt;
+        gmodel_->eval_thermo_state_rhoe(*psflow.Q);
+    }
+
     return dt_suggest*psflow.u;
 }
 
@@ -203,8 +223,9 @@ zero_solve()
 Fully_coupled_post_shock_flow::
 Fully_coupled_post_shock_flow( Flow_state &ic, Gas_model * gm, Reaction_update * ru, 
     		               Energy_exchange_update * eeu,
-    		               PoshaxRadiationTransportModel * rtm )
-: Post_shock_flow( ic, gm, ru, eeu, rtm )
+    		               PoshaxRadiationTransportModel * rtm,
+    	                       bool apply_udpedx )
+: Post_shock_flow( ic, gm, ru, eeu, rtm, apply_udpedx )
 {
     // gas-model dimensions
     nsp_ = gmodel_->get_number_of_species();
@@ -233,12 +254,18 @@ double
 Fully_coupled_post_shock_flow::
 increment_in_space(double x, double delta_x)
 {
+    // 0. Save the initial electron pressure
+    double p_e0 = psflow.Q->p_e;
+
     // 1. Integrate the ODE system in space
     double new_x = ode_solve(x, delta_x);
     
     // 2. Solve for the flow state
     zero_solve(yout_);
     
+    // 3. Store the electron pressure gradient
+    dpe_dx = ( psflow.Q->p_e - p_e0 ) / delta_x;
+
     return new_x;
 }
 
@@ -333,9 +360,11 @@ eval( const valarray<double> &y, valarray<double> &ydot )
     	rupdate_->eval_chemistry_energy_coupling_source_terms( *psflow.Q, dedt_ );
     for ( int itm=1; itm<ntm_; ++itm ) {
     	ydot[iy] = dedt_[itm] * psflow.Q->rho;
-    	if ( itm==(ntm_-1) ) ydot[iy] += psflow.Q_rad;
     	++iy;
     }
+    ydot[iy-1] += psflow.Q_rad;
+    if ( apply_udpedx_ )
+        ydot[iy-1] += psflow.u * dpe_dx;
     
     // print_valarray( ydot );
     
