@@ -1749,9 +1749,9 @@ int FV_Cell::chemical_increment(double dt, double T_frozen)
 /// and that the current conserved quantities are held in U[0].
 ///
 /// \param dt   : size of the time-step
-int FV_Cell::thermal_increment(double dt)
+int FV_Cell::thermal_increment(double dt, double T_frozen_energy)
 {
-    if ( !fr_reactions_allowed ) return SUCCESS;
+    if ( !fr_reactions_allowed or fs->gas->T[0] <= T_frozen_energy ) return SUCCESS;
     Gas_model *gmodel = get_gas_model_ptr();
     Energy_exchange_update *eeupdate = get_energy_exchange_update_ptr();
 

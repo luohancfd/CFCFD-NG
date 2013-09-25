@@ -1155,7 +1155,8 @@ int integrate_in_time(double target_time)
 	    if ( G.turbulence_model == TM_K_OMEGA ) {
 		for ( Block *bdp : G.my_blocks ) {
 		    if ( bdp->active != 1 ) continue;
-		    for ( FV_Cell *cp: bdp->active_cells ) cp->update_k_omega_properties(G.dt_global);
+		    for ( FV_Cell *cp: bdp->active_cells )
+			cp->update_k_omega_properties(G.dt_global);
 		}
 	    }
 #           endif
@@ -1167,7 +1168,8 @@ int integrate_in_time(double target_time)
         if ( get_reacting_flag() == 1 && G.sim_time >= G.reaction_time_start ) {
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active != 1 ) continue;
-		for ( FV_Cell *cp: bdp->active_cells ) cp->chemical_increment(G.dt_global, G.T_frozen);
+		for ( FV_Cell *cp: bdp->active_cells ) 
+		    cp->chemical_increment(G.dt_global, G.T_frozen);
 	    }
 	}
 
@@ -1177,7 +1179,8 @@ int integrate_in_time(double target_time)
 	if ( get_energy_exchange_flag() == 1 && G.sim_time >= G.reaction_time_start  ) {
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active != 1 ) continue;
-		for ( FV_Cell *cp: bdp->active_cells ) cp->thermal_increment(G.dt_global);
+		for ( FV_Cell *cp: bdp->active_cells ) 
+		    cp->thermal_increment(G.dt_global, G.T_frozen_energy);
 	    }
 	}
 

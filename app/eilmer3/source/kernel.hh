@@ -172,6 +172,7 @@ struct global_data
     size_t n_reaction_zone;
     double reaction_time_start;
     double T_frozen; // temperature (in K) below which reactions are frozen
+    double T_frozen_energy; // temperature (in K) below which energy exchanges are skipped
     std::vector<struct CReactionZone> reaction_zone;
 
     size_t n_turbulent_zone;

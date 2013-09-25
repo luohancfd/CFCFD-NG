@@ -207,7 +207,7 @@ def set_reaction_scheme(fname, reacting_flag=1, T_frozen=300.0):
 # We want to keep the old name, for a while.
 set_reaction_update = set_reaction_scheme
 
-def set_energy_exchange_scheme(fname, energy_exchange_flag=1):
+def set_energy_exchange_scheme(fname, energy_exchange_flag=1, T_frozen_energy=300.0):
     """
     Sets the energy exchange update model and specifies a TNE simulation.
 
@@ -220,6 +220,7 @@ def set_energy_exchange_scheme(fname, energy_exchange_flag=1):
     """
     gdata.energy_exchange_flag = energy_exchange_flag
     gdata.energy_exchange_update = fname
+    gdata.T_frozen_energy = T_frozen_energy
     return
 
 # We want to keep the old name, for a while.
@@ -312,6 +313,7 @@ class GlobalData(object):
     * reaction_update: (string) A (file) name for the chemical kinetics scheme
     * energy_exchange_flag: (0/1) A flag indicting finite-rate evolution of thermal state
     * energy_exchange_update: (string) A (file) name for the thermal energy exchange scheme
+    * T_frozen_energy: (float) temperature below which the energy-exchange will be skipped.
     * x_order: (int 1 or 2) Specifies the form of reconstruction from cell-average
       data to cell interface data.
       Select 1 for low-order (i.e. no) reconstruction.
@@ -428,7 +430,7 @@ class GlobalData(object):
                 'displacement_thickness', 'time_average_flag', 'perturb_flag', \
                 'perturb_frac', 'tav_0', 'tav_f', 'dt_av', \
                 'fixed_time_step', 'apply_limiter_flag', 'extrema_clipping_flag', \
-                'energy_exchange_flag', 'energy_exchange_update', \
+                'energy_exchange_flag', 'energy_exchange_update', 'T_frozen_energy', \
                 'udf_file', 'udf_source_vector_flag', \
                 'heat_time_start', 'heat_time_stop', 'heat_factor_increment'
     
@@ -451,6 +453,7 @@ class GlobalData(object):
         self.reaction_time_start = 0.0
         self.energy_exchange_flag = 0
         self.energy_exchange_update = "dummy_scheme"
+        self.T_frozen_energy = 300.0
         self.radiation_input_file = "no_file"
         self.radiation_update_frequency = 1
         self.radiation_flag = 0
@@ -597,6 +600,7 @@ class GlobalData(object):
         fp.write("reaction_time_start = %e\n"% self.reaction_time_start)
         fp.write("energy_exchange_flag = %d\n" % self.energy_exchange_flag)
         fp.write("energy_exchange_update = %s\n" % self.energy_exchange_update)
+        fp.write("T_frozen_energy = %g\n" % self.T_frozen_energy)
         fp.write("radiation_input_file = %s\n" % self.radiation_input_file)
         fp.write("radiation_update_frequency = %s\n" % self.radiation_update_frequency)
         fp.write("radiation_flag = %d\n" % self.radiation_flag)

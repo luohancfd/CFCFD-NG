@@ -264,7 +264,7 @@ public:
     int stage_1_update_for_flow_on_moving_grid(double dt, bool with_k_omega);
     int stage_2_update_for_flow_on_moving_grid(double dt, bool with_k_omega);
     int chemical_increment(double dt, double T_frozen);
-    int thermal_increment(double dt);
+    int thermal_increment(double dt, double T_frozen_energy);
     double signal_frequency(size_t dimensions, bool with_k_omega);
     int turbulence_viscosity_zero();
     int turbulence_viscosity_zero_if_not_in_zone();
