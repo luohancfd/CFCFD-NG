@@ -17,7 +17,8 @@ Knab_molecular_reaction::
 Knab_molecular_reaction(lua_State *L, Gas_model &g, double T_upper, double T_lower)
     : Generalised_Arrhenius(L, g, T_upper, T_lower)
 {
-    U_ = get_number(L, -1, "U");
+    U0_ = get_number(L, -1, "U0");
+    U1_ = get_number(L, -1, "U1");
     alpha_ = get_number(L, -1, "alpha");
     alpha_A_ = alpha_*Generalised_Arrhenius::get_E_a()/PC_k_SI; // convert to K
 
@@ -48,8 +49,8 @@ Knab_molecular_reaction(lua_State *L, Gas_model &g, double T_upper, double T_low
 
 Knab_molecular_reaction::
 Knab_molecular_reaction(double A, double n, double E_a, double T_upper, double T_lower,
-			double U, double alpha, string v_name)
-    : Generalised_Arrhenius(A, n, E_a, T_upper, T_lower), U_(U), alpha_(alpha), alpha_A_(alpha*E_a/PC_k_SI)
+			double U0, double U1, double alpha, string v_name)
+    : Generalised_Arrhenius(A, n, E_a, T_upper, T_lower), U0_(U0), U1_(U1), alpha_(alpha), alpha_A_(alpha*E_a/PC_k_SI)
 {
     Chemical_species * X = get_library_species_pointer_from_name( v_name );
     // Search for the corresponding energy modes
@@ -89,9 +90,19 @@ s_eval(const Gas_data &Q)
     double Tv = Q.T[iTv_];
     
     // 1. Calculate pseudo-temperatures
-    double gamma = 1.0 / ( 1.0/Tv - 1.0/T - 1.0/U_ );
-    double T0 = 1.0 / ( 1.0/Tv - 1.0/U_ );
-    double T_ast = 1.0 / ( 1.0/T - 1.0/U_ );
+    double U = U0_ + U1_*T;
+    double gamma, T0, T_ast;
+    if ( U > 0.0 ) {
+	gamma = 1.0 / (1.0/Tv - 1.0/T - 1.0/U);
+	T0 = 1.0 / (1.0/Tv - 1.0/U);
+	T_ast = 1.0 / (1.0/T - 1.0/U);
+    }
+    else {
+	// This is the special case of U=inf
+	gamma = 1.0 / (1.0/Tv - 1.0/T);
+	T0 = Tv;
+	T_ast = T;
+    }
     
     // 2. Calculate partition functions
     double Q_d_T = 1.0, Q_d_Tv = 1.0, Q_d_T0 = 1.0, Q_d_T_ast = 1.0;
@@ -103,9 +114,18 @@ s_eval(const Gas_data &Q)
     	Q_d_T0 *= vib_modes_[i]->eval_Q_from_T(T0);
     	Q_d_T_ast *= vib_modes_[i]->eval_Q_from_T(T_ast);
     	Q_a_gamma *= vib_modes_[i]->eval_Q_from_T(gamma,alpha_A_);
-    	Q_a_U *= vib_modes_[i]->eval_Q_from_T(-U_,alpha_A_);
     	Q_a_T0 *= vib_modes_[i]->eval_Q_from_T(T0,alpha_A_);
     	Q_a_T_ast *= vib_modes_[i]->eval_Q_from_T(T_ast,alpha_A_);
+	if ( U > 0.0 ) {
+	    Q_a_U *= vib_modes_[i]->eval_Q_from_T(-U,alpha_A_);
+	}
+	else {
+	    // Special case of U = inf
+	    // I showed this numerically by plotting
+	    // partition function of truncated harmonic
+	    // osicallator for large values of T
+	    Q_a_U *= alpha_A_/vib_modes_[i]->get_theta();
+	}
     }
     
     // 3. Calculate nonequilibrium factor
