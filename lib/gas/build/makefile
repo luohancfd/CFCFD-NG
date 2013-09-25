@@ -143,7 +143,7 @@ install: $(LIBGAS) $(LUA_MODULES) $(TOOL_EXECUTABLES) $(LUAGAS_MODULE) \
 	cd ../../; rsync -av --exclude=".svn" --exclude="*~" cfpylib $(INSTALL_DIR)
 	- cp $(TOOL_EXECUTABLES) $(INSTALL_DIR)/
 	- mkdir -p $(INSTALL_DIR)/cea-cases
-	- cp $(CEA_CASES)/*.lua $(INSTALL_DIR)/cea-cases/
+	- cp $(CEA_CASES)/*.lua.gz $(INSTALL_DIR)/cea-cases/
 ifeq ($(CEA2_EXISTS), true)
 	- cp thermo.inp trans.inp $(INSTALL_DIR)/cea-cases/
 endif
@@ -863,10 +863,6 @@ lex_elems.lua : $(KINETICS)/lex_elems.lua
 gasfile : $(TOOLS)/gasfile.lua
 	cp $(TOOLS)/gasfile.lua gasfile
 	chmod +x gasfile
-
-#build-cea-lut : $(TOOLS)/build-cea-lut.lua cea2
-#	cp $(TOOLS)/build-cea-lut.lua build-cea-lut
-#	chmod +x build-cea-lut
 
 build-cea-lut.py : $(TOOLS)/build-cea-lut.py
 	cp $(TOOLS)/build-cea-lut.py .

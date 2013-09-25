@@ -614,6 +614,15 @@ def make_gas_from_name(gasName, outputUnits='massf'):
         return Gas(reactants={'CO2':0.97,'N2':0.03}, inputUnits='massf', 
                    onlyList=['C','C2','CN','CO','CO2','N','N2','NO','O','O2'],
                    outputUnits=outputUnits)
+    elif gasName.lower() == 'mars-trace':
+        return Gas(reactants={'CO2':0.9668,'N2':0.0174,'O2':0.0011,'Ar':0.0147}, inputUnits='massf', 
+                   onlyList=['C','C2','CN','CO','CO2','N','N2','NO','O','O2','Ar'],
+                   outputUnits=outputUnits)
+    elif gasName.lower() == 'mars-trace-ions':
+        return Gas(reactants={'CO2':0.9668,'N2':0.0174,'O2':0.0011,'Ar':0.0147}, inputUnits='massf', 
+                   onlyList=['C','C2','CN','CO','CO2','N','N2','NO','O','O2','Ar',
+                             'C+','CO+','NO+','O+','O2+','e-'],
+                   outputUnits=outputUnits, with_ions=True)
     elif gasName.lower() == 'h2ne':
         return Gas(reactants={'H2':0.85, 'Ne':0.15}, inputUnits='moles',
                    onlyList=['H2','H','Ne'],
@@ -622,8 +631,25 @@ def make_gas_from_name(gasName, outputUnits='massf'):
         return Gas(reactants={'H2':0.85, 'Ne':0.15}, inputUnits='moles',
                    onlyList=['H2','H','Ne','H+','e-'],
                    outputUnits=outputUnits, with_ions=True)
+    elif gasName.lower() == 'jupiter-like':
+        return Gas(reactants={'H2':0.15, 'Ne':0.85}, inputUnits='moles',
+                   onlyList=['H2','H','Ne','H+','e-'],
+                   outputUnits=outputUnits, with_ions=True)
+    elif gasName.lower() == 'titan-like':
+        return Gas(reactants={'N2':0.95,'CH4':0.05}, inputUnits='moles',
+                   onlyList=['N2','CH4','CH3','CH2','CH','C2','H2','CN','NH','HCN','N','C','H'],
+                   outputUnits=outputUnits, with_ions=False)
+    elif gasName.lower() == 'titan-like-ions':
+        return Gas(reactants={'N2':0.95,'CH4':0.05}, inputUnits='moles',
+                   onlyList=['N2','CH4','CH3','CH2','CH','C2','H2','CN','NH','HCN','N','C','H',
+                             'N2+','CN+','N+','C+','H+','e-'],
+                   outputUnits=outputUnits, with_ions=True)
     elif gasName.lower() == 'ar':
         return Gas(reactants={'Ar':1.0, 'Ar+':0.0, 'e_minus':0.0},
+                   inputUnits='moles', outputUnits=outputUnits, 
+                   with_ions=True, trace=1.0e-16)
+    elif gasName.lower() == 'kr':
+        return Gas(reactants={'Kr':1.0, 'Kr+':0.0, 'e_minus':0.0},
                    inputUnits='moles', outputUnits=outputUnits, 
                    with_ions=True, trace=1.0e-16)
     else:
@@ -634,8 +660,8 @@ def list_gas_names():
     :returns: the list of gases available in make_gas_from_name()
     """
     return ['air', 'air-ions', 'air5species', 'air7species', 'air11species',
-            'air13species', 'n2', 'n2-ions', 'co2', 'co2-ions', 'mars-basic',
-            'h2ne', 'h2ne-ions', 'ar']
+            'air13species', 'n2', 'n2-ions', 'co2', 'co2-ions', 'mars-trace', 'mars-basic',
+            'h2ne', 'h2ne-ions', 'jupiter-like', 'titan-like', 'titan-like-ions', 'ar', 'kr']
     
 def make_reactants_dictionary( species_list ):
     """

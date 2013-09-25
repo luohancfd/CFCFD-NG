@@ -246,18 +246,18 @@ Table~\ref{tab:lut}.
  \hline \hline
 Pre-built table & Description \\
 \hline
-\texttt{cea-lut-air.lua.gz} & Equilibrium air with ionisation. Useful for Earth reentry problems. \\
-\texttt{cea-lua-CO2.lua.gz} & Pure carbon dioxide in equilibrium with ionisation. \\
-\texttt{cea-lua-Jupiter-like.lua.gz} & A H$_2$-Ne mixture used to simulate the Jovian H$_2$-He atmosphere
-                                       in expansion tube work. \\
-\texttt{cea-lut-Kr.lua.gz} & Pure Kryton with ionisation allowed. \\
-\texttt{cea-lut-Mars-basic.lua.gz} & A basic Martian atmosphere, without trace species.  The included species
+\texttt{cea-lut-air-ions.lua.gz} & Equilibrium air with ionisation. Useful for Earth reentry problems. \\
+\texttt{cea-lua-co2-ions.lua.gz} & Pure carbon dioxide in equilibrium with ionisation. \\
+\texttt{cea-lua-jupiter-like.lua.gz} & A H$_2$-Ne mixture used to simulate the Jovian H$_2$-He atmosphere
+                                       in expansion tube work. Includes ionisation. \\
+\texttt{cea-lut-kr.lua.gz} & Pure Krypton with ionisation allowed. \\
+\texttt{cea-lut-mars-basic.lua.gz} & A basic Martian atmosphere, without trace species.  The included species
                                      are CO$_2$ (97\% by weight) and N$_2$ (3\% by weight).  No ionisation is considered. \\
-\texttt{cea-lut-Mars-trace.lua.gz} & A Martian atmosphere which includes the trace species O$_2$ and Ar. No ionisation is considered. \\
-\texttt{cea-lut-Mars-trace-with-ions.lua.gz} & A Martian atmosphere incluing trace species and ionisation. \\
-\texttt{cea-lut-N2.lua.gz} & Pure nitrogen in equilibrium with ionisation. \\
-\texttt{cea-lut-Titan-like-no-ions.lua.gz} & A Titan-like atmosphere (N$_2$ and CH$_4$, no trace species). No ionisation is considered. \\
-\texttt{cea-lut-Titan-like-with-ions.lua.gz} & A Titan-like atmosphere which includes ionisation. \\
+\texttt{cea-lut-mars-trace.lua.gz} & A Martian atmosphere which includes the trace species O$_2$ and Ar. No ionisation is considered. \\
+\texttt{cea-lut-mars-trace-ions.lua.gz} & A Martian atmosphere incluing trace species and ionisation. \\
+\texttt{cea-lut-n2-ions.lua.gz} & Pure nitrogen in equilibrium with ionisation. \\
+\texttt{cea-lut-titan-like.lua.gz} & A Titan-like atmosphere (N$_2$ and CH$_4$, no trace species). No ionisation is considered. \\
+\texttt{cea-lut-titan-like-ions.lua.gz} & A Titan-like atmosphere which includes ionisation. \\
 \hline
 \end{tabular}
 \end{center}
@@ -272,9 +272,9 @@ The steps to using a look-up table in your simulation are:
 As an example, suppose that we wish to run a simulation with CO$_2$ in equilibrium.
 Then as per above the sequence of steps is (assuming your are in your working directory):
 \begin{enumerate}
- \item \texttt{cp \$HOME/e3bin/cea-cases/cea-lut-CO2.lua.gz .}
+ \item \texttt{cp \$HOME/e3bin/cea-cases/cea-lut-co2-ions.lua.gz .}
  \item Add the following function call to your script:\\
-       \texttt{select\_gas\_model(fname='cea-lua-CO2.lua.gz')}
+       \texttt{select\_gas\_model(fname='cea-lua-co2-ions.lua.gz')}
 \end{enumerate}
 
 \subsubsection{Building your own look-up table}
@@ -334,7 +334,7 @@ the lower temperatures, as shown in examples 3, 4 and 5 (above).
 These options allow you to set bounds on the range of the table,
 select a gas model from a small library of prespecified gases or
 to make your own \textit{custom} mixture.
-The available gases (as at mid June 2013) are:
+The available gases (as at end September 2013) are:
    ``air'',
    ``air-ions'',
    ``air5species'',
@@ -346,9 +346,14 @@ The available gases (as at mid June 2013) are:
    ``co2'',
    ``co2-ions'',
    ``mars-basic'',
+   ``mars-trace'',
+   ``mars-trace-ions'',
+   ``jupiter-like'',
+   ``titan-like'',
+   ``titan-like-ions'',
    ``h2ne'',
-   ``h2ne-ions'', and
-   ``ar''.
+   ``h2ne-ions'',
+   ``ar'', and ``kr''.
 If you make a custom mixture, you specify the reactants as a dictionary where the keys are
 species names, as recognised by the \verb!CEA2! program.
 The \verb!only_list! option can be used to restrict the allowable species in the gas mixture.
