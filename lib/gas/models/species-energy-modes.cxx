@@ -19,14 +19,16 @@ std::string get_library_species_name( int isp );
 using namespace std;
 
 Species_energy_mode::
-Species_energy_mode( int isp, double R, double min_massf, string type, int iT )
- : isp_( isp ), R_( R ), min_massf_( min_massf ), type_( type ), iT_( iT ) {}
+Species_energy_mode( int isp, double R, double min_massf, string type, 
+                     double theta, int iT )
+ : isp_( isp ), R_( R ), min_massf_( min_massf ), type_( type ), 
+theta_( theta ), iT_( iT ) {}
  
 /* ------- Generic electronic --------- */
 
 Electronic::
 Electronic( int isp, double R, double min_massf, double theta )
-: Species_energy_mode( isp, R, min_massf, "electronic" ), theta_( theta )
+: Species_energy_mode( isp, R, min_massf, "electronic", theta )
 {}
  
 /* ------- One level electronic species energy mode ------- */
@@ -465,7 +467,7 @@ s_eval_Q_from_T( double T, double A )
 
 Rotation::
 Rotation( int isp, double R, double min_massf, double theta )
-: Species_energy_mode( isp, R, min_massf, "rotation" ), theta_( theta )
+: Species_energy_mode( isp, R, min_massf, "rotation", theta )
 {}
 
 /* ------- Fully excited rotation ------- */
@@ -739,7 +741,7 @@ s_eval_Cv_from_Ts( double T_el, double T_vib, double T_rot  )
 
 Vibration::
 Vibration(  int isp, double R, double min_massf, double theta )
-: Species_energy_mode( isp, R, min_massf, "vibration" ), theta_( theta ) {}
+: Species_energy_mode( isp, R, min_massf, "vibration", theta ) {}
 
 /* ------- Un-truncated harmonic vibration ------- */
 
