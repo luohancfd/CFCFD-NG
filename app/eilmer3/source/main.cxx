@@ -594,6 +594,7 @@ int add_udf_source_vector_for_cell( FV_Cell *cell, size_t gtl, double t )
     lua_pushnumber(L, cell->fs->vel.y); lua_setfield(L, -2, "v");
     lua_pushnumber(L, cell->fs->vel.z); lua_setfield(L, -2, "w");
     lua_pushnumber(L, cell->fs->gas->a); lua_setfield(L, -2, "a");
+    lua_pushnumber(L, cell->fs->gas->mu); lua_setfield(L, -2, "mu");
     lua_newtable(L); // A table for the temperatures
     for ( size_t i = 0; i < nmodes; ++i ) {
 	lua_pushinteger(L, i);
@@ -610,6 +611,14 @@ int add_udf_source_vector_for_cell( FV_Cell *cell, size_t gtl, double t )
     }
     // At this point, the table of mass fractions should be TOS.
     lua_setfield(L, -2, "massf");
+    lua_newtable(L); // A table for the thermal conductivities.
+    for ( size_t i = 0; i < nmodes; ++i ) {
+	lua_pushinteger(L, i);
+	lua_pushnumber(L, cell->fs->gas->k[i]);
+	lua_settable(L, -3);
+    }
+    // At this point, the table of conductivities should be TOS.
+    lua_setfield(L, -2, "k");
     
     // After all of this we should have ended up with the cell-data table at TOS 
     // with another table (containing t...} and function-name 
