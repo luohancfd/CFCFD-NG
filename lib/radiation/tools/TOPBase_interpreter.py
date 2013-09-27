@@ -305,12 +305,13 @@ def read_PICS_file( filename, echo_result=False ):
         except: data.append(line)
         else:
             if len(header) > 0:
-                PICSs.append( make_PICS_from_TOPBase_strings( header, data ) )
+                if len(data)>0:
+                    PICSs.append( make_PICS_from_TOPBase_strings( header, data ) )
                 header = ""
                 data = [] 
             header = line
 
-    print "Found %d TOPBase PICS in file %s" % ( len(PICSs), filename)
+    print "Found %d TOPBase PICS with data in file %s" % ( len(PICSs), filename)
 
     # reset the energies to be referenced from 0 at the ground state
     E0 = PICSs[0].E
