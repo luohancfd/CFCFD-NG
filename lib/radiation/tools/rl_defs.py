@@ -163,9 +163,10 @@ class TOPBasePICSLevel(object):
         
 class TOPBasePICSModel(PhotoIonXSectionModel):
     """Derived class for describing TOPBase photo-ionization cross-section model"""
-    def __init__(self, level_data, elevel_set="TOPBase"):
+    def __init__(self, level_data, hydrogenic_fill=True, elevel_set="TOPBase"):
         PhotoIonXSectionModel.__init__(self, elevel_set=elevel_set, model="TOPBaseModel")
         self.level_data = level_data
+        self.hydrogenic_fill = hydrogenic_fill
 
     def get_LUA_string(self, species):
         ostring  = ""
@@ -173,6 +174,7 @@ class TOPBasePICSModel(PhotoIonXSectionModel):
         comments = self.comments.replace('#','   --')
         ostring += "%s\n" % ( comments )
         ostring += tab+"model = '%s',\n" % ( self.model )
+        ostring += tab + "hydrogenic_fill = %s,\n" % ( str(self.hydrogenic_fill).lower() )
         for ipl,level in enumerate(self.level_data):
             ostring += level.get_LUA_string()
         ostring += tab+"-- =======================================================================\n"

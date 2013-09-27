@@ -356,6 +356,60 @@ double TOPBaseModel::eval( double nu )
     return sigma;
 }
 
+PhotoIonisationCrossSectionModel*
+create_Hydrogenic_PICS_model( lua_State * L, int Z, double I, double E )
+{
+    PhotoIonisationCrossSectionModel * PICS_model;
+
+    // hydrogenic effective principal quantum number
+    double E_min = I - E;
+    double n_eff = sqrt( RC_H_ionise_J / E_min );
+    if ( !isfinite(n_eff) )
+	PICS_model = new NoPICSModel();
+    else
+        PICS_model = new HydrogenicModel( L, n_eff, Z,  I, E_min );
+
+    return PICS_model;
+}
+
+PhotoIonisationCrossSectionModel*
+create_Johnston_PICS_model( lua_State * L, int ilev, double I, double E )
+{
+    PhotoIonisationCrossSectionModel * PICS_model;
+
+    int nstep_levs = get_int(L,-1,"nstep_levs");
+    if ( ilev < nstep_levs ) {
+        PICS_model = new JohnstonStepModel( L, ilev );
+    }
+    else {
+        double E_min = I - E;
+        PICS_model = new JohnstonThresholdModel(L, ilev, E_min );
+    }
+
+    return PICS_model;
+}
+
+PhotoIonisationCrossSectionModel*
+create_TOPBase_PICS_model( lua_State * L, int ilev, int Z, double I, double E )
+{
+    PhotoIonisationCrossSectionModel * PICS_model;
+
+    bool hydrogenic_fill = get_boolean( L, -1, "hydrogenic_fill" );
+    ostringstream level_label;
+    level_label << "ilev_" << ilev;
+    lua_getfield(L,-1,level_label.str().c_str());
+    if ( !lua_istable(L, -1) ) {
+        if ( hydrogenic_fill )
+            PICS_model = create_Hydrogenic_PICS_model( L, Z, I, E );
+        else
+            PICS_model = new NoPICSModel();
+    }
+    else
+        PICS_model = new TOPBaseModel( L, ilev );
+    lua_pop(L,1);
+
+    return PICS_model;
+}
 
 PhotoIonisationCrossSectionModel*
 create_new_PICS_model( lua_State * L, int ilev, int Z, double I, double E )
@@ -368,33 +422,13 @@ create_new_PICS_model( lua_State * L, int ilev, int Z, double I, double E )
     	PICS_model = new NoPICSModel();
     }
     else if ( PICS_model_type=="hydrogenic" ) {
-	// hydrogenic effective principal quantum number
-	double E_min = I - E;
-	double n_eff = sqrt( RC_H_ionise_J / E_min );
-	if ( !isfinite(n_eff) )
-	    PICS_model = new NoPICSModel();
-	else
-    	    PICS_model = new HydrogenicModel( L, n_eff, Z,  I, E_min );
+	PICS_model = create_Hydrogenic_PICS_model( L, Z, I, E );
     }
     else if ( PICS_model_type=="JohnstonModel" ) {
-    	int nstep_levs = get_int(L,-1,"nstep_levs");
-    	if ( ilev < nstep_levs ) {
-    	    PICS_model = new JohnstonStepModel( L, ilev );
-    	}
-    	else {
-    	    double E_min = I - E;
-    	    PICS_model = new JohnstonThresholdModel(L, ilev, E_min );
-    	}
+    	PICS_model = create_Johnston_PICS_model( L, ilev, I, E );
     }
     else if ( PICS_model_type=="TOPBaseModel" ) {
-        ostringstream level_label;
-        level_label << "ilev_" << ilev;
-        lua_getfield(L,-1,level_label.str().c_str());
-        if ( !lua_istable(L, -1) )
-            PICS_model = new NoPICSModel();
-        else
-            PICS_model = new TOPBaseModel( L, ilev );
-        lua_pop(L,1);
+        PICS_model = create_TOPBase_PICS_model( L, ilev, Z, I, E );
     }
     else {
     	cout << "create_new_PICS_model()" << endl

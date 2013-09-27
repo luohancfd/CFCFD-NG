@@ -151,6 +151,15 @@ private:
 };
 
 PhotoIonisationCrossSectionModel*
+create_Hydrogenic_PICS_model( lua_State * L, int Z, double I, double E );
+
+PhotoIonisationCrossSectionModel*
+create_Johnston_PICS_model( lua_State * L, int ilev, double I, double E );
+
+PhotoIonisationCrossSectionModel*
+create_TOPBase_PICS_model( lua_State * L, int ilev, int Z, double I, double E );
+
+PhotoIonisationCrossSectionModel*
 create_new_PICS_model( lua_State * L, int ilev, int Z, double I, double E );
 
 #endif
