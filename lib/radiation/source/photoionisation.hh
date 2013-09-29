@@ -23,20 +23,25 @@ extern "C" {
 class PhotoIonisationCrossSectionModel {
 public:
     /// \brief Constructor
-    PhotoIonisationCrossSectionModel( std::string name );
+    PhotoIonisationCrossSectionModel( std::string name, double E_min=0.0 );
     
     /// \brief Deconstructor
     virtual ~PhotoIonisationCrossSectionModel() = 0;
     
 public:
-    std::string get_name() { return name; }
+    std::string get_name()
+    { return name; }
+
+    double get_threshold_energy()
+    { return E_min; }
 
     virtual void spectral_distribution( std::vector<double> &nus ) = 0;
 
     virtual double eval( double nu ) = 0;
-    
+
 protected:
     std::string name;
+    double E_min;
 };
 
 class NoPICSModel : public PhotoIonisationCrossSectionModel {
@@ -75,7 +80,6 @@ private:
     double constC;
     double constD;
     double constE;
-    double E_min;	// Threshold energy
     double E_max;	// Maximum energy (used for spectral distribution)
     int nnus;		// Number of points to use for adaptive distribution
 };
@@ -125,7 +129,6 @@ private:
     double nu_t;
     double sigma_bf_t;
     double theta;
-    double E_min;	// Threshold energy
     double E_max;	// Maximum energy (used for spectral distribution)
     int nnus;	// Number of points to use for adaptive distribution
 };

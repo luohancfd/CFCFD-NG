@@ -23,8 +23,8 @@
 
 using namespace std;
 
-PhotoIonisationCrossSectionModel::PhotoIonisationCrossSectionModel( string name )
- : name( name ) {}
+PhotoIonisationCrossSectionModel::PhotoIonisationCrossSectionModel( string name, double E_min )
+ : name( name ), E_min( E_min ) {}
  
 PhotoIonisationCrossSectionModel::~PhotoIonisationCrossSectionModel() {}
 
@@ -44,8 +44,8 @@ double NoPICSModel::eval( double nu )
 }
 
 HydrogenicModel::HydrogenicModel( lua_State * L, double n_eff, int Z, double I, double E_min )
- : PhotoIonisationCrossSectionModel( "HydrogenicModel" ), 
-   n_eff( n_eff ), Z( double(Z) ), I( I ), E_min( E_min )
+ : PhotoIonisationCrossSectionModel( "HydrogenicModel", E_min ),
+   n_eff( n_eff ), Z( double(Z) ), I( I )
 {
     constB = I * Z * Z;
     constC = n_eff*n_eff;
@@ -118,8 +118,11 @@ PICS_step::~PICS_step() {}
 JohnstonStepModel::JohnstonStepModel( lua_State * L, int ilev )
  : PhotoIonisationCrossSectionModel( "JohnstonStepModel" )
 {
+    // Initialise E_min to a large value
+    E_min = 9.9e9;
+
     int nsteps = get_int( L, -1, "nsteps" );
-    
+
     for ( int istep=0; istep<nsteps; ++istep ) {
     	ostringstream step_label;
     	step_label << "step_" << istep;
@@ -150,6 +153,9 @@ JohnstonStepModel::JohnstonStepModel( lua_State * L, int ilev )
  	    double nu_b = step_data[2]*RC_e_SI/RC_h_SI;	    // convert eV -> Hz
  	    double sigma_bf = step_data[3] * 1.0e-18;	    // convert cm**2 x 1.0e18 -> cm**2 
  	    steps.push_back( new PICS_step( nu_a, nu_b, sigma_bf ) );
+ 	    // Determine if this step corresponds to the minimum energy
+ 	    if ( nu_a*RC_h_SI < E_min ) E_min = nu_a*RC_h_SI;
+ 	    if ( nu_b*RC_h_SI < E_min ) E_min = nu_b*RC_h_SI;
  	}
     }
     
@@ -186,7 +192,7 @@ double JohnstonStepModel::eval( double nu )
 }
 
 JohnstonThresholdModel::JohnstonThresholdModel( lua_State * L, int ilev, double E_min )
- : PhotoIonisationCrossSectionModel( "JohnstonThresholdModel" ), E_min( E_min )
+ : PhotoIonisationCrossSectionModel( "JohnstonThresholdModel", E_min )
 {
     int nthresholds = get_int( L, -1, "nthresholds" );
     
@@ -258,6 +264,9 @@ double JohnstonThresholdModel::eval( double nu )
 TOPBaseModel::TOPBaseModel( lua_State * L, int ilev )
  : PhotoIonisationCrossSectionModel( "TOPBaseModel" )
 {
+    // Initialise E_min to a large value - it will be found below
+    E_min = 9.9e9;
+
     int npoints = get_int( L, -1, "npoints" );
 
     for ( int i=0; i<npoints; ++i ) {
@@ -291,6 +300,8 @@ TOPBaseModel::TOPBaseModel( lua_State * L, int ilev )
         double sigma_bf = point_data[1] * 1.0e-18;	  // convert cm**2 x 1.0e18 -> cm**2
         nu_list.push_back( nu );
         sigma_list.push_back( sigma_bf );
+        // Check if this point corresponds to E_min
+        if ( RC_h_SI*nu < E_min ) E_min = RC_h_SI*nu;
     }
     
     // initialise i_prev to 0

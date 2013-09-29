@@ -137,7 +137,11 @@ BoundFreeHydrogenic::calculate_spectrum( Gas_data &Q, CoeffSpectra &X, double n_
         double N_i = Rn->get_elev_pointer(ilev)->N * 1.0e-6;
         double E_i = Rn->get_elev_pointer(ilev)->E;
         // Determine minimum frequency
-        double nu_min = ( Rn->I - E_i ) / RC_h_SI;
+        // NOTE: Sometimes the PICS model has a threshold energy limit different to I - E
+        //       This is especially the case when using TOPBase data where the ionization
+        //       energy for Argon is 5% less than NIST ASD
+        // double nu_min = ( Rn->I - E_i ) / RC_h_SI;
+        double nu_min = Rn->get_elev_pointer(ilev)->PICS_model->get_threshold_energy() / RC_h_SI;
         int inu_min = get_nu_index( X.nu, nu_min, X.adaptive ) + 1;
         /* 2a. Loop over frequency and add contributions */
         for ( int inu=inu_min; inu<nnu; ++inu ) {
