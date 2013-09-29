@@ -502,6 +502,14 @@ int viscous_flux_2D(Block *A)
 		        ((fB[isp] + fA[isp]) * (xB - xA) + (fC[isp] + fB[isp]) * (xC - xB) + \
 		        (fD[isp] + fC[isp]) * (xD - xC) + (fA[isp] + fD[isp]) * (xA - xD)); \
 	        } \
+	    } \
+	    if( get_electric_field_work_flag() == 1) { \
+	        A->get_vtx(i,j)->dpedx = -0.5 * area_inv * \
+		    ((peB + peA) * (yB - yA) + (peC + peB) * (yC - yB) + \
+		    (peD + peC) * (yD - yC) + (peA + peD) * (yA - yD)); \
+	        A->get_vtx(i,j)->dpedy = -0.5 * area_inv * \
+		    ((peB + peA) * (xB - yA) + (peC + peB) * (xC - xB) + \
+		    (peD + peC) * (xD - xC) + (peA + peD) * (xA - xD)); \
 	    }
 
 #define APPLY_DIVERGENCE_THEOREM_2() \
@@ -554,6 +562,7 @@ int viscous_derivatives_2D(Block *A, size_t gtl)
     double vA, vB, vC, vD;
     double tkeA, tkeB, tkeC, tkeD;
     double omegaA, omegaB, omegaC, omegaD;
+    double peA = 0.0, peB = 0.0, peC = 0.0, peD = 0.0;
     double area_inv;
     
     size_t nsp = get_gas_model_ptr()->get_number_of_species();
@@ -613,6 +622,13 @@ int viscous_derivatives_2D(Block *A, size_t gtl)
 		}
 	    }
 	    //
+	    if ( get_electric_field_work_flag() ) {
+	        peA = A->get_cell(i,j-1)->fs->gas->p_e;
+	        peB = A->get_cell(i,j)->fs->gas->p_e;
+	        peC = A->get_cell(i-1,j)->fs->gas->p_e;
+	        peD = A->get_cell(i-1,j-1)->fs->gas->p_e;
+	    }
+	    //
 	    APPLY_DIVERGENCE_THEOREM()
 	    //
             tkeA = A->get_cell(i,j-1)->fs->tke;
@@ -650,6 +666,7 @@ int viscous_derivatives_edges(Block *A, size_t gtl)
     double vA, vB, vC, vD;
     double tkeA, tkeB, tkeC, tkeD;
     double omegaA, omegaB, omegaC, omegaD;
+    double peA = 0.0, peB = 0.0, peC = 0.0, peD = 0.0;
     double area_inv;
 
     size_t nsp = get_gas_model_ptr()->get_number_of_species();
@@ -709,6 +726,13 @@ int viscous_derivatives_edges(Block *A, size_t gtl)
 	    }
 	}
 	//
+	if ( get_electric_field_work_flag() ) {
+	    peA = A->get_ifi(i,j-1)->fs->gas->p_e;
+	    peB = A->get_ifi(i,j)->fs->gas->p_e;
+	    peC = A->get_ifi(i-1,j)->fs->gas->p_e;
+	    peD = A->get_ifi(i-1,j-1)->fs->gas->p_e;
+	}
+	//
 	APPLY_DIVERGENCE_THEOREM()
 	//
 	tkeA = A->get_ifi(i,j-1)->fs->tke;
@@ -763,6 +787,13 @@ int viscous_derivatives_edges(Block *A, size_t gtl)
 		fC[isp] = A->get_ifi(i,j)->fs->gas->massf[isp];
 		fD[isp] = A->get_ifi(i,j-1)->fs->gas->massf[isp];
 	    }
+	}
+	//
+	if ( get_electric_field_work_flag() == 1 ) {
+	    peA = A->get_cell(i,j-1)->fs->gas->p_e;
+	    peB = A->get_cell(i,j)->fs->gas->p_e;
+	    peC = A->get_ifi(i,j)->fs->gas->p_e;
+	    peD = A->get_ifi(i,j-1)->fs->gas->p_e;
 	}
 	//
 	APPLY_DIVERGENCE_THEOREM()
@@ -822,6 +853,13 @@ int viscous_derivatives_edges(Block *A, size_t gtl)
 	    }
 	}
 	//
+	if ( get_electric_field_work_flag() == 1 ) {
+	    peA = A->get_cell(i,j-1)->fs->gas->p_e;
+	    peB = A->get_ifi(i,j)->fs->gas->p_e;
+	    peC = A->get_ifi(i-1,j)->fs->gas->p_e;
+	    peD = A->get_cell(i-1,j-1)->fs->gas->p_e;
+	}
+	//
 	APPLY_DIVERGENCE_THEOREM()
 	//
         tkeA = A->get_cell(i,j-1)->fs->tke;
@@ -876,6 +914,13 @@ int viscous_derivatives_edges(Block *A, size_t gtl)
 		fC[isp] = A->get_cell(i-1,j)->fs->gas->massf[isp];
 		fD[isp] = A->get_ifj(i-1,j)->fs->gas->massf[isp];
 	    }
+	}
+	//
+	if ( get_electric_field_work_flag() == 1 ) {
+	    peA = A->get_ifi(i,j)->fs->gas->p_e;
+	    peB = A->get_cell(i,j)->fs->gas->p_e;
+	    peC = A->get_cell(i-1,j)->fs->gas->p_e;
+	    peD = A->get_ifi(i-1,j-1)->fs->gas->p_e;
 	}
 	//
 	APPLY_DIVERGENCE_THEOREM()
@@ -942,6 +987,9 @@ int viscous_derivatives_corners(Block *bdp, size_t gtl)
 	vtx->dfdx[isp] = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
 	vtx->dfdy[isp] = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
     }
+    fa = a->fs->gas->p_e; fb = b->fs->gas->p_e; fc = c->fs->gas->p_e;
+    vtx->dpedx = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
+    vtx->dpedy = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
     // South-East corner
     i = bdp->imax;
     j = bdp->jmin;
@@ -975,6 +1023,9 @@ int viscous_derivatives_corners(Block *bdp, size_t gtl)
 	vtx->dfdx[isp] = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
 	vtx->dfdy[isp] = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
     }
+    fa = a->fs->gas->p_e; fb = b->fs->gas->p_e; fc = c->fs->gas->p_e;
+    vtx->dpedx = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
+    vtx->dpedy = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
     // South-West corner
     i = bdp->imin;
     j = bdp->jmin;
@@ -1008,6 +1059,9 @@ int viscous_derivatives_corners(Block *bdp, size_t gtl)
 	vtx->dfdx[isp] = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
 	vtx->dfdy[isp] = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
     }
+    fa = a->fs->gas->p_e; fb = b->fs->gas->p_e; fc = c->fs->gas->p_e;
+    vtx->dpedx = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
+    vtx->dpedy = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
     // North-West corner
     i = bdp->imin;
     j = bdp->jmax;
@@ -1041,5 +1095,8 @@ int viscous_derivatives_corners(Block *bdp, size_t gtl)
 	vtx->dfdx[isp] = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
 	vtx->dfdy[isp] = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
     }
+    fa = a->fs->gas->p_e; fb = b->fs->gas->p_e; fc = c->fs->gas->p_e;
+    vtx->dpedx = ((fc-fa)*(yb-ya) - (fb-fa)*(yc-ya))/denom;
+    vtx->dpedy = ((fb-fa)*(xc-xa) - (fc-fa)*(xb-xa))/denom;
     return SUCCESS;
 } // end viscous_derivatives_corners()

@@ -510,7 +510,8 @@ FV_Vertex::FV_Vertex(Gas_model *gm)
       domegadx(0.0), domegady(0.0), domegadz(0.0),
       dfdx(gm->get_number_of_species(),0.0),
       dfdy(gm->get_number_of_species(),0.0),
-      dfdz(gm->get_number_of_species(),0.0)
+      dfdz(gm->get_number_of_species(),0.0),
+      dpedx(0.0), dpedy(0.0), dpedz(0.0)
 {}
 
 FV_Vertex::FV_Vertex()
@@ -527,7 +528,8 @@ FV_Vertex::FV_Vertex()
       domegadx(0.0), domegady(0.0), domegadz(0.0),
       dfdx(get_gas_model_ptr()->get_number_of_species(),0.0),
       dfdy(get_gas_model_ptr()->get_number_of_species(),0.0),
-      dfdz(get_gas_model_ptr()->get_number_of_species(),0.0)
+      dfdz(get_gas_model_ptr()->get_number_of_species(),0.0),
+      dpedx(0.0), dpedy(0.0), dpedz(0.0)
 {}
 
 FV_Vertex::FV_Vertex(const FV_Vertex &vtx)
@@ -539,7 +541,8 @@ FV_Vertex::FV_Vertex(const FV_Vertex &vtx)
       dTdx(vtx.dTdx), dTdy(vtx.dTdy), dTdz(vtx.dTdz),
       dtkedx(vtx.dtkedx), dtkedy(vtx.dtkedy), dtkedz(vtx.dtkedz),
       domegadx(vtx.domegadx), domegady(vtx.domegady), domegadz(vtx.domegadz),
-      dfdx(vtx.dfdx), dfdy(vtx.dfdy), dfdz(vtx.dfdz)
+      dfdx(vtx.dfdx), dfdy(vtx.dfdy), dfdz(vtx.dfdz),
+      dpedx(vtx.dpedx), dpedy(vtx.dpedy), dpedz(vtx.dpedz)
 {}
 
 FV_Vertex::~FV_Vertex()
@@ -562,6 +565,7 @@ int FV_Vertex::copy_values_from(const FV_Vertex &src)
 	dfdy[isp] = src.dfdy[isp];
 	dfdz[isp] = src.dfdz[isp];
     }
+    dpedx = src.dpedx; dpedy = src.dpedy; dpedz = src.dpedz;
     return SUCCESS;
 }
 
@@ -2441,6 +2445,39 @@ int FV_Cell::add_viscous_source_vector(bool with_k_omega)
 	this->k_omega_time_derivatives(&Q_tke, &Q_omega, fs->tke, fs->omega);
 	Q->tke += Q_tke; Q->omega += Q_omega;
     }
+
+    if ( get_electric_field_work_flag() ) {
+        // Work done on electrons due to electric field induced by charge separation
+	// on scales less than the Debye length
+	// FIXME: Only consistent with ambipolar diffusion. Currently this is up to
+	//        the user to enforce.
+
+	double udivpe = 0.0;
+
+	global_data &G = *get_global_data_ptr();
+	if ( G.dimensions==2 ) {
+	    // Estimate electron pressure gradient as average of all vertices
+	    double dpedx = 0.25 * (vtx[0]->dpedx + vtx[1]->dpedx + vtx[2]->dpedx + vtx[3]->dpedx);
+	    double dpedy = 0.25 * (vtx[0]->dpedy + vtx[1]->dpedy + vtx[2]->dpedy + vtx[3]->dpedy);
+	    // Approximation for work done on electrons: u dot div(pe)
+            udivpe = fs->vel.x * dpedx + fs->vel.y * dpedy;
+	}
+	else {
+	    // Estimate electron pressure gradient as average of all vertices
+	    double dpedx = 0.125 * (vtx[0]->dpedx + vtx[1]->dpedx + vtx[2]->dpedx + vtx[3]->dpedx
+			          + vtx[4]->dpedx + vtx[5]->dpedx + vtx[6]->dpedx + vtx[7]->dpedx);
+	    double dpedy = 0.125 * (vtx[0]->dpedy + vtx[1]->dpedy + vtx[2]->dpedy + vtx[3]->dpedy
+			          + vtx[4]->dpedy + vtx[5]->dpedy + vtx[6]->dpedy + vtx[7]->dpedy);
+	    double dpedz = 0.125 * (vtx[0]->dpedz + vtx[1]->dpedz + vtx[2]->dpedz + vtx[3]->dpedz
+			          + vtx[4]->dpedz + vtx[5]->dpedz + vtx[6]->dpedz + vtx[7]->dpedz);
+	    // Approximation for work done on electrons: u dot div(pe)
+	    udivpe = fs->vel.x * dpedx + fs->vel.y * dpedy + fs->vel.z * dpedz;
+	}
+
+	// FIXME: Assuming the free electron energy is included in the last mode
+        Q->energies.back() += udivpe;
+    }
+
     return SUCCESS;
 } // end FV_Cell::add_viscous_source_vector()
 

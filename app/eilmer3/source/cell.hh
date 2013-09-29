@@ -182,6 +182,7 @@ public:
     double dtkedx, dtkedy, dtkedz;        ///< \brief turbulence kinetic energy
     double domegadx, domegady, domegadz;  ///< \brief pseudo vorticity for k-omega turbulence
     std::vector<double> dfdx, dfdy, dfdz; ///< \brief mass fraction derivatives
+    double dpedx, dpedy, dpedz;           ///< \brief electron pressure derivatives
     //
     FV_Vertex(Gas_model *gm);
     FV_Vertex();

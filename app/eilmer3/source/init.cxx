@@ -481,6 +481,9 @@ int read_config_parameters(const string filename, bool master)
 	cout << "transient_mu_t_factor = " << G.transient_mu_t_factor << endl;
     }
 
+    dict.parse_int("global_data", "electric_field_work_flag", i_value, 0);
+    set_electric_field_work_flag( i_value );
+
     dict.parse_size_t("global_data", "max_invalid_cells", G.max_invalid_cells, 10);
     dict.parse_string("global_data", "flux_calc", s_value, "adaptive");
     set_flux_calculator(available_calculators[s_value]);

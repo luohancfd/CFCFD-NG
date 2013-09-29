@@ -427,7 +427,8 @@ class GlobalData(object):
                 'fixed_time_step', 'apply_limiter_flag', 'extrema_clipping_flag', \
                 'energy_exchange_flag', 'energy_exchange_update', \
                 'udf_file', 'udf_source_vector_flag', \
-                'heat_time_start', 'heat_time_stop', 'heat_factor_increment'
+                'heat_time_start', 'heat_time_stop', 'heat_factor_increment' \
+                'electric_field_work_flag'
     
     def __init__(self):
         """
@@ -634,6 +635,7 @@ class GlobalData(object):
         fp.write("max_invalid_cells = %d\n" % self.max_invalid_cells)
         fp.write("control_count = %d\n" % self.control_count)
         fp.write("velocity_buckets = %d\n" % self.velocity_buckets)
+        fp.write("electric_field_work_flag = %d\n" % self.electric_field_work)
         #
         if self.velocity_buckets > 0:
             tstr_x = "vcoords_x ="

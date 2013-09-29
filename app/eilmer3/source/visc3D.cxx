@@ -1146,6 +1146,23 @@ int viscous_derivatives_3D(Block *A, size_t gtl)
 		        q_n*north->area[gtl]*north->n.z - q_s*south->area[gtl]*south->n.z +
 		        q_top*top->area[gtl]*top->n.z - q_bottom*bottom->area[gtl]*bottom->n.z);
                 }
+		// Average property value on each face.
+		q_e = 0.25 * (cB->fs->gas->p_e + cC->fs->gas->p_e + cF->fs->gas->p_e + cG->fs->gas->p_e);
+		q_w = 0.25 * (cA->fs->gas->p_e + cD->fs->gas->p_e + cH->fs->gas->p_e + cE->fs->gas->p_e);
+		q_n = 0.25 * (cE->fs->gas->p_e + cF->fs->gas->p_e + cG->fs->gas->p_e + cH->fs->gas->p_e);
+		q_s = 0.25 * (cA->fs->gas->p_e + cB->fs->gas->p_e + cC->fs->gas->p_e + cD->fs->gas->p_e);
+		q_top = 0.25 * (cA->fs->gas->p_e + cB->fs->gas->p_e + cE->fs->gas->p_e + cF->fs->gas->p_e);
+		q_bottom = 0.25 * (cD->fs->gas->p_e + cC->fs->gas->p_e + cG->fs->gas->p_e + cH->fs->gas->p_e);
+		// Apply the divergence theorem.
+		sec_ctr->dpedx = vol_inv * (q_e*east->area[gtl]*east->n.x - q_w*west->area[gtl]*west->n.x +
+		                            q_n*north->area[gtl]*north->n.x - q_s*south->area[gtl]*south->n.x +
+		                            q_top*top->area[gtl]*top->n.x - q_bottom*bottom->area[gtl]*bottom->n.x);
+		sec_ctr->dpedx = vol_inv * (q_e*east->area[gtl]*east->n.y - q_w*west->area[gtl]*west->n.y +
+		                            q_n*north->area[gtl]*north->n.y - q_s*south->area[gtl]*south->n.y +
+		                            q_top*top->area[gtl]*top->n.y - q_bottom*bottom->area[gtl]*bottom->n.y);
+		sec_ctr->dpedx = vol_inv * (q_e*east->area[gtl]*east->n.z - q_w*west->area[gtl]*west->n.z +
+		                            q_n*north->area[gtl]*north->n.z - q_s*south->area[gtl]*south->n.z +
+		                            q_top*top->area[gtl]*top->n.z - q_bottom*bottom->area[gtl]*bottom->n.z);
 	    } // k loop
         } // j loop
     } // i loop
@@ -1299,6 +1316,23 @@ int viscous_derivatives_3D(Block *A, size_t gtl)
 		        q_n*north->area[gtl]*north->n.z - q_s*south->area[gtl]*south->n.z +
 		        q_top*top->area[gtl]*top->n.z - q_bottom*bottom->area[gtl]*bottom->n.z);
             }
+	    // Average property value on each face.
+	    q_e = 0.25 * (fB->fs->gas->p_e + fC->fs->gas->p_e + fF->fs->gas->p_e + fG->fs->gas->p_e);
+	    q_w = 0.25 * (cA->fs->gas->p_e + cD->fs->gas->p_e + cH->fs->gas->p_e + cE->fs->gas->p_e);
+	    q_n = 0.25 * (cE->fs->gas->p_e + fF->fs->gas->p_e + fG->fs->gas->p_e + cH->fs->gas->p_e);
+	    q_s = 0.25 * (cA->fs->gas->p_e + fB->fs->gas->p_e + fC->fs->gas->p_e + cD->fs->gas->p_e);
+	    q_top = 0.25 * (cA->fs->gas->p_e + fB->fs->gas->p_e + cE->fs->gas->p_e + fF->fs->gas->p_e);
+	    q_bottom = 0.25 * (cD->fs->gas->p_e + fC->fs->gas->p_e + fG->fs->gas->p_e + cH->fs->gas->p_e);
+	    // Apply the divergence theorem.
+	    sec_ctr->dpedx = vol_inv * (q_e*east->area[gtl]*east->n.x - q_w*west->area[gtl]*west->n.x +
+		                        q_n*north->area[gtl]*north->n.x - q_s*south->area[gtl]*south->n.x +
+		                        q_top*top->area[gtl]*top->n.x - q_bottom*bottom->area[gtl]*bottom->n.x);
+	    sec_ctr->dpedx = vol_inv * (q_e*east->area[gtl]*east->n.y - q_w*west->area[gtl]*west->n.y +
+		                        q_n*north->area[gtl]*north->n.y - q_s*south->area[gtl]*south->n.y +
+		                        q_top*top->area[gtl]*top->n.y - q_bottom*bottom->area[gtl]*bottom->n.y);
+	    sec_ctr->dpedx = vol_inv * (q_e*east->area[gtl]*east->n.z - q_w*west->area[gtl]*west->n.z +
+		                        q_n*north->area[gtl]*north->n.z - q_s*south->area[gtl]*south->n.z +
+		                        q_top*top->area[gtl]*top->n.z - q_bottom*bottom->area[gtl]*bottom->n.z);
 	} // k loop
     } // j loop
 
@@ -1450,6 +1484,23 @@ int viscous_derivatives_3D(Block *A, size_t gtl)
 		        q_n*north->area[gtl]*north->n.z - q_s*south->area[gtl]*south->n.z +
 		        q_top*top->area[gtl]*top->n.z - q_bottom*bottom->area[gtl]*bottom->n.z);
             }
+	    // Average property value on each face.
+	    q_e = 0.25 * (cB->fs->gas->p_e + cC->fs->gas->p_e + cF->fs->gas->p_e + cG->fs->gas->p_e);
+	    q_w = 0.25 * (fA->fs->gas->p_e + fD->fs->gas->p_e + fH->fs->gas->p_e + fE->fs->gas->p_e);
+	    q_n = 0.25 * (fE->fs->gas->p_e + cF->fs->gas->p_e + cG->fs->gas->p_e + fH->fs->gas->p_e);
+	    q_s = 0.25 * (fA->fs->gas->p_e + cB->fs->gas->p_e + cC->fs->gas->p_e + fD->fs->gas->p_e);
+	    q_top = 0.25 * (fA->fs->gas->p_e + cB->fs->gas->p_e + fE->fs->gas->p_e + cF->fs->gas->p_e);
+	    q_bottom = 0.25 * (fD->fs->gas->p_e + cC->fs->gas->p_e + cG->fs->gas->p_e + fH->fs->gas->p_e);
+	    // Apply the divergence theorem.
+	    sec_ctr->dpedx = vol_inv * (q_e*east->area[gtl]*east->n.x - q_w*west->area[gtl]*west->n.x +
+		                        q_n*north->area[gtl]*north->n.x - q_s*south->area[gtl]*south->n.x +
+		                        q_top*top->area[gtl]*top->n.x - q_bottom*bottom->area[gtl]*bottom->n.x);
+	    sec_ctr->dpedx = vol_inv * (q_e*east->area[gtl]*east->n.y - q_w*west->area[gtl]*west->n.y +
+		                        q_n*north->area[gtl]*north->n.y - q_s*south->area[gtl]*south->n.y +
+		                        q_top*top->area[gtl]*top->n.y - q_bottom*bottom->area[gtl]*bottom->n.y);
+	    sec_ctr->dpedx = vol_inv * (q_e*east->area[gtl]*east->n.z - q_w*west->area[gtl]*west->n.z +
+		                        q_n*north->area[gtl]*north->n.z - q_s*south->area[gtl]*south->n.z +
+		                        q_top*top->area[gtl]*top->n.z - q_bottom*bottom->area[gtl]*bottom->n.z);
 	} // k loop
     } // j loop
 
@@ -1601,6 +1652,23 @@ int viscous_derivatives_3D(Block *A, size_t gtl)
 		        q_n*north->area[gtl]*north->n.z - q_s*south->area[gtl]*south->n.z +
 		        q_top*top->area[gtl]*top->n.z - q_bottom*bottom->area[gtl]*bottom->n.z);
             }
+	    // Average property value on each face.
+	    q_e = 0.25 * (cB->fs->gas->p_e + cC->fs->gas->p_e + cF->fs->gas->p_e + fG->fs->gas->p_e);
+	    q_w = 0.25 * (cA->fs->gas->p_e + cD->fs->gas->p_e + fH->fs->gas->p_e + fE->fs->gas->p_e);
+	    q_n = 0.25 * (fE->fs->gas->p_e + fF->fs->gas->p_e + cG->fs->gas->p_e + fH->fs->gas->p_e);
+	    q_s = 0.25 * (cA->fs->gas->p_e + cB->fs->gas->p_e + cC->fs->gas->p_e + cD->fs->gas->p_e);
+	    q_top = 0.25 * (cA->fs->gas->p_e + cB->fs->gas->p_e + cE->fs->gas->p_e + fF->fs->gas->p_e);
+	    q_bottom = 0.25 * (cD->fs->gas->p_e + cC->fs->gas->p_e + fG->fs->gas->p_e + fH->fs->gas->p_e);
+	    // Apply the divergence theorem.
+	    sec_ctr->dpedx = vol_inv * (q_e*east->area[gtl]*east->n.x - q_w*west->area[gtl]*west->n.x +
+		                        q_n*north->area[gtl]*north->n.x - q_s*south->area[gtl]*south->n.x +
+		                        q_top*top->area[gtl]*top->n.x - q_bottom*bottom->area[gtl]*bottom->n.x);
+	    sec_ctr->dpedx = vol_inv * (q_e*east->area[gtl]*east->n.y - q_w*west->area[gtl]*west->n.y +
+		                        q_n*north->area[gtl]*north->n.y - q_s*south->area[gtl]*south->n.y +
+		                        q_top*top->area[gtl]*top->n.y - q_bottom*bottom->area[gtl]*bottom->n.y);
+	    sec_ctr->dpedx = vol_inv * (q_e*east->area[gtl]*east->n.z - q_w*west->area[gtl]*west->n.z +
+		                        q_n*north->area[gtl]*north->n.z - q_s*south->area[gtl]*south->n.z +
+		                        q_top*top->area[gtl]*top->n.z - q_bottom*bottom->area[gtl]*bottom->n.z);
         } // k loop
     } // i loop
 
@@ -1752,6 +1820,23 @@ int viscous_derivatives_3D(Block *A, size_t gtl)
 		        q_n*north->area[gtl]*north->n.z - q_s*south->area[gtl]*south->n.z +
 		        q_top*top->area[gtl]*top->n.z - q_bottom*bottom->area[gtl]*bottom->n.z);
             }
+	    // Average property value on each face.
+	    q_e = 0.25 * (fB->fs->gas->p_e + fC->fs->gas->p_e + cF->fs->gas->p_e + cG->fs->gas->p_e);
+	    q_w = 0.25 * (fA->fs->gas->p_e + fD->fs->gas->p_e + cH->fs->gas->p_e + cE->fs->gas->p_e);
+	    q_n = 0.25 * (cE->fs->gas->p_e + cF->fs->gas->p_e + cG->fs->gas->p_e + cH->fs->gas->p_e);
+	    q_s = 0.25 * (fA->fs->gas->p_e + fB->fs->gas->p_e + fC->fs->gas->p_e + fD->fs->gas->p_e);
+	    q_top = 0.25 * (fA->fs->gas->p_e + fB->fs->gas->p_e + cE->fs->gas->p_e + cF->fs->gas->p_e);
+	    q_bottom = 0.25 * (fD->fs->gas->p_e + fC->fs->gas->p_e + cG->fs->gas->p_e + cH->fs->gas->p_e);
+	    // Apply the divergence theorem.
+	    sec_ctr->dpedx = vol_inv * (q_e*east->area[gtl]*east->n.x - q_w*west->area[gtl]*west->n.x +
+		                        q_n*north->area[gtl]*north->n.x - q_s*south->area[gtl]*south->n.x +
+		                        q_top*top->area[gtl]*top->n.x - q_bottom*bottom->area[gtl]*bottom->n.x);
+	    sec_ctr->dpedx = vol_inv * (q_e*east->area[gtl]*east->n.y - q_w*west->area[gtl]*west->n.y +
+		                        q_n*north->area[gtl]*north->n.y - q_s*south->area[gtl]*south->n.y +
+		                        q_top*top->area[gtl]*top->n.y - q_bottom*bottom->area[gtl]*bottom->n.y);
+	    sec_ctr->dpedx = vol_inv * (q_e*east->area[gtl]*east->n.z - q_w*west->area[gtl]*west->n.z +
+		                        q_n*north->area[gtl]*north->n.z - q_s*south->area[gtl]*south->n.z +
+		                        q_top*top->area[gtl]*top->n.z - q_bottom*bottom->area[gtl]*bottom->n.z);
 	} // k loop
     } // i loop
 
@@ -1903,6 +1988,23 @@ int viscous_derivatives_3D(Block *A, size_t gtl)
 		        q_n*north->area[gtl]*north->n.z - q_s*south->area[gtl]*south->n.z +
 		        q_top*top->area[gtl]*top->n.z - q_bottom*bottom->area[gtl]*bottom->n.z);
             }
+	    // Average property value on each face.
+	    q_e = 0.25 * (fB->fs->gas->p_e + cC->fs->gas->p_e + fF->fs->gas->p_e + cG->fs->gas->p_e);
+	    q_w = 0.25 * (fA->fs->gas->p_e + cD->fs->gas->p_e + cH->fs->gas->p_e + fE->fs->gas->p_e);
+	    q_n = 0.25 * (fE->fs->gas->p_e + fF->fs->gas->p_e + cG->fs->gas->p_e + cH->fs->gas->p_e);
+	    q_s = 0.25 * (fA->fs->gas->p_e + fB->fs->gas->p_e + cC->fs->gas->p_e + cD->fs->gas->p_e);
+	    q_top = 0.25 * (fA->fs->gas->p_e + fB->fs->gas->p_e + fE->fs->gas->p_e + fF->fs->gas->p_e);
+	    q_bottom = 0.25 * (cD->fs->gas->p_e + cC->fs->gas->p_e + cG->fs->gas->p_e + cH->fs->gas->p_e);
+	    // Apply the divergence theorem.
+	    sec_ctr->dpedx = vol_inv * (q_e*east->area[gtl]*east->n.x - q_w*west->area[gtl]*west->n.x +
+		                        q_n*north->area[gtl]*north->n.x - q_s*south->area[gtl]*south->n.x +
+		                        q_top*top->area[gtl]*top->n.x - q_bottom*bottom->area[gtl]*bottom->n.x);
+	    sec_ctr->dpedx = vol_inv * (q_e*east->area[gtl]*east->n.y - q_w*west->area[gtl]*west->n.y +
+		                        q_n*north->area[gtl]*north->n.y - q_s*south->area[gtl]*south->n.y +
+		                        q_top*top->area[gtl]*top->n.y - q_bottom*bottom->area[gtl]*bottom->n.y);
+	    sec_ctr->dpedx = vol_inv * (q_e*east->area[gtl]*east->n.z - q_w*west->area[gtl]*west->n.z +
+		                        q_n*north->area[gtl]*north->n.z - q_s*south->area[gtl]*south->n.z +
+		                        q_top*top->area[gtl]*top->n.z - q_bottom*bottom->area[gtl]*bottom->n.z);
         } // j loop
     } // i loop
 
@@ -2054,6 +2156,23 @@ int viscous_derivatives_3D(Block *A, size_t gtl)
 		        q_n*north->area[gtl]*north->n.z - q_s*south->area[gtl]*south->n.z +
 		        q_top*top->area[gtl]*top->n.z - q_bottom*bottom->area[gtl]*bottom->n.z);
             }
+	    // Average property value on each face.
+	    q_e = 0.25 * (cB->fs->gas->p_e + fC->fs->gas->p_e + cF->fs->gas->p_e + fG->fs->gas->p_e);
+	    q_w = 0.25 * (cA->fs->gas->p_e + fD->fs->gas->p_e + fH->fs->gas->p_e + cE->fs->gas->p_e);
+	    q_n = 0.25 * (cE->fs->gas->p_e + cF->fs->gas->p_e + fG->fs->gas->p_e + fH->fs->gas->p_e);
+	    q_s = 0.25 * (cA->fs->gas->p_e + cB->fs->gas->p_e + fC->fs->gas->p_e + fD->fs->gas->p_e);
+	    q_top = 0.25 * (cA->fs->gas->p_e + cB->fs->gas->p_e + cE->fs->gas->p_e + cF->fs->gas->p_e);
+	    q_bottom = 0.25 * (fD->fs->gas->p_e + fC->fs->gas->p_e + fG->fs->gas->p_e + fH->fs->gas->p_e);
+	    // Apply the divergence theorem.
+	    sec_ctr->dpedx = vol_inv * (q_e*east->area[gtl]*east->n.x - q_w*west->area[gtl]*west->n.x +
+		                        q_n*north->area[gtl]*north->n.x - q_s*south->area[gtl]*south->n.x +
+		                        q_top*top->area[gtl]*top->n.x - q_bottom*bottom->area[gtl]*bottom->n.x);
+	    sec_ctr->dpedx = vol_inv * (q_e*east->area[gtl]*east->n.y - q_w*west->area[gtl]*west->n.y +
+		                        q_n*north->area[gtl]*north->n.y - q_s*south->area[gtl]*south->n.y +
+		                        q_top*top->area[gtl]*top->n.y - q_bottom*bottom->area[gtl]*bottom->n.y);
+	    sec_ctr->dpedx = vol_inv * (q_e*east->area[gtl]*east->n.z - q_w*west->area[gtl]*west->n.z +
+		                        q_n*north->area[gtl]*north->n.z - q_s*south->area[gtl]*south->n.z +
+		                        q_top*top->area[gtl]*top->n.z - q_bottom*bottom->area[gtl]*bottom->n.z);
  	} // j loop
     } // i loop
 
@@ -2173,6 +2292,16 @@ int viscous_derivatives_corners_3D(Block *bdp, size_t gtl)
              +xa*(fc*yd+fb*(yc-yd)-fd*yc+(fd-fc)*yb)+xb*(fd*yc-fc*yd)
              +(fc*xd-fd*xc)*yb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*ya) / denom;
     }
+    fa = a->fs->gas->p_e; fb = b->fs->gas->p_e; fc = c->fs->gas->p_e; fd = d->fs->gas->p_e;
+       vtx->dpedx = (fa*(yb*(zd-zc)-yc*zd+yd*zc+(yc-yd)*zb)+fb*(yc*zd-yd*zc)
+         +ya*(fc*zd+fb*(zc-zd)-fd*zc+(fd-fc)*zb)+yb*(fd*zc-fc*zd)
+         +(fc*yd-fd*yc)*zb+(fb*(yd-yc)-fc*yd+fd*yc+(fc-fd)*yb)*za) / denom;
+       vtx->dpedy = -(fa*(xb*(zd-zc)-xc*zd+xd*zc+(xc-xd)*zb)+fb*(xc*zd-xd*zc)
+          +xa*(fc*zd+fb*(zc-zd)-fd*zc+(fd-fc)*zb)+xb*(fd*zc-fc*zd)
+          +(fc*xd-fd*xc)*zb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*za) / denom;
+       vtx->dpedz = (fa*(xb*(yd-yc)-xc*yd+xd*yc+(xc-xd)*yb)+fb*(xc*yd-xd*yc)
+         +xa*(fc*yd+fb*(yc-yd)-fd*yc+(fd-fc)*yb)+xb*(fd*yc-fc*yd)
+         +(fc*xd-fd*xc)*yb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*ya) / denom;
 
     // South-East-Bottom corner [1]
     i = bdp->imax; j = bdp->jmin; k = bdp->kmin;
@@ -2263,6 +2392,16 @@ int viscous_derivatives_corners_3D(Block *bdp, size_t gtl)
              +xa*(fc*yd+fb*(yc-yd)-fd*yc+(fd-fc)*yb)+xb*(fd*yc-fc*yd)
              +(fc*xd-fd*xc)*yb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*ya) / denom;
     }
+    fa = a->fs->gas->p_e; fb = b->fs->gas->p_e; fc = c->fs->gas->p_e; fd = d->fs->gas->p_e;
+       vtx->dpedx = (fa*(yb*(zd-zc)-yc*zd+yd*zc+(yc-yd)*zb)+fb*(yc*zd-yd*zc)
+         +ya*(fc*zd+fb*(zc-zd)-fd*zc+(fd-fc)*zb)+yb*(fd*zc-fc*zd)
+         +(fc*yd-fd*yc)*zb+(fb*(yd-yc)-fc*yd+fd*yc+(fc-fd)*yb)*za) / denom;
+       vtx->dpedy = -(fa*(xb*(zd-zc)-xc*zd+xd*zc+(xc-xd)*zb)+fb*(xc*zd-xd*zc)
+          +xa*(fc*zd+fb*(zc-zd)-fd*zc+(fd-fc)*zb)+xb*(fd*zc-fc*zd)
+          +(fc*xd-fd*xc)*zb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*za) / denom;
+       vtx->dpedz = (fa*(xb*(yd-yc)-xc*yd+xd*yc+(xc-xd)*yb)+fb*(xc*yd-xd*yc)
+         +xa*(fc*yd+fb*(yc-yd)-fd*yc+(fd-fc)*yb)+xb*(fd*yc-fc*yd)
+         +(fc*xd-fd*xc)*yb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*ya) / denom;
 
     // North-East-Bottom corner [2]
     i = bdp->imax; j = bdp->jmax; k = bdp->kmin;
@@ -2353,6 +2492,16 @@ int viscous_derivatives_corners_3D(Block *bdp, size_t gtl)
              +xa*(fc*yd+fb*(yc-yd)-fd*yc+(fd-fc)*yb)+xb*(fd*yc-fc*yd)
              +(fc*xd-fd*xc)*yb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*ya) / denom;
     }
+    fa = a->fs->gas->p_e; fb = b->fs->gas->p_e; fc = c->fs->gas->p_e; fd = d->fs->gas->p_e;
+       vtx->dpedx = (fa*(yb*(zd-zc)-yc*zd+yd*zc+(yc-yd)*zb)+fb*(yc*zd-yd*zc)
+         +ya*(fc*zd+fb*(zc-zd)-fd*zc+(fd-fc)*zb)+yb*(fd*zc-fc*zd)
+         +(fc*yd-fd*yc)*zb+(fb*(yd-yc)-fc*yd+fd*yc+(fc-fd)*yb)*za) / denom;
+       vtx->dpedy = -(fa*(xb*(zd-zc)-xc*zd+xd*zc+(xc-xd)*zb)+fb*(xc*zd-xd*zc)
+          +xa*(fc*zd+fb*(zc-zd)-fd*zc+(fd-fc)*zb)+xb*(fd*zc-fc*zd)
+          +(fc*xd-fd*xc)*zb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*za) / denom;
+       vtx->dpedz = (fa*(xb*(yd-yc)-xc*yd+xd*yc+(xc-xd)*yb)+fb*(xc*yd-xd*yc)
+         +xa*(fc*yd+fb*(yc-yd)-fd*yc+(fd-fc)*yb)+xb*(fd*yc-fc*yd)
+         +(fc*xd-fd*xc)*yb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*ya) / denom;
 
     // North-West-Bottom corner [3]
     i = bdp->imin; j = bdp->jmax; k = bdp->kmin;
@@ -2443,6 +2592,16 @@ int viscous_derivatives_corners_3D(Block *bdp, size_t gtl)
              +xa*(fc*yd+fb*(yc-yd)-fd*yc+(fd-fc)*yb)+xb*(fd*yc-fc*yd)
              +(fc*xd-fd*xc)*yb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*ya) / denom;
     }
+    fa = a->fs->gas->p_e; fb = b->fs->gas->p_e; fc = c->fs->gas->p_e; fd = d->fs->gas->p_e;
+       vtx->dpedx = (fa*(yb*(zd-zc)-yc*zd+yd*zc+(yc-yd)*zb)+fb*(yc*zd-yd*zc)
+         +ya*(fc*zd+fb*(zc-zd)-fd*zc+(fd-fc)*zb)+yb*(fd*zc-fc*zd)
+         +(fc*yd-fd*yc)*zb+(fb*(yd-yc)-fc*yd+fd*yc+(fc-fd)*yb)*za) / denom;
+       vtx->dpedy = -(fa*(xb*(zd-zc)-xc*zd+xd*zc+(xc-xd)*zb)+fb*(xc*zd-xd*zc)
+          +xa*(fc*zd+fb*(zc-zd)-fd*zc+(fd-fc)*zb)+xb*(fd*zc-fc*zd)
+          +(fc*xd-fd*xc)*zb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*za) / denom;
+       vtx->dpedz = (fa*(xb*(yd-yc)-xc*yd+xd*yc+(xc-xd)*yb)+fb*(xc*yd-xd*yc)
+         +xa*(fc*yd+fb*(yc-yd)-fd*yc+(fd-fc)*yb)+xb*(fd*yc-fc*yd)
+         +(fc*xd-fd*xc)*yb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*ya) / denom;
 
     // South-West-Top corner [4]
     i = bdp->imin; j = bdp->jmin; k = bdp->kmax;
@@ -2533,6 +2692,16 @@ int viscous_derivatives_corners_3D(Block *bdp, size_t gtl)
              +xa*(fc*yd+fb*(yc-yd)-fd*yc+(fd-fc)*yb)+xb*(fd*yc-fc*yd)
              +(fc*xd-fd*xc)*yb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*ya) / denom;
     }
+    fa = a->fs->gas->p_e; fb = b->fs->gas->p_e; fc = c->fs->gas->p_e; fd = d->fs->gas->p_e;
+       vtx->dpedx = (fa*(yb*(zd-zc)-yc*zd+yd*zc+(yc-yd)*zb)+fb*(yc*zd-yd*zc)
+         +ya*(fc*zd+fb*(zc-zd)-fd*zc+(fd-fc)*zb)+yb*(fd*zc-fc*zd)
+         +(fc*yd-fd*yc)*zb+(fb*(yd-yc)-fc*yd+fd*yc+(fc-fd)*yb)*za) / denom;
+       vtx->dpedy = -(fa*(xb*(zd-zc)-xc*zd+xd*zc+(xc-xd)*zb)+fb*(xc*zd-xd*zc)
+          +xa*(fc*zd+fb*(zc-zd)-fd*zc+(fd-fc)*zb)+xb*(fd*zc-fc*zd)
+          +(fc*xd-fd*xc)*zb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*za) / denom;
+       vtx->dpedz = (fa*(xb*(yd-yc)-xc*yd+xd*yc+(xc-xd)*yb)+fb*(xc*yd-xd*yc)
+         +xa*(fc*yd+fb*(yc-yd)-fd*yc+(fd-fc)*yb)+xb*(fd*yc-fc*yd)
+         +(fc*xd-fd*xc)*yb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*ya) / denom;
 
     // South-East-Top corner [5]
     i = bdp->imax; j = bdp->jmin; k = bdp->kmax;
@@ -2623,6 +2792,16 @@ int viscous_derivatives_corners_3D(Block *bdp, size_t gtl)
              +xa*(fc*yd+fb*(yc-yd)-fd*yc+(fd-fc)*yb)+xb*(fd*yc-fc*yd)
              +(fc*xd-fd*xc)*yb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*ya) / denom;
     }
+    fa = a->fs->gas->p_e; fb = b->fs->gas->p_e; fc = c->fs->gas->p_e; fd = d->fs->gas->p_e;
+       vtx->dpedx = (fa*(yb*(zd-zc)-yc*zd+yd*zc+(yc-yd)*zb)+fb*(yc*zd-yd*zc)
+         +ya*(fc*zd+fb*(zc-zd)-fd*zc+(fd-fc)*zb)+yb*(fd*zc-fc*zd)
+         +(fc*yd-fd*yc)*zb+(fb*(yd-yc)-fc*yd+fd*yc+(fc-fd)*yb)*za) / denom;
+       vtx->dpedy = -(fa*(xb*(zd-zc)-xc*zd+xd*zc+(xc-xd)*zb)+fb*(xc*zd-xd*zc)
+          +xa*(fc*zd+fb*(zc-zd)-fd*zc+(fd-fc)*zb)+xb*(fd*zc-fc*zd)
+          +(fc*xd-fd*xc)*zb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*za) / denom;
+       vtx->dpedz = (fa*(xb*(yd-yc)-xc*yd+xd*yc+(xc-xd)*yb)+fb*(xc*yd-xd*yc)
+         +xa*(fc*yd+fb*(yc-yd)-fd*yc+(fd-fc)*yb)+xb*(fd*yc-fc*yd)
+         +(fc*xd-fd*xc)*yb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*ya) / denom;
 
     // North-East-Top corner [6]
     i = bdp->imax; j = bdp->jmax; k = bdp->kmax;
@@ -2713,6 +2892,16 @@ int viscous_derivatives_corners_3D(Block *bdp, size_t gtl)
              +xa*(fc*yd+fb*(yc-yd)-fd*yc+(fd-fc)*yb)+xb*(fd*yc-fc*yd)
              +(fc*xd-fd*xc)*yb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*ya) / denom;
     }
+    fa = a->fs->gas->p_e; fb = b->fs->gas->p_e; fc = c->fs->gas->p_e; fd = d->fs->gas->p_e;
+       vtx->dpedx = (fa*(yb*(zd-zc)-yc*zd+yd*zc+(yc-yd)*zb)+fb*(yc*zd-yd*zc)
+         +ya*(fc*zd+fb*(zc-zd)-fd*zc+(fd-fc)*zb)+yb*(fd*zc-fc*zd)
+         +(fc*yd-fd*yc)*zb+(fb*(yd-yc)-fc*yd+fd*yc+(fc-fd)*yb)*za) / denom;
+       vtx->dpedy = -(fa*(xb*(zd-zc)-xc*zd+xd*zc+(xc-xd)*zb)+fb*(xc*zd-xd*zc)
+          +xa*(fc*zd+fb*(zc-zd)-fd*zc+(fd-fc)*zb)+xb*(fd*zc-fc*zd)
+          +(fc*xd-fd*xc)*zb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*za) / denom;
+       vtx->dpedz = (fa*(xb*(yd-yc)-xc*yd+xd*yc+(xc-xd)*yb)+fb*(xc*yd-xd*yc)
+         +xa*(fc*yd+fb*(yc-yd)-fd*yc+(fd-fc)*yb)+xb*(fd*yc-fc*yd)
+         +(fc*xd-fd*xc)*yb+(fb*(xd-xc)-fc*xd+fd*xc+(fc-fd)*xb)*ya) / denom;
 
     // North-West-Top corner [7]
     i = bdp->imin; j = bdp->jmax; k = bdp->kmax;
@@ -2974,6 +3163,21 @@ int viscous_derivatives_edge_3D(Block *bdp, size_t gtl)
                 vtx->dfdy[isp] = x1[2];
                 vtx->dfdz[isp] = x1[3];
         }
+        ca_f = ca->fs->gas->p_e; cb_f = cb->fs->gas->p_e;
+        fa_f = fa->fs->gas->p_e; fb_f = fb->fs->gas->p_e; fc_f = fc->fs->gas->p_e; fd_f = fd->fs->gas->p_e;
+          Sf = ca_f + cb_f + fa_f + fb_f + fc_f + fd_f;
+         Sfx = ca_f*ca_x + cb_f*cb_x + fa_f*fa_x + fb_f*fb_x + fc_f*fc_x + fd_f*fd_x;
+         Sfy = ca_f*ca_y + cb_f*cb_y + fa_f*fa_y + fb_f*fb_y + fc_f*fc_y + fd_f*fd_y;
+         Sfz = ca_f*ca_z + cb_f*cb_z + fa_f*fa_z + fb_f*fb_z + fc_f*fc_z + fd_f*fd_z;
+        A1.set(0,0,S1);  A1.set(0,1,Sx);  A1.set(0,2,Sy);  A1.set(0,3,Sz);
+        A1.set(1,0,Sx);  A1.set(1,1,Sxx);  A1.set(1,2,Syx);  A1.set(1,3,Szx);
+        A1.set(2,0,Sy);  A1.set(2,1,Syx);  A1.set(2,2,Syy);  A1.set(2,3,Szy);
+        A1.set(3,0,Sz);  A1.set(3,1,Szx);  A1.set(3,2,Szy);  A1.set(3,3,Szz);
+        B1[0] = Sf; B1[1] = Sfx; B1[2] = Sfy; B1[3] = Sfz;
+        gaussian_elimination( A1, x1, B1 );
+        vtx->dpedx = x1[1];
+        vtx->dpedy = x1[2];
+        vtx->dpedz = x1[3];
     }
 
     // Bottom-North edge [3]-->[2]
@@ -3112,6 +3316,21 @@ int viscous_derivatives_edge_3D(Block *bdp, size_t gtl)
                 vtx->dfdy[isp] = x1[2];
                 vtx->dfdz[isp] = x1[3];
         }
+        ca_f = ca->fs->gas->p_e; cb_f = cb->fs->gas->p_e;
+        fa_f = fa->fs->gas->p_e; fb_f = fb->fs->gas->p_e; fc_f = fc->fs->gas->p_e; fd_f = fd->fs->gas->p_e;
+          Sf = ca_f + cb_f + fa_f + fb_f + fc_f + fd_f;
+         Sfx = ca_f*ca_x + cb_f*cb_x + fa_f*fa_x + fb_f*fb_x + fc_f*fc_x + fd_f*fd_x;
+         Sfy = ca_f*ca_y + cb_f*cb_y + fa_f*fa_y + fb_f*fb_y + fc_f*fc_y + fd_f*fd_y;
+         Sfz = ca_f*ca_z + cb_f*cb_z + fa_f*fa_z + fb_f*fb_z + fc_f*fc_z + fd_f*fd_z;
+        A1.set(0,0,S1);  A1.set(0,1,Sx);  A1.set(0,2,Sy);  A1.set(0,3,Sz);
+        A1.set(1,0,Sx);  A1.set(1,1,Sxx);  A1.set(1,2,Syx);  A1.set(1,3,Szx);
+        A1.set(2,0,Sy);  A1.set(2,1,Syx);  A1.set(2,2,Syy);  A1.set(2,3,Szy);
+        A1.set(3,0,Sz);  A1.set(3,1,Szx);  A1.set(3,2,Szy);  A1.set(3,3,Szz);
+        B1[0] = Sf; B1[1] = Sfx; B1[2] = Sfy; B1[3] = Sfz;
+        gaussian_elimination( A1, x1, B1 );
+        vtx->dpedx = x1[1];
+        vtx->dpedy = x1[2];
+        vtx->dpedz = x1[3];
     }
 
     // Bottom-West edge [0]-->[3]
@@ -3250,6 +3469,21 @@ int viscous_derivatives_edge_3D(Block *bdp, size_t gtl)
                 vtx->dfdy[isp] = x1[2];
                 vtx->dfdz[isp] = x1[3];
         }
+        ca_f = ca->fs->gas->p_e; cb_f = cb->fs->gas->p_e;
+        fa_f = fa->fs->gas->p_e; fb_f = fb->fs->gas->p_e; fc_f = fc->fs->gas->p_e; fd_f = fd->fs->gas->p_e;
+          Sf = ca_f + cb_f + fa_f + fb_f + fc_f + fd_f;
+         Sfx = ca_f*ca_x + cb_f*cb_x + fa_f*fa_x + fb_f*fb_x + fc_f*fc_x + fd_f*fd_x;
+         Sfy = ca_f*ca_y + cb_f*cb_y + fa_f*fa_y + fb_f*fb_y + fc_f*fc_y + fd_f*fd_y;
+         Sfz = ca_f*ca_z + cb_f*cb_z + fa_f*fa_z + fb_f*fb_z + fc_f*fc_z + fd_f*fd_z;
+        A1.set(0,0,S1);  A1.set(0,1,Sx);  A1.set(0,2,Sy);  A1.set(0,3,Sz);
+        A1.set(1,0,Sx);  A1.set(1,1,Sxx);  A1.set(1,2,Syx);  A1.set(1,3,Szx);
+        A1.set(2,0,Sy);  A1.set(2,1,Syx);  A1.set(2,2,Syy);  A1.set(2,3,Szy);
+        A1.set(3,0,Sz);  A1.set(3,1,Szx);  A1.set(3,2,Szy);  A1.set(3,3,Szz);
+        B1[0] = Sf; B1[1] = Sfx; B1[2] = Sfy; B1[3] = Sfz;
+        gaussian_elimination( A1, x1, B1 );
+        vtx->dpedx = x1[1];
+        vtx->dpedy = x1[2];
+        vtx->dpedz = x1[3];
     }
 
     // Bottom-East edge [1]-->[2]
@@ -3388,6 +3622,21 @@ int viscous_derivatives_edge_3D(Block *bdp, size_t gtl)
                 vtx->dfdy[isp] = x1[2];
                 vtx->dfdz[isp] = x1[3];
         }
+        ca_f = ca->fs->gas->p_e; cb_f = cb->fs->gas->p_e;
+        fa_f = fa->fs->gas->p_e; fb_f = fb->fs->gas->p_e; fc_f = fc->fs->gas->p_e; fd_f = fd->fs->gas->p_e;
+          Sf = ca_f + cb_f + fa_f + fb_f + fc_f + fd_f;
+         Sfx = ca_f*ca_x + cb_f*cb_x + fa_f*fa_x + fb_f*fb_x + fc_f*fc_x + fd_f*fd_x;
+         Sfy = ca_f*ca_y + cb_f*cb_y + fa_f*fa_y + fb_f*fb_y + fc_f*fc_y + fd_f*fd_y;
+         Sfz = ca_f*ca_z + cb_f*cb_z + fa_f*fa_z + fb_f*fb_z + fc_f*fc_z + fd_f*fd_z;
+        A1.set(0,0,S1);  A1.set(0,1,Sx);  A1.set(0,2,Sy);  A1.set(0,3,Sz);
+        A1.set(1,0,Sx);  A1.set(1,1,Sxx);  A1.set(1,2,Syx);  A1.set(1,3,Szx);
+        A1.set(2,0,Sy);  A1.set(2,1,Syx);  A1.set(2,2,Syy);  A1.set(2,3,Szy);
+        A1.set(3,0,Sz);  A1.set(3,1,Szx);  A1.set(3,2,Szy);  A1.set(3,3,Szz);
+        B1[0] = Sf; B1[1] = Sfx; B1[2] = Sfy; B1[3] = Sfz;
+        gaussian_elimination( A1, x1, B1 );
+        vtx->dpedx = x1[1];
+        vtx->dpedy = x1[2];
+        vtx->dpedz = x1[3];
     }
 
     // Top-South edge [4]-->[5]
@@ -3526,6 +3775,21 @@ int viscous_derivatives_edge_3D(Block *bdp, size_t gtl)
                 vtx->dfdy[isp] = x1[2];
                 vtx->dfdz[isp] = x1[3];
         }
+        ca_f = ca->fs->gas->p_e; cb_f = cb->fs->gas->p_e;
+        fa_f = fa->fs->gas->p_e; fb_f = fb->fs->gas->p_e; fc_f = fc->fs->gas->p_e; fd_f = fd->fs->gas->p_e;
+          Sf = ca_f + cb_f + fa_f + fb_f + fc_f + fd_f;
+         Sfx = ca_f*ca_x + cb_f*cb_x + fa_f*fa_x + fb_f*fb_x + fc_f*fc_x + fd_f*fd_x;
+         Sfy = ca_f*ca_y + cb_f*cb_y + fa_f*fa_y + fb_f*fb_y + fc_f*fc_y + fd_f*fd_y;
+         Sfz = ca_f*ca_z + cb_f*cb_z + fa_f*fa_z + fb_f*fb_z + fc_f*fc_z + fd_f*fd_z;
+        A1.set(0,0,S1);  A1.set(0,1,Sx);  A1.set(0,2,Sy);  A1.set(0,3,Sz);
+        A1.set(1,0,Sx);  A1.set(1,1,Sxx);  A1.set(1,2,Syx);  A1.set(1,3,Szx);
+        A1.set(2,0,Sy);  A1.set(2,1,Syx);  A1.set(2,2,Syy);  A1.set(2,3,Szy);
+        A1.set(3,0,Sz);  A1.set(3,1,Szx);  A1.set(3,2,Szy);  A1.set(3,3,Szz);
+        B1[0] = Sf; B1[1] = Sfx; B1[2] = Sfy; B1[3] = Sfz;
+        gaussian_elimination( A1, x1, B1 );
+        vtx->dpedx = x1[1];
+        vtx->dpedy = x1[2];
+        vtx->dpedz = x1[3];
     }
 
     // Top-North edge [7]-->[6]
@@ -3664,6 +3928,21 @@ int viscous_derivatives_edge_3D(Block *bdp, size_t gtl)
                 vtx->dfdy[isp] = x1[2];
                 vtx->dfdz[isp] = x1[3];
         }
+        ca_f = ca->fs->gas->p_e; cb_f = cb->fs->gas->p_e;
+        fa_f = fa->fs->gas->p_e; fb_f = fb->fs->gas->p_e; fc_f = fc->fs->gas->p_e; fd_f = fd->fs->gas->p_e;
+          Sf = ca_f + cb_f + fa_f + fb_f + fc_f + fd_f;
+         Sfx = ca_f*ca_x + cb_f*cb_x + fa_f*fa_x + fb_f*fb_x + fc_f*fc_x + fd_f*fd_x;
+         Sfy = ca_f*ca_y + cb_f*cb_y + fa_f*fa_y + fb_f*fb_y + fc_f*fc_y + fd_f*fd_y;
+         Sfz = ca_f*ca_z + cb_f*cb_z + fa_f*fa_z + fb_f*fb_z + fc_f*fc_z + fd_f*fd_z;
+        A1.set(0,0,S1);  A1.set(0,1,Sx);  A1.set(0,2,Sy);  A1.set(0,3,Sz);
+        A1.set(1,0,Sx);  A1.set(1,1,Sxx);  A1.set(1,2,Syx);  A1.set(1,3,Szx);
+        A1.set(2,0,Sy);  A1.set(2,1,Syx);  A1.set(2,2,Syy);  A1.set(2,3,Szy);
+        A1.set(3,0,Sz);  A1.set(3,1,Szx);  A1.set(3,2,Szy);  A1.set(3,3,Szz);
+        B1[0] = Sf; B1[1] = Sfx; B1[2] = Sfy; B1[3] = Sfz;
+        gaussian_elimination( A1, x1, B1 );
+        vtx->dpedx = x1[1];
+        vtx->dpedy = x1[2];
+        vtx->dpedz = x1[3];
     }
 
     // Top-West edge [4]-->[7]
@@ -3802,6 +4081,21 @@ int viscous_derivatives_edge_3D(Block *bdp, size_t gtl)
                 vtx->dfdy[isp] = x1[2];
                 vtx->dfdz[isp] = x1[3];
         }
+        ca_f = ca->fs->gas->p_e; cb_f = cb->fs->gas->p_e;
+        fa_f = fa->fs->gas->p_e; fb_f = fb->fs->gas->p_e; fc_f = fc->fs->gas->p_e; fd_f = fd->fs->gas->p_e;
+          Sf = ca_f + cb_f + fa_f + fb_f + fc_f + fd_f;
+         Sfx = ca_f*ca_x + cb_f*cb_x + fa_f*fa_x + fb_f*fb_x + fc_f*fc_x + fd_f*fd_x;
+         Sfy = ca_f*ca_y + cb_f*cb_y + fa_f*fa_y + fb_f*fb_y + fc_f*fc_y + fd_f*fd_y;
+         Sfz = ca_f*ca_z + cb_f*cb_z + fa_f*fa_z + fb_f*fb_z + fc_f*fc_z + fd_f*fd_z;
+        A1.set(0,0,S1);  A1.set(0,1,Sx);  A1.set(0,2,Sy);  A1.set(0,3,Sz);
+        A1.set(1,0,Sx);  A1.set(1,1,Sxx);  A1.set(1,2,Syx);  A1.set(1,3,Szx);
+        A1.set(2,0,Sy);  A1.set(2,1,Syx);  A1.set(2,2,Syy);  A1.set(2,3,Szy);
+        A1.set(3,0,Sz);  A1.set(3,1,Szx);  A1.set(3,2,Szy);  A1.set(3,3,Szz);
+        B1[0] = Sf; B1[1] = Sfx; B1[2] = Sfy; B1[3] = Sfz;
+        gaussian_elimination( A1, x1, B1 );
+        vtx->dpedx = x1[1];
+        vtx->dpedy = x1[2];
+        vtx->dpedz = x1[3];
     }
 
     // Top-East edge [5]-->[6]
@@ -3940,6 +4234,21 @@ int viscous_derivatives_edge_3D(Block *bdp, size_t gtl)
                 vtx->dfdy[isp] = x1[2];
                 vtx->dfdz[isp] = x1[3];
         }
+        ca_f = ca->fs->gas->p_e; cb_f = cb->fs->gas->p_e;
+        fa_f = fa->fs->gas->p_e; fb_f = fb->fs->gas->p_e; fc_f = fc->fs->gas->p_e; fd_f = fd->fs->gas->p_e;
+          Sf = ca_f + cb_f + fa_f + fb_f + fc_f + fd_f;
+         Sfx = ca_f*ca_x + cb_f*cb_x + fa_f*fa_x + fb_f*fb_x + fc_f*fc_x + fd_f*fd_x;
+         Sfy = ca_f*ca_y + cb_f*cb_y + fa_f*fa_y + fb_f*fb_y + fc_f*fc_y + fd_f*fd_y;
+         Sfz = ca_f*ca_z + cb_f*cb_z + fa_f*fa_z + fb_f*fb_z + fc_f*fc_z + fd_f*fd_z;
+        A1.set(0,0,S1);  A1.set(0,1,Sx);  A1.set(0,2,Sy);  A1.set(0,3,Sz);
+        A1.set(1,0,Sx);  A1.set(1,1,Sxx);  A1.set(1,2,Syx);  A1.set(1,3,Szx);
+        A1.set(2,0,Sy);  A1.set(2,1,Syx);  A1.set(2,2,Syy);  A1.set(2,3,Szy);
+        A1.set(3,0,Sz);  A1.set(3,1,Szx);  A1.set(3,2,Szy);  A1.set(3,3,Szz);
+        B1[0] = Sf; B1[1] = Sfx; B1[2] = Sfy; B1[3] = Sfz;
+        gaussian_elimination( A1, x1, B1 );
+        vtx->dpedx = x1[1];
+        vtx->dpedy = x1[2];
+        vtx->dpedz = x1[3];
     }
 
     // South-West edge [0]-->[4]
@@ -4078,6 +4387,21 @@ int viscous_derivatives_edge_3D(Block *bdp, size_t gtl)
                 vtx->dfdy[isp] = x1[2];
                 vtx->dfdz[isp] = x1[3];
         }
+        ca_f = ca->fs->gas->p_e; cb_f = cb->fs->gas->p_e;
+        fa_f = fa->fs->gas->p_e; fb_f = fb->fs->gas->p_e; fc_f = fc->fs->gas->p_e; fd_f = fd->fs->gas->p_e;
+          Sf = ca_f + cb_f + fa_f + fb_f + fc_f + fd_f;
+         Sfx = ca_f*ca_x + cb_f*cb_x + fa_f*fa_x + fb_f*fb_x + fc_f*fc_x + fd_f*fd_x;
+         Sfy = ca_f*ca_y + cb_f*cb_y + fa_f*fa_y + fb_f*fb_y + fc_f*fc_y + fd_f*fd_y;
+         Sfz = ca_f*ca_z + cb_f*cb_z + fa_f*fa_z + fb_f*fb_z + fc_f*fc_z + fd_f*fd_z;
+        A1.set(0,0,S1);  A1.set(0,1,Sx);  A1.set(0,2,Sy);  A1.set(0,3,Sz);
+        A1.set(1,0,Sx);  A1.set(1,1,Sxx);  A1.set(1,2,Syx);  A1.set(1,3,Szx);
+        A1.set(2,0,Sy);  A1.set(2,1,Syx);  A1.set(2,2,Syy);  A1.set(2,3,Szy);
+        A1.set(3,0,Sz);  A1.set(3,1,Szx);  A1.set(3,2,Szy);  A1.set(3,3,Szz);
+        B1[0] = Sf; B1[1] = Sfx; B1[2] = Sfy; B1[3] = Sfz;
+        gaussian_elimination( A1, x1, B1 );
+        vtx->dpedx = x1[1];
+        vtx->dpedy = x1[2];
+        vtx->dpedz = x1[3];
     }
 
     // South-East edge [1]-->[5]
@@ -4216,6 +4540,21 @@ int viscous_derivatives_edge_3D(Block *bdp, size_t gtl)
                 vtx->dfdy[isp] = x1[2];
                 vtx->dfdz[isp] = x1[3];
         }
+        ca_f = ca->fs->gas->p_e; cb_f = cb->fs->gas->p_e;
+        fa_f = fa->fs->gas->p_e; fb_f = fb->fs->gas->p_e; fc_f = fc->fs->gas->p_e; fd_f = fd->fs->gas->p_e;
+          Sf = ca_f + cb_f + fa_f + fb_f + fc_f + fd_f;
+         Sfx = ca_f*ca_x + cb_f*cb_x + fa_f*fa_x + fb_f*fb_x + fc_f*fc_x + fd_f*fd_x;
+         Sfy = ca_f*ca_y + cb_f*cb_y + fa_f*fa_y + fb_f*fb_y + fc_f*fc_y + fd_f*fd_y;
+         Sfz = ca_f*ca_z + cb_f*cb_z + fa_f*fa_z + fb_f*fb_z + fc_f*fc_z + fd_f*fd_z;
+        A1.set(0,0,S1);  A1.set(0,1,Sx);  A1.set(0,2,Sy);  A1.set(0,3,Sz);
+        A1.set(1,0,Sx);  A1.set(1,1,Sxx);  A1.set(1,2,Syx);  A1.set(1,3,Szx);
+        A1.set(2,0,Sy);  A1.set(2,1,Syx);  A1.set(2,2,Syy);  A1.set(2,3,Szy);
+        A1.set(3,0,Sz);  A1.set(3,1,Szx);  A1.set(3,2,Szy);  A1.set(3,3,Szz);
+        B1[0] = Sf; B1[1] = Sfx; B1[2] = Sfy; B1[3] = Sfz;
+        gaussian_elimination( A1, x1, B1 );
+        vtx->dpedx = x1[1];
+        vtx->dpedy = x1[2];
+        vtx->dpedz = x1[3];
     }
 
     // North-East edge [2]-->[6]
@@ -4354,6 +4693,21 @@ int viscous_derivatives_edge_3D(Block *bdp, size_t gtl)
                 vtx->dfdy[isp] = x1[2];
                 vtx->dfdz[isp] = x1[3];
         }
+        ca_f = ca->fs->gas->p_e; cb_f = cb->fs->gas->p_e;
+        fa_f = fa->fs->gas->p_e; fb_f = fb->fs->gas->p_e; fc_f = fc->fs->gas->p_e; fd_f = fd->fs->gas->p_e;
+          Sf = ca_f + cb_f + fa_f + fb_f + fc_f + fd_f;
+         Sfx = ca_f*ca_x + cb_f*cb_x + fa_f*fa_x + fb_f*fb_x + fc_f*fc_x + fd_f*fd_x;
+         Sfy = ca_f*ca_y + cb_f*cb_y + fa_f*fa_y + fb_f*fb_y + fc_f*fc_y + fd_f*fd_y;
+         Sfz = ca_f*ca_z + cb_f*cb_z + fa_f*fa_z + fb_f*fb_z + fc_f*fc_z + fd_f*fd_z;
+        A1.set(0,0,S1);  A1.set(0,1,Sx);  A1.set(0,2,Sy);  A1.set(0,3,Sz);
+        A1.set(1,0,Sx);  A1.set(1,1,Sxx);  A1.set(1,2,Syx);  A1.set(1,3,Szx);
+        A1.set(2,0,Sy);  A1.set(2,1,Syx);  A1.set(2,2,Syy);  A1.set(2,3,Szy);
+        A1.set(3,0,Sz);  A1.set(3,1,Szx);  A1.set(3,2,Szy);  A1.set(3,3,Szz);
+        B1[0] = Sf; B1[1] = Sfx; B1[2] = Sfy; B1[3] = Sfz;
+        gaussian_elimination( A1, x1, B1 );
+        vtx->dpedx = x1[1];
+        vtx->dpedy = x1[2];
+        vtx->dpedz = x1[3];
     }
 
     // North-West edge [3]-->[7]
@@ -4492,6 +4846,21 @@ int viscous_derivatives_edge_3D(Block *bdp, size_t gtl)
                 vtx->dfdy[isp] = x1[2];
                 vtx->dfdz[isp] = x1[3];
         }
+        ca_f = ca->fs->gas->p_e; cb_f = cb->fs->gas->p_e;
+        fa_f = fa->fs->gas->p_e; fb_f = fb->fs->gas->p_e; fc_f = fc->fs->gas->p_e; fd_f = fd->fs->gas->p_e;
+          Sf = ca_f + cb_f + fa_f + fb_f + fc_f + fd_f;
+         Sfx = ca_f*ca_x + cb_f*cb_x + fa_f*fa_x + fb_f*fb_x + fc_f*fc_x + fd_f*fd_x;
+         Sfy = ca_f*ca_y + cb_f*cb_y + fa_f*fa_y + fb_f*fb_y + fc_f*fc_y + fd_f*fd_y;
+         Sfz = ca_f*ca_z + cb_f*cb_z + fa_f*fa_z + fb_f*fb_z + fc_f*fc_z + fd_f*fd_z;
+        A1.set(0,0,S1);  A1.set(0,1,Sx);  A1.set(0,2,Sy);  A1.set(0,3,Sz);
+        A1.set(1,0,Sx);  A1.set(1,1,Sxx);  A1.set(1,2,Syx);  A1.set(1,3,Szx);
+        A1.set(2,0,Sy);  A1.set(2,1,Syx);  A1.set(2,2,Syy);  A1.set(2,3,Szy);
+        A1.set(3,0,Sz);  A1.set(3,1,Szx);  A1.set(3,2,Szy);  A1.set(3,3,Szz);
+        B1[0] = Sf; B1[1] = Sfx; B1[2] = Sfy; B1[3] = Sfz;
+        gaussian_elimination( A1, x1, B1 );
+        vtx->dpedx = x1[1];
+        vtx->dpedy = x1[2];
+        vtx->dpedz = x1[3];
     }
     return SUCCESS;
 } // end viscous_derivatives_edge_3D()

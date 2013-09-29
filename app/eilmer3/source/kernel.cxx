@@ -273,6 +273,9 @@ size_t velocity_buckets = 0;
 std::vector<Vector3> vcoords; // velocity coordinates for rarefied flow
 std::vector<double> vweights; // weight for each velocity coordinate
 
+/// \brief Electric field work flag: =0 to omit, =1 to include.
+int electric_field_work = 0;
+
 /*------------------------------------------------------------------*/
 
 int set_axisymmetric_flag(int ia)
@@ -829,3 +832,26 @@ std::string get_name_of_turbulence_model(turbulence_model_t my_model)
     default: return "unknown";
     }
 } // end get_name_of_turbulence_model()
+
+/*------------------------------------------------------------------*/
+
+int set_electric_field_work_flag(int iefw)
+{
+    electric_field_work = iefw;
+    if (electric_field_work == 0) {
+        if ( get_verbose_flag() ) printf("Flow without electric field work\n");
+    }
+    else if (electric_field_work == 1) {
+        if ( get_verbose_flag() ) printf("Flow with electric field work\n");
+    }
+    else {
+        printf("Invalid electric field work flag value: %d\n", electric_field_work);
+        exit(VALUE_ERROR);
+    }
+    return SUCCESS;
+}
+
+int get_electric_field_work_flag(void)
+{
+    return electric_field_work;
+}
