@@ -427,7 +427,7 @@ class GlobalData(object):
                 'fixed_time_step', 'apply_limiter_flag', 'extrema_clipping_flag', \
                 'energy_exchange_flag', 'energy_exchange_update', \
                 'udf_file', 'udf_source_vector_flag', \
-                'heat_time_start', 'heat_time_stop', 'heat_factor_increment' \
+                'heat_time_start', 'heat_time_stop', 'heat_factor_increment', \
                 'electric_field_work_flag'
     
     def __init__(self):
@@ -474,6 +474,7 @@ class GlobalData(object):
         self.heat_time_start = 0.0
         self.heat_time_stop = 0.0 # nonzero indicates that we want heating some time
         self.heat_factor_increment = 0.01
+        self.electric_field_work_flag = 0
         self.x_order = 2
         self.interpolation_type = "rhoe"
         self.apply_limiter_flag = 1
@@ -635,7 +636,7 @@ class GlobalData(object):
         fp.write("max_invalid_cells = %d\n" % self.max_invalid_cells)
         fp.write("control_count = %d\n" % self.control_count)
         fp.write("velocity_buckets = %d\n" % self.velocity_buckets)
-        fp.write("electric_field_work_flag = %d\n" % self.electric_field_work)
+        fp.write("electric_field_work_flag = %d\n" % self.electric_field_work_flag)
         #
         if self.velocity_buckets > 0:
             tstr_x = "vcoords_x ="
