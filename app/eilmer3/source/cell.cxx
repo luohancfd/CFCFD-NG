@@ -2452,6 +2452,7 @@ int FV_Cell::add_viscous_source_vector(bool with_k_omega)
 	// FIXME: Only consistent with ambipolar diffusion. Currently this is up to
 	//        the user to enforce.
 
+	double viscous_factor = get_viscous_factor();
 	double udivpe = 0.0;
 
 	global_data &G = *get_global_data_ptr();
