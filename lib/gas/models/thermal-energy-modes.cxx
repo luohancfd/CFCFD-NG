@@ -280,6 +280,7 @@ s_eval_temperature(Gas_data &Q)
     return T_i;
 }
 
+#define COMPLAIN_WHEN_OUT_OF_RANGE 0
 
 double
 Variable_Cv_energy_mode::
@@ -293,13 +294,17 @@ s_eval_temperature_bisection(Gas_data &Q, double tol)
     double e_max = s_eval_energy( Q );
 
     if ( e_given >= e_max ) {
+#       if COMPLAIN_WHEN_OUT_OF_RANGE
         cout << "Variable_Cv_energy_mode::s_eval_temperature_bisection()" << endl
              << "Maximum temperature limit exceeded!" << endl;
         return T_max_;
+#       endif
     }
     else if ( e_given <= e_min ) {
+#       if COMPLAIN_WHEN_OUT_OF_RANGE
         cout << "Variable_Cv_energy_mode::s_eval_temperature_bisection()" << endl
              << "Minimum temperature limit exceeded!" << endl;
+#       endif
         return T_min_;
     }
 
@@ -323,6 +328,8 @@ s_eval_temperature_bisection(Gas_data &Q, double tol)
 
     return T_mid;
 }
+
+#undef COMPLAIN_WHEN_OUT_OF_RANGE
 
 void
 Variable_Cv_energy_mode::
