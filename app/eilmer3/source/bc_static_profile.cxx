@@ -50,10 +50,10 @@ StaticProfileBC::StaticProfileBC(Block *bdp, int which_boundary,
     // the outer ghost cells.
     //
     char line[512], token[512];
-    double x, y, z, volume, rho, u, v, w, p, a, mu, k,mu_t, k_t;
+    double x, y, z, volume, rho, u, v, w, p, a, mu, mu_t, k_t;
     int S;
     double Q_rad_org, f_rad_org, Q_rE_rad, tke, omega, dt_chem, dt_therm;
-    std::vector<double> massf, e, T;
+    std::vector<double> massf, e, T, k;
     size_t ncell, ncell_for_profile;
     size_t ncell_read_from_file = 0;
     FILE *fp;
@@ -72,6 +72,7 @@ StaticProfileBC::StaticProfileBC(Block *bdp, int which_boundary,
     nmodes = gmodel->get_number_of_modes();
     e.resize(nmodes);
     T.resize(nmodes);
+    k.resize(nmodes);
         
     fp = fopen(filename.c_str(), "r");
     if (fp == NULL) {
@@ -101,7 +102,9 @@ StaticProfileBC::StaticProfileBC(Block *bdp, int which_boundary,
 	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &p);
 	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &a);
 	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &mu);
-	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &k); // labelled as k[0], only one present
+	for ( size_t imode = 0; imode < nmodes; ++imode ) {
+	    strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &(k[imode]));
+	}
 	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &mu_t);
 	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &k_t);
 	strcpy(token, strtok(NULL, " ")); sscanf(token, "%d", &S);
@@ -138,7 +141,7 @@ StaticProfileBC::StaticProfileBC(Block *bdp, int which_boundary,
 	cout << "x=" << x << " y=" << y << " z=" << z 
 	     << " volume=" << volume << " rho=" << rho 
 	     << " u=" << u << " v=" << v << " w=" << w 
-	     << " p=" << p << " a=" << a << " mu=" << mu << " k=" << k 
+	     << " p=" << p << " a=" << a << " mu=" << mu << " k[0]=" << k[0] 
 	     << " mu_t=" << mu_t << " k_t=" << k_t << " S=" << S 
 	     << " tke=" << tke << " omega=" << omega 
 	     << " dt_chem=" << dt_chem << " e[0]=" << e[0] << " T[0]=" << T[0] << endl;

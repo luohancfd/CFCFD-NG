@@ -978,6 +978,8 @@ int FV_Cell::scan_values_from_string(char *bufptr)
 // There isn't any checking of the file content.
 // If anything gets out of place, the result is wrong data.
 {
+    size_t nmodes = fs->gas->T.size();
+    size_t nsp = fs->gas->massf.size();
     // Look for a new-line character and truncate the string there.
     char *cptr = strchr(bufptr, '\n');
     if ( cptr != NULL ) *cptr = '\0';
@@ -998,7 +1000,9 @@ int FV_Cell::scan_values_from_string(char *bufptr)
     fs->gas->p = atof(strtok( NULL, " " ));
     fs->gas->a = atof(strtok( NULL, " " ));
     fs->gas->mu = atof(strtok( NULL, " " ));
-    fs->gas->k[0] = atof(strtok( NULL, " " ));
+    for ( size_t imode = 0; imode < nmodes; ++imode ) {
+	fs->gas->k[imode] = atof(strtok( NULL, " " ));
+    }
     fs->mu_t = atof(strtok( NULL, " " ));
     fs->k_t = atof(strtok( NULL, " " ));
     fs->S = atoi(strtok( NULL, " " ));
@@ -1013,12 +1017,10 @@ int FV_Cell::scan_values_from_string(char *bufptr)
     }
     fs->tke = atof(strtok( NULL, " " ));
     fs->omega = atof(strtok( NULL, " " ));
-    size_t nsp = fs->gas->massf.size();
     for ( size_t isp = 0; isp < nsp; ++isp ) {
 	fs->gas->massf[isp] = atof(strtok( NULL, " " ));
     }
     if ( nsp > 1 ) dt_chem = atof(strtok( NULL, " " ));
-    size_t nmodes = fs->gas->T.size();
     for ( size_t imode = 0; imode < nmodes; ++imode ) {
 	fs->gas->e[imode] = atof(strtok( NULL, " " ));
 	fs->gas->T[imode] = atof(strtok( NULL, " " ));
@@ -1030,6 +1032,8 @@ int FV_Cell::scan_values_from_string(char *bufptr)
 /// \brief Write the flow solution (i.e. the primary variables) to a string.
 std::string FV_Cell::write_values_to_string() const
 {
+    size_t nsp = fs->gas->massf.size();
+    size_t nmodes = fs->gas->T.size();
     // The new format for Elmer3 puts everything onto one line.
     ostringstream ost;
     ost.setf(ios_base::scientific);
@@ -1040,21 +1044,21 @@ std::string FV_Cell::write_values_to_string() const
     if ( get_mhd_flag() == 1 ) {
 	ost << " " << fs->B.x << " " << fs->B.y << " " << fs->B.z;
     }
-    ost << " " << fs->gas->p << " " << fs->gas->a << " " << fs->gas->mu
-	<< " " << fs->gas->k[0] << " " << fs->mu_t << " " << fs->k_t
-	<< " " << fs->S;
+    ost << " " << fs->gas->p << " " << fs->gas->a << " " << fs->gas->mu;
+    for ( size_t imode = 0; imode < nmodes; ++imode ) {
+	ost << " " << fs->gas->k[imode];
+    }
+    ost << " " << fs->mu_t << " " << fs->k_t << " " << fs->S;
     if ( get_radiation_flag() == 1 ) {
 	ost << " " << Q_rad_org << " " << f_rad_org << " " << Q_rE_rad;
     }
     ost << " " << fs->tke << " " << fs->omega;
     // Species mass fractions.
-    size_t nsp = fs->gas->massf.size();
     for ( size_t isp = 0; isp < nsp; ++isp ) {
 	ost << " " << fs->gas->massf[isp];
     }
     if ( nsp > 1 ) ost << " " << dt_chem;
     // Individual energies (in e, T pairs)
-    size_t nmodes = fs->gas->T.size();
     for ( size_t imode = 0; imode < nmodes; ++imode ) {
 	ost << " " << fs->gas->e[imode] << " " << fs->gas->T[imode];
     }
@@ -1975,7 +1979,7 @@ int FV_Cell::turbulence_viscosity_zero_if_not_in_zone()
 int FV_Cell::turbulence_viscosity_limit(double factor)
 {
     fs->mu_t = MINIMUM(fs->mu_t, factor * fs->gas->mu);
-    fs->k_t = MINIMUM(fs->k_t , factor * fs->gas->k[0]);
+    fs->k_t = MINIMUM(fs->k_t , factor * fs->gas->k[0]); // ASSUMPTION re k[0]
     return SUCCESS;
 }
 
@@ -2576,7 +2580,11 @@ std::string variable_list_for_cell( void )
     if ( get_mhd_flag() == 1 ) {
 	ost << " \"B.x\" \"B.y\" \"B.z\" ";
     }
-    ost << " \"p\" \"a\" \"mu\" \"k[0]\" \"mu_t\" \"k_t\" \"S\"";
+    ost << " \"p\" \"a\" \"mu\"";
+    for ( size_t imode = 0; imode < nmodes; ++imode ) {
+	ost << " \"k[" << imode << "]\"";
+    }
+    ost << " \"mu_t\" \"k_t\" \"S\"";
     if ( get_radiation_flag() == 1 ) {
 	ost << " \"Q_rad_org\" \"f_rad_org\" \"Q_rE_rad\"";
     }
