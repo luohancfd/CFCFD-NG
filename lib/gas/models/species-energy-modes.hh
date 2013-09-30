@@ -20,7 +20,7 @@
 class Species_energy_mode {
 public:
     Species_energy_mode( int isp=-1, double R=0.0, double min_massf_=1.0e-10,
-    	                 std::string type="none", int iT=-1 );
+    	                 std::string type="none", double theta=0.0, int iT=-1 );
     virtual ~Species_energy_mode() {}
     
     void set_iT(int iT)
@@ -82,12 +82,16 @@ public:
     
     std::string get_type()
     { return type_; }
+
+    double get_theta()
+    { return theta_; }
     
 protected:
     int isp_;
     double R_;
     double min_massf_;
     std::string type_;
+    double theta_;
     int iT_;
     
     virtual double s_eval_energy( const Gas_data &Q  ) = 0;
@@ -110,12 +114,7 @@ public:
     Electronic( int isp, double R, double min_massf, double theta );
     ~Electronic() {}
     
-    double get_theta()
-    { return theta_; }
-    
-protected:
-    double theta_;
-    
+protected:  
     double s_eval_enthalpy( const Gas_data &Q ) { return s_eval_energy(Q); }
     double s_eval_enthalpy_from_T( double T, double A ) { return s_eval_energy_from_T(T,A); }
     double s_eval_Cp( const Gas_data &Q  ) { return s_eval_Cv(Q); }
@@ -281,12 +280,7 @@ public:
     Rotation( int isp, double R, double min_massf, double theta );
     ~Rotation() {}
     
-    double get_theta()
-    { return theta_; }
-    
-protected:
-    double theta_;
-    
+protected:   
     double s_eval_enthalpy( const Gas_data &Q ) { return s_eval_energy(Q); }
     double s_eval_enthalpy_from_T( double T, double A ) { return s_eval_energy_from_T(T,A); }
     double s_eval_Cp( const Gas_data &Q  ) { return s_eval_Cv(Q); }
@@ -409,12 +403,7 @@ public:
     Vibration( int isp, double R, double min_massf, double theta );
     ~Vibration() {}
     
-    double get_theta()
-    { return theta_; }
-    
-protected:
-    double theta_;
-    
+protected:   
     double s_eval_enthalpy( const Gas_data &Q  ) { return s_eval_energy(Q); }
     double s_eval_enthalpy_from_T( double T, double A  ) { return s_eval_energy_from_T(T,A); }
     double s_eval_Cp( const Gas_data &Q  ) { return s_eval_Cv(Q); }

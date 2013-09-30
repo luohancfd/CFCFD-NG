@@ -1,6 +1,6 @@
 // Author: Rowan J. Gollan
 // Version: 17-Oct-2008
-// Place: Hampton, Vriginia, USA
+// Place: Hampton, Virginia, USA
 
 #include <cmath>
 
@@ -10,8 +10,8 @@
 using namespace std;
 
 Normal_reaction::
-Normal_reaction(lua_State *L, Gas_model &g)
-    : Reaction(L, g)
+Normal_reaction(lua_State *L, Gas_model &g, double T_upper, double T_lower)
+    : Reaction(L, g, T_upper, T_lower)
 {
     read_table_as_map(L, -1, "f_coeffs", f_coeffs_);
     read_table_as_map(L, -1, "b_coeffs", b_coeffs_);
@@ -44,7 +44,7 @@ s_compute_backward_rate(const valarray<double> &y)
     return k_b()*val;
 }
 
-Reaction* create_Normal_reaction(lua_State *L, Gas_model &g)
+Reaction* create_Normal_reaction(lua_State *L, Gas_model &g, double T_upper, double T_lower)
 {
-    return new Normal_reaction(L, g);
+    return new Normal_reaction(L, g, T_upper, T_lower);
 }

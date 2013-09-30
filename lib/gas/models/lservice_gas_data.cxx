@@ -165,27 +165,10 @@ void get_table_as_matrix(lua_State *L, matrix &mat)
     }
 }
 
-int create_empty_gas_table(lua_State *L, int nsp, int nmodes)
+int create_empty_gas_table(lua_State *L, Gas_model &gmodel)
 {
-    int narg = lua_gettop(L);
-    if ( narg == 0 ) {
-	nsp = 1;
-	nmodes = 1;
-    }
-    else if ( narg == 1 ) {
-	nsp = luaL_checkint(L, 1);
-	nmodes = 1;
-    }
-    else if ( narg == 2 ) {
-	nsp = luaL_checkint(L, 1);
-	nmodes = luaL_checkint(L, 2);
-    }
-    else {
-	ostringstream ost;
-	ost << "Wrong number of arguments to function create_empty_gas_table()\n";
-	ost << "0, 1 or 2 expected. " << narg << " received.\n";
-	input_error(ost);
-    }
+    int nsp = gmodel.get_number_of_species();
+    int nmodes = gmodel.get_number_of_modes();
 
     lua_newtable(L);
     int tindex = lua_gettop(L);
@@ -225,14 +208,4 @@ int create_empty_gas_table(lua_State *L, int nsp, int nmodes)
     return 1;
 }
 
-int create_empty_gas_table(lua_State *L, Gas_model &gmodel)
-{
-    int nsp = gmodel.get_number_of_species();
-    int nmodes = gmodel.get_number_of_modes();
-    return create_empty_gas_table(L, nsp, nmodes);
-}
 
-int create_empty_gas_table(lua_State *L)
-{
-    return create_empty_gas_table(L, 1, 1);
-}

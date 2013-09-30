@@ -269,7 +269,7 @@ the only means to configure these models is via the preparation of a Lua-style c
 file by hand.
 After building a file by hand (that is, in a text editor), one would use the \texttt{fname} keyword
 argument in the call to \texttt{select\_gas\_model} to set the gas model.
-The list of gas models which are set by directly creating a configuration file are:
+The list of gas models which are set by directly creating a configuration file includes:
 \begin{itemize}
  \item user-defined gas (by specification of callable Lua functions)\index{gas model!user-defined}
  \item an equilibrium gas, based on a look-up table\index{gas model!look-up table}
@@ -317,13 +317,24 @@ For chemically reacting flow simulations, the following function call is
 required:\\
 %
 \topbar\\
-\texttt{set\_reaction\_scheme(config\_file, reacting\_flag=1)}\\
+\texttt{set\_reaction\_scheme(config\_file, reacting\_flag=1, T\_frozen=300.0)}\\
 \bottombar\\
 where \texttt{config\_file} is a string naming the configuration file for the
 chemical reaction scheme.  This configuration file specifies all of the chemical
 reactions between the various species and is built by hand by the user.\index{chemical reaction}
 By default, the reactions are turned on, however, the user may elect to turn off
 chemical reaction updates by setting \texttt{reacting\_flag=0}.
+At low temperatures, it is unlikely that the reactions will proceed in any significant way
+so you may set value of temperature, \verb!T_frozen!, below which the reaction updates will
+be skipped.
+This is checked on a cell-by-cell basis.
+
+\medskip
+Generally, you should use the \verb!'thermally perfect gas'! mix for all reacting flow simulations.
+The enthalpies of formation are implicit in the enthalpy evaluation provided by the NASA Glen curves,
+thus providing the proper effect of heat release due to rearrangement of chemical bonds.
+Note that, at low temperatures, the ideal gas behaviour should be recovered so you shouldn't need 
+to resort to using the \verb!'ideal gas'! model.
 
 \medskip
 An example of a reacting flow simulation is given in Section~\ref{sec:n90}.
@@ -338,15 +349,19 @@ energy between modes due to particle collisions.
 If such energy exchange mechanisms wish to be modelled, the following function call is
 required:\\
 %
-\topbar\\
-\texttt{set\_energy\_exchange\_update(config\_file)}\\
+\topbar
+\begin{verbatim}
+set_energy_exchange_scheme(config_file, energy_exchange_flag=1, 
+                           T_frozen_energy=300.0)\end{verbatim}
 \bottombar\\
 where \texttt{config\_file} is a string naming the Lua configuration file for the
 energy exchange scheme.  This configuration file specifies all of the energy exchange 
 mechanisms between the thermal modes due to thermal processes (i.e. particle collisions) 
 and is built by hand by the user.\index{thermal energy exchange}
-Thermal energy exchange is automatically turned on when the
-\texttt{set\_energy\_exchange\_update(config\_file)} function call is made.
+Thermal energy exchange is, by default, turned on when the
+\texttt{set\_energy\_exchange\_scheme(config\_file)} function call is made, however,
+you may restrict the exchanges to the zones where chemical reactions are allowed and you
+can also set the temperature below which the exchanges will be skipped on a per-cell, per-timestep basis.
 
 \medskip
 An example of a flow simulation with thermal energy exchange is given in
@@ -1676,7 +1691,7 @@ are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config 
 \item \texttt{transient\_mu\_t\_factor}: default value 1.0.
 \end{itemize}
 
-\paragraph{Chemistry}
+\paragraph{Thermo-chemistry}
 \begin{itemize}
 \item \texttt{reacting\_flag}: flag to indicate that the finite-rate chemical
   reactions are active.
@@ -1687,6 +1702,13 @@ are denoted by a \ddag ~symbol.  The rest go into the config file.\index{config 
   (More conveniently set by calling \texttt{set\_reaction\_scheme()}.)
 \item \texttt{reaction\_time\_start}: time after which finite-rate reactions are allowed to start,
   default value 0.0.
+\item \texttt{T\_frozen}: temperature (in degrees K) below which reactions are frozen.
+  The default value is 300.0 since most reaction schemes seem to be valid for temperatures
+  above this, however, you may have good reasons to set it higher or lower.
+  (May also be set in the call to \texttt{set\_reaction\_scheme()}.)
+\item \texttt{T\_frozen\_energy}: temperature (in degrees K) below which the energy exchange is skipped.
+  The default value is 300.0, however, you may have good reasons to set it higher or lower.
+  (May also be set in the call to \texttt{set\_energy\_exchange\_scheme()}.)
 \end{itemize}
 
 \paragraph{Miscellaneous}

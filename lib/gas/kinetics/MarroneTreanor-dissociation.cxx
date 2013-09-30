@@ -14,8 +14,8 @@
 using namespace std;
 
 MarroneTreanor_dissociation::
-MarroneTreanor_dissociation(lua_State *L, Gas_model &g)
-    : Generalised_Arrhenius(L, g)
+MarroneTreanor_dissociation(lua_State *L, Gas_model &g, double T_upper, double T_lower)
+    : Generalised_Arrhenius(L, g, T_upper, T_lower)
 {
     U_ = get_number(L,-1,"U");
 
@@ -45,8 +45,9 @@ MarroneTreanor_dissociation(lua_State *L, Gas_model &g)
 }
 
 MarroneTreanor_dissociation::
-MarroneTreanor_dissociation(double A, double n, double E_a, double U, string v_name)
-    : Generalised_Arrhenius(A, n, E_a), U_(U)
+MarroneTreanor_dissociation(double A, double n, double E_a, double T_upper, double T_lower,
+			    double U, string v_name)
+    : Generalised_Arrhenius(A, n, E_a, T_upper, T_lower), U_(U)
 {
     
     Chemical_species * X = get_library_species_pointer_from_name( v_name );
@@ -98,6 +99,11 @@ s_eval(const Gas_data &Q)
     }
     
     // 3. Evaluate GA coefficient
+    // Check on temperature limits
+    if ( T > T_upper_ )
+	T = T_upper_;
+    if ( T < T_lower_ )
+	T = T_lower_;
     Generalised_Arrhenius::eval_from_T(T);
     // 4. Augment k with NEQ factor
     k_ *= Z;
@@ -105,7 +111,7 @@ s_eval(const Gas_data &Q)
     return SUCCESS;
 }
 
-Reaction_rate_coefficient* create_MarroneTreanor_dissociation_coefficient(lua_State *L, Gas_model &g)
+Reaction_rate_coefficient* create_MarroneTreanor_dissociation_coefficient(lua_State *L, Gas_model &g, double T_upper, double T_lower)
 {
-    return new MarroneTreanor_dissociation(L, g);
+    return new MarroneTreanor_dissociation(L, g, T_upper, T_lower);
 }

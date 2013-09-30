@@ -17,8 +17,9 @@ extern "C" {
 
 class MarroneTreanor_dissociation : public Generalised_Arrhenius {
 public:
-    MarroneTreanor_dissociation(lua_State *L, Gas_model &g);
-    MarroneTreanor_dissociation(double A, double n, double E_a, double U, std::string v_name);
+    MarroneTreanor_dissociation(lua_State *L, Gas_model &g, double T_upper, double T_lower);
+    MarroneTreanor_dissociation(double A, double n, double E_a, double T_upper, double T_lower,
+				double U, std::string v_name);
     ~MarroneTreanor_dissociation();
 
 private:
@@ -30,6 +31,6 @@ private:
     int s_eval(const Gas_data &Q);
 };
 
-Reaction_rate_coefficient* create_MarroneTreanor_dissociation_coefficient(lua_State *L, Gas_model &g);
+Reaction_rate_coefficient* create_MarroneTreanor_dissociation_coefficient(lua_State *L, Gas_model &g, double T_upper, double T_lower);
 
 #endif

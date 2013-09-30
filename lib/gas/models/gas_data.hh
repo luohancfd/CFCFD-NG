@@ -33,7 +33,7 @@ public:
     std::vector<double> T;     /**< \brief array of temperatures, K       */
     // -- Transport properties
     double mu;                 /**< \brief viscosity, Pa.s                 */
-    std::vector<double> k;     /**< \brief array of heat flux coefficients, W/(m.K) */
+    std::vector<double> k;     /**< \brief array of thermal conductivities, W/(m.K) */
     matrix D_AB;               /**< \brief binary diffusion coefficients.  */
     double sigma;              /**< \brief electrical conductivity, S/m    */
     // -- composition

@@ -1057,12 +1057,22 @@ specific_compute_source_term( Gas_data &Q, valarray<double> &dcdt )
 /****************** Knab components ********************/
 
 double calculate_Knab_energy( std::vector<Species_energy_mode*> &sems,
-		double U, double alpha, double A_var, double T, double Tv)
+			      double U0, double U1, double alpha, double A_var, double T, double Tv)
 {
-   // 1. Calculate pseudo-temperatures
-    double gamma = 1.0 / ( 1.0/Tv - 1.0/T - 1.0/U );
-    double T0 = 1.0 / ( 1.0/Tv - 1.0/U );
-    double T_ast = 1.0 / ( 1.0/T - 1.0/U );
+    // 1. Calculate pseudo-temperatures
+    double U = U0 + U1*T;
+    double gamma, T0, T_ast;
+    if ( U > 0.0 ) {
+	gamma = 1.0 / (1.0/Tv - 1.0/T - 1.0/U);
+	T0 = 1.0 / (1.0/Tv - 1.0/U);
+	T_ast = 1.0 / (1.0/T - 1.0/U);
+    }
+    else {
+	// This is the special case of U=inf
+	gamma = 1.0 / (1.0/Tv - 1.0/T);
+	T0 = Tv;
+	T_ast = T;
+    }
 
     // 2. Calculate energies and partition functions
     double L_d_T0 = 0.0;
@@ -1079,9 +1089,18 @@ double calculate_Knab_energy( std::vector<Species_energy_mode*> &sems,
 	Q_d_T0 *= sems[i]->eval_Q_from_T(T0);
 	Q_d_T_ast *= sems[i]->eval_Q_from_T(T_ast);
 	Q_a_gamma *= sems[i]->eval_Q_from_T(gamma,alpha*A_var);
-	Q_a_U *= sems[i]->eval_Q_from_T(-U,alpha*A_var);
 	Q_a_T0 *= sems[i]->eval_Q_from_T(T0,alpha*A_var);
 	Q_a_T_ast *= sems[i]->eval_Q_from_T(T_ast,alpha*A_var);
+	if ( U > 0.0 ) {
+	    Q_a_U *= sems[i]->eval_Q_from_T(-U,alpha*A_var);
+	}
+	else {
+	    // Special case of U = inf
+	    // I showed this numerically by plotting
+	    // partition function of truncated harmonic
+	    // osicallator for large values of T
+	    Q_a_U *= alpha*A_var/sems[i]->get_theta();
+	}
     }
 
     // 3. Calculate the energy of the vanishing or appearing molecules
@@ -1098,14 +1117,15 @@ Knab_vanishing_component::
 Knab_vanishing_component(lua_State *L, Reaction *r, int idc )
 : Coupling_component(L,r,"Knab_vanishing_component","vibration",idc)
 {
-    U_ = get_positive_number(L,-1,"U");
+    U0_ = get_positive_number(L,-1,"U0");
+    U1_ = get_positive_number(L,-1,"U1");
     alpha_ = get_positive_number(L,-1,"alpha");
     A_var_ = get_positive_number(L,-1,"A");
 }
 
 Knab_vanishing_component::
-Knab_vanishing_component( const Knab_vanishing_component &c )
-: Coupling_component( c ), U_( c.U_ ), alpha_( c.alpha_), A_var_( c.A_var_ ) {}
+Knab_vanishing_component(const Knab_vanishing_component &c)
+    : Coupling_component(c), U0_(c.U0_), U1_(c.U1_), alpha_(c.alpha_), A_var_(c.A_var_) {}
 
 Knab_vanishing_component::
 ~Knab_vanishing_component()
@@ -1129,7 +1149,7 @@ specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
     double Tv = Q.T[imode_];
 
     // 1. Calculate energy of vanishing molecules
-    double e_va = calculate_Knab_energy( sems_, U_, alpha_, A_var_, T, Tv );
+    double e_va = calculate_Knab_energy( sems_, U0_, U1_, alpha_, A_var_, T, Tv );
     // Convert to J/particle
     e_va *= m_;
 
@@ -1157,7 +1177,7 @@ specific_compute_source_term( Gas_data &Q, valarray<double> &dcdt )
     double Tv = Q.T[imode_];
 
     // 1. Calculate energy of vanishing molecules
-    double e_va = calculate_Knab_energy( sems_, U_, alpha_, A_var_, T, Tv );
+    double e_va = calculate_Knab_energy( sems_, U0_, U1_, alpha_, A_var_, T, Tv );
     // Convert to J/particle
     e_va *= m_;
 
@@ -1175,16 +1195,17 @@ specific_compute_source_term( Gas_data &Q, valarray<double> &dcdt )
 
 Knab_appearing_component::
 Knab_appearing_component(lua_State *L, Reaction *r, int idc )
-: Coupling_component(L,r,"Knab_appearing_component","vibration",idc)
+  : Coupling_component(L,r,"Knab_appearing_component","vibration",idc)
 {
-    U_ = get_positive_number(L,-1,"U");
+    U0_ = get_positive_number(L,-1,"U0");
+    U1_ = get_positive_number(L,-1,"U1");
     alpha_ = get_positive_number(L,-1,"alpha");
     A_var_ = get_positive_number(L,-1,"A");
 }
 
 Knab_appearing_component::
 Knab_appearing_component( const Knab_appearing_component &c )
-: Coupling_component( c ), U_( c.U_ ), alpha_( c.alpha_), A_var_( c.A_var_ ) {}
+    : Coupling_component(c), U0_(c.U0_), U1_(c.U1_), alpha_(c.alpha_), A_var_(c.A_var_) {}
 
 Knab_appearing_component::
 ~Knab_appearing_component()
@@ -1209,7 +1230,7 @@ specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
     double Tv = T;
 
     // 1. Calculate energy of appearing molecules
-    double e_app = calculate_Knab_energy( sems_, U_, alpha_, A_var_, T, Tv );
+    double e_app = calculate_Knab_energy( sems_, U0_, U1_, alpha_, A_var_, T, Tv );
     // Convert to J/particle
     e_app *= m_;
 
@@ -1238,7 +1259,7 @@ specific_compute_source_term( Gas_data &Q, valarray<double> &dcdt )
     double Tv = T;
 
     // 1. Calculate energy of appearing molecules
-    double e_app = calculate_Knab_energy( sems_, U_, alpha_, A_var_, T, Tv );
+    double e_app = calculate_Knab_energy( sems_, U0_, U1_, alpha_, A_var_, T, Tv );
     // Convert to J/particle
     e_app *= m_;
     

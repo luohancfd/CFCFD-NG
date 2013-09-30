@@ -411,7 +411,8 @@ public:
     Knab_vanishing_component * clone() const;
 
 private:
-    double U_;
+    double U0_;
+    double U1_;
     double alpha_;
     double A_var_;
 
@@ -440,7 +441,8 @@ public:
     Knab_appearing_component * clone() const;
 
 private:
-    double U_;
+    double U0_;
+    double U1_;
     double alpha_;
     double A_var_;
 

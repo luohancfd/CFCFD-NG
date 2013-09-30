@@ -17,7 +17,7 @@ extern "C" {
 
 class Third_body_reaction : public Normal_reaction {
 public:
-    Third_body_reaction(lua_State *L, Gas_model &g);
+    Third_body_reaction(lua_State *L, Gas_model &g, double T_upper, double T_lower);
     virtual ~Third_body_reaction();
 
 private:
@@ -30,6 +30,6 @@ private:
     bool conc_just_computed_;
 };
 
-Reaction* create_Third_body_reaction(lua_State *L, Gas_model &g);
+Reaction* create_Third_body_reaction(lua_State *L, Gas_model &g, double T_upper, double T_lower);
 
 #endif

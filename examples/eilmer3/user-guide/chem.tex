@@ -249,10 +249,20 @@ Let's first describe the \texttt{scheme} table.
 The user may set values in this table that pertain to the chemistry scheme as a whole.
 In the example input snippet below, the lower temperature limit is set to 300\,K
 and the upper limit is set to 50\,000\,K.
-This value is used to control the temperature limits at which reactions are
-``turned off'', that is, a chemistry increment is not computed in cells where the
-temperature is lower or higher than these limits, as the case may be.
-Note that these values are set as part of a subtable, \texttt{temperature\_limits}.\\
+These values are used to control the temperature limits at which reaction rate coefficients
+are evaluated.
+When the local temperature exceeds the limits (on either side), the rate is simply
+evaluated at the temperature corresponding to the exceeded limit.
+As pseudo-code:
+\begin{verbatim}
+if T > T_upper
+  then T = T_upper
+if T < T_lower
+  then T = T_lower
+eval_rate_coeff(T)
+\end{verbatim}
+Note that these values are set as part of a subtable, \texttt{temperature\_limits}.
+The example here shows the current default values if not set by the user.\\
 %
 \topbar\\
 \begin{verbatim}

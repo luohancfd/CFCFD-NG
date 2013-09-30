@@ -14,7 +14,7 @@
 using namespace std;
 
 Reaction::
-Reaction(lua_State *L, Gas_model &g)
+Reaction(lua_State *L, Gas_model &g, double T_upper, double T_lower)
 {
     // Setup nu first.
     map<int, int> f_coeffs;
@@ -40,7 +40,7 @@ Reaction(lua_State *L, Gas_model &g)
 	frc_ = 0;
     }
     else {
-	frc_ = create_Reaction_rate_coefficient(L, g);
+	frc_ = create_Reaction_rate_coefficient(L, g, T_upper, T_lower);
     }
     lua_pop(L, 1);
 
@@ -49,7 +49,7 @@ Reaction(lua_State *L, Gas_model &g)
 	brc_ = 0;
     }
     else {
-	brc_ = create_Reaction_rate_coefficient(L, g);
+	brc_ = create_Reaction_rate_coefficient(L, g, T_upper, T_lower);
     }
     lua_pop(L, 1);
 
@@ -216,13 +216,13 @@ s_compute_k_b(const Gas_data &Q)
     exit(BAD_REACTION_RATE_ERROR);
 }
 
-Reaction* create_Reaction(lua_State *L, Gas_model &g)
+Reaction* create_Reaction(lua_State *L, Gas_model &g, double T_upper, double T_lower)
 {
     // Later implement as an object factory.
-    map<string, Reaction* (*)(lua_State *, Gas_model &g)> r_types;
-    r_types.insert(pair<string, Reaction* (*)(lua_State *, Gas_model &g)>("normal reaction",
+    map<string, Reaction* (*)(lua_State *, Gas_model &g, double, double)> r_types;
+    r_types.insert(pair<string, Reaction* (*)(lua_State *, Gas_model &g, double, double)>("normal reaction",
 									  create_Normal_reaction));
-    r_types.insert(pair<string, Reaction* (*)(lua_State *, Gas_model &g)>("third body reaction",
+    r_types.insert(pair<string, Reaction* (*)(lua_State *, Gas_model &g, double, double)>("third body reaction",
 									  create_Third_body_reaction));
 
     string type = get_string(L, -1, "type");
@@ -233,14 +233,14 @@ Reaction* create_Reaction(lua_State *L, Gas_model &g)
 	ost << "Error in specification of reaction type.\n";
 	ost << "The selected type: " << type << " is unknown.\n";
 	ost << "The available types are: " << endl;
-	map<string, Reaction* (*)(lua_State*, Gas_model&)>::const_iterator it;
+	map<string, Reaction* (*)(lua_State*, Gas_model&, double, double)>::const_iterator it;
 	for ( it = r_types.begin(); it != r_types.end(); ++it ) {
 	    ost << "   " << it->first << endl;
 	}
 	input_error(ost);
     }
     
-    Reaction* r = r_types[type](L, g);
+    Reaction* r = r_types[type](L, g, T_upper, T_lower);
 
     if ( r == 0 ) {
 	ostringstream ost;
@@ -303,7 +303,14 @@ Reaction* get_reaction_from_file(int ir, string cfile, Gas_model &g)
 	ost << "Lua error message: " << lua_tostring(L, -1) << endl;
 	input_error(ost);
     }
-    
+
+    lua_getglobal(L, "scheme_t");
+    lua_getfield(L, -1, "temperature_limits");
+    double T_lower = get_positive_number(L, -1, "lower");
+    double T_upper = get_positive_number(L, -1, "upper");
+    lua_pop(L, 1);
+    lua_pop(L, 1); // pop scheme_t
+
     lua_getglobal(L, "reactions");
     if ( !lua_istable(L, -1) ) {
 	ostringstream ost;
@@ -314,7 +321,7 @@ Reaction* get_reaction_from_file(int ir, string cfile, Gas_model &g)
 
     lua_rawgeti(L, -1, ir);
 
-    Reaction *reac = create_Reaction(L, g);
+    Reaction *reac = create_Reaction(L, g, T_upper, T_lower);
 
     lua_close(L);
     return reac;

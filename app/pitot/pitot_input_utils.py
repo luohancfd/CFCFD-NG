@@ -105,6 +105,11 @@ def input_checker(cfg):
     
     cfg['bad_input'] = False
     
+    if cfg['test'] not in ['fulltheory-shock','fulltheory-pressure','experiment']:
+        print "No 'test' specified. You need to specify a test type. Bailing out."
+        print "Available tests are 'fulltheory-shock', 'fulltheory-pressure', 'experiment'."
+        cfg['bad_input'] = True    
+    
     if 'solver' not in cfg:
         print "No 'solver' specified. You need to specify a solver. Bailing out."
         print "Available solvers are 'eq','pg', and 'pg-eq'."

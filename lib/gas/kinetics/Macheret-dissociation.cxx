@@ -14,8 +14,8 @@
 using namespace std;
 
 Macheret_dissociation::
-Macheret_dissociation(lua_State *L, Gas_model &g)
-    : Generalised_Arrhenius(L,g)
+Macheret_dissociation(lua_State *L, Gas_model &g, double T_upper, double T_lower)
+    : Generalised_Arrhenius(L, g, T_upper, T_lower)
 {
     // 0. GA data
     A_ = Generalised_Arrhenius::get_A();
@@ -46,8 +46,8 @@ Macheret_dissociation(lua_State *L, Gas_model &g)
 }
 
 Macheret_dissociation::
-Macheret_dissociation(double A, double n, double E_a, string v_name, string c_name)
-    : Generalised_Arrhenius(A,n,E_a)
+Macheret_dissociation(double A, double n, double E_a, double T_upper, double T_lower, string v_name, string c_name)
+    : Generalised_Arrhenius(A, n, E_a, T_upper, T_lower)
 {
     // 0. GA data
     A_ = A;
@@ -83,11 +83,18 @@ Macheret_dissociation::
 s_eval(const Gas_data &Q)
 {
     // 1. Eval k_ as Arrhenius rate
-    k_ = A_ * pow(Q.T[0], n_) * exp(-E_a_ / (PC_k_SI * Q.T[0]) );
-    
+    double T = Q.T[iT_];
+    if ( T > T_upper_ )
+	T = T_upper_;
+    if ( T < T_lower_ )
+	T = T_lower_;
+    Generalised_Arrhenius::eval_from_T(T); // This call sets 'k_'
+                                           // 'k_' is then modified by 'Z' below
+
     // 2. Get the appropriate temperatures
     double Tv = Q.T[iTv_];
-    double T = Q.T[iT_];
+    T = Q.T[iT_]; // Reset T to T_trans even if it is above limits.
+                  // because now we are computing the nonequilibrium factor.
     double Ta = alpha_ * Tv + ( 1.0 - alpha_ ) * T;
     
     // 3. Calculate nonequilibrium factor
@@ -110,7 +117,7 @@ s_eval(const Gas_data &Q)
     return SUCCESS;
 }
 
-Reaction_rate_coefficient* create_Macheret_dissociation_coefficient(lua_State *L, Gas_model &g)
+Reaction_rate_coefficient* create_Macheret_dissociation_coefficient(lua_State *L, Gas_model &g, double T_upper, double T_lower)
 {
-    return new Macheret_dissociation(L, g);
+    return new Macheret_dissociation(L, g, T_upper, T_lower);
 }

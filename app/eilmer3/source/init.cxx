@@ -340,22 +340,25 @@ int read_config_parameters(const string filename, bool master)
     dict.parse_int("global_data", "reacting_flag", i_value, 0);
     set_reacting_flag( i_value );
     dict.parse_double("global_data", "reaction_time_start", G.reaction_time_start, 0.0);
+    dict.parse_double("global_data", "T_frozen", G.T_frozen, 300.0);
     dict.parse_string("global_data", "reaction_update", s_value, "dummy_scheme");
     if( get_reacting_flag() ) set_reaction_update( s_value );
     if ( get_verbose_flag() ) {
 	cout << "reacting_flag = " << get_reacting_flag() << endl;
 	cout << "reaction_time_start = " << G.reaction_time_start << endl;
 	cout << "reaction_update = " << s_value << endl;
+	cout << "T_frozen = " << G.T_frozen << endl;
     }
 
     dict.parse_int("global_data", "energy_exchange_flag", i_value, 0);
     set_energy_exchange_flag( i_value );
-    dict.parse_string("global_data", "energy_exchange_update", 
-		      s_value, "dummy_scheme");
+    dict.parse_string("global_data", "energy_exchange_update", s_value, "dummy_scheme");
+    dict.parse_double("global_data", "T_frozen_energy", G.T_frozen_energy, 300.0);
     if( get_energy_exchange_flag() ) set_energy_exchange_update(s_value);
     if( get_verbose_flag() ) {
 	cout << "energy_exchange_flag = " << get_energy_exchange_flag() << endl;
 	cout << "energy_exchange_update = " << s_value << endl;
+	cout << "T_frozen_energy = " << G.T_frozen_energy << endl;
     }
 
     dict.parse_int("global_data", "mhd_flag", i_value, 0);

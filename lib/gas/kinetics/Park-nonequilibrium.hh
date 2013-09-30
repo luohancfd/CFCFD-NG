@@ -16,8 +16,8 @@ extern "C" {
 
 class Park_nonequilibrium : public Generalised_Arrhenius {
 public:
-    Park_nonequilibrium(lua_State *L, Gas_model &g);
-    Park_nonequilibrium(double A, double n, double E_a, double s_p, int iTp, int iTq);
+    Park_nonequilibrium(lua_State *L, Gas_model &g, double T_upper, double T_lower);
+    Park_nonequilibrium(double A, double n, double E_a, double T_upper, double T_lower, double s_p, int iTp, int iTq);
     ~Park_nonequilibrium();
 
 private:
@@ -27,6 +27,7 @@ private:
     double s_p_;
 };
 
-Reaction_rate_coefficient* create_Park_nonequilibrium_coefficient(lua_State *L, Gas_model &g);
+Reaction_rate_coefficient* create_Park_nonequilibrium_coefficient(lua_State *L, Gas_model &g,
+								  double T_upper, double T_lower);
 
 #endif

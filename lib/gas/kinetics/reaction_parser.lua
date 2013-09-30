@@ -150,7 +150,7 @@ local function check_scheme()
    scheme_t.update = scheme_t.update or 'chemical kinetic ODE'
    scheme_t.error_tolerance = scheme_t.error_tolerance or 0.1
    scheme_t.temperature_limits = scheme_t.temperature_limits or 
-      {lower=20, upper=100000}
+      {lower=300, upper=50000}
    scheme_t.temperature_limits.lower = scheme_t.temperature_limits.lower or 20
    scheme_t.temperature_limits.upper = scheme_t.temperature_limits.upper or 100000
 end

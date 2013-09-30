@@ -128,6 +128,7 @@ sys.path.append("") # so that we can find user's scripts in current directory
 from getopt import getopt, GetoptError
 from glob import glob
 from gzip import GzipFile
+from libprep3 import *
 from e3_defs import *
 from e3_grid import *
 from e3_block import *

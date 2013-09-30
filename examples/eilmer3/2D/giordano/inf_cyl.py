@@ -84,7 +84,7 @@ else:
     print "Bailing out!"
     sys.exit(1)
 
-set_energy_exchange_update(vib_file)
+set_energy_exchange_scheme(vib_file)
 
 inflow = FlowCondition(p=p_inf, u=u_inf, v=0.0, T=[T_inf, T_inf], massf=[1.0,])
 initial = FlowCondition(p=p_inf/3.0, u=0.0, v=0.0, T=[T_inf, T_inf], massf=[1.0,])

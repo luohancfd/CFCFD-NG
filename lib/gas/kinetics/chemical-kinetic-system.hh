@@ -20,8 +20,8 @@ extern "C" {
 
 class Chemical_kinetic_system : public OdeSystem {
 public:
-    Chemical_kinetic_system(lua_State *L, Gas_model &g, double error_tol);
-    Chemical_kinetic_system(std::string cfile, Gas_model &g, double error_tol=1.0e-9);
+    Chemical_kinetic_system(lua_State *L, Gas_model &g, double error_tol, double T_upper, double T_lower);
+    Chemical_kinetic_system(std::string cfile, Gas_model &g);
 
     ~Chemical_kinetic_system();
     

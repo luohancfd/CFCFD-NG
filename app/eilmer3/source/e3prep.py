@@ -187,12 +187,13 @@ def select_gas_model(model=None, species=None, fname=None):
     nsp = gmodel.get_number_of_species()
     return [ gmodel.species_name(isp) for isp in range(nsp) ]
 
-def set_reaction_scheme(fname, reacting_flag=1):
+def set_reaction_scheme(fname, reacting_flag=1, T_frozen=300.0):
     """
     Sets the reaction update model and specifies a reacting simulation.
 
     :param fname: (string) the name of the input file for the reaction update.
     :param reacting_flag: (int) 1=reacting, 0=nonreacting 
+    :param T_frozen: (float) temperature (in K) below which reactions are frozen
     :returns: None
 
     Note that the user may later reset that flag within the input script,
@@ -200,12 +201,13 @@ def set_reaction_scheme(fname, reacting_flag=1):
     """
     gdata.reacting_flag = reacting_flag
     gdata.reaction_update = fname
+    gdata.T_frozen = T_frozen
     return
 
 # We want to keep the old name, for a while.
 set_reaction_update = set_reaction_scheme
 
-def set_energy_exchange_scheme(fname, energy_exchange_flag=1):
+def set_energy_exchange_scheme(fname, energy_exchange_flag=1, T_frozen_energy=300.0):
     """
     Sets the energy exchange update model and specifies a TNE simulation.
 
@@ -218,6 +220,7 @@ def set_energy_exchange_scheme(fname, energy_exchange_flag=1):
     """
     gdata.energy_exchange_flag = energy_exchange_flag
     gdata.energy_exchange_update = fname
+    gdata.T_frozen_energy = T_frozen_energy
     return
 
 # We want to keep the old name, for a while.
@@ -305,10 +308,12 @@ class GlobalData(object):
     * reacting_flag: (0/1) A value of 1 will make Rowan Gollan's finite-rate
       chemistry active if the appropriate gas_name (e.g. 'perf_gas_mix')
       has been specified.
+    * T_frozen: (float) temperature (in K) below which reactions are frozen.
     * reaction_time_start: (float) Time after which reactions are allowed to proceed.
     * reaction_update: (string) A (file) name for the chemical kinetics scheme
     * energy_exchange_flag: (0/1) A flag indicting finite-rate evolution of thermal state
     * energy_exchange_update: (string) A (file) name for the thermal energy exchange scheme
+    * T_frozen_energy: (float) temperature below which the energy-exchange will be skipped.
     * x_order: (int 1 or 2) Specifies the form of reconstruction from cell-average
       data to cell interface data.
       Select 1 for low-order (i.e. no) reconstruction.
@@ -410,7 +415,7 @@ class GlobalData(object):
                 'diffusion_flag', 'diffusion_model', \
                 'turbulence_model', 'max_mu_t_factor', 'transient_mu_t_factor', \
                 'turbulence_prandtl_number', 'turbulence_schmidt_number', \
-                'scalar_pdf_flag', 'reacting_flag', 'reaction_time_start', \
+                'scalar_pdf_flag', 'reacting_flag', 'T_frozen', 'reaction_time_start', \
                 'x_order', 'flux_calc', 'compression_tolerance', 'shear_tolerance', 'M_inf', \
                 't_order', 'gasdynamic_update_scheme', \
                 'stringent_cfl', 'shock_fitting_flag', 'dt_shock', \
@@ -425,7 +430,7 @@ class GlobalData(object):
                 'displacement_thickness', 'time_average_flag', 'perturb_flag', \
                 'perturb_frac', 'tav_0', 'tav_f', 'dt_av', \
                 'fixed_time_step', 'apply_limiter_flag', 'extrema_clipping_flag', \
-                'energy_exchange_flag', 'energy_exchange_update', \
+                'energy_exchange_flag', 'energy_exchange_update', 'T_frozen_energy', \
                 'udf_file', 'udf_source_vector_flag', \
                 'heat_time_start', 'heat_time_stop', 'heat_factor_increment', \
                 'electric_field_work_flag'
@@ -445,9 +450,11 @@ class GlobalData(object):
         self.gas_model_file = "gas_model.lua"
         self.reaction_update = "dummy_scheme"
         self.reacting_flag = 0
+        self.T_frozen = 300.0
         self.reaction_time_start = 0.0
         self.energy_exchange_flag = 0
         self.energy_exchange_update = "dummy_scheme"
+        self.T_frozen_energy = 300.0
         self.radiation_input_file = "no_file"
         self.radiation_update_frequency = 1
         self.radiation_flag = 0
@@ -591,9 +598,11 @@ class GlobalData(object):
         fp.write("gas_model_file = %s\n" % self.gas_model_file)
         fp.write("reaction_update = %s\n" % self.reaction_update)
         fp.write("reacting_flag = %d\n" % self.reacting_flag)
+        fp.write("T_frozen = %g\n" % self.T_frozen)
         fp.write("reaction_time_start = %e\n"% self.reaction_time_start)
         fp.write("energy_exchange_flag = %d\n" % self.energy_exchange_flag)
         fp.write("energy_exchange_update = %s\n" % self.energy_exchange_update)
+        fp.write("T_frozen_energy = %g\n" % self.T_frozen_energy)
         fp.write("radiation_input_file = %s\n" % self.radiation_input_file)
         fp.write("radiation_update_frequency = %s\n" % self.radiation_update_frequency)
         fp.write("radiation_flag = %d\n" % self.radiation_flag)

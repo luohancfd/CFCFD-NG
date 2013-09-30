@@ -223,7 +223,8 @@ class FlowCondition(object):
         flow_props['p'] = self.flow.gas.p 
         flow_props['a'] = self.flow.gas.a
         flow_props['mu'] = self.flow.gas.mu
-        flow_props['k[0]'] = self.flow.gas.k[0]
+        for imode in range(nmodes):
+            flow_props['k[%d]' % imode] = self.flow.gas.k[imode]
         for isp in range(nsp):
             specname = self.gmodel.species_name(isp).replace(' ', '-')
             flow_props['massf[%d]-%s' % (isp,specname)] = self.flow.gas.massf[isp]
@@ -242,9 +243,8 @@ def variable_list_for_cell(gdata):
 
     :param gdata: the global-data object (used to control which elements are written)
 
-    .. This function needs to be kept consistent with functions 
-       write_cell_data() and read_cell_data() below and with 
-       the corresponding C++ functions in lib/fv_core/source/cns_cell.cxx 
+    .. This function needs to be kept consistent with function write_cell_data(), below,
+       and with the corresponding C++ functions in cell.cxx 
        (write_solution_for_cell, read_solution_for_cell and variable_list_for_cell)
     """
     gmodel = get_gas_model_ptr()
@@ -253,10 +253,12 @@ def variable_list_for_cell(gdata):
     var_names = ["pos.x", "pos.y", "pos.z", "volume", "rho", "vel.x", "vel.y", "vel.z",]
     if gdata.mhd_flag == 1:
         var_names += ["B.x", "B.y", "B.z"]
-    var_names += ["p", "a", "mu", "k[0]", "mu_t", "k_t", "S"]
+    var_names += ["p", "a", "mu"]
+    for imode in range(nmodes):
+        var_names += [("k[%d]" % imode),]
+    var_names += ["mu_t", "k_t", "S"]
     if gdata.radiation_flag == 1: 
         var_names += ["Q_rad_org", "f_rad_org", "Q_rE_rad"]
-    # Always write k-omega properties, as of 24-Sep-2008.
     var_names.append("tke")
     var_names.append("omega")
     for isp in range(nsp):
@@ -303,30 +305,30 @@ def write_cell_data(fp, data, gdata):
 
     For Eilmer3 data files, it's all on one line.
     """
+    gmodel = get_gas_model_ptr()
+    nsp = gmodel.get_number_of_species()
+    nmodes = gmodel.get_number_of_modes()
     fp.write("%20.12e %20.12e %20.12e %20.12e" % 
              (data['pos.x'], data['pos.y'], data['pos.z'], data['volume']))
     fp.write(" %20.12e %20.12e %20.12e %20.12e" %
              (data['rho'], data['vel.x'], data['vel.y'], data['vel.z']))
     if gdata.mhd_flag == 1:
         fp.write(" %20.12e %20.12e %20.12e" % (data['B.x'], data['B.y'], data['B.z']))
-    fp.write(" %20.12e %20.12e %20.12e %20.12e %20.12e %20.12e %1d" %
-             (data['p'], data['a'], data['mu'], data['k[0]'], 
-              data['mu_t'], data['k_t'], data['S']))
+    fp.write(" %20.12e %20.12e %20.12e" % (data['p'], data['a'], data['mu'],))
+    for imode in range(nmodes):
+        fp.write(" %20.12e" % data['k[%d]' % imode]) 
+    fp.write(" %20.12e %20.12e %1d" % (data['mu_t'], data['k_t'], data['S'],))
     if gdata.radiation_flag == 1:
         fp.write(" %20.12e %20.12e %20.12e" % (0.0,0.0,0.0)) # Zero radiation initially.
-    # Always write k-omega properties, as of 24-Sep-2008
     fp.write(" %20.12e %20.12e" % (data['tke'],data['omega']) )
-    gmodel = get_gas_model_ptr()
-    nsp = gmodel.get_number_of_species()
     for isp in range(nsp):
         specname = gmodel.species_name(isp).replace(' ', '-')
         fp.write(" %20.12e" % data['massf[%d]-%s' % (isp, specname)])
     if nsp > 1:
         dt_chem = -1.0
         fp.write(" %20.12e" % dt_chem)
-    nmodes = gmodel.get_number_of_modes()
     for imode in range(nmodes):
-        fp.write(" %20.12e %20.12e" % (data['e[%d]' % imode], data['T[%d]' % imode]))
+        fp.write(" %20.12e %20.12e" % (data['e[%d]' % imode], data['T[%d]' % imode],))
     if nmodes > 1:
         dt_therm = -1.0
         fp.write(" %20.12e" % dt_therm)
@@ -369,7 +371,7 @@ class StructuredGridFlow(object):
         """
         Read the cell-centre flow data for an entire block, Eilmer3-native format.
 
-        Note that it cannot cope with spaces inside names.
+        Note that this function cannot cope with spaces inside names.
         """
         buf = fp.readline() # time
         time_stamp = float(buf)

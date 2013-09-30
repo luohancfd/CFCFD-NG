@@ -20,7 +20,8 @@
 using namespace std;
 
 Chemical_kinetic_MC_system::
-Chemical_kinetic_MC_system(lua_State *L, Gas_model &g, int nreac, double error_tol)
+Chemical_kinetic_MC_system(lua_State *L, Gas_model &g, int nreac, double error_tol,
+			   double T_upper, double T_lower)
     : OdeSystem(2*nreac, true), err_tol_(error_tol)
 {
     lua_getglobal(L, "reactions");
@@ -35,7 +36,7 @@ Chemical_kinetic_MC_system(lua_State *L, Gas_model &g, int nreac, double error_t
     
     for ( size_t i = 1; i <= lua_objlen(L, -1); ++i ) {
 	lua_rawgeti(L, -1, i);
-	reaction_.push_back(create_Reaction(L, g));
+	reaction_.push_back(create_Reaction(L, g, T_upper, T_lower));
 	// NOTE: 'i-1' is required due to lua +1 offset
 	create_Coupling_components_for_reaction( L, reaction_.back(), int(i-1), ccs );
 	lua_pop(L, 1);
@@ -86,8 +87,8 @@ Chemical_kinetic_MC_system(lua_State *L, Gas_model &g, int nreac, double error_t
 }
 
 Chemical_kinetic_MC_system::
-Chemical_kinetic_MC_system(string cfile, Gas_model &g, int nreac, double error_tol)
-    : OdeSystem(2*nreac, true), err_tol_(error_tol)
+Chemical_kinetic_MC_system(string cfile, Gas_model &g, int nreac)
+    : OdeSystem(2*nreac, true)
 {
     // Do some pre-work on the cfile to massage
     // it into a state to be parsed for the
@@ -136,7 +137,14 @@ Chemical_kinetic_MC_system(string cfile, Gas_model &g, int nreac, double error_t
 	ost << "Lua error message: " << lua_tostring(L, -1) << endl;
 	input_error(ost);
     }
-    
+
+    lua_getglobal(L, "scheme_t");
+    lua_getfield(L, -1, "temperature_limits");
+    double T_lower = get_positive_number(L, -1, "lower");
+    double T_upper = get_positive_number(L, -1, "upper");
+    lua_pop(L, 1);
+    err_tol_ = get_positive_number(L, -1, "error_tolerance");
+    lua_pop(L, 1); // pop scheme_t
 
     lua_getglobal(L, "reactions");
     if ( !lua_istable(L, -1) ) {
@@ -150,7 +158,7 @@ Chemical_kinetic_MC_system(string cfile, Gas_model &g, int nreac, double error_t
     
     for ( size_t i = 1; i <= lua_objlen(L, -1); ++i ) {
 	lua_rawgeti(L, -1, i);
-	reaction_.push_back(create_Reaction(L, g));
+	reaction_.push_back(create_Reaction(L, g, T_upper, T_lower));
 	create_Coupling_components_for_reaction( L, reaction_.back(), int(i), ccs );
 	lua_pop(L, 1);
     }

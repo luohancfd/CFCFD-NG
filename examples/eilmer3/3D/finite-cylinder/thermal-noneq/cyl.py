@@ -17,7 +17,7 @@ L = 2.0 * D  # (axial) length of cylinder
 # Gas model used in the simulation.
 select_gas_model(model='two temperature gas', species=['N2','N','N2_plus','N_plus','e_minus'])
 set_reaction_scheme("nitrogen-5sp-6r.lua",reacting_flag=1)
-set_energy_exchange_update("TV-TE_exchange.lua")
+set_energy_exchange_scheme("TV-TE_exchange.lua")
 mf = {'N2':1.0}
 
 # Free-stream properties

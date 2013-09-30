@@ -43,6 +43,20 @@ end
 
 SUPPRESS_WARNINGS = true
 
+-- Temperature limits.
+-- These temperature limits are used to limit the evaluation of
+-- the rate coefficients. Gupta et al give a vailidity range
+-- up to 30,000K, so it may not be wise to evaluate these
+-- rate coefficients for higher temperatures. Also, the
+-- rate values do get meaningless at very low temperatures.
+-- For this reason, we suggest the limits we set here.
+-- WARNING: We have experienced a flow solver/chemistry coupling
+-- issue for strong expansions when the lower limit is set too low.
+-- 
+scheme{
+   temperature_limits = {lower=300.0, upper=30000.0}
+}
+
 reaction{
 	'O2 + M <=> O + O + M',
 	fr={'Arrhenius', A=3.610e+18, n=-1.00, T_a=59400.00},

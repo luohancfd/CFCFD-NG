@@ -100,35 +100,26 @@ LUA_MODULES := 	refprop.lua \
 	exch.lua \
 	lex_elems.lua 
 
-LUA_OBJECTS := lgas-model.o \
-	lreaction-update.o \
-	lreaction-rate-coeff.o
-
 # Assume Unix/Linux
-LUAGAS_MODULE := gas.so
 PYTHONGAS_MODULE := gaspy.py _gaspy.so
 REFPROP_MODULE := refprop.so
 ifeq ($(findstring Darwin, $(SYSTEM)), Darwin)
   # Darwin environment on a Mac OS X
-  LUAGAS_MODULE := gas.dylib
   PYTHONGAS_MODULE := gaspy.py _gaspy.dylib
 endif
 ifeq ($(findstring MINGW32, $(SYSTEM)), MINGW32)
   # MINGW32 environment on MS-Windows
-  LUAGAS_MODULE := gas.dll
   PYTHONGAS_MODULE := gaspy.py _gaspy.dll
 endif
 ifeq ($(findstring CYGWIN, $(SYSTEM)), CYGWIN)
   # CYGWIN environment on MS-Windows
-  LUAGAS_MODULE := gas.dll
   PYTHONGAS_MODULE := gaspy.py _gaspy.dll
 endif
 
 #---------------------------------------
 # main targets
 
-build_new: $(LIBGAS) $(LUA_MODULES) $(TOOL_EXECUTABLES) $(LUAGAS_MODULE) \
-		$(PYTHONGAS_MODULE)
+build_new: $(LIBGAS) $(LUA_MODULES) $(TOOL_EXECUTABLES) $(PYTHONGAS_MODULE)
 	@echo "Gas model library should be up to date."
 	@echo -e $(subst \n ,\n,$(CEA2_MSG))
 	@echo -e $(subst \n ,\n,$(REFPROP_MSG))
@@ -152,7 +143,7 @@ install: $(LIBGAS) $(LUA_MODULES) $(TOOL_EXECUTABLES) $(LUAGAS_MODULE) \
 	cd ../../; rsync -av --exclude=".svn" --exclude="*~" cfpylib $(INSTALL_DIR)
 	- cp $(TOOL_EXECUTABLES) $(INSTALL_DIR)/
 	- mkdir -p $(INSTALL_DIR)/cea-cases
-	- cp $(CEA_CASES)/*.lua $(INSTALL_DIR)/cea-cases/
+	- cp $(CEA_CASES)/*.lua.gz $(INSTALL_DIR)/cea-cases/
 ifeq ($(CEA2_EXISTS), true)
 	- cp thermo.inp trans.inp $(INSTALL_DIR)/cea-cases/
 endif
@@ -796,22 +787,6 @@ noneq-test.x : $(MODELS)/noneq-test.cxx $(LIBGAS) $(LIBLUA)
 	$(LIBGAS) $(LIBLUA) $(LIBZLIB) $(LUALINK) -I$(LUA_INCLUDE_DIR)
 
 #------------------------------------------
-# Lua objects
-#
-
-lgas-model.o : $(MODELS)/lgas-model.hh $(MODELS)/lgas-model.cxx \
-	$(LIBLUA)
-	$(CXXCOMPILE) $(CXXFLAG) $(MODELS)/lgas-model.cxx -I$(LUA_INCLUDE_DIR)
-
-lreaction-update.o : $(KINETICS)/lreaction-update.hh $(KINETICS)/lreaction-update.cxx \
-	$(LIBLUA)
-	$(CXXCOMPILE) $(CXXFLAG) $(KINETICS)/lreaction-update.cxx -I$(LUA_INCLUDE_DIR)
-
-lreaction-rate-coeff.o : $(KINETICS)/lreaction-rate-coeff.hh $(KINETICS)/lreaction-rate-coeff.cxx \
-	$(LIBLUA)
-	$(CXXCOMPILE) $(CXXFLAG) $(KINETICS)/lreaction-rate-coeff.cxx -I$(LUA_INCLUDE_DIR)
-
-#------------------------------------------
 # Lua modules
 #
 
@@ -857,7 +832,7 @@ fully_coupled_two_temperature_gas.lua : $(TOOLS)/fully_coupled_two_temperature_g
 
 fully_coupled_four_temperature_gas.lua : $(TOOLS)/fully_coupled_four_temperature_gas.lua
 	cp $(TOOLS)/fully_coupled_four_temperature_gas.lua .
-	
+
 multi_temperature_gas.lua : $(TOOLS)/multi_temperature_gas.lua
 	cp $(TOOLS)/multi_temperature_gas.lua .
 
@@ -888,10 +863,6 @@ lex_elems.lua : $(KINETICS)/lex_elems.lua
 gasfile : $(TOOLS)/gasfile.lua
 	cp $(TOOLS)/gasfile.lua gasfile
 	chmod +x gasfile
-
-#build-cea-lut : $(TOOLS)/build-cea-lut.lua cea2
-#	cp $(TOOLS)/build-cea-lut.lua build-cea-lut
-#	chmod +x build-cea-lut
 
 build-cea-lut.py : $(TOOLS)/build-cea-lut.py
 	cp $(TOOLS)/build-cea-lut.py .

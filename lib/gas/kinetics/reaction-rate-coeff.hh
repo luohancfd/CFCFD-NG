@@ -16,7 +16,7 @@ extern "C" {
 
 class Reaction_rate_coefficient {
 public:
-    Reaction_rate_coefficient() { type_=""; };
+    Reaction_rate_coefficient(double T_upper, double T_lower);
     virtual ~Reaction_rate_coefficient() {};
     
     double k()
@@ -32,6 +32,10 @@ public:
     { return type_; }
 
 protected:
+    double T_upper_; // Above this temperature,
+                     // the rate coefficients are computed at T_upper_
+    double T_lower_; // Below this temperature,
+                     // the rate coefficients are computed at T_lower_
     double k_;
     std::string type_;
     virtual int s_eval(const Gas_data &Q) = 0;
@@ -39,8 +43,8 @@ protected:
 };
 
 #ifndef SWIG
-Reaction_rate_coefficient* create_Reaction_rate_coefficient(lua_State *L, Gas_model &g);
+Reaction_rate_coefficient* create_Reaction_rate_coefficient(lua_State *L, Gas_model &g, double T_upper, double T_lower);
 #endif
-Reaction_rate_coefficient* create_Reaction_rate_coefficient(std::string cfile, std::string rate, Gas_model &g);
+Reaction_rate_coefficient* create_Reaction_rate_coefficient(std::string cfile, std::string rate, Gas_model &g, double T_upper, double T_lower);
 
 #endif
