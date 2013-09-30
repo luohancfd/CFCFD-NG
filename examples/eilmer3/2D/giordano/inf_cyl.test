@@ -43,8 +43,8 @@ test run-postprocessor {Run the postprocessing stage.} -body {
     set fp [open values.txt r]
     set contents [read $fp]
     close $fp
-    set T_tr [lindex [split [string trim $contents]] 19]
-    set T_v [lindex [split [string trim $contents]] 21]
+    set T_tr [lindex [split [string trim $contents]] 20]
+    set T_v [lindex [split [string trim $contents]] 22]
     list [expr abs($T_tr - 2532.9) < 2.0] \
          [expr abs($T_v - 2360.6) < 2.0]
 
