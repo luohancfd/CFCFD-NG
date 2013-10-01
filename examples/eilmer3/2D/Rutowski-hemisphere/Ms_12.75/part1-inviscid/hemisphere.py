@@ -122,6 +122,7 @@ gdata.viscous_delay = 0.1 * Rn / u_inf
 gdata.viscous_factor_increment = 1.0e-3
 gdata.diffusion_flag = 0
 gdata.diffusion_model = "ConstantLewisNumber"
+gdata.electric_field_work_flag = 0
 gdata.reaction_time_start = 0 * Rn / u_inf
 gdata.flux_calc = ADAPTIVE
 gdata.max_time = Rn * 10 / u_inf    # 10 body lengths

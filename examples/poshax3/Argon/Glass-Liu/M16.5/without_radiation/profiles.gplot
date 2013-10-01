@@ -1,0 +1,20 @@
+# originally created by make_gnuplot_file.py
+
+set term postscript eps enhanced color 'Helvetica,22'
+set size 1.0, 1.0
+set output 'temperature_profiles.eps
+set ylabel 'Temperature, T (K)'
+set xlabel 'Distance from shock, x (cm)'
+set grid
+plot 'output.data'   u ($1*100):($2) w l lw 2 lt -1 t 'T_{tr}', \
+     'output.data'   u ($1*100):($3) w l lw 5 lt  1 t 'T_{e}'
+     
+unset label
+unset arrow
+    
+
+set key bottom right
+set output "ionization_fraction_profile.eps"
+set ylabel "Ionization fraction, {/Symbol a}"
+plot 'output.data' u ($1*100):9 w l lw 5 lt 1 t "calculated", \
+     'glass_liu_ne_M_16.5.txt' u 1:2 w p pt 6 lt -1 t "measured"
