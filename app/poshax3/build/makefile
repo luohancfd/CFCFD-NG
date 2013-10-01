@@ -53,7 +53,7 @@ all: install
 test : $(TEST_EXE_FILES)
 
 clean :
-	- rm *.x *.o *.a
+	- rm *.x *.o *.a *.py
 	- cd $(RAD)/build; make clean
 
 install : $(PSR_EXECUTABLE) $(PYTHON_SCRIPTS) $(INSTALL_DIR)
