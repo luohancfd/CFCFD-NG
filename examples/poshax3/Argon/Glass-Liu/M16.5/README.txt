@@ -1,5 +1,5 @@
 =======================================================
-Simulation of stagnation streamline on FireII vehicle
+Simulation of UTIAS shock tube experiment with Argon
 =======================================================
 
 .. Author: Daniel F. Potter
