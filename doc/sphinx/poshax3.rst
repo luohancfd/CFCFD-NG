@@ -41,44 +41,41 @@ A brief description of each is given here.
 ::
 
   [controls]
-  source_term_coupling : Select 'full' or 'loose' source term coupling
-  dx                   : Initial or constant spatial step size
-  adaptive_dx          : Flag to indicate adaptive spatial stepping
-  final_x              : x location to terminate the calculation
-  plot_dx              : Spatial frequency of solution output 
-  dx_scale             : Scale the spatial step by this amount each step
-  output_file          : Name of the output file
-  species_output       : String specifying how species composition is output
-                         Allowable values are: massf -- mass fractions (default)
-                                               molef -- mole fractions
-                                               moles -- moles per unit volume, concentration
-  
+  source_term_coupling = string(default=loose)
+  dx                   = float(default=1.0e-9)
+  adaptive_dx          = boolean(default=true)
+  final_x              = float(default=1.0e-3)
+  plot_dx              = float(default=final_x*1.0e-3)
+  dx_scale             = float(default=1.0)
+  output_file          = float(default=poshax_output.data)
+  apply_udpedx         = boolean(default=false)
+
   [models]
-  gas_model_file       : Name of the gas model lua file
-  reaction_file        : Name of the reaction model lua file
-  energy_exchange_file : Name of the energy exchange model lua file
-  radiation_file       : Name of the radiation model lua file
-  
+  gas_model_file       = string(default=None)
+  reaction_file        = string(default=None)
+  energy_exchange_file = string(default=None)
+  radiation_file       = string(default=None)
+
   [radiation]
-  rad_dx               : Spatial frequency of radiation intensity calculation
-  TS_dx                : Slab width for tangent-slab analysis
-  tube_width           : Width of gas to integrate over when computing intensities
-  fwhm_Ang             : Full-width half-maximum of the apparatus function in Angstroms 
-  write_rad_level_pops : Flag to request writing of radiator electronic level populations to file
-  write_rad_emissions  : Flag to request writing of individual radiator total emission levels to file 
-  write_spectra        : Flag to requesting writing of radiation spectra to file
-  lambda_min           : Lower bound for spectral integration (can be a list)
-  lambda_max           : Upper bound for spectral integration (can be a list)
-  dx_smear             : Spatial smearing distance (i.e. shock speed x spectrometer exposure time)
-  
+  rad_dx               = float(default=0.0)
+  TS_dx                = float(default=0.0)
+  path_length          = float(default=0.0)
+  fwhm_Ang             = float(default=0.0)
+  write_rad_level_pops = boolean(default=false)
+  write_rad_emissions  = boolean(default=false)
+  write_spectra        = boolean(default=false)
+  lambda_min           = float_list(default=None)
+  lambda_max           = float_list(default=None)
+  dx_smear             = float_list(default=None)
+
   [initial-conditions]
-  rho_inf              : Freestream density
-  p_inf                : Freestream pressure (if density not given)
-  T_inf                : Freestream temperature
-  u_inf                : Freestream velocity
-  M_inf                : Freestream Mach number (if velocity not given)
-  mass_f               : Freestream mass fractions
-  mole_f               : Freestream mole fractions (if mass fractions not given)
+  rho_inf      = float(default=None)
+  p_inf        = float(default=None)
+  T_inf        = float(default=None)
+  u_inf        = float(default=None)
+  M_inf        = float(default=None)
+  mass_f       = float_list(default=None)
+  mole_f       = float_list(default=None)
 
 Examples
 --------
