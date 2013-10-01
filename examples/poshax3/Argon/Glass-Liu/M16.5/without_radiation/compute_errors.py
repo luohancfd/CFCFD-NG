@@ -19,9 +19,10 @@ p3_AvX.recompute_spline()
 
 # error in the ionization fraction
 error_in_alpha = []
-for i,x in enumerate(p3_AvX.x_array):
-    alpha_exp = exp_AvX.y_from_x(x)
-    alpha_p3 = p3_AvX.y_array[i]
-    error_in_alpha.append( ( alpha_p3 - alpha_exp ) / alpaha_exp )
-    
+for i,x in enumerate(exp_AvX.x_array):
+    alpha_exp = exp_AvX.y_array[i]
+    if alpha_exp==0.0: continue
+    alpha_p3 = p3_AvX.y_from_x(x)
+    error_in_alpha.append( ( alpha_p3 - alpha_exp ) / alpha_exp )
+
 print "RMS of the alpha error is %0.2f percent" % ( get_rms( error_in_alpha )*100 )
