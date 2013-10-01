@@ -114,7 +114,7 @@ The viscous heat fluxes are
 The vector of source terms is separated into geometric, chemistry, thermal energy exchange and radiation contributions 
 in order to apply the operator-splitting integration approach, Eq.~\ref{eq:Q_sum}.
 \begin{equation}
- Q = Q_{\text{geom.}} + Q_{\text{chem.}} + Q_{\text{therm.}} + Q_{\text{rad.}}
+ Q = Q_{\text{geom.}} + Q_{\text{chem.}} + Q_{\text{therm.}} + Q_{\text{rad.}} + Q_{\text{MHD}}
  \label{eq:Q_sum}
 \end{equation}
 The geometric source term vector for axisymmetric geometries is
@@ -147,10 +147,15 @@ The radiation source term vector is
  \label{eq:Q_rad}
 \end{equation}
 where any purely vibrational component of radiative heat loss (or gain) has been neglected.
+The magnetohydrodynamic source vector in the low magnetic Reynolds number limit is
+\begin{equation}
+ Q_{\text{MHD}} = \left [ \begin{array}{c} 0 \\ \left ( \vec{j} \times \vec{B} \right )_x \\ \left ( \vec{j} \times \vec{B} \right )_y \\ \vec{j} \cdot \vec{E} \\ 0 \\ \vec{u} \cdot \nabla p_e + \vec{j} \cdot \vec{E} \\ 0 \end{array} \right ]
+ \label{eq:Q_rad}
+\end{equation}
+where $ \vec{j} \times \vec{B}$ is the Lorentz force, $\vec{j} \cdot \vec{E}$ Joule heating and $\vec{u} \cdot \nabla p_e$ an approximation for the work done on free electrons due to the induced electric field associated with ambipolar diffusion~\cite{appleton_1964,Lee84}.
 The transport, thermodynamic and chemical kinetic source term models 
 will be discussed in detail in Section~\ref{thermochem-sec}, while the radiation transport models
 used for computing $-\nabla \cdot \vec{q}_{rad}$ will be presented in Section~\ref{sec:radiation_transport}.
-
 
 \subsection{Conserved Quantities and Fluxes for Three-Dimensional Flow}
 %
@@ -297,7 +302,7 @@ The time integration of the ODE system shown in Eq.~\ref{eq:dUdt} is then approx
 \end{eqnarray}
 where,
 \begin{eqnarray}
- \left ( \frac{dU}{dt} \right )_{\text{inv.}} &=& - \frac{1}{V} \sum_{cell-surface} \left ( \overline{F}_{i} \right ) \cdot \hat{n} \, dA + Q_{\text{geom.}} + Q_{\text{rad.}} \text{ , } \label{eq:dUdt_inv} \\
+ \left ( \frac{dU}{dt} \right )_{\text{inv.}} &=& - \frac{1}{V} \sum_{cell-surface} \left ( \overline{F}_{i} \right ) \cdot \hat{n} \, dA + Q_{\text{geom.}} + Q_{\text{rad.}} + Q_{\text{MHD}} \text{ , } \label{eq:dUdt_inv} \\
  \left ( \frac{dU}{dt} \right )_{\text{visc.}}  &=& - \frac{1}{V} \sum_{cell-surface} \left ( - \overline{F}_{v} \right ) \cdot \hat{n} \, dA \text{ , } \label{eq:dUdt_visc} \\
  \left ( \frac{dU}{dt} \right )_{\text{chem.}}    &=& Q_{\text{chem.}} \text{ , } \label{eq:dUdt_chem} \\
  \left ( \frac{dU}{dt} \right )_{\text{therm.}}   &=& Q_{\text{therm.}} \text{ . } \label{eq:dUdt_therm}
