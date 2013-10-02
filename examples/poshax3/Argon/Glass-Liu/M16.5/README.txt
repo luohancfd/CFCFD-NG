@@ -8,8 +8,8 @@ Simulation of UTIAS shock tube experiment with Argon
 Description
 -----------
 This example uses Poshax3 to reproduce the ionisation 
-fraction measurements made by Glass and Liu (JFM 1978
-vol. 84 part1 pp. 55-77) in the UTIAS shock tube with 
+fraction measurements made by Glass and Liu
+(http://dx.doi.org/10.1017/S002211207800004X) in the UTIAS shock tube with 
 an Argon test gas. The comparison is for the Ms=16.5 
 case.
 
@@ -119,13 +119,11 @@ A clear difference between the calculations with and without radiation coupling 
 slope of the ionisation fraction after the thermochemical equilibration point.
 Radiation coupling is seen to result in a constant drop in the ionisation fraction, while
 without radiation coupling the ionisation fraction maintains a steady equilibrium value.
-The similarity of the observed and calculated slope in this region indicated the 
+The similarity of the observed and calculated slope in this region indicates the 
 radiation model is accurately predicting the rate of cooling.  
 In these calculations radiation at wavelengths less than 200nm was considered to be 
 optically thick, and that at higher wavelengths optically thin.
 This is a reasonable assumption as VUV radiation is strongly self absorbed.  
-
-In the first figure, radiation coupling is considered and 
 
 .. figure:: GL_alpha_with_radiation.png
    :align: center
