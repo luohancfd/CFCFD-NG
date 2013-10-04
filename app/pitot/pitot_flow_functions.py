@@ -359,6 +359,7 @@ def acceleration_tube_calculation(cfg, states, V, M):
                                        V2g=V['s2'], state5=states['s5'],
                                         state6=states['s6'],Vs2=cfg['Vs2'],
                                         expansion_factor = cfg['expansion_factor'],
+                                        ideal_gas_guess=cfg['gas_guess_air'],
                                         steps=cfg['acc_tube_expansion_steps']):
         """Compute the velocity mismatch for a given pressure ratio across the 
         unsteady expansion from state 2 to state 7."""
