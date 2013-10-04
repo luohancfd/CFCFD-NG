@@ -143,6 +143,10 @@ function transform_mechanism(m, species, thermal_modes)
 	    local sq_t = transform_species_str(sq)
 	    iqs[#iqs+1] = species[sq]
 	 end
+      elseif q == '*all' then
+	 for isp=0,(species.size-1) do
+	    iqs[#iqs+1] = isp
+	 end
       else
 	 print("Keyword used for colliders is unknown: ", q)
 	 print("Bailing out!")

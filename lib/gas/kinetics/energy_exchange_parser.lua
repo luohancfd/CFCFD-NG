@@ -89,7 +89,6 @@ function main(config_file)
    
    --  Set imode and mechanisms for rates without mechanisms
    for i,r in ipairs(rates) do
-       print(i)
        if not r then
           r = {}
           r.imode = i

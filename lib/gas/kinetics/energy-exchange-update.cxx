@@ -68,7 +68,6 @@ Energy_exchange_update* create_Energy_exchange_update(string cfile, Gas_model &g
     }
     lua_setglobal(L, "mode_idx");
 
-    cout << "Loading parser." << endl;
     // Path to reaction parsing script
     char *e3bin = getenv("E3BIN");
     string home;
@@ -90,7 +89,6 @@ Energy_exchange_update* create_Energy_exchange_update(string cfile, Gas_model &g
 	input_error(ost);
     }
 
-    cout << "Parsing the input file." << endl;
     // Parse the input file...
     lua_getglobal(L, "main");
     lua_pushstring(L, cfile.c_str());
