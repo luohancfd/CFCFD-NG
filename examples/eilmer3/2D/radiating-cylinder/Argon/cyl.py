@@ -32,7 +32,7 @@ gm = get_gas_model_ptr()
 global nsp, ntm
 nsp = gm.get_number_of_species()
 ntm = gm.get_number_of_modes()
-select_radiation_model( input_file="argon-radiators.lua", update_frequency=1 )
+select_radiation_model( input_file="rad-model.lua", update_frequency=1 )
 
 # Define flow conditions
 u = 0.0; v = 0.0; w = 0.0

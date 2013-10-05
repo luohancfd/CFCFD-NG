@@ -221,6 +221,66 @@ class GlobalRadData(object):
             ofile.write("9       17      29      70\n")
             ofile.write("x       i\n")
             ofile.close()
+            
+def declare_radiators( params, gdata ):
+    # 1. check that the provided params are valid
+    valid_params = [ "species", "radiators", "QSS_radiators", "no_emission_radiators",
+                     "iTe", "atomic_level_source", "atomic_line_source", 
+                     "atomic_PICS_source" ]
+    for key in params.keys():
+        if key not in valid_params:
+            print "Unexpected entry in the parameter dictionary: %s" % key
+            print "The valid parameter keys are:", valid_params
+            sys.exit()
+            
+    # 2. check that the minimum data has been given
+    min_params = [ "species", "radiators" ]
+    for param in min_params:
+        if param not in params.keys():
+            print "The parameter dictionary requires the following essential entries: "
+            print min_params
+            sys.exit()
+    
+    # 3. add the additional params from the defaults list
+    default_params = {
+"species"               : [],
+"radiators"             : [],
+"QSS_radiators"         : [],
+"no_emission_radiators" : [],
+"iT"                    : 0,
+"iTe"                   : 0,
+"iTv"                   : 0,
+"iTr"                   : 0,
+"atomic_level_source"   : None,
+"atomic_line_source"    : None,
+"atomic_PICS_source"    : None
+}
+
+    for key in default_params.keys():
+        if key not in params.keys():
+            params[key] = default_params[key]
+            
+    # 4. Now we can declare the radiators
+    for rad_name in params["radiators"]:
+        rad = gdata.request_radiator(rad_name)
+        rad.default_data()
+        rad.isp = params["species"].index(rad_name)
+        rad.iT = params["iTe"]
+        rad.iTe = params["iTe"]
+        if params["atomic_level_source"] and rad.type=="atomic_radiator":
+            levels,lines,PICSs = get_atomic_species_data( rad_name, level_source=params["atomic_level_source"], line_source=params["atomic_line_source"], PICS_source=params["atomic_PICS_source"], omit_psuedocontinuum_levels=False, use_individual_levels=True, stark_tol=1.0e-2, PICS_tol=1.0e4 )
+            rad.level_set = AtomicLevelSet(levels,params["atomic_level_source"])
+            rad.line_set = AtomicLineSet(lines,params["atomic_line_source"])
+            if PICSs!=None:
+                rad.photoionXsection_model = TOPBasePICSModel( PICSs )
+        if rad_name in params["QSS_radiators"]:
+            rad.E_pop_method = "QSS"
+            noneq_elevs = range(len(rad.level_set.levels))
+            noneq_elevs_str = ""
+            for noneq_elev in noneq_elevs: noneq_elevs_str += "%d, " % noneq_elev
+            rad.QSS_model = AtomicQSSModel(name="Drawin",noneq_elevs=noneq_elevs_str,eie_model="Drawin",eii_model="Drawin",rt_model="OpticallyThin", pr_model="OpticallyThin")
+        if rad_name in params["no_emission_radiators"]:
+            rad.line_set = AtomicLineSet([],"no lines")
 
 def main():
     from optparse import OptionParser

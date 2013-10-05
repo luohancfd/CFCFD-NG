@@ -12,7 +12,7 @@ namespace import ::tcltest::*
 configure -verbose {start body error}
 
 test run-preprocessor {Run the preprocessing stage.} -body {
-    exec radmodel.py -i argon-radiators.py -L argon-radiators.lua
+    exec radmodel.py -i argon-radiators-NIST-TB.py -L rad-model.lua
     exec e3prep.py --job=cyl > LOGFILE_PREP
 } -result {} -returnCodes {0}
 
