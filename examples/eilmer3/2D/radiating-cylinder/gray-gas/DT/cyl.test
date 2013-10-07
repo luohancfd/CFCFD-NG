@@ -18,7 +18,7 @@ test run-preprocessor {Run the preprocessing stage.} -body {
 } -result {} -returnCodes {0}
 
 test run-simulation {Run the shared-memory radiation transport code.} -body {
-    exec e3rad.exe --job=cyl --run > LOGFILE_MAIN
+    exec e3rad.exe --job=cyl --heat-flux-files --run > LOGFILE_MAIN
 } -result {} -returnCodes {0}
 
 test run-postprocessor {Run the postprocessing stage.} -body {

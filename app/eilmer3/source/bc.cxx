@@ -919,7 +919,8 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	newBC = new ShockFittingInBC(bdp, which_boundary, inflow_condition_id);
 	break;
     case SLIP_WALL:
-	newBC = new SlipWallBC(bdp, which_boundary);
+        dict.parse_double(section, "emissivity", emissivity, 1.0);
+	newBC = new SlipWallBC(bdp, which_boundary, emissivity);
 	break;
     case ADIABATIC:
 	newBC = new AdiabaticBC(bdp, which_boundary);

@@ -93,6 +93,7 @@ ad = Line(a, d) # western boundary
 # Define the block and discretisation.
 blk_0 = SuperBlock2D(make_patch(dc, bc, ab, ad),
                      nni=nnx, nnj=nny, nbi=NXBLOCKS, nbj=NYBLOCKS,
+                     bc_list=[SlipWallBC(emissivity=1.0),SlipWallBC(emissivity=0.0),SlipWallBC(emissivity=0.0),SlipWallBC(emissivity=0.0)],
                      fill_condition=initial, label="BLOCK-0")
 
 identify_block_connections()

@@ -1424,7 +1424,7 @@ int MonteCarlo::trace_ray_standard( RayTracingRay * ray, size_t ib, size_t ic, s
 	// use a random number relation to test if the photon is absorbed or diffusively reflected
 	RayTracingInterface * RTinterface =  RTcell->interfaces_[ray->status_];
 	double R = rg_->Random();
-	if ( RTinterface->epsilon_ > R ) {
+	if ( RTinterface->epsilon_ >= R ) {
 	    // the photon needs to be diffusively reflected
 	    // FIXME: set ray properties for reflection here
 	    //        i.e. origin and direction cosines
@@ -1529,10 +1529,9 @@ int MonteCarlo::trace_ray_partitioned_energy( RayTracingRay * ray, size_t ib, si
         if ( ! skip_interface ) {
             RTinterface->q_rad_temp_[omp_get_thread_num()] += RTinterface->epsilon_ * E / RTinterface->area_;
             E *= ( 1.0 - RTinterface->epsilon_ );
+            this->reflect_ray_diffusively(ray,RTinterface->origin_);
+            return FAILURE;
         }
-        // Diffusively reflect the ray
-        this->reflect_ray_diffusively(ray,RTinterface->origin_);
-        return FAILURE;
     }
 
     return SUCCESS;
