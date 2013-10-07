@@ -126,8 +126,9 @@ int apply_viscous_bc( Block &bd, double t, size_t dimensions )
 //-----------------------------------------------------------------------
 
 BoundaryCondition::
-BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code)
+BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code, double emissivity)
     : bdp(bdp), which_boundary(which_boundary), type_code(type_code),
+      emissivity(emissivity),
       // The following common data can usually take these defaults,
       // however, they may be set to differing values by
       // the constructors of the derived classes.
@@ -222,7 +223,7 @@ BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code)
 // Shouldn't really have a boundary condition object created without
 // reference to a particular block but, just in case the compiler wants it...
 BoundaryCondition::BoundaryCondition()
-    : bdp(0), which_boundary(0), type_code(SLIP_WALL),
+    : bdp(0), which_boundary(0), type_code(SLIP_WALL), emissivity(0.0),
       is_wall_flag(false), ghost_cell_data_available(true), xforce_flag(0),
       sets_conv_flux_flag(false), sets_visc_flux_flag(false),
       neighbour_block(-1), neighbour_face(-1), neighbour_orientation(0),
@@ -232,6 +233,7 @@ BoundaryCondition::BoundaryCondition()
 BoundaryCondition::BoundaryCondition(const BoundaryCondition &bc)
     : bdp(bc.bdp), // Still bound to the original block.
       which_boundary(bc.which_boundary), type_code(bc.type_code),
+      emissivity(bc.emissivity),
       is_wall_flag(bc.is_wall_flag),
       ghost_cell_data_available(bc.ghost_cell_data_available),
       xforce_flag(bc.xforce_flag),
@@ -268,6 +270,7 @@ BoundaryCondition & BoundaryCondition::operator=(const BoundaryCondition &bc)
 	q_diff = bc.q_diff;
 	q_rad = bc.q_rad;
 	imin = bc.imin; imax = bc.imax; jmin = bc.jmin; jmax = bc.jmax;
+	emissivity = bc.emissivity;
     }
     return *this;
 }
@@ -290,6 +293,7 @@ void BoundaryCondition::print_info(std::string lead_in)
     cout << lead_in << "sets_conv_flux_flag= " << sets_conv_flux_flag << endl;
     cout << lead_in << "sets_visc_flux_flag= " << sets_visc_flux_flag << endl;
     cout << lead_in << "wc_bc= " << get_bc_name(wc_bc) << endl;
+    cout << lead_in << "emissivity= " << emissivity << endl;
     return;
 }
 
@@ -887,7 +891,7 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     int is_wall = 0;
     int sets_conv_flux = 0;
     int sets_visc_flux = 0;
-    double epsilon = 0.9;
+    double emissivity = 0.0;
     std::vector<double> mdot;
     std::vector<double> vnf;
     vnf.resize(get_gas_model_ptr()->get_number_of_species(), 0.0);
@@ -922,7 +926,8 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	break;
     case FIXED_T:
 	dict.parse_double(section, "Twall", Twall, 300.0);
-	newBC = new FixedTBC(bdp, which_boundary, Twall);
+	dict.parse_double(section, "emissivity", emissivity, 1.0);
+	newBC = new FixedTBC(bdp, which_boundary, emissivity, Twall);
 	break;
     case SLIDING_T:
 	dict.parse_double(section, "Twall_i", Twall_i, 300.0);
@@ -973,13 +978,14 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 				      sets_conv_flux==1, sets_visc_flux==1);
 	break;
     case SEB:
-	dict.parse_double(section, "epsilon", epsilon, 0.9);
-    	newBC = new SurfaceEnergyBalanceBC(bdp, which_boundary, epsilon);
+	dict.parse_double(section, "emissivity", emissivity, 1.0);
+    	newBC = new SurfaceEnergyBalanceBC(bdp, which_boundary, emissivity);
     	break;
     case ABLATING:
-	dict.parse_double(section, "Twall", Twall, 300.0);
+        dict.parse_double(section, "emissivity", emissivity, 1.0);
+        dict.parse_double(section, "Twall", Twall, 300.0);
 //	dict.parse_vector_of_doubles(section, vnf);
-    	newBC = new AblatingBC(bdp, which_boundary, Twall);
+    	newBC = new AblatingBC(bdp, which_boundary, emissivity, Twall);
     	break;
     case FSTC:
 	dict.parse_string(section, "filename", filename, "");

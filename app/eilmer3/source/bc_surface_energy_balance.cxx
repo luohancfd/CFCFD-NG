@@ -27,15 +27,16 @@
 
 //------------------------------------------------------------------------
 
-SurfaceEnergyBalanceBC::SurfaceEnergyBalanceBC(Block *bdp, int which_boundary, double epsilon)
-    : BoundaryCondition(bdp, which_boundary, SEB),
-      epsilon(epsilon), tol(1.0e-4), max_iterations(100), f_relax(0.05)
+SurfaceEnergyBalanceBC::SurfaceEnergyBalanceBC(Block *bdp, int which_boundary,
+                                                           double emissivity)
+    : BoundaryCondition(bdp, which_boundary, SEB, emissivity),
+      tol(1.0e-4), max_iterations(100), f_relax(0.05)
 {
     is_wall_flag = true;
-    // Ensure that epsilon is between 0 and 1 as required
-    if ( epsilon < 0.0 || epsilon > 1.0 ) {
+    // Ensure that emissivity is between 0 and 1 as required
+    if ( emissivity < 0.0 || emissivity > 1.0 ) {
     	cerr << "SurfaceEnergyBalanceBC::SurfaceEnergyBalanceBC()" << endl
-    	     << "Given value of epsilon (" << epsilon << ") "
+    	     << "Given value of emissivity (" << emissivity << ") "
     	     << "is not between 0 and 1 as required." << endl
     	     << "Exiting program." << endl;
     	exit( BAD_INPUT_ERROR );
@@ -48,10 +49,11 @@ SurfaceEnergyBalanceBC::SurfaceEnergyBalanceBC(Block *bdp, int which_boundary, d
 
 SurfaceEnergyBalanceBC::SurfaceEnergyBalanceBC(const SurfaceEnergyBalanceBC &bc)
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code),
-      epsilon(bc.epsilon), tol(bc.tol), max_iterations(bc.max_iterations),
+      tol(bc.tol), max_iterations(bc.max_iterations),
       f_relax(bc.f_relax)
 {
     is_wall_flag = bc.is_wall_flag;
+    emissivity = bc.emissivity;
     // Initialise the local gas-data structure (used for EOS calls)
     Gas_model * gmodel = get_gas_model_ptr();
     Q = new Gas_data(gmodel);
@@ -62,7 +64,7 @@ SurfaceEnergyBalanceBC::operator=(const SurfaceEnergyBalanceBC &bc)
 {
     if ( this != &bc ) {
 	is_wall_flag = bc.is_wall_flag;
-	epsilon = bc.epsilon;
+	emissivity = bc.emissivity;
 	tol = bc.tol;
 	max_iterations = bc.max_iterations;
 	f_relax = bc.f_relax;
@@ -73,9 +75,10 @@ SurfaceEnergyBalanceBC::operator=(const SurfaceEnergyBalanceBC &bc)
 
 SurfaceEnergyBalanceBC::SurfaceEnergyBalanceBC()
     : BoundaryCondition(0, 0, SEB),
-      epsilon(0.0), tol(1.0e-4), max_iterations(100), f_relax(0.05)
+      tol(1.0e-4), max_iterations(100), f_relax(0.05)
 {
     is_wall_flag = true;
+    emissivity = 1.0;
     // Initialise the local gas-data structure (used for EOS calls)
     Gas_model * gmodel = get_gas_model_ptr();
     Q = new Gas_data(gmodel);
@@ -89,7 +92,7 @@ SurfaceEnergyBalanceBC::~SurfaceEnergyBalanceBC()
 void SurfaceEnergyBalanceBC::print_info(std::string lead_in)
 {
     BoundaryCondition::print_info(lead_in);
-    cout << lead_in << "epsilon= " << epsilon << endl;
+    cout << lead_in << "emissivity= " << emissivity << endl;
     cout << lead_in << "tol= " << tol << endl;
     cout << lead_in << "max_iterations= " << max_iterations << endl;
     cout << lead_in << "f_relax= " << f_relax << endl;
@@ -304,7 +307,7 @@ solve_for_wall_temperature( FV_Interface * IFace, FV_Cell * cell_one, size_t ind
     	// 2. calculate total heat flux incident on this interface
     	q_total = q_rad[index] + q_cond[index] + q_diff[index];
     	// 3. calculate Twall by assuming radiative equilibrium at the wall
-    	Twall = pow( q_total / ( epsilon * PC_sigma_SI ), 0.25 );
+    	Twall = pow( q_total / ( emissivity * PC_sigma_SI ), 0.25 );
         // 4. calculate new guess as a weighted average so we don't take too big a step
         Twall = f_relax * Twall + ( 1.0 - f_relax ) * Twall_prev;
 // cout << "iteration = " << iteration << ", q_total = " << q_total << ", Twall = " << Twall << ", error = " << fabs(Twall-Twall_prev)/Twall_prev << endl;

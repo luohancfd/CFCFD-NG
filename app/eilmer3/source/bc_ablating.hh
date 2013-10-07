@@ -32,7 +32,7 @@ private:
     std::valarray<double> N;
 public:
     AblatingBC();
-    AblatingBC(Block *bdp, int which_boundary, double Twall);
+    AblatingBC(Block *bdp, int which_boundary, double Twall, double emissivity);
     AblatingBC(const AblatingBC &bc);
     AblatingBC & operator=(const AblatingBC &bc);
     virtual ~AblatingBC();

@@ -99,6 +99,7 @@ public:
     Block *bdp;         // reference to the relevant block
     int which_boundary; // identity of the relevant boundary
     bc_t type_code;     // unique code used in switch statements and maps
+    double emissivity;  // Radiative emissivity (used for radiation transport)
 
     // Configuration data that can usually take default values.
     // Even if these data are specific to a only a few BCs,
@@ -124,7 +125,8 @@ public:
     size_t imin, imax, jmin, jmax, kmin, kmax;	// boundary cell indice limits
 
 public:
-    BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code);
+    BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code,
+                      double emissivity=0.0);
     BoundaryCondition(); // Shouldn't have one without referring to a Block.
     BoundaryCondition(const BoundaryCondition &bc);
     BoundaryCondition & operator=(const BoundaryCondition &bc);
@@ -149,6 +151,8 @@ public:
     // setting the viscous flux directly. When this is true, the internally
     // calculated flux (based on spatial derivatives and interface propertiers)
     // is written over by the b.c. flux.
+    double get_emissivity()
+    { return emissivity; }
 
     int write_vertex_velocities(std::string filename, double sim_time,
 				size_t dimensions, size_t gtl=0);

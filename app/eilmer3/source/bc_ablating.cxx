@@ -49,8 +49,8 @@ AblatingBC::AblatingBC()
 
 // normal constructor
 
-AblatingBC::AblatingBC(Block *bdp, int which_boundary, double Twall)
-    : BoundaryCondition(bdp, which_boundary, ABLATING),
+AblatingBC::AblatingBC(Block *bdp, int which_boundary, double emissivity, double Twall)
+    : BoundaryCondition(bdp, which_boundary, ABLATING, emissivity),
       Twall(Twall), mdot(mdot), max_iterations(1000000), tol(1.0e-6)
 {
     is_wall_flag = true;

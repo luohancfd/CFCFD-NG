@@ -514,7 +514,7 @@ class Block(object):
                inflow_condition=None, x_order=0, sponge_flag=None,
                Twall=None, Pout=None, filename=None, n_profile=1,
                is_wall=0, sets_conv_flux=0, sets_visc_flux=0,
-               assume_ideal=0, mdot=None, epsilon=None,
+               assume_ideal=0, mdot=None, emissivity=None,
                Twall_i=None, Twall_f=None, t_i=None, t_f=None,
                label=''):
         """
@@ -563,8 +563,8 @@ class Block(object):
             Twall = float(Twall)
         if Pout != None:
             Pout = float(Pout)
-        if epsilon != None:
-            epsilon = float(epsilon)
+        if emissivity != None:
+            emissivity = float(emissivity)
         if Twall_i != None:
             Twall_i = float(Twall_i)
         if Twall_f != None:
@@ -610,7 +610,7 @@ class Block(object):
             if not filename: filename = "udf.lua"
             newbc = UserDefinedBC(filename, is_wall, sets_conv_flux, sets_visc_flux, label=label)
         if type_of_BC == SEB:
-            newbc = SurfaceEnergyBalanceBC(epsilon, label=label)
+            newbc = SurfaceEnergyBalanceBC(emissivity, label=label)
         if type_of_BC == ABLATING:
             if not filename: filename = ""
             newbc = AblatingBC(Twall, filename, label=label)
@@ -706,7 +706,7 @@ class Block(object):
             for val in bc.mdot:
                 fp.write("%.6e " % val )
             fp.write("\n")
-            fp.write("epsilon = %e\n" % bc.epsilon)
+            fp.write("emissivity = %e\n" % bc.emissivity)
             #
             fp.write("other_block = %d\n" % bc.other_block)
             if bc.other_face >= 0:

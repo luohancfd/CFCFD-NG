@@ -13,9 +13,9 @@
 
 //------------------------------------------------------------------------
 
-FixedTBC::FixedTBC(Block *bdp, int which_boundary, double Twall)
-    : BoundaryCondition(bdp, which_boundary, FIXED_T),
-      Twall(Twall) 
+FixedTBC::FixedTBC(Block *bdp, int which_boundary, double emissivity, double Twall)
+    : BoundaryCondition(bdp, which_boundary, FIXED_T, emissivity),
+      Twall(Twall)
 {
     is_wall_flag = true;
 }

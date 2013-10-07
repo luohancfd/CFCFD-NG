@@ -250,17 +250,16 @@ MonteCarloCell::~MonteCarloCell() {}
 
 /* RayTracingInterface class definitions */
 
-RayTracingInterface::RayTracingInterface( Gas_data * Q, Vector3 origin, double area, double length )
-: Q_( Q ), origin_( origin ), area_( area ), length_( length )
+RayTracingInterface::RayTracingInterface( Gas_data * Q, Vector3 origin,
+        double area, double length, double epsilon )
+: Q_( Q ), origin_( origin ), area_( area ), length_( length ),
+  epsilon_( epsilon )
 {
     // 0. Initialise SpectralIntensity
     S_ = new SpectralIntensity();
     
     // 1. Initialise BinnedSpectralIntensity to zero as it may not be used
     U_ = 0;
-
-    // 2. Initialise emissivity to 0 (i.e. all incident photons are absorbed)
-    epsilon_ = 1.0;
 
     // NOTE: - not computing spectra until DiscreteTransfer::compute_Q_rad_for_flowfield()
     //         is called
@@ -350,8 +349,10 @@ void RayTracingInterface::write_rays_to_file( string filename )
     return;
 }
 
-DiscreteTransferInterface::DiscreteTransferInterface( Gas_data * Q, Vector3 origin, double area, double length, size_t nrays, size_t ndim, bool planar )
-: RayTracingInterface( Q, origin, area, length )
+DiscreteTransferInterface::DiscreteTransferInterface( Gas_data * Q,
+        Vector3 origin, double area, double length, double epsilon,
+        size_t nrays, size_t ndim, bool planar )
+: RayTracingInterface( Q, origin, area, length, epsilon )
 {
     if ( nrays > 0 ) {
 	if ( planar == true ) {
@@ -413,8 +414,9 @@ DiscreteTransferInterface::DiscreteTransferInterface( Gas_data * Q, Vector3 orig
 
 DiscreteTransferInterface::~DiscreteTransferInterface() {}
 
-MonteCarloInterface::MonteCarloInterface( Gas_data * Q, Vector3 origin, double area, double length )
-: RayTracingInterface( Q, origin, area, length )
+MonteCarloInterface::MonteCarloInterface( Gas_data * Q, Vector3 origin,
+        double area, double length, double epsilon )
+: RayTracingInterface( Q, origin, area, length, epsilon )
 {
    // Rays are initialised later
 }

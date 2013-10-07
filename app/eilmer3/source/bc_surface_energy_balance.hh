@@ -4,7 +4,7 @@
 
 class SurfaceEnergyBalanceBC : public BoundaryCondition {
 public:
-    SurfaceEnergyBalanceBC(Block *bdp, int which_boundary, double epsilon);
+    SurfaceEnergyBalanceBC(Block *bdp, int which_boundary, double emissivity);
     SurfaceEnergyBalanceBC(const SurfaceEnergyBalanceBC &bc);
     SurfaceEnergyBalanceBC();
     SurfaceEnergyBalanceBC & operator=(const SurfaceEnergyBalanceBC &bc);
@@ -19,7 +19,6 @@ private:
     void update_interface_properties(FV_Interface * IFace);
 private:
     Gas_data *Q;
-    double epsilon;
     double tol;
     size_t max_iterations;
     double f_relax;

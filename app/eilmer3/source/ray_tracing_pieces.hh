@@ -176,7 +176,7 @@ public:
 
 class RayTracingInterface {
 public:
-    RayTracingInterface( Gas_data * Q, Vector3 origin, double area, double length );
+    RayTracingInterface( Gas_data * Q, Vector3 origin, double area, double length, double epislon );
     
     virtual ~RayTracingInterface();
     
@@ -227,14 +227,14 @@ public:
 
 class DiscreteTransferInterface : public RayTracingInterface {
 public:
-    DiscreteTransferInterface( Gas_data * Q, Vector3 origin, double area, double length, size_t nrays=0, size_t ndim=0, bool planar=false );
+    DiscreteTransferInterface( Gas_data * Q, Vector3 origin, double area, double length, double epsilon, size_t nrays=0, size_t ndim=0, bool planar=false );
     
     virtual ~DiscreteTransferInterface();
 };
 
 class MonteCarloInterface : public RayTracingInterface {
 public:
-    MonteCarloInterface( Gas_data * Q, Vector3 origin, double area, double length );
+    MonteCarloInterface( Gas_data * Q, Vector3 origin, double area, double length, double epsilon );
     
     virtual ~MonteCarloInterface();
 };

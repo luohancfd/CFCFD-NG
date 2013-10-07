@@ -6,7 +6,7 @@ class FixedTBC : public BoundaryCondition {
 public:
     double Twall;
 public:
-    FixedTBC(Block *bdp, int which_boundary, double Twall);
+    FixedTBC(Block *bdp, int which_boundary, double Twall, double emissivity);
     FixedTBC(const FixedTBC &bc);
     FixedTBC();
     FixedTBC & operator=(const FixedTBC &bc);
