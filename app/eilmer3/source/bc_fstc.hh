@@ -8,7 +8,8 @@ private:
     std::vector<double> fstc_TProfile;
     unsigned int ncell_for_profile;
 public:
-    fstcBC(Block *bdp, int which_boundary, const std::string filename="fstc_temp.txt");
+    fstcBC(Block *bdp, int which_boundary, const std::string filename,
+           double emissivity);
     fstcBC(const fstcBC &bc);
     fstcBC();
     fstcBC & operator=(const fstcBC &bc);

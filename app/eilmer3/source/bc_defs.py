@@ -137,7 +137,7 @@ class BoundaryCondition(object):
     __slots__ = 'type_of_BC', 'Twall', 'Pout', 'inflow_condition', \
                 'x_order', 'sponge_flag', 'other_block', 'other_face', 'orientation', \
                 'filename', 'n_profile', 'is_wall', 'sets_conv_flux', 'sets_visc_flux', 'assume_ideal', \
-                'mdot', 'Twall_i', 'Twall_f', 't_i', 't_f', 'label', 'emissivity'
+                'mdot', 'Twall_i', 'Twall_f', 't_i', 't_f', 'emissivity', 'label'
     def __init__(self,
                  type_of_BC=SLIP_WALL,
                  Twall=300.0,
@@ -159,8 +159,8 @@ class BoundaryCondition(object):
                  Twall_f=300.0,
                  t_i=0.0,
                  t_f=0.0,
-                 label="",
-                 emissivity=1.0):
+                 emissivity=1.0,
+                 label=""):
         """
         Construct a generic boundary condition object.
 
@@ -230,8 +230,8 @@ class BoundaryCondition(object):
         self.Twall_f = Twall_f
         self.t_i = t_i
         self.t_f = t_f
-        self.label = label
         self.emissivity = emissivity
+        self.label = label
             
         return
     def __str__(self):
@@ -254,8 +254,8 @@ class BoundaryCondition(object):
         str_rep += ", mdot=["
         for mdi in mdot: str_rep += "%g," % mdi
         str_rep += "]"
-        str_rep += ", label=\"%s\")" % self.label
         str_rep += ", emissivity=%g" % self.emissivity
+        str_rep += ", label=\"%s\")" % self.label
         return str_rep
     def __copy__(self):
         return BoundaryCondition(type_of_BC=self.type_of_BC,
@@ -278,8 +278,8 @@ class BoundaryCondition(object):
                                  Twall_f=self.Twall_f,
                                  t_i=self.t_i,
                                  t_f=self.t_f,
-                                 label=self.label,
-                                 emissivity=self.emissivity)
+                                 emissivity=self.emissivity,
+                                 label=self.label)
     
 class AdjacentBC(BoundaryCondition):
     """
@@ -406,20 +406,20 @@ class SlipWallBC(BoundaryCondition):
     This is the default boundary condition applied to a block face
     if you don't otherwise specify a boundary condition.
     """
-    def __init__(self, label="", emissivity=1.0):
+    def __init__(self, emissivity=1.0, label=""):
         """
         Construct a no-friction, solid-wall boundary.
 
         :param label: A string that may be used to assist in identifying the boundary
             in the post-processing phase of a simulation.
         """
-        BoundaryCondition.__init__(self, type_of_BC=SLIP_WALL, is_wall=1, 
-                                   label=label, emissivity=emissivity)
+        BoundaryCondition.__init__(self, type_of_BC=SLIP_WALL, is_wall=1,
+                                   emissivity=emissivity, label=label)
         return
     def __str__(self):
         return "SlipWallBC(label=\"%s\")" % self.label
     def __copy__(self):
-        return SlipWallBC(label=self.label,emissivity=self.emissivity)
+        return SlipWallBC(emissivity=self.emissivity,label=self.label)
     
 class AdiabaticBC(BoundaryCondition):
     """
@@ -450,7 +450,7 @@ class FixedTBC(BoundaryCondition):
     Like the AdiabaticBC, this is completey effective only when viscous
     effects are active.  Else, it is just like another solid (slip) wall.
     """
-    def __init__(self, Twall, label="", emissivity=1.0):
+    def __init__(self, Twall, emissivity=1.0, label=""):
         """
         Construct a no-slip, fixed-temperature, solid-wall boundary.
 
@@ -460,12 +460,12 @@ class FixedTBC(BoundaryCondition):
             in the post-processing phase of a simulation.
         """
         BoundaryCondition.__init__(self, type_of_BC=FIXED_T, Twall=Twall, 
-                                   is_wall=1, label=label, emissivity=emissivity)
+                                   is_wall=1, emissivity=emissivity, label=label)
         return
     def __str__(self):
         return "FixedTBC(Twall=%g, label=\"%s\")" % (self.Twall, self.label)
     def __copy__(self):
-        return FixedTBC(Twall=self.Twall, label=self.label, emissivity=self.emissivity)
+        return FixedTBC(Twall=self.Twall, emissivity=self.emissivity, label=self.label)
 
 class fstcBC(BoundaryCondition):
     """
@@ -787,16 +787,16 @@ class AblatingBC(BoundaryCondition):
     Like the AdiabaticBC, this is completey effective only when viscous
     effects are active.  Else, it is just like another solid (slip) wall.
     """
-    def __init__(self, Twall, filename="reaction-scheme.lua", label="", emissivity=1.0):
+    def __init__(self, Twall, filename="reaction-scheme.lua", emissivity=1.0, label=""):
         BoundaryCondition.__init__(self, type_of_BC=ABLATING, Twall=Twall, 
                                    filename=filename, is_wall=1, 
-                                   label=label, emissivity=emissivity)
+                                   emissivity=emissivity, label=label)
         return
     def __str__(self):
         return "AblatingBC(Twall=%g, label=\"%s\")" % (self.Twall, self.label)
     def __copy__(self):
         return AblatingBC(Twall=self.Twall, filename=self.filename,
-                          label=self.label, emissivity=self.emissivity)
+                          emissivity=self.emissivity, label=self.label)
 
 #####################################################################################
 # FIX-ME -- should we merge the catalycity bcs with the main boundary-condition list?

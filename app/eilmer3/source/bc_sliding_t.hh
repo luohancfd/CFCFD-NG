@@ -9,7 +9,8 @@ public:
     double t_i;
     double t_f;
 public:
-    SlidingTBC(Block *bdp, int which_boundary, double Twall_i, double Twall_f, double t_i, double t_f);
+    SlidingTBC(Block *bdp, int which_boundary, double Twall_i, double Twall_f,
+            double t_i, double t_f, double emissivity);
     SlidingTBC(const SlidingTBC &bc);
     SlidingTBC();
     SlidingTBC & operator=(const SlidingTBC &bc);

@@ -28,11 +28,12 @@
 //------------------------------------------------------------------------
 
 SurfaceEnergyBalanceBC::SurfaceEnergyBalanceBC(Block *bdp, int which_boundary,
-                                                           double emissivity)
-    : BoundaryCondition(bdp, which_boundary, SEB, emissivity),
+                                                           double _emissivity)
+    : BoundaryCondition(bdp, which_boundary, SEB),
       tol(1.0e-4), max_iterations(100), f_relax(0.05)
 {
     is_wall_flag = true;
+    emissivity = _emissivity;
     // Ensure that emissivity is between 0 and 1 as required
     if ( emissivity < 0.0 || emissivity > 1.0 ) {
     	cerr << "SurfaceEnergyBalanceBC::SurfaceEnergyBalanceBC()" << endl

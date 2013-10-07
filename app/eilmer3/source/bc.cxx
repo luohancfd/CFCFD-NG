@@ -126,16 +126,15 @@ int apply_viscous_bc( Block &bd, double t, size_t dimensions )
 //-----------------------------------------------------------------------
 
 BoundaryCondition::
-BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code, double emissivity)
+BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code)
     : bdp(bdp), which_boundary(which_boundary), type_code(type_code),
-      emissivity(emissivity),
       // The following common data can usually take these defaults,
       // however, they may be set to differing values by
       // the constructors of the derived classes.
       is_wall_flag(false), ghost_cell_data_available(true), xforce_flag(0), 
       sets_conv_flux_flag(false), sets_visc_flux_flag(false),
       neighbour_block(-1), neighbour_face(-1), neighbour_orientation(0),
-      wc_bc(NON_CATALYTIC), cw(0)
+      wc_bc(NON_CATALYTIC), cw(0), emissivity(1.0)
 {
     Block & bd = *bdp;
     // 1. Determine size heat flux vectors
@@ -223,17 +222,16 @@ BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code, double emissiv
 // Shouldn't really have a boundary condition object created without
 // reference to a particular block but, just in case the compiler wants it...
 BoundaryCondition::BoundaryCondition()
-    : bdp(0), which_boundary(0), type_code(SLIP_WALL), emissivity(0.0),
+    : bdp(0), which_boundary(0), type_code(SLIP_WALL),
       is_wall_flag(false), ghost_cell_data_available(true), xforce_flag(0),
       sets_conv_flux_flag(false), sets_visc_flux_flag(false),
       neighbour_block(-1), neighbour_face(-1), neighbour_orientation(0),
-      wc_bc(NON_CATALYTIC), cw(0)
+      wc_bc(NON_CATALYTIC), cw(0), emissivity(1.0)
 {}
 
 BoundaryCondition::BoundaryCondition(const BoundaryCondition &bc)
     : bdp(bc.bdp), // Still bound to the original block.
       which_boundary(bc.which_boundary), type_code(bc.type_code),
-      emissivity(bc.emissivity),
       is_wall_flag(bc.is_wall_flag),
       ghost_cell_data_available(bc.ghost_cell_data_available),
       xforce_flag(bc.xforce_flag),
@@ -244,7 +242,8 @@ BoundaryCondition::BoundaryCondition(const BoundaryCondition &bc)
       neighbour_orientation(bc.neighbour_orientation),
       wc_bc(bc.wc_bc), cw(0),
       q_cond(bc.q_cond), q_diff(bc.q_diff), q_rad(bc.q_rad),
-      imin(bc.imin), imax(bc.imax), jmin(bc.jmin), jmax(bc.jmax)
+      imin(bc.imin), imax(bc.imax), jmin(bc.jmin), jmax(bc.jmax),
+      emissivity(bc.emissivity)
 {
     // if ( bc.cw ) cw = new CatalyticWallBC(*bc.cw);
 }
@@ -923,19 +922,22 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	newBC = new SlipWallBC(bdp, which_boundary, emissivity);
 	break;
     case ADIABATIC:
-	newBC = new AdiabaticBC(bdp, which_boundary);
+        dict.parse_double(section, "emissivity", emissivity, 1.0);
+	newBC = new AdiabaticBC(bdp, which_boundary, emissivity);
 	break;
     case FIXED_T:
 	dict.parse_double(section, "Twall", Twall, 300.0);
 	dict.parse_double(section, "emissivity", emissivity, 1.0);
-	newBC = new FixedTBC(bdp, which_boundary, emissivity, Twall);
+	newBC = new FixedTBC(bdp, which_boundary, Twall, emissivity);
 	break;
     case SLIDING_T:
 	dict.parse_double(section, "Twall_i", Twall_i, 300.0);
 	dict.parse_double(section, "Twall_f", Twall_f, 300.0);
 	dict.parse_double(section, "t_i", t_i, 0.0);
 	dict.parse_double(section, "t_f", t_f, 0.0);
-	newBC = new SlidingTBC(bdp, which_boundary, Twall_i, Twall_f, t_i, t_f);
+        dict.parse_double(section, "emissivity", emissivity, 1.0);
+	newBC = new SlidingTBC(bdp, which_boundary, Twall_i, Twall_f, t_i, t_f,
+	                       emissivity);
 	break;
     case SUBSONIC_IN:
 	dict.parse_int(section, "inflow_condition", inflow_condition_id, 0);
@@ -986,11 +988,12 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
         dict.parse_double(section, "emissivity", emissivity, 1.0);
         dict.parse_double(section, "Twall", Twall, 300.0);
 //	dict.parse_vector_of_doubles(section, vnf);
-    	newBC = new AblatingBC(bdp, which_boundary, emissivity, Twall);
+    	newBC = new AblatingBC(bdp, which_boundary, Twall, emissivity);
     	break;
     case FSTC:
 	dict.parse_string(section, "filename", filename, "");
-	newBC = new fstcBC(bdp, which_boundary, filename);
+        dict.parse_double(section, "emissivity", emissivity, 1.0);
+	newBC = new fstcBC(bdp, which_boundary, filename, emissivity);
         break;
     default:
 	cerr << "create_BC() error: boundary condition \"" << type_of_BC 

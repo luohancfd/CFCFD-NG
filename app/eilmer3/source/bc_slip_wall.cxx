@@ -11,22 +11,25 @@
 
 //------------------------------------------------------------------------
 
-SlipWallBC::SlipWallBC(Block *bdp, int which_boundary, double emissivity)
-    : BoundaryCondition(bdp, which_boundary, SLIP_WALL, emissivity)
+SlipWallBC::SlipWallBC(Block *bdp, int which_boundary, double _emissivity)
+    : BoundaryCondition(bdp, which_boundary, SLIP_WALL)
 {
     is_wall_flag = true;
+    emissivity = _emissivity;
 }
 
 SlipWallBC::SlipWallBC(const SlipWallBC &bc)
-    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code, bc.emissivity)
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code)
 {
     is_wall_flag = bc.is_wall_flag;
+    emissivity = bc.emissivity;
 }
 
 SlipWallBC::SlipWallBC()
-    : BoundaryCondition(0, 0, SLIP_WALL, 1.0)
+    : BoundaryCondition(0, 0, SLIP_WALL)
 {
     is_wall_flag = true;
+    emissivity = 1.0;
 }
 
 SlipWallBC & SlipWallBC::operator=(const SlipWallBC &bc)

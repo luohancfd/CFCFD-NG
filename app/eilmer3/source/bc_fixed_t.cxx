@@ -13,11 +13,12 @@
 
 //------------------------------------------------------------------------
 
-FixedTBC::FixedTBC(Block *bdp, int which_boundary, double emissivity, double Twall)
-    : BoundaryCondition(bdp, which_boundary, FIXED_T, emissivity),
+FixedTBC::FixedTBC(Block *bdp, int which_boundary, double Twall, double _emissivity)
+    : BoundaryCondition(bdp, which_boundary, FIXED_T),
       Twall(Twall)
 {
     is_wall_flag = true;
+    emissivity = _emissivity;
 }
 
 FixedTBC::FixedTBC(const FixedTBC &bc)
@@ -25,6 +26,7 @@ FixedTBC::FixedTBC(const FixedTBC &bc)
       Twall(bc.Twall) 
 {
     is_wall_flag = bc.is_wall_flag;
+    emissivity = bc.emissivity;
 }
 
 FixedTBC::FixedTBC()
@@ -32,6 +34,7 @@ FixedTBC::FixedTBC()
       Twall(300.0)
 {
     is_wall_flag = true;
+    emissivity = 1.0;
 }
 
 FixedTBC & FixedTBC::operator=(const FixedTBC &bc)

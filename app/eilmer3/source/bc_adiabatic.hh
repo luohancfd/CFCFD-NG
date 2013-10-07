@@ -4,7 +4,7 @@
 
 class AdiabaticBC : public BoundaryCondition {
 public:
-    AdiabaticBC(Block *bdp, int which_boundary);
+    AdiabaticBC(Block *bdp, int which_boundary, double emissivity);
     AdiabaticBC(const AdiabaticBC &bc);
     AdiabaticBC();
     AdiabaticBC & operator=(const AdiabaticBC &bc);

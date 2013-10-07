@@ -49,8 +49,8 @@ AblatingBC::AblatingBC()
 
 // normal constructor
 
-AblatingBC::AblatingBC(Block *bdp, int which_boundary, double emissivity, double Twall)
-    : BoundaryCondition(bdp, which_boundary, ABLATING, emissivity),
+AblatingBC::AblatingBC(Block *bdp, int which_boundary, double Twall, double _emissivity)
+    : BoundaryCondition(bdp, which_boundary, ABLATING),
       Twall(Twall), mdot(mdot), max_iterations(1000000), tol(1.0e-6)
 {
     is_wall_flag = true;
@@ -61,6 +61,8 @@ AblatingBC::AblatingBC(Block *bdp, int which_boundary, double emissivity, double
     double T = Twall;          // how to get this from input script?
     TProfile.push_back(T);
     
+    emissivity = _emissivity;
+
     // 0. Get gas-model pointer
     gmodel = get_gas_model_ptr();
     size_t nsp = gmodel->get_number_of_species();
@@ -90,6 +92,7 @@ AblatingBC::AblatingBC(const AblatingBC &bc)
       max_iterations(bc.max_iterations), tol(bc.tol), f_jac(bc.f_jac)
 {
     is_wall_flag = bc.is_wall_flag;
+    emissivity = bc.emissivity;
     // 0. Get gas-model pointer
     // -> copied explicitly above
     int nsp = gmodel->get_number_of_species();
@@ -114,6 +117,7 @@ AblatingBC & AblatingBC::operator=(const AblatingBC &bc)
     BoundaryCondition::operator=(bc);
     if ( this != &bc ) {
 	Twall = bc.Twall;
+	emissivity = bc.emissivity;
 	TProfile = bc.TProfile;
 	ncell_for_profile = bc.ncell_for_profile;
 	mdot_total = bc.mdot_total;

@@ -99,7 +99,6 @@ public:
     Block *bdp;         // reference to the relevant block
     int which_boundary; // identity of the relevant boundary
     bc_t type_code;     // unique code used in switch statements and maps
-    double emissivity;  // Radiative emissivity (used for radiation transport)
 
     // Configuration data that can usually take default values.
     // Even if these data are specific to a only a few BCs,
@@ -124,9 +123,12 @@ public:
     std::vector<double> q_rad;
     size_t imin, imax, jmin, jmax, kmin, kmax;	// boundary cell indice limits
 
+    // Radiative emissivity (used for radiation transport)
+    double emissivity;
+
+
 public:
-    BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code,
-                      double emissivity=0.0);
+    BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code);
     BoundaryCondition(); // Shouldn't have one without referring to a Block.
     BoundaryCondition(const BoundaryCondition &bc);
     BoundaryCondition & operator=(const BoundaryCondition &bc);

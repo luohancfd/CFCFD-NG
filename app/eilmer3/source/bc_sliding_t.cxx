@@ -14,11 +14,14 @@
 //------------------------------------------------------------------------
 
 SlidingTBC::SlidingTBC(Block *bdp, int which_boundary, 
-		       double _Twall_i, double _Twall_f, double _t_i, double _t_f )
+		       double _Twall_i, double _Twall_f,
+		       double _t_i, double _t_f,
+		       double _emissivity)
     : BoundaryCondition(bdp, which_boundary, SLIDING_T),
       Twall_i(_Twall_i), Twall_f(_Twall_f), t_i(_t_i), t_f(_t_f)
 {
     is_wall_flag = true;
+    emissivity = _emissivity;
 }
 
 SlidingTBC::SlidingTBC(const SlidingTBC &bc)
@@ -26,6 +29,7 @@ SlidingTBC::SlidingTBC(const SlidingTBC &bc)
       Twall_i(bc.Twall_i), Twall_f(bc.Twall_f), t_i(bc.t_i), t_f(bc.t_f)
 {
     is_wall_flag = bc.is_wall_flag;
+    emissivity = bc.emissivity;
 }
 
 SlidingTBC::SlidingTBC()
@@ -33,6 +37,7 @@ SlidingTBC::SlidingTBC()
       Twall_i(0.0), Twall_f(0.0), t_i(0.0), t_f(0.0)
 {
     is_wall_flag = true;
+    emissivity = 1.0;
 }
 
 SlidingTBC & SlidingTBC::operator=(const SlidingTBC &bc)

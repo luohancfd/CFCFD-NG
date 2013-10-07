@@ -25,12 +25,14 @@
 #include <string.h>
 #include <vector>
 
-fstcBC::fstcBC(Block *bdp, int which_boundary, const std::string filename)
+fstcBC::fstcBC(Block *bdp, int which_boundary, const std::string filename,
+               double _emissivity)
     : BoundaryCondition(bdp, which_boundary, FSTC),
       filename(filename)
 {
     // Reads the temperature profile from the solid solver output.
     is_wall_flag = true;
+    emissivity = _emissivity;
 
     char line[512], token[512];
     double T;
@@ -92,6 +94,7 @@ fstcBC::fstcBC( const fstcBC &bc )
       filename(bc.filename)
 {
     is_wall_flag = bc.is_wall_flag;
+    emissivity = bc.emissivity;
 }
 
 fstcBC::fstcBC()
@@ -100,6 +103,7 @@ fstcBC::fstcBC()
 { 
     /* Cannot do anything useful here. */ 
     is_wall_flag = true; 
+    emissivity = 1.0;
 }
 
 fstcBC & fstcBC::operator=(const fstcBC &bc)
@@ -107,6 +111,7 @@ fstcBC & fstcBC::operator=(const fstcBC &bc)
     BoundaryCondition::operator=(bc);
     is_wall_flag = bc.is_wall_flag;
     filename = bc.filename;
+    emissivity = bc.emissivity;
     cerr << "fstcBC() assignment operator with file: " << filename
 	 << "Not implemented. " << endl;
     exit(NOT_IMPLEMENTED_ERROR);
