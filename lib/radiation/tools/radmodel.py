@@ -265,7 +265,7 @@ def declare_radiators( params, gdata ):
         rad = gdata.request_radiator(rad_name)
         rad.default_data()
         rad.isp = params["species"].index(rad_name)
-        rad.iT = params["iTe"]
+        rad.iT = params["iT"]
         rad.iTe = params["iTe"]
         if params["atomic_level_source"] and rad.type=="atomic_radiator":
             levels,lines,PICSs = get_atomic_species_data( rad_name, level_source=params["atomic_level_source"], line_source=params["atomic_line_source"], PICS_source=params["atomic_PICS_source"], omit_psuedocontinuum_levels=False, use_individual_levels=True, stark_tol=1.0e-2, PICS_tol=1.0e4 )
@@ -280,7 +280,10 @@ def declare_radiators( params, gdata ):
             for noneq_elev in noneq_elevs: noneq_elevs_str += "%d, " % noneq_elev
             rad.QSS_model = AtomicQSSModel(name="Drawin",noneq_elevs=noneq_elevs_str,eie_model="Drawin",eii_model="Drawin",rt_model="OpticallyThin", pr_model="OpticallyThin")
         if rad_name in params["no_emission_radiators"]:
-            rad.line_set = AtomicLineSet([],"no lines")
+            if rad.type=="atomic_radiator":
+                rad.line_set = AtomicLineSet([],"no lines")
+            else:
+                rad.systems = []
 
 def main():
     from optparse import OptionParser

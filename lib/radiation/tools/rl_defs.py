@@ -163,7 +163,7 @@ class TOPBasePICSLevel(object):
         
 class TOPBasePICSModel(PhotoIonXSectionModel):
     """Derived class for describing TOPBase photo-ionization cross-section model"""
-    def __init__(self, level_data, hydrogenic_fill=True, elevel_set="TOPBase"):
+    def __init__(self, level_data, hydrogenic_fill=False, elevel_set="TOPBase"):
         PhotoIonXSectionModel.__init__(self, elevel_set=elevel_set, model="TOPBaseModel")
         self.level_data = level_data
         self.hydrogenic_fill = hydrogenic_fill

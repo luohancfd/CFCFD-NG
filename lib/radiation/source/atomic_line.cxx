@@ -61,7 +61,7 @@ AtomicLine( vector<double> line_data, double m_w, double I, int npoints, int nwi
     		( double(g_u) / double(g_l) ) / ( nu_ul * nu_ul ) * A_ul;
 
     // 4. Make the cluster function instance
-    rcf = new RobertsClusterFunction(0,1,beta);
+    rcf = new RobertsClusterFunction(1,0,beta);
 
     // 5. Make the StarkWidthModel instance
     if( gamma_S0 < 0.0 ) {
