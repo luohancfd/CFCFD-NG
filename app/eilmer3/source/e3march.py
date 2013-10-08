@@ -244,18 +244,24 @@ def run_in_block_marching_mode(cfgDict):
             # Propagate only the last profile slice of set A to the blocks in set B.
             for blk in range(blksPerSlice, 2*blksPerSlice):
                 flowFileName = 'flow/t0000/'+jobName+'.flow.b'+str(blk).zfill(4)+'.t0000.gz'
-                profileFileName = 'blk-'+str(blk-blksPerSlice)+'-slices-1-and-2.dat'
+                profileFileName = 'blk-'+str(blk)+'-slice-1.dat'
                 propagate_data_west_to_east(flowFileName, profileFileName)
         #
         print "Run Eilmer3."
         run_command(MPI_PARAMS+E3BIN+('/e3mpi.exe --job=%s --run' % (jobName,)))
         #
         print "Post-process to get profiles for the inflow for the next run."
-        # Extract the last 2 slices for each block in the upstream column.
+        # Extract the last 2 slices for each block in the upstream column, set A.
         for blk in range(0, blksPerSlice):
             run_command(E3BIN+('/e3post.py --job=%s --tindx=0001 ' % (jobName,))
                         +('--output-file=blk-%d-slices-1-and-2.dat ' % blk)
                         +('--slice-list="%d,-1,:,0;%d,-2,:,0" ' % (blk, blk))
+                        +('--gmodel-file=%s' % gmodelFile))
+        # Extract the last slice for each block in the downstream column, set B.
+        for blk in range(blksPerSlice, 2*blksPerSlice):
+            run_command(E3BIN+('/e3post.py --job=%s --tindx=0001 ' % (jobName,))
+                        +('--output-file=blk-%d-slice-1.dat ' % blk)
+                        +('--slice-list="%d,-1,:,0" ' % blk)
                         +('--gmodel-file=%s' % gmodelFile))
         #
         # Save the (presumed) converged blocks (A) in the upstream column back to the master area.
@@ -284,6 +290,7 @@ def run_in_block_marching_mode(cfgDict):
     run_command('mv master/%s.control %s.control' % (jobName, jobName,))
     run_command('mv master/block_labels.list block_labels.list')
     run_command('rm -rf master')
+    run_command(['rm'] + glob('blk-*-slice*.dat'))
     return
 
 def create_config_file(blksPerSlice, originalConfigFileName, newConfigFileName):
@@ -454,9 +461,7 @@ def propagate_data_west_to_east(flowFileName, profileFileName):
     FIX-ME -- needs to work for 3D blocks
     """
     profile = []
-    # Read in file that contains profile. Note that the input file contains
-    # contains 2 profiles (One for the inner ghost cells and the other for 
-    # the outer ghost cells). We want only that for the inner ghost cells.
+    # Read in file that contains the profile. 
     fi = open(profileFileName, "r")
     fi.readline() # Read away the header line that contains variable names.
     while True:
@@ -465,9 +470,6 @@ def propagate_data_west_to_east(flowFileName, profileFileName):
         tokens = [float(word) for word in buf.split()]
         profile.append(tokens)
     fi.close()
-    # Keep only the first profile slice.
-    ncells_for_profile = len(profile) / 2
-    del profile[ncells_for_profile:]
     # Propagate the profile across the flow solutions.
     fi = gzip.open(flowFileName, "r")
     fo = gzip.open('flow/t0000/tmp.gz', "w")
