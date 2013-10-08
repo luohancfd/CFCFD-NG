@@ -45,6 +45,8 @@ from getopt import getopt
 from glob import glob
 import traceback
 from ConfigParser import SafeConfigParser
+if sys.version_info < (2, 7):
+    from OrderedDict import *
 E3BIN = os.path.expandvars("$HOME/e3bin")
 sys.path.append(E3BIN)
 from libprep3 import *
@@ -300,7 +302,10 @@ def create_config_file(blksPerSlice, originalConfigFileName, newConfigFileName):
     sliceB_section_names = ['block/'+str(blk)+'/face/east' 
                             for blk in range(blksPerSlice, blksPerRun)]
     #
-    parser = SafeConfigParser()
+    if sys.version_info < (2, 7):
+        parser = SafeConfigParser(dict_type=OrderedDict)
+    else:
+        parser = SafeConfigParser()
     parser.optionxform = str
     parser.read(originalConfigFileName)
     outfile = file(newConfigFileName, 'w')
@@ -336,7 +341,10 @@ def read_block_dims(configFileName):
     """
     Returns the number blocks, and the dimensions for each block.
     """
-    parser = SafeConfigParser()
+    if sys.version_info < (2, 7):
+        parser = SafeConfigParser(dict_type=OrderedDict)
+    else:
+        parser = SafeConfigParser()
     parser.optionxform = str
     parser.read(configFileName)
     numberOfBlocks = parser.getint('global_data', 'nblock')
@@ -351,7 +359,10 @@ def update_block_dims(targetBlock, blockDims, configFileName):
     Update the block dimensions in .config file to reflect that of
     the block that is used in the current Eilmer3 run.
     """
-    parser = SafeConfigParser()
+    if sys.version_info < (2, 7):
+        parser = SafeConfigParser(dict_type=OrderedDict)
+    else:
+        parser = SafeConfigParser()
     parser.optionxform = str
     parser.read(configFileName)
     parser.set('block/'+str(targetBlock), 'nni', str(blockDims[0]))
@@ -367,7 +378,10 @@ def update_max_time(maxTime, controlFileName):
     Update the max_time in the control file to reflect the maximum
     run time for each Eilmer3 run.
     """
-    parser = SafeConfigParser()
+    if sys.version_info < (2, 7):
+        parser = SafeConfigParser(dict_type=OrderedDict)
+    else:
+        parser = SafeConfigParser()
     parser.optionxform = str
     parser.read(controlFileName)
     parser.set('control_data', 'max_time', str(maxTime))
@@ -392,7 +406,10 @@ def update_dt_global(jobName, max_dt):
         new_dt_global = min(final_dt_global, float(max_dt))
     # Write out a new .control file with the appropriate line updated.
     controlFileName = jobName+'.control'
-    parser = SafeConfigParser()
+    if sys.version_info < (2, 7):
+        parser = SafeConfigParser(dict_type=OrderedDict)
+    else:
+        parser = SafeConfigParser()
     parser.optionxform = str
     parser.read(controlFileName)
     parser.set('control_data', 'dt', str(new_dt_global))
@@ -409,7 +426,10 @@ def update_inflowBC(blksPerSlice, configFileName):
     The data for this staticProfile has come from a previous run of
     the time-stepping code.
     """
-    parser = SafeConfigParser()
+    if sys.version_info < (2, 7):
+        parser = SafeConfigParser(dict_type=OrderedDict)
+    else:
+        parser = SafeConfigParser()
     parser.optionxform = str
     parser.read(configFileName)
     # Section names for the west faces of blocks in the upstream slice.
