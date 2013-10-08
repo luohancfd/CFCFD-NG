@@ -44,11 +44,16 @@ class YvX:
         if len(x_list)!=len(y_list):
             print "YvX: x and y lists are not the same length"
             sys.exit()
+        if x_list[0] > x_list[-1]:
+            x_list.reverse()
+            y_list.reverse()
         self.x_array = array(x_list)
         self.y_array = array(y_list)
         if with_scipy:
             if with_spline:
                 self.spline_fit = interpolate.splrep( self.x_array, self.y_array )
+            else:
+                self.spline_fit = None
             self.linear_fit = interpolate.interp1d( self.x_array, self.y_array )
         print "Successfully created a YvX class from provided x and y lists of length: ", len(x_list)
 
@@ -62,11 +67,17 @@ class YvX:
              if line[0]=="#" or line[0]=='"': continue
              x_list.append(float(tks[x_col]))
              y_list.append(float(tks[y_col]))
+        if x_list[0] > x_list[-1]:
+            print "create_from_file: reversing data"
+            x_list.reverse()
+            y_list.reverse()
         self.x_array = array(x_list)
         self.y_array = array(y_list)
         if with_scipy:
             if with_spline:
                 self.spline_fit = interpolate.splrep( self.x_array, self.y_array )
+            else:
+                self.spline_fit = None
             self.linear_fit = interpolate.interp1d( self.x_array, self.y_array )
         print "Successfully created a YvX class of size: %d from file: %s\n" % (len(x_list), infile_name)
 
@@ -98,9 +109,9 @@ class YvX:
             else:
                 if self.check_range( x_val )==False: return 0.0
             if use_spline:
-                    return interpolate.splev( x_val, self.spline_fit, der=0 )
+                    return float(interpolate.splev( x_val, self.spline_fit, der=0 ))
             else:
-                    return self.linear_fit( x_val )
+                    return float(self.linear_fit( x_val ))
 
     def check_range(self, x_val):
         if x_val<self.x_array[0] or x_val>self.x_array[-1]: return False
@@ -195,7 +206,7 @@ class YvX:
         self.recompute_spline()
         print "Requested x_min = %f, new x_min = %f" % ( x_min, self.x_array[0] )
         print "Requested x_max = %f, new x_max = %f" % ( x_max, self.x_array[-1] )
-
+        
     def integrate( self, x_min=None, x_max=None):
         if x_min==None: x_min = self.x_array[0]
         if x_max==None: x_max = self.x_array[-1]
@@ -216,7 +227,10 @@ class YvX:
         if not with_scipy:
             print "scipy is required for interpolation"
             sys.exit()
-        self.spline_fit = interpolate.splrep( self.x_array, self.y_array, s=s )
+        if self.spline_fit:
+            self.spline_fit = interpolate.splrep( self.x_array, self.y_array, s=s )
+        if self.linear_fit:
+            self.linear_fit = interpolate.interp1d( self.x_array, self.y_array )
 
     def apply_filter(self,name,params):
         if name=="gaussian":
