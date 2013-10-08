@@ -342,7 +342,6 @@ initial=FlowCondition(p=initial['p'], u=0.0, v=0.0, T=initial['T'],
                        massf=initial_massf, tke=0.0, omega=1.0,
                        label="initial")
 
-
 # When no gridFileName is given we use the provided (or default) contourFile
 if $gridFileName in ['None']:
     # Read in file for the particular nozzle.
@@ -356,9 +355,10 @@ if $gridFileName in ['None']:
         y_c.append(float(items[1]))
     
     # Bezier control points that make up the nozzle contour. 
-    if $contourFileName in ['Bezier-control-pts-t4-m8.data',\
+    if $contourFileName in ['Bezier-control-pts-t4-m7.data',\
+                            'Bezier-control-pts-t4-m8.data',\
                             'Bezier-control-pts-t4-m10.data']:
-        # For the T4 Mach 8 and Mach 10 nozzles, the control points 
+        # For the T4 Mach 7, 8 and Mach 10 nozzles, the control points 
         # start from the first pair of coordinates in the given data 
         # file.
         bezCtrlPts = [Vector(x_c[i],y_c[i]) for i in range(len(x_c))]
@@ -520,7 +520,7 @@ if $gridFileName in ['None']:
         logical_noz = roberts(arange(0.0, 1.+delta, delta), 0.0, bx)
     else:
         logical_noz = roberts(arange(0.0, 1.+delta, delta), 0.5, bx)
-    # Acutal grid points
+    # Actual grid points
     actual_noz = [make_expansion_region_grid(r,0)[0] for r in logical_noz]
     # First cell width
     diff = make_expansion_region_grid(logical_noz[1], 0)[0]
@@ -573,7 +573,13 @@ if $gridFileName in ['None']:
                               nbi=nbi, nbj=nbj,
                               bc_list=bc_list, cf_list = cf_list,
                               fill_condition=initial, label="nozzle")
-    #
+
+    # For block-marched simulations, the blocks are initialised with 
+    # throat conditions to help improve the convergence of the simulation
+    if $blockMarching:
+        throat_blk.fill_condition = inflow
+        nozzle_blk.fill_condition = inflow
+    
     identify_block_connections()
 
 else:
