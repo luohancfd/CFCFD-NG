@@ -337,7 +337,7 @@ else:
 # Now set the inflow and intial flow conditions
 inflow=FlowCondition(p=throat.p, u=throat_V, v=0.0, T=throat.T,
                        massf=throat_massf, tke=throat_tke,
-                       omega=throat_omega)
+                       omega=throat_omega, label="inflow")
 initial=FlowCondition(p=initial['p'], u=0.0, v=0.0, T=initial['T'],
                        massf=initial_massf, tke=0.0, omega=1.0,
                        label="initial")
@@ -561,25 +561,35 @@ if $gridFileName in ['None']:
     # Now set the clustering and define the "throat_blk"
     x_clust_throat = RobertsClusterFunction(1, 1, bx_throat)
     cf_list_throat = [x_clust_throat, y_clust, x_clust_throat, y_clust]
-    
-    # Now define the throat block
-    throat_blk = SuperBlock2D(throat_region, nni=nni_throat, nnj=nnj,
-                              nbi=nbi_throat, nbj=nbj, 
-                              bc_list=bc_list, cf_list=cf_list_throat, 
-                              fill_condition=initial, label="throat")
-    
-    # Finally, define the main nozzle block
-    nozzle_blk = SuperBlock2D(expansion_region, nni=nni, nnj=nnj,
-                              nbi=nbi, nbj=nbj,
-                              bc_list=bc_list, cf_list = cf_list,
-                              fill_condition=initial, label="nozzle")
 
     # For block-marched simulations, the blocks are initialised with 
     # throat conditions to help improve the convergence of the simulation
-    if $blockMarching:
-        throat_blk.fill_condition = inflow
-        nozzle_blk.fill_condition = inflow
-    
+    blockMarchingFlag = $blockMarching
+    if blockMarchingFlag == True:
+        print "Blocks initialised with throat conditions for block-marched simulation"
+        # Define the throat block
+        throat_blk = SuperBlock2D(throat_region, nni=nni_throat, nnj=nnj,
+                                  nbi=nbi_throat, nbj=nbj,
+                                  bc_list=bc_list, cf_list=cf_list_throat,
+                                  fill_condition=inflow, label="throat")
+        # Define the main nozzle block
+        nozzle_blk = SuperBlock2D(expansion_region, nni=nni, nnj=nnj,
+                                  nbi=nbi, nbj=nbj,
+                                  bc_list=bc_list, cf_list = cf_list,
+                                  fill_condition=inflow, label="nozzle")
+    else:
+        print "Blocks initialised with initial conditions for transient simulation"
+        # Define the throat block
+        throat_blk = SuperBlock2D(throat_region, nni=nni_throat, nnj=nnj,
+                                  nbi=nbi_throat, nbj=nbj,
+                                  bc_list=bc_list, cf_list=cf_list_throat,
+                                  fill_condition=initial, label="throat")
+        # Define the main nozzle block
+        nozzle_blk = SuperBlock2D(expansion_region, nni=nni, nnj=nnj,
+                                  nbi=nbi, nbj=nbj,
+                                  bc_list=bc_list, cf_list = cf_list,
+                                  fill_condition=initial, label="nozzle")
+        
     identify_block_connections()
 
 else:
