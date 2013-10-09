@@ -1823,13 +1823,17 @@ def tangent_slab_along_slice(fileName, slice_list_str, tindx, nblock, grid, flow
     	rsm.write_QSS_population_analysis_files( Q, islab )
     	ds_vec.append(ds)
     	Q_vec.append(Q)
-    	
+    
     print "\nSolving the tangent-slab problem..."
+    q_total = TS.solve_for_divq_OT()
+    TS.F_.write_to_file("optically-thin-TS-flux-spectra.data")
+    print "optically thin q_total = %0.3f W/cm2" % ( q_total * 1.0e-4 )
     q_total = TS.quick_solve_for_divq()
+    TS.F_.write_to_file("approximate-TS-flux-spectra.data")
     print "approximate q_total = %0.3f W/cm2" % ( q_total * 1.0e-4 )
     q_total = TS.exact_solve_for_divq()
+    TS.F_.write_to_file("exact-TS-flux-spectra.data")
     print "exact q_total = %0.3f W/cm2" % ( q_total * 1.0e-4 )
-    TS.F_.write_to_file("TS-flux-spectra.data")
     ofile = open( fileName, "w" )
     ofile.write( "# Column 1: 1D cell location, s (m)\n" )
     ofile.write( "# Column 2: spatial step, ds (m)\n" )
