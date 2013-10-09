@@ -1117,10 +1117,10 @@ Knab_vanishing_component::
 Knab_vanishing_component(lua_State *L, Reaction *r, int idc )
 : Coupling_component(L,r,"Knab_vanishing_component","vibration",idc)
 {
-    U0_ = get_positive_number(L,-1,"U0");
-    U1_ = get_positive_number(L,-1,"U1");
-    alpha_ = get_positive_number(L,-1,"alpha");
-    A_var_ = get_positive_number(L,-1,"A");
+    U0_ = get_number(L, -1, "U0");
+    U1_ = get_number(L, -1, "U1");
+    alpha_ = get_positive_number(L, -1, "alpha");
+    A_var_ = get_number(L, -1, "A");
 }
 
 Knab_vanishing_component::
