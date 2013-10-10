@@ -19,7 +19,7 @@ private:
     lua_State *L;
 public:
     UserDefinedBC(Block *bdp, int which_boundary, 
-		  const std::string filename="udf.lua",
+		  const std::string filename_="udf.lua",
 		  bool is_wall=false,
 		  bool sets_conv_flux=false, 
 		  bool sets_visc_flux=false);

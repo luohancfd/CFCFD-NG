@@ -293,7 +293,11 @@ int viscous_flux_2D(Block *A)
 	    }
             // Species mass flux
 	    if( get_diffusion_flag() == 1 ) {
-		for( size_t isp = 0; isp < nsp; ++isp ) {
+		if ( ( i == A->imin && A->bcp[WEST]->type_code == USER_DEFINED_MASS_FLUX ) ||
+		     ( i == A->imax+1 && A->bcp[EAST]->type_code == USER_DEFINED_MASS_FLUX ) )
+		    // Retain species mass flux set earlier
+		    continue;
+		for ( size_t isp = 0; isp < nsp; ++isp ) {
 		    F.massf[isp] += jx[isp] * nx + jy[isp] * ny;
 		}
 	    }
@@ -455,6 +459,11 @@ int viscous_flux_2D(Block *A)
 	    }
 	    // Species mass flux
 	    if( get_diffusion_flag() == 1 ) {
+		if ( (j == A->jmin && A->bcp[SOUTH]->type_code == USER_DEFINED_MASS_FLUX ) ||
+		     (j == A->jmax+1 && A->bcp[NORTH]->type_code == USER_DEFINED_MASS_FLUX ) ) {
+		// Retain the b.c. set species fluxes by doing nothing, just continue
+		continue;
+	    }
 		for( size_t isp = 0; isp < nsp; ++isp ) {
 		    F.massf[isp] += jx[isp] * nx + jy[isp] * ny;
 		}

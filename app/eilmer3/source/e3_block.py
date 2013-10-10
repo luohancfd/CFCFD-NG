@@ -619,6 +619,9 @@ class Block(object):
             newbc = fstcBC(filename, label=label)
         if type_of_BC == SLIDING_T:
             newbc = SlidingTBC(Twall_i, Twall_f, t_i, t_f, label=label)
+        if type_of_BC == USER_DEFINED_MASS_FLUX:
+            if not filename: filename = "udf.lua"
+            newbc = UserDefinedMassFluxBC(filename, label=label)
         #
         try:
             self.bc_list[iface] = newbc

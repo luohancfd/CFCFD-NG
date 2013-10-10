@@ -49,6 +49,7 @@ extern "C" {
 #include "bc_surface_energy_balance.hh"
 #include "bc_user_defined.hh"
 #include "bc_fstc.hh"
+#include "bc_udmf.hh"
 #include "kernel.hh"
 #include "diffusion.hh"
 
@@ -83,6 +84,7 @@ std::string get_bc_name(bc_t bc)
     case EQUIL_CATALYTIC: return "equil_catalytic";
     case SUPER_CATALYTIC: return "super_catalytic";
     case PARTIALLY_CATALYTIC: return "partially_catalytic";
+    case USER_DEFINED_MASS_FLUX: return "user_defined_mass_flux";	
     default: return "none";
     }
 } // end get_bc_name()
@@ -995,6 +997,11 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
         dict.parse_double(section, "emissivity", emissivity, 1.0);
 	newBC = new fstcBC(bdp, which_boundary, filename, emissivity);
         break;
+    case USER_DEFINED_MASS_FLUX:
+	dict.parse_string(section, "filename", filename, "");
+	dict.parse_int(section, "is_wall", is_wall, 1);
+	newBC = new UserDefinedBC(bdp, which_boundary, filename);
+	break;
     default:
 	cerr << "create_BC() error: boundary condition \"" << type_of_BC 
 	     << "\" is not available." << endl;

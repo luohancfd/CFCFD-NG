@@ -77,6 +77,7 @@ ABLATING = object()
 SLIDING_T = object()
 FSTC = object()
 SHOCK_FITTING_IN = object()
+USER_DEFINED_MASS_FLUX = object()
 #
 # The integer values in the following dictionary are a reminder of the old
 # macro definitions in the C code.  They are retained here for fererence.
@@ -127,7 +128,8 @@ bcName = {
     ABLATING: "ABLATING",
     SLIDING_T: "SLIDING_T",
     FSTC: "FSTC",
-    SHOCK_FITTING_IN: "SHOCK_FITTING_IN"
+    SHOCK_FITTING_IN: "SHOCK_FITTING_IN",
+    USER_DEFINED_MASS_FLUX: "USER_DEFINED_MASS_FLUX"
     }
 
 class BoundaryCondition(object):
@@ -797,6 +799,31 @@ class AblatingBC(BoundaryCondition):
     def __copy__(self):
         return AblatingBC(Twall=self.Twall, filename=self.filename,
                           emissivity=self.emissivity, label=self.label)
+
+class UserDefinedMassFluxBC(BoundaryCondition):
+    """
+    The user defines the diffusive flux of species mass.
+    This is intended to model the effect of species production/destruction
+    at a surface with finite-rate chemisitry.
+    """
+    def __init__(self, filename="udf.lua", label=""):
+        """
+        Construct a user-defined boundary condition.
+
+        :param filename: Name of the file containing the Lua functions.
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
+        BoundaryCondition.__init__(self, type_of_BC=USER_DEFINED_MASS_FLUX,
+                                   filename=filename,
+                                   label=label)
+        return
+    def __str__(self):
+        return ("UserDefinedMassFluxBC(filename=\"%s\", label=\"%s\")") % \
+            (self.filename, self.label)
+    def __copy__(self):
+        return UserDefinedMassFluxBC(filename=self.filename, label=self.label)
+
 
 #####################################################################################
 # FIX-ME -- should we merge the catalycity bcs with the main boundary-condition list?

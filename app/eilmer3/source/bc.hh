@@ -48,7 +48,8 @@ enum bc_t {
     NON_CATALYTIC,
     EQUIL_CATALYTIC,
     SUPER_CATALYTIC,
-    PARTIALLY_CATALYTIC
+    PARTIALLY_CATALYTIC,
+    USER_DEFINED_MASS_FLUX
 };
 std::string get_bc_name(bc_t bc);
 
