@@ -240,6 +240,33 @@ and the input \texttt{args} table contains:\\
  \texttt{which\_boundary} & index of the boundary (\texttt{NORTH},...) \\
 \end{tabular}
 
+\subsubsection*{A note on orientation of fluxes}
+When setting flux values, the user is responsible for giving the magnitude
+of flux that crosses normal to the boundary interface.
+As such, the user's function is given the components of the
+interface normal vector in the Cartesian frame
+(\texttt{nx}, \texttt{ny}, \texttt{nz}) to aid in computing the
+correct flux magnitude for interfaces of arbitrary orientation.
+The positive sense for the unit normal is shown for two-dimensional
+boundaries in Figure~\ref{fig:boundary-normals}.
+In words, the normals point inwards for the \texttt{WEST} and \texttt{SOUTH}
+boundaries, and the normals point outwards for \texttt{EAST} and \texttt{NORTH}.
+For example, if you are setting a flux that crosses the \texttt{NORTH} boundary
+and enters the domain, the magnitude of its value should be \emph{negative} to indicate
+flux \emph{into the domain}.
+The same holds for fluxes across the \texttt{EAST} boundary.
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=10cm]{figs/boundary-normals.pdf}
+\end{center}
+\caption{The positive sense of direction for unit normals at each of the boundaries in 2D.}
+\label{fig:boundary-normals}
+\end{figure}
+
+
+
+
 \subsection{Source terms}
 \index{source terms!user defined}
 %
