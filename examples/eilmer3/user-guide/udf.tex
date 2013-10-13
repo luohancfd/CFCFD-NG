@@ -264,7 +264,13 @@ The same holds for fluxes across the \texttt{EAST} boundary.
 \label{fig:boundary-normals}
 \end{figure}
 
-
+\medskip
+The reason for this arrangement of face-normals is that, internal to the code, all \texttt{EAST}
+and \texttt{WEST} interfaces are part of the single array of \texttt{i-faces}.
+For \texttt{NORTH} and \texttt{SOUTH}, there is the single array of \texttt{j-faces} and,
+for \texttt{TOP} and \texttt{BOTTOM} faces, there is the array of \texttt{k-faces}.
+So, a single \texttt{i-face} will serve as the \texttt{EAST} face of one cell and 
+the \texttt{WEST} face of the next cell to its right.
 
 
 \subsection{Source terms}
@@ -297,7 +303,9 @@ The table \texttt{cell} contains:\\
  \texttt{rho} & gas density \\
  \texttt{u,v,w} & gas velocity components \\
  \texttt{a} & speed of sound in gas \\
+ \texttt{mu} & gas viscosity \\
  \texttt{T} & table of \texttt{nmodes} temperatures \\
+ \texttt{k} & table of \texttt{nmodes} thermal conductivities \\
  \texttt{massf} & table of \texttt{nsp} mass fractions \\
 \end{tabular}\\
 On return, the table of source terms should contain:\\
