@@ -113,6 +113,12 @@ int FixedTBC::apply_viscous(double t)
 		if (bd.bcp[SOUTH]->wc_bc != NON_CATALYTIC) {
 		    cw->apply(*(cell->fs->gas), fs.gas->massf);
 		}
+		if ( i == 3 ) {
+		    cout << "Flowstate: " << endl;
+		    fs.print();
+		    cout << "Flux of conserved quantities: " << endl;
+		    IFace->F->print();
+		}
 	    } // end i loop
 	} // for k
 	break;

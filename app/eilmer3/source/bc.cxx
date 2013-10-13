@@ -999,8 +999,7 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
         break;
     case USER_DEFINED_MASS_FLUX:
 	dict.parse_string(section, "filename", filename, "");
-	dict.parse_int(section, "is_wall", is_wall, 1);
-	newBC = new UserDefinedBC(bdp, which_boundary, filename);
+	newBC = new UserDefinedMassFluxBC(bdp, which_boundary, filename);
 	break;
     default:
 	cerr << "create_BC() error: boundary condition \"" << type_of_BC 

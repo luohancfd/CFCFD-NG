@@ -215,6 +215,8 @@ int init_available_bcs_map()
     available_bcs.insert(name_bc_t("partially_catalytic",PARTIALLY_CATALYTIC));
     available_bcs.insert(name_bc_t("PARTIALLY_CATALYTIC",PARTIALLY_CATALYTIC));
     available_bcs.insert(name_bc_t("25",PARTIALLY_CATALYTIC));
+    available_bcs.insert(name_bc_t("USER_DEFINED_MASS_FLUX",USER_DEFINED_MASS_FLUX));
+    available_bcs.insert(name_bc_t("user_defined_mass_flux",USER_DEFINED_MASS_FLUX)); 
     return SUCCESS;
 }
  
@@ -1036,7 +1038,7 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
     for ( iface = NORTH; iface <= ((G.dimensions == 3)? BOTTOM : WEST); ++iface ) {
 	section = "block/" + tostring(indx) + "/face/" + get_face_name(iface);
 	dict.parse_string(section, "bc", value_string, "slip_wall");
-	// cout << "setting bc_type value_string=" << value_string << endl;
+	//cout << "setting bc_type value_string=" << value_string << endl;
 	bc_type_code = available_bcs[value_string];
 	bd.bcp[iface] = create_BC(&bd, iface, bc_type_code, dict, section);
 	if ( get_verbose_flag() ) {

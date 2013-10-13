@@ -294,11 +294,14 @@ int viscous_flux_2D(Block *A)
             // Species mass flux
 	    if( get_diffusion_flag() == 1 ) {
 		if ( ( i == A->imin && A->bcp[WEST]->type_code == USER_DEFINED_MASS_FLUX ) ||
-		     ( i == A->imax+1 && A->bcp[EAST]->type_code == USER_DEFINED_MASS_FLUX ) )
-		    // Retain species mass flux set earlier
-		    continue;
-		for ( size_t isp = 0; isp < nsp; ++isp ) {
-		    F.massf[isp] += jx[isp] * nx + jy[isp] * ny;
+		     ( i == A->imax+1 && A->bcp[EAST]->type_code == USER_DEFINED_MASS_FLUX ) ) {
+		      // Retain species mass flux set earlier
+		    ; // Do nothing statement.
+		}
+		else {
+		    for ( size_t isp = 0; isp < nsp; ++isp ) {
+			F.massf[isp] += jx[isp] * nx + jy[isp] * ny;
+		    }
 		}
 	    }
 	    // Modal energy flux (skipping first mode as this is handled by total energy)
@@ -461,11 +464,13 @@ int viscous_flux_2D(Block *A)
 	    if( get_diffusion_flag() == 1 ) {
 		if ( (j == A->jmin && A->bcp[SOUTH]->type_code == USER_DEFINED_MASS_FLUX ) ||
 		     (j == A->jmax+1 && A->bcp[NORTH]->type_code == USER_DEFINED_MASS_FLUX ) ) {
-		// Retain the b.c. set species fluxes by doing nothing, just continue
-		continue;
-	    }
-		for( size_t isp = 0; isp < nsp; ++isp ) {
-		    F.massf[isp] += jx[isp] * nx + jy[isp] * ny;
+		    // Retain the b.c. set species fluxes by doing nothing, just continue
+		    ; // Do nothing statement
+		}
+		else {
+		    for( size_t isp = 0; isp < nsp; ++isp ) {
+			F.massf[isp] += jx[isp] * nx + jy[isp] * ny;
+		    }
 		}
 	    }
 	    // Modal energy flux (skipping first mode as this is handled by total energy)

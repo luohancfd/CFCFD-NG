@@ -1,12 +1,11 @@
+
 #include "kernel.hh"
 #include "bc_udmf.hh"
 #include "bc_menter_correction.hh"
 #include "lua_service_for_e3.hh"
 
-using namespace std;
-
 UserDefinedMassFluxBC::
-UserDefinedMassFluxBC(Block *bdp, int which_boundary, const string fname)
+UserDefinedMassFluxBC(Block *bdp, int which_boundary, const std::string fname)
     : BoundaryCondition(bdp, which_boundary, USER_DEFINED_MASS_FLUX),
       filename_(fname)
 {
@@ -294,9 +293,10 @@ eval_user_fn(double t, size_t i, size_t j, size_t k, FV_Interface *IFace)
     for ( size_t isp = 0; isp < nsp; ++isp ) {
 	lua_pushinteger(L, isp);
 	lua_gettable(L, -2);
-	F.massf[isp] += lua_tonumber(L, -1);
+	double massf_i = lua_tonumber(L, -1);
+	F.massf[isp] += massf_i;
 	// And add to total mass (if ablating, for example)
-	F.mass += F.massf[isp];
+	F.mass += massf_i;
 	lua_pop(L, 1); // remove the number to leave the table at TOS
     }
     lua_pop(L, 1); // remove 'species' table from top-of-stack

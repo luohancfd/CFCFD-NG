@@ -134,6 +134,7 @@ E3_OBJECTS_2 := kernel.o \
 	bc_ablating.o \
 	bc_surface_energy_balance.o \
 	bc_user_defined.o \
+	bc_udmf.o \
 	bc_menter_correction.o \
 	bc_fstc.o \
 	init.o \
