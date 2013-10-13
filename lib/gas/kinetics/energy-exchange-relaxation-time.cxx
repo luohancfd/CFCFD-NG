@@ -81,6 +81,11 @@ double
 VT_MillikanWhite::
 specific_relaxation_time(Gas_data &Q, vector<double> &molef)
 {
+    // When the 'bath' pressure is very small,
+    // practically no relaxation occurs.
+    if ( molef[iq_] <= DEFAULT_MIN_MASS_FRACTION ) {
+	return -1.0;
+    }
     double p_bath;
     double tau;
     // Set the 'bath' pressure as that of the 'q' colliders
@@ -1048,14 +1053,6 @@ VT_SSH(lua_State *L, int ip, int iq, int itrans)
 	}
     }
 
-    if ( p->get_name() == "N2" && q->get_name() == "N2" ) {
-	cout << "VT_SSH::VT_SSH()" << endl
-	     << "Applying the correction to the Lennard-Jones potential parameter, r,\n"
-	     << "for N2-N2 interactions as suggested by Thivet et al. (1990).\n";
-	r_ = 4.2e-10;
-	cout << "r_0(N2,N2)= " << r_ << endl;
-    }
-
     mu_ = ((M_p_ * M_q_) / (M_p_ + M_q_)) / PC_Avogadro;
     delta_E_ = PC_k_SI * theta_v_p_;
     sigma_ = r_;
@@ -1096,9 +1093,10 @@ specific_relaxation_time(Gas_data &Q, vector<double> &molef)
 {
     double T = Q.T[iT_];
 
-    // If either collider has zero concentration,
+    // If either collider has very little concentration,
     // then a relaxation time has no meaning
-    if ( molef[ip_] <= 0.0 || molef[iq_] <= 0.0 ) {
+    if ( molef[ip_] <= DEFAULT_MIN_MOLE_FRACTION ||
+	 molef[iq_] <= DEFAULT_MIN_MOLE_FRACTION ) {
 	return -1.0;
     }
     
@@ -1161,14 +1159,14 @@ VV_SSH(lua_State *L, int ip, int iq, int itrans)
 	    eps_ = potential_well_A(*p, *q);
 	}
 	else {
-	    r_ = collider_distance_B(*p, *q);
-	    eps_ = collider_distance_B(*p, *q);
+	    r_ = collider_distance_B(*q, *p);
+	    eps_ = potential_well_B(*q, *p);
 	}
     }
     else {
 	if ( q->get_polar_flag() ) {
 	    r_ = collider_distance_B(*p, *q);
-	    eps_ = collider_distance_B(*p, *q);
+	    eps_ = potential_well_B(*p, *q);
 	}
 	else {
 	    r_ = collider_distance_A(*p, *q);
@@ -1232,9 +1230,10 @@ specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
 {
     double T = Q.T[iT_];
 
-    // If either collider has zero concentration
+    // If either collider has very small concentration
     // then a relaxation time has no meaning
-    if ( molef[ip_] <= 0.0 || molef[iq_] <= 0.0 ) {
+    if ( molef[ip_] <= DEFAULT_MIN_MOLE_FRACTION ||
+	 molef[iq_] <= DEFAULT_MIN_MOLE_FRACTION ) {
  	return -1.0;
     }
 
@@ -1252,8 +1251,6 @@ specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
     double Z = collision_frequency(sigma_, mu_, T, n_q);
     double P = specific_transition_probability(Q, molef);
     double tau = (1.0/(Z*P))*exp(-1.0*(theta_v_p_ - theta_v_q_)/T);
-
-    //cout << "T= " << T << " tau= " << tau << endl;
 
     return tau;
 }

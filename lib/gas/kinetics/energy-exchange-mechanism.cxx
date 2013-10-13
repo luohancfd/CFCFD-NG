@@ -62,6 +62,12 @@ specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, vector<double
 {
     // tau_ will be present and correct before beginning this
     // function ie. a call to compute_tau is expected earlier.
+    if ( tau_ == -1.0 ) {
+	// This signals that one or both of the colliders are
+	// present in neglible amounts, so we set the rate
+	// to 0.0.
+	return 0.0;
+    }
     //cout << "T_trans = " << Q.T[iT_] << endl;
     //cout << "T_vib= " << Q.T[iTv_] << endl;
     double e_vib_eq = p_vib_->eval_energy_from_T(Q.T[iT_]);
@@ -233,6 +239,12 @@ double
 VV_THO_exchange::
 specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &molef)
 {
+    if ( tau_ == -1.0 ) {
+	// This signals that one or both of the colliders are
+	// present in neglible amounts, so we set the rate
+	// to 0.0.
+	return 0.0;
+    }
     // See VV_exchange::specific_compute_rate() in mTg_mechanisms.cxx for
     // Rowan's initial implementation of Thivet's equations
     
@@ -257,11 +269,12 @@ specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &mo
     double tmp_b = (1.0 - exp(-1.0 * theta_v_p_/T)) / (1.0 - exp(-1.0 * theta_v_q_/T)) 	* ((e_q/e_q_hat)*(e_p_bar - e_p));
     double tmp_c = (e_p/e_q_hat)*(e_q_bar - e_q);
     double rate = tmp_a*(tmp_b - tmp_c);
-    
+
+    //    cout << "tau_= " << tau_ << endl;
+    //    cout << "tmp_a= " << tmp_a << " tmp_b= " << tmp_b << " tmp_c= " << tmp_c << endl;
+
     // NOTE:massf scaling is to convert J/s/kg-of-species-ip to J/s/kg-of-mixture
     rate *= Q.massf[ip_];
-
-    //    cout << "VV-rate= " << rate << endl;
     return rate;
 }
 
