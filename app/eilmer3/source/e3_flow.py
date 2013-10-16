@@ -919,7 +919,7 @@ def write_VTK_XML_unstructured_file(fp, grid, flow, binary_format):
     Write the cell-centred flow data from a single block 
     as an unstructured grid of finite-volume cells.
 
-    :param fp  : reference to a file object
+    :param fp: reference to a file object
     :param grid: single-block grid of vertices
     :param flow: single-block of cell-centre flow data
     :param binary_format: if True, most of the data will be written as raw binary 
