@@ -25,6 +25,7 @@ for high-temperature gasdynamic flows.
    intro
    codes
    reports-and-theses
+   publications-using-the-codes
    case-studies
    old-codes
 
