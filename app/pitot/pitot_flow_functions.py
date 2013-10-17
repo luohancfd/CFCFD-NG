@@ -436,7 +436,12 @@ def acceleration_tube_calculation(cfg, states, V, M):
         cfg['Vs2'] = cfg['Vs2']*cfg['expansion_factor'] #need to take account of this...
         if PRINT_STATUS: print "From secant solve: Vs2 = {0} m/s".format(cfg['Vs2'])
         #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
-        if PRINT_STATUS: print "Once Vs2 is known, find conditions at state 5 and 6."            
+        if PRINT_STATUS: print "Once Vs2 is known, find conditions at state 5 and 6."
+    elif cfg['test'] == 'experiment':
+        if cfg['state7_no_ions']:
+            # Need to turn ions off for state 2 here if it is required to make 
+            # the unsteady expansion work (as state 2 is expanding into state 7)
+            states['s2'].with_ions = False             
         
     (V6, V['s6']) = normal_shock(states['s5'], cfg['Vs2'], states['s6'],cfg['gas_guess_air'])
     #do any modifications that were requested to the velocity behind the shock here 
@@ -534,14 +539,19 @@ def conehead_calculation(cfg, states, V, M):
     cfg['conehead_completed'] = True #variable we'll set to false if the calculation fails
     
     if PRINT_STATUS: print 'Doing taylor maccoll conehead calculation on {0} degree conehead.'.format(cfg['conehead_angle'])
+    
+    if cfg['conehead_no_ions']: states[cfg['test_section_state']].with_ions = False    
+    
     try:
         shock_angle = beta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], math.radians(cfg['conehead_angle']))
     except Exception:
         print "beta_cone function bailed out while trying to find a shock angle."
-        print "Stopping here. Try another nozzle area ratio."
-        print "Result will not show state 10c."
-        cfg['conehead_completed'] = False
-        return cfg, states, V, M
+        print "will try again with ions turned off in the calculation."
+        cfg['conehead_required'] = True
+        cfg['conehead_no_ions'] = True        
+        states[cfg['test_section_state']].with_ions = False
+        shock_angle = beta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], math.radians(cfg['conehead_angle']))
+
     if PRINT_STATUS: print "\nShock angle over cone:", math.degrees(shock_angle)
     # Reverse the process to get the flow state behind the shock and check the surface angle is correct
     try:    
@@ -558,6 +568,11 @@ def conehead_calculation(cfg, states, V, M):
     #if PRINT_STATUS: states['s10c'].write_state(sys.stdout)
     # Need to check whether the pressure are the same
     if PRINT_STATUS: print "Computed conehead pressure is {0} Pa".format(states['s10c'].p)
+    
+    
+    # turn the ions back on at the end
+    if cfg['conehead_no_ions']: states[cfg['test_section_state']].with_ions = True
+    if cfg['conehead_required']: cfg['conehead_no_ions'] = False
     
     return cfg, states, V, M
     
