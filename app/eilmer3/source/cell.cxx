@@ -1729,7 +1729,19 @@ int FV_Cell::chemical_increment(double dt, double T_frozen)
     Gas_model *gmodel = get_gas_model_ptr();
     Reaction_update *rupdate = get_reaction_update_ptr();
 
+    // Make a copy so that we can print out if things go wrong.
+    Gas_data gcopy(*(fs->gas));
+    
     int flag = rupdate->update_state(*(fs->gas), dt, dt_chem, gmodel);
+
+    if ( flag != SUCCESS ) {
+	cout << "The chemical_increment() failed for cell: " << id << endl;
+	cout << "The gas state before the update was:\n";
+	gcopy.print_values();
+	cout << "The gas state after the update was:\n";
+	fs->gas->print_values();
+	return flag;
+    }
 
     // The update only changes mass fractions, we need to impose
     // a thermodynamic constraint based on a call to the equation

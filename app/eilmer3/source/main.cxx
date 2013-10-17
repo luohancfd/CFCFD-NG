@@ -1177,8 +1177,16 @@ int integrate_in_time(double target_time)
         if ( get_reacting_flag() == 1 && G.sim_time >= G.reaction_time_start ) {
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active != 1 ) continue;
-		for ( FV_Cell *cp: bdp->active_cells ) 
-		    cp->chemical_increment(G.dt_global, G.T_frozen);
+		for ( FV_Cell *cp: bdp->active_cells ) {
+		    if ( cp->chemical_increment(G.dt_global, G.T_frozen) != SUCCESS ) {
+			cout << "In block: " << bdp->id << " the chemical increment failed on cell:\n";
+			vector<size_t> ijk(bdp->to_ijk_indices(cp->id));
+			cout << "[i,j,k]= [" << ijk[0] << "," << ijk[1] << "," << ijk[2] << "]\n";
+			cout << "The global timestep was: " << G.dt_global << endl;
+			cout << "Bailing out at this point!\n";
+			exit(NUMERICAL_ERROR);
+		    }
+		}
 	    }
 	}
 
