@@ -1108,7 +1108,24 @@ double calculate_Knab_energy( std::vector<Species_energy_mode*> &sems,
     double tmpB = tmpA * Q_a_gamma * L_a_gamma + Q_d_T0 * L_d_T0 - Q_a_T0 * L_a_T0;
     double tmpC = tmpA * Q_a_gamma + Q_d_T0 - Q_a_T0;
 
-    return tmpB / tmpC;	// energy in J/kg
+    double val = tmpB/tmpC;
+
+    // At small values of temperature, the values of the partition functions
+    // are essentially the same (to machine precision). At the same time,
+    // the exponential term is essentially zero. This leads to a divide
+    // by zero problem.
+    //
+    // Instead, we'll set the average vibrational energy
+    // of either appearing or vanishing molecules based on 
+    // the local translational.
+    
+    if ( std::isnan(val) || std::isinf(val) ) {
+	// Just return the energy from the first mode
+	// assuming that it's dominant.
+	return sems[0]->eval_energy_from_T(T);
+    }
+
+    return val;	// energy in J/kg
 }
 
 /****************** Knab vanishing component ********************/
@@ -1119,7 +1136,7 @@ Knab_vanishing_component(lua_State *L, Reaction *r, int idc )
 {
     U0_ = get_number(L, -1, "U0");
     U1_ = get_number(L, -1, "U1");
-    alpha_ = get_positive_number(L, -1, "alpha");
+    alpha_ = get_number(L, -1, "alpha");
     A_var_ = get_number(L, -1, "A");
 }
 
@@ -1197,10 +1214,10 @@ Knab_appearing_component::
 Knab_appearing_component(lua_State *L, Reaction *r, int idc )
   : Coupling_component(L,r,"Knab_appearing_component","vibration",idc)
 {
-    U0_ = get_positive_number(L,-1,"U0");
-    U1_ = get_positive_number(L,-1,"U1");
-    alpha_ = get_positive_number(L,-1,"alpha");
-    A_var_ = get_positive_number(L,-1,"A");
+    U0_ = get_number(L,-1,"U0");
+    U1_ = get_number(L,-1,"U1");
+    alpha_ = get_number(L,-1,"alpha");
+    A_var_ = get_number(L,-1,"A");
 }
 
 Knab_appearing_component::

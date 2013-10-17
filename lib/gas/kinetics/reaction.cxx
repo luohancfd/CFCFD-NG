@@ -314,7 +314,7 @@ Reaction* get_reaction_from_file(int ir, string cfile, Gas_model &g)
     lua_getglobal(L, "reactions");
     if ( !lua_istable(L, -1) ) {
 	ostringstream ost;
-	ost << "reaction-rate-coeff.cxx::\n";
+	ost << "reaction.cxx::\n";
 	ost << "Error interpreting 'reactions'; a table of reactions is expected.\n";
 	input_error(ost);
     }

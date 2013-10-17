@@ -104,6 +104,11 @@ s_eval(const Gas_data &Q)
 	T_ast = T;
     }
     
+    //    cout << "T= " << T << " Tv= " << Tv << endl;
+    //    cout << "alphaA= " << alpha_A_ << endl;
+    //    cout << "U0= " << U0_ << " U1= " << U1_ << " T= " << T << endl;
+    //    cout << "U= " << U << " gamma= " << gamma << " T0= " << T0 << " T_ast= " << T_ast << endl;
+    
     // 2. Calculate partition functions
     double Q_d_T = 1.0, Q_d_Tv = 1.0, Q_d_T0 = 1.0, Q_d_T_ast = 1.0;
     double Q_a_gamma = 1.0, Q_a_U = 1.0, Q_a_T0 = 1.0, Q_a_T_ast = 1.0;
@@ -123,16 +128,35 @@ s_eval(const Gas_data &Q)
 	    // Special case of U = inf
 	    // I showed this numerically by plotting
 	    // partition function of truncated harmonic
-	    // osicallator for large values of T
+	    // oscillator for large values of T
 	    Q_a_U *= alpha_A_/vib_modes_[i]->get_theta();
 	}
     }
     
+    //    cout << "Q_d_T= " << Q_d_T << " Q_d_Tv= " << Q_d_Tv << " Q_d_T0= " << Q_d_T0 << " Q_d_T_ast= " << Q_d_T_ast << endl;
+    //    cout << "Q_a_gamma= " << Q_a_gamma << " Q_a_T0= " << Q_a_T0 << " Q_a_T_ast= " << Q_a_T_ast << " Q_a_U= " << Q_a_U << endl;
+
     // 3. Calculate nonequilibrium factor
     double tmpA = Q_d_T / Q_d_Tv;
     double tmpB = exp(-alpha_A_/T)*Q_a_gamma + Q_d_T0 - Q_a_T0;
     double tmpC = exp(-alpha_A_/T)*Q_a_U + Q_d_T_ast - Q_a_T_ast;
     double Z = tmpA * tmpB / tmpC;
+    // At small values of temperature, the values for
+    // Q_d_T0 and Q_a_T0 are essentially the same (to machine precision).
+    // Similarly, are Q_d_T_ast and Q_a_T_ast essentially the same. Also, the
+    // exponential term is very small (<1.0e-50).  All of these factors conspire
+    // to give numer = 0.0 and denom = 0.0 which leads to Z = nan.
+    // The fix is to set Z = 1.0 in these instances.  This will be reasonable
+    // because this occure at low temperatures when T does not differ greatly from Tvib.
+    // In these case the deviation form equiilibrium won't  be very strong and so
+    // a value of Z = 1.0 will be ok.
+
+    if( std::isnan(Z) || std::isinf(Z) )
+	Z = 1.0;
+
+
+    //    cout << "tmpA= " << tmpA << " tmpB= " << tmpB << " tmpC= " << tmpC << endl;
+    //    cout << "Z= " << Z << endl;
     // 4. Evaluate GA coefficient
     // Check on temperature limits
     if ( T > T_upper_ )
