@@ -536,7 +536,11 @@ def conehead_calculation(cfg, states, V, M):
     calculation for a conehead in the test section at a specified angle
     and then returns the changes cfg, states, V, M dictionaries."""
     
+ 
     cfg['conehead_completed'] = True #variable we'll set to false if the calculation fails
+    if 'conehead_no_ions' not in cfg: #add this variable and set it to false if the user has not used it
+        cfg['conehead_no_ions'] = False
+    cfg['conehead_no_ions_required'] = False #variable we'll set to True if we need to turn ions off in the conehead calc 
     
     if PRINT_STATUS: print 'Doing taylor maccoll conehead calculation on {0} degree conehead.'.format(cfg['conehead_angle'])
     
@@ -547,7 +551,7 @@ def conehead_calculation(cfg, states, V, M):
     except Exception:
         print "beta_cone function bailed out while trying to find a shock angle."
         print "will try again with ions turned off in the calculation."
-        cfg['conehead_required'] = True
+        cfg['conehead_no_ions_required'] = True
         cfg['conehead_no_ions'] = True        
         states[cfg['test_section_state']].with_ions = False
         shock_angle = beta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], math.radians(cfg['conehead_angle']))
@@ -572,7 +576,7 @@ def conehead_calculation(cfg, states, V, M):
     
     # turn the ions back on at the end
     if cfg['conehead_no_ions']: states[cfg['test_section_state']].with_ions = True
-    if cfg['conehead_required']: cfg['conehead_no_ions'] = False
+    if cfg['conehead_no_ions_required']: cfg['conehead_no_ions'] = False
     
     return cfg, states, V, M
     
