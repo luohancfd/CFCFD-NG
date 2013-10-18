@@ -124,7 +124,7 @@ identify_block_connections()
 
 # Do a little more setting of global data
 gdata.viscous_flag = 1
-gdata.viscous_delay = 0 Rn / u_inf
+gdata.viscous_delay = 0 * Rn / u_inf
 gdata.viscous_factor_increment = 1.0e-5
 gdata.diffusion_flag = 1
 gdata.diffusion_model = "Ramshaw-Chang"
