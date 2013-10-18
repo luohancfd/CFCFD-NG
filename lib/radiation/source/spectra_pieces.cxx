@@ -235,7 +235,7 @@ void CoeffSpectra::read_from_file( string fname, int inu_start, int inu_end )
                 spectral_units = WAVELENGTH;
             }
             else {
-                cout << "SpectralFlux::read_from_file()" << endl
+                cout << "CoeffSpectra::read_from_file()" << endl
                      << "Only frequency and wavelength units are currently supported" << endl;
                 exit(FAILURE);
             }
@@ -1277,7 +1277,7 @@ void SpectralFlux::read_from_file( string fname, int inu_start, int inu_end )
     }
 
     // Reverse the order if necessary
-    if ( nu.back() > nu.front() ) {
+    if ( nu.back() < nu.front() ) {
         reverse(nu.begin(),nu.end());
         reverse(q_nu.begin(),q_nu.end());
     }
