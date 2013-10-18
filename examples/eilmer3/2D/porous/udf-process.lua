@@ -6,7 +6,8 @@ print("Hello from the set-up stage of udf-process.")
 print("nblock=", nblock)
 
 -- constants required for the porous block
-K = 1.0e-6		-- permeability, [1/m]
+K = 1.0e-6		-- permeability [1/m]
+phi = 0.8		-- porosity [non-dimensional]
 C_f = 1.5               -- inertial coefficient/Ergun constant
 
 -- flow conditions of the fluid within the porous block
@@ -50,8 +51,8 @@ function source_vector(args, cell)
    src.momentum_z = 0.0
    if cell.x > 0.3 and cell.x < 0.6 and  -- change these dimensions if you change the geometry!
       cell.y > 0.08 and cell.y < 0.1 then
-         src.momentum_x = -mu*u/K - C_f*rho*u*u/(K^0.5)
-         src.momentum_y = -mu*v/K - C_f*rho*v*v/(K^0.5)   
+         src.momentum_x = -mu*u/(K*phi) - C_f*phi*rho*u*u/(K^0.5)
+         src.momentum_y = -mu*v/(K*phi) - C_f*phi*rho*v*v/(K^0.5)   
       --src.momentum_x = -10000.0    -- dummy values for testing
       --src.momentum_y = -10000.0
    else
