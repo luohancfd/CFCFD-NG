@@ -507,7 +507,6 @@ calculate_diffusion_fluxes(const Gas_data &Q,
     }
     
     // B. Electrons
-    
     jx[e_index_] = 0.0;
     jy[e_index_] = 0.0;
     if ( x_[e_index_] >= min_molef_ ) {
@@ -518,6 +517,21 @@ calculate_diffusion_fluxes(const Gas_data &Q,
 	}
 	jx[e_index_] /= - Z_[e_index_];
 	jy[e_index_] /= - Z_[e_index_];
+    }
+
+    // 9. Thermal nonequilibrium (T!=Te) correction
+    //    Correction factor = p/RT / c = ( c_HP + c_e * T_e / T ) / c
+    //    (see Eq. 22 in Ramshaw et al PCPP Vol. 13 | No. 3 1993)
+    if ( Q.T.size()>1 ) {
+        double T = Q.T.front();
+        double c = 0.0;
+        for( int isp = 0; isp < nsp_; ++isp )
+            c += x_[isp];
+        double f_neq = Q.p/PC_R_u/T/c;
+        for( int isp = 0; isp < nsp_; ++isp ) {
+            jx[isp] *= f_neq;
+            jy[isp] *= f_neq;
+        }
     }
     
     return;
