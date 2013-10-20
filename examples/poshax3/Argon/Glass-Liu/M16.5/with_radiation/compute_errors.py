@@ -7,7 +7,7 @@ def get_rms( y_list ):
     y_array = array(y_list)
     return sqrt(sum(y_array**2)/len(y_array))
     
-print "\nPerforming comparison with solution of Marco Panesi (VKI PhD thesis 2009)...\n"
+print "\nPerforming comparison with experimentally measured ionization fraction...\n"
 
 # UTIAS experimental data (ionization fraction) from Glass and Liu
 exp_AvX = YvX( "glass_liu_ne_M_16.5.txt" )
