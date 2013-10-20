@@ -47,8 +47,8 @@ test exit-flow-marching {The shock-processed flow near the outlet of the duct.} 
     }
     # The shock wave angle should be within 1 degree of expected
     # and average deviation of points should be less than 2mm. 
-    list [expr abs($a - 347.7) < 1.0] [expr abs($M - 1.56) < 0.1] \
-	[expr abs($p - 117218) < 1000] [expr abs($T - 300.9) < 1.0]
+    list [expr abs($a - 348.5) < 1.0] [expr abs($M - 1.54) < 0.05] \
+	[expr abs($p - 119061) < 1000] [expr abs($T - 302.3) < 1.0]
 } -result {1 1 1 1}
 
 cleanupTests
