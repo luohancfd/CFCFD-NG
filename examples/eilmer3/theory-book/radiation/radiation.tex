@@ -433,7 +433,15 @@ $E_{p}^0$ is the initial power carried by photon packet $p$:
  E_{p}^0 = \frac{ 4 \pi V  }{ N_{\text{ems. photons} } } \int_{\nu_{\text{min}}}^{\nu_{\text{max}}} j_{\nu} d \nu
 \end{equation}
 
-The radiative heat flux incident on wall elements $q_\text{rad}$ is calculated as the sum of the remaining energy $E_{p}$ from all incident photons $N_\text{inc. photons}$ divided by the wall element area $A$:
+The absorption of radiation by walls is modelled probabilistically.  An incident photon is absorbed if a uniform random number is less than or equal to the surface emissivity:
+
+\begin{equation}
+R_\text{abs.} \leq \epsilon_\text{wall}
+\end{equation}
+
+\noindent and undergoes diffuse reflection otherwise.
+This results in 100\% absorption for walls with an emissivity of 1 and no absorption for walls with an emissivity of 0, as required.
+The radiative heating of wall elements $q_\text{rad}$ is then calculated as the sum of the remaining energy $E_{p}$ from all incident photons $N_\text{inc. photons}$ divided by the wall element area $A$:
 
 \begin{equation}
  q_\text{rad} = \frac{ E_\text{abs.} }{A} =  \frac{ \displaystyle \sum_{p}^{N_{\text{inc. photons}}} \displaystyle E_{p} }{ A }
