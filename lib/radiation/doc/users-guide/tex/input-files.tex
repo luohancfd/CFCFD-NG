@@ -21,6 +21,12 @@ Options:
 \end{lstlisting}
 
 \noindent where \texttt{rad-model.py} is the name of the user created Python script describing the spectral model and \texttt{rad-model.lua} is the desired name of the resulting Lua file.
+\textsection~\ref{sec:basic_input} describes how to construct a basic radiation input file that allows spectra to be calculated via the spectral model described in \textsection~\ref{ch:photaura}, while the process of creating a more advanced input file for modelling monatomic plasmas to a higher degree of accuracy is described in \textsection~\ref{sec:advanced_input} .
+Examples of input files for interfacing with the PARADE and SPRADIAN07 codes via the \texttt{cfcfd3/lib/radiation} framework are provided in textsection~\ref{sec:parade_input} and \textsection~\ref{sec:spradian_input}.
+
+\section{Creating an input file for the baseline modelling}
+\label{sec:basic_input}
+
 A sample user-created Python script for creating a basic radiation model for 11 species, 2 temperature air is shown below:
 
 \noindent \topbar
@@ -35,7 +41,7 @@ gdata.spectral_model = "photaura"
 \end{lstlisting}
 
 Here the in-house \texttt{photaura} model has been selected; other available models are \texttt{spradian} and \texttt{parade}.
-See Appendix~\ref{} for an example of how to construct an input file for these.
+See \textsection~\ref{sec:parade_input} and \textsection~\ref{sec:spradian_input} for examples of input files for these models.
 The spectral grid is then defined in '\texttt{2.}':
 
 \begin{lstlisting}[basicstyle=\ttfamily\small]
@@ -46,7 +52,6 @@ gdata.spectral_points = 113000
 \end{lstlisting}
 
 \noindent Here the range $70 \leq \lambda \leq 1200$~nm has been requested, discretised by 113000 equidistant points in frequency space.
-Presently only spectral domains with consant frequency intervals are permitted.
 Finally, in '\texttt{3.}' the desired radiating species are requested and defined:
 
 \begin{lstlisting}[basicstyle=\ttfamily\small]
@@ -68,3 +73,118 @@ A radiator is requested from the library with the \texttt{gdata.request\_radiato
 If the radiator is not present in the library, \texttt{radmodel.py} will fail here with an error message indicating what species was not avaiable.  
 The \texttt{rad.default\_data()} function requests the nominal electronic level and transition probability set from the library -- for most calculations this will be suitable.
 Other data that is set here is the species index in the \texttt{rad.isp} field, the electronic temperature index in the \texttt{rad.iTe} field and the vibrational temperature index in the \texttt{rad.iTv} field.  
+
+\section{Creating an input file for the advanced modelling of monatomic plasma}
+\label{sec:advanced_input}
+
+The baseline modelling makes a number of assumptions regarding atomic lines and photoionisation that enable rapid calculations but reduces the accuracy of the resulting spectra.  Specifically, these assumptions are the use of approximate Stark broadening widths and hydrogenic photoionisation cross-sections.  The input file shown below demonstrates how to create an input file that allows accurate Stark broadening~\cite{Griem74} and photoionisation cross-sections~\cite{TOPbase} to be used:
+
+\noindent \topbar
+\lstinputlisting[language=python,caption={Example advanced spectral model input file, \texttt{argon-radiators-NIST-TB.py}}]{files/argon-radiators-NIST-TB.py}
+\bottombar
+
+In `\texttt{1.}', the desired spectral model is selected:
+
+\begin{lstlisting}[basicstyle=\ttfamily\small]
+# 1. Select the spectral model
+gdata.spectral_model = "photaura"
+\end{lstlisting}
+
+Here the in-house \texttt{photaura} model has again been selected.  The selection of this model is required to enable the advanced modelling of monatomic plasmas.
+The spectral grid is then defined in '\texttt{2.}':
+
+\begin{lstlisting}[basicstyle=\ttfamily\small]
+# 2. Define the spectral grid
+gdata.lambda_min = 1.0e7 / 150000.0     # 150000 cm-1
+gdata.lambda_max = 1.0e7 / 1000.0	         # 1000 cm-1
+gdata.spectral_points = 100			
+gdata.adaptive_spectral_grid = True
+\end{lstlisting}
+
+\noindent Here the spectral range $1000 \leq \eta \leq 150000$~cm$^{-1}$ has been requested, with an adaptive spectral grid.
+The \texttt{photaura} model will determine the appropriate spectral grid to accurately capture the atomic lines and bound-free continuum, which is then superimposed on top of a uniformly spaced grid with \verb gdata.spectral_points .
+To ensure that the free-free continuum is accurately captured, it is recommended \verb gdata.spectral_points  be set to a small but non-zero value; 100 uniform points has been found to be appropriate for cases where the free-free continuum contibutes less than 1\% of the total emissive power.
+
+\par
+
+In '\texttt{3.}' the desired radiating species are requested and defined in a python dictionary called \texttt{params}:
+
+\begin{lstlisting}[basicstyle=\ttfamily\small]
+# 3. Request and define the radiating species
+params = {
+"species"               : [ 'Ar', 'Ar_plus', 'e_minus' ],
+"radiators"             : [ 'Ar', 'Ar_plus', 'e_minus' ],
+"QSS_radiators"         : [ 'Ar' ],
+"no_emission_radiators" : [ 'Ar_plus' ],
+"iTe"                   : 1,
+"atomic_level_source"   : "NIST_ASD",
+"atomic_line_source"    : "NIST_ASD",
+"atomic_PICS_source"    : "TOPBase"
+}
+declare_radiators( params, gdata )
+\end{lstlisting}
+
+The \texttt{"species"} field is the list, in order, of the species present in the gas or CFD flowfield under consideration.
+The \texttt{"radiators"} field is the list of radiating species to be considered.  Electrons need to be included if the bound-free and free-free continua wish to be modelled.   
+Species that are to have their electronic populations determined via the QSS approach are listed in the \verb "QSS_radiators"  field.
+The \verb "no_emission_radiators"  field can be used to `turn off' the radiation of a radiator.  This is useful when the bound-bound radiation from an ion is very weak, but the radiator needs to be declared to enable the photoionisation of its neutral counterpart to be modelled.
+The \texttt{"iTe"} field species the index of the electron temperature used in the flowfield solution.
+The remaining three fields all the user to control what datasources and models are used for the atomic lines, levels and photoionisation (PICS) cross-section.
+The \verb "atomic_level_source"  and \verb "atomic_line_source"  fields need to be the same, and selected from one of the following:
+
+\begin{description}
+ \item[\texttt{NIST\_ASD} ] Line and level data from the NIST Atomic Species Database~\cite{NIST_ASD}
+ \item[\texttt{TOPBase}] Line and level data from the Opacity Project database~\cite{TOPbase}
+\end{description}
+
+The \texttt{"atomic\_pics\_source"} field defines the photoionisation modelling and can be one of the following:
+
+\begin{description}
+ \item[\texttt{hydrogenic}] Hydrogenic approximation of the photoionisation cross-sections (see \textsection~\ref{sec:continuum_transitions})
+ \item[\texttt{TOPBase}] Theoretical photoionisation cross-sections from the Opacity Project database~\cite{TOPbase}
+\end{description}
+
+The \texttt{hydrogenic} model can overpredict the bound-free emission, especially where high ($\geq$~10\%) levels of ionisation are present.
+In these cases it is recommended the \texttt{TOPbase} model is used.
+Currently the input data required for this advanced treatment of monatomic radiation has only been collected for Ar-I and Ar-II (see \texttt{cfcfd3/lib/radiation/data}).
+If the user wishes to use the advanced modelling for other species, the existing files can be used as a guide and the raw data can be downloaded from the following websites:
+
+\begin{description}
+ \item[NIST ASD] \url{http://www.nist.gov/pml/data/asd.cfm}
+ \item[TOPBase] \url{http://cdsweb.u-strasbg.fr/topbase/topbase.html}
+ \item[Griem Stark broadening] \url{http://griem.obspm.fr/}
+\end{description}
+
+\par
+
+Finally, the radiator parameters can be adjusted from the default values as has been demonstrated in `\texttt{4.}':
+
+\begin{lstlisting}[basicstyle=\ttfamily\small]
+# 4. Customise some of the parameters
+# line adaptation
+gdata.radiators[params["radiators"].index('Ar')].line_set.npoints = 50
+gdata.radiators[params["radiators"].index('Ar_plus')].line_set.npoints = 10
+# QSS lower temperature limit
+gdata.radiators[params["radiators"].index('Ar')].QSS_model.T_lower = 0.0
+\end{lstlisting}
+
+\noindent The interested user should consult the declarations of the python classes in \\ \noindent \texttt{cfcfd3/lib/radiation/tools/rl\_defs.py}.
+
+\section{Examples input file interfacing with PARADE}
+\label{sec:parade_input}
+
+Below is an example python input file for modelling an argon plasma with the PARADE code inside the \texttt{cfcfd3/lib/radiation} c++ framework:
+
+\noindent \topbar
+\lstinputlisting[language=python,caption={Example PARADE spectral model input file, \texttt{argon-radiators-parade.py}}]{files/argon-radiators-parade.py}
+\bottombar
+
+\section{Examples input file interfacing with SPRADIAN07}
+\label{sec:spradian_input}
+
+Currently the user must manually create the \texttt{.lua} input file when using the `\texttt{spradian}' spectral model.
+Below is an example Lua input file for modelling an argon plasma with the SPRADIAN07 code inside the \texttt{cfcfd3/lib/radiation} c++ framework:
+
+ \noindent \topbar
+\lstinputlisting[language=python,caption={Example SPRADIAN07 spectral model input file, \texttt{argon-radiators-spradian.lua}}]{files/argon-radiators-spradian.lua}
+\bottombar

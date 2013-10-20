@@ -1,8 +1,9 @@
 \chapter{The Photaura spectral model}
+\label{ch:photaura}
 
 Photaura is spectral model for high temperature gases that can presently treat bound-bound transitions of monatomic and diatomic species in a line-by-line manner and monatomic continuum processes via hydrogenic approximations or tabulated cross-sections.
 The \texttt{photaura} model is described and implemented in the PhD thesis of Potter~\cite{Potter_PhD} where good agreement with air and CO$_2$--N$_2$ shock tube spectroscopy measurements in the NASA Ames EAST facility was found.  
-The \texttt{photaura} model was also found by Sobbia et al~\cite{SLB+2012} to accurately reproduce intensity spectra measured in an ICP facility with a N$_2$--CH$_4$ test gas.
+The \texttt{photaura} model was also found by Sobbia et al~\cite{SLB+2013} to accurately reproduce intensity spectra measured in an ICP facility with a N$_2$--CH$_4$ test gas.
 This chapter is comprised on two sections; spectral modelling in \textsection~\ref{sec:spec_rad}, and collisional-radiative modelling in \textsection~\ref{sec:CR}.
 
 \section{Spectral radiation coefficients}
@@ -980,6 +981,7 @@ As the transition moments for the N$_2$ VUV systems used by Hyun~\cite{hyun_phd}
 
 
 \subsection{Continuum transitions}
+\label{sec:continuum_transitions}
 
 In the present work the continuum transitions for atomic species and their ions are considered, whilst continuum transitions for molecular species are neglected.
 Furthermore, the models for atomic continuum transitions are based on approximate curve-fits and hydrogenic assumptions.
@@ -1570,7 +1572,7 @@ Furthermore, as the free electron number density is almost the same order of mag
 The collisional processes considered for the atomic species N and O are electron impact excitation and ionisation, and the radiative processes considered are bound-bound optically allowed transitions.
 Table~\ref{tab:N-O-CR} summarises the implemented rate coefficients for each of these mechanisms.
 Where more than one model are presented for a mechanism, they are listed in order of preference (\textit{e.g.} for the electron impact excitation of N, the rates of Frost \textit{et al.}~\cite{FAS+1998} are preferred with the remaining transitions described by the semi-empirical model of Gryzinski~\cite{Gryz59}).
-In the present work all the levels presented in Tables~\ref{tab:N-levels} and~\ref{tab:O-levels} for N and O respectively are considered as nonequilibrium levels.
+%In the present work all the levels presented in Tables~\ref{tab:N-levels} and~\ref{tab:O-levels} for N and O respectively are considered as nonequilibrium levels.
 \par
 
 For the radiative transitions, the transition probabilities $A(i,j)$ for the nonequilibrium levels are calculated using Equation~\ref{eq:A_av} where the individual line transition probabilities are obtained from the NIST Atomic Species Database~\cite{NIST_ASD} (see Table~\ref{tab:atomic-lines}).
@@ -1988,7 +1990,7 @@ This model was `tuned' to match the intensity profiles measured for a 3.45\,km/s
 Since this model was formulated, however, a set of collisional-rate coefficients and cross sections for the diatomic species CN, CO, N$_2$, N$_2^+$, O$_2$ and NO have been proposed by Park~\cite{park2008a, park2008b}.
 Figure~\ref{fig:K_Park_v_Zalogin} compares the rates that are given by both Zalogin~\cite{zalogin_2001} and Park~\cite{park2008a, park2008b}.
 The Zalogin model predicts faster collisional excitation of CN and slower collisional excitation of CO.
-Due to large differences between some of the rates, both models will be assessed via comparison with shock tube data in~\textsection~\ref{sec:EAST_NRST}.
+%Due to large differences between some of the rates both models were assessed via comparison with shock tube data in~\cite{Potter_PhD}.
 As the Park model is more comprehensive and based on experimental and theoretical cross sections where possible, the Park collisional excitation rates for CO and CN are tentatively accepted for inclusion in the nominal collisional-radiative models for these species.
 Due to numerical difficulties encountered when implementing the heavy particle impact rates given in Reference \cite{park2008b}, however, these were omitted for CO and CN.
 Considering just the electron impact processes should be sufficient for the conditions of interest due to the substantial levels of ionisation.
