@@ -2456,9 +2456,11 @@ int FV_Cell::add_viscous_source_vector(bool with_k_omega)
 	Q->momentum.y -= tau_00 * area[0] / volume[0];
     } // end if ( get_axisymmetric_flag() == 1
 
-    if ( with_k_omega ) {
+    if ( with_k_omega && !SEPARATE_UPDATE_FOR_K_OMEGA_SOURCE ) {
 	double Q_tke = 0.0; double Q_omega = 0.0;
-	this->k_omega_time_derivatives(&Q_tke, &Q_omega, fs->tke, fs->omega);
+        if ( in_turbulent_zone ) {
+	    this->k_omega_time_derivatives(&Q_tke, &Q_omega, fs->tke, fs->omega);
+        }
 	Q->tke += Q_tke; Q->omega += Q_omega;
     }
 
