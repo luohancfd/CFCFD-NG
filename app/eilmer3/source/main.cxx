@@ -1160,15 +1160,15 @@ int integrate_in_time(double target_time)
 		status_flag = FAILURE;
 		break;
 	    }
-#           if SEPARATE_UPDATE_FOR_K_OMEGA_SOURCE == 1
-	    if ( G.turbulence_model == TM_K_OMEGA ) {
-		for ( Block *bdp : G.my_blocks ) {
-		    if ( bdp->active != 1 ) continue;
-		    for ( FV_Cell *cp: bdp->active_cells )
-			cp->update_k_omega_properties(G.dt_global);
-		}
-	    }
-#           endif
+            if ( SEPARATE_UPDATE_FOR_K_OMEGA_SOURCE == 1 ) {
+                if ( G.turbulence_model == TM_K_OMEGA ) {
+		    for ( Block *bdp : G.my_blocks ) {
+		        if ( bdp->active != 1 ) continue;
+		        for ( FV_Cell *cp: bdp->active_cells )
+			    cp->update_k_omega_properties(G.dt_global);
+		    }
+	        }
+            }
 	} // end if ( get_viscous_flag() == 1
 
         // 2d. Chemistry step. 
