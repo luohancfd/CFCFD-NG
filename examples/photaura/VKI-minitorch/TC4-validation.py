@@ -184,7 +184,7 @@ def main():
             
             # write to file
             X.write_to_file("emissivities_at_%d_microns.txt" % int(x*1000000) )
-            del X,S
+            del X
 
     # delete the gas and spectral radiation models
     del gm, rsm
