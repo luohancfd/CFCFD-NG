@@ -8,6 +8,13 @@ with the Eilmer3 and Poshax3 codes.
 The name Photaura comes from the Greek word photos (light) and the Latin
 word aura (wind); an appropriate name for a code that deals with plasmas.
 
+Documententation (PDF)
+----------------------
+
+The Photaura Theory Book and User's Guide: pdf-theory-book-and-users-guide_
+
+.. _pdf-theory-book-and-users-guide: ./pdf/photaura-users-guide.pdf
+
 Typical build and test procedure
 --------------------------------
 The parts of the Photaura code that are used by Eilmer3 and Poshax3 are
