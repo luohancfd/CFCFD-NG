@@ -1143,7 +1143,7 @@ int integrate_in_time(double target_time)
 	
 	// 2c. Increment because of viscous effects may be done
 	//     separately to the convective terms.
-	if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 1 ) {
+	if ( get_viscous_flag() == 1 && G.separate_update_for_viscous_terms ) {
 	    // We now have the option of explicit or point implicit update
 	    // of the viscous terms, thanks to Ojas Joshi, EPFL.
 	    int break_loop = 0;
@@ -1160,15 +1160,13 @@ int integrate_in_time(double target_time)
 		status_flag = FAILURE;
 		break;
 	    }
-            if ( SEPARATE_UPDATE_FOR_K_OMEGA_SOURCE == 1 ) {
-                if ( G.turbulence_model == TM_K_OMEGA ) {
-		    for ( Block *bdp : G.my_blocks ) {
-		        if ( bdp->active != 1 ) continue;
-		        for ( FV_Cell *cp: bdp->active_cells )
-			    cp->update_k_omega_properties(G.dt_global);
-		    }
-	        }
-            }
+	    if ( G.turbulence_model == TM_K_OMEGA && G.separate_update_for_k_omega_source ) {
+		for ( Block *bdp : G.my_blocks ) {
+		    if ( bdp->active != 1 ) continue;
+		    for ( FV_Cell *cp: bdp->active_cells )
+			cp->update_k_omega_properties(G.dt_global);
+		}
+	    }
 	} // end if ( get_viscous_flag() == 1
 
         // 2d. Chemistry step. 
@@ -1517,7 +1515,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 	    G.t_level = 0;
 	    if ( bdp->active != 1 ) continue;
 	    bdp->inviscid_flux(G.dimensions);
-	    if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
+	    if ( get_viscous_flag() == 1 && !G.separate_update_for_viscous_terms ) {
 		apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
 		if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 0);
 		if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
@@ -1528,8 +1526,8 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		cp->add_inviscid_source_vector(0, bdp->omegaz);
 		if ( G.udf_source_vector_flag == 1 )
 		    add_udf_source_vector_for_cell(cp, 0, G.sim_time);
-		if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
-		    cp->add_viscous_source_vector(with_k_omega);
+		if ( get_viscous_flag() == 1 && !G.separate_update_for_viscous_terms ) {
+		    cp->add_viscous_source_vector(with_k_omega && !G.separate_update_for_k_omega_source);
 		}
 		cp->time_derivatives(0, 0, G.dimensions, with_k_omega);
 		bool force_euler = false;
@@ -1561,7 +1559,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		if ( bdp->active != 1 ) continue;
 		apply_convective_bc(*bdp, G.sim_time, G.dimensions);
 		bdp->inviscid_flux(G.dimensions);
-		if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
+		if ( get_viscous_flag() == 1 && !G.separate_update_for_viscous_terms ) {
 		    apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
 		    if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 1);
 		    if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
@@ -1572,8 +1570,8 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		    cp->add_inviscid_source_vector(0, bdp->omegaz);
 		    if ( G.udf_source_vector_flag == 1 )
 			add_udf_source_vector_for_cell(cp, 0, G.sim_time);
-		    if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
-			cp->add_viscous_source_vector(with_k_omega);
+		    if ( get_viscous_flag() == 1 && !G.separate_update_for_viscous_terms ) {
+			cp->add_viscous_source_vector(with_k_omega && !G.separate_update_for_k_omega_source);
 		    }
 		    cp->time_derivatives(0, 1, G.dimensions, with_k_omega);
 		    cp->stage_2_update_for_flow_on_fixed_grid(G.dt_global, with_k_omega);
@@ -1604,7 +1602,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		if ( bdp->active != 1 ) continue;
 		apply_convective_bc(*bdp, G.sim_time, G.dimensions);
 		bdp->inviscid_flux( G.dimensions );
-		if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
+		if ( get_viscous_flag() == 1 && !G.separate_update_for_viscous_terms ) {
 		    apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
 		    if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 2);
 		    if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
@@ -1615,8 +1613,8 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		    cp->add_inviscid_source_vector(0, bdp->omegaz);
 		    if ( G.udf_source_vector_flag == 1 )
 			add_udf_source_vector_for_cell(cp, 0, G.sim_time);
-		    if ( get_viscous_flag() == 1 && get_separate_update_for_viscous_flag() == 0 ) {
-			cp->add_viscous_source_vector(with_k_omega);
+		    if ( get_viscous_flag() == 1 && !G.separate_update_for_viscous_terms ) {
+			cp->add_viscous_source_vector(with_k_omega && !G.separate_update_for_k_omega_source);
 		    }
 		    cp->time_derivatives(0, 2, G.dimensions, with_k_omega);
 		    cp->stage_3_update_for_flow_on_fixed_grid(G.dt_global, with_k_omega);

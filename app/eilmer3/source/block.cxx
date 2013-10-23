@@ -527,7 +527,8 @@ int Block::determine_time_step_size()
 /// \endverbatim
 {
     global_data *gdp = get_global_data_ptr();
-    bool with_k_omega = (gdp->turbulence_model == TM_K_OMEGA);
+    bool with_k_omega = (gdp->turbulence_model == TM_K_OMEGA && 
+			 !gdp->separate_update_for_k_omega_source);
     bool first;
     double dt_local, cfl_local, signal, cfl_allow;
     // These limits allow the simulation of the sod shock tube

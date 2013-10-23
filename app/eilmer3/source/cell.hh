@@ -60,11 +60,6 @@ const size_t N_LEVEL = 4;
 const size_t N_INTERFACE = 6; // Number of interfaces per cell
 const size_t N_VERTEX = 8; // Number of vertices per cell
 
-/// We might update the k-omega properties in with the main predictor-corrector
-/// time-stepping function or we might choose to update it separately, 
-/// like the chemistry update.
-const int SEPARATE_UPDATE_FOR_K_OMEGA_SOURCE = 0;
-
 /// Minimum values for turbulent kinetic energy (m^2/s^2) and frequency (1/s)
 /// for applying limiters in the k-omega model.
 const double SMALL_TKE = 0.1;

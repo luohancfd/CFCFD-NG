@@ -297,6 +297,7 @@ int read_config_parameters(const string filename, bool master)
     G.drummond_progressive = 0;
 
     G.fixed_time_step = false; // Set to false as a default
+    G.separate_update_for_viscous_terms = false;
     G.cfl_count = 10;
     G.print_count = 20;
     G.control_count = 10;
@@ -312,6 +313,7 @@ int read_config_parameters(const string filename, bool master)
     G.turbulence_model = TM_NONE;
     G.turbulence_prandtl = 0.89;
     G.turbulence_schmidt = 0.75;
+    G.separate_update_for_k_omega_source = false;
 
     // Most configuration comes from the previously-generated INI file.
     ConfigParser dict = ConfigParser(filename);
@@ -476,6 +478,8 @@ int read_config_parameters(const string filename, bool master)
     G.turbulence_schmidt = d_value;
     dict.parse_double("global_data", "max_mu_t_factor", G.max_mu_t_factor, 300.0);
     dict.parse_double("global_data", "transient_mu_t_factor", G.transient_mu_t_factor, 1.0);
+    dict.parse_boolean("global_data", "separate_update_for_k_omega_source",
+		       G.separate_update_for_k_omega_source, false);
     if ( G.turbulence_model == TM_SPALART_ALLMARAS )
 	throw std::runtime_error("Spalart-Allmaras turbulence model not available.");
     if ( get_verbose_flag() ) {
@@ -484,6 +488,7 @@ int read_config_parameters(const string filename, bool master)
 	cout << "turbulence_schmidt_number = " << G.turbulence_schmidt << endl;
 	cout << "max_mu_t_factor = " << G.max_mu_t_factor << endl;
 	cout << "transient_mu_t_factor = " << G.transient_mu_t_factor << endl;
+	cout << "separate_update_for_k_omega_source = " << G.separate_update_for_k_omega_source << endl;
     }
 
     dict.parse_int("global_data", "electric_field_work_flag", i_value, 0);
@@ -725,7 +730,7 @@ int read_control_parameters( const string filename, bool master, bool first_time
     default: /* do nothing */;
     }
     dict.parse_int("control_data", "separate_update_for_viscous_flag", i_value, 0);
-    set_separate_update_for_viscous_flag( i_value );
+    G.separate_update_for_viscous_terms = (i_value == 1);
     dict.parse_double("control_data", "dt", G.dt_init, 1.0e-6);
     if ( first_time ) G.dt_global = G.dt_init;
     dict.parse_double("control_data", "dt_max", G.dt_max, 1.0e-3);
@@ -755,8 +760,8 @@ int read_control_parameters( const string filename, bool master, bool first_time
 	cout << "    gasdynamic_update_scheme = " 
 	     << get_name_of_gasdynamic_update_scheme(get_gasdynamic_update_scheme())
 	     << endl;
-	cout << "separate_update_for_viscous_flag = " 
-	     << get_separate_update_for_viscous_flag() << endl;
+	cout << "separate_update_for_viscous_terms = " 
+	     << G.separate_update_for_viscous_terms << endl;
 	cout << "    dt = " << G.dt_init << endl;
 	cout << "    dt_max = " << G.dt_max << endl;
 	cout << "    fixed_time_step = " << G.fixed_time_step << endl;

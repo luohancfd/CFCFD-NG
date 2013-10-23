@@ -102,6 +102,12 @@ struct global_data
      * 0.1 would seem too expensive.  We have settled on a default of 0.2.
      */
 
+    /// We might update some properties in with the main convective-terms
+    /// time-stepping function or we might choose to update them separately, 
+    /// like the chemistry update.
+    bool separate_update_for_viscous_terms;
+    bool separate_update_for_k_omega_source;
+
     double viscous_time_delay;
     turbulence_model_t turbulence_model;
     double turbulence_prandtl;
@@ -214,8 +220,6 @@ int set_filter_flag(int iw);
 int get_filter_flag(void);
 int set_viscous_flag(int iv);
 int get_viscous_flag(void);
-int set_separate_update_for_viscous_flag(int iv);
-int get_separate_update_for_viscous_flag(void);
 int set_viscous_upwinding_flag(int iw);
 int get_viscous_upwinding_flag(void);
 double set_viscous_factor( double value );

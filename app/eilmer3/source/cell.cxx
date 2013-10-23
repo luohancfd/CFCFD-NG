@@ -1960,7 +1960,7 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
 	}
 #       endif
     }
-    if ( with_k_omega == 1 && !SEPARATE_UPDATE_FOR_K_OMEGA_SOURCE ) {
+    if ( with_k_omega == 1 ) {
 	if ( fs->omega > signal ) signal = fs->omega;
     }
     return signal;
@@ -2456,7 +2456,7 @@ int FV_Cell::add_viscous_source_vector(bool with_k_omega)
 	Q->momentum.y -= tau_00 * area[0] / volume[0];
     } // end if ( get_axisymmetric_flag() == 1
 
-    if ( with_k_omega && !SEPARATE_UPDATE_FOR_K_OMEGA_SOURCE ) {
+    if ( with_k_omega ) {
 	double Q_tke = 0.0; double Q_omega = 0.0;
         if ( in_turbulent_zone ) {
 	    this->k_omega_time_derivatives(&Q_tke, &Q_omega, fs->tke, fs->omega);

@@ -155,10 +155,6 @@ int get_verbose_flag( void ) { return verbose; }
 /// Viscous effects are included in the gas-dynamic update.
 int viscous = 0;
 
-/// \brief =0 to get viscous terms in with convective update stages
-///        =1 to get viscous terms incremented separately to convective increment
-int separate_update_for_viscous = 0;
-
 /// \brief A factor to scale the viscosity in order to achieve a soft start.
 /// 
 /// The soft-start for viscous effects may be handy for impulsively-started flows.
@@ -435,17 +431,6 @@ int set_viscous_flag(int iv)
 int get_viscous_flag(void)
 {
     return viscous;
-}
-
-int set_separate_update_for_viscous_flag(int iv)
-{
-    separate_update_for_viscous = iv;
-    return separate_update_for_viscous;
-}
-
-int get_separate_update_for_viscous_flag(void)
-{
-    return separate_update_for_viscous;
 }
 
 int set_viscous_upwinding_flag(int iw)

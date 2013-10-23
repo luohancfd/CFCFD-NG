@@ -301,6 +301,10 @@ class GlobalData(object):
       where the turbulence is not fully developed.  This may be good for
       Matt McGilvray's scramjet experiments in the expansion tube which have
       very short flow durations.
+    * separate_update_for_k_omega_source: (boolean) By default, the k-omega source terms
+      will be integrated in with the viscous and convective explicit update.
+      Setting this True will allow separate update of the k-omega source terms with
+      with a more robust integrator.
     * heat_time_start: (float) start time for heating zones to be adding energy
     * heat_time_stop: (float) final time for heating zones to be adding heat
     * heat_factor_increment: (float) the fraction of full heat load that will be
@@ -415,6 +419,7 @@ class GlobalData(object):
                 'diffusion_flag', 'diffusion_model', \
                 'turbulence_model', 'max_mu_t_factor', 'transient_mu_t_factor', \
                 'turbulence_prandtl_number', 'turbulence_schmidt_number', \
+                'separate_update_for_k_omega_source', \
                 'scalar_pdf_flag', 'reacting_flag', 'T_frozen', 'reaction_time_start', \
                 'x_order', 'flux_calc', 'compression_tolerance', 'shear_tolerance', 'M_inf', \
                 't_order', 'gasdynamic_update_scheme', \
@@ -478,6 +483,7 @@ class GlobalData(object):
         self.turbulence_schmidt_number = 0.75
         self.max_mu_t_factor = 300.0
         self.transient_mu_t_factor = 1.0
+        self.separate_update_for_k_omega_source = False
         self.heat_time_start = 0.0
         self.heat_time_stop = 0.0 # nonzero indicates that we want heating some time
         self.heat_factor_increment = 0.01
@@ -631,6 +637,8 @@ class GlobalData(object):
         fp.write("turbulence_schmidt_number = %g\n" % self.turbulence_schmidt_number)
         fp.write("max_mu_t_factor = %e\n" % self.max_mu_t_factor)
         fp.write("transient_mu_t_factor = %e\n" % self.transient_mu_t_factor)
+        fp.write("separate_update_for_k_omega_source = %s\n" % 
+                 self.separate_update_for_k_omega_source)
         fp.write("heat_time_start = %e\n"% self.heat_time_start)
         fp.write("heat_time_stop = %e\n"% self.heat_time_stop)
         fp.write("heat_factor_increment = %e\n"% self.heat_factor_increment)
