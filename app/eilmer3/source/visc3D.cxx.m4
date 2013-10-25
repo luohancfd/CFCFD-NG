@@ -35,6 +35,7 @@ define(`for_each_scalar_element', `$1(vel.x,vel.x,u)
 	$1(vel.z,vel.z,w)
 	$1(tke,tke,tke)
 	$1(omega,omega,omega)
+	$1(gas->p_e,gas->p_e,pe)
 ')dnl
 
 define(`for_each_scalar_derivative', `$1(dudx)
@@ -52,6 +53,9 @@ define(`for_each_scalar_derivative', `$1(dudx)
        $1(domegadx)
        $1(domegady)
        $1(domegadz)
+       $1(dpedx)
+       $1(dpedy)
+       $1(dpedz)
 ')dnl
 
 
@@ -82,6 +86,7 @@ int viscous_flux_3D(Block *A)
     double dwdx, dwdy, dwdz;
     double dtkedx, dtkedy, dtkedz;
     double domegadx, domegady, domegadz;
+    double dpedx, dpedy, dpedz;
     double tau_xx, tau_yy, tau_xy;
     double tau_xz, tau_yz, tau_zz;
     double mu_eff, lmbda;
