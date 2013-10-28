@@ -26,7 +26,7 @@ public:
 
     std::vector<double> rate_of_change_py(Gas_data &Q)
     { 
-	std::vector<double> dedt(Q.massf.size(), 0.0);
+	std::vector<double> dedt(Q.e.size(), 0.0);
 	s_rate_of_change(Q, dedt); 
 	return dedt; 
     }
