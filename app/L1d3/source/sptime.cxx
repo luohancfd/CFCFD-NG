@@ -14,6 +14,7 @@
  * \version 6.0 --  05-Jun-00, Allowed for adaptivity.
  * \version 6.1 --  17-Nov-02, Jan Martinez-Schramm added TECPLOT output
  * \version 24-Jul-06, C++ port.
+ * \version 29-Oct-13, Stefan Brieschenk added acoustic impedance output option.
  */
 
 /*-----------------------------------------------------------------*/
@@ -86,6 +87,7 @@ int main(int argc, char **argv)
 #   define  SELECT_TAU  7
 #   define  SELECT_Q    8
 #   define  SELECT_S    9
+#   define  SELECT_Z    10
     option = SELECT_P;
     echo_input = 0;
 
@@ -191,6 +193,10 @@ int main(int argc, char **argv)
             option = SELECT_S;
             i++;
             printf("Entropy, option = %d.\n", option);
+        } else if (strcmp(argv[i], "-Z") == 0) {
+            option = SELECT_Z;
+            i++;
+            printf("Acoustic Impedance, option = %d.\n", option);			
         } else if (strcmp(argv[i], "-help") == 0) {
             command_line_error = 1;
             printf("Printing usage message...\n\n");
@@ -230,7 +236,7 @@ int main(int argc, char **argv)
         printf("-tecplot                  (generic)\n");
         printf("-help                     (print this message)\n");
         printf("To select a variable, pick one of:\n");
-        printf("-p -rho -u -e -T -a -q -tau -S   (default is -p)\n");
+        printf("-p -rho -u -e -T -a -q -tau -S -Z   (default is -p)\n");
         printf("\n");
         exit(1);
     }   /* end if command_line_error */
@@ -353,13 +359,15 @@ int main(int argc, char **argv)
                         varray[js][nt_write][nx] = A[js].Cell[ix].heat_flux;
                     } else if (option == SELECT_S) {
                         varray[js][nt_write][nx] = A[js].Cell[ix].entropy;
-                    } else {
+                    } else if (option == SELECT_Z) {
+                        varray[js][nt_write][nx] = A[js].Cell[ix].gas->rho*A[js].Cell[ix].gas->a;
+		    } else {
                         printf("Invalid option: start again.\n");
                         exit(-1);
                     }   /* end if */
 
                     if (takelog == 1) {
-                        varray[js][nt_write][nx] = log10(fabs(varray[js][nt_write][nx]));
+                        varray[js][nt_write][nx] = log10(fmax(fabs(varray[js][nt_write][nx]),1.0e-30));
                     }
                     /* end if */
                     ++nx;
@@ -402,13 +410,15 @@ int main(int argc, char **argv)
                         varray[js][nt_write][nx] = icell->heat_flux;
                     } else if (option == SELECT_S) {
                         varray[js][nt_write][nx] = icell->entropy;
+                    } else if (option == SELECT_Z) {
+                        varray[js][nt_write][nx] = icell->gas->rho*icell->gas->a;
                     } else {
                         printf("Invalid option: start again.\n");
                         exit(-1);
                     }   /* end if */
 
                     if (takelog == 1) {
-                        varray[js][nt_write][nx] = log10(fabs(varray[js][nt_write][nx]));
+                        varray[js][nt_write][nx] = log10(fmax(fabs(varray[js][nt_write][nx]),1.0e-30));
                     }   /* end if */
                 }   /* end for */
             }   /* end if */
@@ -476,6 +486,10 @@ int main(int argc, char **argv)
         strcpy(name_tag, "_S");
 	strcat(var_name, "S2,J/kg/K");
 	strcat(var_name_tec, "S2:[J/kg/K]");
+    } else if (option == SELECT_Z) {
+        strcpy(name_tag, "_Z");
+	strcat(var_name, "Z,Ns/m^3");
+	strcat(var_name_tec, "Z:[Ns/m^3]");	
     }   /* end if */
     strcat(oname, name_tag);
     if ( tecplot_format ) {
