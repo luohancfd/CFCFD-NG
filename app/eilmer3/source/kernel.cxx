@@ -173,6 +173,14 @@ int viscous_upwinding = 0;
 //  calculation.
 int diffusion = 0;           
 
+/// \brief A factor to scale the diffusion in order to achieve a soft start, separate to viscous effects.
+///
+/// The soft-start for diffusion effects may be handy for impulsively-started flows.
+double diffusion_factor = 1.0;
+
+/// \brief The amount by which to increment the diffusion factor during soft-start.
+double diffusion_factor_increment = 0.01;
+
 /// \brief Shock fitting =0 for no shock fitting, =1 for shock fitting.
 int shock_fitting = 0;
 
@@ -514,6 +522,45 @@ int set_diffusion_flag(int id)
 int get_diffusion_flag(void)
 {
     return diffusion;
+}
+
+/// \brief Set the diffusion_factor to a specified value.
+double set_diffusion_factor( double value )
+{
+    if ( value > 1.0 ) value = 1.0;
+    if ( value < 0.0 ) value = 0.0;
+    diffusion_factor = value;
+    return diffusion_factor;
+}
+
+/// \brief Get the stored value of diffusion_factor.
+double get_diffusion_factor( void )
+{
+    return diffusion_factor;
+}
+
+/// \brief Increment the diffusion_factor to a specified value.
+double incr_diffusion_factor( double value )
+{
+    diffusion_factor += value;
+    if ( diffusion_factor > 1.0 ) diffusion_factor = 1.0;
+    if ( diffusion_factor < 0.0 ) diffusion_factor = 0.0;
+    return diffusion_factor;
+}
+
+/// \brief Set the diffusion_factor_increment to a specified value.
+double set_diffusion_factor_increment( double value )
+{
+    if ( value > 1.0 ) value = 1.0;
+    if ( value < 0.0 ) value = 0.0;
+    diffusion_factor_increment = value;
+    return diffusion_factor_increment;
+}
+
+/// \brief Set the stored value of the increment.
+double get_diffusion_factor_increment( void )
+{
+    return diffusion_factor_increment;
 }
 
 /*------------------------------------------------------------------*/

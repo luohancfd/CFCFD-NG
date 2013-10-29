@@ -515,7 +515,7 @@ compute_cell_interface_surface_heat_flux(FV_Interface * IFace, FV_Cell * cell_on
     size_t nsp = gm->get_number_of_species();
     double dTds;
     vector<double> dfds(nsp), dfd0(nsp), dfd00(nsp), js(nsp), j0(nsp), j00(nsp);
-    double viscous_factor = get_viscous_factor();
+    double diffusion_factor = get_diffusion_factor();
     
     cc = cell_one->pos[gtl];
     ic = IFace->pos;
@@ -541,7 +541,7 @@ compute_cell_interface_surface_heat_flux(FV_Interface * IFace, FV_Cell * cell_on
 	}
 	calculate_diffusion_fluxes(*(IFace->fs->gas), D_t, dfds, dfd0, dfd00, js, j0, j00 );
 	for ( isp=0; isp<nsp; ++isp ){
-	    q_diff[index] -= viscous_factor * js[isp] * gm->enthalpy(*(IFace->fs->gas), isp);
+	    q_diff[index] -= diffusion_factor * js[isp] * gm->enthalpy(*(IFace->fs->gas), isp);
 	}
     }
 

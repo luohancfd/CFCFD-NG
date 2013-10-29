@@ -113,6 +113,7 @@ int viscous_flux_2D(Block *A)
     double mu_t;  // turbulence viscosity
     double k_t;   // turbulence thermal conductivity
     double viscous_factor; // so that we can scale down the viscous effects
+    double diffusion_factor; // so that we can scale down the diffusion effects
     double mu_eff; // combined laminar and turbulent viscosity after scaling
     double dtkedx, dtkedy, domegadx, domegady;
     double sigma = 0.5;
@@ -142,6 +143,7 @@ int viscous_flux_2D(Block *A)
     }
     
     viscous_factor = get_viscous_factor();
+    diffusion_factor = get_diffusion_factor();
 
     // East-facing interfaces.
     for ( size_t i = A->imin; i <= A->imax+1; ++i ) {
@@ -200,11 +202,11 @@ int viscous_flux_2D(Block *A)
 				           D_t,
 					   dfdx, dfdy, dfdz,
 					   jx, jy, jz);
-		// NOTE: now applying viscous_factor to diffusive fluxes
+		// NOTE: now applying diffusion_factor to diffusive fluxes --> instead of viscous_factor!
 		for ( size_t isp = 0; isp < nsp; ++isp ) {
-		    jx[isp] *= viscous_factor;
-		    jy[isp] *= viscous_factor;
-		    jz[isp] *= viscous_factor;
+		    jx[isp] *= diffusion_factor;
+		    jy[isp] *= diffusion_factor;
+		    jz[isp] *= diffusion_factor;
 		}
 	    }
 	    
@@ -369,11 +371,11 @@ int viscous_flux_2D(Block *A)
 					   D_t,
 					   dfdx, dfdy, dfdz,
 					   jx, jy, jz);
-		// NOTE: now applying viscous_factor to diffusive fluxes
+		// NOTE: now applying diffusion_factor to diffusive fluxes --> instead of viscous_factor!
 		for( size_t isp = 0; isp < nsp; ++isp ) {
-		    jx[isp] *= viscous_factor;
-		    jy[isp] *= viscous_factor;
-		    jz[isp] *= viscous_factor;
+		    jx[isp] *= diffusion_factor;
+		    jy[isp] *= diffusion_factor;
+		    jz[isp] *= diffusion_factor;
 		}
 	    }
 

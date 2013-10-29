@@ -291,6 +291,13 @@ class GlobalData(object):
       upwind direction only. Set to 0 (the default) to use average of both directions.
     * diffusion_flag: (0/1) Set to 1 to compute multi-component diffusion of species
     * diffusion_model: (string) set the type (by name) of multi-component diffusion model
+    * diffusion_delay: (float) Sometimes, the diffusion terms make it difficult to
+      start a calculation without encountering numerical instability.
+      Set this parameter to the delay (in seconds) from simulation start
+      to the time at which the diffusion terms will be allowed to become
+      active (if L{diffusion_flag} was set to 1). 
+    * diffusion_factor_increment: (float) Increment for the diffusion_factor
+      after diffusion_delay has passed.
     * turbulence_model: (string) "none" (default), "baldwin-lomax", "k-omega", "spalart-allmaras"
     * turbulence_prandtl_number: (float) default 0.89
     * turbulence_schmidt_number: (float) default 0.75
@@ -416,7 +423,8 @@ class GlobalData(object):
                 'BGK_flag', 'velocity_buckets', 'vcoords', 'vweights',\
                 'viscous_flag', 'viscous_delay', 'viscous_factor_increment',\
                 'separate_update_for_viscous_flag', 'viscous_upwinding_flag',\
-                'diffusion_flag', 'diffusion_model', \
+                'diffusion_flag', 'diffusion_model', 'diffusion_delay', \
+                'diffusion_factor_increment', 'separate_update_for_diffusion_flag', \
                 'turbulence_model', 'max_mu_t_factor', 'transient_mu_t_factor', \
                 'turbulence_prandtl_number', 'turbulence_schmidt_number', \
                 'separate_update_for_k_omega_source', \
@@ -478,6 +486,8 @@ class GlobalData(object):
         self.viscous_upwinding_flag = 0
         self.diffusion_flag = 0
         self.diffusion_model = "None"
+        self.diffusion_delay = 0.0
+        self.diffusion_factor_increment = 0.01     
         self.turbulence_model = "none"
         self.turbulence_prandtl_number = 0.89
         self.turbulence_schmidt_number = 0.75
@@ -621,6 +631,8 @@ class GlobalData(object):
         fp.write("viscous_upwinding_flag = %d\n" % self.viscous_upwinding_flag)
         fp.write("diffusion_flag = %d\n" % self.diffusion_flag)
         fp.write("diffusion_model = %s\n" % self.diffusion_model)
+        fp.write("diffusion_delay = %e\n" % self.diffusion_delay)
+        fp.write("diffusion_factor_increment = %e\n" % self.diffusion_factor_increment)
         fp.write("shock_fitting_flag = %d\n"% self.shock_fitting_flag)
         fp.write("shock_fitting_decay_flag = %d\n" % self.shock_fitting_decay_flag)
         fp.write("shock_fitting_speed_factor = %e\n" % self.shock_fitting_speed_factor)

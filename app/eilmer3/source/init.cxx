@@ -436,6 +436,9 @@ int read_config_parameters(const string filename, bool master)
     // FIX-ME 2013-04-23 should probably merge diffusion_model and diffusion_flag
     // as we have done for turbulence_model, below.
     dict.parse_int("global_data", "diffusion_flag", i_value, 0);
+    dict.parse_double("global_data", "diffusion_delay", G.diffusion_time_delay, 0.0);
+    dict.parse_double("global_data", "diffusion_factor_increment", d_value, 0.01);
+    set_diffusion_factor_increment( d_value );
     set_diffusion_flag( i_value );
     if ( get_verbose_flag() ) {
 	cout << "viscous_flag = " << get_viscous_flag() << endl;
@@ -443,6 +446,8 @@ int read_config_parameters(const string filename, bool master)
 	cout << "viscous_factor_increment = " << get_viscous_factor_increment() << endl;
 	cout << "viscous_upwinding_flag = " << get_viscous_upwinding_flag() << endl;
 	cout << "diffusion_flag = " << get_diffusion_flag() << endl;
+	cout << "diffusion_delay = " << G.diffusion_time_delay << endl;
+	cout << "diffusion_factor_increment = " << get_diffusion_factor_increment() << endl;
     }
     if( get_diffusion_flag() && ( gmodel->get_number_of_species() > 1 ) ) { 
  	dict.parse_string("global_data", "diffusion_model", s_value, "Stefan-Maxwell");

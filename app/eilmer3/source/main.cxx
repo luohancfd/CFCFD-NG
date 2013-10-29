@@ -867,6 +867,7 @@ int integrate_in_time(double target_time)
     double stopping_time;
     int finished_time_stepping;
     int viscous_terms_are_on;
+    int diffusion_terms_are_on;
     int cfl_result, do_cfl_check_now;
 #   ifdef _MPI
     int cfl_result_2;
@@ -923,6 +924,24 @@ int integrate_in_time(double target_time)
 	// We haven't requested viscous effects at all.
 	set_viscous_factor( 0.0 );
 	viscous_terms_are_on = 0;
+    }
+
+    if ( get_diffusion_flag() ) {
+	    // We have requested diffusion effects but they may be delayed.
+	    if ( G.diffusion_time_delay > 0.0 && G.sim_time < G.diffusion_time_delay ) {
+		    // We will initially turn-down diffusion effects and
+		    // only turn them up when the delay time is exceeded.
+		    set_diffusion_factor( 0.0 );
+		    diffusion_terms_are_on = 0;
+	    } else {
+		    // No delay in applying full diffusion effects.
+		    set_diffusion_factor( 1.0 );
+		    diffusion_terms_are_on = 1;
+	    }
+    } else {
+	    // We haven't requested diffusion effects at all.
+	    set_diffusion_factor( 0.0 );
+	    diffusion_terms_are_on = 0;
     }
 
     // Spatial filter may be applied occasionally.
@@ -994,6 +1013,29 @@ int integrate_in_time(double target_time)
 	    printf( "Increment viscous_factor to %f\n", get_viscous_factor() );
 	    do_cfl_check_now = 1;
 	}
+	if ( get_diffusion_flag() == 1 && diffusion_terms_are_on == 0 &&
+	     G.sim_time >= G.diffusion_time_delay ) {
+	    // We want to turn on the diffusion effects only once (if requested)
+	    // and, when doing so in the middle of a simulation,
+	    // reduce the time step to ensure that these new terms
+	    // do not upset the stability of the calculation.
+	    printf( "Turning on diffusion effects.\n" );
+	    diffusion_terms_are_on = 1;
+	    if ( G.step > 0 ) {
+		printf( "Start softly with diffusion effects.\n" );
+		set_diffusion_factor( 0.0 );
+		G.dt_global *= 0.2;
+	    } else {
+		printf( "Start with full diffusion effects.\n" );
+		set_diffusion_factor( 1.0 );
+	    }
+	}
+	if ( diffusion_terms_are_on == 1 && get_diffusion_factor() < 1.0 ) {
+	    incr_diffusion_factor( get_diffusion_factor_increment() );
+	    printf( "Increment diffusion_factor to %f\n", get_diffusion_factor() );
+	    do_cfl_check_now = 1;
+	}
+
 	if ( G.heat_time_stop > 0.0 ) {
 	    // We want heating at some time.
 	    if ( G.sim_time >= G.heat_time_start && G.sim_time < G.heat_time_stop ) {

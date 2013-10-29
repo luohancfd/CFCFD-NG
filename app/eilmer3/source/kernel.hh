@@ -109,6 +109,7 @@ struct global_data
     bool separate_update_for_k_omega_source;
 
     double viscous_time_delay;
+    double diffusion_time_delay;
     turbulence_model_t turbulence_model;
     double turbulence_prandtl;
     double turbulence_schmidt;
@@ -229,6 +230,11 @@ double set_viscous_factor_increment( double value );
 double get_viscous_factor_increment( void );
 int set_diffusion_flag(int id);
 int get_diffusion_flag(void);
+double set_diffusion_factor( double value );
+double get_diffusion_factor( void );
+double incr_diffusion_factor( double value );
+double set_diffusion_factor_increment( double value );
+double get_diffusion_factor_increment( void );
 double set_heat_factor( double value );
 double get_heat_factor( void );
 double incr_heat_factor( double value );
