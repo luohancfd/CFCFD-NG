@@ -23,6 +23,8 @@
 #include "../../util/source/useful.h"
 #include "../../util/source/lua_service.hh"
 
+#define INCLUDE_FF_GAUNT_FACTOR 0
+
 using namespace std;
 
 ContinuumMechanism::ContinuumMechanism()
@@ -68,6 +70,12 @@ FreeFreeHydrogenic::calculate_spectrum( Gas_data &Q, CoeffSpectra &X, double n_e
 	double nu = X.nu[inu];
 	double j_ff_nu = j_ff_tmpA * j_ff_tmpB * exp ( - RC_h_SI * nu / (RC_k_SI * T) ) * 1.0e-1;     // erg / cm**-3 - Hz -> J / m**-3 - Hz
 	double kappa_ff_nu = kappa_ff_tmpA * kappa_ff_tmpB / ( nu * nu * nu ) * 1.0e2;		  	// 1 / cm -> 1 / m
+
+	/* Apply approximate Gaunt factor from Menzel and Pekeris */
+        double g_ff_tmpA = RC_h_SI * nu / RC_H_ionise_J / double( Ri->Z * Ri->Z );
+        double g_ff = 1.0 + 0.1728 * pow( g_ff_tmpA, 1.0/3.0 ) * ( 1.0 + 2.0 * RC_k_SI * T / RC_h_SI / nu );
+        j_ff_nu *= g_ff;
+        kappa_ff_nu *= g_ff;
 
 	if ( !std::isnan(j_ff_nu) && !std::isinf(j_ff_nu) && 
 	     !std::isnan(kappa_ff_nu) && !std::isinf(kappa_ff_nu) ) {
