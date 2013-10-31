@@ -1307,6 +1307,46 @@ specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
 //     return tau;
 // }
 
+
+VV_MTLandauTeller::
+VV_MTLandauTeller(lua_State *L, int ip, int iq, int itrans)
+    : Relaxation_time(), ip_(ip), iq_(iq), iT_(itrans)
+{
+    // 1. Setup values related to 'p' species
+    Diatomic_species *p = get_library_diatom_pointer(ip);
+    Truncated_harmonic_vibration *p_vib = dynamic_cast<Truncated_harmonic_vibration*>(p->get_mode_pointer_from_type("vibration"));
+    if ( p_vib == 0 ) {
+	cout << "The vibrating species " << p->get_name() << " could not be cast" << endl;
+	cout << "as a truncated harmonic oscillator." << endl;
+	cout << "Bailing out!" << endl;
+	exit(BAD_INPUT_ERROR);
+    }
+    theta_v_p_ = p_vib->get_theta();
+
+    // 2. Pull model parameters from Lua table
+    A_ = get_number(L, -1, "A");
+    n_ = get_number(L, -1, "n");
+    B1_ = get_number(L, -1, "B1");
+    B2_ = get_number(L, -1, "B2");
+    B3_ = get_number(L, -1, "B3");
+    beta_ = get_number(L, -1, "beta");
+}
+
+VV_MTLandauTeller::
+~VV_MTLandauTeller() {}
+
+double
+VV_MTLandauTeller::
+specific_relaxation_time(Gas_data &Q, vector<double> &molef)
+{
+    double T = Q.T[iT_];
+    double k_10 = A_*pow(T, n_)*exp(B1_*pow(T, -1.0/3.0) + B2_*pow(T, -2.0/3.0) + B3_*pow(T, beta_));
+    double p_in_atm = Q.p/PC_P_atm;
+    double tau = (1.0/p_in_atm)*(PC_k_SI*T)/(k_10*(1.0 - exp(-theta_v_p_/T)));
+    return tau;
+}
+
+
 VE_Lee::
 VE_Lee( lua_State * L, int ie, int iv )
     : Relaxation_time(), ie_( ie ), iv_( iv )
@@ -1416,6 +1456,9 @@ Relaxation_time* create_new_relaxation_time(lua_State *L, int ip, int iq, int it
     }
     else if ( relaxation_time == "SSH-VV" ) {
     	return new VV_SSH(L, ip, iq, itrans);
+    }
+    else if ( relaxation_time == "Landau-Teller-VV" ) {
+	return new VV_MTLandauTeller(L, ip, iq, itrans);
     }
     else if( relaxation_time == "Appleton-Bray:Ion" ) {
 	return new ET_AppletonBray_Ion(L, ip, iq);

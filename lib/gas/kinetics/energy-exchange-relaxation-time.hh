@@ -262,6 +262,18 @@ private:
     double specific_transition_probability(Gas_data &Q, std::vector<double> &molef);
 };
 
+class VV_MTLandauTeller : public Relaxation_time {
+public:
+    VV_MTLandauTeller(lua_State *L, int ip, int iq, int itrans);
+    ~VV_MTLandauTeller();
+private:
+    int ip_, iq_, iT_;
+    double A_, n_, B1_, B2_, B3_, beta_, theta_v_p_;
+    double specific_relaxation_time(Gas_data &Q, std::vector<double> &molef);
+    double specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
+    { return 0.0; }
+};
+
 // class VV_Candler : public Relaxation_time {
 // public:
 //     VV_Candler(lua_State *L);
