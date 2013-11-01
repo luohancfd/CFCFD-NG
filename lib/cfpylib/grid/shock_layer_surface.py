@@ -150,8 +150,8 @@ def make_parametric_surface(bx_scale=1.0, by_scale=1.0, M_inf=1.0, R=1.0, axi=0,
             dpdt = east.dpdt(s)
             gamma = -atan(dpdt.y / dpdt.x) + pi / 2.
             #  find the west point
-            if s == 0.0: t = 0
-            elif s == 1.0: t = 1
+            if i == 0: t = 0; gamma = 0.0;
+            elif i == N-1: t = 1
             else:
                 def f(t):
                     wp = shock.eval(t)
@@ -159,7 +159,6 @@ def make_parametric_surface(bx_scale=1.0, by_scale=1.0, M_inf=1.0, R=1.0, axi=0,
                     lp = Vector3(ep.x - L * cos(gamma), ep.y + L * sin(gamma)) 
                     return wp.x - lp.x
                 t = bisection(f, 0.0, 1.0)
-            # print "t = ", t
             wp = shock.eval(t)
             L = vabs(wp - ep)
             # print "i = %d, L = %e" % (i, L)
@@ -167,6 +166,7 @@ def make_parametric_surface(bx_scale=1.0, by_scale=1.0, M_inf=1.0, R=1.0, axi=0,
             # apply scale factors
             sp.x *= bx_scale
             sp.y *= by_scale 
+            # print "i = %d, s = %f, t = %e, gamma = %e, wp.y = %e, y = %e" % ( i, s, t, gamma, wp.y, sp.y )
             inflow_nodes.append(sp)
         # create the inflow spline
         west = Spline(inflow_nodes)
