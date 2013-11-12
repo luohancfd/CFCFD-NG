@@ -1038,8 +1038,8 @@ VT_SSH(lua_State *L, int ip, int iq, int itrans)
 	    eps_ = potential_well_A(*p, *q);
 	}
 	else {
-	    r_ = collider_distance_B(*p, *q);
-	    eps_ = collider_distance_B(*p, *q);
+	    r_ = collider_distance_B(*q, *p);
+	    eps_ = collider_distance_B(*q, *p);
 	}
     }
     else {
@@ -1056,7 +1056,6 @@ VT_SSH(lua_State *L, int ip, int iq, int itrans)
     mu_ = ((M_p_ * M_q_) / (M_p_ + M_q_)) / PC_Avogadro;
     delta_E_ = PC_k_SI * theta_v_p_;
     sigma_ = r_;
-
 }
 
 VT_SSH::
@@ -1213,7 +1212,7 @@ specific_transition_probability(Gas_data &Q, vector<double> &molef)
     double Z_0_p = SSH_Z_0(del_star, r_eq_p_);
     double Z_0_q = SSH_Z_0(del_star, r_eq_q_);
     double Z_V_p = SSH_Z_V(f_m_p_, mu_p_, mu_, alpha_pq, theta_v_p_, delta_E_, 2);
-    double Z_V_q = SSH_Z_V(f_m_q_, mu_q_, mu_, alpha_pq, theta_v_q_, delta_E_, 2);
+    double Z_V_q = SSH_Z_V(f_m_q_, mu_q_, mu_, alpha_pq, theta_v_q_, delta_E_, 1);
     double Z_T = SSH_Z_T(delta_E_, alpha_pq, T);
     double Z_plus = SSH_Z_plus(eps_, chi_pq, T);
 
@@ -1314,6 +1313,7 @@ VV_MTLandauTeller(lua_State *L, int ip, int iq, int itrans)
 {
     // 1. Setup values related to 'p' species
     Diatomic_species *p = get_library_diatom_pointer(ip);
+    double M_p = p->get_M();
     Truncated_harmonic_vibration *p_vib = dynamic_cast<Truncated_harmonic_vibration*>(p->get_mode_pointer_from_type("vibration"));
     if ( p_vib == 0 ) {
 	cout << "The vibrating species " << p->get_name() << " could not be cast" << endl;
@@ -1323,13 +1323,38 @@ VV_MTLandauTeller(lua_State *L, int ip, int iq, int itrans)
     }
     theta_v_p_ = p_vib->get_theta();
 
-    // 2. Pull model parameters from Lua table
+    // 2. Setup values related to 'q' species
+    Diatomic_species *q = get_library_diatom_pointer(iq);
+    double M_q = q->get_M();
+
+    // 3. Pull model parameters from Lua table
     A_ = get_number(L, -1, "A");
     n_ = get_number(L, -1, "n");
     B1_ = get_number(L, -1, "B1");
     B2_ = get_number(L, -1, "B2");
     B3_ = get_number(L, -1, "B3");
     beta_ = get_number(L, -1, "beta");
+
+    // 4. Derived parameters
+    if ( p->get_polar_flag() ) {
+	if ( q->get_polar_flag() ) {
+	    R0_ = collider_distance_A(*p, *q);
+	}
+	else {
+	    R0_ = collider_distance_B(*q, *p);
+	}
+    }
+    else {
+	if ( q->get_polar_flag() ) {
+	    R0_ = collider_distance_B(*p, *q);
+	}
+	else {
+	    R0_ = collider_distance_A(*p, *q);
+	}
+    }
+
+    mu_ = ((M_p * M_q) / (M_p + M_q)) / PC_Avogadro;
+
 }
 
 VV_MTLandauTeller::
@@ -1340,12 +1365,139 @@ VV_MTLandauTeller::
 specific_relaxation_time(Gas_data &Q, vector<double> &molef)
 {
     double T = Q.T[iT_];
-    double k_10 = A_*pow(T, n_)*exp(B1_*pow(T, -1.0/3.0) + B2_*pow(T, -2.0/3.0) + B3_*pow(T, beta_));
+    double k_10 = rate_coefficient(T);
     double p_in_atm = Q.p/PC_P_atm;
     double tau = (1.0/p_in_atm)*(PC_k_SI*T)/(k_10*(1.0 - exp(-theta_v_p_/T)));
     return tau;
 }
 
+double
+VV_MTLandauTeller::
+specific_transition_probability(Gas_data &Q, vector<double> &molef)
+{
+    double T = Q.T[iT_];
+    double k_10 = rate_coefficient(T);
+    double Z = 2.0*R0_*R0_*sqrt(2.0*M_PI*PC_k_SI*T/mu_);
+    double P_10 = k_10/Z;
+    return P_10;
+}
+
+double
+VV_MTLandauTeller::
+rate_coefficient(double T)
+{
+    double k_10 = A_*pow(T, n_)*exp(B1_*pow(T, -1.0/3.0) + B2_*pow(T, -2.0/3.0) + B3_*pow(T, beta_));
+    return k_10;
+}
+
+VV_from_eq::
+VV_from_eq(lua_State *L, int ip, int iq, int itrans)
+    : Relaxation_time(), ip_(ip), iq_(iq), iT_(itrans)
+{
+    // 1. Setup values related to 'p' species
+    Diatomic_species *p = get_library_diatom_pointer(ip);
+    double M_p = p->get_M();
+    Truncated_harmonic_vibration *p_vib = dynamic_cast<Truncated_harmonic_vibration*>(p->get_mode_pointer_from_type("vibration"));
+    if ( p_vib == 0 ) {
+	cout << "The vibrating species " << p->get_name() << " could not be cast" << endl;
+	cout << "as a truncated harmonic oscillator." << endl;
+	cout << "Bailing out!" << endl;
+	exit(BAD_INPUT_ERROR);
+    }
+    theta_v_p_ = p_vib->get_theta();
+
+    // 2. Setup values related to 'q' species
+    Diatomic_species *q = get_library_diatom_pointer(iq);
+    double M_q = q->get_M();
+    Truncated_harmonic_vibration *q_vib = dynamic_cast<Truncated_harmonic_vibration*>(q->get_mode_pointer_from_type("vibration"));
+    if ( q_vib == 0 ) {
+	cout << "The vibrating species " << q->get_name() << " could not be cast" << endl;
+	cout << "as a truncated harmonic oscillator." << endl;
+	cout << "Bailing out!" << endl;
+	exit(BAD_INPUT_ERROR);
+    }
+    theta_v_q_ = q_vib->get_theta();
+
+    // 3. Some derived parameters
+    if ( p->get_polar_flag() ) {
+	if ( q->get_polar_flag() ) {
+	    R0_ = collider_distance_A(*p, *q);
+	}
+	else {
+	    R0_ = collider_distance_B(*q, *p);
+	}
+    }
+    else {
+	if ( q->get_polar_flag() ) {
+	    R0_ = collider_distance_B(*p, *q);
+	}
+	else {
+	    R0_ = collider_distance_A(*p, *q);
+	}
+    }
+
+    mu_ = ((M_p * M_q) / (M_p + M_q)) / PC_Avogadro;
+
+    // 4. Get forward relaxation time model to TOS
+    lua_getfield(L, -1, "forward_rt");
+    lua_rawgeti(L, -1, 1);
+    string model = luaL_checkstring(L, -1);
+    lua_pop(L, 1);
+    if ( model == "Landau-Teller-VV" ) {
+	// Swap order of iq and ip because using relaxation time in other direction
+	rt_ = new VV_MTLandauTeller(L, iq, ip, itrans);
+    }
+    else if ( model == "SSH-VV" ) {
+	// Swap order of iq and ip because using relaction time in other direction
+	rt_ = new VV_SSH(L, iq, ip, itrans);
+    }
+    else {
+	cout << "Error initialising VV_from_eq().\n";
+	cout << "This model can only be used with the following models for forward_rt:\n";
+	cout << "   Landau-Teller-VV\n";
+	cout << "   SSH-VV\n";
+	cout << "Bailing out!\n";
+	exit(1);
+    }
+    lua_pop(L, 1);
+
+}
+
+VV_from_eq::
+~VV_from_eq()
+{
+    delete rt_;
+}
+
+double
+VV_from_eq::
+specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
+{
+    double T = Q.T[iT_];
+    double P_01 = rt_->compute_transition_probability(Q, molef);
+    double Z = 2.0*R0_*R0_*sqrt(2.0*M_PI*PC_k_SI*T/mu_);
+    double k_01 = P_01*Z;
+    // Now compute k_10 from equilibrium
+    double k_10 = k_01*exp(theta_v_p_/T)/exp(theta_v_q_/T);
+    double p = molef[iq_]*Q.p/PC_P_atm;
+    double tau = (1.0/p)*(PC_k_SI*T)/(k_10*exp(-theta_v_p_/T));
+
+    return tau;
+}
+
+double
+VV_from_eq::
+specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
+{
+    double T = Q.T[iT_];
+    double P_01 = rt_->compute_transition_probability(Q, molef);
+    double Z = 2.0*R0_*R0_*sqrt(2.0*M_PI*PC_k_SI*T/mu_);
+    double k_01 = P_01*Z;
+    // Now compute k_10 from equilibrium
+    double k_10 = k_01*exp(theta_v_p_/T)/exp(theta_v_q_/T);
+    double P_10 = k_10/Z;
+    return P_10;
+}
 
 VE_Lee::
 VE_Lee( lua_State * L, int ie, int iv )
@@ -1459,6 +1611,9 @@ Relaxation_time* create_new_relaxation_time(lua_State *L, int ip, int iq, int it
     }
     else if ( relaxation_time == "Landau-Teller-VV" ) {
 	return new VV_MTLandauTeller(L, ip, iq, itrans);
+    }
+    else if ( relaxation_time == "from-eq" ) {
+	return new VV_from_eq(L, ip, iq, itrans);
     }
     else if( relaxation_time == "Appleton-Bray:Ion" ) {
 	return new ET_AppletonBray_Ion(L, ip, iq);
