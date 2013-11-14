@@ -1326,6 +1326,14 @@ VV_MTLandauTeller(lua_State *L, int ip, int iq, int itrans)
     // 2. Setup values related to 'q' species
     Diatomic_species *q = get_library_diatom_pointer(iq);
     double M_q = q->get_M();
+    Truncated_harmonic_vibration *q_vib = dynamic_cast<Truncated_harmonic_vibration*>(q->get_mode_pointer_from_type("vibration"));
+    if ( q_vib == 0 ) {
+	cout << "The vibrating species " << q->get_name() << " could not be cast" << endl;
+	cout << "as a truncated harmonic oscillator." << endl;
+	cout << "Bailing out!" << endl;
+	exit(BAD_INPUT_ERROR);
+    }
+    theta_v_q_ = q_vib->get_theta();
 
     // 3. Pull model parameters from Lua table
     A_ = get_number(L, -1, "A");
@@ -1376,9 +1384,10 @@ VV_MTLandauTeller::
 specific_transition_probability(Gas_data &Q, vector<double> &molef)
 {
     double T = Q.T[iT_];
-    double k_10 = rate_coefficient(T);
-    double Z = 2.0*R0_*R0_*sqrt(2.0*M_PI*PC_k_SI*T/mu_);
-    double P_10 = k_10/Z;
+    double tau = compute_relaxation_time(Q, molef);
+    double n_q = molef[iq_]*Q.p/(PC_k_SI*T);
+    double Z = collision_frequency(R0_, mu_, T, n_q);
+    double P_10 = (1.0/(Z*tau))*exp(-1.0*(theta_v_p_ - theta_v_q_)/T);
     return P_10;
 }
 
@@ -1474,14 +1483,10 @@ VV_from_eq::
 specific_relaxation_time(Gas_data &Q, std::vector<double> &molef)
 {
     double T = Q.T[iT_];
-    double P_01 = rt_->compute_transition_probability(Q, molef);
-    double Z = 2.0*R0_*R0_*sqrt(2.0*M_PI*PC_k_SI*T/mu_);
-    double k_01 = P_01*Z;
-    // Now compute k_10 from equilibrium
-    double k_10 = k_01*exp(theta_v_p_/T)/exp(theta_v_q_/T);
-    double p = molef[iq_]*Q.p/PC_P_atm;
-    double tau = (1.0/p)*(PC_k_SI*T)/(k_10*exp(-theta_v_p_/T));
-
+    double P_10 = compute_transition_probability(Q, molef);
+    double n_q = molef[iq_]*Q.p/(PC_k_SI*T);
+    double Z = collision_frequency(R0_, mu_, T, n_q);
+    double tau = (1.0/(Z*P_10))*exp(-1.0*(theta_v_p_ - theta_v_q_)/T);
     return tau;
 }
 
@@ -1491,11 +1496,7 @@ specific_transition_probability(Gas_data &Q, std::vector<double> &molef)
 {
     double T = Q.T[iT_];
     double P_01 = rt_->compute_transition_probability(Q, molef);
-    double Z = 2.0*R0_*R0_*sqrt(2.0*M_PI*PC_k_SI*T/mu_);
-    double k_01 = P_01*Z;
-    // Now compute k_10 from equilibrium
-    double k_10 = k_01*exp(theta_v_p_/T)/exp(theta_v_q_/T);
-    double P_10 = k_10/Z;
+    double P_10 = P_01*exp(theta_v_p_/T)/exp(theta_v_q_/T);
     return P_10;
 }
 
