@@ -351,7 +351,7 @@ if __name__ == '__main__':
                    'facility':'x2', 'nozzle':True, 'secondary': False,
                    'driver_gas':'He:1.0', 'test_gas':'air',
                    'Vs1':5645.0,'Vs2':11600.0, 'filename':demo}
-            main(cfg=cfg)
+            run_pitot(cfg=cfg)
             
         elif demo == "demo-p-eq":
             print "This is equilibrium demo of pitot recreating Umar Sheikh's high speed air condition where fill pressures are specified."
@@ -360,7 +360,7 @@ if __name__ == '__main__':
                    'facility':'x2', 'nozzle':True, 'secondary': False,
                    'driver_gas':'He:1.0', 'test_gas':'air',
                    'p1':3000.0,'p5':10.0, 'filename':demo}
-            main(cfg=cfg)
+            run_pitot(cfg=cfg)
             
         elif demo == "demo-p-pg":
             print "This is perfect gas demo of pitot recreating Umar Sheikh's high speed air condition where fill pressures are specified."
@@ -369,7 +369,7 @@ if __name__ == '__main__':
                    'facility':'x2', 'nozzle':True, 'secondary': False,
                    'driver_gas':'He:1.0', 'test_gas':'air',
                    'p1':3000.0,'p5':10.0, 'filename':demo}
-            main(cfg=cfg)
+            run_pitot(cfg=cfg)
             
         elif demo == 'hadas85-full-theory-eq':
             print "This is the equilibrium fully theoretical demo of pitot recreating Hadas' 8.5 km/s titan condition."
@@ -379,7 +379,7 @@ if __name__ == '__main__':
                    'facility':'x2', 'nozzle':True, 'secondary': False,
                    'driver_gas':'He:0.80,Ar:0.20', 'test_gas':'titan',
                    'p1':3200.0,'p5':10.0, 'filename':demo}
-            main(cfg=cfg)
+            run_pitot(cfg=cfg)
             
         elif demo == 'hadas85-full-theory-pg':
             print "This is the perfect gas fully theoretical demo of pitot recreating Hadas' 8.5 km/s titan condition."
@@ -389,7 +389,7 @@ if __name__ == '__main__':
                    'facility':'x2', 'nozzle':True, 'secondary': False,
                    'driver_gas':'He:0.80,Ar:0.20', 'test_gas':'titan',
                    'p1':3200.0,'p5':10.0, 'filename':demo}
-            main(cfg=cfg) 
+            run_pitot(cfg=cfg) 
             
         elif demo == 'hadas85-experiment-eq':
             print "This is the equilibrium demo of pitot recreating Hadas' 8.5 km/s titan condition with experimental shock speeds specified."
@@ -400,7 +400,7 @@ if __name__ == '__main__':
                    'driver_gas':'He:0.80,Ar:0.20', 'test_gas':'titan',
                    'p1':3200.0,'p5':10.0, 'Vs1': 4100.0, 'Vs2': 8620.0,
                    'filename':demo, 'expand_to':'shock-speed', 'expansion_factor':0.95}
-            main(cfg=cfg) 
+            run_pitot(cfg=cfg) 
             
         elif demo == 'hadas85-experiment-pg':
             print "This is the perfect gas demo of pitot recreating Hadas' 8.5 km/s titan condition with experimental shock speeds specified."
@@ -411,7 +411,7 @@ if __name__ == '__main__':
                    'driver_gas':'He:0.80,Ar:0.20', 'test_gas':'titan',
                    'p1':3200.0,'p5':10.0, 'Vs1': 4100.0, 'Vs2': 8620.0,
                    'filename':demo}
-            main(cfg=cfg) 
+            run_pitot(cfg=cfg) 
             
         elif demo == 'chrishe-full-theory-eq':
             print "This is the equilibrium demo of pitot recreating my 16 km/s 85%H2:15%He condition fully theoretically."
@@ -422,7 +422,7 @@ if __name__ == '__main__':
                    'driver_gas':'He:1.0', 'test_gas':'gasgiant_h215he',
                    'psd1':17500.0, 'p1':4700.0, 'p5':6.37, 
                    'shock_over_model':True, 'filename':demo}
-            main(cfg=cfg)             
+            run_pitot(cfg=cfg)             
             
         elif demo == 'chrishe-full-theory-pg':
             print "This is the perfect gas demo of pitot recreating my 16 km/s 85%H2:15%He condition fully theoretically."
@@ -433,7 +433,7 @@ if __name__ == '__main__':
                    'driver_gas':'He:1.0', 'test_gas':'gasgiant_h215he',
                    'psd1':17500.0, 'p1':4700.0, 'p5':6.37, 
                    'shock_over_model':True, 'filename':demo}
-            main(cfg=cfg)   
+            run_pitot(cfg=cfg)   
             
         elif demo == 'dave-scramjet-p':
             print "This is the demo of pitot recreating one of Dave Gildfind's scramjet conditions that iterates through fill pressures."
@@ -444,7 +444,7 @@ if __name__ == '__main__':
                    'driver_gas':'He:0.80,Ar:0.20', 'test_gas':'air',
                    'psd1':100000.0, 'p1':486000.0, 'p5':1500, 
                    'shock_switch':True, 'filename':demo}
-            main(cfg=cfg)          
+            run_pitot(cfg=cfg)          
                     
         elif demo == 'dave-scramjet-s':
             print "This is the demo of pitot recreating one of Dave Gildfind's scramjet conditions that iterates through shock speeds."
@@ -455,7 +455,7 @@ if __name__ == '__main__':
                    'driver_gas':'He:0.80,Ar:0.20', 'test_gas':'air',
                    'Vsd':4290.0, 'Vs1':1588.0, 'Vs2':3424.0, 
                    'filename':demo}
-            main(cfg=cfg)     
+            run_pitot(cfg=cfg)     
                     
         elif demo == 'dave-scramjet-tunnel':
             print "This is the demo of pitot recreating one of Dave Gildfind's scramjet condition from test data."
@@ -468,7 +468,7 @@ if __name__ == '__main__':
                    'Vsd':4178.0, 'Vs1':1417.0, 'Vs2':3264.0,
                    'psd1':100000.0, 'p1':690800.0, 'p5':288.2, 
                    'shock_switch':True, 'filename':demo}
-            main(cfg=cfg)     
+            run_pitot(cfg=cfg)     
             
         elif demo == 'x3':
             print "This is the demo of pitot recreating one of the basic x3 conditions."
@@ -479,7 +479,7 @@ if __name__ == '__main__':
                    'driver_gas':'He:0.60,Ar:0.40', 'test_gas':'air',
                    'psd1':133000.0, 'p1':73000.0, 'p5':210.0, 
                    'shock_switch':True, 'filename':demo}
-            main(cfg=cfg)              
+            run_pitot(cfg=cfg)              
                 
     else:
         main()
