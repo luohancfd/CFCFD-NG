@@ -165,7 +165,8 @@ E3_OBJECTS_2 := kernel.o \
 	cell_finder.o \
 	mersenne.o \
 	ray_tracing_pieces.o \
-	bgk.o 
+	bgk.o \
+	conj-ht-interface.o
 
 ifeq ($(LES_DATA), 1)
     E3_OBJECTS_2 += les.o
@@ -692,6 +693,8 @@ ray_tracing_pieces.o : $(SRC)/ray_tracing_pieces.cxx $(SRC)/ray_tracing_pieces.h
 bgk.o : $(SRC)/bgk.cxx $(SRC)/bgk.hh
 	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/bgk.cxx -o bgk.o
 
+conj-ht-interface.o : $(SRC)/conj-ht-interface.cxx $(SRC)/conj-ht-interface.hh
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/conj-ht-interface.cxx -o conj-ht-interface.o
 #
 #---------------------------- end of makefile -----------------------------
 

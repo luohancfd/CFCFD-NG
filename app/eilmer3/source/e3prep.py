@@ -409,6 +409,9 @@ class GlobalData(object):
     * write_at_step: (int) Update step at which flow field data will be written.
       To distinguish this data set from the regularly written with dt_plot, the index tag
       for this solution is "xxxx".  Leave as the default value 0 to not write such a solution. 
+    * conjugate_ht_flag: (0/1) A flag indicating if the conjugate heat transfer at NORTH wall is active
+    * conjugate_ht_file: (string) A (file) name for the configuration of the wall conduction model
+      if the conjugate heat transfer model is active.
     """
     count = 0
 
@@ -446,7 +449,7 @@ class GlobalData(object):
                 'energy_exchange_flag', 'energy_exchange_update', 'T_frozen_energy', \
                 'udf_file', 'udf_source_vector_flag', \
                 'heat_time_start', 'heat_time_stop', 'heat_factor_increment', \
-                'electric_field_work_flag'
+                'electric_field_work_flag', 'conjugate_ht_flag', 'conjugate_ht_file'
     
     def __init__(self):
         """
@@ -542,6 +545,8 @@ class GlobalData(object):
         self.dt_plot = 1.0e-3
         self.dt_history = 1.0e-3
         self.write_at_step = 0
+        self.conjugate_ht_flag = 0
+        self.conjugate_ht_file = "dummy_ht_file"
         GlobalData.count += 1
         return
 
@@ -666,6 +671,8 @@ class GlobalData(object):
         fp.write("control_count = %d\n" % self.control_count)
         fp.write("velocity_buckets = %d\n" % self.velocity_buckets)
         fp.write("electric_field_work_flag = %d\n" % self.electric_field_work_flag)
+        fp.write("conjugate_ht_flag = %d\n" % self.conjugate_ht_flag)
+        fp.write("conjugate_ht_file = %s\n" % self.conjugate_ht_file)
         #
         if self.velocity_buckets > 0:
             tstr_x = "vcoords_x ="

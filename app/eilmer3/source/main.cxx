@@ -68,6 +68,7 @@ extern "C" {
 #endif
 #include "piston.hh"
 #include "implicit.hh"
+#include "conj-ht-interface.hh"
 #include "main.hh"
 
 //-----------------------------------------------------------------
@@ -485,10 +486,8 @@ int prepare_to_integrate(size_t start_tindx)
     // Prepare data within the primary finite-volume cells.
     // This includes both geometric data and flow state data.
     bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
-#   ifdef CONJUGATE_HT
     vector<double> nvxs;
     vector<double> nvys;
-#   endif
     for ( Block *bdp : G.my_blocks ) {
 	bdp->compute_primary_cell_geometric_data(G.dimensions, 0);
 	bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions, 0);
@@ -503,7 +502,6 @@ int prepare_to_integrate(size_t start_tindx)
 	    // needed for both the cfd_check and the BLomax turbulence model.
 	    cp->decode_conserved(0, 0, bdp->omegaz, with_k_omega);
 	}
-#       ifdef CONJUGATE_HT
 	if ( G.conjugate_ht_active ) {
 	    // Need to assemble the vertices on the north wall
 	    int j = bdp->jmax + 1;
@@ -513,28 +511,37 @@ int prepare_to_integrate(size_t start_tindx)
 		nvys.push_back(iface->pos.y);
 	    }
 	}
-#       endif
     } // end for *bdp
     
-#   ifdef CONJUGATE_HT
+#   ifdef _MPI
     // Ensure that all blocks have computed geometry before continuing
     MPI_Barrier(MPI_COMM_WORLD);
+#   endif
     if ( G.conjugate_ht_active ) {
 	vector<double> wall_xs, wall_ys;
+#       ifdef _MPI
+	// For MPI version, we need to gather vertex values (in x and y(
+	// from each rank.
 	wall_xs.resize(G.T_wall.size()); wall_ys.resize(G.T_wall.size());
-	int rank = G.my_mpi_rank;
 	// Deal with x values
-	int *pxs = &nvxs[0];
-	int *pwx = &wall_xs[0];
+	double *pxs = &nvxs[0];
+	double *pwx = &wall_xs[0];
 	int *recvcounts = &(G.recvcounts[0]);
 	int *displs = &(G.displs[0]);
 	MPI_Gatherv(pxs, nvxs.size(), MPI_DOUBLE, pwx, recvcounts, displs,
 		    MPI_DOUBLE, 0, MPI_COMM_WORLD);
 	// Deal with y values
-	int *pys = &nvys[0];
-	int *pwy = &wall_ys[0];
+	double *pys = &nvys[0];
+	double *pwy = &wall_ys[0];
 	MPI_Gatherv(pys, nvys.size(), MPI_DOUBLE, pwy, recvcounts, displs,
 		    MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	MPI_Barrier(MPI_COMM_WORLD);
+#       else
+        // In shared memory, nvxs and nvys should have the values
+	// to put in wall_xs and wall_ys directly.
+	wall_xs = nvxs;
+	wall_ys = nvys;
+#       endif
 	if ( master ) { 
 	    // Now on rank0, we can assemble a vector of vertices
 	    vector<Vector3> wall_vtxs;
@@ -545,7 +552,6 @@ int prepare_to_integrate(size_t start_tindx)
 	    initialise_wall_node_positions(*(G.wm), wall_vtxs);
 	}
     }
-#   endif
 
     // Exchange boundary cell geometry information so that we can
     // next calculate secondary-cell geometries.
@@ -1195,9 +1201,10 @@ int integrate_in_time(double target_time)
         }
 
         // 2. Attempt a time step.
-#       ifdef CONJUGATE_HT
 	// 2aa. Compute wall conduction if conjugate heat transfer available
+#       ifdef _MPI
 	MPI_Barrier(MPI_COMM_WORLD);
+#       endif
 	if ( G.conjugate_ht_active ) {
 	    int flag = gather_wall_fluxes(G);
 	    if ( flag != SUCCESS ) {
@@ -1205,28 +1212,30 @@ int integrate_in_time(double target_time)
 		cout << "Bailing out!\n";
 		exit(FAILURE);
 	    }
-	    MPI_Barrier(MPI_COMM_WORLD)
 	    // Now only master has properly updated q vector
 	    if ( master ) {
-		flag = update_temperature_from_fluxes(*(G.wm), G.q_wall, G.T_wall);
+		flag = update_temperatures_from_fluxes(*(G.wm), G.dt_global, G.q_wall, G.T_wall);
 		if ( flag != SUCCESS ) {
 		    cout << "Error computing new temperature at wall in wall conduction model.\n";
 		    cout << "Bailing out!\n";
 		    exit(FAILURE);
 		}
 	    }
-	    MPI_Barrier(MPI_COMM_WORLD);
+#           ifdef _MPI
+	    // For MPI version:
 	    // Now broadcast the temperatures so that every rank
 	    // has an update copy of the vector.
-	    flag = brodcast_wall_temperature(G);
+	    flag = broadcast_wall_temperatures(G);
 	    if ( flag != SUCCESS ) {
 		cout << "Error broadcasting the updated wall temperatures to all ranks.\n";
 		cout << "Bailing out!\n";
 		exit(FAILURE);
 	    }
 	    MPI_Barrier(MPI_COMM_WORLD);
+#           endif
+	    // In shared memory version, G.T_wall is up-to-date globally
+	    // and available for all blocks.
 	}
-#       endif
 	// 2a.
 	// explicit or implicit update of the inviscid terms.
 	int break_loop2 = 0;

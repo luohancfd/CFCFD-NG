@@ -700,6 +700,16 @@ int read_config_parameters(const string filename, bool master)
 	}
     }
 
+    dict.parse_int("global_data", "conjugate_ht_flag", i_value, 0);
+    G.conjugate_ht_active = i_value;
+    dict.parse_string("global_data", "conjugate_ht_file", s_value, "dummy_ht_file");
+    //    if ( G.conjugate_ht_active )
+    //	G.wm = initialise_wall_model(s_value);
+    if ( get_verbose_flag() ) {
+	cout << "conjugate_ht_flag = " << i_value << endl;
+	cout << "conjugate_ht_file = " << s_value << endl;
+    }
+
     // Now, for the individual block configuration.
     for ( jb = 0; jb < G.nblock; ++jb ) {
         set_block_parameters( jb, dict, master );
@@ -1054,6 +1064,23 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 	if ( get_verbose_flag() ) {
 	    cout << "    " << get_face_name(iface) << " face:" << endl;
 	    bd.bcp[iface]->print_info("        ");
+	}
+	// Special work if the conjugate heat transfer model is active.
+	if ( G.conjugate_ht_active && (iface == NORTH) ) {
+	    // We always add an entry corresponding to every rank.
+	    // If our boundary is a conjugate ht boundary, we set aside
+	    // enough space in the global vectors for the number of cells
+	    // on the north boundary, otherwise we don't need to set
+	    // aside any space (ie. nentries = 0)
+	    int nentries = 0;
+	    // FIX ME when conjugate_ht b.c. is hooked up.
+	    //	    if (bd.bcp[iface]->type_code == CONJUGATE_HT ) {
+	    //		nentries = bc.nni;
+	    //	    }
+	    add_entries_to_wall_vectors(G, nentries);
+	    // Later, after computing block geometry, we'll be able
+	    // to gather up the interface locations to pass to the
+	    // wall model. SEE: main.cxx
 	}
     } // end for iface
 
