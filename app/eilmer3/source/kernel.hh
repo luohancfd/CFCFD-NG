@@ -187,6 +187,16 @@ struct global_data
 
     std::string udf_file; // This file will contain user-defined procedures.
     int udf_source_vector_flag; // set to 1 to use (expensive) user-defined source terms
+
+#   ifdef CONJUGATE_HT
+    // variables related to a wall model for conjugate heat transfer
+    bool conjugate_ht_active;
+    Wall_model *wm;
+    std::vector<double> T_wall;
+    std::vector<double> q_wall;
+    std::vector<int> recvounts;
+    std::vector<int> displs;
+#   endif
 };
 
 //---------------------------------------------------------------
