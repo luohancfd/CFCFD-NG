@@ -25,8 +25,6 @@
 #include "diffusion.hh"
 #include "bgk.hh"
 
-const int VISCOUS_TIME_LIMIT_MODEL = 0; // ==0 original Swanson model,
-                                        // ==1 Ramshaw model
 
 enum update_scheme_t gasdynamic_update_scheme = PC_UPDATE;
 
@@ -1902,64 +1900,73 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
     if ( get_viscous_flag() == 1 && get_implicit_flag() == 0 && fs->gas->mu > 10e-23) {
 	// Factor for the viscous time limit.
 	// This factor is not included if viscosity is zero.
-#	if VISCOUS_TIME_LIMIT_MODEL==0
-	// See Swanson, Turkel and White (1991)
-	gam_eff = gmodel->gamma(*(fs->gas), statusf);
-	// Need to sum conductivities for TNE
-	double k_total = 0.0;
-	for ( size_t i=0; i<fs->gas->k.size(); ++i ) k_total += fs->gas->k[i];
-	double Prandtl = fs->gas->mu * gmodel->Cp(*(fs->gas), statusf) / k_total;
-	viscous_factor = get_viscous_factor();
-	if ( dimensions == 3 ) {
-	    signal += 4.0 * viscous_factor * (fs->gas->mu + fs->mu_t)
-		* gam_eff / (Prandtl * fs->gas->rho)
-		* (1.0 / (iLength * iLength) + 1.0 / (jLength * jLength) + 1.0 / (kLength * kLength));
+	const int VISCOUS_TIME_LIMIT_MODEL = 0; // ==0 original Swanson model,
+                                                // ==1 Ramshaw model
+	if ( VISCOUS_TIME_LIMIT_MODEL == 0 ) {
+	    // See Swanson, Turkel and White (1991)
+	    gam_eff = gmodel->gamma(*(fs->gas), statusf);
+	    // Need to sum conductivities for TNE
+	    double k_total = 0.0;
+	    for ( size_t i=0; i<fs->gas->k.size(); ++i ) k_total += fs->gas->k[i];
+	    double Prandtl = fs->gas->mu * gmodel->Cp(*(fs->gas), statusf) / k_total;
+	    viscous_factor = get_viscous_factor();
+	    if ( dimensions == 3 ) {
+		signal += 4.0 * viscous_factor * (fs->gas->mu + fs->mu_t)
+		    * gam_eff / (Prandtl * fs->gas->rho)
+		    * (1.0 / (iLength * iLength) + 1.0 / (jLength * jLength) + 1.0 / (kLength * kLength));
+	    } else {
+		signal += 4.0 * viscous_factor * (fs->gas->mu + fs->mu_t) 
+		    * gam_eff / (Prandtl * fs->gas->rho)
+		    * (1.0 / (east->length * east->length) + 1.0 / (north->length * north->length));
+	    }
+	} else if ( VISCOUS_TIME_LIMIT_MODEL == 1 ) {
+	    // A viscous time limit model incorporating diffusion effects
+	    // See Ramshaw and Chang PCPP V.12 n.3 1992 p314
+	    // 1. Viscosity signal frequency
+	    double D_a = 4.0 * viscous_factor * (fs->gas->mu + -0.66667 * fs->gas->mu +
+						 fs->mu_t - 0.66667 * fs->mu_t ) / fs->gas->rho;
+	    // 1. Conductivity signal frequency
+	    double D_b = fs->gas->k[0];
+	    size_t nmodes = gmodel->get_number_of_modes();
+	    for ( size_t imode=1; imode < nmodes; ++imode )
+		D_b += fs->gas->k[imode];
+	    double c_v = gmodel->Cv(*(fs->gas), statusf);
+	    D_b *= viscous_factor / ( fs->gas->rho * c_v );
+	    // 3. calculate the largest mixture diffusivity
+	    double D_c = 0.0;
+	    if ( get_diffusion_flag() == 1 ) {
+		size_t nsp = gmodel->get_number_of_species();
+		vector<double> x(nsp);
+		vector<double> M(nsp);
+		vector<double> DAV_im(nsp);
+		for ( size_t isp=0; isp<nsp; ++isp )
+		    M[isp] = gmodel->molecular_weight(isp);
+		// FIX-ME Rowan, please
+		// fill_in_x and fill_in_DAV_im don't seem to be available.
+		// fill_in_x(fs->gas->rho, fs->gas->T, fs->gas->massf, M, x);
+		// fill_in_DAV_im(fs->gas->D_AB, x, DAV_im);
+		throw std::runtime_error("Ramshaw and Chang viscous time-limit is broken.");
+		for ( size_t isp=0; isp<nsp; ++isp )
+		    if ( DAV_im[isp] > D_c ) D_c = DAV_im[isp];
+	    }
+	    D_c *= viscous_factor;
+	    // 4. Find the maximum effective diffusion
+	    double D_max_i = max( D_a, D_b );
+	    double D_max_ii = max( D_b, D_c );
+	    double D_max = max( D_max_i, D_max_ii );
+	    // 5. Add signal frequency contribution
+	    if ( dimensions == 3 ) {
+		signal += D_max * (  1.0 / (iLength * iLength)
+				     + 1.0 / (jLength * jLength)
+				     + 1.0 / (kLength * kLength));
+	    } else {
+		signal += D_max * (  1.0 / (east->length * east->length)
+				     + 1.0 / (north->length * north->length));
+	    }
+	    // end if VISCOUS_TIME_LIMIT_MODEL == 1
 	} else {
-	    signal += 4.0 * viscous_factor * (fs->gas->mu + fs->mu_t) * gam_eff / (Prandtl * fs->gas->rho)
-		* (1.0 / (east->length * east->length) + 1.0 / (north->length * north->length));
-	}
-#	elif VISCOUS_TIME_LIMIT_MODEL==1
-	// A viscous time limit model incorporating diffusion effects
-	// See Ramshaw and Chang PCPP V.12 n.3 1992 p314
-	// 1. Viscosity signal frequency
-	double D_a = 4.0 * viscous_factor * (gas->mu + -0.66667 * gas->mu +
-					     mu_t - 0.66667 *mu_t ) / gas->rho;
-	// 1. Conductivity signal frequency
-	double D_b = gas->k[0];
-	for ( int imode=1; imode<gmodel->get_number_of_modes(); ++imode )
-	    D_b += gas->k[imode];
-	int status;
-	double c_v = gmodel->Cv( gas, status );
-	D_b *= viscous_factor / ( gas->rho * c_v );
-	// 3. calculate the largest mixture diffusivity
-	double D_c = 0.0;
-	if ( get_diffusion_flag() == 1 ) {
-	    int nsp = gmodel->get_number_of_species();
-	    vector<double> x(nsp);
-	    vector<double> M(nsp);
-	    vector<double> DAV_im(nsp);
-	    for ( int isp=0; isp<nsp; ++isp )
-	    	M[isp] = gmodel->molecular_weight(isp);
-	    fill_in_x( gas->rho, gas->T, gas->massf, M, x );
-	    fill_in_DAV_im( gas->D_AB, x, DAV_im);
-	    for ( int isp=0; isp<nsp; ++isp )
-	    	if ( DAV_im[isp] > D_c ) D_c = DAV_im[isp];
-	}
-	D_c *= viscous_factor;
-	// 4. Find the maximum effective diffusion
-	double D_max_i = max( D_a, D_b );
-	double D_max_ii = max( D_b, D_c );
-	double D_max = max( D_max_i, D_max_ii );
-	// 5. Add signal frequency contribution
-	if ( dimensions == 3 ) {
-	    signal += D_max * (  1.0 / (iLength * iLength)
-			   	+ 1.0 / (jLength * jLength)
-				+ 1.0 / (kLength * kLength));
-	} else {
-	    signal += D_max * (  1.0 / (east->length * east->length)
-		   		+ 1.0 / (north->length * north->length));
-	}
-#       endif
+	    throw std::runtime_error("Viscous effects are on but a viscous time-step-limit model is not active.");
+	} // end if VISCOUS_TIME_LIMIT_MODEL
     }
     if ( with_k_omega == 1 ) {
 	if ( fs->omega > signal ) signal = fs->omega;
