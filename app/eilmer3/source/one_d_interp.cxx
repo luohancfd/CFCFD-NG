@@ -110,9 +110,9 @@ inline double clip_to_limits(double q, double A, double B)
 // Returns q if q is between the values A and B, else
 // it returns the closer limit of the range [A,B].
 {
-    double lower_limit = MINIMUM(A, B);
-    double upper_limit = MAXIMUM(A, B);
-    return MINIMUM(upper_limit, MAXIMUM(lower_limit, q));
+    double lower_limit = min(A, B);
+    double upper_limit = max(A, B);
+    return min(upper_limit, max(lower_limit, q));
 } // end clip_to_limits()
 
 inline int one_d_interp_both_scalar(double qL1, double qL0, double qR0, double qR1, double &qL, double &qR)

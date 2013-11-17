@@ -63,12 +63,12 @@ double get_M_inf()
 // Some helper functions
 double M1plus(double M)
 {
-    return 0.5*(M + FABS(M));
+    return 0.5*(M + fabs(M));
 }
 
 double M1minus(double M)
 {
-    return 0.5*(M - FABS(M));
+    return 0.5*(M - fabs(M));
 }
 
 double M2plus(double M)
@@ -83,7 +83,7 @@ double M2minus(double M)
 
 double M4plus(double M, double beta)
 {
-    if ( FABS(M) >= 1.0 ) {
+    if ( fabs(M) >= 1.0 ) {
 	return M1plus(M);
     }
     else {
@@ -95,7 +95,7 @@ double M4plus(double M, double beta)
 
 double M4minus(double M, double beta)
 {
-    if ( FABS(M) >= 1.0 ) {
+    if ( fabs(M) >= 1.0 ) {
 	return M1minus(M);
     }
     else {
@@ -107,7 +107,7 @@ double M4minus(double M, double beta)
 
 double P5plus(double M, double alpha)
 {
-    if ( FABS(M) >= 1.0 ) {
+    if ( fabs(M) >= 1.0 ) {
 	return (1.0/M)*M1plus(M);
     }
     else {
@@ -119,7 +119,7 @@ double P5plus(double M, double alpha)
 
 double P5minus(double M, double alpha)
 {
-    if ( FABS(M) >= 1.0 ) {
+    if ( fabs(M) >= 1.0 ) {
 	return (1.0/M)*M1minus(M);
     }
     else {
@@ -205,7 +205,7 @@ int ausm_plus_up(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
     /*
      * Reference Mach number (eqn 71).
      */
-    M0Sq = MINIMUM(1.0, MAXIMUM(MbarSq, M_INF));
+    M0Sq = min(1.0, max(MbarSq, M_INF));
     /*
      * Some additional parameters.
      */
@@ -234,7 +234,7 @@ int ausm_plus_up(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
      * mass flux (eqn 73) and pressure flux (eqn 75).
      */
     double r_half = 0.5*(rL + rR);
-    Mp = -KP / fa * MAXIMUM((1.0 - SIGMA * MbarSq), 0.0) * (pR - pL) / (r_half*a_half*a_half);
+    Mp = -KP / fa * max((1.0 - SIGMA * MbarSq), 0.0) * (pR - pL) / (r_half*a_half*a_half);
     Pu = -KU * P5plus_ML * P5minus_MR * (rL + rR) * fa * a_half * (uR - uL);
     /*
      * Mass Flux (eqns 73 & 74).

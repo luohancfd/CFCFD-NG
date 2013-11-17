@@ -26,7 +26,7 @@
 
 /*------------------------------------------------------------*/
 
-#define SAFESQRT(x) ( (FABS(x)>1.0e-14) ? (sqrt(x)) : (0.0) )
+#define SAFESQRT(x) ( (fabs(x)>1.0e-14) ? (sqrt(x)) : (0.0) )
 
 
 /** \brief Compute the fluxes across an interface. */

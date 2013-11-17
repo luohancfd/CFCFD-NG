@@ -1487,9 +1487,9 @@ int FV_Cell::stage_1_update_for_flow_on_fixed_grid(double dt, bool force_euler, 
     U1.total_energy = U0.total_energy + dt * gamma_1 * dUdt0.total_energy;
     if ( with_k_omega ) {
 	U1.tke = U0.tke + dt * gamma_1 * dUdt0.tke;
-	U1.tke = MAXIMUM(U1.tke, 0.0);
+	U1.tke = max(U1.tke, 0.0);
 	U1.omega = U0.omega + dt * gamma_1 * dUdt0.omega;
-	U1.omega = MAXIMUM(U1.omega, U0.mass);
+	U1.omega = max(U1.omega, U0.mass);
 	// ...assuming a minimum value of 1.0 for omega
 	// It may occur (near steps in the wall) that a large flux of romega
 	// through one of the cell interfaces causes romega within the cell
@@ -1548,9 +1548,9 @@ int FV_Cell::stage_2_update_for_flow_on_fixed_grid(double dt, bool with_k_omega)
 	dt * (gamma_1 * dUdt0.total_energy + gamma_2 * dUdt1.total_energy);
     if ( with_k_omega ) {
 	U2.tke = U_old->tke + dt * (gamma_1 * dUdt0.tke + gamma_2 * dUdt1.tke);
-	U2.tke = MAXIMUM(U2.tke, 0.0);
+	U2.tke = max(U2.tke, 0.0);
 	U2.omega = U_old->omega + dt * (gamma_1 * dUdt0.omega + gamma_2 * dUdt1.omega);
-	U2.omega = MAXIMUM(U2.omega, U_old->mass);
+	U2.omega = max(U2.omega, U_old->mass);
     } else {
 	U2.tke = U_old->tke;
 	U2.omega = U_old->omega;
@@ -1605,9 +1605,9 @@ int FV_Cell::stage_3_update_for_flow_on_fixed_grid(double dt, bool with_k_omega)
 	dt * (gamma_1*dUdt0.total_energy + gamma_2*dUdt1.total_energy + gamma_3*dUdt2.total_energy);
     if ( with_k_omega ) {
 	U3.tke = U_old->tke + dt * (gamma_1*dUdt0.tke + gamma_2*dUdt1.tke + gamma_3*dUdt2.tke);
-	U3.tke = MAXIMUM(U3.tke, 0.0);
+	U3.tke = max(U3.tke, 0.0);
 	U3.omega = U_old->omega + dt * (gamma_1*dUdt0.omega + gamma_2*dUdt1.omega + gamma_3*dUdt2.omega);
-	U3.omega = MAXIMUM(U3.omega, U_old->mass);
+	U3.omega = max(U3.omega, U_old->mass);
     } else {
 	U3.tke = U_old->tke;
 	U3.omega = U_old->omega;
@@ -1648,9 +1648,9 @@ int FV_Cell::stage_1_update_for_flow_on_moving_grid(double dt, bool with_k_omega
     U1.total_energy = vr * (U0.total_energy + dt * gamma_1 * dUdt0.total_energy);
     if ( with_k_omega ) {
 	U1.tke = vr * (U0.tke + dt * gamma_1 * dUdt0.tke);
-	U1.tke = MAXIMUM(U1.tke, 0.0);
+	U1.tke = max(U1.tke, 0.0);
 	U1.omega = vr * (U0.omega + dt * gamma_1 * dUdt0.omega);
-	U1.omega = MAXIMUM(U1.omega, U0.mass);
+	U1.omega = max(U1.omega, U0.mass);
     } else {
 	U1.tke = U0.tke;
 	U1.omega = U0.omega;
@@ -1697,9 +1697,9 @@ int FV_Cell::stage_2_update_for_flow_on_moving_grid(double dt, bool with_k_omega
 				 dt * (gamma_1 * dUdt0.total_energy + gamma_2 * dUdt1.total_energy));
     if ( with_k_omega ) {
 	U2.tke = vol_inv * (v_old * U0.tke + dt * (gamma_1 * dUdt0.tke + gamma_2 * dUdt1.tke));
-	U2.tke = MAXIMUM(U2.tke, 0.0);
+	U2.tke = max(U2.tke, 0.0);
 	U2.omega = vol_inv * (v_old * U0.omega + dt * (gamma_1 * dUdt0.omega + gamma_2 * dUdt1.omega));
-	U2.omega = MAXIMUM(U2.omega, U0.mass);
+	U2.omega = max(U2.omega, U0.mass);
     } else {
 	U2.tke = vol_inv * (v_old * U0.tke);
 	U2.omega = vol_inv * (v_old * U0.omega);
@@ -1879,7 +1879,7 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
 	    } else {
 		signalN = (un_N + cfast) / east->length;
 		signalE = (un_E + cfast) / north->length;
-		signal = MAXIMUM(signalN, signalE);
+		signal = max(signalN, signalE);
 	    }
 	} else if ( dimensions == 3 ) {
 	    // eilmer -- 3D cells
@@ -1895,7 +1895,7 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
 	    // along the length of the east face.
 	    signalN = (un_N + fs->gas->a) / east->length;
 	    signalE = (un_E + fs->gas->a) / north->length;
-	    signal = MAXIMUM(signalN, signalE);
+	    signal = max(signalN, signalE);
 	}
     }
     if ( get_viscous_flag() == 1 && get_implicit_flag() == 0 && fs->gas->mu > 10e-23) {
@@ -1946,9 +1946,9 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
 	}
 	D_c *= viscous_factor;
 	// 4. Find the maximum effective diffusion
-	double D_max_i = MAXIMUM( D_a, D_b );
-	double D_max_ii = MAXIMUM( D_b, D_c );
-	double D_max = MAXIMUM( D_max_i, D_max_ii );
+	double D_max_i = max( D_a, D_b );
+	double D_max_ii = max( D_b, D_c );
+	double D_max = max( D_max_i, D_max_ii );
 	// 5. Add signal frequency contribution
 	if ( dimensions == 3 ) {
 	    signal += D_max * (  1.0 / (iLength * iLength)
@@ -1994,8 +1994,8 @@ int FV_Cell::turbulence_viscosity_zero_if_not_in_zone()
 // starting shock structure and the simulations do not progress.
 int FV_Cell::turbulence_viscosity_limit(double factor)
 {
-    fs->mu_t = MINIMUM(fs->mu_t, factor * fs->gas->mu);
-    fs->k_t = MINIMUM(fs->k_t , factor * fs->gas->k[0]); // ASSUMPTION re k[0]
+    fs->mu_t = min(fs->mu_t, factor * fs->gas->mu);
+    fs->k_t = min(fs->k_t , factor * fs->gas->k[0]); // ASSUMPTION re k[0]
     return SUCCESS;
 }
 
@@ -2076,8 +2076,8 @@ int FV_Cell::turbulence_viscosity_k_omega()
                          + 0.5 * (dudz + dwdx) * (dudz + dwdx)
                          + 0.5 * (dvdz + dwdy) * (dvdz + dwdy);
     }
-    S_bar_squared = MAXIMUM(0.0, S_bar_squared);
-    double omega_t = MAXIMUM(fs->omega, C_lim*sqrt(2.0*S_bar_squared/beta_star));
+    S_bar_squared = max(0.0, S_bar_squared);
+    double omega_t = max(fs->omega, C_lim*sqrt(2.0*S_bar_squared/beta_star));
     fs->mu_t = fs->gas->rho * fs->tke / omega_t;
     double Pr_t = G.turbulence_prandtl;
     Gas_model *gmodel = get_gas_model_ptr();
@@ -2346,14 +2346,14 @@ int FV_Cell::k_omega_time_derivatives(double *Q_rtke, double *Q_romega, double t
     D_K = beta_star * fs->gas->rho * tke * omega;
     
     // Apply a limit to the tke production as suggested by Jeff White, November 2007.
-#   define P_OVER_D_LIMIT (25.0)
-    P_K = MINIMUM(P_K, P_OVER_D_LIMIT*D_K);
+    const double P_OVER_D_LIMIT = 25.0;
+    P_K = min(P_K, P_OVER_D_LIMIT*D_K);
 
     if ( cross_diff > 0 ) sigma_d = 0.125;
-    P_W = alpha * omega / MAXIMUM(tke,SMALL_TKE) * P_K +
-          sigma_d * fs->gas->rho / MAXIMUM(omega,SMALL_OMEGA) * cross_diff;
+    P_W = alpha * omega / max(tke,SMALL_TKE) * P_K +
+          sigma_d * fs->gas->rho / max(omega,SMALL_OMEGA) * cross_diff;
 
-    X_w = FABS(WWS / pow(beta_star*omega, 3)) ;
+    X_w = fabs(WWS / pow(beta_star*omega, 3)) ;
     f_beta = (1.0 + 85.0 * X_w) / (1.0 + 100.0 * X_w) ;
     beta = beta_0 * f_beta;
     D_W = beta * fs->gas->rho * omega * omega;

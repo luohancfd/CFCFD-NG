@@ -57,7 +57,7 @@ int apply_menter_boundary_correction(Block &bd, size_t ftl)
 		    j =  bd.jmax - indx;
 		    cell = bd.get_cell(i,j,k);
 		    if ( cell->in_turbulent_zone ) {
-			cell->fs->omega = MINIMUM(ideal_omega(cell), cell->fs->omega);
+			cell->fs->omega = min(ideal_omega(cell), cell->fs->omega);
 			cell->U[ftl]->omega = cell->fs->gas->rho * cell->fs->omega;
 		    }
 	        } // j-loop
@@ -76,7 +76,7 @@ int apply_menter_boundary_correction(Block &bd, size_t ftl)
 		    j = bd.jmin + indx;
 		    cell = bd.get_cell(i,j,k);
 		    if ( cell->in_turbulent_zone ) {
-			cell->fs->omega = MINIMUM(ideal_omega(cell), cell->fs->omega);
+			cell->fs->omega = min(ideal_omega(cell), cell->fs->omega);
 			cell->U[ftl]->omega = cell->fs->gas->rho * cell->fs->omega;
 		    }
 		}  // j-loop
@@ -95,7 +95,7 @@ int apply_menter_boundary_correction(Block &bd, size_t ftl)
 		    i = bd.imax - indx;
 		    cell = bd.get_cell(i,j,k);
 		    if ( cell->in_turbulent_zone ) {
-			cell->fs->omega = MINIMUM(ideal_omega(cell), cell->fs->omega);
+			cell->fs->omega = min(ideal_omega(cell), cell->fs->omega);
 			cell->U[ftl]->omega = cell->fs->gas->rho * cell->fs->omega;
 		    }
 	        } // i-loop
@@ -114,7 +114,7 @@ int apply_menter_boundary_correction(Block &bd, size_t ftl)
 		    i = bd.imin + indx;
 		    cell = bd.get_cell(i,j,k);
 		    if ( cell->in_turbulent_zone ) {
-			cell->fs->omega = MINIMUM(ideal_omega(cell), cell->fs->omega);
+			cell->fs->omega = min(ideal_omega(cell), cell->fs->omega);
 			cell->U[ftl]->omega = cell->fs->gas->rho * cell->fs->omega;
 		    }
 	        } // i-loop
@@ -134,7 +134,7 @@ int apply_menter_boundary_correction(Block &bd, size_t ftl)
 			k = bd.kmax - indx;
 			cell = bd.get_cell(i,j,k);
 			if ( cell->in_turbulent_zone ) {
-			    cell->fs->omega = MINIMUM(ideal_omega(cell), cell->fs->omega);
+			    cell->fs->omega = min(ideal_omega(cell), cell->fs->omega);
 			    cell->U[ftl]->omega = cell->fs->gas->rho * cell->fs->omega;
 			}
 		    } // k-loop
@@ -153,7 +153,7 @@ int apply_menter_boundary_correction(Block &bd, size_t ftl)
 			k = bd.kmin + indx;
 			cell = bd.get_cell(i,j,k);
 			if ( cell->in_turbulent_zone ) {
-			    cell->fs->omega = MINIMUM(ideal_omega(cell), cell->fs->omega);
+			    cell->fs->omega = min(ideal_omega(cell), cell->fs->omega);
 			    cell->U[ftl]->omega = cell->fs->gas->rho * cell->fs->omega;
 			}
 		    }  // k-loop

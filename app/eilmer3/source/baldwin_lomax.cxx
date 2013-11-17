@@ -155,7 +155,7 @@ int baldwin_lomax_turbulence_model(global_data& gdata, Block& blk, size_t gtl)
             for ( j = jfirst; j >= jlast; --j ) {
                 cell = blk.get_cell(i,j);
                 temporary = cell->fs->vel.x * cell->fs->vel.x + cell->fs->vel.y * cell->fs->vel.y;
-                U_MAX = MAXIMUM(U_MAX, temporary);
+                U_MAX = max(U_MAX, temporary);
             }
             if (U_MAX < 10.0) {
 	        for ( j = jfirst; j >= jlast; --j ) {
@@ -185,7 +185,7 @@ int baldwin_lomax_turbulence_model(global_data& gdata, Block& blk, size_t gtl)
 		    	          cell->vtx[2]->dudy + cell->vtx[3]->dudy)
 		    - 0.25*(cell->vtx[0]->dvdx + cell->vtx[1]->dvdx + 
 			    cell->vtx[2]->dvdx + cell->vtx[3]->dvdx);
-                vort[j] = FABS(temporary);
+                vort[j] = fabs(temporary);
                 dy = y_wall - cell->pos[gtl].y;
                 dx = x_wall - cell->pos[gtl].x;
                 eta[j] = sqrt(dx * dx + dy * dy);
@@ -264,7 +264,7 @@ int baldwin_lomax_turbulence_model(global_data& gdata, Block& blk, size_t gtl)
                 F_B = C_WK * eta_MAX * U_DIFF * U_DIFF / F_MAX;
             else
                 F_B = F_A;
-            F_WAKE = MINIMUM(F_B, F_A);
+            F_WAKE = min(F_B, F_A);
 
             // Step 11: Compute the outer-layer turbulent viscosity.
             for ( j = jfirst; j >= jlast; --j ) {
@@ -351,7 +351,7 @@ int baldwin_lomax_turbulence_model(global_data& gdata, Block& blk, size_t gtl)
             for ( j = jfirst; j <= jlast; ++j ) {
                 cell = blk.get_cell(i,j);
                 temporary = cell->fs->vel.x * cell->fs->vel.x + cell->fs->vel.y * cell->fs->vel.y;
-                U_MAX = MAXIMUM(U_MAX, temporary);
+                U_MAX = max(U_MAX, temporary);
             }
             if (U_MAX < 10.0) {
 	        for ( j = jfirst; j <= jlast; ++j ) {
@@ -381,7 +381,7 @@ int baldwin_lomax_turbulence_model(global_data& gdata, Block& blk, size_t gtl)
 	    		          cell->vtx[2]->dudy + cell->vtx[3]->dudy)
 		    - 0.25*(cell->vtx[0]->dvdx + cell->vtx[1]->dvdx + 
 		  	    cell->vtx[2]->dvdx + cell->vtx[3]->dvdx);
-                vort[j] = FABS(temporary);
+                vort[j] = fabs(temporary);
                 dy = cell->pos[gtl].y - y_wall;
                 dx = cell->pos[gtl].x - x_wall;
                 eta[j] = sqrt(dx * dx + dy * dy);
@@ -460,7 +460,7 @@ int baldwin_lomax_turbulence_model(global_data& gdata, Block& blk, size_t gtl)
                 F_B = C_WK * eta_MAX * U_DIFF * U_DIFF / F_MAX;
             else
                 F_B = F_A;
-            F_WAKE = MINIMUM(F_B, F_A);
+            F_WAKE = min(F_B, F_A);
 
             // Step 11: Compute the outer-layer turbulent viscosity.
             for ( j = jfirst; j <= jlast; ++j ) {

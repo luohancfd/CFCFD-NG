@@ -483,7 +483,7 @@ int Block::compute_residuals(size_t dimensions, size_t gtl)
     for ( FV_Cell *cellp: active_cells ) {
 	double local_residual = (cellp->fs->gas->rho - cellp->rho_at_start_of_step) 
 	    / cellp->fs->gas->rho;
-	local_residual = FABS(local_residual);
+	local_residual = fabs(local_residual);
 	if ( local_residual > mass_residual ) {
 	    mass_residual = local_residual;
 	    mass_residual_loc.x = cellp->pos[gtl].x;
@@ -495,7 +495,7 @@ int Block::compute_residuals(size_t dimensions, size_t gtl)
 	// the updated data.
 	local_residual = (cellp->U[0]->total_energy - cellp->rE_at_start_of_step) 
 	    / cellp->U[0]->total_energy;
-	local_residual = FABS(local_residual);
+	local_residual = fabs(local_residual);
 	if ( local_residual > energy_residual ) {
 	    energy_residual = local_residual;
 	    energy_residual_loc.x = cellp->pos[gtl].x;

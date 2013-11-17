@@ -1181,9 +1181,9 @@ int integrate_in_time(double target_time)
 		G.dt_global = G.dt_allow;
 	    } else {
 		// Make the transitions to larger time steps gentle.
-		G.dt_global = MINIMUM(G.dt_global*1.5, G.dt_allow);
+		G.dt_global = min(G.dt_global*1.5, G.dt_allow);
 		// The user may supply, explicitly, a maximum time-step size.
-		G.dt_global = MINIMUM(G.dt_global, G.dt_max);
+		G.dt_global = min(G.dt_global, G.dt_max);
 	    }
 	    do_cfl_check_now = 0;  // we have done our check for now
 	} // end if do_cfl_check_now 

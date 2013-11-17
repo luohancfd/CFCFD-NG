@@ -1388,7 +1388,7 @@ Attempt the piston dynamics subproblem
     dR = wPistonFace[0]->get_dR()*m_*GRAVITY;
 
     // WARNING: the piston will oscillate rather than stopping inside the chamber
-    if (FABS(dF) > dR || FABS(vel_.x) > 0.0) dF = dF - SIGN(vel_.x)*dR; 
+    if (fabs(dF) > dR || fabs(vel_.x) > 0.0) dF = dF - SIGN(vel_.x)*dR; 
     else dF = 0.0;
 
     if (beta_ == 0)

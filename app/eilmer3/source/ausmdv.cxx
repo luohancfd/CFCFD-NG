@@ -109,7 +109,7 @@ int ausmdv(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
     /*
      * Common sound speed (eqn 33) and Mach numbers.
      */
-    am = MAXIMUM(aL, aR);
+    am = max(aL, aR);
     ML = uL / am;
     MR = uR / am;
     /*
@@ -117,8 +117,8 @@ int ausmdv(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
      * pressure splitting (eqn 34) 
      * and velocity splitting (eqn 30)
      */
-    duL = 0.5 * (uL + FABS(uL));
-    if (FABS(ML) <= 1.0) {
+    duL = 0.5 * (uL + fabs(uL));
+    if (fabs(ML) <= 1.0) {
 	pLplus = pL * (ML + 1.0) * (ML + 1.0) * (2.0 - ML) * 0.25;
 	uLplus =
 	    alphaL * ((uL + am) * (uL + am) / (4.0 * am) - duL) +
@@ -132,8 +132,8 @@ int ausmdv(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
      * pressure splitting (eqn 34) 
      * and velocity splitting (eqn 31)
      */
-    duR = 0.5 * (uR - FABS(uR));
-    if (FABS(MR) <= 1.0) {
+    duR = 0.5 * (uR - fabs(uR));
+    if (fabs(MR) <= 1.0) {
 	pRminus = pR * (MR - 1.0) * (MR - 1.0) * (2.0 + MR) * 0.25;
 	uRminus =
 	    alphaR * (-(uR - am) * (uR - am) / (4.0 * am) - duR) +
@@ -159,12 +159,12 @@ int ausmdv(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
      * and blend (eqn 36).
      */
     dp = pL - pR;
-    dp = K_SWITCH * FABS(dp) / MINIMUM(pL, pR);
-    s = 0.5 * MINIMUM(1.0, dp);
+    dp = K_SWITCH * fabs(dp) / min(pL, pR);
+    s = 0.5 * min(1.0, dp);
 
     ru2_AUSMV = uLplus * rL * uL + uRminus * rR * uR;
     ru2_AUSMD = 0.5 * (ru_half * (uL + uR) -
-		       FABS(ru_half) * (uR - uL));
+		       fabs(ru_half) * (uR - uL));
 
     ru2_half = (0.5 + s) * ru2_AUSMV + (0.5 - s) * ru2_AUSMD;
 
