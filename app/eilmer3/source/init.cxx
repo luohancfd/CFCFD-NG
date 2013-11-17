@@ -502,10 +502,8 @@ int read_config_parameters(const string filename, bool master)
     dict.parse_size_t("global_data", "max_invalid_cells", G.max_invalid_cells, 10);
     dict.parse_string("global_data", "flux_calc", s_value, "adaptive");
     set_flux_calculator(available_calculators[s_value]);
-    dict.parse_double("global_data", "compression_tolerance", d_value, -0.30);
-    set_compression_tolerance(d_value);
-    dict.parse_double("global_data", "shear_tolerance", d_value, 0.20);
-    set_shear_tolerance(d_value);
+    dict.parse_double("global_data", "compression_tolerance", G.compression_tolerance, -0.30);
+    dict.parse_double("global_data", "shear_tolerance", G.shear_tolerance, 0.20);
     dict.parse_double("global_data", "M_inf", d_value, 0.01);
     set_M_inf(d_value);
     dict.parse_string("global_data", "interpolation_type", s_value, "rhoe");
@@ -517,8 +515,8 @@ int read_config_parameters(const string filename, bool master)
     if ( get_verbose_flag() ) {
 	cout << "max_invalid_cells = " << G.max_invalid_cells << endl;
 	cout << "flux_calc = " << get_flux_calculator_name(get_flux_calculator()) << endl;
-	cout << "compression_tolerance = " << get_compression_tolerance() << endl;
-	cout << "shear_tolerance = " << get_shear_tolerance() << endl;
+	cout << "compression_tolerance = " << G.compression_tolerance << endl;
+	cout << "shear_tolerance = " << G.shear_tolerance << endl;
 	cout << "M_inf = " << get_M_inf() << endl;
 	cout << "interpolation_type = " << get_thermo_interpolator_name(get_thermo_interpolator()) << endl;
 	cout << "apply_limiter_flag = " << get_apply_limiter_flag() << endl;
@@ -753,8 +751,7 @@ int read_control_parameters( const string filename, bool master, bool first_time
     dict.parse_double("control_data", "dt_reduction_factor",
 		      G.dt_reduction_factor, 0.2);
     dict.parse_double("control_data", "cfl", G.cfl_target, 0.5);
-    dict.parse_int("control_data", "stringent_cfl", i_value, 0);
-    set_stringent_cfl_flag( i_value );
+    dict.parse_boolean("control_data", "stringent_cfl", G.stringent_cfl, false);
     dict.parse_size_t("control_data", "print_count", G.print_count, 20);
     dict.parse_size_t("control_data", "cfl_count", G.cfl_count, 10);
     dict.parse_double("control_data", "dt_shock", G.dt_shock, 1.0e-3);
@@ -783,7 +780,7 @@ int read_control_parameters( const string filename, bool master, bool first_time
 	cout << "    dt_reduction_factor = " 
 	     << G.dt_reduction_factor << endl;
 	cout << "    cfl = " << G.cfl_target << endl;
-	cout << "    stringent_cfl = " << get_stringent_cfl_flag() << endl;
+	cout << "    stringent_cfl = " << G.stringent_cfl << endl;
 	cout << "    print_count = " << G.print_count << endl;
 	cout << "    cfl_count = " << G.cfl_count << endl;
 	cout << "    dt_plot = " << G.dt_plot << endl;

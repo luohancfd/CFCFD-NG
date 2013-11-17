@@ -82,6 +82,7 @@ struct global_data
     double dt_global;       /* simulation time step       */
     double dt_allow;        /* allowable global time step */
     double CFL;             /* target CFL (worst case)    */
+    bool stringent_cfl;     // If true, assume the worst with respect to cell geometry and wave speed.
     double dt_max;          // Maximum allowable time-step, after all other considerations.
     bool fixed_time_step;   /* flag for fixed time-stepping */
     int Xorder; // Low order reconstruction (1) uses just the cell-centre data as left- and right-
@@ -117,6 +118,19 @@ struct global_data
     double max_mu_t_factor;
     double transient_mu_t_factor;
     double shock_fitting_speed_factor;
+
+    /// Set the tolerance in relative velocity change for the shock detector.
+    /// This value is expected to be a negative number (for compression)
+    /// and not too large in magnitude.
+    /// We have been using a value of -0.05 for years, based on some
+    /// early experiments with the sod and cone20 test cases, however,
+    /// the values may need to be tuned for other cases, especially where
+    /// viscous effects are important.
+    double compression_tolerance;
+
+    /// Set the tolerance to shear when applying the adaptive flux calculator.
+    /// We don't want EFM to be applied in situations of significant shear.
+    double shear_tolerance;
 
     double t_plot;          /* time to write next soln    */
     size_t write_at_step;   /* update step at which to write a solution, 0=don't do it */
@@ -261,12 +275,6 @@ int set_implicit_flag(int imf);
 int get_implicit_flag(void);
 int set_bad_cell_complain_flag(int ip);
 int get_bad_cell_complain_flag(void);
-int set_stringent_cfl_flag( int i );
-int get_stringent_cfl_flag( void );
-double set_compression_tolerance( double value );
-double get_compression_tolerance( void );
-double set_shear_tolerance( double value );
-double get_shear_tolerance( void );
 
 int set_mhd_flag(int imf);
 int get_mhd_flag(void);

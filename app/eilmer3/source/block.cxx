@@ -589,7 +589,8 @@ int Block::detect_shock_points(size_t dimensions)
     // shock compression observed in the "sod" and "cone20" test cases.
     // It may need to be tuned for other situations, especially when
     // viscous effects are important.
-    double tol = get_compression_tolerance();
+    global_data &G = *get_global_data_ptr();
+    double tol = G.compression_tolerance;
 
     // First, work across North interfaces and
     // locate shocks using the (local) normal velocity.

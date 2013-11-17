@@ -732,63 +732,6 @@ int get_bad_cell_complain_flag(void)
 
 /*------------------------------------------------------------------*/
 
-int set_stringent_cfl_flag( int i )
-{
-    if ( i == 0 ) {
-	stringent_cfl = 0;
-    } else {
-	stringent_cfl = 1;
-    }
-    // if ( get_verbose_flag() ) printf("set stringent_cfl_flag=%d\n", stringent_cfl);
-    return SUCCESS;
-}
-
-int get_stringent_cfl_flag( void )
-{
-    return stringent_cfl;
-}
-
-//--------------------------------------------------------------------
-
-/// \brief Set the tolerance in relative velocity change for the shock detector.
-///
-/// This value is expected to be a negative number (for compression)
-/// and not too large in magnitude.
-/// We have been using a value of -0.05 for years, based on some
-/// early experiments with the sod and cone20 test cases, however,
-/// the values may need to be tuned for other cases, especially where
-/// viscous effects are important.
-double set_compression_tolerance( double value )
-{
-    compression_tolerance = value;
-    if ( get_verbose_flag() ) printf("set compression_tolerance=%g\n", compression_tolerance);
-    return compression_tolerance;
-}
-
-/// \brief Get the stored value for the shock detector.
-double get_compression_tolerance( void )
-{
-    return compression_tolerance;
-}
-
-
-/// \brief Set the tolerance to shear when applying the adaptive flux calculator.
-///
-/// We don't want EFM to be applied in situations of significant shear.
-double set_shear_tolerance( double value )
-{
-    shear_tolerance = value;
-    if ( get_verbose_flag() ) printf("set shear_tolerance=%g\n", shear_tolerance);
-    return shear_tolerance;
-}
-
-double get_shear_tolerance( void )
-{
-    return shear_tolerance;
-}
-
-//-----------------------------------------------------------------------------
-
 int set_mhd_flag(int i)
 {
     mhd_flag = i;

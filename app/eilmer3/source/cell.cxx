@@ -1812,6 +1812,7 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
     double cfast = 0.0;
     double gam_eff, viscous_factor;
     int statusf;
+    global_data &G = *get_global_data_ptr();
     Gas_model *gmodel = get_gas_model_ptr();
     FV_Interface *north = iface[NORTH];
     FV_Interface *east = iface[EAST];
@@ -1840,7 +1841,7 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
     }
     // Check the INVISCID time step limit first,
     // then add a component to ensure viscous stability.
-    if ( get_stringent_cfl_flag() ) {
+    if ( G.stringent_cfl ) {
 	// Make the worst case.
 	if (get_mhd_flag() == 1) {
 	    // MHD
