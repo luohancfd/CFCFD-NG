@@ -58,7 +58,6 @@ void add_valarrays(valarray<double> &c, const valarray<double> &a, const valarra
 ///
 void subtract_valarrays(valarray<double> &c, const valarray<double> &a, const valarray<double> &b )
 {
-    
     if( (a.size() != b.size()) || (a.size() != c.size()) ) {
 	cerr << "Vector dimensions do not agree.\n";
 	cerr << "While attempting add_NFVecs,\n";
@@ -72,6 +71,46 @@ void subtract_valarrays(valarray<double> &c, const valarray<double> &a, const va
     for( size_t i = 0; i < a.size(); ++i ) c[i] = a[i] - b[i];
 }
 
+/// brief Multiply two arrays element-wise
+// 
+/// c = [a]*[b]
+// 
+/// Follows the same logic as all the code written by Rowan Gollan
+/// for adding and subtracting.
+// 
+// \author Jared Clifford
+// \version 11 September 2013
+void elemul_valarrays(valarray<double> &c, const valarray<double> &a, const valarray<double> &b)
+{
+  if ( (a.size() != b.size()) || (a.size() != c.size()) ){
+    cerr << "Vector dimensions do not agree .\n";
+    cerr << "While attempting elemul_valarray, \n";
+    cerr << "size of vector a = " << a.size() << endl;
+    cerr << "size of vector b = " << b.size() << endl;
+    cerr << "size of vector c = " << c.size() << endl;
+    cerr << "Bailing out. \n";
+    exit(MISMATCHED_DIMENSIONS);
+  }
+
+  for ( size_t i = 0; i < a.size(); ++i ) c[i] = a[i] * b[i];
+
+}
+
+
+/// brief Raise each element of an array by a certain power
+// 
+/// c = [b]**a
+// 
+/// Follows the same logic as all the code written by Rowan Gollan
+/// for adding and subtracting.
+// 
+// \author Jared Clifford
+// \version 11 September 2013
+void elepow_valarrays(valarray<double> &c, const valarray<double> &b, double a)
+{
+    for ( size_t i = 0; i < c.size(); ++i ) c[i] = pow(b[i], a);
+}
+
 /// \brief Scale vector a by b
 ///
 /// a = b*a
@@ -83,7 +122,7 @@ void subtract_valarrays(valarray<double> &c, const valarray<double> &a, const va
 ///
 void scale_valarray(valarray<double> &a, double b)
 {
-    for( size_t i = 0; i < a.size(); ++i ) a[i] *= b;
+    for ( size_t i = 0; i < a.size(); ++i ) a[i] *= b;
 }
 
 /// \brief Scale vector a by b and place result in c
@@ -97,12 +136,12 @@ void scale_valarray(valarray<double> &a, double b)
 ///
 void scale_valarray2valarray( const valarray<double> &a, double b, valarray<double> &c )
 {
-    for( size_t i = 0; i < a.size(); ++i ) c[i] = b*a[i];
+    for ( size_t i = 0; i < a.size(); ++i ) c[i] = b*a[i];
 }
 
 void copy_valarray(const valarray<double> &src, valarray<double> &target )
 {
-    if( src.size() != target.size() ) {
+    if ( src.size() != target.size() ) {
 	cerr << "Vector dimensions do not agree.\n";
 	cerr << "While attempting to copy two valarrays,\n";
 	cerr << "size of valarray src = " << src.size() << endl;
@@ -111,25 +150,25 @@ void copy_valarray(const valarray<double> &src, valarray<double> &target )
 	exit(MISMATCHED_DIMENSIONS);
     }
 	
-    for( size_t i = 0; i < src.size(); ++i ) target[i] = src[i];
+    for ( size_t i = 0; i < src.size(); ++i ) target[i] = src[i];
     
 }
 
 void print_valarray( const valarray<double> &a )
 {
-    if( a.size() == 0 ) return;
+    if ( a.size() == 0 ) return;
     cout << "[ ";
-    for( size_t i = 0; i < a.size()-1; ++i) cout << a[i] << ", ";
+    for ( size_t i = 0; i < a.size()-1; ++i) cout << a[i] << ", ";
     cout << a[a.size()-1] << " ]" << endl;
 }
 
 double norm2_valarray( const valarray<double> &a, int start, int finish )
 {
-    if( finish < 0 )
+    if ( finish < 0 )
 	finish = a.size();
 
     // Check finish > start
-    if( finish < start ) {
+    if ( finish < start ) {
 	cout << "Array stride start:finish == " << start << ":" << finish << endl;
 	cout << "is not appropriate.\n";
 	cout << "Bailing out!\n";
@@ -137,7 +176,7 @@ double norm2_valarray( const valarray<double> &a, int start, int finish )
     }
 
     double norm = 0.0;
-    for( int i = start; i < finish; ++i ) {
+    for ( int i = start; i < finish; ++i ) {
 	norm += a[i]*a[i];
     }
     return sqrt(norm);
@@ -148,7 +187,7 @@ void merge_valarrays(const valarray<double> &src_A,
 		           valarray<double> &target )
 {
     // Merge two valarrays, one after the other
-    if( ( src_A.size() + src_B.size() ) != target.size() ) {
+    if ( ( src_A.size() + src_B.size() ) != target.size() ) {
 	cerr << "Vector dimensions do not agree.\n";
 	cerr << "While attempting to merge two valarrays,\n";
 	cerr << "size of valarray src_A = " << src_A.size() << endl;
@@ -158,7 +197,7 @@ void merge_valarrays(const valarray<double> &src_A,
 	exit(MISMATCHED_DIMENSIONS);
     }
 	
-    for( size_t i = 0; i < target.size(); ++i ) {
+    for ( size_t i = 0; i < target.size(); ++i ) {
 	if ( i < src_A.size() )
 	    target[i] = src_A[i];
 	else
@@ -172,7 +211,7 @@ void split_valarray( const valarray<double> &src,
 		           valarray<double> &target_B )
 {
     // Split a valarray into 2 parts defined by valarray dimensions
-    if( ( target_A.size() + target_B.size() ) != src.size() ) {
+    if ( ( target_A.size() + target_B.size() ) != src.size() ) {
 	cerr << "Vector dimensions do not agree.\n";
 	cerr << "While attempting to merge two valarrays,\n";
 	cerr << "size of valarray target_A = " << target_A.size() << endl;
@@ -182,14 +221,13 @@ void split_valarray( const valarray<double> &src,
 	exit(MISMATCHED_DIMENSIONS);
     }
 	
-    for( size_t i = 0; i < src.size(); ++i ) {
+    for ( size_t i = 0; i < src.size(); ++i ) {
 	if ( i < target_A.size() )
 	    target_A[i] = src[i];
 	else
 	    target_B[i-target_A.size()] = src[i];
     }
 }
-
 
 Valmatrix::Valmatrix()
     : nrows_(1), ncols_(1)
@@ -360,77 +398,158 @@ eye(size_t n)
     return SUCCESS;
 }
 
+// \brief Print out a matrix out on screen in a way that's easy to read.  
+// 
+// For debugging only
+// 
+// \author Jared Clifford
+// \verion 12 September 2013
+// 
 int
 Valmatrix::
-gaussian_elimination( std::valarray<double> &x, valarray<double> &b, bool with_scaling )
+print_mat()
 {
-    int i, j, k, p, tmp;
-    double max, sum, factor;
-    // Ensure the matrix is square
-    if( this->ncols() != this->nrows() ) {
-	cerr << "gaussian_elimination():\n";
-	cerr << "ERROR: A square coefficient matrix is not supplied.\n";
-	cerr << "ncols= " << this->ncols() << " nrows= " << this->nrows() << endl;
+    size_t i,j;
+    int width = 3;
+    cout << endl << "[ ";
+    for ( i = 0; i < this->ncols(); i++) {
+	if (i != 0)
+	    cout << "  ";
+	cout << "[ ";
+	for (j = 0; j < this->nrows();j++) {
+	    cout << setprecision(3) << setw(width) << this->get(i,j) << " ";
+	}
+	cout << "] ";
+	if (i != this->ncols()-1)
+	    cout << endl;
+    }
+    cout << " ]"<< endl;
+    return SUCCESS;
+}
+
+valarray<double> valarray_matmul( Valmatrix &matrix, valarray<double> &b)
+{
+  // Ensure the matrix is square and matrix and vector dimensions match
+  if ( matrix.ncols() != matrix.nrows() || matrix.ncols() != b.size() ){
+		cerr << "valarray_mul\n";
+		cerr << "ERROR: Dims don't match.\n";
+		cerr << "ncols= " << matrix.ncols() << " nrows= " << matrix.nrows() << " b.size() = " << b.size() << endl;
+		cerr << "Bailing out.";
+		exit(MISMATCHED_DIMENSIONS);
+  }
+
+  valarray<double> store;
+  store.resize(b.size(), 0.0);
+
+  for ( size_t i = 0; i < b.size(); i++){
+      for ( size_t j = 0; j < matrix.nrows(); j++){
+	  store[i] = store[i] + matrix.get(i,j)*b[j];
+      }
+  }
+
+  return store;
+}
+
+// \brief Multiply a matrix by a vector.  Used to solve the wall equation.
+// 
+// Solves A.x = b, where A and x are known
+// 
+// A is a matrix, x is a vector, result is placed in b
+// 
+// \author Jared Clifford
+// \version 12 September 2013
+int valarray_mul(Valmatrix &A, valarray<double> &x, valarray<double> &b)
+{
+    // Ensure the matrix is square and matrix and vector dimensions match
+    if ( A.ncols() != A.nrows() || A.ncols() != x.size() || A.ncols() != b.size() ) {
+	cerr << "valarray_mul\n";
+	cerr << "ERROR: Dims don't match.\n";
+	cerr << "ncols= " << A.ncols() << " nrows= " << A.nrows() << " x.size() = " << x.size() << " b.size() = " << b.size() << endl;
 	cerr << "Bailing out.";
 	exit(MISMATCHED_DIMENSIONS);
     }
-
-    // Setup an index into the rows avoiding the overhead
-    // of swapping rows when required.
-    for( i = 0; i < int(this->nrows()); ++i ) row_index_[i] = i;
     
-    // Elimination and partial-pivoting
-    for( i = 0; i < int(this->nrows()-1); ++i ) {
-
-	p = i;
-	max = fabs(this->get(row_index_[p],i));
-	for( j = i+1; j < int(this->nrows()); ++j ) {
- 	    if( fabs(this->get(row_index_[j],i)) > max) {
-		max = fabs(this->get(row_index_[j],i));
-		p = j;
-	    }
+    for ( size_t i = 0; i < b.size(); ++i ) {
+	b[i] = 0.0;
+	for ( size_t j = 0; j < A.nrows(); j++ ) {
+	    b[i] = b[i] + A.get(i,j)*x[j];
 	}
-
-	if( fabs(this->get(row_index_[p],i)) < essentially_zero ) {
-	    cout << "Valmatrix::gaussian_elimination()\n";
-	    cout << "No unique solution exists when using gaussian_elimination()\n";
-	    return NUMERICAL_ERROR;
-	}
-
-	if( row_index_[i] != row_index_[p] ) {
-	    // Perform swap of rows
-	    tmp = row_index_[i]; row_index_[i] = row_index_[p]; row_index_[p] = tmp;
-	}
-
-	for( j = i+1; j < int(this->nrows()); ++j ) {
-	    factor = this->get(row_index_[j],i)/this->get(row_index_[i],i);
-	    for( k = i+1; k < int(this->nrows()); ++k ) {
-		this->set(row_index_[j],k, this->get(row_index_[j],k) - factor*this->get(row_index_[i],k));
-	    }
-	    b[row_index_[j]] = b[row_index_[j]] - factor*b[row_index_[i]];
-	}
-    }
-
-    if( fabs(this->get(row_index_[this->nrows()-1],this->nrows()-1)) < essentially_zero ) {
-    	cout << "Valmatrix::gaussian_elimination()\n";
-	cout << "No unique solution exists when using gaussian_elimination()\n";
-	return NUMERICAL_ERROR;
-    }
-
-    // Start backward substution
-    x[x.size()-1] = b[row_index_[b.size()-1]]/this->get(row_index_[this->nrows()-1],this->nrows()-1);
-
-    for( i = int(this->nrows()-2); i >= 0; --i ) {
-	sum = 0.0;
-	for( j = i+1; j < int(this->nrows()); ++j ) {
-	    sum += this->get(row_index_[i],j)*x[j];
-	}
-	x[i] = (b[row_index_[i]] - sum)/this->get(row_index_[i],i);
     }
 
     return SUCCESS;
-
 }
+
+// int
+// Valmatrix::
+// gaussian_elimination( std::valarray<double> &x, valarray<double> &b, bool with_scaling )
+// {
+//     int i, j, k, p, tmp;
+//     double max, sum, factor;
+//     // Ensure the matrix is square
+//     if( this->ncols() != this->nrows() ) {
+// 	cerr << "gaussian_elimination():\n";
+// 	cerr << "ERROR: A square coefficient matrix is not supplied.\n";
+// 	cerr << "ncols= " << this->ncols() << " nrows= " << this->nrows() << endl;
+// 	cerr << "Bailing out.";
+// 	exit(MISMATCHED_DIMENSIONS);
+//     }
+
+//     // Setup an index into the rows avoiding the overhead
+//     // of swapping rows when required.
+//     for( i = 0; i < int(this->nrows()); ++i ) row_index_[i] = i;
+    
+//     // Elimination and partial-pivoting
+//     for( i = 0; i < int(this->nrows()-1); ++i ) {
+
+// 	p = i;
+// 	max = fabs(this->get(row_index_[p],i));
+// 	for( j = i+1; j < int(this->nrows()); ++j ) {
+//  	    if( fabs(this->get(row_index_[j],i)) > max) {
+// 		max = fabs(this->get(row_index_[j],i));
+// 		p = j;
+// 	    }
+// 	}
+
+// 	if( fabs(this->get(row_index_[p],i)) < essentially_zero ) {
+// 	    cout << "Valmatrix::gaussian_elimination()\n";
+// 	    cout << "No unique solution exists when using gaussian_elimination()\n";
+// 	    return NUMERICAL_ERROR;
+// 	}
+
+// 	if( row_index_[i] != row_index_[p] ) {
+// 	    // Perform swap of rows
+// 	    tmp = row_index_[i]; row_index_[i] = row_index_[p]; row_index_[p] = tmp;
+// 	}
+
+// 	for( j = i+1; j < int(this->nrows()); ++j ) {
+// 	    factor = this->get(row_index_[j],i)/this->get(row_index_[i],i);
+// 	    for( k = i+1; k < int(this->nrows()); ++k ) {
+// 		this->set(row_index_[j],k, this->get(row_index_[j],k) - factor*this->get(row_index_[i],k));
+// 	    }
+// 	    b[row_index_[j]] = b[row_index_[j]] - factor*b[row_index_[i]];
+// 	}
+//     }
+
+//     if( fabs(this->get(row_index_[this->nrows()-1],this->nrows()-1)) < essentially_zero ) {
+//     	cout << "Valmatrix::gaussian_elimination()\n";
+// 	cout << "No unique solution exists when using gaussian_elimination()\n";
+// 	return NUMERICAL_ERROR;
+//     }
+
+//     // Start backward substution
+//     x[x.size()-1] = b[row_index_[b.size()-1]]/this->get(row_index_[this->nrows()-1],this->nrows()-1);
+
+//     for( i = int(this->nrows()-2); i >= 0; --i ) {
+// 	sum = 0.0;
+// 	for( j = i+1; j < int(this->nrows()); ++j ) {
+// 	    sum += this->get(row_index_[i],j)*x[j];
+// 	}
+// 	x[i] = (b[row_index_[i]] - sum)/this->get(row_index_[i],i);
+//     }
+
+//     return SUCCESS;
+
+// }
 
 ostream& operator<<( ostream &os, const Valmatrix &v )
 {

@@ -23,20 +23,20 @@
 #define PVT_DIM 1000  ///< Static working array size for Gaussian elimination method.
 
 void add_valarrays(std::valarray<double> &c, const std::valarray<double> &a, const std::valarray<double> &b );
-void subtract_valarrays( std::valarray<double> &c, const std::valarray<double> &a, const std::valarray<double> &b );
-void scale_valarray( std::valarray<double> &a, double b );
-void scale_valarray2valarray( const std::valarray<double> &a, double b, std::valarray<double> &c);
-void copy_valarray( const std::valarray<double> &src, std::valarray<double> &target );
+void subtract_valarrays(std::valarray<double> &c, const std::valarray<double> &a, const std::valarray<double> &b );
+void elemul_valarrays(std::valarray<double> &c, const std::valarray<double> &a, const std::valarray<double> &b);
+void elepow_valarrays(std::valarray<double> &c, const std::valarray<double> &b, double a);
+void scale_valarray(std::valarray<double> &a, double b );
+void scale_valarray2valarray(const std::valarray<double> &a, double b, std::valarray<double> &c);
+void copy_valarray(const std::valarray<double> &src, std::valarray<double> &target);
 
-void print_valarray( const std::valarray<double> &a );
+void print_valarray(const std::valarray<double> &a);
 
-double norm2_valarray( const std::valarray<double> &a,
-		       int start=0, int finish=-1 );
-
+double norm2_valarray(const std::valarray<double> &a,
+		       int start=0, int finish=-1);
 void merge_valarrays(const std::valarray<double> &src_A, const std::valarray<double> &src_B, std::valarray<double> &target );
 
 void split_valarray( const std::valarray<double> &src, std::valarray<double> &target_A, std::valarray<double> &target_B );
-
 class Valmatrix {
 public:
     /// \brief Default constructor
@@ -87,11 +87,14 @@ public:
     
 
     int eye(size_t n);
-
+    int print_mat();
     void scale(double s)
     { scale_valarray(data_, s); }
     
-    int gaussian_elimination( std::valarray<double> &x, std::valarray<double> &b, bool with_scaling=false );
+    // RJG 18-Nov-2013:
+    // Not sure why we have this as a method when we have a function
+    // version of this outside of the class.
+    //int gaussian_elimination( std::valarray<double> &x, std::valarray<double> &b, bool with_scaling=false );
 
 private:
     size_t nrows_;
@@ -104,8 +107,8 @@ private:
 #ifndef SWIG
 std::ostream& operator<<( std::ostream &os, const Valmatrix &v );
 #endif
-
-
+std::valarray<double> valarray_matmul( Valmatrix &matrix, std::valarray<double> &b);
+int valarray_mul(Valmatrix &A, std::valarray<double> &x, std::valarray<double> &b);
 int gaussian_elimination( Valmatrix &A, std::valarray<double> &x,
 			  std::valarray<double> &c, bool with_scaling=false );
 
