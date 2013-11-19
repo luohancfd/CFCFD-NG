@@ -146,63 +146,65 @@ int write_column(list_of_vars &vars, list_of_inputs &inputs, int column) {
 
 int write_soln(list_of_vars &vars, list_of_inputs &inputs, double time_elapsed, int print_number) {
 
-	/*
-	--------------------------------------------------------------------------
-	--------------------------------------------------------------------------
-	Writes the solution out in the same way that the Eilmer3 output is produced.
-	
-	This also creates and runs a GNUPlot script which plots the temperature 
-	profile and stores it in the same directory as the printed results text
-	file.
+    /*
+      --------------------------------------------------------------------------
+      --------------------------------------------------------------------------
+      Writes the solution out in the same way that the Eilmer3 output is produced.
+      
+      This also creates and runs a GNUPlot script which plots the temperature 
+      profile and stores it in the same directory as the printed results text
+      file.
+      
+      
+      ---------------------------------------------------------------------------
+      \author Jared Clifford
+      \version November 2013
+      
+      ---------------------------------------------------------------------------
+      ---------------------------------------------------------------------------
+    */
 
-
-	---------------------------------------------------------------------------
-	\author Jared Clifford
-	\version November 2013
-
-	---------------------------------------------------------------------------
-	---------------------------------------------------------------------------
-	*/
-
-	char buffer[100];
-	sprintf(buffer, "mkdir ../user/temp/t%04d", print_number);
-	system(buffer); // Runs the command string "buffer" in terminal
-
-	sprintf(buffer, "../user/temp/t%04d/conjugateHeat.temp.b0000.t%04d.txt", print_number, print_number);
-	ofstream output;
-	output.open(buffer);
-
-	output << time_elapsed << endl;
-	output << "''pos.x'' ''pos.y'' ''temp''" << endl;
-	output << inputs.M << " " << inputs.N << endl;
-	for (int i = 0; i< inputs.M*inputs.N; i++) {
-		output << vars.x_vals [i] << " " << vars.y_vals[i] << " " << vars.temps[i] << endl;
-	}
-	output.close();
-
-	// Next part of the code writes the GNUPlot script for graphing each separate temp profile.
-
-	ofstream op;
-	sprintf(buffer, "../user/temp_pos_plot.p");
-	op.open(buffer);
-	op << "set term png" << endl;
-	sprintf(buffer, " set output \"../user/temp/t%04d/pos_plot.png\"", print_number);
-	op << buffer << endl;
-	sprintf(buffer, "set title \"Temperature versus Position after %.3f seconds\"", time_elapsed);
-	op << buffer << endl;
-	op << "set xlabel \"Position (m)\"" << endl;
-	op << "set ylabel \"Temperature (degrees C)\"" << endl;
-	op << "set key bottom left" << endl;
-	op << "set xrange [0:0.025]" << endl;
-	op << "set yrange [0:0.025]" << endl;
-	op << "set cbrange [293:320]" << endl;
-	sprintf(buffer, "plot \"../user/temp/t%04d/conjugateHeat.temp.b0000.t%04d.txt\" using 1:2:3 with image", print_number, print_number);
-	op << buffer << endl;
-	op.close();
-
-	sprintf(buffer, "gnuplot \"../user/temp_pos_plot.p\"");
-	system(buffer);
-	return SUCCESS;
+    char buffer[100];
+    int flag;
+    sprintf(buffer, "mkdir ../user/temp/t%04d", print_number);
+    flag = system(buffer); // Runs the command string "buffer" in terminal
+    
+    sprintf(buffer, "../user/temp/t%04d/conjugateHeat.temp.b0000.t%04d.txt", print_number, print_number);
+    ofstream output;
+    output.open(buffer);
+    
+    output << time_elapsed << endl;
+    output << "''pos.x'' ''pos.y'' ''temp''" << endl;
+    output << inputs.M << " " << inputs.N << endl;
+    for (int i = 0; i< inputs.M*inputs.N; i++) {
+	output << vars.x_vals [i] << " " << vars.y_vals[i] << " " << vars.temps[i] << endl;
+    }
+    output.close();
+    
+    // Next part of the code writes the GNUPlot script for graphing each separate temp profile.
+    
+    ofstream op;
+    sprintf(buffer, "../user/temp_pos_plot.p");
+    op.open(buffer);
+    op << "set term png" << endl;
+    sprintf(buffer, " set output \"../user/temp/t%04d/pos_plot.png\"", print_number);
+    op << buffer << endl;
+    sprintf(buffer, "set title \"Temperature versus Position after %.3f seconds\"", time_elapsed);
+    op << buffer << endl;
+    op << "set xlabel \"Position (m)\"" << endl;
+    op << "set ylabel \"Temperature (degrees C)\"" << endl;
+    op << "set key bottom left" << endl;
+    op << "set xrange [0:0.025]" << endl;
+    op << "set yrange [0:0.025]" << endl;
+    op << "set cbrange [293:320]" << endl;
+    sprintf(buffer, "plot \"../user/temp/t%04d/conjugateHeat.temp.b0000.t%04d.txt\" using 1:2:3 with image", print_number, print_number);
+    op << buffer << endl;
+    op.close();
+    
+    sprintf(buffer, "gnuplot \"../user/temp_pos_plot.p\"");
+    flag = system(buffer);
+    if ( flag != 0 ) return FAILURE;
+    return SUCCESS;
 }
 
 int write_hist(list_of_vars &vars, list_of_inputs &inputs, double time_elapsed) {
@@ -257,34 +259,35 @@ int old_file_delete_catcher(list_of_inputs &inputs) {
 	const char* temp_dir = "../user/temp"; const char* hist_dir = "../user/hist";
 	bool temp_dir_exists = file_exists(temp_dir);
 	bool hist_dir_exists = file_exists(hist_dir);
+	int flag = 0;
 
 	string yn;
 
 	if (temp_dir_exists == 1 || hist_dir_exists == 1) {
-		cout << "Existing solution files are present.  Erase (selecting no means files are archived)? (y/n)" << endl;
-		cin >> yn;
-		if (yn == "y" || yn == "Y") {
-			if (temp_dir_exists == 1) {
-				system("rm -r ../user/temp");
-			}
-			if (hist_dir_exists == 1) {
-				system("rm -r ../user/hist");
-			}
+	    cout << "Existing solution files are present.  Erase (selecting no means files are archived)? (y/n)" << endl;
+	    cin >> yn;
+	    if (yn == "y" || yn == "Y") {
+		if (temp_dir_exists == 1) {
+		    flag = system("rm -r ../user/temp");
 		}
-		else if (yn == "n" || yn == "N") {
-			system("sh arch.sh");
+		if (hist_dir_exists == 1) {
+		    flag = system("rm -r ../user/hist");
 		}
-
-		else {
-			cout << "Inappropriate letter given" << endl;
-			exit(MISMATCHED_DIMENSIONS);
-		}
+	    }
+	    else if (yn == "n" || yn == "N") {
+		flag = system("sh arch.sh");
+	    }
+	    else {
+		cout << "Inappropriate letter given" << endl;
+		exit(MISMATCHED_DIMENSIONS);
+	    }
 	}
 	
-	system("mkdir ../user/temp");
+	flag = system("mkdir ../user/temp");
 	if (inputs.flag_hist == 1) {
-		system("mkdir ../user/hist");
+	    flag = system("mkdir ../user/hist");
 	}
+	if ( flag != 0 ) return FAILURE;
 	return SUCCESS;
 }
 

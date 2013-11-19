@@ -1,14 +1,23 @@
-#include "../../../lib/util/source/useful.hh"
+#include "../../../lib/util/source/useful.h"
 #include "kernel.hh"
 #include "bc_conjugate_ht.hh"
+#include "bc_catalytic.hh"
+#include "bc_menter_correction.hh"
 
 ConjugateHeatTransferBC::
 ConjugateHeatTransferBC(Block *bdp, int which_boundary)
     : BoundaryCondition(bdp, which_boundary, CONJUGATE_HT)
 {
-    sets_conv_flux = false;
+    global_data &G = *(get_global_data_ptr());
+    if ( !G.conjugate_ht_active ) {
+	cout << "ERROR: The conjugate heat transfer modelling is NOT active.\n";
+	cout << "ERROR: Yet, a ConjugateHT boundary condition hace been selected.\n";
+	cout << "Bailing out!\n";
+	exit(BAD_INPUT_ERROR);
+    }
+    sets_conv_flux_flag = false;
     ghost_cell_data_available = false;
-    sets_visc_flux = false;
+    sets_visc_flux_flag = false;
     if ( which_boundary != NORTH ) {
 	cout << "Error in boundary condition specification.\n";
 	cout << "A ConjugateHT boundary condition can only be applied\n";
@@ -21,23 +30,20 @@ ConjugateHeatTransferBC(Block *bdp, int which_boundary)
 
 ConjugateHeatTransferBC::
 ConjugateHeatTransferBC(const ConjugateHeatTransferBC &bc)
-    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code),
-      fname_(bc.fname_)
+    : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code)
 {
-    sets_conv_flux = false;
+    sets_conv_flux_flag = false;
     ghost_cell_data_available = false;
-    sets_visc_flux = false;
+    sets_visc_flux_flag = false;
 }
 
 ConjugateHeatTransferBC::
 ConjugateHeatTransferBC()
-    : BoundaryCondition(0, 0, CONJUGATE_HT),
-      fname_("")
+    : BoundaryCondition(0, 0, CONJUGATE_HT)
 {
-    sets_conv_flux = false;
+    sets_conv_flux_flag = false;
     ghost_cell_data_available = false;
-    sets_visc_flux = false;
-    // Cannot do much useful here because we don't have a filename.
+    sets_visc_flux_flag = false;
 }
 
 ConjugateHeatTransferBC&
@@ -47,12 +53,8 @@ operator=(const ConjugateHeatTransferBC &bc)
     if ( this != &bc ) {
 	BoundaryCondition::operator=(bc);
 	sets_conv_flux_flag = bc.sets_conv_flux_flag;
-	ghost_cell_data_available = bc.ghost_cell_data_available
+	ghost_cell_data_available = bc.ghost_cell_data_available;
 	sets_visc_flux_flag = bc.sets_visc_flux_flag;
-	fname_ = bc.fname_;
-	T_.resize(bc.T_.size());
-	q_.resize(bc.q_.size());
-	initialise_wall_model(fname_);
     }
     return *this;
 }
@@ -66,8 +68,6 @@ ConjugateHeatTransferBC::
 print_info(string lead_in)
 {
     BoundaryCondition::print_info(lead_in);
-    cout << lead_in << "fname= " << fname_ << endl;
-    return;
 }
 
 int
@@ -81,15 +81,14 @@ apply_viscous(double t)
     FV_Cell *cell;
     FV_Interface *IFace;
     size_t nmodes = get_gas_model_ptr()->get_number_of_modes();
-    Block & bd = *bdp;
-    global_data *G = get_global_data_ptr();
+    Block &bd = *bdp;
+    global_data &G = *(get_global_data_ptr());
     int rank = G.my_mpi_rank;
-    size_t nmodes = get_gas_model_ptr()->get_number_of_modes();
-    // ONLY IMPLEMENTED FOR NORTH BOUNDARY
 
+    // ONLY IMPLEMENTED FOR NORTH BOUNDARY
     j = bd.jmax;
     for (k = bd.kmin; k <= bd.kmax; ++k) {
-	iT = G.displs[rank];
+	int iT = G.displs[rank];
 	for (i = bd.imin; i <= bd.imax; ++i) {
 	    cell = bd.get_cell(i,j,k);
 	    IFace = cell->iface[NORTH];

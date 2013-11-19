@@ -125,6 +125,7 @@ void eilmer_finalize( void )
     gd.mpi_rank_for_block.clear();
     delete gmodel;
     if ( get_radiation_flag() )	delete rtm;
+    if ( gd.conjugate_ht_active ) delete gd.wm;
     return;
 }
 

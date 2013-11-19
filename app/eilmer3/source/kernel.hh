@@ -13,6 +13,7 @@
 #include "../../../lib/gas/models/gas-model.hh"
 #include "../../../lib/gas/kinetics/reaction-update.hh"
 #include "../../../lib/gas/kinetics/energy-exchange-update.hh"
+#include "../../twc/source/e3con.hh"
 #include "c-flow-condition.hh"
 #include "flux_calc.hh"
 #include "cell.hh"

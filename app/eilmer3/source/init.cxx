@@ -23,6 +23,7 @@
 #include "../../../lib/util/source/config_parser.hh"
 #include "../../../lib/gas/models/gas_data.hh"
 #include "../../../lib/gas/models/gas-model.hh"
+#include "../../twc/source/e3con.hh"
 #include "block.hh"
 #include "kernel.hh"
 #include "cell.hh"
@@ -32,6 +33,7 @@
 #include "visc.hh"
 #include "flux_calc.hh"
 #include "one_d_interp.hh"
+#include "conj-ht-interface.hh"
 
 using namespace std;
 
@@ -701,8 +703,9 @@ int read_config_parameters(const string filename, bool master)
     dict.parse_int("global_data", "conjugate_ht_flag", i_value, 0);
     G.conjugate_ht_active = i_value;
     dict.parse_string("global_data", "conjugate_ht_file", s_value, "dummy_ht_file");
-    //    if ( G.conjugate_ht_active )
-    //	G.wm = initialise_wall_model(s_value);
+    if ( G.conjugate_ht_active ) {
+    	G.wm = initialise_wall_model(s_value, G.dt_plot, G.dt_his);
+    }
     if ( get_verbose_flag() ) {
 	cout << "conjugate_ht_flag = " << i_value << endl;
 	cout << "conjugate_ht_file = " << s_value << endl;
@@ -1070,10 +1073,9 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 	    // on the north boundary, otherwise we don't need to set
 	    // aside any space (ie. nentries = 0)
 	    int nentries = 0;
-	    // FIX ME when conjugate_ht b.c. is hooked up.
-	    //	    if (bd.bcp[iface]->type_code == CONJUGATE_HT ) {
-	    //		nentries = bc.nni;
-	    //	    }
+	    if (bd.bcp[iface]->type_code == CONJUGATE_HT ) {
+		nentries = bd.nni;
+	    }
 	    add_entries_to_wall_vectors(G, nentries);
 	    // Later, after computing block geometry, we'll be able
 	    // to gather up the interface locations to pass to the

@@ -18,7 +18,7 @@ int grab_config_from_file(string fname, Wall_model &wm) {
 }
 
 
-Wall_model* initialise_wall_model(string fname, double dt_plot) {
+Wall_model* initialise_wall_model(string fname, double dt_plot, double dt_history) {
 
 	Wall_model *wm = new Wall_model;
 	

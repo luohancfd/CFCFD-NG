@@ -91,6 +91,8 @@ LIBLUA          := $(LUA)/lib/liblua.a
 LUA_INCLUDE_DIR := $(LUA)/include
 ZLIB            := ../../../extern/zlib-1.2.3
 LIBZLIB         := $(ZLIB)/libz.a
+TWC             := ../../twc
+LIBTWC          := ../../twc/build/libtwc.a
 
 #------------------------------------------------------------
 
@@ -137,6 +139,7 @@ E3_OBJECTS_2 := kernel.o \
 	bc_udmf.o \
 	bc_menter_correction.o \
 	bc_fstc.o \
+	bc_conjugate_ht.o \
 	init.o \
 	block_invs.o \
 	visc.o \
@@ -249,6 +252,7 @@ clean :
 	- cd $(UTIL)/iniparser; make clean
 	- cd $(LUA); make clean
 	- cd $(RAD)/build; make clean
+	- cd $(TWC)/build; make clean
 
 tarfile :
 	- cd $(HOME); mv eilmer3.tar.gz eilmer3.tar.gz.old
@@ -309,6 +313,9 @@ $(LIBINIPARSER):
 $(LIBUTIL):
 	cd $(UTIL)/build; make TARGET=$(TARGET) OPT=$(OPT) build_new
 
+$(LIBTWC):
+	cd $(TWC)/build; make TARGET=$(TARGET) OPT=$(OPT) build_new
+
 # Assume linux
 PLAT := linux
 ifeq ($(findstring Darwin, $(SYSTEM)), Darwin)
@@ -357,20 +364,20 @@ flux_dict.py : $(SRC)/flux_dict.py
 # This is a combination of the libgas2 and libgeom2 modules.
 
 # Dynamic link library for MINGW32 environment on MS-Windows
-_libprep3.dll : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBPYTHON) $(LIBLUA) $(LIBZLIB)
+_libprep3.dll : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBPYTHON) $(LIBLUA) $(LIBZLIB) $(LIBTWC)
 	$(CXXLINK) $(LFLAG) $(LDFLAG) -shared -o _libprep3.dll libprep3_wrap.o \
 		-L$(PYTHON_DIR)/libs \
-		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBPYTHON) $(LIBLUA) $(LIBZLIB) $(LLIB)
+		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBPYTHON) $(LIBLUA) $(LIBZLIB) $(LIBTWC) $(LLIB)
 
 # Shared object for Unix/Linux
-_libprep3.so : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB)
+_libprep3.so : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB) $(LIBTWC)
 	$(CXXLINK) $(LFLAG) $(LDFLAG) -shared -o _libprep3.so libprep3_wrap.o \
-		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB) $(LLIB)
+		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB) $(LIBTWC) $(LLIB)
 
 # Dynamic library for Mac OS X
-_libprep3.dylib : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB)
+_libprep3.dylib : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB) $(LIBTWC)
 	$(CXXLINK) $(LFLAG) $(LDFLAG) -shared -o _libprep3.dylib libprep3_wrap.o \
-		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB) $(LLIB) -framework Python
+		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB) $(LIBTWC) $(LLIB) -framework Python
 
 # The SWIG interface file and corresponding documentation
 # Normally, we would not try to rebuild this file because 
@@ -441,25 +448,25 @@ e3console.tcl: $(SRC)/e3console.tcl
 	chmod +x e3console.tcl
 
 e3shared.exe : e3shared.o $(LIBE3) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
-		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB)
+		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBTWC)
 	$(CXXLINK) $(PCA) $(LFLAG) e3shared.o \
 		$(LIBE3) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
-		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LLIB) \
+		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBTWC) $(LLIB) \
 		-o e3shared.exe
 
 e3mpi.exe : e3mpi.o $(E3_OBJECTS_2_MPI) \
 		$(LIBE3) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
-		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB)
+		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBTWC)
 	$(CXXLINK) $(PCA) $(LFLAG) e3mpi.o $(E3_OBJECTS_2_MPI) \
 		$(LIBE3) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
-		$(LIBINIPARSER) $(LMPI) $(LIBLUA) $(LIBZLIB) $(LLIB) \
+		$(LIBINIPARSER) $(LMPI) $(LIBLUA) $(LIBZLIB) $(LIBTWC) $(LLIB) \
 		-o e3mpi.exe
 
 e3rad.exe : e3rad.o $(LIBE3) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
-		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB)
+		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBTWC)
 	$(CXXLINK) $(PCA) $(LFLAG) e3rad.o \
 		$(LIBE3) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
-		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LLIB) \
+		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBTWC) $(LLIB) \
 		-o e3rad.exe
 
 #---------------------------------------------------------------------
@@ -543,6 +550,9 @@ bc_fixed_t.o : $(SRC)/bc_fixed_t.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.
 bc_fstc.o : $(SRC)/bc_fstc.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_fstc.cxx -o bc_fstc.o
+
+bc_conjugate_ht.o : $(SRC)/bc_conjugate_ht.cxx $(SRC)/bc_conjugate_ht.hh $(SRC)/bc.hh $(LIBLUA)
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_conjugate_ht.cxx -o bc_conjugate_ht.o
 
 bc_sliding_t.o : $(SRC)/bc_sliding_t.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh

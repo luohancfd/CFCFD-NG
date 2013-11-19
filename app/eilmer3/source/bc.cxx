@@ -50,6 +50,7 @@ extern "C" {
 #include "bc_user_defined.hh"
 #include "bc_fstc.hh"
 #include "bc_udmf.hh"
+#include "bc_conjugate_ht.hh"
 #include "kernel.hh"
 #include "diffusion.hh"
 
@@ -1000,6 +1001,9 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     case USER_DEFINED_MASS_FLUX:
 	dict.parse_string(section, "filename", filename, "");
 	newBC = new UserDefinedMassFluxBC(bdp, which_boundary, filename);
+	break;
+    case CONJUGATE_HT:
+	newBC = new ConjugateHeatTransferBC(bdp, which_boundary);
 	break;
     default:
 	cerr << "create_BC() error: boundary condition \"" << type_of_BC 

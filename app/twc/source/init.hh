@@ -1,5 +1,7 @@
-#ifndef INIT_HH
-#define INIT_HH
+#ifndef TWC_INIT_HH
+#define TWC_INIT_HH
+
+#include "../../../lib/nm/source/no_fuss_linear_algebra.hh"
 
 using namespace std;
 

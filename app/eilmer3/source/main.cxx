@@ -52,6 +52,7 @@ extern "C" {
 #include "../../../lib/util/source/time_to_go.h"
 }
 #include "../../../lib/util/source/lua_service.hh"
+#include "../../twc/source/e3con.hh"
 #include "cell.hh"
 #include "block.hh"
 #include "kernel.hh"
@@ -503,12 +504,14 @@ int prepare_to_integrate(size_t start_tindx)
 	    cp->decode_conserved(0, 0, bdp->omegaz, with_k_omega);
 	}
 	if ( G.conjugate_ht_active ) {
-	    // Need to assemble the vertices on the north wall
-	    int j = bdp->jmax + 1;
-	    for ( size_t i = bdp->imin; i <= bdp->imax; ++i ) {
-		FV_Interface *iface = bdp->get_ifj(i, j);
-		nvxs.push_back(iface->pos.x);
-		nvys.push_back(iface->pos.y);
+	    if ( bdp->bcp[NORTH]->type_code == CONJUGATE_HT ) {
+		// Need to assemble the vertices on the north wall
+		int j = bdp->jmax + 1;
+		for ( size_t i = bdp->imin; i <= bdp->imax; ++i ) {
+		    FV_Interface *iface = bdp->get_ifj(i, j);
+		    nvxs.push_back(iface->pos.x);
+		    nvys.push_back(iface->pos.y);
+		}
 	    }
 	}
     } // end for *bdp
@@ -544,12 +547,7 @@ int prepare_to_integrate(size_t start_tindx)
 #       endif
 	if ( master ) { 
 	    // Now on rank0, we can assemble a vector of vertices
-	    vector<Vector3> wall_vtxs;
-	    wall_vtxs.resize(G.T_wall.size());
-	    for ( size_t i = 0; i < wall_vtxs.size(); ++i ) {
-		wall_vtxs[i] = Vector3(wall_xs[i], wall_ys[i]);
-	    }
-	    initialise_wall_node_positions(*(G.wm), wall_vtxs);
+	    initialise_wall_node_positions(*(G.wm), wall_xs, wall_ys);
 	}
     }
 
@@ -1233,6 +1231,7 @@ int integrate_in_time(double target_time)
 	    }
 	    MPI_Barrier(MPI_COMM_WORLD);
 #           endif
+	    // For shared memory version:
 	    // In shared memory version, G.T_wall is up-to-date globally
 	    // and available for all blocks.
 	}

@@ -28,9 +28,10 @@ TWC_OBJECTS = adv.o \
 	e3con.o \
 	init.o
 
+build_new : $(LIBTWC)
+
 clean :
 	- rm *.o *.a
-
 
 #----------------------------------------
 # Building the static library

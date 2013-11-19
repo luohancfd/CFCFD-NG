@@ -7,19 +7,6 @@
 #include "kernel.hh"
 #include "conj-ht-interface.hh"
 
-Wall_model* initialise_wall_model(string fname)
-{
-    //    Wall_model *wm = create_wall_model(fname);
-    //    return wm;
-    return 0;
-}
-
-int initialise_wall_node_positions(Wall_model &wm, vector<Vector3> &wall_vtxs)
-{
-    //return set_south_node_positions(wm, wall_vtxs);
-    return 0;
-}
-
 int add_entries_to_wall_vectors(global_data &gd, int nentries)
 {
     gd.T_wall.insert(gd.T_wall.end(), nentries, 0.0);
@@ -78,10 +65,6 @@ int broadcast_wall_temperatures(global_data &gd)
     return SUCCESS;
 }
 
-int update_temperatures_from_fluxes(Wall_model &wm, double dt, const vector<double> &q_wall, vector<double> &T_wall)
-{
-    //return update_south_temperatures(wm, dt, q_wall, T_wall);
-    return 0;
-}
+
 				    
 

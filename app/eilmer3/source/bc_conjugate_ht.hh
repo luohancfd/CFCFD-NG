@@ -7,12 +7,13 @@ extern "C" {
 #include <lualib.h>
 }
 
+#include "block.hh"
 #include "bc.hh"
 
 
 class ConjugateHeatTransferBC : public BoundaryCondition {
 public:
-    ConjugateHeatTransferBC(Block *bdp, int which_boundary)
+    ConjugateHeatTransferBC(Block *bdp, int which_boundary);
     ConjugateHeatTransferBC(const ConjugateHeatTransferBC &bc);
     ConjugateHeatTransferBC();
     ConjugateHeatTransferBC& operator=(const ConjugateHeatTransferBC &bc);
