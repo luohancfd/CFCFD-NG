@@ -511,6 +511,7 @@ int prepare_to_integrate(size_t start_tindx)
 		    FV_Interface *iface = bdp->get_ifj(i, j);
 		    nvxs.push_back(iface->pos.x);
 		    nvys.push_back(iface->pos.y);
+		    //		    cout << "collected position (" << iface->pos.x << ", " << iface->pos.y << ")\n";
 		}
 	    }
 	}
@@ -547,6 +548,9 @@ int prepare_to_integrate(size_t start_tindx)
 #       endif
 	if ( master ) { 
 	    // Now on rank0, we can assemble a vector of vertices
+	    //	    for ( size_t i = 0; i < wall_xs.size(); ++i ) {
+	    //cout << "i= " << i << " x= " << wall_xs[i] << " y= " << wall_ys[i] << endl;
+	    //}
 	    initialise_wall_node_positions(*(G.wm), wall_xs, wall_ys);
 	}
     }
@@ -1204,7 +1208,11 @@ int integrate_in_time(double target_time)
 	MPI_Barrier(MPI_COMM_WORLD);
 #       endif
 	if ( G.conjugate_ht_active ) {
+	    //	    cout << "gather_wall_fluxes....\n";
 	    int flag = gather_wall_fluxes(G);
+	    //	    for ( size_t i = 0; i < G.q_wall.size(); ++i ) {
+	    //		cout << "i= " << i << "q= " << G.q_wall[i] << endl;
+	    //	    }
 	    if ( flag != SUCCESS ) {
 		cout << "Error gathering energy fluxes at wall from all ranks.\n";
 		cout << "Bailing out!\n";
@@ -1212,7 +1220,11 @@ int integrate_in_time(double target_time)
 	    }
 	    // Now only master has properly updated q vector
 	    if ( master ) {
+		//		cout << "Computing temperatures...\n";
 		flag = update_temperatures_from_fluxes(*(G.wm), G.dt_global, G.q_wall, G.T_wall);
+		//		for ( size_t i = 0; i < G.T_wall.size(); ++i ) {
+		//		    cout << "i= " << i << " T= " << G.T_wall[i] << endl;
+		//		}
 		if ( flag != SUCCESS ) {
 		    cout << "Error computing new temperature at wall in wall conduction model.\n";
 		    cout << "Bailing out!\n";

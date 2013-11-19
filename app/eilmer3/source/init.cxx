@@ -218,7 +218,9 @@ int init_available_bcs_map()
     available_bcs.insert(name_bc_t("PARTIALLY_CATALYTIC",PARTIALLY_CATALYTIC));
     available_bcs.insert(name_bc_t("25",PARTIALLY_CATALYTIC));
     available_bcs.insert(name_bc_t("USER_DEFINED_MASS_FLUX",USER_DEFINED_MASS_FLUX));
-    available_bcs.insert(name_bc_t("user_defined_mass_flux",USER_DEFINED_MASS_FLUX)); 
+    available_bcs.insert(name_bc_t("user_defined_mass_flux",USER_DEFINED_MASS_FLUX));
+    available_bcs.insert(name_bc_t("CONJUGATE_HT",CONJUGATE_HT));
+    available_bcs.insert(name_bc_t("conjugate_ht",CONJUGATE_HT));
     return SUCCESS;
 }
  
@@ -704,6 +706,11 @@ int read_config_parameters(const string filename, bool master)
     G.conjugate_ht_active = i_value;
     dict.parse_string("global_data", "conjugate_ht_file", s_value, "dummy_ht_file");
     if ( G.conjugate_ht_active ) {
+	if ( get_viscous_flag() != 1 ) {
+	    cout << "WARNING: Conjugate heat transfer is active\n";
+	    cout << "WARNING: but the viscous flag is not set.\n";
+	    cout << "WARNING: No heat fluxes will be computed at wall.\n";
+	}
     	G.wm = initialise_wall_model(s_value, G.dt_plot, G.dt_his);
     }
     if ( get_verbose_flag() ) {

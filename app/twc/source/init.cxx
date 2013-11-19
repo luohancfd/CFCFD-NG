@@ -14,16 +14,16 @@
 
 using namespace std;
 
-void grab_config(string fname, list_of_inputs &inputs){
+void grab_config(string fname, list_of_inputs &inputs) {
 
-/* 
-
-	---------------------------------------------------------------------
-	---------------------------------------------------------------------
-	This function grabs data from the user-defined configuration 
+    /* 
+       
+       ---------------------------------------------------------------------
+       ---------------------------------------------------------------------
+       This function grabs data from the user-defined configuration 
     file called config.cfg.  It uses the configuration file parser
     which comes with Eilmer3.
-
+    
     The original files config_parser.cxx and config_parser.hh are
     located in "cfcfd3/lib/util/source".  They have been copied and
     moved to one directory above this one ie "../util".
@@ -44,409 +44,412 @@ void grab_config(string fname, list_of_inputs &inputs){
 
 	---------------------------------------------------------------------
 	---------------------------------------------------------------------
-
+	
 */
 
-	bool truth_val;
-
-	cout << endl << endl <<"--------------------------------------------------------------------" << endl;
-	cout << "\t \t \t \t  ERRORS \t \t \t \t " << endl;
-	cout << "--------------------------------------------------------------------" << endl;
-
+    bool truth_val;
+    
+    cout << endl << endl <<"--------------------------------------------------------------------" << endl;
+    cout << "\t \t \t \t  ERRORS \t \t \t \t " << endl;
+    cout << "--------------------------------------------------------------------" << endl;
+    
     // Open the configuration file
     ConfigParser cfg( fname );
-
-	// Bring in all the data from the config.cfg file.
+    
+    // Bring in all the data from the config.cfg file.
     truth_val = cfg.parse_double( string("Constants"), string("stefanBoltzmann"),
-					inputs.stefanBoltzmann, -1.0 );
-	if (inputs.stefanBoltzmann == -1.0) {
-		cerr << "No input provided for Stefan Boltzmann Constant. Exiting..." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
+				  inputs.stefanBoltzmann, -1.0 );
+    if (inputs.stefanBoltzmann == -1.0) {
+	cerr << "No input provided for Stefan Boltzmann Constant. Exiting..." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
 
-	// -------------------------------------------------------------------------
-	
-	truth_val = cfg.parse_double( string("Geometry"), string("D"),
-					inputs.D, -1.0 );
-	if (inputs.D < 0.0) {
-		cerr << "No input provided for plate width in NS direction D. Exiting..." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
+    // -------------------------------------------------------------------------
+    
+    truth_val = cfg.parse_double( string("Geometry"), string("D"),
+				  inputs.D, -1.0 );
+    if (inputs.D < 0.0) {
+	cerr << "No input provided for plate width in NS direction D. Exiting..." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
 
-	// -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
 
     truth_val = cfg.parse_double( string("Geometry"), string("L"),
-					inputs.L, -1.0 );
-	if (inputs.L < 0.0) {
-		cerr << "No input provided for plate width in EW direction flow L. Exiting..." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
+				  inputs.L, -1.0 );
+    if (inputs.L < 0.0) {
+	cerr << "No input provided for plate width in EW direction flow L. Exiting..." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
 
-	// -------------------------------------------------------------------------
-
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_double( string("Geometry"), string("M"),
-					inputs.M, -1.0 );
-	if (inputs.M < 5.0) {
-		cerr << "Number of nodes in EW direction is too low/not provided. Exiting..." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
-
-	// -------------------------------------------------------------------------
-
+				  inputs.M, -1.0 );
+    if (inputs.M < 5.0) {
+	cerr << "Number of nodes in EW direction is too low/not provided. Exiting..." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
+    
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_double( string("Geometry"), string("N"),
-					inputs.N, -1.0 );
-	if (inputs.N < 5.0) {
-		cerr << "Number of nodes in NS direction is too low/not provided. Exiting..." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
+				  inputs.N, -1.0 );
+    if (inputs.N < 5.0) {
+	cerr << "Number of nodes in NS direction is too low/not provided. Exiting..." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
 
-	// -------------------------------------------------------------------------
-
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_double( string("Geometry"), string("y_h"),
-					inputs.y_h, -1.0 ); // This isn't important if not provided since
-										// axisym_checker fills it in anyway.
-
-	// -------------------------------------------------------------------------
-
+				  inputs.y_h, -1.0 ); // This isn't important if not provided since
+    // axisym_checker fills it in anyway.
+    
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_int( string("Geometry"), string("axi"),
-					inputs.axi, -1.0 );
-	if (inputs.axi == -1.0) {
-		cerr << "Axisymmetric Flag is not specified. Exiting..." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
-
-	// -------------------------------------------------------------------------
-
+			       inputs.axi, -1.0 );
+    if (inputs.axi == -1.0) {
+	cerr << "Axisymmetric Flag is not specified. Exiting..." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
+    
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_double( string("Wall-Material-Properties"), string("k_11"),
-					inputs.k_11, -1.0 );
-	if (inputs.k_11 < 0.0) {
-		cerr << "No value/negative value for thermal conductivity k_11 provided.  Default value of 0.0 is applied." << endl;
-		inputs.k_11 = 0.0;
-		// exit(MISMATCHED_DIMENSIONS);
-	}
-
-	// -------------------------------------------------------------------------
-
+				  inputs.k_11, -1.0 );
+    if (inputs.k_11 < 0.0) {
+	cerr << "No value/negative value for thermal conductivity k_11 provided.  Default value of 0.0 is applied." << endl;
+	inputs.k_11 = 0.0;
+	// exit(MISMATCHED_DIMENSIONS);
+    }
+    
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_double( string("Wall-Material-Properties"), string("k_12"),
-					inputs.k_12, -1.0 );
-	if (inputs.k_12 < 0.0) {
-		cerr << "No value/negative value for thermal conductivity k_12 provided.  Default value of 0.0 is applied." << endl;
-		inputs.k_12 = 0.0;
-		// exit(MISMATCHED_DIMENSIONS);
-	}
-
-	// -------------------------------------------------------------------------
-
+				  inputs.k_12, -1.0 );
+    if (inputs.k_12 < 0.0) {
+	cerr << "No value/negative value for thermal conductivity k_12 provided.  Default value of 0.0 is applied." << endl;
+	inputs.k_12 = 0.0;
+	// exit(MISMATCHED_DIMENSIONS);
+    }
+    
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_double( string("Wall-Material-Properties"), string("k_21"),
-					inputs.k_21, -1.0 );
-	if (inputs.k_21 < 0.0) {
-		cerr << "No value/negative value for thermal conductivity k_21 provided.  Default value of 0.0 is applied." << endl;
-		inputs.k_21 = 0.0;
-		// exit(MISMATCHED_DIMENSIONS);
-	}
-
-	// -------------------------------------------------------------------------
-
+				  inputs.k_21, -1.0 );
+    if (inputs.k_21 < 0.0) {
+	cerr << "No value/negative value for thermal conductivity k_21 provided.  Default value of 0.0 is applied." << endl;
+	inputs.k_21 = 0.0;
+	// exit(MISMATCHED_DIMENSIONS);
+    }
+    
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_double( string("Wall-Material-Properties"), string("k_22"),
-					inputs.k_22, -1.0 );
-	if (inputs.k_22 < 0.0) {
-		cerr << "No value/negative value for thermal conductivity k_22 provided.  Default value of 0.0 is applied." << endl;
-		inputs.k_22 = 0.0;
-		// exit(MISMATCHED_DIMENSIONS);
-	}
-
-	// -------------------------------------------------------------------------
-
+				  inputs.k_22, -1.0 );
+    if (inputs.k_22 < 0.0) {
+	cerr << "No value/negative value for thermal conductivity k_22 provided.  Default value of 0.0 is applied." << endl;
+	inputs.k_22 = 0.0;
+	// exit(MISMATCHED_DIMENSIONS);
+    }
+    
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_double( string("Wall-Material-Properties"), string("rho_w"),
-					inputs.rho_w, -1.0 );
-	if (inputs.rho_w < 0.0) {
-		cerr << "Non physical value/No value for wall density provided.  Exiting..." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
-
-	// -------------------------------------------------------------------------
+				  inputs.rho_w, -1.0 );
+    if (inputs.rho_w < 0.0) {
+	cerr << "Non physical value/No value for wall density provided.  Exiting..." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
+    
+    // -------------------------------------------------------------------------
 
     truth_val = cfg.parse_double( string("Wall-Material-Properties"), string("c_w"),
-					inputs.c_w, -1.0 );
-	if (inputs.c_w < 0.0) {
-		cerr << "Non physical value/No value for wall thermal conductivity provided.  Exiting..." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
+				  inputs.c_w, -1.0 );
+    if (inputs.c_w < 0.0) {
+	cerr << "Non physical value/No value for wall thermal conductivity provided.  Exiting..." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
 
-	// -------------------------------------------------------------------------
-
-
+    // -------------------------------------------------------------------------
+    
+    
     truth_val = cfg.parse_double( string("Timestepping"), string("dt"),
-					inputs.dt, -1.0 );
-	if (inputs.dt < 0.0) {
-		cerr << "Non physical value/No value for timestep provided.  Exiting..." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
-
-	// -------------------------------------------------------------------------
-			
+				  inputs.dt, -1.0 );
+    if (inputs.dt < 0.0) {
+	cerr << "Non physical value/No value for timestep provided.  Exiting..." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
+    
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_double( string("Timestepping"), string("dt_plot"),
 					inputs.dt_plot, -1.0 );
-	if (inputs.dt < 0.0) {
-		cerr << "Non physical value/No value for plotting timestep provided.  Exiting..." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
-
-	// -------------------------------------------------------------------------
-
+    if (inputs.dt < 0.0) {
+	cerr << "Non physical value/No value for plotting timestep provided.  Exiting..." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
+    
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_double( string("Timestepping"), string("t_max"),
-					inputs.t_max, -1.0 );
-	if (inputs.dt < 0.0) {
-		cerr << "Non physical value/No value for maximum time provided.  Exiting..." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
-
-	// -------------------------------------------------------------------------
-
+				  inputs.t_max, -1.0 );
+    if (inputs.dt < 0.0) {
+	cerr << "Non physical value/No value for maximum time provided.  Exiting..." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
+    
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_string( string("Boundary-Conditions"), string("north"),
-					inputs.north, "Brian" );
-	
-	if (inputs.north == "Brian") {
+				  inputs.north, "Brian" );
+    
+    if (inputs.north == "Brian") {
 		cerr << "No input for North BC type.  Exiting..." << endl;
 		exit(MISMATCHED_DIMENSIONS);
-	}
-
-	// -------------------------------------------------------------------------
-	
+    }
+    
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_string( string("Boundary-Conditions"), string("east"),
-					inputs.east, "Brian" );
-	if (inputs.east == "Brian") {
-		cerr << "No input for East BC type.  Exiting..." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
+				  inputs.east, "Brian" );
+    if (inputs.east == "Brian") {
+	cerr << "No input for East BC type.  Exiting..." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
 
-	// -------------------------------------------------------------------------
-
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_string( string("Boundary-Conditions"), string("south"),
-					inputs.south, "Brian" );
-	if (inputs.south == "Brian") {
-		cerr << "No input for North BC type.  Exiting..." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
-
-	// -------------------------------------------------------------------------
-
+				  inputs.south, "Brian" );
+    if (inputs.south == "Brian") {
+	cerr << "No input for North BC type.  Exiting..." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
+    
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_string( string("Boundary-Conditions"), string("west"),
-					inputs.west, "Brian" );
-	if (inputs.west == "Brian") {
-		cerr << "No input for West BC type.  Exiting..." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
-
-	// -------------------------------------------------------------------------
+				  inputs.west, "Brian" );
+    if (inputs.west == "Brian") {
+	cerr << "No input for West BC type.  Exiting..." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
+    
+    // -------------------------------------------------------------------------
     truth_val = cfg.parse_double( string("Boundary-Conditions"), string("Te_n"),
-					inputs.Te_n, -1.0 );
-	if (inputs.north == "conv_rad" && inputs.Te_n < 0.0) {
-		cerr << "North boundary specified as conv_rad but no positive environment temp given.  Exiting..." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
-	else if (inputs.north != "conv_rad" && inputs.Te_n > 0.0) {
-		cerr << "Unnecessary value for north boundary environment temp specified.  Value is ignored in calcultions." << endl;
-	}
-
-	// -------------------------------------------------------------------------
-
+				  inputs.Te_n, -1.0 );
+    if (inputs.north == "conv_rad" && inputs.Te_n < 0.0) {
+	cerr << "North boundary specified as conv_rad but no positive environment temp given.  Exiting..." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
+    else if (inputs.north != "conv_rad" && inputs.Te_n > 0.0) {
+	cerr << "Unnecessary value for north boundary environment temp specified.  Value is ignored in calcultions." << endl;
+    }
+    
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_double( string("Boundary-Conditions"), string("Te_s"),
-					inputs.Te_s, -1.0 );
-	if (inputs.south == "conv_rad" && inputs.Te_s < 0.0) {
-		cerr << "South boundary specified as conv_rad but no positive environment temp given.  Exiting..." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
-	else if (inputs.south != "conv_rad" && inputs.Te_s > 0.0) {
-		cerr << "Unnecessary value for south boundary environment temp specified.  Value is ignored in calcultions." << endl;
-	}
-
-	// -------------------------------------------------------------------------
-
+				  inputs.Te_s, -1.0 );
+    if (inputs.south == "conv_rad" && inputs.Te_s < 0.0) {
+	cerr << "South boundary specified as conv_rad but no positive environment temp given.  Exiting..." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
+    else if (inputs.south != "conv_rad" && inputs.Te_s > 0.0) {
+	cerr << "Unnecessary value for south boundary environment temp specified.  Value is ignored in calcultions." << endl;
+    }
+    
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_double( string("Boundary-Conditions"), string("Te_e"),
-					inputs.Te_e, -1.0 );
-	if (inputs.east == "conv_rad" && inputs.Te_e < 0.0) {
-		cerr << "East boundary specified as conv_rad but no positive environment temp given.  Exiting..." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
-	else if (inputs.east != "conv_rad" && inputs.Te_e > 0.0) {
-		cerr << "Unnecessary value for east boundary environment temp specified.  Value is ignored in calcultions." << endl;
-	}
-
-	// -------------------------------------------------------------------------
-
+				  inputs.Te_e, -1.0 );
+    if (inputs.east == "conv_rad" && inputs.Te_e < 0.0) {
+	cerr << "East boundary specified as conv_rad but no positive environment temp given.  Exiting..." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
+    else if (inputs.east != "conv_rad" && inputs.Te_e > 0.0) {
+	cerr << "Unnecessary value for east boundary environment temp specified.  Value is ignored in calcultions." << endl;
+    }
+    
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_double( string("Boundary-Conditions"), string("Te_w"),
-					inputs.Te_w, -1.0 );
-	if (inputs.west == "conv_rad" && inputs.Te_w < 0.0) {
-		cerr << "West boundary specified as conv_rad but no positive environment temp given.  Exiting..." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
-	else if (inputs.west != "conv_rad" && inputs.Te_w > 0.0) {
-		cerr << "Unnecessary value for west boundary environment temp specified.  Value is ignored in calcultions." << endl;
-	}
-
-	// -------------------------------------------------------------------------
-
+				  inputs.Te_w, -1.0 );
+    if (inputs.west == "conv_rad" && inputs.Te_w < 0.0) {
+	cerr << "West boundary specified as conv_rad but no positive environment temp given.  Exiting..." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
+    else if (inputs.west != "conv_rad" && inputs.Te_w > 0.0) {
+	cerr << "Unnecessary value for west boundary environment temp specified.  Value is ignored in calcultions." << endl;
+    }
+    
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_double( string("Boundary-Conditions"), string("he_n"),
-					inputs.he_n, -1.0 );
-	if (inputs.north == "conv_rad" && inputs.he_n < 0.0) {
-		cerr << "North boundary specified as conv_rad but no physical environment convection coefficient given.  Convection ignored from this BC." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
-	else if (inputs.north != "conv_rad" && inputs.he_n > 0.0) {
-		cerr << "Unnecessary value for north boundary environment convection coefficient specified.  Value is ignored in calcultions." << endl;
-	}
-
-	// -------------------------------------------------------------------------
-
+				  inputs.he_n, -1.0 );
+    if (inputs.north == "conv_rad" && inputs.he_n < 0.0) {
+	cerr << "North boundary specified as conv_rad but no physical environment convection coefficient given.  Convection ignored from this BC." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
+    else if (inputs.north != "conv_rad" && inputs.he_n > 0.0) {
+	cerr << "Unnecessary value for north boundary environment convection coefficient specified.  Value is ignored in calcultions." << endl;
+    }
+    
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_double( string("Boundary-Conditions"), string("he_s"),
-					inputs.he_s, -1.0 );
-	if (inputs.south == "conv_rad" && inputs.he_s < 0.0) {
-		cerr << "South boundary specified as conv_rad but no physical environment convection coefficient given.  Convection ignored from this BC." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
-	else if (inputs.south != "conv_rad" && inputs.he_s > 0.0) {
-		cerr << "Unnecessary value for south boundary environment convection coefficient specified.  Value is ignored in calcultions." << endl;
-	}
-
-	// -------------------------------------------------------------------------
+				  inputs.he_s, -1.0 );
+    if (inputs.south == "conv_rad" && inputs.he_s < 0.0) {
+	cerr << "South boundary specified as conv_rad but no physical environment convection coefficient given.  Convection ignored from this BC." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
+    else if (inputs.south != "conv_rad" && inputs.he_s > 0.0) {
+	cerr << "Unnecessary value for south boundary environment convection coefficient specified.  Value is ignored in calcultions." << endl;
+    }
+    
+    // -------------------------------------------------------------------------
 
     truth_val = cfg.parse_double( string("Boundary-Conditions"), string("he_e"),
-					inputs.he_e, -1.0 );
-	if (inputs.east == "conv_rad" && inputs.he_e < 0.0) {
-		cerr << "East boundary specified as conv_rad but no physical environment convection coefficient given.  Convection ignored from this BC." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
-	else if (inputs.east != "conv_rad" && inputs.he_e > 0.0) {
-		cerr << "Unnecessary value for east boundary environment convection coefficient specified.  Value is ignored in calcultions." << endl;
-	}
-
-	// -------------------------------------------------------------------------
-
+				  inputs.he_e, -1.0 );
+    if (inputs.east == "conv_rad" && inputs.he_e < 0.0) {
+	cerr << "East boundary specified as conv_rad but no physical environment convection coefficient given.  Convection ignored from this BC." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
+    else if (inputs.east != "conv_rad" && inputs.he_e > 0.0) {
+	cerr << "Unnecessary value for east boundary environment convection coefficient specified.  Value is ignored in calcultions." << endl;
+    }
+    
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_double( string("Boundary-Conditions"), string("he_w"),
-					inputs.he_w, -1.0 );
-	if (inputs.west == "conv_rad" && inputs.he_w < 0.0) {
-		cerr << "West boundary specified as conv_rad but no physical environment convection coefficient given.  Convection ignored from this BC." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
-	else if (inputs.west != "conv_rad" && inputs.he_w > 0.0) {
-		cerr << "Unnecessary value for west boundary environment convection coefficient specified.  Value is ignored in calcultions." << endl;
-	}
-
-	// -------------------------------------------------------------------------
-	
-	
-
+				  inputs.he_w, -1.0 );
+    if (inputs.west == "conv_rad" && inputs.he_w < 0.0) {
+	cerr << "West boundary specified as conv_rad but no physical environment convection coefficient given.  Convection ignored from this BC." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
+    else if (inputs.west != "conv_rad" && inputs.he_w > 0.0) {
+	cerr << "Unnecessary value for west boundary environment convection coefficient specified.  Value is ignored in calcultions." << endl;
+    }
+    
+    // -------------------------------------------------------------------------
+    
+    
+    
     truth_val = cfg.parse_double( string("Boundary-Conditions"), string("emis_n"),
-					inputs.emis_n, -1.0 );
-	if (inputs.north == "conv_rad" && inputs.emis_n <= 0.0) {
-		cerr << "North boundary specified as conv_rad but no physical surface emissivity coefficient given.  Radiation ignored from this BC." << endl;
-	}
-	else if (inputs.north != "conv_rad" && inputs.emis_n > 0.0) {
-		cerr << "Unnecessary value for north boundary environment surface emissivity specified.  Value is ignored in calcultions." << endl;
-	}
-
-
-	// -------------------------------------------------------------------------
-
+				  inputs.emis_n, -1.0 );
+    if (inputs.north == "conv_rad" && inputs.emis_n <= 0.0) {
+	cerr << "North boundary specified as conv_rad but no physical surface emissivity coefficient given.  Radiation ignored from this BC." << endl;
+    }
+    else if (inputs.north != "conv_rad" && inputs.emis_n > 0.0) {
+	cerr << "Unnecessary value for north boundary environment surface emissivity specified.  Value is ignored in calcultions." << endl;
+    }
+    
+    
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_double( string("Boundary-Conditions"), string("emis_s"),
-					inputs.emis_s, -1.0 );
-	if (inputs.south == "conv_rad" && inputs.emis_s <= 0.0) {
-		cerr << "South boundary specified as conv_rad but no physical surface emissivity coefficient given.  Radiation ignored from this BC." << endl;
-	}
-	else if (inputs.south != "conv_rad" && inputs.emis_s > 0.0) {
-		cerr << "Unnecessary value for south boundary environment surface emissivity specified.  Value is ignored in calcultions." << endl;
-	}
-
-
-	// -------------------------------------------------------------------------
-
+				  inputs.emis_s, -1.0 );
+    if (inputs.south == "conv_rad" && inputs.emis_s <= 0.0) {
+	cerr << "South boundary specified as conv_rad but no physical surface emissivity coefficient given.  Radiation ignored from this BC." << endl;
+    }
+    else if (inputs.south != "conv_rad" && inputs.emis_s > 0.0) {
+	cerr << "Unnecessary value for south boundary environment surface emissivity specified.  Value is ignored in calcultions." << endl;
+    }
+    
+    
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_double( string("Boundary-Conditions"), string("emis_e"),
-					inputs.emis_e, -1.0 );
-	if (inputs.east == "conv_rad" && inputs.emis_e <= 0.0) {
-		cerr << "East boundary specified as conv_rad but no physical surface emissivity coefficient given.  Radiation ignored from this BC." << endl;
-	}
-	else if (inputs.east != "conv_rad" && inputs.emis_e > 0.0) {
-		cerr << "Unnecessary value for east boundary environment surface emissivity specified.  Value is ignored in calcultions." << endl;
-	}
-
-
-	// -------------------------------------------------------------------------
+				  inputs.emis_e, -1.0 );
+    if (inputs.east == "conv_rad" && inputs.emis_e <= 0.0) {
+	cerr << "East boundary specified as conv_rad but no physical surface emissivity coefficient given.  Radiation ignored from this BC." << endl;
+    }
+    else if (inputs.east != "conv_rad" && inputs.emis_e > 0.0) {
+	cerr << "Unnecessary value for east boundary environment surface emissivity specified.  Value is ignored in calcultions." << endl;
+    }
+    
+    
+    // -------------------------------------------------------------------------
 
     truth_val = cfg.parse_double( string("Boundary-Conditions"), string("emis_w"),
 					inputs.emis_w, -1.0 );
-	if (inputs.west == "conv_rad" && inputs.emis_w <= 0.0) {
-		cerr << "West boundary specified as conv_rad but no physical surface emissivity coefficient given.  Radiation ignored from this BC." << endl;
-	}
-	else if (inputs.west != "conv_rad" && inputs.emis_w > 0.0) {
-		cerr << "Unnecessary value for west boundary environment surface emissivity specified.  Value is ignored in calcultions." << endl;
-	}
-
-
-	// -------------------------------------------------------------------------
-
-	if (inputs.north == "conv_rad" && inputs.he_n <= 0.0 && inputs.emis_n <= 0.0) {
-		cerr << "Insufficient information provided to compute north conv_rad boundary" << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
-	if (inputs.south == "conv_rad" && inputs.he_s <= 0.0 && inputs.emis_s <= 0.0) {
-		cerr << "Insufficient information provided to compute south conv_rad boundary" << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
-	if (inputs.east == "conv_rad" && inputs.he_e <= 0.0 && inputs.emis_e <= 0.0) {
-		cerr << "Insufficient information provided to compute east conv_rad boundary" << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
-	if (inputs.west == "conv_rad" && inputs.he_w <= 0.0 && inputs.emis_w <= 0.0) {
-		cerr << "Insufficient information provided to compute west conv_rad boundary" << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
-
-
-	// -------------------------------------------------------------------------
-
+    if (inputs.west == "conv_rad" && inputs.emis_w <= 0.0) {
+	cerr << "West boundary specified as conv_rad but no physical surface emissivity coefficient given.  Radiation ignored from this BC." << endl;
+    }
+    else if (inputs.west != "conv_rad" && inputs.emis_w > 0.0) {
+	cerr << "Unnecessary value for west boundary environment surface emissivity specified.  Value is ignored in calcultions." << endl;
+    }
+    
+    
+    // -------------------------------------------------------------------------
+    
+    if (inputs.north == "conv_rad" && inputs.he_n <= 0.0 && inputs.emis_n <= 0.0) {
+	cerr << "Insufficient information provided to compute north conv_rad boundary" << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
+    if (inputs.south == "conv_rad" && inputs.he_s <= 0.0 && inputs.emis_s <= 0.0) {
+	cerr << "Insufficient information provided to compute south conv_rad boundary" << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
+    if (inputs.east == "conv_rad" && inputs.he_e <= 0.0 && inputs.emis_e <= 0.0) {
+	cerr << "Insufficient information provided to compute east conv_rad boundary" << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
+    if (inputs.west == "conv_rad" && inputs.he_w <= 0.0 && inputs.emis_w <= 0.0) {
+	cerr << "Insufficient information provided to compute west conv_rad boundary" << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
+    
+    
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_int( string("History"), string("flag_hist"),
-					inputs.flag_hist, 0 );
-	// A value of 1 means that history is recorded.  Default value of 0 means
-	// that no history is recorded.
-	
-
-	// -------------------------------------------------------------------------
-
+			       inputs.flag_hist, 0 );
+    // A value of 1 means that history is recorded.  Default value of 0 means
+    // that no history is recorded.
+    
+    
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_int( string("History"), string("nn_hist"),
-					inputs.nn_hist, -1.0 );
-	if (inputs.flag_hist == 0) {
-		if (inputs.nn_hist < 0 || inputs.nn_hist > inputs.M*inputs.N-1) {
-			cerr << "No node specified for recording history. Exiting..." << endl;
-			exit(MISMATCHED_DIMENSIONS);
+			       inputs.nn_hist, -1.0 );
+    if (inputs.flag_hist == 0) {
+	if (inputs.nn_hist < 0 || inputs.nn_hist > inputs.M*inputs.N-1) {
+	    cerr << "No node specified for recording history. Exiting..." << endl;
+	    exit(MISMATCHED_DIMENSIONS);
+	    
+	}	
+    }
 
-		}	
-	}
-
-	// -------------------------------------------------------------------------
-
+    // -------------------------------------------------------------------------
+    
     truth_val = cfg.parse_double( string("History"), string("dt_hist"),
-					inputs.dt_hist, -1.0 );
-	if (inputs.dt_hist < 0 || inputs.dt_hist > inputs.t_max ) {
-		cerr << "Inappropriate timestep specified for recording history. Exiting..." << endl;
-		exit(MISMATCHED_DIMENSIONS);
-	}
-
-	// -------------------------------------------------------------------------
-
-
-	cout << "--------------------------------------------------------------------" << endl;
-	cout << "--------------------------------------------------------------------" << endl << endl << endl;
+				  inputs.dt_hist, -1.0 );
+    if (inputs.dt_hist < 0 || inputs.dt_hist > inputs.t_max ) {
+	cerr << "Inappropriate timestep specified for recording history. Exiting..." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
+    
+    // -------------------------------------------------------------------------
+    
+    
+    cout << "--------------------------------------------------------------------" << endl;
+    cout << "--------------------------------------------------------------------" << endl << endl << endl;
+    // Empty test to stop compiler warning
+    if (truth_val)
+	;
  
 }
 
 int init_with_eilmer3(list_of_inputs &inputs, list_of_vars &vars){
-	ar_checker(inputs);
-	axisym_checker(inputs);
-	init_tempprof(inputs, vars);
-	vars.fluxes.resize(inputs.M*inputs.N, 0.0);
-	init_coeff_matrix(inputs, vars);
-	return SUCCESS;
+    ar_checker(inputs);
+    axisym_checker(inputs);
+    init_tempprof(inputs, vars);
+    vars.fluxes.resize(inputs.M*inputs.N, 0.0);
+    init_coeff_matrix(inputs, vars);
+    return SUCCESS;
 }
 
 int init_tr( list_of_inputs &inputs, list_of_vars &vars) {
@@ -590,29 +593,29 @@ int init_tempprof(list_of_inputs &inputs, list_of_vars &vars) {
 
 /*
 
-	---------------------------------------------------------------------
-	---------------------------------------------------------------------
-	Initializes the temperature field.  This can be read from a text
-	file or changed using the for and if statements as part of this 
-	function.
-	---------------------------------------------------------------------
-
-	\author Jared Clifford
-	\version October 2013
-
-	---------------------------------------------------------------------
-	---------------------------------------------------------------------
-
+  ---------------------------------------------------------------------
+  ---------------------------------------------------------------------
+  Initializes the temperature field.  This can be read from a text
+  file or changed using the for and if statements as part of this 
+  function.
+  ---------------------------------------------------------------------
+  
+  \author Jared Clifford
+  \version October 2013
+  
+  ---------------------------------------------------------------------
+  ---------------------------------------------------------------------
+  
 */
-	
-	vars.temps.resize(inputs.M*inputs.N,300.0); // Initializes the temp field.
-
-	const char* filename = "../user/init_temp.txt"; //Filename of initial temp field
-	bool temp_text_exists = file_exists(filename); // Evaluates whether file exists
-
-	if (temp_text_exists == 1) {
-		cout << "Temp profile needs to be read-- function needs to be written " << endl;
-	}
+    
+    vars.temps.resize(inputs.M*inputs.N, 400.0); // Initializes the temp field.
+    
+    const char* filename = "../user/init_temp.txt"; //Filename of initial temp field
+    bool temp_text_exists = file_exists(filename); // Evaluates whether file exists
+    
+    if (temp_text_exists == 1) {
+	cout << "Temp profile needs to be read-- function needs to be written " << endl;
+    }
 /*
 	else {
 		for (int i = 0; i<inputs.M*inputs.N; i++) {
@@ -633,7 +636,7 @@ int init_tempprof(list_of_inputs &inputs, list_of_vars &vars) {
 	}
 */
 	
-	return SUCCESS;
+    return SUCCESS;
 
 }
 

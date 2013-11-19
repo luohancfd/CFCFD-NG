@@ -85,7 +85,8 @@ std::string get_bc_name(bc_t bc)
     case EQUIL_CATALYTIC: return "equil_catalytic";
     case SUPER_CATALYTIC: return "super_catalytic";
     case PARTIALLY_CATALYTIC: return "partially_catalytic";
-    case USER_DEFINED_MASS_FLUX: return "user_defined_mass_flux";	
+    case USER_DEFINED_MASS_FLUX: return "user_defined_mass_flux";
+    case CONJUGATE_HT: return "conjugate_ht";
     default: return "none";
     }
 } // end get_bc_name()

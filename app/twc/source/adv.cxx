@@ -206,7 +206,7 @@ int flux_calc( list_of_inputs &inputs, list_of_vars &vars, vector<double> q_wall
 		}
 		sflux[0] = q_wall[0];
 		sflux[sflux.size()-1] = q_wall[q_wall.size()-1];
-		print_valarray(sflux);
+		//		print_valarray(sflux);
 	}
 
 	else if (inputs.south == "udf_flux") {

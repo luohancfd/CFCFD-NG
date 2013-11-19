@@ -78,6 +78,7 @@ SLIDING_T = object()
 FSTC = object()
 SHOCK_FITTING_IN = object()
 USER_DEFINED_MASS_FLUX = object()
+CONJUGATE_HT = object()
 #
 # The integer values in the following dictionary are a reminder of the old
 # macro definitions in the C code.  They are retained here for fererence.
@@ -129,7 +130,8 @@ bcName = {
     SLIDING_T: "SLIDING_T",
     FSTC: "FSTC",
     SHOCK_FITTING_IN: "SHOCK_FITTING_IN",
-    USER_DEFINED_MASS_FLUX: "USER_DEFINED_MASS_FLUX"
+    USER_DEFINED_MASS_FLUX: "USER_DEFINED_MASS_FLUX",
+    CONJUGATE_HT: "CONJUGATE_HT"
     }
 
 class BoundaryCondition(object):
@@ -824,6 +826,29 @@ class UserDefinedMassFluxBC(BoundaryCondition):
     def __copy__(self):
         return UserDefinedMassFluxBC(filename=self.filename, label=self.label)
 
+class ConjugateHTBC(BoundaryCondition):
+    """
+    A wall with conjugate heat transfer coupling in wall and flow domain.
+
+    This boundary condition is only effective when a wall model for the
+    conjugate heat transfer at the boundary between fluid and solid
+    is active. See gdata.conjugate_ht_active and gdata.conjugate_ht_file.
+    Aside from the heat transfer, this wall acts as a no-slip wall.
+    """
+    def __init__(self, emissivity=1.0, label=""):
+        """
+        Construct a conjugate heat transfer, solid-wall boundary.
+
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
+        BoundaryCondition.__init__(self, type_of_BC=CONJUGATE_HT, is_wall=1,
+                                   emissivity=emissivity, label=label)
+        return
+    def __str__(self):
+        return "ConjugateHTBC(label=\"%s\")" % self.label
+    def __copy__(self):
+        return ConjugateHTBC(emissivity=self.emissivity,label=self.label)
 
 #####################################################################################
 # FIX-ME -- should we merge the catalycity bcs with the main boundary-condition list?

@@ -102,6 +102,7 @@ apply_viscous(double t)
 	    }
 	    for ( size_t imode = 0; imode < nmodes; ++imode ) {
 		fs.gas->T[imode] = G.T_wall[iT];
+		//cout << "fs.gas.T= " << fs.gas->T[imode] << endl;
 	    }
 	    ++iT;
 	} // end i loop
