@@ -32,6 +32,12 @@ Gas_model() {}
 Gas_model::
 Gas_model(string cfile)
 {
+    // In general, assume that a gas model is NOT compatible with the 
+    // finite-rate chemistry module
+    set_reaction_compatibility(false);
+    // For the cases where it is, SEE: composite-gas-model.cxx where
+    // the thermal behaviour model is set.
+
     lua_State *L = initialise_lua_State();
     if( luaL_dofile(L, cfile.c_str()) != 0 ) {
 	ostringstream ost;

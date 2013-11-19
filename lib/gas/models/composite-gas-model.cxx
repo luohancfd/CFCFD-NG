@@ -97,6 +97,7 @@ Composite_gas_model(string cfile)
 	TBM_ = (Thermal_behaviour_model*) new Constant_specific_heats(L);
     }
     else if ( TBM == "thermally perfect" ) {
+	set_reaction_compatibility(true);
 	TBM_ = (Thermal_behaviour_model*) new Perfect_thermal_behaviour(L);
     }
     else if ( TBM == "thermally real" ) {
@@ -106,6 +107,7 @@ Composite_gas_model(string cfile)
         TBM_ = (Thermal_behaviour_model*) new Dense_real_thermal_behaviour(L);
     }
     else if ( TBM == "thermal nonequilibrium" ) {
+	set_reaction_compatibility(true);
 	TBM_ = (Thermal_behaviour_model*) new Noneq_thermal_behaviour(L);
 	Noneq_thermal_behaviour *ntb = dynamic_cast<Noneq_thermal_behaviour*>(TBM_);
 	m_components_.resize(ntb->get_number_of_modes());

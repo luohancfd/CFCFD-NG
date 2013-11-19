@@ -347,6 +347,16 @@ int read_config_parameters(const string filename, bool master)
 
     dict.parse_int("global_data", "reacting_flag", i_value, 0);
     set_reacting_flag( i_value );
+    if ( get_reacting_flag() ) {
+	// Test that the gas model is compatible with finite-rate chemistry.
+	if ( !gmodel->good_for_reactions() ) {
+	    cout << "ERROR: The selected gas model is NOT compatible with\n";
+	    cout << "ERROR: the finite-rate chemistry module.\n";
+	    cout << "Bailing out!\n";
+	    exit(BAD_INPUT_ERROR);
+	}
+    }
+		
     dict.parse_double("global_data", "reaction_time_start", G.reaction_time_start, 0.0);
     dict.parse_double("global_data", "T_frozen", G.T_frozen, 300.0);
     dict.parse_string("global_data", "reaction_update", s_value, "dummy_scheme");

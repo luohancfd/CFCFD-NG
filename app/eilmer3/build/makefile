@@ -401,7 +401,7 @@ else
         CXXFLAG3 := -c
     else
         # Unix/Linux and Darwin on OS X
-        CXXFLAG3 := -c -fPIC -std=c++0x
+        CXXFLAG3 := -c -fPIC
     endif
 endif
 libprep3_wrap.o : $(SRC)/libprep3_wrap.cxx

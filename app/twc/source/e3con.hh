@@ -10,7 +10,7 @@ struct Wall_model {
 
 //Functions
 
-Wall_model* initialise_wall_model(string fname, double dt_plot, double dt_history);
+Wall_model* initialise_wall_model(std::string fname, double dt_plot, double dt_history);
 int grab_config_from_file(string fname, Wall_model &wm);
 int sv(Wall_model &wm);
 int initialise_wall_node_positions(Wall_model &wm, const vector<double> &wall_xs, const vector<double> &wall_ys);
