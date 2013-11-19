@@ -557,6 +557,9 @@ class GlobalData(object):
         Some combinations of parameters are not compatible and need
         to be adjusted before writing the control and config files.
         """
+        gmodel = get_gas_model_ptr()
+        if self.reacting_flag and not gmodel.good_for_reactions():
+            raise RuntimeError("You have selected reactions but do not have an appropriate gas model.")
         if self.shock_fitting_flag:
             self.moving_grid_flag = 1
         if self.t_order != None:
