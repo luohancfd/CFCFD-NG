@@ -140,6 +140,7 @@ E3_OBJECTS_2 := kernel.o \
 	bc_menter_correction.o \
 	bc_fstc.o \
 	bc_conjugate_ht.o \
+	bc_moving_wall.o \
 	init.o \
 	block_invs.o \
 	visc.o \
@@ -557,6 +558,10 @@ bc_conjugate_ht.o : $(SRC)/bc_conjugate_ht.cxx $(SRC)/bc_conjugate_ht.hh $(SRC)/
 bc_sliding_t.o : $(SRC)/bc_sliding_t.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_sliding_t.cxx -o bc_sliding_t.o
+
+bc_moving_wall.o : $(SRC)/bc_moving_wall.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
+    $(NM_SRC)/zero_finders.hh
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_moving_wall.cxx -o bc_moving_wall.o
 
 bc_subsonic_in.o : $(SRC)/bc_subsonic_in.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh

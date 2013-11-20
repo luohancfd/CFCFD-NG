@@ -50,7 +50,8 @@ enum bc_t {
     SUPER_CATALYTIC,
     PARTIALLY_CATALYTIC,
     USER_DEFINED_MASS_FLUX,
-    CONJUGATE_HT
+    CONJUGATE_HT,
+    MOVING_WALL
 };
 std::string get_bc_name(bc_t bc);
 

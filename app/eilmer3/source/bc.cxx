@@ -51,6 +51,7 @@ extern "C" {
 #include "bc_fstc.hh"
 #include "bc_udmf.hh"
 #include "bc_conjugate_ht.hh"
+#include "bc_moving_wall.hh"
 #include "kernel.hh"
 #include "diffusion.hh"
 
@@ -87,6 +88,7 @@ std::string get_bc_name(bc_t bc)
     case PARTIALLY_CATALYTIC: return "partially_catalytic";
     case USER_DEFINED_MASS_FLUX: return "user_defined_mass_flux";
     case CONJUGATE_HT: return "conjugate_ht";
+    case MOVING_WALL: return "moiving_wall";	
     default: return "none";
     }
 } // end get_bc_name()
@@ -887,6 +889,7 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     double Twall_f = 300.0;
     double t_i = 0.0;
     double t_f = 0.0;
+    double r_omega = 0.0;
     int assume_ideal = 0;
     std::string filename = "";
     size_t n_profile = 1;
@@ -1006,6 +1009,11 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     case CONJUGATE_HT:
 	newBC = new ConjugateHeatTransferBC(bdp, which_boundary);
 	break;
+    case MOVING_WALL:
+        dict.parse_double(section, "r_omega", r_omega, 0.0);
+        dict.parse_double(section, "emissivity", emissivity, 1.0);
+        newBC = new MovingWallBC(bdp, which_boundary, r_omega, emissivity);
+        break;
     default:
 	cerr << "create_BC() error: boundary condition \"" << type_of_BC 
 	     << "\" is not available." << endl;

@@ -79,9 +79,10 @@ FSTC = object()
 SHOCK_FITTING_IN = object()
 USER_DEFINED_MASS_FLUX = object()
 CONJUGATE_HT = object()
+MOVING_WALL = object()
 #
 # The integer values in the following dictionary are a reminder of the old
-# macro definitions in the C code.  They are retained here for fererence.
+# macro definitions in the C code.  They are retained here for reference.
 #
 bcSymbolFromName = {
      0: ADJACENT, "0": ADJACENT, "ADJACENT": ADJACENT, "COMMON": ADJACENT,
@@ -131,7 +132,8 @@ bcName = {
     FSTC: "FSTC",
     SHOCK_FITTING_IN: "SHOCK_FITTING_IN",
     USER_DEFINED_MASS_FLUX: "USER_DEFINED_MASS_FLUX",
-    CONJUGATE_HT: "CONJUGATE_HT"
+    CONJUGATE_HT: "CONJUGATE_HT",
+    MOVING_WALL: "MOVING_WALL"
     }
 
 class BoundaryCondition(object):
@@ -141,7 +143,7 @@ class BoundaryCondition(object):
     __slots__ = 'type_of_BC', 'Twall', 'Pout', 'inflow_condition', \
                 'x_order', 'sponge_flag', 'other_block', 'other_face', 'orientation', \
                 'filename', 'n_profile', 'is_wall', 'sets_conv_flux', 'sets_visc_flux', 'assume_ideal', \
-                'mdot', 'Twall_i', 'Twall_f', 't_i', 't_f', 'emissivity', 'label'
+                'mdot', 'Twall_i', 'Twall_f', 't_i', 't_f', 'emissivity', 'r_omega', 'label'
     def __init__(self,
                  type_of_BC=SLIP_WALL,
                  Twall=300.0,
@@ -164,6 +166,7 @@ class BoundaryCondition(object):
                  t_i=0.0,
                  t_f=0.0,
                  emissivity=1.0,
+                 r_omega=0.0,
                  label=""):
         """
         Construct a generic boundary condition object.
@@ -211,6 +214,7 @@ class BoundaryCondition(object):
         :param Twall_f: final temperature for sliding temperature BC
         :param t_i: initial time for sliding temperature BC
         :param t_f: final time for sliding temperature BC
+        :param r_omega: rotational speed for Jason Qin's moving-wall boundary
         :param label: A string that may be used to assist in identifying the boundary
             in the post-processing phase of a simulation.
         """
@@ -235,6 +239,7 @@ class BoundaryCondition(object):
         self.t_i = t_i
         self.t_f = t_f
         self.emissivity = emissivity
+        self.r_omega = r_omega
         self.label = label
             
         return
@@ -259,6 +264,7 @@ class BoundaryCondition(object):
         for mdi in mdot: str_rep += "%g," % mdi
         str_rep += "]"
         str_rep += ", emissivity=%g" % self.emissivity
+        str_rep += ", r_omega=%g" % self.r_omega
         str_rep += ", label=\"%s\")" % self.label
         return str_rep
     def __copy__(self):
@@ -283,6 +289,7 @@ class BoundaryCondition(object):
                                  t_i=self.t_i,
                                  t_f=self.t_f,
                                  emissivity=self.emissivity,
+                                 r_omega=self.r_omega,
                                  label=self.label)
     
 class AdjacentBC(BoundaryCondition):
@@ -849,6 +856,30 @@ class ConjugateHTBC(BoundaryCondition):
         return "ConjugateHTBC(label=\"%s\")" % self.label
     def __copy__(self):
         return ConjugateHTBC(emissivity=self.emissivity,label=self.label)
+
+class MovingWallBC(BoundaryCondition):
+    """
+    A solid boundary with no-slip but non-zero velocity.
+
+    Like the AdiabaticBC, this is completey effective only when viscous
+    effects are active.  Else, it is just like another solid (slip) wall.
+    """
+    def __init__(self, r_omega, label=""):
+        """
+        Construct a no-slip, sliding-temperature, solid-wall boundary.
+
+        :param r_omega: rotational speed in rad/s
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
+        BoundaryCondition.__init__(self, type_of_BC=MOVING_WALL, 
+            r_omega=r_omega,  label=label)
+        return
+    def __str__(self):
+        return "MovingWallBC(%g, label=\"%s\")" % \
+            (self.r_omega, self.label)
+    def __copy__(self):
+        return MovingWallBC(r_omega=self.r_omega, label=self.label)
 
 #####################################################################################
 # FIX-ME -- should we merge the catalycity bcs with the main boundary-condition list?
