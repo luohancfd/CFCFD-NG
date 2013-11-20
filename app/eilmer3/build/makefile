@@ -50,6 +50,9 @@ include ../../../lib/util/source/systems.mk
 CFLAG += -DWITH_IMPLICIT=$(WITH_IMPLICIT)
 CXXFLAG += -DWITH_IMPLICIT=$(WITH_IMPLICIT)
 LLIB += -lpopt -ldl -L/opt/local/lib
+ifeq ($(WITH_MPI), 1)
+    MPI_FLAGS := $(CFLAG_MPI) -D_MPI
+endif
 
 # Test if we are asking for debugging information for a single cell
 ifdef PRNT_DBG_CELL
@@ -110,15 +113,13 @@ E3_UTILS := ../utilities/p2e.py ../utilities/import_grid.py \
 E3_OBJECTS_1 := e3shared.o e3rad.o
 E3_OBJECTS_1_MPI := e3mpi.o
 
-E3_OBJECTS_2 := kernel.o \
+E3_OBJECTS_COMMON := kernel.o \
 	block.o \
 	block_geometry.o \
 	block_moving_grid.o \
 	block_io.o \
 	block_bgk.o \
 	block_filter.o \
-	exch2d.o \
-	exch3d.o \
 	bc.o \
 	bc_catalytic.o \
 	bc_adjacent.o \
@@ -141,6 +142,8 @@ E3_OBJECTS_2 := kernel.o \
 	bc_fstc.o \
 	bc_conjugate_ht.o \
 	bc_moving_wall.o \
+	exch2d.o \
+	exch3d.o \
 	init.o \
 	block_invs.o \
 	visc.o \
@@ -169,14 +172,15 @@ E3_OBJECTS_2 := kernel.o \
 	cell_finder.o \
 	mersenne.o \
 	ray_tracing_pieces.o \
-	bgk.o \
-	conj-ht-interface.o
+	bgk.o
 
 ifeq ($(LES_DATA), 1)
-    E3_OBJECTS_2 += les.o
+    E3_OBJECTS_COMMON += les.o
 endif
 
-E3_OBJECTS_2_MPI := exch_mpi.o
+E3_OBJECTS_MPI := exch_mpi.o conj-ht-interface-mpi.o
+
+E3_OBJECTS_NO_MPI := conj-ht-interface-no-mpi.o
 
 PY_FILES = e3prep.py e3post.py turbo_post.py cgns_grid.py e3cgns.py e3history.py \
 	e3_block.py e3_render.py e3_grid.py e3_flow.py bc_defs.py flux_dict.py \
@@ -236,7 +240,8 @@ clean :
 	- rm $(E3_EXE_FILES) $(E3_MPI_EXE_FILES)
 	- rm $(PY_FILES)
 	@echo Deleting object files
-	- rm $(E3_OBJECTS_1) $(E3_OBJECTS_2) $(E3_OBJECTS_1_MPI) $(E3_OBJECTS_2_MPI)
+	- rm $(E3_OBJECTS_1) $(E3_OBJECTS_1_MPI) \
+		$(E3_OBJECTS_COMMON) $(E3_OBJECTS_MPI) $(E3_OBJECTS_NO_MPI)
 	- rm *.pyc
 	- rm libprep3_wrap.o
 	@echo Deleting generated source files
@@ -285,11 +290,11 @@ e3rad :
 # Library of code modules
 # -----------------------
 
-$(LIBE3) : $(E3_OBJECTS_2)
+$(LIBE3) : $(E3_OBJECTS_COMMON)
 ifneq ($(strip $(wildcard $(LIBE3))),)
 	- rm $(LIBE3)
 endif
-	$(AR) rv $(LIBE3) $(E3_OBJECTS_2)
+	$(AR) rv $(LIBE3) $(E3_OBJECTS_COMMON)
 	- ranlib $(LIBE3)
 
 $(LIBRAD):
@@ -365,20 +370,26 @@ flux_dict.py : $(SRC)/flux_dict.py
 # This is a combination of the libgas2 and libgeom2 modules.
 
 # Dynamic link library for MINGW32 environment on MS-Windows
-_libprep3.dll : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBPYTHON) $(LIBLUA) $(LIBZLIB) $(LIBTWC)
+_libprep3.dll : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) \
+		$(LIBUTIL) $(LIBPYTHON) $(LIBLUA) $(LIBZLIB) $(LIBTWC)
 	$(CXXLINK) $(LFLAG) $(LDFLAG) -shared -o _libprep3.dll libprep3_wrap.o \
 		-L$(PYTHON_DIR)/libs \
-		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBPYTHON) $(LIBLUA) $(LIBZLIB) $(LIBTWC) $(LLIB)
+		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) \
+		$(LIBPYTHON) $(LIBLUA) $(LIBZLIB) $(LIBTWC) $(LLIB)
 
 # Shared object for Unix/Linux
-_libprep3.so : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB) $(LIBTWC)
+_libprep3.so : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) \
+		$(LIBUTIL) $(LIBLUA) $(LIBZLIB) $(LIBTWC)
 	$(CXXLINK) $(LFLAG) $(LDFLAG) -shared -o _libprep3.so libprep3_wrap.o \
-		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB) $(LIBTWC) $(LLIB)
+		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) \
+		$(LIBLUA) $(LIBZLIB) $(LIBTWC) $(LLIB)
 
 # Dynamic library for Mac OS X
-_libprep3.dylib : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB) $(LIBTWC)
+_libprep3.dylib : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) \
+		$(LIBUTIL) $(LIBLUA) $(LIBZLIB) $(LIBTWC)
 	$(CXXLINK) $(LFLAG) $(LDFLAG) -shared -o _libprep3.dylib libprep3_wrap.o \
-		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBLUA) $(LIBZLIB) $(LIBTWC) $(LLIB) -framework Python
+		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) \
+		$(LIBLUA) $(LIBZLIB) $(LIBTWC) $(LLIB) -framework Python
 
 # The SWIG interface file and corresponding documentation
 # Normally, we would not try to rebuild this file because 
@@ -448,25 +459,28 @@ e3console.tcl: $(SRC)/e3console.tcl
 	cp $(SRC)/e3console.tcl .
 	chmod +x e3console.tcl
 
-e3shared.exe : e3shared.o $(LIBE3) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
+e3shared.exe : e3shared.o $(LIBE3) $(E3_OBJECTS_NO_MPI) $(LIBGAS) $(LIBRAD) \
+		$(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
 		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBTWC)
 	$(CXXLINK) $(PCA) $(LFLAG) e3shared.o \
-		$(LIBE3) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
+		$(LIBE3) $(E3_OBJECTS_NO_MPI) $(LIBGAS) $(LIBRAD) \
+		$(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
 		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBTWC) $(LLIB) \
 		-o e3shared.exe
 
-e3mpi.exe : e3mpi.o $(E3_OBJECTS_2_MPI) \
-		$(LIBE3) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
+e3mpi.exe : e3mpi.o $(LIBE3) $(E3_OBJECTS_MPI) \
+		$(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
 		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBTWC)
-	$(CXXLINK) $(PCA) $(LFLAG) e3mpi.o $(E3_OBJECTS_2_MPI) \
-		$(LIBE3) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
+	$(CXXLINK) $(PCA) $(LFLAG) e3mpi.o $(LIBE3) $(E3_OBJECTS_MPI) \
+		$(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
 		$(LIBINIPARSER) $(LMPI) $(LIBLUA) $(LIBZLIB) $(LIBTWC) $(LLIB) \
 		-o e3mpi.exe
 
-e3rad.exe : e3rad.o $(LIBE3) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
+e3rad.exe : e3rad.o $(LIBE3) $(E3_OBJECTS_NO_MPI) \
+		$(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
 		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBTWC)
-	$(CXXLINK) $(PCA) $(LFLAG) e3rad.o \
-		$(LIBE3) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
+	$(CXXLINK) $(PCA) $(LFLAG) e3rad.o $(LIBE3) $(E3_OBJECTS_NO_MPI) \
+		$(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) $(LIBGEOM2) \
 		$(LIBINIPARSER) $(LIBLUA) $(LIBZLIB) $(LIBTWC) $(LLIB) \
 		-o e3rad.exe
 
@@ -708,11 +722,13 @@ ray_tracing_pieces.o : $(SRC)/ray_tracing_pieces.cxx $(SRC)/ray_tracing_pieces.h
 bgk.o : $(SRC)/bgk.cxx $(SRC)/bgk.hh
 	$(CXXCOMPILE) $(CXXFLAG) $(SRC)/bgk.cxx -o bgk.o
 
-ifeq ($(WITH_MPI), 1)
-    MPI_FLAGS := $(CFLAG_MPI) -D_MPI
-endif
-conj-ht-interface.o : $(SRC)/conj-ht-interface.cxx $(SRC)/conj-ht-interface.hh
-	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(MPI_FLAGS) $(SRC)/conj-ht-interface.cxx -o conj-ht-interface.o
+conj-ht-interface-mpi.o : $(SRC)/conj-ht-interface.cxx $(SRC)/conj-ht-interface.hh
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(MPI_FLAGS) $(SRC)/conj-ht-interface.cxx \
+		-o conj-ht-interface-mpi.o
+
+conj-ht-interface-no-mpi.o : $(SRC)/conj-ht-interface.cxx $(SRC)/conj-ht-interface.hh
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/conj-ht-interface.cxx \
+		-o conj-ht-interface-no-mpi.o
 
 #
 #---------------------------- end of makefile -----------------------------
