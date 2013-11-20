@@ -166,10 +166,10 @@ int write_soln(list_of_vars &vars, list_of_inputs &inputs, double time_elapsed, 
 
     char buffer[100];
     int flag;
-    sprintf(buffer, "mkdir ../user/temp/t%04d", print_number);
+    sprintf(buffer, "mkdir -p user/temp/t%04d", print_number);
     flag = system(buffer); // Runs the command string "buffer" in terminal
     
-    sprintf(buffer, "../user/temp/t%04d/conjugateHeat.temp.b0000.t%04d.txt", print_number, print_number);
+    sprintf(buffer, "user/temp/t%04d/conjugateHeat.temp.b0000.t%04d.txt", print_number, print_number);
     ofstream output;
     output.open(buffer);
     
@@ -184,24 +184,24 @@ int write_soln(list_of_vars &vars, list_of_inputs &inputs, double time_elapsed, 
     // Next part of the code writes the GNUPlot script for graphing each separate temp profile.
     
     ofstream op;
-    sprintf(buffer, "../user/temp_pos_plot.p");
+    sprintf(buffer, "user/temp_pos_plot.p");
     op.open(buffer);
     op << "set term png" << endl;
-    sprintf(buffer, " set output \"../user/temp/t%04d/pos_plot.png\"", print_number);
+    sprintf(buffer, " set output \"user/temp/t%04d/pos_plot.png\"", print_number);
     op << buffer << endl;
     sprintf(buffer, "set title \"Temperature versus Position after %.3f seconds\"", time_elapsed);
     op << buffer << endl;
     op << "set xlabel \"Position (m)\"" << endl;
     op << "set ylabel \"Temperature (degrees C)\"" << endl;
     op << "set key bottom left" << endl;
-    op << "set xrange [0:0.025]" << endl;
-    op << "set yrange [0:0.025]" << endl;
-    op << "set cbrange [293:320]" << endl;
-    sprintf(buffer, "plot \"../user/temp/t%04d/conjugateHeat.temp.b0000.t%04d.txt\" using 1:2:3 with image", print_number, print_number);
+    //op << "set xrange [0:0.025]" << endl;
+    //op << "set yrange [0:0.025]" << endl;
+    op << "set cbrange [295:355]" << endl;
+    sprintf(buffer, "plot \"user/temp/t%04d/conjugateHeat.temp.b0000.t%04d.txt\" using 1:2:3 with image", print_number, print_number);
     op << buffer << endl;
     op.close();
     
-    sprintf(buffer, "gnuplot \"../user/temp_pos_plot.p\"");
+    sprintf(buffer, "gnuplot \"user/temp_pos_plot.p\"");
     flag = system(buffer);
     if ( flag != 0 ) return FAILURE;
     return SUCCESS;

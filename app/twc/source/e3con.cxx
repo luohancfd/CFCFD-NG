@@ -18,7 +18,7 @@ int grab_config_from_file(string fname, Wall_model &wm) {
 }
 
 
-Wall_model* initialise_wall_model(string fname, double dt_plot, double dt_history) {
+Wall_model* initialise_wall_model(string fname) {
 
 	Wall_model *wm = new Wall_model;
 	
@@ -32,7 +32,6 @@ Wall_model* initialise_wall_model(string fname, double dt_plot, double dt_histor
 		exit(MISMATCHED_DIMENSIONS);
     }	
 	
-	(*wm).inputs.dt_plot = dt_plot;
 
 	return wm;
 }
@@ -114,7 +113,7 @@ int initialise_wall_node_positions(Wall_model &wm, const vector<double> &wall_xs
 	}
     }
     
-    wall_printer(wm.vars.x_vals, wm.inputs);
+    //wall_printer(wm.vars.x_vals, wm.inputs);
     
     init_with_eilmer3(wm.inputs, wm.vars);
     
@@ -140,6 +139,11 @@ int update_temperatures_from_fluxes(Wall_model &wm, double dt, const vector<doub
     
     return 0;
 
+}
+
+int write_soln(Wall_model &wm, double time_elapsed, int print_number) {
+	return write_soln(wm.vars, wm.inputs, time_elapsed, print_number);
+	
 }
 
 

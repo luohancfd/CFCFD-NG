@@ -9,7 +9,7 @@ using namespace std;
 // The reason for this is so you don't have to use a heap of arguments to the grab_config and potentially further functions.
 
 struct list_of_inputs {
-	double stefanBoltzmann, D, L, M, N, y_h, k_11, k_12, k_21, k_22, dx, dy, rho_w, c_w, dt, dt_plot, t_max, Te_n, Te_s, Te_e, Te_w, he_n, he_s, he_e, he_w, emis_n, emis_s, emis_e, emis_w, dt_hist;
+	double stefanBoltzmann, D, L, M, N, y_h, k_11, k_12, k_21, k_22, dx, dy, rho_w, c_w, dt, dt_plot, t_max, Te_n, Te_s, Te_e, Te_w, he_n, he_s, he_e, he_w, emis_n, emis_s, emis_e, emis_w, dt_hist, T_init;
 	int axi, flag_hist, nn_hist;
 	string north, south, east, west;
 	

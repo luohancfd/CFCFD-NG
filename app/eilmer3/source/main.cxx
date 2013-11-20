@@ -1386,6 +1386,9 @@ int integrate_in_time(double target_time)
 	    }
 	    sprintf( tindxcstr, "t%04d", static_cast<int>(output_counter) ); // C string
 	    write_solution_data(tindxcstr);
+	    if ( G.conjugate_ht_active && master ) {
+			write_soln(*(G.wm), G.sim_time, static_cast<int>(output_counter));
+		}
 	    output_just_written = 1;
             G.t_plot += G.dt_plot;
         }

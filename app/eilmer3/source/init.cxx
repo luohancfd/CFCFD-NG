@@ -721,7 +721,7 @@ int read_config_parameters(const string filename, bool master)
 	    cout << "WARNING: but the viscous flag is not set.\n";
 	    cout << "WARNING: No heat fluxes will be computed at wall.\n";
 	}
-    	G.wm = initialise_wall_model(s_value, G.dt_plot, G.dt_his);
+    	G.wm = initialise_wall_model(s_value);
     }
     if ( get_verbose_flag() ) {
 	cout << "conjugate_ht_flag = " << i_value << endl;

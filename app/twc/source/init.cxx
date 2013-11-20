@@ -49,9 +49,9 @@ void grab_config(string fname, list_of_inputs &inputs) {
 
     bool truth_val;
     
-    cout << endl << endl <<"--------------------------------------------------------------------" << endl;
-    cout << "\t \t \t \t  ERRORS \t \t \t \t " << endl;
-    cout << "--------------------------------------------------------------------" << endl;
+    //cout << endl << endl <<"--------------------------------------------------------------------" << endl;
+    //cout << "\t \t \t \t  ERRORS \t \t \t \t " << endl;
+    //cout << "--------------------------------------------------------------------" << endl;
     
     // Open the configuration file
     ConfigParser cfg( fname );
@@ -60,7 +60,7 @@ void grab_config(string fname, list_of_inputs &inputs) {
     truth_val = cfg.parse_double( string("Constants"), string("stefanBoltzmann"),
 				  inputs.stefanBoltzmann, -1.0 );
     if (inputs.stefanBoltzmann == -1.0) {
-	cerr << "No input provided for Stefan Boltzmann Constant. Exiting..." << endl;
+	// // // cerr << "No input provided for Stefan Boltzmann Constant. Exiting..." << endl;
 	exit(MISMATCHED_DIMENSIONS);
     }
 
@@ -246,7 +246,7 @@ void grab_config(string fname, list_of_inputs &inputs) {
 	exit(MISMATCHED_DIMENSIONS);
     }
     else if (inputs.north != "conv_rad" && inputs.Te_n > 0.0) {
-	cerr << "Unnecessary value for north boundary environment temp specified.  Value is ignored in calcultions." << endl;
+	//cerr << "Unnecessary value for north boundary environment temp specified.  Value is ignored in calcultions." << endl;
     }
     
     // -------------------------------------------------------------------------
@@ -258,7 +258,7 @@ void grab_config(string fname, list_of_inputs &inputs) {
 	exit(MISMATCHED_DIMENSIONS);
     }
     else if (inputs.south != "conv_rad" && inputs.Te_s > 0.0) {
-	cerr << "Unnecessary value for south boundary environment temp specified.  Value is ignored in calcultions." << endl;
+	//cerr << "Unnecessary value for south boundary environment temp specified.  Value is ignored in calcultions." << endl;
     }
     
     // -------------------------------------------------------------------------
@@ -270,7 +270,7 @@ void grab_config(string fname, list_of_inputs &inputs) {
 	exit(MISMATCHED_DIMENSIONS);
     }
     else if (inputs.east != "conv_rad" && inputs.Te_e > 0.0) {
-	cerr << "Unnecessary value for east boundary environment temp specified.  Value is ignored in calcultions." << endl;
+	//cerr << "Unnecessary value for east boundary environment temp specified.  Value is ignored in calcultions." << endl;
     }
     
     // -------------------------------------------------------------------------
@@ -282,7 +282,7 @@ void grab_config(string fname, list_of_inputs &inputs) {
 	exit(MISMATCHED_DIMENSIONS);
     }
     else if (inputs.west != "conv_rad" && inputs.Te_w > 0.0) {
-	cerr << "Unnecessary value for west boundary environment temp specified.  Value is ignored in calcultions." << endl;
+	//cerr << "Unnecessary value for west boundary environment temp specified.  Value is ignored in calcultions." << endl;
     }
     
     // -------------------------------------------------------------------------
@@ -294,7 +294,7 @@ void grab_config(string fname, list_of_inputs &inputs) {
 	exit(MISMATCHED_DIMENSIONS);
     }
     else if (inputs.north != "conv_rad" && inputs.he_n > 0.0) {
-	cerr << "Unnecessary value for north boundary environment convection coefficient specified.  Value is ignored in calcultions." << endl;
+	//cerr << "Unnecessary value for north boundary environment convection coefficient specified.  Value is ignored in calcultions." << endl;
     }
     
     // -------------------------------------------------------------------------
@@ -306,7 +306,7 @@ void grab_config(string fname, list_of_inputs &inputs) {
 	exit(MISMATCHED_DIMENSIONS);
     }
     else if (inputs.south != "conv_rad" && inputs.he_s > 0.0) {
-	cerr << "Unnecessary value for south boundary environment convection coefficient specified.  Value is ignored in calcultions." << endl;
+	//cerr << "Unnecessary value for south boundary environment convection coefficient specified.  Value is ignored in calcultions." << endl;
     }
     
     // -------------------------------------------------------------------------
@@ -318,7 +318,7 @@ void grab_config(string fname, list_of_inputs &inputs) {
 	exit(MISMATCHED_DIMENSIONS);
     }
     else if (inputs.east != "conv_rad" && inputs.he_e > 0.0) {
-	cerr << "Unnecessary value for east boundary environment convection coefficient specified.  Value is ignored in calcultions." << endl;
+	//cerr << "Unnecessary value for east boundary environment convection coefficient specified.  Value is ignored in calcultions." << endl;
     }
     
     // -------------------------------------------------------------------------
@@ -330,7 +330,7 @@ void grab_config(string fname, list_of_inputs &inputs) {
 	exit(MISMATCHED_DIMENSIONS);
     }
     else if (inputs.west != "conv_rad" && inputs.he_w > 0.0) {
-	cerr << "Unnecessary value for west boundary environment convection coefficient specified.  Value is ignored in calcultions." << endl;
+	//cerr << "Unnecessary value for west boundary environment convection coefficient specified.  Value is ignored in calcultions." << endl;
     }
     
     // -------------------------------------------------------------------------
@@ -343,7 +343,7 @@ void grab_config(string fname, list_of_inputs &inputs) {
 	cerr << "North boundary specified as conv_rad but no physical surface emissivity coefficient given.  Radiation ignored from this BC." << endl;
     }
     else if (inputs.north != "conv_rad" && inputs.emis_n > 0.0) {
-	cerr << "Unnecessary value for north boundary environment surface emissivity specified.  Value is ignored in calcultions." << endl;
+	//cerr << "Unnecessary value for north boundary environment surface emissivity specified.  Value is ignored in calcultions." << endl;
     }
     
     
@@ -355,7 +355,7 @@ void grab_config(string fname, list_of_inputs &inputs) {
 	cerr << "South boundary specified as conv_rad but no physical surface emissivity coefficient given.  Radiation ignored from this BC." << endl;
     }
     else if (inputs.south != "conv_rad" && inputs.emis_s > 0.0) {
-	cerr << "Unnecessary value for south boundary environment surface emissivity specified.  Value is ignored in calcultions." << endl;
+	//cerr << "Unnecessary value for south boundary environment surface emissivity specified.  Value is ignored in calcultions." << endl;
     }
     
     
@@ -367,7 +367,7 @@ void grab_config(string fname, list_of_inputs &inputs) {
 	cerr << "East boundary specified as conv_rad but no physical surface emissivity coefficient given.  Radiation ignored from this BC." << endl;
     }
     else if (inputs.east != "conv_rad" && inputs.emis_e > 0.0) {
-	cerr << "Unnecessary value for east boundary environment surface emissivity specified.  Value is ignored in calcultions." << endl;
+	//cerr << "Unnecessary value for east boundary environment surface emissivity specified.  Value is ignored in calcultions." << endl;
     }
     
     
@@ -379,7 +379,7 @@ void grab_config(string fname, list_of_inputs &inputs) {
 	cerr << "West boundary specified as conv_rad but no physical surface emissivity coefficient given.  Radiation ignored from this BC." << endl;
     }
     else if (inputs.west != "conv_rad" && inputs.emis_w > 0.0) {
-	cerr << "Unnecessary value for west boundary environment surface emissivity specified.  Value is ignored in calcultions." << endl;
+	//cerr << "Unnecessary value for west boundary environment surface emissivity specified.  Value is ignored in calcultions." << endl;
     }
     
     
@@ -433,10 +433,19 @@ void grab_config(string fname, list_of_inputs &inputs) {
     }
     
     // -------------------------------------------------------------------------
+        
+    truth_val = cfg.parse_double( string("Initial-Conditions"), string("T_init"),
+				  inputs.T_init, -1.0 );
+    if (inputs.T_init < 0) {
+	cerr << "No initial temperature set for the wall.  Bailing out..." << endl;
+	exit(MISMATCHED_DIMENSIONS);
+    }
+    
+    // -------------------------------------------------------------------------
     
     
-    cout << "--------------------------------------------------------------------" << endl;
-    cout << "--------------------------------------------------------------------" << endl << endl << endl;
+    //cout << "--------------------------------------------------------------------" << endl;
+    //cout << "--------------------------------------------------------------------" << endl << endl << endl;
     // Empty test to stop compiler warning
     if (truth_val)
 	;
@@ -608,7 +617,7 @@ int init_tempprof(list_of_inputs &inputs, list_of_vars &vars) {
   
 */
     
-    vars.temps.resize(inputs.M*inputs.N, 400.0); // Initializes the temp field.
+    vars.temps.resize(inputs.M*inputs.N, inputs.T_init); // Initializes the temp field.
     
     const char* filename = "../user/init_temp.txt"; //Filename of initial temp field
     bool temp_text_exists = file_exists(filename); // Evaluates whether file exists
