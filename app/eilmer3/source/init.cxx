@@ -1095,7 +1095,7 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 	    if (bd.bcp[iface]->type_code == CONJUGATE_HT ) {
 		nentries = bd.nni;
 	    }
-	    add_entries_to_wall_vectors(G, nentries);
+	    add_entries_to_wall_vectors(G, id, nentries);
 	    // Later, after computing block geometry, we'll be able
 	    // to gather up the interface locations to pass to the
 	    // wall model. SEE: main.cxx

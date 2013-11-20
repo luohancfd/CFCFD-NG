@@ -9,7 +9,7 @@
 
 #include "kernel.hh"
 
-int add_entries_to_wall_vectors(global_data &gd, int nentries);
+int add_entries_to_wall_vectors(global_data &gd, size_t bid, int nentries);
 int gather_wall_fluxes(global_data &gd);
 int broadcast_wall_temperatures(global_data &gd);
 

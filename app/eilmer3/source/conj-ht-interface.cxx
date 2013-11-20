@@ -4,15 +4,16 @@
 #ifdef _MPI
    #include <mpi.h>
 #endif
+#include "bc.hh"
 #include "kernel.hh"
 #include "conj-ht-interface.hh"
 
-int add_entries_to_wall_vectors(global_data &gd, int nentries)
+int add_entries_to_wall_vectors(global_data &gd, size_t bid, int nentries)
 {
     gd.T_wall.insert(gd.T_wall.end(), nentries, 0.0);
     gd.q_wall.insert(gd.q_wall.end(), nentries, 0.0);
     gd.recvcounts.push_back(nentries);
-    if ( gd.my_mpi_rank == 0 ) {
+    if ( bid == 0 ) {
 	gd.displs.push_back(0);
     }
     else {
@@ -28,8 +29,8 @@ int gather_wall_fluxes(global_data &gd)
     Block& bdp = gd.bd[rank];
     // We only need correct values in q vector on the
     // blocks that have a conjugate heat transfer bc.
-    // FIX ME when conjugate_ht is defined.
-    //    if ( bdp.bcp[NORTH]->type_code == CONJUGATE_HT ) {
+    
+    if ( bdp.bcp[NORTH]->type_code == CONJUGATE_HT ) {
 	int j = bdp.jmax + 1;
 	int iq = gd.displs[rank]; // starting index in q vector
 	for ( size_t i = bdp.imin; i <= bdp.imax; ++i ) {
@@ -37,7 +38,7 @@ int gather_wall_fluxes(global_data &gd)
 	    gd.q_wall[iq] = iface.F->total_energy;
 	    ++iq;
 	}
-	//    }
+    }
 #   ifdef _MPI
     MPI_Barrier(MPI_COMM_WORLD);
     // Now perform our MPI magic to gather the result on rank 0

@@ -84,7 +84,7 @@ apply_viscous(double t)
     Block &bd = *bdp;
     global_data &G = *(get_global_data_ptr());
     int rank = G.my_mpi_rank;
-
+    
     // ONLY IMPLEMENTED FOR NORTH BOUNDARY
     j = bd.jmax;
     for (k = bd.kmin; k <= bd.kmax; ++k) {
@@ -102,7 +102,6 @@ apply_viscous(double t)
 	    }
 	    for ( size_t imode = 0; imode < nmodes; ++imode ) {
 		fs.gas->T[imode] = G.T_wall[iT];
-		//cout << "fs.gas.T= " << fs.gas->T[imode] << endl;
 	    }
 	    ++iT;
 	} // end i loop
