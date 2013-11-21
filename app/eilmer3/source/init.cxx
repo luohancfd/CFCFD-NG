@@ -37,6 +37,15 @@
 
 using namespace std;
 
+std::string & to_lower_case(std::string & mystring)
+// Change to lower-case in place, for use in looking up name->object maps.
+// PJ, 21-Nov-2013
+{
+    for ( size_t i = 0; i < mystring.length(); ++i )
+	mystring[i] = tolower(mystring[i]);
+    return mystring;
+}
+
 std::map<std::string,update_scheme_t> available_schemes;
 int init_available_schemes_map()
 {
@@ -46,31 +55,18 @@ int init_available_schemes_map()
     // but the Intel C++ compiler doesn't implement such a nicety.
     typedef std::pair<std::string,update_scheme_t> name_scheme_t;
     available_schemes.insert(name_scheme_t("euler",EULER_UPDATE));
-    available_schemes.insert(name_scheme_t("Euler",EULER_UPDATE));
     available_schemes.insert(name_scheme_t("pc",PC_UPDATE)); 
-    available_schemes.insert(name_scheme_t("PC",PC_UPDATE));
-    available_schemes.insert(name_scheme_t("predictor_corrector",PC_UPDATE));
     available_schemes.insert(name_scheme_t("predictor-corrector",PC_UPDATE));
-    available_schemes.insert(name_scheme_t("Predictor_corrector",PC_UPDATE));
-    available_schemes.insert(name_scheme_t("Predictor-corrector",PC_UPDATE));
+    available_schemes.insert(name_scheme_t("predictor_corrector",PC_UPDATE));
     available_schemes.insert(name_scheme_t("midpoint",MIDPOINT_UPDATE)); 
     available_schemes.insert(name_scheme_t("mid-point",MIDPOINT_UPDATE));
     available_schemes.insert(name_scheme_t("mid_point",MIDPOINT_UPDATE)); 
-    available_schemes.insert(name_scheme_t("Midpoint",MIDPOINT_UPDATE));
-    available_schemes.insert(name_scheme_t("Mid-point",MIDPOINT_UPDATE));
-    available_schemes.insert(name_scheme_t("Mid_point",MIDPOINT_UPDATE));
     available_schemes.insert(name_scheme_t("classic-rk3",CLASSIC_RK3_UPDATE));
     available_schemes.insert(name_scheme_t("classic_rk3",CLASSIC_RK3_UPDATE));
-    available_schemes.insert(name_scheme_t("Classic-RK3",CLASSIC_RK3_UPDATE));
-    available_schemes.insert(name_scheme_t("Classic_RK3",CLASSIC_RK3_UPDATE));
     available_schemes.insert(name_scheme_t("tvd-rk3",TVD_RK3_UPDATE));
     available_schemes.insert(name_scheme_t("tvd_rk3",TVD_RK3_UPDATE));
-    available_schemes.insert(name_scheme_t("TVD-RK3",TVD_RK3_UPDATE));
-    available_schemes.insert(name_scheme_t("TVD_RK3",TVD_RK3_UPDATE));
     available_schemes.insert(name_scheme_t("denman-rk3",DENMAN_RK3_UPDATE));
     available_schemes.insert(name_scheme_t("denman_rk3",DENMAN_RK3_UPDATE));
-    available_schemes.insert(name_scheme_t("Denman-RK3",DENMAN_RK3_UPDATE));
-    available_schemes.insert(name_scheme_t("Denman_RK3",DENMAN_RK3_UPDATE));
     return SUCCESS;
 }
 
@@ -80,25 +76,18 @@ int init_available_calculators_map()
     typedef std::pair<std::string,flux_calc_t> name_flux_t;
     available_calculators.insert(name_flux_t("0",FLUX_RIEMANN));
     available_calculators.insert(name_flux_t("riemann",FLUX_RIEMANN));
-    available_calculators.insert(name_flux_t("Riemann",FLUX_RIEMANN));
     available_calculators.insert(name_flux_t("1",FLUX_AUSM));
     available_calculators.insert(name_flux_t("ausm",FLUX_AUSM));
-    available_calculators.insert(name_flux_t("AUSM",FLUX_AUSM));
     available_calculators.insert(name_flux_t("2",FLUX_EFM));
     available_calculators.insert(name_flux_t("efm",FLUX_EFM));
-    available_calculators.insert(name_flux_t("EFM",FLUX_EFM));
     available_calculators.insert(name_flux_t("3",FLUX_AUSMDV));
     available_calculators.insert(name_flux_t("ausmdv",FLUX_AUSMDV));
-    available_calculators.insert(name_flux_t("AUSMDV",FLUX_AUSMDV));
     available_calculators.insert(name_flux_t("4",FLUX_ADAPTIVE));
     available_calculators.insert(name_flux_t("adaptive",FLUX_ADAPTIVE));
-    available_calculators.insert(name_flux_t("Adaptive",FLUX_ADAPTIVE));
     available_calculators.insert(name_flux_t("5",FLUX_AUSM_PLUS_UP));
     available_calculators.insert(name_flux_t("ausm_plus_up",FLUX_AUSM_PLUS_UP));
-    available_calculators.insert(name_flux_t("AUSM_plus_up",FLUX_AUSM_PLUS_UP));
     available_calculators.insert(name_flux_t("6",FLUX_HLLE));
     available_calculators.insert(name_flux_t("hlle",FLUX_HLLE));
-    available_calculators.insert(name_flux_t("HLLE",FLUX_HLLE));
     return SUCCESS;
 }
 
@@ -107,17 +96,9 @@ int init_available_interpolators_map()
 {
     typedef std::pair<std::string,thermo_interp_t> name_interp_t;
     available_interpolators.insert(name_interp_t("pt",INTERP_PT));
-    available_interpolators.insert(name_interp_t("pT",INTERP_PT));
-    available_interpolators.insert(name_interp_t("PT",INTERP_PT));
     available_interpolators.insert(name_interp_t("rhoe",INTERP_RHOE));
-    available_interpolators.insert(name_interp_t("rhoE",INTERP_RHOE));
-    available_interpolators.insert(name_interp_t("RHOE",INTERP_RHOE));
     available_interpolators.insert(name_interp_t("rhop",INTERP_RHOP));
-    available_interpolators.insert(name_interp_t("rhoP",INTERP_RHOP));
-    available_interpolators.insert(name_interp_t("RHOP",INTERP_RHOP));
     available_interpolators.insert(name_interp_t("rhot",INTERP_RHOT));
-    available_interpolators.insert(name_interp_t("rhoT",INTERP_RHOT));
-    available_interpolators.insert(name_interp_t("RHOT",INTERP_RHOT));
     return SUCCESS;
 }
 
@@ -126,15 +107,10 @@ int init_available_turbulence_models_map()
 {
     typedef std::pair<std::string,turbulence_model_t> name_turb_model_t;
     available_turbulence_models.insert(name_turb_model_t("none",TM_NONE));
-    available_turbulence_models.insert(name_turb_model_t("None",TM_NONE));
     available_turbulence_models.insert(name_turb_model_t("baldwin_lomax",TM_BALDWIN_LOMAX));
     available_turbulence_models.insert(name_turb_model_t("baldwin-lomax",TM_BALDWIN_LOMAX));
-    available_turbulence_models.insert(name_turb_model_t("Baldwin_Lomax",TM_BALDWIN_LOMAX));
-    available_turbulence_models.insert(name_turb_model_t("Baldwin-Lomax",TM_BALDWIN_LOMAX));
     available_turbulence_models.insert(name_turb_model_t("k_omega",TM_K_OMEGA));
     available_turbulence_models.insert(name_turb_model_t("k-omega",TM_K_OMEGA));
-    available_turbulence_models.insert(name_turb_model_t("K_Omega",TM_K_OMEGA));
-    available_turbulence_models.insert(name_turb_model_t("K-Omega",TM_K_OMEGA));
     available_turbulence_models.insert(name_turb_model_t("spalart_allmaras",TM_SPALART_ALLMARAS));
     return SUCCESS;
 }
@@ -145,83 +121,56 @@ int init_available_bcs_map()
     typedef std::pair<std::string,bc_t> name_bc_t;
     // We keep the integer values for backward compatibility.
     available_bcs.insert(name_bc_t("adjacent",ADJACENT));
-    available_bcs.insert(name_bc_t("ADJACENT",ADJACENT));
     available_bcs.insert(name_bc_t("0",ADJACENT));
     available_bcs.insert(name_bc_t("sup_in",SUP_IN));
-    available_bcs.insert(name_bc_t("SUP_IN",SUP_IN));
     available_bcs.insert(name_bc_t("1",SUP_IN));
     available_bcs.insert(name_bc_t("extrapolate_out",EXTRAPOLATE_OUT));
-    available_bcs.insert(name_bc_t("EXTRAPOLATE_OUT",EXTRAPOLATE_OUT));
     available_bcs.insert(name_bc_t("2",EXTRAPOLATE_OUT));
     available_bcs.insert(name_bc_t("slip_wall",SLIP_WALL));
-    available_bcs.insert(name_bc_t("SLIP_WALL",SLIP_WALL));
     available_bcs.insert(name_bc_t("3",SLIP_WALL));
     available_bcs.insert(name_bc_t("adiabatic",ADIABATIC));
-    available_bcs.insert(name_bc_t("ADIABATIC",ADIABATIC));
     available_bcs.insert(name_bc_t("4",ADIABATIC));
     available_bcs.insert(name_bc_t("fixed_T",FIXED_T));
-    available_bcs.insert(name_bc_t("FIXED_T",FIXED_T));
     available_bcs.insert(name_bc_t("5",FIXED_T));
     available_bcs.insert(name_bc_t("subsonic_in",SUBSONIC_IN));
-    available_bcs.insert(name_bc_t("SUBSONIC_IN",SUBSONIC_IN));
     available_bcs.insert(name_bc_t("6",SUBSONIC_IN));
     available_bcs.insert(name_bc_t("subsonic_out",SUBSONIC_OUT));
-    available_bcs.insert(name_bc_t("SUBSONIC_OUT",SUBSONIC_OUT));
     available_bcs.insert(name_bc_t("7",SUBSONIC_OUT));
     available_bcs.insert(name_bc_t("transient_uni",TRANSIENT_UNI));
-    available_bcs.insert(name_bc_t("TRANSIENT_UNI",TRANSIENT_UNI));
     available_bcs.insert(name_bc_t("8",TRANSIENT_UNI));
     available_bcs.insert(name_bc_t("transient_prof",TRANSIENT_PROF));
-    available_bcs.insert(name_bc_t("TRANSIENT_PROF",TRANSIENT_PROF));
     available_bcs.insert(name_bc_t("9",TRANSIENT_PROF));
     available_bcs.insert(name_bc_t("static_prof",STATIC_PROF));
-    available_bcs.insert(name_bc_t("STATIC_PROF",STATIC_PROF));
     available_bcs.insert(name_bc_t("10",STATIC_PROF));
     available_bcs.insert(name_bc_t("fixed_p_out",FIXED_P_OUT));
-    available_bcs.insert(name_bc_t("FIXED_P_OUT",FIXED_P_OUT));
     available_bcs.insert(name_bc_t("11",FIXED_P_OUT));
     available_bcs.insert(name_bc_t("transient_T_wall",TRANSIENT_T_WALL));
-    available_bcs.insert(name_bc_t("TRANSIENT_T_WALL",TRANSIENT_T_WALL));
     available_bcs.insert(name_bc_t("13",TRANSIENT_T_WALL));
     available_bcs.insert(name_bc_t("surface_energy_balance",SEB));
-    available_bcs.insert(name_bc_t("SURFACE_ENERGY_BALANCE",SEB));
-    available_bcs.insert(name_bc_t("SEB",SEB));
+    available_bcs.insert(name_bc_t("seb",SEB));
     available_bcs.insert(name_bc_t("15",SEB));
     available_bcs.insert(name_bc_t("user_defined",USER_DEFINED));
-    available_bcs.insert(name_bc_t("USER_DEFINED",USER_DEFINED));
     available_bcs.insert(name_bc_t("16",USER_DEFINED));
     available_bcs.insert(name_bc_t("adjacent_plus_udf",ADJACENT_PLUS_UDF));
-    available_bcs.insert(name_bc_t("ADJACENT_PLUS_UDF",ADJACENT_PLUS_UDF));
     available_bcs.insert(name_bc_t("17",ADJACENT_PLUS_UDF));
     available_bcs.insert(name_bc_t("ablating",ABLATING));
-    available_bcs.insert(name_bc_t("ABLATING",ABLATING));
     available_bcs.insert(name_bc_t("18",ABLATING));
     available_bcs.insert(name_bc_t("sliding_T",SLIDING_T));
-    available_bcs.insert(name_bc_t("SLIDING_T",SLIDING_T));
     available_bcs.insert(name_bc_t("19",SLIDING_T));
     available_bcs.insert(name_bc_t("fstc",FSTC));
-    available_bcs.insert(name_bc_t("FSTC",FSTC));
     available_bcs.insert(name_bc_t("20",FSTC));
     available_bcs.insert(name_bc_t("shock_fitting_in",SHOCK_FITTING_IN));
-    available_bcs.insert(name_bc_t("SHOCK_FITTING_IN",SHOCK_FITTING_IN));
     available_bcs.insert(name_bc_t("21",SHOCK_FITTING_IN));
     available_bcs.insert(name_bc_t("non_catalytic",NON_CATALYTIC));
-    available_bcs.insert(name_bc_t("NON_CATALYTIC",NON_CATALYTIC));
     available_bcs.insert(name_bc_t("22",NON_CATALYTIC));
     available_bcs.insert(name_bc_t("equil_catalytic",EQUIL_CATALYTIC));
-    available_bcs.insert(name_bc_t("EQUIL_CATALYTIC",EQUIL_CATALYTIC));
     available_bcs.insert(name_bc_t("23",EQUIL_CATALYTIC));
     available_bcs.insert(name_bc_t("super_catalytic",SUPER_CATALYTIC));
-    available_bcs.insert(name_bc_t("SUPER_CATALYTIC",SUPER_CATALYTIC));
     available_bcs.insert(name_bc_t("24",SUPER_CATALYTIC));
     available_bcs.insert(name_bc_t("partially_catalytic",PARTIALLY_CATALYTIC));
-    available_bcs.insert(name_bc_t("PARTIALLY_CATALYTIC",PARTIALLY_CATALYTIC));
     available_bcs.insert(name_bc_t("25",PARTIALLY_CATALYTIC));
-    available_bcs.insert(name_bc_t("USER_DEFINED_MASS_FLUX",USER_DEFINED_MASS_FLUX));
     available_bcs.insert(name_bc_t("user_defined_mass_flux",USER_DEFINED_MASS_FLUX));
-    available_bcs.insert(name_bc_t("CONJUGATE_HT",CONJUGATE_HT));
     available_bcs.insert(name_bc_t("conjugate_ht",CONJUGATE_HT));
-    available_bcs.insert(name_bc_t("MOVING_WALL",MOVING_WALL));
     available_bcs.insert(name_bc_t("moving_wall",MOVING_WALL));
     return SUCCESS;
 }
@@ -242,6 +191,7 @@ int read_config_parameters(const string filename, bool master)
     size_t jb;
     init_available_schemes_map();
     init_available_calculators_map();
+    init_available_interpolators_map();
     init_available_turbulence_models_map();
     init_available_bcs_map();
 
@@ -492,6 +442,10 @@ int read_config_parameters(const string filename, bool master)
 
     // 2013-apr-23 New specification scheme for turbulence models.
     dict.parse_string("global_data", "turbulence_model", s_value, "none");
+    s_value = to_lower_case(s_value);
+    if ( available_turbulence_models.find(s_value) == available_turbulence_models.end() ) {
+	throw std::runtime_error(std::string("Requested turbulence model not available: ") + s_value);
+    }
     G.turbulence_model = available_turbulence_models[s_value];
     dict.parse_double("global_data", "turbulence_prandtl_number", d_value, 0.89);
     G.turbulence_prandtl = d_value;
@@ -517,12 +471,20 @@ int read_config_parameters(const string filename, bool master)
 
     dict.parse_size_t("global_data", "max_invalid_cells", G.max_invalid_cells, 10);
     dict.parse_string("global_data", "flux_calc", s_value, "adaptive");
+    s_value = to_lower_case(s_value);
+    if ( available_calculators.find(s_value) == available_calculators.end() ) {
+	throw std::runtime_error(std::string("Requested flux calculator not available: ") + s_value);
+    }
     set_flux_calculator(available_calculators[s_value]);
     dict.parse_double("global_data", "compression_tolerance", G.compression_tolerance, -0.30);
     dict.parse_double("global_data", "shear_tolerance", G.shear_tolerance, 0.20);
     dict.parse_double("global_data", "M_inf", d_value, 0.01);
     set_M_inf(d_value);
     dict.parse_string("global_data", "interpolation_type", s_value, "rhoe");
+    s_value = to_lower_case(s_value);
+    if ( available_interpolators.find(s_value) == available_interpolators.end() ) {
+	throw std::runtime_error(std::string("Requested field interpolator not available: ") + s_value);
+    }
     set_thermo_interpolator(available_interpolators[s_value]);
     dict.parse_int("global_data", "apply_limiter_flag", i_value, 1);
     set_apply_limiter_flag(i_value == 1);
@@ -754,6 +716,10 @@ int read_control_parameters( const string filename, bool master, bool first_time
     // 2013-03-31 change to use an explicitly-named update scheme.
     dict.parse_string("control_data", "gasdynamic_update_scheme", s_value,
 		      "predictor-corrector");
+    s_value = to_lower_case(s_value);
+    if ( available_schemes.find(s_value) == available_schemes.end() ) {
+	throw std::runtime_error(std::string("Requested update-scheme not available: ") + s_value);
+    }
     set_gasdynamic_update_scheme(available_schemes[s_value]);
     // To keep backward compatibility with old simulation files,
     // read Torder if it exists and set the equivalent update scheme.
@@ -1077,7 +1043,11 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
     for ( iface = NORTH; iface <= ((G.dimensions == 3)? BOTTOM : WEST); ++iface ) {
 	section = "block/" + tostring(indx) + "/face/" + get_face_name(iface);
 	dict.parse_string(section, "bc", value_string, "slip_wall");
-	//cout << "setting bc_type value_string=" << value_string << endl;
+	value_string = to_lower_case(value_string);
+	if ( available_bcs.find(value_string) == available_bcs.end() ) {
+	    throw std::runtime_error(std::string("Requested boundary condition not available: ") + 
+				     value_string);
+	}
 	bc_type_code = available_bcs[value_string];
 	bd.bcp[iface] = create_BC(&bd, iface, bc_type_code, dict, section);
 	if ( get_verbose_flag() ) {
