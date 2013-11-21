@@ -889,7 +889,7 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     double Twall_f = 300.0;
     double t_i = 0.0;
     double t_f = 0.0;
-    double r_omega = 0.0;
+    double r_omega = 100.0;
     int assume_ideal = 0;
     std::string filename = "";
     size_t n_profile = 1;
@@ -1010,7 +1010,7 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	newBC = new ConjugateHeatTransferBC(bdp, which_boundary);
 	break;
     case MOVING_WALL:
-        dict.parse_double(section, "r_omega", r_omega, 0.0);
+        dict.parse_double(section, "r_omega", r_omega, 100.0);
         dict.parse_double(section, "emissivity", emissivity, 1.0);
         newBC = new MovingWallBC(bdp, which_boundary, r_omega, emissivity);
         break;

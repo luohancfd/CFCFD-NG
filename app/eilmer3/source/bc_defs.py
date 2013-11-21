@@ -166,7 +166,7 @@ class BoundaryCondition(object):
                  t_i=0.0,
                  t_f=0.0,
                  emissivity=1.0,
-                 r_omega=0.0,
+                 r_omega=100.0,
                  label=""):
         """
         Construct a generic boundary condition object.

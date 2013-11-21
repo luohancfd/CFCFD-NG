@@ -512,7 +512,7 @@ class Block(object):
 
     def set_BC(self, face_name, type_of_BC,
                inflow_condition=None, x_order=0, sponge_flag=None,
-               Twall=None, Pout=None, filename=None, n_profile=1,
+               Twall=None, Pout=None, r_omega=None, filename=None, n_profile=1,
                is_wall=0, sets_conv_flux=0, sets_visc_flux=0,
                assume_ideal=0, mdot=None, emissivity=None,
                Twall_i=None, Twall_f=None, t_i=None, t_f=None,
@@ -532,6 +532,8 @@ class Block(object):
             in degrees Kelvin.
         :param Pout: If appropriate, specify the value of static pressure
             (in Pascals) just outside the boundary.
+        :param r_omega: If appropriate, specify the value of rotational speed
+            (in rad/s) of the wall.
 
         Sometimes it is good to be able to adjust properties after
         block creation; this function provides that capability.
@@ -563,6 +565,8 @@ class Block(object):
             Twall = float(Twall)
         if Pout != None:
             Pout = float(Pout)
+        if r_omega != None:
+            r_omega = float(r_omega)
         if emissivity != None:
             emissivity = float(emissivity)
         if Twall_i != None:
@@ -604,6 +608,8 @@ class Block(object):
             newbc = StaticProfBC(filename, n_profile, label=label)
         if type_of_BC == FIXED_P_OUT:
             newbc = FixedPOutBC(Pout, x_order, label=label)
+        if type_of_BC == MOVING_WALL:
+            newbc = MovingWallBC(r_omega, label=label)
         if type_of_BC == RRM:
             newbc = RRMBC(sponge_flag, label=label)
         if type_of_BC == USER_DEFINED:
@@ -701,6 +707,7 @@ class Block(object):
             fp.write("xforce_flag = %d\n" % self.xforce_list[iface])
             fp.write("Twall = %e\n" % bc.Twall)
             fp.write("Pout = %e\n" % bc.Pout)
+            fp.write("r_omega = %e\n" % bc.r_omega)
             fp.write("is_wall = %d\n" % bc.is_wall)
             fp.write("sets_conv_flux = %d\n" % bc.sets_conv_flux)
             fp.write("sets_visc_flux = %d\n" % bc.sets_visc_flux)
@@ -1411,7 +1418,7 @@ class Block3D(Block):
     __slots__ = 'blkId', 'nni', 'nnj', 'nnk', 'label', \
                 'parametric_volume', 'grid', 'cf_list', 'hcell_list', \
                 'fill_condition', 'omegaz', 'active', \
-                'bc_list', 'Twall_list', 'Pout_list', \
+                'bc_list', 'Twall_list', 'Pout_list', 'r_omega_list', \
                 'xforce_list', 'wc_bc_list', 'sponge_flag_list', \
                 'vertex_location_list', 'neighbour_vertex_list'
               
@@ -1538,6 +1545,7 @@ class Block3D(Block):
         self.bc_list = copy.copy(bc_list)
         self.Twall_list = [300.0,] * 6
         self.Pout_list = [100.0e3,] * 6
+        self.r_omega_list = [100.0,] * 6
         self.sponge_flag_list = [0,] * 6
         #
         # Connections to other blocks are initialized to None

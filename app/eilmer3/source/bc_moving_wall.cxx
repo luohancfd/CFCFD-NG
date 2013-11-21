@@ -60,12 +60,12 @@ void MovingWallBC::print_info(std::string lead_in)
 
 int MovingWallBC::apply_viscous(double t)
 {
-  // double r_angle ; 
+    double r_angle ; 
     size_t i, j, k;
     FV_Cell *cell;
     FV_Interface *IFace;
     Block & bd = *bdp;
-    size_t nmodes = get_gas_model_ptr()->get_number_of_modes();
+   // size_t nmodes = get_gas_model_ptr()->get_number_of_modes();
     
     switch ( which_boundary ) {
     case NORTH:
@@ -76,11 +76,11 @@ int MovingWallBC::apply_viscous(double t)
 		IFace = cell->iface[NORTH];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
-	       	fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-	        //r_angle = atan(fs->gas->Bx/fs->gas->Bz);
-                //fs.vel.z = -r_omega * sqrt(fs.pos.z*fs.pos.z+fs.pos.x*fs.pos.x)*sin(r_angle);
-                //fs.vel.x = r_omega * sqrt(fs.pos.z*fs.pos.z+fs.pos.x*fs.pos.x)*cos(r_angle);
-                //fs.vel.y = 0.0;
+                cell->copy_values_from(*cell, COPY_ALL_CELL_DATA, 0);
+                r_angle = atan(cell->pos[0].x/cell->pos[0].z);
+                fs.vel.z = -r_omega*sqrt(cell->pos[0].x*cell->pos[0].x+cell->pos[0].z*cell->pos[0].z)*sin(r_angle);
+                fs.vel.x = r_omega*sqrt(cell->pos[0].x*cell->pos[0].x+cell->pos[0].z*cell->pos[0].z)*cos(r_angle);
+                fs.vel.y = 0.0; 
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[NORTH]->wc_bc != NON_CATALYTIC) {
@@ -97,11 +97,11 @@ int MovingWallBC::apply_viscous(double t)
 		IFace = cell->iface[EAST];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
-		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-                //r_angle = atan(fs->gas->Bx/fs_>gas->Bz);
-                //fs.vel.y = -r_omega * sqrt(fs.pos.z*fs.pos.z+fs.pos.y*fs.pos.y)*sin(r_angle);
-                //fs.vel.z = r_omega * sqrt(fs.pos.z*fs.pos.z+fs.pos.y*fs.pos.y)*cos(r_angle);
-                //fs.vel.x = 0.0;
+                cell->copy_values_from(*cell, COPY_ALL_CELL_DATA, 0);
+                r_angle = atan(cell->pos[0].z/cell->pos[0].y);
+                fs.vel.y = -r_omega*sqrt(cell->pos[0].y*cell->pos[0].y+cell->pos[0].z*cell->pos[0].z)*sin(r_angle);
+                fs.vel.z = r_omega*sqrt(cell->pos[0].y*cell->pos[0].y+cell->pos[0].z*cell->pos[0].z)*cos(r_angle);
+                fs.vel.x = 0.0; 
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[EAST]->wc_bc != NON_CATALYTIC) {
@@ -118,11 +118,11 @@ int MovingWallBC::apply_viscous(double t)
 		IFace = cell->iface[SOUTH];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
-		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		//    r_angle = atan(fs.pos.x/fs.pos.z);
-		// fs.vel.z = -r_omega * sqrt(fs.pos.z*fs.pos.z+fs.pos.x*fs.pos.x)*sin(r_angle);
-		// fs.vel.x = r_omega * sqrt(fs.pos.z*fs.pos.z+fs.pos.x*fs.pos.x)*cos(r_angle);
-		// fs.vel.y = 0.0;
+                cell->copy_values_from(*cell, COPY_ALL_CELL_DATA, 0);
+                r_angle = atan(cell->pos[0].x/cell->pos[0].z);
+                fs.vel.z = -r_omega*sqrt(cell->pos[0].x*cell->pos[0].x+cell->pos[0].z*cell->pos[0].z)*sin(r_angle);
+                fs.vel.x = r_omega*sqrt(cell->pos[0].x*cell->pos[0].x+cell->pos[0].z*cell->pos[0].z)*cos(r_angle);
+                fs.vel.y = 0.0; 
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[SOUTH]->wc_bc != NON_CATALYTIC) {
@@ -139,11 +139,11 @@ int MovingWallBC::apply_viscous(double t)
 		IFace = cell->iface[WEST];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
-		fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-		// r_angle = atan(fs.pos.z/fs.pos.y);
-                //fs.vel.y = -r_omega * sqrt(fs.pos.z*fs.pos.z+fs.pos.y*fs.pos.y)*sin(r_angle);
-                //fs.vel.z = r_omega * sqrt(fs.pos.z*fs.pos.z+fs.pos.y*fs.pos.y)*cos(r_angle);
-                //fs.vel.x = 0.0;
+                cell->copy_values_from(*cell, COPY_ALL_CELL_DATA, 0);
+                r_angle = atan(cell->pos[0].z/cell->pos[0].y);
+                fs.vel.y = -r_omega*sqrt(cell->pos[0].y*cell->pos[0].y+cell->pos[0].z*cell->pos[0].z)*sin(r_angle);
+                fs.vel.z = r_omega*sqrt(cell->pos[0].y*cell->pos[0].y+cell->pos[0].z*cell->pos[0].z)*cos(r_angle);
+                fs.vel.x = 0.0; 
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[WEST]->wc_bc != NON_CATALYTIC) {
@@ -160,14 +160,11 @@ int MovingWallBC::apply_viscous(double t)
 		IFace = cell->iface[TOP];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
-			fs.vel.x = 0.0;
-			//  fs.vel.y = 0.0;
-                        fs.vel.z = 0.0;
-                //r_angle = atan(fs.pos.y/fs.pos.x);
-                //fs.vel.x = -r_omega * sqrt(fs.pos.x*fs.pos.x+fs.pos.y*fs.pos.y)*sin(r_angle);
-                //fs.vel.y = r_omega * sqrt(fs.pos.x*fs.pos.x+fs.pos.y*fs.pos.y)*cos(r_angle);
-                //fs.vel.z = 0.0;
-			fs.vel.y =r_omega;
+                cell->copy_values_from(*cell, COPY_ALL_CELL_DATA, 0);
+                r_angle = atan(cell->pos[0].y/cell->pos[0].x);
+                fs.vel.x = -r_omega*sqrt(cell->pos[0].x*cell->pos[0].x+cell->pos[0].y*cell->pos[0].y)*sin(r_angle);
+                fs.vel.y = r_omega*sqrt(cell->pos[0].x*cell->pos[0].x+cell->pos[0].y*cell->pos[0].y)*cos(r_angle);
+                fs.vel.z = 0.0;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[TOP]->wc_bc != NON_CATALYTIC) {
@@ -184,11 +181,11 @@ int MovingWallBC::apply_viscous(double t)
 		IFace = cell->iface[BOTTOM];
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
-			fs.vel.x = 0.0; fs.vel.y = 0.0; fs.vel.z = 0.0;
-			//r_angle = atan(fs.pos.y/fs.pos.x);
-                //fs.vel.x = -r_omega * sqrt(fs.pos.x*fs.pos.x+fs.pos.y*fs.pos.y)*sin(r_angle);
-                //fs.vel.y = r_omega * sqrt(fs.pos.x*fs.pos.x+fs.pos.y*fs.pos.y)*cos(r_angle);
-                //fs.vel.z = 0.0;
+                cell->copy_values_from(*cell, COPY_ALL_CELL_DATA, 0);
+                r_angle = atan(cell->pos[0].y/cell->pos[0].x);
+                fs.vel.x = -r_omega * sqrt(cell->pos[0].x*cell->pos[0].x+cell->pos[0].y*cell->pos[0].y)*sin(r_angle);
+                fs.vel.y = r_omega * sqrt(cell->pos[0].x*cell->pos[0].x+cell->pos[0].y*cell->pos[0].y)*cos(r_angle);
+                fs.vel.z = 0.0;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[BOTTOM]->wc_bc != NON_CATALYTIC) {
