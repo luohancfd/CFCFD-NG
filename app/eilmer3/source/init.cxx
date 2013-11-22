@@ -130,7 +130,7 @@ int init_available_bcs_map()
     available_bcs.insert(name_bc_t("3",SLIP_WALL));
     available_bcs.insert(name_bc_t("adiabatic",ADIABATIC));
     available_bcs.insert(name_bc_t("4",ADIABATIC));
-    available_bcs.insert(name_bc_t("fixed_T",FIXED_T));
+    available_bcs.insert(name_bc_t("fixed_t",FIXED_T));
     available_bcs.insert(name_bc_t("5",FIXED_T));
     available_bcs.insert(name_bc_t("subsonic_in",SUBSONIC_IN));
     available_bcs.insert(name_bc_t("6",SUBSONIC_IN));
@@ -144,7 +144,7 @@ int init_available_bcs_map()
     available_bcs.insert(name_bc_t("10",STATIC_PROF));
     available_bcs.insert(name_bc_t("fixed_p_out",FIXED_P_OUT));
     available_bcs.insert(name_bc_t("11",FIXED_P_OUT));
-    available_bcs.insert(name_bc_t("transient_T_wall",TRANSIENT_T_WALL));
+    available_bcs.insert(name_bc_t("transient_t_wall",TRANSIENT_T_WALL));
     available_bcs.insert(name_bc_t("13",TRANSIENT_T_WALL));
     available_bcs.insert(name_bc_t("surface_energy_balance",SEB));
     available_bcs.insert(name_bc_t("seb",SEB));
@@ -155,7 +155,7 @@ int init_available_bcs_map()
     available_bcs.insert(name_bc_t("17",ADJACENT_PLUS_UDF));
     available_bcs.insert(name_bc_t("ablating",ABLATING));
     available_bcs.insert(name_bc_t("18",ABLATING));
-    available_bcs.insert(name_bc_t("sliding_T",SLIDING_T));
+    available_bcs.insert(name_bc_t("sliding_t",SLIDING_T));
     available_bcs.insert(name_bc_t("19",SLIDING_T));
     available_bcs.insert(name_bc_t("fstc",FSTC));
     available_bcs.insert(name_bc_t("20",FSTC));
