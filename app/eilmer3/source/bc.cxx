@@ -88,7 +88,7 @@ std::string get_bc_name(bc_t bc)
     case PARTIALLY_CATALYTIC: return "partially_catalytic";
     case USER_DEFINED_MASS_FLUX: return "user_defined_mass_flux";
     case CONJUGATE_HT: return "conjugate_ht";
-    case MOVING_WALL: return "moiving_wall";	
+    case MOVING_WALL: return "moving_wall";	
     default: return "none";
     }
 } // end get_bc_name()
@@ -889,7 +889,6 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     double Twall_f = 300.0;
     double t_i = 0.0;
     double t_f = 0.0;
-    double r_omega = 100.0;
     int assume_ideal = 0;
     std::string filename = "";
     size_t n_profile = 1;
@@ -902,6 +901,9 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     std::vector<double> vnf;
     vnf.resize(get_gas_model_ptr()->get_number_of_species(), 0.0);
     int xforce_flag = 0;
+    std::vector<double> r_omega; r_omega.resize(3, 0.0);
+    std::vector<double> centre; centre.resize(3, 0.0);
+    std::vector<double> v_trans; v_trans.resize(3, 0.0);
 
     switch ( type_of_BC ) {
     case ADJACENT:
@@ -1010,9 +1012,14 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	newBC = new ConjugateHeatTransferBC(bdp, which_boundary);
 	break;
     case MOVING_WALL:
-        dict.parse_double(section, "r_omega", r_omega, 100.0);
+	// We have initially set the vectors to zero values 
+	// so it's safe to use them as the "not found" values.
+        dict.parse_vector_of_doubles(section, "r_omega", r_omega, r_omega);
+        dict.parse_vector_of_doubles(section, "centre", centre, centre);
+        dict.parse_vector_of_doubles(section, "v_trans", v_trans, v_trans);
         dict.parse_double(section, "emissivity", emissivity, 1.0);
-        newBC = new MovingWallBC(bdp, which_boundary, r_omega, emissivity);
+        newBC = new MovingWallBC(bdp, which_boundary, Vector3(r_omega), Vector3(centre),
+				 Vector3(v_trans), emissivity);
         break;
     default:
 	cerr << "create_BC() error: boundary condition \"" << type_of_BC 

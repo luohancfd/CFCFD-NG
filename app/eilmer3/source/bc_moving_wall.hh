@@ -1,12 +1,16 @@
 // bc_moving_wall.hh
 
+#include "../../../lib/geometry2/source/geom.hh"
 #include "bc.hh"
 
 class MovingWallBC : public BoundaryCondition {
 public:
-    double r_omega;
+    Vector3 r_omega;  // angular velocity of rotating surface
+    Vector3 centre;   // a point on the axis of rotation
+    Vector3 v_trans;  // translational velocity to superimpose
 public:
-    MovingWallBC(Block *bdp, int which_boundary, double r_omega, double emissivity);
+    MovingWallBC(Block *bdp, int which_boundary, Vector3 omega,
+		 Vector3 centre, Vector3 v_trans, double emissivity);
     MovingWallBC(const MovingWallBC &bc);
     MovingWallBC();
     MovingWallBC & operator=(const MovingWallBC &bc);

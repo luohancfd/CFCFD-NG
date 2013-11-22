@@ -171,9 +171,10 @@ def apply_gridpro_bcs(fname, blks, bc_map):
             elif bc_type == 'FIXED_P_OUT':
                 assert('FIXED_P_OUT' in bc_map)
                 blk.set_BC(face, 'FIXED_P_OUT', Pout=bc_map['FIXED_P_OUT'])
-            elif bc_type == 'MOVING_WALL':
-                assert('MOVING_WALL' in bc_map)
-                blk.set_BC(face, 'MOVING_WALL', r_omega=bc_map['MOVING_WALL'])
+            # ** FIX-ME ** please Rowan
+            # elif bc_type == 'MOVING_WALL':
+            #     assert('MOVING_WALL' in bc_map)
+            #     blk.set_BC(face, 'MOVING_WALL', r_omega=bc_map['MOVING_WALL'])
             elif bc_type == 'USER_DEFINED':
                 assert('USER_DEFINED' in bc_map)
                 blk.set_BC(face, 'USER_DEFINED',

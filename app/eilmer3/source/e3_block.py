@@ -512,7 +512,9 @@ class Block(object):
 
     def set_BC(self, face_name, type_of_BC,
                inflow_condition=None, x_order=0, sponge_flag=None,
-               Twall=None, Pout=None, r_omega=None, filename=None, n_profile=1,
+               Twall=None, Pout=None, 
+               r_omega=None, centre=None, v_trans=None, 
+               filename=None, n_profile=1,
                is_wall=0, sets_conv_flux=0, sets_visc_flux=0,
                assume_ideal=0, mdot=None, emissivity=None,
                Twall_i=None, Twall_f=None, t_i=None, t_f=None,
@@ -532,8 +534,10 @@ class Block(object):
             in degrees Kelvin.
         :param Pout: If appropriate, specify the value of static pressure
             (in Pascals) just outside the boundary.
-        :param r_omega: If appropriate, specify the value of rotational speed
+        :param r_omega: If appropriate, specify the value of angular velocity
             (in rad/s) of the wall.
+
+        ** FIX-ME ** rest of parameters not desctibed
 
         Sometimes it is good to be able to adjust properties after
         block creation; this function provides that capability.
@@ -565,8 +569,6 @@ class Block(object):
             Twall = float(Twall)
         if Pout != None:
             Pout = float(Pout)
-        if r_omega != None:
-            r_omega = float(r_omega)
         if emissivity != None:
             emissivity = float(emissivity)
         if Twall_i != None:
@@ -609,7 +611,7 @@ class Block(object):
         if type_of_BC == FIXED_P_OUT:
             newbc = FixedPOutBC(Pout, x_order, label=label)
         if type_of_BC == MOVING_WALL:
-            newbc = MovingWallBC(r_omega, label=label)
+            newbc = MovingWallBC(r_omega, centre, v_trans, label=label)
         if type_of_BC == RRM:
             newbc = RRMBC(sponge_flag, label=label)
         if type_of_BC == USER_DEFINED:
@@ -707,7 +709,9 @@ class Block(object):
             fp.write("xforce_flag = %d\n" % self.xforce_list[iface])
             fp.write("Twall = %e\n" % bc.Twall)
             fp.write("Pout = %e\n" % bc.Pout)
-            fp.write("r_omega = %e\n" % bc.r_omega)
+            fp.write("r_omega = %e %e %e\n" % (bc.r_omega[0], bc.r_omega[1], bc.r_omega[2]))
+            fp.write("centre = %e %e %e\n" % (bc.centre[0], bc.centre[1], bc.centre[2]))
+            fp.write("v_trans = %e %e %e\n" % (bc.v_trans[0], bc.v_trans[1], bc.v_trans[2]))
             fp.write("is_wall = %d\n" % bc.is_wall)
             fp.write("sets_conv_flux = %d\n" % bc.sets_conv_flux)
             fp.write("sets_visc_flux = %d\n" % bc.sets_visc_flux)
