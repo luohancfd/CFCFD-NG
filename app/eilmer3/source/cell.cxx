@@ -1823,10 +1823,10 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
     un_E = fabs(dot(fs->vel, east->n));
     if ( dimensions == 3 ) {
 	un_T = fabs(dot(fs->vel, top->n));
-	u_mag = sqrt(fs->vel.x * fs->vel.x + fs->vel.y * fs->vel.y + fs->vel.z * fs->vel.z);
+	u_mag = sqrt(fs->vel.x*fs->vel.x + fs->vel.y*fs->vel.y + fs->vel.z*fs->vel.z);
     }  else {
 	un_T = 0.0;
-	u_mag = sqrt(fs->vel.x * fs->vel.x + fs->vel.y * fs->vel.y);
+	u_mag = sqrt(fs->vel.x*fs->vel.x + fs->vel.y*fs->vel.y);
     }
     if (get_mhd_flag() == 1) {
 	Bn_N = fabs(dot(fs->B, north->n));
@@ -1876,8 +1876,8 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
 		signalT = (un_T + cfast_T) / kLength;
 		if ( signalT > signal ) signal = signalT;
 	    } else {
-		signalN = (un_N + cfast) / east->length;
-		signalE = (un_E + cfast) / north->length;
+		signalN = (un_N + cfast) / jLength;
+		signalE = (un_E + cfast) / iLength;
 		signal = max(signalN, signalE);
 	    }
 	} else if ( dimensions == 3 ) {
@@ -1892,8 +1892,8 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
 	    // mbcns2 -- 2D cells
 	    // The velocity normal to the north face is assumed to run
 	    // along the length of the east face.
-	    signalN = (un_N + fs->gas->a) / east->length;
-	    signalE = (un_E + fs->gas->a) / north->length;
+	    signalN = (un_N + fs->gas->a) / jLength;
+	    signalE = (un_E + fs->gas->a) / iLength;
 	    signal = max(signalN, signalE);
 	}
     }
@@ -1913,11 +1913,11 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
 	    if ( dimensions == 3 ) {
 		signal += 4.0 * viscous_factor * (fs->gas->mu + fs->mu_t)
 		    * gam_eff / (Prandtl * fs->gas->rho)
-		    * (1.0 / (iLength * iLength) + 1.0 / (jLength * jLength) + 1.0 / (kLength * kLength));
+		    * (1.0/(iLength*iLength) + 1.0/(jLength*jLength) + 1.0/(kLength*kLength));
 	    } else {
 		signal += 4.0 * viscous_factor * (fs->gas->mu + fs->mu_t) 
 		    * gam_eff / (Prandtl * fs->gas->rho)
-		    * (1.0 / (east->length * east->length) + 1.0 / (north->length * north->length));
+		    * (1.0/(iLength*iLength) + 1.0/(jLength*jLength));
 	    }
 	} else if ( VISCOUS_TIME_LIMIT_MODEL == 1 ) {
 	    // A viscous time limit model incorporating diffusion effects
@@ -1956,12 +1956,12 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
 	    double D_max = max( D_max_i, D_max_ii );
 	    // 5. Add signal frequency contribution
 	    if ( dimensions == 3 ) {
-		signal += D_max * (  1.0 / (iLength * iLength)
-				     + 1.0 / (jLength * jLength)
-				     + 1.0 / (kLength * kLength));
+		signal += D_max * (1.0/(iLength*iLength)
+				   + 1.0/(jLength*jLength)
+				   + 1.0/(kLength*kLength));
 	    } else {
-		signal += D_max * (  1.0 / (east->length * east->length)
-				     + 1.0 / (north->length * north->length));
+		signal += D_max * (1.0/(iLength*iLength)
+				   + 1.0/(jLength*jLength));
 	    }
 	    // end if VISCOUS_TIME_LIMIT_MODEL == 1
 	} else {
