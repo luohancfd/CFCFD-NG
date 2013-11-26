@@ -24,7 +24,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <valarray>
+#include <vector>
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/util/source/config_parser.hh"
 #include "l1d.hh"
