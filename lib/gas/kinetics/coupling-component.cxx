@@ -3,7 +3,7 @@
 // Place: Dutton Park, QLD, Oz
 
 #include <iostream>
-
+#include <math.h>
 #include "../../util/source/lua_service.hh"
 #include "../../util/source/useful.h"
 
@@ -147,7 +147,7 @@ Simple_dissociation_component::clone() const
 
 double
 Simple_dissociation_component::
-specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
+specific_compute_contribution( Gas_data &Q, vector<double> &delta_c )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
     
@@ -167,7 +167,7 @@ specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
 
 double
 Simple_dissociation_component::
-specific_compute_source_term( Gas_data &Q, valarray<double> &dcdt )
+specific_compute_source_term( Gas_data &Q, vector<double> &dcdt )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
     
@@ -209,7 +209,7 @@ TreanorMarrone_dissociation_component::clone() const
 
 double
 TreanorMarrone_dissociation_component::
-specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
+specific_compute_contribution( Gas_data &Q, vector<double> &delta_c )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
     
@@ -241,7 +241,7 @@ specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
 
 double
 TreanorMarrone_dissociation_component::
-specific_compute_source_term( Gas_data &Q, valarray<double> &dcdt )
+specific_compute_source_term( Gas_data &Q, vector<double> &dcdt )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
     
@@ -296,7 +296,7 @@ Park_dissociation_component::clone() const
 
 double
 Park_dissociation_component::
-specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
+specific_compute_contribution( Gas_data &Q, vector<double> &delta_c )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
     
@@ -322,7 +322,7 @@ specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
 
 double
 Park_dissociation_component::
-specific_compute_source_term( Gas_data &Q, valarray<double> &dcdt )
+specific_compute_source_term( Gas_data &Q, vector<double> &dcdt )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
     
@@ -399,7 +399,7 @@ Macheret_dissociation_component::clone() const
 
 double
 Macheret_dissociation_component::
-specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
+specific_compute_contribution( Gas_data &Q, vector<double> &delta_c )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
     
@@ -449,7 +449,7 @@ specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
 
 double
 Macheret_dissociation_component::
-specific_compute_source_term( Gas_data &Q, valarray<double> &dcdt )
+specific_compute_source_term( Gas_data &Q, vector<double> &dcdt )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
     
@@ -534,7 +534,7 @@ Simple_recombination_component::clone() const
 
 double
 Simple_recombination_component::
-specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
+specific_compute_contribution( Gas_data &Q, vector<double> &delta_c )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
     
@@ -554,7 +554,7 @@ specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
 
 double
 Simple_recombination_component::
-specific_compute_source_term( Gas_data &Q, valarray<double> &dcdt )
+specific_compute_source_term( Gas_data &Q, vector<double> &dcdt )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
     
@@ -596,7 +596,7 @@ TreanorMarrone_recombination_component::clone() const
 
 double
 TreanorMarrone_recombination_component::
-specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
+specific_compute_contribution( Gas_data &Q, vector<double> &delta_c )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
     
@@ -624,7 +624,7 @@ specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
 
 double
 TreanorMarrone_recombination_component::
-specific_compute_source_term( Gas_data &Q, valarray<double> &dcdt )
+specific_compute_source_term( Gas_data &Q, vector<double> &dcdt )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
     
@@ -675,7 +675,7 @@ Park_recombination_component::clone() const
 
 double
 Park_recombination_component::
-specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
+specific_compute_contribution( Gas_data &Q, vector<double> &delta_c )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
     
@@ -703,7 +703,7 @@ specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
 
 double
 Park_recombination_component::
-specific_compute_source_term( Gas_data &Q, valarray<double> &dcdt )
+specific_compute_source_term( Gas_data &Q, vector<double> &dcdt )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
     
@@ -778,7 +778,7 @@ Macheret_recombination_component::clone() const
 
 double
 Macheret_recombination_component::
-specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
+specific_compute_contribution( Gas_data &Q, vector<double> &delta_c )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
     
@@ -811,7 +811,7 @@ specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
 
 double
 Macheret_recombination_component::
-specific_compute_source_term( Gas_data &Q, valarray<double> &dcdt )
+specific_compute_source_term( Gas_data &Q, vector<double> &dcdt )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
     
@@ -867,7 +867,7 @@ Electron_impact_ionization_component::clone() const
 
 double
 Electron_impact_ionization_component::
-specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
+specific_compute_contribution( Gas_data &Q, vector<double> &delta_c )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
     
@@ -884,7 +884,7 @@ specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
 
 double
 Electron_impact_ionization_component::
-specific_compute_source_term( Gas_data &Q, valarray<double> &dcdt )
+specific_compute_source_term( Gas_data &Q, vector<double> &dcdt )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
     
@@ -924,7 +924,7 @@ Associative_ionization_component::clone() const
 
 double
 Associative_ionization_component::
-specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
+specific_compute_contribution( Gas_data &Q, vector<double> &delta_c )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
     
@@ -951,7 +951,7 @@ specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
 
 double
 Associative_ionization_component::
-specific_compute_source_term( Gas_data &Q, valarray<double> &dcdt )
+specific_compute_source_term( Gas_data &Q, vector<double> &dcdt )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
     
@@ -1001,14 +1001,14 @@ EII_recombination_component::clone() const
 
 double
 EII_recombination_component::
-specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
+specific_compute_contribution( Gas_data &Q, vector<double> &delta_c )
 {
     return 0.0;
 }
 
 double
 EII_recombination_component::
-specific_compute_source_term( Gas_data &Q, valarray<double> &dcdt )
+specific_compute_source_term( Gas_data &Q, vector<double> &dcdt )
 {
     // Assume recombination at average electron energy
     
@@ -1042,14 +1042,14 @@ AI_recombination_component::clone() const
 
 double
 AI_recombination_component::
-specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
+specific_compute_contribution( Gas_data &Q, vector<double> &delta_c )
 {
     return 0.0;
 }
 
 double
 AI_recombination_component::
-specific_compute_source_term( Gas_data &Q, valarray<double> &dcdt )
+specific_compute_source_term( Gas_data &Q, vector<double> &dcdt )
 {
     return 0.0;
 }
@@ -1119,7 +1119,7 @@ double calculate_Knab_energy( std::vector<Species_energy_mode*> &sems,
     // of either appearing or vanishing molecules based on 
     // the local translational.
     
-    if ( std::isnan(val) || std::isinf(val) ) {
+    if ( isnan(val) || isinf(val) ) {
 	// Just return the energy from the first mode
 	// assuming that it's dominant.
 	return sems[0]->eval_energy_from_T(T);
@@ -1156,7 +1156,7 @@ Knab_vanishing_component::clone() const
 
 double
 Knab_vanishing_component::
-specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
+specific_compute_contribution( Gas_data &Q, vector<double> &delta_c )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
 
@@ -1184,7 +1184,7 @@ specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
 
 double
 Knab_vanishing_component::
-specific_compute_source_term( Gas_data &Q, valarray<double> &dcdt )
+specific_compute_source_term( Gas_data &Q, vector<double> &dcdt )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
 
@@ -1236,7 +1236,7 @@ Knab_appearing_component::clone() const
 
 double
 Knab_appearing_component::
-specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
+specific_compute_contribution( Gas_data &Q, vector<double> &delta_c )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
 
@@ -1265,7 +1265,7 @@ specific_compute_contribution( Gas_data &Q, valarray<double> &delta_c )
 
 double
 Knab_appearing_component::
-specific_compute_source_term( Gas_data &Q, valarray<double> &dcdt )
+specific_compute_source_term( Gas_data &Q, vector<double> &dcdt )
 {
     if( Q.massf[isp_] < min_mass_frac ) return 0.0;
 

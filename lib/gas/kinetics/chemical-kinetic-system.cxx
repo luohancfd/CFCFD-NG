@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <sstream>
-
+#include <math.h>
 #include "../../util/source/lua_service.hh"
 #include "../../util/source/useful.h"
 #include "../../nm/source/no_fuss_linear_algebra.hh"
@@ -157,7 +157,7 @@ Chemical_kinetic_system::
 
 int
 Chemical_kinetic_system::
-eval(const valarray<double> &y, valarray<double> &ydot)
+eval(const vector<double> &y, vector<double> &ydot)
 {
     eval_split(y, q_, L_);
     //printf("ydot=[");
@@ -171,8 +171,8 @@ eval(const valarray<double> &y, valarray<double> &ydot)
 
 int
 Chemical_kinetic_system::
-eval_split(const valarray<double> &y,
-	   valarray<double> &q, valarray<double> &L)
+eval_split(const vector<double> &y,
+	   vector<double> &q, vector<double> &L)
 {
     if ( ! called_at_least_once ) {
 	for ( size_t ir = 0; ir < reaction_.size(); ++ir ) {
@@ -218,7 +218,7 @@ const double zero_tol = 1.0e-30;
 
 double
 Chemical_kinetic_system::
-stepsize_select(const valarray<double> &y)
+stepsize_select(const vector<double> &y)
 {
     eval(y, ydot_);
     double min_dt = chem_step_upper_limit; // to get us started
@@ -249,7 +249,7 @@ const double min_conc = 1.0e-30;
 
 bool
 Chemical_kinetic_system::
-passes_system_test(valarray<double> &y)
+passes_system_test(vector<double> &y)
 {
     for ( size_t isp = 0; isp < y.size(); ++isp ) {
 	y[isp] = y[isp] < min_conc ? 0.0 : y[isp];

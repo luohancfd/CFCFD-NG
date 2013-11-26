@@ -2,7 +2,7 @@
 // Date: 18-Nov-2009
 
 #include <iostream>
-
+#include <math.h>
 #include "../../util/source/lua_service.hh"
 #include "../../util/source/useful.h"
 
@@ -19,7 +19,7 @@ Energy_exchange_mechanism::
 
 double
 Energy_exchange_mechanism::
-compute_rate(const valarray<double> &y, Gas_data &Q, std::vector<double> &molef)
+compute_rate(const vector<double> &y, Gas_data &Q, std::vector<double> &molef)
 {
     return specific_compute_rate(y, Q, molef);
 }
@@ -28,7 +28,7 @@ double
 Energy_exchange_mechanism::
 py_compute_rate(const vector<double> &y, Gas_data &Q, vector<double> &molef)
 {
-  valarray<double> y_(y.size());
+  vector<double> y_(y.size());
   for ( size_t i=0; i<y.size(); ++i)
     y_[i] = y[i];
 
@@ -58,7 +58,7 @@ VT_exchange::
 
 double
 VT_exchange::
-specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, vector<double> &molef)
+specific_compute_rate(const std::vector<double> &y, Gas_data &Q, vector<double> &molef)
 {
     // tau_ will be present and correct before beginning this
     // function ie. a call to compute_tau is expected earlier.
@@ -110,7 +110,7 @@ Polyatomic_VT_exchange::
 
 double
 Polyatomic_VT_exchange::
-specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, vector<double> &molef)
+specific_compute_rate(const std::vector<double> &y, Gas_data &Q, vector<double> &molef)
 {
     // tau_ will be present and correct before beginning this
     // functionm ie. a call to compute_tau is expected earlier.
@@ -148,7 +148,7 @@ ET_exchange::
 
 double
 ET_exchange::
-specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &molef)
+specific_compute_rate(const vector<double> &y, Gas_data &Q, vector<double> &molef)
 {
     // tau_ET_ will be present and correct before beginning this
     // functionm ie. a call to compute_tau is expected earlier.
@@ -182,7 +182,7 @@ ER_exchange::
 
 double
 ER_exchange::
-specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &molef)
+specific_compute_rate(const vector<double> &y, Gas_data &Q, vector<double> &molef)
 {
     // tau_ER_ will be present and correct before beginning this
     // functionm ie. a call to compute_tau is expected earlier.
@@ -237,7 +237,7 @@ VV_THO_exchange::
 
 double
 VV_THO_exchange::
-specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &molef)
+specific_compute_rate(const vector<double> &y, Gas_data &Q, vector<double> &molef)
 {
     if ( tau_ == -1.0 ) {
 	// This signals that one or both of the colliders are
@@ -319,7 +319,7 @@ specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &mo
 
 // double
 // VV_HO_exchange::
-// specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &molef)
+// specific_compute_rate(const vector<double> &y, Gas_data &Q, vector<double> &molef)
 // {
 //     // Refs: Panesi et al (2008) AIAA 2008-1205
 //     //       Candler et al (1991) JTHT Vol. 5 No. 11 pp. 266
@@ -365,7 +365,7 @@ EV_exchange::
 
 double
 EV_exchange::
-specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &molef)
+specific_compute_rate(const vector<double> &y, Gas_data &Q, vector<double> &molef)
 {
     // Refs: Gnoffo (1989)
     //       Lee (1985)
@@ -412,7 +412,7 @@ VE_exchange::
 
 double
 VE_exchange::
-specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &molef)
+specific_compute_rate(const vector<double> &y, Gas_data &Q, vector<double> &molef)
 {
     // Refs: Gnoffo (1989)
     //       Lee (1985)
@@ -499,7 +499,7 @@ specific_compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &mo
 
 // double
 // RT_exchange::
-// specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, vector<double> &molef)
+// specific_compute_rate(const std::vector<double> &y, Gas_data &Q, vector<double> &molef)
 // {
 //     // tau_ will be present and correct before beginning this
 //     // functionm ie. a call to compute_tau is expected earlier.

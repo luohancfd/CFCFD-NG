@@ -5,7 +5,7 @@
 #define REACTION_HH
 
 #include <string>
-#include <valarray>
+#include <vector>
 
 extern "C" {
 #include <lua.h>
@@ -35,12 +35,12 @@ public:
     double k_b()
     { return k_b_; }
 
-    void compute_forward_rate(const std::valarray<double> &y)
+    void compute_forward_rate(const std::vector<double> &y)
     { w_f_ = s_compute_forward_rate(y); }
     double w_f()
     { return w_f_; }
 
-    void compute_backward_rate(const std::valarray<double> &y)
+    void compute_backward_rate(const std::vector<double> &y)
     { w_b_ = s_compute_backward_rate(y); }
     double w_b()
     { return w_b_; }
@@ -57,8 +57,8 @@ public:
 protected:
     virtual double s_compute_k_f(const Gas_data &Q);
     virtual double s_compute_k_b(const Gas_data &Q);
-    virtual double s_compute_forward_rate(const std::valarray<double> &y) = 0;
-    virtual double s_compute_backward_rate(const std::valarray<double> &y) = 0;
+    virtual double s_compute_forward_rate(const std::vector<double> &y) = 0;
+    virtual double s_compute_backward_rate(const std::vector<double> &y) = 0;
     
 private:
     double w_f_;

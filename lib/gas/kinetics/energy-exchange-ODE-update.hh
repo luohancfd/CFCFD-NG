@@ -44,7 +44,7 @@ private:
                            // energy exchange is NOT computed.
     OdeSolver *ode_solver_;
     Energy_exchange_system *ees_;
-    std::valarray<double> yin_, yout_, ydot_;
+    std::vector<double> yin_, yout_, ydot_;
     Gas_data *Q_save_;
     std::vector<double> molef_;
     Gas_model * g_;

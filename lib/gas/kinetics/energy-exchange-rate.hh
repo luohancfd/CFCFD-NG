@@ -6,7 +6,6 @@
 
 #include <vector>
 #include <string>
-#include <valarray>
 
 extern "C" {
 #include <lua.h>
@@ -26,7 +25,7 @@ public:
 
     int compute_all_relaxation_times(Gas_data &Q, std::vector<double> &molef);
 
-    double compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
+    double compute_rate(const std::vector<double> &y, Gas_data &Q, std::vector<double> &molef);
 
     bool is_equilibriated()
     { return equilibriated_; }

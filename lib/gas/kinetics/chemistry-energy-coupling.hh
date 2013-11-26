@@ -6,7 +6,6 @@
 #define CHEMISTRY_ENERGY_COUPLING_HH
 
 #include <string>
-#include <valarray>
 #include <vector>
 
 #include "../models/gas_data.hh"
@@ -25,10 +24,10 @@ public:
     void set_e_and_N_old( Gas_data &Q, std::vector<double> &c_old );
     
     /// \brief Compute the new average energy, e_new = e_old + delta_E / N_new
-    int update_energy( Gas_data &Q, std::valarray<double> &delta_c, std::vector<double> &c_new );
+    int update_energy( Gas_data &Q, std::vector<double> &delta_c, std::vector<double> &c_new );
     
     /// \brief Compute the source term
-    double eval_source_term( Gas_data &Q, std::valarray<double> &dcdt );
+    double eval_source_term( Gas_data &Q, std::vector<double> &dcdt );
     
     int get_isp() { return isp_; }
     

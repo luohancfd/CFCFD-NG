@@ -9,8 +9,6 @@
 #define R_SPECIES_HH
 
 #include <vector>
-#include <valarray>
-
 #include "../../nm/source/no_fuss_linear_algebra.hh"
 #include "reaction_pieces.hh"
 
@@ -23,10 +21,10 @@ public:
     ReactingSpecies* clone();
     
     int nreac() {return int(_r_pieces.size()); }
-    double rate_for_reac( int ir, const std::valarray<double> &w_f, const std::valarray<double> &w_b );
+    double rate_for_reac( int ir, const std::vector<double> &w_f, const std::vector<double> &w_b );
 
-    virtual double production( const std::valarray<double> &w_f, const std::valarray<double> &w_b );
-    virtual double loss( const std::valarray<double> &w_f, const std::valarray<double> &w_b );
+    virtual double production( const std::vector<double> &w_f, const std::vector<double> &w_b );
+    virtual double loss( const std::vector<double> &w_f, const std::vector<double> &w_b );
 
 protected:
     std::vector<ReactionPieces*> _r_pieces;

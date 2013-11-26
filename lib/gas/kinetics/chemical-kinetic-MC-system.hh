@@ -5,7 +5,7 @@
 #define CHEMICAL_KINETIC_MC_SYSTEM_HH
 
 #include <string>
-#include <valarray>
+#include <vector>
 
 extern "C" {
 #include <lua.h>
@@ -28,12 +28,11 @@ public:
 
     ~Chemical_kinetic_MC_system();
     
-    int eval(const std::valarray<double> &y, std::valarray<double> &ydot);
-    int eval_new_concentrations(const std::valarray<double> &y, std::valarray<double> &c);
-    int eval_new_concentrations(const std::valarray<double> &y, std::vector<double> &c);
-    int eval_species_rates(const std::valarray<double> &y, std::valarray<double> &cdot);
-    double stepsize_select(const std::valarray<double> &y);
-    bool passes_system_test(std::valarray<double> &y);
+    int eval(const std::vector<double> &y, std::vector<double> &ydot);
+    int eval_new_concentrations(const std::vector<double> &y, std::vector<double> &c);
+    int eval_species_rates(const std::vector<double> &y, std::vector<double> &cdot);
+    double stepsize_select(const std::vector<double> &y);
+    bool passes_system_test(std::vector<double> &y);
     void print_reaction_rates();
     void print_species_rates();
     void print_limiting_species_and_reaction();
@@ -48,10 +47,10 @@ public:
     
     int initialise_chemistry_energy_coupling( Gas_data &Q, std::vector<double> &c_old );
     
-    int apply_chemistry_energy_coupling( Gas_data &Q, std::valarray<double> &delta_c,
+    int apply_chemistry_energy_coupling( Gas_data &Q, std::vector<double> &delta_c,
     				         std::vector<double> &c_new );
     
-    int eval_chemistry_energy_coupling_source_terms( Gas_data &Q, const std::valarray<double> &y, std::vector<double> &dedt );
+    int eval_chemistry_energy_coupling_source_terms( Gas_data &Q, const std::vector<double> &y, std::vector<double> &dedt );
 
     size_t cecs_size( void ) { return cecs_.size(); }
 
@@ -66,9 +65,9 @@ private:
     // a given species participates in.
     std::vector<std::vector<int> > participation_;
     Gas_data *Q_;
-    std::valarray<double> ydot_;
-    std::valarray<double> w_;
-    std::valarray<double> c_;
+    std::vector<double> ydot_;
+    std::vector<double> w_;
+    std::vector<double> c_;
     std::vector<double> cinit_, massf_, M_;
     // A list of 'Species_pieces' to manage concentration changes
     std::vector<Species_pieces*> spec_;

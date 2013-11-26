@@ -1,13 +1,12 @@
 // Author: Daniel F. Potter
 // Date: 06-Oct-2009
-// Place: Brisbane, Queendland, AUST
+// Place: Brisbane, Queensland, AUST
 
 #ifndef CHEMICAL_EQUILIBRIUM_SYSTEM_HH
 #define CHEMICAL_EQUILIBRIUM_SYSTEM_HH
         
 #include <vector>
 #include <string>
-#include <valarray>
 
 #include "../../../lib/nm/source/no_fuss_linear_algebra.hh"
 #include "../../../lib/nm/source/zero_system.hh"
@@ -77,8 +76,8 @@ public:
     virtual int solve_system( double T, double rho, std::vector<double> &massf );
     virtual int test_system( double T, double p, std::vector<double> molef );
     
-    virtual int f( const std::valarray<double> &y, std::valarray<double> &G );
-    virtual int Jac( const std::valarray<double> &y, Valmatrix &dGdy );
+    virtual int f( const std::vector<double> &y, std::vector<double> &G );
+    virtual int Jac( const std::vector<double> &y, Valmatrix &dGdy );
     
     virtual Partial_equilibrium_reaction * get_partial_equilibrium_reaction_pointer( size_t index )
     { return pe_reactions_[index]; }
@@ -96,9 +95,9 @@ private:
     NewtonRaphsonZF zero_solver_;
     double f_jac_;
     
-    std::valarray<double> Q_;
-    std::valarray<double> yguess_;
-    std::valarray<double> yout_;
+    std::vector<double> Q_;
+    std::vector<double> yguess_;
+    std::vector<double> yout_;
     
     virtual int compute_source_terms( std::vector<double> &massf );
 };
@@ -112,8 +111,8 @@ public:
     virtual int solve_system( double T, double rho, std::vector<double> &massf );
     virtual int test_system( double T, double p, std::vector<double> molef );
     
-    virtual int f( const std::valarray<double> &y, std::valarray<double> &G );
-    virtual int Jac( const std::valarray<double> &y, Valmatrix &dGdy );
+    virtual int f( const std::vector<double> &y, std::vector<double> &G );
+    virtual int Jac( const std::vector<double> &y, Valmatrix &dGdy );
     
     virtual Partial_equilibrium_reaction * get_partial_equilibrium_reaction_pointer( size_t index );
 

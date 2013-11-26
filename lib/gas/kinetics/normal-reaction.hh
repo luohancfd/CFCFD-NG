@@ -5,7 +5,7 @@
 #ifndef NORMAL_REACTION_HH
 #define NORMAL_REACTION_HH
 
-#include <valarray>
+#include <vector>
 
 extern "C" {
 #include <lua.h>
@@ -22,8 +22,8 @@ public:
     virtual ~Normal_reaction();
 
 protected:
-    virtual double s_compute_forward_rate(const std::valarray<double> &y);
-    virtual double s_compute_backward_rate(const std::valarray<double> &y);
+    virtual double s_compute_forward_rate(const std::vector<double> &y);
+    virtual double s_compute_backward_rate(const std::vector<double> &y);
 
 private:
     std::map<int, int> f_coeffs_;

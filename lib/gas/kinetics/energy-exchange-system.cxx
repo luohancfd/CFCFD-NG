@@ -4,7 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <numeric>
-
+#include <math.h>
 #include "../../util/source/lua_service.hh"
 #include "../../util/source/useful.h"
 #include "../../nm/source/no_fuss_linear_algebra.hh"
@@ -47,7 +47,7 @@ Energy_exchange_system::
 
 int
 Energy_exchange_system::
-eval(const valarray<double> &y, valarray<double> &ydot)
+eval(const vector<double> &y, vector<double> &ydot)
 {
     // NOTE: updating the gas-data structure here as many mechanisms
     //       use temperature to evaluate the rate of energy exchange
@@ -84,7 +84,7 @@ const double zero_tol = 1.0e-30;
 
 double
 Energy_exchange_system::
-stepsize_select(const valarray<double> &y)
+stepsize_select(const vector<double> &y)
 {
     eval(y, ydot_);
     double min_dt = therm_step_upper_limit; // to get us started

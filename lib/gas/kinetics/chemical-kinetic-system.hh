@@ -5,7 +5,7 @@
 #define CHEMICAL_KINETIC_SYSTEM_HH
 
 #include <string>
-#include <valarray>
+#include <vector>
 
 extern "C" {
 #include <lua.h>
@@ -25,11 +25,11 @@ public:
 
     ~Chemical_kinetic_system();
     
-    int eval(const std::valarray<double> &y, std::valarray<double> &ydot);
-    int eval_split(const std::valarray<double> &y,
-		   std::valarray<double> &q, std::valarray<double> &L);
-    double stepsize_select(const std::valarray<double> &y);
-    bool passes_system_test(std::valarray<double> &y);
+    int eval(const std::vector<double> &y, std::vector<double> &ydot);
+    int eval_split(const std::vector<double> &y,
+		   std::vector<double> &q, std::vector<double> &L);
+    double stepsize_select(const std::vector<double> &y);
+    bool passes_system_test(std::vector<double> &y);
 
     void set_gas_data_ptr(Gas_data &Q)
     { Q_ = &Q; }
@@ -52,7 +52,7 @@ private:
     // a given species participates in.
     std::vector<std::vector<int> > participation_;
     Gas_data *Q_;
-    std::valarray<double> q_, L_, ydot_;
+    std::vector<double> q_, L_, ydot_;
     std::vector<double> massf_, M_;
 };
 

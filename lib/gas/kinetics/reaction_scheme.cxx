@@ -12,7 +12,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <valarray>
 
 #include "../models/gas.hh"
 
@@ -363,8 +362,8 @@ update_gas_state( Gas_data &Q, double dt_flow, bool include_evib_exchange )
 
 int
 ReactionSchemeODE::
-eval_split( const valarray<double> &y, 
-	    valarray<double> &q, valarray<double> &L )
+eval_split( const vector<double> &y, 
+	    vector<double> &q, vector<double> &L )
 {
     if( ! called_at_least_once ) { // We need to compute the rate coefficients
 	for( size_t ir = 0; ir < reactions_.size(); ++ir ) {
@@ -402,7 +401,7 @@ eval_split( const valarray<double> &y,
 
 int
 ReactionSchemeODE::
-eval( const valarray<double> &y, valarray<double> &ydot )
+eval( const vector<double> &y, vector<double> &ydot )
 {
     
     ReactionSchemeODE::eval_split( y, q_, L_ );
@@ -420,9 +419,9 @@ const double zero_tol = 1.0e-30;
 
 double
 ReactionSchemeODE::
-stepsize_select( const valarray<double> &y )
+stepsize_select( const vector<double> &y )
 {
-    valarray<double> ydot = y;
+    vector<double> ydot = y;
 
     ReactionSchemeODE::eval( y, ydot );
 
@@ -454,7 +453,7 @@ const double min_conc = 1.0e-30;
 
 bool
 ReactionSchemeODE::
-passes_system_test( valarray<double> &y )
+passes_system_test( vector<double> &y )
 {
     double f_tot = 0.0;
     for( int isp = 0; isp < g_->nsp; ++isp ) {
@@ -486,12 +485,12 @@ passes_system_test( valarray<double> &y )
 }
 
 void
-ReactionSchemeODE::evolution_rates(int isp, valarray<double> &W, Gas_data &Q)
+ReactionSchemeODE::evolution_rates(int isp, vector<double> &W, Gas_data &Q)
 {
     if( W.size() < size_t(reacting_species_[isp]->nreac()) ) {
 	cerr << "ReactionSchemeODE::evolution_rates()\n"
 	     << "Not enough space to store results of species evolution for each reaction.\n"
-	     << "Increase size of valarray<double> W.\n"
+	     << "Increase size of vector<double> W.\n"
 	     << "Bailing out!\n";
 	exit(MISMATCHED_DIMENSIONS);
     }
@@ -512,7 +511,7 @@ ReactionSchemeODE::evolution_rates(int isp, valarray<double> &W, Gas_data &Q)
     // Compute all the forward and backward production rates
     // for individual reactions.
 
-    valarray<double> y( ndim_ );
+    vector<double> y( ndim_ );
     for( int i = 0; i < ndim_; ++i ) {
 	y[i] = Q.c[i];
     }
@@ -1111,7 +1110,7 @@ update_gas_state( Gas_data &Q, double dt_flow, bool include_evib_exchange )
 
 int
 ReactionSchemeODE_MC::
-eval( const valarray<double> &y, valarray<double> &ydot )
+eval( const vector<double> &y, vector<double> &ydot )
 {
     if( ! called_at_least_once ) { // We need to compute the rate coefficients
 	for( size_t ir = 0; ir < reactions_.size(); ++ir ) {
@@ -1150,9 +1149,9 @@ eval( const valarray<double> &y, valarray<double> &ydot )
 
 double
 ReactionSchemeODE_MC::
-stepsize_select( const valarray<double> &y )
+stepsize_select( const vector<double> &y )
 {
-    valarray<double> ydot = y;
+    vector<double> ydot = y;
     double rate = 0.0;
 
     ReactionSchemeODE_MC::eval( y, ydot );
@@ -1190,7 +1189,7 @@ stepsize_select( const valarray<double> &y )
     
 bool
 ReactionSchemeODE_MC::
-passes_system_test( valarray<double> &y )
+passes_system_test( vector<double> &y )
 {
     // We should never have a problem 
     return true;
@@ -1199,8 +1198,8 @@ passes_system_test( valarray<double> &y )
 
 int
 ReactionSchemeODE_MC::
- update_evib(gas_data &Q, valarray<double> &y,
- 	    valarray<double> &c_old, valarray<double> &c_new)
+ update_evib(gas_data &Q, vector<double> &y,
+ 	    vector<double> &c_old, vector<double> &c_new)
 {
     for(size_t ivib = 0; ivib < evc_.size(); ++ivib) {
 	Q.e_vib[ivib] = evc_[ivib]->compute_new_e_vib(Q, y, c_old, c_new);

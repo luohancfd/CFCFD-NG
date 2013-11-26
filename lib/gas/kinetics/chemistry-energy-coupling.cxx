@@ -63,7 +63,7 @@ set_e_and_N_old( Gas_data &Q, vector<double> &c_old )
 
 int
 Chemistry_energy_coupling::
-update_energy( Gas_data &Q, valarray<double> &delta_c, vector<double> &c_new )
+update_energy( Gas_data &Q, vector<double> &delta_c, vector<double> &c_new )
 {
     // 1. Loop over the components add compute the contributions
     
@@ -84,7 +84,7 @@ update_energy( Gas_data &Q, valarray<double> &delta_c, vector<double> &c_new )
 
 double
 Chemistry_energy_coupling::
-eval_source_term( Gas_data &Q, valarray<double> &dcdt )
+eval_source_term( Gas_data &Q, vector<double> &dcdt )
 {
     // 1. Loop over the components add compute the contributions
     

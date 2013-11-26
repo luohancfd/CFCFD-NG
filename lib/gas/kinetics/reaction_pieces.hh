@@ -8,7 +8,7 @@
 #ifndef R_PIECES_HH
 #define R_PIECES_HH
 
-#include <valarray>
+#include <vector>
 
 #include "../../nm/source/no_fuss_linear_algebra.hh"
 
@@ -22,10 +22,10 @@ public:
 
     int ir() { return ir_; };
 
-    virtual double production( const std::valarray<double> &w_f,
-			       const std::valarray<double> &w_b ) = 0;
-    virtual double loss( const std::valarray<double> &w_f,
-			 const std::valarray<double> &w_b ) = 0;
+    virtual double production( const std::vector<double> &w_f,
+			       const std::vector<double> &w_b ) = 0;
+    virtual double loss( const std::vector<double> &w_f,
+			 const std::vector<double> &w_b ) = 0;
 protected:
     int ir_;
     int nu_;
@@ -40,10 +40,10 @@ public:
     virtual ~ReactionPiecesA();
     virtual ReactionPiecesA* clone();
 
-    double production( const std::valarray<double> &w_f,
-		       const std::valarray<double> &w_b );
-    double loss( const std::valarray<double> &w_f,
-		 const std::valarray<double> &w_b );
+    double production( const std::vector<double> &w_f,
+		       const std::vector<double> &w_b );
+    double loss( const std::vector<double> &w_f,
+		 const std::vector<double> &w_b );
 };
 
 ////////// NEGATIVE NU /////////////////
@@ -55,10 +55,10 @@ public:
     virtual ~ReactionPiecesB();
     virtual ReactionPiecesB* clone();
 
-    double production( const std::valarray<double> &w_f,
-		       const std::valarray<double> &w_b );
-    double loss( const std::valarray<double> &w_f,
-		 const std::valarray<double> &w_b );
+    double production( const std::vector<double> &w_f,
+		       const std::vector<double> &w_b );
+    double loss( const std::vector<double> &w_f,
+		 const std::vector<double> &w_b );
 };
 
 

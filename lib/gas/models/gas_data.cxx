@@ -443,7 +443,7 @@ int scale_mass_fractions(vector<double> &massf, double tolerance)
 int copy_mass_fractions(const vector<double> &f_src, vector<double> &f_target)
 {
     if( f_src.size() != f_target.size() ) {
-	cerr << "Mismatched sizes of valarrays for f_src "
+	cerr << "Mismatched sizes of vectors for f_src "
 	     << " and f_target in copy_mass_fraction()" << endl;
 	return (-1);
     }

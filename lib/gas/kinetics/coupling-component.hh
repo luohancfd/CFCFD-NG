@@ -6,7 +6,6 @@
 #define COUPLING_COMPONENT_HH
 
 #include <string>
-#include <valarray>
 #include <vector>
 
 extern "C" {
@@ -39,11 +38,11 @@ public:
     { e_old_ = e_old; N_old_ = N_old; }
     
     /// \brief Compute the change in total average energy ( e_star - e_old ) * ( N_new - N_old )
-    double compute_contribution( Gas_data &Q, std::valarray<double> &delta_c )
+    double compute_contribution( Gas_data &Q, std::vector<double> &delta_c )
     { return specific_compute_contribution( Q, delta_c ); }
     
     /// \brief Compute the the source term from this component in J
-    double compute_source_term( Gas_data &Q, std::valarray<double> &dcdt )
+    double compute_source_term( Gas_data &Q, std::vector<double> &dcdt )
     { return specific_compute_source_term( Q, dcdt ); }
     
     int get_isp() { return isp_; }
@@ -66,8 +65,8 @@ protected:
     double N_old_;
     
 protected:
-    virtual double specific_compute_contribution( Gas_data &Q, std::valarray<double> &delta_c ) = 0;
-    virtual double specific_compute_source_term( Gas_data &Q, std::valarray<double> &dcdt ) = 0;
+    virtual double specific_compute_contribution( Gas_data &Q, std::vector<double> &delta_c ) = 0;
+    virtual double specific_compute_source_term( Gas_data &Q, std::vector<double> &dcdt ) = 0;
 };
 
 void create_Coupling_components_for_reaction( lua_State * L, Reaction * r, int ir, std::vector<Coupling_component*> & ccs );
@@ -93,10 +92,10 @@ private:
     
 private:
     /// \brief Compute the change in total average energy ( e_star - e_old ) * ( N_new - N_old )
-    double specific_compute_contribution( Gas_data &Q, std::valarray<double> &delta_c );
+    double specific_compute_contribution( Gas_data &Q, std::vector<double> &delta_c );
     
     /// \brief Compute the the source term from this component in J
-    double specific_compute_source_term( Gas_data &Q, std::valarray<double> &dcdt );
+    double specific_compute_source_term( Gas_data &Q, std::vector<double> &dcdt );
 };
 
 class TreanorMarrone_dissociation_component : public Coupling_component {
@@ -118,10 +117,10 @@ private:
     
 private:
     /// \brief Compute the change in total average energy ( e_star - e_old ) * ( N_new - N_old )
-    double specific_compute_contribution( Gas_data &Q, std::valarray<double> &delta_c );
+    double specific_compute_contribution( Gas_data &Q, std::vector<double> &delta_c );
     
     /// \brief Compute the the source term from this component in J
-    double specific_compute_source_term( Gas_data &Q, std::valarray<double> &dcdt );
+    double specific_compute_source_term( Gas_data &Q, std::vector<double> &dcdt );
 };
 
 class Park_dissociation_component : public Coupling_component {
@@ -145,10 +144,10 @@ private:
     
 private:
     /// \brief Compute the change in total average energy ( e_star - e_old ) * ( N_new - N_old )
-    double specific_compute_contribution( Gas_data &Q, std::valarray<double> &delta_c );
+    double specific_compute_contribution( Gas_data &Q, std::vector<double> &delta_c );
     
     /// \brief Compute the the source term from this component in J
-    double specific_compute_source_term( Gas_data &Q, std::valarray<double> &dcdt );
+    double specific_compute_source_term( Gas_data &Q, std::vector<double> &dcdt );
 };
 
 class Macheret_dissociation_component : public Coupling_component {
@@ -177,10 +176,10 @@ private:
     
 private:
     /// \brief Compute the change in total average energy ( e_star - e_old ) * ( N_new - N_old )
-    double specific_compute_contribution( Gas_data &Q, std::valarray<double> &delta_c );
+    double specific_compute_contribution( Gas_data &Q, std::vector<double> &delta_c );
     
     /// \brief Compute the the source term from this component in J
-    double specific_compute_source_term( Gas_data &Q, std::valarray<double> &dcdt );
+    double specific_compute_source_term( Gas_data &Q, std::vector<double> &dcdt );
 };
 
 /*********************** Recombination components **********************/
@@ -204,10 +203,10 @@ private:
     
 private:
     /// \brief Compute the change in total average energy ( e_star - e_old ) * ( N_new - N_old )
-    double specific_compute_contribution( Gas_data &Q, std::valarray<double> &delta_c );
+    double specific_compute_contribution( Gas_data &Q, std::vector<double> &delta_c );
     
     /// \brief Compute the the source term from this component in J
-    double specific_compute_source_term( Gas_data &Q, std::valarray<double> &dcdt );
+    double specific_compute_source_term( Gas_data &Q, std::vector<double> &dcdt );
 };
 
 class TreanorMarrone_recombination_component : public Coupling_component {
@@ -229,10 +228,10 @@ private:
     
 private:
     /// \brief Compute the change in total average energy ( e_star - e_old ) * ( N_new - N_old )
-    double specific_compute_contribution( Gas_data &Q, std::valarray<double> &delta_c );
+    double specific_compute_contribution( Gas_data &Q, std::vector<double> &delta_c );
     
     /// \brief Compute the the source term from this component in J
-    double specific_compute_source_term( Gas_data &Q, std::valarray<double> &dcdt );
+    double specific_compute_source_term( Gas_data &Q, std::vector<double> &dcdt );
 };
 
 class Park_recombination_component : public Coupling_component {
@@ -256,10 +255,10 @@ private:
     
 private:
     /// \brief Compute the change in total average energy ( e_star - e_old ) * ( N_new - N_old )
-    double specific_compute_contribution( Gas_data &Q, std::valarray<double> &delta_c );
+    double specific_compute_contribution( Gas_data &Q, std::vector<double> &delta_c );
     
     /// \brief Compute the the source term from this component in J
-    double specific_compute_source_term( Gas_data &Q, std::valarray<double> &dcdt );
+    double specific_compute_source_term( Gas_data &Q, std::vector<double> &dcdt );
 };
 
 class Macheret_recombination_component : public Coupling_component {
@@ -286,10 +285,10 @@ private:
 
 private:
     /// \brief Compute the change in total average energy ( e_star - e_old ) * ( N_new - N_old )
-    double specific_compute_contribution( Gas_data &Q, std::valarray<double> &delta_c );
+    double specific_compute_contribution( Gas_data &Q, std::vector<double> &delta_c );
     
     /// \brief Compute the the source term from this component in J
-    double specific_compute_source_term( Gas_data &Q, std::valarray<double> &dcdt );
+    double specific_compute_source_term( Gas_data &Q, std::vector<double> &dcdt );
 };
 
 /************************** Electron impact ionization ************************/
@@ -313,10 +312,10 @@ private:
     
 private:
     /// \brief Compute the change in total average energy ( e_star - e_old ) * ( N_new - N_old )
-    double specific_compute_contribution( Gas_data &Q, std::valarray<double> &delta_c );
+    double specific_compute_contribution( Gas_data &Q, std::vector<double> &delta_c );
     
     /// \brief Compute the the source term from this component in J
-    double specific_compute_source_term( Gas_data &Q, std::valarray<double> &dcdt );
+    double specific_compute_source_term( Gas_data &Q, std::vector<double> &dcdt );
 };
 
 /************************** Associative ionization ************************/
@@ -340,10 +339,10 @@ private:
     
 private:
     /// \brief Compute the change in total average energy ( e_star - e_old ) * ( N_new - N_old )
-    double specific_compute_contribution( Gas_data &Q, std::valarray<double> &delta_c );
+    double specific_compute_contribution( Gas_data &Q, std::vector<double> &delta_c );
     
     /// \brief Compute the the source term from this component in J
-    double specific_compute_source_term( Gas_data &Q, std::valarray<double> &dcdt );
+    double specific_compute_source_term( Gas_data &Q, std::vector<double> &dcdt );
 };
 
 /************************** Electron impact ionization-recombination ************************/
@@ -364,10 +363,10 @@ public:
     
 private:
     /// \brief Compute the change in total average energy ( e_star - e_old ) * ( N_new - N_old )
-    double specific_compute_contribution( Gas_data &Q, std::valarray<double> &delta_c );
+    double specific_compute_contribution( Gas_data &Q, std::vector<double> &delta_c );
     
     /// \brief Compute the the source term from this component in J
-    double specific_compute_source_term( Gas_data &Q, std::valarray<double> &dcdt );
+    double specific_compute_source_term( Gas_data &Q, std::vector<double> &dcdt );
 };
 
 /************************** Associative ionization-recombination ************************/
@@ -388,10 +387,10 @@ public:
     
 private:
     /// \brief Compute the change in total average energy ( e_star - e_old ) * ( N_new - N_old )
-    double specific_compute_contribution( Gas_data &Q, std::valarray<double> &delta_c );
+    double specific_compute_contribution( Gas_data &Q, std::vector<double> &delta_c );
     
     /// \brief Compute the the source term from this component in J
-    double specific_compute_source_term( Gas_data &Q, std::valarray<double> &dcdt );
+    double specific_compute_source_term( Gas_data &Q, std::vector<double> &dcdt );
 };
 
 /****************** Knab vanishing component ********************/
@@ -418,10 +417,10 @@ private:
 
 private:
     /// \brief Compute the change in total average energy ( e_star - e_old ) * ( N_new - N_old )
-    double specific_compute_contribution( Gas_data &Q, std::valarray<double> &delta_c );
+    double specific_compute_contribution( Gas_data &Q, std::vector<double> &delta_c );
 
     /// \brief Compute the the source term from this component in J
-    double specific_compute_source_term( Gas_data &Q, std::valarray<double> &dcdt );
+    double specific_compute_source_term( Gas_data &Q, std::vector<double> &dcdt );
 };
 
 /****************** Knab appearing component ********************/
@@ -448,10 +447,10 @@ private:
 
 private:
     /// \brief Compute the change in total average energy ( e_star - e_old ) * ( N_new - N_old )
-    double specific_compute_contribution( Gas_data &Q, std::valarray<double> &delta_c );
+    double specific_compute_contribution( Gas_data &Q, std::vector<double> &delta_c );
 
     /// \brief Compute the the source term from this component in J
-    double specific_compute_source_term( Gas_data &Q, std::valarray<double> &dcdt );
+    double specific_compute_source_term( Gas_data &Q, std::vector<double> &dcdt );
 };
 
 #endif

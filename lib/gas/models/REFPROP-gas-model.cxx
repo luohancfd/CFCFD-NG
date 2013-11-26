@@ -9,6 +9,7 @@
 #include <string>
 #include <dlfcn.h>
 #include <string.h>
+#include <math.h>
 
 extern "C" {
 #include <lua.h>

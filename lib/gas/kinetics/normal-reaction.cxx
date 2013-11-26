@@ -22,7 +22,7 @@ Normal_reaction::
 
 double
 Normal_reaction::
-s_compute_forward_rate(const valarray<double> &y)
+s_compute_forward_rate(const vector<double> &y)
 {
     double val = 1.0;
     map<int, int>::const_iterator it;
@@ -34,7 +34,7 @@ s_compute_forward_rate(const valarray<double> &y)
 
 double
 Normal_reaction::
-s_compute_backward_rate(const valarray<double> &y)
+s_compute_backward_rate(const vector<double> &y)
 {
     double val = 1.0;
     map<int, int>::const_iterator it;

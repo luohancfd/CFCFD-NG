@@ -1254,20 +1254,6 @@ convert_massf2conc(double rho,
 }
 
 void 
-convert_massf2conc(double rho,
-		   const vector<double> &massf,
-		   const vector<double> &M,
-		   valarray<double> &c)
-{
-    const double min_moles = 1.0e-30;
-    for( size_t isp = 0; isp < massf.size(); ++isp ) {
-	c[isp] = massf[isp] * rho / M[isp];
-	if( c[isp] < min_moles ) // helps with chemistry 
-	    c[isp] = 0.0;
-    }
-}
-
-void 
 convert_conc2massf(double rho,
 		   const std::vector<double> &c,
 		   const std::vector<double> &M,
@@ -1283,23 +1269,8 @@ convert_conc2massf(double rho,
 }
 
 void 
-convert_conc2massf(double rho,
-		   const valarray<double> &c,
-		   const vector<double> &M,
-		   vector<double> &massf)
-{
-    const double min_mass_frac = 1.0e-50;
-    for ( size_t isp = 0; isp < massf.size(); ++isp ) {
-	massf[isp] = c[isp] * M[isp] / rho;
-	if ( massf[isp] < min_mass_frac ) {
-	    massf[isp] = 0.0;
-	}
-    }
-}
-
-void 
 convert_conc2molef(double rho_bar,
-		   const valarray<double> &c,
+		   const vector<double> &c,
 		   vector<double> &molef)
 {
     const double min_mole_frac = 1.0e-50;

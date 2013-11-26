@@ -53,7 +53,7 @@ compute_all_relaxation_times(Gas_data &Q, vector<double> &molef)
 
 double
 Energy_exchange_rate::
-compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &molef)
+compute_rate(const vector<double> &y, Gas_data &Q, vector<double> &molef)
 {
     double rate = 0.0;
     for( size_t i = 0; i < ee_mech_.size(); ++i ) {

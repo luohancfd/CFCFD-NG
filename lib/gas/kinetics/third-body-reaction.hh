@@ -4,7 +4,7 @@
 
 #ifndef THIRD_BODY_REACTION_HH
 #define THIRD_BODY_REACTION_HH
-#include <valarray>
+#include <vector>
 
 extern "C" {
 #include <lua.h>
@@ -21,9 +21,9 @@ public:
     virtual ~Third_body_reaction();
 
 private:
-    double s_compute_forward_rate(const std::valarray<double> &y);
-    double s_compute_backward_rate(const std::valarray<double> &y);
-    void compute_third_body_concentration(const std::valarray<double> &y);
+    double s_compute_forward_rate(const std::vector<double> &y);
+    double s_compute_backward_rate(const std::vector<double> &y);
+    void compute_third_body_concentration(const std::vector<double> &y);
 
     std::map<int, double> efficiencies_;
     double conc_;

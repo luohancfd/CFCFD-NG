@@ -11,7 +11,6 @@
 #include <iostream>
 #include <vector>
 #include <map>
-#include <valarray>
 
 extern "C" {
 #include <lua.h>
@@ -399,25 +398,12 @@ void convert_massf2conc(double rho,
 			const std::vector<double> &massf,
 			const std::vector<double> &M,
 			std::vector<double> &c);
-// This overloaded version is only here because of the
-// ODE library.  When the ODE library is changed to use
-// vector<double>, then this can be removed.
-void convert_massf2conc(double rho,
-			const std::vector<double> &massf,
-			const std::vector<double> &M,
-			std::valarray<double> &c);
-void 
-convert_conc2massf(double rho,
-		   const std::vector<double> &c,
-		   const std::vector<double> &M,
-		   std::vector<double> &massf);
-// Same comment as above.
 void convert_conc2massf(double rho,
-			const std::valarray<double> &c,
+			const std::vector<double> &c,
 			const std::vector<double> &M,
 			std::vector<double> &massf);
 void convert_conc2molef(double rho_bar,
-			const std::valarray<double> &c,
+			const std::vector<double> &c,
 			std::vector<double> &molef);
 
 // python friendly versions
