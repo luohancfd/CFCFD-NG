@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <math.h>
 #include "../../../lib/util/source/config_parser.hh"
 #include "../../../lib/nm/source/no_fuss_linear_algebra.hh"
 #include "../../../lib/util/source/useful.h"
@@ -25,7 +26,7 @@ int read_lookup_flux(list_of_inputs &inputs, list_of_vars &vars) {
 	It is used later on to determine the flux out of a particular node given
 	its temperature.  This is a radiative flux.
 
-	Data is stored in valarray<double>s called "udf_temp_interp" and 
+	Data is stored in vector<double>s called "udf_temp_interp" and 
 	"udf_flux_interp", which are both part of the vars structure.
 
 	---------------------------------------------------------------------------
@@ -83,7 +84,7 @@ int flux_calc( list_of_inputs &inputs, list_of_vars &vars, vector<double> q_wall
 	This is a function to calculate the flux for any boundary of the wall.
 
 	It uses values from the "inputs" structure (dims, timestep etc) and writes 
-	fluxes to the "fluxes" valarray which is part of the "vars" structure (both 
+	fluxes to the "fluxes" vector which is part of the "vars" structure (both 
 	of these are first used in "init.cxx" and are declared in "init.hh").
 
 	The way it is set up at the moment (08/10/2013), the flow fluxes are brought
@@ -116,7 +117,7 @@ int flux_calc( list_of_inputs &inputs, list_of_vars &vars, vector<double> q_wall
 
 	// Create arrays for the fluxes through each of the four boundaries
 
-	valarray<double> nflux, sflux, eflux, wflux;
+	vector<double> nflux, sflux, eflux, wflux;
 	nflux.resize(inputs.M, -1.0);
 	sflux.resize(inputs.M, -1.0);
 	eflux.resize(inputs.N, -1.0);
@@ -176,7 +177,7 @@ int flux_calc( list_of_inputs &inputs, list_of_vars &vars, vector<double> q_wall
 
 	else if (inputs.north == "udf_lookup") {
 		for (int i = 0; i< inputs.M; i++) {
-			nflux[i] = -1*abs(linear_interp(vars.udf_temp_interp, vars.udf_flux_interp, vars.temps[i]));
+			nflux[i] = -1*fabs(linear_interp(vars.udf_temp_interp, vars.udf_flux_interp, vars.temps[i]));
 		}
 	}
 		
@@ -206,7 +207,7 @@ int flux_calc( list_of_inputs &inputs, list_of_vars &vars, vector<double> q_wall
 		}
 		sflux[0] = q_wall[0];
 		sflux[sflux.size()-1] = q_wall[q_wall.size()-1];
-		//		print_valarray(sflux);
+		//		print_vector(sflux);
 	}
 
 	else if (inputs.south == "udf_flux") {
@@ -239,7 +240,7 @@ int flux_calc( list_of_inputs &inputs, list_of_vars &vars, vector<double> q_wall
 		int new_counter = 0;
 
 		for (int i = inputs.M*(inputs.N-1); i< inputs.M*inputs.N; i++) {
-			sflux[new_counter] = -1*abs(linear_interp(vars.udf_temp_interp, vars.udf_flux_interp, vars.temps[i]));
+			sflux[new_counter] = -1*fabs(linear_interp(vars.udf_temp_interp, vars.udf_flux_interp, vars.temps[i]));
 			new_counter++;
 		}
 	}
@@ -300,7 +301,7 @@ int flux_calc( list_of_inputs &inputs, list_of_vars &vars, vector<double> q_wall
 	else if (inputs.east == "udf_lookup") {
 		int new_counter = 0;
 		for (int i = inputs.M-1.; i<inputs.M*inputs.N; i+=inputs.M) {
-			eflux[new_counter] = -1*abs(linear_interp(vars.udf_temp_interp, vars.udf_flux_interp, vars.temps[i]));			
+			eflux[new_counter] = -1*fabs(linear_interp(vars.udf_temp_interp, vars.udf_flux_interp, vars.temps[i]));			
 			new_counter++;
 		}
 	}
@@ -361,7 +362,7 @@ int flux_calc( list_of_inputs &inputs, list_of_vars &vars, vector<double> q_wall
 	else if (inputs.west == "udf_lookup") {
 		int new_counter = 0;
 		for (int i = 0.; i<inputs.M*inputs.N; i+=inputs.M) {
-			wflux[new_counter] = -1*abs(linear_interp(vars.udf_temp_interp, vars.udf_flux_interp, vars.temps[i]));
+			wflux[new_counter] = -1*fabs(linear_interp(vars.udf_temp_interp, vars.udf_flux_interp, vars.temps[i]));
 			new_counter++;
 		}
 	}
@@ -485,12 +486,12 @@ external solvers to solve the wall.
 ---------------------------------------------------------------------------
 */
 
-	valarray<double> intermediate_temps; // Intermediate storage location
+	vector<double> intermediate_temps; // Intermediate storage location
 
 	intermediate_temps.resize(vars.temps.size(), 0.0);
-        valarray_mul(vars.A, vars.temps, intermediate_temps); // [A]*T[p]
+        vector_mul(vars.A, vars.temps, intermediate_temps); // [A]*T[p]
 
-	add_valarrays(vars.temps, intermediate_temps, vars.fluxes); // [A]*T[p] + [Q]
+	add_vectors(vars.temps, intermediate_temps, vars.fluxes); // [A]*T[p] + [Q]
 
 	return 0;
 }

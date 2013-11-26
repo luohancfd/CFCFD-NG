@@ -104,7 +104,7 @@ test_V_max()
     // 2. Check QvQr behaviour at low temperature
     double E_v = calculate_E_vib(V_max);
     double QvQr_test = calculate_Q_rot(200.0, V_max) * exp( - E_v / ( RC_k_SI * 200.0 ) );
-    if ( std::isinf( QvQr_test ) ) {
+    if ( isinf( QvQr_test ) ) {
     	cout << "DiatomicElecLev::test_V_max()" << endl
     	     << "V_max = " << V_max << " leads to infinite QvQr term at low temperatures" << endl;
     	return true;
@@ -1240,7 +1240,7 @@ QSSDiatomicRadiator( lua_State * L, std::string name )
     
     lua_pop(L, 1);	// pop QSS_model table
     
-    // 3. Initialise the working matrices and valarrays
+    // 3. Initialise the working matrices and vectors
     dGdy = new Valmatrix();
     dGdy->resize( noneq_elevs.size(), noneq_elevs.size() );
     C.resize( noneq_elevs.size(), 0.0 );
@@ -1587,8 +1587,8 @@ calculate_n_e( Gas_data &Q )
     	if ( !isfinite( elevs[ilev]->get_N() ) ) {
     	    cout << "QSSDiatomicRadiator::calculate_n_e()" << endl
     	         << "Radiator: " << name << " QSS calculation failed." << endl;
-    	    cout << "Source vector: \n"; print_valarray(C);
-    	    cout << "y_out: \n"; print_valarray(y_out);
+    	    cout << "Source vector: \n"; print_vector(C);
+    	    cout << "y_out: \n"; print_vector(y_out);
     	    cout << "Bailing out!" << endl;
     	    exit( FAILURE );
     	}

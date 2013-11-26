@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdexcept>
+#include <math.h>
 extern "C" {
 #include <zlib.h>
 }

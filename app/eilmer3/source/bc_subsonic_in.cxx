@@ -1,7 +1,7 @@
 // bc_subsonic_in.cxx
 
 #include <numeric>
-
+#include <math.h>
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/gas/models/gas_data.hh"
 #include "../../../lib/gas/models/gas-model.hh"

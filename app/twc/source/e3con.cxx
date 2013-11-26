@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
-
+#include <math.h>
 #include "../../../lib/util/source/config_parser.hh"
 #include "../../../lib/nm/source/no_fuss_linear_algebra.hh"
 #include "../../../lib/util/source/useful.h"

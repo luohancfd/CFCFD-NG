@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <vector>
+#include <algorithm>
 #include <string>
 #include <fstream>
 #include <stdio.h>
@@ -12,12 +13,12 @@
 #include "init.hh"
 #include "conjugateHeatUtil.hh"
 
-void wall_printer(valarray<double> &wall, list_of_inputs &inputs) {
+void wall_printer(vector<double> &wall, list_of_inputs &inputs) {
 
 /*	---------------------------------------------------------------------
 	---------------------------------------------------------------------
 
-	This is a debugging function which prints out any Valarray describing
+	This is a debugging function which prints out any Vector describing
 	nodes on the wall in the shape of the wall.  It gives a more intuitive
 	view of the wall, making it easier to check that correct parameters
 	are assigned to nodes.
@@ -292,10 +293,10 @@ int old_file_delete_catcher(list_of_inputs &inputs) {
 }
 
 
-double linear_interp(valarray<double> in, valarray<double> out, double searchval) {
+double linear_interp(vector<double> in, vector<double> out, double searchval) {
 
 	if (in.size() != out.size()) {
-		cerr << "Valarrays aren't the same length- no interpolation possible" << endl;
+		cerr << "Vectors aren't the same length- no interpolation possible" << endl;
 		exit(MISMATCHED_DIMENSIONS);
 	}
 
@@ -305,10 +306,10 @@ double linear_interp(valarray<double> in, valarray<double> out, double searchval
 	
 	for ( size_t i = 0; i < in.size(); i++ ) {
 
-		if (in[i] == in.max()) {
+	    if (in[i] == *max_element(in.begin(), in.end())) {
 			in_maxindex = i;
 		}
-		if (in[i] == in.min()) {
+	    if (in[i] == *min_element(in.begin(), in.end())) {
 			in_minindex = i;
 		}
 	}
@@ -317,10 +318,10 @@ double linear_interp(valarray<double> in, valarray<double> out, double searchval
 			frac = (searchval-in[i])/(in[i+1]-in[i]);
 			ans = out[i] + frac*(out[i+1]-out[i]);
 		}
-		else if (searchval < in.min()) {
+		else if (searchval < *min_element(in.begin(), in.end())) {
 			ans = out[in_minindex];
 		}
-		else if (searchval > in.max()) {
+		else if (searchval > *max_element(in.begin(), in.end())) {
 			ans = out[in_maxindex];
 		}
 

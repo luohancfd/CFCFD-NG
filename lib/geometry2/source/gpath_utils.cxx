@@ -6,10 +6,8 @@
  *
  */
 
-
 #include <iostream>
 #include <vector>
-#include <valarray>
 #include <cmath>
 
 #include "../../nm/source/no_fuss_linear_algebra.hh"
@@ -57,7 +55,7 @@ XSpline create_quintic_spline(vector<Vector3> &P,
     int offset;
     size_t N = P.size() - 1;
     Valmatrix M(6*N, 6*N, 0.0);
-    valarray<double> U(6*N);
+    vector<double> U(6*N);
     
     // Ensure U is filled with zeros.
     for( size_t i = 0; i < U.size(); ++i ) U[i] = 0.0;
@@ -143,7 +141,7 @@ XSpline create_quintic_spline(vector<Vector3> &P,
 
     // END setting up equations.
 
-    valarray<double> x(6*N);
+    vector<double> x(6*N);
     gaussian_elimination(M, x, U, false);
 
     vector<XPoly> polys;
@@ -204,7 +202,7 @@ XSpline create_cubic_spline(vector<Vector3> &P,
     int offset;
     size_t N = P.size() - 1;
     Valmatrix M(5*N+1, 4*N, 0.0);
-    valarray<double> U(5*N+1);
+    vector<double> U(5*N+1);
 
     // Ensure U is filled with zeros.
     for( size_t i = 0; i < U.size(); ++i ) U[i] = 0.0;
@@ -258,7 +256,7 @@ XSpline create_cubic_spline(vector<Vector3> &P,
     U[5*N] = d2b;
     // END of setting up equations.
     
-    valarray<double> x(4*N);
+    vector<double> x(4*N);
     least_squares_solve(M, x, U);
     
     vector<XPoly> polys;
@@ -368,7 +366,7 @@ XBezier create_best_fit_XBezier(vector<Vector3> &P, int n, double lslope, double
     for( int i = 0; i < nc; ++i ) B[i].x = x0 + i*dx;
 
     Valmatrix A(Np, nu, 0.0);
-    valarray<double> b(Np);
+    vector<double> b(Np);
 
     for( size_t i = 0; i < b.size(); ++i ) b[i] = 0.0;
 
@@ -389,7 +387,7 @@ XBezier create_best_fit_XBezier(vector<Vector3> &P, int n, double lslope, double
 	}
     }
     
-    valarray<double> u(nu);
+    vector<double> u(nu);
     least_squares_solve(A, u, b);
 
     if( nc >= 6 ) {
@@ -643,8 +641,8 @@ XPoly create_best_fit_poly(vector<Vector3> &P, int n)
  **/
 
     Valmatrix A(P.size(), n, 0.0);
-    valarray<double> b(P.size());
-    valarray<double> x(n);
+    vector<double> b(P.size());
+    vector<double> x(n);
     double xval = 0.0;
 
     for( size_t i = 0; i < P.size(); ++i ) {

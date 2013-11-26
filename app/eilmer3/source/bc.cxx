@@ -11,7 +11,6 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include <valarray>
 
 #include <stdio.h>
 #include <math.h>

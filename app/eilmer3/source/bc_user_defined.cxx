@@ -5,14 +5,12 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include <valarray>
 
 #include <stdio.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include <vector>
 
 extern "C" {
 #include <lua.h>

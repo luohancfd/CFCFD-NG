@@ -7,7 +7,6 @@
 
 #include <string>
 #include <vector>
-#include <valarray>
 #include <fstream>
 #include <cmath>
 

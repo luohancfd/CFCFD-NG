@@ -4,7 +4,6 @@
 
 #include <string>
 #include <vector>
-#include <valarray>
 
 #include "../../nm/source/fobject.hh"
 #include "geom.hh"

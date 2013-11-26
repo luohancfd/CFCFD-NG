@@ -22,7 +22,7 @@ struct list_of_inputs {
 
 
 struct list_of_vars {
-	valarray<double> temps, fluxes, x_vals, y_vals, udf_temp_interp, udf_flux_interp;
+	vector<double> temps, fluxes, x_vals, y_vals, udf_temp_interp, udf_flux_interp;
 	Valmatrix A, B, C;
 
 };

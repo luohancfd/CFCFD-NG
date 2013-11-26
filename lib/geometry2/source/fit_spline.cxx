@@ -9,7 +9,6 @@
 #include <iomanip>
 #include <string>
 #include <vector>
-#include <valarray>
 #include <fstream>
 
 #include "../../nm/source/fobject.hh"

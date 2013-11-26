@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-
+#include <math.h>
 #include "../../../lib/gas/models/gas-model.hh"
 #include "../../../lib/gas/models/physical_constants.hh"
 #include "../../../lib/nm/source/no_fuss_linear_algebra.hh"

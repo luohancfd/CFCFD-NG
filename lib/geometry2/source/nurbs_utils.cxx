@@ -7,7 +7,6 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
-#include <valarray>
 #include <fstream>
 
 #include "../../util/source/useful.h"
@@ -1303,7 +1302,7 @@ int interp_homogeneous_points(const vector<Mapped_point> &Qw,
     //    3. for wz components
     //    4. for w components
     
-    valarray<double> x(Qw.size()), b(Qw.size());
+    vector<double> x(Qw.size()), b(Qw.size());
 
     // wx
     for ( size_t i = 0; i < b.size(); ++i ) b[i] = Qw[i].wx;

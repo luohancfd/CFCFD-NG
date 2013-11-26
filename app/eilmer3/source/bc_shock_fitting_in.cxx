@@ -1,6 +1,7 @@
 // bc_shock_fitting_in.cxx
 
 #include <stdexcept>
+#include <math.h>
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/gas/models/gas_data.hh"
 #include "../../../lib/gas/models/gas-model.hh"

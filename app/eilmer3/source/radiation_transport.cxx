@@ -3,6 +3,7 @@
  *  \brief Definitions for the radiation transport model class and functions.
  **/
 
+#include <math.h>
 #include <iostream>
 
 #ifdef _OPENMP

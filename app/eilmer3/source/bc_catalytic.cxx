@@ -3,6 +3,7 @@
 // Catalytic wall BC
 // Applies the wall mass-fractions due to surface catalyticity 
 
+#include <math.h>
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/gas/models/gas_data.hh"
 #include "../../../lib/gas/models/gas-model.hh"

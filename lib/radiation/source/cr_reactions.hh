@@ -41,8 +41,8 @@ public:
     virtual int eval_reaction_rates( double T_f, double T_b, Gas_data &Q, double &k_f, double &k_b );
     virtual double eval_equilibrium_constant( double T ) = 0;
     virtual int add_jacobian_contributions( Gas_data &Q, Valmatrix &dGdy ) = 0;
-    virtual int add_eval_contributions( Gas_data &Q, std::valarray<double> &G ) = 0;
-    virtual int add_source_vector_contributions( Gas_data &Q, std::valarray<double> &C ) = 0;
+    virtual int add_eval_contributions( Gas_data &Q, std::vector<double> &G ) = 0;
+    virtual int add_source_vector_contributions( Gas_data &Q, std::vector<double> &C ) = 0;
     virtual std::string get_latex_string() = 0;
     
 protected:
@@ -65,8 +65,8 @@ public:
     
     double eval_equilibrium_constant( double T );
     int add_jacobian_contributions( Gas_data &Q, Valmatrix &dGdy );
-    int add_eval_contributions( Gas_data &Q, std::valarray<double> &G );
-    int add_source_vector_contributions( Gas_data &Q, std::valarray<double> &C );
+    int add_eval_contributions( Gas_data &Q, std::vector<double> &G );
+    int add_source_vector_contributions( Gas_data &Q, std::vector<double> &C );
     std::string get_latex_string();
     
 public:
@@ -97,8 +97,8 @@ public:
     
     double eval_equilibrium_constant( double T );
     int add_jacobian_contributions( Gas_data &Q, Valmatrix &dGdy );
-    int add_eval_contributions( Gas_data &Q, std::valarray<double> &G );
-    int add_source_vector_contributions( Gas_data &Q, std::valarray<double> &C );
+    int add_eval_contributions( Gas_data &Q, std::vector<double> &G );
+    int add_source_vector_contributions( Gas_data &Q, std::vector<double> &C );
     std::string get_latex_string();
    
 private:
@@ -127,8 +127,8 @@ public:
     
     double eval_equilibrium_constant( double T );
     int add_jacobian_contributions( Gas_data &Q, Valmatrix &dGdy );
-    int add_eval_contributions( Gas_data &Q, std::valarray<double> &G );
-    int add_source_vector_contributions( Gas_data &Q, std::valarray<double> &C );
+    int add_eval_contributions( Gas_data &Q, std::vector<double> &G );
+    int add_source_vector_contributions( Gas_data &Q, std::vector<double> &C );
     std::string get_latex_string();
     
 public:
@@ -164,8 +164,8 @@ public:
     
     double eval_equilibrium_constant( double T );
     int add_jacobian_contributions( Gas_data &Q, Valmatrix &dGdy );
-    int add_eval_contributions( Gas_data &Q, std::valarray<double> &G );
-    int add_source_vector_contributions( Gas_data &Q, std::valarray<double> &C );
+    int add_eval_contributions( Gas_data &Q, std::vector<double> &G );
+    int add_source_vector_contributions( Gas_data &Q, std::vector<double> &C );
     std::string get_latex_string();
     
 public:
@@ -203,8 +203,8 @@ public:
     
     double eval_equilibrium_constant( double T );
     int add_jacobian_contributions( Gas_data &Q, Valmatrix &dGdy );
-    int add_eval_contributions( Gas_data &Q, std::valarray<double> &G );
-    int add_source_vector_contributions( Gas_data &Q, std::valarray<double> &C );
+    int add_eval_contributions( Gas_data &Q, std::vector<double> &G );
+    int add_source_vector_contributions( Gas_data &Q, std::vector<double> &C );
     std::string get_latex_string();
     
 private:
@@ -230,8 +230,8 @@ public:
     int eval_reaction_rates( double T_f, double T_b, Gas_data &Q, double &k_f, double &k_b );
     double eval_equilibrium_constant( double T );
     int add_jacobian_contributions( Gas_data &Q, Valmatrix &dGdy );
-    int add_eval_contributions( Gas_data &Q, std::valarray<double> &G );
-    int add_source_vector_contributions( Gas_data &Q, std::valarray<double> &C );
+    int add_eval_contributions( Gas_data &Q, std::vector<double> &G );
+    int add_source_vector_contributions( Gas_data &Q, std::vector<double> &C );
     std::string get_latex_string();
     
 private:
@@ -258,8 +258,8 @@ public:
     int eval_reaction_rates( double T_f, double T_b, Gas_data &Q, double &k_f, double &k_b );
     double eval_equilibrium_constant( double T );
     int add_jacobian_contributions( Gas_data &Q, Valmatrix &dGdy );
-    int add_eval_contributions( Gas_data &Q, std::valarray<double> &G );
-    int add_source_vector_contributions( Gas_data &Q, std::valarray<double> &C );
+    int add_eval_contributions( Gas_data &Q, std::vector<double> &G );
+    int add_source_vector_contributions( Gas_data &Q, std::vector<double> &C );
     std::string get_latex_string();
 
 private:

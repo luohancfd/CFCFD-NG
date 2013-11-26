@@ -12,6 +12,7 @@
 #include <sstream>
 #include <stdio.h>
 #include <unistd.h>
+#include <math.h>
 #include <stdexcept>
 extern "C" {
 #include <zlib.h>

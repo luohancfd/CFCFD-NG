@@ -17,7 +17,6 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include <valarray>
 
 #include <stdio.h>
 #include <math.h>
@@ -132,8 +131,8 @@ AblatingBC & AblatingBC::operator=(const AblatingBC &bc)
 	cell_massf = std::vector<double>(bc.cell_massf);
 	// 4. initialise the zero system components
 	// -> u0_index already copied
-	y_guess = std::valarray<double>(bc.y_guess);
-	y_out = std::valarray<double>(bc.y_guess);
+	y_guess = std::vector<double>(bc.y_guess);
+	y_out = std::vector<double>(bc.y_guess);
 	zero_solver = new NewtonRaphsonZF(nsp+1, tol, max_iterations, true);
     }
     return *this;
@@ -443,7 +442,7 @@ int AblatingBC::apply_viscous(double t)
 
 // the functions required by the ZeroSystem are f and Jac.
 
-int AblatingBC::f(const valarray<double> &y_guess, valarray<double> &G)
+int AblatingBC::f(const vector<double> &y_guess, vector<double> &G)
 {
     /* Create the equation system for the ZeroSystem for a given y vector.
        - Species mass conservation: unknowns are massfs, rho_w, v_w
@@ -472,7 +471,7 @@ int AblatingBC::f(const valarray<double> &y_guess, valarray<double> &G)
     return SUCCESS;
 }
 
-int AblatingBC::Jac(const valarray<double> &y_guess, Valmatrix &dGdy)
+int AblatingBC::Jac(const vector<double> &y_guess, Valmatrix &dGdy)
 {
     /* Create the Jacobian matrix for the ZeroSystem for a given y vector */
     double R = gmodel->R(*Q);

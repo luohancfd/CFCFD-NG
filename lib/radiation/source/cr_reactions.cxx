@@ -186,7 +186,7 @@ add_jacobian_contributions( Gas_data &Q, Valmatrix &dGdy )
 
 int
 HeavyParticleImpactExcitation::
-add_eval_contributions( Gas_data &Q, valarray<double> &G )
+add_eval_contributions( Gas_data &Q, vector<double> &G )
 {
     // 0. Prepare data
     // 0a. Forward reaction rates using the assumed temperatures
@@ -218,7 +218,7 @@ add_eval_contributions( Gas_data &Q, valarray<double> &G )
 
 int
 HeavyParticleImpactExcitation::
-add_source_vector_contributions( Gas_data &Q, valarray<double> &C )
+add_source_vector_contributions( Gas_data &Q, vector<double> &C )
 {
     // Nothing to be done
     return SUCCESS;
@@ -461,7 +461,7 @@ add_jacobian_contributions( Gas_data &Q, Valmatrix &dGdy )
 
 int
 ElectronImpactExcitation::
-add_eval_contributions( Gas_data &Q, valarray<double> &G )
+add_eval_contributions( Gas_data &Q, vector<double> &G )
 {
     // 0. Prepare data
     // 0a. Forward reaction rates using the electronic temperature
@@ -491,7 +491,7 @@ add_eval_contributions( Gas_data &Q, valarray<double> &G )
 
 int
 ElectronImpactExcitation::
-add_source_vector_contributions( Gas_data &Q, valarray<double> &C )
+add_source_vector_contributions( Gas_data &Q, vector<double> &C )
 {
     // Nothing to be done
     return SUCCESS;
@@ -605,7 +605,7 @@ add_jacobian_contributions( Gas_data &Q, Valmatrix &dGdy )
 
 int
 HeavyParticleImpactDissociation::
-add_eval_contributions( Gas_data &Q, valarray<double> &G )
+add_eval_contributions( Gas_data &Q, vector<double> &G )
 {
     // 0. Prepare data
     // 0a. Forward reaction rates using the geometric average temperature
@@ -637,7 +637,7 @@ add_eval_contributions( Gas_data &Q, valarray<double> &G )
 
 int
 HeavyParticleImpactDissociation::
-add_source_vector_contributions( Gas_data &Q, valarray<double> &C )
+add_source_vector_contributions( Gas_data &Q, vector<double> &C )
 {
     // 0. Prepare data
     // 0a. Forward reaction rates using the geometric average temperature
@@ -760,7 +760,7 @@ add_jacobian_contributions( Gas_data &Q, Valmatrix &dGdy )
 
 int
 ElectronImpactDissociation::
-add_eval_contributions( Gas_data &Q, valarray<double> &G )
+add_eval_contributions( Gas_data &Q, vector<double> &G )
 {
     // 0. Prepare data
     // 0a. Forward reaction rates using the geometric average temperature
@@ -790,7 +790,7 @@ add_eval_contributions( Gas_data &Q, valarray<double> &G )
 
 int
 ElectronImpactDissociation::
-add_source_vector_contributions( Gas_data &Q, valarray<double> &C )
+add_source_vector_contributions( Gas_data &Q, vector<double> &C )
 {
     // 0. Prepare data
     // 0a. Forward reaction rates using the geometric average temperature
@@ -972,7 +972,7 @@ add_jacobian_contributions( Gas_data &Q, Valmatrix &dGdy )
 
 int
 ElectronImpactIonization::
-add_eval_contributions( Gas_data &Q, valarray<double> &G )
+add_eval_contributions( Gas_data &Q, vector<double> &G )
 {
     // 0. Prepare data
     // 0a. Forward reaction rates using the electronic temperature
@@ -1001,7 +1001,7 @@ add_eval_contributions( Gas_data &Q, valarray<double> &G )
 
 int
 ElectronImpactIonization::
-add_source_vector_contributions( Gas_data &Q, valarray<double> &C )
+add_source_vector_contributions( Gas_data &Q, vector<double> &C )
 {
     // 0. Prepare data
     // 0a. Forward reverse reaction rates using the electronic temperature
@@ -1168,7 +1168,7 @@ add_jacobian_contributions( Gas_data &Q, Valmatrix &dGdy )
 
 int
 RadiativeTransition::
-add_eval_contributions( Gas_data &Q, valarray<double> &G )
+add_eval_contributions( Gas_data &Q, vector<double> &G )
 {
     // 0. Prepare data
     // 0a. Forward reaction rates using dummy temperatures
@@ -1195,7 +1195,7 @@ add_eval_contributions( Gas_data &Q, valarray<double> &G )
 
 int
 RadiativeTransition::
-add_source_vector_contributions( Gas_data &Q, valarray<double> &C )
+add_source_vector_contributions( Gas_data &Q, vector<double> &C )
 {
     // Nothing to be done
     return SUCCESS;
@@ -1304,7 +1304,7 @@ add_jacobian_contributions( Gas_data &Q, Valmatrix &dGdy )
 
 int
 PhotoRecombination::
-add_eval_contributions( Gas_data &Q, valarray<double> &G )
+add_eval_contributions( Gas_data &Q, vector<double> &G )
 {
     // 0. Prepare data
     // 0a. Forward reaction rates using the electronic temperature
@@ -1333,7 +1333,7 @@ add_eval_contributions( Gas_data &Q, valarray<double> &G )
 
 int
 PhotoRecombination::
-add_source_vector_contributions( Gas_data &Q, valarray<double> &C )
+add_source_vector_contributions( Gas_data &Q, vector<double> &C )
 {
     // 0. Prepare data
     // 0a. Forward reverse reaction rates using the electronic temperature

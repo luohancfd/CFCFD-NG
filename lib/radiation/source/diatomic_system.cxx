@@ -68,7 +68,7 @@ DiatomicSystem( lua_State * L, string name, string band_method,
 	cout << "No electronic transition moments present!" << endl;
     }
     else {
-	/* Create valarray with space for all bands with data */
+	/* Create vector with space for all bands with data */
 	for ( int iVu=0; iVu < uRe_dim; ++iVu ) {
 	    for ( int iVl=0; iVl < lRe_dim; ++iVl ) {
 		double Re_vib = get_Re_vib_from_file( L, iVu, iVl, format );
@@ -175,10 +175,10 @@ DiatomicBand *
 DiatomicSystem::
 band_pointer( int Vu, int Vl )
 {
-    /* Return pointer to specified band (unravels 1D valarray) */
+    /* Return pointer to specified band (unravels 1D vector) */
     if ( Vu >= uRe_dim || Vl >= lRe_dim ) {
 	cout << "Requested " << name << " band [" << Vu << ", " << Vl
-	     << "] is outside valarray of dimensions [" << uRe_dim << " x "
+	     << "] is outside vector of dimensions [" << uRe_dim << " x "
 	     << lRe_dim  << "].  Bailing out!" 
 	     << endl;
 	exit( BAD_INPUT_ERROR );

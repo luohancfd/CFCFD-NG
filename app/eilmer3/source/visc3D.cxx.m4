@@ -1273,8 +1273,8 @@ int viscous_derivatives_edge_3D(Block *bdp, size_t gtl)
     size_t ntm = gmodel->get_number_of_modes();
 
     Valmatrix A1( 4, 4);
-    valarray<double> B1(4);
-    valarray<double> x1(4);
+    vector<double> B1(4);
+    vector<double> x1(4);
 
     imin = bdp->imin; imax = bdp->imax;
     jmin = bdp->jmin; jmax = bdp->jmax;
