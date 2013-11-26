@@ -487,7 +487,8 @@ external solvers to solve the wall.
 
 	valarray<double> intermediate_temps; // Intermediate storage location
 
-	intermediate_temps = valarray_matmul(vars.A, vars.temps); // [A]*T[p]
+	intermediate_temps.resize(vars.temps.size(), 0.0);
+        valarray_mul(vars.A, vars.temps, intermediate_temps); // [A]*T[p]
 
 	add_valarrays(vars.temps, intermediate_temps, vars.fluxes); // [A]*T[p] + [Q]
 
