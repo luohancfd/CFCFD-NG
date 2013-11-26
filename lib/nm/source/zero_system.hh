@@ -7,6 +7,7 @@
  *
  * \author Rowan J Gollan
  * \date 24-Apr-2006
+ * \version 26-Nov-2013 -- change to using vector (PJ)
  *
  **/
 
@@ -14,7 +15,6 @@
 #define ZERO_SYSTEM_HH
 
 #include <vector>
-#include <valarray>
 
 #include "no_fuss_linear_algebra.hh"
 
@@ -29,9 +29,9 @@ public:
     /// \brief Default destructor
     virtual ~ZeroSystem();
 
-    virtual int f( const std::valarray<double> &y, std::valarray<double> &G ) = 0;
+    virtual int f( const std::vector<double> &y, std::vector<double> &G ) = 0;
     
-    virtual int Jac( const std::valarray<double> &y, Valmatrix &dGdy ) = 0;
+    virtual int Jac( const std::vector<double> &y, Valmatrix &dGdy ) = 0;
 
 };
 

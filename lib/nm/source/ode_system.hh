@@ -10,7 +10,7 @@
 
 #include <iostream>
 #include <string>
-#include <valarray>
+#include <vector>
 #include "no_fuss_linear_algebra.hh"
 
 /** \brief Base (abstract) class of an ode system.
@@ -81,18 +81,18 @@ public:
     /// \f[ \frac{dev\vec{y}}{dt} = f(\vec{y}) \f],
     /// then this eval returns the result of \f$f(\vec{y})\f$.
     ///
-    virtual int eval( const std::valarray<double> &y, std::valarray<double> &ydot ) = 0;
+    virtual int eval( const std::vector<double> &y, std::vector<double> &ydot ) = 0;
 
     /// \brief A RHS evaluation which forward and backward production
-    virtual int eval_split( const std::valarray<double> &y, 
-			    std::valarray<double> &q, std::valarray<double> &L );
+    virtual int eval_split( const std::vector<double> &y, 
+			    std::vector<double> &q, std::vector<double> &L );
 
     /// \brief A stepsize selection function.
-    virtual double stepsize_select( const std::valarray<double> &y );
+    virtual double stepsize_select( const std::vector<double> &y );
 
     /// \brief A check for the accuracy of the result
     ///        based on system constraints.
-    virtual bool passes_system_test( std::valarray<double> &y );
+    virtual bool passes_system_test( std::vector<double> &y );
 
     /// \brief A flag indicating if the RHS has been evaluated.
     ///

@@ -16,7 +16,6 @@
 #define ZERO_FINDERS_HH
 
 #include <vector>
-#include <valarray>
 
 #include "no_fuss_linear_algebra.hh"
 #include "zero_system.hh"
@@ -51,7 +50,7 @@ public:
     //---- Defining behaviour ----//
 
     /// \brief Solve the system
-    virtual int solve( ZeroSystem &zsys, const std::valarray<double> &y_guess, std::valarray<double> &y_out ) = 0;
+    virtual int solve( ZeroSystem &zsys, const std::vector<double> &y_guess, std::vector<double> &y_out ) = 0;
 
 protected:
     int ndim_;     ///< Number of variables to solve for
@@ -124,16 +123,16 @@ public:
     void set_constants(int ndim, double tolerance, int max_iterations, bool has_Jacobian=true);
 
     //---- Defining behaviour ----//
-    int solve( ZeroSystem &zsys, const std::valarray<double> &y_guess, std::valarray<double> &y_out );
+    int solve( ZeroSystem &zsys, const std::vector<double> &y_guess, std::vector<double> &y_out );
 
 private:
     bool has_Jac_;
-    std::valarray<double> G_;
-    std::valarray<double> minusG_;
+    std::vector<double> G_;
+    std::vector<double> minusG_;
     Valmatrix dGdy_;
-    std::valarray<double> y_old_;
-    std::valarray<double> y_new_;
-    std::valarray<double> dely_;
+    std::vector<double> y_old_;
+    std::vector<double> y_new_;
+    std::vector<double> dely_;
 
     bool test_tol();
 };

@@ -6,13 +6,14 @@
  * 
  * \author Rowan J Gollan
  * \version 21-Apr-2006 - initial coding
+ * \version 26-Nov-2013 - change to using vector instead of valarray (PJ)
  *
  **/
 
 #include <cstdio>
 #include <cmath>
 #include <iostream>
-#include <valarray>
+#include <vector>
 
 #include "../../util/source/useful.h"
 #include "no_fuss_linear_algebra.hh"
@@ -390,31 +391,31 @@ void NewtonRaphsonZF::set_constants(int ndim, double tolerance,
 /// \author Rowan J Gollan
 /// \version 21-Apr-2006
 ///
-int NewtonRaphsonZF::solve( ZeroSystem &zsys, const valarray<double> &y_guess, valarray<double> &y_out )
+int NewtonRaphsonZF::solve( ZeroSystem &zsys, const vector<double> &y_guess, vector<double> &y_out )
 {
     int count;
 
     zsys.f( y_guess, G_ );
-    scale_valarray2valarray( G_, -1.0, minusG_);
+    scale_vector2vector( G_, -1.0, minusG_);
     if( has_Jac_ ) {
 	zsys.Jac( y_guess, dGdy_ );
     }
     else {
 	;// We need some derivative technique
     }
-    copy_valarray( y_guess, y_old_ );
+    copy_vector( y_guess, y_old_ );
 
     for( count = 0; count < max_iter_; ++count ) {
 	gaussian_elimination( dGdy_, dely_, minusG_ );
-	add_valarrays( y_new_, y_old_, dely_ );
-	// cout << "count = " << count << ", y_new_ = "; print_valarray(y_new_);
-	// cout << "dely = "; print_valarray(dely_);
+	add_vectors( y_new_, y_old_, dely_ );
+	// cout << "count = " << count << ", y_new_ = "; print_vector(y_new_);
+	// cout << "dely = "; print_vector(dely_);
 	if ( test_tol() )
 	    break;
 	else {
-	    copy_valarray( y_new_, y_old_ );
+	    copy_vector( y_new_, y_old_ );
 	    zsys.f( y_old_, G_ );
-	    scale_valarray2valarray( G_, -1.0, minusG_);
+	    scale_vector2vector( G_, -1.0, minusG_);
 	    if( has_Jac_ ) {
 		zsys.Jac( y_old_, dGdy_ );
 	    }
@@ -429,11 +430,11 @@ int NewtonRaphsonZF::solve( ZeroSystem &zsys, const valarray<double> &y_guess, v
 	cerr << "Newton-Raphson method did not coverge (in zero_finders.cxx)\n";
 	cerr << "Iterations = " << count << ", tolerance= " << tol_ << endl;
 	cerr << "Guessed input= \n";
-	print_valarray(y_guess);
+	print_vector(y_guess);
 	cerr << "Values after iteration= \n";
-	print_valarray(y_new_);
+	print_vector(y_new_);
 	cerr << "dely values after iteration= \n";
-	print_valarray(dely_);
+	print_vector(dely_);
 	return FAILURE;
     }
 

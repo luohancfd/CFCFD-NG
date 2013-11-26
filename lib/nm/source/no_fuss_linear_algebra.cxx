@@ -11,7 +11,7 @@
 #include <iomanip>
 #include <string>
 #include <sstream>
-#include <valarray>
+#include <vector>
 
 #include "../../util/source/useful.h"
 #include "no_fuss_linear_algebra.hh"
@@ -30,8 +30,9 @@ const double essentially_zero = 1.0e-200;
 /// \author Rowan J Gollan
 /// \version 23-Apr-2006
 /// \version 23-Sep-2006 - changed to valarrays
+/// \version 26-Nov-2013 - then to vector (PJ)
 ///
-void add_valarrays(valarray<double> &c, const valarray<double> &a, const valarray<double> &b )
+void add_vectors(vector<double> &c, const vector<double> &a, const vector<double> &b )
 {
     
     if( (a.size() != b.size()) || (a.size() != c.size()) ) {
@@ -56,7 +57,7 @@ void add_valarrays(valarray<double> &c, const valarray<double> &a, const valarra
 /// \author Rowan J Gollan
 /// \version 23-Apr-2006
 ///
-void subtract_valarrays(valarray<double> &c, const valarray<double> &a, const valarray<double> &b )
+void subtract_vectors(vector<double> &c, const vector<double> &a, const vector<double> &b )
 {
     if( (a.size() != b.size()) || (a.size() != c.size()) ) {
 	cerr << "Vector dimensions do not agree.\n";
@@ -80,11 +81,11 @@ void subtract_valarrays(valarray<double> &c, const valarray<double> &a, const va
 // 
 // \author Jared Clifford
 // \version 11 September 2013
-void elemul_valarrays(valarray<double> &c, const valarray<double> &a, const valarray<double> &b)
+void elemul_vectors(vector<double> &c, const vector<double> &a, const vector<double> &b)
 {
   if ( (a.size() != b.size()) || (a.size() != c.size()) ){
     cerr << "Vector dimensions do not agree .\n";
-    cerr << "While attempting elemul_valarray, \n";
+    cerr << "While attempting elemul_vector, \n";
     cerr << "size of vector a = " << a.size() << endl;
     cerr << "size of vector b = " << b.size() << endl;
     cerr << "size of vector c = " << c.size() << endl;
@@ -106,7 +107,7 @@ void elemul_valarrays(valarray<double> &c, const valarray<double> &a, const vala
 // 
 // \author Jared Clifford
 // \version 11 September 2013
-void elepow_valarrays(valarray<double> &c, const valarray<double> &b, double a)
+void elepow_vectors(vector<double> &c, const vector<double> &b, double a)
 {
     for ( size_t i = 0; i < c.size(); ++i ) c[i] = pow(b[i], a);
 }
@@ -120,7 +121,7 @@ void elepow_valarrays(valarray<double> &c, const valarray<double> &b, double a)
 /// \author Rowan J Gollan
 /// \version 23-Apr-2006
 ///
-void scale_valarray(valarray<double> &a, double b)
+void scale_vector(vector<double> &a, double b)
 {
     for ( size_t i = 0; i < a.size(); ++i ) a[i] *= b;
 }
@@ -134,18 +135,18 @@ void scale_valarray(valarray<double> &a, double b)
 /// \author Rowan J Gollan
 /// \version 23-Apr-2006
 ///
-void scale_valarray2valarray( const valarray<double> &a, double b, valarray<double> &c )
+void scale_vector2vector( const vector<double> &a, double b, vector<double> &c )
 {
     for ( size_t i = 0; i < a.size(); ++i ) c[i] = b*a[i];
 }
 
-void copy_valarray(const valarray<double> &src, valarray<double> &target )
+void copy_vector(const vector<double> &src, vector<double> &target )
 {
     if ( src.size() != target.size() ) {
 	cerr << "Vector dimensions do not agree.\n";
-	cerr << "While attempting to copy two valarrays,\n";
-	cerr << "size of valarray src = " << src.size() << endl;
-	cerr << "size of valarray target = " << target.size() << endl;
+	cerr << "While attempting to copy two vectors,\n";
+	cerr << "size of vector src = " << src.size() << endl;
+	cerr << "size of vector target = " << target.size() << endl;
 	cerr << "Bailing out.\n";
 	exit(MISMATCHED_DIMENSIONS);
     }
@@ -154,7 +155,7 @@ void copy_valarray(const valarray<double> &src, valarray<double> &target )
     
 }
 
-void print_valarray( const valarray<double> &a )
+void print_vector( const vector<double> &a )
 {
     if ( a.size() == 0 ) return;
     cout << "[ ";
@@ -162,7 +163,7 @@ void print_valarray( const valarray<double> &a )
     cout << a[a.size()-1] << " ]" << endl;
 }
 
-double norm2_valarray( const valarray<double> &a, int start, int finish )
+double norm2_vector( const vector<double> &a, int start, int finish )
 {
     if ( finish < 0 )
 	finish = a.size();
@@ -182,17 +183,17 @@ double norm2_valarray( const valarray<double> &a, int start, int finish )
     return sqrt(norm);
 }
 
-void merge_valarrays(const valarray<double> &src_A, 
-    		     const valarray<double> &src_B,
-		           valarray<double> &target )
+void merge_vectors(const vector<double> &src_A, 
+    		     const vector<double> &src_B,
+		           vector<double> &target )
 {
-    // Merge two valarrays, one after the other
+    // Merge two vectors, one after the other
     if ( ( src_A.size() + src_B.size() ) != target.size() ) {
 	cerr << "Vector dimensions do not agree.\n";
-	cerr << "While attempting to merge two valarrays,\n";
-	cerr << "size of valarray src_A = " << src_A.size() << endl;
-	cerr << "size of valarray src_B = " << src_B.size() << endl;
-	cerr << "size of valarray target = " << target.size() << endl;
+	cerr << "While attempting to merge two vectors,\n";
+	cerr << "size of vector src_A = " << src_A.size() << endl;
+	cerr << "size of vector src_B = " << src_B.size() << endl;
+	cerr << "size of vector target = " << target.size() << endl;
 	cerr << "Bailing out.\n";
 	exit(MISMATCHED_DIMENSIONS);
     }
@@ -206,17 +207,17 @@ void merge_valarrays(const valarray<double> &src_A,
     
 }
 
-void split_valarray( const valarray<double> &src, 
-                     	   valarray<double> &target_A, 
-		           valarray<double> &target_B )
+void split_vector( const vector<double> &src, 
+                     	   vector<double> &target_A, 
+		           vector<double> &target_B )
 {
-    // Split a valarray into 2 parts defined by valarray dimensions
+    // Split a vector into 2 parts defined by vector dimensions
     if ( ( target_A.size() + target_B.size() ) != src.size() ) {
 	cerr << "Vector dimensions do not agree.\n";
-	cerr << "While attempting to merge two valarrays,\n";
-	cerr << "size of valarray target_A = " << target_A.size() << endl;
-	cerr << "size of valarray target_B = " << target_B.size() << endl;
-	cerr << "size of valarray src = " << src.size() << endl;
+	cerr << "While attempting to merge two vectors,\n";
+	cerr << "size of vector target_A = " << target_A.size() << endl;
+	cerr << "size of vector target_B = " << target_B.size() << endl;
+	cerr << "size of vector src = " << src.size() << endl;
 	cerr << "Bailing out.\n";
 	exit(MISMATCHED_DIMENSIONS);
     }
@@ -332,7 +333,7 @@ string Valmatrix::str() const
 
 int
 Valmatrix::
-extract_column(valarray<double> &x, size_t start_row, size_t column)
+extract_column(vector<double> &x, size_t start_row, size_t column)
 {
     size_t nr = nrows() - start_row;
     if( nr != x.size() ) {
@@ -348,7 +349,7 @@ extract_column(valarray<double> &x, size_t start_row, size_t column)
 
 int
 Valmatrix::
-insert_column(const valarray<double> &x, size_t start_row, size_t column)
+insert_column(const vector<double> &x, size_t start_row, size_t column)
 {
     size_t nr = nrows() - start_row;
     if( nr != x.size() ) {
@@ -427,18 +428,18 @@ print_mat()
     return SUCCESS;
 }
 
-valarray<double> valarray_matmul( Valmatrix &matrix, valarray<double> &b)
+vector<double> vector_matmul( Valmatrix &matrix, vector<double> &b)
 {
   // Ensure the matrix is square and matrix and vector dimensions match
   if ( matrix.ncols() != matrix.nrows() || matrix.ncols() != b.size() ){
-		cerr << "valarray_mul\n";
+		cerr << "vector_mul\n";
 		cerr << "ERROR: Dims don't match.\n";
 		cerr << "ncols= " << matrix.ncols() << " nrows= " << matrix.nrows() << " b.size() = " << b.size() << endl;
 		cerr << "Bailing out.";
 		exit(MISMATCHED_DIMENSIONS);
   }
 
-  valarray<double> store;
+  vector<double> store;
   store.resize(b.size(), 0.0);
 
   for ( size_t i = 0; i < b.size(); i++){
@@ -458,11 +459,11 @@ valarray<double> valarray_matmul( Valmatrix &matrix, valarray<double> &b)
 // 
 // \author Jared Clifford
 // \version 12 September 2013
-int valarray_mul(Valmatrix &A, valarray<double> &x, valarray<double> &b)
+int vector_mul(Valmatrix &A, vector<double> &x, vector<double> &b)
 {
     // Ensure the matrix is square and matrix and vector dimensions match
     if ( A.ncols() != A.nrows() || A.ncols() != x.size() || A.ncols() != b.size() ) {
-	cerr << "valarray_mul\n";
+	cerr << "vector_mul\n";
 	cerr << "ERROR: Dims don't match.\n";
 	cerr << "ncols= " << A.ncols() << " nrows= " << A.nrows() << " x.size() = " << x.size() << " b.size() = " << b.size() << endl;
 	cerr << "Bailing out.";
@@ -481,7 +482,7 @@ int valarray_mul(Valmatrix &A, valarray<double> &x, valarray<double> &b)
 
 // int
 // Valmatrix::
-// gaussian_elimination( std::valarray<double> &x, valarray<double> &b, bool with_scaling )
+// gaussian_elimination( std::vector<double> &x, vector<double> &b, bool with_scaling )
 // {
 //     int i, j, k, p, tmp;
 //     double max, sum, factor;
@@ -557,7 +558,7 @@ ostream& operator<<( ostream &os, const Valmatrix &v )
     return os;
 }
 
-int gaussian_elimination( Valmatrix &A, valarray<double> &x, valarray<double> &b, bool with_scaling )
+int gaussian_elimination( Valmatrix &A, vector<double> &x, vector<double> &b, bool with_scaling )
 {
     int i, j, k, p, tmp;
     double max, sum, factor;
@@ -666,8 +667,8 @@ int gaussian_elimination( Valmatrix &A, valarray<double> &x, valarray<double> &b
 // users.
 
 
-int householder_transform(const valarray<double> &x,
-			  valarray<double> &v, double &tau)
+int householder_transform(const vector<double> &x,
+			  vector<double> &v, double &tau)
 {
     if( x.size() != v.size() ) {
 	cout << "Vector dimensions do not agree in\n";
@@ -686,7 +687,7 @@ int householder_transform(const valarray<double> &x,
     }
     else {
 	double alpha, beta;
-	double xnorm = norm2_valarray(x, 1);
+	double xnorm = norm2_vector(x, 1);
 
 	if( xnorm == 0.0 ) {
 	    tau = 0.0;
@@ -701,14 +702,14 @@ int householder_transform(const valarray<double> &x,
 	    beta = hypot(alpha, xnorm);
 	}
 	tau = (beta - alpha) / beta;
-	scale_valarray(v, 1.0/(alpha - beta));
+	scale_vector(v, 1.0/(alpha - beta));
 	v[0] = beta;
 
 	return SUCCESS;
     }
 }
 
-int householder_hm(double tau, valarray<double> &v, Valmatrix &A)
+int householder_hm(double tau, vector<double> &v, Valmatrix &A)
 {
     size_t i, j;
     
@@ -738,8 +739,8 @@ int householder_hm(double tau, valarray<double> &v, Valmatrix &A)
     return SUCCESS;
 }
 
-int householder_hv(double tau, const valarray<double> &v,
-		   valarray<double> &w)
+int householder_hv(double tau, const vector<double> &v,
+		   vector<double> &w)
 {
     const size_t N = v.size();
  
@@ -751,8 +752,8 @@ int householder_hv(double tau, const valarray<double> &v,
     double d0 = w[0];
     double d1, d;
 
-    valarray<double> v1(N-1);
-    valarray<double> w1(N-1);
+    vector<double> v1(N-1);
+    vector<double> w1(N-1);
 
     for(size_t i = 1; i < N; ++i ) {
 	v1[i-1] = v[i];
@@ -783,7 +784,7 @@ int householder_hv(double tau, const valarray<double> &v,
 }
 
 
-int householder_QR(Valmatrix &A, valarray<double> &tau)
+int householder_QR(Valmatrix &A, vector<double> &tau)
 {
     const size_t M = A.nrows();
     const size_t N = A.ncols();
@@ -797,8 +798,8 @@ int householder_QR(Valmatrix &A, valarray<double> &tau)
     
     size_t i;
     double tau_i;
-    valarray<double> v;
-    valarray<double> x;
+    vector<double> v;
+    vector<double> x;
     Valmatrix m;
     
     for( i = 0; i < MINIMUM(M, N); ++i ) {
@@ -821,7 +822,7 @@ int householder_QR(Valmatrix &A, valarray<double> &tau)
 }
 
 
-int QR_QTvec(Valmatrix &QR, valarray<double> &tau, valarray<double> &b)
+int QR_QTvec(Valmatrix &QR, vector<double> &tau, vector<double> &b)
 {
 
     const size_t M = QR.nrows();
@@ -838,9 +839,9 @@ int QR_QTvec(Valmatrix &QR, valarray<double> &tau, valarray<double> &b)
     
     size_t i;
 
-    valarray<double> c(M);
-    valarray<double> h;
-    valarray<double> w;
+    vector<double> c(M);
+    vector<double> h;
+    vector<double> w;
     /* compute Q^T v */
 
     for (i = 0; i < MINIMUM(M, N); i++) {
@@ -864,7 +865,7 @@ int QR_QTvec(Valmatrix &QR, valarray<double> &tau, valarray<double> &b)
 
 }
 
-int least_squares_solve(Valmatrix &A, valarray<double> &x, valarray<double> &b)
+int least_squares_solve(Valmatrix &A, vector<double> &x, vector<double> &b)
 {
     const size_t M = A.nrows();
     const size_t N = A.ncols();
@@ -888,7 +889,7 @@ int least_squares_solve(Valmatrix &A, valarray<double> &x, valarray<double> &b)
 	exit(MISMATCHED_DIMENSIONS);
     }
 
-    valarray<double> tau(MINIMUM(M, N));
+    vector<double> tau(MINIMUM(M, N));
 
     // First find QR-factorization
     householder_QR(A, tau);
@@ -916,7 +917,7 @@ int least_squares_solve(Valmatrix &A, valarray<double> &x, valarray<double> &b)
 }
 
 
-int QR_solve(Valmatrix &A, valarray<double> &x, valarray<double> &b)
+int QR_solve(Valmatrix &A, vector<double> &x, vector<double> &b)
 {
     const size_t N = A.ncols();
     // Ensure the matrix is square
@@ -928,7 +929,7 @@ int QR_solve(Valmatrix &A, valarray<double> &x, valarray<double> &b)
 	exit(MISMATCHED_DIMENSIONS);
     }
 
-    valarray<double> tau(b.size());
+    vector<double> tau(b.size());
 
     // First find QR-factorization
     householder_QR(A, tau);

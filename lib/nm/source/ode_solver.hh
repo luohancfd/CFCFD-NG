@@ -10,7 +10,7 @@
 
 #include <iostream>
 #include <string>
-#include <valarray>
+#include <vector>
 #include "no_fuss_linear_algebra.hh"
 #include "ode_system.hh"
 #include "ode_step.hh"
@@ -93,7 +93,7 @@ public:
 
     /// \brief A procedure for solving the ODE over a specified interval.
     bool solve_over_interval( OdeSystem &ode, double x0, double xf, double *h,
-			      const std::valarray<double> &yin, std::valarray<double> &yout );
+			      const std::vector<double> &yin, std::vector<double> &yout );
 
 protected:
     std::string name_;            ///< name for the solver
@@ -105,8 +105,8 @@ protected:
 
     OdeStep *step_;               ///< a pointer to the stepping algorithm.
     
-    std::valarray<double> y_save_; 
-    std::valarray<double> y_work_;
+    std::vector<double> y_save_; 
+    std::vector<double> y_work_;
 };
 
 
