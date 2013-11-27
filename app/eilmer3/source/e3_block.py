@@ -537,7 +537,7 @@ class Block(object):
         :param r_omega: If appropriate, specify the value of angular velocity
             (in rad/s) of the wall.
 
-        ** FIX-ME ** rest of parameters not desctibed
+        ** FIX-ME ** rest of parameters not described
 
         Sometimes it is good to be able to adjust properties after
         block creation; this function provides that capability.
@@ -1011,6 +1011,8 @@ def connect_blocks_2D(A, faceA, B, faceB, with_udf=0,
     :param B: second Block2D object
     :param faceB: indicates which face of block B is to be connected.
         The constants NORTH, EAST, SOUTH, and WEST may be convenient to use.
+
+    .. todo: should add checking of corner locations, but allow it to be skipped 
     """
     assert isinstance(A, Block2D)
     assert isinstance(B, Block2D)
@@ -1921,13 +1923,18 @@ def identify_colocated_vertices(A, B, tolerance):
 
 def connect_blocks_3D(A, B, vtx_pairs, with_udf=0, 
                       filename=None, is_wall=0,
-                      sets_conv_flux=0, sets_visc_flux=0):
+                      sets_conv_flux=0, sets_visc_flux=0,
+                      check_corner_locations=True):
     """
     Make the specified vertex-to-vertex connection between neighbouring blocks.
 
     :param A: Block3D object
     :param B: Block3D object
     :param vtxPairs: list of 4 pairs of vertex indices specifying the corresponding corners. 
+    :param is_wall: passed through to the AdjacentPlusUDFBC if with_udf is True
+    :param sets_conv_flux: passed through to the AdjacentPlusUDFBC if with_udf is True
+    :param sets_visc_flux: passed through to the AdjacentPlusUDFBC if with_udf is True
+    :param check_corner_locations: set True (default) to check that the face corners are colocated
     """
     print "connect_blocks(): begin..."
     if not isinstance(vtx_pairs, list):
@@ -1961,7 +1968,7 @@ def connect_blocks_3D(A, B, vtx_pairs, with_udf=0,
         A.bc_list[faceA] = AdjacentBC(B.blkId, faceB, orientation)
         B.bc_list[faceB] = AdjacentBC(A.blkId, faceA, orientation)
     #
-    if not check_block_connection_3D(A, faceA, B, faceB, orientation):
+    if check_corner_locations and (not check_block_connection_3D(A, faceA, B, faceB, orientation)):
         print "connect_blocks(): Block vertex locations not consistent for this connection."
         print "   vtx_pairs=", vtx_pairs
     if not cell_count_consistent_3D(A, faceA, B, faceB, orientation):
