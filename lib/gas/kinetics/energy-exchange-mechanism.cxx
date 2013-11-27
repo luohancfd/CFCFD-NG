@@ -7,6 +7,7 @@
 #include "../../util/source/useful.h"
 
 #include "energy-exchange-mechanism.hh"
+#include "energy-exchange-relaxation-time.hh"
 #include "../models/chemical-species-library.hh"
 
 using namespace std;
@@ -75,11 +76,11 @@ specific_compute_rate(const std::vector<double> &y, Gas_data &Q, vector<double> 
     // NOTE: - tau_ needs to be (already) weighted by colliding mole fractions
     //       - massf scaling is to convert J/s/kg-of-species-ip to J/s/kg-of-mixture
     double rate = Q.massf[ip_] * (e_vib_eq - e_vib) / tau_;
-    //    cout << "e_vib_eq= " << e_vib_eq << endl;
-    //    cout << "e_vib= " << e_vib << endl;
-    //    cout << "massf= " << Q.massf[ip_] << endl;
-    //    cout << "rate= " << rate << endl;
-    //    cout << "Vt-rate= " << rate << endl;
+    //cout << "e_vib_eq= " << e_vib_eq << endl;
+    //cout << "e_vib= " << e_vib << endl;
+    //cout << "massf= " << Q.massf[ip_] << endl;
+    //cout << "rate= " << rate << endl;
+    //cout << "Vt-rate= " << rate << endl;
     return rate;
 }
 
@@ -518,7 +519,7 @@ specific_compute_rate(const vector<double> &y, Gas_data &Q, vector<double> &mole
 //     return rate;
 // }
 
-Energy_exchange_mechanism* create_energy_exhange_mechanism(lua_State *L, int imode)
+Energy_exchange_mechanism* create_energy_exchange_mechanism(lua_State *L, int imode)
 {
     string type = get_string(L, -1, "type");
     int ip = get_int(L, -1, "ip");
@@ -560,33 +561,37 @@ Energy_exchange_mechanism* create_energy_exhange_mechanism(lua_State *L, int imo
      }
 }
 
-// Energy_exchange_mechanism* create_energy_exhange_mechanism_from_file( string input_file )
-// {
-//     lua_State *L = luaL_newstate();
-//     luaL_openlibs(L);
+Energy_exchange_mechanism* get_mech_from_file(int imech, string cfile, Gas_model &g)
+{
+    // Setup lua_State for parsing as per energy_exchange_update.cxx
+    lua_State *L = luaL_newstate();
+    luaL_openlibs(L);
+
+    parse_input_for_rts(cfile, g, L);
+
+    lua_getglobal(L, "mechs");
+    if ( !lua_istable(L, -1) ) {
+	ostringstream ost;
+	ost << "get_rt_from_file():\n";
+	ost << "Error finding 'mechs' table.\n";
+	input_error(ost);
+    }
+
+    int nmechs = lua_objlen(L, -1);
+    if ( imech >= nmechs ) {
+	ostringstream ost;
+	ost << "get_mech_from_file():\n";
+	ost << "Error: requested relaxation mechanism index " << imech << endl;
+	ost << "       is greater than the number of available mechanisms.\n";
+	input_error(ost);
+    }
+
+    lua_rawgeti(L, -1, imech+1); // user supplies index counting from '0'
+    int imode = get_int(L, -1, "imode");
     
-//     // Parse the input file...
-//     if( luaL_dofile(L, input_file.c_str()) != 0 ) {
-// 	ostringstream ost;
-// 	ost << "create_energy_exhange_mechanism_from_file():\n";
-// 	ost << "Error in input file: " << input_file << endl;
-// 	input_error(ost);
-//     }
-    
-//     lua_getglobal(L, "mechanism");
-//     if ( !lua_istable(L, -1) ) {
-// 	ostringstream ost;
-// 	ost << "create_energy_exhange_mechanism_from_file()\n";
-// 	ost << "Error interpreting 'mechanism'; a table is expected.\n";
-// 	input_error(ost);
-//     }
-    
-//     Energy_exchange_mechanism* eem = create_energy_exhange_mechanism(L);
-    
-//     lua_pop(L,1);
-    
-//     lua_close(L);
-    
-//     return eem;
-// }
+    Energy_exchange_mechanism *eem = create_energy_exchange_mechanism(L, imode);
+    lua_close(L);
+
+    return eem;
+}
 

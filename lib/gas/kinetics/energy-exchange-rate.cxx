@@ -27,7 +27,7 @@ Energy_exchange_rate(lua_State *L)
     int nmechs = lua_objlen(L, -1);
     for ( int i = 1; i <= nmechs; ++i ) {
 	lua_rawgeti(L, -1, i);
-	ee_mech_.push_back(create_energy_exhange_mechanism(L, imode));
+	ee_mech_.push_back(create_energy_exchange_mechanism(L, imode));
 	lua_pop(L, 1);
     }
     lua_pop(L, 1);

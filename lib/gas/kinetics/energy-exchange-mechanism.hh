@@ -187,8 +187,7 @@ private:
     double specific_compute_rate(const std::vector<double> &y, Gas_data &Q, std::vector<double> &molef);
 };
 
-Energy_exchange_mechanism* create_energy_exhange_mechanism(lua_State *L, int imode);
-
-// Energy_exchange_mechanism* create_energy_exhange_mechanism_from_file( std::string input_file );
+Energy_exchange_mechanism* create_energy_exchange_mechanism(lua_State *L, int imode);
+Energy_exchange_mechanism* get_mech_from_file(int imech, std::string cfile, Gas_model &g);
 
 #endif
