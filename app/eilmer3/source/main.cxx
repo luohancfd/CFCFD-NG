@@ -548,6 +548,8 @@ int prepare_to_integrate(size_t start_tindx)
 	if ( master ) { 
 	    // Now on rank0, we can assemble a vector of vertices
 	    initialise_wall_node_positions(*(G.wm), wall_xs, wall_ys);
+	    // At this point we can write out the initial solution.
+	    write_soln(*(G.wm), G.sim_time, 0);
 	}
     }
 
