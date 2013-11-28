@@ -150,7 +150,7 @@ class BoundaryCondition(object):
                 'x_order', 'sponge_flag', 'other_block', 'other_face', 'orientation', \
                 'filename', 'n_profile', 'is_wall', 'sets_conv_flux', 'sets_visc_flux', \
                 'assume_ideal', 'mdot', 'Twall_i', 'Twall_f', 't_i', 't_f', 'emissivity', \
-                'r_omega', 'centre', 'v_trans', 'label'
+                'r_omega', 'centre', 'v_trans', 'reorient_vector_quantities', 'Rmatrix', 'label'
     def __init__(self,
                  type_of_BC=SLIP_WALL,
                  Twall=300.0,
@@ -176,6 +176,8 @@ class BoundaryCondition(object):
                  r_omega=None,
                  centre=None,
                  v_trans=None,
+                 reorient_vector_quantities=False,
+                 Rmatrix=[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
                  label=""):
         """
         Construct a generic boundary condition object.
@@ -226,6 +228,8 @@ class BoundaryCondition(object):
         :param r_omega: angular velocity for Jason Qin's moving-wall boundary
         :param centre: a point on the axis of rotation for the moving-wall boundary
         :param v_tran: a translational velocity to superimpost on the moving-wall boundary 
+        :param reorient_vector_quantities: for exchange of vector quantities between adjacent boundaries
+        :param Rmatrix: the 9 elements of the rotation matrix
         :param label: A string that may be used to assist in identifying the boundary
             in the post-processing phase of a simulation.
         """
@@ -262,6 +266,9 @@ class BoundaryCondition(object):
             self.v_trans = [0.0, 0.0, 0.0]
         else:
             self.v_trans = [v_trans[0], v_trans[1], v_trans[2]]
+        self.reorient_vector_quantities = reorient_vector_quantities
+        assert (type(Rmatrix) is list) and (len(Rmatrix) == 9)
+        self.Rmatrix = Rmatrix
         self.label = label
             
         return
@@ -286,9 +293,13 @@ class BoundaryCondition(object):
         for mdi in mdot: str_rep += "%g," % mdi
         str_rep += "]"
         str_rep += ", emissivity=%g" % self.emissivity
-        str_rep += ", r_omega=[%g %g %g]," % (self.r_omega[0], self.r_omega[1], self.r_omega[2])
-        str_rep += ", centre=[%g %g %g]," % (self.centre[0], self.centre[1], self.centre[2])
-        str_rep += ", v_trans=[%g %g %g]," % (self.v_trans[0], self.v_trans[1], self.v_trans[2])
+        str_rep += ", r_omega=[%g, %g, %g]," % (self.r_omega[0], self.r_omega[1], self.r_omega[2])
+        str_rep += ", centre=[%g, %g, %g]," % (self.centre[0], self.centre[1], self.centre[2])
+        str_rep += ", v_trans=[%g, %g, %g]," % (self.v_trans[0], self.v_trans[1], self.v_trans[2])
+        str_rep += ", reorient_vector_quantities=%d" % self.reorient_vector_quantities
+        str_rep += ", Rmatrix=["
+        for elem in Rmatrix: str_rep += "%g, " % elem
+        str_rep += "]"
         str_rep += ", label=\"%s\")" % self.label
         return str_rep
     def __copy__(self):
@@ -316,13 +327,16 @@ class BoundaryCondition(object):
                                  r_omega=self.r_omega.copy(),
                                  centre=self.centre.copy(),
                                  v_trans=self.v_trans.copy(),
+                                 reorient_vector_quantities=self.reorient_vector_quantities,
+                                 Rmatrix=self.Rmatrix,
                                  label=self.label)
     
 class AdjacentBC(BoundaryCondition):
     """
     This boundary joins (i.e. is adjacent to) a boundary of another block.
     """
-    def __init__(self, other_block=-1, other_face=-1, orientation=0, label=""):
+    def __init__(self, other_block=-1, other_face=-1, orientation=0, 
+                 reorient_vector_quantities=False, Rmatrix=None, label=""):
         """
         Join the boundary face to a boundary-face of another block.
 
@@ -336,20 +350,32 @@ class AdjacentBC(BoundaryCondition):
         :param other_face: index of the adjacent face of the other block, if any.
         :param orientation: for 3D connections the other block face can have one of
             4 rotational orientations.
+        :param reorient_vector_quantities: for exchange of vector quantities between adjacent boundaries
+        :param Rmatrix: the 9 elements of the rotation matrix
         :param label: A string that may be used to assist in identifying the boundary
             in the post-processing phase of a simulation.
         """
+        if reorient_vector_quantities:
+            assert (type(Rmatrix) is list) and (len(Rmatrix) == 9)
         BoundaryCondition.__init__(self, type_of_BC=ADJACENT, other_block=other_block,
                                    other_face=other_face, orientation=orientation,
+                                   reorient_vector_quantities=reorient_vector_quantities,
+                                   Rmatrix=Rmatrix,
                                    label=label)
         return
     def __str__(self):
-        return "AdjacentBC(other_block=%d, other_face=%d, orientation=%d, label=\"%s\")" % \
-            (self.other_block, self.other_face, self.orientation, self.label)
+        return ("AdjacentBC(other_block=%d, other_face=%d, orientation=%d, " +
+                "reorient_vector_quantities=%d, Rmatrix=%s, " +
+                "label=\"%s\")" %
+                (self.other_block, self.other_face, self.orientation, 
+                 self.reorient_vector_quantities, self.Rmatrix,
+                 self.label))
     def __copy__(self):
         return AdjacentBC(other_block=self.other_block,
                           other_face=self.other_face,
                           orientation=self.orientation,
+                          reorient_vector_quantities=self.reorient_vector_quantities,
+                          Rmatrix=self.Rmatrix,
                           label=self.label)
     
 class SupInBC(BoundaryCondition):
@@ -758,8 +784,9 @@ class AdjacentPlusUDFBC(BoundaryCondition):
     connect_blocks() function.
     """
     def __init__(self, other_block=-1, other_face=-1, orientation=0,
-                 filename="udf.lua", is_wall=0, sets_conv_flux=0,
-                 sets_visc_flux=0, label=""):
+                 filename="udf.lua", is_wall=0, sets_conv_flux=0, sets_visc_flux=0, 
+                 reorient_vector_quantities=False, Rmatrix=None, 
+                 label=""):
         """
         Construct a connecting boundary condition that also has some user-defined behaviour.
 
@@ -778,6 +805,8 @@ class AdjacentPlusUDFBC(BoundaryCondition):
             function for setting that data.
         :param sets_visc_flux: As for sets_conv_flux except that this relates to
             setting the viscous component of flux due to the effect of the boundary.
+        :param reorient_vector_quantities: for exchange of vector quantities between adjacent boundaries
+        :param Rmatrix: the 9 elements of the rotation matrix
         :param label: A string that may be used to assist in identifying the boundary
             in the post-processing phase of a simulation.
         """
@@ -785,19 +814,26 @@ class AdjacentPlusUDFBC(BoundaryCondition):
                                    other_face=other_face, orientation=orientation,
                                    filename=filename, is_wall=is_wall,
                                    sets_conv_flux=sets_conv_flux, sets_visc_flux=sets_visc_flux, 
+                                   reorient_vector_quantities=reorient_vector_quantities,
+                                   Rmatrix=Rmatrix,
                                    label=label)
         return
     def __str__(self):
         return ("AdjacentPlusUDFBC(other_block=%d, other_face=%d, orientation=%d, " + 
-                "filename=\"%s\", is_wall=%d, sets_conv_flux=%d, sets_visc_flux=%d, label=\"%s\")") % \
-               (self.other_block, self.other_face, self.orientation, 
-                self.filename, self.is_wall, self.sets_conv_flux, self.sets_visc_flux,
-                self.label)
+                "filename=\"%s\", is_wall=%d, sets_conv_flux=%d, sets_visc_flux=%d, " +
+                "reorient_vector_quantities=%d, Rmatrix=%s, " +
+                "label=\"%s\")" %
+                (self.other_block, self.other_face, self.orientation, 
+                 self.filename, self.is_wall, self.sets_conv_flux, self.sets_visc_flux,
+                 self.reorient_vector_quantities, self.Rmatrix,
+                 self.label))
     def __copy__(self):
         return AdjacentPlusUDFBC(other_block=self.other_block, other_face=self.other_face,
                                  orientation=self.orientation, filename=self.filename,
                                  is_wall=self.is_wall,
                                  sets_conv_flux=self.sets_conv_flux, sets_visc_flux=self.sets_visc_flux,
+                                 reorient_vector_quantities=self.reorient_vector_quantities,
+                                 Rmatrix=self.Rmatrix,
                                  label=self.label)
      
 class SurfaceEnergyBalanceBC(BoundaryCondition):

@@ -892,9 +892,9 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     std::string filename = "";
     size_t n_profile = 1;
     double Pout = 100.0e3;
-    int is_wall = 0;
-    int sets_conv_flux = 0;
-    int sets_visc_flux = 0;
+    bool is_wall = false;
+    bool sets_conv_flux = false;
+    bool sets_visc_flux = false;
     double emissivity = 0.0;
     std::vector<double> mdot;
     std::vector<double> vnf;
@@ -903,6 +903,9 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     std::vector<double> r_omega; r_omega.resize(3, 0.0);
     std::vector<double> centre; centre.resize(3, 0.0);
     std::vector<double> v_trans; v_trans.resize(3, 0.0);
+    bool reorient_vector_quantities = false;
+    std::vector<double> eye; eye.resize(9, 0.0); eye[0] = 1.0; eye[4] = 1.0; eye[8] = 1.0;
+    std::vector<double> Rmatrix = eye;
 
     switch ( type_of_BC ) {
     case ADJACENT:
@@ -910,7 +913,10 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	dict.parse_string(section, "other_face", value_string, "");
 	other_face = get_face_index(value_string);
 	dict.parse_int(section, "neighbour_orientation", neighbour_orientation, 0);
-	newBC = new AdjacentBC(bdp, which_boundary, other_block, other_face, neighbour_orientation);
+	dict.parse_boolean(section, "reorient_vector_quantities", reorient_vector_quantities, false);
+	dict.parse_vector_of_doubles(section, "Rmatrix", Rmatrix, eye);
+	newBC = new AdjacentBC(bdp, which_boundary, other_block, other_face, neighbour_orientation,
+			       reorient_vector_quantities, Rmatrix);
 	break;
     case SUP_IN:
 	dict.parse_int(section, "inflow_condition", inflow_condition_id, 0);
@@ -968,11 +974,11 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	break;
     case USER_DEFINED:
 	dict.parse_string(section, "filename", filename, "");
-	dict.parse_int(section, "is_wall", is_wall, 0);
-	dict.parse_int(section, "sets_conv_flux", sets_conv_flux, 0);
-	dict.parse_int(section, "sets_visc_flux", sets_visc_flux, 0);
-	newBC = new UserDefinedBC(bdp, which_boundary, filename, is_wall==1,
-				  sets_conv_flux==1, sets_visc_flux==1);
+	dict.parse_boolean(section, "is_wall", is_wall, false);
+	dict.parse_boolean(section, "sets_conv_flux", sets_conv_flux, false);
+	dict.parse_boolean(section, "sets_visc_flux", sets_visc_flux, false);
+	newBC = new UserDefinedBC(bdp, which_boundary, 
+				  filename, is_wall, sets_conv_flux, sets_visc_flux);
 	break;
     case ADJACENT_PLUS_UDF:
 	dict.parse_int(section, "other_block", other_block, -1);
@@ -980,13 +986,15 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	other_face = get_face_index(value_string);
 	dict.parse_int(section, "neighbour_orientation", neighbour_orientation, 0);
 	dict.parse_string(section, "filename", filename, "");
-	dict.parse_int(section, "is_wall", is_wall, 0);
-	dict.parse_int(section, "sets_conv_flux", sets_conv_flux, 0);
-	dict.parse_int(section, "sets_visc_flux", sets_visc_flux, 0);
+	dict.parse_boolean(section, "is_wall", is_wall, false);
+	dict.parse_boolean(section, "sets_conv_flux", sets_conv_flux, false);
+	dict.parse_boolean(section, "sets_visc_flux", sets_visc_flux, false);
+	dict.parse_boolean(section, "reorient_vector_quantities", reorient_vector_quantities, false);
+	dict.parse_vector_of_doubles(section, "Rmatrix", Rmatrix, eye);
 	newBC = new AdjacentPlusUDFBC(bdp, which_boundary, other_block, 
 				      other_face, neighbour_orientation,
-				      filename, is_wall==1,
-				      sets_conv_flux==1, sets_visc_flux==1);
+				      filename, is_wall, sets_conv_flux, sets_visc_flux,
+				      reorient_vector_quantities, Rmatrix);
 	break;
     case SEB:
 	dict.parse_double(section, "emissivity", emissivity, 1.0);

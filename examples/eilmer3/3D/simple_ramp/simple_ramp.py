@@ -3,6 +3,7 @@
 # It is now a ramp at 10 degrees rather than a conical surface.
 # PJ, August 2004, Jan 2006, Jul 2006 (new thermochemistry module)
 #     July 2008 Eilmer3 port by adding gdata.dimensions=3
+#     Nov 2013 Test manual block connection with flow vector reorientation
 # -------------------------------------------------------------------
 
 # ---------------- First, set the global data ----------------------
@@ -79,4 +80,9 @@ blk1 = Block3D(label="second-block", nni=30, nnk=40,
                fill_condition=initialCond,
                hcell_list=[(1,1,2),(20,1,1)])
 blk1.set_BC("EAST", "SUP_OUT")
-identify_block_connections()
+# identify_block_connections()
+# Let's manually connect and exercise the flow reorientation code.
+connect_blocks_3D(blk0, blk1, [(1,0),(5,4),(6,7),(2,3)],
+                  reorient_vector_quantities=True,
+                  nA=[1.0,0.0,0.0], t1A=[0.0,1.0,0.0],
+                  nB=[1.0,0.0,0.0], t1B=[0.0,1.0,0.0])
