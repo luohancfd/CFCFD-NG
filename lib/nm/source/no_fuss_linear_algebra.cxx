@@ -305,8 +305,24 @@ operator=(const Valmatrix &v)
 
 void Valmatrix::resize(size_t nrows, size_t ncols)
 {
-    data_.resize(nrows*ncols, 0.0);
-    row_index_.resize(nrows);
+    size_t vector_max = data_.max_size();
+    if ( nrows*ncols > vector_max ) {
+	cout << "ERROR: Problem trying to resize Valmatrix.\n";
+	cout << "ERROR: The requested vector length: " << nrows*ncols << endl;
+	cout << "ERROR: exceeds the maximum vector size: " << vector_max << endl;
+	cout << "BAILING OUT!\n";
+	exit(BAD_INPUT_ERROR);
+    }
+    try {
+	data_.resize(nrows*ncols);
+	row_index_.resize(nrows);
+    }
+    catch (std::bad_alloc& ba) {
+	cout << "ERROR: Valmatrix:resize():  bad_alloc caught: " << ba.what() << '\n';
+	cout << "ERROR: A memory allocation error occurred while resizing\n";
+	cout << "ERROR: a matrix to be nrows= " << nrows << " ncols= " << ncols << endl;
+	exit(MEMORY_ERROR);
+    }
     nrows_ = nrows;
     ncols_ = ncols;
 }
