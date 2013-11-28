@@ -336,7 +336,8 @@ class AdjacentBC(BoundaryCondition):
     This boundary joins (i.e. is adjacent to) a boundary of another block.
     """
     def __init__(self, other_block=-1, other_face=-1, orientation=0, 
-                 reorient_vector_quantities=False, Rmatrix=None, label=""):
+                 reorient_vector_quantities=False,
+                 Rmatrix=[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0], label=""):
         """
         Join the boundary face to a boundary-face of another block.
 
