@@ -4,7 +4,7 @@
  *  \version 15-Jan-2007
  *
  **/
-
+#include <cstdlib>
 #include <string>
 #include <vector>
 #include <fstream>
