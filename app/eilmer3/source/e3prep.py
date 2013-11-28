@@ -412,6 +412,9 @@ class GlobalData(object):
     * conjugate_ht_flag: (0/1) A flag indicating if the conjugate heat transfer at NORTH wall is active
     * conjugate_ht_file: (string) A (file) name for the configuration of the wall conduction model
       if the conjugate heat transfer model is active.
+    * wall_update_count: (int) Number of steps to wait before recomputing heat transfer in the
+      wall conduction model. Values greater than 1 give a loosely-coupled approach to the flow solver/
+      wall solver update.
     """
     count = 0
 
@@ -449,7 +452,7 @@ class GlobalData(object):
                 'energy_exchange_flag', 'energy_exchange_update', 'T_frozen_energy', \
                 'udf_file', 'udf_source_vector_flag', \
                 'heat_time_start', 'heat_time_stop', 'heat_factor_increment', \
-                'electric_field_work_flag', 'conjugate_ht_flag', 'conjugate_ht_file'
+                'electric_field_work_flag', 'conjugate_ht_flag', 'conjugate_ht_file', 'wall_update_count'
     
     def __init__(self):
         """
@@ -547,6 +550,7 @@ class GlobalData(object):
         self.write_at_step = 0
         self.conjugate_ht_flag = 0
         self.conjugate_ht_file = "dummy_ht_file"
+        self.wall_update_count = 1
         GlobalData.count += 1
         return
 
@@ -606,7 +610,9 @@ class GlobalData(object):
         fp.write("max_time = %e\n" % self.max_time)
         fp.write("max_step = %d\n" % self.max_step)
         fp.write("radiation_update_frequency = %d\n" % self.radiation_update_frequency)
+        fp.write("wall_update_count = %d\n" % self.wall_update_count)
         fp.write("halt_now = 0\n"); # presumably, we want the simulation to proceed
+
         return
 
     def write_to_ini_file(self, fp):

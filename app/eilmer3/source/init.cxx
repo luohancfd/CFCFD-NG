@@ -688,10 +688,9 @@ int read_config_parameters(const string filename, bool master)
     	G.wm = initialise_wall_model(s_value);
     }
     if ( get_verbose_flag() ) {
-	cout << "conjugate_ht_flag = " << i_value << endl;
+	cout << "conjugate_ht_flag = " << G.conjugate_ht_active << endl;
 	cout << "conjugate_ht_file = " << s_value << endl;
     }
-
     // Now, for the individual block configuration.
     for ( jb = 0; jb < G.nblock; ++jb ) {
         set_block_parameters( jb, dict, master );
@@ -751,6 +750,7 @@ int read_control_parameters( const string filename, bool master, bool first_time
     dict.parse_size_t("control_data", "max_step", G.max_step, 10);
     dict.parse_int("control_data", "halt_now", G.halt_now, 0);
     dict.parse_int("control_data", "implicit_flag", i_value, 0);
+    dict.parse_size_t("control_data", "wall_update_count", G.wall_update_count, 1);
     set_implicit_flag( i_value );
     dict.parse_int("control_data", "radiation_update_frequency", i_value, 1);
     set_radiation_update_frequency(i_value);

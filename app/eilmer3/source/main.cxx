@@ -947,6 +947,7 @@ int integrate_in_time(double target_time)
     av_output_just_written = 1;
 
     G.step = 0; // Global Iteration Count
+    G.dt_acc = 0.0; // Initialise to 0.0 to begin acculumating dt increments for conjugate ht problem
     do_cfl_check_now = 0;
     if ( G.heat_time_stop == 0.0 ) {
 	// We don't want heating at all.
@@ -1200,10 +1201,16 @@ int integrate_in_time(double target_time)
 
         // 2. Attempt a time step.
 	// 2aa. Compute wall conduction if conjugate heat transfer available
+	if ( G.wall_update_count == 0 ) {
+	    cout << "ERROR: The 'wall_update_count' should be an integer greater than or equal to 1.\n";
+	    cout << "ERROR: Check value set in .control file.\n";
+	    cout << "BAILING OUT!\n";
+	    exit(BAD_INPUT_ERROR);
+	}
 #       ifdef _MPI
 	MPI_Barrier(MPI_COMM_WORLD);
 #       endif
-	if ( G.conjugate_ht_active ) {
+	if ( G.conjugate_ht_active && ((G.step/G.wall_update_count)*G.wall_update_count == G.step) ) {
 	    int flag = gather_wall_fluxes(G);
 	    if ( flag != SUCCESS ) {
 		cout << "Error gathering energy fluxes at wall from all ranks.\n";
@@ -1212,12 +1219,14 @@ int integrate_in_time(double target_time)
 	    }
 	    // Now only master has properly updated q vector
 	    if ( master ) {
-		flag = update_temperatures_from_fluxes(*(G.wm), G.dt_global, G.q_wall, G.T_wall);
+		flag = update_temperatures_from_fluxes(*(G.wm), G.dt_acc, G.q_wall, G.T_wall);
 		if ( flag != SUCCESS ) {
 		    cout << "Error computing new temperature at wall in wall conduction model.\n";
 		    cout << "Bailing out!\n";
 		    exit(FAILURE);
 		}
+		// Reset dt_acc to 0.0
+		G.dt_acc = 0.0;
 	    }
 #           ifdef _MPI
 	    // For MPI version:
@@ -1332,6 +1341,7 @@ int integrate_in_time(double target_time)
         output_just_written = 0;
         history_just_written = 0;
 	av_output_just_written = 0;
+	G.dt_acc += G.dt_global;
 	// G.sim_time += G.dt_global; 2013-04-07 have moved increment of sim_time
 	// into the inviscid gasdynamic update
 
