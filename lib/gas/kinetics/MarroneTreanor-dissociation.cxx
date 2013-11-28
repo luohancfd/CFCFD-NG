@@ -1,6 +1,6 @@
 // Author: Daniel F Potter
 // Date: 07-Dec-2009
-
+#include <cstdlib>
 #include <cmath>
 #include <sstream>
 #include <iostream>

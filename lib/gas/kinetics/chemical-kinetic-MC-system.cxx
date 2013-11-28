@@ -1,6 +1,6 @@
 // Author: Rowan J. Gollan
 // Date: 12-Sep-2008
-
+#include <cstdlib>
 #include <iostream>
 #include <sstream>
 #include <math.h>

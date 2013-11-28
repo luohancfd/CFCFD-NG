@@ -13,6 +13,7 @@
 //
 
 #include <iostream>
+#include <cstdlib>
 #include <math.h>
 #include "../../util/source/useful.h"
 #include "../../util/source/lua_service.hh"

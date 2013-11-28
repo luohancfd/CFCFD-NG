@@ -1,6 +1,6 @@
 // Author: Daniel F. Potter
 // Date: 18-Nov-2009
-
+#include <cstdlib>
 #include <iostream>
 #include <math.h>
 #include "../../util/source/lua_service.hh"

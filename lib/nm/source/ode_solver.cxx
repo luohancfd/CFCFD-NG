@@ -4,6 +4,7 @@
  *  \author Rowan J Gollan
  *  \version 20-Feb-2006
  **/
+#include <cstdlib>
 #include <cmath>
 #include <iostream>
 #include <sstream>

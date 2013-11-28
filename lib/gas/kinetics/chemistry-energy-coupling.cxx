@@ -1,7 +1,7 @@
 // Author: Daniel F Potter
 // Date: 07-Apr-2010
 // Place: Dutton Park, QLD, Oz
-
+#include <cstdlib>
 #include <iostream>
 
 #include "../../util/source/useful.h"

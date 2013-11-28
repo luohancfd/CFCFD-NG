@@ -6,7 +6,7 @@
  *  \brief Definitions for collisional-radiative reaction rate coefficients
  *
  **/
- 
+#include <cstdlib> 
 #include <iostream>
 #include <iomanip>
 #include <string>

@@ -1,7 +1,7 @@
 // Author: Rowan J. Gollan
 // Date: 29-Oct-2008
 // Place: Hampton, Virginia, USA
-
+#include <cstdlib>
 #include <string>
 #include <map>
 #include <sstream>

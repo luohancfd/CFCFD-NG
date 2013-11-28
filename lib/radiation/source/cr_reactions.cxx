@@ -6,7 +6,7 @@
  *  \brief Declarations for nonequilibirum population model transitions
  *
  **/
- 
+#include <cstdlib> 
 #include <sstream>
  
 #include "../../util/source/useful.h"

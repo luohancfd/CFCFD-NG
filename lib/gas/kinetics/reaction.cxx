@@ -1,7 +1,7 @@
 // Author: Rowan J. Gollan
 // Date: 12-Sep-2008
 // Place: Hampton, Virginia, USA
-
+#include <cstdlib>
 #include <map>
 
 #include "../../util/source/lua_service.hh"
