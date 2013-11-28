@@ -680,8 +680,8 @@ int ar_checker(list_of_inputs &inputs) {
 }
 
 int init_coeff_matrix(list_of_inputs &inputs, list_of_vars &vars) {
-
-/* 	
+    
+    /* 	
 	---------------------------------------------------------------------
 	---------------------------------------------------------------------
 
@@ -716,22 +716,22 @@ int init_coeff_matrix(list_of_inputs &inputs, list_of_vars &vars) {
 
 	---------------------------------------------------------------------
 	---------------------------------------------------------------------
-*/
+    */
 
-// Size matrices
-vars.A.resize(inputs.M*inputs.N, inputs.M*inputs.N);
-vars.B.resize(inputs.M*inputs.N, inputs.M*inputs.N);
-vars.C.resize(inputs.M*inputs.N, inputs.M*inputs.N);
+    // Size matrices
+    vars.A.resize(inputs.M*inputs.N, inputs.M*inputs.N);
+    vars.B.resize(inputs.M*inputs.N, inputs.M*inputs.N);
+    vars.C.resize(inputs.M*inputs.N, inputs.M*inputs.N);
+    
+    // These are the gamma parameters as defined for each node.
+    double gam11, gam12, gam21, gam22; 
 
-// These are the gamma parameters as defined for each node.
-double gam11, gam12, gam21, gam22; 
+    // These stand for "y fraction plus" and "y fraction minus". They are used to 
+    // account for the axisymmetric case.  For the planar case they are always equal to 1.0.
+    double yfp, yfm; 
 
-// These stand for "y fraction plus" and "y fraction minus". They are used to 
-// account for the axisymmetric case.  For the planar case they are always equal to 1.0.
-double yfp, yfm; 
-
-
-/*
+    
+    /*
 	-------------------------------------------------------------------------
 	-------------------------------------------------------------------------
 
@@ -747,203 +747,195 @@ double yfp, yfm;
 
 */
 
+    
+    // These are alpha parameters (thermal diffusivity, generally defined for the entire 
+    // formulation.
+    double alph11 = inputs.k_11/(inputs.rho_w*inputs.c_w);
+    double alph12 = inputs.k_12/(inputs.rho_w*inputs.c_w);
+    double alph21 = inputs.k_21/(inputs.rho_w*inputs.c_w);
+    double alph22 = inputs.k_22/(inputs.rho_w*inputs.c_w);
+    
+    
+    
+    // ------------------------------------------------------------------- //
+    // ------------------------------------------------------------------- //
+    // 					NORTH AND INNER NORTH BOUNDARIES				   //
+    // ------------------------------------------------------------------- //
+    // ------------------------------------------------------------------- //
 
-// These are alpha parameters (thermal diffusivity, generally defined for the entire 
-// formulation.
-double alph11 = inputs.k_11/(inputs.rho_w*inputs.c_w);
-double alph12 = inputs.k_12/(inputs.rho_w*inputs.c_w);
-double alph21 = inputs.k_21/(inputs.rho_w*inputs.c_w);
-double alph22 = inputs.k_22/(inputs.rho_w*inputs.c_w);
 
+    // North-West Corner (Node 0)------------------------------------------
 
-
-// ------------------------------------------------------------------- //
-// ------------------------------------------------------------------- //
-// 					NORTH AND INNER NORTH BOUNDARIES				   //
-// ------------------------------------------------------------------- //
-// ------------------------------------------------------------------- //
-
-
-// North-West Corner (Node 0)------------------------------------------
-
-int node = 0;
-if (inputs.axi == 0) {
+    int node = 0;
+    if (inputs.axi == 0) {
 	yfp = 1.0;
 	yfm = 1.0;
-}
-else {
+    }
+    else {
 	yfp = 0.0;
 	yfm = (vars.y_vals[0]-inputs.dy/4.)/(vars.y_vals[0]-inputs.dy/8.);
-}
+    }
 
-gam11 = 8*alph11/pow(inputs.dx,2);
-gam22 = 8*alph22/pow(inputs.dy,2);
-gam12 = 4*alph12/(inputs.dx*inputs.dy);
-gam21 = 4*alph21/(inputs.dx*inputs.dy);
-
-vars.B.set(0,0,(-gam22*yfm+gam21*yfm-gam11+gam12));
-vars.B.set(0,1,(gam12+gam11-gam21*yfm));
-vars.B.set(0,inputs.M,(gam22*yfm+gam21*yfm-gam12));
-vars.B.set(0,inputs.M+1.,-1.*(gam12+gam21*yfm));
-
-
-
-// North-East Corner --------------------------------------------------
-node = inputs.M-1;
-
-// yfp and yfm stay the same, so do the gamma values
-
-vars.B.set(node,node,(-gam22*yfm-gam21*yfm-gam11-gam12));
-vars.B.set(node,node-1.,(gam21*yfm+gam11-gam12));
-vars.B.set(node,node+inputs.M,(gam22*yfm-gam21*yfm+gam12));
-vars.B.set(node,node+inputs.M-1.,(gam12+gam21*yfm));
+    gam11 = 8*alph11/pow(inputs.dx,2);
+    gam22 = 8*alph22/pow(inputs.dy,2);
+    gam12 = 4*alph12/(inputs.dx*inputs.dy);
+    gam21 = 4*alph21/(inputs.dx*inputs.dy);
+    
+    vars.B.set(0, 0, (-gam22*yfm+gam21*yfm-gam11+gam12));
+    vars.B.set(0, 1, (gam12+gam11-gam21*yfm));
+    vars.B.set(0, inputs.M, (gam22*yfm+gam21*yfm-gam12));
+    vars.B.set(0, inputs.M+1, -1.*(gam12+gam21*yfm));
 
 
 
-// North-North-West Corner (Node 1)------------------------------------------
+    // North-East Corner --------------------------------------------------
+    node = inputs.M-1;
 
-node = 1.;
-if (inputs.axi == 0) {
+    // yfp and yfm stay the same, so do the gamma values
+
+    vars.B.set(node,node,(-gam22*yfm-gam21*yfm-gam11-gam12));
+    vars.B.set(node,node-1,(gam21*yfm+gam11-gam12));
+    vars.B.set(node,node+inputs.M,(gam22*yfm-gam21*yfm+gam12));
+    vars.B.set(node,node+inputs.M-1,(gam12+gam21*yfm));
+
+    // North-North-West Corner (Node 1)------------------------------------------
+    
+    node = 1;
+    if (inputs.axi == 0) {
 	yfp = 1.0;
 	yfm = 1.0;
-}
-else {
+    }
+    else {
 	yfp = 0.0;
 	yfm = (vars.y_vals[node]-inputs.dy/4.)/(vars.y_vals[node]-inputs.dy/8.);
 }
+    
+    gam11 = (4/3.)*alph11/pow(inputs.dx,2);
+    gam22 = 8.*alph22/pow(inputs.dy,2);
+    gam12 = (4/3.)*alph12/(inputs.dx*inputs.dy);
+    gam21 = (4/3.)*alph21/(inputs.dx*inputs.dy);
 
-gam11 = (4/3.)*alph11/pow(inputs.dx,2);
-gam22 = 8.*alph22/pow(inputs.dy,2);
-gam12 = (4/3.)*alph12/(inputs.dx*inputs.dy);
-gam21 = (4/3.)*alph21/(inputs.dx*inputs.dy);
-
-vars.B.set(node, node,(-gam22*yfm-3*gam11));
-vars.B.set(node, node-1.,(gam21*yfm+2*gam11-gam12));
-vars.B.set(node, node+1.,(gam11-gam21*yfm+gam12));
-vars.B.set(node, node+inputs.M,(gam22*yfm));
-vars.B.set(node, node+inputs.M+1.,-1.*(gam12+gam21*yfm));
-vars.B.set(node, node+inputs.M-1.,(gam12+gam21*yfm));
-
-
-// North-North-East Corner ---------------------------------------------------
-
-node = inputs.M-2.;
-
-vars.B.set(node, node,(-gam22*yfm-3*gam11));
-vars.B.set(node, node-1.,(gam21*yfm+gam11-gam12));
-vars.B.set(node, node+1.,(2*gam11-gam21*yfm+gam12));
-vars.B.set(node, node+inputs.M,(gam22*yfm));
-vars.B.set(node, node+inputs.M+1.,-1.*(gam12+gam21*yfm));
-vars.B.set(node, node+inputs.M-1.,(gam12+gam21*yfm));
+    vars.B.set(node, node, (-gam22*yfm-3*gam11));
+    vars.B.set(node, node-1, (gam21*yfm+2*gam11-gam12));
+    vars.B.set(node, node+1, (gam11-gam21*yfm+gam12));
+    vars.B.set(node, node+inputs.M, (gam22*yfm));
+    vars.B.set(node, node+inputs.M+1, -1.*(gam12+gam21*yfm));
+    vars.B.set(node, node+inputs.M-1, (gam12+gam21*yfm));
 
 
-// The rest of the North Border -----------------------------------------------
+    // North-North-East Corner ---------------------------------------------------
+
+    node = inputs.M-2;
+
+    vars.B.set(node, node, (-gam22*yfm-3*gam11));
+    vars.B.set(node, node-1, (gam21*yfm+gam11-gam12));
+    vars.B.set(node, node+1, (2*gam11-gam21*yfm+gam12));
+    vars.B.set(node, node+inputs.M, (gam22*yfm));
+    vars.B.set(node, node+inputs.M+1, -1.*(gam12+gam21*yfm));
+    vars.B.set(node, node+inputs.M-1, (gam12+gam21*yfm));
+    
+
+    // The rest of the North Border -----------------------------------------------
+
+    gam11 = alph11/pow(inputs.dx,2);
+    gam22 = 8.*alph22/pow(inputs.dy,2);
+    gam12 = alph12/(inputs.dx*inputs.dy);
+    gam21 = alph21/(inputs.dx*inputs.dy);
 
 
-
-gam11 = alph11/pow(inputs.dx,2);
-gam22 = 8.*alph22/pow(inputs.dy,2);
-gam12 = alph12/(inputs.dx*inputs.dy);
-gam21 = alph21/(inputs.dx*inputs.dy);
-
-
-for (int i = 2; i<inputs.M-2.; i++) {
+    for (int i = 2; i < inputs.M-2; ++i) {
 	
 	node = i;
-	vars.B.set(node, node,(-gam22*yfm-2*gam11));
-	vars.B.set(node, node-1.,(gam21*yfm-gam12+gam11));
-	vars.B.set(node, node+1.,(gam11-gam21*yfm+gam12));
-	vars.B.set(node, node+inputs.M,(gam22*yfm));
-	vars.B.set(node, node+inputs.M+1.,-1.*(gam12+gam21*yfm));
-	vars.B.set(node, node+inputs.M-1.,(gam12+gam21*yfm));
+	vars.B.set(node, node, (-gam22*yfm-2*gam11));
+	vars.B.set(node, node-1, (gam21*yfm-gam12+gam11));
+	vars.B.set(node, node+1, (gam11-gam21*yfm+gam12));
+	vars.B.set(node, node+inputs.M, (gam22*yfm));
+	vars.B.set(node, node+inputs.M+1, -1.*(gam12+gam21*yfm));
+	vars.B.set(node, node+inputs.M-1, (gam12+gam21*yfm));
+    }
 
-}
 
+    // North-West-West Corner -----------------------------------------------------
 
-// North-West-West Corner -----------------------------------------------------
+    node = inputs.M;
 
-node = inputs.M;
-
-if (inputs.axi == 0) {
+    if (inputs.axi == 0) {
 	yfp = 1.0;
 	yfm = 1.0;
-}
-else {
+    }
+    else {
 	yfp = (vars.y_vals[node]+inputs.dy/4.)/(vars.y_vals[node]-inputs.dy/8.);
 	yfm = (vars.y_vals[node]-inputs.dy/2.)/(vars.y_vals[node]-inputs.dy/8.);
-}
+    }
 
-gam11 = 8.*alph11/pow(inputs.dx,2);
-gam22 = (4/3.)*alph22/pow(inputs.dy,2);
-gam12 = (4/3.)*alph12/(inputs.dx*inputs.dy);
-gam21 = (4/3.)*alph21/(inputs.dx*inputs.dy);
-
-
-vars.B.set(node, node,(-gam22*(2*yfp+yfm)-gam21*(yfp-yfm)-gam11));
-vars.B.set(node, node+1.,(gam21*(yfp-yfm)+gam11));
-vars.B.set(node, node+inputs.M,(gam22*yfm+gam21*yfm-gam12));
-vars.B.set(node, node+inputs.M+1.,-1.*(gam12+gam21*yfm));
-vars.B.set(node, node-inputs.M,(2*gam22*yfp-gam21*yfp+gam12));
-vars.B.set(node, node-inputs.M+1.,(gam12+gam21*yfp));
+    gam11 = 8.*alph11/pow(inputs.dx,2);
+    gam22 = (4/3.)*alph22/pow(inputs.dy,2);
+    gam12 = (4/3.)*alph12/(inputs.dx*inputs.dy);
+    gam21 = (4/3.)*alph21/(inputs.dx*inputs.dy);
 
 
-// North-East-East Corner -----------------------------------------------------
-
-node = 2*inputs.M -1.;
-
-vars.B.set(node, node,(-gam22*(2*yfp+yfm)+gam21*(yfp-yfm)-gam11));
-vars.B.set(node, node-1.,(gam21*(yfm-yfp)+gam11));
-vars.B.set(node, node+inputs.M,(gam22*yfm-gam21*yfm+gam12));
-vars.B.set(node, node+inputs.M-1.,(gam12+gam21*yfm));
-vars.B.set(node, node-inputs.M,(2*gam22*yfp+gam21*yfp-gam12));
-vars.B.set(node, node-inputs.M-1.,-1.*(gam12+gam21*yfp));
+    vars.B.set(node, node, (-gam22*(2*yfp+yfm)-gam21*(yfp-yfm)-gam11));
+    vars.B.set(node, node+1, (gam21*(yfp-yfm)+gam11));
+    vars.B.set(node, node+inputs.M, (gam22*yfm+gam21*yfm-gam12));
+    vars.B.set(node, node+inputs.M+1, -1.*(gam12+gam21*yfm));
+    vars.B.set(node, node-inputs.M, (2*gam22*yfp-gam21*yfp+gam12));
+    vars.B.set(node, node-inputs.M+1, (gam12+gam21*yfp));
 
 
-// Inner North-West Corner -----------------------------------------------------
+    // North-East-East Corner -----------------------------------------------------
 
-node = inputs.M+1.;
+    node = 2*inputs.M - 1;
 
-gam11 = (4/3.)*alph11/pow(inputs.dx,2);
-gam22 = (4/3.)*alph22/pow(inputs.dy,2);
-gam12 = (4/9.)*alph12/(inputs.dx*inputs.dy);
-gam21 = (4/9.)*alph21/(inputs.dx*inputs.dy);
+    vars.B.set(node, node, (-gam22*(2*yfp+yfm)+gam21*(yfp-yfm)-gam11));
+    vars.B.set(node, node-1, (gam21*(yfm-yfp)+gam11));
+    vars.B.set(node, node+inputs.M, (gam22*yfm-gam21*yfm+gam12));
+    vars.B.set(node, node+inputs.M-1, (gam12+gam21*yfm));
+    vars.B.set(node, node-inputs.M, (2*gam22*yfp+gam21*yfp-gam12));
+    vars.B.set(node, node-inputs.M-1, -1.*(gam12+gam21*yfp));
 
-vars.B.set(node, node, (-gam22*(2*yfp+yfm)-3*gam11));
-vars.B.set(node, node+1, (gam21*(yfp-yfm)+gam11));
-vars.B.set(node, node-1, -1.*(gam21*(yfp-yfm)-2*gam11));
-vars.B.set(node, node+inputs.M, (gam22*yfm));
-vars.B.set(node, node+inputs.M+1, -1.*(gam12+gam21*yfm));
-vars.B.set(node, node+inputs.M-1, (gam12+yfm*gam21));
-vars.B.set(node, node-inputs.M, (2*gam22*yfp));
-vars.B.set(node, node-inputs.M+1, (gam12+yfp*gam21));
-vars.B.set(node, node-inputs.M-1, -1.*(gam12+yfp*gam21));
+    
+    // Inner North-West Corner -----------------------------------------------------
+
+    node = inputs.M+1;
+ 
+    gam11 = (4/3.)*alph11/pow(inputs.dx,2);
+    gam22 = (4/3.)*alph22/pow(inputs.dy,2);
+    gam12 = (4/9.)*alph12/(inputs.dx*inputs.dy);
+    gam21 = (4/9.)*alph21/(inputs.dx*inputs.dy);
+
+    vars.B.set(node, node, (-gam22*(2*yfp+yfm)-3*gam11));
+    vars.B.set(node, node+1, (gam21*(yfp-yfm)+gam11));
+    vars.B.set(node, node-1, -1.*(gam21*(yfp-yfm)-2*gam11));
+    vars.B.set(node, node+inputs.M, (gam22*yfm));
+    vars.B.set(node, node+inputs.M+1, -1.*(gam12+gam21*yfm));
+    vars.B.set(node, node+inputs.M-1, (gam12+yfm*gam21));
+    vars.B.set(node, node-inputs.M, (2*gam22*yfp));
+    vars.B.set(node, node-inputs.M+1, (gam12+yfp*gam21));
+    vars.B.set(node, node-inputs.M-1, -1.*(gam12+yfp*gam21));
 
 
 // Inner North-East Corner -----------------------------------------------------
+    
+    node = 2*inputs.M - 2;
 
-node = 2*inputs.M-2.;
+    vars.B.set(node, node, (-gam22*(2*yfp+yfm)-3*gam11));
+    vars.B.set(node, node+1, (gam21*(yfp-yfm)+2*gam11));
+    vars.B.set(node, node-1, -1.*(gam21*(yfp-yfm)-gam11));
+    vars.B.set(node, node+inputs.M, (gam22*yfm));
+    vars.B.set(node, node+inputs.M+1, -1.*(gam12+gam21*yfm));
+    vars.B.set(node, node+inputs.M-1, (gam12+yfm*gam21));
+    vars.B.set(node, node-inputs.M, (2*gam22*yfp));
+    vars.B.set(node, node-inputs.M+1, (gam12+yfp*gam21));
+    vars.B.set(node, node-inputs.M-1, -1.*(gam12+yfp*gam21));
 
-vars.B.set(node, node, (-gam22*(2*yfp+yfm)-3*gam11));
-vars.B.set(node, node+1, (gam21*(yfp-yfm)+2*gam11));
-vars.B.set(node, node-1, -1.*(gam21*(yfp-yfm)-gam11));
-vars.B.set(node, node+inputs.M, (gam22*yfm));
-vars.B.set(node, node+inputs.M+1, -1.*(gam12+gam21*yfm));
-vars.B.set(node, node+inputs.M-1, (gam12+yfm*gam21));
-vars.B.set(node, node-inputs.M, (2*gam22*yfp));
-vars.B.set(node, node-inputs.M+1, (gam12+yfp*gam21));
-vars.B.set(node, node-inputs.M-1, -1.*(gam12+yfp*gam21));
+    // Inner North Boundary ---------------------------------------------------------
 
-
-
-// Inner North Boundary ---------------------------------------------------------
-
-gam11 = alph11/pow(inputs.dx,2);
-gam22 = (4/3.)*alph22/pow(inputs.dy,2);
-gam12 = (1/3.)*alph12/(inputs.dx*inputs.dy);
-gam21 = (1/3.)*alph21/(inputs.dx*inputs.dy);
-
-for (int i = inputs.M+2; i<2*inputs.M-2.;i++) {
-
+    gam11 = alph11/pow(inputs.dx,2);
+    gam22 = (4/3.)*alph22/pow(inputs.dy,2);
+    gam12 = (1/3.)*alph12/(inputs.dx*inputs.dy);
+    gam21 = (1/3.)*alph21/(inputs.dx*inputs.dy);
+    
+    for (int i = inputs.M+2; i < 2*inputs.M-2.; ++i) {
 	node = i;
 	vars.B.set(node, node, (-gam22*(2*yfp+yfm)-2*gam11));
 	vars.B.set(node, node+1, (gam21*(yfp-yfm)+gam11));
@@ -955,191 +947,184 @@ for (int i = inputs.M+2; i<2*inputs.M-2.;i++) {
 	vars.B.set(node, node-inputs.M+1, (gam12+yfp*gam21));
 	vars.B.set(node, node-inputs.M-1, -1.*(gam12+yfp*gam21));	
 
-}
+    }
 
-// ------------------------------------------------------------------- //
-// ------------------------------------------------------------------- //
-// 					SOUTH AND INNER SOUTH BOUNDARIES				   //
-// ------------------------------------------------------------------- //
-// ------------------------------------------------------------------- //
+    // ------------------------------------------------------------------- //
+    // ------------------------------------------------------------------- //
+    // 					SOUTH AND INNER SOUTH BOUNDARIES				   //
+    // ------------------------------------------------------------------- //
+    // ------------------------------------------------------------------- //
 
 
-// South-West Corner --------------------------------------------------
+    // South-West Corner --------------------------------------------------
 
-node = inputs.M*(inputs.N-1.);
+    node = inputs.M*(inputs.N-1);
 
-if (inputs.axi == 0) {
+    if (inputs.axi == 0) {
 	yfp = 1.0;
 	yfm = 1.0;
-}
-else {
+    }
+    else {
 	yfp = (vars.y_vals[node]+inputs.dy/4.)/(vars.y_vals[node]+inputs.dy/8.);
 	yfm = 0.0;
-} 
+    } 
 
 
-gam11 = 8.*alph11/pow(inputs.dx,2);
-gam22 = 8.*alph22/pow(inputs.dy,2);
-gam12 = 4.*alph12/(inputs.dx*inputs.dy);
-gam21 = 4.*alph21/(inputs.dx*inputs.dy);
+    gam11 = 8.*alph11/pow(inputs.dx,2);
+    gam22 = 8.*alph22/pow(inputs.dy,2);
+    gam12 = 4.*alph12/(inputs.dx*inputs.dy);
+    gam21 = 4.*alph21/(inputs.dx*inputs.dy);
 
 
-vars.B.set(node,node,(-gam22*yfp-gam21*yfp-gam11-gam12));
-vars.B.set(node,node+1.,(gam21*yfp+gam11-gam12));
-vars.B.set(node,node-inputs.M,(gam22*yfp-gam21*yfp+gam12));
-vars.B.set(node,node-inputs.M+1.,(gam12+gam21*yfp));
+    vars.B.set(node, node, (-gam22*yfp-gam21*yfp-gam11-gam12));
+    vars.B.set(node, node+1, (gam21*yfp+gam11-gam12));
+    vars.B.set(node, node-inputs.M, (gam22*yfp-gam21*yfp+gam12));
+    vars.B.set(node, node-inputs.M+1, (gam12+gam21*yfp));
 
 
-// South-East Corner --------------------------------------------------
+    // South-East Corner --------------------------------------------------
 
-node = inputs.M*inputs.N-1.;
+    node = inputs.M*inputs.N-1;
 
-vars.B.set(node,node,(-gam22*yfp+gam21*yfp-gam11+gam12));
-vars.B.set(node,node-1.,(gam12+gam11-gam21*yfp));
-vars.B.set(node,node-inputs.M,(gam22*yfp+gam21*yfp-gam12));
-vars.B.set(node,node-inputs.M-1.,-1.*(gam12+gam21*yfp));
+    vars.B.set(node, node, (-gam22*yfp+gam21*yfp-gam11+gam12));
+    vars.B.set(node, node-1, (gam12+gam11-gam21*yfp));
+    vars.B.set(node, node-inputs.M, (gam22*yfp+gam21*yfp-gam12));
+    vars.B.set(node, node-inputs.M-1, -1.*(gam12+gam21*yfp));
 
+    // South-South-West Corner --------------------------------------------------
 
+    node = inputs.M*(inputs.N-1)+1;
 
-// South-South-West Corner --------------------------------------------------
-
-node = inputs.M*(inputs.N-1.)+1.;
-
-gam11 = (4/3.)*alph11/pow(inputs.dx,2);
-gam22 = (8.)*alph22/pow(inputs.dy,2);
-gam12 = (4/3.)*alph12/(inputs.dx*inputs.dy);
-gam21 = (4/3.)*alph21/(inputs.dx*inputs.dy);
+    gam11 = (4/3.)*alph11/pow(inputs.dx,2);
+    gam22 = (8.)*alph22/pow(inputs.dy,2);
+    gam12 = (4/3.)*alph12/(inputs.dx*inputs.dy);
+    gam21 = (4/3.)*alph21/(inputs.dx*inputs.dy);
 
 
-vars.B.set(node, node, (-gam22*yfp-3*gam11));
-vars.B.set(node, node+1., (gam21*yfp+gam11-gam12));
-vars.B.set(node, node-1., (2*gam11+gam12-gam21*yfp));
-vars.B.set(node, node-inputs.M, (gam22*yfp));
-vars.B.set(node, node-inputs.M+1., (gam12+gam21*yfp));
-vars.B.set(node, node-inputs.M-1., -1.*(gam12+gam21*yfp));
+    vars.B.set(node, node, (-gam22*yfp-3*gam11));
+    vars.B.set(node, node+1, (gam21*yfp+gam11-gam12));
+    vars.B.set(node, node-1, (2*gam11+gam12-gam21*yfp));
+    vars.B.set(node, node-inputs.M, (gam22*yfp));
+    vars.B.set(node, node-inputs.M+1, (gam12+gam21*yfp));
+    vars.B.set(node, node-inputs.M-1, -1.*(gam12+gam21*yfp));
 
-// South-South-East Corner --------------------------------------------------
+    // South-South-East Corner --------------------------------------------------
 
-node = inputs.M*inputs.N-2.;
+    node = inputs.M*inputs.N-2;
 
-
-vars.B.set(node, node, (-gam22*yfp-3*gam11));
-vars.B.set(node, node+1., (gam21*yfp+2*gam11+gam12));
-vars.B.set(node, node-1., (gam11-gam12-gam21*yfp));
-vars.B.set(node, node-inputs.M, (gam22*yfp));
-vars.B.set(node, node-inputs.M+1., (gam12+gam21*yfp));
-vars.B.set(node, node-inputs.M-1., -1.*(gam12+gam21*yfp));
-
-
-// The rest of the South Boundary -------------------------------------------
+    vars.B.set(node, node, (-gam22*yfp-3*gam11));
+    vars.B.set(node, node+1, (gam21*yfp+2*gam11+gam12));
+    vars.B.set(node, node-1, (gam11-gam12-gam21*yfp));
+    vars.B.set(node, node-inputs.M, (gam22*yfp));
+    vars.B.set(node, node-inputs.M+1, (gam12+gam21*yfp));
+    vars.B.set(node, node-inputs.M-1, -1.*(gam12+gam21*yfp));
 
 
-gam11 = alph11/pow(inputs.dx,2);
-gam22 = 8.*alph22/pow(inputs.dy,2);
-gam12 = alph12/(inputs.dx*inputs.dy);
-gam21 = alph21/(inputs.dx*inputs.dy);
+    // The rest of the South Boundary -------------------------------------------
+    
+
+    gam11 = alph11/pow(inputs.dx,2);
+    gam22 = 8.*alph22/pow(inputs.dy,2);
+    gam12 = alph12/(inputs.dx*inputs.dy);
+    gam21 = alph21/(inputs.dx*inputs.dy);
 
 
-for (int i = inputs.M*(inputs.N-1.)+2.; i < inputs.M*inputs.N-2.;i++) {
+    for (int i = inputs.M*(inputs.N-1)+2.; i < inputs.M*inputs.N-2; ++i) {
 	
 	node = i;
-
+	
 	vars.B.set(node, node, (-gam22*yfp-2*gam11));
-	vars.B.set(node, node+1., (gam21*yfp+gam11-gam12));
-	vars.B.set(node, node-1., (gam11+gam12-gam21*yfp));
+	vars.B.set(node, node+1, (gam21*yfp+gam11-gam12));
+	vars.B.set(node, node-1, (gam11+gam12-gam21*yfp));
 	vars.B.set(node, node-inputs.M, (gam22*yfp));
-	vars.B.set(node, node-inputs.M+1., (gam12+gam21*yfp));
-	vars.B.set(node, node-inputs.M-1., -1.*(gam12+gam21*yfp));
+	vars.B.set(node, node-inputs.M+1, (gam12+gam21*yfp));
+	vars.B.set(node, node-inputs.M-1, -1.*(gam12+gam21*yfp));
 
-}
+    }
 
 
-// South-West-West Corner --------------------------------------------------
-
-node = inputs.M*(inputs.N-2.);
-
-if (inputs.axi == 0) {
+    // South-West-West Corner --------------------------------------------------
+    
+    node = inputs.M*(inputs.N-2.);
+    
+    if (inputs.axi == 0) {
 	yfp = 1.0;
 	yfm = 1.0;
-}
-else {
+    }
+    else {
 	yfp = (vars.y_vals[node]+inputs.dy/2.)/(vars.y_vals[node]+-inputs.dy/8.);
 	yfm = (vars.y_vals[node]-inputs.dy/4.)/(vars.y_vals[node]+inputs.dy/8.);
-} 
+    } 
 
-gam11 = (8.)*alph11/pow(inputs.dx,2);
-gam22 = (4/3.)*alph22/pow(inputs.dy,2);
-gam12 = (4/3.)*alph12/(inputs.dx*inputs.dy);
-gam21 = (4/3.)*alph21/(inputs.dx*inputs.dy);
-
-
-vars.B.set(node, node, (-gam21*(yfp-yfm)-gam22*(yfp+2*yfm)-gam11));
-vars.B.set(node, node+1., (gam21*(yfp-yfm)+gam11));
-vars.B.set(node, node-inputs.M, (gam22*yfp-gam21*yfp+gam12));
-vars.B.set(node, node-inputs.M+1., (gam12+gam21*yfp));
-vars.B.set(node, node+inputs.M, (2*gam22*yfm+gam21*yfm-gam12));
-vars.B.set(node, node+inputs.M+1., -1.*(gam12+gam21*yfm));
+    gam11 = (8.)*alph11/pow(inputs.dx,2);
+    gam22 = (4/3.)*alph22/pow(inputs.dy,2);
+    gam12 = (4/3.)*alph12/(inputs.dx*inputs.dy);
+    gam21 = (4/3.)*alph21/(inputs.dx*inputs.dy);
 
 
-// South-East-East Corner --------------------------------------------------
-
-node = inputs.M*(inputs.N-1.)-1.;
-
-vars.B.set(node, node, (-gam22*(yfp+2.*yfm)+gam21*(yfp-yfm)-gam11));
-vars.B.set(node, node-1., (gam21*(yfm-yfp)+gam11));
-vars.B.set(node, node-inputs.M, (gam22*yfp+gam21*yfp-gam12));
-vars.B.set(node, node-inputs.M-1., -1.*(gam12+gam21*yfp));
-vars.B.set(node, node+inputs.M, (2.*gam22*yfm-gam21*yfm+gam12));
-vars.B.set(node, node+inputs.M-1., (gam12+gam21*yfm));
+    vars.B.set(node, node, (-gam21*(yfp-yfm)-gam22*(yfp+2*yfm)-gam11));
+    vars.B.set(node, node+1, (gam21*(yfp-yfm)+gam11));
+    vars.B.set(node, node-inputs.M, (gam22*yfp-gam21*yfp+gam12));
+    vars.B.set(node, node-inputs.M+1, (gam12+gam21*yfp));
+    vars.B.set(node, node+inputs.M, (2*gam22*yfm+gam21*yfm-gam12));
+    vars.B.set(node, node+inputs.M+1, -1.*(gam12+gam21*yfm));
 
 
-// Inside South-West Corner --------------------------------------------------
+    // South-East-East Corner --------------------------------------------------
+    
+    node = inputs.M*(inputs.N-1)-1;
 
-node = inputs.M*(inputs.N-2.)+1.;
-
-gam11 = (4/3.)*alph11/pow(inputs.dx,2);
-gam22 = (4/3.)*alph22/pow(inputs.dy,2);
-gam12 = (4/9.)*alph12/(inputs.dx*inputs.dy);
-gam21 = (4/9.)*alph21/(inputs.dx*inputs.dy);
-
-vars.B.set(node, node, (-gam22*(yfp+2*yfm)-3*gam11));
-vars.B.set(node, node+1, (gam21*(yfp-yfm)+gam11));
-vars.B.set(node, node-1, -1.*(gam21*(yfp-yfm)-2*gam11));
-vars.B.set(node, node+inputs.M, (2*gam22*yfm));
-vars.B.set(node, node+inputs.M+1, -1.*(gam12+gam21*yfm));
-vars.B.set(node, node+inputs.M-1, (gam12+yfm*gam21));
-vars.B.set(node, node-inputs.M, (gam22*yfp));
-vars.B.set(node, node-inputs.M+1, (gam12+yfp*gam21));
-vars.B.set(node, node-inputs.M-1, -1.*(gam12+yfp*gam21));
+    vars.B.set(node, node, (-gam22*(yfp+2.*yfm)+gam21*(yfp-yfm)-gam11));
+    vars.B.set(node, node-1, (gam21*(yfm-yfp)+gam11));
+    vars.B.set(node, node-inputs.M, (gam22*yfp+gam21*yfp-gam12));
+    vars.B.set(node, node-inputs.M-1, -1.*(gam12+gam21*yfp));
+    vars.B.set(node, node+inputs.M, (2.*gam22*yfm-gam21*yfm+gam12));
+    vars.B.set(node, node+inputs.M-1, (gam12+gam21*yfm));
 
 
+    // Inside South-West Corner --------------------------------------------------
+    
+    node = inputs.M*(inputs.N-2)+1;
+    
+    gam11 = (4/3.)*alph11/pow(inputs.dx,2);
+    gam22 = (4/3.)*alph22/pow(inputs.dy,2);
+    gam12 = (4/9.)*alph12/(inputs.dx*inputs.dy);
+    gam21 = (4/9.)*alph21/(inputs.dx*inputs.dy);
 
-// Inside South-East Corner --------------------------------------------------
+    vars.B.set(node, node, (-gam22*(yfp+2*yfm)-3*gam11));
+    vars.B.set(node, node+1, (gam21*(yfp-yfm)+gam11));
+    vars.B.set(node, node-1, -1.*(gam21*(yfp-yfm)-2*gam11));
+    vars.B.set(node, node+inputs.M, (2*gam22*yfm));
+    vars.B.set(node, node+inputs.M+1, -1.*(gam12+gam21*yfm));
+    vars.B.set(node, node+inputs.M-1, (gam12+yfm*gam21));
+    vars.B.set(node, node-inputs.M, (gam22*yfp));
+    vars.B.set(node, node-inputs.M+1, (gam12+yfp*gam21));
+    vars.B.set(node, node-inputs.M-1, -1.*(gam12+yfp*gam21));
 
-node = inputs.M*(inputs.N-1.)-2.;
+    // Inside South-East Corner --------------------------------------------------
 
-vars.B.set(node, node, (-gam22*(yfp+2*yfm)-3*gam11));
-vars.B.set(node, node+1, (gam21*(yfp-yfm)+2.*gam11));
-vars.B.set(node, node-1, -1.*(gam21*(yfp-yfm)-gam11));
-vars.B.set(node, node+inputs.M, (2.*gam22*yfm));
-vars.B.set(node, node+inputs.M+1, -1.*(gam12+gam21*yfm));
-vars.B.set(node, node+inputs.M-1, (gam12+yfm*gam21));
-vars.B.set(node, node-inputs.M, (gam22*yfp));
-vars.B.set(node, node-inputs.M+1, (gam12+yfp*gam21));
-vars.B.set(node, node-inputs.M-1, -1.*(gam12+yfp*gam21));
+    node = inputs.M*(inputs.N-1)-2;
 
+    vars.B.set(node, node, (-gam22*(yfp+2*yfm)-3*gam11));
+    vars.B.set(node, node+1, (gam21*(yfp-yfm)+2.*gam11));
+    vars.B.set(node, node-1, -1.*(gam21*(yfp-yfm)-gam11));
+    vars.B.set(node, node+inputs.M, (2.*gam22*yfm));
+    vars.B.set(node, node+inputs.M+1, -1.*(gam12+gam21*yfm));
+    vars.B.set(node, node+inputs.M-1, (gam12+yfm*gam21));
+    vars.B.set(node, node-inputs.M, (gam22*yfp));
+    vars.B.set(node, node-inputs.M+1, (gam12+yfp*gam21));
+    vars.B.set(node, node-inputs.M-1, -1.*(gam12+yfp*gam21));
 
+    // Inner South Boundary ---------------------------------------------------------
 
-// Inner South Boundary ---------------------------------------------------------
-
-gam11 = alph11/pow(inputs.dx,2);
-gam22 = (4/3.)*alph22/pow(inputs.dy,2);
-gam12 = (1/3.)*alph12/(inputs.dx*inputs.dy);
-gam21 = (1/3.)*alph21/(inputs.dx*inputs.dy);
+    gam11 = alph11/pow(inputs.dx,2);
+    gam22 = (4/3.)*alph22/pow(inputs.dy,2);
+    gam12 = (1/3.)*alph12/(inputs.dx*inputs.dy);
+    gam21 = (1/3.)*alph21/(inputs.dx*inputs.dy);
 
 
 
-for (int i = inputs.M*(inputs.N-2)+2; i<inputs.M*(inputs.N-1)-2;i++) {
+    for (int i = inputs.M*(inputs.N-2)+2; i<inputs.M*(inputs.N-1)-2; ++i) {
 
 	node = i;
 
@@ -1152,57 +1137,54 @@ for (int i = inputs.M*(inputs.N-2)+2; i<inputs.M*(inputs.N-1)-2;i++) {
 	vars.B.set(node, node-inputs.M, (gam22*yfp));
 	vars.B.set(node, node-inputs.M+1, (gam12+yfp*gam21));
 	vars.B.set(node, node-inputs.M-1, -1.*(gam12+yfp*gam21));	
+	
+    }
 
-}
+    // ------------------------------------------------------------------- //
+    // ------------------------------------------------------------------- //
+    // 						WEST AND INNER WEST BOUNDARIES				   //
+    // ------------------------------------------------------------------- //
+    // ------------------------------------------------------------------- //
 
+    
+    // West Boundary --------------------------------------------------------
 
-
-
-// ------------------------------------------------------------------- //
-// ------------------------------------------------------------------- //
-// 						WEST AND INNER WEST BOUNDARIES				   //
-// ------------------------------------------------------------------- //
-// ------------------------------------------------------------------- //
-
-
-// West Boundary --------------------------------------------------------
-
-gam11 = 8.*alph11/pow(inputs.dx,2);
-gam22 = alph22/pow(inputs.dy,2);
-gam12 = alph12/(inputs.dx*inputs.dy);
-gam21 = alph21/(inputs.dx*inputs.dy);
-
-for (int i = inputs.M*2; i < inputs.M*(inputs.N-2.); i+=inputs.M) {
+    gam11 = 8.*alph11/pow(inputs.dx,2);
+    gam22 = alph22/pow(inputs.dy,2);
+    gam12 = alph12/(inputs.dx*inputs.dy);
+    gam21 = alph21/(inputs.dx*inputs.dy);
+    
+    for (int i = inputs.M*2; i < inputs.M*(inputs.N-2); i+=inputs.M) {
 	
 	node = i;
 	
 	if (inputs.axi == 0) {
-		yfp = 1.0;
-		yfm = 1.0;
+	    yfp = 1.0;
+	    yfm = 1.0;
 	}
 	else {
-		yfp = (vars.y_vals[node]+inputs.dy/2.)/(vars.y_vals[node]);
-		yfm = (vars.y_vals[node]-inputs.dy/2.)/(vars.y_vals[node]);
+	    yfp = (vars.y_vals[node]+inputs.dy/2.)/(vars.y_vals[node]);
+	    yfm = (vars.y_vals[node]-inputs.dy/2.)/(vars.y_vals[node]);
 	} 
 
-
+	
 	vars.B.set(node, node, (-gam22*(yfp+yfm)-gam21*(yfp-yfm)-gam11));
-	vars.B.set(node, node+1., (gam21*(yfp-yfm)+gam11));
+	vars.B.set(node, node+1, (gam21*(yfp-yfm)+gam11));
 	vars.B.set(node, node-inputs.M, (gam22*yfp-gam21*yfp+gam12));
-	vars.B.set(node, node-inputs.M+1., (gam12+gam21*yfp));
+	vars.B.set(node, node-inputs.M+1, (gam12+gam21*yfp));
 	vars.B.set(node, node+inputs.M, (gam22*yfm+gam21*yfm-gam12));
-	vars.B.set(node, node+inputs.M+1., -1.*(gam12+gam21*yfm));
+	vars.B.set(node, node+inputs.M+1, -1.*(gam12+gam21*yfm));
 
-}
+    }
 
-// Inner West Boundary --------------------------------------------------
+    // Inner West Boundary --------------------------------------------------
 
-gam11 = (4/3.)*alph11/pow(inputs.dx,2);
-gam22 = alph22/pow(inputs.dy,2);
-gam12 = (1/3.)*alph12/(inputs.dx*inputs.dy);
-gam21 = (1/3.)*alph21/(inputs.dx*inputs.dy);
+    gam11 = (4/3.)*alph11/pow(inputs.dx,2);
+    gam22 = alph22/pow(inputs.dy,2);
+    gam12 = (1/3.)*alph12/(inputs.dx*inputs.dy);
+    gam21 = (1/3.)*alph21/(inputs.dx*inputs.dy);
 
-for (int i = inputs.M*2+1.; i < inputs.M*(inputs.N-2.)+1.; i+=inputs.M) {
+    for (int i = inputs.M*2+1; i < inputs.M*(inputs.N-2)+1.; i+=inputs.M) {
 	
 	node = i;
 	
@@ -1211,8 +1193,8 @@ for (int i = inputs.M*2+1.; i < inputs.M*(inputs.N-2.)+1.; i+=inputs.M) {
 		yfm = 1.0;
 	}
 	else {
-		yfp = (vars.y_vals[node]+inputs.dy/2.)/(vars.y_vals[node]);
-		yfm = (vars.y_vals[node]-inputs.dy/2.)/(vars.y_vals[node]);
+	    yfp = (vars.y_vals[node]+inputs.dy/2.)/(vars.y_vals[node]);
+	    yfm = (vars.y_vals[node]-inputs.dy/2.)/(vars.y_vals[node]);
 	} 
 
 
@@ -1226,68 +1208,68 @@ for (int i = inputs.M*2+1.; i < inputs.M*(inputs.N-2.)+1.; i+=inputs.M) {
 	vars.B.set(node, node-inputs.M+1, (gam12+yfp*gam21));
 	vars.B.set(node, node-inputs.M-1, -1.*(gam12+yfp*gam21));	
 
-}
+    }
+    
+    
+    // ------------------------------------------------------------------- //
+    // ------------------------------------------------------------------- //
+    // 						EAST AND INNER EAST BOUNDARIES				   //
+    // ------------------------------------------------------------------- //
+    // ------------------------------------------------------------------- //
 
+    
+    // East Boundary --------------------------------------------------------
+    
+    gam11 = 8.*alph11/pow(inputs.dx,2);
+    gam22 = alph22/pow(inputs.dy,2);
+    gam12 = alph12/(inputs.dx*inputs.dy);
+    gam21 = alph21/(inputs.dx*inputs.dy);
 
-// ------------------------------------------------------------------- //
-// ------------------------------------------------------------------- //
-// 						EAST AND INNER EAST BOUNDARIES				   //
-// ------------------------------------------------------------------- //
-// ------------------------------------------------------------------- //
-
-
-// East Boundary --------------------------------------------------------
-
-gam11 = 8.*alph11/pow(inputs.dx,2);
-gam22 = alph22/pow(inputs.dy,2);
-gam12 = alph12/(inputs.dx*inputs.dy);
-gam21 = alph21/(inputs.dx*inputs.dy);
-
-for (int i = inputs.M*3-1; i < inputs.M*(inputs.N-2.); i+=inputs.M) {
+    for (int i = inputs.M*3-1; i < inputs.M*(inputs.N-2); i+=inputs.M) {
 	
 	node = i;
 	
 	if (inputs.axi == 0) {
-		yfp = 1.0;
-		yfm = 1.0;
+	    yfp = 1.0;
+	    yfm = 1.0;
 	}
 	else {
-		yfp = (vars.y_vals[node]+inputs.dy/2.)/(vars.y_vals[node]);
-		yfm = (vars.y_vals[node]-inputs.dy/2.)/(vars.y_vals[node]);
+	    yfp = (vars.y_vals[node]+inputs.dy/2.)/(vars.y_vals[node]);
+	    yfm = (vars.y_vals[node]-inputs.dy/2.)/(vars.y_vals[node]);
 	} 
-
-
+	
+	
 	vars.B.set(node, node, (-gam22*(yfp+yfm)+gam21*(yfp-yfm)-gam11));
-	vars.B.set(node, node-1., -1.*(gam21*(yfp-yfm)-gam11));
+	vars.B.set(node, node-1, -1.*(gam21*(yfp-yfm)-gam11));
 	vars.B.set(node, node-inputs.M, (gam22*yfp+gam21*yfp-gam12));
-	vars.B.set(node, node-inputs.M-1., -1.*(gam12+gam21*yfp));
+	vars.B.set(node, node-inputs.M-1, -1.*(gam12+gam21*yfp));
 	vars.B.set(node, node+inputs.M, (gam22*yfm-gam21*yfm+gam12));
-	vars.B.set(node, node+inputs.M-1., (gam12+gam21*yfm));
+	vars.B.set(node, node+inputs.M-1, (gam12+gam21*yfm));
 
-}
+    }
 
 
 
-// Inner East Boundary --------------------------------------------------
+    // Inner East Boundary --------------------------------------------------
 
-gam11 = (4/3.)*alph11/pow(inputs.dx,2);
-gam22 = alph22/pow(inputs.dy,2);
-gam12 = (1/3.)*alph12/(inputs.dx*inputs.dy);
-gam21 = (1/3.)*alph21/(inputs.dx*inputs.dy);
-
-for (int i = inputs.M*3-2; i < inputs.M*(inputs.N-2.)-1.; i+=inputs.M) {
+    gam11 = (4/3.)*alph11/pow(inputs.dx,2);
+    gam22 = alph22/pow(inputs.dy,2);
+    gam12 = (1/3.)*alph12/(inputs.dx*inputs.dy);
+    gam21 = (1/3.)*alph21/(inputs.dx*inputs.dy);
+    
+    for (int i = inputs.M*3-2; i < inputs.M*(inputs.N-2)-1.; i+=inputs.M) {
 	
 	node = i;
 	
 	if (inputs.axi == 0) {
-		yfp = 1.0;
-		yfm = 1.0;
+	    yfp = 1.0;
+	    yfm = 1.0;
 	}
 	else {
-		yfp = (vars.y_vals[node]+inputs.dy/2.)/(vars.y_vals[node]);
-		yfm = (vars.y_vals[node]-inputs.dy/2.)/(vars.y_vals[node]);
+	    yfp = (vars.y_vals[node]+inputs.dy/2.)/(vars.y_vals[node]);
+	    yfm = (vars.y_vals[node]-inputs.dy/2.)/(vars.y_vals[node]);
 	} 
-
+	
 
 	vars.B.set(node, node, (-gam22*(yfp+yfm)-3*gam11));
 	vars.B.set(node, node+1, (gam21*(yfp-yfm)+2*gam11));
@@ -1298,24 +1280,24 @@ for (int i = inputs.M*3-2; i < inputs.M*(inputs.N-2.)-1.; i+=inputs.M) {
 	vars.B.set(node, node-inputs.M, (gam22*yfp));
 	vars.B.set(node, node-inputs.M+1, (gam12+yfp*gam21));
 	vars.B.set(node, node-inputs.M-1, -1.*(gam12+yfp*gam21));	
-
-}
-
-
-
-// ------------------------------------------------------------------- //
-// ------------------------------------------------------------------- //
-// 								EVERYTHING ELSE						   //
-// ------------------------------------------------------------------- //
-// ------------------------------------------------------------------- //
+	
+    }
 
 
-for (int i = inputs.M*2+2.; i<inputs.M*(inputs.N-2.)-2.; i++) {
+    
+    // ------------------------------------------------------------------- //
+    // ------------------------------------------------------------------- //
+    // 								EVERYTHING ELSE						   //
+    // ------------------------------------------------------------------- //
+    // ------------------------------------------------------------------- //
 
+
+    for (int i = inputs.M*2+2.; i<inputs.M*(inputs.N-2.)-2.; i++) {
+	
 	int num = (int) inputs.M;
-
+	
 	if ( i%num != 0 && i%num != 1 && i%num != num-1 && i%num != num-2 ) {
-
+	    
 		node = i;
 		
 		gam11 = alph11/pow(inputs.dx,2);
@@ -1324,12 +1306,12 @@ for (int i = inputs.M*2+2.; i<inputs.M*(inputs.N-2.)-2.; i++) {
 		gam21 = (1/4.)*alph21/(inputs.dx*inputs.dy);	
 
 		if (inputs.axi == 0) {
-			yfp = 1.0;
-			yfm = 1.0;
+		    yfp = 1.0;
+		    yfm = 1.0;
 		}
 		else {
-			yfp = (vars.y_vals[node]+inputs.dy/2.)/(vars.y_vals[node]);
-			yfm = (vars.y_vals[node]-inputs.dy/2.)/(vars.y_vals[node]);
+		    yfp = (vars.y_vals[node]+inputs.dy/2.)/(vars.y_vals[node]);
+		    yfm = (vars.y_vals[node]-inputs.dy/2.)/(vars.y_vals[node]);
 		}
 
  
@@ -1343,58 +1325,56 @@ for (int i = inputs.M*2+2.; i<inputs.M*(inputs.N-2.)-2.; i++) {
 		vars.B.set(node, node-inputs.M+1, (gam12+yfp*gam21));
 		vars.B.set(node, node-inputs.M-1, -1.*(gam12+yfp*gam21));	
 	}
+    }
+
+    /*
+      -------------------------------------------------------------------------
+      -------------------------------------------------------------------------
+      
+      The second part of this code writes the [C] matrix. It is just the identity
+      matrix of dims M*N x M*N.
+
+      -------------------------------------------------------------------------
+      
+      \author Jared Clifford
+      \version October 2013
+      
+      -------------------------------------------------------------------------
+      -------------------------------------------------------------------------
+      
+    */
+
+    for (int i = 0; i< inputs.M*inputs.N; i++) {
+	for (int j = 0; j< inputs.M*inputs.N; j++ ) {
+	    if (i == j) {
+		vars.C.set(i, j, 1.0);
+	    }
+	}	
+    }
+
+    /*
+      -------------------------------------------------------------------------
+      -------------------------------------------------------------------------
+      
+      The last step is to find [A] = dt*[B] + [C].
+      
+      15/10/2013 for the moment, inputs.dt is used as a fixed timestep.  This
+      will be updated in future tests to account for the varying timestep.
+      
+      -------------------------------------------------------------------------
+      
+      \author Jared Clifford
+      \version October 2013
+      
+      -------------------------------------------------------------------------
+      -------------------------------------------------------------------------
+
+    */
+
+    for (int i = 0; i< inputs.M*inputs.N; ++i) {
+	for (int j = 0; j< inputs.M*inputs.N; ++j ) {
+	    vars.A.set(i, j, vars.B.get(i,j)*inputs.dt + vars.C.get(i,j));			
+	}	
+    }
+    return SUCCESS;
 }
-
-/*
-	-------------------------------------------------------------------------
-	-------------------------------------------------------------------------
-
-	The second part of this code writes the [C] matrix. It is just the identity
-	matrix of dims M*N x M*N.
-
-	-------------------------------------------------------------------------
-	
-	\author Jared Clifford
-	\version October 2013
-
-	-------------------------------------------------------------------------
-	-------------------------------------------------------------------------
-
-*/
-
-	for (int i = 0; i< inputs.M*inputs.N; i++) {
-		for (int j = 0; j< inputs.M*inputs.N; j++ ) {
-			if (i == j) {
-				vars.C.set(i, j, 1.0);
-			}
-		}	
-	}
-
-/*
-	-------------------------------------------------------------------------
-	-------------------------------------------------------------------------
-
-	The last step is to find [A] = dt*[B] + [C].
-
-	15/10/2013 for the moment, inputs.dt is used as a fixed timestep.  This
-	will be updated in future tests to account for the varying timestep.
-
-	-------------------------------------------------------------------------
-	
-	\author Jared Clifford
-	\version October 2013
-
-	-------------------------------------------------------------------------
-	-------------------------------------------------------------------------
-
-*/
-
-	for (int i = 0; i< inputs.M*inputs.N; i++) {
-		for (int j = 0; j< inputs.M*inputs.N; j++ ) {
-			vars.A.set(i, j, vars.B.get(i,j)*inputs.dt + vars.C.get(i,j));			
-		}	
-	}
-	return SUCCESS;
-}
-
-
