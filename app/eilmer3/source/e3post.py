@@ -25,6 +25,7 @@ Summary of options::
 |           [--add-pitot-p] [--add-total-p] [--add-mach] [--add-total-enthalpy]
 |           [--add-molef --gmodel-file="gas-model.lua"]
 |           [--add-transport-coeffs --gmodel-file="gas-model.lua"]
+|           [--add-user-computed-vars="user-script.py"]
 | 
 |           [--vtk-xml] [--binary-format] [--tecplot] [--plot3d]
 | 
@@ -142,6 +143,7 @@ longOptions = ["help", "job=", "zip-files", "no-zip-files", "vtk-xml", "binary-f
                "report-norms", "per-block-norm-list=", "global-norm-list=",
                "probe=", "add-pitot-p", "add-total-p",
                "add-molef", "gmodel-file=",
+               "add-user-computed-vars=",
                "add-total-enthalpy", "add-mach", "heat-flux-list=", "vertex-velocity-list=", 
                "plot3d", "omegaz=", "tangent-slab-list=", "prepare-fstc-restart", "moving-grid",
                "add-transport-coeffs"]
@@ -157,6 +159,7 @@ def printUsage():
     print "          [--add-pitot-p] [--add-total-p] [--add-mach] [--add-total-enthalpy]"
     print "          [--add-molef --gmodel-file=\"gas-model.lua\"]"
     print "          [--add-transport-coeffs --gmodel-file=\"gas-model.lua\"]"
+    print "          [--add-user-computed-vars=\"user-script.py\"]"
     print ""
     print "          [--vtk-xml] [--binary-format] [--tecplot] [--plot3d]"
     print ""
@@ -913,6 +916,39 @@ def flatten(L):
             out.append(item)
     return out
 
+def parse_user_script(fname):
+    execfile(fname, globals())
+    # Test that the user supplied a list of variable names
+    try:
+        if not isinstance(var_names, list):
+            print "In user script: ", fname
+            print "the variable names should be supplied as a list called 'var_names'"
+            print "Cannot continue without this list."
+            print "Bailing out!"
+            sys.exit(1)
+    except NameError:
+        print "In user script: ", fname
+        print "It appears that the list of variable names was not set."
+        print "A list called 'var_names' should be supplied."
+        print "Cannot continue without this list."
+        print "Bailing out!"
+        sys.exit(1)
+    # And test that the user supplied a function to call
+    try:
+        if not callable(compute_vars):
+            print "In user script: ", fname
+            print "the variable 'compute_vars' is not defined as a function."
+            print "Cannot continue without this function defined."
+            print "Bailing out!"
+            sys.exit(1)
+    except NameError:
+        print "In user script: ", fname
+        print "the 'compute_vars' function is not defined."
+        print "Cannont continue without this function defined."
+        print "Bailing out!"
+        sys.exit(1)
+
+    return var_names, compute_vars
 
 if __name__ == '__main__':
     print "Begin e3post.py..."
@@ -996,6 +1032,12 @@ if __name__ == '__main__':
         # solution frames.
         begin_Visit_file(rootName, nblock)
         begin_PVD_file(rootName)
+
+    aux_var_names = None
+    compute_vars = None
+    if uoDict.has_key("--add-user-computed-vars"):
+        uname = uoDict.get("--add-user-computed-vars", "dummy-script-name")
+        aux_var_names, compute_vars = parse_user_script(uname)
     #
     # For the times that have been specified, do something...
     print "About to process the following solutions:", tindx_list
@@ -1003,20 +1045,20 @@ if __name__ == '__main__':
         if uoDict.has_key("--vtk-xml"):
             print "Assemble VTK-XML files for t=", times_dict[tindx]
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles, movingGrid)
-            add_auxiliary_variables(nblock, flow, uoDict, omegaz)
+            add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
             write_VTK_XML_files(rootName, tindx, nblock, grid, flow, times_dict[tindx],
                                 uoDict.has_key("--binary-format"))
         #
         if uoDict.has_key("--tecplot"):
             print "Assemble Tecplot file for t=", times_dict[tindx]
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles, movingGrid)
-            add_auxiliary_variables(nblock, flow, uoDict, omegaz)
+            add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
             write_Tecplot_file(rootName, tindx, nblock, grid, flow, times_dict[tindx])
         #
         if uoDict.has_key("--plot3d"):
             print "Write out Plot3d grid for t=", times_dict[tindx]
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles, movingGrid)
-            add_auxiliary_variables(nblock, flow, uoDict, omegaz)
+            add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
             # tindx may be an integer, or already a string such as "xxxx"
             if type(tindx) is int:
                 tindx_str = "%04d" % tindx
@@ -1040,7 +1082,7 @@ if __name__ == '__main__':
             print "    outputFileName=", outputFileName
             slice_list_str = uoDict.get("--slice-list", "")
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
-            add_auxiliary_variables(nblock, flow, uoDict, omegaz)
+            add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
             if uoDict.has_key("--slice-at-point"):
                 slice_list_str += convert_string(uoDict.get("--slice-at-point", ""),
                                                  nblock, grid, flow)
@@ -1059,7 +1101,7 @@ if __name__ == '__main__':
             print "    outputFileName=", outputFileName
             slice_line_str = uoDict.get("--slice-along-line", "")
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
-            add_auxiliary_variables(nblock, flow, uoDict, omegaz)
+            add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
             if len(slice_line_str) > 0:
                 write_profile_along_line(outputFileName, slice_line_str, tindx, nblock, 
                                          grid, flow, dimensions)
@@ -1073,7 +1115,7 @@ if __name__ == '__main__':
                 print "   ref_function is from script:", aScriptName
                 execfile(aScriptName)
                 grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
-                add_auxiliary_variables(nblock, flow, uoDict, omegaz)
+                add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
                 compute_difference_in_flow_data(ref_function, nblock, grid, flow, 
                                                 times_dict[tindx])
                 write_VTK_XML_files(rootName, tindx, nblock, grid, flow, times_dict[tindx],
@@ -1094,9 +1136,9 @@ if __name__ == '__main__':
                 compareTindx = int(compareTindx)
             print "   Comparison solution:", compareRootName, " compareTindx=", compareTindx
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
-            add_auxiliary_variables(nblock, flow, uoDict, omegaz)
+            add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
             grid2, flow2, dimensions = read_all_blocks(compareRootName, nblock, compareTindx, zipFiles)
-            add_auxiliary_variables(nblock, flow2, uoDict, omegaz)
+            add_auxiliary_variables(nblock, flow2, uoDict, omegaz, aux_var_names, compute_vars)
             compute_difference_in_flow_data2(nblock, grid, flow, grid2, flow2, times_dict[tindx])
             write_VTK_XML_files(rootName, tindx, nblock, grid, flow, times_dict[tindx],
                                 uoDict.has_key("--binary-format"))
@@ -1108,7 +1150,7 @@ if __name__ == '__main__':
         if uoDict.has_key("--report-norms"):
             print "Report norms for t=", times_dict[tindx]
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
-            add_auxiliary_variables(nblock, flow, uoDict, omegaz)
+            add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
             norms = compute_volume_weighted_norms(nblock, grid, flow)
             pretty_print_norms(norms, 
                                uoDict.get("--per-block-norm-list", ""),
@@ -1117,7 +1159,7 @@ if __name__ == '__main__':
         if uoDict.has_key("--surface-list"):
             print "Extract a set of surfaces for t=", times_dict[tindx], "and write as VTK files."
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
-            add_auxiliary_variables(nblock, flow, uoDict, omegaz)
+            add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
             surface_list_str = uoDict.get("--surface-list", "")
             surface_list_str = surface_list_str.lower().strip()
             print "surface_list_str=", surface_list_str
@@ -1140,7 +1182,7 @@ if __name__ == '__main__':
         if uoDict.has_key("--probe"):
             print "Probe data for t=", times_dict[tindx]
             grid, flow, dimensions = read_all_blocks(rootName, nblock, tindx, zipFiles)
-            add_auxiliary_variables(nblock, flow, uoDict, omegaz)
+            add_auxiliary_variables(nblock, flow, uoDict, omegaz, aux_var_names, compute_vars)
             # Pull apart coordinates list
             coordinate_list_str = uoDict.get("--probe", "")
             for xyz_str in coordinate_list_str.split(';'):
