@@ -93,7 +93,8 @@ Block::~Block()
 /// Returns 0 if successful, 1 otherwise.
 int Block::array_alloc(size_t dimensions)
 {
-    if ( get_verbose_flag() ) cout << "array_alloc(): Begin for block " <<  id << endl;
+    global_data &G = *get_global_data_ptr();
+    if ( G.verbose_init_messages ) cout << "array_alloc(): Begin for block " <<  id << endl;
     // Check for obvious errors.
     if ( nidim <= 0 || njdim <= 0 || nkdim <= 0 ) {
         cerr << "array_alloc(): Declared dimensions are zero or negative: " 
@@ -141,7 +142,7 @@ int Block::array_alloc(size_t dimensions)
 	}
     } // gid loop
 
-    if ( get_verbose_flag() || id == 0 ) {
+    if ( G.verbose_init_messages || id == 0 ) {
 	cout << "Block " << id << ": finished creating " << ntot << " cells." << endl;
     }
     return SUCCESS;
@@ -150,7 +151,8 @@ int Block::array_alloc(size_t dimensions)
 
 int Block::array_cleanup(size_t dimensions)
 {
-    if ( get_verbose_flag() || id == 0 ) {
+    global_data &G = *get_global_data_ptr();
+    if ( G.verbose_init_messages || id == 0 ) {
 	cout << "array_cleanup(): Begin for block " <<  id << endl;
     }
     // Need to clean up allocated memory.

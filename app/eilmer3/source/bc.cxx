@@ -713,8 +713,9 @@ read_surface_heat_flux( string filename, size_t dimensions, int zip_files )
     unsigned int i, j, k;
     size_t index;
     double sim_time;
+    global_data &G = *get_global_data_ptr();
 
-    if ( get_verbose_flag() && which_boundary == 0 ) 
+    if ( G.verbose_init_messages && which_boundary == 0 ) 
 	printf("read_surface_heat_flux(): Start surface %d.\n", which_boundary);
     if (zip_files) {
 	fp = NULL;
@@ -742,7 +743,7 @@ read_surface_heat_flux( string filename, size_t dimensions, int zip_files )
 	exit(BAD_INPUT_ERROR);
     }
     sscanf(line, "%lf", &sim_time);
-    if ( get_verbose_flag() && which_boundary == 0 ) 
+    if ( G.verbose_init_messages && which_boundary == 0 ) 
 	printf("read_surface_heat_flux(): Time = %e\n", sim_time);
     if (zip_files) {
 	gets_result = gzgets(zfp, line, NCHAR);
@@ -1116,7 +1117,7 @@ int check_connectivity()
     } // end for jb
 
     if (fail == 0) {
-        if ( get_verbose_flag() ) cout << "Forward and Backward connections are OK." << endl;
+        if ( G.verbose_init_messages ) cout << "Forward and Backward connections are OK." << endl;
     } else {
         cout << "Block connections fail." << endl;
         exit( VALUE_ERROR );
@@ -1148,14 +1149,16 @@ int check_connectivity()
 	    } // end for face
 	} // end for jb
 	if (fail == 0) {
-	    if ( get_verbose_flag() ) cout << "Numbers of cells for adjacent boundaries are OK." << endl;
+	    if ( G.verbose_init_messages ) 
+		cout << "Numbers of cells for adjacent boundaries are OK." << endl;
 	} else {
 	    cerr << "Numbers of cells for adjacent boundaries FAIL." << endl;
 	    exit( VALUE_ERROR );
 	}
     } else {
 	// FIX-ME bring the code over from e3prep
-	if ( get_verbose_flag() ) cout << "Numbers of cells on joined faces are not checked for 3D." << endl;
+	if ( G.verbose_init_messages ) 
+	    cout << "Numbers of cells on joined faces are not checked for 3D." << endl;
     }
 
     return SUCCESS;

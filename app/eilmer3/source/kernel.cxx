@@ -132,25 +132,6 @@ void eilmer_finalize( void )
 
 //---------------------------------------------------------------------
 
-/// \brief Flag to indicate that we want a verbose startup.
-int verbose = 0;  // quiet by default
-
-int set_verbose_flag( int i )
-{
-    if ( i == 0 ) {
-        printf("Brief messages at startup.\n");
-	verbose = 0;
-    } else {
-        printf("Verbose messages at startup.\n");
-	verbose = 1;
-    }
-    return SUCCESS;
-}
-
-int get_verbose_flag( void ) { return verbose; }
-
-/*-----------------------------------------------------------------*/
-
 /// \brief Viscous flag =0 for inviscid equations, =1 for viscous terms added.
 ///
 /// Viscous effects are included in the gas-dynamic update.
@@ -287,10 +268,10 @@ int set_axisymmetric_flag(int ia)
 {
     axisymm = ia;
     if (axisymm == 0) {
-        if ( get_verbose_flag() ) printf("Two-dimensional planar flow\n");
+        if ( gd.verbose_init_messages ) printf("Two-dimensional planar flow\n");
     }
     else if (axisymm == 1) {
-        if ( get_verbose_flag() ) printf("Axisymmetric flow\n");
+        if ( gd.verbose_init_messages ) printf("Axisymmetric flow\n");
     }
     else {
         printf("Invalid axisymmetric flag value: %d\n", axisymm);
@@ -310,10 +291,10 @@ int set_shock_fitting_flag(int iw)
 {
     shock_fitting = iw;
     if (shock_fitting == 0) {
-        if ( get_verbose_flag() ) printf("Turn off shock fititng\n");
+        if ( gd.verbose_init_messages ) printf("Turn off shock fititng\n");
     }
     else if (shock_fitting == 1) {
-        if ( get_verbose_flag() ) printf("Turn on shock fitting\n");
+        if ( gd.verbose_init_messages ) printf("Turn on shock fitting\n");
     }
     else {
         printf("Invalid shock fitting flag value: %d\n", shock_fitting);
@@ -333,10 +314,10 @@ int set_shock_fitting_decay_flag(int iw)
 {
     shock_fitting_decay = iw;
     if (shock_fitting_decay == 0) {
-        if ( get_verbose_flag() ) printf("Turn off shock fitting decay\n");
+        if ( gd.verbose_init_messages ) printf("Turn off shock fitting decay\n");
     }
     else if (shock_fitting_decay == 1) {
-        if ( get_verbose_flag() ) printf("Turn on shock fitting decay\n");
+        if ( gd.verbose_init_messages ) printf("Turn on shock fitting decay\n");
     }
     else {
         printf("Invalid shock fitting decay flag value: %d\n", shock_fitting_decay);
@@ -356,10 +337,10 @@ int set_moving_grid_flag(int iw)
 {
     moving_grid = iw;
     if (moving_grid == 0) {
-        if ( get_verbose_flag() ) printf("Turn off moving_grid\n");
+        if ( gd.verbose_init_messages ) printf("Turn off moving_grid\n");
     }
     else if ( moving_grid == 1 ) {
-        if ( get_verbose_flag() ) printf("Turn on moving_grid\n");
+        if ( gd.verbose_init_messages ) printf("Turn on moving_grid\n");
     }
     else {
         printf("Invalid moving_grid flag value: %d\n", moving_grid);
@@ -379,10 +360,10 @@ int set_write_vertex_velocities_flag(int iw)
 {
     write_vertex_velocities = iw;
     if (write_vertex_velocities == 0) {
-        if ( get_verbose_flag() ) printf("Turn off write_vertex_velocities\n");
+        if ( gd.verbose_init_messages ) printf("Turn off write_vertex_velocities\n");
     }
     else if ( write_vertex_velocities == 1 ) {
-        if ( get_verbose_flag() ) printf("Turn on write_vertex_velocities\n");
+        if ( gd.verbose_init_messages ) printf("Turn on write_vertex_velocities\n");
     }
     else {
         printf("Invalid write_vertex_velocities flag value: %d\n", write_vertex_velocities);
@@ -402,10 +383,10 @@ int set_filter_flag(int iw)
 {
     filter = iw;
     if (filter == 0) {
-        if ( get_verbose_flag() ) printf("Turn off spatial filter.\n");
+        if ( gd.verbose_init_messages ) printf("Turn off spatial filter.\n");
     }
     else if (filter == 1) {
-        if ( get_verbose_flag() ) printf("Turn on spatial filter.\n");
+        if ( gd.verbose_init_messages ) printf("Turn on spatial filter.\n");
     }
     else {
         printf("Invalid filter flag value: %d\n", filter);
@@ -425,10 +406,10 @@ int set_viscous_flag(int iv)
 {
     viscous = iv;
     if (viscous == 0) {
-        if ( get_verbose_flag() ) printf("Turn off viscous terms.\n");
+        if ( gd.verbose_init_messages ) printf("Turn off viscous terms.\n");
     }
     else if (viscous == 1) {
-        if ( get_verbose_flag() ) printf("Turn on viscous terms.\n");
+        if ( gd.verbose_init_messages ) printf("Turn on viscous terms.\n");
     }
     else {
         printf("Invalid viscous flag value: %d\n", viscous);
@@ -446,10 +427,10 @@ int set_viscous_upwinding_flag(int iw)
 {
     viscous_upwinding = iw;
     if (viscous_upwinding == 0) {
-        if ( get_verbose_flag() ) printf("Turn off viscous upwinding.\n");
+        if ( gd.verbose_init_messages ) printf("Turn off viscous upwinding.\n");
     }
     else if (viscous_upwinding == 1) {
-        if ( get_verbose_flag() ) printf("Turn on viscous upwinding.\n");
+        if ( gd.verbose_init_messages ) printf("Turn on viscous upwinding.\n");
     }
     else {
         printf("Invalid viscous upwinding value: %d\n", viscous_upwinding);
@@ -508,10 +489,10 @@ int set_diffusion_flag(int id)
 {
     diffusion = id;
     if (diffusion == 0) {
-        if ( get_verbose_flag() ) printf("Diffusion of species ignored.\n");
+        if ( gd.verbose_init_messages ) printf("Diffusion of species ignored.\n");
     }    
     else if (diffusion == 1) {
-        if ( get_verbose_flag() ) printf("Diffusion of species treated as part of viscous terms.\n");
+        if ( gd.verbose_init_messages ) printf("Diffusion of species treated as part of viscous terms.\n");
     }
     else {
         printf("Invalid diffusion flag value: %d\n", diffusion);
@@ -572,7 +553,7 @@ double set_heat_factor( double value )
     if ( value > 1.0 ) value = 1.0;
     if ( value < 0.0 ) value = 0.0;
     heat_factor = value;
-    if ( get_verbose_flag() ) printf("set heat_factor=%g\n", heat_factor);
+    if ( gd.verbose_init_messages ) printf("set heat_factor=%g\n", heat_factor);
     return heat_factor;
 }
 
@@ -597,7 +578,7 @@ double set_heat_factor_increment( double value )
     if ( value > 1.0 ) value = 1.0;
     if ( value < 0.0 ) value = 0.0;
     heat_factor_increment = value;
-    if ( get_verbose_flag() ) printf("set heat_factor_increment=%g\n", heat_factor_increment);
+    if ( gd.verbose_init_messages ) printf("set heat_factor_increment=%g\n", heat_factor_increment);
     return heat_factor_increment;
 }
 
@@ -613,10 +594,10 @@ int set_reacting_flag(int ir)
 {
     reacting = ir;
     if (reacting == 0) {
-        if ( get_verbose_flag() ) printf("Flow in chemical equilibrium (or frozen)\n");
+        if ( gd.verbose_init_messages ) printf("Flow in chemical equilibrium (or frozen)\n");
     }    
     else if (reacting == 1) {
-        if ( get_verbose_flag() ) printf("Flow in chemical nonequilibrium: source terms computed\n");
+        if ( gd.verbose_init_messages ) printf("Flow in chemical nonequilibrium: source terms computed\n");
     }
     else {
         printf("Invalid reacting flag value: %d\n", reacting);
@@ -636,10 +617,10 @@ int set_energy_exchange_flag(int ir)
 {
     thermal_energy_exchange = ir;
     if (thermal_energy_exchange == 0) {
-        if ( get_verbose_flag() ) printf("Flow in thermal equilibrium\n");
+        if ( gd.verbose_init_messages ) printf("Flow in thermal equilibrium\n");
     }    
     else if (thermal_energy_exchange == 1) {
-        if ( get_verbose_flag() ) printf("Flow in thermal nonequilibrium: source terms computed\n");
+        if ( gd.verbose_init_messages ) printf("Flow in thermal nonequilibrium: source terms computed\n");
     }    
     else {
         printf("Invalid energy_exchange_flag value: %d\n", thermal_energy_exchange);
@@ -659,10 +640,10 @@ int set_radiation_flag(int ir)
 {
     radiation = ir;
     if (radiation == 0) {
-        if ( get_verbose_flag() ) printf("Flow without radiation\n");
+        if ( gd.verbose_init_messages ) printf("Flow without radiation\n");
     }    
     else if (radiation == 1) {
-        if ( get_verbose_flag() ) printf("Flow with radiation\n");
+        if ( gd.verbose_init_messages ) printf("Flow with radiation\n");
     }    
     else {
         printf("Invalid radiation flag value: %d\n", radiation);
@@ -679,7 +660,7 @@ int get_radiation_flag(void)
 int set_radiation_update_frequency(int ruf)
 {
     radiation_update_frequency = ruf;
-    // if ( get_verbose_flag() ) printf("radiation_update_frequency = %d\n", radiation_update_frequency);
+    // if ( gd.verbose_init_messages ) printf("radiation_update_frequency = %d\n", radiation_update_frequency);
     if ( radiation_update_frequency < 0 ) {
 	printf("ERROR: radiation_update_frequency needs to be larger than or equal to 0\n");
 	printf("Bailing out!\n");
@@ -699,7 +680,7 @@ int get_radiation_update_frequency(void)
 int set_implicit_flag(int imf)
 {
     implicit = imf;
-    // if ( get_verbose_flag() ) printf("set implicit_flag=%d\n", implicit);
+    // if ( gd.verbose_init_messages ) printf("set implicit_flag=%d\n", implicit);
     return SUCCESS;
 }
 
@@ -713,7 +694,7 @@ int get_implicit_flag(void)
 int set_mhd_flag(int i)
 {
     mhd_flag = i;
-    if ( get_verbose_flag() ) printf("set mhd_flag=%d\n", mhd_flag);
+    if ( gd.verbose_init_messages ) printf("set mhd_flag=%d\n", mhd_flag);
     return mhd_flag;
 }
 
@@ -727,7 +708,7 @@ int get_mhd_flag(void)
 int set_BGK_flag(int i)
 {
     BGK_flag = i;
-    if ( get_verbose_flag() ) printf("set BGK_flag=%d\n", BGK_flag);
+    if ( gd.verbose_init_messages ) printf("set BGK_flag=%d\n", BGK_flag);
     return BGK_flag;
 }
 
@@ -743,7 +724,7 @@ size_t set_velocity_buckets(size_t i)
     vcoords.resize(i);
     vweights.resize(i);
 
-    if ( get_verbose_flag() )
+    if ( gd.verbose_init_messages )
 	printf("set velocity_buckets=%d\n", static_cast<int>(velocity_buckets));
     return velocity_buckets;
 }
@@ -792,10 +773,10 @@ int set_electric_field_work_flag(int iefw)
 {
     electric_field_work = iefw;
     if (electric_field_work == 0) {
-        if ( get_verbose_flag() ) printf("Flow without electric field work\n");
+        if ( gd.verbose_init_messages ) printf("Flow without electric field work\n");
     }
     else if (electric_field_work == 1) {
-        if ( get_verbose_flag() ) printf("Flow with electric field work\n");
+        if ( gd.verbose_init_messages ) printf("Flow with electric field work\n");
     }
     else {
         printf("Invalid electric field work flag value: %d\n", electric_field_work);

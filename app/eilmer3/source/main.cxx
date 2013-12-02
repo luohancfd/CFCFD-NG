@@ -102,6 +102,7 @@ void usage(poptContext optCon, int exitcode, char *error, char *addl) {
 int main(int argc, char **argv)
 {
     global_data &G = *get_global_data_ptr();
+    G.verbose_init_messages = false;
     int do_run_simulation = 0;
     size_t start_tindx = 0;
     int run_status = SUCCESS;
@@ -237,7 +238,7 @@ WARNING: This executable only computes the radiative source\n\
 	    start_tindx = static_cast<size_t>(atoi(poptGetOptArg(optCon)));
 	    break;
 	case 'v':
-	    set_verbose_flag(1);
+	    G.verbose_init_messages = true;
 	    break;
 	case 'w':
 	    strcpy( text_buf, poptGetOptArg(optCon) );
@@ -405,7 +406,7 @@ int prepare_to_integrate(size_t start_tindx)
     sprintf( tindxcstr, "t%04d", static_cast<int>(start_tindx));
     tindxstring = tindxcstr;
     for ( Block *bdp : G.my_blocks ) {
-        if ( get_verbose_flag() ) printf( "----------------------------------\n" );
+        if ( G.verbose_init_messages ) printf( "----------------------------------\n" );
 	sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) );
 	jbstring = jbcstr;
 	// Read grid from the specified tindx files.
@@ -445,7 +446,7 @@ int prepare_to_integrate(size_t start_tindx)
     ensure_directory_is_present("hist"); // includes Barrier
 
     for ( Block *bdp : G.my_blocks ) {
-        if ( get_verbose_flag() ) printf( "----------------------------------\n" );
+        if ( G.verbose_init_messages ) printf( "----------------------------------\n" );
 	sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) );
 	jbstring = jbcstr;
 	filename = "hist/" + G.base_file_name + ".hist"+jbstring;

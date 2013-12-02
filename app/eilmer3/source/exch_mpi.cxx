@@ -64,7 +64,7 @@ int allocate_send_and_receive_buffers(void)
     send_buffer.resize(n_local_blocks*6);
     receive_buffer.resize(n_local_blocks*6);
 
-    if ( get_verbose_flag() ) printf("Begin allocate_send_and_receive_buffers()");
+    if ( G.verbose_init_messages ) printf("Begin allocate_send_and_receive_buffers()");
     int nv = number_of_values_in_cell_copy(COPY_ALL_CELL_DATA);
     for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
@@ -82,7 +82,7 @@ int allocate_send_and_receive_buffers(void)
 		total_bytes += ne * sizeof(double);
 	}
     } // end for jb...
-    if ( get_verbose_flag() ) printf("    allocated %d bytes for data buffers.", total_bytes);
+    if ( G.verbose_init_messages ) printf("    allocated %d bytes for data buffers.", total_bytes);
     if ( flag > 0 ) {
         printf("Block %d: buffer allocation failed.\n", static_cast<int>(bdp->id));
 	return MEMORY_ERROR;
@@ -95,7 +95,7 @@ int allocate_send_and_receive_buffers(void)
 int delete_send_and_receive_buffers(void) 
 {
     global_data &G = *get_global_data_ptr();
-    if ( get_verbose_flag() ) printf("Begin delete_send_and_receive_buffers()");
+    if ( G.verbose_init_messages ) printf("Begin delete_send_and_receive_buffers()");
     for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	for ( int face = 0; face < 6; ++face ) {
 	    free(send_buffer[jb*6+face]);
@@ -108,7 +108,7 @@ int delete_send_and_receive_buffers(void)
     request.clear();
     send_buffer.clear();
     receive_buffer.clear();
-    if ( get_verbose_flag() ) printf("    done deleting buffers.");
+    if ( G.verbose_init_messages ) printf("    done deleting buffers.");
     return SUCCESS;
 } // end delete_send_and_receive_buffers()
 
