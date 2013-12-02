@@ -82,14 +82,12 @@ int gasdynamic_point_implicit_inviscid_increment(double dt)
 	
 	// Non-local radiation transport needs to be performed a-priori for parallelization.
 	// Note that Q_rad is not re-evaluated for corrector step.
-	if ( get_radiation_flag() ) {
+	if ( G.radiation ) {
 	    RadiationTransportModel * rtm = get_radiation_transport_model_ptr();
-	    global_data &G = *get_global_data_ptr();
 	    Block * bdp;
 	    
 	    // Determine if a scaled or complete radiation call is required
-	    if ( ( (G.step / get_radiation_update_frequency()) * 
-		   get_radiation_update_frequency() == G.step) ) {
+	    if ( ((G.step/G.radiation_update_frequency)*G.radiation_update_frequency == G.step) ) {
 		// recompute
 		rtm->compute_Q_rad_for_flowfield();
 		// store the radiation scaling parameters for each cell

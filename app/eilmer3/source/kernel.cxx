@@ -124,7 +124,7 @@ void eilmer_finalize( void )
     gd.my_blocks.clear();
     gd.mpi_rank_for_block.clear();
     delete gmodel;
-    if ( get_radiation_flag() )	delete rtm;
+    if ( gd.radiation ) delete rtm;
     if ( gd.conjugate_ht_active ) delete gd.wm;
     return;
 }
@@ -184,12 +184,6 @@ int reacting = 0;
 /// With this flag on, finite-rate evolution of the vibrational energies (and in turn
 /// the total energy) is computed.
 int thermal_energy_exchange = 0;
-
-/// \brief Radiation flag: =0 for non-radiating, =1 for radiating.
-int radiation = 0;
-
-/// \brief Radiation update frequency: = eg, 1 for every time-step
-int radiation_update_frequency = 1;
 
 /// \brief  implicit Flag: =0 normal explicit viscous, 
 ///         =1 point implicit viscous treatment enabled,
@@ -474,48 +468,6 @@ int get_energy_exchange_flag(void)
 {
     return thermal_energy_exchange;
 }
-
-/*------------------------------------------------------------------*/
-
-int set_radiation_flag(int ir)
-{
-    radiation = ir;
-    if (radiation == 0) {
-        if ( gd.verbose_init_messages ) printf("Flow without radiation\n");
-    }    
-    else if (radiation == 1) {
-        if ( gd.verbose_init_messages ) printf("Flow with radiation\n");
-    }    
-    else {
-        printf("Invalid radiation flag value: %d\n", radiation);
-        exit(VALUE_ERROR);
-    }
-    return SUCCESS;
-}
-
-int get_radiation_flag(void)                                           
-{
-    return radiation;
-}
-
-int set_radiation_update_frequency(int ruf)
-{
-    radiation_update_frequency = ruf;
-    // if ( gd.verbose_init_messages ) printf("radiation_update_frequency = %d\n", radiation_update_frequency);
-    if ( radiation_update_frequency < 0 ) {
-	printf("ERROR: radiation_update_frequency needs to be larger than or equal to 0\n");
-	printf("Bailing out!\n");
-	exit( BAD_INPUT_ERROR );
-    }
-    
-    return SUCCESS;
-}
-
-int get_radiation_update_frequency(void)
-{
-    return radiation_update_frequency;
-}
-
 /*------------------------------------------------------------------*/
 
 int set_implicit_flag(int imf)

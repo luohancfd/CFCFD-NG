@@ -195,6 +195,10 @@ struct global_data
     double diaphragm_rupture_time, diaphragm_rupture_diameter;
     int diaphragm_block, drummond_progressive;
 
+    bool radiation;
+    // Radiation update frequency: = eg, 1 for every time-step
+    int radiation_update_frequency;
+
     size_t n_heat_zone;
     double heat_time_start;
     double heat_time_stop;
@@ -264,10 +268,6 @@ int set_reacting_flag(int iv);
 int get_reacting_flag(void);
 int set_energy_exchange_flag(int iv);
 int get_energy_exchange_flag(void);
-int set_radiation_flag(int iv);
-int get_radiation_flag(void);
-int set_radiation_update_frequency(int ruf);
-int get_radiation_update_frequency(void);
 int set_implicit_flag(int imf);
 int get_implicit_flag(void);
 

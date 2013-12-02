@@ -198,7 +198,7 @@ int read_config_parameters(const string filename, bool master)
     // Default values for some configuration variables.
     G.dimensions = 2;
     G.Xorder = 2;
-    set_radiation_flag(0);
+    G.radiation = false;
 
     // variables for Andrew's time averaging routine.
     G.nav = 0;
@@ -372,18 +372,15 @@ int read_config_parameters(const string filename, bool master)
 	    
     }
 
-    dict.parse_int("global_data", "radiation_flag", i_value, 0);
-    set_radiation_flag( i_value );
+    dict.parse_boolean("global_data", "radiation_flag", G.radiation, false);
     dict.parse_string("global_data", "radiation_input_file", s_value, "no_file");
-    dict.parse_int("global_data", "radiation_update_frequency", i_value, 1);
-    if( get_radiation_flag() ) {
+    // radiation_update_frequency in .control file.
+    if( G.radiation ) {
     	set_radiation_transport_model( s_value );
-    	set_radiation_update_frequency( i_value );
     }
     if ( G.verbose_init_messages ) {
-	cout << "radiation_flag = " << get_radiation_flag() << endl;
+	cout << "radiation_flag = " << G.radiation << endl;
 	cout << "radiation_input_file = " << s_value << endl;
-	cout << "radiation_update_frequency = " << i_value << endl;
     }
 
     dict.parse_boolean("global_data", "axisymmetric_flag", G.axisymmetric, false);
@@ -740,10 +737,12 @@ int read_control_parameters( const string filename, bool master, bool first_time
     dict.parse_size_t("control_data", "max_step", G.max_step, 10);
     dict.parse_int("control_data", "halt_now", G.halt_now, 0);
     dict.parse_int("control_data", "implicit_flag", i_value, 0);
-    dict.parse_size_t("control_data", "wall_update_count", G.wall_update_count, 1);
     set_implicit_flag( i_value );
-    dict.parse_int("control_data", "radiation_update_frequency", i_value, 1);
-    set_radiation_update_frequency(i_value);
+    dict.parse_size_t("control_data", "wall_update_count", G.wall_update_count, 1);
+    dict.parse_int("control_data", "radiation_update_frequency", G.radiation_update_frequency, 1);
+    if ( G.radiation_update_frequency < 0 ) {
+	throw runtime_error("ERROR: radiation_update_frequency needs to be larger than or equal to 0.");
+    }
     if ( first_time && G.verbose_init_messages ) {
 	cout << "Time-step control parameters:" << endl;
 	cout << "    x_order = " << G.Xorder << endl;
@@ -770,18 +769,14 @@ int read_control_parameters( const string filename, bool master, bool first_time
 	cout << "    max_step = " << G.max_step << endl;
 	cout << "    halt_now = " << G.halt_now << endl;
 	cout << "    halt_now = " << G.halt_now << endl;
-	cout << "    radiation_update_frequency = " 
-	     << get_radiation_update_frequency();
+	cout << "    radiation_update_frequency = " << G.radiation_update_frequency << endl;
 	if (get_implicit_flag() == 0) {
 	    cout << " (Explicit viscous advancements)" << endl;
-	}
-	else if (get_implicit_flag() == 1) {
+	} else if (get_implicit_flag() == 1) {
 	    cout << " (Point implicit viscous advancements)" << endl;
-	}
-	else if (get_implicit_flag() == 2) {
+	} else if (get_implicit_flag() == 2) {
 	    cout << " (Fully implicit viscous advancements)" << endl;
-	}
-	else {
+	} else {
 	    cout << "\nInvalid implicit flag value: " 
 		 << get_implicit_flag() << endl;
 	    exit( BAD_INPUT_ERROR );

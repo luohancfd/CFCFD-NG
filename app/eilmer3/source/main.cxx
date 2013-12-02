@@ -585,7 +585,7 @@ int prepare_to_integrate(size_t start_tindx)
 	lua_settop(L, 0); // clear the stack
     }
     // Initialise radiation transport if appropriate
-    if ( get_radiation_flag() ) {
+    if ( G.radiation ) {
     	if ( get_radiation_transport_model_ptr()->initialise() ) {
 	    cerr << "Problem with initialisation of radiation transport data\n";
 	    cerr << "Exiting program." << endl;
@@ -1530,7 +1530,7 @@ int integrate_in_time(double target_time)
             if ( master ) printf( "Integration stopped: reached maximum wall-clock time.\n" );
 	}
 #       if CHECK_RADIATION_SCALING
-	if ( get_radiation_flag() ) {
+	if ( G.radiation ) {
 	    if ( check_radiation_scaling() ) {
 	    	finished_time_stepping = 1;
 	    	if ( master ) printf( "Integration stopped: radiation source term needs updating.\n" );
@@ -1654,7 +1654,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 	}
 	// Non-local radiation transport needs to be performed a-priori for parallelization.
 	// Note that Q_rad is not re-evaluated for subsequent stages of the update.
-	if ( get_radiation_flag() ) perform_radiation_transport();
+	if ( G.radiation ) perform_radiation_transport();
 
 	// First-stage of gas-dynamic update.
 	for ( Block *bdp : G.my_blocks ) {
@@ -1879,7 +1879,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
 #       endif
 	// Non-local radiation transport needs to be performed a-priori for parallelization.
 	// Note that Q_rad is not re-evaluated for subsequent stages of the update.
-	if ( get_radiation_flag() ) perform_radiation_transport();
+	if ( G.radiation ) perform_radiation_transport();
 
 	// Grid-movement is done after a specified point in time.
 	if ( G.sim_time >= G.t_shock ) {
@@ -2096,7 +2096,7 @@ int radiation_calculation()
 	if ( get_viscous_flag() ) apply_viscous_bc( *bdp, G.sim_time, G.dimensions ); 
 	apply_convective_bc( *bdp, G.sim_time, G.dimensions );
     }
-    if ( get_radiation_flag() ) perform_radiation_transport();
+    if ( G.radiation ) perform_radiation_transport();
     return SUCCESS;
 } // end radiation_calculation()
 
@@ -2122,8 +2122,8 @@ void perform_radiation_transport()
 #   else
     // e3shared.exe and e3mpi.exe version - currently no parallelisation
     // Determine if a scaled or complete radiation call is required
-    int ruf = get_radiation_update_frequency();
-    if ( ( ruf == 0 ) || ( ( G.step / ruf ) * ruf != G.step ) ) {
+    int ruf = G.radiation_update_frequency;
+    if ( (ruf == 0) || ((G.step/ruf)*ruf != G.step) ) {
 	// rescale
 	for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];

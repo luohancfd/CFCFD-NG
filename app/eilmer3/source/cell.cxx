@@ -700,6 +700,7 @@ FV_Cell::~FV_Cell()
 
 int FV_Cell::print() const
 {
+    global_data &G = *get_global_data_ptr();
     Gas_model *gmodel = get_gas_model_ptr();
     printf("----------- Begin data for cell -----------\n");
     int nsp = gmodel->get_number_of_species();
@@ -708,7 +709,7 @@ int FV_Cell::print() const
     // We'll just report grid-level 0 position.
     printf("x=%e, y=%e, z=%e, base_qdot=%e\n", pos[0].x, pos[0].y, pos[0].z, base_qdot);
     fs->print();
-    if ( get_radiation_flag() == 1 ) {
+    if ( G.radiation ) {
 	printf("radiation source Q_rE_rad=%e\n", Q_rE_rad);
     }
     printf("Conserved quantities: \n");
@@ -980,6 +981,7 @@ int FV_Cell::scan_values_from_string(char *bufptr)
 // There isn't any checking of the file content.
 // If anything gets out of place, the result is wrong data.
 {
+    global_data &G = *get_global_data_ptr();
     size_t nmodes = fs->gas->T.size();
     size_t nsp = fs->gas->massf.size();
     // Look for a new-line character and truncate the string there.
@@ -1008,7 +1010,7 @@ int FV_Cell::scan_values_from_string(char *bufptr)
     fs->mu_t = atof(strtok( NULL, " " ));
     fs->k_t = atof(strtok( NULL, " " ));
     fs->S = atoi(strtok( NULL, " " ));
-    if ( get_radiation_flag() == 1 ) {
+    if ( G.radiation ) {
     	Q_rad_org = atof(strtok( NULL, " " ));
     	f_rad_org = atof(strtok( NULL, " " ));
 	Q_rE_rad = atof(strtok( NULL, " " ));
@@ -1034,6 +1036,7 @@ int FV_Cell::scan_values_from_string(char *bufptr)
 /// \brief Write the flow solution (i.e. the primary variables) to a string.
 std::string FV_Cell::write_values_to_string() const
 {
+    global_data &G = *get_global_data_ptr();
     size_t nsp = fs->gas->massf.size();
     size_t nmodes = fs->gas->T.size();
     // The new format for Elmer3 puts everything onto one line.
@@ -1051,7 +1054,7 @@ std::string FV_Cell::write_values_to_string() const
 	ost << " " << fs->gas->k[imode];
     }
     ost << " " << fs->mu_t << " " << fs->k_t << " " << fs->S;
-    if ( get_radiation_flag() == 1 ) {
+    if ( G.radiation ) {
 	ost << " " << Q_rad_org << " " << f_rad_org << " " << Q_rE_rad;
     }
     ost << " " << fs->tke << " " << fs->omega;
@@ -2426,7 +2429,7 @@ int FV_Cell::add_inviscid_source_vector(int gtl, double omegaz)
     // For the energy exchange, see thermal_increment()
     // Radiation can potentially be removed from both the electronic and
     // total energy source terms.
-    if ( get_radiation_flag() == 1 ) {
+    if ( G.radiation ) {
 	// Radiative source term should be already calculated
 	// Add value to total energy
 	// FIX-ME: - assuming electronic mode is the last in the vector of energies
@@ -2629,6 +2632,7 @@ std::string variable_list_for_cell( void )
     // (found above) and with the corresponding Python functions
     // write_cell_data and variable_list_for_cell
     // that may be found in app/eilmer3/source/e3_flow.py.
+    global_data &G = *get_global_data_ptr();
     ostringstream ost;
     Gas_model *gmodel = get_gas_model_ptr();
     size_t nsp = gmodel->get_number_of_species();
@@ -2643,7 +2647,7 @@ std::string variable_list_for_cell( void )
 	ost << " \"k[" << imode << "]\"";
     }
     ost << " \"mu_t\" \"k_t\" \"S\"";
-    if ( get_radiation_flag() == 1 ) {
+    if ( G.radiation ) {
 	ost << " \"Q_rad_org\" \"f_rad_org\" \"Q_rE_rad\"";
     }
     ost << " \"tke\" \"omega\"";

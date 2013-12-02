@@ -247,7 +247,7 @@ def select_radiation_model(input_file=None, update_frequency=1):
 	gdata.radiation_update_frequency = update_frequency
 	# 2. set the models for immediate use in the simulation preparation
 	set_radiation_transport_model( input_file )
-	set_radiation_update_frequency( update_frequency ) 
+	gdata.radiation_update_frequency = update_frequency 
     else:
 	print "The field 'input_file' is required when selecting the"
 	print "radiation model via the function 'select_radiation_model'."
