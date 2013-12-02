@@ -1182,9 +1182,8 @@ int FV_Cell::decode_conserved(size_t gtl, size_t ftl, double omegaz, bool with_k
 
     // Mass / unit volume = Density
     double rho = myU.mass;
-    fs->gas->rho = rho;
-    // This is limited to nonnegative and finite values.
-    if ( get_bad_cell_complain_flag() && (rho <= 0.0) ) {
+    fs->gas->rho = rho; // This is limited to nonnegative and finite values.
+    if ( rho <= 0.0 ) {
 	cout << "FV_Cell::decode_conserved(): Density is below minimum rho= " 
 	     << rho << endl;
 	cout << "id= " << id << " x= " << pos[gtl].x << " y= " << pos[gtl].y 
@@ -1258,41 +1257,38 @@ int FV_Cell::decode_conserved(size_t gtl, size_t ftl, double omegaz, bool with_k
 
 
 /// \brief Check the primary flow data for a specified cell.
-///  \returns 1 for valid data, 0 for bad data.
-int FV_Cell::check_flow_data(void)
+/// \returns true for valid data, false for bad data.
+bool FV_Cell::check_flow_data(void)
 {
-    int data_valid = 1;
-    bool print_message = get_bad_cell_complain_flag() == 1;
-    
-    data_valid = fs->gas->check_values(print_message);
-#   define MAXVEL 30000.0
+    bool is_data_valid = true;
+    is_data_valid = fs->gas->check_values(true);
+    const double MAXVEL = 30000.0;
     if (fabs(fs->vel.x) > MAXVEL || fabs(fs->vel.y) > MAXVEL || fabs(fs->vel.z) > MAXVEL) {
-	if ( print_message )
-	    cout << "Velocity bad " << fs->vel.x << " " << fs->vel.y << " " << fs->vel.z << endl;
-	data_valid = 0;
+	cout << "Velocity bad " << fs->vel.x << " " << fs->vel.y << " " << fs->vel.z << endl;
+	is_data_valid = false;
     }
     if ( !isfinite(fs->tke) ) {
-	if ( print_message ) cout << "Turbulence KE invalid number " << fs->tke << endl;
-	data_valid = 0;
+	cout << "Turbulence KE invalid number " << fs->tke << endl;
+	is_data_valid = false;
     }
     if ( fs->tke < 0.0 ) {
-	if ( print_message ) cout << "Turbulence KE negative " << fs->tke << endl;
-	data_valid = 0;
+	cout << "Turbulence KE negative " << fs->tke << endl;
+	is_data_valid = false;
     }
     if ( !isfinite(fs->omega) ) {
-	if ( print_message ) cout << "Turbulence frequency invalid number " << fs->omega << endl;
-	data_valid = 0;
+	cout << "Turbulence frequency invalid number " << fs->omega << endl;
+	is_data_valid = false;
     }
     if ( fs->omega <= 0.0 ) {
-	if ( print_message ) cout << "Turbulence frequency nonpositive " << fs->omega << endl;
-	data_valid = 0;
+	cout << "Turbulence frequency nonpositive " << fs->omega << endl;
+	is_data_valid = false;
     }
-    if ( !data_valid && print_message ) {
+    if ( !is_data_valid ) {
 	cout << "cell pos=(" << pos[0].x << "," << pos[0].y << "," << pos[0].z << ")" << endl;
 	fs->print();
 	cout << "----------------------------------------------------------" << endl;
     }
-    return data_valid;
+    return is_data_valid;
 } // end of check_flow_data()
 
 

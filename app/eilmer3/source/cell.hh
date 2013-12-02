@@ -252,7 +252,7 @@ public:
     int set_fr_reactions_allowed(int flag);
     int encode_conserved(size_t gtl, size_t ftl, double omegaz, bool with_k_omega);
     int decode_conserved(size_t gtl, size_t ftl, double omegaz, bool with_k_omega);
-    int check_flow_data(void);
+    bool check_flow_data(void);
     int time_derivatives(size_t gtl, size_t ftl, size_t dimensions, bool with_k_omega);
     int stage_1_update_for_flow_on_fixed_grid(double dt, bool force_euler, bool with_k_omega);
     int stage_2_update_for_flow_on_fixed_grid(double dt, bool with_k_omega);

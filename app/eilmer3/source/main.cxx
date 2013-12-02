@@ -134,9 +134,6 @@ int main(int argc, char **argv)
 	{ "heat-flux-files", 'q', POPT_ARG_NONE, NULL, 'q',
 	  "write heat-flux files", 
 	  NULL },
-	{ "no-complain", 'n', POPT_ARG_NONE, NULL, 'n',
-	  "suppress complaints about bad data in cells", 
-	  NULL },
 	{ "verbose", 'v', POPT_ARG_NONE, NULL, 'v',
 	  "verbose messages at startup", 
 	  NULL },
@@ -238,9 +235,6 @@ WARNING: This executable only computes the radiative source\n\
 	    break;
 	case 't':
 	    start_tindx = static_cast<size_t>(atoi(poptGetOptArg(optCon)));
-	    break;
-	case 'n':
-	    set_bad_cell_complain_flag(0);
 	    break;
 	case 'v':
 	    set_verbose_flag(1);

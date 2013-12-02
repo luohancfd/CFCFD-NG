@@ -710,29 +710,6 @@ int get_implicit_flag(void)
 
 /*------------------------------------------------------------------*/
 
-int set_bad_cell_complain_flag(int ip)
-{
-    bad_cell_complain_flag = ip;
-    if (bad_cell_complain_flag == 0) {
-        if ( get_verbose_flag() ) printf("Will not complain about bad cells.\n");
-    }
-    else if ( bad_cell_complain_flag == 1 ) {
-        if ( get_verbose_flag() ) printf("Will complain about bad cells.\n");
-    }
-    else {
-        printf("Invalid bad_cell_complain_flag value: %d\n", bad_cell_complain_flag);
-        exit( VALUE_ERROR );
-    }
-    return SUCCESS;
-}
-
-int get_bad_cell_complain_flag(void)
-{
-    return bad_cell_complain_flag;
-}
-
-/*------------------------------------------------------------------*/
-
 int set_mhd_flag(int i)
 {
     mhd_flag = i;

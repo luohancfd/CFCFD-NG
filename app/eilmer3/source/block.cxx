@@ -397,32 +397,26 @@ int Block::count_invalid_cells(size_t dimensions, size_t gtl)
     bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     size_t number_of_invalid_cells = 0;
     for ( FV_Cell *cellp: active_cells ) {
-	if ( cellp->check_flow_data() != 1 ) {
+	if ( cellp->check_flow_data() == false ) {
 	    ++number_of_invalid_cells;
 	    std::vector<size_t> ijk = to_ijk_indices(cellp->id);
 	    size_t i = ijk[0]; size_t j = ijk[1]; size_t k = ijk[2];
-	    if ( get_bad_cell_complain_flag() ) {
-		printf("count_invalid_cells: block_id = %d, cell[%d,%d,%d]\n", 
-		       static_cast<int>(id), static_cast<int>(i), 
-		       static_cast<int>(j), static_cast<int>(k));
-		cellp->print();
-	    }
+	    printf("count_invalid_cells: block_id = %d, cell[%d,%d,%d]\n", 
+		   static_cast<int>(id), static_cast<int>(i), 
+		   static_cast<int>(j), static_cast<int>(k));
+	    cellp->print();
 	    if ( adjust_invalid_cell_data ) {
 		// We shall set the cell data to something that
 		// is valid (and self consistent).
 		FV_Cell *other_cellp;
 		std::vector<FV_Cell *> neighbours;
 		if ( prefer_copy_from_left ) {
-		    if ( get_bad_cell_complain_flag() ) {
-			printf( "Adjusting cell data by copying data from left.\n" );
-		    }
+		    printf( "Adjusting cell data by copying data from left.\n" );
 		    // Presently, only searches around in the i,j plane
 		    other_cellp = get_cell(i-1,j,k);
 		    if ( other_cellp->check_flow_data() ) neighbours.push_back(other_cellp);
 		} else {
-		    if ( get_bad_cell_complain_flag() ) {
-			printf( "Adjusting cell data to a local average.\n" );
-		    }
+		    printf( "Adjusting cell data to a local average.\n" );
 		    other_cellp = get_cell(i+1,j,k);
 		    if ( other_cellp->check_flow_data() ) neighbours.push_back(other_cellp);
 		    other_cellp = get_cell(i,j-1,k);
@@ -437,12 +431,10 @@ int Block::count_invalid_cells(size_t dimensions, size_t gtl)
 		cellp->replace_flow_data_with_average(neighbours);
 		cellp->encode_conserved(gtl, 0, omegaz, with_k_omega);
 		cellp->decode_conserved(gtl, 0, omegaz, with_k_omega);
-		if ( get_bad_cell_complain_flag() ) {
-		    printf("after flow-data replacement: block_id = %d, cell[%d,%d,%d]\n", 
-			   static_cast<int>(id), static_cast<int>(i),
-			   static_cast<int>(j), static_cast<int>(k));
-		    cellp->print();
-		}
+		printf("after flow-data replacement: block_id = %d, cell[%d,%d,%d]\n", 
+		       static_cast<int>(id), static_cast<int>(i),
+		       static_cast<int>(j), static_cast<int>(k));
+		cellp->print();
 	    } // end adjust_invalid_cell_data 
 	} // end of if invalid data...
     } // for cellp

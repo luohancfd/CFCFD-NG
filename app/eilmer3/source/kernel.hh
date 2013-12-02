@@ -276,8 +276,6 @@ int set_radiation_update_frequency(int ruf);
 int get_radiation_update_frequency(void);
 int set_implicit_flag(int imf);
 int get_implicit_flag(void);
-int set_bad_cell_complain_flag(int ip);
-int get_bad_cell_complain_flag(void);
 
 int set_mhd_flag(int imf);
 int get_mhd_flag(void);
