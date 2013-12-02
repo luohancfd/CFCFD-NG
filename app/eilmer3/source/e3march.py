@@ -178,7 +178,7 @@ def run_in_block_marching_mode(cfgDict):
     # Start looping for the number of Eilmer3 runs.
     for run in range(restartFromRun,numberOfEilmer3Runs):
         print "-----------------------------------------------"
-        print " nenzfr in block-marching mode - Run %d of %d. " % (run, numberOfEilmer3Runs-1)
+        print " Eilmer3 in block-marching mode - Run %d of %d. " % (run, numberOfEilmer3Runs-1)
         # For each run, there are a subset of blocks that are integrated in time.
         # This set of blocks is arranged in two columns A (upstream) and B (downstream).
         # Within the run, the blocks have to be labelled locally 0..2*blksPerSlice-1.
