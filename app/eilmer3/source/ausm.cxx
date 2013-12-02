@@ -49,7 +49,8 @@
  */
 int ausm(FlowState &QL, FlowState &QR, FlowState &QIF, double &WSL, double &WSR)
 {
-    if ( get_shock_fitting_flag() ) {
+    global_data &G = *get_global_data_ptr();
+    if ( G.shock_fitting ) {
     	cerr << "Error, we have not implemented AUSM with shock fitting. Please use AUSMDV." << endl;
     	exit(NOT_IMPLEMENTED_ERROR);
     }

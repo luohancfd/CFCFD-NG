@@ -410,7 +410,7 @@ int prepare_to_integrate(size_t start_tindx)
 	sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) );
 	jbstring = jbcstr;
 	// Read grid from the specified tindx files.
-	if ( get_moving_grid_flag() ) {
+	if ( G.moving_grid ) {
 	    filename = "grid/"+tindxstring+"/"+G.base_file_name+".grid"+jbstring+"."+tindxstring;
 	} else {
 	    // Read grid from the tindx=0 files, always.
@@ -854,7 +854,7 @@ int write_solution_data(std::string tindxstring)
 	bdp->write_solution(filename, G.sim_time, G.dimensions, zip_files);
     }
 
-    if ( get_moving_grid_flag() ) {
+    if ( G.moving_grid ) {
 	foldername = "grid/"+tindxstring;
 	ensure_directory_is_present(foldername); // includes Barrier
 	for ( Block *bdp : G.my_blocks ) {
@@ -862,7 +862,7 @@ int write_solution_data(std::string tindxstring)
 	    filename = foldername+"/"+ G.base_file_name+".grid"+jbstring+"."+tindxstring;
 	    bdp->write_grid(filename, G.sim_time, G.dimensions, zip_files);
 	}
-	if ( get_write_vertex_velocities_flag() ) {
+	if ( G.write_vertex_velocities ) {
 	    ensure_directory_is_present("vel");
 	    foldername = "vel/"+tindxstring;
 	    ensure_directory_is_present(foldername); // includes Barrier
@@ -879,8 +879,8 @@ int write_solution_data(std::string tindxstring)
 		    if ( zip_files ) do_system_cmd("gzip -f "+filename);
 		}
 	    } // end for ( Block *bdp
-	} // end if ( get_write_vertex_velocities_flag()
-    } // end if ( get moving_grid_flag()
+	} // end if ( G.write_vertex_velocities
+    } // end if ( G.moving_grid
 
     // Compute, store and write heat-flux data, if viscous simulation
     if ( with_heat_flux_files && get_viscous_flag() ) {
@@ -1246,7 +1246,7 @@ int integrate_in_time(double target_time)
 	int break_loop2 = 0;
 	if ( get_implicit_flag() == 0 ) {
 	    // explicit update of convective terms
-	    if ( get_moving_grid_flag() == 0 ) 
+	    if ( G.moving_grid == false ) 
 		break_loop2 = gasdynamic_explicit_increment_with_fixed_grid(G.dt_global);
 	    else
 		break_loop2 = gasdynamic_increment_with_moving_grid(G.dt_global);
@@ -1266,7 +1266,7 @@ int integrate_in_time(double target_time)
 	// Code removed 24-Mar-2013.
 
 	// 2b. Recalculate all geometry if moving grid.
-	if ( get_moving_grid_flag() == 1 && G.sim_time >= G.t_shock ) {
+	if ( G.moving_grid && G.sim_time >= G.t_shock ) {
 	    for ( Block *bdp : G.my_blocks ) {
 		bdp->compute_primary_cell_geometric_data(G.dimensions, 0);
 		bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions, 0);

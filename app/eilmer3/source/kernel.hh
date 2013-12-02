@@ -57,10 +57,8 @@ struct global_data
     FILE *fstctimesfile;
     std::string base_file_name;
     std::string title;
-    size_t nblock;             // number of blocks in overall simulation
-    size_t npiston;            // number of pistons
-    std::vector<Piston *> pistons;
 
+    size_t nblock;             // number of blocks in overall simulation
     // Aug-2012 rework of the block-handling code for MPI.
     // We eventually want to have each task/process look after 
     // a "bag" of blocks that may not be sequentially numbered.
@@ -71,6 +69,9 @@ struct global_data
     int num_mpi_proc;       // count of MPI tasks participating in the simulation
     int my_mpi_rank;        // identification for MPI process
     std::vector<int> mpi_rank_for_block; // process in which each block resides
+
+    size_t npiston;            // number of pistons
+    std::vector<Piston *> pistons;
 
     size_t step;            /* global iteration count     */
     size_t max_step;        /* global iteration limit     */
@@ -120,7 +121,12 @@ struct global_data
     double turbulence_schmidt;
     double max_mu_t_factor;
     double transient_mu_t_factor;
+
+    bool shock_fitting;
+    bool shock_fitting_decay;
     double shock_fitting_speed_factor;
+    bool moving_grid;
+    bool write_vertex_velocities;
 
     /// Set the tolerance in relative velocity change for the shock detector.
     /// This value is expected to be a negative number (for compression)
@@ -233,14 +239,6 @@ RadiationTransportModel *get_radiation_transport_model_ptr();
 Block * get_block_data_ptr(size_t i);
 void eilmer_finalize( void );
 
-int set_shock_fitting_flag(int iw);
-int get_shock_fitting_flag(void);
-int set_shock_fitting_decay_flag(int iw);
-int get_shock_fitting_decay_flag(void);
-int set_moving_grid_flag(int iw);
-int get_moving_grid_flag(void);
-int set_write_vertex_velocities_flag(int iw);
-int get_write_vertex_velocities_flag(void);
 int set_filter_flag(int iw);
 int get_filter_flag(void);
 int set_viscous_flag(int iv);

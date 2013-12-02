@@ -163,18 +163,6 @@ double diffusion_factor = 1.0;
 /// \brief The amount by which to increment the diffusion factor during soft-start.
 double diffusion_factor_increment = 0.01;
 
-/// \brief Shock fitting =0 for no shock fitting, =1 for shock fitting.
-int shock_fitting = 0;
-
-/// \brief Shock fitting decay =0 for no shock fitting decay, =1 for shock fitting decay.
-int shock_fitting_decay = 0;
-
-/// \brief Moving grid  =0 for no moving grid, =1 for moving grid.
-int moving_grid = 0;
-
-/// \brief Write vertex velocities  =0 to write vertex velocities to file, =1 for no files.
-int write_vertex_velocities = 0;
-
 /// \brief Adaptive reconstruction =0 for no adaptive reconstruction, =1 for adaptive reconstruction.
 int adaptive_reconstruction = 0;
 
@@ -255,98 +243,6 @@ std::vector<double> vweights; // weight for each velocity coordinate
 
 /// \brief Electric field work flag: =0 to omit, =1 to include.
 int electric_field_work = 0;
-
-/*------------------------------------------------------------------*/
-
-int set_shock_fitting_flag(int iw)
-{
-    shock_fitting = iw;
-    if (shock_fitting == 0) {
-        if ( gd.verbose_init_messages ) printf("Turn off shock fititng\n");
-    }
-    else if (shock_fitting == 1) {
-        if ( gd.verbose_init_messages ) printf("Turn on shock fitting\n");
-    }
-    else {
-        printf("Invalid shock fitting flag value: %d\n", shock_fitting);
-        exit(VALUE_ERROR);
-    }
-    return SUCCESS;
-}
-
-int get_shock_fitting_flag(void)
-{
-    return shock_fitting;
-}
-
-/*------------------------------------------------------------------*/
-
-int set_shock_fitting_decay_flag(int iw)
-{
-    shock_fitting_decay = iw;
-    if (shock_fitting_decay == 0) {
-        if ( gd.verbose_init_messages ) printf("Turn off shock fitting decay\n");
-    }
-    else if (shock_fitting_decay == 1) {
-        if ( gd.verbose_init_messages ) printf("Turn on shock fitting decay\n");
-    }
-    else {
-        printf("Invalid shock fitting decay flag value: %d\n", shock_fitting_decay);
-        exit(VALUE_ERROR);
-    }
-    return SUCCESS;
-}
-
-int get_shock_fitting_decay_flag(void)
-{
-    return shock_fitting_decay;
-}
-
-/*------------------------------------------------------------------*/
-
-int set_moving_grid_flag(int iw)
-{
-    moving_grid = iw;
-    if (moving_grid == 0) {
-        if ( gd.verbose_init_messages ) printf("Turn off moving_grid\n");
-    }
-    else if ( moving_grid == 1 ) {
-        if ( gd.verbose_init_messages ) printf("Turn on moving_grid\n");
-    }
-    else {
-        printf("Invalid moving_grid flag value: %d\n", moving_grid);
-        exit(VALUE_ERROR);
-    }
-    return SUCCESS;
-}
-
-int get_moving_grid_flag(void)
-{
-    return moving_grid;
-}
-
-/*------------------------------------------------------------------*/
-
-int set_write_vertex_velocities_flag(int iw)
-{
-    write_vertex_velocities = iw;
-    if (write_vertex_velocities == 0) {
-        if ( gd.verbose_init_messages ) printf("Turn off write_vertex_velocities\n");
-    }
-    else if ( write_vertex_velocities == 1 ) {
-        if ( gd.verbose_init_messages ) printf("Turn on write_vertex_velocities\n");
-    }
-    else {
-        printf("Invalid write_vertex_velocities flag value: %d\n", write_vertex_velocities);
-        exit(VALUE_ERROR);
-    }
-    return SUCCESS;
-}
-
-int get_write_vertex_velocities_flag(void)
-{
-    return write_vertex_velocities;
-}
 
 /*------------------------------------------------------------------*/
 

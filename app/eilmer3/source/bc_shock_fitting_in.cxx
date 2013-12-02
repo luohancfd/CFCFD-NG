@@ -257,7 +257,7 @@ int ShockFittingInBC::calculate_shock_speed(const FV_Cell &cL0, const FV_Cell &c
     Gas_data &gL = *(fsL.gas);
     Gas_data &gR = *(IFaceR.fs->gas);
     double time_weight = gd.shock_fitting_speed_factor;
-    if ( get_shock_fitting_decay_flag() ) {
+    if ( gd.shock_fitting_decay ) {
         time_weight = time_weight - time_weight*(exp(-gd.sim_time/gd.max_time) - 1.0) / 
                              (exp(-1.0) - 1.0);
     }
