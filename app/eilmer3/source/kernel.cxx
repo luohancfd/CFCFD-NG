@@ -172,19 +172,6 @@ double heat_factor = 1.0;
 /// \brief The amount by which to increment the heat_factor factor during soft-start.
 double heat_factor_increment = 0.01;
 
-/// \brief Finite-rate reaction flag: =0 for non-reacting, =1 for reacting.
-///
-/// Turning on the reactions activates the chemical update function calls.
-/// Chemical equilibrium simulations (via Look-Up Table) does not use this
-/// chemical update function call.
-int reacting = 0;
-
-/// \brief Finite-rate thermal energy exchange: =0 for frozen/equilibrium, =1 for finite-rate
-///
-/// With this flag on, finite-rate evolution of the vibrational energies (and in turn
-/// the total energy) is computed.
-int thermal_energy_exchange = 0;
-
 /// \brief  implicit Flag: =0 normal explicit viscous, 
 ///         =1 point implicit viscous treatment enabled,
 ///         =2 fully implicit viscous treatment enabled.
@@ -421,52 +408,6 @@ double set_heat_factor_increment( double value )
 double get_heat_factor_increment( void )
 {
     return heat_factor_increment;
-}
-
-/*------------------------------------------------------------------*/
-
-int set_reacting_flag(int ir)
-{
-    reacting = ir;
-    if (reacting == 0) {
-        if ( gd.verbose_init_messages ) printf("Flow in chemical equilibrium (or frozen)\n");
-    }    
-    else if (reacting == 1) {
-        if ( gd.verbose_init_messages ) printf("Flow in chemical nonequilibrium: source terms computed\n");
-    }
-    else {
-        printf("Invalid reacting flag value: %d\n", reacting);
-        exit(VALUE_ERROR);
-    }
-    return SUCCESS;
-}
-
-int get_reacting_flag(void)
-{
-    return reacting;
-}
-
-/*------------------------------------------------------------------*/
-
-int set_energy_exchange_flag(int ir)
-{
-    thermal_energy_exchange = ir;
-    if (thermal_energy_exchange == 0) {
-        if ( gd.verbose_init_messages ) printf("Flow in thermal equilibrium\n");
-    }    
-    else if (thermal_energy_exchange == 1) {
-        if ( gd.verbose_init_messages ) printf("Flow in thermal nonequilibrium: source terms computed\n");
-    }    
-    else {
-        printf("Invalid energy_exchange_flag value: %d\n", thermal_energy_exchange);
-        exit(VALUE_ERROR);
-    }
-    return SUCCESS;
-}
-
-int get_energy_exchange_flag(void)
-{
-    return thermal_energy_exchange;
 }
 /*------------------------------------------------------------------*/
 

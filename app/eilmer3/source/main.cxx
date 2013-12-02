@@ -1306,7 +1306,7 @@ int integrate_in_time(double target_time)
         // 2d. Chemistry step. 
 	//     Allow finite-rate evolution of species due
         //     to chemical reactions
-        if ( get_reacting_flag() == 1 && G.sim_time >= G.reaction_time_start ) {
+        if ( G.reacting == 1 && G.sim_time >= G.reaction_time_start ) {
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active != 1 ) continue;
 		for ( FV_Cell *cp: bdp->active_cells ) {
@@ -1325,7 +1325,7 @@ int integrate_in_time(double target_time)
 	// 2e. Thermal step.
 	//     Allow finite-rate evolution of thermal energy
 	//     due to transfer between thermal energy modes.
-	if ( get_energy_exchange_flag() == 1 && G.sim_time >= G.reaction_time_start  ) {
+	if ( G.thermal_energy_exchange && G.sim_time >= G.reaction_time_start  ) {
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active != 1 ) continue;
 		for ( FV_Cell *cp: bdp->active_cells ) {

@@ -195,9 +195,17 @@ struct global_data
     double diaphragm_rupture_time, diaphragm_rupture_diameter;
     int diaphragm_block, drummond_progressive;
 
+    // Turning on the reactions activates the chemical update function calls.
+    // Chemical equilibrium simulations (via Look-Up Table) does not use this
+    // chemical update function call.
+    bool reacting;
+
+    // With this flag on, finite-rate evolution of the vibrational energies 
+    // (and in turn the total energy) is computed.
+    bool thermal_energy_exchange;
+
     bool radiation;
-    // Radiation update frequency: = eg, 1 for every time-step
-    int radiation_update_frequency;
+    int radiation_update_frequency; // = 1 for every time-step
 
     size_t n_heat_zone;
     double heat_time_start;
@@ -264,10 +272,6 @@ double get_heat_factor( void );
 double incr_heat_factor( double value );
 double set_heat_factor_increment( double value );
 double get_heat_factor_increment( void );
-int set_reacting_flag(int iv);
-int get_reacting_flag(void);
-int set_energy_exchange_flag(int iv);
-int get_energy_exchange_flag(void);
 int set_implicit_flag(int imf);
 int get_implicit_flag(void);
 

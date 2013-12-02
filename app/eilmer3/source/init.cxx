@@ -297,36 +297,27 @@ int read_config_parameters(const string filename, bool master)
 	cout << "nmodes = " << gmodel->get_number_of_modes() << endl;
     }
 
-    dict.parse_int("global_data", "reacting_flag", i_value, 0);
-    set_reacting_flag( i_value );
-    if ( get_reacting_flag() ) {
-	// Test that the gas model is compatible with finite-rate chemistry.
-	if ( !gmodel->good_for_reactions() ) {
-	    cout << "ERROR: The selected gas model is NOT compatible with\n";
-	    cout << "ERROR: the finite-rate chemistry module.\n";
-	    cout << "Bailing out!\n";
-	    exit(BAD_INPUT_ERROR);
-	}
+    dict.parse_boolean("global_data", "reacting_flag", G.reacting, false);
+    if ( G.reacting and !gmodel->good_for_reactions() ) {
+	throw runtime_error("The selected gas model is NOT compatible with finite-rate chemistry.");
     }
-		
     dict.parse_double("global_data", "reaction_time_start", G.reaction_time_start, 0.0);
     dict.parse_double("global_data", "T_frozen", G.T_frozen, 300.0);
     dict.parse_string("global_data", "reaction_update", s_value, "dummy_scheme");
-    if( get_reacting_flag() ) set_reaction_update( s_value );
+    if( G.reacting ) set_reaction_update( s_value );
     if ( G.verbose_init_messages ) {
-	cout << "reacting_flag = " << get_reacting_flag() << endl;
+	cout << "reacting_flag = " << G.reacting << endl;
 	cout << "reaction_time_start = " << G.reaction_time_start << endl;
 	cout << "reaction_update = " << s_value << endl;
 	cout << "T_frozen = " << G.T_frozen << endl;
     }
 
-    dict.parse_int("global_data", "energy_exchange_flag", i_value, 0);
-    set_energy_exchange_flag( i_value );
+    dict.parse_boolean("global_data", "energy_exchange_flag", G.thermal_energy_exchange, false);
     dict.parse_string("global_data", "energy_exchange_update", s_value, "dummy_scheme");
+    if( G.thermal_energy_exchange ) set_energy_exchange_update(s_value);
     dict.parse_double("global_data", "T_frozen_energy", G.T_frozen_energy, 300.0);
-    if( get_energy_exchange_flag() ) set_energy_exchange_update(s_value);
     if( G.verbose_init_messages ) {
-	cout << "energy_exchange_flag = " << get_energy_exchange_flag() << endl;
+	cout << "energy_exchange_flag = " << G.thermal_energy_exchange << endl;
 	cout << "energy_exchange_update = " << s_value << endl;
 	cout << "T_frozen_energy = " << G.T_frozen_energy << endl;
     }
