@@ -210,7 +210,7 @@ int viscous_flux_2D(Block *A)
 		}
 	    }
 	    
-	    if ( get_axisymmetric_flag() == 1 ) {
+	    if ( G.axisymmetric ) {
 		// Viscous stresses at the mid-point of the interface.
 		// Axisymmetric terms no longer include the radial multiplier
 		// as that has been absorbed into the interface area calculation.
@@ -379,7 +379,7 @@ int viscous_flux_2D(Block *A)
 		}
 	    }
 
-	    if ( get_axisymmetric_flag() == 1 ) {
+	    if ( G.axisymmetric ) {
 		// Viscous stresses at the mid-point of the interface.
 		// Axisymmetric terms no longer include the radial multiplier
 		// as that has been absorbed into the interface area calculation.

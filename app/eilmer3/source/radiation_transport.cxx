@@ -334,7 +334,7 @@ DiscreteTransfer::initialise()
     
     // initialise geometry data
     ndim_ = G.dimensions;
-    if ( G.dimensions == 2 && !get_axisymmetric_flag() )
+    if ( G.dimensions == 2 && !G.axisymmetric )
         planar_ = true;
     else
         planar_ = false;
@@ -1029,7 +1029,7 @@ MonteCarlo::initialise()
     
     // initialise geometry data
     ndim_ = G.dimensions;
-    if ( G.dimensions == 2 && !get_axisymmetric_flag() )
+    if ( G.dimensions == 2 && !G.axisymmetric )
         planar_ = true;
     else
         planar_ = false;

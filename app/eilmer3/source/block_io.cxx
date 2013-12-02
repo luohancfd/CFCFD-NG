@@ -411,6 +411,7 @@ int Block::write_history(std::string filename, double sim_time, bool write_heade
  */
 void Block::compute_x_forces(char *text_string, int ibndy, size_t dimensions, size_t gtl)
 {
+    global_data &G = *get_global_data_ptr();
     double fx_p, fx_v, x1, y1, cosX, cosY, area;
     double xc, yc, d, vt, mu;
     size_t i, j, ivisc;
@@ -508,7 +509,7 @@ void Block::compute_x_forces(char *text_string, int ibndy, size_t dimensions, si
 	}
     }   /* end if: boundary selection */
 
-    if ( get_axisymmetric_flag() == 1 ) {
+    if ( G.axisymmetric ) {
 	fx_p *= (2.0 * 3.1415927);
 	fx_v *= (2.0 * 3.1415927);
     }

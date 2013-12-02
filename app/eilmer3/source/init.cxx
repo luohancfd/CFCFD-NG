@@ -386,10 +386,9 @@ int read_config_parameters(const string filename, bool master)
 	cout << "radiation_update_frequency = " << i_value << endl;
     }
 
-    dict.parse_int("global_data", "axisymmetric_flag", i_value, 0);
-    set_axisymmetric_flag( i_value );
+    dict.parse_boolean("global_data", "axisymmetric_flag", G.axisymmetric, false);
     if ( G.verbose_init_messages ) {
-	cout << "axisymmetric_flag = " << get_axisymmetric_flag() << endl;
+	cout << "axisymmetric_flag = " << G.axisymmetric << endl;
     }
 
     dict.parse_int("global_data", "viscous_flag", i_value, 0);

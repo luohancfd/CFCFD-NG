@@ -196,6 +196,7 @@ int copy_flex_cell_data_to_shadowed_cell(flex_cell_center* src, FV_Cell* dest, i
 int calculate_flex_cell_volume(flex_cell_center* fc)
 {
 #if 0
+    global_data &G = *get_global_data_ptr();
     double xA, yA, xB, yB, xC, yC, xD, yD;
     double xyarea;
 
@@ -226,7 +227,7 @@ int calculate_flex_cell_volume(flex_cell_center* fc)
     
     fc->area = xyarea;
 
-    if (get_axisymmetric_flag() == 1) {
+    if ( G.axisymmetric ) {
 	fc->volume = xyarea * fc->pos.y; // volume per unit radian
     } else {
 	fc->volume = xyarea * 1.0; // volume per unit depth
@@ -410,6 +411,7 @@ int inviscid_source_vector_for_flex_cell(flex_cell_center *fc)
 
 int update_flex_cell_geometry_based_on_vertex_movement(flex_cell_center *src) {
 #if 0
+    global_data &G = *get_global_data_ptr();
     // Vertex numeral convention.
     //
     // 3,C .--. 2,B
@@ -440,7 +442,7 @@ int update_flex_cell_geometry_based_on_vertex_movement(flex_cell_center *src) {
     src->iface[EAST]->length = LAB;
     // Mid-point and area.
     src->iface[EAST]->Ybar = 0.5 * (yA + yB);
-    if (get_axisymmetric_flag() == 1) {
+    if ( G.axisymmetric ) {
 	// Interface area per radian.
 	src->iface[EAST]->area = LAB * src->iface[EAST]->Ybar;
     } else {
@@ -463,7 +465,7 @@ int update_flex_cell_geometry_based_on_vertex_movement(flex_cell_center *src) {
     src->iface[WEST]->length = LAB;
     // Mid-point and area.
     src->iface[WEST]->Ybar = 0.5 * (yC + yD);
-    if (get_axisymmetric_flag() == 1) {
+    if ( G.axisymmetric ) {
 	// Interface area per radian.
 	src->iface[WEST]->area = LAB * src->iface[WEST]->Ybar;
     } else {
@@ -486,7 +488,7 @@ int update_flex_cell_geometry_based_on_vertex_movement(flex_cell_center *src) {
     src->iface[NORTH]->length = LAB;
     // Mid-point and area.
     src->iface[NORTH]->Ybar = 0.5 * (yB + yC);
-    if (get_axisymmetric_flag() == 1) {
+    if ( G.axisymmetric ) {
 	// Interface area per radian.
 	src->iface[NORTH]->area = LAB * src->iface[NORTH]->Ybar;
     } else {
@@ -509,7 +511,7 @@ int update_flex_cell_geometry_based_on_vertex_movement(flex_cell_center *src) {
     src->iface[SOUTH]->length = LAB;
     // Mid-point and area.
     src->iface[SOUTH]->Ybar = 0.5 * (yA + yD);
-    if (get_axisymmetric_flag() == 1) {
+    if ( G.axisymmetric ) {
 	// Interface area per radian.
 	src->iface[SOUTH]->area = LAB * src->iface[SOUTH]->Ybar;
     } else {

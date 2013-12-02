@@ -2039,7 +2039,7 @@ int FV_Cell::turbulence_viscosity_k_omega()
         dudy = 0.25 * (vtx[0]->dudy + vtx[1]->dudy + vtx[2]->dudy + vtx[3]->dudy);
         dvdx = 0.25 * (vtx[0]->dvdx + vtx[1]->dvdx + vtx[2]->dvdx + vtx[3]->dvdx);
         dvdy = 0.25 * (vtx[0]->dvdy + vtx[1]->dvdy + vtx[2]->dvdy + vtx[3]->dvdy);
-        if ( get_axisymmetric_flag() == 1 ) {
+        if ( G.axisymmetric ) {
             // 2D axisymmetric
             double v_over_y = fs->vel.y / pos[0].y;
             S_bar_squared = dudx*dudx + dvdy*dvdy + v_over_y*v_over_y
@@ -2277,7 +2277,7 @@ int FV_Cell::k_omega_time_derivatives(double *Q_rtke, double *Q_romega, double t
         dtkedy = 0.25 * (vtx[0]->dtkedy + vtx[1]->dtkedy + vtx[2]->dtkedy + vtx[3]->dtkedy);
         domegadx = 0.25 * (vtx[0]->domegadx + vtx[1]->domegadx + vtx[2]->domegadx + vtx[3]->domegadx);
         domegady = 0.25 * (vtx[0]->domegady + vtx[1]->domegady + vtx[2]->domegady + vtx[3]->domegady);
-        if ( get_axisymmetric_flag() == 1 ) {
+        if ( G.axisymmetric ) {
             // 2D axisymmetric
             double v_over_y = fs->vel.y / pos[0].y;
             // JP.Nap correction from 03-May-2007 (-v_over_y in parentheses)
@@ -2400,6 +2400,7 @@ int FV_Cell::clear_source_vector()
 /// By default, assume 2D-planar, or 3D-Cartesian flow.
 int FV_Cell::add_inviscid_source_vector(int gtl, double omegaz)
 {
+    global_data &G = *get_global_data_ptr();
     Q->total_energy += get_heat_factor() * base_qdot;
     if ( omegaz != 0.0 ) {
 	// Rotating frame.
@@ -2414,7 +2415,7 @@ int FV_Cell::add_inviscid_source_vector(int gtl, double omegaz)
 	// There is no contribution to the energy equation in the rotating frame
         // because it is implicit in the use of rothalpy as the conserved quantity.
     }
-    if ( get_axisymmetric_flag() == 1 ) {
+    if ( G.axisymmetric ) {
 	// For axisymmetric flow:
 	// pressure contribution from the Front and Back (radial) interfaces.
 	Q->momentum.y += fs->gas->p * area[gtl] / volume[gtl];
@@ -2440,7 +2441,8 @@ int FV_Cell::add_inviscid_source_vector(int gtl, double omegaz)
 /// \brief Add the components of the source vector, Q, for viscous flow.
 int FV_Cell::add_viscous_source_vector(bool with_k_omega)
 {
-    if ( get_axisymmetric_flag() == 1 ) {
+    global_data &G = *get_global_data_ptr();
+    if ( G.axisymmetric ) {
 	// For viscous, axisymmetric flow:
 	double viscous_factor = get_viscous_factor();
 	double v_over_y = fs->vel.y / pos[0].y;
@@ -2458,7 +2460,7 @@ int FV_Cell::add_viscous_source_vector(bool with_k_omega)
 	// mid-point of the cell face and so should never be
 	// singular -- at least I hope that this is so.
 	Q->momentum.y -= tau_00 * area[0] / volume[0];
-    } // end if ( get_axisymmetric_flag() == 1
+    } // end if G.axisymmetric
 
     if ( with_k_omega ) {
 	double Q_tke = 0.0; double Q_omega = 0.0;

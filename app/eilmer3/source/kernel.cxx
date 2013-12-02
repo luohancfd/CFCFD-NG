@@ -181,12 +181,6 @@ int adaptive_reconstruction = 0;
 /// \brief Filter =0 for no spatial filter, =1 for spatial filter.
 int filter = 0;
 
-/// \brief Axisymmetric flag =0 for 2D planar equations, =1 for 2D axisymmetric. 
-///
-/// The flow is still 2-dimensional but may includes source terms from the
-/// out-of-plane cell interfaces.
-int axisymm = 0;
-
 /// \brief A factor to scale the heat-addition in order to achieve a soft start.
 double heat_factor = 1.0;
 
@@ -261,29 +255,6 @@ std::vector<double> vweights; // weight for each velocity coordinate
 
 /// \brief Electric field work flag: =0 to omit, =1 to include.
 int electric_field_work = 0;
-
-/*------------------------------------------------------------------*/
-
-int set_axisymmetric_flag(int ia)
-{
-    axisymm = ia;
-    if (axisymm == 0) {
-        if ( gd.verbose_init_messages ) printf("Two-dimensional planar flow\n");
-    }
-    else if (axisymm == 1) {
-        if ( gd.verbose_init_messages ) printf("Axisymmetric flow\n");
-    }
-    else {
-        printf("Invalid axisymmetric flag value: %d\n", axisymm);
-        exit(VALUE_ERROR);
-    }
-    return SUCCESS;
-}
-
-int get_axisymmetric_flag(void)
-{
-    return axisymm;
-}
 
 /*------------------------------------------------------------------*/
 

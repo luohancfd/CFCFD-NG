@@ -226,6 +226,7 @@ int Block::set_gcl_interface_properties(size_t dimensions, size_t gtl, double dt
 ///
 int Block::set_gcl_interface_properties2D( size_t gtl, double dt )
 {
+    global_data &G = *get_global_data_ptr();
     size_t i, j, k;
     FV_Vertex *vtx1, *vtx2;
     FV_Interface *IFace;
@@ -249,7 +250,7 @@ int Block::set_gcl_interface_properties2D( size_t gtl, double dt )
 	    yB = vpm2.y;	 
 	    // Interface area at midpoint.   
 	    IFace->area[gtl] = sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA)); 
-	    if (get_axisymmetric_flag() == 1) {
+	    if ( G.axisymmetric ) {
 		IFace->Ybar = 0.5 * (yA + yB);
                 IFace->area[gtl] *= IFace->Ybar;
             }
@@ -271,7 +272,7 @@ int Block::set_gcl_interface_properties2D( size_t gtl, double dt )
 	    yB = vpm1.y;
 	    // Interface area at midpoint.   
 	    IFace->area[gtl] = sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA)); 
-	    if (get_axisymmetric_flag() == 1) {
+	    if ( G.axisymmetric ) {
 		IFace->Ybar = 0.5 * (yA + yB);
                 IFace->area[gtl] *= IFace->Ybar;
             }
