@@ -166,9 +166,6 @@ double diffusion_factor_increment = 0.01;
 /// \brief Adaptive reconstruction =0 for no adaptive reconstruction, =1 for adaptive reconstruction.
 int adaptive_reconstruction = 0;
 
-/// \brief Filter =0 for no spatial filter, =1 for spatial filter.
-int filter = 0;
-
 /// \brief A factor to scale the heat-addition in order to achieve a soft start.
 double heat_factor = 1.0;
 
@@ -243,29 +240,6 @@ std::vector<double> vweights; // weight for each velocity coordinate
 
 /// \brief Electric field work flag: =0 to omit, =1 to include.
 int electric_field_work = 0;
-
-/*------------------------------------------------------------------*/
-
-int set_filter_flag(int iw)
-{
-    filter = iw;
-    if (filter == 0) {
-        if ( gd.verbose_init_messages ) printf("Turn off spatial filter.\n");
-    }
-    else if (filter == 1) {
-        if ( gd.verbose_init_messages ) printf("Turn on spatial filter.\n");
-    }
-    else {
-        printf("Invalid filter flag value: %d\n", filter);
-        exit(VALUE_ERROR);
-    }
-    return SUCCESS;
-}
-
-int get_filter_flag(void)
-{
-    return filter;
-}
 
 /*------------------------------------------------------------------*/
 

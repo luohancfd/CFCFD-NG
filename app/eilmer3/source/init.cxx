@@ -496,16 +496,11 @@ int read_config_parameters(const string filename, bool master)
 	cout << "extrema_clipping_flag = " << get_extrema_clipping_flag() << endl;
     }
 
-    dict.parse_int("global_data", "filter_flag", i_value, 0);
-    set_filter_flag( i_value );
+    dict.parse_boolean("global_data", "filter_flag", G.filter_flag, false);
     dict.parse_double("global_data", "filter_tstart", G.filter_tstart, 0.0);
-    //set_filter_tstart(d_value);
     dict.parse_double("global_data", "filter_tend", G.filter_tend, 0.0);
-    //set_filter_tend(d_value);
     dict.parse_double("global_data", "filter_dt", G.filter_dt, 0.0);
-    //set_filter_dt(d_value);
     dict.parse_double("global_data", "filter_mu", G.filter_mu, 0.0);
-    //set_filter_mu(d_value);
     dict.parse_size_t("global_data", "filter_npass", G.filter_npass, 0);
 
     dict.parse_int("global_data", "sequence_blocks", i_value, 0);

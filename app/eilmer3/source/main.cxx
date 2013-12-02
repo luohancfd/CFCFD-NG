@@ -994,10 +994,10 @@ int integrate_in_time(double target_time)
     }
 
     // Spatial filter may be applied occasionally.
-    if ( get_filter_flag() ) {
+    if ( G.filter_flag ) {
 	if ( G.sim_time > G.filter_tstart ) {
 	    G.filter_next_time = G.sim_time + G.filter_dt;
-	    if ( G.filter_next_time > G.filter_tend ) set_filter_flag(0);
+	    if ( G.filter_next_time > G.filter_tend ) G.filter_flag = false;
 	} else {
 	    G.filter_next_time = G.filter_tstart;
 	}
@@ -1446,7 +1446,7 @@ int integrate_in_time(double target_time)
         }
 
 	// 6. Spatial filter may be applied occasionally.
-	if ( get_filter_flag() && G.sim_time > G.filter_next_time ) {
+	if ( G.filter_flag && G.sim_time > G.filter_next_time ) {
 	    size_t ipass;
 	    for ( ipass = 0; ipass < G.filter_npass; ++ipass ) {
 #               ifdef _MPI
@@ -1491,8 +1491,8 @@ int integrate_in_time(double target_time)
 		}
 	    }
 	    G.filter_next_time = G.sim_time + G.filter_dt;
-	    if ( G.filter_next_time > G.filter_tend ) set_filter_flag(0);
-	} // end if ( get_filter_flag()
+	    if ( G.filter_next_time > G.filter_tend ) G.filter_flag = false;
+	} // end if ( G.filter_flag )
 
 	// 7. Call out to user-defined function.
 	if ( G.udf_file.length() > 0 ) {

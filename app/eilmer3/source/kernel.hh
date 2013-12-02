@@ -166,7 +166,7 @@ struct global_data
     size_t n_gas_state;
 
     // Filter application parameters.
-    int    filter_flag;
+    bool   filter_flag;
     double filter_tstart;
     double filter_tend;
     double filter_dt;
@@ -239,8 +239,6 @@ RadiationTransportModel *get_radiation_transport_model_ptr();
 Block * get_block_data_ptr(size_t i);
 void eilmer_finalize( void );
 
-int set_filter_flag(int iw);
-int get_filter_flag(void);
 int set_viscous_flag(int iv);
 int get_viscous_flag(void);
 int set_viscous_upwinding_flag(int iw);
