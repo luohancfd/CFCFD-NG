@@ -139,11 +139,11 @@ s_update_state(Gas_data &Q, double t_interval, double &dt_suggest, Gas_model *gm
 	    return SUCCESS;
 	}
 	else {
-	    cout << "Failed to successfully update gas state due to chemistry.\n";
+	    cout << "Failed to successfully update gas state due to chemistry\n";
+	    cout << "over time interval: " << t_interval << endl;
 	    cout << "The initial condition was: \n";
 	    Q_save_->print_values(false);
-	    cout << "Bailing Out!\n";
-	    exit(NUMERICAL_ERROR);
+	    return FAILURE;
 	}
     }
 }	

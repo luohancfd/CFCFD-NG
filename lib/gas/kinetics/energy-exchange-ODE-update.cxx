@@ -146,11 +146,10 @@ s_update_state(Gas_data &Q, double t_interval, double &dt_suggest, Gas_model *gm
             Q_save_->copy_values_from( Q );
             return SUCCESS;
 #           else
+	    cout << "t_interval = " << dt_sub << ", dt_suggest = " << dt_suggest << endl;
 	    cout << "The initial condition was: \n";
 	    Q_save_->print_values(false);
-	    cout << "t_interval = " << dt_sub << ", dt_suggest = " << dt_suggest << endl;
-	    cout << "Bailing Out!\n";
-	    exit(NUMERICAL_ERROR);
+	    return FAILURE;
 #           endif
 	}
     }
@@ -162,10 +161,10 @@ s_update_state(Gas_data &Q, double t_interval, double &dt_suggest, Gas_model *gm
 	Q.copy_values_from(*Q_save_);
 	return SUCCESS;
 #       else
+	cout << "t_interval = " << dt_sub << ", dt_suggest = " << dt_suggest << endl;
 	cout << "The initial condition was: \n";
 	Q_save_->print_values(false);
-	cout << "Bailing Out!\n";
-	exit(NUMERICAL_ERROR);
+	return FAILURE;
 #       endif
     }
 #   endif
