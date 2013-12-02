@@ -120,6 +120,11 @@ def input_checker(cfg):
         cfg['justStats'] = False
         print "Switch to skip detailed calculations not specified."
         print "Setting it to default value of justStats = {0}".format(cfg['justStats'])
+
+    if 'noStats' not in cfg:
+        cfg['noStats'] = False
+        print "Switch to skip flow statistic calculations not specified."
+        print "Setting it to default value of noStats = {0}".format(cfg['noStats'])
     
     if 'blockMarching' not in cfg:
         cfg['blockMarching'] = True

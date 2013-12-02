@@ -188,7 +188,8 @@ def main(cfg={}):
     # Compute viscous data at the nozzle wall
     run_command(E3BIN+'/nenzfr_compute_viscous_data.py --job=%s --nbj=%s' % (cfg['jobName'], cfg['nbj']))
     # Generate averaged exit flow properties
-    print_stats(cfg['exitSliceFileName'],cfg['jobName'],cfg['coreRfraction'],gmodelFile)                
+    if not cfg['noStats']:
+        print_stats(cfg['exitSliceFileName'],cfg['jobName'],cfg['coreRfraction'],gmodelFile)                
     #
     return 0
     
