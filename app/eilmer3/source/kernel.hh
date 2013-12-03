@@ -139,6 +139,8 @@ struct global_data
 
     /// Set the tolerance to shear when applying the adaptive flux calculator.
     /// We don't want EFM to be applied in situations of significant shear.
+    /// The shear value is computed as the tangential-velocity difference across an interface
+    /// normalised by the local sound speed.
     double shear_tolerance;
 
     double t_plot;          /* time to write next soln    */

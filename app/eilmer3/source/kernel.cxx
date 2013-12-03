@@ -163,9 +163,6 @@ double diffusion_factor = 1.0;
 /// \brief The amount by which to increment the diffusion factor during soft-start.
 double diffusion_factor_increment = 0.01;
 
-/// \brief Adaptive reconstruction =0 for no adaptive reconstruction, =1 for adaptive reconstruction.
-int adaptive_reconstruction = 0;
-
 /// \brief A factor to scale the heat-addition in order to achieve a soft start.
 double heat_factor = 1.0;
 
@@ -176,32 +173,6 @@ double heat_factor_increment = 0.01;
 ///         =1 point implicit viscous treatment enabled,
 ///         =2 fully implicit viscous treatment enabled.
 int implicit = 0;
-
-/// \brief A value of 1 will allow the program to complain about bad cells
-///        by printing warning messages and cell data.
-///        A value of zero suppresses the complaints.
-int bad_cell_complain_flag = 1; /* by default, we want to hear about bad cells. */
-
-/// \brief Flag to indicate that we want to apply the strictest CFL check.
-///
-/// Maybe useful to set this for viscous calculations with large aspect-ratio cells.
-int stringent_cfl = 0; // default to direction-by-direction check
-
-/// \brief Change in normalised velocity to indicate a shock.
-///
-/// The original default value of -0.05 had been selected to detect the levels of
-/// shock compression observed in the inviscid-flow "sod" and "cone20" test cases.
-/// It may needed to be tuned for other situations, especially when
-/// viscous effects are important.  Hence new higher value should avoid the EFM
-/// flux calculator being turned on inappropriately in the boundary layer. 
-double compression_tolerance = -0.30;
-
-/// \brief The tolerance to shear when applying the adaptive flux calculator.
-///
-/// We don't want EFM to be applied in situations of significant shear.
-/// The shear value is computed as the tangential-velocity difference across an interface
-/// normalised by the local sound speed.
-double shear_tolerance = 0.20;
 
 /// \brief For Daryl Bond and Vince Wheatley's MHD additions.
 int mhd_flag = 0;
