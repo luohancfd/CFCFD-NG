@@ -155,7 +155,7 @@ int Block::apply_spatial_filter_diffusion(double mu, size_t npass, size_t dimens
 	    Gas_data *gas= cell->fs->gas;
 	    gm->eval_thermo_state_rhoe(*gas);
 	    if ( G.viscous ) gm->eval_transport_coefficients(*gas);
-	    if ( get_diffusion_flag() ) gm->eval_diffusion_coefficients(*gas);
+	    if ( G.diffusion ) gm->eval_diffusion_coefficients(*gas);
 	} // j loop
     } // i loop
     return SUCCESS;
@@ -204,7 +204,7 @@ int Block::apply_spatial_filter_anti_diffusion(double mu, size_t npass, size_t d
 	    Gas_data *gas= cell->fs->gas;
 	    gm->eval_thermo_state_rhoe(*gas);
 	    if ( G.viscous ) gm->eval_transport_coefficients(*gas);
-	    if ( get_diffusion_flag() ) gm->eval_diffusion_coefficients(*gas);
+	    if ( G.diffusion ) gm->eval_diffusion_coefficients(*gas);
 	} // j loop
     } // i loop
     return SUCCESS;

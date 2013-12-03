@@ -231,6 +231,6 @@ int SubsonicInBC::subsonic_inflow_properties(const CFlowCondition *stagnation,
     }
 
     if ( G.viscous ) gmodel->eval_transport_coefficients(*(inflow_state->gas));
-    if ( get_diffusion_flag() ) gmodel->eval_diffusion_coefficients(*(inflow_state->gas));
+    if ( G.diffusion ) gmodel->eval_diffusion_coefficients(*(inflow_state->gas));
     return SUCCESS;
 } // end SubsonicInBC::subsonic_inflow_properties()

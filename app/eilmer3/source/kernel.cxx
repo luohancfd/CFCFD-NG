@@ -132,20 +132,6 @@ void eilmer_finalize( void )
 
 //---------------------------------------------------------------------
 
-/// \brief Diffusion flag =0 for neglecting multicomponent diffusion, =1
-//         when considering the diffusion.
-//  When the diffusion is calculated is treated as part of the viscous
-//  calculation.
-int diffusion = 0;           
-
-/// \brief A factor to scale the diffusion in order to achieve a soft start, separate to viscous effects.
-///
-/// The soft-start for diffusion effects may be handy for impulsively-started flows.
-double diffusion_factor = 1.0;
-
-/// \brief The amount by which to increment the diffusion factor during soft-start.
-double diffusion_factor_increment = 0.01;
-
 /// \brief A factor to scale the heat-addition in order to achieve a soft start.
 double heat_factor = 1.0;
 
@@ -187,69 +173,14 @@ double incr_viscous_factor( double value )
     return gd.viscous_factor;
 }
 
-/*------------------------------------------------------------------*/
-
-int set_diffusion_flag(int id)
-{
-    diffusion = id;
-    if (diffusion == 0) {
-        if ( gd.verbose_init_messages ) printf("Diffusion of species ignored.\n");
-    }    
-    else if (diffusion == 1) {
-        if ( gd.verbose_init_messages ) printf("Diffusion of species treated as part of viscous terms.\n");
-    }
-    else {
-        printf("Invalid diffusion flag value: %d\n", diffusion);
-        exit(VALUE_ERROR);
-    }
-    return SUCCESS;
-}
-
-int get_diffusion_flag(void)
-{
-    return diffusion;
-}
-
-/// \brief Set the diffusion_factor to a specified value.
-double set_diffusion_factor( double value )
-{
-    if ( value > 1.0 ) value = 1.0;
-    if ( value < 0.0 ) value = 0.0;
-    diffusion_factor = value;
-    return diffusion_factor;
-}
-
-/// \brief Get the stored value of diffusion_factor.
-double get_diffusion_factor( void )
-{
-    return diffusion_factor;
-}
-
 /// \brief Increment the diffusion_factor to a specified value.
 double incr_diffusion_factor( double value )
 {
-    diffusion_factor += value;
-    if ( diffusion_factor > 1.0 ) diffusion_factor = 1.0;
-    if ( diffusion_factor < 0.0 ) diffusion_factor = 0.0;
-    return diffusion_factor;
+    gd.diffusion_factor += value;
+    if ( gd.diffusion_factor > 1.0 ) gd.diffusion_factor = 1.0;
+    if ( gd.diffusion_factor < 0.0 ) gd.diffusion_factor = 0.0;
+    return gd.diffusion_factor;
 }
-
-/// \brief Set the diffusion_factor_increment to a specified value.
-double set_diffusion_factor_increment( double value )
-{
-    if ( value > 1.0 ) value = 1.0;
-    if ( value < 0.0 ) value = 0.0;
-    diffusion_factor_increment = value;
-    return diffusion_factor_increment;
-}
-
-/// \brief Set the stored value of the increment.
-double get_diffusion_factor_increment( void )
-{
-    return diffusion_factor_increment;
-}
-
-/*------------------------------------------------------------------*/
 
 /// \brief Set the heat_factor to a specified value.
 double set_heat_factor( double value )

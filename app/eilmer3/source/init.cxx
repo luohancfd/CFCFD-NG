@@ -261,6 +261,9 @@ int read_config_parameters(const string filename, bool master)
     G.viscous = false;
     G.viscous_factor = 1.0;
     G.viscous_factor_increment = 0.01;
+    G.diffusion = false;
+    G.diffusion_factor = 1.0;
+    G.diffusion_factor_increment = 0.01;
 
     // At the start of a fresh simulation,
     // we need to set a few items that will be updated later.
@@ -389,21 +392,19 @@ int read_config_parameters(const string filename, bool master)
     dict.parse_boolean("global_data", "viscous_upwinding_flag", G.viscous_upwinding, false);
     // FIX-ME 2013-04-23 should probably merge diffusion_model and diffusion_flag
     // as we have done for turbulence_model, below.
-    dict.parse_int("global_data", "diffusion_flag", i_value, 0);
+    dict.parse_boolean("global_data", "diffusion_flag", G.diffusion, false);
     dict.parse_double("global_data", "diffusion_delay", G.diffusion_time_delay, 0.0);
-    dict.parse_double("global_data", "diffusion_factor_increment", d_value, 0.01);
-    set_diffusion_factor_increment( d_value );
-    set_diffusion_flag( i_value );
+    dict.parse_double("global_data", "diffusion_factor_increment", G.diffusion_factor_increment, 0.01);
     if ( G.verbose_init_messages ) {
 	cout << "viscous_flag = " << G.viscous << endl;
 	cout << "viscous_delay = " << G.viscous_time_delay << endl;
 	cout << "viscous_factor_increment = " << G.viscous_factor_increment << endl;
 	cout << "viscous_upwinding_flag = " << G.viscous_upwinding << endl;
-	cout << "diffusion_flag = " << get_diffusion_flag() << endl;
+	cout << "diffusion_flag = " << G.diffusion << endl;
 	cout << "diffusion_delay = " << G.diffusion_time_delay << endl;
-	cout << "diffusion_factor_increment = " << get_diffusion_factor_increment() << endl;
+	cout << "diffusion_factor_increment = " << G.diffusion_factor_increment << endl;
     }
-    if( get_diffusion_flag() && ( gmodel->get_number_of_species() > 1 ) ) { 
+    if( G.diffusion && (gmodel->get_number_of_species() > 1) ) { 
  	dict.parse_string("global_data", "diffusion_model", s_value, "Stefan-Maxwell");
 	set_diffusion_model(s_value);
 	if( G.verbose_init_messages ) {

@@ -971,7 +971,7 @@ int FV_Cell::replace_flow_data_with_average(std::vector<FV_Cell *> src)
     Gas_model *gmodel = get_gas_model_ptr();
     gmodel->eval_thermo_state_pT(*(fs->gas));
     if ( G.viscous ) gmodel->eval_transport_coefficients(*(fs->gas));
-    if ( get_diffusion_flag() ) gmodel->eval_diffusion_coefficients(*(fs->gas));
+    if ( G.diffusion ) gmodel->eval_diffusion_coefficients(*(fs->gas));
 
     return SUCCESS;
 } // end function replace_cell_data_with_average()
@@ -1255,7 +1255,7 @@ int FV_Cell::decode_conserved(size_t gtl, size_t ftl, double omegaz, bool with_k
     // Update the viscous transport coefficients.
     gmodel->eval_thermo_state_rhoe(*(fs->gas));
     if ( G.viscous ) gmodel->eval_transport_coefficients(*(fs->gas));
-    if ( get_diffusion_flag() ) gmodel->eval_diffusion_coefficients(*(fs->gas));
+    if ( G.diffusion ) gmodel->eval_diffusion_coefficients(*(fs->gas));
 
     return SUCCESS;
 } // end of decode_conserved()
@@ -1751,7 +1751,7 @@ int FV_Cell::chemical_increment(double dt, double T_frozen)
     // If we are doing a viscous sim, we'll need to ensure
     // viscous properties are up-to-date
     if ( G.viscous ) gmodel->eval_transport_coefficients(*(fs->gas));
-    if ( get_diffusion_flag() ) gmodel->eval_diffusion_coefficients(*(fs->gas));
+    if ( G.diffusion ) gmodel->eval_diffusion_coefficients(*(fs->gas));
     // ...but we have to manually update the conservation quantities
     // for the gas-dynamics time integration.
     // Species densities: mass of species isp per unit volume.
@@ -1786,7 +1786,7 @@ int FV_Cell::thermal_increment(double dt, double T_frozen_energy)
     // If we are doing a viscous sim, we'll need to ensure
     // viscous properties are up-to-date
     if ( G.viscous ) gmodel->eval_transport_coefficients(*(fs->gas));
-    if ( get_diffusion_flag() ) gmodel->eval_diffusion_coefficients(*(fs->gas));
+    if ( G.diffusion ) gmodel->eval_diffusion_coefficients(*(fs->gas));
     // ...but we have to manually update the conservation quantities
     // for the gas-dynamics time integration.
     // Independent energies energy: Joules per unit volume.
@@ -1936,7 +1936,7 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
 	    D_b *= G.viscous_factor / ( fs->gas->rho * c_v );
 	    // 3. calculate the largest mixture diffusivity
 	    double D_c = 0.0;
-	    if ( get_diffusion_flag() == 1 ) {
+	    if ( G.diffusion ) {
 		size_t nsp = gmodel->get_number_of_species();
 		vector<double> x(nsp);
 		vector<double> M(nsp);
@@ -1951,7 +1951,7 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
 		for ( size_t isp=0; isp<nsp; ++isp )
 		    if ( DAV_im[isp] > D_c ) D_c = DAV_im[isp];
 	    }
-	    D_c *= G.viscous_factor;
+	    D_c *= G.diffusion_factor;
 	    // 4. Find the maximum effective diffusion
 	    double D_max_i = max( D_a, D_b );
 	    double D_max_ii = max( D_b, D_c );

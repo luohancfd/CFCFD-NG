@@ -170,7 +170,7 @@ int viscous_flux_3D(Block *A)
                         select_upwind_array_element(dTdy,itm)
                         select_upwind_array_element(dTdz,itm)
                     }
-	            if( get_diffusion_flag() == 1 ) {
+	            if( G.diffusion ) {
                         // Needed for diffusion model, below.
 		        for( size_t isp = 0; isp < nsp; ++isp ) {
                             select_upwind_array_element(dfdx,isp)
@@ -190,7 +190,7 @@ int viscous_flux_3D(Block *A)
                         average_array_element_over_face(dTdy,itm)
                         average_array_element_over_face(dTdz,itm)
                     }
-	            if( get_diffusion_flag() == 1 ) {
+	            if( G.diffusion ) {
                         // Needed for diffusion model, below.
 		        for( size_t isp = 0; isp < nsp; ++isp ) {
                             average_array_element_over_face(dfdx,isp)
@@ -205,7 +205,7 @@ int viscous_flux_3D(Block *A)
                 }
 		mu_eff =  viscous_factor * (fs.gas->mu + fs.mu_t);
 		lmbda = -2.0/3.0 * mu_eff;
-	        if( get_diffusion_flag() == 1 ) {
+	        if( G.diffusion ) {
 		    // Apply a diffusion model
 		    double D_t = 0.0;
 		    if ( G.turbulence_model != TM_NONE ) {
@@ -243,7 +243,7 @@ int viscous_flux_3D(Block *A)
 		    qy[0] += qy[itm];
 		    qz[0] += qz[itm];
 	        }
-	        if( get_diffusion_flag() == 1 ) {
+	        if( G.diffusion ) {
 		    for( size_t isp = 0; isp < nsp; ++isp ) {
 		    	double h = gmodel->enthalpy(*(fs.gas), isp);
 		        qx[0] -= jx[isp] * h;
@@ -301,7 +301,7 @@ int viscous_flux_3D(Block *A)
 		    F.omega -= tau_wx * nx + tau_wy * ny + tau_wz * nz;
 	        }
                 // Species mass flux
-	        if( get_diffusion_flag() == 1 ) {
+	        if( G.diffusion ) {
 	  	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		        F.massf[isp] += jx[isp]*nx + jy[isp]*ny + jz[isp]*nz;
 		    }
@@ -351,7 +351,7 @@ int viscous_flux_3D(Block *A)
                         select_upwind_array_element(dTdy,itm)
                         select_upwind_array_element(dTdz,itm)
                     }
-	            if( get_diffusion_flag() == 1 ) {
+	            if( G.diffusion ) {
                         // Needed for diffusion model, below.
 		        for( size_t isp = 0; isp < nsp; ++isp ) {
                             select_upwind_array_element(dfdx,isp)
@@ -367,7 +367,7 @@ int viscous_flux_3D(Block *A)
                         average_array_element_over_face(dTdy,itm)
                         average_array_element_over_face(dTdz,itm)
                     }
- 	            if( get_diffusion_flag() == 1 ) {
+ 	            if( G.diffusion ) {
                         // derivatives needed for diffusion model, below
 		        for( size_t isp = 0; isp < nsp; ++isp ) {
                             average_array_element_over_face(dfdx,isp)
@@ -382,7 +382,7 @@ int viscous_flux_3D(Block *A)
                 }
 		mu_eff =  viscous_factor * (fs.gas->mu + fs.mu_t);
 		lmbda = -2.0/3.0 * mu_eff;
-	        if( get_diffusion_flag() == 1 ) {
+	        if( G.diffusion ) {
 		    // Apply a diffusion model
 		    double D_t = 0.0;
 		    if ( G.turbulence_model != TM_NONE ) {
@@ -420,7 +420,7 @@ int viscous_flux_3D(Block *A)
 		    qy[0] += qy[itm];
 		    qz[0] += qz[itm];
 	        }
-	        if( get_diffusion_flag() == 1 ) {
+	        if( G.diffusion ) {
 		    for( size_t isp = 0; isp < nsp; ++isp ) {
 		    	double h = gmodel->enthalpy(*(fs.gas), isp);
 		        qx[0] -= jx[isp] * h;
@@ -478,7 +478,7 @@ int viscous_flux_3D(Block *A)
 		    F.omega -= tau_wx * nx + tau_wy * ny + tau_wz * nz;
 	        }
                 // Species mass flux
-	        if( get_diffusion_flag() == 1 ) {
+	        if( G.diffusion ) {
 	  	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		        F.massf[isp] += jx[isp]*nx + jy[isp]*ny + jz[isp]*nz;
 		    }
@@ -528,7 +528,7 @@ int viscous_flux_3D(Block *A)
                         select_upwind_array_element(dTdy,itm)
                         select_upwind_array_element(dTdz,itm)
                     }
-	            if( get_diffusion_flag() == 1 ) {
+	            if( G.diffusion ) {
                         // Needed for diffusion model, below.
 		        for( size_t isp = 0; isp < nsp; ++isp ) {
                             select_upwind_array_element(dfdx,isp)
@@ -544,7 +544,7 @@ int viscous_flux_3D(Block *A)
                         average_array_element_over_face(dTdy,itm)
                         average_array_element_over_face(dTdz,itm)
                     }
- 	            if( get_diffusion_flag() == 1 ) {
+ 	            if( G.diffusion ) {
                         // derivatives needed for diffusion model, below
 		        for( size_t isp = 0; isp < nsp; ++isp ) {
                             average_array_element_over_face(dfdx,isp)
@@ -559,7 +559,7 @@ int viscous_flux_3D(Block *A)
                 }
 		mu_eff =  viscous_factor * (fs.gas->mu + fs.mu_t);
 		lmbda = -2.0/3.0 * mu_eff;
- 	        if( get_diffusion_flag() == 1 ) {
+ 	        if( G.diffusion ) {
 		    // Apply a diffusion model
 		    double D_t = 0.0;
 		    if ( G.turbulence_model != TM_NONE ) {
@@ -597,7 +597,7 @@ int viscous_flux_3D(Block *A)
 		    qy[0] += qy[itm];
 		    qz[0] += qz[itm];
 	        }
-	        if( get_diffusion_flag() == 1 ) {
+	        if( G.diffusion ) {
 		    for( size_t isp = 0; isp < nsp; ++isp ) {
 		    	double h = gmodel->enthalpy(*(fs.gas), isp);
 		        qx[0] -= jx[isp] * h;
@@ -655,7 +655,7 @@ int viscous_flux_3D(Block *A)
 		    F.omega -= tau_wx * nx + tau_wy * ny + tau_wz * nz;
 	        }
                 // Species mass flux
-	        if( get_diffusion_flag() == 1 ) {
+	        if( G.diffusion ) {
 	  	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		        F.massf[isp] += jx[isp]*nx + jy[isp]*ny + jz[isp]*nz;
 		    }

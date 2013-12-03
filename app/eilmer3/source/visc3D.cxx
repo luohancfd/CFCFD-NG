@@ -234,7 +234,7 @@ int viscous_flux_3D(Block *A)
 		               if ( vt2dp >= 0.0 ) { dTdz[itm] = Vtx2->dTdz[itm]; } else { dTdz[itm] = Vtx3->dTdz[itm]; }
                            }
                     }
-	            if( get_diffusion_flag() == 1 ) {
+	            if( G.diffusion ) {
                         // Needed for diffusion model, below.
 		        for( size_t isp = 0; isp < nsp; ++isp ) {
                             if ( vt1dp >= 0.0 ) {
@@ -280,7 +280,7 @@ int viscous_flux_3D(Block *A)
                         dTdy[itm] = 0.25*(Vtx1->dTdy[itm]+Vtx2->dTdy[itm]+Vtx3->dTdy[itm]+Vtx4->dTdy[itm]);
                         dTdz[itm] = 0.25*(Vtx1->dTdz[itm]+Vtx2->dTdz[itm]+Vtx3->dTdz[itm]+Vtx4->dTdz[itm]);
                     }
-	            if( get_diffusion_flag() == 1 ) {
+	            if( G.diffusion ) {
                         // Needed for diffusion model, below.
 		        for( size_t isp = 0; isp < nsp; ++isp ) {
                             dfdx[isp] = 0.25*(Vtx1->dfdx[isp]+Vtx2->dfdx[isp]+Vtx3->dfdx[isp]+Vtx4->dfdx[isp]);
@@ -295,7 +295,7 @@ int viscous_flux_3D(Block *A)
                 }
 		mu_eff =  viscous_factor * (fs.gas->mu + fs.mu_t);
 		lmbda = -2.0/3.0 * mu_eff;
-	        if( get_diffusion_flag() == 1 ) {
+	        if( G.diffusion ) {
 		    // Apply a diffusion model
 		    double D_t = 0.0;
 		    if ( G.turbulence_model != TM_NONE ) {
@@ -333,7 +333,7 @@ int viscous_flux_3D(Block *A)
 		    qy[0] += qy[itm];
 		    qz[0] += qz[itm];
 	        }
-	        if( get_diffusion_flag() == 1 ) {
+	        if( G.diffusion ) {
 		    for( size_t isp = 0; isp < nsp; ++isp ) {
 		    	double h = gmodel->enthalpy(*(fs.gas), isp);
 		        qx[0] -= jx[isp] * h;
@@ -391,7 +391,7 @@ int viscous_flux_3D(Block *A)
 		    F.omega -= tau_wx * nx + tau_wy * ny + tau_wz * nz;
 	        }
                 // Species mass flux
-	        if( get_diffusion_flag() == 1 ) {
+	        if( G.diffusion ) {
 	  	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		        F.massf[isp] += jx[isp]*nx + jy[isp]*ny + jz[isp]*nz;
 		    }
@@ -543,7 +543,7 @@ int viscous_flux_3D(Block *A)
 		               if ( vt2dp >= 0.0 ) { dTdz[itm] = Vtx2->dTdz[itm]; } else { dTdz[itm] = Vtx3->dTdz[itm]; }
                            }
                     }
-	            if( get_diffusion_flag() == 1 ) {
+	            if( G.diffusion ) {
                         // Needed for diffusion model, below.
 		        for( size_t isp = 0; isp < nsp; ++isp ) {
                             if ( vt1dp >= 0.0 ) {
@@ -589,7 +589,7 @@ int viscous_flux_3D(Block *A)
                         dTdy[itm] = 0.25*(Vtx1->dTdy[itm]+Vtx2->dTdy[itm]+Vtx3->dTdy[itm]+Vtx4->dTdy[itm]);
                         dTdz[itm] = 0.25*(Vtx1->dTdz[itm]+Vtx2->dTdz[itm]+Vtx3->dTdz[itm]+Vtx4->dTdz[itm]);
                     }
- 	            if( get_diffusion_flag() == 1 ) {
+ 	            if( G.diffusion ) {
                         // derivatives needed for diffusion model, below
 		        for( size_t isp = 0; isp < nsp; ++isp ) {
                             dfdx[isp] = 0.25*(Vtx1->dfdx[isp]+Vtx2->dfdx[isp]+Vtx3->dfdx[isp]+Vtx4->dfdx[isp]);
@@ -604,7 +604,7 @@ int viscous_flux_3D(Block *A)
                 }
 		mu_eff =  viscous_factor * (fs.gas->mu + fs.mu_t);
 		lmbda = -2.0/3.0 * mu_eff;
-	        if( get_diffusion_flag() == 1 ) {
+	        if( G.diffusion ) {
 		    // Apply a diffusion model
 		    double D_t = 0.0;
 		    if ( G.turbulence_model != TM_NONE ) {
@@ -642,7 +642,7 @@ int viscous_flux_3D(Block *A)
 		    qy[0] += qy[itm];
 		    qz[0] += qz[itm];
 	        }
-	        if( get_diffusion_flag() == 1 ) {
+	        if( G.diffusion ) {
 		    for( size_t isp = 0; isp < nsp; ++isp ) {
 		    	double h = gmodel->enthalpy(*(fs.gas), isp);
 		        qx[0] -= jx[isp] * h;
@@ -700,7 +700,7 @@ int viscous_flux_3D(Block *A)
 		    F.omega -= tau_wx * nx + tau_wy * ny + tau_wz * nz;
 	        }
                 // Species mass flux
-	        if( get_diffusion_flag() == 1 ) {
+	        if( G.diffusion ) {
 	  	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		        F.massf[isp] += jx[isp]*nx + jy[isp]*ny + jz[isp]*nz;
 		    }
@@ -852,7 +852,7 @@ int viscous_flux_3D(Block *A)
 		               if ( vt2dp >= 0.0 ) { dTdz[itm] = Vtx2->dTdz[itm]; } else { dTdz[itm] = Vtx3->dTdz[itm]; }
                            }
                     }
-	            if( get_diffusion_flag() == 1 ) {
+	            if( G.diffusion ) {
                         // Needed for diffusion model, below.
 		        for( size_t isp = 0; isp < nsp; ++isp ) {
                             if ( vt1dp >= 0.0 ) {
@@ -898,7 +898,7 @@ int viscous_flux_3D(Block *A)
                         dTdy[itm] = 0.25*(Vtx1->dTdy[itm]+Vtx2->dTdy[itm]+Vtx3->dTdy[itm]+Vtx4->dTdy[itm]);
                         dTdz[itm] = 0.25*(Vtx1->dTdz[itm]+Vtx2->dTdz[itm]+Vtx3->dTdz[itm]+Vtx4->dTdz[itm]);
                     }
- 	            if( get_diffusion_flag() == 1 ) {
+ 	            if( G.diffusion ) {
                         // derivatives needed for diffusion model, below
 		        for( size_t isp = 0; isp < nsp; ++isp ) {
                             dfdx[isp] = 0.25*(Vtx1->dfdx[isp]+Vtx2->dfdx[isp]+Vtx3->dfdx[isp]+Vtx4->dfdx[isp]);
@@ -913,7 +913,7 @@ int viscous_flux_3D(Block *A)
                 }
 		mu_eff =  viscous_factor * (fs.gas->mu + fs.mu_t);
 		lmbda = -2.0/3.0 * mu_eff;
- 	        if( get_diffusion_flag() == 1 ) {
+ 	        if( G.diffusion ) {
 		    // Apply a diffusion model
 		    double D_t = 0.0;
 		    if ( G.turbulence_model != TM_NONE ) {
@@ -951,7 +951,7 @@ int viscous_flux_3D(Block *A)
 		    qy[0] += qy[itm];
 		    qz[0] += qz[itm];
 	        }
-	        if( get_diffusion_flag() == 1 ) {
+	        if( G.diffusion ) {
 		    for( size_t isp = 0; isp < nsp; ++isp ) {
 		    	double h = gmodel->enthalpy(*(fs.gas), isp);
 		        qx[0] -= jx[isp] * h;
@@ -1009,7 +1009,7 @@ int viscous_flux_3D(Block *A)
 		    F.omega -= tau_wx * nx + tau_wy * ny + tau_wz * nz;
 	        }
                 // Species mass flux
-	        if( get_diffusion_flag() == 1 ) {
+	        if( G.diffusion ) {
 	  	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		        F.massf[isp] += jx[isp]*nx + jy[isp]*ny + jz[isp]*nz;
 		    }

@@ -144,7 +144,7 @@ int viscous_flux_2D(Block *A)
     }
     
     viscous_factor = G.viscous_factor;
-    diffusion_factor = get_diffusion_factor();
+    diffusion_factor = G.diffusion_factor;
 
     // East-facing interfaces.
     for ( size_t i = A->imin; i <= A->imax+1; ++i ) {
@@ -188,7 +188,7 @@ int viscous_flux_2D(Block *A)
             k_eff[0] += k_t;
             mu_eff = mu_lam + mu_t;
             lmbda = -2.0/3.0 * mu_eff;
-            if ( get_diffusion_flag() == 1 ) {
+            if ( G.diffusion ) {
                 for ( size_t isp = 0; isp < nsp; ++isp ) {
                     dfdx[isp] = select_derivative( vtx1->dfdx[isp], vtx2->dfdx[isp], vtdp );
                     dfdy[isp] = select_derivative( vtx1->dfdy[isp], vtx2->dfdy[isp], vtdp );
@@ -241,7 +241,7 @@ int viscous_flux_2D(Block *A)
 		qy[0] += qy[itm];
 	    }
 	    
-	    if ( get_diffusion_flag() == 1 ) {
+	    if ( G.diffusion ) {
 		for ( size_t isp = 0; isp < nsp; ++isp ) {
 		    double h = gmodel->enthalpy(*(fs.gas), isp);
 		    qx[0] -= jx[isp] * h;
@@ -295,7 +295,7 @@ int viscous_flux_2D(Block *A)
 		F.omega -= tau_wx * nx + tau_wy * ny;
 	    }
             // Species mass flux
-	    if( get_diffusion_flag() == 1 ) {
+	    if( G.diffusion ) {
 		if ( ( i == A->imin && A->bcp[WEST]->type_code == USER_DEFINED_MASS_FLUX ) ||
 		     ( i == A->imax+1 && A->bcp[EAST]->type_code == USER_DEFINED_MASS_FLUX ) ) {
 		      // Retain species mass flux set earlier
@@ -357,7 +357,7 @@ int viscous_flux_2D(Block *A)
 	    k_eff[0] += k_t;
 	    mu_eff = mu_lam + mu_t;
 	    lmbda = -2.0/3.0 * mu_eff;
-            if ( get_diffusion_flag() == 1 ) {
+            if ( G.diffusion ) {
                 for ( size_t isp = 0; isp < nsp; ++isp ) {
                     dfdx[isp] = select_derivative( vtx1->dfdx[isp], vtx2->dfdx[isp], vtdp );
                     dfdy[isp] = select_derivative( vtx1->dfdy[isp], vtx2->dfdy[isp], vtdp );
@@ -410,7 +410,7 @@ int viscous_flux_2D(Block *A)
 		qy[0] += qy[itm];
 	    }
 	    
-	    if( get_diffusion_flag() == 1 ) {
+	    if( G.diffusion ) {
 		for( size_t isp = 0; isp < nsp; ++isp ) {
 		    double h = gmodel->enthalpy(*(fs.gas), isp);
 		    qx[0] -= jx[isp] * h;
@@ -464,7 +464,7 @@ int viscous_flux_2D(Block *A)
 		F.omega -= tau_wx * nx + tau_wy * ny;
 	    }
 	    // Species mass flux
-	    if( get_diffusion_flag() == 1 ) {
+	    if( G.diffusion ) {
 		if ( (j == A->jmin && A->bcp[SOUTH]->type_code == USER_DEFINED_MASS_FLUX ) ||
 		     (j == A->jmax+1 && A->bcp[NORTH]->type_code == USER_DEFINED_MASS_FLUX ) ) {
 		    // Retain the b.c. set species fluxes by doing nothing, just continue
@@ -510,7 +510,7 @@ int viscous_flux_2D(Block *A)
 		    ((TB[itm] + TA[itm]) * (xB - xA) + (TC[itm] + TB[itm]) * (xC - xB) + \
 		     (TD[itm] + TC[itm]) * (xD - xC) + (TA[itm] + TD[itm]) * (xA - xD)); \
             } \
-            if( get_diffusion_flag() == 1) { \
+            if( G.diffusion ) { \
                 for( size_t isp = 0; isp < nsp; ++isp ) { \
                     A->get_vtx(i,j)->dfdx[isp] = 0.5 * area_inv * \
 		        ((fB[isp] + fA[isp]) * (yB - yA) + (fC[isp] + fB[isp]) * (yC - yB) + \
@@ -574,6 +574,7 @@ int viscous_flux_2D(Block *A)
 ///
 int viscous_derivatives_2D(Block *A, size_t gtl)
 {
+    global_data &G = *get_global_data_ptr();
     double xA, yA, xB, yB, xC, yC, xD, yD;
     double uA, uB, uC, uD;
     double vA, vB, vC, vD;
@@ -630,7 +631,7 @@ int viscous_derivatives_2D(Block *A, size_t gtl)
 		TD[itm] = A->get_cell(i-1,j-1)->fs->gas->T[itm];
             }
 	    //
-	    if( get_diffusion_flag() == 1 ) {
+	    if( G.diffusion ) {
 		for( size_t isp = 0; isp < nsp; ++isp ) {
 		    fA[isp] = A->get_cell(i,j-1)->fs->gas->massf[isp];
 		    fB[isp] = A->get_cell(i,j)->fs->gas->massf[isp];
@@ -677,6 +678,7 @@ int viscous_derivatives_2D(Block *A, size_t gtl)
 ///
 int viscous_derivatives_edges(Block *A, size_t gtl)
 {
+    global_data &G = *get_global_data_ptr();
     size_t i, j;
     double xA, yA, xB, yB, xC, yC, xD, yD;
     double uA, uB, uC, uD;
@@ -734,7 +736,7 @@ int viscous_derivatives_edges(Block *A, size_t gtl)
 	    TD[itm] = A->get_cell(i-1,j-1)->fs->gas->T[itm];
 	}
 	//
-	if( get_diffusion_flag() == 1) {
+	if( G.diffusion ) {
 	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		fA[isp] = A->get_ifi(i,j-1)->fs->gas->massf[isp];
 		fB[isp] = A->get_ifi(i,j)->fs->gas->massf[isp];
@@ -797,7 +799,7 @@ int viscous_derivatives_edges(Block *A, size_t gtl)
 	    TD[itm] = A->get_ifi(i,j-1)->fs->gas->T[itm];
 	}
         //
-	if( get_diffusion_flag() == 1) {
+	if( G.diffusion ) {
 	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		fA[isp] = A->get_cell(i,j-1)->fs->gas->massf[isp];
 		fB[isp] = A->get_cell(i,j)->fs->gas->massf[isp];
@@ -861,7 +863,7 @@ int viscous_derivatives_edges(Block *A, size_t gtl)
 	    TD[itm] = A->get_cell(i-1,j-1)->fs->gas->T[itm];
 	}
 	//
-	if( get_diffusion_flag() == 1) {
+	if( G.diffusion ) {
 	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		fA[isp] = A->get_cell(i,j-1)->fs->gas->massf[isp];
 		fB[isp] = A->get_ifj(i,j)->fs->gas->massf[isp];
@@ -924,7 +926,7 @@ int viscous_derivatives_edges(Block *A, size_t gtl)
 	    TD[itm] = A->get_ifj(i-1,j)->fs->gas->T[itm];
 	}
 	//
-	if( get_diffusion_flag() == 1) { 
+	if( G.diffusion ) { 
 	    for( size_t isp = 0; isp < nsp; ++isp ) {
 		fA[isp] = A->get_ifj(i,j)->fs->gas->massf[isp];
 		fB[isp] = A->get_cell(i,j)->fs->gas->massf[isp];
