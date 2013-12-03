@@ -732,8 +732,8 @@ int read_control_parameters( const string filename, bool master, bool first_time
     dict.parse_double("control_data", "max_time", G.max_time, 1.0e-3);
     dict.parse_size_t("control_data", "max_step", G.max_step, 10);
     dict.parse_int("control_data", "halt_now", G.halt_now, 0);
-    dict.parse_int("control_data", "implicit_flag", i_value, 0);
-    set_implicit_flag( i_value );
+    dict.parse_int("control_data", "implicit_flag", G.implicit_mode, 0);
+    G.implicit_mode = i_value; // FIX-ME PJ We'll replace this with a type map soon.
     dict.parse_size_t("control_data", "wall_update_count", G.wall_update_count, 1);
     dict.parse_int("control_data", "radiation_update_frequency", G.radiation_update_frequency, 1);
     if ( G.radiation_update_frequency < 0 ) {
@@ -766,16 +766,13 @@ int read_control_parameters( const string filename, bool master, bool first_time
 	cout << "    halt_now = " << G.halt_now << endl;
 	cout << "    halt_now = " << G.halt_now << endl;
 	cout << "    radiation_update_frequency = " << G.radiation_update_frequency << endl;
-	if (get_implicit_flag() == 0) {
-	    cout << " (Explicit viscous advancements)" << endl;
-	} else if (get_implicit_flag() == 1) {
-	    cout << " (Point implicit viscous advancements)" << endl;
-	} else if (get_implicit_flag() == 2) {
-	    cout << " (Fully implicit viscous advancements)" << endl;
-	} else {
-	    cout << "\nInvalid implicit flag value: " 
-		 << get_implicit_flag() << endl;
-	    exit( BAD_INPUT_ERROR );
+	cout << "    implicit flag value: " << G.implicit_mode;
+	switch ( G.implicit_mode ) {
+	case 0: cout << " (Explicit viscous advancements)" << endl; break;
+	case 1: cout << " (Point implicit viscous advancements)" << endl; break;
+	case 2: cout << " (Fully implicit viscous advancements)" << endl; break;
+	default: 
+	    throw runtime_error("ERROR: invalid implicit flag was specified.");
 	}
     }
     return SUCCESS;

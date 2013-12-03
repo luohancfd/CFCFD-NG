@@ -108,6 +108,12 @@ struct global_data
      * 0.1 would seem too expensive.  We have settled on a default of 0.2.
      */
 
+    // The implicit mode encodes a number of options:
+    //   0 normal explicit viscous updates, 
+    //   1 point implicit viscous treatment,
+    //   2 fully implicit viscous treatment.
+    int implicit_mode;
+
     /// We might update some properties in with the main convective-terms
     /// time-stepping function or we might choose to update them separately, 
     /// like the chemistry update.
@@ -125,8 +131,10 @@ struct global_data
     bool viscous_upwinding;
     double viscous_time_delay;
 
-    //  When the diffusion is calculated is treated as part of the viscous calculation.
-    bool diffusion; // false for neglecting multicomponent diffusion, true when considering the diffusion           
+    // When the diffusion is calculated is treated as part of the viscous calculation:
+    //   false for neglecting multicomponent diffusion, 
+    //   true when considering the diffusion 
+    bool diffusion; 
     // A factor to scale the diffusion in order to achieve a soft start, separate to viscous effects.
     // The soft-start for diffusion effects may be handy for impulsively-started flows.
     double diffusion_factor;
@@ -260,7 +268,8 @@ struct global_data
 };
 
 //---------------------------------------------------------------
-// Function declarations.
+// Function declarations for things that don't fit neatly into
+// the global_data structure.
 
 std::string get_revision_string();
 global_data * get_global_data_ptr(void);
@@ -278,8 +287,6 @@ void eilmer_finalize( void );
 double incr_viscous_factor( double value );
 double incr_diffusion_factor( double value );
 double incr_heat_factor( double value );
-int set_implicit_flag(int imf);
-int get_implicit_flag(void);
 
 int set_mhd_flag(int imf);
 int get_mhd_flag(void);

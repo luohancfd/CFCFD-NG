@@ -1900,7 +1900,7 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
 	    signal = max(signalN, signalE);
 	}
     }
-    if ( G.viscous && get_implicit_flag() == 0 && fs->gas->mu > 10e-23) {
+    if ( G.viscous && G.implicit_mode == 0 && fs->gas->mu > 10.0e-23) {
 	// Factor for the viscous time limit.
 	// This factor is not included if viscosity is zero.
 	const int VISCOUS_TIME_LIMIT_MODEL = 0; // ==0 original Swanson model,

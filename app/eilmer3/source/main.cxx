@@ -1242,17 +1242,19 @@ int integrate_in_time(double target_time)
 	// 2a.
 	// explicit or implicit update of the inviscid terms.
 	int break_loop2 = 0;
-	if ( get_implicit_flag() == 0 ) {
-	    // explicit update of convective terms
-	    if ( G.moving_grid == false ) 
-		break_loop2 = gasdynamic_explicit_increment_with_fixed_grid(G.dt_global);
-	    else
+	switch ( G.implicit_mode ) {
+	case 0: // explicit update of convective terms and, maybe, the viscous terms
+	    if ( G.moving_grid ) 
 		break_loop2 = gasdynamic_increment_with_moving_grid(G.dt_global);
-	} else if ( get_implicit_flag() == 1 ) {
+	    else
+		break_loop2 = gasdynamic_explicit_increment_with_fixed_grid(G.dt_global);
+	    break;
+	case 1:
 	    break_loop2 = gasdynamic_point_implicit_inviscid_increment(G.dt_global);
-	} else if ( get_implicit_flag() == 2 ) {
+	    break;
+	case 2:
 	    break_loop2 = gasdynamic_fully_implicit_inviscid_increment(G.dt_global);
-	}
+	} // end switch ( G.implicit_mode )
 	if ( break_loop2 ) {
 	    printf("Breaking main loop:\n");
 	    printf("    time step failed at inviscid increment.\n");
@@ -1279,13 +1281,16 @@ int integrate_in_time(double target_time)
 	    // We now have the option of explicit or point implicit update
 	    // of the viscous terms, thanks to Ojas Joshi, EPFL.
 	    int break_loop = 0;
-	    if ( get_implicit_flag() == 0 ) {
+	    switch ( G.implicit_mode ) {
+	    case 0:
 		break_loop = gasdynamic_separate_explicit_viscous_increment();
-	    } else if ( get_implicit_flag() == 1 ) {
+		break;
+	    case 1:
 		break_loop = gasdynamic_point_implicit_viscous_increment();
-	    } else if ( get_implicit_flag() == 2 ) {
+		break;
+	    case 2:
 	    	break_loop = gasdynamic_fully_implicit_viscous_increment();
-	    }
+	    } // end switch ( G.implicit_mode )
 	    if ( break_loop ) {
 		printf("Breaking main loop:\n");
 		printf("    time step failed at viscous increment.\n");

@@ -132,11 +132,6 @@ void eilmer_finalize( void )
 
 //---------------------------------------------------------------------
 
-/// \brief  implicit Flag: =0 normal explicit viscous, 
-///         =1 point implicit viscous treatment enabled,
-///         =2 fully implicit viscous treatment enabled.
-int implicit = 0;
-
 /// \brief For Daryl Bond and Vince Wheatley's MHD additions.
 int mhd_flag = 0;
 
@@ -181,20 +176,6 @@ double incr_heat_factor( double value )
     if ( gd.heat_factor < 0.0 ) gd.heat_factor = 0.0;
     return gd.heat_factor;
 }
-
-int set_implicit_flag(int imf)
-{
-    implicit = imf;
-    // if ( gd.verbose_init_messages ) printf("set implicit_flag=%d\n", implicit);
-    return SUCCESS;
-}
-
-int get_implicit_flag(void)
-{
-    return implicit;
-}
-
-/*------------------------------------------------------------------*/
 
 int set_mhd_flag(int i)
 {
