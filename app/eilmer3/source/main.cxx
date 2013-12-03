@@ -883,7 +883,7 @@ int write_solution_data(std::string tindxstring)
     } // end if ( G.moving_grid
 
     // Compute, store and write heat-flux data, if viscous simulation
-    if ( with_heat_flux_files && get_viscous_flag() ) {
+    if ( with_heat_flux_files && G.viscous ) {
 	foldername = "heat/"+tindxstring;
 	ensure_directory_is_present(foldername); // includes Barrier
 	for ( Block *bdp : G.my_blocks ) {
@@ -957,21 +957,21 @@ int integrate_in_time(double target_time)
 	// Looks like we want heating at some period in time but it is not now.
 	set_heat_factor( 0.0 );
     }
-    if ( get_viscous_flag() ) {
+    if ( G.viscous ) {
 	// We have requested viscous effects but they may be delayed.
 	if ( G.viscous_time_delay > 0.0 && G.sim_time < G.viscous_time_delay ) {
 	    // We will initially turn-down viscous effects and
 	    // only turn them up when the delay time is exceeded.
-	    set_viscous_factor( 0.0 );
+	    G.viscous_factor = 0.0;
 	    viscous_terms_are_on = 0;
 	} else {
 	    // No delay in applying full viscous effects.
-	    set_viscous_factor( 1.0 );
+	    G.viscous_factor = 1.0;
 	    viscous_terms_are_on = 1;
 	}
     } else {
 	// We haven't requested viscous effects at all.
-	set_viscous_factor( 0.0 );
+	G.viscous_factor = 0.0;
 	viscous_terms_are_on = 0;
     }
 
@@ -1040,8 +1040,7 @@ int integrate_in_time(double target_time)
         }
 
         // 0. Alter configuration setting if necessary.
-	if ( get_viscous_flag() == 1 && viscous_terms_are_on == 0 &&
-	     G.sim_time >= G.viscous_time_delay ) {
+	if ( G.viscous && viscous_terms_are_on == 0 && G.sim_time >= G.viscous_time_delay ) {
 	    // We want to turn on the viscous effects only once (if requested)
 	    // and, when doing so in the middle of a simulation, 
 	    // reduce the time step to ensure that these new terms
@@ -1050,16 +1049,16 @@ int integrate_in_time(double target_time)
 	    viscous_terms_are_on = 1;
 	    if ( G.step > 0 ) {
 		printf( "Start softly with viscous effects.\n" );
-		set_viscous_factor( 0.0 );  
+		G.viscous_factor = 0.0;  
 		G.dt_global *= 0.2;
 	    } else {
 		printf( "Start with full viscous effects.\n" );
-		set_viscous_factor( 1.0 );
+		G.viscous_factor = 1.0;
 	    }
 	}
-	if ( viscous_terms_are_on == 1 && get_viscous_factor() < 1.0 ) {
-	    incr_viscous_factor( get_viscous_factor_increment() );
-	    printf( "Increment viscous_factor to %f\n", get_viscous_factor() );
+	if ( viscous_terms_are_on == 1 && G.viscous_factor < 1.0 ) {
+	    incr_viscous_factor(G.viscous_factor_increment);
+	    printf( "Increment viscous_factor to %f\n", G.viscous_factor );
 	    do_cfl_check_now = 1;
 	}
 	if ( get_diffusion_flag() == 1 && diffusion_terms_are_on == 0 &&
@@ -1277,7 +1276,7 @@ int integrate_in_time(double target_time)
 	
 	// 2c. Increment because of viscous effects may be done
 	//     separately to the convective terms.
-	if ( get_viscous_flag() == 1 && G.separate_update_for_viscous_terms ) {
+	if ( G.viscous && G.separate_update_for_viscous_terms ) {
 	    // We now have the option of explicit or point implicit update
 	    // of the viscous terms, thanks to Ojas Joshi, EPFL.
 	    int break_loop = 0;
@@ -1301,7 +1300,7 @@ int integrate_in_time(double target_time)
 			cp->update_k_omega_properties(G.dt_global);
 		}
 	    }
-	} // end if ( get_viscous_flag() == 1
+	} // end if ( G.viscous )
 
         // 2d. Chemistry step. 
 	//     Allow finite-rate evolution of species due
@@ -1467,7 +1466,7 @@ int integrate_in_time(double target_time)
 		for ( Block *bdp : G.my_blocks ) {
 		    if ( bdp->active != 1 ) continue;
 		    apply_convective_bc(*bdp, G.sim_time, G.dimensions);
-		    if ( get_viscous_flag() ) apply_viscous_bc(*bdp, G.sim_time, G.dimensions); 
+		    if ( G.viscous ) apply_viscous_bc(*bdp, G.sim_time, G.dimensions); 
 		}
 #               ifdef _MPI
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -1487,7 +1486,7 @@ int integrate_in_time(double target_time)
 		for ( Block *bdp : G.my_blocks ) {
 		    if ( bdp->active != 1 ) continue;
 		    apply_convective_bc( *bdp, G.sim_time, G.dimensions );
-		    if ( get_viscous_flag() ) apply_viscous_bc(*bdp, G.sim_time, G.dimensions); 
+		    if ( G.viscous ) apply_viscous_bc(*bdp, G.sim_time, G.dimensions); 
 		}
 	    }
 	    G.filter_next_time = G.sim_time + G.filter_dt;
@@ -1661,18 +1660,18 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 	    G.t_level = 0;
 	    if ( bdp->active != 1 ) continue;
 	    bdp->inviscid_flux(G.dimensions);
-	    if ( get_viscous_flag() == 1 && !G.separate_update_for_viscous_terms ) {
+	    if ( G.viscous && !G.separate_update_for_viscous_terms ) {
 		apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
 		if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 0);
 		if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
 		estimate_turbulence_viscosity(&G, bdp);
 		if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
-	    } // end if ( get_viscous_flag()
+	    } // end if ( G.viscous )
 	    for ( FV_Cell *cp: bdp->active_cells ) {
 		cp->add_inviscid_source_vector(0, bdp->omegaz);
 		if ( G.udf_source_vector_flag == 1 )
 		    add_udf_source_vector_for_cell(cp, 0, G.sim_time);
-		if ( get_viscous_flag() == 1 && !G.separate_update_for_viscous_terms ) {
+		if ( G.viscous && !G.separate_update_for_viscous_terms ) {
 		    cp->add_viscous_source_vector(with_k_omega && !G.separate_update_for_k_omega_source);
 		}
 		cp->time_derivatives(0, 0, G.dimensions, with_k_omega);
@@ -1705,18 +1704,18 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		if ( bdp->active != 1 ) continue;
 		apply_convective_bc(*bdp, G.sim_time, G.dimensions);
 		bdp->inviscid_flux(G.dimensions);
-		if ( get_viscous_flag() == 1 && !G.separate_update_for_viscous_terms ) {
+		if ( G.viscous && !G.separate_update_for_viscous_terms ) {
 		    apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
 		    if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 1);
 		    if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
 		    estimate_turbulence_viscosity(&G, bdp);
 		    if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
-		} // end if ( get_viscous_flag()
+		} // end if ( G.viscous )
 		for ( FV_Cell *cp: bdp->active_cells ) {
 		    cp->add_inviscid_source_vector(0, bdp->omegaz);
 		    if ( G.udf_source_vector_flag == 1 )
 			add_udf_source_vector_for_cell(cp, 0, G.sim_time);
-		    if ( get_viscous_flag() == 1 && !G.separate_update_for_viscous_terms ) {
+		    if ( G.viscous && !G.separate_update_for_viscous_terms ) {
 			cp->add_viscous_source_vector(with_k_omega && !G.separate_update_for_k_omega_source);
 		    }
 		    cp->time_derivatives(0, 1, G.dimensions, with_k_omega);
@@ -1748,18 +1747,18 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		if ( bdp->active != 1 ) continue;
 		apply_convective_bc(*bdp, G.sim_time, G.dimensions);
 		bdp->inviscid_flux( G.dimensions );
-		if ( get_viscous_flag() == 1 && !G.separate_update_for_viscous_terms ) {
+		if ( G.viscous && !G.separate_update_for_viscous_terms ) {
 		    apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
 		    if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 2);
 		    if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
 		    estimate_turbulence_viscosity(&G, bdp);
 		    if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
-		} // end if ( get_viscous_flag()
+		} // end if ( G.viscous )
 		for ( FV_Cell *cp: bdp->active_cells ) {
 		    cp->add_inviscid_source_vector(0, bdp->omegaz);
 		    if ( G.udf_source_vector_flag == 1 )
 			add_udf_source_vector_for_cell(cp, 0, G.sim_time);
-		    if ( get_viscous_flag() == 1 && !G.separate_update_for_viscous_terms ) {
+		    if ( G.viscous && !G.separate_update_for_viscous_terms ) {
 			cp->add_viscous_source_vector(with_k_omega && !G.separate_update_for_k_omega_source);
 		    }
 		    cp->time_derivatives(0, 2, G.dimensions, with_k_omega);
@@ -2093,7 +2092,7 @@ int radiation_calculation()
     // radiation calculation in gasdynamic_inviscid_increment()
     for ( Block *bdp : G.my_blocks ) {
 	if ( bdp->active != 1 ) continue;
-	if ( get_viscous_flag() ) apply_viscous_bc( *bdp, G.sim_time, G.dimensions ); 
+	if ( G.viscous ) apply_viscous_bc( *bdp, G.sim_time, G.dimensions ); 
 	apply_convective_bc( *bdp, G.sim_time, G.dimensions );
     }
     if ( G.radiation ) perform_radiation_transport();

@@ -414,7 +414,7 @@ void Block::compute_x_forces(char *text_string, int ibndy, size_t dimensions, si
     global_data &G = *get_global_data_ptr();
     double fx_p, fx_v, x1, y1, cosX, cosY, area;
     double xc, yc, d, vt, mu;
-    size_t i, j, ivisc;
+    size_t i, j;
     FV_Cell *cell;
     FV_Interface *IFace;
     
@@ -425,7 +425,6 @@ void Block::compute_x_forces(char *text_string, int ibndy, size_t dimensions, si
 
     fx_p = 0.0;
     fx_v = 0.0;
-    ivisc = get_viscous_flag();
 
     if ( ibndy == NORTH ) {
 	j = jmax;
@@ -437,7 +436,7 @@ void Block::compute_x_forces(char *text_string, int ibndy, size_t dimensions, si
 	    area = IFace->area[gtl];
 	    mu   = IFace->fs->gas->mu;
 	    fx_p += cell->fs->gas->p * area * cosX;
-	    if ( ivisc ) {
+	    if ( G.viscous ) {
 		/* pieces needed to reconstruct the local velocity gradient */
 		x1 = cell->vtx[0]->pos[gtl].x; y1 = cell->vtx[0]->pos[gtl].y;
 		xc = cell->pos[gtl].x;   yc = cell->pos[gtl].y;
@@ -457,7 +456,7 @@ void Block::compute_x_forces(char *text_string, int ibndy, size_t dimensions, si
 	    area = IFace->area[gtl];
 	    mu   = IFace->fs->gas->mu;
 	    fx_p -= cell->fs->gas->p * area * cosX;
-	    if ( ivisc ) {
+	    if ( G.viscous ) {
 		/* pieces needed to reconstruct the local velocity gradient */
 		x1 = cell->vtx[0]->pos[gtl].x; y1 = cell->vtx[0]->pos[gtl].y;
 		xc = cell->pos[gtl].x;   yc = cell->pos[gtl].y;
@@ -477,7 +476,7 @@ void Block::compute_x_forces(char *text_string, int ibndy, size_t dimensions, si
 	    area = IFace->area[gtl];
 	    mu   = IFace->fs->gas->mu;
 	    fx_p += cell->fs->gas->p * area * cosX;
-	    if ( ivisc ) {
+	    if ( G.viscous ) {
 		/* pieces needed to reconstruct the local velocity gradient */
 		x1 = cell->vtx[1]->pos[gtl].x; y1 = cell->vtx[1]->pos[gtl].y;
 		xc = cell->pos[gtl].x;   yc = cell->pos[gtl].y;
@@ -497,7 +496,7 @@ void Block::compute_x_forces(char *text_string, int ibndy, size_t dimensions, si
 	    area = IFace->area[gtl];
 	    mu   = IFace->fs->gas->mu;
 	    fx_p -= cell->fs->gas->p * area * cosX;
-	    if ( ivisc ) {
+	    if ( G.viscous ) {
 		/* pieces needed to reconstruct the local velocity gradient */
 		x1 = cell->vtx[0]->pos[gtl].x; y1 = cell->vtx[0]->pos[gtl].y;
 		xc = get_cell(i,j)->pos[gtl].x;  yc = get_cell(i,j)->pos[gtl].y;

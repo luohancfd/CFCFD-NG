@@ -119,6 +119,7 @@ int Block::apply_spatial_filter_diffusion(double mu, size_t npass, size_t dimens
 //
 // To do: We should fix for 3D or remove. I think that there are no cases that need it. 
 {
+    global_data &G = *get_global_data_ptr();
     FV_Cell *cell, *cN, *cE, *cS, *cW;
     size_t isp;
     size_t i, j;
@@ -153,7 +154,7 @@ int Block::apply_spatial_filter_diffusion(double mu, size_t npass, size_t dimens
 	    cell = get_cell(i,j);
 	    Gas_data *gas= cell->fs->gas;
 	    gm->eval_thermo_state_rhoe(*gas);
-	    if ( get_viscous_flag() ) gm->eval_transport_coefficients(*gas);
+	    if ( G.viscous ) gm->eval_transport_coefficients(*gas);
 	    if ( get_diffusion_flag() ) gm->eval_diffusion_coefficients(*gas);
 	} // j loop
     } // i loop
@@ -170,6 +171,7 @@ int Block::apply_spatial_filter_anti_diffusion(double mu, size_t npass, size_t d
 //
 // To do: We should fix for 3D or remove. I think that there are no cases that need it. 
 {
+    global_data &G = *get_global_data_ptr();
     FV_Cell *cell;
     double m2, m1, p1, p2;
     size_t isp;
@@ -201,7 +203,7 @@ int Block::apply_spatial_filter_anti_diffusion(double mu, size_t npass, size_t d
 	    cell = get_cell(i,j);
 	    Gas_data *gas= cell->fs->gas;
 	    gm->eval_thermo_state_rhoe(*gas);
-	    if ( get_viscous_flag() ) gm->eval_transport_coefficients(*gas);
+	    if ( G.viscous ) gm->eval_transport_coefficients(*gas);
 	    if ( get_diffusion_flag() ) gm->eval_diffusion_coefficients(*gas);
 	} // j loop
     } // i loop

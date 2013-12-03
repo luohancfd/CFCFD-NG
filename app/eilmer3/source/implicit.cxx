@@ -295,10 +295,8 @@ int calculate_inviscid_jacobian(FV_Cell *cell, FV_Interface *iface)
     H = gmodel->Cp(*(iface->fs->gas), statusf) * iface->fs->gas->T[0] + alpha;
 
 
-    //viscous_factor = get_viscous_factor();
-
-    //mu_lam = viscous_factor * iface->mu;
-    //mu_t = viscous_factor * iface->mu_t;
+    //mu_lam = G.viscous_factor * iface->mu;
+    //mu_t = G.viscous_factor * iface->mu_t;
     //mu_eff = mu_lam + mu_t;
     //e_int = cell->rE - dot(cell->vel, cell->vel);
     	
@@ -540,7 +538,6 @@ int calculate_viscous_jacobian(FV_Cell *cell, FV_Interface *iface)
     double Iu,Iv,Iw;
     double Cu,Cv,Cw;	
     double UL;
-    double viscous_factor; // so that we can scale down the viscous effects
     double factor;
 	
     Iu = iface->fs->vel.x;
@@ -555,10 +552,8 @@ int calculate_viscous_jacobian(FV_Cell *cell, FV_Interface *iface)
     rho = cell->fs->gas->rho;
     Pr =  iface->fs->gas->mu * gmodel->Cp(*(iface->fs->gas), statusf) / iface->fs->gas->k[0];
 
-    viscous_factor = get_viscous_factor();
-
-    mu_lam = viscous_factor * iface->fs->gas->mu;
-    mu_t = viscous_factor * iface->fs->mu_t;
+    mu_lam = G.viscous_factor * iface->fs->gas->mu;
+    mu_t = G.viscous_factor * iface->fs->mu_t;
     mu_eff = mu_lam + mu_t;
     e_int = cell->U[1]->total_energy - dot(cell->fs->vel, cell->fs->vel);
     	

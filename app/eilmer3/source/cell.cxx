@@ -907,6 +907,7 @@ int FV_Cell::copy_grid_level_to_level(size_t from_level, size_t to_level)
 /// \brief Replace the flow data in a cell with the average from neighbour cells.
 int FV_Cell::replace_flow_data_with_average(std::vector<FV_Cell *> src)
 {
+    global_data &G = *get_global_data_ptr();
     size_t ncell = src.size(); 
     size_t ii = 0;
     if ( ncell < 1 ) {
@@ -969,7 +970,7 @@ int FV_Cell::replace_flow_data_with_average(std::vector<FV_Cell *> src)
     // If it is common, we have debugging to do...
     Gas_model *gmodel = get_gas_model_ptr();
     gmodel->eval_thermo_state_pT(*(fs->gas));
-    if ( get_viscous_flag() ) gmodel->eval_transport_coefficients(*(fs->gas));
+    if ( G.viscous ) gmodel->eval_transport_coefficients(*(fs->gas));
     if ( get_diffusion_flag() ) gmodel->eval_diffusion_coefficients(*(fs->gas));
 
     return SUCCESS;
@@ -1179,6 +1180,7 @@ int FV_Cell::encode_conserved(size_t gtl, size_t ftl, double omegaz, bool with_k
 
 int FV_Cell::decode_conserved(size_t gtl, size_t ftl, double omegaz, bool with_k_omega)
 {
+    global_data &G = *get_global_data_ptr();
     ConservedQuantities &myU = *(U[ftl]);
     Gas_model *gmodel = get_gas_model_ptr();
     double e, ke, dinv, rE, me;
@@ -1252,7 +1254,7 @@ int FV_Cell::decode_conserved(size_t gtl, size_t ftl, double omegaz, bool with_k
     // check the species mass fractions.
     // Update the viscous transport coefficients.
     gmodel->eval_thermo_state_rhoe(*(fs->gas));
-    if ( get_viscous_flag() ) gmodel->eval_transport_coefficients(*(fs->gas));
+    if ( G.viscous ) gmodel->eval_transport_coefficients(*(fs->gas));
     if ( get_diffusion_flag() ) gmodel->eval_diffusion_coefficients(*(fs->gas));
 
     return SUCCESS;
@@ -1723,6 +1725,7 @@ int FV_Cell::stage_2_update_for_flow_on_moving_grid(double dt, bool with_k_omega
 int FV_Cell::chemical_increment(double dt, double T_frozen)
 {
     if ( !fr_reactions_allowed or fs->gas->T[0] <= T_frozen ) return SUCCESS;
+    global_data &G = *get_global_data_ptr();
     Gas_model *gmodel = get_gas_model_ptr();
     Reaction_update *rupdate = get_reaction_update_ptr();
 
@@ -1747,7 +1750,7 @@ int FV_Cell::chemical_increment(double dt, double T_frozen)
 
     // If we are doing a viscous sim, we'll need to ensure
     // viscous properties are up-to-date
-    if ( get_viscous_flag() ) gmodel->eval_transport_coefficients(*(fs->gas));
+    if ( G.viscous ) gmodel->eval_transport_coefficients(*(fs->gas));
     if ( get_diffusion_flag() ) gmodel->eval_diffusion_coefficients(*(fs->gas));
     // ...but we have to manually update the conservation quantities
     // for the gas-dynamics time integration.
@@ -1769,6 +1772,7 @@ int FV_Cell::chemical_increment(double dt, double T_frozen)
 int FV_Cell::thermal_increment(double dt, double T_frozen_energy)
 {
     if ( !fr_reactions_allowed or fs->gas->T[0] <= T_frozen_energy ) return SUCCESS;
+    global_data &G = *get_global_data_ptr();
     Gas_model *gmodel = get_gas_model_ptr();
     Energy_exchange_update *eeupdate = get_energy_exchange_update_ptr();
 
@@ -1781,7 +1785,7 @@ int FV_Cell::thermal_increment(double dt, double T_frozen_energy)
 
     // If we are doing a viscous sim, we'll need to ensure
     // viscous properties are up-to-date
-    if ( get_viscous_flag() ) gmodel->eval_transport_coefficients(*(fs->gas));
+    if ( G.viscous ) gmodel->eval_transport_coefficients(*(fs->gas));
     if ( get_diffusion_flag() ) gmodel->eval_diffusion_coefficients(*(fs->gas));
     // ...but we have to manually update the conservation quantities
     // for the gas-dynamics time integration.
@@ -1807,7 +1811,7 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
     double B_mag = 0.0;
     double ca2 = 0.0;
     double cfast = 0.0;
-    double gam_eff, viscous_factor;
+    double gam_eff;
     int statusf;
     global_data &G = *get_global_data_ptr();
     Gas_model *gmodel = get_gas_model_ptr();
@@ -1896,7 +1900,7 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
 	    signal = max(signalN, signalE);
 	}
     }
-    if ( get_viscous_flag() == 1 && get_implicit_flag() == 0 && fs->gas->mu > 10e-23) {
+    if ( G.viscous && get_implicit_flag() == 0 && fs->gas->mu > 10e-23) {
 	// Factor for the viscous time limit.
 	// This factor is not included if viscosity is zero.
 	const int VISCOUS_TIME_LIMIT_MODEL = 0; // ==0 original Swanson model,
@@ -1908,13 +1912,12 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
 	    double k_total = 0.0;
 	    for ( size_t i=0; i<fs->gas->k.size(); ++i ) k_total += fs->gas->k[i];
 	    double Prandtl = fs->gas->mu * gmodel->Cp(*(fs->gas), statusf) / k_total;
-	    viscous_factor = get_viscous_factor();
 	    if ( dimensions == 3 ) {
-		signal += 4.0 * viscous_factor * (fs->gas->mu + fs->mu_t)
+		signal += 4.0 * G.viscous_factor * (fs->gas->mu + fs->mu_t)
 		    * gam_eff / (Prandtl * fs->gas->rho)
 		    * (1.0/(iLength*iLength) + 1.0/(jLength*jLength) + 1.0/(kLength*kLength));
 	    } else {
-		signal += 4.0 * viscous_factor * (fs->gas->mu + fs->mu_t) 
+		signal += 4.0 * G.viscous_factor * (fs->gas->mu + fs->mu_t) 
 		    * gam_eff / (Prandtl * fs->gas->rho)
 		    * (1.0/(iLength*iLength) + 1.0/(jLength*jLength));
 	    }
@@ -1922,15 +1925,15 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
 	    // A viscous time limit model incorporating diffusion effects
 	    // See Ramshaw and Chang PCPP V.12 n.3 1992 p314
 	    // 1. Viscosity signal frequency
-	    double D_a = 4.0 * viscous_factor * (fs->gas->mu + -0.66667 * fs->gas->mu +
-						 fs->mu_t - 0.66667 * fs->mu_t ) / fs->gas->rho;
+	    double D_a = 4.0 * G.viscous_factor * (fs->gas->mu + -0.66667 * fs->gas->mu +
+						   fs->mu_t - 0.66667 * fs->mu_t ) / fs->gas->rho;
 	    // 1. Conductivity signal frequency
 	    double D_b = fs->gas->k[0];
 	    size_t nmodes = gmodel->get_number_of_modes();
 	    for ( size_t imode=1; imode < nmodes; ++imode )
 		D_b += fs->gas->k[imode];
 	    double c_v = gmodel->Cv(*(fs->gas), statusf);
-	    D_b *= viscous_factor / ( fs->gas->rho * c_v );
+	    D_b *= G.viscous_factor / ( fs->gas->rho * c_v );
 	    // 3. calculate the largest mixture diffusivity
 	    double D_c = 0.0;
 	    if ( get_diffusion_flag() == 1 ) {
@@ -1948,7 +1951,7 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
 		for ( size_t isp=0; isp<nsp; ++isp )
 		    if ( DAV_im[isp] > D_c ) D_c = DAV_im[isp];
 	    }
-	    D_c *= viscous_factor;
+	    D_c *= G.viscous_factor;
 	    // 4. Find the maximum effective diffusion
 	    double D_max_i = max( D_a, D_b );
 	    double D_max_ii = max( D_b, D_c );
@@ -2447,7 +2450,6 @@ int FV_Cell::add_viscous_source_vector(bool with_k_omega)
     global_data &G = *get_global_data_ptr();
     if ( G.axisymmetric ) {
 	// For viscous, axisymmetric flow:
-	double viscous_factor = get_viscous_factor();
 	double v_over_y = fs->vel.y / pos[0].y;
 	double dudx = 0.25 * (vtx[0]->dudx + vtx[1]->dudx + vtx[2]->dudx + vtx[3]->dudx);
 	double dvdy = 0.25 * (vtx[0]->dvdy + vtx[1]->dvdy + vtx[2]->dvdy + vtx[3]->dvdy);
@@ -2455,7 +2457,7 @@ int FV_Cell::add_viscous_source_vector(bool with_k_omega)
 			    iface[NORTH]->fs->gas->mu + iface[SOUTH]->fs->gas->mu) +
 	            0.25 * (iface[EAST]->fs->mu_t + iface[WEST]->fs->mu_t +
 			    iface[NORTH]->fs->mu_t + iface[SOUTH]->fs->mu_t);
-	mu *= viscous_factor;
+	mu *= G.viscous_factor;
 	double lmbda = -2.0/3.0 * mu;
 	double tau_00 = 2.0 * mu * v_over_y + lmbda * (dudx + dvdy + v_over_y);
 	// Y-Momentum; viscous stress contribution from the front and Back interfaces.
@@ -2479,7 +2481,6 @@ int FV_Cell::add_viscous_source_vector(bool with_k_omega)
 	// FIXME: Only consistent with ambipolar diffusion. Currently this is up to
 	//        the user to enforce.
 
-	double viscous_factor = get_viscous_factor();
 	double udivpe = 0.0;
 
 	global_data &G = *get_global_data_ptr();
@@ -2503,7 +2504,7 @@ int FV_Cell::add_viscous_source_vector(bool with_k_omega)
 	}
 
 	// FIXME: Assuming the free electron energy is included in the last mode
-        Q->energies.back() += udivpe * viscous_factor;
+        Q->energies.back() += udivpe * G.viscous_factor;
     }
 
     return SUCCESS;

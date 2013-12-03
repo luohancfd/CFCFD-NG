@@ -253,10 +253,14 @@ int read_config_parameters(const string filename, bool master)
     G.drummond_progressive = 0;
 
     G.fixed_time_step = false; // Set to false as a default
-    G.separate_update_for_viscous_terms = false;
     G.cfl_count = 10;
     G.print_count = 20;
     G.control_count = 10;
+
+    G.separate_update_for_viscous_terms = false;
+    G.viscous = false;
+    G.viscous_factor = 1.0;
+    G.viscous_factor_increment = 0.01;
 
     // At the start of a fresh simulation,
     // we need to set a few items that will be updated later.
@@ -379,13 +383,10 @@ int read_config_parameters(const string filename, bool master)
 	cout << "axisymmetric_flag = " << G.axisymmetric << endl;
     }
 
-    dict.parse_int("global_data", "viscous_flag", i_value, 0);
-    set_viscous_flag( i_value );
+    dict.parse_boolean("global_data", "viscous_flag", G.viscous, false);
     dict.parse_double("global_data", "viscous_delay", G.viscous_time_delay, 0.0);
-    dict.parse_double("global_data", "viscous_factor_increment", d_value, 0.01);
-    set_viscous_factor_increment( d_value );
-    dict.parse_int("global_data", "viscous_upwinding_flag", i_value, 0);
-    set_viscous_upwinding_flag( i_value );
+    dict.parse_double("global_data", "viscous_factor_increment", G.viscous_factor_increment, 0.01);
+    dict.parse_boolean("global_data", "viscous_upwinding_flag", G.viscous_upwinding, false);
     // FIX-ME 2013-04-23 should probably merge diffusion_model and diffusion_flag
     // as we have done for turbulence_model, below.
     dict.parse_int("global_data", "diffusion_flag", i_value, 0);
@@ -394,10 +395,10 @@ int read_config_parameters(const string filename, bool master)
     set_diffusion_factor_increment( d_value );
     set_diffusion_flag( i_value );
     if ( G.verbose_init_messages ) {
-	cout << "viscous_flag = " << get_viscous_flag() << endl;
+	cout << "viscous_flag = " << G.viscous << endl;
 	cout << "viscous_delay = " << G.viscous_time_delay << endl;
-	cout << "viscous_factor_increment = " << get_viscous_factor_increment() << endl;
-	cout << "viscous_upwinding_flag = " << get_viscous_upwinding_flag() << endl;
+	cout << "viscous_factor_increment = " << G.viscous_factor_increment << endl;
+	cout << "viscous_upwinding_flag = " << G.viscous_upwinding << endl;
 	cout << "diffusion_flag = " << get_diffusion_flag() << endl;
 	cout << "diffusion_delay = " << G.diffusion_time_delay << endl;
 	cout << "diffusion_factor_increment = " << get_diffusion_factor_increment() << endl;
@@ -658,7 +659,7 @@ int read_config_parameters(const string filename, bool master)
     G.conjugate_ht_active = i_value;
     dict.parse_string("global_data", "conjugate_ht_file", s_value, "dummy_ht_file");
     if ( G.conjugate_ht_active ) {
-	if ( get_viscous_flag() != 1 ) {
+	if ( !G.viscous ) {
 	    cout << "WARNING: Conjugate heat transfer is active\n";
 	    cout << "WARNING: but the viscous flag is not set.\n";
 	    cout << "WARNING: No heat fluxes will be computed at wall.\n";
@@ -707,8 +708,8 @@ int read_control_parameters( const string filename, bool master, bool first_time
     case 3: set_gasdynamic_update_scheme(available_schemes["denman-rk3"]); break;
     default: /* do nothing */;
     }
-    dict.parse_int("control_data", "separate_update_for_viscous_flag", i_value, 0);
-    G.separate_update_for_viscous_terms = (i_value == 1);
+    dict.parse_boolean("control_data", "separate_update_for_viscous_flag", 
+		       G.separate_update_for_viscous_terms, false);
     dict.parse_double("control_data", "dt", G.dt_init, 1.0e-6);
     if ( first_time ) G.dt_global = G.dt_init;
     dict.parse_double("control_data", "dt_max", G.dt_max, 1.0e-3);

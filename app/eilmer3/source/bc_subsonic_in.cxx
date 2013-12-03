@@ -187,6 +187,7 @@ int SubsonicInBC::subsonic_inflow_properties(const CFlowCondition *stagnation,
 					     CFlowCondition *inflow_state, 
 					     double inflow_pressure)
 {
+    global_data &G = *get_global_data_ptr();
     Gas_model *gmodel = get_gas_model_ptr();
     size_t nsp = gmodel->get_number_of_species();
     size_t nmodes = gmodel->get_number_of_modes();
@@ -229,7 +230,7 @@ int SubsonicInBC::subsonic_inflow_properties(const CFlowCondition *stagnation,
 	inflow_state->w = speed * dirn.z;
     }
 
-    if ( get_viscous_flag() ) gmodel->eval_transport_coefficients(*(inflow_state->gas));
+    if ( G.viscous ) gmodel->eval_transport_coefficients(*(inflow_state->gas));
     if ( get_diffusion_flag() ) gmodel->eval_diffusion_coefficients(*(inflow_state->gas));
     return SUCCESS;
 } // end SubsonicInBC::subsonic_inflow_properties()

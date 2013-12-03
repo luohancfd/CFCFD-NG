@@ -132,23 +132,6 @@ void eilmer_finalize( void )
 
 //---------------------------------------------------------------------
 
-/// \brief Viscous flag =0 for inviscid equations, =1 for viscous terms added.
-///
-/// Viscous effects are included in the gas-dynamic update.
-int viscous = 0;
-
-/// \brief A factor to scale the viscosity in order to achieve a soft start.
-/// 
-/// The soft-start for viscous effects may be handy for impulsively-started flows.
-double viscous_factor = 1.0;
-
-/// \brief The amount by which to increment the viscous factor during soft-start.
-double viscous_factor_increment = 0.01;
-
-/// \brief Viscous upwinding =0 for viscous flux from upwind direction, =1 for average of both
-/// directions.
-int viscous_upwinding = 0;
-
 /// \brief Diffusion flag =0 for neglecting multicomponent diffusion, =1
 //         when considering the diffusion.
 //  When the diffusion is calculated is treated as part of the viscous
@@ -195,85 +178,13 @@ int electric_field_work = 0;
 
 /*------------------------------------------------------------------*/
 
-int set_viscous_flag(int iv)
-{
-    viscous = iv;
-    if (viscous == 0) {
-        if ( gd.verbose_init_messages ) printf("Turn off viscous terms.\n");
-    }
-    else if (viscous == 1) {
-        if ( gd.verbose_init_messages ) printf("Turn on viscous terms.\n");
-    }
-    else {
-        printf("Invalid viscous flag value: %d\n", viscous);
-        exit(VALUE_ERROR);
-    }
-    return SUCCESS;
-}
-
-int get_viscous_flag(void)
-{
-    return viscous;
-}
-
-int set_viscous_upwinding_flag(int iw)
-{
-    viscous_upwinding = iw;
-    if (viscous_upwinding == 0) {
-        if ( gd.verbose_init_messages ) printf("Turn off viscous upwinding.\n");
-    }
-    else if (viscous_upwinding == 1) {
-        if ( gd.verbose_init_messages ) printf("Turn on viscous upwinding.\n");
-    }
-    else {
-        printf("Invalid viscous upwinding value: %d\n", viscous_upwinding);
-        exit(VALUE_ERROR);
-    }
-    return SUCCESS;
-}
-
-int get_viscous_upwinding_flag(void)
-{
-    return viscous_upwinding;
-}
-
-/// \brief Set the viscous_factor to a specified value.
-double set_viscous_factor( double value )
-{
-    if ( value > 1.0 ) value = 1.0;
-    if ( value < 0.0 ) value = 0.0;
-    viscous_factor = value;
-    return viscous_factor;
-}
-
-/// \brief Get the stored value of viscous_factor.
-double get_viscous_factor( void )
-{
-    return viscous_factor;
-}
-
 /// \brief Increment the viscous_factor to a specified value.
 double incr_viscous_factor( double value )
 {
-    viscous_factor += value;
-    if ( viscous_factor > 1.0 ) viscous_factor = 1.0;
-    if ( viscous_factor < 0.0 ) viscous_factor = 0.0;
-    return viscous_factor;
-}
-
-/// \brief Set the viscous_factor_increment to a specified value.
-double set_viscous_factor_increment( double value )
-{
-    if ( value > 1.0 ) value = 1.0;
-    if ( value < 0.0 ) value = 0.0;
-    viscous_factor_increment = value;
-    return viscous_factor_increment;
-}
-
-/// \brief Set the stored value of the increment.
-double get_viscous_factor_increment( void )
-{
-    return viscous_factor_increment;
+    gd.viscous_factor += value;
+    if ( gd.viscous_factor > 1.0 ) gd.viscous_factor = 1.0;
+    if ( gd.viscous_factor < 0.0 ) gd.viscous_factor = 0.0;
+    return gd.viscous_factor;
 }
 
 /*------------------------------------------------------------------*/

@@ -86,7 +86,8 @@ int estimate_turbulence_viscosity(global_data *gdp, Block *bdp)
 /// v_right : value on the right
 /// vtdp : velocity/tangent dot product 
 double select_derivative(double v_left, double v_right, double vtdp) {
-    if ( get_viscous_upwinding_flag() == 1 ) {
+    global_data &G = *get_global_data_ptr();
+    if ( G.viscous_upwinding ) {
         // Using upwinding
         return (( vtdp >= 0.0 ) ? v_left : v_right); 
     } else {
@@ -142,7 +143,7 @@ int viscous_flux_2D(Block *A)
 	k_eff.resize(ntm);
     }
     
-    viscous_factor = get_viscous_factor();
+    viscous_factor = G.viscous_factor;
     diffusion_factor = get_diffusion_factor();
 
     // East-facing interfaces.

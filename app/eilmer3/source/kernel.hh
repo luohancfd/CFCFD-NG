@@ -114,6 +114,18 @@ struct global_data
     bool separate_update_for_viscous_terms;
     bool separate_update_for_k_omega_source;
 
+    bool viscous; // if true, viscous effects are included in the gas-dynamic update.
+
+    // A factor to scale the viscosity in order to achieve a soft start. 
+    // The soft-start for viscous effects may be handy for impulsively-started flows.
+    // A value of 1.0 means that the viscous effects are fully applied.
+    double viscous_factor;
+    // The amount by which to increment the viscous factor during soft-start.
+    double viscous_factor_increment;
+
+    // true for viscous flux from upwind direction, false for average of both directions.
+    bool viscous_upwinding;
+
     double viscous_time_delay;
     double diffusion_time_delay;
     turbulence_model_t turbulence_model;
@@ -253,15 +265,8 @@ RadiationTransportModel *get_radiation_transport_model_ptr();
 Block * get_block_data_ptr(size_t i);
 void eilmer_finalize( void );
 
-int set_viscous_flag(int iv);
-int get_viscous_flag(void);
-int set_viscous_upwinding_flag(int iw);
-int get_viscous_upwinding_flag(void);
-double set_viscous_factor( double value );
-double get_viscous_factor( void );
 double incr_viscous_factor( double value );
-double set_viscous_factor_increment( double value );
-double get_viscous_factor_increment( void );
+
 int set_diffusion_flag(int id);
 int get_diffusion_flag(void);
 double set_diffusion_factor( double value );

@@ -69,7 +69,7 @@ int viscous_flux_3D(Block *A)
     double mu_effective;
     double tau_kx, tau_ky, tau_kz, tau_wx, tau_wy, tau_wz;
 
-    double viscous_factor = get_viscous_factor();
+    double viscous_factor = G.viscous_factor;
     Gas_model *gmodel = get_gas_model_ptr();
 
     size_t nsp = gmodel->get_number_of_species();
@@ -108,7 +108,7 @@ int viscous_flux_3D(Block *A)
 		Vtx3 = A->get_vtx(i+1,j+1,k+1);
 		Vtx4 = A->get_vtx(i+1,j,k+1);
 		// Determine some of the interface properties.
-                if ( get_viscous_upwinding_flag() == 1 ) {
+                if ( G.viscous_upwinding ) {
                     // Select one corner, based on the wind direction.
 	            // When getting the velocity for upwinding, use the interface value
 	            // unless we are at one of the block boundaries. 
@@ -417,7 +417,7 @@ int viscous_flux_3D(Block *A)
 		Vtx3 = A->get_vtx(i+1,j+1,k+1);
 		Vtx4 = A->get_vtx(i+1,j+1,k);
 		// Determine some of the interface properties.
-                if ( get_viscous_upwinding_flag() == 1 ) {
+                if ( G.viscous_upwinding ) {
                     // Select one corner, based on the wind direction.
 	            // When getting the velocity for upwinding, use the interface value
 	            // unless we are at one of the block boundaries. 
@@ -726,7 +726,7 @@ int viscous_flux_3D(Block *A)
 		Vtx3 = A->get_vtx(i+1,j+1,k+1);
 		Vtx4 = A->get_vtx(i,j+1,k+1);
 		// Determine some of the interface properties.
-                if ( get_viscous_upwinding_flag() == 1 ) {
+                if ( G.viscous_upwinding ) {
                     // Select one corner, based on the wind direction.
 	            // When getting the velocity for upwinding, use the interface value
 	            // unless we are at one of the block boundaries. 
