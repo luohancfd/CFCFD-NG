@@ -158,6 +158,7 @@ int AblatingBC::apply_convective(double t)
     // The default convective boundary condition is to reflect
     // the normal component of the velocity at the ghost-cell
     // centres -- slip-wall. 
+    global_data &G = *get_global_data_ptr();
     size_t i, j, k;
     FV_Cell *src_cell, *dest_cell;
     FV_Interface *IFace;
@@ -174,7 +175,7 @@ int AblatingBC::apply_convective(double t)
 		dest_cell = bd.get_cell(i,j+1,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 		// ghost cell 2.
@@ -182,7 +183,7 @@ int AblatingBC::apply_convective(double t)
 		dest_cell = bd.get_cell(i,j+2,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 	    } // end i loop
@@ -198,7 +199,7 @@ int AblatingBC::apply_convective(double t)
 		dest_cell = bd.get_cell(i+1,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 		// ghost cell 2.
@@ -206,7 +207,7 @@ int AblatingBC::apply_convective(double t)
 		dest_cell = bd.get_cell(i+2,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 	    } // end j loop
@@ -222,7 +223,7 @@ int AblatingBC::apply_convective(double t)
 		dest_cell = bd.get_cell(i,j-1,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 		// ghost cell 2.
@@ -230,7 +231,7 @@ int AblatingBC::apply_convective(double t)
 		dest_cell = bd.get_cell(i,j-2,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 	    } // end i loop
@@ -246,7 +247,7 @@ int AblatingBC::apply_convective(double t)
 		dest_cell = bd.get_cell(i-1,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 		// ghost cell 2.
@@ -254,7 +255,7 @@ int AblatingBC::apply_convective(double t)
 		dest_cell = bd.get_cell(i-2,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 	    } // end j loop
@@ -270,7 +271,7 @@ int AblatingBC::apply_convective(double t)
 		dest_cell = bd.get_cell(i,j,k+1);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 		// ghost cell 2.
@@ -278,7 +279,7 @@ int AblatingBC::apply_convective(double t)
 		dest_cell = bd.get_cell(i,j,k+2);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 	    } // end j loop
@@ -299,7 +300,7 @@ int AblatingBC::apply_convective(double t)
 		dest_cell = bd.get_cell(i,j,k-2);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 	    } // end j loop

@@ -152,12 +152,13 @@ void apply_matrix_transform(const std::vector<double>& Rmatrix,
 
 void reorient_vector_quantities_in_cell(FV_Cell *c, const std::vector<double>& Rmatrix) 
 {
+    global_data &G = *get_global_data_ptr();
     std::vector<double>oldv(3);
     std::vector<double>newv(3);
     oldv[0] = c->fs->vel.x; oldv[1] = c->fs->vel.y; oldv[2] = c->fs->vel.z;
     apply_matrix_transform(Rmatrix, oldv, newv);
     c->fs->vel.x = newv[0]; c->fs->vel.y = newv[1]; c->fs->vel.z = newv[2];
-    if ( get_mhd_flag() ) {
+    if ( G.MHD ) {
 	oldv[0] = c->fs->B.x; oldv[1] = c->fs->B.y; oldv[2] = c->fs->B.z;
 	apply_matrix_transform(Rmatrix, oldv, newv);
 	c->fs->B.x = newv[0]; c->fs->B.y = newv[1]; c->fs->B.z = newv[2];

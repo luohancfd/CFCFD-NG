@@ -424,7 +424,7 @@ int prepare_to_integrate(size_t start_tindx)
         if (bdp->read_solution(filename, &(G.sim_time), G.dimensions, zip_files) != SUCCESS) {
 	    return FAILURE;
 	}
-	if (get_BGK_flag() == 2) {
+	if ( G.BGK == 2 ) {
 	    filename = "flow/"+tindxstring+"/"+G.base_file_name+".BGK"+jbstring+"."+tindxstring;
 	    if ( access(filename.c_str(), F_OK) != 0 ) {
 		// previous BGK velocity distributions do exist, try to read them in
@@ -432,7 +432,7 @@ int prepare_to_integrate(size_t start_tindx)
 		    return FAILURE;
 		}
 	    }
-	} else if (get_BGK_flag() == 1) {
+	} else if ( G.BGK == 1) {
 	    // assume equilibrium velocity distribution, generate from conserved props
 	    if (bdp->initialise_BGK_equilibrium() != SUCCESS) {
 		return FAILURE;

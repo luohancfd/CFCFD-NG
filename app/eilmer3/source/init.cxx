@@ -283,6 +283,10 @@ int read_config_parameters(const string filename, bool master)
     G.turbulence_schmidt = 0.75;
     G.separate_update_for_k_omega_source = false;
 
+    // Daryl's MHD and BGK additions are, by default, off.
+    G.MHD = false;
+    G.BGK = 0;
+
     // Most configuration comes from the previously-generated INI file.
     ConfigParser dict = ConfigParser(filename);
     int i_value;
@@ -336,17 +340,12 @@ int read_config_parameters(const string filename, bool master)
 	cout << "electric_field_work_flag = " << G.electric_field_work << endl;
     }
 
-    dict.parse_int("global_data", "mhd_flag", i_value, 0);
-    set_mhd_flag( i_value );
+    dict.parse_boolean("global_data", "mhd_flag", G.MHD, false);
 
-    dict.parse_int("global_data", "BGK_flag", i_value, 0);
-    set_BGK_flag( i_value );
-
-    if (get_BGK_flag() > 0) {
-
+    dict.parse_int("global_data", "BGK_flag", G.BGK, 0);
+    if ( G.BGK > 0) {
 	dict.parse_int("global_data", "velocity_buckets", i_value, 0);
 	set_velocity_buckets( i_value );
-    
 	if (get_velocity_buckets() > 0) {
 	    std::vector<Vector3> *vct = get_vcoords_ptr();
 	    std::vector<double> tmp;
@@ -369,13 +368,11 @@ int read_config_parameters(const string filename, bool master)
 	    for (size_t tid = 0; tid < get_velocity_buckets(); ++tid) {
 		(*vwt)[tid] = tmp[tid];
 	    }
-	}
-	else {
+	} else {
 	    cout << "Failure setting BGK velocities." << endl;
 	    return FAILURE;
 	}
-	    
-    }
+    } // end if ( G.BGK )
 
     dict.parse_boolean("global_data", "radiation_flag", G.radiation, false);
     dict.parse_string("global_data", "radiation_input_file", s_value, "no_file");

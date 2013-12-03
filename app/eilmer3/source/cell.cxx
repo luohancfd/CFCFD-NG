@@ -131,10 +131,11 @@ FlowState::~FlowState()
 
 int FlowState::print() const
 {
+    global_data &gd = *get_global_data_ptr();
     printf("----------- Data for a flow state... ------------\n");
     gas->print_values();
     printf("v.x= %e, v.y= %e, v.z= %e \n", vel.x, vel.y, vel.z);
-    if ( get_mhd_flag() == 1 ) {
+    if ( gd.MHD ) {
 	printf("B.x= %e, B.y=%e, B.z=%e \n", B.x, B.y, B.z);
     }
     if ( get_velocity_buckets() > 0) {
@@ -167,9 +168,10 @@ int FlowState::copy_values_from(const FlowState &src)
 
 int FlowState::copy_values_from(const CFlowCondition &src)
 {
+    global_data &G = *get_global_data_ptr();
     gas->copy_values_from(*(src.gas));
     vel.x = src.u; vel.y = src.v; vel.z = src.w;
-    if ( get_mhd_flag() == 1 ) {
+    if ( G.MHD ) {
 	B.x = src.Bx; B.y = src.By; B.z = src.Bz;
     }
     S = src.S;
@@ -183,11 +185,12 @@ int FlowState::copy_values_from(const CFlowCondition &src)
 int FlowState::average_values_from(const FlowState &src0, const FlowState &src1,
 				   bool with_diff_coeff)
 {
+    global_data &gd = *get_global_data_ptr();
     gas->average_values_from(*(src0.gas), 0.5, *(src1.gas), 0.5, with_diff_coeff);
     vel.x = 0.5 * (src0.vel.x + src1.vel.x);
     vel.y = 0.5 * (src0.vel.y + src1.vel.y);
     vel.z = 0.5 * (src0.vel.z + src1.vel.z);
-    if ( get_mhd_flag() == 1 ) {
+    if ( gd.MHD ) {
 	B.x = 0.5 * (src0.B.x + src1.B.x);
 	B.y = 0.5 * (src0.B.y + src1.B.y);
 	B.z = 0.5 * (src0.B.z + src1.B.z);
@@ -209,11 +212,12 @@ int FlowState::average_values_from(const FlowState &src0, const FlowState &src1,
 /// \returns a pointer to the next available location in the data buffer.
 double * FlowState::copy_values_to_buffer(double *buf) const
 {
+    global_data &gd = *get_global_data_ptr();
     buf = gas->copy_values_to_buffer(buf);
     *buf++ = vel.x;
     *buf++ = vel.y;
     *buf++ = vel.z;
-    if ( get_mhd_flag() == 1 ) {
+    if ( gd.MHD ) {
 	*buf++ = B.x;
 	*buf++ = B.y;
 	*buf++ = B.z;
@@ -235,11 +239,12 @@ double * FlowState::copy_values_to_buffer(double *buf) const
 /// \returns a pointer to the next available location in the data buffer.
 double * FlowState::copy_values_from_buffer(double *buf)
 {
+    global_data &gd = *get_global_data_ptr();
     buf = gas->copy_values_from_buffer(buf);
     vel.x = *buf++;
     vel.y = *buf++;
     vel.z = *buf++;
-    if ( get_mhd_flag() == 1 ) {
+    if ( gd.MHD ) {
 	B.x = *buf++;
 	B.y = *buf++;
 	B.z = *buf++;
@@ -328,10 +333,11 @@ ConservedQuantities::~ConservedQuantities()
 
 int ConservedQuantities::print() const
 {
+    global_data &gd = *get_global_data_ptr();
     cout << "mass= " << mass << endl;
     cout << "momentum.x= " << momentum.x << " .y= " << momentum.y
 	 << " .z= " << momentum.z << endl;
-    if ( get_mhd_flag() == 1 ) {
+    if ( gd.MHD ) {
 	cout << "B.x= " << B.x << " .y= " << B.y << " .z= " << B.z << endl;
     }
     cout << "total_energy= " << total_energy << endl;
@@ -777,9 +783,10 @@ int FV_Cell::point_is_inside(Vector3 &p, int dimensions, size_t gtl) const
 
 int FV_Cell::copy_values_from(const CFlowCondition &src)
 {
+    global_data &G = *get_global_data_ptr();
     fs->gas->copy_values_from(*(src.gas));
     fs->vel.x = src.u; fs->vel.y = src.v; fs->vel.z = src.w;
-    if ( get_mhd_flag() == 1 ) {
+    if ( G.MHD ) {
 	fs->B.x = src.Bx; fs->B.y = src.By; fs->B.z = src.Bz;
     }
     fs->S = src.S;
@@ -921,7 +928,7 @@ int FV_Cell::replace_flow_data_with_average(std::vector<FV_Cell *> src)
     fs->vel.x = src[ii]->fs->vel.x;
     fs->vel.y = src[ii]->fs->vel.y;
     fs->vel.z = src[ii]->fs->vel.z;
-    if ( get_mhd_flag() == 1 ) {
+    if ( G.MHD ) {
 	fs->B.x = src[ii]->fs->B.x;
 	fs->B.y = src[ii]->fs->B.y;
 	fs->B.z = src[ii]->fs->B.z;
@@ -938,7 +945,7 @@ int FV_Cell::replace_flow_data_with_average(std::vector<FV_Cell *> src)
 	    fs->vel.x += src[ii]->fs->vel.x;
 	    fs->vel.y += src[ii]->fs->vel.y;
 	    fs->vel.z += src[ii]->fs->vel.z;
-	    if ( get_mhd_flag() == 1 ) {
+	    if ( G.MHD ) {
 		fs->B.x += src[ii]->fs->B.x;
 		fs->B.y += src[ii]->fs->B.y;
 		fs->B.z += src[ii]->fs->B.z;
@@ -955,7 +962,7 @@ int FV_Cell::replace_flow_data_with_average(std::vector<FV_Cell *> src)
 	fs->vel.x /= dncell;
 	fs->vel.y /= dncell;
 	fs->vel.z /= dncell;
-	if ( get_mhd_flag() == 1 ) {
+	if ( G.MHD ) {
 	    fs->B.x /= dncell;
 	    fs->B.y /= dncell;
 	    fs->B.z /= dncell;
@@ -997,7 +1004,7 @@ int FV_Cell::scan_values_from_string(char *bufptr)
     fs->vel.x = atof(strtok( NULL, " " ));
     fs->vel.y = atof(strtok( NULL, " " ));
     fs->vel.z = atof(strtok( NULL, " " ));
-    if ( get_mhd_flag() == 1 ) {
+    if ( G.MHD ) {
 	fs->B.x = atof(strtok( NULL, " " ));
 	fs->B.y = atof(strtok( NULL, " " ));
 	fs->B.z = atof(strtok( NULL, " " ));
@@ -1047,7 +1054,7 @@ std::string FV_Cell::write_values_to_string() const
     ost << pos[0].x << " " << pos[0].y << " " << pos[0].z // Note grid-level 0.
 	<< " " << volume[0] << " " <<  fs->gas->rho
 	<< " " << fs->vel.x << " " << fs->vel.y << " " << fs->vel.z;
-    if ( get_mhd_flag() == 1 ) {
+    if ( G.MHD ) {
 	ost << " " << fs->B.x << " " << fs->B.y << " " << fs->B.z;
     }
     ost << " " << fs->gas->p << " " << fs->gas->a << " " << fs->gas->mu;
@@ -1119,6 +1126,7 @@ std::string FV_Cell::write_BGK_to_string() const
 
 int FV_Cell::encode_conserved(size_t gtl, size_t ftl, double omegaz, bool with_k_omega)
 {
+    global_data &G = *get_global_data_ptr();
     ConservedQuantities &myU = *(U[ftl]);
 
     myU.mass = fs->gas->rho;
@@ -1145,7 +1153,7 @@ int FV_Cell::encode_conserved(size_t gtl, size_t ftl, double omegaz, bool with_k
 	myU.omega = fs->gas->rho * 1.0;
 	myU.total_energy = fs->gas->rho * (e + ke);
     }
-    if ( get_mhd_flag() == 1) {
+    if ( G.MHD ) {
 	double me = 0.5 * (fs->B.x * fs->B.x
 			   + fs->B.y * fs->B.y
 			   + fs->B.z * fs->B.z);
@@ -1218,7 +1226,7 @@ int FV_Cell::decode_conserved(size_t gtl, size_t ftl, double omegaz, bool with_k
     fs->B.z = myU.B.z;
     // Specific internal energy from total energy per unit volume.
     ke = 0.5 * (fs->vel.x * fs->vel.x + fs->vel.y * fs->vel.y + fs->vel.z * fs->vel.z);
-    if (get_mhd_flag() == 1) {
+    if ( G.MHD ) {
         me = 0.5*(fs->B.x*fs->B.x + fs->B.y*fs->B.y + fs->B.z*fs->B.z);
     } else {
         me = 0.0;
@@ -1308,6 +1316,7 @@ bool FV_Cell::check_flow_data(void)
 /// \param dimensions : number of space dimensions (2 or 3)
 int FV_Cell::time_derivatives(size_t gtl, size_t ftl, size_t dimensions, bool with_k_omega)
 {
+    global_data &G = *get_global_data_ptr();
     Gas_model *gmodel = get_gas_model_ptr();
     size_t nsp = gmodel->get_number_of_species();
     size_t nmodes = gmodel->get_number_of_modes();
@@ -1351,7 +1360,7 @@ int FV_Cell::time_derivatives(size_t gtl, size_t ftl, size_t dimensions, bool wi
     dUdt[ftl]->momentum.y = vol_inv * integral + Q->momentum.y;
     
     // we require the z-momentum for MHD even in 2D
-    if ((dimensions == 3) || (get_mhd_flag() == 1)) {
+    if ((dimensions == 3) || ( G.MHD )) {
 	// Time-derivative for Z-Momentum/unit volume.
 	integral = -IFe->F->momentum.z * IFe->area[gtl] - IFn->F->momentum.z * IFn->area[gtl]
 	    + IFw->F->momentum.z * IFw->area[gtl] + IFs->F->momentum.z * IFs->area[gtl];
@@ -1359,13 +1368,13 @@ int FV_Cell::time_derivatives(size_t gtl, size_t ftl, size_t dimensions, bool wi
     if ( dimensions == 3) {
 	integral += IFb->F->momentum.z * IFb->area[gtl] - IFt->F->momentum.z * IFt->area[gtl];
     }
-    if ((dimensions == 3) || (get_mhd_flag() == 1)) {
+    if ((dimensions == 3) || ( G.MHD )) {
 	dUdt[ftl]->momentum.z = vol_inv * integral + Q->momentum.z;
     } else {
 	dUdt[ftl]->momentum.z = 0.0;
     }
     
-    if (get_mhd_flag() == 1) {
+    if ( G.MHD ) {
 	// Time-derivative for X-Magnetic Field/unit volume.
 	integral = -IFe->F->B.x * IFe->area[gtl] - IFn->F->B.x * IFn->area[gtl]
 	    + IFw->F->B.x * IFw->area[gtl] + IFs->F->B.x * IFs->area[gtl];
@@ -1449,6 +1458,7 @@ int FV_Cell::time_derivatives(size_t gtl, size_t ftl, size_t dimensions, bool wi
 
 int FV_Cell::stage_1_update_for_flow_on_fixed_grid(double dt, bool force_euler, bool with_k_omega)
 {
+    global_data &G = *get_global_data_ptr();
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &U0 = *(U[0]);
     ConservedQuantities &U1 = *(U[1]);
@@ -1477,7 +1487,7 @@ int FV_Cell::stage_1_update_for_flow_on_fixed_grid(double dt, bool force_euler, 
     U1.momentum.x = U0.momentum.x + dt * gamma_1 * dUdt0.momentum.x;
     U1.momentum.y = U0.momentum.y + dt * gamma_1 * dUdt0.momentum.y;
     U1.momentum.z = U0.momentum.z + dt * gamma_1 * dUdt0.momentum.z;
-    if ( get_mhd_flag() == 1 ) {
+    if ( G.MHD ) {
 	// Magnetic field
 	U1.B.x = U0.B.x + dt * gamma_1 * dUdt0.B.x;
 	U1.B.y = U0.B.y + dt * gamma_1 * dUdt0.B.y;
@@ -1516,6 +1526,7 @@ int FV_Cell::stage_1_update_for_flow_on_fixed_grid(double dt, bool force_euler, 
 
 int FV_Cell::stage_2_update_for_flow_on_fixed_grid(double dt, bool with_k_omega)
 {
+    global_data &G = *get_global_data_ptr();
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &dUdt1 = *(dUdt[1]);
     ConservedQuantities *U_old = U[0];
@@ -1537,7 +1548,7 @@ int FV_Cell::stage_2_update_for_flow_on_fixed_grid(double dt, bool with_k_omega)
     U2.momentum.x = U_old->momentum.x + dt * (gamma_1 * dUdt0.momentum.x + gamma_2 * dUdt1.momentum.x);
     U2.momentum.y = U_old->momentum.y + dt * (gamma_1 * dUdt0.momentum.y + gamma_2 * dUdt1.momentum.y);
     U2.momentum.z = U_old->momentum.z + dt * (gamma_1 * dUdt0.momentum.z + gamma_2 * dUdt1.momentum.z);
-    if ( get_mhd_flag() == 1 ) {
+    if ( G.MHD ) {
 	// Magnetic field
 	U2.B.x = U_old->B.x + dt * (gamma_1 * dUdt0.B.x + gamma_2 * dUdt1.B.x);
 	U2.B.y = U_old->B.y + dt * (gamma_1 * dUdt0.B.y + gamma_2 * dUdt1.B.y);
@@ -1569,6 +1580,7 @@ int FV_Cell::stage_2_update_for_flow_on_fixed_grid(double dt, bool with_k_omega)
 
 int FV_Cell::stage_3_update_for_flow_on_fixed_grid(double dt, bool with_k_omega)
 {
+    global_data &G = *get_global_data_ptr();
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &dUdt1 = *(dUdt[1]);
     ConservedQuantities &dUdt2 = *(dUdt[2]);
@@ -1594,7 +1606,7 @@ int FV_Cell::stage_3_update_for_flow_on_fixed_grid(double dt, bool with_k_omega)
 	dt * (gamma_1*dUdt0.momentum.y + gamma_2*dUdt1.momentum.y + gamma_3*dUdt2.momentum.y);
     U3.momentum.z = U_old->momentum.z + 
 	dt * (gamma_1*dUdt0.momentum.z + gamma_2*dUdt1.momentum.z + gamma_3*dUdt2.momentum.z);
-    if ( get_mhd_flag() == 1 ) {
+    if ( G.MHD ) {
 	// Magnetic field
 	U3.B.x = U_old->B.x + dt * (gamma_1*dUdt0.B.x + gamma_2*dUdt1.B.x + gamma_3*dUdt2.B.x);
 	U3.B.y = U_old->B.y + dt * (gamma_1*dUdt0.B.y + gamma_2*dUdt1.B.y + gamma_3*dUdt2.B.y);
@@ -1628,6 +1640,7 @@ int FV_Cell::stage_3_update_for_flow_on_fixed_grid(double dt, bool with_k_omega)
 
 int FV_Cell::stage_1_update_for_flow_on_moving_grid(double dt, bool with_k_omega)
 {
+    global_data &G = *get_global_data_ptr();
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &U0 = *(U[0]);
     ConservedQuantities &U1 = *(U[1]);
@@ -1638,7 +1651,7 @@ int FV_Cell::stage_1_update_for_flow_on_moving_grid(double dt, bool with_k_omega
     U1.momentum.x = vr * (U0.momentum.x + dt * gamma_1 * dUdt0.momentum.x);
     U1.momentum.y = vr * (U0.momentum.y + dt * gamma_1 * dUdt0.momentum.y);
     U1.momentum.z = vr * (U0.momentum.z + dt * gamma_1 * dUdt0.momentum.z);
-    if ( get_mhd_flag() == 1 ) {
+    if ( G.MHD ) {
 	// Magnetic field
 	U1.B.x = vr * (U0.B.x + dt * gamma_1 * dUdt0.B.x);
 	U1.B.y = vr * (U0.B.y + dt * gamma_1 * dUdt0.B.y);
@@ -1668,6 +1681,7 @@ int FV_Cell::stage_1_update_for_flow_on_moving_grid(double dt, bool with_k_omega
 
 int FV_Cell::stage_2_update_for_flow_on_moving_grid(double dt, bool with_k_omega)
 {
+    global_data &G = *get_global_data_ptr();
     ConservedQuantities &dUdt0 = *(dUdt[0]);
     ConservedQuantities &dUdt1 = *(dUdt[1]);
     ConservedQuantities &U0 = *(U[0]);
@@ -1686,7 +1700,7 @@ int FV_Cell::stage_2_update_for_flow_on_moving_grid(double dt, bool with_k_omega
 			       dt * (gamma_1 * dUdt0.momentum.y + gamma_2 * dUdt1.momentum.y));
     U2.momentum.z = vol_inv * (v_old * U0.momentum.z + 
 			       dt * (gamma_1 * dUdt0.momentum.z + gamma_2 * dUdt1.momentum.z));
-    if (get_mhd_flag() == 1) {
+    if ( G.MHD ) {
 	// Magnetic field
 	U2.B.x = vol_inv * (v_old * U0.B.x + dt * (gamma_1 * dUdt0.B.x + gamma_2 * dUdt1.B.x));
 	U2.B.y = vol_inv * (v_old * U0.B.y + dt * (gamma_1 * dUdt0.B.y + gamma_2 * dUdt1.B.y));
@@ -1831,7 +1845,7 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
 	un_T = 0.0;
 	u_mag = sqrt(fs->vel.x*fs->vel.x + fs->vel.y*fs->vel.y);
     }
-    if (get_mhd_flag() == 1) {
+    if ( G.MHD ) {
 	Bn_N = fabs(dot(fs->B, north->n));
 	Bn_E = fabs(dot(fs->B, east->n));
 	if ( dimensions == 3 ) {
@@ -1844,7 +1858,7 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
     // then add a component to ensure viscous stability.
     if ( G.stringent_cfl ) {
 	// Make the worst case.
-	if (get_mhd_flag() == 1) {
+	if ( G.MHD ) {
 	    // MHD
 	    ca2 = B_mag*B_mag / fs->gas->rho;
 	    cfast = sqrt( ca2 + fs->gas->a * fs->gas->a );
@@ -1857,7 +1871,7 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
     } else {
 	// Standard signal speeds along each face.
 	double signalN, signalE, signalT;
-	if (get_mhd_flag() == 1) {
+	if ( G.MHD ) {
 	    double ca2, catang2_N, catang2_E, cfast_N, cfast_E;
 	    ca2 = B_mag * B_mag / fs->gas->rho;
 	    ca2 = ca2 + fs->gas->a * fs->gas->a;
@@ -2598,13 +2612,14 @@ double FV_Cell::rad_scaling_ratio(void) const
 
 int number_of_values_in_cell_copy(int type_of_copy)
 {
+    global_data &G = *get_global_data_ptr();
     int number = 0;
     Gas_model *gmodel = get_gas_model_ptr();
     if (type_of_copy == COPY_ALL_CELL_DATA ||
 	type_of_copy == COPY_FLOW_STATE) {
         number += gmodel->number_of_values_in_gas_data_copy();
 	number += 8 + 4; // FlowState + cell data
-	if ( get_mhd_flag() == 1 ) number += 3;
+	if ( G.MHD ) number += 3;
     }
     if (type_of_copy == COPY_ALL_CELL_DATA ||
         type_of_copy == COPY_CELL_LENGTHS) {
@@ -2614,7 +2629,7 @@ int number_of_values_in_cell_copy(int type_of_copy)
 	type_of_copy == COPY_INTERFACE_DATA) {
 	number += N_INTERFACE * gmodel->number_of_values_in_gas_data_copy();
 	number += N_INTERFACE * 8; // FlowState data for each interface
-	if ( get_mhd_flag() == 1 ) number += N_INTERFACE * 3;
+	if ( G.MHD ) number += N_INTERFACE * 3;
 	number += N_INTERFACE * 7; // Velocity, position and length for each interface
     }
     return number;
@@ -2635,7 +2650,7 @@ std::string variable_list_for_cell( void )
     size_t nmodes = gmodel->get_number_of_modes();
     ost << "\"pos.x\" \"pos.y\" \"pos.z\" \"volume\"";
     ost << " \"rho\" \"vel.x\" \"vel.y\" \"vel.z\" ";
-    if ( get_mhd_flag() == 1 ) {
+    if ( G.MHD ) {
 	ost << " \"B.x\" \"B.y\" \"B.z\" ";
     }
     ost << " \"p\" \"a\" \"mu\"";

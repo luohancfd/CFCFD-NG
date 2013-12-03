@@ -130,24 +130,6 @@ void eilmer_finalize( void )
 }
 
 
-//---------------------------------------------------------------------
-
-/// \brief For Daryl Bond and Vince Wheatley's MHD additions.
-int mhd_flag = 0;
-
-/// \brief A flag for turning on the BGK non-equilibrium gas solver
-///
-/// This flag can have various settings:
-/// BGK_flag == 0: OFF
-/// BGK_flag == 1: ON, do not try to import velocity distribution values
-/// BGK_flag == 2: ON, read in velocity distribution values from "flow" file
-int BGK_flag = 0;
-
-/// \brief The number of velocity buckets for the rarefied gas solver
-size_t velocity_buckets = 0;
-std::vector<Vector3> vcoords; // velocity coordinates for rarefied flow
-std::vector<double> vweights; // weight for each velocity coordinate
-
 /*------------------------------------------------------------------*/
 
 /// \brief Increment the viscous_factor to a specified value.
@@ -177,39 +159,17 @@ double incr_heat_factor( double value )
     return gd.heat_factor;
 }
 
-int set_mhd_flag(int i)
-{
-    mhd_flag = i;
-    if ( gd.verbose_init_messages ) printf("set mhd_flag=%d\n", mhd_flag);
-    return mhd_flag;
-}
-
-int get_mhd_flag(void)
-{
-    return mhd_flag;
-}
-
-//-----------------------------------------------------------------------------
-
-int set_BGK_flag(int i)
-{
-    BGK_flag = i;
-    if ( gd.verbose_init_messages ) printf("set BGK_flag=%d\n", BGK_flag);
-    return BGK_flag;
-}
-
-int get_BGK_flag(void)
-{
-    return BGK_flag;
-}
+//---------------------------------------------------------------------
+/// \brief The number of velocity buckets for the rarefied gas solver
+size_t velocity_buckets = 0;
+std::vector<Vector3> vcoords; // velocity coordinates for rarefied flow
+std::vector<double> vweights; // weight for each velocity coordinate
 
 size_t set_velocity_buckets(size_t i)
 {
     velocity_buckets = i;
-
     vcoords.resize(i);
     vweights.resize(i);
-
     if ( gd.verbose_init_messages )
 	printf("set velocity_buckets=%d\n", static_cast<int>(velocity_buckets));
     return velocity_buckets;

@@ -181,7 +181,7 @@ int onesided_interp(const FV_Cell &cL0, const FV_Cell &cR0, const FV_Cell &cR1,
 			       cL0Length, cR0Length, cR1Length, Rght.vel.y);
 	onesided_interp_scalar(cL0.fs->vel.z, cR0.fs->vel.z, cR1.fs->vel.z,
 			       cL0Length, cR0Length, cR1Length, Rght.vel.z);
-	if ( get_mhd_flag() == 1 ) {
+	if ( G.MHD ) {
 	    onesided_interp_scalar(cL0.fs->B.x, cR0.fs->B.x, cR1.fs->B.x,
 				   cL0Length, cR0Length, cR1Length, Rght.B.x);
 	    onesided_interp_scalar(cL0.fs->B.y, cR0.fs->B.y, cR1.fs->B.y,

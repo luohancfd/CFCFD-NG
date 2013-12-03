@@ -227,7 +227,7 @@ int one_d_interp_both(const FV_Cell &cL1, const FV_Cell &cL0,
 	one_d_interp_both_scalar(cL1.fs->vel.x, cL0.fs->vel.x, cR0.fs->vel.x, cR1.fs->vel.x, Lft.vel.x, Rght.vel.x);
 	one_d_interp_both_scalar(cL1.fs->vel.y, cL0.fs->vel.y, cR0.fs->vel.y, cR1.fs->vel.y, Lft.vel.y, Rght.vel.y);
 	one_d_interp_both_scalar(cL1.fs->vel.z, cL0.fs->vel.z, cR0.fs->vel.z, cR1.fs->vel.z, Lft.vel.z, Rght.vel.z);
-	if ( get_mhd_flag() == 1 ) {
+	if ( G.MHD ) {
 	    one_d_interp_both_scalar(cL1.fs->B.x, cL0.fs->B.x, cR0.fs->B.x, cR1.fs->B.x, Lft.B.x, Rght.B.x);
 	    one_d_interp_both_scalar(cL1.fs->B.y, cL0.fs->B.y, cR0.fs->B.y, cR1.fs->B.y, Lft.B.y, Rght.B.y);
 	    one_d_interp_both_scalar(cL1.fs->B.z, cL0.fs->B.z, cR0.fs->B.z, cR1.fs->B.z, Lft.B.z, Rght.B.z);
@@ -339,7 +339,7 @@ int one_d_interp_left(const FV_Cell &cL1, const FV_Cell &cL0, const FV_Cell &cR0
 	one_d_interp_left_scalar(cL1.fs->vel.x, cL0.fs->vel.x, cR0.fs->vel.x, Lft.vel.x);
 	one_d_interp_left_scalar(cL1.fs->vel.y, cL0.fs->vel.y, cR0.fs->vel.y, Lft.vel.y);
 	one_d_interp_left_scalar(cL1.fs->vel.z, cL0.fs->vel.z, cR0.fs->vel.z, Lft.vel.z);
-	if ( get_mhd_flag() == 1 ) {
+	if ( G.MHD ) {
 	    one_d_interp_left_scalar(cL1.fs->B.x, cL0.fs->B.x, cR0.fs->B.x, Lft.B.x);
 	    one_d_interp_left_scalar(cL1.fs->B.y, cL0.fs->B.y, cR0.fs->B.y, Lft.B.y);
 	    one_d_interp_left_scalar(cL1.fs->B.z, cL0.fs->B.z, cR0.fs->B.z, Lft.B.z);
@@ -432,7 +432,7 @@ int one_d_interp_right(const FV_Cell &cL0, const FV_Cell &cR0, const FV_Cell &cR
 	one_d_interp_right_scalar(cL0.fs->vel.x, cR0.fs->vel.x, cR1.fs->vel.x, Rght.vel.x);
 	one_d_interp_right_scalar(cL0.fs->vel.y, cR0.fs->vel.y, cR1.fs->vel.y, Rght.vel.y);
 	one_d_interp_right_scalar(cL0.fs->vel.z, cR0.fs->vel.z, cR1.fs->vel.z, Rght.vel.z);
-	if ( get_mhd_flag() == 1 ) {
+	if ( G.MHD ) {
 	    one_d_interp_right_scalar(cL0.fs->B.x, cR0.fs->B.x, cR1.fs->B.x, Rght.B.x);
 	    one_d_interp_right_scalar(cL0.fs->B.y, cR0.fs->B.y, cR1.fs->B.y, Rght.B.y);
 	    one_d_interp_right_scalar(cL0.fs->B.z, cR0.fs->B.z, cR1.fs->B.z, Rght.B.z);

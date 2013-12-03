@@ -237,6 +237,15 @@ struct global_data
 
     bool electric_field_work;
 
+    // For Daryl Bond and Vince Wheatley's MHD additions.
+    bool MHD;
+
+    // A flag for turning on the BGK non-equilibrium gas solver:
+    //   BGK == 0: OFF
+    //   BGK == 1: ON, do not try to import velocity distribution values
+    //   BGK == 2: ON, read in velocity distribution values from "flow" file
+    int BGK;
+
     size_t n_heat_zone;
     double heat_time_start;
     double heat_time_stop;
@@ -288,15 +297,12 @@ double incr_viscous_factor( double value );
 double incr_diffusion_factor( double value );
 double incr_heat_factor( double value );
 
-int set_mhd_flag(int imf);
-int get_mhd_flag(void);
-int set_BGK_flag(int i);
-int get_BGK_flag( void );
 size_t set_velocity_buckets(size_t i);
 size_t get_velocity_buckets( void );
 Vector3 get_vcoord(int i);
 std::vector<Vector3> *get_vcoords_ptr(void);
 double get_vweight(int i);
 std::vector<double> *get_vweights_ptr(void);
+
 std::string get_name_of_turbulence_model(turbulence_model_t my_model);
 #endif
