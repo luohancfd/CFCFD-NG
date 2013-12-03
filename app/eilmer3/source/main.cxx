@@ -75,14 +75,14 @@ extern "C" {
 //-----------------------------------------------------------------
 // Global data
 //
-int history_just_written, output_just_written, av_output_just_written;
-int write_at_step_has_been_done = 0;
+bool history_just_written, output_just_written, av_output_just_written;
+bool write_at_step_has_been_done = false;
 int program_return_flag = 0;
 size_t output_counter = 0; // counts the number of flow-solutions written
 bool zip_files = true; // flag to indicate if flow and grid files are to be gzipped
 bool with_heat_flux_files = false; // flag to indicate that we want heat-flux files
 bool master;
-int max_wall_clock = 0;
+int max_wall_clock = 0; // seconds
 time_t start, now; // wall-clock timer
 
 lua_State *L; // for the uder-defined procedures
@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 {
     global_data &G = *get_global_data_ptr();
     G.verbose_init_messages = false;
-    int do_run_simulation = 0;
+    bool do_run_simulation = false;
     size_t start_tindx = 0;
     int run_status = SUCCESS;
     char c, job_name[132], text_buf[132];
@@ -223,7 +223,7 @@ WARNING: This executable only computes the radiative source\n\
 	    strcpy(job_name, poptGetOptArg(optCon));
 	    break;
 	case 'r':
-	    do_run_simulation = 1;
+	    do_run_simulation = true;
 	    break;
 	case 'z':
 	    zip_files = true;
@@ -289,7 +289,7 @@ WARNING: This executable only computes the radiative source\n\
     fflush(stdout);
     MPI_Barrier(MPI_COMM_WORLD); // just to reduce the jumble in stdout
 #   endif
-    if ( do_run_simulation == 1 ) {
+    if ( do_run_simulation ) {
 	if ( master ) printf("Run simulation...\n");
 	try {
 	    // The simulation proper.
@@ -913,10 +913,11 @@ int integrate_in_time(double target_time)
     string filename, commandstring, foldername;
     std::vector<double> dt_record;
     double stopping_time;
-    int finished_time_stepping;
-    int viscous_terms_are_on;
-    int diffusion_terms_are_on;
-    int cfl_result, do_cfl_check_now;
+    bool finished_time_stepping;
+    bool viscous_terms_are_on;
+    bool diffusion_terms_are_on;
+    bool do_cfl_check_now;
+    int cfl_result;
 #   ifdef _MPI
     int cfl_result_2;
 #   endif
@@ -939,13 +940,13 @@ int integrate_in_time(double target_time)
     
     // Flags to indicate that the saved output is fresh.
     // On startup or restart, it is assumed to be so.
-    output_just_written = 1;
-    history_just_written = 1;
-    av_output_just_written = 1;
+    output_just_written = true;
+    history_just_written = true;
+    av_output_just_written = true;
 
     G.step = 0; // Global Iteration Count
     G.dt_acc = 0.0; // Initialise to 0.0 to begin acculumating dt increments for conjugate ht problem
-    do_cfl_check_now = 0;
+    do_cfl_check_now = false;
     if ( G.heat_time_stop == 0.0 ) {
 	// We don't want heating at all.
 	G.heat_factor = 0.0;
@@ -963,16 +964,16 @@ int integrate_in_time(double target_time)
 	    // We will initially turn-down viscous effects and
 	    // only turn them up when the delay time is exceeded.
 	    G.viscous_factor = 0.0;
-	    viscous_terms_are_on = 0;
+	    viscous_terms_are_on = false;
 	} else {
 	    // No delay in applying full viscous effects.
 	    G.viscous_factor = 1.0;
-	    viscous_terms_are_on = 1;
+	    viscous_terms_are_on = true;
 	}
     } else {
 	// We haven't requested viscous effects at all.
 	G.viscous_factor = 0.0;
-	viscous_terms_are_on = 0;
+	viscous_terms_are_on = false;
     }
 
     if ( G.diffusion ) {
@@ -981,16 +982,16 @@ int integrate_in_time(double target_time)
 	    // We will initially turn-down diffusion effects and
 	    // only turn them up when the delay time is exceeded.
 	    G.diffusion_factor = 0.0;
-	    diffusion_terms_are_on = 0;
+	    diffusion_terms_are_on = false;
 	} else {
 	    // No delay in applying full diffusion effects.
 	    G.diffusion_factor = 1.0;
-	    diffusion_terms_are_on = 1;
+	    diffusion_terms_are_on = true;
 	}
     } else {
 	// We haven't requested diffusion effects at all.
 	G.diffusion_factor = 0.0;
-	diffusion_terms_are_on = 0;
+	diffusion_terms_are_on = false;
     }
 
     // Spatial filter may be applied occasionally.
@@ -1040,13 +1041,13 @@ int integrate_in_time(double target_time)
         }
 
         // 0. Alter configuration setting if necessary.
-	if ( G.viscous && viscous_terms_are_on == 0 && G.sim_time >= G.viscous_time_delay ) {
+	if ( G.viscous && !viscous_terms_are_on && G.sim_time >= G.viscous_time_delay ) {
 	    // We want to turn on the viscous effects only once (if requested)
 	    // and, when doing so in the middle of a simulation, 
 	    // reduce the time step to ensure that these new terms
 	    // do not upset the stability of the calculation.
 	    printf( "Turning on viscous effects.\n" );
-	    viscous_terms_are_on = 1;
+	    viscous_terms_are_on = true;
 	    if ( G.step > 0 ) {
 		printf( "Start softly with viscous effects.\n" );
 		G.viscous_factor = 0.0;  
@@ -1056,19 +1057,18 @@ int integrate_in_time(double target_time)
 		G.viscous_factor = 1.0;
 	    }
 	}
-	if ( viscous_terms_are_on == 1 && G.viscous_factor < 1.0 ) {
+	if ( viscous_terms_are_on && G.viscous_factor < 1.0 ) {
 	    incr_viscous_factor(G.viscous_factor_increment);
 	    printf( "Increment viscous_factor to %f\n", G.viscous_factor );
-	    do_cfl_check_now = 1;
+	    do_cfl_check_now = true;
 	}
-	if ( G.diffusion && diffusion_terms_are_on == 0 &&
-	     G.sim_time >= G.diffusion_time_delay ) {
+	if ( G.diffusion && !diffusion_terms_are_on && G.sim_time >= G.diffusion_time_delay ) {
 	    // We want to turn on the diffusion effects only once (if requested)
 	    // and, when doing so in the middle of a simulation,
 	    // reduce the time step to ensure that these new terms
 	    // do not upset the stability of the calculation.
 	    printf( "Turning on diffusion effects.\n" );
-	    diffusion_terms_are_on = 1;
+	    diffusion_terms_are_on = true;
 	    if ( G.step > 0 ) {
 		printf( "Start softly with diffusion effects.\n" );
 		G.diffusion_factor = 0.0;
@@ -1078,10 +1078,10 @@ int integrate_in_time(double target_time)
 		G.diffusion_factor = 1.0;
 	    }
 	}
-	if ( diffusion_terms_are_on == 1 && G.diffusion_factor < 1.0 ) {
+	if ( diffusion_terms_are_on && G.diffusion_factor < 1.0 ) {
 	    incr_diffusion_factor( G.diffusion_factor_increment );
 	    printf( "Increment diffusion_factor to %f\n", G.diffusion_factor );
-	    do_cfl_check_now = 1;
+	    do_cfl_check_now = true;
 	}
 
 	if ( G.heat_time_stop > 0.0 ) {
@@ -1092,7 +1092,7 @@ int integrate_in_time(double target_time)
 		if ( G.heat_factor < 1.0 ) {
 		    incr_heat_factor(G.heat_factor_increment);
 		    printf("Increment heat_factor to %f\n", G.heat_factor);
-		    do_cfl_check_now = 1;
+		    do_cfl_check_now = true;
 		} 
 	    } else {
 		// We are outside the period of heating.
@@ -1112,20 +1112,19 @@ int integrate_in_time(double target_time)
 	if ( G.step == 0 ) {
 	    // When starting a new calculation,
 	    // set the global time step to the initial value.
-	    do_cfl_check_now = 0;
+	    do_cfl_check_now = false;
 		// if we are using sequence_blocks we don't want to reset the dt_global for each block
 		if ( G.sequence_blocks && G.dt_global != 0 ) {
 		    /* do nothing i.e. keep dt_global from previous block */ ;
 		} else { 
 		    G.dt_global = G.dt_init;
 		}
-	} else if ( !G.fixed_time_step && 
-		    (G.step/G.cfl_count)*G.cfl_count == G.step ) {
+	} else if ( !G.fixed_time_step && (G.step/G.cfl_count)*G.cfl_count == G.step ) {
 	    // Check occasionally 
-	    do_cfl_check_now = 1;
+	    do_cfl_check_now = true;
 	} // end if (G.step == 0 ...
 
-	if ( do_cfl_check_now == 1 ) {
+	if ( do_cfl_check_now ) {
 	    // Adjust the time step to be the minimum allowed
 	    // for any active block. 
 	    G.dt_allow = 1.0e6; /* outrageously large so that it gets replace immediately */
@@ -1305,7 +1304,7 @@ int integrate_in_time(double target_time)
         // 2d. Chemistry step. 
 	//     Allow finite-rate evolution of species due
         //     to chemical reactions
-        if ( G.reacting == 1 && G.sim_time >= G.reaction_time_start ) {
+        if ( G.reacting && G.sim_time >= G.reaction_time_start ) {
 	    for ( Block *bdp : G.my_blocks ) {
 		if ( bdp->active != 1 ) continue;
 		for ( FV_Cell *cp: bdp->active_cells ) {
@@ -1342,9 +1341,9 @@ int integrate_in_time(double target_time)
 
         // 3. Update the time record and (occasionally) print status.
         ++G.step;
-        output_just_written = 0;
-        history_just_written = 0;
-	av_output_just_written = 0;
+        output_just_written = false;
+        history_just_written = false;
+	av_output_just_written = false;
 	G.dt_acc += G.dt_global;
 	// G.sim_time += G.dt_global; 2013-04-07 have moved increment of sim_time
 	// into the inviscid gasdynamic update
@@ -1391,14 +1390,13 @@ int integrate_in_time(double target_time)
 	    if ( G.conjugate_ht_active && master ) {
 			write_soln(*(G.wm), G.sim_time, static_cast<int>(output_counter));
 		}
-	    output_just_written = 1;
+	    output_just_written = true;
             G.t_plot += G.dt_plot;
         }
-	if ( (G.write_at_step > 0) && (G.step == G.write_at_step) && 
-	     write_at_step_has_been_done == 0 ) {
+	if ( (G.write_at_step > 0) && (G.step == G.write_at_step) && !write_at_step_has_been_done ) {
 	    // Write the solution once-off, most likely for debug.
 	    write_solution_data("txxxx");
-	    write_at_step_has_been_done = 1;
+	    write_at_step_has_been_done = true;
 	}
         if ( (G.sim_time >= G.t_his) && !history_just_written ) {
 	    for ( Block *bdp : G.my_blocks ) {
@@ -1407,7 +1405,7 @@ int integrate_in_time(double target_time)
                 bdp->write_history(filename, G.sim_time);
 		bdp->print_forces(G.logfile, G.sim_time, G.dimensions);
 	    }
-            history_just_written = 1;
+            history_just_written = true;
             G.t_his += G.dt_his;
         }
 
@@ -1512,26 +1510,26 @@ int integrate_in_time(double target_time)
 	//    be found in the control-parameter file (which may be edited
 	//    while the code is running).
         if ( G.sim_time >= stopping_time ) {
-            finished_time_stepping = 1;
+            finished_time_stepping = true;
             if ( master ) printf( "Integration stopped: reached maximum simulation time.\n" );
         }
         if ( G.step >= G.max_step ) {
-            finished_time_stepping = 1;
+            finished_time_stepping = true;
             if ( master ) printf( "Integration stopped: reached maximum number of steps.\n" );
         }
         if ( G.halt_now == 1 ) {
-            finished_time_stepping = 1;
+            finished_time_stepping = true;
             if ( master ) printf( "Integration stopped: Halt set in control file.\n" );
         }
 	now = time(NULL);
 	if ( max_wall_clock > 0 && ( static_cast<int>(now - start) > max_wall_clock ) ) {
-            finished_time_stepping = 1;
+            finished_time_stepping = true;
             if ( master ) printf( "Integration stopped: reached maximum wall-clock time.\n" );
 	}
 #       if CHECK_RADIATION_SCALING
 	if ( G.radiation ) {
 	    if ( check_radiation_scaling() ) {
-	    	finished_time_stepping = 1;
+	    	finished_time_stepping = true;
 	    	if ( master ) printf( "Integration stopped: radiation source term needs updating.\n" );
 	    }
 	}
@@ -1565,7 +1563,7 @@ int finalize_simulation( void )
 	}
 	sprintf( tindxcstr, "t%04d", static_cast<int>(output_counter) ); // C string
 	write_solution_data(tindxcstr);
-	output_just_written = 1;
+	output_just_written = true;
 	G.t_plot += G.dt_plot;
     }
     // For the history files, we don't want to double-up on solution data.
@@ -1575,7 +1573,7 @@ int finalize_simulation( void )
 	    filename = "hist/"+G.base_file_name+".hist"+jbstring;
             bdp->write_history( filename, G.sim_time );
 	}
-        history_just_written = 1;
+        history_just_written = true;
     }
     if ( master ) printf( "\nTotal number of steps = %d\n", static_cast<int>(G.step) );
 
