@@ -265,6 +265,9 @@ int read_config_parameters(const string filename, bool master)
     G.diffusion_factor = 1.0;
     G.diffusion_factor_increment = 0.01;
 
+    G.heat_factor = 1.0;
+    G.heat_factor_increment = 0.01;
+
     // At the start of a fresh simulation,
     // we need to set a few items that will be updated later.
     G.sim_time = 0.0;   // Global simulation time.
@@ -588,13 +591,12 @@ int read_config_parameters(const string filename, bool master)
     dict.parse_size_t("global_data", "nheatzone", G.n_heat_zone, 0);
     dict.parse_double("global_data", "heat_time_start", G.heat_time_start, 0.0);
     dict.parse_double("global_data", "heat_time_stop", G.heat_time_stop, 0.0);
-    dict.parse_double("global_data", "heat_factor_increment", d_value, 0.01);
-    set_heat_factor_increment( d_value );
+    dict.parse_double("global_data", "heat_factor_increment", G.heat_factor_increment, 0.01);
     if ( G.verbose_init_messages ) {
 	printf("nheatzone = %d\n", static_cast<int>(G.n_heat_zone));
 	printf("heat_time_start = %e\n", G.heat_time_start);
 	printf("heat_time_stop = %e\n", G.heat_time_stop);
-	printf("heat_factor_increment = %e\n", get_heat_factor_increment() );
+	printf("heat_factor_increment = %e\n", G.heat_factor_increment);
     }
     G.heat_zone.resize(G.n_heat_zone);
     for ( size_t indx = 0; indx < G.n_heat_zone; ++indx ) {

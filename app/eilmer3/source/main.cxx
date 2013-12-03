@@ -921,7 +921,7 @@ int integrate_in_time(double target_time)
     int cfl_result_2;
 #   endif
     int status_flag = SUCCESS;
-    dt_record.resize(G.my_blocks.size()); // Just the block local to this process.
+    dt_record.resize(G.my_blocks.size()); // Just the blocks local to this process.
 
     if ( master ) {
 	printf( "Integrate in time\n" );
@@ -948,14 +948,14 @@ int integrate_in_time(double target_time)
     do_cfl_check_now = 0;
     if ( G.heat_time_stop == 0.0 ) {
 	// We don't want heating at all.
-	set_heat_factor( 0.0 );
+	G.heat_factor = 0.0;
     } else if ( G.sim_time >= G.heat_time_start && G.sim_time < G.heat_time_stop ) {
 	// Apply full heat-source effects because both time limits are set
 	// and we are within them.
-	set_heat_factor( 1.0 );
+	G.heat_factor = 1.0;
     } else {
 	// Looks like we want heating at some period in time but it is not now.
-	set_heat_factor( 0.0 );
+	G.heat_factor = 0.0;
     }
     if ( G.viscous ) {
 	// We have requested viscous effects but they may be delayed.
@@ -1089,14 +1089,14 @@ int integrate_in_time(double target_time)
 	    if ( G.sim_time >= G.heat_time_start && G.sim_time < G.heat_time_stop ) {
 		// We are within the period of heating but
 		// we may be part way through turning up the heat gradually.
-		if ( get_heat_factor() < 1.0 ) {
-		    incr_heat_factor( get_heat_factor_increment() );
-		    printf( "Increment heat_factor to %f\n", get_heat_factor() );
+		if ( G.heat_factor < 1.0 ) {
+		    incr_heat_factor(G.heat_factor_increment);
+		    printf("Increment heat_factor to %f\n", G.heat_factor);
 		    do_cfl_check_now = 1;
 		} 
 	    } else {
 		// We are outside the period of heating.
-		set_heat_factor( 0.0 );
+		G.heat_factor = 0.0;
 	    }
 	}
 	// 0.a. call out to user-defined function

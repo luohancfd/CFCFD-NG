@@ -2407,7 +2407,7 @@ int FV_Cell::clear_source_vector()
 int FV_Cell::add_inviscid_source_vector(int gtl, double omegaz)
 {
     global_data &G = *get_global_data_ptr();
-    Q->total_energy += get_heat_factor() * base_qdot;
+    Q->total_energy += G.heat_factor * base_qdot;
     if ( omegaz != 0.0 ) {
 	// Rotating frame.
 	double rho = fs->gas->rho;

@@ -132,12 +132,6 @@ void eilmer_finalize( void )
 
 //---------------------------------------------------------------------
 
-/// \brief A factor to scale the heat-addition in order to achieve a soft start.
-double heat_factor = 1.0;
-
-/// \brief The amount by which to increment the heat_factor factor during soft-start.
-double heat_factor_increment = 0.01;
-
 /// \brief  implicit Flag: =0 normal explicit viscous, 
 ///         =1 point implicit viscous treatment enabled,
 ///         =2 fully implicit viscous treatment enabled.
@@ -182,47 +176,14 @@ double incr_diffusion_factor( double value )
     return gd.diffusion_factor;
 }
 
-/// \brief Set the heat_factor to a specified value.
-double set_heat_factor( double value )
-{
-    if ( value > 1.0 ) value = 1.0;
-    if ( value < 0.0 ) value = 0.0;
-    heat_factor = value;
-    if ( gd.verbose_init_messages ) printf("set heat_factor=%g\n", heat_factor);
-    return heat_factor;
-}
-
-/// \brief Get the stored value of heat_factor.
-double get_heat_factor( void )
-{
-    return heat_factor;
-}
-
 /// \brief Increment the heat_factor by a specified value.
 double incr_heat_factor( double value )
 {
-    heat_factor += value;
-    if ( heat_factor > 1.0 ) heat_factor = 1.0;
-    if ( heat_factor < 0.0 ) heat_factor = 0.0;
-    return heat_factor;
+    gd.heat_factor += value;
+    if ( gd.heat_factor > 1.0 ) gd.heat_factor = 1.0;
+    if ( gd.heat_factor < 0.0 ) gd.heat_factor = 0.0;
+    return gd.heat_factor;
 }
-
-/// \brief Set the heat_factor_increment to a specified value.
-double set_heat_factor_increment( double value )
-{
-    if ( value > 1.0 ) value = 1.0;
-    if ( value < 0.0 ) value = 0.0;
-    heat_factor_increment = value;
-    if ( gd.verbose_init_messages ) printf("set heat_factor_increment=%g\n", heat_factor_increment);
-    return heat_factor_increment;
-}
-
-/// \brief Set the stored value of the increment.
-double get_heat_factor_increment( void )
-{
-    return heat_factor_increment;
-}
-/*------------------------------------------------------------------*/
 
 int set_implicit_flag(int imf)
 {

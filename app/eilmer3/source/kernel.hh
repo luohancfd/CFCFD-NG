@@ -231,6 +231,8 @@ struct global_data
     double heat_time_start;
     double heat_time_stop;
     std::vector<struct CHeatZone> heat_zone;
+    double heat_factor; // A factor to scale the heat-addition in order to achieve a soft start.
+    double heat_factor_increment;
 
     size_t n_reaction_zone;
     double reaction_time_start;
@@ -273,11 +275,7 @@ void eilmer_finalize( void );
 
 double incr_viscous_factor( double value );
 double incr_diffusion_factor( double value );
-double set_heat_factor( double value );
-double get_heat_factor( void );
 double incr_heat_factor( double value );
-double set_heat_factor_increment( double value );
-double get_heat_factor_increment( void );
 int set_implicit_flag(int imf);
 int get_implicit_flag(void);
 
