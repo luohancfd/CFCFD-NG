@@ -268,6 +268,8 @@ int read_config_parameters(const string filename, bool master)
     G.heat_factor = 1.0;
     G.heat_factor_increment = 0.01;
 
+    G.electric_field_work = false;
+
     // At the start of a fresh simulation,
     // we need to set a few items that will be updated later.
     G.sim_time = 0.0;   // Global simulation time.
@@ -326,10 +328,12 @@ int read_config_parameters(const string filename, bool master)
     dict.parse_string("global_data", "energy_exchange_update", s_value, "dummy_scheme");
     if( G.thermal_energy_exchange ) set_energy_exchange_update(s_value);
     dict.parse_double("global_data", "T_frozen_energy", G.T_frozen_energy, 300.0);
+    dict.parse_boolean("global_data", "electric_field_work_flag", G.electric_field_work, false);
     if( G.verbose_init_messages ) {
 	cout << "energy_exchange_flag = " << G.thermal_energy_exchange << endl;
 	cout << "energy_exchange_update = " << s_value << endl;
 	cout << "T_frozen_energy = " << G.T_frozen_energy << endl;
+	cout << "electric_field_work_flag = " << G.electric_field_work << endl;
     }
 
     dict.parse_int("global_data", "mhd_flag", i_value, 0);
@@ -453,9 +457,6 @@ int read_config_parameters(const string filename, bool master)
 	cout << "transient_mu_t_factor = " << G.transient_mu_t_factor << endl;
 	cout << "separate_update_for_k_omega_source = " << G.separate_update_for_k_omega_source << endl;
     }
-
-    dict.parse_int("global_data", "electric_field_work_flag", i_value, 0);
-    set_electric_field_work_flag( i_value );
 
     dict.parse_size_t("global_data", "max_invalid_cells", G.max_invalid_cells, 10);
     dict.parse_string("global_data", "flux_calc", s_value, "adaptive");

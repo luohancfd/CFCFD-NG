@@ -227,6 +227,8 @@ struct global_data
     bool radiation;
     int radiation_update_frequency; // = 1 for every time-step
 
+    bool electric_field_work;
+
     size_t n_heat_zone;
     double heat_time_start;
     double heat_time_stop;
@@ -290,7 +292,4 @@ std::vector<Vector3> *get_vcoords_ptr(void);
 double get_vweight(int i);
 std::vector<double> *get_vweights_ptr(void);
 std::string get_name_of_turbulence_model(turbulence_model_t my_model);
-
-int set_electric_field_work_flag(int iefw );
-int get_electric_field_work_flag();
 #endif

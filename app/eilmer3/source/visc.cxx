@@ -520,7 +520,7 @@ int viscous_flux_2D(Block *A)
 		        (fD[isp] + fC[isp]) * (xD - xC) + (fA[isp] + fD[isp]) * (xA - xD)); \
 	        } \
 	    } \
-	    if( get_electric_field_work_flag() == 1) { \
+	    if( G.electric_field_work ) { \
 	        A->get_vtx(i,j)->dpedx = -0.5 * area_inv * \
 		    ((peB + peA) * (yB - yA) + (peC + peB) * (yC - yB) + \
 		    (peD + peC) * (yD - yC) + (peA + peD) * (yA - yD)); \
@@ -640,7 +640,7 @@ int viscous_derivatives_2D(Block *A, size_t gtl)
 		}
 	    }
 	    //
-	    if ( get_electric_field_work_flag() ) {
+	    if ( G.electric_field_work ) {
 	        peA = A->get_cell(i,j-1)->fs->gas->p_e;
 	        peB = A->get_cell(i,j)->fs->gas->p_e;
 	        peC = A->get_cell(i-1,j)->fs->gas->p_e;
@@ -745,7 +745,7 @@ int viscous_derivatives_edges(Block *A, size_t gtl)
 	    }
 	}
 	//
-	if ( get_electric_field_work_flag() ) {
+	if ( G.electric_field_work ) {
 	    peA = A->get_ifi(i,j-1)->fs->gas->p_e;
 	    peB = A->get_ifi(i,j)->fs->gas->p_e;
 	    peC = A->get_ifi(i-1,j)->fs->gas->p_e;
@@ -808,7 +808,7 @@ int viscous_derivatives_edges(Block *A, size_t gtl)
 	    }
 	}
 	//
-	if ( get_electric_field_work_flag() == 1 ) {
+	if ( G.electric_field_work ) {
 	    peA = A->get_cell(i,j-1)->fs->gas->p_e;
 	    peB = A->get_cell(i,j)->fs->gas->p_e;
 	    peC = A->get_ifi(i,j)->fs->gas->p_e;
@@ -872,7 +872,7 @@ int viscous_derivatives_edges(Block *A, size_t gtl)
 	    }
 	}
 	//
-	if ( get_electric_field_work_flag() == 1 ) {
+	if ( G.electric_field_work ) {
 	    peA = A->get_cell(i,j-1)->fs->gas->p_e;
 	    peB = A->get_ifi(i,j)->fs->gas->p_e;
 	    peC = A->get_ifi(i-1,j)->fs->gas->p_e;
@@ -935,7 +935,7 @@ int viscous_derivatives_edges(Block *A, size_t gtl)
 	    }
 	}
 	//
-	if ( get_electric_field_work_flag() == 1 ) {
+	if ( G.electric_field_work ) {
 	    peA = A->get_ifi(i,j)->fs->gas->p_e;
 	    peB = A->get_cell(i,j)->fs->gas->p_e;
 	    peC = A->get_cell(i-1,j)->fs->gas->p_e;

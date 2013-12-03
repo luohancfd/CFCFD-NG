@@ -2465,7 +2465,7 @@ int FV_Cell::add_viscous_source_vector(bool with_k_omega)
 	// mid-point of the cell face and so should never be
 	// singular -- at least I hope that this is so.
 	Q->momentum.y -= tau_00 * area[0] / volume[0];
-    } // end if G.axisymmetric
+    } // end if ( G.axisymmetric )
 
     if ( with_k_omega ) {
 	double Q_tke = 0.0; double Q_omega = 0.0;
@@ -2475,23 +2475,19 @@ int FV_Cell::add_viscous_source_vector(bool with_k_omega)
 	Q->tke += Q_tke; Q->omega += Q_omega;
     }
 
-    if ( get_electric_field_work_flag() ) {
+    if ( G.electric_field_work ) {
         // Work done on electrons due to electric field induced by charge separation
 	// on scales less than the Debye length
 	// FIXME: Only consistent with ambipolar diffusion. Currently this is up to
 	//        the user to enforce.
-
 	double udivpe = 0.0;
-
-	global_data &G = *get_global_data_ptr();
 	if ( G.dimensions==2 ) {
 	    // Estimate electron pressure gradient as average of all vertices
 	    double dpedx = 0.25 * (vtx[0]->dpedx + vtx[1]->dpedx + vtx[2]->dpedx + vtx[3]->dpedx);
 	    double dpedy = 0.25 * (vtx[0]->dpedy + vtx[1]->dpedy + vtx[2]->dpedy + vtx[3]->dpedy);
 	    // Approximation for work done on electrons: u dot div(pe)
             udivpe = fs->vel.x * dpedx + fs->vel.y * dpedy;
-	}
-	else {
+	} else {
 	    // Estimate electron pressure gradient as average of all vertices
 	    double dpedx = 0.125 * (vtx[0]->dpedx + vtx[1]->dpedx + vtx[2]->dpedx + vtx[3]->dpedx
 			          + vtx[4]->dpedx + vtx[5]->dpedx + vtx[6]->dpedx + vtx[7]->dpedx);
@@ -2502,10 +2498,9 @@ int FV_Cell::add_viscous_source_vector(bool with_k_omega)
 	    // Approximation for work done on electrons: u dot div(pe)
 	    udivpe = fs->vel.x * dpedx + fs->vel.y * dpedy + fs->vel.z * dpedz;
 	}
-
 	// FIXME: Assuming the free electron energy is included in the last mode
         Q->energies.back() += udivpe * G.viscous_factor;
-    }
+    } // end if ( G.electric_field_work )
 
     return SUCCESS;
 } // end FV_Cell::add_viscous_source_vector()
