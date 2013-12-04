@@ -44,7 +44,7 @@ int gasdynamic_point_implicit_inviscid_increment(double dt)
     // stages of the time step.
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
-        if ( bdp->active != 1 ) continue;
+        if ( !bdp->active ) continue;
 	for ( FV_Cell *cp: bdp->active_cells ) cp->record_conserved();
     }
 
@@ -62,20 +62,20 @@ int gasdynamic_point_implicit_inviscid_increment(double dt)
 #       else
 	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
-	    if ( bdp->active != 1 ) continue;
+	    if ( !bdp->active ) continue;
 	    exchange_shared_boundary_data( jb, COPY_FLOW_STATE );
 	}
 #       endif
 	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
-	    if ( bdp->active != 1 ) continue;
+	    if ( !bdp->active ) continue;
 	    apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
 	}
 
 	if ( get_flux_calculator() == FLUX_ADAPTIVE ) {
 	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
-		if ( bdp->active != 1 ) continue;
+		if ( !bdp->active ) continue;
 		bdp->detect_shock_points( G.dimensions );
 	    }
 	}
@@ -96,7 +96,7 @@ int gasdynamic_point_implicit_inviscid_increment(double dt)
 #		endif
 		for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		    bdp = G.my_blocks[jb];
-		    if ( bdp->active != 1 ) continue;
+		    if ( !bdp->active ) continue;
 		    for ( FV_Cell *cp: bdp->active_cells ) cp->store_rad_scaling_params();
 		}
 	    }
@@ -107,7 +107,7 @@ int gasdynamic_point_implicit_inviscid_increment(double dt)
 #		endif
 		for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		    bdp = G.my_blocks[jb];
-		    if ( bdp->active != 1 ) continue;
+		    if ( !bdp->active ) continue;
 		    for ( FV_Cell *cp: bdp->active_cells ) cp->rescale_Q_rE_rad();
 		}
 	    }
@@ -115,7 +115,7 @@ int gasdynamic_point_implicit_inviscid_increment(double dt)
 
 	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
-	    if ( bdp->active != 1 ) continue;
+	    if ( !bdp->active ) continue;
 	    bdp->inviscid_flux( G.dimensions );
 	    for ( FV_Cell *cp: bdp->active_cells ) {
 		cp->inviscid_source_vector(bdp->omegaz);
@@ -139,7 +139,7 @@ int gasdynamic_point_implicit_inviscid_increment(double dt)
 		    attempt_number, G.dt_global);
 	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
-		if ( bdp->active != 1 ) continue;
+		if ( !bdp->active ) continue;
 		for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(0, 0, bdp->omegaz);
 	    }
 	}
@@ -148,7 +148,7 @@ int gasdynamic_point_implicit_inviscid_increment(double dt)
 	
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
-	if ( bdp->active != 1 ) continue;
+	if ( !bdp->active ) continue;
 	for ( FV_Cell *cp: bdp->active_cells ) {
 	    swap(cp->U[0], cp->U[1]); 
 	}
@@ -403,12 +403,12 @@ int gasdynamic_point_implicit_viscous_increment(void)
     // stages of the time step.
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
-	if ( bdp->active != 1 ) continue;
+	if ( !bdp->active ) continue;
 	for ( FV_Cell *cp: bdp->active_cells ) cp->record_conserved();
     }
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
-	if ( bdp->active != 1 ) continue;
+	if ( !bdp->active ) continue;
 	bdp->clear_fluxes_of_conserved_quantities( G.dimensions );
 	apply_viscous_bc( *bdp, G.sim_time, G.dimensions );
 	if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 0);

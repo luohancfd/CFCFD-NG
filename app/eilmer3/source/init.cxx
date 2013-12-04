@@ -971,7 +971,7 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
     // Assume all blocks are active. 
     // The active flag will be used to skip over inactive
     // or unused blocks in later sections of code.
-    dict.parse_int(section, "active", bd.active, 1);
+    dict.parse_boolean(section, "active", bd.active, true);
     if ( G.verbose_init_messages ) {
 	cout << section << ":label = " << block_label << endl;
 	cout << "    active = " << bd.active << endl;

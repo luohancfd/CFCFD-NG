@@ -672,7 +672,7 @@ class StructuredGridFlow(object):
 
 def read_time_from_flow_file(rootName, tindx, zipFiles=False):
     """
-    We'll find the simulation time on the first lins of the flow file.
+    We'll find the simulation time on the first line of the flow file.
     """
     # tindx may be an integer, or already a string such as "xxxx"
     if type(tindx) is int:

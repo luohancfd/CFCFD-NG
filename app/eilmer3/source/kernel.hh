@@ -266,7 +266,7 @@ struct global_data
     int udf_source_vector_flag; // set to 1 to use (expensive) user-defined source terms
 
     // variables related to a wall model for conjugate heat transfer
-    bool conjugate_ht_active; // Set to 1 enables the conjugate heat transfer computation at a wall
+    bool conjugate_ht_active; // if true, enables the conjugate heat transfer computation at a wall
     size_t wall_update_count; // no. steps to take before updating wall values (for loosely-coupled approach)
     double dt_acc; // Timestep for wall-update when accumulating many steps of flow solver
     Wall_model *wm;

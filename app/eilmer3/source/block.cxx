@@ -45,7 +45,6 @@ Block::Block(const Block &b)
       jmin(b.jmin), jmax(b.jmax),
       kmin(b.kmin), kmax(b.kmax),
       active_cells(b.active_cells),
-      baldwin_lomax_iturb(b.baldwin_lomax_iturb),
       bcp(b.bcp),
       ctr_(b.ctr_),
       ifi_(b.ifi_), ifj_(b.ifj_), ifk_(b.ifk_),
@@ -71,7 +70,6 @@ Block & Block::operator=(const Block &b)
 	jmin = b.jmin; jmax = b.jmax;
 	kmin = b.kmin; kmax = b.kmax;
 	active_cells = b.active_cells;
-	baldwin_lomax_iturb = b.baldwin_lomax_iturb;
 	bcp = b.bcp;
 	ctr_ = b.ctr_;
 	ifi_ = b.ifi_; ifj_ = b.ifj_; ifk_ = b.ifk_;
@@ -102,48 +100,56 @@ int Block::array_alloc(size_t dimensions)
 	exit( VALUE_ERROR );
     }
     Gas_model *gm = get_gas_model_ptr();
+    size_t ntot = nidim * njdim * nkdim;
 
     // Allocate vectors of pointers for the entire block.
-    size_t ntot = nidim * njdim * nkdim;
-    ctr_.resize(ntot); 
-    ifi_.resize(ntot);
-    ifj_.resize(ntot);
-    if ( dimensions == 3 ) ifk_.resize(ntot);
-    vtx_.resize(ntot);
-    sifi_.resize(ntot);
-    sifj_.resize(ntot);
-    if ( dimensions == 3 ) sifk_.resize(ntot);
-    // Now, create the actual objects.
-    for (size_t gid = 0; gid < ntot; ++gid) {
-        ctr_[gid] = new FV_Cell(gm);
-	ctr_[gid]->id = gid;
-	std::vector<size_t> ijk = to_ijk_indices(gid);
-	size_t i = ijk[0]; size_t j = ijk[1]; size_t k = ijk[2];
-	if ( i >= imin && i <= imax && j >= jmin && j <= jmax && k >= kmin && k <= kmax ) {
-	    active_cells.push_back(ctr_[gid]);
+    try {
+	ctr_.resize(ntot); 
+	ifi_.resize(ntot);
+	ifj_.resize(ntot);
+	if ( dimensions == 3 ) ifk_.resize(ntot);
+	vtx_.resize(ntot);
+	sifi_.resize(ntot);
+	sifj_.resize(ntot);
+	if ( dimensions == 3 ) sifk_.resize(ntot);
+	// Now, create the actual objects.
+	for (size_t gid = 0; gid < ntot; ++gid) {
+	    ctr_[gid] = new FV_Cell(gm);
+	    ctr_[gid]->id = gid;
+	    std::vector<size_t> ijk = to_ijk_indices(gid);
+	    size_t i = ijk[0]; size_t j = ijk[1]; size_t k = ijk[2];
+	    if ( i >= imin && i <= imax && j >= jmin && j <= jmax && k >= kmin && k <= kmax ) {
+		active_cells.push_back(ctr_[gid]);
+	    }
+	    ifi_[gid] = new FV_Interface(gm);
+	    ifi_[gid]->id = gid;
+	    ifj_[gid] = new FV_Interface(gm);
+	    ifj_[gid]->id = gid;
+	    if ( dimensions == 3 ) {
+		ifk_[gid] = new FV_Interface(gm);
+		ifk_[gid]->id = gid;
+	    }
+	    vtx_[gid] = new FV_Vertex(gm);
+	    vtx_[gid]->id = gid;
+	    sifi_[gid] = new FV_Interface(gm);
+	    sifi_[gid]->id = gid;
+	    sifj_[gid] = new FV_Interface(gm);
+	    sifj_[gid]->id = gid;
+	    if ( dimensions == 3 ) {
+		sifk_[gid] = new FV_Interface(gm);
+		sifk_[gid]->id = gid;
+	    }
+	} // gid loop
+	if ( G.verbose_init_messages || id == 0 ) {
+	    cout << "Block " << id << ": finished creating " << ntot << " cells." << endl;
 	}
-        ifi_[gid] = new FV_Interface(gm);
-	ifi_[gid]->id = gid;
-        ifj_[gid] = new FV_Interface(gm);
-	ifj_[gid]->id = gid;
-        if ( dimensions == 3 ) {
-	    ifk_[gid] = new FV_Interface(gm);
-	    ifk_[gid]->id = gid;
-	}
-        vtx_[gid] = new FV_Vertex(gm);
-	vtx_[gid]->id = gid;
-        sifi_[gid] = new FV_Interface(gm);
-	sifi_[gid]->id = gid;
-        sifj_[gid] = new FV_Interface(gm);
-	sifj_[gid]->id = gid;
-        if ( dimensions == 3 ) {
-	    sifk_[gid] = new FV_Interface(gm);
-	    sifk_[gid]->id = gid;
-	}
-    } // gid loop
-
-    if ( G.verbose_init_messages || id == 0 ) {
-	cout << "Block " << id << ": finished creating " << ntot << " cells." << endl;
+    } catch (std::bad_alloc& ba) {
+	cout << "ERROR: Block::array_alloc(): " << ba.what() << endl;
+	cout << "       A memory-allocation failure while building the Block" << endl;
+	cout << "       for nidim= " << nidim << " njdim= " 
+	     << njdim << " nkdim= " << nkdim << endl;
+	cout << "       Be a little less ambitious and try a smaller grid next time." << endl;
+	exit(MEMORY_ERROR);
     }
     return SUCCESS;
 } // end of array_alloc()
