@@ -401,6 +401,7 @@ int viscous_flux_2D(Block *A)
 	    
 	    // Thermal conductivity
 	    // NOTE: q[0] is total energy flux
+	    // [todo] 2013-12-04 check the comment above.
 	    qx[0] = k_eff[0] * dTdx[0];
 	    qy[0] = k_eff[0] * dTdy[0];
 	    for ( size_t itm=1; itm<ntm; ++itm ) {

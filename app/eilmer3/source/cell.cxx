@@ -824,6 +824,7 @@ int FV_Cell::copy_values_from(const FV_Cell &src, int type_of_copy, size_t gtl)
 		// not have initialised interfaces, or when 2D.
 		continue;
 	    }
+	    // [todo] FIX-ME -- I'm not happy with conditional copies here -- PJ 23-Mar-2013.
 	    iface[j]->copy_values_from(*(src.iface[j]), COPY_ALL_CELL_DATA);
 	}
     }
@@ -853,6 +854,7 @@ double * FV_Cell::copy_values_to_buffer(double *buf, int type_of_copy, size_t gt
 	    if ( iface[j] == 0 ) { // When copying from ghost cell which may
 		continue;          // not have initialised interfaces, or when 2D.
 	    }
+	    // [todo] FIX-ME -- I'm not happy with conditional copies here -- PJ 23-Mar-2013.
 	    buf = iface[j]->fs->copy_values_to_buffer(buf);
 	    *buf++ = iface[j]->pos.x; *buf++ = iface[j]->pos.y; *buf++ = iface[j]->pos.z;
 	    *buf++ = iface[j]->vel.x; *buf++ = iface[j]->vel.y; *buf++ = iface[j]->vel.z;
@@ -883,7 +885,7 @@ double * FV_Cell::copy_values_from_buffer(double *buf, int type_of_copy, size_t 
 	    if ( iface[j] == 0 ) { // When copying from ghost cell which may
 		continue;          // not have initialised interfaces, or when 2D.
 	    }
-	    // FIX-ME -- I'm not happy with conditional copies here -- PJ 23-Mar-2013.
+	    // [todo] FIX-ME -- I'm not happy with conditional copies here -- PJ 23-Mar-2013.
 	    buf = iface[j]->fs->copy_values_from_buffer(buf);
 	    iface[j]->pos.x = *buf++; iface[j]->pos.y = *buf++; iface[j]->pos.z = *buf++;
 	    iface[j]->vel.x = *buf++; iface[j]->vel.y = *buf++; iface[j]->vel.z = *buf++;
@@ -1957,7 +1959,7 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
 		vector<double> DAV_im(nsp);
 		for ( size_t isp=0; isp<nsp; ++isp )
 		    M[isp] = gmodel->molecular_weight(isp);
-		// FIX-ME Rowan, please
+		// [todo] FIX-ME Rowan, please
 		// fill_in_x and fill_in_DAV_im don't seem to be available.
 		// fill_in_x(fs->gas->rho, fs->gas->T, fs->gas->massf, M, x);
 		// fill_in_DAV_im(fs->gas->D_AB, x, DAV_im);
@@ -1981,7 +1983,8 @@ double FV_Cell::signal_frequency(size_t dimensions, bool with_k_omega)
 	    }
 	    // end if VISCOUS_TIME_LIMIT_MODEL == 1
 	} else {
-	    throw std::runtime_error("Viscous effects are on but a viscous time-step-limit model is not active.");
+	    throw std::runtime_error("Viscous effects are on but a viscous"
+				     " time-step-limit model is not active.");
 	} // end if VISCOUS_TIME_LIMIT_MODEL
     }
     if ( with_k_omega == 1 ) {
@@ -2611,6 +2614,8 @@ double FV_Cell::rad_scaling_ratio(void) const
 // --------------------------------------------------------------------
 
 int number_of_values_in_cell_copy(int type_of_copy)
+// This function must match the copy-to/from-buffer methods above.
+// The buffers are typically used for communication between MPI processes.
 {
     global_data &G = *get_global_data_ptr();
     int number = 0;
@@ -2625,6 +2630,9 @@ int number_of_values_in_cell_copy(int type_of_copy)
         type_of_copy == COPY_CELL_LENGTHS) {
         number += 6;
     }
+    // [todo] PJ Do we really need all this interface data carried around?
+    // I think that Andrew P. used it for a while and it is left over from the
+    // early moving-grid work.
     if (type_of_copy == COPY_ALL_CELL_DATA ||
 	type_of_copy == COPY_INTERFACE_DATA) {
 	number += N_INTERFACE * gmodel->number_of_values_in_gas_data_copy();

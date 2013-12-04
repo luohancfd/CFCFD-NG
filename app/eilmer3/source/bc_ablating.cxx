@@ -12,6 +12,11 @@
  * For more details, see Park's 2001 paper.
  */
 
+// [todo] PJ 2013-12-04 This boundary condition is in disrepair.
+// When Elise is happy with her ablating boundary condition that
+// she has built with the user-defined functions, we should return
+// and implement this one properly.
+
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -50,8 +55,10 @@ AblatingBC::AblatingBC()
 
 AblatingBC::AblatingBC(Block *bdp, int which_boundary, double Twall, double _emissivity)
     : BoundaryCondition(bdp, which_boundary, ABLATING),
-      Twall(Twall), mdot(mdot), max_iterations(1000000), tol(1.0e-6)
+      Twall(Twall), max_iterations(1000000), tol(1.0e-6)
 {
+    throw runtime_error("AblatingBC is not presently functioning;" 
+			"Try Elise's User-Defined-Function implementation.");
     is_wall_flag = true;
     sets_conv_flux_flag = true;
     ghost_cell_data_available = false;

@@ -98,6 +98,14 @@ int viscous_flux_3D(Block *A)
     double viscous_factor = G.viscous_factor;
     Gas_model *gmodel = get_gas_model_ptr();
 
+    // [todo] 2013-12-04
+    UNUSED_VARIABLE(dpedx);
+    UNUSED_VARIABLE(dpedy);
+    UNUSED_VARIABLE(dpedz);
+    if ( G.electric_field_work ) {
+	throw runtime_error("Dan has not finished his electron_field_work code in 3D.");
+    }
+
     size_t nsp = gmodel->get_number_of_species();
     if( dfdx.size() == 0 ) {
 	dfdx.resize(nsp); 
