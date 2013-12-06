@@ -623,6 +623,7 @@ int add_udf_source_vector_for_cell( FV_Cell *cell, size_t gtl, double t )
     // These are added to the inviscid source terms 
     // that were computed earlier in the time step.
 
+    global_data &G = *get_global_data_ptr();
     size_t nsp = get_gas_model_ptr()->get_number_of_species();
     size_t nmodes = get_gas_model_ptr()->get_number_of_modes();
 
@@ -667,6 +668,76 @@ int add_udf_source_vector_for_cell( FV_Cell *cell, size_t gtl, double t )
     }
     // At this point, the table of conductivities should be TOS.
     lua_setfield(L, -2, "k");
+
+    // Derivatives needed for Zac Denman's verification of the turbulence model.
+    // The following has been mostly lifted from FV_Cell::k_omega_time_derivatives()
+    // in cell.cxx.
+    double dudx, dudy, dudz;
+    double dvdx, dvdy, dvdz;
+    double dwdx, dwdy, dwdz;
+    double dtkedx, dtkedy, dtkedz;
+    double domegadx, domegady, domegadz;
+    if ( G.dimensions == 2 ) {
+        dudx = 0.25 * (cell->vtx[0]->dudx + cell->vtx[1]->dudx + cell->vtx[2]->dudx + cell->vtx[3]->dudx);
+        dudy = 0.25 * (cell->vtx[0]->dudy + cell->vtx[1]->dudy + cell->vtx[2]->dudy + cell->vtx[3]->dudy);
+	dudz = 0.0;
+        dvdx = 0.25 * (cell->vtx[0]->dvdx + cell->vtx[1]->dvdx + cell->vtx[2]->dvdx + cell->vtx[3]->dvdx);
+        dvdy = 0.25 * (cell->vtx[0]->dvdy + cell->vtx[1]->dvdy + cell->vtx[2]->dvdy + cell->vtx[3]->dvdy);
+	dvdz = 0.0;
+	dwdx = 0.0; dwdy = 0.0; dwdz = 0.0;
+        dtkedx = 0.25 * (cell->vtx[0]->dtkedx + cell->vtx[1]->dtkedx + cell->vtx[2]->dtkedx + cell->vtx[3]->dtkedx);
+        dtkedy = 0.25 * (cell->vtx[0]->dtkedy + cell->vtx[1]->dtkedy + cell->vtx[2]->dtkedy + cell->vtx[3]->dtkedy);
+	dtkedz = 0.0;
+        domegadx = 0.25 * (cell->vtx[0]->domegadx + cell->vtx[1]->domegadx + cell->vtx[2]->domegadx + cell->vtx[3]->domegadx);
+        domegady = 0.25 * (cell->vtx[0]->domegady + cell->vtx[1]->domegady + cell->vtx[2]->domegady + cell->vtx[3]->domegady);
+	domegadz = 0.0;
+    } else { // 3D cartesian
+        dudx = 0.125 * (cell->vtx[0]->dudx + cell->vtx[1]->dudx + cell->vtx[2]->dudx + cell->vtx[3]->dudx +
+                        cell->vtx[4]->dudx + cell->vtx[5]->dudx + cell->vtx[6]->dudx + cell->vtx[7]->dudx);
+        dudy = 0.125 * (cell->vtx[0]->dudy + cell->vtx[1]->dudy + cell->vtx[2]->dudy + cell->vtx[3]->dudy +
+                        cell->vtx[4]->dudy + cell->vtx[5]->dudy + cell->vtx[6]->dudy + cell->vtx[7]->dudy);
+        dudz = 0.125 * (cell->vtx[0]->dudz + cell->vtx[1]->dudz + cell->vtx[2]->dudz + cell->vtx[3]->dudz +
+                        cell->vtx[4]->dudz + cell->vtx[5]->dudz + cell->vtx[6]->dudz + cell->vtx[7]->dudz);
+        dvdx = 0.125 * (cell->vtx[0]->dvdx + cell->vtx[1]->dvdx + cell->vtx[2]->dvdx + cell->vtx[3]->dvdx +
+                        cell->vtx[4]->dvdx + cell->vtx[5]->dvdx + cell->vtx[6]->dvdx + cell->vtx[7]->dvdx);
+        dvdy = 0.125 * (cell->vtx[0]->dvdy + cell->vtx[1]->dvdy + cell->vtx[2]->dvdy + cell->vtx[3]->dvdy +
+                        cell->vtx[4]->dvdy + cell->vtx[5]->dvdy + cell->vtx[6]->dvdy + cell->vtx[7]->dvdy);
+        dvdz = 0.125 * (cell->vtx[0]->dvdz + cell->vtx[1]->dvdz + cell->vtx[2]->dvdz + cell->vtx[3]->dvdz +
+                        cell->vtx[4]->dvdz + cell->vtx[5]->dvdz + cell->vtx[6]->dvdz + cell->vtx[7]->dvdz);
+        dwdx = 0.125 * (cell->vtx[0]->dwdx + cell->vtx[1]->dwdx + cell->vtx[2]->dwdx + cell->vtx[3]->dwdx +
+                        cell->vtx[4]->dwdx + cell->vtx[5]->dwdx + cell->vtx[6]->dwdx + cell->vtx[7]->dwdx);
+        dwdy = 0.125 * (cell->vtx[0]->dwdy + cell->vtx[1]->dwdy + cell->vtx[2]->dwdy + cell->vtx[3]->dwdy +
+                        cell->vtx[4]->dwdy + cell->vtx[5]->dwdy + cell->vtx[6]->dwdy + cell->vtx[7]->dwdy);
+        dwdz = 0.125 * (cell->vtx[0]->dwdz + cell->vtx[1]->dwdz + cell->vtx[2]->dwdz + cell->vtx[3]->dwdz +
+                        cell->vtx[4]->dwdz + cell->vtx[5]->dwdz + cell->vtx[6]->dwdz + cell->vtx[7]->dwdz);
+        dtkedx = 0.125 * (cell->vtx[0]->dtkedx + cell->vtx[1]->dtkedx + cell->vtx[2]->dtkedx + cell->vtx[3]->dtkedx +
+                          cell->vtx[4]->dtkedx + cell->vtx[5]->dtkedx + cell->vtx[6]->dtkedx + cell->vtx[7]->dtkedx);
+        dtkedy = 0.125 * (cell->vtx[0]->dtkedy + cell->vtx[1]->dtkedy + cell->vtx[2]->dtkedy + cell->vtx[3]->dtkedy +
+                          cell->vtx[4]->dtkedy + cell->vtx[5]->dtkedy + cell->vtx[6]->dtkedy + cell->vtx[7]->dtkedy);
+        dtkedz = 0.125 * (cell->vtx[0]->dtkedz + cell->vtx[1]->dtkedz + cell->vtx[2]->dtkedz + cell->vtx[3]->dtkedz +
+                          cell->vtx[4]->dtkedz + cell->vtx[5]->dtkedz + cell->vtx[6]->dtkedz + cell->vtx[7]->dtkedz);
+        domegadx = 0.125 * (cell->vtx[0]->domegadx + cell->vtx[1]->domegadx + cell->vtx[2]->domegadx + cell->vtx[3]->domegadx +
+                            cell->vtx[4]->domegadx + cell->vtx[5]->domegadx + cell->vtx[6]->domegadx + cell->vtx[7]->domegadx);
+        domegady = 0.125 * (cell->vtx[0]->domegady + cell->vtx[1]->domegady + cell->vtx[2]->domegady + cell->vtx[3]->domegady +
+                            cell->vtx[4]->domegady + cell->vtx[5]->domegady + cell->vtx[6]->domegady + cell->vtx[7]->domegady);
+        domegadz = 0.125 * (cell->vtx[0]->domegadz + cell->vtx[1]->domegadz + cell->vtx[2]->domegadz + cell->vtx[3]->domegadz +
+                            cell->vtx[4]->domegadz + cell->vtx[5]->domegadz + cell->vtx[6]->domegadz + cell->vtx[7]->domegadz);
+    } // end if ( G.dimensions...
+    lua_pushnumber(L, dudx); lua_setfield(L, -2, "dudx");
+    lua_pushnumber(L, dudy); lua_setfield(L, -2, "dudy");
+    lua_pushnumber(L, dudz); lua_setfield(L, -2, "dudz");
+    lua_pushnumber(L, dvdx); lua_setfield(L, -2, "dvdx");
+    lua_pushnumber(L, dvdy); lua_setfield(L, -2, "dvdy");
+    lua_pushnumber(L, dvdz); lua_setfield(L, -2, "dvdz");
+    lua_pushnumber(L, dwdx); lua_setfield(L, -2, "dwdx");
+    lua_pushnumber(L, dwdy); lua_setfield(L, -2, "dwdy");
+    lua_pushnumber(L, dwdz); lua_setfield(L, -2, "dwdz");
+    lua_pushnumber(L, dtkedx); lua_setfield(L, -2, "dtkedx");
+    lua_pushnumber(L, dtkedy); lua_setfield(L, -2, "dtkedy");
+    lua_pushnumber(L, dtkedz); lua_setfield(L, -2, "dtkedz");
+    lua_pushnumber(L, domegadx); lua_setfield(L, -2, "domegadx");
+    lua_pushnumber(L, domegady); lua_setfield(L, -2, "domegady");
+    lua_pushnumber(L, domegadz); lua_setfield(L, -2, "domegadz");
     
     // After all of this we should have ended up with the cell-data table at TOS 
     // with another table (containing t...} and function-name 
