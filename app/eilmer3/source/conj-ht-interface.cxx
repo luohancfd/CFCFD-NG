@@ -26,6 +26,7 @@ int add_entries_to_wall_vectors(global_data &gd, size_t bid, int nentries)
 int gather_wall_fluxes(global_data &gd)
 {
 #   ifdef _MPI    
+    MPI_Barrier(MPI_COMM_WORLD);
     int rank = gd.my_mpi_rank;
     Block& bdp = gd.bd[rank];
     // We only need correct values in q vector on the
@@ -41,7 +42,7 @@ int gather_wall_fluxes(global_data &gd)
     }
     MPI_Barrier(MPI_COMM_WORLD);
     // Now perform our MPI magic to gather the result on rank 0
-    double *pq_local = &(gd.q_wall[rank]);
+    double *pq_local = &(gd.q_wall[gd.displs[rank]]);
     int nq_local = gd.recvcounts[rank];
     double *pq_global = &(gd.q_wall[0]);
     int *recvcounts = &(gd.recvcounts[0]);
@@ -49,7 +50,7 @@ int gather_wall_fluxes(global_data &gd)
     MPI_Gatherv(pq_local, nq_local, MPI_DOUBLE, pq_global, recvcounts, displs,
 		MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Barrier(MPI_COMM_WORLD);
-#   endif
+#   else
     // In shared memory, loop over blocks gathering fluxes.
     for ( Block *bdp : gd.my_blocks ) {
 	if ( bdp->bcp[NORTH]->type_code == CONJUGATE_HT ) {
@@ -62,7 +63,7 @@ int gather_wall_fluxes(global_data &gd)
 	    }
 	}
     }
-    
+#   endif    
     return SUCCESS;
 }
 
