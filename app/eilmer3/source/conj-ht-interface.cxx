@@ -25,11 +25,11 @@ int add_entries_to_wall_vectors(global_data &gd, size_t bid, int nentries)
 
 int gather_wall_fluxes(global_data &gd)
 {
+#   ifdef _MPI    
     int rank = gd.my_mpi_rank;
     Block& bdp = gd.bd[rank];
     // We only need correct values in q vector on the
     // blocks that have a conjugate heat transfer bc.
-    
     if ( bdp.bcp[NORTH]->type_code == CONJUGATE_HT ) {
 	int j = bdp.jmax + 1;
 	int iq = gd.displs[rank]; // starting index in q vector
@@ -39,7 +39,6 @@ int gather_wall_fluxes(global_data &gd)
 	    ++iq;
 	}
     }
-#   ifdef _MPI
     MPI_Barrier(MPI_COMM_WORLD);
     // Now perform our MPI magic to gather the result on rank 0
     double *pq_local = &(gd.q_wall[rank]);
@@ -51,7 +50,19 @@ int gather_wall_fluxes(global_data &gd)
 		MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Barrier(MPI_COMM_WORLD);
 #   endif
-    // In shared memory, all values should be in place in q_wall.
+    // In shared memory, loop over blocks gathering fluxes.
+    for ( Block *bdp : gd.my_blocks ) {
+	if ( bdp->bcp[NORTH]->type_code == CONJUGATE_HT ) {
+	    int j = bdp->jmax + 1;
+	    int iq = gd.displs[bdp->id]; // starting index in q vector
+	    for ( size_t i = bdp->imin; i <= bdp->imax; ++i ) {
+		FV_Interface &iface = *(bdp->get_ifj(i, j));
+		gd.q_wall[iq] = iface.F->total_energy;
+		++iq;
+	    }
+	}
+    }
+    
     return SUCCESS;
 }
 
