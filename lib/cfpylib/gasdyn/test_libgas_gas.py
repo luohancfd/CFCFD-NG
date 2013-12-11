@@ -47,7 +47,7 @@ class TestLibGasGas(unittest.TestCase):
         testGas.set_pT(p, T)
         self.assertAlmostEqual(testGas.rho, p/(R*T), delta=0.01)
         import math
-        self.assertAlmostEqual(testGas.a, math.sqrt(gam*R*T), delta=1.0)
+        self.assertAlmostEqual(testGas.a, math.sqrt(gam*R*T), delta=2.0)
 
     def test_cea_lut_air(self):
         # Peter J.
@@ -60,7 +60,7 @@ class TestLibGasGas(unittest.TestCase):
         testGas.set_pT(p, T)
         self.assertAlmostEqual(testGas.rho, p/(R*T), delta=0.01)
         import math
-        self.assertAlmostEqual(testGas.a, math.sqrt(gam*R*T), delta=1.0)
+        self.assertAlmostEqual(testGas.a, math.sqrt(gam*R*T), delta=2.0)
         
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestLibGasGas)

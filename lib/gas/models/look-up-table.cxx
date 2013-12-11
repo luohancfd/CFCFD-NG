@@ -14,6 +14,7 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <stdexcept>
 #include <math.h>
 #include "../../util/source/useful.h"
 #include "../../util/source/lua_service.hh"
@@ -293,36 +294,53 @@ s_molecular_weight(int isp)
     // This method is not very meaningful for an equilibrium
     // gas.  The molecular weight is best obtained from
     // the mixture molecular weight methods which IS a function
-    // of gas composition and thermodynamic state.
-    cout << "s_molecular_weight() not implemented" << endl;
-    exit(NOT_IMPLEMENTED_ERROR);
-    return 0.0;
+    // of gas composition and thermodynamic state, however,
+    // there are times when a value from this function makes
+    // other code simpler, in that the doesn't have to treat
+    // the look-up gas specially.
+    cout << "Caution: calling s_molecular_weight for LUT species." << endl;
+    if ( isp != 0 ) {
+	throw runtime_error("LUT gas: should not be looking up isp != 0");
+    }
+    int ie = 0; // coldest
+    int ir = irsteps_ - 1; // quite dense 
+    double Rgas = R_hat_[ie][ir]; // J/kg/deg-K
+    double M = PC_R_u_kmol / Rgas;
+    return M;
 }
 
 double
 Look_up_table::
 s_internal_energy(const Gas_data &Q, int isp)
 {
-    UNUSED_VARIABLE(isp);
-    // This method should never be called.
+    // This method should never be called expecting quality data
+    // because the LUT gas doesn not keep the species information.
     // This implementation is here to keep C++ happy that
-    // all of the methods are implemented as required.
-    cout << "s_internal_energy() not implemented" << endl;
-    exit(NOT_IMPLEMENTED_ERROR);
-    return 0.0;
+    // all of the methods are implemented as required,
+    // and there may be times when having this function
+    // return something reasonable may make other code
+    // simpler because it doesn't have to treat the
+    // LUT gas specially.
+    cout << "Caution: calling s_internal_energy for LUT species." << endl;
+    if ( isp != 0 ) {
+	throw runtime_error("LUT gas: should not be looking up isp != 0");
+    }
+    // Finally, we assume that the thermodynamic state is current.
+    return Q.e[0];
 }
 
 double
 Look_up_table::
 s_enthalpy(const Gas_data &Q, int isp)
 {
-    // The look-up table is always single-species,
-    // hence 'isp' is unused
-    UNUSED_VARIABLE(isp);
     // This method assumes that the internal energy,
     // pressure and density are up-to-date in the
     // gas_data struct. Then enthalpy is computed
     // from definition.
+    cout << "Caution: calling s_enthalpy for LUT species." << endl;
+    if ( isp != 0 ) {
+	throw runtime_error("LUT gas: should not be looking up isp != 0");
+    }
     double h = Q.e[0] + Q.p/Q.rho;
     return h;
 }
@@ -331,16 +349,23 @@ double
 Look_up_table::
 s_entropy(const Gas_data &Q, int isp)
 {
-    UNUSED_VARIABLE(isp);
-    // This method should never be called.
-    // It is a utility for the finite-rate chemistry,
-    // and an equilibrium gas should not be part of the
-    // the finite-rate chemistry model by definition.
-    // This implementation is here to keep C++ happy that
-    // all of the methods are implemented as required.
-    cout << "s_entropy() not implemented" << endl;
-    exit(NOT_IMPLEMENTED_ERROR);
-    return 0.0;
+    // Without having the entropy recorded as part of the original table,
+    // the next best is to use a model of an ideal gas.
+    // [todo] -- PJ 12-dec-2013 put entropy into the new tables
+    // but still allow old tables (without it) to be used,
+    // since entropy is not used as part of the main simulation code.
+    cout << "Caution: calling s_entropy for LUT species." << endl;
+    if ( isp != 0 ) {
+	throw runtime_error("LUT gas: should not be looking up isp != 0");
+    }
+    int ie = 0; // coldest
+    int ir = irsteps_ - 1; // quite dense 
+    double R = R_hat_[ie][ir]; // J/kg/deg-K
+    double Cp = R + Cv_hat_[ie][ir];
+    constexpr double T1 = 300.0; // degrees K
+    constexpr double p1 = 100.0e3; // Pa
+    double s = Cp * log(Q.T[0]/T1) - R * log(Q.p/p1); 
+    return s;
 }
 
 double
