@@ -124,11 +124,10 @@ build_new: $(LIBGAS) $(LUA_MODULES) $(TOOL_EXECUTABLES) $(PYTHONGAS_MODULE)
 	@echo -e $(subst \n ,\n,$(CEA2_MSG))
 	@echo -e $(subst \n ,\n,$(REFPROP_MSG))
 
-test: $(TEST_EXECUTABLES) $(LUAGAS_MODULE) cea2
+test: $(TEST_EXECUTABLES) cea2
 	cp $(TEST_EXECUTABLES) $(TEST)
 	# cp $(MODELS)/ltest.lua $(TEST)
 	chmod +x $(TEST)/ltest.lua
-	cp $(LUAGAS_MODULE) $(INSTALL_DIR)/
 	cd $(TEST); make test
 
 noneq_test: noneq-test.x noneq-test.py cea2 $(PYTHONGAS_MODULE)
@@ -137,8 +136,7 @@ noneq_test: noneq-test.x noneq-test.py cea2 $(PYTHONGAS_MODULE)
 	cp thermo.inp trans.inp $(INSTALL_DIR)/
 	cp noneq-test.x $(INSTALL_DIR)/
 
-install: $(LIBGAS) $(LUA_MODULES) $(TOOL_EXECUTABLES) $(LUAGAS_MODULE) \
-		$(PYTHONGAS_MODULE)
+install: $(LIBGAS) $(LUA_MODULES) $(TOOL_EXECUTABLES) $(PYTHONGAS_MODULE)
 	- mkdir -p $(INSTALL_DIR)
 	cd ../../; rsync -av --exclude=".svn" --exclude="*~" cfpylib $(INSTALL_DIR)
 	- cp $(TOOL_EXECUTABLES) $(INSTALL_DIR)/
@@ -162,7 +160,6 @@ ifeq ($(REFPROP_EXISTS), true)
 endif
 	- mkdir -p $(INSTALL_DIR)/collision-integrals
 	rsync -a --exclude=.svn $(COLLISION_INTEGRALS)/* $(INSTALL_DIR)/collision-integrals/
-	- cp $(LUAGAS_MODULE) $(INSTALL_DIR)/
 	- cp $(PYTHONGAS_MODULE) $(INSTALL_DIR)/
 ifeq ($(findstring Darwin, $(SYSTEM)), Darwin)
 	- cp $(INSTALL_DIR)/_gaspy.dylib $(INSTALL_DIR)/_gaspy.so
@@ -179,7 +176,6 @@ clean:
 	- rm $(TOOL_EXECUTABLES)
 	- rm thermo.inp trans.inp
 	- rm $(LUA_MODULES)
-	- rm $(LUAGAS_MODULE)
 ifeq ($(findstring Darwin, $(SYSTEM)), Darwin)
 	- rm *.so
 endif
@@ -305,14 +301,14 @@ $(LIBGAS) : $(MODELS_OBJECTS) $(KINETICS_OBJECTS) $(LIBUTIL)
 
 CXXFLAG3 := -c -fPIC
 
-$(MODELS)/gaspy_wrap.cxx : $(MODELS)/gaspy.i $(LIBGAS)
+$(MODELS)/gaspy_wrap.cxx : $(MODELS)/gaspy.i $(MODELS)/libgas.i $(LIBGAS)
 	swig -python -c++ -w512 $(MODELS)/gaspy.i
 
 gaspy_wrap.o : $(MODELS)/gaspy_wrap.cxx $(LUA_INCLUDE_DIR)
 	$(CXXCOMPILE) $(CXXFLAG3) $(MODELS)/gaspy_wrap.cxx \
 	-I$(PYTHON_INCLUDE_DIR) -I$(LUA_INCLUDE_DIR)
 
-$(MODELS)/gaspy.py : $(MODELS)/gaspy.i $(LIBGAS)
+$(MODELS)/gaspy.py : $(MODELS)/gaspy.i $(MODELS)/libgas.i $(LIBGAS)
 	swig -python -c++ -w512 $(MODELS)/gaspy.i
 
 gaspy.py : $(MODELS)/gaspy.py

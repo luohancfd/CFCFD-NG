@@ -77,7 +77,7 @@ def set_molef(Q, g, X):
     """ 
     nsp = g.get_number_of_species()
     if type(X) is dict:
-        molef = zeros(nsp)
+        molef = [0.0,]*nsp
         for species in X.keys():
             species_exists = False
             for isp in range(nsp):
@@ -85,14 +85,12 @@ def set_molef(Q, g, X):
                     molef[isp] = X[species]
                     species_exists = True
             if (not species_exists):
-                print "input error: species %s does not exist." % species
+                print "set_molef() input error: species %s does not exist." % species
                 sys.exit(1)
     elif type(X) is list:
-        molef = []
-        for isp in range(nsp):
-            molef.append(X[isp])
+        molef = [X[isp] for isp in range(nsp)]
     else:
-        print "input error: species should be provided in a dict or list."
+        print "set_molef() input error: species should be provided in a dict or list."
         sys.exit(1)
     # convert to massf
     massf = convert_molef2massf(molef, g.M())
@@ -106,7 +104,7 @@ def set_massf(Q, g, mf):
     """
     nsp = g.get_number_of_species()
     if type(mf) is dict:
-        massf = zeros(nsp)
+        massf = [0.0,]*nsp
         for species in mf.keys():
             species_exists = False
             for isp in range(nsp):
@@ -117,9 +115,7 @@ def set_massf(Q, g, mf):
                 print "input error: species %s does not exist." % species
                 sys.exit(1)
     elif type(mf) is list:
-        massf = []
-        for isp in range(nsp):
-            massf.append(mf[isp])
+        massf = [mf[isp] for isp in range(nsp)]
     else:
         print "input error: species should be provided in a dict or list."
         sys.exit(1)

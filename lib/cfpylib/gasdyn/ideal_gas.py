@@ -67,7 +67,10 @@ class Gas(object):
 
         :returns: the new Gas object.
         """
-        other = Gas(self.Mmass, self.gam, self.name)
+        other = Gas(self.Mmass, self.gam, self.name, 
+                    s1=self.s1, T1=self.T1, p1=self.p1,
+                    mu_ref=self.mu_ref, T_ref=self.Tref, S_mu=self.S_mu,
+                    Prandtl=self.Prandtl)
         other.set_pT(self.p, self.T)
         return other
 
