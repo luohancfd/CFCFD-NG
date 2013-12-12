@@ -2,6 +2,7 @@
 // Date: 07-Nov-2008
 //       14-Jun-2010 (PJ) small variable change to fix bug
 //                        and eliminate ambiguity
+//       12-Dec-2013 (PJ) Add entropy to interpolation data.
 // Place: Hampton, Virginia, USA
 //        Lisbon, Portugal
 // Note:
@@ -44,6 +45,12 @@ Look_up_table::Look_up_table(const string cfile)
 
     int ie, ir;
 
+    try {
+	with_entropy = get_int(L, LUA_GLOBALSINDEX, "with_entropy") == 1;
+    } catch ( runtime_error &e ) {
+	with_entropy = false;
+    }
+    if ( !with_entropy ) cout << "Look_up_table(): No entropy data available." << endl;
     iesteps_ = get_positive_int(L, LUA_GLOBALSINDEX, "iesteps");
     irsteps_ = get_positive_int(L, LUA_GLOBALSINDEX, "irsteps");
     emin_ = get_number(L, LUA_GLOBALSINDEX, "emin");
@@ -78,6 +85,7 @@ Look_up_table::Look_up_table(const string cfile)
     g_hat_.resize(ne);
     mu_hat_.resize(ne);
     k_hat_.resize(ne);
+    if ( with_entropy ) s_.resize(ne);
 
     lua_rawgeti(L, -1, 1);
     int nr = lua_objlen(L, -1);
@@ -98,6 +106,7 @@ Look_up_table::Look_up_table(const string cfile)
 	g_hat_[ie].resize(nr);
 	mu_hat_[ie].resize(nr);
 	k_hat_[ie].resize(nr);
+	if ( with_entropy ) s_[ie].resize(nr);
 
 	lua_rawgeti(L, -1, ie+1);
 	for ( ir = 0; ir < nr; ++ir ) {
@@ -126,6 +135,12 @@ Look_up_table::Look_up_table(const string cfile)
 	    lua_rawgeti(L, -1, 6);
 	    k_hat_[ie][ir] = luaL_checknumber(L, -1);
 	    lua_pop(L, 1);
+	    
+	    if ( with_entropy ) {
+		lua_rawgeti(L, -1, 7);
+		s_[ie][ir] = luaL_checknumber(L, -1);
+		lua_pop(L, 1);
+	    }
 
 	    lua_pop(L, 1); // pop data[ie][ir] off.
 	}
@@ -148,6 +163,7 @@ Look_up_table::~Look_up_table()
 	g_hat_[ie].clear();
 	mu_hat_[ie].clear();
 	k_hat_[ie].clear();
+	if ( with_entropy ) s_[ie].clear();
     }
     Cv_hat_.clear();
     Cv_.clear();
@@ -155,6 +171,7 @@ Look_up_table::~Look_up_table()
     g_hat_.clear();
     mu_hat_.clear();
     k_hat_.clear();
+    if ( with_entropy ) s_.clear();
 } // end of destructor
 
 int
@@ -349,23 +366,34 @@ double
 Look_up_table::
 s_entropy(const Gas_data &Q, int isp)
 {
-    // Without having the entropy recorded as part of the original table,
-    // the next best is to use a model of an ideal gas.
-    // [todo] -- PJ 12-dec-2013 put entropy into the new tables
-    // but still allow old tables (without it) to be used,
-    // since entropy is not used as part of the main simulation code.
-    cout << "Caution: calling s_entropy for LUT species." << endl;
     if ( isp != 0 ) {
 	throw runtime_error("LUT gas: should not be looking up isp != 0");
     }
-    int ie = 0; // coldest
-    int ir = irsteps_ - 1; // quite dense 
-    double R = R_hat_[ie][ir]; // J/kg/deg-K
-    double Cp = R + Cv_hat_[ie][ir];
-    constexpr double T1 = 300.0; // degrees K
-    constexpr double p1 = 100.0e3; // Pa
-    double s = Cp * log(Q.T[0]/T1) - R * log(Q.p/p1); 
-    return s;
+    double s_eff;
+    if ( with_entropy ) {
+	int ir, ie;
+	double lrfrac, efrac;
+	if ( determine_interpolants(Q, ir, ie, lrfrac, efrac) != SUCCESS ) {
+	    cout << "Bailing out!\n";
+	    exit(1);
+	}
+	s_eff  = (1.0 - efrac) * (1.0 - lrfrac) * s_[ie][ir] +
+	    efrac         * (1.0 - lrfrac) * s_[ie+1][ir] +
+	    efrac         * lrfrac         * s_[ie+1][ir+1] +
+	    (1.0 - efrac) * lrfrac         * s_[ie][ir+1];
+    } else {
+	// Without having the entropy recorded as part of the original table,
+	// the next best is to use a model of an ideal gas.
+	cout << "Caution: calling s_entropy for LUT species without tabular data." << endl;
+	int ie = 0; // coldest
+	int ir = irsteps_ - 1; // quite dense 
+	double R = R_hat_[ie][ir]; // J/kg/deg-K
+	double Cp = R + Cv_hat_[ie][ir];
+	constexpr double T1 = 300.0; // degrees K
+	constexpr double p1 = 100.0e3; // Pa
+	s_eff = Cp * log(Q.T[0]/T1) - R * log(Q.p/p1);
+    } 
+    return s_eff;
 }
 
 double

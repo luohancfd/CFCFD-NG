@@ -35,6 +35,7 @@ private:
     double s_dhdT_const_p(const Gas_data &Q, int &status);
     double s_gas_constant(const Gas_data &Q, int &status);
 
+    bool with_entropy;
     int iesteps_, irsteps_;
     double emin_, emax_, de_;
     double lrmin_, lrmax_, dlr_;
@@ -45,6 +46,7 @@ private:
     matrix g_hat_;
     matrix mu_hat_;
     matrix k_hat_;
+    matrix s_;
 };
 
 Gas_model* create_look_up_table_gas_model(const std::string cfile);
