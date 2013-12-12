@@ -206,13 +206,17 @@ determine_interpolants(const Gas_data &Q, int &ir, int &ie, double &lrfrac, doub
     lrfrac = (logrho - (lrmin_ + ir * dlr_)) / dlr_;
     efrac  = (Q.e[0] - (emin_ + ie * de_)) / de_;
     // cout << "desired lrfrac= " << lrfrac << " efrac= " << efrac << endl;
+#   if 0
+    // 2013-12-13 (PJ) removed the limitation on extrapolation because
+    // it was messing with my estimates of entropy for low temperatures.
     // Limit the extrapolation to small distances.
-#   define EXTRAP_MARGIN (0.2)
-    lrfrac = (lrfrac < -EXTRAP_MARGIN) ? -(EXTRAP_MARGIN): lrfrac;
-    lrfrac = (lrfrac > 1.0+EXTRAP_MARGIN) ? 1.0+EXTRAP_MARGIN: lrfrac;
-    efrac = (efrac < -0.2)? -EXTRAP_MARGIN: efrac;
-    efrac = (efrac > 1.0+EXTRAP_MARGIN) ? 1.0+EXTRAP_MARGIN: efrac;
+    constexpr double EXTRAP_MARGIN = 1.0;
+    lrfrac = max(lrfrac, -EXTRAP_MARGIN);
+    lrfrac = min(lrfrac, 1.0+EXTRAP_MARGIN);
+    efrac = max(efrac, -EXTRAP_MARGIN);
+    efrac = min(efrac, 1.0+EXTRAP_MARGIN);
     // cout << "actual lrfrac= " << lrfrac << " efrac= " << efrac << endl;
+#   endif
 
     return (SUCCESS);
 }
@@ -315,7 +319,7 @@ s_molecular_weight(int isp)
     // there are times when a value from this function makes
     // other code simpler, in that the doesn't have to treat
     // the look-up gas specially.
-    cout << "Caution: calling s_molecular_weight for LUT species." << endl;
+    // cout << "Caution: calling s_molecular_weight for LUT species." << endl;
     if ( isp != 0 ) {
 	throw runtime_error("LUT gas: should not be looking up isp != 0");
     }
@@ -338,7 +342,7 @@ s_internal_energy(const Gas_data &Q, int isp)
     // return something reasonable may make other code
     // simpler because it doesn't have to treat the
     // LUT gas specially.
-    cout << "Caution: calling s_internal_energy for LUT species." << endl;
+    // cout << "Caution: calling s_internal_energy for LUT species." << endl;
     if ( isp != 0 ) {
 	throw runtime_error("LUT gas: should not be looking up isp != 0");
     }
@@ -354,7 +358,7 @@ s_enthalpy(const Gas_data &Q, int isp)
     // pressure and density are up-to-date in the
     // gas_data struct. Then enthalpy is computed
     // from definition.
-    cout << "Caution: calling s_enthalpy for LUT species." << endl;
+    // cout << "Caution: calling s_enthalpy for LUT species." << endl;
     if ( isp != 0 ) {
 	throw runtime_error("LUT gas: should not be looking up isp != 0");
     }

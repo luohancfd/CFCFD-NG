@@ -82,11 +82,11 @@ class Gas(object):
         self.gasModel.eval_thermo_state_pT(self.gasData)
         self.rho = self.gasData.rho
         self.a = self.gasData.a
-        self.e = self.gasData.e[0] # [todo] consider all modes
+        self.e = self.gasModel.mixture_internal_energy(self.gasData, 0.0)
         self.quality = self.gasData.quality
         # Manually call methods to calculate other thermodynamic properties
-        self.h = self.gasModel.enthalpy(self.gasData, 0)
-        self.s = self.gasModel.entropy(self.gasData, 0)
+        self.h = self.gasModel.mixture_enthalpy(self.gasData, 0.0)
+        self.s = self.gasModel.mixture_entropy(self.gasData)
         self.R = self.gasModel.R(self.gasData)
         self.C_p = self.gasModel.Cp(self.gasData)
         self.C_v = self.gasModel.Cv(self.gasData)
@@ -123,12 +123,20 @@ class Gas(object):
         """
         # The libgas library does not have a pressure-entropy thermodynamic
         # state solver, so we need to do the iterative calculation ourselves.
+        gasData2 = Gas_data(self.gasModel)
+        for isp in range(self.gasModel.get_number_of_species()):
+            gasData2.massf[isp] = self.gasData.massf[isp]
         def entropy_solve(temp):
-            self.set_pT(p, temp) # calculate density
-            entropy = self.gasModel.entropy(self.gasData, 0) # entropy from temp and density
+            gasData2.p = p
+            gasData2.T[0] = temp # [todo] consider all modes
+            self.gasModel.eval_thermo_state_pT(gasData2) # calculate density
+            entropy = self.gasModel.mixture_entropy(gasData2)
+            # print "debug p=", p, "s=", s, "temp=", temp, "entropy=", entropy
             return s - entropy
-        T = secant(entropy_solve, 250.0, 260.0, tol=1.0e-4)
-        if T == "FAIL": raise Exception("Secant solver failed, bailing out!")
+        # expecting values of entropy of several thousand
+        # so we don't want the tolerance too small
+        T = secant(entropy_solve, 250.0, 260.0, tol=0.01)
+        if T == "FAIL": raise Exception("set_ps(): Secant solver failed.")
         return self.set_pT(p, T, transProps)
 
     def write_state(self, strm):
