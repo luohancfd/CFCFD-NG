@@ -53,8 +53,8 @@ class TestLibGasGas(unittest.TestCase):
         import math
         self.assertAlmostEqual(testGas.a, math.sqrt(gam*R*T), delta=2.0)
         s = testGas.s
-        p2 = 150.0e3
-        T2 = 350.0
+        p2 = p + 50.0e3
+        T2 = T + 50.0
         testGas.set_pT(p2, T2)
         s2 = testGas.s
         delta_s = Cp*math.log(T2/T) - R*math.log(p2/p)
@@ -63,8 +63,9 @@ class TestLibGasGas(unittest.TestCase):
         rho2 = testGas.rho
         self.assertAlmostEqual(p2/pow(rho2,gam), p/pow(rho,gam), delta=100.0)
 
-    def test_cea_lut_air(self):
+    def test_cea_lut_air_low_T(self):
         # Peter J.
+        # 300 degrees is below the low-T limit of the table and it has to extrapolate.
         if not os.path.exists('cea-lut-air-ions.lua.gz'):
             os.system('cp ~/cfcfd3/lib/gas/cea-cases/cea-lut-air-ions.lua.gz .')
         testGas = Gas('cea-lut-air-ions.lua.gz')
@@ -73,7 +74,8 @@ class TestLibGasGas(unittest.TestCase):
         testGas.set_pT(p, T)
         gam = testGas.gam
         R = testGas.R
-        Cp = testGas.C_p
+        Cp = testGas.C_p # For the look-up table this Cp is for computing entropy
+        self.assertAlmostEqual(Cp, R*gam/(gam-1.0), delta=10.0) # fairly coarse
         self.assertAlmostEqual(gam, 1.4, delta=0.02)
         self.assertAlmostEqual(R, 287.0, delta=2)
         rho = testGas.rho
@@ -81,15 +83,45 @@ class TestLibGasGas(unittest.TestCase):
         import math
         self.assertAlmostEqual(testGas.a, math.sqrt(gam*R*T), delta=2.0)
         s = testGas.s
-        p2 = 150.0e3
-        T2 = 350.0
+        p2 = p + 50.0e3
+        T2 = T + 50.0
         testGas.set_pT(p2, T2)
         s2 = testGas.s
         delta_s = Cp*math.log(T2/T) - R*math.log(p2/p)
-        self.assertAlmostEqual(s2-s, delta_s, delta=0.3)
+        self.assertAlmostEqual(s2-s, delta_s, delta=3.0) # fairly coarse
         testGas.set_ps(p2, s)
         rho2 = testGas.rho
-        self.assertAlmostEqual(p2/pow(rho2,gam), p/pow(rho,gam), delta=100.0)
+        self.assertAlmostEqual(p2/pow(rho2,gam), p/pow(rho,gam), delta=200.0)
+
+    def test_cea_lut_air_warm_T(self):
+        # Peter J.
+        # 600 degreesis just into the table so we should be interpolating.
+        if not os.path.exists('cea-lut-air-ions.lua.gz'):
+            os.system('cp ~/cfcfd3/lib/gas/cea-cases/cea-lut-air-ions.lua.gz .')
+        testGas = Gas('cea-lut-air-ions.lua.gz')
+        p = 100.0e3 # Pa
+        T = 600.0 # degrees K
+        testGas.set_pT(p, T)
+        gam = testGas.gam
+        R = testGas.R
+        Cp = testGas.C_p # For the look-up table this Cp is for computing entropy
+        self.assertAlmostEqual(Cp, R*gam/(gam-1.0), delta=10.0) # fairly coarse
+        self.assertAlmostEqual(gam, 1.4, delta=0.03)
+        self.assertAlmostEqual(R, 287.0, delta=2)
+        rho = testGas.rho
+        self.assertAlmostEqual(rho, p/(R*T), delta=0.01)
+        import math
+        self.assertAlmostEqual(testGas.a, math.sqrt(gam*R*T), delta=2.0)
+        s = testGas.s
+        p2 = p + 50.0e3
+        T2 = T + 50.0
+        testGas.set_pT(p2, T2)
+        s2 = testGas.s
+        delta_s = Cp*math.log(T2/T) - R*math.log(p2/p)
+        self.assertAlmostEqual(s2-s, delta_s, delta=3.0) # fairly coarse
+        testGas.set_ps(p2, s)
+        rho2 = testGas.rho
+        self.assertAlmostEqual(p2/pow(rho2,gam), p/pow(rho,gam), delta=300.0)
        
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestLibGasGas)
