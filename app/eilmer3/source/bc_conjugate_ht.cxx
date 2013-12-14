@@ -83,12 +83,11 @@ apply_viscous(double t)
     size_t nmodes = get_gas_model_ptr()->get_number_of_modes();
     Block &bd = *bdp;
     global_data &G = *(get_global_data_ptr());
-    int rank = G.my_mpi_rank;
     
     // ONLY IMPLEMENTED FOR NORTH BOUNDARY
     j = bd.jmax;
     for (k = bd.kmin; k <= bd.kmax; ++k) {
-	int iT = G.displs[rank];
+	int iT = G.displs[bd.id];
 	for (i = bd.imin; i <= bd.imax; ++i) {
 	    cell = bd.get_cell(i,j,k);
 	    IFace = cell->iface[NORTH];
