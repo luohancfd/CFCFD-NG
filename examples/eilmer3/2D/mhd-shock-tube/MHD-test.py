@@ -68,8 +68,8 @@ blk_0.set_BC(WEST, EXTRAPOLATE_OUT)
 blk_1.set_BC(EAST, EXTRAPOLATE_OUT)
 
 # periodic boundary conditions in the y direction
-connect_blocks_2D(blk_0, NORTH, blk_0, SOUTH)
-connect_blocks_2D(blk_1, NORTH, blk_1, SOUTH)
+connect_blocks_2D(blk_0, NORTH, blk_0, SOUTH, check_corner_locations=False)
+connect_blocks_2D(blk_1, NORTH, blk_1, SOUTH, check_corner_locations=False)
 
 
 # Some simulation parameters
