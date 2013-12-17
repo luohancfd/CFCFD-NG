@@ -78,9 +78,14 @@ SLIDING_T = object()
 FSTC = object()
 SHOCK_FITTING_IN = object()
 USER_DEFINED_MASS_FLUX = object()
+CONJUGATE_HT = object()
+MOVING_WALL = object()
 #
+# When we ust the set_BC method for a Block object, we will want to look up
+# the correct boundary condition object by name.
 # The integer values in the following dictionary are a reminder of the old
-# macro definitions in the C code.  They are retained here for fererence.
+# macro definitions in the C code.  They are retained here for reference.
+# Newer boundary conditions will just have a name, in upper case.
 #
 bcSymbolFromName = {
      0: ADJACENT, "0": ADJACENT, "ADJACENT": ADJACENT, "COMMON": ADJACENT,
@@ -106,6 +111,9 @@ bcSymbolFromName = {
     19: SLIDING_T, "19" : SLIDING_T, "SLIDING_T": SLIDING_T,
     20: FSTC, "20" : FSTC, "FSTC": FSTC,
     21: SHOCK_FITTING_IN, "21" : SHOCK_FITTING_IN, "SHOCK_FITTING_IN": SHOCK_FITTING_IN,
+    "USER_DEFINED_MASS_FLUX": USER_DEFINED_MASS_FLUX,
+    "CONJUGATE_HT": CONJUGATE_HT,
+    "MOVING_WALL": MOVING_WALL
 }
 bcName = {
     ADJACENT: "ADJACENT",
@@ -129,7 +137,9 @@ bcName = {
     SLIDING_T: "SLIDING_T",
     FSTC: "FSTC",
     SHOCK_FITTING_IN: "SHOCK_FITTING_IN",
-    USER_DEFINED_MASS_FLUX: "USER_DEFINED_MASS_FLUX"
+    USER_DEFINED_MASS_FLUX: "USER_DEFINED_MASS_FLUX",
+    CONJUGATE_HT: "CONJUGATE_HT",
+    MOVING_WALL: "MOVING_WALL"
     }
 
 class BoundaryCondition(object):
@@ -138,8 +148,9 @@ class BoundaryCondition(object):
     """
     __slots__ = 'type_of_BC', 'Twall', 'Pout', 'inflow_condition', \
                 'x_order', 'sponge_flag', 'other_block', 'other_face', 'orientation', \
-                'filename', 'n_profile', 'is_wall', 'sets_conv_flux', 'sets_visc_flux', 'assume_ideal', \
-                'mdot', 'Twall_i', 'Twall_f', 't_i', 't_f', 'emissivity', 'label'
+                'filename', 'n_profile', 'is_wall', 'sets_conv_flux', 'sets_visc_flux', \
+                'assume_ideal', 'mdot', 'Twall_i', 'Twall_f', 't_i', 't_f', 'emissivity', \
+                'r_omega', 'centre', 'v_trans', 'reorient_vector_quantities', 'Rmatrix', 'label'
     def __init__(self,
                  type_of_BC=SLIP_WALL,
                  Twall=300.0,
@@ -162,6 +173,11 @@ class BoundaryCondition(object):
                  t_i=0.0,
                  t_f=0.0,
                  emissivity=1.0,
+                 r_omega=None,
+                 centre=None,
+                 v_trans=None,
+                 reorient_vector_quantities=False,
+                 Rmatrix=[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
                  label=""):
         """
         Construct a generic boundary condition object.
@@ -209,6 +225,11 @@ class BoundaryCondition(object):
         :param Twall_f: final temperature for sliding temperature BC
         :param t_i: initial time for sliding temperature BC
         :param t_f: final time for sliding temperature BC
+        :param r_omega: angular velocity for Jason Qin's moving-wall boundary
+        :param centre: a point on the axis of rotation for the moving-wall boundary
+        :param v_tran: a translational velocity to superimpost on the moving-wall boundary 
+        :param reorient_vector_quantities: for exchange of vector quantities between adjacent boundaries
+        :param Rmatrix: the 9 elements of the rotation matrix
         :param label: A string that may be used to assist in identifying the boundary
             in the post-processing phase of a simulation.
         """
@@ -233,6 +254,21 @@ class BoundaryCondition(object):
         self.t_i = t_i
         self.t_f = t_f
         self.emissivity = emissivity
+        if r_omega is None:
+            self.r_omega = [0.0, 0.0, 0.0]
+        else:
+            self.r_omega = [r_omega[0], r_omega[1], r_omega[2]]
+        if centre is None:
+            self.centre = [0.0, 0.0, 0.0]
+        else:
+            self.centre = [centre[0], centre[1], centre[2]]
+        if v_trans is None:
+            self.v_trans = [0.0, 0.0, 0.0]
+        else:
+            self.v_trans = [v_trans[0], v_trans[1], v_trans[2]]
+        self.reorient_vector_quantities = reorient_vector_quantities
+        assert (type(Rmatrix) is list) and (len(Rmatrix) == 9)
+        self.Rmatrix = Rmatrix
         self.label = label
             
         return
@@ -257,6 +293,13 @@ class BoundaryCondition(object):
         for mdi in mdot: str_rep += "%g," % mdi
         str_rep += "]"
         str_rep += ", emissivity=%g" % self.emissivity
+        str_rep += ", r_omega=[%g, %g, %g]," % (self.r_omega[0], self.r_omega[1], self.r_omega[2])
+        str_rep += ", centre=[%g, %g, %g]," % (self.centre[0], self.centre[1], self.centre[2])
+        str_rep += ", v_trans=[%g, %g, %g]," % (self.v_trans[0], self.v_trans[1], self.v_trans[2])
+        str_rep += ", reorient_vector_quantities=%d" % self.reorient_vector_quantities
+        str_rep += ", Rmatrix=["
+        for elem in Rmatrix: str_rep += "%g, " % elem
+        str_rep += "]"
         str_rep += ", label=\"%s\")" % self.label
         return str_rep
     def __copy__(self):
@@ -281,13 +324,20 @@ class BoundaryCondition(object):
                                  t_i=self.t_i,
                                  t_f=self.t_f,
                                  emissivity=self.emissivity,
+                                 r_omega=self.r_omega.copy(),
+                                 centre=self.centre.copy(),
+                                 v_trans=self.v_trans.copy(),
+                                 reorient_vector_quantities=self.reorient_vector_quantities,
+                                 Rmatrix=self.Rmatrix,
                                  label=self.label)
     
 class AdjacentBC(BoundaryCondition):
     """
     This boundary joins (i.e. is adjacent to) a boundary of another block.
     """
-    def __init__(self, other_block=-1, other_face=-1, orientation=0, label=""):
+    def __init__(self, other_block=-1, other_face=-1, orientation=0, 
+                 reorient_vector_quantities=False,
+                 Rmatrix=[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0], label=""):
         """
         Join the boundary face to a boundary-face of another block.
 
@@ -301,20 +351,32 @@ class AdjacentBC(BoundaryCondition):
         :param other_face: index of the adjacent face of the other block, if any.
         :param orientation: for 3D connections the other block face can have one of
             4 rotational orientations.
+        :param reorient_vector_quantities: for exchange of vector quantities between adjacent boundaries
+        :param Rmatrix: the 9 elements of the rotation matrix
         :param label: A string that may be used to assist in identifying the boundary
             in the post-processing phase of a simulation.
         """
+        if reorient_vector_quantities:
+            assert (type(Rmatrix) is list) and (len(Rmatrix) == 9)
         BoundaryCondition.__init__(self, type_of_BC=ADJACENT, other_block=other_block,
                                    other_face=other_face, orientation=orientation,
+                                   reorient_vector_quantities=reorient_vector_quantities,
+                                   Rmatrix=Rmatrix,
                                    label=label)
         return
     def __str__(self):
-        return "AdjacentBC(other_block=%d, other_face=%d, orientation=%d, label=\"%s\")" % \
-            (self.other_block, self.other_face, self.orientation, self.label)
+        return ("AdjacentBC(other_block=%d, other_face=%d, orientation=%d, " +
+                "reorient_vector_quantities=%d, Rmatrix=%s, " +
+                "label=\"%s\")" %
+                (self.other_block, self.other_face, self.orientation, 
+                 self.reorient_vector_quantities, self.Rmatrix,
+                 self.label))
     def __copy__(self):
         return AdjacentBC(other_block=self.other_block,
                           other_face=self.other_face,
                           orientation=self.orientation,
+                          reorient_vector_quantities=self.reorient_vector_quantities,
+                          Rmatrix=self.Rmatrix,
                           label=self.label)
     
 class SupInBC(BoundaryCondition):
@@ -723,8 +785,9 @@ class AdjacentPlusUDFBC(BoundaryCondition):
     connect_blocks() function.
     """
     def __init__(self, other_block=-1, other_face=-1, orientation=0,
-                 filename="udf.lua", is_wall=0, sets_conv_flux=0,
-                 sets_visc_flux=0, label=""):
+                 filename="udf.lua", is_wall=0, sets_conv_flux=0, sets_visc_flux=0, 
+                 reorient_vector_quantities=False, Rmatrix=None, 
+                 label=""):
         """
         Construct a connecting boundary condition that also has some user-defined behaviour.
 
@@ -743,6 +806,8 @@ class AdjacentPlusUDFBC(BoundaryCondition):
             function for setting that data.
         :param sets_visc_flux: As for sets_conv_flux except that this relates to
             setting the viscous component of flux due to the effect of the boundary.
+        :param reorient_vector_quantities: for exchange of vector quantities between adjacent boundaries
+        :param Rmatrix: the 9 elements of the rotation matrix
         :param label: A string that may be used to assist in identifying the boundary
             in the post-processing phase of a simulation.
         """
@@ -750,19 +815,26 @@ class AdjacentPlusUDFBC(BoundaryCondition):
                                    other_face=other_face, orientation=orientation,
                                    filename=filename, is_wall=is_wall,
                                    sets_conv_flux=sets_conv_flux, sets_visc_flux=sets_visc_flux, 
+                                   reorient_vector_quantities=reorient_vector_quantities,
+                                   Rmatrix=Rmatrix,
                                    label=label)
         return
     def __str__(self):
         return ("AdjacentPlusUDFBC(other_block=%d, other_face=%d, orientation=%d, " + 
-                "filename=\"%s\", is_wall=%d, sets_conv_flux=%d, sets_visc_flux=%d, label=\"%s\")") % \
-               (self.other_block, self.other_face, self.orientation, 
-                self.filename, self.is_wall, self.sets_conv_flux, self.sets_visc_flux,
-                self.label)
+                "filename=\"%s\", is_wall=%d, sets_conv_flux=%d, sets_visc_flux=%d, " +
+                "reorient_vector_quantities=%d, Rmatrix=%s, " +
+                "label=\"%s\")" %
+                (self.other_block, self.other_face, self.orientation, 
+                 self.filename, self.is_wall, self.sets_conv_flux, self.sets_visc_flux,
+                 self.reorient_vector_quantities, self.Rmatrix,
+                 self.label))
     def __copy__(self):
         return AdjacentPlusUDFBC(other_block=self.other_block, other_face=self.other_face,
                                  orientation=self.orientation, filename=self.filename,
                                  is_wall=self.is_wall,
                                  sets_conv_flux=self.sets_conv_flux, sets_visc_flux=self.sets_visc_flux,
+                                 reorient_vector_quantities=self.reorient_vector_quantities,
+                                 Rmatrix=self.Rmatrix,
                                  label=self.label)
      
 class SurfaceEnergyBalanceBC(BoundaryCondition):
@@ -824,6 +896,86 @@ class UserDefinedMassFluxBC(BoundaryCondition):
     def __copy__(self):
         return UserDefinedMassFluxBC(filename=self.filename, label=self.label)
 
+class ConjugateHTBC(BoundaryCondition):
+    """
+    A wall with conjugate heat transfer coupling in wall and flow domain.
+
+    This boundary condition is only effective when a wall model for the
+    conjugate heat transfer at the boundary between fluid and solid
+    is active. See gdata.conjugate_ht_active and gdata.conjugate_ht_file.
+    Aside from the heat transfer, this wall acts as a no-slip wall.
+    """
+    def __init__(self, emissivity=1.0, label=""):
+        """
+        Construct a conjugate heat transfer, solid-wall boundary.
+
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
+        BoundaryCondition.__init__(self, type_of_BC=CONJUGATE_HT, is_wall=1,
+                                   emissivity=emissivity, label=label)
+        return
+    def __str__(self):
+        return "ConjugateHTBC(label=\"%s\")" % self.label
+    def __copy__(self):
+        return ConjugateHTBC(emissivity=self.emissivity,label=self.label)
+
+class MovingWallBC(BoundaryCondition):
+    """
+    A solid boundary with no-slip but non-zero surface velocity.
+
+    Like the AdiabaticBC, this is completey effective only when viscous
+    effects are active.  Else, it is just like another solid (slip) wall.
+    """
+    def __init__(self, r_omega=None, centre=None, v_trans=None, label=""):
+        """
+        Construct a no-slip, solid-wall boundary that has a non-zero surface velocity.
+
+        :param r_omega: angular velocity vector (list or Vector) in rad/s
+        :param centre: point on axis of rotation (list or Vector)
+        :param v_trans: translational velocity to superimpose (list or Vector3)
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
+        import numpy
+        if r_omega is None:
+            my_r_omega = [0.0, 0.0, 0.0]
+        elif type(r_omega) is list and len(r_omega) >= 3:
+            my_r_omega = [r_omega[0], r_omega[1], r_omega[2]]
+        elif type(r_omega) is numpy.ndarray and r_omega.shape == (3,):
+            my_r_omega = [r_omega[0], r_omega[1], r_omega[2]]
+        elif type(r_omega) is Vector:
+            my_r_omega = [r_omega.x, r_omega.y, r_omega.z]
+        else:
+            raise RuntimeError("Invalid input for r_omega: " + str(r_omega))
+        if centre is None:
+            my_centre = [0.0, 0.0, 0.0]
+        elif type(centre) is list and len(centre) >= 3:
+            my_centre = [centre[0], centre[1], centre[2]]
+        elif type(centre) is numpy.ndarray and centre.shape == (3,):
+            my_centre = [centre[0], centre[1], centre[2]]
+        elif type(centre) is Vector:
+            my_centre = [centre.x, centre.y, centre.z]
+        else:
+            raise RuntimeError("Invalid input for centre: " + str(centre))
+        if v_trans is None:
+            my_v_trans = [0.0, 0.0, 0.0]
+        elif type(v_trans) is list and len(v_trans) >= 3:
+            my_v_trans = [v_trans[0], v_trans[1], v_trans[2]]
+        elif type(v_trans) is numpy.ndarray and v_trans.shape == (3,):
+            my_v_trans = [v_trans[0], v_trans[1], v_trans[2]]
+        elif type(v_trans) is Vector:
+            my_v_trans = [v_trans.x, v_trans.y, v_trans.z]
+        else:
+            raise RuntimeError("Invalid input for v_trans: " + str(v_trans))
+        BoundaryCondition.__init__(self, type_of_BC=MOVING_WALL, 
+            r_omega=my_r_omega, centre=my_centre, v_trans=my_v_trans, label=label)
+        return
+    def __str__(self):
+        return "MovingWallBC(r_omega=[%g,%g,%g], centre=[%g,%g,%g], v_trans=[%g,%g,%g], label=\"%s\")" % \
+            (self.r_omega, self.label)
+    def __copy__(self):
+        return MovingWallBC(r_omega=self.r_omega, centre=self.centre, v_trans=self.v_trans, label=self.label)
 
 #####################################################################################
 # FIX-ME -- should we merge the catalycity bcs with the main boundary-condition list?

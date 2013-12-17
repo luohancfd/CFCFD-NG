@@ -11,7 +11,6 @@
 #include <iostream>
 #include <vector>
 #include <map>
-#include <valarray>
 
 extern "C" {
 #include <lua.h>
@@ -61,6 +60,12 @@ public:
     
     int get_number_of_modes() const
     { return nmodes_; }
+
+    void set_reaction_compatibility(bool val)
+    { good_for_reactions_ = val; }
+
+    bool good_for_reactions() const
+    { return good_for_reactions_; }
 
     int number_of_values_in_gas_data_copy() const;
 
@@ -229,6 +234,8 @@ public:
 protected:
     int nsp_;     // No. of species components
     int nmodes_;  // No. of (separate) thermal modes
+    bool good_for_reactions_; // indicates if the model can be used with the
+                              // finite-rate chemistry module
 
     std::vector<std::string> s_names_;
     std::vector<std::string> m_names_;
@@ -391,25 +398,12 @@ void convert_massf2conc(double rho,
 			const std::vector<double> &massf,
 			const std::vector<double> &M,
 			std::vector<double> &c);
-// This overloaded version is only here because of the
-// ODE library.  When the ODE library is changed to use
-// vector<double>, then this can be removed.
-void convert_massf2conc(double rho,
-			const std::vector<double> &massf,
-			const std::vector<double> &M,
-			std::valarray<double> &c);
-void 
-convert_conc2massf(double rho,
-		   const std::vector<double> &c,
-		   const std::vector<double> &M,
-		   std::vector<double> &massf);
-// Same comment as above.
 void convert_conc2massf(double rho,
-			const std::valarray<double> &c,
+			const std::vector<double> &c,
 			const std::vector<double> &M,
 			std::vector<double> &massf);
 void convert_conc2molef(double rho_bar,
-			const std::valarray<double> &c,
+			const std::vector<double> &c,
 			std::vector<double> &molef);
 
 // python friendly versions

@@ -12,6 +12,7 @@
 #include <sstream>
 #include <stdio.h>
 #include <unistd.h>
+#include <math.h>
 #include "cell.hh"
 #include "kernel.hh"
 #include "block.hh"
@@ -754,6 +755,7 @@ int Block::calc_volumes_2D(size_t gtl)
 ///
 /// Determine minimum length and aspect ratio, also.
 {
+    global_data &G = *get_global_data_ptr();
     size_t i, j;
     double xA, yA, xB, yB, xC, yC, xD, yD;
     double xN, yN, xS, yS, xE, yE, xW, yW;
@@ -801,7 +803,7 @@ int Block::calc_volumes_2D(size_t gtl)
                       (xA - xD) * (yD * yD + yD * yA + yA * yA));
 	    cell->pos[gtl].z = 0.0;
 	    // Cell Volume.
-            if (get_axisymmetric_flag() == 1) {
+            if ( G.axisymmetric ) {
                 // Volume per radian = centroid y-ordinate * cell area
                 vol = xyarea * cell->pos[gtl].y;
             } else {
@@ -1102,6 +1104,7 @@ int Block::secondary_areas_2D(size_t gtl)
 ///
 int Block::calc_faces_2D(size_t gtl)
 {
+    global_data &G = *get_global_data_ptr();
     FV_Interface *iface;
     size_t i, j;
     double xA, xB, yA, yB, xC, yC;
@@ -1131,7 +1134,7 @@ int Block::calc_faces_2D(size_t gtl)
             iface->length = LAB;
             // Mid-point and area.
             iface->Ybar = 0.5 * (yA + yB);
-            if (get_axisymmetric_flag() == 1) {
+            if ( G.axisymmetric ) {
                 // Interface area per radian.
                 iface->area[gtl] = LAB * iface->Ybar;
             } else {
@@ -1167,7 +1170,7 @@ int Block::calc_faces_2D(size_t gtl)
             iface->length = LBC;
             // Mid-point and area.
             iface->Ybar = 0.5 * (yC + yB);
-            if (get_axisymmetric_flag() == 1) {
+            if ( G.axisymmetric ) {
                 // Interface area per radian.
                 iface->area[gtl] = LBC * iface->Ybar;
             } else {

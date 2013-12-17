@@ -130,6 +130,7 @@ block_0 = SuperBlock2D(make_patch(top, cylinder, axis, shock),
 # simulation control
 gdata.flux_calc = ADAPTIVE
 gdata.gasdynamic_update_scheme = 'classic-rk3'
+gdata.interpolation_type = 'pT'
 gdata.max_time = 15.0e-3 # should be large enough to allow steady flow
 gdata.max_step = 30000
 gdata.cfl = 0.8

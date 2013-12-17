@@ -44,13 +44,18 @@ private:
 
 class AdjacentPlusUDFBC : public UserDefinedBC {
 public:
-    AdjacentPlusUDFBC(Block *bdp, int which_boundary, int other_block, 
-		      int other_face, int neighbour_orientation=0,
-		      const std::string filename="udf.lua",
-		      bool is_wall=false,
-		      bool sets_conv_flux=false, 
-		      bool sets_visc_flux=false);
+    // Note that we don't have the neighbour_* data here because they are
+    // required by the exchange functions that get only pointers to the base class.
+    bool reorient_vector_quantities;
+    std::vector<double> Rmatrix;
+
+public:
+    AdjacentPlusUDFBC(Block *bdp, int which_boundary, 
+		      int other_block, int other_face, int neighbour_orientation,
+		      const std::string filename, bool is_wall, bool sets_conv_flux, bool sets_visc_flux,
+		      bool _reorient_vector_quantities, vector<double>& _Rmatrix);
     AdjacentPlusUDFBC(const AdjacentPlusUDFBC &bc);
     virtual ~AdjacentPlusUDFBC();
     virtual void print_info(std::string lead_in);
+    virtual int apply_convective(double t);
 };

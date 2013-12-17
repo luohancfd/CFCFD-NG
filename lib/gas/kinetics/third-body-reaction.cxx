@@ -21,7 +21,7 @@ Third_body_reaction::
 
 double
 Third_body_reaction::
-s_compute_forward_rate(const valarray<double> &y)
+s_compute_forward_rate(const vector<double> &y)
 {
     double wfN = Normal_reaction::s_compute_forward_rate(y);
     compute_third_body_concentration(y);
@@ -30,7 +30,7 @@ s_compute_forward_rate(const valarray<double> &y)
 
 double
 Third_body_reaction::
-s_compute_backward_rate(const valarray<double> &y)
+s_compute_backward_rate(const vector<double> &y)
 {
     double wbN = Normal_reaction::s_compute_backward_rate(y);
     if ( !conc_just_computed_ )
@@ -41,7 +41,7 @@ s_compute_backward_rate(const valarray<double> &y)
 
 void
 Third_body_reaction::
-compute_third_body_concentration(const valarray<double> &y)
+compute_third_body_concentration(const vector<double> &y)
 {
     conc_ = 0.0;
     map<int, double>::const_iterator it;

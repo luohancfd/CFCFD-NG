@@ -4,11 +4,12 @@
  *  \author Rowan J Gollan
  *  \version 20-Feb-2006
  **/
+#include <cstdlib>
 #include <cmath>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <valarray>
+#include <vector>
 #include "no_fuss_linear_algebra.hh"
 #include "ode_system.hh"
 #include "ode_step.hh"
@@ -189,7 +190,7 @@ string OdeSolver::str() const
 /// steps to reach the desired solution value.
 ///
 bool OdeSolver::solve_over_interval( OdeSystem &ode, double x0, double xf, double *h,
-				     const valarray<double> &yin, valarray<double> &yout )
+				     const vector<double> &yin, vector<double> &yout )
 {
     // 1. Check the bounds.
     double hdiff = xf - x0;
@@ -212,8 +213,8 @@ bool OdeSolver::solve_over_interval( OdeSystem &ode, double x0, double xf, doubl
     }
 
     // 3. Keep a copy of the input in case we need to restart
-    copy_valarray( yin, y_save_ );
-    copy_valarray( yin, y_work_ );
+    copy_vector( yin, y_save_ );
+    copy_vector( yin, y_work_ );
 
 
     // 4. Attempt a solution
@@ -263,7 +264,7 @@ bool OdeSolver::solve_over_interval( OdeSystem &ode, double x0, double xf, doubl
 		// }
 		xcurr += h_last;
 
-		copy_valarray( yout, y_work_ );
+		copy_vector( yout, y_work_ );
 		
 		h_final = h_last;
 		
@@ -328,7 +329,7 @@ bool OdeSolver::solve_over_interval( OdeSystem &ode, double x0, double xf, doubl
 		if( steps == 0 ) { // We've never had a h suggestion.
 		    h_final = *h;
 		}
-		copy_valarray( yout, y_work_ );
+		copy_vector( yout, y_work_ );
 		*h = h_trial / no_steps;
 	    }
 	    else

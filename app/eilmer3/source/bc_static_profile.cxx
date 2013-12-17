@@ -5,7 +5,6 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include <valarray>
 
 #include <stdio.h>
 #include <math.h>
@@ -108,7 +107,7 @@ StaticProfileBC::StaticProfileBC(Block *bdp, int which_boundary,
 	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &mu_t);
 	strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &k_t);
 	strcpy(token, strtok(NULL, " ")); sscanf(token, "%d", &S);
-	if ( get_radiation_flag() == 1 ) {
+	if ( G->radiation ) {
 	    strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &Q_rad_org);
 	    strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &f_rad_org);
 	    strcpy(token, strtok(NULL, " ")); sscanf(token, "%lf", &Q_rE_rad);

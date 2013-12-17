@@ -7,8 +7,6 @@
  **/
 
 #include <vector>
-#include <valarray>
-
 #include "../../nm/source/no_fuss_linear_algebra.hh"
 #include "species-pieces.hh"
 
@@ -29,7 +27,7 @@ Species_pieces::clone()
 }
 
 double
-Species_pieces::eval_conc( const valarray<double> &w ) 
+Species_pieces::eval_conc( const vector<double> &w ) 
 {
     double conc = init_conc_;
     int ir;

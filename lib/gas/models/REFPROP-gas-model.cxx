@@ -4,11 +4,12 @@
  *  \author Peter J. Blyton
  *  \version 15-May-2012
  */
-
+#include <cstdlib>
 #include <iostream>
 #include <string>
 #include <dlfcn.h>
 #include <string.h>
+#include <math.h>
 
 extern "C" {
 #include <lua.h>

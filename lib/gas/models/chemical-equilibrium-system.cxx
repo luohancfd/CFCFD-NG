@@ -1,7 +1,7 @@
 // Author: Daniel F. Potter
 // Date: 06-Oct-2009
 // Place: Brisbane, Queendland, AUST
-
+#include <cstdlib>
 #include <cmath>
 #include <sstream>
 
@@ -151,7 +151,7 @@ Chemical_equilibrium_system( double min_massf, vector<Chemical_species*> &specie
     		* 1.0 / species[isp]->get_M();
     }
     
-    // 3. Initialise valarrays
+    // 3. Initialise vectors
     Q_.resize( nsp_ );
     yguess_.resize( nsp_ );
     yout_.resize( nsp_ );
@@ -187,7 +187,7 @@ Chemical_equilibrium_system::solve_system( double T, double rho, vector<double> 
     // 2. Compute (constant) source terms
     compute_source_terms( massf );
 
-    // 3. Fill out yguess valarray
+    // 3. Fill out yguess vector
     for ( size_t isp=0; isp<nsp_; ++isp )
     	yguess_[isp] = ( massf[isp] > min_massf_ ) ? log(massf[isp]) : log(min_massf_);
     
@@ -215,7 +215,7 @@ Chemical_equilibrium_system::compute_source_terms( vector<double> &massf )
 	 Q_[isp] = 0.0;
     }
     
-    int iQ=0;	// current element index for the Q valarray
+    int iQ=0;	// current element index for the Q vector
     
     // 1. charge conservation line (if ions_ flag is set to true)
     if ( ions_ ) {
@@ -269,7 +269,7 @@ Chemical_equilibrium_system::compute_source_terms( vector<double> &massf )
 }
 
 int
-Chemical_equilibrium_system::f( const valarray<double> &y, valarray<double> &G )
+Chemical_equilibrium_system::f( const vector<double> &y, vector<double> &G )
 {
     /* Create the equation system for the ZeroSystem for a given y vector */
     
@@ -278,7 +278,7 @@ Chemical_equilibrium_system::f( const valarray<double> &y, valarray<double> &G )
 	 G[isp] = -Q_[isp];
     }
     
-    int iG=0;	// current element index for the G valarray
+    int iG=0;	// current element index for the G vector
     
     // 1. charge conservation line (if ions_ flag is set to true)
     if ( ions_ ) {
@@ -332,7 +332,7 @@ Chemical_equilibrium_system::f( const valarray<double> &y, valarray<double> &G )
 }
 
 int
-Chemical_equilibrium_system::Jac( const valarray<double> &y, Valmatrix &dGdy )
+Chemical_equilibrium_system::Jac( const vector<double> &y, Valmatrix &dGdy )
 {
     /* Create the Jacobian matrix for the ZeroSystem for a given y vector */
     
@@ -446,7 +446,7 @@ No_chemical_equilibrium_system::compute_source_terms( vector<double> &massf )
 }
 
 int
-No_chemical_equilibrium_system::f( const valarray<double> &y, valarray<double> &G )
+No_chemical_equilibrium_system::f( const vector<double> &y, vector<double> &G )
 {
     cout << "No_chemical_equilibrium_system::f()" << endl
          << "This class has no functionality - exiting program." << endl;
@@ -455,7 +455,7 @@ No_chemical_equilibrium_system::f( const valarray<double> &y, valarray<double> &
 }
 
 int
-No_chemical_equilibrium_system::Jac( const valarray<double> &y, Valmatrix &dGdy )
+No_chemical_equilibrium_system::Jac( const vector<double> &y, Valmatrix &dGdy )
 {
     cout << "No_chemical_equilibrium_system::Jac()" << endl
          << "This class has no functionality - exiting program." << endl;

@@ -52,10 +52,6 @@ const double PHI = 1.0;
  */
 int efmflx(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
 {
-    // if ( get_shock_fitting_flag() ) {
-    // 	cerr << "Error, we have not implemented EFM with shock fitting. Please use AUSMDV." << endl;
-    // 	exit(NOT_IMPLEMENTED_ERROR);
-    // }
     /*
      * Local variable names reflect the names used in the original
      * FORTRAN code by MNM.

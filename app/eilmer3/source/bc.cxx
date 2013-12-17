@@ -11,7 +11,6 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include <valarray>
 
 #include <stdio.h>
 #include <math.h>
@@ -50,6 +49,8 @@ extern "C" {
 #include "bc_user_defined.hh"
 #include "bc_fstc.hh"
 #include "bc_udmf.hh"
+#include "bc_conjugate_ht.hh"
+#include "bc_moving_wall.hh"
 #include "kernel.hh"
 #include "diffusion.hh"
 
@@ -84,7 +85,9 @@ std::string get_bc_name(bc_t bc)
     case EQUIL_CATALYTIC: return "equil_catalytic";
     case SUPER_CATALYTIC: return "super_catalytic";
     case PARTIALLY_CATALYTIC: return "partially_catalytic";
-    case USER_DEFINED_MASS_FLUX: return "user_defined_mass_flux";	
+    case USER_DEFINED_MASS_FLUX: return "user_defined_mass_flux";
+    case CONJUGATE_HT: return "conjugate_ht";
+    case MOVING_WALL: return "moving_wall";	
     default: return "none";
     }
 } // end get_bc_name()
@@ -303,6 +306,7 @@ int BoundaryCondition::apply_convective(double t)
     // The default convective boundary condition is to reflect
     // the normal component of the velocity at the ghost-cell
     // centres -- slip-wall. 
+    global_data &G = *get_global_data_ptr();
     size_t i, j, k;
     FV_Cell *src_cell, *dest_cell;
     FV_Interface *IFace;
@@ -319,7 +323,7 @@ int BoundaryCondition::apply_convective(double t)
 		dest_cell = bd.get_cell(i,j+1,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 		// ghost cell 2.
@@ -327,7 +331,7 @@ int BoundaryCondition::apply_convective(double t)
 		dest_cell = bd.get_cell(i,j+2,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 	    } // end i loop
@@ -343,7 +347,7 @@ int BoundaryCondition::apply_convective(double t)
 		dest_cell = bd.get_cell(i+1,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 		// ghost cell 2.
@@ -351,7 +355,7 @@ int BoundaryCondition::apply_convective(double t)
 		dest_cell = bd.get_cell(i+2,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 	    } // end j loop
@@ -367,7 +371,7 @@ int BoundaryCondition::apply_convective(double t)
 		dest_cell = bd.get_cell(i,j-1,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 		// ghost cell 2.
@@ -375,7 +379,7 @@ int BoundaryCondition::apply_convective(double t)
 		dest_cell = bd.get_cell(i,j-2,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 	    } // end i loop
@@ -391,7 +395,7 @@ int BoundaryCondition::apply_convective(double t)
 		dest_cell = bd.get_cell(i-1,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 		// ghost cell 2.
@@ -399,7 +403,7 @@ int BoundaryCondition::apply_convective(double t)
 		dest_cell = bd.get_cell(i-2,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 	    } // end j loop
@@ -415,7 +419,7 @@ int BoundaryCondition::apply_convective(double t)
 		dest_cell = bd.get_cell(i,j,k+1);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 		// ghost cell 2.
@@ -423,7 +427,7 @@ int BoundaryCondition::apply_convective(double t)
 		dest_cell = bd.get_cell(i,j,k+2);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 	    } // end j loop
@@ -439,12 +443,15 @@ int BoundaryCondition::apply_convective(double t)
 		dest_cell = bd.get_cell(i,j,k-1);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
+		if ( G.MHD ) {
+		    reflect_normal_magnetic_field(dest_cell, IFace);
+		}
 		// ghost cell 2.
 		src_cell = bd.get_cell(i,j,k+1);
 		dest_cell = bd.get_cell(i,j,k-2);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 	    } // end j loop
@@ -515,7 +522,6 @@ compute_cell_interface_surface_heat_flux(FV_Interface * IFace, FV_Cell * cell_on
     size_t nsp = gm->get_number_of_species();
     double dTds;
     vector<double> dfds(nsp), dfd0(nsp), dfd00(nsp), js(nsp), j0(nsp), j00(nsp);
-    double diffusion_factor = get_diffusion_factor();
     
     cc = cell_one->pos[gtl];
     ic = IFace->pos;
@@ -529,7 +535,7 @@ compute_cell_interface_surface_heat_flux(FV_Interface * IFace, FV_Cell * cell_on
     }
     // 2. Calculate diffusive heat flux
     q_diff[index] = 0.0;
-    if ( get_diffusion_flag() ) {
+    if ( G.diffusion ) {
 	for ( isp=0; isp<nsp; ++isp ){
 	    dfds[isp] = ( cell_one->fs->gas->massf[isp] - IFace->fs->gas->massf[isp] ) / d1;
 	}
@@ -541,7 +547,7 @@ compute_cell_interface_surface_heat_flux(FV_Interface * IFace, FV_Cell * cell_on
 	}
 	calculate_diffusion_fluxes(*(IFace->fs->gas), D_t, dfds, dfd0, dfd00, js, j0, j00 );
 	for ( isp=0; isp<nsp; ++isp ){
-	    q_diff[index] -= diffusion_factor * js[isp] * gm->enthalpy(*(IFace->fs->gas), isp);
+	    q_diff[index] -= G.diffusion_factor * js[isp] * gm->enthalpy(*(IFace->fs->gas), isp);
 	}
     }
 
@@ -710,8 +716,9 @@ read_surface_heat_flux( string filename, size_t dimensions, int zip_files )
     unsigned int i, j, k;
     size_t index;
     double sim_time;
+    global_data &G = *get_global_data_ptr();
 
-    if ( get_verbose_flag() && which_boundary == 0 ) 
+    if ( G.verbose_init_messages && which_boundary == 0 ) 
 	printf("read_surface_heat_flux(): Start surface %d.\n", which_boundary);
     if (zip_files) {
 	fp = NULL;
@@ -739,7 +746,7 @@ read_surface_heat_flux( string filename, size_t dimensions, int zip_files )
 	exit(BAD_INPUT_ERROR);
     }
     sscanf(line, "%lf", &sim_time);
-    if ( get_verbose_flag() && which_boundary == 0 ) 
+    if ( G.verbose_init_messages && which_boundary == 0 ) 
 	printf("read_surface_heat_flux(): Time = %e\n", sim_time);
     if (zip_files) {
 	gets_result = gzgets(zfp, line, NCHAR);
@@ -889,14 +896,20 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     std::string filename = "";
     size_t n_profile = 1;
     double Pout = 100.0e3;
-    int is_wall = 0;
-    int sets_conv_flux = 0;
-    int sets_visc_flux = 0;
+    bool is_wall = false;
+    bool sets_conv_flux = false;
+    bool sets_visc_flux = false;
     double emissivity = 0.0;
     std::vector<double> mdot;
     std::vector<double> vnf;
     vnf.resize(get_gas_model_ptr()->get_number_of_species(), 0.0);
     int xforce_flag = 0;
+    std::vector<double> r_omega; r_omega.resize(3, 0.0);
+    std::vector<double> centre; centre.resize(3, 0.0);
+    std::vector<double> v_trans; v_trans.resize(3, 0.0);
+    bool reorient_vector_quantities = false;
+    std::vector<double> eye; eye.resize(9, 0.0); eye[0] = 1.0; eye[4] = 1.0; eye[8] = 1.0;
+    std::vector<double> Rmatrix = eye;
 
     switch ( type_of_BC ) {
     case ADJACENT:
@@ -904,7 +917,10 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	dict.parse_string(section, "other_face", value_string, "");
 	other_face = get_face_index(value_string);
 	dict.parse_int(section, "neighbour_orientation", neighbour_orientation, 0);
-	newBC = new AdjacentBC(bdp, which_boundary, other_block, other_face, neighbour_orientation);
+	dict.parse_boolean(section, "reorient_vector_quantities", reorient_vector_quantities, false);
+	dict.parse_vector_of_doubles(section, "Rmatrix", Rmatrix, eye);
+	newBC = new AdjacentBC(bdp, which_boundary, other_block, other_face, neighbour_orientation,
+			       reorient_vector_quantities, Rmatrix);
 	break;
     case SUP_IN:
 	dict.parse_int(section, "inflow_condition", inflow_condition_id, 0);
@@ -962,11 +978,11 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	break;
     case USER_DEFINED:
 	dict.parse_string(section, "filename", filename, "");
-	dict.parse_int(section, "is_wall", is_wall, 0);
-	dict.parse_int(section, "sets_conv_flux", sets_conv_flux, 0);
-	dict.parse_int(section, "sets_visc_flux", sets_visc_flux, 0);
-	newBC = new UserDefinedBC(bdp, which_boundary, filename, is_wall==1,
-				  sets_conv_flux==1, sets_visc_flux==1);
+	dict.parse_boolean(section, "is_wall", is_wall, false);
+	dict.parse_boolean(section, "sets_conv_flux", sets_conv_flux, false);
+	dict.parse_boolean(section, "sets_visc_flux", sets_visc_flux, false);
+	newBC = new UserDefinedBC(bdp, which_boundary, 
+				  filename, is_wall, sets_conv_flux, sets_visc_flux);
 	break;
     case ADJACENT_PLUS_UDF:
 	dict.parse_int(section, "other_block", other_block, -1);
@@ -974,13 +990,15 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	other_face = get_face_index(value_string);
 	dict.parse_int(section, "neighbour_orientation", neighbour_orientation, 0);
 	dict.parse_string(section, "filename", filename, "");
-	dict.parse_int(section, "is_wall", is_wall, 0);
-	dict.parse_int(section, "sets_conv_flux", sets_conv_flux, 0);
-	dict.parse_int(section, "sets_visc_flux", sets_visc_flux, 0);
+	dict.parse_boolean(section, "is_wall", is_wall, false);
+	dict.parse_boolean(section, "sets_conv_flux", sets_conv_flux, false);
+	dict.parse_boolean(section, "sets_visc_flux", sets_visc_flux, false);
+	dict.parse_boolean(section, "reorient_vector_quantities", reorient_vector_quantities, false);
+	dict.parse_vector_of_doubles(section, "Rmatrix", Rmatrix, eye);
 	newBC = new AdjacentPlusUDFBC(bdp, which_boundary, other_block, 
 				      other_face, neighbour_orientation,
-				      filename, is_wall==1,
-				      sets_conv_flux==1, sets_visc_flux==1);
+				      filename, is_wall, sets_conv_flux, sets_visc_flux,
+				      reorient_vector_quantities, Rmatrix);
 	break;
     case SEB:
 	dict.parse_double(section, "emissivity", emissivity, 1.0);
@@ -1001,6 +1019,19 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	dict.parse_string(section, "filename", filename, "");
 	newBC = new UserDefinedMassFluxBC(bdp, which_boundary, filename);
 	break;
+    case CONJUGATE_HT:
+	newBC = new ConjugateHeatTransferBC(bdp, which_boundary);
+	break;
+    case MOVING_WALL:
+	// We have initially set the vectors to zero values 
+	// so it's safe to use them as the "not found" values.
+        dict.parse_vector_of_doubles(section, "r_omega", r_omega, r_omega);
+        dict.parse_vector_of_doubles(section, "centre", centre, centre);
+        dict.parse_vector_of_doubles(section, "v_trans", v_trans, v_trans);
+        dict.parse_double(section, "emissivity", emissivity, 1.0);
+        newBC = new MovingWallBC(bdp, which_boundary, Vector3(r_omega), Vector3(centre),
+				 Vector3(v_trans), emissivity);
+        break;
     default:
 	cerr << "create_BC() error: boundary condition \"" << type_of_BC 
 	     << "\" is not available." << endl;
@@ -1089,7 +1120,7 @@ int check_connectivity()
     } // end for jb
 
     if (fail == 0) {
-        if ( get_verbose_flag() ) cout << "Forward and Backward connections are OK." << endl;
+        if ( G.verbose_init_messages ) cout << "Forward and Backward connections are OK." << endl;
     } else {
         cout << "Block connections fail." << endl;
         exit( VALUE_ERROR );
@@ -1121,14 +1152,16 @@ int check_connectivity()
 	    } // end for face
 	} // end for jb
 	if (fail == 0) {
-	    if ( get_verbose_flag() ) cout << "Numbers of cells for adjacent boundaries are OK." << endl;
+	    if ( G.verbose_init_messages ) 
+		cout << "Numbers of cells for adjacent boundaries are OK." << endl;
 	} else {
 	    cerr << "Numbers of cells for adjacent boundaries FAIL." << endl;
 	    exit( VALUE_ERROR );
 	}
     } else {
 	// FIX-ME bring the code over from e3prep
-	if ( get_verbose_flag() ) cout << "Numbers of cells on joined faces are not checked for 3D." << endl;
+	if ( G.verbose_init_messages ) 
+	    cout << "Numbers of cells on joined faces are not checked for 3D." << endl;
     }
 
     return SUCCESS;

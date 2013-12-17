@@ -7,9 +7,10 @@
 //   previously for libgas2.  This implementation
 //   fits with the new Gas_model class.
 //
-
+#include <cstdlib>
 #include <string>
 #include <sstream>
+#include <math.h>
 #include "../../util/source/useful.h"
 #include "../../util/source/lua_service.hh"
 

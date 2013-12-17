@@ -52,6 +52,7 @@ extern "C" {
 #include "../../../lib/util/source/time_to_go.h"
 }
 #include "../../../lib/util/source/lua_service.hh"
+#include "../../twc/source/e3con.hh"
 #include "cell.hh"
 #include "block.hh"
 #include "kernel.hh"
@@ -68,19 +69,20 @@ extern "C" {
 #endif
 #include "piston.hh"
 #include "implicit.hh"
+#include "conj-ht-interface.hh"
 #include "main.hh"
 
 //-----------------------------------------------------------------
 // Global data
 //
-int history_just_written, output_just_written, av_output_just_written;
-int write_at_step_has_been_done = 0;
+bool history_just_written, output_just_written, av_output_just_written;
+bool write_at_step_has_been_done = false;
 int program_return_flag = 0;
 size_t output_counter = 0; // counts the number of flow-solutions written
 bool zip_files = true; // flag to indicate if flow and grid files are to be gzipped
 bool with_heat_flux_files = false; // flag to indicate that we want heat-flux files
 bool master;
-int max_wall_clock = 0;
+int max_wall_clock = 0; // seconds
 time_t start, now; // wall-clock timer
 
 lua_State *L; // for the uder-defined procedures
@@ -100,7 +102,8 @@ void usage(poptContext optCon, int exitcode, char *error, char *addl) {
 int main(int argc, char **argv)
 {
     global_data &G = *get_global_data_ptr();
-    int do_run_simulation = 0;
+    G.verbose_init_messages = false;
+    bool do_run_simulation = false;
     size_t start_tindx = 0;
     int run_status = SUCCESS;
     char c, job_name[132], text_buf[132];
@@ -131,9 +134,6 @@ int main(int argc, char **argv)
 	  NULL },
 	{ "heat-flux-files", 'q', POPT_ARG_NONE, NULL, 'q',
 	  "write heat-flux files", 
-	  NULL },
-	{ "no-complain", 'n', POPT_ARG_NONE, NULL, 'n',
-	  "suppress complaints about bad data in cells", 
 	  NULL },
 	{ "verbose", 'v', POPT_ARG_NONE, NULL, 'v',
 	  "verbose messages at startup", 
@@ -223,7 +223,7 @@ WARNING: This executable only computes the radiative source\n\
 	    strcpy(job_name, poptGetOptArg(optCon));
 	    break;
 	case 'r':
-	    do_run_simulation = 1;
+	    do_run_simulation = true;
 	    break;
 	case 'z':
 	    zip_files = true;
@@ -237,11 +237,8 @@ WARNING: This executable only computes the radiative source\n\
 	case 't':
 	    start_tindx = static_cast<size_t>(atoi(poptGetOptArg(optCon)));
 	    break;
-	case 'n':
-	    set_bad_cell_complain_flag(0);
-	    break;
 	case 'v':
-	    set_verbose_flag(1);
+	    G.verbose_init_messages = true;
 	    break;
 	case 'w':
 	    strcpy( text_buf, poptGetOptArg(optCon) );
@@ -292,7 +289,7 @@ WARNING: This executable only computes the radiative source\n\
     fflush(stdout);
     MPI_Barrier(MPI_COMM_WORLD); // just to reduce the jumble in stdout
 #   endif
-    if ( do_run_simulation == 1 ) {
+    if ( do_run_simulation ) {
 	if ( master ) printf("Run simulation...\n");
 	try {
 	    // The simulation proper.
@@ -409,11 +406,11 @@ int prepare_to_integrate(size_t start_tindx)
     sprintf( tindxcstr, "t%04d", static_cast<int>(start_tindx));
     tindxstring = tindxcstr;
     for ( Block *bdp : G.my_blocks ) {
-        if ( get_verbose_flag() ) printf( "----------------------------------\n" );
+        if ( G.verbose_init_messages ) printf( "----------------------------------\n" );
 	sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) );
 	jbstring = jbcstr;
 	// Read grid from the specified tindx files.
-	if ( get_moving_grid_flag() ) {
+	if ( G.moving_grid ) {
 	    filename = "grid/"+tindxstring+"/"+G.base_file_name+".grid"+jbstring+"."+tindxstring;
 	} else {
 	    // Read grid from the tindx=0 files, always.
@@ -427,7 +424,7 @@ int prepare_to_integrate(size_t start_tindx)
         if (bdp->read_solution(filename, &(G.sim_time), G.dimensions, zip_files) != SUCCESS) {
 	    return FAILURE;
 	}
-	if (get_BGK_flag() == 2) {
+	if ( G.BGK == 2 ) {
 	    filename = "flow/"+tindxstring+"/"+G.base_file_name+".BGK"+jbstring+"."+tindxstring;
 	    if ( access(filename.c_str(), F_OK) != 0 ) {
 		// previous BGK velocity distributions do exist, try to read them in
@@ -435,7 +432,7 @@ int prepare_to_integrate(size_t start_tindx)
 		    return FAILURE;
 		}
 	    }
-	} else if (get_BGK_flag() == 1) {
+	} else if ( G.BGK == 1) {
 	    // assume equilibrium velocity distribution, generate from conserved props
 	    if (bdp->initialise_BGK_equilibrium() != SUCCESS) {
 		return FAILURE;
@@ -449,7 +446,7 @@ int prepare_to_integrate(size_t start_tindx)
     ensure_directory_is_present("hist"); // includes Barrier
 
     for ( Block *bdp : G.my_blocks ) {
-        if ( get_verbose_flag() ) printf( "----------------------------------\n" );
+        if ( G.verbose_init_messages ) printf( "----------------------------------\n" );
 	sprintf( jbcstr, ".b%04d", static_cast<int>(bdp->id) );
 	jbstring = jbcstr;
 	filename = "hist/" + G.base_file_name + ".hist"+jbstring;
@@ -485,6 +482,8 @@ int prepare_to_integrate(size_t start_tindx)
     // Prepare data within the primary finite-volume cells.
     // This includes both geometric data and flow state data.
     bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
+    vector<double> nvxs;
+    vector<double> nvys;
     for ( Block *bdp : G.my_blocks ) {
 	bdp->compute_primary_cell_geometric_data(G.dimensions, 0);
 	bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions, 0);
@@ -499,7 +498,56 @@ int prepare_to_integrate(size_t start_tindx)
 	    // needed for both the cfd_check and the BLomax turbulence model.
 	    cp->decode_conserved(0, 0, bdp->omegaz, with_k_omega);
 	}
+	if ( G.conjugate_ht_active ) {
+	    if ( bdp->bcp[NORTH]->type_code == CONJUGATE_HT ) {
+		// Need to assemble the vertices on the north wall
+		int j = bdp->jmax + 1;
+		for ( size_t i = bdp->imin; i <= bdp->imax; ++i ) {
+		    FV_Interface *iface = bdp->get_ifj(i, j);
+		    nvxs.push_back(iface->pos.x);
+		    nvys.push_back(iface->pos.y);
+		}
+	    }
+	}
     } // end for *bdp
+    
+#   ifdef _MPI
+    // Ensure that all blocks have computed geometry before continuing
+    MPI_Barrier(MPI_COMM_WORLD);
+#   endif
+    if ( G.conjugate_ht_active ) {
+	vector<double> wall_xs, wall_ys;
+#       ifdef _MPI
+	// For MPI version, we need to gather vertex values (in x and y(
+	// from each rank.
+	wall_xs.resize(G.T_wall.size()); wall_ys.resize(G.T_wall.size());
+	// Deal with x values
+	double *pxs = &nvxs[0];
+	double *pwx = &wall_xs[0];
+	int *recvcounts = &(G.recvcounts[0]);
+	int *displs = &(G.displs[0]);
+	MPI_Gatherv(pxs, nvxs.size(), MPI_DOUBLE, pwx, recvcounts, displs,
+		    MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	// Deal with y values
+	double *pys = &nvys[0];
+	double *pwy = &wall_ys[0];
+	MPI_Gatherv(pys, nvys.size(), MPI_DOUBLE, pwy, recvcounts, displs,
+		    MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	MPI_Barrier(MPI_COMM_WORLD);
+#       else
+        // In shared memory, nvxs and nvys should have the values
+	// to put in wall_xs and wall_ys directly.
+	wall_xs = nvxs;
+	wall_ys = nvys;
+#       endif
+	if ( master ) { 
+	    // Now on rank0, we can assemble a vector of vertices
+	    initialise_wall_node_positions(*(G.wm), wall_xs, wall_ys);
+	    // At this point we can write out the initial solution.
+	    write_soln(*(G.wm), G.sim_time, 0);
+	}
+    }
+
     // Exchange boundary cell geometry information so that we can
     // next calculate secondary-cell geometries.
     // FIX-ME generalize for handling several blocks per MPI process
@@ -537,7 +585,7 @@ int prepare_to_integrate(size_t start_tindx)
 	lua_settop(L, 0); // clear the stack
     }
     // Initialise radiation transport if appropriate
-    if ( get_radiation_flag() ) {
+    if ( G.radiation ) {
     	if ( get_radiation_transport_model_ptr()->initialise() ) {
 	    cerr << "Problem with initialisation of radiation transport data\n";
 	    cerr << "Exiting program." << endl;
@@ -575,6 +623,7 @@ int add_udf_source_vector_for_cell( FV_Cell *cell, size_t gtl, double t )
     // These are added to the inviscid source terms 
     // that were computed earlier in the time step.
 
+    global_data &G = *get_global_data_ptr();
     size_t nsp = get_gas_model_ptr()->get_number_of_species();
     size_t nmodes = get_gas_model_ptr()->get_number_of_modes();
 
@@ -619,6 +668,76 @@ int add_udf_source_vector_for_cell( FV_Cell *cell, size_t gtl, double t )
     }
     // At this point, the table of conductivities should be TOS.
     lua_setfield(L, -2, "k");
+
+    // Derivatives needed for Zac Denman's verification of the turbulence model.
+    // The following has been mostly lifted from FV_Cell::k_omega_time_derivatives()
+    // in cell.cxx.
+    double dudx, dudy, dudz;
+    double dvdx, dvdy, dvdz;
+    double dwdx, dwdy, dwdz;
+    double dtkedx, dtkedy, dtkedz;
+    double domegadx, domegady, domegadz;
+    if ( G.dimensions == 2 ) {
+        dudx = 0.25 * (cell->vtx[0]->dudx + cell->vtx[1]->dudx + cell->vtx[2]->dudx + cell->vtx[3]->dudx);
+        dudy = 0.25 * (cell->vtx[0]->dudy + cell->vtx[1]->dudy + cell->vtx[2]->dudy + cell->vtx[3]->dudy);
+	dudz = 0.0;
+        dvdx = 0.25 * (cell->vtx[0]->dvdx + cell->vtx[1]->dvdx + cell->vtx[2]->dvdx + cell->vtx[3]->dvdx);
+        dvdy = 0.25 * (cell->vtx[0]->dvdy + cell->vtx[1]->dvdy + cell->vtx[2]->dvdy + cell->vtx[3]->dvdy);
+	dvdz = 0.0;
+	dwdx = 0.0; dwdy = 0.0; dwdz = 0.0;
+        dtkedx = 0.25 * (cell->vtx[0]->dtkedx + cell->vtx[1]->dtkedx + cell->vtx[2]->dtkedx + cell->vtx[3]->dtkedx);
+        dtkedy = 0.25 * (cell->vtx[0]->dtkedy + cell->vtx[1]->dtkedy + cell->vtx[2]->dtkedy + cell->vtx[3]->dtkedy);
+	dtkedz = 0.0;
+        domegadx = 0.25 * (cell->vtx[0]->domegadx + cell->vtx[1]->domegadx + cell->vtx[2]->domegadx + cell->vtx[3]->domegadx);
+        domegady = 0.25 * (cell->vtx[0]->domegady + cell->vtx[1]->domegady + cell->vtx[2]->domegady + cell->vtx[3]->domegady);
+	domegadz = 0.0;
+    } else { // 3D cartesian
+        dudx = 0.125 * (cell->vtx[0]->dudx + cell->vtx[1]->dudx + cell->vtx[2]->dudx + cell->vtx[3]->dudx +
+                        cell->vtx[4]->dudx + cell->vtx[5]->dudx + cell->vtx[6]->dudx + cell->vtx[7]->dudx);
+        dudy = 0.125 * (cell->vtx[0]->dudy + cell->vtx[1]->dudy + cell->vtx[2]->dudy + cell->vtx[3]->dudy +
+                        cell->vtx[4]->dudy + cell->vtx[5]->dudy + cell->vtx[6]->dudy + cell->vtx[7]->dudy);
+        dudz = 0.125 * (cell->vtx[0]->dudz + cell->vtx[1]->dudz + cell->vtx[2]->dudz + cell->vtx[3]->dudz +
+                        cell->vtx[4]->dudz + cell->vtx[5]->dudz + cell->vtx[6]->dudz + cell->vtx[7]->dudz);
+        dvdx = 0.125 * (cell->vtx[0]->dvdx + cell->vtx[1]->dvdx + cell->vtx[2]->dvdx + cell->vtx[3]->dvdx +
+                        cell->vtx[4]->dvdx + cell->vtx[5]->dvdx + cell->vtx[6]->dvdx + cell->vtx[7]->dvdx);
+        dvdy = 0.125 * (cell->vtx[0]->dvdy + cell->vtx[1]->dvdy + cell->vtx[2]->dvdy + cell->vtx[3]->dvdy +
+                        cell->vtx[4]->dvdy + cell->vtx[5]->dvdy + cell->vtx[6]->dvdy + cell->vtx[7]->dvdy);
+        dvdz = 0.125 * (cell->vtx[0]->dvdz + cell->vtx[1]->dvdz + cell->vtx[2]->dvdz + cell->vtx[3]->dvdz +
+                        cell->vtx[4]->dvdz + cell->vtx[5]->dvdz + cell->vtx[6]->dvdz + cell->vtx[7]->dvdz);
+        dwdx = 0.125 * (cell->vtx[0]->dwdx + cell->vtx[1]->dwdx + cell->vtx[2]->dwdx + cell->vtx[3]->dwdx +
+                        cell->vtx[4]->dwdx + cell->vtx[5]->dwdx + cell->vtx[6]->dwdx + cell->vtx[7]->dwdx);
+        dwdy = 0.125 * (cell->vtx[0]->dwdy + cell->vtx[1]->dwdy + cell->vtx[2]->dwdy + cell->vtx[3]->dwdy +
+                        cell->vtx[4]->dwdy + cell->vtx[5]->dwdy + cell->vtx[6]->dwdy + cell->vtx[7]->dwdy);
+        dwdz = 0.125 * (cell->vtx[0]->dwdz + cell->vtx[1]->dwdz + cell->vtx[2]->dwdz + cell->vtx[3]->dwdz +
+                        cell->vtx[4]->dwdz + cell->vtx[5]->dwdz + cell->vtx[6]->dwdz + cell->vtx[7]->dwdz);
+        dtkedx = 0.125 * (cell->vtx[0]->dtkedx + cell->vtx[1]->dtkedx + cell->vtx[2]->dtkedx + cell->vtx[3]->dtkedx +
+                          cell->vtx[4]->dtkedx + cell->vtx[5]->dtkedx + cell->vtx[6]->dtkedx + cell->vtx[7]->dtkedx);
+        dtkedy = 0.125 * (cell->vtx[0]->dtkedy + cell->vtx[1]->dtkedy + cell->vtx[2]->dtkedy + cell->vtx[3]->dtkedy +
+                          cell->vtx[4]->dtkedy + cell->vtx[5]->dtkedy + cell->vtx[6]->dtkedy + cell->vtx[7]->dtkedy);
+        dtkedz = 0.125 * (cell->vtx[0]->dtkedz + cell->vtx[1]->dtkedz + cell->vtx[2]->dtkedz + cell->vtx[3]->dtkedz +
+                          cell->vtx[4]->dtkedz + cell->vtx[5]->dtkedz + cell->vtx[6]->dtkedz + cell->vtx[7]->dtkedz);
+        domegadx = 0.125 * (cell->vtx[0]->domegadx + cell->vtx[1]->domegadx + cell->vtx[2]->domegadx + cell->vtx[3]->domegadx +
+                            cell->vtx[4]->domegadx + cell->vtx[5]->domegadx + cell->vtx[6]->domegadx + cell->vtx[7]->domegadx);
+        domegady = 0.125 * (cell->vtx[0]->domegady + cell->vtx[1]->domegady + cell->vtx[2]->domegady + cell->vtx[3]->domegady +
+                            cell->vtx[4]->domegady + cell->vtx[5]->domegady + cell->vtx[6]->domegady + cell->vtx[7]->domegady);
+        domegadz = 0.125 * (cell->vtx[0]->domegadz + cell->vtx[1]->domegadz + cell->vtx[2]->domegadz + cell->vtx[3]->domegadz +
+                            cell->vtx[4]->domegadz + cell->vtx[5]->domegadz + cell->vtx[6]->domegadz + cell->vtx[7]->domegadz);
+    } // end if ( G.dimensions...
+    lua_pushnumber(L, dudx); lua_setfield(L, -2, "dudx");
+    lua_pushnumber(L, dudy); lua_setfield(L, -2, "dudy");
+    lua_pushnumber(L, dudz); lua_setfield(L, -2, "dudz");
+    lua_pushnumber(L, dvdx); lua_setfield(L, -2, "dvdx");
+    lua_pushnumber(L, dvdy); lua_setfield(L, -2, "dvdy");
+    lua_pushnumber(L, dvdz); lua_setfield(L, -2, "dvdz");
+    lua_pushnumber(L, dwdx); lua_setfield(L, -2, "dwdx");
+    lua_pushnumber(L, dwdy); lua_setfield(L, -2, "dwdy");
+    lua_pushnumber(L, dwdz); lua_setfield(L, -2, "dwdz");
+    lua_pushnumber(L, dtkedx); lua_setfield(L, -2, "dtkedx");
+    lua_pushnumber(L, dtkedy); lua_setfield(L, -2, "dtkedy");
+    lua_pushnumber(L, dtkedz); lua_setfield(L, -2, "dtkedz");
+    lua_pushnumber(L, domegadx); lua_setfield(L, -2, "domegadx");
+    lua_pushnumber(L, domegady); lua_setfield(L, -2, "domegady");
+    lua_pushnumber(L, domegadz); lua_setfield(L, -2, "domegadz");
     
     // After all of this we should have ended up with the cell-data table at TOS 
     // with another table (containing t...} and function-name 
@@ -704,14 +823,14 @@ int integrate_blocks_in_sequence(void)
 
     // Initially deactivate all blocks
     for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
-	G.bd[jb].active = 0;
+	G.bd[jb].active = false;
     }
 
     cout << "Integrate Block 0 and Block 1" << endl;
 
     // Start by setting up block 0
     bdp = &(G.bd[0]);
-    bdp->active = 1;
+    bdp->active = true;
     // Apply the assumed SupINBC to the west face and propogate across the block
     bdp->bcp[WEST]->apply_convective(0.0);
     bdp->propagate_data_west_to_east( G.dimensions );
@@ -725,7 +844,7 @@ int integrate_blocks_in_sequence(void)
 
     // Now set up block 1
     bdp = &(G.bd[1]);
-    bdp->active = 1;
+    bdp->active = true;
     // Save the original east boundary condition and apply the temporary
     // ExtrapolateOutBC for the calculation
     bcp_save = bdp->bcp[EAST];
@@ -739,8 +858,8 @@ int integrate_blocks_in_sequence(void)
     }
 
     // Integrate just the first two blocks in time, hopefully to steady state.
-    G.bd[0].active = 1;
-    G.bd[1].active = 1;
+    G.bd[0].active = true;
+    G.bd[1].active = true;
     integrate_in_time(time_slice);
 
     // The rest of the blocks.
@@ -751,7 +870,7 @@ int integrate_blocks_in_sequence(void)
 	cout << "Integrate Block " << jb << endl;
 	// Make the block jb-2 inactive.
 	bdp = &(G.bd[jb-2]);
-	bdp->active = 0;
+	bdp->active = false;
 
 	// block jb-1 - reinstate the previous boundary condition on east face
 	// but leave the block active
@@ -761,7 +880,7 @@ int integrate_blocks_in_sequence(void)
 
 	// Set up new block jb to be integrated
 	bdp = &(G.bd[jb]);
-	bdp->active = 1;
+	bdp->active = true;
 	if ( jb < G.nblock-1 ) {
 	    // Cut off the east boundary of the current block 
 	    // from the downstream blocks if there are any.
@@ -778,13 +897,13 @@ int integrate_blocks_in_sequence(void)
 	}
 	// Integrate just the two currently active blocks in time,
 	// hopefully to steady state.
-	G.bd[jb-1].active = 1;
-	G.bd[jb].active = 1;
+	G.bd[jb-1].active = true;
+	G.bd[jb].active = true;
 	integrate_in_time(jb*time_slice);
     }
     // Before leaving, we want all blocks active for output.
     for ( size_t jb = 0; jb < G.nblock; ++jb ) {
-	G.bd[jb].active = 1;
+	G.bd[jb].active = true;
     }
     return status_flag;
 } // end integrate_blocks_in_sequence()
@@ -806,7 +925,7 @@ int write_solution_data(std::string tindxstring)
 	bdp->write_solution(filename, G.sim_time, G.dimensions, zip_files);
     }
 
-    if ( get_moving_grid_flag() ) {
+    if ( G.moving_grid ) {
 	foldername = "grid/"+tindxstring;
 	ensure_directory_is_present(foldername); // includes Barrier
 	for ( Block *bdp : G.my_blocks ) {
@@ -814,7 +933,7 @@ int write_solution_data(std::string tindxstring)
 	    filename = foldername+"/"+ G.base_file_name+".grid"+jbstring+"."+tindxstring;
 	    bdp->write_grid(filename, G.sim_time, G.dimensions, zip_files);
 	}
-	if ( get_write_vertex_velocities_flag() ) {
+	if ( G.write_vertex_velocities ) {
 	    ensure_directory_is_present("vel");
 	    foldername = "vel/"+tindxstring;
 	    ensure_directory_is_present(foldername); // includes Barrier
@@ -831,11 +950,11 @@ int write_solution_data(std::string tindxstring)
 		    if ( zip_files ) do_system_cmd("gzip -f "+filename);
 		}
 	    } // end for ( Block *bdp
-	} // end if ( get_write_vertex_velocities_flag()
-    } // end if ( get moving_grid_flag()
+	} // end if ( G.write_vertex_velocities
+    } // end if ( G.moving_grid
 
     // Compute, store and write heat-flux data, if viscous simulation
-    if ( with_heat_flux_files && get_viscous_flag() ) {
+    if ( with_heat_flux_files && G.viscous ) {
 	foldername = "heat/"+tindxstring;
 	ensure_directory_is_present(foldername); // includes Barrier
 	for ( Block *bdp : G.my_blocks ) {
@@ -865,15 +984,16 @@ int integrate_in_time(double target_time)
     string filename, commandstring, foldername;
     std::vector<double> dt_record;
     double stopping_time;
-    int finished_time_stepping;
-    int viscous_terms_are_on;
-    int diffusion_terms_are_on;
-    int cfl_result, do_cfl_check_now;
+    bool finished_time_stepping;
+    bool viscous_terms_are_on;
+    bool diffusion_terms_are_on;
+    bool do_cfl_check_now;
+    int cfl_result;
 #   ifdef _MPI
     int cfl_result_2;
 #   endif
     int status_flag = SUCCESS;
-    dt_record.resize(G.my_blocks.size()); // Just the block local to this process.
+    dt_record.resize(G.my_blocks.size()); // Just the blocks local to this process.
 
     if ( master ) {
 	printf( "Integrate in time\n" );
@@ -891,64 +1011,65 @@ int integrate_in_time(double target_time)
     
     // Flags to indicate that the saved output is fresh.
     // On startup or restart, it is assumed to be so.
-    output_just_written = 1;
-    history_just_written = 1;
-    av_output_just_written = 1;
+    output_just_written = true;
+    history_just_written = true;
+    av_output_just_written = true;
 
     G.step = 0; // Global Iteration Count
-    do_cfl_check_now = 0;
+    G.dt_acc = 0.0; // Initialise to 0.0 to begin acculumating dt increments for conjugate ht problem
+    do_cfl_check_now = false;
     if ( G.heat_time_stop == 0.0 ) {
 	// We don't want heating at all.
-	set_heat_factor( 0.0 );
+	G.heat_factor = 0.0;
     } else if ( G.sim_time >= G.heat_time_start && G.sim_time < G.heat_time_stop ) {
 	// Apply full heat-source effects because both time limits are set
 	// and we are within them.
-	set_heat_factor( 1.0 );
+	G.heat_factor = 1.0;
     } else {
 	// Looks like we want heating at some period in time but it is not now.
-	set_heat_factor( 0.0 );
+	G.heat_factor = 0.0;
     }
-    if ( get_viscous_flag() ) {
+    if ( G.viscous ) {
 	// We have requested viscous effects but they may be delayed.
 	if ( G.viscous_time_delay > 0.0 && G.sim_time < G.viscous_time_delay ) {
 	    // We will initially turn-down viscous effects and
 	    // only turn them up when the delay time is exceeded.
-	    set_viscous_factor( 0.0 );
-	    viscous_terms_are_on = 0;
+	    G.viscous_factor = 0.0;
+	    viscous_terms_are_on = false;
 	} else {
 	    // No delay in applying full viscous effects.
-	    set_viscous_factor( 1.0 );
-	    viscous_terms_are_on = 1;
+	    G.viscous_factor = 1.0;
+	    viscous_terms_are_on = true;
 	}
     } else {
 	// We haven't requested viscous effects at all.
-	set_viscous_factor( 0.0 );
-	viscous_terms_are_on = 0;
+	G.viscous_factor = 0.0;
+	viscous_terms_are_on = false;
     }
 
-    if ( get_diffusion_flag() ) {
-	    // We have requested diffusion effects but they may be delayed.
-	    if ( G.diffusion_time_delay > 0.0 && G.sim_time < G.diffusion_time_delay ) {
-		    // We will initially turn-down diffusion effects and
-		    // only turn them up when the delay time is exceeded.
-		    set_diffusion_factor( 0.0 );
-		    diffusion_terms_are_on = 0;
-	    } else {
-		    // No delay in applying full diffusion effects.
-		    set_diffusion_factor( 1.0 );
-		    diffusion_terms_are_on = 1;
-	    }
+    if ( G.diffusion ) {
+	// We have requested diffusion effects but they may be delayed.
+	if ( G.diffusion_time_delay > 0.0 && G.sim_time < G.diffusion_time_delay ) {
+	    // We will initially turn-down diffusion effects and
+	    // only turn them up when the delay time is exceeded.
+	    G.diffusion_factor = 0.0;
+	    diffusion_terms_are_on = false;
+	} else {
+	    // No delay in applying full diffusion effects.
+	    G.diffusion_factor = 1.0;
+	    diffusion_terms_are_on = true;
+	}
     } else {
-	    // We haven't requested diffusion effects at all.
-	    set_diffusion_factor( 0.0 );
-	    diffusion_terms_are_on = 0;
+	// We haven't requested diffusion effects at all.
+	G.diffusion_factor = 0.0;
+	diffusion_terms_are_on = false;
     }
 
     // Spatial filter may be applied occasionally.
-    if ( get_filter_flag() ) {
+    if ( G.filter_flag ) {
 	if ( G.sim_time > G.filter_tstart ) {
 	    G.filter_next_time = G.sim_time + G.filter_dt;
-	    if ( G.filter_next_time > G.filter_tend ) set_filter_flag(0);
+	    if ( G.filter_next_time > G.filter_tend ) G.filter_flag = false;
 	} else {
 	    G.filter_next_time = G.filter_tstart;
 	}
@@ -981,7 +1102,7 @@ int integrate_in_time(double target_time)
 #       else
         n_active_blocks = 0;
 	for ( Block *bdp : G.my_blocks ) {
-            if ( bdp->active == 1 ) ++n_active_blocks;
+            if ( bdp->active ) ++n_active_blocks;
         }
 #       endif
         if ( n_active_blocks == 0 ) {
@@ -991,49 +1112,47 @@ int integrate_in_time(double target_time)
         }
 
         // 0. Alter configuration setting if necessary.
-	if ( get_viscous_flag() == 1 && viscous_terms_are_on == 0 &&
-	     G.sim_time >= G.viscous_time_delay ) {
+	if ( G.viscous && !viscous_terms_are_on && G.sim_time >= G.viscous_time_delay ) {
 	    // We want to turn on the viscous effects only once (if requested)
 	    // and, when doing so in the middle of a simulation, 
 	    // reduce the time step to ensure that these new terms
 	    // do not upset the stability of the calculation.
 	    printf( "Turning on viscous effects.\n" );
-	    viscous_terms_are_on = 1;
+	    viscous_terms_are_on = true;
 	    if ( G.step > 0 ) {
 		printf( "Start softly with viscous effects.\n" );
-		set_viscous_factor( 0.0 );  
+		G.viscous_factor = 0.0;  
 		G.dt_global *= 0.2;
 	    } else {
 		printf( "Start with full viscous effects.\n" );
-		set_viscous_factor( 1.0 );
+		G.viscous_factor = 1.0;
 	    }
 	}
-	if ( viscous_terms_are_on == 1 && get_viscous_factor() < 1.0 ) {
-	    incr_viscous_factor( get_viscous_factor_increment() );
-	    printf( "Increment viscous_factor to %f\n", get_viscous_factor() );
-	    do_cfl_check_now = 1;
+	if ( viscous_terms_are_on && G.viscous_factor < 1.0 ) {
+	    incr_viscous_factor(G.viscous_factor_increment);
+	    printf( "Increment viscous_factor to %f\n", G.viscous_factor );
+	    do_cfl_check_now = true;
 	}
-	if ( get_diffusion_flag() == 1 && diffusion_terms_are_on == 0 &&
-	     G.sim_time >= G.diffusion_time_delay ) {
+	if ( G.diffusion && !diffusion_terms_are_on && G.sim_time >= G.diffusion_time_delay ) {
 	    // We want to turn on the diffusion effects only once (if requested)
 	    // and, when doing so in the middle of a simulation,
 	    // reduce the time step to ensure that these new terms
 	    // do not upset the stability of the calculation.
 	    printf( "Turning on diffusion effects.\n" );
-	    diffusion_terms_are_on = 1;
+	    diffusion_terms_are_on = true;
 	    if ( G.step > 0 ) {
 		printf( "Start softly with diffusion effects.\n" );
-		set_diffusion_factor( 0.0 );
+		G.diffusion_factor = 0.0;
 		G.dt_global *= 0.2;
 	    } else {
 		printf( "Start with full diffusion effects.\n" );
-		set_diffusion_factor( 1.0 );
+		G.diffusion_factor = 1.0;
 	    }
 	}
-	if ( diffusion_terms_are_on == 1 && get_diffusion_factor() < 1.0 ) {
-	    incr_diffusion_factor( get_diffusion_factor_increment() );
-	    printf( "Increment diffusion_factor to %f\n", get_diffusion_factor() );
-	    do_cfl_check_now = 1;
+	if ( diffusion_terms_are_on && G.diffusion_factor < 1.0 ) {
+	    incr_diffusion_factor( G.diffusion_factor_increment );
+	    printf( "Increment diffusion_factor to %f\n", G.diffusion_factor );
+	    do_cfl_check_now = true;
 	}
 
 	if ( G.heat_time_stop > 0.0 ) {
@@ -1041,14 +1160,14 @@ int integrate_in_time(double target_time)
 	    if ( G.sim_time >= G.heat_time_start && G.sim_time < G.heat_time_stop ) {
 		// We are within the period of heating but
 		// we may be part way through turning up the heat gradually.
-		if ( get_heat_factor() < 1.0 ) {
-		    incr_heat_factor( get_heat_factor_increment() );
-		    printf( "Increment heat_factor to %f\n", get_heat_factor() );
-		    do_cfl_check_now = 1;
+		if ( G.heat_factor < 1.0 ) {
+		    incr_heat_factor(G.heat_factor_increment);
+		    printf("Increment heat_factor to %f\n", G.heat_factor);
+		    do_cfl_check_now = true;
 		} 
 	    } else {
 		// We are outside the period of heating.
-		set_heat_factor( 0.0 );
+		G.heat_factor = 0.0;
 	    }
 	}
 	// 0.a. call out to user-defined function
@@ -1064,27 +1183,26 @@ int integrate_in_time(double target_time)
 	if ( G.step == 0 ) {
 	    // When starting a new calculation,
 	    // set the global time step to the initial value.
-	    do_cfl_check_now = 0;
+	    do_cfl_check_now = false;
 		// if we are using sequence_blocks we don't want to reset the dt_global for each block
 		if ( G.sequence_blocks && G.dt_global != 0 ) {
 		    /* do nothing i.e. keep dt_global from previous block */ ;
 		} else { 
 		    G.dt_global = G.dt_init;
 		}
-	} else if ( !G.fixed_time_step && 
-		    (G.step/G.cfl_count)*G.cfl_count == G.step ) {
+	} else if ( !G.fixed_time_step && (G.step/G.cfl_count)*G.cfl_count == G.step ) {
 	    // Check occasionally 
-	    do_cfl_check_now = 1;
+	    do_cfl_check_now = true;
 	} // end if (G.step == 0 ...
 
-	if ( do_cfl_check_now == 1 ) {
+	if ( do_cfl_check_now ) {
 	    // Adjust the time step to be the minimum allowed
 	    // for any active block. 
 	    G.dt_allow = 1.0e6; /* outrageously large so that it gets replace immediately */
 	    G.cfl_max = 0.0;
 	    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		Block *bdp = G.my_blocks[jb];
-		if ( bdp->active == 1 ) {
+		if ( bdp->active ) {
 		    cfl_result = bdp->determine_time_step_size();
 		    if ( cfl_result != 0 ) {
 			program_return_flag = DT_SEARCH_FAILED;
@@ -1110,7 +1228,7 @@ int integrate_in_time(double target_time)
 	    }
 	    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		Block *bdp = G.my_blocks[jb];
-		if ( bdp->active != 1 ) continue;
+		if ( !bdp->active ) continue;
 		if ( bdp->dt_allow < G.dt_allow ) G.dt_allow = bdp->dt_allow;
 		dt_record[jb] = bdp->dt_allow;
 		if ( bdp->cfl_max > G.cfl_max ) G.cfl_max = bdp->cfl_max;
@@ -1128,9 +1246,9 @@ int integrate_in_time(double target_time)
 		G.dt_global = G.dt_allow;
 	    } else {
 		// Make the transitions to larger time steps gentle.
-		G.dt_global = MINIMUM(G.dt_global*1.5, G.dt_allow);
+		G.dt_global = min(G.dt_global*1.5, G.dt_allow);
 		// The user may supply, explicitly, a maximum time-step size.
-		G.dt_global = MINIMUM(G.dt_global, G.dt_max);
+		G.dt_global = min(G.dt_global, G.dt_max);
 	    }
 	    do_cfl_check_now = 0;  // we have done our check for now
 	} // end if do_cfl_check_now 
@@ -1148,21 +1266,66 @@ int integrate_in_time(double target_time)
         }
 
         // 2. Attempt a time step.
-
+	// 2aa. Compute wall conduction if conjugate heat transfer available
+	if ( G.wall_update_count == 0 ) {
+	    cout << "ERROR: The 'wall_update_count' should be an integer greater than or equal to 1.\n";
+	    cout << "ERROR: Check value set in .control file.\n";
+	    cout << "BAILING OUT!\n";
+	    exit(BAD_INPUT_ERROR);
+	}
+#       ifdef _MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+#       endif
+	if ( G.conjugate_ht_active && ((G.step/G.wall_update_count)*G.wall_update_count == G.step) ) {
+	    int flag = gather_wall_fluxes(G);
+	    if ( flag != SUCCESS ) {
+		cout << "Error gathering energy fluxes at wall from all ranks.\n";
+		cout << "Bailing out!\n";
+		exit(FAILURE);
+	    }
+	    // Now only master has properly updated q vector
+	    if ( master ) {
+		flag = update_temperatures_from_fluxes(*(G.wm), G.dt_acc, G.q_wall, G.T_wall);
+		if ( flag != SUCCESS ) {
+		    cout << "Error computing new temperature at wall in wall conduction model.\n";
+		    cout << "Bailing out!\n";
+		    exit(FAILURE);
+		}
+		// Reset dt_acc to 0.0
+		G.dt_acc = 0.0;
+	    }
+#           ifdef _MPI
+	    // For MPI version:
+	    // Now broadcast the temperatures so that every rank
+	    // has an update copy of the vector.
+	    MPI_Barrier(MPI_COMM_WORLD);
+	    flag = broadcast_wall_temperatures(G);
+	    if ( flag != SUCCESS ) {
+		cout << "Error broadcasting the updated wall temperatures to all ranks.\n";
+		cout << "Bailing out!\n";
+		exit(FAILURE);
+	    }
+#           endif
+	    // For shared memory version:
+	    // In shared memory version, G.T_wall is up-to-date globally
+	    // and available for all blocks.
+	}
 	// 2a.
 	// explicit or implicit update of the inviscid terms.
 	int break_loop2 = 0;
-	if ( get_implicit_flag() == 0 ) {
-	    // explicit update of convective terms
-	    if ( get_moving_grid_flag() == 0 ) 
-		break_loop2 = gasdynamic_explicit_increment_with_fixed_grid(G.dt_global);
-	    else
+	switch ( G.implicit_mode ) {
+	case 0: // explicit update of convective terms and, maybe, the viscous terms
+	    if ( G.moving_grid ) 
 		break_loop2 = gasdynamic_increment_with_moving_grid(G.dt_global);
-	} else if ( get_implicit_flag() == 1 ) {
+	    else
+		break_loop2 = gasdynamic_explicit_increment_with_fixed_grid(G.dt_global);
+	    break;
+	case 1:
 	    break_loop2 = gasdynamic_point_implicit_inviscid_increment(G.dt_global);
-	} else if ( get_implicit_flag() == 2 ) {
+	    break;
+	case 2:
 	    break_loop2 = gasdynamic_fully_implicit_inviscid_increment(G.dt_global);
-	}
+	} // end switch ( G.implicit_mode )
 	if ( break_loop2 ) {
 	    printf("Breaking main loop:\n");
 	    printf("    time step failed at inviscid increment.\n");
@@ -1174,7 +1337,7 @@ int integrate_in_time(double target_time)
 	// Code removed 24-Mar-2013.
 
 	// 2b. Recalculate all geometry if moving grid.
-	if ( get_moving_grid_flag() == 1 && G.sim_time >= G.t_shock ) {
+	if ( G.moving_grid && G.sim_time >= G.t_shock ) {
 	    for ( Block *bdp : G.my_blocks ) {
 		bdp->compute_primary_cell_geometric_data(G.dimensions, 0);
 		bdp->compute_distance_to_nearest_wall_for_all_cells(G.dimensions, 0);
@@ -1185,17 +1348,20 @@ int integrate_in_time(double target_time)
 	
 	// 2c. Increment because of viscous effects may be done
 	//     separately to the convective terms.
-	if ( get_viscous_flag() == 1 && G.separate_update_for_viscous_terms ) {
+	if ( G.viscous && G.separate_update_for_viscous_terms ) {
 	    // We now have the option of explicit or point implicit update
 	    // of the viscous terms, thanks to Ojas Joshi, EPFL.
 	    int break_loop = 0;
-	    if ( get_implicit_flag() == 0 ) {
+	    switch ( G.implicit_mode ) {
+	    case 0:
 		break_loop = gasdynamic_separate_explicit_viscous_increment();
-	    } else if ( get_implicit_flag() == 1 ) {
+		break;
+	    case 1:
 		break_loop = gasdynamic_point_implicit_viscous_increment();
-	    } else if ( get_implicit_flag() == 2 ) {
+		break;
+	    case 2:
 	    	break_loop = gasdynamic_fully_implicit_viscous_increment();
-	    }
+	    } // end switch ( G.implicit_mode )
 	    if ( break_loop ) {
 		printf("Breaking main loop:\n");
 		printf("    time step failed at viscous increment.\n");
@@ -1204,19 +1370,19 @@ int integrate_in_time(double target_time)
 	    }
 	    if ( G.turbulence_model == TM_K_OMEGA && G.separate_update_for_k_omega_source ) {
 		for ( Block *bdp : G.my_blocks ) {
-		    if ( bdp->active != 1 ) continue;
+		    if ( !bdp->active ) continue;
 		    for ( FV_Cell *cp: bdp->active_cells )
 			cp->update_k_omega_properties(G.dt_global);
 		}
 	    }
-	} // end if ( get_viscous_flag() == 1
+	} // end if ( G.viscous )
 
         // 2d. Chemistry step. 
 	//     Allow finite-rate evolution of species due
         //     to chemical reactions
-        if ( get_reacting_flag() == 1 && G.sim_time >= G.reaction_time_start ) {
+        if ( G.reacting && G.sim_time >= G.reaction_time_start ) {
 	    for ( Block *bdp : G.my_blocks ) {
-		if ( bdp->active != 1 ) continue;
+		if ( !bdp->active ) continue;
 		for ( FV_Cell *cp: bdp->active_cells ) {
 		    if ( cp->chemical_increment(G.dt_global, G.T_frozen) != SUCCESS ) {
 			cout << "In block: " << bdp->id << " the chemical increment failed on cell:\n";
@@ -1233,19 +1399,28 @@ int integrate_in_time(double target_time)
 	// 2e. Thermal step.
 	//     Allow finite-rate evolution of thermal energy
 	//     due to transfer between thermal energy modes.
-	if ( get_energy_exchange_flag() == 1 && G.sim_time >= G.reaction_time_start  ) {
+	if ( G.thermal_energy_exchange && G.sim_time >= G.reaction_time_start  ) {
 	    for ( Block *bdp : G.my_blocks ) {
-		if ( bdp->active != 1 ) continue;
-		for ( FV_Cell *cp: bdp->active_cells ) 
-		    cp->thermal_increment(G.dt_global, G.T_frozen_energy);
+		if ( !bdp->active ) continue;
+		for ( FV_Cell *cp: bdp->active_cells ) {
+		    if ( cp->thermal_increment(G.dt_global, G.T_frozen_energy) != SUCCESS ) {
+			cout << "In block: " << bdp->id << " the thermal increment failed on cell:\n";
+			vector<size_t> ijk(bdp->to_ijk_indices(cp->id));
+			cout << "[i,j,k]= [" << ijk[0] << "," << ijk[1] << "," << ijk[2] << "]\n";
+			cout << "The global timestep was: " << G.dt_global << endl;
+			cout << "Bailing out at this point!\n";
+			exit(NUMERICAL_ERROR);
+		    }
+		}
 	    }
 	}
 
         // 3. Update the time record and (occasionally) print status.
         ++G.step;
-        output_just_written = 0;
-        history_just_written = 0;
-	av_output_just_written = 0;
+        output_just_written = false;
+        history_just_written = false;
+	av_output_just_written = false;
+	G.dt_acc += G.dt_global;
 	// G.sim_time += G.dt_global; 2013-04-07 have moved increment of sim_time
 	// into the inviscid gasdynamic update
 
@@ -1264,7 +1439,7 @@ int integrate_in_time(double target_time)
 		    G.cfl_tiny, G.time_tiny );
 	    for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		Block *bdp = G.my_blocks[jb];
-                if ( bdp->active != 1 ) continue;
+                if ( !bdp->active ) continue;
                 fprintf(G.logfile, " dt[%d]=%e", static_cast<int>(bdp->id), dt_record[jb] );
             }
 	    if ( n_active_blocks == 1 ) {
@@ -1288,14 +1463,16 @@ int integrate_in_time(double target_time)
 	    }
 	    sprintf( tindxcstr, "t%04d", static_cast<int>(output_counter) ); // C string
 	    write_solution_data(tindxcstr);
-	    output_just_written = 1;
+	    if ( G.conjugate_ht_active && master ) {
+			write_soln(*(G.wm), G.sim_time, static_cast<int>(output_counter));
+		}
+	    output_just_written = true;
             G.t_plot += G.dt_plot;
         }
-	if ( (G.write_at_step > 0) && (G.step == G.write_at_step) && 
-	     write_at_step_has_been_done == 0 ) {
+	if ( (G.write_at_step > 0) && (G.step == G.write_at_step) && !write_at_step_has_been_done ) {
 	    // Write the solution once-off, most likely for debug.
 	    write_solution_data("txxxx");
-	    write_at_step_has_been_done = 1;
+	    write_at_step_has_been_done = true;
 	}
         if ( (G.sim_time >= G.t_his) && !history_just_written ) {
 	    for ( Block *bdp : G.my_blocks ) {
@@ -1304,7 +1481,7 @@ int integrate_in_time(double target_time)
                 bdp->write_history(filename, G.sim_time);
 		bdp->print_forces(G.logfile, G.sim_time, G.dimensions);
 	    }
-            history_just_written = 1;
+            history_just_written = true;
             G.t_his += G.dt_his;
         }
 
@@ -1316,7 +1493,7 @@ int integrate_in_time(double target_time)
             G.mass_residual = 0.0;
             G.energy_residual = 0.0;
 	    for ( Block *bdp : G.my_blocks ) {
-		if ( bdp->active != 1 ) continue;
+		if ( !bdp->active ) continue;
 		bdp->compute_residuals(G.dimensions, 0);
 		fprintf( G.logfile, "RESIDUAL mass block %d max: %e at (%g,%g,%g)\n",
 			 static_cast<int>(bdp->id), bdp->mass_residual, bdp->mass_residual_loc.x,
@@ -1326,7 +1503,7 @@ int integrate_in_time(double target_time)
 			 bdp->energy_residual_loc.y, bdp->energy_residual_loc.z );
             } // end for *bdp
 	    for ( Block *bdp : G.my_blocks ) {
-		if ( bdp->active != 1 ) continue;
+		if ( !bdp->active ) continue;
 		if ( bdp->mass_residual > G.mass_residual ) G.mass_residual = bdp->mass_residual; 
 		if ( bdp->energy_residual > G.energy_residual ) G.energy_residual = bdp->energy_residual; 
             }
@@ -1342,7 +1519,7 @@ int integrate_in_time(double target_time)
         }
 
 	// 6. Spatial filter may be applied occasionally.
-	if ( get_filter_flag() && G.sim_time > G.filter_next_time ) {
+	if ( G.filter_flag && G.sim_time > G.filter_next_time ) {
 	    size_t ipass;
 	    for ( ipass = 0; ipass < G.filter_npass; ++ipass ) {
 #               ifdef _MPI
@@ -1350,45 +1527,45 @@ int integrate_in_time(double target_time)
 		mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
 #               else
 		for ( Block *bdp : G.my_blocks ) {
-		    if ( bdp->active != 1 ) continue;
+		    if ( !bdp->active ) continue;
 		    exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0);
 		}
 #               endif
 		for ( Block *bdp : G.my_blocks ) {
-		    if ( bdp->active != 1 ) continue;
+		    if ( !bdp->active ) continue;
 		    bdp->apply_spatial_filter_diffusion( G.filter_mu, G.filter_npass, G.dimensions );
 		    for ( FV_Cell *cp: bdp->active_cells )
 			cp->encode_conserved(0, 0, bdp->omegaz, with_k_omega);
 		}
 		for ( Block *bdp : G.my_blocks ) {
-		    if ( bdp->active != 1 ) continue;
+		    if ( !bdp->active ) continue;
 		    apply_convective_bc(*bdp, G.sim_time, G.dimensions);
-		    if ( get_viscous_flag() ) apply_viscous_bc(*bdp, G.sim_time, G.dimensions); 
+		    if ( G.viscous ) apply_viscous_bc(*bdp, G.sim_time, G.dimensions); 
 		}
 #               ifdef _MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		mpi_exchange_boundary_data(COPY_FLOW_STATE, 0);
 #               else
 		for ( Block *bdp : G.my_blocks ) {
-		    if ( bdp->active != 1 ) continue;
+		    if ( !bdp->active ) continue;
 		    exchange_shared_boundary_data(bdp->id, COPY_FLOW_STATE, 0);
 		}
 #               endif
 		for ( Block *bdp : G.my_blocks ) {
-		    if ( bdp->active != 1 ) continue;
+		    if ( !bdp->active ) continue;
 		    bdp->apply_spatial_filter_anti_diffusion(G.filter_mu, G.filter_npass, G.dimensions);
 		    for ( FV_Cell *cp: bdp->active_cells )
 			cp->encode_conserved(0, 0, bdp->omegaz, with_k_omega);
 		}
 		for ( Block *bdp : G.my_blocks ) {
-		    if ( bdp->active != 1 ) continue;
+		    if ( !bdp->active ) continue;
 		    apply_convective_bc( *bdp, G.sim_time, G.dimensions );
-		    if ( get_viscous_flag() ) apply_viscous_bc(*bdp, G.sim_time, G.dimensions); 
+		    if ( G.viscous ) apply_viscous_bc(*bdp, G.sim_time, G.dimensions); 
 		}
 	    }
 	    G.filter_next_time = G.sim_time + G.filter_dt;
-	    if ( G.filter_next_time > G.filter_tend ) set_filter_flag(0);
-	} // end if ( get_filter_flag()
+	    if ( G.filter_next_time > G.filter_tend ) G.filter_flag = false;
+	} // end if ( G.filter_flag )
 
 	// 7. Call out to user-defined function.
 	if ( G.udf_file.length() > 0 ) {
@@ -1409,26 +1586,26 @@ int integrate_in_time(double target_time)
 	//    be found in the control-parameter file (which may be edited
 	//    while the code is running).
         if ( G.sim_time >= stopping_time ) {
-            finished_time_stepping = 1;
+            finished_time_stepping = true;
             if ( master ) printf( "Integration stopped: reached maximum simulation time.\n" );
         }
         if ( G.step >= G.max_step ) {
-            finished_time_stepping = 1;
+            finished_time_stepping = true;
             if ( master ) printf( "Integration stopped: reached maximum number of steps.\n" );
         }
         if ( G.halt_now == 1 ) {
-            finished_time_stepping = 1;
+            finished_time_stepping = true;
             if ( master ) printf( "Integration stopped: Halt set in control file.\n" );
         }
 	now = time(NULL);
 	if ( max_wall_clock > 0 && ( static_cast<int>(now - start) > max_wall_clock ) ) {
-            finished_time_stepping = 1;
+            finished_time_stepping = true;
             if ( master ) printf( "Integration stopped: reached maximum wall-clock time.\n" );
 	}
 #       if CHECK_RADIATION_SCALING
-	if ( get_radiation_flag() ) {
+	if ( G.radiation ) {
 	    if ( check_radiation_scaling() ) {
-	    	finished_time_stepping = 1;
+	    	finished_time_stepping = true;
 	    	if ( master ) printf( "Integration stopped: radiation source term needs updating.\n" );
 	    }
 	}
@@ -1462,7 +1639,7 @@ int finalize_simulation( void )
 	}
 	sprintf( tindxcstr, "t%04d", static_cast<int>(output_counter) ); // C string
 	write_solution_data(tindxcstr);
-	output_just_written = 1;
+	output_just_written = true;
 	G.t_plot += G.dt_plot;
     }
     // For the history files, we don't want to double-up on solution data.
@@ -1472,7 +1649,7 @@ int finalize_simulation( void )
 	    filename = "hist/"+G.base_file_name+".hist"+jbstring;
             bdp->write_history( filename, G.sim_time );
 	}
-        history_just_written = 1;
+        history_just_written = true;
     }
     if ( master ) printf( "\nTotal number of steps = %d\n", static_cast<int>(G.step) );
 
@@ -1526,7 +1703,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 	++attempt_number;
 	step_status_flag = 0;
 	for ( Block *bdp : G.my_blocks ) {
-	    if ( bdp->active != 1 ) continue;
+	    if ( !bdp->active ) continue;
 	    bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
 	    for ( FV_Cell *cp: bdp->active_cells ) cp->clear_source_vector();
 	}
@@ -1550,25 +1727,25 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 	}
 	// Non-local radiation transport needs to be performed a-priori for parallelization.
 	// Note that Q_rad is not re-evaluated for subsequent stages of the update.
-	if ( get_radiation_flag() ) perform_radiation_transport();
+	if ( G.radiation ) perform_radiation_transport();
 
 	// First-stage of gas-dynamic update.
 	for ( Block *bdp : G.my_blocks ) {
 	    G.t_level = 0;
-	    if ( bdp->active != 1 ) continue;
+	    if ( !bdp->active ) continue;
 	    bdp->inviscid_flux(G.dimensions);
-	    if ( get_viscous_flag() == 1 && !G.separate_update_for_viscous_terms ) {
+	    if ( G.viscous && !G.separate_update_for_viscous_terms ) {
 		apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
 		if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 0);
 		if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
 		estimate_turbulence_viscosity(&G, bdp);
 		if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
-	    } // end if ( get_viscous_flag()
+	    } // end if ( G.viscous )
 	    for ( FV_Cell *cp: bdp->active_cells ) {
 		cp->add_inviscid_source_vector(0, bdp->omegaz);
 		if ( G.udf_source_vector_flag == 1 )
 		    add_udf_source_vector_for_cell(cp, 0, G.sim_time);
-		if ( get_viscous_flag() == 1 && !G.separate_update_for_viscous_terms ) {
+		if ( G.viscous && !G.separate_update_for_viscous_terms ) {
 		    cp->add_viscous_source_vector(with_k_omega && !G.separate_update_for_k_omega_source);
 		}
 		cp->time_derivatives(0, 0, G.dimensions, with_k_omega);
@@ -1582,7 +1759,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 	    // Preparation for second-stage of gas-dynamic update.
 	    G.sim_time = t0 + c2*dt;
 	    for ( Block *bdp : G.my_blocks ) {
-		if ( bdp->active != 1 ) continue;
+		if ( !bdp->active ) continue;
 		bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
 		for ( FV_Cell *cp: bdp->active_cells ) cp->clear_source_vector();
 	    }
@@ -1598,21 +1775,21 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 	    // Second stage of gas-dynamic update.
 	    for ( Block *bdp : G.my_blocks ) {
 		G.t_level = 1;
-		if ( bdp->active != 1 ) continue;
+		if ( !bdp->active ) continue;
 		apply_convective_bc(*bdp, G.sim_time, G.dimensions);
 		bdp->inviscid_flux(G.dimensions);
-		if ( get_viscous_flag() == 1 && !G.separate_update_for_viscous_terms ) {
+		if ( G.viscous && !G.separate_update_for_viscous_terms ) {
 		    apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
 		    if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 1);
 		    if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
 		    estimate_turbulence_viscosity(&G, bdp);
 		    if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
-		} // end if ( get_viscous_flag()
+		} // end if ( G.viscous )
 		for ( FV_Cell *cp: bdp->active_cells ) {
 		    cp->add_inviscid_source_vector(0, bdp->omegaz);
 		    if ( G.udf_source_vector_flag == 1 )
 			add_udf_source_vector_for_cell(cp, 0, G.sim_time);
-		    if ( get_viscous_flag() == 1 && !G.separate_update_for_viscous_terms ) {
+		    if ( G.viscous && !G.separate_update_for_viscous_terms ) {
 			cp->add_viscous_source_vector(with_k_omega && !G.separate_update_for_k_omega_source);
 		    }
 		    cp->time_derivatives(0, 1, G.dimensions, with_k_omega);
@@ -1626,7 +1803,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 	    // Preparation for third stage of gasdynamic update.
 	    G.sim_time = t0 + c3*dt;
 	    for ( Block *bdp : G.my_blocks ) {
-		if ( bdp->active != 1 ) continue;
+		if ( !bdp->active ) continue;
 		bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
 		for ( FV_Cell *cp: bdp->active_cells ) cp->clear_source_vector();
 	    }
@@ -1641,21 +1818,21 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 #           endif
 	    for ( Block *bdp : G.my_blocks ) {
 		G.t_level = 2;
-		if ( bdp->active != 1 ) continue;
+		if ( !bdp->active ) continue;
 		apply_convective_bc(*bdp, G.sim_time, G.dimensions);
 		bdp->inviscid_flux( G.dimensions );
-		if ( get_viscous_flag() == 1 && !G.separate_update_for_viscous_terms ) {
+		if ( G.viscous && !G.separate_update_for_viscous_terms ) {
 		    apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
 		    if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 2);
 		    if ( G.dimensions == 2 ) viscous_derivatives_2D(bdp, 0); else viscous_derivatives_3D(bdp, 0); 
 		    estimate_turbulence_viscosity(&G, bdp);
 		    if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
-		} // end if ( get_viscous_flag()
+		} // end if ( G.viscous )
 		for ( FV_Cell *cp: bdp->active_cells ) {
 		    cp->add_inviscid_source_vector(0, bdp->omegaz);
 		    if ( G.udf_source_vector_flag == 1 )
 			add_udf_source_vector_for_cell(cp, 0, G.sim_time);
-		    if ( get_viscous_flag() == 1 && !G.separate_update_for_viscous_terms ) {
+		    if ( G.viscous && !G.separate_update_for_viscous_terms ) {
 			cp->add_viscous_source_vector(with_k_omega && !G.separate_update_for_k_omega_source);
 		    }
 		    cp->time_derivatives(0, 2, G.dimensions, with_k_omega);
@@ -1680,7 +1857,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 	    G.dt_global = G.dt_reduction_factor * G.dt_global;
 	    printf("Attempt %d failed: reducing dt to %e.\n", attempt_number, G.dt_global);
 	    for ( Block *bdp : G.my_blocks ) {
-		if ( bdp->active != 1 ) continue;
+		if ( !bdp->active ) continue;
 		for ( FV_Cell *cp: bdp->active_cells ) {
 		    cp->decode_conserved(0, 0, bdp->omegaz, with_k_omega);
 		}
@@ -1703,7 +1880,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 				 "unknown update scheme.");
     }
     for ( Block *bdp : G.my_blocks ) {
-	if ( bdp->active != 1 ) continue;
+	if ( !bdp->active ) continue;
 	for ( FV_Cell *cp: bdp->active_cells ) {
 	    swap(cp->U[0], cp->U[end_indx]);
 	}
@@ -1736,7 +1913,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	++attempt_number;
 	step_status_flag = 0;
 	for ( Block *bdp : G.my_blocks ) {
-	    if ( bdp->active != 1 ) continue;
+	    if ( !bdp->active ) continue;
 	    bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
 	    for ( FV_Cell *cp: bdp->active_cells ) cp->clear_source_vector();
 	}
@@ -1775,7 +1952,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
 #       endif
 	// Non-local radiation transport needs to be performed a-priori for parallelization.
 	// Note that Q_rad is not re-evaluated for subsequent stages of the update.
-	if ( get_radiation_flag() ) perform_radiation_transport();
+	if ( G.radiation ) perform_radiation_transport();
 
 	// Grid-movement is done after a specified point in time.
 	if ( G.sim_time >= G.t_shock ) {
@@ -1788,7 +1965,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	}
 	// First-stage of inviscid gas-dynamic update.
 	for ( Block *bdp : G.my_blocks ) {
-	    if ( bdp->active != 1 ) continue;
+	    if ( !bdp->active ) continue;
 	    bdp->inviscid_flux( G.dimensions );
 	    for ( FV_Cell *cp: bdp->active_cells ) {
 		cp->add_inviscid_source_vector(1, bdp->omegaz);
@@ -1801,7 +1978,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
 
 	// Preparation for second-stage of gas-dynamic update.
 	for ( Block *bdp : G.my_blocks ) {
-	    if ( bdp->active != 1 ) continue;
+	    if ( !bdp->active ) continue;
 	    bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
 	    for ( FV_Cell *cp: bdp->active_cells ) cp->clear_source_vector();
 	}
@@ -1841,7 +2018,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	}
 	// Second-stage of inviscid gas-dynamic update.
 	for ( Block *bdp : G.my_blocks ) {
-	    if ( bdp->active != 1 ) continue;
+	    if ( !bdp->active ) continue;
 	    bdp->inviscid_flux( G.dimensions );
 	    for ( FV_Cell *cp: bdp->active_cells ) {
 		cp->add_inviscid_source_vector(1, bdp->omegaz);
@@ -1867,7 +2044,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	    G.dt_global = G.dt_reduction_factor * G.dt_global;
 	    printf("Attempt %d failed: reducing dt to %e.\n", attempt_number, G.dt_global);
 	    for ( Block *bdp : G.my_blocks ) {
-		if ( bdp->active != 1 ) continue;
+		if ( !bdp->active ) continue;
 		for ( FV_Cell *cp: bdp->active_cells ) {
 		    cp->decode_conserved(0, 0, bdp->omegaz, with_k_omega);
 		}
@@ -1877,7 +2054,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
     } while (attempt_number < 3 && step_status_flag == 1);
 
     for ( Block *bdp : G.my_blocks ) {
-	if ( bdp->active != 1 ) continue;
+	if ( !bdp->active ) continue;
 	for ( FV_Cell *cp: bdp->active_cells ) {
 	    swap(cp->U[0], cp->U[2]);
 	    cp->copy_grid_level_to_level(2, 0);
@@ -1898,7 +2075,7 @@ int gasdynamic_separate_explicit_viscous_increment()
     bool force_euler = true;
     using std::swap;
     for ( Block *bdp : G.my_blocks ) {
-        if ( bdp->active != 1 ) continue;
+        if ( !bdp->active ) continue;
 	bdp->clear_fluxes_of_conserved_quantities(G.dimensions);
 	for ( FV_Cell *cp: bdp->active_cells ) cp->clear_source_vector();
 	apply_viscous_bc(*bdp, G.sim_time, G.dimensions);
@@ -1988,11 +2165,11 @@ int radiation_calculation()
     // Apply viscous THEN inviscid boundary conditions to match environment for
     // radiation calculation in gasdynamic_inviscid_increment()
     for ( Block *bdp : G.my_blocks ) {
-	if ( bdp->active != 1 ) continue;
-	if ( get_viscous_flag() ) apply_viscous_bc( *bdp, G.sim_time, G.dimensions ); 
+	if ( !bdp->active ) continue;
+	if ( G.viscous ) apply_viscous_bc( *bdp, G.sim_time, G.dimensions ); 
 	apply_convective_bc( *bdp, G.sim_time, G.dimensions );
     }
-    if ( get_radiation_flag() ) perform_radiation_transport();
+    if ( G.radiation ) perform_radiation_transport();
     return SUCCESS;
 } // end radiation_calculation()
 
@@ -2012,18 +2189,18 @@ void perform_radiation_transport()
 #   endif
     for ( jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
-	if ( bdp->active != 1 ) continue;
+	if ( !bdp->active ) continue;
 	for ( FV_Cell *cp: bdp->active_cells ) cp->store_rad_scaling_params();
     }
 #   else
     // e3shared.exe and e3mpi.exe version - currently no parallelisation
     // Determine if a scaled or complete radiation call is required
-    int ruf = get_radiation_update_frequency();
-    if ( ( ruf == 0 ) || ( ( G.step / ruf ) * ruf != G.step ) ) {
+    int ruf = G.radiation_update_frequency;
+    if ( (ruf == 0) || ((G.step/ruf)*ruf != G.step) ) {
 	// rescale
 	for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
-	    if ( bdp->active != 1 ) continue;
+	    if ( !bdp->active ) continue;
 	    for ( FV_Cell *cp: bdp->active_cells ) cp->rescale_Q_rE_rad();
 	}
     } else {
@@ -2032,7 +2209,7 @@ void perform_radiation_transport()
 	// store the radiation scaling parameters for each cell
 	for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
-	    if ( bdp->active != 1 ) continue;
+	    if ( !bdp->active ) continue;
 	    for ( FV_Cell *cp: bdp->active_cells ) cp->store_rad_scaling_params();
 	}
     }

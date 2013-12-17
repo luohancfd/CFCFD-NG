@@ -10,7 +10,6 @@
 
 #include <string>
 #include <vector>
-#include <valarray>
 
 #include "../../nm/source/no_fuss_linear_algebra.hh"
 #include "../../nm/source/ode_system.hh"
@@ -136,35 +135,35 @@ public:
     // -------- OdeSystem behaviour ----------- //
     
     /// \brief Compute the rate of species production.
-    int eval( const std::valarray<double> &y, std::valarray<double> &ydot );
+    int eval( const std::vector<double> &y, std::vector<double> &ydot );
     
     /// \brief Compute the rate of species production (split)
-    int eval_split( const std::valarray<double> &y, 
-		    std::valarray<double> &q, std::valarray<double> &L );
+    int eval_split( const std::vector<double> &y, 
+		    std::vector<double> &q, std::vector<double> &L );
 
     /// \brief Select an appropriate timestep for system integration.
-    double stepsize_select( const std::valarray<double> &y );
+    double stepsize_select( const std::vector<double> &y );
 
     /// \brief Check the mass fractions for consistency.
-    bool passes_system_test( std::valarray<double> &y );
+    bool passes_system_test( std::vector<double> &y );
     
     void update_reacting_species();
 
     void set_gas_data_ptr( Gas_data *Q ) { Q_ = Q; }
 
-    void evolution_rates(int isp, std::valarray<double> &W, Gas_data &Q );
+    void evolution_rates(int isp, std::vector<double> &W, Gas_data &Q );
 
 protected:
     Gas_data *Q_;
     OdeSolver *ode_solver_;
-    std::valarray<double> yin_;
-    std::valarray<double> yout_;
-    std::valarray<double> w_f_;
-    std::valarray<double> w_b_;
-    std::valarray<double> q_;
-    std::valarray<double> L_;
-    std::valarray<double> mf_;
-    std::valarray<double> c_;
+    std::vector<double> yin_;
+    std::vector<double> yout_;
+    std::vector<double> w_f_;
+    std::vector<double> w_b_;
+    std::vector<double> q_;
+    std::vector<double> L_;
+    std::vector<double> mf_;
+    std::vector<double> c_;
 		       
 };
 
@@ -210,29 +209,29 @@ public:
 
     // ------------ OdeSystem behaviour -------------- //
     
-    int eval( const std::valarray<double> &y, std::valarray<double> &ydot );
+    int eval( const std::vector<double> &y, std::vector<double> &ydot );
     
-    double stepsize_select( const std::valarray<double> &y );
-    bool passes_system_test( std::valarray<double> &y );
+    double stepsize_select( const std::vector<double> &y );
+    bool passes_system_test( std::vector<double> &y );
 
     void set_init_conc(int isp, double conc)
     { spec_[isp]->set_init_conc(conc); }
 
-    double eval_conc(int isp, std::valarray<double> &w)
+    double eval_conc(int isp, std::vector<double> &w)
     { return spec_[isp]->eval_conc(w); }
     void set_gas_data_ptr( Gas_data *Q ) { Q_ = Q; }
 
-    int update_evib(Gas_data &Q, std::valarray<double> &y,
-		    std::valarray<double> &c_old, std::valarray<double> &c_new);
+    int update_evib(Gas_data &Q, std::vector<double> &y,
+		    std::vector<double> &c_old, std::vector<double> &c_new);
 
 private:
     Gas_data *Q_;
     OdeSolver *ode_solver_;
-    std::valarray<double> yin_;
-    std::valarray<double> yout_;
-    std::valarray<double> w_;
-    std::valarray<double> c_;
-    std::valarray<double> cinit_;
+    std::vector<double> yin_;
+    std::vector<double> yout_;
+    std::vector<double> w_;
+    std::vector<double> c_;
+    std::vector<double> cinit_;
 
     std::vector<SpeciesPieces*> spec_;
 

@@ -11,6 +11,7 @@
  * \author Rowan J Gollan
  * \date 22-Apr-2006
  * \version 23-Sep-2006 - implementation changed to valarrays
+ * \version 26-Nov-2013 - and then to vector (PJ)
  **/
 
 #ifndef NF_LIN_ALG_HH
@@ -18,25 +19,25 @@
 
 #include <iostream>
 #include <string>
-#include <valarray>
+#include <vector>
 
 #define PVT_DIM 1000  ///< Static working array size for Gaussian elimination method.
 
-void add_valarrays(std::valarray<double> &c, const std::valarray<double> &a, const std::valarray<double> &b );
-void subtract_valarrays( std::valarray<double> &c, const std::valarray<double> &a, const std::valarray<double> &b );
-void scale_valarray( std::valarray<double> &a, double b );
-void scale_valarray2valarray( const std::valarray<double> &a, double b, std::valarray<double> &c);
-void copy_valarray( const std::valarray<double> &src, std::valarray<double> &target );
+void add_vectors(std::vector<double> &c, const std::vector<double> &a, const std::vector<double> &b );
+void subtract_vectors(std::vector<double> &c, const std::vector<double> &a, const std::vector<double> &b );
+void elemul_vectors(std::vector<double> &c, const std::vector<double> &a, const std::vector<double> &b);
+void elepow_vectors(std::vector<double> &c, const std::vector<double> &b, double a);
+void scale_vector(std::vector<double> &a, double b );
+void scale_vector2vector(const std::vector<double> &a, double b, std::vector<double> &c);
+void copy_vector(const std::vector<double> &src, std::vector<double> &target);
 
-void print_valarray( const std::valarray<double> &a );
+void print_vector(const std::vector<double> &a);
 
-double norm2_valarray( const std::valarray<double> &a,
-		       int start=0, int finish=-1 );
+double norm2_vector(const std::vector<double> &a,
+		       int start=0, int finish=-1);
+void merge_vectors(const std::vector<double> &src_A, const std::vector<double> &src_B, std::vector<double> &target );
 
-void merge_valarrays(const std::valarray<double> &src_A, const std::valarray<double> &src_B, std::valarray<double> &target );
-
-void split_valarray( const std::valarray<double> &src, std::valarray<double> &target_A, std::valarray<double> &target_B );
-
+void split_vector( const std::vector<double> &src, std::vector<double> &target_A, std::vector<double> &target_B );
 class Valmatrix {
 public:
     /// \brief Default constructor
@@ -78,45 +79,48 @@ public:
 #ifndef SWIG
     //    double& operator() (size_t i, size_t j) const { return &(data_[i*ncols_+j]); }
 #endif
-    int extract_column(std::valarray<double> &x,
+    int extract_column(std::vector<double> &x,
 		       size_t start_row, size_t column);
-    int insert_column(const std::valarray<double> &x,
+    int insert_column(const std::vector<double> &x,
 		       size_t start_row, size_t column);
     int extract_minor(Valmatrix &x, size_t iA, size_t jA, size_t iB, size_t jB); 
     int insert_minor(const Valmatrix &x, size_t iA, size_t jA, size_t iB, size_t jB); 
     
 
     int eye(size_t n);
-
+    int print_mat();
     void scale(double s)
-    { scale_valarray(data_, s); }
+    { scale_vector(data_, s); }
     
-    int gaussian_elimination( std::valarray<double> &x, std::valarray<double> &b, bool with_scaling=false );
+    // RJG 18-Nov-2013:
+    // Not sure why we have this as a method when we have a function
+    // version of this outside of the class.
+    //int gaussian_elimination( std::vector<double> &x, std::vector<double> &b, bool with_scaling=false );
 
 private:
     size_t nrows_;
     size_t ncols_;
-    std::valarray<double> data_;
-    std::valarray<int> row_index_;
+    std::vector<double> data_;
+    std::vector<int> row_index_;
 
 };
 
 #ifndef SWIG
 std::ostream& operator<<( std::ostream &os, const Valmatrix &v );
 #endif
+std::vector<double> vector_matmul( Valmatrix &matrix, std::vector<double> &b);
+int vector_mul(Valmatrix &A, std::vector<double> &x, std::vector<double> &b);
+int gaussian_elimination( Valmatrix &A, std::vector<double> &x,
+			  std::vector<double> &c, bool with_scaling=false );
 
-
-int gaussian_elimination( Valmatrix &A, std::valarray<double> &x,
-			  std::valarray<double> &c, bool with_scaling=false );
-
-int householder_transform(const std::valarray<double> &x,
-			  std::valarray<double> &v, double &tau);
-int householder_hm(double tau, std::valarray<double> &v, Valmatrix &A);
-int householder_hv(double tau, const std::valarray<double> &v,
-		   std::valarray<double> &w);
-int householder_QR(Valmatrix &A, std::valarray<double> &tau);
-int least_squares_solve(Valmatrix &A, std::valarray<double> &x, std::valarray<double> &b);
-int QR_solve(Valmatrix &A, std::valarray<double> &x, std::valarray<double> &b);
+int householder_transform(const std::vector<double> &x,
+			  std::vector<double> &v, double &tau);
+int householder_hm(double tau, std::vector<double> &v, Valmatrix &A);
+int householder_hv(double tau, const std::vector<double> &v,
+		   std::vector<double> &w);
+int householder_QR(Valmatrix &A, std::vector<double> &tau);
+int least_squares_solve(Valmatrix &A, std::vector<double> &x, std::vector<double> &b);
+int QR_solve(Valmatrix &A, std::vector<double> &x, std::vector<double> &b);
 double eval_matrix_determinant( Valmatrix &A, size_t i=0 );
 double sub_matrix_det( Valmatrix &A, size_t i_skip, size_t j_skip, size_t row=0 );
 #endif

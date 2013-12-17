@@ -23,6 +23,7 @@
 #include "../../../lib/util/source/config_parser.hh"
 #include "../../../lib/gas/models/gas_data.hh"
 #include "../../../lib/gas/models/gas-model.hh"
+#include "../../twc/source/e3con.hh"
 #include "block.hh"
 #include "kernel.hh"
 #include "cell.hh"
@@ -32,8 +33,18 @@
 #include "visc.hh"
 #include "flux_calc.hh"
 #include "one_d_interp.hh"
+#include "conj-ht-interface.hh"
 
 using namespace std;
+
+std::string & to_lower_case(std::string & mystring)
+// Change to lower-case in place, for use in looking up name->object maps.
+// PJ, 21-Nov-2013
+{
+    for ( size_t i = 0; i < mystring.length(); ++i )
+	mystring[i] = tolower(mystring[i]);
+    return mystring;
+}
 
 std::map<std::string,update_scheme_t> available_schemes;
 int init_available_schemes_map()
@@ -44,31 +55,18 @@ int init_available_schemes_map()
     // but the Intel C++ compiler doesn't implement such a nicety.
     typedef std::pair<std::string,update_scheme_t> name_scheme_t;
     available_schemes.insert(name_scheme_t("euler",EULER_UPDATE));
-    available_schemes.insert(name_scheme_t("Euler",EULER_UPDATE));
     available_schemes.insert(name_scheme_t("pc",PC_UPDATE)); 
-    available_schemes.insert(name_scheme_t("PC",PC_UPDATE));
-    available_schemes.insert(name_scheme_t("predictor_corrector",PC_UPDATE));
     available_schemes.insert(name_scheme_t("predictor-corrector",PC_UPDATE));
-    available_schemes.insert(name_scheme_t("Predictor_corrector",PC_UPDATE));
-    available_schemes.insert(name_scheme_t("Predictor-corrector",PC_UPDATE));
+    available_schemes.insert(name_scheme_t("predictor_corrector",PC_UPDATE));
     available_schemes.insert(name_scheme_t("midpoint",MIDPOINT_UPDATE)); 
     available_schemes.insert(name_scheme_t("mid-point",MIDPOINT_UPDATE));
     available_schemes.insert(name_scheme_t("mid_point",MIDPOINT_UPDATE)); 
-    available_schemes.insert(name_scheme_t("Midpoint",MIDPOINT_UPDATE));
-    available_schemes.insert(name_scheme_t("Mid-point",MIDPOINT_UPDATE));
-    available_schemes.insert(name_scheme_t("Mid_point",MIDPOINT_UPDATE));
     available_schemes.insert(name_scheme_t("classic-rk3",CLASSIC_RK3_UPDATE));
     available_schemes.insert(name_scheme_t("classic_rk3",CLASSIC_RK3_UPDATE));
-    available_schemes.insert(name_scheme_t("Classic-RK3",CLASSIC_RK3_UPDATE));
-    available_schemes.insert(name_scheme_t("Classic_RK3",CLASSIC_RK3_UPDATE));
     available_schemes.insert(name_scheme_t("tvd-rk3",TVD_RK3_UPDATE));
     available_schemes.insert(name_scheme_t("tvd_rk3",TVD_RK3_UPDATE));
-    available_schemes.insert(name_scheme_t("TVD-RK3",TVD_RK3_UPDATE));
-    available_schemes.insert(name_scheme_t("TVD_RK3",TVD_RK3_UPDATE));
     available_schemes.insert(name_scheme_t("denman-rk3",DENMAN_RK3_UPDATE));
     available_schemes.insert(name_scheme_t("denman_rk3",DENMAN_RK3_UPDATE));
-    available_schemes.insert(name_scheme_t("Denman-RK3",DENMAN_RK3_UPDATE));
-    available_schemes.insert(name_scheme_t("Denman_RK3",DENMAN_RK3_UPDATE));
     return SUCCESS;
 }
 
@@ -78,25 +76,18 @@ int init_available_calculators_map()
     typedef std::pair<std::string,flux_calc_t> name_flux_t;
     available_calculators.insert(name_flux_t("0",FLUX_RIEMANN));
     available_calculators.insert(name_flux_t("riemann",FLUX_RIEMANN));
-    available_calculators.insert(name_flux_t("Riemann",FLUX_RIEMANN));
     available_calculators.insert(name_flux_t("1",FLUX_AUSM));
     available_calculators.insert(name_flux_t("ausm",FLUX_AUSM));
-    available_calculators.insert(name_flux_t("AUSM",FLUX_AUSM));
     available_calculators.insert(name_flux_t("2",FLUX_EFM));
     available_calculators.insert(name_flux_t("efm",FLUX_EFM));
-    available_calculators.insert(name_flux_t("EFM",FLUX_EFM));
     available_calculators.insert(name_flux_t("3",FLUX_AUSMDV));
     available_calculators.insert(name_flux_t("ausmdv",FLUX_AUSMDV));
-    available_calculators.insert(name_flux_t("AUSMDV",FLUX_AUSMDV));
     available_calculators.insert(name_flux_t("4",FLUX_ADAPTIVE));
     available_calculators.insert(name_flux_t("adaptive",FLUX_ADAPTIVE));
-    available_calculators.insert(name_flux_t("Adaptive",FLUX_ADAPTIVE));
     available_calculators.insert(name_flux_t("5",FLUX_AUSM_PLUS_UP));
     available_calculators.insert(name_flux_t("ausm_plus_up",FLUX_AUSM_PLUS_UP));
-    available_calculators.insert(name_flux_t("AUSM_plus_up",FLUX_AUSM_PLUS_UP));
     available_calculators.insert(name_flux_t("6",FLUX_HLLE));
     available_calculators.insert(name_flux_t("hlle",FLUX_HLLE));
-    available_calculators.insert(name_flux_t("HLLE",FLUX_HLLE));
     return SUCCESS;
 }
 
@@ -105,17 +96,9 @@ int init_available_interpolators_map()
 {
     typedef std::pair<std::string,thermo_interp_t> name_interp_t;
     available_interpolators.insert(name_interp_t("pt",INTERP_PT));
-    available_interpolators.insert(name_interp_t("pT",INTERP_PT));
-    available_interpolators.insert(name_interp_t("PT",INTERP_PT));
     available_interpolators.insert(name_interp_t("rhoe",INTERP_RHOE));
-    available_interpolators.insert(name_interp_t("rhoE",INTERP_RHOE));
-    available_interpolators.insert(name_interp_t("RHOE",INTERP_RHOE));
     available_interpolators.insert(name_interp_t("rhop",INTERP_RHOP));
-    available_interpolators.insert(name_interp_t("rhoP",INTERP_RHOP));
-    available_interpolators.insert(name_interp_t("RHOP",INTERP_RHOP));
     available_interpolators.insert(name_interp_t("rhot",INTERP_RHOT));
-    available_interpolators.insert(name_interp_t("rhoT",INTERP_RHOT));
-    available_interpolators.insert(name_interp_t("RHOT",INTERP_RHOT));
     return SUCCESS;
 }
 
@@ -124,15 +107,10 @@ int init_available_turbulence_models_map()
 {
     typedef std::pair<std::string,turbulence_model_t> name_turb_model_t;
     available_turbulence_models.insert(name_turb_model_t("none",TM_NONE));
-    available_turbulence_models.insert(name_turb_model_t("None",TM_NONE));
     available_turbulence_models.insert(name_turb_model_t("baldwin_lomax",TM_BALDWIN_LOMAX));
     available_turbulence_models.insert(name_turb_model_t("baldwin-lomax",TM_BALDWIN_LOMAX));
-    available_turbulence_models.insert(name_turb_model_t("Baldwin_Lomax",TM_BALDWIN_LOMAX));
-    available_turbulence_models.insert(name_turb_model_t("Baldwin-Lomax",TM_BALDWIN_LOMAX));
     available_turbulence_models.insert(name_turb_model_t("k_omega",TM_K_OMEGA));
     available_turbulence_models.insert(name_turb_model_t("k-omega",TM_K_OMEGA));
-    available_turbulence_models.insert(name_turb_model_t("K_Omega",TM_K_OMEGA));
-    available_turbulence_models.insert(name_turb_model_t("K-Omega",TM_K_OMEGA));
     available_turbulence_models.insert(name_turb_model_t("spalart_allmaras",TM_SPALART_ALLMARAS));
     return SUCCESS;
 }
@@ -143,80 +121,57 @@ int init_available_bcs_map()
     typedef std::pair<std::string,bc_t> name_bc_t;
     // We keep the integer values for backward compatibility.
     available_bcs.insert(name_bc_t("adjacent",ADJACENT));
-    available_bcs.insert(name_bc_t("ADJACENT",ADJACENT));
     available_bcs.insert(name_bc_t("0",ADJACENT));
     available_bcs.insert(name_bc_t("sup_in",SUP_IN));
-    available_bcs.insert(name_bc_t("SUP_IN",SUP_IN));
     available_bcs.insert(name_bc_t("1",SUP_IN));
     available_bcs.insert(name_bc_t("extrapolate_out",EXTRAPOLATE_OUT));
-    available_bcs.insert(name_bc_t("EXTRAPOLATE_OUT",EXTRAPOLATE_OUT));
     available_bcs.insert(name_bc_t("2",EXTRAPOLATE_OUT));
     available_bcs.insert(name_bc_t("slip_wall",SLIP_WALL));
-    available_bcs.insert(name_bc_t("SLIP_WALL",SLIP_WALL));
     available_bcs.insert(name_bc_t("3",SLIP_WALL));
     available_bcs.insert(name_bc_t("adiabatic",ADIABATIC));
-    available_bcs.insert(name_bc_t("ADIABATIC",ADIABATIC));
     available_bcs.insert(name_bc_t("4",ADIABATIC));
-    available_bcs.insert(name_bc_t("fixed_T",FIXED_T));
-    available_bcs.insert(name_bc_t("FIXED_T",FIXED_T));
+    available_bcs.insert(name_bc_t("fixed_t",FIXED_T));
     available_bcs.insert(name_bc_t("5",FIXED_T));
     available_bcs.insert(name_bc_t("subsonic_in",SUBSONIC_IN));
-    available_bcs.insert(name_bc_t("SUBSONIC_IN",SUBSONIC_IN));
     available_bcs.insert(name_bc_t("6",SUBSONIC_IN));
     available_bcs.insert(name_bc_t("subsonic_out",SUBSONIC_OUT));
-    available_bcs.insert(name_bc_t("SUBSONIC_OUT",SUBSONIC_OUT));
     available_bcs.insert(name_bc_t("7",SUBSONIC_OUT));
     available_bcs.insert(name_bc_t("transient_uni",TRANSIENT_UNI));
-    available_bcs.insert(name_bc_t("TRANSIENT_UNI",TRANSIENT_UNI));
     available_bcs.insert(name_bc_t("8",TRANSIENT_UNI));
     available_bcs.insert(name_bc_t("transient_prof",TRANSIENT_PROF));
-    available_bcs.insert(name_bc_t("TRANSIENT_PROF",TRANSIENT_PROF));
     available_bcs.insert(name_bc_t("9",TRANSIENT_PROF));
     available_bcs.insert(name_bc_t("static_prof",STATIC_PROF));
-    available_bcs.insert(name_bc_t("STATIC_PROF",STATIC_PROF));
     available_bcs.insert(name_bc_t("10",STATIC_PROF));
     available_bcs.insert(name_bc_t("fixed_p_out",FIXED_P_OUT));
-    available_bcs.insert(name_bc_t("FIXED_P_OUT",FIXED_P_OUT));
     available_bcs.insert(name_bc_t("11",FIXED_P_OUT));
-    available_bcs.insert(name_bc_t("transient_T_wall",TRANSIENT_T_WALL));
-    available_bcs.insert(name_bc_t("TRANSIENT_T_WALL",TRANSIENT_T_WALL));
+    available_bcs.insert(name_bc_t("transient_t_wall",TRANSIENT_T_WALL));
     available_bcs.insert(name_bc_t("13",TRANSIENT_T_WALL));
     available_bcs.insert(name_bc_t("surface_energy_balance",SEB));
-    available_bcs.insert(name_bc_t("SURFACE_ENERGY_BALANCE",SEB));
-    available_bcs.insert(name_bc_t("SEB",SEB));
+    available_bcs.insert(name_bc_t("seb",SEB));
     available_bcs.insert(name_bc_t("15",SEB));
     available_bcs.insert(name_bc_t("user_defined",USER_DEFINED));
-    available_bcs.insert(name_bc_t("USER_DEFINED",USER_DEFINED));
     available_bcs.insert(name_bc_t("16",USER_DEFINED));
     available_bcs.insert(name_bc_t("adjacent_plus_udf",ADJACENT_PLUS_UDF));
-    available_bcs.insert(name_bc_t("ADJACENT_PLUS_UDF",ADJACENT_PLUS_UDF));
     available_bcs.insert(name_bc_t("17",ADJACENT_PLUS_UDF));
     available_bcs.insert(name_bc_t("ablating",ABLATING));
-    available_bcs.insert(name_bc_t("ABLATING",ABLATING));
     available_bcs.insert(name_bc_t("18",ABLATING));
-    available_bcs.insert(name_bc_t("sliding_T",SLIDING_T));
-    available_bcs.insert(name_bc_t("SLIDING_T",SLIDING_T));
+    available_bcs.insert(name_bc_t("sliding_t",SLIDING_T));
     available_bcs.insert(name_bc_t("19",SLIDING_T));
     available_bcs.insert(name_bc_t("fstc",FSTC));
-    available_bcs.insert(name_bc_t("FSTC",FSTC));
     available_bcs.insert(name_bc_t("20",FSTC));
     available_bcs.insert(name_bc_t("shock_fitting_in",SHOCK_FITTING_IN));
-    available_bcs.insert(name_bc_t("SHOCK_FITTING_IN",SHOCK_FITTING_IN));
     available_bcs.insert(name_bc_t("21",SHOCK_FITTING_IN));
     available_bcs.insert(name_bc_t("non_catalytic",NON_CATALYTIC));
-    available_bcs.insert(name_bc_t("NON_CATALYTIC",NON_CATALYTIC));
     available_bcs.insert(name_bc_t("22",NON_CATALYTIC));
     available_bcs.insert(name_bc_t("equil_catalytic",EQUIL_CATALYTIC));
-    available_bcs.insert(name_bc_t("EQUIL_CATALYTIC",EQUIL_CATALYTIC));
     available_bcs.insert(name_bc_t("23",EQUIL_CATALYTIC));
     available_bcs.insert(name_bc_t("super_catalytic",SUPER_CATALYTIC));
-    available_bcs.insert(name_bc_t("SUPER_CATALYTIC",SUPER_CATALYTIC));
     available_bcs.insert(name_bc_t("24",SUPER_CATALYTIC));
     available_bcs.insert(name_bc_t("partially_catalytic",PARTIALLY_CATALYTIC));
-    available_bcs.insert(name_bc_t("PARTIALLY_CATALYTIC",PARTIALLY_CATALYTIC));
     available_bcs.insert(name_bc_t("25",PARTIALLY_CATALYTIC));
-    available_bcs.insert(name_bc_t("USER_DEFINED_MASS_FLUX",USER_DEFINED_MASS_FLUX));
-    available_bcs.insert(name_bc_t("user_defined_mass_flux",USER_DEFINED_MASS_FLUX)); 
+    available_bcs.insert(name_bc_t("user_defined_mass_flux",USER_DEFINED_MASS_FLUX));
+    available_bcs.insert(name_bc_t("conjugate_ht",CONJUGATE_HT));
+    available_bcs.insert(name_bc_t("moving_wall",MOVING_WALL));
     return SUCCESS;
 }
  
@@ -236,13 +191,14 @@ int read_config_parameters(const string filename, bool master)
     size_t jb;
     init_available_schemes_map();
     init_available_calculators_map();
+    init_available_interpolators_map();
     init_available_turbulence_models_map();
     init_available_bcs_map();
 
     // Default values for some configuration variables.
     G.dimensions = 2;
     G.Xorder = 2;
-    set_radiation_flag(0);
+    G.radiation = false;
 
     // variables for Andrew's time averaging routine.
     G.nav = 0;
@@ -297,10 +253,22 @@ int read_config_parameters(const string filename, bool master)
     G.drummond_progressive = 0;
 
     G.fixed_time_step = false; // Set to false as a default
-    G.separate_update_for_viscous_terms = false;
     G.cfl_count = 10;
     G.print_count = 20;
     G.control_count = 10;
+
+    G.separate_update_for_viscous_terms = false;
+    G.viscous = false;
+    G.viscous_factor = 1.0;
+    G.viscous_factor_increment = 0.01;
+    G.diffusion = false;
+    G.diffusion_factor = 1.0;
+    G.diffusion_factor_increment = 0.01;
+
+    G.heat_factor = 1.0;
+    G.heat_factor_increment = 0.01;
+
+    G.electric_field_work = false;
 
     // At the start of a fresh simulation,
     // we need to set a few items that will be updated later.
@@ -315,6 +283,10 @@ int read_config_parameters(const string filename, bool master)
     G.turbulence_schmidt = 0.75;
     G.separate_update_for_k_omega_source = false;
 
+    // Daryl's MHD and BGK additions are, by default, off.
+    G.MHD = false;
+    G.BGK = 0;
+
     // Most configuration comes from the previously-generated INI file.
     ConfigParser dict = ConfigParser(filename);
     int i_value;
@@ -324,7 +296,7 @@ int read_config_parameters(const string filename, bool master)
     dict.parse_string("global_data", "title", G.title, "unknown");
     dict.parse_size_t("global_data", "dimensions", G.dimensions, 2);
     dict.parse_size_t("global_data", "control_count", G.control_count, 10);
-    if ( get_verbose_flag() ) {
+    if ( G.verbose_init_messages ) {
 	cout << "title = " << G.title << endl;
 	cout << "dimensions = " << G.dimensions << endl;
 	cout << "control_count = " << G.control_count << endl;
@@ -335,47 +307,45 @@ int read_config_parameters(const string filename, bool master)
 
     dict.parse_string("global_data", "gas_model_file", s_value, "gas-model.lua");
     Gas_model *gmodel = set_gas_model_ptr(create_gas_model(s_value));
-    if ( get_verbose_flag() ) {
+    if ( G.verbose_init_messages ) {
 	cout << "gas_model_file = " << s_value << endl;
 	cout << "nsp = " << gmodel->get_number_of_species() << endl;
 	cout << "nmodes = " << gmodel->get_number_of_modes() << endl;
     }
 
-    dict.parse_int("global_data", "reacting_flag", i_value, 0);
-    set_reacting_flag( i_value );
+    dict.parse_boolean("global_data", "reacting_flag", G.reacting, false);
+    if ( G.reacting and !gmodel->good_for_reactions() ) {
+	throw runtime_error("The selected gas model is NOT compatible with finite-rate chemistry.");
+    }
     dict.parse_double("global_data", "reaction_time_start", G.reaction_time_start, 0.0);
     dict.parse_double("global_data", "T_frozen", G.T_frozen, 300.0);
     dict.parse_string("global_data", "reaction_update", s_value, "dummy_scheme");
-    if( get_reacting_flag() ) set_reaction_update( s_value );
-    if ( get_verbose_flag() ) {
-	cout << "reacting_flag = " << get_reacting_flag() << endl;
+    if( G.reacting ) set_reaction_update( s_value );
+    if ( G.verbose_init_messages ) {
+	cout << "reacting_flag = " << G.reacting << endl;
 	cout << "reaction_time_start = " << G.reaction_time_start << endl;
 	cout << "reaction_update = " << s_value << endl;
 	cout << "T_frozen = " << G.T_frozen << endl;
     }
 
-    dict.parse_int("global_data", "energy_exchange_flag", i_value, 0);
-    set_energy_exchange_flag( i_value );
+    dict.parse_boolean("global_data", "energy_exchange_flag", G.thermal_energy_exchange, false);
     dict.parse_string("global_data", "energy_exchange_update", s_value, "dummy_scheme");
+    if( G.thermal_energy_exchange ) set_energy_exchange_update(s_value);
     dict.parse_double("global_data", "T_frozen_energy", G.T_frozen_energy, 300.0);
-    if( get_energy_exchange_flag() ) set_energy_exchange_update(s_value);
-    if( get_verbose_flag() ) {
-	cout << "energy_exchange_flag = " << get_energy_exchange_flag() << endl;
+    dict.parse_boolean("global_data", "electric_field_work_flag", G.electric_field_work, false);
+    if( G.verbose_init_messages ) {
+	cout << "energy_exchange_flag = " << G.thermal_energy_exchange << endl;
 	cout << "energy_exchange_update = " << s_value << endl;
 	cout << "T_frozen_energy = " << G.T_frozen_energy << endl;
+	cout << "electric_field_work_flag = " << G.electric_field_work << endl;
     }
 
-    dict.parse_int("global_data", "mhd_flag", i_value, 0);
-    set_mhd_flag( i_value );
+    dict.parse_boolean("global_data", "mhd_flag", G.MHD, false);
 
-    dict.parse_int("global_data", "BGK_flag", i_value, 0);
-    set_BGK_flag( i_value );
-
-    if (get_BGK_flag() > 0) {
-
+    dict.parse_int("global_data", "BGK_flag", G.BGK, 0);
+    if ( G.BGK > 0) {
 	dict.parse_int("global_data", "velocity_buckets", i_value, 0);
 	set_velocity_buckets( i_value );
-    
 	if (get_velocity_buckets() > 0) {
 	    std::vector<Vector3> *vct = get_vcoords_ptr();
 	    std::vector<double> tmp;
@@ -398,84 +368,73 @@ int read_config_parameters(const string filename, bool master)
 	    for (size_t tid = 0; tid < get_velocity_buckets(); ++tid) {
 		(*vwt)[tid] = tmp[tid];
 	    }
-	}
-	else {
+	} else {
 	    cout << "Failure setting BGK velocities." << endl;
 	    return FAILURE;
 	}
-	    
-    }
+    } // end if ( G.BGK )
 
-    dict.parse_int("global_data", "radiation_flag", i_value, 0);
-    set_radiation_flag( i_value );
+    dict.parse_boolean("global_data", "radiation_flag", G.radiation, false);
     dict.parse_string("global_data", "radiation_input_file", s_value, "no_file");
-    dict.parse_int("global_data", "radiation_update_frequency", i_value, 1);
-    if( get_radiation_flag() ) {
+    // radiation_update_frequency in .control file.
+    if( G.radiation ) {
     	set_radiation_transport_model( s_value );
-    	set_radiation_update_frequency( i_value );
     }
-    if ( get_verbose_flag() ) {
-	cout << "radiation_flag = " << get_radiation_flag() << endl;
+    if ( G.verbose_init_messages ) {
+	cout << "radiation_flag = " << G.radiation << endl;
 	cout << "radiation_input_file = " << s_value << endl;
-	cout << "radiation_update_frequency = " << i_value << endl;
     }
 
-    dict.parse_int("global_data", "axisymmetric_flag", i_value, 0);
-    set_axisymmetric_flag( i_value );
-    if ( get_verbose_flag() ) {
-	cout << "axisymmetric_flag = " << get_axisymmetric_flag() << endl;
+    dict.parse_boolean("global_data", "axisymmetric_flag", G.axisymmetric, false);
+    if ( G.verbose_init_messages ) {
+	cout << "axisymmetric_flag = " << G.axisymmetric << endl;
     }
 
-    dict.parse_int("global_data", "viscous_flag", i_value, 0);
-    set_viscous_flag( i_value );
+    dict.parse_boolean("global_data", "viscous_flag", G.viscous, false);
     dict.parse_double("global_data", "viscous_delay", G.viscous_time_delay, 0.0);
-    dict.parse_double("global_data", "viscous_factor_increment", d_value, 0.01);
-    set_viscous_factor_increment( d_value );
-    dict.parse_int("global_data", "viscous_upwinding_flag", i_value, 0);
-    set_viscous_upwinding_flag( i_value );
+    dict.parse_double("global_data", "viscous_factor_increment", G.viscous_factor_increment, 0.01);
+    dict.parse_boolean("global_data", "viscous_upwinding_flag", G.viscous_upwinding, false);
     // FIX-ME 2013-04-23 should probably merge diffusion_model and diffusion_flag
     // as we have done for turbulence_model, below.
-    dict.parse_int("global_data", "diffusion_flag", i_value, 0);
+    dict.parse_boolean("global_data", "diffusion_flag", G.diffusion, false);
     dict.parse_double("global_data", "diffusion_delay", G.diffusion_time_delay, 0.0);
-    dict.parse_double("global_data", "diffusion_factor_increment", d_value, 0.01);
-    set_diffusion_factor_increment( d_value );
-    set_diffusion_flag( i_value );
-    if ( get_verbose_flag() ) {
-	cout << "viscous_flag = " << get_viscous_flag() << endl;
+    dict.parse_double("global_data", "diffusion_factor_increment", G.diffusion_factor_increment, 0.01);
+    if ( G.verbose_init_messages ) {
+	cout << "viscous_flag = " << G.viscous << endl;
 	cout << "viscous_delay = " << G.viscous_time_delay << endl;
-	cout << "viscous_factor_increment = " << get_viscous_factor_increment() << endl;
-	cout << "viscous_upwinding_flag = " << get_viscous_upwinding_flag() << endl;
-	cout << "diffusion_flag = " << get_diffusion_flag() << endl;
+	cout << "viscous_factor_increment = " << G.viscous_factor_increment << endl;
+	cout << "viscous_upwinding_flag = " << G.viscous_upwinding << endl;
+	cout << "diffusion_flag = " << G.diffusion << endl;
 	cout << "diffusion_delay = " << G.diffusion_time_delay << endl;
-	cout << "diffusion_factor_increment = " << get_diffusion_factor_increment() << endl;
+	cout << "diffusion_factor_increment = " << G.diffusion_factor_increment << endl;
     }
-    if( get_diffusion_flag() && ( gmodel->get_number_of_species() > 1 ) ) { 
+    if( G.diffusion && (gmodel->get_number_of_species() > 1) ) { 
  	dict.parse_string("global_data", "diffusion_model", s_value, "Stefan-Maxwell");
 	set_diffusion_model(s_value);
-	if( get_verbose_flag() ) {
+	if( G.verbose_init_messages ) {
 	    cout << "diffusion_model = " << s_value << endl;
 	}
     }
 
-    dict.parse_int("global_data", "shock_fitting_flag", i_value, 0);
-    set_shock_fitting_flag( i_value );
-    dict.parse_int("global_data", "shock_fitting_decay_flag", i_value, 0);
-    set_shock_fitting_decay_flag( i_value );
+    dict.parse_boolean("global_data", "shock_fitting_flag", G.shock_fitting, false);
+    dict.parse_boolean("global_data", "shock_fitting_decay_flag", G.shock_fitting_decay, false);
     dict.parse_double("global_data", "shock_fitting_speed_factor", G.shock_fitting_speed_factor, 1.0);
-    dict.parse_int("global_data", "moving_grid_flag", i_value, 0);
-    set_moving_grid_flag( i_value );
-    dict.parse_int("global_data", "write_vertex_velocities_flag", i_value, 0);
-    set_write_vertex_velocities_flag( i_value );
-    if ( get_verbose_flag() ) {
-	cout << "shock_fitting_flag = " << get_shock_fitting_flag() << endl;
-	cout << "shock_fitting_decay_flag = " << get_shock_fitting_decay_flag() << endl;
+    dict.parse_boolean("global_data", "moving_grid_flag", G.moving_grid, false);
+    dict.parse_boolean("global_data", "write_vertex_velocities_flag", G.write_vertex_velocities, false);
+    if ( G.verbose_init_messages ) {
+	cout << "shock_fitting_flag = " << G.shock_fitting << endl;
+	cout << "shock_fitting_decay_flag = " << G.shock_fitting_decay << endl;
 	cout << "shock_fitting_speed_factor = " << G.shock_fitting_speed_factor << endl;
-	cout << "moving_grid_flag = " << get_moving_grid_flag() << endl;
-	cout << "write_vertex_velocities_flag = " << get_write_vertex_velocities_flag() << endl;
+	cout << "moving_grid_flag = " << G.moving_grid << endl;
+	cout << "write_vertex_velocities_flag = " << G.write_vertex_velocities << endl;
     }
 
     // 2013-apr-23 New specification scheme for turbulence models.
     dict.parse_string("global_data", "turbulence_model", s_value, "none");
+    s_value = to_lower_case(s_value);
+    if ( available_turbulence_models.find(s_value) == available_turbulence_models.end() ) {
+	throw std::runtime_error(std::string("Requested turbulence model not available: ") + s_value);
+    }
     G.turbulence_model = available_turbulence_models[s_value];
     dict.parse_double("global_data", "turbulence_prandtl_number", d_value, 0.89);
     G.turbulence_prandtl = d_value;
@@ -487,7 +446,7 @@ int read_config_parameters(const string filename, bool master)
 		       G.separate_update_for_k_omega_source, false);
     if ( G.turbulence_model == TM_SPALART_ALLMARAS )
 	throw std::runtime_error("Spalart-Allmaras turbulence model not available.");
-    if ( get_verbose_flag() ) {
+    if ( G.verbose_init_messages ) {
 	cout << "turbulence_model = " << get_name_of_turbulence_model(G.turbulence_model) << endl;
 	cout << "turbulence_prandtl_number = " << G.turbulence_prandtl << endl;
 	cout << "turbulence_schmidt_number = " << G.turbulence_schmidt << endl;
@@ -496,68 +455,66 @@ int read_config_parameters(const string filename, bool master)
 	cout << "separate_update_for_k_omega_source = " << G.separate_update_for_k_omega_source << endl;
     }
 
-    dict.parse_int("global_data", "electric_field_work_flag", i_value, 0);
-    set_electric_field_work_flag( i_value );
-
     dict.parse_size_t("global_data", "max_invalid_cells", G.max_invalid_cells, 10);
     dict.parse_string("global_data", "flux_calc", s_value, "adaptive");
+    s_value = to_lower_case(s_value);
+    if ( available_calculators.find(s_value) == available_calculators.end() ) {
+	throw std::runtime_error(std::string("Requested flux calculator not available: ") + s_value);
+    }
     set_flux_calculator(available_calculators[s_value]);
-    dict.parse_double("global_data", "compression_tolerance", d_value, -0.30);
-    set_compression_tolerance(d_value);
-    dict.parse_double("global_data", "shear_tolerance", d_value, 0.20);
-    set_shear_tolerance(d_value);
+    dict.parse_double("global_data", "compression_tolerance", G.compression_tolerance, -0.30);
+    dict.parse_double("global_data", "shear_tolerance", G.shear_tolerance, 0.20);
     dict.parse_double("global_data", "M_inf", d_value, 0.01);
     set_M_inf(d_value);
     dict.parse_string("global_data", "interpolation_type", s_value, "rhoe");
+    s_value = to_lower_case(s_value);
+    if ( available_interpolators.find(s_value) == available_interpolators.end() ) {
+	throw std::runtime_error(std::string("Requested field interpolator not available: ") + s_value);
+    }
     set_thermo_interpolator(available_interpolators[s_value]);
     dict.parse_int("global_data", "apply_limiter_flag", i_value, 1);
     set_apply_limiter_flag(i_value == 1);
     dict.parse_int("global_data", "extrema_clipping_flag", i_value, 1);
     set_extrema_clipping_flag(i_value == 1);
-    if ( get_verbose_flag() ) {
+    if ( G.verbose_init_messages ) {
 	cout << "max_invalid_cells = " << G.max_invalid_cells << endl;
 	cout << "flux_calc = " << get_flux_calculator_name(get_flux_calculator()) << endl;
-	cout << "compression_tolerance = " << get_compression_tolerance() << endl;
-	cout << "shear_tolerance = " << get_shear_tolerance() << endl;
+	cout << "compression_tolerance = " << G.compression_tolerance << endl;
+	cout << "shear_tolerance = " << G.shear_tolerance << endl;
 	cout << "M_inf = " << get_M_inf() << endl;
 	cout << "interpolation_type = " << get_thermo_interpolator_name(get_thermo_interpolator()) << endl;
 	cout << "apply_limiter_flag = " << get_apply_limiter_flag() << endl;
 	cout << "extrema_clipping_flag = " << get_extrema_clipping_flag() << endl;
     }
 
-    dict.parse_int("global_data", "filter_flag", i_value, 0);
-    set_filter_flag( i_value );
+    dict.parse_boolean("global_data", "filter_flag", G.filter_flag, false);
     dict.parse_double("global_data", "filter_tstart", G.filter_tstart, 0.0);
-    //set_filter_tstart(d_value);
     dict.parse_double("global_data", "filter_tend", G.filter_tend, 0.0);
-    //set_filter_tend(d_value);
     dict.parse_double("global_data", "filter_dt", G.filter_dt, 0.0);
-    //set_filter_dt(d_value);
     dict.parse_double("global_data", "filter_mu", G.filter_mu, 0.0);
-    //set_filter_mu(d_value);
     dict.parse_size_t("global_data", "filter_npass", G.filter_npass, 0);
 
     dict.parse_int("global_data", "sequence_blocks", i_value, 0);
     G.sequence_blocks = (i_value == 1);
-    if ( get_verbose_flag() ) {
+    if ( G.verbose_init_messages ) {
 	cout << "sequence_blocks = " << G.sequence_blocks << endl;
     }
 
     // Read a number of gas-states.
     dict.parse_size_t("global_data", "nflow", G.n_gas_state, 0);
-    if ( get_verbose_flag() ) {
+    if ( G.verbose_init_messages ) {
 	cout << "nflow = " << G.n_gas_state << endl;
     }
     for ( size_t ig = 0; ig < G.n_gas_state; ++ig ) {
 	G.gas_state.push_back(read_flow_condition_from_ini_dict(dict, ig, master));
-	if ( get_verbose_flag() ) {
+	if ( G.verbose_init_messages ) {
 	    cout << "flow condition[" << ig << "]: " << *(G.gas_state[ig]) << endl;
 	}
     }
 
     // Read the parameters for a number of blocks.
     dict.parse_size_t("global_data", "nblock", G.nblock, 0);
-    if ( get_verbose_flag() ) {
+    if ( G.verbose_init_messages ) {
 	printf( "nblock = %d\n", static_cast<int>(G.nblock));
     }
     // We keep a record of all of the configuration data for all blocks
@@ -575,7 +532,7 @@ int read_config_parameters(const string filename, bool master)
     }
 #   endif
     G.pistons.resize(G.npiston);
-    if ( get_verbose_flag() ) {
+    if ( G.verbose_init_messages ) {
 	printf( "npiston = %d\n", static_cast<int>(G.npiston));
     }
     for ( size_t jp = 0; jp < G.npiston; ++jp ) {
@@ -592,7 +549,7 @@ int read_config_parameters(const string filename, bool master)
 	dict.parse_double(section, "f", piston_f, 0.0);
 	dict.parse_boolean(section, "const_v_flag", piston_cvf, false);
 	dict.parse_boolean(section, "postv_v_flag", piston_pvf, false);
-	if ( get_verbose_flag() ) {
+	if ( G.verbose_init_messages ) {
 	    cout << "piston/" << jp << ": label= " << piston_label << endl;
 	    cout << "    L=" << piston_L << ", m=" << piston_m
 		 << ", D=" << piston_D << ", x0=" << piston_x0
@@ -632,13 +589,12 @@ int read_config_parameters(const string filename, bool master)
     dict.parse_size_t("global_data", "nheatzone", G.n_heat_zone, 0);
     dict.parse_double("global_data", "heat_time_start", G.heat_time_start, 0.0);
     dict.parse_double("global_data", "heat_time_stop", G.heat_time_stop, 0.0);
-    dict.parse_double("global_data", "heat_factor_increment", d_value, 0.01);
-    set_heat_factor_increment( d_value );
-    if ( get_verbose_flag() ) {
+    dict.parse_double("global_data", "heat_factor_increment", G.heat_factor_increment, 0.01);
+    if ( G.verbose_init_messages ) {
 	printf("nheatzone = %d\n", static_cast<int>(G.n_heat_zone));
 	printf("heat_time_start = %e\n", G.heat_time_start);
 	printf("heat_time_stop = %e\n", G.heat_time_stop);
-	printf("heat_factor_increment = %e\n", get_heat_factor_increment() );
+	printf("heat_factor_increment = %e\n", G.heat_factor_increment);
     }
     G.heat_zone.resize(G.n_heat_zone);
     for ( size_t indx = 0; indx < G.n_heat_zone; ++indx ) {
@@ -651,7 +607,7 @@ int read_config_parameters(const string filename, bool master)
 	dict.parse_double(section, "x1", hzp->x1, 0.0);
 	dict.parse_double(section, "y1", hzp->y1, 0.0);
 	dict.parse_double(section, "z1", hzp->z1, 0.0);
-	if ( get_verbose_flag() ) {
+	if ( G.verbose_init_messages ) {
 	    cout << "heat_zone/" << indx << " qdot= " << hzp->qdot << endl;
 	    cout << "    point0= " << hzp->x0 << " " << hzp->y0 << " " << hzp->z0 << endl;
 	    cout << "    point1= " << hzp->x1 << " " << hzp->y1 << " " << hzp->z1 << endl;
@@ -659,7 +615,7 @@ int read_config_parameters(const string filename, bool master)
     }
 
     dict.parse_size_t("global_data", "nreactionzone", G.n_reaction_zone, 0);
-    if ( get_verbose_flag() ) {
+    if ( G.verbose_init_messages ) {
 	printf("nreactionzone = %d\n", static_cast<int>(G.n_reaction_zone));
     }
     G.reaction_zone.resize(G.n_reaction_zone);
@@ -672,7 +628,7 @@ int read_config_parameters(const string filename, bool master)
 	dict.parse_double(section, "x1", rzp->x1, 0.0);
 	dict.parse_double(section, "y1", rzp->y1, 0.0);
 	dict.parse_double(section, "z1", rzp->z1, 0.0);
-	if ( get_verbose_flag() ) {
+	if ( G.verbose_init_messages ) {
 	    cout << "reaction_zone/" << indx << endl;
 	    cout << "    point0= " << rzp->x0 << " " << rzp->y0 << " " << rzp->z0 << endl;
 	    cout << "    point1= " << rzp->x1 << " " << rzp->y1 << " " << rzp->z1 << endl;
@@ -680,7 +636,7 @@ int read_config_parameters(const string filename, bool master)
     }
 
     dict.parse_size_t("global_data", "nturbulencezone", G.n_turbulent_zone, 0);
-    if ( get_verbose_flag() ) {
+    if ( G.verbose_init_messages ) {
 	printf("nturbulencezone = %d\n", static_cast<int>(G.n_turbulent_zone));
     }
     G.turbulent_zone.resize(G.n_turbulent_zone);
@@ -693,13 +649,28 @@ int read_config_parameters(const string filename, bool master)
 	dict.parse_double(section, "x1", tzp->x1, 0.0);
 	dict.parse_double(section, "y1", tzp->y1, 0.0);
 	dict.parse_double(section, "z1", tzp->z1, 0.0);
-	if ( get_verbose_flag() ) {
+	if ( G.verbose_init_messages ) {
 	    cout << "turbulence_zone/" << indx << endl;
 	    cout << "    point0= " << tzp->x0 << " " << tzp->y0 << " " << tzp->z0 << endl;
 	    cout << "    point1= " << tzp->x1 << " " << tzp->y1 << " " << tzp->z1 << endl;
 	}
     }
 
+    dict.parse_int("global_data", "conjugate_ht_flag", i_value, 0);
+    G.conjugate_ht_active = i_value;
+    dict.parse_string("global_data", "conjugate_ht_file", s_value, "dummy_ht_file");
+    if ( G.conjugate_ht_active ) {
+	if ( !G.viscous ) {
+	    cout << "WARNING: Conjugate heat transfer is active\n";
+	    cout << "WARNING: but the viscous flag is not set.\n";
+	    cout << "WARNING: No heat fluxes will be computed at wall.\n";
+	}
+    	G.wm = initialise_wall_model(s_value);
+    }
+    if ( G.verbose_init_messages ) {
+	cout << "conjugate_ht_flag = " << G.conjugate_ht_active << endl;
+	cout << "conjugate_ht_file = " << s_value << endl;
+    }
     // Now, for the individual block configuration.
     for ( jb = 0; jb < G.nblock; ++jb ) {
         set_block_parameters( jb, dict, master );
@@ -724,6 +695,10 @@ int read_control_parameters( const string filename, bool master, bool first_time
     // 2013-03-31 change to use an explicitly-named update scheme.
     dict.parse_string("control_data", "gasdynamic_update_scheme", s_value,
 		      "predictor-corrector");
+    s_value = to_lower_case(s_value);
+    if ( available_schemes.find(s_value) == available_schemes.end() ) {
+	throw std::runtime_error(std::string("Requested update-scheme not available: ") + s_value);
+    }
     set_gasdynamic_update_scheme(available_schemes[s_value]);
     // To keep backward compatibility with old simulation files,
     // read Torder if it exists and set the equivalent update scheme.
@@ -734,8 +709,8 @@ int read_control_parameters( const string filename, bool master, bool first_time
     case 3: set_gasdynamic_update_scheme(available_schemes["denman-rk3"]); break;
     default: /* do nothing */;
     }
-    dict.parse_int("control_data", "separate_update_for_viscous_flag", i_value, 0);
-    G.separate_update_for_viscous_terms = (i_value == 1);
+    dict.parse_boolean("control_data", "separate_update_for_viscous_flag", 
+		       G.separate_update_for_viscous_terms, false);
     dict.parse_double("control_data", "dt", G.dt_init, 1.0e-6);
     if ( first_time ) G.dt_global = G.dt_init;
     dict.parse_double("control_data", "dt_max", G.dt_max, 1.0e-3);
@@ -743,8 +718,7 @@ int read_control_parameters( const string filename, bool master, bool first_time
     dict.parse_double("control_data", "dt_reduction_factor",
 		      G.dt_reduction_factor, 0.2);
     dict.parse_double("control_data", "cfl", G.cfl_target, 0.5);
-    dict.parse_int("control_data", "stringent_cfl", i_value, 0);
-    set_stringent_cfl_flag( i_value );
+    dict.parse_boolean("control_data", "stringent_cfl", G.stringent_cfl, false);
     dict.parse_size_t("control_data", "print_count", G.print_count, 20);
     dict.parse_size_t("control_data", "cfl_count", G.cfl_count, 10);
     dict.parse_double("control_data", "dt_shock", G.dt_shock, 1.0e-3);
@@ -755,11 +729,14 @@ int read_control_parameters( const string filename, bool master, bool first_time
     dict.parse_double("control_data", "max_time", G.max_time, 1.0e-3);
     dict.parse_size_t("control_data", "max_step", G.max_step, 10);
     dict.parse_int("control_data", "halt_now", G.halt_now, 0);
-    dict.parse_int("control_data", "implicit_flag", i_value, 0);
-    set_implicit_flag( i_value );
-    dict.parse_int("control_data", "radiation_update_frequency", i_value, 1);
-    set_radiation_update_frequency(i_value);
-    if ( first_time && get_verbose_flag() ) {
+    dict.parse_int("control_data", "implicit_flag", G.implicit_mode, 0);
+    G.implicit_mode = i_value; // FIX-ME PJ We'll replace this with a type map soon.
+    dict.parse_size_t("control_data", "wall_update_count", G.wall_update_count, 1);
+    dict.parse_int("control_data", "radiation_update_frequency", G.radiation_update_frequency, 1);
+    if ( G.radiation_update_frequency < 0 ) {
+	throw runtime_error("ERROR: radiation_update_frequency needs to be larger than or equal to 0.");
+    }
+    if ( first_time && G.verbose_init_messages ) {
 	cout << "Time-step control parameters:" << endl;
 	cout << "    x_order = " << G.Xorder << endl;
 	cout << "    gasdynamic_update_scheme = " 
@@ -773,7 +750,7 @@ int read_control_parameters( const string filename, bool master, bool first_time
 	cout << "    dt_reduction_factor = " 
 	     << G.dt_reduction_factor << endl;
 	cout << "    cfl = " << G.cfl_target << endl;
-	cout << "    stringent_cfl = " << get_stringent_cfl_flag() << endl;
+	cout << "    stringent_cfl = " << G.stringent_cfl << endl;
 	cout << "    print_count = " << G.print_count << endl;
 	cout << "    cfl_count = " << G.cfl_count << endl;
 	cout << "    dt_plot = " << G.dt_plot << endl;
@@ -785,21 +762,14 @@ int read_control_parameters( const string filename, bool master, bool first_time
 	cout << "    max_step = " << G.max_step << endl;
 	cout << "    halt_now = " << G.halt_now << endl;
 	cout << "    halt_now = " << G.halt_now << endl;
-	cout << "    radiation_update_frequency = " 
-	     << get_radiation_update_frequency();
-	if (get_implicit_flag() == 0) {
-	    cout << " (Explicit viscous advancements)" << endl;
-	}
-	else if (get_implicit_flag() == 1) {
-	    cout << " (Point implicit viscous advancements)" << endl;
-	}
-	else if (get_implicit_flag() == 2) {
-	    cout << " (Fully implicit viscous advancements)" << endl;
-	}
-	else {
-	    cout << "\nInvalid implicit flag value: " 
-		 << get_implicit_flag() << endl;
-	    exit( BAD_INPUT_ERROR );
+	cout << "    radiation_update_frequency = " << G.radiation_update_frequency << endl;
+	cout << "    implicit flag value: " << G.implicit_mode;
+	switch ( G.implicit_mode ) {
+	case 0: cout << " (Explicit viscous advancements)" << endl; break;
+	case 1: cout << " (Point implicit viscous advancements)" << endl; break;
+	case 2: cout << " (Fully implicit viscous advancements)" << endl; break;
+	default: 
+	    throw runtime_error("ERROR: invalid implicit flag was specified.");
 	}
     }
     return SUCCESS;
@@ -820,10 +790,10 @@ int read_control_parameters( const string filename, bool master, bool first_time
 int assign_blocks_to_mpi_rank(const string filename, bool master)
 {
     global_data &G = *get_global_data_ptr();
-    if ( get_verbose_flag() && master ) printf("Assign blocks to processes:\n");
+    if ( G.verbose_init_messages && master ) printf("Assign blocks to processes:\n");
     if ( G.mpi_parallel ) {
 	if ( filename.size() > 0 ) {
-	    if ( get_verbose_flag() && master ) {
+	    if ( G.verbose_init_messages && master ) {
 		printf("    MPI parallel, mpimap filename=%s\n", filename.c_str());
 		printf("    Assigning specific blocks to specific MPI processes.\n");
 	    }
@@ -872,7 +842,7 @@ int assign_blocks_to_mpi_rank(const string filename, bool master)
 		    nblock_total += 1;
 		} // end for i
 	    } // end for rank
-	    if ( get_verbose_flag() ) {
+	    if ( G.verbose_init_messages ) {
 		printf("    my_rank=%d, block_ids=", static_cast<int>(G.my_mpi_rank));
 		for ( size_t i=0; i < G.my_blocks.size(); ++i ) {
 		    printf(" %d", static_cast<int>(G.my_blocks[i]->id));
@@ -887,7 +857,7 @@ int assign_blocks_to_mpi_rank(const string filename, bool master)
 		}
 	    }
 	} else {
-	    if ( get_verbose_flag() && master ) {
+	    if ( G.verbose_init_messages && master ) {
 		printf("    MPI parallel, No MPI map file specified.\n");
 		printf("    Identify each block with the corresponding MPI rank.\n");
 	    }
@@ -906,7 +876,7 @@ int assign_blocks_to_mpi_rank(const string filename, bool master)
 	    }
 	}
     } else {
-	if ( get_verbose_flag() ) {
+	if ( G.verbose_init_messages ) {
 	    printf("    Since we are not doing MPI, all blocks in same process.\n");
 	}
 	for ( size_t jb=0; jb < G.nblock; ++jb ) {
@@ -1001,8 +971,8 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
     // Assume all blocks are active. 
     // The active flag will be used to skip over inactive
     // or unused blocks in later sections of code.
-    dict.parse_int(section, "active", bd.active, 1);
-    if ( get_verbose_flag() ) {
+    dict.parse_boolean(section, "active", bd.active, true);
+    if ( G.verbose_init_messages ) {
 	cout << section << ":label = " << block_label << endl;
 	cout << "    active = " << bd.active << endl;
     }
@@ -1032,7 +1002,7 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 	bd.kmin = 0;
 	bd.kmax = 0;
     }
-    if ( get_verbose_flag() ) {
+    if ( G.verbose_init_messages ) {
 	printf( "    nni = %d, nnj = %d, nnk = %d\n", 
 		static_cast<int>(bd.nni), static_cast<int>(bd.nnj),
 		static_cast<int>(bd.nnk) );
@@ -1048,12 +1018,32 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
     for ( iface = NORTH; iface <= ((G.dimensions == 3)? BOTTOM : WEST); ++iface ) {
 	section = "block/" + tostring(indx) + "/face/" + get_face_name(iface);
 	dict.parse_string(section, "bc", value_string, "slip_wall");
-	//cout << "setting bc_type value_string=" << value_string << endl;
+	value_string = to_lower_case(value_string);
+	if ( available_bcs.find(value_string) == available_bcs.end() ) {
+	    throw std::runtime_error(std::string("Requested boundary condition not available: ") + 
+				     value_string);
+	}
 	bc_type_code = available_bcs[value_string];
 	bd.bcp[iface] = create_BC(&bd, iface, bc_type_code, dict, section);
-	if ( get_verbose_flag() ) {
+	if ( G.verbose_init_messages ) {
 	    cout << "    " << get_face_name(iface) << " face:" << endl;
 	    bd.bcp[iface]->print_info("        ");
+	}
+	// Special work if the conjugate heat transfer model is active.
+	if ( G.conjugate_ht_active && (iface == NORTH) ) {
+	    // We always add an entry corresponding to every rank.
+	    // If our boundary is a conjugate ht boundary, we set aside
+	    // enough space in the global vectors for the number of cells
+	    // on the north boundary, otherwise we don't need to set
+	    // aside any space (ie. nentries = 0)
+	    int nentries = 0;
+	    if (bd.bcp[iface]->type_code == CONJUGATE_HT ) {
+		nentries = bd.nni;
+	    }
+	    add_entries_to_wall_vectors(G, id, nentries);
+	    // Later, after computing block geometry, we'll be able
+	    // to gather up the interface locations to pass to the
+	    // wall model. SEE: main.cxx
 	}
     } // end for iface
 
@@ -1077,7 +1067,7 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 	    bd.hjcell.push_back(hjcell);
 	    bd.hkcell.push_back(0);
 	}
-	if ( get_verbose_flag() ) {
+	if ( G.verbose_init_messages ) {
 	    printf( "    History cell[%d] located at indices [%d][%d][%d]\n",
 		    static_cast<int>(ih), static_cast<int>(bd.hicell[ih]),
 		    static_cast<int>(bd.hjcell[ih]), static_cast<int>(bd.hkcell[ih]) );

@@ -66,6 +66,7 @@ std::string get_flux_calculator_name(flux_calc_t calc)
  */
 int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace, double omegaz)
 {
+    global_data &G = *get_global_data_ptr();
     double WSL, WSR;
     ConservedQuantities &F = *(IFace.F);
     Gas_model *gmodel = get_gas_model_ptr();
@@ -85,7 +86,7 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
     Rght.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
 
     // also transform the magnetic field
-    if (get_mhd_flag() == 1) {
+    if ( G.MHD ) {
 	Lft.B.transform_to_local(IFace.n, IFace.t1, IFace.t2);
         Rght.B.transform_to_local(IFace.n, IFace.t1, IFace.t2);
     }
@@ -147,14 +148,14 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
     // also transform the interface velocities
     IFace.vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
     // also transform the magnetic field
-    if (get_mhd_flag() == 1) {
+    if ( G.MHD ) {
 	F.B.transform_to_global(IFace.n, IFace.t1, IFace.t2);
     }
 	
 #   if DEBUG_FLUX >= 1
     printf("Interface fluxes\n");
     printf("xyz_mom.x=%e, \nxyz_mom.y=%e, xyz_mom.z=%e\n", F.momentum.x, F.momentum.y, F.momentum.z);
-    if (get_mhd_flag() == 1) {
+    if ( G.MHD ) {
 	printf("xyz_B.x=%e, \nxyz_B.y=%e, xyz_B.z=%e\n", F.B.x, F.B.y, F.B.z);
     }
 #   endif
@@ -197,6 +198,7 @@ int set_flux_vector_in_local_frame(ConservedQuantities &F, const FlowState &fs)
 
 int set_flux_vector_in_global_frame(FV_Interface &IFace, FlowState &fs, double omegaz)
 {
+    global_data &G = *get_global_data_ptr();
     ConservedQuantities &F = *(IFace.F);
     double vx = fs.vel.x; double vy = fs.vel.y; double vz = fs.vel.z; // to restore fs at end
     // Transform to interface frame of reference.
@@ -204,7 +206,7 @@ int set_flux_vector_in_global_frame(FV_Interface &IFace, FlowState &fs, double o
     IFace.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
     fs.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
     // also transform the magnetic field
-    if (get_mhd_flag() == 1) {
+    if ( G.MHD ) {
 	fs.B.transform_to_local(IFace.n, IFace.t1, IFace.t2);
     }
     set_flux_vector_in_local_frame(*(IFace.F), fs);
@@ -230,7 +232,7 @@ int set_flux_vector_in_global_frame(FV_Interface &IFace, FlowState &fs, double o
     // also transform the interface velocities
     IFace.vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);	  
     // also transform the magnetic field
-    if (get_mhd_flag() == 1) {
+    if ( G.MHD ) {
 	F.B.transform_to_global(IFace.n, IFace.t1, IFace.t2);
     }
     fs.vel.x = vx; fs.vel.y = vy; fs.vel.z = vz; // restore fs.vel

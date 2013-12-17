@@ -1,4 +1,4 @@
-/*  \file ode_step.hh
+/*  \file ode_step.cxx
  *  \ingroup nm
  *  \brief Definitions for the OdeStep class and derivatives.
  *  \author Rowan J Gollan
@@ -127,8 +127,8 @@ EulerStep* EulerStep::clone()
 /// This function implements the time-honoured Euler algorithm
 /// for numerically advancing a first-order OdeSystem.
 ///
-bool EulerStep::advance( OdeSystem &ode, const valarray<double> &yin,
-			 valarray<double> &yout, double *h )
+bool EulerStep::advance( OdeSystem &ode, const vector<double> &yin,
+			 vector<double> &yout, double *h )
 {
     int ndim = yin.size();
 
@@ -205,8 +205,8 @@ ModEulerStep* ModEulerStep::clone()
 /// This function implements the modified Euler algorithm
 /// for numerically advancing a first-order OdeSystem.
 ///
-bool ModEulerStep::advance( OdeSystem &ode, const valarray<double> &yin, 
-			valarray<double> &yout, double *h )
+bool ModEulerStep::advance( OdeSystem &ode, const vector<double> &yin, 
+			vector<double> &yout, double *h )
 {
     int ndim = yin.size();
 
@@ -372,8 +372,8 @@ RKFStep* RKFStep::clone()
 /// Numerical Recipes: The Art of Scientific Computing, Third Edition
 /// Cambridge University Press, New York, USA
 ///
-bool RKFStep::advance( OdeSystem &ode, const valarray<double> &yin, 
-		       valarray<double> &yout, double *h )
+bool RKFStep::advance( OdeSystem &ode, const vector<double> &yin, 
+		       vector<double> &yout, double *h )
 {
 		
     ode.eval(yin, k1_);
@@ -697,8 +697,8 @@ DP853Step* DP853Step::clone()
 }
 
 bool
-DP853Step::advance(OdeSystem &ode, const valarray<double> &yin, 
-		   valarray<double> &yout, double *h )
+DP853Step::advance(OdeSystem &ode, const vector<double> &yin, 
+		   vector<double> &yout, double *h )
 {
     ode.eval(yin, k1_);
     ode.called_at_least_once = true;
@@ -915,8 +915,8 @@ const double ZERO_EPS = 1.0e-50;
 ///
 /// PLEASE PUT SOME COMMENTS HERE!
 ///
-bool QssStep::advance( OdeSystem &ode, const valarray<double> &yin, 
-		       valarray<double> &yout, double *h )
+bool QssStep::advance( OdeSystem &ode, const vector<double> &yin, 
+		       vector<double> &yout, double *h )
 {
     
     ode.eval_split( yin, q0_, L0_ );
@@ -948,13 +948,13 @@ bool QssStep::advance( OdeSystem &ode, const valarray<double> &yin,
 	bool converged = test_converged( y_c_, y_p_);
 
 	if (converged) {
-	    copy_valarray(y_c_, yout);
+	    copy_vector(y_c_, yout);
 	    *h = step_suggest( *h, y_c_, y_p_ );
 	    
 	    return true;
 	}
 	
-	copy_valarray(y_c_, y_p_);
+	copy_vector(y_c_, y_p_);
 
     }
     
@@ -964,8 +964,8 @@ bool QssStep::advance( OdeSystem &ode, const valarray<double> &yin,
 
 }
 
-void QssStep::p_on_y( const valarray<double> &p, const valarray<double> &y,
-		      valarray<double> &p_y )
+void QssStep::p_on_y( const vector<double> &p, const vector<double> &y,
+		      vector<double> &p_y )
 
 {
 
@@ -975,7 +975,7 @@ void QssStep::p_on_y( const valarray<double> &p, const valarray<double> &y,
     return;
 }
 
-void QssStep::alpha( double h, const valarray<double> &p, valarray<double> &a )
+void QssStep::alpha( double h, const vector<double> &p, vector<double> &a )
 {
     for( int i = 0; i < ndim_; ++i ) {
 	double r = 1.0 / ( p[i]*h + ZERO_EPS );
@@ -986,8 +986,8 @@ void QssStep::alpha( double h, const valarray<double> &p, valarray<double> &a )
     return;
 }
 
-void QssStep::p_bar( const valarray<double> &p0, const valarray<double> &p_p, 
-		     valarray<double> &p_bar )
+void QssStep::p_bar( const vector<double> &p0, const vector<double> &p_p, 
+		     vector<double> &p_bar )
 {
     for( int i = 0; i < ndim_; ++i ) {
 	p_bar[i] = 0.5 * ( p0[i] + p_p[i] );
@@ -995,8 +995,8 @@ void QssStep::p_bar( const valarray<double> &p0, const valarray<double> &p_p,
     return;
 }
 
-void QssStep::q_tilde( const valarray<double> &q0, const valarray<double> &q_p,
-		       const valarray<double> &a_bar, valarray<double> &q_til )
+void QssStep::q_tilde( const vector<double> &q0, const vector<double> &q_p,
+		       const vector<double> &a_bar, vector<double> &q_til )
 {
     for( int i = 0; i < ndim_; ++i ) {
 	q_til[i] = a_bar[i]*q_p[i] + (1.0 - a_bar[i])*q0[i];
@@ -1005,7 +1005,7 @@ void QssStep::q_tilde( const valarray<double> &q0, const valarray<double> &q_p,
     return;
 }
 
-bool QssStep::test_converged( const valarray<double> &y_c, const valarray<double> &y_p )
+bool QssStep::test_converged( const vector<double> &y_c, const vector<double> &y_p )
 {
     int flag = 0;
     double test = 0.0;
@@ -1023,8 +1023,8 @@ bool QssStep::test_converged( const valarray<double> &y_c, const valarray<double
 }
 
 
-double QssStep::step_suggest( double h, const valarray<double> &y_c,
-			      const valarray<double> &y_p )
+double QssStep::step_suggest( double h, const vector<double> &y_c,
+			      const vector<double> &y_p )
 {
     double test = 0.0;
     double sigma = 0.0;

@@ -44,7 +44,7 @@ int gasdynamic_point_implicit_inviscid_increment(double dt)
     // stages of the time step.
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
-        if ( bdp->active != 1 ) continue;
+        if ( !bdp->active ) continue;
 	for ( FV_Cell *cp: bdp->active_cells ) cp->record_conserved();
     }
 
@@ -62,34 +62,32 @@ int gasdynamic_point_implicit_inviscid_increment(double dt)
 #       else
 	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
-	    if ( bdp->active != 1 ) continue;
+	    if ( !bdp->active ) continue;
 	    exchange_shared_boundary_data( jb, COPY_FLOW_STATE );
 	}
 #       endif
 	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
-	    if ( bdp->active != 1 ) continue;
+	    if ( !bdp->active ) continue;
 	    apply_inviscid_bc( *bdp, G.sim_time, G.dimensions );
 	}
 
 	if ( get_flux_calculator() == FLUX_ADAPTIVE ) {
 	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
-		if ( bdp->active != 1 ) continue;
+		if ( !bdp->active ) continue;
 		bdp->detect_shock_points( G.dimensions );
 	    }
 	}
 	
 	// Non-local radiation transport needs to be performed a-priori for parallelization.
 	// Note that Q_rad is not re-evaluated for corrector step.
-	if ( get_radiation_flag() ) {
+	if ( G.radiation ) {
 	    RadiationTransportModel * rtm = get_radiation_transport_model_ptr();
-	    global_data &G = *get_global_data_ptr();
 	    Block * bdp;
 	    
 	    // Determine if a scaled or complete radiation call is required
-	    if ( ( (G.step / get_radiation_update_frequency()) * 
-		   get_radiation_update_frequency() == G.step) ) {
+	    if ( ((G.step/G.radiation_update_frequency)*G.radiation_update_frequency == G.step) ) {
 		// recompute
 		rtm->compute_Q_rad_for_flowfield();
 		// store the radiation scaling parameters for each cell
@@ -98,7 +96,7 @@ int gasdynamic_point_implicit_inviscid_increment(double dt)
 #		endif
 		for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		    bdp = G.my_blocks[jb];
-		    if ( bdp->active != 1 ) continue;
+		    if ( !bdp->active ) continue;
 		    for ( FV_Cell *cp: bdp->active_cells ) cp->store_rad_scaling_params();
 		}
 	    }
@@ -109,7 +107,7 @@ int gasdynamic_point_implicit_inviscid_increment(double dt)
 #		endif
 		for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		    bdp = G.my_blocks[jb];
-		    if ( bdp->active != 1 ) continue;
+		    if ( !bdp->active ) continue;
 		    for ( FV_Cell *cp: bdp->active_cells ) cp->rescale_Q_rE_rad();
 		}
 	    }
@@ -117,7 +115,7 @@ int gasdynamic_point_implicit_inviscid_increment(double dt)
 
 	for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	    bdp = G.my_blocks[jb];
-	    if ( bdp->active != 1 ) continue;
+	    if ( !bdp->active ) continue;
 	    bdp->inviscid_flux( G.dimensions );
 	    for ( FV_Cell *cp: bdp->active_cells ) {
 		cp->inviscid_source_vector(bdp->omegaz);
@@ -141,7 +139,7 @@ int gasdynamic_point_implicit_inviscid_increment(double dt)
 		    attempt_number, G.dt_global);
 	    for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 		bdp = G.my_blocks[jb];
-		if ( bdp->active != 1 ) continue;
+		if ( !bdp->active ) continue;
 		for ( FV_Cell *cp: bdp->active_cells ) cp->decode_conserved(0, 0, bdp->omegaz);
 	    }
 	}
@@ -150,7 +148,7 @@ int gasdynamic_point_implicit_inviscid_increment(double dt)
 	
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
-	if ( bdp->active != 1 ) continue;
+	if ( !bdp->active ) continue;
 	for ( FV_Cell *cp: bdp->active_cells ) {
 	    swap(cp->U[0], cp->U[1]); 
 	}
@@ -297,10 +295,8 @@ int calculate_inviscid_jacobian(FV_Cell *cell, FV_Interface *iface)
     H = gmodel->Cp(*(iface->fs->gas), statusf) * iface->fs->gas->T[0] + alpha;
 
 
-    //viscous_factor = get_viscous_factor();
-
-    //mu_lam = viscous_factor * iface->mu;
-    //mu_t = viscous_factor * iface->mu_t;
+    //mu_lam = G.viscous_factor * iface->mu;
+    //mu_t = G.viscous_factor * iface->mu_t;
     //mu_eff = mu_lam + mu_t;
     //e_int = cell->rE - dot(cell->vel, cell->vel);
     	
@@ -407,12 +403,12 @@ int gasdynamic_point_implicit_viscous_increment(void)
     // stages of the time step.
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
-	if ( bdp->active != 1 ) continue;
+	if ( !bdp->active ) continue;
 	for ( FV_Cell *cp: bdp->active_cells ) cp->record_conserved();
     }
     for ( int jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
-	if ( bdp->active != 1 ) continue;
+	if ( !bdp->active ) continue;
 	bdp->clear_fluxes_of_conserved_quantities( G.dimensions );
 	apply_viscous_bc( *bdp, G.sim_time, G.dimensions );
 	if ( G.turbulence_model == TM_K_OMEGA ) apply_menter_boundary_correction(*bdp, 0);
@@ -542,7 +538,6 @@ int calculate_viscous_jacobian(FV_Cell *cell, FV_Interface *iface)
     double Iu,Iv,Iw;
     double Cu,Cv,Cw;	
     double UL;
-    double viscous_factor; // so that we can scale down the viscous effects
     double factor;
 	
     Iu = iface->fs->vel.x;
@@ -557,10 +552,8 @@ int calculate_viscous_jacobian(FV_Cell *cell, FV_Interface *iface)
     rho = cell->fs->gas->rho;
     Pr =  iface->fs->gas->mu * gmodel->Cp(*(iface->fs->gas), statusf) / iface->fs->gas->k[0];
 
-    viscous_factor = get_viscous_factor();
-
-    mu_lam = viscous_factor * iface->fs->gas->mu;
-    mu_t = viscous_factor * iface->fs->mu_t;
+    mu_lam = G.viscous_factor * iface->fs->gas->mu;
+    mu_t = G.viscous_factor * iface->fs->mu_t;
     mu_eff = mu_lam + mu_t;
     e_int = cell->U[1]->total_energy - dot(cell->fs->vel, cell->fs->vel);
     	

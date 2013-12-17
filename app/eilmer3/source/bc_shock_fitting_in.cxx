@@ -1,6 +1,7 @@
 // bc_shock_fitting_in.cxx
 
 #include <stdexcept>
+#include <math.h>
 #include "../../../lib/util/source/useful.h"
 #include "../../../lib/gas/models/gas_data.hh"
 #include "../../../lib/gas/models/gas-model.hh"
@@ -180,7 +181,7 @@ int onesided_interp(const FV_Cell &cL0, const FV_Cell &cR0, const FV_Cell &cR1,
 			       cL0Length, cR0Length, cR1Length, Rght.vel.y);
 	onesided_interp_scalar(cL0.fs->vel.z, cR0.fs->vel.z, cR1.fs->vel.z,
 			       cL0Length, cR0Length, cR1Length, Rght.vel.z);
-	if ( get_mhd_flag() == 1 ) {
+	if ( G.MHD ) {
 	    onesided_interp_scalar(cL0.fs->B.x, cR0.fs->B.x, cR1.fs->B.x,
 				   cL0Length, cR0Length, cR1Length, Rght.B.x);
 	    onesided_interp_scalar(cL0.fs->B.y, cR0.fs->B.y, cR1.fs->B.y,
@@ -256,7 +257,7 @@ int ShockFittingInBC::calculate_shock_speed(const FV_Cell &cL0, const FV_Cell &c
     Gas_data &gL = *(fsL.gas);
     Gas_data &gR = *(IFaceR.fs->gas);
     double time_weight = gd.shock_fitting_speed_factor;
-    if ( get_shock_fitting_decay_flag() ) {
+    if ( gd.shock_fitting_decay ) {
         time_weight = time_weight - time_weight*(exp(-gd.sim_time/gd.max_time) - 1.0) / 
                              (exp(-1.0) - 1.0);
     }

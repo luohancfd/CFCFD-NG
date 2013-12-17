@@ -30,6 +30,8 @@ public:
     double z;
     /// Constructor accept Cartesian coordinates.
     Vector3( double x=0.0, double y=0.0, double z=0.0 );
+    /// Constructor from a standard vector.
+    Vector3( std::vector<double> &v );
     /// Copy constructor.
     Vector3( const Vector3 &v );
     virtual ~Vector3();

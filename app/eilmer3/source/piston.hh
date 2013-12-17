@@ -33,7 +33,7 @@
 #include "block.hh"
 struct global_data;
 
-#define SIGN(a) (((a) == 0.0) ? 0.0 : (a)/(FABS(a)))
+#define SIGN(a) (((a) == 0.0) ? 0.0 : (a)/(fabs(a)))
 
 // Piston exit codes
 const int END_OF_BLOCK = 2;

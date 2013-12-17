@@ -1,5 +1,5 @@
 #include <iostream>
-#include <valarray>
+#include <vector>
 
 #include "../../nm/source/no_fuss_linear_algebra.hh"
 #include "reaction_pieces.hh"
@@ -31,14 +31,14 @@ clone()
 
 double
 ReactionPiecesA::
-production( const valarray<double> &w_f, const valarray<double> &w_b )
+production( const vector<double> &w_f, const vector<double> &w_b )
 {
     return nu_*w_f[ir_];
 }
 
 double
 ReactionPiecesA::
-loss( const valarray<double> &w_f, const valarray<double> &w_b )
+loss( const vector<double> &w_f, const vector<double> &w_b )
 {
     return nu_*w_b[ir_];
 }
@@ -61,14 +61,14 @@ clone()
 
 double
 ReactionPiecesB::
-production( const valarray<double> &w_f, const valarray<double> &w_b )
+production( const vector<double> &w_f, const vector<double> &w_b )
 {
      return -nu_*w_b[ir_];
 }
 
 double
 ReactionPiecesB::
-loss( const valarray<double> &w_f, const valarray<double> &w_b )
+loss( const vector<double> &w_f, const vector<double> &w_b )
 {
     return -nu_*w_f[ir_];
 }

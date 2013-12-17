@@ -8,7 +8,7 @@
 
 #include <cmath>
 #include <iostream>
-#include <valarray>
+#include <vector>
 
 #include "no_fuss_linear_algebra.hh"
 #include "zero_system.hh"
@@ -21,8 +21,8 @@ public:
     SystemOne();
     ~SystemOne();
 
-    int f( const valarray<double> &y, valarray<double> &G );
-    int Jac( const valarray<double> &y, Valmatrix &dGdy );
+    int f( const vector<double> &y, vector<double> &G );
+    int Jac( const vector<double> &y, Valmatrix &dGdy );
 
 };
 
@@ -31,7 +31,7 @@ SystemOne::SystemOne()
 
 SystemOne::~SystemOne() {}
 
-int SystemOne::f( const valarray<double> &y, valarray<double> &G )
+int SystemOne::f( const vector<double> &y, vector<double> &G )
 {
     G[0] = 4.0 - y[0]*y[0] - y[1]*y[1];
     G[1] = 1.0 - exp(y[0]) - y[1];
@@ -39,7 +39,7 @@ int SystemOne::f( const valarray<double> &y, valarray<double> &G )
     return 0;
 }
 
-int SystemOne::Jac( const valarray<double> &y, Valmatrix &dGdy )
+int SystemOne::Jac( const vector<double> &y, Valmatrix &dGdy )
 {
     dGdy.set(0, 0, -2.0 * y[0]);  dGdy.set(0, 1, -2.0 * y[1]);
     dGdy.set(1, 0, -1.0 * exp(y[0])); dGdy.set(1, 1, -1.0);
@@ -54,8 +54,8 @@ public:
     SystemTwo();
     ~SystemTwo();
 
-    int f( const valarray<double> &y, valarray<double> &G );
-    int Jac( const valarray<double> &y, Valmatrix &dGdy );
+    int f( const vector<double> &y, vector<double> &G );
+    int Jac( const vector<double> &y, Valmatrix &dGdy );
 
 };
 
@@ -64,7 +64,7 @@ SystemTwo::SystemTwo()
 
 SystemTwo::~SystemTwo() {}
 
-int SystemTwo::f( const valarray<double> &y, valarray<double> &G )
+int SystemTwo::f( const vector<double> &y, vector<double> &G )
 {
     G[0] = exp(y[0]) - y[1];
     G[1] = y[0] * y[1] - exp(y[0]);
@@ -72,7 +72,7 @@ int SystemTwo::f( const valarray<double> &y, valarray<double> &G )
     return 0;
 }
 
-int SystemTwo::Jac( const valarray<double> &y, Valmatrix &dGdy )
+int SystemTwo::Jac( const vector<double> &y, Valmatrix &dGdy )
 {
     dGdy.set(0,0, exp(y[0]));   dGdy.set(0,1, -1.0);
     dGdy.set(1,0, y[1] - exp(y[0])); dGdy.set(1,1, y[0]);
@@ -86,8 +86,8 @@ public:
     SystemThree();
     ~SystemThree();
 
-    int f( const valarray<double> &y, valarray<double> &G );
-    int Jac( const valarray<double> &y, Valmatrix &dGdy );
+    int f( const vector<double> &y, vector<double> &G );
+    int Jac( const vector<double> &y, Valmatrix &dGdy );
 
 };
 
@@ -96,7 +96,7 @@ SystemThree::SystemThree()
 
 SystemThree::~SystemThree() {}
 
-int SystemThree::f( const valarray<double> &y, valarray<double> &G )
+int SystemThree::f( const vector<double> &y, vector<double> &G )
 {
     G[0] = y[0] * y[0] - 2.0 * y[0] - y[1] + 0.5;
     G[1] = y[0] * y[0] + 4.0 * y[1] * y[1] - 4.0;
@@ -104,7 +104,7 @@ int SystemThree::f( const valarray<double> &y, valarray<double> &G )
     return 0;
 }
 
-int SystemThree::Jac( const valarray<double> &y, Valmatrix &dGdy )
+int SystemThree::Jac( const vector<double> &y, Valmatrix &dGdy )
 {
 
     dGdy.set(0,0, 2.0 * y[0] - 2.0);   dGdy.set(0,1, -1.0);
@@ -131,16 +131,16 @@ int main()
     cout << "Take as an initial guess: x = 1.0, y = -1.7\n";
     NewtonRaphsonZF NRSolver( 2, 1.0e-6, 10 );
     SystemOne Sys1;
-    valarray<double> y_guess( 2 );
+    vector<double> y_guess( 2 );
     y_guess[0] = 1.0; y_guess[1] = -1.7;
 
-    valarray<double> y_out( 2 );
+    vector<double> y_out( 2 );
     NRSolver.solve( Sys1, y_guess, y_out );
 
     cout << "After the call to the Newton-Raphson solver...\n";
     cout << "NRSolver.solve()\n";
     cout << "y_out= \n";
-    print_valarray(y_out);
+    print_vector(y_out);
    
     cout << "The answer given in Gerald and Wheatley is :\n";
     cout << "x = 1.004167, y = -1.729635\n";
@@ -161,7 +161,7 @@ int main()
     cout << "After the call to the Newton-Raphson solver...\n";
     cout << "NRSolver.solve()\n";
     cout << "y_out= \n";
-    print_valarray(y_out);
+    print_vector(y_out);
    
     cout << "The answer given in Gerald and Wheatley is :\n";
     cout << "x = 1.000000, y = 2.718282\n";
@@ -182,7 +182,7 @@ int main()
     cout << "After the call to the Newton-Raphson solver...\n";
     cout << "NRSolver.solve()\n";
     cout << "y_out= \n";
-    print_valarray(y_out);
+    print_vector(y_out);
 
     cout << "The answer given in Mathews is:\n";
     cout << "x = 1.900677, y = 0.311219\n";

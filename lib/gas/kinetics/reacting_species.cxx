@@ -7,8 +7,6 @@
 
 #include <iostream>
 #include <vector>
-#include <valarray>
-
 #include "../../nm/source/no_fuss_linear_algebra.hh"
 #include "reaction_pieces.hh"
 #include "reacting_species.hh"
@@ -43,7 +41,7 @@ ReactingSpecies* ReactingSpecies::clone()
 
 double
 ReactingSpecies::
-rate_for_reac( int ir, const valarray<double> &w_f, const valarray<double> &w_b )
+rate_for_reac( int ir, const vector<double> &w_f, const vector<double> &w_b )
 {
     return (_r_pieces[ir]->production(w_f, w_b) - _r_pieces[ir]->loss(w_f, w_b));
 
@@ -51,7 +49,7 @@ rate_for_reac( int ir, const valarray<double> &w_f, const valarray<double> &w_b 
 
 double
 ReactingSpecies::
-production( const valarray<double> &w_f, const valarray<double> &w_b )
+production( const vector<double> &w_f, const vector<double> &w_b )
 {
     double val = 0.0;
     for( size_t i = 0; i < _r_pieces.size(); ++i ) {
@@ -62,7 +60,7 @@ production( const valarray<double> &w_f, const valarray<double> &w_b )
 
 double 
 ReactingSpecies::
-loss( const valarray<double> &w_f, const valarray<double> &w_b )
+loss( const vector<double> &w_f, const vector<double> &w_b )
 {
     double val = 0.0;
     for( size_t i = 0; i < _r_pieces.size(); ++i ) {

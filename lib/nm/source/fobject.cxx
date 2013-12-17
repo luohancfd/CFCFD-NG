@@ -16,8 +16,8 @@
 #include <vector>
 #include <algorithm>
 #include "fobject.hh"
-#include "../../nm/source/zero_system.hh"
-#include "../../nm/source/zero_finders.hh"
+#include "zero_system.hh"
+#include "zero_finders.hh"
 #include "../../util/source/useful.h"
 using namespace std;
 

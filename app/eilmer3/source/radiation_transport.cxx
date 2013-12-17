@@ -3,6 +3,7 @@
  *  \brief Definitions for the radiation transport model class and functions.
  **/
 
+#include <math.h>
 #include <iostream>
 
 #ifdef _OPENMP
@@ -122,7 +123,7 @@ void OpticallyThin::compute_Q_rad_for_flowfield()
 #   endif
     for ( jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
-	if ( bdp->active != 1 ) continue;
+	if ( !bdp->active ) continue;
 	this->compute_Q_rad_for_block(bdp);
     }
     
@@ -200,7 +201,7 @@ void TangentSlab::compute_Q_rad_for_flowfield()
 #   endif
     for ( jb = 0; jb < G.my_blocks.size(); ++jb ) {
 	bdp = G.my_blocks[jb];
-	if ( bdp->active != 1 ) continue;
+	if ( !bdp->active ) continue;
 	this->compute_Q_rad_for_block(bdp);
     }
     
@@ -333,7 +334,7 @@ DiscreteTransfer::initialise()
     
     // initialise geometry data
     ndim_ = G.dimensions;
-    if ( G.dimensions == 2 && !get_axisymmetric_flag() )
+    if ( G.dimensions == 2 && !G.axisymmetric )
         planar_ = true;
     else
         planar_ = false;
@@ -348,7 +349,7 @@ DiscreteTransfer::initialise()
 #       if VERBOSE_RADIATION_TRANSPORT
     	cout << "Thread " << omp_get_thread_num() << ": Initialising cells in block: " << jb << endl;
 #       endif
-	// if ( bdp->active != 1 ) continue;
+	// if ( !bdp->active ) continue;
 	for ( size_t k = bdp->kmin; k <= bdp->kmax; ++k ) {
 	    for ( size_t j = bdp->jmin; j <= bdp->jmax; ++j ) {
 	    	for ( size_t i = bdp->imin; i <= bdp->imax; ++i ) {
@@ -1028,7 +1029,7 @@ MonteCarlo::initialise()
     
     // initialise geometry data
     ndim_ = G.dimensions;
-    if ( G.dimensions == 2 && !get_axisymmetric_flag() )
+    if ( G.dimensions == 2 && !G.axisymmetric )
         planar_ = true;
     else
         planar_ = false;
@@ -1047,7 +1048,7 @@ MonteCarlo::initialise()
 #       if VERBOSE_RADIATION_TRANSPORT
     	cout << "Thread " << omp_get_thread_num() << ": Initialising cells in block: " << jb << endl;
 #       endif
-	// if ( bdp->active != 1 ) continue;
+	// if ( !bdp->active ) continue;
 	for ( size_t k = bdp->kmin; k <= bdp->kmax; ++k ) {
 	    for ( size_t j = bdp->jmin; j <= bdp->jmax; ++j ) {
 	    	for ( size_t i = bdp->imin; i <= bdp->imax; ++i ) {

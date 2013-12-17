@@ -110,9 +110,9 @@ inline double clip_to_limits(double q, double A, double B)
 // Returns q if q is between the values A and B, else
 // it returns the closer limit of the range [A,B].
 {
-    double lower_limit = MINIMUM(A, B);
-    double upper_limit = MAXIMUM(A, B);
-    return MINIMUM(upper_limit, MAXIMUM(lower_limit, q));
+    double lower_limit = min(A, B);
+    double upper_limit = max(A, B);
+    return min(upper_limit, max(lower_limit, q));
 } // end clip_to_limits()
 
 inline int one_d_interp_both_scalar(double qL1, double qL0, double qR0, double qR1, double &qL, double &qR)
@@ -227,7 +227,7 @@ int one_d_interp_both(const FV_Cell &cL1, const FV_Cell &cL0,
 	one_d_interp_both_scalar(cL1.fs->vel.x, cL0.fs->vel.x, cR0.fs->vel.x, cR1.fs->vel.x, Lft.vel.x, Rght.vel.x);
 	one_d_interp_both_scalar(cL1.fs->vel.y, cL0.fs->vel.y, cR0.fs->vel.y, cR1.fs->vel.y, Lft.vel.y, Rght.vel.y);
 	one_d_interp_both_scalar(cL1.fs->vel.z, cL0.fs->vel.z, cR0.fs->vel.z, cR1.fs->vel.z, Lft.vel.z, Rght.vel.z);
-	if ( get_mhd_flag() == 1 ) {
+	if ( G.MHD ) {
 	    one_d_interp_both_scalar(cL1.fs->B.x, cL0.fs->B.x, cR0.fs->B.x, cR1.fs->B.x, Lft.B.x, Rght.B.x);
 	    one_d_interp_both_scalar(cL1.fs->B.y, cL0.fs->B.y, cR0.fs->B.y, cR1.fs->B.y, Lft.B.y, Rght.B.y);
 	    one_d_interp_both_scalar(cL1.fs->B.z, cL0.fs->B.z, cR0.fs->B.z, cR1.fs->B.z, Lft.B.z, Rght.B.z);
@@ -339,7 +339,7 @@ int one_d_interp_left(const FV_Cell &cL1, const FV_Cell &cL0, const FV_Cell &cR0
 	one_d_interp_left_scalar(cL1.fs->vel.x, cL0.fs->vel.x, cR0.fs->vel.x, Lft.vel.x);
 	one_d_interp_left_scalar(cL1.fs->vel.y, cL0.fs->vel.y, cR0.fs->vel.y, Lft.vel.y);
 	one_d_interp_left_scalar(cL1.fs->vel.z, cL0.fs->vel.z, cR0.fs->vel.z, Lft.vel.z);
-	if ( get_mhd_flag() == 1 ) {
+	if ( G.MHD ) {
 	    one_d_interp_left_scalar(cL1.fs->B.x, cL0.fs->B.x, cR0.fs->B.x, Lft.B.x);
 	    one_d_interp_left_scalar(cL1.fs->B.y, cL0.fs->B.y, cR0.fs->B.y, Lft.B.y);
 	    one_d_interp_left_scalar(cL1.fs->B.z, cL0.fs->B.z, cR0.fs->B.z, Lft.B.z);
@@ -432,7 +432,7 @@ int one_d_interp_right(const FV_Cell &cL0, const FV_Cell &cR0, const FV_Cell &cR
 	one_d_interp_right_scalar(cL0.fs->vel.x, cR0.fs->vel.x, cR1.fs->vel.x, Rght.vel.x);
 	one_d_interp_right_scalar(cL0.fs->vel.y, cR0.fs->vel.y, cR1.fs->vel.y, Rght.vel.y);
 	one_d_interp_right_scalar(cL0.fs->vel.z, cR0.fs->vel.z, cR1.fs->vel.z, Rght.vel.z);
-	if ( get_mhd_flag() == 1 ) {
+	if ( G.MHD ) {
 	    one_d_interp_right_scalar(cL0.fs->B.x, cR0.fs->B.x, cR1.fs->B.x, Rght.B.x);
 	    one_d_interp_right_scalar(cL0.fs->B.y, cR0.fs->B.y, cR1.fs->B.y, Rght.B.y);
 	    one_d_interp_right_scalar(cL0.fs->B.z, cR0.fs->B.z, cR1.fs->B.z, Rght.B.z);

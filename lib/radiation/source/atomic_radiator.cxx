@@ -555,7 +555,7 @@ QSSAtomicRadiator( lua_State * L, string name )
     
     lua_pop(L, 1);	// pop QSS_model table
     
-    // 3. Initialise the working matrices and valarrays
+    // 3. Initialise the working matrices and vectors
     dGdy = new Valmatrix();
     dGdy->resize( noneq_elevs.size(), noneq_elevs.size() );
     C.resize( noneq_elevs.size(), 0.0 );
@@ -884,7 +884,7 @@ calculate_n_e( Gas_data &Q )
     	reactions[ir]->add_source_vector_contributions( Q, C );
     
     // 4. Solve the system
-    if( dGdy->gaussian_elimination( y_out, C ) ) {
+    if( gaussian_elimination(*dGdy, y_out, C) ) {
         cout << "QSSAtomicRadiator::calculate_n_e()" << endl
              << "Gaussian elimination failed for QSSAtomicRadiator: " << name << endl
              << "The gas-state was: " << endl
@@ -924,8 +924,8 @@ calculate_n_e( Gas_data &Q )
     	if ( !isfinite( elevs[ilev]->get_N() ) ) {
     	    cout << "QSSAtomicRadiator::calculate_n_e()" << endl
     	         << "Radiator: " << name << " QSS calculation failed." << endl;
-    	    cout << "Source vector: \n"; print_valarray(C);
-    	    cout << "y_out: \n"; print_valarray(y_out);
+    	    cout << "Source vector: \n"; print_vector(C);
+    	    cout << "y_out: \n"; print_vector(y_out);
     	    cout << "Bailing out!" << endl;
     	    exit( FAILURE );
     	}
@@ -943,7 +943,7 @@ calculate_n_e( Gas_data &Q )
     cout << "N_total(QSS) = " << N_total << ", N_total(CFD) = " << Q.massf[isp] * Q.rho / m_w * RC_Na << endl;
     
     // 8. Check that the G vector is zero as required
-    valarray<double> G;
+    vector<double> G;
     G.resize( noneq_elevs.size(), 0.0 );
     for ( size_t ir=0; ir<reactions.size(); ++ir )
     	reactions[ir]->add_eval_contributions( Q, G );

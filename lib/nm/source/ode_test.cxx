@@ -9,7 +9,7 @@
 #include <iomanip>
 #include <cmath>
 #include <cstdio>
-#include <valarray>
+#include <vector>
 #include "no_fuss_linear_algebra.hh"
 #include "ode_system.hh"
 #include "ode_solver.hh"
@@ -22,7 +22,7 @@ public:
     Sys1( const Sys1 &s );
     virtual ~Sys1();
 
-    int eval( const valarray<double> &y, valarray<double> &ydot );
+    int eval( const vector<double> &y, vector<double> &ydot );
 };
 
 Sys1::Sys1( int ndim, bool system_test )
@@ -33,7 +33,7 @@ Sys1::Sys1( const Sys1 &s )
 
 Sys1::~Sys1() {}
 
-int Sys1::eval( const valarray<double> &y, valarray<double> &ydot )
+int Sys1::eval( const vector<double> &y, vector<double> &ydot )
 {
     ydot[0] = -0.5 * y[0];
     ydot[1] = y[0] + -5.0 * y[1];
@@ -47,9 +47,9 @@ public:
     Sys2( const Sys2 &s );
     virtual ~Sys2();
 
-    int eval( const valarray<double> &y, valarray<double> &ydot );
-    int eval_split( const valarray<double> &y, valarray<double> &p,
-		    valarray<double> &q );
+    int eval( const vector<double> &y, vector<double> &ydot );
+    int eval_split( const vector<double> &y, vector<double> &p,
+		    vector<double> &q );
 };
 
 Sys2::Sys2( int ndim, bool system_test )
@@ -60,7 +60,7 @@ Sys2::Sys2( const Sys2 &s )
 
 Sys2::~Sys2() {}
 
-int Sys2::eval( const valarray<double> &y, valarray<double> &ydot )
+int Sys2::eval( const vector<double> &y, vector<double> &ydot )
 {
     ydot[0] = -0.04 * y[0] + 1.0e4 * y[1] * y[2];
     ydot[1] = 0.04 * y[0] - 1.0e4 * y[1] * y[2] - 3.0e7 * pow(y[1], 2);
@@ -69,8 +69,8 @@ int Sys2::eval( const valarray<double> &y, valarray<double> &ydot )
     return 0;
 }
 
-int Sys2::eval_split( const valarray<double> &y, valarray<double> &q,
-		      valarray<double> &L )
+int Sys2::eval_split( const vector<double> &y, vector<double> &q,
+		      vector<double> &L )
 
 {
     q[0] = 1.0e4 * y[1] * y[2];
@@ -163,11 +163,11 @@ void run_standard_test( bool verbose )
   
     Sys1 system1( 2, false );
     OdeSolver test1( string("test1"), 2, string("euler"), 4, 5.0 );
-    valarray<double> yin(2);
-    valarray<double> yout(2);
+    vector<double> yin(2);
+    vector<double> yout(2);
 
     yin[0] = 1.0; yin[1] = 0.0;
-    copy_valarray(yin, yout);
+    copy_vector(yin, yout);
     double h = 0.01;
 
     test1.solve_over_interval( system1, 0.0, 1.0, &h, yin, yout );
@@ -289,7 +289,7 @@ void run_standard_test( bool verbose )
 	cout << yout[0] << "  " << yout[1] << "  " << yout[2] << endl;
     }
 
-    copy_valarray(yout, yin);
+    copy_vector(yout, yin);
     test2.solve_over_interval( system2, 0.4, 4.0, &h, yin, yout );
 
     if( verbose ) {
@@ -301,7 +301,7 @@ void run_standard_test( bool verbose )
 	cout << yout[0] << "  " << yout[1] << "  " << yout[2] << endl;
     }
     
-    copy_valarray(yout, yin);
+    copy_vector(yout, yin);
     test2.solve_over_interval( system2, 4.0, 40.0, &h, yin, yout );
 
     if( verbose ) {
@@ -330,7 +330,7 @@ void run_standard_test( bool verbose )
 	cout << yout[0] << "  " << yout[1] << "  " << yout[2] << endl;
     }
 
-    copy_valarray(yout, yin);
+    copy_vector(yout, yin);
     test2.solve_over_interval( system2, 0.4, 4.0, &h, yin, yout );
 
     if( verbose ) {
@@ -342,7 +342,7 @@ void run_standard_test( bool verbose )
 	cout << yout[0] << "  " << yout[1] << "  " << yout[2] << endl;
     }
 
-    copy_valarray(yout, yin);
+    copy_vector(yout, yin);
     test2.solve_over_interval( system2, 4.0, 40.0, &h, yin, yout );
 
     if( verbose ) {
@@ -371,7 +371,7 @@ void run_standard_test( bool verbose )
 	cout << yout[0] << "  " << yout[1] << "  " << yout[2] << endl;
     }
 
-    copy_valarray(yout, yin);
+    copy_vector(yout, yin);
     test2.solve_over_interval( system2, 0.4, 4.0, &h, yin, yout );
 
     if( verbose ) {
@@ -383,7 +383,7 @@ void run_standard_test( bool verbose )
 	cout << yout[0] << "  " << yout[1] << "  " << yout[2] << endl;
     }
 
-    copy_valarray(yout, yin);
+    copy_vector(yout, yin);
     test2.solve_over_interval( system2, 4.0, 40.0, &h, yin, yout );
 
     if( verbose ) {
@@ -416,7 +416,7 @@ void run_standard_test( bool verbose )
 	cout << yout[0] << "  " << yout[1] << "  " << yout[2] << endl;
     }
 
-    copy_valarray(yout, yin);
+    copy_vector(yout, yin);
     test2.solve_over_interval( system2, 0.4, 4.0, &h, yin, yout );
 
     if( verbose ) {
@@ -428,7 +428,7 @@ void run_standard_test( bool verbose )
 	cout << yout[0] << "  " << yout[1] << "  " << yout[2] << endl;
     }
 
-    copy_valarray(yout, yin);
+    copy_vector(yout, yin);
     test2.solve_over_interval( system2, 4.0, 40.0, &h, yin, yout );
 
     if( verbose ) {
@@ -460,7 +460,7 @@ void run_standard_test( bool verbose )
 	cout << yout[0] << "  " << yout[1] << "  " << yout[2] << endl;
     }
 
-    copy_valarray(yout, yin);
+    copy_vector(yout, yin);
     test2.solve_over_interval( system2, 0.4, 4.0, &h, yin, yout );
 
     if( verbose ) {
@@ -472,7 +472,7 @@ void run_standard_test( bool verbose )
 	cout << yout[0] << "  " << yout[1] << "  " << yout[2] << endl;
     }
 
-    copy_valarray(yout, yin);
+    copy_vector(yout, yin);
     test2.solve_over_interval( system2, 4.0, 40.0, &h, yin, yout );
 
     if( verbose ) {

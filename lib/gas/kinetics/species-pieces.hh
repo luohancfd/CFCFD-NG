@@ -10,7 +10,6 @@
 #define S_PIECES_HH
 
 #include <vector>
-#include <valarray>
 #include "../../nm/source/no_fuss_linear_algebra.hh"
 
 using namespace std;
@@ -22,7 +21,7 @@ public:
     virtual ~Species_pieces();
     Species_pieces* clone();
 
-    double eval_conc( const std::valarray<double> &w );
+    double eval_conc( const std::vector<double> &w );
     void set_init_conc(double init_conc) { init_conc_ = init_conc; }
     double get_init_conc() { return init_conc_; }
     std::vector<int> reac_index_;

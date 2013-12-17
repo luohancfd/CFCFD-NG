@@ -27,7 +27,7 @@ Energy_exchange_rate(lua_State *L)
     int nmechs = lua_objlen(L, -1);
     for ( int i = 1; i <= nmechs; ++i ) {
 	lua_rawgeti(L, -1, i);
-	ee_mech_.push_back(create_energy_exhange_mechanism(L, imode));
+	ee_mech_.push_back(create_energy_exchange_mechanism(L, imode));
 	lua_pop(L, 1);
     }
     lua_pop(L, 1);
@@ -53,7 +53,7 @@ compute_all_relaxation_times(Gas_data &Q, vector<double> &molef)
 
 double
 Energy_exchange_rate::
-compute_rate(const valarray<double> &y, Gas_data &Q, vector<double> &molef)
+compute_rate(const vector<double> &y, Gas_data &Q, vector<double> &molef)
 {
     double rate = 0.0;
     for( size_t i = 0; i < ee_mech_.size(); ++i ) {

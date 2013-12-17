@@ -8,7 +8,7 @@
  *  \brief Definitions for class describing a generic radiating atom/molecule/electron
  *
  **/
-
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <iomanip>

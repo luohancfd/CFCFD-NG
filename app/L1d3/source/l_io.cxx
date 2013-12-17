@@ -7,7 +7,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <valarray>
+#include <vector>
 #include <iostream>
 #include <sstream>
 #include "../../../lib/util/source/useful.h"

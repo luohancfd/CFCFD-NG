@@ -27,9 +27,9 @@ private:
     ZeroFinder * zero_solver;
     double f_jac;
     
-    std::valarray<double> y_guess;
-    std::valarray<double> y_out;
-    std::valarray<double> N;
+    std::vector<double> y_guess;
+    std::vector<double> y_out;
+    std::vector<double> N;
 public:
     AblatingBC();
     AblatingBC(Block *bdp, int which_boundary, double Twall, double emissivity);
@@ -45,6 +45,6 @@ private:
     int solve_system(FV_Cell *cell1, FV_Interface *wall, FV_Cell *cell0);
 // The following are for the zero system
 public:
-    int f(const valarray<double> &y_guess, valarray<double> &G);
-    int Jac(const std::valarray<double> &y_guess, Valmatrix &dGdy);
+    int f(const vector<double> &y_guess, vector<double> &G);
+    int Jac(const std::vector<double> &y_guess, Valmatrix &dGdy);
 };

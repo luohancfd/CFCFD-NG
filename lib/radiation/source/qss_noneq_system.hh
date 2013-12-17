@@ -12,7 +12,6 @@
 
 #include <vector>
 #include <string>
-#include <valarray>
 
 #include "../../../lib/gas_models2/source/gas.hh"
 #include "../../util/source/config_parser.hh"
@@ -33,8 +32,8 @@ protected:
     NoneqRadiator * ne_rad_;
     std::vector<CR_Reaction*> reactions_;
     Valmatrix dGdy_;
-    std::valarray<double> C_;
-    std::valarray<double> y_out_;
+    std::vector<double> C_;
+    std::vector<double> y_out_;
 };
 
 #endif

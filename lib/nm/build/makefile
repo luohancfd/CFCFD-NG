@@ -65,6 +65,7 @@ clean :
 	- rm *.x *.o *.so *.a *.py
 	- rm $(SRC)/libnm_wrap.cxx $(SRC)/libnm.py
 	- rm $(LOADABLE_MODULE)
+	- cd ../../util/build; make clean
 
 install: $(LOADABLE_MODULE) $(PYTHON_MODULE_FILES) $(INSTALL_DIR)  $(INSTALL_DIR2)
 	@echo "Install python pieces from the nm functions."
@@ -141,11 +142,11 @@ _libnm.dylib : libnm_wrap.o $(LIBUTIL) $(LIBNM)
 
 #-------- executable -----------
 
-nelmin_test.x : nelmin_test.o nelmin.o fobject.o
-	$(CXXLINK) -o nelmin_test.x nelmin_test.o nelmin.o fobject.o
+nelmin_test.x : nelmin_test.o nelmin.o fobject.o $(LIBNM)
+	$(CXXLINK) -o nelmin_test.x nelmin_test.o nelmin.o fobject.o $(LIBNM)
 
-fobject_test.x : fobject_test.o fobject.o
-	$(CXXLINK) -o fobject_test.x fobject_test.o fobject.o
+fobject_test.x : fobject_test.o fobject.o $(LIBNM)
+	$(CXXLINK) -o fobject_test.x fobject_test.o fobject.o $(LIBNM)
 
 ode_test.x : ode_test.o ode_step.o ode_system.o ode_solver.o no_fuss_linear_algebra.o
 	$(CXXLINK) -o ode_test.x ode_test.o ode_step.o ode_system.o ode_solver.o no_fuss_linear_algebra.o

@@ -5,7 +5,7 @@
 #define ENERGY_EXCHANGE_MECHANISMS_HH
 
 #include <string>
-#include <valarray>
+#include <vector>
 
 extern "C" {
 #include <lua.h>
@@ -30,7 +30,7 @@ public:
     void compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
     { tau_ = specific_compute_relaxation_time(Q,molef); }
     
-    double compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
+    double compute_rate(const std::vector<double> &y, Gas_data &Q, std::vector<double> &molef);
 
     double py_compute_rate(const std::vector<double> &y, Gas_data &Q, std::vector<double> &molef);
 
@@ -40,7 +40,7 @@ public:
 protected:
     double tau_;
     virtual double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef) = 0;
-    virtual double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef) = 0;
+    virtual double specific_compute_rate(const std::vector<double> &y, Gas_data &Q, std::vector<double> &molef) = 0;
 };
 
 class VT_exchange : public Energy_exchange_mechanism {
@@ -57,7 +57,7 @@ private:
     double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
     { return tau_VT_->compute_relaxation_time(Q, molef); }
 
-    double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
+    double specific_compute_rate(const std::vector<double> &y, Gas_data &Q, std::vector<double> &molef);
 };
 
 class Polyatomic_VT_exchange : public Energy_exchange_mechanism {
@@ -74,7 +74,7 @@ private:
     double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
     { return tau_VT_->compute_relaxation_time(Q, molef); }
 
-    double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
+    double specific_compute_rate(const std::vector<double> &y, Gas_data &Q, std::vector<double> &molef);
 };
 
 class ET_exchange : public Energy_exchange_mechanism {
@@ -90,7 +90,7 @@ private:
     double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
     { return tau_ET_->compute_relaxation_time(Q,molef); }
 
-    double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
+    double specific_compute_rate(const std::vector<double> &y, Gas_data &Q, std::vector<double> &molef);
 };
 
 class ER_exchange : public Energy_exchange_mechanism {
@@ -106,7 +106,7 @@ private:
     double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
     { return tau_ER_->compute_relaxation_time(Q,molef); }
 
-    double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
+    double specific_compute_rate(const std::vector<double> &y, Gas_data &Q, std::vector<double> &molef);
 };
 
 class VV_THO_exchange : public Energy_exchange_mechanism {
@@ -122,7 +122,7 @@ private:
     double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
     { return tau_VV_->compute_relaxation_time(Q,molef); }
 
-    double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
+    double specific_compute_rate(const std::vector<double> &y, Gas_data &Q, std::vector<double> &molef);
 };
 
 // class VV_HO_exchange : public Energy_exchange_mechanism {
@@ -148,7 +148,7 @@ private:
 //     double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
 //     { return tau_VV_->compute_relaxation_time(Q,molef); }
     
-//     double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
+//     double specific_compute_rate(const std::vector<double> &y, Gas_data &Q, std::vector<double> &molef);
 // };
 
 class VE_exchange : public Energy_exchange_mechanism {
@@ -166,7 +166,7 @@ private:
     double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
     { return tau_VE_->compute_relaxation_time(Q, molef); }
 
-    double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
+    double specific_compute_rate(const std::vector<double> &y, Gas_data &Q, std::vector<double> &molef);
 };
 
 class EV_exchange : public Energy_exchange_mechanism {
@@ -184,11 +184,10 @@ private:
     double specific_compute_relaxation_time(Gas_data &Q, std::vector<double> &molef)
     { return tau_EV_->compute_relaxation_time(Q, molef); }
 
-    double specific_compute_rate(const std::valarray<double> &y, Gas_data &Q, std::vector<double> &molef);
+    double specific_compute_rate(const std::vector<double> &y, Gas_data &Q, std::vector<double> &molef);
 };
 
-Energy_exchange_mechanism* create_energy_exhange_mechanism(lua_State *L, int imode);
-
-// Energy_exchange_mechanism* create_energy_exhange_mechanism_from_file( std::string input_file );
+Energy_exchange_mechanism* create_energy_exchange_mechanism(lua_State *L, int imode);
+Energy_exchange_mechanism* get_mech_from_file(int imech, std::string cfile, Gas_model &g);
 
 #endif

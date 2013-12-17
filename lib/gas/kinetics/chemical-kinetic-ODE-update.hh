@@ -41,7 +41,7 @@ private:
 				      double &dt_sub, int &no_substeps);
     OdeSolver *ode_solver_;
     Chemical_kinetic_system *cks_;
-    std::valarray<double> yin_, yout_, ydot_;
+    std::vector<double> yin_, yout_, ydot_;
     std::vector<double> M_;
     Gas_data *Q_save_;
 };

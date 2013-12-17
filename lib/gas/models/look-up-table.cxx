@@ -2,6 +2,7 @@
 // Date: 07-Nov-2008
 //       14-Jun-2010 (PJ) small variable change to fix bug
 //                        and eliminate ambiguity
+//       12-Dec-2013 (PJ) Add entropy to interpolation data.
 // Place: Hampton, Virginia, USA
 //        Lisbon, Portugal
 // Note:
@@ -13,7 +14,9 @@
 //
 
 #include <iostream>
-
+#include <cstdlib>
+#include <stdexcept>
+#include <math.h>
 #include "../../util/source/useful.h"
 #include "../../util/source/lua_service.hh"
 #include "physical_constants.hh"
@@ -42,6 +45,15 @@ Look_up_table::Look_up_table(const string cfile)
 
     int ie, ir;
 
+    try {
+	with_entropy = get_int(L, LUA_GLOBALSINDEX, "with_entropy") == 1;
+	s1_ = get_number(L, LUA_GLOBALSINDEX, "s1");
+	p1_ = get_number(L, LUA_GLOBALSINDEX, "p1");
+	T1_ = get_number(L, LUA_GLOBALSINDEX, "T1");
+    } catch ( runtime_error &e ) {
+	with_entropy = false;
+    }
+    if ( !with_entropy ) cout << "Look_up_table(): No entropy data available." << endl;
     iesteps_ = get_positive_int(L, LUA_GLOBALSINDEX, "iesteps");
     irsteps_ = get_positive_int(L, LUA_GLOBALSINDEX, "irsteps");
     emin_ = get_number(L, LUA_GLOBALSINDEX, "emin");
@@ -76,6 +88,7 @@ Look_up_table::Look_up_table(const string cfile)
     g_hat_.resize(ne);
     mu_hat_.resize(ne);
     k_hat_.resize(ne);
+    if ( with_entropy ) Cp_hat_.resize(ne);
 
     lua_rawgeti(L, -1, 1);
     int nr = lua_objlen(L, -1);
@@ -96,35 +109,45 @@ Look_up_table::Look_up_table(const string cfile)
 	g_hat_[ie].resize(nr);
 	mu_hat_[ie].resize(nr);
 	k_hat_[ie].resize(nr);
+	if ( with_entropy ) Cp_hat_[ie].resize(nr);
 
 	lua_rawgeti(L, -1, ie+1);
 	for ( ir = 0; ir < nr; ++ir ) {
 	    lua_rawgeti(L, -1, ir+1);
-
 	    lua_rawgeti(L, -1, 1);
 	    Cv_hat_[ie][ir] = luaL_checknumber(L, -1);
 	    lua_pop(L, 1);
-
 	    lua_rawgeti(L, -1, 2);
 	    Cv_[ie][ir] = luaL_checknumber(L, -1);
 	    lua_pop(L, 1);
-
 	    lua_rawgeti(L, -1, 3);
 	    R_hat_[ie][ir] = luaL_checknumber(L, -1);
 	    lua_pop(L, 1);
-
-	    lua_rawgeti(L, -1, 4);
-	    g_hat_[ie][ir] = luaL_checknumber(L, -1);
-	    lua_pop(L, 1);
-
-	    lua_rawgeti(L, -1, 5);
-	    mu_hat_[ie][ir] = luaL_checknumber(L, -1);
-	    lua_pop(L, 1);
-	    
-	    lua_rawgeti(L, -1, 6);
-	    k_hat_[ie][ir] = luaL_checknumber(L, -1);
-	    lua_pop(L, 1);
-
+	    if ( with_entropy ) {
+		lua_rawgeti(L, -1, 4);
+		Cp_hat_[ie][ir] = luaL_checknumber(L, -1);
+		lua_pop(L, 1);
+		lua_rawgeti(L, -1, 5);
+		g_hat_[ie][ir] = luaL_checknumber(L, -1);
+		lua_pop(L, 1);
+		lua_rawgeti(L, -1, 6);
+		mu_hat_[ie][ir] = luaL_checknumber(L, -1);
+		lua_pop(L, 1);
+		lua_rawgeti(L, -1, 7);
+		k_hat_[ie][ir] = luaL_checknumber(L, -1);
+		lua_pop(L, 1);
+	    } else {
+		// The old arrangement.
+		lua_rawgeti(L, -1, 4);
+		g_hat_[ie][ir] = luaL_checknumber(L, -1);
+		lua_pop(L, 1);
+		lua_rawgeti(L, -1, 5);
+		mu_hat_[ie][ir] = luaL_checknumber(L, -1);
+		lua_pop(L, 1);
+		lua_rawgeti(L, -1, 6);
+		k_hat_[ie][ir] = luaL_checknumber(L, -1);
+		lua_pop(L, 1);
+	    }
 	    lua_pop(L, 1); // pop data[ie][ir] off.
 	}
 	lua_pop(L, 1); // pop data[ie] off.
@@ -146,6 +169,7 @@ Look_up_table::~Look_up_table()
 	g_hat_[ie].clear();
 	mu_hat_[ie].clear();
 	k_hat_[ie].clear();
+	if ( with_entropy ) Cp_hat_[ie].clear();
     }
     Cv_hat_.clear();
     Cv_.clear();
@@ -153,6 +177,7 @@ Look_up_table::~Look_up_table()
     g_hat_.clear();
     mu_hat_.clear();
     k_hat_.clear();
+    if ( with_entropy ) Cp_hat_.clear();
 } // end of destructor
 
 int
@@ -187,12 +212,13 @@ determine_interpolants(const Gas_data &Q, int &ir, int &ie, double &lrfrac, doub
     lrfrac = (logrho - (lrmin_ + ir * dlr_)) / dlr_;
     efrac  = (Q.e[0] - (emin_ + ie * de_)) / de_;
     // cout << "desired lrfrac= " << lrfrac << " efrac= " << efrac << endl;
+
     // Limit the extrapolation to small distances.
-#   define EXTRAP_MARGIN (0.2)
-    lrfrac = (lrfrac < -EXTRAP_MARGIN) ? -(EXTRAP_MARGIN): lrfrac;
-    lrfrac = (lrfrac > 1.0+EXTRAP_MARGIN) ? 1.0+EXTRAP_MARGIN: lrfrac;
-    efrac = (efrac < -0.2)? -EXTRAP_MARGIN: efrac;
-    efrac = (efrac > 1.0+EXTRAP_MARGIN) ? 1.0+EXTRAP_MARGIN: efrac;
+    constexpr double EXTRAP_MARGIN = 0.2;
+    lrfrac = max(lrfrac, -EXTRAP_MARGIN);
+    lrfrac = min(lrfrac, 1.0+EXTRAP_MARGIN);
+    efrac = max(efrac, -EXTRAP_MARGIN);
+    efrac = min(efrac, 1.0+EXTRAP_MARGIN);
     // cout << "actual lrfrac= " << lrfrac << " efrac= " << efrac << endl;
 
     return (SUCCESS);
@@ -292,36 +318,53 @@ s_molecular_weight(int isp)
     // This method is not very meaningful for an equilibrium
     // gas.  The molecular weight is best obtained from
     // the mixture molecular weight methods which IS a function
-    // of gas composition and thermodynamic state.
-    cout << "s_molecular_weight() not implemented" << endl;
-    exit(NOT_IMPLEMENTED_ERROR);
-    return 0.0;
+    // of gas composition and thermodynamic state, however,
+    // there are times when a value from this function makes
+    // other code simpler, in that the doesn't have to treat
+    // the look-up gas specially.
+    // cout << "Caution: calling s_molecular_weight for LUT species." << endl;
+    if ( isp != 0 ) {
+	throw runtime_error("LUT gas: should not be looking up isp != 0");
+    }
+    int ie = 0; // coldest
+    int ir = irsteps_ - 1; // quite dense 
+    double Rgas = R_hat_[ie][ir]; // J/kg/deg-K
+    double M = PC_R_u_kmol / Rgas;
+    return M;
 }
 
 double
 Look_up_table::
 s_internal_energy(const Gas_data &Q, int isp)
 {
-    UNUSED_VARIABLE(isp);
-    // This method should never be called.
+    // This method should never be called expecting quality data
+    // because the LUT gas doesn not keep the species information.
     // This implementation is here to keep C++ happy that
-    // all of the methods are implemented as required.
-    cout << "s_internal_energy() not implemented" << endl;
-    exit(NOT_IMPLEMENTED_ERROR);
-    return 0.0;
+    // all of the methods are implemented as required,
+    // and there may be times when having this function
+    // return something reasonable may make other code
+    // simpler because it doesn't have to treat the
+    // LUT gas specially.
+    // cout << "Caution: calling s_internal_energy for LUT species." << endl;
+    if ( isp != 0 ) {
+	throw runtime_error("LUT gas: should not be looking up isp != 0");
+    }
+    // Finally, we assume that the thermodynamic state is current.
+    return Q.e[0];
 }
 
 double
 Look_up_table::
 s_enthalpy(const Gas_data &Q, int isp)
 {
-    // The look-up table is always single-species,
-    // hence 'isp' is unused
-    UNUSED_VARIABLE(isp);
     // This method assumes that the internal energy,
     // pressure and density are up-to-date in the
     // gas_data struct. Then enthalpy is computed
     // from definition.
+    // cout << "Caution: calling s_enthalpy for LUT species." << endl;
+    if ( isp != 0 ) {
+	throw runtime_error("LUT gas: should not be looking up isp != 0");
+    }
     double h = Q.e[0] + Q.p/Q.rho;
     return h;
 }
@@ -330,16 +373,45 @@ double
 Look_up_table::
 s_entropy(const Gas_data &Q, int isp)
 {
-    UNUSED_VARIABLE(isp);
-    // This method should never be called.
-    // It is a utility for the finite-rate chemistry,
-    // and an equilibrium gas should not be part of the
-    // the finite-rate chemistry model by definition.
-    // This implementation is here to keep C++ happy that
-    // all of the methods are implemented as required.
-    cout << "s_entropy() not implemented" << endl;
-    exit(NOT_IMPLEMENTED_ERROR);
-    return 0.0;
+    if ( isp != 0 ) {
+	throw runtime_error("LUT gas: should not be looking up isp != 0");
+    }
+    double s;
+    if ( with_entropy ) {
+	int ir, ie;
+	double lrfrac, efrac;
+	if ( determine_interpolants(Q, ir, ie, lrfrac, efrac) != SUCCESS ) {
+	    cout << "Bailing out!\n";
+	    exit(1);
+	}
+	double Cv_eff = (1.0 - efrac) * (1.0 - lrfrac) * Cv_hat_[ie][ir] +
+	    efrac         * (1.0 - lrfrac) * Cv_hat_[ie+1][ir] +
+	    efrac         * lrfrac         * Cv_hat_[ie+1][ir+1] +
+	    (1.0 - efrac) * lrfrac         * Cv_hat_[ie][ir+1];
+	double R_eff  = (1.0 - efrac) * (1.0 - lrfrac) * R_hat_[ie][ir] +
+	    efrac         * (1.0 - lrfrac) * R_hat_[ie+1][ir] +
+	    efrac         * lrfrac         * R_hat_[ie+1][ir+1] +
+	    (1.0 - efrac) * lrfrac         * R_hat_[ie][ir+1];
+	double Cp_eff  = (1.0 - efrac) * (1.0 - lrfrac) * Cp_hat_[ie][ir] +
+	    efrac         * (1.0 - lrfrac) * Cp_hat_[ie+1][ir] +
+	    efrac         * lrfrac         * Cp_hat_[ie+1][ir+1] +
+	    (1.0 - efrac) * lrfrac         * Cp_hat_[ie][ir+1];
+	double T = Q.e[0] / Cv_eff;
+	double p = Q.rho*R_eff*T;
+	s = s1_ + Cp_eff*log(T/T1_) - R_eff*log(p/p1_);
+    } else {
+	// Without having the entropy recorded as part of the original table,
+	// the next best is to use a model of an ideal gas.
+	cout << "Caution: calling s_entropy for LUT species without tabular data." << endl;
+	int ie = 0; // coldest
+	int ir = irsteps_ - 1; // quite dense 
+	double R = R_hat_[ie][ir]; // J/kg/deg-K
+	double Cp = R + Cv_hat_[ie][ir];
+	constexpr double T1 = 300.0; // degrees K
+	constexpr double p1 = 100.0e3; // Pa
+	s = Cp * log(Q.T[0]/T1) - R * log(Q.p/p1);
+    } 
+    return s;
 }
 
 double

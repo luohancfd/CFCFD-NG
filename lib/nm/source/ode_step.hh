@@ -10,7 +10,7 @@
 
 #include <iostream>
 #include <string>
-#include <valarray>
+#include <vector>
 #include "no_fuss_linear_algebra.hh"
 #include "ode_system.hh"
 
@@ -93,8 +93,8 @@ public:
     /// \note This is a pure virtual function.  The abstract class defines
     ///       how this function should behave but gives no particular implementation.
     ///
-    virtual bool advance( OdeSystem &ode, const std::valarray<double> &yin,
-			  std::valarray<double> &yout, double *h ) = 0;
+    virtual bool advance( OdeSystem &ode, const std::vector<double> &yin,
+			  std::vector<double> &yout, double *h ) = 0;
 
 protected:
     std::string name_;   ///< name for the stepping algorithm
@@ -136,10 +136,10 @@ public:
     // ------ Behaviour of an Euler step ----- //
     
     /// \brief Takes an Euler step.
-    bool advance( OdeSystem &ode, const std::valarray<double> &yin,
-		  std::valarray<double> &yout, double *h );
+    bool advance( OdeSystem &ode, const std::vector<double> &yin,
+		  std::vector<double> &yout, double *h );
 private:
-    std::valarray<double> y_dot_;
+    std::vector<double> y_dot_;
 };
 
 /** \brief Declarations for the ModEulerStep class.
@@ -177,13 +177,13 @@ public:
     // -------- Behaviour of a modified Euler step ------ //
 
     /// \brief Takes a modified Euler step
-    bool advance( OdeSystem &ode, const std::valarray<double> &yin, 
-		  std::valarray<double> &yout, double *h );
+    bool advance( OdeSystem &ode, const std::vector<double> &yin, 
+		  std::vector<double> &yout, double *h );
 
 private:
-    std::valarray<double> dy_n_;
-    std::valarray<double> dy_nplus1_;
-    std::valarray<double> y_nplus1_;
+    std::vector<double> dy_n_;
+    std::vector<double> dy_nplus1_;
+    std::vector<double> y_nplus1_;
 
 };
 
@@ -216,21 +216,21 @@ public:
     // -------- Behaviour of a modified Euler step ------ //
 
     /// \brief Takes a step using the Runge-Kutta-Fehlberg method
-    bool advance( OdeSystem &ode, const std::valarray<double> &yin, 
-		  std::valarray<double> &yout, double *h );
+    bool advance( OdeSystem &ode, const std::vector<double> &yin, 
+		  std::vector<double> &yout, double *h );
 
 private:
     void set_constants();
     double tol_;
     // Some working arrays for the model
-    std::valarray<double> tmp_;
-    std::valarray<double> yerr_;
-    std::valarray<double> k1_;
-    std::valarray<double> k2_;
-    std::valarray<double> k3_;
-    std::valarray<double> k4_;
-    std::valarray<double> k5_;
-    std::valarray<double> k6_;
+    std::vector<double> tmp_;
+    std::vector<double> yerr_;
+    std::vector<double> k1_;
+    std::vector<double> k2_;
+    std::vector<double> k3_;
+    std::vector<double> k4_;
+    std::vector<double> k5_;
+    std::vector<double> k6_;
 
     // Constants from
     // Cash and Karp (1990)
@@ -293,26 +293,26 @@ public:
     // -------- Behaviour of a modified Euler step ------ //
 
     /// \brief Takes a step using the Runge-Kutta-Fehlberg method
-    bool advance( OdeSystem &ode, const std::valarray<double> &yin, 
-		  std::valarray<double> &yout, double *h );
+    bool advance( OdeSystem &ode, const std::vector<double> &yin, 
+		  std::vector<double> &yout, double *h );
 
 private:
     void set_constants();
     double tol_;
     // Some working arrays for the model
-    std::valarray<double> tmp_;
-    std::valarray<double> yerr_;
-    std::valarray<double> yerr2_;
-    std::valarray<double> k1_;
-    std::valarray<double> k2_;
-    std::valarray<double> k3_;
-    std::valarray<double> k4_;
-    std::valarray<double> k5_;
-    std::valarray<double> k6_;
-    std::valarray<double> k7_;
-    std::valarray<double> k8_;
-    std::valarray<double> k9_;
-    std::valarray<double> k10_;
+    std::vector<double> tmp_;
+    std::vector<double> yerr_;
+    std::vector<double> yerr2_;
+    std::vector<double> k1_;
+    std::vector<double> k2_;
+    std::vector<double> k3_;
+    std::vector<double> k4_;
+    std::vector<double> k5_;
+    std::vector<double> k6_;
+    std::vector<double> k7_;
+    std::vector<double> k8_;
+    std::vector<double> k9_;
+    std::vector<double> k10_;
 
     double b1_;
     double b6_;
@@ -491,8 +491,8 @@ public:
     // -------- Behaviour of a modified Euler step ------ //
 
     /// \brief Takes a step using the \f$\alpha\f%-QSS method
-    bool advance( OdeSystem &ode, const std::valarray<double> &yin, 
-		  std::valarray<double> &yout, double *h );
+    bool advance( OdeSystem &ode, const std::vector<double> &yin, 
+		  std::vector<double> &yout, double *h );
 
 private:
     int max_correctors_;
@@ -500,30 +500,30 @@ private:
     double c_;
     double qss_eps2_;
     // Some working arrays for the model
-    std::valarray<double> p0_;
-    std::valarray<double> q0_;
-    std::valarray<double> L0_;
-    std::valarray<double> L_p_;
-    std::valarray<double> a0_;
-    std::valarray<double> y_p_;
-    std::valarray<double> y_c_;
-    std::valarray<double> p_p_;
-    std::valarray<double> p_bar_;
-    std::valarray<double> a_bar_;
-    std::valarray<double> q_p_;
-    std::valarray<double> q_til_;
+    std::vector<double> p0_;
+    std::vector<double> q0_;
+    std::vector<double> L0_;
+    std::vector<double> L_p_;
+    std::vector<double> a0_;
+    std::vector<double> y_p_;
+    std::vector<double> y_c_;
+    std::vector<double> p_p_;
+    std::vector<double> p_bar_;
+    std::vector<double> a_bar_;
+    std::vector<double> q_p_;
+    std::vector<double> q_til_;
 
     // Some private work functions
-    void p_on_y( const std::valarray<double> &p, const std::valarray<double> &y,
-		 std::valarray<double> &p_y );
-    void alpha( double h, const std::valarray<double> &p, std::valarray<double> &a );
-    void p_bar( const std::valarray<double> &p0, const std::valarray<double> &p_p, 
-		std::valarray<double> &p_bar );
-    void q_tilde( const std::valarray<double> &q0, const std::valarray<double> &q_p,
-		  const std::valarray<double> &a_bar, std::valarray<double> &q_til );
-    bool test_converged( const std::valarray<double> &y_c, const std::valarray<double> &y_p );
-    double step_suggest( double h, const std::valarray<double> &y_c,
-			 const std::valarray<double> &y_p );
+    void p_on_y( const std::vector<double> &p, const std::vector<double> &y,
+		 std::vector<double> &p_y );
+    void alpha( double h, const std::vector<double> &p, std::vector<double> &a );
+    void p_bar( const std::vector<double> &p0, const std::vector<double> &p_p, 
+		std::vector<double> &p_bar );
+    void q_tilde( const std::vector<double> &q0, const std::vector<double> &q_p,
+		  const std::vector<double> &a_bar, std::vector<double> &q_til );
+    bool test_converged( const std::vector<double> &y_c, const std::vector<double> &y_p );
+    double step_suggest( double h, const std::vector<double> &y_c,
+			 const std::vector<double> &y_p );
 
 };
 

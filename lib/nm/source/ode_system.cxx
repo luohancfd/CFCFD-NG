@@ -87,8 +87,8 @@ string OdeSystem::str() const
 /// use this generic function to find y' and then
 /// assign it as a production or loss depending on its sign.
 ///
-int OdeSystem::eval_split( const valarray<double> &y,
-			   valarray<double> &q, valarray<double> &L )
+int OdeSystem::eval_split( const vector<double> &y,
+			   vector<double> &q, vector<double> &L )
 {
     // Use q to hold values rather than grabbing memory.
     eval(y, q);
@@ -125,7 +125,7 @@ int OdeSystem::eval_split( const valarray<double> &y,
 ///       step size selection function depending on their
 ///       ODE system.
 ///
-double OdeSystem::stepsize_select( const valarray<double> &y )
+double OdeSystem::stepsize_select( const vector<double> &y )
 {
     const double silly_number_for_timestep = 1.0e-6;
     return silly_number_for_timestep;
@@ -142,7 +142,7 @@ double OdeSystem::stepsize_select( const valarray<double> &y )
 /// is not forced to implement a passes_system_test() function
 /// if it's not appropriate for his/her system.
 ///
-bool OdeSystem::passes_system_test( valarray<double> &y )
+bool OdeSystem::passes_system_test( vector<double> &y )
 {
     return true;
 }

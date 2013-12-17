@@ -202,8 +202,8 @@ private:
     std::vector<CR_Reaction*> reactions;
     
     Valmatrix * dGdy;
-    std::valarray<double> C;
-    std::valarray<double> y_out;
+    std::vector<double> C;
+    std::vector<double> y_out;
     
     double T_lower;
 };

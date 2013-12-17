@@ -5,7 +5,7 @@
 #define THERMAL_EQUILIBRIUM_MECHANISM_HH
 
 #include <string>
-#include <valarray>
+// #include <vector>
 
 extern "C" {
 #include <lua.h>

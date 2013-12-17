@@ -1,7 +1,7 @@
 // brief: Contains common functions for thermal behaviour models
 // version: 22 Sep - initial copying
 //
-
+#include <cstdlib>
 #include "../../util/source/useful.h"
 
 #include "thermal-behaviour-model.hh"

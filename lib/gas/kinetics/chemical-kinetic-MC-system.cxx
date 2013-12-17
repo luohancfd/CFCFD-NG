@@ -1,8 +1,9 @@
 // Author: Rowan J. Gollan
 // Date: 12-Sep-2008
-
+#include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <math.h>
 
 #include "../../util/source/lua_service.hh"
 #include "../../util/source/useful.h"
@@ -223,7 +224,7 @@ Chemical_kinetic_MC_system::
 
 int
 Chemical_kinetic_MC_system::
-eval(const valarray<double> &y, valarray<double> &ydot)
+eval(const vector<double> &y, vector<double> &ydot)
 {
     // Firstly compute the rate coefficients
     if ( ! called_at_least_once ) {
@@ -256,7 +257,7 @@ eval(const valarray<double> &y, valarray<double> &ydot)
 
 int
 Chemical_kinetic_MC_system::
-eval_new_concentrations( const valarray<double> &y, valarray<double> &c )
+eval_new_concentrations( const vector<double> &y, vector<double> &c )
 {
     for ( size_t ir=0; ir<w_.size(); ++ir ) {
     	w_[ir] = y[2*ir] - y[2*ir+1];
@@ -271,22 +272,7 @@ eval_new_concentrations( const valarray<double> &y, valarray<double> &c )
 
 int
 Chemical_kinetic_MC_system::
-eval_new_concentrations( const valarray<double> &y, vector<double> &c )
-{
-    for ( size_t ir=0; ir<w_.size(); ++ir ) {
-    	w_[ir] = y[2*ir] - y[2*ir+1];
-    }
-    
-    for( size_t isp = 0; isp < spec_.size(); ++isp ) {
-	c[isp] = spec_[isp]->eval_conc( w_ );
-    }
-    
-    return SUCCESS;
-}
-
-int
-Chemical_kinetic_MC_system::
-eval_species_rates( const valarray<double> &y, valarray<double> &cdot )
+eval_species_rates( const vector<double> &y, vector<double> &cdot )
 {
     eval(y,ydot_);
     int ir;
@@ -309,7 +295,7 @@ const double zero_tol = 1.0e-30;
 
 double
 Chemical_kinetic_MC_system::
-stepsize_select(const valarray<double> &y)
+stepsize_select(const vector<double> &y)
 {
     eval(y, ydot_);
     double min_dt = chem_step_upper_limit; // to get us started
@@ -348,7 +334,7 @@ const double min_conc = 1.0e-30;
 
 bool
 Chemical_kinetic_MC_system::
-passes_system_test(valarray<double> &y)
+passes_system_test(vector<double> &y)
 {
     for ( size_t iy=0; iy<y.size(); ++iy ) {
     	if ( !isfinite( y[iy] ) ) return false;
@@ -441,7 +427,7 @@ initialise_chemistry_energy_coupling( Gas_data &Q, vector<double> &c_old )
 
 int
 Chemical_kinetic_MC_system::
-apply_chemistry_energy_coupling( Gas_data &Q, valarray<double> &delta_c, 
+apply_chemistry_energy_coupling( Gas_data &Q, vector<double> &delta_c, 
     				 vector<double> &c_new )
 {
 #   if CHECK_GAS_DATA
@@ -468,7 +454,7 @@ apply_chemistry_energy_coupling( Gas_data &Q, valarray<double> &delta_c,
 
 int
 Chemical_kinetic_MC_system::
-eval_chemistry_energy_coupling_source_terms( Gas_data &Q, const valarray<double> &y, vector<double> &dedt )
+eval_chemistry_energy_coupling_source_terms( Gas_data &Q, const vector<double> &y, vector<double> &dedt )
 {
     // NOTE: really don't need this eval call as eval_species_rates should have just been run
     eval(y,ydot_);

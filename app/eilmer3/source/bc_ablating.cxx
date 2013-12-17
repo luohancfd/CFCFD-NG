@@ -12,12 +12,16 @@
  * For more details, see Park's 2001 paper.
  */
 
+// [todo] PJ 2013-12-04 This boundary condition is in disrepair.
+// When Elise is happy with her ablating boundary condition that
+// she has built with the user-defined functions, we should return
+// and implement this one properly.
+
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <iostream>
 #include <vector>
-#include <valarray>
 
 #include <stdio.h>
 #include <math.h>
@@ -51,8 +55,10 @@ AblatingBC::AblatingBC()
 
 AblatingBC::AblatingBC(Block *bdp, int which_boundary, double Twall, double _emissivity)
     : BoundaryCondition(bdp, which_boundary, ABLATING),
-      Twall(Twall), mdot(mdot), max_iterations(1000000), tol(1.0e-6)
+      Twall(Twall), max_iterations(1000000), tol(1.0e-6)
 {
+    throw runtime_error("AblatingBC is not presently functioning;" 
+			"Try Elise's User-Defined-Function implementation.");
     is_wall_flag = true;
     sets_conv_flux_flag = true;
     ghost_cell_data_available = false;
@@ -132,8 +138,8 @@ AblatingBC & AblatingBC::operator=(const AblatingBC &bc)
 	cell_massf = std::vector<double>(bc.cell_massf);
 	// 4. initialise the zero system components
 	// -> u0_index already copied
-	y_guess = std::valarray<double>(bc.y_guess);
-	y_out = std::valarray<double>(bc.y_guess);
+	y_guess = std::vector<double>(bc.y_guess);
+	y_out = std::vector<double>(bc.y_guess);
 	zero_solver = new NewtonRaphsonZF(nsp+1, tol, max_iterations, true);
     }
     return *this;
@@ -159,6 +165,7 @@ int AblatingBC::apply_convective(double t)
     // The default convective boundary condition is to reflect
     // the normal component of the velocity at the ghost-cell
     // centres -- slip-wall. 
+    global_data &G = *get_global_data_ptr();
     size_t i, j, k;
     FV_Cell *src_cell, *dest_cell;
     FV_Interface *IFace;
@@ -175,7 +182,7 @@ int AblatingBC::apply_convective(double t)
 		dest_cell = bd.get_cell(i,j+1,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 		// ghost cell 2.
@@ -183,7 +190,7 @@ int AblatingBC::apply_convective(double t)
 		dest_cell = bd.get_cell(i,j+2,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 	    } // end i loop
@@ -199,7 +206,7 @@ int AblatingBC::apply_convective(double t)
 		dest_cell = bd.get_cell(i+1,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 		// ghost cell 2.
@@ -207,7 +214,7 @@ int AblatingBC::apply_convective(double t)
 		dest_cell = bd.get_cell(i+2,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 	    } // end j loop
@@ -223,7 +230,7 @@ int AblatingBC::apply_convective(double t)
 		dest_cell = bd.get_cell(i,j-1,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 		// ghost cell 2.
@@ -231,7 +238,7 @@ int AblatingBC::apply_convective(double t)
 		dest_cell = bd.get_cell(i,j-2,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 	    } // end i loop
@@ -247,7 +254,7 @@ int AblatingBC::apply_convective(double t)
 		dest_cell = bd.get_cell(i-1,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 		// ghost cell 2.
@@ -255,7 +262,7 @@ int AblatingBC::apply_convective(double t)
 		dest_cell = bd.get_cell(i-2,j,k);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 	    } // end j loop
@@ -271,7 +278,7 @@ int AblatingBC::apply_convective(double t)
 		dest_cell = bd.get_cell(i,j,k+1);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 		// ghost cell 2.
@@ -279,7 +286,7 @@ int AblatingBC::apply_convective(double t)
 		dest_cell = bd.get_cell(i,j,k+2);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 	    } // end j loop
@@ -300,7 +307,7 @@ int AblatingBC::apply_convective(double t)
 		dest_cell = bd.get_cell(i,j,k-2);
 		dest_cell->copy_values_from(*src_cell, COPY_FLOW_STATE, 0);
 		reflect_normal_velocity(dest_cell, IFace);
-		if (get_mhd_flag() == 1) {
+		if ( G.MHD ) {
 		    reflect_normal_magnetic_field(dest_cell, IFace);
 		}
 	    } // end j loop
@@ -443,7 +450,7 @@ int AblatingBC::apply_viscous(double t)
 
 // the functions required by the ZeroSystem are f and Jac.
 
-int AblatingBC::f(const valarray<double> &y_guess, valarray<double> &G)
+int AblatingBC::f(const vector<double> &y_guess, vector<double> &G)
 {
     /* Create the equation system for the ZeroSystem for a given y vector.
        - Species mass conservation: unknowns are massfs, rho_w, v_w
@@ -472,7 +479,7 @@ int AblatingBC::f(const valarray<double> &y_guess, valarray<double> &G)
     return SUCCESS;
 }
 
-int AblatingBC::Jac(const valarray<double> &y_guess, Valmatrix &dGdy)
+int AblatingBC::Jac(const vector<double> &y_guess, Valmatrix &dGdy)
 {
     /* Create the Jacobian matrix for the ZeroSystem for a given y vector */
     double R = gmodel->R(*Q);

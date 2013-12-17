@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdexcept>
+#include <math.h>
 extern "C" {
 #include <zlib.h>
 }
@@ -44,7 +45,6 @@ Block::Block(const Block &b)
       jmin(b.jmin), jmax(b.jmax),
       kmin(b.kmin), kmax(b.kmax),
       active_cells(b.active_cells),
-      baldwin_lomax_iturb(b.baldwin_lomax_iturb),
       bcp(b.bcp),
       ctr_(b.ctr_),
       ifi_(b.ifi_), ifj_(b.ifj_), ifk_(b.ifk_),
@@ -70,7 +70,6 @@ Block & Block::operator=(const Block &b)
 	jmin = b.jmin; jmax = b.jmax;
 	kmin = b.kmin; kmax = b.kmax;
 	active_cells = b.active_cells;
-	baldwin_lomax_iturb = b.baldwin_lomax_iturb;
 	bcp = b.bcp;
 	ctr_ = b.ctr_;
 	ifi_ = b.ifi_; ifj_ = b.ifj_; ifk_ = b.ifk_;
@@ -92,7 +91,8 @@ Block::~Block()
 /// Returns 0 if successful, 1 otherwise.
 int Block::array_alloc(size_t dimensions)
 {
-    if ( get_verbose_flag() ) cout << "array_alloc(): Begin for block " <<  id << endl;
+    global_data &G = *get_global_data_ptr();
+    if ( G.verbose_init_messages ) cout << "array_alloc(): Begin for block " <<  id << endl;
     // Check for obvious errors.
     if ( nidim <= 0 || njdim <= 0 || nkdim <= 0 ) {
         cerr << "array_alloc(): Declared dimensions are zero or negative: " 
@@ -100,48 +100,56 @@ int Block::array_alloc(size_t dimensions)
 	exit( VALUE_ERROR );
     }
     Gas_model *gm = get_gas_model_ptr();
+    size_t ntot = nidim * njdim * nkdim;
 
     // Allocate vectors of pointers for the entire block.
-    size_t ntot = nidim * njdim * nkdim;
-    ctr_.resize(ntot); 
-    ifi_.resize(ntot);
-    ifj_.resize(ntot);
-    if ( dimensions == 3 ) ifk_.resize(ntot);
-    vtx_.resize(ntot);
-    sifi_.resize(ntot);
-    sifj_.resize(ntot);
-    if ( dimensions == 3 ) sifk_.resize(ntot);
-    // Now, create the actual objects.
-    for (size_t gid = 0; gid < ntot; ++gid) {
-        ctr_[gid] = new FV_Cell(gm);
-	ctr_[gid]->id = gid;
-	std::vector<size_t> ijk = to_ijk_indices(gid);
-	size_t i = ijk[0]; size_t j = ijk[1]; size_t k = ijk[2];
-	if ( i >= imin && i <= imax && j >= jmin && j <= jmax && k >= kmin && k <= kmax ) {
-	    active_cells.push_back(ctr_[gid]);
+    try {
+	ctr_.resize(ntot); 
+	ifi_.resize(ntot);
+	ifj_.resize(ntot);
+	if ( dimensions == 3 ) ifk_.resize(ntot);
+	vtx_.resize(ntot);
+	sifi_.resize(ntot);
+	sifj_.resize(ntot);
+	if ( dimensions == 3 ) sifk_.resize(ntot);
+	// Now, create the actual objects.
+	for (size_t gid = 0; gid < ntot; ++gid) {
+	    ctr_[gid] = new FV_Cell(gm);
+	    ctr_[gid]->id = gid;
+	    std::vector<size_t> ijk = to_ijk_indices(gid);
+	    size_t i = ijk[0]; size_t j = ijk[1]; size_t k = ijk[2];
+	    if ( i >= imin && i <= imax && j >= jmin && j <= jmax && k >= kmin && k <= kmax ) {
+		active_cells.push_back(ctr_[gid]);
+	    }
+	    ifi_[gid] = new FV_Interface(gm);
+	    ifi_[gid]->id = gid;
+	    ifj_[gid] = new FV_Interface(gm);
+	    ifj_[gid]->id = gid;
+	    if ( dimensions == 3 ) {
+		ifk_[gid] = new FV_Interface(gm);
+		ifk_[gid]->id = gid;
+	    }
+	    vtx_[gid] = new FV_Vertex(gm);
+	    vtx_[gid]->id = gid;
+	    sifi_[gid] = new FV_Interface(gm);
+	    sifi_[gid]->id = gid;
+	    sifj_[gid] = new FV_Interface(gm);
+	    sifj_[gid]->id = gid;
+	    if ( dimensions == 3 ) {
+		sifk_[gid] = new FV_Interface(gm);
+		sifk_[gid]->id = gid;
+	    }
+	} // gid loop
+	if ( G.verbose_init_messages || id == 0 ) {
+	    cout << "Block " << id << ": finished creating " << ntot << " cells." << endl;
 	}
-        ifi_[gid] = new FV_Interface(gm);
-	ifi_[gid]->id = gid;
-        ifj_[gid] = new FV_Interface(gm);
-	ifj_[gid]->id = gid;
-        if ( dimensions == 3 ) {
-	    ifk_[gid] = new FV_Interface(gm);
-	    ifk_[gid]->id = gid;
-	}
-        vtx_[gid] = new FV_Vertex(gm);
-	vtx_[gid]->id = gid;
-        sifi_[gid] = new FV_Interface(gm);
-	sifi_[gid]->id = gid;
-        sifj_[gid] = new FV_Interface(gm);
-	sifj_[gid]->id = gid;
-        if ( dimensions == 3 ) {
-	    sifk_[gid] = new FV_Interface(gm);
-	    sifk_[gid]->id = gid;
-	}
-    } // gid loop
-
-    if ( get_verbose_flag() || id == 0 ) {
-	cout << "Block " << id << ": finished creating " << ntot << " cells." << endl;
+    } catch (std::bad_alloc& ba) {
+	cout << "ERROR: Block::array_alloc(): " << ba.what() << endl;
+	cout << "       A memory-allocation failure while building the Block" << endl;
+	cout << "       for nidim= " << nidim << " njdim= " 
+	     << njdim << " nkdim= " << nkdim << endl;
+	cout << "       Be a little less ambitious and try a smaller grid next time." << endl;
+	exit(MEMORY_ERROR);
     }
     return SUCCESS;
 } // end of array_alloc()
@@ -149,7 +157,8 @@ int Block::array_alloc(size_t dimensions)
 
 int Block::array_cleanup(size_t dimensions)
 {
-    if ( get_verbose_flag() || id == 0 ) {
+    global_data &G = *get_global_data_ptr();
+    if ( G.verbose_init_messages || id == 0 ) {
 	cout << "array_cleanup(): Begin for block " <<  id << endl;
     }
     // Need to clean up allocated memory.
@@ -272,7 +281,7 @@ int Block::identify_reaction_zones(global_data &gd, size_t gtl)
 	total_cells_in_reaction_zones += (cellp->fr_reactions_allowed ? 1: 0);
 	total_cells += 1;
     } // for cellp
-    if ( get_reacting_flag() ) {
+    if ( gd.reacting ) {
 	cout << "identify_reaction_zones(): block " << id
 	     << " cells inside zones = " << total_cells_in_reaction_zones 
 	     << " out of " << total_cells << endl;
@@ -396,32 +405,26 @@ int Block::count_invalid_cells(size_t dimensions, size_t gtl)
     bool with_k_omega = (G.turbulence_model == TM_K_OMEGA);
     size_t number_of_invalid_cells = 0;
     for ( FV_Cell *cellp: active_cells ) {
-	if ( cellp->check_flow_data() != 1 ) {
+	if ( cellp->check_flow_data() == false ) {
 	    ++number_of_invalid_cells;
 	    std::vector<size_t> ijk = to_ijk_indices(cellp->id);
 	    size_t i = ijk[0]; size_t j = ijk[1]; size_t k = ijk[2];
-	    if ( get_bad_cell_complain_flag() ) {
-		printf("count_invalid_cells: block_id = %d, cell[%d,%d,%d]\n", 
-		       static_cast<int>(id), static_cast<int>(i), 
-		       static_cast<int>(j), static_cast<int>(k));
-		cellp->print();
-	    }
+	    printf("count_invalid_cells: block_id = %d, cell[%d,%d,%d]\n", 
+		   static_cast<int>(id), static_cast<int>(i), 
+		   static_cast<int>(j), static_cast<int>(k));
+	    cellp->print();
 	    if ( adjust_invalid_cell_data ) {
 		// We shall set the cell data to something that
 		// is valid (and self consistent).
 		FV_Cell *other_cellp;
 		std::vector<FV_Cell *> neighbours;
 		if ( prefer_copy_from_left ) {
-		    if ( get_bad_cell_complain_flag() ) {
-			printf( "Adjusting cell data by copying data from left.\n" );
-		    }
+		    printf( "Adjusting cell data by copying data from left.\n" );
 		    // Presently, only searches around in the i,j plane
 		    other_cellp = get_cell(i-1,j,k);
 		    if ( other_cellp->check_flow_data() ) neighbours.push_back(other_cellp);
 		} else {
-		    if ( get_bad_cell_complain_flag() ) {
-			printf( "Adjusting cell data to a local average.\n" );
-		    }
+		    printf( "Adjusting cell data to a local average.\n" );
 		    other_cellp = get_cell(i+1,j,k);
 		    if ( other_cellp->check_flow_data() ) neighbours.push_back(other_cellp);
 		    other_cellp = get_cell(i,j-1,k);
@@ -436,12 +439,10 @@ int Block::count_invalid_cells(size_t dimensions, size_t gtl)
 		cellp->replace_flow_data_with_average(neighbours);
 		cellp->encode_conserved(gtl, 0, omegaz, with_k_omega);
 		cellp->decode_conserved(gtl, 0, omegaz, with_k_omega);
-		if ( get_bad_cell_complain_flag() ) {
-		    printf("after flow-data replacement: block_id = %d, cell[%d,%d,%d]\n", 
-			   static_cast<int>(id), static_cast<int>(i),
-			   static_cast<int>(j), static_cast<int>(k));
-		    cellp->print();
-		}
+		printf("after flow-data replacement: block_id = %d, cell[%d,%d,%d]\n", 
+		       static_cast<int>(id), static_cast<int>(i),
+		       static_cast<int>(j), static_cast<int>(k));
+		cellp->print();
 	    } // end adjust_invalid_cell_data 
 	} // end of if invalid data...
     } // for cellp
@@ -483,7 +484,7 @@ int Block::compute_residuals(size_t dimensions, size_t gtl)
     for ( FV_Cell *cellp: active_cells ) {
 	double local_residual = (cellp->fs->gas->rho - cellp->rho_at_start_of_step) 
 	    / cellp->fs->gas->rho;
-	local_residual = FABS(local_residual);
+	local_residual = fabs(local_residual);
 	if ( local_residual > mass_residual ) {
 	    mass_residual = local_residual;
 	    mass_residual_loc.x = cellp->pos[gtl].x;
@@ -495,7 +496,7 @@ int Block::compute_residuals(size_t dimensions, size_t gtl)
 	// the updated data.
 	local_residual = (cellp->U[0]->total_energy - cellp->rE_at_start_of_step) 
 	    / cellp->U[0]->total_energy;
-	local_residual = FABS(local_residual);
+	local_residual = fabs(local_residual);
 	if ( local_residual > energy_residual ) {
 	    energy_residual = local_residual;
 	    energy_residual_loc.x = cellp->pos[gtl].x;
@@ -589,7 +590,8 @@ int Block::detect_shock_points(size_t dimensions)
     // shock compression observed in the "sod" and "cone20" test cases.
     // It may need to be tuned for other situations, especially when
     // viscous effects are important.
-    double tol = get_compression_tolerance();
+    global_data &G = *get_global_data_ptr();
+    double tol = G.compression_tolerance;
 
     // First, work across North interfaces and
     // locate shocks using the (local) normal velocity.

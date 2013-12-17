@@ -437,7 +437,8 @@ class StructuredGridFlow(object):
                         imin = i; jmin = j; kmin = k
         return imin, jmin, kmin
 
-    def add_aux_variables(self, cmdLineDict, omegaz=None):
+    def add_aux_variables(self, cmdLineDict, omegaz=None,
+                          aux_var_names=None, compute_vars=None):
         """
         Adds variables to the data dictionary for each cell in a block.
 
@@ -521,6 +522,11 @@ class StructuredGridFlow(object):
                 if var not in self.vars:
                     self.vars.append( var )
                     self.data[var] = zeros((nic,njc,nkc),'d')
+
+        if aux_var_names != None:
+            for n in aux_var_names:
+                self.vars.append(n)
+                self.data[n] = zeros((nic,njc,nkc),'d')
         #
         # Now, work through all nodes and add new values.
         for k in range(nkc):
@@ -619,6 +625,23 @@ class StructuredGridFlow(object):
                         self.data['mu'][i,j,k] = Q.mu
                         for imode in range(nmodes):
                             self.data['k[%d]'%imode][i,j,k] = Q.k[imode]
+                    if compute_vars != None:
+                        Q = Gas_data(self.gmodel)
+                        nsp = self.gmodel.get_number_of_species()
+                        nmodes = self.gmodel.get_number_of_modes()
+                        Q.rho = self.data['rho'][i,j,k]
+                        for isp in range(nsp):
+                            specname = self.gmodel.species_name(isp).replace(' ', '-')
+                            Q.massf[isp] = self.data['massf[%d]-%s' % (isp, specname)][i,j,k]
+                        for imode in range(nmodes):
+                            Q.T[imode] = self.data['T[%d]' % imode][i,j,k]
+                        self.gmodel.eval_thermo_state_rhoT(Q)
+                        u = self.data['vel.x'][i,j,k]
+                        v = self.data['vel.y'][i,j,k]
+                        w = self.data['vel.z'][i,j,k]
+                        val_dict = compute_vars(Q, u, v, w, self.gmodel)
+                        for var,val in val_dict.iteritems():
+                            self.data[var][i,j,k] = val
                             
         # end of adding new data values for a block
         return
@@ -649,7 +672,7 @@ class StructuredGridFlow(object):
 
 def read_time_from_flow_file(rootName, tindx, zipFiles=False):
     """
-    We'll find the simulation time on the first lins of the flow file.
+    We'll find the simulation time on the first line of the flow file.
     """
     # tindx may be an integer, or already a string such as "xxxx"
     if type(tindx) is int:
@@ -734,7 +757,8 @@ def read_all_blocks(rootName, nblock, tindx, zipFiles=False, movingGrid=False):
         dimensions = 3
     return grid, flow, dimensions
 
-def add_auxiliary_variables(nblock, flow, cmdLineDict, omegaz_list=None):
+def add_auxiliary_variables(nblock, flow, cmdLineDict, omegaz_list=None,
+                            aux_var_names=None, compute_vars=None):
     """
     Adds variables to the data dictionary for each cell in each block.
     """
@@ -743,7 +767,7 @@ def add_auxiliary_variables(nblock, flow, cmdLineDict, omegaz_list=None):
             omegaz = None
         else:
             omegaz = omegaz_list[jb]
-        flow[jb].add_aux_variables(cmdLineDict, omegaz)
+        flow[jb].add_aux_variables(cmdLineDict, omegaz, aux_var_names, compute_vars)
     return
 
 def locate_cell_and_block(grid, flow, dimensions, 

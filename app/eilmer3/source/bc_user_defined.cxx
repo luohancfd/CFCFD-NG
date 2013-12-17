@@ -5,14 +5,12 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include <valarray>
 
 #include <stdio.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include <vector>
 
 extern "C" {
 #include <lua.h>
@@ -28,6 +26,7 @@ extern "C" {
 #include "kernel.hh"
 #include "bc.hh"
 #include "bc_user_defined.hh"
+#include "bc_adjacent.hh"
 #include "bc_menter_correction.hh"
 #include "lua_service_for_e3.hh"
 
@@ -740,17 +739,17 @@ void UserDefinedBC::handle_lua_error(lua_State *L, const char *fmt, ...)
 //------------------------------------------------------------------------
 
 AdjacentPlusUDFBC::AdjacentPlusUDFBC(Block *bdp, int which_boundary, 
-				     int other_block, int other_face,
-				     int _neighbour_orientation,
-				     const std::string filename,
-				     bool is_wall, 
-				     bool sets_conv_flux, bool sets_visc_flux)
+				     int other_block, int other_face, int _neighbour_orientation,
+				     const std::string filename, bool is_wall, bool sets_conv_flux, bool sets_visc_flux,
+				     bool _reorient_vector_quantities, vector<double>& _Rmatrix)
     : UserDefinedBC(bdp, which_boundary, filename, is_wall, sets_conv_flux, sets_visc_flux)
 {
     type_code = ADJACENT_PLUS_UDF; // Needs to overwrite UserDefinedBC entry.
     neighbour_block = other_block; 
     neighbour_face = other_face;
     neighbour_orientation = _neighbour_orientation;
+    reorient_vector_quantities = _reorient_vector_quantities;
+    Rmatrix = _Rmatrix;
 }
 
 AdjacentPlusUDFBC::AdjacentPlusUDFBC(const AdjacentPlusUDFBC &bc)
@@ -760,6 +759,9 @@ AdjacentPlusUDFBC::AdjacentPlusUDFBC(const AdjacentPlusUDFBC &bc)
     neighbour_block = bc.neighbour_block; 
     neighbour_face = bc.neighbour_face;
     neighbour_orientation = bc.neighbour_orientation;
+    reorient_vector_quantities = bc.reorient_vector_quantities;
+    Rmatrix = bc.Rmatrix;
+    // FIX-ME -- what to do about the Lua interpreter stuff??
     cerr << "AdjacentPlusUDFBC() copy constructor is not implemented FIX-ME." << endl;
     exit( NOT_IMPLEMENTED_ERROR );
 }
@@ -773,5 +775,79 @@ void AdjacentPlusUDFBC::print_info(std::string lead_in)
     cout << lead_in << "neighbour_face= " << neighbour_face 
 	 << " (" << get_face_name(neighbour_face) << ")" << endl;
     cout << lead_in << "neighbour_orientation= " << neighbour_orientation << endl;
+    cout << lead_in << "reorient_vector_quantities= " << reorient_vector_quantities << endl;
+    cout << lead_in << "Rmatrix= " << Rmatrix << endl;
     return;
+}
+
+int AdjacentPlusUDFBC::apply_convective(double t)
+{
+    // At this point, we assume that the exchange functions have
+    // copied the other-block data into the appropriate ghost cells.
+    // We now need to reorientation of vector quantities before
+    // delegating the final stage of manipulation to the 
+    // user-defined function.
+    if ( reorient_vector_quantities ) {
+	// 28-Nov-2013 Put the reorientation code in here.
+	size_t i, j, k;
+	Block & bd = *bdp;
+
+	switch ( which_boundary ) {
+	case NORTH:
+	    j = bd.jmax;
+	    for (k = bd.kmin; k <= bd.kmax; ++k) {
+		for (i = bd.imin; i <= bd.imax; ++i) {
+		    reorient_vector_quantities_in_cell(bd.get_cell(i,j+1,k), Rmatrix); // ghost cell 1.
+		    reorient_vector_quantities_in_cell(bd.get_cell(i,j+2,k), Rmatrix); // ghost cell 2.
+		} // end i loop
+	    } // for k
+	    break;
+	case EAST:
+	    i = bd.imax;
+	    for (k = bd.kmin; k <= bd.kmax; ++k) {
+		for (j = bd.jmin; j <= bd.jmax; ++j) {
+		    reorient_vector_quantities_in_cell(bd.get_cell(i+1,j,k), Rmatrix); // ghost cell 1.
+		    reorient_vector_quantities_in_cell(bd.get_cell(i+2,j,k), Rmatrix); // ghost cell 2.
+		} // end j loop
+	    } // for k
+	    break;
+	case SOUTH:
+	    j = bd.jmin;
+	    for (k = bd.kmin; k <= bd.kmax; ++k) {
+		for (i = bd.imin; i <= bd.imax; ++i) {
+		    reorient_vector_quantities_in_cell(bd.get_cell(i,j-1,k), Rmatrix); // ghost cell 1.
+		    reorient_vector_quantities_in_cell(bd.get_cell(i,j-2,k), Rmatrix); // ghost cell 2.
+		} // end i loop
+	    } // for k
+	    break;
+	case WEST:
+	    i = bd.imin;
+	    for (k = bd.kmin; k <= bd.kmax; ++k) {
+		for (j = bd.jmin; j <= bd.jmax; ++j) {
+		    reorient_vector_quantities_in_cell(bd.get_cell(i-1,j,k), Rmatrix); // ghost cell 1.
+		    reorient_vector_quantities_in_cell(bd.get_cell(i-2,j,k), Rmatrix); // ghost cell 2.
+		} // end j loop
+	    } // for k
+	    break;
+	case TOP:
+	    k = bd.kmax;
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		for (j = bd.jmin; j <= bd.jmax; ++j) {
+		    reorient_vector_quantities_in_cell(bd.get_cell(i,j,k+1), Rmatrix); // ghost cell 1.
+		    reorient_vector_quantities_in_cell(bd.get_cell(i,j,k+2), Rmatrix); // ghost cell 2.
+		} // end j loop
+	    } // for i
+	    break;
+	case BOTTOM:
+	    k = bd.kmin;
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		for (j = bd.jmin; j <= bd.jmax; ++j) {
+		    reorient_vector_quantities_in_cell(bd.get_cell(i,j,k-1), Rmatrix); // ghost cell 1.
+		    reorient_vector_quantities_in_cell(bd.get_cell(i,j,k-2), Rmatrix); // ghost cell 2.
+		} // end j loop
+	    } // for i
+	} // end switch...
+    } // end if reorient_vector_quantities
+    UserDefinedBC::apply_convective(t);
+    return SUCCESS;
 }

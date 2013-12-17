@@ -7,7 +7,7 @@
  **/
 
 #include <iostream>
-#include <valarray>
+#include <vector>
 
 #include "no_fuss_linear_algebra.hh"
 
@@ -31,21 +31,21 @@ int main()
     Valmatrix A(2,2);
     A.set(0, 0, 0.00300); A.set(0, 1, 59.14);
     A.set(1, 0, 5.291); A.set(1, 1, -6.130);
-    valarray<double> B(2);
+    vector<double> B(2);
     B[0] = 59.17;
     B[1] = 46.78;
 
     cout << "A= \n";
     cout << A;
     cout << "B= ";
-    print_valarray(B);
+    print_vector(B);
 
-    valarray<double> x(2);
+    vector<double> x(2);
 
     gaussian_elimination(A, x, B);
 
     cout << "x= ";
-    print_valarray(x);
+    print_vector(x);
     cout << "The answer should be x= [10.0, 1.0]\n";
     cout << "See Example 2. on p. 340 of Burden & Faires\n";
 
@@ -58,20 +58,20 @@ int main()
 
     cout << "A= \n";
     cout << A2;
-    valarray<double> B2(3);
+    vector<double> B2(3);
     B2[0] = 2.0; B2[1] = -1.0; B2[2] = 6.0;
     cout << "B= ";
-    print_valarray(B2);
+    print_vector(B2);
 
-    valarray<double> x2(3);
+    vector<double> x2(3);
     gaussian_elimination( A2, x2, B2 );
     cout << "After call to gaussian_elimination():\n";
     cout << "A= \n";
     cout << A2;
     cout << "B= ";
-    print_valarray(B2);
+    print_vector(B2);
     cout << "x= ";
-    print_valarray(x2);
+    print_vector(x2);
 
     cout << "The answer should be x= [2.0, 0.0, -3.0]\n";
 
@@ -87,7 +87,7 @@ int main()
     gaussian_elimination( A2, x2, B2, true );
    
     cout << "x= ";
-    print_valarray(x2);
+    print_vector(x2);
 
     cout << "4. Example from p. 130 of Gerald and Wheatley...\n";
     cout << "Solve Ax = b where:\n";
@@ -100,25 +100,25 @@ int main()
     cout << "A= \n";
     cout << AA;
     
-    valarray<double> BB(4);
+    vector<double> BB(4);
     BB[0] = 0.0; BB[1] = -2.0; BB[2] = -7.0; BB[3] = 6.0;
     cout << "BB= ";
-    print_valarray(BB);
+    print_vector(BB);
 
-    valarray<double> xx(4);
+    vector<double> xx(4);
     gaussian_elimination(AA, xx, BB);
     cout << "After call to gaussian_elimination():\n";
     cout << "A= \n";
     cout << AA;
     cout << "BB= ";
-    print_valarray(BB);
+    print_vector(BB);
     cout << "xx= ";
-    print_valarray(xx);
+    print_vector(xx);
     cout << "The answer should be x= [ -0.5, 1, 0.333, -2 ]\n";
 
 
     Valmatrix T(4,3);
-    valarray<double> tau1(3);
+    vector<double> tau1(3);
     T.set(0, 0, 4.0); T.set(0, 1, 3.0); T.set(0, 2, 5.0);
     T.set(1, 0, 19.0); T.set(1, 1, 47.9); T.set(1, 2, 7.0);
     T.set(2, 0, -2.0); T.set(2, 1, 107.0); T.set(2, 2, -89.0);
@@ -127,19 +127,19 @@ int main()
     cout << "with matrix T=\n";
     cout << T;
     cout << "and solution vector, b= \n";
-    valarray<double> p(3);
-    valarray<double> b(4);
+    vector<double> p(3);
+    vector<double> b(4);
     b[0] = 33.0;
     b[1] = -17.5;
     b[2] = -88.3;
     b[3] = 5.4;
 
-    print_valarray(b);
+    print_vector(b);
 
     least_squares_solve(T, p, b);
 
     cout << "Answer= " << endl;
-    print_valarray(p);
+    print_vector(p);
 
     cout << "The answer given by octave is:\n";
     cout << "x = \n\n";
@@ -159,16 +159,16 @@ int main()
     
     BB[0] = 0.0; BB[1] = -2.0; BB[2] = -7.0; BB[3] = 6.0;
     cout << "BB= ";
-    print_valarray(BB);
+    print_vector(BB);
 
     QR_solve(AA, xx, BB);
     cout << "After call to QR_solve():\n";
     cout << "A= \n";
     cout << AA;
     cout << "BB= ";
-    print_valarray(BB);
+    print_vector(BB);
     cout << "xx= ";
-    print_valarray(xx);
+    print_vector(xx);
     cout << "The answer should be x= [ -0.5, 1, 0.333, -2 ]\n";
 
     return 0;

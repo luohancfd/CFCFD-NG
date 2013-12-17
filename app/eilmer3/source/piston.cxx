@@ -984,6 +984,7 @@ int Piston::set_values(size_t id,
 		       vector<double> bore_resistance_f,
 		       vector<double> bore_resistance_x)
 {
+    global_data &G = *get_global_data_ptr();
     if (DB0) cout << "entering set_values()" << endl;
 
     id_ = id;
@@ -992,7 +993,7 @@ int Piston::set_values(size_t id,
 
     diam_ = D;
     // Once D is known, set area_
-    if (get_axisymmetric_flag() == 1) {
+    if ( G.axisymmetric ) {
 	area_ = (M_PI*D*D/4.0)/(2.0*M_PI); // area per radian
     }
     else {
@@ -1015,7 +1016,7 @@ int Piston::set_values(size_t id,
     vtx_[0] = Vector3(x-(L/2.0), 0.0, 0.0);
     vtx_[1] = Vector3(x+(L/2.0), 0.0, 0.0);
 
-    if (get_axisymmetric_flag() == 1) {
+    if ( G.axisymmetric ) {
 	vtx_[2] = Vector3(x+(L/2.0), D/2.0, 0.0);
 	vtx_[3] = Vector3(x-(L/2.0), D/2.0, 0.0);
     }
@@ -1381,14 +1382,14 @@ Attempt the piston dynamics subproblem
 	dF += wPistonFace[jp]->get_dF() - ePistonFace[jp]->get_dF();
     }
 
-    if (get_axisymmetric_flag() == 1) {
+    if ( G.axisymmetric ) {
 	dF *= 2.0*M_PI;
     }
     
     dR = wPistonFace[0]->get_dR()*m_*GRAVITY;
 
     // WARNING: the piston will oscillate rather than stopping inside the chamber
-    if (FABS(dF) > dR || FABS(vel_.x) > 0.0) dF = dF - SIGN(vel_.x)*dR; 
+    if (fabs(dF) > dR || fabs(vel_.x) > 0.0) dF = dF - SIGN(vel_.x)*dR; 
     else dF = 0.0;
 
     if (beta_ == 0)
@@ -2270,6 +2271,7 @@ int print_gas_fluxes(FV_Cell *cell)
 
 int update_cell_geometry_based_on_vertices(FV_Cell *cell)
 {
+    global_data &G = *get_global_data_ptr();
     Vector3 A, B, C, D;
     double xyarea;
 
@@ -2301,7 +2303,7 @@ int update_cell_geometry_based_on_vertices(FV_Cell *cell)
 	 (D.x - C.x) * (C.y * C.y + C.y * D.y + D.y * D.y) + 
 	 (A.x - D.x) * (D.y * D.y + D.y * A.y + A.y * A.y));
 
-    if (get_axisymmetric_flag() == 1) {
+    if ( G.axisymmetric ) {
 	cell->volume[0] = xyarea * cell->pos[0].y; // volume per unit radian
     } else {
 	cell->volume[0] = xyarea * 1.0; // volume per unit depth
@@ -2356,6 +2358,7 @@ int update_cell_geometry_based_on_vertices(FV_Cell *cell)
 
 int update_interface_geometry_based_on_vertices(FV_Interface *iface, Vector3 vtxL, Vector3 vtxR)
 {
+    global_data &G = *get_global_data_ptr();
     if (DB0) cout << "entering update_interface_geometry_based_on_vertices()" << endl;
     double L;
     
@@ -2366,7 +2369,7 @@ int update_interface_geometry_based_on_vertices(FV_Interface *iface, Vector3 vtx
     
     iface->length = L;
     iface->Ybar = 0.5*(vtxR.y + vtxL.y);
-    if (get_axisymmetric_flag() == 1) {
+    if ( G.axisymmetric ) {
 	// Area per unit radian
 	iface->area[0] = L * iface->Ybar;
     } else {

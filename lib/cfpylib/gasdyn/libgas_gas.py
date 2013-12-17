@@ -5,6 +5,7 @@ cfpylib/gasdyn interface.
 
 .. Author: Peter J Blyton
 .. Version: 21/06/2012
+.. Version: 11-Dec-2013 generalised a little by PeterJ
 """
 
 from ..nm.zero_solvers import secant
@@ -20,20 +21,36 @@ class Gas(object):
     """
     Provides the place to hold the libgas gas data object and gas model object.
     """
-    def __init__(self, name='CO2.FLD', gasModelType='real gas REFPROP'):
+    def __init__(self, fname='gas-model.lua', massf=None, molef=None):
         """
-        Set up the libgas model from the specified gas model type.
+        Set up the libgas model from the generic input file.
 
-        :param species: species name for the particular gas model type
-        :param gasModelType: the particular libgas gas model type
+        :param fname: gas-model config file
+        :param massf: optional dictionary of mass fractions
+        :param molef: optional dictionary of mole fractions
+
+        Rowan's thermochemistry module uses the Lua file to define
+        the gas model, in detail.  There are so many options for 
+        this input file that we whimp out and delegate the construction
+        of a suitable file to other tools.  One such tool is gasmodel.py
+        which, in turn, delegates all of it's work to Rowan's Lua
+        program gasfile.lua.
         """
         if not libgas_ok:
-            raise ImportError("Cannot use this gas model as libgas cannot be found!")
-        self.name = name
-        self.gasModelType = gasModelType
-        self.gasModel = create_gas_file(gasModelType, [name])
+            raise ImportError("Cannot use libgas_gas model because gaspy cannot be found.")
+        self.fname = fname
+        self.gasModel = create_gas_model(fname)
         self.gasData = Gas_data(self.gasModel)
-        set_molef(self.gasData, self.gasModel, {name:1})
+        if massf is None and molef is None:
+            name0 = self.gasModel.species_name(0)
+            if name0 == "LUT": # [todo] we really need to fix the look-up-table code.
+                set_massf(self.gasData, self.gasModel, [1.0,])
+            else:
+                set_molef(self.gasData, self.gasModel, {name0:1.0})
+        elif (type(massf) is dict) or (type(massf) is list):
+            set_massf(self.gasData, self.gasModel, massf)
+        elif (type(molef) is dict) or (type(molef) is list):
+            set_molef(self.gasData, self.gasModel, molef)
         self.set_pT(100.0e3, 300.0)
         return
 
@@ -43,7 +60,9 @@ class Gas(object):
 
         :returns: the new Gas object.
         """
-        other = Gas(self.name, self.gasModelType)
+        other = Gas(self.fname)
+        nsp = self.gasModel.get_number_of_species()
+        other.gasData.massf = self.gasData.massf
         other.set_pT(self.p, self.T)
         return other
 
@@ -58,16 +77,16 @@ class Gas(object):
         self.p = p
         self.gasData.p = p
         self.T = T
-        self.gasData.T[0] = T
+        self.gasData.T[0] = T # [todo] consider all modes
         # Calculate density, sound speed, internal energy and quality if available
         self.gasModel.eval_thermo_state_pT(self.gasData)
         self.rho = self.gasData.rho
         self.a = self.gasData.a
-        self.e = self.gasData.e[0]
+        self.e = self.gasModel.mixture_internal_energy(self.gasData, 0.0)
         self.quality = self.gasData.quality
         # Manually call methods to calculate other thermodynamic properties
-        self.h = self.gasModel.enthalpy(self.gasData, 0)
-        self.s = self.gasModel.entropy(self.gasData, 0)
+        self.h = self.gasModel.mixture_enthalpy(self.gasData, 0.0)
+        self.s = self.gasModel.mixture_entropy(self.gasData)
         self.R = self.gasModel.R(self.gasData)
         self.C_p = self.gasModel.Cp(self.gasData)
         self.C_v = self.gasModel.Cv(self.gasData)
@@ -75,7 +94,7 @@ class Gas(object):
         if transProps:
             self.gasModel.eval_transport_coefficients(self.gasData)
             self.mu = self.gasData.mu
-            self.k = self.gasData.k[0]
+            self.k = self.gasData.k[0] # [todo] sum over all modes
         else:
             self.mu = 0.0
             self.k = 0.0
@@ -104,12 +123,20 @@ class Gas(object):
         """
         # The libgas library does not have a pressure-entropy thermodynamic
         # state solver, so we need to do the iterative calculation ourselves.
+        gasData2 = Gas_data(self.gasModel)
+        for isp in range(self.gasModel.get_number_of_species()):
+            gasData2.massf[isp] = self.gasData.massf[isp]
         def entropy_solve(temp):
-            self.set_pT(p, temp) # calculate density
-            entropy = self.gasModel.entropy(self.gasData, 0) # entropy from temp and density
+            gasData2.p = p
+            gasData2.T[0] = temp # [todo] consider all modes
+            self.gasModel.eval_thermo_state_pT(gasData2) # calculate density
+            entropy = self.gasModel.mixture_entropy(gasData2)
+            # print "debug p=", p, "s=", s, "temp=", temp, "entropy=", entropy
             return s - entropy
-        T = secant(entropy_solve, 250.0, 260.0, tol=1.0e-4)
-        if T == "FAIL": raise Exception("Secant solver failed, bailing out!")
+        # expecting values of entropy of several thousand
+        # so we don't want the tolerance too small
+        T = secant(entropy_solve, 250.0, 260.0, tol=0.01)
+        if T == "FAIL": raise Exception("set_ps(): Secant solver failed.")
         return self.set_pT(p, T, transProps)
 
     def write_state(self, strm):
@@ -122,3 +149,27 @@ class Gas(object):
                    % (self.R, self.gam, self.C_p, self.mu, self.k) )
         strm.write('    name: %s\n' % self.name)
         return
+
+def make_gas_from_name(gasName):
+    """
+    Manufacture a Gas object from a small library of options.
+
+    :param gasName: one of the names for the special cases set out below.
+    """
+    if gasName.lower() in ['co2-refprop']:
+        os.system('gasmodel.py --model="real gas REFPROP"'+
+                  ' --species="CO2.FLD" --output="co2-refprop.lua"')
+        return Gas('co2-refprop.lua')
+    elif gasName.lower() in ['co2-bender']:
+        os.system('gasmodel.py --model="real gas Bender"'+
+                  ' --species="CO2" --output="co2-bender.lua"')
+        return Gas('co2-bender.lua')
+    elif gasName.lower() in ['air-thermally-perfect']:
+        os.system('gasmodel.py --model="thermally perfect gas" --species="N2 O2"')
+        return Gas('gas-model.lua', molef={'O2':0.21, 'N2':0.79})
+    elif gasName.lower() in ['r134a-refprop']:
+        os.system('gasmodel.py --model="real gas REFPROP"'+
+                  ' --species="R134A.FLD" --output="r134a-refprop.lua"')
+        return Gas('r134a-refprop.lua')
+    else:
+        raise Exception, 'make_gas_from_name(): unknown gasName: %s' % gasName

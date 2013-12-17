@@ -54,7 +54,7 @@ const bool check_array_bounds = true;
 class Block {
 public:
     size_t id; // block identifier: assumed to be the same as the block number.
-    int active; // =1: active block; =0: inactive block
+    bool active; // if true, block participates in the time integration
 
     double omegaz; // Angular velocity (in rad/s) of the rotating frame.
                    // There is only one component, about the z-axis.
@@ -85,10 +85,6 @@ public:
     size_t kmin, kmax;
 
     std::vector<FV_Cell *> active_cells; // to be used in range for statements.
-
-    // Flag to indicate if the Baldwin-Lomax turbulence model 
-    // is active for the current block. 1==active; 0==inactive;
-    int baldwin_lomax_iturb;
 
     // boundary-condition object pointers.
     std::vector<BoundaryCondition *> bcp;

@@ -11,6 +11,7 @@ The classes and functions will then be available for use in the user's input scr
 """
 
 import sys
+import numpy
 from libprep3 import *
 # Dictionaries to look up face index values from name or number.
 from e3_defs import *
@@ -368,10 +369,33 @@ for vpairs in connectionDict3D.keys():
 
 # print "eilmer_orientation=", eilmer_orientation
 
+# It is handy to be able to look up the pairs, especially for 3D blocks.
+# The following dictionary is used in check_block_connection_3D().
 vpairsDict3D = {}
 for vpairs in connectionDict3D.keys():
     this_face, other_face, orientation, axis_map = connectionDict3D[vpairs]
     vpairsDict3D[this_face, other_face, orientation] = vpairs
+
+# It is handy to be able to look up the pairs, even for 2D blocks.
+# The following dictionary is used in check_block_connection_2D().
+vpairsDict2D = {
+    (NORTH, SOUTH): [(3,0),(2,1)],
+    (NORTH, WEST):  [(3,3),(2,0)],
+    (NORTH, NORTH): [(3,2),(2,3)],
+    (NORTH, EAST):  [(3,1),(2,2)],
+    (WEST,  SOUTH): [(0,0),(3,1)],
+    (WEST,  WEST):  [(0,3),(3,0)],
+    (WEST,  NORTH): [(0,2),(3,3)],
+    (WEST,  EAST):  [(0,1),(3,2)],
+    (SOUTH, SOUTH): [(1,0),(0,1)],
+    (SOUTH, WEST):  [(1,3),(0,0)],
+    (SOUTH, NORTH): [(1,2),(0,3)],
+    (SOUTH, EAST):  [(1,1),(0,2)],
+    (EAST,  SOUTH): [(2,0),(1,1)],
+    (EAST,  WEST):  [(2,3),(1,0)],
+    (EAST,  NORTH): [(2,2),(1,3)],
+    (EAST,  EAST):  [(2,1),(1,2)]
+}
 
 def to_eilmer_axis_map(this_ijk):
     """
@@ -512,8 +536,11 @@ class Block(object):
 
     def set_BC(self, face_name, type_of_BC,
                inflow_condition=None, x_order=0, sponge_flag=None,
-               Twall=None, Pout=None, filename=None, n_profile=1,
+               Twall=None, Pout=None, 
+               r_omega=None, centre=None, v_trans=None, 
+               filename=None, n_profile=1,
                is_wall=0, sets_conv_flux=0, sets_visc_flux=0,
+               reorient_vector_quantities=False, Rmatrix=None,
                assume_ideal=0, mdot=None, emissivity=None,
                Twall_i=None, Twall_f=None, t_i=None, t_f=None,
                label=''):
@@ -532,6 +559,10 @@ class Block(object):
             in degrees Kelvin.
         :param Pout: If appropriate, specify the value of static pressure
             (in Pascals) just outside the boundary.
+        :param r_omega: If appropriate, specify the value of angular velocity
+            (in rad/s) of the wall.
+
+        ** FIX-ME ** rest of parameters not described
 
         Sometimes it is good to be able to adjust properties after
         block creation; this function provides that capability.
@@ -604,6 +635,8 @@ class Block(object):
             newbc = StaticProfBC(filename, n_profile, label=label)
         if type_of_BC == FIXED_P_OUT:
             newbc = FixedPOutBC(Pout, x_order, label=label)
+        if type_of_BC == MOVING_WALL:
+            newbc = MovingWallBC(r_omega, centre, v_trans, label=label)
         if type_of_BC == RRM:
             newbc = RRMBC(sponge_flag, label=label)
         if type_of_BC == USER_DEFINED:
@@ -701,9 +734,17 @@ class Block(object):
             fp.write("xforce_flag = %d\n" % self.xforce_list[iface])
             fp.write("Twall = %e\n" % bc.Twall)
             fp.write("Pout = %e\n" % bc.Pout)
+            fp.write("r_omega = %e %e %e\n" % (bc.r_omega[0], bc.r_omega[1], bc.r_omega[2]))
+            fp.write("centre = %e %e %e\n" % (bc.centre[0], bc.centre[1], bc.centre[2]))
+            fp.write("v_trans = %e %e %e\n" % (bc.v_trans[0], bc.v_trans[1], bc.v_trans[2]))
             fp.write("is_wall = %d\n" % bc.is_wall)
             fp.write("sets_conv_flux = %d\n" % bc.sets_conv_flux)
             fp.write("sets_visc_flux = %d\n" % bc.sets_visc_flux)
+            fp.write("reorient_vector_quantities = %s\n" % bc.reorient_vector_quantities)
+            fp.write("Rmatrix = %.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e\n" %
+                     (bc.Rmatrix[0], bc.Rmatrix[1], bc.Rmatrix[2],
+                      bc.Rmatrix[3], bc.Rmatrix[4], bc.Rmatrix[5],
+                      bc.Rmatrix[6], bc.Rmatrix[7], bc.Rmatrix[8]))
             fp.write("assume_ideal = %d\n" % bc.assume_ideal)
             fp.write("mdot = ")
             for val in bc.mdot:
@@ -990,7 +1031,10 @@ class Block2D(Block):
     
 def connect_blocks_2D(A, faceA, B, faceB, with_udf=0, 
                       filename=None, is_wall=0,
-                      sets_conv_flux=0, sets_visc_flux=0):
+                      sets_conv_flux=0, sets_visc_flux=0,
+                      check_corner_locations=True,
+                      reorient_vector_quantities=False,
+                      nA=None, t1A=None, nB=None, t1B=None):
     """
     Make the face-to-face connection between neighbouring blocks.
 
@@ -1000,27 +1044,86 @@ def connect_blocks_2D(A, faceA, B, faceB, with_udf=0,
     :param B: second Block2D object
     :param faceB: indicates which face of block B is to be connected.
         The constants NORTH, EAST, SOUTH, and WEST may be convenient to use.
+    :param is_wall: passed through to the AdjacentPlusUDFBC if with_udf is True
+    :param sets_conv_flux: passed through to the AdjacentPlusUDFBC if with_udf is True
+    :param sets_visc_flux: passed through to the AdjacentPlusUDFBC if with_udf is True
+    :param check_corner_locations: set True (default) to check that the face corners are colocated
+    :param reorient_vector_quantities: if true, apply the rotation matrix to the incoming
+    vector data.  The rotation matrix is built from the nominal direction vectors of both faces.
+    :param nA:
+    :param t1A: the nominal direction vectors for face A
+    :param nB:
+    :param t1B: the nominal direction vectors for face B
     """
     assert isinstance(A, Block2D)
     assert isinstance(B, Block2D)
     assert faceA in faceList2D
     assert faceB in faceList2D
-    print "connect block", A.blkId, "face", faceName[faceA], \
+    if reorient_vector_quantities and nA and t1A and nB and t1B:
+        RmatrixBtoA = make_rotation_matrix_BtoA(nA, t1A, nB, t1B)
+    else:
+        # With no information, assume identity.
+        RmatrixBtoA = numpy.eye(3,dtype=float).flatten()
+    print "connect_blocks_2D(): connect block", A.blkId, "face", faceName[faceA], \
           "to block", B.blkId, "face", faceName[faceB]
+    RmatrixAtoB = numpy.transpose(RmatrixBtoA)
     if with_udf:
         # Exchange connection with user-defined function.
         A.bc_list[faceA] = AdjacentPlusUDFBC(B.blkId, faceB, filename=filename, 
                                              is_wall=is_wall,
-                                             sets_conv_flux=sets_conv_flux, sets_visc_flux=sets_visc_flux)
+                                             sets_conv_flux=sets_conv_flux, sets_visc_flux=sets_visc_flux,
+                                             reorient_vector_quantities=reorient_vector_quantities,
+                                             Rmatrix=list(RmatrixBtoA))
         B.bc_list[faceB] = AdjacentPlusUDFBC(A.blkId, faceA, filename=filename, 
                                              is_wall=is_wall,
-                                             sets_conv_flux=sets_conv_flux, sets_visc_flux=sets_visc_flux)
+                                             sets_conv_flux=sets_conv_flux, sets_visc_flux=sets_visc_flux,
+                                             reorient_vector_quantities=reorient_vector_quantities,
+                                             Rmatrix=list(RmatrixAtoB))
     else:
         # Classic exchange connection.
-        A.bc_list[faceA] = AdjacentBC(B.blkId, faceB)
-        B.bc_list[faceB] = AdjacentBC(A.blkId, faceA)
+        A.bc_list[faceA] = AdjacentBC(B.blkId, faceB, 
+                                      reorient_vector_quantities=reorient_vector_quantities,
+                                      Rmatrix=list(RmatrixBtoA))
+        B.bc_list[faceB] = AdjacentBC(A.blkId, faceA, 
+                                      reorient_vector_quantities=reorient_vector_quantities,
+                                      Rmatrix=list(RmatrixAtoB))
+    if check_corner_locations and (not check_block_connection_2D(A, faceA, B, faceB)):
+        print "connect_blocks_2D(): Block vertex locations not consistent for this connection."
+    if not cell_count_consistent_2D(A, faceA, B, faceB):
+        print "connect_blocks_2D(): Cell counts not consistent for this connection."
     return
 
+def check_block_connection_2D(blkA, faceA, blkB, faceB, tolerance=1.0e-6):
+    """
+    Returns True if blocks connect at the corners of the specified faces.
+    """
+    vtx_pairs = vpairsDict2D[faceA, faceB]
+    for iA, iB in vtx_pairs:
+        if vabs(blkA.vtx[iA] - blkB.vtx[iB]) <= tolerance:
+            continue
+        else:
+            print "Corners of grid do not match."
+            print "blkA= ", blkA.blkId, " vtxA= ", iA, " pos= ", blkA.vtxA[iA]
+            print "blkB= ", blkB.blkId, " vtxB= ", iB, " pos= ", blkB.vtxB[iB]
+            return False
+    #
+    # If we get this far, then all is ok.
+    return True
+
+def cell_count_consistent_2D(blkA, faceA, blkB, faceB):
+    """
+    Returns True if the cell-discretization matches for the faces, False otherwise.
+    """
+    if (faceA == NORTH or faceA == SOUTH) and (faceB == NORTH or faceB == SOUTH):
+        return blkA.nni == blkB.nni
+    if (faceA == NORTH or faceA == SOUTH) and (faceB == EAST or faceB == WEST):
+        return blkA.nni == blkB.nnj
+    if (faceA == EAST or faceA == WEST) and (faceB == NORTH or faceB == SOUTH):
+        return blkA.nnj == blkB.nni
+    if (faceA == EAST or faceA == WEST) and (faceB == WEST or faceB == EAST):
+        return blkA.nnj == blkB.nnj
+    raise runtime_error("cell_count_consistent_2D(): we should noot have reached this point")
+    return False
 
 def identify_block_connections_2D(block_list=None, exclude_list=[], tolerance=1.0e-6):
     """
@@ -1411,7 +1514,7 @@ class Block3D(Block):
     __slots__ = 'blkId', 'nni', 'nnj', 'nnk', 'label', \
                 'parametric_volume', 'grid', 'cf_list', 'hcell_list', \
                 'fill_condition', 'omegaz', 'active', \
-                'bc_list', 'Twall_list', 'Pout_list', \
+                'bc_list', 'Twall_list', 'Pout_list', 'r_omega_list', \
                 'xforce_list', 'wc_bc_list', 'sponge_flag_list', \
                 'vertex_location_list', 'neighbour_vertex_list'
               
@@ -1538,6 +1641,7 @@ class Block3D(Block):
         self.bc_list = copy.copy(bc_list)
         self.Twall_list = [300.0,] * 6
         self.Pout_list = [100.0e3,] * 6
+        self.r_omega_list = [100.0,] * 6
         self.sponge_flag_list = [0,] * 6
         #
         # Connections to other blocks are initialized to None
@@ -1907,15 +2011,65 @@ def identify_colocated_vertices(A, B, tolerance):
             if vabs(A.vtx[iA] - B.vtx[iB]) <= tolerance: vtxPairList.append((iA,iB))
     return vtxPairList
 
+def make_rotation_matrix_BtoA(nA, t1A, nB, t1B):
+    """
+    A rotation matrix to transform vector triplet B into triplet A.
+
+    :param nA: normal unit-vector at A
+    :param t1A: first tangent unit-vector at A
+    :param nB: normal unit-vector at B
+    :param t1B: first tangent unit vector at B
+    """
+    if type(nA) is list: nA = Vector(nA[0], nA[1], nA[2])
+    if type(t1A) is list: t1A = Vector(t1A[0], t1A[1], t1A[2])
+    if type(nB) is list: nB = Vector(nB[0], nB[1], nB[2])
+    if type(t1B) is list: t1B = Vector(t1B[0], t1B[1], t1B[2])
+    nA.norm() # We're going to take this as the principal direction.
+    t2A = cross(nA, t1A) # make the second tangent orthogonal to the original plane
+    t2A.norm()
+    t1A = cross(t2A, nA) # make sure that the first tangent is orthogonal
+    nB.norm()
+    t2B = cross(nB, t1A)
+    t2B.norm()
+    t1B = cross(t2B, nB)
+    # The rotation matrix transforms the local triplet B into the local triplet A.
+    mat = numpy.array([
+            [nB.x,  nB.y,  nB.z,  0.0,   0.0,   0.0,   0.0,   0.0,   0.0],
+            [0.0,   0.0,   0.0,   nB.x,  nB.y,  nB.z,  0.0,   0.0,   0.0],
+            [0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   nB.x, nB.y,  nB.z],
+            [t1B.x, t1B.y, t1B.z, 0.0,   0.0,   0.0,   0.0,   0.0,   0.0],
+            [0.0,   0.0,   0.0,   t1B.x, t1B.y, t1B.z, 0.0,   0.0,   0.0],
+            [0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   t1B.x, t1B.y, t1B.z],
+            [t2B.x, t2B.y, t2B.z, 0.0,   0.0,   0.0,   0.0,   0.0,   0.0],
+            [0.0,   0.0,   0.0,   t2B.x, t2B.y, t2B.z, 0.0,   0.0,   0.0],
+            [0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   t2B.x, t2B.y, t2B.z]])
+    rhs = numpy.array([nA.x, nA.y, nA.z, t1A.x, t1A.y, t1A.z, t2A.x, t2A.y, t2A.z])
+    Rmatrix = numpy.linalg.solve(mat, rhs)
+    print "Rmatrix=", Rmatrix
+    return Rmatrix
+
 def connect_blocks_3D(A, B, vtx_pairs, with_udf=0, 
                       filename=None, is_wall=0,
-                      sets_conv_flux=0, sets_visc_flux=0):
+                      sets_conv_flux=0, sets_visc_flux=0,
+                      check_corner_locations=True,
+                      reorient_vector_quantities=False,
+                      nA=None, t1A=None, nB=None, t1B=None):
     """
     Make the specified vertex-to-vertex connection between neighbouring blocks.
 
     :param A: Block3D object
     :param B: Block3D object
     :param vtxPairs: list of 4 pairs of vertex indices specifying the corresponding corners. 
+    :param is_wall: passed through to the AdjacentPlusUDFBC if with_udf is True
+    :param sets_conv_flux: passed through to the AdjacentPlusUDFBC if with_udf is True
+    :param sets_visc_flux: passed through to the AdjacentPlusUDFBC if with_udf is True
+    :param check_corner_locations: set True (default) to check that the face corners are colocated
+    :param reorient_vector_quantities: if true, apply the rotation matrix to the incoming
+    vector data.  The rotation matrix is built from the nominal direction vectors of both faces.
+    :param nA:
+    :param t1A: the nominal direction vectors for face A
+    :param nB:
+    :param t1B: the nominal direction vectors for face B
     """
     print "connect_blocks(): begin..."
     if not isinstance(vtx_pairs, list):
@@ -1934,32 +2088,46 @@ def connect_blocks_3D(A, B, vtx_pairs, with_udf=0,
         print "   vtx_pairs=", vtx_pairs
         faceA = -1; faceB = -1; orientation = 0
         sys.exit(-1)
-    print "connect block", A.blkId, "face", faceName[faceA], \
+    if reorient_vector_quantities and nA and t1A and nB and t1B:
+        RmatrixBtoA = make_rotation_matrix_BtoA(nA, t1A, nB, t1B)
+    else:
+        # With no information, assume identity.
+        RmatrixBtoA = numpy.eye(3,dtype=float).flatten()
+    RmatrixAtoB = numpy.transpose(RmatrixBtoA)
+    print "connect_blocks_3D(): connect block", A.blkId, "face", faceName[faceA], \
           "to block", B.blkId, "face", faceName[faceB]
     if with_udf:
         # Exchange connection with user-defined function
         A.bc_list[faceA] = AdjacentPlusUDFBC(B.blkId, faceB, orientation, filename=filename, 
                                              is_wall=is_wall,
-                                             sets_conv_flux=sets_conv_flux, sets_visc_flux=sets_visc_flux)
+                                             sets_conv_flux=sets_conv_flux, sets_visc_flux=sets_visc_flux,
+                                             reorient_vector_quantities=reorient_vector_quantities,
+                                             Rmatrix=list(RmatrixBtoA))
         B.bc_list[faceB] = AdjacentPlusUDFBC(A.blkId, faceA, orientation, filename=filename, 
                                              is_wall=is_wall,
-                                             sets_conv_flux=sets_conv_flux, sets_visc_flux=sets_visc_flux)
+                                             sets_conv_flux=sets_conv_flux, sets_visc_flux=sets_visc_flux,
+                                             reorient_vector_quantities=reorient_vector_quantities,
+                                             Rmatrix=list(RmatrixAtoB))
     else:
         # Classic exchange connection.
-        A.bc_list[faceA] = AdjacentBC(B.blkId, faceB, orientation)
-        B.bc_list[faceB] = AdjacentBC(A.blkId, faceA, orientation)
+        A.bc_list[faceA] = AdjacentBC(B.blkId, faceB, orientation, 
+                                      reorient_vector_quantities=reorient_vector_quantities,
+                                      Rmatrix=list(RmatrixBtoA))
+        B.bc_list[faceB] = AdjacentBC(A.blkId, faceA, orientation, 
+                                      reorient_vector_quantities=reorient_vector_quantities,
+                                      Rmatrix=list(RmatrixAtoB))
     #
-    if not check_block_connection_3D(A, faceA, B, faceB, orientation):
-        print "connect_blocks(): Block vertex locations not consistent for this connection."
+    if check_corner_locations and (not check_block_connection_3D(A, faceA, B, faceB, orientation)):
+        print "connect_blocks_3D(): Block vertex locations not consistent for this connection."
         print "   vtx_pairs=", vtx_pairs
     if not cell_count_consistent_3D(A, faceA, B, faceB, orientation):
-        print "connect_blocks(): Cell counts not consistent for this connection."
+        print "connect_blocks_3D(): Cell counts not consistent for this connection."
         print "   vtx_pairs=", vtx_pairs
     #
     for vtxA, vtxB in vtx_pairs:
         A.neighbour_vertex_list[faceA][vtxA] = vtxB
         B.neighbour_vertex_list[faceB][vtxB] = vtxA
-    print "connect_blocks(): done."
+    print "connect_blocks_3D(): done."
     return
 
 def check_block_connection_3D(blkA, faceA, blkB, faceB, orientation, tolerance=1.0e-6):
@@ -1981,9 +2149,9 @@ def check_block_connection_3D(blkA, faceA, blkB, faceB, orientation, tolerance=1
 
 def cell_count_consistent_3D(blkA, faceA, blkB, faceB, orientation):
     """
-    Returns logical 1 if the cell-discretization matches for the faces.
+    Returns True if the cell-discretization matches for the faces, False otherwise.
     """
-    result_flag = 0
+    result_flag = False
     #
     if (faceA == NORTH or faceA == SOUTH) and (faceB == NORTH or faceB == SOUTH):
         if orientation == 0 or orientation == 2:

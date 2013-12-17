@@ -31,6 +31,15 @@ using namespace std;
 // Constructors accept Cartesian coordinates or another vector.
 Vector3::Vector3( double x, double y, double z )
     : x(x), y(y), z(z) {} 
+Vector3::Vector3( std::vector<double> &v )
+{
+    switch ( v.size() ) {
+    case 0: x = 0.0; y = 0.0; z = 0.0; break;
+    case 1: x = v[0]; y = 0.0; z = 0.0; break;
+    case 2: x = v[0]; y = v[1]; z = 0.0; break;
+    default: x = v[0]; y = v[1]; z = v[2];
+    }
+}
 Vector3::Vector3( const Vector3 &v )
     : x(v.x), y(v.y), z(v.z) {}
 Vector3::~Vector3() {}
