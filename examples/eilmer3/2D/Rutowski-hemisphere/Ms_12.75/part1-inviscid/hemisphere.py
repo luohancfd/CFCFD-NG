@@ -138,7 +138,7 @@ gdata.print_count = 20
 # flux calc options
 # gdata.compression_tolerance = -0.5
 
-sketch.scales(0.3/Rn, 0.3/Rn)
+sketch.scales(0.03/Rn, 0.03/Rn)
 sketch.origin(0.0, 0.0)
-sketch.xaxis(-1.5*Rn, 0.0, 0.25*Rn, -0.1*Rn)
-sketch.yaxis(0.0, 1.5*Rn, 0.25*Rn, 0.0)
+sketch.xaxis(-2.0e-2, 0.0, 0.5e-2, -0.3e-2)
+sketch.yaxis(0.0, 4.0e-2, 1.0e-2, -0.3e-2)
