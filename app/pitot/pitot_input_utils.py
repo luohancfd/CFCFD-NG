@@ -91,7 +91,10 @@ def make_test_gas(gasName, outputUnits='moles'):
                    outputUnits=outputUnits), None    
     elif gasName.lower() == 'gasgiant_h210ne': #composition used in Chris James' undergrad thesis
         return Gas(reactants={'H2':0.9, 'Ne':0.10}, inputUnits='moles', with_ions=True,
-                   outputUnits=outputUnits), None                  
+                   outputUnits=outputUnits), None
+    elif gasName.lower() == 'h2':
+        return Gas(reactants={'H2':1.0}, inputUnits='moles', with_ions=True,
+                   outputUnits=outputUnits), None                   
     else:
         raise Exception, 'make_test_gas(): unknown gasName: %s' % gasName 
    
