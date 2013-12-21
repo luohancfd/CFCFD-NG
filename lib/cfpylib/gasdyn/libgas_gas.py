@@ -135,7 +135,7 @@ class Gas(object):
             return s - entropy
         # expecting values of entropy of several thousand
         # so we don't want the tolerance too small
-        T = secant(entropy_solve, 250.0, 260.0, tol=0.01)
+        T = secant(entropy_solve, 250.0, 260.0, tol=1.0e-4)
         if T == "FAIL": raise Exception("set_ps(): Secant solver failed.")
         return self.set_pT(p, T, transProps)
 
