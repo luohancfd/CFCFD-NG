@@ -7,7 +7,6 @@
 SYSTEM := $(shell uname -s)
 ARCH   := $(shell uname -m)
 
-
 ifeq ($(findstring MINGW32, $(SYSTEM)), MINGW32)
     # MINGW32 environment on MS-Windows
     TCL_DIR := /c/Tcl
@@ -141,10 +140,10 @@ endif
 
 ifeq ($(TARGET), for_gnu_debug)
     # UNIX/Linux workstation with the GNU C compiler and debug+profiling
-    COMPILE := gcc 
-    LINK    := gcc
-    CXXCOMPILE := g++
-    CXXLINK := g++
+    COMPILE := gcc$(GNU_SUFFIX) 
+    LINK    := gcc$(GNU_SUFFIX)
+    CXXCOMPILE := g++$(GNU_SUFFIX)
+    CXXLINK := g++$(GNU_SUFFIX)
     # Unix/Linux is default
     CFLAG   := -c -fPIC -W -Wall -pedantic -ggdb $(MARCH_FLAG)
     LFLAG   := -fPIC -pedantic -ggdb $(MARCH_FLAG)
