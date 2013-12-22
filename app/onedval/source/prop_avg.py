@@ -106,7 +106,7 @@ def compute_fluxes(cells, var_map, species, gmodel, special_fns):
     
     # Process any special fns.
     # Special fns may like to know total flux and area
-    fluxes = {'mass':f_mass, 'mom':f_mom, 'energy':f_energy}
+    fluxes = {'mass':f_mass, 'mom':f_mom, 'energy':f_energy, 'species':f_sp}
     
     for c in cells:
 	dA = c.area()

@@ -213,7 +213,6 @@ def main():
         print "on to the next slice and ignore the 'bad' slice."
         cfg['skip_bad_slices'] = True
 
-    
     # 2. Read data from slices and process
     print "onedval: Reading in data from slice(s)"
     f = open(cfg['output_file'], 'w')
@@ -334,7 +333,7 @@ def main():
                 phis, result = stream_thrust_avg(cells, cfg['one_d_outputs'], cfg['variable_map'], cfg['species'], gmodel)
                 if result != 'success':
                     print "WARNING: Something went wrong trying to compute flux-conserved averages for slice: ", slice_file
-                    if cfg['skip_bad_cells']:
+                    if cfg['skip_bad_slices']:
                         print "Skipping this slice and continuing."
                     else:
                         print "Bailing out at this point because 'skip_bad_cells' is set to false."
