@@ -636,7 +636,7 @@ class Block(object):
         if type_of_BC == FIXED_P_OUT:
             newbc = FixedPOutBC(Pout, x_order, label=label)
         if type_of_BC == MOVING_WALL:
-            newbc = MovingWallBC(r_omega, centre, v_trans, label=label)
+            newbc = MovingWallBC(r_omega, centre, v_trans, Twall, label=label)
         if type_of_BC == RRM:
             newbc = RRMBC(sponge_flag, label=label)
         if type_of_BC == USER_DEFINED:
@@ -2090,10 +2090,16 @@ def connect_blocks_3D(A, B, vtx_pairs, with_udf=0,
         sys.exit(-1)
     if reorient_vector_quantities and nA and t1A and nB and t1B:
         RmatrixBtoA = make_rotation_matrix_BtoA(nA, t1A, nB, t1B)
+        nA1 = [-nB[0], -nB[1], -nB[2]]
+        t1A1 = [-t1B[0], -t1B[1], -t1B[2]]
+        nB1 = [-nA[0], -nA[1], -nA[2]]
+        t1B1 = [-t1A[0], -t1A[1], -t1A[2]]
+        RmatrixAtoB = make_rotation_matrix_BtoA(nA1, t1A1, nB1, t1B1)
     else:
         # With no information, assume identity.
         RmatrixBtoA = numpy.eye(3,dtype=float).flatten()
-    RmatrixAtoB = numpy.transpose(RmatrixBtoA)
+        RmatrixAtoB = numpy.eye(3,dtype=float).flatten()
+     
     print "connect_blocks_3D(): connect block", A.blkId, "face", faceName[faceA], \
           "to block", B.blkId, "face", faceName[faceB]
     if with_udf:

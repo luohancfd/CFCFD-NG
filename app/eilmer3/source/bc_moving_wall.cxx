@@ -18,9 +18,9 @@
 //------------------------------------------------------------------------
 
 MovingWallBC::MovingWallBC(Block *bdp, int which_boundary, Vector3 _r_omega,
-			   Vector3 _centre, Vector3 _v_trans, double _emissivity)
+			   Vector3 _centre, Vector3 _v_trans, double Twall, double _emissivity)
     : BoundaryCondition(bdp, which_boundary, MOVING_WALL),
-      r_omega(_r_omega), centre(_centre), v_trans(_v_trans)
+      r_omega(_r_omega), centre(_centre), v_trans(_v_trans), Twall(Twall)
 {
     is_wall_flag = true;
     emissivity = _emissivity;
@@ -28,7 +28,7 @@ MovingWallBC::MovingWallBC(Block *bdp, int which_boundary, Vector3 _r_omega,
 
 MovingWallBC::MovingWallBC(const MovingWallBC &bc)
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code),
-      r_omega(bc.r_omega), centre(bc.centre), v_trans(bc.v_trans)
+      r_omega(bc.r_omega), centre(bc.centre), v_trans(bc.v_trans), Twall(bc.Twall)
 {
     is_wall_flag = bc.is_wall_flag;
     emissivity = bc.emissivity;
@@ -36,7 +36,7 @@ MovingWallBC::MovingWallBC(const MovingWallBC &bc)
 
 MovingWallBC::MovingWallBC()
     : BoundaryCondition(bdp, which_boundary, MOVING_WALL),
-      r_omega(Vector3(0.0,0.0,0.0)), centre(Vector3(0.0,0.0,0.0)), v_trans(Vector3(0.0,0.0,0.0))
+      r_omega(Vector3(0.0,0.0,0.0)), centre(Vector3(0.0,0.0,0.0)), v_trans(Vector3(0.0,0.0,0.0)), Twall(300.0)
 {
     is_wall_flag = true;
     emissivity = 1.0;
@@ -48,6 +48,7 @@ MovingWallBC & MovingWallBC::operator=(const MovingWallBC &bc)
     r_omega.x = bc.r_omega.x; r_omega.y = bc.r_omega.y; r_omega.z = bc.r_omega.z;
     centre.x = bc.centre.x; centre.y = bc.centre.y; centre.z = bc.centre.z;
     v_trans.x = bc.v_trans.x; v_trans.y = bc.v_trans.y; v_trans.z = bc.v_trans.z;
+    Twall = bc.Twall;
     return *this;
 }
 
@@ -59,6 +60,7 @@ void MovingWallBC::print_info(std::string lead_in)
     cout << lead_in << "r_omega= " << r_omega << endl;
     cout << lead_in << "centre= " << centre << endl;
     cout << lead_in << "v_trans= " << v_trans << endl;
+    cout << lead_in << "Twall= " << Twall << endl;
     return;
 }
 
@@ -72,7 +74,8 @@ int MovingWallBC::apply_viscous(double t)
     // translation velocity.  It's a bit odd but we intend to use either the 
     // rotational velocity OR the translational velocity (not both) in any
     // particular application.
-    
+    size_t nmodes = get_gas_model_ptr()->get_number_of_modes();
+
     switch ( which_boundary ) {
     case NORTH:
 	j = bd.jmax;
@@ -86,6 +89,7 @@ int MovingWallBC::apply_viscous(double t)
 		// the might consume significant CPU time.  If that becomes a problem, we'll
 		// expand the computation into component form.
 		fs.vel = cross(r_omega, IFace->pos - centre) + v_trans;
+                for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[NORTH]->wc_bc != NON_CATALYTIC) {
@@ -103,6 +107,7 @@ int MovingWallBC::apply_viscous(double t)
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel = cross(r_omega, IFace->pos - centre) + v_trans;
+                for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[EAST]->wc_bc != NON_CATALYTIC) {
@@ -120,6 +125,7 @@ int MovingWallBC::apply_viscous(double t)
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel = cross(r_omega, IFace->pos - centre) + v_trans;
+                for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[SOUTH]->wc_bc != NON_CATALYTIC) {
@@ -137,6 +143,7 @@ int MovingWallBC::apply_viscous(double t)
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel = cross(r_omega, IFace->pos - centre) + v_trans;
+                for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[WEST]->wc_bc != NON_CATALYTIC) {
@@ -154,6 +161,7 @@ int MovingWallBC::apply_viscous(double t)
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel = cross(r_omega, IFace->pos - centre) + v_trans;
+                for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[TOP]->wc_bc != NON_CATALYTIC) {
@@ -171,6 +179,7 @@ int MovingWallBC::apply_viscous(double t)
 		FlowState &fs = *(IFace->fs);
 		fs.copy_values_from(*(cell->fs));
 		fs.vel = cross(r_omega, IFace->pos - centre) + v_trans;
+                for ( size_t imode=0; imode < nmodes; ++imode ) fs.gas->T[imode] = Twall;
 		fs.tke = 0.0;
 		fs.omega = ideal_omega_at_wall(cell);
 		if (bd.bcp[BOTTOM]->wc_bc != NON_CATALYTIC) {

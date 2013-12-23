@@ -234,7 +234,10 @@ class BoundaryCondition(object):
             in the post-processing phase of a simulation.
         """
         self.type_of_BC = type_of_BC
-        self.Twall = Twall
+        if Twall is None:
+            self.Twall = 300.0
+        else:
+            self.Twall = Twall
         self.Pout = Pout
         self.inflow_condition = inflow_condition
         self.x_order = x_order
@@ -927,7 +930,7 @@ class MovingWallBC(BoundaryCondition):
     Like the AdiabaticBC, this is completey effective only when viscous
     effects are active.  Else, it is just like another solid (slip) wall.
     """
-    def __init__(self, r_omega=None, centre=None, v_trans=None, label=""):
+    def __init__(self, r_omega=None, centre=None, v_trans=None, Twall=None, label=""):
         """
         Construct a no-slip, solid-wall boundary that has a non-zero surface velocity.
 
@@ -969,14 +972,13 @@ class MovingWallBC(BoundaryCondition):
         else:
             raise RuntimeError("Invalid input for v_trans: " + str(v_trans))
         BoundaryCondition.__init__(self, type_of_BC=MOVING_WALL, 
-            r_omega=my_r_omega, centre=my_centre, v_trans=my_v_trans, label=label)
+            r_omega=my_r_omega, centre=my_centre, v_trans=my_v_trans, Twall=Twall, label=label)
         return
     def __str__(self):
-        return "MovingWallBC(r_omega=[%g,%g,%g], centre=[%g,%g,%g], v_trans=[%g,%g,%g], label=\"%s\")" % \
+        return "MovingWallBC(r_omega=[%g,%g,%g], centre=[%g,%g,%g], v_trans=[%g,%g,%g], Twall=%g, label=\"%s\")" % \
             (self.r_omega, self.label)
     def __copy__(self):
-        return MovingWallBC(r_omega=self.r_omega, centre=self.centre, v_trans=self.v_trans, label=self.label)
-
+        return MovingWallBC(r_omega=self.r_omega, centre=self.centre, v_trans=self.v_trans, Twall=self.Twall, label=self.label)
 #####################################################################################
 # FIX-ME -- should we merge the catalycity bcs with the main boundary-condition list?
 #####################################################################################

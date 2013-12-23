@@ -1028,9 +1028,10 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
         dict.parse_vector_of_doubles(section, "r_omega", r_omega, r_omega);
         dict.parse_vector_of_doubles(section, "centre", centre, centre);
         dict.parse_vector_of_doubles(section, "v_trans", v_trans, v_trans);
+        dict.parse_double(section, "Twall", Twall, 300.0);
         dict.parse_double(section, "emissivity", emissivity, 1.0);
         newBC = new MovingWallBC(bdp, which_boundary, Vector3(r_omega), Vector3(centre),
-				 Vector3(v_trans), emissivity);
+				 Vector3(v_trans), Twall, emissivity);
         break;
     default:
 	cerr << "create_BC() error: boundary condition \"" << type_of_BC 
