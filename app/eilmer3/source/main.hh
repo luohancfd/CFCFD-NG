@@ -10,8 +10,6 @@ extern "C" {
 #include <lualib.h>
 }
 
-const int CHECK_RADIATION_SCALING = 0;
-
 void ensure_directory_is_present(string pathname);
 void do_system_cmd(string commandstring);
 int prepare_to_integrate(size_t start_tindx);

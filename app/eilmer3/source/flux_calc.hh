@@ -18,8 +18,6 @@
 #include "c-flow-condition.hh"
 #include "cell.hh"
 
-const int DEBUG_FLUX = 0;
-
 /** \brief Type of flux calculation...
  *
  * \verbatim

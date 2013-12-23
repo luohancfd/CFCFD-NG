@@ -24,24 +24,6 @@
 class BoundaryCondition; // We need this forward declaration below.
 struct global_data; // ...and this
 
-/// \brief Number of ghost cells surrounding the active cells.
-///
-/// This sets the size of the ghost-cell buffer around a block.
-const size_t NGHOST = 2;
-
-/// \brief Parameters for cell checking...
-///
-/// When decoding the array of conserved quantities, 
-/// the temperature or the density may try to go negative.  
-/// If it does and adjust_invalid_cell_data == true, the cell data
-/// is adjusted to make it reasonable.
-/// If prefer_copy_from_left == true when adjusting data,
-/// the new values are obtained from the cell to the left, else
-/// the values are obtained by averaging the properties in nearby cells.
-/// These parameters affect the behaviour of function count_invalid_cells().
-const bool adjust_invalid_cell_data = true;
-const bool prefer_copy_from_left = false;
-
 const bool check_array_bounds = true;
 
 /*----------------------------------------------------------------*/

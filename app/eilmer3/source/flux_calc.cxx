@@ -132,7 +132,7 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
 	F.total_energy -= F.mass * 0.5*omegaz*omegaz*rsq;
     }
     
-#   if DEBUG_FLUX >= 1
+#   if 0
     printf("Inviscid Fluxes in local frame\n");
     F.print();
 #   endif
@@ -152,7 +152,7 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
 	F.B.transform_to_global(IFace.n, IFace.t1, IFace.t2);
     }
 	
-#   if DEBUG_FLUX >= 1
+#   if 0
     printf("Interface fluxes\n");
     printf("xyz_mom.x=%e, \nxyz_mom.y=%e, xyz_mom.z=%e\n", F.momentum.x, F.momentum.y, F.momentum.z);
     if ( G.MHD ) {

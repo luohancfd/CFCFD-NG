@@ -199,6 +199,8 @@ int read_config_parameters(const string filename, bool master)
     G.dimensions = 2;
     G.Xorder = 2;
     G.radiation = false;
+    G.adjust_invalid_cell_data = true;
+    G.nghost = 2;
 
     // variables for Andrew's time averaging routine.
     G.nav = 0;
@@ -981,19 +983,19 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
     dict.parse_size_t(section, "nni", bd.nni, 2);
     dict.parse_size_t(section, "nnj", bd.nnj, 2);
     // Allow for ghost cells
-    bd.nidim = bd.nni + 2 * NGHOST;
-    bd.njdim = bd.nnj + 2 * NGHOST;
+    bd.nidim = bd.nni + 2 * G.nghost;
+    bd.njdim = bd.nnj + 2 * G.nghost;
     // Set up min and max indices for convenience in later work.
     // Active cells should then be addressible as
     // get_cell(i,j), imin <= i <= imax, jmin <= j <= jmax.
-    bd.imin = NGHOST;
+    bd.imin = G.nghost;
     bd.imax = bd.imin + bd.nni - 1;
-    bd.jmin = NGHOST;
+    bd.jmin = G.nghost;
     bd.jmax = bd.jmin + bd.nnj - 1;
     if ( G.dimensions == 3 ) {
 	dict.parse_size_t(section, "nnk", bd.nnk, 2);
-	bd.nkdim = bd.nnk + 2 * NGHOST;
-	bd.kmin = NGHOST;
+	bd.nkdim = bd.nnk + 2 * G.nghost;
+	bd.kmin = G.nghost;
 	bd.kmax = bd.kmin + bd.nnk - 1;
     } else {
 	// For purely 2D flow geometry, we keep only one layer of cells.

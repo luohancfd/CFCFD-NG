@@ -38,8 +38,8 @@
 
 /*------------------------------------------------------------*/
 
-const double K_SWITCH = 10.0;
-const double C_EFIX = 0.125;
+constexpr double K_SWITCH = 10.0;
+constexpr double C_EFIX = 0.125;
 
 /*------------------------------------------------------------*/
 

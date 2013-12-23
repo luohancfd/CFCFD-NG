@@ -12,9 +12,6 @@
 #include "../../../lib/gas/models/gas-model.hh"
 #include "../../../lib/nm/source/no_fuss_linear_algebra.hh"
 
-const int WILKE_MIXING_RULE_WITH_AMBIPOLAR_CORRECTION = 1;
-const int FICKS_WITH_SUTTON_AND_GNOFFO_CORRECTION = 1;
-
 using namespace std;
 
 class DiffusionModel {

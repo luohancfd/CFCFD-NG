@@ -56,7 +56,7 @@ extern "C" {
 
 using namespace std;
 
-const int VERBOSE_BCS = 0; // Set to 1 to print mem usage, writing of data etc
+constexpr bool verbose_BCs = true; // To print mem usage, writing of data etc
 
 std::string get_bc_name(bc_t bc)
 {
@@ -217,11 +217,11 @@ BoundaryCondition(Block *bdp, int which_boundary, bc_t type_code)
 	exit(NOT_IMPLEMENTED_ERROR);
     }
     
-#   if VERBOSE_BCS
-    size_t total_bytes = 3 * dim * sizeof(double);
-    cout << "Block " << bd.id << ", boundary " << which_boundary
-	 << ": Have allocated " << total_bytes << " bytes of memory." << endl;
-#   endif
+    if ( verbose_BCs ) {
+	size_t total_bytes = 3 * dim * sizeof(double);
+	cout << "Block " << bd.id << ", boundary " << which_boundary
+	     << ": Have allocated " << total_bytes << " bytes of memory." << endl;
+    }
 }
 
 // Shouldn't really have a boundary condition object created without
@@ -578,12 +578,12 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
     Block & bd = *bdp;
     
     FILE *fp;
-#   if VERBOSE_BCS
-    if ( bd.id == 0 && which_boundary == 0 ) {
-	printf( "write_surface_heat_flux(): At t = %e, start block = %d, boundary = %d.\n",
-	    sim_time, bd.id, which_boundary );
+    if ( verbose_BCs ) {
+	if ( bd.id == 0 && which_boundary == 0 ) {
+	    printf( "write_surface_heat_flux(): At t = %e, start block = %d, boundary = %d.\n",
+		    sim_time, bd.id, which_boundary );
+	}
     }
-#   endif
     if ((fp = fopen(filename.c_str(), "w")) == NULL) {
 	cerr << "write_solution(): Could not open " << filename << "; BAILING OUT" << endl;
 	exit( FILE_ERROR );
@@ -649,12 +649,12 @@ int BoundaryCondition::write_fstc_heat_flux( string filename, double sim_time )
     Block & bd = *bdp;
 
     FILE *fp;
-#   if VERBOSE_BCS
-    if ( bd.id == 0 && which_boundary == 0 ) {
-	printf( "write_surface_heat_flux(): At t = %e, start block = %d, boundary = %d.\n",
-	    sim_time, bd.id, which_boundary );
+    if ( verbose_BCs ) {
+	if ( bd.id == 0 && which_boundary == 0 ) {
+	    printf( "write_surface_heat_flux(): At t = %e, start block = %d, boundary = %d.\n",
+		    sim_time, bd.id, which_boundary );
+	}
     }
-#   endif
     if ((fp = fopen(filename.c_str(), "w")) == NULL) {
 	cerr << "write_solution(): Could not open " << filename << "; BAILING OUT" << endl;
 	exit( FILE_ERROR );
@@ -812,12 +812,12 @@ int BoundaryCondition::write_vertex_velocities(std::string filename, double sim_
     Block & bd = *bdp;
     
     FILE *fp;
-#   if VERBOSE_BCS
-    if ( bd.id == 0 && which_boundary == 0 ) {
-	printf( "write_vertex_velocities(): At t = %e, start block = %d, boundary = %d.\n",
-	    sim_time, bd.id, which_boundary );
+    if ( verbose_BCs ) {
+	if ( bd.id == 0 && which_boundary == 0 ) {
+	    printf( "write_vertex_velocities(): At t = %e, start block = %d, boundary = %d.\n",
+		    sim_time, bd.id, which_boundary );
+	}
     }
-#   endif
     if ((fp = fopen(filename.c_str(), "w")) == NULL) {
 	cerr << "write_solution(): Could not open " << filename << "; BAILING OUT" << endl;
 	exit( FILE_ERROR );
@@ -1196,6 +1196,4 @@ scan_string_for_surface_heat_flux( double &q_cond, double &q_diff, double &q_rad
     
     return SUCCESS;
 } 
-
-#undef VERBOSE_BCS
 

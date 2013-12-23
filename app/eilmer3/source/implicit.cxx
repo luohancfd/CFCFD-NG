@@ -25,7 +25,7 @@
 #include "diffusion.hh"
 #include "main.hh"
 
-const double VERY_SMALL = 1.0e-10;
+constexpr double VERY_SMALL = 1.0e-10;
 
 
 int gasdynamic_point_implicit_inviscid_increment(double dt)

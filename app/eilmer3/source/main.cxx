@@ -1602,7 +1602,10 @@ int integrate_in_time(double target_time)
             finished_time_stepping = true;
             if ( master ) printf( "Integration stopped: reached maximum wall-clock time.\n" );
 	}
-#       if CHECK_RADIATION_SCALING
+	// [todo] Dan, I removed the remote control from this section of code
+	//        bacause it seemed simply to turn off the following code.
+	//        I guess that it's unfinished work.
+#	if 0
 	if ( G.radiation ) {
 	    if ( check_radiation_scaling() ) {
 	    	finished_time_stepping = true;
@@ -1847,7 +1850,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 	//     set everything back to the initial state and
 	//     reduce the time step for the next attempt
 	int most_bad_cells = do_bad_cell_count(0);
-	if ( adjust_invalid_cell_data == 0 && most_bad_cells > 0 ) {
+	if ( !G.adjust_invalid_cell_data && most_bad_cells > 0 ) {
 	    step_status_flag = 1;
 	}
 #       ifdef _MPI
@@ -2034,7 +2037,7 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	//     set everything back to the initial state and
 	//     reduce the time step for the next attempt
 	int most_bad_cells = do_bad_cell_count(2);
-	if ( adjust_invalid_cell_data == 0 && most_bad_cells > 0 ) {
+	if ( !G.adjust_invalid_cell_data && most_bad_cells > 0 ) {
 	    step_status_flag = 1;
 	}
 #       ifdef _MPI

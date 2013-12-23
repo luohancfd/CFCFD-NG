@@ -148,9 +148,7 @@ StaticProfileBC::StaticProfileBC(Block *bdp, int which_boundary,
 	flow_profile.push_back(new CFlowCondition(gmodel, p, u, v, w, T, massf, "", tke, omega, mu_t, k_t, S));
 	++ncell_read_from_file;
     } // end while
-#   if ECHO_ALL
     cout << "StaticProfileBC() constructor: read " << ncell_read_from_file << " cells." << endl; 
-#   endif
     // For the case with two input profiles, check that the number of cells read is an even number
     if ( ncell_read_from_file % 2 != 0 ) {
         cerr << "StaticProfileBC() constructor:" << endl
@@ -174,9 +172,7 @@ StaticProfileBC::StaticProfileBC(Block *bdp, int which_boundary,
     massf.clear();
     e.clear();
     T.clear();
-#   if ECHO_ALL
     cout << "StaticProfileBC() constructor: done." << endl;
-#   endif
 }
 
 StaticProfileBC::StaticProfileBC(const StaticProfileBC &bc)

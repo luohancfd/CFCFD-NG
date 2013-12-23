@@ -24,10 +24,6 @@
 
 //-------------------------------------------------------------------
 
-// 1 == Echo all file names and input parameters during initialization.
-// 0 == don't be so verbose
-const int ECHO_ALL = 1;
-
 enum turbulence_model_t {TM_NONE, TM_BALDWIN_LOMAX, TM_K_OMEGA, TM_SPALART_ALLMARAS};
 
 struct CHeatZone {
@@ -50,6 +46,7 @@ struct CTurbulentZone {
 struct global_data
 {
     size_t dimensions;      // 2 or 3 dimensions
+    size_t nghost; // Number of ghost cells surrounding the active cells.
     bool axisymmetric;
     bool verbose_init_messages;
     FILE *logfile;          // log file handle
@@ -79,6 +76,12 @@ struct global_data
     int halt_now;           /* flag for premature halt    */
     size_t print_count; // Number of steps between writing status message to console.
     size_t control_count; // Number of steps between rereading .control file.
+
+    /// When decoding the array of conserved quantities, 
+    /// the temperature or the density may try to go negative.  
+    /// If it does and adjust_invalid_cell_data == true, the cell data
+    /// is adjusted to make it reasonable.
+    bool adjust_invalid_cell_data;
 
     double sim_time;        /* present simulation time    */
     double max_time;        /* final solution time, s     */

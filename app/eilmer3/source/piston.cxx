@@ -24,12 +24,12 @@
 #include "bc.hh"
 #include "piston.hh"
 
-const int DB0 = 0; // function calls
-const int DB1 = 0; // index checking
-const int DB2 = 0; // initialising
-const int DB3 = 0; // derivatives
-const int DB4 = 0; // piston information
-const int DB5 = 0; // cell information
+constexpr int DB0 = 0; // function calls
+constexpr int DB1 = 0; // index checking
+constexpr int DB2 = 0; // initialising
+constexpr int DB3 = 0; // derivatives
+constexpr int DB4 = 0; // piston information
+constexpr int DB5 = 0; // cell information
 
 using namespace std;
 
@@ -177,15 +177,16 @@ int PistonFace:: set_values(double n_x, Vector3 vtxL, Vector3 vtxR, Vector3* vel
 
 int PistonFace:: set_indices_for_flex_cells(Block &bd)
 {
+    global_data &G = *get_global_data_ptr();
     if (DB0) cout << "entering set_indices_for_flex_cells()" << endl;
     nni_ = 1;
     nvi_ = nni_ + 1;
     nii_ = nvi_;
     
     nnj_ = bd.njdim;
-    nvj_ = nnj_+ 1 + 2*NGHOST;
+    nvj_ = nnj_+ 1 + 2*G.nghost;
     nij_ = nvj_;
-    njcells_ = nnj_ + 2*NGHOST;
+    njcells_ = nnj_ + 2*G.nghost;
     
     jmin_ = bd.jmin;
     jmax_ = bd.jmax;

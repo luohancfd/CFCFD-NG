@@ -75,7 +75,7 @@ bool get_extrema_clipping_flag()
 /// See MBCNS workbook 2000/2 page 36 (26-Jan-2001) for formulation.
 /// and MBCNS workbook 2005/Apr page 36 for new index labels
 
-const double epsilon = 1.0e-12; // Used within the van Albada limiter.
+constexpr double epsilon = 1.0e-12; // Used within the van Albada limiter.
 
 // The following module-level global variables must be set to appropriate values
 // by one_d_interp_prepare() before their use in one_d_interp_scalar().

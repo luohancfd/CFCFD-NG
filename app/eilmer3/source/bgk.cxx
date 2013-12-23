@@ -24,7 +24,7 @@ Vector3 Shakhov(double rho, double U, double V, double T, double qx, double qy, 
     double vV2 = vV*vV;
     double UV = uU2 + vV2;
 
-    double EXP =rho/(2.0*PI*exp(UV/(2.0*RT)));
+    double EXP =rho/(2.0*M_PI*exp(UV/(2.0*RT)));
     double Q = (Pr - 1)*(qx*uU + qy*vV);
     double SUB = 5*RT3*rho;
 

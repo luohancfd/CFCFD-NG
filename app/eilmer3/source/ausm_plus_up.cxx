@@ -41,9 +41,9 @@
 
 /*------------------------------------------------------------*/
 
-const double KP = 0.25;
-const double KU = 0.75;
-const double SIGMA = 1.0;
+constexpr double KP = 0.25;
+constexpr double KU = 0.75;
+constexpr double SIGMA = 1.0;
 // Choose a value for M_INF that is good for low Mach numbers.
 // To be strictly correct, we should set this at run time
 // if an M_INF value is easily defined.

@@ -23,13 +23,9 @@
 #include "flux_calc.hh"
 #include "kernel.hh"
 
-#if _CRAY
-#  pragma _CRI inline exxef
-#endif
-
 /*------------------------------------------------------------*/
 
-const double PHI = 1.0;
+constexpr double PHI = 1.0;
 
 /** \brief Compute the fluxes across an interface using
  * the Equilibrium Flux	Method of Macrossan & Pullin

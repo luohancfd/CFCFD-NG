@@ -41,25 +41,25 @@
 // Coefficients for the Baldwin-Lomax Eddy Viscosity Model 
 
 // Overall characteristics of the boundary layer model.
-const int COMPRESSIBILITY = 1;
-const int TRANSITIONAL = 1;
+constexpr bool COMPRESSIBILITY = true;
+constexpr bool TRANSITIONAL = true;
 
 // Parameters that are not often varied.
-const double C_mutm = 14.0;
-const double C_WK = 1.0;
-const double K = 0.0168;
+constexpr double C_mutm = 14.0;
+constexpr double C_WK = 1.0;
+constexpr double K = 0.0168;
 
 // A_plus should be varied for boundary layers in pressure gradients.
-const double A_plus = 26.0;
+constexpr double A_plus = 26.0;
 
 // Baldwin and Lomax (1978) parameters for the flat plate boundary layer.
 // Used successfully in Peter's models of a Mach 8 nozzle using air but
 // worked badly in Richard Goozee's simulations of the entire Drummond tunnel. 
 //
 // See the turbulence model code in mbcns2 for more detail.
-const double C_CP = 1.6;
-const double C_KLEB = 0.3;
-const double k_inner = 0.4;
+constexpr double C_CP = 1.6;
+constexpr double C_KLEB = 0.3;
+constexpr double k_inner = 0.4;
 
 
 //---------------------------------------------------------------------------
@@ -205,12 +205,12 @@ int baldwin_lomax_turbulence_model(global_data& gdata, Block& blk, size_t gtl)
 
             // Step 4: Compute the vanDriest damping factor
             for ( j = jfirst; j >= jlast; --j ) {
-#               if COMPRESSIBILITY == 1
-	        cell = blk.get_cell(i,j);
-                factor = sqrt(cell->fs->gas->rho / rho_wall) * mu_wall / cell->fs->gas->mu;
-#               else
-                factor = 1.0;
-#               endif
+		if ( COMPRESSIBILITY ) {
+		    cell = blk.get_cell(i,j);
+		    factor = sqrt(cell->fs->gas->rho / rho_wall) * mu_wall / cell->fs->gas->mu;
+		} else {
+		    factor = 1.0;
+		}
                 D[j] = 1.0 - exp(-y_plus[j] * factor / A_plus);
             }
 
@@ -298,18 +298,18 @@ int baldwin_lomax_turbulence_model(global_data& gdata, Block& blk, size_t gtl)
             // Transition extension to the model:
             // if the maximum mu_t in the profile from the wall for this x index is less 
             // than some specified transition level, discard the turbulent transport.
-#           if TRANSITIONAL == 1
-  	    double mu_t_max = 0.0;
-	    for ( j = jfirst; j >= jlast; --j ) {
-	        if ( mu_t[j] > mu_t_max ) mu_t_max = mu_t[j];
+	    if ( TRANSITIONAL ) {
+		double mu_t_max = 0.0;
+		for ( j = jfirst; j >= jlast; --j ) {
+		    if ( mu_t[j] > mu_t_max ) mu_t_max = mu_t[j];
+		}
+		// comparing to the viscosity of the cell in the middle of the duct
+		// which is assumed to be at index jmin for "tube-type" calculations.
+		double mu_freestream = blk.get_cell(i,blk.jmin)->fs->gas->mu;
+		keep_turbulent_viscosity = (mu_t_max >= C_mutm * mu_freestream);
+	    } else {
+		keep_turbulent_viscosity = 1;
 	    }
-	    // comparing to the viscosity of the cell in the middle of the duct
-	    // which is assumed to be at index jmin for "tube-type" calculations.
-	    double mu_freestream = blk.get_cell(i,blk.jmin)->fs->gas->mu;
-	    keep_turbulent_viscosity = (mu_t_max >= C_mutm * mu_freestream);
-#           else
-            keep_turbulent_viscosity = 1;
-#           endif
 
             if ( keep_turbulent_viscosity ) {
 	        for ( j = jfirst; j >= jlast; --j ) {
@@ -401,12 +401,12 @@ int baldwin_lomax_turbulence_model(global_data& gdata, Block& blk, size_t gtl)
 
             // Step 4: Compute the vanDriest damping factor
             for ( j = jfirst; j <= jlast; ++j ) {
-#               if COMPRESSIBILITY == 1
-	        cell = blk.get_cell(i,j);
-                factor = sqrt(cell->fs->gas->rho / rho_wall) * mu_wall / cell->fs->gas->mu;
-#               else
-                factor = 1.0;
-#               endif
+		if ( COMPRESSIBILITY ) {
+		    cell = blk.get_cell(i,j);
+		    factor = sqrt(cell->fs->gas->rho / rho_wall) * mu_wall / cell->fs->gas->mu;
+		} else {
+		    factor = 1.0;
+		}
                 D[j] = 1.0 - exp(-y_plus[j] * factor / A_plus);
             }
 
@@ -494,18 +494,18 @@ int baldwin_lomax_turbulence_model(global_data& gdata, Block& blk, size_t gtl)
             // Transition extension to the model:
             // if the maximum mu_t in the profile from the wall for this x index is less 
             // than some specified transition level, discard the turbulent transport.
-#           if TRANSITIONAL == 1
-	    mu_t_max = 0.0;
-            for ( j = jfirst; j <= jlast; ++j ) {
-	        if ( mu_t[j] > mu_t_max ) mu_t_max = mu_t[j];
+	    if ( TRANSITIONAL ) {
+		double mu_t_max = 0.0;
+		for ( j = jfirst; j <= jlast; ++j ) {
+		    if ( mu_t[j] > mu_t_max ) mu_t_max = mu_t[j];
+		}
+		// comparing to the viscosity of the cell in the middle of the duct
+		// which is assumed to be at index jmax for "tube-type" calculations.
+		double mu_freestream = blk.get_cell(i,blk.jmax)->fs->gas->mu;
+		keep_turbulent_viscosity = (mu_t_max >= C_mutm * mu_freestream);
+	    } else {
+		keep_turbulent_viscosity = 1;
 	    }
-	    // comparing to the viscosity of the cell in the middle of the duct
-	    // which is assumed to be at index jmax for "tube-type" calculations.
-	    mu_freestream = blk.get_cell(i,blk.jmax)->fs->gas->mu;
-	    keep_turbulent_viscosity = (mu_t_max >= C_mutm * mu_freestream);
-#           else
-            keep_turbulent_viscosity = 1;
-#           endif
 
             if ( keep_turbulent_viscosity ) {
                 for ( j = jfirst; j <= jlast; ++j ) {

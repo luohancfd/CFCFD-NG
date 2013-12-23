@@ -15,6 +15,9 @@
 
 using namespace std;
 
+constexpr bool WILKE_MIXING_RULE_WITH_AMBIPOLAR_CORRECTION = true;
+constexpr bool FICKS_WITH_SUTTON_AND_GNOFFO_CORRECTION = true;
+
 DiffusionModel::DiffusionModel(const string name, int nsp)
     : name_(name), nsp_(nsp), e_index_( -1 )
 {
@@ -62,9 +65,9 @@ fill_in_DAV_im(const matrix &D_AB)
 {
     // 1. Heavy particles
     for ( int isp = 0; isp < nsp_; ++isp ) {
-#       if WILKE_MIXING_RULE_WITH_AMBIPOLAR_CORRECTION
-    	if ( isp==e_index_ ) continue;
-#       endif
+	if ( WILKE_MIXING_RULE_WITH_AMBIPOLAR_CORRECTION ) {
+	    if ( isp==e_index_ ) continue;
+	}
 	double sum = 0.0;
 	for ( int jsp = 0; jsp < nsp_; ++jsp ) {
 	    if ( isp == jsp ) continue;
@@ -89,25 +92,25 @@ fill_in_DAV_im(const matrix &D_AB)
 	}
     }
     
-#   if WILKE_MIXING_RULE_WITH_AMBIPOLAR_CORRECTION
-    // 2. Free electrons and ions with ambipolar correction
-    if ( e_index_ > -1 ) {
-    	double Dax_ion_sum = 0.0;
-    	double Mx_ion_sum = 0.0;
-    	for ( int isp = 0; isp < nsp_; ++isp ) {
-    	    if ( Z_[isp] > 0.0 ) {
-    	    	DAV_im_[isp] *= 2.0;
-    	    	Dax_ion_sum += DAV_im_[isp] * x_[isp];
-    	    	Mx_ion_sum += M_[isp] * x_[isp];
-    	    }
-    	}
-    	DAV_im_[e_index_] = M_[e_index_] * Dax_ion_sum / Mx_ion_sum;
-    	if ( !isfinite( DAV_im_[e_index_] ) ) {
-    	    // Dax_ion_sum and Mx_ion_sum were probably zero
-    	    DAV_im_[e_index_] = 0.0;
-    	}
+    if ( WILKE_MIXING_RULE_WITH_AMBIPOLAR_CORRECTION ) {
+	// 2. Free electrons and ions with ambipolar correction
+	if ( e_index_ > -1 ) {
+	    double Dax_ion_sum = 0.0;
+	    double Mx_ion_sum = 0.0;
+	    for ( int isp = 0; isp < nsp_; ++isp ) {
+		if ( Z_[isp] > 0.0 ) {
+		    DAV_im_[isp] *= 2.0;
+		    Dax_ion_sum += DAV_im_[isp] * x_[isp];
+		    Mx_ion_sum += M_[isp] * x_[isp];
+		}
+	    }
+	    DAV_im_[e_index_] = M_[e_index_] * Dax_ion_sum / Mx_ion_sum;
+	    if ( !isfinite( DAV_im_[e_index_] ) ) {
+		// Dax_ion_sum and Mx_ion_sum were probably zero
+		DAV_im_[e_index_] = 0.0;
+	    }
+	}
     }
-#   endif
 }
 
 NoDiffusionModel::
@@ -196,24 +199,24 @@ calculate_diffusion_fluxes(const Gas_data &Q,
 	jz[isp] = -Q.rho * (DAV_im_[isp] + D_t) * dfdz[isp];
     }
 
-#   if FICKS_WITH_SUTTON_AND_GNOFFO_CORRECTION
-    // Correction as suggested by Sutton and Gnoffo, 1998  
-    double sum_x = 0.0;
-    double sum_y = 0.0;
-    double sum_z = 0.0;
+    if ( FICKS_WITH_SUTTON_AND_GNOFFO_CORRECTION ) {
+	// Correction as suggested by Sutton and Gnoffo, 1998  
+	double sum_x = 0.0;
+	double sum_y = 0.0;
+	double sum_z = 0.0;
     
-    for ( int isp = 0; isp < nsp_; ++isp ) {
-	sum_x += jx[isp];
-	sum_y += jy[isp];
-	sum_z += jz[isp];
-    }
+	for ( int isp = 0; isp < nsp_; ++isp ) {
+	    sum_x += jx[isp];
+	    sum_y += jy[isp];
+	    sum_z += jz[isp];
+	}
 
-    for ( int isp = 0; isp < nsp_; ++isp ) {
-	jx[isp] = jx[isp] - Q.massf[isp] * sum_x;
-	jy[isp] = jy[isp] - Q.massf[isp] * sum_y;
-	jz[isp] = jz[isp] - Q.massf[isp] * sum_z;
+	for ( int isp = 0; isp < nsp_; ++isp ) {
+	    jx[isp] = jx[isp] - Q.massf[isp] * sum_x;
+	    jy[isp] = jy[isp] - Q.massf[isp] * sum_y;
+	    jz[isp] = jz[isp] - Q.massf[isp] * sum_z;
+	}
     }
-#   endif
 
 }
 

@@ -9,6 +9,8 @@
 
 /*------------------------------------------------------------*/
 
+#define DEBUG_FLUX 0
+
 #include <stdio.h>
 #include <math.h>
 #include <stdexcept>

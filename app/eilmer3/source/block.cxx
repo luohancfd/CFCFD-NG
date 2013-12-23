@@ -392,6 +392,13 @@ int Block::propagate_data_west_to_east(size_t dimensions)
 } // end propagate_data_west_to_east()
 
 
+/// If prefer_copy_from_left == true when adjusting data,
+/// the new values are obtained from the cell to the left, else
+/// the values are obtained by averaging the properties in nearby cells.
+/// These parameters affect the behaviour of function count_invalid_cells().
+constexpr bool prefer_copy_from_left = false;
+
+
 int Block::count_invalid_cells(size_t dimensions, size_t gtl)
 /// \brief Returns the number of cells that contain invalid data.
 ///
@@ -413,7 +420,7 @@ int Block::count_invalid_cells(size_t dimensions, size_t gtl)
 		   static_cast<int>(id), static_cast<int>(i), 
 		   static_cast<int>(j), static_cast<int>(k));
 	    cellp->print();
-	    if ( adjust_invalid_cell_data ) {
+	    if ( G.adjust_invalid_cell_data ) {
 		// We shall set the cell data to something that
 		// is valid (and self consistent).
 		FV_Cell *other_cellp;

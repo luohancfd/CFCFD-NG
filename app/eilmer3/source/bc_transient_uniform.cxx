@@ -43,9 +43,7 @@ TransientUniformBC::TransientUniformBC(Block *bdp, int which_boundary, std::stri
     gmodel = get_gas_model_ptr();
     nsp = gmodel->get_number_of_species();
     nmodes = gmodel->get_number_of_modes();
-#   if ECHO_ALL
     cout << "TransientUniformBC(): Read data file." << endl;
-#   endif
     fp = fopen(filename.c_str(), "r");
     if (fp == NULL) {
 	cerr << "TransientUniformBC(): cannot open file " << filename << endl;
@@ -72,7 +70,7 @@ TransientUniformBC::TransientUniformBC(Block *bdp, int which_boundary, std::stri
 	strcpy( token, strtok(NULL, " \t") ); Ta.push_back(atof(token));
 	strcpy( token, strtok(NULL, " \t") ); tkea.push_back(atof(token));
 	strcpy( token, strtok(NULL, " \t") ); omegaa.push_back(atof(token));
-#       if ECHO_ALL
+#       if 0
         printf( "Sample[%d]: time=%e p=%e u=%e v=%e w=%e T=%e\n", 
 		nsample, tta[nsample-1], pa[nsample-1], ua[nsample-1],
 		va[nsample-1], wa[nsample-1], Ta[nsample-1] );
@@ -90,7 +88,7 @@ TransientUniformBC::TransientUniformBC(Block *bdp, int which_boundary, std::stri
 	    }
         }
 	massfa.push_back(massf_line);
-#       if ECHO_ALL
+#       if 0
 	printf( "            " );
 	for ( size_t isp = 0; isp < nsp; ++isp ) {
             printf( "massf[%d]=%e, ", isp, massfa[nsample-1][isp] );
@@ -99,9 +97,7 @@ TransientUniformBC::TransientUniformBC(Block *bdp, int which_boundary, std::stri
 #       endif
     } // end for
 
-#   if ECHO_ALL
     cout << "TransientUniformBC(): finished reading " << nsample << " time samples." << endl;
-#   endif
 } // end TransientUniformBC constructor
 
 TransientUniformBC::TransientUniformBC(const TransientUniformBC &bc)

@@ -198,9 +198,7 @@ start_interpreter()
     nsp = gmodel->get_number_of_species();
     nmodes = gmodel->get_number_of_modes();
 
-#   if ECHO_ALL
     cout << "UserDefinedMassFluxBC(): start a Lua interpreter on file " << filename_ << endl;
-#   endif
     L = luaL_newstate();
     luaL_openlibs(L); // load the standard libraries
 

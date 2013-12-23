@@ -3,10 +3,11 @@
 
 #include "../../../lib/gas/kinetics/reaction-update.hh"
 
-const size_t MAX_EQ_WC_TABLE_ENTRIES = 100;
-
 //-----------------------------------------------------------------
 // A class to apply the catalytic-wall BC
+
+const size_t MAX_EQ_WC_TABLE_ENTRIES = 100;
+
 class CatalyticWallBC {
 public:
     CatalyticWallBC( int type_code );
