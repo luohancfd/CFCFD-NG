@@ -188,6 +188,14 @@ s_rate_of_change(Gas_data &Q, vector<double> &dedt)
     dedt[0] = 0.0;    
     for ( size_t itm = 1; itm < dedt.size(); ++itm ) {
 	dedt[itm] = ydot_[itm-1];
+	// When there is only a tiny amount of certain
+	// energy mode, we will set the rate of change to
+	// zero because we have trouble computing the
+	// rate of change with good accuracy at low
+	// concentrations.
+	if ( molef_[itm] <= DEFAULT_MIN_MOLE_FRACTION ) {
+	  dedt[itm] = 0.0;
+	}
     }
 
     return SUCCESS;
