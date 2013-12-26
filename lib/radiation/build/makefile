@@ -135,7 +135,7 @@ endif
 		$(TOOLS)/radGUI.py $(TOOLS)/NIST_ASD_interpreter.py \
 		$(TOOLS)/Griem_interpreter.py $(TOOLS)/TOPBase_interpreter.py \
 		$(TOOLS)/rl_defs.py $(TOOLS)/data_aggregator.py $(INSTALL_DIR) 
-	- rsync -va ../data/ $(INSTALL_DIR)/radiation_data
+	- rsync -va ../data/ $(INSTALL_DIR)/radiators
 ifeq ($(WITH_SPRADIAN), 1)
 	- rsync -va $(SPRADIAN_SRC)/*.dat $(INSTALL_DIR)
 endif

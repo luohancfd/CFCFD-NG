@@ -4,6 +4,7 @@
 # Based on the simple.py wxPython example. 
 #----------------------------------------------------------------------
 
+import sys
 import os
 import pprint
 import random

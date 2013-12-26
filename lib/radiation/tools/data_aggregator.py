@@ -5,7 +5,7 @@ import NIST_ASD_interpreter
 import TOPBase_interpreter
 import Griem_interpreter
 
-def get_atomic_species_data( species, level_source, line_source, PICS_source, library_location=os.environ["HOME"] + "/e3bin/radiation_data", omit_psuedocontinuum_levels=True, use_individual_levels=False, stark_tol=1.0e-2, PICS_tol=1.0e2 ):
+def get_atomic_species_data( species, level_source, line_source, PICS_source, library_location=os.environ["HOME"] + "/e3bin/radiators/monatomic", omit_psuedocontinuum_levels=True, use_individual_levels=False, stark_tol=1.0e-2, PICS_tol=1.0e2 ):
     if level_source=="NIST_ASD" and line_source=="NIST_ASD":
         level_interpreter = NIST_ASD_interpreter
         line_interpreter = NIST_ASD_interpreter
