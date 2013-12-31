@@ -143,11 +143,11 @@ class Gas(object):
         """
         Writes the gas state data to the specified stream.
         """
-        strm.write('    p: %g Pa, T: %g K, rho: %g kg/m**3, e: %g J/kg, h: %g J/kg, a: %g m/s\n'
-                   % (self.p, self.T, self.rho, self.e, self.h, self.a) )
+        strm.write('    p: %g Pa, T: %g K, rho: %g kg/m**3, e: %g J/kg, h: %g J/kg, a: %g m/s, s: %g J/(kg.K)\n'
+                   % (self.p, self.T, self.rho, self.e, self.h, self.a, self.s) )
         strm.write('    R: %g J/(kg.K), gam: %g, Cp: %g J/(kg.K), mu: %g Pa.s, k: %g W/(m.K)\n'
                    % (self.R, self.gam, self.C_p, self.mu, self.k) )
-        strm.write('    name: %s\n' % self.name)
+        strm.write('    filename: %s\n' % self.fname)
         return
 
 def make_gas_from_name(gasName):
@@ -155,6 +155,8 @@ def make_gas_from_name(gasName):
     Manufacture a Gas object from a small library of options.
 
     :param gasName: one of the names for the special cases set out below.
+        We might also specify the details of the gas via a Lua gas-model file
+        or via a compressed look-up table, again in Lua format.
     """
     if gasName.lower() in ['co2-refprop']:
         os.system('gasmodel.py --model="real gas REFPROP"'+
@@ -171,5 +173,13 @@ def make_gas_from_name(gasName):
         os.system('gasmodel.py --model="real gas REFPROP"'+
                   ' --species="R134A.FLD" --output="r134a-refprop.lua"')
         return Gas('r134a-refprop.lua')
+    elif gasName.lower().find('.lua') >= 0:
+        # Look-up tables are contained in files with names like cea_lut_xxxx.lua.gz
+        # and previously-constructed gas models may be supplied in a gas-model.lua file.
+        fname = gasName
+        if os.path.exists(fname):
+            return Gas(fname)
+        else:
+            raise RuntimeError('make_gas_from_name(): gas model file %s does not exist.' % fname)
     else:
-        raise Exception, 'make_gas_from_name(): unknown gasName: %s' % gasName
+        raise RuntimeError('make_gas_from_name(): unknown gasName: %s' % gasName)

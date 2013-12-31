@@ -84,6 +84,7 @@ by making use of the CEA code from the NASA Glenn Research Center.
        pressure and pitot-to-supply pressure ratio are included in the values 
        printed out for the nozzle exit
    24-Feb-2012 PJ: update to use the new cea2_gas.py arrangement.
+   31-Dec-2013 PJ: added libgas_gas.py option.
 """
 
 import sys, os, math
@@ -91,18 +92,20 @@ sys.path.append(os.path.expandvars("$HOME/e3bin")) # installation directory
 sys.path.append("") # so that we can find user's scripts in current directory
 from cfpylib.nm.zero_solvers import secant
 # We base our calculation of gas properties upon calls to the NASA Glenn CEA code.
-from cfpylib.gasdyn.cea2_gas import Gas, make_gas_from_name
+import cfpylib.gasdyn.cea2_gas as cea2
+import cfpylib.gasdyn.libgas_gas as libgas
+gas_models = {'cea2':cea2, 'libgas':libgas}
 from cfpylib.gasdyn.gas_flow import *
 
 # ----------------------------------------------------------------------------
 
-VERSION_STRING = "07-Mar-2012"
+VERSION_STRING = "31-Dec-2013"
 DEBUG_ESTCJ  = 0  # if 1: some detailed data is output to help debugging
 PRINT_STATUS = 1  # if 1: the start of each stage of the computation is noted.
 
 # ----------------------------------------------------------------------------
 
-def reflected_shock_tube_calculation(gasName, p1, T1, Vs, pe, pp_on_pe, area_ratio, task):
+def reflected_shock_tube_calculation(gasModel, gasName, p1, T1, Vs, pe, pp_on_pe, area_ratio, task):
     """
     Runs the reflected-shock-tube calculation from initial fill conditions
     observed shock speed and equilibrium pressure.
@@ -118,7 +121,7 @@ def reflected_shock_tube_calculation(gasName, p1, T1, Vs, pe, pp_on_pe, area_rat
     result = {'state1':state1, 'H1':H1}
     #
     if PRINT_STATUS: print 'Start incident-shock calculation.'
-    state2 = make_gas_from_name(gasName)
+    state2 = gasModel.make_gas_from_name(gasName)
     (V2,Vg) = normal_shock(state1, Vs, state2)
     result['state2'] = state2
     result['V2'] = V2
@@ -129,13 +132,13 @@ def reflected_shock_tube_calculation(gasName, p1, T1, Vs, pe, pp_on_pe, area_rat
         return result
     #
     if PRINT_STATUS: print 'Start reflected-shock calculation.'
-    state5 = make_gas_from_name(gasName)
+    state5 = gasModel.make_gas_from_name(gasName)
     Vr = reflected_shock(state2, Vg, state5)
     result['state5'] = state5
     result['Vr'] = Vr
     #
     if PRINT_STATUS: print 'Start calculation of isentropic relaxation.'
-    state5s = make_gas_from_name(gasName)
+    state5s = gasModel.make_gas_from_name(gasName)
     # entropy is set, then pressure is relaxed via an isentropic process
     state5s.set_pT(state5.p, state5.T);  
     if pe==None:
@@ -241,12 +244,19 @@ def main():
                         "total = free-stream to total condition; "
                         "pitot = free-stream to Pitot condition; "
                         "cone = free-stream to Taylor-Maccoll cone flow"))
+    op.add_option('--model', dest='gasModelName', default='cea2',
+                  choices=['cea2', 'libgas'],
+                  help=("type of gas model: "
+                        "cea2: equilibrium thermochemistry provided by NASA CEA2 code; "
+                        "libgas: thermochemistry provided by Rowan's libgas module."))
     op.add_option('--gas', dest='gasName', default='air',
-                  choices=['air', 'air5species', 'air11species', 'air13species', 
-                           'n2', 'co2', 'h2ne', 'ar'],
-                  help=("name of gas model: "
+                  help=("name of specific gas: "
+                        "For cea2, the options are: "
                         "air; " "air5species; " "air11species; " "air13species; " 
-                        "n2; " "co2; " "h2ne; " "Ar"))
+                        "n2; " "co2; " "h2ne; " "Ar."
+                        "For libgas, the options are: "
+                        "co2-refprop; " "co2-bender; " "air-thermally-perfect; "
+                        "r134a-refprop" "<gas-model-filename>"))
     op.add_option('--p1', dest='p1', type='float', default=None,
                   help=("shock tube fill pressure or static pressure, in Pa"))
     op.add_option('--T1', dest='T1', type='float', default=None,
@@ -271,6 +281,7 @@ def main():
     #
     task = opt.task
     gasName = opt.gasName
+    gasModel = gas_models[opt.gasModelName]
     p1 = opt.p1
     T1 = opt.T1
     V1 = opt.V1
@@ -280,7 +291,7 @@ def main():
     area_ratio = opt.area_ratio
     cone_half_angle_deg = opt.cone_half_angle_deg
     outFileName = opt.outFileName
-    if DEBUG_ESTCJ: print 'estcj:', gasName, p1, T1, V1, Vs, pe, area_ratio, outFileName
+    if DEBUG_ESTCJ: print 'estcj:', opt.gasModelName, gasName, p1, T1, V1, Vs, pe, area_ratio, outFileName
     #
     bad_input = False
     if p1 is None:
@@ -319,8 +330,9 @@ def main():
     #
     if task in ['st', 'stn', 'stnp', 'ishock']:
         fout.write('Input parameters:\n')
-        fout.write('    Gas is %s, p1: %g Pa, T1: %g K, Vs: %g m/s\n' % (gasName,p1,T1,Vs) )
-        result = reflected_shock_tube_calculation(gasName, p1, T1, Vs,
+        fout.write('    gasModel is %s, Gas is %s, p1: %g Pa, T1: %g K, Vs: %g m/s\n' 
+                   % (opt.gasModelName,gasName,p1,T1,Vs) )
+        result = reflected_shock_tube_calculation(gasModel, gasName, p1, T1, Vs,
                                                   pe, pp_on_pe, area_ratio,
                                                   task=task)
         fout.write('State 1: pre-shock condition\n')
@@ -350,25 +362,27 @@ def main():
                 fout.write('    pitot7_on_p5s: %g\n' % (result['pitot7']/result['state5s'].p,) )
     elif task in ['total', 'TOTAL', 'Total']:
         fout.write('Input parameters:\n')
-        fout.write('    Gas is %s, p1: %g Pa, T1: %g K, V1: %g m/s\n' % (gasName,p1,T1,V1) )
-        state1 = make_gas_from_name(gasName)
+        fout.write('    gasModel is %s, Gas is %s, p1: %g Pa, T1: %g K, V1: %g m/s\n'
+                   % (opt.gasModelName,gasName,p1,T1,V1) )
+        state1 = gasModel.make_gas_from_name(gasName)
         state1.set_pT(p1, T1)
         state0 = total_condition(state1, V1)
         fout.write('Total condition:\n')
         state0.write_state(fout)
     elif task in ['pitot', 'PITOT', 'Pitot']:
         fout.write('Input parameters:\n')
-        fout.write('    Gas is %s, p1: %g Pa, T1: %g K, V1: %g m/s\n' % (gasName,p1,T1,V1) )
-        state1 = make_gas_from_name(gasName)
+        fout.write('    gasModel is %s, Gas is %s, p1: %g Pa, T1: %g K, V1: %g m/s\n' 
+                   % (opt.gasModelName,gasName,p1,T1,V1) )
+        state1 = gasModel.make_gas_from_name(gasName)
         state1.set_pT(p1, T1)
         state0 = pitot_condition(state1, V1)
         fout.write('Pitot condition:\n')
         state0.write_state(fout)
     elif task in ['cone', 'CONE', 'Cone']:
         fout.write('Input parameters:\n')
-        fout.write('    Gas is %s, p1: %g Pa, T1: %g K, V1: %g m/s, sigma: %g degrees\n' 
-                   % (gasName,p1,T1,V1,cone_half_angle_deg) )
-        state1 = make_gas_from_name(gasName)
+        fout.write('    gasModel is %s, Gas is %s, p1: %g Pa, T1: %g K, V1: %g m/s, sigma: %g degrees\n' 
+                   % (opt.gasModelName,gasName,p1,T1,V1,cone_half_angle_deg) )
+        state1 = gasModel.make_gas_from_name(gasName)
         state1.set_pT(p1, T1)
         fout.write('Free-stream condition:\n')
         state1.write_state(fout)
