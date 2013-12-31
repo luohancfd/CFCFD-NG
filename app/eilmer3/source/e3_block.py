@@ -1103,8 +1103,8 @@ def check_block_connection_2D(blkA, faceA, blkB, faceB, tolerance=1.0e-6):
             continue
         else:
             print "Corners of grid do not match."
-            print "blkA= ", blkA.blkId, " vtxA= ", iA, " pos= ", blkA.vtxA[iA]
-            print "blkB= ", blkB.blkId, " vtxB= ", iB, " pos= ", blkB.vtxB[iB]
+            print "blkA= ", blkA.blkId, " vtxA= ", iA, " pos= ", blkA.vtx[iA]
+            print "blkB= ", blkB.blkId, " vtxB= ", iB, " pos= ", blkB.vtx[iB]
             return False
     #
     # If we get this far, then all is ok.

@@ -60,7 +60,9 @@ superblk = SuperBlock2D(psurf=domain, nni=nnx, nnj=nny,
                         nbi=nbi, nbj=nbj, label="blk")
 # Make the domain periodic in the x-direction.
 for j in range(nbj):
-    connect_blocks_2D(superblk.blks[-1][j], EAST, superblk.blks[0][j], WEST)
+    connect_blocks_2D(superblk.blks[-1][j], EAST, 
+                      superblk.blks[0][j], WEST,
+                      check_corner_locations=False)
 
 gdata.viscous_flag = 1
 gdata.flux_calc = ADAPTIVE

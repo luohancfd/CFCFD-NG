@@ -960,12 +960,38 @@ You can use the function
 \texttt{
 \begin{tabbing}
 connect\_blocks\_2D(\= A, faceA, B, faceB, with\_udf=0, filename=None,\\
-                    \> is\_wall=0, sets\_conv\_flux=0, sets\_visc\_flux=0)
+                    \> is\_wall=0, sets\_conv\_flux=0, sets\_visc\_flux=0,\\
+                    \> check\_corner\_locations=True,\\
+                    \> reorient\_vector\_quantities=False,\\
+                    \> nA=None, t1A=None, nB=None, t1B=None)
 \end{tabbing}\index{block!connect\_blocks\_2D}
 }
 \noindent
 where \texttt{A} and \texttt{B} are references to the individual \texttt{Block2D} objects
-and \texttt{faceA} and \texttt{faceB} are their adjoining edges (NORTH, EAST, SOUTH or WEST)
+and \texttt{faceA} and \texttt{faceB} are their adjoining edges (\texttt{NORTH}, 
+\texttt{EAST}, \texttt{SOUTH} or \texttt{WEST}).
+
+\medskip
+By default, the function checks that the adjoining corners of the blocks do coincide in space.
+If they don't, a warning is issued.
+Usually, this is what you want, however, there are times when you really do wish to connect 
+the flow for boundaries that are not actually coincident in space.
+For an example, see the periodic shear-layer in Sec.\,\ref{periodic-shear-layer-sec}, 
+where the ends of a periodic domain are manually connected.
+Setting \texttt{check\_corner\_locations=False} turns off the check on corner locations.
+
+\medskip
+To handle connections where the boundaries are not aligned, you may specify\\
+\texttt{reorient\_vector\_quantities=True} and 
+supply nominal vectors for each boundary's unit normal and first tangent.
+These nominal vector bases are used to define a rotational transformation 
+for the vector flow quantities (\textit{i.e.} velocity and magnetic field) 
+that are exchanged between the boundaries.
+Such a transformation is useful for turbomachinery flows, where only a sector 
+of the full flow field is being simulated and an assumed circumferential periodicity
+fills in the remaining detail.
+
+\medskip
 Most of the time you can just ignore the default arguments associated with user-defined functions
 (\textit{i.e.} \texttt{with\_udf, filename, is\_wall, sets\_conv\_flux, sets\_visc\_flux}).
 These are used to implement slowly-opening diaphragms and the like. 
