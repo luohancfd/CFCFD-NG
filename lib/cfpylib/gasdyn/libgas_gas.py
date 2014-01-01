@@ -183,3 +183,10 @@ def make_gas_from_name(gasName):
             raise RuntimeError('make_gas_from_name(): gas model file %s does not exist.' % fname)
     else:
         raise RuntimeError('make_gas_from_name(): unknown gasName: %s' % gasName)
+
+def list_gas_names():
+    """
+    :returns: the list of gases available in make_gas_from_name()
+    """
+    return ['co2-refprop', 'co2-bender', 'air-thermally-perfect', 'r134a-refprop',
+            '<gas-model-filename>']

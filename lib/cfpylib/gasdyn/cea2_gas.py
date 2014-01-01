@@ -573,6 +573,7 @@ def make_gas_from_name(gasName, outputUnits='massf'):
     Manufacture a Gas object from a small library of options.
 
     :param gasName: one of the names for the special cases set out below
+    :returns: as Gas object
     """
     if gasName.lower() == 'air':
         return Gas({'Air':1.0,}, outputUnits=outputUnits, trace=1.0e-4)

@@ -23,7 +23,7 @@ The program can do a number of calculations:
  
 When run as an application, this program takes its input as
 command line arguments, performs the requested calculations and outputs
-the gast-state results.
+the gas-state results.
 To see what specific inputs are required, start the program as::
 
 $ estcj.py --help
@@ -38,6 +38,19 @@ The full output is a bit too much to include here, but you should see that
 this condition has an enthalpy of 5.43 MJ/kg and the nozzle-exit condition
 has a pressure of 93.6 kPa and a static temperature of 1284 degrees K,
 with a flow speed of 2.95 km/s.
+
+The default gas model is based on calling the NASA CEA2 program to compute
+thermochemical properties of the gas, however, there is the option to select
+the thermochemical gas model used by Eilmer3 (libgas).
+Note that the libgas model is essentially a "frozen" gas model but equilibrium
+chemistry can be obtained implicitly via a look-up table gas description.
+To repeat the T4 calculation with a libgas look-up table for air, use::
+
+$ estcj.py --task=stn --model=libgas --gas=cea-lut-air-ions.lua.gz \
+--T1=300 --p1=125.0e3 --Vs=2414 --pe=34.37e6 --ar=27.0
+
+To see the available gases for a particular gas model, 
+use the --list-gas-names option.
 
 
 Getting the program set up
@@ -63,7 +76,7 @@ Since 1968, we have been using the ESTC code by Malcolm McIntosh
 to compute the conditions in the end of the reflected shock tubes
 T1--T5 and HEG.  There are a number of problems in using the ESTC
 code, including uncertainty in updating the chemistry coefficients.
-This program, ESTCJ, moves away from the old chemistry model
+This program, ESTCj, moves away from the old chemistry model
 by making use of the CEA code from the NASA Glenn Research Center.
 
 .. Author: PA Jacobs
@@ -115,7 +128,7 @@ def reflected_shock_tube_calculation(gasModel, gasName, p1, T1, Vs, pe, pp_on_pe
     :param task: one of 'ishock', 'st', 'stn', 'stnp'
     """
     if PRINT_STATUS: print 'Write pre-shock condition.'
-    state1 = make_gas_from_name(gasName)
+    state1 = gasModel.make_gas_from_name(gasName)
     state1.set_pT(p1, T1)
     H1 = state1.e + state1.p/state1.rho
     result = {'state1':state1, 'H1':H1}
@@ -140,12 +153,10 @@ def reflected_shock_tube_calculation(gasModel, gasName, p1, T1, Vs, pe, pp_on_pe
     if PRINT_STATUS: print 'Start calculation of isentropic relaxation.'
     state5s = gasModel.make_gas_from_name(gasName)
     # entropy is set, then pressure is relaxed via an isentropic process
-    state5s.set_pT(state5.p, state5.T);  
     if pe==None:
-        state5s.p = state5.p
+        state5s.set_ps(state5.p, state5.s)
     else:
-        state5s.p = pe;
-    state5s.EOS(problemType='ps')
+        state5s.set_ps(pe, state5.s);
     result['state5s'] = state5s
     H5s = state5s.e + state5s.p/state5s.rho # stagnation enthalpy
     result['H5s'] = H5s
@@ -250,13 +261,10 @@ def main():
                         "cea2: equilibrium thermochemistry provided by NASA CEA2 code; "
                         "libgas: thermochemistry provided by Rowan's libgas module."))
     op.add_option('--gas', dest='gasName', default='air',
-                  help=("name of specific gas: "
-                        "For cea2, the options are: "
-                        "air; " "air5species; " "air11species; " "air13species; " 
-                        "n2; " "co2; " "h2ne; " "Ar."
-                        "For libgas, the options are: "
-                        "co2-refprop; " "co2-bender; " "air-thermally-perfect; "
-                        "r134a-refprop" "<gas-model-filename>"))
+                  help=("name of specific gas; "
+                        "To see the available gases, use the option --list-gas-names"))
+    op.add_option('--list-gas-names', action="store_true", dest="listGasNames", default=False,
+                  help=("list the gas names available for the current gas model"))
     op.add_option('--p1', dest='p1', type='float', default=None,
                   help=("shock tube fill pressure or static pressure, in Pa"))
     op.add_option('--T1', dest='T1', type='float', default=None,
@@ -282,6 +290,11 @@ def main():
     task = opt.task
     gasName = opt.gasName
     gasModel = gas_models[opt.gasModelName]
+    if opt.listGasNames:
+        print "For gas model %s, these gases are available:" % opt.gasModelName
+        for name in gasModel.list_gas_names():
+            print "    %s" % name
+        return 0
     p1 = opt.p1
     T1 = opt.T1
     V1 = opt.V1
