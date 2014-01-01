@@ -1,0 +1,16 @@
+$ estcj.py --gas=air --task=cone --sigma-deg=15 --p1=1.1143e3 --T1=226.984 --V1=23.338e3
+estcj: Equilibrium Shock Tube Conditions
+Version: 31-Dec-2013
+Input parameters:
+    gasModel is cea2, Gas is air, p1: 1114.3 Pa, T1: 226.984 K, V1: 23338 m/s, sigma: 15 degrees
+Free-stream condition:
+    p: 1114 Pa, T: 226.98 K, rho: 0.017102 kg/m**3, e: -140900 J/kg, h: -75749 J/kg, a: 302.1 m/s, s: 7881.4 J/(kg.K)
+    R: 287.036 J/(kg.K), gam: 1.4011, Cp: 1002.7 J/(kg.K), mu: 1.5104e-05 Pa.s, k: 0.02106 W/(m.K)
+    species massf: {'N2': 0.75518, 'Ar': 0.012916, 'CO2': 0.00048469, 'O2': 0.23142}
+Shock angle: 0.272894 (rad), 15.6357 (deg)
+Cone-surface velocity: 22479 m/s
+Cone-surface condition:
+    p: 646370 Pa, T: 7151.65 K, rho: 0.22313 kg/m**3, e: 1.679e+07 J/kg, h: 1.96869e+07 J/kg, a: 1826.5 m/s, s: 12185.6 J/(kg.K)
+    R: 405.028 J/(kg.K), gam: 1.1516, Cp: 1513.9 J/(kg.K), mu: 0.00019938 Pa.s, k: 2.75345 W/(m.K)
+    species massf: {'CO': 0.00025478, 'NO': 0.013799, 'O': 0.22386, 'N': 0.20143, 'Ar': 0.012916, 'N2': 0.5473, 'O2': 0.00040535}
+

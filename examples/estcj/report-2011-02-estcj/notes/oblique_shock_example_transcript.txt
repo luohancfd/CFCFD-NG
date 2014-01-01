@@ -1,0 +1,27 @@
+$ ./oblique_shock_example.py
+Example 1: Hunt and Souders Table VIII, sub-table (j)
+Given shock angle, compute post-shock conditions.
+Initial gas state:
+    p: 52.6687 Pa, T: 268.86 K, rho: 0.00068248 kg/m**3, e: -110920 J/kg, h: -33746 J/kg, a: 328.8 m/s, s: 8927.3 J/(kg.K)
+    R: 287.036 J/(kg.K), gam: 1.4006, Cp: 1003.6 J/(kg.K), mu: 1.7247e-05 Pa.s, k: 0.02421 W/(m.K)
+    species massf: {'N2': 0.75518, 'Ar': 0.012916, 'CO2': 0.00048469, 'O2': 0.23142}
+Following oblique shock, beta=45 degrees, theta=40.6318 degrees (Hunt&Souders 45 40.638)
+    p: 19845 Pa, T: 5708.46 K, rho: 0.0089339 kg/m**3, e: 1.3354e+07 J/kg, h: 1.55753e+07 J/kg, a: 1583.5 m/s, s: 12925.2 J/(kg.K)
+    R: 389.105 J/(kg.K), gam: 1.1288, Cp: 1417.7 J/(kg.K), mu: 0.00016594 Pa.s, k: 2.6222 W/(m.K)
+    species massf: {'C': 5.9906e-06, 'CO': 0.00029308, 'CN': 1.3116e-06, 'NO': 0.0055341, 'O': 0.22853, 'N': 0.14368, 'Ar': 0.012916, 'N2': 0.60891, 'O2': 0.00012124}
+Across shock:
+p2/p1=376.811, T2/T1=21.2321 (Hunt&Souders: 376.84 21.206)
+
+Example 2: Hunt and Souders Table VI, sub-table (a)
+Given deflection angle, compute shock angle and then post-shock conditions.
+Initial gas state:
+    p: 3543 Pa, T: 219.43 K, rho: 0.056245 kg/m**3, e: -146310 J/kg, h: -83325 J/kg, a: 297.1 m/s, s: 7515.4 J/(kg.K)
+    R: 287.036 J/(kg.K), gam: 1.4012, Cp: 1002.6 J/(kg.K), mu: 1.4699e-05 Pa.s, k: 0.02045 W/(m.K)
+    species massf: {'N2': 0.75518, 'Ar': 0.012916, 'CO2': 0.00048469, 'O2': 0.23142}
+Following oblique shock, beta=45.0253 degrees, theta=33.671 degrees (Hunt&Souders 45 33.671)
+    p: 78800 Pa, T: 979.13 K, rho: 0.28037 kg/m**3, e: 438790 J/kg, h: 719850 J/kg, a: 613.1 m/s, s: 8181 J/(kg.K)
+    R: 287.036 J/(kg.K), gam: 1.3374, Cp: 1137 J/(kg.K), mu: 4.3071e-05 Pa.s, k: 0.06511 W/(m.K)
+    species massf: {'CO2': 0.00048469, 'NO': 2.5483e-05, 'Ar': 0.012916, 'N2': 0.75517, 'O2': 0.2314, 'NO2': 2.1728e-06}
+Across shock:
+p2/p1=22.241, T2/T1=4.46215 (Hunt&Souders: 22.23 4.4472)
+Done.
