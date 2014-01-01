@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN"
+"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg xmlns:svg="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="566.93" height="566.93"
+     version="1.0">
+<title>Couette flow (Just at start-up)</title>
+<desc>SVG file written by e3prep.py</desc>
+<!-- drawing begins here -->
+<line x1="141.73" y1="2125.98" x2="481.89" y2="2125.98" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="311.81" y="2151.50" style="font-size:10;text-anchor:start;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >x</text>
+<line x1="141.73" y1="2125.98" x2="141.73" y2="2120.31" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="141.73" y="2140.16" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0</text>
+<line x1="158.74" y1="2125.98" x2="158.74" y2="2120.31" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="158.74" y="2140.16" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.002</text>
+<line x1="175.75" y1="2125.98" x2="175.75" y2="2120.31" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="175.75" y="2140.16" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.004</text>
+<line x1="192.76" y1="2125.98" x2="192.76" y2="2120.31" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="192.76" y="2140.16" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.006</text>
+<line x1="209.76" y1="2125.98" x2="209.76" y2="2120.31" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="209.76" y="2140.16" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.008</text>
+<line x1="226.77" y1="2125.98" x2="226.77" y2="2120.31" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="226.77" y="2140.16" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.01</text>
+<line x1="243.78" y1="2125.98" x2="243.78" y2="2120.31" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="243.78" y="2140.16" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.012</text>
+<line x1="260.79" y1="2125.98" x2="260.79" y2="2120.31" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="260.79" y="2140.16" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.014</text>
+<line x1="277.80" y1="2125.98" x2="277.80" y2="2120.31" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="277.80" y="2140.16" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.016</text>
+<line x1="294.80" y1="2125.98" x2="294.80" y2="2120.31" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="294.80" y="2140.16" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.018</text>
+<line x1="311.81" y1="2125.98" x2="311.81" y2="2120.31" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="311.81" y="2140.16" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.02</text>
+<line x1="328.82" y1="2125.98" x2="328.82" y2="2120.31" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="328.82" y="2140.16" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.022</text>
+<line x1="345.83" y1="2125.98" x2="345.83" y2="2120.31" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="345.83" y="2140.16" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.024</text>
+<line x1="362.83" y1="2125.98" x2="362.83" y2="2120.31" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="362.83" y="2140.16" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.026</text>
+<line x1="379.84" y1="2125.98" x2="379.84" y2="2120.31" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="379.84" y="2140.16" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.028</text>
+<line x1="396.85" y1="2125.98" x2="396.85" y2="2120.31" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="396.85" y="2140.16" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.03</text>
+<line x1="413.86" y1="2125.98" x2="413.86" y2="2120.31" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="413.86" y="2140.16" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.032</text>
+<line x1="430.87" y1="2125.98" x2="430.87" y2="2120.31" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="430.87" y="2140.16" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.034</text>
+<line x1="447.87" y1="2125.98" x2="447.87" y2="2120.31" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="447.87" y="2140.16" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.036</text>
+<line x1="464.88" y1="2125.98" x2="464.88" y2="2120.31" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="464.88" y="2140.16" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.038</text>
+<line x1="481.89" y1="2125.98" x2="481.89" y2="2120.31" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="481.89" y="2140.16" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.04</text>
+<line x1="-198.43" y1="425.20" x2="-198.43" y2="85.04" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="-221.10" y="255.12" style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >y</text>
+<line x1="-198.43" y1="425.20" x2="-192.76" y2="425.20" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="-206.93" y="425.20" style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0</text>
+<line x1="-198.43" y1="357.17" x2="-192.76" y2="357.17" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="-206.93" y="357.17" style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.002</text>
+<line x1="-198.43" y1="289.13" x2="-192.76" y2="289.13" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="-206.93" y="289.13" style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.004</text>
+<line x1="-198.43" y1="221.10" x2="-192.76" y2="221.10" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="-206.93" y="221.10" style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.006</text>
+<line x1="-198.43" y1="153.07" x2="-192.76" y2="153.07" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="-206.93" y="153.07" style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.008</text>
+<line x1="-198.43" y1="85.04" x2="-192.76" y2="85.04" style="stroke:black;stroke-width:1.42;stroke-linecap:round;fill:none" />
+<text x="-206.93" y="85.04" style="font-size:10;text-anchor:end;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >0.01</text>
+<!-- There are 0 nodes
+ -->
+<!-- There are 1 blocks
+ -->
+<!-- Render block 0
+ -->
+<text x="311.81" y="197.29" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >blk-0</text>
+<text x="311.81" y="85.04" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >MOVING_WALL</text>
+<path d="M 141.73,85.04 L 158.74,85.04 L 175.75,85.04 L 192.76,85.04 L 209.76,85.04 L 226.77,85.04 L 243.78,85.04 L 260.79,85.04 L 277.80,85.04 L 294.80,85.04 L 311.81,85.04 L 328.82,85.04 L 345.83,85.04 L 362.83,85.04 L 379.84,85.04 L 396.85,85.04 L 413.86,85.04 L 430.87,85.04 L 447.87,85.04 L 464.88,85.04 L 481.89,85.04" style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"/>
+<path d="M 481.89,425.20 L 481.89,391.18 L 481.89,357.17 L 481.89,323.15 L 481.89,289.13 L 481.89,255.12 L 481.89,221.10 L 481.89,187.09 L 481.89,153.07 L 481.89,119.06 L 481.89,85.04" style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none;stroke-dasharray: 5.67 5.67"/>
+<text x="311.81" y="425.20" style="font-size:10;text-anchor:middle;fill:black;stroke:none;font-weight:normal;font-family:sanserif" >ADIABATIC</text>
+<path d="M 141.73,425.20 L 158.74,425.20 L 175.75,425.20 L 192.76,425.20 L 209.76,425.20 L 226.77,425.20 L 243.78,425.20 L 260.79,425.20 L 277.80,425.20 L 294.80,425.20 L 311.81,425.20 L 328.82,425.20 L 345.83,425.20 L 362.83,425.20 L 379.84,425.20 L 396.85,425.20 L 413.86,425.20 L 430.87,425.20 L 447.87,425.20 L 464.88,425.20 L 481.89,425.20" style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none"/>
+<path d="M 141.73,425.20 L 141.73,391.18 L 141.73,357.17 L 141.73,323.15 L 141.73,289.13 L 141.73,255.12 L 141.73,221.10 L 141.73,187.09 L 141.73,153.07 L 141.73,119.06 L 141.73,85.04" style="stroke:black;stroke-width:0.71;stroke-linecap:round;fill:none;stroke-dasharray: 5.67 5.67"/>
+<!-- end of drawing -->
+</svg>
