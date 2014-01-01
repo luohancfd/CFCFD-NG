@@ -1,16 +1,16 @@
-$ estcj.py --gas=air --task=cone --sigma-deg=15 --p1=93.6e3 --T1=1284 --V1=2.95e3 
+$ estcj.py --gas=air --task=cone --sigma-deg=15 --p1=93.6e3 --T1=1284 --V1=2.95e3
 estcj: Equilibrium Shock Tube Conditions
-Version: 07-Mar-2012
+Version: 31-Dec-2013
 Input parameters:
-    Gas is air, p1: 93600 Pa, T1: 1284 K, V1: 2950 m/s, sigma: 15 degrees
+    gasModel is cea2, Gas is air, p1: 93600 Pa, T1: 1284 K, V1: 2950 m/s, sigma: 15 degrees
 Free-stream condition:
-    p: 93600 Pa, T: 1284 K, rho: 0.25395 kg/m**3, e: 706980 J/kg, h: 1.07556e+06 J/kg, a: 696.6 m/s, s:8447.5 kJ/(kg.K)
+    p: 93600 Pa, T: 1284 K, rho: 0.25395 kg/m**3, e: 706980 J/kg, h: 1.07556e+06 J/kg, a: 696.6 m/s, s: 8447.5 J/(kg.K)
     R: 287.036 J/(kg.K), gam: 1.3166, Cp: 1186.2 J/(kg.K), mu: 5.1631e-05 Pa.s, k: 0.08122 W/(m.K)
     species massf: {'N2': 0.75501, 'Ar': 0.012916, 'O2': 0.23122, 'CO2': 0.00048469, 'NO': 0.00036668}
-Shock angle: 0.366575 (rad), 21.0032 (deg)
-Cone-surface velocity: 2784.54 m/s
+Shock angle: 0.366546 (rad), 21.0015 (deg)
+Cone-surface velocity: 2784.57 m/s
 Cone-surface condition:
-    p: 271120 Pa, T: 1680.5 K, rho: 0.56204 kg/m**3, e: 1.0797e+06 J/kg, h: 1.56208e+06 J/kg, a: 790.3 m/s, s:8472 kJ/(kg.K)
-    R: 287.036 J/(kg.K), gam: 1.2947, Cp: 1227.5 J/(kg.K), mu: 6.1824e-05 Pa.s, k: 0.10327 W/(m.K)
-    species massf: {'N2': 0.75389, 'Ar': 0.012916, 'O2': 0.22992, 'CO2': 0.00048465, 'NO': 0.00276}
+    p: 271070 Pa, T: 1680.41 K, rho: 0.56197 kg/m**3, e: 1.07961e+06 J/kg, h: 1.56197e+06 J/kg, a: 790.3 m/s, s: 8472 J/(kg.K)
+    R: 287.036 J/(kg.K), gam: 1.2947, Cp: 1227.5 J/(kg.K), mu: 6.1822e-05 Pa.s, k: 0.10326 W/(m.K)
+    species massf: {'N2': 0.75389, 'Ar': 0.012916, 'O2': 0.22992, 'CO2': 0.00048465, 'NO': 0.0027591}
 

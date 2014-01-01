@@ -1,0 +1,43 @@
+$ estcj.py --task=stn --model=libgas --gas=cea-lut-air-ions.lua.gz --T1=300 --p1=125.0e3 --Vs=2414 --pe=34.37e6 --ar=27.0
+estcj: Equilibrium Shock Tube Conditions
+Version: 31-Dec-2013
+Input parameters:
+    gasModel is libgas, Gas is cea-lut-air-ions.lua.gz, p1: 125000 Pa, T1: 300 K, Vs: 2414 m/s
+Write pre-shock condition.
+Start incident-shock calculation.
+Start reflected-shock calculation.
+Start calculation of isentropic relaxation.
+Start isentropic relaxation to throat (Mach 1)
+Start isentropic relaxation to nozzle exit.
+Done with reflected shock tube calculation.
+State 1: pre-shock condition
+    p: 125000 Pa, T: 300 K, rho: 1.45151 kg/m**3, e: 215909 J/kg, h: 302026 J/kg, a: 346.041 m/s, s: 6796.22 J/(kg.K)
+    R: 287.057 J/(kg.K), gam: 1.39083, Cp: 1021.54 J/(kg.K), mu: 2.5873e-05 Pa.s, k: 0.036838 W/(m.K)
+    filename: cea-lut-air-ions.lua.gz
+State 2: post-shock condition.
+    p: 7.31558e+06 Pa, T: 2630.38 K, rho: 9.68296 kg/m**3, e: 2.39474e+06 J/kg, h: 3.15025e+06 J/kg, a: 971.059 m/s, s: 8128.69 J/(kg.K)
+    R: 287.224 J/(kg.K), gam: 1.28907, Cp: 1280.86 J/(kg.K), mu: 8.40757e-05 Pa.s, k: 0.169875 W/(m.K)
+    filename: cea-lut-air-ions.lua.gz
+    V2: 361.868 m/s, Vg: 2052.13 m/s
+State 5: reflected-shock condition.
+    p: 5.94881e+07 Pa, T: 4551.14 K, rho: 44.3195 kg/m**3, e: 5.09063e+06 J/kg, h: 6.43289e+06 J/kg, a: 1277.77 m/s, s: 8446.67 J/(kg.K)
+    R: 294.927 J/(kg.K), gam: 1.28601, Cp: 1326.11 J/(kg.K), mu: 0.000126023 Pa.s, k: 0.415794 W/(m.K)
+    filename: cea-lut-air-ions.lua.gz
+    Vr: 573.581 m/s
+State 5s: equilibrium condition (relaxation to pe)
+    p: 3.437e+07 Pa, T: 4160.98 K, rho: 28.2068 kg/m**3, e: 4.51268e+06 J/kg, h: 5.73119e+06 J/kg, a: 1215.39 m/s, s: 8446.67 J/(kg.K)
+    R: 292.841 J/(kg.K), gam: 1.2852, Cp: 1319.62 J/(kg.K), mu: 0.000117598 Pa.s, k: 0.378141 W/(m.K)
+    filename: cea-lut-air-ions.lua.gz
+Enthalpy difference (H5s - H1): 5.42916e+06 J/kg
+State 6: Nozzle-throat condition (relaxation to M=1)
+    p: 1.93263e+07 Pa, T: 3787.55 K, rho: 17.5378 kg/m**3, e: 3.96169e+06 J/kg, h: 5.06367e+06 J/kg, a: 1155.43 m/s, s: 8446.67 J/(kg.K)
+    R: 290.948 J/(kg.K), gam: 1.28474, Cp: 1312.75 J/(kg.K), mu: 0.000109502 Pa.s, k: 0.332947 W/(m.K)
+    filename: cea-lut-air-ions.lua.gz
+    V6: 1155.43 m/s, M6: 1, mflux6: 20263.7 kg/s/m**2
+State 7: Nozzle-exit condition (relaxation to correct mass flux)
+    p: 93727.5 Pa, T: 1283.64 K, rho: 0.254376 kg/m**3, e: 1.01048e+06 J/kg, h: 1.37894e+06 J/kg, a: 696.536 m/s, s: 8446.67 J/(kg.K)
+    R: 287.044 J/(kg.K), gam: 1.31937, Cp: 1185.81 J/(kg.K), mu: 5.15973e-05 Pa.s, k: 0.0811911 W/(m.K)
+    filename: cea-lut-air-ions.lua.gz
+    V7: 2950.34 m/s, M7: 4.23573, mflux7: 20263.3 kg/s/m**2, area_ratio: 27, pitot: 2.15045e+06 Pa
+    pitot7_on_p5s: 0.0625677
+

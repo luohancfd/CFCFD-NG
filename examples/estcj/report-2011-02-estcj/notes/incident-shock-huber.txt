@@ -1,0 +1,17 @@
+$ estcj.py --model=libgas --gas=cea-lut-air-ions.lua.gz --task=ishock --Vs=11296 --p1=59 --T1=283
+estcj: Equilibrium Shock Tube Conditions
+Version: 31-Dec-2013
+Input parameters:
+    gasModel is libgas, Gas is cea-lut-air-ions.lua.gz, p1: 59 Pa, T1: 283 K, Vs: 11296 m/s
+Write pre-shock condition.
+Start incident-shock calculation.
+State 1: pre-shock condition
+    p: 59 Pa, T: 283 K, rho: 0.000726319 kg/m**3, e: 203674 J/kg, h: 284905 J/kg, a: 336.094 m/s, s: 8935.09 J/(kg.K)
+    R: 287.037 J/(kg.K), gam: 1.3908, Cp: 1021.52 J/(kg.K), mu: 2.5873e-05 Pa.s, k: 0.036838 W/(m.K)
+    filename: cea-lut-air-ions.lua.gz
+State 2: post-shock condition.
+    p: 86692.4 Pa, T: 12203.5 K, rho: 0.0111361 kg/m**3, e: 5.60285e+07 J/kg, h: 6.38133e+07 J/kg, a: 3021.85 m/s, s: 18007.1 J/(kg.K)
+    R: 637.915 J/(kg.K), gam: 1.4297, Cp: 2122.46 J/(kg.K), mu: 0.000253088 Pa.s, k: 5.34565 W/(m.K)
+    filename: cea-lut-air-ions.lua.gz
+    V2: 736.748 m/s, Vg: 10559.3 m/s
+

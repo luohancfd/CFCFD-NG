@@ -11,7 +11,12 @@ Options:
                         total condition; pitot = free-stream to Pitot
                         condition; cone = free-stream to Taylor-Maccoll cone
                         flow
-  --gas=GASNAME         name of gas model: air; air5species; n2; co2; h2ne; Ar
+  --model=GASMODELNAME  type of gas model: cea2: equilibrium thermochemistry
+                        provided by NASA CEA2 code; libgas: thermochemistry
+                        provided by Rowan's libgas module.
+  --gas=GASNAME         name of specific gas; To see the available gases, use
+                        the option --list-gas-names
+  --list-gas-names      list the gas names available for the current gas model
   --p1=P1               shock tube fill pressure or static pressure, in Pa
   --T1=T1               shock tube fill temperature, in degrees K
   --V1=V1               initial speed of gas in lab frame [default: none], in
@@ -25,3 +30,5 @@ Options:
   --ofn=OUTFILENAME     name of file in which to accumulate output. file name
                         will be: outFileName-estcj.dat (Note that output
                         defaults to stdout.)
+peterj@helmholtz ~/Desktop $ 
+

@@ -1,0 +1,30 @@
+$ estcj.py --task=st --model=libgas --gas=cea-lut-co2-ions.lua.gz --T1=307 --p1=3386.4 --Vs=6070.4 --pe=24.13e6
+estcj: Equilibrium Shock Tube Conditions
+Version: 31-Dec-2013
+Input parameters:
+    gasModel is libgas, Gas is cea-lut-co2-ions.lua.gz, p1: 3386.4 Pa, T1: 307 K, Vs: 6070.4 m/s
+Write pre-shock condition.
+Start incident-shock calculation.
+Start reflected-shock calculation.
+Start calculation of isentropic relaxation.
+Done with reflected shock tube calculation.
+State 1: pre-shock condition
+    p: 3386.4 Pa, T: 307 K, rho: 0.058384 kg/m**3, e: 320877 J/kg, h: 378880 J/kg, a: 261.811 m/s, s: 5295.94 J/(kg.K)
+    R: 188.932 J/(kg.K), gam: 1.18195, Cp: 1227.31 J/(kg.K), mu: 4.05464e-05 Pa.s, k: 0.0663056 W/(m.K)
+    filename: cea-lut-co2-ions.lua.gz
+State 2: post-shock condition.
+    p: 2.02818e+06 Pa, T: 5582.43 K, rho: 0.991852 kg/m**3, e: 1.66951e+07 J/kg, h: 1.87399e+07 J/kg, a: 1609.72 m/s, s: 10826.1 J/(kg.K)
+    R: 366.299 J/(kg.K), gam: 1.36387, Cp: 1372.98 J/(kg.K), mu: 0.000157089 Pa.s, k: 0.521471 W/(m.K)
+    filename: cea-lut-co2-ions.lua.gz
+    V2: 357.325 m/s, Vg: 5713.07 m/s
+State 5: reflected-shock condition.
+    p: 3.91688e+07 Pa, T: 10820.9 K, rho: 7.72571 kg/m**3, e: 3.47965e+07 J/kg, h: 3.98665e+07 J/kg, a: 2458.42 m/s, s: 12098 J/(kg.K)
+    R: 468.53 J/(kg.K), gam: 1.39348, Cp: 1659.26 J/(kg.K), mu: 0.000268781 Pa.s, k: 2.94654 W/(m.K)
+    filename: cea-lut-co2-ions.lua.gz
+    Vr: 841.405 m/s
+State 5s: equilibrium condition (relaxation to pe)
+    p: 2.413e+07 Pa, T: 10243.4 K, rho: 5.13688 kg/m**3, e: 3.28048e+07 J/kg, h: 3.75022e+07 J/kg, a: 2356.54 m/s, s: 12098 J/(kg.K)
+    R: 458.581 J/(kg.K), gam: 1.39455, Cp: 1620.87 J/(kg.K), mu: 0.000256776 Pa.s, k: 3.04324 W/(m.K)
+    filename: cea-lut-co2-ions.lua.gz
+Enthalpy difference (H5s - H1): 3.71233e+07 J/kg
+

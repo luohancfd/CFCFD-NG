@@ -448,7 +448,8 @@ def finite_wave_dp(characteristic, V1, state1, p2, steps=100):
     p1 = state1.p; s1 = state1.s
     state2 = state1.clone()
     dp = (p2 - state1.p)/steps
-    # I'm putting stuff in here that will make the function use more steps if p2 < dp, to prevent an overshoot into -ve pressure.
+    # I'm putting stuff in here that will make the function use more steps 
+    # if p2 < dp, to prevent an overshoot into -ve pressure. (Chris James)
     while p2 < dp:
         steps *= 2
         dp = (p2 - state1.p)/steps
@@ -542,12 +543,17 @@ def beta_oblique(state1, V1, theta):
     :returns: shock wave angle wrt incoming stream direction (in radians)
     """
     M1 = V1 / state1.a
-    b1 = math.asin(1.0 / M1)
+    b1 = max(math.asin(1.0/M1), 1.1*theta)
     b2 = b1 * 1.05
     def error_in_theta(beta_guess):
         theta_guess, V2, state2 = theta_oblique(state1, V1, beta_guess)
-        return theta_guess - theta
-    return secant(error_in_theta, b1, b2, tol=1.0e-6)
+        error_value = theta_guess - theta
+        # print "beta_guess=", beta_guess, "error_value=", error_value
+        return error_value
+    beta_result = secant(error_in_theta, b1, b2, tol=1.0e-4)
+    if beta_result == 'FAIL':
+        raise RuntimeError('beta_oblique(): failed to converge on a shock-wave angle.')
+    return beta_result
 
 #------------------------------------------------------------------------
 # Taylor-Maccoll cone flow.
@@ -656,12 +662,15 @@ def beta_cone(state1, V1, theta):
     :returns: shock wave angle wrt incoming stream direction (in radians)
     """
     M1 = V1 / state1.a
-    b1 = math.asin(1.0 / M1) * 1.01 # to be stronger than a Mach wave
+    b1 = max(math.asin(1.0/M1), theta) * 1.01 # to be stronger than a Mach wave
     b2 = b1 * 1.05
     def error_in_theta(beta_guess):
         theta_guess, V_c, state_c = theta_cone(state1, V1, beta_guess)
         return theta_guess - theta
-    return secant(error_in_theta, b1, b2, tol=1.0e-4)
+    beta_result = secant(error_in_theta, b1, b2, tol=1.0e-4)
+    if beta_result == 'FAIL':
+        raise RuntimeError('beta_cone(): failed to converge on a shock-wave angle.')
+    return beta_result
 
 #------------------------------------------------------------------------
 
