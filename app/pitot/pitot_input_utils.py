@@ -17,6 +17,22 @@ import cfpylib.gasdyn.ideal_gas as pg
 
 PRINT_STATUS = 1 #if print status is 1, some basic printouts are done
 
+def config_loader(config_file):
+    """Function that loads the pitot input dictionary from a config file,
+    and returns the loaded dictionary to the main program."""
+    
+    cfg = {}
+    
+    try: #from Rowan's onedval program
+        execfile(config_file, globals(), cfg)
+    except IOError:
+        print "There was a problem reading the config file: '{0}'".format(config_file)
+        print "Check that it conforms to Python syntax."
+        print "Bailing out!"
+        sys.exit(1)
+        
+    return cfg
+
 def is_valid(command,valid_commands):
     """Prompts the user for a valid command, and only returns a valid command.
 
@@ -101,10 +117,13 @@ def make_test_gas(gasName, outputUnits='moles'):
 def input_checker(cfg):
     """Takes the input file and checks it works. Duh.
     
-    Returns the checked over input file and will tell the bigger program to 
+    Returns the checked input file and will tell the bigger program to 
     bail out if it finds an issue.
     
     """
+    
+    print '-'*60
+    print "Performing input check before test is ran."
     
     cfg['bad_input'] = False
     
@@ -323,8 +342,22 @@ def input_checker(cfg):
         cfg['bad_input'] = True
         
     if cfg['bad_input']: #bail out here if you end up having issues with your input
-        sys.exit(1) 
-   
+        print "Config failed check. Bailing out now."
+        print '-'*60
+        sys.exit(1)
+        
+    if not cfg['bad_input']:
+        print "Input check completed. Test will now run."
+        print '-'*60
+           
+    return cfg
+    
+def start_message(cfg):
+    """
+    Takes the config file and prints a short introduction to the 
+    test to the screen before the run starts.
+    """
+    
     if PRINT_STATUS: print "Let's get started, shall we:"
     if PRINT_STATUS and not cfg['facility'] == 'custom': 
         print "Facility is {0}. Driver gas is {1}.".format(cfg['facility'], cfg['driver_gas'])
@@ -343,8 +376,8 @@ def input_checker(cfg):
             print 'Selected shock tube fill pressure (p1) = {0} Pa.'.format(cfg['p1'])
         if 'p5' in cfg:            
             print 'Selected acceleration tube fill pressure (p5) = {0} Pa.'.format(cfg['p5'])
-        
-    return cfg
+        print '-'*60       
+    return
     
 def state_builder(cfg):
     """Function to build the various states required by the program."""
@@ -369,6 +402,8 @@ def state_builder(cfg):
     states = {} #states dictionary that we'll fill up later
     V = {} #same for velocity
     M = {} #same for Mach number
+    
+    if PRINT_STATUS: print "Building initial gas states."
         
     #state 4 is diaphragm burst state (taken to basically be a total condition)
     if cfg['facility'] == 'x2':
@@ -525,6 +560,8 @@ def state_builder(cfg):
     #need this set to something for later in the piece
     if cfg['secondary'] and 'Vsd' not in cfg: cfg['Vsd'] = None
     if 'Vs1' not in cfg: cfg['Vs1'] = None
-    if 'Vs2' not in cfg: cfg['Vs2'] = None              
+    if 'Vs2' not in cfg: cfg['Vs2'] = None
+
+    if PRINT_STATUS: print '-'*60               
     
     return cfg, states, V, M

@@ -28,7 +28,6 @@ def txt_file_output(cfg, states, V, M):
 
     txt_output = open(cfg['filename']+'.txt',"w")  #txt_output file creation
                 
-    print " "
     if cfg['tunnel_mode'] == 'expansion-tube':
         version_printout = "Pitot Version: {0} doing an expansion tube calculation".format(cfg['VERSION_STRING'])
     elif cfg['tunnel_mode'] == 'nr-shock-tunnel':

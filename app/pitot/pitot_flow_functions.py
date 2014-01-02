@@ -73,7 +73,7 @@ def secondary_driver_calculation(cfg, states, V, M):
         cfg['psd1'] = secant(error_in_velocity_s3s_to_sd3_expansion_pressure_iterator, 5000.0, 6000.0, tol=1.0e-5,limits=[1000.0,1000000.0])
         if PRINT_STATUS: print "From secant solve: psd1 = {0} Pa".format(cfg['psd1'])
         #start using psd1 now, compute states sd1,sd2 and sd3 using the correct psd1
-        if PRINT_STATUS: print "Once p1 is known, find conditions at state 1 and 2."
+        if PRINT_STATUS: print "Now that p1 is known, finding conditions at state 1 and 2."
         states['sd1'].set_pT(cfg['psd1'],cfg['T0'])
     
     elif cfg['test'] == "fulltheory-pressure": #get Vsd for our chosen fill pressure
@@ -83,7 +83,7 @@ def secondary_driver_calculation(cfg, states, V, M):
             cfg['Vsd'] = secant(error_in_velocity_s3s_to_sd3_driver_expansion_shock_speed_iterator, 7000.0, 8000.0, tol=1.0e-5,limits=[1000.0,1000000.0]) 
         if PRINT_STATUS: print "From secant solve: Vsd = {0} m/s".format(cfg['Vsd'])
         #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
-        if PRINT_STATUS: print "Once Vsd is known, find conditions at state sd1 and sd2."
+        if PRINT_STATUS: print "Now that Vsd is known, finding conditions at state sd1 and sd2."
     
     (Vsd2, V['sd2']) = normal_shock(states['sd1'], cfg['Vsd'], states['sd2'])
     V['sd3'], states['sd3'] = finite_wave_dv('cplus', V['s3s'], states['s3s'], V['sd2'], steps=cfg['secondary_driver_expansion_steps'])
@@ -92,6 +92,8 @@ def secondary_driver_calculation(cfg, states, V, M):
     cfg['Msd1'] = cfg['Vsd']/states['sd1'].a
     M['sd2'] = V['sd2']/states['sd2'].a
     M['sd3']= V['sd3']/states['sd3'].a
+    
+    if PRINT_STATUS: print '-'*60
     
     return cfg, states, V, M
     
@@ -265,15 +267,15 @@ def shock_tube_calculation(cfg, states, V, M):
                 if PRINT_STATUS: print "Vsd is a stronger shock than Vs1. Therefore a normal shock processes the secondary driver gas moving into the shock tube."
                 cfg['p1'] = secant(p1_reflected_iterator, 1000.0, 100000.0, tol=1.0e-5,limits=[100.0,1000000.0])
             else: #same expansion as we're used to
-                if PRINT_STATUS: print "Start unsteady expansion of the secondary driver gas into the shock tube."
+                if PRINT_STATUS: print "Starting unsteady expansion of the secondary driver gas into the shock tube."
                 cfg['p1'] = secant(error_in_velocity_shock_tube_expansion_pressure_iterator, 1000.0, 100000.0, tol=1.0e-4,limits=[100.0,1000000.0])
         else: #just do the expansion
-            if PRINT_STATUS: print "Start unsteady expansion of the driver gas into the shock tube."
+            if PRINT_STATUS: print "Starting unsteady expansion of the driver gas into the shock tube."
             cfg['p1'] = secant(error_in_velocity_shock_tube_expansion_pressure_iterator, 1000.0, 100000.0, tol=1.0e-4,limits=[100.0,1000000.0])
 
         if PRINT_STATUS: print "From secant solve: p1 = {0} Pa".format(cfg['p1'])
         #start using p1 now, compute states 1,2 and 3 using the correct p1
-        if PRINT_STATUS: print "Once p1 is known, find conditions at state 1 and 2."
+        if PRINT_STATUS: print "Now that p1 is known, finding conditions at state 1 and 2."
         states['s1'].set_pT(cfg['p1'],cfg['T0'])
         
     elif cfg['test'] =="fulltheory-pressure": #get Vs1 for our chosen fill pressure
@@ -291,7 +293,7 @@ def shock_tube_calculation(cfg, states, V, M):
                 cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, cfg['Vsd']+5000.0, cfg['Vsd']+6000.0, tol=1.0e-3,limits=[1000.0,1000000.0])
         if PRINT_STATUS: print "From secant solve: Vs1 = {0} m/s".format(cfg['Vs1'])
         #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
-        if PRINT_STATUS: print "Once Vs1 is known, find conditions at state 1 and 2."
+        if PRINT_STATUS: print "Now that Vs1 is known, finding conditions at state 1 and 2."
     (V2, V['s2']) = normal_shock(states['s1'], cfg['Vs1'], states['s2'])
     if cfg['solver'] == 'pg-eq': #if we're using the pg-eq solver this is the point where we move from pg to eq gas objects
         if cfg['test_gas'] == 'mars' or cfg['test_gas'] == 'co2' or cfg['test_gas'] == 'venus':
@@ -343,6 +345,8 @@ def shock_tube_calculation(cfg, states, V, M):
         cfg['gas_guess_air'] = {'gam':1.35,'R':571.49}     
     else:
         cfg['gas_guess'] = None ; cfg['gas_guess_air'] = None
+        
+    if PRINT_STATUS: print '-'*60
         
     return cfg, states, V, M
     
@@ -415,7 +419,7 @@ def acceleration_tube_calculation(cfg, states, V, M):
         if PRINT_STATUS: print "From secant solve: p5 = {0} Pa".format(cfg['p5'])
         
         #start using p5 now, compute states 5,6 and 7 using the correct p5
-        if PRINT_STATUS: print "Once p5 is known, find conditions at state 5 and 6."
+        if PRINT_STATUS: print "Now that p5 is known, finding conditions at state 5 and 6."
         states['s5'].set_pT(cfg['p5'],cfg['T0'])
         
     elif cfg['test'] == 'fulltheory-pressure': #compute the shock speed for the chosen fill pressure, uses Vs1 as starting guess
@@ -436,7 +440,7 @@ def acceleration_tube_calculation(cfg, states, V, M):
         cfg['Vs2'] = cfg['Vs2']*cfg['expansion_factor'] #need to take account of this...
         if PRINT_STATUS: print "From secant solve: Vs2 = {0} m/s".format(cfg['Vs2'])
         #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
-        if PRINT_STATUS: print "Once Vs2 is known, find conditions at state 5 and 6."
+        if PRINT_STATUS: print "Now that Vs2 is known, finding conditions at state 5 and 6."
     elif cfg['test'] == 'experiment':
         if cfg['state7_no_ions']:
             # Need to turn ions off for state 2 here if it is required to make 
@@ -461,6 +465,8 @@ def acceleration_tube_calculation(cfg, states, V, M):
     M['s6'] = V['s6']/states['s6'].a
     M['s7']= V['s7']/states['s7'].a
     
+    if PRINT_STATUS: print '-'*60
+    
     return cfg, states, V, M
     
 #----------------------------------------------------------------------------
@@ -470,19 +476,21 @@ def test_section_setup(cfg, states, V, M):
     steady expansion through the nozzle if it detects that it needs to."""
                       
     if cfg['tunnel_mode'] == 'expansion-tube' and cfg['nozzle']:    
-            if PRINT_STATUS: print "Start steady expansion through the nozzle."
+            if PRINT_STATUS: print "Starting steady expansion through the nozzle."
             (V['s8'], states['s8']) = steady_flow_with_area_change(states['s7'], V['s7'], cfg['area_ratio'])
             M['s8']= V['s8']/states['s8'].a
             cfg['test_section_state'] = 's8'
     elif cfg['tunnel_mode'] == 'expansion-tube' and not cfg['nozzle']:
             cfg['test_section_state'] = 's7' 
     elif cfg['tunnel_mode'] == 'nr-shock-tunnel' and cfg['nozzle']:
-            if PRINT_STATUS: print "Start steady expansion through the nozzle."
+            if PRINT_STATUS: print "Starting steady expansion through the nozzle."
             (V['s8'], states['s8']) = steady_flow_with_area_change(states['s2'], V['s2'], cfg['area_ratio'])
             M['s8']= V['s8']/states['s8'].a
             cfg['test_section_state'] = 's8'
     elif cfg['tunnel_mode'] == 'nr-shock-tunnel' and not cfg['nozzle']:            
             cfg['test_section_state'] = 's2'
+            
+    if PRINT_STATUS and cfg['nozzle']: print '-'*60
 
     return cfg, states, V, M
 
@@ -495,7 +503,7 @@ def nozzle_expansion(cfg, states, V, M):
     
     """
 
-    if PRINT_STATUS: print "Start steady expansion through the nozzle."
+    if PRINT_STATUS: print "Starting steady expansion through the nozzle."
     (V['s8'], states['s8']) = steady_flow_with_area_change(states['s7'], V['s7'], cfg['area_ratio'])
     M['s8']= V['s8']/states['s8'].a 
     
@@ -510,12 +518,12 @@ def shock_over_model_calculation(cfg, states, V, M):
     
     """
     
-    if PRINT_STATUS: print "Start frozen normal shock calculation over the test model."  
+    if PRINT_STATUS: print "Starting frozen normal shock calculation over the test model."  
     states['s10f'] = states[cfg['test_section_state']].clone()
     (V10, V['s10f']) = shock_ideal(states[cfg['test_section_state']], V[cfg['test_section_state']], states['s10f'])
     M['s10f']= V['s10f']/states['s10f'].a
 
-    if PRINT_STATUS: print "Start equilibrium normal shock calculation over the test model."  
+    if PRINT_STATUS: print "Starting equilibrium normal shock calculation over the test model."  
     if cfg['solver'] == 'eq' or cfg['solver'] == 'pg-eq': 
         states['s10e'] = states[cfg['test_section_state']].clone()
         (V10, V['s10e']) = normal_shock(states[cfg['test_section_state']], V[cfg['test_section_state']], states['s10e'])
@@ -527,6 +535,8 @@ def shock_over_model_calculation(cfg, states, V, M):
         (V10, V['s10e']) = normal_shock(states[cfg['test_section_state']+'eq'], V[cfg['test_section_state']], states['s10e'])
         M['s10e']= V['s10e']/states['s10e'].a
         
+    if PRINT_STATUS: print '-'*60
+        
     return cfg, states, V, M
     
 #----------------------------------------------------------------------------
@@ -535,14 +545,13 @@ def conehead_calculation(cfg, states, V, M):
     """Function that takes the cfg, states, V and M dictionaries, does a 
     calculation for a conehead in the test section at a specified angle
     and then returns the changes cfg, states, V, M dictionaries."""
-    
- 
+     
     cfg['conehead_completed'] = True #variable we'll set to false if the calculation fails
     if 'conehead_no_ions' not in cfg: #add this variable and set it to false if the user has not used it
         cfg['conehead_no_ions'] = False
     cfg['conehead_no_ions_required'] = False #variable we'll set to True if we need to turn ions off in the conehead calc 
     
-    if PRINT_STATUS: print 'Doing taylor maccoll conehead calculation on {0} degree conehead.'.format(cfg['conehead_angle'])
+    if PRINT_STATUS: print 'Starting taylor maccoll conehead calculation on {0} degree conehead.'.format(cfg['conehead_angle'])
     
     if cfg['conehead_no_ions']: states[cfg['test_section_state']].with_ions = False    
     
@@ -556,7 +565,7 @@ def conehead_calculation(cfg, states, V, M):
         states[cfg['test_section_state']].with_ions = False
         shock_angle = beta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], math.radians(cfg['conehead_angle']))
 
-    if PRINT_STATUS: print "\nShock angle over cone:", math.degrees(shock_angle)
+    if PRINT_STATUS: print "Shock angle over cone:", math.degrees(shock_angle)
     # Reverse the process to get the flow state behind the shock and check the surface angle is correct
     try:    
         delta_s, V['s10c'], states['s10c'] = theta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], shock_angle)
@@ -577,6 +586,8 @@ def conehead_calculation(cfg, states, V, M):
     # turn the ions back on at the end
     if cfg['conehead_no_ions']: states[cfg['test_section_state']].with_ions = True
     if cfg['conehead_no_ions_required']: cfg['conehead_no_ions'] = False
+    
+    if PRINT_STATUS: print '-'*60
     
     return cfg, states, V, M
     

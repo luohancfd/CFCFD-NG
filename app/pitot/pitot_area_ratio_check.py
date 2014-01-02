@@ -19,29 +19,36 @@ def area_ratio_check(cfg, states, V, M):
     # open a file to start saving our results
     area_ratio_output = open(cfg['filename']+'-area-ratio-check.csv',"w")  #csv_output file creation
     # print a line explaining the results
-    intro_line_1 = "# Output of pitot area ratio checking program."
+    intro_line_1 = "# Output of pitot area ratio checking program performed using Pitot version {0}.".format(cfg['VERSION_STRING'])
     area_ratio_output.write(intro_line_1 + '\n')
-    if cfg['conehead'] and not cfg['shock_over_model']:
-        intro_line_2 = "# area ratio,p8,T8,V8,M8,p10c,T10c,V10c"
-    elif cfg['shock_over_model'] and not cfg['conehead']:
-        intro_line_2 = "# area ratio,p8,T8,V8,M8,p10f,T10f,V10f,p10e,T10e,V10e"
-    elif cfg['shock_over_model'] and cfg['conehead']:
-        intro_line_2 = "# area ratio,p8,T8,V8,M8,p10c,T10c,V10c,p10f,T10f,V10f,p10e,T10e,V10e"        
-    else:
-        intro_line_2 = "# area ratio,p8,T8,V8,M8"
+    intro_line_2 = "# units are the same as the program. Velocities in m/s, pressures in Pa, temperatures in K."
     area_ratio_output.write(intro_line_2 + '\n')
+    if cfg['conehead'] and not cfg['shock_over_model']:
+        intro_line_3 = "# area ratio,p8,T8,V8,M8,p10c,T10c,V10c"
+    elif cfg['shock_over_model'] and not cfg['conehead']:
+        intro_line_3 = "# area ratio,p8,T8,V8,M8,p10f,T10f,V10f,p10e,T10e,V10e"
+    elif cfg['shock_over_model'] and cfg['conehead']:
+        intro_line_3 = "# area ratio,p8,T8,V8,M8,p10c,T10c,V10c,p10f,T10f,V10f,p10e,T10e,V10e"        
+    else:
+        intro_line_3 = "# area ratio,p8,T8,V8,M8"
+    area_ratio_output.write(intro_line_3 + '\n')
     
     # start by storing old area ratio so it can be retained later
 
     old_area_ratio = cfg['area_ratio']  
     
-    print "Performing area ratio check by running through a series of different area ratios."
+    print "Performing area ratio check by running through a {0} different area ratios."\
+    .format(len(cfg['area_ratio_check_list']))
+    
+    counter = 0 #counter used to tell user how far through the calculations we are
                
     for area_ratio in cfg['area_ratio_check_list']:
         # add the current area ratio
+        counter += 1
         cfg['area_ratio'] = area_ratio
         print 60*"-"
-        print "Current area ratio = {0}.".format(area_ratio)
+        print "Test {0} of {1} (Current area ratio = {2})."\
+        .format(counter, len(cfg['area_ratio_check_list']), area_ratio)
         # run the nozzle expansion
         cfg, states, V, M = nozzle_expansion(cfg, states, V, M)
         if cfg['conehead']: #do the conehead calculation if required

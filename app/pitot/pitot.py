@@ -152,6 +152,11 @@ available to me as part of cfpylib inside the cfcfd code collection.
     20-Aug-2013: Added new area ratio check mode that will run through various
         nozzle area ratios and output the changing freestream conditions in
         a csv file for analysis in a plotting program.
+    02-Jan-2014: Added a skeleton version of a new condition builder mode that
+        will run a series of the conditions and output a csv detailing
+        the fill conditions and the resulting shock speeds and freestream
+        properties. Also tidied up the code in general so that the printouts
+        during each test run are easier to look at and understand.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -179,7 +184,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "20-Aug-2013"
+VERSION_STRING = "02-Jan-2014"
 
 DEBUG_PITOT = False
 
@@ -205,17 +210,13 @@ def run_pitot(cfg = {}, config_file = None):
     #---------------------- getting the inputs set up --------------------------
     
     if config_file:
-        try: #from Rowan's onedval program
-            execfile(config_file, globals(), cfg)
-        except IOError:
-            print "There was a problem reading the config file: '{0}'".format(config_file)
-            print "Check that it conforms to Python syntax."
-            print "Bailing out!"
-            sys.exit(1)
+        cfg = config_loader(config_file)
         
     #----------------- check inputs ----------------------------------------
     
     cfg = input_checker(cfg)
+    
+    start_message(cfg)
     
     cfg['VERSION_STRING'] = VERSION_STRING #add the version string the cfg dictionary
                                                         
@@ -224,13 +225,17 @@ def run_pitot(cfg = {}, config_file = None):
     cfg, states, V, M = state_builder(cfg) #function above that builds all of the initial states based on info in the cfg dictionary
        
     #--------- unsteady expansion of driver gas-----------------------------
-    
-    print "Start unsteady expansion of the driver gas."
+    if cfg['secondary']:
+        print "Starting unsteady expansion of the driver gas into the secondary driver tube."
+    else:
+        print "Starting unsteady expansion of the driver gas into the shock tube."
     # For the unsteady expansion of the test driver into the tube, regulation of the amount
     # of expansion is determined by the shock-processed gas in the next section.
     # Across the contact surface between these gases, the pressure and velocity
     # have to match so we set up some trials of various pressures and check 
     # that velocities match.
+    
+    #----------------secondary driver calculation (if required)---------------
         
     if cfg['secondary']:
         cfg, states, V, M = secondary_driver_calculation(cfg, states, V, M)
@@ -283,7 +288,9 @@ def run_pitot(cfg = {}, config_file = None):
     cfg = test_time_calculator(cfg, states, V)
     
     #------------------- perform output work ---------------------------
-    
+    if 'printout' in cfg['mode']:
+        if PRINT_STATUS: print "Test completed. Printing output now."
+        if PRINT_STATUS: print '-'*60
     if cfg['mode'] == 'printout' or cfg['mode'] == 'cea-printout':
         #do txt_output and csv output with cfcfd cea style printouts added if required
         cfg, states, V, M = txt_file_output(cfg, states, V, M)
