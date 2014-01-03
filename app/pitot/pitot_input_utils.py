@@ -364,13 +364,13 @@ def start_message(cfg):
     if PRINT_STATUS and cfg['facility'] == 'custom': 
         print "Facility is {0}. Driver gas is {1}.".format(cfg['facility'], cfg['driver_composition'])    
     if PRINT_STATUS: 
-        if 'Vsd' in cfg:
+        if 'Vsd' in cfg and cfg['secondary']:
             print 'Selected Vsd = {0} m/s'.format(cfg['Vsd'])
         if 'Vs1' in cfg:
             print 'Selected Vs1 = {0} m/s'.format(cfg['Vs1'])
         if 'Vs2' in cfg:
             print 'Selected Vs2 = {0} m/s'.format(cfg['Vs2'])
-        if 'psd1' in cfg:
+        if 'psd1' in cfg and cfg['secondary']:
             print 'Selected secondary driver fill pressure (psd1) = {0} Pa.'.format(cfg['psd1'])
         if 'p1' in cfg:
             print 'Selected shock tube fill pressure (p1) = {0} Pa.'.format(cfg['p1'])
