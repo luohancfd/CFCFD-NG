@@ -150,7 +150,7 @@ class BoundaryCondition(object):
                 'x_order', 'sponge_flag', 'other_block', 'other_face', 'orientation', \
                 'filename', 'n_profile', 'is_wall', 'sets_conv_flux', 'sets_visc_flux', \
                 'assume_ideal', 'mdot', 'Twall_i', 'Twall_f', 't_i', 't_f', 'emissivity', \
-                'r_omega', 'centre', 'v_trans', 'reorient_vector_quantities', 'Rmatrix', 'label'
+                'r_omega', 'centre', 'v_trans', 'Twall_flag', 'reorient_vector_quantities', 'Rmatrix', 'label'
     def __init__(self,
                  type_of_BC=SLIP_WALL,
                  Twall=300.0,
@@ -176,6 +176,7 @@ class BoundaryCondition(object):
                  r_omega=None,
                  centre=None,
                  v_trans=None,
+                 Twall_flag=False,
                  reorient_vector_quantities=False,
                  Rmatrix=[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
                  label=""):
@@ -228,6 +229,7 @@ class BoundaryCondition(object):
         :param r_omega: angular velocity for Jason Qin's moving-wall boundary
         :param centre: a point on the axis of rotation for the moving-wall boundary
         :param v_tran: a translational velocity to superimpost on the moving-wall boundary 
+        :param Twall_flag: a boolean parameter to select fixed Twall for moving-wall boundary
         :param reorient_vector_quantities: for exchange of vector quantities between adjacent boundaries
         :param Rmatrix: the 9 elements of the rotation matrix
         :param label: A string that may be used to assist in identifying the boundary
@@ -270,6 +272,7 @@ class BoundaryCondition(object):
         else:
             self.v_trans = [v_trans[0], v_trans[1], v_trans[2]]
         self.reorient_vector_quantities = reorient_vector_quantities
+        self.Twall_flag = Twall_flag
         assert (type(Rmatrix) is list) and (len(Rmatrix) == 9)
         self.Rmatrix = Rmatrix
         self.label = label
@@ -300,6 +303,7 @@ class BoundaryCondition(object):
         str_rep += ", centre=[%g, %g, %g]," % (self.centre[0], self.centre[1], self.centre[2])
         str_rep += ", v_trans=[%g, %g, %g]," % (self.v_trans[0], self.v_trans[1], self.v_trans[2])
         str_rep += ", reorient_vector_quantities=%d" % self.reorient_vector_quantities
+        str_rep += ", Twall_flag=%s" % self.Twall_flag
         str_rep += ", Rmatrix=["
         for elem in Rmatrix: str_rep += "%g, " % elem
         str_rep += "]"
@@ -331,6 +335,7 @@ class BoundaryCondition(object):
                                  centre=self.centre.copy(),
                                  v_trans=self.v_trans.copy(),
                                  reorient_vector_quantities=self.reorient_vector_quantities,
+                                 Twall_flag=self.Twall_flag,
                                  Rmatrix=self.Rmatrix,
                                  label=self.label)
     
@@ -930,7 +935,7 @@ class MovingWallBC(BoundaryCondition):
     Like the AdiabaticBC, this is completey effective only when viscous
     effects are active.  Else, it is just like another solid (slip) wall.
     """
-    def __init__(self, r_omega=None, centre=None, v_trans=None, Twall=None, label=""):
+    def __init__(self, r_omega=None, centre=None, v_trans=None, Twall_flag=False, Twall=None, label=""):
         """
         Construct a no-slip, solid-wall boundary that has a non-zero surface velocity.
 
@@ -972,13 +977,13 @@ class MovingWallBC(BoundaryCondition):
         else:
             raise RuntimeError("Invalid input for v_trans: " + str(v_trans))
         BoundaryCondition.__init__(self, type_of_BC=MOVING_WALL, 
-            r_omega=my_r_omega, centre=my_centre, v_trans=my_v_trans, Twall=Twall, label=label)
+            r_omega=my_r_omega, centre=my_centre, v_trans=my_v_trans, Twall_flag=Twall_flag, Twall=Twall, label=label)
         return
     def __str__(self):
-        return "MovingWallBC(r_omega=[%g,%g,%g], centre=[%g,%g,%g], v_trans=[%g,%g,%g], Twall=%g, label=\"%s\")" % \
+        return "MovingWallBC(r_omega=[%g,%g,%g], centre=[%g,%g,%g], v_trans=[%g,%g,%g], Twall_flag=%s, Twall=%g, label=\"%s\")" % \
             (self.r_omega, self.label)
     def __copy__(self):
-        return MovingWallBC(r_omega=self.r_omega, centre=self.centre, v_trans=self.v_trans, Twall=self.Twall, label=self.label)
+        return MovingWallBC(r_omega=self.r_omega, centre=self.centre, v_trans=self.v_trans, Twall_flag=self.Twall_flag,Twall=self.Twall, label=self.label)
 #####################################################################################
 # FIX-ME -- should we merge the catalycity bcs with the main boundary-condition list?
 #####################################################################################

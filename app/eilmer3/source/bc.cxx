@@ -908,6 +908,7 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     std::vector<double> centre; centre.resize(3, 0.0);
     std::vector<double> v_trans; v_trans.resize(3, 0.0);
     bool reorient_vector_quantities = false;
+    bool Twall_flag = false;
     std::vector<double> eye; eye.resize(9, 0.0); eye[0] = 1.0; eye[4] = 1.0; eye[8] = 1.0;
     std::vector<double> Rmatrix = eye;
 
@@ -1028,10 +1029,11 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
         dict.parse_vector_of_doubles(section, "r_omega", r_omega, r_omega);
         dict.parse_vector_of_doubles(section, "centre", centre, centre);
         dict.parse_vector_of_doubles(section, "v_trans", v_trans, v_trans);
+        dict.parse_boolean(section, "Twall_flag", Twall_flag, false);
         dict.parse_double(section, "Twall", Twall, 300.0);
         dict.parse_double(section, "emissivity", emissivity, 1.0);
         newBC = new MovingWallBC(bdp, which_boundary, Vector3(r_omega), Vector3(centre),
-				 Vector3(v_trans), Twall, emissivity);
+				 Vector3(v_trans), Twall_flag, Twall, emissivity);
         break;
     default:
 	cerr << "create_BC() error: boundary condition \"" << type_of_BC 

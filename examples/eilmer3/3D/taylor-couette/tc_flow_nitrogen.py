@@ -67,7 +67,7 @@ nbx = 1 ; nby = 40 ; nbz = 1 ;
 c_0 = RobertsClusterFunction(1,1,1.0)
 
 # North, East, South, West, Top, Bottom
-mv = MovingWallBC(r_omega=[0.0,0.0,r_omega],v_trans=[0.0,0.0,0.0],Twall=T_1)
+mv = MovingWallBC(r_omega=[0.0,0.0,r_omega],v_trans=[0.0,0.0,0.0],Twall_flag=True,Twall=T_1)
 ft = FixedTBC(Twall=T_2)
 slip = SlipWallBC()
 

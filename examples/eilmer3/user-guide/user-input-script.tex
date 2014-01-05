@@ -1489,6 +1489,11 @@ specifying the boundary conditions when the block is created.
         the viscous fluxes at the boundary interfaces (default 0).  
         If not, the internal viscous derivatives are used to compute fluxes based on the supplied interface data.
       \item \texttt{ADJACENT\_PLUS\_UDF}:
+      \item \texttt{MOVING\_WALL}: moving wall boundary condition is a solid boundary with no-slip
+        but non-zero surface velocity. r\_omega is a vector to set rotational speed, centre is used to
+        set the rotational centre and v\_trans is used to configure the translational velocity of surface.
+        Initially, moving wall is a kind of adiabatic wall, if you want to set a fixed temperature condition.
+        Twall\_flag should be True, then set fiexd temperature to Twall.
     \end{itemize}
   \item \texttt{inflow\_condition}: the flow condition used for
     \texttt{SUP\_IN}, default value None.

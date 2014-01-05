@@ -540,6 +540,7 @@ class Block(object):
                r_omega=None, centre=None, v_trans=None, 
                filename=None, n_profile=1,
                is_wall=0, sets_conv_flux=0, sets_visc_flux=0,
+               Twall_flag=False,
                reorient_vector_quantities=False, Rmatrix=None,
                assume_ideal=0, mdot=None, emissivity=None,
                Twall_i=None, Twall_f=None, t_i=None, t_f=None,
@@ -636,7 +637,7 @@ class Block(object):
         if type_of_BC == FIXED_P_OUT:
             newbc = FixedPOutBC(Pout, x_order, label=label)
         if type_of_BC == MOVING_WALL:
-            newbc = MovingWallBC(r_omega, centre, v_trans, Twall, label=label)
+            newbc = MovingWallBC(r_omega, centre, v_trans, Twall_flag, Twall, label=label)
         if type_of_BC == RRM:
             newbc = RRMBC(sponge_flag, label=label)
         if type_of_BC == USER_DEFINED:
@@ -741,6 +742,7 @@ class Block(object):
             fp.write("sets_conv_flux = %d\n" % bc.sets_conv_flux)
             fp.write("sets_visc_flux = %d\n" % bc.sets_visc_flux)
             fp.write("reorient_vector_quantities = %s\n" % bc.reorient_vector_quantities)
+            fp.write("Twall_flag = %s\n" % bc.Twall_flag)
             fp.write("Rmatrix = %.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e\n" %
                      (bc.Rmatrix[0], bc.Rmatrix[1], bc.Rmatrix[2],
                       bc.Rmatrix[3], bc.Rmatrix[4], bc.Rmatrix[5],
