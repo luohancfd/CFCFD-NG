@@ -565,31 +565,42 @@ def conehead_calculation(cfg, states, V, M):
     
     try:
         shock_angle = beta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], math.radians(cfg['conehead_angle']))
-    except Exception:
+    except Exception as e:
+        print "Error {0}".format(str(e))
         print "beta_cone function bailed out while trying to find a shock angle."
         print "will try again with ions turned off in the calculation."
         cfg['conehead_no_ions_required'] = True
         cfg['conehead_no_ions'] = True        
         states[cfg['test_section_state']].with_ions = False
-        shock_angle = beta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], math.radians(cfg['conehead_angle']))
-
+        try:
+            shock_angle = beta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], math.radians(cfg['conehead_angle']))
+        except Exception as e:
+            print "Error {0}".format(str(e))    
+            print "beta_cone function bailed out while trying to find a shock angle."
+            print "Stopping here. Try another nozzle area ratio."
+            print "Result will not show state 10c."
+            cfg['conehead_completed'] = False
+            return cfg, states, V, M  
+            
+            
     if PRINT_STATUS: print "Shock angle over cone:", math.degrees(shock_angle)
     # Reverse the process to get the flow state behind the shock and check the surface angle is correct
     try:    
         delta_s, V['s10c'], states['s10c'] = theta_cone(states[cfg['test_section_state']], V[cfg['test_section_state']], shock_angle)
-    except Exception:
+    except Exception as e:
+        print "Error {0}".format(str(e))
         print "theta_cone bailed out while trying to find cone surface conditions."
         print "Stopping here. Try another nozzle area ratio."
         print "Result will not show state 10c."
         cfg['conehead_completed'] = False
-        return cfg, states, V, M        
+        return cfg, states, V, M
+        
     M['s10c'] = V['s10c']/states['s10c'].a
     if PRINT_STATUS: print "Surface angle should be the same.....: 15deg = ", math.degrees(delta_s), "deg"
     #if PRINT_STATUS: print "\nConehead surface conditions:"
     #if PRINT_STATUS: states['s10c'].write_state(sys.stdout)
     # Need to check whether the pressure are the same
     if PRINT_STATUS: print "Computed conehead pressure is {0} Pa".format(states['s10c'].p)
-    
     
     # turn the ions back on at the end
     if cfg['conehead_no_ions']: states[cfg['test_section_state']].with_ions = True
