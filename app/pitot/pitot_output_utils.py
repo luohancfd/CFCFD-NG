@@ -180,7 +180,13 @@ def txt_file_output(cfg, states, V, M):
     if cfg['tunnel_mode'] == 'expansion-tube':    
         for i in range(5,8): #acc tube extra states
             it_string = 's{0}'.format(i)
-            condition_printer(it_string)
+            try:
+                condition_printer(it_string)
+            except:
+                #try again with ions off.
+                states[it_string].with_ions = False
+                condition_printer(it_string)
+                states[it_string].with_ions = True
             
     if cfg['nozzle']: #do nozzle calculations if asked to
         condition_printer('s8')

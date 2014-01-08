@@ -288,9 +288,17 @@ def shock_tube_calculation(cfg, states, V, M):
             cfg['Vs1'] = secant(primary_shock_speed_reflected_iterator, 2000.0, 4000.0, tol=1.0e-5,limits=[500.0,1000000.0])
         else: #just do the expansion
             if cfg['tunnel_mode'] == 'expansion-tube':
-                cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, 4000.0, 6000.0, tol=1.0e-3,limits=[1000.0,1000000.0])
+                if cfg['p1'] > 1000.0:
+                    cfg['Vs1_guess_1'] = 4000.0; cfg['Vs1_guess_2'] = 6000.0
+                else:
+                    cfg['Vs1_guess_1'] = 6000.0; cfg['Vs1_guess_2'] = 8000.0
+                cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, cfg['Vs1_guess_1'], cfg['Vs1_guess_2'], tol=1.0e-3,limits=[1000.0,1000000.0])
             elif cfg['tunnel_mode'] == 'nr-shock-tunnel': #start with a higher speed guess in nr-shock-tunnel mode
-                cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, cfg['Vsd']+5000.0, cfg['Vsd']+6000.0, tol=1.0e-3,limits=[1000.0,1000000.0])
+                if cfg['secondary']:
+                    cfg['Vs1_guess_1'] = cfg['Vsd']+5000.0; cfg['Vs1_guess_2'] = cfg['Vsd']+6000.0
+                else: 
+                    cfg['Vs1_guess_1'] = 6000.0; cfg['Vs1_guess_2'] = 8000.0
+                cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, cfg['Vs1_guess_1'], cfg['Vs1_guess_2'], tol=1.0e-3,limits=[1000.0,1000000.0])
         if PRINT_STATUS: print "From secant solve: Vs1 = {0} m/s".format(cfg['Vs1'])
         #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
         if PRINT_STATUS: print "Now that Vs1 is known, finding conditions at state 1 and 2."

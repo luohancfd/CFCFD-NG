@@ -1,14 +1,14 @@
 # makefile for pitot
 # lines to install the gas library and cfpylib taken from the nenzfr / estcj make file
 #
-# Chris James (c.james4@uq.edu.au) - 07-May-2013
+# Chris James (c.james4@uq.edu.au) - 06-Jan-2014
 
 TARGET ?= for_gnu
 OPT ?= -O2
 
 INSTALL_DIR ?= $(HOME)/e3bin
 GAS     := ../../lib/gas
-PROGRAMS := pitot.py pitot_input_utils.py pitot_flow_functions.py pitot_output_utils.py pitot_area_ratio_check.py
+PROGRAMS := pitot.py pitot_input_utils.py pitot_flow_functions.py pitot_output_utils.py pitot_area_ratio_check.py pitot_condition_builder.py
 
 install : $(INSTALL_DIR) $(PROGRAMS)
 	@echo Copying cfpylib files to $(INSTALL_DIR)
@@ -17,6 +17,7 @@ install : $(INSTALL_DIR) $(PROGRAMS)
 	@echo Copying pitot files to $(INSTALL_DIR)
 	- cp -f $(PROGRAMS) $(INSTALL_DIR)
 	- chmod +x $(INSTALL_DIR)/pitot.py
+	- chmod +x $(INSTALL_DIR)/pitot_condition_builder.py
 	@echo -----------------------------------------
 	@echo pitot should be now installed.
 	@echo -----------------------------------------

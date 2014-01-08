@@ -150,6 +150,30 @@ def input_checker(cfg):
         print "Valid facilities are 'x2','x3', and 'custom'."
         cfg['bad_input'] = True
         
+    if 'driver_gas' not in cfg and not cfg['facility'] == 'custom':
+        print "No 'driver_gas' specified. You need to specify a driver gas. Bailing out."
+        print "Available driver gases are are 'He:0.80,Ar:0.20','He:0.90,Ar:0.10', 'He:1.0', and 'He:0.60,Ar:0.40'."
+        cfg['bad_input'] = True
+        
+    #thought I'd add a driver gas check here to pick up some common issues
+    if ' ' in cfg['driver_gas']:    
+        cfg['driver_gas'] = cfg['driver_gas'].replace(" ", "") 
+        print "Kindly removed a rogue space from the driver gas input string."
+    if cfg['driver_gas'] == 'He:0.8,Ar:0.2':
+        cfg['driver_gas'] == 'He:0.80,Ar:0.20'
+    elif cfg['driver_gas'] == 'He:0.9,Ar:0.1':
+        cfg['driver_gas'] == 'He:0.90,Ar:0.10'
+    elif cfg['driver_gas'] == 'He:1':
+        cfg['driver_gas'] == 'He:1.0'
+    elif cfg['driver_gas'] == 'He:0.6,Ar:0.4':
+        cfg['driver_gas'] == 'He:0.60,Ar:0.40'
+        
+    if 'test_gas' not in cfg:
+        print "No 'test_gas' specified. You need to specify a test gas. Bailing out."
+        cfg['bad_input'] = True
+    if cfg['test_gas'] == "Air":
+        cfg['test_gas'] == "air"
+        
     # add some more checks here for the custom facility mode
     # custom facility must have initial driver state specified, driver composition,
     # driver burst state (either from compression ratio or burst pressure),
@@ -404,7 +428,7 @@ def state_builder(cfg):
     M = {} #same for Mach number
     
     if PRINT_STATUS: print "Building initial gas states."
-        
+            
     #state 4 is diaphragm burst state (taken to basically be a total condition)
     if cfg['facility'] == 'x2':
         if cfg['piston'] == 'lwp': 
