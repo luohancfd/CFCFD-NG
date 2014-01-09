@@ -316,7 +316,10 @@ def write_cell_data(fp, data, gdata):
         fp.write(" %20.12e %20.12e %20.12e" % (data['B.x'], data['B.y'], data['B.z']))
     fp.write(" %20.12e %20.12e %20.12e" % (data['p'], data['a'], data['mu'],))
     for imode in range(nmodes):
-        fp.write(" %20.12e" % data['k[%d]' % imode]) 
+        try:
+            fp.write(" %20.12e" % data['k[%d]' % imode])
+        except:
+            fp.write(" %20.12e" % data['k[0]']) # -> quick fix for k modes, EJF 14/11/2013
     fp.write(" %20.12e %20.12e %1d" % (data['mu_t'], data['k_t'], data['S'],))
     if gdata.radiation_flag == 1:
         fp.write(" %20.12e %20.12e %20.12e" % (0.0,0.0,0.0)) # Zero radiation initially.
