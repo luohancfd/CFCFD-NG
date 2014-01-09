@@ -123,9 +123,13 @@ void Parade::initialise( lua_State * L )
     // create working directories for each thread
     if ( omp_get_thread_num()==0 ) {
         for ( int i=0; i<omp_get_max_threads(); ++i ) {
-            ostringstream oss;
-            oss << "mkdir parade_working_dir_" << i;
-            srv = system(oss.str().c_str());
+            ostringstream pathname;
+            pathname << "parade_working_dir_" << i;
+            if ( access(pathname.str().c_str(), F_OK) != 0 ) {
+		ostringstream cmd;
+		cmd << "mkdir " << pathname;
+		srv = system(cmd.str().c_str());
+            }
         }
     }
 
