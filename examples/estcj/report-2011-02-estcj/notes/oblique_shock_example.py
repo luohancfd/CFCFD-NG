@@ -34,7 +34,7 @@ print "Given deflection angle, compute shock angle and then post-shock condition
 s1.set_pT(3542.7, 219.428)
 print "Initial gas state:"
 s1.write_state(sys.stdout)
-theta = 33.671 * pi/180 # shock angle
+theta = 33.671 * pi/180 # deflection angle
 V1 = 1.8288e3
 beta = beta_oblique(s1, V1, theta)
 print("Following oblique shock, beta=%g degrees, theta=%g degrees (Hunt&Souders 45 33.671)" 
