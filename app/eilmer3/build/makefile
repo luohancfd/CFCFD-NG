@@ -387,9 +387,10 @@ _libprep3.so : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM)
 # Dynamic library for Mac OS X
 _libprep3.dylib : libprep3_wrap.o $(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) \
 		$(LIBUTIL) $(LIBLUA) $(LIBZLIB) $(LIBTWC)
-	$(CXXLINK) $(LFLAG) $(LDFLAG) -shared -o _libprep3.dylib libprep3_wrap.o \
+	$(CXXLINK) $(LFLAG) $(LDFLAG) -o _libprep3.dylib libprep3_wrap.o \
 		$(LIBE3) $(LIBGEOM2) $(LIBGAS) $(LIBRAD) $(LIBNM) $(LIBUTIL) \
-		$(LIBLUA) $(LIBZLIB) $(LIBTWC) $(LLIB) -framework Python
+		$(LIBLUA) $(LIBZLIB) $(LIBTWC) $(LLIB) -framework Python -bundle \
+		-bundle_loader $(PYTHON_BIN_DIR)/python
 
 # The SWIG interface file and corresponding documentation
 # Normally, we would not try to rebuild this file because 
