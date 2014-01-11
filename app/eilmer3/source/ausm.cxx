@@ -56,11 +56,6 @@ int ausm(FlowState &QL, FlowState &QR, FlowState &QIF, double &WSL, double &WSR)
     }
     Gas_model *gmodel = get_gas_model_ptr();
 
-    /* Choose the polynomial form for pressure splitting by selecting one... */
-#   define FIRST_ORDER  1
-#   define SECOND_ORDER 2
-#   define P_SPLIT FIRST_ORDER
-
     double ML, MR, MLplus, MRminus, Mhalf, advect;
     double PLplus, PRminus, Phalf;
 
@@ -97,7 +92,7 @@ int ausm(FlowState &QL, FlowState &QR, FlowState &QIF, double &WSL, double &WSR)
 	advect = QR.gas->a * Mhalf;
 
     /*
-     * Rolf's mod is to limit the Mach numbers to 1
+     * Rolf Radespiel's mod is to limit the Mach numbers to 1
      * for the pressure splitting.
      */
     if (MR > 1.0) MR = 1.0;
@@ -105,24 +100,24 @@ int ausm(FlowState &QL, FlowState &QR, FlowState &QIF, double &WSL, double &WSR)
     if (ML > 1.0) ML = 1.0;
     if (ML < -1.0) ML = -1.0;
 
-#   if P_SPLIT == FIRST_ORDER
-    /*
-     * Split pressure with the linear expression.
-     * Liou & Steffen, J. Comput Phys p26, eqn (8b)
-     * Note: Bram seems to prefer the cubic expression.
-     */
-    PLplus = 0.5 * QL.gas->p * (1.0 + ML);
-    PRminus = 0.5 * QR.gas->p * (1.0 - MR);
-#   endif
-
-#   if P_SPLIT == SECOND_ORDER
-    /*
-     * Split pressure with the second-order polynomial.
-     * Liou & Steffen, J. Comput Phys p26, eqn (8a)
-     */
-    PLplus = 0.25 * QL.gas->p * (1.0 + ML) * (1.0 + ML) * (2.0 - ML);
-    PRminus = 0.5 * QR.gas->p * (1.0 - MR) * (1.0 - MR) * (2.0 + MR);
-#   endif
+    /* Choose the polynomial form for pressure splitting. */
+    constexpr bool p_split_is_first_order = true;
+    if ( p_split_is_first_order ) {
+	/*
+	 * Split pressure with the linear expression.
+	 * Liou & Steffen, J. Comput Phys p26, eqn (8b)
+	 * Note: Bram seems to prefer the cubic expression.
+	 */
+	PLplus = 0.5 * QL.gas->p * (1.0 + ML);
+	PRminus = 0.5 * QR.gas->p * (1.0 - MR);
+    } else {
+	/*
+	 * Split pressure with the second-order polynomial.
+	 * Liou & Steffen, J. Comput Phys p26, eqn (8a)
+	 */
+	PLplus = 0.25 * QL.gas->p * (1.0 + ML) * (1.0 + ML) * (2.0 - ML);
+	PRminus = 0.5 * QR.gas->p * (1.0 - MR) * (1.0 - MR) * (2.0 + MR);
+    }
 
     Phalf = PLplus + PRminus;
 

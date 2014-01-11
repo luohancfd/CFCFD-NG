@@ -70,13 +70,14 @@ TransientUniformBC::TransientUniformBC(Block *bdp, int which_boundary, std::stri
 	strcpy( token, strtok(NULL, " \t") ); Ta.push_back(atof(token));
 	strcpy( token, strtok(NULL, " \t") ); tkea.push_back(atof(token));
 	strcpy( token, strtok(NULL, " \t") ); omegaa.push_back(atof(token));
-#       if 0
-        printf( "Sample[%d]: time=%e p=%e u=%e v=%e w=%e T=%e\n", 
-		nsample, tta[nsample-1], pa[nsample-1], ua[nsample-1],
-		va[nsample-1], wa[nsample-1], Ta[nsample-1] );
-	printf( "            tke=%e omega=%e\n", tkea[nsample-1], omegaa[nsample-1] );
-        fflush(stdout);
-#       endif
+	constexpr bool print_incoming_data = false;
+	if ( print_incoming_data ) {
+	    printf( "Sample[%d]: time=%e p=%e u=%e v=%e w=%e T=%e\n", 
+		    nsample, tta[nsample-1], pa[nsample-1], ua[nsample-1],
+		    va[nsample-1], wa[nsample-1], Ta[nsample-1] );
+	    printf( "            tke=%e omega=%e\n", tkea[nsample-1], omegaa[nsample-1] );
+	    fflush(stdout);
+	}
 
 	massf_line.resize(nsp, 0.0);
         if ( nsp == 1 ) {
@@ -88,13 +89,13 @@ TransientUniformBC::TransientUniformBC(Block *bdp, int which_boundary, std::stri
 	    }
         }
 	massfa.push_back(massf_line);
-#       if 0
-	printf( "            " );
-	for ( size_t isp = 0; isp < nsp; ++isp ) {
-            printf( "massf[%d]=%e, ", isp, massfa[nsample-1][isp] );
+	if ( print_incoming_data ) {
+	    printf( "            " );
+	    for ( size_t isp = 0; isp < nsp; ++isp ) {
+		printf( "massf[%d]=%e, ", isp, massfa[nsample-1][isp] );
+	    }
+	    printf( "\n" ); fflush(stdout);
 	}
-        printf( "\n" ); fflush(stdout);
-#       endif
     } // end for
 
     cout << "TransientUniformBC(): finished reading " << nsample << " time samples." << endl;

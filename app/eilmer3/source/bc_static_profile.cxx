@@ -136,15 +136,16 @@ StaticProfileBC::StaticProfileBC(Block *bdp, int which_boundary,
 	} else {
 	    dt_therm = -1.0;
 	}
-#       if 1
-	cout << "x=" << x << " y=" << y << " z=" << z 
-	     << " volume=" << volume << " rho=" << rho 
-	     << " u=" << u << " v=" << v << " w=" << w 
-	     << " p=" << p << " a=" << a << " mu=" << mu << " k[0]=" << k[0] 
-	     << " mu_t=" << mu_t << " k_t=" << k_t << " S=" << S 
-	     << " tke=" << tke << " omega=" << omega 
-	     << " dt_chem=" << dt_chem << " e[0]=" << e[0] << " T[0]=" << T[0] << endl;
-#       endif
+	constexpr bool print_incoming_data = true;
+	if ( print_incoming_data ) {
+	    cout << "x=" << x << " y=" << y << " z=" << z 
+		 << " volume=" << volume << " rho=" << rho 
+		 << " u=" << u << " v=" << v << " w=" << w 
+		 << " p=" << p << " a=" << a << " mu=" << mu << " k[0]=" << k[0] 
+		 << " mu_t=" << mu_t << " k_t=" << k_t << " S=" << S 
+		 << " tke=" << tke << " omega=" << omega 
+		 << " dt_chem=" << dt_chem << " e[0]=" << e[0] << " T[0]=" << T[0] << endl;
+	}
 	flow_profile.push_back(new CFlowCondition(gmodel, p, u, v, w, T, massf, "", tke, omega, mu_t, k_t, S));
 	++ncell_read_from_file;
     } // end while

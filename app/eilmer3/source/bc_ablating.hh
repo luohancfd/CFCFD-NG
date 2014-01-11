@@ -17,7 +17,7 @@ private:
     size_t max_iterations;
     double tol;
     std::vector<double> cell_massf;
-    double cell_rho;
+    // double cell_rho; unused, I believe.
     double cell_un;
     double cell_mass_flux;
     double cell_momentum_flux;

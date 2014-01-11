@@ -157,6 +157,7 @@ int gasdynamic_point_implicit_inviscid_increment(double dt)
     G.sim_time = t0 + dt;
     return step_failed;
 #else
+    UNUSED_VARIABLE(VERY_SMALL);
     throw std::runtime_error("gasdynamic_point_implicit_inviscid_increment(): "
 			     "Not compiled into executable code!");
     G.sim_time = t0 + dt;

@@ -1277,7 +1277,7 @@ bool FV_Cell::check_flow_data(void)
 {
     bool is_data_valid = true;
     is_data_valid = fs->gas->check_values(true);
-    const double MAXVEL = 30000.0;
+    constexpr double MAXVEL = 30000.0;
     if (fabs(fs->vel.x) > MAXVEL || fabs(fs->vel.y) > MAXVEL || fabs(fs->vel.z) > MAXVEL) {
 	cout << "Velocity bad " << fs->vel.x << " " << fs->vel.y << " " << fs->vel.z << endl;
 	is_data_valid = false;
@@ -2135,127 +2135,126 @@ int FV_Cell::update_k_omega_properties(double dt)
     // Do not update k_omega properties if we are in laminar block
     if ( !in_turbulent_zone ) return SUCCESS;
 
-#   define KOMEGA_IMPLICIT_UPDATE_FLAG 1
-#   if KOMEGA_IMPLICIT_UPDATE_FLAG == 1
-    double DrtkeDt_perturbTke, DromegaDt_perturbTke;
-    double DrtkeDt_perturbOmega, DromegaDt_perturbOmega;
-    double DGkDzetak, DGkDzetaw, DGwDzetak, DGwDzetaw;
-    double DfkDk, DfkDw, DfwDk, DfwDw;
-    double Gk, Gw;
-    double delta_rtke, delta_romega;
-    double tke, omega;
-    double tke_current, omega_current;
-    double tke_updated, omega_updated;
-    double DrtkeDt_current, DromegaDt_current;
-    double DrtkeDt_updated, DromegaDt_updated;
-    double perturbFactor = 1.01;  // Perturbation factor for perturbation
-                                  // analysis to get derivatives
-    double tol = 1.0e-6;          // Tolerance for the Newton-solve loop
+    constexpr bool KOMEGA_IMPLICIT_UPDATE = true;
+    if ( KOMEGA_IMPLICIT_UPDATE ) {
+	double DrtkeDt_perturbTke, DromegaDt_perturbTke;
+	double DrtkeDt_perturbOmega, DromegaDt_perturbOmega;
+	double DGkDzetak, DGkDzetaw, DGwDzetak, DGwDzetaw;
+	double DfkDk, DfkDw, DfwDk, DfwDw;
+	double Gk, Gw;
+	double delta_rtke, delta_romega;
+	double tke, omega;
+	double tke_current, omega_current;
+	double tke_updated, omega_updated;
+	double DrtkeDt_current, DromegaDt_current;
+	double DrtkeDt_updated, DromegaDt_updated;
+	double perturbFactor = 1.01;  // Perturbation factor for perturbation
+	// analysis to get derivatives
+	double tol = 1.0e-6;          // Tolerance for the Newton-solve loop
 
-    // Encode conserved quantities for cell.
-    U[0]->tke = fs->gas->rho * fs->tke;
-    U[0]->omega = fs->gas->rho * fs->omega;
+	// Encode conserved quantities for cell.
+	U[0]->tke = fs->gas->rho * fs->tke;
+	U[0]->omega = fs->gas->rho * fs->omega;
 
-    // Start of implicit updating scheme.
-    tke_current = fs->tke; omega_current = fs->omega;  // Current values of tke and omega
-    tke_updated = fs->tke; omega_updated = fs->omega;  // First guess of updated values
+	// Start of implicit updating scheme.
+	tke_current = fs->tke; omega_current = fs->omega;  // Current values of tke and omega
+	tke_updated = fs->tke; omega_updated = fs->omega;  // First guess of updated values
 
-    // Work out values of Drtke_current and DromegaDt_current.
-    this->k_omega_time_derivatives(&DrtkeDt_current, &DromegaDt_current, tke_current, omega_current);
+	// Work out values of Drtke_current and DromegaDt_current.
+	this->k_omega_time_derivatives(&DrtkeDt_current, &DromegaDt_current, tke_current, omega_current);
 
-    // Implicit updating scheme.
-    // A for-loop is used to limit the Newton-solve to 20 steps
-    // just in case convergence does not occur.
-    for ( int i = 1; i <= 20; ++i ) {
-        // Work out unperturbed values of Drtke_updated and DromegaDt_updated.
-        this->k_omega_time_derivatives(&DrtkeDt_updated, &DromegaDt_updated, tke_updated, omega_updated);
-        // Perturb tke and obtain perturbed values of DrtkeDt_updated and DromegaDt_updated.
-        tke = perturbFactor * tke_updated; omega = omega_updated;
-        this->k_omega_time_derivatives(&DrtkeDt_perturbTke, &DromegaDt_perturbTke, tke, omega);
-        // Perturb omega and obtain perturbed values of DrtkeDt_updated and DromegaDt_updated.
-        tke = tke_updated; omega = perturbFactor * omega_updated;
-        this->k_omega_time_derivatives(&DrtkeDt_perturbOmega, &DromegaDt_perturbOmega, tke, omega);
-        // Compute derivatives from perturb values.
-        // FIX-ME : Dividing by tke and omega (instead of rtke and romega) seems to work (gives
-        //          same results as explicit update scheme), but we will keep this note here for
-        //          future reference..
-        DfkDk = (DrtkeDt_perturbTke - DrtkeDt_updated) / ((perturbFactor - 1.0) * tke_updated);
-        DfkDw = (DrtkeDt_perturbOmega - DrtkeDt_updated) / ((perturbFactor - 1.0) * omega_updated);
-        DfwDk = (DromegaDt_perturbTke - DromegaDt_updated) / ((perturbFactor - 1.0) * tke_updated);
-        DfwDw = (DromegaDt_perturbOmega - DromegaDt_updated) / ((perturbFactor - 1.0) * omega_updated);
-        // Compute components in matrix A of Ax=B problem.
-        DGkDzetak = -1.0 + 0.5 * dt * DfkDk;
-        DGkDzetaw = 0.5 * dt * DfkDw;
-        DGwDzetak = 0.5 * dt * DfwDk;
-        DGwDzetaw = -1.0 + 0.5 * dt * DfwDw;
-        // Compute vector B of Ax=B problem.
-        Gk = fs->gas->rho * tke_updated - fs->gas->rho * tke_current -
-              0.5 * dt * (DrtkeDt_updated + DrtkeDt_current);
-        Gw = fs->gas->rho * omega_updated - fs->gas->rho * omega_current -
-              0.5 * dt * (DromegaDt_updated + DromegaDt_current);
-        // Solve Ax=B algebraically.
-        delta_rtke = (DGkDzetaw * Gw - DGwDzetaw * Gk) /
-                      (DGwDzetak * DGkDzetaw - DGwDzetaw * DGkDzetak);
-        delta_romega = (Gk - DGkDzetak * delta_rtke) / DGkDzetaw;
-        // Assign the updated tke and omega values if delta_rtke and
-        // delta_romega are both smaller than the given tolerance, and
-        // then break out from the Newton-solve loop.
-        if (fabs(delta_rtke) <= tol && fabs(delta_romega) <= tol) {
-            fs->tke = tke_updated;
-            fs->omega = omega_updated;
-            break;
-        } else {
-            // Compute next estimates for rtke and romega from
-            // delta_rtke and delta_romega.
-            if (delta_rtke + fs->gas->rho * tke_updated < 0.0) {
-                // Don't let rtke go negative.
-                U[0]->tke = fs->gas->rho * tke_updated;
-            } else {
-                // Next estimate for rtke.
-                U[0]->tke = delta_rtke + fs->gas->rho * tke_updated;
-            }
-            if (delta_romega + fs->gas->rho * omega_updated < 0.0) {
-                // Don't let romega go negative.
-                U[0]->omega = fs->gas->rho * omega_updated;
-            } else {
-                // Next estimate for romega.
-                U[0]->omega = delta_romega + fs->gas->rho * omega_updated;
-            }
-            // Decode for the next step of the Newton-solve loop
-            tke_updated = U[0]->tke / fs->gas->rho;
-            omega_updated = U[0]->omega / fs->gas->rho;
-        }
-    }  // End of Newton-solve loop for implicit update scheme
-
-#   else
-    // Explicit updating scheme.
-    double DrtkeDt, DromegaDt, rtke_increment, romega_increment;
-    int n_little_steps = 20;  // Make this as large as needed to get stability.
-    double dt_little = dt / n_little_steps;
+	// Implicit updating scheme.
+	// A for-loop is used to limit the Newton-solve to 20 steps
+	// just in case convergence does not occur.
+	for ( int i = 1; i <= 20; ++i ) {
+	    // Work out unperturbed values of Drtke_updated and DromegaDt_updated.
+	    this->k_omega_time_derivatives(&DrtkeDt_updated, &DromegaDt_updated, tke_updated, omega_updated);
+	    // Perturb tke and obtain perturbed values of DrtkeDt_updated and DromegaDt_updated.
+	    tke = perturbFactor * tke_updated; omega = omega_updated;
+	    this->k_omega_time_derivatives(&DrtkeDt_perturbTke, &DromegaDt_perturbTke, tke, omega);
+	    // Perturb omega and obtain perturbed values of DrtkeDt_updated and DromegaDt_updated.
+	    tke = tke_updated; omega = perturbFactor * omega_updated;
+	    this->k_omega_time_derivatives(&DrtkeDt_perturbOmega, &DromegaDt_perturbOmega, tke, omega);
+	    // Compute derivatives from perturb values.
+	    // FIX-ME : Dividing by tke and omega (instead of rtke and romega) seems to work (gives
+	    //          same results as explicit update scheme), but we will keep this note here for
+	    //          future reference..
+	    DfkDk = (DrtkeDt_perturbTke - DrtkeDt_updated) / ((perturbFactor - 1.0) * tke_updated);
+	    DfkDw = (DrtkeDt_perturbOmega - DrtkeDt_updated) / ((perturbFactor - 1.0) * omega_updated);
+	    DfwDk = (DromegaDt_perturbTke - DromegaDt_updated) / ((perturbFactor - 1.0) * tke_updated);
+	    DfwDw = (DromegaDt_perturbOmega - DromegaDt_updated) / ((perturbFactor - 1.0) * omega_updated);
+	    // Compute components in matrix A of Ax=B problem.
+	    DGkDzetak = -1.0 + 0.5 * dt * DfkDk;
+	    DGkDzetaw = 0.5 * dt * DfkDw;
+	    DGwDzetak = 0.5 * dt * DfwDk;
+	    DGwDzetaw = -1.0 + 0.5 * dt * DfwDw;
+	    // Compute vector B of Ax=B problem.
+	    Gk = fs->gas->rho * tke_updated - fs->gas->rho * tke_current -
+		0.5 * dt * (DrtkeDt_updated + DrtkeDt_current);
+	    Gw = fs->gas->rho * omega_updated - fs->gas->rho * omega_current -
+		0.5 * dt * (DromegaDt_updated + DromegaDt_current);
+	    // Solve Ax=B algebraically.
+	    delta_rtke = (DGkDzetaw * Gw - DGwDzetaw * Gk) /
+		(DGwDzetak * DGkDzetaw - DGwDzetaw * DGkDzetak);
+	    delta_romega = (Gk - DGkDzetak * delta_rtke) / DGkDzetaw;
+	    // Assign the updated tke and omega values if delta_rtke and
+	    // delta_romega are both smaller than the given tolerance, and
+	    // then break out from the Newton-solve loop.
+	    if (fabs(delta_rtke) <= tol && fabs(delta_romega) <= tol) {
+		fs->tke = tke_updated;
+		fs->omega = omega_updated;
+		break;
+	    } else {
+		// Compute next estimates for rtke and romega from
+		// delta_rtke and delta_romega.
+		if (delta_rtke + fs->gas->rho * tke_updated < 0.0) {
+		    // Don't let rtke go negative.
+		    U[0]->tke = fs->gas->rho * tke_updated;
+		} else {
+		    // Next estimate for rtke.
+		    U[0]->tke = delta_rtke + fs->gas->rho * tke_updated;
+		}
+		if (delta_romega + fs->gas->rho * omega_updated < 0.0) {
+		    // Don't let romega go negative.
+		    U[0]->omega = fs->gas->rho * omega_updated;
+		} else {
+		    // Next estimate for romega.
+		    U[0]->omega = delta_romega + fs->gas->rho * omega_updated;
+		}
+		// Decode for the next step of the Newton-solve loop
+		tke_updated = U[0]->tke / fs->gas->rho;
+		omega_updated = U[0]->omega / fs->gas->rho;
+	    }
+	} // End of Newton-solve loop for implicit update scheme
+    } else {
+	// Explicit updating scheme.
+	double DrtkeDt, DromegaDt, rtke_increment, romega_increment;
+	int n_little_steps = 20;  // Make this as large as needed to get stability.
+	double dt_little = dt / n_little_steps;
     
-    // Encode conserved quantities for cell.
-    U[0]->tke = fs->gas->rho * fs->tke;
-    U[0]->omega = fs->gas->rho * fs->omega;
-    for ( int i = 1; i <= n_little_steps; ++i ) {
-        this->k_omega_time_derivatives(&DrtkeDt, &DromegaDt, fs->tke, fs->omega);
-        rtke_increment = dt_little * DrtkeDt;
-        romega_increment = dt_little * DromegaDt;
-        if ( U[0]->tke + rtke_increment < 0.0 ||
-             (rtke_increment > 0.0 && U[0]->tke + rtke_increment > 0.5 * U[0]->total_energy) ) {
-            // Don't let rtke go negative and don't let it grow too large.
-            rtke_increment = 0.0;
-	}
-	if ( U[0]->omega + romega_increment < 0.0 ) {
-	    // Don't let romega go negative.
-            romega_increment = 0.0;
+	// Encode conserved quantities for cell.
+	U[0]->tke = fs->gas->rho * fs->tke;
+	U[0]->omega = fs->gas->rho * fs->omega;
+	for ( int i = 1; i <= n_little_steps; ++i ) {
+	    this->k_omega_time_derivatives(&DrtkeDt, &DromegaDt, fs->tke, fs->omega);
+	    rtke_increment = dt_little * DrtkeDt;
+	    romega_increment = dt_little * DromegaDt;
+	    if ( U[0]->tke + rtke_increment < 0.0 ||
+		 (rtke_increment > 0.0 && U[0]->tke + rtke_increment > 0.5 * U[0]->total_energy) ) {
+		// Don't let rtke go negative and don't let it grow too large.
+		rtke_increment = 0.0;
+	    }
+	    if ( U[0]->omega + romega_increment < 0.0 ) {
+		// Don't let romega go negative.
+		romega_increment = 0.0;
             }
-	U[0]->tke += rtke_increment;
-	U[0]->omega += romega_increment;
-	// Decode conserved quantities.
-	fs->tke = U[0]->tke / fs->gas->rho;
-	fs->omega = U[0]->omega / fs->gas->rho;
-    }  // End of for-loop for explicit update scheme
-#   endif
+	    U[0]->tke += rtke_increment;
+	    U[0]->omega += romega_increment;
+	    // Decode conserved quantities.
+	    fs->tke = U[0]->tke / fs->gas->rho;
+	    fs->omega = U[0]->omega / fs->gas->rho;
+	} // End of for-loop for explicit update scheme
+    } // end if
 
     return SUCCESS;
 } // end update_k_omega_properties()
@@ -2373,7 +2372,7 @@ int FV_Cell::k_omega_time_derivatives(double *Q_rtke, double *Q_romega, double t
     D_K = beta_star * fs->gas->rho * tke * omega;
     
     // Apply a limit to the tke production as suggested by Jeff White, November 2007.
-    const double P_OVER_D_LIMIT = 25.0;
+    constexpr double P_OVER_D_LIMIT = 25.0;
     P_K = min(P_K, P_OVER_D_LIMIT*D_K);
 
     if ( cross_diff > 0 ) sigma_d = 0.125;

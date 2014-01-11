@@ -9,7 +9,7 @@
 
 /*------------------------------------------------------------*/
 
-#define DEBUG_FLUX 0
+const int DEBUG_FLUX = 0;
 
 #include <stdio.h>
 #include <math.h>
@@ -178,7 +178,7 @@ int rivp(FlowState &QL, FlowState &QR, FlowState &QIF, double &WSL, double &WSR)
      * Set the following macro to 1 if the quick-and-dirty
      * evaluation of the power function is to be used.
      */
-#   define  QUICK_AND_DIRTY  1
+    constexpr bool QUICK_AND_DIRTY = true;
 
     RHOMIN = 0.0;
     PMIN = 0.0;
@@ -243,9 +243,9 @@ int rivp(FlowState &QL, FlowState &QR, FlowState &QIF, double &WSL, double &WSR)
      * STAGE 1: Explicit solution using two isentropic waves.
      * -----------------------------------------------------
      */
-#   if DEBUG_FLUX >= 1
-    printf("STAGE 1\n");
-#   endif
+    if ( DEBUG_FLUX >= 1 ) {
+	printf("STAGE 1\n");
+    }
 
     if (!toro_solve) {
 	/*
@@ -253,30 +253,30 @@ int rivp(FlowState &QL, FlowState &QR, FlowState &QIF, double &WSL, double &WSR)
 	 */
 	base = QL.gas->p / QR.gas->p;
 	expon = gm1 / (2.0 * geff);
-#       if (QUICK_AND_DIRTY == 1)
-	/* We expect exponent to be <= 0.2 */
-	if (base < 0.12 || base > 8.4) {
-	    /* Use the full power function */
-	    pwr = pow(base, expon);
+	if ( QUICK_AND_DIRTY ) {
+	    /* We expect exponent to be <= 0.2 */
+	    if (base < 0.12 || base > 8.4) {
+		/* Use the full power function */
+		pwr = pow(base, expon);
+	    } else {
+		/* Use the quick and dirty approach */
+		QD_POWER(base, expon, pwr);
+	    }
 	} else {
-	    /* Use the quick and dirty approach */
-	    QD_POWER(base, expon, pwr);
+	    pwr = pow(base, expon);
 	}
-#       else
-	pwr = pow(base, expon);
-#       endif
 	z = (QR.gas->a / QL.gas->a) * pwr;
     }   /* end if (!toro_solve... */
 
     /* 
      * Riemann invariants. 
      */
-    if (!toro_solve) {
+    if ( !toro_solve ) {
 	uLbar = QL.vel.x + 2.0 / gm1 * QL.gas->a;
 	uRbar = QR.vel.x - 2.0 / gm1 * QR.gas->a;
     }
 
-    if (!toro_solve && (uLbar - uRbar) <= 0.0) {
+    if ( !toro_solve && (uLbar - uRbar) <= 0.0 ) {
 	/*
 	 * We have a situation in which a (near) vacuum is formed
 	 * between the left and right states.
@@ -312,38 +312,38 @@ int rivp(FlowState &QL, FlowState &QR, FlowState &QIF, double &WSL, double &WSR)
 	base = (0.5 * gm1 * (uLbar - uRbar) /
 		(QL.gas->a * (1.0 + z)));
 	expon = 2.0 * geff / gm1;
-#       if (QUICK_AND_DIRTY == 1)
-	/* Expect 5.0 <= expon <= 12 */
-	if (base < 0.75 || base > 1.5) {
+	if ( QUICK_AND_DIRTY ) {
+	    /* Expect 5.0 <= expon <= 12 */
+	    if (base < 0.75 || base > 1.5) {
+		/* Use the full power function */
+		pwr = pow(base, expon);
+		pstar = QL.gas->p * pwr;
+	    } else {
+		/* Reduce the exponent and use the quick and dirty 
+		 * approach 
+		 */
+		expon -= 8.0;
+		QD_POWER(base, expon, pwr);
+		temporary = base * base;
+		temporary *= temporary;
+		temporary *= temporary;
+		pwr *= temporary;
+		pstar = QL.gas->p * pwr;
+	    }
+	} else {
 	    /* Use the full power function */
 	    pwr = pow(base, expon);
 	    pstar = QL.gas->p * pwr;
-	} else {
-	    /* Reduce the exponent and use the quick and dirty 
-	     * approach 
-	     */
-	    expon -= 8.0;
-	    QD_POWER(base, expon, pwr);
-	    temporary = base * base;
-	    temporary *= temporary;
-	    temporary *= temporary;
-	    pwr *= temporary;
-	    pstar = QL.gas->p * pwr;
 	}
-#       else
-	/* Use the full power function */
-	pwr = pow(base, expon);
-	pstar = QL.gas->p * pwr;
-#       endif
 
 	/*
 	 * ------------------------------------------
 	 * End of isentropic-wave (explicit) solution.
 	 * ------------------------------------------
 	 */
-#       if DEBUG_FLUX >= 1
-	printf("Isentropic wave solution: pstar = %e, ustar = %e\n", pstar, ustar);
-#       endif
+	if ( DEBUG_FLUX >= 1 ) {
+	    printf("Isentropic wave solution: pstar = %e, ustar = %e\n", pstar, ustar);
+	}
     }   /* if !vacuum ... */
 
     /*
@@ -351,9 +351,9 @@ int rivp(FlowState &QL, FlowState &QR, FlowState &QIF, double &WSL, double &WSR)
      * STAGE 2: Apply Newton Iterations for the shock relations.
      * --------------------------------------------------------
      */
-#   define  SHOCK_RATIO  1.5
+    constexpr double SHOCK_RATIO = 1.5;
 
-    if (!toro_solve && !vacuum) {
+    if ( !toro_solve && !vacuum ) {
 	if (pstar > SHOCK_RATIO * QL.gas->p &&
 	    pstar > SHOCK_RATIO * QR.gas->p) {
 	    /*
@@ -386,10 +386,10 @@ int rivp(FlowState &QL, FlowState &QR, FlowState &QIF, double &WSL, double &WSR)
 	    ustar = QL.vel.x
 		- QL.gas->a / geff * (pstar / QL.gas->p - 1.0) / term1;
 
-#           if DEBUG_FLUX >= 1
-	    printf("Two shocks: pstar = %e, ustar = %e\n", pstar, ustar);
-#           endif
-	} else if (pstar > SHOCK_RATIO * QR.gas->p) {
+	    if ( DEBUG_FLUX >= 1 ) {
+		printf("Two shocks: pstar = %e, ustar = %e\n", pstar, ustar);
+	    }
+	} else if ( pstar > SHOCK_RATIO * QR.gas->p ) {
 	    /*
 	     * Treat the right-moving wave as a shock, the
 	     * left-moving wave as an isentropic wave, and take
@@ -417,10 +417,10 @@ int rivp(FlowState &QL, FlowState &QR, FlowState &QIF, double &WSL, double &WSR)
 	    ustar = QR.vel.x +
 		QR.gas->a / geff * (pstar / QR.gas->p - 1.0) / term2;
 
-#           if DEBUG_FLUX >= 1
-	    printf("Right shock: pstar = %e, ustar = %e\n", pstar, ustar);
-#           endif
-	} else if (pstar > SHOCK_RATIO * QL.gas->p) {
+	    if ( DEBUG_FLUX >= 1 ) {
+		printf("Right shock: pstar = %e, ustar = %e\n", pstar, ustar);
+	    }
+	} else if ( pstar > SHOCK_RATIO * QL.gas->p ) {
 	    /*
 	     * Treat the left-moving wave as a shock, the
 	     * right-moving wave as an isentropic wave, and take
@@ -449,9 +449,9 @@ int rivp(FlowState &QL, FlowState &QR, FlowState &QIF, double &WSL, double &WSR)
 	    ustar = QL.vel.x -
 		QL.gas->a / geff * (pstar / QL.gas->p - 1.0) / term1;
 
-#           if DEBUG_FLUX >= 1
-	    printf("Left shock: pstar = %e, ustar = %e\n", pstar, ustar);
-#           endif
+            if ( DEBUG_FLUX >= 1 ) {
+		printf("Left shock: pstar = %e, ustar = %e\n", pstar, ustar);
+	    }
 	}
     }   /* if !vacuum ... */
     /* End of Newton Iterations for normal shocks */
@@ -463,8 +463,8 @@ int rivp(FlowState &QL, FlowState &QR, FlowState &QIF, double &WSL, double &WSR)
      * ---------------------------------------------
      */
 
-    if (!toro_solve && !vacuum) {
-	if (pstar > QL.gas->p) {
+    if ( !toro_solve && !vacuum ) {
+	if ( pstar > QL.gas->p ) {
 	    /*
 	     * Back out values using the shock relations.
 	     * Density -- from the Rankine-Hugoniot relations 
@@ -496,7 +496,7 @@ int rivp(FlowState &QL, FlowState &QR, FlowState &QIF, double &WSL, double &WSR)
 	    rhoLstar = pstar / (gm1 * eLstar);
 	}
 
-	if (pstar > QR.gas->p) {
+	if ( pstar > QR.gas->p ) {
 	    /*
 	     * Back out values using the shock relations.
 	     * Density -- from the Rankine-Hugoniot relations 
@@ -605,7 +605,6 @@ int rivp(FlowState &QL, FlowState &QR, FlowState &QIF, double &WSL, double &WSR)
 
     rivp_stage_3(QL, QR, QLstar, QRstar, WSL, WSR, geff, QIF);
 
-
     return 0;
 }   /* end of rivp() */
 
@@ -636,7 +635,7 @@ int rivp_stage_3(FlowState &QL, FlowState &QR,
 		 double WSL, double WSR,
 		 double geff, FlowState &QIF )
 {
-    double VA, VB, frac, Tratio;
+    double VA, VB, frac;
     int option;
     Gas_model *gmodel = get_gas_model_ptr();
     int nsp = gmodel->get_number_of_species();
@@ -671,7 +670,7 @@ int rivp_stage_3(FlowState &QL, FlowState &QR,
 
     /* The default interpolation within the expansion fan.
      * Either linear for all variables or characteristic eqns. */
-#   define  LINEAR  1
+    constexpr bool do_characteristic_interpolation = false;
 
     /* Decide which way the waves are going. */
     option = 0;
@@ -773,27 +772,26 @@ int rivp_stage_3(FlowState &QL, FlowState &QR,
 	 * Interpolate velocity inside the left rarefaction. */
 	frac = (-VA) / (VB - VA);
 	QIF.vel.x = QL.vel.x - frac * (QL.vel.x - QLstar.vel.x);
-#       if (LINEAR != 1)
-	/* Get local speed of sound by following a (u+a)
-	 * characteristic line through the fan. */
-	gm1 = geff - 1.0;
-	QIF.gas->a = QL.gas->a + 0.5 * gm1 * (QL.vel.x - QIF.vel.x);
-	/* Now use the isentropic relations to get the rest. */
-	Tratio = (2.0 + gm1 * (QL.vel.x / QL.gas->a) * (QL.vel.x / QL.gas->a)) /
-	    (2.0 + gm1 * (QIF.vel.x / QIF.gas->a) * (QIF.vel.x / QIF.gas->a));
-	QIF.gas->rho = QL.gas->rho * pow(Tratio, 1.0 / gm1);
-	QIF.gas->p = QL.gas->p * pow(Tratio, geff / gm1);
-	QIF.gas->e[0] = QL.gas->e[0] * Tratio;
-	QIF.gas->T[0] = QL.gas->T[0] * Tratio;
-#       else
-	/* Take the easy way out and linearly interpolate. */
-	UNUSED_VARIABLE(Tratio);
-	QIF.gas->a = QL.gas->a - frac * (QL.gas->a - QLstar.gas->a);
-	QIF.gas->rho = QL.gas->rho - frac * (QL.gas->rho - QLstar.gas->rho);
-	QIF.gas->p = QL.gas->p - frac * (QL.gas->p - QLstar.gas->p);
-	QIF.gas->e[0] = QL.gas->e[0] - frac * (QL.gas->e[0] - QLstar.gas->e[0]);
-	QIF.gas->T[0] = QL.gas->T[0] - frac * (QL.gas->T[0] - QLstar.gas->T[0]);
-#       endif
+	if ( do_characteristic_interpolation ) {
+	    /* Get local speed of sound by following a (u+a)
+	     * characteristic line through the fan. */
+	    double gm1 = geff - 1.0;
+	    QIF.gas->a = QL.gas->a + 0.5 * gm1 * (QL.vel.x - QIF.vel.x);
+	    /* Now use the isentropic relations to get the rest. */
+	    double Tratio = (2.0 + gm1 * (QL.vel.x / QL.gas->a) * (QL.vel.x / QL.gas->a)) /
+		(2.0 + gm1 * (QIF.vel.x / QIF.gas->a) * (QIF.vel.x / QIF.gas->a));
+	    QIF.gas->rho = QL.gas->rho * pow(Tratio, 1.0 / gm1);
+	    QIF.gas->p = QL.gas->p * pow(Tratio, geff / gm1);
+	    QIF.gas->e[0] = QL.gas->e[0] * Tratio;
+	    QIF.gas->T[0] = QL.gas->T[0] * Tratio;
+	} else {
+	    /* Take the easy way out and linearly interpolate. */
+	    QIF.gas->a = QL.gas->a - frac * (QL.gas->a - QLstar.gas->a);
+	    QIF.gas->rho = QL.gas->rho - frac * (QL.gas->rho - QLstar.gas->rho);
+	    QIF.gas->p = QL.gas->p - frac * (QL.gas->p - QLstar.gas->p);
+	    QIF.gas->e[0] = QL.gas->e[0] - frac * (QL.gas->e[0] - QLstar.gas->e[0]);
+	    QIF.gas->T[0] = QL.gas->T[0] - frac * (QL.gas->T[0] - QLstar.gas->T[0]);
+	}
     }
 
     /* For the options below ...
@@ -829,26 +827,26 @@ int rivp_stage_3(FlowState &QL, FlowState &QR,
 	 * Interpolate velocity inside the right rarefaction. */
 	frac = (-VB) / (VA - VB);
 	QIF.vel.x = QRstar.vel.x + frac * (QR.vel.x - QRstar.vel.x);
-#       if (LINEAR != 1)
-	/* Get local speed of sound by following a (u-a)
-	 * characteristic line through the fan. */
-	gm1 = geff - 1.0;
-	QIF.gas->a = QR.gas->a + 0.5 * gm1 * (QIF.vel.x - QR.vel.x);
-	/* Now use the isentropic relations to get the rest. */
-	Tratio = (2.0 + gm1 * (QR.vel.x / QR.gas->a) * (QR.vel.x / QR.gas->a)) /
-	    (2.0 + gm1 * (QIF.vel.x / QIF.gas->a) * (QIF.vel.x / QIF.gas->a));
-	QIF.gas->rho = QR.gas->rho * pow(Tratio, 1.0 / gm1);
-	QIF.gas->p = QR.gas->p * pow(Tratio, geff / gm1);
-	QIF.gas->e[0] = QR.gas->e[0] * Tratio;
-	QIF.gas->T[0] = QR.gas->T[0] * Tratio;
-#       else
-	/* Take the easy way out and linearly interpolate. */
-	QIF.gas->a = QRstar.gas->a + frac * (QR.gas->a - QRstar.gas->a);
-	QIF.gas->rho = QRstar.gas->rho + frac * (QR.gas->rho - QRstar.gas->rho);
-	QIF.gas->p = QRstar.gas->p + frac * (QR.gas->p - QRstar.gas->p);
-	QIF.gas->e[0] = QRstar.gas->e[0] + frac * (QR.gas->e[0] - QRstar.gas->e[0]);
-	QIF.gas->T[0] = QRstar.gas->T[0] + frac * (QR.gas->T[0] - QRstar.gas->T[0]);
-#       endif
+	if ( do_characteristic_interpolation ) {
+	    /* Get local speed of sound by following a (u-a)
+	     * characteristic line through the fan. */
+	    double gm1 = geff - 1.0;
+	    QIF.gas->a = QR.gas->a + 0.5 * gm1 * (QIF.vel.x - QR.vel.x);
+	    /* Now use the isentropic relations to get the rest. */
+	    double Tratio = (2.0 + gm1 * (QR.vel.x / QR.gas->a) * (QR.vel.x / QR.gas->a)) /
+		(2.0 + gm1 * (QIF.vel.x / QIF.gas->a) * (QIF.vel.x / QIF.gas->a));
+	    QIF.gas->rho = QR.gas->rho * pow(Tratio, 1.0 / gm1);
+	    QIF.gas->p = QR.gas->p * pow(Tratio, geff / gm1);
+	    QIF.gas->e[0] = QR.gas->e[0] * Tratio;
+	    QIF.gas->T[0] = QR.gas->T[0] * Tratio;
+	} else {
+	    /* Take the easy way out and linearly interpolate. */
+	    QIF.gas->a = QRstar.gas->a + frac * (QR.gas->a - QRstar.gas->a);
+	    QIF.gas->rho = QRstar.gas->rho + frac * (QR.gas->rho - QRstar.gas->rho);
+	    QIF.gas->p = QRstar.gas->p + frac * (QR.gas->p - QRstar.gas->p);
+	    QIF.gas->e[0] = QRstar.gas->e[0] + frac * (QR.gas->e[0] - QRstar.gas->e[0]);
+	    QIF.gas->T[0] = QRstar.gas->T[0] + frac * (QR.gas->T[0] - QRstar.gas->T[0]);
+	}
     }
 
     /* ******************

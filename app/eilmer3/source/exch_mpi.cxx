@@ -128,6 +128,7 @@ int mpi_exchange_boundary_data(int type_of_copy, size_t gtl)
     Block *bdp;
     int other_block, other_face;
     int tag, ne, nfaces;
+    constexpr bool print_send_and_receive_messages = false; // for debugging
 
     int nv  = number_of_values_in_cell_copy(type_of_copy);
     if ( G.dimensions == 3 ) {
@@ -149,10 +150,10 @@ int mpi_exchange_boundary_data(int type_of_copy, size_t gtl)
 		MPI_Irecv(receive_buffer[jb*6+face], ne, MPI_DOUBLE, 
 			  G.mpi_rank_for_block[other_block], 
 			  tag, MPI_COMM_WORLD, &(request[jb*6+face]));
-#               if 0
-		printf("Post receive: block[%d] face[%d] from block[%d] face[%d]\n",
-		       bdp->id, face, other_block, other_face );
-#               endif
+		if ( print_send_and_receive_messages ) {
+		    printf("Post receive: block[%d] face[%d] from block[%d] face[%d]\n",
+			   bdp->id, face, other_block, other_face );
+		}
 	    }
 	} // end for face...
     } // end for jb...
@@ -172,10 +173,10 @@ int mpi_exchange_boundary_data(int type_of_copy, size_t gtl)
 		} else {
 		    copy_into_send_buffer_3D(bdp, face, type_of_copy, send_buffer[jb*6+face], gtl);
 		}
-#               if 0
-		printf("Send: block[%d] face[%d] to block[%d] face[%d]\n",
-		       bdp->id, face, other_block, other_face );
-#               endif
+		if ( print_send_and_receive_messages ) {
+		    printf("Send: block[%d] face[%d] to block[%d] face[%d]\n",
+			   bdp->id, face, other_block, other_face );
+		}
 		MPI_Send(send_buffer[jb*6+face], ne, MPI_DOUBLE, 
 			 G.mpi_rank_for_block[other_block],
 			 tag, MPI_COMM_WORLD);
@@ -198,10 +199,10 @@ int mpi_exchange_boundary_data(int type_of_copy, size_t gtl)
 		} else {
 		    copy_from_receive_buffer_3D(bdp, face, type_of_copy, receive_buffer[jb*6+face], gtl);
 		}
-#               if 0
-		printf("Received OK: block[%d] face[%d] from block[%d] face[%d]\n",
-		       bdp->id, face, other_block, other_face);
-#               endif
+		if ( print_send_and_receive_messages ) {
+		    printf("Received OK: block[%d] face[%d] from block[%d] face[%d]\n",
+			   bdp->id, face, other_block, other_face);
+		}
 	    }
 	} // end for ( face...
     } // end for jb...

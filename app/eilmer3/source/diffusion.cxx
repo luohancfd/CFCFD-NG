@@ -17,6 +17,7 @@ using namespace std;
 
 constexpr bool WILKE_MIXING_RULE_WITH_AMBIPOLAR_CORRECTION = true;
 constexpr bool FICKS_WITH_SUTTON_AND_GNOFFO_CORRECTION = true;
+constexpr bool apply_ambipolar_diffusion_correction = false;
 
 DiffusionModel::DiffusionModel(const string name, int nsp)
     : name_(name), nsp_(nsp), e_index_( -1 )
@@ -266,7 +267,7 @@ calculate_diffusion_fluxes(const Gas_data &Q,
     UNUSED_VARIABLE(D_t);
 
     double sum = 0.0;
-    const double tol = 1.0e-6; // See Sutton And Gnoffo (1998) p.9
+    constexpr double tol = 1.0e-6; // See Sutton And Gnoffo (1998) p.9
     bool converged = true;
 
     fill_in_x(Q.rho, Q.massf);
@@ -593,25 +594,24 @@ calculate_diffusion_fluxes(const Gas_data &Q,
     // NOTE: previously this relation between D and Le was erroneously written as:
     // DAV_im_[isp] = Le_ * Q.mu / Prandtl;
     
-#   if 0
-    // Apply ambipolar diffusion correction
-    if ( e_index_ > -1 ) {
-    	double Dax_ion_sum = 0.0;
-    	double Mx_ion_sum = 0.0;
-    	for ( int isp = 0; isp < nsp_; ++isp ) {
-    	    if ( Z_[isp] > 0.0 ) {
-    	    	DAV_im_[isp] *= 2.0;
-    	    	Dax_ion_sum += DAV_im_[isp] * x_[isp];
-    	    	Mx_ion_sum += M_[isp] * x_[isp];
-    	    }
-    	}
-    	DAV_im_[e_index_] = M_[e_index_] * Dax_ion_sum / Mx_ion_sum;
-    	if ( !isfinite( DAV_im_[e_index_] ) ) {
-    	    // Dax_ion_sum and Mx_ion_sum were probably zero
-    	    DAV_im_[e_index_] = 0.0;
-    	}
-    }
-#   endif
+    if ( apply_ambipolar_diffusion_correction ) {
+	if ( e_index_ > -1 ) {
+	    double Dax_ion_sum = 0.0;
+	    double Mx_ion_sum = 0.0;
+	    for ( int isp = 0; isp < nsp_; ++isp ) {
+		if ( Z_[isp] > 0.0 ) {
+		    DAV_im_[isp] *= 2.0;
+		    Dax_ion_sum += DAV_im_[isp] * x_[isp];
+		    Mx_ion_sum += M_[isp] * x_[isp];
+		}
+	    }
+	    DAV_im_[e_index_] = M_[e_index_] * Dax_ion_sum / Mx_ion_sum;
+	    if ( !isfinite( DAV_im_[e_index_] ) ) {
+		// Dax_ion_sum and Mx_ion_sum were probably zero
+		DAV_im_[e_index_] = 0.0;
+	    }
+	}
+    } // end if apply_ambipolar_diffusion_correction
     
     // Set diffusive fluxes via Fick's first law
     for ( int isp = 0; isp < nsp_; ++isp ) {
@@ -667,25 +667,24 @@ calculate_diffusion_fluxes(const Gas_data &Q,
     for ( int isp = 0; isp < nsp_; ++isp )
         DAV_im_[isp] = Q.mu / Q.rho / Sc_;
 
-#   if 0
-    // Apply ambipolar diffusion correction
-    if ( e_index_ > -1 ) {
-        double Dax_ion_sum = 0.0;
-        double Mx_ion_sum = 0.0;
-        for ( int isp = 0; isp < nsp_; ++isp ) {
-            if ( Z_[isp] > 0.0 ) {
-                DAV_im_[isp] *= 2.0;
-                Dax_ion_sum += DAV_im_[isp] * x_[isp];
-                Mx_ion_sum += M_[isp] * x_[isp];
-            }
-        }
-        DAV_im_[e_index_] = M_[e_index_] * Dax_ion_sum / Mx_ion_sum;
-        if ( !isfinite( DAV_im_[e_index_] ) ) {
-            // Dax_ion_sum and Mx_ion_sum were probably zero
-            DAV_im_[e_index_] = 0.0;
-        }
-    }
-#   endif
+    if ( apply_ambipolar_diffusion_correction ) {
+	if ( e_index_ > -1 ) {
+	    double Dax_ion_sum = 0.0;
+	    double Mx_ion_sum = 0.0;
+	    for ( int isp = 0; isp < nsp_; ++isp ) {
+		if ( Z_[isp] > 0.0 ) {
+		    DAV_im_[isp] *= 2.0;
+		    Dax_ion_sum += DAV_im_[isp] * x_[isp];
+		    Mx_ion_sum += M_[isp] * x_[isp];
+		}
+	    }
+	    DAV_im_[e_index_] = M_[e_index_] * Dax_ion_sum / Mx_ion_sum;
+	    if ( !isfinite( DAV_im_[e_index_] ) ) {
+		// Dax_ion_sum and Mx_ion_sum were probably zero
+		DAV_im_[e_index_] = 0.0;
+	    }
+	}
+    } // end if apply_ambipolar_diffusion_correction
 
     // Set diffusive fluxes via Fick's first law
     for ( int isp = 0; isp < nsp_; ++isp ) {

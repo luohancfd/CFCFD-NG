@@ -139,21 +139,6 @@ double calculate_diaphragm_radius( double sim_time,
     if ( diaphragm_radius < minimum_radius )
 	diaphragm_radius = minimum_radius + 1.0e-4;
 
-#   if 0
-    /* this is for the new trial diaphragm with the multiple openings */
-    /* BUT it won't work in the current function arrangement!! */
-    if (diaphragm_time_fraction > 1.0) diaphragm_time_fraction = 1.0;
-    if (cell_radius < 0.0 + diaphragm_time_fraction*5.18e-3 ||
-	cell_radius > 12.96e-3 - diaphragm_time_fraction*4.32e-3 && 
-	cell_radius < 12.96e-3 + diaphragm_time_fraction*4.32e-3 ||
-	cell_radius > 24.19e-3 - diaphragm_time_fraction*3.46e-3 && 
-	cell_radius < 24.19e-3 + diaphragm_time_fraction*3.46e-3 ) {
-	    diaphragm_cell = 0;
-	} else {
-	    diaphragm_cell = 1;
-	}
- #   endif
-
     return diaphragm_radius;
 }   /* end calculate_diaphragm_radius() */
 

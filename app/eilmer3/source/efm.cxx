@@ -74,7 +74,7 @@ int efmflx(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
      * Calculate Constants
      */
     /* dtwspi = 1.0 / (2.0 * sqrt ( 3.14159265359 )); */
-    const double dtwspi = 0.282094792;
+    constexpr double dtwspi = 0.282094792;
 
     /*
      * Unpack Left flow state
@@ -203,7 +203,7 @@ int efmflx(FlowState &Lft, FlowState &Rght, FV_Interface &IFace)
 	// Add electron pressure work term onto final energy mode
 	F.energies[nmodes-1] += (F.mass) * Rght.gas->p_e / Rght.gas->rho;
     }
-    return 0;
+    return SUCCESS;
 }   /* end efmflx() */
 
 /*--------------------------------------------------------------*/
@@ -218,15 +218,15 @@ int exxef( double sn, double &exx, double &ef )
 {
     double snsq, ef1, y;
 
-    const double P = 0.327591100;
-    const double A1 = 0.254829592;
-    const double A2 = -0.284496736;
-    const double A3 = 1.421413741;
-    const double A4 = -1.453152027;
-    const double A5 = 1.061405429;
-    const double LIMIT = 5.0;
-    const double EXLIM = 0.138879e-10;
-    const double EFLIM = 1.0;
+    constexpr double P = 0.327591100;
+    constexpr double A1 = 0.254829592;
+    constexpr double A2 = -0.284496736;
+    constexpr double A3 = 1.421413741;
+    constexpr double A4 = -1.453152027;
+    constexpr double A5 = 1.061405429;
+    constexpr double LIMIT = 5.0;
+    constexpr double EXLIM = 0.138879e-10;
+    constexpr double EFLIM = 1.0;
 
 #   define DSIGN(val,sgn) ( (sgn >= 0.0)? fabs(val): -fabs(val) )
 
@@ -240,5 +240,5 @@ int exxef( double sn, double &exx, double &ef )
         ef1 = 1.0 - y * (A1 + y * (A2 + y * (A3 + y * (A4 + A5 * y)))) * exx;
     }
     ef = DSIGN(ef1, sn);
-    return 0;
+    return SUCCESS;
 }   /* end exxef() */
