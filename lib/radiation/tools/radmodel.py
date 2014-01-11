@@ -42,7 +42,7 @@ class GlobalRadData(object):
         self.upper_escape_factor = 0.0
         self.lower_escape_factor = 0.0
         self.optical_switch = 0.0
-        self.electronic_mode_factor = 0.0
+        self.electronic_mode_factor = 1.0
         self.absorption = "partitioned energy"
         self.binning = "none"
         self.N_bins = 0

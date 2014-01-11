@@ -1339,8 +1339,8 @@ level_population_file( Gas_data &Q, int index )
 	  << "# Column 4: Number density / degeneracy (particles/m**3)" << endl
 	  << "# Column 5: Boltzmann population / degeneracy" << endl
 	  << "# Column 6: Dissociation equilibrium population / degeneracy" << endl;
-double delta_N_DE_N_boltz = 0.0;
-double delta_N_QSS_N_boltz = 0.0;
+    double delta_N_DE_N_boltz = 0.0;
+    double delta_N_QSS_N_boltz = 0.0;
     for ( int ilev=0; ilev<nlevs; ++ilev ) {
     	ofile << setw(20) << ilev
     	      << setw(20) << get_elev_pointer(ilev)->get_E() / RC_e_SI 
@@ -1349,12 +1349,14 @@ double delta_N_QSS_N_boltz = 0.0;
     	      << setw(20) << eval_Boltzmann_population_for_level(Q,ilev) / get_elev_pointer(ilev)->get_g()
     	      << setw(20) << eval_DE_population_for_level(Q,ilev) / get_elev_pointer(ilev)->get_g()
     	      << endl;
-delta_N_DE_N_boltz += eval_DE_population_for_level(Q,ilev) / eval_Boltzmann_population_for_level(Q,ilev) - 1.0;
-delta_N_QSS_N_boltz += get_elev_pointer(ilev)->get_N() / eval_Boltzmann_population_for_level(Q,ilev) -1.0;
+    	if ( eval_Boltzmann_population_for_level(Q,ilev) > 0.0 ) {
+            delta_N_DE_N_boltz += eval_DE_population_for_level(Q,ilev) / eval_Boltzmann_population_for_level(Q,ilev) - 1.0;
+            delta_N_QSS_N_boltz += get_elev_pointer(ilev)->get_N() / eval_Boltzmann_population_for_level(Q,ilev) -1.0;
+    	}
     }
     ofile.close();
     
-cout << name << ": delta N_DE / N_boltz = " << delta_N_DE_N_boltz / double(nlevs) << ", delta N_QSS / N_boltz = " << delta_N_QSS_N_boltz / double(nlevs) << endl;
+    cout << name << ": delta N_DE / N_boltz = " << delta_N_DE_N_boltz / double(nlevs) << ", delta N_QSS / N_boltz = " << delta_N_QSS_N_boltz / double(nlevs) << endl;
     return;
 }
 

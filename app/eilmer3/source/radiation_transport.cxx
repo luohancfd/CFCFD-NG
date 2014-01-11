@@ -425,10 +425,23 @@ void DiscreteTransfer::compute_Q_rad_for_flowfield()
 		    cell->Q_rE_rad_temp_[iQ] = 0.0;
 		}
 #               if VERBOSE_RADIATION_TRANSPORT
-		cout << "Thread " << omp_get_thread_num() << ": Recomputing spectra for cell: " << ic << " in block: " << ib << endl;
+		cout << "Thread " << omp_get_thread_num()
+		     << ": Recomputing spectra for cell: " << ic
+		     << " in block: " << ib << endl;
 #               endif
-		cells_[ib][ic]->recompute_spectra( rsm_[omp_get_thread_num()] );
-		cout << " - j_total = " << cells_[ib][ic]->X_->integrate_emission_spectra() << endl;
+		cell->recompute_spectra( rsm_[omp_get_thread_num()] );
+		double j_total = 0.0;
+		if ( rsm_[omp_get_thread_num()]->get_spectral_points()==1 )
+		    j_total = cell->X_->j_int[0];
+		else
+		    j_total = cell->X_->integrate_emission_spectra();
+		cout << " - j_total = " << j_total << endl;
+		if ( isnan(j_total) ) {
+		    cout << "DiscreteTransfer::compute_Q_rad_for_flowfield()" << endl
+		         << "Optically thin emission is NaN for:" << endl;
+			    cell->Q_->print_values();
+		    exit(NUMERICAL_ERROR);
+		}
 	    }
 	    size_t iface;
 #	    ifdef _OPENMP
@@ -1143,13 +1156,23 @@ void MonteCarlo::compute_Q_rad_for_flowfield()
 		    cell->Q_rE_rad_temp_[iQ] = 0.0;
 		}
 #               if VERBOSE_RADIATION_TRANSPORT
-		cout << "Thread " << omp_get_thread_num() << ": Recomputing spectra for cell: " << ic << " in block: " << ib;
+		cout << "Thread " << omp_get_thread_num()
+		     << ": Recomputing spectra for cell: " << ic
+		     << " in block: " << ib;
 #               endif
 		cell->recompute_spectra( rsm_[omp_get_thread_num()] );
+		double j_total = 0.0;
 		if ( rsm_[omp_get_thread_num()]->get_spectral_points()==1 )
-		    cout << " - j_total = " << cell->X_->j_int[0] << endl;
+		    j_total = cell->X_->j_int[0];
 		else
-		    cout << " - j_total = " << cell->X_->integrate_emission_spectra() << endl;
+		    j_total = cell->X_->integrate_emission_spectra();
+		cout << " - j_total = " << j_total << endl;
+		if ( isnan(j_total) ) {
+		    cout << "MonteCarlo::compute_Q_rad_for_flowfield()" << endl
+		         << "Optically thin emission is NaN for:" << endl;
+		    cell->Q_->print_values();
+		    exit(NUMERICAL_ERROR);
+		}
 	    }
 	    size_t iface;
 #	    ifdef _OPENMP
