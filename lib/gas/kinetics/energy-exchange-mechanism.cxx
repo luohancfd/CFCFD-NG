@@ -356,6 +356,8 @@ EV_exchange( lua_State *L, int ie, int iTe )
     lua_getfield(L,-1,"relaxation_time");
     tau_EV_ = create_new_relaxation_time( L, ie, iq_ , iT );
     lua_pop(L, 1 );
+
+    UNUSED_VARIABLE(ie_);
 }
 
 EV_exchange::

@@ -39,6 +39,8 @@ Chemistry_energy_coupling( int isp, string mode, vector<Coupling_component*> &cc
     // Make copies of the Coupling_components
     for ( size_t i=0; i<ccs.size(); ++i )
     	components_.push_back( ccs[i]->clone() );
+
+    UNUSED_VARIABLE(g_);
 }
 
 Chemistry_energy_coupling::

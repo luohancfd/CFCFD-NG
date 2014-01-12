@@ -213,6 +213,7 @@ Coupled_diatomic_electronic( int isp, double R, double min_massf, int sigma_r,
     for ( size_t ilev=0; ilev < elevs.size(); ++ilev ) {
     	elevs_.push_back( elevs[ilev] );
     }
+    UNUSED_VARIABLE(sigma_r_);
 }
 
 Coupled_diatomic_electronic::
@@ -514,10 +515,11 @@ Fully_excited_nonlinear_rotation::
 Fully_excited_nonlinear_rotation( int isp, double R, double min_massf, 
     				  double theta_A0, double theta_B0, double theta_C0,
     				  int sigma )
- : Rotation( isp, R, min_massf, theta_A0_ ), theta_A0_( theta_A0 ), 
+ : Rotation( isp, R, min_massf, theta_A0 ), theta_A0_( theta_A0 ), 
    theta_B0_( theta_B0 ), theta_C0_( theta_C0 ), sigma_( sigma )
 {
     Cv_ = 1.5 * R_;
+    UNUSED_VARIABLE(sigma_);
 }
 
 double
@@ -564,6 +566,7 @@ Coupled_diatomic_rotation( int isp, double R, double min_massf, int sigma_r,
     for ( size_t ilev=0; ilev < elevs.size(); ++ilev ) {
     	elevs_.push_back( elevs[ilev] );
     }
+    UNUSED_VARIABLE(sigma_r_);
 }
 
 Coupled_diatomic_rotation::
@@ -869,6 +872,7 @@ Coupled_diatomic_vibration( int isp, double R, double min_massf, int sigma_r,
     for ( size_t ilev=0; ilev < elevs.size(); ++ilev ) {
     	elevs_.push_back( elevs[ilev] );
     }
+    UNUSED_VARIABLE(sigma_r_);
 }
 
 Coupled_diatomic_vibration::
@@ -1055,6 +1059,8 @@ Fully_coupled_diatom_internal( int isp, double R, double min_massf, int sigma_r,
     for ( size_t ilev=0; ilev < elevs.size(); ++ilev ) {
     	elevs_.push_back( elevs[ilev] );
     }
+    UNUSED_VARIABLE(sigma_r_);
+    UNUSED_VARIABLE(fT_);
 }
 
 Fully_coupled_diatom_internal::
@@ -1192,7 +1198,6 @@ Fully_coupled_diatom_internal( int isp, double R, double min_massf, string lut_f
     e_LUT_ = new EqCoupledDiatomicLUT( lut_fname, 4 );
     Cv_LUT_ = new EqCoupledDiatomicLUT( lut_fname, 8 );
     s_LUT_ = new EqCoupledDiatomicLUT( lut_fname, 12 );
-    
 }
 
 Fully_coupled_diatom_internal::
@@ -1237,6 +1242,8 @@ Fully_coupled_polyatom_internal( int isp, double R, double min_massf,
     for ( size_t ilev=0; ilev < elevs.size(); ++ilev ) {
         elevs_.push_back( elevs[ilev] );
     }
+    UNUSED_VARIABLE(fT_);
+    UNUSED_VARIABLE(m_);
 }
 
 Fully_coupled_polyatom_internal::

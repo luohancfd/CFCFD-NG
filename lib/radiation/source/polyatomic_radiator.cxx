@@ -178,6 +178,7 @@ PolyatomicElecLev::PolyatomicElecLev( int ilev, double E, int g, lua_State * L )
         vstates.push_back( create_new_polyatomic_vib_state(type,iV,L) );
         lua_pop(L,1);   // pop vibstate
     }
+    UNUSED_VARIABLE(D);
 }
 
 PolyatomicElecLev::~PolyatomicElecLev()

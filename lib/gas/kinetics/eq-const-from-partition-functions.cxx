@@ -18,7 +18,10 @@ using namespace std;
 
 Eq_const_from_partition_functions::
 Eq_const_from_partition_functions(map<int, int> &nu, Gas_model &g, int iT)
-    : Equilibrium_constant( iT ), nu_(nu), g_(g) {}
+    : Equilibrium_constant( iT ), nu_(nu), g_(g) 
+{
+    UNUSED_VARIABLE(g_);
+}
 
 Eq_const_from_partition_functions::
 ~Eq_const_from_partition_functions()

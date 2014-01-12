@@ -43,6 +43,8 @@ Macheret_dissociation(lua_State *L, Gas_model &g, double T_upper, double T_lower
 
     // 3. Set the reaction rate coefficient type
     type_ = "dissociation";
+
+    UNUSED_VARIABLE(ic_);
 }
 
 Macheret_dissociation::

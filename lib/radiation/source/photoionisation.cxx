@@ -45,12 +45,12 @@ double NoPICSModel::eval( double nu )
 
 HydrogenicModel::HydrogenicModel( lua_State * L, double n_eff, int Z, double I, double E_min )
  : PhotoIonisationCrossSectionModel( "HydrogenicModel", E_min ),
-   n_eff( n_eff ), Z( double(Z) ), I( I )
+   n_eff_( n_eff ), Z_( double(Z) ), I_( I )
 {
-    constB = I * Z * Z;
-    constC = n_eff*n_eff;
-    constD = pow( Z, 4 );
-    constE = pow( n_eff, 5 );
+    constB = I_ * Z_ * Z_;
+    constC = n_eff_ * n_eff_;
+    constD = pow( Z_, 4 );
+    constE = pow( n_eff_, 5 );
 
     // FIXME: put these in the Lua file
     E_max = RC_k_SI * 1.0e5;
@@ -99,9 +99,11 @@ double HydrogenicModel::eval( double nu )
 #if DEBUG_RAD > 0
     if ( isnan(sigma_bf) || isinf(sigma_bf) ) {
     	cout << "sigma_bf = " << sigma_bf << ", constA = " << constA << ", G = " << G << endl;
-    	cout << "pow( RC_h_SI * nu / ( I * Z * Z ), 1.0/3.0) = " << pow( RC_h_SI * nu / ( I * Z * Z ), 1.0/3.0) << endl;
-    	cout << "( 2.0 / ( n_eff*n_eff ) * I * Z * Z / (RC_h_SI * nu) - 1.0 ) = " << ( 2.0 / ( n_eff*n_eff ) * I * Z * Z / (RC_h_SI * nu) - 1.0 ) << endl;
-    	cout << "n_eff = " << n_eff << endl;
+    	cout << "pow( RC_h_SI * nu / ( I * Z * Z ), 1.0/3.0) = " 
+	     << pow( RC_h_SI * nu / ( I_ * Z_ * Z_ ), 1.0/3.0) << endl;
+    	cout << "( 2.0 / ( n_eff*n_eff ) * I * Z * Z / (RC_h_SI * nu) - 1.0 ) = " 
+	     << ( 2.0 / ( n_eff_ * n_eff_ ) * I_ * Z_ * Z_ / (RC_h_SI * nu) - 1.0 ) << endl;
+    	cout << "n_eff = " << n_eff_ << endl;
     	exit(FAILURE);
     }
 #endif

@@ -35,6 +35,8 @@ Energy_exchange_system(lua_State *L, Gas_model &g, double error_tol)
     
     int ndim = g_->get_number_of_modes() - 1;
     ydot_.resize(ndim);
+
+    UNUSED_VARIABLE(err_tol_);
 }
 
 Energy_exchange_system::

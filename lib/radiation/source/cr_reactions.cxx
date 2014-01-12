@@ -1221,8 +1221,9 @@ get_latex_string()
 
 PhotoRecombination::
 PhotoRecombination( lua_State * L, Radiator * rad )
-: CR_Reaction( "PhotoRecombination" ), rad( rad )
+: CR_Reaction( "PhotoRecombination" ), rad_( rad )
 {
+    UNUSED_VARIABLE(rad_);
     cout << "PhotoRecombination::PhotoRecombination()" << endl
 	 << "This model is only currently implemented for atomic species" << endl;
     exit( NOT_IMPLEMENTED_ERROR );
@@ -1230,7 +1231,7 @@ PhotoRecombination( lua_State * L, Radiator * rad )
 
 PhotoRecombination::
 PhotoRecombination( std::string model, Radiator * rad, NoneqElecLev * ne_elev )
-: CR_Reaction( "PhotoRecombination" ), rad( rad ), iTe( rad->iTe ), ne_elev( ne_elev )
+: CR_Reaction( "PhotoRecombination" ), rad_( rad ), iTe( rad->iTe ), ne_elev( ne_elev )
 {
     // Create the equation string
     equation = ne_elev->label + " + hv <=> ion + hv";
@@ -1250,6 +1251,8 @@ PhotoRecombination( std::string model, Radiator * rad, NoneqElecLev * ne_elev )
 
     // Dummy backward rate coefficient model
     backward_rate_coeff = new ZeroRate();
+
+    UNUSED_VARIABLE(rad_);
 }
 
 int

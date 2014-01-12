@@ -161,7 +161,7 @@ BoundFreeHydrogenic::calculate_spectrum( Gas_data &Q, CoeffSpectra &X, double n_
                         exp( ( E_min - E_i ) / ( RC_k_SI * T ) ) * 1.0e-1;              // convert erg - s / cm**3 - sr -> W / m**3 - sr
             X.kappa_nu[inu] += sigma_bf * N_i * 1.0e2;  // convert 1 / cm -> 1 / m
             // Ensure the spectral emission coefficient is a number
-            if ( isnan(X.j_nu[inu]) ) X.j_nu[inu] = 0.0;
+            if ( std::isnan(X.j_nu[inu]) ) X.j_nu[inu] = 0.0;
         }
     }
 

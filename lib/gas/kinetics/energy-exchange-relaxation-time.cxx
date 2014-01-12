@@ -72,6 +72,8 @@ VT_MillikanWhite(lua_State *L, int ip, int iq, int itrans)
 	b_ = luaL_checknumber(L, -1);
     }
     lua_pop(L, 1);
+
+    UNUSED_VARIABLE(ip_);
 }
 
 VT_MillikanWhite::
@@ -103,6 +105,7 @@ VT_LandauTeller_cf(lua_State *L, int ip, int iq, int itrans)
     A_ = get_number(L, -1, "A");
     B_ = get_number(L, -1, "B");
     C_ = get_number(L, -1, "C");
+    UNUSED_VARIABLE(ip_);
 }
 
 VT_LandauTeller_cf::
@@ -129,6 +132,7 @@ VT_Thivet_cf(lua_State *L, int ip, int iq, int itrans)
 {
     B_ = get_number(L, -1, "B");
     C_ = get_number(L, -1, "C");
+    UNUSED_VARIABLE(ip_);
 }
 
 VT_Thivet_cf::
@@ -214,6 +218,8 @@ VT_MillikanWhite_HTC(lua_State *L, int ip, int iq, int itrans)
     }
     HTC_model_ = create_VT_high_temperature_cross_section_model(L);
     lua_pop(L, 1);	// pop HTCS_model
+
+    UNUSED_VARIABLE(ip_);
 }
 
 VT_MillikanWhite_HTC::
@@ -1363,6 +1369,7 @@ VV_MTLandauTeller(lua_State *L, int ip, int iq, int itrans)
 
     mu_ = ((M_p * M_q) / (M_p + M_q)) / PC_Avogadro;
 
+    UNUSED_VARIABLE(ip_);
 }
 
 VV_MTLandauTeller::
@@ -1470,6 +1477,7 @@ VV_from_eq(lua_State *L, int ip, int iq, int itrans)
     }
     lua_pop(L, 1);
 
+    UNUSED_VARIABLE(ip_);
 }
 
 VV_from_eq::
@@ -1556,6 +1564,8 @@ VE_Lee( lua_State * L, int ie, int iv )
  	}
  	lua_pop(L,1);	// pop 'ptau_coefficients'
     }
+    UNUSED_VARIABLE(ie_);
+    UNUSED_VARIABLE(iv_);
 }
 
 VE_Lee::

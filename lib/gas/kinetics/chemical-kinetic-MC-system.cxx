@@ -330,7 +330,7 @@ stepsize_select(const vector<double> &y)
     return dt_chem;
 }
 
-const double min_conc = 1.0e-30;
+// const double min_conc = 1.0e-30; Unused, I believe (PJ).
 
 bool
 Chemical_kinetic_MC_system::

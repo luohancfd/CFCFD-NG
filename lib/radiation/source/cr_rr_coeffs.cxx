@@ -799,6 +799,7 @@ SunoKatoCarbonElectronImpactExcitation( lua_State * L, ElecLev * elev_l, ElecLev
     D = get_number(L,-1,"D");
     E = get_number(L,-1,"E");
     F = get_number(L,-1,"F");
+    UNUSED_VARIABLE(delta_E);
 }
 
 SunoKatoCarbonElectronImpactExcitation::
@@ -857,6 +858,8 @@ SunoKatoCarbonElectronImpactExcitation( string fname, ElecLev * elev_l, ElecLev 
     lua_pop(L,1);	// pop suno_and_kato_data
     lua_pop(L,1);	// pop QSS model
     lua_pop(L,1);	// pop 'C'
+
+    UNUSED_VARIABLE(delta_E);
 }
 
 SunoKatoCarbonElectronImpactExcitation::
@@ -998,6 +1001,7 @@ SunoKatoCarbonElectronImpactIonization( lua_State * L, ElecLev * elev, double I 
     A3 = get_number(L,-1,"A3");
     A4 = get_number(L,-1,"A4");
     A5 = get_number(L,-1,"A5");
+    UNUSED_VARIABLE(eqn);
 }
 
 SunoKatoCarbonElectronImpactIonization::
@@ -1056,6 +1060,8 @@ SunoKatoCarbonElectronImpactIonization( string fname, ElecLev * elev, double I )
     lua_pop(L,1);	// pop suno_and_kato_data
     lua_pop(L,1);	// pop QSS model
     lua_pop(L,1);	// pop 'C'
+
+    UNUSED_VARIABLE(eqn);
 }
 
 double SunoKatoCarbonElectronImpactIonization::get_rate( double T, Gas_data &Q )
@@ -1186,7 +1192,7 @@ double KuncSoonElectronImpactIonization::get_rate( double T, Gas_data &Q )
 
 OpticallyThinPhotoRecombination::
 OpticallyThinPhotoRecombination( ElecLev * elev, double I )
-: elev( elev ), E_l( elev->get_E() ), I( I )
+: elev( elev ), E_l( elev->get_E() ), I_( I )
 {
     type = "PhotoRecombination";
 
@@ -1196,6 +1202,8 @@ OpticallyThinPhotoRecombination( ElecLev * elev, double I )
 
     // FIXME: Store the ion ground state degeneracy (currently set to 6 for Ar+)
     g_ion = 6;
+
+    UNUSED_VARIABLE(I_);
 }
 
 double OpticallyThinPhotoRecombination::get_rate( double T, Gas_data &Q )

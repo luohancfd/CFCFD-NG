@@ -263,7 +263,7 @@ public:
     std::string get_latex_string();
 
 private:
-    Radiator * rad;
+    Radiator * rad_;
     int iTe;
     NoneqElecLev * ne_elev;
     Radiator * ion;

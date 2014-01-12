@@ -407,7 +407,7 @@ private:
 private:
     ElecLev * elev;
     double E_l;
-    double I;
+    double I_;
     int g_ion;
     std::vector<double> nus;
     int nnus;

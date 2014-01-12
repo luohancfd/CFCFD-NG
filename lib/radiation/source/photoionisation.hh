@@ -73,9 +73,9 @@ public:
     double eval( double nu );
     
 private:
-    double n_eff;
-    double Z;
-    double I;
+    double n_eff_;
+    double Z_;
+    double I_;
     double constB;
     double constC;
     double constD;
