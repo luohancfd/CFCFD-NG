@@ -45,6 +45,7 @@
 import string, fileinput
 from estcj import reflected_shock_tube_calculation as rstc
 from cfpylib.gasdyn.gas_flow import expansion_to_throat_calculation as ettc
+import cfpylib.gasdyn.cea2_gas as cea2
 from cfpylib.gasdyn.cea2_gas import Gas, make_gas_from_name
 from operator import indexOf
 from cfpylib.nm.zero_solvers import secant
@@ -94,7 +95,7 @@ if $facility == 'reflected-shock-tunnel':
     # Shock tube conditions define flow condition at the nozzle throat.
     # This throat condition is used as the input to the simulation of
     # the nozzle expansion.
-    estc_result = rstc($gasName, $p1, $T1, $Vs, $pe, None, area_ratio=$areaRatio, task='stn')
+    estc_result = rstc(cea2, $gasName, $p1, $T1, $Vs, $pe, None, area_ratio=$areaRatio, task='stn')
     throat = estc_result['state6']
     throat_V = estc_result['V6']
 elif $facility == 'expansion-tube':

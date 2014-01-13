@@ -125,6 +125,16 @@ def reflected_shock_tube_calculation(gasModel, gasName, p1, T1, Vs, pe, pp_on_pe
 
     This function may be imported into other applications (such as nenzfr).
 
+    :param gasModel: pointer to the gas model (cea2_gas or libgas_gas)
+    :param gasName: name of the specific gas model to create via make_gas_from_name()
+    :param p1: fill pressure of gas initially filling shock tube
+    :param T1: fill temperature of gas initially filling shock tube
+    :param Vs: observed incident shock speed
+    :param pe: observed pressure once shock-reflected region reaches equilibrium
+    :param pp_on_pe: specify this ratio if we want the supersonic nozzle expansion to
+        terminate at a particular Pitot pressure
+    :param area_ratio: specify this ratio if we want the supersonic nozzle expansion
+        to proceed to a particular quasi-one-dimensional area ratio.
     :param task: one of 'ishock', 'st', 'stn', 'stnp'
     """
     if PRINT_STATUS: print 'Write pre-shock condition.'
