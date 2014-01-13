@@ -172,6 +172,7 @@ int init_available_bcs_map()
     available_bcs.insert(name_bc_t("user_defined_mass_flux",USER_DEFINED_MASS_FLUX));
     available_bcs.insert(name_bc_t("conjugate_ht",CONJUGATE_HT));
     available_bcs.insert(name_bc_t("moving_wall",MOVING_WALL));
+    available_bcs.insert(name_bc_t("mass_flux_out",MASS_FLUX_OUT));
     return SUCCESS;
 }
  

@@ -142,6 +142,7 @@ E3_OBJECTS_COMMON := kernel.o \
 	bc_fstc.o \
 	bc_conjugate_ht.o \
 	bc_moving_wall.o \
+	bc_mass_flux_out.o \
 	exch2d.o \
 	exch3d.o \
 	init.o \
@@ -577,6 +578,10 @@ bc_sliding_t.o : $(SRC)/bc_sliding_t.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)
 bc_moving_wall.o : $(SRC)/bc_moving_wall.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh
 	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_moving_wall.cxx -o bc_moving_wall.o
+
+bc_mass_flux_out.o : $(SRC)/bc_mass_flux_out.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
+    $(NM_SRC)/zero_finders.hh
+	$(CXXCOMPILE) $(CXXFLAG) -I$(LUA_INCLUDE_DIR) $(SRC)/bc_mass_flux_out.cxx -o bc_mass_flux_out.o
 
 bc_subsonic_in.o : $(SRC)/bc_subsonic_in.cxx $(SRC)/block.hh $(SRC)/kernel.hh $(SRC)/bc.hh $(LIBLUA) \
     $(NM_SRC)/zero_finders.hh

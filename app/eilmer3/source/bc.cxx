@@ -51,6 +51,7 @@ extern "C" {
 #include "bc_udmf.hh"
 #include "bc_conjugate_ht.hh"
 #include "bc_moving_wall.hh"
+#include "bc_mass_flux_out.hh"
 #include "kernel.hh"
 #include "diffusion.hh"
 
@@ -87,7 +88,8 @@ std::string get_bc_name(bc_t bc)
     case PARTIALLY_CATALYTIC: return "partially_catalytic";
     case USER_DEFINED_MASS_FLUX: return "user_defined_mass_flux";
     case CONJUGATE_HT: return "conjugate_ht";
-    case MOVING_WALL: return "moving_wall";	
+    case MOVING_WALL: return "moving_wall";
+    case MASS_FLUX_OUT: return "mass_flux_out";
     default: return "none";
     }
 } // end get_bc_name()
@@ -911,6 +913,9 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     bool Twall_flag = false;
     std::vector<double> eye; eye.resize(9, 0.0); eye[0] = 1.0; eye[4] = 1.0; eye[8] = 1.0;
     std::vector<double> Rmatrix = eye;
+    double mass_flux = 0.0;
+    double p_init = 100.0e3;
+    double relax_factor = 0.05;
 
     switch ( type_of_BC ) {
     case ADJACENT:
@@ -1035,6 +1040,12 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
         newBC = new MovingWallBC(bdp, which_boundary, Vector3(r_omega), Vector3(centre),
 				 Vector3(v_trans), Twall_flag, Twall, emissivity);
         break;
+    case MASS_FLUX_OUT:
+	dict.parse_double(section, "mass_flux", mass_flux, 0.0);
+	dict.parse_double(section, "p_init", p_init, 100.0e3);
+	dict.parse_double(section, "relax_factor", relax_factor, 0.05);
+	newBC = new MassFluxOutBC(bdp, which_boundary, mass_flux, p_init, relax_factor);
+	break;
     default:
 	cerr << "create_BC() error: boundary condition \"" << type_of_BC 
 	     << "\" is not available." << endl;

@@ -50,6 +50,15 @@ These definitions are now gone and symbols are used instead:
 * RRM: Andrew Denman's recycled and renormalised boundary
     condition.
 * SEB: Surface energy balance.
+* USER_DEFINED
+* ADJACENT_PLUS_UDF
+* ABLATING
+* SLIDING_T
+* FSTC
+* SHOCK_FITTING_IN
+* USER_DEFINED_MASS_FLUX
+* CONJUGATE_HT
+* MASS_FLUX_OUT
 """
 #
 # The following symbol definitions are for use in the user's
@@ -80,6 +89,8 @@ SHOCK_FITTING_IN = object()
 USER_DEFINED_MASS_FLUX = object()
 CONJUGATE_HT = object()
 MOVING_WALL = object()
+MASS_FLUX_OUT = object()
+
 #
 # When we ust the set_BC method for a Block object, we will want to look up
 # the correct boundary condition object by name.
@@ -113,7 +124,8 @@ bcSymbolFromName = {
     21: SHOCK_FITTING_IN, "21" : SHOCK_FITTING_IN, "SHOCK_FITTING_IN": SHOCK_FITTING_IN,
     "USER_DEFINED_MASS_FLUX": USER_DEFINED_MASS_FLUX,
     "CONJUGATE_HT": CONJUGATE_HT,
-    "MOVING_WALL": MOVING_WALL
+    "MOVING_WALL": MOVING_WALL,
+    "MASS_FLUX_OUT": MASS_FLUX_OUT
 }
 bcName = {
     ADJACENT: "ADJACENT",
@@ -139,7 +151,8 @@ bcName = {
     SHOCK_FITTING_IN: "SHOCK_FITTING_IN",
     USER_DEFINED_MASS_FLUX: "USER_DEFINED_MASS_FLUX",
     CONJUGATE_HT: "CONJUGATE_HT",
-    MOVING_WALL: "MOVING_WALL"
+    MOVING_WALL: "MOVING_WALL",
+    MASS_FLUX_OUT: "MASS_FLUX_OUT"
     }
 
 class BoundaryCondition(object):
@@ -150,7 +163,10 @@ class BoundaryCondition(object):
                 'x_order', 'sponge_flag', 'other_block', 'other_face', 'orientation', \
                 'filename', 'n_profile', 'is_wall', 'sets_conv_flux', 'sets_visc_flux', \
                 'assume_ideal', 'mdot', 'Twall_i', 'Twall_f', 't_i', 't_f', 'emissivity', \
-                'r_omega', 'centre', 'v_trans', 'Twall_flag', 'reorient_vector_quantities', 'Rmatrix', 'label'
+                'r_omega', 'centre', 'v_trans', 'Twall_flag', \
+                'reorient_vector_quantities', 'Rmatrix', \
+                'mass_flux', 'p_init', 'relax_factor', \
+                'label'
     def __init__(self,
                  type_of_BC=SLIP_WALL,
                  Twall=300.0,
@@ -179,6 +195,9 @@ class BoundaryCondition(object):
                  Twall_flag=False,
                  reorient_vector_quantities=False,
                  Rmatrix=[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
+                 mass_flux=0.0,
+                 p_init=100.0e3,
+                 relax_factor=0.05,
                  label=""):
         """
         Construct a generic boundary condition object.
@@ -232,6 +251,10 @@ class BoundaryCondition(object):
         :param Twall_flag: a boolean parameter to select fixed Twall for moving-wall boundary
         :param reorient_vector_quantities: for exchange of vector quantities between adjacent boundaries
         :param Rmatrix: the 9 elements of the rotation matrix
+        :param mass_flux: mass flux out (in kg/s/m**2) across the block boundary
+        :param p_init: initial pressure (in Pa) at the mass-flux-out boundary
+        :param relax_factor: relaxation factor for adjustment of the actual pressure applied
+            to the ghost-cells of the mass-flux-out boundary
         :param label: A string that may be used to assist in identifying the boundary
             in the post-processing phase of a simulation.
         """
@@ -275,6 +298,9 @@ class BoundaryCondition(object):
         self.Twall_flag = Twall_flag
         assert (type(Rmatrix) is list) and (len(Rmatrix) == 9)
         self.Rmatrix = Rmatrix
+        self.mass_flux = mass_flux
+        self.p_init = p_init
+        self.relax_factor = relax_factor
         self.label = label
             
         return
@@ -299,14 +325,17 @@ class BoundaryCondition(object):
         for mdi in mdot: str_rep += "%g," % mdi
         str_rep += "]"
         str_rep += ", emissivity=%g" % self.emissivity
-        str_rep += ", r_omega=[%g, %g, %g]," % (self.r_omega[0], self.r_omega[1], self.r_omega[2])
-        str_rep += ", centre=[%g, %g, %g]," % (self.centre[0], self.centre[1], self.centre[2])
-        str_rep += ", v_trans=[%g, %g, %g]," % (self.v_trans[0], self.v_trans[1], self.v_trans[2])
+        str_rep += ", r_omega=[%g, %g, %g]" % (self.r_omega[0], self.r_omega[1], self.r_omega[2])
+        str_rep += ", centre=[%g, %g, %g]" % (self.centre[0], self.centre[1], self.centre[2])
+        str_rep += ", v_trans=[%g, %g, %g]" % (self.v_trans[0], self.v_trans[1], self.v_trans[2])
         str_rep += ", reorient_vector_quantities=%d" % self.reorient_vector_quantities
         str_rep += ", Twall_flag=%s" % self.Twall_flag
         str_rep += ", Rmatrix=["
         for elem in Rmatrix: str_rep += "%g, " % elem
         str_rep += "]"
+        str_rep += ", mass_flux=%g" % self.mass_flux
+        str_rep += ", p_init=%g" % self.p_init
+        str_rep += ", relax_factor=%g" % self.relax_factor
         str_rep += ", label=\"%s\")" % self.label
         return str_rep
     def __copy__(self):
@@ -337,6 +366,9 @@ class BoundaryCondition(object):
                                  reorient_vector_quantities=self.reorient_vector_quantities,
                                  Twall_flag=self.Twall_flag,
                                  Rmatrix=self.Rmatrix,
+                                 mass_flux=self.mass_flux,
+                                 p_init=self.p_init,
+                                 relax_factor=self.relax_factor,
                                  label=self.label)
     
 class AdjacentBC(BoundaryCondition):
@@ -443,6 +475,7 @@ class ExtrapolateOutBC(BoundaryCondition):
     def __copy__(self):
         return ExtrapolateOutBC(x_order=self.x_order, sponge_flag=self.sponge_flag,
                                 label=self.label)
+
 class ShockFittingInBC(BoundaryCondition):
     """
     Apply a (presumably) supersonic inflow condition to the boundary.
@@ -561,7 +594,6 @@ class fstcBC(BoundaryCondition):
         return "fstcBC(filename=\"%s\", label=\"%s\")" % (self.filename, self.label)
     def __copy__(self):
         return fstcBC(filename=self.filename, label=self.label)
-
 
 class SlidingTBC(BoundaryCondition):
     """
@@ -716,7 +748,7 @@ class FixedPOutBC(BoundaryCondition):
         specifies pressure directly.
 
         :param Pout: fixed outside pressure (in Pascals)
-        :param x_order: Extrapolation order of the boundary conduition.
+        :param x_order: Extrapolation order of the boundary condition.
             0=just copy the nearest cell data into both ghost cells 
             (zero-order extrapolation).
             1=linear extrapolation of the interior data into the ghost cells. 
@@ -977,13 +1009,49 @@ class MovingWallBC(BoundaryCondition):
         else:
             raise RuntimeError("Invalid input for v_trans: " + str(v_trans))
         BoundaryCondition.__init__(self, type_of_BC=MOVING_WALL, 
-            r_omega=my_r_omega, centre=my_centre, v_trans=my_v_trans, Twall_flag=Twall_flag, Twall=Twall, label=label)
+                                   r_omega=my_r_omega, centre=my_centre, v_trans=my_v_trans,
+                                   Twall_flag=Twall_flag, Twall=Twall, label=label)
         return
     def __str__(self):
-        return "MovingWallBC(r_omega=[%g,%g,%g], centre=[%g,%g,%g], v_trans=[%g,%g,%g], Twall_flag=%s, Twall=%g, label=\"%s\")" % \
-            (self.r_omega, self.label)
+        return "MovingWallBC(r_omega=[%g,%g,%g], centre=[%g,%g,%g], " \
+            "v_trans=[%g,%g,%g], Twall_flag=%s, Twall=%g, label=\"%s\")" % \
+            (self.r_omega, self.centre, self.Twall_flag, self.Twall, self.label)
     def __copy__(self):
-        return MovingWallBC(r_omega=self.r_omega, centre=self.centre, v_trans=self.v_trans, Twall_flag=self.Twall_flag,Twall=self.Twall, label=self.label)
+        return MovingWallBC(r_omega=self.r_omega, centre=self.centre, v_trans=self.v_trans, 
+                            Twall_flag=self.Twall_flag, Twall=self.Twall, label=self.label)
+ 
+class MassFluxOutBC(BoundaryCondition):
+    """
+    Something like FixedPOutBC but with the pressure computed to
+    achieve some user-specified mass-flux outflow for the boundary.
+    
+    It is probably best to set the initial pressure at the same value
+    as the initial fill pressure so that this boundary condition will
+    start changing things gradually.
+    """
+    def __init__(self, mass_flux, p_init, relax_factor=0.05, label=""):
+        """
+        Construct an outflow BC that extrapolates the interior flow data but
+        applies a computed pressure.
+
+        :param mass_flux: specified average mass-flux (in kg/s/m**2)
+        :param p_init: initial outside pressure (in Pascals)
+        :param relax_factor: under-relaxation is advised. 
+        :param label: A string that may be used to assist in identifying the boundary
+            in the post-processing phase of a simulation.
+        """
+        BoundaryCondition.__init__(self, type_of_BC=MASS_FLUX_OUT, Pout=Pout, 
+                                   x_order=x_order, label=label)
+        return
+    def __str__(self):
+        return "MassFluxOutBC(mass_flux=%g, p_init=%g, relax_factor=%g, label=\"%s\")" % \
+            (self.mass_flux, self.p_init, self.relax_factor, self.label)
+    def __copy__(self):
+        return MassFluxOutBC(mass_flux=self.mass_flux, p_init=self.p_init,
+                             relax_factor=self.relax_factor, label=self.label)
+
+
+
 #####################################################################################
 # FIX-ME -- should we merge the catalycity bcs with the main boundary-condition list?
 #####################################################################################

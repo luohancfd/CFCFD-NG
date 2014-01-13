@@ -544,6 +544,7 @@ class Block(object):
                reorient_vector_quantities=False, Rmatrix=None,
                assume_ideal=0, mdot=None, emissivity=None,
                Twall_i=None, Twall_f=None, t_i=None, t_f=None,
+               mass_flux=0.0, p_init=100.0e3, relax_factor=0.05,
                label=''):
         """
         Sets a boundary condition on a particular face of the block.
@@ -636,6 +637,8 @@ class Block(object):
             newbc = StaticProfBC(filename, n_profile, label=label)
         if type_of_BC == FIXED_P_OUT:
             newbc = FixedPOutBC(Pout, x_order, label=label)
+        if type_of_BC == MASS_FLUX_OUT:
+            newbc = MassFluxOutBC(mass_flux, p_init, relax_factor, label=label)
         if type_of_BC == MOVING_WALL:
             newbc = MovingWallBC(r_omega, centre, v_trans, Twall_flag, Twall, label=label)
         if type_of_BC == RRM:
@@ -753,6 +756,9 @@ class Block(object):
                 fp.write("%.6e " % val )
             fp.write("\n")
             fp.write("emissivity = %e\n" % bc.emissivity)
+            fp.write("mass_flux = %e\n" % bc.mass_flux)
+            fp.write("p_init = %e\n" % bc.p_init)
+            fp.write("relax_factor = %e\n" % bc.relax_factor)
             #
             fp.write("other_block = %d\n" % bc.other_block)
             if bc.other_face >= 0:
