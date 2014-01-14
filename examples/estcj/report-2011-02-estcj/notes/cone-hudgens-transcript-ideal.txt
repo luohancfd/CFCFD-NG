@@ -1,0 +1,16 @@
+peterj@helmholtz ~/work/estcj-test $ estcj.py --model=ideal --gas=air --task=cone --sigma-deg=15 --p1=1.1143e3 --T1=226.984 --V1=23.338e3
+estcj: Equilibrium Shock Tube Conditions
+Version: 14-Jan-2014
+Input parameters:
+    gasModel is ideal, Gas is air, p1: 1114.3 Pa, T1: 226.984 K, V1: 23338 m/s, sigma: 15 degrees
+Free-stream condition:
+    p: 1114.3 Pa, T: 226.984 K, rho: 0.0171 kg/m**3, e: 162910 J/kg, h: 228073 J/kg, a: 302.042 m/s, s: 1020.76 J/(kg.K)
+    R: 287.086 J/(kg.K), gam: 1.4, Cp: 1004.8 J/(kg.K), mu: 1.47809e-05 Pa.s, k: 0.0209181 W/(m.K)
+    name: air
+Shock angle: 0.287185 (rad), 16.4545 (deg)
+Cone-surface velocity: 22401 m/s
+Cone-surface condition:
+    p: 664246 Pa, T: 21758.9 K, rho: 0.106336 kg/m**3, e: 1.56167e+07 J/kg, h: 2.18633e+07 J/kg, a: 2957.25 m/s, s: 3770.96 J/(kg.K)
+    R: 287.086 J/(kg.K), gam: 1.4, Cp: 1004.8 J/(kg.K), mu: 0.000214394 Pa.s, k: 0.303413 W/(m.K)
+    name: air
+

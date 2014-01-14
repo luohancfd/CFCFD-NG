@@ -1,4 +1,4 @@
-$ estcj.py --help
+peterj@helmholtz ~/work/estcj-test $ estcj.py --help
 Usage: estcj.py [options]
 
 Options:
@@ -13,7 +13,8 @@ Options:
                         flow
   --model=GASMODELNAME  type of gas model: cea2: equilibrium thermochemistry
                         provided by NASA CEA2 code; libgas: thermochemistry
-                        provided by Rowan's libgas module.
+                        provided by Rowan's libgas module; ideal: fixed
+                        species with fixed thermodynamic coefficients.
   --gas=GASNAME         name of specific gas; To see the available gases, use
                         the option --list-gas-names
   --list-gas-names      list the gas names available for the current gas model
@@ -30,5 +31,5 @@ Options:
   --ofn=OUTFILENAME     name of file in which to accumulate output. file name
                         will be: outFileName-estcj.dat (Note that output
                         defaults to stdout.)
-peterj@helmholtz ~/Desktop $ 
+peterj@helmholtz ~/work/estcj-test $ 
 

@@ -69,7 +69,7 @@ class Gas(object):
         """
         other = Gas(self.Mmass, self.gam, self.name, 
                     s1=self.s1, T1=self.T1, p1=self.p1,
-                    mu_ref=self.mu_ref, T_ref=self.Tref, S_mu=self.S_mu,
+                    mu_ref=self.mu_ref, T_ref=self.T_ref, S_mu=self.S_mu,
                     Prandtl=self.Prandtl)
         other.set_pT(self.p, self.T)
         return other
@@ -132,8 +132,8 @@ class Gas(object):
         """
         Writes the gas state data to the specified stream.
         """
-        strm.write('    p: %g Pa, T: %g K, rho: %g kg/m**3, e: %g J/kg, h: %g J/kg, a: %g m/s\n'
-                   % (self.p, self.T, self.rho, self.e, self.h, self.a) )
+        strm.write('    p: %g Pa, T: %g K, rho: %g kg/m**3, e: %g J/kg, h: %g J/kg, a: %g m/s, s: %g J/(kg.K)\n'
+                   % (self.p, self.T, self.rho, self.e, self.h, self.a, self.s) )
         strm.write('    R: %g J/(kg.K), gam: %g, Cp: %g J/(kg.K), mu: %g Pa.s, k: %g W/(m.K)\n'
                    % (self.R, self.gam, self.C_p, self.mu, self.k) )
         strm.write('    name: %s\n' % self.name)
@@ -160,10 +160,19 @@ def make_gas_from_name(gasName):
     else:
         raise Exception, 'make_gas_from_name(): unknown gasName: %s' % gasName
 
+def list_gas_names():
+    """
+    :returns: the list of gases available in make_gas_from_name()
+    """
+    return ['air', 'n2', 'co2']
+
 # --------------------------------------------------------------
 
 if __name__ == '__main__':
     print 'Test/demonstrate the Gas class...'
+    print 'gases available in make_gas_from_name():'
+    for name in list_gas_names():
+        print "   ", name
     #
     print '\nDefault constructor with Air as the test gas.'
     a = Gas()

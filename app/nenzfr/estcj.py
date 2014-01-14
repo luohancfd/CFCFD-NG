@@ -41,7 +41,7 @@ with a flow speed of 2.95 km/s.
 
 The default gas model is based on calling the NASA CEA2 program to compute
 thermochemical properties of the gas, however, there is the option to select
-the thermochemical gas model used by Eilmer3 (libgas).
+the thermochemical gas model used by Eilmer3 (libgas) and an ideal gas.
 Note that the libgas model is essentially a "frozen" gas model but equilibrium
 chemistry can be obtained implicitly via a look-up table gas description.
 To repeat the T4 calculation with a libgas look-up table for air, use::
@@ -84,9 +84,9 @@ by making use of the CEA code from the NASA Glenn Research Center.
    The German Aerospace Center, Goettingen.
 
 .. Versions:
-   24-Dec-02: First code.
-   2010: ported to run with Rowan's cea2_gas module.
-   2011: Added isentropic expansions so that we now have
+   24-Dec-02 PJ: First code.
+   2010 PJ : ported to run with Rowan's cea2_gas module.
+   2011 PJ : Added isentropic expansions so that we now have
        a full replacement for stn.f
    01-June-2011 LukeD: Separated the code which writes an output
        file into its own function to allow for better integration with nenzfr.py
@@ -98,7 +98,11 @@ by making use of the CEA code from the NASA Glenn Research Center.
        printed out for the nozzle exit
    24-Feb-2012 PJ: update to use the new cea2_gas.py arrangement.
    31-Dec-2013 PJ: added libgas_gas.py option.
+   14-Jan-2014 PJ: included ideal gas option.
 """
+
+VERSION_STRING = "14-Jan-2014"
+DEBUG_ESTCJ  = False  # some detailed data is output to help debugging
 
 import sys, os, math
 sys.path.append(os.path.expandvars("$HOME/e3bin")) # installation directory
@@ -107,18 +111,14 @@ from cfpylib.nm.zero_solvers import secant
 # We base our calculation of gas properties upon calls to the NASA Glenn CEA code.
 import cfpylib.gasdyn.cea2_gas as cea2
 import cfpylib.gasdyn.libgas_gas as libgas
-gas_models = {'cea2':cea2, 'libgas':libgas}
+import cfpylib.gasdyn.ideal_gas as ideal
+gas_models = {'cea2':cea2, 'libgas':libgas, 'ideal':ideal}
 from cfpylib.gasdyn.gas_flow import *
 
 # ----------------------------------------------------------------------------
 
-VERSION_STRING = "31-Dec-2013"
-DEBUG_ESTCJ  = 0  # if 1: some detailed data is output to help debugging
-PRINT_STATUS = 1  # if 1: the start of each stage of the computation is noted.
-
-# ----------------------------------------------------------------------------
-
-def reflected_shock_tube_calculation(gasModel, gasName, p1, T1, Vs, pe, pp_on_pe, area_ratio, task):
+def reflected_shock_tube_calculation(gasModel, gasName, p1, T1, Vs, pe,
+                                     pp_on_pe, area_ratio, task):
     """
     Runs the reflected-shock-tube calculation from initial fill conditions
     observed shock speed and equilibrium pressure.
@@ -137,6 +137,8 @@ def reflected_shock_tube_calculation(gasModel, gasName, p1, T1, Vs, pe, pp_on_pe
         to proceed to a particular quasi-one-dimensional area ratio.
     :param task: one of 'ishock', 'st', 'stn', 'stnp'
     """
+    PRINT_STATUS = True  # the start of each stage of the computation is noted.
+    #
     if PRINT_STATUS: print 'Write pre-shock condition.'
     state1 = gasModel.make_gas_from_name(gasName)
     state1.set_pT(p1, T1)
@@ -266,10 +268,11 @@ def main():
                         "pitot = free-stream to Pitot condition; "
                         "cone = free-stream to Taylor-Maccoll cone flow"))
     op.add_option('--model', dest='gasModelName', default='cea2',
-                  choices=['cea2', 'libgas'],
+                  choices=['cea2', 'libgas', 'ideal'],
                   help=("type of gas model: "
                         "cea2: equilibrium thermochemistry provided by NASA CEA2 code; "
-                        "libgas: thermochemistry provided by Rowan's libgas module."))
+                        "libgas: thermochemistry provided by Rowan's libgas module; "
+                        "ideal: fixed species with fixed thermodynamic coefficients."))
     op.add_option('--gas', dest='gasName', default='air',
                   help=("name of specific gas; "
                         "To see the available gases, use the option --list-gas-names"))
@@ -314,7 +317,8 @@ def main():
     area_ratio = opt.area_ratio
     cone_half_angle_deg = opt.cone_half_angle_deg
     outFileName = opt.outFileName
-    if DEBUG_ESTCJ: print 'estcj:', opt.gasModelName, gasName, p1, T1, V1, Vs, pe, area_ratio, outFileName
+    if DEBUG_ESTCJ:
+        print 'estcj:', opt.gasModelName, gasName, p1, T1, V1, Vs, pe, area_ratio, outFileName
     #
     bad_input = False
     if p1 is None:

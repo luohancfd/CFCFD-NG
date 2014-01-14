@@ -1,0 +1,17 @@
+peterj@helmholtz ~/work/estcj-test $ estcj.py --model=ideal --gas=air --task=ishock --Vs=11296 --p1=59 --T1=283
+estcj: Equilibrium Shock Tube Conditions
+Version: 14-Jan-2014
+Input parameters:
+    gasModel is ideal, Gas is air, p1: 59 Pa, T1: 283 K, Vs: 11296 m/s
+Write pre-shock condition.
+Start incident-shock calculation.
+State 1: pre-shock condition
+    p: 59 Pa, T: 283 K, rho: 0.000726196 kg/m**3, e: 203113 J/kg, h: 284358 J/kg, a: 337.259 m/s, s: 2085.97 J/(kg.K)
+    R: 287.086 J/(kg.K), gam: 1.4, Cp: 1004.8 J/(kg.K), mu: 1.76518e-05 Pa.s, k: 0.024981 W/(m.K)
+    name: air
+State 2: post-shock condition.
+    p: 77208.8 Pa, T: 61998.5 K, rho: 0.00433784 kg/m**3, e: 4.44972e+07 J/kg, h: 6.22961e+07 J/kg, a: 4991.84 m/s, s: 5440.92 J/(kg.K)
+    R: 287.086 J/(kg.K), gam: 1.4, Cp: 1004.8 J/(kg.K), mu: 0.000363093 Pa.s, k: 0.513854 W/(m.K)
+    name: air
+    V2: 1891.06 m/s, Vg: 9404.94 m/s
+

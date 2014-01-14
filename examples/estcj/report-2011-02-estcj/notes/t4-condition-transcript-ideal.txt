@@ -1,0 +1,44 @@
+peterj@helmholtz ~/work/estcj-test $ estcj.py --task=stn --model=ideal --gas=air --T1=300 --p1=125.0e3 --Vs=2414 --pe=34.37e6 --ar=27.0
+estcj: Equilibrium Shock Tube Conditions
+Version: 14-Jan-2014
+Input parameters:
+    gasModel is ideal, Gas is air, p1: 125000 Pa, T1: 300 K, Vs: 2414 m/s
+Write pre-shock condition.
+Start incident-shock calculation.
+Start reflected-shock calculation.
+Start calculation of isentropic relaxation.
+Start isentropic relaxation to throat (Mach 1)
+Start isentropic relaxation to nozzle exit.
+Done with reflected shock tube calculation.
+State 1: pre-shock condition
+    p: 125000 Pa, T: 300 K, rho: 1.45137 kg/m**3, e: 215314 J/kg, h: 301440 J/kg, a: 347.241 m/s, s: -54.067 J/(kg.K)
+    R: 287.086 J/(kg.K), gam: 1.4, Cp: 1004.8 J/(kg.K), mu: 1.84691e-05 Pa.s, k: 0.0261376 W/(m.K)
+    name: air
+State 2: post-shock condition.
+    p: 7.02724e+06 Pa, T: 3101.7 K, rho: 7.89175 kg/m**3, e: 2.22613e+06 J/kg, h: 3.11659e+06 J/kg, a: 1116.53 m/s, s: 1136.33 J/(kg.K)
+    R: 287.086 J/(kg.K), gam: 1.4, Cp: 1004.8 J/(kg.K), mu: 7.85478e-05 Pa.s, k: 0.111162 W/(m.K)
+    name: air
+    V2: 443.957 m/s, Vg: 1970.04 m/s
+State 5: reflected-shock condition.
+    p: 5.06658e+07 Pa, T: 6674.58 K, rho: 26.4411 kg/m**3, e: 4.79044e+06 J/kg, h: 6.70661e+06 J/kg, a: 1637.88 m/s, s: 1339.24 J/(kg.K)
+    R: 287.086 J/(kg.K), gam: 1.4, Cp: 1004.8 J/(kg.K), mu: 0.000117396 Pa.s, k: 0.16614 W/(m.K)
+    name: air
+    Vr: 837.484 m/s
+State 5s: equilibrium condition (relaxation to pe)
+    p: 3.437e+07 Pa, T: 5974.08 K, rho: 20.04 kg/m**3, e: 4.28768e+06 J/kg, h: 6.00275e+06 J/kg, a: 1549.55 m/s, s: 1339.24 J/(kg.K)
+    R: 287.086 J/(kg.K), gam: 1.4, Cp: 1004.8 J/(kg.K), mu: 0.000110852 Pa.s, k: 0.156879 W/(m.K)
+    name: air
+Enthalpy difference (H5s - H1): 5.70131e+06 J/kg
+State 6: Nozzle-throat condition (relaxation to M=1)
+    p: 1.81571e+07 Pa, T: 4978.4 K, rho: 12.7041 kg/m**3, e: 3.57307e+06 J/kg, h: 5.00229e+06 J/kg, a: 1414.54 m/s, s: 1339.24 J/(kg.K)
+    R: 287.086 J/(kg.K), gam: 1.4, Cp: 1004.8 J/(kg.K), mu: 0.000100826 Pa.s, k: 0.14269 W/(m.K)
+    name: air
+    V6: 1414.54 m/s, M6: 0.999999, mflux6: 17970.4 kg/s/m**2
+State 7: Nozzle-exit condition (relaxation to correct mass flux)
+    p: 58068.3 Pa, T: 964.278 K, rho: 0.209761 kg/m**3, e: 692076 J/kg, h: 968906 J/kg, a: 622.545 m/s, s: 1339.24 J/(kg.K)
+    R: 287.086 J/(kg.K), gam: 1.4, Cp: 1004.8 J/(kg.K), mu: 4.06806e-05 Pa.s, k: 0.0575716 W/(m.K)
+    name: air
+    V7: 3172.96 m/s, M7: 5.09676, mflux7: 17970.3 kg/s/m**2, area_ratio: 27, pitot: 1.96885e+06 Pa
+    pitot7_on_p5s: 0.057284
+peterj@helmholtz ~/work/estcj-test $ 
+
