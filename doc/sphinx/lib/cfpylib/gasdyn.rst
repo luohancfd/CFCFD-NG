@@ -111,8 +111,8 @@ cea2_gas
 
 .. autofunction:: get_with_ions_flag
 
-.. _cea2_gas:
 
+.. _libgas_gas:
 
 libgas_gas
 ----------
@@ -126,6 +126,8 @@ libgas_gas
 
 .. autofunction:: list_gas_names
 
+
+.. _ideal_gas:
 
 ideal_gas
 ----------

@@ -1057,7 +1057,7 @@ def connect_blocks_2D(A, faceA, B, faceB, with_udf=0,
     :param sets_visc_flux: passed through to the AdjacentPlusUDFBC if with_udf is True
     :param check_corner_locations: set True (default) to check that the face corners are colocated
     :param reorient_vector_quantities: if true, apply the rotation matrix to the incoming
-    vector data.  The rotation matrix is built from the nominal direction vectors of both faces.
+        vector data.  The rotation matrix is built from the nominal direction vectors of both faces.
     :param nA:
     :param t1A: the nominal direction vectors for face A
     :param nB:
@@ -2073,7 +2073,7 @@ def connect_blocks_3D(A, B, vtx_pairs, with_udf=0,
     :param sets_visc_flux: passed through to the AdjacentPlusUDFBC if with_udf is True
     :param check_corner_locations: set True (default) to check that the face corners are colocated
     :param reorient_vector_quantities: if true, apply the rotation matrix to the incoming
-    vector data.  The rotation matrix is built from the nominal direction vectors of both faces.
+         vector data.  The rotation matrix is built from the nominal direction vectors of both faces.
     :param nA:
     :param t1A: the nominal direction vectors for face A
     :param nB:
