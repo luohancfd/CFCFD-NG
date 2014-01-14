@@ -1,8 +1,8 @@
 #! /bin/bash
-# file: gas_giant_example.sh
+# file: gas-giant-theory.sh
 # Shell script to run the fully theoretical 
 # gas giant example for pitot.
-#Chris James (c.james4@uq.edu.au) - 07/05/13
+#Chris James (c.james4@uq.edu.au) - 14/01/14
 
 pitot.py --config_file=gas-giant-theory.cfg
 
