@@ -105,6 +105,40 @@ cea2_gas
 
 .. autofunction:: list_gas_names
 
+.. autofunction:: make_reactants_dictionary
+
+.. autofunction:: get_species_composition
+
+.. autofunction:: get_with_ions_flag
+
+.. _cea2_gas:
+
+
+libgas_gas
+----------
+
+.. automodule:: cfpylib.gasdyn.libgas_gas
+
+.. autoclass:: Gas
+   :members: __init__, clone, set_pT, set_rhoT, set_ps, write_state
+
+.. autofunction:: make_gas_from_name
+
+.. autofunction:: list_gas_names
+
+
+ideal_gas
+----------
+
+.. automodule:: cfpylib.gasdyn.ideal_gas
+
+.. autoclass:: Gas
+   :members: __init__, clone, set_pT, set_rhoT, set_ps, set_ph, write_state
+
+.. autofunction:: make_gas_from_name
+
+.. autofunction:: list_gas_names
+
  
 .. _gas_flow:
 
