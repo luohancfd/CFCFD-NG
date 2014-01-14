@@ -1,26 +1,26 @@
 % estcj.py
 
-\documentclass[10pt,a4paper]{article}
-\usepackage[body={16cm,25cm}]{geometry}
+\documentclass[landscape,12pt,a4paper]{article}
+\usepackage[body={24cm,17cm}]{geometry}
 \usepackage{hyperref}
 \hypersetup{colorlinks=true,linkcolor=blue}
 \usepackage{graphicx}
 \usepackage{listings}
-\lstset{basicstyle=\ttfamily\scriptsize,identifierstyle=,keywordstyle=}
-\usepackage{lscape}
+\lstset{basicstyle=\footnotesize\ttfamily, showstringspaces=false, identifierstyle=, keywordstyle=}
+\lstset{numbers=left, numberstyle=\tiny, stepnumber=1, numbersep=5pt, frame=single}
+\lstset{language={}, breaklines=true}
 
-%------------------------------------------------------------------
-% Extra formatting for codes (from report style)
 %------------------------------------------------------------------
 % a couple horizontal bars to delimit embedded code
 % the width suits that set above and
 % the mathmode eliminates spaces between the three elements
 \newcommand{\topbar}{\ensuremath{
-    \rule{0.1mm}{2.0mm} \rule[2.0mm]{159.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+    \rule{0.1mm}{2.0mm} \rule[2.0mm]{239.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
 }}
 \newcommand{\bottombar}{\ensuremath{
-    \rule{0.1mm}{2.0mm} \rule{159.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
+    \rule{0.1mm}{2.0mm} \rule{239.5mm}{0.1mm} \rule{0.1mm}{2.0mm}
 }}
+
 
 %------------------------------------------------------------------
 % Title page information
@@ -52,7 +52,7 @@ an application program, ESTCj, for convenient calculation of
 the combined flow processes relevant to shock- and expansion-tube operation.
 \end{abstract}
 
-\bigskip
+\newpage
 \tableofcontents
 
 %------------------------------------------------------------------
@@ -80,21 +80,24 @@ This report describes the current generation of the program, which has been refa
 three layers:
 \begin{enumerate}
  \item Thermochemical gas models for perfect gases and gases in thermochemical equilibrium.
+  Appendix\,\ref{gas-model-sec}.
  \item A library of functions for simple flow processes such as normal shocks, oblique shocks,
-  steady and unsteady and expansions.
+  steady and unsteady and expansions. Appendix\,\ref{process-code-sec}.
  \item A top-level code (actually called estcj.py) that coordinates the calling 
   of the flow-process functions using information provided by the user on the command line.
+  Appendix\,\ref{estcj-py}.
 \end{enumerate}
 One of the advantages of moving the flow-process calculations to a library is that 
 they can be conveniently reused, 
 as has been done for the NENZFr code\,\cite{doherty_etal_2012a}, for example.
-Two simple examples of building specific programs with the library are shown in
-Section\,\ref{custom-apps}.
+Three simple examples of building specific programs with the library are shown in
+Section\,\ref{the-libraries}.
 
 \medskip
-The following sections provide an overview of the new functions and their capabilities.
+The following sections provide an overview of the use of the new functions and their capabilities.
+This is done mostly by way of examples.
 The bulk of the detail is in the source code which we've tried to make modular and very readable.
-Despite the code being central to this report, we put it in the Appendix so that there is
+Despite the code being central to this report, we have put it in the Appendix so that there is
 a reasonable chance that the reader might at least get the overview 
 before being overwhelmed by detail and giving up.
 
@@ -107,17 +110,14 @@ by default.
 It's easiest to get a reminder of the available settings by asking for ``help''
 on the command line.
 
-\medskip
-\noindent\topbar
-\lstinputlisting[language={},breaklines=true]{../notes/estcj-help.txt}
-\bottombar
+\lstinputlisting[]{../notes/estcj-help.txt}
 
-The list of available gas models presented as options on the command line is small
-and reflects the typical needs of the UQ shock tunnel operation.
-The supporting gas model library (Appendix~\ref{cea2-gas-py}) 
-calls upon the NASA Glenn CEA2 program 
-for evaluation of the equilibrium thermochemical properties 
-and it is easy to add entries for other gas mixtures.
+The default supporting gas model library (Appendix~\ref{cea2-gas-py}) calls upon the NASA Glenn CEA2 program 
+for evaluation of the equilibrium thermochemical properties of gas mixtures.
+The list of available gases in \verb!ESTCj! can be seen by using the \verb!--list-gas-names! option 
+on the command line.
+The list reflects the typical needs of the UQ shock and expansion tunnel operation but 
+it is easy to add new gases to the \verb!make_gas_from_name()! function in the gas model code.
 
 \bigskip
 \subsection{Example of use for T4 condition}
@@ -128,7 +128,7 @@ as shown in the following figure that has been taken from Ref.\,\cite{krek_jacob
 The numbers denote states of the gases between processes.
 
 \begin{center}
-\includegraphics[width=0.7\textwidth]{../figs/shock-tube-process-fig-from-stn-report.png}
+\includegraphics[width=10cm]{../figs/shock-tube-process-fig-from-stn-report.png}
 \end{center}
 
 \medskip
@@ -152,15 +152,39 @@ Alternatively, we may stop the expansion at a particular Pitot pressure by speci
 If you don't want to specify a relaxation pressure with option \verb?--pe?,
 the reflected-shock conditions (5) will be used directly as the nozzle supply conditions.
 
-\medskip
-\noindent\topbar
-\lstinputlisting[language={},breaklines=true]{../notes/t4-condition-transcript.txt}
-\bottombar
+\lstinputlisting[]{../notes/t4-condition-transcript.txt}
 
 \medskip
-Subset calculations can be done by selecting a different task.
+By default, the \verb!cea2_gas! model is used, however, the CEA2 program can occasionally fail
+to provide data at conditions of interest so the \verb!libgas_gas! module is provided 
+as an alternative gas model.
+This \verb!libgas! module is that used in the \verb!Eilmer3! code and may model the gas 
+thermochemistry via look-up table data that has previously been generated by the CEA2 program. 
+Here is the same T4 condition computed with a look-up table describing the air gas model.
+
+\lstinputlisting[]{../notes/t4-condition-transcript-libgas.txt}
+
+Note that there are some differences in computed detail.  
+The look-up table was generated for temperatures higher than the initial shock tube 
+fill temperature and the thermochemical model is using extrapolated parameter values 
+for some of the calculation.
+
+\subsection{Subset calculations}
+%
+Subset calculations of the shock-tube flow processing can be done by selecting a different task.
 For example, just the incident shock processing can be computed with the \verb?--task=ishock?,
 specifying only the gas, initial pressure, temperature and incident shock speed.
+Here is an example from Huber's \cite{huber_1963a} Table IV for a speed of 37.06\,ft/s 
+at a geopotential altitude of 173500\,feet.
+The expected pressure (from Table IV) is 86.5\,kPa and the temperature is 12000\,K,
+quite close to the values computed by \verb!ESTCj! and shown below.
+
+\lstinputlisting[]{../notes/incident-shock-huber.txt}
+
+This equilibrium-chemistry result can be compared with the ideal gas calculation 
+for the same speed and free-stream condition.
+
+\lstinputlisting[]{../notes/incident-shock-huber-ideal.txt}
 
 \medskip
 The following sections show the subproblems that can be exercised from the command line.
@@ -173,10 +197,7 @@ the relevant \verb?gas_flow.py? functions.
 Using the test flow conditions from the exit of the Mach 4 nozzle, we can then
 compute the expected Pitot pressure to be 2.14\,MPa.
 
-\medskip
-\noindent\topbar
-\lstinputlisting[language={},breaklines=true]{../notes/pitot-transcript.txt}
-\bottombar
+\lstinputlisting[]{../notes/pitot-transcript.txt}
 
 \bigskip
 \subsection{Cone surface pressure calculation}
@@ -184,10 +205,7 @@ compute the expected Pitot pressure to be 2.14\,MPa.
 Alternatively, the conditions on the surface of a conical pressure probe
 (with 15$^o$ half-angle) can be computed as:
 
-\medskip
-\noindent\topbar
-\lstinputlisting[language={},breaklines=true]{../notes/cone-transcript.txt}
-\bottombar
+\lstinputlisting[]{../notes/cone-x3-transcript.txt}
 
 \bigskip
 \subsection{Total condition calculation}
@@ -195,13 +213,10 @@ Alternatively, the conditions on the surface of a conical pressure probe
 The hypothetical stagnation conditions for a specified free stream
 can be computed as:
 
-\medskip
-\noindent\topbar
-\lstinputlisting[language={},breaklines=true]{../notes/total-transcript.txt}
-\bottombar
+\lstinputlisting[]{../notes/total-transcript.txt}
 
 \newpage
-\section{The supporting libraries}
+\section{Building custom application with the supporting libraries}
 \label{the-libraries}
 %
 Although the ESTCj is built specifically to do the calculations 
@@ -216,45 +231,67 @@ There are gas modules for:
    but with chemical reactions omitted (Appendix\,\ref{libgas-gas-py}).
 \end{itemize}
 %
-The flow process modules cover the simple processes associated with:
+The flow process modules cover simple processes associated with:
 \begin{itemize}
  \item normal shocks for one-dimensional flow.
  \item finite (isentropic) waves for one-dimensional flow.
  \item steady quasi-one-dimensional flow with area change.
  \item oblique shocks for planar and conical flow.
 \end{itemize}
-There is a module (Appendix\,\ref{gas-flow-py}) that uses 
-the gas modules mentioned in the previous paragraph
-and another (Appendix\,\ref{ideal-gas-flow-py})
-that assumes a perfect gas model such that user needs specify the
+There is a module (Appendix\,\ref{ideal-gas-flow-py})
+that assumes an ideal gas model and is very much an implementation of the classic
+textbook gas-dynamic equations.
+When using this module, the user needs specify the
 relevant gas properties (such as the ratio of specific heats).
+The second flow process module (Appendix\,\ref{gas-flow-py}) uses \verb!Gas! objects
+created by the cea2, libgas and ideal gas modules of Appendix\,\ref{gas-model-sec} 
+and so can compute flow processes for a gas with the species in chemical equilibrium or frozen.
 
 \medskip
-This section is deliberately terse because the code in the appendices is well documented
-and follows the standard texts on gas dynamics.
+There are many ways these functions can be combined, however,
+this section is deliberately terse because the codes in the appendices are well documented
+and follow the standard texts on gas dynamics.
 The only unusual formulation is that for the Taylor-Maccoll flow with the general gas model.
 For that formulation, the notes from PJ's workbook are included 
 in Appendix\,\ref{pj-notes-cone-flow}.
 
 
 \bigskip
-\subsection{Building custom application programs}
-\label{custom-apps}
+\subsection{Oblique shock for air in chemical equilibrium}
 %
-\subsubsection*{Classic shock tube}
+Hunt and Sounders\,\cite{hunt_souders_1975a} provide tabulated data for the processing
+of air in chemical equilibrium by oblique shocks.
+Here are a couple of examples of calling up the \verb!gas_flow! functions to do the same job
+with a \verb!cea2_gas! object.
+
+\lstinputlisting[]{../notes/oblique_shock_example.py}
+
+\lstinputlisting[]{../notes/oblique_shock_example_transcript.txt}
+
+
+\subsection{Classic shock tube}
 %
 As an example of building a custom application, consider the idealized shock tube 
 with equal area sections separated by a diaphragm.
+State 1 is air at low pressure on the downstream-side of a diaphragm and 
+state 4 is high pressure helium initially on the upstream side of the diaphragm.
+When the diaphragm is removed (ideally), the helium expands into the part of the tube
+occupied initially by the air and drives a shock through the quiescent air.
+State 2 is the shock-compressued air and state 3 is the expanded helium
+driving the air.
+At the moving interface between the air and helium, the pressures and velocities
+of the air and helium have to match.
+The example code sets up a function that, given the pressure at the contact surface,
+returns the difference in velocities of the gases at the contact surface.
+This function is handed to a nonlinear equation solver to determine the pressure ratio
+at which the velocity difference is zero.
 See for example, Section 7.8 (Shock tube relations) in Anderson's text\,\cite{anderson_82}
 for a discussion based on perfect gas behaviour.
 
-\medskip
-\noindent\topbar
-\lstinputlisting[language={}]{../../../eilmer3/2D/classic-shock-tube/classic_shock_tube.py}
-\bottombar
+\lstinputlisting[]{../../../eilmer3/2D/classic-shock-tube/classic_shock_tube.py}
 
 \bigskip
-\subsubsection*{Idealized expansion tube}
+\subsection{Idealized expansion tube}
 %
 As a second example of building a custom application, consider the idealized expansion
 of the test gas in an expansion tube\,\cite{trimpi_62}.
@@ -264,10 +301,7 @@ The final expansion process is regulated by the fill pressure of the acceleratio
 and the test-gas conditions are determined by balancing the expanded gas pressure against
 the post shock pressure of the acceleration gas.
 
-\medskip
-\noindent\topbar
-\lstinputlisting[language={}]{../../../../lib/cfpylib/gasdyn/classic_expansion_tube.py}
-\bottombar
+\lstinputlisting[]{../../../../lib/cfpylib/gasdyn/classic_expansion_tube.py}
 
 %------------------------------------------------------------------
 
@@ -282,15 +316,14 @@ the post shock pressure of the acceleration gas.
 \newpage
 \appendix
 \section{Source code for gas models}
+\label{gas-model-sec}
 %
 \subsection{ideal\_gas.py}
 \label{ideal-gas-py}
 %
 Thermodynamic functions for an ideal gas.
 
-\noindent\topbar
 \lstinputlisting[language={}]{../../../../lib/cfpylib/gasdyn/ideal_gas.py}
-\bottombar
 
 \newpage
 \subsection{libgas\_gas.py}
@@ -298,9 +331,7 @@ Thermodynamic functions for an ideal gas.
 %
 Thermodynamic functions for the gas model used by Eilmer3.
 
-\noindent\topbar
 \lstinputlisting[language={}]{../../../../lib/cfpylib/gasdyn/libgas_gas.py}
-\bottombar
 
 \newpage
 \subsection{cea2\_gas.py}
@@ -308,21 +339,18 @@ Thermodynamic functions for the gas model used by Eilmer3.
 %
 Thermodynamic functions for the thermochemical-equilibrium gas model backed by CEA2.
 
-\noindent\topbar
 \lstinputlisting[language={}]{../../../../lib/cfpylib/gasdyn/cea2_gas.py}
-\bottombar
 
 \newpage
 \section{Source code for flow process calculations}
+\label{process-code-sec}
 %
 \subsection{ideal\_gas\_flow.py}
 \label{ideal-gas-flow-py}
 %
 Basic flow relations for an ideal gas.
 
-\noindent\topbar
 \lstinputlisting[language={}]{../../../../lib/cfpylib/gasdyn/ideal_gas_flow.py}
-\bottombar
 
 \newpage
 \subsection{gas\_flow.py}
@@ -330,9 +358,7 @@ Basic flow relations for an ideal gas.
 %
 Basic flow relations for a more general gas.
 
-\noindent\topbar
 \lstinputlisting[language={}]{../../../../lib/cfpylib/gasdyn/gas_flow.py}
-\bottombar
 
 \newpage
 \section{Source code for ESTCj application}
@@ -340,9 +366,7 @@ Basic flow relations for a more general gas.
 %
 Top-level application code.
 
-\noindent\topbar
 \lstinputlisting[language={}]{../../../../app/nenzfr/estcj.py}
-\bottombar
 
 \newpage
 \section{Notes on conical flow}
@@ -351,17 +375,17 @@ Top-level application code.
 Scanned straight from PJ's workbook, warts and all.
 
 \begin{center}
-\includegraphics[width=\textwidth]{../figs/pj-workbook-page-76.png}
+\includegraphics[width=0.9\textheight,angle=90]{../figs/pj-workbook-page-76.png}
 \end{center}
 
 \newpage
 \begin{center}
-\includegraphics[width=\textwidth]{../figs/pj-workbook-page-77.png}
+\includegraphics[width=\textheight,angle=90]{../figs/pj-workbook-page-77.png}
 \end{center}
 
 \newpage
 \begin{center}
-\includegraphics[width=\textwidth]{../figs/pj-workbook-page-78.png}
+\includegraphics[width=\textheight,angle=90]{../figs/pj-workbook-page-78.png}
 \end{center}
 
 \end{document}
