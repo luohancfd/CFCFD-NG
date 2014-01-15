@@ -44,8 +44,8 @@ MassFluxOutBC::~MassFluxOutBC() {}
 void MassFluxOutBC::print_info(std::string lead_in)
 {
     BoundaryCondition::print_info(lead_in);
-    cout << lead_in << "mass_flux= " << mass_flux << endl;
-    cout << lead_in << "(initial)external_pressure= " << external_pressure << endl;
+    cout << lead_in << "mass_flux= " << mass_flux << " kg/s/m**2" << endl;
+    cout << lead_in << "(initial)external_pressure= " << external_pressure << " Pa" <<endl;
     cout << lead_in << "relax_factor= " << relax_factor << endl;
     return;
 }
@@ -60,7 +60,9 @@ int MassFluxOutBC::apply_convective(double t)
     //
     // We assume that this boundary is an outflow boundary.
     //
-    // See notes on page 58 of PJ's second Oxford workbook July 2013.
+    // See notes on page 82,83 of PJ's Eilmer3 workbook, Jan 2014.
+    // Assuming approximately constant density, the pressure has
+    // been linked to the velocity with the Bernoulli equation.
     size_t i, j, k;
     FV_Cell *src_cell, *dest_cell;
     Gas_model *gmodel = get_gas_model_ptr();
@@ -84,7 +86,7 @@ int MassFluxOutBC::apply_convective(double t)
 		rhoUA += src_cell->fs->gas->rho * dot(src_cell->fs->vel, face->n) * face->area[0];
 	    } // end i loop
 	} // for k
-	dp = relax_factor * 0.5 * rhoA/area * (rhoUA*rhoUA - mass_flux*mass_flux) / (rhoA*rhoA);
+	dp = relax_factor * 0.5 * rhoA/area * (rhoUA*rhoUA/(area*area) - mass_flux*mass_flux);
 	external_pressure += dp;
 	// Apply ghost-cell conditions.
         for (k = bd.kmin; k <= bd.kmax; ++k) {
@@ -113,7 +115,7 @@ int MassFluxOutBC::apply_convective(double t)
 		rhoUA += src_cell->fs->gas->rho * dot(src_cell->fs->vel, face->n) * face->area[0];
 	    } // end j loop
 	} // for k
-	dp = relax_factor * 0.5 * rhoA/area * (rhoUA*rhoUA - mass_flux*mass_flux) / (rhoA*rhoA);
+	dp = relax_factor * 0.5 * rhoA/area * (rhoUA*rhoUA/(area*area) - mass_flux*mass_flux);
 	external_pressure += dp;
 	// Apply ghost-cell conditions.
         for (k = bd.kmin; k <= bd.kmax; ++k) {
@@ -142,7 +144,7 @@ int MassFluxOutBC::apply_convective(double t)
 		rhoUA -= src_cell->fs->gas->rho * dot(src_cell->fs->vel, face->n) * face->area[0];
 	    } // end i loop
 	} // for k
-	dp = relax_factor * 0.5 * rhoA/area * (rhoUA*rhoUA - mass_flux*mass_flux) / (rhoA*rhoA);
+	dp = relax_factor * 0.5 * rhoA/area * (rhoUA*rhoUA/(area*area) - mass_flux*mass_flux);
 	external_pressure += dp;
 	// Apply ghost-cell conditions.
         for (k = bd.kmin; k <= bd.kmax; ++k) {
@@ -171,7 +173,7 @@ int MassFluxOutBC::apply_convective(double t)
 		rhoUA -= src_cell->fs->gas->rho * dot(src_cell->fs->vel, face->n) * face->area[0];
 	    } // end j loop
 	} // for k
-	dp = relax_factor * 0.5 * rhoA/area * (rhoUA*rhoUA - mass_flux*mass_flux) / (rhoA*rhoA);
+	dp = relax_factor * 0.5 * rhoA/area * (rhoUA*rhoUA/(area*area) - mass_flux*mass_flux);
 	external_pressure += dp;
 	// Apply ghost-cell conditions.
         for (k = bd.kmin; k <= bd.kmax; ++k) {
@@ -200,7 +202,7 @@ int MassFluxOutBC::apply_convective(double t)
 		rhoUA += src_cell->fs->gas->rho * dot(src_cell->fs->vel, face->n) * face->area[0];
 	    } // end j loop
 	} // for i
-	dp = relax_factor * 0.5 * rhoA/area * (rhoUA*rhoUA - mass_flux*mass_flux) / (rhoA*rhoA);
+	dp = relax_factor * 0.5 * rhoA/area * (rhoUA*rhoUA/(area*area) - mass_flux*mass_flux);
 	external_pressure += dp;
 	// Apply ghost-cell conditions.
         for (i = bd.imin; i <= bd.imax; ++i) {
@@ -229,7 +231,7 @@ int MassFluxOutBC::apply_convective(double t)
 		rhoUA -= src_cell->fs->gas->rho * dot(src_cell->fs->vel, face->n) * face->area[0];
 	    } // end j loop
 	} // for i
-	dp = relax_factor * 0.5 * rhoA/area * (rhoUA*rhoUA - mass_flux*mass_flux) / (rhoA*rhoA);
+	dp = relax_factor * 0.5 * rhoA/area * (rhoUA*rhoUA/(area*area) - mass_flux*mass_flux);
 	external_pressure += dp;
 	// Apply ghost-cell conditions.
         for (i = bd.imin; i <= bd.imax; ++i) {

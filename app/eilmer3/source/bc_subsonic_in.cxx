@@ -29,6 +29,11 @@ SubsonicInBC::SubsonicInBC(Block *bdp, int which_boundary,
     gmodel->eval_thermo_state_pT(*(gstagp->gas));
     s0 = gmodel->mixture_entropy(*(gstagp->gas));
     h0 = gmodel->mixture_enthalpy(*(gstagp->gas));
+    cout << "SubsonicInBC: set up boundary condition." << endl;
+    cout << "    p0= " << gstagp->gas->p << " Pa" << endl;
+    cout << "    T0= " << gstagp->gas->T[0] << " degrees K" << endl;
+    cout << "    s0= " << s0 << " J/kg/K" << endl;
+    cout << "    h0= " << h0 << " J/kg" << endl;
 }
 
 SubsonicInBC::SubsonicInBC(const SubsonicInBC &bc)
@@ -70,10 +75,11 @@ int SubsonicInBC::apply_convective(double t)
     Block & bd = *bdp;
     size_t i, j, k;
     FV_Cell *src_cell, *dest_cell;
+    FV_Interface *face;
     double p;
     global_data &gd = *get_global_data_ptr();
-    CFlowCondition *gstagp = gd.gas_state[inflow_condition_id];
-    CFlowCondition *gsp = new CFlowCondition(*gstagp);
+    CFlowCondition &gstagp = *(gd.gas_state[inflow_condition_id]);
+    CFlowCondition gsp(gstagp);
 
     switch ( which_boundary ) {
     case NORTH:
@@ -81,12 +87,14 @@ int SubsonicInBC::apply_convective(double t)
 	for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (i = bd.imin; i <= bd.imax; ++i) {
 		src_cell = bd.get_cell(i,j,k);
+		face = src_cell->iface[NORTH];
 		p = src_cell->fs->gas->p;
-		subsonic_inflow_properties(gstagp, gsp, p);
+		// Choose a flow direction that is locally-inward at this location on the boundary.
+		subsonic_inflow_properties(gstagp, -(face->n.x), -(face->n.y), -(face->n.z), gsp, p);
 		dest_cell = bd.get_cell(i,j+1,k);
-		dest_cell->copy_values_from(*gsp);
+		dest_cell->copy_values_from(gsp);
 		dest_cell = bd.get_cell(i,j+2,k);
-		dest_cell->copy_values_from(*gsp);
+		dest_cell->copy_values_from(gsp);
 	    } // end i loop
 	} // for k
 	break;
@@ -95,12 +103,13 @@ int SubsonicInBC::apply_convective(double t)
 	for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
+		face = src_cell->iface[EAST];
 		p = src_cell->fs->gas->p;
-		subsonic_inflow_properties(gstagp, gsp, p);
+		subsonic_inflow_properties(gstagp, -(face->n.x), -(face->n.y), -(face->n.z), gsp, p);
 		dest_cell = bd.get_cell(i+1,j,k);
-		dest_cell->copy_values_from(*gsp);
+		dest_cell->copy_values_from(gsp);
 		dest_cell = bd.get_cell(i+2,j,k);
-		dest_cell->copy_values_from(*gsp);
+		dest_cell->copy_values_from(gsp);
 	    } // end j loop
 	} // for k
 	break;
@@ -109,12 +118,13 @@ int SubsonicInBC::apply_convective(double t)
 	for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (i = bd.imin; i <= bd.imax; ++i) {
 		src_cell = bd.get_cell(i,j,k);
+		face = src_cell->iface[SOUTH];
 		p = src_cell->fs->gas->p;
-		subsonic_inflow_properties(gstagp, gsp, p);
+		subsonic_inflow_properties(gstagp, face->n.x, face->n.y, face->n.z, gsp, p);
 		dest_cell = bd.get_cell(i,j-1,k);
-		dest_cell->copy_values_from(*gsp);
+		dest_cell->copy_values_from(gsp);
 		dest_cell = bd.get_cell(i,j-2,k);
-		dest_cell->copy_values_from(*gsp);
+		dest_cell->copy_values_from(gsp);
 	    } // end i loop
 	} // for k
 	break;
@@ -123,12 +133,23 @@ int SubsonicInBC::apply_convective(double t)
 	for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
+		face = src_cell->iface[WEST];
 		p = src_cell->fs->gas->p;
-		subsonic_inflow_properties(gstagp, gsp, p);
+		subsonic_inflow_properties(gstagp, face->n.x, face->n.y, face->n.z, gsp, p);
+#               if 0
+		// Some debug... PJ 15-Jan-2014
+		cout << "subsonic conditions:" << endl;
+		cout << "    p= " << p 
+		     << " gsp.p= " << gsp.gas->p
+		     << " T= " << gsp.gas->T[0] << endl;
+		cout << "    gsp.u= " << gsp.u 
+		     << " gsp.v= " << gsp.v
+		     << " gsp.w= " << gsp.w << endl; 
+#               endif
 		dest_cell = bd.get_cell(i-1,j,k);
-		dest_cell->copy_values_from(*gsp);
+		dest_cell->copy_values_from(gsp);
 		dest_cell = bd.get_cell(i-2,j,k);
-		dest_cell->copy_values_from(*gsp);
+		dest_cell->copy_values_from(gsp);
 	    } // end j loop
 	} // for k
  	break;
@@ -137,12 +158,13 @@ int SubsonicInBC::apply_convective(double t)
 	for (i = bd.imin; i <= bd.imax; ++i) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
+		face = src_cell->iface[TOP];
 		p = src_cell->fs->gas->p;
-		subsonic_inflow_properties(gstagp, gsp, p);
+		subsonic_inflow_properties(gstagp, -(face->n.x), -(face->n.y), -(face->n.z), gsp, p);
 		dest_cell = bd.get_cell(i,j,k+1);
-		dest_cell->copy_values_from(*gsp);
+		dest_cell->copy_values_from(gsp);
 		dest_cell = bd.get_cell(i,j,k+2);
-		dest_cell->copy_values_from(*gsp);
+		dest_cell->copy_values_from(gsp);
 	    } // end j loop
 	} // for i
 	break;
@@ -151,12 +173,13 @@ int SubsonicInBC::apply_convective(double t)
 	for (i = bd.imin; i <= bd.imax; ++i) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
+		face = src_cell->iface[BOTTOM];
 		p = src_cell->fs->gas->p;
-		subsonic_inflow_properties(gstagp, gsp, p);
+		subsonic_inflow_properties(gstagp, face->n.x, face->n.y, face->n.z, gsp, p);
 		dest_cell = bd.get_cell(i,j,k-1);
-		dest_cell->copy_values_from(*gsp);
+		dest_cell->copy_values_from(gsp);
 		dest_cell = bd.get_cell(i,j,k-2);
-		dest_cell->copy_values_from(*gsp);
+		dest_cell->copy_values_from(gsp);
 	    } // end j loop
 	} // for i
  	break;
@@ -166,7 +189,6 @@ int SubsonicInBC::apply_convective(double t)
 	return NOT_IMPLEMENTED_ERROR;
     } // end switch
 
-    delete gsp;
     return SUCCESS;
 }
 
@@ -178,59 +200,56 @@ int SubsonicInBC::apply_convective(double t)
 ///
 /// Boundary condition developed by Rowan Gollan (2001) for a perfect gas, only.
 /// Extended by PJ to work with arbitrary (equilibrium) gases, July-2011.
-/// Still doesn't work for nonequilibrium chemistry and vibrational-nonequilibrium
-/// is likewise ignored.
+/// Still doesn't work for nonequilibrium chemistry 
+/// (and vibrational-nonequilibrium is likewise ignored).
 /// Generalise and revised by RJG for all gases, August 2013.
+/// 14-Jan-2014 PJ make direction an input so that we can specify
+///                the normal to the boundary.
 ///
 /// TODO: make this like Hannes' subsonic inflow UDF for use in turbomachinery calcs.
-int SubsonicInBC::subsonic_inflow_properties(const CFlowCondition *stagnation, 
-					     CFlowCondition *inflow_state, 
+int SubsonicInBC::subsonic_inflow_properties(const CFlowCondition &stagnation,
+					     double dir_x, double dir_y, double dir_z,
+					     CFlowCondition &inflow_state, 
 					     double inflow_pressure)
 {
     global_data &G = *get_global_data_ptr();
-    Gas_model *gmodel = get_gas_model_ptr();
-    size_t nsp = gmodel->get_number_of_species();
-    size_t nmodes = gmodel->get_number_of_modes();
+    Gas_model &gmodel = *get_gas_model_ptr();
+    size_t nsp = gmodel.get_number_of_species();
+    size_t nmodes = gmodel.get_number_of_modes();
 
     // Carry over some of the properties without further calculation.
-    inflow_state->tke = stagnation->tke;
-    inflow_state->omega = stagnation->omega;
+    inflow_state.tke = stagnation.tke;
+    inflow_state.omega = stagnation.omega;
     for ( size_t isp = 0; isp < nsp; ++isp ) {
-	inflow_state->gas->massf[isp] = stagnation->gas->massf[isp];
+	inflow_state.gas->massf[isp] = stagnation.gas->massf[isp];
     }
     // Compute inflow state by assuming isentropic expansion from stagnation conditions
     // Hence, we pass the stagnation entropy
-    inflow_state->gas->p  = inflow_pressure;
-    gmodel->eval_thermo_state_ps(*(inflow_state->gas), inflow_pressure, s0);
+    inflow_state.gas->p  = inflow_pressure;
+    gmodel.eval_thermo_state_ps(*(inflow_state.gas), inflow_pressure, s0);
     // Compute gas speed from energy conservation
-    double h = gmodel->mixture_enthalpy(*(inflow_state->gas));
+    double h = gmodel.mixture_enthalpy(*(inflow_state.gas));
     // If the internal energy is greater than stagnation conditions,
     // it probably means there is a wave trying to push back into
     // our reservior.  We'll stop that by just setting stagnated conditions.
     // then just return stagnated conditions
     if ( h >= h0 ) {
-	inflow_state->gas->p = stagnation->gas->p;
+	inflow_state.gas->p = stagnation.gas->p;
 	for ( size_t imode = 0; imode < nmodes; ++imode ) {
-	    inflow_state->gas->T[imode] = stagnation->gas->T[0];
+	    inflow_state.gas->T[imode] = stagnation.gas->T[0];
 	}
-	gmodel->eval_thermo_state_pT(*(inflow_state->gas));
-	inflow_state->u = 0.0;
-	inflow_state->v = 0.0;
-	inflow_state->w = 0.0;
-    }
-    else {
+	gmodel.eval_thermo_state_pT(*(inflow_state.gas));
+	inflow_state.u = 0.0;
+	inflow_state.v = 0.0;
+	inflow_state.w = 0.0;
+    } else {
 	double speed = sqrt(2.0*(h0 - h));
-	// Set inflow velocity based on direction set by user
-	// for stagnation condition
-	//	cout << "Flow speed= " << speed << endl;
-	//	inflow_state->gas->print_values();
-	Vector3 dirn = unit(Vector3(stagnation->u, stagnation->v, stagnation->w));
-	inflow_state->u = speed * dirn.x;
-	inflow_state->v = speed * dirn.y;
-	inflow_state->w = speed * dirn.z;
+	inflow_state.u = speed * dir_x;
+	inflow_state.v = speed * dir_y;
+	inflow_state.w = speed * dir_z;
     }
 
-    if ( G.viscous ) gmodel->eval_transport_coefficients(*(inflow_state->gas));
-    if ( G.diffusion ) gmodel->eval_diffusion_coefficients(*(inflow_state->gas));
+    if ( G.viscous ) gmodel.eval_transport_coefficients(*(inflow_state.gas));
+    if ( G.diffusion ) gmodel.eval_diffusion_coefficients(*(inflow_state.gas));
     return SUCCESS;
 } // end SubsonicInBC::subsonic_inflow_properties()

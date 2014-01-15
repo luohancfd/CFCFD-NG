@@ -1,8 +1,9 @@
-## \file cns_bc_defs.py
-## \ingroup mb_cns
+## \file bc_defs.py
+## \ingroup eilmer3
 ##
 ## \author P.Jacobs
 ## \version 31-Jan-2005 extracted from e_model_spec.py
+## \version 2013 clean up object definitions.  Introduce symbols for the BCs.
 ##
 """
 Historically, within the C/C++ simulation code, 
@@ -251,7 +252,7 @@ class BoundaryCondition(object):
         :param Twall_flag: a boolean parameter to select fixed Twall for moving-wall boundary
         :param reorient_vector_quantities: for exchange of vector quantities between adjacent boundaries
         :param Rmatrix: the 9 elements of the rotation matrix
-        :param mass_flux: mass flux out (in kg/s/m**2) across the block boundary
+        :param mass_flux: outflow mass flux per unit area (in kg/s/m**2) across the block boundary
         :param p_init: initial pressure (in Pa) at the mass-flux-out boundary
         :param relax_factor: relaxation factor for adjustment of the actual pressure applied
             to the ghost-cells of the mass-flux-out boundary
@@ -643,6 +644,9 @@ class SubsonicInBC(BoundaryCondition):
             the isentropic expansion while allowing a general equation of state.
         :param label: A string that may be used to assist in identifying the boundary
             in the post-processing phase of a simulation.
+
+        The flow is assumed to enter the domain in a direction the is locally-normal
+        to the boundary.
         """
         BoundaryCondition.__init__(self, type_of_BC=SUBSONIC_IN,
             inflow_condition=inflow_condition, assume_ideal=assume_ideal, label=label)
@@ -1032,16 +1036,17 @@ class MassFluxOutBC(BoundaryCondition):
     def __init__(self, mass_flux, p_init, relax_factor=0.05, label=""):
         """
         Construct an outflow BC that extrapolates the interior flow data but
-        applies a computed pressure.
+        applies a computed pressure to achieve a required mass flux.
 
-        :param mass_flux: specified average mass-flux (in kg/s/m**2)
+        :param mass_flux: required outflow mass-flux per unit area (in kg/s/m**2)
         :param p_init: initial outside pressure (in Pascals)
         :param relax_factor: under-relaxation is advised. 
         :param label: A string that may be used to assist in identifying the boundary
             in the post-processing phase of a simulation.
         """
-        BoundaryCondition.__init__(self, type_of_BC=MASS_FLUX_OUT, Pout=Pout, 
-                                   x_order=x_order, label=label)
+        BoundaryCondition.__init__(self, type_of_BC=MASS_FLUX_OUT,
+                                   mass_flux=mass_flux, p_init=p_init, relax_factor=relax_factor, 
+                                   label=label)
         return
     def __str__(self):
         return "MassFluxOutBC(mass_flux=%g, p_init=%g, relax_factor=%g, label=\"%s\")" % \

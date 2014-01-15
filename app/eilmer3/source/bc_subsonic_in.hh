@@ -17,8 +17,9 @@ public:
     // default apply_viscous() (does nothing)
 private:
     int subsonic_inflow_properties( 
-        const CFlowCondition *stagnation,
-	CFlowCondition *inflow_state,
+        const CFlowCondition &stagnation,
+	double dir_x, double dir_y, double dir_z,
+	CFlowCondition &inflow_state,
 	double inflow_pressure );
     double s0; // stagnation entropy
     double h0; // stagnation enthalpy

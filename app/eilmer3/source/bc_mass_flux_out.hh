@@ -4,8 +4,8 @@
 
 class MassFluxOutBC : public BoundaryCondition {
 public:
-    double mass_flux;
-    double external_pressure;
+    double mass_flux; // mass flow per unit area, kg/s/m**2
+    double external_pressure; // Pa
     double relax_factor;
 
 public:
