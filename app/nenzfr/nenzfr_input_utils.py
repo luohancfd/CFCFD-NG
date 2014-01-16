@@ -2,7 +2,7 @@
 nenzfr_input_utils.py -- Functions to check the nenzfr input dictionary that
     is pulled in from the config file and add default vales where required.
 
-.. Authors: Chris James
+.. Author: Chris James
 """
 
 def input_checker(cfg):
@@ -274,6 +274,8 @@ def nenzfr_perturbed_input_checker(cfg):
             del cfg['perturbedVariables'][cfg['perturbedVariables'].index('TurbVisRatio')]
         if 'TurbInten' in cfg['perturbedVariables']:
             del cfg['perturbedVariables'][cfg['perturbedVariables'].index('TurbInten')]
+    elif isinstance(cfg['BLTrans'], float) or isinstance(cfg['BLTrans'], int):
+	pass
     else:
         BLTransValues = cfg['BLTrans'].strip(']').strip('[').split(',')
         if float(BLTransValues[0]) == 0.0: # Full turbulent nozzle. Don't perturb BLTrans
