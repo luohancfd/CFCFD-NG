@@ -55,7 +55,8 @@ def main(cfg={}):
     if not cfg: #if the configuration dictionary has not been filled up already, load it from a file
         try: #from Rowan's onedval program
             execfile(config_file, globals(), cfg)
-        except IOError:
+        except IOError as e:
+            print "Error {0}".format(str(e))	
             print "There was a problem reading the config file: '{0}'".format(config_file)
             print "Check that it conforms to Python syntax."
             print "Bailing out!"
