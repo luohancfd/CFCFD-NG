@@ -168,29 +168,7 @@ def read_estcj_outfile(FileToRead):
 # The following is required by:
 #    nenzfr_perturbed.py
 #    nenzfr_quasi_transient.py
-
-def prepare_run_script_old(substituteDict, jobName, Cluster):
-    """
-    Prepare the actual run file for Nenzfr from a template.
-    """
-    templateFileName = "run_template_"+Cluster +".sh"
-    # Check that the templateFileName is in the current directory,
-    # if it isn't copy it from "E3BIN/nenzfr_data_files/"
-    if not os.path.exists(templateFileName):
-        command_text = 'cp '+E3BIN+'/nenzfr_data_files/'+templateFileName+' ./'
-        #print command_text
-        run_command('cp '+E3BIN+'/nenzfr_data_files/'+templateFileName+' ./')
-    scriptFileName = "run_" + jobName + ".sh"
-    fp = open(templateFileName, 'r')
-    text = fp.read()
-    fp.close()
-    template = string.Template(text)
-    text = template.safe_substitute(substituteDict)
-    fp = open(scriptFileName, 'w')
-    fp.write(text)
-    fp.close()
-    return scriptFileName
-    
+   
 def prepare_run_script(configDict, jobName, Cluster):
     """
     Prepare the actual run file for Nenzfr from a template.
@@ -208,6 +186,7 @@ def prepare_run_script(configDict, jobName, Cluster):
     scriptFileName = "run_" + jobName + ".sh"
     cfgFileName = jobName + ".cfg"
     substituteDict = {'config_filename': cfgFileName}
+    substituteDict = {'caseName': configDict['caseName']}
     
     #fill up the shell script
     fp = open(templateFileName, 'r')

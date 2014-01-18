@@ -217,18 +217,22 @@ def nenzfr_perturbed_input_checker(cfg):
     
     print "Checking specific nenzfr perturbed inputs."
     
-    if 'runCMD' not in cfg:
-        cfg['runCMD'] = './'
-        print "Run command for the cluster not specified."
-        print "Setting to a default value of the Mango run command ('{0}')"\
-        .format(cfg['runCMD'])
-        print "This may or may not be correct."
-        
     if 'Cluster' not in cfg:
         cfg['Cluster'] = 'Mango'
         print "No Cluster slected. Setting to to default value of '{0}."\
         .format(cfg['Cluster'])
-        
+    
+    if 'runCMD' not in cfg and cfg['Cluster'] == 'Mango':
+        cfg['runCMD'] = './'
+        print "Run command for the cluster not specified."
+        print "Setting to a default Mango run command ('{0}')"\
+        .format(cfg['runCMD'])
+    elif 'runCMD' not in cfg and cfg['Cluster'] == 'Barrine':
+        cfg['runCMD'] = 'qstat '
+        print "Run command for the cluster not specified."
+        print "Setting to a default Barrine run command ('{0}')"\
+        .format(cfg['runCMD'])        
+                
     if 'levels' not in cfg:
         cfg['levels'] = 3
         print "Levels to use not specified. Setting it to default value of {0}"\
