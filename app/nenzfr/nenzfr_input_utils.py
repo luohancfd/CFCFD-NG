@@ -228,7 +228,7 @@ def nenzfr_perturbed_input_checker(cfg):
         print "Setting to a default Mango run command ('{0}')"\
         .format(cfg['runCMD'])
     elif 'runCMD' not in cfg and cfg['Cluster'] == 'Barrine':
-        cfg['runCMD'] = 'qstat '
+        cfg['runCMD'] = 'qsub '
         print "Run command for the cluster not specified."
         print "Setting to a default Barrine run command ('{0}')"\
         .format(cfg['runCMD'])        
