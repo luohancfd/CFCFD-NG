@@ -185,8 +185,8 @@ def prepare_run_script(configDict, jobName, Cluster):
         run_command('cp '+E3BIN+'/nenzfr_data_files/'+templateFileName+' ./')
     scriptFileName = "run_" + jobName + ".sh"
     cfgFileName = jobName + ".cfg"
-    substituteDict = {'config_filename': cfgFileName}
-    substituteDict = {'caseName': configDict['caseName']}
+    substituteDict = {'config_filename': cfgFileName, 
+                      'caseName': configDict['caseName']}
     
     #fill up the shell script
     fp = open(templateFileName, 'r')
