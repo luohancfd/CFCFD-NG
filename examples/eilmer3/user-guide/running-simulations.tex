@@ -166,7 +166,17 @@ The user can build and run the shared-memory version of the radiation transport 
 \texttt{e3rad.exe}\index{e3rad.exe}, on computers with the OpenMP API.
 The notes in Appendix\,\ref{getting-started-file} show how to build and run 
 the Eilmer3 radiation transport solver executable for OpenMP.\footnote{These notes are
- also available in HTML form at the URL \url{http://www.mech.uq.edu.au/cfcfd/}.}
+also available in HTML form at the URL \url{http://www.mech.uq.edu.au/cfcfd/}.}
+Note that you should first make the \verb!e3shared! and \verb!e3mpi!, then ``make clean'' 
+and, finally, make \verb!e3rad!.
+
+\medskip
+You will almost certainly be running \verb!e3rad! in the context of a partly-run flow solution.\\
+\verb!$ e3rad.exe  --job=name --tindx=nnnn --run!\\
+where \verb!nnnn! is the index of the flow solution for which \verb!e3rad! will update 
+the radiation source term.
+On output, \verb!e3rad! will have incremented the \verb!tindx! value and written a new set
+of data from which the flow solver can restart.
 
 
 \subsection{Restarting a simulation}\index{restarting a simulation}\index{restart}
