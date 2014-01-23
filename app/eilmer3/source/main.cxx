@@ -1729,8 +1729,13 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 	    }
 	}
 	// Non-local radiation transport needs to be performed a-priori for parallelization.
-	// Note that Q_rad is not re-evaluated for subsequent stages of the update.
+	// Note that Q_rE_rad is not re-evaluated for subsequent stages of the update.
 	if ( G.radiation ) perform_radiation_transport();
+	// Make a copy of Q_rE_rad so that we can reinstate it at each later stage of the update.
+	for ( Block *bdp : G.my_blocks ) {
+	    if ( !bdp->active ) continue;
+	    for ( FV_Cell *cp: bdp->active_cells ) cp->Q_rE_rad_save = cp->Q_rE_rad;
+	}	
 
 	// First-stage of gas-dynamic update.
 	for ( Block *bdp : G.my_blocks ) {
@@ -1789,6 +1794,8 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		    if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
 		} // end if ( G.viscous )
 		for ( FV_Cell *cp: bdp->active_cells ) {
+		    // Radiation transport was calculated once before staged update; recover saved value.
+		    cp->Q_rE_rad = cp->Q_rE_rad_save; 
 		    cp->add_inviscid_source_vector(0, bdp->omegaz);
 		    if ( G.udf_source_vector_flag == 1 )
 			add_udf_source_vector_for_cell(cp, 0, G.sim_time);
@@ -1832,6 +1839,8 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 		    if ( G.dimensions == 2 ) viscous_flux_2D(bdp); else viscous_flux_3D(bdp); 
 		} // end if ( G.viscous )
 		for ( FV_Cell *cp: bdp->active_cells ) {
+		    // Radiation transport was calculated once before staged update; recover saved value.
+		    cp->Q_rE_rad = cp->Q_rE_rad_save; 
 		    cp->add_inviscid_source_vector(0, bdp->omegaz);
 		    if ( G.udf_source_vector_flag == 1 )
 			add_udf_source_vector_for_cell(cp, 0, G.sim_time);
@@ -1871,7 +1880,7 @@ int gasdynamic_explicit_increment_with_fixed_grid(double dt)
 
     // Get the end conserved data into U[0] for next step.
     size_t end_indx = 2;
-    switch (  get_gasdynamic_update_scheme() ) {
+    switch ( get_gasdynamic_update_scheme() ) {
     case EULER_UPDATE: end_indx = 1; break;
     case PC_UPDATE: 
     case MIDPOINT_UPDATE: end_indx = 2; break;
@@ -1954,8 +1963,13 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	}
 #       endif
 	// Non-local radiation transport needs to be performed a-priori for parallelization.
-	// Note that Q_rad is not re-evaluated for subsequent stages of the update.
+	// Note that Q_rE_rad is not re-evaluated for subsequent stages of the update.
 	if ( G.radiation ) perform_radiation_transport();
+	// Make a copy of Q_rE_rad so that we can reinstate it at each later stage of the update.
+	for ( Block *bdp : G.my_blocks ) {
+	    if ( !bdp->active ) continue;
+	    for ( FV_Cell *cp: bdp->active_cells ) cp->Q_rE_rad_save = cp->Q_rE_rad;
+	}	
 
 	// Grid-movement is done after a specified point in time.
 	if ( G.sim_time >= G.t_shock ) {
@@ -2024,6 +2038,8 @@ int gasdynamic_increment_with_moving_grid(double dt)
 	    if ( !bdp->active ) continue;
 	    bdp->inviscid_flux( G.dimensions );
 	    for ( FV_Cell *cp: bdp->active_cells ) {
+		// Radiation transport was calculated once before staged update; recover saved value.
+		cp->Q_rE_rad = cp->Q_rE_rad_save; 
 		cp->add_inviscid_source_vector(1, bdp->omegaz);
 		if ( G.udf_source_vector_flag == 1 ) add_udf_source_vector_for_cell(cp, 2, G.sim_time);
 		cp->time_derivatives(2, 1, G.dimensions, with_k_omega);
@@ -2095,7 +2111,7 @@ int gasdynamic_separate_explicit_viscous_increment()
 	} // end for *cp
     } // end for *bdp...
     return SUCCESS;
-} // int gasdynamic_viscous_increment()
+} // int gasdynamic_separate_explicit_viscous_increment()
 
 
 int do_bad_cell_count(size_t gtl)

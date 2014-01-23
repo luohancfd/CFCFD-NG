@@ -223,6 +223,9 @@ public:
     double Q_rad_org;
     double f_rad_org;
     double Q_rE_rad; ///> \brief Rate of energy addition to cell via radiation.
+    double Q_rE_rad_save; // Presently, the radiation source term is calculated
+                          // at the first update stage.  We need to retain that
+                          // value for all of the update stages.
     // Data for computing residuals.
     double rho_at_start_of_step, rE_at_start_of_step;
 #   if WITH_IMPLICIT == 1
