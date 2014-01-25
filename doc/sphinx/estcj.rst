@@ -1,6 +1,10 @@
 ESTCj
 =====
 
+The ESTCj user guide and example book in PDF: pdf-estcj-user-guide_
+
+.. _pdf-estcj-user-guide: ./pdf/estcj.pdf
+
 .. automodule:: estcj
 
 Functions and classes of interest

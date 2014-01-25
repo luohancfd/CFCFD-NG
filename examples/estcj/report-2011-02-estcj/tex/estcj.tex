@@ -82,7 +82,7 @@ three layers:
  \item Thermochemical gas models for perfect gases and gases in thermochemical equilibrium.
   Appendix\,\ref{gas-model-sec}.
  \item A library of functions for simple flow processes such as normal shocks, oblique shocks,
-  steady and unsteady and expansions. Appendix\,\ref{process-code-sec}.
+  and steady and unsteady expansions. Appendix\,\ref{process-code-sec}.
  \item A top-level code (actually called estcj.py) that coordinates the calling 
   of the flow-process functions using information provided by the user on the command line.
   Appendix\,\ref{estcj-py}.
@@ -135,7 +135,7 @@ The numbers denote states of the gases between processes.
 A typical low-enthalpy flow condition for the T4 shock tunnel may start with
 a test gas (air) at room temperature ($T_1$ = 300\,K) 
 and a little above atmospheric pressure ($p_1$ = 125\,kPa).
-The observed shock speed $V_s$ = 2414\,m/s and the observed nozzle-supply pressure
+The observed shock speed, $V_s$, was 2414\,m/s and the observed nozzle-supply pressure
 relaxed to 34.37\,MPa.
 With the Mach 4 nozzle having an area ratio of 27, the flow conditions in the facility
 may be computed using the command:
@@ -241,7 +241,7 @@ The flow process modules cover simple processes associated with:
 There is a module (Appendix\,\ref{ideal-gas-flow-py})
 that assumes an ideal gas model and is very much an implementation of the classic
 textbook gas-dynamic equations.
-When using this module, the user needs specify the
+When using this module, the user needs to specify the
 relevant gas properties (such as the ratio of specific heats).
 The second flow process module (Appendix\,\ref{gas-flow-py}) uses \verb!Gas! objects
 created by the cea2, libgas and ideal gas modules of Appendix\,\ref{gas-model-sec} 
@@ -277,16 +277,22 @@ State 1 is air at low pressure on the downstream-side of a diaphragm and
 state 4 is high pressure helium initially on the upstream side of the diaphragm.
 When the diaphragm is removed (ideally), the helium expands into the part of the tube
 occupied initially by the air and drives a shock through the quiescent air.
-State 2 is the shock-compressued air and state 3 is the expanded helium
+State 2 is the shock-compressed air and state 3 is the expanded helium
 driving the air.
-At the moving interface between the air and helium, the pressures and velocities
+At the moving contact surface between the air and helium, the pressures and velocities
 of the air and helium have to match.
-The example code sets up a function that, given the pressure at the contact surface,
-returns the difference in velocities of the gases at the contact surface.
-This function is handed to a nonlinear equation solver to determine the pressure ratio
-at which the velocity difference is zero.
 See for example, Section 7.8 (Shock tube relations) in Anderson's text\,\cite{anderson_82}
 for a discussion based on perfect gas behaviour.
+
+\medskip
+The example code sets up a function that, given the pressure at the contact surface,
+returns the difference in velocities of the gases at the contact surface.
+This function is passed to a nonlinear equation solver to determine the pressure ratio
+at which the velocity difference is zero.
+All of the interesting calculation, 
+along with the printing of the computed states, is done by line 60.
+The next 40 lines (approximately) of the script write out the flow data in small steps, 
+so that they may be used for comparison with data from a CFD calculation.
 
 \lstinputlisting[]{../../../eilmer3/2D/classic-shock-tube/classic_shock_tube.py}
 
@@ -297,9 +303,22 @@ As a second example of building a custom application, consider the idealized exp
 of the test gas in an expansion tube\,\cite{trimpi_62}.
 We will include just the processing of the test gas by the incident shock,
 followed by the unsteady expansion to test-section conditions. 
+The states in the calculation are:
+\begin{itemize}
+ \item [1.] Initial (quiescent) test gas, filling the shock tube.
+ \item [2.] Shock-processed test gas.
+ \item [5.] Expanded test gas, as would be expected to emerge from the downstream-end of the acceleration tube.
+ \item [10.] Initial accelerator gas, filling the acceleration tube, downstream of the shock tube.
+ \item [20.] Shock-processed accelerator gas that is pushed along, in front of the expanded test gas.
+\end{itemize}
 The final expansion process is regulated by the fill pressure of the acceleration tube
 and the test-gas conditions are determined by balancing the expanded gas pressure against
 the post shock pressure of the acceleration gas.
+When computing this balance iteratively, we guess the pressure and compute the two velocities.
+As done in the classic shock-tube example, 
+we use the difference between the two velocities as the measure of error for the guessed pressure.
+
+
 
 \lstinputlisting[]{../../../../lib/cfpylib/gasdyn/classic_expansion_tube.py}
 
