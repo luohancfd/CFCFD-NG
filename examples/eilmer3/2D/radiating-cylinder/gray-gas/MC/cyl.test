@@ -8,7 +8,6 @@
 # DFP, 09-Sept-2012
 #
 # DFP, 20-Jan-2013 - updated to check the qrad error as well as divq
-# PJ, 18-Apr-2013 - need to explicitly request heat-flux files
 
 package require tcltest 2.0
 namespace import ::tcltest::*
@@ -40,7 +39,7 @@ test check-divq-error {The divergence RMS error with respect to the analytic sol
 	        set divq_RMS_error [lindex [split $line] 3]
 	    }
     }
-    expr abs($divq_RMS_error) < 5.0
+    expr abs($divq_RMS_error) < 10.0
 } -result {1}
 
 test check-qrad-error {The heat flux error with respect to the analytic solution.} -body {
@@ -54,7 +53,7 @@ test check-qrad-error {The heat flux error with respect to the analytic solution
 	        set qrad_error [lindex [split $line] 3]
 	    }
     }
-    expr abs($qrad_error) < 5.0
+    expr abs($qrad_error) < 10.0
 } -result {1}
 
 cleanupTests
