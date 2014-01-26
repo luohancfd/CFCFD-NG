@@ -1550,7 +1550,7 @@ calculate_n_e( Gas_data &Q )
     	reactions[ir]->add_source_vector_contributions( Q, C );
     
     // 4. Solve the system
-    if ( gaussian_elimination(*dGdy, y_out, C) ) {
+    if ( dGdy->gaussian_elimination(y_out, C) ) {
         cout << "QSSDiatomicRadiator::calculate_n_e()" << endl
              << "Gaussian elimination failed for QSSDiatomicRadiator: " << name << endl
              << "The gas-state was: " << endl

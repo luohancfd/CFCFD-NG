@@ -496,77 +496,77 @@ int vector_mul(Valmatrix &A, vector<double> &x, vector<double> &b)
     return SUCCESS;
 }
 
-// int
-// Valmatrix::
-// gaussian_elimination( std::vector<double> &x, vector<double> &b, bool with_scaling )
-// {
-//     int i, j, k, p, tmp;
-//     double max, sum, factor;
-//     // Ensure the matrix is square
-//     if( this->ncols() != this->nrows() ) {
-// 	cerr << "gaussian_elimination():\n";
-// 	cerr << "ERROR: A square coefficient matrix is not supplied.\n";
-// 	cerr << "ncols= " << this->ncols() << " nrows= " << this->nrows() << endl;
-// 	cerr << "Bailing out.";
-// 	exit(MISMATCHED_DIMENSIONS);
-//     }
+int
+Valmatrix::
+gaussian_elimination( std::vector<double> &x, vector<double> &b, bool with_scaling )
+{
+    int i, j, k, p, tmp;
+    double max, sum, factor;
+    // Ensure the matrix is square
+    if( this->ncols() != this->nrows() ) {
+	cerr << "gaussian_elimination():\n";
+	cerr << "ERROR: A square coefficient matrix is not supplied.\n";
+	cerr << "ncols= " << this->ncols() << " nrows= " << this->nrows() << endl;
+	cerr << "Bailing out.";
+	exit(MISMATCHED_DIMENSIONS);
+    }
 
-//     // Setup an index into the rows avoiding the overhead
-//     // of swapping rows when required.
-//     for( i = 0; i < int(this->nrows()); ++i ) row_index_[i] = i;
+    // Setup an index into the rows avoiding the overhead
+    // of swapping rows when required.
+    for( i = 0; i < int(this->nrows()); ++i ) row_index_[i] = i;
     
-//     // Elimination and partial-pivoting
-//     for( i = 0; i < int(this->nrows()-1); ++i ) {
+    // Elimination and partial-pivoting
+    for( i = 0; i < int(this->nrows()-1); ++i ) {
 
-// 	p = i;
-// 	max = fabs(this->get(row_index_[p],i));
-// 	for( j = i+1; j < int(this->nrows()); ++j ) {
-//  	    if( fabs(this->get(row_index_[j],i)) > max) {
-// 		max = fabs(this->get(row_index_[j],i));
-// 		p = j;
-// 	    }
-// 	}
+	p = i;
+	max = fabs(this->get(row_index_[p],i));
+	for( j = i+1; j < int(this->nrows()); ++j ) {
+ 	    if( fabs(this->get(row_index_[j],i)) > max) {
+		max = fabs(this->get(row_index_[j],i));
+		p = j;
+	    }
+	}
 
-// 	if( fabs(this->get(row_index_[p],i)) < essentially_zero ) {
-// 	    cout << "Valmatrix::gaussian_elimination()\n";
-// 	    cout << "No unique solution exists when using gaussian_elimination()\n";
-// 	    return NUMERICAL_ERROR;
-// 	}
+	if( fabs(this->get(row_index_[p],i)) < essentially_zero ) {
+	    cout << "Valmatrix::gaussian_elimination()\n";
+	    cout << "No unique solution exists when using gaussian_elimination()\n";
+	    return NUMERICAL_ERROR;
+	}
 
-// 	if( row_index_[i] != row_index_[p] ) {
-// 	    // Perform swap of rows
-// 	    tmp = row_index_[i]; row_index_[i] = row_index_[p]; row_index_[p] = tmp;
-// 	}
+	if( row_index_[i] != row_index_[p] ) {
+	    // Perform swap of rows
+	    tmp = row_index_[i]; row_index_[i] = row_index_[p]; row_index_[p] = tmp;
+	}
 
-// 	for( j = i+1; j < int(this->nrows()); ++j ) {
-// 	    factor = this->get(row_index_[j],i)/this->get(row_index_[i],i);
-// 	    for( k = i+1; k < int(this->nrows()); ++k ) {
-// 		this->set(row_index_[j],k, this->get(row_index_[j],k) - factor*this->get(row_index_[i],k));
-// 	    }
-// 	    b[row_index_[j]] = b[row_index_[j]] - factor*b[row_index_[i]];
-// 	}
-//     }
+	for( j = i+1; j < int(this->nrows()); ++j ) {
+	    factor = this->get(row_index_[j],i)/this->get(row_index_[i],i);
+	    for( k = i+1; k < int(this->nrows()); ++k ) {
+		this->set(row_index_[j],k, this->get(row_index_[j],k) - factor*this->get(row_index_[i],k));
+	    }
+	    b[row_index_[j]] = b[row_index_[j]] - factor*b[row_index_[i]];
+	}
+    }
 
-//     if( fabs(this->get(row_index_[this->nrows()-1],this->nrows()-1)) < essentially_zero ) {
-//     	cout << "Valmatrix::gaussian_elimination()\n";
-// 	cout << "No unique solution exists when using gaussian_elimination()\n";
-// 	return NUMERICAL_ERROR;
-//     }
+    if( fabs(this->get(row_index_[this->nrows()-1],this->nrows()-1)) < essentially_zero ) {
+    	cout << "Valmatrix::gaussian_elimination()\n";
+	cout << "No unique solution exists when using gaussian_elimination()\n";
+	return NUMERICAL_ERROR;
+    }
 
-//     // Start backward substution
-//     x[x.size()-1] = b[row_index_[b.size()-1]]/this->get(row_index_[this->nrows()-1],this->nrows()-1);
+    // Start backward substution
+    x[x.size()-1] = b[row_index_[b.size()-1]]/this->get(row_index_[this->nrows()-1],this->nrows()-1);
 
-//     for( i = int(this->nrows()-2); i >= 0; --i ) {
-// 	sum = 0.0;
-// 	for( j = i+1; j < int(this->nrows()); ++j ) {
-// 	    sum += this->get(row_index_[i],j)*x[j];
-// 	}
-// 	x[i] = (b[row_index_[i]] - sum)/this->get(row_index_[i],i);
-//     }
+    for( i = int(this->nrows()-2); i >= 0; --i ) {
+	sum = 0.0;
+	for( j = i+1; j < int(this->nrows()); ++j ) {
+	    sum += this->get(row_index_[i],j)*x[j];
+	}
+	x[i] = (b[row_index_[i]] - sum)/this->get(row_index_[i],i);
+    }
 
-//     return SUCCESS;
+    return SUCCESS;
 
-// }
+}
 
 ostream& operator<<( ostream &os, const Valmatrix &v )
 {

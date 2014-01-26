@@ -92,10 +92,11 @@ public:
     void scale(double s)
     { scale_vector(data_, s); }
     
-    // RJG 18-Nov-2013:
-    // Not sure why we have this as a method when we have a function
-    // version of this outside of the class.
-    //int gaussian_elimination( std::vector<double> &x, std::vector<double> &b, bool with_scaling=false );
+    // DFP 26-Dec-2014:
+    // Although there is another Gaussian elimination function, this implementation needs
+    // to be retained for use within programs compiled with OpenMPI (the row_index array
+    // used in the function outside of this class is not thread safe)
+    int gaussian_elimination( std::vector<double> &x, std::vector<double> &b, bool with_scaling=false );
 
 private:
     size_t nrows_;
