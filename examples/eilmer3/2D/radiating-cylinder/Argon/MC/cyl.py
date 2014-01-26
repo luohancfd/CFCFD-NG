@@ -4,17 +4,17 @@
 
 from cfpylib.gasdyn.cea2_gas import *
 
-job_title = "Constant property argon slab at 1atm and 10,000K"
+job_title = "Constant property argon cylinder/disk at 1atm and 10,000K"
 print job_title
 
 # job control parameters
 LINEAR_GRADIENT = False
 L_SCALE = 0.1
-NXBLOCKS = 1
-NYBLOCKS = 1
-nnx = 32        
-nny = 32     
-ar = 0.05       # aspect ratio
+NXBLOCKS = 2
+NYBLOCKS = 2
+nnx = 16        
+nny = 16     
+ar = 0.1       # aspect ratio
 
 # We can set individual attributes of the global data object.
 gdata.title = job_title
@@ -113,6 +113,7 @@ ad = Line(a, d) # western boundary
 # Define the block and discretisation.
 blk_0 = SuperBlock2D(make_patch(dc, bc, ab, ad),
                      nni=nnx, nnj=nny, nbi=NXBLOCKS, nbj=NYBLOCKS,
+                     bc_list=[SlipWallBC(emissivity=0.0),SlipWallBC(emissivity=1.0),SlipWallBC(emissivity=0.0),SlipWallBC(emissivity=1.0)],
                      fill_condition=initial, label="BLOCK-0")
 
 identify_block_connections()

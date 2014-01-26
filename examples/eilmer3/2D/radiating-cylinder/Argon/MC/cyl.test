@@ -1,0 +1,45 @@
+# cyl.test
+# Axisymmetric radiating argon slab test case. 
+#
+# This test case exercises the e3rad.exe programs ability
+# to compute the radiative divergence field on a multiblock
+# domain with multiple threads and using a line-by-line
+# spectral model with QSS determination of excited state
+# populations.
+#
+# DFP, 26-Jan-2014
+
+package require tcltest 2.0
+namespace import ::tcltest::*
+configure -verbose {start body error}
+
+test run-preprocessor {Run the preprocessing stage.} -body {
+    exec radmodel.py -i argon-radiators-NIST-TB-QSS.py -L rad-model.lua
+    exec e3prep.py --job=cyl > LOGFILE_PREP
+} -result {} -returnCodes {0}
+
+test run-simulation {Run the radiation transport code.} -body {
+    exec e3rad.exe --job=cyl --heat-flux-files --run > LOGFILE_MAIN
+} -result {} -returnCodes {0}
+
+test run-postprocessor {Run the postprocessing stage.} -body {
+    exec e3post.py --job=cyl --tindx=1 --heat-flux-list=2:3,1,:,:,: > LOGFILE_POST
+    exec ./compute_qrad_error.py hf_profile.data 1 4 0 0.5 1.177552224246e+06 >> LOGFILE_POST
+} -result {} -returnCodes {0}
+
+test check-qrad-RMS {The radiative flux RMS error with respect to the 1D solution.} -body {
+    set qrad_RMS_error 0
+    # Looking for a line starting with 'qrad RMS error'
+    set fp [open LOGFILE_POST r]
+    set results [read $fp]
+    close $fp
+    foreach line [split $results "\n"] {
+        if {[string first "qrad RMS error" $line] == 0} {
+	        set qrad_RMS_error [lindex [split $line] 4]
+	    }
+    }
+    # If the error is less than 10 percent we are doing well
+    expr abs($qrad_RMS_error) < 10.0
+} -result {1}
+
+cleanupTests

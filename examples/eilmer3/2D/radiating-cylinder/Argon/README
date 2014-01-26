@@ -1,0 +1,27 @@
+This test case allows a number of aspects of radiation transport calculations to be tested:
+
+1) Multiblock eilmer3 domains
+2) Line-by-line spectra via the Photaura spectral model
+3) QSS determination of excited state populations via the Photaura spectral model
+
+The case can be run either in single or multi-thread mode.  This choice is up to the user; to
+run in multi-thread mode via OpenMP e3rad.exe needs to be compiled as:
+
+make TARGET=for_gnu_openmp e3rad
+
+where the gnu compilers have been assumed, and the number of desired threads set via:
+
+export OMP_NUM_THREADS=X
+
+where X is the desired number of threads and the bash shell has been assumed.
+
+In the '1D' directory the radiative flux from an infinitely long 10cm deep slab of argon at
+1bar and 10000K is calculated via the tangent slab approxiation.  Here the excited state populations
+as determined via the Boltzmann equations.
+
+In the 'MC' directory a 100cm diameter x 10cm deep disk of the argon mixture is defined for calculation
+with e3rad.  The spectral model is the same as in the '1D' directory except that the QSS model is used
+to solve for the excited state populations of Ar.  This is done to test the ability of the QSS model to 
+converge to the Boltzmann solution under equilibrium conditions, and also to test the ability of radiation
+transport calculations to run properly when the QSS model is turned on - in the past problems have arisen
+when running multi-thread e3rad calculations with the QSS model turned on.
