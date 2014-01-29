@@ -156,10 +156,10 @@ def txt_file_output(cfg, states, V, M):
         I made a function of this so I didn't have to keep pasting the code in."""
         
         if states.has_key(it_string):
-                
+            
             if M[it_string] == 0:
-                pitot[it_string] = 0
-                p0[it_string] = 0
+                pitot[it_string] = states[it_string].p/1000.0
+                p0[it_string] = states[it_string].p/1.0e6
             else:
                 pitot[it_string] = pitot_p(states[it_string].p,M[it_string],states[it_string].gam)/1000.0
                 #make total condition of relevant state for printing
@@ -230,8 +230,14 @@ def txt_file_output(cfg, states, V, M):
     if cfg['nozzle']:        
         stag_enth = 'The total enthalpy (Ht) leaving the nozzle is {0:<.5g} MJ/kg.'\
         .format(cfg['stagnation_enthalpy']/10**6)
-    else:
-        stag_enth = 'The total enthalpy (Ht) at the end of the acceleration tube {0:<.5g} MJ/kg.'\
+    elif not cfg['nozzle'] and cfg['tunnel_mode'] == 'expansion-tube':
+        stag_enth = 'The total enthalpy (Ht) at the end of the acceleration tube (state 7) is {0:<.5g} MJ/kg.'\
+        .format(cfg['stagnation_enthalpy']/10**6)
+    elif not cfg['nozzle'] and cfg['tunnel_mode'] == 'nr-shock-tunnel':
+        stag_enth = 'The total enthalpy (Ht) at the end of the shock tube (state 2) is {0:<.5g} MJ/kg.'\
+        .format(cfg['stagnation_enthalpy']/10**6)
+    elif not cfg['nozzle'] and cfg['tunnel_mode'] == 'reflected-shock-tunnel':
+        stag_enth = 'The total enthalpy (Ht) in the stagnated region (state 5) is {0:<.5g} MJ/kg.'\
         .format(cfg['stagnation_enthalpy']/10**6)
     print stag_enth
     txt_output.write(stag_enth + '\n')
@@ -421,8 +427,8 @@ def csv_file_output(cfg, states, V, M):
         if states.has_key(it_string):
                 
             if M[it_string] == 0:
-                pitot[it_string] = 0
-                p0[it_string] = 0
+                pitot[it_string] = states[it_string].p/1000.0
+                p0[it_string] = states[it_string].p/1.0e6
             else:
                 pitot[it_string] = pitot_p(states[it_string].p,M[it_string],states[it_string].gam)/1000.0
                 p0[it_string] = p0_p(M[it_string], states[it_string].gam)*states[it_string].p/1.0e6
