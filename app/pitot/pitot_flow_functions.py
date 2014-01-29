@@ -271,7 +271,7 @@ def shock_tube_calculation(cfg, states, V, M):
                 cfg['p1'] = secant(error_in_velocity_shock_tube_expansion_pressure_iterator, 1000.0, 100000.0, tol=1.0e-4,limits=[100.0,1000000.0])
         else: #just do the expansion
             if PRINT_STATUS: print "Starting unsteady expansion of the driver gas into the shock tube."
-            cfg['p1'] = secant(error_in_velocity_shock_tube_expansion_pressure_iterator, 1000.0, 100000.0, tol=1.0e-4,limits=[100.0,1000000.0])
+            cfg['p1'] = secant(error_in_velocity_shock_tube_expansion_pressure_iterator, 1000.0, 100000.0, tol=1.0e-4,limits=[100.0,1500000.0])
 
         if PRINT_STATUS: print "From secant solve: p1 = {0} Pa".format(cfg['p1'])
         #start using p1 now, compute states 1,2 and 3 using the correct p1
@@ -478,25 +478,57 @@ def acceleration_tube_calculation(cfg, states, V, M):
     return cfg, states, V, M
     
 #----------------------------------------------------------------------------
+
+def rs_calculation(cfg, states, V, M):
+    """This is a small function that performs a reflected shock on state 2
+    when pitot is used to simulate a nr-shock-tunnel.
+    I basically wrote it as an easy way to simulate a rst in pitot without
+    having to change too much of the code.
+    You add in this calc by adding 'perform_rs = True' to the cfg file.
+    """
+    
+    if cfg['tunnel_mode'] == 'expansion-tube':
+        print "Reflected shock calculation was asked for, but nothing was done as tube is being simulated in expansion tube mode."
+        
+        return cfg, states, V, M
+    
+    #first build state 5 as a clone of state 2
+    states['s5'] = states['s2'].clone()
+    # then perform the reflected shock
+    cfg['Vr'] = reflected_shock(states['s2'], V['s2'], states['s5'])
+    cfg['Mr'] = cfg['Vr']/states['s2'].a
+    V['s5'] = 0.0
+    M['s5']= V['s5']/states['s5'].a
+    
+    return cfg, states, V, M
+    
+#----------------------------------------------------------------------------    
     
 def test_section_setup(cfg, states, V, M):
     """Function to setup what is the test section state. It will also do the
     steady expansion through the nozzle if it detects that it needs to."""
                       
     if cfg['tunnel_mode'] == 'expansion-tube' and cfg['nozzle']:    
-            if PRINT_STATUS: print "Starting steady expansion through the nozzle."
-            (V['s8'], states['s8']) = steady_flow_with_area_change(states['s7'], V['s7'], cfg['area_ratio'])
-            M['s8']= V['s8']/states['s8'].a
-            cfg['test_section_state'] = 's8'
+        if PRINT_STATUS: print "Starting steady expansion through the nozzle."
+        (V['s8'], states['s8']) = steady_flow_with_area_change(states['s7'], V['s7'], cfg['area_ratio'])
+        M['s8']= V['s8']/states['s8'].a
+        cfg['test_section_state'] = 's8'
     elif cfg['tunnel_mode'] == 'expansion-tube' and not cfg['nozzle']:
-            cfg['test_section_state'] = 's7' 
+        cfg['test_section_state'] = 's7' 
     elif cfg['tunnel_mode'] == 'nr-shock-tunnel' and cfg['nozzle']:
-            if PRINT_STATUS: print "Starting steady expansion through the nozzle."
-            (V['s8'], states['s8']) = steady_flow_with_area_change(states['s2'], V['s2'], cfg['area_ratio'])
-            M['s8']= V['s8']/states['s8'].a
-            cfg['test_section_state'] = 's8'
+        if PRINT_STATUS: print "Starting steady expansion through the nozzle."
+        (V['s8'], states['s8']) = steady_flow_with_area_change(states['s2'], V['s2'], cfg['area_ratio'])
+        M['s8']= V['s8']/states['s8'].a
+        cfg['test_section_state'] = 's8'
     elif cfg['tunnel_mode'] == 'nr-shock-tunnel' and not cfg['nozzle']:            
-            cfg['test_section_state'] = 's2'
+        cfg['test_section_state'] = 's2'
+    elif cfg['tunnel_mode'] == 'reflected-shock-tunnel' and cfg['nozzle']:
+        if PRINT_STATUS: print "Starting steady expansion through the nozzle."
+        (V['s8'], states['s8']) = steady_flow_with_area_change(states['s5'], V['s5'], cfg['area_ratio'])
+        M['s8']= V['s8']/states['s8'].a
+        cfg['test_section_state'] = 's8'
+    elif cfg['tunnel_mode'] == 'reflected-shock-tunnel' and not cfg['nozzle']:            
+        cfg['test_section_state'] = 's5'        
             
     if PRINT_STATUS and cfg['nozzle']: print '-'*60
 

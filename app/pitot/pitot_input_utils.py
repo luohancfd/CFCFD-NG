@@ -156,17 +156,18 @@ def input_checker(cfg):
         cfg['bad_input'] = True
         
     #thought I'd add a driver gas check here to pick up some common issues
-    if ' ' in cfg['driver_gas']:    
-        cfg['driver_gas'] = cfg['driver_gas'].replace(" ", "") 
-        print "Kindly removed a rogue space from the driver gas input string."
-    if cfg['driver_gas'] == 'He:0.8,Ar:0.2':
-        cfg['driver_gas'] == 'He:0.80,Ar:0.20'
-    elif cfg['driver_gas'] == 'He:0.9,Ar:0.1':
-        cfg['driver_gas'] == 'He:0.90,Ar:0.10'
-    elif cfg['driver_gas'] == 'He:1':
-        cfg['driver_gas'] == 'He:1.0'
-    elif cfg['driver_gas'] == 'He:0.6,Ar:0.4':
-        cfg['driver_gas'] == 'He:0.60,Ar:0.40'
+    if not cfg['facility'] == 'custom':
+        if ' ' in cfg['driver_gas'] :    
+            cfg['driver_gas'] = cfg['driver_gas'].replace(" ", "") 
+            print "Kindly removed a rogue space from the driver gas input string."
+        if cfg['driver_gas'] == 'He:0.8,Ar:0.2':
+            cfg['driver_gas'] == 'He:0.80,Ar:0.20'
+        elif cfg['driver_gas'] == 'He:0.9,Ar:0.1':
+            cfg['driver_gas'] == 'He:0.90,Ar:0.10'
+        elif cfg['driver_gas'] == 'He:1':
+            cfg['driver_gas'] == 'He:1.0'
+        elif cfg['driver_gas'] == 'He:0.6,Ar:0.4':
+            cfg['driver_gas'] == 'He:0.60,Ar:0.40'
         
     if 'test_gas' not in cfg:
         print "No 'test_gas' specified. You need to specify a test gas. Bailing out."
@@ -180,11 +181,17 @@ def input_checker(cfg):
     # and Mach number terminating steady expansion
     
     if cfg['facility'] == 'custom':
-        if 'driver_p' not in cfg:
+        if 'T4' not in cfg and 'driver_p' not in cfg and 'driver_T' not in cfg:
+            print "'driver_p', 'driver_T', and 'T4' all not set."
+            print "You either need to specify 'driver_p' and 'driver_T"
+            print "Or specify p4, and T4."
+            print "Bailing out."
+            cfg['bad_input'] = True
+        if 'driver_p' not in cfg and 'T4' not in cfg:
             print "You have specified a custom facility but not set the 'driver_p' variable."
             print "Bailing out."
             cfg['bad_input'] = True
-        if 'driver_T' not in cfg:
+        if 'driver_T' not in cfg and 'T4' not in cfg:
             print "You have specified a custom facility but not set the 'driver_T' variable."
             print "Bailing out."
             cfg['bad_input'] = True
@@ -460,24 +467,30 @@ def state_builder(cfg):
     elif cfg['facility'] == 'custom':
         # set driver fill condition
         print "Custom driver gas is {0}.".format(cfg['driver_composition'])
-        print "Custom driver fill condition is {0} Pa, {1} K.".format(cfg['driver_p'], cfg['driver_T'])
-        states['primary_driver_fill']=Gas(cfg['driver_composition'],inputUnits=cfg['driver_inputUnits'])
-        states['primary_driver_fill'].set_pT(cfg['driver_p'],cfg['driver_T'])
-        # now do the compression to state 4
-        # If both p4 and compression ratio are set, code will use p4
-        if 'p4' in cfg:
-            print "Performing isentropic compression from driver fill condition to {0} Pa.".format(cfg['p4'])
-            p4 = cfg['p4'] #Pa
-            T4 = states['primary_driver_fill'].T*\
-            (cfg['p4']/states['primary_driver_fill'].p)**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
+        if 'T4' in cfg and 'p4' in cfg:
+            # if T4 and p4 are set, cut the crap and just set the burst condition
+            print "Driver burst conditions have been specified, building burst state."
+            states['s4'] = Gas(cfg['driver_composition'],inputUnits=cfg['driver_inputUnits'])
+            states['s4'].set_pT(cfg['p4'],cfg['T4'])
         else:
-            print "Performing isentropic compression from driver fill condition over compression ratio of {0}.".format(cfg['compression_ratio'])
-            cfg['pressure_ratio'] = cfg['compression_ratio']**states['primary_driver_fill'].gam #pressure ratio is compression ratio to the power of gamma
-            p4 = states['primary_driver_fill'].p*cfg['pressure_ratio'] #Pa
-            T4 = states['primary_driver_fill'].T*\
-            (cfg['pressure_ratio'])**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
-        states['s4'] =  states['primary_driver_fill'].clone()
-        states['s4'].set_pT(p4,T4)
+            print "Custom driver fill condition is {0} Pa, {1} K.".format(cfg['driver_p'], cfg['driver_T'])
+            states['primary_driver_fill']=Gas(cfg['driver_composition'],inputUnits=cfg['driver_inputUnits'])
+            states['primary_driver_fill'].set_pT(cfg['driver_p'],cfg['driver_T'])
+            # now do the compression to state 4
+            # If both p4 and compression ratio are set, code will use p4
+            if 'p4' in cfg:
+                print "Performing isentropic compression from driver fill condition to {0} Pa.".format(cfg['p4'])
+                p4 = cfg['p4'] #Pa
+                T4 = states['primary_driver_fill'].T*\
+                (cfg['p4']/states['primary_driver_fill'].p)**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
+            else:
+                print "Performing isentropic compression from driver fill condition over compression ratio of {0}.".format(cfg['compression_ratio'])
+                cfg['pressure_ratio'] = cfg['compression_ratio']**states['primary_driver_fill'].gam #pressure ratio is compression ratio to the power of gamma
+                p4 = states['primary_driver_fill'].p*cfg['pressure_ratio'] #Pa
+                T4 = states['primary_driver_fill'].T*\
+                (cfg['pressure_ratio'])**(1.0-(1.0/states['primary_driver_fill'].gam)) #K
+            states['s4'] =  states['primary_driver_fill'].clone()
+            states['s4'].set_pT(p4,T4)
         V['s4']=0.0
         M['s4']=0.0
         M['s3s'] = cfg['M_throat']    

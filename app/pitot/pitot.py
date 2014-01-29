@@ -157,6 +157,11 @@ available to me as part of cfpylib inside the cfcfd code collection.
         the fill conditions and the resulting shock speeds and freestream
         properties. Also tidied up the code in general so that the printouts
         during each test run are easier to look at and understand.
+    28-Jan-2014: Added some stuff that allowed pitot to simulate a custom
+        driver condition from just burst condition (p4, T4) and also added
+        something to the non-reflected shock tunnel mode to basically allow
+        it to simulate an rst.
+    29-Jan-2014: Properly added 'reflected-shock-tunnel' mode to Pitot.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -184,7 +189,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "08-Jan-2014"
+VERSION_STRING = "29-Jan-2014"
 
 DEBUG_PITOT = False
 
@@ -238,7 +243,11 @@ def run_pitot(cfg = {}, config_file = None):
     #----------------secondary driver calculation (if required)---------------
         
     if cfg['secondary']:
-        cfg, states, V, M = secondary_driver_calculation(cfg, states, V, M)
+        try:
+            cfg, states, V, M = secondary_driver_calculation(cfg, states, V, M)
+        except Exception as e:
+            print "Error {0}".format(str(e))
+            raise Exception, "pitot.run_pitot() Run of pitot has failed in the secondary driver calculation."               
            
     if cfg['secondary']:
         cfg['shock_tube_expansion'] = 'sd2' #state sd2 expands into shock tube
@@ -247,7 +256,14 @@ def run_pitot(cfg = {}, config_file = None):
         
     #--------------------- shock tube-------------------------------------------
     
-    cfg, states, V, M = shock_tube_calculation(cfg, states, V, M)
+    try:
+        cfg, states, V, M = shock_tube_calculation(cfg, states, V, M)
+    except Exception as e:
+        print "Error {0}".format(str(e))
+        raise Exception, "pitot.run_pitot() Run of pitot has failed in the shock tube calculation."              
+
+    if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
+        cfg, states, V, M = rs_calculation(cfg, states, V, M)
     
     #--------------------- acceleration tube -----------------------------------
     
