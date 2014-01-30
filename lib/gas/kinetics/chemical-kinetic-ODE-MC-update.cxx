@@ -108,9 +108,6 @@ s_update_state(Gas_data &Q, double t_interval, double &dt_suggest, Gas_model *gm
     // Keep a copy in case something goes wrong
     // and we need to retry
     Q_save_->copy_values_from(Q);
-#   if ALLOW_CHEM_SUBCYCLING
-    double dt_suggest_save = dt_suggest;
-#   endif
 
     // 1. Attempt to solve normally.
     if ( perform_increment(Q, t_interval, dt_suggest) == SUCCESS ) {
@@ -118,15 +115,21 @@ s_update_state(Gas_data &Q, double t_interval, double &dt_suggest, Gas_model *gm
 	return SUCCESS;
     }
 #   if ALLOW_CHEM_SUBCYCLING == 1
-    else { // Repeat the attempt by subcycling.
+    else { // Repeat attempt
+	// First off: try letting the solver guess a timestep
 	Q.copy_values_from(*Q_save_);
+	dt_suggest = -1.0;
+	if ( perform_increment(Q, t_interval, dt_suggest) == SUCCESS ) {
+	    return SUCCESS;
+	}
+	// Second: attempt to subcycle, that is, call the thermo routines
+	//         at more frequent intervals within the update.
+	Q.copy_values_from(*Q_save_);
+	dt_suggest = -1.0;
 	double dt_sub;
 	int no_substeps;
-	estimate_appropriate_subcycle(t_interval, dt_suggest_save,
+	estimate_appropriate_subcycle(t_interval, dt_suggest,
 				      dt_sub, no_substeps);
-	cout << "Chemical_kinetic_ODE_MC_update::s_update_state()" << endl
-	     << "repeating the attempt by subcycling: no_substeps = " << no_substeps << endl;
-	
 	for( int i = 0; i < no_substeps; ++i ) {
 	    // Update the gas-state assuming constant density and energy
 	    if ( i > 0 && gm!=0 ) {
@@ -157,7 +160,7 @@ s_update_state(Gas_data &Q, double t_interval, double &dt_suggest, Gas_model *gm
 	    cout << "The initial condition was: \n";
 	    Q_save_->print_values(false);
 	    cout << "Bailing Out!\n";
-	    exit(NUMERICAL_ERROR);
+	    return FAILURE;
 #           endif
 	}
     }
@@ -173,7 +176,7 @@ s_update_state(Gas_data &Q, double t_interval, double &dt_suggest, Gas_model *gm
 	cout << "The initial condition was: \n";
 	Q_save_->print_values(false);
 	cout << "Bailing Out!\n";
-	exit(NUMERICAL_ERROR);
+	return FAILURE;
 #       endif
     }
 #   endif
