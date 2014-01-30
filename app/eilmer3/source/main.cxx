@@ -1389,6 +1389,7 @@ int integrate_in_time(double target_time)
 			vector<size_t> ijk(bdp->to_ijk_indices(cp->id));
 			cout << "[i,j,k]= [" << ijk[0] << "," << ijk[1] << "," << ijk[2] << "]\n";
 			cout << "The global timestep was: " << G.dt_global << endl;
+			cout << "The chemistry timestep was: " << cp->dt_chem << endl;
 			cout << "Bailing out at this point!\n";
 			exit(NUMERICAL_ERROR);
 		    }
@@ -1408,6 +1409,7 @@ int integrate_in_time(double target_time)
 			vector<size_t> ijk(bdp->to_ijk_indices(cp->id));
 			cout << "[i,j,k]= [" << ijk[0] << "," << ijk[1] << "," << ijk[2] << "]\n";
 			cout << "The global timestep was: " << G.dt_global << endl;
+			cout << "The thermal timestep was: " << cp->dt_therm << endl;
 			cout << "Bailing out at this point!\n";
 			exit(NUMERICAL_ERROR);
 		    }
