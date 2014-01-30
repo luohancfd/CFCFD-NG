@@ -22,7 +22,7 @@ to extract nominal flow condition data.
    Maybe a dictionary of customised parameters for each case. Wilson.
 """
 
-VERSION_STRING = "11-Sep-2013"
+VERSION_STRING = "30-Jan-2014"
 
 from string import upper
 import sys, os
@@ -40,28 +40,10 @@ from nenzfr_input_utils import input_checker
 
 #---------------------------------------------------------------
 
-def main(cfg={}):
+def run_nenzfr(cfg):
+    """Function that accepts a config dictionary and runs Nenzfr.
     """
-    Examine the command-line options to decide the what to do
-    and then coordinate the calculations done by estcj and Eilmer3.
-    """
-
-    op = optparse.OptionParser(version=VERSION_STRING)
-    op.add_option('-c', '--config_file', dest='config_file',
-                  help=("filename for the config file"))
-    opt, args = op.parse_args()
-    config_file = opt.config_file
-       
-    if not cfg: #if the configuration dictionary has not been filled up already, load it from a file
-        try: #from Rowan's onedval program
-            execfile(config_file, globals(), cfg)
-        except IOError as e:
-            print "Error {0}".format(str(e))	
-            print "There was a problem reading the config file: '{0}'".format(config_file)
-            print "Check that it conforms to Python syntax."
-            print "Bailing out!"
-            sys.exit(1)
-               
+    
     # First, check our input and assign any default values required:
     cfg = input_checker(cfg)
     #bail out here if there is an issue
@@ -192,7 +174,35 @@ def main(cfg={}):
     if not cfg['noStats']:
         print_stats(cfg['exitSliceFileName'],cfg['jobName'],cfg['coreRfraction'],gmodelFile)                
     #
-    return 0
+    return 
+
+def main():
+    """
+    Examine the command-line options to decide the what to do
+    and then coordinate the calculations done by estcj and Eilmer3.
+    """
+
+    op = optparse.OptionParser(version=VERSION_STRING)
+    op.add_option('-c', '--config_file', dest='config_file',
+                  help=("filename for the config file"))
+    opt, args = op.parse_args()
+    config_file = opt.config_file
+    
+    cfg = {}
+       
+    if not cfg: #if the configuration dictionary has not been filled up already, load it from a file
+        try: #from Rowan's onedval program
+            execfile(config_file, globals(), cfg)
+        except IOError as e:
+            print "Error {0}".format(str(e))	
+            print "There was a problem reading the config file: '{0}'".format(config_file)
+            print "Check that it conforms to Python syntax."
+            print "Bailing out!"
+            sys.exit(1)
+            
+    run_nenzfr(cfg)
+    
+    return
     
 #---------------------------------------------------------------
 
