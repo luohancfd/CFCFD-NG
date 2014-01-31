@@ -345,6 +345,7 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel):
             'a': Q.a,
             'h': h,
             'h0': h + 0.5*u*u,
+            's': gmodel.mixture_entropy(Q),
             'R': gmodel.R(Q),
             'Cp': gmodel.Cp(Q),
             'Cv': gmodel.Cv(Q),
