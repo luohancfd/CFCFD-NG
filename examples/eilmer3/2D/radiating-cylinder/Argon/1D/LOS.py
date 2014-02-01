@@ -59,12 +59,10 @@ def main():
     TS = TS_data( rsm, 1 )
     TS.set_rad_point(0,Q,Q_rE_rad,L*0.5,L)
     j_total = TS.get_rpoint_pointer(0).X_.write_to_file("coefficient_spectra.txt")
-    print "j_total inside slab = ", j_total
+    print "j_total = %0.4e W/m3" % j_total
     q_total = TS.exact_solve_for_divq()
     q_total = TS.F_.write_to_file("flux_spectra.txt")
-    print "q_total at end of slab = ", q_total
-
-    
+    print "q_total 1D = %0.4e W/m2" % q_total
 
     print "done."
     

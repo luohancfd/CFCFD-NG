@@ -22,9 +22,26 @@ test run-simulation {Run the radiation transport code.} -body {
     exec e3rad.exe --job=cyl --heat-flux-files --run > LOGFILE_MAIN
 } -result {} -returnCodes {0}
 
+test run-1d-calculation {Run the 1D tangent slab reference calculation.} -body {
+    cd ../1D/
+    exec ./run.sh > LOGFILE_1D
+    cd ../MC/
+}
+
 test run-postprocessor {Run the postprocessing stage.} -body {
+    # Get the 1D result
+    set qrad_1d 0
+    # Looking for a line starting with 'q_total 1D'
+    set fp [open ../1D/LOGFILE_1D r]
+    set results [read $fp]
+    close $fp
+    foreach line [split $results "\n"] {
+        if {[string first "q_total 1D" $line] == 0} {
+            set qrad_1d [lindex [split $line] 3]
+        }
+    }
     exec e3post.py --job=cyl --tindx=1 --heat-flux-list=2:3,1,:,:,: > LOGFILE_POST
-    exec ./compute_qrad_error.py hf_profile.data 1 4 0 0.5 1.177552224246e+06 >> LOGFILE_POST
+    exec ./compute_qrad_error.py hf_profile.data 1 4 0 0.5 $qrad_1d >> LOGFILE_POST
 } -result {} -returnCodes {0}
 
 test check-qrad-RMS {The radiative flux RMS error with respect to the 1D solution.} -body {
