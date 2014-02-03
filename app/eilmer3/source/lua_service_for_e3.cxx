@@ -687,6 +687,10 @@ int register_luafns(lua_State *L)
     lua_setglobal(L, "PC_R_u");
     lua_pushnumber(L, PC_P_atm);
     lua_setglobal(L, "PC_P_atm");
+    lua_pushnumber(L, PC_Avogadro);
+    lua_setglobal(L, "PC_Avogadro");
+    lua_pushnumber(L, PC_k_SI);
+    lua_setglobal(L, "PC_k_SI");
 
     return 0;
 }
