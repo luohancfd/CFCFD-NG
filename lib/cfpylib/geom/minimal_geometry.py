@@ -81,6 +81,9 @@ def cross(a, b):
     z = a.x * b.y - a.y * b.x
     return Vector(x, y, z)
 
+def unit(a):
+    return a.unit()
+
 def quad_properties(p0, p1, p2, p3):
     "Quadrilateral defining unit vectors, area and centroid."
     vector_area = 0.25 * cross(p1-p0+p2-p3, p3-p0+p2-p1)
@@ -95,6 +98,16 @@ def quad_centroid(p0, p1, p2, p3):
     "Quadrilateral centroid"
     centroid, n, t1, t2, area = quad_properties(p0, p1, p2, p3)
     return centroid
+
+def quad_area(p0, p1, p2, p3):
+    "Quadrilateral area"
+    centroid, n, t1, t2, area = quad_properties(p0, p1, p2, p3)
+    return area
+
+def quad_normal(p0, p1, p2, p3):
+    "Quadrilateral area"
+    centroid, n, t1, t2, area = quad_properties(p0, p1, p2, p3)
+    return n
 
 def tetrahedron_properties(p0, p1, p2, p3):
     "Tetrahedron centroid and volume"
