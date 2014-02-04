@@ -14,11 +14,9 @@ the 2D surface based on the methods selected by the user.
    12-Feb-2013  Initial coding.
 """
 
-import sys, gc
+import sys
 from math import *
-
-from e3prep import select_gas_model
-from libprep3 import get_gas_model_ptr, vabs
+from gaspy import *
 from cell import create_cells_from_slice, area
 from prop_avg import *
 from copy import copy
@@ -36,6 +34,9 @@ def print_usage():
     print "CONFIG -- name of config file to control calculation"
     print "INPUT_FILE(S)  -- a list of one or more Tecplot files with slice data"
     print ""
+
+# Global variable to hold gas model pointer
+gmodel = None
 
 pretty_var_names = {'rho':'density (kg/m^3)',
                     'p':'pressure (Pa)',
@@ -153,8 +154,9 @@ def main():
     if not 'species' in cfg:
         print "No 'species' list was found, so defaulting to ['air']."
         cfg['species'] = ['air']
-    select_gas_model("thermally perfect gas", cfg['species'])
-    gmodel = get_gas_model_ptr()
+
+    create_gas_file("thermally perfect gas", cfg['species'], "gas-model.lua")
+    gmodel = create_gas_model("gas-model.lua")
     nsp = gmodel.get_number_of_species()
 
     print "onedval: Checking over user inputs"
@@ -290,7 +292,7 @@ def main():
                     if flux == 'mass flux':
                         int_quants['mass flux'] = fluxes['mass']
                     elif flux == 'momentum flux':
-                        int_quants['momentum flux'] = vabs(fluxes['mom'])
+                        int_quants['momentum flux'] = abs(fluxes['mom'])
                     elif flux == 'energy flux':
                         int_quants['energy flux'] = fluxes['energy']
                     elif flux == 'species mass flux':

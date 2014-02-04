@@ -5,7 +5,6 @@
 include ../../../lib/util/source/systems.mk
 INSTALL_DIR ?= $(HOME)/e3bin
 SOURCE := ../source
-EILMER3 := ../../eilmer3
 GAS := ../../../lib/gas
 TARGET := for_gnu
 OPT := -O2
@@ -23,8 +22,6 @@ install : $(INSTALL_DIR) $(PROGRAM)
 	cd $(GAS)/build; make TARGET=$(TARGET) OPT=$(OPT) INSTALL_DIR=$(INSTALL_DIR) install
 	@echo Copying cfpylib files to $(INSTALL_DIR)
 	cd ../../../lib/; rsync -av --exclude=".svn" --exclude="*~" cfpylib $(INSTALL_DIR)
-	@echo Building eilmer3 to get its support routines
-	cd $(EILMER3)/build; make TARGET=$(TARGET) OPT=$(OPT) INSTALL_DIR=$(INSTALL_DIR) install
 	@echo --------------------------------
 	@echo onedval should now be installed.
 	@echo --------------------------------
@@ -45,5 +42,4 @@ clean :
 	@echo Deleting object files
 	- rm *.pyc *.py
 	@echo Cleaning up other areas
-	- cd $(EILMER3)/build; make clean
 	- cd $(GAS)/build; make clean

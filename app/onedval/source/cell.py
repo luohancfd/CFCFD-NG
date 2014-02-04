@@ -2,7 +2,7 @@
 # Place: UQ, Brisbane, Queensland, Australia
 # Date: 25-Jun-2012
 
-from libprep3 import *
+from cfpylib.geom.minimal_geometry import *
 
 def tri_centroid(p0, p1, p2):
     """
@@ -23,7 +23,7 @@ def tri_area(p0, p1, p2):
     Compute the area of a triangle.
     """
     vector_area = 0.5*cross(p1-p0, p2-p1)
-    return vabs(vector_area)
+    return abs(vector_area)
 
 def tri_normal(p0, p1, p2):
     """
@@ -99,7 +99,7 @@ def create_cell(idx, data, cell_cnrs, var_map, scale):
     zlabel = var_map['z']
     for cnr in c_list:
         i = cnr-1
-        pts.append(scale*Vector3(data[xlabel][i], data[ylabel][i], data[zlabel][i]))
+        pts.append(scale*Vector(data[xlabel][i], data[ylabel][i], data[zlabel][i]))
 
     if len(pts) == 3:
         pC = tri_centroid(pts[0], pts[1], pts[2])

@@ -10,8 +10,8 @@
 import sys
 
 from math import sqrt, pow
-from libprep3 import Vector3, dot, vabs
-from libprep3 import Gas_data, set_massf
+from cfpylib.geom.minimal_geometry import Vector, dot
+from gaspy import Gas_data, set_massf
 from cfpylib.nm.zero_solvers import secant
 from scipy.optimize import minimize
 from numpy import median
@@ -40,7 +40,7 @@ def avg_pos(cells, var_map):
     x /= A
     y /= A
     z /= A
-    return Vector3(x, y, z)
+    return Vector(x, y, z)
 
 def oriented_normal(n):
     """Orients the normal in a consistent direction.
@@ -51,16 +51,16 @@ def oriented_normal(n):
     Presently, we'll enforce the assumption
     of a positive-x sense to all normals.
     """
-    return Vector3(abs(n.x), n.y, n.z)
+    return Vector(abs(n.x), n.y, n.z)
     
 
 def compute_fluxes(cells, var_map, species, gmodel, special_fns):
     f_mass = 0.0
-    f_mom = Vector3(0.0, 0.0, 0.0)
+    f_mom = Vector(0.0, 0.0, 0.0)
     f_energy = 0.0
     f_sp = [0.0,]*len(species)
     nsp = gmodel.get_number_of_species()
-    N = Vector3(0.0, 0.0, 0.0)
+    N = Vector(0.0, 0.0, 0.0)
     A = 0.0
     rholabel = var_map['rho']
     plabel = var_map['p']
@@ -78,7 +78,7 @@ def compute_fluxes(cells, var_map, species, gmodel, special_fns):
         n = oriented_normal(c.normal())
         rho = c.get(rholabel)
         p = c.get(plabel)
-        vel = Vector3(c.get(ulabel),
+        vel = Vector(c.get(ulabel),
                       c.get(vlabel),
                       c.get(wlabel))
         T = c.get(Tlabel)
@@ -101,7 +101,7 @@ def compute_fluxes(cells, var_map, species, gmodel, special_fns):
         Q.T[0] = c.get(Tlabel)
         gmodel.eval_thermo_state_rhoT(Q)
         h = gmodel.mixture_enthalpy(Q)
-        h0 = h + 0.5*vabs(vel)*vabs(vel)
+        h0 = h + 0.5*abs(vel)*abs(vel)
         f_energy = f_energy + rho*u_n*h0*dA
     
     # Process any special fns.
@@ -112,7 +112,7 @@ def compute_fluxes(cells, var_map, species, gmodel, special_fns):
 	dA = c.area()
         n = oriented_normal(c.normal())
         rho = c.get(rholabel)
-        vel = Vector3(c.get(ulabel),
+        vel = Vector(c.get(ulabel),
                       c.get(vlabel),
                       c.get(wlabel))
         u_n = dot(vel, n)
@@ -151,7 +151,7 @@ def mass_flux_weighted_avg(cells, props, var_map):
     for c in cells:
         dA = c.area()
         rho = c.get(rholabel)
-        vel = Vector3(c.get(ulabel),
+        vel = Vector(c.get(ulabel),
                       c.get(vlabel),
                       c.get(wlabel))
         n = oriented_normal(c.normal())
@@ -172,11 +172,11 @@ def mass_flux_weighted_avg(cells, props, var_map):
 def stream_thrust_avg(cells, props, var_map, species, gmodel):
     flag = 'success'
     f_mass = 0.0
-    f_mom = Vector3(0.0, 0.0, 0.0)
+    f_mom = Vector(0.0, 0.0, 0.0)
     f_energy = 0.0
     f_sp = [0.0,]*len(species)
     nsp = gmodel.get_number_of_species()
-    N = Vector3(0.0, 0.0, 0.0)
+    N = Vector(0.0, 0.0, 0.0)
     A = 0.0
     rholabel = var_map['rho']
     plabel = var_map['p']
@@ -190,7 +190,7 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel):
         n = oriented_normal(c.normal())
         rho = c.get(rholabel)
         p = c.get(plabel)
-        vel = Vector3(c.get(ulabel),
+        vel = Vector(c.get(ulabel),
                       c.get(vlabel),
                       c.get(wlabel))
         T = c.get(Tlabel)
@@ -213,7 +213,7 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel):
         Q.T[0] = c.get(Tlabel)
         gmodel.eval_thermo_state_rhoT(Q)
         h = gmodel.mixture_enthalpy(Q)
-        h0 = h + 0.5*vabs(vel)*vabs(vel)
+        h0 = h + 0.5*abs(vel)*abs(vel)
         f_energy = f_energy + rho*u_n*h0*dA
         A = A + dA
         N = N + n*dA
