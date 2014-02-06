@@ -82,7 +82,8 @@ units = {'rho':'kg/m^3',
          'w':'m/s',
          'mass flux':'kg/s',
          'momentum flux':'kg.m/s^2',
-         'energy flux':'W'}
+         'energy flux':'W',
+         'hr': 'J/kg'}
 
 column_names = {'mass flux' : 'mass-flux',
                 'momentum flux' : 'mom.-flux',

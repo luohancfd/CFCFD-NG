@@ -11,7 +11,7 @@ import sys
 
 from math import sqrt, pow
 from cfpylib.geom.minimal_geometry import Vector, dot
-from gaspy import Gas_data, set_massf
+from gaspy import Gas_data, set_massf, PC_P_atm
 from cfpylib.nm.zero_solvers import secant
 from scipy.optimize import minimize
 from numpy import median
@@ -335,7 +335,16 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel):
     gamma = gmodel.gamma(Q)
     T0 = T*(1.0 + (gamma - 1.0) * 0.5 * M**2)
     p0 = p * pow(T0/T, gamma/(gamma - 1.0))
-
+    hr = 0.0
+    # temporary dummy gas object
+    Qd = Gas_data(gmodel)
+    Qd.p = PC_P_atm
+    Qd.T[0] = 298.15 # K <-- DO NOT ADJUST THIS VALUE
+                     # CEA curve fits are constructed
+                     # such that h(298.15) == h_f
+    for isp, f in enumerate(f_sp):
+        hr += f*gmodel.enthalpy(Qd, isp) # <-- is h_f because evaluated at T=298.15 K
+    
     # Create a dictionary of all possible requests
     vals = {'rho':rho,
             'p': p,
@@ -351,8 +360,8 @@ def stream_thrust_avg(cells, props, var_map, species, gmodel):
             'Cv': gmodel.Cv(Q),
             'gamma': gamma,
             'u': u,
-            'M': M }
-
+            'M': M,
+            'hr': hr}
 
     phis = dict.fromkeys(props, 0.0)
     
