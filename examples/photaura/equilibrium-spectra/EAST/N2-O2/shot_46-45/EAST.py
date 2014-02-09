@@ -1,0 +1,12 @@
+input_data.rad_model_file = "rad-model.lua"
+input_data.species_list = [ "N2", "N2_plus", "NO", "NO_plus", "O2", "O2_plus", "N", "N_plus", "O", "O_plus", "e_minus" ]
+input_data.mass_fractions = [ 0.767, 0.0, 0.0, 0.0, 0.233, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]  
+input_data.shock_speed = 10340.0 # m/s
+input_data.gas_pressure = 0.3*133.33 # Pa
+input_data.gas_temperature = 300 # K
+input_data.path_length = 10.15e-2 # m
+input_data.apparatus_fn = "Voigt"
+input_data.Gaussian_HWHM = 8 # Ang
+input_data.Lorentzian_HWHM = 0 # Ang
+input_data.sampling_rate = 10
+input_data.planck_spectrum = True
