@@ -1,0 +1,13 @@
+Element : C+
+
+Results 
+
+Element = C	Lambda = 2837 Å
+Multiplet = 8
+Transition = 2S-3P / 2S-2P
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.119	.942-01	82	1	0	76	4	0
+10000	.928-01	.724-01	78	1	0	73	4	0
+20000	.767-01	.573-01	71	1	0	70	4	0
+40000	.678-01	.466-01	63	1	0	67	5	0

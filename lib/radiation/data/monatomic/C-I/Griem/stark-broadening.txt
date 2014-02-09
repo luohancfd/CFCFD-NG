@@ -1,0 +1,27 @@
+Element : C
+
+Results 
+
+Element = C	Lambda = 1657 Å
+Multiplet = 5
+Transition = 2P-3S / 3P-3P
+
+Temp (K)	Width (Å)	Shift (Å)	Alpha	Beta	WA (%)	WS (%)	WQ (%)	DR
+5000	.154-02	.180-02	.034	.76-02	75	96	0	0
+10000	.174-02	.207-02	.031	.15-01	74	88	0	0
+20000	.200-02	.223-02	.028	.30-01	73	75	0	0
+40000	.226-02	.218-02	.025	.60-01	72	60	0	0
+
+Element : C
+
+Results 
+
+Element = C	Lambda = 1931 Å
+Multiplet = 6
+Transition = 2P-3S / 1D-1P
+
+Temp (K)	Width (Å)	Shift (Å)	Alpha	Beta	WA (%)	WS (%)	WQ (%)	DR
+5000	.193-02	.234-02	.033	.13-01	76	97	0	1
+10000	.221-02	.270-02	.030	.25-01	75	90	0	1
+20000	.254-02	.294-02	.027	.50-01	73	78	0	1
+40000	.291-02	.294-02	.025	.10	72	63	0	1

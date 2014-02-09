@@ -1,0 +1,417 @@
+Element : O+
+
+Results 
+
+Element = O	Lambda = 539 Å
+Multiplet = 5
+Transition = 2P-3S / 4S-4P
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.317-02	.297-02	92	0	0	72	4	0
+10000	.236-02	.226-02	87	0	0	66	4	0
+20000	.182-02	.178-02	80	0	0	60	4	0
+40000	.149-02	.145-02	71	0	0	53	4	0
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 617 Å
+Multiplet = 6
+Transition = 2P-3S / 2D-2P
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.422-02	.403-02	93	0	0	71	4	0
+10000	.313-02	.306-02	89	0	0	66	4	0
+20000	.241-02	.240-02	81	0	0	60	4	0
+40000	.198-02	.196-02	72	0	0	53	4	0
+
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 673 Å
+Multiplet = 7
+Transition = 2P-3S / 2P-2P
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.502-02	.479-02	93	0	0	71	4	0
+10000	.372-02	.364-02	89	0	0	66	4	0
+20000	.287-02	.286-02	81	0	0	60	4	0
+40000	.236-02	.233-02	72	0	0	53	4	0
+
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 430 Å
+Multiplet = 10
+Transition = 2P-3D / 4S-4P
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.236-02	.188-02	83	2	0	76	4	0
+10000	.184-02	.145-02	81	2	0	75	4	0
+20000	.152-02	.116-02	75	1	0	73	4	0
+40000	.135-02	.957-03	68	2	0	70	4	0
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 485 Å
+Multiplet = 11
+Transition = 2P-3D / 2D-2F
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.288-02	.230-02	83	2	0	76	4	0
+10000	.225-02	.178-02	81	2	0	75	4	0
+20000	.186-02	.142-02	76	2	0	73	4	0
+40000	.165-02	.118-02	68	2	0	70	4	0
+
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 484 Å
+Multiplet = 12
+Transition = 2P-3D / 2D-2P
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.297-02	.269-02	89	2	0	72	4	0
+10000	.228-02	.208-02	85	2	0	69	4	0
+20000	.186-02	.166-02	79	2	0	65	4	0
+40000	.163-02	.138-02	70	2	0	61	4	0
+
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 482 Å
+Multiplet = 13
+Transition = 2P-3D / 2D-2D
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.305-02	.249-02	84	2	0	76	4	0
+10000	.239.02	.193-02	82	2	0	74	4	0
+20000	.199-02	.155-02	76	2	0	71	4	0
+40000	.177-02	.129-02	68	1	0	68	5	0
+
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 518 Å
+Multiplet = 14
+Transition = 2P-3D / 2P-2P
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.340-02	.308-02	89	2	0	72	4	0
+10000	.262-02	.238-02	85	2	0	69	4	0
+20000	.213-02	.190-02	79	2	0	65	4	0
+40000	.186-02	.158-02	70	2	0	61	4	0
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 516 Å
+Multiplet = 15
+Transition = 2P-3D / 2P-2D
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.350-02	.285-02	84	2	0	76	4	0
+10000	.274-02	.221-02	82	2	0	74	4	0
+20000	.228-02	.178-02	76	2	0	71	4	0
+40000	.203-02	.148-02	68	0	0	68	5	0
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 4652 Å
+Multiplet = 23
+Transition = 3S-3P / 4P-4D
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.263	.191	84	1	0	85	4	0
+10000	.208	.149	83	1	0	85	4	0
+20000	.174	.120	78	1	0	83	4	0
+40000	.157	.100	70	0	0	80	5	0
+
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 4341 Å
+Multiplet = 24
+Transition = 3S-3P / 4P-4P
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.200	.155	84	2	0	79	4	0
+10000	.154	.119	81	2	0	77	4	0
+20000	.125	.938-01	76	1	0	75	4	0
+40000	.109	.771-01	68	1	0	71	4	0
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 4418 Å
+Multiplet = 28
+Transition = 3S-3P / 2P-2D
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.230	.154	82	2	0	89	4	0
+10000	.181	.120	81	1	0	89	4	0
+20000	.150	.967-01	76	1	0	87	4	0
+40000	.134	.797-01	69	1	0	85	4	0
+
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 3967 Å
+Multiplet = 3
+Transition = 3S-3P / 2P-2P
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.187	.159	87	2	0	75	4	0
+10000	.145	.122	83	2	0	72	4	0
+20000	.118	.973-01	77	1	0	68	4	0
+40000	.103	.803-01	68	1	0	64	4	0
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 3386 Å
+Multiplet = 38
+Transition = 3P-3D / 2S-2P
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.149	.122	80	1	0	72	4	0
+10000	.118	.921-01	79	1	0	70	4	0
+20000	.100	.572-01	75	1	0	59	4	0
+40000	.929-01	.320-01	68	1	0	58	5	0
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 4075 Å
+Multiplet = 40
+Transition = 3P-3D / 4D-4F
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.209	.151	84	1	0	85	4	0
+10000	.166	.119	83	1	0	85	4	0
+20000	.141	.972-01	79	1	0	84	4	0
+40000	.129	.817-01	72	0	0	84	5	0
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 4152 Å
+Multiplet = 44
+Transition = 3P-3D / 4P-4P
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.226	.209	89	1	0	70	4	0
+10000	.176	.163	86	1	0	68	4	0
+20000	.146	.133	80	1	0	64	4	0
+40000	.130	.112	71	1	0	61	5	0
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 4111 Å
+Multiplet = 45
+Transition = 3P-3D / 4P-4D
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.224	.179	87	1	0	80	4	0
+10000	.177	.140	85	1	0	79	4	0
+20000	.150	.113	80	1	0	77	4	0
+40000	.137	.946-01	71	0	0	76	5	0
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 4704 Å
+Multiplet = 49
+Transition = 3P-3D / 2D-2F
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.300	.216	89	1	0	90	4	0
+10000	.238	.169	87	1	0	90	4	0
+20000	.202	.135	81	1	0	88	5	0
+40000	.186	.112	72	0	0	87	5	0
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 4913 Å
+Multiplet = 52
+Transition = 3P-3D / 4S-4P
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.331	-.196	78	1	0	97	4	0
+10000	.264	-.147	79	1	0	97	4	0
+20000	.227	-.792-01	76	1	0	95	5	0
+40000	.212	-.291-01	69	0	0	89	5	0
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 5191 Å
+Multiplet = 55
+Transition = 3P-3D / 2P-2P
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.355	.320	88	1	0	71	4	0
+10000	.280	.251	85	1	0	69	4	0
+20000	.234	.205	79	1	0	66	4	0
+40000	.212	.175	70	1	0	62	5	0
+
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 4943 Å
+Multiplet = 56
+Transition = 3P-3D / 2P-2D
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.336	.207	77	2	0	91	4	0
+10000	.267	.165	77	1	0	92	4	0
+20000	.228	.136	75	1	0	93	4	0
+40000	.212	.115	69	1	0	93	5	0
+
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 2738 Å
+Multiplet = 65
+Transition = 3P-4S / 2S-2P
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.250	.258	95	0	0	67	7	0
+10000	.199	.212	88	0	0	61	7	0
+20000	.172	.183	78	0	0	53	7	0
+40000	.160	.163	67	0	0	48	8	0
+
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 3134 Å
+Multiplet = 66
+Transition = 3P-4S / 4D-4P
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.329	.336	93	0	0	67	7	0
+10000	.263	.276	86	0	0	60	7	0
+20000	.227	.236	76	0	0	53	7	0
+40000	.212	.208	65	0	0	48	8	0
+
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 3292 Å
+Multiplet = 67
+Transition = 3P-4S / 4P-4P
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.360	.366	93	0	0	67	7	0
+10000	.288	.300	86	0	0	60	7	0
+20000	.248	.256	75	0	0	53	7	0
+40000	.231	.223	64	0	0	48	8	0
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 3469 Å
+Multiplet = 68
+Transition = 2P-4S / 2D-2P
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.393	.402	94	0	0	67	7	0
+10000	.316	.331	88	0	0	61	7	0
+20000	.274	.286	78	0	0	54	7	0
+40000	.258	.254	67	0	0	50	8	0
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 3754 Å
+Multiplet = 69
+Transition = 3P-4S / 4S-4P
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.462	.467	93	0	0	67	7	0
+10000	.372	.383	86	0	0	61	7	0
+20000	.324	.327	75	0	0	54	7	0
+40000	.304	.286	64	0	0	50	8	0
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 3809 Å
+Multiplet = 70
+Transition = 3P-4S / 2P-2P
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	.468	.475	94	0	0	68	7	0
+10000	.377	.390	87	0	0	62	7	0
+20000	.328	.336	77	0	0	55	7	0
+40000	.310	.297	66	0	0	51	8	0
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 6898 Å
+Multiplet = 74
+Transition = 3D-4P / 4F-4D
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	1.34	1.05	83	2	0	78	6	0
+10000	1.14	.863	79	1	0	76	6	0
+20000	1.06	.746	71	1	0	74	7	0
+40000	1.05	.667	62	1	0	72	8	0
+
+Element : O+
+
+Results 
+
+Element = O	Lambda = 6657 Å
+Multiplet = 75
+Transition = 3D-4P / 2P-2P
+
+Temp (K)	Width (Å)	Shift (Å)	WS (%)	WQ (%)	WC (%)	DS	L	G
+5000	1.38	1.20	87	2	0	73	7	0
+10000	1.17	.972	81	1	0	70	7	0
+20000	1.07	.722	72	1	0	62	7	0
+40000	1.05	.487	62	1	0	48	8	0
+
