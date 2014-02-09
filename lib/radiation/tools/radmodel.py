@@ -130,6 +130,7 @@ class GlobalRadData(object):
             ofile.write("%s\n" % rad.get_LUA_string() )
         # finished
         ofile.close()
+        print "Finished writing file: ", ofile_str
     
     def request_radiator( self, rrad ):
         if self.spectral_model=="photaura":

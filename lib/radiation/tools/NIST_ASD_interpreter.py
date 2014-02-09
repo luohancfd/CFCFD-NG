@@ -66,11 +66,15 @@ class GroupedLevel:
         tks = level_tks[0]
         self.config = remove_spaces(tks[0])
         self.term = remove_spaces(tks[1])
+        if self.config=="":
+            print level_tks
+            sys.exit()
         # get the g and E values for each individual level
         self.g_list = []
         self.E_list = []
         for tks in level_tks:
-            if remove_spaces(tks[3])!="":
+            # ignore levels without g and E data
+            if not (remove_spaces(tks[2])=="" or remove_spaces(tks[3])==""):
                 g_tks = tks[2]
                 if "/2" in g_tks:
                     self.g_list.append( int(remove_spaces(g_tks).split("/")[0])+1 )
@@ -78,12 +82,16 @@ class GroupedLevel:
                     self.g_list.append( int(remove_spaces(g_tks))*2+1 )
                 self.E_list.append( float(remove_braces(remove_spaces(tks[3]))) )
         self.nlevels = len(self.g_list)
-        # create multiplet level data
-        self.g = sum( self.g_list )
-        tmp = 0.0
-        for i in range(self.nlevels):
-            tmp += self.g_list[i] * self.E_list[i]
-        self.E = tmp / self.g
+        if self.nlevels==0:
+            self.g = -1
+            self.E = 0.0
+        else:
+            # create multiplet level data
+            self.g = sum( self.g_list )
+            tmp = 0.0
+            for i in range(self.nlevels):
+                tmp += self.g_list[i] * self.E_list[i]
+            self.E = tmp / self.g
         
     def get_python_string( self ):
         n,l,L,S,parity = get_quantum_numbers( self.config, self.term )
@@ -110,6 +118,8 @@ class LevelData:
         count = 0
         for level_tks in raw_level_data:
             self.levels.append( GroupedLevel( level_tks ) )
+            # remove levels that had not enough data to complete the initialization
+            if self.levels[-1].g < 0: self.levels.pop(-1)
             count += self.levels[-1].nlevels
         print "created %d multiplet levels, totally %d individual levels" % ( len(self.levels), count )
         
@@ -283,7 +293,7 @@ def read_level_file( filename, omit_psuedocontinuum_levels=True, use_individual_
             print "Encountered %s ionization limit at %f" % ( tks[0], E_limit )
             level_data.ionization_limits.append( IonizationLimit( tks[0], E_limit ) )
             continue
-        if ( remove_spaces(tks[0])=="" and remove_spaces(tks[3])=="" ) or tks[0]=="-----------------------":
+        if ( remove_spaces(tks[0])=="" and remove_spaces(tks[1])=="" and remove_spaces(tks[2])=="" and remove_spaces(tks[3])=="" ) or tks[0]=="-----------------------":
             if len(level_tks)>0:
                 raw_level_data.append( level_tks )
             level_tks = []

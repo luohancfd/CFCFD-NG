@@ -21,8 +21,10 @@ def make_term( S, L, parity ):
     elif L==3: term += "F"
     elif L==4: term += "G"
     elif L==5: term += "H"
+    elif L==6: term += "I"
     else:
         print "L is greater than 5!"
+        print L
         sys.exit()
     if parity==1: term += "*"
     

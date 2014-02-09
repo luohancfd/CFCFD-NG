@@ -45,6 +45,9 @@ def get_TOPBase_confs_and_states( line ):
     else:
         state_l = term
     return conf_u, conf_l, state_u, state_l
+    
+def process_Griem_float( tk ):
+    return float(tk.replace("-0","e-0").replace("+0","e+0") )
 
 class GriemStarkWidth:
     def __init__( self, data_block, verbose=False ):
@@ -86,11 +89,11 @@ class GriemStarkWidth:
         for line in data_block[8:12]:
             tks = line.split()
             if verbose: print tks
-            self.T_list.append( float(tks[0]) )
-            self.width_list.append( float(tks[1].replace("-0","e-0").replace("+0","e+0") ) )
-            self.shift_list.append( float(tks[2].replace("-0","e-0").replace("+0","e+0") ) )
-            self.alpha_list.append( float(tks[3].replace("-0","e-0").replace("+0","e+0") ) )
-            self.beta_list.append( float(tks[4].replace("-0","e-0").replace("+0","e+0") ) )
+            self.T_list.append( process_Griem_float(tks[0]) )
+            self.width_list.append( process_Griem_float(tks[1]) )
+            self.shift_list.append( process_Griem_float(tks[2]) )
+            self.alpha_list.append( process_Griem_float(tks[3]) )
+            self.beta_list.append( process_Griem_float(tks[4]) )
 
 
         # make the curve fit
