@@ -470,6 +470,8 @@ def state_builder(cfg):
         if 'T4' in cfg and 'p4' in cfg:
             # if T4 and p4 are set, cut the crap and just set the burst condition
             print "Driver burst conditions have been specified, building burst state."
+            print "p4 = {0} Pa, T4 = {1} K.".format(cfg['p4'], cfg['T4'])
+            p4 = cfg['p4']; T4 = cfg['T4']
             states['s4'] = Gas(cfg['driver_composition'],inputUnits=cfg['driver_inputUnits'])
             states['s4'].set_pT(cfg['p4'],cfg['T4'])
         else:

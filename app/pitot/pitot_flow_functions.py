@@ -163,14 +163,16 @@ def shock_tube_calculation(cfg, states, V, M):
                 a normal shock."""
     
             print "Current guess for Vr = {0} m/s".format(Vr)
+            
+            print Vsd2g-Vr
     
-            V3, V3g = normal_shock(statesd2, Vsd2g+Vr, state3)
+            V3, V3g = normal_shock(statesd2, Vsd2g-Vr, state3)
     
-            return (V3-(V2g+Vr))/V3
+            return (V3g-(V2g+Vr))/V3g
         
-        Vr = secant(reflected_shock_speed_iterator, 100.0, 200.0, tol=1.0e-4)
+        Vr = secant(reflected_shock_speed_iterator, 1000.0, 3000.0, tol=1.0e-4)
     
-        V3,V3g = normal_shock(statesd2,Vsd2g+Vr,state3)
+        V3,V3g = normal_shock(statesd2,Vsd2g-Vr,state3)
     
         return (state3.p-state2.p)/state2.p
             
@@ -237,6 +239,8 @@ def shock_tube_calculation(cfg, states, V, M):
     
         print "Current guess for Vs1 = {0} m/s".format(Vs1)
         
+        print "-"*60
+        
         V2, V2g = normal_shock(state1, Vs1, state2)
     
         def reflected_shock_speed_iterator(Vr,statesd2=statesd2,
@@ -246,14 +250,20 @@ def shock_tube_calculation(cfg, states, V, M):
                 a normal shock."""
     
             print "Current guess for Vr = {0} m/s".format(Vr)
+                
+            V3, V3g = normal_shock(statesd2, Vsd2g-Vr, state3)
+            
+            print "V2g = {0}, V3g = {1}, V3 = {2}.".format(V2g, V3g, V3)
     
-            V3, V3g = normal_shock(statesd2, Vsd2g+Vr, state3)
+            return (V3g-V2g)/V3g
     
-            return (V3-(V2g+Vr))/V3
+        Vr = secant(reflected_shock_speed_iterator, 2000.0, -2000.0, tol=1.0e-4, limits=[-5000, 4000.0])
     
-        Vr = secant(reflected_shock_speed_iterator, 100.0, 200.0, tol=1.0e-4)
-    
-        V3,V3g = normal_shock(statesd2,Vsd2g+Vr,state3)
+        V3,V3g = normal_shock(statesd2,Vsd2g-Vr,state3)
+        
+        print "p2 = {0} Pa, p3 = {1} Pa.".format(state2.p, state3.p)
+        
+        print "-"*60
     
         return (state3.p-state2.p)/state2.p
 
@@ -283,10 +293,17 @@ def shock_tube_calculation(cfg, states, V, M):
             if PRINT_STATUS: print "The shock switch is turned on, therefore doing a shock here instead of the normal expansion... Turn this off if you didn't want it"
             if PRINT_STATUS: print "Current settings with the shock switch turned on here HALF the selected p1 and p5 to match experiment."
             if PRINT_STATUS: print "the fill pressure's will be returned back to normal when the results are printed at the end..."
-            states['s1'].p = states['s1'].p/2.0
-            states['s5'].p = states['s5'].p/2.0
-            cfg['Vs1'] = secant(primary_shock_speed_reflected_iterator, 2000.0, 4000.0, tol=1.0e-5,limits=[500.0,1000000.0])
+            # am trying out not dropping the fill pressure for a bit...
+            #states['s1'].p = states['s1'].p/2.0
+            #states['s5'].p = states['s5'].p/2.0
+            states['s1'].p = states['s1'].p
+            states['s5'].p = states['s5'].p          
+            cfg['Vs1'] = secant(primary_shock_speed_reflected_iterator, 4500.0, 5000.0, tol=1.0e-5,limits=[2900.0,10000.0])
         else: #just do the expansion
+            if cfg['secondary']:
+                if PRINT_STATUS: print "Starting unsteady expansion of the secondary driver gas into the shock tube."
+            else:
+                if PRINT_STATUS: print "Starting unsteady expansion of the driver gas into the shock tube."
             if cfg['tunnel_mode'] == 'expansion-tube':
                 if cfg['p1'] > 1000.0:
                     cfg['Vs1_guess_1'] = 4000.0; cfg['Vs1_guess_2'] = 6000.0
@@ -330,7 +347,7 @@ def shock_tube_calculation(cfg, states, V, M):
     
             print "Current guess for Vr = {0} m/s".format(Vr)
     
-            V3, V3g = normal_shock(statesd2, Vsd2g+Vr, state3)
+            V3, V3g = normal_shock(statesd2, Vsd2g-Vr, state3)
     
             return (V3-(V2g+Vr))/V3
         
@@ -531,7 +548,7 @@ def test_section_setup(cfg, states, V, M):
         cfg['test_section_state'] = 's5'        
             
     if PRINT_STATUS and cfg['nozzle']: print '-'*60
-
+    
     return cfg, states, V, M
 
 #----------------------------------------------------------------------------

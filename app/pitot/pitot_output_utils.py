@@ -108,7 +108,10 @@ def txt_file_output(cfg, states, V, M):
     if cfg['solver'] == 'eq':
         driver_gas_used = 'Driver gas is {0}.'.format(states['s4'].reactants)   
     else:
-        driver_gas_used = 'Driver gas is {0}.'.format(cfg['driver_gas'])   
+        if cfg['facility'] != 'custom':
+            driver_gas_used = 'Driver gas is {0}.'.format(cfg['driver_gas'])
+        else:
+            driver_gas_used = 'Driver gas is {0}.'.format(cfg['driver_composition'])
     print driver_gas_used
     txt_output.write(driver_gas_used + '\n') 
             
@@ -391,7 +394,10 @@ def csv_file_output(cfg, states, V, M):
     if cfg['solver'] == 'eq':
         csv_driver_gas_used = 'Driver gas,{0}.'.format(states['s4'].reactants)
     else:
-        csv_driver_gas_used = 'Driver gas,{0}.'.format(cfg['driver_gas'])
+        if cfg['facility'] != 'custom':
+            csv_driver_gas_used = 'Driver gas,{0}.'.format(cfg['driver_gas'])
+        else:
+            csv_driver_gas_used = 'Driver gas,{0}.'.format(cfg['driver_composition'])
     csv_output.write(csv_driver_gas_used + '\n') 
             
     if cfg['secondary']:
