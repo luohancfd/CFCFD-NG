@@ -227,7 +227,8 @@ def declare_radiators( params, gdata ):
     # 1. check that the provided params are valid
     valid_params = [ "species", "radiators", "QSS_radiators", "no_emission_radiators",
                      "iTe", "atomic_level_source", "atomic_line_source", 
-                     "atomic_PICS_source", "use_individual_levels" ]
+                     "atomic_PICS_source", "use_individual_levels",
+                     "Stark_tolerance", "PICS_tolerance" ]
     for key in params.keys():
         if key not in valid_params:
             print "Unexpected entry in the parameter dictionary: %s" % key
@@ -244,18 +245,21 @@ def declare_radiators( params, gdata ):
     
     # 3. add the additional params from the defaults list
     default_params = {
-"species"               : [],
-"radiators"             : [],
-"QSS_radiators"         : [],
-"no_emission_radiators" : [],
-"iT"                    : 0,
-"iTe"                   : 0,
-"iTv"                   : 0,
-"iTr"                   : 0,
-"atomic_level_source"   : None,
-"atomic_line_source"    : None,
-"atomic_PICS_source"    : None,
-"use_individual_levels" : True
+"species"                     : [],
+"radiators"                   : [],
+"QSS_radiators"               : [],
+"no_emission_radiators"       : [],
+"iT"                          : 0,
+"iTe"                         : 0,
+"iTv"                         : 0,
+"iTr"                         : 0,
+"atomic_level_source"         : None,
+"atomic_line_source"          : None,
+"atomic_PICS_source"          : None,
+"use_individual_levels"       : True,
+"omit_psuedocontinuum_levels" : False,
+"Stark_tolerance"             : 0.01,
+"PICS_tolerance"              : 1.0e4
 }
 
     for key in default_params.keys():
@@ -270,7 +274,7 @@ def declare_radiators( params, gdata ):
         rad.iT = params["iT"]
         rad.iTe = params["iTe"]
         if params["atomic_level_source"] and rad.type=="atomic_radiator":
-            levels,lines,PICSs = get_atomic_species_data( rad_name, level_source=params["atomic_level_source"], line_source=params["atomic_line_source"], PICS_source=params["atomic_PICS_source"], omit_psuedocontinuum_levels=False, use_individual_levels=params["use_individual_levels"], stark_tol=1.0e-2, PICS_tol=1.0e4 )
+            levels,lines,PICSs = get_atomic_species_data( rad_name, level_source=params["atomic_level_source"], line_source=params["atomic_line_source"], PICS_source=params["atomic_PICS_source"], omit_psuedocontinuum_levels=params["omit_psuedocontinuum_levels"], use_individual_levels=params["use_individual_levels"], stark_tol=params["Stark_tolerance"], PICS_tol=params["PICS_tolerance"] )
             rad.level_set = AtomicLevelSet(levels,params["atomic_level_source"])
             rad.line_set = AtomicLineSet(lines,params["atomic_line_source"])
             if PICSs!=None:
