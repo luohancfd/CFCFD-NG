@@ -171,7 +171,7 @@ def make_parametric_surface(bx_scale=1.0, by_scale=1.0, M_inf=1.0, R=1.0, axi=0,
         # create the inflow spline
         west = Spline(inflow_nodes)
 
-    return ShockLayerSurface(east, west)
+    return ShockLayerSurface(east, west), west
 
 def extract_shock_coords( sol ):
     # find the shock (S=1) coordinates from an ExistingSolution
