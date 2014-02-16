@@ -9,7 +9,7 @@
 #ifndef CONS_SYS_HH
 #define CONS_SYS_HH
 
-#include <valarray>
+#include <vector>
 
 #include "../../../lib/nm/source/no_fuss_linear_algebra.hh"
 #include "../../../lib/nm/source/zero_system.hh"
@@ -31,8 +31,8 @@ public:
 
     void initialise(Gas_model * gm, Gas_data * Q, double u);
 
-    int f( const std::valarray<double> &y, std::valarray<double> &G );
-    int Jac( const std::valarray<double> &y, Valmatrix &dGdy );
+    int f( const std::vector<double> &y, std::vector<double> &G );
+    int Jac( const std::vector<double> &y, Valmatrix &dGdy );
 
     /// \brief Read access to A_, the total mass conserved variable
     double get_A() { return A_; }
@@ -66,11 +66,11 @@ public:
 
     void initialise(Gas_model * gm, Gas_data * Q, double u);
     
-    int f( const std::valarray<double> &y, std::valarray<double> &G );
-    int Jac( const std::valarray<double> &y, Valmatrix &dGdy );
-    int encode_conserved( std::valarray<double> &y, const Gas_data &Q,
+    int f( const std::vector<double> &y, std::vector<double> &G );
+    int Jac( const std::vector<double> &y, Valmatrix &dGdy );
+    int encode_conserved( std::vector<double> &y, const Gas_data &Q,
     	                  const double u );
-    int set_constants( const std::valarray<double> &A );
+    int set_constants( const std::vector<double> &A );
 
 private:
     Gas_model * gmodel_;
@@ -81,7 +81,7 @@ private:
     int ndim_;
     int e_index_;
 
-    std::valarray<double> A_;
+    std::vector<double> A_;
 };
 
 #endif

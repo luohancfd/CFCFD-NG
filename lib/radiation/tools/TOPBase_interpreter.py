@@ -300,12 +300,15 @@ def read_PICS_file( filename, echo_result=False ):
     PICSs = []
     data = []
     header = ""
+    E_min = 9.9e9
     for line in lines[3:]:
         tks = line.split()
         if len(tks)<=1: continue
         try: I = int(tks[0])
         except: data.append(line)
         else:
+            E = float(tks[5])
+            if E < E_min: E_min = E
             if len(header) > 0:
                 if len(data)>0:
                     PICSs.append( make_PICS_from_TOPBase_strings( header, data ) )
@@ -316,8 +319,12 @@ def read_PICS_file( filename, echo_result=False ):
     print "Found %d TOPBase PICS with data in file %s" % ( len(PICSs), filename)
 
     # reset the energies to be referenced from 0 at the ground state
-    E0 = PICSs[0].E
+    # NOTE: assuming the minimum energy in the file corresponds to the ground state 
+    E0 = E_min * RC_Ry
     for PICS in PICSs:
+        if PICS.E < E0:
+            print "E = %e, E0 = %e" % ( PICS.E, E0 )
+            sys.exit()
         PICS.E -= E0
     
     if echo_result:
@@ -376,6 +383,7 @@ def get_PICS_with_level_indices_and_datapoints( levels, PICSs, tol=1.0e-6, requi
         else:
             filtered_ilevs = []
             for ilev,level in enumerate(levels):
+                # print "level.term = %s, PICS.term = %s" % ( level.term, PICS.term )
                 if PICS.term == level.term:
                     filtered_ilevs.append( ilev )
         if verbose: print "found %d levels meeting the term requirement" % len(filtered_ilevs)
@@ -403,17 +411,36 @@ def get_PICS_with_level_indices_and_datapoints( levels, PICSs, tol=1.0e-6, requi
             found = True
         
         if not found and verbose:
-            print "WARNING: Did not find a level for PICS with E = %e, term = %s" % ( PICS.E, PICS.term )
+            print "Warning: Did not find a level for PICS with E = %e, term = %s" % ( PICS.E, PICS.term )
             
+    print "Found level indices for %d out of %d PICS" % ( len(new_PICSs), len(PICSs) )
+    
+    # count number of PICS assigned to each level, and keep just the closest one
+    reduced_PICSs = []
+    for ilev in range(len(levels)):
+        count = 0
+        iPICS_closest = -1
+        E_min = 9.9e9
+        for iPICS,PICS in enumerate(new_PICSs):
+            if PICS.ilev == ilev:
+                count += 1
+                if PICS.E < E_min:
+                    E_min = PICS.E
+                    iPICS_closest = iPICS
+        if verbose and count > 0: print "ilev %d: found %d PICS assigned" % ( ilev, count )
+        if count==0: continue
+        else: reduced_PICSs.append( new_PICSs[iPICS_closest] )
+    
     # check for uniqueness of the level indices
-    for i,PICS_i in enumerate(new_PICSs):
+    for i,PICS_i in enumerate(reduced_PICSs):
         ilev = PICS_i.ilev
-        for j,PICS_j in enumerate(new_PICSs):
+        for j,PICS_j in enumerate(reduced_PICSs):
             if i==j: continue
             if PICS_i.ilev == PICS_j.ilev:
                 print "Error: Two PICS entries have the same electronic level index."
+                print "PICS_i.E = %e, PICS_j.E = %e, lev.E = %e" % ( PICS_i.E, PICS_j.E, levels[PICS_i.ilev].E ) 
                 sys.exit()
                 
-    print "Found level indices for %d out of %d PICS" % ( len(new_PICSs), len(PICSs) )
-
-    return new_PICSs
+    print "%d levels have been assigned PICS data" % ( len(reduced_PICSs) )
+                
+    return reduced_PICSs

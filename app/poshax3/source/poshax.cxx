@@ -14,6 +14,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <numeric>
 
 #include "../../../lib/util/source/config_parser.hh"
 #include "../../../lib/util/source/useful.h"

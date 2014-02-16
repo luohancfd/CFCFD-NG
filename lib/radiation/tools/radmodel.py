@@ -228,7 +228,8 @@ def declare_radiators( params, gdata ):
     valid_params = [ "species", "radiators", "QSS_radiators", "no_emission_radiators",
                      "iTe", "atomic_level_source", "atomic_line_source", 
                      "atomic_PICS_source", "use_individual_levels",
-                     "Stark_tolerance", "PICS_tolerance" ]
+                     "Stark_tolerance", "allow_inexact_Stark_matches", 
+                     "PICS_tolerance", "require_PICS_term_match" ]
     for key in params.keys():
         if key not in valid_params:
             print "Unexpected entry in the parameter dictionary: %s" % key
@@ -259,7 +260,9 @@ def declare_radiators( params, gdata ):
 "use_individual_levels"       : True,
 "omit_psuedocontinuum_levels" : False,
 "Stark_tolerance"             : 0.01,
-"PICS_tolerance"              : 1.0e4
+"allow_inexact_Stark_matches" : False,
+"PICS_tolerance"              : 1.0e2,
+"require_PICS_term_match"     : True
 }
 
     for key in default_params.keys():
@@ -274,7 +277,16 @@ def declare_radiators( params, gdata ):
         rad.iT = params["iT"]
         rad.iTe = params["iTe"]
         if params["atomic_level_source"] and rad.type=="atomic_radiator":
-            levels,lines,PICSs = get_atomic_species_data( rad_name, level_source=params["atomic_level_source"], line_source=params["atomic_line_source"], PICS_source=params["atomic_PICS_source"], omit_psuedocontinuum_levels=params["omit_psuedocontinuum_levels"], use_individual_levels=params["use_individual_levels"], stark_tol=params["Stark_tolerance"], PICS_tol=params["PICS_tolerance"] )
+            levels,lines,PICSs = get_atomic_species_data( rad_name, \
+            level_source=params["atomic_level_source"], \
+            line_source=params["atomic_line_source"], \
+            PICS_source=params["atomic_PICS_source"], \
+            omit_psuedocontinuum_levels=params["omit_psuedocontinuum_levels"], \
+            use_individual_levels=params["use_individual_levels"], \
+            stark_tol=params["Stark_tolerance"], \
+            allow_inexact_Stark_matches=params["allow_inexact_Stark_matches"], \
+            PICS_tol=params["PICS_tolerance"], \
+            require_PICS_term_match=params["require_PICS_term_match"] )
             rad.level_set = AtomicLevelSet(levels,params["atomic_level_source"])
             rad.line_set = AtomicLineSet(lines,params["atomic_line_source"])
             if PICSs!=None:

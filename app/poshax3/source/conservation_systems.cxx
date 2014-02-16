@@ -7,7 +7,7 @@
  **/
 
 #include <iomanip>
-#include <valarray>
+#include <vector>
 #include <numeric>
 
 #include "conservation_systems.hh"
@@ -49,7 +49,7 @@ initialise(Gas_model * gm, Gas_data * Q, double u )
     C_ = Q->rho*u*(e + 0.5*u*u) + Q->p*u;
 }
 
-int FrozenConservationSystem::f( const valarray<double> &y, valarray<double> &G )
+int FrozenConservationSystem::f( const vector<double> &y, vector<double> &G )
 {
 
     double rho, T, u;
@@ -69,7 +69,7 @@ int FrozenConservationSystem::f( const valarray<double> &y, valarray<double> &G 
     return 0;
 }
 
-int FrozenConservationSystem::Jac( const valarray<double> &y, Valmatrix &dGdy )
+int FrozenConservationSystem::Jac( const vector<double> &y, Valmatrix &dGdy )
 {
     double rho, T, u;
     rho = y[0];
@@ -138,7 +138,7 @@ initialise(Gas_model * gm, Gas_data * Q, double u)
     encode_conserved( A_, *Q_, u );
 }
 
-int NoneqConservationSystem::f( const valarray<double> &y, valarray<double> &G )
+int NoneqConservationSystem::f( const vector<double> &y, vector<double> &G )
 {
     // 1. Map y vector (solution guess) onto the gas-data structure
     // 1a. Total density and species mass-fractions
@@ -181,12 +181,10 @@ int NoneqConservationSystem::f( const valarray<double> &y, valarray<double> &G )
 	G[iG] = u * ( Q_->rho * Q_->e[ntm_-1] + Q_->p_e ) - A_[iG];
     }
     
-    // print_valarray(G);
-    
     return 0;
 }
 
-int NoneqConservationSystem::Jac( const valarray<double> &y, Valmatrix &dGdy )
+int NoneqConservationSystem::Jac( const vector<double> &y, Valmatrix &dGdy )
 {
     // NOTE: f() should have been just called, so *Q_ should be correct
     double u = y[nsp_+ntm_];
@@ -275,7 +273,7 @@ int NoneqConservationSystem::Jac( const valarray<double> &y, Valmatrix &dGdy )
     return 0;
 }
 
-int NoneqConservationSystem::encode_conserved( valarray<double> &y, 
+int NoneqConservationSystem::encode_conserved( vector<double> &y,
                                                const Gas_data &Q,
                                                const double u )
 {
@@ -306,7 +304,7 @@ int NoneqConservationSystem::encode_conserved( valarray<double> &y,
     return 0;
 }
 
-int NoneqConservationSystem::set_constants( const valarray<double> &A )
+int NoneqConservationSystem::set_constants( const vector<double> &A )
 {
     for ( size_t i=0; i<A.size(); ++i )
     	A_[i] = A[i];
