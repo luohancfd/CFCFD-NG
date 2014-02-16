@@ -30,8 +30,8 @@ scheme_t = {
 
 reaction{
    'N2 + M <=> N + N + M',
-   fr={'Knab_et_al', A=7.0e21, n=-1.60, T_a=113200.0, v_name='N2', U=113200.0/6., alpha=0.9},
-   chemistry_energy_coupling={ {species='N2', mode='vibration', model='Knab_et_al', A=113200, U=113200.0/6., alpha=0.9} },
+   fr={'Knab_et_al', A=7.0e21, n=-1.60, T_a=113200.0, v_name='N2', U0=113200.0/6., U1=0.0, alpha=0.9},
+   chemistry_energy_coupling={ {species='N2', mode='vibration', model='Knab_et_al', A=113200, U0=113200.0/6., U1=0.0, alpha=0.9} },
    efficiencies={N2=1.0,N2_plus=1.0,O2=1.0,O2_plus=1.0,NO=1.0,NO_plus=1.0,N=4.2857,N_plus=4.2857,O=4.2857,O_plus=4.2857,e_minus=0.0},
    ec={model='from CEA curves',iT=0}
 }
@@ -44,35 +44,39 @@ reaction{
 
 reaction{
    'O2 + M <=> O + O + M',
-   fr={'Knab_et_al', A=2.0e21, n=-1.5, T_a=59500.0, v_name='O2', U=59500.0/6., alpha=0.8},
-   chemistry_energy_coupling={ {species='O2', mode='vibration', model='Knab_et_al', A=59500.0, U=59500.0/6., alpha=0.8} },
+   fr={'Knab_et_al', A=2.0e21, n=-1.5, T_a=59500.0, v_name='O2', U0=59500.0/6., U1=0.0, alpha=0.8},
+   chemistry_energy_coupling={ {species='O2', mode='vibration', model='Knab_et_al', A=59500.0, U0=59500.0/6., U1=0.0, alpha=0.8} },
    efficiencies={N2=1.0,N2_plus=1.0,O2=1.0,O2_plus=1.0,NO=1.0,NO_plus=1.0,N=5.0,N_plus=5.0,O=5.0,O_plus=5.0,e_minus=0.0},
    ec={model='from CEA curves',iT=0}
 }
 
 reaction{
    'NO + M <=> N + O + M',
-   fr={'Knab_et_al', A=5.0e15, n=0.0, T_a=75500.0, v_name='NO', U=75500.0/5., alpha=0.8},
-   chemistry_energy_coupling={ {species='NO', mode='vibration', model='Knab_et_al', A=75500.0, U=75500.0/5., alpha=0.8} },
+   fr={'Knab_et_al', A=5.0e15, n=0.0, T_a=75500.0, v_name='NO', U0=75500.0/5., U1=0.0, alpha=0.8},
+   chemistry_energy_coupling={ {species='NO', mode='vibration', model='Knab_et_al', A=75500.0, U0=75500.0/5., U1=0.0, alpha=0.8} },
    efficiencies={N2=1.0,N2_plus=1.0,O2=1.0,O2_plus=1.0,NO=1.0,NO_plus=1.0,N=20.0,N_plus=20.0,O=20.0,O_plus=20.0,e_minus=0.0},
    ec={model='from CEA curves',iT=0}
 }
 
 -- Neutral exchange reactions
 
+-- original:  U0=75500.0/5., U1=0.0, alpha=0.1
+-- Kane: U0=0, U1=1.5, alpha=0.1, inf for backwards (not implemented?)
 reaction{
    'NO + O <=> O2 + N',
-   fr={'Knab_et_al', A=8.4e12, n=0.0, T_a=19450.0, v_name='NO', U=75500.0/5., alpha=0.1},
-   chemistry_energy_coupling={ {species='NO', mode='vibration', model='Knab_et_al', A=19450.0, U=75500.0/5., alpha=0.1},
-                               {species='O2', mode='vibration', model='Knab_et_al', A=19450.0, U=59500.0/5., alpha=0.1} },
+   fr={'Knab_et_al', A=8.4e12, n=0.0, T_a=19450.0, v_name='NO', U0=0.0, U1=1.5, alpha=0.1},
+   chemistry_energy_coupling={ {species='NO', mode='vibration', model='Knab_et_al', A=19450.0, U0=0.0, U1=1.5, alpha=0.1},
+                               {species='O2', mode='vibration', model='Knab_et_al', A=19450.0, U0=0.0, U1=1.5, alpha=0.1} },
    ec={model='from CEA curves',iT=0}
 }
 
+-- original:  U0=75500.0/5., U1=0.0, alpha=0.1
+-- Kane: U0=0, U1=1.5, alpha=0.1, inf for backwards (not implemented?)
 reaction{
    'N2 + O <=> NO + N',
-   fr={'Knab_et_al', A=6.4e17, n=-1.0, T_a=38400.0, v_name='N2', U=113200.0/5., alpha=0.1},
-   chemistry_energy_coupling={ {species='NO', mode='vibration', model='Knab_et_al', A=38400.0,  U=75500.0/5., alpha=0.1},
-                               {species='N2', mode='vibration', model='Knab_et_al', A=38400.0, U=113200.0/5., alpha=0.1} },
+   fr={'Knab_et_al', A=6.4e17, n=-1.0, T_a=38400.0, v_name='N2', U0=113200.0/5., U1=0.0, alpha=0.1},
+   chemistry_energy_coupling={ {species='NO', mode='vibration', model='Knab_et_al', A=38400.0,  U0=0.0, U1=1.5, alpha=0.1},
+                               {species='N2', mode='vibration', model='Knab_et_al', A=38400.0, U0=0.0, U1=1.5, alpha=0.1} },
    ec={model='from CEA curves',iT=0}
 }
 
