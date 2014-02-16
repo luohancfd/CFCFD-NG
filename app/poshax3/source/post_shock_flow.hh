@@ -60,8 +60,8 @@ protected:
     Energy_exchange_update * eeupdate_;
     PoshaxRadiationTransportModel * rtmodel_;
     
-    std::valarray<double> yout_;
-    std::valarray<double> yguess_;
+    std::vector<double> yout_;
+    std::vector<double> yguess_;
 
     NewtonRaphsonZF zero_solver_;
 
@@ -101,14 +101,14 @@ public:
 
     ~Fully_coupled_post_shock_flow();
     
-    int eval( const std::valarray<double> &y, std::valarray<double> &ydot );
+    int eval( const std::vector<double> &y, std::vector<double> &ydot );
 
 public:
     double increment_in_space(double x, double delta_x);
     
 private:
     double ode_solve(double x, double delta_x);
-    void zero_solve( const std::valarray<double> &A );
+    void zero_solve( const std::vector<double> &A );
     
     int nsp_;
     int ntm_;
@@ -116,7 +116,7 @@ private:
     std::vector<double> dcdt_;
     std::vector<double> dedt_;
     
-    std::valarray<double> yin_;
+    std::vector<double> yin_;
 
     OdeSolver ode_solver_;
     OdeSystem * ode_sys_ptr_;

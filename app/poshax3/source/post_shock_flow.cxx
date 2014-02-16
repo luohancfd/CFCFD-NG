@@ -12,7 +12,7 @@
 #include <iomanip>
 
 #include <string>
-#include <valarray>
+#include <vector>
 #include <sstream>
 
 #include "../../../lib/gas/models/gas_data.hh"
@@ -71,7 +71,7 @@ Post_shock_flow( Flow_state &ic, Gas_model * gm, Reaction_update * ru,
     double rho2 = rho_inf * r2_r1(M_inf, gamma);
     double u2 = u_inf * u2_u1(M_inf, gamma);
     
-    valarray<double> yguess(3), yout(3);
+    vector<double> yguess(3), yout(3);
     yguess[0] = rho2; yguess[1] = T2; yguess[2] = u2;
     
     FrozenConservationSystem con_sys(gm,&Q,u_inf);
@@ -296,7 +296,7 @@ ode_solve(double x, double delta_x)
 
 void
 Fully_coupled_post_shock_flow::
-zero_solve( const valarray<double> &A )
+zero_solve( const vector<double> &A )
 {
     // 0. Set constants in the conservation system
     con_sys_.set_constants( A );
@@ -332,7 +332,7 @@ zero_solve( const valarray<double> &A )
 
 int
 Fully_coupled_post_shock_flow::
-eval( const valarray<double> &y, valarray<double> &ydot )
+eval( const vector<double> &y, vector<double> &ydot )
 {
     // NOTE: may need to omit this step if its too slow
     // 1. Evaluate the flow state from the y vector
@@ -365,8 +365,6 @@ eval( const valarray<double> &y, valarray<double> &ydot )
     ydot[iy-1] += psflow.Q_rad;
     if ( apply_udpedx_ )
         ydot[iy-1] += psflow.u * dpe_dx;
-    
-    // print_valarray( ydot );
     
     return 0;
 }
