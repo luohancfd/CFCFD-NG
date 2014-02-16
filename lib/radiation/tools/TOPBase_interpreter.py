@@ -405,15 +405,26 @@ def get_PICS_with_level_indices_and_datapoints( levels, PICSs, tol=1.0e-6, requi
         if not found and verbose:
             print "WARNING: Did not find a level for PICS with E = %e, term = %s" % ( PICS.E, PICS.term )
             
+    print "Found level indices for %d out of %d PICS" % ( len(new_PICSs), len(PICSs) )
+            
+    # Only keep one PICS for each level
+    reduced_PICSs = []
+    for PICS in new_PICSs:
+        unique = True
+        for rPICS in reduced_PICSs:
+            if PICS.ilev==rPICS.ilev:
+                unique = False
+                break
+        if unique: reduced_PICSs.append( PICS )
+            
     # check for uniqueness of the level indices
-    for i,PICS_i in enumerate(new_PICSs):
+    for i,PICS_i in enumerate(reduced_PICSs):
         ilev = PICS_i.ilev
-        for j,PICS_j in enumerate(new_PICSs):
+        for j,PICS_j in enumerate(reduced_PICSs):
             if i==j: continue
             if PICS_i.ilev == PICS_j.ilev:
                 print "Error: Two PICS entries have the same electronic level index."
+                print "PICS_i.E = %e, PICS_j.E = %e, lev.E = %e" % ( PICS_i.E, PICS_j.E, levels[PICS_i.ilev].E ) 
                 sys.exit()
                 
-    print "Found level indices for %d out of %d PICS" % ( len(new_PICSs), len(PICSs) )
-
-    return new_PICSs
+    return reduced_PICSs
