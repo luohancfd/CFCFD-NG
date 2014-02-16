@@ -1,7 +1,7 @@
 # normalize.awk
 # Normalize the surface pressure over the length of the nozzle.
 BEGIN {
-    p0 = 418.7e3 
+    p0 = 500.0e3 
     print "# Normalized surface pressure for the Back nozzle (simulation)"
     print "# x(inches) p/pt"
 }

@@ -5,10 +5,8 @@ print gdata.title
 
 # Accept defaults for air giving R=287.1, gamma=1.4
 select_gas_model(model='ideal gas', species=['air'])
-# The stagnation gas represents a reservoir condition
-# We must also nominate a flow direction at the boundary
-# by specifying the components of velocity.
-stagnation_gas = FlowCondition(p=418.7e3, T=300.0, u=1.0, v=0.0)
+# The stagnation gas represents a reservoir condition.
+stagnation_gas = FlowCondition(p=500.0e3, T=300.0)
 low_pressure_gas = FlowCondition(p=30.0, T=300.0)
 
 # Define geometry.
@@ -81,6 +79,6 @@ gdata.dt = 1.0e-7
 gdata.dt_plot = 0.2e-3
 gdata.dt_history = 10.0e-6
 
-sketch.xaxis(-0.250, 0.080, 0.050, -0.01)
-sketch.yaxis( 0.0,   0.050, 0.020, -0.015)
-sketch.window(-0.25, 0.0, 0.10, 0.05, 0.03, 0.03, 0.24, 0.06)
+sketch.xaxis(-0.10, 0.08, 0.05, -0.01)
+sketch.yaxis(  0.0, 0.05, 0.02, -0.015)
+sketch.window(-0.10, 0.0, 0.10, 0.05, 0.05, 0.05, 0.25, 0.10)
