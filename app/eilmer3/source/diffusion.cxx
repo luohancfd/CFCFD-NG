@@ -17,7 +17,6 @@ using namespace std;
 
 constexpr bool WILKE_MIXING_RULE_WITH_AMBIPOLAR_CORRECTION = true;
 constexpr bool FICKS_WITH_SUTTON_AND_GNOFFO_CORRECTION = true;
-constexpr bool apply_ambipolar_diffusion_correction = false;
 
 DiffusionModel::DiffusionModel(const string name, int nsp)
     : name_(name), nsp_(nsp), e_index_( -1 )
@@ -267,7 +266,7 @@ calculate_diffusion_fluxes(const Gas_data &Q,
     UNUSED_VARIABLE(D_t);
 
     double sum = 0.0;
-    constexpr double tol = 1.0e-6; // See Sutton And Gnoffo (1998) p.9
+    const double tol = 1.0e-6; // See Sutton And Gnoffo (1998) p.9
     bool converged = true;
 
     fill_in_x(Q.rho, Q.massf);
@@ -418,18 +417,12 @@ calculate_diffusion_fluxes(const Gas_data &Q,
 RamshawChangModel::
 RamshawChangModel( const string name, int nsp )
     : DiffusionModel( name, nsp )
-{
-    dcdx_.resize( nsp_ );
-    dcdy_.resize( nsp_ );
-}
+{}
 
 RamshawChangModel::
 RamshawChangModel( const RamshawChangModel &rcm )
     : DiffusionModel( rcm.name_, rcm.nsp_ )
-{
-    dcdx_.resize( nsp_ );
-    dcdy_.resize( nsp_ );
-}
+{}
 
 RamshawChangModel::
 ~RamshawChangModel()
@@ -447,19 +440,6 @@ str() const
 
 void
 RamshawChangModel::
-fill_in_dcdx_dcdy( double rho, const vector<double> &dfdx,
-                               const vector<double> &dfdy )
-{
-    for ( size_t isp=0; isp<M_.size(); ++isp ) {
-	dcdx_[isp] = rho*dfdx[isp]/M_[isp];
-	dcdy_[isp] = rho*dfdy[isp]/M_[isp];
-    }
-    
-    return;
-}
-
-void
-RamshawChangModel::
 calculate_diffusion_fluxes(const Gas_data &Q,
 			   double D_t,
 			   const vector<double> &dfdx, 
@@ -470,57 +450,89 @@ calculate_diffusion_fluxes(const Gas_data &Q,
 			   vector<double> &jz)
 {
     fill_in_x(Q.rho, Q.massf);
-    fill_in_DAV_im(Q.D_AB);
-    fill_in_dcdx_dcdy( Q.rho, dfdx, dfdy );
 
-    //    cout << "rho= " << rho << endl;
+    // -1. Calculate DAV_im (effective binary diffusivities)
+    // Ramshaw and Chang, Plasma Chem. Plasma Process. 13, 489 (1993) equation (23)
+    double summ = 0.0;
+    for ( int jsp = 0; jsp < nsp_; ++jsp ) {
+	if ( jsp == e_index_ ) continue;
+	summ += Q.massf[jsp] / sqrt(M_[jsp]);
+    }
+    for ( int isp = 0; isp < nsp_; ++isp ) {
+	if ( isp == e_index_ ) continue;
+	double sum = 0.0;
+	for ( int jsp = 0; jsp < nsp_; ++jsp ) {
+	    if ( jsp == isp ) continue;
+	    if ( jsp == e_index_ ) continue;
+	    if ( Q.D_AB[isp][jsp] <= small_DAB_ or isnan(Q.D_AB[isp][jsp]) ) continue;
+	    // there is effectively nothing to diffuse
+	    sum += x_[jsp] / Q.D_AB[isp][jsp];
+	}
+	if ( sum <= 0.0 or summ <= 0.0 ) {
+	    DAV_im_[isp] = 0.0;
+	}
+	else {
+	    //DAV_im_[isp] = (1.0 - x_[isp]) / sum;
+	    DAV_im_[isp] = (1.0 - Q.massf[isp] / sqrt(M_[isp]) / summ) / sum;
+	}
+    }
     
     // 0. Pre-calculate jsp summation terms
     double MDdcdx = 0.0;
     double MDdcdy = 0.0;
+    double MDdcdz = 0.0;
     double MqrhoD = 0.0;
     for ( int jsp = 0; jsp < nsp_; ++jsp ) {
 	if ( jsp==e_index_ ) continue;
-	MDdcdx += M_[jsp] * DAV_im_[jsp] * dcdx_[jsp];
-	MDdcdy += M_[jsp] * DAV_im_[jsp] * dcdy_[jsp];
-	MqrhoD += M_[jsp] * Z_[jsp] * Q.rho * Q.massf[jsp] * DAV_im_[jsp];
+	MDdcdx += Q.rho * DAV_im_[jsp] * dfdx[jsp];
+	MDdcdy += Q.rho * DAV_im_[jsp] * dfdy[jsp];
+	MDdcdz += Q.rho * DAV_im_[jsp] * dfdz[jsp];
+	MqrhoD += Z_[jsp] * Q.rho * Q.massf[jsp] * DAV_im_[jsp];
     }
     
     // A. Heavy species (non-electrons)
-    
-    // 1.  In the x-direction...
+
     for( int isp = 0; isp < nsp_; ++isp ) {
-        if ( isp==e_index_ || x_[isp] < min_molef_ ) continue;
+        if ( isp==e_index_ ) continue;
         double As = 0.0;
-        if ( x_[e_index_] >= min_molef_ ) {
-	    As = ( 1.0 / Z_[e_index_] * Q.rho * Q.massf[e_index_] ) * 
-		 ( M_[isp] * Z_[isp] * Q.rho * Q.massf[isp] * DAV_im_[isp] - Q.massf[isp] * MqrhoD ) * dcdx_[e_index_];
-        }
-	jx[isp] = -M_[isp] * DAV_im_[isp] * dcdx_[isp] + Q.massf[isp] * MDdcdx + As;
+//and G.electric_field_work 
+	if ( Q.massf[e_index_]>0.0 and x_[e_index_]>=min_molef_ ) {
+            As = ( 1.0 / Z_[e_index_] ) / (Q.rho * Q.massf[e_index_] ) * 
+		( Z_[isp] * Q.rho * Q.massf[isp] * DAV_im_[isp] - Q.massf[isp] * MqrhoD ) * 
+		Q.rho * dfdx[e_index_];
+	}
+	jx[isp] = -Q.rho * DAV_im_[isp] * dfdx[isp] + Q.massf[isp] * MDdcdx + As;
+        As = 0.0;
+	if ( Q.massf[e_index_]>0.0 and x_[e_index_]>=min_molef_ ) {
+            As = ( 1.0 / Z_[e_index_] ) / (Q.rho * Q.massf[e_index_] ) * 
+		( Z_[isp] * Q.rho * Q.massf[isp] * DAV_im_[isp] - Q.massf[isp] * MqrhoD ) * 
+		Q.rho * dfdy[e_index_];
+	}
+	jy[isp] = -Q.rho * DAV_im_[isp] * dfdy[isp] + Q.massf[isp] * MDdcdy + As;
+        As = 0.0;
+	if ( Q.massf[e_index_]>0.0 and x_[e_index_]>=min_molef_ ) {
+            As = ( 1.0 / Z_[e_index_] ) / (Q.rho * Q.massf[e_index_] ) * 
+		( Z_[isp] * Q.rho * Q.massf[isp] * DAV_im_[isp] - Q.massf[isp] * MqrhoD ) * 
+		Q.rho * dfdz[e_index_];
+	}
+	jz[isp] = -Q.rho * DAV_im_[isp] * dfdz[isp] + Q.massf[isp] * MDdcdz + As;
     }
     
-    // 2. in the y-direction
-    for( int isp = 0; isp < nsp_; ++isp ) {
-	if ( isp==e_index_ || x_[isp] < min_molef_ ) continue;
-        double As = 0.0;
-        if ( x_[e_index_] >= min_molef_ ) {
-	    As = ( 1.0 / Z_[e_index_] ) / ( Q.rho * Q.massf[e_index_] ) * 
-		 ( M_[isp] * Z_[isp] * Q.rho * Q.massf[isp] * DAV_im_[isp] - Q.massf[isp] * MqrhoD ) * dcdy_[e_index_];
-        }
-	jy[isp] = - M_[isp] * DAV_im_[isp] * dcdy_[isp] + Q.massf[isp] * MDdcdy + As;
-    }
     
     // B. Electrons
-    jx[e_index_] = 0.0;
-    jy[e_index_] = 0.0;
-    if ( x_[e_index_] >= min_molef_ ) {
+    if (e_index_ >= 0) {
+	jx[e_index_] = 0.0;
+	jy[e_index_] = 0.0;
+	jz[e_index_] = 0.0;
 	for( int isp = 0; isp < nsp_; ++isp ) {
 	    if ( isp==e_index_ ) continue;
-	    jx[e_index_] += Z_[isp] * jx[isp];
-	    jy[e_index_] += Z_[isp] * jy[isp];
+	    jx[e_index_] += Z_[isp] * jx[isp] / M_[isp];
+	    jy[e_index_] += Z_[isp] * jy[isp] / M_[isp];
+	    jz[e_index_] += Z_[isp] * jz[isp] / M_[isp];
 	}
-	jx[e_index_] /= - Z_[e_index_];
-	jy[e_index_] /= - Z_[e_index_];
+	jx[e_index_] *= - M_[e_index_] / Z_[e_index_];
+	jy[e_index_] *= - M_[e_index_] / Z_[e_index_];
+	jz[e_index_] *= - M_[e_index_] / Z_[e_index_];
     }
 
     // 9. Thermal nonequilibrium (T!=Te) correction
@@ -530,11 +542,12 @@ calculate_diffusion_fluxes(const Gas_data &Q,
         double T = Q.T.front();
         double c = 0.0;
         for( int isp = 0; isp < nsp_; ++isp )
-            c += x_[isp];
+            c += Q.rho * Q.massf[isp] / M_[isp];
         double f_neq = Q.p/PC_R_u/T/c;
         for( int isp = 0; isp < nsp_; ++isp ) {
             jx[isp] *= f_neq;
             jy[isp] *= f_neq;
+            jz[isp] *= f_neq;
         }
     }
     
@@ -546,7 +559,7 @@ ConstantLewisNumber(const string name, int nsp)
     : DiffusionModel(name, nsp)
 {
     // Just set the Lewis number here for the number
-    Le_ = 1.4;
+    Le_ = 1.0;
 }
 
 ConstantLewisNumber::
@@ -594,24 +607,25 @@ calculate_diffusion_fluxes(const Gas_data &Q,
     // NOTE: previously this relation between D and Le was erroneously written as:
     // DAV_im_[isp] = Le_ * Q.mu / Prandtl;
     
-    if ( apply_ambipolar_diffusion_correction ) {
-	if ( e_index_ > -1 ) {
-	    double Dax_ion_sum = 0.0;
-	    double Mx_ion_sum = 0.0;
-	    for ( int isp = 0; isp < nsp_; ++isp ) {
-		if ( Z_[isp] > 0.0 ) {
-		    DAV_im_[isp] *= 2.0;
-		    Dax_ion_sum += DAV_im_[isp] * x_[isp];
-		    Mx_ion_sum += M_[isp] * x_[isp];
-		}
-	    }
-	    DAV_im_[e_index_] = M_[e_index_] * Dax_ion_sum / Mx_ion_sum;
-	    if ( !isfinite( DAV_im_[e_index_] ) ) {
-		// Dax_ion_sum and Mx_ion_sum were probably zero
-		DAV_im_[e_index_] = 0.0;
-	    }
-	}
-    } // end if apply_ambipolar_diffusion_correction
+#   if 0
+    // Apply ambipolar diffusion correction
+    if ( e_index_ > -1 ) {
+    	double Dax_ion_sum = 0.0;
+    	double Mx_ion_sum = 0.0;
+    	for ( int isp = 0; isp < nsp_; ++isp ) {
+    	    if ( Z_[isp] > 0.0 ) {
+    	    	DAV_im_[isp] *= 2.0;
+    	    	Dax_ion_sum += DAV_im_[isp] * x_[isp];
+    	    	Mx_ion_sum += M_[isp] * x_[isp];
+    	    }
+    	}
+    	DAV_im_[e_index_] = M_[e_index_] * Dax_ion_sum / Mx_ion_sum;
+    	if ( !isfinite( DAV_im_[e_index_] ) ) {
+    	    // Dax_ion_sum and Mx_ion_sum were probably zero
+    	    DAV_im_[e_index_] = 0.0;
+    	}
+    }
+#   endif
     
     // Set diffusive fluxes via Fick's first law
     for ( int isp = 0; isp < nsp_; ++isp ) {
@@ -667,24 +681,25 @@ calculate_diffusion_fluxes(const Gas_data &Q,
     for ( int isp = 0; isp < nsp_; ++isp )
         DAV_im_[isp] = Q.mu / Q.rho / Sc_;
 
-    if ( apply_ambipolar_diffusion_correction ) {
-	if ( e_index_ > -1 ) {
-	    double Dax_ion_sum = 0.0;
-	    double Mx_ion_sum = 0.0;
-	    for ( int isp = 0; isp < nsp_; ++isp ) {
-		if ( Z_[isp] > 0.0 ) {
-		    DAV_im_[isp] *= 2.0;
-		    Dax_ion_sum += DAV_im_[isp] * x_[isp];
-		    Mx_ion_sum += M_[isp] * x_[isp];
-		}
-	    }
-	    DAV_im_[e_index_] = M_[e_index_] * Dax_ion_sum / Mx_ion_sum;
-	    if ( !isfinite( DAV_im_[e_index_] ) ) {
-		// Dax_ion_sum and Mx_ion_sum were probably zero
-		DAV_im_[e_index_] = 0.0;
-	    }
-	}
-    } // end if apply_ambipolar_diffusion_correction
+#   if 0
+    // Apply ambipolar diffusion correction
+    if ( e_index_ > -1 ) {
+        double Dax_ion_sum = 0.0;
+        double Mx_ion_sum = 0.0;
+        for ( int isp = 0; isp < nsp_; ++isp ) {
+            if ( Z_[isp] > 0.0 ) {
+                DAV_im_[isp] *= 2.0;
+                Dax_ion_sum += DAV_im_[isp] * x_[isp];
+                Mx_ion_sum += M_[isp] * x_[isp];
+            }
+        }
+        DAV_im_[e_index_] = M_[e_index_] * Dax_ion_sum / Mx_ion_sum;
+        if ( !isfinite( DAV_im_[e_index_] ) ) {
+            // Dax_ion_sum and Mx_ion_sum were probably zero
+            DAV_im_[e_index_] = 0.0;
+        }
+    }
+#   endif
 
     // Set diffusive fluxes via Fick's first law
     for ( int isp = 0; isp < nsp_; ++isp ) {

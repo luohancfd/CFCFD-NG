@@ -123,10 +123,6 @@ public:
     virtual ~RamshawChangModel();
 
     string str() const;
-    
-    void fill_in_dcdx_dcdy( double rho,
-                            const vector<double> &dfdx,
-                            const vector<double> &dfdy);
 
     void calculate_diffusion_fluxes(const Gas_data &Q,
 				    double D_t, 
@@ -137,9 +133,6 @@ public:
 				    std::vector<double> &jy,
 				    std::vector<double> &jz);
     
-protected:
-    std::vector<double> dcdx_;
-    std::vector<double> dcdy_;
 };
 
 class ConstantLewisNumber : public DiffusionModel {
