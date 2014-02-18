@@ -229,7 +229,7 @@ s_eval_transport_coefficients(Gas_data &Q)
     d = Q.rho/wm; // kg/m^3 to mol/L
     TRNPRP(t,d,x,eta,tcx,ierr,herr);
     if (ierr != 0) is_REFPROP_error("s_eval_transport_coefficients");
-    Q.mu = eta*1e6; // uPa.s to Pa.s
+    Q.mu = eta*1e-6; // uPa.s to Pa.s
     Q.k[0] = tcx;
     return SUCCESS;
 }
