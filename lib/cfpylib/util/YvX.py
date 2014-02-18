@@ -148,8 +148,6 @@ class YvX:
         pylab.plot( self.x_array, self.y_array, rep )
         global labels
         labels.append( label )
-        if show_plot:
-            pylab.legend( labels, loc="best" )
         if include_integral:
             pylab.subplot(212)
             if xrange: pylab.xlim(xrange[0],xrange[1])
@@ -160,8 +158,9 @@ class YvX:
                 for label in labels:
                     labels_.append( label + " integral" ) 
                     pylab.legend( labels_, loc="best" )
-        if show_plot:
-            pylab.show()
+		if show_plot:
+			pylab.legend( labels, loc="best" ) 
+			pylab.show()
 
     def plot_spline( self, title="", xlabel="", ylabel="", label="YvX_data", 
                      new_plot=True, show_plot=False, include_integral=False, 
@@ -192,9 +191,8 @@ class YvX:
             self.integrate()
             pylab.plot( self.x_array, self.integral, rep )
             labels.append( label + " integral" )
-        if new_plot: 
-            pylab.legend( labels, loc='best' )
         if show_plot:
+            pylab.legend( labels, loc="best" ) 
             pylab.show()
 
     def limit_x_range( self, x_min, x_max ):
