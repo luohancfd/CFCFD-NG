@@ -552,7 +552,7 @@ class HeatFluxData(object):
     Python class to store heat-flux data for a single cell interface
     """
     def __init__(self,i=0,j=0,k=0,x=0.0,y=0.0,z=0.0,qc=0.0,qd=0.0,qr=0.0,Twall=0.0,
-    	         Tcell=0.0,rho_cell=0.0,un_cell=0.0,Re_wall=0.0):
+    	         Tcell=0.0,rho_cell=0.0,un_cell=0.0,Re_wall=0.0,mass_flux=0.0):
 	"""
 	Create a HeatFluxData object from provided data
 	"""
@@ -570,6 +570,7 @@ class HeatFluxData(object):
 	self.rho_cell = rho_cell
 	self.un_cell = un_cell
 	self.Re_wall = Re_wall
+	self.mass_flux = mass_flux
 
 class BoundaryHeatFluxData(object):
     """
@@ -615,7 +616,8 @@ class BoundaryHeatFluxData(object):
 	                               x=float(tks[3]),y=float(tks[4]),z=float(tks[5]),
 	                               qc=float(tks[6]),qd=float(tks[7]),qr=float(tks[8]),
 	                               Twall=float(tks[9]),Tcell=float(tks[10]),
-	                               rho_cell=float(tks[11]),un_cell=float(tks[12]),Re_wall=Re_wall ) )
+	                               rho_cell=float(tks[11]),un_cell=float(tks[12]),
+                                       Re_wall=Re_wall, mass_flux=float(tks[14]), ) )
 	    # set ranges
 	    # lower
 	    if self.iface[-1].i < self.irange[0]: self.irange[0] = self.iface[-1].i
@@ -690,6 +692,7 @@ def write_heat_flux_profile(outputFileName, heat_flux_list_str, tindx, nblock, h
     fp.write("# Column 10: pos.x (m)\n")
     fp.write("# Column 11: pos.y (m)\n")
     fp.write("# Column 12: pos.z (m)\n")
+    fp.write("# Column 13: Mass flux (kg/m**2/s)\n")
     heat_flux_lists = heat_flux_list_str.split(';')
     print "heat_flux_lists = ", heat_flux_lists
     first = True
@@ -720,11 +723,12 @@ def write_heat_flux_profile(outputFileName, heat_flux_list_str, tindx, nblock, h
 				first = False
 			    L += vabs(pos-pos_prev)
 			    pos_prev = pos
-			    fp.write("%e %e %e %e %e %e %e %e %e %e %e %e\n" % \
+			    fp.write("%e %e %e %e %e %e %e %e %e %e %e %e %e\n" % \
                                          ( L, iface_data.qc, iface_data.qd, iface_data.qr,
                                            iface_data.Twall, iface_data.Tcell,
                                            iface_data.rho_cell, iface_data.un_cell, iface_data.Re_wall, 
-                                           iface_data.x, iface_data.y, iface_data.z) )
+                                           iface_data.x, iface_data.y, iface_data.z,
+                                           iface_data.mass_flux) )
     #
     return 0
     

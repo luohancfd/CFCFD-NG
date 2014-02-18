@@ -596,6 +596,7 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
     var_list += "\"pos.x\" \"pos.y\" \"pos.z\" ";
     var_list += "\"q_cond\" \"q_diff\" \"q_rad\" \"T_wall\"";
     var_list += "\"T_cell\" \"rho_cell\" \"un_cell\" \"Re_wall\"";
+    var_list += "\"mass_flux\" ";
     fprintf(fp, "%s\n", var_list.c_str());
     
     // 1. Check if this BC represents a wall
@@ -624,15 +625,41 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
 		    fprintf(fp, "%20.12e %20.12e %20.12e ", 
 			    q_cond[index], q_diff[index], q_rad[index]);
 		    fprintf(fp, "%20.12e ", IFace->fs->gas->T[0]);
-		    fprintf(fp, "%20.12e %20.12e %20.12e %20.12e \n", 
+		    fprintf(fp, "%20.12e %20.12e %20.12e %20.12e ", 
 		    	    cell->fs->gas->T[0], cell->fs->gas->rho, cell->fs->vel.x, Re_wall );
+		    fprintf(fp, "%20.12e \n", 
+		    	    IFace->F->mass );
 		    cell->fs->vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
 		} // end i loop
 	    } // end j loop
 	} // end k loop
     } // end if ( iswall )
     else {
-	fprintf(fp, "0 0 0\n");
+	fprintf(fp, "%d %d %d\n", static_cast<int>(imax-imin+1), 
+		static_cast<int>(jmax-jmin+1), static_cast<int>(kmax-kmin+1));
+	for ( k=kmin; k<=kmax; ++k ) {
+	    for ( j=jmin; j<=jmax; ++j ) {
+		for ( i=imin; i<=imax; ++i ) {
+		    index = (jmax-jmin+1)*(imax-imin+1)*(k-kmin) + 
+			    (imax-imin+1)*(j-jmin) + (i-imin);
+		    cell = bd.get_cell(i,j,k);
+		    IFace = cell->iface[which_boundary];
+		    cell->fs->vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+		    fprintf(fp, "%d %d %d ", static_cast<int>(i),
+			    static_cast<int>(j), static_cast<int>(k));
+		    fprintf(fp, "%20.12e %20.12e %20.12e ", 
+			    IFace->pos.x, IFace->pos.y, IFace->pos.z);
+		    fprintf(fp, "%20.12e %20.12e %20.12e ", 
+			    0.0, 0.0, 0.0);
+		    fprintf(fp, "%20.12e ", IFace->fs->gas->T[0]);
+		    fprintf(fp, "%20.12e %20.12e %20.12e %20.12e ", 
+		    	    cell->fs->gas->T[0], cell->fs->gas->rho, cell->fs->vel.x, 0.0 );
+		    fprintf(fp, "%20.12e \n", 
+		    	    IFace->F->mass );
+		    cell->fs->vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
+		} // end i loop
+	    } // end j loop
+	} // end k loop
     } // end else
     fclose(fp);
     
