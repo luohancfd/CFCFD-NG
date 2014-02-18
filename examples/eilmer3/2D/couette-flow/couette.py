@@ -1,4 +1,5 @@
-##couette.py
+# couette.py
+# Jason (Kan) Qin, November 2013
 
 gdata.dimensions = 2
 select_gas_model(model='ideal gas', species=['air'])
@@ -43,7 +44,7 @@ gdata.dt = 1.0e-9
 gdata.dt_plot = 1e-3
 gdata.dt_history = 1e-3
 # The following scales provide a reasonable picture.
-sketch.xaxis(0.0, x_max, 0.002, -0.05)
-sketch.yaxis(0.0, y_max, 0.002, -0.04)
-sketch.window(0.0, 0.0, x_max, y_max, 0.05, 0.05, 0.17, 0.17)
+sketch.xaxis(0.0, 0.040, 0.01, -0.005)
+sketch.yaxis(0.0, 0.010, 0.01, -0.004)
+sketch.window(0.0, 0.0, 0.040, 0.010, 0.05, 0.05, 0.15, 0.075)
 

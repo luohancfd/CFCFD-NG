@@ -1399,31 +1399,44 @@ Available boundary condition classes include:\index{boundary conditions!list of 
       is like \texttt{ExtrapolateOutBC()} but with a specified back pressure.
       This can be analogous to a vacuum pump that removes gas at the boundary to maintain
       a fixed pressure in the ghost cells.
-    \item \texttt{UserDefinedBC(filename, is\_wall=0, sets\_conv\_flux=0, sets\_visc\_flux=0, label='')}\index{boundary conditions!UserDefinedBC}: 
+    \item \verb!UserDefinedBC(filename, is_wall=0, sets_conv_flux=0, sets_visc_flux=0,!\\
+          \verb!label='')!\index{boundary conditions!UserDefinedBC}: 
        allows the user to define the ghost-cell flow properties and/or interface fluxes at run time.
        This is done via a set of functions defined by the user, and written in the Lua
        programming language.
        These functions are provided in the file given by \texttt{filename}.
-       The flag \texttt{is\_wall} indicates whether the boundary is to be considered
+       The flag \verb!is_wall! indicates whether the boundary is to be considered
        a wall for the application of turbulence-model fudges and the like (default 0).
-       The flag \texttt{sets\_conv\_flux} indicates whether the user is supplying
+       The flag \verb!sets_conv_flux! indicates whether the user is supplying
        the convective fluxes at the boundary interfaces (default 0), in which case the user-supplied file should
-       contain a valid \texttt{convective\_flux()} function.  
+       contain a valid \verb!convective_flux()! function.  
        If not, the internal flux calculator is used together with the supplied ghost-cell data.
        This boundary condition is the Jack of all trades and master of none.
        It can be used to emulate any of the other boundary conditions and then build
        variations, however, it is going to cost quite a lot in computational time.
-       Similar to the setting of convective fluxes, the flag \texttt{sets\_visc\_flux}
+       Similar to the setting of convective fluxes, the flag \verb!sets_visc_flux!
        indicates whether the user is supplying the viscous fluxes at the boundary interfaces (default 0).
-       In this case, the user-supplied file should contain a valid \texttt{viscous\_flux()} function.
+       In this case, the user-supplied file should contain a valid \verb!viscous_flux()! function.
        If not, the internal viscous derivatives are used to compute fluxes based on the supplied interface data.
        See Appendix\,\ref{udf-sec} for the details of setting up this boundary condition.
-    \item \texttt{AdjacentPlusUDFBC(other\_block, other\_face, orientation, filename, \\is\_wall=0, sets\_conv\_flux=0, sets\_visc\_flux=0, label='')}\index{boundary conditions!AdjacentPlusUDFBC}: 
+    \item \verb!AdjacentPlusUDFBC(other_block, other_face, orientation, filename,!\\
+          \verb!is_wall=0, sets_conv_flux=0, sets_visc_flux=0, label='')!\index{boundary conditions!AdjacentPlusUDFBC}: 
        is a combination of the \texttt{AdjacentBC} and \texttt{UserDefinedBC}.
        At each time step, the flow data is first exchanged, as per the usual
        \texttt{AdjacentBC}.  Then the user-defined functions are applied.
        This is one way of getting fancy boundary conditions, such as slowly-opening diaphragms,
        into the simulation.
+    \item \verb!MovingWallBC(r_omega=None, centre=None, v_trans=None,!\\
+          \verb!Twall_flag=False, Twall=None, label='')!\index{boundary conditions!MovingWallBC}:
+       allows the user to specify a no-slip wall condition where the wall surface has a non-zero velocity.
+       \verb!r_omega!, \verb!centre! and \verb!v_trans! are specified as tuples of 3-components giving
+       the angular-velocity, a point on the axis or rotation and a superimposed translational velocity.
+       The actual velocity of a point on the wall is then given by the vector expression 
+       $\vec{\omega} \times (\vec{r} - \vec{c}) + \vec{v}_{trans}$,
+       where $\vec{r}$ is the point on the wall, 
+       $\vec{c}$ is the point on the axis of rotation and $\vec{\omega}$ is the angular velocity.
+       This combination allows the setting of planar and cylindrical moving surfaces.
+       Optionally, the wall temperature may also be set.  If not, the condition defaults to an adiabatic wall.
   \end{itemize}
 Note that, 
 when creating these objects in the Python input script, the Python language requires the parentheses
@@ -1490,10 +1503,10 @@ specifying the boundary conditions when the block is created.
         If not, the internal viscous derivatives are used to compute fluxes based on the supplied interface data.
       \item \texttt{ADJACENT\_PLUS\_UDF}:
       \item \texttt{MOVING\_WALL}: moving wall boundary condition is a solid boundary with no-slip
-        but non-zero surface velocity. r\_omega is a vector to set rotational speed, centre is used to
-        set the rotational centre and v\_trans is used to configure the translational velocity of surface.
-        Initially, moving wall is a kind of adiabatic wall, if you want to set a fixed temperature condition.
-        Twall\_flag should be True, then set fiexd temperature to Twall.
+        but non-zero surface velocity. \verb!r_omega! is a vector to set rotational speed, \verb!centre! is used to
+        set the rotational centre and \verb!v_trans! is used to configure the translational velocity of surface.
+        Initially, moving wall is a kind of adiabatic wall, if you want to set a fixed temperature condition,
+        \verb!Twall_flag! should be \verb!True! temperature to and the temperature specified as \verb!Twall!.
     \end{itemize}
   \item \texttt{inflow\_condition}: the flow condition used for
     \texttt{SUP\_IN}, default value None.
