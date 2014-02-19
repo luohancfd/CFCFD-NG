@@ -71,8 +71,7 @@ d = Node( 0.0, c.y - abs(c.x), label='d')
 east = Polyline( [Arc(a,b,o),Line(b,c)] )
 
 # parametric surface
-psurf = make_parametric_surface(bx_scale, by_scale, M_inf, Rn, gdata.axisymmetric_flag, east, shock=None)
-
+psurf, west = make_parametric_surface( bx_scale, by_scale, M_inf, Rn, axi=gdata.axisymmetric_flag )
 #
 # 4. Define the blocks, boundary conditions and set the discretisation
 #
