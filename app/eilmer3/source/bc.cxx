@@ -572,7 +572,7 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
 ///
 /// Basic formatting borrowed from Block::write_solution
 {
-    FV_Cell * cell;
+    FV_Cell * cell, * ghost_cell;
     FV_Interface * IFace;
     size_t i, j, k;
     size_t index;
@@ -596,7 +596,7 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
     var_list += "\"pos.x\" \"pos.y\" \"pos.z\" ";
     var_list += "\"q_cond\" \"q_diff\" \"q_rad\" \"T_wall\"";
     var_list += "\"T_cell\" \"rho_cell\" \"un_cell\" \"Re_wall\"";
-    var_list += "\"mass_flux\" ";
+    var_list += "\"mass_flux\" \"un_ghost_cell\"";
     fprintf(fp, "%s\n", var_list.c_str());
     
     // 1. Check if this BC represents a wall
@@ -616,6 +616,13 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
 		    cell = bd.get_cell(i,j,k);
 		    IFace = cell->iface[which_boundary];
 		    cell->fs->vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+                    if ( which_boundary == 0 ) { ghost_cell = bd.get_cell(i,j+1,k); } // North Boundary
+                    else if ( which_boundary == 1 ) { ghost_cell = bd.get_cell(i+1,j,k); } // East Boundary
+                    else if ( which_boundary == 2 ) { ghost_cell = bd.get_cell(i,j-1,k); } // South Boundary
+                    else if ( which_boundary == 3 ) { ghost_cell = bd.get_cell(i-1,j,k); } // West Boundary
+                    else if ( which_boundary == 4 ) { ghost_cell = bd.get_cell(i,j,k+1); } // Top Boundary
+                    else { ghost_cell = bd.get_cell(i,j,k-1); } // Bottom Boundary
+		    ghost_cell->fs->vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
 		    Re_wall = cell->calculate_wall_Reynolds_number(which_boundary);
 		    // 5. Write heat-flux data for interface to file
 		    fprintf(fp, "%d %d %d ", static_cast<int>(i),
@@ -627,9 +634,10 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
 		    fprintf(fp, "%20.12e ", IFace->fs->gas->T[0]);
 		    fprintf(fp, "%20.12e %20.12e %20.12e %20.12e ", 
 		    	    cell->fs->gas->T[0], cell->fs->gas->rho, cell->fs->vel.x, Re_wall );
-		    fprintf(fp, "%20.12e \n", 
-		    	    IFace->F->mass );
+		    fprintf(fp, "%20.12e %20.12e \n", 
+		    	    IFace->F->mass, ghost_cell->fs->vel.x );
 		    cell->fs->vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
+		    ghost_cell->fs->vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
 		} // end i loop
 	    } // end j loop
 	} // end k loop
@@ -645,6 +653,13 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
 		    cell = bd.get_cell(i,j,k);
 		    IFace = cell->iface[which_boundary];
 		    cell->fs->vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
+                    if ( which_boundary == 0 ) { ghost_cell = bd.get_cell(i,j+1,k); } // North Boundary
+                    else if ( which_boundary == 1 ) { ghost_cell = bd.get_cell(i+1,j,k); } // East Boundary
+                    else if ( which_boundary == 2 ) { ghost_cell = bd.get_cell(i,j-1,k); } // South Boundary
+                    else if ( which_boundary == 3 ) { ghost_cell = bd.get_cell(i-1,j,k); } // West Boundary
+                    else if ( which_boundary == 4 ) { ghost_cell = bd.get_cell(i,j,k+1); } // Top Boundary
+                    else { ghost_cell = bd.get_cell(i,j,k-1); } // Bottom Boundary
+		    ghost_cell->fs->vel.transform_to_local(IFace->n, IFace->t1, IFace->t2);
 		    fprintf(fp, "%d %d %d ", static_cast<int>(i),
 			    static_cast<int>(j), static_cast<int>(k));
 		    fprintf(fp, "%20.12e %20.12e %20.12e ", 
@@ -654,9 +669,10 @@ int BoundaryCondition::write_surface_heat_flux( string filename, double sim_time
 		    fprintf(fp, "%20.12e ", IFace->fs->gas->T[0]);
 		    fprintf(fp, "%20.12e %20.12e %20.12e %20.12e ", 
 		    	    cell->fs->gas->T[0], cell->fs->gas->rho, cell->fs->vel.x, 0.0 );
-		    fprintf(fp, "%20.12e \n", 
-		    	    IFace->F->mass );
+		    fprintf(fp, "%20.12e %20.12e \n", 
+		    	    IFace->F->mass, ghost_cell->fs->vel.x );
 		    cell->fs->vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
+		    ghost_cell->fs->vel.transform_to_global(IFace->n, IFace->t1, IFace->t2);
 		} // end i loop
 	    } // end j loop
 	} // end k loop
