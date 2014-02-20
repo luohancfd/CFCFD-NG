@@ -247,7 +247,7 @@ def select_radiation_model(input_file=None, update_frequency=1):
 	gdata.radiation_update_frequency = update_frequency
 	# 2. set the models for immediate use in the simulation preparation
 	set_radiation_transport_model( input_file )
-	gdata.radiation_update_frequency = update_frequency 
+	gdata.radiation_update_frequency = update_frequency # Dan, why is this done again?
     else:
 	print "The field 'input_file' is required when selecting the"
 	print "radiation model via the function 'select_radiation_model'."
@@ -994,58 +994,59 @@ class HistoryLocation(object):
 
 # --------------------------------------------------------------------
 
+def locate_closest_cell(x_target, y_target, z_target=0.0):
+    """
+    Find the cell centre closest to a given point, searching across all blocks.
+    """
+    # Create an initial guess
+    x, y, z, vol = Block.blockList[0].cell_centre_location(0,0,0,gdata)
+    min_dist = math.sqrt( (x-x_target)**2 + (y-y_target)**2 + (z-z_target)**2 )
+    best_block = 0; best_i = 0; best_j = 0; best_k = 0
+    #
+    for b in Block.blockList:
+        # print "BLOCK-%d" % b.blkId
+        if gdata.dimensions == 3:
+            for k in range(b.grid.nk-1):
+                for j in range(b.grid.nj-1):
+                    for i in range(b.grid.ni-1):
+                        x,y,z,vol = b.cell_centre_location(i,j,k,gdata)
+                        dist = math.sqrt( (x-x_target)**2 + (y-y_target)**2 + (z-z_target)**2 )
+                        if dist < min_dist:
+                            min_dist = dist
+                            best_block = b.blkId
+                            best_i = i; best_j = j; best_k = k
+        else:
+            k = 0
+            for j in range(b.grid.nj-1):
+                for i in range(b.grid.ni-1):
+                    x,y,z,vol = b.cell_centre_location(i,j,k,gdata)
+                    dist = math.sqrt( (x-x_target)**2 + (y-y_target)**2 )
+                    if dist < min_dist:
+                        min_dist = dist
+                        best_block = b.blkId
+                        best_i = i; best_j = j
+    #
+    return (best_block, best_i, best_j, best_k)
+
+def keep_in_range(i, low, hi):
+    return max(low, min(i, hi))
+
 def locate_history_cells():
     """
-    Given the Cartesian coordinates, locate appropriate cells.
+    Given the Cartesian coordinates of the history locations, 
+    locate the closest cell for each.
     """
     global gdata
     #
     for h in HistoryLocation.historyList:
-        x_target = h.x
-        y_target = h.y
-        z_target = h.z
-        #
-        # Create an initial guess
-        x, y, z, vol = Block.blockList[0].cell_centre_location(0,0,0,gdata)
-        min_dist = math.sqrt( (x-x_target)**2 + (y-y_target)**2 + (z-z_target)**2 )
-        best_block = 0; best_i = 0; best_j = 0; best_k = 0
-        #
-        for b in Block.blockList:
-            # print "BLOCK-%d" % b.blkId
-            if gdata.dimensions == 3:
-                for k in range(b.grid.nk-1):
-                    for j in range(b.grid.nj-1):
-                        for i in range(b.grid.ni-1):
-                            x,y,z,vol = b.cell_centre_location(i,j,k,gdata)
-                            dist = math.sqrt( (x-x_target)**2 + (y-y_target)**2 + (z-z_target)**2 )
-                            if dist < min_dist:
-                                min_dist = dist
-                                best_block = b.blkId
-                                best_i = i; best_j = j; best_k = k
-            else:
-                k = 0
-                for j in range(b.grid.nj-1):
-                    for i in range(b.grid.ni-1):
-                        x,y,z,vol = b.cell_centre_location(i,j,k,gdata)
-                        dist = math.sqrt( (x-x_target)**2 + (y-y_target)**2 )
-                        if dist < min_dist:
-                            min_dist = dist
-                            best_block = b.blkId
-                            best_i = i; best_j = j
-        #
+        best_block, best_i, best_j, best_k = locate_closest_cell(h.x, h.y, h.z)
         b = Block.blockList[best_block]
         print "For history location: ", x_target, y_target, z_target
         print "    Closest grid cell is at: block= ", best_block, \
               "i=", best_i, "j=", best_j, "k=", best_k
-        best_i += h.i_offset
-        if best_i < 0: best_i = 0
-        if best_i > b.nni-1: best_i = b.nni-1
-        best_j += h.j_offset
-        if best_j < 0: best_j = 0
-        if best_j > b.nnj-1: best_j = b.nnj-1
-        best_k += h.k_offset
-        if best_k < 0: best_k = 0
-        if best_k > b.nnk-1: best_k = b.nnk-1
+        best_i += h.i_offset; best_i = keep_in_range(best_i, 0, b.nni-1)
+        best_j += h.j_offset; best_j = keep_in_range(best_j, 0, b.nnj-1)
+        best_k += h.k_offset; best_k = keep_in_range(best_k, 0, b.nnk-1)
         print "    After offsets: i=", best_i, "j=", best_j, "k=", best_k
         Block.blockList[best_block].hcell_list.append( (best_i, best_j, best_k) )
         print "    For block", best_block ,"this becomes history cell index=", \
@@ -1054,7 +1055,6 @@ def locate_history_cells():
         h.blkId = best_block
         h.cellId = len(Block.blockList[best_block].hcell_list) - 1
     #
-    # FIX-ME update the following table for 3D also.
     if len(HistoryLocation.historyList) > 0:
         hfp = open("history_cells.list", 'w')
         hfp.write("List of history cells associated with %s \n" % gdata.title )
@@ -1065,16 +1065,15 @@ def locate_history_cells():
         hfp.write("|   i  |   j  |   k  |  cell id  |  cells in block  |\n")
         hfp.write("========================================================")
         hfp.write("========================================================\n")
-    for h in HistoryLocation.historyList:
-        hfp.write("|   %-11s    | %6.4g  | %6.4g  | %6.4g  |  %3d    " % 
-                  (h.label, h.x, h.y, h.z, h.blkId))
-        hfp.write("| %3d  | %3d  | %3d  |   %3d     |       %3d        |\n" %
-                  (h.i, h.j, h.k, h.cellId, len(Block2D.blockList[h.blkId].hcell_list)))
-        hfp.write("--------------------------------------------------------")
-        hfp.write("--------------------------------------------------------\n")
-    #
-    if len(HistoryLocation.historyList) > 0:
+        for h in HistoryLocation.historyList:
+            hfp.write("|   %-11s    | %6.4g  | %6.4g  | %6.4g  |  %3d    " % 
+                      (h.label, h.x, h.y, h.z, h.blkId))
+            hfp.write("| %3d  | %3d  | %3d  |   %3d     |       %3d        |\n" %
+                      (h.i, h.j, h.k, h.cellId, len(Block.blockList[h.blkId].hcell_list)))
+            hfp.write("--------------------------------------------------------")
+            hfp.write("--------------------------------------------------------\n")
         hfp.close()
+    #
     return
 
 #----------------------------------------------------------------------------
