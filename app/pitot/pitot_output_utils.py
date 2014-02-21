@@ -83,9 +83,15 @@ def txt_file_output(cfg, states, V, M):
         txt_output.write(description_5 + '\n')
         
     if cfg['conehead']:
-        description_6 = 'state 10c is conditions over {0} degree conehead in test section.'.format(cfg['conehead_angle'])
+        description_6 = 'state 10c is conditions over {0} degree conehead in the test section.'.format(cfg['conehead_angle'])
         print description_6
         txt_output.write(description_6 + '\n')
+        
+    if cfg['wedge']:
+        description_7 = 'state 10w is conditions over {0} degree wedge in the test section.'.format(cfg['wedge_angle'])
+        print description_7
+        txt_output.write(description_7 + '\n')
+        
         
     if cfg['solver'] == 'eq':
         solver_printout = "Solver used is equilibrium."
@@ -209,6 +215,9 @@ def txt_file_output(cfg, states, V, M):
                 states[it_string].with_ions = False
                 condition_printer(it_string)
                 states[it_string].with_ions = True
+                
+    if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
+         condition_printer('s5')
             
     if cfg['nozzle']: #do nozzle calculations if asked to
         condition_printer('s8')
@@ -221,9 +230,9 @@ def txt_file_output(cfg, states, V, M):
     if cfg['conehead']:
         condition_printer('s10c')
         
-    if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
-         condition_printer('s5')
-                                   
+    if cfg['wedge']:
+        condition_printer('s10w')
+                                           
     #some other useful calculations at the end
           
     states['test_section_total'] = total_condition(states[cfg['test_section_state']], V[cfg['test_section_state']])
@@ -462,6 +471,9 @@ def csv_file_output(cfg, states, V, M):
         for i in range(5,9): #acc tube and nozzle if it's there
             it_string = 's{0}'.format(i)
             csv_condition_printer(it_string)
+            
+    if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
+        csv_condition_printer('s5')
         
     #do the conditions over the model
     if cfg['shock_over_model']:
@@ -471,8 +483,8 @@ def csv_file_output(cfg, states, V, M):
     if cfg['conehead']:
         csv_condition_printer('s10c')
         
-    if cfg['tunnel_mode'] == 'reflected-shock-tunnel':
-        csv_condition_printer('s5')
+    if cfg['wedge']:
+        csv_condition_printer('s10w')
         
     if 'stagnation_enthalpy' not in cfg:
         #if stagnation enthalpy and u_eq not already calculated, calculate them here

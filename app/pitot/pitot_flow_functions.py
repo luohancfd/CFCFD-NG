@@ -598,6 +598,40 @@ def shock_over_model_calculation(cfg, states, V, M):
     
 #----------------------------------------------------------------------------
     
+def wedge_calculation(cfg, states, V, M):
+    """Function that takes the cfg, states, V and M dictionaries
+    and does a wedge calculation if the user requests it.
+    It takes the wedge angle from the config dictionary and builds a new
+    state, state 10w.
+    
+    """
+    
+    if PRINT_STATUS: print "Starting calculation of conditions behind a {0} degree wedge in the test section.".format(cfg['wedge_angle']) 
+    
+    states['s10w'] = states[cfg['test_section_state']].clone()
+    # start by getting the beta angle over the wedge
+    cfg['wedge_angle_radians'] = math.radians(cfg['wedge_angle'])
+    cfg['beta'] = beta_oblique(states[cfg['test_section_state']], V[cfg['test_section_state']], cfg['wedge_angle_radians'])
+    print "Beta = {0} degrees.".format(math.degrees(cfg['beta']))
+    # now get the wedge surface conditions
+    cfg['wedge_angle_calculated'], V['s10w'], states['s10w'] = theta_oblique(states[cfg['test_section_state']], V[cfg['test_section_state']], cfg['beta'])
+    wedge_angle_calculated_degrees = math.degrees(cfg['wedge_angle_calculated'])
+    wedge_angle_error = ((cfg['wedge_angle']-wedge_angle_calculated_degrees)/cfg['wedge_angle'])*100.0
+    # need to check the calculated theta
+    print "Selected wedge angle {0} degrees, calculated wedge angle {1} degrees, error is {2} %"\
+          .format(cfg['wedge_angle'], wedge_angle_calculated_degrees, wedge_angle_error)
+    if wedge_angle_error > 1.0:
+        print "Wedge angle error is too large. Going to throw this result out."
+        cfg['wedge'] = False
+    
+    M['s10w']= V['s10w']/states['s10w'].a
+ 
+    if PRINT_STATUS: print '-'*60
+        
+    return cfg, states, V, M
+    
+#----------------------------------------------------------------------------
+    
 def conehead_calculation(cfg, states, V, M):
     """Function that takes the cfg, states, V and M dictionaries, does a 
     calculation for a conehead in the test section at a specified angle

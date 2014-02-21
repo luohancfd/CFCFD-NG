@@ -162,6 +162,9 @@ available to me as part of cfpylib inside the cfcfd code collection.
         something to the non-reflected shock tunnel mode to basically allow
         it to simulate an rst.
     29-Jan-2014: Properly added 'reflected-shock-tunnel' mode to Pitot.
+    21-Feb-2014: Added a wedge calculation for the dump tank to Pitot, the user
+        can specify a wedge angle and get the surface conditions for a wedge
+        in the test section.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -189,7 +192,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "10-Feb-2014"
+VERSION_STRING = "21-Feb-2014"
 
 DEBUG_PITOT = False
 
@@ -295,6 +298,11 @@ def run_pitot(cfg = {}, config_file = None):
     
     if cfg['shock_over_model']:
         cfg, states, V, M = shock_over_model_calculation(cfg, states, V, M)
+        
+    #------------------- do wedge conditions calculation if asked to --------
+    if cfg['wedge']:
+        cfg, states, V, M = wedge_calculation(cfg, states, V, M)
+    
             
     #-------------- if the normal shock thing was done, fix it up before print out ----------
 

@@ -298,6 +298,10 @@ def input_checker(cfg):
         print "conehead angle not specified. 15 degree conehead angle selected."
         cfg['conehead_angle'] = 15.0
         
+    if 'wedge' in cfg and 'wedge_angle' not in cfg:
+        print "Wedge angle not specified. 15 degree wedge angle selected."
+        cfg['wedge_angle'] = 15.0        
+        
     if 'shock_over_model' not in cfg:
         print "shock_over_model switch not set, so we'll leave it turned off."
         cfg['shock_over_model'] = False
