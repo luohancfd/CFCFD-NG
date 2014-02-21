@@ -205,7 +205,8 @@ inline int one_d_interp_right_scalar(double qL0, double qR0, double qR1, double 
 ///
 /// This is essentially a one-dimensional interpolation process.  It needs only
 /// the cell-average data and the lengths of the cells in the interpolation direction.
-int one_d_interp_both(const FV_Cell &cL1, const FV_Cell &cL0,
+int one_d_interp_both(const FV_Interface &IFace,
+		      const FV_Cell &cL1, const FV_Cell &cL0,
 		      const FV_Cell &cR0, const FV_Cell &cR1,
 		      double cL1Length, double cL0Length,
 		      double cR0Length, double cR1Length,
@@ -223,6 +224,16 @@ int one_d_interp_both(const FV_Cell &cL1, const FV_Cell &cL0,
     Rght.copy_values_from(*(cR0.fs));
     if ( G.Xorder > 1 ) {
 	// High-order reconstruction for some properties.
+
+	// Paul Petrie-Repar and Jason Qin have noted that the velocity needs
+	// to be reconstructed in the interface-local frame of reference so that
+	// the normal velocities are not messed up for mirror-image at walls.
+	// PJ 21-feb-2012
+	cL1.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+	cL0.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+	cR0.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+	cR1.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+
 	one_d_interp_both_prepare(cL1Length, cL0Length, cR0Length, cR1Length);
 	one_d_interp_both_scalar(cL1.fs->vel.x, cL0.fs->vel.x, cR0.fs->vel.x, cR1.fs->vel.x, Lft.vel.x, Rght.vel.x);
 	one_d_interp_both_scalar(cL1.fs->vel.y, cL0.fs->vel.y, cR0.fs->vel.y, cR1.fs->vel.y, Lft.vel.y, Rght.vel.y);
@@ -311,6 +322,14 @@ int one_d_interp_both(const FV_Cell &cL1, const FV_Cell &cL0,
 	default: 
 	    throw std::runtime_error("Invalid thermo interpolator.");
 	}
+
+	// Undo the transformation made earlier. PJ 21-feb-2012
+	Lft.vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	Rght.vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	cL1.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	cL0.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	cR0.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	cR1.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
     } // end of high-order reconstruction
     return SUCCESS;
 } // end of one_d_interp_both()
@@ -319,7 +338,8 @@ int one_d_interp_both(const FV_Cell &cL1, const FV_Cell &cL0,
 ///
 /// This is essentially a one-dimensional interpolation process.  It needs only
 /// the cell-average data and the lengths of the cells in the interpolation direction.
-int one_d_interp_left(const FV_Cell &cL1, const FV_Cell &cL0, const FV_Cell &cR0,
+int one_d_interp_left(const FV_Interface &IFace,
+		      const FV_Cell &cL1, const FV_Cell &cL0, const FV_Cell &cR0,
 		      double cL1Length, double cL0Length, double cR0Length,
 		      FlowState &Lft, FlowState &Rght)
 {
@@ -335,6 +355,11 @@ int one_d_interp_left(const FV_Cell &cL1, const FV_Cell &cL0, const FV_Cell &cR0
     Rght.copy_values_from(*(cR0.fs));
     if ( G.Xorder > 1 ) {
 	// High-order reconstruction for some properties.
+	// In the interface-local frame.
+	cL1.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+	cL0.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+	cR0.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+
 	one_d_interp_left_prepare(cL1Length, cL0Length, cR0Length);
 	one_d_interp_left_scalar(cL1.fs->vel.x, cL0.fs->vel.x, cR0.fs->vel.x, Lft.vel.x);
 	one_d_interp_left_scalar(cL1.fs->vel.y, cL0.fs->vel.y, cR0.fs->vel.y, Lft.vel.y);
@@ -404,6 +429,11 @@ int one_d_interp_left(const FV_Cell &cL1, const FV_Cell &cL0, const FV_Cell &cR0
 	default: 
 	    throw std::runtime_error("Invalid thermo interpolator.");
 	}
+	// Undo the transformation made earlier.
+	Lft.vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	cL1.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	cL0.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	cR0.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
     } // end of high-order reconstruction
     return SUCCESS;
 } // end of one_d_interp_left()
@@ -412,7 +442,8 @@ int one_d_interp_left(const FV_Cell &cL1, const FV_Cell &cL0, const FV_Cell &cR0
 ///
 /// This is essentially a one-dimensional interpolation process.  It needs only
 /// the cell-average data and the lengths of the cells in the interpolation direction.
-int one_d_interp_right(const FV_Cell &cL0, const FV_Cell &cR0, const FV_Cell &cR1,
+int one_d_interp_right(const FV_Interface &IFace,
+		       const FV_Cell &cL0, const FV_Cell &cR0, const FV_Cell &cR1,
 		       double cL0Length, double cR0Length, double cR1Length,
 		       FlowState &Lft, FlowState &Rght)
 {
@@ -428,6 +459,11 @@ int one_d_interp_right(const FV_Cell &cL0, const FV_Cell &cR0, const FV_Cell &cR
     Rght.copy_values_from(*(cR0.fs));
     if ( G.Xorder > 1 ) {
 	// High-order reconstruction for some properties.
+	// In the interface-local frame.
+	cL0.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+	cR0.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+	cR1.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+
 	one_d_interp_right_prepare(cL0Length, cR0Length, cR1Length);
 	one_d_interp_right_scalar(cL0.fs->vel.x, cR0.fs->vel.x, cR1.fs->vel.x, Rght.vel.x);
 	one_d_interp_right_scalar(cL0.fs->vel.y, cR0.fs->vel.y, cR1.fs->vel.y, Rght.vel.y);
@@ -497,6 +533,12 @@ int one_d_interp_right(const FV_Cell &cL0, const FV_Cell &cR0, const FV_Cell &cR
 	default: 
 	    throw std::runtime_error("Invalid thermo interpolator.");
 	}
+
+	// Undo the transformation made earlier.
+	Rght.vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	cL0.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	cR0.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	cR1.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
     } // end of high-order reconstruction
     return SUCCESS;
 } // end of one_d_interp_right()
