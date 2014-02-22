@@ -4,6 +4,7 @@
 # This exercises quite a few of the basic functions of the 3D code.
 #
 # PJ, 14-Jan-2011
+#     22-Feb-2014 Update expected values for interpolate-in-local-frame.
 
 package require tcltest 2.0
 namespace import ::tcltest::*
@@ -67,8 +68,8 @@ test estimated-forces {The forces are approximately 2210,0,-12540 Newtons.} -bod
     }
     # The shock wave angle should be within 1 degree of expected
     # and average deviation of points should be less than 2mm. 
-    list [expr abs($f_x - 2210)/2210 < 0.001] [expr abs($f_y) < 0.001] \
-	[expr abs($f_z + 12540)/12540 < 0.001]
+    list [expr abs($f_x - 2215)/2215 < 0.003] [expr abs($f_y) < 0.001] \
+	[expr abs($f_z + 12560)/12560 < 0.002]
 } -result {1 1 1}
 
 cleanupTests

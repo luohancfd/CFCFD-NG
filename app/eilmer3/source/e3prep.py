@@ -349,8 +349,8 @@ class GlobalData(object):
       calculator.  default 0.01
     * interpolation_type: (string) Choose the set of thermo variables to use in interpolation.
       options: "rhoe", "rhop", "rhoT", "pT", default "rhoe"
-    * interpolate_in_local_frame: (bool) Set true to have reconstruction done in the interface-local
-      coordinate frame.  Default is False (i.e. interpolate in the global coordinate frame)
+    * interpolate_in_local_frame: (bool) Set True to have reconstruction done in the interface-local
+      coordinate frame, use global coordinate frame otherwise.  Default is True.
     * apply_limiter_flag : (0/1) Set to 1 to have reconstruction limiter enabled (default)
       Set to 0 for no limiting
     * extrema_clipping_flag : (0/1) Set to 1 to allow clipping of extreme values in the 1D
@@ -508,7 +508,7 @@ class GlobalData(object):
         self.electric_field_work_flag = 0
         self.x_order = 2
         self.interpolation_type = "rhoe"
-        self.interpolate_in_local_frame = False
+        self.interpolate_in_local_frame = True
         self.apply_limiter_flag = 1
         self.extrema_clipping_flag = 1
         self.flux_calc = "adaptive"

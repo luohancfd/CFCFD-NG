@@ -476,7 +476,7 @@ int read_config_parameters(const string filename, bool master)
 	throw std::runtime_error(std::string("Requested field interpolator not available: ") + s_value);
     }
     set_thermo_interpolator(available_interpolators[s_value]);
-    dict.parse_boolean("global_data", "interpolate_in_local_frame", b_value, false);
+    dict.parse_boolean("global_data", "interpolate_in_local_frame", b_value, true);
     set_interpolate_in_local_frame_flag(b_value);
     dict.parse_boolean("global_data", "apply_limiter_flag", b_value, true);
     set_apply_limiter_flag(b_value);

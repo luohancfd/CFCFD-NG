@@ -62,8 +62,9 @@ bool get_extrema_clipping_flag()
 }
 
 // In the past, we've always done the high-order interpolation 
-// of velocity in the global coordinate frame, so make that the default.
-bool interpolate_in_local_frame = false;
+// of velocity in the global coordinate frame, however, the
+// local frame is better.  Make that the default.
+bool interpolate_in_local_frame = true;
 bool set_interpolate_in_local_frame_flag(bool bflag)
 {
     interpolate_in_local_frame = bflag;

@@ -1,11 +1,12 @@
-# odw.test
+# inf_cyl.test
 # Functional test for reacting, 2D, inviscid flow.
 #
 # This exercises quite a few of the basic functions of the 2D code
-# plus the finite-rate chemistry module.
+# plus the finite-rate thermochemistry module with multiple temperatures.
 #
 # PJ, 13-Jan-2011
-#     18-Jul-2012 update to run with 64 tasks and a longer time
+#     22-Feb-2014 Update expected values for interpolate-in-local-frame but
+#                 increase tolerances to accept interpolate-in-global-frame results.
 
 package require tcltest 2.0
 namespace import ::tcltest::*
@@ -30,8 +31,8 @@ test number-of-steps {The main simulation takes a certain number of steps.} -bod
 	    set final_steps [lindex [split $line] 5]
 	}
     }
-    set final_steps
-} -result {3630}
+    expr abs($final_steps - 3630) < 2
+} -result {1}
 
 test run-postprocessor {Run the postprocessing stage.} -body {
     if { [catch {exec e3post.py --job=inf_cyl {--slice-list=0,:,0,:;2,:,0,:} \
@@ -45,8 +46,8 @@ test run-postprocessor {Run the postprocessing stage.} -body {
     close $fp
     set T_tr [lindex [split [string trim $contents]] 20]
     set T_v [lindex [split [string trim $contents]] 22]
-    list [expr abs($T_tr - 2532.9) < 2.0] \
-         [expr abs($T_v - 2360.6) < 2.0]
+    list [expr abs($T_tr - 2536.4) < 20.0] \
+         [expr abs($T_v - 2349.0) < 20.0]
 
 } -result {1 1}
 
