@@ -349,10 +349,12 @@ class GlobalData(object):
       calculator.  default 0.01
     * interpolation_type: (string) Choose the set of thermo variables to use in interpolation.
       options: "rhoe", "rhop", "rhoT", "pT", default "rhoe"
+    * interpolate_in_local_frame: (bool) Set true to have reconstruction done in the interface-local
+      coordinate frame.  Default is False (i.e. interpolate in the global coordinate frame)
     * apply_limiter_flag : (0/1) Set to 1 to have reconstruction limiter enabled (default)
-       Set to 0 for no limiting
+      Set to 0 for no limiting
     * extrema_clipping_flag : (0/1) Set to 1 to allow clipping of extreme values in the 1D
-       scalar reconstruction function (default).  Set to 0 to suppress clipping. 
+      scalar reconstruction function (default).  Set to 0 to suppress clipping. 
     * dt: (float) Size of the initial time step.
       After a few steps, the solver will have enough information to select
       a suitable time step, based on the cfl number.
@@ -443,7 +445,7 @@ class GlobalData(object):
                 'filter_flag', 'filter_tstart', 'filter_tend', \
                 'filter_dt', 'filter_mu', 'filter_npass', \
                 't0', 'dt', 'dt_max', 'cfl', 'dt_chem', 'dt_therm', \
-                'interpolation_type', 'sequence_blocks', \
+                'interpolation_type', 'interpolate_in_local_frame', 'sequence_blocks', \
                 'print_count', 'cfl_count', 'max_invalid_cells', 'dt_reduction_factor', \
                 'max_time', 'max_step', 'dt_plot', 'dt_history', "write_at_step", \
                 'displacement_thickness', 'time_average_flag', 'perturb_flag', \
@@ -506,6 +508,7 @@ class GlobalData(object):
         self.electric_field_work_flag = 0
         self.x_order = 2
         self.interpolation_type = "rhoe"
+        self.interpolate_in_local_frame = False
         self.apply_limiter_flag = 1
         self.extrema_clipping_flag = 1
         self.flux_calc = "adaptive"
@@ -673,6 +676,7 @@ class GlobalData(object):
         fp.write("shear_tolerance = %e\n"% self.shear_tolerance)
         fp.write("M_inf = %e\n" % self.M_inf)
         fp.write("interpolation_type = %s\n" % self.interpolation_type)
+        fp.write("interpolate_in_local_frame = %s\n" % self.interpolate_in_local_frame)
         fp.write("apply_limiter_flag = %d\n" % self.apply_limiter_flag )
         fp.write("extrema_clipping_flag = %d\n" % self.extrema_clipping_flag )
         fp.write("sequence_blocks = %d\n" % self.sequence_blocks)

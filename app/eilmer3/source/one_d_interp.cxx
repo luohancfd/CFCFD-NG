@@ -19,18 +19,15 @@
 // Some configuration settings...
 
 thermo_interp_t thermo_interpolator = INTERP_RHOE;
-
 thermo_interp_t set_thermo_interpolator(thermo_interp_t interp)
 {
     thermo_interpolator = interp;
     return thermo_interpolator;
 }
-
 thermo_interp_t get_thermo_interpolator()
 {
     return thermo_interpolator;
 }
-
 std::string get_thermo_interpolator_name(thermo_interp_t interp)
 {
     switch ( interp ) {
@@ -43,31 +40,40 @@ std::string get_thermo_interpolator_name(thermo_interp_t interp)
 } // end get_thermo_interpolator_name()
 
 bool apply_limiter = true;
-
 bool set_apply_limiter_flag(bool bflag)
 {
     apply_limiter = bflag;
     return apply_limiter;
 }
-
 bool get_apply_limiter_flag()
 {
     return apply_limiter;
 }
 
 bool extrema_clipping = true;
-
 bool set_extrema_clipping_flag(bool bflag)
 {
     extrema_clipping = bflag;
     return extrema_clipping;
 }
-
 bool get_extrema_clipping_flag()
 {
     return extrema_clipping;
 }
 
+// In the past, we've always done the high-order interpolation 
+// of velocity in the global coordinate frame, so make that the default.
+bool interpolate_in_local_frame = false;
+bool set_interpolate_in_local_frame_flag(bool bflag)
+{
+    interpolate_in_local_frame = bflag;
+    return interpolate_in_local_frame;
+}
+bool get_interpolate_in_local_frame_flag()
+{
+    return interpolate_in_local_frame;
+}
+   
 //-----------------------------------------------------------------------------
 
 /// \brief One-dimensional reconstruction of a scalar quantity.
@@ -224,16 +230,16 @@ int one_d_interp_both(const FV_Interface &IFace,
     Rght.copy_values_from(*(cR0.fs));
     if ( G.Xorder > 1 ) {
 	// High-order reconstruction for some properties.
-
-	// Paul Petrie-Repar and Jason Qin have noted that the velocity needs
-	// to be reconstructed in the interface-local frame of reference so that
-	// the normal velocities are not messed up for mirror-image at walls.
-	// PJ 21-feb-2012
-	cL1.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
-	cL0.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
-	cR0.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
-	cR1.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
-
+	if ( interpolate_in_local_frame ) {
+	    // Paul Petrie-Repar and Jason Qin have noted that the velocity needs
+	    // to be reconstructed in the interface-local frame of reference so that
+	    // the normal velocities are not messed up for mirror-image at walls.
+	    // PJ 21-feb-2012
+	    cL1.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+	    cL0.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+	    cR0.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+	    cR1.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+	}
 	one_d_interp_both_prepare(cL1Length, cL0Length, cR0Length, cR1Length);
 	one_d_interp_both_scalar(cL1.fs->vel.x, cL0.fs->vel.x, cR0.fs->vel.x, cR1.fs->vel.x, Lft.vel.x, Rght.vel.x);
 	one_d_interp_both_scalar(cL1.fs->vel.y, cL0.fs->vel.y, cR0.fs->vel.y, cR1.fs->vel.y, Lft.vel.y, Rght.vel.y);
@@ -322,14 +328,15 @@ int one_d_interp_both(const FV_Interface &IFace,
 	default: 
 	    throw std::runtime_error("Invalid thermo interpolator.");
 	}
-
-	// Undo the transformation made earlier. PJ 21-feb-2012
-	Lft.vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
-	Rght.vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
-	cL1.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
-	cL0.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
-	cR0.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
-	cR1.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	if ( interpolate_in_local_frame ) {
+	    // Undo the transformation made earlier. PJ 21-feb-2012
+	    Lft.vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	    Rght.vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	    cL1.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	    cL0.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	    cR0.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	    cR1.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	}
     } // end of high-order reconstruction
     return SUCCESS;
 } // end of one_d_interp_both()
@@ -355,11 +362,12 @@ int one_d_interp_left(const FV_Interface &IFace,
     Rght.copy_values_from(*(cR0.fs));
     if ( G.Xorder > 1 ) {
 	// High-order reconstruction for some properties.
-	// In the interface-local frame.
-	cL1.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
-	cL0.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
-	cR0.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
-
+	if ( interpolate_in_local_frame ) {
+	    // In the interface-local frame.
+	    cL1.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+	    cL0.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+	    cR0.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+	}
 	one_d_interp_left_prepare(cL1Length, cL0Length, cR0Length);
 	one_d_interp_left_scalar(cL1.fs->vel.x, cL0.fs->vel.x, cR0.fs->vel.x, Lft.vel.x);
 	one_d_interp_left_scalar(cL1.fs->vel.y, cL0.fs->vel.y, cR0.fs->vel.y, Lft.vel.y);
@@ -429,11 +437,13 @@ int one_d_interp_left(const FV_Interface &IFace,
 	default: 
 	    throw std::runtime_error("Invalid thermo interpolator.");
 	}
-	// Undo the transformation made earlier.
-	Lft.vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
-	cL1.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
-	cL0.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
-	cR0.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	if ( interpolate_in_local_frame ) {
+	    // Undo the transformation made earlier.
+	    Lft.vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	    cL1.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	    cL0.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	    cR0.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	}
     } // end of high-order reconstruction
     return SUCCESS;
 } // end of one_d_interp_left()
@@ -459,11 +469,12 @@ int one_d_interp_right(const FV_Interface &IFace,
     Rght.copy_values_from(*(cR0.fs));
     if ( G.Xorder > 1 ) {
 	// High-order reconstruction for some properties.
-	// In the interface-local frame.
-	cL0.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
-	cR0.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
-	cR1.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
-
+	if ( interpolate_in_local_frame ) {
+	    // In the interface-local frame.
+	    cL0.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+	    cR0.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+	    cR1.fs->vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
+	}
 	one_d_interp_right_prepare(cL0Length, cR0Length, cR1Length);
 	one_d_interp_right_scalar(cL0.fs->vel.x, cR0.fs->vel.x, cR1.fs->vel.x, Rght.vel.x);
 	one_d_interp_right_scalar(cL0.fs->vel.y, cR0.fs->vel.y, cR1.fs->vel.y, Rght.vel.y);
@@ -533,12 +544,13 @@ int one_d_interp_right(const FV_Interface &IFace,
 	default: 
 	    throw std::runtime_error("Invalid thermo interpolator.");
 	}
-
-	// Undo the transformation made earlier.
-	Rght.vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
-	cL0.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
-	cR0.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
-	cR1.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	if ( interpolate_in_local_frame ) {
+	    // Undo the transformation made earlier.
+	    Rght.vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	    cL0.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	    cR0.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	    cR1.fs->vel.transform_to_global(IFace.n, IFace.t1, IFace.t2);
+	}
     } // end of high-order reconstruction
     return SUCCESS;
 } // end of one_d_interp_right()

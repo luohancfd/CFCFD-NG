@@ -13,6 +13,8 @@ bool set_apply_limiter_flag(bool bflag);
 bool get_apply_limiter_flag();
 bool set_extrema_clipping_flag(bool bflag);
 bool get_extrema_clipping_flag();
+bool set_interpolate_in_local_frame_flag(bool bflag);
+bool get_interpolate_in_local_frame_flag();
 
 int one_d_interp_both(const FV_Interface &IFace,
 		      const FV_Cell &cL1, const FV_Cell &cL0, 

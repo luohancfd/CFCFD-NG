@@ -293,6 +293,7 @@ int read_config_parameters(const string filename, bool master)
     // Most configuration comes from the previously-generated INI file.
     ConfigParser dict = ConfigParser(filename);
     int i_value;
+    bool b_value;
     string s_value, s_value2;
     double d_value;
 
@@ -475,10 +476,12 @@ int read_config_parameters(const string filename, bool master)
 	throw std::runtime_error(std::string("Requested field interpolator not available: ") + s_value);
     }
     set_thermo_interpolator(available_interpolators[s_value]);
-    dict.parse_int("global_data", "apply_limiter_flag", i_value, 1);
-    set_apply_limiter_flag(i_value == 1);
-    dict.parse_int("global_data", "extrema_clipping_flag", i_value, 1);
-    set_extrema_clipping_flag(i_value == 1);
+    dict.parse_boolean("global_data", "interpolate_in_local_frame", b_value, false);
+    set_interpolate_in_local_frame_flag(b_value);
+    dict.parse_boolean("global_data", "apply_limiter_flag", b_value, true);
+    set_apply_limiter_flag(b_value);
+    dict.parse_boolean("global_data", "extrema_clipping_flag", b_value, true);
+    set_extrema_clipping_flag(b_value);
     if ( G.verbose_init_messages ) {
 	cout << "max_invalid_cells = " << G.max_invalid_cells << endl;
 	cout << "flux_calc = " << get_flux_calculator_name(get_flux_calculator()) << endl;
@@ -486,6 +489,7 @@ int read_config_parameters(const string filename, bool master)
 	cout << "shear_tolerance = " << G.shear_tolerance << endl;
 	cout << "M_inf = " << get_M_inf() << endl;
 	cout << "interpolation_type = " << get_thermo_interpolator_name(get_thermo_interpolator()) << endl;
+	cout << "interpolate_in_local_frame = " << get_interpolate_in_local_frame_flag() << endl;
 	cout << "apply_limiter_flag = " << get_apply_limiter_flag() << endl;
 	cout << "extrema_clipping_flag = " << get_extrema_clipping_flag() << endl;
     }
