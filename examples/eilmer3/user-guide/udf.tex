@@ -1,15 +1,48 @@
 % udf.tex
 \section{User-defined functions for run-time customization}
 \label{udf-sec}
-User-defined functions (UDFs) are callable for both specialized boundary conditions and 
-for the addition of custom source terms.\footnote{Note that the following information 
+User-defined functions (UDFs) are callable functions written in Lua
+that are used to perform specialized and/or customized tasks.\footnote{Note that the following information 
 is likely to become dated with code changes,
 so it is best to refer to the actual source code to see what is expected.
 Look in \texttt{bc\_user\_defined.cxx} for the boundary condition functions and \texttt{main.cxx} for the 
 functions related to source terms.}
+These callable functions can be used for:
+\begin{itemize}
+\item specialized boundary conditions;
+\item the addition of custom source terms; and
+\item to perform special operations at the beginning and end of each timestep.
+\end{itemize}
+Some examples follow to give this idea a more concrete form.
+A specialized boundary condition might model mass injection
+from a porous boundary which is not presently available as a boundary condition
+in the simulation code.
+We use custom source terms when we are testing the code using the
+method of manufactured solutions (see Sections~\ref{mms-euler-sec} and \ref{mms-viscous-sec}).
+The callable functions at the start and end of each timestep could be used
+to compute a special flow field variable.
+
+\subsection{Customizing the boundary conditions}
+\index{boundary conditions!user defined}
+Using a customized boundary condition requires two steps:
+\begin{enumerate}
+\item Selecting the \texttt{UserDefinedBC()} in the block setup.
+\item Constructing a Lua file which defines the boundary condition behaviour.
+\end{enumerate}
+
+When the user's (Python) input script calls up a \texttt{UserDefinedBC()} boundary condition,
+a Lua file is specified.
+This file is run at the time of boundary-condition instantiation and it needs to define the
+Lua functions \texttt{ghost\_cell(args)} and \texttt{interface(args)} at a minimum.
+These functions are later called, every time the boundary condition is applied during the simulation.
+As well as providing the \textit{expected} functions, the Lua file may contain whatever else
+the user wishes.
+It may start up external processes, read data files, or any other suitable activity that
+sets up data for later use in the boundary condition functions.
+
 When using the user-defined boundary conditions you need to instruct the code about 
 what to do for the convective (inviscid) update and then, separately, for the viscous effects. 
-The inviscid interaction at the boundary may be handled in two ways:
+The inviscid interaction at the boundary may be handled in one of two ways:
 \begin{enumerate}
  \item Defining a \verb!ghost_cell()! function.\\
   In this case, you populate the properties of two ghost cells such that 
@@ -39,7 +72,7 @@ The viscous effects at the boundary are also handled in one of two ways:
   For example, you could set a temperature at the interface and zero velocity for a no-slip wall
   with the function called \verb!interface()!. 
   By doing this, you would not directly control the viscous heat flux into the flow directly, 
-  however, control it indirectly by setting the temperature.
+  however, it would be controlled indirectly by setting the temperature.
  \item Defining a \verb!viscous_flux()! function. \\
   The other option is to specify the viscous flux directly at the boundary.
   The function inputs and outputs are identical to the \verb!convective_flux()! function,
@@ -48,22 +81,11 @@ The viscous effects at the boundary are also handled in one of two ways:
   flux effect at the boundary.
   For example, a heat flux at the boundary may be specified directly using this
   user-defined function.
-  This function is only used is the \verb!sets_visc_flux_flag! is set in the boundary condition,
+  This function is only used if the \verb!sets_visc_flux_flag! is set in the boundary condition,
   otherwise the code will just look to apply the \verb!interface()! function.
 \end{enumerate}
-
-\subsection{Boundary conditions}
-\index{boundary conditions!user defined}
-%
-When the user's (Python) input script calls up a \texttt{UserDefinedBC()} boundary condition,
-a Lua file is specified.
-This file is run at the time of boundary-condition instantiation and it needs to define the
-Lua functions \texttt{ghost\_cell(args)} and \texttt{interface(args)} at a minimum.
-These functions are later called, every time the boundary condition is applied during the simulation.
-As well as providing the \textit{expected} functions, the Lua file may contain whatever else
-the user wishes.
-It may start up external processes, read data files, or any other suitable activity that
-sets up data for later use in the boundary condition functions.
+Note that in an inviscid simulation, any user-specied viscous boundary effect functions
+are ignored: they are never called by the code.
 
 \medskip
 The Lua execution environment provided to the file includes the following data:\\
@@ -97,7 +119,7 @@ the flow at specific locations:\\
  \noalign{\smallskip} \hline \noalign{\smallskip}
  \texttt{sample\_flow(jb,i,j,k)} & \parbox{10cm}{a function that returns a table of 
                                       the flow state for a particular cell.  The data is the same as that
-                                      listed for the \texttt{ghost\_cell} tables with the addition of \texttt{vol},
+                                      listed for the \texttt{ghost\_cell} tables (see below) with the addition of \texttt{vol},
                                       the cell volume.  This function is not likely to work for a MPI simulation,
                                       where only one block is visible to the current process.
 
@@ -141,7 +163,9 @@ values related to the gas model such as thermodynamic properties and transport c
 These are discussed in detail in Section~\ref{sec:udf-gas-service}.
 
 \medskip
-On being called at run time, the function \texttt{ghost\_cell(args)} returns two Lua tables. 
+On being called at run time, the function \texttt{ghost\_cell(args)} returns two Lua tables.
+It is the user writing the function who is responsible for constructing and returning
+these two tables.
 The first contains the flow state in the ghost cell nearest the boundary face, 
 and the second contains the flow state for the ghost cell further away from the boundary face.
 Items to appear in the returned tables are:\\
@@ -274,13 +298,15 @@ the \texttt{WEST} face of the next cell to its right.
 
 
 \subsection{Source terms}
+\label{source-terms-udf}
 \index{source terms!user defined}
 %
 The Python input script can also specify the filename for a Lua file that contains functions
 that can be called to specify additional source terms for each step of the simulation.
 The functions \textit{expected} to be defined are \texttt{source\_vector(t, cell)},
 \texttt{at\_timestep\_start(args)} and \texttt{at\_timestep\_end(args)}.
-If you don't have any useful work for the latter two, just define them to return \texttt{nil}. 
+If you don't have any useful work for the latter two, just define them to return \texttt{nil}.
+These latter two functions are described in Section~\ref{start-end-timestep-udf}.
 The Lua execution environment provided provided to the file includes the following data:\\
 \begin{tabular}{ll}
  \texttt{nsp} & number of species \\
@@ -321,6 +347,163 @@ On return, the table of source terms should contain:\\
  \texttt{species} & table of \texttt{nsp} values\\
  \texttt{energies} & table of \texttt{nmodes} values\\
 \end{tabular}\\
+
+\subsection{Callable functions at timestep start and timestep end}
+\label{start-end-timestep-udf}
+The callable functions at timestep start and timestep end differ
+from the user-defined boundary conditions and user-defined source terms
+in two key ways:
+\begin{enumerate}
+\item the functions are only called once on each timestep iteration; and
+\item the functions are used to extract information from the flow field
+      but cannot alter its state in anyway (nothing is returned to the
+      C++ code)
+\end{enumerate}
+
+In the case of the callable boundary conditions, the functions are called many times
+each timestep for each of the interfaces.
+Similarly, the callable source vector function is called once for every cell in 
+the flow field.
+However, the user-defined functions \verb!at_timestep_start()! and \verb!at_timestep_end()!
+are only called once in each iteration.
+As such, if the user would like to gather data from all cells,
+then the user is responsible for looping over those cells.
+
+In the present implementation, we do not provide a mechanism to alter the
+state of the cells and boundaries in the flow field via the functions
+\verb!at_timestep_start()! and \verb!at_timestep_end()!.
+The callable functions are only intended to extract information from the
+flowfield.\footnote{Note the cunning user could use all of the Lua callable functions
+to affect the flow field.
+For example, the user could extract certain information from
+the flow field using the \texttt{at\_timestep\_end()} hook, make a decision based on that information,
+write some data to a local file and then have a user-defined boundary condition pick
+up and act on that data.
+An early implementation of a conjugate heat transfer boundary
+condition was done in a similar manner to this.}
+
+The global Lua environment for the \verb!at_timestep_start()! and \verb!at_timestep_end()!
+functions is the same as that for the user-defined source terms (see Section~\ref{source-terms-udf}).
+When either function is called, it is passed a table of arguments from the flow solver.
+That table contains:\\
+\begin{tabular}{ll}
+ \texttt{t} & current simulation time in seconds \\
+ \texttt{step} & current step number in simulation \\
+ \texttt{nblks} & number of blocks in simulation \\
+ \texttt{nrank} & rank number, only meaningful in MPI simulations \\
+ \texttt{blks} & a table containing information for each block, explained below \\
+\end{tabular}\\
+One of the arguments, \verb!blks!, is itself a table (in particular, an array) containing information 
+about each of the blocks individually.
+To access the information in the second block, for example, you could interrogate
+the table \verb!blks[1]!, using 1 for the second block because of 0-offset indexing.
+So each entry in \verb!blks! is a table itself --- that's right tables within tables within
+tables. Each table within \verb!blks! contains the following information about a particular
+block:\\
+\begin{tabular}{ll}
+ \texttt{nicells} & number of cells in $i$-direction \\
+ \texttt{imin} & index of minimum cell number in $i$-direction \\
+ \texttt{imax} & index of maximum cell number in $i$-direction \\
+ \texttt{njcells} & number of cells in $j$-direction \\
+ \texttt{jmin} & index of minimum cell number in $j$-direction \\
+ \texttt{jmax} & index of maximum cell number in $j$-direction \\
+ \texttt{nkcells} & number of cells in $k$-direction \\
+ \texttt{kmin} & index of minimum cell number in $k$-direction \\
+ \texttt{kmax} & index of maximum cell number in $k$-direction \\
+\end{tabular}
+
+The brief example below shows how we could loop over all the cells in a flowfield
+and get a tally of the total mass at the start
+of the first timestep using the \verb!at_timestep_Start()! function.
+
+\begin{verbatim}
+function at_timestep_start(args)
+    if (args.step ~= 0) then
+        -- do nothing, just leave
+        return
+    end
+    -- For the 0th step only
+    nblks = args.nblks
+    blks = args.blks
+    mass = 0.0
+    for ib=0,(nblks-1) do
+        imin = blks[ib].imin; imax = blks[ib].imax
+        jmin = blks[ib].jmin; jmax = blks[ib].jmax
+        kmin = blks[ib].kmin; kmax = blks[ib].kmax
+        for k=kmin,kmax do
+            for j=jmin,jmax do
+                for i=imin,imax do
+                    cell = sample_flow(ib, i, j, k)
+                    -- We are only given p and T
+                    -- so need to compute density
+                    -- using gas model
+                    Q = create_empty_gas_table()
+                    Q.p = cell.p
+                    Q.T = cell.T
+                    for isp=0,(nsp-1) do Q.massf[isp] = cell.massf[isp] end
+                    eval_thermo_state_pT(Q)
+                    rho = Q.rho
+                    -- Now we can compute mass in cell using volume of cell
+                    mass = mass + rho*cell.vol
+                end
+            end
+        end
+    print("Mass (kg) of gas in domain: ", mass)
+    return
+end
+\end{verbatim}
+
+There's a little bit to digest in the example above. 
+We'll begin with the \verb!if!-statement.
+Remember that the \verb!at_timestep_start()! is called for
+every timestep, which means we enter this piece of code
+on every iteration.
+However we only want to compute the mass at
+the very beginning of the simulation.
+So, the \verb!if!-statement says that if we are \emph{not}
+at step 0 (the beginning step), then do nothing and move on.
+The code only continues then in the case where the
+step number is equal to 0.
+
+In the case where the step number is 0, we want to loop
+over all cells and tally the mass.
+To do that, we firstly need to know how many blocks there are in the
+simulation. (Admittedly, we might know how many blocks there
+are already because we set the simulation up ourselves!
+However, by keeping the code general we can reuse it
+for other simulations without alterting the Lua code.)
+We can get the number of blocks from the supplied entry
+\verb!nblks! in the table of arguments.
+Then we loop over all blocks using the \verb!ib! variables
+as a counter for the block index.
+Within any particular block, we want to loop over the
+simulation cells only, and exclude any ghost cells at
+the boundaries.
+The appropriate ranges for the simulation cells
+in each of the $i$-, $j$- and $k$-directions are
+given by the \verb!min! and \verb!max! variables
+within each block table.
+Having extracted those values, we can set up
+loops to visit every simulation cell in a block.
+
+In the inner most loop, we visit every cell
+and extract its density and volume so that we
+can compute the mass in the cell.
+We call the \verb!sample_flow()! function to get
+the information of a single cell.
+To compute the density is a little complicated.
+We are only given pressure, temperature and 
+species mass fractions.
+The provided gas model functions are used
+to compute density.
+For the moment, don't worry too much about the
+details of making the calculation to get density.
+These functions are explained later in Section~\ref{sec:udf-gas-service}.
+The volume is easy to get: we extract directly from the
+cell as variable \verb!vol!.
+In the last step, we compute the mass in this cell ($\rho \times V$)
+and add it to the total.
+
 
 \subsection{Helper gas model functions}
 \label{sec:udf-gas-service}
