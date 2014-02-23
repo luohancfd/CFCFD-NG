@@ -567,14 +567,54 @@ int prepare_to_integrate(size_t start_tindx)
 	luaL_openlibs(L); // load the standard libraries
 	// Set up some global variables that might be handy in 
 	// the Lua environment.
-	lua_pushinteger(L, G.nblock);
-	lua_setglobal(L, "nblock");
+	// We give the number of blocks on a per rank basis
+	lua_pushinteger(L, static_cast<int>(G.my_blocks.size()));
+	lua_setglobal(L, "nblks");
 	int nsp = get_gas_model_ptr()->get_number_of_species();
 	int nmodes = get_gas_model_ptr()->get_number_of_modes();
 	lua_pushinteger(L, nsp);
 	lua_setglobal(L, "nsp");
 	lua_pushinteger(L, nmodes);
 	lua_setglobal(L, "nmodes");
+	lua_newtable(L); // table for block info at TOS
+	for ( size_t jb = 0; jb < G.my_blocks.size(); ++jb ) {
+	    lua_pushinteger(L, static_cast<int>(jb));
+	    lua_newtable(L);
+	    // Push entries into new anoymous table
+	    lua_pushstring(L, "id");
+	    lua_pushinteger(L, static_cast<int>(G.my_blocks[jb]->id));
+	    lua_settable(L, -3);
+	    lua_pushstring(L, "nicells");
+	    lua_pushinteger(L, static_cast<int>(G.my_blocks[jb]->nni));
+	    lua_settable(L, -3);
+	    lua_pushstring(L, "imin");
+	    lua_pushinteger(L, static_cast<int>(G.my_blocks[jb]->imin));
+	    lua_settable(L, -3);
+	    lua_pushstring(L, "imax");
+	    lua_pushinteger(L, static_cast<int>(G.my_blocks[jb]->imax));
+	    lua_settable(L, -3);
+	    lua_pushstring(L, "njcells");
+	    lua_pushinteger(L, static_cast<int>(G.my_blocks[jb]->nnj));
+	    lua_settable(L, -3);
+	    lua_pushstring(L, "jmin");
+	    lua_pushinteger(L, static_cast<int>(G.my_blocks[jb]->jmin));
+	    lua_settable(L, -3);
+	    lua_pushstring(L, "jmax");
+	    lua_pushinteger(L, static_cast<int>(G.my_blocks[jb]->jmax));
+	    lua_settable(L, -3);
+	    lua_pushstring(L, "nkcells");
+	    lua_pushinteger(L, static_cast<int>(G.my_blocks[jb]->nnk));
+	    lua_settable(L, -3);
+	    lua_pushstring(L, "kmin");
+	    lua_pushinteger(L, static_cast<int>(G.my_blocks[jb]->kmin));
+	    lua_settable(L, -3);
+	    lua_pushstring(L, "kmax");
+	    lua_pushinteger(L, static_cast<int>(G.my_blocks[jb]->imax));
+	    lua_settable(L, -3);
+	    // Label anonymous table with index
+	    lua_settable(L, -3);
+	}
+	lua_setglobal(L, "blks");
 	// Register functions so that they are accessible 
 	// from the Lua environment.
 	register_luafns(L);

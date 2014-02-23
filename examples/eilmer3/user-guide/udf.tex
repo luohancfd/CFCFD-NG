@@ -317,7 +317,14 @@ The Lua execution environment provided provided to the file includes the followi
                                       the specified coordinates and return the cell indices
                                       and the index of the containing block} 
 \end{tabular}
- 
+The Lua execution environment also includes information about the number of blocks
+and their configuration.
+We do not discuss this further here because this information is often not
+that useful for source vector specification.
+More details about the block information are given in Section~\ref{start-end-timestep-udf}
+where the \texttt{at\_timestep\_start()} and \texttt{at\_timestep\_end()}
+functions are discussed.
+
 \bigskip
 When activated, the function \texttt{source\_vector(t, cell)} will be called at each time step.
 The first argument, \texttt{t}, is the current simulation time, in seconds.
@@ -384,23 +391,24 @@ condition was done in a similar manner to this.}
 
 The global Lua environment for the \verb!at_timestep_start()! and \verb!at_timestep_end()!
 functions is the same as that for the user-defined source terms (see Section~\ref{source-terms-udf}).
-When either function is called, it is passed a table of arguments from the flow solver.
-That table contains:\\
+We did not introduce earlier the globally-set variables related to block information.
+These variables are:\\
 \begin{tabular}{ll}
- \texttt{t} & current simulation time in seconds \\
- \texttt{step} & current step number in simulation \\
- \texttt{nblks} & number of blocks in simulation \\
- \texttt{nrank} & rank number, only meaningful in MPI simulations \\
- \texttt{blks} & a table containing information for each block, explained below \\
-\end{tabular}\\
-One of the arguments, \verb!blks!, is itself a table (in particular, an array) containing information 
+ \texttt{nblks} & number of blocks (in MPI process) \\
+ \texttt{blks}  & array of block tables, each with block configuration \\
+\end{tabular}
+Note that the number of blocks is given on a per MPI rank basis and
+the list of blocks are the blocks associated with that rank.
+
+One of the global variables, \verb!blks!, is an array (or table in Lua speak) containing information 
 about each of the blocks individually.
 To access the information in the second block, for example, you could interrogate
 the table \verb!blks[1]!, using 1 for the second block because of 0-offset indexing.
-So each entry in \verb!blks! is a table itself --- that's right tables within tables within
-tables. Each table within \verb!blks! contains the following information about a particular
+So each entry in \verb!blks! is a table itself.
+Each table within \verb!blks! contains the following information about a particular
 block:\\
 \begin{tabular}{ll}
+ \texttt{id} & the unique block id with the global collection of blocks \\
  \texttt{nicells} & number of cells in $i$-direction \\
  \texttt{imin} & index of minimum cell number in $i$-direction \\
  \texttt{imax} & index of maximum cell number in $i$-direction \\
@@ -412,44 +420,50 @@ block:\\
  \texttt{kmax} & index of maximum cell number in $k$-direction \\
 \end{tabular}
 
+When either of the timestep functions is called, it is passed a table of arguments from the flow solver.
+That table contains:\\
+\begin{tabular}{ll}
+ \texttt{t} & current simulation time in seconds \\
+ \texttt{step} & current step number in simulation \\
+\end{tabular}\\
+
 The brief example below shows how we could loop over all the cells in a flowfield
 and get a tally of the total mass at the start
 of the first timestep using the \verb!at_timestep_Start()! function.
+This example appears in the file \texttt{udf-process.lua} as
+part of the example in Section~\ref{sec:cone20-udf}.
 
 \begin{verbatim}
 function at_timestep_start(args)
-    if (args.step ~= 0) then
-        -- do nothing, just leave
-        return
-    end
-    -- For the 0th step only
-    nblks = args.nblks
-    blks = args.blks
-    mass = 0.0
-    for ib=0,(nblks-1) do
-        imin = blks[ib].imin; imax = blks[ib].imax
-        jmin = blks[ib].jmin; jmax = blks[ib].jmax
-        kmin = blks[ib].kmin; kmax = blks[ib].kmax
-        for k=kmin,kmax do
-            for j=jmin,jmax do
-                for i=imin,imax do
-                    cell = sample_flow(ib, i, j, k)
-                    -- We are only given p and T
-                    -- so need to compute density
-                    -- using gas model
-                    Q = create_empty_gas_table()
-                    Q.p = cell.p
-                    Q.T = cell.T
-                    for isp=0,(nsp-1) do Q.massf[isp] = cell.massf[isp] end
-                    eval_thermo_state_pT(Q)
-                    rho = Q.rho
-                    -- Now we can compute mass in cell using volume of cell
-                    mass = mass + rho*cell.vol
-                end
-            end
-        end
-    print("Mass (kg) of gas in domain: ", mass)
-    return
+   if (args.step ~= 0) then
+      -- do nothing, just leave
+      return
+   end
+   -- For the 0th step only
+   mass = 0.0
+   for ib=0,(nblks-1) do
+      imin = blks[ib].imin; imax = blks[ib].imax
+      jmin = blks[ib].jmin; jmax = blks[ib].jmax
+      blk_id = blks[ib].id
+      for j=jmin,jmax do
+         for i=imin,imax do
+            cell = sample_flow(blk_id, i, j, k)
+            -- We are only given p and T
+            -- so need to compute density
+            -- using gas model
+            Q = create_empty_gas_table()
+            Q.p = cell.p
+            Q.T = cell.T
+            for isp=0,(nsp-1) do Q.massf[isp] = cell.massf[isp] end
+            eval_thermo_state_pT(Q)
+            rho = Q.rho
+            -- Now we can compute mass in cell using volume of cell
+            mass = mass + rho*cell.vol
+         end
+      end
+   end
+   print("Mass (kg) of gas in domain: ", mass)
+   return
 end
 \end{verbatim}
 
@@ -472,9 +486,9 @@ simulation. (Admittedly, we might know how many blocks there
 are already because we set the simulation up ourselves!
 However, by keeping the code general we can reuse it
 for other simulations without alterting the Lua code.)
-We can get the number of blocks from the supplied entry
-\verb!nblks! in the table of arguments.
-Then we loop over all blocks using the \verb!ib! variables
+We can get the number of blocks from the global environment
+variabl (supplied by the C++ code) \verb!nblks!.
+Then we loop over all blocks using the \verb!ib! variable
 as a counter for the block index.
 Within any particular block, we want to loop over the
 simulation cells only, and exclude any ghost cells at
@@ -485,6 +499,16 @@ given by the \verb!min! and \verb!max! variables
 within each block table.
 Having extracted those values, we can set up
 loops to visit every simulation cell in a block.
+
+Be careful to note that the \texttt{sample\_flow()}
+function requires the \emph{global} block id.
+This is may not be the same as the variable
+\texttt{ib} in an MPI simulation where different
+processes work on collections of blocks.
+To ensure that we supply \texttt{sample\_flow()}
+with the correct global block id, we retrieve
+that id value from the \texttt{blks} table and store
+it as \texttt{blk\_id}.
 
 In the inner most loop, we visit every cell
 and extract its density and volume so that we
