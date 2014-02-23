@@ -1045,7 +1045,7 @@ def locate_history_cells():
     for h in HistoryLocation.historyList:
         best_block, best_i, best_j, best_k = locate_closest_cell(h.x, h.y, h.z)
         b = Block.blockList[best_block]
-        print "For history location: ", x_target, y_target, z_target
+        print "For history location: ", h.x, h.y, h.z
         print "    Closest grid cell is at: block= ", best_block, \
               "i=", best_i, "j=", best_j, "k=", best_k
         best_i += h.i_offset; best_i = keep_in_range(best_i, 0, b.nni-1)

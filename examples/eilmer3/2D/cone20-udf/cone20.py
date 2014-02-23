@@ -61,7 +61,7 @@ gdata.max_step = 3000
 gdata.dt = 1.0e-6
 gdata.dt_plot = 1.5e-3
 gdata.dt_history = 10.0e-5
-#HistoryLocation(1.0, 2.0, i_offset=-2, j_offset=1, label="here")
+HistoryLocation(1.0, 2.0, i_offset=-2, j_offset=1, label="here")
 
 sketch.xaxis(0.0, 1.0, 0.2, -0.05)
 sketch.yaxis(0.0, 1.0, 0.2, -0.04)
