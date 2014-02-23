@@ -75,8 +75,8 @@ int compute_interface_flux(FlowState &Lft, FlowState &Rght, FV_Interface &IFace,
     }
 
     // Transform to interface frame of reference.
-    Lft.vel -= IFace.vel; // TODO: PJ 21-Feb-2014 use components explicitly to avoid invoking constructors.
-    Rght.vel -= IFace.vel;
+    Lft.vel.x -= IFace.vel.x;  Lft.vel.y -= IFace.vel.y;  Lft.vel.z -= IFace.vel.z;
+    Rght.vel.x -= IFace.vel.x; Rght.vel.y -= IFace.vel.y; Rght.vel.z -= IFace.vel.z;
     IFace.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
     Lft.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
     Rght.vel.transform_to_local(IFace.n, IFace.t1, IFace.t2);
