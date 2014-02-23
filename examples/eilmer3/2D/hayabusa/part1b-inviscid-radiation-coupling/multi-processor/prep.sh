@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # rad_model='EQ-OT.py'
-rad_model='QSS-nom-thin-DT.py'
+rad_model='QSS-nom-thin-MC.py'
 # rad_model='EQ-parade-DT.py'
 
 # 1. Create the radiation model

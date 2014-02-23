@@ -190,7 +190,7 @@ def extract_shock_coords( sol ):
     shock_x_coords, shock_y_coords = zip(*sorted(zip(shock_x_coords, shock_y_coords)))
     return shock_x_coords, shock_y_coords
 
-def fit_billig2shock( sol, axi, M_inf, R, body=None, shock_x_coords=None, shock_y_coords=None ):
+def fit_billig2shock( sol, axi, M_inf, R, body=None, shock_x_coords=None, shock_y_coords=None, weights=None ):
     # see if the required packages are available
     if not with_numpy or not with_scipy:
         print "Error: numpy and scipy are required for shock fitting"
@@ -226,7 +226,12 @@ def fit_billig2shock( sol, axi, M_inf, R, body=None, shock_x_coords=None, shock_
 
     def residuals( p, x, y ):
         x_dash = shock_x_from_y(p,y)
-        result = sqrt(sum((array(x) - x_dash)**2)/len(x))
+        x = array(x)
+        # NOTE: now applying weights if present
+        if weights!=None:
+            result = sqrt(sum(weights*(x - x_dash)**2)/len(x))
+        else:
+            result = sqrt(sum((x - x_dash)**2)/len(x))
         return result
     
     p0 = [ 1.0, 1.0, M_inf, R ]
@@ -296,5 +301,50 @@ def fit_billig2shock( sol, axi, M_inf, R, body=None, shock_x_coords=None, shock_
         shock_nodes.append( Node(x,y) )
     shock_spline = Spline( shock_nodes )
     
-    return shock_spline
+    return shock_spline, shock_nodes
 
+def fit_spline2shock( sol, M_inf, R, body=None, shock_x_coords=None, shock_y_coords=None, s=0.0 ):
+    # see if the required packages are available
+    if not with_numpy or not with_scipy:
+        print "Error: numpy and scipy are required for shock fitting"
+        sys.exit()
+    if not body:
+        # assume a quarter circle with radius R
+        o = Vector3(0.0, 0.0)
+        a = Vector3(-R, 0.0)
+        b = Vector3(0.0, R)
+        body = Arc(a, b, o)
+    if sol!=None:
+        shock_x_coords, shock_y_coords = extract_shock_coords( sol )
+    # make a best fit to the shock location point cloud
+    # weights
+    w = [ 1.0 ] * len(shock_x_coords)
+    if 0:
+        for i in range(18):
+            w[i] = 10     
+    spline_fit = scipy.interpolate.splrep( shock_x_coords, shock_y_coords, w=array(w), s=s )
+    # describe via the lib/geometry2 spline
+    shock_points = []
+    npoints = 100
+    dx = ( shock_x_coords[-1] - shock_x_coords[0] ) / ( npoints - 1 )
+    fit_x = []
+    fit_y = []
+    for i in range(npoints):
+        x = shock_x_coords[0] + i * dx
+        fit_x.append(x)
+    fit_y = scipy.interpolate.splev(array(fit_x),spline_fit)
+    for i in range(npoints):
+        shock_points.append( Vector3( fit_x[i], fit_y[i] ) )
+    # make sure the first point corresponds to y=0
+    shock_points[0].y = 0.0
+    shock_spline = Spline(shock_points)
+    
+    # make a plot if matplotlib is available
+    if with_mpl:
+        plt.plot(array(fit_x),array(fit_y),"b-",label="fit")
+        plt.plot(shock_x_coords,shock_y_coords,"g.",label="points")
+        plt.grid()
+        plt.legend()
+        plt.show()  
+    
+    return shock_spline

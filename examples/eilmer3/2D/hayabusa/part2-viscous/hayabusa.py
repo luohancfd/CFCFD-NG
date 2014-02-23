@@ -79,7 +79,7 @@ body = Polyline( [Arc(a,b,o),Line(b,c)] )
 # make the computational domain
 x_limit = c.x; gamma = 0.2
 if fit2shock:
-    shock = fit_billig2shock( initial, gdata.axisymmetric_flag, M_inf, Rn, body )
+    shock, nodes = fit_billig2shock( initial, gdata.axisymmetric_flag, M_inf, Rn, body )
     psurf = make_parametric_surface( M_inf=M_inf, R=Rn, axi=gdata.axisymmetric_flag, east=body, shock=shock, f_s=1.0/(1.0-gamma) )
 else:  
     bx_scale = 0.95; by_scale = 0.95

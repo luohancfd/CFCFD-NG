@@ -103,7 +103,7 @@ nnx = 80; nny = 60
 if fit2shock:
     print "WARNING: the shock fitting procedure takes a long time as the Billig function"
     print "         is difficult to solve at this Mach number."
-    shock = fit_billig2shock( initial, gdata.axisymmetric_flag, M_inf, Rn, None )
+    shock, nodes = fit_billig2shock( initial, gdata.axisymmetric_flag, M_inf, Rn, None )
     psurf = make_parametric_surface( M_inf=M_inf, R=Rn, axi=gdata.axisymmetric_flag, east=None, shock=shock, f_s=1.0/(1.0-gamma) )
 else:  
     bx_scale = 1.0; by_scale = 1.0
