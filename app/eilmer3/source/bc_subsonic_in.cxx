@@ -13,49 +13,71 @@
 
 //------------------------------------------------------------------------
 
-SubsonicInBC::SubsonicInBC(Block *bdp, int which_boundary, 
-			   int inflow_condition_id, int assume_ideal)
+void SubsonicInBC::setup_stagnation_condition()
+{
+    Gas_model &gmodel = *get_gas_model_ptr();
+    // Assume equilibrium, set all temperatures at T[0]
+    for ( int imode = 1; imode < gmodel.get_number_of_modes(); ++imode ) {
+	gstagp.gas->T[imode] = gstagp.gas->T[0];
+    }
+    gmodel.eval_thermo_state_pT(*(gstagp.gas));
+    s0 = gmodel.mixture_entropy(*(gstagp.gas));
+    h0 = gmodel.mixture_enthalpy(*(gstagp.gas));
+    return;
+}
+
+SubsonicInBC::SubsonicInBC(Block *bdp, int which_boundary, int inflow_condition_id_,
+			   double mass_flux_, double relax_factor_, bool assume_ideal)
     : BoundaryCondition(bdp, which_boundary, SUBSONIC_IN), 
-      inflow_condition_id(inflow_condition_id),
+      inflow_condition_id(inflow_condition_id_),
+      mass_flux(mass_flux_),
+      relax_factor(relax_factor_),
       use_ideal_gas_relations(assume_ideal)
 {
-    Gas_model *gmodel = get_gas_model_ptr();
     global_data &gd = *get_global_data_ptr();
-    CFlowCondition *gstagp = gd.gas_state[inflow_condition_id];
-    // Set all temperatures at T[0]
-    for ( int imode = 1; imode < gmodel->get_number_of_modes(); ++imode ) {
-	gstagp->gas->T[imode] = gstagp->gas->T[0];
-    }
-    gmodel->eval_thermo_state_pT(*(gstagp->gas));
-    s0 = gmodel->mixture_entropy(*(gstagp->gas));
-    h0 = gmodel->mixture_enthalpy(*(gstagp->gas));
+    gstagp = *(gd.gas_state[inflow_condition_id]);
+    setup_stagnation_condition();
     cout << "SubsonicInBC: set up boundary condition." << endl;
-    cout << "    p0= " << gstagp->gas->p << " Pa" << endl;
-    cout << "    T0= " << gstagp->gas->T[0] << " degrees K" << endl;
+    cout << "    p0= " << gstagp.gas->p << " Pa" << endl;
+    cout << "    T0= " << gstagp.gas->T[0] << " degrees K" << endl;
     cout << "    s0= " << s0 << " J/kg/K" << endl;
     cout << "    h0= " << h0 << " J/kg" << endl;
+    cout << "    mass_flux= " << mass_flux << " kg/s/m**2" << endl;
+    cout << "    relax_factor= " << relax_factor << endl;
 }
 
 SubsonicInBC::SubsonicInBC(const SubsonicInBC &bc)
     : BoundaryCondition(bc.bdp, bc.which_boundary, bc.type_code), 
       inflow_condition_id(bc.inflow_condition_id),
+      mass_flux(bc.mass_flux),
+      relax_factor(bc.relax_factor),
       use_ideal_gas_relations(bc.use_ideal_gas_relations),
-      s0(bc.s0), h0(bc.h0)
-{}
+      gstagp(bc.gstagp)
+{
+    setup_stagnation_condition();
+}
 
 SubsonicInBC::SubsonicInBC()
     : BoundaryCondition(0, 0, SUBSONIC_IN), 
-      inflow_condition_id(0), use_ideal_gas_relations(0), s0(0.0), h0(0.0)
-{}
+      inflow_condition_id(0), mass_flux(0.0), relax_factor(0.05), 
+      use_ideal_gas_relations(false)
+{
+    gstagp = CFlowCondition();
+    s0 = 0.0;
+    h0 = 0.0;
+}
 
 SubsonicInBC & SubsonicInBC::operator=(const SubsonicInBC &bc)
 {
-    // Benign for self-assignment.
-    BoundaryCondition::operator=(bc);
-    inflow_condition_id = bc.inflow_condition_id;
-    use_ideal_gas_relations = bc.use_ideal_gas_relations;
-    s0 = bc.s0;
-    h0 = bc.h0;
+    if ( this != &bc ) { // Avoid self-assignment.
+	BoundaryCondition::operator=(bc);
+	inflow_condition_id = bc.inflow_condition_id;
+	mass_flux = bc.mass_flux;
+	relax_factor = bc.relax_factor;
+	use_ideal_gas_relations = bc.use_ideal_gas_relations;
+	gstagp = bc.gstagp;
+    }
+    setup_stagnation_condition();
     return *this;
 }
 
@@ -65,8 +87,11 @@ void SubsonicInBC::print_info(std::string lead_in)
 {
     BoundaryCondition::print_info(lead_in);
     cout << lead_in << "inflow_condition_id= " << inflow_condition_id << endl;
+    cout << lead_in << "mass_flux= " << mass_flux << endl;
+    cout << lead_in << "relax_factor= " << relax_factor << endl;
     cout << lead_in << "use_ideal_gas_relations= " << use_ideal_gas_relations << endl;
     cout << lead_in << "entropy= " << s0 << endl;
+    cout << lead_in << "enthalpy= " << h0 << endl;
     return;
 }
 
@@ -76,21 +101,45 @@ int SubsonicInBC::apply_convective(double t)
     size_t i, j, k;
     FV_Cell *src_cell, *dest_cell;
     FV_Interface *face;
-    double p;
-    global_data &gd = *get_global_data_ptr();
-    CFlowCondition &gstagp = *(gd.gas_state[inflow_condition_id]);
+    // global_data &gd = *get_global_data_ptr();
     CFlowCondition gsp(gstagp);
+    double area = 0.0;
+    double rhoUA = 0.0; // current mass_flux through boundary
+    double rhoA = 0.0;
+    double pA = 0.0;
+    double p;
+    double dp_over_p = 0.0;
+    double speed;
 
     switch ( which_boundary ) {
     case NORTH:
 	j = bd.jmax;
+	// First, estimate current inflow condition and mass flux across boundary.
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		src_cell = bd.get_cell(i,j,k);
+		face = src_cell->iface[NORTH];
+		area += face->area[0];
+		pA += src_cell->fs->gas->p * face->area[0];
+		rhoA += src_cell->fs->gas->rho * face->area[0];
+		rhoUA += src_cell->fs->gas->rho * dot(src_cell->fs->vel, face->n) * face->area[0];
+	    } // end i loop
+	} // for k
+	p = pA / area; // Average pressure across boundary.
+	if ( mass_flux > 0.0 ) {
+	    // Adjust the pressure to better achieve the specified mass flux.
+	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
+	    gstagp.gas->p *= dp_over_p;
+	    setup_stagnation_condition();
+	}
+	subsonic_inflow_properties(gstagp, 1.0, 0.0, 0.0, gsp, p);
+	speed = gsp.u;
 	for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (i = bd.imin; i <= bd.imax; ++i) {
 		src_cell = bd.get_cell(i,j,k);
 		face = src_cell->iface[NORTH];
-		p = src_cell->fs->gas->p;
 		// Choose a flow direction that is locally-inward at this location on the boundary.
-		subsonic_inflow_properties(gstagp, -(face->n.x), -(face->n.y), -(face->n.z), gsp, p);
+		gsp.u = speed * -(face->n.x); gsp.v = speed * -(face->n.y); gsp.w = speed * -(face->n.z);
 		dest_cell = bd.get_cell(i,j+1,k);
 		dest_cell->copy_values_from(gsp);
 		dest_cell = bd.get_cell(i,j+2,k);
@@ -100,12 +149,31 @@ int SubsonicInBC::apply_convective(double t)
 	break;
     case EAST:
 	i = bd.imax;
+	// First, estimate current inflow conditions and mass flux across boundary.
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		src_cell = bd.get_cell(i,j,k);
+		face = src_cell->iface[EAST];
+		area += face->area[0];
+		pA += src_cell->fs->gas->p * face->area[0];
+		rhoA += src_cell->fs->gas->rho * face->area[0];
+		rhoUA += src_cell->fs->gas->rho * dot(src_cell->fs->vel, face->n) * face->area[0];
+	    } // end j loop
+	} // for k
+	p = pA / area; // Average pressure across boundary.
+	if ( mass_flux > 0.0 ) {
+	    // Adjust the pressure to better achieve the specified mass flux.
+	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
+	    gstagp.gas->p *= dp_over_p;
+	    setup_stagnation_condition();
+	}
+	subsonic_inflow_properties(gstagp, 1.0, 0.0, 0.0, gsp, p);
+	speed = gsp.u;
 	for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
 		face = src_cell->iface[EAST];
-		p = src_cell->fs->gas->p;
-		subsonic_inflow_properties(gstagp, -(face->n.x), -(face->n.y), -(face->n.z), gsp, p);
+		gsp.u = speed * -(face->n.x); gsp.v = speed * -(face->n.y); gsp.w = speed * -(face->n.z);
 		dest_cell = bd.get_cell(i+1,j,k);
 		dest_cell->copy_values_from(gsp);
 		dest_cell = bd.get_cell(i+2,j,k);
@@ -115,12 +183,31 @@ int SubsonicInBC::apply_convective(double t)
 	break;
     case SOUTH:
 	j = bd.jmin;
+	// First, estimate current inflow conditions and mass flux across boundary.
+        for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (i = bd.imin; i <= bd.imax; ++i) {
+		src_cell = bd.get_cell(i,j,k);
+		face = src_cell->iface[SOUTH];
+		area += face->area[0];
+		pA += src_cell->fs->gas->p * face->area[0];
+		rhoA += src_cell->fs->gas->rho * face->area[0];
+		rhoUA -= src_cell->fs->gas->rho * dot(src_cell->fs->vel, face->n) * face->area[0];
+	    } // end i loop
+	} // for k
+	p = pA / area; // Average pressure across boundary.
+	if ( mass_flux > 0.0 ) {
+	    // Adjust the pressure to better achieve the specified mass flux.
+	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
+	    gstagp.gas->p *= dp_over_p;
+	    setup_stagnation_condition();
+	}
+	subsonic_inflow_properties(gstagp, 1.0, 0.0, 0.0, gsp, p);
+	speed = gsp.u;
 	for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (i = bd.imin; i <= bd.imax; ++i) {
 		src_cell = bd.get_cell(i,j,k);
 		face = src_cell->iface[SOUTH];
-		p = src_cell->fs->gas->p;
-		subsonic_inflow_properties(gstagp, face->n.x, face->n.y, face->n.z, gsp, p);
+		gsp.u = speed * face->n.x; gsp.v = speed * face->n.y; gsp.w = speed * face->n.z;
 		dest_cell = bd.get_cell(i,j-1,k);
 		dest_cell->copy_values_from(gsp);
 		dest_cell = bd.get_cell(i,j-2,k);
@@ -130,12 +217,31 @@ int SubsonicInBC::apply_convective(double t)
 	break;
     case WEST:
 	i = bd.imin;
+	// First, estimate current inflow condition and mass flux across boundary.
 	for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
 		face = src_cell->iface[WEST];
-		p = src_cell->fs->gas->p;
-		subsonic_inflow_properties(gstagp, face->n.x, face->n.y, face->n.z, gsp, p);
+		area += face->area[0];
+		pA += src_cell->fs->gas->p * face->area[0];
+		rhoA += src_cell->fs->gas->rho * face->area[0];
+		rhoUA += src_cell->fs->gas->rho * dot(src_cell->fs->vel, face->n) * face->area[0];
+	    } // end j loop
+	} // for k
+	p = pA / area; // Average pressure across boundary.
+	if ( mass_flux > 0.0 ) {
+	    // Adjust the pressure to better achieve the specified mass flux.
+	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
+	    gstagp.gas->p *= dp_over_p;
+	    setup_stagnation_condition();
+	}
+	subsonic_inflow_properties(gstagp, 1.0, 0.0, 0.0, gsp, p);
+	speed = gsp.u;
+	for (k = bd.kmin; k <= bd.kmax; ++k) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		src_cell = bd.get_cell(i,j,k);
+		face = src_cell->iface[WEST];
+		gsp.u = speed * face->n.x; gsp.v = speed * face->n.y; gsp.w = speed * face->n.z;
 #               if 0
 		// Some debug... PJ 15-Jan-2014
 		cout << "subsonic conditions:" << endl;
@@ -155,12 +261,31 @@ int SubsonicInBC::apply_convective(double t)
  	break;
     case TOP:
 	k = bd.kmax;
+	// First, estimate current inflow conditions and mass flux across boundary.
+        for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		src_cell = bd.get_cell(i,j,k);
+		face = src_cell->iface[TOP];
+		area += face->area[0];
+		pA += src_cell->fs->gas->p * face->area[0];
+		rhoA += src_cell->fs->gas->rho * face->area[0];
+		rhoUA += src_cell->fs->gas->rho * dot(src_cell->fs->vel, face->n) * face->area[0];
+	    } // end j loop
+	} // for i
+	p = pA / area; // Average pressure across boundary.
+	if ( mass_flux > 0.0 ) {
+	    // Adjust the pressure to better achieve the specified mass flux.
+	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
+	    gstagp.gas->p *= dp_over_p;
+	    setup_stagnation_condition();
+	}
+	subsonic_inflow_properties(gstagp, 1.0, 0.0, 0.0, gsp, p);
+	speed = gsp.u;
 	for (i = bd.imin; i <= bd.imax; ++i) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
 		face = src_cell->iface[TOP];
-		p = src_cell->fs->gas->p;
-		subsonic_inflow_properties(gstagp, -(face->n.x), -(face->n.y), -(face->n.z), gsp, p);
+		gsp.u = speed * -(face->n.x); gsp.v = speed * -(face->n.y); gsp.w = speed * -(face->n.z);
 		dest_cell = bd.get_cell(i,j,k+1);
 		dest_cell->copy_values_from(gsp);
 		dest_cell = bd.get_cell(i,j,k+2);
@@ -170,12 +295,31 @@ int SubsonicInBC::apply_convective(double t)
 	break;
     case BOTTOM:
 	k = bd.kmin;
+	// First, estimate current inflow conditions and mass flux across boundary.
+        for (i = bd.imin; i <= bd.imax; ++i) {
+	    for (j = bd.jmin; j <= bd.jmax; ++j) {
+		src_cell = bd.get_cell(i,j,k);
+		face = src_cell->iface[BOTTOM];
+		area += face->area[0];
+		pA += src_cell->fs->gas->p * face->area[0];
+		rhoA += src_cell->fs->gas->rho * face->area[0];
+		rhoUA -= src_cell->fs->gas->rho * dot(src_cell->fs->vel, face->n) * face->area[0];
+	    } // end j loop
+	} // for i
+	p = pA / area; // Average pressure across boundary.
+	if ( mass_flux > 0.0 ) {
+	    // Adjust the pressure to better achieve the specified mass flux.
+	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
+	    gstagp.gas->p *= dp_over_p;
+	    setup_stagnation_condition();
+	}
+	subsonic_inflow_properties(gstagp, 1.0, 0.0, 0.0, gsp, p);
+	speed = gsp.u;
 	for (i = bd.imin; i <= bd.imax; ++i) {
 	    for (j = bd.jmin; j <= bd.jmax; ++j) {
 		src_cell = bd.get_cell(i,j,k);
 		face = src_cell->iface[BOTTOM];
-		p = src_cell->fs->gas->p;
-		subsonic_inflow_properties(gstagp, face->n.x, face->n.y, face->n.z, gsp, p);
+		gsp.u = speed * face->n.x; gsp.v = speed * face->n.y; gsp.w = speed * face->n.z;
 		dest_cell = bd.get_cell(i,j,k-1);
 		dest_cell->copy_values_from(gsp);
 		dest_cell = bd.get_cell(i,j,k-2);

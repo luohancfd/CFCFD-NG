@@ -937,7 +937,7 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
     double Twall_f = 300.0;
     double t_i = 0.0;
     double t_f = 0.0;
-    int assume_ideal = 0;
+    bool assume_ideal = false;
     std::string filename = "";
     size_t n_profile = 1;
     double Pout = 100.0e3;
@@ -1008,8 +1008,11 @@ BoundaryCondition *create_BC(Block *bdp, int which_boundary, bc_t type_of_BC,
 	break;
     case SUBSONIC_IN:
 	dict.parse_int(section, "inflow_condition", inflow_condition_id, 0);
-	dict.parse_int(section, "assume_ideal", assume_ideal, 0);
-	newBC = new SubsonicInBC(bdp, which_boundary, inflow_condition_id, assume_ideal);
+	dict.parse_double(section, "mass_flux", mass_flux, 0.0);
+	dict.parse_double(section, "relax_factor", relax_factor, 0.05);
+	dict.parse_boolean(section, "assume_ideal", assume_ideal, false);
+	newBC = new SubsonicInBC(bdp, which_boundary, inflow_condition_id,
+				 mass_flux, relax_factor, assume_ideal);
 	break;
     case TRANSIENT_UNI:
 	dict.parse_string(section, "filename", filename, "");

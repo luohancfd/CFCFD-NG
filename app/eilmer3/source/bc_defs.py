@@ -32,8 +32,11 @@ These definitions are now gone and symbols are used instead:
 * SLIDING_T: A solid, no-slip wall with a sliding user-specified
     temperature that linearly varies with time.
 * SUBSONIC_IN: An inflow boundary for which the total pressure
-    and temperature have been specified and the velocity from
-    just inside the boundary is copied into the ghost cells.
+    and temperature have been specified and the pressure from
+    just inside the boundary is copied into the ghost cells
+    along with a velocity that is consistent with the stagnation conditions.
+    If you specify a non-zero mass-flux per unit area, the pressure
+    will be adjusted to achieve this mass-flux.
 * SUBSONIC_OUT: An outflow boundary which will try to prevent
     wave reflection at the boundary in the presence of subsonic flow.
     (Doesn't work so well at present.)
@@ -631,15 +634,18 @@ class SubsonicInBC(BoundaryCondition):
 
     assume_ideal==0: use generalized stepping, down from stagnation to get conditions.
     """
-    def __init__(self, inflow_condition, assume_ideal=0, label=""):
+    def __init__(self, inflow_condition, mass_flux=0.0, relax_factor=0.05, assume_ideal=False, label=""):
         """
         Construct a subsonic-inflow boundary.
 
         :param inflow_condition: Refers to a FlowCondition object that represents
             the total conditions for flow at the boundary.
-        :param assume_ideal: A value of 1 allows the code to use ideal gas relations
+        :param mass_flux: required inflow mass-flux per unit area (in kg/s/m**2)
+            Set to 0.0 (default) if you don't wish to specify a value.
+        :param relax_factor: under-relaxation is advised. 
+        :param assume_ideal: A value of True allows the code to use ideal gas relations
             to get an estimate of the ghost-cell conditions.
-            A value of 0, causes the code to compute the ghost-cell flow conditions
+            A value of False, causes the code to compute the ghost-cell flow conditions
             from the total-conditions by making a number of finite steps through
             the isentropic expansion while allowing a general equation of state.
         :param label: A string that may be used to assist in identifying the boundary
@@ -649,13 +655,15 @@ class SubsonicInBC(BoundaryCondition):
         to the boundary.
         """
         BoundaryCondition.__init__(self, type_of_BC=SUBSONIC_IN,
-            inflow_condition=inflow_condition, assume_ideal=assume_ideal, label=label)
+            inflow_condition=inflow_condition, mass_flux=mass_flux, relax_factor=relax_factor,
+            assume_ideal=assume_ideal, label=label)
         return
     def __str__(self):
-        return "SubsonicInBC(inflow_condition=%s, assume_ideal=%d, label=\"%s\")" % \
-            (self.inflow_condition, self.assume_ideal, self.label)
+        return "SubsonicInBC(inflow_condition=%s, mass_flux=%g, relax_factor=%g, assume_ideal=%s, label=\"%s\")" % \
+            (self.inflow_condition, self.mass_flux, self.relax_factor, self.assume_ideal, self.label)
     def __copy__(self):
-        return SubsonicInBC(inflow_condition=self.inflow_condition, 
+        return SubsonicInBC(inflow_condition=self.inflow_condition,
+                            mass_flux=self.mass_flux, relax_factor=self.relax_factor,
                             assume_ideal=self.assume_ideal, label=self.label)
 
 class SubsonicOutBC(BoundaryCondition):
