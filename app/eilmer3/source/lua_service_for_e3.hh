@@ -46,6 +46,7 @@ int luafn_molef2massf(lua_State *L);
 int luafn_conc2massf(lua_State *L);
 int apply_gas_method(Gas_model_Method_gas_data f, Gas_data &Q);
 double apply_gas_method(Gas_model_Method_gas_data_int f, Gas_data &Q, int &status);
+int luafn_species_rate_of_change(lua_State *L);
 int register_luafns(lua_State *L);
 
 #endif

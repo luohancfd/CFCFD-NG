@@ -602,6 +602,15 @@ in mol/m$^3$.
 Note the table of supplied concentrations must be the full size
 of the number of species in the gas model. Similarly, the returned
 mass fraction table has values for all participating species. \\
+\texttt{species\_rate\_of\_change(Q)} & A function that returns
+a table of the time rate of change of species concentrations
+based on the reaction scheme and current gas state and composition.
+The returned values have units of mol/(m$^3$.s).
+Note that the thermodynamic state and composition in the
+gas data \texttt{Q} must be filled with up-to-date values.
+You can ensure this by making an appropriate call to one
+of the thermo eval functions before passing \texttt{Q}
+to this function. \\
 \noalign{\smallskip} \hline \noalign{\smallskip}
 \end{tabular}
 

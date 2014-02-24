@@ -636,6 +636,38 @@ double apply_gas_method(Gas_model_Method_gas_data_int f, Gas_data &Q, int &statu
     return CALL_MEMBER_FN(*gmodel,f)(Q, status);
 }
 
+int luafn_species_rate_of_change(lua_State *L)
+{
+    Gas_model *gmodel = get_gas_model_ptr();
+    Reaction_update *rupdate = get_reaction_update_ptr();
+    if ( rupdate == nullptr ) {
+	cout << "ERROR in luafn_species_rate_of_change(): " << endl;
+	cout << "There is no reaction scheme intialised in this simulation,\n";
+	cout << "so we cannot compute the rates of change for species concentrations.\n";
+	cout << "Bailing out!\n";
+	exit(UDF_ERROR);
+    }
+    // Assume gas_data is a top of stack and store this index
+    Gas_data Q(gmodel);
+    // Expect a gas_data as lua table at top of stack.
+    get_table_as_gas_data(L, Q);
+    // Initialise a vector to hold concentration rates of change
+    vector<double> dcdt(gmodel->get_number_of_species(), 0.0);
+    int flag = rupdate->rate_of_change(Q, dcdt);
+    if ( flag != SUCCESS ) {
+	cout << "luafn_species_rate_of_change(): " << endl;
+	cout << "There was a problem calling rate_of_change()." << endl;
+	cout << "This was called inside a user-defined function." << endl;
+	cout << "Supplied gas_data was:" << endl;
+	Q.print_values();
+	cout << "Bailing out!" << endl;
+	exit(UDF_ERROR);
+    }
+    // Put table of concentration values are TOS
+    push_vector_as_table(L, dcdt);
+    return 1;
+}
+
 int register_luafns(lua_State *L)
 {
     lua_pushcfunction(L, luafn_sample_flow);
@@ -682,6 +714,8 @@ int register_luafns(lua_State *L)
     lua_setglobal(L, "molef2massf");
     lua_pushcfunction(L, luafn_conc2massf);
     lua_setglobal(L, "conc2massf");
+    lua_pushcfunction(L, luafn_species_rate_of_change);
+    lua_setglobal(L, "species_rate_of_change");
     // Set some of the physical constants
     lua_pushnumber(L, PC_R_u);
     lua_setglobal(L, "PC_R_u");
