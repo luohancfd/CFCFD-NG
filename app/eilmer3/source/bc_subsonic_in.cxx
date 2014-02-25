@@ -114,7 +114,7 @@ int SubsonicInBC::apply_convective(double t)
     switch ( which_boundary ) {
     case NORTH:
 	j = bd.jmax;
-	// First, estimate current inflow condition and mass flux across boundary.
+	// First, estimate current inflow condition and mass flux into the block, across boundary.
         for (k = bd.kmin; k <= bd.kmax; ++k) {
 	    for (i = bd.imin; i <= bd.imax; ++i) {
 		src_cell = bd.get_cell(i,j,k);
@@ -122,14 +122,14 @@ int SubsonicInBC::apply_convective(double t)
 		area += face->area[0];
 		pA += src_cell->fs->gas->p * face->area[0];
 		rhoA += src_cell->fs->gas->rho * face->area[0];
-		rhoUA += src_cell->fs->gas->rho * dot(src_cell->fs->vel, face->n) * face->area[0];
+		rhoUA -= src_cell->fs->gas->rho * dot(src_cell->fs->vel, face->n) * face->area[0];
 	    } // end i loop
 	} // for k
 	p = pA / area; // Average pressure across boundary.
 	if ( mass_flux > 0.0 ) {
 	    // Adjust the pressure to better achieve the specified mass flux.
 	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
-	    gstagp.gas->p *= dp_over_p;
+	    gstagp.gas->p *= 1.0 + dp_over_p;
 	    setup_stagnation_condition();
 	}
 	subsonic_inflow_properties(gstagp, 1.0, 0.0, 0.0, gsp, p);
@@ -157,14 +157,14 @@ int SubsonicInBC::apply_convective(double t)
 		area += face->area[0];
 		pA += src_cell->fs->gas->p * face->area[0];
 		rhoA += src_cell->fs->gas->rho * face->area[0];
-		rhoUA += src_cell->fs->gas->rho * dot(src_cell->fs->vel, face->n) * face->area[0];
+		rhoUA -= src_cell->fs->gas->rho * dot(src_cell->fs->vel, face->n) * face->area[0];
 	    } // end j loop
 	} // for k
 	p = pA / area; // Average pressure across boundary.
 	if ( mass_flux > 0.0 ) {
 	    // Adjust the pressure to better achieve the specified mass flux.
 	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
-	    gstagp.gas->p *= dp_over_p;
+	    gstagp.gas->p *= 1.0 + dp_over_p;
 	    setup_stagnation_condition();
 	}
 	subsonic_inflow_properties(gstagp, 1.0, 0.0, 0.0, gsp, p);
@@ -191,14 +191,14 @@ int SubsonicInBC::apply_convective(double t)
 		area += face->area[0];
 		pA += src_cell->fs->gas->p * face->area[0];
 		rhoA += src_cell->fs->gas->rho * face->area[0];
-		rhoUA -= src_cell->fs->gas->rho * dot(src_cell->fs->vel, face->n) * face->area[0];
+		rhoUA += src_cell->fs->gas->rho * dot(src_cell->fs->vel, face->n) * face->area[0];
 	    } // end i loop
 	} // for k
 	p = pA / area; // Average pressure across boundary.
 	if ( mass_flux > 0.0 ) {
 	    // Adjust the pressure to better achieve the specified mass flux.
 	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
-	    gstagp.gas->p *= dp_over_p;
+	    gstagp.gas->p *= 1.0 + dp_over_p;
 	    setup_stagnation_condition();
 	}
 	subsonic_inflow_properties(gstagp, 1.0, 0.0, 0.0, gsp, p);
@@ -232,8 +232,18 @@ int SubsonicInBC::apply_convective(double t)
 	if ( mass_flux > 0.0 ) {
 	    // Adjust the pressure to better achieve the specified mass flux.
 	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
-	    gstagp.gas->p *= dp_over_p;
+	    gstagp.gas->p *= 1.0 + dp_over_p;
 	    setup_stagnation_condition();
+#           if 0
+	    // Some debug... PJ 25-Feb-2014
+	    cout << "Adjusting for mass flux:" << endl;
+	    cout << "    area= " << area 
+		 << " p= " << p
+		 << " rhoA= " << rhoA
+		 << " rhoUA= " << rhoUA << endl;
+	    cout << "    dp_over_p= " << dp_over_p
+		 << " gstagp_p= " << gstagp.gas->p << endl;
+#           endif
 	}
 	subsonic_inflow_properties(gstagp, 1.0, 0.0, 0.0, gsp, p);
 	speed = gsp.u;
@@ -269,14 +279,14 @@ int SubsonicInBC::apply_convective(double t)
 		area += face->area[0];
 		pA += src_cell->fs->gas->p * face->area[0];
 		rhoA += src_cell->fs->gas->rho * face->area[0];
-		rhoUA += src_cell->fs->gas->rho * dot(src_cell->fs->vel, face->n) * face->area[0];
+		rhoUA -= src_cell->fs->gas->rho * dot(src_cell->fs->vel, face->n) * face->area[0];
 	    } // end j loop
 	} // for i
 	p = pA / area; // Average pressure across boundary.
 	if ( mass_flux > 0.0 ) {
 	    // Adjust the pressure to better achieve the specified mass flux.
 	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
-	    gstagp.gas->p *= dp_over_p;
+	    gstagp.gas->p *= 1.0 + dp_over_p;
 	    setup_stagnation_condition();
 	}
 	subsonic_inflow_properties(gstagp, 1.0, 0.0, 0.0, gsp, p);
@@ -303,14 +313,14 @@ int SubsonicInBC::apply_convective(double t)
 		area += face->area[0];
 		pA += src_cell->fs->gas->p * face->area[0];
 		rhoA += src_cell->fs->gas->rho * face->area[0];
-		rhoUA -= src_cell->fs->gas->rho * dot(src_cell->fs->vel, face->n) * face->area[0];
+		rhoUA += src_cell->fs->gas->rho * dot(src_cell->fs->vel, face->n) * face->area[0];
 	    } // end j loop
 	} // for i
 	p = pA / area; // Average pressure across boundary.
 	if ( mass_flux > 0.0 ) {
 	    // Adjust the pressure to better achieve the specified mass flux.
 	    dp_over_p = relax_factor * 0.5 * rhoA/area * (mass_flux*mass_flux - rhoUA*rhoUA/(area*area)) / p;
-	    gstagp.gas->p *= dp_over_p;
+	    gstagp.gas->p *= 1.0 + dp_over_p;
 	    setup_stagnation_condition();
 	}
 	subsonic_inflow_properties(gstagp, 1.0, 0.0, 0.0, gsp, p);

@@ -19,7 +19,7 @@ blk = Block2D(CoonsPatch(p00,p10,p11,p01),
               fill_condition=initial_air)
 
 gdata.flux_calc = AUSMDV
-gdata.max_time = 500.0e-3
+gdata.max_time = 100.0e-3
 gdata.max_step = 200000
 gdata.dt = 1.0e-6
 
