@@ -379,6 +379,9 @@ class GlobalData(object):
       should be terminated.
     * max_step: (int) Time stepping will be terminated if the simulation reached
       this number of steps.
+    * halt_on_large_flow_change: (bool) If True, we want the simulation to halt if
+      the flow changes significantly at any of the MonitorLocations (or mcells)
+    * tolerance_in_T: (float) allowable change in Temperature before simulation will be halted. 
     * shock_fitting_flag: (0/1) Set to 1 to activate adaptation of the grid to the shock.
       Set to 0 (the default) for no shock adaptation.
       Note that shock-fitting implies a moving grid so moving_grid_flag will also be set.
@@ -448,6 +451,7 @@ class GlobalData(object):
                 'interpolation_type', 'interpolate_in_local_frame', 'sequence_blocks', \
                 'print_count', 'cfl_count', 'max_invalid_cells', 'dt_reduction_factor', \
                 'max_time', 'max_step', 'dt_plot', 'dt_history', "write_at_step", \
+                'halt_on_large_flow_change', 'tolerance_in_T', \
                 'displacement_thickness', 'time_average_flag', 'perturb_flag', \
                 'perturb_frac', 'tav_0', 'tav_f', 'dt_av', \
                 'fixed_time_step', 'apply_limiter_flag', 'extrema_clipping_flag', \
@@ -536,6 +540,8 @@ class GlobalData(object):
         self.max_invalid_cells = 10
         self.max_time = 1.0e-3
         self.max_step = 10
+        self.halt_on_large_flow_change = False
+        self.tolerance_in_T = 100.0 # degrees K
         self.shock_fitting_flag = 0
         self.shock_fitting_decay_flag = 0
         self.shock_fitting_speed_factor = 1.0
@@ -615,7 +621,8 @@ class GlobalData(object):
         fp.write("radiation_update_frequency = %d\n" % self.radiation_update_frequency)
         fp.write("wall_update_count = %d\n" % self.wall_update_count)
         fp.write("halt_now = 0\n"); # presumably, we want the simulation to proceed
-
+        fp.write("halt_on_large_flow_change = %s\n" % self.halt_on_large_flow_change)
+        fp.write("tolerance_in_T = %g\n" % self.tolerance_in_T)
         return
 
     def write_to_ini_file(self, fp):
@@ -996,7 +1003,57 @@ class HistoryLocation(object):
         HistoryLocation.historyList.append(self)
         return
 
-# --------------------------------------------------------------------
+
+class MonitorLocation(object):
+    """
+    Contains the Cartesian (x,y,z) location of a monitor object.
+
+    These are points in the flow field that will be monitored 
+    in the main loop of the simulation.  If flow changes exceed 
+    a specified tolerance, the time-stepping is halted.
+    """
+    __slots__ = 'x', 'y', 'z', 'label', 'i', 'j', 'k', 'i_offset', 'j_offset', \
+        'k_offset', 'blkId', 'cellId'
+
+    # Accumulate references to monitor locations
+    monitorList = []
+
+    def __init__(self, x, y, z=0.0, i_offset=0, j_offset=0, k_offset=0, label=""):
+        """
+        Initialises a monitor location.
+
+        This location will later be tied to a cell in the grid.
+
+        :param x: (float) point in space
+        :param y: (float)
+        :param z: (float)
+        :param i_offset: (int) Sometimes we want to be a cell or more away from a point 
+        (like the centerline) in an axisymmetric flow simulation.
+        :param j_offset: (int)
+        :param k_offset: (int)
+        :param label: (string)
+        """
+        if not isinstance(x, float):
+            raise TypeError, ("x should be a float but it is: %s" % type(x))
+        if not isinstance(y, float):
+            raise TypeError, ("y should be a float but it is: %s" % type(y))
+        if not isinstance(z, float):
+            raise TypeError, ("z should be a float but it is: %s" % type(z))
+        self.x = x
+        self.y = y
+        self.z = z
+        self.label = label
+        self.i = 0
+        self.j = 0
+        self.k = 0
+        self.i_offset = i_offset
+        self.j_offset = j_offset
+        self.k_offset = k_offset
+        self.blkId = 0
+        self.cellId = 0
+        MonitorLocation.monitorList.append(self)
+        return
+
 
 def locate_closest_cell(x_target, y_target, z_target=0.0):
     """
@@ -1032,8 +1089,10 @@ def locate_closest_cell(x_target, y_target, z_target=0.0):
     #
     return (best_block, best_i, best_j, best_k)
 
+
 def keep_in_range(i, low, hi):
     return max(low, min(i, hi))
+
 
 def locate_history_cells():
     """
@@ -1077,6 +1136,33 @@ def locate_history_cells():
             hfp.write("--------------------------------------------------------")
             hfp.write("--------------------------------------------------------\n")
         hfp.close()
+    #
+    return
+
+
+def locate_monitor_cells():
+    """
+    Given the Cartesian coordinates of the monitor locations, 
+    locate the closest cell for each.
+    """
+    global gdata
+    #
+    for h in MonitorLocation.monitorList:
+        best_block, best_i, best_j, best_k = locate_closest_cell(h.x, h.y, h.z)
+        b = Block.blockList[best_block]
+        print "For monitor location: ", h.x, h.y, h.z
+        print "    Closest grid cell is at: block= ", best_block, \
+              "i=", best_i, "j=", best_j, "k=", best_k
+        best_i += h.i_offset; best_i = keep_in_range(best_i, 0, b.nni-1)
+        best_j += h.j_offset; best_j = keep_in_range(best_j, 0, b.nnj-1)
+        best_k += h.k_offset; best_k = keep_in_range(best_k, 0, b.nnk-1)
+        print "    After offsets: i=", best_i, "j=", best_j, "k=", best_k
+        Block.blockList[best_block].mcell_list.append( (best_i, best_j, best_k) )
+        print "    For block", best_block ,"this becomes monitor cell index=", \
+              len(Block.blockList[best_block].mcell_list) - 1
+        h.i = best_i; h.j = best_j; h.k = best_k;
+        h.blkId = best_block
+        h.cellId = len(Block.blockList[best_block].mcell_list) - 1
     #
     return
 
@@ -1300,6 +1386,7 @@ def main(uoDict):
         sys.exit(0)
     #
     locate_history_cells()
+    locate_monitor_cells()
     write_times_file(rootName)
     write_parameter_file(rootName)
     write_control_file(rootName)

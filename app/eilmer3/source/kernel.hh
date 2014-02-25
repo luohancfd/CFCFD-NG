@@ -70,11 +70,14 @@ struct global_data
     size_t npiston;            // number of pistons
     std::vector<Piston *> pistons;
 
-    size_t step;            /* global iteration count     */
-    size_t max_step;        /* global iteration limit     */
-    size_t t_level;         /* global time level within update */
-    int halt_now;           /* flag for premature halt    */
-    size_t print_count; // Number of steps between writing status message to console.
+    size_t step;                    // global iteration count
+    size_t max_step;                // global iteration limit
+    size_t t_level;                 // global time level within update
+    int halt_now;                   // flag for premature halt
+    bool halt_on_large_flow_change; // Set to true to halt simulation when any
+                                    // monitor point sees a large flow change.
+    double tolerance_in_T;          // Temperature change for the flow change.
+    size_t print_count;   // Number of steps between writing status message to console.
     size_t control_count; // Number of steps between rereading .control file.
 
     /// When decoding the array of conserved quantities, 

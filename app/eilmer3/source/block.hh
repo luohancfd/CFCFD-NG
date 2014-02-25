@@ -50,6 +50,10 @@ public:
     size_t hncell;              // number of sample cells
     std::vector<size_t> hicell, hjcell, hkcell; // location of sample cells
 
+    size_t mncell;              // number of monitor cells
+    std::vector<size_t> micell, mjcell, mkcell; // location of monitor cells
+    std::vector<double> initial_T_value;
+
     // Total number of cells in each direction for this block.
     // these will be used in the array allocation routines.
     size_t nidim, njdim, nkdim;

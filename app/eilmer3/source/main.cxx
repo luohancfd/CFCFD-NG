@@ -1115,6 +1115,21 @@ int integrate_in_time(double target_time)
 	}
     }
 
+    // Store the initial temperature at the monitor points.
+    for ( Block *bdp : G.my_blocks ) {
+	for ( size_t im = 0; im < bdp->mncell; ++ im ) {
+	    FV_Cell *cp = bdp->get_cell(bdp->micell[im]+bdp->imin, 
+					bdp->mjcell[im]+bdp->jmin, 
+					bdp->mkcell[im]+bdp->kmin);
+	    bdp->initial_T_value[im] = cp->fs->gas->T[0];
+#           if 0
+	    // Some Debug...
+	    cout << "block id=" << bdp->id << " cell at x=" << cp->pos[0].x << " y=" << cp->pos[0].y
+		 << " z=" << cp->pos[0].z << " initial T=" << bdp->initial_T_value[im] << endl;
+#           endif
+	}
+    }
+
     // Normally, we can terminate upon either reaching 
     // a maximum time or upon reaching a maximum iteration count.
     finished_time_stepping = (G.sim_time >= stopping_time || G.step >= G.max_step);
@@ -1623,7 +1638,11 @@ int integrate_in_time(double target_time)
         //        This provides a semi-interactive way to terminate the 
         //        simulation and save the data.
 	//    (4) Exceeding a maximum number of wall-clock seconds.
-	//    (5) Exceeding an allowable delta(f_rad) / f_rad_org factor
+	//    (5) Having the temperature at one of the control points exceed 
+	//        the preset tolerance.  
+	//        This is mainly for the radiation-coupled simulations.
+	//    (-) Exceeding an allowable delta(f_rad) / f_rad_org factor
+	//
 	//    Note that the max_time and max_step control parameters can also
 	//    be found in the control-parameter file (which may be edited
 	//    while the code is running).
@@ -1644,6 +1663,33 @@ int integrate_in_time(double target_time)
             finished_time_stepping = true;
             if ( master ) printf( "Integration stopped: reached maximum wall-clock time.\n" );
 	}
+	if ( G.halt_on_large_flow_change ) {
+	    // Test the monitor points and see if any has experienced a large change in temperature.
+	    int large_T_change = 0;
+	    for ( Block *bdp : G.my_blocks ) {
+		if ( !bdp->active ) continue;
+		for ( size_t im = 0; im < bdp->mncell; ++ im ) {
+		    FV_Cell *cp = bdp->get_cell(bdp->micell[im]+bdp->imin,
+						bdp->mjcell[im]+bdp->jmin,
+						bdp->mkcell[im]+bdp->kmin);
+		    if ( fabs(bdp->initial_T_value[im] - cp->fs->gas->T[0]) > G.tolerance_in_T ) {
+			large_T_change = 1;
+			cout << "block=" << bdp->id 
+			     << " cell at x=" << cp->pos[0].x << " y=" << cp->pos[0].y << " z=" << cp->pos[0].z << ","
+			     << " initial T=" << bdp->initial_T_value[im] << " current T=" << cp->fs->gas->T[0] << endl;
+			cout << "Temperature change exceeded tolerance of " << G.tolerance_in_T << endl;
+		    }
+		} // for im
+	    } // for Block
+#           ifdef _MPI
+	    MPI_Allreduce(MPI_IN_PLACE, &(large_T_change), 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+#           endif
+	    if ( large_T_change == 1 ) {
+		finished_time_stepping = true;
+		if ( master ) printf( "Integration stopped: maximum temperature change exceeded.\n" );
+	    }
+	} // if G.halt_on_large_flow_change
+
 	// [todo] Dan, I removed the remote control from this section of code
 	//        bacause it seemed simply to turn off the following code.
 	//        I guess that it's unfinished work.

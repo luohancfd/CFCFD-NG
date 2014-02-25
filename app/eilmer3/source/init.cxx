@@ -743,6 +743,8 @@ int read_control_parameters( const string filename, bool master, bool first_time
     if ( G.radiation_update_frequency < 0 ) {
 	throw runtime_error("ERROR: radiation_update_frequency needs to be larger than or equal to 0.");
     }
+    dict.parse_double("control_data", "tolerance_in_T", G.tolerance_in_T, 100.0);
+    dict.parse_boolean("control_data", "halt_on_large_flow_change", G.halt_on_large_flow_change, false);
     if ( first_time && G.verbose_init_messages ) {
 	cout << "Time-step control parameters:" << endl;
 	cout << "    x_order = " << G.Xorder << endl;
@@ -770,6 +772,9 @@ int read_control_parameters( const string filename, bool master, bool first_time
 	cout << "    halt_now = " << G.halt_now << endl;
 	cout << "    halt_now = " << G.halt_now << endl;
 	cout << "    radiation_update_frequency = " << G.radiation_update_frequency << endl;
+	cout << "    wall_update_count = " << G.wall_update_count << endl;
+	cout << "    halt_on_large_flow_change = " << G.halt_on_large_flow_change << endl;
+	cout << "    tolerance_in_T = " << G.tolerance_in_T << endl;
 	cout << "    implicit flag value: " << G.implicit_mode;
 	switch ( G.implicit_mode ) {
 	case 0: cout << " (Explicit viscous advancements)" << endl; break;
@@ -1062,22 +1067,50 @@ int set_block_parameters(size_t id, ConfigParser &dict, bool master)
 	string key = "history-cell-" + tostring(ih);
 	dict.parse_string(section, key, value_string, "0 0 0");
 	if ( G.dimensions == 3 ) {
-	    unsigned int hicell, hjcell, hkcell;
-	    sscanf( value_string.c_str(), "%u %u %u", &hicell, &hjcell, &hkcell );
-	    bd.hicell.push_back(hicell);
-	    bd.hjcell.push_back(hjcell);
-	    bd.hkcell.push_back(hkcell);
+	    unsigned int i, j, k;
+	    sscanf( value_string.c_str(), "%u %u %u", &i, &j, &k );
+	    bd.hicell.push_back(i);
+	    bd.hjcell.push_back(j);
+	    bd.hkcell.push_back(k);
 	} else {
-	    unsigned int hicell, hjcell;
-	    sscanf( value_string.c_str(), "%u %u", &hicell, &hjcell );
-	    bd.hicell.push_back(hicell);
-	    bd.hjcell.push_back(hjcell);
+	    unsigned int i, j;
+	    sscanf( value_string.c_str(), "%u %u", &i, &j );
+	    bd.hicell.push_back(i);
+	    bd.hjcell.push_back(j);
 	    bd.hkcell.push_back(0);
 	}
 	if ( G.verbose_init_messages ) {
 	    printf( "    History cell[%d] located at indices [%d][%d][%d]\n",
 		    static_cast<int>(ih), static_cast<int>(bd.hicell[ih]),
 		    static_cast<int>(bd.hjcell[ih]), static_cast<int>(bd.hkcell[ih]) );
+	}
+    }
+
+    // Flow-monitor cells.
+    section = "block/" + tostring(indx);
+    dict.parse_size_t(section, "nmcell", bd.mncell, 0);
+    for ( size_t im = 0; im < bd.mncell; ++im ) {
+	section = "block/" + tostring(indx);
+	string key = "monitor-cell-" + tostring(im);
+	dict.parse_string(section, key, value_string, "0 0 0");
+	if ( G.dimensions == 3 ) {
+	    unsigned int i, j, k;
+	    sscanf( value_string.c_str(), "%u %u %u", &i, &j, &k );
+	    bd.micell.push_back(i);
+	    bd.mjcell.push_back(j);
+	    bd.mkcell.push_back(k);
+	} else {
+	    unsigned int i, j;
+	    sscanf( value_string.c_str(), "%u %u", &i, &j );
+	    bd.micell.push_back(i);
+	    bd.mjcell.push_back(j);
+	    bd.mkcell.push_back(0);
+	}
+	bd.initial_T_value.push_back(0.0); // place holder value
+	if ( G.verbose_init_messages ) {
+	    printf( "    Monitor cell[%d] located at indices [%d][%d][%d]\n",
+		    static_cast<int>(im), static_cast<int>(bd.micell[im]),
+		    static_cast<int>(bd.mjcell[im]), static_cast<int>(bd.mkcell[im]) );
 	}
     }
 

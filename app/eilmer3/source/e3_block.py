@@ -708,6 +708,7 @@ class Block(object):
         fp.write("nnj = %d\n" % self.nnj)
         fp.write("nnk = %d\n" % self.nnk)
         fp.write("omegaz = %f\n" % self.omegaz)
+        # History cells, for regular output.
         if self.hcell_list != None:
             fp.write("nhcell = %d\n" % len(self.hcell_list))
             count = 0
@@ -719,6 +720,19 @@ class Block(object):
                     fp.write("history-cell-%d = %d %d\n" % 
                              (count,hcell[0],hcell[1]))
                 count += 1
+        # Monitor cells, for simulation control.
+        if self.mcell_list != None:
+            fp.write("nmcell = %d\n" % len(self.mcell_list))
+            count = 0
+            for mcell in self.mcell_list:
+                if dimensions == 3:
+                    fp.write("monitor-cell-%d = %d %d %d\n" % 
+                             (count,mcell[0],mcell[1],mcell[2]))
+                else:
+                    fp.write("monitor-cell-%d = %d %d\n" % 
+                             (count,mcell[0],mcell[1]))
+                count += 1
+        # Now, write information for all faces of the block.
         if dimensions == 3:
             faceList = faceList3D
         else:
@@ -874,7 +888,7 @@ class Block2D(Block):
     """
 
     __slots__ = 'blkId', 'label', 'psurf', 'nni', 'nnj', 'nnk', 'grid', \
-                'hcell_list', 'fill_condition', 'active', \
+                'hcell_list', 'mcell_list', 'fill_condition', 'active', \
                 'cf_list', 'bc_list', 'vtx', \
                 'xforce_list', 'wc_bc_list', 'omegaz'
     
@@ -889,6 +903,7 @@ class Block2D(Block):
                  wc_bc_list=[NonCatalyticWBC(),]*4,
                  fill_condition=None,
                  hcell_list=[],
+                 mcell_list=[],
                  xforce_list = [0,]*4,
                  label="",
                  active=1
@@ -909,12 +924,13 @@ class Block2D(Block):
             The order within the list is NORTH, EAST, SOUTH and WEST.
         :param bc_list: List of BoundaryCondition objects, one for each face.
         :param fill_condition: Either a single FlowCondition or user-defined function.
-        :param hcell_list: List of (i,j) tuples specifying the cells
-            (for this block)
+        :param hcell_list: List of (i,j) tuples specifying the cells (for this block)
             whose flow data is to be recorded in the history file.
             For an MPI simulation, there is one history file for each
             block but, for a shared-memory simulation, the history cells
             for all blocks are written to a single history file.
+        :param mcell_list: List of (i,j) tuples specifying the cells (for this block)
+            whose Temperature is to be monitored during the simulation.
         :param xforce_list: list of int flags to indicate that we want 
             boundary forces calculated
         :param label: Optional string label that will appear 
@@ -989,6 +1005,7 @@ class Block2D(Block):
         self.wc_bc_list = copy.copy(wc_bc_list)
         self.cf_list = copy.copy(cf_list)
         self.hcell_list = copy.copy(hcell_list)
+        self.mcell_list = copy.copy(mcell_list)
         self.xforce_list = copy.copy(xforce_list)
         self.fill_condition = fill_condition
         #
@@ -1523,7 +1540,7 @@ class Block3D(Block):
     """
     __slots__ = 'blkId', 'nni', 'nnj', 'nnk', 'label', \
                 'parametric_volume', 'grid', 'cf_list', 'hcell_list', \
-                'fill_condition', 'omegaz', 'active', \
+                'mcell_list', 'fill_condition', 'omegaz', 'active', \
                 'bc_list', 'Twall_list', 'Pout_list', 'r_omega_list', \
                 'xforce_list', 'wc_bc_list', 'sponge_flag_list', \
                 'vertex_location_list', 'neighbour_vertex_list'
@@ -1645,6 +1662,12 @@ class Block3D(Block):
                 assert isinstance(hcell, tuple) and len(hcell) == 3,\
                     "History cells should be specified as a list of tuples (i,j,k)"
         self.hcell_list = copy.copy(hcell_list)
+        #
+        if mcell_list != None:
+            for mcell in mcell_list:
+                assert isinstance(mcell, tuple) and len(mcell) == 3,\
+                    "Monitor cells should be specified as a list of tuples (i,j,k)"
+        self.mcell_list = copy.copy(mcell_list)
         #
         # Dummy values for the boundary conditions.
         # Other values may be selected via the set_BC() method.
