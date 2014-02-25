@@ -115,45 +115,46 @@ int Block::compute_primary_cell_geometric_data(size_t dimensions, size_t gtl)
 	}
     }
 
-    /* Propagate cross-cell lengths into the ghost cells. */
+    // Propagate cross-cell lengths into the ghost cells.
+    // 25-Feb-2014
+    // Jason Qin and Paul Petrie-Repar have identified the lack of exact symmetry in
+    // the reconstruction process at the wall as being a cause of the leaky wall
+    // boundary conditions.  Note that the symmetry is not consistent with the 
+    // linear extrapolation used for the positions and volumes in the next section.
+    // TODO -- think about this carefully.
     for ( j = jmin; j <= jmax; ++j ) {
 	for ( k = kmin; k <= kmax; ++k ) {
 	    i = imin;
-	    cell = get_cell(i,j,k);
-	    get_cell(i-1,j,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
-	    get_cell(i-2,j,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
+	    get_cell(i-1,j,k)->copy_values_from(*get_cell(i,j,k), COPY_CELL_LENGTHS, gtl);
+	    get_cell(i-2,j,k)->copy_values_from(*get_cell(i+1,j,k), COPY_CELL_LENGTHS, gtl);
 	    i = imax;
-	    cell = get_cell(i,j,k);
-	    get_cell(i+1,j,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
-	    get_cell(i+2,j,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
+	    get_cell(i+1,j,k)->copy_values_from(*get_cell(i,j,k), COPY_CELL_LENGTHS, gtl);
+	    get_cell(i+2,j,k)->copy_values_from(*get_cell(i-1,j,k), COPY_CELL_LENGTHS, gtl);
 	}
     }
     for ( i = imin; i <= imax; ++i ) {
 	for ( k = kmin; k <= kmax; ++k ) {
 	    j = jmin;
-	    cell = get_cell(i,j,k);
-	    get_cell(i,j-1,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
-	    get_cell(i,j-2,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
+	    get_cell(i,j-1,k)->copy_values_from(*get_cell(i,j,k), COPY_CELL_LENGTHS, gtl);
+	    get_cell(i,j-2,k)->copy_values_from(*get_cell(i,j+1,k), COPY_CELL_LENGTHS, gtl);
 	    j = jmax;
-	    cell = get_cell(i,j,k);
-	    get_cell(i,j+1,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
-	    get_cell(i,j+2,k)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
+	    get_cell(i,j+1,k)->copy_values_from(*get_cell(i,j,k), COPY_CELL_LENGTHS, gtl);
+	    get_cell(i,j+2,k)->copy_values_from(*get_cell(i,j-1,k), COPY_CELL_LENGTHS, gtl);
 	}
     }
     for ( i = imin; i <= imax; ++i ) {
 	for ( j = jmin; j <= jmax; ++j ) {
 	    k = kmin;
-	    cell = get_cell(i,j,k);
-	    get_cell(i,j,k-1)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
-	    get_cell(i,j,k-2)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
+	    get_cell(i,j,k-1)->copy_values_from(*get_cell(i,j,k), COPY_CELL_LENGTHS, gtl);
+	    get_cell(i,j,k-2)->copy_values_from(*get_cell(i,j,k+1), COPY_CELL_LENGTHS, gtl);
 	    k = kmax;
-	    cell = get_cell(i,j,k);
-	    get_cell(i,j,k+1)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
-	    get_cell(i,j,k+2)->copy_values_from(*cell, COPY_CELL_LENGTHS, gtl);
+	    get_cell(i,j,k+1)->copy_values_from(*get_cell(i,j,k), COPY_CELL_LENGTHS, gtl);
+	    get_cell(i,j,k+2)->copy_values_from(*get_cell(i,j,k-1), COPY_CELL_LENGTHS, gtl);
 	}
     }
 
     /* Extrapolate (with first-order) cell positions and volumes to ghost cells. */
+    // TODO -- think about how to make these things consistent.
     for ( j = jmin; j <= jmax; ++j ) {
 	for ( k = kmin; k <= kmax; ++k ) {
 	    i = imin;
@@ -874,7 +875,7 @@ int Block::calc_volumes_2D(size_t gtl)
         target_cell->iLength = source_cell->iLength;
         target_cell->jLength = source_cell->jLength;
 	target_cell->kLength = 0.0;
-        source_cell = get_cell(i,j);
+        source_cell = get_cell(i,j-1);
 	target_cell = get_cell(i,j+2);
         target_cell->iLength = source_cell->iLength;
         target_cell->jLength = source_cell->jLength;
@@ -886,7 +887,7 @@ int Block::calc_volumes_2D(size_t gtl)
         target_cell->iLength = source_cell->iLength;
         target_cell->jLength = source_cell->jLength;
 	target_cell->kLength = 0.0;
-        source_cell = get_cell(i,j);
+        source_cell = get_cell(i,j+1);
         target_cell = get_cell(i,j-2);
         target_cell->iLength = source_cell->iLength;
         target_cell->jLength = source_cell->jLength;
@@ -901,7 +902,7 @@ int Block::calc_volumes_2D(size_t gtl)
         target_cell->iLength = source_cell->iLength;
         target_cell->jLength = source_cell->jLength;
 	target_cell->kLength = 0.0;
-        source_cell = get_cell(i,j);
+        source_cell = get_cell(i-1,j);
         target_cell = get_cell(i+2,j);
         target_cell->iLength = source_cell->iLength;
         target_cell->jLength = source_cell->jLength;
@@ -913,7 +914,7 @@ int Block::calc_volumes_2D(size_t gtl)
         target_cell->iLength = source_cell->iLength;
         target_cell->jLength = source_cell->jLength;
 	target_cell->kLength = 0.0;
-        source_cell = get_cell(i,j);
+        source_cell = get_cell(i+1,j);
         target_cell = get_cell(i-2,j);
         target_cell->iLength = source_cell->iLength;
         target_cell->jLength = source_cell->jLength;
