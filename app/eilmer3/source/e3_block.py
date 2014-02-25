@@ -624,7 +624,9 @@ class Block(object):
         if type_of_BC == FIXED_T:
             newbc = FixedTBC(Twall, label=label)
         if type_of_BC == SUBSONIC_IN:
-            newbc = SubsonicInBC(inflow_condition, assume_ideal=assume_ideal, label=label)
+            newbc = SubsonicInBC(inflow_condition, 
+                                 mass_flux=mass_flux, relax_factor=relax_factor,
+                                 assume_ideal=assume_ideal, label=label)
         if type_of_BC == SUBSONIC_OUT:
             newbc = SubsonicOutBC(sponge_flag, label=label)
         if type_of_BC == TRANSIENT_UNI:
