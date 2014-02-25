@@ -1557,6 +1557,7 @@ class Block3D(Block):
                  wc_bc_list=[NonCatalyticWBC(),]*6,
                  fill_condition=None,
                  hcell_list=None,
+                 mcell_list=None,
                  xforce_list=[0,]*6,
                  label="",
                  active=1,
