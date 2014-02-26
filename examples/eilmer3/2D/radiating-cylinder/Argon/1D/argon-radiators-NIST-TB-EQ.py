@@ -21,7 +21,9 @@ params = {
 "iTe"                   : 0,
 "atomic_level_source"   : "NIST_ASD",
 "atomic_line_source"    : "NIST_ASD",
-"atomic_PICS_source"    : "TOPBase"
+"atomic_PICS_source"    : "TOPBase",
+"allow_inexact_Stark_matches" : True,
+"require_PICS_term_match" : False
 }
 
 declare_radiators( params, gdata )
