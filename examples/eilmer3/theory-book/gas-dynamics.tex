@@ -150,7 +150,7 @@ where any purely vibrational component of radiative heat loss (or gain) has been
 The magnetohydrodynamic source vector in the low magnetic Reynolds number limit is
 \begin{equation}
  Q_{\text{MHD}} = \left [ \begin{array}{c} 0 \\ \left ( \vec{j} \times \vec{B} \right )_x \\ \left ( \vec{j} \times \vec{B} \right )_y \\ \vec{j} \cdot \vec{E} \\ 0 \\ \vec{u} \cdot \nabla p_e + \vec{j} \cdot \vec{E} \\ 0 \end{array} \right ]
- \label{eq:Q_rad}
+ \label{eq:Q_MHD}
 \end{equation}
 where $ \vec{j} \times \vec{B}$ is the Lorentz force, $\vec{j} \cdot \vec{E}$ Joule heating and $\vec{u} \cdot \nabla p_e$ an approximation for the work done on free electrons due to the induced electric field associated with ambipolar diffusion~\cite{appleton_1964,Lee84}.
 The transport, thermodynamic and chemical kinetic source term models 
@@ -549,7 +549,7 @@ values are
   \Delta_{L-} & = & \frac{w_{L0} - w_{L1}}{\frac{1}{2} \left( h_{L0} + h_{L1}\right)} ~~, \nonumber \\
   \Delta_{L+} & = & \frac{w_{R0} - w_{L0}}{\frac{1}{2} \left( h_{R0} + h_{L0} \right)} ~ = ~ \Delta_{R-} ~~, \nonumber \\
   \Delta_{R+} & = & \frac{w_{R1} - w_{R0}}{\frac{1}{2} \left( h_{R0} + h_{R1} \right)} ~~, \nonumber \\
-  \alpha_{L0}  & = & \frac{h_{L0} / 2}{h_{L1} + 2 h_{L0} + h_{L0}} ~~, \nonumber \\
+  \alpha_{L0}  & = & \frac{h_{L0} / 2}{h_{L1} + 2 h_{L0} + h_{R0}} ~~, \nonumber \\
   \alpha_{R0}  & = & \frac{h_{R0} / 2}{h_{L0} + 2 h_{R0} + h_{R1}} ~~,
 \end{eqnarray}
 where the $h$ represents the width of a cell and the van Albada limiter\,\cite{vanalbada_etal_81} is implemented as

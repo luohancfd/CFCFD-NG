@@ -1,4 +1,4 @@
-% thermochem.tex
+% radiation.tex
 
 \section{Radiation transport}
 \label{sec:radiation_transport}
@@ -78,7 +78,7 @@ If a single column of blocks is used to define the computational domain-between 
 
 \par
 
-\begin{figure}[h]
+\begin{figure}[ht]
  \center
  \includegraphics[scale=0.85]{radiation/figures/FireII-TS.png}
  \caption{Schematic of tangent-slab calculation domain along lines of cells on a multi-block grid.}
@@ -140,7 +140,7 @@ The radiation sub-grid consists of rays distributed isodirectionally from each e
 An example of a radiation sub-grid on a simple axisymmetric CFD grid is illustrated in Figure~\ref{fig:radiation-subgrid}.
 Although the modified discrete transfer model has been implemented in Eilmer3  for planar, axisymmetric and 3D geometries, only the planar and axisymmetric formulations are described herein.
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \includegraphics[width=\linewidth]{radiation/figures/axi-radiation-subgrid.pdf}
  \caption{Example radiation sub-grid on a simple axisymmetric grid (Reference~\cite{karl2001}).}
  \label{fig:radiation-subgrid}
@@ -159,7 +159,7 @@ The total radiative divergence for a finite-volume cell is calculated as the dif
 
 \begin{equation}
  - \nabla \cdot \vec{q}_\text{rad} = \frac{ - \left ( E_{\text{ems.}} - E_{\text{abs.}} \right ) }{V}
- \label{eq:my_divq}
+ \label{eq:my_divq_DT}
 \end{equation}
 
 \noindent where:
@@ -180,7 +180,7 @@ The radiative heat flux incident on wall elements $q_\text{rad}$ is calculated a
 
 \begin{equation}
  q_\text{rad} = \frac{ E_\text{abs.} }{A} =  \frac{ \displaystyle \sum_{r}^{N_{\text{inc. rays}}} \displaystyle \sum_{p}^{N_{\nu}} E_{r,n} }{ A }
- \label{eq:my_divq}
+ \label{eq:my_divq_DT_2}
 \end{equation}
 
 \noindent Note that all surfaces are currently treated as blackbodies, and therefore reflection is not considered.
@@ -225,7 +225,7 @@ The total radiative power density for volume element $i$ is calculated as:
 Similarly, the number of photons emitted from a volume element $i$ via the volume clustering approach is:
 
  \begin{equation}
- N_{i} = \text{int} \left [ N_{\text{max}} \frac{ e_{i} V_i }{ \text{max}_i ( e_{i} V_i ) } \right ] \label{eq:N_photons}
+ N_{i} = \text{int} \left [ N_{\text{max}} \frac{ e_{i} V_i }{ \text{max}_i ( e_{i} V_i ) } \right ] \label{eq:N_photons_vol_clustering}
 \end{equation}
 
 \noindent where $V_i$ is the volume of volume element $i$.
@@ -318,7 +318,7 @@ The unit sphere coordinates of ray $i$ of $N_\text{rays}$ are calculated as:
 The core of the ray-tracing method are cell searching algorithms that allows the radiation sub-grid to be mapped onto the CFD grid, Figure~\ref{fig:cell-searching}.
 Given the coordinates of a point along a ray, these algorithms solve for what cell this point lies in.
 
-\begin{figure}[h]
+\begin{figure}[ht]
  \centering
  \includegraphics[width=0.5\linewidth]{radiation/figures/cell_searching.pdf}
  \caption{Mapping of the radiation sub-grid onto the CFD grid, Reference~\cite{karl2001}.}
@@ -416,14 +416,14 @@ The total radiative divergence for a finite-volume cell is calculated as the dif
 
 \begin{equation}
  - \nabla \cdot \vec{q}_\text{rad} = \frac{ - \left ( E_{\text{ems.}} - E_{\text{abs.}} \right ) }{V}
- \label{eq:my_divq}
+ \label{eq:my_divq_MC}
 \end{equation}
 
 \noindent where:
 
 \begin{eqnarray}
- E_{\text{ems.}} &=& \int_{V} \int_{0}^{{4\pi}} \int_{\nu_{\text{min}}}^{\nu_{\text{max}}} j_{\nu} d\nu d\omega dV = \sum_{p}^{N_{\text{ems. photons}}} E_{p}^0 \label{eq:E_emission} \\
- E_{\text{abs.}} &=& \sum_{p}^{N_{\text{abs. photons}}} \left ( - \Delta E_{p} \right ) \label{eq:E_absorption} 
+ E_{\text{ems.}} &=& \int_{V} \int_{0}^{{4\pi}} \int_{\nu_{\text{min}}}^{\nu_{\text{max}}} j_{\nu} d\nu d\omega dV = \sum_{p}^{N_{\text{ems. photons}}} E_{p}^0 \label{eq:E_emission_MC} \\
+ E_{\text{abs.}} &=& \sum_{p}^{N_{\text{abs. photons}}} \left ( - \Delta E_{p} \right ) \label{eq:E_absorption_MC} 
 \end{eqnarray}
 
 \noindent Here $N_{\text{abs. photons}}$ is the total number of photon packets with energy being absorbed by the current cell and $N_{\text{ems. photons}}$ is the total number of photons emitted by this cell.
@@ -445,7 +445,7 @@ The radiative heating of wall elements $q_\text{rad}$ is then calculated as the 
 
 \begin{equation}
  q_\text{rad} = \frac{ E_\text{abs.} }{A} =  \frac{ \displaystyle \sum_{p}^{N_{\text{inc. photons}}} \displaystyle E_{p} }{ A }
- \label{eq:my_divq}
+ \label{eq:my_divq_MC_2}
 \end{equation}
 
 \subsubsection{Non-gray spectral models}
@@ -586,7 +586,7 @@ Note that more rays are required for the photon Monte-Carlo simulations as $N_\t
 \label{fig:axi_divq_profiles}
 \end{figure}
 
-\begin{table}[h]
+\begin{table}[ht]
  \centering
  \small
  \caption{Tabulated results for the axisymmetric infinite-cylinder radiation transport test case.}
@@ -626,7 +626,7 @@ The results indicate the ray-tracing model performs reasonably well under parall
 The speed-ups for the 2 and 4 block cases are 1.52 and 2.97 respectively, giving parallelised code fractions of 48 and 34\% according to Gustafson's law~\cite{gustafson88}.
 % Furthermore, the increase in the memory usage for the 2 and 4 core cases is minimal, being only 7.6 and 12.5\% respectively.
 
-\begin{table}[b!]
+\begin{table}[ht]
  \centering
  \small
  \caption{Comparison of resource usage for the $32 \times 32$ cell grid and 512 photon Monte--Carlo infinite-cylinder radiation transport test case with 1, 2 and 4 blocks.}
