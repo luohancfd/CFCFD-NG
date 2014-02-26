@@ -158,9 +158,9 @@ class YvX:
                 for label in labels:
                     labels_.append( label + " integral" ) 
                     pylab.legend( labels_, loc="best" )
-		if show_plot:
-			pylab.legend( labels, loc="best" ) 
-			pylab.show()
+        if show_plot:
+            pylab.legend( labels, loc="best" ) 
+            pylab.show()
 
     def plot_spline( self, title="", xlabel="", ylabel="", label="YvX_data", 
                      new_plot=True, show_plot=False, include_integral=False, 
