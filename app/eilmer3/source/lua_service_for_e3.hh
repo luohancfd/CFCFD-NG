@@ -40,6 +40,7 @@ int luafn_eval_Cp(lua_State *L);
 int luafn_eval_R(lua_State *L);
 int luafn_eval_gamma(lua_State *L);
 int luafn_molecular_weight(lua_State *L);
+int luafn_enthalpy(lua_State *L);
 int luafn_massf2molef(lua_State *L);
 int luafn_massf2conc(lua_State *L);
 int luafn_molef2massf(lua_State *L);

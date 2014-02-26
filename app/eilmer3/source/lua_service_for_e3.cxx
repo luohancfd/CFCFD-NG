@@ -504,6 +504,22 @@ int luafn_molecular_weight(lua_State *L)
     return 1;
 }
 
+int luafn_enthalpy(lua_State *L)
+{
+    // Assume gas_data is a top of stack and store this index
+    Gas_model *gmodel = get_gas_model_ptr();
+    Gas_data Q(gmodel);
+    // Expect a gas_data as lua table at top of stack.
+    get_table_as_gas_data(L, Q);
+    // Then expect an integer for species index next
+    int isp = luaL_checkinteger(L, 2);
+    double h = gmodel->enthalpy(Q, isp);
+    // Put h at top of stack
+    lua_pushnumber(L, h);
+    return 1;
+}
+
+
 int luafn_massf2molef(lua_State *L)
 {
     Gas_model *gmodel = get_gas_model_ptr();
@@ -706,6 +722,8 @@ int register_luafns(lua_State *L)
     lua_setglobal(L, "eval_gamma");
     lua_pushcfunction(L, luafn_molecular_weight);
     lua_setglobal(L, "molecular_weight");
+    lua_pushcfunction(L, luafn_enthalpy);
+    lua_setglobal(L, "enthalpy");
     lua_pushcfunction(L, luafn_massf2molef);
     lua_setglobal(L, "massf2molef");
     lua_pushcfunction(L, luafn_massf2conc);

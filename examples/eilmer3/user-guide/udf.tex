@@ -580,6 +580,12 @@ is consistent with the internal units of the code. Note that
 the units of molecular weight listed on the Periodic Table
 and commonly used in textbook formulas is in g/mol. The returned
 value should be multiplied by 1000.0 to give g/mol. \\
+\texttt{enthalpy(Q, isp)} & A function that returns
+the enthalpy in J/kg of species \textit{isp}.
+The enthalpy is computed based on the supplied gas
+state in \textit{Q}. When using the thermally perfect
+gas mix, the enthalpies of formation can be obtained
+by evaluating the enthalpy at $T$ = 298.15\,K. \\
 \texttt{massf2molef(massf)} & A function that returns a table
 of mole fractions based on a supplied table of mass fractions.
 Note the table of supplied mass fractions must be the full size
