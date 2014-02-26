@@ -206,20 +206,20 @@ def fit_billig2shock( sol, axi, M_inf, R, body=None, shock_x_coords=None, shock_
     # make a best fit to the shock location point cloud
     def shock_x_from_y( p, y ):
         print p
-        _bx_scale, _by_scale, _M_inf, _Rn = p
+        _bx_scale, _by_scale = p
         x = []
         for _y in y:
-            _x = - _bx_scale * x_from_y(_y/_by_scale, _M_inf, theta=0.0, axi=axi, R_nose=_Rn)
+            _x = - _bx_scale * x_from_y(_y/_by_scale, M_inf, theta=0.0, axi=axi, R_nose=R)
             x.append( _x )
         result = array(x)
         return result
 
     def shock_y_from_x( p, x ):
         print p
-        _bx_scale, _by_scale, _M_inf, _Rn = p
+        _bx_scale, _by_scale = p
         y = []
         for _x in x:
-            _y = _by_scale * y_from_x(-_x*_bx_scale, _M_inf, theta=0.0, axi=axi, R_nose=_Rn)
+            _y = _by_scale * y_from_x(-_x*_bx_scale, _M_inf, theta=0.0, axi=axi, R_nose=R)
             y.append( _y )
         result = array(y)
         return result
@@ -234,8 +234,8 @@ def fit_billig2shock( sol, axi, M_inf, R, body=None, shock_x_coords=None, shock_
             result = sqrt(sum((x - x_dash)**2)/len(x))
         return result
     
-    p0 = [ 1.0, 1.0, M_inf, R ]
-    plsq = fmin_slsqp(residuals, p0, args=(shock_x_coords, shock_y_coords), bounds=[(1.0e-1,1e1),(1.0e-1,1e1),(1.0e0,1e2),(1.0e-4,1e0)], fprime=None)
+    p0 = [ 1.0, 1.0 ]
+    plsq = fmin_slsqp(residuals, p0, args=(shock_x_coords, shock_y_coords), bounds=[(1.0e-1,1e1),(1.0e-1,1e1)], fprime=None)
     # p = p0
     p = plsq
     fit_x = []
@@ -255,12 +255,12 @@ def fit_billig2shock( sol, axi, M_inf, R, body=None, shock_x_coords=None, shock_
     # sample along the billig curve to make a spline
     x_limit = body.eval(1).x
     np = 100
-    y_top = p[1] * y_from_x(-x_limit/p[0], p[2], theta=0.0, axi=axi, R_nose=p[3])
+    y_top = p[1] * y_from_x(-x_limit/p[0], M_inf, theta=0.0, axi=axi, R_nose=R)
     dy = y_top / ( np - 1 )
     shock_nodes = []
     for iy in range(np):
         y = dy * iy
-        x = - p[0] * x_from_y(y/p[1], p[2], theta=0.0, axi=axi, R_nose=p[3])
+        x = - p[0] * x_from_y(y/p[1], M_inf, theta=0.0, axi=axi, R_nose=R)
         shock_nodes.append( Node(x,y) )
     shock_spline = Spline( shock_nodes )
     
@@ -297,13 +297,13 @@ def fit_billig2shock( sol, axi, M_inf, R, body=None, shock_x_coords=None, shock_
     shock_nodes = []
     for iy in range(np):
         y = dy * iy
-        x = - p[0] * x_from_y(y/p[1], p[2], theta=0.0, axi=axi, R_nose=p[3])
+        x = - p[0] * x_from_y(y/p[1], M_inf, theta=0.0, axi=axi, R_nose=R)
         shock_nodes.append( Node(x,y) )
     shock_spline = Spline( shock_nodes )
     
     return shock_spline, shock_nodes
 
-def fit_spline2shock( sol, M_inf, R, body=None, shock_x_coords=None, shock_y_coords=None, s=0.0 ):
+def fit_spline2shock( sol, axi, M_inf, R, body=None, shock_x_coords=None, shock_y_coords=None, weights=None, s=0.0 ):
     # see if the required packages are available
     if not with_numpy or not with_scipy:
         print "Error: numpy and scipy are required for shock fitting"
@@ -316,16 +316,11 @@ def fit_spline2shock( sol, M_inf, R, body=None, shock_x_coords=None, shock_y_coo
         body = Arc(a, b, o)
     if sol!=None:
         shock_x_coords, shock_y_coords = extract_shock_coords( sol )
-    # make a best fit to the shock location point cloud
-    # weights
-    w = [ 1.0 ] * len(shock_x_coords)
-    if 0:
-        for i in range(18):
-            w[i] = 10     
-    spline_fit = scipy.interpolate.splrep( shock_x_coords, shock_y_coords, w=array(w), s=s )
+    # make a best fit to the shock location point cloud  
+    spline_fit = scipy.interpolate.splrep( shock_x_coords, shock_y_coords, weights, s=s )
     # describe via the lib/geometry2 spline
-    shock_points = []
-    npoints = 100
+    shock_nodes = []
+    npoints = 1000
     dx = ( shock_x_coords[-1] - shock_x_coords[0] ) / ( npoints - 1 )
     fit_x = []
     fit_y = []
@@ -334,10 +329,8 @@ def fit_spline2shock( sol, M_inf, R, body=None, shock_x_coords=None, shock_y_coo
         fit_x.append(x)
     fit_y = scipy.interpolate.splev(array(fit_x),spline_fit)
     for i in range(npoints):
-        shock_points.append( Vector3( fit_x[i], fit_y[i] ) )
-    # make sure the first point corresponds to y=0
-    shock_points[0].y = 0.0
-    shock_spline = Spline(shock_points)
+        shock_nodes.append( Vector3( fit_x[i], fit_y[i] ) )
+    shock_spline = Spline(shock_nodes)
     
     # make a plot if matplotlib is available
     if with_mpl:
@@ -347,4 +340,4 @@ def fit_spline2shock( sol, M_inf, R, body=None, shock_x_coords=None, shock_y_coo
         plt.legend()
         plt.show()  
     
-    return shock_spline
+    return shock_spline, shock_nodes
