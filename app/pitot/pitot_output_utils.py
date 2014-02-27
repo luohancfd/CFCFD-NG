@@ -122,16 +122,15 @@ def txt_file_output(cfg, states, V, M):
     txt_output.write(driver_gas_used + '\n') 
             
     if cfg['shock_switch']:
-        shock_warning1 = "NOTE: a reflected shock was done into the shock tube and as such,"
+        shock_warning1 = "NOTE: a reflected shock was done into the shock tube."
         print shock_warning1
         txt_output.write(shock_warning1 + '\n')
         
-        shock_warning2 = "fill pressure's have been artifically modified by the code to match with xpt."
-        print shock_warning2
-        txt_output.write(shock_warning2 + '\n')
-
-    if cfg['secondary']:
+    if cfg['secondary'] and not cfg['shock_switch']:
         secondary_shockspeeds = "Vsd = {0:.2f} m/s, Msd1 = {1:.2f}".format(cfg['Vsd'],cfg['Msd1'])
+    elif cfg['secondary'] and cfg['shock_switch']:
+        secondary_shockspeeds = "Vsd = {0:.2f} m/s, Msd1 = {1:.2f}, Vr = {2:.2f}, Mr = {3:.2f}".\
+        format(cfg['Vsd'],cfg['Msd1'], cfg['Vr'], cfg['Mr'])        
         print secondary_shockspeeds
         txt_output.write(secondary_shockspeeds + '\n')
     if cfg['tunnel_mode'] == 'expansion-tube':    

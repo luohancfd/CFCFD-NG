@@ -165,6 +165,8 @@ available to me as part of cfpylib inside the cfcfd code collection.
     21-Feb-2014: Added a wedge calculation for the dump tank to Pitot, the user
         can specify a wedge angle and get the surface conditions for a wedge
         in the test section.
+    27-Feb-2014: Finally got the reflected shock mode working well.
+        Fixed a few odds and ends with print outs as well.
 """
 
 #--------------------- intro stuff --------------------------------------
@@ -192,7 +194,7 @@ from pitot_output_utils import *
 from pitot_area_ratio_check import *
 
 
-VERSION_STRING = "21-Feb-2014"
+VERSION_STRING = "27-Feb-2014"
 
 DEBUG_PITOT = False
 
@@ -233,10 +235,7 @@ def run_pitot(cfg = {}, config_file = None):
     cfg, states, V, M = state_builder(cfg) #function above that builds all of the initial states based on info in the cfg dictionary
        
     #--------- unsteady expansion of driver gas-----------------------------
-    if cfg['secondary']:
-        print "Starting unsteady expansion of the driver gas into the secondary driver tube."
-    else:
-        print "Starting unsteady expansion of the driver gas into the shock tube."
+    
     # For the unsteady expansion of the test driver into the tube, regulation of the amount
     # of expansion is determined by the shock-processed gas in the next section.
     # Across the contact surface between these gases, the pressure and velocity
@@ -303,19 +302,6 @@ def run_pitot(cfg = {}, config_file = None):
     if cfg['wedge']:
         cfg, states, V, M = wedge_calculation(cfg, states, V, M)
     
-            
-    #-------------- if the normal shock thing was done, fix it up before print out ----------
-
-    if cfg['test'] == "fulltheory-pressure" and cfg['shock_switch']: #restore the fill pressure's back to normal
-        states['s1'].p = states['s1'].p*2.0
-        if cfg['tunnel_mode'] == 'expansion-tube':
-            states['s5'].p = states['s5'].p*2.0
-        
-    if cfg['test'] == "fulltheory-shock" and cfg['shock_switch']: #cut fill pressure's in half at the end
-        states['s1'].p = states['s1'].p*2.0
-        if cfg['tunnel_mode'] == 'expansion-tube':
-            states['s5'].p = states['s5'].p*2.0
-        
     #----------- test time calculations -------------------------------
     
     #see if we're able to calculate test time
@@ -380,6 +366,7 @@ if __name__ == '__main__':
         print "chrishe-full-theory-eq: fully theoretical equilibrium demo of one of my He conditions with secondary driver."
         print "chrishe-full-theory-pg: fully theoretical perfect gas demo of one of my He conditions with secondary driver."
         print "dave-scramjet-p: a fully theoretical test of one of David Gildfind's scramjet conditions that iterates through fill pressures."
+        print "dave-scramjet-p-pg: a fully theoretical pg test of one of David Gildfind's scramjet conditions that iterates through fill pressures."
         print "dave-scramjet-s: a fully theoretical test of one of David Gildfind's scramjet conditions that iterates through shock speeds."
         print "dave-scramjet-tunnel: a recreation of one of Dave's scramjet conditions using test data."
         print "x3: basic x3 scramjet condition example."
@@ -484,9 +471,20 @@ if __name__ == '__main__':
                    'mode':'printout', 'area_ratio':2.5,
                    'facility':'x2', 'nozzle':True, 'secondary': True,
                    'driver_gas':'He:0.80,Ar:0.20', 'test_gas':'air',
-                   'psd1':100000.0, 'p1':486000.0, 'p5':1500, 
+                   'psd1':100000.0, 'p1':486000.0, 'p5':1500.0, 
                    'shock_switch':True, 'filename':demo}
-            run_pitot(cfg=cfg)          
+            run_pitot(cfg=cfg)
+            
+        elif demo == 'dave-scramjet-p-pg':
+            print "This is the demo of pitot recreating one of Dave Gildfind's scramjet conditions that iterates through fill pressures."
+            print " "
+            cfg = {'solver':'pg', 'test':'fulltheory-pressure',
+                   'mode':'printout', 'area_ratio':2.5,
+                   'facility':'x2', 'nozzle':True, 'secondary': True,
+                   'driver_gas':'He:0.80,Ar:0.20', 'test_gas':'air',
+                   'psd1':100000.0, 'p1':486000.0, 'p5':1500.0, 
+                   'shock_switch':True, 'filename':demo}
+            run_pitot(cfg=cfg)     
                     
         elif demo == 'dave-scramjet-s':
             print "This is the demo of pitot recreating one of Dave Gildfind's scramjet conditions that iterates through shock speeds."

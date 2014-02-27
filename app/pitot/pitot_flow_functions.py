@@ -67,13 +67,15 @@ def secondary_driver_calculation(cfg, states, V, M):
         # Across the expansion, we get a velocity, V5g.
         Vsd3g, statesd3 = finite_wave_dp('cplus', V3sg, state3s, psd3, steps=steps)
 
-        return (Vsd2g - Vsd3g)/Vsd2g  
+        return (Vsd2g - Vsd3g)/Vsd2g
+        
+    if PRINT_STATUS: print "Starting unsteady expansion of the primary driver gas into the secondary driver."
     
     if cfg['test'] == "fulltheory-shock": #get psd1 for our chosen shock speed
         cfg['psd1'] = secant(error_in_velocity_s3s_to_sd3_expansion_pressure_iterator, 5000.0, 6000.0, tol=1.0e-5,limits=[1000.0,1000000.0])
         if PRINT_STATUS: print "From secant solve: psd1 = {0} Pa".format(cfg['psd1'])
         #start using psd1 now, compute states sd1,sd2 and sd3 using the correct psd1
-        if PRINT_STATUS: print "Now that p1 is known, finding conditions at state 1 and 2."
+        if PRINT_STATUS: print "Now that psd1 is known, finding conditions at states sd2 and sd3."
         states['sd1'].set_pT(cfg['psd1'],cfg['T0'])
     
     elif cfg['test'] == "fulltheory-pressure": #get Vsd for our chosen fill pressure
@@ -83,10 +85,14 @@ def secondary_driver_calculation(cfg, states, V, M):
             cfg['Vsd'] = secant(error_in_velocity_s3s_to_sd3_driver_expansion_shock_speed_iterator, 7000.0, 8000.0, tol=1.0e-5,limits=[1000.0,1000000.0]) 
         if PRINT_STATUS: print "From secant solve: Vsd = {0} m/s".format(cfg['Vsd'])
         #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
-        if PRINT_STATUS: print "Now that Vsd is known, finding conditions at state sd1 and sd2."
+        if PRINT_STATUS: print "Now that Vsd is known, finding conditions at states sd2 and sd3."
     
     (Vsd2, V['sd2']) = normal_shock(states['sd1'], cfg['Vsd'], states['sd2'])
     V['sd3'], states['sd3'] = finite_wave_dv('cplus', V['s3s'], states['s3s'], V['sd2'], steps=cfg['secondary_driver_expansion_steps'])
+
+    if PRINT_STATUS: 
+        print "state sd2: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['sd2'].p, states['sd2'].T) 
+        print "state sd3: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['sd3'].p, states['sd3'].T) 
 
     #get mach numbers for the txt_output
     cfg['Msd1'] = cfg['Vsd']/states['sd1'].a
@@ -116,7 +122,7 @@ def shock_tube_calculation(cfg, states, V, M):
         
         print "current guess for p1 = {0} Pa".format(p1)            
         
-        state1.set_pT(p1,300.0) #set s1 at set pressure and ambient temp
+        state1.set_pT(p1, 300.0) #set s1 at set pressure and ambient temp
         
         if solver == 'eq' or solver == 'pg':
             (V2, V2g) = normal_shock(state1, Vs1, state2)  
@@ -199,7 +205,8 @@ def shock_tube_calculation(cfg, states, V, M):
                                                 expansion_start_V=V[cfg['shock_tube_expansion']],                    
                                                 state1=states['s1'], state2=states['s2'],
                                                 solver=cfg['solver'], test_gas=cfg['test_gas'],
-                                                steps=cfg['shock_tube_expansion_steps']):
+                                                steps=cfg['shock_tube_expansion_steps'],
+                                                gas_guess = cfg['gas_guess']):
         """Compute the velocity mismatch for a given shock speed with the shock tube
         unsteady expansion behind it.
         
@@ -207,27 +214,56 @@ def shock_tube_calculation(cfg, states, V, M):
         
         print "current guess for Vs1 = {0} m/s".format(Vs1)            
         
-        if solver == 'eq' or solver == 'pg':
-            (V2, V2g) = normal_shock(state1, Vs1, state2) 
-        elif solver == 'pg-eq': #if we're using the perfect gas eq solver, we want to make an eq state1, set it's T and p, clone it to state2_eq and then shock process it through CEA
-            if test_gas == 'mars' or test_gas == 'co2' or test_gas == 'venus':
-                state1_eq, nothing1, nothing2, nothing3 = make_test_gas(test_gas) #make eq state1
-            else: 
-                state1_eq, nothing = make_test_gas(test_gas) #make eq state1
-            state2 = state1_eq.clone() #clone state 1 to a new state2
-            #set state 2 with state 1's properties as we're about to shock it:
-            state2.p = state1.p; state2.T = state1.T
-            state2.shock_process(Vs1) #shock it
-            #now we're going to use continuity to set the gas velocity manually here:
-            V1 = Vs1
-            V2 = V1 * state1.rho / state2.rho
-            V2g = V1 - V2
+        try:
+            if solver == 'eq' or solver == 'pg':
+                try:
+                    if Vs1 > 8500:
+                        (V2, V2g) = normal_shock(state1, Vs1, state2, gas_guess)
+                    else:
+                        (V2, V2g) = normal_shock(state1, Vs1, state2)
+                except:
+                    print "Normal shock failed. Trying again with a gas guess."
+                    (V2, V2g) = normal_shock(state1, Vs1, state2, gas_guess) 
                     
+            elif solver == 'pg-eq': #if we're using the perfect gas eq solver, we want to make an eq state1, set it's T and p, clone it to state2_eq and then shock process it through CEA
+                if test_gas == 'mars' or test_gas == 'co2' or test_gas == 'venus':
+                    state1_eq, nothing1, nothing2, nothing3 = make_test_gas(test_gas) #make eq state1
+                else: 
+                    state1_eq, nothing = make_test_gas(test_gas) #make eq state1
+                state2 = state1_eq.clone() #clone state 1 to a new state2
+                #set state 2 with state 1's properties as we're about to shock it:
+                state2.p = state1.p; state2.T = state1.T
+                state2.shock_process(Vs1) #shock it
+                #now we're going to use continuity to set the gas velocity manually here:
+                V1 = Vs1
+                V2 = V1 * state1.rho / state2.rho
+                V2g = V1 - V2
+        except Exception as e:
+            print "Error {0}".format(str(e))
+            raise Exception, "pitot_flow_functions.shock_tube_calculation() Normal shock calculation in the shock tube failed."   
+        
+        # checking to make sure normal shock worked properly and the pressure rose
+        # as I had some issues with this with very low shock tube fill pressures (~1.0 Pa)
+        if abs((state2.p - state1.p) / state2.p) < 0.10:
+            print "For some reason p2 and p1 are too similar. Shock must have not occured properly."
+            print "p1 = {0} Pa, p2 = {1} Pa.".format(state1.p, state2.p)
+            raise Exception, "pitot_flow_functions.shock_tube_calculation() Normal shock calculation in the shock tube failed."
+                     
         #Across the contact surface, p3 == p2
         p3 = state2.p
         
         # Across the expansion, we get a velocity, V5g.
-        V3g, state3 = finite_wave_dp('cplus', expansion_start_V, expanding_state, p3, steps=steps)
+        try:
+            V3g, state3 = finite_wave_dp('cplus', expansion_start_V, expanding_state, p3, steps=steps)
+        except Exception as e:
+            print "Error {0}".format(str(e))
+            print "Unsteady expansion into the shock tube failed. Trying again with ions turned off."
+            expanding_state.no_ions = True
+            try:
+                V3g, state3 = finite_wave_dp('cplus', expansion_start_V, expanding_state, p3, steps=steps)
+            except Exception as e:
+                print "Error {0}".format(str(e))                
+                raise Exception, "pitot_flow_functions.shock_tube_calculation() Unsteady expansion into the shock tube failed." 
     
         return (V2g - V3g)/V2g
 
@@ -250,22 +286,39 @@ def shock_tube_calculation(cfg, states, V, M):
                 a normal shock."""
     
             print "Current guess for Vr = {0} m/s".format(Vr)
-                
-            V3, V3g = normal_shock(statesd2, Vsd2g-Vr, state3)
             
-            print "V2g = {0}, V3g = {1}, V3 = {2}.".format(V2g, V3g, V3)
+            print "-"*60            
+            
+            print "Vsd2g = {0} m/s.".format(Vsd2g)
+            print "Mr = {0}.".format((Vsd2g-Vr)/statesd2.a)
+            
+            try:
+                V3, V3g = normal_shock(statesd2, Vsd2g-Vr, state3)
+            except Exception as e:
+                print "Error {0}".format(str(e))
+                raise Exception, "Normal shock calculation failed with the current Vr guess." 
+            
+            #print "V2g = {0}, V3g = {1}, V3 = {2}.".format(V2g, V3g, V3)
+            
+            velocity_difference = abs((V3g-V2g)/V3g)*100.0
+            
+            print "V2g = {0}, V3g = {1}, difference = {2} %.".format(V2g, V3g, velocity_difference)
+            
+            print "-"*60
     
             return (V3g-V2g)/V3g
     
-        Vr = secant(reflected_shock_speed_iterator, 2000.0, -2000.0, tol=1.0e-4, limits=[-5000, 4000.0])
+        Vr = secant(reflected_shock_speed_iterator, -1000.0, -1200.0, tol=1.0e-4, limits=[-4000, 400.0])
     
         V3,V3g = normal_shock(statesd2,Vsd2g-Vr,state3)
         
-        print "p2 = {0} Pa, p3 = {1} Pa.".format(state2.p, state3.p)
+        pressure_difference = abs((state3.p - state2.p) / state3.p) *100.0 
+        
+        print "p2 = {0} Pa, p3 = {1} Pa, difference = {2} %.".format(state2.p, state3.p, pressure_difference)
         
         print "-"*60
     
-        return (state3.p-state2.p)/state2.p
+        return (state3.p-state2.p)/state3.p
 
 
     #----------------------- shock tube calculations --------------------------------                           
@@ -290,26 +343,34 @@ def shock_tube_calculation(cfg, states, V, M):
         
     elif cfg['test'] =="fulltheory-pressure": #get Vs1 for our chosen fill pressure
         if cfg['shock_switch']: #if we've been told to do a shock here instead of an expansion, do a shock instead of an expansion
-            if PRINT_STATUS: print "The shock switch is turned on, therefore doing a shock here instead of the normal expansion... Turn this off if you didn't want it"
-            if PRINT_STATUS: print "Current settings with the shock switch turned on here HALF the selected p1 and p5 to match experiment."
-            if PRINT_STATUS: print "the fill pressure's will be returned back to normal when the results are printed at the end..."
-            # am trying out not dropping the fill pressure for a bit...
-            #states['s1'].p = states['s1'].p/2.0
-            #states['s5'].p = states['s5'].p/2.0
-            states['s1'].p = states['s1'].p
-            states['s5'].p = states['s5'].p          
-            cfg['Vs1'] = secant(primary_shock_speed_reflected_iterator, 4500.0, 5000.0, tol=1.0e-5,limits=[2900.0,10000.0])
+            if PRINT_STATUS: print "The shock switch is turned on, therefore doing a shock here instead of the normal expansion... Turn this off if you didn't want it" 
+            cfg['Vs1'] = secant(primary_shock_speed_reflected_iterator, 2000.0, 1500.0, tol=1.0e-5,limits=[500.0,10000.0])
         else: #just do the expansion
             if cfg['secondary']:
                 if PRINT_STATUS: print "Starting unsteady expansion of the secondary driver gas into the shock tube."
             else:
                 if PRINT_STATUS: print "Starting unsteady expansion of the driver gas into the shock tube."
             if cfg['tunnel_mode'] == 'expansion-tube':
-                if cfg['p1'] > 1000.0:
-                    cfg['Vs1_guess_1'] = 4000.0; cfg['Vs1_guess_2'] = 6000.0
+                if 'Vs1_guess_1' not in cfg and 'Vs1_guess_2' not in cfg:
+                    if cfg['p1'] > 1000.0:
+                        cfg['Vs1_guess_1'] = 4000.0; cfg['Vs1_guess_2'] = 6000.0
+                    elif cfg['p1'] < 100.0:
+                        cfg['Vs1_guess_1'] = 10000.0; cfg['Vs1_guess_2'] = 12000.0
+                    else:
+                        cfg['Vs1_guess_1'] = 6000.0; cfg['Vs1_guess_2'] = 8000.0
                 else:
-                    cfg['Vs1_guess_1'] = 6000.0; cfg['Vs1_guess_2'] = 8000.0
-                cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, cfg['Vs1_guess_1'], cfg['Vs1_guess_2'], tol=1.0e-3,limits=[1000.0,1000000.0])
+                    print "Using custom guesses for Vs1 secant solver."
+                    print "('Vs1_guess_1' = {0} m/s and 'Vs1_guess_2' = {1} m/s)".\
+                          format(cfg['Vs1_guess_1'], cfg['Vs1_guess_2'])
+                if 'Vs1_lower' not in cfg and 'Vs1_upper' not in cfg:
+                        cfg['Vs1_lower'] = 1000.0; cfg['Vs1_upper'] = 1000000.0                
+                else:
+                    print "Using custom limits for Vs1 secant solver."
+                    print "('Vs1_lower' = {0} m/s and 'Vs1_upper' = {1} m/s)".\
+                          format(cfg['Vs1_lower'], cfg['Vs1_upper'])
+                cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, 
+                                    cfg['Vs1_guess_1'], cfg['Vs1_guess_2'],
+                                    tol=1.0e-3,limits=[cfg['Vs1_lower'], cfg['Vs1_upper']])
             elif cfg['tunnel_mode'] == 'nr-shock-tunnel': #start with a higher speed guess in nr-shock-tunnel mode
                 if cfg['secondary']:
                     cfg['Vs1_guess_1'] = cfg['Vsd']+5000.0; cfg['Vs1_guess_2'] = cfg['Vsd']+6000.0
@@ -318,8 +379,16 @@ def shock_tube_calculation(cfg, states, V, M):
                 cfg['Vs1'] = secant(error_in_velocity_shock_tube_expansion_shock_speed_iterator, cfg['Vs1_guess_1'], cfg['Vs1_guess_2'], tol=1.0e-3,limits=[1000.0,1000000.0])
         if PRINT_STATUS: print "From secant solve: Vs1 = {0} m/s".format(cfg['Vs1'])
         #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
-        if PRINT_STATUS: print "Now that Vs1 is known, finding conditions at state 1 and 2."
-    (V2, V['s2']) = normal_shock(states['s1'], cfg['Vs1'], states['s2'])
+        if PRINT_STATUS: print "Now that Vs1 is known, finding conditions at states 2 and 3."
+        # first do the normal shock
+        try:
+            if cfg['Vs1'] > 8500:
+                (V2, V['s2']) = normal_shock(states['s1'], cfg['Vs1'], states['s2'], cfg['gas_guess'])
+            else:
+                (V2, V['s2']) = normal_shock(states['s1'], cfg['Vs1'], states['s2'])
+        except:
+            print "Normal shock failed. Trying again with a gas guess."
+            (V2, V['s2']) = normal_shock(states['s1'], cfg['Vs1'], states['s2'], cfg['gas_guess'])
     if cfg['solver'] == 'pg-eq': #if we're using the pg-eq solver this is the point where we move from pg to eq gas objects
         if cfg['test_gas'] == 'mars' or cfg['test_gas'] == 'co2' or cfg['test_gas'] == 'venus':
             states['s1-eq'], nothing1, nothing2, nothing3 = make_test_gas(cfg['test_gas']) #make eq state1
@@ -341,20 +410,43 @@ def shock_tube_calculation(cfg, states, V, M):
         if PRINT_STATUS: print "Need to reiterate to find Vr again here..."   
         def reflected_shock_speed_iterator(Vr,statesd2=states['sd2'],
                                            Vsd2g=V[cfg['shock_tube_expansion']],
-                                            state3=states['s3'], V2g=V['s2']):
+                                            state3=states['s3'], V2g=V['s2']):    
             """iterates out the reflected shock speed that gives the right velocity behind
                 a normal shock."""
     
             print "Current guess for Vr = {0} m/s".format(Vr)
+            
+            print "-"*60            
+            
+            print "Vsd2g = {0} m/s.".format(Vsd2g)
+            print "Mr = {0}.".format((Vsd2g-Vr)/statesd2.a)
+            
+            try:
+                V3, V3g = normal_shock(statesd2, Vsd2g-Vr, state3)
+            except Exception as e:
+                print "Error {0}".format(str(e))
+                raise Exception, "Normal shock calculation failed with the current Vr guess." 
+            
+            #print "V2g = {0}, V3g = {1}, V3 = {2}.".format(V2g, V3g, V3)
+            
+            velocity_difference = abs((V3g-V2g)/V3g)*100.0
+            
+            print "V2g = {0}, V3g = {1}, difference = {2} %.".format(V2g, V3g, velocity_difference)
+            
+            print "-"*60
     
-            V3, V3g = normal_shock(statesd2, Vsd2g-Vr, state3)
-    
-            return (V3-(V2g+Vr))/V3
+            return (V3g-V2g)/V3g
         
-        Vr = secant(reflected_shock_speed_iterator, 100.0, 200.0, tol=1.0e-4)
-        (V3,Vjunk) = normal_shock(states['sd2'],V[cfg['shock_tube_expansion']]+Vr,states['s3'])
+        cfg['Vr'] = secant(reflected_shock_speed_iterator, -1000.0, -1200.0, tol=1.0e-4, limits=[-4000, 400.0])
+        cfg['Mr'] = cfg['Vr']/states['sd2'].a
+        
+        (V3,Vjunk) = normal_shock(states['sd2'],V[cfg['shock_tube_expansion']] - cfg['Vr'],states['s3'])
     else:
         V['s3'], states['s3'] = finite_wave_dv('cplus', V[cfg['shock_tube_expansion']], states[cfg['shock_tube_expansion']], V['s2'],cfg['shock_tube_expansion_steps'])
+    
+    if PRINT_STATUS: 
+        print "state 2: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s2'].p, states['s2'].T) 
+        print "state 3: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s3'].p, states['s3'].T) 
     
     #get mach numbers for the txt_output
     cfg['Ms1'] = cfg['Vs1']/states['s1'].a
@@ -454,18 +546,19 @@ def acceleration_tube_calculation(cfg, states, V, M):
             # the unsteady expansion work (as state 2 is expanding into state 7)
             states['s2'].with_ions = False 
         if cfg['Vs1'] < 2000.0 and 'Vs2_lower' and 'Vs2_upper' not in cfg:
-            cfg['Vs2_lower'] = cfg['Vs1'] + 1000.0; cfg['Vs2_upper'] = 25000.0
+            cfg['Vs2_lower'] = cfg['Vs1'] + 2000.0; cfg['Vs2_upper'] = 25000.0
         elif cfg['Vs1'] >= 2000.0 and 'Vs2_lower' and 'Vs2_upper' not in cfg:
             cfg['Vs2_lower'] = cfg['Vs1'] + 1000.0; cfg['Vs2_upper'] = 25000.0
         if 'Vs2_guess_1' not in cfg and 'Vs2_guess_2' not in cfg:
             cfg['Vs2_guess_1'] = cfg['Vs1']+7000.0; cfg['Vs2_guess_2'] = 15100.0
         cfg['Vs2'] = secant(error_in_pressure_s2_expansion_shock_speed_iterator, \
         cfg['Vs2_guess_1'], cfg['Vs2_guess_2'], tol=1.0e-5,limits=[cfg['Vs2_lower'],cfg['Vs2_upper']])
-        print "original Vs2 thrown out = {0} m/s.".format(cfg['Vs2'])
-        cfg['Vs2'] = cfg['Vs2']*cfg['expansion_factor'] #need to take account of this...
         if PRINT_STATUS: print "From secant solve: Vs2 = {0} m/s".format(cfg['Vs2'])
-        #start using Vs1 now, compute states 1,2 and 3 using the correct Vs1
-        if PRINT_STATUS: print "Now that Vs2 is known, finding conditions at state 5 and 6."
+        cfg['Vs2'] = cfg['Vs2']*cfg['expansion_factor'] #need to take account of this...
+        if PRINT_STATUS: print "Vs2 (with expansion factor multiplier of {0}) = {1} m/s"\
+        .format(cfg['expansion_factor'] ,cfg['Vs2'])        
+
+        if PRINT_STATUS: print "Now that Vs2 is known, finding conditions at state 6 and 7."
     elif cfg['test'] == 'experiment':
         if cfg['state7_no_ions']:
             # Need to turn ions off for state 2 here if it is required to make 
@@ -489,6 +582,10 @@ def acceleration_tube_calculation(cfg, states, V, M):
     cfg['Ms2'] = cfg['Vs2']/states['s5'].a
     M['s6'] = V['s6']/states['s6'].a
     M['s7']= V['s7']/states['s7'].a
+    
+    if PRINT_STATUS: 
+        print "state 6: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s6'].p, states['s6'].T) 
+        print "state 7: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s7'].p, states['s7'].T) 
     
     if PRINT_STATUS: print '-'*60
     
@@ -517,6 +614,9 @@ def rs_calculation(cfg, states, V, M):
     V['s5'] = 0.0
     M['s5']= V['s5']/states['s5'].a
     
+    if PRINT_STATUS: 
+        print "state 5: p = {0:.2f} Pa, T = {1:.2f} K.".format(states['s5'].p, states['s5'].T)     
+        
     return cfg, states, V, M
     
 #----------------------------------------------------------------------------    

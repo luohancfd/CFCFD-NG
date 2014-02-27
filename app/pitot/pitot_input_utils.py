@@ -297,6 +297,9 @@ def input_checker(cfg):
     if 'conehead' in cfg and 'conehead_angle' not in cfg:
         print "conehead angle not specified. 15 degree conehead angle selected."
         cfg['conehead_angle'] = 15.0
+
+    if 'wedge' not in cfg:
+        cfg['wedge'] = False
         
     if 'wedge' in cfg and 'wedge_angle' not in cfg:
         print "Wedge angle not specified. 15 degree wedge angle selected."
